@@ -907,29 +907,29 @@ inline void dtransmat(TransmissionMatrix& T,
 
 
 
-void stepwise_transmission(TransmissionMatrix& PiT,
+void stepwise_transmission(TransmissionMatrix& PiTf,
                            TransmissionMatrix& T,
                            ArrayOfTransmissionMatrix& dT1,
                            ArrayOfTransmissionMatrix& dT2,
-                           const TransmissionMatrix& PiT_last,
+                           const TransmissionMatrix& PiTf_last,
                            const PropagationMatrix& K1,
                            const PropagationMatrix& K2,
                            const ArrayOfPropagationMatrix& dK1,
                            const ArrayOfPropagationMatrix& dK2,
                            const Numeric& r,
-                           const bool& first,
+                           const bool first,
                            const Numeric& dr_dtemp1,
                            const Numeric& dr_dtemp2,
                            const Index temp_deriv_pos)
 {
   if(first)
-    PiT.setIdentity();
+    PiTf.setIdentity();
   else {
     if(not dT1.nelem())
       transmat(T, K1, K2, r);
     else
       dtransmat(T, dT1, dT2, K1, K2, dK1, dK2, r, dr_dtemp1, dr_dtemp2, temp_deriv_pos);
-    PiT.mul(PiT_last, T);
+    PiTf.mul(PiTf_last, T);
   }
 }
 
@@ -1013,14 +1013,13 @@ void update_radiation_vector(RadiationVector& I,
                              const TransmissionMatrix& PiT,
                              const ArrayOfTransmissionMatrix& dT1,
                              const ArrayOfTransmissionMatrix& dT2,
-                             const RadiativeTransferSolver solver
-                            )
+                             const RadiativeTransferSolver solver)
 {
   switch(solver) {
     case RadiativeTransferSolver::Emission:
       I.rem_avg(J1, J2);
       for(size_t i=0; i<dI1.size(); i++) {
-        dI1[i].setDerivEmission(PiT, dT1[i], T, I, dJ1[i]);
+        dI1[i].addDerivEmission(PiT, dT1[i], T, I, dJ1[i]);
         dI2[i].addDerivEmission(PiT, dT2[i], T, I, dJ2[i]);
       }
       I.leftMul(T);
@@ -1029,13 +1028,130 @@ void update_radiation_vector(RadiationVector& I,
       
     case RadiativeTransferSolver::Transmission:
       for(size_t i=0; i<dI1.size(); i++) {
-        dI1[i].setDerivTransmission(PiT, dT1[i], I);
+        dI1[i].addDerivTransmission(PiT, dT1[i], I);
         dI2[i].addDerivTransmission(PiT, dT2[i], I);
       }
       I.leftMul(T);
       break;
   }
 }
+
+
+// TEST CODE BEGIN
+ArrayOfTransmissionMatrix cumulative_transmission(const ArrayOfTransmissionMatrix& T, const CumulativeTransmission type)
+{
+  /* 
+   * These are implicitly demanded to be true:
+   * na > 0
+   * for(const auto& t: T) t.Frequencies() == T[0].Frequencies()
+   * for(const auto& t: T) t.StokesDim() == T[0].StokesDim()
+   */
+  
+  const Index na = T.nelem();
+  const Index nf = T[0].Frequencies();
+  const Index ns = T[0].StokesDim();
+  
+  ArrayOfTransmissionMatrix PiT(na, TransmissionMatrix(nf, ns));  // Initialize as identity matrix
+  switch(type) {
+    case CumulativeTransmission::Forward:  // Forward is the forward calculations with T[0] as the identity matrix.
+      for(Index i=1; i<na; i++)
+        PiT[i].mul(PiT[i-1], T[i]);  // First reads PiT[1] = PiT[0] * T[1]
+      break;
+    case CumulativeTransmission:: Reflected:  // Reflected is the backwards calculations with T[0] as the identity matrix
+      for(Index i=na-1; i>0; i++)
+        PiT[na-i].mul(PiT[na-1-i], T[i]);  // First reads: PiT[1] = PiT[0] * T[-1]
+      break;
+  }
+  return PiT;
+}
+
+
+void set_backscatter_radiation_vector(ArrayOfRadiationVector& I,
+                                      ArrayOfArrayOfRadiationVector& dI,
+                                      const ArrayOfTransmissionMatrix& T,
+                                      const ArrayOfTransmissionMatrix& PiTf,
+                                      const ArrayOfTransmissionMatrix& PiTr,
+                                      const ArrayOfTransmissionMatrix& Z,
+                                      const ArrayOfArrayOfTransmissionMatrix& dT1,
+                                      const ArrayOfArrayOfTransmissionMatrix& dT2,
+                                      const ArrayOfArrayOfTransmissionMatrix& dZ,
+                                      const BackscatterSolver solver)
+{
+  const Index np=I.nelem();
+  const Index nv=I[0].Frequencies();
+  const Index ns=I[0].StokesDim();
+  const Index nq=dI[0].nelem();
+  
+  switch (solver) {
+    case BackscatterSolver::Commutative: {  // NOTE:  bad Jacobian...
+      for(Index ip=1; ip<np; ip++) {
+        for(Index iv=0; iv<nv; iv++) {
+          switch(ns) {
+            case 4:
+              I[ip].Vec4(iv).noalias() = PiTf[ip].Mat4(iv) * Z[ip].Mat4(iv) * PiTf[ip].Mat4(iv) * I[0].Vec4(iv);
+              for(Index iq=0; iq<nq; iq++) {
+                dI[ip][iq].Vec4(iv).noalias() = PiTf[ip].Mat4(iv) * dZ[ip][iq].Mat4(iv) * PiTf[ip].Mat4(iv) * I[0].Vec4(iv);
+              }
+              break;
+            case 3:
+              I[ip].Vec3(iv).noalias() = PiTf[ip].Mat3(iv) * Z[ip].Mat3(iv) * PiTf[ip].Mat3(iv) * I[0].Vec3(iv);
+              for(Index iq=0; iq<nq; iq++) {
+                dI[ip][iq].Vec3(iv).noalias() = PiTf[ip].Mat3(iv) * dZ[ip][iq].Mat3(iv) * PiTf[ip].Mat3(iv) * I[0].Vec3(iv);
+              }
+              break;
+            case 2:
+              I[ip].Vec2(iv).noalias() = PiTf[ip].Mat2(iv) * Z[ip].Mat2(iv) * PiTf[ip].Mat2(iv) * I[0].Vec2(iv);
+              for(Index iq=0; iq<nq; iq++) {
+                dI[ip][iq].Vec2(iv).noalias() = PiTf[ip].Mat2(iv) * dZ[ip][iq].Mat2(iv) * PiTf[ip].Mat2(iv) * I[0].Vec2(iv);
+              }
+              break;
+            case 1:
+              I[ip].Vec1(iv).noalias() = PiTf[ip].Mat1(iv) * Z[ip].Mat1(iv) * PiTf[ip].Mat1(iv) * I[0].Vec1(iv);
+              for(Index iq=0; iq<nq; iq++) {
+                dI[ip][iq].Vec1(iv).noalias() = PiTf[ip].Mat1(iv) * dZ[ip][iq].Mat1(iv) * PiTf[ip].Mat1(iv) * I[0].Vec1(iv);
+              }
+              break;
+          }
+        }
+      }
+    } break;
+    case BackscatterSolver::Full: {
+      
+      // Compute Transmission to reflection point
+      for(Index ip=np-2; ip>=0; ip--) {
+        I[ip] = I[ip+1];
+        update_radiation_vector(I[ip], dI[ip], dI[ip+1],
+                                RadiationVector(0), RadiationVector(0),
+                                ArrayOfRadiationVector(0),
+                                ArrayOfRadiationVector(0),
+                                T[ip+1], PiTf[ip],
+                                dT1[ip+1], dT2[ip+1],
+                                RadiativeTransferSolver::Transmission);
+      }
+      
+      // Compute Reflection in point
+      for(Index ip=0; ip<np; ip++) {
+        for(Index iq=0; iq<nq; iq++)
+          dI[ip][iq].setDerivReflection(I[ip], PiTr[ip], Z[ip], dZ[ip][iq]);
+        I[ip].leftMul(Z[ip]);
+      }
+      
+      // Compute Transmission back to sensor
+      for(Index refl_point=0; refl_point<np; refl_point++) {
+        for(Index ip=refl_point; ip<np-1; ip++) {
+          update_radiation_vector(I[refl_point], dI[ip], dI[ip+1],
+                                  RadiationVector(0), RadiationVector(0),
+                                  ArrayOfRadiationVector(0),
+                                  ArrayOfRadiationVector(0),
+                                  T[ip+1], PiTr[ip],
+                                  dT1[ip+1], dT2[ip+1],
+                                  RadiativeTransferSolver::Transmission);
+        }
+      }
+    } break;
+  }
+}
+// TEST CODE END
 
 
 std::ostream& operator<<(std::ostream& os, const TransmissionMatrix& tm) {

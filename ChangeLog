@@ -1,3 +1,33 @@
+2018-12-03  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1171
+	
+	* controlfiles/artscomponents/cia/*:  Updated output that
+	depended on the Jupiter data.
+	
+	* src/linefunctions.cc:  Minimal changes to use std:: 
+	more places and an update to the temperature doppler deriv.
+	
+	* src/m_oem.cc:  Placeholder code for magnetic field
+	retrieval inclusion.  Just copy-pasted from wind since 
+	they behave exactly the same in how they are passed by
+	the RTE code.
+	
+	* src/m_retrieval.cc: the same
+	
+	* src/transmissionmatrix.cc,h: An attempt to adapt the code
+	for active transmitters.  This is not straightforward for
+	me since I am not sure what parts of the derivatives you 
+	wish to ignore.  Presently has two implementations,
+	Commutative and Full.  Only for single back-scatter.  Should
+	probably "typedef MuellerMatrix TransmissionMatrix" to make
+	the names of Z and dZ better.
+	
+	The scatter solver is not at all available to use and is not
+	even tested well.  I leave this code here since Patrick wanted
+	something to change iyActiveSingleScat.  I cannot follow that
+	code so I am not sure how to finish the implementation...
+
 2018-11-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1170

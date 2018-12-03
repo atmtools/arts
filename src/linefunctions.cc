@@ -44,10 +44,10 @@ extern const Numeric SPEED_OF_LIGHT;
 
 // Derived constants 
 static const Numeric invPI = 1.0 / PI;
-static const Numeric sqrtInvPI =  sqrt(invPI);
-static const Numeric sqrtPI = sqrt(PI);
+static const Numeric sqrtInvPI =  std::sqrt(invPI);
+static const Numeric sqrtPI = std::sqrt(PI);
 static const Numeric C1 = - PLANCK_CONST / BOLTZMAN_CONST;
-static const Numeric doppler_const = sqrt(2.0 * BOLTZMAN_CONST * AVOGADROS_NUMB ) / SPEED_OF_LIGHT; 
+static const Numeric doppler_const = std::sqrt(2.0 * BOLTZMAN_CONST * AVOGADROS_NUMB ) / SPEED_OF_LIGHT; 
 
 
 void Linefunctions::set_lineshape(ComplexVectorView F, 
@@ -1091,40 +1091,31 @@ void Linefunctions::apply_rosenkranz_quadratic_scaling(ComplexVectorView F,
   
   const Numeric invF0 = 1.0/F0;
   const Numeric mafac = (PLANCK_CONST) / (2.0 * BOLTZMAN_CONST * T) /
-  sinh((PLANCK_CONST * F0) / (2.0 * BOLTZMAN_CONST * T)) * invF0;
+  std::sinh((PLANCK_CONST * F0) / (2.0 * BOLTZMAN_CONST * T)) * invF0;
   
   Numeric dmafac_dT_div_fun = 0;
   if(do_temperature_jacobian(derivatives_data))
-  {
     dmafac_dT_div_fun = -(BOLTZMAN_CONST*T - F0*PLANCK_CONST/
-    (2.0*tanh(F0*PLANCK_CONST/(2.0*BOLTZMAN_CONST*T))))/(BOLTZMAN_CONST*T*T);
-  }
+    (2.0*std::tanh(F0*PLANCK_CONST/(2.0*BOLTZMAN_CONST*T))))/(BOLTZMAN_CONST*T*T);
   
   Numeric fun;
   
-  for (Index iv=0; iv < nf; iv++)
-  {
+  for (Index iv=0; iv < nf; iv++) {
     fun = mafac * (f_grid[iv] * f_grid[iv]);
     F[iv] *= fun;
     
-    for(Index iq = 0; iq < nppd; iq++)
-    {
+    for(Index iq = 0; iq < nppd; iq++) {
       dF(iq, iv) *= fun;
       if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
-      {
         dF(iq, iv) += dmafac_dT_div_fun * F[iv];
-      }
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter)
-      {
+      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
         if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
-          const Numeric dmafac_dF0_div_fun = -invF0 - PLANCK_CONST/(2.0*BOLTZMAN_CONST*T*tanh(F0*PLANCK_CONST/(2.0*BOLTZMAN_CONST*T)));
+          const Numeric dmafac_dF0_div_fun = -invF0 - PLANCK_CONST/(2.0*BOLTZMAN_CONST*T*std::tanh(F0*PLANCK_CONST/(2.0*BOLTZMAN_CONST*T)));
           dF(iq, iv) += dmafac_dF0_div_fun * F[iv];
         }
       }
       else if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]]))
-      {
         dF(iq, iv) += (2.0 / f_grid[iv]) * F[iv];
-      }
     }
   }
 }
@@ -1160,34 +1151,27 @@ void Linefunctions::apply_VVH_scaling(ComplexVectorView F,
   const Numeric kT = 2.0 * BOLTZMAN_CONST * T;
   
   // denominator is constant for the loop
-  const Numeric tanh_f0part = tanh(PLANCK_CONST * F0 / kT);
+  const Numeric tanh_f0part = std::tanh(PLANCK_CONST * F0 / kT);
   const Numeric denom = F0 * tanh_f0part;
   
-  for(Index iv=0; iv < nf; iv++)
-  {
-    const Numeric tanh_fpart = tanh( PLANCK_CONST * f_grid[iv] / kT );
+  for(Index iv=0; iv < nf; iv++) {
+    const Numeric tanh_fpart = std::tanh( PLANCK_CONST * f_grid[iv] / kT );
     const Numeric fun = f_grid[iv] * tanh_fpart / denom;
     F[iv] *= fun;
     
-    for(Index iq = 0; iq < nppd; iq++)
-    {
+    for(Index iq = 0; iq < nppd; iq++) {
       dF(iq, iv) *= fun;
       if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
-      {
         dF(iq, iv) += (-PLANCK_CONST*(denom - F0/tanh_f0part - 
         f_grid[iv]*tanh_fpart + f_grid[iv]/tanh_fpart)/(kT*T)) * F[iv];
-      }
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter)
-      {
+      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
         if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
           const Numeric fac_df0 = (-1.0/F0 + PLANCK_CONST*tanh_f0part/(kT) - PLANCK_CONST/(kT*tanh_f0part)) * F0/F0;
           dF(iq, iv) += fac_df0 * F[iv];
         }
       }
       else if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]]))
-      {
         dF(iq, iv) += (1.0/f_grid[iv] -PLANCK_CONST*tanh_fpart/kT + PLANCK_CONST/(kT*tanh_fpart)) * F[iv];
-      }
     }
   }
 }
@@ -1221,29 +1205,24 @@ void Linefunctions::apply_VVW_scaling(ComplexVectorView F,
   const Numeric invF0 = 1.0 / F0;
   const Numeric invF02 = invF0 * invF0;
   
-  for(Index iv = 0; iv < nf; iv++)
-  {
+  for(Index iv = 0; iv < nf; iv++) {
     // Set the factor
     const Numeric fac = f_grid[iv] * f_grid[iv] * invF02;
     
     // Set the line shape
     F[iv] *= fac;
     
-    for(Index iq = 0; iq < nppd; iq++)
-    {
+    for(Index iq = 0; iq < nppd; iq++) {
       // The factor is applied to all partial derivatives
       dF(iq, iv) *= fac;
       
       // These partial derivatives are special
-      if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter)
-      {
+      if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
         if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
           dF(iq, iv) -= 2.0 * invF0 * F[iv] ;
       }
       else if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]]))
-      {
         dF(iq, iv) += 2.0 / f_grid[iv] * F[iv];
-      }
     }
   }
 }
@@ -1651,7 +1630,7 @@ void Linefunctions::apply_linefunctiondata_jacobian_scaling(ComplexMatrixView dF
  */
 Numeric Linefunctions::DopplerConstant(const Numeric& T, const Numeric& mass)
 {
-  return doppler_const * sqrt(T / mass);
+  return doppler_const * std::sqrt(T / mass);
 }
 
 
@@ -1663,7 +1642,7 @@ Numeric Linefunctions::DopplerConstant(const Numeric& T, const Numeric& mass)
  */
 Numeric Linefunctions::dDopplerConstant_dT(const Numeric& T, const Numeric& mass)
 {
-  return doppler_const * 0.5 * sqrt(1.0 / mass / T);
+  return 0.5 * doppler_const / std::sqrt(T * mass);
 }
 
 
@@ -2492,7 +2471,7 @@ ArrayOfArrayOfIndex Linefunctions::binary_boundaries(const Numeric& F0,
   assert(steps > 1 and steps % 2);
   
   const Index& nf  = f_grid.nelem();
-  const Numeric ds = binary_speedup_coef * sqrt(GD_div_F0*GD_div_F0*F0*F0 + G0*G0);
+  const Numeric ds = binary_speedup_coef * std::sqrt(GD_div_F0*GD_div_F0*F0*F0 + G0*G0);
   
   const Numeric df = f_grid[1] - f_grid[0];
   const Index i0   = first_binary_level(binary_central_step_size(ds, 0, 0), df, binary_frequency_count);

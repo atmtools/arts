@@ -3,11 +3,11 @@
 <Array type="PropagationMatrix" nelem="2">
 <PropagationMatrix>
 <Tensor4 nbooks="1" npages="1" nrows="11" ncols="1">
+1.25728026368014e-13
 0
-0.00253736322265568
-0.00515016622538005
-0.00689376751309897
-0.0085455109422021
+0
+0
+0
 0
 0
 0

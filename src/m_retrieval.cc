@@ -1064,6 +1064,33 @@ void retrievalAddWind(Workspace& ws,
                         covmat_inv_block);
 }
 
+/*void retrievalAddMag(Workspace& ws,
+                     CovarianceMatrix& covmat_sx,
+                     ArrayOfRetrievalQuantity& jacobian_quantities,
+                     Agenda& jacobian_agenda,
+                     const Index& atmosphere_dim,
+                     const Sparse& covmat_block,
+                     const Sparse& covmat_inv_block,
+                     const Vector& p_grid,
+                     const Vector& lat_grid,
+                     const Vector& lon_grid,
+                     const Vector& rq_p_grid,
+                     const Vector& rq_lat_grid,
+                     const Vector& rq_lon_grid,
+                     const String& component,
+                     const Numeric& dB,
+                     const Verbosity& verbosity)
+{
+  if(component not_eq "u" or component not_eq "v" or component not_eq "w")
+    throw std::runtime_error("Bad component, must be \"u\", \"v\", or \"w\" for builtin retrievals");
+  jacobianAddMagField(ws, jacobian_quantities, jacobian_agenda, atmosphere_dim, p_grid,
+                      lat_grid, lon_grid, rq_p_grid, rq_lat_grid, rq_lon_grid, component,
+                      dB, verbosity);
+  check_and_add_block(covmat_sx, jacobian_quantities.back(), jacobian_quantities.nelem() - 1,
+                      atmosphere_dim, covmat_block,
+                      covmat_inv_block);
+}*/
+
 void retrievalAddTemperature(Workspace& ws,
                              CovarianceMatrix& covmat_sx,
                              ArrayOfRetrievalQuantity& jacobian_quantities,

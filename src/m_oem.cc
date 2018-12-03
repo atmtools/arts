@@ -65,6 +65,7 @@ extern const String SCATSPECIES_MAINTAG;
 extern const String SINEFIT_MAINTAG;
 extern const String SURFACE_MAINTAG;
 extern const String WIND_MAINTAG;
+//extern const String MAGFIELD_MAINTAG;
 
 
 
@@ -549,6 +550,9 @@ void xaStandard(
    const Tensor3&                    wind_u_field,
    const Tensor3&                    wind_v_field,
    const Tensor3&                    wind_w_field,
+   /*const Tensor3&                    mag_u_field,
+   const Tensor3&                    mag_v_field,
+   const Tensor3&                    mag_w_field,*/
    const Tensor3&                    surface_props_data,
    const ArrayOfString&              surface_props_names,
    const Agenda&                     water_p_eq_agenda,   
@@ -757,6 +761,29 @@ void xaStandard(
                                 gp_p, gp_lat, gp_lon);
           flat(xa[ind], wind_x);
       }
+      
+      
+      /*// Magnetism
+      else if( jacobian_quantities[q].MainTag() == MAGFIELD_MAINTAG)
+      {
+        ConstTensor3View source_field(mag_u_field);
+        if (jacobian_quantities[q].Subtag() == "v") {
+          source_field = mag_v_field;
+        } else if (jacobian_quantities[q].Subtag() == "w") {
+          source_field = mag_w_field;
+        }
+        
+        // Determine grid positions for interpolation from retrieval grids back
+        // to atmospheric grids
+        ArrayOfGridPos gp_p, gp_lat, gp_lon;
+        get_gp_atmgrids_to_rq(gp_p, gp_lat, gp_lon, jacobian_quantities[q],
+                              atmosphere_dim, p_grid, lat_grid, lon_grid);
+        
+        Tensor3 mag_x(gp_p.nelem(), gp_lat.nelem(), gp_lon.nelem());
+        regrid_atmfield_by_gp(mag_x, atmosphere_dim, source_field,
+                              gp_p, gp_lat, gp_lon);
+        flat(xa[ind], mag_x);
+      }*/
 
       
       // Surface
@@ -827,6 +854,9 @@ void x2artsAtmAndSurf(
          Tensor3&                    wind_u_field,
          Tensor3&                    wind_v_field,
          Tensor3&                    wind_w_field,
+         /*Tensor3&                    mag_u_field,
+         Tensor3&                    mag_v_field,
+         Tensor3&                    mag_w_field,*/
          Tensor3&                    surface_props_data,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const Vector&                     x,
@@ -1067,6 +1097,39 @@ void x2artsAtmAndSurf(
               wind_w_field = wind_field;
           }
         }
+
+
+      /*// Magnetism
+      // ----------------------------------------------------------------------------
+      else if( jacobian_quantities[q].MainTag() == MAGFIELD_MAINTAG)
+        {
+          // Determine grid positions for interpolation from retrieval grids back
+          // to atmospheric grids
+          ArrayOfGridPos gp_p, gp_lat, gp_lon;
+          Index          n_p, n_lat, n_lon;
+          get_gp_rq_to_atmgrids( gp_p, gp_lat, gp_lon, n_p, n_lat, n_lon,
+                                 jacobian_quantities[q], atmosphere_dim,
+                                 p_grid, lat_grid, lon_grid );
+
+          // TODO Could be done without copying.
+          Tensor3 mag_x(n_p, n_lat, n_lon);
+          reshape(mag_x, x_t[ind]);
+
+          Tensor3View target_field(mag_u_field);
+
+          Tensor3 mag_field(target_field.npages(), target_field.nrows(),
+                             target_field.ncols());
+          regrid_atmfield_by_gp(mag_field, atmosphere_dim, mag_x,
+                                 gp_p, gp_lat, gp_lon);
+
+          if (jacobian_quantities[q].Subtag() == "u") {
+              wind_u_field = mag_field;
+          } else if (jacobian_quantities[q].Subtag() == "v") {
+              wind_v_field = mag_field;
+          } else if (jacobian_quantities[q].Subtag() == "w") {
+              wind_w_field = mag_field;
+          }
+        }*/
 
       
       // Surface

@@ -170,18 +170,6 @@ public:
     for(size_t i=0; i<R1.size(); i++) R1[i].noalias() += 0.5 * (O1.R1[i] + O2.R1[i]);
   }
   
-  void setDerivEmission(const TransmissionMatrix& PiT,
-                        const TransmissionMatrix& dT,
-                        const TransmissionMatrix& T,
-                        const RadiationVector& ImJ,
-                        const RadiationVector& dJ)
-  {
-    for(size_t i=0; i<R4.size(); i++) R4[i].noalias() = PiT.Mat4(i) * (dT.Mat4(i) * ImJ.R4[i] + dJ.R4[i] - T.Mat4(i) * dJ.R4[i]);
-    for(size_t i=0; i<R3.size(); i++) R3[i].noalias() = PiT.Mat3(i) * (dT.Mat3(i) * ImJ.R3[i] + dJ.R3[i] - T.Mat3(i) * dJ.R3[i]);
-    for(size_t i=0; i<R2.size(); i++) R2[i].noalias() = PiT.Mat2(i) * (dT.Mat2(i) * ImJ.R2[i] + dJ.R2[i] - T.Mat2(i) * dJ.R2[i]);
-    for(size_t i=0; i<R1.size(); i++) R1[i].noalias() = PiT.Mat1(i) * (dT.Mat1(i) * ImJ.R1[i] + dJ.R1[i] - T.Mat1(i) * dJ.R1[i]);
-  }
-  
   void addDerivEmission(const TransmissionMatrix& PiT,
                         const TransmissionMatrix& dT,
                         const TransmissionMatrix& T,
@@ -194,16 +182,6 @@ public:
     for(size_t i=0; i<R1.size(); i++) R1[i].noalias() += PiT.Mat1(i) * (dT.Mat1(i) * ImJ.R1[i] + dJ.R1[i] - T.Mat1(i) * dJ.R1[i]);
   }
   
-  void setDerivTransmission(const TransmissionMatrix& PiT,
-                            const TransmissionMatrix& dT,
-                            const RadiationVector& I)
-  {
-    for(size_t i=0; i<R4.size(); i++) R4[i].noalias() = PiT.Mat4(i) * dT.Mat4(i) * I.R4[i];
-    for(size_t i=0; i<R3.size(); i++) R3[i].noalias() = PiT.Mat3(i) * dT.Mat3(i) * I.R3[i];
-    for(size_t i=0; i<R2.size(); i++) R2[i].noalias() = PiT.Mat2(i) * dT.Mat2(i) * I.R2[i];
-    for(size_t i=0; i<R1.size(); i++) R1[i].noalias() = PiT.Mat1(i) * dT.Mat1(i) * I.R1[i];
-  }
-  
   void addDerivTransmission(const TransmissionMatrix& PiT,
                             const TransmissionMatrix& dT,
                             const RadiationVector& I)
@@ -212,6 +190,17 @@ public:
     for(size_t i=0; i<R3.size(); i++) R3[i].noalias() += PiT.Mat3(i) * dT.Mat3(i) * I.R3[i];
     for(size_t i=0; i<R2.size(); i++) R2[i].noalias() += PiT.Mat2(i) * dT.Mat2(i) * I.R2[i];
     for(size_t i=0; i<R1.size(); i++) R1[i].noalias() += PiT.Mat1(i) * dT.Mat1(i) * I.R1[i];
+  }
+  
+  void setDerivReflection(const RadiationVector& I,
+                          const TransmissionMatrix& PiT,
+                          const TransmissionMatrix&  Z,
+                          const TransmissionMatrix& dZ)
+  {
+    for(size_t i=0; i<R4.size(); i++) R4[i] = PiT.Mat4(i) * (Z.Mat4(i) * R4[i] + dZ.Mat4(i) * I.R4[i]);
+    for(size_t i=0; i<R3.size(); i++) R3[i] = PiT.Mat3(i) * (Z.Mat3(i) * R3[i] + dZ.Mat3(i) * I.R3[i]);
+    for(size_t i=0; i<R2.size(); i++) R2[i] = PiT.Mat2(i) * (Z.Mat2(i) * R2[i] + dZ.Mat2(i) * I.R2[i]);
+    for(size_t i=0; i<R1.size(); i++) R4[i][0] = PiT.Mat1(i)[0] * (Z.Mat1(i)[0] * R1[i][0] + dZ.Mat1(i)[0] * I.R1[i][0]);
   }
   
   RadiationVector& operator=(const ConstMatrixView& M) {
@@ -307,9 +296,14 @@ std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfRadiationVector& 
 std::istream& operator>>(std::istream& is, TransmissionMatrix& tm);
 std::istream& operator>>(std::istream& is, RadiationVector& rv);
 
+enum class BackscatterSolver {
+  Commutative,
+  Full,
+};
+
 enum class RadiativeTransferSolver {
   Emission,
-  Transmission
+  Transmission,
 };
 
 void update_radiation_vector(RadiationVector& I,
@@ -338,19 +332,23 @@ void stepwise_source(RadiationVector& J,
                      const ArrayOfRetrievalQuantity& jacobian_quantities,
                      const bool& jacobian_do);
 
-void stepwise_transmission(TransmissionMatrix& PiT,
+void stepwise_transmission(TransmissionMatrix& PiTf,
                            TransmissionMatrix& T,
                            ArrayOfTransmissionMatrix& dT1,
                            ArrayOfTransmissionMatrix& dT2,
-                           const TransmissionMatrix& PiT_last,
+                           const TransmissionMatrix& PiTf_last,
                            const PropagationMatrix& K1,
                            const PropagationMatrix& K2,
                            const ArrayOfPropagationMatrix& dK1_dx,
                            const ArrayOfPropagationMatrix& dK2_dx,
                            const Numeric& r,
-                           const bool& first,
+                           const bool first,
                            const Numeric& dr_dtemp1,
                            const Numeric& dr_dtemp2,
                            const Index temp_deriv_pos);
+
+enum class CumulativeTransmission {Forward, Reflected};
+
+ArrayOfTransmissionMatrix cumulative_transmission(const ArrayOfTransmissionMatrix& I, const CumulativeTransmission type);
 
 #endif  // transmissionmatrix_h
