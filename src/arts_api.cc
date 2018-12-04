@@ -13,7 +13,6 @@ using global_data::wsv_group_names;
 using global_data::md_data;
 extern Parameters parameters;
 extern Verbosity verbosity_at_launch;
-extern void (*getaways[])(Workspace&, const MRecord&);
 Index get_wsv_id(const char*);
 
 using global_data::MdMap;
@@ -163,6 +162,15 @@ void agenda_insert_set(InteractiveWorkspace *workspace,
     a->push_back(mr);
 }
 
+void agenda_insert_callback(Agenda *a, void (*f)(InteractiveWorkspace *))
+{
+    ArrayOfIndex output(0), input(0);
+    Index id          = md_data.size() - 1;
+    Callback *pc      =  new Callback(f);
+    Index callback_id = InteractiveWorkspace::add_callback(pc);
+    a->push_back(MRecord(id, output, input, TokVal(callback_id), Agenda{}));
+}
+
 void agenda_add_method(Agenda * a,
                        const long id,
                        unsigned long n_output_args,
@@ -171,7 +179,6 @@ void agenda_add_method(Agenda * a,
                        const long *input_args)
 {
     ArrayOfIndex output, input;
-    Agenda aa{};
     TokVal t{};
     copy_output_and_input(output, input, n_output_args, output_args, n_input_args, input_args);
     MRecord mr(id, output, input, t, Agenda{});

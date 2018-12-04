@@ -427,7 +427,8 @@ int main()
                 ofs << mdd.Name() << "_g";
               }
           }
-        ofs << "};\n\n";
+        // Add empty slot which can be used by the API for external callbacks.
+        ofs << ", nullptr};\n\n";
       }
 
         // Agenda execute helper function

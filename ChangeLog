@@ -1,3 +1,16 @@
+2018-12-04  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1167
+
+	* src/make_auto_md.cc(main): Appended nullptr to getaway array, which
+	can be used by the API for external callbacks when activated.
+
+	* src/interactive_workspace.[h, cc]: Added container for callbacks
+	as well as array to store them inside the interactive workspace.
+
+	* src/arts_api.[h, cc]: Added method to insert callbacks into
+	angendas.
+
 2018-12-03  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1171

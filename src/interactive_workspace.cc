@@ -1,16 +1,34 @@
 #include "interactive_workspace.h"
-#include "global_data.h"
+#include "agenda_class.h"
 #include "auto_workspace.h"
-using global_data::md_data;
+#include "agenda_record.h"
 
 extern Verbosity verbosity_at_launch;
-extern void (*getaways[])(Workspace&, const MRecord&);
 extern WorkspaceMemoryHandler wsmh;
 extern std::string string_buffer;
+
+namespace global_data {
+    extern Array<MdRecord> md_data;
+}
+using global_data::md_data;
 
 Index get_wsv_id(const char*);
 
 size_t InteractiveWorkspace::n_anonymous_variables_ = 0;
+std::vector<Callback *> InteractiveWorkspace::callbacks_{};
+
+void callback_getaway(Workspace &ws, const MRecord &mr)
+{
+    InteractiveWorkspace &iws = *reinterpret_cast<InteractiveWorkspace*>(&ws);
+    iws.execute_callback(static_cast<Index>(mr.SetValue()));
+}
+
+MdRecord callback_mr = MdRecord("APICallback", "",
+                                ArrayOfString(), ArrayOfString(), ArrayOfString(),
+                                ArrayOfString(), ArrayOfString(), ArrayOfString(),
+                                ArrayOfString(), ArrayOfString(), ArrayOfString(),
+                                ArrayOfString(),
+                                false, false, false, false, false);
 
 InteractiveWorkspace::InteractiveWorkspace(const Index verbosity,
                                            const Index agenda_verbosity)
@@ -38,6 +56,11 @@ void InteractiveWorkspace::initialize() {
     define_species_map();
     define_lineshape_data();
     define_lineshape_norm_data();
+
+    // Add getaway for callbacks.
+    size_t n_methods = md_data.size();
+    getaways[n_methods] = &callback_getaway;
+    md_data.push_back(callback_mr);
 }
 
 

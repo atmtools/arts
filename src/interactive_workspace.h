@@ -33,6 +33,44 @@
 #include "workspace_ng.h"
 #include "agenda_class.h"
 
+extern void (*getaways[])(Workspace &, const MRecord &);
+
+class InteractiveWorkspace;
+
+//! External callbacks.
+/*!
+ * The Callback class holds references to external callback functions, that
+ * should be executed within an ARTS agenda. It is essentially a container
+ * that holds a function pointer and provides and execute method to
+ * execute the callback stored in the container.
+ *
+ * Callbacks are assumed to be provided in the form of function pointers that
+ * take as single argument the pointer to the interactive workspace within
+ * which the callback is executed.
+ */
+struct Callback {
+
+    Callback(void (*f)(InteractiveWorkspace *))
+       : _callback(f)
+    {
+        // Nothing to do here.
+    };
+
+    virtual ~Callback() {};
+
+    virtual void execute(InteractiveWorkspace &ws) {
+        (*_callback)(&ws);
+    };
+
+    void (*_callback)(InteractiveWorkspace *);
+
+};
+
+//! The interactive workspace class.
+/*!
+ * The InteractiveWorkspace class extends ARTS Workspace class with features
+ * that are required to allow interactive simulation session.
+ */
 class InteractiveWorkspace : private Workspace {
 public:
 
@@ -73,6 +111,16 @@ public:
                              const int *inner_ptr,
                              const int *outer_ptr);
     void resize();
+
+    void execute_callback(Index callback_id) {
+        callbacks_[callback_id]->execute(*this);
+    }
+
+    static Index add_callback(Callback *cb) {
+        Index id = callbacks_.size();
+        callbacks_.push_back(cb);
+        return id;
+    }
 
     //! Initialize workspace variable.
     /*!
@@ -116,6 +164,8 @@ public:
 private:
 
     static size_t     n_anonymous_variables_;
+    static std::vector<Callback*> callbacks_;
+
 };
 
 #endif // INTERACTIVE_WORKSPACE_INCLUDED

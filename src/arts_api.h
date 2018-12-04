@@ -327,6 +327,15 @@ extern "C" {
                            unsigned long n_args_in,
                            const long * args_in);
 
+    //! Insert callback into agenda.
+    /**
+     * Inserts callback to the given function object into the agenda.
+     *
+     */
+    DLL_PUBLIC
+    void agenda_insert_callback(Agenda *a,
+                                void (*f)(InteractiveWorkspace *));
+
     //! Insert a set method into an agenda.
     /**
      * This inserts a set method into the given agenda which sets the a workspace variable
@@ -334,15 +343,14 @@ extern "C" {
      *
      *  \param Pointer to the workspace
      *  \param Pointer to the agenda
-     *  \param The workspace variables which should be set to the value it currently has in
-     *  the given workspace.
-     *  \param The group_id of the workspace variable.
+     *  \param Pointer to the callback function object
+     *  \param Language type of the callback.
      */
     DLL_PUBLIC
     void agenda_insert_set(InteractiveWorkspace *ws,
-                           Agenda * a,
-                           long id,
-                           long group_id);
+                            Agenda * a,
+                            long id,
+                            long group_id);
 
     //! Append agendas.
     /*!
