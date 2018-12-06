@@ -2891,7 +2891,7 @@ void get_stepwise_scattersky_source(StokesVector& Sp,
                                  scat_data[i_ss][i_se],
                                  temperature, pdir, idir,
                                  0, t_interp_order );
-              if( !t_ok[0] )
+              if( t_ok[0] == 0 )
                 {
                   ostringstream os;
                   os << "Interpolation error for (flat-array) scattering "

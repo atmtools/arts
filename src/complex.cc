@@ -80,10 +80,10 @@ std::complex<double> operator* (const std::complex<double>& c, const float& f)
 // ------------------------------
 
 //! Returns true if variable size is zero.
-bool ConstComplexVectorView::empty() const
-{
-    return (nelem() == 0);
-}
+// bool ConstComplexVectorView::empty() const
+// {
+//     return (nelem() == 0);
+// }
 
 /** Returns the number of elements.  The names `size' and `length'
     are already used by STL functions returning size_t. To avoid
@@ -94,10 +94,10 @@ bool ConstComplexVectorView::empty() const
     PC from -2147483648 to 2147483647. This means that a 15GB large
     array of float can be addressed with this index. So the extra bit
     that size_t has compared to long is not needed. */
-Index ConstComplexVectorView::nelem() const
-{
-  return mrange.mextent;
-}
+// Index ConstComplexVectorView::nelem() const
+// {
+//   return mrange.mextent;
+// }
 
 /** The sum of all elements of a Vector. */
 Complex ConstComplexVectorView::sum() const
@@ -930,22 +930,22 @@ ComplexVector::~ComplexVector()
 // ------------------------------
 
 //! Returns true if variable size is zero.
-bool ConstComplexMatrixView::empty() const
-{
-    return (nrows() == 0 || ncols() == 0);
-}
+// bool ConstComplexMatrixView::empty() const
+// {
+//     return (nrows() == 0 || ncols() == 0);
+// }
 
 /** Returns the number of rows. */
-Index ConstComplexMatrixView::nrows() const
-{
-  return mrr.mextent;
-}
+// Index ConstComplexMatrixView::nrows() const
+// {
+//   return mrr.mextent;
+// }
 
 /** Returns the number of columns. */
-Index ConstComplexMatrixView::ncols() const
-{
-  return mcr.mextent;
-}
+// Index ConstComplexMatrixView::ncols() const
+// {
+//   return mcr.mextent;
+// }
 
 /** Const index operator for subrange. We have to also account for the
     case, that *this is already a subrange of a Matrix. This allows

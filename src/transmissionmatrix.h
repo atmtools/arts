@@ -80,6 +80,13 @@ public:
     for(auto& T: T1) T(0, 0)=1;
   }
   
+  void setZero() {
+    for(auto& T: T4) T=Eigen::Matrix4d::Zero();
+    for(auto& T: T3) T=Eigen::Matrix3d::Zero();
+    for(auto& T: T2) T=Eigen::Matrix2d::Zero();
+    for(auto& T: T1) T(0, 0)=1;
+  }
+  
   void mul(const TransmissionMatrix& A, const TransmissionMatrix& B) {
     for(size_t i=0; i<T4.size(); i++) T4[i].noalias() = A.T4[i] * B.T4[i];
     for(size_t i=0; i<T3.size(); i++) T3[i].noalias() = A.T3[i] * B.T3[i];
@@ -96,7 +103,7 @@ public:
     }
   }
   
-  Index StokesDim() const {return stokes_dim;}
+  constexpr Index StokesDim() const {return stokes_dim;}
   Index Frequencies() const {
     switch(stokes_dim) {
       case 4: return Index(T4.size());
@@ -265,7 +272,7 @@ public:
     }
   }
   
-  Index StokesDim() const {return stokes_dim;}
+  constexpr Index StokesDim() const {return stokes_dim;}
   Index Frequencies() const {
     switch(stokes_dim) {
       case 4: return Index(R4.size());
@@ -296,15 +303,11 @@ std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfRadiationVector& 
 std::istream& operator>>(std::istream& is, TransmissionMatrix& tm);
 std::istream& operator>>(std::istream& is, RadiationVector& rv);
 
-enum class BackscatterSolver {
-  Commutative,
-  Full,
-};
+enum class BackscatterSolver { Commutative_PureReflectionJacobian, Full, };
 
-enum class RadiativeTransferSolver {
-  Emission,
-  Transmission,
-};
+enum class CumulativeTransmission { Forward, Reflect, };
+
+enum class RadiativeTransferSolver { Emission, Transmission, };
 
 void update_radiation_vector(RadiationVector& I,
                              ArrayOfRadiationVector& dI1,
@@ -332,23 +335,33 @@ void stepwise_source(RadiationVector& J,
                      const ArrayOfRetrievalQuantity& jacobian_quantities,
                      const bool& jacobian_do);
 
-void stepwise_transmission(TransmissionMatrix& PiTf,
-                           TransmissionMatrix& T,
+void stepwise_transmission(TransmissionMatrix& T,
                            ArrayOfTransmissionMatrix& dT1,
                            ArrayOfTransmissionMatrix& dT2,
-                           const TransmissionMatrix& PiTf_last,
                            const PropagationMatrix& K1,
                            const PropagationMatrix& K2,
                            const ArrayOfPropagationMatrix& dK1_dx,
                            const ArrayOfPropagationMatrix& dK2_dx,
                            const Numeric& r,
-                           const bool first,
                            const Numeric& dr_dtemp1,
                            const Numeric& dr_dtemp2,
                            const Index temp_deriv_pos);
 
-enum class CumulativeTransmission {Forward, Reflected};
+ArrayOfTransmissionMatrix cumulative_transmission(const ArrayOfTransmissionMatrix& T, const CumulativeTransmission type) /*[[expects: T.nelem()>0]]*/;
 
-ArrayOfTransmissionMatrix cumulative_transmission(const ArrayOfTransmissionMatrix& I, const CumulativeTransmission type);
+void set_backscatter_radiation_vector(ArrayOfRadiationVector& I,
+                                      ArrayOfArrayOfRadiationVector& dI,
+                                      const ArrayOfTransmissionMatrix& T,
+                                      const ArrayOfTransmissionMatrix& PiTf,
+                                      const ArrayOfTransmissionMatrix& PiTr,
+                                      const ArrayOfTransmissionMatrix& Z,
+                                      const ArrayOfArrayOfTransmissionMatrix& dT1,
+                                      const ArrayOfArrayOfTransmissionMatrix& dT2,
+                                      const ArrayOfArrayOfTransmissionMatrix& dZ,
+                                      const BackscatterSolver solver);
+
+ArrayOfTransmissionMatrix cumulative_backscatter(ConstTensor5View t, ConstMatrixView m);
+
+ArrayOfArrayOfTransmissionMatrix cumulative_backscatter_derivative(ConstTensor5View t, const ArrayOfMatrix& aom);
 
 #endif  // transmissionmatrix_h

@@ -151,47 +151,33 @@ public:
     typedef ConstComplexIterator1D const_iterator;
     
     // Member functions:
-    bool empty() const;
-    Index nelem() const;
+    constexpr bool empty() const {return (nelem() == 0);}
+    constexpr Index nelem() const {return mrange.mextent;}
     Complex sum() const;
     
     // Const index operators:
     /** Plain const index operator. */
-    Complex operator[](Index n) const
+    constexpr Complex operator[](Index n) const
     { // Check if index is valid:
         assert( 0<=n );
         assert( n<mrange.mextent );
         return get(n);
     }
     
-//     /** Get element implementation without assertions. */
-//     Complex get(Index n) const
-//     {
-//         return *( mdata +
-//         mrange.mstart +
-//         n*mrange.mstride );
-//     }
-//     
-//     /** Get element implementation without assertions. */
-//     Numeric get_real(Index n) const { return get(n).real(); }
-//     
-//     /** Get element implementation without assertions. */
-//     Numeric get_imag(Index n) const { return get(n).imag(); }
-    
     /** Get element implementation without assertions. */
-    const Complex& get(Index n) const
+    constexpr const Complex& get(Index n) const
     {
-      return *( mdata +
-      mrange.mstart +
-      n*mrange.mstride );
+        return *( mdata +
+        mrange.mstart +
+        n*mrange.mstride );
     }
     
     /** Get element implementation without assertions. */
-    const Numeric& get_real(Index n) const
+    constexpr const Numeric& get_real(Index n) const
     { return reinterpret_cast<const Numeric (&)[2]>(get(n))[0]; }
     
     /** Get element implementation without assertions. */
-    const Numeric& get_imag(Index n) const
+    constexpr const Numeric& get_imag(Index n) const
     { return reinterpret_cast<const Numeric (&)[2]>(get(n))[1]; }
     
     ConstComplexVectorView operator[](const Range& r) const;
@@ -263,15 +249,15 @@ public:
     // Const index operators:
     /** Plain const index operator. Has to be redifined here, because the
      one from ConstVectorView is hidden. */                           
-     Complex operator[](Index n) const
+    constexpr Complex operator[](Index n) const
      { return ConstComplexVectorView::operator[](n); }
      
      /** Get element implementation without assertions. */
-     const Complex& get(Index n) const
+     constexpr const Complex& get(Index n) const
      { return ConstComplexVectorView::get(n); }
-     const Numeric& get_real(Index n) const
+     constexpr const Numeric& get_real(Index n) const
      { return ConstComplexVectorView::get_real(n); }
-     const Numeric& get_imag(Index n) const
+     constexpr const Numeric& get_imag(Index n) const
      { return ConstComplexVectorView::get_imag(n); }
      
      ConstComplexVectorView operator[](const Range& r) const;
@@ -524,13 +510,13 @@ public:
     typedef ConstComplexIterator2D const_iterator;
     
     // Member functions:
-    bool empty() const;
-    Index nrows() const;
-    Index ncols() const;
+    constexpr bool empty() const {return not nrows() or not ncols();}
+    constexpr Index nrows() const {return mrr.mextent;}
+    constexpr Index ncols() const {return mcr.mextent;}
     
     // Const index operators:
     /** Plain const index operator. */
-    Complex operator()(Index r, Index c) const
+    constexpr Complex operator()(Index r, Index c) const
     { // Check if indices are valid:
         assert( 0<=r );
         assert( 0<=c );
@@ -541,7 +527,7 @@ public:
     }
     
     /** Get element implementation without assertions. */
-    Complex get(Index r, Index c) const
+    constexpr Complex get(Index r, Index c) const
     {
         return *( mdata +
         mrr.mstart +
@@ -551,10 +537,10 @@ public:
     }
     
     /** Get element implementation without assertions. */
-    Numeric get_real(Index r, Index c) const { return get(r, c).real(); }
+    constexpr Numeric get_real(Index r, Index c) const { return get(r, c).real(); }
     
     /** Get element implementation without assertions. */
-    Numeric get_imag(Index r, Index c) const { return get(r, c).imag(); }
+    constexpr Numeric get_imag(Index r, Index c) const { return get(r, c).imag(); }
     
     ConstComplexMatrixView operator()(const Range& r, const Range& c) const;
     ConstComplexVectorView operator()(const Range& r, Index c) const;
@@ -631,15 +617,15 @@ public:
     // Const index operators:
     /** Plain const index operator. Has to be redefined here, since it is
      h iden by the non-const operator of the derived class. */         
-     Complex operator()(Index r, Index c) const
+    constexpr Complex operator()(Index r, Index c) const
      { return ConstComplexMatrixView::operator()(r,c); }
      
      /** Get element implementation without assertions. */
-     Complex get(Index r, Index c) const
+     constexpr Complex get(Index r, Index c) const
      { return ConstComplexMatrixView::get(r,c); }
-     Numeric get_real(Index r, Index c) const
+     constexpr Numeric get_real(Index r, Index c) const
      { return ConstComplexMatrixView::get_real(r,c); }
-     Numeric get_imag(Index r, Index c) const
+     constexpr Numeric get_imag(Index r, Index c) const
      { return ConstComplexMatrixView::get_imag(r,c); }
      
      ConstComplexMatrixView operator()(const Range& r, const Range& c) const;

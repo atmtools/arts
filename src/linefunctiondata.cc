@@ -74,7 +74,7 @@
 **********************************/
 
 //! Returns x0
-inline Numeric main_t0(const Numeric& x0) noexcept { return x0; }
+constexpr Numeric main_t0(const Numeric& x0) { return x0; }
 
 //! Returns x0 * pow(TH, x1)
 inline Numeric main_t1(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1) noexcept  { return x0 * pow(T0/T, x1); }
@@ -83,7 +83,7 @@ inline Numeric main_t1(const Numeric& T, const Numeric& T0, const Numeric& x0, c
 inline Numeric main_t2(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return x0 * pow(T0/T, x1) * (1 + x2 * log(T/T0)); }
 
 //! Returns x0 + x1 * (T - T0)
-inline Numeric main_t3(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1) noexcept { return x0 + x1 * (T - T0); }
+constexpr Numeric main_t3(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1) { return x0 + x1 * (T - T0); }
 
 //! Returns (x0 + x1 * (TH - 1)) * pow(TH, x2)
 inline Numeric main_t4(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return (x0 + x1 * (T0/T - 1.)) * pow(T0/T, x2); }
@@ -97,7 +97,7 @@ inline Numeric main_t5(const Numeric& T, const Numeric& T0, const Numeric& x0, c
 **********************************/
 
 //! Returns 1
-inline Numeric dmain_dx0_t0() noexcept { return 1.; }
+constexpr Numeric dmain_dx0_t0() { return 1; }
 
 //! Returns pow(T0/T, x1)
 inline Numeric dmain_dx0_t1(const Numeric& T, const Numeric& T0, const Numeric& x1) noexcept { return pow(T0/T, x1); }
@@ -106,7 +106,7 @@ inline Numeric dmain_dx0_t1(const Numeric& T, const Numeric& T0, const Numeric& 
 inline Numeric dmain_dx0_t2(const Numeric& T, const Numeric& T0, const Numeric& x1, const Numeric& x2) noexcept { return pow(T0/T, x1)*(x2*log(T/T0) + 1); }
 
 //! Returns 1
-inline Numeric dmain_dx0_t3() noexcept { return 1; }
+constexpr Numeric dmain_dx0_t3() { return 1; }
 
 //! Returns pow(T0/T, x2)
 inline Numeric dmain_dx0_t4(const Numeric& T, const Numeric& T0, const Numeric& x2) noexcept { return pow(T0/T, x2); }
@@ -120,7 +120,7 @@ inline Numeric dmain_dx0_t5(const Numeric& T, const Numeric& T0, const Numeric& 
 **********************************/
 
 //! Returns 0
-inline Numeric dmain_dx1_t0() noexcept { return 0.; }
+constexpr Numeric dmain_dx1_t0() { return 0.; }
 
 //! Returns x0*pow(T0/T, x1)*log(T0/T)
 inline Numeric dmain_dx1_t1(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1) noexcept { return x0*pow(T0/T, x1)*log(T0/T); }
@@ -129,7 +129,7 @@ inline Numeric dmain_dx1_t1(const Numeric& T, const Numeric& T0, const Numeric& 
 inline Numeric dmain_dx1_t2(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return x0*pow(T0/T,x1)*(x2*log(T/T0)+1.)*log(T0/T); }
 
 //! Returns (T - T0)
-inline Numeric dmain_dx1_t3(const Numeric& T, const Numeric& T0) noexcept { return (T - T0); }
+constexpr Numeric dmain_dx1_t3(const Numeric& T, const Numeric& T0) { return (T - T0); }
 
 //! Returns pow(T0/T, x2)*(T0/T - 1)
 inline Numeric dmain_dx1_t4(const Numeric& T, const Numeric& T0, const Numeric& x2) noexcept { return pow(T0/T, x2)*(T0/T - 1.); }
@@ -143,22 +143,22 @@ inline Numeric dmain_dx1_t5(const Numeric& T, const Numeric& T0, const Numeric& 
 **********************************/
 
 //! Returns 0
-inline Numeric dmain_dx2_t0() noexcept { return 0.; }
+constexpr Numeric dmain_dx2_t0() { return 0.; }
 
 //! Returns 0
-inline Numeric dmain_dx2_t1() noexcept { return 0.; }
+constexpr Numeric dmain_dx2_t1() { return 0.; }
 
 //! Returns x0*pow(T0/T, x1)*log(T/T0)
 inline Numeric dmain_dx2_t2(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1) noexcept { return x0*pow(T0/T, x1)*log(T/T0); }
 
 //! Returns 0
-inline Numeric dmain_dx2_t3() noexcept { return 0.; }
+constexpr Numeric dmain_dx2_t3() { return 0.; }
 
 //! Returns pow(T0/T, x2)*(x0 + x1*(T0/T-1))*log(T0/T)
 inline Numeric dmain_dx2_t4(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return pow(T0/T,x2)*(x0+x1*(T0/T-1))*log(T0/T); }
 
 //! Returns 0
-inline Numeric dmain_dx2_t5() noexcept { return 0.; }
+constexpr Numeric dmain_dx2_t5() { return 0.; }
 
 
 /**********************************
@@ -166,7 +166,7 @@ inline Numeric dmain_dx2_t5() noexcept { return 0.; }
 **********************************/
 
 //! Returns 0
-inline Numeric dmain_dT_t0() noexcept { return 0.; }
+constexpr Numeric dmain_dT_t0() { return 0.; }
 
 //! Returns -x0*x1*pow(T0/T, x1)/T
 inline Numeric dmain_dT_t1(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1) noexcept { return -x0*x1*pow(T0/T, x1)/T; }
@@ -175,7 +175,7 @@ inline Numeric dmain_dT_t1(const Numeric& T, const Numeric& T0, const Numeric& x
 inline Numeric dmain_dT_t2(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return -x0*x1*pow(T0/T,x1)*(x2*log(T/T0)+1.)/T+x0*x2*pow(T0/T,x1)/T; }
 
 //! Returns x1
-inline Numeric dmain_dT_t3(const Numeric& x1) noexcept { return x1; }
+constexpr Numeric dmain_dT_t3(const Numeric& x1) { return x1; }
 
 //! Returns -x2*pow(T0/T, x2)*(x0 + x1*(T0/T-1))/T - T0*x1*pow(T0/T, x2)/pow(T, 2)
 inline Numeric dmain_dT_t4(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return -x2*pow(T0/T,x2)*(x0+x1*(T0/T-1.))/T-T0*x1*pow(T0/T,x2)/pow(T,2); }
@@ -189,7 +189,7 @@ inline Numeric dmain_dT_t5(const Numeric& T, const Numeric& T0, const Numeric& x
 **********************************/
 
 //! Returns 0
-inline Numeric dmain_dT0_t0() noexcept { return 0.; }
+constexpr Numeric dmain_dT0_t0() { return 0.; }
 
 //! Returns x0*x1*pow(T0/T, x1)/T0
 inline Numeric dmain_dT0_t1(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1) noexcept { return x0*x1*pow(T0/T, x1)/T0; }
@@ -198,7 +198,7 @@ inline Numeric dmain_dT0_t1(const Numeric& T, const Numeric& T0, const Numeric& 
 inline Numeric dmain_dT0_t2(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return x0*x1*pow(T0/T,x1)*(x2*log(T/T0)+1.)/T0-x0*x2*pow(T0/T,x1)/T0; }
 
 //! Returns -x1
-inline Numeric dmain_dT0_t3(const Numeric& x1) noexcept { return -x1; }
+constexpr Numeric dmain_dT0_t3(const Numeric& x1) { return -x1; }
 
 //! Returns x2*pow(T0/T, x2)*(x0 + x1*(T0/T - 1))/T0 + x1*pow(T0/T, x2)/T
 inline Numeric dmain_dT0_t4(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return x2*pow(T0/T,x2)*(x0+x1*(T0/T-1.))/T0+x1*pow(T0/T,x2)/T; }

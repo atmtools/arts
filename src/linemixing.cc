@@ -222,7 +222,6 @@ void normalize_relaxation_matrix(Matrix& W,
   // Test the sum-rule
   for(Index i=0; i<n; i++) {
     Numeric sum=0;
-    #pragma omp simd
     for(Index j=0; j<n; j++)
       sum += Wr(i, j) * d0[sorted[j]] / d0[sorted[i]];
   }

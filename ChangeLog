@@ -1,6 +1,29 @@
+2018-12-03  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1173
+	
+	* src/complex.cc,h, src/linefunctiondata.cc:
+	* src/propagationmatrix.h:  Changed some const 
+	functions to  constexpr functions trying to learn how 
+	this keyword works
+	
+	* src/m_cloudradar.cc: made ghost version, iyActiveSingleScat2,
+	that is trying to change iyActiveSingleScat to use my Eigen
+	code path for RT.  Not tested, since there is no test for even
+	iyActiveSingleScat as far as I can see...
+	
+	* src/m_fos.cc, src/m_transmitter.cc, src/m_rte.cc:  Separated
+	cumulative transmission calculations from partial transmission
+	calculations.  Because one of the experimental single scatter
+	solver requires the reflected cumulative transmission, so
+	there would be a lot of duplicate code without this separation.
+	
+	* src/transmissionmatrix.h,cc:  Some code to control
+	iyActiveSingleScat2.
+
 2018-12-04  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
-	* arts-2-3-1167
+	* arts-2-3-1172
 
 	* src/make_auto_md.cc(main): Appended nullptr to getaway array, which
 	can be used by the API for external callbacks when activated.

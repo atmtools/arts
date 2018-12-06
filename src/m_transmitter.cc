@@ -1161,11 +1161,11 @@ void iyTransmissionStandard(
   // Get atmospheric and radiative variables along the propagation path
   //
   ppvar_trans_cumulat.resize(np,nf,ns,ns);
-  ArrayOfTransmissionMatrix tot_tra(np, TransmissionMatrix(nf, ns));
-  ArrayOfTransmissionMatrix lyr_tra(np, TransmissionMatrix(nf, ns));
+  
   ArrayOfRadiationVector lvl_rad(np, RadiationVector(nf, ns));
   ArrayOfArrayOfRadiationVector dlvl_rad(np, ArrayOfRadiationVector(nq, RadiationVector(nf, ns)));
   
+  ArrayOfTransmissionMatrix lyr_tra(np, TransmissionMatrix(nf, ns));
   ArrayOfArrayOfTransmissionMatrix dlyr_tra_above(np, ArrayOfTransmissionMatrix(nq, TransmissionMatrix(nf, ns)));
   ArrayOfArrayOfTransmissionMatrix dlyr_tra_below(np, ArrayOfTransmissionMatrix(nq, TransmissionMatrix(nf, ns)));
   
@@ -1305,23 +1305,22 @@ void iyTransmissionStandard(
       
       
       // Transmission
-      const bool first = ip == 0;
-      const Numeric dr_dT_past = do_hse and ip not_eq 0 ?
-      ppath.lstep[ip-1] / ( 2.0 * ppvar_t[ip-1] ) : 0;
-      const Numeric dr_dT_this = do_hse and ip not_eq 0 ?
-      ppath.lstep[ip-1] / ( 2.0 * ppvar_t[ip] ) : 0;
-      
-      stepwise_transmission(tot_tra[ip], lyr_tra[ip],
-                            dlyr_tra_above[ip], dlyr_tra_below[ip],
-                            not first ? tot_tra[ip-1] : tot_tra[0],
-                            K_past, K_this, dK_past_dx, dK_this_dx,
-                            not first ? ppath.lstep[ip-1] : Numeric(0.0), first,
-                            dr_dT_past, dr_dT_this, temperature_derivative_position);
+      if(ip not_eq 0) {
+        const Numeric dr_dT_past = do_hse ?
+        ppath.lstep[ip-1] / ( 2.0 * ppvar_t[ip-1] ) : 0;
+        const Numeric dr_dT_this = do_hse ?
+        ppath.lstep[ip-1] / ( 2.0 * ppvar_t[ip] ) : 0;
+        stepwise_transmission(lyr_tra[ip], dlyr_tra_above[ip], dlyr_tra_below[ip],
+                              K_past, K_this, dK_past_dx, dK_this_dx, ppath.lstep[ip-1],
+                              dr_dT_past, dr_dT_this, temperature_derivative_position);
+      }
       
       swap( K_past, K_this );
       swap( dK_past_dx, dK_this_dx );
     }
   }
+  
+  const ArrayOfTransmissionMatrix tot_tra = cumulative_transmission(lyr_tra, CumulativeTransmission::Forward);
   
   // iy_aux: Optical depth
   if( auxOptDepth >= 0 ) {

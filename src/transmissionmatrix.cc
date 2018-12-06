@@ -101,6 +101,32 @@ inline Eigen::Matrix4d matrix4(const Numeric& a, const Numeric& b, const Numeric
                                d,-v,-w, a).finished();
 }
 
+inline Eigen::Matrix<double, 1, 1> matrix1(const ConstMatrixView m) noexcept
+{
+  return Eigen::Matrix<double, 1, 1>(m(0, 0));
+}
+
+inline Eigen::Matrix2d matrix2(const ConstMatrixView m) noexcept
+{
+  return (Eigen::Matrix2d() << m(0, 0), m(0, 1),
+                               m(1, 0), m(1, 1)).finished();
+}
+
+inline Eigen::Matrix3d matrix3(const ConstMatrixView m) noexcept
+{
+  return (Eigen::Matrix3d() << m(0, 0), m(0, 1), m(0, 2),
+                               m(1, 0), m(1, 1), m(1, 2),
+                               m(2, 0), m(2, 1), m(2, 2)).finished();
+}
+
+inline Eigen::Matrix4d matrix4(const ConstMatrixView m) noexcept
+{
+  return (Eigen::Matrix4d() << m(0, 0), m(0, 1), m(0, 2), m(0, 3),
+                               m(1, 0), m(1, 1), m(1, 2), m(1, 3),
+                               m(2, 0), m(2, 1), m(2, 2), m(2, 3),
+                               m(3, 0), m(3, 1), m(3, 2), m(3, 3)).finished();
+}
+
 inline Eigen::Matrix<double, 1, 1> inv1(const Numeric& a) noexcept
 {
   return Eigen::Matrix<double, 1, 1>(1/a);
@@ -907,30 +933,22 @@ inline void dtransmat(TransmissionMatrix& T,
 
 
 
-void stepwise_transmission(TransmissionMatrix& PiTf,
-                           TransmissionMatrix& T,
+void stepwise_transmission(TransmissionMatrix& T,
                            ArrayOfTransmissionMatrix& dT1,
                            ArrayOfTransmissionMatrix& dT2,
-                           const TransmissionMatrix& PiTf_last,
                            const PropagationMatrix& K1,
                            const PropagationMatrix& K2,
                            const ArrayOfPropagationMatrix& dK1,
                            const ArrayOfPropagationMatrix& dK2,
                            const Numeric& r,
-                           const bool first,
                            const Numeric& dr_dtemp1,
                            const Numeric& dr_dtemp2,
                            const Index temp_deriv_pos)
 {
-  if(first)
-    PiTf.setIdentity();
-  else {
-    if(not dT1.nelem())
-      transmat(T, K1, K2, r);
-    else
-      dtransmat(T, dT1, dT2, K1, K2, dK1, dK2, r, dr_dtemp1, dr_dtemp2, temp_deriv_pos);
-    PiTf.mul(PiTf_last, T);
-  }
+  if(not dT1.nelem())
+    transmat(T, K1, K2, r);
+  else
+    dtransmat(T, dT1, dT2, K1, K2, dK1, dK2, r, dr_dtemp1, dr_dtemp2, temp_deriv_pos);
 }
 
 
@@ -1037,34 +1055,25 @@ void update_radiation_vector(RadiationVector& I,
 }
 
 
-// TEST CODE BEGIN
-ArrayOfTransmissionMatrix cumulative_transmission(const ArrayOfTransmissionMatrix& T, const CumulativeTransmission type)
+ArrayOfTransmissionMatrix cumulative_transmission(const ArrayOfTransmissionMatrix& T, const CumulativeTransmission type)  /*[[expects: T.nelem()>0]]*/
 {
-  /* 
-   * These are implicitly demanded to be true:
-   * na > 0
-   * for(const auto& t: T) t.Frequencies() == T[0].Frequencies()
-   * for(const auto& t: T) t.StokesDim() == T[0].StokesDim()
-   */
-  
-  const Index na = T.nelem();
-  const Index nf = T[0].Frequencies();
-  const Index ns = T[0].StokesDim();
-  
-  ArrayOfTransmissionMatrix PiT(na, TransmissionMatrix(nf, ns));  // Initialize as identity matrix
+  const Index n=T.nelem();
+  ArrayOfTransmissionMatrix PiT(n, TransmissionMatrix(n?T[0].Frequencies():0, n?T[0].StokesDim():1));  // Initialize as identity matrix
   switch(type) {
     case CumulativeTransmission::Forward:  // Forward is the forward calculations with T[0] as the identity matrix.
-      for(Index i=1; i<na; i++)
+      for(Index i=1; i<n; i++)
         PiT[i].mul(PiT[i-1], T[i]);  // First reads PiT[1] = PiT[0] * T[1]
       break;
-    case CumulativeTransmission:: Reflected:  // Reflected is the backwards calculations with T[0] as the identity matrix
-      for(Index i=na-1; i>0; i++)
-        PiT[na-i].mul(PiT[na-1-i], T[i]);  // First reads: PiT[1] = PiT[0] * T[-1]
+    case CumulativeTransmission::Reflect:  // Reflect is the backwards calculations with T[0] as the identity matrix
+      for(Index i=1; i<n; i++)
+        PiT[i].mul(T[n-i], PiT[i-1]);  // First reads: PiT[1] = T[-1] * PiT[0]
       break;
   }
-  return PiT;
+  return PiT;  // Note how the output is such that forward transmission is from -1 to 0
 }
 
+
+// TEST CODE BEGIN
 
 void set_backscatter_radiation_vector(ArrayOfRadiationVector& I,
                                       ArrayOfArrayOfRadiationVector& dI,
@@ -1083,7 +1092,7 @@ void set_backscatter_radiation_vector(ArrayOfRadiationVector& I,
   const Index nq=dI[0].nelem();
   
   switch (solver) {
-    case BackscatterSolver::Commutative: {  // NOTE:  bad Jacobian...
+    case BackscatterSolver::Commutative_PureReflectionJacobian: {
       for(Index ip=1; ip<np; ip++) {
         for(Index iv=0; iv<nv; iv++) {
           switch(ns) {
@@ -1136,7 +1145,7 @@ void set_backscatter_radiation_vector(ArrayOfRadiationVector& I,
         I[ip].leftMul(Z[ip]);
       }
       
-      // Compute Transmission back to sensor
+      // Compute Transmission back to sensor  (FIXME:  need a testcase because either PiTr or T is pointing wrong...)
       for(Index refl_point=0; refl_point<np; refl_point++) {
         for(Index ip=refl_point; ip<np-1; ip++) {
           update_radiation_vector(I[refl_point], dI[ip], dI[ip+1],
@@ -1151,6 +1160,85 @@ void set_backscatter_radiation_vector(ArrayOfRadiationVector& I,
     } break;
   }
 }
+
+
+ArrayOfTransmissionMatrix cumulative_backscatter(ConstTensor5View t, ConstMatrixView m)
+{
+  const Index ns=t.ncols();
+  const Index nv=t.npages();
+  const Index np=t.nbooks();
+  const Index nd=t.nshelves();
+  
+  ArrayOfTransmissionMatrix aotm(np, TransmissionMatrix(nv, ns));
+  for(Index ip=0; ip<np; ip++) {
+    aotm[ip].setZero();
+    
+    switch(ns) {
+      case 4:
+        for(Index iv=0; iv<nv; iv++)
+          for(Index id=0; id<nd; id++)
+            aotm[ip].Mat4(iv).noalias() += m(id, ip) * matrix4(t(id, ip, iv, joker, joker));
+        break;
+      case 3:
+        for(Index iv=0; iv<nv; iv++)
+          for(Index id=0; id<nd; id++)
+            aotm[ip].Mat3(iv).noalias() += m(id, ip) * matrix3(t(id, ip, iv, joker, joker));
+        break;
+      case 2:
+        for(Index iv=0; iv<nv; iv++)
+          for(Index id=0; id<nd; id++)
+            aotm[ip].Mat2(iv).noalias() += m(id, ip) * matrix2(t(id, ip, iv, joker, joker));
+        break;
+      case 1:
+        for(Index iv=0; iv<nv; iv++)
+          for(Index id=0; id<nd; id++)
+            aotm[ip].Mat1(iv).noalias() += m(id, ip) * matrix1(t(id, ip, iv, joker, joker));
+        break;
+    }
+  }
+  return aotm;
+}
+
+ArrayOfArrayOfTransmissionMatrix cumulative_backscatter_derivative(ConstTensor5View t, const ArrayOfMatrix& aom)
+{
+  const Index ns=t.ncols();
+  const Index nv=t.npages();
+  const Index np=t.nbooks();
+  const Index nd=t.nshelves();
+  const Index nq=aom.nelem();
+  
+  ArrayOfArrayOfTransmissionMatrix aoaotm(np, ArrayOfTransmissionMatrix(nq, TransmissionMatrix(nv, ns)));
+  for(Index ip=0; ip<np; ip++) {
+    for(Index iq=0; iq<nq; iq++) {
+      aoaotm[ip][iq].setZero();
+    
+      switch(ns) {
+        case 4:
+          for(Index iv=0; iv<nv; iv++)
+            for(Index id=0; id<nd; id++)
+              aoaotm[ip][iq].Mat4(iv).noalias() += aom[iq](id, ip) * matrix4(t(id, ip, iv, joker, joker));
+          break;
+        case 3:
+          for(Index iv=0; iv<nv; iv++)
+            for(Index id=0; id<nd; id++)
+              aoaotm[ip][iq].Mat3(iv).noalias() += aom[iq](id, ip) * matrix3(t(id, ip, iv, joker, joker));
+          break;
+        case 2:
+          for(Index iv=0; iv<nv; iv++)
+            for(Index id=0; id<nd; id++)
+              aoaotm[ip][iq].Mat2(iv).noalias() += aom[iq](id, ip) * matrix2(t(id, ip, iv, joker, joker));
+          break;
+        case 1:
+          for(Index iv=0; iv<nv; iv++)
+            for(Index id=0; id<nd; id++)
+              aoaotm[ip][iq].Mat1(iv).noalias() += aom[iq](id, ip) * matrix1(t(id, ip, iv, joker, joker));
+          break;
+      }
+    }
+  }
+  return aoaotm;
+}
+
 // TEST CODE END
 
 

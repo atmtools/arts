@@ -486,50 +486,75 @@ void test_transmat_from_propmat()
   TransmissionMatrix ans3(1, 3);
   TransmissionMatrix ans4(1, 4);
   
-  TransmissionMatrix tmp1(1, 1);
-  TransmissionMatrix tmp2(1, 2);
-  TransmissionMatrix tmp3(1, 3);
-  TransmissionMatrix tmp4(1, 4);
   ArrayOfTransmissionMatrix empty(0);
   
-  stepwise_transmission(tmp1, ans1, empty, empty,
-                        tmp1, test1, test1,
+  stepwise_transmission(ans1, empty, empty, test1, test1,
                         ArrayOfPropagationMatrix(0),
                         ArrayOfPropagationMatrix(0),
-                        1, false, 0, 0, -1);
+                        1, 0, 0, -1);
   
-  stepwise_transmission(tmp2, ans2, empty, empty,
-                        tmp2, test2, test2,
+  stepwise_transmission(ans2, empty, empty, test2, test2,
                         ArrayOfPropagationMatrix(0),
                         ArrayOfPropagationMatrix(0),
-                        1, false, 0, 0, -1);
+                        1, 0, 0, -1);
   
-  stepwise_transmission(tmp3, ans3, empty, empty,
-                        tmp3, test3, test3,
+  stepwise_transmission(ans3, empty, empty, test3, test3,
                         ArrayOfPropagationMatrix(0),
                         ArrayOfPropagationMatrix(0),
-                        1, false, 0, 0, -1);
+                        1, 0, 0, -1);
   
-  stepwise_transmission(tmp4, ans4, empty, empty,
-                        tmp4, test4, test4,
+  stepwise_transmission(ans4, empty, empty, test4, test4,
                         ArrayOfPropagationMatrix(0),
                         ArrayOfPropagationMatrix(0),
-                        1, false, 0, 0, -1);
+                        1, 0, 0, -1);
   
   std::cout << ans1 << "\n\n" << ans2 << "\n\n" << ans3 << "\n\n" << ans4 << "\n\n";
+}
+
+
+void test_transmat_to_cumulativetransmat()
+{
+  int i=1;
+  ArrayOfPropagationMatrix propmats(5, PropagationMatrix(1, 4));
+  for(auto& pm : propmats) {
+    pm.K12() = i; i++; pm.K13() = i; i++; pm.K23() = i; i++;
+    pm.K14() = i; i++; pm.K24() = i; i++; pm.K34() = i; i++; 
+    pm.Kjj() = 2*i; i++; 
+    pm.GetData() *= 1e-2;
+  }
+  
+  std::cout << "Propmats:\n" << propmats << "\n\n";
+  
+  ArrayOfTransmissionMatrix layers(5, TransmissionMatrix(1, 4));
+  ArrayOfTransmissionMatrix empty(0);  
+  for(i=0; i<4; i++) {
+    stepwise_transmission(layers[i+1], empty, empty,
+                          propmats[i], propmats[i+1],
+                          ArrayOfPropagationMatrix(0),
+                          ArrayOfPropagationMatrix(0),
+                          1, 0, 0, -1);
+  }
+  
+  std::cout << "Layers:\n" << layers << "\n\n";
+  
+  ArrayOfTransmissionMatrix cumulative_forward = cumulative_transmission(layers, CumulativeTransmission::Forward);
+  ArrayOfTransmissionMatrix cumulative_reflect = cumulative_transmission(layers, CumulativeTransmission::Reflect);
+  
+  std::cout << "Forward accumulation:\n" << cumulative_forward << "\n\n";
+  std::cout << "Reflect accumulation:\n" << cumulative_reflect << "\n\n";
 }
 
 
 int main()
 {
     std::cout<<"Testing Propmat Partials\n";
-//     test_new_lineshapes();
-//     test_zeeman();
-//     test_linefunctionsdata();
-//     test_speed_of_pressurebroadening();
-//     test_transmissionmatrix();
-//     test_r_deriv_propagationmatrix();
-    test_transmat_from_propmat();
+    /*test_zeeman();
+    test_linefunctionsdata();
+    test_speed_of_pressurebroadening();
+    test_transmissionmatrix();
+    test_r_deriv_propagationmatrix();
+    test_transmat_from_propmat();*/
+    test_transmat_to_cumulativetransmat();
     return 0;
 }
 
