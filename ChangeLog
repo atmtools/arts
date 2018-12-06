@@ -1,4 +1,15 @@
-2018-12-03  Richard Larsson  <larsson@mps.mpg.de>
+2018-12-06  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1174
+	
+	* src/complex.cc:  Removed some of the constexpr stuff
+	that uses assert() and &.  Seems I did not learn constexpr
+	correctly, since my version of gcc compiled what
+	Hudson's gcc compiler does not...  I tested with clang
+	and it also complains, so this must be a my-version-gcc
+	error?  Now clang here compiles, so it should work?
+
+2018-12-06  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1173
 	

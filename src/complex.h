@@ -157,7 +157,7 @@ public:
     
     // Const index operators:
     /** Plain const index operator. */
-    constexpr Complex operator[](Index n) const
+    const Complex& operator[](Index n) const
     { // Check if index is valid:
         assert( 0<=n );
         assert( n<mrange.mextent );
@@ -165,7 +165,7 @@ public:
     }
     
     /** Get element implementation without assertions. */
-    constexpr const Complex& get(Index n) const
+    const Complex& get(Index n) const
     {
         return *( mdata +
         mrange.mstart +
@@ -173,11 +173,11 @@ public:
     }
     
     /** Get element implementation without assertions. */
-    constexpr const Numeric& get_real(Index n) const
+    const Numeric& get_real(Index n) const
     { return reinterpret_cast<const Numeric (&)[2]>(get(n))[0]; }
     
     /** Get element implementation without assertions. */
-    constexpr const Numeric& get_imag(Index n) const
+    const Numeric& get_imag(Index n) const
     { return reinterpret_cast<const Numeric (&)[2]>(get(n))[1]; }
     
     ConstComplexVectorView operator[](const Range& r) const;
@@ -249,15 +249,15 @@ public:
     // Const index operators:
     /** Plain const index operator. Has to be redifined here, because the
      one from ConstVectorView is hidden. */                           
-    constexpr Complex operator[](Index n) const
+    const Complex& operator[](Index n) const
      { return ConstComplexVectorView::operator[](n); }
      
      /** Get element implementation without assertions. */
-     constexpr const Complex& get(Index n) const
+     const Complex& get(Index n) const
      { return ConstComplexVectorView::get(n); }
-     constexpr const Numeric& get_real(Index n) const
+     const Numeric& get_real(Index n) const
      { return ConstComplexVectorView::get_real(n); }
-     constexpr const Numeric& get_imag(Index n) const
+     const Numeric& get_imag(Index n) const
      { return ConstComplexVectorView::get_imag(n); }
      
      ConstComplexVectorView operator[](const Range& r) const;
@@ -516,7 +516,7 @@ public:
     
     // Const index operators:
     /** Plain const index operator. */
-    constexpr Complex operator()(Index r, Index c) const
+    Complex operator()(Index r, Index c) const
     { // Check if indices are valid:
         assert( 0<=r );
         assert( 0<=c );
