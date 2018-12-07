@@ -139,16 +139,16 @@ public:
   
   
   /*! The stokes dimension of the propagation matrix */
-  constexpr Index StokesDimensions() const {return mstokes_dim;};
+  Index StokesDimensions() const {return mstokes_dim;};
   
   /*! The number of frequencies of the propagation matrix */
-  constexpr Index NumberOfFrequencies() const {return mfreqs;};
+  Index NumberOfFrequencies() const {return mfreqs;};
   
   /*! The number of frequencies of the propagation matrix */
-  constexpr Index NumberOfZenithAngles() const {return mza;};
+  Index NumberOfZenithAngles() const {return mza;};
   
   /*! The number of frequencies of the propagation matrix */
-  constexpr Index NumberOfAzimuthAngles() const {return maa;};
+  Index NumberOfAzimuthAngles() const {return maa;};
   
   void SetVectorType(bool vectortype) {mvectortype = vectortype;}
   
@@ -530,7 +530,7 @@ public:
   };
   
   /* The number of required vectors to fill this StokesVector */
-  constexpr Index NumberOfNeededVectors() const { return mstokes_dim; }
+  Index NumberOfNeededVectors() const { return mstokes_dim; }
   
   StokesVector& operator+=(const PropagationMatrix& x)
   {

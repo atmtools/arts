@@ -103,7 +103,7 @@ public:
     }
   }
   
-  constexpr Index StokesDim() const {return stokes_dim;}
+  Index StokesDim() const {return stokes_dim;}
   Index Frequencies() const {
     switch(stokes_dim) {
       case 4: return Index(T4.size());
@@ -272,7 +272,7 @@ public:
     }
   }
   
-  constexpr Index StokesDim() const {return stokes_dim;}
+  Index StokesDim() const {return stokes_dim;}
   Index Frequencies() const {
     switch(stokes_dim) {
       case 4: return Index(R4.size());

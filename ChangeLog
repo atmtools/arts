@@ -1,3 +1,18 @@
+2018-12-07  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1175
+	
+	* src/complex.h, src/propagationmatrix.h, src/transmissionmatrix.h:
+
+	Remove constexpr from member functions for ConstComplexVectorView,
+	ConstComplexMatrixView, PropagationMatrix, TransmissionMatrix,
+	RadiationVector. None of these functions can ever be fully evaluated
+	at compile time because their input values depend on runtime values
+	such as stokes_dim, number of pressure levels, number of frequencies.
+	While newer compilers seem to just ignore the constexpr keyword in
+	those cases, gcc 4 fails if constexpr is used inside these non-literal
+	classes.
+
 2018-12-06  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1174
