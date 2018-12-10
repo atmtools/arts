@@ -14,8 +14,8 @@ LevenbergMarquardt<RealType, DampingMatrix, Solver>
                      Solver solver)
     : current_cost(0.0), tolerance(1e-5), lambda(4.0), lambda_maximum(100.0),
       lambda_increase(2.0), lambda_decrease(3.0), lambda_threshold(1.0),
-      lambda_constraint(std::numeric_limits<RealType>::min()), cost_sensitivity(0.0),
-      initial_cost(-1.0), maximum_iterations(100), step_count(0), stop(false), D(D_), s(solver)
+      lambda_constraint(std::numeric_limits<RealType>::min()),
+      maximum_iterations(100), step_count(0), stop(false), D(D_), s(solver)
 {
     // Nothing to do here.
 }
@@ -228,31 +228,6 @@ void LevenbergMarquardt<RealType, DampingMatrix, Solver>
     lambda_constraint = lambda_constraint_;
 }
 
-template
-<
-    typename RealType,
-    typename DampingMatrix,
-    typename Solver
->
-auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
-::get_cost_sensitivity() const
-    -> RealType
-{
-    return cost_sensitivity;
-}
-
-template
-<
-    typename RealType,
-    typename DampingMatrix,
-    typename Solver
-    >
-void LevenbergMarquardt<RealType, DampingMatrix, Solver>
-::set_cost_sensitivity(RealType cost_sensitivity_)
-{
-    cost_sensitivity = cost_sensitivity_;
-}
-
 // --------------------------- //
 //  Perform Minimization Step  //
 // --------------------------- //
@@ -278,7 +253,6 @@ auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
 {
     if (step_count == 0) {
         current_cost = J.cost_function(x);
-        initial_cost = current_cost;
     }
 
     VectorType dx(x);
@@ -308,10 +282,6 @@ auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
         RealType dxBdx = dot(dx, B * dx);
         RealType cc = dxBdx / dx.rows();
         c = (new_cost - current_cost) / (dot(g,dx) + 0.5 * dxBdx);
-
-        if (fabs(new_cost - current_cost) / initial_cost < cost_sensitivity) {
-            c = 1.0;
-        }
 
         if (c > 0.75) {
             if (first_step) {

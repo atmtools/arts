@@ -2,6 +2,13 @@
 
 	* arts-2-3-1176
 
+	* 3rdparts/invlib/src/invlib/optimization/levenberg_marquardt.cpp
+	- Removed reference to undefined variables.
+
+2018-12-10  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1176
+
 	* src/m_oem.cc(OEM):
 	- Enabled calculation of gain matrix for retrievals that reach
 	  iteration or LM-gamma limit.
