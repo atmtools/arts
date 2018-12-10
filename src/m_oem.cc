@@ -1762,7 +1762,7 @@ void OEM(
             jacobian.resize(0,0);
             dxdy.resize(0,0);
         }
-        else if (oem_diagnostics[0] == 0)
+        else if (oem_diagnostics[0] <= 2)
         {
             dxdy.resize(n, m);
             Matrix tmp1(n,m), tmp2(n,n), tmp3(n,n);
