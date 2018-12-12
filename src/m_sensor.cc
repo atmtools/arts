@@ -524,6 +524,8 @@ void f_gridFromSensorAMSU(// WS Output:
   //  cout << "f_grid: " << f_grid << "\n";
 }
 
+
+
 void f_gridFromSensorAMSUgeneric(// WS Output:
     Vector& f_grid,
     // WS Input:
@@ -685,8 +687,6 @@ void f_gridFromSensorAMSUgeneric(// WS Output:
   out2 << "  Total number of frequencies in f_grid: " << f_grid.nelem() << "\n";
 
 }
-
-
 
 
 
@@ -959,22 +959,6 @@ void sensor_responseAntenna(
 {
   CREATE_OUT3;
   
-  // Check if input antenna pattern is 1D
-  /* Just a start on seperating 1D and 2D antennas
-  {
-    ConstVectorView aresponse_aa_grid = 
-                             antenna_response.get_numeric_grid(GFIELD4_AA_GRID);
-
-    if( aresponse_aa_grid.nelem() != 1 )
-      {
-        throw runtime_error( "This method assumes a 1D antenne pattern.\n" 
-                             "This means that the azimuthal dimension of\n"
-                             "*antenna_response* must have size 1 and this\n"
-                             "is not the case.\n" );
-      }
-  }
-  */
-
   // Basic checks
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_if_in_range( "antenna_dim",    antenna_dim,    1, 2 );
@@ -1019,7 +1003,10 @@ void sensor_responseAntenna(
     throw runtime_error( "*antenna_dlos* must have one or 2 columns." );
   if( atmosphere_dim < 3  &&  antenna_dlos.ncols() == 2 )
     throw runtime_error( 
-              "*antenna_dlos* can only have two columns for 3D atmosphers." );
+                     "*antenna_dlos* can only have two columns for 3D atmosphers." );
+  if( antenna_dlos.ncols() != antenna_dim )
+    throw runtime_error( 
+          "The number of columns in *antenna_dlos* must be equal to *antenna_dim*." );
 
   // We allow angles in antenna_los to be unsorted
 
@@ -1149,8 +1136,9 @@ void sensor_responseAntenna(
     }
   else
     {
-      throw runtime_error( "2D antennas not yet updated." );
+      // No demand on that antenna_dlos covers response grids for 2D.
     }
+
 
   // If errors where found throw runtime_error with the collected error
   // message.
@@ -1170,11 +1158,9 @@ void sensor_responseAntenna(
                       antenna_response, sensor_response_dlos_grid(joker,0), 
                       sensor_response_f_grid, npol, sensor_norm );
   else
-    {    
-      //antenna2d_simplified( hantenna, antenna_dlos, antenna_response,
-      //                  sensor_response_dlos,
-      //                  sensor_response_f_grid, npol, sensor_norm ); 
-    }
+    antenna2d_basic( hantenna, antenna_dim, antenna_dlos, 
+                     antenna_response, sensor_response_dlos_grid, 
+                     sensor_response_f_grid, npol, sensor_norm );
 
   // Here we need a temporary sparse that is copy of the sensor_response
   // sparse matrix. We need it since the multiplication function can not
@@ -1195,8 +1181,6 @@ void sensor_responseAntenna(
                       sensor_response_dlos, sensor_response_f_grid,  
                       sensor_response_pol_grid, sensor_response_dlos_grid );
 }
-
-
 
 
 
@@ -1416,6 +1400,7 @@ void sensor_responseBackendFrequencySwitching(
                       sensor_response_dlos, sensor_response_f_grid,  
                       sensor_response_pol_grid, sensor_response_dlos_grid );
 }
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1976,8 +1961,6 @@ void sensor_responseMixer(
 
 
 
-
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseMetMM(
    // WS Output:
@@ -2162,7 +2145,6 @@ void sensor_responseMetMM(
 
 
 
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseMixerBackendPrecalcWeights(
           Sparse&               sensor_response,
@@ -2318,8 +2300,7 @@ void sensor_responseMixerBackendPrecalcWeights(
 
 
 
-
-
+/* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseMultiMixerBackend(
           Sparse&                      sensor_response,
           Vector&                      sensor_response_f,
@@ -2496,8 +2477,6 @@ void sensor_responseMultiMixerBackend(
 
 
 
-
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responsePolarisation(
           Sparse&         sensor_response,
@@ -2634,8 +2613,6 @@ void sensor_responsePolarisation(
 
 
 
-
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseStokesRotation(
          Sparse&         sensor_response,
@@ -2751,7 +2728,7 @@ void sensor_responseStokesRotation(
 
 
 
-
+/* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseGenericAMSU(// WS Output:
     Vector& f_grid,
     Index& antenna_dim,
@@ -3139,6 +3116,8 @@ void sensor_responseGenericAMSU(// WS Output:
     }
 
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseSimpleAMSU(// WS Output:
                                Vector& f_grid,
                                Index& antenna_dim,
@@ -3267,8 +3246,8 @@ void sensor_responseSimpleAMSU(// WS Output:
   
 }
 
-// Declare select functions needed by WMRFSelectChannels:
 
+// Declare select functions needed by WMRFSelectChannels:
 void Select(// WS Generic Output:
             Vector& needles,
             // WS Generic Input:
@@ -3290,6 +3269,8 @@ void Select(// WS Generic Output:
             const Sparse& haystack,
             const ArrayOfIndex& needleind,
             const Verbosity& verbosity);
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void WMRFSelectChannels(// WS Output:
@@ -3422,6 +3403,7 @@ void WMRFSelectChannels(// WS Output:
   wmrf_weights.resize(wt.ncols(), wt.nrows());
   transpose(wmrf_weights, wt);
 }
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */

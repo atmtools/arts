@@ -1,3 +1,16 @@
+2018-12-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1177
+
+	* src/m_sensor.cc (sensor_responseAntenna): Some adoptions towards
+	finally handling 2D antenna patterns.
+
+	* src/sensor.cc (antenna1d_matrix): Some rearrangement to avoid some
+	reinterpolation of antenna pattern.
+
+	(antenna2d_basic): Started on a simple handling of 2D antenna
+	patterns. Not ready!
+
 2018-12-10  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1176

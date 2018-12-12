@@ -49,16 +49,26 @@
   ===========================================================================*/
 
 void antenna1d_matrix(      
-           Sparse&   H,
-      const Index&   antenna_dim,
-   ConstVectorView   antenna_dza,
-    const GriddedField4&   antenna_response,
-   ConstVectorView   za_grid,
-   ConstVectorView   f_grid,
-       const Index   n_pol,
-       const Index   do_norm );
+               Sparse&   H,
+          const Index&   antenna_dim,
+       ConstVectorView   antenna_dza,
+  const GriddedField4&   antenna_response,
+       ConstVectorView   za_grid,
+       ConstVectorView   f_grid,
+           const Index   n_pol,
+           const Index   do_norm );
 
-void gaussian_response_autogrid(
+void antenna2d_basic(      
+               Sparse&   H,
+          const Index&   antenna_dim,
+       ConstMatrixView   antenna_dlos,
+  const GriddedField4&   antenna_response,
+       ConstMatrixView   mblock_dlos,
+       ConstVectorView   f_grid,
+           const Index   n_pol,
+           const Index   do_norm );
+
+  void gaussian_response_autogrid(
            Vector&   x,
            Vector&   y,
     const Numeric&   x0,

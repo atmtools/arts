@@ -78,18 +78,18 @@ extern const Index GFIELD4_AA_GRID;
    \date   2003-05-27 / 2008-06-17
 */
 void antenna1d_matrix(      
-           Sparse&   H,
+               Sparse&   H,
 #ifndef NDEBUG
-      const Index&   antenna_dim,
+          const Index&   antenna_dim,
 #else
-      const Index&   antenna_dim _U_,
+          const Index&   antenna_dim _U_,
 #endif
-   ConstVectorView   antenna_dza,
-    const GriddedField4&   antenna_response,
-   ConstVectorView   za_grid,
-   ConstVectorView   f_grid,
-       const Index   n_pol,
-       const Index   do_norm )
+       ConstVectorView   antenna_dza,
+  const GriddedField4&   antenna_response,
+       ConstVectorView   za_grid,
+       ConstVectorView   f_grid,
+           const Index   n_pol,
+           const Index   do_norm )
 {
   // Number of input pencil beam directions and frequency
   const Index n_za = za_grid.nelem();
@@ -120,7 +120,7 @@ void antenna1d_matrix(
   const Index pol_step = n_ar_pol > 1;
   
   // Asserts for antenna_response
-  assert( n_ar_pol == 1  ||  n_ar_pol == n_pol );
+  assert( n_ar_pol == 1  ||  n_ar_pol >= n_pol );
   assert( n_ar_f );
   assert( n_ar_za > 1 );
   assert( n_ar_aa == 1 );
@@ -161,42 +161,43 @@ void antenna1d_matrix(
               // Determine antenna pattern to apply
               //
               // Interpolation needed only if response has a frequency grid
-              // New antenna for each loop of response changes with polarisation
               //
               Index new_antenna = 1; 
               //
-              if( n_ar_f > 1 )  // If multiple freqs in response, new interpolation
-                {               // for each freq and pol
-                  // Interpolation (do this in "green way")
-                  ArrayOfGridPos gp_f( 1 ), gp_za(n_ar_za);
-                  gridpos( gp_f, aresponse_f_grid, Vector(1,f_grid[f]) );
-                  gridpos( gp_za, aresponse_za_grid, aresponse_za_grid );
-                  Tensor3 itw( 1, n_ar_za, 4 );
-                  interpweights( itw, gp_f, gp_za );
-                  Matrix aresponse_matrix(1,n_ar_za);
-                  interp( aresponse_matrix, itw, 
-                         antenna_response.data(ip,joker,joker,0), gp_f, gp_za );
-                  aresponse = aresponse_matrix(0,joker);
-                }
-              else if( pol_step )   // Response changes with polarisation,
-                {                   // but not frequency
-                  aresponse = antenna_response.data(ip,0,joker,0);
-                }
-              else if( f == 0 )  // Same response for all f and polarisations
+              if( n_ar_f == 1 )    // No frequency variation
                 {
-                  aresponse = antenna_response.data(0,0,joker,0);
+                  if( pol_step )   // Polarisation variation, update always needed
+                    { aresponse = antenna_response.data(ip,0,joker,0); }
+                  else if( f == 0  &&  ip == 0 ) // Set fully constant pattern
+                    { aresponse = antenna_response.data(0,0,joker,0); }
+                  else  // The one set just above can be reused
+                    { new_antenna = 0; }
                 }
               else
                 {
-                  new_antenna = 0;
+                  if( ip==0 || pol_step )  // Interpolation required
+                    {  
+                      // Interpolation (do this in "green way")
+                      ArrayOfGridPos gp_f( 1 ), gp_za(n_ar_za);
+                      gridpos( gp_f, aresponse_f_grid, Vector(1,f_grid[f]) );
+                      gridpos( gp_za, aresponse_za_grid, aresponse_za_grid );
+                      Tensor3 itw( 1, n_ar_za, 4 );
+                      interpweights( itw, gp_f, gp_za );
+                      Matrix aresponse_matrix(1,n_ar_za);
+                      interp( aresponse_matrix, itw, 
+                              antenna_response.data(ip,joker,joker,0), gp_f, gp_za );
+                      aresponse = aresponse_matrix(0,joker);
+                    }
+                  else  // Reuse pattern for ip==0
+                    { new_antenna = 0; }
                 }
 
               // Calculate response weights
               if( new_antenna )
                 {
                   integration_func_by_vecmult( hza, aresponse,
-                                               shifted_aresponse_za_grid,
-                                               za_grid );
+                                               shifted_aresponse_za_grid, za_grid );
+
                   // Normalisation?
                   if( do_norm )
                     { hza /= hza.sum(); }
@@ -218,173 +219,147 @@ void antenna1d_matrix(
 
 
 
-// An old version of the function above
-
-//! antenna2d_simplified
+//! antenna2d_basic
 /*!
-  A first function for setting up the response matrix for 2D antenna cases.
-  
-  Following the ARTS definitions, a bi-linear variation (in za and aa
-  dimensions) for both antenna pattern and pencil beam radiances
-  should be assumed here. This function does not handle this. It
-  performs instead a series of 1D antenna calculations and "sums up"
-  the results. In this summation, both antenna pattern and radiances
-  are assumed to constant in the azimuthal direction around each point
-  in aa_grid (corresponding to mblock_aa_grid). That is, for azimuth,
-  a step-wise function is used instead of a piecewise linear one.
+  A first, basic function for including 2D antenna patterns
 
    \param   H            The antenna transfer matrix
    \param   antenna_dim  As the WSV with the same name
-   \param   antenna_los  As the WSV with the same name
+   \param   antenna_dza  The zenith angle column of *antenna_dlos*.
    \param   antenna_response  As the WSV with the same name
    \param   za_grid      Zenith angle grid for pencil beam calculations
-   \param   aa_grid      Azimuth angle grid for pencil beam calculations
    \param   f_grid       Frequency grid for monochromatic calculations
    \param   n_pol        Number of polarisation states
    \param   do_norm      Flag whether response should be normalised
 
-   \author Patrick Eriksson
-   \date   2009-09-16
+   \author  Patrick Eriksson
+   \date   2018-12-12
 */
-/*
-void antenna2d_simplified(      
-           Sparse&   H,
+void antenna2d_basic(      
+               Sparse&   H,
 #ifndef NDEBUG
-      const Index&   antenna_dim,
+          const Index&   antenna_dim,
 #else
-      const Index&   antenna_dim _U_,
+          const Index&   antenna_dim _U_,
 #endif
-   ConstMatrixView   antenna_los,
-    const GriddedField4&   antenna_response,
-   ConstVectorView   za_grid,
-   ConstVectorView   aa_grid,
-   ConstVectorView   f_grid,
-       const Index   n_pol,
-       const Index   do_norm )
+       ConstMatrixView   antenna_dlos,
+  const GriddedField4&   antenna_response,
+       ConstMatrixView   mblock_dlos,
+       ConstVectorView   f_grid,
+           const Index   n_pol,
+           const Index   do_norm )
 {
-  // Sizes
-  const Index n_f      = f_grid.nelem();
-  const Index nfpol    = n_f * n_pol;  
-  const Index n_aa     = aa_grid.nelem();
-  const Index n_za     = za_grid.nelem();
-  const Index n_ant    = antenna_los.nrows();
-  const Index n_ar_pol = antenna_response.data.nbooks();
-  const Index n_ar_f   = antenna_response.data.npages();
-  const Index n_ar_za  = antenna_response.data.nrows();
+  assert(0);
 
-  // Asserts for variables beside antenna_response (not done in antenna1d_matrix)
+  // Number of input pencil beam directions and frequency
+  const Index n_dlos = mblock_dlos.nrows();
+  const Index n_f    = f_grid.nelem();
+
+  // Calculate number of antenna beams
+  const Index n_ant = antenna_dlos.nrows();
+
+  // Asserts for variables beside antenna_response
   assert( antenna_dim == 2 );
-  assert( n_aa >= 2 );
+  assert( n_dlos >= 1 );
+  assert( n_pol >= 1 );
   assert( do_norm >= 0  &&  do_norm <= 1 );
-
-  // Make copy of antenna response suitable as input to antenna1d_matrix
-  //
-  GriddedField4 aresponse = antenna_response;
-  //
-  ConstVectorView response_aa_grid = 
+  
+  // Extract antenna_response grids
+  const Index n_ar_pol = 
+                  antenna_response.get_string_grid(GFIELD4_FIELD_NAMES).nelem();
+  ConstVectorView aresponse_f_grid = 
+                  antenna_response.get_numeric_grid(GFIELD4_F_GRID);
+  ConstVectorView aresponse_za_grid = 
+                  antenna_response.get_numeric_grid(GFIELD4_ZA_GRID);
+  ConstVectorView aresponse_aa_grid = 
                   antenna_response.get_numeric_grid(GFIELD4_AA_GRID);
   //
-  aresponse.resize( n_ar_pol, n_ar_f, n_ar_za, 1 );
-  aresponse.set_grid( GFIELD4_AA_GRID, Vector(1,0) );
+  const Index n_ar_f  = aresponse_f_grid.nelem();
+  const Index n_ar_za = aresponse_za_grid.nelem();
+  const Index n_ar_aa = aresponse_aa_grid.nelem();
+  const Index pol_step = n_ar_pol > 1;
+  
+  // Asserts for antenna_response
+  assert( n_ar_pol == 1  ||  n_ar_pol >= n_pol );
+  assert( n_ar_f );
+  assert( n_ar_za > 1 );
+  assert( n_ar_aa > 1 );
+
+  // Some size(s)
+  const Index nfpol = n_f * n_pol;  
 
   // Resize H
-  H.resize( n_ant*nfpol, n_aa*n_za*nfpol );
+  H.resize( n_ant*nfpol, n_dlos*nfpol );
 
-  // Loop antenna_los
-  for( Index il=0; il<n_ant; il++ )
+  // Storage vectors for response weights
+  Vector hrow( H.ncols(), 0.0 );
+  Vector hza( n_dlos, 0.0 );
+
+  // Antenna response to apply (possibly obtained by frequency interpolation)
+  Matrix aresponse( n_ar_za, n_ar_aa, 0.0 );
+
+
+  // Antenna beam loop
+  for( Index ia=0; ia<n_ant; ia++ )
     {
+      // Order of loops assumes that the antenna response more often
+      // changes with frequency than for polarisation
 
-      // Set up an ArrayOfVector that can hold all data for one antenna_los
-      ArrayOfVector hrows(nfpol);
-      for( Index row=0; row<nfpol; row++ )
+      // Frequency loop
+      for( Index f=0; f<n_f; f++ )
         {
-          hrows[row].resize(n_aa*n_za*nfpol);
-          hrows[row] = 0;     // To get correct value for aa_grid 
-        }                     // points outside response aa grid
- 
-      // Loop azimuth angles
-      for( Index ia=0; ia<n_aa; ia++ )
-        {
-          const Numeric aa_point = aa_grid[ia] - antenna_los(il,1);
 
-          if( aa_point >= response_aa_grid[0]  &&  
-                                            aa_point <= last(response_aa_grid) )
+          // Polarisation loop
+          for( Index ip=0; ip<n_pol; ip++ )
             {
-              // Interpolate antenna patterns to aa_grid[ia] 
-              // Use grid position function to find weights 
+              // Determine antenna pattern to apply
               //
-              ArrayOfGridPos gp( 1 );
-              gridpos( gp, response_aa_grid, Vector(1,aa_point) );
+              // Interpolation needed only if response has a frequency grid
               //
-              for( Index i4=0; i4<n_ar_pol; i4++ )
+              Index new_antenna = 1; 
+              //
+              if( n_ar_f == 1 )    // No frequency variation
                 {
-                  for( Index i3=0; i3<n_ar_f; i3++ )
-                    {
-                      for( Index i2=0; i2<n_ar_za; i2++ )
-                        {
-                          aresponse.data(i4,i3,i2,0) = 
-                            gp[0].fd[1] * antenna_response.data(i4,i3,i2,gp[0].idx) +
-                            gp[0].fd[0] * antenna_response.data(i4,i3,i2,gp[0].idx+1);
-                        }  
-                    }   
+                  if( pol_step )   // Polarisation variation, update always needed
+                    { aresponse = antenna_response.data(ip,0,joker,joker); }
+                  else if( f == 0  &&  ip == 0 ) // Set fully constant pattern
+                    { aresponse = antenna_response.data(0,0,joker,joker); }
+                  else  // The one set just above can be reused
+                    { new_antenna = 0; }
                 }
- 
-              // Find the aa width for present angle 
-              //
-              // Lower and upper end of "coverage" for present aa angle
-              Numeric aa_low = response_aa_grid[0];
-              if( ia > 0 ) 
-                { 
-                  const Numeric aam = antenna_los(il,1) + 
-                                          ( aa_grid[ia] + aa_grid[ia-1] ) / 2.0;
-                  if( aam > aa_low )
-                    { aa_low = aam; };
-                }
-              Numeric aa_high = last(response_aa_grid);
-              if( ia < n_aa-1 )
-                { 
-                  const Numeric aam = antenna_los(il,1) + 
-                                          ( aa_grid[ia+1] + aa_grid[ia] ) / 2.0;
-                  if( aam < aa_high )
-                    { aa_high = aam; };
-                }
-              //
-              const Numeric aa_width = aa_high - aa_low;
-
-              // Do 1D calculations
-              //
-              Sparse Hza;
-              //
-              antenna1d_matrix( Hza, 1, antenna_los(il,0), 
-                                         aresponse, za_grid, f_grid, n_pol, 0 );
-
-              for( Index row=0; row<nfpol; row++ )
-                { 
-                  for( Index iz=0; iz<n_za; iz++ )
-                    {
-                      for( Index i=0; i<nfpol; i++ )
-                        {
-                          hrows[row][(iz*n_aa+ia)*nfpol+i] = 
-                                                 aa_width * Hza(row,iz*nfpol+i);
-                        }
+              else
+                {
+                  if( ip==0 || pol_step )  // Interpolation required
+                    {  
+                      assert(0);
                     }
-                }   
-            }  // if-statement
-        }  // aa loop
+                  else  // Reuse pattern for ip==0
+                    { new_antenna = 0; }
+                }
 
-      // Move results to H
-      for( Index row=0; row<nfpol; row++ )
-        {
-          if( do_norm )
-            { 
-              hrows[row] /= hrows[row].sum(); 
+              // Calculate response weights
+              if( new_antenna )
+                {
+
+                  // Normalisation?
+                  if( do_norm )
+                    { hza /= hza.sum(); }
+                }
+
+              // Put weights into H
+              //
+              const Index ii = f*n_pol + ip;
+              //
+              hrow[ Range(ii,n_dlos,nfpol) ] = hza;
+              //
+              H.insert_row( ia*nfpol+ii, hrow );
+              //
+              hrow = 0;
             }
-          H.insert_row( il*nfpol+row, hrows[row] ); 
         }
-
-    } // antenna_los loop
+    }
 }
-*/
+
 
 
 //! gaussian_response_autogrid
