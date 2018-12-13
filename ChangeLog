@@ -1,5 +1,11 @@
 2018-12-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-1179
+
+	* src/m_sensor.cc (mblock_dlos_gridUniformCircular): Under development.
+
+2018-12-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-1178
 
 	* src/methods.cc: Updated text for sensor_responseAntenna.

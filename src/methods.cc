@@ -2641,6 +2641,9 @@ void define_md_data_raw()
          "the width and spacing are equal or better than *xwidth_si* and\n"
          "*dx_si*, respectively, for all frequencies.\n"
          "\n"
+         "If the 2D option is selected (*do_2d*), a circular antenna is\n"
+         "assumed and the response is any direction follows the 1D case.\n"
+         "\n"
          "The antenna repsonse is not normalised.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
@@ -2649,16 +2652,17 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( ),
-        GIN( "leff", "xwidth_si", "dx_si", "nf", "fstart", "fstop" ),
+        GIN( "leff", "xwidth_si", "dx_si", "nf", "fstart", "fstop", "do_2d" ),
         GIN_TYPE( "Numeric", "Numeric", "Numeric", "Index", "Numeric", 
-                  "Numeric" ),
-        GIN_DEFAULT( NODEF, "3", "0.1", NODEF, NODEF, NODEF ),
+                  "Numeric", "Index" ),
+        GIN_DEFAULT( NODEF, "3", "0.1", NODEF, NODEF, NODEF, "0" ),
         GIN_DESC( "Effective size of the antenna", 
                   "Half-width of response, in terms of std. dev.", 
                   "Grid spacing, in terms of std. dev.",
                   "Number of points in frequency grid (must be >= 2)",
                   "Start point of frequency grid",
-                  "End point of frequency grid" )
+                  "End point of frequency grid",
+                  "Set to 1 to create a 2D antenna pattern." )
         ));
  
   md_data_raw.push_back
@@ -10430,6 +10434,39 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "mblock_dlos_gridUniformCircular" ),
+        DESCRIPTION
+        (
+         "Gives *mblock_dlos_grid* roughly circular coverage, with uniform spacing.\n"
+         "\n"
+         "The method considers points on a regular grid with a spacing set by\n"
+         "GIN *spacing*. All points inside *width* from (0,0) are included in\n"
+         "*mblock_dlos_grid*. The positions in *mblock_dlos_grid* thus covers\n"
+         "a roughly circular domain, and cover the same solid beam angle.\n"
+         "Note that the method assumes that width is small and the solid beam\n"
+         "angle does not change with distance from (0.0).\n"
+         "\n"
+         "Defualt is to consider grid positions of ..., -spacing/2, spacing/2, ...\n"
+         "If you want to have (0,0) as a point in *mblock_dlos_grid*, change\n"
+         "*centre* from its default value.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "mblock_dlos_grid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(         "spacing"    , "width"    , "centre"     ),
+        GIN_TYPE(    "Numeric", "Numeric", "Index" ),
+        GIN_DEFAULT( NODEF   , NODEF   , "0"   ),
+        GIN_DESC( "The angular spacing between points.",
+                  "The maximum half-width to include..",
+                  "Set to 1 to place a point at (0,0)." 
+                  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "mc_antennaSetGaussian" ),
         DESCRIPTION
         (
@@ -10777,103 +10814,6 @@ void define_md_data_raw()
         SETMETHOD( true )
       ));
     
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "RationalAdd" ),
-      DESCRIPTION
-      (
-        "Adds a Rational and a value (out = in+value).\n"
-        "\n"
-        "The result can either be stored in the same or another Rational.\n"
-        "(in and out can be the same varible, but not out and value)\n"
-      ),
-      AUTHORS( "Richard Larsson" ),
-      OUT(),
-      GOUT(      "out"       ),
-      GOUT_TYPE( "Rational" ),
-      GOUT_DESC( "Output Rational." ),
-      IN(),
-      GIN(      "in"      ,
-                "value" ),
-      GIN_TYPE(    "Rational",
-                   "Rational" ),
-      GIN_DEFAULT( NODEF   ,
-                   NODEF ),
-      GIN_DESC( "Input Rational.",
-                "Value to add." )
-    ));
-    
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "RationalInvScale" ),
-      DESCRIPTION
-      (
-        "Inversely scales/divides a Rational with a value (out = in/value).\n"
-        "\n"
-        "The result can either be stored in the same or another Rational.\n"
-        "(in and out can be the same varible, but not out and value)\n" 
-      ),
-      AUTHORS( "Richard Larsson" ),
-      OUT(),
-      GOUT(      "out"       ),
-      GOUT_TYPE( "Rational" ),
-      GOUT_DESC( "Output Rational." ),
-      IN(),
-      GIN(      "in"      ,
-                "value" ),
-      GIN_TYPE(    "Rational",
-                   "Rational" ),
-      GIN_DEFAULT( NODEF   ,
-                   NODEF ),
-      GIN_DESC( "Input Rational.",
-                "Scaling Rational." )
-    ));
-    
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "RationalScale" ),
-      DESCRIPTION
-      (
-        "Scales/multiplies a Rational with a value (out = in*value).\n"
-        "\n"
-        "The result can either be stored in the same or another Rational.\n"
-        "(in and out can be the same varible, but not out and value)\n" 
-      ),
-      AUTHORS( "Richard Larsson" ),
-      OUT(),
-      GOUT(      "out"       ),
-      GOUT_TYPE( "Rational" ),
-      GOUT_DESC( "Output Rational." ),
-      IN(),
-      GIN(      "in"      ,
-                "value" ),
-      GIN_TYPE(    "Rational",
-                   "Rational" ),
-      GIN_DEFAULT( NODEF   ,
-                   NODEF ),
-      GIN_DESC( "Input Rational.",
-                "Scaling value." )
-    ));
-    
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "RationalSet" ),
-      DESCRIPTION
-      (
-        "Sets a Rational workspace variable to the given value.\n"
-      ),
-      AUTHORS( "Richard Larsson" ),
-      OUT(),
-      GOUT(      "out"        ),
-      GOUT_TYPE( "Rational" ),
-      GOUT_DESC( "Variable to initialize." ),
-      IN(),
-      GIN("numerator", "denominator"   ),
-      GIN_TYPE("Index", "Index" ),
-      GIN_DEFAULT( NODEF, "1" ),
-      GIN_DESC( "The numerator.", "The denominator." )
-    ));
-
   md_data_raw.push_back     
     ( MdRecord
       ( NAME( "nelemGet" ),
@@ -13963,6 +13903,103 @@ void define_md_data_raw()
       GIN_DESC("relative frequency to line center",
                "number of zeniths",
                "number of frequencies per line")
+    ));
+
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "RationalAdd" ),
+      DESCRIPTION
+      (
+        "Adds a Rational and a value (out = in+value).\n"
+        "\n"
+        "The result can either be stored in the same or another Rational.\n"
+        "(in and out can be the same varible, but not out and value)\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT(),
+      GOUT(      "out"       ),
+      GOUT_TYPE( "Rational" ),
+      GOUT_DESC( "Output Rational." ),
+      IN(),
+      GIN(      "in"      ,
+                "value" ),
+      GIN_TYPE(    "Rational",
+                   "Rational" ),
+      GIN_DEFAULT( NODEF   ,
+                   NODEF ),
+      GIN_DESC( "Input Rational.",
+                "Value to add." )
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "RationalInvScale" ),
+      DESCRIPTION
+      (
+        "Inversely scales/divides a Rational with a value (out = in/value).\n"
+        "\n"
+        "The result can either be stored in the same or another Rational.\n"
+        "(in and out can be the same varible, but not out and value)\n" 
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT(),
+      GOUT(      "out"       ),
+      GOUT_TYPE( "Rational" ),
+      GOUT_DESC( "Output Rational." ),
+      IN(),
+      GIN(      "in"      ,
+                "value" ),
+      GIN_TYPE(    "Rational",
+                   "Rational" ),
+      GIN_DEFAULT( NODEF   ,
+                   NODEF ),
+      GIN_DESC( "Input Rational.",
+                "Scaling Rational." )
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "RationalScale" ),
+      DESCRIPTION
+      (
+        "Scales/multiplies a Rational with a value (out = in*value).\n"
+        "\n"
+        "The result can either be stored in the same or another Rational.\n"
+        "(in and out can be the same varible, but not out and value)\n" 
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT(),
+      GOUT(      "out"       ),
+      GOUT_TYPE( "Rational" ),
+      GOUT_DESC( "Output Rational." ),
+      IN(),
+      GIN(      "in"      ,
+                "value" ),
+      GIN_TYPE(    "Rational",
+                   "Rational" ),
+      GIN_DEFAULT( NODEF   ,
+                   NODEF ),
+      GIN_DESC( "Input Rational.",
+                "Scaling value." )
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "RationalSet" ),
+      DESCRIPTION
+      (
+        "Sets a Rational workspace variable to the given value.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT(),
+      GOUT(      "out"        ),
+      GOUT_TYPE( "Rational" ),
+      GOUT_DESC( "Variable to initialize." ),
+      IN(),
+      GIN("numerator", "denominator"   ),
+      GIN_TYPE("Index", "Index" ),
+      GIN_DEFAULT( NODEF, "1" ),
+      GIN_DESC( "The numerator.", "The denominator." )
     ));
 
   md_data_raw.push_back

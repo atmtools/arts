@@ -240,21 +240,13 @@ void antenna_responseGaussian(GriddedField4&   r,
   r.set_grid_name( 2, "Zenith angle" );
   r.set_grid( 2, x );
 
-  if( !do_2d )
+  // common for 1D and 2D
+  r.set_grid_name( 3, "Azimuth angle" );
+  const Index n = y.nelem();
+  //
+  if( do_2d )
     {
-      r.set_grid_name( 3, "Azimuth angle" );
-      r.set_grid( 3, Vector(1,0) );
-
-      const Index n = y.nelem();
-      r.data.resize( 1, 1, n, 1 );
-      r.data(0,0,joker,0) = y;
-    }
-  else
-    {
-      r.set_grid_name( 3, "Azimuth angle" );
       r.set_grid( 3, x );
-
-      const Index n = y.nelem();
       r.data.resize( 1, 1, n, n );
 
       // The code below follows the function *gaussian_response*
@@ -266,6 +258,12 @@ void antenna_responseGaussian(GriddedField4&   r,
           for( Index b=0; b<n; b++ )
             { r.data(0,0,z,b) = a * exp( -0.5 * pow(sqrt(x[z]*x[z]+x[b]*x[b])/si,2.0) ); }
         }
+    }
+  else
+    {
+      r.set_grid( 3, Vector(1,0) );
+      r.data.resize( 1, 1, n, 1 );
+      r.data(0,0,joker,0) = y;
     }
 }
 
@@ -280,40 +278,67 @@ void antenna_responseVaryingGaussian(
    const Index&           nf,
    const Numeric&         fstart,
    const Numeric&         fstop,
+   const Index&           do_2d,
    const Verbosity&       verbosity )
 {
-  r.set_name( "Antenna response" );
-
-  r.set_grid_name( 0, "Polarisation" );
-  r.set_grid( 0, {"NaN"} );
-
-  r.set_grid_name( 3, "Azimuth angle" );
-  r.set_grid( 3, Vector(1,0) );
-
-  Vector f_grid;
-  VectorNLogSpace( f_grid, nf, fstart, fstop, verbosity );
-  r.set_grid_name( 1, "Frequency" );
-  r.set_grid( 1, f_grid );
-
+  if( dx_si > xwidth_si )
+    throw runtime_error( "It is demanded that dx_si <= xwidth_si." );
+  
   // Calculate response for highest frequency, with xwidth_si scaled from
   // fstart
   Vector x, y;
   Numeric fwhm = RAD2DEG * SPEED_OF_LIGHT / ( leff * fstop );
   gaussian_response_autogrid( x, y, 0, fwhm, (fstop/fstart)*xwidth_si, dx_si );
 
+  r.set_name( "Antenna response" );
+
+  r.set_grid_name( 0, "Polarisation" );
+  r.set_grid( 0, {"NaN"} );
+
+  Vector f_grid;
+  VectorNLogSpace( f_grid, nf, fstart, fstop, verbosity );
+  r.set_grid_name( 1, "Frequency" );
+  r.set_grid( 1, f_grid );
+
   r.set_grid_name( 2, "Zenith angle" );
   r.set_grid( 2, x );
 
+  // common for 1D and 2D
+  r.set_grid_name( 3, "Azimuth angle" );
   const Index n = y.nelem();
-  r.data.resize( 1, nf, n, 1 );
   //
-  r.data(0,nf-1,joker,0) = y;
-  //
-  for( Index i=0; i<nf-1; i++ )
+  if( do_2d )
     {
-      fwhm = RAD2DEG * SPEED_OF_LIGHT / ( leff * f_grid[i] );
-      gaussian_response( y, x, 0, fwhm );
-      r.data(0,i,joker,0) = y;
+      r.set_grid( 3, x );
+      r.data.resize( 1, nf, n, n );
+
+      for( Index i=0; i<nf; i++ )
+        {
+          fwhm = RAD2DEG * SPEED_OF_LIGHT / ( leff * f_grid[i] );
+          const Numeric si = fwhm / ( 2 * sqrt( 2 * NAT_LOG_2 ) );
+          const Numeric a = 1 / ( si * sqrt( 2 * PI ) );
+          
+          for( Index z=0; z<n; z++ )
+            {
+              for( Index b=0; b<n; b++ )
+                { r.data(0,i,z,b) = a * exp( -0.5 *
+                                    pow(sqrt(x[z]*x[z]+x[b]*x[b])/si,2.0) ); }
+            }
+        }
+    }
+  else
+    {
+      r.set_grid( 3, Vector(1,0) );
+      r.data.resize( 1, nf, n, 1 );
+      //
+      r.data(0,nf-1,joker,0) = y;
+      //
+      for( Index i=0; i<nf-1; i++ )
+        {
+          fwhm = RAD2DEG * SPEED_OF_LIGHT / ( leff * f_grid[i] );
+          gaussian_response( y, x, 0, fwhm );
+          r.data(0,i,joker,0) = y;
+        }
     }
 }
 
@@ -939,6 +964,48 @@ void f_gridMetMM(
     }  
 }
 
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void mblock_dlos_gridUniformCircular(
+         Matrix&          mblock_dlos_grid,
+   const Numeric&         spacing,
+   const Numeric&         width,
+   const Index&           centre,
+   const Verbosity& )
+{
+  // Create backgrid rectangular grid (same in zenith and azimuth)
+  Vector x;
+  Numeric w;
+  if( centre )
+    { w = spacing*ceil(width/spacing); }
+  else
+    { w = spacing*(0.5+floor(width/spacing));}
+  linspace( x, -w, w, spacing );
+  //
+  const Index l = x.nelem();
+
+  Matrix dlos_try( l*l, 2, 0 );
+  Index n_in = 0;
+  const Numeric c = width*width;
+  
+  for( Index i=0; i<l; i++ )
+    {
+      const Numeric a = x[i]*x[i];
+      
+      for( Index j=0; j<l; j++ )
+        {
+          if( a +  x[j]*x[j] > c )
+            {
+              dlos_try(n_in,0) = x[i];
+              dlos_try(n_in,1) = x[j];
+              n_in++;
+            }
+        }
+    }
+
+  mblock_dlos_grid = dlos_try( Range(0,n_in), joker );
+}
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
