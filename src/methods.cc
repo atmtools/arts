@@ -10456,11 +10456,43 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN(         "spacing"    , "width"    , "centre"     ),
+        GIN(         "spacing", "width"  , "centre"     ),
         GIN_TYPE(    "Numeric", "Numeric", "Index" ),
         GIN_DEFAULT( NODEF   , NODEF   , "0"   ),
         GIN_DESC( "The angular spacing between points.",
-                  "The maximum half-width to include..",
+                  "The maximum half-width to include.",
+                  "Set to 1 to place a point at (0,0)." 
+                  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "mblock_dlos_gridUniformRectangular" ),
+        DESCRIPTION
+        (
+         "Gives *mblock_dlos_grid* rectangular coverage, with uniform spacing.\n"
+         "\n"
+         "The method creates an equidistant rectangular grid. The width is zenith\n"
+         "and azimuth can differ. Note that selected widths are half-widths, and\n"
+         "refers to the maximum value allowed. The actual width depends on values\n"
+         "selected for *spacing* and *centre*.\n"
+         "\n"
+         "Defualt is to consider grid positions of ..., -spacing/2, spacing/2, ...\n"
+         "If you want to have (0,0) as a point in *mblock_dlos_grid*, change\n"
+         "*centre* from its default value.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "mblock_dlos_grid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(         "spacing", "za_width", "aa_width", "centre"     ),
+        GIN_TYPE(    "Numeric", "Numeric",  "Numeric",  "Index" ),
+        GIN_DEFAULT( NODEF   ,   NODEF   ,   NODEF,     "0"   ),
+        GIN_DESC( "The angular spacing between points.",
+                  "Max value of half-width in zenith angle direction.",
+                  "Max value of half-width in azimuth angle direction.",
                   "Set to 1 to place a point at (0,0)." 
                   )
         ));

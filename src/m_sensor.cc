@@ -974,7 +974,7 @@ void mblock_dlos_gridUniformCircular(
    const Index&           centre,
    const Verbosity& )
 {
-  // Create backgrid rectangular grid (same in zenith and azimuth)
+  // Create linear, equidistant grid (same in zenith and azimuth)
   Vector x;
   Numeric w;
   if( centre )
@@ -995,7 +995,7 @@ void mblock_dlos_gridUniformCircular(
       
       for( Index j=0; j<l; j++ )
         {
-          if( a +  x[j]*x[j] > c )
+          if( a +  x[j]*x[j] <= c )
             {
               dlos_try(n_in,0) = x[i];
               dlos_try(n_in,1) = x[j];
@@ -1006,6 +1006,53 @@ void mblock_dlos_gridUniformCircular(
 
   mblock_dlos_grid = dlos_try( Range(0,n_in), joker );
 }
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void mblock_dlos_gridUniformRectangular(
+         Matrix&          mblock_dlos_grid,
+   const Numeric&         spacing,
+   const Numeric&         za_width,
+   const Numeric&         aa_width,
+   const Index&           centre,
+   const Verbosity& )
+{
+  // Create za-grid
+  Vector za;
+  Numeric w;
+  if( centre )
+    { w = spacing*ceil(za_width/spacing); }
+  else
+    { w = spacing*(0.5+floor(za_width/spacing));}
+  linspace( za, -w, w, spacing );
+
+  // Create za-grid
+  Vector aa;
+  if( centre )
+    { w = spacing*ceil(aa_width/spacing); }
+  else
+    { w = spacing*(0.5+floor(aa_width/spacing));}
+  linspace( aa, -w, w, spacing );
+  
+  const Index nza = za.nelem();
+  const Index naa = aa.nelem();
+
+  mblock_dlos_grid.resize( nza*naa, 2 );
+
+  Index n = 0;
+  
+  for( Index z=0; z<nza; z++ )
+    {
+      for( Index a=0; a<naa; a++ )
+        {
+          mblock_dlos_grid(n,0) = za[z];
+          mblock_dlos_grid(n,1) = aa[a];
+          n++;
+        }
+    }
+}
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
