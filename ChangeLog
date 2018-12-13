@@ -1,5 +1,12 @@
 2018-12-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-2-3-1181
+
+	* controlfiles/CMakeLists.txt: Forgot that TestAntenna2D.arts
+	makes use of FASTEM.
+
+2018-12-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-2-3-1180
 
 	* controlfiles/CMakeLists.txt: Added TestAntenna2D.arts as fast.

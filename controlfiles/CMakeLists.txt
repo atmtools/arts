@@ -51,7 +51,6 @@ arts_test_run_ctlfile(slow artscomponents/clearsky/TestBatch.arts)
 
 arts_test_run_ctlfile(fast artscomponents/stokesrot/TestStokesRotation.arts)
 arts_test_run_ctlfile(fast artscomponents/stokesrot/TestSensorPol.arts)
-arts_test_run_ctlfile(fast artscomponents/antenna/TestAntenna2D.arts)
 
 arts_test_run_ctlfile(fast artscomponents/regrid/TestRegrid.arts)
 arts_test_run_ctlfile(fast artscomponents/regrid/TestRegridFields.arts)
@@ -131,9 +130,10 @@ if (ENABLE_TMATRIX)
 endif ()
 
 if (ENABLE_FASTEM)
+  arts_test_run_ctlfile(fast artscomponents/fastem/TestFastem.arts)
+  arts_test_run_ctlfile(fast artscomponents/antenna/TestAntenna2D.arts)
   arts_test_run_ctlfile(fast artscomponents/wfuns/TestTjacStokes1to4.arts)
   arts_test_run_ctlfile(slow artscomponents/wfuns/TestTjacStokes4.arts)
-  arts_test_run_ctlfile(fast artscomponents/fastem/TestFastem.arts)
 endif ()
 
 if (ENABLE_REFICE)
