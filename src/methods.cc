@@ -16292,11 +16292,17 @@ void define_md_data_raw()
          "details on how to specify the antenna response.\n"
          "\n"
          "One dimensional antenna patterns are handled as other response\n"
-         "functions (i.e. piece-wise linear), while 2D antenna patterns are\n"
-         "so far handled in a simplified manner. For 2D, the antenna pattern\n"
-         "is simply sampled at the points specified by *mblock_dlos_grid*\n"
-         "and each pencil beam direction is considered to represent the same\n"
-         "size in terms of solid beam.\n"
+         "functions. That is. both antenna repsonse and radiances are treated\n"
+         "piece-wise linear functions, and the pencil beam calculations must\n"
+         "cover the full sensor reponse (i.e. *mblock_dlos_grid* must be\n"
+         "sufficiently braod).\n"
+         "\n"
+         "On the other hand, 2D antenna patterns are so far handled in a\n"
+         "simplified manner. For 2D, the antenna pattern is simply sampled at\n"
+         "the points specified by *mblock_dlos_grid* and each pencil beam\n"
+         "direction is considered to represent the same size in terms of solid\n"
+         "beam ansgle. In addition, there is no check at all on how well\n"
+         "*mblock_dlos_grid* covers the antenna response.\n"
          ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",

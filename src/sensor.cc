@@ -249,8 +249,6 @@ void antenna2d_basic(
            const Index   n_pol,
            const Index   do_norm )
 {
-  assert(0);
-
   // Number of input pencil beam directions and frequency
   const Index n_dlos = mblock_dlos.nrows();
   const Index n_f    = f_grid.nelem();
@@ -329,9 +327,20 @@ void antenna2d_basic(
                 }
               else
                 {
-                  if( ip==0 || pol_step )  // Interpolation required
+                  if( ip==0 || pol_step )  
                     {  
-                      assert(0);
+                      // Interpolation (do this in "green way")
+                      ArrayOfGridPos gp_f( 1 ), gp_za(n_ar_za), gp_aa(n_ar_aa);
+                      gridpos( gp_f, aresponse_f_grid, Vector(1,f_grid[f]) );
+                      gridpos( gp_za, aresponse_za_grid, aresponse_za_grid );
+                      gridpos( gp_aa, aresponse_aa_grid, aresponse_aa_grid );
+                      Tensor4 itw( 1, n_ar_za, n_ar_aa, 8 );
+                      interpweights( itw, gp_f, gp_za, gp_za );
+                      Tensor3 aresponse_matrix(1,n_ar_za,n_ar_aa);
+                      interp( aresponse_matrix, itw, 
+                              antenna_response.data(ip,joker,joker,joker),
+                              gp_f, gp_za, gp_aa );
+                      aresponse = aresponse_matrix(0,joker,joker);
                     }
                   else  // Reuse pattern for ip==0
                     { new_antenna = 0; }
@@ -340,7 +349,34 @@ void antenna2d_basic(
               // Calculate response weights
               if( new_antenna )
                 {
-
+                  for( Index l=0; l<n_dlos; l++ )
+                    {
+                      const Numeric za = mblock_dlos(l,0) - antenna_dlos(ia,0);
+                            Numeric aa = 0.0;
+                      if(mblock_dlos.ncols()>2) { aa += mblock_dlos(l,1); }
+                      if(antenna_dlos.ncols()>2) { aa -= antenna_dlos(ia,1); }
+                      
+                      // The response is zero if mblock_dlos is outside of
+                      // antennna pattern
+                      if( za < aresponse_za_grid[0]  ||
+                          za > aresponse_za_grid[n_ar_za-1]  ||
+                          aa < aresponse_aa_grid[0]  ||
+                          aa > aresponse_aa_grid[n_ar_aa-1] )
+                        { hza[l] = 0; }
+                      // Otherwise we make an (blue) interpolation
+                      else
+                        {
+                          ArrayOfGridPos gp_za( 1 ), gp_aa(1);
+                          gridpos( gp_za, aresponse_za_grid, Vector(1,za) );
+                          gridpos( gp_aa, aresponse_aa_grid, Vector(1,aa) );
+                          Matrix itw( 1, 4 );
+                          interpweights( itw, gp_za, gp_aa );
+                          Vector value(1);
+                          interp( value, itw, aresponse, gp_za, gp_aa );
+                          hza[l] = value[0];
+                        }
+                    }
+                  
                   // Normalisation?
                   if( do_norm )
                     { hza /= hza.sum(); }

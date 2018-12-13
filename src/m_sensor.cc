@@ -1004,9 +1004,6 @@ void sensor_responseAntenna(
   if( atmosphere_dim < 3  &&  antenna_dlos.ncols() == 2 )
     throw runtime_error( 
                      "*antenna_dlos* can only have two columns for 3D atmosphers." );
-  if( antenna_dlos.ncols() != antenna_dim )
-    throw runtime_error( 
-          "The number of columns in *antenna_dlos* must be equal to *antenna_dim*." );
 
   // We allow angles in antenna_los to be unsorted
 
