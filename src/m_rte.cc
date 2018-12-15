@@ -1692,31 +1692,20 @@ void yCalc_mblock_loop_body(
         // Handle geo-positioning
         if( !std::isnan(geo_pos_matrix(0,0)) )  // No data are flagged as NaN
           {
-            // Find bore sigtht direction be probing sensor_response
-            const Index   nf   = f_grid.nelem();
-            const Index   nlos = mblock_dlos_grid.nrows();
-            const Index   niyb = nf * nlos * stokes_dim;
-            ArrayOfIndex i_of_max( n1y );
-            Vector max_contr( n1y, NAN );
-            for( Index ilos=0; ilos<nlos; ilos++ )
-              {
-                Vector itry( niyb, 0 );
-                itry[Range(ilos*nf*stokes_dim,nf,stokes_dim)] = 1;
-                Vector ytry( n1y );
-                mult( ytry, sensor_response, itry );
-                for( Index i=0; i<n1y; i++ )
-                  {
-                    if( ytry[i] > max_contr[i] )
-                      {
-                        max_contr[i] = ytry[i];
-                        i_of_max[i]  = ilos;
-                      }
-                  }
-              }
-
-            // Extract geo_pos_matrix for found bore-sights
+            // We set geo_pos based on the max value in sensor_response
+            const Index nfs  = f_grid.nelem() * stokes_dim;
             for( Index i=0; i<n1y; i++ )
-              { y_geo(row0+i,joker) = geo_pos_matrix(i_of_max[i],joker); }
+              {
+                Index jmax=-1;
+                Numeric rmax = -99e99;
+                for( Index j=0; j<sensor_response.ncols(); j++ )
+                  {
+                    if( sensor_response(i,j) > rmax )
+                      { rmax = sensor_response(i,j); jmax = j; }
+                  }
+                const Index jhit = Index( floor(jmax/nfs) );
+                y_geo(row0+i,joker) = geo_pos_matrix(jhit,joker);
+              }
           }
     }
 

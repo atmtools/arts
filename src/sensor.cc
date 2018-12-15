@@ -306,7 +306,6 @@ void antenna2d_basic(
       // Frequency loop
       for( Index f=0; f<n_f; f++ )
         {
-
           // Polarisation loop
           for( Index ip=0; ip<n_pol; ip++ )
             {
@@ -328,14 +327,14 @@ void antenna2d_basic(
               else
                 {
                   if( ip==0 || pol_step )  
-                    {  
+                    {
                       // Interpolation (do this in "green way")
                       ArrayOfGridPos gp_f( 1 ), gp_za(n_ar_za), gp_aa(n_ar_aa);
                       gridpos( gp_f, aresponse_f_grid, Vector(1,f_grid[f]) );
                       gridpos( gp_za, aresponse_za_grid, aresponse_za_grid );
                       gridpos( gp_aa, aresponse_aa_grid, aresponse_aa_grid );
                       Tensor4 itw( 1, n_ar_za, n_ar_aa, 8 );
-                      interpweights( itw, gp_f, gp_za, gp_za );
+                      interpweights( itw, gp_f, gp_za, gp_aa );
                       Tensor3 aresponse_matrix(1,n_ar_za,n_ar_aa);
                       interp( aresponse_matrix, itw, 
                               antenna_response.data(ip,joker,joker,joker),
@@ -353,8 +352,8 @@ void antenna2d_basic(
                     {
                       const Numeric za = mblock_dlos(l,0) - antenna_dlos(ia,0);
                             Numeric aa = 0.0;
-                      if(mblock_dlos.ncols()>2) { aa += mblock_dlos(l,1); }
-                      if(antenna_dlos.ncols()>2) { aa -= antenna_dlos(ia,1); }
+                      if(mblock_dlos.ncols()>1) { aa += mblock_dlos(l,1); }
+                      if(antenna_dlos.ncols()>1) { aa -= antenna_dlos(ia,1); }
                       
                       // The response is zero if mblock_dlos is outside of
                       // antennna pattern

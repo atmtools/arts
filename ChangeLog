@@ -1,3 +1,19 @@
+2018-12-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1182
+
+	* controlfiles/artscomponents/antenna/TestAntenna2D.arts: Decided
+	to add testing of *y_geo*, which was a good decision. That revealed
+	several bugs. 
+
+	* src/methods.cc: Added description of how *y_geo* is set inside yCalc.
+
+	* src/m_rte.cc (yCalc_mblock_loop_body): Determination of y_geo
+	changed. Now this is done based on max value in each row of
+	senesor response. Old scheme did simply not work.
+
+	* src/sensor.cc (antenna2d_basic): Two bugs found and fixed.
+
 2018-12-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1181

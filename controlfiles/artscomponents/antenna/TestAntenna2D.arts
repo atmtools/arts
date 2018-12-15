@@ -1,6 +1,7 @@
 #DEFINITIONS:  -*-sh-*-
 #
-# A simple, basic test of 2D antenna pattern
+# A simple, basic test of 1D and 2D antenna patterns. The setting of *y_geo* is
+# also tested inside this file.
 #
 # 2018-12-12, Patrick Eriksson
 
@@ -30,6 +31,11 @@ Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 # no refraction
 Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 
+# geo-positioning
+AgendaSet( geo_pos_agenda ){
+  geo_posEndOfPpath
+}
+
 
 # Basic settings
 #
@@ -37,7 +43,6 @@ AtmosphereSet3D
 IndexSet( stokes_dim, 2 )
 VectorSet( f_grid, [18e9,31e9] )
 StringSet( iy_unit, "PlanckBT" )
-
 
 # no jacobian calculation
 jacobianOff
@@ -95,7 +100,6 @@ AgendaSet( surface_rtprop_agenda ){
 }
 
 
-
 # Check data and settings (beside sensor)
 # 
 abs_xsec_agenda_checkedCalc
@@ -105,17 +109,31 @@ atmgeom_checkedCalc
 cloudbox_checkedCalc
 
 
+# Sensor pos/los
+#
+MatrixSet( sensor_pos, [ 800e3, 0, 0;800e3, 0, 0 ] )
+MatrixSet( sensor_los, [ 130, 20;130, 15 ] )
+
+
+# First do without antenna to get reference for geo_pos
+#
+sensorOff
+sensor_checkedCalc
+#
+yCalc
+#
+MatrixCreate( geo_ref )
+Copy( geo_ref, y_geo )
+
+
 # Define 1D antenna
 #
-NumericCreate( fwhm )
 NumericCreate( xwidth )
-NumericSet( fwhm, 1.2 )
 NumericSet( xwidth, 3 )
 VectorCreate( dza )
 VectorCreate( zeros )
 IndexCreate( ndlos )
 #
-#antenna_responseGaussian( fwhm=fwhm, xwidth_si=xwidth, do_2d=0 )
 antenna_responseVaryingGaussian( antenna_response, 1.5, xwidth, 
                                  0.1, 5, 10e9, 40e9, 0 )
 IndexSet( sensor_norm, 1 )
@@ -128,64 +146,58 @@ VectorSetConstant( zeros, ndlos, 0 )
 Matrix1ColFromVector( mblock_dlos_grid, dza )
 
 
-# Sensor
+# Calculate
 #
 sensor_responseInit
 sensor_responseAntenna
-#
-MatrixSet( sensor_pos, [ 800e3, 0, 0;800e3, 0, 0 ] )
-MatrixSet( sensor_los, [ 130, 20;130, 15 ] )
-
-
-# Calculate
-#
 sensor_checkedCalc
 #
 yCalc
 #
 VectorCreate( y_ref )
 Copy( y_ref, y )
+#
+Compare( geo_ref, y_geo, 1e-5 )
 
 
 # Re-do with 2D antenna (but still "1D" mblock_dlos_grid) 
 #
-#antenna_responseGaussian( fwhm=fwhm, xwidth_si=xwidth, do_2d=1 )
 antenna_responseVaryingGaussian( antenna_response, 1.5, xwidth, 
                                  0.1, 5, 10e9, 40e9, 1 )
+WriteXML("ascii",antenna_response,"R.xml")
 IndexSet( antenna_dim, 2 )
-MatrixSet( antenna_dlos, [0,0] )
-Matrix2ColFromVectors( mblock_dlos_grid, dza, zeros )
-
-
-# Sensor
-#
-sensor_responseInit
-sensor_responseAntenna
 
 
 # Calculate
 #
+sensor_responseInit
+sensor_responseAntenna
 sensor_checkedCalc
 #
 yCalc
+#
+Compare( geo_ref, y_geo, 1e-5 )
 
 
-# Results should not be identical, but fairly close
+# Results for *y* should not be identical, but fairly close
 Compare( y, y_ref, 0.001 )
 
 
 # Repeat with circular mblock_dlos_grid
 #
-mblock_dlos_gridUniformCircular( spacing=0.2, width=2 )
+mblock_dlos_gridUniformCircular( spacing=0.2, width=2, centre=1 )
+WriteXML("ascii",mblock_dlos_grid,"mdg.xml")
 sensor_responseInit
 sensor_responseAntenna
 sensor_checkedCalc
+WriteXML("ascii",sensor_response,"H.xml")
 #
 yCalc
+#
+Compare( geo_ref, y_geo, 1e-5 )
 
-# Some deviation expected here
-Compare( y, y_ref, 0.05 )
-
+# Some deviation expected here for *y*
+Compare( y, y_ref, 0.01 )
 
 # reset y_ref
 Copy( y_ref, y )
@@ -193,14 +205,16 @@ Copy( y_ref, y )
 
 # Repeat with rectangular mblock_dlos_grid
 #
-mblock_dlos_gridUniformRectangular( spacing=0.2, za_width=2, aa_width=2 )
+mblock_dlos_gridUniformRectangular( spacing=0.2, za_width=2, aa_width=2, centre=1 )
 sensor_responseInit
 sensor_responseAntenna
 sensor_checkedCalc
 #
 yCalc
+#
+Compare( geo_ref, y_geo, 1e-5 )
 
-# Some deviation expected, but limited
-Compare( y, y_ref, 0.01 )
+# *y*should basically be identical
+Compare( y, y_ref, 1e-6 )
 
 }
