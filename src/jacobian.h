@@ -507,6 +507,14 @@ bool is_line_mixing_line_strength_parameter(const RetrievalQuantity& t);
 
 bool is_line_mixing_parameter(const RetrievalQuantity& t);
 
+bool is_pressure_broadening_speed_independent(const RetrievalQuantity& t);
+
+bool is_pressure_broadening_speed_dependent(const RetrievalQuantity& t);
+
+bool is_pressure_broadening_correlation(const RetrievalQuantity& t);
+
+bool is_pressure_broadening_velocity_changing_collision_frequency(const RetrievalQuantity& t);
+
 bool is_pressure_broadening_parameter(const RetrievalQuantity& t);
 
 bool is_linefunctiondata_parameter(const RetrievalQuantity& t);

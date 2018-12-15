@@ -168,7 +168,7 @@ void test_linefunctionsdata()
   define_species_data();
   define_species_map();
   
-  std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric> X;
+  LineFunctionData::Output X;
   String s = "VP LM1 4 SELF T1 16000 0.7 T1 100 1.3 T4 0.7e-4 0.5e-6 0.7 CO2 T1 16001 0.71 T1 101 1.31 T1 0.9e-4 0.7 H2O T1 16001.1 0.711 T1 101.1 1.311 T1 0.4e-4 0.7 AIR T1 18002 0.72 T1 102 1.32 T1 0.1e-4 0.7 THIS-IS-NOT-READ-BY-CIN";
   istringstream x1(s);
   LineFunctionData test;
@@ -181,32 +181,13 @@ void test_linefunctionsdata()
   x1 >> n;
   std::cout << n << "\n";
   
-  Numeric G0, D0, G2, D2, FVC, ETA, Y, G, DV;
   const ArrayOfArrayOfSpeciesTag aspt = {{SpeciesTag("CO2")}, {SpeciesTag("H2O")}, {SpeciesTag("H2O2")}};
   const Vector vmrs = {0.2, 0.3, 0.2};
   X = test.GetParams (296., 246., 2., 0.2, vmrs, aspt);
-  G0=std::get<0>(X);
-  D0=std::get<1>(X);
-  G2=std::get<2>(X);
-  D2=std::get<3>(X);
-  FVC=std::get<4>(X);
-  ETA=std::get<5>(X);
-  Y=std::get<6>(X);
-  G=std::get<7>(X);
-  DV=std::get<8>(X);
-  std::cout << G0 << " " << D0 << " " << G2 << " " << D2 << " " << FVC << " " << ETA << " " << Y << " " << G << " " << DV << "\n";
+  std::cout << X.G0 << " " << X.D0 << " " << X.G2 << " " << X.D2 << " " << X.FVC << " " << X.ETA << " " << X.Y << " " << X.G << " " << X.DV << "\n";
   
   X = test.GetParams (296., 247., 2., 0.2, vmrs, aspt);
-  G0=std::get<0>(X);
-  D0=std::get<1>(X);
-  G2=std::get<2>(X);
-  D2=std::get<3>(X);
-  FVC=std::get<4>(X);
-  ETA=std::get<5>(X);
-  Y=std::get<6>(X);
-  G=std::get<7>(X);
-  DV=std::get<8>(X);
-  std::cout << G0 << " " << D0 << " " << G2 << " " << D2 << " " << FVC << " " << ETA << " " << Y << " " << G << " " << DV << "\n";
+  std::cout << X.G0 << " " << X.D0 << " " << X.G2 << " " << X.D2 << " " << X.FVC << " " << X.ETA << " " << X.Y << " " << X.G << " " << X.DV << "\n";
   
   s = "VP # 1 AIR T1 16000 0.7 T1 100 1.3";
   istringstream x2(s);
@@ -214,28 +195,10 @@ void test_linefunctionsdata()
   std::cout << s << "\n";
   std::cout << test << "\n";
   X = test.GetParams (296., 246., 2., 0.2, vmrs, aspt);
-  G0=std::get<0>(X);
-  D0=std::get<1>(X);
-  G2=std::get<2>(X);
-  D2=std::get<3>(X);
-  FVC=std::get<4>(X);
-  ETA=std::get<5>(X);
-  Y=std::get<6>(X);
-  G=std::get<7>(X);
-  DV=std::get<8>(X);
-  std::cout << G0 << " " << D0 << " " << G2 << " " << D2 << " " << FVC << " " << ETA << " " << Y << " " << G << " " << DV << "\n";
+  std::cout << X.G0 << " " << X.D0 << " " << X.G2 << " " << X.D2 << " " << X.FVC << " " << X.ETA << " " << X.Y << " " << X.G << " " << X.DV << "\n";
   
   X = test.GetParams (296., 247., 2., 0.2, vmrs, aspt);
-  G0=std::get<0>(X);
-  D0=std::get<1>(X);
-  G2=std::get<2>(X);
-  D2=std::get<3>(X);
-  FVC=std::get<4>(X);
-  ETA=std::get<5>(X);
-  Y=std::get<6>(X);
-  G=std::get<7>(X);
-  DV=std::get<8>(X);
-  std::cout << G0 << " " << D0 << " " << G2 << " " << D2 << " " << FVC << " " << ETA << " " << Y << " " << G << " " << DV << "\n";
+  std::cout << X.G0 << " " << X.D0 << " " << X.G2 << " " << X.D2 << " " << X.FVC << " " << X.ETA << " " << X.Y << " " << X.G << " " << X.DV << "\n";
   
   s = "VP # 1 H2O2 T1 16000 0.7 T1 100 1.3";
   istringstream x3(s);
@@ -243,28 +206,10 @@ void test_linefunctionsdata()
   std::cout << s << "\n";
   std::cout << test << "\n";
   X = test.GetParams(296., 246., 2., 0.2, vmrs, aspt);
-  G0=std::get<0>(X);
-  D0=std::get<1>(X);
-  G2=std::get<2>(X);
-  D2=std::get<3>(X);
-  FVC=std::get<4>(X);
-  ETA=std::get<5>(X);
-  Y=std::get<6>(X);
-  G=std::get<7>(X);
-  DV=std::get<8>(X);
-  std::cout << G0 << " " << D0 << " " << G2 << " " << D2 << " " << FVC << " " << ETA << " " << Y << " " << G << " " << DV << "\n";
+  std::cout << X.G0 << " " << X.D0 << " " << X.G2 << " " << X.D2 << " " << X.FVC << " " << X.ETA << " " << X.Y << " " << X.G << " " << X.DV << "\n";
   
   X = test.GetParams(296., 247., 2., 0.2, vmrs, aspt);
-  G0=std::get<0>(X);
-  D0=std::get<1>(X);
-  G2=std::get<2>(X);
-  D2=std::get<3>(X);
-  FVC=std::get<4>(X);
-  ETA=std::get<5>(X);
-  Y=std::get<6>(X);
-  G=std::get<7>(X);
-  DV=std::get<8>(X);
-  std::cout << G0 << " " << D0 << " " << G2 << " " << D2 << " " << FVC << " " << ETA << " " << Y << " " << G << " " << DV << "\n";
+  std::cout << X.G0 << " " << X.D0 << " " << X.G2 << " " << X.D2 << " " << X.FVC << " " << X.ETA << " " << X.Y << " " << X.G << " " << X.DV << "\n";
 }
 
 
@@ -283,7 +228,7 @@ void test_speed_of_pressurebroadening()
   
   Numeric T = T0;
   Vector G0(N), D0(N), G2(N), D2(N), FVC(N), ETA(N), Y(N), G(N), DV(N);
-  std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric> X;
+  LineFunctionData::Output X;
   
   // New line shape
   LineFunctionData lf;
@@ -307,15 +252,15 @@ void test_speed_of_pressurebroadening()
   if(test_new) {
     for(i=0; i<N; i++) {
       X = lf.GetParams (296., T, P, vmrs[0], vmrs, aspt);
-      G0[i]=std::get<0>(X);
-      D0[i]=std::get<1>(X);
-      G2[i]=std::get<2>(X);
-      D2[i]=std::get<3>(X);
-      FVC[i]=std::get<4>(X);
-      ETA[i]=std::get<5>(X);
-      Y[i]=std::get<6>(X);
-      G[i]=std::get<7>(X);
-      DV[i]=std::get<8>(X);
+      G0[i]=X.G0;
+      D0[i]=X.D0;
+      G2[i]=X.G2;
+      D2[i]=X.D2;
+      FVC[i]=X.FVC;
+      ETA[i]=X.ETA;
+      Y[i]=X.Y;
+      G[i]=X.G;
+      DV[i]=X.DV;
       T += dT;
     }
   }

@@ -14,7 +14,7 @@ Arts2 {
   VectorSet(rtp_nlte, [0.7, 0.4])
   VectorSet(rtp_vmr, [0.21])
   NumericSet(rtp_temperature, 250)
-  NumericSet(rtp_pressure, 25000)
+  NumericSet(rtp_pressure, 1e-5)
   NumericSet(lm_p_lim, 0)
   IndexSet(stokes_dim, 1)
   IndexSet(xsec_speedup_switch, 0)
@@ -23,7 +23,7 @@ Arts2 {
   ArrayOfPropagationMatrixCreate(testdata)
   
   # Absorption line (Doppler, no Zeeman, no NLTE, no mirroring, no normalization)
-  ReadXML(abs_lines, "../lineshapes/testdata/doppler-line.xml")
+  ReadXML(abs_lines, "../lineshapes/testdata/voigt-line.xml")
   ArrayOfLineRecordCreate(aolr)
   Copy(aolr, abs_lines)
   abs_lines_per_speciesCreateFromLines

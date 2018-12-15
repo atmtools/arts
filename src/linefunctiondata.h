@@ -69,8 +69,7 @@ public:
   enum class InterpParam       : Index {INTERPOLATED_VARIABLES, Size};
   
   // List of all variables that can be returned
-  typedef std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric> Output;
-  enum class TuplePos : Index {G0, D0, G2, D2, FVC, ETA, Y, G, DV};
+  struct Output {Numeric G0, D0, G2, D2, FVC, ETA, Y, G, DV;};
   
   LineFunctionData() = default;
   
@@ -246,17 +245,6 @@ public:
                             const QuantumIdentifier& line_qi,
                             const bool normalization=true) const;
                             
-  Vector GetInternalDerivatives(const Numeric& T0,
-                                const Numeric& T,
-                                const Numeric& P,
-                                const Numeric& self_vmr,
-                                const ConstVectorView& rtp_vmr,
-                                const ArrayOfArrayOfSpeciesTag& abs_species,
-                                const ArrayOfRetrievalQuantity& rts,
-                                const ArrayOfIndex& rts_pos,
-                                const QuantumIdentifier& line_qi,
-                                const bool normalization=true) const;
-                            
   // Read data
   const ArrayOfSpeciesTag& Species() const { return mspecies; }
   bool SelfBroadening() const { return mself; }
@@ -282,7 +270,7 @@ public:
   Vector PlanetaryForeignG0() const;
   Vector PlanetaryForeignD0() const;
   Vector PlanetaryForeignN() const;
-  std::tuple<Numeric, Numeric> AirBroadening(const Numeric& theta, const Numeric& P, const Numeric& self_vmr) const;
+  Output AirBroadening(const Numeric& theta, const Numeric& P, const Numeric& self_vmr) const;
   
   // Changes and alterations of internal data
   void ChangeLineMixingfromSimpleLM2(const Vector& lm2data);
@@ -319,5 +307,7 @@ ArrayOfString all_coefficientsLineFunctionData();
 ArrayOfString all_variablesLineFunctionData();
 
 LineFunctionData::Output NoLineFunctionDataOutput() noexcept;
+
+LineFunctionData::Output mirroredOutput(const LineFunctionData::Output& v) noexcept;
 
 #endif // linefunctiondata_h

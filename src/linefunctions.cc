@@ -63,15 +63,13 @@ void Linefunctions::set_lineshape(ComplexVectorView F,
 {
   // Pressure broadening and line mixing terms
   const auto X = line.GetShapeParams(temperature, pressure, this_species, vmrs, abs_species);
-  const auto& G0  = std::get<Index(LineFunctionData::TuplePos::G0 )>(X);
-  const auto& D0  = std::get<Index(LineFunctionData::TuplePos::D0 )>(X);
-  const auto& G2  = std::get<Index(LineFunctionData::TuplePos::G2 )>(X);
-  const auto& D2  = std::get<Index(LineFunctionData::TuplePos::D2 )>(X);
-  const auto& FVC = std::get<Index(LineFunctionData::TuplePos::FVC)>(X);
-  const auto& ETA = std::get<Index(LineFunctionData::TuplePos::ETA)>(X);
-//   const auto& Y   = std::get<Index(LineFunctionData::TuplePos::Y  )>(X);
-//   const auto& G   = std::get<Index(LineFunctionData::TuplePos::G  )>(X);
-  const auto& DV  = std::get<Index(LineFunctionData::TuplePos::DV )>(X);
+  const auto& G0  = X.G0;
+  const auto& D0  = X.D0;
+  const auto& G2  = X.G2;
+  const auto& D2  = X.D2;
+  const auto& FVC = X.FVC;
+  const auto& ETA = X.ETA;
+  const auto& DV  = X.DV;
   
   // Line shape usage remembering variable
   LineShapeType lst = LineShapeType::End;
@@ -282,9 +280,7 @@ void Linefunctions::set_lorentz(ComplexVectorView F,
       }
       else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR) {
         if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity))
-          dF(iq, iv) = d * Complex(std::get<Index(LineFunctionData::TuplePos::G0)>(dVMR), 
-                                   std::get<Index(LineFunctionData::TuplePos::D0)>(dVMR) +
-                                   std::get<Index(LineFunctionData::TuplePos::DV)>(dVMR));
+          dF(iq, iv) = d * Complex(dVMR.G0, dVMR.D0 + dVMR.DV);
       }
       else if(is_magnetic_magnitude_parameter(derivatives_data[derivatives_data_position[iq]]))
         dF(iq, iv) = d * Complex(0.0, zeeman_df);  // Magnetic magnitude changes like line center in part
@@ -329,416 +325,348 @@ void Linefunctions::set_lorentz(ComplexVectorView F,
  * \param dVMR VMR derivatives of line shape parameters
  * 
  */
-void Linefunctions::set_htp(ComplexVectorView F, // Sets the full complex line shape without line mixing
-                            ComplexMatrixView dF,
-                            ConstVectorView f_grid,
-                            const Numeric& zeeman_df,
-                            const Numeric& magnetic_magnitude,
-                            const Numeric& F0_noshift,
-                            const Numeric& GD_div_F0,
-                            const Numeric& G0,
-                            const Numeric& L0,
-                            const Numeric& G2,
-                            const Numeric& L2,
-                            const Numeric& eta,
-                            const Numeric& FVC,
-                            const ArrayOfRetrievalQuantity& derivatives_data,
-                            const ArrayOfIndex& derivatives_data_position,
-                            const QuantumIdentifier& quantum_identity,
-                            const Numeric& dGD_div_F0_dT,
-                            const Numeric& dG0_dT,
-                            const Numeric& dL0_dT,
-                            const Numeric& dG2_dT,
-                            const Numeric& dL2_dT,
-                            const Numeric& deta_dT,
-                            const Numeric& dFVC_dT)
+void Linefunctions::set_htp(ComplexVectorView F,
+              ComplexMatrixView dF,
+              ConstVectorView f_grid, 
+              const Numeric& zeeman_df, 
+              const Numeric& magnetic_magnitude,
+              const Numeric& F0_noshift, 
+              const Numeric& GD_div_F0,
+              const Numeric& G0, 
+              const Numeric& D0,
+              const Numeric& G2, 
+              const Numeric& D2,
+              const Numeric& ETA,
+              const Numeric& FVC, 
+              const ArrayOfRetrievalQuantity& derivatives_data,
+              const ArrayOfIndex& derivatives_data_position,
+              const QuantumIdentifier& quantum_identity,
+              const Numeric& dGD_div_F0_dT,
+              const Numeric& dG0_dT,
+              const Numeric& dD0_dT,
+              const Numeric& dG2_dT,
+              const Numeric& dD2_dT,
+              const Numeric& dETA_dT,
+              const Numeric& dFVC_dT,
+              const LineFunctionData::Output& dVMR)
 {
-  // Size of the problem
+  const Index nq = derivatives_data_position.nelem();
   const Index nf = f_grid.nelem();
-  const Index nppd = derivatives_data_position.nelem();
   
-  static const Complex i(0.0, 1.0);
-  
-  // Main lineshape parameters
-  Complex A, Zp, Zm, Zp2, Zm2, wiZp, wiZm, X, sqrtXY, G, invG;
-  
-  // Derivatives parameters
-  Complex dA, dZp, dZm, dwiZp, dwiZm, dG;
-  
-  // Test parameters for deciding how to compute certain asymptotes
-  Numeric absX, ratioXY;
-  
-  // The line center
   const Numeric F0 = F0_noshift + zeeman_df * magnetic_magnitude;
-  
-  // Doppler terms
   const Numeric GD = GD_div_F0 * F0;
-  const Numeric invGD = 1 / GD;
-  const Numeric dGD_dT = dGD_div_F0_dT * F0;
+  const Numeric fac = sqrtPI / GD;
   
-  // Index of derivative for first occurrence of similarly natured partial derivatives
-  const Index first_frequency = get_first_frequency_index(derivatives_data, derivatives_data_position); 
+  const Complex C0(G0, D0);
+  const Complex C2(G2, D2);
+  const Complex C0t = (1 - ETA) * (C0 - 1.5 * C2) + FVC;
+  const Complex C2t = (1 - ETA) * C2;
   
-  // Pressure broadening terms
-  const Complex C0 = G0 + i*L0;
-  const Complex C2 = G2 + i*L2;
-  
-  // Correlation term
-  const Numeric one_minus_eta = 1.0 - eta;
-  
-  // Pressure terms adjusted by collisions and correlations
-  const Complex C0_m1p5_C2 = (C0 - 1.5 * C2);
-  const Complex C0t = one_minus_eta * C0_m1p5_C2 + FVC;
-  const Complex C2t = one_minus_eta * C2;
-  
-  // Limits and computational tracks
-  const bool eta_zero_limit = eta == 0;
-  const bool eta_one_limit = eta == 1;
-  const bool C2t_zero_limit = C2t == Complex(0.0, 0.0) or eta_one_limit;
-  bool ratioXY_low_limit, ratioXY_high_limit;
-  
-  // Practical term
-  const Complex invC2t = C2t_zero_limit ? -1.0 : (1.0 / C2t);
-  
-  // Relative pressure broadening terms to be used in the shape function
-  const Complex sqrtY = 0.5 * invC2t * GD;
-  const Complex Y = sqrtY * sqrtY;
-  const Numeric invAbsY = 1.0 / abs(Y);
-  
-  // Temperature derivatives pre-computed
-  Complex dC0_dT, dC2_dT, dC0t_dT, dC2t_dT, dC0_m1p5_C2_dT, dY_dT;
-  if(do_temperature_jacobian(derivatives_data)) {
-    dC0_dT = dG0_dT + i*dL0_dT;
-    dC2_dT = dG2_dT + i*dL2_dT;
-    dC0t_dT = one_minus_eta * (dC0_dT - 1.5 * dC2_dT) - deta_dT * C0_m1p5_C2 + dFVC_dT;
-    dC2t_dT = one_minus_eta * dC2_dT - deta_dT * C2;
-    dC0_m1p5_C2_dT = dC0_dT - 1.5 * dC2_dT;
-    dY_dT = C2t_zero_limit ? -1.0 : (GD / 2.0*invC2t*invC2t * (dGD_dT - GD * invC2t * dC2t_dT));
-  }
-  
-  // Scale factor (normalizes to PI)
-  const Numeric fac = sqrtPI * invGD;
-  
-  for(Index iv = 0; iv < nf; iv++) {
-    // Relative frequency
-    X = (C0t + i*(F0 - f_grid[iv])) * invC2t;
-    absX = abs(X);
-    sqrtXY = sqrt(X + Y);
-    
-    // Limit tester.  Not valid if C2t_zero_limit is true;
-    ratioXY = absX * invAbsY;
-    
-    // Limits are hard-coded from original paper by Tran etal
-    ratioXY_high_limit = ratioXY >= 10e15;
-    ratioXY_low_limit  = ratioXY <= 3.0*10e-8;
-    
-    // Compute Zm
-    if(C2t_zero_limit or ratioXY_low_limit)
-      Zm = (C0t + i*(F0 - f_grid[iv])) * invGD;
-    else if(ratioXY_high_limit)
-      Zm = sqrt(X);
-    else
-      Zm = sqrtXY - sqrtY;
-    
-    // Compute Zp
-    if(C2t_zero_limit)
-    {/* Do nothing since Zp will be infinity large */}
-    else if(ratioXY_high_limit)
-      Zp = sqrtXY;
-    else
-      Zp = sqrtXY + sqrtY;
+  if(C2t == Complex(0, 0)) {
+    const Complex Z0 = (Complex(0, F0) + C0t) / GD;
+    for(Index i=0; i<nf; i++) {
+      const Complex Zm = Complex(0, -f_grid[i] / GD) + Z0;
+      const Complex wm = Faddeeva::w(Complex(0, 1) * Zm);
+      const Complex A = fac * wm;
+      const Complex G = 1.0 - (FVC - ETA * (C0 - 1.5 * C2)) * A;
       
-    //Helpers
-    Zm2 = Zm * Zm;
-    if(not C2t_zero_limit)
-      Zp2 = Zp * Zp;
-    
-    // Compute W-minus
-    wiZm = Faddeeva::w(i*Zm);
-    
-    // Compute W-plus
-    if(C2t_zero_limit)
-      wiZp = Complex(0.0, 0.0);  // sqrtInvPI / Zp**2
-    else
-      wiZp = Faddeeva::w(i*Zp);
-    
-    // Compute A
-    if(ratioXY_high_limit)
-      A = fac * (sqrtInvPI - Zm * wiZm);
-    else
-      A = fac * (wiZm - wiZp);
-    
-    // Compute G
-    if(eta_zero_limit)
-      G = 1.0 - FVC * A;
-    else if(C2t_zero_limit)
-      G = 1.0 - (FVC - eta * C0_m1p5_C2) * A + C2 * fac * ((1.0 - Zm2)*wiZm + Zm * sqrtInvPI);
-    else if (ratioXY_high_limit)
-      G = 1.0 - (FVC - eta * C0_m1p5_C2) * A + eta / one_minus_eta * (-1.0 + 2.0 * sqrtPI * (1.0-X-2.0*Y) * (sqrtInvPI - Zm * wiZm) + 2.0*sqrtPI*Zp*wiZp);
-    else
-      G = 1.0 - (FVC - eta * C0_m1p5_C2) * A + eta / one_minus_eta * (-1.0 + sqrtPI/(2.0*sqrtY) * ((1.0-Zm2)*wiZm - (1.0-Zp2)*wiZp));
-   
-    // Compute denominator
-    invG = 1.0 / G;
-    
-    // Compute line shape
-    F[iv] = A * invG * invPI;
-    
-    for(Index iq = 0; iq < nppd; iq++) {
-      if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]])) {
-        // If this is the first time it is calculated this frequency bin, do the full calculation
-        if(first_frequency == iq) {
-          // Compute dZm
-          if(C2t_zero_limit or ratioXY_low_limit)
-            dZm = -invGD * i;
-          else if(ratioXY_high_limit)
-            dZm = -0.5 * invC2t * i / Zm;
-          else
-            dZm = -0.5 * invC2t * i / sqrtXY;
-          
-          // Compute dZp
-          if(not C2t_zero_limit)
-            dZp = 0.5 * invC2t * i / sqrtXY;
-          
-          // Compute dW-minus 
-          dwiZm = 2.0 * (Zm * wiZm - sqrtInvPI) * dZm; // FIXME: test this for different asymptotes
-          
-          // Compute dW-plus
-          if(C2t_zero_limit)
-            dwiZp = Complex(0.0, 0.0);  // sqrtInvPI / Zp
-          else
-            dwiZp = 2.0 * (Zp * wiZp - sqrtInvPI) * dZp; // FIXME: test this for different asymptotes
-          
-          // Compute dA
-          if(ratioXY_high_limit)
-            dA = fac * (- dZm * wiZm - Zm * dwiZm);
-          else
-            dA = fac * (dwiZm - dwiZp);
-          
-          // Compute dG
-          if(eta_zero_limit)
-            dG = - FVC * dA;
-          else if(C2t_zero_limit)
-            dG = - (FVC - eta * C0_m1p5_C2) * dA + C2 * fac * ((1.0 - Zm2)*dwiZm + (-2.0*Zm)*wiZm + dZm * sqrtInvPI);
-          else if (ratioXY_high_limit)
-            dG = - (FVC - eta*C0_m1p5_C2) * dA + eta / one_minus_eta * (2.0 * sqrtPI * (-invC2t * i) * (sqrtInvPI - Zm * wiZm) + 2.0 * sqrtPI * (1.0-X-2.0*Y) * (- dZm * wiZm - Zm * dwiZm)+ 2.0*sqrtPI*(dZp*wiZp+Zp*dwiZp));
-          else
-            dG = - (FVC - eta*C0_m1p5_C2) * dA + eta / one_minus_eta * (sqrtPI/(2.0*sqrtY) * ((1.0-Zm2)*dwiZm + (-2.0*Zm)*wiZm - (1.0-Zp2)*dwiZp)- (-2.0*Zp)*wiZp);
-          
-          dF(iq, iv) = invG * (invPI * dA - F[iv] * dG); 
-        }
-        else  // copy for repeated occurrences
-          dF(iq, iv) = dF(first_frequency, iv); 
-      }
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature) {
-        // Compute dZm
-        if(C2t_zero_limit or ratioXY_low_limit)
-          dZm = (dC0t_dT - Zm * dGD_dT) * invGD;
-        else if(ratioXY_high_limit)
-          dZm = 0.5 / Zm  * (dC0t_dT - X * dC2t_dT) * invC2t;
-        else
-          dZm = 0.5 / sqrtXY * ((dC0t_dT - X * dC2t_dT) * invC2t + dY_dT) - 0.5 / sqrtY * dY_dT;
-        
-        // Compute Zp
-        if(C2t_zero_limit)
-        {/* Do nothing since Zp will be infinity large */}
-        else if(ratioXY_high_limit)
-          dZp = 0.5 / sqrtXY * ((dC0t_dT - X * dC2t_dT) * invC2t + dY_dT);
-        else
-          dZp = 0.5 / sqrtXY * ((dC0t_dT - X * dC2t_dT) * invC2t + dY_dT) + 0.5 / sqrtY * dY_dT;
-          
-        // Compute dW-minus 
-        dwiZm = 2.0 * (Zm * wiZm - sqrtInvPI) * dZm; // FIXME: test this for different asymptotes
-        
-        // Compute dW-plus
-        if(C2t_zero_limit)
-          dwiZp = Complex(0.0, 0.0);  // sqrtInvPI / Zp
-        else
-          dwiZp = 2.0 * (Zp * wiZp - sqrtInvPI) * dZp; // FIXME: test this for different asymptotes
-          
-        // Compute dA
-        if(ratioXY_high_limit)
-          dA = fac * (- dZm * wiZm - Zm * dwiZm) - A * invGD * dGD_dT;
-        else
-          dA = fac * (dwiZm - dwiZp) - A * invGD * dGD_dT;
-        
-        // Compute dG
-        if(eta_zero_limit)
-          dG = - dFVC_dT * A - FVC * dA;
-        else if(C2t_zero_limit)
-          dG = - (dFVC_dT - deta_dT * C0_m1p5_C2 - eta * dC0_m1p5_C2_dT) * A - (FVC - eta*C0_m1p5_C2) * dA 
-          + dC2_dT * fac * ((1.0 - Zm2)*wiZm + Zm * sqrtInvPI)
-          + C2 * fac * ((1.0 - Zm2)*dwiZm - 2.0 * Zm * dwiZm + dZm * sqrtInvPI)
-          - C2 * fac * ((1.0 - Zm2)*wiZm + Zm * sqrtInvPI) * invGD * dGD_dT;
-        else if (ratioXY_high_limit)
-          dG = - (dFVC_dT - deta_dT * C0_m1p5_C2 - eta * dC0_m1p5_C2_dT) * A - (FVC - eta*C0_m1p5_C2) * dA 
-          +
-          deta_dT / one_minus_eta * (-1.0 + 2.0 * sqrtPI * (1.0-X-2.0*Y) * (sqrtInvPI - Zm * wiZm) + 2.0*sqrtPI*Zp*wiZp)
-          -
-          deta_dT * eta / (one_minus_eta*one_minus_eta) * (-1.0 + 2.0 * sqrtPI * (1.0-X-2.0*Y) * (sqrtInvPI - Zm * wiZm) + 2.0*sqrtPI*Zp*wiZp)
-          +
-          eta / one_minus_eta * (
-            2.0 * sqrtPI * (-((dC0t_dT - X * dC2t_dT) * invC2t)-2.0*dY_dT) * (sqrtInvPI - Zm * wiZm)  +
-            2.0 * sqrtPI * (1.0-X-2.0*Y) * (- dZm * wiZm - Zm * dwiZm) 
-          + 2.0 * sqrtPI*(dZp*wiZp + Zp*dwiZp))
-          ;
-        else
-          dG = - (dFVC_dT - deta_dT * C0_m1p5_C2 - eta * dC0_m1p5_C2_dT) * A - (FVC - eta*C0_m1p5_C2) * dA 
-          + 
-          deta_dT / one_minus_eta * (-1.0 + sqrtPI/(2.0*sqrtY) * ((1.0-Zm2)*wiZm - (1.0-Zp2)*wiZp))
-          -
-          deta_dT * eta / (one_minus_eta*one_minus_eta) * (-1.0 + sqrtPI/(2.0*sqrtY) * ((1.0-Zm2)*wiZm - (1.0-Zp2)*wiZp))
-          +
-          eta / one_minus_eta * 
-          (
-            -0.5 * sqrtPI/(2.0*sqrtY)/sqrtY * dY_dT * ((1.0-Zm2)*wiZm - (1.0-Zp2)*wiZp)
-            +
-            (sqrtPI/(2.0*sqrtY) * ((1.0-Zm2)*dwiZm - (1.0-Zp2)*dwiZp)+ (-2.0*Zm)*wiZm - (-2.0*Zp)*wiZp)
-          );
-          
-        dF(iq, iv) = invG * (invPI * dA - F[iv] * dG); 
-      }
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
-        if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
-          // Compute dZm
-          if(C2t_zero_limit or ratioXY_low_limit)
-            dZm = (i - Zm) * invGD;
-          else if(ratioXY_high_limit)
-            dZm = 0.5/Zm * i * invC2t;
-          else
-            dZm = 0.5/sqrtXY * i * invC2t;
-          
-          // Compute dZp
-          if(C2t_zero_limit)
-          {/* Do nothing since Zp will be infinity large */}
-          else if(ratioXY_high_limit or ratioXY_low_limit)
-            dZp = 0.5/sqrtXY * i * invC2t;
-          else
-            dZp = dZm;
-          
-          // Compute dW-minus 
-          dwiZm = 2.0 * (Zm * wiZm - sqrtInvPI) * dZm; // FIXME: test this for different asymptotes
-          
-          // Compute dW-plus
-          if(C2t_zero_limit)
-            dwiZp = Complex(0.0, 0.0);  // sqrtInvPI / Zp
-          else
-            dwiZp = 2.0 * (Zp * wiZp - sqrtInvPI) * dZp; // FIXME: test this for different asymptotes
+      F[i] = invPI * A / G;
+      
+      if(nq) {
+        const Complex dwm_divdZ = 2.0 * (Zm * wm - sqrtInvPI);
+        for(Index iq=0; iq<nq; iq++) {
+          const RetrievalQuantity& rt = derivatives_data[derivatives_data_position[iq]];
+          if(rt == JacPropMatType::Temperature) {
+            const Numeric dG0 = dG0_dT;
+            const Numeric dG2 = dG2_dT;
+            const Numeric dD0 = dD0_dT;
+            const Numeric dD2 = dD2_dT;
+            const Numeric dETA = dETA_dT;
+            const Numeric dFVC = dFVC_dT;
+            const Numeric dGD = dGD_div_F0_dT * F0;
+            const Complex dC0 =  Complex(dG0, dD0);
+            const Complex dC2 =  Complex(dG2, dD2);
+            const Complex dC0t =  -(C0 - 1.5*C2)*dETA - (ETA - 1.0)*(dC0 - 1.5*dC2) + dFVC;
+            const Complex dZm =  ((Complex(0, f_grid[i]-F0) - C0t)*dGD + GD*dC0t)/(GD*GD);
+            const Complex dwm = dwm_divdZ * dZm;
+            const Complex dfac =  -fac*dGD/GD;
+            const Complex dA =  fac*dwm + wm*dfac;
+            const Complex dG =  ((C0 - 1.5*C2)*ETA - FVC)*dA + ((C0 - 1.5*C2)*dETA + (dC0 - 1.5*dC2)*ETA - dFVC)*A;
             
-          // Compute dA
-          if(ratioXY_high_limit)
-            dA = fac * (- dZm * wiZm - Zm * dwiZm) - A * invGD;
-          else
-            dA = fac * (dwiZm - dwiZp) - A * invGD;
-          
-          // Compute G
-          if(eta_zero_limit)
-            dG = - FVC * dA;
-          else if(C2t_zero_limit)
-            dG = - (FVC - eta * C0_m1p5_C2) * dA + C2 * fac * (((1.0 - Zm2)*dwiZm + dZm * sqrtInvPI - 2.0*Zm*dZm*wiZm) - ((1.0 - Zm2)*wiZm + Zm * sqrtInvPI) * invGD);
-          else if (ratioXY_high_limit)
-            dG = - (FVC - eta*C0_m1p5_C2) * dA + eta / one_minus_eta * (2.0 * sqrtPI * (-i*invC2t * (sqrtInvPI - Zm * wiZm) + (1.0-X-2.0*Y) * (- dZm * wiZm - Zm * dwiZm)) +             2.0*sqrtPI*(dZp*wiZp + Zp*dwiZp));
-          else
-            dG = - (FVC - eta*C0_m1p5_C2) * dA + eta / one_minus_eta * (sqrtPI/(2.0*sqrtY) * ((1.0-Zm2)*dwiZm - (1.0-Zp2)*dwiZp - 2.0 * Zm * dZm * dwiZm + 2.0 * Zp * dZp * wiZp));
-          
-          dF(iq, iv) = invG * (invPI * dA - F[iv] * dG); 
-        }
-      }
-      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]))  {
-        // NOTE:  These are first order Voigt-like.  
-        // The variables that are not Voigt-like must be dealt with separately
-        if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
-          // Compute dZm
-          if(C2t_zero_limit or ratioXY_low_limit)
-            dZm = one_minus_eta * invGD;
-          else if(ratioXY_high_limit)
-            dZm = 0.5 / Zm * one_minus_eta * invC2t;
-          else
-            dZm = 0.5 * sqrtXY * one_minus_eta * invC2t;
-          
-          // Compute dZp
-          if(C2t_zero_limit)
-          {/* Do nothing since Zp will be infinity large */}
-          else if(ratioXY_high_limit or ratioXY_low_limit)
-            dZp = 0.5 * sqrtXY * one_minus_eta * invC2t;
-          else
-            dZp = dZm;
-          
-          // Compute dW-minus 
-          dwiZm = 2.0 * (Zm * wiZm - sqrtInvPI) * dZm; // FIXME: test this for different asymptotes
-          
-          // Compute dW-plus
-          if(C2t_zero_limit)
-            dwiZp = Complex(0.0, 0.0);  // sqrtInvPI / Zp
-          else
-            dwiZp = 2.0 * (Zp * wiZp - sqrtInvPI) * dZp; // FIXME: test this for different asymptotes
+            dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+          }
+          else if(is_frequency_parameter(rt)) {
+            const Complex dZm = Complex(0, -1 / GD);
+            const Complex dwm = dwm_divdZ * dZm;
+            const Complex dA = fac * dwm;
+            const Complex dG = (ETA * (C0 - 1.5 * C2) - FVC) * dA;
             
-          // Compute dA
-          if(ratioXY_high_limit)
-            dA = fac * (- dZm * wiZm - Zm * dwiZm);
-          else
-            dA = fac * (dwiZm - dwiZp);
-          
-          // Compute dG
-          if(eta_zero_limit)
-            dG = - FVC * dA;
-          else if(C2t_zero_limit)
-            dG = - (FVC - eta * C0_m1p5_C2) * dA + eta * A + C2 * fac * ((1.0 - Zm2)*dwiZm + dZm * sqrtInvPI - 2.0*Zm*dZm*wiZm);
-          else if (ratioXY_high_limit)
-            dG = - (FVC - eta*C0_m1p5_C2) * dA + eta * A + eta / one_minus_eta * (2.0 * sqrtPI * (1.0-X-2.0*Y) * (- dZm * wiZm - Zm * dwiZm) + 2.0 * sqrtPI * (-one_minus_eta * invC2t) * (sqrtInvPI - Zm * wiZm) + 2.0*sqrtPI*(dZp*wiZp+Zp*dwiZp));
-          else
-            dG = - (FVC - eta*C0_m1p5_C2) * dA + eta * A + eta / one_minus_eta * (sqrtPI/(2.0*sqrtY) * ((1.0-Zm2)*dwiZm - (1.0-Zp2)*dwiZp - 2.0*Zm*dZm*wiZm + 2.0*Zp*dZp*wiZp));
-          
-          dF(iq, iv) = invG * (invPI * dA - F[iv] * dG) * Complex(0.0, -1.0); 
+            dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+          }
+          else if(is_magnetic_parameter(rt)) {
+            const Complex dZm =  zeeman_df*(-C0t + Complex(0, f_grid[i]))/(GD_div_F0*F0);
+            const Complex dfac =  -sqrtPI*zeeman_df/(GD_div_F0*(F0*F0));
+            const Complex dwm = dwm_divdZ * dZm;
+            const Complex dA =  fac*dwm + wm*dfac;
+            const Complex dG =  (ETA*(C0 - 1.5*C2) - FVC)*dA;
+            
+            dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+          }
+          else if(rt == JacPropMatType::VMR) {
+            if(rt.QuantumIdentity().In(quantum_identity)) {
+              const Numeric dG0 = dVMR.G0;
+              const Numeric dG2 = dVMR.G2;
+              const Numeric dD0 = dVMR.D0;
+              const Numeric dD2 = dVMR.D2;
+              const Numeric dFVC = dVMR.FVC;
+              const Numeric dETA = dVMR.ETA;
+              const Complex dC0 =  Complex(dG0, dD0);
+              const Complex dC2 =  Complex(dG2, dD2);
+              const Complex dC0t =  -(C0 - 1.5*C2)*dETA - (ETA - 1.0)*(dC0 - 1.5*dC2) + dFVC;
+              const Complex dZm =  dC0t/GD;
+              const Complex dwm = dwm_divdZ * dZm;
+              const Complex dA =  fac*dwm;
+              const Complex dG =  ((C0 - 1.5*C2)*ETA - FVC)*dA + ((C0 - 1.5*C2)*dETA + (dC0 - 1.5*dC2)*ETA - dFVC)*A;
+              
+              dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+            }
+          }
+          else if(rt == JacPropMatType::LineCenter) {
+            if(rt.QuantumIdentity().In(quantum_identity)) {
+              const Complex dZm =  (-C0t + Complex(0, f_grid[i]))/((F0*F0)*GD_div_F0);
+              const Complex dfac =  -sqrtPI/((F0*F0)*GD_div_F0);
+              const Complex dwm = dwm_divdZ * dZm;
+              const Complex dA =  fac*dwm + wm*dfac;
+              const Complex dG =  (ETA*(C0 - 1.5*C2) - FVC)*dA;
+              
+              dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+            }
+          }
+          else if(is_pressure_broadening_velocity_changing_collision_frequency(rt)) {
+            if(rt.QuantumIdentity().In(quantum_identity)) {
+              const Numeric dZm = 1 / GD;
+              const Complex dwm = dwm_divdZ * dZm;
+              const Complex dA = fac * dwm;
+              const Complex dG = - A - (FVC - ETA * (C0 - 1.5 * C2)) * dA;
+              
+              dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+            }
+          }
+          else if(is_pressure_broadening_correlation(rt)) {
+            if(rt.QuantumIdentity().In(quantum_identity)) {
+              const Complex dC0t = - (C0 - 1.5 * C2);
+              const Complex dZm = dC0t / GD;
+              const Complex dwm = dwm_divdZ * dZm;
+              const Complex dA = fac * dwm;
+              const Complex dG = (C0 - 1.5 * C2) * A - (FVC - ETA * (C0 - 1.5 * C2)) * dA;
+              
+              dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+            }
+          }
+          else if(is_pressure_broadening_speed_dependent(rt)) {
+            if(rt.QuantumIdentity().In(quantum_identity)) {
+              const Complex dC2(0, -1);  // Note change of sign to fit with Voigt/Lorentz
+              const Complex dC0t = (1 - ETA) * (- 1.5 * dC2);
+              const Complex dZm = dC0t / GD;
+              const Complex dwm = dwm_divdZ  * dZm;
+              const Complex dA = fac * dwm;
+              const Complex dG = - (FVC - ETA * (C0 - 1.5 * C2)) * dA - 1.5 * dC2 * A;
+              
+              dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+            }
+          }
+          else if(is_pressure_broadening_speed_independent(rt)) {
+            if(rt.QuantumIdentity().In(quantum_identity)) {
+              const Complex dC0(0, -1);  // Note change of sign to fit with Voigt/Lorentz
+              const Complex dC0t = (1 - ETA) * dC0;
+              const Complex dZm = dC0t / GD;
+              const Complex dwm = dwm_divdZ * dZm;
+              const Complex dA = fac * dwm;
+              const Complex dG = - (FVC - ETA * (C0 - 1.5 * C2)) * dA + ETA * dC0 * A;
+              
+              dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+            }
+          }
         }
       }
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR) {
-        if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-          throw std::runtime_error("No support for internal VMR partial derivatives for this line, use derivatives at a higher level");
-      }
-      else if(is_magnetic_magnitude_parameter(derivatives_data[derivatives_data_position[iq]])) {
-        // Compute dZm
-        if(C2t_zero_limit or ratioXY_low_limit)
-          dZm = i * invGD;
-        else if(ratioXY_high_limit)
-          dZm = 0.5/Zm * i * invC2t;
-        else
-          dZm = 0.5/sqrtXY * i * invC2t;
-        
-        // Compute dZp
-        if(C2t_zero_limit)
-        {/* Do nothing since Zp will be infinity large */}
-        else if(ratioXY_high_limit or ratioXY_low_limit)
-          dZp = 0.5/sqrtXY * i * invC2t;
-        else
-          dZp = dZm;
-        
-        // Compute dW-minus 
-        dwiZm = 2.0 * (Zm * wiZm - sqrtInvPI) * dZm; // FIXME: test this for different asymptotes
-        
-        // Compute dW-plus
-        if(C2t_zero_limit)
-          dwiZp = Complex(0.0, 0.0);  // sqrtInvPI / Zp
-        else
-          dwiZp = 2.0 * (Zp * wiZp - sqrtInvPI) * dZp; // FIXME: test this for different asymptotes
-          
-        // Compute dA
-        if(ratioXY_high_limit)
-          dA = fac * (- dZm * wiZm - Zm * dwiZm);
-        else
-          dA = fac * (dwiZm - dwiZp);
-        
-        // Compute G
-        if(eta_zero_limit)
-          dG = - FVC * dA;
-        else if(C2t_zero_limit)
-          dG = - (FVC - eta * C0_m1p5_C2) * dA + C2 * fac * ((1.0 - Zm2)*dwiZm + dZm * sqrtInvPI - 2.0*Zm*dZm*wiZm);
-        else if (ratioXY_high_limit)
-          dG = - (FVC - eta*C0_m1p5_C2) * dA + eta / one_minus_eta * (2.0 * sqrtPI * (-i*invC2t * (sqrtInvPI - Zm * wiZm) + (1.0-X-2.0*Y) * (- dZm * wiZm - Zm * dwiZm)) + 2.0*sqrtPI*(dZp*wiZp + Zp*dwiZp));
-        else
-          dG = - (FVC - eta*C0_m1p5_C2) * dA + eta / one_minus_eta * (sqrtPI/(2.0*sqrtY) * ((1.0-Zm2)*dwiZm - (1.0-Zp2)*dwiZp - 2.0 * Zm * dZm * dwiZm + 2.0 * Zp * dZp * wiZp));
-        
-        dF(iq, iv) = invG * (invPI * dA - F[iv] * dG); 
+    }
+  }
+  else {
+    const Complex X0 = (Complex(0, -F0) + C0t) / C2t;
+    const Complex sqrtY = 0.5 * GD / C2t;
+    const Complex Y = sqrtY * sqrtY;
+    for(Index i=0; i<nf; i++) {
+      const Complex X = Complex(0, f_grid[i]) / C2t + X0;
+      const Complex Z0 = std::sqrt(X + Y);
+      const Complex Zm = Z0 - sqrtY;
+      const Complex Zp = Z0 + sqrtY;
+      const Complex wm = Faddeeva::w(Complex(0, 1) * Zm);
+      const Complex wp = Faddeeva::w(Complex(0, 1) * Zp);
+      const Complex A = fac * (wm - wp);
+      const Complex B = ETA / (1 - ETA) * (-1.0 + sqrtPI/(2.0*sqrtY) * ((1.0-Zm*Zm)*wm - (1.0-Zp*Zp)*wp));
+      const Complex G = 1.0 - (FVC - ETA * (C0 - 1.5 * C2)) * A + B;
+      
+      F[i] = invPI * A / G;
+      if(nq) {
+        const Complex dwm_divdZ = 2.0 * (Zm * wm - sqrtInvPI);
+        const Complex dwp_divdZ = 2.0 * (Zp * wp - sqrtInvPI);
+        for(Index iq=0; iq<nq; iq++) {
+          const RetrievalQuantity& rt = derivatives_data[derivatives_data_position[iq]];
+          if(rt == JacPropMatType::Temperature) {
+            const Numeric dG0 = dG0_dT;
+            const Numeric dD0 = dD0_dT;
+            const Numeric dG2 = dG2_dT;
+            const Numeric dD2 = dD2_dT;
+            const Numeric dFVC = dFVC_dT;
+            const Numeric dETA = dETA_dT;
+            const Numeric dGD = dGD_div_F0_dT * F0;
+            const Complex dC0 =  Complex(dG0, dD0);
+            const Complex dC2 =  Complex(dG2, dD2);
+            const Complex dfac =  -sqrtPI*dGD/GD/GD;
+            const Complex dC0t =  -(C0 - 1.5*C2)*dETA - (ETA - 1)*(dC0 - 1.5*dC2) + dFVC;
+            const Complex dC2t =  -(ETA - 1)*dC2 - C2*dETA;
+            const Complex dY =  (C2t*dGD - GD*dC2t)*GD/(2*C2t*C2t*C2t);
+            const Complex dX =  ((Complex(0, F0-f_grid[i]) - C0t)*dC2t + C2t*dC0t)/C2t/C2t;
+            const Complex dZm =  -dY/(2*sqrtY) + dX/(2*Z0) + dY/(2*Z0);
+            const Complex dZp =  dY/(2*sqrtY) + dX/(2*Z0) + dY/(2*Z0);
+            const Complex dwm = dwm_divdZ * dZm;
+            const Complex dwp = dwp_divdZ * dZp;
+            const Complex dA =  (wm - wp)*dfac + (dwm - dwp)*fac;
+            const Complex dB =  (2*(sqrtPI*((Zm*Zm - 1.)*wm - (Zp*Zp - 1.)*wp) + 2*sqrtY)*(ETA - 1)*Y*dETA - 2*(sqrtPI*((Zm*Zm - 1.)*wm - (Zp*Zp - 1.)*wp) + 2*sqrtY)*ETA*Y*dETA - sqrtPI*(((Zm*Zm - 1.)*wm - (Zp*Zp - 1.)*wp)*dY + 2*(-(Zm*Zm - 1.)*dwm + (Zp*Zp - 1.)*dwp - 2*Zm*wm*dZm + 2*Zp*wp*dZp)*Y)*(ETA - 1)*ETA)/(4*(ETA - 1)*(ETA - 1)*Y*sqrtY);
+            const Complex dG =  ((2*C0 - 3*C2)*ETA - 2*FVC)*dA/2. + ((2*C0 - 3*C2)*dETA + (2*dC0 - 3*dC2)*ETA - 2*dFVC)*A/2. + dB;
+            
+            dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+          }
+          else if(is_frequency_parameter(rt)) {
+            const Complex dX =  Complex(0, 1)/C2t;
+            const Complex dZm =  dX/(2*Z0);
+            const Complex dZp =  dX/(2*Z0);
+            const Complex dwm = dwm_divdZ * dZm;
+            const Complex dwp = dwp_divdZ * dZp;
+            const Complex dA =  (dwm - dwp)*fac;
+            const Complex dB =  sqrtPI*ETA*((Zm*Zm - 1.)*dwm - (Zp*Zp - 1.)*dwp + 2*Zm*wm*dZm - 2*Zp*wp*dZp)/(2*sqrtY*(ETA - 1));
+            const Complex dG =  (ETA*(2*C0 - 3*C2) - 2*FVC)*dA/2. + dB;
+            
+            dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+          }
+          else if(is_magnetic_parameter(rt)) {
+            const Complex dfac =  -sqrtPI*zeeman_df/(GD_div_F0*F0*F0);
+            const Complex dY =  GD_div_F0*GD_div_F0*zeeman_df*F0/(2*C2t*C2t);
+            const Complex dX =  -Complex(0, zeeman_df)/C2t;
+            const Complex dZm =  -dY/(2*sqrtY) + dX/(2*Z0) + dY/(2*Z0);
+            const Complex dZp =  dY/(2*sqrtY) + dX/(2*Z0) + dY/(2*Z0);
+            const Complex dwm = dwm_divdZ * dZm;
+            const Complex dwp = dwp_divdZ * dZp;
+            const Complex dA =  (wm - wp)*dfac + (dwm - dwp)*fac;
+            const Complex dB =  sqrtPI*ETA*((-(Zm*Zm - 1.)*wm + (Zp*Zp - 1.)*wp)*dY + 2*((Zm*Zm - 1.)*dwm - (Zp*Zp - 1.)*dwp + 2*Zm*wm*dZm - 2*Zp*wp*dZp)*Y)/(4*(ETA - 1)*Y*sqrtY);
+            const Complex dG =  (ETA*(2*C0 - 3*C2) - 2*FVC)*dA/2. + dB;
+            
+            dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+          }
+          else if(rt == JacPropMatType::VMR) {
+            if(rt.QuantumIdentity().In(quantum_identity)) {
+              const Numeric dG0 = dVMR.G0;
+              const Numeric dG2 = dVMR.G2;
+              const Numeric dD0 = dVMR.D0;
+              const Numeric dD2 = dVMR.D2;
+              const Numeric dFVC = dVMR.FVC;
+              const Numeric dETA = dVMR.ETA;
+              const Complex dC0 =  Complex(dG0, dD0);
+              const Complex dC2 =  Complex(dG2, dD2);
+              const Complex dC0t =  -(C0 - 1.5*C2)*dETA - (ETA - 1)*(dC0 - 1.5*dC2) + dFVC;
+              const Complex dC2t =  -(ETA - 1)*dC2 - C2*dETA;
+              const Complex dY =  -2*dC2t/C2t * Y;
+              const Complex dX =  ((Complex(0, F0-f_grid[i]) - C0t)*dC2t + C2t*dC0t)/C2t/C2t;
+              const Complex dZm =  -dY/(2*sqrtY) + dX/(2*Z0) + dY/(2*Z0);
+              const Complex dZp =  dY/(2*sqrtY) + dX/(2*Z0) + dY/(2*Z0);
+              const Complex dwm = dwm_divdZ * dZm;
+              const Complex dwp = dwp_divdZ * dZp;
+              const Complex dA =  fac*(dwm - dwp);
+              const Complex dB =  (2*(sqrtPI*((Zm*Zm - 1.)*wm - (Zp*Zp - 1.)*wp) + 2*sqrtY)*(ETA - 1)*Y*dETA - 2*(sqrtPI*((Zm*Zm - 1.)*wm - (Zp*Zp - 1.)*wp) + 2*sqrtY)*ETA*Y*dETA - sqrtPI*(((Zm*Zm - 1.)*wm - (Zp*Zp - 1.)*wp)*dY + 2*(-(Zm*Zm - 1.)*dwm + (Zp*Zp - 1.)*dwp - 2*Zm*wm*dZm + 2*Zp*wp*dZp)*Y)*(ETA - 1)*ETA)/(4*(ETA - 1)*(ETA - 1)*Y*sqrtY);
+              const Complex dG =  ((2*C0 - 3*C2)*ETA - 2*FVC)*dA/2. + ((2*C0 - 3*C2)*dETA + (2*dC0 - 3*dC2)*ETA - 2*dFVC)*A/2. + dB;
+              
+              dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+            }
+          }
+          else if(rt == JacPropMatType::LineCenter) {
+            if(rt.QuantumIdentity().In(quantum_identity)) {
+              const Complex dfac =  -sqrtPI/(F0*F0*GD_div_F0);
+              const Complex dY =  F0*GD_div_F0*GD_div_F0/(2*C2t*C2t);
+              const Complex dX =  -Complex(0, 1)/C2t;
+              const Complex dZm =  -dY/(2*sqrtY) + dX/(2*Z0) + dY/(2*Z0);
+              const Complex dZp =  dY/(2*sqrtY) + dX/(2*Z0) + dY/(2*Z0);
+              const Complex dwm = dwm_divdZ * dZm;
+              const Complex dwp = dwp_divdZ * dZp;
+              const Complex dA =  (wm - wp)*dfac + (dwm - dwp)*fac;
+              const Complex dB =  sqrtPI*ETA*((-(Zm*Zm - 1.)*wm + (Zp*Zp - 1.)*wp)*dY + 2*((Zm*Zm - 1.)*dwm - (Zp*Zp - 1.)*dwp + 2*Zm*wm*dZm - 2*Zp*wp*dZp)*Y)/(4*(ETA - 1)*Y*sqrtY);
+              const Complex dG =  (ETA*(2*C0 - 3*C2) - 2*FVC)*dA/2. + dB;
+              
+              dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+            }
+          }
+          else if(is_pressure_broadening_velocity_changing_collision_frequency(rt)) {
+            if(rt.QuantumIdentity().In(quantum_identity)) {
+              const Complex dX =  -1./(C2*(ETA - 1));
+              const Complex dZm =  dX/(2*Z0);
+              const Complex dZp =  dX/(2*Z0);
+              const Complex dwm = dwm_divdZ * dZm;
+              const Complex dwp = dwp_divdZ * dZp;
+              const Complex dA =  fac*(dwm - dwp);
+              const Complex dB =  sqrtPI*ETA*((Zm*Zm - 1.)*dwm - (Zp*Zp - 1.)*dwp + 2*Zm*wm*dZm - 2*Zp*wp*dZp)/(2*sqrtY*(ETA - 1));
+              const Complex dG =  (ETA*(2*C0 - 3*C2) - 2*FVC)*dA/2. - A + dB;
+              
+              dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+            }
+          }
+          else if(is_pressure_broadening_correlation(rt)) {
+            if(rt.QuantumIdentity().In(quantum_identity)) {
+              const Numeric dETA = 1;
+              const Complex dY =  -(GD*GD)*dETA/(2*C2*C2*(ETA - 1)*(ETA - 1)*(ETA - 1));
+              const Complex dX =  (FVC - Complex(0, F0 - f_grid[i]))*dETA/(C2*(ETA - 1)*(ETA - 1));
+              const Complex dZm =  -dY/(2*sqrtY) + dX/(2*Z0) + dY/(2*Z0);
+              const Complex dZp =  dY/(2*sqrtY) + dX/(2*Z0) + dY/(2*Z0);
+              const Complex dwm = dwm_divdZ * dZm;
+              const Complex dwp = dwp_divdZ * dZp;
+              const Complex dA =  fac*(dwm - dwp);
+              const Complex dB =  (2*(sqrtPI*(((Zm*Zm) - 1.0)*wm - ((Zp*Zp) - 1.0)*wp) + 2*sqrtY)*(ETA - 1)*Y*dETA - 2*(sqrtPI*(((Zm*Zm) - 1.0)*wm - ((Zp*Zp) - 1.0)*wp) + 2*sqrtY)*ETA*Y*dETA - sqrtPI*((((Zm*Zm) - 1.0)*wm - ((Zp*Zp) - 1.0)*wp)*dY + 2*(-((Zm*Zm) - 1.0)*dwm + ((Zp*Zp) - 1.0)*dwp - 2*Zm*wm*dZm + 2*Zp*wp*dZp)*Y)*(ETA - 1)*ETA)/(4*(ETA - 1)*(ETA - 1)*Y*sqrtY);
+              const Complex dG =  (C0 - 1.5*C2)*A*dETA - (FVC - (C0 - 1.5*C2)*ETA)*dA + dB;
+              
+              dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+              
+            }
+          }
+          else if(is_pressure_broadening_speed_dependent(rt)) {
+            if(rt.QuantumIdentity().In(quantum_identity)) {
+              const Complex dC2(0, -1);  // Note change of sign to fit with Voigt/Lorentz (for speed independent variables)
+              const Complex dY =  -(GD*GD)*dC2/(2*(ETA - 1)*(ETA - 1)*C2*C2*C2);
+              const Complex dX =  (-C0*ETA + C0 - Complex(0, F0-f_grid[i]) + FVC)*dC2/((ETA - 1)*C2*C2);
+              const Complex dZm =  -dY/(2*sqrtY) + dX/(2*Z0) + dY/(2*Z0);
+              const Complex dZp =  dY/(2*sqrtY) + dX/(2*Z0) + dY/(2*Z0);
+              const Complex dwm = dwm_divdZ * dZm;
+              const Complex dwp = dwp_divdZ * dZp;
+              const Complex dA =  fac*(dwm - dwp);
+              const Complex dB =  sqrtPI*ETA*((-((Zm*Zm) - 1.)*wm + ((Zp*Zp) - 1.)*wp)*dY + 2*(((Zm*Zm) - 1.)*dwm - ((Zp*Zp) - 1.)*dwp + 2*Zm*wm*dZm - 2*Zp*wp*dZp)*Y)/(4*(ETA - 1)*Y*sqrtY);
+              const Complex dG =  -3*ETA*A*dC2/2. + (ETA*(2*C0 - 3*C2) - 2*FVC)*dA/2. + dB;
+              
+              dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+            }
+          }
+          else if(is_pressure_broadening_speed_independent(rt)) {
+            if(rt.QuantumIdentity().In(quantum_identity)) {
+              const Complex dC0(0, -1);  // Note change of sign to fit with Voigt/Lorentz
+              const Complex dX =  dC0/C2;
+              const Complex dZm =  dX/(2*Z0);
+              const Complex dZp =  dX/(2*Z0);
+              const Complex dwm = dwm_divdZ * dZm;
+              const Complex dwp = dwp_divdZ * dZp;
+              const Complex dA =  fac*(dwm - dwp);
+              const Complex dB =  sqrtPI*ETA*(((Zm*Zm) - 1.)*dwm - ((Zp*Zp) - 1.)*dwp + 2*Zm*wm*dZm - 2*Zp*wp*dZp)/(2*sqrtY*(ETA - 1));
+              const Complex dG =  ETA*A*dC0 - (ETA*(3*C2 - 2*C0) + 2*FVC)*dA/2. + dB;
+              
+              dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+            }
+          }
+        }
       }
     }
   }
@@ -834,9 +762,7 @@ void Linefunctions::set_voigt(ComplexVectorView F,
         dF(iq, iv) = dw_over_dz * (- zeeman_df * invGD); //* dz;
       else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR) {
         if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity))
-          dF(iq, iv) = dw_over_dz * Complex(- std::get<Index(LineFunctionData::TuplePos::D0)>(dVMR)
-                                            - std::get<Index(LineFunctionData::TuplePos::DV)>(dVMR),
-                                              std::get<Index(LineFunctionData::TuplePos::G0)>(dVMR)) * invGD;
+          dF(iq, iv) = dw_over_dz * Complex(- dVMR.D0 - dVMR.DV, dVMR.G0) * invGD;
       }
     }
   }
@@ -1053,8 +979,7 @@ void Linefunctions::apply_linemixing_scaling(ComplexVectorView F,
     else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR) {
       if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity))
         for(Index iv = 0; iv < nf; iv++)
-          dF(iq, iv) = dF(iq, iv) * LM +  F[iv] * Complex(  std::get<Index(LineFunctionData::TuplePos::G)>(dVMR),
-                                                          - std::get<Index(LineFunctionData::TuplePos::Y)>(dVMR));
+          dF(iq, iv) = dF(iq, iv) * LM +  F[iv] * Complex(dVMR.G, - dVMR.Y);
     }
     else
       dF(iq, joker) *= LM;
@@ -1758,29 +1683,29 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
   
   // Pressure broadening and line mixing terms
   const auto X = line.GetShapeParams(temperature, pressure, this_species_location_in_tags, volume_mixing_ratio_of_all_species, abs_species);
-  const auto& G0  = std::get<Index(LineFunctionData::TuplePos::G0 )>(X);
-  const auto& D0  = std::get<Index(LineFunctionData::TuplePos::D0 )>(X);
-  const auto& G2  = std::get<Index(LineFunctionData::TuplePos::G2 )>(X);
-  const auto& D2  = std::get<Index(LineFunctionData::TuplePos::D2 )>(X);
-  const auto& FVC = std::get<Index(LineFunctionData::TuplePos::FVC)>(X);
-  const auto& ETA = std::get<Index(LineFunctionData::TuplePos::ETA)>(X);
-  const auto& Y   = std::get<Index(LineFunctionData::TuplePos::Y  )>(X);
-  const auto& G   = std::get<Index(LineFunctionData::TuplePos::G  )>(X);
-  const auto& DV  = std::get<Index(LineFunctionData::TuplePos::DV )>(X);
+  const auto& G0  = X.G0;
+  const auto& D0  = X.D0;
+  const auto& G2  = X.G2;
+  const auto& D2  = X.D2;
+  const auto& FVC = X.FVC;
+  const auto& ETA = X.ETA;
+  const auto& Y   = X.Y;
+  const auto& G   = X.G;
+  const auto& DV  = X.DV;
   
   // Partial derivatives for temperature
   const auto dXdT = do_temperature ?  line.GetShapeParams_dT(temperature, temperature_perturbation(derivatives_data), 
                                                              pressure, this_species_location_in_tags, volume_mixing_ratio_of_all_species, 
                                                              abs_species) : NoLineFunctionDataOutput();
-  const auto& dG0_dT  = std::get<Index(LineFunctionData::TuplePos::G0 )>(dXdT);
-  const auto& dD0_dT  = std::get<Index(LineFunctionData::TuplePos::D0 )>(dXdT);
-  const auto& dG2_dT  = std::get<Index(LineFunctionData::TuplePos::G2 )>(dXdT);
-  const auto& dD2_dT  = std::get<Index(LineFunctionData::TuplePos::D2 )>(dXdT);
-  const auto& dFVC_dT = std::get<Index(LineFunctionData::TuplePos::FVC)>(dXdT);
-  const auto& dETA_dT = std::get<Index(LineFunctionData::TuplePos::ETA)>(dXdT);
-  const auto& dY_dT   = std::get<Index(LineFunctionData::TuplePos::Y  )>(dXdT);
-  const auto& dG_dT   = std::get<Index(LineFunctionData::TuplePos::G  )>(dXdT);
-  const auto& dDV_dT  = std::get<Index(LineFunctionData::TuplePos::DV )>(dXdT);
+  const auto& dG0_dT  = dXdT.G0;
+  const auto& dD0_dT  = dXdT.D0;
+  const auto& dG2_dT  = dXdT.G2;
+  const auto& dD2_dT  = dXdT.D2;
+  const auto& dFVC_dT = dXdT.FVC;
+  const auto& dETA_dT = dXdT.ETA;
+  const auto& dY_dT   = dXdT.Y;
+  const auto& dG_dT   = dXdT.G;
+  const auto& dDV_dT  = dXdT.DV;
   
   // Partial derivatives for VMR
   const std::tuple<bool, const QuantumIdentifier&> do_vmr = do_vmr_jacobian(derivatives_data, line.QuantumIdentity());  // At all, Species
@@ -1826,7 +1751,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
                   G0, D0, G2, D2, ETA, FVC,
                   derivatives_data, derivatives_data_position, QI,
                   ddoppler_constant_dT, 
-                  dG0_dT, dD0_dT, dG2_dT, dD2_dT, dETA_dT, dFVC_dT);
+                  dG0_dT, dD0_dT, dG2_dT, dD2_dT, dETA_dT, dFVC_dT, dXdVMR);
           break;
         case LineFunctionData::LineShapeType::VP:
           lst = LineShapeType::Voigt;
@@ -1862,7 +1787,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
               G0, D0, G2, D2, ETA, FVC,
               derivatives_data, derivatives_data_position, QI,
               ddoppler_constant_dT, 
-              dG0_dT, dD0_dT, dG2_dT, dD2_dT, dETA_dT, dFVC_dT);
+              dG0_dT, dD0_dT, dG2_dT, dD2_dT, dETA_dT, dFVC_dT, dXdVMR);
       lst = LineShapeType::HTP;
       break;
     // This line only needs Lorentz
@@ -1902,7 +1827,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
         ComplexMatrix dFm(dF.nrows(), dF.ncols());
         
         set_lorentz(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
-                    -line.F(), G0, -D0, -DV, derivatives_data, derivatives_data_position, QI, dG0_dT, -dD0_dT, -dDV_dT, dXdVMR);
+                    -line.F(), G0, -D0, -DV, derivatives_data, derivatives_data_position, QI, dG0_dT, -dD0_dT, -dDV_dT, mirroredOutput(dXdVMR));
         
         // Apply mirroring
         F += Fm;
@@ -1921,14 +1846,14 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
           break;
         case LineShapeType::Lorentz:
           set_lorentz(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
-                      -line.F(), G0, -D0, -DV, derivatives_data, derivatives_data_position, QI, dG0_dT, -dD0_dT, -dDV_dT, dXdVMR);
+                      -line.F(), G0, -D0, -DV, derivatives_data, derivatives_data_position, QI, dG0_dT, -dD0_dT, -dDV_dT, mirroredOutput(dXdVMR));
           break;
         case LineShapeType::Voigt:
           set_voigt(Fm, dFm, f_grid, 
                     -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
                     -line.F(), -doppler_constant, 
                     G0, -D0, -DV, derivatives_data, derivatives_data_position, QI,
-                    -ddoppler_constant_dT, dG0_dT, -dD0_dT, -dDV_dT, dXdVMR);
+                    -ddoppler_constant_dT, dG0_dT, -dD0_dT, -dDV_dT, mirroredOutput(dXdVMR));
           break;
         case LineShapeType::HTP:
           // WARNING: This mirroring is not tested and it might require, e.g., FVC to be treated differently
@@ -1938,7 +1863,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
                   G0, -D0, G2, -D2, ETA, FVC,
                   derivatives_data, derivatives_data_position, QI,
                   -ddoppler_constant_dT, 
-                  dG0_dT, -dD0_dT, dG2_dT, -dD2_dT, dETA_dT, dFVC_dT);
+                  dG0_dT, -dD0_dT, dG2_dT, -dD2_dT, dETA_dT, dFVC_dT, mirroredOutput(dXdVMR));
           break;
         case LineShapeType::ByPressureBroadeningData:
         case LineShapeType::End:
@@ -2113,7 +2038,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
   // Cutoff frequency is applied at the end because 
   // the entire process above is complicated and applying
   // cutoff last means that the code is kept cleaner
-  if(need_cutoff) {
+  if(need_cutoff)
     apply_cutoff(F, dF, N, dN,
                  derivatives_data, derivatives_data_position, line,
                  volume_mixing_ratio_of_all_species,
@@ -2126,7 +2051,6 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
                  partition_function_at_line_temperature,
                  abs_species, this_species_location_in_tags,
                  zeeman_index, verbosity);
-  }
 }
 
 

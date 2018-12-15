@@ -1,3 +1,43 @@
+2018-12-15  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1183
+	
+	* src/absorption.cc,linerecord.h,m_linemixing.cc:
+	* test_propagationmatrix.cc: updated LineFunctionData::Output and
+	interface to it.
+	
+	* src/linefunctiondata.cc.h:  Changed Output from tuple to a simple
+	struct.  Also fixed error in how eta-derivative was computed for HTP.
+	Also added some break;s because my compiler was complaining about
+	non-existing fallthroughs.
+	
+	 * src/jacobian.cc,h: Added some helpers for keeping track of 
+	 spectroscopic derivatives.
+	 
+	* src/linefunctions.cc,h:  Rewrote the HTP implemenation to make it
+	readable.  Removed some "features" in the process, i.e., limits, because
+	I am unsure how to trigger these features in a reliable way to test
+	the implementation.  The code should produce garbage at extreme 
+	distances from the line center now.  The commit also fixes so that all 
+	spectroscopic parameters are supported by the Jacobian calculations,
+	and so that internal VMR computations are supported.
+	Note that these DO see strange problems even closer to the line center
+	as they rely on differences of similar numbers...  I think I need an
+	algorithm to compute W(Z1)-W(Z2) more reliable when Z1 and Z2 are similar
+	in size...
+	
+	* controlfiles/*:  Added SDVP and full HTP tests.  Changed from using
+	old implementation of ARTSCAT5 to explicit implementation of the tags
+	in the example lines in the lineshapes-subfolder (note, that these are
+	not real values but a test of the functionality.)  I updated the tests
+	and the plotting routine as well, so that there were quite a few files
+	that had to be touched.  The test results have not changed much, but
+	there were tests that were not performed before that looked like they
+	were being performed, making for a few extra files of zeroes.  I have
+	tried to remove these now and decided to update the plotting-file because
+	it helps understand the test results.
+
+
 2018-12-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1182

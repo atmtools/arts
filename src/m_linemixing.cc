@@ -1844,10 +1844,9 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
           
           //abs_lines_per_band[iband][iline].SetAirPressureBroadening(W(iline, iline), psf[iline], abs_t[ip], abs_p[ip], 0.0);
           // FIXME:  Update this entire section... the below is a temporary workaround
-          const std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric> X =
-          abs_lines_per_band[iband][iline].GetShapeParams(abs_t[ip], abs_p[ip], 0, {0}, {{SpeciesTag("CO2")}});
-          W(iline, iline) = std::get<0>(X);
-          psf[iline] = std::get<1>(X);
+          auto X = abs_lines_per_band[iband][iline].GetShapeParams(abs_t[ip], abs_p[ip], 0, {0}, {{SpeciesTag("CO2")}});
+          W(iline, iline) = X.G0;
+          psf[iline] = X.D0;
           
           // TODO: Add derivatives here
           

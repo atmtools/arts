@@ -1849,16 +1849,16 @@ firstprivate(attenuation, phase, fac, f_local, aux)
             
             // Pressure broadening parameters
             // Prepare pressure broadening parameters
-            const std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric> X = abs_lines[ii].GetShapeParams(t, p, this_species, vmrs, abs_species);
-            const Numeric& G0 = std::get<Index(LineFunctionData::TuplePos::G0)>(X);
-            const Numeric& D0 = std::get<Index(LineFunctionData::TuplePos::D0)>(X);
-            const Numeric& G2 = std::get<Index(LineFunctionData::TuplePos::G2)>(X);
-            const Numeric& D2 = std::get<Index(LineFunctionData::TuplePos::D2)>(X);
-            const Numeric& FVC = std::get<Index(LineFunctionData::TuplePos::FVC)>(X);
-            const Numeric& ETA = std::get<Index(LineFunctionData::TuplePos::ETA)>(X);
-            const Numeric& Y = std::get<Index(LineFunctionData::TuplePos::Y)>(X);
-            const Numeric& G = std::get<Index(LineFunctionData::TuplePos::G)>(X);
-            const Numeric& DV = std::get<Index(LineFunctionData::TuplePos::DV)>(X);
+            auto X = abs_lines[ii].GetShapeParams(t, p, this_species, vmrs, abs_species);
+            const Numeric& G0 = X.G0;
+            const Numeric& D0 = X.D0;
+            const Numeric& G2 = X.G2;
+            const Numeric& D2 = X.D2;
+            const Numeric& FVC = X.FVC;
+            const Numeric& ETA = X.ETA;
+            const Numeric& Y = X.Y;
+            const Numeric& G = X.G;
+            const Numeric& DV = X.DV;
             
             // Check the cache is the temperature of the line and the isotope is the same to avoid recalculating the partition sum
             if(iso_cache!=abs_lines[ii].Isotopologue() || line_t_cache != abs_lines[ii].Ti0())
@@ -1933,13 +1933,12 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                   atm_tv_low, atm_tv_upp;
                   if(do_temperature_jacobian(flag_partials))
                   {
-                    const std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric> dX = abs_lines[ii].GetShapeParams_dT(
-                      t, temperature_perturbation(flag_partials), p, this_species, vmrs, abs_species);
-                    dG0dT = std::get<Index(LineFunctionData::TuplePos::G0)>(dX);
-                    dD0dT = std::get<Index(LineFunctionData::TuplePos::D0)>(dX);
-                    dYdT = std::get<Index(LineFunctionData::TuplePos::Y)>(dX);
-                    dGdT = std::get<Index(LineFunctionData::TuplePos::G)>(dX);
-                    dDVdT = std::get<Index(LineFunctionData::TuplePos::DV)>(dX);
+                    auto dX = abs_lines[ii].GetShapeParams_dT(t, temperature_perturbation(flag_partials), p, this_species, vmrs, abs_species);
+                    dG0dT = dX.G0;
+                    dD0dT = dX.D0;
+                    dYdT = dX.Y;
+                    dGdT = dX.G;
+                    dDVdT = dX.DV;
                     
                     GetLineScalingData_dT(dqt_dT_cache,
                                             dK2_dT,

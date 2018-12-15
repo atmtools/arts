@@ -100,7 +100,8 @@ namespace Linefunctions
                const Numeric& dG2_dT=0.0,
                const Numeric& dL2_dT=0.0,
                const Numeric& deta_dT=0.0,
-               const Numeric& dFVC_dT=0.0);
+               const Numeric& dFVC_dT=0.0,
+               const LineFunctionData::Output& dVMR=NoLineFunctionDataOutput());
   
   void set_voigt(ComplexVectorView F,
                  ComplexMatrixView dF,

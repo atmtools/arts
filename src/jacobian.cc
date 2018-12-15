@@ -1911,7 +1911,7 @@ bool is_line_mixing_parameter(const RetrievalQuantity& t)
          is_line_mixing_line_strength_parameter(t);
 }
 
-bool is_pressure_broadening_parameter(const RetrievalQuantity& t)
+bool is_pressure_broadening_speed_independent(const RetrievalQuantity& t)
 {
   return t == JacPropMatType::LineFunctionDataG0X0 or
          t == JacPropMatType::LineFunctionDataG0X1 or
@@ -1919,23 +1919,40 @@ bool is_pressure_broadening_parameter(const RetrievalQuantity& t)
          
          t == JacPropMatType::LineFunctionDataD0X0 or
          t == JacPropMatType::LineFunctionDataD0X1 or
-         t == JacPropMatType::LineFunctionDataD0X2 or
-         
-         t == JacPropMatType::LineFunctionDataG2X0 or
+         t == JacPropMatType::LineFunctionDataD0X2;
+}
+
+bool is_pressure_broadening_speed_dependent(const RetrievalQuantity& t)
+{
+  return t == JacPropMatType::LineFunctionDataG2X0 or
          t == JacPropMatType::LineFunctionDataG2X1 or
          t == JacPropMatType::LineFunctionDataG2X2 or
          
          t == JacPropMatType::LineFunctionDataD2X0 or
          t == JacPropMatType::LineFunctionDataD2X1 or
-         t == JacPropMatType::LineFunctionDataD2X2 or
-         
-         t == JacPropMatType::LineFunctionDataFVCX0 or
-         t == JacPropMatType::LineFunctionDataFVCX1 or
-         t == JacPropMatType::LineFunctionDataFVCX2 or
-         
-         t == JacPropMatType::LineFunctionDataETAX0 or
+         t == JacPropMatType::LineFunctionDataD2X2;
+}
+
+bool is_pressure_broadening_correlation(const RetrievalQuantity& t)
+{
+  return t == JacPropMatType::LineFunctionDataETAX0 or
          t == JacPropMatType::LineFunctionDataETAX1 or
          t == JacPropMatType::LineFunctionDataETAX2;
+}
+
+bool is_pressure_broadening_velocity_changing_collision_frequency(const RetrievalQuantity& t)
+{
+  return t == JacPropMatType::LineFunctionDataFVCX0 or
+         t == JacPropMatType::LineFunctionDataFVCX1 or
+         t == JacPropMatType::LineFunctionDataFVCX2;
+}
+
+bool is_pressure_broadening_parameter(const RetrievalQuantity& t)
+{
+  return is_pressure_broadening_speed_independent(t)            or
+         is_pressure_broadening_speed_dependent(t)              or
+         is_pressure_broadening_velocity_changing_collision_frequency(t) or
+         is_pressure_broadening_correlation(t);
 }
 
 
