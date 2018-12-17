@@ -1,3 +1,29 @@
+2018-12-17  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1184
+	
+	* controlfiles/*:  Added test for spectroscopy derivatives using
+	HTP-lineshape.  Since the tests under controlfiles/artscomponents/
+	lineshapes work, this should confirm that the spectroscopy parameters
+	work.  NOTE:  It also confirms my statements about the current HTP
+	implementation requiring some updates for W(Z1)-W(Z2) ~= 0.  There is
+	a failure to compute these values, resulting in NaN-results when the
+	center of the line is included in the calculations.  I therefore remove
+	these values for now before I have time to return to the issue for
+	some real application.
+	
+	Test file: controlfiles/artscomponents/wfuns/TestSpectroscopy.arts
+	Test input: arts-xml-data; controlfiles/testdata/tropical;
+	controlfiles/artscomponents/wfuns/testdata/
+	Test results: controlfiles/artscomponents/wfuns/testdata/comparedata/*
+	Test plots: controlfiles/artscomponents/wfuns/testdata/plots.py
+	
+	* src/m_atmosphere.cc,methods.cc:  Added z_surfaceConstantAltitude.
+	
+	* src/m_checked.cc:  Modified atmfields_checkedCalc to only check
+	included species (I hope, the interface for the AuxData is very
+	unclear for finding species and isotopologue names).
+
 2018-12-15  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1183

@@ -1,0 +1,384 @@
+Arts2{
+  
+  AgendaSet(abs_xsec_agenda) {abs_xsec_per_speciesInit abs_xsec_per_speciesAddLines2}
+  AgendaSet(propmat_clearsky_agenda) {Ignore(rtp_mag) Ignore(rtp_los) propmat_clearskyInit propmat_clearskyAddOnTheFly}
+  AgendaSet(iy_main_agenda){ppathCalc  iyEmissionStandard}
+  AgendaSet(geo_pos_agenda){Ignore(ppath) VectorSet(geo_pos, [])}
+  AgendaSet(ppath_agenda){Ignore(rte_pos2) ppathStepByStep}
+  AgendaSet(ppath_step_agenda){Ignore(t_field) Ignore(vmr_field) Ignore(f_grid) Ignore(ppath_lraytrace) ppath_stepGeometric}
+  AgendaSet(water_p_eq_agenda){water_p_eq_fieldMK05}
+  AgendaSet(iy_space_agenda){Ignore(rtp_pos) Ignore(rtp_los) MatrixCBR(iy, stokes_dim, f_grid)}
+  AgendaSet(iy_surface_agenda){SurfaceDummy iySurfaceRtpropAgenda}
+  AgendaSet(surface_rtprop_agenda){InterpAtmFieldToPosition(out=surface_skin_t, field=t_field) surfaceBlackbody}
+  refellipsoidEarth
+  
+  ## Constants (changes here might require changes in perturbations to match)
+  isotopologue_ratiosInitFromBuiltin
+  ReadXML( partition_functions, "spectroscopy/PartitionSums/TIPS/tips.xml" )
+  abs_speciesSet(species=["O2-66"])
+  VectorNLinSpace(f_grid, 100, 85e9, 115e9)  #FIXME: 101 freqs fail because HTP fails
+  VectorNLogSpace( p_grid, 51, 1030e2, 1 )
+  VectorSet(lat_grid, [-1, 1])  # We have no grid
+  VectorSet(lon_grid, [-1, 1])  # We have no grid
+  z_surfaceConstantAltitude
+  NumericSet(lm_p_lim, 0)
+  NumericSet(rte_alonglos_v, 0)
+  NumericSet(ppath_lmax, 1000)
+  NumericSet(ppath_lraytrace, 1000)
+  IndexSet(stokes_dim, 1)
+  IndexSet(abs_f_interp_order, 1)
+  IndexSet(xsec_speedup_switch, 0)
+  Touch(wind_u_field)
+  Touch(wind_v_field)
+  Touch(wind_w_field)
+  Touch(mag_u_field)
+  Touch(mag_v_field)
+  Touch(mag_w_field)
+  Touch(iy_aux_vars)
+  Touch(surface_props_data)
+  Touch(surface_props_names)
+  Touch(transmitter_pos)
+  StringSet(iy_unit, "PlanckBT")
+  
+  AtmRawRead( basename = "testdata/tropical" )
+  AtmosphereSet3D
+  AtmFieldsCalcExpand1D
+  
+  ## Calculate w/o NLTE
+  nlteOff
+  
+  ## Comparative parameter
+  VectorCreate(testy)
+  MatrixCreate(testjac)
+  
+  ## Absorption lines (Doppler, no Zeeman, no NLTE, no mirroring, no normalization)
+  ReadXML(abs_lines, "testdata/htp-line.xml")
+  ArrayOfLineRecordCreate(aolr)
+  Copy(aolr, abs_lines)
+  abs_lines_per_speciesCreateFromLines
+  
+  ## Line matching information
+  ArrayOfQuantumIdentifierCreate(qi_lines)
+  ReadXML(qi_lines, "testdata/qi-line.xml")
+  QuantumIdentifierCreate(QI)
+  Extract(QI, qi_lines, 0)
+  
+  MatrixSet(sensor_pos, [300e3, 0, 0])  # 300 km altitude
+  MatrixSet(sensor_los, [180, 0])  # Nadir looking
+  sensorOff  # We have no sensor
+  
+  ## Set up partial derivatives
+  jacobianInit
+  jacobianAddCatalogParameters(catalog_identities=qi_lines, catalog_parameters=["Line Strength", "Line Center"])
+  jacobianAddLineFunctionDataParameter(line_identity=QI, variable="G0", coefficient="X0", species="SELF")
+  jacobianAddLineFunctionDataParameter(line_identity=QI, variable="G0", coefficient="X0", species="AIR")
+  jacobianAddLineFunctionDataParameter(line_identity=QI, variable="G0", coefficient="X1", species="SELF")
+  jacobianAddLineFunctionDataParameter(line_identity=QI, variable="G0", coefficient="X1", species="AIR")
+  jacobianAddLineFunctionDataParameter(line_identity=QI, variable="D0", coefficient="X0", species="SELF")
+  jacobianAddLineFunctionDataParameter(line_identity=QI, variable="D0", coefficient="X0", species="AIR")
+  jacobianAddLineFunctionDataParameter(line_identity=QI, variable="D0", coefficient="X1", species="SELF")
+  jacobianAddLineFunctionDataParameter(line_identity=QI, variable="D0", coefficient="X1", species="AIR")
+  jacobianAddLineFunctionDataParameter(line_identity=QI, variable="G2", coefficient="X0", species="SELF")
+  jacobianAddLineFunctionDataParameter(line_identity=QI, variable="G2", coefficient="X0", species="AIR")
+  jacobianAddLineFunctionDataParameter(line_identity=QI, variable="G2", coefficient="X1", species="SELF")
+  jacobianAddLineFunctionDataParameter(line_identity=QI, variable="G2", coefficient="X1", species="AIR")
+  jacobianAddLineFunctionDataParameter(line_identity=QI, variable="D2", coefficient="X0", species="SELF")
+  jacobianAddLineFunctionDataParameter(line_identity=QI, variable="D2", coefficient="X0", species="AIR")
+  jacobianAddLineFunctionDataParameter(line_identity=QI, variable="D2", coefficient="X1", species="SELF")
+  jacobianAddLineFunctionDataParameter(line_identity=QI, variable="D2", coefficient="X1", species="AIR")
+  jacobianAddLineFunctionDataParameter(line_identity=QI, variable="FVC", coefficient="X0", species="SELF")
+  jacobianAddLineFunctionDataParameter(line_identity=QI, variable="FVC", coefficient="X0", species="AIR")
+  jacobianAddLineFunctionDataParameter(line_identity=QI, variable="FVC", coefficient="X1", species="SELF")
+  jacobianAddLineFunctionDataParameter(line_identity=QI, variable="FVC", coefficient="X1", species="AIR")
+  jacobianAddLineFunctionDataParameter(line_identity=QI, variable="ETA", coefficient="X0", species="SELF")
+  jacobianAddLineFunctionDataParameter(line_identity=QI, variable="ETA", coefficient="X0", species="AIR")
+  jacobianAddLineFunctionDataParameter(line_identity=QI, variable="ETA", coefficient="X1", species="SELF")
+  jacobianAddLineFunctionDataParameter(line_identity=QI, variable="ETA", coefficient="X1", species="AIR")
+  jacobianClose
+  
+  cloudboxOff
+  
+  # Perform calculations for analytical propagation matrix and derivatives
+  abs_xsec_agenda_checkedCalc
+  propmat_clearsky_agenda_checkedCalc
+  atmfields_checkedCalc
+  atmgeom_checkedCalc
+  cloudbox_checkedCalc
+  sensor_checkedCalc
+  yCalc
+  #WriteXML("ascii", y, "testdata/comparedata/y.xml")
+  #WriteXML("ascii", jacobian, "testdata/comparedata/dy.xml")
+  ReadXML(testy, "testdata/comparedata/y.xml")
+  CompareRelative(testy, y, 1e-6)
+  ReadXML(testjac, "testdata/comparedata/dy.xml")
+  CompareRelative(testjac, jacobian, 1e-4)
+  
+  # Turn off the jacobian to make for faster calculations for perturbations below
+  jacobianOff
+  cloudboxOff
+  
+  # Perform calculations for perturbed line strength derivative
+  abs_linesChangeBaseParameterForMatchingLines(QI=QI, parameter_name="Line Strength", change=1e-17, relative=0, loose_matching=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-ds0.xml")
+  ReadXML(testy, "testdata/comparedata/y-ds0.xml")
+  CompareRelative(testy, y, 1e-6)
+  
+  # Perform calculations for perturbed line center derivative
+  abs_linesChangeBaseParameterForMatchingLines(QI=QI, parameter_name="Line Center", change=1e1, relative=0, loose_matching=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-df0.xml")
+  ReadXML(testy, "testdata/comparedata/y-df0.xml")
+  CompareRelative(testy, y, 1e-6)
+  
+  
+  # Perform calculations for perturbed SELF-G0-X0 derivative
+  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G0", coefficient="X0", species="SELF", change=20, relative=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-dSELF-G0-X0.xml")
+  ReadXML(testy, "testdata/comparedata/y-dSELF-G0-X0.xml")
+  CompareRelative(testy, y, 1e-6)
+  
+  # Perform calculations for perturbed AIR-G0-X0 derivative
+  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G0", coefficient="X0", species="AIR", change=20, relative=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-G0-X0.xml")
+  ReadXML(testy, "testdata/comparedata/y-dAIR-G0-X0.xml")
+  CompareRelative(testy, y, 1e-6)
+  
+  # Perform calculations for perturbed SELF-G0-X1 derivative
+  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G0", coefficient="X1", species="SELF", change=0.8e-3, relative=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-dSELF-G0-X1.xml")
+  ReadXML(testy, "testdata/comparedata/y-dSELF-G0-X1.xml")
+  CompareRelative(testy, y, 1e-6)
+  
+  # Perform calculations for perturbed AIR-G0-X1 derivative
+  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G0", coefficient="X1", species="AIR", change=0.8e-3, relative=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-G0-X1.xml")
+  ReadXML(testy, "testdata/comparedata/y-dAIR-G0-X1.xml")
+  CompareRelative(testy, y, 1e-6)
+  
+  
+  # Perform calculations for perturbed SELF-D0-X0 derivative
+  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="D0", coefficient="X0", species="SELF", change=1, relative=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-dSELF-D0-X0.xml")
+  ReadXML(testy, "testdata/comparedata/y-dSELF-D0-X0.xml")
+  CompareRelative(testy, y, 1e-6)
+  
+  # Perform calculations for perturbed AIR-D0-X0 derivative
+  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="D0", coefficient="X0", species="AIR", change=1, relative=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-D0-X0.xml")
+  ReadXML(testy, "testdata/comparedata/y-dAIR-D0-X0.xml")
+  CompareRelative(testy, y, 1e-6)
+  
+  # Perform calculations for perturbed SELF-D0-X1 derivative
+  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="D0", coefficient="X1", species="SELF", change=0.8e-3, relative=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-dSELF-D0-X1.xml")
+  ReadXML(testy, "testdata/comparedata/y-dSELF-D0-X1.xml")
+  CompareRelative(testy, y, 1e-6)
+  
+  # Perform calculations for perturbed AIR-D0-X1 derivative
+  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="D0", coefficient="X1", species="AIR", change=0.8e-3, relative=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-D0-X1.xml")
+  ReadXML(testy, "testdata/comparedata/y-dAIR-D0-X1.xml")
+  CompareRelative(testy, y, 1e-6)
+  
+  
+  # Perform calculations for perturbed SELF-G2-X0 derivative
+  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G2", coefficient="X0", species="SELF", change=2, relative=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-dSELF-G2-X0.xml")
+  ReadXML(testy, "testdata/comparedata/y-dSELF-G2-X0.xml")
+  CompareRelative(testy, y, 1e-6)
+  
+  # Perform calculations for perturbed AIR-G2-X0 derivative
+  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G2", coefficient="X0", species="AIR", change=4, relative=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-G2-X0.xml")
+  ReadXML(testy, "testdata/comparedata/y-dAIR-G2-X0.xml")
+  CompareRelative(testy, y, 1e-6)
+  
+  # Perform calculations for perturbed SELF-G0-X1 derivative
+  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G2", coefficient="X1", species="SELF", change=1e-2, relative=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-dSELF-G2-X1.xml")
+  ReadXML(testy, "testdata/comparedata/y-dSELF-G2-X1.xml")
+  CompareRelative(testy, y, 1e-6)
+  
+  # Perform calculations for perturbed AIR-G2-X1 derivative
+  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G2", coefficient="X1", species="AIR", change=1e-2, relative=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-G2-X1.xml")
+  ReadXML(testy, "testdata/comparedata/y-dAIR-G2-X1.xml")
+  CompareRelative(testy, y, 1e-6)
+  
+  
+  # Perform calculations for perturbed SELF-D2-X0 derivative
+  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="D2", coefficient="X0", species="SELF", change=1, relative=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-dSELF-D2-X0.xml")
+  ReadXML(testy, "testdata/comparedata/y-dSELF-D2-X0.xml")
+  CompareRelative(testy, y, 1e-6)
+  
+  # Perform calculations for perturbed AIR-D2-X0 derivative
+  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="D2", coefficient="X0", species="AIR", change=5e-1, relative=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-D2-X0.xml")
+  ReadXML(testy, "testdata/comparedata/y-dAIR-D2-X0.xml")
+  CompareRelative(testy, y, 1e-6)
+  
+  # Perform calculations for perturbed SELF-D2-X1 derivative
+  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="D2", coefficient="X1", species="SELF", change=1e-2, relative=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-dSELF-D2-X1.xml")
+  ReadXML(testy, "testdata/comparedata/y-dSELF-D2-X1.xml")
+  CompareRelative(testy, y, 1e-6)
+  
+  # Perform calculations for perturbed AIR-D2-X1 derivative
+  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="D2", coefficient="X1", species="AIR", change=1e-2, relative=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-D2-X1.xml")
+  ReadXML(testy, "testdata/comparedata/y-dAIR-D2-X1.xml")
+  CompareRelative(testy, y, 1e-6)
+  
+  
+  # Perform calculations for perturbed SELF-FVC-X0 derivative
+  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="FVC", coefficient="X0", species="SELF", change=20, relative=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-dSELF-FVC-X0.xml")
+  ReadXML(testy, "testdata/comparedata/y-dSELF-FVC-X0.xml")
+  CompareRelative(testy, y, 1e-6)
+  
+  # Perform calculations for perturbed AIR-FVC-X0 derivative
+  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="FVC", coefficient="X0", species="AIR", change=20, relative=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-FVC-X0.xml")
+  ReadXML(testy, "testdata/comparedata/y-dAIR-FVC-X0.xml")
+  CompareRelative(testy, y, 1e-6)
+  
+  # Perform calculations for perturbed SELF-G0-X1 derivative
+  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="FVC", coefficient="X1", species="SELF", change=2, relative=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-dSELF-FVC-X1.xml")
+  ReadXML(testy, "testdata/comparedata/y-dSELF-FVC-X1.xml")
+  CompareRelative(testy, y, 1e-6)
+  
+  # Perform calculations for perturbed AIR-FVC-X1 derivative
+  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="FVC", coefficient="X1", species="AIR", change=2, relative=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-FVC-X1.xml")
+  ReadXML(testy, "testdata/comparedata/y-dAIR-FVC-X1.xml")
+  CompareRelative(testy, y, 1e-6)
+  
+  
+  # Perform calculations for perturbed SELF-ETA-X0 derivative
+  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="ETA", coefficient="X0", species="SELF", change=1e-4, relative=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-dSELF-ETA-X0.xml")
+  ReadXML(testy, "testdata/comparedata/y-dSELF-ETA-X0.xml")
+  CompareRelative(testy, y, 1e-6)
+  
+  # Perform calculations for perturbed AIR-ETA-X0 derivative
+  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="ETA", coefficient="X0", species="AIR", change=1e-4, relative=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-ETA-X0.xml")
+  ReadXML(testy, "testdata/comparedata/y-dAIR-ETA-X0.xml")
+  CompareRelative(testy, y, 1e-6)
+  # Perform calculations for perturbed SELF-ETA-X1 derivative
+  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="ETA", coefficient="X1", species="SELF", change=1e-4, relative=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-dSELF-ETA-X1.xml")
+  ReadXML(testy, "testdata/comparedata/y-dSELF-ETA-X1.xml")
+  CompareRelative(testy, y, 1e-6)
+  
+  # Perform calculations for perturbed AIR-ETA-X1 derivative
+  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="ETA", coefficient="X1", species="AIR", change=1e-4, relative=0)
+  abs_lines_per_speciesCreateFromLines
+  abs_xsec_agenda_checkedCalc
+  yCalc
+  Copy(abs_lines, aolr)
+  #WriteXML("ascii", y, "testdata/comparedata/y-dAIR-ETA-X1.xml")
+  ReadXML(testy, "testdata/comparedata/y-dAIR-ETA-X1.xml")
+  CompareRelative(testy, y, 1e-6)
+}

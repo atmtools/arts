@@ -17312,7 +17312,26 @@ void define_md_data_raw()
                  "Interpolation order",
                  "Index that sets the lowest altitude to 0 to ignore sub-surface pressures/altitudes"
                 )
-        ));
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "z_surfaceConstantAltitude" ),
+      DESCRIPTION
+      (
+        "Sets the surface altitude to a constant. Defaults to zero.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "z_surface" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "lat_grid", "lon_grid" ),
+      GIN( "altitude" ),
+      GIN_TYPE( "Numeric" ),
+      GIN_DEFAULT( "0" ),
+      GIN_DESC("The constant altitude.")
+    ));
 
   md_data_raw.push_back
     ( MdRecord

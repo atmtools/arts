@@ -3836,6 +3836,21 @@ void z_surfaceFromFileAndGrid(
   }
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void z_surfaceConstantAltitude(
+  Matrix& z_surface,
+  const Vector& lat_grid,
+  const Vector& lon_grid,
+  const Numeric& altitude,
+  const Verbosity& verbosity)
+{
+  CREATE_OUT3;
+  out3 << "Setting surface to constant altitude of " << altitude << " m\n";
+  z_surface = Matrix(lat_grid.nelem(), lon_grid.nelem(), altitude);
+  
+}
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void InterpAtmFieldToPosition(
           Numeric&   outvalue,

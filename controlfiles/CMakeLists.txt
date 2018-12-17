@@ -225,6 +225,8 @@ if (ARTS_XML_DATA_DIR)
 
   arts_test_run_ctlfile(fast artscomponents/zeeman/TestZeeman.arts)
   
+  arts_test_run_ctlfile(fast artscomponents/wfuns/TestSpectroscopy.arts)
+  
   arts_test_run_ctlfile(slow artscomponents/wfuns/TestDoitJacobians.arts)
 
   ##################################

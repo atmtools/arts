@@ -262,6 +262,16 @@ void atmfields_checkedCalc(
     for(Index ii=0; ii<partition_functions.nspecies();ii++)
       for(Index jj=0; jj<partition_functions.nisotopologues(ii);jj++)
       {
+        
+        // Test if species is important at all (maybe, since code is unclear; will at worst cause failures later on in the program)
+        bool test_spec = false;
+        for(auto& as: abs_species)
+          for(auto& s: as)
+            if(s.Species() == ii and s.Isotopologue() == jj)
+              test_spec = true;
+        if(not test_spec)
+          continue;
+        
         ArrayOfGriddedField1 part_fun;
         switch(partition_functions.getParamType(ii,jj))
         {
