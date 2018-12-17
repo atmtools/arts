@@ -108,6 +108,8 @@ arts_test_run_ctlfile(slow artscomponents/wfuns/TestWfunsHybClear.arts)
 arts_test_ctlfile_depends(slow.artscomponents.wfuns.TestWfunsHybClear
                           slow.artscomponents.wfuns.TestWfuns)
 
+arts_test_run_ctlfile(fast artscomponents/radar/TestIyActive.arts)
+
 arts_test_run_ctlfile(fast artscomponents/ycalcappend/TestYCalcAppend.arts)
 
 arts_test_run_ctlfile(fast artscomponents/heatingrates/TestHeatingRates.arts)

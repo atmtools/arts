@@ -526,6 +526,32 @@ void NumericAdd(Numeric&   out,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void NumericFromVector( Numeric&   out,
+                     const Vector&   in,
+                     const String&    op,
+                     const Verbosity&)
+{
+  if( op == "first" )
+    out = in[0];
+  else if( op == "last" )
+    out = in[in.nelem()-1];
+  else if( op == "max" )
+    out = max(in);
+  else if( op == "min" )
+    out = min(in);
+  else if( op == "mean" )
+    out = mean(in);
+  else
+    {
+      ostringstream os;
+      os << "Your choice, *op* = \"" << op << "\", is not recognised.\n" 
+         << "Valid options are: \"first\", \"last\", \"max\", \"min\" and \"mean\".";
+      throw runtime_error( os.str() );
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void NumericInvScale(Numeric&   out,
                      const Numeric&   in,
                      const Numeric&   value,

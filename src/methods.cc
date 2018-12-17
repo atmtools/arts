@@ -10747,6 +10747,33 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "NumericFromVector" ),
+        DESCRIPTION
+        (
+         "Derivs a numeric from a vector, following selected operation.\n"
+         "\n"
+         "The following operations can be selected:\n"
+         "  first : Selects the first element of the vector.\n"
+         "   last : Selects the last element of the vector.\n"
+         "    max : Selects the maximum element of the vector.\n"
+         "    min : Selects the minimum element of the vector.\n"
+         "   mean : Calculates the mean of the vector.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "out"       ),
+        GOUT_TYPE( "Numeric" ),
+        GOUT_DESC( "Output numeric." ),
+        IN(),
+        GIN(      "in"    , "op" ),
+        GIN_TYPE( "Vector", "String" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC( "Input vector.",
+                  "Selected operation." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "NumericInvScale" ),
         DESCRIPTION
         (

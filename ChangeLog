@@ -1,17 +1,28 @@
+2018-12-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1186
+
+	* controlfiles/CMakeLists.txt: Added test below as fast.
+
+	* controlfiles/artscomponents/radar/TestIyActive.arts: New.
+
+	* src/m_basic_types.cc (NumericFromVector): New WSM. You can now
+	e.g. do: NumericFromVector( a_numeric, a_vector, "max" )
+
 2018-12-17  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1185
-	
+
 	* controlfiles/*: Fixing names.  Also remove old catalog parameter
 	test that I did not remember adding.  The new one is more complete.
-	
+
 	* src/m_jacobian.cc: jacobianAddLineFunctionDataParameter(s)
 	changed to jacobianAddShapeCatalogParameter(s), and
 	jacobianAddCatalogParameter(s) changed to
 	jacobianAddBasicCatalogParameter(s).
-	
+
 	* src/m_retrieval.cc: As above
-	
+
 	* src/methods.cc: As above, but also clarifying documentation.
 
 2018-12-17  Richard Larsson  <larsson@mps.mpg.de>
