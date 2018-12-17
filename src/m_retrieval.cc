@@ -878,8 +878,8 @@ void retrievalAddCatalogParameter(
     const Numeric&              var,
     const Verbosity&            verbosity )
 {
-    jacobianAddCatalogParameter(ws, jacobian_quantities, jacobian_agenda, catalog_identity,
-                                catalog_parameter, verbosity);
+    jacobianAddBasicCatalogParameter(ws, jacobian_quantities, jacobian_agenda, catalog_identity,
+                                     catalog_parameter, verbosity);
     add_scalar_variance(covmat_sx, jacobian_quantities, var);
 }
 
@@ -893,8 +893,8 @@ void retrievalAddCatalogParameters(Workspace& ws,
                                    const ArrayOfString& catalog_parameters,
                                    const Verbosity& verbosity )
 {
-    jacobianAddCatalogParameters(ws, jacobian_quantities, jacobian_agenda,
-                                 catalog_identities, catalog_parameters, verbosity);
+    jacobianAddBasicCatalogParameters(ws, jacobian_quantities, jacobian_agenda,
+                                      catalog_identities, catalog_parameters, verbosity);
     check_and_add_block(covmat_sx, jacobian_quantities.back(), jacobian_quantities.nelem() - 1,
                         0, covmat_block, covmat_inv_block);
 }

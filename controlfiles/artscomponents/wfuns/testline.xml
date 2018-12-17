@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<arts format="ascii" version="1">
-<Array type="ArrayOfLineRecord" nelem="1">
-<ArrayOfLineRecord version="ARTSCAT-5" nelem="1">
-@ O2-66 100000000000 1e-17 296 0 0 3 1 PB N2 15000 0.8 15000 0.8 100 0 0 0 0 0 QN UP v1 0/1 J 0/1 N 0/1 LO v1 0/1 J 0/1 N 0/1 LM L1 296 1.0107962799937811e-10 0.8 LSM 1 LNT 1
-</ArrayOfLineRecord>
-</Array>
-</arts>

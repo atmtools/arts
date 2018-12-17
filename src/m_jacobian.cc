@@ -3863,7 +3863,7 @@ void jacobianDoitAddSpecies(//WS Output:
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddLineFunctionDataParameter(
+void jacobianAddShapeCatalogParameter(
   Workspace&,
   ArrayOfRetrievalQuantity&   jq,
   Agenda&                     jacobian_agenda,
@@ -3906,7 +3906,7 @@ void jacobianAddLineFunctionDataParameter(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddLineFunctionDataParameters(
+void jacobianAddShapeCatalogParameters(
   Workspace& ws,
   ArrayOfRetrievalQuantity&       jq,
   Agenda&                         jacobian_agenda,
@@ -3935,11 +3935,11 @@ void jacobianAddLineFunctionDataParameters(
     for(auto& s: species)
       for(auto& v: vars)
         for(auto& c: coeffs)
-          jacobianAddLineFunctionDataParameter(ws, jq, jacobian_agenda, l, s, v, c, verbosity);
+          jacobianAddShapeCatalogParameter(ws, jq, jacobian_agenda, l, s, v, c, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddCatalogParameter(
+void jacobianAddBasicCatalogParameter(
     Workspace&,
     ArrayOfRetrievalQuantity&   jq,
     Agenda&                     jacobian_agenda,
@@ -3995,7 +3995,7 @@ void jacobianAddCatalogParameter(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianAddCatalogParameters(
+void jacobianAddBasicCatalogParameters(
     Workspace&                  ws,
     ArrayOfRetrievalQuantity&   jq,
     Agenda&                     jacobian_agenda,
@@ -4008,16 +4008,9 @@ void jacobianAddCatalogParameters(
     out2 << " Adding "<<catalog_identities.nelem()*catalog_parameters.nelem()
     <<" expression(s) to the Jacobian calculations.\n";
     
-    for (Index ici = 0; ici<catalog_identities.nelem(); ici++)
-    {
-        for(Index icp = 0; icp<catalog_parameters.nelem(); icp++)
-        {
-            out2<<"    type: "<<catalog_parameters[icp]<<"; identifier: "<<catalog_identities[ici]<<"\n";
-            jacobianAddCatalogParameter(ws, jq, jacobian_agenda,
-                catalog_identities[ici], catalog_parameters[icp],
-                verbosity );
-        }
-    }
+    for(auto& qi: catalog_identities)
+      for(auto& param: catalog_parameters)
+        jacobianAddBasicCatalogParameter(ws, jq, jacobian_agenda, qi, param, verbosity );
 }  
 
 

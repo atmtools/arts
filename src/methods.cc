@@ -8619,47 +8619,23 @@ void define_md_data_raw()
 
     md_data_raw.push_back
     ( MdRecord
-    ( NAME( "jacobianAddCatalogParameter" ),
+    ( NAME( "jacobianAddBasicCatalogParameter" ),
       DESCRIPTION
       (
-          "Includes a catalog parameter in the Jacobian. These are constant\n"
+          "Includes a basic catalog parameter in the Jacobian. These are constant\n"
           "over all layers and so only a single vector output is returned.\n"
           "\n"
-          "These are the presently supported catalog parameters:\n"
-          "Generic:\n"
+          "The only basic catalog parameters currently supported are:\n"
           "   \"Line Strength\"\n"
           "   \"Line Center\"\n"
-          "\n"
-          "Pressure Broadening:\n"
-          "   \"PB Self Gamma\"\n"
-          "   \"PB Foreign Gamma\"\n"
-          "   \"PB Water Gamma\"\n"
-          "   \"PB Self Exponent\"\n"
-          "   \"PB Foreign Exponent\"\n"
-          "   \"PB Water Exponent\"\n"
-          "   \"PB Self Pressure Shift\"\n"
-          "   \"PB Foreign Pressure Shift\"\n"
-          "   \"PB Water Pressure Shift\"\n"
-          "\n"
-          "Line Mixing:\n"
-          "   \"LM Y Zeroth\"\n"
-          "   \"LM G Zeroth\"\n"
-          "   \"LM DF Zeroth\"\n"
-          "   \"LM Y First\"\n"
-          "   \"LM G First\"\n"
-          "   \"LM DF First\"\n"
-          "   \"LM Y Exponent\"\n"
-          "   \"LM G Exponent\"\n"
-          "   \"LM DF Exponent\"\n"
           "\n"
           "The *catalog_identity* should be able to identify one or many\n"
           "lines in the catalog used for calculating the spectral absorption.\n"
           "Note that partial matching for energy levels are allowed but not\n"
           "recommended.\n"
           "\n"
-          "Note that the user must select a catalog that takes the desired catalog\n"
-          "parameter into account.  Trying to use, e.g., \"Water Gamma\" from HITRAN\n"
-          "input is nonsensical and an error will be thrown.\n"
+          "Also note *jacobianAddShapeCatalogParameter* as this allows addition\n"
+          "of shape parameters, e.g., pressure broadening coefficients\n"
       ),
       AUTHORS( "Richard Larsson" ),
       OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -8676,31 +8652,14 @@ void define_md_data_raw()
     
     md_data_raw.push_back
     ( MdRecord
-    ( NAME( "jacobianAddCatalogParameters" ),
+    ( NAME( "jacobianAddBasicCatalogParameters" ),
       DESCRIPTION
       (
-          "Calls *jacobianAddCatalogParameter* but for many identifiers.\n"
-          "and parameters.\n"
-          "\n"
-          "The parameters are added per line so the order of the resulting\n"
-          "*jacobian* for n identifiers and N parameters will be:\n"
-          "  Identifier 1\n"
-          "    Parameter 1\n"
-          "    Parameter 2\n"
-          "    ...\n"
-          "    Parameter N\n"
-          "  Identifier 2\n"
-          "    Parameter 1\n"
-          "    Parameter 2\n"
-          "    ...\n"
-          "    Parameter N\n"
-          "  ...\n"
-          
-          "  Identifier n\n"
-          "    Parameter 1\n"
-          "    Parameter 2\n"
-          "    ...\n"
-          "    Parameter N\n"
+        "See *jacobianAddBasicCatalogParameter*.\n"
+        "\n"
+        "This adds multiple parameters for first each catalog_identity in\n"
+        "catalog_identities and then for each catalog_parameter in catalog_parameters\n"
+        "by looping calls to *jacobianAddBasicCatalogParameter* over these input\n"
       ),
       AUTHORS( "Richard Larsson" ),
       OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -8711,8 +8670,8 @@ void define_md_data_raw()
       GIN( "catalog_identities", "catalog_parameters" ),
       GIN_TYPE( "ArrayOfQuantumIdentifier", "ArrayOfString" ),
       GIN_DEFAULT( NODEF, NODEF ),
-      GIN_DESC( "The catalog line matching informations.",
-                "The catalog parameters of the retrieval quantity.")
+      GIN_DESC( "The catalog line matching information.",
+                "The catalog parameter of the retrieval quantity." )
     ));
          
   md_data_raw.push_back
@@ -8767,31 +8726,43 @@ void define_md_data_raw()
     
     md_data_raw.push_back
     ( MdRecord
-    ( NAME( "jacobianAddLineFunctionDataParameter" ),
+    ( NAME( "jacobianAddShapeCatalogParameter" ),
       DESCRIPTION
       (
-        "Line function paramter assuming the derivatives\n"
+        "Adds line shape parameters to the Jacobian calculations. These\n"
+        "are constant over all levels so only a single vector is output\n"
+        "\n"
+        "Line function parameter assume the derivatives\n"
         "of internal pressure broadening and line mixing\n"
         "functionality follows a simply f(T, T0, X0, X1, X2)\n"
-        "format.\n"
+        "format.  The shape of the function f() is determined by\n"
+        "input catalog; please see the ARTS documentation for more\n"
+        "details\n"
         "\n"
-        "*species* has to be allowed in *abs_speciesSet*-scenarios as\n"
-        "as a singel species (e.g., \"O3\", or \"O3-666\") and not a\n"
-        "combination species (e.g., not \"O3-666,O3-686\").  Note that\n"
-        "presently we ignore the isotopologue.  Two special *species*\n"
-        "allowed are \"SELF\", and \"AIR\" for self and air parameters,\n"
-        "respectively\n"
+        "The input are as follows:\n"
+        "    line_identity: Identifier of preferably a single line\n"
+        "    species:       A SpeciesTag, e.g., \"O2\" or \"H2O\" for common species.\n"
+        "                   Note that \"SELF\" and \"AIR\" tags are used for shape parameters\n"
+        "                   affected by self and air-broadening, respectively.\n"
+        "    variable:      A variable supported by the line, these can be\n"
+        "                      \"G0\":  Speed-independent pressure broadening\n"
+        "                      \"G2\":  Speed-dependent pressure broadening\n"
+        "                      \"D0\":  Speed-independent pressure shift\n"
+        "                      \"D2\":  Speed-dependent pressure shift\n"
+        "                      \"FVC\": Frequency of velocity changing collisions\n"
+        "                      \"ETA\": partial correlation between velocity and\n"
+        "                               rotational state changes due to collisions\n"
+        "                      \"Y\":   First order line-mixing parameter\n"
+        "                      \"G\":   Second order line-mixing parameter for strength\n"
+        "                      \"DV\":  Second order line-mixing parameter for shifting\n"
+        "    coefficient:   A coefficient in the model to compute the above parameters.\n"
         "\n"
-        "*variable* allowed are \"G0\", \"D0\", \"G2\", \"D2\", \"FVC\"\n"
-        "\"ETA\", \"Y\", \"G\", and \"DV\"\n"
+        "Note that we cannot test if the line in question supports the variable and\n"
+        "coefficient at the level of this function, so many errors will only be reported\n"
+        "at a later stage\n"
         "\n"
-        "*coefficient* allowed are \"X0\", \"X1\", and \"X2\"\n"
-        "\n"
-        "For information on *variable* and *coefficient*, see ARTS User Guide\n"
-        "on line mixing and pressure broadening.  As a short summary, the idea is\n"
-        "that, e.g., G2(T) = f(T, T0, X0, X1, X2), where the method of the line\n"
-        "defines what the coefficients and function do.  If the function \"f\"\n"
-        "does not require all \"XN\", the calculations will return 0s\n"
+        "For other spectroscopic parameters, see\n"
+        "*jacobianAddBasicCatalogParameter*\n"
       ),
       AUTHORS("Richard Larsson"),
       OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -8810,10 +8781,10 @@ void define_md_data_raw()
     
     md_data_raw.push_back
     ( MdRecord
-    ( NAME( "jacobianAddLineFunctionDataParameters" ),
+    ( NAME( "jacobianAddShapeCatalogParameters" ),
       DESCRIPTION
       (
-        "See *jacobianAddLineFunctionDataParameter* for information on\n"
+        "See *jacobianAddShapeCatalogParameter* for information on\n"
         "the GIN parameters\n"
         "\n"
         "This function accepts the same input but for lists of data.\n"
@@ -8822,7 +8793,7 @@ void define_md_data_raw()
         "\n"
         "Special \"ALL\" for 1 length *variables* and *coefficients* are\n"
         "allowed to compute all variables/coefficients in the order described\n"
-        "in the description of *jacobianAddLineFunctionDataParameter*\n"
+        "in the description of *jacobianAddShapeCatalogParameter*\n"
         "\n"
         "For example, if *line_identities* have length 5, *species* length 4,\n"
         "*variables* length 3, and *coefficients* length 2, there will be\n"

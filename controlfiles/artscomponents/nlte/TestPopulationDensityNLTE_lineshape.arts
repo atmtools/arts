@@ -52,8 +52,8 @@ Arts2 {
   jacobianAddTemperature(g1=p_grid, g2=[0], g3=[0], dt=0.1)
   jacobianAddWind(g1=p_grid, g2=[0], g3=[0], dfrequency=0.1)
   jacobianAddAbsSpecies(g1=p_grid, g2=[0], g3=[0], species="O2-66", for_species_tag=0)
-  jacobianAddCatalogParameters(catalog_identities=qi_lines, catalog_parameters=["Line Strength", "Line Center"])
-  jacobianAddLineFunctionDataParameters(line_identities=qi_lines, variables=["G0", "D0", "Y", "G", "DV"], coefficients=["X0", "X1", "X2"], species=["SELF", "AIR"])
+  jacobianAddBasicCatalogParameters(catalog_identities=qi_lines, catalog_parameters=["Line Strength", "Line Center"])
+  jacobianAddShapeCatalogParameters(line_identities=qi_lines, variables=["G0", "D0", "Y", "G", "DV"], coefficients=["X0", "X1", "X2"], species=["SELF", "AIR"])
   jacobianAddNLTEs(g1=p_grid, g2=[0], g3=[0], energy_level_identities=nlte_quantum_identifiers, dx=1e-6)
   jacobianClose
   
