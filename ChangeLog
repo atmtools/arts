@@ -1,3 +1,18 @@
+2018-12-18  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1187
+	
+	* src/m_cloudradar.cc:  Un-commenting iyActiveSingleScat2-
+	function for testing purposes.  Fixed a bug were "+ np" was
+	instead of "+ ip".  Also fixed a bug where the zero-value was
+	ignored.  I am still not sure I understand the zero-value,
+	especially as I think it by default has to be input to a radar
+	function and not computed somehow internally.  The code now 
+	clears the first two tests in TestIyActive.arts but not the 
+	last test.  I have no idea why...
+	
+	* src/methods.cc: iyActiveSingleScat2 added as test-function
+
 2018-12-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1186

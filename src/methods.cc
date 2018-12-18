@@ -7611,7 +7611,43 @@ void define_md_data_raw()
                   "Interpolation order of temperature for scattering data (so"
                   " far only applied in phase matrix, not in extinction and"
                   " absorption." )
-        ));
+      ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "iyActiveSingleScat2" ),
+      DESCRIPTION
+      (
+        "TESTING\n"
+      ),
+      AUTHORS( "Patrick Eriksson", "Richard Larsson" ),
+      OUT( "iy", "iy_aux", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_nlte",
+           "ppvar_vmr", "ppvar_wind", "ppvar_mag", "ppvar_pnd", "ppvar_f",
+           "ppvar_trans_cumulat" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "diy_dx", "stokes_dim", "f_grid", "atmosphere_dim", "p_grid",
+          "t_field", "nlte_field", "vmr_field", "abs_species",
+          "wind_u_field", "wind_v_field", "wind_w_field",
+          "mag_u_field", "mag_v_field", "mag_w_field",
+          "cloudbox_on", "cloudbox_limits", "pnd_field", "dpnd_field_dx",
+          "scat_species", "scat_data", "scat_data_checked", "iy_aux_vars",
+          "jacobian_do", "jacobian_quantities", "ppath",
+          "propmat_clearsky_agenda", "water_p_eq_agenda", "iy_transmitter_agenda",
+          "iy_agenda_call1", "iy_transmission", "rte_alonglos_v" ),
+      GIN( "trans_in_jacobian", "pext_scaling", "t_interp_order" ),
+      GIN_TYPE( "Index", "Numeric", "Index" ),
+      GIN_DEFAULT( "0", "1", "1" ),
+      GIN_DESC( "Flag determining if change in transmission is considered"
+      " in calculation of the Jacobian or not.",
+      "Particle extinction is scaled with this value. A value"
+      " inside [0,2]. Set it to 0 if you want to remove particle"
+      " extinction totally.",
+      "Interpolation order of temperature for scattering data (so"
+      " far only applied in phase matrix, not in extinction and"
+      " absorption." )
+    ));
 
   md_data_raw.push_back
     ( MdRecord

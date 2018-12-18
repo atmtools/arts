@@ -686,7 +686,7 @@ void iyActiveSingleScat(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-/*void iyActiveSingleScat2(
+void iyActiveSingleScat2(
   Workspace&                          ws,
   Matrix&                             iy,
   ArrayOfMatrix&                      iy_aux,
@@ -1085,6 +1085,7 @@ void iyActiveSingleScat(
   const ArrayOfTransmissionMatrix reflect_matrix  = cumulative_backscatter(Pe, ppvar_pnd);
   const ArrayOfArrayOfTransmissionMatrix dreflect_matrix = cumulative_backscatter_derivative(Pe, ppvar_dpnd_dx);
   
+  lvl_rad[np-1] = iy0;
   set_backscatter_radiation_vector(lvl_rad, dlvl_rad, lyr_tra,
                                    tot_tra_forward, tot_tra_reflect,  // FIXME: should these be flipped?
                                    reflect_matrix, dlyr_tra_above, dlyr_tra_below,  dreflect_matrix,
@@ -1095,7 +1096,7 @@ void iyActiveSingleScat(
   for(Index ip=0; ip<np; ip++)
     for(Index iv=0; iv<nf; iv++)
       for(Index is=0; is<stokes_dim; is++)
-        iy(iv*np + np, is) = lvl_rad[ip](iv, is);
+        iy(iv*np + ip, is) = lvl_rad[ip](iv, is);
   
   // FIXME: Add the aux-variables back
   // FIXME: Add the diy_dpath
@@ -1109,7 +1110,7 @@ void iyActiveSingleScat(
                                      water_p_eq_agenda,   
                                      jacobian_quantities, jac_species_i,
                                      jac_is_t );
-} */
+}
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
