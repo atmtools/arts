@@ -17439,7 +17439,7 @@ void define_md_data_raw()
       ( NAME( "surfaceTessem" ),
         DESCRIPTION
         (
-         "Tessem sea surface microwave emissivity parametrization.\n"
+         "TESSEM sea surface microwave emissivity parametrization.\n"
          "\n"
          "This method computes surface emissivity and reflectivity matrices for\n"
          "ocean surfaces using the TESSEM emissivity model: Prigent, C., et al.\n"
@@ -18040,10 +18040,43 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "SurfaceFastem" ),
+        DESCRIPTION
+        (
+         "FASTEM sea surface microwave emissivity parametrization.\n"
+         "\n"
+         "The variable *surface_props_data* must contain these data:\n"
+         "  \"Water skin temperature\"\n"
+         "  \"Wind speed\"\n"
+         "  \"Wind direction\"\n"
+         "  \"Salinity\"\n"
+         "\n"
+         "For some details and comments see *FastemStandAlone* and *surfaceFastem*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "surface_los", "surface_rmatrix", "dsurface_rmatrix_dx",
+             "surface_emission", "dsurface_emission_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "dsurface_rmatrix_dx", "dsurface_emission_dx",
+            "stokes_dim", "atmosphere_dim", "lat_grid", "lon_grid", "f_grid",
+            "rtp_pos", "rtp_los", "surface_props_data",
+            "surface_props_names", "dsurface_names", "jacobian_do" ),
+        GIN( "transmittance", "fastem_version" ),
+        GIN_TYPE( "Vector", "Index" ),
+        GIN_DEFAULT( NODEF, "6" ),
+        GIN_DESC( "Transmittance along path of downwelling radiation. A vector "
+                  "with the same length as *f_grid*.",
+                  "The version of FASTEM to use." )
+        ));
+  
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "SurfaceTessem" ),
         DESCRIPTION
         (
-         "Tessem sea surface microwave emissivity parametrization.\n"
+         "TESSEM sea surface microwave emissivity parametrization.\n"
          "\n"
          "The variable *surface_props_data* must contain these data:\n"
          "  \"Water skin temperature\"\n"
@@ -18623,7 +18656,7 @@ void define_md_data_raw()
       ( NAME( "TessemNNReadAscii" ),
         DESCRIPTION
         (
-         "Reads the initialization data for the Tessem NeuralNet from an ASCII file.\n"
+         "Reads the initialization data for the TESSEM NeuralNet from an ASCII file.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
@@ -18642,7 +18675,7 @@ void define_md_data_raw()
       ( NAME( "TestTessem" ),
         DESCRIPTION
         (
-         "Example method for Tessem 2.\n"
+         "Example method for TESSEM2.\n"
          "\n"
          "When using the default neural network parameter files\n"
          "from the Tessem 2 distribution, the input Vector should contain\n"

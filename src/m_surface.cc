@@ -2436,8 +2436,8 @@ void SurfaceTessem(
       if( irq >= 0 )
         {
           const Numeric dd = 0.1;
-          Vector surface_los2;
-          surfaceTessem( surface_los, dsurface_rmatrix_dx[irq],
+          Matrix surface_los2;
+          surfaceTessem( surface_los2, dsurface_rmatrix_dx[irq],
                          dsurface_emission_dx[irq], atmosphere_dim,
                          stokes_dim, f_grid, rtp_pos, rtp_los, skin_t[0]+dd,
                          net_h, net_v, salinity[0], wind_speed[0], verbosity );
@@ -2453,8 +2453,8 @@ void SurfaceTessem(
       if( irq >= 0 )
         {
           const Numeric dd = 0.1;
-          Vector surface_los2;
-          surfaceTessem( surface_los, dsurface_rmatrix_dx[irq],
+          Matrix  surface_los2;
+          surfaceTessem( surface_los2, dsurface_rmatrix_dx[irq],
                          dsurface_emission_dx[irq], atmosphere_dim,
                          stokes_dim, f_grid, rtp_pos, rtp_los, skin_t[0],
                          net_h, net_v, salinity[0], wind_speed[0]+dd, verbosity );
@@ -2469,12 +2469,158 @@ void SurfaceTessem(
       irq = find_first( dsurface_names, String("Salinity") );
       if( irq >= 0 )
         {
-          const Numeric dd = 0.1;
-          Vector surface_los2;
-          surfaceTessem( surface_los, dsurface_rmatrix_dx[irq],
+          const Numeric dd = 0.0005;
+          Matrix  surface_los2;
+          surfaceTessem( surface_los2, dsurface_rmatrix_dx[irq],
                          dsurface_emission_dx[irq], atmosphere_dim,
                          stokes_dim, f_grid, rtp_pos, rtp_los, skin_t[0],
                          net_h, net_v, salinity[0]+dd, wind_speed[0], verbosity );
+          //
+          dsurface_rmatrix_dx[irq] -= surface_rmatrix;
+          dsurface_rmatrix_dx[irq] /= dd;
+          dsurface_emission_dx[irq] -= surface_emission;
+          dsurface_emission_dx[irq] /= dd;
+        }
+    }
+}                   
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void SurfaceFastem(
+          Matrix&          surface_los,
+          Tensor4&         surface_rmatrix,
+          ArrayOfTensor4&  dsurface_rmatrix_dx,
+          Matrix&          surface_emission, 
+          ArrayOfMatrix&   dsurface_emission_dx, 
+    const Index&           stokes_dim,
+    const Index&           atmosphere_dim,
+    const Vector&          lat_grid,
+    const Vector&          lon_grid,
+    const Vector&          f_grid,
+    const Vector&          rtp_pos,
+    const Vector&          rtp_los,
+    const Tensor3&         surface_props_data,
+    const ArrayOfString&   surface_props_names,
+    const ArrayOfString&   dsurface_names,
+    const Index&           jacobian_do,
+    const Vector&          transmittance,
+    const Index&           fastem_version,
+    const Verbosity&       verbosity )
+{
+  // Check surface_data
+  surface_props_check( atmosphere_dim, lat_grid, lon_grid,
+                       surface_props_data, surface_props_names );
+
+  // Interplation grid positions and weights
+  ArrayOfGridPos gp_lat(1), gp_lon(1);
+  Matrix         itw;
+  rte_pos2gridpos( gp_lat[0], gp_lon[0], atmosphere_dim, lat_grid, lon_grid, rtp_pos );
+  interp_atmsurface_gp2itw( itw, atmosphere_dim, gp_lat, gp_lon );
+
+  // Skin temperature
+  Vector skin_t(1);
+  surface_props_interp( skin_t, "Water skin temperature",
+                        atmosphere_dim, gp_lat, gp_lon, itw,
+                        surface_props_data, surface_props_names );  
+
+  // Wind speed
+  Vector wind_speed(1);
+  surface_props_interp( wind_speed, "Wind speed",
+                        atmosphere_dim, gp_lat, gp_lon, itw,
+                        surface_props_data, surface_props_names );  
+
+  // Wind direction
+  Vector wind_direction(1);
+  surface_props_interp( wind_direction, "Wind direction",
+                        atmosphere_dim, gp_lat, gp_lon, itw,
+                        surface_props_data, surface_props_names );  
+  
+  // Salinity
+  Vector salinity(1);
+  surface_props_interp( salinity, "Salinity",
+                        atmosphere_dim, gp_lat, gp_lon, itw,
+                        surface_props_data, surface_props_names );  
+
+  // Call FASTEM
+  surfaceFastem( surface_los, surface_rmatrix, surface_emission,
+                 atmosphere_dim, stokes_dim, f_grid, rtp_pos, rtp_los,
+                 skin_t[0], salinity[0], wind_speed[0], wind_direction[0],
+                 transmittance, fastem_version, verbosity );
+
+  // Jacobian part
+  if( jacobian_do )
+    {
+      dsurface_check( surface_props_names, dsurface_names,
+                      dsurface_rmatrix_dx, dsurface_emission_dx );
+
+      Index irq; 
+
+      // Skin temperature
+      irq = find_first( dsurface_names, String("Water skin temperature") );
+      if( irq >= 0 )
+        {
+          const Numeric dd = 0.1;
+          Matrix surface_los2;
+          surfaceFastem( surface_los2, dsurface_rmatrix_dx[irq],
+                         dsurface_emission_dx[irq], atmosphere_dim,
+                         stokes_dim, f_grid, rtp_pos, rtp_los, skin_t[0]+dd,
+                         salinity[0], wind_speed[0], wind_direction[0],
+                         transmittance, fastem_version, verbosity );
+          //
+          dsurface_rmatrix_dx[irq] -= surface_rmatrix;
+          dsurface_rmatrix_dx[irq] /= dd;
+          dsurface_emission_dx[irq] -= surface_emission;
+          dsurface_emission_dx[irq] /= dd;
+        }
+      
+      // Wind speed
+      irq = find_first( dsurface_names, String("Wind speed") );
+      if( irq >= 0 )
+        {
+          const Numeric dd = 0.1;
+          Matrix surface_los2;
+          surfaceFastem( surface_los2, dsurface_rmatrix_dx[irq],
+                         dsurface_emission_dx[irq], atmosphere_dim,
+                         stokes_dim, f_grid, rtp_pos, rtp_los, skin_t[0],
+                         salinity[0], wind_speed[0]+dd, wind_direction[0],
+                         transmittance, fastem_version, verbosity );
+          //
+          dsurface_rmatrix_dx[irq] -= surface_rmatrix;
+          dsurface_rmatrix_dx[irq] /= dd;
+          dsurface_emission_dx[irq] -= surface_emission;
+          dsurface_emission_dx[irq] /= dd;
+        }
+
+      // Wind direction
+      irq = find_first( dsurface_names, String("Wind direction") );
+      if( irq >= 0 )
+        {
+          const Numeric dd = 1;
+          Matrix surface_los2;
+          surfaceFastem( surface_los2, dsurface_rmatrix_dx[irq],
+                         dsurface_emission_dx[irq], atmosphere_dim,
+                         stokes_dim, f_grid, rtp_pos, rtp_los, skin_t[0],
+                         salinity[0], wind_speed[0], wind_direction[0]+dd,
+                         transmittance, fastem_version, verbosity );
+          //
+          dsurface_rmatrix_dx[irq] -= surface_rmatrix;
+          dsurface_rmatrix_dx[irq] /= dd;
+          dsurface_emission_dx[irq] -= surface_emission;
+          dsurface_emission_dx[irq] /= dd;
+        }
+      
+      // Salinity
+      irq = find_first( dsurface_names, String("Salinity") );
+      if( irq >= 0 )
+        {
+          const Numeric dd = 0.0005;
+          Matrix surface_los2;
+          surfaceFastem( surface_los2, dsurface_rmatrix_dx[irq],
+                         dsurface_emission_dx[irq], atmosphere_dim,
+                         stokes_dim, f_grid, rtp_pos, rtp_los, skin_t[0],
+                         salinity[0]+dd, wind_speed[0], wind_direction[0],
+                         transmittance, fastem_version, verbosity );
           //
           dsurface_rmatrix_dx[irq] -= surface_rmatrix;
           dsurface_rmatrix_dx[irq] /= dd;

@@ -1,19 +1,28 @@
+2018-12-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1190
+
+	* src/m_surface.cc (SurfaceTessem): Disturbance when calculating
+	derivative with respect to salinity was way too high.
+
+	(SurfaceFastem): New.
+
 2018-12-19  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1189
-	
+
 	* src/test_propagationmatrix.cc: Forgot to update the below...
 
 2018-12-19  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1188
-	
+
 	* src/linefunctiondata.cc,h:  Update moving a class variable
 	out of the class itself and giving it a real typedef...
-	
-	* src/linefunctions.cc,h:  Update changing a few names to 
+
+	* src/linefunctions.cc,h:  Update changing a few names to
 	make the set_lineshape functions easier to use.
-	
+
 	* src/m_linemixing.cc:  Update as per above
 
 2018-12-18  Richard Larsson  <larsson@mps.mpg.de>
