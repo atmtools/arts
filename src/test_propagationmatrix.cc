@@ -168,7 +168,6 @@ void test_linefunctionsdata()
   define_species_data();
   define_species_map();
   
-  LineFunctionData::Output X;
   String s = "VP LM1 4 SELF T1 16000 0.7 T1 100 1.3 T4 0.7e-4 0.5e-6 0.7 CO2 T1 16001 0.71 T1 101 1.31 T1 0.9e-4 0.7 H2O T1 16001.1 0.711 T1 101.1 1.311 T1 0.4e-4 0.7 AIR T1 18002 0.72 T1 102 1.32 T1 0.1e-4 0.7 THIS-IS-NOT-READ-BY-CIN";
   istringstream x1(s);
   LineFunctionData test;
@@ -183,7 +182,7 @@ void test_linefunctionsdata()
   
   const ArrayOfArrayOfSpeciesTag aspt = {{SpeciesTag("CO2")}, {SpeciesTag("H2O")}, {SpeciesTag("H2O2")}};
   const Vector vmrs = {0.2, 0.3, 0.2};
-  X = test.GetParams (296., 246., 2., 0.2, vmrs, aspt);
+  auto X = test.GetParams (296., 246., 2., 0.2, vmrs, aspt);
   std::cout << X.G0 << " " << X.D0 << " " << X.G2 << " " << X.D2 << " " << X.FVC << " " << X.ETA << " " << X.Y << " " << X.G << " " << X.DV << "\n";
   
   X = test.GetParams (296., 247., 2., 0.2, vmrs, aspt);
@@ -228,7 +227,6 @@ void test_speed_of_pressurebroadening()
   
   Numeric T = T0;
   Vector G0(N), D0(N), G2(N), D2(N), FVC(N), ETA(N), Y(N), G(N), DV(N);
-  LineFunctionData::Output X;
   
   // New line shape
   LineFunctionData lf;
@@ -251,7 +249,7 @@ void test_speed_of_pressurebroadening()
   Index i=0;
   if(test_new) {
     for(i=0; i<N; i++) {
-      X = lf.GetParams (296., T, P, vmrs[0], vmrs, aspt);
+      const auto X = lf.GetParams (296., T, P, vmrs[0], vmrs, aspt);
       G0[i]=X.G0;
       D0[i]=X.D0;
       G2[i]=X.G2;
