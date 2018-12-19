@@ -67,16 +67,12 @@ namespace Linefunctions
                    const Numeric& zeeman_df, 
                    const Numeric& magnetic_magnitude, 
                    const Numeric& F0_noshift, 
-                   const Numeric& G0, 
-                   const Numeric& L0, 
-                   const Numeric& dF0,
+                   const LineFunctionDataOutput& x,
                    const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
                    const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                    const QuantumIdentifier& quantum_identity=QuantumIdentifier(), 
-                   const Numeric& dG0_dT=0.0, 
-                   const Numeric& dL0_dT=0.0,
-                   const Numeric& ddF0_dT=0.0,
-                   const LineFunctionData::Output& dVMR=NoLineFunctionDataOutput());
+                   const LineFunctionDataOutput& dxdT=NoLineFunctionDataOutput(),
+                   const LineFunctionDataOutput& dxdVMR=NoLineFunctionDataOutput());
   
   void set_htp(ComplexVectorView F,
                ComplexMatrixView dF,
@@ -85,23 +81,13 @@ namespace Linefunctions
                const Numeric& magnetic_magnitude,
                const Numeric& F0_noshift,
                const Numeric& GD_div_F0,
-               const Numeric& G0,
-               const Numeric& L0,
-               const Numeric& G2,
-               const Numeric& L2,
-               const Numeric& eta,
-               const Numeric& FVC,
+               const LineFunctionDataOutput& x,
                const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
                const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                const Numeric& dGD_div_F0_dT=0.0,
-               const Numeric& dG0_dT=0.0,
-               const Numeric& dL0_dT=0.0,
-               const Numeric& dG2_dT=0.0,
-               const Numeric& dL2_dT=0.0,
-               const Numeric& deta_dT=0.0,
-               const Numeric& dFVC_dT=0.0,
-               const LineFunctionData::Output& dVMR=NoLineFunctionDataOutput());
+               const LineFunctionDataOutput& dxdT=NoLineFunctionDataOutput(),
+               const LineFunctionDataOutput& dVMR=NoLineFunctionDataOutput());
   
   void set_voigt(ComplexVectorView F,
                  ComplexMatrixView dF,
@@ -110,17 +96,13 @@ namespace Linefunctions
                  const Numeric& magnetic_magnitude,
                  const Numeric& F0_noshift,
                  const Numeric& GD_div_F0,
-                 const Numeric& G0,
-                 const Numeric& L0,
-                 const Numeric& dF0,
+                 const LineFunctionDataOutput& x,
                  const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
                  const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                  const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                  const Numeric& dGD_div_F0_dT=0.0,
-                 const Numeric& dG0_dT=0.0,
-                 const Numeric& dL0_dT=0.0,
-                 const Numeric& ddF0_dT=0.0,
-                 const LineFunctionData::Output& dVMR=NoLineFunctionDataOutput());
+                 const LineFunctionDataOutput& dxdT=NoLineFunctionDataOutput(),
+                 const LineFunctionDataOutput& dVMR=NoLineFunctionDataOutput());
   
   void set_doppler(ComplexVectorView F,
                    ComplexMatrixView dF,
@@ -156,7 +138,7 @@ namespace Linefunctions
                                 const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                                 const Numeric& dY_dT=0.0,
                                 const Numeric& dG_dT=0.0,
-                                const LineFunctionData::Output& dVMR=NoLineFunctionDataOutput());
+                                const LineFunctionDataOutput& dVMR=NoLineFunctionDataOutput());
   
   void apply_rosenkranz_quadratic_scaling(ComplexVectorView F,
                                           ComplexMatrixView dF,

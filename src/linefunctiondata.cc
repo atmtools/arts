@@ -466,15 +466,15 @@ Index LineFunctionData::IndexOfParam(const String& type) const noexcept
  * \author Richard Larsson
  * \date   2018-07-16
  */
-LineFunctionData::Output LineFunctionData::GetParams(const Numeric& T0,
-                                                     const Numeric& T,
-                                                     const Numeric& P,
-                                                     const Numeric& self_vmr,
-                                                     const ConstVectorView& rtp_vmr, 
-                                                     const ArrayOfArrayOfSpeciesTag& abs_species,
-                                                     const bool normalization) const
+LineFunctionDataOutput LineFunctionData::GetParams(const Numeric& T0,
+                                                   const Numeric& T,
+                                                   const Numeric& P,
+                                                   const Numeric& self_vmr,
+                                                   const ConstVectorView& rtp_vmr, 
+                                                   const ArrayOfArrayOfSpeciesTag& abs_species,
+                                                   const bool normalization) const
 {
-  Output m;
+  LineFunctionDataOutput m;
   m.G0=0; m.D0=0; m.G2=0; m.D2=0; m.FVC=0; m.ETA=0; m.Y=0; m.G=0; m.DV=0;
   
   // Set up holders for partial and total VMR
@@ -592,17 +592,17 @@ LineFunctionData::Output LineFunctionData::GetParams(const Numeric& T0,
  * \author Richard Larsson
  * \date   2018-09-24
  */
-LineFunctionData::Output LineFunctionData::GetVMRDerivs(const Numeric& T0,
-                                                        const Numeric& T,
-                                                        const Numeric& P,
-                                                        const Numeric& self_vmr,
-                                                        const ConstVectorView& rtp_vmr,
-                                                        const ArrayOfArrayOfSpeciesTag& abs_species,
-                                                        const QuantumIdentifier& vmr_qi, 
-                                                        const QuantumIdentifier& line_qi,
-                                                        const bool normalization) const
+LineFunctionDataOutput LineFunctionData::GetVMRDerivs(const Numeric& T0,
+                                                      const Numeric& T,
+                                                      const Numeric& P,
+                                                      const Numeric& self_vmr,
+                                                      const ConstVectorView& rtp_vmr,
+                                                      const ArrayOfArrayOfSpeciesTag& abs_species,
+                                                      const QuantumIdentifier& vmr_qi, 
+                                                      const QuantumIdentifier& line_qi,
+                                                      const bool normalization) const
 {
-  Output d;
+  LineFunctionDataOutput d;
   d.G0=0; d.D0=0; d.G2=0; d.D2=0; d.FVC=0; d.ETA=0; d.Y=0; d.G=0; d.DV=0;
   
   // Set up holders for partial and total VMR
@@ -737,16 +737,16 @@ LineFunctionData::Output LineFunctionData::GetVMRDerivs(const Numeric& T0,
  * \author Richard Larsson
  * \date   2018-07-16
  */
-LineFunctionData::Output LineFunctionData::GetTemperatureDerivs(const Numeric& T0,
-                                                                const Numeric& T,
-                                                                const Numeric& dT,
-                                                                const Numeric& P,
-                                                                const Numeric& self_vmr,
-                                                                const ConstVectorView& rtp_vmr, 
-                                                                const ArrayOfArrayOfSpeciesTag& abs_species,
-                                                                const bool normalization) const
+LineFunctionDataOutput LineFunctionData::GetTemperatureDerivs(const Numeric& T0,
+                                                              const Numeric& T,
+                                                              const Numeric& dT,
+                                                              const Numeric& P,
+                                                              const Numeric& self_vmr,
+                                                              const ConstVectorView& rtp_vmr, 
+                                                              const ArrayOfArrayOfSpeciesTag& abs_species,
+                                                              const bool normalization) const
 {
-  Output d;
+  LineFunctionDataOutput d;
   d.G0=0; d.D0=0; d.G2=0; d.D2=0; d.FVC=0; d.ETA=0; d.Y=0; d.G=0; d.DV=0;
   
   // Set up holders for partial and total VMR
@@ -864,17 +864,17 @@ LineFunctionData::Output LineFunctionData::GetTemperatureDerivs(const Numeric& T
  * \author Richard Larsson
  * \date   2018-07-16
  */
-LineFunctionData::Output LineFunctionData::GetReferenceT0Derivs(const Numeric& T0,
-                                                                const Numeric& T,
-                                                                const Numeric& P,
-                                                                const Numeric& self_vmr,
-                                                                const ConstVectorView& rtp_vmr,
-                                                                const ArrayOfArrayOfSpeciesTag& abs_species,
-                                                                const RetrievalQuantity& rt,
-                                                                const QuantumIdentifier& line_qi,
-                                                                const bool normalization) const
+LineFunctionDataOutput LineFunctionData::GetReferenceT0Derivs(const Numeric& T0,
+                                                              const Numeric& T,
+                                                              const Numeric& P,
+                                                              const Numeric& self_vmr,
+                                                              const ConstVectorView& rtp_vmr,
+                                                              const ArrayOfArrayOfSpeciesTag& abs_species,
+                                                              const RetrievalQuantity& rt,
+                                                              const QuantumIdentifier& line_qi,
+                                                              const bool normalization) const
 {
-  Output d;
+  LineFunctionDataOutput d;
   d.G0=0; d.D0=0; d.G2=0; d.D2=0; d.FVC=0; d.ETA=0; d.Y=0; d.G=0; d.DV=0;
   
   // Doppler broadening has no types...
@@ -1686,15 +1686,16 @@ Numeric LineFunctionData::SelfN() const
 }
 
 
-LineFunctionData::Output LineFunctionData::AirBroadening(const Numeric& theta, const Numeric& P, const Numeric& self_vmr) const
+LineFunctionDataOutput LineFunctionData::AirBroadening(const Numeric& theta, const Numeric& P, const Numeric& self_vmr) const
 {
+  LineFunctionDataOutput t;
+  
   const Numeric an = AirN();
   const Numeric aD0 = AirD0();
   const Numeric aG0 = AirG0();
   const Numeric sG0 = SelfG0();
   const Numeric sn = SelfN();
   
-  LineFunctionData::Output t;
   t.G0 = P * (pow(theta, an) * (1 - self_vmr) * aG0 + pow(theta, sn) * self_vmr * sG0);
   t.D0 = P * pow(theta, 1.5 * an + 0.25) * aD0;
   return t;
@@ -1944,13 +1945,7 @@ Numeric LineFunctionData::Get(const String& species, const String& coefficient, 
   return mdata[ispecies][current+ic];
 }
 
-
-LineFunctionData::Output NoLineFunctionDataOutput() noexcept
-{
-  return {0, 0, 0, 0, 0, 0, 0, 0, 0};
-}
-
-LineFunctionData::Output mirroredOutput(const LineFunctionData::Output& v) noexcept
+LineFunctionDataOutput mirroredOutput(const LineFunctionDataOutput& v) noexcept
 {
   auto t = v;
   t.D0 *= -1;

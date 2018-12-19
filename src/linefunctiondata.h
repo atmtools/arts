@@ -35,6 +35,9 @@
 #include "jacobian.h"
 
 
+// List of all variables that can be returned
+typedef struct{Numeric G0, D0, G2, D2, FVC, ETA, Y, G, DV;} LineFunctionDataOutput;
+
 class LineFunctionData {
 public:
   
@@ -67,9 +70,6 @@ public:
   enum class SecondOrderParam  : Index {Y, G, DV,               Size};
   enum class ConstGParam       : Index {   G,                   Size};
   enum class InterpParam       : Index {INTERPOLATED_VARIABLES, Size};
-  
-  // List of all variables that can be returned
-  struct Output {Numeric G0, D0, G2, D2, FVC, ETA, Y, G, DV;};
   
   LineFunctionData() = default;
   
@@ -198,42 +198,42 @@ public:
     }
   }
 
-  Output GetParams(const Numeric& T0,
-                   const Numeric& T,
-                   const Numeric& P,
-                   const Numeric& self_vmr,
-                   const ConstVectorView& rtp_vmr,
-                   const ArrayOfArrayOfSpeciesTag& abs_species,
-                   const bool normalization=true) const;
+  LineFunctionDataOutput GetParams(const Numeric& T0,
+                                   const Numeric& T,
+                                   const Numeric& P,
+                                   const Numeric& self_vmr,
+                                   const ConstVectorView& rtp_vmr,
+                                   const ArrayOfArrayOfSpeciesTag& abs_species,
+                                   const bool normalization=true) const;
 
-  Output GetTemperatureDerivs(const Numeric& T0,
-                              const Numeric& T,
-                              const Numeric& dT,
-                              const Numeric& P,
-                              const Numeric& self_vmr,
-                              const ConstVectorView& rtp_vmr,
-                              const ArrayOfArrayOfSpeciesTag& abs_species,
-                              const bool normalization=true) const;
+  LineFunctionDataOutput GetTemperatureDerivs(const Numeric& T0,
+                                              const Numeric& T,
+                                              const Numeric& dT,
+                                              const Numeric& P,
+                                              const Numeric& self_vmr,
+                                              const ConstVectorView& rtp_vmr,
+                                              const ArrayOfArrayOfSpeciesTag& abs_species,
+                                              const bool normalization=true) const;
 
-  Output GetReferenceT0Derivs(const Numeric& T0,
-                              const Numeric& T,
-                              const Numeric& P,
-                              const Numeric& self_vmr,
-                              const ConstVectorView& rtp_vmr, 
-                              const ArrayOfArrayOfSpeciesTag& abs_species,
-                              const RetrievalQuantity& rt, 
-                              const QuantumIdentifier& line_qi,
-                              const bool normalization=true) const;
+  LineFunctionDataOutput GetReferenceT0Derivs(const Numeric& T0,
+                                              const Numeric& T,
+                                              const Numeric& P,
+                                              const Numeric& self_vmr,
+                                              const ConstVectorView& rtp_vmr, 
+                                              const ArrayOfArrayOfSpeciesTag& abs_species,
+                                              const RetrievalQuantity& rt, 
+                                              const QuantumIdentifier& line_qi,
+                                              const bool normalization=true) const;
 
-  Output GetVMRDerivs(const Numeric& T0,
-                      const Numeric& T,
-                      const Numeric& P,
-                      const Numeric& self_vmr,
-                      const ConstVectorView& rtp_vmr,
-                      const ArrayOfArrayOfSpeciesTag& abs_species,
-                      const QuantumIdentifier& vmr_qi, 
-                      const QuantumIdentifier& line_qi,
-                      const bool normalization=true) const;
+  LineFunctionDataOutput GetVMRDerivs(const Numeric& T0,
+                                      const Numeric& T,
+                                      const Numeric& P,
+                                      const Numeric& self_vmr,
+                                      const ConstVectorView& rtp_vmr,
+                                      const ArrayOfArrayOfSpeciesTag& abs_species,
+                                      const QuantumIdentifier& vmr_qi, 
+                                      const QuantumIdentifier& line_qi,
+                                      const bool normalization=true) const;
               
   Numeric GetLineParamDeriv(const Numeric& T0,
                             const Numeric& T,
@@ -270,7 +270,7 @@ public:
   Vector PlanetaryForeignG0() const;
   Vector PlanetaryForeignD0() const;
   Vector PlanetaryForeignN() const;
-  Output AirBroadening(const Numeric& theta, const Numeric& P, const Numeric& self_vmr) const;
+  LineFunctionDataOutput AirBroadening(const Numeric& theta, const Numeric& P, const Numeric& self_vmr) const;
   
   // Changes and alterations of internal data
   void ChangeLineMixingfromSimpleLM2(const Vector& lm2data);
@@ -306,8 +306,8 @@ ArrayOfString all_coefficientsLineFunctionData();
 //! {"G0", "D0", "G2", "D2", "ETA", "FVC", "Y", "G", "DV"}
 ArrayOfString all_variablesLineFunctionData();
 
-LineFunctionData::Output NoLineFunctionDataOutput() noexcept;
+constexpr LineFunctionDataOutput NoLineFunctionDataOutput(){return {0, 0, 0, 0, 0, 0, 0, 0, 0};}
 
-LineFunctionData::Output mirroredOutput(const LineFunctionData::Output& v) noexcept;
+LineFunctionDataOutput mirroredOutput(const LineFunctionDataOutput& v) noexcept;
 
 #endif // linefunctiondata_h

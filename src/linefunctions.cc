@@ -63,13 +63,6 @@ void Linefunctions::set_lineshape(ComplexVectorView F,
 {
   // Pressure broadening and line mixing terms
   const auto X = line.GetShapeParams(temperature, pressure, this_species, vmrs, abs_species);
-  const auto& G0  = X.G0;
-  const auto& D0  = X.D0;
-  const auto& G2  = X.G2;
-  const auto& D2  = X.D2;
-  const auto& FVC = X.FVC;
-  const auto& ETA = X.ETA;
-  const auto& DV  = X.DV;
   
   // Line shape usage remembering variable
   LineShapeType lst = LineShapeType::End;
@@ -85,11 +78,11 @@ void Linefunctions::set_lineshape(ComplexVectorView F,
         case LineFunctionData::LineShapeType::HTP:
         case LineFunctionData::LineShapeType::SDVP:
           lst = LineShapeType::HTP;
-          set_htp(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant, G0, D0, G2, D2, ETA, FVC);
+          set_htp(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant, X);
           break;
         case LineFunctionData::LineShapeType::VP:
           lst = LineShapeType::Voigt;
-          set_voigt(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant, G0, D0, DV);
+          set_voigt(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant, X);
           break;
         case LineFunctionData::LineShapeType::DP:
           lst = LineShapeType::Doppler;
@@ -97,7 +90,7 @@ void Linefunctions::set_lineshape(ComplexVectorView F,
           break;
         case LineFunctionData::LineShapeType::LP:
           lst = LineShapeType::Lorentz;
-          set_lorentz(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), G0, D0, DV);
+          set_lorentz(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), X);
           break;
       }
       break;
@@ -107,18 +100,18 @@ void Linefunctions::set_lineshape(ComplexVectorView F,
           break;
           // This line only needs Hartmann-Tran
         case LineShapeType::HTP:
-          set_htp(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant, G0, D0, G2, D2, ETA, FVC);
+          set_htp(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant, X);
           lst = LineShapeType::HTP;
           break;
           // This line only needs Lorentz
         case LineShapeType::Lorentz:
           lst = LineShapeType::Lorentz;
-          set_lorentz(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), G0, D0, DV);
+          set_lorentz(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), X);
           break;
           // This line only needs Voigt
         case LineShapeType::Voigt:
           lst = LineShapeType::Voigt;
-          set_voigt(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant, G0, D0, DV);
+          set_voigt(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant, X);
           break;
         case LineShapeType::End:
           throw std::runtime_error("Cannot understand the requested line shape type.");
@@ -137,7 +130,7 @@ void Linefunctions::set_lineshape(ComplexVectorView F,
       ComplexVector Fm(F.nelem());
       ComplexMatrix dFm(0, 0);
       
-      set_lorentz(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), G0, -D0, -DV);
+      set_lorentz(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), mirroredOutput(X));
       
       // Apply mirroring
       F -= Fm;
@@ -156,14 +149,14 @@ void Linefunctions::set_lineshape(ComplexVectorView F,
           set_doppler(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), -doppler_constant);
           break;
         case LineShapeType::Lorentz:
-          set_lorentz(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), G0, -D0, -DV);
+          set_lorentz(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), mirroredOutput(X));
           break;
         case LineShapeType::Voigt:
-          set_voigt(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), -doppler_constant, G0, -D0, -DV);
+          set_voigt(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), -doppler_constant, mirroredOutput(X));
           break;
         case LineShapeType::HTP:
           // WARNING: This mirroring is not tested and it might require, e.g., FVC to be treated differently
-          set_htp(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), -doppler_constant, G0, -D0, G2, -D2, ETA, FVC);
+          set_htp(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), -doppler_constant, mirroredOutput(X));
           break;
         case LineShapeType::ByPressureBroadeningData:
         case LineShapeType::End:
@@ -213,16 +206,12 @@ void Linefunctions::set_lineshape(ComplexVectorView F,
  * \param zeeman_df Zeeman shift parameter for the line
  * \param magnetic_magnitude Absolute strength of the magnetic field
  * \param F0_noshift Central frequency without any shifts
- * \param G0 Speed-independent pressure broadening term
- * \param L0 Speed-independent pressure shift term
- * \param dF0 Second order line mixing shift
+ * \param x Line shape parameters
  * \param derivatives_data Information about the derivatives in dF
  * \param derivatives_data_position Information about the derivatives positions in dF
  * \param quantum_identity ID of the absorption line
- * \param dG0_dT Temperature derivative of G0
- * \param dL0_dT Temperature derivative of L0
- * \param ddF0_dT Temperature derivative of dF0
- * \param dVMR VMR derivatives of line shape parameters
+ * \param dxdT Temperature derivatives of line shape parameters
+ * \param dxdVMR VMR derivatives of line shape parameters
  * 
  */
 void Linefunctions::set_lorentz(ComplexVectorView F,
@@ -231,26 +220,22 @@ void Linefunctions::set_lorentz(ComplexVectorView F,
                                 const Numeric& zeeman_df,
                                 const Numeric& magnetic_magnitude,
                                 const Numeric& F0_noshift,
-                                const Numeric& G0,
-                                const Numeric& L0, 
-                                const Numeric& dF0,
+                                const LineFunctionDataOutput& x,
                                 const ArrayOfRetrievalQuantity& derivatives_data,
                                 const ArrayOfIndex& derivatives_data_position,
                                 const QuantumIdentifier& quantum_identity,
-                                const Numeric& dG0_dT,
-                                const Numeric& dL0_dT,
-                                const Numeric& ddF0_dT,
-                                const LineFunctionData::Output& dVMR)
+                                const LineFunctionDataOutput& dxdT,
+                                const LineFunctionDataOutput& dxdVMR)
 { 
   // Size of the problem
   const Index nf = f_grid.nelem();
   const Index nppd = derivatives_data_position.nelem();
   
   // The central frequency
-  const Numeric F0 = F0_noshift + L0 + zeeman_df * magnetic_magnitude + dF0;
+  const Numeric F0 = F0_noshift + x.D0 + zeeman_df * magnetic_magnitude + x.DV;
   
   // Constant part of the denominator
-  const Complex denom0 = Complex(G0, F0);
+  const Complex denom0 = Complex(x.G0, F0);
   
   Complex d, denom;
   
@@ -266,7 +251,7 @@ void Linefunctions::set_lorentz(ComplexVectorView F,
         d = - F[iv] * denom;
       
       if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
-        dF(iq, iv) = d * Complex(dG0_dT, dL0_dT + ddF0_dT);  // Temperature derivative only depends on how pressure shift and broadening change
+        dF(iq, iv) = d * Complex(dxdT.G0, dxdT.D0 + dxdT.DV);  // Temperature derivative only depends on how pressure shift and broadening change
       else if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]]))
         dF(iq, iv) = d * Complex(0.0, -1.0);  // Frequency scale 1 to -1 linearly
       else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter or 
@@ -280,7 +265,7 @@ void Linefunctions::set_lorentz(ComplexVectorView F,
       }
       else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR) {
         if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity))
-          dF(iq, iv) = d * Complex(dVMR.G0, dVMR.D0 + dVMR.DV);
+          dF(iq, iv) = d * Complex(dxdVMR.G0, dxdVMR.D0 + dxdVMR.DV);
       }
       else if(is_magnetic_magnitude_parameter(derivatives_data[derivatives_data_position[iq]]))
         dF(iq, iv) = d * Complex(0.0, zeeman_df);  // Magnetic magnitude changes like line center in part
@@ -306,23 +291,13 @@ void Linefunctions::set_lorentz(ComplexVectorView F,
  * \param magnetic_magnitude Absolute strength of the magnetic field
  * \param F0_noshift Central frequency without any shifts
  * \param GD_div_F0 Frequency-independent part of the Doppler broadening
- * \param G0 Speed-independent pressure broadening term
- * \param L0 Speed-independent pressure shift term plus second order line mixing shift
- * \param G2 Speed-dependent pressure broadening term
- * \param L2 Speed-dependent pressure shift term
- * \param eta Correlation between velocity and rotational changes due to collisions
- * \param FVC Velocity--changing collisional parameter
+ * \param x Line shape parameters
  * \param derivatives_data Information about the derivatives in dF
  * \param derivatives_data_position Information about the derivatives positions in dF
  * \param quantum_identity ID of the absorption line
  * \param dGD_div_F0_dT Temperature derivative of GD_div_F0
- * \param dG0_dT Temperature derivative of G0
- * \param dL0_dT Temperature derivative of L0
- * \param dG2_dT Temperature derivative of G2
- * \param dL2_dT Temperature derivative of L2
- * \param deta_dT Temperature derivative of eta
- * \param dFVC_dT Temperature derivative of FVC
- * \param dVMR VMR derivatives of line shape parameters
+ * \param dxdT Temperature derivatives of line shape parameters
+ * \param dxdVMR VMR derivatives of line shape parameters
  * 
  */
 void Linefunctions::set_htp(ComplexVectorView F,
@@ -332,23 +307,13 @@ void Linefunctions::set_htp(ComplexVectorView F,
               const Numeric& magnetic_magnitude,
               const Numeric& F0_noshift, 
               const Numeric& GD_div_F0,
-              const Numeric& G0, 
-              const Numeric& D0,
-              const Numeric& G2, 
-              const Numeric& D2,
-              const Numeric& ETA,
-              const Numeric& FVC, 
+              const LineFunctionDataOutput& x,
               const ArrayOfRetrievalQuantity& derivatives_data,
               const ArrayOfIndex& derivatives_data_position,
               const QuantumIdentifier& quantum_identity,
               const Numeric& dGD_div_F0_dT,
-              const Numeric& dG0_dT,
-              const Numeric& dD0_dT,
-              const Numeric& dG2_dT,
-              const Numeric& dD2_dT,
-              const Numeric& dETA_dT,
-              const Numeric& dFVC_dT,
-              const LineFunctionData::Output& dVMR)
+              const LineFunctionDataOutput& dxdT,
+              const LineFunctionDataOutput& dxdVMR)
 {
   const Index nq = derivatives_data_position.nelem();
   const Index nf = f_grid.nelem();
@@ -357,10 +322,10 @@ void Linefunctions::set_htp(ComplexVectorView F,
   const Numeric GD = GD_div_F0 * F0;
   const Numeric fac = sqrtPI / GD;
   
-  const Complex C0(G0, D0);
-  const Complex C2(G2, D2);
-  const Complex C0t = (1 - ETA) * (C0 - 1.5 * C2) + FVC;
-  const Complex C2t = (1 - ETA) * C2;
+  const Complex C0(x.G0, x.D0);
+  const Complex C2(x.G2, x.D2);
+  const Complex C0t = (1 - x.ETA) * (C0 - 1.5 * C2) + x.FVC;
+  const Complex C2t = (1 - x.ETA) * C2;
   
   if(C2t == Complex(0, 0)) {
     const Complex Z0 = (Complex(0, F0) + C0t) / GD;
@@ -368,7 +333,7 @@ void Linefunctions::set_htp(ComplexVectorView F,
       const Complex Zm = Complex(0, -f_grid[i] / GD) + Z0;
       const Complex wm = Faddeeva::w(Complex(0, 1) * Zm);
       const Complex A = fac * wm;
-      const Complex G = 1.0 - (FVC - ETA * (C0 - 1.5 * C2)) * A;
+      const Complex G = 1.0 - (x.FVC - x.ETA * (C0 - 1.5 * C2)) * A;
       
       F[i] = invPI * A / G;
       
@@ -377,21 +342,15 @@ void Linefunctions::set_htp(ComplexVectorView F,
         for(Index iq=0; iq<nq; iq++) {
           const RetrievalQuantity& rt = derivatives_data[derivatives_data_position[iq]];
           if(rt == JacPropMatType::Temperature) {
-            const Numeric dG0 = dG0_dT;
-            const Numeric dG2 = dG2_dT;
-            const Numeric dD0 = dD0_dT;
-            const Numeric dD2 = dD2_dT;
-            const Numeric dETA = dETA_dT;
-            const Numeric dFVC = dFVC_dT;
             const Numeric dGD = dGD_div_F0_dT * F0;
-            const Complex dC0 =  Complex(dG0, dD0);
-            const Complex dC2 =  Complex(dG2, dD2);
-            const Complex dC0t =  -(C0 - 1.5*C2)*dETA - (ETA - 1.0)*(dC0 - 1.5*dC2) + dFVC;
+            const Complex dC0 =  Complex(dxdT.G0, dxdT.D0);
+            const Complex dC2 =  Complex(dxdT.G2, dxdT.D2);
+            const Complex dC0t =  -(C0 - 1.5*C2)*dxdT.ETA - (x.ETA - 1.0)*(dC0 - 1.5*dC2) + dxdT.FVC;
             const Complex dZm =  ((Complex(0, f_grid[i]-F0) - C0t)*dGD + GD*dC0t)/(GD*GD);
             const Complex dwm = dwm_divdZ * dZm;
             const Complex dfac =  -fac*dGD/GD;
             const Complex dA =  fac*dwm + wm*dfac;
-            const Complex dG =  ((C0 - 1.5*C2)*ETA - FVC)*dA + ((C0 - 1.5*C2)*dETA + (dC0 - 1.5*dC2)*ETA - dFVC)*A;
+            const Complex dG =  ((C0 - 1.5*C2)*x.ETA - x.FVC)*dA + ((C0 - 1.5*C2)*dxdT.ETA + (dC0 - 1.5*dC2)*x.ETA - dxdT.FVC)*A;
             
             dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
           }
@@ -399,7 +358,7 @@ void Linefunctions::set_htp(ComplexVectorView F,
             const Complex dZm = Complex(0, -1 / GD);
             const Complex dwm = dwm_divdZ * dZm;
             const Complex dA = fac * dwm;
-            const Complex dG = (ETA * (C0 - 1.5 * C2) - FVC) * dA;
+            const Complex dG = (x.ETA * (C0 - 1.5 * C2) - x.FVC) * dA;
             
             dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
           }
@@ -408,25 +367,19 @@ void Linefunctions::set_htp(ComplexVectorView F,
             const Complex dfac =  -sqrtPI*zeeman_df/(GD_div_F0*(F0*F0));
             const Complex dwm = dwm_divdZ * dZm;
             const Complex dA =  fac*dwm + wm*dfac;
-            const Complex dG =  (ETA*(C0 - 1.5*C2) - FVC)*dA;
+            const Complex dG =  (x.ETA*(C0 - 1.5*C2) - x.FVC)*dA;
             
             dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
           }
           else if(rt == JacPropMatType::VMR) {
             if(rt.QuantumIdentity().In(quantum_identity)) {
-              const Numeric dG0 = dVMR.G0;
-              const Numeric dG2 = dVMR.G2;
-              const Numeric dD0 = dVMR.D0;
-              const Numeric dD2 = dVMR.D2;
-              const Numeric dFVC = dVMR.FVC;
-              const Numeric dETA = dVMR.ETA;
-              const Complex dC0 =  Complex(dG0, dD0);
-              const Complex dC2 =  Complex(dG2, dD2);
-              const Complex dC0t =  -(C0 - 1.5*C2)*dETA - (ETA - 1.0)*(dC0 - 1.5*dC2) + dFVC;
+              const Complex dC0 =  Complex(dxdVMR.G0, dxdVMR.D0);
+              const Complex dC2 =  Complex(dxdVMR.G2, dxdVMR.D2);
+              const Complex dC0t =  -(C0 - 1.5*C2)*dxdVMR.ETA - (x.ETA - 1.0)*(dC0 - 1.5*dC2) + dxdVMR.FVC;
               const Complex dZm =  dC0t/GD;
               const Complex dwm = dwm_divdZ * dZm;
               const Complex dA =  fac*dwm;
-              const Complex dG =  ((C0 - 1.5*C2)*ETA - FVC)*dA + ((C0 - 1.5*C2)*dETA + (dC0 - 1.5*dC2)*ETA - dFVC)*A;
+              const Complex dG =  ((C0 - 1.5*C2)*x.ETA - x.FVC)*dA + ((C0 - 1.5*C2)*dxdVMR.ETA + (dC0 - 1.5*dC2)*x.ETA - dxdVMR.FVC)*A;
               
               dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
             }
@@ -437,7 +390,7 @@ void Linefunctions::set_htp(ComplexVectorView F,
               const Complex dfac =  -sqrtPI/((F0*F0)*GD_div_F0);
               const Complex dwm = dwm_divdZ * dZm;
               const Complex dA =  fac*dwm + wm*dfac;
-              const Complex dG =  (ETA*(C0 - 1.5*C2) - FVC)*dA;
+              const Complex dG =  (x.ETA*(C0 - 1.5*C2) - x.FVC)*dA;
               
               dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
             }
@@ -447,7 +400,7 @@ void Linefunctions::set_htp(ComplexVectorView F,
               const Numeric dZm = 1 / GD;
               const Complex dwm = dwm_divdZ * dZm;
               const Complex dA = fac * dwm;
-              const Complex dG = - A - (FVC - ETA * (C0 - 1.5 * C2)) * dA;
+              const Complex dG = - A - (x.FVC - x.ETA * (C0 - 1.5 * C2)) * dA;
               
               dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
             }
@@ -458,7 +411,7 @@ void Linefunctions::set_htp(ComplexVectorView F,
               const Complex dZm = dC0t / GD;
               const Complex dwm = dwm_divdZ * dZm;
               const Complex dA = fac * dwm;
-              const Complex dG = (C0 - 1.5 * C2) * A - (FVC - ETA * (C0 - 1.5 * C2)) * dA;
+              const Complex dG = (C0 - 1.5 * C2) * A - (x.FVC - x.ETA * (C0 - 1.5 * C2)) * dA;
               
               dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
             }
@@ -466,11 +419,11 @@ void Linefunctions::set_htp(ComplexVectorView F,
           else if(is_pressure_broadening_speed_dependent(rt)) {
             if(rt.QuantumIdentity().In(quantum_identity)) {
               const Complex dC2(0, -1);  // Note change of sign to fit with Voigt/Lorentz
-              const Complex dC0t = (1 - ETA) * (- 1.5 * dC2);
+              const Complex dC0t = (1 - x.ETA) * (- 1.5 * dC2);
               const Complex dZm = dC0t / GD;
               const Complex dwm = dwm_divdZ  * dZm;
               const Complex dA = fac * dwm;
-              const Complex dG = - (FVC - ETA * (C0 - 1.5 * C2)) * dA - 1.5 * dC2 * A;
+              const Complex dG = - (x.FVC - x.ETA * (C0 - 1.5 * C2)) * dA - 1.5 * dC2 * A;
               
               dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
             }
@@ -478,11 +431,11 @@ void Linefunctions::set_htp(ComplexVectorView F,
           else if(is_pressure_broadening_speed_independent(rt)) {
             if(rt.QuantumIdentity().In(quantum_identity)) {
               const Complex dC0(0, -1);  // Note change of sign to fit with Voigt/Lorentz
-              const Complex dC0t = (1 - ETA) * dC0;
+              const Complex dC0t = (1 - x.ETA) * dC0;
               const Complex dZm = dC0t / GD;
               const Complex dwm = dwm_divdZ * dZm;
               const Complex dA = fac * dwm;
-              const Complex dG = - (FVC - ETA * (C0 - 1.5 * C2)) * dA + ETA * dC0 * A;
+              const Complex dG = - (x.FVC - x.ETA * (C0 - 1.5 * C2)) * dA + x.ETA * dC0 * A;
               
               dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
             }
@@ -503,8 +456,8 @@ void Linefunctions::set_htp(ComplexVectorView F,
       const Complex wm = Faddeeva::w(Complex(0, 1) * Zm);
       const Complex wp = Faddeeva::w(Complex(0, 1) * Zp);
       const Complex A = fac * (wm - wp);
-      const Complex B = ETA / (1 - ETA) * (-1.0 + sqrtPI/(2.0*sqrtY) * ((1.0-Zm*Zm)*wm - (1.0-Zp*Zp)*wp));
-      const Complex G = 1.0 - (FVC - ETA * (C0 - 1.5 * C2)) * A + B;
+      const Complex B = x.ETA / (1 - x.ETA) * (-1.0 + sqrtPI/(2.0*sqrtY) * ((1.0-Zm*Zm)*wm - (1.0-Zp*Zp)*wp));
+      const Complex G = 1.0 - (x.FVC - x.ETA * (C0 - 1.5 * C2)) * A + B;
       
       F[i] = invPI * A / G;
       if(nq) {
@@ -513,18 +466,12 @@ void Linefunctions::set_htp(ComplexVectorView F,
         for(Index iq=0; iq<nq; iq++) {
           const RetrievalQuantity& rt = derivatives_data[derivatives_data_position[iq]];
           if(rt == JacPropMatType::Temperature) {
-            const Numeric dG0 = dG0_dT;
-            const Numeric dD0 = dD0_dT;
-            const Numeric dG2 = dG2_dT;
-            const Numeric dD2 = dD2_dT;
-            const Numeric dFVC = dFVC_dT;
-            const Numeric dETA = dETA_dT;
             const Numeric dGD = dGD_div_F0_dT * F0;
-            const Complex dC0 =  Complex(dG0, dD0);
-            const Complex dC2 =  Complex(dG2, dD2);
+            const Complex dC0 =  Complex(dxdT.G0, dxdT.D0);
+            const Complex dC2 =  Complex(dxdT.G2, dxdT.D2);
             const Complex dfac =  -sqrtPI*dGD/GD/GD;
-            const Complex dC0t =  -(C0 - 1.5*C2)*dETA - (ETA - 1)*(dC0 - 1.5*dC2) + dFVC;
-            const Complex dC2t =  -(ETA - 1)*dC2 - C2*dETA;
+            const Complex dC0t =  -(C0 - 1.5*C2)*dxdT.ETA - (x.ETA - 1)*(dC0 - 1.5*dC2) + dxdT.FVC;
+            const Complex dC2t =  -(x.ETA - 1)*dC2 - C2*dxdT.ETA;
             const Complex dY =  (C2t*dGD - GD*dC2t)*GD/(2*C2t*C2t*C2t);
             const Complex dX =  ((Complex(0, F0-f_grid[i]) - C0t)*dC2t + C2t*dC0t)/C2t/C2t;
             const Complex dZm =  -dY/(2*sqrtY) + dX/(2*Z0) + dY/(2*Z0);
@@ -532,8 +479,8 @@ void Linefunctions::set_htp(ComplexVectorView F,
             const Complex dwm = dwm_divdZ * dZm;
             const Complex dwp = dwp_divdZ * dZp;
             const Complex dA =  (wm - wp)*dfac + (dwm - dwp)*fac;
-            const Complex dB =  (2*(sqrtPI*((Zm*Zm - 1.)*wm - (Zp*Zp - 1.)*wp) + 2*sqrtY)*(ETA - 1)*Y*dETA - 2*(sqrtPI*((Zm*Zm - 1.)*wm - (Zp*Zp - 1.)*wp) + 2*sqrtY)*ETA*Y*dETA - sqrtPI*(((Zm*Zm - 1.)*wm - (Zp*Zp - 1.)*wp)*dY + 2*(-(Zm*Zm - 1.)*dwm + (Zp*Zp - 1.)*dwp - 2*Zm*wm*dZm + 2*Zp*wp*dZp)*Y)*(ETA - 1)*ETA)/(4*(ETA - 1)*(ETA - 1)*Y*sqrtY);
-            const Complex dG =  ((2*C0 - 3*C2)*ETA - 2*FVC)*dA/2. + ((2*C0 - 3*C2)*dETA + (2*dC0 - 3*dC2)*ETA - 2*dFVC)*A/2. + dB;
+            const Complex dB =  (2*(sqrtPI*((Zm*Zm - 1.)*wm - (Zp*Zp - 1.)*wp) + 2*sqrtY)*(x.ETA - 1)*Y*dxdT.ETA - 2*(sqrtPI*((Zm*Zm - 1.)*wm - (Zp*Zp - 1.)*wp) + 2*sqrtY)*x.ETA*Y*dxdT.ETA - sqrtPI*(((Zm*Zm - 1.)*wm - (Zp*Zp - 1.)*wp)*dY + 2*(-(Zm*Zm - 1.)*dwm + (Zp*Zp - 1.)*dwp - 2*Zm*wm*dZm + 2*Zp*wp*dZp)*Y)*(x.ETA - 1)*x.ETA)/(4*(x.ETA - 1)*(x.ETA - 1)*Y*sqrtY);
+            const Complex dG =  ((2*C0 - 3*C2)*x.ETA - 2*x.FVC)*dA/2. + ((2*C0 - 3*C2)*dxdT.ETA + (2*dC0 - 3*dC2)*x.ETA - 2*dxdT.FVC)*A/2. + dB;
             
             dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
           }
@@ -544,8 +491,8 @@ void Linefunctions::set_htp(ComplexVectorView F,
             const Complex dwm = dwm_divdZ * dZm;
             const Complex dwp = dwp_divdZ * dZp;
             const Complex dA =  (dwm - dwp)*fac;
-            const Complex dB =  sqrtPI*ETA*((Zm*Zm - 1.)*dwm - (Zp*Zp - 1.)*dwp + 2*Zm*wm*dZm - 2*Zp*wp*dZp)/(2*sqrtY*(ETA - 1));
-            const Complex dG =  (ETA*(2*C0 - 3*C2) - 2*FVC)*dA/2. + dB;
+            const Complex dB =  sqrtPI*x.ETA*((Zm*Zm - 1.)*dwm - (Zp*Zp - 1.)*dwp + 2*Zm*wm*dZm - 2*Zp*wp*dZp)/(2*sqrtY*(x.ETA - 1));
+            const Complex dG =  (x.ETA*(2*C0 - 3*C2) - 2*x.FVC)*dA/2. + dB;
             
             dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
           }
@@ -558,23 +505,17 @@ void Linefunctions::set_htp(ComplexVectorView F,
             const Complex dwm = dwm_divdZ * dZm;
             const Complex dwp = dwp_divdZ * dZp;
             const Complex dA =  (wm - wp)*dfac + (dwm - dwp)*fac;
-            const Complex dB =  sqrtPI*ETA*((-(Zm*Zm - 1.)*wm + (Zp*Zp - 1.)*wp)*dY + 2*((Zm*Zm - 1.)*dwm - (Zp*Zp - 1.)*dwp + 2*Zm*wm*dZm - 2*Zp*wp*dZp)*Y)/(4*(ETA - 1)*Y*sqrtY);
-            const Complex dG =  (ETA*(2*C0 - 3*C2) - 2*FVC)*dA/2. + dB;
+            const Complex dB =  sqrtPI*x.ETA*((-(Zm*Zm - 1.)*wm + (Zp*Zp - 1.)*wp)*dY + 2*((Zm*Zm - 1.)*dwm - (Zp*Zp - 1.)*dwp + 2*Zm*wm*dZm - 2*Zp*wp*dZp)*Y)/(4*(x.ETA - 1)*Y*sqrtY);
+            const Complex dG =  (x.ETA*(2*C0 - 3*C2) - 2*x.FVC)*dA/2. + dB;
             
             dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
           }
           else if(rt == JacPropMatType::VMR) {
             if(rt.QuantumIdentity().In(quantum_identity)) {
-              const Numeric dG0 = dVMR.G0;
-              const Numeric dG2 = dVMR.G2;
-              const Numeric dD0 = dVMR.D0;
-              const Numeric dD2 = dVMR.D2;
-              const Numeric dFVC = dVMR.FVC;
-              const Numeric dETA = dVMR.ETA;
-              const Complex dC0 =  Complex(dG0, dD0);
-              const Complex dC2 =  Complex(dG2, dD2);
-              const Complex dC0t =  -(C0 - 1.5*C2)*dETA - (ETA - 1)*(dC0 - 1.5*dC2) + dFVC;
-              const Complex dC2t =  -(ETA - 1)*dC2 - C2*dETA;
+              const Complex dC0 =  Complex(dxdVMR.G0, dxdVMR.D0);
+              const Complex dC2 =  Complex(dxdVMR.G2, dxdVMR.D2);
+              const Complex dC0t =  -(C0 - 1.5*C2)*dxdVMR.ETA - (x.ETA - 1)*(dC0 - 1.5*dC2) + dxdVMR.FVC;
+              const Complex dC2t =  -(x.ETA - 1)*dC2 - C2*dxdVMR.ETA;
               const Complex dY =  -2*dC2t/C2t * Y;
               const Complex dX =  ((Complex(0, F0-f_grid[i]) - C0t)*dC2t + C2t*dC0t)/C2t/C2t;
               const Complex dZm =  -dY/(2*sqrtY) + dX/(2*Z0) + dY/(2*Z0);
@@ -582,8 +523,8 @@ void Linefunctions::set_htp(ComplexVectorView F,
               const Complex dwm = dwm_divdZ * dZm;
               const Complex dwp = dwp_divdZ * dZp;
               const Complex dA =  fac*(dwm - dwp);
-              const Complex dB =  (2*(sqrtPI*((Zm*Zm - 1.)*wm - (Zp*Zp - 1.)*wp) + 2*sqrtY)*(ETA - 1)*Y*dETA - 2*(sqrtPI*((Zm*Zm - 1.)*wm - (Zp*Zp - 1.)*wp) + 2*sqrtY)*ETA*Y*dETA - sqrtPI*(((Zm*Zm - 1.)*wm - (Zp*Zp - 1.)*wp)*dY + 2*(-(Zm*Zm - 1.)*dwm + (Zp*Zp - 1.)*dwp - 2*Zm*wm*dZm + 2*Zp*wp*dZp)*Y)*(ETA - 1)*ETA)/(4*(ETA - 1)*(ETA - 1)*Y*sqrtY);
-              const Complex dG =  ((2*C0 - 3*C2)*ETA - 2*FVC)*dA/2. + ((2*C0 - 3*C2)*dETA + (2*dC0 - 3*dC2)*ETA - 2*dFVC)*A/2. + dB;
+              const Complex dB =  (2*(sqrtPI*((Zm*Zm - 1.)*wm - (Zp*Zp - 1.)*wp) + 2*sqrtY)*(x.ETA - 1)*Y*dxdVMR.ETA - 2*(sqrtPI*((Zm*Zm - 1.)*wm - (Zp*Zp - 1.)*wp) + 2*sqrtY)*x.ETA*Y*dxdVMR.ETA - sqrtPI*(((Zm*Zm - 1.)*wm - (Zp*Zp - 1.)*wp)*dY + 2*(-(Zm*Zm - 1.)*dwm + (Zp*Zp - 1.)*dwp - 2*Zm*wm*dZm + 2*Zp*wp*dZp)*Y)*(x.ETA - 1)*x.ETA)/(4*(x.ETA - 1)*(x.ETA - 1)*Y*sqrtY);
+              const Complex dG =  ((2*C0 - 3*C2)*x.ETA - 2*x.FVC)*dA/2. + ((2*C0 - 3*C2)*dxdVMR.ETA + (2*dC0 - 3*dC2)*x.ETA - 2*dxdVMR.FVC)*A/2. + dB;
               
               dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
             }
@@ -598,22 +539,22 @@ void Linefunctions::set_htp(ComplexVectorView F,
               const Complex dwm = dwm_divdZ * dZm;
               const Complex dwp = dwp_divdZ * dZp;
               const Complex dA =  (wm - wp)*dfac + (dwm - dwp)*fac;
-              const Complex dB =  sqrtPI*ETA*((-(Zm*Zm - 1.)*wm + (Zp*Zp - 1.)*wp)*dY + 2*((Zm*Zm - 1.)*dwm - (Zp*Zp - 1.)*dwp + 2*Zm*wm*dZm - 2*Zp*wp*dZp)*Y)/(4*(ETA - 1)*Y*sqrtY);
-              const Complex dG =  (ETA*(2*C0 - 3*C2) - 2*FVC)*dA/2. + dB;
+              const Complex dB =  sqrtPI*x.ETA*((-(Zm*Zm - 1.)*wm + (Zp*Zp - 1.)*wp)*dY + 2*((Zm*Zm - 1.)*dwm - (Zp*Zp - 1.)*dwp + 2*Zm*wm*dZm - 2*Zp*wp*dZp)*Y)/(4*(x.ETA - 1)*Y*sqrtY);
+              const Complex dG =  (x.ETA*(2*C0 - 3*C2) - 2*x.FVC)*dA/2. + dB;
               
               dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
             }
           }
           else if(is_pressure_broadening_velocity_changing_collision_frequency(rt)) {
             if(rt.QuantumIdentity().In(quantum_identity)) {
-              const Complex dX =  -1./(C2*(ETA - 1));
+              const Complex dX =  -1./(C2*(x.ETA - 1));
               const Complex dZm =  dX/(2*Z0);
               const Complex dZp =  dX/(2*Z0);
               const Complex dwm = dwm_divdZ * dZm;
               const Complex dwp = dwp_divdZ * dZp;
               const Complex dA =  fac*(dwm - dwp);
-              const Complex dB =  sqrtPI*ETA*((Zm*Zm - 1.)*dwm - (Zp*Zp - 1.)*dwp + 2*Zm*wm*dZm - 2*Zp*wp*dZp)/(2*sqrtY*(ETA - 1));
-              const Complex dG =  (ETA*(2*C0 - 3*C2) - 2*FVC)*dA/2. - A + dB;
+              const Complex dB =  sqrtPI*x.ETA*((Zm*Zm - 1.)*dwm - (Zp*Zp - 1.)*dwp + 2*Zm*wm*dZm - 2*Zp*wp*dZp)/(2*sqrtY*(x.ETA - 1));
+              const Complex dG =  (x.ETA*(2*C0 - 3*C2) - 2*x.FVC)*dA/2. - A + dB;
               
               dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
             }
@@ -621,15 +562,15 @@ void Linefunctions::set_htp(ComplexVectorView F,
           else if(is_pressure_broadening_correlation(rt)) {
             if(rt.QuantumIdentity().In(quantum_identity)) {
               const Numeric dETA = 1;
-              const Complex dY =  -(GD*GD)*dETA/(2*C2*C2*(ETA - 1)*(ETA - 1)*(ETA - 1));
-              const Complex dX =  (FVC - Complex(0, F0 - f_grid[i]))*dETA/(C2*(ETA - 1)*(ETA - 1));
+              const Complex dY =  -(GD*GD)*dETA/(2*C2*C2*(x.ETA - 1)*(x.ETA - 1)*(x.ETA - 1));
+              const Complex dX =  (x.FVC - Complex(0, F0 - f_grid[i]))*dETA/(C2*(x.ETA - 1)*(x.ETA - 1));
               const Complex dZm =  -dY/(2*sqrtY) + dX/(2*Z0) + dY/(2*Z0);
               const Complex dZp =  dY/(2*sqrtY) + dX/(2*Z0) + dY/(2*Z0);
               const Complex dwm = dwm_divdZ * dZm;
               const Complex dwp = dwp_divdZ * dZp;
               const Complex dA =  fac*(dwm - dwp);
-              const Complex dB =  (2*(sqrtPI*(((Zm*Zm) - 1.0)*wm - ((Zp*Zp) - 1.0)*wp) + 2*sqrtY)*(ETA - 1)*Y*dETA - 2*(sqrtPI*(((Zm*Zm) - 1.0)*wm - ((Zp*Zp) - 1.0)*wp) + 2*sqrtY)*ETA*Y*dETA - sqrtPI*((((Zm*Zm) - 1.0)*wm - ((Zp*Zp) - 1.0)*wp)*dY + 2*(-((Zm*Zm) - 1.0)*dwm + ((Zp*Zp) - 1.0)*dwp - 2*Zm*wm*dZm + 2*Zp*wp*dZp)*Y)*(ETA - 1)*ETA)/(4*(ETA - 1)*(ETA - 1)*Y*sqrtY);
-              const Complex dG =  (C0 - 1.5*C2)*A*dETA - (FVC - (C0 - 1.5*C2)*ETA)*dA + dB;
+              const Complex dB =  (2*(sqrtPI*(((Zm*Zm) - 1.0)*wm - ((Zp*Zp) - 1.0)*wp) + 2*sqrtY)*(x.ETA - 1)*Y*dETA - 2*(sqrtPI*(((Zm*Zm) - 1.0)*wm - ((Zp*Zp) - 1.0)*wp) + 2*sqrtY)*x.ETA*Y*dETA - sqrtPI*((((Zm*Zm) - 1.0)*wm - ((Zp*Zp) - 1.0)*wp)*dY + 2*(-((Zm*Zm) - 1.0)*dwm + ((Zp*Zp) - 1.0)*dwp - 2*Zm*wm*dZm + 2*Zp*wp*dZp)*Y)*(x.ETA - 1)*x.ETA)/(4*(x.ETA - 1)*(x.ETA - 1)*Y*sqrtY);
+              const Complex dG =  (C0 - 1.5*C2)*A*dETA - (x.FVC - (C0 - 1.5*C2)*x.ETA)*dA + dB;
               
               dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
               
@@ -638,15 +579,15 @@ void Linefunctions::set_htp(ComplexVectorView F,
           else if(is_pressure_broadening_speed_dependent(rt)) {
             if(rt.QuantumIdentity().In(quantum_identity)) {
               const Complex dC2(0, -1);  // Note change of sign to fit with Voigt/Lorentz (for speed independent variables)
-              const Complex dY =  -(GD*GD)*dC2/(2*(ETA - 1)*(ETA - 1)*C2*C2*C2);
-              const Complex dX =  (-C0*ETA + C0 - Complex(0, F0-f_grid[i]) + FVC)*dC2/((ETA - 1)*C2*C2);
+              const Complex dY =  -(GD*GD)*dC2/(2*(x.ETA - 1)*(x.ETA - 1)*C2*C2*C2);
+              const Complex dX =  (-C0*x.ETA + C0 - Complex(0, F0-f_grid[i]) + x.FVC)*dC2/((x.ETA - 1)*C2*C2);
               const Complex dZm =  -dY/(2*sqrtY) + dX/(2*Z0) + dY/(2*Z0);
               const Complex dZp =  dY/(2*sqrtY) + dX/(2*Z0) + dY/(2*Z0);
               const Complex dwm = dwm_divdZ * dZm;
               const Complex dwp = dwp_divdZ * dZp;
               const Complex dA =  fac*(dwm - dwp);
-              const Complex dB =  sqrtPI*ETA*((-((Zm*Zm) - 1.)*wm + ((Zp*Zp) - 1.)*wp)*dY + 2*(((Zm*Zm) - 1.)*dwm - ((Zp*Zp) - 1.)*dwp + 2*Zm*wm*dZm - 2*Zp*wp*dZp)*Y)/(4*(ETA - 1)*Y*sqrtY);
-              const Complex dG =  -3*ETA*A*dC2/2. + (ETA*(2*C0 - 3*C2) - 2*FVC)*dA/2. + dB;
+              const Complex dB =  sqrtPI*x.ETA*((-((Zm*Zm) - 1.)*wm + ((Zp*Zp) - 1.)*wp)*dY + 2*(((Zm*Zm) - 1.)*dwm - ((Zp*Zp) - 1.)*dwp + 2*Zm*wm*dZm - 2*Zp*wp*dZp)*Y)/(4*(x.ETA - 1)*Y*sqrtY);
+              const Complex dG =  -3*x.ETA*A*dC2/2. + (x.ETA*(2*C0 - 3*C2) - 2*x.FVC)*dA/2. + dB;
               
               dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
             }
@@ -660,8 +601,8 @@ void Linefunctions::set_htp(ComplexVectorView F,
               const Complex dwm = dwm_divdZ * dZm;
               const Complex dwp = dwp_divdZ * dZp;
               const Complex dA =  fac*(dwm - dwp);
-              const Complex dB =  sqrtPI*ETA*(((Zm*Zm) - 1.)*dwm - ((Zp*Zp) - 1.)*dwp + 2*Zm*wm*dZm - 2*Zp*wp*dZp)/(2*sqrtY*(ETA - 1));
-              const Complex dG =  ETA*A*dC0 - (ETA*(3*C2 - 2*C0) + 2*FVC)*dA/2. + dB;
+              const Complex dB =  sqrtPI*x.ETA*(((Zm*Zm) - 1.)*dwm - ((Zp*Zp) - 1.)*dwp + 2*Zm*wm*dZm - 2*Zp*wp*dZp)/(2*sqrtY*(x.ETA - 1));
+              const Complex dG =  x.ETA*A*dC0 - (x.ETA*(3*C2 - 2*C0) + 2*x.FVC)*dA/2. + dB;
               
               dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
             }
@@ -684,17 +625,13 @@ void Linefunctions::set_htp(ComplexVectorView F,
  * \param magnetic_magnitude Absolute strength of the magnetic field
  * \param F0_noshift Central frequency without any shifts
  * \param GD_div_F0 Frequency-independent part of the Doppler broadening
- * \param G0 Speed-independent pressure broadening term
- * \param L0 Speed-independent pressure shift term
- * \param dF0 Second order line mixing shift
+ * \param x Line shape parameters
  * \param derivatives_data Information about the derivatives in dF
  * \param derivatives_data_position Information about the derivatives positions in dF
  * \param quantum_identity ID of the absorption line
  * \param dGD_div_F0_dT Temperature derivative of GD_div_F0
- * \param dG0_dT Temperature derivative of G0
- * \param dL0_dT Temperature derivative of L0
- * \param dF0_dT Temperature derivative of dF0_dT
- * \param dVMR VMR derivatives of line shape parameters
+ * \param dxdT Temperature derivatives of line shape parameters
+ * \param dxdVMR VMR derivatives of line shape parameters
  * 
  */
 void Linefunctions::set_voigt(ComplexVectorView F, 
@@ -704,17 +641,13 @@ void Linefunctions::set_voigt(ComplexVectorView F,
                               const Numeric& magnetic_magnitude,
                               const Numeric& F0_noshift, 
                               const Numeric& GD_div_F0,
-                              const Numeric& G0, 
-                              const Numeric& L0,
-                              const Numeric& dF0,
+                              const LineFunctionDataOutput& x,
                               const ArrayOfRetrievalQuantity& derivatives_data,
                               const ArrayOfIndex& derivatives_data_position,
                               const QuantumIdentifier& quantum_identity,
                               const Numeric& dGD_div_F0_dT,
-                              const Numeric& dG0_dT,
-                              const Numeric& dL0_dT,
-                              const Numeric& dF0_dT,
-                              const LineFunctionData::Output& dVMR)
+                              const LineFunctionDataOutput& dxdT,
+                              const LineFunctionDataOutput& dxdVMR)
 {
   // Size of problem
   const Index nf = f_grid.nelem();
@@ -724,16 +657,16 @@ void Linefunctions::set_voigt(ComplexVectorView F,
   Complex w, z, dw_over_dz;
   
   // Doppler broadening and line center
-  const Numeric F0 = F0_noshift + zeeman_df * magnetic_magnitude + L0 + dF0;
+  const Numeric F0 = F0_noshift + zeeman_df * magnetic_magnitude + x.D0 + x.DV;
   const Numeric GD = GD_div_F0 * F0;
   const Numeric invGD = 1.0 / GD;
-  const Numeric dGD_dT = dGD_div_F0_dT * F0 + GD_div_F0 * (-dL0_dT - dF0_dT);
+  const Numeric dGD_dT = dGD_div_F0_dT * F0 + GD_div_F0 * (-dxdT.D0 - dxdT.DV);
   
   // constant normalization factor for Voigt
   const Numeric fac = sqrtInvPI * invGD;
   
   // Ratio of the Lorentz halfwidth to the Doppler halfwidth
-  const Complex z0 = Complex(-F0, G0) * invGD;
+  const Complex z0 = Complex(-F0, x.G0) * invGD;
   
   // frequency in units of Doppler
   for (Index iv=0; iv<nf; iv++) {
@@ -749,7 +682,7 @@ void Linefunctions::set_voigt(ComplexVectorView F,
       if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]]))
         dF(iq, iv) = dw_over_dz * invGD;
       else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
-        dF(iq, iv) = -F[iv] * dGD_dT * invGD + dw_over_dz * ((Complex(-dL0_dT - dF0_dT, dG0_dT) - z * dGD_dT) * invGD);
+        dF(iq, iv) = -F[iv] * dGD_dT * invGD + dw_over_dz * ((Complex(-dxdT.D0 - dxdT.DV, dxdT.G0) - z * dGD_dT) * invGD);
       else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[iq]])) {
         if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
           dF(iq, iv) = -F[iv]/F0 + dw_over_dz * (-invGD - z/F0);
@@ -762,7 +695,7 @@ void Linefunctions::set_voigt(ComplexVectorView F,
         dF(iq, iv) = dw_over_dz * (- zeeman_df * invGD); //* dz;
       else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR) {
         if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity))
-          dF(iq, iv) = dw_over_dz * Complex(- dVMR.D0 - dVMR.DV, dVMR.G0) * invGD;
+          dF(iq, iv) = dw_over_dz * Complex(- dxdVMR.D0 - dxdVMR.DV, dxdVMR.G0) * invGD;
       }
     }
   }
@@ -787,8 +720,6 @@ void Linefunctions::set_voigt(ComplexVectorView F,
  * \param derivatives_data_position Information about the derivatives positions in dF
  * \param quantum_identity ID of the absorption line
  * \param dGD_div_F0_dT Temperature derivative of GD_div_F0
- * \param dVMR VMR derivatives of line shape parameters
- * 
  */
 void Linefunctions::set_doppler(ComplexVectorView F, // Sets the full complex line shape without line mixing
                                 ComplexMatrixView dF,
@@ -959,7 +890,7 @@ void Linefunctions::apply_linemixing_scaling(ComplexVectorView F,
                                              const QuantumIdentifier& quantum_identity,
                                              const Numeric& dY_dT,
                                              const Numeric& dG_dT,
-                                             const LineFunctionData::Output& dVMR)
+                                             const LineFunctionDataOutput& dVMR)
 {
   const Index nf = F.nelem(), nppd = derivatives_data_position.nelem();
   
@@ -1683,29 +1614,11 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
   
   // Pressure broadening and line mixing terms
   const auto X = line.GetShapeParams(temperature, pressure, this_species_location_in_tags, volume_mixing_ratio_of_all_species, abs_species);
-  const auto& G0  = X.G0;
-  const auto& D0  = X.D0;
-  const auto& G2  = X.G2;
-  const auto& D2  = X.D2;
-  const auto& FVC = X.FVC;
-  const auto& ETA = X.ETA;
-  const auto& Y   = X.Y;
-  const auto& G   = X.G;
-  const auto& DV  = X.DV;
   
   // Partial derivatives for temperature
   const auto dXdT = do_temperature ?  line.GetShapeParams_dT(temperature, temperature_perturbation(derivatives_data), 
                                                              pressure, this_species_location_in_tags, volume_mixing_ratio_of_all_species, 
                                                              abs_species) : NoLineFunctionDataOutput();
-  const auto& dG0_dT  = dXdT.G0;
-  const auto& dD0_dT  = dXdT.D0;
-  const auto& dG2_dT  = dXdT.G2;
-  const auto& dD2_dT  = dXdT.D2;
-  const auto& dFVC_dT = dXdT.FVC;
-  const auto& dETA_dT = dXdT.ETA;
-  const auto& dY_dT   = dXdT.Y;
-  const auto& dG_dT   = dXdT.G;
-  const auto& dDV_dT  = dXdT.DV;
   
   // Partial derivatives for VMR
   const std::tuple<bool, const QuantumIdentifier&> do_vmr = do_vmr_jacobian(derivatives_data, line.QuantumIdentity());  // At all, Species
@@ -1747,28 +1660,26 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
           lst = LineShapeType::HTP;
           set_htp(F, dF, 
                   f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
-                  line.F(), doppler_constant, 
-                  G0, D0, G2, D2, ETA, FVC,
-                  derivatives_data, derivatives_data_position, QI,
-                  ddoppler_constant_dT, 
-                  dG0_dT, dD0_dT, dG2_dT, dD2_dT, dETA_dT, dFVC_dT, dXdVMR);
+                  line.F(), doppler_constant, X, derivatives_data, derivatives_data_position, QI,
+                  ddoppler_constant_dT, dXdT, dXdVMR);
           break;
         case LineFunctionData::LineShapeType::VP:
           lst = LineShapeType::Voigt;
-          set_voigt(F, dF, f_grid, 
-                    line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
-                    line.F(), doppler_constant, 
-                    G0, D0, DV, derivatives_data, derivatives_data_position, QI,
-                    ddoppler_constant_dT, dG0_dT, dD0_dT, dDV_dT, dXdVMR);
+          set_voigt(F, dF,
+                    f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
+                    line.F(), doppler_constant, X, derivatives_data, derivatives_data_position, QI,
+                    ddoppler_constant_dT, dXdT, dXdVMR);
           break;
         case LineFunctionData::LineShapeType::LP:
           lst = LineShapeType::Lorentz;
-          set_lorentz(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
-                      line.F(), G0, D0, DV, derivatives_data, derivatives_data_position, QI, dG0_dT, dD0_dT, dDV_dT, dXdVMR);
+          set_lorentz(F, dF,
+                      f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
+                      line.F(), X, derivatives_data, derivatives_data_position, QI, dXdT, dXdVMR);
           break;
         case LineFunctionData::LineShapeType::DP:
           lst = LineShapeType::Doppler;
-          set_doppler(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
+          set_doppler(F, dF,
+                      f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
                       line.F(), doppler_constant, derivatives_data, derivatives_data_position, QI, ddoppler_constant_dT);
           break;
           
@@ -1776,34 +1687,32 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
     // This line only needs the Doppler effect
     case LineShapeType::Doppler:
       lst = LineShapeType::Doppler;
-      set_doppler(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
+      set_doppler(F, dF,
+                  f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
                   line.F(), doppler_constant, derivatives_data, derivatives_data_position, QI, ddoppler_constant_dT);
       break;
     // This line only needs Hartmann-Tran
     case LineShapeType::HTP:
       set_htp(F, dF, 
               f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
-              line.F(), doppler_constant, 
-              G0, D0, G2, D2, ETA, FVC,
-              derivatives_data, derivatives_data_position, QI,
-              ddoppler_constant_dT, 
-              dG0_dT, dD0_dT, dG2_dT, dD2_dT, dETA_dT, dFVC_dT, dXdVMR);
+              line.F(), doppler_constant, X, derivatives_data, derivatives_data_position, QI,
+              ddoppler_constant_dT, dXdT, dXdVMR);
       lst = LineShapeType::HTP;
       break;
     // This line only needs Lorentz
     case LineShapeType::Lorentz:
       lst = LineShapeType::Lorentz;
-      set_lorentz(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
-                  line.F(), G0, D0, DV, derivatives_data, derivatives_data_position, QI, dG0_dT, dD0_dT, dDV_dT, dXdVMR);
+      set_lorentz(F, dF,
+                  f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
+                  line.F(), X, derivatives_data, derivatives_data_position, QI, dXdT, dXdVMR);
       break;
     // This line only needs Voigt
     case LineShapeType::Voigt:
       lst = LineShapeType::Voigt;
       set_voigt(F, dF, f_grid, 
                 line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
-                line.F(), doppler_constant, 
-                G0, D0, DV, derivatives_data, derivatives_data_position, QI,
-                ddoppler_constant_dT, dG0_dT, dD0_dT, dDV_dT, dXdVMR);
+                line.F(), doppler_constant, X, derivatives_data, derivatives_data_position, QI,
+                ddoppler_constant_dT, dXdT, dXdVMR);
       break;
     case LineShapeType::End:
       throw std::runtime_error("Cannot understand the requested line shape type.");
@@ -1827,7 +1736,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
         ComplexMatrix dFm(dF.nrows(), dF.ncols());
         
         set_lorentz(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
-                    -line.F(), G0, -D0, -DV, derivatives_data, derivatives_data_position, QI, dG0_dT, -dD0_dT, -dDV_dT, mirroredOutput(dXdVMR));
+                    -line.F(), mirroredOutput(X), derivatives_data, derivatives_data_position, QI, mirroredOutput(dXdT), mirroredOutput(dXdVMR));
         
         // Apply mirroring
         F += Fm;
@@ -1846,24 +1755,21 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
           break;
         case LineShapeType::Lorentz:
           set_lorentz(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
-                      -line.F(), G0, -D0, -DV, derivatives_data, derivatives_data_position, QI, dG0_dT, -dD0_dT, -dDV_dT, mirroredOutput(dXdVMR));
+                      -line.F(), mirroredOutput(X), derivatives_data, derivatives_data_position, QI, mirroredOutput(dXdT), mirroredOutput(dXdVMR));
           break;
         case LineShapeType::Voigt:
           set_voigt(Fm, dFm, f_grid, 
                     -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
-                    -line.F(), -doppler_constant, 
-                    G0, -D0, -DV, derivatives_data, derivatives_data_position, QI,
-                    -ddoppler_constant_dT, dG0_dT, -dD0_dT, -dDV_dT, mirroredOutput(dXdVMR));
+                    -line.F(), -doppler_constant, mirroredOutput(X), derivatives_data, derivatives_data_position, QI,
+                    -ddoppler_constant_dT, mirroredOutput(dXdT), mirroredOutput(dXdVMR));
           break;
         case LineShapeType::HTP:
           // WARNING: This mirroring is not tested and it might require, e.g., FVC to be treated differently
           set_htp(Fm, dFm, f_grid, 
                   -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
-                  -line.F(), -doppler_constant, 
-                  G0, -D0, G2, -D2, ETA, FVC,
+                  -line.F(), -doppler_constant, mirroredOutput(X),
                   derivatives_data, derivatives_data_position, QI,
-                  -ddoppler_constant_dT, 
-                  dG0_dT, -dD0_dT, dG2_dT, -dD2_dT, dETA_dT, dFVC_dT, mirroredOutput(dXdVMR));
+                  -ddoppler_constant_dT, mirroredOutput(dXdT), mirroredOutput(dXdVMR));
           break;
         case LineShapeType::ByPressureBroadeningData:
         case LineShapeType::End:
@@ -1879,7 +1785,7 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
   
   // Only for non-Doppler shapes
   if(lst not_eq LineShapeType::Doppler) {
-    apply_linemixing_scaling(F, dF, Y, G, derivatives_data, derivatives_data_position, QI, dY_dT, dG_dT, dXdVMR);
+    apply_linemixing_scaling(F, dF, X.Y, X.G, derivatives_data, derivatives_data_position, QI, dXdT.Y, dXdT.G, dXdVMR);
     
     // Apply line mixing and pressure broadening partial derivatives        
     apply_linefunctiondata_jacobian_scaling(dF, derivatives_data, derivatives_data_position, QI, line,

@@ -518,7 +518,7 @@ public:
   
   void SetLineMixingParameters(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& T, const Numeric& P, const Index this_species,
                                const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species) const {
-    const LineFunctionData::Output X = mlinefunctiondata.GetParams(mti0, T, P, vmrs[this_species], vmrs, abs_species);
+    const auto X = mlinefunctiondata.GetParams(mti0, T, P, vmrs[this_species], vmrs, abs_species);
     Y = X.Y;
     G = X.G;
     DV = X.DV;
@@ -580,25 +580,25 @@ public:
   
   
   /*! Method to compute the line mixing and pressure broadening parameters */
-  LineFunctionData::Output GetShapeParams(const Numeric& T, const Numeric& P, const Index this_species,
-                                                          const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species) const
+  LineFunctionDataOutput GetShapeParams(const Numeric& T, const Numeric& P, const Index this_species,
+                                        const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species) const
   {
     return mlinefunctiondata.GetParams(mti0, T, P, vmrs[this_species], vmrs, abs_species);
   }
   
   /*! Method to compute the temperature derivatives of line mixing and pressure broadening parameters */
-  LineFunctionData::Output GetShapeParams_dT(const Numeric& T, const Numeric& dT, const Numeric& P,
-                                                             const Index this_species, const ConstVectorView vmrs,
-                                                             const ArrayOfArrayOfSpeciesTag& abs_species) const
+  LineFunctionDataOutput GetShapeParams_dT(const Numeric& T, const Numeric& dT, const Numeric& P,
+                                           const Index this_species, const ConstVectorView vmrs,
+                                           const ArrayOfArrayOfSpeciesTag& abs_species) const
   {
     return mlinefunctiondata.GetTemperatureDerivs(mti0, T, dT, P, vmrs[this_species], vmrs, abs_species);
   }
   
   /*! Method to compute the temperature derivatives of line mixing and pressure broadening parameters */
-  LineFunctionData::Output GetShapeParams_dVMR(const Numeric& T, const Numeric& P,
-                                               const Index this_species, const ConstVectorView vmrs,
-                                               const ArrayOfArrayOfSpeciesTag& abs_species,
-                                               const QuantumIdentifier& vmr_qi) const
+  LineFunctionDataOutput GetShapeParams_dVMR(const Numeric& T, const Numeric& P,
+                                             const Index this_species, const ConstVectorView vmrs,
+                                             const ArrayOfArrayOfSpeciesTag& abs_species,
+                                             const QuantumIdentifier& vmr_qi) const
   {
     return mlinefunctiondata.GetVMRDerivs(mti0, T, P, vmrs[this_species], vmrs, abs_species, vmr_qi, mqid);
   }
