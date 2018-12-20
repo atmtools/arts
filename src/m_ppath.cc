@@ -66,6 +66,56 @@ extern const Numeric DEG2RAD;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void AddZaAa(      
+          Matrix&         new_los,
+    const Vector&         ref_los,
+    const Matrix&         dlos,
+    const Verbosity&  )
+{
+  if( ref_los.nelem() != 2 )
+    throw runtime_error( "*ref_los* must have two columns." );
+  if( dlos.ncols() != 2 )
+    throw runtime_error( "*dlos* must have two columns." );
+
+  const Index nlos = dlos.nrows();
+
+  new_los.resize( nlos, 2 );
+
+  for( Index i=0; i<nlos; i++ )
+    {
+      add_za_aa( new_los(i,0), new_los(i,1), ref_los[0], ref_los[1],
+                 dlos(i,0), dlos(i,1) );
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void DiffZaAa(      
+          Matrix&         dlos,
+    const Vector&         ref_los,
+    const Matrix&         other_los,
+    const Verbosity&  )
+{
+  if( ref_los.nelem() != 2 )
+    throw runtime_error( "*ref_los* must have two columns." );
+  if( other_los.ncols() != 2 )
+    throw runtime_error( "*other_los* must have two columns." );
+
+  const Index nlos = other_los.nrows();
+
+  dlos.resize( nlos, 2 );
+
+  for( Index i=0; i<nlos; i++ )
+    {
+      diff_za_aa( dlos(i,0), dlos(i,1), ref_los[0], ref_los[1],
+                  other_los(i,0), other_los(i,1) );
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void geo_posEndOfPpath(      
           Vector&         geo_pos,
     const Ppath&          ppath,

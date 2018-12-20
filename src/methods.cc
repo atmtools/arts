@@ -173,8 +173,7 @@ void define_md_data_raw()
   // Let's put in the functions in alphabetical order. This gives a clear rule
   // for where to place a new function and this gives a nicer results when
   // the functions are listed by "arts -m all".
-  // No distinction is made between uppercase and lowercase letters. The sign
-  // "_" comes after all letters.
+  // No distinction is made between uppercase and lowercase letters. 
   // Patrick Eriksson 2002-05-08
   /////////////////////////////////////////////////////////////////////////////
 
@@ -2271,6 +2270,30 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
+      ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "AddZaAa" ),
+        DESCRIPTION
+        (
+         "Adds zenith and azimuth angles.\n"
+         "\n"
+         "Adds up line-of-sights (LOS). In short, *dlos* is added to *ref_los*,\n"
+         "assuming that a unit changes in zenith and azimuth are equal where\n"
+         "dlos=(0,0).\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT( "new_los" ),
+        GOUT_TYPE( "Matrix" ),
+        GOUT_DESC( "End line-of-sights." ),
+        IN(),
+        GIN( "ref_los", "dlos" ),
+        GIN_TYPE( "Vector", "Matrix" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC( "Reference line-of-sight (a single LOS).",
+                  "Change in line-of-sight (can be multiple LOS)." )
       ));
     
   md_data_raw.push_back
@@ -4766,6 +4789,30 @@ void define_md_data_raw()
                   "Maximum dimension of the particle.", 
                   "Particle aspect ratio." )
         ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "DiffZaAa" ),
+        DESCRIPTION
+        (
+         "Derives the difference betwenn zenith and azimuth angles.\n"
+         "\n"
+         "Determines the difference between a set of angles (*other_los*)\n"
+         "and a reference direction (*ref_los*). This method reverses the\n"
+         "addition made by *AddZaAa*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT( "dlos" ),
+        GOUT_TYPE( "Matrix" ),
+        GOUT_DESC( "Derived differences in line-of-sight." ),
+        IN(),
+        GIN( "ref_los", "other_los" ),
+        GIN_TYPE( "Vector", "Matrix" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC( "Reference line-of-sight (a single LOS).",
+                  "Other line-of-sights (can be multiple LOS)." )
+      ));
     
   md_data_raw.push_back
     ( MdRecord
@@ -18717,7 +18764,31 @@ void define_md_data_raw()
       GIN_DEFAULT(),
       GIN_DESC()
     ));
-
+ 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "Test" ),
+        DESCRIPTION
+        (
+         "A dummy method that can be used for test purposes.\n"
+         "\n"
+         "This method can be used by ARTS developers to quickly test stuff.\n"
+         "The implementation is in file m_general.cc. This just saves you the\n"
+         "trouble of adding a dummy method everytime you want to try\n"
+         "something out quickly.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+  /*
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "Test" ),
@@ -18741,7 +18812,8 @@ void define_md_data_raw()
         GIN_DEFAULT(NODEF),
         GIN_DESC("")
         ));
-
+  */
+  
   md_data_raw.push_back
     ( MdRecord
     ( NAME( "TestScatDataInterp" ),

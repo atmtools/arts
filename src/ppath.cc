@@ -526,16 +526,14 @@ void rotationmat3D(
   assert( R.nrows() == 3 );
   assert( vrot.nelem() == 3 );
 
-  const Numeric u = vrot[0];
-  const Numeric v = vrot[1];
-  const Numeric w = vrot[2];
-
+  const Numeric l = sqrt( vrot[0]*vrot[0] + vrot[1]*vrot[1] + vrot[2]*vrot[2] ); 
+  assert( l > 1-9 );
+  const Numeric u = vrot[0]/l;
+  const Numeric v = vrot[1]/l;
+  const Numeric w = vrot[2]/l;
   const Numeric u2 = u * u;
   const Numeric v2 = v * v;
   const Numeric w2 = w * w;
-
-  assert( sqrt( u2 + v2 + w2 ) );
-
   const Numeric c = cos( DEG2RAD * a );
   const Numeric s = sin( DEG2RAD * a );
   
@@ -547,41 +545,35 @@ void rotationmat3D(
   R(1,1) = v2 + (u2+w2)*c;
   R(1,2) = v*w*(1-c) - u*s;
   R(2,0) = u*w*(1-c) - v*s;
-  R(2,1) = v*w*(1-c)+u*s;
+  R(2,1) = v*w*(1-c) + u*s;
   R(2,2) = w2 + (u2+v2)*c;
 }
 
 
 
-/*! Maps MBLOCK_AA_GRID values to correct ZA and AA
+/*! Adds zenith and azimuth angles
 
-   Sensor LOS azimuth angles and mblock_aa_grid values can not be added in a
-   straightforward way due to properties of the polar coordinate system used to
-   define line-of-sights. This function performs a "mapping" ensuring that the
-   pencil beam directions specified by mblock_za_grid and mblock_aa_grid form
-   a rectangular grid (on the unit sphere) for any za.
+   Adds (dza,daa) to (za0,aa0), assuming that a unit changes in za and aa are
+   equal where (dza,daa)=(0,0).
 
-   za0 and aa0 match the angles of the ARTS WSV sensor_los.
-   aa_grid shall hold values "close" to 0. The limit is here set to 5 degrees.
-
-   \param   za         Out: Zenith angle matching aa0+aa_grid
-   \param   aa         Out: Azimuth angles matching aa0+aa_grid
-   \param   za0        Zenith angle
-   \param   aa0        Centre azimuth angle
-   \param   aa_grid    MBLOCK_AA_GRID values
+   \param   za         Out: End zenith angle
+   \param   aa         Out: End azimuth angle
+   \param   za0        Start zenith angle
+   \param   aa0        Start azimuth angle
+   \param   dza        Change in zenith angle
+   \param   daa        Change in azimuth angle
 
    \author Patrick Eriksson
-   \date   2009-10-02
+   \date   2018-12-19
 */
-void map_daa(
+void add_za_aa(
              Numeric&  za,
              Numeric&  aa,
        const Numeric&  za0,
        const Numeric&  aa0,
-       const Numeric&  aa_grid )
+       const Numeric&  dza,
+       const Numeric&  daa  )
 {
-  assert( abs( aa_grid ) <= 180 );
-
   Vector  xyz(3);
   Vector  vrot(3);
   Vector  u(3);
@@ -601,7 +593,7 @@ void map_daa(
 
   // Unit vector towards aa0+aa at za=90
   //
-  zaaa2cart( xyz[0], xyz[1], xyz[2], 90, aa0+aa_grid );
+  zaaa2cart( xyz[0], xyz[1], xyz[2], 90+dza, aa0+daa );
 
   // Apply rotation
   //
@@ -614,6 +606,69 @@ void map_daa(
   cart2zaaa( za, aa, u[0], u[1], u[2] );
 }
 
+
+
+/*! Takes the difference of zenith and azimuth angles
+
+   Takes the difference between a set of angles (za,aa) and a reference
+   direction (za0,aa0). That is, this function is the "inverse" of *add_za_aa*.
+
+   \param   za         Out: End zenith angle
+   \param   aa         Out: End azimuth angle
+   \param   za0        Start zenith angle
+   \param   aa0        Start azimuth angle
+   \param   dza        Change in zenith angle
+   \param   daa        Change in azimuth angle
+
+   \author Patrick Eriksson
+   \date   2018-12-19
+*/
+void diff_za_aa(
+             Numeric&  dza,
+             Numeric&  daa,
+       const Numeric&  za0,
+       const Numeric&  aa0,
+       const Numeric&  za,
+       const Numeric&  aa  )
+{
+  Vector  xyz(3);
+  Vector  vrot(3);
+  Vector  u(3);
+
+  assert( za != 0  &&  za != 180 );  
+  
+  // Unit vector towards aa0 at za=90
+  //
+  zaaa2cart( xyz[0], xyz[1], xyz[2], za0, aa0 );
+    
+  // Find vector around which rotation shall be performed
+  // 
+  // We can write this as cross([0 0 1],xyz). It turns out that the result 
+  // of this operation is just [-y,x,0].
+  //
+  vrot[0] = -xyz[1];
+  vrot[1] = xyz[0];
+  vrot[2] = 0;
+
+  // Unit vector towards aa0+aa at za=90
+  //
+  zaaa2cart( xyz[0], xyz[1], xyz[2], za, aa );
+
+  // Apply rotation
+  //
+  Matrix R(3,3);
+  rotationmat3D( R, vrot, -(za0-90) );
+  mult( u, R, xyz );
+  
+  // Calculate za and aa for rotated u
+  //
+  Numeric za_tmp, aa_tmp;
+  cart2zaaa( za_tmp, aa_tmp, u[0], u[1], u[2] );
+
+  // Calculate dza and daa
+  dza = za_tmp - 90;
+  daa = aa_tmp - aa0;  
+}
 
 
 

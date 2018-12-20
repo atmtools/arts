@@ -1598,12 +1598,17 @@ void iyb_calc_body(
       Vector los( sensor_los.ncols() );
       //
       los     = sensor_los( mblock_index, joker );
-      los[0] += mblock_dlos_grid(ilos,0);
-      if( mblock_dlos_grid.ncols() > 1 )
-        { map_daa( los[0], los[1], los[0], los[1],
-                   mblock_dlos_grid(ilos,1) ); }
+      if( mblock_dlos_grid.ncols() == 1 )
+        {
+          los[0] += mblock_dlos_grid(ilos,0);
+          adjust_los( los, atmosphere_dim );
+        }
       else
-        { adjust_los( los, atmosphere_dim ); }
+        {
+          add_za_aa( los[0], los[1], los[0], los[1],
+                     mblock_dlos_grid(ilos,0), mblock_dlos_grid(ilos,1) );
+        }
+
       //--- rtp_pos 1 and 2
       //
       Vector rtp_pos, rtp_pos2(0);

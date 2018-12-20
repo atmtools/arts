@@ -1,7 +1,25 @@
+2018-12-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1192
+
+	* src/m_ppath.cc (AddZaAa, DiffZaAa): New.
+
+	* src/rte.cc (iyb_calc_body): mad_daa replaced with add_za_aa,
+	which fixes a second bug for 3D calculations using an azimuth > 0
+	in mblock_dlos_grid.
+
+	* src/ppath.cc (rotationmat3D): I had assumed that vrot always
+	ends up to have norm = 1, but that's not true. This resulted in a
+	bug for 3D calculations using an azimuth > 0 in mblock_dlos_grid.
+
+	(map_daa): Replaced by add_za_aa.
+
+	(add_za_aa, diff_za_aa): New functions.
+
 2018-12-20  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1191
-	
+
 	* src/m_cloudradar.cc:  Fixed an error in directions in
 	the second implementation of single scattering.  Likely,
 	this means there exists an error still in either the forward
@@ -45,7 +63,7 @@
 2018-12-18  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1187
-	
+
 	* src/m_cloudradar.cc:  Un-commenting iyActiveSingleScat2-
 	function for testing purposes.  Fixed a bug were "+ np" was
 	instead of "+ ip".  Also fixed a bug where the zero-value was

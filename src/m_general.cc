@@ -470,6 +470,7 @@ void TestArrayOfAgenda(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+/*
 void Test(const ArrayOfArrayOfLineRecord& ast, const ArrayOfQuantumIdentifier& aqi, const Verbosity& verbosity)
 {
     CREATE_OUT1;
@@ -509,6 +510,16 @@ void Test(const ArrayOfArrayOfLineRecord& ast, const ArrayOfQuantumIdentifier& a
             }
         }
     }
+}
+*/
+void Test(const Verbosity& )
+{
+  Numeric za,aa,dza_new,daa_new;
+  const Numeric za0=67, aa0=12, dza=9, daa=11;
+  add_za_aa( za, aa, za0, aa0, dza, daa );
+  cout << za << " " << aa << endl;
+  diff_za_aa( dza_new, daa_new, za0, aa0, za, aa );
+  cout << dza_new << " " << daa_new << endl;
 }
 
 

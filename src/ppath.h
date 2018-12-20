@@ -139,12 +139,21 @@ void zaaa2cart(
        const Numeric&  za,
        const Numeric&  aa );
 
-void map_daa(
-             Numeric&   za,
-             Numeric&   aa,
-       const Numeric&   za0,
-       const Numeric&   aa0,
-       const Numeric&   aa_grid );
+void add_za_aa(
+             Numeric&  za,
+             Numeric&  aa,
+       const Numeric&  za0,
+       const Numeric&  aa0,
+       const Numeric&  dza,
+       const Numeric&  daa  );
+
+void diff_za_aa(
+             Numeric&  dza,
+             Numeric&  daa,
+       const Numeric&  za0,
+       const Numeric&  aa0,
+       const Numeric&  za,
+       const Numeric&  aa  );
 
 void find_tanpoint( 
          Index&   it,
