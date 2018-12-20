@@ -1085,7 +1085,7 @@ void iyActiveSingleScat2(
   const ArrayOfTransmissionMatrix reflect_matrix  = cumulative_backscatter(Pe, ppvar_pnd);
   const ArrayOfArrayOfTransmissionMatrix dreflect_matrix = cumulative_backscatter_derivative(Pe, ppvar_dpnd_dx);
   
-  lvl_rad[np-1] = iy0;
+  lvl_rad[0] = iy0;
   set_backscatter_radiation_vector(lvl_rad, dlvl_rad, lyr_tra,
                                    tot_tra_forward, tot_tra_reflect,  // FIXME: should these be flipped?
                                    reflect_matrix, dlyr_tra_above, dlyr_tra_below,  dreflect_matrix,

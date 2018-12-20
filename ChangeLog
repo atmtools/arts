@@ -1,3 +1,20 @@
+2018-12-20  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1191
+	
+	* src/m_cloudradar.cc:  Fixed an error in directions in
+	the second implementation of single scattering.  Likely,
+	this means there exists an error still in either the forward
+	or backwards accumulated transmissions
+	
+	* src/transmissionmatrix.cc:  Changed order so signal starts
+	at 0 and is reflected at all points following it.  Before,
+	the code assumed opposite order, which did not work the same
+	as the original code.  Now the two versions does to same for
+	forward calculations.  Likely, there still exists an error
+	in the derivatives because this update does not test them
+	correctly...
+
 2018-12-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1190

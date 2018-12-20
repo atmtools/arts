@@ -1125,16 +1125,14 @@ void set_backscatter_radiation_vector(ArrayOfRadiationVector& I,
       }
     } break;
     case BackscatterSolver::Full: {
-      
-      // Compute Transmission to reflection point
-      for(Index ip=np-2; ip>=0; ip--) {
-        I[ip] = I[ip+1];
-        update_radiation_vector(I[ip], dI[ip], dI[ip+1],
+      for(Index ip=1; ip<np; ip++) {
+        I[ip] = I[ip-1];
+        update_radiation_vector(I[ip], dI[ip-1], dI[ip],
                                 RadiationVector(0), RadiationVector(0),
                                 ArrayOfRadiationVector(0),
                                 ArrayOfRadiationVector(0),
-                                T[ip+1], PiTf[ip],
-                                dT1[ip+1], dT2[ip+1],
+                                T[ip], PiTr[ip],
+                                dT1[ip], dT2[ip],
                                 RadiativeTransferSolver::Transmission);
       }
       
@@ -1147,13 +1145,13 @@ void set_backscatter_radiation_vector(ArrayOfRadiationVector& I,
       
       // Compute Transmission back to sensor  (FIXME:  need a testcase because either PiTr or T is pointing wrong...)
       for(Index refl_point=0; refl_point<np; refl_point++) {
-        for(Index ip=refl_point; ip<np-1; ip++) {
-          update_radiation_vector(I[refl_point], dI[ip], dI[ip+1],
+        for(Index ip=refl_point; ip>0; ip--) {
+          update_radiation_vector(I[refl_point], dI[ip-1], dI[ip],
                                   RadiationVector(0), RadiationVector(0),
                                   ArrayOfRadiationVector(0),
                                   ArrayOfRadiationVector(0),
-                                  T[ip+1], PiTr[ip],
-                                  dT1[ip+1], dT2[ip+1],
+                                  T[ip], PiTf[ip],
+                                  dT1[ip], dT2[ip],
                                   RadiativeTransferSolver::Transmission);
         }
       }
