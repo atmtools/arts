@@ -1,3 +1,17 @@
+2018-12-21  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1193
+	
+	* src/m_cloudradar.cc:  Now outputs diy_dpath, but wheter trying 
+	to use this will cause a break or failure, I have not tested.
+	I also applied some minor aesthetics because gcc complained.
+	
+	* src/transmission.cc,h: Changed around how transmission 
+	calculations are done.  Also had to add a reversed forward
+	calculation to fit with the naming.  There are still a few
+	gotchas about.  Mainly, I think the Reflect matrix can be reduced
+	to a single loop.
+
 2018-12-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1192

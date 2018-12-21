@@ -94,6 +94,13 @@ public:
     for(size_t i=0; i<T1.size(); i++) T1[i].noalias() = A.T1[i] * B.T1[i];
   }
   
+  void mul_aliased(const TransmissionMatrix& A, const TransmissionMatrix& B) {
+    for(size_t i=0; i<T4.size(); i++) T4[i] = A.T4[i] * B.T4[i];
+    for(size_t i=0; i<T3.size(); i++) T3[i] = A.T3[i] * B.T3[i];
+    for(size_t i=0; i<T2.size(); i++) T2[i] = A.T2[i] * B.T2[i];
+    for(size_t i=0; i<T1.size(); i++) T1[i] = A.T1[i] * B.T1[i];
+  }
+  
   const Numeric& operator()(const Index i, const Index j, const Index k) const {
     switch(stokes_dim) {
       case 4: return T4[i](j, k);
@@ -210,6 +217,40 @@ public:
     for(size_t i=0; i<R1.size(); i++) R4[i][0] = PiT.Mat1(i)[0] * (Z.Mat1(i)[0] * R1[i][0] + dZ.Mat1(i)[0] * I.R1[i][0]);
   }
   
+  void setBackscatter(const RadiationVector& I0,
+                      const TransmissionMatrix& Tr,
+                      const TransmissionMatrix& Tf,
+                      const TransmissionMatrix& Z)
+  {
+    for(size_t i=0; i<R4.size(); i++) R4[i].noalias() = Tr.Mat4(i) * Z.Mat4(i) * Tf.Mat4(i) * I0.R4[i];
+    for(size_t i=0; i<R3.size(); i++) R3[i].noalias() = Tr.Mat3(i) * Z.Mat3(i) * Tf.Mat3(i) * I0.R3[i];
+    for(size_t i=0; i<R2.size(); i++) R2[i].noalias() = Tr.Mat2(i) * Z.Mat2(i) * Tf.Mat2(i) * I0.R2[i];
+    for(size_t i=0; i<R1.size(); i++) R1[i].noalias() = Tr.Mat1(i) * Z.Mat1(i) * Tf.Mat1(i) * I0.R1[i];
+  }
+  
+  void setBackscatterDerivative(const RadiationVector& I0,
+                                const TransmissionMatrix& T,
+                                const TransmissionMatrix& Tr_past,
+                                const TransmissionMatrix& Tf_past,
+                                const TransmissionMatrix& Z,
+                                const TransmissionMatrix& dT1,
+                                const TransmissionMatrix& dT2,
+                                const TransmissionMatrix& dZ)
+  {
+    for(size_t i=0; i<R4.size(); i++) R4[i].noalias() = Tr_past.Mat4(i) * T.Mat4(i) * Z.Mat4(i) * (dT1.Mat4(i) + dT2.Mat4(i)) * Tf_past.Mat4(i) * I0.R4[i] +
+                                                        Tr_past.Mat4(i) * T.Mat4(i) * dZ.Mat4(i) * T.Mat4(i) * Tf_past.Mat4(i) * I0.R4[i] + 
+                                                        Tr_past.Mat4(i) * (dT1.Mat4(i) + dT2.Mat4(i)) * Z.Mat4(i) * T.Mat4(i) * Tf_past.Mat4(i) * I0.R4[i];
+    for(size_t i=0; i<R3.size(); i++) R3[i].noalias() = Tr_past.Mat3(i) * T.Mat3(i) * Z.Mat3(i) * (dT1.Mat3(i) + dT2.Mat3(i)) * Tf_past.Mat3(i) * I0.R3[i] +
+                                                        Tr_past.Mat3(i) * T.Mat3(i) * dZ.Mat3(i) * T.Mat3(i) * Tf_past.Mat3(i) * I0.R3[i] + 
+                                                        Tr_past.Mat3(i) * (dT1.Mat3(i) + dT2.Mat3(i)) * Z.Mat3(i) * T.Mat3(i) * Tf_past.Mat3(i) * I0.R3[i];
+    for(size_t i=0; i<R2.size(); i++) R2[i].noalias() = Tr_past.Mat2(i) * T.Mat2(i) * Z.Mat2(i) * (dT1.Mat2(i) + dT2.Mat2(i)) * Tf_past.Mat2(i) * I0.R2[i] +
+                                                        Tr_past.Mat2(i) * T.Mat2(i) * dZ.Mat2(i) * T.Mat2(i) * Tf_past.Mat2(i) * I0.R2[i] + 
+                                                        Tr_past.Mat2(i) * (dT1.Mat2(i) + dT2.Mat2(i)) * Z.Mat2(i) * T.Mat2(i) * Tf_past.Mat2(i) * I0.R2[i];
+    for(size_t i=0; i<R1.size(); i++) R1[i].noalias() = Tr_past.Mat1(i) * T.Mat1(i) * Z.Mat1(i) * (dT1.Mat1(i) + dT2.Mat1(i)) * Tf_past.Mat1(i) * I0.R1[i] +
+                                                        Tr_past.Mat1(i) * T.Mat1(i) * dZ.Mat1(i) * T.Mat1(i) * Tf_past.Mat1(i) * I0.R1[i] + 
+                                                        Tr_past.Mat1(i) * (dT1.Mat1(i) + dT2.Mat1(i)) * Z.Mat1(i) * T.Mat1(i) * Tf_past.Mat1(i) * I0.R1[i];
+  }
+  
   RadiationVector& operator=(const ConstMatrixView& M) {
     assert(M.ncols() == stokes_dim and M.nrows() == Frequencies());
     for(size_t i=0; i<R4.size(); i++) {R4[i][0] = M(i, 0); R4[i][1] = M(i, 1); R4[i][2] = M(i, 2); R4[i][3] = M(i, 3);}
@@ -305,7 +346,7 @@ std::istream& operator>>(std::istream& is, RadiationVector& rv);
 
 enum class BackscatterSolver { Commutative_PureReflectionJacobian, Full, };
 
-enum class CumulativeTransmission { Forward, Reflect, };
+enum class CumulativeTransmission { Forward, ForwardReverse, Reflect, };
 
 enum class RadiativeTransferSolver { Emission, Transmission, };
 

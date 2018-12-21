@@ -1023,8 +1023,7 @@ void iyActiveSingleScat2(
           
           Index i_se_flat = 0;
           for( Index i_ss = 0; i_ss<scat_data.nelem(); i_ss++ )
-            for( Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++ )
-            {
+            for( Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++ ) {
               // determine whether we have some valid pnd for this
               // scatelem (in pnd or dpnd)
               Index val_pnd = 0;
@@ -1033,35 +1032,32 @@ void iyActiveSingleScat2(
               else if( j_analytical_do )
                 for( Index iq=0; iq<nq && !val_pnd; iq++ ) 
                   if( jac_scat_i[iq] >= 0 )
-                    if( ppvar_dpnd_dx[iq](i_se_flat,ip) != 0 )
-                    {
+                    if( ppvar_dpnd_dx[iq](i_se_flat,ip) != 0 ) {
                       val_pnd = 1;
                       break;
                     }
-                    if( val_pnd )
-                    {
-                      pha_mat_1ScatElem( pha_mat_1se, ptype, t_ok,
-                                         scat_data[i_ss][i_se],
-                                         ppvar_t[Range(ip,1)], pdir, idir,
-                                         0, t_interp_order );
-                      if( t_ok[0] not_eq 0 )
-                        if( duplicate_freqs )
-                          for( Index iv=0; iv<nf; iv++ )
-                            Pe(i_se_flat,ip,iv,joker,joker) =
-                            pha_mat_1se(0,0,0,0,joker,joker);
-                          else
-                            Pe(i_se_flat,ip,joker,joker,joker) =
-                            pha_mat_1se(joker,0,0,0,joker,joker);
-                          else
-                          {
-                            ostringstream os;
-                            os << "Interpolation error for (flat-array) scattering"
-                            << " element #" << i_se_flat << "\n"
-                            << "at location/temperature point #" << ip << "\n";
-                            throw runtime_error( os.str() );
-                          }
-                    }
-                    i_se_flat++;
+              if( val_pnd ) {
+                pha_mat_1ScatElem( pha_mat_1se, ptype, t_ok,
+                                    scat_data[i_ss][i_se],
+                                    ppvar_t[Range(ip,1)], pdir, idir,
+                                    0, t_interp_order );
+                if( t_ok[0] not_eq 0 )
+                  if( duplicate_freqs )
+                    for( Index iv=0; iv<nf; iv++ )
+                      Pe(i_se_flat,ip,iv,joker,joker) =
+                      pha_mat_1se(0,0,0,0,joker,joker);
+                  else
+                    Pe(i_se_flat,ip,joker,joker,joker) =
+                    pha_mat_1se(joker,0,0,0,joker,joker);
+                else {
+                  ostringstream os;
+                  os << "Interpolation error for (flat-array) scattering"
+                  << " element #" << i_se_flat << "\n"
+                  << "at location/temperature point #" << ip << "\n";
+                  throw runtime_error( os.str() );
+                }
+              }
+              i_se_flat++;
             }
             
         } // local scope
@@ -1080,23 +1076,27 @@ void iyActiveSingleScat2(
     }
   }
   
-  const ArrayOfTransmissionMatrix tot_tra_forward = cumulative_transmission(lyr_tra, CumulativeTransmission::Forward);
-  const ArrayOfTransmissionMatrix tot_tra_reflect = cumulative_transmission(lyr_tra, CumulativeTransmission::Reflect);  // FIXME:  Is this the true backwards one?
+  const ArrayOfTransmissionMatrix tot_tra_forward = cumulative_transmission(lyr_tra, CumulativeTransmission::ForwardReverse);
+  const ArrayOfTransmissionMatrix tot_tra_reflect = cumulative_transmission(lyr_tra, CumulativeTransmission::Reflect);
   const ArrayOfTransmissionMatrix reflect_matrix  = cumulative_backscatter(Pe, ppvar_pnd);
   const ArrayOfArrayOfTransmissionMatrix dreflect_matrix = cumulative_backscatter_derivative(Pe, ppvar_dpnd_dx);
   
   lvl_rad[0] = iy0;
   set_backscatter_radiation_vector(lvl_rad, dlvl_rad, lyr_tra,
-                                   tot_tra_forward, tot_tra_reflect,  // FIXME: should these be flipped?
+                                   tot_tra_forward, tot_tra_reflect,
                                    reflect_matrix, dlyr_tra_above, dlyr_tra_below,  dreflect_matrix,
                                    BackscatterSolver::Full);
   
   // Size iy and set to zero
   iy.resize( nf*np, ns );  // iv*np + ip is the desired output order...
-  for(Index ip=0; ip<np; ip++)
-    for(Index iv=0; iv<nf; iv++)
-      for(Index is=0; is<stokes_dim; is++)
+  for(Index ip=0; ip<np; ip++) {
+    for(Index iv=0; iv<nf; iv++) {
+      for(Index is=0; is<stokes_dim; is++) {
         iy(iv*np + ip, is) = lvl_rad[ip](iv, is);
+        FOR_ANALYTICAL_JACOBIANS_DO (diy_dpath[iq](ip, iv*np + ip, is) = dlvl_rad[ip][iq](iv, is););
+      }
+    }
+  }
   
   // FIXME: Add the aux-variables back
   // FIXME: Add the diy_dpath

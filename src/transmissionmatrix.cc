@@ -1060,13 +1060,18 @@ ArrayOfTransmissionMatrix cumulative_transmission(const ArrayOfTransmissionMatri
   const Index n=T.nelem();
   ArrayOfTransmissionMatrix PiT(n, TransmissionMatrix(n?T[0].Frequencies():0, n?T[0].StokesDim():1));  // Initialize as identity matrix
   switch(type) {
-    case CumulativeTransmission::Forward:  // Forward is the forward calculations with T[0] as the identity matrix.
+    case CumulativeTransmission::Forward:
       for(Index i=1; i<n; i++)
-        PiT[i].mul(PiT[i-1], T[i]);  // First reads PiT[1] = PiT[0] * T[1]
+        PiT[i].mul(PiT[i-1], T[i]);
       break;
-    case CumulativeTransmission::Reflect:  // Reflect is the backwards calculations with T[0] as the identity matrix
+    case CumulativeTransmission::ForwardReverse:
       for(Index i=1; i<n; i++)
-        PiT[i].mul(T[n-i], PiT[i-1]);  // First reads: PiT[1] = T[-1] * PiT[0]
+        PiT[i].mul(T[i], PiT[i-1]);
+      break;
+    case CumulativeTransmission::Reflect:
+      for(Index i=0; i<n; i++)
+        for(Index j=i; j>0; j--)
+          PiT[i].mul_aliased(T[j], PiT[i]);  // Fixme:  Should be possible to speed up...
       break;
   }
   return PiT;  // Note how the output is such that forward transmission is from -1 to 0
@@ -1126,34 +1131,9 @@ void set_backscatter_radiation_vector(ArrayOfRadiationVector& I,
     } break;
     case BackscatterSolver::Full: {
       for(Index ip=1; ip<np; ip++) {
-        I[ip] = I[ip-1];
-        update_radiation_vector(I[ip], dI[ip-1], dI[ip],
-                                RadiationVector(0), RadiationVector(0),
-                                ArrayOfRadiationVector(0),
-                                ArrayOfRadiationVector(0),
-                                T[ip], PiTr[ip],
-                                dT1[ip], dT2[ip],
-                                RadiativeTransferSolver::Transmission);
-      }
-      
-      // Compute Reflection in point
-      for(Index ip=0; ip<np; ip++) {
-        for(Index iq=0; iq<nq; iq++)
-          dI[ip][iq].setDerivReflection(I[ip], PiTr[ip], Z[ip], dZ[ip][iq]);
-        I[ip].leftMul(Z[ip]);
-      }
-      
-      // Compute Transmission back to sensor  (FIXME:  need a testcase because either PiTr or T is pointing wrong...)
-      for(Index refl_point=0; refl_point<np; refl_point++) {
-        for(Index ip=refl_point; ip>0; ip--) {
-          update_radiation_vector(I[refl_point], dI[ip-1], dI[ip],
-                                  RadiationVector(0), RadiationVector(0),
-                                  ArrayOfRadiationVector(0),
-                                  ArrayOfRadiationVector(0),
-                                  T[ip], PiTf[ip],
-                                  dT1[ip], dT2[ip],
-                                  RadiativeTransferSolver::Transmission);
-        }
+        for(Index iq=0; iq<dI[ip].nelem(); iq++)
+          dI[ip][iq].setBackscatterDerivative(I[0], T[ip], PiTr[ip-1], PiTf[ip-1], Z[ip], dT1[ip][iq], dT2[ip][iq], dZ[ip][iq]);
+        I[ip].setBackscatter(I[0], PiTr[ip], PiTf[ip], Z[ip]);
       }
     } break;
   }
