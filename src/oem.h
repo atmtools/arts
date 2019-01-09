@@ -171,7 +171,7 @@ typename Solver
         )
     {
         std::string lambda = std::to_string(g.get_lambda());
-        std::string out(15 - lambda.size(), ' ');
+        std::string out(15 - std::min<size_t>(lambda.size(), 15), ' ');
         out += lambda;
         gamma_history[i] = g.get_lambda();
         return out;

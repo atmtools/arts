@@ -1,3 +1,9 @@
+2018-12-21  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1194
+	
+	* src/oem.h: Avoid overflow error in computation of string-length.
+
 2018-12-21  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1193
