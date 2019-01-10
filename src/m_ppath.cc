@@ -255,6 +255,78 @@ void ppathCalc(
 }
 
 
+Index first_pos_before_altitude(const Ppath& p, const Numeric& alt)
+{
+  // Checker flags
+  bool below=false, above=false;
+  
+  // Check first pos before altitude
+  for(Index i=0; i<p.np; i++) {
+    if(p.pos(i, 0) < alt) {
+      if(above) return i-1;
+      below = true;
+    }
+    else {
+      if(below) return i-1;
+      above = true;
+    }
+  }
+  
+  return -1;
+}
+
+
+void ppathCalcFromAltitude(      
+Workspace&      ws,
+Ppath&          ppath,
+const Agenda&         ppath_agenda,
+const Numeric&        ppath_lmax,
+const Numeric&        ppath_lraytrace,
+const Index&          atmgeom_checked,
+const Tensor3&        t_field,
+const Tensor3&        z_field,
+const Tensor4&        vmr_field,
+const Vector&         f_grid,
+const Index&          cloudbox_on, 
+const Index&          cloudbox_checked,
+const Index&          ppath_inside_cloudbox_do,
+const Vector&         rte_pos,
+const Vector&         rte_los,
+const Vector&         rte_pos2,
+const Numeric&        altitude,
+const Numeric&        accuracy,
+const Verbosity&      verbosity)
+{
+  ppathCalc(ws, ppath, ppath_agenda, ppath_lmax, ppath_lraytrace,
+            atmgeom_checked, t_field, z_field, vmr_field, f_grid,
+            cloudbox_on, cloudbox_checked, ppath_inside_cloudbox_do,
+            rte_pos, rte_los, rte_pos2, verbosity);
+  
+  // Iterate until converging at altitude of interest
+  Index pos = first_pos_before_altitude(ppath, altitude);
+  Numeric lmax = ppath_lmax;
+  while(true) {
+    lmax *= 0.5;
+    
+    ppathCalc(ws, ppath, ppath_agenda, lmax, ppath_lraytrace,
+              atmgeom_checked, t_field, z_field, vmr_field, f_grid,
+              cloudbox_on, cloudbox_checked, ppath_inside_cloudbox_do,
+              ppath.dim == 1 ? ppath.pos(pos, 0) : ppath.pos(pos, joker),
+              ppath.dim == 1 ? ppath.los(pos, 0) : ppath.los(pos, joker), rte_pos2, verbosity);
+    pos = first_pos_before_altitude(ppath, altitude);
+    
+    if(std::abs(ppath.pos(pos, 0) - altitude) < accuracy) {
+      ppathCalc(ws, ppath, ppath_agenda, ppath_lmax, ppath_lraytrace,
+                atmgeom_checked, t_field, z_field, vmr_field, f_grid,
+                cloudbox_on, cloudbox_checked, ppath_inside_cloudbox_do,
+                ppath.dim == 1 ? ppath.pos(pos, 0) : ppath.pos(pos, joker),
+                ppath.dim == 1 ? ppath.los(pos, 0) : ppath.los(pos, joker), rte_pos2, verbosity);
+      break;
+    }
+  }
+}
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ppathFromRtePos2(      

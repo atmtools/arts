@@ -23,23 +23,6 @@
 #include "global_data.h"
 #include "quantum.h"
 
-extern const Numeric PI;
-extern const Numeric DEG2RAD;
-extern const Numeric RAD2DEG;
-extern const Numeric PLANCK_CONST;
-extern const Numeric BOHR_MAGNETON;
-extern const Numeric LANDE_GS;
-
-
-void set_magnetic_parameters(Numeric& H_mag,
-                             Numeric& eta,
-                             Numeric& theta,
-                             const Index manual_zeeman_tag,
-                             const Numeric& manual_zeeman_eta,
-                             const Numeric& manual_zeeman_theta,
-                             const Numeric& manual_zeeman_magnetic_field_strength,
-                             ConstVectorView rtp_mag,
-                             ConstVectorView r_path_los);
 
 void alter_linerecord( LineRecord& new_LR,
                        Numeric& Test_RS,
@@ -54,9 +37,6 @@ void create_Zeeman_linerecordarrays(ArrayOfArrayOfLineRecord& aoaol,
                                     const ArrayOfArrayOfSpeciesTag& abs_species,
                                     const ArrayOfArrayOfLineRecord& abs_lines_per_species,
                                     const Verbosity& verbosity);
-
-Index part_mag_strength(const ArrayOfRetrievalQuantity& flag_partials);
-Index part_mag_theta(const ArrayOfRetrievalQuantity& flag_partials);
 
 void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky, 
                        ArrayOfStokesVector& nlte_source,
@@ -80,16 +60,3 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
                        const Numeric& manual_zeeman_theta,
                        const Numeric& manual_zeeman_eta,
                        const Verbosity& verbosity);
-
-Numeric zeeman_magnetic_magnitude(const Numeric& u, const Numeric& v, const Numeric& w);
-Numeric zeeman_magnetic_dmagnitude_du(const Numeric& u, const Numeric& v, const Numeric& w);
-Numeric zeeman_magnetic_dmagnitude_dv(const Numeric& u, const Numeric& v, const Numeric& w);
-Numeric zeeman_magnetic_dmagnitude_dw(const Numeric& u, const Numeric& v, const Numeric& w);
-Numeric zeeman_magnetic_theta(const Numeric& u, const Numeric& v, const Numeric& w, const Numeric& z, const Numeric& a);
-Numeric zeeman_magnetic_dtheta_du(const Numeric& u, const Numeric& v, const Numeric& w, const Numeric& z, const Numeric& a);
-Numeric zeeman_magnetic_dtheta_dv(const Numeric& u, const Numeric& v, const Numeric& w, const Numeric& z, const Numeric& a);
-Numeric zeeman_magnetic_dtheta_dw(const Numeric& u, const Numeric& v, const Numeric& w, const Numeric& z, const Numeric& a);
-Numeric zeeman_magnetic_eta(const Numeric& u, const Numeric& v, const Numeric& w, const Numeric& z, const Numeric& a);
-Numeric zeeman_magnetic_deta_du(const Numeric& u, const Numeric& v, const Numeric& w, const Numeric& z, const Numeric& a);
-Numeric zeeman_magnetic_deta_dv(const Numeric& u, const Numeric& v, const Numeric& w, const Numeric& z, const Numeric& a);
-Numeric zeeman_magnetic_deta_dw(const Numeric& u, const Numeric& v, const Numeric& w, const Numeric& z, const Numeric& a);

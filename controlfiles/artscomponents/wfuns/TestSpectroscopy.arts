@@ -27,7 +27,6 @@ Arts2{
   NumericSet(ppath_lraytrace, 1000)
   IndexSet(stokes_dim, 1)
   IndexSet(abs_f_interp_order, 1)
-  IndexSet(xsec_speedup_switch, 0)
   Touch(wind_u_field)
   Touch(wind_v_field)
   Touch(wind_w_field)

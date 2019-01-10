@@ -77,9 +77,9 @@ void total_line_source_and_transmission(Vector& J,
     Tensor4 rad_data(nz, na, 1, 1, 0.0), tra_data(nz, na, 1, 1, 0.0);
     const ConstVectorView f = frequency[Range(range_frequency[il][0], range_frequency[il][1])];
     const Index nf = f.nelem();
-    ComplexVector F(nf);
-    Linefunctions::set_lineshape(F, lines[il][0], f, vmrs, temperature, pressure, 0.0, abs_species, il, 0);
-    Vector X = F.real();
+    Eigen::VectorXcd F(nf);
+    Linefunctions::set_lineshape(F, MapToEigen(f), lines[il][0], vmrs, temperature, pressure, 0.0, abs_species, il, 0);
+    Vector X(F.size()); for(int iv=0; iv<F.size(); iv++) X[iv] = F.real()[iv];
     
     Numeric integral_of_X = 0;
     for(Index iv = 0; iv < nf-1; iv++)
@@ -350,8 +350,8 @@ void radiation_fieldCalcForSingleSpeciesNonOverlappingLines(Workspace&          
     
     // Integrate over the sphere
     for(Index ip=0; ip<np; ip++) {
-      ComplexVector F(nf);
-      Linefunctions::set_lineshape(F, abs_lines_per_species[0][il], f_grid, 
+      Eigen::VectorXcd F(nf);
+      Linefunctions::set_lineshape(F, MapToEigen(f_grid), abs_lines_per_species[0][il], 
                                    Vector(1, vmr_field(0, ip, 0, 0)),  t_field(ip, 0, 0), p_grid[ip], 0.0,
                                    abs_species, 0, 0);
       Numeric sx = 0;

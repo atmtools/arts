@@ -1045,15 +1045,15 @@ void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
     ddoppler_const_dT = doppler_const / T;
   const QuantumIdentifier QI;
   
-  ComplexVector F(nf);
-  ComplexMatrix dF(derivatives_data_position.nelem(), nf);
+  Eigen::VectorXcd F(nf);
+  Eigen::MatrixXcd dF(derivatives_data_position.nelem(), nf);
   
   for(Index iline = 0; iline < n; iline++)
   {
     
     if(do_temperature_jacobian(derivatives_data))
     {
-      Linefunctions::set_voigt(F, dF, f_grid, 0.0, 0.0, f0[iline], doppler_const, 
+      Linefunctions::set_voigt(F, dF, MapToEigen(f_grid), 0.0, 0.0, f0[iline], doppler_const, 
                                LineFunctionDataOutput({pressure_broadening[iline], psf[iline], 0., 0., 0., 0., 0., 0., DV[iline]}),
                                derivatives_data, derivatives_data_position, QI, ddoppler_const_dT,
                                LineFunctionDataOutput({dpressure_broadening_dT[iline], dpsf_dT[iline], 0., 0., 0., 0., 0., 0., dDV_dT[iline]}));
@@ -1065,7 +1065,7 @@ void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
     }
     else
     {
-      Linefunctions::set_voigt(F, dF, f_grid, 0.0, 0.0, f0[iline], doppler_const, 
+      Linefunctions::set_voigt(F, dF, MapToEigen(f_grid), 0.0, 0.0, f0[iline], doppler_const, 
                                LineFunctionDataOutput({pressure_broadening[iline], psf[iline], 0., 0., 0., 0., 0., 0., DV[iline]}),
                                derivatives_data, derivatives_data_position, QI);
       
@@ -1822,8 +1822,8 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
       }
       else {
         Numeric QT = -1, QT0 = -1, part_ratio;
-        ComplexVector F(nf);
-        ComplexMatrix dF(jacobian_quantities_position.nelem(), nf);
+        Eigen::VectorXcd F(nf);
+        Eigen::MatrixXcd dF(jacobian_quantities_position.nelem(), nf);
         const Numeric GD_div_F0 = doppler_const * sqrt(abs_t[ip] / mass);
         
         for( long iline=0; iline<nlines; iline++ ) {
@@ -1846,7 +1846,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
           
           // TODO: Add derivatives here
           
-          Linefunctions::set_voigt(F, dF, f_grid,
+          Linefunctions::set_voigt(F, dF, MapToEigen(f_grid),
                                    0.0, 0.0, abs_lines_per_band[iband][iline].F(),
                                    GD_div_F0, X); // Derivatives need to be added...
           

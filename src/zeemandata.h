@@ -29,7 +29,9 @@
 #include "mystring.h"
 #include "quantum.h"
 
-enum class ZeemanPolarizationType : Index { SigmaMinus=-1, Pi=0, SigmaPlus=1, None };
+enum class ZeemanPolarizationType { SigmaMinus, Pi, SigmaPlus, None };
+
+typedef Eigen::Matrix<double, 1, 7> ZeemanDataOutput;
 
 class ZeemanEffectData 
 {
@@ -83,9 +85,9 @@ public:
   Rational Mu(const Index i) const {return mMu[i];}
   Rational Ml(const Index i) const {return mMl[i];}
   
-  Vector Polarization(const Numeric& theta, const Numeric& eta) const;
-  Vector dPolarization_dtheta(const Numeric& theta, const Numeric& eta) const;
-  Vector dPolarization_deta(const Numeric& theta, const Numeric& eta) const;
+  ZeemanDataOutput Polarization(const Numeric& theta, const Numeric& eta) const;
+  ZeemanDataOutput dPolarization_dtheta(const Numeric& theta, const Numeric& eta) const;
+  ZeemanDataOutput dPolarization_deta(const Numeric& theta, const Numeric& eta) const;
   
   void SetPolarizationTypeFromString(const String& t)
   {
@@ -101,9 +103,8 @@ public:
       case ZeemanPolarizationType::SigmaMinus: return "SM";
       case ZeemanPolarizationType::Pi:         return "PI";
       case ZeemanPolarizationType::SigmaPlus:  return "SP";
-      case ZeemanPolarizationType::None: {}
+      case ZeemanPolarizationType::None:       return "-1";
     }
-    return "-1";
   }
   
 private:

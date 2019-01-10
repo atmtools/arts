@@ -21,7 +21,6 @@ Arts2{
   NumericSet(rtp_pressure, 25000)
   NumericSet(lm_p_lim, 0)
   IndexSet(stokes_dim, 1)
-  IndexSet(xsec_speedup_switch, 0)
   Touch(rtp_nlte)
   
   # Calculate w/o NLTE

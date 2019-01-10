@@ -203,8 +203,6 @@ public:
   void AddFaraday(const Numeric& rot, const Index iv=0, const Index iz=0, const Index ia=0) {mdata(ia, iz, iv, mstokes_dim) += rot;}
   void SetFaraday(const Numeric& rot, const Index iv=0, const Index iz=0, const Index ia=0) {mdata(ia, iz, iv, mstokes_dim)  = rot;}
   
-  void AddPolarized(const ConstVectorView polarization, const Index i, const Complex& C);
-  
   /*! Sets the dense matrix.  Avoid using if possible. */
   void MatrixAtPosition(MatrixView ret,
                         const Index iv=0, const Index iz=0, const Index ia=0)

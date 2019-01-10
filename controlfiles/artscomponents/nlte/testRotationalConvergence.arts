@@ -30,7 +30,6 @@ Arts2{
     
     # Set constants
     IndexSet(stokes_dim, 1)
-    IndexSet(xsec_speedup_switch, 0)
     NumericSet(rte_alonglos_v, 0.0)
     NumericSet(ppath_lmax, 1e10)
     NumericSet(lm_p_lim, 0.0)

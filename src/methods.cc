@@ -2136,10 +2136,6 @@ void define_md_data_raw()
       (
         "Calculates the line spectrum for both attenuation and phase\n"
         "for each tag group and adds it to abs_xsec_per_species.\n"
-        "\n"
-        "If xsec_speedup_switch is given, look at lines to reduce the\n"
-        "number of computational points along f_grid and replace these\n"
-        "by interpolations\n"
       ),
       AUTHORS( "Richard Larsson" ),
       OUT( "abs_xsec_per_species", "src_xsec_per_species", 
@@ -2151,7 +2147,7 @@ void define_md_data_raw()
           "dabs_xsec_per_species_dx", "dsrc_xsec_per_species_dx",
           "abs_species", "jacobian_quantities", "abs_species_active",
           "f_grid", "abs_p", "abs_t", "abs_nlte",
-          "xsec_speedup_switch", "abs_vmrs", "abs_lines_per_species",
+          "abs_vmrs", "abs_lines_per_species",
           "isotopologue_ratios", "partition_functions"),
       GIN(),
       GIN_TYPE(),
@@ -12303,6 +12299,41 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ppathCalcFromAltitude" ),
+        DESCRIPTION
+        (
+         "Moves *rte_pos* forwards to near altitude before calling *ppathCalc*\n"
+         "to compute a different *ppath*.  The accuracy-variable gives minimum\n"
+         "distance before the input altitude.\n"
+         "\n"
+         "The forward-moving algorithm calls *ppathCalc* several\n"
+         "times at reduced maximum distances.  The intention is to maintain\n"
+         "the correct *rte_los* for a given *rte_pos* at all altitudes.  The\n"
+         "method is thus relatively slow, and VERY memory intense at low\n"
+         "accuracy.\n"
+         "\n"
+         "Intended to be used with \"tropospheric corrections\" from ground\n"
+         "geometry.  Not well-tested\n"
+         "\n"
+         "Throws error if no altitude is in line of sight.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT( "ppath" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "ppath_agenda", "ppath_lmax", "ppath_lraytrace",
+            "atmgeom_checked", "t_field", "z_field", "vmr_field", "f_grid",
+            "cloudbox_on", "cloudbox_checked", "ppath_inside_cloudbox_do", 
+            "rte_pos", "rte_los", "rte_pos2" ),
+        GIN("altitude", "accuracy"),
+        GIN_TYPE("Numeric", "Numeric"),
+        GIN_DEFAULT(NODEF, "0.5"),
+        GIN_DESC("Altitude to move forward towards", "Accuracy of altitude")
         ));
 
   md_data_raw.push_back

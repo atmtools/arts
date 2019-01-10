@@ -1,3 +1,51 @@
+2019-01-10  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1195
+	
+	BREAKS CONTROLFILES USING EXPERIMENTAL VARIABLE
+	REASONS: xsec_speedup_switch is removed because it did not work
+	HOWTO FIX: Remove setting xsec_speedup_switch in your controlfile
+	
+	* *.arts:  Removed xsec_speedup_switch
+	
+	* src/methods.cc,src/workspace.cc: Removed xsec_speedup_switch
+	
+	* src/absorption.cc,h:  Changed interface to xsec_species2.  Removed
+	"speedup"-code that was not working.  Changed so Linefunction-namespace
+	takes Eigen-variables instead of ARTS-variables
+	
+	* src/linefunctions.cc,h:  Changed so the namespace takes Eigen-variables
+	instead of ARTS where it was convenient.  Also discovered bug where N
+	was not reset, causing TestNLTE.arts to produce bad output.  This is fixed
+	but since there are still differences between old and new code for
+	vibrational NLTE levels, I still don't know why.  The updated code is not
+	optimized for the change, so only small speed-gains are to be had now.
+	Note that some errors might remain, especially as relates to the fact that
+	".transpose()" has to be used at times for F to fit into dF...
+	
+	* controlfiles/artscomponents/nlte/TestNLTE_*LTE_new_method.xml:  Updated
+	as I discovered the bug above...
+	
+	* src/m_abs.cc:  Updated to fit for xsec_speedup_switch and xsec_species2.
+	
+	* src/m_linemixing.cc: Updated to fit with new Linefunction-namespace
+	signatures
+	
+	* src/m_radiation_field.cc:  Updated to fit with new Linefunction-namespace
+	signatures
+	
+	* src/propagationmatrix.cc,h: Removed adding polarization function as it
+	seemed better to just use Eigen's outer-products
+	
+	* src/m_ppath.cc: Added helper function to move sensor to a different altitude
+	while retaining the original line-of-sight.  Meant for ground-based sensors,
+	and the method is incredibly crude (LOS-strictness is required for Zeeman effect)
+	
+	* src/zeeman*.cc,h:  Updated to use new Linefunction-namespace signatures.  Also
+	updated to produce polarization vectors that can be used via outer products to
+	generate the PropagationMatrix and StokesVector data block.
+
+
 2018-12-21  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1194

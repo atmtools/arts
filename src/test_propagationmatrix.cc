@@ -142,26 +142,6 @@ void test_matrix_buildup()
   std::cout<<F<<"\n";
 }
 
-void test_zeeman()
-{
-  const Vector rtp_mag = {20e-6, 20e-6, 0};
-  
-  for(Numeric za = 0; za <= 180; za += 15) {
-//     std::cout << "arts_eta.append([";
-    for(Numeric aa = 0; aa <= 360; aa += 15) {
-      const Vector rtp_los = {za, aa};
-      std::cout << "ZA.append(" << za << "),"
-                << " AA.append(" << aa << ")," 
-                << " THETA.append(" << RAD2DEG * zeeman_magnetic_theta(rtp_mag[0], rtp_mag[1], rtp_mag[2], DEG2RAD*za, DEG2RAD*aa) << "),"
-                << " ETA.append(" << RAD2DEG * zeeman_magnetic_eta(rtp_mag[0], rtp_mag[1], rtp_mag[2], DEG2RAD*za, DEG2RAD*aa) << "),"
-                << " deriv.append(" << RAD2DEG * zeeman_magnetic_deta_du(rtp_mag[0], rtp_mag[1], rtp_mag[2], DEG2RAD*za, DEG2RAD*aa) << ")\n";
-    }
-//     std::cout << "])\n";
-  }
-}
-
-
-
 
 void test_linefunctionsdata()
 {
@@ -488,16 +468,38 @@ void test_transmat_to_cumulativetransmat()
 }
 
 
+void test_lineshape_xsec()
+{
+  define_species_data();
+  define_species_map();
+  
+  LineRecord vp_line;
+  Verbosity v; 
+  String s = "@ O2-66 100000000000 1e-27 296 3e-20 0 3 1 LF VP LM2 2 SELF T1 20000 0.8 T5 1000 0.7 T4 1e-07 1e-09 0.8 T4 1e-11 1e-13 1.6 T4 10 0.1 1.6 AIR T1 10000 0.7 T5 1000 0.7 T4 1e-07 1e-09 0.8 T4 1e-11 1e-13 1.6 T4 10 0.1 1.6 QN UP J 1 LO J 0";
+  istringstream is(s);
+  vp_line.ReadFromArtscat5Stream(is, v);
+  Vector vmrs(1, 0.21);
+  const ArrayOfArrayOfSpeciesTag abs_species(1, ArrayOfSpeciesTag(1, SpeciesTag("O2-66")));
+  
+  Eigen::VectorXcd F(101);
+  Eigen::VectorXd f_grid(101);
+  for(int i=0; i<101; i++)
+    f_grid[i] = Numeric(i-50)/50.0 * 1e4 + 100e9;
+  Linefunctions::set_lineshape(F, f_grid, vp_line, vmrs, 273., 100., 0., abs_species, 0, 0);
+  std::cout<<F<<"\n";
+}
+
+
 int main()
 {
     std::cout<<"Testing Propmat Partials\n";
-    /*test_zeeman();
-    test_linefunctionsdata();
+    /*test_linefunctionsdata();
     test_speed_of_pressurebroadening();
     test_transmissionmatrix();
     test_r_deriv_propagationmatrix();
-    test_transmat_from_propmat();*/
-    test_transmat_to_cumulativetransmat();
+    test_transmat_from_propmat();
+    test_transmat_to_cumulativetransmat();*/
+    test_lineshape_xsec();
     return 0;
 }
 

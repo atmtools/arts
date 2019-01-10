@@ -3503,7 +3503,6 @@ void abs_xsec_per_speciesAddLines2(// WS Output:
                                    const Vector& abs_p,
                                    const Vector& abs_t,
                                    const Matrix& abs_nlte,
-                                   const Index& xsec_speedup_switch,
                                    const Matrix& abs_vmrs,
                                    const ArrayOfArrayOfLineRecord& abs_lines_per_species,
                                    const SpeciesAuxData& isotopologue_ratios,
@@ -3549,22 +3548,6 @@ void abs_xsec_per_speciesAddLines2(// WS Output:
     }
   }
   
-  // If xsec_speedup_switch is true the length of f_grid is 2^N+1, find N:
-  Index binary_speedup = 0;
-  if(xsec_speedup_switch)
-  {
-    Index n = f_grid.nelem() - 1;
-    if(n < 4)
-      throw std::runtime_error("Requesting speedup requires atleast 5 frequency points in total.");
-    do
-    {
-      if(n & 0x01)
-        throw std::runtime_error("Requesting speedup requires 2^N+1 frequency points");
-      n = n >> 1;
-      binary_speedup += 1;
-    } while(n not_eq 1);
-  }
-  
   const bool do_jac = supports_propmat_clearsky(jacobian_quantities);
   const bool do_lte = abs_nlte.empty();
   const ArrayOfIndex jac_pos = equivlent_propmattype_indexes(jacobian_quantities);
@@ -3605,9 +3588,10 @@ void abs_xsec_per_speciesAddLines2(// WS Output:
         throw std::runtime_error(os.str());
       }
       
+      Matrix _tmp(0, 0);
       xsec_species2(abs_xsec_per_species[i],
                     src_xsec_per_species[i],
-                    Matrix(0, 0),
+                    _tmp,
                     do_jac?dabs_xsec_per_species_dx[i]:dummy,
                     (do_jac and not do_lte)?dsrc_xsec_per_species_dx[i]:dummy,
                     dummy,
@@ -3621,10 +3605,8 @@ void abs_xsec_per_speciesAddLines2(// WS Output:
                     tgs,
                     i,
                     ll,
-                    0.0,
                     isotopologue_ratios,
                     partition_functions,
-                    binary_speedup, 
                     verbosity);
     }
     

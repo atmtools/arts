@@ -1815,12 +1815,3 @@ std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfStokesVector& aas
   return os;
 }
 
-
-void PropagationMatrix::AddPolarized(const ConstVectorView polarization, const Index i, const Complex& C)
-{
-  assert(polarization.nelem() == 7);
-  assert(maa==1 and mza==1);
-  for(Index j=0; j<4; j++) mdata(0, 0, i, j) += polarization[j] * C.real();
-  for(Index j=4; j<7; j++) mdata(0, 0, i, j) += polarization[j] * C.imag();
-}
-

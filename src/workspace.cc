@@ -6485,16 +6485,6 @@ void Workspace::define_wsv_data()
        "Unit:  Varies, follows unit of selected retrieval quantities.\n"
        ),
       GROUP( "Vector" )));
-   
-   wsv_data.push_back
-   (WsvRecord
-   ( NAME( "xsec_speedup_switch" ),
-     DESCRIPTION
-     (
-       "An index switching on or off speedup mechaics in cross-section computations.\n"
-       "See supported mechanics in individual functions.\n"
-     ),
-     GROUP( "Index" )));
 
   wsv_data.push_back
    (WsvRecord

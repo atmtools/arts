@@ -2096,26 +2096,24 @@ firstprivate(attenuation, phase, fac, f_local, aux)
  *  \date   2013-04-24
  * 
  */
-void xsec_species2(MatrixView xsec,
-                   MatrixView source,
-                   MatrixView phase,
+void xsec_species2(Matrix& xsec,
+                   Matrix& source,
+                   Matrix& phase,
                    ArrayOfMatrix& dxsec_dx,
                    ArrayOfMatrix& dsource_dx,
                    ArrayOfMatrix& dphase_dx,
                    const ArrayOfRetrievalQuantity& jacobian_quantities,
                    const ArrayOfIndex& jacobian_propmat_positions,
-                   ConstVectorView f_grid,
-                   ConstVectorView abs_p,
-                   ConstVectorView abs_t,
-                   ConstMatrixView abs_t_nlte,
-                   ConstMatrixView all_vmrs,
+                   const Vector& f_grid,
+                   const Vector& abs_p,
+                   const Vector& abs_t,
+                   const Matrix& abs_t_nlte,
+                   const Matrix& all_vmrs,
                    const ArrayOfArrayOfSpeciesTag& abs_species,
                    const Index this_species,
                    const ArrayOfLineRecord& abs_lines,
-                   const Numeric H_magntitude_Zeeman,
                    const SpeciesAuxData& isotopologue_ratios,
                    const SpeciesAuxData& partition_functions,
-                   const Index& binary_speedup,
                    const Verbosity& verbosity)
 {
   // Size of problem
@@ -2134,8 +2132,12 @@ void xsec_species2(MatrixView xsec,
     return;
   
   // Results vectors are initialized first and then copied to the threads later
-  ComplexVector F(nf), N(do_nonlte?nf:0);
-  ComplexMatrix dF(nj, nf), dN(do_nonlte?nj:0, nf);
+  Eigen::VectorXcd F(nf);
+  Eigen::MatrixXcd dF(nj, nf);
+  Eigen::VectorXcd N(do_nonlte ? nf : 0);
+  Eigen::MatrixXcd dN(do_nonlte ? nj : 0, nf);
+  const auto f_grid_eigen = MapToEigen(f_grid);
+  Index start, nelem;
   
   for(Index ip = 0; ip < np; ip++) {
     // Constants for this level
@@ -2150,7 +2152,6 @@ void xsec_species2(MatrixView xsec,
     
     for(Index il=0; il<nl; il++) {
       const LineRecord& line = abs_lines[il];
-      Range this_xsec_range(joker);
       
       // Partition function depends on isotopologue and line temperatures.
       // Both are commonly constant in a single catalog.  They are, however,
@@ -2177,110 +2178,32 @@ void xsec_species2(MatrixView xsec,
             ddc_dT = Linefunctions::dDopplerConstant_dT(temperature, line.IsotopologueData().Mass());
         }
       }
-      
-      // we now compute the line shape 
-      if(binary_speedup) {  // FIXME: Cannot consider cutoff properly now?
-        Numeric G0, G2, e, L0, L2, FVC;
-        line.SetPressureBroadeningParameters(G0, G2, e, L0, L2, FVC, temperature, pressure,
-                                             this_species, all_vmrs(joker, ip), abs_species);
+    
+      for(Index iz=0; iz<line.ZeemanEffect().nelem(); iz++) {
+        Linefunctions::set_cross_section_for_single_line(F, dF, N, dN, start, nelem, f_grid_eigen, line,
+          jacobian_quantities, jacobian_propmat_positions, all_vmrs(joker, ip), 
+          nt?abs_t_nlte(joker, ip):Vector(0), pressure, temperature, dc, partial_pressure, 
+          isotopologue_ratios.getParam(line.Species(), this_iso)[0].data[0],
+          0.0, ddc_dT, qt, dqt_dT, qt0,
+          abs_species, this_species, iz, verbosity);
         
-        // set binary levels
-        const ArrayOfArrayOfIndex binary_bounds = Linefunctions::binary_boundaries(line.F(), f_grid, G0, dc, line.SpeedUpCoeff(), binary_speedup, line.SpeedUpIndex());
+        // absorption cross-section
+        MapToEigen(xsec).col(ip).segment(start, nelem).noalias() += F.segment(start, nelem).real();
+        for(Index j=0; j<nj; j++)
+          MapToEigen(dxsec_dx[j]).col(ip).segment(start, nelem).noalias() += dF.row(j).segment(start, nelem).transpose().real();
         
-        for(Index iz=0; iz<line.ZeemanEffect().nelem(); iz++) {
-          for(Index i=0; i<binary_bounds.nelem(); i++) {
-            const Range rl = Linefunctions::binary_level_range(binary_bounds, nf, i, true);
-            if(rl.get_extent())
-              Linefunctions::set_cross_section_for_single_line(F[rl], nj?dF(joker, rl):dF, do_nonlte?N[rl]:N, (nj and do_nonlte)?dN(joker, rl):dN, this_xsec_range,
-                                                               jacobian_quantities, jacobian_propmat_positions, line, f_grid[rl], all_vmrs(joker, ip), 
-                                                               nt?abs_t_nlte(joker, ip):Vector(0), pressure, temperature, dc, partial_pressure, 
-                                                               isotopologue_ratios.getParam(line.Species(), this_iso)[0].data[0],
-                                                               H_magntitude_Zeeman, ddc_dT, qt, dqt_dT, qt0,
-                                                               abs_species, this_species, iz, verbosity);
-            
-            const Range ru = Linefunctions::binary_level_range(binary_bounds, nf, i, false);
-            if(ru.get_extent())
-              Linefunctions::set_cross_section_for_single_line(F[ru], nj?dF(joker, ru):dF, do_nonlte?N[ru]:N, (nj and do_nonlte)?dN(joker, ru):dN, this_xsec_range,
-                                                               jacobian_quantities, jacobian_propmat_positions, line, f_grid[ru], all_vmrs(joker, ip), 
-                                                               nt?abs_t_nlte(joker, ip):Vector(0), pressure, temperature, dc, partial_pressure, 
-                                                               isotopologue_ratios.getParam(line.Species(), this_iso)[0].data[0],
-                                                               H_magntitude_Zeeman, ddc_dT, qt, dqt_dT, qt0,
-                                                               abs_species, this_species, iz, verbosity);
-          }
-          
-          Linefunctions::binary_interpolation(F, binary_bounds);
-          
+        // phase cross-section
+        if(not phase.empty()) {
+          MapToEigen(phase).col(ip).segment(start, nelem).noalias() += F.segment(start, nelem).imag();
           for(Index j=0; j<nj; j++)
-            Linefunctions::binary_interpolation(dF(j, joker), binary_bounds);
-          if(do_nonlte) {
-            Linefunctions::binary_interpolation(N, binary_bounds);
-            for(Index j=0; j<nj; j++)
-              Linefunctions::binary_interpolation(dN(j, joker), binary_bounds);
-          }
-
-          #pragma omp simd
-          for(Index i = 0; i < nf; i++) {
-            xsec.get(i, ip) += F.get_real(i);
-          }
+            MapToEigen(dphase_dx[j]).col(ip).segment(start, nelem).noalias() += dF.row(j).segment(start, nelem).transpose().imag();
         }
-      }
-      else {
-        for(Index iz=0; iz<line.ZeemanEffect().nelem(); iz++) {
-          Linefunctions::set_cross_section_for_single_line(F, dF, N, dN, this_xsec_range,
-            jacobian_quantities, jacobian_propmat_positions, line, f_grid, all_vmrs(joker, ip), 
-            nt?abs_t_nlte(joker, ip):Vector(0), pressure, temperature, dc, partial_pressure, 
-            isotopologue_ratios.getParam(line.Species(), this_iso)[0].data[0],
-            H_magntitude_Zeeman, ddc_dT, qt, dqt_dT, qt0,
-            abs_species, this_species, iz, verbosity);
-          
-          // range-based arguments that need be made to work for both complex and numeric
-          const Index extent = (this_xsec_range.get_extent()<0)     ?
-          (nf-this_xsec_range.get_start())                :
-          this_xsec_range.get_extent();
-          const Range this_out_range(this_xsec_range.get_start(), extent);
-
-          VectorView xsec_range_view = xsec(this_out_range, ip);
-          Vector dummy_;
-          VectorView source_range_view = do_nonlte?source(this_out_range, ip):dummy_;
-          VectorView phase_range_view = (not phase.empty())?phase(this_out_range, ip):dummy_;
-          
-          const ComplexVectorView F_range_view = F[this_xsec_range];
-          const ComplexVectorView N_range_view = do_nonlte?N[this_xsec_range]:N;
-          
-          for(Index i = 0; i < extent; i++) {
-            #pragma omp atomic
-            xsec_range_view.get(i) += F_range_view.get_real(i);
-            
-            if(not phase.empty())
-              #pragma omp atomic
-              phase_range_view.get(i) += F_range_view.get_imag(i);
-            
-            if(do_nonlte)
-              #pragma omp atomic
-              source_range_view.get(i) += N_range_view.get_real(i);
-          }
-          
-          for(Index j=0; j<nj; j++) {
-            VectorView dxsec_range_view = dxsec_dx[j](this_out_range, ip);
-            VectorView dsource_range_view = do_nonlte?dsource_dx[j](this_out_range, ip):dummy_;
-            VectorView dphase_range_view = (not phase.empty())?dphase_dx[j](this_out_range, ip):dummy_;
-            
-            const ComplexVectorView dF_range_view = dF(j, this_xsec_range);
-            const ComplexVectorView dN_range_view = do_nonlte ? dN(j, this_xsec_range) : N;
-            
-            for(Index i = 0; i < extent; i++) {
-              #pragma omp atomic
-              dxsec_range_view.get(i) += dF_range_view.get_real(i);
-              
-              if(not phase.empty())
-                #pragma omp atomic
-                dphase_range_view.get(i) += dF_range_view.get_imag(i);
-              
-              if(do_nonlte)
-                #pragma omp atomic
-                dsource_range_view.get(i) += dN_range_view.get_real(i);
-            }
-          }
+        
+        // source ratio cross-section
+        if(do_nonlte) {
+          MapToEigen(source).col(ip).segment(start, nelem).noalias() += N.segment(start, nelem).real();
+          for(Index j=0; j<nj; j++)
+            MapToEigen(dsource_dx[j]).col(ip).segment(start, nelem).noalias() += dN.row(j).segment(start, nelem).transpose().real();
         }
       }
     }

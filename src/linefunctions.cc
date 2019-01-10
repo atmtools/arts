@@ -50,10 +50,10 @@ static const Numeric C1 = - PLANCK_CONST / BOLTZMAN_CONST;
 static const Numeric doppler_const = std::sqrt(2.0 * BOLTZMAN_CONST * AVOGADROS_NUMB ) / SPEED_OF_LIGHT; 
 
 
-void Linefunctions::set_lineshape(ComplexVectorView F, 
+void Linefunctions::set_lineshape(Eigen::VectorXcd& F, 
+                                  const Eigen::VectorXd& f_grid, 
                                   const LineRecord& line, 
-                                  ConstVectorView f_grid, 
-                                  ConstVectorView vmrs, 
+                                  const ConstVectorView vmrs, 
                                   const Numeric& temperature, 
                                   const Numeric& pressure, 
                                   const Numeric& magnetic_magnitude,
@@ -67,7 +67,7 @@ void Linefunctions::set_lineshape(ComplexVectorView F,
   // Line shape usage remembering variable
   LineShapeType lst = LineShapeType::End;
   
-  ComplexMatrix dF(0, 0);
+  Eigen::MatrixXcd dF(0, 0);
   const Numeric doppler_constant = DopplerConstant(temperature, line.IsotopologueData().Mass());
   
   switch(line.GetExternalLineShapeType())
@@ -127,42 +127,40 @@ void Linefunctions::set_lineshape(ComplexVectorView F,
     case MirroringType::Lorentz:
     {
       // Set the mirroring computational vectors and size them as needed
-      ComplexVector Fm(F.nelem());
-      ComplexMatrix dFm(0, 0);
+      Eigen::VectorXcd Fm(F.size());
       
-      set_lorentz(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), mirroredOutput(X));
+      set_lorentz(Fm, dF, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), mirroredOutput(X));
       
       // Apply mirroring
-      F -= Fm;
+      F.noalias() += Fm;
     }
     break;
     // Same type of mirroring as before
     case MirroringType::SameAsLineShape:
     {
       // Set the mirroring computational vectors and size them as needed
-      ComplexVector Fm(F.nelem());
-      ComplexMatrix dFm(0, 0);
+      Eigen::VectorXcd Fm(F.size());
       
       switch(lst)
       {
         case LineShapeType::Doppler:
-          set_doppler(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), -doppler_constant);
+          set_doppler(Fm, dF, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), -doppler_constant);
           break;
         case LineShapeType::Lorentz:
-          set_lorentz(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), mirroredOutput(X));
+          set_lorentz(Fm, dF, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), mirroredOutput(X));
           break;
         case LineShapeType::Voigt:
-          set_voigt(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), -doppler_constant, mirroredOutput(X));
+          set_voigt(Fm, dF, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), -doppler_constant, mirroredOutput(X));
           break;
         case LineShapeType::HTP:
           // WARNING: This mirroring is not tested and it might require, e.g., FVC to be treated differently
-          set_htp(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), -doppler_constant, mirroredOutput(X));
+          set_htp(Fm, dF, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), -doppler_constant, mirroredOutput(X));
           break;
         case LineShapeType::ByPressureBroadeningData:
         case LineShapeType::End:
           throw std::runtime_error("Cannot understand the requested line shape type for mirroring.");
       }
-      F -= Fm;
+      F.noalias() -= Fm;
       break;
     }
         case MirroringType::End:
@@ -214,9 +212,9 @@ void Linefunctions::set_lineshape(ComplexVectorView F,
  * \param dxdVMR VMR derivatives of line shape parameters
  * 
  */
-void Linefunctions::set_lorentz(ComplexVectorView F,
-                                ComplexMatrixView dF,
-                                ConstVectorView f_grid,
+void Linefunctions::set_lorentz(Eigen::Ref<Eigen::VectorXcd> F,
+                                     Eigen::Ref<Eigen::MatrixXcd> dF,
+                                const Eigen::Ref<const Eigen::VectorXd> f_grid,
                                 const Numeric& zeeman_df,
                                 const Numeric& magnetic_magnitude,
                                 const Numeric& F0_noshift,
@@ -228,8 +226,8 @@ void Linefunctions::set_lorentz(ComplexVectorView F,
                                 const LineFunctionDataOutput& dxdVMR)
 { 
   // Size of the problem
-  const Index nf = f_grid.nelem();
-  const Index nppd = derivatives_data_position.nelem();
+  auto nf = f_grid.size();
+  auto nppd = derivatives_data_position.nelem();
   
   // The central frequency
   const Numeric F0 = F0_noshift + x.D0 + zeeman_df * magnetic_magnitude + x.DV;
@@ -239,19 +237,17 @@ void Linefunctions::set_lorentz(ComplexVectorView F,
   
   Complex d, denom;
   
-  for(Index iv = 0; iv < nf; iv++)
-  {
+  for(auto iv=0; iv<nf; iv++) {
     denom = 1.0 / ((denom0 - Complex(0.0, f_grid[iv])));
     
     F[iv] = invPI * denom;
     
-    for(Index iq = 0; iq < nppd; iq++)
-    {
+    for(auto iq=0; iq<nppd; iq++) {
       if(iq == 0)
         d = - F[iv] * denom;
       
       if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
-        dF(iq, iv) = d * Complex(dxdT.G0, dxdT.D0 + dxdT.DV);  // Temperature derivative only depends on how pressure shift and broadening change
+        dF(iq, iv) = d * Complex(dxdT.G0, dxdT.D0 + dxdT.DV);
       else if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]]))
         dF(iq, iv) = d * Complex(0.0, -1.0);  // Frequency scale 1 to -1 linearly
       else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter or 
@@ -266,9 +262,11 @@ void Linefunctions::set_lorentz(ComplexVectorView F,
       else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR) {
         if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity))
           dF(iq, iv) = d * Complex(dxdVMR.G0, dxdVMR.D0 + dxdVMR.DV);
+        else
+          dF(iq, iv) = 0.0;
       }
       else if(is_magnetic_magnitude_parameter(derivatives_data[derivatives_data_position[iq]]))
-        dF(iq, iv) = d * Complex(0.0, zeeman_df);  // Magnetic magnitude changes like line center in part
+        dF(iq, iv) = d * Complex(0.0, zeeman_df);
     }
   }
 }
@@ -300,23 +298,23 @@ void Linefunctions::set_lorentz(ComplexVectorView F,
  * \param dxdVMR VMR derivatives of line shape parameters
  * 
  */
-void Linefunctions::set_htp(ComplexVectorView F,
-              ComplexMatrixView dF,
-              ConstVectorView f_grid, 
-              const Numeric& zeeman_df, 
-              const Numeric& magnetic_magnitude,
-              const Numeric& F0_noshift, 
-              const Numeric& GD_div_F0,
-              const LineFunctionDataOutput& x,
-              const ArrayOfRetrievalQuantity& derivatives_data,
-              const ArrayOfIndex& derivatives_data_position,
-              const QuantumIdentifier& quantum_identity,
-              const Numeric& dGD_div_F0_dT,
-              const LineFunctionDataOutput& dxdT,
-              const LineFunctionDataOutput& dxdVMR)
+void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
+                            Eigen::Ref<Eigen::MatrixXcd> dF,
+                            const Eigen::Ref<const Eigen::VectorXd> f_grid, 
+                            const Numeric& zeeman_df, 
+                            const Numeric& magnetic_magnitude,
+                            const Numeric& F0_noshift, 
+                            const Numeric& GD_div_F0,
+                            const LineFunctionDataOutput& x,
+                            const ArrayOfRetrievalQuantity& derivatives_data,
+                            const ArrayOfIndex& derivatives_data_position,
+                            const QuantumIdentifier& quantum_identity,
+                            const Numeric& dGD_div_F0_dT,
+                            const LineFunctionDataOutput& dxdT,
+                            const LineFunctionDataOutput& dxdVMR)
 {
-  const Index nq = derivatives_data_position.nelem();
-  const Index nf = f_grid.nelem();
+  auto nq = derivatives_data_position.nelem();
+  auto nf = f_grid.size();
   
   const Numeric F0 = F0_noshift + zeeman_df * magnetic_magnitude;
   const Numeric GD = GD_div_F0 * F0;
@@ -329,7 +327,7 @@ void Linefunctions::set_htp(ComplexVectorView F,
   
   if(C2t == Complex(0, 0)) {
     const Complex Z0 = (Complex(0, F0) + C0t) / GD;
-    for(Index i=0; i<nf; i++) {
+    for(auto i=0; i<nf; i++) {
       const Complex Zm = Complex(0, -f_grid[i] / GD) + Z0;
       const Complex wm = Faddeeva::w(Complex(0, 1) * Zm);
       const Complex A = fac * wm;
@@ -339,7 +337,7 @@ void Linefunctions::set_htp(ComplexVectorView F,
       
       if(nq) {
         const Complex dwm_divdZ = 2.0 * (Zm * wm - sqrtInvPI);
-        for(Index iq=0; iq<nq; iq++) {
+        for(auto iq=0; iq<nq; iq++) {
           const RetrievalQuantity& rt = derivatives_data[derivatives_data_position[iq]];
           if(rt == JacPropMatType::Temperature) {
             const Numeric dGD = dGD_div_F0_dT * F0;
@@ -383,6 +381,8 @@ void Linefunctions::set_htp(ComplexVectorView F,
               
               dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
             }
+            else
+              dF(iq, i) = 0.0;
           }
           else if(rt == JacPropMatType::LineCenter) {
             if(rt.QuantumIdentity().In(quantum_identity)) {
@@ -448,7 +448,7 @@ void Linefunctions::set_htp(ComplexVectorView F,
     const Complex X0 = (Complex(0, -F0) + C0t) / C2t;
     const Complex sqrtY = 0.5 * GD / C2t;
     const Complex Y = sqrtY * sqrtY;
-    for(Index i=0; i<nf; i++) {
+    for(auto i=0; i<nf; i++) {
       const Complex X = Complex(0, f_grid[i]) / C2t + X0;
       const Complex Z0 = std::sqrt(X + Y);
       const Complex Zm = Z0 - sqrtY;
@@ -463,7 +463,7 @@ void Linefunctions::set_htp(ComplexVectorView F,
       if(nq) {
         const Complex dwm_divdZ = 2.0 * (Zm * wm - sqrtInvPI);
         const Complex dwp_divdZ = 2.0 * (Zp * wp - sqrtInvPI);
-        for(Index iq=0; iq<nq; iq++) {
+        for(auto iq=0; iq<nq; iq++) {
           const RetrievalQuantity& rt = derivatives_data[derivatives_data_position[iq]];
           if(rt == JacPropMatType::Temperature) {
             const Numeric dGD = dGD_div_F0_dT * F0;
@@ -528,6 +528,8 @@ void Linefunctions::set_htp(ComplexVectorView F,
               
               dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
             }
+            else
+              dF(iq, i) = 0.0;
           }
           else if(rt == JacPropMatType::LineCenter) {
             if(rt.QuantumIdentity().In(quantum_identity)) {
@@ -634,9 +636,9 @@ void Linefunctions::set_htp(ComplexVectorView F,
  * \param dxdVMR VMR derivatives of line shape parameters
  * 
  */
-void Linefunctions::set_voigt(ComplexVectorView F, 
-                              ComplexMatrixView dF, 
-                              ConstVectorView f_grid, 
+void Linefunctions::set_voigt(Eigen::Ref<Eigen::VectorXcd> F,
+                              Eigen::Ref<Eigen::MatrixXcd> dF,
+                              const Eigen::Ref<const Eigen::VectorXd> f_grid, 
                               const Numeric& zeeman_df, 
                               const Numeric& magnetic_magnitude,
                               const Numeric& F0_noshift, 
@@ -650,11 +652,8 @@ void Linefunctions::set_voigt(ComplexVectorView F,
                               const LineFunctionDataOutput& dxdVMR)
 {
   // Size of problem
-  const Index nf = f_grid.nelem();
-  const Index nppd = derivatives_data_position.nelem();
-  
-  // For calculations
-  Complex w, z, dw_over_dz;
+  auto nf = f_grid.size();
+  auto nppd = derivatives_data_position.nelem();
   
   // Doppler broadening and line center
   const Numeric F0 = F0_noshift + zeeman_df * magnetic_magnitude + x.D0 + x.DV;
@@ -669,33 +668,35 @@ void Linefunctions::set_voigt(ComplexVectorView F,
   const Complex z0 = Complex(-F0, x.G0) * invGD;
   
   // frequency in units of Doppler
-  for (Index iv=0; iv<nf; iv++) {
-    z = z0 + f_grid[iv] * invGD;
-    w = Faddeeva::w(z);
+  for (auto iv=0; iv<nf; iv++) {
+    const Complex z = z0 + f_grid[iv] * invGD;
+    const Complex w = Faddeeva::w(z);
     F[iv] = fac * w;
     
-    for(Index iq = 0; iq < nppd; iq++) {
-      if(iq==0)  // Standard basic form for all transitions
-        dw_over_dz = 2.0 * fac *  (Complex(0, sqrtInvPI) - z * w);
+    if(nppd) {
+      const Complex dw_over_dz = 2.0 * fac *  (Complex(0, sqrtInvPI) - z * w);
       
-      // switch-like statement for all relevant partials in the xsec calculations
-      if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]]))
-        dF(iq, iv) = dw_over_dz * invGD;
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
-        dF(iq, iv) = -F[iv] * dGD_dT * invGD + dw_over_dz * ((Complex(-dxdT.D0 - dxdT.DV, dxdT.G0) - z * dGD_dT) * invGD);
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[iq]])) {
-        if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-          dF(iq, iv) = -F[iv]/F0 + dw_over_dz * (-invGD - z/F0);
-      }
-      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]) /*or derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR*/) {
-        if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
+      for(auto iq=0; iq<nppd; iq++) {
+        if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]]))
           dF(iq, iv) = dw_over_dz * invGD;
-      }
-      else if(is_magnetic_magnitude_parameter(derivatives_data[derivatives_data_position[iq]]))
-        dF(iq, iv) = dw_over_dz * (- zeeman_df * invGD); //* dz;
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR) {
-        if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity))
-          dF(iq, iv) = dw_over_dz * Complex(- dxdVMR.D0 - dxdVMR.DV, dxdVMR.G0) * invGD;
+        else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
+          dF(iq, iv) = -F[iv] * dGD_dT * invGD + dw_over_dz * ((Complex(-dxdT.D0 - dxdT.DV, dxdT.G0) - z * dGD_dT) * invGD);
+        else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[iq]])) {
+          if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
+            dF(iq, iv) = -F[iv]/F0 + dw_over_dz * (-invGD - z/F0);
+        }
+        else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]])) {
+          if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
+            dF(iq, iv) = dw_over_dz * invGD;
+        }
+        else if(is_magnetic_magnitude_parameter(derivatives_data[derivatives_data_position[iq]]))
+          dF(iq, iv) = dw_over_dz * (- zeeman_df * invGD);
+        else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR) {
+          if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity))
+            dF(iq, iv) = dw_over_dz * Complex(- dxdVMR.D0 - dxdVMR.DV, dxdVMR.G0) * invGD;
+          else
+            dF(iq, iv) = 0.0;
+        }
       }
     }
   }
@@ -721,9 +722,9 @@ void Linefunctions::set_voigt(ComplexVectorView F,
  * \param quantum_identity ID of the absorption line
  * \param dGD_div_F0_dT Temperature derivative of GD_div_F0
  */
-void Linefunctions::set_doppler(ComplexVectorView F, // Sets the full complex line shape without line mixing
-                                ComplexMatrixView dF,
-                                ConstVectorView f_grid,
+void Linefunctions::set_doppler(Eigen::Ref<Eigen::VectorXcd> F,
+                                Eigen::Ref<Eigen::MatrixXcd> dF,
+                                const Eigen::Ref<const Eigen::VectorXd> f_grid, 
                                 const Numeric& zeeman_df,
                                 const Numeric& magnetic_magnitude,
                                 const Numeric& F0_noshift,
@@ -733,8 +734,8 @@ void Linefunctions::set_doppler(ComplexVectorView F, // Sets the full complex li
                                 const QuantumIdentifier& quantum_identity,
                                 const Numeric& dGD_div_F0_dT)
 {
-  const Index nf = f_grid.nelem();
-  const Index nppd = derivatives_data_position.nelem();
+  auto nf = f_grid.size();
+  auto nppd = derivatives_data_position.nelem();
   
   // Doppler broadening and line center
   const Numeric F0 = F0_noshift + zeeman_df * magnetic_magnitude;
@@ -746,11 +747,11 @@ void Linefunctions::set_doppler(ComplexVectorView F, // Sets the full complex li
   // Computational speed-up
   const Index first_frequency = get_first_frequency_index(derivatives_data, derivatives_data_position);
   
-  for(Index iv = 0; iv < nf; iv++) {
+  for(auto iv=0; iv<nf; iv++) {
     const Numeric x = (f_grid[iv] - F0) * invGD;
     F[iv] = fac * exp(- x*x);
     
-    for(Index iq = 0; iq < nppd; iq++) { 
+    for(auto iq=0; iq<nppd; iq++) { 
       if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]] )) {
         if(first_frequency == iq)
           dF(iq, iv) = -2 * F[iv] * x * invGD;  // If this is the first time it is calculated this frequency bin, do the full calculation
@@ -787,9 +788,9 @@ void Linefunctions::set_doppler(ComplexVectorView F, // Sets the full complex li
  * \param dL0_dT Temperature derivative of L0
  * 
  */
-void Linefunctions::set_voigt_from_full_linemixing(ComplexVectorView F, 
-                                                   ComplexMatrixView dF,
-                                                   ConstVectorView f_grid,
+void Linefunctions::set_voigt_from_full_linemixing(Eigen::Ref<Eigen::VectorXcd> F,
+                                                   Eigen::Ref<Eigen::MatrixXcd> dF,
+                                                   const Eigen::Ref<const Eigen::VectorXd> f_grid, 
                                                    const Complex& eigenvalue_no_shift,
                                                    const Numeric& GD_div_F0,
                                                    const Numeric& L0,
@@ -804,7 +805,7 @@ void Linefunctions::set_voigt_from_full_linemixing(ComplexVectorView F,
   Numeric dx;
   Complex w, z, dw_over_dz, dz;
   
-  const Index nf = f_grid.nelem(), nppd = derivatives_data_position.nelem();
+  auto nf = f_grid.size(), nppd = derivatives_data_position.nelem();
   
   // Doppler broadening and line center
   const Complex eigenvalue = eigenvalue_no_shift + L0;
@@ -820,23 +821,20 @@ void Linefunctions::set_voigt_from_full_linemixing(ComplexVectorView F,
   const Complex z0 = -eigenvalue * invGD;
   
   // frequency in units of Doppler
-  for (Index iv=0; iv<nf; iv++)
-  {
+  for (auto iv=0; iv<nf; iv++) {
     dx = f_grid[iv] * invGD;
     z = z0 + dx;
     w = Faddeeva::w(z);
     
     F[iv] = fac * w;
     
-    for(Index iq = 0; iq < nppd; iq++)
-    {
+    for(auto iq=0; iq<nppd; iq++) {
       if(iq==0)
         dw_over_dz = 2.0 * (z * w - sqrtInvPI);
       
       if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]] ))
         dF(iq, iv) = fac * dw_over_dz * invGD;
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
-      {
+      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature) {
         dz = (deigenvalue_dT - dL0_dT) - z * dGD_dT;
         
         dF(iq, iv) = -F[iv] * dGD_dT;
@@ -858,9 +856,10 @@ void Linefunctions::set_voigt_from_full_linemixing(ComplexVectorView F,
       {
         if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
           dF(iq, iv) = fac * dw_over_dz * ( Complex(-1.0, 1.0) * invGD);
+        else
+          dF(iq, iv) = 0.0;
       }
     }
-    
   }
 }
 
@@ -881,8 +880,8 @@ void Linefunctions::set_voigt_from_full_linemixing(ComplexVectorView F,
  * \param df_range Frequency range to use inside dF
  * 
  */
-void Linefunctions::apply_linemixing_scaling(ComplexVectorView F,
-                                             ComplexMatrixView dF,
+void Linefunctions::apply_linemixing_scaling(Eigen::Ref<Eigen::VectorXcd> F,
+                                             Eigen::Ref<Eigen::MatrixXcd> dF,
                                              const Numeric& Y,
                                              const Numeric& G,
                                              const ArrayOfRetrievalQuantity& derivatives_data,
@@ -892,28 +891,28 @@ void Linefunctions::apply_linemixing_scaling(ComplexVectorView F,
                                              const Numeric& dG_dT,
                                              const LineFunctionDataOutput& dVMR)
 {
-  const Index nf = F.nelem(), nppd = derivatives_data_position.nelem();
+  auto nppd = derivatives_data_position.nelem();
   
   const Complex LM = Complex(1.0 + G, -Y);
   const Complex dLM_dT = Complex(dG_dT, -dY_dT);
   
-  for(Index iq = 0; iq < nppd; iq++) {
+  for(auto iq=0; iq<nppd; iq++) {
     if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature) {
-      dF(iq, joker) *= LM;
-      for(Index iv = 0; iv < nf; iv++)
-        dF(iq, iv) += F[iv] * dLM_dT;
+      dF.row(iq) *= LM;
+      dF.row(iq).noalias() += F * dLM_dT;
     }
     else if(is_line_mixing_line_strength_parameter(derivatives_data[derivatives_data_position[iq]])) {
-       if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-         dF(iq, joker) = F;
+      if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
+        dF.row(iq).noalias() = F;
     }
     else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR) {
-      if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity))
-        for(Index iv = 0; iv < nf; iv++)
-          dF(iq, iv) = dF(iq, iv) * LM +  F[iv] * Complex(dVMR.G, - dVMR.Y);
+      if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity)) {
+        dF.row(iq) *= LM;
+        dF.row(iq).noalias() += F * Complex(dVMR.G, - dVMR.Y);
+      }
     }
     else
-      dF(iq, joker) *= LM;
+      dF.row(iq) *= LM;
   }
   
   F *= LM;
@@ -934,16 +933,16 @@ void Linefunctions::apply_linemixing_scaling(ComplexVectorView F,
  * \param df_range Frequency range to use inside dF
  * 
  */
-void Linefunctions::apply_rosenkranz_quadratic_scaling(ComplexVectorView F,
-                                                       ComplexMatrixView dF,
-                                                       ConstVectorView f_grid,
+void Linefunctions::apply_rosenkranz_quadratic_scaling(Eigen::Ref<Eigen::VectorXcd> F,
+                                                       Eigen::Ref<Eigen::MatrixXcd> dF,
+                                                       const Eigen::Ref<const Eigen::VectorXd> f_grid,
                                                        const Numeric& F0,
                                                        const Numeric& T,
                                                        const ArrayOfRetrievalQuantity& derivatives_data,
                                                        const ArrayOfIndex& derivatives_data_position,
                                                        const QuantumIdentifier& quantum_identity)
 {
-  const Index nf = f_grid.nelem(), nppd = derivatives_data_position.nelem();
+  auto nf = f_grid.size(), nppd = derivatives_data_position.nelem();
   
   const Numeric invF0 = 1.0/F0;
   const Numeric mafac = (PLANCK_CONST) / (2.0 * BOLTZMAN_CONST * T) /
@@ -956,11 +955,11 @@ void Linefunctions::apply_rosenkranz_quadratic_scaling(ComplexVectorView F,
   
   Numeric fun;
   
-  for (Index iv=0; iv < nf; iv++) {
+  for (auto iv=0; iv<nf; iv++) {
     fun = mafac * (f_grid[iv] * f_grid[iv]);
     F[iv] *= fun;
     
-    for(Index iq = 0; iq < nppd; iq++) {
+    for(auto iq=0; iq<nppd; iq++) {
       dF(iq, iv) *= fun;
       if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
         dF(iq, iv) += dmafac_dT_div_fun * F[iv];
@@ -992,16 +991,16 @@ void Linefunctions::apply_rosenkranz_quadratic_scaling(ComplexVectorView F,
  * \param df_range Frequency range to use inside dF
  * 
  */
-void Linefunctions::apply_VVH_scaling(ComplexVectorView F,
-                                      ComplexMatrixView dF,
-                                      ConstVectorView f_grid,
+void Linefunctions::apply_VVH_scaling(Eigen::Ref<Eigen::VectorXcd> F,
+                                      Eigen::Ref<Eigen::MatrixXcd> dF,
+                                      const Eigen::Ref<const Eigen::VectorXd> f_grid,
                                       const Numeric& F0,
                                       const Numeric& T,
                                       const ArrayOfRetrievalQuantity& derivatives_data,
                                       const ArrayOfIndex& derivatives_data_position,
                                       const QuantumIdentifier& quantum_identity)
 { 
-  const Index nf = f_grid.nelem(), nppd = derivatives_data_position.nelem();
+  auto nf = f_grid.size(), nppd = derivatives_data_position.nelem();
   
   // 2kT is constant for the loop
   const Numeric kT = 2.0 * BOLTZMAN_CONST * T;
@@ -1047,28 +1046,28 @@ void Linefunctions::apply_VVH_scaling(ComplexVectorView F,
  * \param df_range Frequency range to use inside dF
  * 
  */
-void Linefunctions::apply_VVW_scaling(ComplexVectorView F,
-                                      ComplexMatrixView dF,
-                                      ConstVectorView f_grid,
+void Linefunctions::apply_VVW_scaling(Eigen::Ref<Eigen::VectorXcd> F,
+                                      Eigen::Ref<Eigen::MatrixXcd> dF,
+                                      const Eigen::Ref<const Eigen::VectorXd> f_grid,
                                       const Numeric& F0,
                                       const ArrayOfRetrievalQuantity& derivatives_data,
                                       const ArrayOfIndex& derivatives_data_position,
                                       const QuantumIdentifier& quantum_identity)
 {
-  const Index nf = f_grid.nelem(), nppd = derivatives_data_position.nelem();
+  auto nf = f_grid.size(), nppd = derivatives_data_position.nelem();
   
   // denominator is constant for the loop
   const Numeric invF0 = 1.0 / F0;
   const Numeric invF02 = invF0 * invF0;
   
-  for(Index iv = 0; iv < nf; iv++) {
+  for(auto iv=0; iv<nf; iv++) {
     // Set the factor
     const Numeric fac = f_grid[iv] * f_grid[iv] * invF02;
     
     // Set the line shape
     F[iv] *= fac;
     
-    for(Index iq = 0; iq < nppd; iq++) {
+    for(auto iq=0; iq<nppd; iq++) {
       // The factor is applied to all partial derivatives
       dF(iq, iv) *= fac;
       
@@ -1106,8 +1105,8 @@ void Linefunctions::apply_VVW_scaling(ComplexVectorView F,
  * \param df_range Frequency range to use inside dF
  * 
  */
-void Linefunctions::apply_linestrength_scaling(ComplexVectorView F,
-                                               ComplexMatrixView dF,
+void Linefunctions::apply_linestrength_scaling(Eigen::Ref<Eigen::VectorXcd> F,
+                                               Eigen::Ref<Eigen::MatrixXcd> dF,
                                                const Numeric& S0,
                                                const Numeric& isotopic_ratio,
                                                const Numeric& QT,
@@ -1122,8 +1121,7 @@ void Linefunctions::apply_linestrength_scaling(ComplexVectorView F,
                                                const Numeric& dK2_dT,
                                                const Numeric& dK2_dF0)
 {
-  const Index nf = F.nelem();
-  const Index nppd = derivatives_data_position.nelem();
+  auto nppd = derivatives_data_position.nelem();
   
   const Numeric invQT = 1.0/QT;
   const Numeric QT_ratio = QT0 * invQT;
@@ -1131,31 +1129,27 @@ void Linefunctions::apply_linestrength_scaling(ComplexVectorView F,
   const Numeric dS_dS0 = isotopic_ratio * QT_ratio * K1 * K2;
   const Numeric S = S0 * dS_dS0;
   
-  for(Index iq = 0; iq < nppd; iq++) {
+  for(auto iq=0; iq<nppd; iq++) {
     if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature) {
       const Numeric dS_dT = S * (dK2_dT / K2 + dK1_dT / K1 - invQT * dQT_dT);
       
-      dF(iq, joker) *= S;
-      for(Index iv = 0; iv < nf; iv++)
-        dF(iq, iv) += F[iv] * dS_dT;
+      dF.row(iq) *= S;
+      dF.row(iq).noalias() += F * dS_dT;
     }
     else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineStrength) {
-      if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
-        dF(iq, joker) = F;
-        dF(iq, joker) *= dS_dS0;
-      }
+      if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
+        dF.row(iq).noalias() = F * dS_dS0;
     }
     else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
       if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
         const Numeric dS_dF0 = S * dK2_dF0 / K2;
         
-        dF(iq, joker) *= S;
-        for(Index iv = 0; iv < nf; iv++)
-          dF(iq, iv) += F[iv] * dS_dF0;
+        dF.row(iq) *= S;
+        dF.row(iq).noalias() += F * dS_dF0;
       }
     }
     else
-      dF(iq, joker) *= S;
+      dF.row(iq) *= S;
   }
   
   // Set lineshape at the end
@@ -1185,10 +1179,10 @@ void Linefunctions::apply_linestrength_scaling(ComplexVectorView F,
  * \param df_range Frequency range to use inside dF
  * 
  */
-void Linefunctions::apply_linestrength_scaling_vibrational_nlte(ComplexVectorView F,
-                                                                ComplexMatrixView dF,
-                                                                ComplexVectorView N,
-                                                                ComplexMatrixView dN,
+void Linefunctions::apply_linestrength_scaling_vibrational_nlte(Eigen::Ref<Eigen::VectorXcd> F,
+                                                                Eigen::Ref<Eigen::MatrixXcd> dF,
+                                                                Eigen::Ref<Eigen::VectorXcd> N,
+                                                                Eigen::Ref<Eigen::MatrixXcd> dN,
                                                                 const Numeric& S0,
                                                                 const Numeric& isotopic_ratio,
                                                                 const Numeric& QT,
@@ -1211,8 +1205,7 @@ void Linefunctions::apply_linestrength_scaling_vibrational_nlte(ComplexVectorVie
                                                                 const Numeric& dK4_dT,
                                                                 const Numeric& dK4_dTu)
 {
-  const Index nf = F.nelem();
-  const Index nppd = derivatives_data_position.nelem();
+  auto nppd = derivatives_data_position.nelem();
   
   const Numeric invQT = 1.0 / QT;
   const Numeric QT_ratio = QT0 * invQT;
@@ -1222,25 +1215,19 @@ void Linefunctions::apply_linestrength_scaling_vibrational_nlte(ComplexVectorVie
   const Numeric dS_dS0_src = isotopic_ratio * QT_ratio * K1 * K2 * K4;
   const Numeric S_src = S0 * dS_dS0_src;
   
-  for(Index iq = 0; iq < nppd; iq++) {
+  for(auto iq=0; iq<nppd; iq++) {
     if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature) {
       const Numeric dS_dT_abs = S_abs * (dK2_dT / K2 + dK1_dT / K1 + dK3_dT / K3 - invQT * dQT_dT);
       const Numeric dS_dT_src = S_src * (dK2_dT / K2 + dK1_dT / K1 + dK4_dT / K4 - invQT * dQT_dT);
       
-      dN(iq, joker)  = dF(iq, joker);
-      dN(iq, joker) *= S_src - S_abs;
-      dF(iq, joker) *=         S_abs;
-      for(Index iv = 0; iv < nf; iv++) {
-        dN.get(iq, iv) += F.get(iv) * (dS_dT_src - dS_dT_abs);
-        dF.get(iq, iv) += F.get(iv) *              dS_dT_abs;
-      }
+      dN.row(iq).noalias() = dF.row(iq) * (S_src - S_abs) + F.transpose() * (dS_dT_src - dS_dT_abs);
+      dF.row(iq) *= S_abs;
+      dF.row(iq).noalias() += F * dS_dT_abs;
     }
     else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineStrength) {
       if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
-        dF(iq, joker) = F;
-        dN(iq, joker) = dF(iq, joker);
-        dN(iq, joker) *= dS_dS0_src - dS_dS0_abs;
-        dF(iq, joker) *=              dS_dS0_abs;
+        dF.row(iq).noalias() = F * dS_dS0_abs;
+        dN.row(iq).noalias() = F * (dS_dS0_src - dS_dS0_abs);
       }
     }
     else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
@@ -1248,44 +1235,36 @@ void Linefunctions::apply_linestrength_scaling_vibrational_nlte(ComplexVectorVie
         const Numeric dS_dF0_abs = S_abs * (dK2_dF0 / K2 + dK3_dF0 / K3);
         const Numeric dS_dF0_src = S_src * (dK2_dF0 / K2);
         
-        dN(iq, joker) = dF(iq, joker);
-        dN(iq, joker) *= S_src - S_abs;
-        dF(iq, joker) *=         S_abs;
-        for(Index iv = 0; iv < nf; iv++) {
-          dN.get(iq, iv) += F.get(iv) * (dS_dF0_src - dS_dF0_abs);
-          dF.get(iq, iv) += F.get(iv) *               dS_dF0_abs;
-        }
+        dN.row(iq).noalias() = dF.row(iq) * (S_src - S_abs) + F.transpose() * (dS_dF0_src - dS_dF0_abs);
+        dF.row(iq) *= S_abs;
+        dF.row(iq).noalias() += F * dS_dF0_abs;
       }
     }
     else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::NLTE) {
       if(quantum_identity.LowerQuantumId() > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
         const Numeric dS_dTl_abs = S_abs * dK3_dTl / K3;
         const Numeric dS_dTl_src = 0;
-        for(Index iv = 0; iv < nf; iv++) {
-          dN.get(iq, iv) = F.get(iv) * (dS_dTl_src - dS_dTl_abs);
-          dF.get(iq, iv) = F.get(iv) *               dS_dTl_abs;
-        }
+        
+        dN.row(iq).noalias() = F * (dS_dTl_src - dS_dTl_abs);
+        dF.row(iq).noalias() = F * dS_dTl_abs;
       }
       else if(quantum_identity.UpperQuantumId() > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
         const Numeric dS_dTu_abs = S_abs * dK3_dTu / K3;
         const Numeric dS_dTu_src = S_src * dK4_dTu / K4;
-        for(Index iv = 0; iv < nf; iv++) {
-          dN.get(iq, iv) = F.get(iv) * (dS_dTu_src - dS_dTu_abs);
-          dF.get(iq, iv) = F.get(iv) *               dS_dTu_abs;
-        }
+        
+        dN.row(iq).noalias() = F * (dS_dTu_src - dS_dTu_abs);
+        dF.row(iq).noalias() = F * dS_dTu_abs;
       }
     }
     else {
-      dN(iq, joker)  = dF(iq, joker);
-      dN(iq, joker) *= S_src - S_abs;
-      dF(iq, joker) *=         S_abs;
+      dN.row(iq).noalias()  = dF.row(iq) * (S_src - S_abs);
+      dF.row(iq) *= S_abs;
     }
   }
   
   // Set lineshape at the end
-  N = F;
-  N *= S_src - S_abs;
-  F *=         S_abs;
+  N.noalias() = F * (S_src - S_abs);
+  F *= S_abs;
 }
 
 
@@ -1307,8 +1286,8 @@ void Linefunctions::apply_linestrength_scaling_vibrational_nlte(ComplexVectorVie
  * \param dS_LM_dT Temperature derivative of S_LM
  * 
  */
-void Linefunctions::apply_linestrength_from_full_linemixing(ComplexVectorView F,
-                                                            ComplexMatrixView dF,
+void Linefunctions::apply_linestrength_from_full_linemixing(Eigen::Ref<Eigen::VectorXcd> F,
+                                                            Eigen::Ref<Eigen::MatrixXcd> dF,
                                                             const Numeric& F0,
                                                             const Numeric& T,
                                                             const Complex& S_LM,
@@ -1322,7 +1301,7 @@ void Linefunctions::apply_linestrength_from_full_linemixing(ComplexVectorView F,
   
   const Numeric invT = 1.0 / T, 
   F0_invT = F0 * invT,
-  exp_factor = exp(C1 * F0_invT), 
+  exp_factor = std::exp(C1 * F0_invT), 
   f0_factor = F0 * (1.0 - exp_factor); 
   
   const Complex S = S_LM * f0_factor * isotopic_ratio;
@@ -1331,10 +1310,8 @@ void Linefunctions::apply_linestrength_from_full_linemixing(ComplexVectorView F,
   {
     if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
     {
-      Eigen::VectorXcd eig_dF = MapToEigen(dF(iq, joker));
-      
-      eig_dF *= S_LM;
-      eig_dF += MapToEigen(F) * (dS_LM_dT * f0_factor + 
+      dF.row(iq) *= S_LM;
+      dF.row(iq).noalias() += F * (dS_LM_dT * f0_factor + 
       S_LM * C1 * F0_invT * F0_invT * exp_factor) * isotopic_ratio;
     }
     else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineStrength)
@@ -1349,7 +1326,7 @@ void Linefunctions::apply_linestrength_from_full_linemixing(ComplexVectorView F,
     }
     else
     {
-      dF(iq, joker) *= S;
+      dF.row(iq) *= S;
     }
   }
   
@@ -1373,8 +1350,8 @@ void Linefunctions::apply_linestrength_from_full_linemixing(ComplexVectorView F,
  * \param drho_dT Temperature derivative of rho
  * 
  */
-void Linefunctions::apply_dipole(ComplexVectorView F,
-                                 ComplexMatrixView,
+void Linefunctions::apply_dipole(Eigen::Ref<Eigen::VectorXcd> F,
+                                 Eigen::Ref<Eigen::MatrixXcd> /*dF*/,
                                  const Numeric& F0,
                                  const Numeric& T,
                                  const Numeric& d0,
@@ -1395,10 +1372,8 @@ void Linefunctions::apply_dipole(ComplexVectorView F,
   exp_factor = exp(C1 * F0_invT), 
   f0_factor = F0 * (1.0 - exp_factor);
   
-  for(Index iq = 0; iq < nppd; iq++)
-  {
+  if(nppd)
     throw std::runtime_error("Cannot support Jacobian from dipole calculations yet");
-  }
   
   F *= S * f0_factor;
 }
@@ -1415,7 +1390,7 @@ void Linefunctions::apply_dipole(ComplexVectorView F,
  * \param df_range Frequency range to use inside dF
  * 
  */
-void Linefunctions::apply_linefunctiondata_jacobian_scaling(ComplexMatrixView dF,
+void Linefunctions::apply_linefunctiondata_jacobian_scaling(Eigen::Ref<Eigen::MatrixXcd> dF,
                                                             const ArrayOfRetrievalQuantity& derivatives_data,
                                                             const ArrayOfIndex& derivatives_data_position,
                                                             const QuantumIdentifier& quantum_identity,
@@ -1426,10 +1401,9 @@ void Linefunctions::apply_linefunctiondata_jacobian_scaling(ComplexMatrixView dF
                                                             const ConstVectorView& vmrs,
                                                             const ArrayOfArrayOfSpeciesTag& species)
 {
-  const Index nppd = derivatives_data_position.nelem();
+  auto nppd = derivatives_data_position.nelem();
   
-  for(Index iq = 0; iq < nppd; iq++)
-  {
+  for(auto iq=0; iq<nppd; iq++) {
     const Index& pos = derivatives_data_position[iq];
     const RetrievalQuantity& rt = derivatives_data[pos];
     
@@ -1441,7 +1415,7 @@ void Linefunctions::apply_linefunctiondata_jacobian_scaling(ComplexMatrixView dF
         case JacPropMatType::LineFunctionDataG2X0:
         case JacPropMatType::LineFunctionDataG2X1:
         case JacPropMatType::LineFunctionDataG2X2:
-          dF(iq, joker) *= Complex(0, line.GetInternalDerivative(T,P,this_species,vmrs,species, rt));
+          dF.row(iq) *= Complex(0, line.GetInternalDerivative(T,P,this_species,vmrs,species, rt));
           break;
         case JacPropMatType::LineFunctionDataD0X0:
         case JacPropMatType::LineFunctionDataD0X1:
@@ -1449,7 +1423,7 @@ void Linefunctions::apply_linefunctiondata_jacobian_scaling(ComplexMatrixView dF
         case JacPropMatType::LineFunctionDataD2X0:
         case JacPropMatType::LineFunctionDataD2X1:
         case JacPropMatType::LineFunctionDataD2X2:
-          dF(iq, joker) *= -line.GetInternalDerivative(T,P,this_species,vmrs,species, rt);
+          dF.row(iq) *= -line.GetInternalDerivative(T,P,this_species,vmrs,species, rt);
           break;
         case JacPropMatType::LineFunctionDataFVCX0:
         case JacPropMatType::LineFunctionDataFVCX1:
@@ -1463,12 +1437,12 @@ void Linefunctions::apply_linefunctiondata_jacobian_scaling(ComplexMatrixView dF
         case JacPropMatType::LineFunctionDataDVX0:
         case JacPropMatType::LineFunctionDataDVX1:
         case JacPropMatType::LineFunctionDataDVX2:
-          dF(iq, joker) *= line.GetInternalDerivative(T,P,this_species,vmrs,species, rt);
+          dF.row(iq) *= line.GetInternalDerivative(T,P,this_species,vmrs,species, rt);
           break;
         case JacPropMatType::LineFunctionDataYX0:
         case JacPropMatType::LineFunctionDataYX1:
         case JacPropMatType::LineFunctionDataYX2:
-          dF(iq, joker) *= Complex(0, -line.GetInternalDerivative(T,P,this_species,vmrs,species, rt));
+          dF.row(iq) *= Complex(0, -line.GetInternalDerivative(T,P,this_species,vmrs,species, rt));
           break;
         default:
         {/*pass*/}
@@ -1536,21 +1510,22 @@ Numeric Linefunctions::dDopplerConstant_dT(const Numeric& T, const Numeric& mass
  * \param cutoff_call Flag to ignore some functions inside if this call is from the cutoff-computations
  * 
  */
-void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
-                                                      ComplexMatrixView dF_full,
-                                                      ComplexVectorView N_full, 
-                                                      ComplexMatrixView dN_full,
-                                                      Range& this_f_range,
+void Linefunctions::set_cross_section_for_single_line(Eigen::VectorXcd& F_full,
+                                                      Eigen::MatrixXcd& dF_full,
+                                                      Eigen::VectorXcd& N_full,
+                                                      Eigen::MatrixXcd& dN_full,
+                                                      Index& start_cutoff,
+                                                      Index& nelem_cutoff,
+                                                      const ConstMatrixViewMap& f_grid_full,
+                                                      const LineRecord& line,
                                                       const ArrayOfRetrievalQuantity& derivatives_data,
                                                       const ArrayOfIndex& derivatives_data_position,
-                                                      const LineRecord& line, 
-                                                      ConstVectorView f_grid_full, 
-                                                      ConstVectorView volume_mixing_ratio_of_all_species, 
-                                                      ConstVectorView nlte_distribution, 
-                                                      const Numeric& pressure, 
-                                                      const Numeric& temperature, 
-                                                      const Numeric& doppler_constant, 
-                                                      const Numeric& partial_pressure, 
+                                                      const ConstVectorView volume_mixing_ratio_of_all_species,
+                                                      const ConstVectorView nlte_distribution,
+                                                      const Numeric& pressure,
+                                                      const Numeric& temperature,
+                                                      const Numeric& doppler_constant,
+                                                      const Numeric& partial_pressure,
                                                       const Numeric& isotopologue_ratio,
                                                       const Numeric& magnetic_magnitude,
                                                       const Numeric& ddoppler_constant_dT,
@@ -1601,12 +1576,19 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
   
   // Size and type of problem
   const Numeric& cutoff = line.CutOff();
-  const bool need_cutoff = cutoff_call ? false : find_cutoff_ranges(this_f_range, f_grid_full, line.F(), cutoff);
+  if(not cutoff_call)
+    find_cutoff_ranges(start_cutoff, nelem_cutoff, f_grid_full, line.F(), cutoff);
+  else {
+    start_cutoff = 0;
+    nelem_cutoff = 1;
+  }
+
+  const bool need_cutoff = cutoff > 0 and not cutoff_call;
   const bool do_temperature = do_temperature_jacobian(derivatives_data);
   const bool do_line_center = do_line_center_jacobian(derivatives_data);
                            
   // Leave this function if there is nothing to compute
-  if(this_f_range.get_extent() == 0)
+  if(nelem_cutoff == 0)
     return;
   
   // Extract the quantum identify of the line to be used in-case there are derivatives
@@ -1644,11 +1626,11 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
   */
   
   // Compute values
-  ComplexVectorView F = F_full[this_f_range];
-  ComplexMatrixView dF = dF_full(joker, this_f_range);
-  ConstVectorView f_grid = f_grid_full[this_f_range];
-  ComplexVectorView N = N_full[N_full.nelem() ? this_f_range : joker];
-  ComplexMatrixView dN = dN_full(joker, N_full.nelem() ? this_f_range : joker);
+  auto  F =                 F_full.segment(start_cutoff, nelem_cutoff);
+  auto  N = N_full.size() ? N_full.segment(start_cutoff, nelem_cutoff) : N_full.segment(0, 0);
+  auto dF =                 dF_full.middleCols(start_cutoff, nelem_cutoff);
+  auto dN = N_full.size() ? dN_full.middleCols(start_cutoff, nelem_cutoff) : dN_full.middleCols(0, 0);
+  auto f_grid = f_grid_full.middleRows(start_cutoff, nelem_cutoff);
   
   switch(line.GetExternalLineShapeType()) {
     // Use data as provided by the pressure broadening scheme
@@ -1732,21 +1714,21 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
     case MirroringType::Lorentz: {
         if(lst == LineShapeType::Doppler) throw std::runtime_error("Cannot apply Lorentz mirroring for Doppler line shape");
         // Set the mirroring computational vectors and size them as needed
-        ComplexVector Fm(F.nelem());
-        ComplexMatrix dFm(dF.nrows(), dF.ncols());
+        Eigen::VectorXcd Fm(F.size());
+        Eigen::MatrixXcd dFm(dF.rows(), dF.cols());
         
         set_lorentz(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
                     -line.F(), mirroredOutput(X), derivatives_data, derivatives_data_position, QI, mirroredOutput(dXdT), mirroredOutput(dXdVMR));
         
         // Apply mirroring
-        F += Fm;
-        dF += dFm;
+        F.noalias() += Fm;
+        dF.noalias() += dFm;
     } break;
     // Same type of mirroring as before
     case MirroringType::SameAsLineShape: {
       // Set the mirroring computational vectors and size them as needed
-      ComplexVector Fm(F.nelem());
-      ComplexMatrix dFm(dF.nrows(), dF.ncols());
+      Eigen::VectorXcd Fm(F.size());
+      Eigen::MatrixXcd dFm(dF.rows(), dF.cols());
       
       switch(lst) {
         case LineShapeType::Doppler:
@@ -1775,8 +1757,8 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
         case LineShapeType::End:
           throw std::runtime_error("Cannot understand the requested line shape type for mirroring.");
       }
-      F += Fm;
-      dF += dFm;
+      F.noalias() += Fm;
+      dF.noalias() += dFm;
       break;
     } break;
     case MirroringType::End:
@@ -1840,11 +1822,14 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
         dK2_dF0 = dstimulated_relative_emission_dF0(gamma, gamma_ref, temperature, line.Ti0());
       
       // Multiply the line strength by the line shape
-      if(line.GetLinePopulationType() == LinePopulationType::ByLTE)
+      if(line.GetLinePopulationType() == LinePopulationType::ByLTE) {
         apply_linestrength_scaling(F, dF,  line.I0() * line.ZeemanEffect().StrengthScaling(zeeman_index), isotopologue_ratio,
                                    partition_function_at_temperature, partition_function_at_line_temperature, K1, K2,
                                    derivatives_data, derivatives_data_position, QI,
                                    dpartition_function_at_temperature_dT, dK1_dT, dK2_dT, dK2_dF0);
+        N.setZero();
+        dN.setZero();
+      }
       else if (line.GetLinePopulationType() == LinePopulationType::ByVibrationalTemperatures) {
         // NLTE parameters
         Numeric Tu, Tl, K4, r_low, dK3_dF0, dK3_dT, dK3_dTl, dK4_dT, dK3_dTu, dK4_dTu;
@@ -1993,15 +1978,15 @@ void Linefunctions::set_cross_section_for_single_line(ComplexVectorView F_full,
  * \param verbosity Verbosity level
  * 
  */
-void Linefunctions::apply_cutoff(ComplexVectorView F,
-                                 ComplexMatrixView dF,
-                                 ComplexVectorView N,
-                                 ComplexMatrixView dN,
+void Linefunctions::apply_cutoff(Eigen::Ref<Eigen::VectorXcd> F,
+                                 Eigen::Ref<Eigen::MatrixXcd> dF,
+                                 Eigen::Ref<Eigen::VectorXcd> N,
+                                 Eigen::Ref<Eigen::MatrixXcd> dN,
                                  const ArrayOfRetrievalQuantity& derivatives_data,
                                  const ArrayOfIndex& derivatives_data_position,
                                  const LineRecord& line,
-                                 ConstVectorView volume_mixing_ratio_of_all_species,
-                                 ConstVectorView nlte_distribution,
+                                 const ConstVectorView volume_mixing_ratio_of_all_species,
+                                 const ConstVectorView nlte_distribution,
                                  const Numeric& pressure,
                                  const Numeric& temperature,
                                  const Numeric& doppler_constant,
@@ -2018,21 +2003,19 @@ void Linefunctions::apply_cutoff(ComplexVectorView F,
                                  const Verbosity& verbosity)
 { 
   // Size of derivatives
-  const Index nj = dF.nrows(); 
-  const Index nn = dN.nrows(); 
+  auto nj = dF.rows(); 
+  auto nn = dN.rows(); 
   
   // Setup compute variables
   
-  Vector f_grid_cutoff(1);
-  if(line.F() > 0) f_grid_cutoff[0] = line.F() + line.CutOff();
-  else             f_grid_cutoff[0] = line.F() - line.CutOff();
-  ComplexVector Fc(1), Nc(1);
-  ComplexMatrix dFc(nj, 1), dNc(nn, 1);
-  Range tmp(joker);
+  const auto f_grid_cutoff = MapToEigen(Vector(1, (line.F() > 0) ? line.F() + line.CutOff() : line.F() - line.CutOff()));
+  Eigen::VectorXcd Fc(1), Nc(1);
+  Eigen::MatrixXcd dFc(nj, 1), dNc(nn, 1);
+  Index _tmp1, _tmp2;
   
   // Recompute the line for a single frequency
-  set_cross_section_for_single_line(Fc, dFc, Nc, dNc, tmp,
-                                    derivatives_data, derivatives_data_position, line, f_grid_cutoff,
+  set_cross_section_for_single_line(Fc, dFc, Nc, dNc, _tmp1, _tmp2, f_grid_cutoff, line,
+                                    derivatives_data, derivatives_data_position,
                                     volume_mixing_ratio_of_all_species,
                                     nlte_distribution, pressure, temperature,
                                     doppler_constant, partial_pressure, isotopologue_ratio,
@@ -2044,47 +2027,38 @@ void Linefunctions::apply_cutoff(ComplexVectorView F,
                                     zeeman_index, verbosity, true);
   
   // Apply cutoff values
-  F -= Fc.get(0);
-  
-  if(N.nelem())
-    N -= Nc.get(0);
-  for(Index i = 0; i < nj; i++)
-    dF(i, joker) -= dFc.get(i, 0);
-  for(Index i = 0; i < nn; i++)
-    dN(i, joker) -= dNc.get(i, 0);
+  F.array() -= Fc[0];
+  if(N.size()) N.array() -= Nc[0];
+  for(Index i = 0; i < nj; i++) dF.row(i).array() -= dFc(i, 0);
+  for(Index i = 0; i < nn; i++) dN.row(i).array() -= dNc(i, 0);
 }
 
 
-bool Linefunctions::find_cutoff_ranges(Range& range,
-                                       const ConstVectorView& f_grid,
+void Linefunctions::find_cutoff_ranges(Index& start_cutoff,
+                                       Index& nelem_cutoff,
+                                       const Eigen::VectorXd& f_grid,
                                        const Numeric& F0,
                                        const Numeric& cutoff)
 {
-  const Index nf = f_grid.nelem();
+  auto nf = f_grid.size();
   
   const bool need_cutoff = (cutoff > 0);
-  if(need_cutoff)
-  {
+  if(need_cutoff) {
     // Find range of simulations
-    Index i_f_min = 0;
+    start_cutoff = 0;
     Index i_f_max = nf-1;
     
     // Loop over positions to compute the line shape cutoff point
-    while(i_f_min < nf and (F0 - cutoff) > f_grid[i_f_min])
-      ++i_f_min;
-    while(i_f_max >= i_f_min and (F0 + cutoff) < f_grid[i_f_max])
-      --i_f_max;
+    while(start_cutoff < nf and (F0 - cutoff) > f_grid[start_cutoff])  ++start_cutoff;
+    while(i_f_max >= start_cutoff and (F0 + cutoff) < f_grid[i_f_max]) --i_f_max;
     
     //  The extent is one more than the difference between the indices of interest
-    const Index extent = i_f_max - i_f_min + 1; // min is 0, max is nf
-    
-    range = Range(i_f_min, extent);
+    nelem_cutoff = i_f_max - start_cutoff + 1; // min is 0, max is nf
   }
-  else
-  {
-    range = Range(joker);
-  } 
-  return need_cutoff;
+  else {
+    start_cutoff = 0;
+    nelem_cutoff = nf;
+  }
 }
 
 
@@ -2112,10 +2086,10 @@ bool Linefunctions::find_cutoff_ranges(Range& range,
  * \param df_range Frequency range to use inside dF and dN
  * 
  */
-void Linefunctions::apply_linestrength_from_nlte_level_distributions(ComplexVectorView F, 
-                                                                     ComplexMatrixView dF, 
-                                                                     ComplexVectorView N, 
-                                                                     ComplexMatrixView dN, 
+void Linefunctions::apply_linestrength_from_nlte_level_distributions(Eigen::Ref<Eigen::VectorXcd> F,
+                                                                     Eigen::Ref<Eigen::MatrixXcd> dF,
+                                                                     Eigen::Ref<Eigen::VectorXcd> N,
+                                                                     Eigen::Ref<Eigen::MatrixXcd> dN,
                                                                      const Numeric& r1,
                                                                      const Numeric& r2,
                                                                      const Numeric& g1,
@@ -2128,8 +2102,7 @@ void Linefunctions::apply_linestrength_from_nlte_level_distributions(ComplexVect
                                                                      const QuantumIdentifier& quantum_identity)
 {
   // Size of the problem
-  const Index nf = F.nelem();
-  const Index nppd = derivatives_data_position.nelem();
+  auto nppd = derivatives_data_position.nelem();
   
   // Physical constants
   const static Numeric c0 = 2.0 * PLANCK_CONST / SPEED_OF_LIGHT / SPEED_OF_LIGHT;
@@ -2155,19 +2128,18 @@ void Linefunctions::apply_linestrength_from_nlte_level_distributions(ComplexVect
   // Emission strength
   const Numeric e = c3 * r2 * A21;
   
+  // Ratio between emission and absorption constant  
   const Numeric ratio = e/b - k;
   
+  // Constants ALMOST everywhere inside these loops
+  dN.noalias() = dF * ratio;
+  dF *= k;
+
   // Partial derivatives
-  for(Index iq=0; iq<nppd; iq++) {
-    if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature) { // nb.  Only here tou counter-act the latter on in
+  for(auto iq=0; iq<nppd; iq++) {
+    if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature) {
       Numeric done_over_b_dT = PLANCK_CONST*F0*exp_T/(c2*BOLTZMAN_CONST*T*T);
-      
-      // dN is unset so far.  It should return to just be lineshape later...
-      for(Index iv=0; iv<nf; iv++)
-        dN(iq, iv) = F[iv]*e*done_over_b_dT + dF(iq, iv)*ratio;
-      
-      // dk_dT = 0...
-      dF(iq, joker) *= k;
+      dN.row(iq).noalias() += F*e*done_over_b_dT;
     }
     else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
       if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity)) {
@@ -2175,660 +2147,27 @@ void Linefunctions::apply_linestrength_from_nlte_level_distributions(ComplexVect
         Numeric de_df0 = c1 * r2 * A21;
         Numeric dk_df0 = c1 * (r1*x - r2) * (A21 / c2) - 3.0*k/F0;
         
-        for(Index iv=0; iv<nf; iv++) {
-          dN(iq, iv) = F[iv]*(e*done_over_b_df0 + de_df0/b - dk_df0) + dF(iq, iv)*ratio;
-          dF(iq, iv) = dF(iq, iv)*k + F[iv]*dk_df0;
-        }
+        dN.row(iq).noalias() += F*(e*done_over_b_df0 + de_df0/b - dk_df0);
+        dF.row(iq).noalias() += F*dk_df0;
       }
     }
     else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::NLTE) {
       if(quantum_identity.LowerQuantumId() > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
         const Numeric dk_dr2 = - c3 * A21 / c2, de_dr2 = c3 * A21, dratio_dr2 = de_dr2/b - dk_dr2;
-        
-        for(Index iv=0; iv<nf; iv++) {
-          dN(iq, iv) = F[iv]*dratio_dr2;
-          dF(iq, iv) = F[iv]*dk_dr2 + dF(iq, iv)*k;
-        } 
+        dN.row(iq).noalias() = F*dratio_dr2;
+        dF.row(iq).noalias() += F*dk_dr2;
       }
       else if(quantum_identity.UpperQuantumId() > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
         const Numeric dk_dr1 = c3 * x * A21 / c2;
-        for(Index iv=0; iv<nf; iv++)
-          dF(iq, iv) = F[iv]*dk_dr1 + dF(iq, iv)*k;
+        dF.row(iq).noalias() += F*dk_dr1;
       }
-    }
-    else {
-      dN(iq, joker)  = dF(iq, joker);
-      dN(iq, joker) *= ratio;
-      dF(iq, joker) *= k;
     }
   }
   
   // Set source function to be the relative amount emitted by the line divided by the Planck function
-  N = F;
-  N *= ratio;
+  N.noalias() = F * ratio;
   
   // Set absorption
   F *= k;
 }
 
-
-Index Linefunctions::first_binary_level(const Numeric& dg, const Numeric& df, const Index N)
-{
-  const Numeric p = dg / df;
-  Index i = 0;
-  while(p > Numeric((1 << i) * N)) i++;  // nb, N is the minimum number of points within range of p
-  return i;
-}
-
-
-Numeric Linefunctions::binary_central_step_size(const Numeric& ds, const Index i, const Index i0)
-{
-  return ds * (1 << (i - i0));
-}
-
-
-Index Linefunctions::binary_frequency_position(const Numeric& df, 
-                                               const Numeric& dg,
-                                               const Numeric& f,
-                                               const Numeric& F0,
-                                               const Index n,
-                                               const Index dn)
-{
-  // Frequency equivalen Index 
-  const Numeric x = (F0 + dg - f) / df;
-  Index i;
-  if(x < 0)
-    i = 0;
-  else if(x > Numeric(n))
-    i = n-1;
-  else
-    i = Index(x);
-  
-  // Adjust position by grid
-  const Index DN = abs(dn);
-  const Index sgn = dn / DN;
-  while(i < n-1 and i > 0 and (i % 2 or i % DN)) i += sgn;
-  return i;
-}
-
-
-/*! Returns binary_speedup x 6 array of array of indexes
- * 
- * These indexes are defined such that:
- *       A[i][0] is the lower bound of the lower range
- *       A[i][1] is the upper bound of the lower range
- *       A[i][2] is the stepsize of lower range (used as a check)
- *       A[i][3] is the lower bound of the upper range
- *       A[i][4] is the upper bound of the upper range
- *       A[i][5] is the stepsize of upper range (used as a check)
- * 
- * Rules:
- *       0)     -1 is used to indicate that values do not exist except...
- * 
- *       1)     If A[i][3] =:= A[i][4] =:= A[i][5] =:= -1, 
- *       1)     but A[i][0] =!= A[i][1] =!= A[i][2] =!= -1, 
- *       1)     then the otherwise lower range values represents
- *       1)     a central range that is extrapolated, if 
- *       1)     possible, at both ends.  Note that these should also have 
- *       1)     A[i][0] % A[i][2] =:= A[i][1] % A[i][2] =:= 0
- * 
- *       2)     If A[i][3] =:= A[i][4] =:= A[i][5] =:= N, 
- *       2)     then there should be a linear interpolation from N 
- *       2)     to the upper edge.  Note that N == 1 + 2^binary_speedup
- *       2)     requires no interpolation!
- * 
- *       3)     If A[i][0] =:= A[i][1] =:= A[i][2] =:= N,
- *       3)     then there should be a linear interpolation from 0 to N.
- *       3)     Note that N == 0 requires no interpolation!
- * 
- *       4)     These are expected to be true in all other cases
- *              a) A[i][j] >= 0 and A[i][j] <= 2^binary_speedup
- *              b) A[i][3] := A[i-1][4] + A[i-1][5]; 
- *              c) A[i][0] := A[i-1][1] + A[i-1][2]; 
- *              d) A[i][5] := 2 * A[i-1][5]; 
- *              e) A[i][0] := 2 * A[i-1][2]; 
- *   
- */
-ArrayOfArrayOfIndex Linefunctions::binary_boundaries(const Numeric& F0, 
-                                                     const ConstVectorView& f_grid,
-                                                     const Numeric& G0,
-                                                     const Numeric& GD_div_F0,
-                                                     const Numeric& binary_speedup_coef,
-                                                     const Index binary_speedup,
-                                                     const Index binary_frequency_count,
-                                                     const Index steps)
-{
-  assert(steps > 1 and steps % 2);
-  
-  const Index& nf  = f_grid.nelem();
-  const Numeric ds = binary_speedup_coef * std::sqrt(GD_div_F0*GD_div_F0*F0*F0 + G0*G0);
-  
-  const Numeric df = f_grid[1] - f_grid[0];
-  const Index i0   = first_binary_level(binary_central_step_size(ds, 0, 0), df, binary_frequency_count);
-  
-  bool any_count=false;
-  Index l=-1, u=-1, ol=-1, ou=-1, stepsize=1<<i0;
-  ArrayOfArrayOfIndex A(binary_speedup, ArrayOfIndex(6, -1));
-  for(Index i=i0; i<binary_speedup; i++) {
-    if(i == binary_speedup - 1 and not any_count) {
-      A[i][0] = 0;
-      A[i][1] = nf-1;
-      A[i][2] = nf/2;
-    }
-    else if(i == i0) {
-      // Distance of a signle broadening
-      const Numeric dg = binary_central_step_size(ds, i, i0);
-      
-      // l is nf-1, 0, or a number inbetween
-      A[i][0] = l = ol = binary_frequency_position(df, -dg, f_grid[0], F0, nf, -stepsize);
-      
-      // u is nf-1, 0, or a number inbetween
-      A[i][1] = u = ou = binary_frequency_position(df, dg, f_grid[0], F0, nf, stepsize);
-      
-      // original stepsize
-      A[i][2] = stepsize;
-      
-      // Flag the others as -1 to indicate that this represents a central range
-      A[i][3] = A[i][4] = A[i][5] = -1;
-    }
-    else {
-      // The next steps ideally begins 1 old stepszie away
-      u = ou + stepsize;
-      l = ol - stepsize;
-      // Now we can double the stepsize
-      stepsize <<= 1;
-      
-      // Fix upper positions
-      if(u >= nf-1) {
-        // The upper range is already outside the range of importance so we set it to be zero-long value at it
-        A[i][3] = A[i][4] = ou;
-        ou = u = nf-1;
-        A[i][5] = 0;
-      }
-      else {  // There are relevant steps
-        if(ou == 0)
-          // the central range was outside the lower edge so we initialize calculations at position 0
-          // FIXME:  Should we use a distance-based beginning instead?
-          A[i][3] = u = 0;
-        else
-          // the range will be start at what is currently a half-step away from the previous range
-          A[i][3] = u;
-        
-        // The upper range should contain steps indexes above the beginning if possible
-        u = A[i][3] + (steps-1)*stepsize;
-        
-        // If this puts the range outside the reach of the grid, we move back a step at a time
-        while(u >= nf) u -= stepsize;
-        
-        if(A[i][3] == u)
-          // If these numbers are the same, then this is the point that will be used to interpolate to the upper edge
-          A[i][4] = A[i][5] = ou = u = A[i][3];
-        else {
-          // Otherwise we have at least 2 points and we move on
-          A[i][4] = ou = u;
-          A[i][5] = stepsize;
-        }
-      }
-
-      // Fix lower positions
-      if(l <= 0) {
-        // The lower range is already at the limit and will not do anything more
-        A[i][0] = A[i][1] = ol;
-        A[i][2] = 0;
-        l = ol = 0;
-      }
-      else {
-        if(ol >= nf-1)
-          // the central range was outside the upper edge so we initialize calculations at position nf-1
-          // FIXME:  Should we use a distance-based beginning instead?
-          A[i][1] = l = nf-1;
-        else
-          // the range will be start at what is currently a half-step away from the previous range
-          A[i][1] = l;
-        
-        // The lower range should contain steps indexes below the current one if possible
-        l = A[i][1] - (steps-1)*stepsize;
-        
-        // Increment by stepsize until we are within the range of f_grid
-        while(l < 0) l += stepsize;
-        
-        if(A[i][1] == l) {
-          // We have reached the point where we need a linear interpolation to the lower edge
-          A[i][0] = A[i][2] = ol = l = A[i][1];
-        }
-        else{
-          // Otherwise we have at least 2 points and we move on
-          A[i][0] = ol = l;
-          A[i][2] = stepsize;
-        }
-      }
-    }
-    
-    if(l not_eq u)
-      any_count = true;
-  }
-  
-  return A;
-}
-
-
-/*! Lagrange functions for even-spaced functions
- * 
- * [y1 ··· yN] are assumed found for values of x between [0 ··· N-1], where x1 gets y1 and so on.
- * 
- * Code copy-pasted from sympy so errors are possible
- */ 
-inline Complex evenspaced_interp_9point_lagrange(const Numeric& x, const Complex& y1, const Complex& y2,
-                                                 const Complex& y3, const Complex& y4, const Complex& y5,
-                                                 const Complex& y6, const Complex& y7, const Complex& y8,
-                                                 const Complex& y9) noexcept
-{
-  return 
-  + y1 * (  (x - 8)*(x - 7)*(x - 6)*(x - 5)*(x - 4)*(x - 3)*(x - 2)*(x - 1) / 40320)
-  - y2 * (x*(x - 8)*(x - 7)*(x - 6)*(x - 5)*(x - 4)*(x - 3)*(x - 2)         / 5040)
-  + y3 * (x*(x - 8)*(x - 7)*(x - 6)*(x - 5)*(x - 4)*(x - 3)*        (x - 1) / 1440)
-  - y4 * (x*(x - 8)*(x - 7)*(x - 6)*(x - 5)*(x - 4)*        (x - 2)*(x - 1) / 720)
-  + y5 * (x*(x - 8)*(x - 7)*(x - 6)*(x - 5)*        (x - 3)*(x - 2)*(x - 1) / 576)
-  - y6 * (x*(x - 8)*(x - 7)*(x - 6)*        (x - 4)*(x - 3)*(x - 2)*(x - 1) / 720)
-  + y7 * (x*(x - 8)*(x - 7)*        (x - 5)*(x - 4)*(x - 3)*(x - 2)*(x - 1) / 1440)
-  - y8 * (x*(x - 8)*        (x - 6)*(x - 5)*(x - 4)*(x - 3)*(x - 2)*(x - 1) / 5040)
-  + y9 * (x*        (x - 7)*(x - 6)*(x - 5)*(x - 4)*(x - 3)*(x - 2)*(x - 1) / 40320);
-}
-inline Complex evenspaced_interp_8point_lagrange(const Numeric& x, const Complex& y1, const Complex& y2,
-                                                 const Complex& y3, const Complex& y4, const Complex& y5,
-                                                 const Complex& y6, const Complex& y7, const Complex& y8) noexcept
-{
-  return
-  - y1 * (  (x - 7)*(x - 6)*(x - 5)*(x - 4)*(x - 3)*(x - 2)*(x - 1) / 5040)
-  + y2 * (x*(x - 7)*(x - 6)*(x - 5)*(x - 4)*(x - 3)*(x - 2)         / 720)
-  - y3 * (x*(x - 7)*(x - 6)*(x - 5)*(x - 4)*(x - 3)*        (x - 1) / 240)
-  + y4 * (x*(x - 7)*(x - 6)*(x - 5)*(x - 4)*        (x - 2)*(x - 1) / 144)
-  - y5 * (x*(x - 7)*(x - 6)*(x - 5)*        (x - 3)*(x - 2)*(x - 1) / 144)
-  + y6 * (x*(x - 7)*(x - 6)*        (x - 4)*(x - 3)*(x - 2)*(x - 1) / 240)
-  - y7 * (x*(x - 7)*        (x - 5)*(x - 4)*(x - 3)*(x - 2)*(x - 1) / 720)
-  + y8 * (x*        (x - 6)*(x - 5)*(x - 4)*(x - 3)*(x - 2)*(x - 1) / 5040);
-}
-inline Complex evenspaced_interp_7point_lagrange(const Numeric& x, const Complex& y1, const Complex& y2,
-                                                 const Complex& y3, const Complex& y4, const Complex& y5,
-                                                 const Complex& y6, const Complex& y7) noexcept
-{
-  return
-  + y1 * (  (x - 6)*(x - 5)*(x - 4)*(x - 3)*(x - 2)*(x - 1) / 720)
-  - y2 * (x*(x - 6)*(x - 5)*(x - 4)*(x - 3)*(x - 2)         / 120) 
-  + y3 * (x*(x - 6)*(x - 5)*(x - 4)*(x - 3)*        (x - 1) / 48)
-  - y4 * (x*(x - 6)*(x - 5)*(x - 4)*        (x - 2)*(x - 1) / 36)
-  + y5 * (x*(x - 6)*(x - 5)*        (x - 3)*(x - 2)*(x - 1) / 48)
-  - y6 * (x*(x - 6)*        (x - 4)*(x - 3)*(x - 2)*(x - 1) / 120)
-  + y7 * (x*        (x - 5)*(x - 4)*(x - 3)*(x - 2)*(x - 1) / 720);
-}
-inline Complex evenspaced_interp_6point_lagrange(const Numeric& x, const Complex& y1, const Complex& y2,
-                                                 const Complex& y3, const Complex& y4, const Complex& y5,
-                                                 const Complex& y6) noexcept
-{
-  return
-  - y1 * (  (x - 5)*(x - 4)*(x - 3)*(x - 2)*(x - 1) / 120)
-  + y2 * (x*(x - 5)*(x - 4)*(x - 3)*(x - 2)         / 24)
-  - y3 * (x*(x - 5)*(x - 4)*(x - 3)*        (x - 1) / 12)
-  + y4 * (x*(x - 5)*(x - 4)*        (x - 2)*(x - 1) / 12)
-  - y5 * (x*(x - 5)*        (x - 3)*(x - 2)*(x - 1) / 24)
-  + y6 * (x*        (x - 4)*(x - 3)*(x - 2)*(x - 1) / 120);
-}
-inline Complex evenspaced_interp_5point_lagrange(const Numeric& x, const Complex& y1, const Complex& y2,
-                                                 const Complex& y3, const Complex& y4, const Complex& y5) noexcept
-{
-  return
-  + y1 * (  (x - 4)*(x - 3)*(x - 2)*(x - 1) / 24)
-  - y2 * (x*(x - 4)*(x - 3)*(x - 2)         / 6)
-  + y3 * (x*(x - 4)*(x - 3)*        (x - 1) / 4)
-  - y4 * (x*(x - 4)*        (x - 2)*(x - 1) / 6)
-  + y5 * (x*        (x - 3)*(x - 2)*(x - 1) / 24);
-}
-inline Complex evenspaced_interp_4point_lagrange(const Numeric& x, const Complex& y1, const Complex& y2,
-                                                 const Complex& y3, const Complex& y4) noexcept
-{
-  return
-  - y1 * (  (x - 3)*(x - 2)*(x - 1) / 6)
-  + y2 * (x*(x - 3)*(x - 2)         / 2)
-  - y3 * (x*(x - 3)*        (x - 1) / 2)
-  + y4 * (x*        (x - 2)*(x - 1) / 6);
-}
-inline Complex evenspaced_interp_3point_lagrange(const Numeric& x, const Complex& y1, const Complex& y2,
-                                                 const Complex& y3) noexcept
-{
-  return
-  + y1 * (  (x - 2)*(x - 1) / 2)
-  - y2 * (x*(x - 2))
-  + y3 * (x*        (x - 1) / 2);
-}
-inline Complex evenspaced_interp_2point_lagrange(const Numeric& x, const Complex& y1, const Complex& y2) noexcept
-{
-  return y1 + (y2-y1)*x;
-}
-
-
-inline void central_binary_interpolation_step(ComplexVectorView f, const Index& l, const Index& u, const Index& s) noexcept
-{
-  const Index nf = f.nelem();
-  
-  // Stepsize
-  const Numeric dx=1.0/Numeric(s);
-  Numeric x;  // stepper
-  
-  // Are there values to extrapolate for "anchoring" the interpolation
-  const bool upper_extrapolation = u + s <= nf-1;
-  const bool lower_extrapolation = l - s >= 0;
-  const Index nelem = 1 + (u - l) / s;
-  
-  if(u < 1 or l > nf-2 or s == 1) {
-    // Do nothing if the range is far away or is the main range
-  }
-  else if(nelem == 1) {
-    // These functions must have extrapolation on either side to do anything in the end
-    
-    x = dx;
-    
-    // When both upper and lower extrapolation points are included, there are 3 points and the interpolation should be between these three
-    if(upper_extrapolation and lower_extrapolation) {
-      const Complex &y1=f[l-s], &y2=f[l], &y3=f[u+s];
-      for(Index i = l - s + 1; i < u + s; i++) {
-        if(i not_eq l)
-          f[i] = evenspaced_interp_3point_lagrange(x, y1, y2, y3);
-        x += dx;
-      }
-    }
-    
-    // When only the upper or lower extrapolation point is available, then we can only perform linera interpolation
-    else if(upper_extrapolation) {
-      const Complex &y1=f[u], &y2=f[u+s];
-      for(Index i = l + 1; i < u + s; i++) {
-        f[i] = evenspaced_interp_2point_lagrange(x, y1, y2);
-        x += dx;
-      }
-    }
-    else if(lower_extrapolation) {
-      const Complex &y1=f[l-s], &y2=f[l];
-      for(Index i = l - s + 1; i < u; i++) {
-        f[i] = evenspaced_interp_2point_lagrange(x, y1, y2);
-        x += dx;
-      }
-    }
-  }
-  else if(nelem == 2) {
-    // These functions must be interpolated between eachother and also to the available extrapolation points
-    
-    x = dx;
-    
-    // When both extrapolation points are available, there are four points to interpolate between
-    if(upper_extrapolation and lower_extrapolation) {
-      const Complex &y1=f[l-s], &y2=f[l], &y3=f[u], &y4=f[u+s];
-      for(Index i = l - s + 1; i < u + s; i++) {
-        if(i not_eq l and i not_eq u)
-          f[i] = evenspaced_interp_4point_lagrange(x, y1, y2, y3, y4);
-        x += dx;
-      }
-    }
-    
-    // When only upper or lower exists outside the range, then there are only three points to interpolate between
-    else if(upper_extrapolation) {
-      const Complex &y1=f[l], &y2=f[u], &y3=f[u+s];
-      for(Index i = l + 1; i < u + s; i++) {
-        if(i not_eq u)
-          f[i] = evenspaced_interp_3point_lagrange(x, y1, y2, y3);
-        x += dx;
-      }
-    }
-    else if(lower_extrapolation) {
-      const Complex &y1=f[l-s], &y2=f[l], &y3=f[u];
-      for(Index i = l - s + 1; i < u; i++) {
-        if(i not_eq l)
-          f[i] = evenspaced_interp_3point_lagrange(x, y1, y2, y3);
-        x += dx;
-      }
-    }
-    
-    // Otherwise we have only linear interpolation between the available points
-    else {
-      const Complex &y1=f[l], &y2=f[u];
-      for(Index i = l + 1; i < u; i++) {
-        f[i] = evenspaced_interp_2point_lagrange(x, y1, y2);
-        x += dx;
-      }
-    }
-  }
-  else {
-    // With more than three points, we can use the interpolation regime at the center of four points
-    // for the internals, and only extrapolate to the outer ranges from the closes two internals
-    // We already know that there are enough points internally if the extrapolation points are available
-    
-    // Interpolate at X in "l|X|X| |" or "|X| |", where l| is the lower extrapolation point
-    if(lower_extrapolation) {
-      x = dx;
-      const Complex &y1=f[l-s], &y2=f[l], &y3=f[l+s], &y4=f[l+2*s];
-      for(Index i = l - s + 1; i < l+s; i++) {
-        if(i not_eq l)
-          f[i] = evenspaced_interp_4point_lagrange(x, y1, y2, y3, y4);
-        x += dx;
-      }
-    }
-    else {
-      x = dx;
-      const Complex &y1=f[l], &y2=f[l+s], &y3=f[l+2*s];
-      for(Index i = l + 1; i < l + s; i++) {
-        f[i] = evenspaced_interp_3point_lagrange(x, y1, y2, y3);
-        x += dx;
-      }
-    }
-    
-    // Interpolate at X in "| |X|X|u" or "| |X|", where |u is the upper extrapolation point
-    if(upper_extrapolation) {
-      x = 1.0 + dx;
-      const Complex &y1=f[u-2*s], &y2=f[u-s], &y3=f[u], &y4=f[u+s];
-      for(Index i = u - s + 1; i < u + s; i++) {
-        if(i not_eq u)
-          f[i] = evenspaced_interp_4point_lagrange(x, y1, y2, y3, y4);
-        x += dx;
-      }
-    }
-    else {
-      x = 1.0 + dx;
-      const Complex &y1=f[u-2*s], &y2=f[u-s], &y3=f[u];
-      for(Index i = u - s + 1; i < u; i++) {
-        if(i not_eq u)
-          f[i] = evenspaced_interp_3point_lagrange(x, y1, y2, y3);
-        x += dx;
-      }
-    }
-    
-    // Interpolation between all internal points happen at X in "| |X| |"
-    for(Index j=1; j<nelem-1; j++) {
-      const Index p = l + j*s;
-      const Complex &y1=f[p-s], &y2=f[p], &y3=f[p+s], &y4=f[p+2*s];
-      x = 1.0 + dx;
-      for(Index i = p + 1; i < p + s; i++) {
-        f[i] = evenspaced_interp_4point_lagrange(x, y1, y2, y3, y4);
-        x += dx;
-      }
-    }
-  }
-}
-
-
-inline void lower_binary_interpolation_step(ComplexVectorView f, const Index& l, const Index& u, const Index& s) noexcept
-{
-  if(l == u and s == 0 and l) {
-    // The stepsize in relative Numerical values
-    const Numeric dx = 1.0 / Numeric(l);
-    Numeric x = dx;  // interpolation coefficient
-    
-    // The lower range is to be extrapolated from 0 to l
-    Complex &y1=f[0], &y2=f[l];
-    for(Index i=1; i<l; i++) {
-      f[i] = evenspaced_interp_2point_lagrange(x, y1, y2);
-      x += dx;
-    }
-  }
-  else {
-    // This is a normal range that has to be interpolated from start to finish
-    
-    // The stepsize in relative Numerical values
-    const Numeric dx = 1.0 / Numeric(s);
-    Numeric x = dx;  // interpolation coefficient
-    
-    // Is the extrapolation point below available?
-    const bool lower_extrapolation = l-s >= 0;
-    
-    // There is one extra point if there is a lower extrapolation point
-    const Index nelem = (u-l) / s + 1 + (lower_extrapolation?1:0);
-    
-    // We need the start to be a stepsize below if the lower extrapolation point is there
-    const Index start = l - (lower_extrapolation?s:0);
-    
-    // We sadly need special rules for the number of points here so that the references can be set ahead of the loop...
-    if(nelem == 2) {
-      const Complex &y1=f[start], &y2=f[start+s];
-      for(Index i=start+1; i<u; i++) {
-        f[i] = evenspaced_interp_2point_lagrange(x, y1, y2);
-        x += dx;
-      }
-    }
-    else if(nelem == 3) {
-      const Complex &y1=f[start], &y2=f[start+s], &y3=f[start+s+s];
-      for(Index i=start+1; i<u; i++) {
-        f[i] = evenspaced_interp_3point_lagrange(x, y1, y2, y3);
-        x += dx;
-      }
-    }
-    else if(nelem == 4) {
-      const Complex &y1=f[start], &y2=f[start+s], &y3=f[start+s+s], &y4=f[start+s+s+s];
-      for(Index i=start+1; i<u; i++) {
-        f[i] = evenspaced_interp_4point_lagrange(x, y1, y2, y3, y4);
-        x += dx;
-      }
-    }
-    /* else if(nelem == 5) add these if the code changes later */
-  }
-}
-
-
-inline void upper_binary_interpolation_step(ComplexVectorView f, const Index& l, const Index& u, const Index& s) noexcept
-{
-  const Index nf=f.nelem();
-  
-  if(l == u and s == 0 and l) {
-    // The stepsize in relative Numerical values
-    const Numeric dx = 1.0 / Numeric(nf-l);
-    Numeric x = dx;  // interpolation coefficient
-    
-    // The upper range is to be extrapolated from u to nf
-    Complex &y1=f[l], &y2=f[nf-1];
-    for(Index i=l+1; i<nf; i++) {
-      f[i] = evenspaced_interp_2point_lagrange(x, y1, y2);
-      x += dx;
-    }
-  }
-  else {
-    // This is a normal range that has to be interpolated from start to finish
-    
-    // The stepsize in relative Numerical values
-    const Numeric dx = 1.0 / Numeric(s);
-    Numeric x = dx;  // interpolation coefficient
-    
-    // Is the extrapolation point above available?
-    const bool upper_extrapolation = u+s < nf;
-    
-    // There is one extra point if there is a upper extrapolation point
-    const Index nelem = (u-l) / s + 1 + (upper_extrapolation?1:0);
-    
-    // We need the end to be a stepsize above if the upper extrapolation point is there
-    const Index end = u + (upper_extrapolation?s:0);
-    
-    // We sadly need special rules for the number of points here so that the references can be set ahead of the loop...
-    if(nelem == 2) {
-      const Complex &y1=f[l], &y2=f[l+s];
-      for(Index i=l+1; i<end; i++) {
-        f[i] = evenspaced_interp_2point_lagrange(x, y1, y2);
-        x += dx;
-      }
-    }
-    else if(nelem == 3) {
-      const Complex &y1=f[l], &y2=f[l+s], &y3=f[l+s+s];
-      for(Index i=l+1; i<end; i++) {
-        f[i] = evenspaced_interp_3point_lagrange(x, y1, y2, y3);
-        x += dx;
-      }
-    }
-    else if(nelem == 4) {
-      const Complex &y1=f[l], &y2=f[l+s], &y3=f[l+s+s], &y4=f[l+s+s+s];
-      for(Index i=l+1; i<end; i++) {
-        f[i] = evenspaced_interp_4point_lagrange(x, y1, y2, y3, y4);
-        x += dx;
-      }
-    }
-    /* else if(nelem == 5) add these if the code changes later */
-  }
-}
-
-
-inline void binary_interpolation_step(ComplexVectorView f, const ArrayOfIndex& bounds) noexcept
-{
-  const Index lupp=bounds[3], uupp=bounds[4], supp=bounds[5];  // Upper range
-  const Index llow=bounds[0], ulow=bounds[1], slow=bounds[2];  // Lower range
-  const Index nf = f.nelem();
-  
-  if(llow == -1 and ulow == -1 and slow == -1) {
-    /* Nothing happens here because the range is considered too dense for the given grid */ 
-  }
-  else if(lupp == -1 and uupp == -1 and supp == -1) {
-    central_binary_interpolation_step(f, llow, ulow, slow);
-  }
-  else {
-    if(llow < nf and llow >= 0 and ulow)
-      lower_binary_interpolation_step(f, llow, ulow, slow);
-    if(uupp >= 0 and uupp < nf)
-      upper_binary_interpolation_step(f, lupp, uupp, supp);
-  }
-}
-
-
-void Linefunctions::binary_interpolation(ComplexVectorView f, const ArrayOfArrayOfIndex& binary_bounds)
-{
-  for(const ArrayOfIndex& bounds : binary_bounds) {
-    assert(bounds.nelem() == 6);
-    assert(f.nelem() > bounds[0]); assert(f.nelem() > bounds[1]); assert(f.nelem() > bounds[2]);
-    assert(f.nelem() > bounds[3]); assert(f.nelem() > bounds[4]); assert(f.nelem() > bounds[5]);
-    binary_interpolation_step(f, bounds);
-  }
-}
-
-
-Range Linefunctions::binary_level_range(const ArrayOfArrayOfIndex& binary_bounds, const Index nf, const Index i, const bool lower_range)
-{
-  assert(i < binary_bounds.nelem());
-  Index l, u, s;
-  
-  if(lower_range) {
-    l = binary_bounds[i][0];
-    u = binary_bounds[i][1];
-    s = binary_bounds[i][2];
-  }
-  else {
-    l = binary_bounds[i][3];
-    u = binary_bounds[i][4];
-    s = binary_bounds[i][5];
-  }
-  
-  if(l == -1 and u == -1 and s == -1)
-    return Range(0, 0);
-  else if(lower_range and l == u and s == 0 and l not_eq 0)
-    return Range(0, 1);
-  else if(lower_range and l == nf-1)
-    return Range(nf-1, 0);
-  else if(not lower_range and l == nf-1)
-    return Range(nf-1, 0);
-  else if(not lower_range and l == u and s == 0)
-    return Range(nf-1, 1);
-  else if(s==0)
-    return Range(0, 0);
-  else
-    return Range(l, 1 + (u-l)/s, s);
-}

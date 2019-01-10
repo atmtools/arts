@@ -26,7 +26,6 @@ Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field)
 
 IndexSet( stokes_dim, 1 )
-IndexSet( xsec_speedup_switch, 0 )
 
 VectorNLogSpace( p_grid, 41, 1000e2, 1 )
 VectorNLinSpace( lat_grid, 2, -60, 60)
