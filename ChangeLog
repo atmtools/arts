@@ -1,5 +1,18 @@
 2019-01-16  Richard Larsson  <larsson@mps.mpg.de>
 
+	* arts-2-3-1197
+	
+	* src/absorption.cc: Made xsec_species2 parallel.  Still buggy.
+	Reduces time of execution of TestNLTE.arts (the test with the
+	most lines using xsec_species2) from 6 sec single thread down
+	to 2 sec for -n6, but increases time instead for -n8 up to 9 sec.
+	I have no idea what is going on here, but the code is much faster
+	when it actually works (and I have not managed to induce an error).
+	The parallelization is achieved by creating a summing-variable that
+	is reset every level (this might be subotimal, but it works)
+
+2019-01-16  Richard Larsson  <larsson@mps.mpg.de>
+
 	* arts-2-3-1196
 	
 	* controlfiles/artscomponents/cia/tests/dpropmat.xml:

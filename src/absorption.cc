@@ -2130,14 +2130,15 @@ void xsec_species2(Matrix& xsec,
   if(not np or not nf or not nl)
     return;
   
-  // Results vectors are initialized first and then copied to the threads later
-  Eigen::VectorXcd F(nf);
-  Eigen::MatrixXcd dF(nf, nj);
-  Eigen::VectorXcd N(nf);
-  Eigen::MatrixXcd dN(nf, nj);
-  Eigen::Matrix<Complex, Eigen::Dynamic, Linefunctions::ExpectedDataSize()> data(nf, Linefunctions::ExpectedDataSize());
+  // Move the problem to Eigen-library types
   const auto f_grid_eigen = MapToEigen(f_grid);
-  Index start, nelem;
+  
+  // Parallelization data holder (skip if in parallel or there are too few threads)
+  const Index nthread = arts_omp_in_parallel() ? 1 : arts_omp_get_max_threads() < nl ? arts_omp_get_max_threads() : 1;
+  std::vector<Eigen::VectorXcd>  Fsum(nthread, Eigen::VectorXcd(nf));
+  std::vector<Eigen::MatrixXcd> dFsum(nthread, Eigen::MatrixXcd(nf, nj));
+  std::vector<Eigen::VectorXcd>  Nsum(nthread, Eigen::VectorXcd(nf));
+  std::vector<Eigen::MatrixXcd> dNsum(nthread, Eigen::MatrixXcd(nf, nj));
   
   for(Index ip = 0; ip < np; ip++) {
     // Constants for this level
@@ -2150,7 +2151,27 @@ void xsec_species2(Matrix& xsec,
     Numeric t0 = -1; // line temperature
     Numeric dc=0, ddc_dT=0, qt=0, qt0=1, dqt_dT=0; // Doppler and partition functions
     
-    for(const auto& line: abs_lines) {
+    // Reset sum-operators
+    for(Index ithread=0; ithread<nthread; ithread++) {
+      Fsum[ithread].setZero();
+      dFsum[ithread].setZero();
+      Nsum[ithread].setZero();
+      dNsum[ithread].setZero();
+    }
+    
+    #pragma omp parallel for if(nthread > 1) \
+    schedule(guided, 4) \
+    firstprivate(this_iso, t0, dc, ddc_dT, qt, qt0, dqt_dT)
+    for(Index il=0; il<abs_lines.nelem(); il++) {
+      const auto& line = abs_lines[il];
+      
+      // Local compute variables
+      thread_local Eigen::VectorXcd F(nf);
+      thread_local Eigen::MatrixXcd dF(nf, nj);
+      thread_local Eigen::VectorXcd N(nf);
+      thread_local Eigen::MatrixXcd dN(nf, nj);
+      thread_local Eigen::Matrix<Complex, Eigen::Dynamic, Linefunctions::ExpectedDataSize()> data(nf, Linefunctions::ExpectedDataSize());
+      thread_local Index start, nelem;
       
       // Partition function depends on isotopologue and line temperatures.
       // Both are commonly constant in a single catalog.  They are, however,
@@ -2183,23 +2204,34 @@ void xsec_species2(Matrix& xsec,
         isotopologue_ratios.getParam(line.Species(), this_iso)[0].data[0],
         0.0, ddc_dT, qt, dqt_dT, qt0, abs_species, this_species, 0);
       
+      auto ithread = arts_omp_get_thread_num();
+      Fsum[ithread].segment(start, nelem).noalias() += F.segment(start, nelem);
+      dFsum[ithread].middleRows(start, nelem).noalias() += dF.middleRows(start, nelem);
+      if(do_nonlte) {
+        Nsum[ithread].segment(start, nelem).noalias() += N.segment(start, nelem);
+        dNsum[ithread].middleRows(start, nelem).noalias() += dN.middleRows(start, nelem);
+      }
+    }
+    
+    // Sum all the threaded results
+    for(Index ithread=0; ithread<nthread; ithread++) {
       // absorption cross-section
-      MapToEigen(xsec).col(ip).segment(start, nelem).noalias() += F.segment(start, nelem).real();
+      MapToEigen(xsec).col(ip).noalias() += Fsum[ithread].real();
       for(Index j=0; j<nj; j++)
-        MapToEigen(dxsec_dx[j]).col(ip).segment(start, nelem).noalias() += dF.col(j).segment(start, nelem).real();
+        MapToEigen(dxsec_dx[j]).col(ip).noalias() += dFsum[ithread].col(j).real();
       
       // phase cross-section
       if(not phase.empty()) {
-        MapToEigen(phase).col(ip).segment(start, nelem).noalias() += F.segment(start, nelem).imag();
+        MapToEigen(phase).col(ip).noalias() += Fsum[ithread].imag();
         for(Index j=0; j<nj; j++)
-          MapToEigen(dphase_dx[j]).col(ip).segment(start, nelem).noalias() += dF.col(j).segment(start, nelem).imag();
+          MapToEigen(dphase_dx[j]).col(ip).noalias() += dFsum[ithread].col(j).imag();
       }
       
       // source ratio cross-section
       if(do_nonlte) {
-        MapToEigen(source).col(ip).segment(start, nelem).noalias() += N.segment(start, nelem).real();
+        MapToEigen(source).col(ip).noalias() += Nsum[ithread].real();
         for(Index j=0; j<nj; j++)
-          MapToEigen(dsource_dx[j]).col(ip).segment(start, nelem).noalias() += dN.col(j).segment(start, nelem).real();
+          MapToEigen(dsource_dx[j]).col(ip).noalias() += dNsum[ithread].col(j).real();
       }
     }
   }
