@@ -1,5 +1,13 @@
 2019-01-16  Richard Larsson  <larsson@mps.mpg.de>
 
+	* arts-2-3-1198
+	
+	* src/absorption.cc:  Eigen debug flags under debug-build mode
+	apparently throws an error here instead of referencing nothing,
+	as it does on release-mode.  This update should fix Hudson
+
+2019-01-16  Richard Larsson  <larsson@mps.mpg.de>
+
 	* arts-2-3-1197
 	
 	* src/absorption.cc: Made xsec_species2 parallel.  Still buggy.

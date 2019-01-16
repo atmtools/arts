@@ -2124,6 +2124,7 @@ void xsec_species2(Matrix& xsec,
   
   // Type of problem
   const bool do_nonlte = nt;
+  const bool do_jacobi = nj;
   const bool do_temperature = do_temperature_jacobian(jacobian_quantities);
   
   // Test if the size of the problem is 0
@@ -2206,11 +2207,12 @@ void xsec_species2(Matrix& xsec,
       
       auto ithread = arts_omp_get_thread_num();
       Fsum[ithread].segment(start, nelem).noalias() += F.segment(start, nelem);
-      dFsum[ithread].middleRows(start, nelem).noalias() += dF.middleRows(start, nelem);
-      if(do_nonlte) {
+      if(do_jacobi)
+        dFsum[ithread].middleRows(start, nelem).noalias() += dF.middleRows(start, nelem);
+      if(do_nonlte)
         Nsum[ithread].segment(start, nelem).noalias() += N.segment(start, nelem);
+      if(do_nonlte and do_jacobi)
         dNsum[ithread].middleRows(start, nelem).noalias() += dN.middleRows(start, nelem);
-      }
     }
     
     // Sum all the threaded results
