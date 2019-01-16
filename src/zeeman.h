@@ -58,5 +58,4 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
                        const Index& manual_zeeman_tag,
                        const Numeric& manual_zeeman_magnetic_field_strength,
                        const Numeric& manual_zeeman_theta,
-                       const Numeric& manual_zeeman_eta,
-                       const Verbosity& verbosity);
+                       const Numeric& manual_zeeman_eta);

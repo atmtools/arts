@@ -3606,8 +3606,7 @@ void abs_xsec_per_speciesAddLines2(// WS Output:
                     i,
                     ll,
                     isotopologue_ratios,
-                    partition_functions,
-                    verbosity);
+                    partition_functions);
     }
     
     if (out3.sufficient_priority())

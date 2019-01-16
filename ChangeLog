@@ -1,3 +1,29 @@
+2019-01-16  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1196
+	
+	* controlfiles/artscomponents/cia/tests/dpropmat.xml:
+	* controlfiles/artscomponents/lineshapes/testdata/test-doppler/dpropmat.xml:
+	In this update, some 1e-297 values are 0, and other values close to 1e-297
+	are changed, so the test failed, requiring a change.  Also, the cia deriv
+	test case seems particularly sensitive to changes for some reasons...
+	
+	* src/absorption.cc,h,src/m_abs.cc: Changed interface to xse_species2 by
+	removing verbosity, which was not used anyways.  Also reacting to 
+	changes in Linefunction-namespace
+	
+	* src/m_linemixing.cc,src/m_zeeman.cc,src/zeeman.cc,h:  Reacting to
+	changes in Linefunction-namespace
+	
+	* src/linefunctions.cc,h: Changed so there is a data-variable input
+	to some of the functions to have as a compute-variable.  Changed also
+	so many functions are operating on Eigen-variables directly to make the
+	functions easier to read.  Changed also so that the N and dN variables
+	have to be set to  use the function so that less strange tests have to
+	be performed.  Changed also so dF and dN have frequency grids on the row
+	because that's supposed to be better for Eigen (it removes the need for
+	strange .transform())
+
 2019-01-10  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1195

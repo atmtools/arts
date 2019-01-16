@@ -122,8 +122,7 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
                        const Index& manual_zeeman_tag,
                        const Numeric& manual_zeeman_magnetic_field_strength,
                        const Numeric& manual_zeeman_theta,
-                       const Numeric& manual_zeeman_eta,
-                       const Verbosity& verbosity)
+                       const Numeric& manual_zeeman_eta)
 {
   extern const Numeric DEG2RAD;
   
@@ -142,11 +141,12 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
   
   // Main compute vectors
   Eigen::VectorXcd F(nf);
-  Eigen::MatrixXcd dF(nq, nf);
-  Eigen::VectorXcd N(nn ? nf : 0);
-  Eigen::MatrixXcd dN(nn ? nq : 0, nf);
-  Index start, nelem;
+  Eigen::MatrixXcd dF(nf, nq);
+  Eigen::VectorXcd N(nf);
+  Eigen::MatrixXcd dN(nf, nq);
+  Eigen::MatrixXcd data(nf, Linefunctions::ExpectedDataSize());
   const auto f_grid_eigen = MapToEigen(f_grid);
+  Index start, nelem;
   
   // Magnetic field variables
   const Numeric u = rtp_mag[0];
@@ -205,11 +205,11 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
         }
         
         for(Index iz=0; iz<line.ZeemanEffect().nelem(); iz++) {
-          Linefunctions::set_cross_section_for_single_line(F, dF, N, dN, start, nelem, f_grid_eigen, line,
+          Linefunctions::set_cross_section_for_single_line(F, dF, N, dN, data, start, nelem, f_grid_eigen, line,
                                                            flag_partials, flag_partials_positions, rtp_vmrs, 
                                                            rtp_nlte, rtp_pressure, rtp_temperature, dc, partial_pressure, 
                                                            isotop_ratio, H, ddc_dT, qt, dqt_dT, qt0,
-                                                           abs_species, ispecies, iz, verbosity);
+                                                           abs_species, ispecies, iz);
           
           auto F_seg =      F.segment(start, nelem);
           auto pol_real = polarization_scale.head<4>();
@@ -220,7 +220,7 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
           MapToEigen(abs).leftCols<4>().middleRows(start, nelem).noalias() += numdens * F_seg.real() * pol_real;
           MapToEigen(abs).rightCols<3>().middleRows(start, nelem).noalias() += numdens * F_seg.imag() * pol_imag;
           for(Index j=0; j<nq; j++) {
-            auto dF_seg =      dF.row(j).segment(start, nelem).transpose();
+            auto dF_seg =      dF.col(j).segment(start, nelem);
             auto dabs = dpropmat_clearsky_dx[j].GetData()(0, 0, joker, joker);
             
             if(flag_partials[flag_partials_positions[j]] == JacPropMatType::Temperature) {
@@ -269,7 +269,7 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
             
             MapToEigen(nlte_src).leftCols<4>().middleRows(start, nelem).noalias() += B * numdens * N_seg.real() * pol_real;
             for(Index j=0; j<nq; j++) {
-              auto dN_seg = dN.row(j).segment(start, nelem).transpose();
+              auto dN_seg = dN.col(j).segment(start, nelem);
               auto dnlte_dx_src = dnlte_dx_source[j].GetData()(0, 0, joker, joker);
               auto nlte_dsrc_dx = nlte_dsource_dx[j].GetData()(0, 0, joker, joker);
               

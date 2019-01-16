@@ -2113,8 +2113,7 @@ void xsec_species2(Matrix& xsec,
                    const Index this_species,
                    const ArrayOfLineRecord& abs_lines,
                    const SpeciesAuxData& isotopologue_ratios,
-                   const SpeciesAuxData& partition_functions,
-                   const Verbosity& verbosity)
+                   const SpeciesAuxData& partition_functions)
 {
   // Size of problem
   const Index np = abs_p.nelem();                      // number of pressure levels
@@ -2124,7 +2123,7 @@ void xsec_species2(Matrix& xsec,
   const Index nt = source.nrows();                     // number of energy levels in NLTE
   
   // Type of problem
-  const bool do_nonlte = nt;                 // source return is requested only if there are energy levels in NLTE
+  const bool do_nonlte = nt;
   const bool do_temperature = do_temperature_jacobian(jacobian_quantities);
   
   // Test if the size of the problem is 0
@@ -2133,9 +2132,10 @@ void xsec_species2(Matrix& xsec,
   
   // Results vectors are initialized first and then copied to the threads later
   Eigen::VectorXcd F(nf);
-  Eigen::MatrixXcd dF(nj, nf);
-  Eigen::VectorXcd N(do_nonlte ? nf : 0);
-  Eigen::MatrixXcd dN(do_nonlte ? nj : 0, nf);
+  Eigen::MatrixXcd dF(nf, nj);
+  Eigen::VectorXcd N(nf);
+  Eigen::MatrixXcd dN(nf, nj);
+  Eigen::Matrix<Complex, Eigen::Dynamic, Linefunctions::ExpectedDataSize()> data(nf, Linefunctions::ExpectedDataSize());
   const auto f_grid_eigen = MapToEigen(f_grid);
   Index start, nelem;
   
@@ -2150,8 +2150,7 @@ void xsec_species2(Matrix& xsec,
     Numeric t0 = -1; // line temperature
     Numeric dc=0, ddc_dT=0, qt=0, qt0=1, dqt_dT=0; // Doppler and partition functions
     
-    for(Index il=0; il<nl; il++) {
-      const LineRecord& line = abs_lines[il];
+    for(const auto& line: abs_lines) {
       
       // Partition function depends on isotopologue and line temperatures.
       // Both are commonly constant in a single catalog.  They are, however,
@@ -2170,8 +2169,7 @@ void xsec_species2(Matrix& xsec,
             partition_functions.getParamType(line.Species(), line.Isotopologue()),
             partition_functions.getParam(line.Species(), line.Isotopologue()));
         
-        if(line.Isotopologue() not_eq this_iso)
-        {
+        if(line.Isotopologue() not_eq this_iso) {
           this_iso = line.Isotopologue();
           dc = Linefunctions::DopplerConstant(temperature, line.IsotopologueData().Mass());
           if(do_temperature)
@@ -2179,32 +2177,29 @@ void xsec_species2(Matrix& xsec,
         }
       }
     
-      for(Index iz=0; iz<line.ZeemanEffect().nelem(); iz++) {
-        Linefunctions::set_cross_section_for_single_line(F, dF, N, dN, start, nelem, f_grid_eigen, line,
-          jacobian_quantities, jacobian_propmat_positions, all_vmrs(joker, ip), 
-          nt?abs_t_nlte(joker, ip):Vector(0), pressure, temperature, dc, partial_pressure, 
-          isotopologue_ratios.getParam(line.Species(), this_iso)[0].data[0],
-          0.0, ddc_dT, qt, dqt_dT, qt0,
-          abs_species, this_species, iz, verbosity);
-        
-        // absorption cross-section
-        MapToEigen(xsec).col(ip).segment(start, nelem).noalias() += F.segment(start, nelem).real();
+      Linefunctions::set_cross_section_for_single_line(F, dF, N, dN, data, start, nelem, f_grid_eigen, line,
+        jacobian_quantities, jacobian_propmat_positions, all_vmrs(joker, ip), 
+        nt?abs_t_nlte(joker, ip):Vector(0), pressure, temperature, dc, partial_pressure, 
+        isotopologue_ratios.getParam(line.Species(), this_iso)[0].data[0],
+        0.0, ddc_dT, qt, dqt_dT, qt0, abs_species, this_species, 0);
+      
+      // absorption cross-section
+      MapToEigen(xsec).col(ip).segment(start, nelem).noalias() += F.segment(start, nelem).real();
+      for(Index j=0; j<nj; j++)
+        MapToEigen(dxsec_dx[j]).col(ip).segment(start, nelem).noalias() += dF.col(j).segment(start, nelem).real();
+      
+      // phase cross-section
+      if(not phase.empty()) {
+        MapToEigen(phase).col(ip).segment(start, nelem).noalias() += F.segment(start, nelem).imag();
         for(Index j=0; j<nj; j++)
-          MapToEigen(dxsec_dx[j]).col(ip).segment(start, nelem).noalias() += dF.row(j).segment(start, nelem).transpose().real();
-        
-        // phase cross-section
-        if(not phase.empty()) {
-          MapToEigen(phase).col(ip).segment(start, nelem).noalias() += F.segment(start, nelem).imag();
-          for(Index j=0; j<nj; j++)
-            MapToEigen(dphase_dx[j]).col(ip).segment(start, nelem).noalias() += dF.row(j).segment(start, nelem).transpose().imag();
-        }
-        
-        // source ratio cross-section
-        if(do_nonlte) {
-          MapToEigen(source).col(ip).segment(start, nelem).noalias() += N.segment(start, nelem).real();
-          for(Index j=0; j<nj; j++)
-            MapToEigen(dsource_dx[j]).col(ip).segment(start, nelem).noalias() += dN.row(j).segment(start, nelem).transpose().real();
-        }
+          MapToEigen(dphase_dx[j]).col(ip).segment(start, nelem).noalias() += dF.col(j).segment(start, nelem).imag();
+      }
+      
+      // source ratio cross-section
+      if(do_nonlte) {
+        MapToEigen(source).col(ip).segment(start, nelem).noalias() += N.segment(start, nelem).real();
+        for(Index j=0; j<nj; j++)
+          MapToEigen(dsource_dx[j]).col(ip).segment(start, nelem).noalias() += dN.col(j).segment(start, nelem).real();
       }
     }
   }

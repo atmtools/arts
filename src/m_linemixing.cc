@@ -1046,30 +1046,31 @@ void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
   const QuantumIdentifier QI;
   
   Eigen::VectorXcd F(nf);
-  Eigen::MatrixXcd dF(derivatives_data_position.nelem(), nf);
+  Eigen::Matrix<Complex, Eigen::Dynamic, Linefunctions::ExpectedDataSize()> data(nf, Linefunctions::ExpectedDataSize());
+  Eigen::MatrixXcd dF(nf, derivatives_data_position.nelem());
   
   for(Index iline = 0; iline < n; iline++)
   {
     
+    const LineFunctionDataOutput X({pressure_broadening[iline], psf[iline], 0., 0., 0., 0., Y[iline], G[iline], DV[iline]});
+    
     if(do_temperature_jacobian(derivatives_data))
     {
-      Linefunctions::set_voigt(F, dF, MapToEigen(f_grid), 0.0, 0.0, f0[iline], doppler_const, 
-                               LineFunctionDataOutput({pressure_broadening[iline], psf[iline], 0., 0., 0., 0., 0., 0., DV[iline]}),
-                               derivatives_data, derivatives_data_position, QI, ddoppler_const_dT,
-                               LineFunctionDataOutput({dpressure_broadening_dT[iline], dpsf_dT[iline], 0., 0., 0., 0., 0., 0., dDV_dT[iline]}));
+      const LineFunctionDataOutput dT({dpressure_broadening_dT[iline], dpsf_dT[iline], 0., 0., 0., 0., dY_dT[iline], dG_dT[iline], dDV_dT[iline]});
+      Linefunctions::set_voigt(F, dF, data, MapToEigen(f_grid), 0.0, 0.0, f0[iline], doppler_const, 
+                               X, derivatives_data, derivatives_data_position, QI, ddoppler_const_dT, dT);
       
-      Linefunctions::apply_linemixing_scaling(F, dF, Y[iline], G[iline], derivatives_data, derivatives_data_position, QI, dY_dT[iline], dG_dT[iline]);
+      Linefunctions::apply_linemixing_scaling(F, dF, X, derivatives_data, derivatives_data_position, QI, dT);
       
       Linefunctions::apply_dipole(F, dF, f0[iline], T, d0[iline], rhoT[iline], isotopologue_ratio, 
                                   derivatives_data, derivatives_data_position, QI, drhoT_dT[iline]);
     }
     else
     {
-      Linefunctions::set_voigt(F, dF, MapToEigen(f_grid), 0.0, 0.0, f0[iline], doppler_const, 
-                               LineFunctionDataOutput({pressure_broadening[iline], psf[iline], 0., 0., 0., 0., 0., 0., DV[iline]}),
-                               derivatives_data, derivatives_data_position, QI);
+      Linefunctions::set_voigt(F, dF, data, MapToEigen(f_grid), 0.0, 0.0, f0[iline], doppler_const, 
+                               X, derivatives_data, derivatives_data_position, QI);
       
-      Linefunctions::apply_linemixing_scaling(F, dF, Y[iline], G[iline], derivatives_data, derivatives_data_position, QI);
+      Linefunctions::apply_linemixing_scaling(F, dF, X, derivatives_data, derivatives_data_position, QI);
       
       Linefunctions::apply_dipole(F, dF, f0[iline], T, d0[iline], rhoT[iline], isotopologue_ratio, derivatives_data, derivatives_data_position, QI);
     }
@@ -1823,7 +1824,8 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
       else {
         Numeric QT = -1, QT0 = -1, part_ratio;
         Eigen::VectorXcd F(nf);
-        Eigen::MatrixXcd dF(jacobian_quantities_position.nelem(), nf);
+        Eigen::Matrix<Complex, Eigen::Dynamic, Linefunctions::ExpectedDataSize()> data(nf, Linefunctions::ExpectedDataSize());
+        Eigen::MatrixXcd dF(nf, jacobian_quantities_position.nelem());
         const Numeric GD_div_F0 = doppler_const * sqrt(abs_t[ip] / mass);
         
         for( long iline=0; iline<nlines; iline++ ) {
@@ -1846,7 +1848,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
           
           // TODO: Add derivatives here
           
-          Linefunctions::set_voigt(F, dF, MapToEigen(f_grid),
+          Linefunctions::set_voigt(F, dF, data, MapToEigen(f_grid),
                                    0.0, 0.0, abs_lines_per_band[iband][iline].F(),
                                    GD_div_F0, X); // Derivatives need to be added...
           

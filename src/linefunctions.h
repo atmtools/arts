@@ -50,6 +50,8 @@
 
 namespace Linefunctions
 {
+  constexpr Index ExpectedDataSize(){return 2;}
+  
   void set_lineshape(Eigen::VectorXcd& F, 
                      const Eigen::VectorXd& f_grid, 
                      const LineRecord& line, 
@@ -63,15 +65,16 @@ namespace Linefunctions
   
   void set_lorentz(Eigen::Ref<Eigen::VectorXcd> F, 
                    Eigen::Ref<Eigen::MatrixXcd> dF, 
+                   Eigen::Ref<Eigen::Matrix<Complex, Eigen::Dynamic, ExpectedDataSize()>> data,
                    const Eigen::Ref<const Eigen::VectorXd> f_grid, 
                    const Numeric& zeeman_df, 
                    const Numeric& magnetic_magnitude, 
                    const Numeric& F0_noshift, 
-                   const LineFunctionDataOutput& x,
+                   const LineFunctionDataOutput& X,
                    const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
                    const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                    const QuantumIdentifier& quantum_identity=QuantumIdentifier(), 
-                   const LineFunctionDataOutput& dxdT=NoLineFunctionDataOutput(),
+                   const LineFunctionDataOutput& dT=NoLineFunctionDataOutput(),
                    const LineFunctionDataOutput& dxdVMR=NoLineFunctionDataOutput());
   
   void set_htp(Eigen::Ref<Eigen::VectorXcd> F,
@@ -81,31 +84,33 @@ namespace Linefunctions
                const Numeric& magnetic_magnitude,
                const Numeric& F0_noshift,
                const Numeric& GD_div_F0,
-               const LineFunctionDataOutput& x,
+               const LineFunctionDataOutput& X,
                const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
                const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                const Numeric& dGD_div_F0_dT=0.0,
-               const LineFunctionDataOutput& dxdT=NoLineFunctionDataOutput(),
+               const LineFunctionDataOutput& dT=NoLineFunctionDataOutput(),
                const LineFunctionDataOutput& dVMR=NoLineFunctionDataOutput());
   
   void set_voigt(Eigen::Ref<Eigen::VectorXcd> F,
                  Eigen::Ref<Eigen::MatrixXcd> dF,
+                 Eigen::Ref<Eigen::Matrix<Complex, Eigen::Dynamic, ExpectedDataSize()>> data,
                  const Eigen::Ref<const Eigen::VectorXd> f_grid,
                  const Numeric& zeeman_df,
                  const Numeric& magnetic_magnitude,
                  const Numeric& F0_noshift,
                  const Numeric& GD_div_F0,
-                 const LineFunctionDataOutput& x,
+                 const LineFunctionDataOutput& X,
                  const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
                  const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                  const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                  const Numeric& dGD_div_F0_dT=0.0,
-                 const LineFunctionDataOutput& dxdT=NoLineFunctionDataOutput(),
+                 const LineFunctionDataOutput& dT=NoLineFunctionDataOutput(),
                  const LineFunctionDataOutput& dVMR=NoLineFunctionDataOutput());
   
   void set_doppler(Eigen::Ref<Eigen::VectorXcd> F,
                    Eigen::Ref<Eigen::MatrixXcd> dF,
+                   Eigen::Ref<Eigen::Matrix<Complex, Eigen::Dynamic, ExpectedDataSize()>> data,
                    const Eigen::Ref<const Eigen::VectorXd> f_grid,
                    const Numeric& zeeman_df,
                    const Numeric& magnetic_magnitude,
@@ -131,13 +136,11 @@ namespace Linefunctions
   
   void apply_linemixing_scaling(Eigen::Ref<Eigen::VectorXcd> F,
                                 Eigen::Ref<Eigen::MatrixXcd> dF,
-                                const Numeric& Y,
-                                const Numeric& G,
+                                const LineFunctionDataOutput& X,
                                 const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
                                 const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                                 const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
-                                const Numeric& dY_dT=0.0,
-                                const Numeric& dG_dT=0.0,
+                                const LineFunctionDataOutput& dT=NoLineFunctionDataOutput(),
                                 const LineFunctionDataOutput& dVMR=NoLineFunctionDataOutput());
   
   void apply_rosenkranz_quadratic_scaling(Eigen::Ref<Eigen::VectorXcd> F,
@@ -151,6 +154,7 @@ namespace Linefunctions
   
   void apply_VVH_scaling(Eigen::Ref<Eigen::VectorXcd> F,
                          Eigen::Ref<Eigen::MatrixXcd> dF,
+                         Eigen::Ref<Eigen::Matrix<Complex, Eigen::Dynamic, ExpectedDataSize()>> data,
                          const Eigen::Ref<const Eigen::VectorXd> f_grid,
                          const Numeric& F0,
                          const Numeric& T,
@@ -246,13 +250,14 @@ namespace Linefunctions
   
   Numeric dDopplerConstant_dT(const Numeric& T, const Numeric& mass);
   
-  void set_cross_section_for_single_line(Eigen::VectorXcd& F,
-                                         Eigen::MatrixXcd& dF,
-                                         Eigen::VectorXcd& N,
-                                         Eigen::MatrixXcd& dN,
+  void set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXcd>  F_full,
+                                         Eigen::Ref<Eigen::MatrixXcd> dF_full,
+                                         Eigen::Ref<Eigen::VectorXcd>  N_full,
+                                         Eigen::Ref<Eigen::MatrixXcd> dN_full,
+                                         Eigen::Ref<Eigen::MatrixXcd> data_block,
                                          Index& start_cutoff,
                                          Index& nelem_cutoff,
-                                         const ConstMatrixViewMap& f_grid,
+                                         const Eigen::Ref<const Eigen::VectorXd> f_grid,
                                          const LineRecord& line,
                                          const ArrayOfRetrievalQuantity& derivatives_data,
                                          const ArrayOfIndex& derivatives_data_position,
@@ -271,7 +276,6 @@ namespace Linefunctions
                                          const ArrayOfArrayOfSpeciesTag& abs_species,
                                          const Index& this_species_location_in_tags,
                                          const Index& zeeman_index,
-                                         const Verbosity& verbosity,
                                          const bool cutoff_call=false);
   
   void apply_cutoff(Eigen::Ref<Eigen::VectorXcd> F,
@@ -295,12 +299,11 @@ namespace Linefunctions
                     const Numeric& partition_function_at_line_temperature,
                     const ArrayOfArrayOfSpeciesTag& abs_species,
                     const Index& this_species_location_in_tags,
-                    const Index& zeeman_index,
-                    const Verbosity& verbosity);
+                    const Index& zeeman_index);
   
   void find_cutoff_ranges(Index& start_cutoff,
                           Index& nelem_cutoff,
-                          const Eigen::VectorXd& f_grid,
+                          const Eigen::Ref<const Eigen::VectorXd> f_grid,
                           const Numeric& F0,
                           const Numeric& cutoff);
   

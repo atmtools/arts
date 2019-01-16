@@ -34,6 +34,8 @@
 #include "Faddeeva.hh"
 #include "linefunctions.h"
 #include "linescaling.h"
+#include <Eigen/Core>
+
 
 // Basic constants 
 extern const Numeric PI;
@@ -49,6 +51,9 @@ static const Numeric sqrtPI = std::sqrt(PI);
 static const Numeric C1 = - PLANCK_CONST / BOLTZMAN_CONST;
 static const Numeric doppler_const = std::sqrt(2.0 * BOLTZMAN_CONST * AVOGADROS_NUMB ) / SPEED_OF_LIGHT; 
 
+
+// The Faddeeva function
+inline Complex w(Complex z) noexcept {return Faddeeva::w(z);} 
 
 void Linefunctions::set_lineshape(Eigen::VectorXcd& F, 
                                   const Eigen::VectorXd& f_grid, 
@@ -67,7 +72,7 @@ void Linefunctions::set_lineshape(Eigen::VectorXcd& F,
   // Line shape usage remembering variable
   LineShapeType lst = LineShapeType::End;
   
-  Eigen::MatrixXcd dF(0, 0);
+  Eigen::MatrixXcd dF(0, 0), data(F.size(), Linefunctions::ExpectedDataSize());
   const Numeric doppler_constant = DopplerConstant(temperature, line.IsotopologueData().Mass());
   
   switch(line.GetExternalLineShapeType())
@@ -82,21 +87,21 @@ void Linefunctions::set_lineshape(Eigen::VectorXcd& F,
           break;
         case LineFunctionData::LineShapeType::VP:
           lst = LineShapeType::Voigt;
-          set_voigt(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant, X);
+          set_voigt(F, dF, data, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant, X);
           break;
         case LineFunctionData::LineShapeType::DP:
           lst = LineShapeType::Doppler;
-          set_doppler(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant);
+          set_doppler(F, dF, data, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant);
           break;
         case LineFunctionData::LineShapeType::LP:
           lst = LineShapeType::Lorentz;
-          set_lorentz(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), X);
+          set_lorentz(F, dF, data, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), X);
           break;
       }
       break;
         case LineShapeType::Doppler:
           lst = LineShapeType::Doppler;
-          set_doppler(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant);
+          set_doppler(F, dF, data, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant);
           break;
           // This line only needs Hartmann-Tran
         case LineShapeType::HTP:
@@ -106,12 +111,12 @@ void Linefunctions::set_lineshape(Eigen::VectorXcd& F,
           // This line only needs Lorentz
         case LineShapeType::Lorentz:
           lst = LineShapeType::Lorentz;
-          set_lorentz(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), X);
+          set_lorentz(F, dF, data, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), X);
           break;
           // This line only needs Voigt
         case LineShapeType::Voigt:
           lst = LineShapeType::Voigt;
-          set_voigt(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant, X);
+          set_voigt(F, dF, data, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant, X);
           break;
         case LineShapeType::End:
           throw std::runtime_error("Cannot understand the requested line shape type.");
@@ -129,7 +134,7 @@ void Linefunctions::set_lineshape(Eigen::VectorXcd& F,
       // Set the mirroring computational vectors and size them as needed
       Eigen::VectorXcd Fm(F.size());
       
-      set_lorentz(Fm, dF, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), mirroredOutput(X));
+      set_lorentz(Fm, dF, data, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), mirroredOutput(X));
       
       // Apply mirroring
       F.noalias() += Fm;
@@ -144,13 +149,13 @@ void Linefunctions::set_lineshape(Eigen::VectorXcd& F,
       switch(lst)
       {
         case LineShapeType::Doppler:
-          set_doppler(Fm, dF, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), -doppler_constant);
+          set_doppler(Fm, dF, data, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), -doppler_constant);
           break;
         case LineShapeType::Lorentz:
-          set_lorentz(Fm, dF, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), mirroredOutput(X));
+          set_lorentz(Fm, dF, data, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), mirroredOutput(X));
           break;
         case LineShapeType::Voigt:
-          set_voigt(Fm, dF, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), -doppler_constant, mirroredOutput(X));
+          set_voigt(Fm, dF, data, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), -doppler_constant, mirroredOutput(X));
           break;
         case LineShapeType::HTP:
           // WARNING: This mirroring is not tested and it might require, e.g., FVC to be treated differently
@@ -177,7 +182,7 @@ void Linefunctions::set_lineshape(Eigen::VectorXcd& F,
       break;
       // van Vleck and Huber normalization
     case LineNormalizationType::VVH:
-      apply_VVH_scaling(F, dF, f_grid, line.F(), temperature);
+      apply_VVH_scaling(F, dF, data, f_grid, line.F(), temperature);
       break;
       // van Vleck and Weiskopf normalization
     case LineNormalizationType::VVW:
@@ -213,7 +218,8 @@ void Linefunctions::set_lineshape(Eigen::VectorXcd& F,
  * 
  */
 void Linefunctions::set_lorentz(Eigen::Ref<Eigen::VectorXcd> F,
-                                     Eigen::Ref<Eigen::MatrixXcd> dF,
+                                Eigen::Ref<Eigen::MatrixXcd> dF,
+                                Eigen::Ref<Eigen::Matrix<Complex, Eigen::Dynamic, ExpectedDataSize()>> data,
                                 const Eigen::Ref<const Eigen::VectorXd> f_grid,
                                 const Numeric& zeeman_df,
                                 const Numeric& magnetic_magnitude,
@@ -226,47 +232,40 @@ void Linefunctions::set_lorentz(Eigen::Ref<Eigen::VectorXcd> F,
                                 const LineFunctionDataOutput& dxdVMR)
 { 
   // Size of the problem
-  auto nf = f_grid.size();
   auto nppd = derivatives_data_position.nelem();
   
   // The central frequency
   const Numeric F0 = F0_noshift + x.D0 + zeeman_df * magnetic_magnitude + x.DV;
   
-  // Constant part of the denominator
-  const Complex denom0 = Complex(x.G0, F0);
+  data.col(0).noalias() = (PI * Complex(x.G0, F0) - Complex(0, PI) * f_grid.array()).matrix();
+  F.noalias() = data.col(0).cwiseInverse();
   
-  Complex d, denom;
-  
-  for(auto iv=0; iv<nf; iv++) {
-    denom = 1.0 / ((denom0 - Complex(0.0, f_grid[iv])));
-    
-    F[iv] = invPI * denom;
+  if(nppd) {
+    data.col(1).noalias() = - PI * F.array().square().matrix();
     
     for(auto iq=0; iq<nppd; iq++) {
-      if(iq == 0)
-        d = - F[iv] * denom;
+      const auto& deriv = derivatives_data[derivatives_data_position[iq]];
       
-      if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
-        dF(iq, iv) = d * Complex(dxdT.G0, dxdT.D0 + dxdT.DV);
-      else if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]]))
-        dF(iq, iv) = d * Complex(0.0, -1.0);  // Frequency scale 1 to -1 linearly
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter or 
-              is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[iq]])) {
-        if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity))
-          dF(iq, iv) = d * Complex(0.0, 1.0);  // Line center scales 1 to 1 linearly
+      if(deriv == JacPropMatType::Temperature)
+        dF.col(iq).noalias() = Complex(dxdT.G0, dxdT.D0 + dxdT.DV) * data.col(1);
+      else if(is_frequency_parameter(deriv))
+        dF.col(iq).noalias() = Complex(0.0, -1.0) * data.col(1);
+      else if(deriv == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(deriv)) {
+        if(deriv.QuantumIdentity().In(quantum_identity))
+          dF.col(iq).noalias() = Complex(0.0, 1.0) * data.col(1);
       }
-      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]])) {
-        if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity))
-          dF(iq, iv) = d * Complex(0.0, -1.0);  // Pressure broadening will be dealt with in another function, though the partial derivative
+      else if(is_pressure_broadening_parameter(deriv)) {
+        if(deriv.QuantumIdentity().In(quantum_identity))
+          dF.col(iq).noalias() =  Complex(0.0, -1.0) * data.col(1);
       }
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR) {
-        if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity))
-          dF(iq, iv) = d * Complex(dxdVMR.G0, dxdVMR.D0 + dxdVMR.DV);
+      else if(deriv == JacPropMatType::VMR) {
+        if(deriv.QuantumIdentity().In(quantum_identity))
+          dF.col(iq).noalias() = Complex(dxdVMR.G0, dxdVMR.D0 + dxdVMR.DV) * data.col(1);
         else
-          dF(iq, iv) = 0.0;
+          dF.col(iq).setZero();
       }
-      else if(is_magnetic_magnitude_parameter(derivatives_data[derivatives_data_position[iq]]))
-        dF(iq, iv) = d * Complex(0.0, zeeman_df);
+      else if(is_magnetic_magnitude_parameter(deriv))
+        dF.col(iq).noalias() = Complex(0.0, zeeman_df) * data.col(1);
     }
   }
 }
@@ -350,7 +349,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
             const Complex dA =  fac*dwm + wm*dfac;
             const Complex dG =  ((C0 - 1.5*C2)*x.ETA - x.FVC)*dA + ((C0 - 1.5*C2)*dxdT.ETA + (dC0 - 1.5*dC2)*x.ETA - dxdT.FVC)*A;
             
-            dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+            dF(i, iq) = invPI*(-A*dG + G*dA)/(G*G);
           }
           else if(is_frequency_parameter(rt)) {
             const Complex dZm = Complex(0, -1 / GD);
@@ -358,7 +357,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
             const Complex dA = fac * dwm;
             const Complex dG = (x.ETA * (C0 - 1.5 * C2) - x.FVC) * dA;
             
-            dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+            dF(i, iq) = invPI*(-A*dG + G*dA)/(G*G);
           }
           else if(is_magnetic_parameter(rt)) {
             const Complex dZm =  zeeman_df*(-C0t + Complex(0, f_grid[i]))/(GD_div_F0*F0);
@@ -367,7 +366,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
             const Complex dA =  fac*dwm + wm*dfac;
             const Complex dG =  (x.ETA*(C0 - 1.5*C2) - x.FVC)*dA;
             
-            dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+            dF(i, iq) = invPI*(-A*dG + G*dA)/(G*G);
           }
           else if(rt == JacPropMatType::VMR) {
             if(rt.QuantumIdentity().In(quantum_identity)) {
@@ -379,10 +378,10 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
               const Complex dA =  fac*dwm;
               const Complex dG =  ((C0 - 1.5*C2)*x.ETA - x.FVC)*dA + ((C0 - 1.5*C2)*dxdVMR.ETA + (dC0 - 1.5*dC2)*x.ETA - dxdVMR.FVC)*A;
               
-              dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+              dF(i, iq) = invPI*(-A*dG + G*dA)/(G*G);
             }
-            else
-              dF(iq, i) = 0.0;
+	    else if(not i)
+	      dF.col(iq).setZero();
           }
           else if(rt == JacPropMatType::LineCenter) {
             if(rt.QuantumIdentity().In(quantum_identity)) {
@@ -392,7 +391,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
               const Complex dA =  fac*dwm + wm*dfac;
               const Complex dG =  (x.ETA*(C0 - 1.5*C2) - x.FVC)*dA;
               
-              dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+              dF(i, iq) = invPI*(-A*dG + G*dA)/(G*G);
             }
           }
           else if(is_pressure_broadening_velocity_changing_collision_frequency(rt)) {
@@ -402,7 +401,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
               const Complex dA = fac * dwm;
               const Complex dG = - A - (x.FVC - x.ETA * (C0 - 1.5 * C2)) * dA;
               
-              dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+              dF(i, iq) = invPI*(-A*dG + G*dA)/(G*G);
             }
           }
           else if(is_pressure_broadening_correlation(rt)) {
@@ -413,7 +412,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
               const Complex dA = fac * dwm;
               const Complex dG = (C0 - 1.5 * C2) * A - (x.FVC - x.ETA * (C0 - 1.5 * C2)) * dA;
               
-              dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+              dF(i, iq) = invPI*(-A*dG + G*dA)/(G*G);
             }
           }
           else if(is_pressure_broadening_speed_dependent(rt)) {
@@ -425,7 +424,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
               const Complex dA = fac * dwm;
               const Complex dG = - (x.FVC - x.ETA * (C0 - 1.5 * C2)) * dA - 1.5 * dC2 * A;
               
-              dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+              dF(i, iq) = invPI*(-A*dG + G*dA)/(G*G);
             }
           }
           else if(is_pressure_broadening_speed_independent(rt)) {
@@ -437,7 +436,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
               const Complex dA = fac * dwm;
               const Complex dG = - (x.FVC - x.ETA * (C0 - 1.5 * C2)) * dA + x.ETA * dC0 * A;
               
-              dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+              dF(i, iq) = invPI*(-A*dG + G*dA)/(G*G);
             }
           }
         }
@@ -482,7 +481,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
             const Complex dB =  (2*(sqrtPI*((Zm*Zm - 1.)*wm - (Zp*Zp - 1.)*wp) + 2*sqrtY)*(x.ETA - 1)*Y*dxdT.ETA - 2*(sqrtPI*((Zm*Zm - 1.)*wm - (Zp*Zp - 1.)*wp) + 2*sqrtY)*x.ETA*Y*dxdT.ETA - sqrtPI*(((Zm*Zm - 1.)*wm - (Zp*Zp - 1.)*wp)*dY + 2*(-(Zm*Zm - 1.)*dwm + (Zp*Zp - 1.)*dwp - 2*Zm*wm*dZm + 2*Zp*wp*dZp)*Y)*(x.ETA - 1)*x.ETA)/(4*(x.ETA - 1)*(x.ETA - 1)*Y*sqrtY);
             const Complex dG =  ((2*C0 - 3*C2)*x.ETA - 2*x.FVC)*dA/2. + ((2*C0 - 3*C2)*dxdT.ETA + (2*dC0 - 3*dC2)*x.ETA - 2*dxdT.FVC)*A/2. + dB;
             
-            dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+            dF(i, iq) = invPI*(-A*dG + G*dA)/(G*G);
           }
           else if(is_frequency_parameter(rt)) {
             const Complex dX =  Complex(0, 1)/C2t;
@@ -494,7 +493,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
             const Complex dB =  sqrtPI*x.ETA*((Zm*Zm - 1.)*dwm - (Zp*Zp - 1.)*dwp + 2*Zm*wm*dZm - 2*Zp*wp*dZp)/(2*sqrtY*(x.ETA - 1));
             const Complex dG =  (x.ETA*(2*C0 - 3*C2) - 2*x.FVC)*dA/2. + dB;
             
-            dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+            dF(i, iq) = invPI*(-A*dG + G*dA)/(G*G);
           }
           else if(is_magnetic_parameter(rt)) {
             const Complex dfac =  -sqrtPI*zeeman_df/(GD_div_F0*F0*F0);
@@ -508,7 +507,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
             const Complex dB =  sqrtPI*x.ETA*((-(Zm*Zm - 1.)*wm + (Zp*Zp - 1.)*wp)*dY + 2*((Zm*Zm - 1.)*dwm - (Zp*Zp - 1.)*dwp + 2*Zm*wm*dZm - 2*Zp*wp*dZp)*Y)/(4*(x.ETA - 1)*Y*sqrtY);
             const Complex dG =  (x.ETA*(2*C0 - 3*C2) - 2*x.FVC)*dA/2. + dB;
             
-            dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+            dF(i, iq) = invPI*(-A*dG + G*dA)/(G*G);
           }
           else if(rt == JacPropMatType::VMR) {
             if(rt.QuantumIdentity().In(quantum_identity)) {
@@ -526,10 +525,10 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
               const Complex dB =  (2*(sqrtPI*((Zm*Zm - 1.)*wm - (Zp*Zp - 1.)*wp) + 2*sqrtY)*(x.ETA - 1)*Y*dxdVMR.ETA - 2*(sqrtPI*((Zm*Zm - 1.)*wm - (Zp*Zp - 1.)*wp) + 2*sqrtY)*x.ETA*Y*dxdVMR.ETA - sqrtPI*(((Zm*Zm - 1.)*wm - (Zp*Zp - 1.)*wp)*dY + 2*(-(Zm*Zm - 1.)*dwm + (Zp*Zp - 1.)*dwp - 2*Zm*wm*dZm + 2*Zp*wp*dZp)*Y)*(x.ETA - 1)*x.ETA)/(4*(x.ETA - 1)*(x.ETA - 1)*Y*sqrtY);
               const Complex dG =  ((2*C0 - 3*C2)*x.ETA - 2*x.FVC)*dA/2. + ((2*C0 - 3*C2)*dxdVMR.ETA + (2*dC0 - 3*dC2)*x.ETA - 2*dxdVMR.FVC)*A/2. + dB;
               
-              dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+              dF(i, iq) = invPI*(-A*dG + G*dA)/(G*G);
             }
-            else
-              dF(iq, i) = 0.0;
+	    else if(not i)
+	      dF.col(iq).setZero();
           }
           else if(rt == JacPropMatType::LineCenter) {
             if(rt.QuantumIdentity().In(quantum_identity)) {
@@ -544,7 +543,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
               const Complex dB =  sqrtPI*x.ETA*((-(Zm*Zm - 1.)*wm + (Zp*Zp - 1.)*wp)*dY + 2*((Zm*Zm - 1.)*dwm - (Zp*Zp - 1.)*dwp + 2*Zm*wm*dZm - 2*Zp*wp*dZp)*Y)/(4*(x.ETA - 1)*Y*sqrtY);
               const Complex dG =  (x.ETA*(2*C0 - 3*C2) - 2*x.FVC)*dA/2. + dB;
               
-              dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+              dF(i, iq) = invPI*(-A*dG + G*dA)/(G*G);
             }
           }
           else if(is_pressure_broadening_velocity_changing_collision_frequency(rt)) {
@@ -558,7 +557,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
               const Complex dB =  sqrtPI*x.ETA*((Zm*Zm - 1.)*dwm - (Zp*Zp - 1.)*dwp + 2*Zm*wm*dZm - 2*Zp*wp*dZp)/(2*sqrtY*(x.ETA - 1));
               const Complex dG =  (x.ETA*(2*C0 - 3*C2) - 2*x.FVC)*dA/2. - A + dB;
               
-              dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+              dF(i, iq) = invPI*(-A*dG + G*dA)/(G*G);
             }
           }
           else if(is_pressure_broadening_correlation(rt)) {
@@ -574,7 +573,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
               const Complex dB =  (2*(sqrtPI*(((Zm*Zm) - 1.0)*wm - ((Zp*Zp) - 1.0)*wp) + 2*sqrtY)*(x.ETA - 1)*Y*dETA - 2*(sqrtPI*(((Zm*Zm) - 1.0)*wm - ((Zp*Zp) - 1.0)*wp) + 2*sqrtY)*x.ETA*Y*dETA - sqrtPI*((((Zm*Zm) - 1.0)*wm - ((Zp*Zp) - 1.0)*wp)*dY + 2*(-((Zm*Zm) - 1.0)*dwm + ((Zp*Zp) - 1.0)*dwp - 2*Zm*wm*dZm + 2*Zp*wp*dZp)*Y)*(x.ETA - 1)*x.ETA)/(4*(x.ETA - 1)*(x.ETA - 1)*Y*sqrtY);
               const Complex dG =  (C0 - 1.5*C2)*A*dETA - (x.FVC - (C0 - 1.5*C2)*x.ETA)*dA + dB;
               
-              dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+              dF(i, iq) = invPI*(-A*dG + G*dA)/(G*G);
               
             }
           }
@@ -591,7 +590,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
               const Complex dB =  sqrtPI*x.ETA*((-((Zm*Zm) - 1.)*wm + ((Zp*Zp) - 1.)*wp)*dY + 2*(((Zm*Zm) - 1.)*dwm - ((Zp*Zp) - 1.)*dwp + 2*Zm*wm*dZm - 2*Zp*wp*dZp)*Y)/(4*(x.ETA - 1)*Y*sqrtY);
               const Complex dG =  -3*x.ETA*A*dC2/2. + (x.ETA*(2*C0 - 3*C2) - 2*x.FVC)*dA/2. + dB;
               
-              dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+              dF(i, iq) = invPI*(-A*dG + G*dA)/(G*G);
             }
           }
           else if(is_pressure_broadening_speed_independent(rt)) {
@@ -606,7 +605,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
               const Complex dB =  sqrtPI*x.ETA*(((Zm*Zm) - 1.)*dwm - ((Zp*Zp) - 1.)*dwp + 2*Zm*wm*dZm - 2*Zp*wp*dZp)/(2*sqrtY*(x.ETA - 1));
               const Complex dG =  x.ETA*A*dC0 - (x.ETA*(3*C2 - 2*C0) + 2*x.FVC)*dA/2. + dB;
               
-              dF(iq, i) = invPI*(-A*dG + G*dA)/(G*G);
+              dF(i, iq) = invPI*(-A*dG + G*dA)/(G*G);
             }
           }
         }
@@ -638,6 +637,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
  */
 void Linefunctions::set_voigt(Eigen::Ref<Eigen::VectorXcd> F,
                               Eigen::Ref<Eigen::MatrixXcd> dF,
+                              Eigen::Ref<Eigen::Matrix<Complex, Eigen::Dynamic, ExpectedDataSize()>> data,
                               const Eigen::Ref<const Eigen::VectorXd> f_grid, 
                               const Numeric& zeeman_df, 
                               const Numeric& magnetic_magnitude,
@@ -652,7 +652,6 @@ void Linefunctions::set_voigt(Eigen::Ref<Eigen::VectorXcd> F,
                               const LineFunctionDataOutput& dxdVMR)
 {
   // Size of problem
-  auto nf = f_grid.size();
   auto nppd = derivatives_data_position.nelem();
   
   // Doppler broadening and line center
@@ -664,39 +663,37 @@ void Linefunctions::set_voigt(Eigen::Ref<Eigen::VectorXcd> F,
   // constant normalization factor for Voigt
   const Numeric fac = sqrtInvPI * invGD;
   
-  // Ratio of the Lorentz halfwidth to the Doppler halfwidth
-  const Complex z0 = Complex(-F0, x.G0) * invGD;
+  // Frequency grid
+  data.col(0).noalias() = invGD * (Complex(-F0, x.G0) + f_grid.array()).matrix();
   
-  // frequency in units of Doppler
-  for (auto iv=0; iv<nf; iv++) {
-    const Complex z = z0 + f_grid[iv] * invGD;
-    const Complex w = Faddeeva::w(z);
-    F[iv] = fac * w;
+  // Line shape
+  F.noalias() = fac * data.col(0).unaryExpr(&w);
+  
+  if(nppd) {
+    data.col(1).noalias() = 2 * (Complex(0, fac * sqrtInvPI) - data.col(0).cwiseProduct(F).array()).matrix();
     
-    if(nppd) {
-      const Complex dw_over_dz = 2.0 * fac *  (Complex(0, sqrtInvPI) - z * w);
+    for(auto iq=0; iq<nppd; iq++) {
+      const auto& deriv = derivatives_data[derivatives_data_position[iq]];
       
-      for(auto iq=0; iq<nppd; iq++) {
-        if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]]))
-          dF(iq, iv) = dw_over_dz * invGD;
-        else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
-          dF(iq, iv) = -F[iv] * dGD_dT * invGD + dw_over_dz * ((Complex(-dxdT.D0 - dxdT.DV, dxdT.G0) - z * dGD_dT) * invGD);
-        else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[iq]])) {
-          if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-            dF(iq, iv) = -F[iv]/F0 + dw_over_dz * (-invGD - z/F0);
-        }
-        else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]])) {
-          if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-            dF(iq, iv) = dw_over_dz * invGD;
-        }
-        else if(is_magnetic_magnitude_parameter(derivatives_data[derivatives_data_position[iq]]))
-          dF(iq, iv) = dw_over_dz * (- zeeman_df * invGD);
-        else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR) {
-          if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity))
-            dF(iq, iv) = dw_over_dz * Complex(- dxdVMR.D0 - dxdVMR.DV, dxdVMR.G0) * invGD;
-          else
-            dF(iq, iv) = 0.0;
-        }
+      if(is_frequency_parameter(deriv))
+        dF.col(iq).noalias() = invGD * data.col(1);
+      else if(deriv == JacPropMatType::Temperature)
+        dF.col(iq).noalias() = (data.col(1) * Complex(-dxdT.D0 - dxdT.DV, dxdT.G0) - (F + data.col(1).cwiseProduct(data.col(0))) * dGD_dT) * invGD;
+      else if(deriv == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(deriv)) {
+        if(deriv.QuantumIdentity().In(quantum_identity))
+          dF.col(iq).noalias() = -F/F0 - data.col(1) * invGD - data.col(1).cwiseProduct(data.col(0))/F0;
+      }
+      else if(is_pressure_broadening_parameter(deriv)) {
+        if(deriv.QuantumIdentity().In(quantum_identity))
+          dF.col(iq).noalias() = data.col(1) * invGD;
+      }
+      else if(is_magnetic_magnitude_parameter(deriv))
+        dF.col(iq).noalias() = data.col(1) * (- zeeman_df * invGD);
+      else if(deriv == JacPropMatType::VMR) {
+        if(deriv.QuantumIdentity().In(quantum_identity))
+          dF.col(iq).noalias() = data.col(1) * Complex(- dxdVMR.D0 - dxdVMR.DV, dxdVMR.G0) * invGD;
+        else
+          dF.col(iq).setZero();
       }
     }
   }
@@ -724,6 +721,7 @@ void Linefunctions::set_voigt(Eigen::Ref<Eigen::VectorXcd> F,
  */
 void Linefunctions::set_doppler(Eigen::Ref<Eigen::VectorXcd> F,
                                 Eigen::Ref<Eigen::MatrixXcd> dF,
+                                Eigen::Ref<Eigen::Matrix<Complex, Eigen::Dynamic, ExpectedDataSize()>> data,
                                 const Eigen::Ref<const Eigen::VectorXd> f_grid, 
                                 const Numeric& zeeman_df,
                                 const Numeric& magnetic_magnitude,
@@ -734,36 +732,26 @@ void Linefunctions::set_doppler(Eigen::Ref<Eigen::VectorXcd> F,
                                 const QuantumIdentifier& quantum_identity,
                                 const Numeric& dGD_div_F0_dT)
 {
-  auto nf = f_grid.size();
   auto nppd = derivatives_data_position.nelem();
   
   // Doppler broadening and line center
   const Numeric F0 = F0_noshift + zeeman_df * magnetic_magnitude;
-  const Numeric GD = GD_div_F0 * F0;
-  const Numeric invGD = 1.0 / GD;
-  const Numeric dGD_dT = dGD_div_F0_dT * F0;
-  const Numeric fac = invGD * sqrtInvPI;
+  const Numeric invGD = 1.0 / (GD_div_F0 * F0);
   
-  // Computational speed-up
-  const Index first_frequency = get_first_frequency_index(derivatives_data, derivatives_data_position);
+  data.col(0).noalias() = (f_grid.array() - F0).matrix() * invGD;
+  data.col(1).noalias() = -data.col(0).cwiseAbs2();
+  F.noalias() = invGD * sqrtInvPI * data.col(1).array().exp().matrix();
   
-  for(auto iv=0; iv<nf; iv++) {
-    const Numeric x = (f_grid[iv] - F0) * invGD;
-    F[iv] = fac * exp(- x*x);
+  for(auto iq=0; iq<nppd; iq++) {
+    const auto& deriv = derivatives_data[derivatives_data_position[iq]];
     
-    for(auto iq=0; iq<nppd; iq++) { 
-      if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]] )) {
-        if(first_frequency == iq)
-          dF(iq, iv) = -2 * F[iv] * x * invGD;  // If this is the first time it is calculated this frequency bin, do the full calculation
-        else // copy for repeated occurrences
-          dF(iq, iv) = dF(first_frequency, iv);
-      }
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
-        dF(iq, iv) = F[iv] * (2*x*x - 1) * dGD_dT * invGD;
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
-        if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity)) 
-          dF(iq, iv) = F[iv] * 2*x*((x-1)/F0 + invGD);
-      }
+    if(is_frequency_parameter(deriv))
+      dF.col(iq).noalias() = - 2 * invGD * F.cwiseProduct(data.col(0));
+    else if(deriv == JacPropMatType::Temperature)
+      dF.col(iq).noalias() = - dGD_div_F0_dT * F0 * invGD * (2.0 * F.cwiseProduct(data.col(1)) + F);
+    else if(deriv == JacPropMatType::LineCenter) {
+      if(deriv.QuantumIdentity().In(quantum_identity))
+      dF.col(iq).noalias() = - F.cwiseProduct(data.col(1)) * (2/F0) + F.cwiseProduct(data.col(0)) * 2 * (invGD - 1/F0);
     }
   }
 }
@@ -833,13 +821,13 @@ void Linefunctions::set_voigt_from_full_linemixing(Eigen::Ref<Eigen::VectorXcd> 
         dw_over_dz = 2.0 * (z * w - sqrtInvPI);
       
       if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]] ))
-        dF(iq, iv) = fac * dw_over_dz * invGD;
+        dF(iv, iq) = fac * dw_over_dz * invGD;
       else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature) {
         dz = (deigenvalue_dT - dL0_dT) - z * dGD_dT;
         
-        dF(iq, iv) = -F[iv] * dGD_dT;
-        dF(iq, iv) += fac * dw_over_dz * dz;
-        dF(iq, iv) *= invGD;
+        dF(iv, iq) = -F[iv] * dGD_dT;
+        dF(iv, iq) += fac * dw_over_dz * dz;
+        dF(iv, iq) *= invGD;
       }
       else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter or is_line_mixing_parameter(derivatives_data[derivatives_data_position[iq]])) // No //external inputs --- errors because of frequency shift when Zeeman is used?
       {
@@ -847,17 +835,17 @@ void Linefunctions::set_voigt_from_full_linemixing(Eigen::Ref<Eigen::VectorXcd> 
         {
           dz = -z * GD_div_F0 - 1.0;
           
-          dF(iq, iv) = -F[iv] * GD_div_F0;
-          dF(iq, iv) += dw_over_dz * dz;
-          dF(iq, iv) *= fac * invGD;
+          dF(iv, iq) = -F[iv] * GD_div_F0;
+          dF(iv, iq) += dw_over_dz * dz;
+          dF(iv, iq) *= fac * invGD;
         }
       }
       else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]) /*or derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR*/)
       {
         if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-          dF(iq, iv) = fac * dw_over_dz * ( Complex(-1.0, 1.0) * invGD);
-        else
-          dF(iq, iv) = 0.0;
+          dF(iv, iq) = fac * dw_over_dz * ( Complex(-1.0, 1.0) * invGD);
+        else if(not iv)
+          dF.col(iq).setZero();
       }
     }
   }
@@ -882,37 +870,31 @@ void Linefunctions::set_voigt_from_full_linemixing(Eigen::Ref<Eigen::VectorXcd> 
  */
 void Linefunctions::apply_linemixing_scaling(Eigen::Ref<Eigen::VectorXcd> F,
                                              Eigen::Ref<Eigen::MatrixXcd> dF,
-                                             const Numeric& Y,
-                                             const Numeric& G,
+                                             const LineFunctionDataOutput& X,
                                              const ArrayOfRetrievalQuantity& derivatives_data,
                                              const ArrayOfIndex& derivatives_data_position,
                                              const QuantumIdentifier& quantum_identity,
-                                             const Numeric& dY_dT,
-                                             const Numeric& dG_dT,
+                                             const LineFunctionDataOutput& dT,
                                              const LineFunctionDataOutput& dVMR)
 {
   auto nppd = derivatives_data_position.nelem();
   
-  const Complex LM = Complex(1.0 + G, -Y);
-  const Complex dLM_dT = Complex(dG_dT, -dY_dT);
+  const Complex LM = Complex(1.0 + X.G, -X.Y);
   
+  dF *= LM;
   for(auto iq=0; iq<nppd; iq++) {
-    if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature) {
-      dF.row(iq) *= LM;
-      dF.row(iq).noalias() += F * dLM_dT;
+    const auto& deriv = derivatives_data[derivatives_data_position[iq]];
+    
+    if(deriv == JacPropMatType::Temperature)
+      dF.col(iq).noalias() += F * Complex(dT.G, -dT.Y);
+    else if(is_line_mixing_line_strength_parameter(deriv)) {
+      if(deriv.QuantumIdentity().In(quantum_identity))
+        dF.col(iq).noalias() = F;
     }
-    else if(is_line_mixing_line_strength_parameter(derivatives_data[derivatives_data_position[iq]])) {
-      if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-        dF.row(iq).noalias() = F;
+    else if(deriv == JacPropMatType::VMR) {
+      if(deriv.QuantumIdentity().In(quantum_identity))
+        dF.col(iq).noalias() += F * Complex(dVMR.G, - dVMR.Y);
     }
-    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR) {
-      if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity)) {
-        dF.row(iq) *= LM;
-        dF.row(iq).noalias() += F * Complex(dVMR.G, - dVMR.Y);
-      }
-    }
-    else
-      dF.row(iq) *= LM;
   }
   
   F *= LM;
@@ -960,17 +942,17 @@ void Linefunctions::apply_rosenkranz_quadratic_scaling(Eigen::Ref<Eigen::VectorX
     F[iv] *= fun;
     
     for(auto iq=0; iq<nppd; iq++) {
-      dF(iq, iv) *= fun;
+      dF(iv, iq) *= fun;
       if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
-        dF(iq, iv) += dmafac_dT_div_fun * F[iv];
+        dF(iv, iq) += dmafac_dT_div_fun * F[iv];
       else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
         if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
           const Numeric dmafac_dF0_div_fun = -invF0 - PLANCK_CONST/(2.0*BOLTZMAN_CONST*T*std::tanh(F0*PLANCK_CONST/(2.0*BOLTZMAN_CONST*T)));
-          dF(iq, iv) += dmafac_dF0_div_fun * F[iv];
+          dF(iv, iq) += dmafac_dF0_div_fun * F[iv];
         }
       }
       else if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]]))
-        dF(iq, iv) += (2.0 / f_grid[iv]) * F[iv];
+        dF(iv, iq) += (2.0 / f_grid[iv]) * F[iv];
     }
   }
 }
@@ -993,6 +975,7 @@ void Linefunctions::apply_rosenkranz_quadratic_scaling(Eigen::Ref<Eigen::VectorX
  */
 void Linefunctions::apply_VVH_scaling(Eigen::Ref<Eigen::VectorXcd> F,
                                       Eigen::Ref<Eigen::MatrixXcd> dF,
+                                      Eigen::Ref<Eigen::Matrix<Complex, Eigen::Dynamic, ExpectedDataSize()>> data,
                                       const Eigen::Ref<const Eigen::VectorXd> f_grid,
                                       const Numeric& F0,
                                       const Numeric& T,
@@ -1000,33 +983,29 @@ void Linefunctions::apply_VVH_scaling(Eigen::Ref<Eigen::VectorXcd> F,
                                       const ArrayOfIndex& derivatives_data_position,
                                       const QuantumIdentifier& quantum_identity)
 { 
-  auto nf = f_grid.size(), nppd = derivatives_data_position.nelem();
+  auto nppd = derivatives_data_position.nelem();
   
   // 2kT is constant for the loop
   const Numeric kT = 2.0 * BOLTZMAN_CONST * T;
+  const Numeric c1 = PLANCK_CONST / kT;
   
   // denominator is constant for the loop
-  const Numeric tanh_f0part = std::tanh(PLANCK_CONST * F0 / kT);
+  const Numeric tanh_f0part = std::tanh(c1 * F0);
   const Numeric denom = F0 * tanh_f0part;
   
-  for(Index iv=0; iv < nf; iv++) {
-    const Numeric tanh_fpart = std::tanh( PLANCK_CONST * f_grid[iv] / kT );
-    const Numeric fun = f_grid[iv] * tanh_fpart / denom;
-    F[iv] *= fun;
-    
-    for(Index iq = 0; iq < nppd; iq++) {
-      dF(iq, iv) *= fun;
-      if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
-        dF(iq, iv) += (-PLANCK_CONST*(denom - F0/tanh_f0part - 
-        f_grid[iv]*tanh_fpart + f_grid[iv]/tanh_fpart)/(kT*T)) * F[iv];
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
-        if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
-          const Numeric fac_df0 = (-1.0/F0 + PLANCK_CONST*tanh_f0part/(kT) - PLANCK_CONST/(kT*tanh_f0part)) * F0/F0;
-          dF(iq, iv) += fac_df0 * F[iv];
-        }
-      }
-      else if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]]))
-        dF(iq, iv) += (1.0/f_grid[iv] -PLANCK_CONST*tanh_fpart/kT + PLANCK_CONST/(kT*tanh_fpart)) * F[iv];
+  data.col(0).noalias() = (c1 * f_grid.array()).tanh().matrix();
+  data.col(1).noalias() = f_grid.cwiseProduct(data.col(0)) / denom;
+  F.array() *= data.col(1).array();
+  
+  dF.array().colwise() *= data.col(1).array();
+  for(auto iq=0; iq<nppd; iq++) {
+    if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
+      dF.col(iq).noalias() += -c1/T * ((denom - F0/tanh_f0part) * F - denom * data.col(1).cwiseProduct(F) + f_grid.cwiseProduct(F).cwiseQuotient(data.col(0)));
+    else if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]]))
+      dF.col(iq).noalias() += F.cwiseQuotient(f_grid) + c1 * (F.cwiseQuotient(data.col(0)) - F.cwiseProduct(data.col(0)));
+    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
+      if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
+        dF.col(iq).noalias() += (-1.0/F0 + c1*tanh_f0part - c1/tanh_f0part) * F;
     }
   }
 }
@@ -1069,15 +1048,15 @@ void Linefunctions::apply_VVW_scaling(Eigen::Ref<Eigen::VectorXcd> F,
     
     for(auto iq=0; iq<nppd; iq++) {
       // The factor is applied to all partial derivatives
-      dF(iq, iv) *= fac;
+      dF(iv, iq) *= fac;
       
       // These partial derivatives are special
       if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
         if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-          dF(iq, iv) -= 2.0 * invF0 * F[iv] ;
+          dF(iv, iq) -= 2.0 * invF0 * F[iv] ;
       }
       else if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]]))
-        dF(iq, iv) += 2.0 / f_grid[iv] * F[iv];
+        dF(iv, iq) += 2.0 / f_grid[iv] * F[iv];
     }
   }
 }
@@ -1124,36 +1103,22 @@ void Linefunctions::apply_linestrength_scaling(Eigen::Ref<Eigen::VectorXcd> F,
   auto nppd = derivatives_data_position.nelem();
   
   const Numeric invQT = 1.0/QT;
-  const Numeric QT_ratio = QT0 * invQT;
+  const Numeric S = S0 * isotopic_ratio * QT0 * invQT * K1 * K2;
   
-  const Numeric dS_dS0 = isotopic_ratio * QT_ratio * K1 * K2;
-  const Numeric S = S0 * dS_dS0;
-  
+  F *= S;
+  dF *= S;
   for(auto iq=0; iq<nppd; iq++) {
-    if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature) {
-      const Numeric dS_dT = S * (dK2_dT / K2 + dK1_dT / K1 - invQT * dQT_dT);
-      
-      dF.row(iq) *= S;
-      dF.row(iq).noalias() += F * dS_dT;
-    }
+    if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
+      dF.col(iq).noalias() += F * (dK2_dT / K2 + dK1_dT / K1 - invQT * dQT_dT);
     else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineStrength) {
       if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-        dF.row(iq).noalias() = F * dS_dS0;
+        dF.col(iq).noalias() = F / S0;  //nb. overwrite
     }
     else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
-      if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
-        const Numeric dS_dF0 = S * dK2_dF0 / K2;
-        
-        dF.row(iq) *= S;
-        dF.row(iq).noalias() += F * dS_dF0;
-      }
+      if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
+        dF.col(iq).noalias() += F * dK2_dF0 / K2;
     }
-    else
-      dF.row(iq) *= S;
   }
-  
-  // Set lineshape at the end
-  F *= S;
 }
 
 
@@ -1215,19 +1180,20 @@ void Linefunctions::apply_linestrength_scaling_vibrational_nlte(Eigen::Ref<Eigen
   const Numeric dS_dS0_src = isotopic_ratio * QT_ratio * K1 * K2 * K4;
   const Numeric S_src = S0 * dS_dS0_src;
   
+  dN.noalias() = dF * (S_src - S_abs);
+  dF *= S_abs;
   for(auto iq=0; iq<nppd; iq++) {
     if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature) {
       const Numeric dS_dT_abs = S_abs * (dK2_dT / K2 + dK1_dT / K1 + dK3_dT / K3 - invQT * dQT_dT);
       const Numeric dS_dT_src = S_src * (dK2_dT / K2 + dK1_dT / K1 + dK4_dT / K4 - invQT * dQT_dT);
       
-      dN.row(iq).noalias() = dF.row(iq) * (S_src - S_abs) + F.transpose() * (dS_dT_src - dS_dT_abs);
-      dF.row(iq) *= S_abs;
-      dF.row(iq).noalias() += F * dS_dT_abs;
+      dN.col(iq).noalias() += F * (dS_dT_src - dS_dT_abs);
+      dF.col(iq).noalias() += F * dS_dT_abs;
     }
     else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineStrength) {
       if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
-        dF.row(iq).noalias() = F * dS_dS0_abs;
-        dN.row(iq).noalias() = F * (dS_dS0_src - dS_dS0_abs);
+        dF.col(iq).noalias() = F * dS_dS0_abs;
+        dN.col(iq).noalias() = F * (dS_dS0_src - dS_dS0_abs);
       }
     }
     else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
@@ -1235,9 +1201,8 @@ void Linefunctions::apply_linestrength_scaling_vibrational_nlte(Eigen::Ref<Eigen
         const Numeric dS_dF0_abs = S_abs * (dK2_dF0 / K2 + dK3_dF0 / K3);
         const Numeric dS_dF0_src = S_src * (dK2_dF0 / K2);
         
-        dN.row(iq).noalias() = dF.row(iq) * (S_src - S_abs) + F.transpose() * (dS_dF0_src - dS_dF0_abs);
-        dF.row(iq) *= S_abs;
-        dF.row(iq).noalias() += F * dS_dF0_abs;
+        dN.col(iq).noalias() += F * (dS_dF0_src - dS_dF0_abs);
+        dF.col(iq).noalias() += F * dS_dF0_abs;
       }
     }
     else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::NLTE) {
@@ -1245,24 +1210,18 @@ void Linefunctions::apply_linestrength_scaling_vibrational_nlte(Eigen::Ref<Eigen
         const Numeric dS_dTl_abs = S_abs * dK3_dTl / K3;
         const Numeric dS_dTl_src = 0;
         
-        dN.row(iq).noalias() = F * (dS_dTl_src - dS_dTl_abs);
-        dF.row(iq).noalias() = F * dS_dTl_abs;
+        dN.col(iq).noalias() = F * (dS_dTl_src - dS_dTl_abs);
+        dF.col(iq).noalias() = F * dS_dTl_abs;
       }
       else if(quantum_identity.UpperQuantumId() > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
         const Numeric dS_dTu_abs = S_abs * dK3_dTu / K3;
         const Numeric dS_dTu_src = S_src * dK4_dTu / K4;
         
-        dN.row(iq).noalias() = F * (dS_dTu_src - dS_dTu_abs);
-        dF.row(iq).noalias() = F * dS_dTu_abs;
+        dN.col(iq).noalias() = F * (dS_dTu_src - dS_dTu_abs);
+        dF.col(iq).noalias() = F * dS_dTu_abs;
       }
     }
-    else {
-      dN.row(iq).noalias()  = dF.row(iq) * (S_src - S_abs);
-      dF.row(iq) *= S_abs;
-    }
   }
-  
-  // Set lineshape at the end
   N.noalias() = F * (S_src - S_abs);
   F *= S_abs;
 }
@@ -1310,8 +1269,8 @@ void Linefunctions::apply_linestrength_from_full_linemixing(Eigen::Ref<Eigen::Ve
   {
     if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
     {
-      dF.row(iq) *= S_LM;
-      dF.row(iq).noalias() += F * (dS_LM_dT * f0_factor + 
+      dF.col(iq) *= S_LM;
+      dF.col(iq).noalias() += F * (dS_LM_dT * f0_factor + 
       S_LM * C1 * F0_invT * F0_invT * exp_factor) * isotopic_ratio;
     }
     else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineStrength)
@@ -1326,7 +1285,7 @@ void Linefunctions::apply_linestrength_from_full_linemixing(Eigen::Ref<Eigen::Ve
     }
     else
     {
-      dF.row(iq) *= S;
+      dF.col(iq) *= S;
     }
   }
   
@@ -1415,7 +1374,7 @@ void Linefunctions::apply_linefunctiondata_jacobian_scaling(Eigen::Ref<Eigen::Ma
         case JacPropMatType::LineFunctionDataG2X0:
         case JacPropMatType::LineFunctionDataG2X1:
         case JacPropMatType::LineFunctionDataG2X2:
-          dF.row(iq) *= Complex(0, line.GetInternalDerivative(T,P,this_species,vmrs,species, rt));
+          dF.col(iq) *= Complex(0, line.GetInternalDerivative(T,P,this_species,vmrs,species, rt));
           break;
         case JacPropMatType::LineFunctionDataD0X0:
         case JacPropMatType::LineFunctionDataD0X1:
@@ -1423,7 +1382,7 @@ void Linefunctions::apply_linefunctiondata_jacobian_scaling(Eigen::Ref<Eigen::Ma
         case JacPropMatType::LineFunctionDataD2X0:
         case JacPropMatType::LineFunctionDataD2X1:
         case JacPropMatType::LineFunctionDataD2X2:
-          dF.row(iq) *= -line.GetInternalDerivative(T,P,this_species,vmrs,species, rt);
+          dF.col(iq) *= -line.GetInternalDerivative(T,P,this_species,vmrs,species, rt);
           break;
         case JacPropMatType::LineFunctionDataFVCX0:
         case JacPropMatType::LineFunctionDataFVCX1:
@@ -1437,12 +1396,12 @@ void Linefunctions::apply_linefunctiondata_jacobian_scaling(Eigen::Ref<Eigen::Ma
         case JacPropMatType::LineFunctionDataDVX0:
         case JacPropMatType::LineFunctionDataDVX1:
         case JacPropMatType::LineFunctionDataDVX2:
-          dF.row(iq) *= line.GetInternalDerivative(T,P,this_species,vmrs,species, rt);
+          dF.col(iq) *= line.GetInternalDerivative(T,P,this_species,vmrs,species, rt);
           break;
         case JacPropMatType::LineFunctionDataYX0:
         case JacPropMatType::LineFunctionDataYX1:
         case JacPropMatType::LineFunctionDataYX2:
-          dF.row(iq) *= Complex(0, -line.GetInternalDerivative(T,P,this_species,vmrs,species, rt));
+          dF.col(iq) *= Complex(0, -line.GetInternalDerivative(T,P,this_species,vmrs,species, rt));
           break;
         default:
         {/*pass*/}
@@ -1510,13 +1469,14 @@ Numeric Linefunctions::dDopplerConstant_dT(const Numeric& T, const Numeric& mass
  * \param cutoff_call Flag to ignore some functions inside if this call is from the cutoff-computations
  * 
  */
-void Linefunctions::set_cross_section_for_single_line(Eigen::VectorXcd& F_full,
-                                                      Eigen::MatrixXcd& dF_full,
-                                                      Eigen::VectorXcd& N_full,
-                                                      Eigen::MatrixXcd& dN_full,
+void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXcd>  F_full,
+                                                      Eigen::Ref<Eigen::MatrixXcd> dF_full,
+                                                      Eigen::Ref<Eigen::VectorXcd>  N_full,
+                                                      Eigen::Ref<Eigen::MatrixXcd> dN_full,
+                                                      Eigen::Ref<Eigen::MatrixXcd> data_block_full,
                                                       Index& start_cutoff,
                                                       Index& nelem_cutoff,
-                                                      const ConstMatrixViewMap& f_grid_full,
+                                                      const Eigen::Ref<const Eigen::VectorXd> f_grid_full,
                                                       const LineRecord& line,
                                                       const ArrayOfRetrievalQuantity& derivatives_data,
                                                       const ArrayOfIndex& derivatives_data_position,
@@ -1535,7 +1495,6 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::VectorXcd& F_full,
                                                       const ArrayOfArrayOfSpeciesTag& abs_species,
                                                       const Index& this_species_location_in_tags,
                                                       const Index& zeeman_index,
-                                                      const Verbosity& verbosity,
                                                       const bool cutoff_call)
 {  
   /* Single line shape solver
@@ -1626,10 +1585,11 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::VectorXcd& F_full,
   */
   
   // Compute values
-  auto  F =                 F_full.segment(start_cutoff, nelem_cutoff);
-  auto  N = N_full.size() ? N_full.segment(start_cutoff, nelem_cutoff) : N_full.segment(0, 0);
-  auto dF =                 dF_full.middleCols(start_cutoff, nelem_cutoff);
-  auto dN = N_full.size() ? dN_full.middleCols(start_cutoff, nelem_cutoff) : dN_full.middleCols(0, 0);
+  auto  F = F_full.segment(start_cutoff, nelem_cutoff);
+  auto  N = N_full.segment(start_cutoff, nelem_cutoff);
+  auto dF = dF_full.middleRows(start_cutoff, nelem_cutoff);
+  auto dN = dN_full.middleRows(start_cutoff, nelem_cutoff);
+  auto data = data_block_full.middleRows(start_cutoff, nelem_cutoff);
   auto f_grid = f_grid_full.middleRows(start_cutoff, nelem_cutoff);
   
   switch(line.GetExternalLineShapeType()) {
@@ -1647,20 +1607,20 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::VectorXcd& F_full,
           break;
         case LineFunctionData::LineShapeType::VP:
           lst = LineShapeType::Voigt;
-          set_voigt(F, dF,
+          set_voigt(F, dF, data,
                     f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
                     line.F(), doppler_constant, X, derivatives_data, derivatives_data_position, QI,
                     ddoppler_constant_dT, dXdT, dXdVMR);
           break;
         case LineFunctionData::LineShapeType::LP:
           lst = LineShapeType::Lorentz;
-          set_lorentz(F, dF,
+          set_lorentz(F, dF, data,
                       f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
                       line.F(), X, derivatives_data, derivatives_data_position, QI, dXdT, dXdVMR);
           break;
         case LineFunctionData::LineShapeType::DP:
           lst = LineShapeType::Doppler;
-          set_doppler(F, dF,
+          set_doppler(F, dF, data, 
                       f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
                       line.F(), doppler_constant, derivatives_data, derivatives_data_position, QI, ddoppler_constant_dT);
           break;
@@ -1669,7 +1629,7 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::VectorXcd& F_full,
     // This line only needs the Doppler effect
     case LineShapeType::Doppler:
       lst = LineShapeType::Doppler;
-      set_doppler(F, dF,
+      set_doppler(F, dF, data, 
                   f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
                   line.F(), doppler_constant, derivatives_data, derivatives_data_position, QI, ddoppler_constant_dT);
       break;
@@ -1684,14 +1644,14 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::VectorXcd& F_full,
     // This line only needs Lorentz
     case LineShapeType::Lorentz:
       lst = LineShapeType::Lorentz;
-      set_lorentz(F, dF,
+      set_lorentz(F, dF, data,
                   f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
                   line.F(), X, derivatives_data, derivatives_data_position, QI, dXdT, dXdVMR);
       break;
     // This line only needs Voigt
     case LineShapeType::Voigt:
       lst = LineShapeType::Voigt;
-      set_voigt(F, dF, f_grid, 
+      set_voigt(F, dF, data, f_grid, 
                 line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
                 line.F(), doppler_constant, X, derivatives_data, derivatives_data_position, QI,
                 ddoppler_constant_dT, dXdT, dXdVMR);
@@ -1714,40 +1674,34 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::VectorXcd& F_full,
     case MirroringType::Lorentz: {
         if(lst == LineShapeType::Doppler) throw std::runtime_error("Cannot apply Lorentz mirroring for Doppler line shape");
         // Set the mirroring computational vectors and size them as needed
-        Eigen::VectorXcd Fm(F.size());
-        Eigen::MatrixXcd dFm(dF.rows(), dF.cols());
-        
-        set_lorentz(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
+        set_lorentz(N, dN, data, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
                     -line.F(), mirroredOutput(X), derivatives_data, derivatives_data_position, QI, mirroredOutput(dXdT), mirroredOutput(dXdVMR));
         
         // Apply mirroring
-        F.noalias() += Fm;
-        dF.noalias() += dFm;
+        F.noalias() += N;
+        dF.noalias() += dN;
     } break;
     // Same type of mirroring as before
     case MirroringType::SameAsLineShape: {
       // Set the mirroring computational vectors and size them as needed
-      Eigen::VectorXcd Fm(F.size());
-      Eigen::MatrixXcd dFm(dF.rows(), dF.cols());
-      
       switch(lst) {
         case LineShapeType::Doppler:
-          set_doppler(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
+          set_doppler(N, dN, data, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
                       -line.F(), -doppler_constant, derivatives_data, derivatives_data_position, QI, -ddoppler_constant_dT);
           break;
         case LineShapeType::Lorentz:
-          set_lorentz(Fm, dFm, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
+          set_lorentz(N, dN, data, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
                       -line.F(), mirroredOutput(X), derivatives_data, derivatives_data_position, QI, mirroredOutput(dXdT), mirroredOutput(dXdVMR));
           break;
         case LineShapeType::Voigt:
-          set_voigt(Fm, dFm, f_grid, 
+          set_voigt(N, dN, data, f_grid, 
                     -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
                     -line.F(), -doppler_constant, mirroredOutput(X), derivatives_data, derivatives_data_position, QI,
                     -ddoppler_constant_dT, mirroredOutput(dXdT), mirroredOutput(dXdVMR));
           break;
         case LineShapeType::HTP:
           // WARNING: This mirroring is not tested and it might require, e.g., FVC to be treated differently
-          set_htp(Fm, dFm, f_grid, 
+          set_htp(N, dN, f_grid, 
                   -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
                   -line.F(), -doppler_constant, mirroredOutput(X),
                   derivatives_data, derivatives_data_position, QI,
@@ -1757,8 +1711,8 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::VectorXcd& F_full,
         case LineShapeType::End:
           throw std::runtime_error("Cannot understand the requested line shape type for mirroring.");
       }
-      F.noalias() += Fm;
-      dF.noalias() += dFm;
+      F.noalias() += N;
+      dF.noalias() += dN;
       break;
     } break;
     case MirroringType::End:
@@ -1767,7 +1721,7 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::VectorXcd& F_full,
   
   // Only for non-Doppler shapes
   if(lst not_eq LineShapeType::Doppler) {
-    apply_linemixing_scaling(F, dF, X.Y, X.G, derivatives_data, derivatives_data_position, QI, dXdT.Y, dXdT.G, dXdVMR);
+    apply_linemixing_scaling(F, dF, X, derivatives_data, derivatives_data_position, QI, dXdT, dXdVMR);
     
     // Apply line mixing and pressure broadening partial derivatives        
     apply_linefunctiondata_jacobian_scaling(dF, derivatives_data, derivatives_data_position, QI, line,
@@ -1776,7 +1730,7 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::VectorXcd& F_full,
   }
   
   // Line normalization if necessary
-  // The user sets this by setting LSM LNT followed by and index
+  // The user sets this by setting LSM LNT followed by an index
   // that is internally interpreted to mean some kind of lineshape normalization
   switch(line.GetLineNormalizationType()) {
     // No normalization
@@ -1784,7 +1738,7 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::VectorXcd& F_full,
       break;
       // van Vleck and Huber normalization
     case LineNormalizationType::VVH:
-      apply_VVH_scaling(F, dF, f_grid, line.F(), temperature, derivatives_data, derivatives_data_position, QI);
+      apply_VVH_scaling(F, dF, data, f_grid, line.F(), temperature, derivatives_data, derivatives_data_position, QI);
       break;
       // van Vleck and Weiskopf normalization
     case LineNormalizationType::VVW:
@@ -1941,7 +1895,7 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::VectorXcd& F_full,
                  dpartition_function_at_temperature_dT,
                  partition_function_at_line_temperature,
                  abs_species, this_species_location_in_tags,
-                 zeeman_index, verbosity);
+                 zeeman_index);
 }
 
 
@@ -1999,22 +1953,20 @@ void Linefunctions::apply_cutoff(Eigen::Ref<Eigen::VectorXcd> F,
                                  const Numeric& partition_function_at_line_temperature,
                                  const ArrayOfArrayOfSpeciesTag& abs_species,
                                  const Index& this_species_location_in_tags,
-                                 const Index& zeeman_index,
-                                 const Verbosity& verbosity)
+                                 const Index& zeeman_index)
 { 
   // Size of derivatives
-  auto nj = dF.rows(); 
-  auto nn = dN.rows(); 
+  auto nj = dF.cols(); 
   
   // Setup compute variables
   
   const auto f_grid_cutoff = MapToEigen(Vector(1, (line.F() > 0) ? line.F() + line.CutOff() : line.F() - line.CutOff()));
   Eigen::VectorXcd Fc(1), Nc(1);
-  Eigen::MatrixXcd dFc(nj, 1), dNc(nn, 1);
+  Eigen::RowVectorXcd dFc(nj), dNc(nj), data(Linefunctions::ExpectedDataSize());
   Index _tmp1, _tmp2;
   
   // Recompute the line for a single frequency
-  set_cross_section_for_single_line(Fc, dFc, Nc, dNc, _tmp1, _tmp2, f_grid_cutoff, line,
+  set_cross_section_for_single_line(Fc, dFc, Nc, dNc, data, _tmp1, _tmp2, f_grid_cutoff, line,
                                     derivatives_data, derivatives_data_position,
                                     volume_mixing_ratio_of_all_species,
                                     nlte_distribution, pressure, temperature,
@@ -2024,19 +1976,19 @@ void Linefunctions::apply_cutoff(Eigen::Ref<Eigen::VectorXcd> F,
                                     dpartition_function_at_temperature_dT,
                                     partition_function_at_line_temperature,
                                     abs_species, this_species_location_in_tags,
-                                    zeeman_index, verbosity, true);
+                                    zeeman_index, true);
   
   // Apply cutoff values
   F.array() -= Fc[0];
-  if(N.size()) N.array() -= Nc[0];
-  for(Index i = 0; i < nj; i++) dF.row(i).array() -= dFc(i, 0);
-  for(Index i = 0; i < nn; i++) dN.row(i).array() -= dNc(i, 0);
+  N.array() -= Nc[0];
+  for(Index i = 0; i < nj; i++) dF.col(i).array() -= dFc[i];
+  for(Index i = 0; i < nj; i++) dN.col(i).array() -= dNc[i];
 }
 
 
 void Linefunctions::find_cutoff_ranges(Index& start_cutoff,
                                        Index& nelem_cutoff,
-                                       const Eigen::VectorXd& f_grid,
+                                       const Eigen::Ref<const Eigen::VectorXd> f_grid,
                                        const Numeric& F0,
                                        const Numeric& cutoff)
 {
@@ -2139,7 +2091,7 @@ void Linefunctions::apply_linestrength_from_nlte_level_distributions(Eigen::Ref<
   for(auto iq=0; iq<nppd; iq++) {
     if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature) {
       Numeric done_over_b_dT = PLANCK_CONST*F0*exp_T/(c2*BOLTZMAN_CONST*T*T);
-      dN.row(iq).noalias() += F*e*done_over_b_dT;
+      dN.col(iq).noalias() += F*e*done_over_b_dT;
     }
     else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
       if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity)) {
@@ -2147,19 +2099,19 @@ void Linefunctions::apply_linestrength_from_nlte_level_distributions(Eigen::Ref<
         Numeric de_df0 = c1 * r2 * A21;
         Numeric dk_df0 = c1 * (r1*x - r2) * (A21 / c2) - 3.0*k/F0;
         
-        dN.row(iq).noalias() += F*(e*done_over_b_df0 + de_df0/b - dk_df0);
-        dF.row(iq).noalias() += F*dk_df0;
+        dN.col(iq).noalias() += F*(e*done_over_b_df0 + de_df0/b - dk_df0);
+        dF.col(iq).noalias() += F*dk_df0;
       }
     }
     else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::NLTE) {
       if(quantum_identity.LowerQuantumId() > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
         const Numeric dk_dr2 = - c3 * A21 / c2, de_dr2 = c3 * A21, dratio_dr2 = de_dr2/b - dk_dr2;
-        dN.row(iq).noalias() = F*dratio_dr2;
-        dF.row(iq).noalias() += F*dk_dr2;
+        dN.col(iq).noalias() = F*dratio_dr2;
+        dF.col(iq).noalias() += F*dk_dr2;
       }
       else if(quantum_identity.UpperQuantumId() > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
         const Numeric dk_dr1 = c3 * x * A21 / c2;
-        dF.row(iq).noalias() += F*dk_dr1;
+        dF.col(iq).noalias() += F*dk_dr1;
       }
     }
   }

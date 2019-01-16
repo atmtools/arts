@@ -851,7 +851,6 @@ void xsec_species2(Matrix& xsec,
                    const Index this_species,
                    const ArrayOfLineRecord& abs_lines,
                    const SpeciesAuxData& isotopologue_ratios,
-                   const SpeciesAuxData& partition_functions,
-                   const Verbosity& verbosity);
+                   const SpeciesAuxData& partition_functions);
 
 #endif // absorption_h
