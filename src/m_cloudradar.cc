@@ -207,9 +207,10 @@ void iyActiveSingleScat(
   for( Index i=0; i<naux; i++ )
     {
       iy_aux[i].resize(nf*np,ns); 
+      iy_aux[i] = 0;
 
       if( iy_aux_vars[i] == "Radiative background" )
-        { iy_aux[i] = (Numeric)min( (Index)2, rbi-1 ); }
+        { iy_aux[i](joker,0) = (Numeric)min( (Index)2, rbi-1 ); }
       else if( iy_aux_vars[i] == "Backscattering" )
         {
           iy_aux[i]   = 0;
@@ -548,8 +549,6 @@ void iyActiveSingleScat(
               if( auxPartAtte >= 0  &&  ip > 0 )
                 { iy_aux[auxPartAtte](iout,0) = iy_aux[auxPartAtte](iout-1,0)
                     + ppath.lstep[ip-1] * (scalar_ext(ip-1,iv)+scalar_ext(ip-1,iv));
-                  for( Index is=1; is<ns; is++ )
-                    { iy_aux[auxPartAtte](iout,is) = iy_aux[auxPartAtte](iout,0); } 
                 } 
               
               // Jacobians
@@ -591,7 +590,7 @@ void iyActiveSingleScat(
               for( Index iv=0; iv<nf; iv++ )
                 {
                   const Index iout = iv*np + ip;
-                  iy_aux[auxPartAtte](iout,joker) = iy_aux[auxPartAtte](iout-nf,joker);
+                  iy_aux[auxPartAtte](iout,0) = iy_aux[auxPartAtte](iout-nf,0);
                 } 
             }
         }
@@ -602,8 +601,6 @@ void iyActiveSingleScat(
             {
               const Index iout = iv*np + ip;
               iy_aux[auxOptDepth](iout,0) = -2*log( ppvar_trans_cumulat(ip,iv,0,0) );
-              for( Index is=1; is<ns; is++ )
-                { iy_aux[auxOptDepth](iout,is) = iy_aux[auxOptDepth](iout,0); }
             }
         }
       
@@ -826,9 +823,10 @@ void iyActiveSingleScat2(
   //
   for( Index i=0; i<naux; i++ ) {
     iy_aux[i].resize(nf*np,ns); 
+    iy_aux[i] = 0;
     
     if( iy_aux_vars[i] == "Radiative background" )
-      iy_aux[i] = (Numeric)min( (Index)2, rbi-1 );
+      iy_aux[i](joker,0) = (Numeric)min( (Index)2, rbi-1 );
     else if( iy_aux_vars[i] == "Backscattering" ) {
       iy_aux[i]   = 0;
       auxBackScat = i;

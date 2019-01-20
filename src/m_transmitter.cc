@@ -783,9 +783,10 @@ void iyTransmissionStandardOld(
   for( Index i=0; i<naux; i++ )
     {
       iy_aux[i].resize(nf,ns); 
+      iy_aux[i] = 0;
       
       if( iy_aux_vars[i] == "Radiative background" )
-        { iy_aux[i] = (Numeric)min( (Index)2, rbi-1 ); }
+        { iy_aux[i](joker,0) = (Numeric)min( (Index)2, rbi-1 ); }
       else if( iy_aux_vars[i] == "Optical depth" )
         { auxOptDepth = i; } 
       else
@@ -819,8 +820,6 @@ void iyTransmissionStandardOld(
       ppvar_pnd.resize(0,0);
       ppvar_f.resize(0,0);
       ppvar_iy.resize(0,0,0);
-      //
-      iy_aux[auxOptDepth] = 0.0;
     }
   else
     {
@@ -967,7 +966,7 @@ void iyTransmissionStandardOld(
       if( auxOptDepth >= 0 )
         {
           for( Index iv=0; iv<nf; iv++ )
-            { iy_aux[auxOptDepth](iv,joker) = -log( ppvar_trans_cumulat(np-1,iv,0,0) ); }
+            { iy_aux[auxOptDepth](iv,0) = -log( ppvar_trans_cumulat(np-1,iv,0,0) ); }
         }   
     }
   
@@ -1143,9 +1142,10 @@ void iyTransmissionStandard(
   //
   for( Index i=0; i<naux; i++ ) {
     iy_aux[i].resize(nf,ns); 
+    iy_aux[i] = 0; 
     
     if( iy_aux_vars[i] == "Radiative background" )
-      iy_aux[i] = (Numeric)min( (Index)2, rbi-1 );
+      iy_aux[i](joker,0) = (Numeric)min( (Index)2, rbi-1 );
     else if( iy_aux_vars[i] == "Optical depth" )
       auxOptDepth = i;
     else {
@@ -1181,8 +1181,6 @@ void iyTransmissionStandard(
     ppvar_pnd.resize(0,0);
     ppvar_f.resize(0,0);
     ppvar_iy.resize(0,0,0);
-    //
-    iy_aux[auxOptDepth] = 0.0;
   }
   else {
     // ppvar_iy
@@ -1325,7 +1323,7 @@ void iyTransmissionStandard(
   // iy_aux: Optical depth
   if( auxOptDepth >= 0 ) {
     for( Index iv=0; iv<nf; iv++ )
-      iy_aux[auxOptDepth](iv,joker) = -std::log( tot_tra[np-1](iv, 0, 0) );
+      iy_aux[auxOptDepth](iv,0) = -std::log( tot_tra[np-1](iv, 0, 0) );
   }
   
   lvl_rad[np-1] = iy;

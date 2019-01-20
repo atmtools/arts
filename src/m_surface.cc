@@ -2629,3 +2629,34 @@ void SurfaceFastem(
         }
     }
 }                   
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void transmittanceFromIy_aux(
+          Vector&          transmittance,
+    const ArrayOfString&   iy_aux_vars,
+    const ArrayOfMatrix&   iy_aux,
+    const Verbosity& )
+{
+  Index ihit = -1;
+  
+  for( Index i=0; i<iy_aux_vars.nelem(); i++ )
+    {
+      if( iy_aux_vars[i] == "Optical depth" )
+        {
+          ihit = i;
+          break;
+        } 
+    }
+  
+  if( ihit < 0 )
+    throw runtime_error( "No element in *iy_aux* holds optical depths." );      
+
+  const Index n = iy_aux[ihit].nrows();
+
+  transmittance.resize(n);
+
+  for( Index i=0; i<n; i++ )
+    { transmittance[i] = exp( -iy_aux[ihit](i,0) ); }
+}

@@ -1,7 +1,22 @@
+2019-01-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1199
+
+	* src/m_surface.cc (transmittanceFromIy_aux): New WSM.
+
+	* src/m_transmitter.cc (iyTransmissionStandard,iyTransmissionStandardOld):
+	* src/m_rte.cc (iyEmissionStandard,iyEmissionStandardOld):
+	* src/m_cloudradar.cc (iyActiveSingleScat,iyActiveSingleScat2):
+	Changed setting of iy_aux for variables following the pattern of
+	optical depth. Before all columns were filled with identical
+	values, but this gives wrong results when mapped to y_aux if
+	stokes_dim > 1. Now just the first column is set, and the others
+	are filled with zeros. This should give correct results in y_aux.
+
 2019-01-16  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1198
-	
+
 	* src/absorption.cc:  Eigen debug flags under debug-build mode
 	apparently throws an error here instead of referencing nothing,
 	as it does on release-mode.  This update should fix Hudson

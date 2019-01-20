@@ -285,9 +285,10 @@ void iyEmissionStandardOld(
   for( Index i=0; i<naux; i++ )
     {
       iy_aux[i].resize(nf,ns);
+      iy_aux[i] = 0;
       
       if( iy_aux_vars[i] == "Radiative background" )
-        { iy_aux[i] = (Numeric)min( (Index)2, rbi-1 ); }
+        { iy_aux[i](joker,0) = (Numeric)min( (Index)2, rbi-1 ); }
       else if( iy_aux_vars[i] == "Optical depth" )
         { auxOptDepth = i; } 
       else
@@ -483,7 +484,7 @@ void iyEmissionStandardOld(
   if( auxOptDepth >= 0 )
     {
       for( Index iv=0; iv<nf; iv++ )
-        { iy_aux[auxOptDepth](iv,joker) = -log( ppvar_trans_cumulat(np-1,iv,0,0) ); }
+        { iy_aux[auxOptDepth](iv,0) = -log( ppvar_trans_cumulat(np-1,iv,0,0) ); }
     }   
 
   // Radiative background
@@ -675,9 +676,10 @@ void iyEmissionStandard(
   //
   for( Index i=0; i<naux; i++ ) {
     iy_aux[i].resize(nf,ns);
+    iy_aux[i] = 0;
     
     if( iy_aux_vars[i] == "Radiative background" )
-      iy_aux[i] = (Numeric)min( (Index)2, rbi-1 );
+      iy_aux[i](joker,0) = (Numeric)min( (Index)2, rbi-1 );
     else if( iy_aux_vars[i] == "Optical depth" )
       auxOptDepth = i;
     else {
@@ -836,7 +838,7 @@ void iyEmissionStandard(
   // iy_aux: Optical depth
   if( auxOptDepth >= 0 )
     for( Index iv=0; iv<nf; iv++ )
-      iy_aux[auxOptDepth](iv,joker) = -std::log( tot_tra[np-1](iv, 0, 0) );
+      iy_aux[auxOptDepth](iv,0) = -std::log( tot_tra[np-1](iv, 0, 0) );
   
   // Radiative background
   get_iy_of_background( ws, iy, diy_dx, 
@@ -1446,7 +1448,7 @@ void iyMC(
     for( Index i=0; i<naux; i++ )
       {
         if( iy_aux_vars[i] == "Error (uncorrelated)" )
-          { auxError = i;      iy_aux[i].resize( nf, stokes_dim ); }
+          { auxError = i; iy_aux[i].resize( nf, stokes_dim ); }
         else
           {
             ostringstream os;

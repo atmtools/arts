@@ -7616,16 +7616,18 @@ void define_md_data_raw()
          "Valid choices for auxiliary data are:\n"
          " \"Radiative background\": Index value flagging the radiative\n"
          "    background. The following coding is used: 0=space, 1=surface\n"
-         "    and 2=cloudbox. The value is added to each column.\n"
+         "    and 2=cloudbox.\n"
          " \"Backscattering\": The unattenuated backscattering. That is, as\n"
-         "    *iy* but with no attenuated applied.\n"
+         "    *iy* but with no attenuated applied. Here all columns are filled.\n"
          " \"Optical depth\": Scalar, total and two-way, optical depth between\n"
          "    sensor and each point of the propagation path. Calculated based on\n"
          "    the (1,1)-element of the transmission matrix (1-based indexing),\n"
-         "    i.e. only fully valid for scalar RT. The value is added to each\n"
-         "    column.\n"
+         "    i.e. only fully valid for scalar RT.\n"
          " \"Particle extinction\": As \"Optical depth\", but only with particle\n"
          "    attenuation included. That is, gas absorption is ignored.\n"
+         "If nothing else is stated, only the first column of *iy_aux* is filled,\n"
+         "i.e. the column matching Stokes element I, while remaing columns are\n"
+         "are filled with zeros.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "iy_aux", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_nlte",
@@ -7783,7 +7785,7 @@ void define_md_data_raw()
         " \"W/(m^2 m-1 sr)\": Conversion to [W/(m^2 m-1 sr)] (radiance per\n"
         "                     wavenumber unit).\n"
         "Expressions applied and considerations for the unit conversion of\n"
-        "radiances are discussed in Sec. 5.7 of the ARTS-2 article.\n"
+        "radiances are discussed in Sec. 5.7 of the ARTS-2.0 article.\n"
         "\n"
         "*iy_unit* is only applied if *iy_agenda_call1* is 1. This means that\n"
         "no unit ocnversion is applied for internal iterative calls.\n"
@@ -7793,13 +7795,15 @@ void define_md_data_raw()
         "Valid choices for auxiliary data are:\n"
         " \"Radiative background\": Index value flagging the radiative\n"
         "    background. The following coding is used: 0=space, 1=surface\n"
-        "    and 2=cloudbox. The value is added to each column.\n"
+        "    and 2=cloudbox.\n"
         " \"Optical depth\": Scalar optical depth between the observation point\n"
         "    and the end of the present propagation path. Calculated based on\n"
         "    the (1,1)-element of the transmission matrix (1-based indexing),\n"
-        "    i.e. only fully valid for scalar RT. The value is added to each\n"
-        "    column.\n"
-      ),
+        "    i.e. only fully valid for scalar RT.\n"
+        "If nothing else is stated, only the first column of *iy_aux* is filled,\n"
+        "i.e. the column matching Stokes element I, while remaing columns are\n"
+        "are filled with zeros.\n"
+       ),
       AUTHORS( "Patrick Eriksson", "Richard Larsson" ),
       OUT( "iy", "iy_aux", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_nlte",
            "ppvar_vmr", "ppvar_wind", "ppvar_mag", "ppvar_f", "ppvar_iy",
@@ -18984,6 +18988,31 @@ void define_md_data_raw()
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         USES_TEMPLATES( true  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "transmittanceFromIy_aux" ),
+        DESCRIPTION
+        (
+         "Creates a vector of transmittance values.\n"
+         "\n"
+         "The transmittances are set based on optical depths in *iy_aux*. That is,\n"
+         "one of the quantities in *iy_aux* must be \"Optical depth\".\n"
+         "\n"
+         "The created vector has a length matching *f_grid* and can e.g. be used\n"
+         "as input to some of the FASTEM methods.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "tranmittance"     ),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "Created vector of transmittance values." ),
+        IN( "iy_aux_vars", "iy_aux" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
 
   md_data_raw.push_back
