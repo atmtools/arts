@@ -112,11 +112,11 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
                        const ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
                        const SpeciesAuxData& isotopologue_ratios, 
                        const SpeciesAuxData& partition_functions,
-                       const ConstVectorView f_grid,
-                       const ConstVectorView rtp_vmrs, 
-                       const ConstVectorView rtp_nlte, 
-                       const ConstVectorView rtp_mag,
-                       const ConstVectorView rtp_los,
+                       const Vector& f_grid,
+                       const Vector& rtp_vmrs, 
+                       const Vector& rtp_nlte, 
+                       const Vector& rtp_mag,
+                       const Vector& rtp_los,
                        const Numeric& rtp_pressure,
                        const Numeric& rtp_temperature,
                        const Index& manual_zeeman_tag,
@@ -170,16 +170,16 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
   const Numeric dtheta_dv = do_mag_jacs ? zeeman_magnetic_dtheta_dv(    u, v, w, z, a) : 0;
   const Numeric dtheta_dw = do_mag_jacs ? zeeman_magnetic_dtheta_dw(    u, v, w, z, a) : 0;
   
+  // Polarization
+  auto polarization_scale_data        = zeeman_polarization(        theta, eta);
+  auto polarization_scale_dtheta_data = zeeman_dpolarization_dtheta(theta, eta);
+  auto polarization_scale_deta_data   = zeeman_dpolarization_deta(  theta, eta);
+  
   for(Index ispecies=0; ispecies<ns; ispecies++) {
     for(const ArrayOfLineRecord& lines: zeeman_linerecord_precalc) {
       if(not lines.nelem()) continue;
       else if(lines[0].Species()      not_eq abs_species[ispecies][0].Species() or
               lines[0].Isotopologue() not_eq abs_species[ispecies][0].Isotopologue()) continue;
-      
-      // Polarization
-      auto polarization_scale = lines[0].ZeemanEffect().Polarization(theta, eta);
-      auto dpol_deta = do_mag_jacs ? lines[0].ZeemanEffect().dPolarization_deta(theta, eta) : ZeemanDataOutput();
-      auto dpol_dtheta = do_mag_jacs ? lines[0].ZeemanEffect().dPolarization_dtheta(theta, eta) : ZeemanDataOutput();
       
       // Temperature constants
       Numeric t0=-1.0, qt, qt0, dqt_dT;
@@ -203,6 +203,11 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
                                    partition_functions.getParamType(line.Species(), line.Isotopologue()),
                                    partition_functions.getParam(line.Species(), line.Isotopologue()));
         }
+        
+        // Select polarization for this line
+        auto& polarization_scale = select_zeeman_polarization(polarization_scale_data,        line.ZeemanPolarization());
+        auto& dpol_dtheta        = select_zeeman_polarization(polarization_scale_dtheta_data, line.ZeemanPolarization());
+        auto& dpol_deta          = select_zeeman_polarization(polarization_scale_deta_data,   line.ZeemanPolarization());
         
         for(Index iz=0; iz<line.ZeemanEffect().nelem(); iz++) {
           Linefunctions::set_cross_section_for_single_line(F, dF, N, dN, data, start, nelem, f_grid_eigen, line,

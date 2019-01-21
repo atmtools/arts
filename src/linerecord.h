@@ -605,6 +605,7 @@ public:
   
   /** Pressure Broadening Data */
   ZeemanEffectData& ZeemanEffect() { return mzeemandata; }
+  ZeemanPolarizationType ZeemanPolarization() const { return mzeemandata.PolarizationType(); }
   const ZeemanEffectData& ZeemanEffect() const { return mzeemandata; }
   void SetZeemanEffectData(const ZeemanEffectData& input) { mzeemandata=input; }
   

@@ -213,51 +213,47 @@ ZeemanEffectData::ZeemanEffectData(const QuantumIdentifier& qi, const ZeemanPola
 }
 
 
-ZeemanDataOutput ZeemanEffectData::Polarization(const Numeric& theta, const Numeric& eta) const
+ZeemanPolarizationVector& select_zeeman_polarization(ZeemanDataOutput& data, ZeemanPolarizationType mpolar)
 {
-  const Numeric ST=std::sin(theta), CT=std::cos(theta), ST2=ST*ST, CT2=CT*CT, C2E=std::cos(2*eta), S2E=std::sin(2*eta), ST2C2E=ST2*C2E, ST2S2E=ST2*S2E;
-  
   switch(mpolar) {
     case ZeemanPolarizationType::None:
-      return (ZeemanDataOutput() << 1, 0, 0, 0, 0, 0, 0).finished();
+      throw std::runtime_error("Not allowed");
     case ZeemanPolarizationType::Pi:
-      return (ZeemanDataOutput() <<     ST2, -ST2C2E, -ST2S2E,     0,     0, -2*ST2S2E,  2*ST2C2E).finished();
+      return data.pi;
     case ZeemanPolarizationType::SigmaMinus:
-      return (ZeemanDataOutput() << 1 + CT2,  ST2C2E,  ST2S2E,  2*CT,  4*CT,  2*ST2S2E, -2*ST2C2E).finished();
+      return data.sm;
     case ZeemanPolarizationType::SigmaPlus:
-      return (ZeemanDataOutput() << 1 + CT2,  ST2C2E,  ST2S2E, -2*CT, -4*CT,  2*ST2S2E, -2*ST2C2E).finished();
+      return data.sp;
   }
+  throw std::runtime_error("Not allowed");
 }
 
 
-ZeemanDataOutput ZeemanEffectData::dPolarization_dtheta(const Numeric& theta, const Numeric& eta) const
+ZeemanDataOutput zeeman_polarization(Numeric theta, Numeric eta)
+{
+  const Numeric ST=std::sin(theta), CT=std::cos(theta), ST2=ST*ST, CT2=CT*CT, C2E=std::cos(2*eta), S2E=std::sin(2*eta), ST2C2E=ST2*C2E, ST2S2E=ST2*S2E;
+  
+  return {(ZeemanPolarizationVector() <<     ST2, -ST2C2E, -ST2S2E,     0,     0, -2*ST2S2E,  2*ST2C2E).finished(),  //PI
+          (ZeemanPolarizationVector() << 1 + CT2,  ST2C2E,  ST2S2E,  2*CT,  4*CT,  2*ST2S2E, -2*ST2C2E).finished(),  //SM
+          (ZeemanPolarizationVector() << 1 + CT2,  ST2C2E,  ST2S2E, -2*CT, -4*CT,  2*ST2S2E, -2*ST2C2E).finished()}; //SP
+}
+
+
+ZeemanDataOutput zeeman_dpolarization_dtheta(Numeric theta, const Numeric eta)
 {
   const Numeric ST=std::sin(theta), CT=std::cos(theta), C2E=std::cos(2*eta), S2E=std::sin(2*eta);
   const Numeric dST = CT, dST2 = 2*ST*dST, dCT = -ST, dST2C2E = dST2*C2E, dST2S2E = dST2*S2E, dCT2 = 2*CT*dCT;
   
-  switch(mpolar) {
-    case ZeemanPolarizationType::None:
-      return ZeemanDataOutput::Zero();
-    case ZeemanPolarizationType::Pi:
-      return (ZeemanDataOutput() << dST2, -dST2C2E, -dST2S2E,      0,      0, -2*dST2S2E,  2*dST2C2E).finished();
-    case ZeemanPolarizationType::SigmaMinus:
-      return (ZeemanDataOutput() << dCT2,  dST2C2E,  dST2S2E,  2*dCT,  4*dCT,  2*dST2S2E, -2*dST2C2E).finished();
-    case ZeemanPolarizationType::SigmaPlus:
-      return (ZeemanDataOutput() << dCT2,  dST2C2E,  dST2S2E, -2*dCT, -4*dCT,  2*dST2S2E, -2*dST2C2E).finished();
-  }
+  return {(ZeemanPolarizationVector() << dST2, -dST2C2E, -dST2S2E,      0,      0, -2*dST2S2E,  2*dST2C2E).finished(),  //PI
+          (ZeemanPolarizationVector() << dCT2,  dST2C2E,  dST2S2E,  2*dCT,  4*dCT,  2*dST2S2E, -2*dST2C2E).finished(),  //SM
+          (ZeemanPolarizationVector() << dCT2,  dST2C2E,  dST2S2E, -2*dCT, -4*dCT,  2*dST2S2E, -2*dST2C2E).finished()}; //SP
 }
 
-ZeemanDataOutput ZeemanEffectData::dPolarization_deta(const Numeric& theta, const Numeric& eta) const
+ZeemanDataOutput zeeman_dpolarization_deta(Numeric theta, Numeric eta)
 {
   const Numeric ST=std::sin(theta), ST2=ST*ST, C2E=std::cos(2*eta), S2E=std::sin(2*eta), dST2C2E=-2*ST2*S2E, dST2S2E=2*ST2*C2E;
   
-  switch(mpolar) {
-    case ZeemanPolarizationType::None:
-      return ZeemanDataOutput::Zero();
-    case ZeemanPolarizationType::Pi:
-      return (ZeemanDataOutput() << 0, -dST2C2E, -dST2S2E, 0, 0, -2*dST2S2E,  2*dST2C2E).finished();
-    case ZeemanPolarizationType::SigmaMinus:
-    case ZeemanPolarizationType::SigmaPlus:
-      return (ZeemanDataOutput() << 0,  dST2C2E,  dST2S2E, 0, 0,  2*dST2S2E, -2*dST2C2E).finished();
-  }
+  return {(ZeemanPolarizationVector() << 0, -dST2C2E, -dST2S2E, 0, 0, -2*dST2S2E,  2*dST2C2E).finished(),
+          (ZeemanPolarizationVector() << 0,  dST2C2E,  dST2S2E, 0, 0,  2*dST2S2E, -2*dST2C2E).finished(),
+          (ZeemanPolarizationVector() << 0,  dST2C2E,  dST2S2E, 0, 0,  2*dST2S2E, -2*dST2C2E).finished()};
 }

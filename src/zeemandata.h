@@ -31,7 +31,15 @@
 
 enum class ZeemanPolarizationType { SigmaMinus, Pi, SigmaPlus, None };
 
-typedef Eigen::Matrix<double, 1, 7> ZeemanDataOutput;
+typedef Eigen::Matrix<double, 1, 7> ZeemanPolarizationVector;
+typedef struct {
+  ZeemanPolarizationVector pi, sm, sp;
+} ZeemanDataOutput;
+
+ZeemanDataOutput zeeman_polarization(Numeric, Numeric);
+ZeemanDataOutput zeeman_dpolarization_dtheta(Numeric, Numeric);
+ZeemanDataOutput zeeman_dpolarization_deta(Numeric, Numeric);
+ZeemanPolarizationVector& select_zeeman_polarization(ZeemanDataOutput&, ZeemanPolarizationType);
 
 class ZeemanEffectData 
 {
@@ -85,10 +93,6 @@ public:
   Rational Mu(const Index i) const {return mMu[i];}
   Rational Ml(const Index i) const {return mMl[i];}
   
-  ZeemanDataOutput Polarization(const Numeric& theta, const Numeric& eta) const;
-  ZeemanDataOutput dPolarization_dtheta(const Numeric& theta, const Numeric& eta) const;
-  ZeemanDataOutput dPolarization_deta(const Numeric& theta, const Numeric& eta) const;
-  
   void SetPolarizationTypeFromString(const String& t)
   {
     if(t=="PI")      mpolar = ZeemanPolarizationType::Pi; 
@@ -103,7 +107,7 @@ public:
       case ZeemanPolarizationType::SigmaMinus: return "SM";
       case ZeemanPolarizationType::Pi:         return "PI";
       case ZeemanPolarizationType::SigmaPlus:  return "SP";
-      case ZeemanPolarizationType::None:       return "-1";
+      default:                                 return "-1";
     }
   }
   

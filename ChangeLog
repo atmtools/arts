@@ -1,3 +1,23 @@
+2019-01-21  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1200
+	
+	Ps.  It seemsn the nlte-test does indeed speed-up as it should, but
+	that my IDE is buggy presently.  Ignore the comment I made about this
+	for 2-3-1197.
+	
+	* src/linerecord.h:  Added helper to get at Zeeman polarization
+	
+	* src/zeeman.cc,h:  Changed interface to zeemandata to reduce
+	calls to polarization computing functions
+	
+	* src/zeemandata.cc,h:  Changed so the polarization state is computed
+	only once instead of for every line.  Shaves about 10% off of normal
+	computations.  Also removed some wrongly interpreted reach-end-of-file
+	warnings where gcc got confused by throwing at the end of the files
+	(in what I hope other compilers will not recognize as unreachable code
+	and warn for other reasons)
+
 2019-01-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1199
