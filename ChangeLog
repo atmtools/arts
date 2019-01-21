@@ -1,5 +1,21 @@
 2019-01-21  Richard Larsson  <larsson@mps.mpg.de>
 
+	* arts-2-3-1201
+	
+	WARNING:  Breaks runs that does not initialize the magnetic
+	field tensors while using the x-functions.
+	
+	FIX: Use Touch on mag_u_field, mag_v_field, and mag_w_field to
+	make presently working controlfiles (and typhon scripts) work identical
+	to how they were before this update
+	
+	* src/m_oem.cc,methods.cc: Adding magnetic field to the x-functions.
+	The normal fields are copies from the wind functions, but I also added
+	"strength", since I think it is a better retrieval target than the
+	fields.
+
+2019-01-21  Richard Larsson  <larsson@mps.mpg.de>
+
 	* arts-2-3-1200
 	
 	Ps.  It seemsn the nlte-test does indeed speed-up as it should, but

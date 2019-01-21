@@ -65,7 +65,7 @@ extern const String SCATSPECIES_MAINTAG;
 extern const String SINEFIT_MAINTAG;
 extern const String SURFACE_MAINTAG;
 extern const String WIND_MAINTAG;
-//extern const String MAGFIELD_MAINTAG;
+extern const String MAGFIELD_MAINTAG;
 
 
 
@@ -550,9 +550,9 @@ void xaStandard(
    const Tensor3&                    wind_u_field,
    const Tensor3&                    wind_v_field,
    const Tensor3&                    wind_w_field,
-   /*const Tensor3&                    mag_u_field,
+   const Tensor3&                    mag_u_field,
    const Tensor3&                    mag_v_field,
-   const Tensor3&                    mag_w_field,*/
+   const Tensor3&                    mag_w_field,
    const Tensor3&                    surface_props_data,
    const ArrayOfString&              surface_props_names,
    const Agenda&                     water_p_eq_agenda,   
@@ -763,27 +763,54 @@ void xaStandard(
       }
       
       
-      /*// Magnetism
+      // Magnetism
       else if( jacobian_quantities[q].MainTag() == MAGFIELD_MAINTAG)
       {
-        ConstTensor3View source_field(mag_u_field);
-        if (jacobian_quantities[q].Subtag() == "v") {
-          source_field = mag_v_field;
-        } else if (jacobian_quantities[q].Subtag() == "w") {
-          source_field = mag_w_field;
+        if(jacobian_quantities[q].Subtag() == "strength") {
+          // Determine grid positions for interpolation from retrieval grids back
+          // to atmospheric grids
+          ArrayOfGridPos gp_p, gp_lat, gp_lon;
+          get_gp_atmgrids_to_rq(gp_p, gp_lat, gp_lon, jacobian_quantities[q],
+                                atmosphere_dim, p_grid, lat_grid, lon_grid);
+          
+          //all three component's hyoptenuse is the strength
+          Tensor3 mag_u(gp_p.nelem(), gp_lat.nelem(), gp_lon.nelem());
+          Tensor3 mag_v(gp_p.nelem(), gp_lat.nelem(), gp_lon.nelem());
+          Tensor3 mag_w(gp_p.nelem(), gp_lat.nelem(), gp_lon.nelem());
+          regrid_atmfield_by_gp(mag_u, atmosphere_dim, mag_u_field,
+                                gp_p, gp_lat, gp_lon);
+          regrid_atmfield_by_gp(mag_v, atmosphere_dim, mag_v_field,
+                                gp_p, gp_lat, gp_lon);
+          regrid_atmfield_by_gp(mag_w, atmosphere_dim, mag_w_field,
+                                gp_p, gp_lat, gp_lon);
+          
+          Tensor3 mag_x(gp_p.nelem(), gp_lat.nelem(), gp_lon.nelem());
+          for(Index i=0; i<gp_p.nelem(); i++)
+            for(Index j=0; j<gp_lat.nelem(); j++)
+              for(Index k=0; k<gp_lon.nelem(); k++)
+                mag_x(i,j,k) = std::hypot(std::hypot(mag_u(i,j,k), mag_u(i,j,k)), mag_w(i,j,k));  //nb, should remove one hypot for c++17
+          flat(xa[ind], mag_x);
+        } else {
+          ConstTensor3View source_field(mag_u_field);
+          if (jacobian_quantities[q].Subtag() == "v") {
+            source_field = mag_v_field;
+          } else if (jacobian_quantities[q].Subtag() == "w") {
+            source_field = mag_w_field;
+          } else if (jacobian_quantities[q].Subtag() == "u") {
+          } else throw runtime_error("Unsupported magnetism type");
+          
+          // Determine grid positions for interpolation from retrieval grids back
+          // to atmospheric grids
+          ArrayOfGridPos gp_p, gp_lat, gp_lon;
+          get_gp_atmgrids_to_rq(gp_p, gp_lat, gp_lon, jacobian_quantities[q],
+                                atmosphere_dim, p_grid, lat_grid, lon_grid);
+          
+          Tensor3 mag_x(gp_p.nelem(), gp_lat.nelem(), gp_lon.nelem());
+          regrid_atmfield_by_gp(mag_x, atmosphere_dim, source_field,
+                                gp_p, gp_lat, gp_lon);
+          flat(xa[ind], mag_x);
         }
-        
-        // Determine grid positions for interpolation from retrieval grids back
-        // to atmospheric grids
-        ArrayOfGridPos gp_p, gp_lat, gp_lon;
-        get_gp_atmgrids_to_rq(gp_p, gp_lat, gp_lon, jacobian_quantities[q],
-                              atmosphere_dim, p_grid, lat_grid, lon_grid);
-        
-        Tensor3 mag_x(gp_p.nelem(), gp_lat.nelem(), gp_lon.nelem());
-        regrid_atmfield_by_gp(mag_x, atmosphere_dim, source_field,
-                              gp_p, gp_lat, gp_lon);
-        flat(xa[ind], mag_x);
-      }*/
+      }
 
       
       // Surface
@@ -854,9 +881,9 @@ void x2artsAtmAndSurf(
          Tensor3&                    wind_u_field,
          Tensor3&                    wind_v_field,
          Tensor3&                    wind_w_field,
-         /*Tensor3&                    mag_u_field,
+         Tensor3&                    mag_u_field,
          Tensor3&                    mag_v_field,
-         Tensor3&                    mag_w_field,*/
+         Tensor3&                    mag_w_field,
          Tensor3&                    surface_props_data,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const Vector&                     x,
@@ -1099,7 +1126,7 @@ void x2artsAtmAndSurf(
         }
 
 
-      /*// Magnetism
+      // Magnetism
       // ----------------------------------------------------------------------------
       else if( jacobian_quantities[q].MainTag() == MAGFIELD_MAINTAG)
         {
@@ -1123,13 +1150,24 @@ void x2artsAtmAndSurf(
                                  gp_p, gp_lat, gp_lon);
 
           if (jacobian_quantities[q].Subtag() == "u") {
-              wind_u_field = mag_field;
+              mag_u_field = mag_field;
           } else if (jacobian_quantities[q].Subtag() == "v") {
-              wind_v_field = mag_field;
+              mag_v_field = mag_field;
           } else if (jacobian_quantities[q].Subtag() == "w") {
-              wind_w_field = mag_field;
-          }
-        }*/
+              mag_w_field = mag_field;
+          } else if (jacobian_quantities[q].Subtag() == "strength") {
+            for(Index i=0; i<n_p; i++) {
+              for(Index j=0; j<n_lat; j++) {
+                for(Index k=0; k<n_lon; k++) {
+                  Numeric scale = mag_x(i,j,k) / std::hypot(std::hypot(mag_u_field(i,j,k), mag_v_field(i,j,k)), mag_w_field(i,j,k)); // nb,remove one hypot for c++17
+                  mag_u_field(i,j,k) *= scale;
+                  mag_v_field(i,j,k) *= scale;
+                  mag_w_field(i,j,k) *= scale;
+                }
+              }
+            }
+          } else throw runtime_error("Unsupported magnetism type");
+        }
 
       
       // Surface
