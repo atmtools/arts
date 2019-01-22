@@ -19005,7 +19005,7 @@ void define_md_data_raw()
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      "tranmittance"     ),
+        GOUT(      "transmittance"     ),
         GOUT_TYPE( "Vector" ),
         GOUT_DESC( "Created vector of transmittance values." ),
         IN( "iy_aux_vars", "iy_aux" ),

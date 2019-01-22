@@ -1,3 +1,10 @@
+2019-01-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1202
+
+	* src/methods.cc: I had misspelled the GOUT in
+	transmittanceFromIy_aux. The corrected name is *transmittance*.
+
 2019-01-21  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1201
