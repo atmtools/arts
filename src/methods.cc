@@ -8635,6 +8635,13 @@ void define_md_data_raw()
         "calculate the atmospheric gas VMR, but this only works for \"analytical\".\n"
         "\n"
         "Note that the Jacobian is set to zero where volume mixing ratio equals zero.\n"
+        "\n"
+        "The number of elements added to the state vector (*x*) is:\n"
+        "   n_g1 * n_g2 * n_g3\n"
+        "where n_g1, n_g2 and n_g3 are the length of GIN *g1*, *g2* and *g3*,\n"
+        "respectively. Here empty vectors should be considered to have a length 1.\n"
+        "The elements are sorted with pressure as innermost loop, followed by\n"
+        "latitude and longitude as outermost loop.\n"
       ),
       AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
       OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -8768,6 +8775,8 @@ void define_md_data_raw()
          "frequencies can be included by this method. The assumption here is\n"
          "that the deviation is a constant off-set, a shift, common for all\n"
          "frequencies (and not varying between measurement blocks).\n"
+         "\n"
+         "This metmhod adds one element to the stae vector (*x*).\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -8793,6 +8802,8 @@ void define_md_data_raw()
          "frequencies can be included by this method. The assumption here is\n"
          "that the deviation varies linearly over the frequency range\n"
          "(following ARTS basis function for polynomial order 1).\n"
+         "\n"
+         "This metmhod adds one element to the stae vector (*x*).\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -8924,6 +8935,13 @@ void define_md_data_raw()
          "for \"analytical\" method.  For \"from_propmat\" method,\n"
          "\"u\", \"v\" and \"w\" components are available but so is also\n"
          "\"strength\", \"eta\" and \"theta\".\n"
+         "\n"
+         "The number of elements added to the state vector (*x*) is:\n"
+         "   n_g1 * n_g2 * n_g3\n"
+         "where n_g1, n_g2 and n_g3 are the length of GIN *g1*, *g2* and *g3*,\n"
+         "respectively. Here empty vectors should be considered to have a length 1.\n"
+         "The elements are sorted with pressure as innermost loop, followed by\n"
+         "latitude and longitude as outermost loop.\n"
          ),
         AUTHORS( "Patrick Eriksson", "Richard Larsson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -9021,6 +9039,12 @@ void define_md_data_raw()
          "functions). For example, a polynomial order of 0 means that the\n"
          "off-set is constant in time. If the off-set is totally uncorrelated\n"
          "between the spectra, set the order to -1.\n"
+         "\n"
+         "The number of elements added to the state vector (*x*) is\n"
+         "  if poly_order < 0 : length of *sensor_time*\n"
+         "         otherwise : poly_order+1\n"
+         "In the first case, the order in *x* matches *sensor_time*. In the second\n"
+         "case, the coefficient for polynomial order 0 comes first etc.\n" 
          ),
         AUTHORS( "Patrick Eriksson", "Mattias Ekstrom" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -9047,7 +9071,7 @@ void define_md_data_raw()
          "Includes polynomial baseline fit in the Jacobian.\n"
          "\n"
          "This method deals with retrieval of disturbances of the spectra\n"
-         "that can be described by an addidative term, a baseline off-set.\n"
+         "that can be described by an additive term, a baseline off-set.\n"
          "\n"
          "The baseline off-set is here modelled as a polynomial. The\n"
          "polynomial spans the complete frequency range spanned by\n"
@@ -9055,6 +9079,19 @@ void define_md_data_raw()
          "cases with no frequency gap in the spectra. The default assumption\n"
          "is that the off-set differs between all spectra, but it can also be\n"
          "assumed that the off-set is common for all e.g. line-of-sights.\n"
+         "\n"
+         "If the simulation/retrieval deals with a single spectrum, the number\n"
+         "of elements added to the state vector (*x*) is poly_order+1. The\n"
+         "coefficient for polynomial order 0 comes first etc. The same is true\n"
+         "if *no_pol_variation*, *no_los_variation* and *no_mblock_variation*\n"
+         "all are set to 1, even if several spectra are involved. Otherwise the"
+         "number of elements added to *x* depends on the number of spectra and\n"
+         "the settings of *no_pol_variation*, *no_los_variation* and \n"
+         "*no_mblock_variation*. The coefficients of the different polynomial\n"
+         "orders are treated as separate retrieval quantities. That is, the\n"
+         "the elements associated with polynomial order 0 are grouped and form\n"
+         "together a retrieval quantity. The coefficients for higher polynomial\n"
+         "orders are treated in the same way.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -9087,6 +9124,13 @@ void define_md_data_raw()
         "\n"         
         "For 1D or 2D calculations the latitude and/or longitude grid of\n"
         "the retrieval field should set to have zero length.\n"
+        "\n"
+        "The number of elements added to the state vector (*x*) is:\n"
+        "   n_g1 * n_g2 * n_g3\n"
+        "where n_g1, n_g2 and n_g3 are the length of GIN *g1*, *g2* and *g3*,\n"
+        "respectively. Here empty vectors should be considered to have a length 1.\n"
+        "The elements are sorted with pressure as innermost loop, followed by\n"
+        "latitude and longitude as outermost loop.\n"
       ),
       AUTHORS( "Patrick Eriksson" ),
       OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -9124,6 +9168,19 @@ void define_md_data_raw()
          "included (in mentioned order). By these two terms the amplitude and\n"
          "\"phase\" for each period length can be determined. The sine and\n"
          "cosine terms have value 0 and 1, respectively, for first frequency.\n"
+         "\n"
+         "If the simulation/retrieval deals with a single spectrum, the number\n"
+         "of elements added to the state vector (*x*) is 2*nperiods, where\n"
+         "*nperiods* is the length of *period_lengths*. The same is true\n"
+         "if *no_pol_variation*, *no_los_variation* and *no_mblock_variation*\n"
+         "all are set to 1, even if several spectra are involved. Otherwise the"
+         "number of elements added to *x* depends on the number of spectra and\n"
+         "the settings of *no_pol_variation*, *no_los_variation* and \n"
+         "*no_mblock_variation*. The sine and cosine terms for each period\n"
+         "length are treated as a  separate retrieval quantities. That is, the\n"
+         "the elements associated with the first period length are grouped and\n"
+         "form together a retrieval quantity, etc. Inside each retrieval quantity\n"
+         "the pairs of sine and cosine terms are kept together, in given order.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -9164,6 +9221,13 @@ void define_md_data_raw()
         "*jacobian*, so this method works best when only one type of\n"
         "particulate is being used, i.e., when *scat_data* has only one\n"
         "scattering species.\n"
+        "\n"
+        "The number of elements added to the state vector (*x*) is:\n"
+        "   n_g1 * n_g2 * n_g3\n"
+        "where n_g1, n_g2 and n_g3 are the length of GIN *g1*, *g2* and *g3*,\n"
+        "respectively. Here empty vectors should be considered to have a length 1.\n"
+        "The elements are sorted with pressure as innermost loop, followed by\n"
+        "latitude and longitude as outermost loop.\n"
       ),
       AUTHORS( "Richard Larsson" ),
       OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -9198,6 +9262,13 @@ void define_md_data_raw()
         "\n"
         "For 1D or 2D calculations the latitude and/or longitude grid of\n"
         "the retrieval field should set to have zero length.\n"
+        "\n"
+        "The number of elements added to the state vector (*x*) is:\n"
+        "   n_g1 * n_g2\n"
+        "where n_g1 and n_g2 are the length of GIN *g1* and *g2*, respectively.\n"
+        "Here empty vectors should be considered to have a length 1.\n"
+        "The elements are sorted with latitude as innermost loop and longitude\n"
+        "as outermost loop.\n"
       ),
       AUTHORS( "Patrick Eriksson" ),
       OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -9246,6 +9317,13 @@ void define_md_data_raw()
          "The choices for *method* are:\n"
          "   \"analytical\"   : (semi-)analytical expressions are used\n"
          "   \"perturbation\" : pure numerical perturbations are used\n"
+         "\n"
+         "The number of elements added to the state vector (*x*) is:\n"
+         "   n_g1 * n_g2 * n_g3\n"
+         "where n_g1, n_g2 and n_g3 are the length of GIN *g1*, *g2* and *g3*,\n"
+         "respectively. Here empty vectors should be considered to have a length 1.\n"
+         "The elements are sorted with pressure as innermost loop, followed by\n"
+         "latitude and longitude as outermost loop.\n"
          ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -9281,6 +9359,13 @@ void define_md_data_raw()
          "The wind field components are retrieved separately, and,\n"
          "hence, the argument *component* can be \"u\", \"v\" or \"w\" \n"
          "for vector components, or just \"strength\" for total wind speed.\n"
+         "\n"
+         "The number of elements added to the state vector (*x*) is:\n"
+         "   n_g1 * n_g2 * n_g3\n"
+         "where n_g1, n_g2 and n_g3 are the length of GIN *g1*, *g2* and *g3*,\n"
+         "respectively. Here empty vectors should be considered to have a length 1.\n"
+         "The elements are sorted with pressure as innermost loop, followed by\n"
+         "latitude and longitude as outermost loop.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),

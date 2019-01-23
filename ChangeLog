@@ -1,3 +1,11 @@
+2019-01-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1203
+
+	* src/methods.cc: Improved documentation of jacobianAdd methods.
+	Added text describing how many x-elements that are added, and the
+	order between the new elements.
+
 2019-01-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1202
