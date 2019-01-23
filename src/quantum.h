@@ -326,6 +326,8 @@ public:
     {
       SetEnergyLevel(qnr);
     }
+    
+    QuantumIdentifier(String x) {SetFromString(x);}
 
     static const Index TRANSITION_UPPER_INDEX = 0;
     static const Index TRANSITION_LOWER_INDEX = 1;

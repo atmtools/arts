@@ -39,7 +39,7 @@ typedef struct {
 ZeemanDataOutput zeeman_polarization(Numeric, Numeric);
 ZeemanDataOutput zeeman_dpolarization_dtheta(Numeric, Numeric);
 ZeemanDataOutput zeeman_dpolarization_deta(Numeric, Numeric);
-ZeemanPolarizationVector& select_zeeman_polarization(ZeemanDataOutput&, ZeemanPolarizationType);
+const ZeemanPolarizationVector& select_zeeman_polarization(const ZeemanDataOutput&, ZeemanPolarizationType);
 
 class ZeemanEffectData 
 {

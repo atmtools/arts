@@ -65,7 +65,7 @@
 #include "sorting.h"
 #include "gridded_fields.h"
 #include "optproperties.h"
-#include "rational.h"
+#include "quantum.h"
 
 
 /*===========================================================================
@@ -577,6 +577,26 @@ void NumericSet(Numeric&   x,
                 const Verbosity&)
 {
   x = value;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void QuantumIdentifierSet(QuantumIdentifier&   x,
+                          const String&   value,
+                          const Verbosity&)
+{
+  x = value;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ArrayOfQuantumIdentifierSet(ArrayOfQuantumIdentifier&   x,
+                                 const ArrayOfString&   values,
+                                 const Verbosity& verbosity)
+{
+  x.resize(values.nelem());
+  for(Index i=0; i<x.nelem(); i++)
+    QuantumIdentifierSet(x[i], values[i], verbosity);
 }
 
 
@@ -2423,7 +2443,7 @@ void Compare(const SingleScatteringData&    var1,
 }
 
 
-inline void __cr(const Numeric& var1,
+inline void _cr_internal_(const Numeric& var1,
                  const Numeric& var2,
                  const Numeric& maxabsreldiff,
                  const String&  error_message,
@@ -2447,7 +2467,7 @@ inline void __cr(const Numeric& var1,
 }
 
 
-inline void __cr(const ConstVectorView var1,
+inline void _cr_internal_(const ConstVectorView var1,
                  const ConstVectorView var2,
                  const Numeric& maxabsreldiff,
                  const String&  error_message,
@@ -2461,11 +2481,11 @@ inline void __cr(const ConstVectorView var1,
   if(var2.nelem() not_eq n)
     throw std::runtime_error("Cannot compare variables of different size");
   for(Index i=0; i<n; i++)
-    __cr(var1[i], var2[i], maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+    _cr_internal_(var1[i], var2[i], maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 
 
-inline void __cr(const ConstMatrixView var1,
+inline void _cr_internal_(const ConstMatrixView var1,
                  const ConstMatrixView var2,
                  const Numeric& maxabsreldiff,
                  const String&  error_message,
@@ -2479,11 +2499,11 @@ inline void __cr(const ConstMatrixView var1,
   if(var2.nrows() not_eq n)
     throw std::runtime_error("Cannot compare variables of different size");
   for(Index i=0; i<n; i++)
-    __cr(var1(i, joker), var2(i, joker), maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+    _cr_internal_(var1(i, joker), var2(i, joker), maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 
 
-inline void __cr(const ConstTensor3View var1,
+inline void _cr_internal_(const ConstTensor3View var1,
                  const ConstTensor3View var2,
                  const Numeric& maxabsreldiff,
                  const String&  error_message,
@@ -2497,11 +2517,11 @@ inline void __cr(const ConstTensor3View var1,
   if(var2.npages() not_eq n)
     throw std::runtime_error("Cannot compare variables of different size");
   for(Index i=0; i<n; i++)
-    __cr(var1(i, joker, joker), var2(i, joker, joker), maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+    _cr_internal_(var1(i, joker, joker), var2(i, joker, joker), maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 
 
-inline void __cr(const ConstTensor4View var1,
+inline void _cr_internal_(const ConstTensor4View var1,
                  const ConstTensor4View var2,
                  const Numeric& maxabsreldiff,
                  const String&  error_message,
@@ -2515,11 +2535,11 @@ inline void __cr(const ConstTensor4View var1,
   if(var2.nbooks() not_eq n)
     throw std::runtime_error("Cannot compare variables of different size");
   for(Index i=0; i<n; i++)
-    __cr(var1(i, joker, joker, joker), var2(i, joker, joker, joker), maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+    _cr_internal_(var1(i, joker, joker, joker), var2(i, joker, joker, joker), maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 
 
-inline void __cr(const ConstTensor5View var1,
+inline void _cr_internal_(const ConstTensor5View var1,
                  const ConstTensor5View var2,
                  const Numeric& maxabsreldiff,
                  const String&  error_message,
@@ -2533,11 +2553,11 @@ inline void __cr(const ConstTensor5View var1,
   if(var2.nshelves() not_eq n)
     throw std::runtime_error("Cannot compare variables of different size");
   for(Index i=0; i<n; i++)
-    __cr(var1(i, joker, joker, joker, joker), var2(i, joker, joker, joker, joker), maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+    _cr_internal_(var1(i, joker, joker, joker, joker), var2(i, joker, joker, joker, joker), maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 
 
-inline void __cr(const ConstTensor6View var1,
+inline void _cr_internal_(const ConstTensor6View var1,
                  const ConstTensor6View var2,
                  const Numeric& maxabsreldiff,
                  const String&  error_message,
@@ -2551,11 +2571,11 @@ inline void __cr(const ConstTensor6View var1,
   if(var2.nvitrines() not_eq n)
     throw std::runtime_error("Cannot compare variables of different size");
   for(Index i=0; i<n; i++)
-    __cr(var1(i, joker, joker, joker, joker, joker), var2(i, joker, joker, joker, joker, joker), maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+    _cr_internal_(var1(i, joker, joker, joker, joker, joker), var2(i, joker, joker, joker, joker, joker), maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 
 
-inline void __cr(const ConstTensor7View var1,
+inline void _cr_internal_(const ConstTensor7View var1,
                  const ConstTensor7View var2,
                  const Numeric& maxabsreldiff,
                  const String&  error_message,
@@ -2569,11 +2589,11 @@ inline void __cr(const ConstTensor7View var1,
   if(var2.nlibraries() not_eq n)
     throw std::runtime_error("Cannot compare variables of different size");
   for(Index i=0; i<n; i++)
-    __cr(var1(i, joker, joker, joker, joker, joker, joker), var2(i, joker, joker, joker, joker, joker, joker), maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+    _cr_internal_(var1(i, joker, joker, joker, joker, joker, joker), var2(i, joker, joker, joker, joker, joker, joker), maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 
 
-inline void __cr(const PropagationMatrix& var1,
+inline void _cr_internal_(const PropagationMatrix& var1,
                  const PropagationMatrix& var2,
                  const Numeric& maxabsreldiff,
                  const String&  error_message,
@@ -2583,11 +2603,11 @@ inline void __cr(const PropagationMatrix& var1,
                  const String&,
                  const Verbosity& verbosity)
 {
-  __cr(var1.GetData(), var2.GetData(), maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1.GetData(), var2.GetData(), maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 
 
-inline void __cr(const StokesVector& var1,
+inline void _cr_internal_(const StokesVector& var1,
                  const StokesVector& var2,
                  const Numeric& maxabsreldiff,
                  const String&  error_message,
@@ -2597,12 +2617,12 @@ inline void __cr(const StokesVector& var1,
                  const String&,
                  const Verbosity& verbosity)
 {
-  __cr(var1.GetData(), var2.GetData(), maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1.GetData(), var2.GetData(), maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 
 
 template<class T>
-inline void __cr(const Array<T>&  var1,
+inline void _cr_internal_(const Array<T>&  var1,
                  const Array<T>&  var2,
                  const Numeric&   maxabsreldiff,
                  const String&    error_message,
@@ -2616,7 +2636,7 @@ inline void __cr(const Array<T>&  var1,
   if(var2.nelem() not_eq n)
     throw std::runtime_error("Cannot compare arrays of different length");
   for(Index i=0; i<n; i++)
-    __cr(var1[i], var2[i], maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+    _cr_internal_(var1[i], var2[i], maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 
 
@@ -2631,7 +2651,7 @@ void CompareRelative(const Numeric&   var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 void CompareRelative(const Vector&    var1,
                      const Vector&    var2,
@@ -2643,7 +2663,7 @@ void CompareRelative(const Vector&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 void CompareRelative(const Matrix&    var1,
                      const Matrix&    var2,
@@ -2655,7 +2675,7 @@ void CompareRelative(const Matrix&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 void CompareRelative(const Tensor3&    var1,
                      const Tensor3&    var2,
@@ -2667,7 +2687,7 @@ void CompareRelative(const Tensor3&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 void CompareRelative(const Tensor4&    var1,
                      const Tensor4&    var2,
@@ -2679,7 +2699,7 @@ void CompareRelative(const Tensor4&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 void CompareRelative(const Tensor5&    var1,
                      const Tensor5&    var2,
@@ -2691,7 +2711,7 @@ void CompareRelative(const Tensor5&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 void CompareRelative(const Tensor6&    var1,
                      const Tensor6&    var2,
@@ -2703,7 +2723,7 @@ void CompareRelative(const Tensor6&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 void CompareRelative(const Tensor7&    var1,
                      const Tensor7&    var2,
@@ -2715,7 +2735,7 @@ void CompareRelative(const Tensor7&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 void CompareRelative(const ArrayOfVector&    var1,
                      const ArrayOfVector&    var2,
@@ -2727,7 +2747,7 @@ void CompareRelative(const ArrayOfVector&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 void CompareRelative(const ArrayOfMatrix&    var1,
                      const ArrayOfMatrix&    var2,
@@ -2739,7 +2759,7 @@ void CompareRelative(const ArrayOfMatrix&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 void CompareRelative(const ArrayOfTensor3&    var1,
                      const ArrayOfTensor3&    var2,
@@ -2751,7 +2771,7 @@ void CompareRelative(const ArrayOfTensor3&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 void CompareRelative(const ArrayOfTensor4&    var1,
                      const ArrayOfTensor4&    var2,
@@ -2763,7 +2783,7 @@ void CompareRelative(const ArrayOfTensor4&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 void CompareRelative(const ArrayOfTensor5&    var1,
                      const ArrayOfTensor5&    var2,
@@ -2775,7 +2795,7 @@ void CompareRelative(const ArrayOfTensor5&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 void CompareRelative(const ArrayOfTensor6&    var1,
                      const ArrayOfTensor6&    var2,
@@ -2787,7 +2807,7 @@ void CompareRelative(const ArrayOfTensor6&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 void CompareRelative(const ArrayOfTensor7&    var1,
                      const ArrayOfTensor7&    var2,
@@ -2799,7 +2819,7 @@ void CompareRelative(const ArrayOfTensor7&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 void CompareRelative(const ArrayOfArrayOfVector&    var1,
                      const ArrayOfArrayOfVector&    var2,
@@ -2811,7 +2831,7 @@ void CompareRelative(const ArrayOfArrayOfVector&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 void CompareRelative(const ArrayOfArrayOfMatrix&    var1,
                      const ArrayOfArrayOfMatrix&    var2,
@@ -2823,7 +2843,7 @@ void CompareRelative(const ArrayOfArrayOfMatrix&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 void CompareRelative(const ArrayOfArrayOfTensor3&    var1,
                      const ArrayOfArrayOfTensor3&    var2,
@@ -2835,7 +2855,7 @@ void CompareRelative(const ArrayOfArrayOfTensor3&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 void CompareRelative(const ArrayOfArrayOfTensor4&    var1,
                      const ArrayOfArrayOfTensor4&    var2,
@@ -2847,7 +2867,7 @@ void CompareRelative(const ArrayOfArrayOfTensor4&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 void CompareRelative(const ArrayOfArrayOfTensor5&    var1,
                      const ArrayOfArrayOfTensor5&    var2,
@@ -2859,7 +2879,7 @@ void CompareRelative(const ArrayOfArrayOfTensor5&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 void CompareRelative(const ArrayOfArrayOfTensor6&    var1,
                      const ArrayOfArrayOfTensor6&    var2,
@@ -2871,7 +2891,7 @@ void CompareRelative(const ArrayOfArrayOfTensor6&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 void CompareRelative(const ArrayOfArrayOfTensor7&    var1,
                      const ArrayOfArrayOfTensor7&    var2,
@@ -2883,7 +2903,7 @@ void CompareRelative(const ArrayOfArrayOfTensor7&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 
 void CompareRelative(const ArrayOfPropagationMatrix&    var1,
@@ -2896,7 +2916,7 @@ void CompareRelative(const ArrayOfPropagationMatrix&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 
 void CompareRelative(const ArrayOfArrayOfPropagationMatrix&    var1,
@@ -2909,7 +2929,7 @@ void CompareRelative(const ArrayOfArrayOfPropagationMatrix&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 
 void CompareRelative(const ArrayOfStokesVector&    var1,
@@ -2922,7 +2942,7 @@ void CompareRelative(const ArrayOfStokesVector&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 
 void CompareRelative(const ArrayOfArrayOfStokesVector&    var1,
@@ -2935,6 +2955,6 @@ void CompareRelative(const ArrayOfArrayOfStokesVector&    var1,
                      const String&,
                      const Verbosity& verbosity)
 {
-  __cr(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
+  _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 

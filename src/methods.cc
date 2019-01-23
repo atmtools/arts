@@ -8668,44 +8668,6 @@ void define_md_data_raw()
       USES_TEMPLATES( false ),
       PASSWORKSPACE(  true  )
     ));
-    
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "jacobianAddConstantVMRAbsSpecies" ),
-      DESCRIPTION
-      (
-        "Includes an absorption species in the Jacobian.\n"
-        "\n"
-        "This method is similar to *jacobianAddAbsSpecies* but only works\n"
-        "for constant VMR.\n"
-        "\n"
-        "Will add one line to the *jacobian* matrix.  This line will be the\n"
-        "integrated contribution of the VMR of the species to the signal.\n" 
-        "The integration is done assuming constant VMR and the output will be\n"
-        "nonsensical if the input is not constant.  Users be warned!\n"
-        "\n"
-        "Since this only operates on constant integration, the only modes allowed\n"
-        "are: \"vmr\" and \"rel\".\n"
-      ),
-      AUTHORS( "Richard Larsson" ),
-      OUT( "jacobian_quantities", "jacobian_agenda" ),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN( "jacobian_quantities", "jacobian_agenda" ),
-      GIN( "species", "mode", "for_species_tag", "dx" ),
-      GIN_TYPE( "String", "String", "Index", "Numeric" ),
-      GIN_DEFAULT( NODEF, "rel", "1", "0.001" ),
-      GIN_DESC( "The species tag of the retrieval quantity.",
-                "Retrieval unit. See above.",
-                "Index-bool for acting on species tags or species.",
-                "Size of perturbation." 
-      ),
-      SETMETHOD(      false ),
-      AGENDAMETHOD(   false ),
-      USES_TEMPLATES( false ),
-      PASSWORKSPACE(  true  )
-    ));
 
     md_data_raw.push_back
     ( MdRecord
@@ -8722,10 +8684,18 @@ void define_md_data_raw()
           "The *catalog_identity* should be able to identify one or many\n"
           "lines in the catalog used for calculating the spectral absorption.\n"
           "Note that partial matching for energy levels are allowed but not\n"
-          "recommended.\n"
+          "recommended, as it is somewhat nonsensical to add multiple parameters\n"
           "\n"
           "Also note *jacobianAddShapeCatalogParameter* as this allows addition\n"
           "of shape parameters, e.g., pressure broadening coefficients\n"
+          "\n"
+          "Each call to this function adds just a single value to *x*\n"
+          "\n"
+          "Example given the catalog_identity=\"O2-66 TR UP v1 0 J 1 LO v1 0 J 0\",\n"
+          "only the O2 ground-level 119 GHz line can be accessed and only its\n"
+          "catalog_parameter will be accessed.  However, the more lenient\n"
+          "catalog_identity=\"O2-66 TR UP J 1 LO J 0\" may be used, but then the\n"
+          "118 GHz line belonging to v1=1 branch will be added to the same *x*\n"
       ),
       AUTHORS( "Richard Larsson" ),
       OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -8747,7 +8717,7 @@ void define_md_data_raw()
       (
         "See *jacobianAddBasicCatalogParameter*.\n"
         "\n"
-        "This adds multiple parameters for first each catalog_identity in\n"
+        "This adds a multiple of parameters for first each catalog_identity in\n"
         "catalog_identities and then for each catalog_parameter in catalog_parameters\n"
         "by looping calls to *jacobianAddBasicCatalogParameter* over these input\n"
       ),
@@ -8823,8 +8793,8 @@ void define_md_data_raw()
     ( NAME( "jacobianAddShapeCatalogParameter" ),
       DESCRIPTION
       (
-        "Adds line shape parameters to the Jacobian calculations. These\n"
-        "are constant over all levels so only a single vector is output\n"
+        "Adds a line shape parameter to the Jacobian calculations. These\n"
+        "are constant over all levels so only a single *x*-value is added\n"
         "\n"
         "Line function parameter assume the derivatives\n"
         "of internal pressure broadening and line mixing\n"
@@ -8856,7 +8826,8 @@ void define_md_data_raw()
         "at a later stage\n"
         "\n"
         "For other spectroscopic parameters, see\n"
-        "*jacobianAddBasicCatalogParameter*\n"
+        "*jacobianAddBasicCatalogParameter*.  Also see said function for an example of how\n"
+        "to set the QuantumIdentifier\n"
       ),
       AUTHORS("Richard Larsson"),
       OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -8931,9 +8902,7 @@ void define_md_data_raw()
          "calculations can only be performed by analytic expressions.\n"
          "\n"
          "The magnetic field components are retrieved separately, and,\n"
-         "hence, the argument *component* can be \"u\", \"v\" or \"w\" \n"
-         "for \"analytical\" method.  For \"from_propmat\" method,\n"
-         "\"u\", \"v\" and \"w\" components are available but so is also\n"
+         "hence, the argument *component* can be  \"u\", \"v\", \"w\"\n"
          "\"strength\", \"eta\" and \"theta\".\n"
          "\n"
          "The number of elements added to the state vector (*x*) is:\n"
@@ -8942,6 +8911,8 @@ void define_md_data_raw()
          "respectively. Here empty vectors should be considered to have a length 1.\n"
          "The elements are sorted with pressure as innermost loop, followed by\n"
          "latitude and longitude as outermost loop.\n"
+         "\n"
+         "The dB-parameter is only used for Faraday rotation\n"
          ),
         AUTHORS( "Patrick Eriksson", "Richard Larsson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -8950,7 +8921,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "jacobian_quantities", "jacobian_agenda", 
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-        GIN( "g1", "g2", "g3", "component","dB" ),
+        GIN( "g1", "g2", "g3", "component", "dB" ),
         GIN_TYPE( "Vector", "Vector", "Vector", "String", "Numeric" ),
         GIN_DEFAULT( NODEF, NODEF, NODEF, "v", "1.0e-7" ),
         GIN_DESC( "Pressure retrieval grid.",
@@ -8967,6 +8938,24 @@ void define_md_data_raw()
       DESCRIPTION
       (
         "Experimental NLTE Jacobian.\n"
+        "\n"
+        "Intention: Adds the nlte_field level distribution per atmospheric grid\n"
+        "to the Jacobian.\n"
+        "\n"
+        "The number of elements added to the state vector (*x*) is:\n"
+        "   n_g1 * n_g2 * n_g3\n"
+        "where n_g1, n_g2 and n_g3 are the length of GIN *g1*, *g2* and *g3*,\n"
+        "respectively. Here empty vectors should be considered to have a length 1.\n"
+        "The elements are sorted with pressure as innermost loop, followed by\n"
+        "latitude and longitude as outermost loop.\n"
+        "\n"
+        "The QuantumIdentifier should identify a single energy level, such as:\n"
+        "\"H2O-161 EN J 1 Ka 0 Kc 1\", for one of the lower levels in the chains\n"
+        "of transitions of water.  Note that using this method directly is not\n"
+        "best practice, as the quantum identifiers of the levels have to be known\n"
+        "at an early stage in NLTE calculations, and will usually populate the\n"
+        "*nlte_quantum_identifiers* variable, meaning it is better to use *jacobianAddNLTE*\n"
+        "directly than to individually call this function\n"
       ),
       AUTHORS("Richard Larsson"),
       OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -8992,6 +8981,12 @@ void define_md_data_raw()
       (
         "Experimental NLTE Jacobian.  Same as *jacobianAddNLTE* but for\n"
         "many levels\n"
+        "\n"
+        "Adds energy_level_identities.nelem() times as many arguments to *x*\n"
+        "as *jacobianAddNLTE*, ordered as energy_level_identities describes\n"
+        "\n"
+        "This method is preferred to *jacobianAddNLTE*, since *energy_level_identities*\n"
+        "is conveniently almost always the same as *nlte_quantum_identifiers*\n"
       ),
       AUTHORS("Richard Larsson"),
       OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -11011,6 +11006,48 @@ void define_md_data_raw()
         GIN_DESC( "The value." ),
         SETMETHOD( true )
       ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "QuantumIdentifierSet" ),
+        DESCRIPTION
+        (
+          "Sets a QuantumIdentifier workspace variable to the given value\n"
+          "by converting the input String\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT(),
+        GOUT(      "out"        ),
+        GOUT_TYPE( "QuantumIdentifier" ),
+        GOUT_DESC( "Variable to initialize." ),
+        IN(),
+        GIN(         "string_initializer"   ),
+        GIN_TYPE(    "String" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "The string representing the value." ),
+        SETMETHOD( true )
+      ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "ArrayOfQuantumIdentifierSet" ),
+      DESCRIPTION
+      (
+        "Sets an ArrayOfQuantumIdentifier workspace variable to the given value\n"
+        "by converting the input ArrayOfString\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT(),
+      GOUT(      "out"        ),
+      GOUT_TYPE( "ArrayOfQuantumIdentifier" ),
+      GOUT_DESC( "Variables to initialize." ),
+      IN(),
+      GIN(         "string_initializers"   ),
+      GIN_TYPE(    "ArrayOfString" ),
+      GIN_DEFAULT( NODEF ),
+      GIN_DESC( "The array of string representing the values of the array." ),
+      SETMETHOD( true )
+    ));
     
   md_data_raw.push_back     
     ( MdRecord
@@ -14954,37 +14991,6 @@ void define_md_data_raw()
       GIN_DESC("Flag whether or not to (re)initialize Jacobian-related\n"
           "quantities. Set to 0 if Jacobian is already defined.")
         ));
-
-  md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "retrievalAddConstantVMRAbsSpecies" ),
-      DESCRIPTION
-      (
-        "Add an absorption species to the retrieval.\n"
-        "\n"
-        "This method is similar to *jacobianAddConstantVMRAbsSpecies* but also adds\n"
-        "a corresponding blog to *covmat_sx*.\n"
-      ),
-      AUTHORS( "Simon Pfreundschuh" ),
-      OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
-      GIN( "species", "mode", "for_species_tag", "dx", "var" ),
-      GIN_TYPE( "String", "String", "Index", "Numeric", "Numeric" ),
-      GIN_DEFAULT( NODEF, "rel", "1", "0.001", NODEF ),
-      GIN_DESC( "The species tag of the retrieval quantity.",
-                "Retrieval unit. See above.",
-                "Index-bool for acting on species tags or species.",
-                "Size of perturbation.",
-                "Variance of the quantity."
-      ),
-      SETMETHOD(      false ),
-      AGENDAMETHOD(   false ),
-      USES_TEMPLATES( false ),
-      PASSWORKSPACE(  true  )
-    ));
 
   md_data_raw.push_back
     ( MdRecord

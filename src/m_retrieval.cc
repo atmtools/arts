@@ -817,23 +817,6 @@ void retrievalAddAbsSpecies(
                         atmosphere_dim, covmat_block, covmat_inv_block);
 }
 
-void retrievalAddConstantVMRAbsSpecies(
-    Workspace&                  ws,
-    CovarianceMatrix&           covmat_sx,
-    ArrayOfRetrievalQuantity&   jacobian_quantities,
-    Agenda&                     jacobian_agenda,
-    const String&               species,
-    const String&               mode,
-    const Index&                for_species_tag,
-    const Numeric&              dx,
-    const Numeric&              var,
-    const Verbosity&            verbosity)
-{
-    jacobianAddConstantVMRAbsSpecies(ws, jacobian_quantities, jacobian_agenda, species,
-                                     mode, for_species_tag, dx, verbosity);
-    add_scalar_variance(covmat_sx, jacobian_quantities, var);
-}
-
 void retrievalAddFreqShift(Workspace& ws,
                            CovarianceMatrix& covmat_sx,
                            ArrayOfRetrievalQuantity& jacobian_quantities,

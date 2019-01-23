@@ -213,7 +213,7 @@ ZeemanEffectData::ZeemanEffectData(const QuantumIdentifier& qi, const ZeemanPola
 }
 
 
-ZeemanPolarizationVector& select_zeeman_polarization(ZeemanDataOutput& data, ZeemanPolarizationType mpolar)
+const ZeemanPolarizationVector& select_zeeman_polarization(const ZeemanDataOutput& data, ZeemanPolarizationType mpolar)
 {
   switch(mpolar) {
     case ZeemanPolarizationType::None:

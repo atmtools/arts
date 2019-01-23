@@ -1,3 +1,36 @@
+2019-01-23  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1204
+	
+	WARNING: Breaks controlfiles using *AddConstantVMR
+	
+	FIX: Switch to normal *AddSpecies and set g1, g2, g3 to
+	1-long vectors to reproduce previous behavior
+	
+	* src/m_basic_types.cc:  Added *Set-methods for ArrayOf-
+	and (not) QuantumIdentifer.
+	
+	* src/m_jacobian,retrieval.cc:  Removed ConstantVMR as 
+	Patrick has point out it is not necessary since the normal
+	function handles this case so long as g1-g2-g3 is 1-long.  While
+	this clutters controlfiles, the change keeps ARTS internal sane.
+	
+	* src/methods.cc:  Added comments to complement Patrick's update
+	for methods I have defined for Jacobian calculations.
+	
+	* src/quantum.h:  Added ---implicit--- conversion from String
+	to QuantumIdentifier.  I don't think this will cause any problems
+	since QuantumIdentifier is basically more advanced than String.
+	
+	* src/zeeman.cc:  Changed so the magnitude of the magnetic field is 
+	computed by std::hypot (to guarantee that w/H is 1 for H=[0,0,w]).
+	Also found the expressions of the other internal functions too
+	complicated and re-ran my sympy-scripts to reduce their apparent
+	complexity.  
+	
+	* src/zeemandata.cc,h: Changed to return const references as input is
+	really const.
+
 2019-01-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1203
