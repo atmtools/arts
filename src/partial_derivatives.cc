@@ -225,12 +225,6 @@ void partial_derivatives_lineshape_dependency(ArrayOfMatrix&  partials_attenuati
                     this_partial_src[iv]     +=(dFa_dx[iv]*dx_dH + ls_A*dfn_dH_div_dF_dH[iv]*dF_dH/C[iv])*nlte;
             }
         }
-        else if(flag_partials[flag_partials_position[ii]] == JacPropMatType::MagneticTheta)
-        {/* Pass on this.  Can be done easier in later parts of the code execution.  
-            Will not require line shape partials. */}
-        else if(flag_partials[flag_partials_position[ii]] == JacPropMatType::MagneticEta)
-        {/* Pass on this.  Can be done easier in later parts of the code execution.  
-            Will not require line shape partials. */}
         else if(flag_partials[flag_partials_position[ii]] == JacPropMatType::MagneticU or
                 flag_partials[flag_partials_position[ii]] == JacPropMatType::MagneticV or 
                 flag_partials[flag_partials_position[ii]] == JacPropMatType::MagneticW)

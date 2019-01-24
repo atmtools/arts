@@ -2709,10 +2709,6 @@ void jacobianAddMagField(
     rq.PropType(JacPropMatType::MagneticW);
   else if(component == "strength")
     rq.PropType(JacPropMatType::MagneticMagnitude);
-  else if(component == "eta")
-    rq.PropType(JacPropMatType::MagneticEta);
-  else if(component == "theta")
-    rq.PropType(JacPropMatType::MagneticTheta);
   else
     throw runtime_error("The selection for *component* can only be \"u\", \"v\", \"w\", \"strength\", \"eta\", or \"theta\"." );
   

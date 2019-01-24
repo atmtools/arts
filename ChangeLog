@@ -1,3 +1,15 @@
+2019-01-24  Richard Larsson  <larsson@mps.mpg.de>
+
+	* arts-2-3-1205
+	
+	WARNING:  Breaks controlfiles.
+	
+	FIX:  There is no fix.  You have to switch to uvw retrieval
+	instead of angular retrieval.
+
+	* *: Removes eta and theta from jacobian calculations for
+	the magnetic field.
+
 2019-01-23  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1204

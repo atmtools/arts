@@ -264,7 +264,7 @@ void Linefunctions::set_lorentz(Eigen::Ref<Eigen::VectorXcd> F,
         else
           dF.col(iq).setZero();
       }
-      else if(is_magnetic_magnitude_parameter(deriv))
+      else if(is_magnetic_parameter(deriv))
         dF.col(iq).noalias() = Complex(0.0, zeeman_df) * data.col(1);
     }
   }
@@ -687,7 +687,7 @@ void Linefunctions::set_voigt(Eigen::Ref<Eigen::VectorXcd> F,
         if(deriv.QuantumIdentity().In(quantum_identity))
           dF.col(iq).noalias() = data.col(1) * invGD;
       }
-      else if(is_magnetic_magnitude_parameter(deriv))
+      else if(is_magnetic_parameter(deriv))
         dF.col(iq).noalias() = data.col(1) * (- zeeman_df * invGD);
       else if(deriv == JacPropMatType::VMR) {
         if(deriv.QuantumIdentity().In(quantum_identity))

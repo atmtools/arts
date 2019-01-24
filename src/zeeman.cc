@@ -188,14 +188,6 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
               MapToEigen(dabs).leftCols<4>().middleRows(start, nelem).noalias() += numdens * dF_seg.real() * pol_real + dnumdens_dT * F_seg.real() * pol_real;
               MapToEigen(dabs).rightCols<3>().middleRows(start, nelem).noalias() += numdens * dF_seg.imag() * pol_imag + dnumdens_dT * F_seg.imag() * pol_imag;
             }
-            else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticEta) {
-              MapToEigen(dabs).leftCols<4>().middleRows(start, nelem).noalias() += numdens * F_seg.real() * dpol_deta.head<4>();
-              MapToEigen(dabs).rightCols<3>().middleRows(start, nelem).noalias() += numdens * F_seg.imag() * dpol_deta.tail<3>();
-            }
-            else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticTheta) {
-              MapToEigen(dabs).leftCols<4>().middleRows(start, nelem).noalias() += numdens * F_seg.real() * dpol_dtheta.head<4>();
-              MapToEigen(dabs).rightCols<3>().middleRows(start, nelem).noalias() += numdens * F_seg.imag() * dpol_dtheta.tail<3>();
-            }
             else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticU) {
               MapToEigen(dabs).leftCols<4>().middleRows(start, nelem).noalias() += numdens * X.dH_du * dF_seg.real() * pol_real + numdens * X.deta_du * F_seg.real() * dpol_deta.head<4>() + numdens * X.dtheta_du * F_seg.real() * dpol_dtheta.head<4>();
               MapToEigen(dabs).rightCols<3>().middleRows(start, nelem).noalias() += numdens * X.dH_du * dF_seg.imag() * pol_imag + numdens * X.deta_du * F_seg.imag() * dpol_deta.tail<3>() + numdens * X.dtheta_du * F_seg.imag() * dpol_dtheta.tail<3>();
@@ -239,10 +231,6 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
                 
                 MapToEigen(nlte_dsrc_dx).leftCols<4>().middleRows(start, nelem).noalias() += numdens * dB_dT * N_seg.real() * pol_real;
               }
-              else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticEta)
-                MapToEigen(dnlte_dx_src).leftCols<4>().middleRows(start, nelem).noalias() += B * numdens * N_seg.real() * dpol_deta.head<4>();
-              else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticTheta)
-                MapToEigen(dnlte_dx_src).leftCols<4>().middleRows(start, nelem).noalias() += B * numdens * N_seg.real() * dpol_dtheta.head<4>();
               else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticU)
                 MapToEigen(dnlte_dx_src).leftCols<4>().middleRows(start, nelem).noalias() += B * numdens * X.dH_du * dN_seg.real() * pol_real + B * numdens * X.deta_du * N_seg.real() * dpol_deta.head<4>() + B * numdens * X.dtheta_du * N_seg.real() * dpol_dtheta.head<4>();
               else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticV)

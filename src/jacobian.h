@@ -49,8 +49,6 @@ enum class JacPropMatType : Index
   Temperature,
   
   MagneticMagnitude,
-  MagneticEta,
-  MagneticTheta,
   MagneticU,
   MagneticV,
   MagneticW,
@@ -59,7 +57,7 @@ enum class JacPropMatType : Index
   WindU,
   WindV,
   WindW,
-  Frequency,
+  Frequency,  // Note:  This is how wind is done internal to propmat agenda
   
   LineStrength,
   LineCenter,
@@ -496,8 +494,6 @@ bool is_frequency_parameter(const RetrievalQuantity& t);
 bool is_derived_magnetic_parameter(const RetrievalQuantity& t);
 
 bool is_magnetic_parameter(const RetrievalQuantity& t);
-
-bool is_magnetic_magnitude_parameter(const RetrievalQuantity& t);
 
 bool is_nlte_parameter(const RetrievalQuantity& t);
 

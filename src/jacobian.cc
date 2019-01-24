@@ -1863,23 +1863,16 @@ bool is_frequency_parameter(const RetrievalQuantity& t)
 
 bool is_derived_magnetic_parameter(const RetrievalQuantity& t)
 {
-  return t == JacPropMatType::MagneticEta       or
-         t == JacPropMatType::MagneticTheta     or 
-         t == JacPropMatType::MagneticMagnitude;
+  return t == JacPropMatType::MagneticMagnitude;
 }
 
 bool is_magnetic_parameter(const RetrievalQuantity& t)
 {
-  return is_magnetic_magnitude_parameter(t) or is_derived_magnetic_parameter(t);
-}
-
-bool is_magnetic_magnitude_parameter(const RetrievalQuantity& t)
-{
-  return is_derived_magnetic_parameter(t) or 
+  return 
   t == JacPropMatType::MagneticU   or 
   t == JacPropMatType::MagneticV   or 
   t == JacPropMatType::MagneticW   or
-  t == JacPropMatType::MagneticMagnitude;
+  is_derived_magnetic_parameter(t);
 }
 
 bool is_nlte_parameter(const RetrievalQuantity& t)
@@ -2184,8 +2177,6 @@ String propmattype_string(const RetrievalQuantity& rq)
     case JacPropMatType::Particulates: return "Particulate-VMR";
     case JacPropMatType::Temperature: return "Temperature";
     case JacPropMatType::MagneticMagnitude: return "Magnetic-Strength";
-    case JacPropMatType::MagneticEta: return "Magnetic-Eta";
-    case JacPropMatType::MagneticTheta: return "Magnetic-Theta";
     case JacPropMatType::MagneticU: return "Magnetic-u";
     case JacPropMatType::MagneticV: return "Magnetic-v";
     case JacPropMatType::MagneticW: return "Magnetic-w";
