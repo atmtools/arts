@@ -705,518 +705,6 @@ void ppathFromRtePos2(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ppathStepByStep(
-          Workspace&      ws,
-          Ppath&          ppath,
-    const Agenda&         ppath_step_agenda,
-    const Index&          ppath_inside_cloudbox_do,
-    const Index&          atmosphere_dim,
-    const Vector&         p_grid,
-    const Vector&         lat_grid,
-    const Vector&         lon_grid,
-    const Tensor3&        t_field,
-    const Tensor3&        z_field,
-    const Tensor4&        vmr_field,
-    const Vector&         f_grid,
-    const Vector&         refellipsoid,
-    const Matrix&         z_surface,
-    const Index&          cloudbox_on, 
-    const ArrayOfIndex&   cloudbox_limits,
-    const Vector&         rte_pos,
-    const Vector&         rte_los,
-    const Numeric&        ppath_lmax,
-    const Numeric&        ppath_lraytrace,
-    const Verbosity&      verbosity)
-{
-  ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid, 
-              lon_grid, t_field, z_field, vmr_field, f_grid, 
-              refellipsoid, z_surface, cloudbox_on, cloudbox_limits, rte_pos, 
-              rte_los, ppath_lmax, ppath_lraytrace, ppath_inside_cloudbox_do,
-              verbosity );
-}
-
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void ppath_stepGeometric(// WS Output:
-                         Ppath&           ppath_step,
-                         // WS Input:
-                         const Index&     atmosphere_dim,
-                         const Vector&    lat_grid,
-                         const Vector&    lon_grid,
-                         const Tensor3&   z_field,
-                         const Vector&    refellipsoid,
-                         const Matrix&    z_surface,
-                         const Numeric&   ppath_lmax,
-                         const Verbosity&)
-{
-  // Input checks here would be rather costly as this function is called
-  // many times. So we perform asserts in the sub-functions, but no checks 
-  // here.
-  
-  // A call with background set, just wants to obtain the refractive index for
-  // complete ppaths consistent of a single point.
-  if( !ppath_what_background( ppath_step ) )
-    {
-      if( atmosphere_dim == 1 )
-        { ppath_step_geom_1d( ppath_step, z_field(joker,0,0), 
-                              refellipsoid, z_surface(0,0), ppath_lmax ); }
-
-      else if( atmosphere_dim == 2 )
-        { ppath_step_geom_2d( ppath_step, lat_grid,
-                              z_field(joker,joker,0), refellipsoid, 
-                              z_surface(joker,0), ppath_lmax ); }
-
-      else if( atmosphere_dim == 3 )
-        { ppath_step_geom_3d( ppath_step, lat_grid, lon_grid,
-                              z_field, refellipsoid, z_surface, ppath_lmax ); }
-
-      else
-        { throw runtime_error( "The atmospheric dimensionality must be 1-3." );}
-    }
-
-  else
-    { 
-      assert( ppath_step.np == 1 );
-      ppath_step.nreal[0]  = 1;
-      ppath_step.ngroup[0] = 1;
-    }
-}
-
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void ppath_stepRefractionBasic(
-          Workspace&  ws,
-          Ppath&      ppath_step,
-    const Agenda&     refr_index_air_agenda,
-    const Index&      atmosphere_dim,
-    const Vector&     p_grid,
-    const Vector&     lat_grid,
-    const Vector&     lon_grid,
-    const Tensor3&    z_field,
-    const Tensor3&    t_field,
-    const Tensor4&    vmr_field,
-    const Vector&     refellipsoid,
-    const Matrix&     z_surface,
-    const Vector&     f_grid,
-    const Numeric&    ppath_lmax,
-    const Numeric&    ppath_lraytrace,
-    const Verbosity&)
-{
-  // Input checks here would be rather costly as this function is called
-  // many times. 
-  assert( ppath_lraytrace > 0 );
-
-  // A call with background set, just wants to obtain the refractive index for
-  // complete ppaths consistent of a single point.
-  if( !ppath_what_background( ppath_step ) )
-    {
-      if( atmosphere_dim == 1 )
-        { 
-          ppath_step_refr_1d( ws, ppath_step, p_grid, 
-                              z_field, t_field, vmr_field, 
-                              f_grid, refellipsoid, z_surface(0,0), 
-                              ppath_lmax, refr_index_air_agenda, 
-                              "linear_basic", ppath_lraytrace );
-        }
-      else if( atmosphere_dim == 2 )
-        { 
-          ppath_step_refr_2d( ws, ppath_step, p_grid, lat_grid, 
-                              z_field, t_field, vmr_field, 
-                              f_grid, refellipsoid, z_surface(joker,0), 
-                              ppath_lmax, refr_index_air_agenda, 
-                              "linear_basic", ppath_lraytrace ); 
-        }
-      else if( atmosphere_dim == 3 )
-        { 
-          ppath_step_refr_3d( ws, ppath_step, p_grid, lat_grid, lon_grid, 
-                              z_field, t_field, vmr_field, 
-                              f_grid, refellipsoid, z_surface, 
-                              ppath_lmax, refr_index_air_agenda, 
-                              "linear_basic", ppath_lraytrace ); 
-        }
-      else
-        { throw runtime_error( "The atmospheric dimensionality must be 1-3." );}
-    }
-
-  else
-    { 
-      assert( ppath_step.np == 1 );
-      if( atmosphere_dim == 1 )
-        { get_refr_index_1d( ws, ppath_step.nreal[0], ppath_step.ngroup[0], 
-                             refr_index_air_agenda, p_grid, refellipsoid, 
-                             z_field, t_field, vmr_field, 
-                             f_grid, ppath_step.r[0] ); 
-        }
-      else if( atmosphere_dim == 2 )
-        { get_refr_index_2d( ws, ppath_step.nreal[0], ppath_step.ngroup[0], 
-                             refr_index_air_agenda, p_grid, lat_grid, 
-                             refellipsoid, z_field, t_field, vmr_field, 
-                             f_grid, ppath_step.r[0], 
-                             ppath_step.pos(0,1) ); 
-        }
-      else
-        { get_refr_index_3d( ws, ppath_step.nreal[0], ppath_step.ngroup[0], 
-                             refr_index_air_agenda, p_grid, lat_grid, lon_grid, 
-                             refellipsoid, z_field, t_field, vmr_field, 
-                             f_grid, ppath_step.r[0], 
-                             ppath_step.pos(0,1), ppath_step.pos(0,2) ); 
-        }
-    }
-}
-
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void rte_losSet(
-          Vector&    rte_los,
-    const Index&     atmosphere_dim,
-    const Numeric&   za,
-    const Numeric&   aa,
-    const Verbosity&)
-{
-  // Check input
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-
-  if( atmosphere_dim == 1 )
-    { rte_los.resize(1); }
-  else
-    {
-      rte_los.resize(2);
-      rte_los[1] = aa;
-    }
-  rte_los[0] = za;
-}
-
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void rte_losGeometricFromRtePosToRtePos2(
-          Vector&         rte_los,
-    const Index&          atmosphere_dim,
-    const Vector&         lat_grid,
-    const Vector&         lon_grid,
-    const Vector&         refellipsoid,
-    const Vector&         rte_pos,
-    const Vector&         rte_pos2,
-    const Verbosity& )
-{
-  // Check input
-  chk_rte_pos( atmosphere_dim, rte_pos );
-  chk_rte_pos( atmosphere_dim, rte_pos2, true );
-
-  // Radius of rte_pos and rte_pos2
-  const Numeric r1  = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
-                                       lon_grid, rte_pos ) + rte_pos[0];
-  const Numeric r2 = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
-                                       lon_grid, rte_pos2 ) + rte_pos2[0];
-
-  // Remaining polar and cartesian coordinates of rte_pos
-  Numeric lat1, lon1=0, x1, y1=0, z1;
-  // Cartesian coordinates of rte_pos2
-  Numeric x2, y2=0, z2;
-  //
-  if( atmosphere_dim == 1 )
-    {
-      // Latitude distance implicitly checked by chk_rte_pos 
-      lat1 = 0;
-      pol2cart( x1, z1, r1, lat1 );
-      pol2cart( x2, z2, r2, rte_pos2[1] );
-    }
-  else if( atmosphere_dim == 2 )
-    {
-      lat1 = rte_pos[1];
-      pol2cart( x1, z1, r1, lat1 );
-      pol2cart( x2, z2, r2, rte_pos2[1] );
-    }
-  else 
-    {
-      lat1 = rte_pos[1];
-      lon1 = rte_pos[2];
-      sph2cart( x1, y1, z1, r1, lat1, lon1 );
-      sph2cart( x2, y2, z2, r2, rte_pos2[1], rte_pos2[2] );
-    }
-
-  // Geometrical LOS to transmitter
-  Numeric za, aa;
-  //
-  los2xyz( za, aa, r1, lat1, lon1, x1, y1, z1, x2, y2, z2 );
-  //
-  if( atmosphere_dim == 3 )
-    { 
-      rte_los.resize(2); 
-      rte_los[0] = za; 
-      rte_los[1] = aa; 
-    }
-  else 
-    { 
-      rte_los.resize(1); 
-      rte_los[0] = za; 
-      if( atmosphere_dim == 2  && aa < 0 ) // Should 2D-za be negative?
-        { rte_los[0] = -za; }
-    }
-}
-
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void rte_posSet(
-          Vector&    rte_pos,
-    const Index&     atmosphere_dim,
-    const Numeric&   z,
-    const Numeric&   lat,
-    const Numeric&   lon,
-    const Verbosity&)
-{
-  // Check input
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-
-  rte_pos.resize(atmosphere_dim);
-  rte_pos[0] = z;
-  if( atmosphere_dim >= 2 )
-    { rte_pos[1] = lat; }
-  if( atmosphere_dim == 3 )
-    { rte_pos[2] = lon; }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void rte_pos_losMoveToStartOfPpath(
-          Vector&    rte_pos,
-          Vector&    rte_los,
-    const Index&     atmosphere_dim,
-    const Ppath&     ppath,
-    const Verbosity&)
-{
-  const Index np = ppath.np;
-
-  // Check input
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  if( np == 0 )
-    throw runtime_error( "The input *ppath* is empty." );
-  if( ppath.pos.nrows() != np )
-    throw runtime_error( "Internal inconsistency in *ppath* (size of data " 
-                         "does not match np)." );
-  
-  rte_pos = ppath.pos(np-1,Range(0,atmosphere_dim));
-  if( atmosphere_dim < 3 )
-    { rte_los = ppath.los(np-1,Range(0,1)); }
-  else
-    { rte_los = ppath.los(np-1,Range(0,2)); }
-}
-
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void TangentPointExtract(
-          Vector&    tan_pos,
-    const Ppath&     ppath,
-    const Verbosity& )
-{
-  Index it;
-  find_tanpoint( it, ppath );
-
-  tan_pos.resize( ppath.pos.ncols() );
-
-  if( it < 0 )
-    {
-      tan_pos = sqrt( -1 );  // = NaN
-    }
-  else
-    {
-      tan_pos[0] = ppath.pos(it,0);
-      tan_pos[1] = ppath.pos(it,1);
-      if( ppath.pos.ncols() == 3 )
-        { tan_pos[2] = ppath.pos(it,2); }
-    }
-}
-
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void TangentPointPrint(
-    const Ppath&     ppath,
-    const Index&     level,
-    const Verbosity& verbosity)
-{
-  Index it;
-  find_tanpoint( it, ppath );
-
-  ostringstream os;
-
-  if( it < 0 )
-    {
-      os << "Lowest altitude found at the end of the propagation path.\n"
-         << "This indicates that the tangent point is either above the\n"
-         << "top-of-the-atmosphere or below the planet's surface.";
-    }
-  else
-    {
-      os << "Tangent point position:\n-----------------------\n"
-         << "     z = " << ppath.pos(it,0)/1e3 << " km\n" 
-         << "   lat = " << ppath.pos(it,1) << " deg";
-        if( ppath.pos.ncols() == 3 )
-          os << "\n   lon: " << ppath.pos(it,2) << " deg";
-    }
-
-  CREATE_OUTS;
-  SWITCH_OUTPUT (level, os.str ());  
-}
-
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void VectorZtanToZaRefr1D(
-           Workspace&    ws,
-           Vector&       za_vector,
-     const Agenda&       refr_index_air_agenda,
-     const Matrix&       sensor_pos,
-     const Vector&       p_grid,
-     const Tensor3&      t_field,
-     const Tensor3&      z_field,
-     const Tensor4&      vmr_field,
-     const Vector&       refellipsoid,
-     const Index&        atmosphere_dim,
-     const Vector&       f_grid,
-     const Vector&       ztan_vector,
-     const Verbosity&)
-{
-  if( atmosphere_dim != 1 ) {
-    throw runtime_error( "The function can only be used for 1D atmospheres." );
-  }
-
-  if( ztan_vector.nelem() != sensor_pos.nrows() ) {
-    ostringstream os;
-    os << "The number of altitudes in true tangent altitude vector must\n"
-       << "match the number of positions in *sensor_pos*.";
-    throw runtime_error( os.str() );
-  }
-
-  // Set za_vector's size equal to ztan_vector
-  za_vector.resize( ztan_vector.nelem() );
-
-  // Define refraction variables
-  Numeric   refr_index_air, refr_index_air_group;
-
-  // Calculate refractive index for the tangential altitudes
-  for( Index i=0; i<ztan_vector.nelem(); i++ ) 
-    {
-      if( ztan_vector[i] > sensor_pos(i,0) )
-        {
-          ostringstream os;
-          os << "Invalid observation geometry: sensor (at z=" << sensor_pos(i,0)
-             << "m) is located below the requested tangent altitude (tanh="
-             << ztan_vector[i] << "m)";
-          throw runtime_error( os.str() );
-        }
-      else
-        {
-          get_refr_index_1d( ws, refr_index_air, refr_index_air_group, 
-                             refr_index_air_agenda, p_grid, refellipsoid[0], 
-                             z_field, t_field, vmr_field, f_grid,
-                             ztan_vector[i] + refellipsoid[0] );
-
-          // Calculate zenith angle
-          za_vector[i] = 180 - RAD2DEG* asin( refr_index_air * 
-                                          (refellipsoid[0] + ztan_vector[i]) / 
-                                          (refellipsoid[0] + sensor_pos(i,0)) );
-        }
-    }
-}
-
-
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void VectorZtanToZa1D(
-          Vector&       za_vector,
-    const Matrix&       sensor_pos,
-    const Vector&       refellipsoid,
-    const Index&        atmosphere_dim,
-    const Vector&       ztan_vector,
-    const Verbosity&)
-{
-  if( atmosphere_dim != 1 ) {
-    throw runtime_error( "The function can only be used for 1D atmospheres." );
-  }
-
-  const Index   npos = sensor_pos.nrows();
-
-  if( ztan_vector.nelem() != npos )
-    {
-      ostringstream os;
-      os << "The number of altitudes in the geometric tangent altitude vector\n"
-         << "must match the number of positions in *sensor_pos*.";
-      throw runtime_error( os.str() );
-    }
-
-  za_vector.resize( npos );
-
-  for( Index i=0; i<npos; i++ )
-    { 
-      if( ztan_vector[i] > sensor_pos(i,0) )
-        {
-          ostringstream os;
-          os << "Invalid observation geometry: sensor (at z=" << sensor_pos(i,0)
-             << "m) is located below the requested tangent altitude (tanh="
-             << ztan_vector[i] << "m)";
-          throw runtime_error( os.str() );
-        }
-      else
-        {
-          za_vector[i] = geompath_za_at_r( refellipsoid[0] + ztan_vector[i], 100,
-                                       refellipsoid[0] + sensor_pos(i,0) );
-        }
-    }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void ppathWriteXMLPartial (//WS Input:
-                           const String& file_format,
-                           const Ppath&  ppath,
-                           // WS Generic Input:
-                           const String& f,
-                           const Index&  file_index,
-                           const Verbosity& verbosity)
-{
-    String filename = f;
-    Ppath ppath_partial = ppath;
-    ArrayOfGridPos empty_gp;
-    //Vector empty_v;
-
-    ppath_partial.gp_p = empty_gp;
-    ppath_partial.gp_lat = empty_gp;
-    ppath_partial.gp_lon = empty_gp;
-    //ppath_partial.nreal = empty_v;
-    //ppath_partial.ngroup = empty_v;
-
-    if (file_index >= 0)
-    {
-        // Create default filename if empty
-        filename_xml_with_index( filename, file_index, "ppath" );
-    }
-
-    WriteXML( file_format, ppath_partial, filename, 0,
-             "ppath", "", "", verbosity );
-}
-
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void ppathPlaneParallel(
           Ppath&          ppath,
     const Index&          atmosphere_dim,
@@ -1531,4 +1019,559 @@ void ppathPlaneParallel(
     { ppath.end_lstep = dz2dl * ( z_sensor - z_toa ); }
   ppath.nreal        = 1;
   ppath.ngroup       = 1;
+}
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ppathStepByStep(
+          Workspace&      ws,
+          Ppath&          ppath,
+    const Agenda&         ppath_step_agenda,
+    const Index&          ppath_inside_cloudbox_do,
+    const Index&          atmosphere_dim,
+    const Vector&         p_grid,
+    const Vector&         lat_grid,
+    const Vector&         lon_grid,
+    const Tensor3&        t_field,
+    const Tensor3&        z_field,
+    const Tensor4&        vmr_field,
+    const Vector&         f_grid,
+    const Vector&         refellipsoid,
+    const Matrix&         z_surface,
+    const Index&          cloudbox_on, 
+    const ArrayOfIndex&   cloudbox_limits,
+    const Vector&         rte_pos,
+    const Vector&         rte_los,
+    const Numeric&        ppath_lmax,
+    const Numeric&        ppath_lraytrace,
+    const Verbosity&      verbosity)
+{
+  ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, lat_grid, 
+              lon_grid, t_field, z_field, vmr_field, f_grid, 
+              refellipsoid, z_surface, cloudbox_on, cloudbox_limits, rte_pos, 
+              rte_los, ppath_lmax, ppath_lraytrace, ppath_inside_cloudbox_do,
+              verbosity );
+}
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ppath_stepGeometric(// WS Output:
+                         Ppath&           ppath_step,
+                         // WS Input:
+                         const Index&     atmosphere_dim,
+                         const Vector&    lat_grid,
+                         const Vector&    lon_grid,
+                         const Tensor3&   z_field,
+                         const Vector&    refellipsoid,
+                         const Matrix&    z_surface,
+                         const Numeric&   ppath_lmax,
+                         const Verbosity&)
+{
+  // Input checks here would be rather costly as this function is called
+  // many times. So we perform asserts in the sub-functions, but no checks 
+  // here.
+  
+  // A call with background set, just wants to obtain the refractive index for
+  // complete ppaths consistent of a single point.
+  if( !ppath_what_background( ppath_step ) )
+    {
+      if( atmosphere_dim == 1 )
+        { ppath_step_geom_1d( ppath_step, z_field(joker,0,0), 
+                              refellipsoid, z_surface(0,0), ppath_lmax ); }
+
+      else if( atmosphere_dim == 2 )
+        { ppath_step_geom_2d( ppath_step, lat_grid,
+                              z_field(joker,joker,0), refellipsoid, 
+                              z_surface(joker,0), ppath_lmax ); }
+
+      else if( atmosphere_dim == 3 )
+        { ppath_step_geom_3d( ppath_step, lat_grid, lon_grid,
+                              z_field, refellipsoid, z_surface, ppath_lmax ); }
+
+      else
+        { throw runtime_error( "The atmospheric dimensionality must be 1-3." );}
+    }
+
+  else
+    { 
+      assert( ppath_step.np == 1 );
+      ppath_step.nreal[0]  = 1;
+      ppath_step.ngroup[0] = 1;
+    }
+}
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ppath_stepRefractionBasic(
+          Workspace&  ws,
+          Ppath&      ppath_step,
+    const Agenda&     refr_index_air_agenda,
+    const Index&      atmosphere_dim,
+    const Vector&     p_grid,
+    const Vector&     lat_grid,
+    const Vector&     lon_grid,
+    const Tensor3&    z_field,
+    const Tensor3&    t_field,
+    const Tensor4&    vmr_field,
+    const Vector&     refellipsoid,
+    const Matrix&     z_surface,
+    const Vector&     f_grid,
+    const Numeric&    ppath_lmax,
+    const Numeric&    ppath_lraytrace,
+    const Verbosity&)
+{
+  // Input checks here would be rather costly as this function is called
+  // many times. 
+  assert( ppath_lraytrace > 0 );
+
+  // A call with background set, just wants to obtain the refractive index for
+  // complete ppaths consistent of a single point.
+  if( !ppath_what_background( ppath_step ) )
+    {
+      if( atmosphere_dim == 1 )
+        { 
+          ppath_step_refr_1d( ws, ppath_step, p_grid, 
+                              z_field, t_field, vmr_field, 
+                              f_grid, refellipsoid, z_surface(0,0), 
+                              ppath_lmax, refr_index_air_agenda, 
+                              "linear_basic", ppath_lraytrace );
+        }
+      else if( atmosphere_dim == 2 )
+        { 
+          ppath_step_refr_2d( ws, ppath_step, p_grid, lat_grid, 
+                              z_field, t_field, vmr_field, 
+                              f_grid, refellipsoid, z_surface(joker,0), 
+                              ppath_lmax, refr_index_air_agenda, 
+                              "linear_basic", ppath_lraytrace ); 
+        }
+      else if( atmosphere_dim == 3 )
+        { 
+          ppath_step_refr_3d( ws, ppath_step, p_grid, lat_grid, lon_grid, 
+                              z_field, t_field, vmr_field, 
+                              f_grid, refellipsoid, z_surface, 
+                              ppath_lmax, refr_index_air_agenda, 
+                              "linear_basic", ppath_lraytrace ); 
+        }
+      else
+        { throw runtime_error( "The atmospheric dimensionality must be 1-3." );}
+    }
+
+  else
+    { 
+      assert( ppath_step.np == 1 );
+      if( atmosphere_dim == 1 )
+        { get_refr_index_1d( ws, ppath_step.nreal[0], ppath_step.ngroup[0], 
+                             refr_index_air_agenda, p_grid, refellipsoid, 
+                             z_field, t_field, vmr_field, 
+                             f_grid, ppath_step.r[0] ); 
+        }
+      else if( atmosphere_dim == 2 )
+        { get_refr_index_2d( ws, ppath_step.nreal[0], ppath_step.ngroup[0], 
+                             refr_index_air_agenda, p_grid, lat_grid, 
+                             refellipsoid, z_field, t_field, vmr_field, 
+                             f_grid, ppath_step.r[0], 
+                             ppath_step.pos(0,1) ); 
+        }
+      else
+        { get_refr_index_3d( ws, ppath_step.nreal[0], ppath_step.ngroup[0], 
+                             refr_index_air_agenda, p_grid, lat_grid, lon_grid, 
+                             refellipsoid, z_field, t_field, vmr_field, 
+                             f_grid, ppath_step.r[0], 
+                             ppath_step.pos(0,1), ppath_step.pos(0,2) ); 
+        }
+    }
+}
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ppathWriteXMLPartial (//WS Input:
+                           const String& file_format,
+                           const Ppath&  ppath,
+                           // WS Generic Input:
+                           const String& f,
+                           const Index&  file_index,
+                           const Verbosity& verbosity)
+{
+    String filename = f;
+    Ppath ppath_partial = ppath;
+    ArrayOfGridPos empty_gp;
+    //Vector empty_v;
+
+    ppath_partial.gp_p = empty_gp;
+    ppath_partial.gp_lat = empty_gp;
+    ppath_partial.gp_lon = empty_gp;
+    //ppath_partial.nreal = empty_v;
+    //ppath_partial.ngroup = empty_v;
+
+    if (file_index >= 0)
+    {
+        // Create default filename if empty
+        filename_xml_with_index( filename, file_index, "ppath" );
+    }
+
+    WriteXML( file_format, ppath_partial, filename, 0,
+             "ppath", "", "", verbosity );
+}
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void rte_losSet(
+          Vector&    rte_los,
+    const Index&     atmosphere_dim,
+    const Numeric&   za,
+    const Numeric&   aa,
+    const Verbosity&)
+{
+  // Check input
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+
+  if( atmosphere_dim == 1 )
+    { rte_los.resize(1); }
+  else
+    {
+      rte_los.resize(2);
+      rte_los[1] = aa;
+    }
+  rte_los[0] = za;
+}
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void rte_losGeometricFromRtePosToRtePos2(
+          Vector&         rte_los,
+    const Index&          atmosphere_dim,
+    const Vector&         lat_grid,
+    const Vector&         lon_grid,
+    const Vector&         refellipsoid,
+    const Vector&         rte_pos,
+    const Vector&         rte_pos2,
+    const Verbosity& )
+{
+  // Check input
+  chk_rte_pos( atmosphere_dim, rte_pos );
+  chk_rte_pos( atmosphere_dim, rte_pos2, true );
+
+  // Radius of rte_pos and rte_pos2
+  const Numeric r1  = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
+                                       lon_grid, rte_pos ) + rte_pos[0];
+  const Numeric r2 = pos2refell_r( atmosphere_dim, refellipsoid, lat_grid, 
+                                       lon_grid, rte_pos2 ) + rte_pos2[0];
+
+  // Remaining polar and cartesian coordinates of rte_pos
+  Numeric lat1, lon1=0, x1, y1=0, z1;
+  // Cartesian coordinates of rte_pos2
+  Numeric x2, y2=0, z2;
+  //
+  if( atmosphere_dim == 1 )
+    {
+      // Latitude distance implicitly checked by chk_rte_pos 
+      lat1 = 0;
+      pol2cart( x1, z1, r1, lat1 );
+      pol2cart( x2, z2, r2, rte_pos2[1] );
+    }
+  else if( atmosphere_dim == 2 )
+    {
+      lat1 = rte_pos[1];
+      pol2cart( x1, z1, r1, lat1 );
+      pol2cart( x2, z2, r2, rte_pos2[1] );
+    }
+  else 
+    {
+      lat1 = rte_pos[1];
+      lon1 = rte_pos[2];
+      sph2cart( x1, y1, z1, r1, lat1, lon1 );
+      sph2cart( x2, y2, z2, r2, rte_pos2[1], rte_pos2[2] );
+    }
+
+  // Geometrical LOS to transmitter
+  Numeric za, aa;
+  //
+  los2xyz( za, aa, r1, lat1, lon1, x1, y1, z1, x2, y2, z2 );
+  //
+  if( atmosphere_dim == 3 )
+    { 
+      rte_los.resize(2); 
+      rte_los[0] = za; 
+      rte_los[1] = aa; 
+    }
+  else 
+    { 
+      rte_los.resize(1); 
+      rte_los[0] = za; 
+      if( atmosphere_dim == 2  && aa < 0 ) // Should 2D-za be negative?
+        { rte_los[0] = -za; }
+    }
+}
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void rte_posSet(
+          Vector&    rte_pos,
+    const Index&     atmosphere_dim,
+    const Numeric&   z,
+    const Numeric&   lat,
+    const Numeric&   lon,
+    const Verbosity&)
+{
+  // Check input
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+
+  rte_pos.resize(atmosphere_dim);
+  rte_pos[0] = z;
+  if( atmosphere_dim >= 2 )
+    { rte_pos[1] = lat; }
+  if( atmosphere_dim == 3 )
+    { rte_pos[2] = lon; }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void rte_pos_losMoveToStartOfPpath(
+          Vector&    rte_pos,
+          Vector&    rte_los,
+    const Index&     atmosphere_dim,
+    const Ppath&     ppath,
+    const Verbosity&)
+{
+  const Index np = ppath.np;
+
+  // Check input
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  if( np == 0 )
+    throw runtime_error( "The input *ppath* is empty." );
+  if( ppath.pos.nrows() != np )
+    throw runtime_error( "Internal inconsistency in *ppath* (size of data " 
+                         "does not match np)." );
+  
+  rte_pos = ppath.pos(np-1,Range(0,atmosphere_dim));
+  if( atmosphere_dim < 3 )
+    { rte_los = ppath.los(np-1,Range(0,1)); }
+  else
+    { rte_los = ppath.los(np-1,Range(0,2)); }
+}
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_losGeometricFromSensorPosToOtherPositions(
+          Matrix&         sensor_los,
+    const Index&          atmosphere_dim,
+    const Vector&         lat_grid,
+    const Vector&         lon_grid,
+    const Vector&         refellipsoid,
+    const Matrix&         sensor_pos,
+    const Matrix&         target_pos,
+    const Verbosity&      verbosity )
+{
+  const Index n = sensor_pos.nrows();
+  
+  if( sensor_pos.ncols() != atmosphere_dim )
+    throw runtime_error( "The number of columns of sensor_pos must be "
+                         "equal to the atmospheric dimensionality." );
+  if( ( atmosphere_dim==1 && target_pos.ncols() != 2 )  ||
+      ( atmosphere_dim>=2 && target_pos.ncols() != atmosphere_dim ) )
+    throw runtime_error( "The number of columns of targe_pos must be equal to "
+                         "the atmospheric dimensionality, except for 1D where "
+                         "two columns are demended (as for *rte_pos2*)." );
+  if( target_pos.nrows() != n )
+    throw runtime_error( "*sensor_pos* and *target_pos* must have the same "
+                         "number of rows." );
+
+  atmosphere_dim < 3 ? sensor_los.resize(n,1) : sensor_los.resize(n,2);
+  Vector rte_los;
+  for( Index i=0; i<n; i++ )
+    {
+      rte_losGeometricFromRtePosToRtePos2( rte_los, atmosphere_dim,
+                                           lat_grid, lon_grid,
+                                           refellipsoid,
+                                           sensor_pos(i,joker),
+                                           target_pos(i,joker),
+                                           verbosity );
+      sensor_los(i,joker) = rte_los;
+    }
+}
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void TangentPointExtract(
+          Vector&    tan_pos,
+    const Ppath&     ppath,
+    const Verbosity& )
+{
+  Index it;
+  find_tanpoint( it, ppath );
+
+  tan_pos.resize( ppath.pos.ncols() );
+
+  if( it < 0 )
+    {
+      tan_pos = sqrt( -1 );  // = NaN
+    }
+  else
+    {
+      tan_pos[0] = ppath.pos(it,0);
+      tan_pos[1] = ppath.pos(it,1);
+      if( ppath.pos.ncols() == 3 )
+        { tan_pos[2] = ppath.pos(it,2); }
+    }
+}
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void TangentPointPrint(
+    const Ppath&     ppath,
+    const Index&     level,
+    const Verbosity& verbosity)
+{
+  Index it;
+  find_tanpoint( it, ppath );
+
+  ostringstream os;
+
+  if( it < 0 )
+    {
+      os << "Lowest altitude found at the end of the propagation path.\n"
+         << "This indicates that the tangent point is either above the\n"
+         << "top-of-the-atmosphere or below the planet's surface.";
+    }
+  else
+    {
+      os << "Tangent point position:\n-----------------------\n"
+         << "     z = " << ppath.pos(it,0)/1e3 << " km\n" 
+         << "   lat = " << ppath.pos(it,1) << " deg";
+        if( ppath.pos.ncols() == 3 )
+          os << "\n   lon: " << ppath.pos(it,2) << " deg";
+    }
+
+  CREATE_OUTS;
+  SWITCH_OUTPUT (level, os.str ());  
+}
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void VectorZtanToZaRefr1D(
+           Workspace&    ws,
+           Vector&       za_vector,
+     const Agenda&       refr_index_air_agenda,
+     const Matrix&       sensor_pos,
+     const Vector&       p_grid,
+     const Tensor3&      t_field,
+     const Tensor3&      z_field,
+     const Tensor4&      vmr_field,
+     const Vector&       refellipsoid,
+     const Index&        atmosphere_dim,
+     const Vector&       f_grid,
+     const Vector&       ztan_vector,
+     const Verbosity&)
+{
+  if( atmosphere_dim != 1 ) {
+    throw runtime_error( "The function can only be used for 1D atmospheres." );
+  }
+
+  if( ztan_vector.nelem() != sensor_pos.nrows() ) {
+    ostringstream os;
+    os << "The number of altitudes in true tangent altitude vector must\n"
+       << "match the number of positions in *sensor_pos*.";
+    throw runtime_error( os.str() );
+  }
+
+  // Set za_vector's size equal to ztan_vector
+  za_vector.resize( ztan_vector.nelem() );
+
+  // Define refraction variables
+  Numeric   refr_index_air, refr_index_air_group;
+
+  // Calculate refractive index for the tangential altitudes
+  for( Index i=0; i<ztan_vector.nelem(); i++ ) 
+    {
+      if( ztan_vector[i] > sensor_pos(i,0) )
+        {
+          ostringstream os;
+          os << "Invalid observation geometry: sensor (at z=" << sensor_pos(i,0)
+             << "m) is located below the requested tangent altitude (tanh="
+             << ztan_vector[i] << "m)";
+          throw runtime_error( os.str() );
+        }
+      else
+        {
+          get_refr_index_1d( ws, refr_index_air, refr_index_air_group, 
+                             refr_index_air_agenda, p_grid, refellipsoid[0], 
+                             z_field, t_field, vmr_field, f_grid,
+                             ztan_vector[i] + refellipsoid[0] );
+
+          // Calculate zenith angle
+          za_vector[i] = 180 - RAD2DEG* asin( refr_index_air * 
+                                          (refellipsoid[0] + ztan_vector[i]) / 
+                                          (refellipsoid[0] + sensor_pos(i,0)) );
+        }
+    }
+}
+
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void VectorZtanToZa1D(
+          Vector&       za_vector,
+    const Matrix&       sensor_pos,
+    const Vector&       refellipsoid,
+    const Index&        atmosphere_dim,
+    const Vector&       ztan_vector,
+    const Verbosity&)
+{
+  if( atmosphere_dim != 1 ) {
+    throw runtime_error( "The function can only be used for 1D atmospheres." );
+  }
+
+  const Index   npos = sensor_pos.nrows();
+
+  if( ztan_vector.nelem() != npos )
+    {
+      ostringstream os;
+      os << "The number of altitudes in the geometric tangent altitude vector\n"
+         << "must match the number of positions in *sensor_pos*.";
+      throw runtime_error( os.str() );
+    }
+
+  za_vector.resize( npos );
+
+  for( Index i=0; i<npos; i++ )
+    { 
+      if( ztan_vector[i] > sensor_pos(i,0) )
+        {
+          ostringstream os;
+          os << "Invalid observation geometry: sensor (at z=" << sensor_pos(i,0)
+             << "m) is located below the requested tangent altitude (tanh="
+             << ztan_vector[i] << "m)";
+          throw runtime_error( os.str() );
+        }
+      else
+        {
+          za_vector[i] = geompath_za_at_r( refellipsoid[0] + ztan_vector[i], 100,
+                                       refellipsoid[0] + sensor_pos(i,0) );
+        }
+    }
 }

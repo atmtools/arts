@@ -16553,6 +16553,36 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "sensor_losGeometricFromSensorPosToOtherPositions" ),
+        DESCRIPTION
+        (
+         "The geometric line-of-sight between pair of points.\n"
+         "\n"
+         "The method sets *sensor_los* to the line-of-sights, that matches the\n"
+         "geometrical propagation path from *sensor_pos* to *target_pos*. This\n"
+         "is done for pair of positions, i.e. the two matrices shall have the same\n"
+         "number of rows. The number of columns in *target_pos* shall be two for\n"
+         "1D and 2D and two for 3D, exactly as for *rte_pos2*.\n"
+         "\n"
+         "See also *rte_losGeometricFromRtePosToRtePos2*. This method calls that\n"
+         "method for each pair of positions, where values in *sensor_pos* matches\n"
+         "*rte_pos and values in *target_pos* matches *rte_pos2*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "sensor_los" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim", "lat_grid", "lon_grid", "refellipsoid", 
+            "sensor_pos" ),
+        GIN( "target_pos" ),
+        GIN_TYPE( "Matrix" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Target position, for each position in *sensor_pos*." )
+        ));
+  
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "sensor_responseAntenna" ),
         DESCRIPTION
         (

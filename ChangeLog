@@ -1,3 +1,12 @@
+2019-01-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1206
+
+	* src/m_ppath.cc
+	(sensor_losGeometricFromSensorPosToOtherPositions): New WSM.
+
+	* src/geodetic.cc (pos2refell_r): Fixed bad spelling in header.
+
 2019-01-24  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1205

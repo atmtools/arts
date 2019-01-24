@@ -1130,7 +1130,7 @@ void poslos2cart(
 /*!
     Extracts the reference ellipsoid for the specified position.
 
-    The rference ellipsoid radius is defined slightly differently inside and
+    The reference ellipsoid radius is defined slightly differently inside and
     outside of the model atmosphere. See *refell2r*. This function takes care
     of all those aspects. 
 
