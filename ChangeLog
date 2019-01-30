@@ -1,3 +1,9 @@
+2019-01-30 Jana Mendrok  <jana.mendrok@gmail.co>
+
+	* arts-2-2-65
+	
+	* src/m_abs.cc (abs_linesReadFromHitran): Make it work with HITRAN2016.par.
+
 2017-12-05  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-2-64
