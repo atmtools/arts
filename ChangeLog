@@ -1,3 +1,12 @@
+2019-01-30  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1207
+
+	* controlfiles/artscomponents/nlte/TestNLTE.arts:
+
+	Add error messages to CompareRelative to indicate which test has
+	failed.
+
 2019-01-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1206

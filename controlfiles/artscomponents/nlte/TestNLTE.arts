@@ -76,7 +76,7 @@ yCalc
 VectorCreate(y_nlte_ref)
 # WriteXML("ascii",y,"TestNLTE_NLTE_old_method.xml")
 ReadXML(y_nlte_ref,"TestNLTE_NLTE_old_method.xml")
-CompareRelative(y,y_nlte_ref,1e-5)
+CompareRelative(y,y_nlte_ref,1e-5, "NLTE old method")
 
 Tensor4Create(tmp_t4)
 ArrayOfQuantumIdentifierCreate(tmp_aoqi)
@@ -95,7 +95,7 @@ yCalc
 VectorCreate(y_lte_ref)
 # WriteXML("ascii",y,"TestNLTE_LTE_old_method.xml")
 ReadXML(y_lte_ref, "TestNLTE_LTE_old_method.xml")
-CompareRelative(y,y_lte_ref,1e-5)
+CompareRelative(y,y_lte_ref,1e-5, "LTE old method")
 
 # NOTE:  There is potentially a bug in AddLines2 for vib-NLTE.
 #        For some reason, the source function is almost exactly
@@ -118,7 +118,7 @@ yCalc
 
 # WriteXML("ascii",y,"TestNLTE_NLTE_new_method.xml")
 ReadXML(y_nlte_ref,"TestNLTE_NLTE_new_method.xml")
-CompareRelative(y,y_nlte_ref,1e-5)
+CompareRelative(y,y_nlte_ref,1e-5, "NLTE new method")
 
 nlteOff
 abs_lines_per_speciesSetNlteOffForAll
@@ -133,6 +133,6 @@ yCalc
 
 # WriteXML("ascii",y,"TestNLTE_LTE_new_method.xml")
 ReadXML(y_lte_ref, "TestNLTE_LTE_new_method.xml")
-CompareRelative(y,y_lte_ref,1e-5)
+CompareRelative(y,y_lte_ref,1e-5, "LTE new method")
 
 }
