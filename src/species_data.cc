@@ -219,7 +219,7 @@ void define_basic_species_data()
          REC( "162"             ,3.10693E-04    ,19.016740    ,14     ,14     ,TAGS(19002) ),
          REC( "182"             ,6.23003E-07    ,21.020985    ,-1     ,15     ,TAGS(21001) ),
          REC( "172"             ,1.15853E-07    ,20.020956    ,-1     ,16     ,TAGS()      ),
-         REC( "262"             ,2.2430204E-08  ,20.000000    ,-1     ,-1     ,TAGS(20001) ),
+         REC( "262"             ,2.41970E-08    ,20.000000    ,-1     ,17     ,TAGS(20001) ),
          REC( "SelfContStandardType"    ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
          REC( "ForeignContStandardType" ,NAN    ,NAN    ,-1     ,-1     ,TAGS()      ),
          REC( "ForeignContMaTippingType",NAN    ,NAN    ,-1     ,-1     ,TAGS()      ), 
@@ -253,10 +253,6 @@ void define_basic_species_data()
   // Again (as for OCS from 2000 edition), this messes up the whole concept of
   // reading a catalogue, because the species depends now on the edition of the
   // catalogue.
-  // ATTENTION: This version of species_data.cc works with HITRAN 2008 (and
-  // earlier) editions. For use with 2012 (and later), outcomment the 2 lines
-  // below "version for 2008 and earlier" and uncomment the corresponding 2
-  // lines below "version for 2012 and later".
   // Also, isotopologue 837 is already in molparams.txt, too, as isotopologue
   // #11. It's unclear what will be done when this will get some transitions
   // assigned.
