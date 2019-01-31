@@ -123,7 +123,7 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
   const Numeric a = DEG2RAD * rtp_los[1];
   
   // Magnetic field internals and derivatives...
-  const auto X = manual_tag ? zeeman_internal_variables_manual(H0, theta0, eta0) :
+  const auto X = manual_tag ? zeeman_internal_variables_manual(H0, DEG2RAD*theta0, DEG2RAD*eta0) :
                               zeeman_internal_variables(u, v, w, z, a);
   
   // Polarization
@@ -161,9 +161,9 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
         }
         
         // Select polarization for this line
-        auto& polarization_scale = select_zeeman_polarization(polarization_scale_data,        line.ZeemanPolarization());
-        auto& dpol_dtheta        = select_zeeman_polarization(polarization_scale_dtheta_data, line.ZeemanPolarization());
-        auto& dpol_deta          = select_zeeman_polarization(polarization_scale_deta_data,   line.ZeemanPolarization());
+        auto& pol         = select_zeeman_polarization(polarization_scale_data,        line.ZeemanPolarization());
+        auto& dpol_dtheta = select_zeeman_polarization(polarization_scale_dtheta_data, line.ZeemanPolarization());
+        auto& dpol_deta   = select_zeeman_polarization(polarization_scale_deta_data,   line.ZeemanPolarization());
         
         for(Index iz=0; iz<line.ZeemanEffect().nelem(); iz++) {
           Linefunctions::set_cross_section_for_single_line(F, dF, N, dN, data, start, nelem, f_grid_eigen, line,
@@ -173,8 +173,8 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
                                                            abs_species, ispecies, iz);
           
           auto F_seg =      F.segment(start, nelem);
-          auto pol_real = polarization_scale.head<4>();
-          auto pol_imag = polarization_scale.tail<3>();
+          auto pol_real = pol.attenuation();
+          auto pol_imag = pol.dispersion();
           auto abs = propmat_clearsky[ispecies].GetData()(0, 0, joker, joker);
           
           // Propagation matrix calculations
@@ -185,25 +185,41 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
             auto dabs = dpropmat_clearsky_dx[j].GetData()(0, 0, joker, joker);
             
             if(flag_partials[flag_partials_positions[j]] == JacPropMatType::Temperature) {
-              MapToEigen(dabs).leftCols<4>().middleRows(start, nelem).noalias() += numdens * dF_seg.real() * pol_real + dnumdens_dT * F_seg.real() * pol_real;
-              MapToEigen(dabs).rightCols<3>().middleRows(start, nelem).noalias() += numdens * dF_seg.imag() * pol_imag + dnumdens_dT * F_seg.imag() * pol_imag;
+              MapToEigen(dabs).leftCols<4>().middleRows(start, nelem).noalias() += numdens    * dF_seg.real() * pol_real +
+                                                                                  dnumdens_dT *  F_seg.real() * pol_real;
+              MapToEigen(dabs).rightCols<3>().middleRows(start, nelem).noalias() += numdens    * dF_seg.imag() * pol_imag +
+                                                                                   dnumdens_dT *  F_seg.imag() * pol_imag;
             }
             else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticU) {
-              MapToEigen(dabs).leftCols<4>().middleRows(start, nelem).noalias() += numdens * X.dH_du * dF_seg.real() * pol_real + numdens * X.deta_du * F_seg.real() * dpol_deta.head<4>() + numdens * X.dtheta_du * F_seg.real() * dpol_dtheta.head<4>();
-              MapToEigen(dabs).rightCols<3>().middleRows(start, nelem).noalias() += numdens * X.dH_du * dF_seg.imag() * pol_imag + numdens * X.deta_du * F_seg.imag() * dpol_deta.tail<3>() + numdens * X.dtheta_du * F_seg.imag() * dpol_dtheta.tail<3>();
+              MapToEigen(dabs).leftCols<4>().middleRows(start, nelem).noalias() += numdens * X.dH_du     * dF_seg.real() * pol_real +
+                                                                                   numdens * X.deta_du   *  F_seg.real() * dpol_deta.attenuation() +
+                                                                                   numdens * X.dtheta_du *  F_seg.real() * dpol_dtheta.attenuation();
+              MapToEigen(dabs).rightCols<3>().middleRows(start, nelem).noalias() += numdens * X.dH_du     * dF_seg.imag() * pol_imag +
+                                                                                    numdens * X.deta_du   *  F_seg.imag() * dpol_deta.dispersion() +
+                                                                                    numdens * X.dtheta_du *  F_seg.imag() * dpol_dtheta.dispersion();
             }
             else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticV) {
-              MapToEigen(dabs).leftCols<4>().middleRows(start, nelem).noalias() += numdens * X.dH_dv * dF_seg.real() * pol_real + numdens * X.deta_dv * F_seg.real() * dpol_deta.head<4>() + numdens * X.dtheta_dv * F_seg.real() * dpol_dtheta.head<4>();
-              MapToEigen(dabs).rightCols<3>().middleRows(start, nelem).noalias() += numdens * X.dH_dv * dF_seg.imag() * pol_imag + numdens * X.deta_dv * F_seg.imag() * dpol_deta.tail<3>() + numdens * X.dtheta_dv * F_seg.imag() * dpol_dtheta.tail<3>();
+              MapToEigen(dabs).leftCols<4>().middleRows(start, nelem).noalias() += numdens * X.dH_dv     * dF_seg.real() * pol_real +
+                                                                                   numdens * X.deta_dv   *  F_seg.real() * dpol_deta.attenuation() +
+                                                                                   numdens * X.dtheta_dv *  F_seg.real() * dpol_dtheta.attenuation();
+              MapToEigen(dabs).rightCols<3>().middleRows(start, nelem).noalias() += numdens * X.dH_dv     * dF_seg.imag() * pol_imag +
+                                                                                    numdens * X.deta_dv   *  F_seg.imag() * dpol_deta.dispersion() +
+                                                                                    numdens * X.dtheta_dv *  F_seg.imag() * dpol_dtheta.dispersion();
             }
             else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticW) {
-              MapToEigen(dabs).leftCols<4>().middleRows(start, nelem).noalias() += numdens * X.dH_dw * dF_seg.real() * pol_real + numdens * X.deta_dw * F_seg.real() * dpol_deta.head<4>() + numdens * X.dtheta_dw * F_seg.real() * dpol_dtheta.head<4>();
-              MapToEigen(dabs).rightCols<3>().middleRows(start, nelem).noalias() += numdens * X.dH_dw * dF_seg.imag() * pol_imag + numdens * X.deta_dw * F_seg.imag() * dpol_deta.tail<3>() + numdens * X.dtheta_dw * F_seg.imag() * dpol_dtheta.tail<3>();
+              MapToEigen(dabs).leftCols<4>().middleRows(start, nelem).noalias() += numdens * X.dH_dw     * dF_seg.real() * pol_real +
+                                                                                   numdens * X.deta_dw   *  F_seg.real() * dpol_deta.attenuation() +
+                                                                                   numdens * X.dtheta_dw *  F_seg.real() * dpol_dtheta.attenuation();
+              MapToEigen(dabs).rightCols<3>().middleRows(start, nelem).noalias() += numdens * X.dH_dw     * dF_seg.imag() * pol_imag +
+                                                                                    numdens * X.deta_dw   *  F_seg.imag() * dpol_deta.dispersion() +
+                                                                                    numdens * X.dtheta_dw *  F_seg.imag() * dpol_dtheta.dispersion();
             }
             else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::VMR) {
               if(flag_partials[flag_partials_positions[j]].QuantumIdentity() < line.QuantumIdentity()) {
-                MapToEigen(dabs).leftCols<4>().middleRows(start, nelem).noalias() += numdens * dF_seg.real() * pol_real + dnumdens_dmvr * F_seg.real() * pol_real;
-                MapToEigen(dabs).rightCols<3>().middleRows(start, nelem).noalias() += numdens * dF_seg.imag() * pol_imag + dnumdens_dmvr * F_seg.imag() * pol_imag;
+                MapToEigen(dabs).leftCols<4>().middleRows(start, nelem).noalias() += numdens      * dF_seg.real() * pol_real +
+                                                                                    dnumdens_dmvr *  F_seg.real() * pol_real;
+                MapToEigen(dabs).rightCols<3>().middleRows(start, nelem).noalias() += numdens      * dF_seg.imag() * pol_imag +
+                                                                                     dnumdens_dmvr *  F_seg.imag() * pol_imag;
               }
             }
             else {
@@ -227,19 +243,27 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
               auto nlte_dsrc_dx = nlte_dsource_dx[j].GetData()(0, 0, joker, joker);
               
               if(flag_partials[flag_partials_positions[j]] == JacPropMatType::Temperature) {
-                MapToEigen(dnlte_dx_src).leftCols<4>().middleRows(start, nelem).noalias() += B * dnumdens_dT * N_seg.real() * pol_real + B * numdens * dN_seg.real() * pol_real;
+                MapToEigen(dnlte_dx_src).leftCols<4>().middleRows(start, nelem).noalias() += B * dnumdens_dT *  N_seg.real() * pol_real +
+                                                                                             B *  numdens    * dN_seg.real() * pol_real;
                 
                 MapToEigen(nlte_dsrc_dx).leftCols<4>().middleRows(start, nelem).noalias() += numdens * dB_dT * N_seg.real() * pol_real;
               }
               else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticU)
-                MapToEigen(dnlte_dx_src).leftCols<4>().middleRows(start, nelem).noalias() += B * numdens * X.dH_du * dN_seg.real() * pol_real + B * numdens * X.deta_du * N_seg.real() * dpol_deta.head<4>() + B * numdens * X.dtheta_du * N_seg.real() * dpol_dtheta.head<4>();
+                MapToEigen(dnlte_dx_src).leftCols<4>().middleRows(start, nelem).noalias() += B * numdens * X.dH_du     * dN_seg.real() * pol_real +
+                                                                                             B * numdens * X.deta_du   *  N_seg.real() * dpol_deta.attenuation() +
+                                                                                             B * numdens * X.dtheta_du *  N_seg.real() * dpol_dtheta.attenuation();
               else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticV)
-                MapToEigen(dnlte_dx_src).leftCols<4>().middleRows(start, nelem).noalias() += B * numdens * X.dH_dv * dN_seg.real() * pol_real + B * numdens * X.deta_dv * N_seg.real() * dpol_deta.head<4>() + B * numdens * X.dtheta_dv * N_seg.real() * dpol_dtheta.head<4>();
+                MapToEigen(dnlte_dx_src).leftCols<4>().middleRows(start, nelem).noalias() += B * numdens * X.dH_dv     * dN_seg.real() * pol_real +
+                                                                                             B * numdens * X.deta_dv   *  N_seg.real() * dpol_deta.attenuation() +
+                                                                                             B * numdens * X.dtheta_dv *  N_seg.real() * dpol_dtheta.attenuation();
               else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticW)
-                MapToEigen(dnlte_dx_src).leftCols<4>().middleRows(start, nelem).noalias() += B * numdens * X.dH_dw * dN_seg.real() * pol_real + B * numdens * X.deta_dw * N_seg.real() * dpol_deta.head<4>() + B * numdens * X.dtheta_dw * N_seg.real() * dpol_dtheta.head<4>();
+                MapToEigen(dnlte_dx_src).leftCols<4>().middleRows(start, nelem).noalias() += B * numdens * X.dH_dw     * dN_seg.real() * pol_real +
+                                                                                             B * numdens * X.deta_dw   *  N_seg.real() * dpol_deta.attenuation() +
+                                                                                             B * numdens * X.dtheta_dw *  N_seg.real() * dpol_dtheta.attenuation();
               else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::VMR) {
                 if(flag_partials[flag_partials_positions[j]].QuantumIdentity() < line.QuantumIdentity())
-                  MapToEigen(dnlte_dx_src).leftCols<4>().middleRows(start, nelem).noalias() += B * dnumdens_dmvr * N_seg.real() * pol_real + B * numdens * dN_seg.real() * pol_real;
+                  MapToEigen(dnlte_dx_src).leftCols<4>().middleRows(start, nelem).noalias() += B * dnumdens_dmvr *  N_seg.real() * pol_real +
+                                                                                               B *  numdens      * dN_seg.real() * pol_real;
               }
               else
                 MapToEigen(dnlte_dx_src).leftCols<4>().middleRows(start, nelem).noalias() += B * numdens * dN_seg.real() * pol_real;
@@ -255,6 +279,7 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
 void create_Zeeman_linerecordarrays(ArrayOfArrayOfLineRecord& aoaol,
                                     const ArrayOfArrayOfSpeciesTag& abs_species,
                                     const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                    const bool zero_values,
                                     const Verbosity& verbosity)
 {
   CREATE_OUT3;
@@ -275,22 +300,32 @@ void create_Zeeman_linerecordarrays(ArrayOfArrayOfLineRecord& aoaol,
     aoaol.push_back(abs_lines_per_species[II]); // Second is 0
     aoaol.push_back(abs_lines_per_species[II]); // Third is positive
     
-    ArrayOfLineRecord& temp_abs_lines_sm = aoaol[aoaol.nelem()-3]; // sigma minus
-    ArrayOfLineRecord& temp_abs_lines_pi = aoaol[aoaol.nelem()-2]; // pi
-    ArrayOfLineRecord& temp_abs_lines_sp = aoaol[aoaol.nelem()-1]; // sigma plus
+    auto& abs_lines_sm = aoaol[aoaol.nelem()-3]; // sigma minus
+    auto& abs_lines_pi = aoaol[aoaol.nelem()-2]; // pi
+    auto& abs_lines_sp = aoaol[aoaol.nelem()-1]; // sigma plus
     
     // Else loop over all the lines in the species.
     for (Index ii = 0; ii < nlines; ii++)
     {
       // local LineRecord
-      temp_abs_lines_sm[ii].SetZeemanEffectData(ZeemanEffectData(temp_abs_lines_sm[ii].QuantumIdentity(), ZeemanPolarizationType::SigmaMinus));
-      temp_abs_lines_pi[ii].SetZeemanEffectData(ZeemanEffectData(temp_abs_lines_pi[ii].QuantumIdentity(), ZeemanPolarizationType::Pi));
-      temp_abs_lines_sp[ii].SetZeemanEffectData(ZeemanEffectData(temp_abs_lines_sp[ii].QuantumIdentity(), ZeemanPolarizationType::SigmaPlus));
+      if(not zero_values) {
+        abs_lines_sm[ii].SetZeemanEffectData(ZeemanPolarizationType::SigmaMinus);
+        abs_lines_pi[ii].SetZeemanEffectData(ZeemanPolarizationType::Pi);
+        abs_lines_sp[ii].SetZeemanEffectData(ZeemanPolarizationType::SigmaPlus);
+      }
+      else {
+        abs_lines_sm[ii].SetZeemanEffectDataZero(ZeemanPolarizationType::SigmaMinus);
+        abs_lines_pi[ii].SetZeemanEffectDataZero(ZeemanPolarizationType::Pi);
+        abs_lines_sp[ii].SetZeemanEffectDataZero(ZeemanPolarizationType::SigmaPlus);
+      }
       
-      const Numeric rel_str = temp_abs_lines_sp[ii].ZeemanEffect().SumStrengthScale() + temp_abs_lines_sm[ii].ZeemanEffect().SumStrengthScale() + temp_abs_lines_pi[ii].ZeemanEffect().SumStrengthScale();
+      const Numeric rel_str = abs_lines_sp[ii].ZeemanEffect().SumStrengthScale() +
+                              abs_lines_sm[ii].ZeemanEffect().SumStrengthScale() +
+                              abs_lines_pi[ii].ZeemanEffect().SumStrengthScale();
+      
       if(abs(rel_str - 1) > margin) {
         ostringstream os;
-        os << "The lines\n" << temp_abs_lines_sm[ii] << temp_abs_lines_pi[ii] << temp_abs_lines_sp[ii]
+        os << "The lines\n" << abs_lines_sm[ii] << abs_lines_pi[ii] << abs_lines_sp[ii]
            << "The relative strength should be 1.0 but is " << rel_str << "\n";
         throw std::runtime_error(os.str());
       }

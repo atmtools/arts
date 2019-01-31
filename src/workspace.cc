@@ -1529,7 +1529,7 @@ void Workspace::define_wsv_data()
          "magnetic field, and VMR values) with respect to one of of the input\n"
          "parameters.\n"
          "\n"
-         "Dimension: [n_quantities][ f_grid, stokes_dim, stokes_dim ]\n"
+         "Dimension: [ n_quantities ] [naa, nza, nf, f(stokes_dim)]\n"
          "\n"
          "*jacobian_quantities* should be used to set the input variable for\n"
          "partial derivation\n"
@@ -1562,10 +1562,7 @@ void Workspace::define_wsv_data()
          "(one set of pressure, temperature, zn magnetic field, and VMR values)\n"
          "with respect to one of of the input parameters.\n"
          "\n"
-         "Dimension: [n_quantities][ f_grid, stokes_dim ]\n"
-         "\n"
-         "*jacobian_quantities* should be used to set the input variable for\n"
-         "partial derivation\n"
+         "Dimensions: [ quantities ] [nza, naa, nf, stokes_dim] or [0]\n"
          "\n"
          "Unit: 1/m/jacobian_quantity\n"
      ),
@@ -1581,10 +1578,7 @@ void Workspace::define_wsv_data()
          "(one set of pressure, temperature, zn magnetic field, and VMR values)\n"
          "with respect to one of of the input parameters.\n"
          "\n"
-         "Dimension: [n_quantities][ f_grid, stokes_dim ]\n"
-         "\n"
-         "*jacobian_quantities* should be used to set the input variable for\n"
-         "partial derivation\n"
+         "Dimensions: [ quantities ] [nza, naa, nf, stokes_dim] or [0]\n"
          "\n"
          "Unit: 1/m/jacobian_quantity\n"
      ),
@@ -3310,9 +3304,7 @@ void Workspace::define_wsv_data()
       (
        "Variable to contain the additional source function due to NLTE effects.\n"
        "\n"
-       "Dimensions are either\n"
-       "[length(abs_species), length(f_grid), stokes_dim], or [0, 0, 0],\n"
-       "where the latter should be true when LTE calculations are performed.\n"
+       "Dimensions: [ nspecies ] [nza, naa, nf, stokes_dim] or [0]\n"
        ),
       GROUP( "ArrayOfStokesVector" )));
 
@@ -4040,13 +4032,9 @@ void Workspace::define_wsv_data()
       (
        "This contains the absorption coefficients for one point in the\n"
        "atmosphere (one set of pressure, temperature, magnetic field, and\n"
-       "VMR values). There are two distinct cases:\n"
+       "VMR values)\n"
        "\n"
-       "Case a:    For all frequencies and all species:\n"
-       "Dimension: [ abs_species, f_grid, stokes_dim, stokes_dim ]\n"
-       "\n"
-       "Case b:    For a single frequency for all species:\n"
-       "Dimension: [ abs_species, 1, stokes_dim, stokes_dim]\n"
+       "Dimensions: [ abs_species ] [naa, nza, nf, f(stokes_dim)]\n"
        "\n"
        "Unit: 1/m\n"
        ),

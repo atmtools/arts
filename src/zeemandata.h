@@ -31,7 +31,22 @@
 
 enum class ZeemanPolarizationType { SigmaMinus, Pi, SigmaPlus, None };
 
-typedef Eigen::Matrix<double, 1, 7> ZeemanPolarizationVector;
+class ZeemanPolarizationVector
+{
+public:
+  ZeemanPolarizationVector(Numeric a, Numeric b, Numeric c, Numeric d, Numeric u, Numeric v, Numeric w) :
+  att(a, b, c, d), dis(u, v, w) {};
+  
+  const Eigen::RowVector4d& attenuation() const {return att;}
+  const Eigen::RowVector3d& dispersion() const {return dis;}
+  Eigen::RowVector4d& attenuation() {return att;}
+  Eigen::RowVector3d& dispersion() {return dis;}
+  
+private:
+  Eigen::RowVector4d att;
+  Eigen::RowVector3d dis;
+};
+
 typedef struct {
   ZeemanPolarizationVector pi, sm, sp;
 } ZeemanDataOutput;

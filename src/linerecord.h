@@ -607,7 +607,8 @@ public:
   ZeemanEffectData& ZeemanEffect() { return mzeemandata; }
   ZeemanPolarizationType ZeemanPolarization() const { return mzeemandata.PolarizationType(); }
   const ZeemanEffectData& ZeemanEffect() const { return mzeemandata; }
-  void SetZeemanEffectData(const ZeemanEffectData& input) { mzeemandata=input; }
+  void SetZeemanEffectData(ZeemanPolarizationType polar) { mzeemandata=ZeemanEffectData(mqid, polar); }
+  void SetZeemanEffectDataZero(ZeemanPolarizationType polar) { mzeemandata=ZeemanEffectData(0, 0, mqid, polar); }
   
   /** Cutoff frequency */
   const Numeric& CutOff() const {return mcutoff;}

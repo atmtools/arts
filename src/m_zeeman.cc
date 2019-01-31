@@ -35,10 +35,31 @@ void zeeman_linerecord_precalcCreateFromLines(ArrayOfArrayOfLineRecord& zeeman_l
     throw std::runtime_error("Dimension of *abs_species* and *abs_lines_per_species* don't match.");
   
   zeeman_linerecord_precalc.resize(0);
-  zeeman_linerecord_precalc.reserve(24);//will always be multiple of three, default is high
+  zeeman_linerecord_precalc.reserve(24); //will always be multiple of three, default is high
   
   // creating the ArrayOfArrayOfLineRecord
-  create_Zeeman_linerecordarrays(zeeman_linerecord_precalc, abs_species, abs_lines_per_species, verbosity);
+  create_Zeeman_linerecordarrays(zeeman_linerecord_precalc, abs_species, abs_lines_per_species, false, verbosity);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void zeeman_linerecord_precalcCreateWithZeroSplitting(ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
+                                                      const ArrayOfArrayOfSpeciesTag& abs_species,
+                                                      const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                                      const Index& wigner_initialized,
+                                                      const Verbosity& verbosity)
+{
+  if(not wigner_initialized)
+    throw std::runtime_error("Must initialize wigner calculations to compute Zeeman effect");
+  
+  if (abs_species.nelem() != abs_lines_per_species.nelem())
+    throw std::runtime_error("Dimension of *abs_species* and *abs_lines_per_species* don't match.");
+  
+  zeeman_linerecord_precalc.resize(0);
+  zeeman_linerecord_precalc.reserve(24); //will always be multiple of three, default is high
+  
+  // creating the ArrayOfArrayOfLineRecord
+  create_Zeeman_linerecordarrays(zeeman_linerecord_precalc, abs_species, abs_lines_per_species, true, verbosity);
 }
 
 
@@ -75,6 +96,41 @@ void zeeman_linerecord_precalcModifyFromData(ArrayOfArrayOfLineRecord& zeeman_li
                         << j <<"/"<<lines.nelem() << " were fully modified.\n";
   }
 }
+
+
+void zeeman_linerecord_precalcPrintMissing(const ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
+                                           const ArrayOfQuantumIdentifier& keys,
+                                           const Verbosity& verbosity)
+{
+  CREATE_OUT0;
+  
+  ArrayOfArrayOfIndex c(zeeman_linerecord_precalc.nelem());
+  
+  for(Index i=0; i<c.nelem(); i++) {
+    auto& lines = zeeman_linerecord_precalc[i];
+    for(Index j=0; j<lines.nelem(); j++) {
+      auto& line = lines[j];
+      bool found=false;
+      for(auto& key: keys) {
+        if(key.In(line.QuantumIdentity().LowerQuantumId()))
+          found = true;
+        if(key.In(line.QuantumIdentity().UpperQuantumId()))
+          found = true;
+        if(found)
+          break;
+      }
+      
+      if(not found)
+        c[i].push_back(j);
+    }
+  }
+  
+  for(Index i=0; i<c.nelem(); i++) {
+    for(auto& x: c[i])
+      out0 << "Line is missing in keys: " << zeeman_linerecord_precalc[i][x] << "\n";
+  }
+}
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddZeeman(ArrayOfPropagationMatrix& propmat_clearsky,

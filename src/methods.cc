@@ -20941,6 +20941,30 @@ void define_md_data_raw()
     
     md_data_raw.push_back
     ( MdRecord
+    ( NAME( "zeeman_linerecord_precalcCreateWithZeroSplitting" ),
+      DESCRIPTION
+      (
+        "Creates a Zeeman ArrayOfArrayOfLineRecord prior to atmospheric looping.\n"
+        "\n"
+        "Will reset the *zeeman_linerecord_precalc* at every call.\n"
+        "\n"
+        "The splitting coefficients are set to zero.  Use a modify-function to adjust these\n"
+        "for proper calculations\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "zeeman_linerecord_precalc" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_species", "abs_lines_per_species", "wigner_initialized" ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
     ( NAME( "zeeman_linerecord_precalcModifyFromData" ),
       DESCRIPTION
       (
@@ -20958,6 +20982,28 @@ void define_md_data_raw()
       GIN_TYPE("ArrayOfQuantumIdentifier", "Vector"),
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Keys for energy levels in the line array", "Matching g-values to set for levels")
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "zeeman_linerecord_precalcPrintMissing" ),
+      DESCRIPTION
+      (
+        "Support for *zeeman_linerecord_precalcModifyFromData*\n"
+        "\n"
+        "Prints all lines not having any partial match for *keys*\n"
+        "in *zeeman_linerecord_precalcModifyFromData*\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "zeeman_linerecord_precalc" ),
+      GIN("keys"),
+      GIN_TYPE("ArrayOfQuantumIdentifier"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Keys for energy levels in the line array")
     ));
 
     md_data_raw.push_back

@@ -100,9 +100,12 @@ inline Numeric caseA(const Rational& Omega,
 
 inline Numeric gHund(const QuantumNumbers& qns, const Numeric& GS, const Numeric& GL)
 {
-  if(not hund_compatible(qns))
-    throw std::runtime_error("Bad quantum numbers for Zeeman via Hund approximation");
-  
+  if(not hund_compatible(qns)) {
+    ostringstream os;
+    os << "Bad quantum numbers for Zeeman via Hund approximation:\n" << qns;
+    throw std::runtime_error(os.str());
+  }
+    
   switch(Hund(qns[QuantumNumberType::Hund].toIndex())) {
     case Hund::CaseA:
       return caseA(qns[QuantumNumberType::Omega], 
@@ -123,12 +126,24 @@ inline void are_Ju_and_Jl_compatible(const Rational& Ju, const Rational& Jl)
 {
   Rational dJ = Jl - Ju;
   dJ.Simplify();
-  if(dJ.Denom() not_eq 1)
-    throw std::runtime_error("Delta J is not an index");
-  else if(abs(dJ.toIndex()) > 1)
-    throw std::runtime_error("Delta J is neither of -1, 0, nor 1");
-  else if(Ju < 1)
-    throw std::runtime_error("Upper J must be above 0");
+  if(dJ.Denom() not_eq 1) {
+    ostringstream os;
+    os << "Delta J is not an index\n";
+    os << "Upper J: " << Ju << "; Lower J: " << Jl;
+    throw std::runtime_error(os.str());
+  }
+  else if(abs(dJ.toIndex()) > 1) {
+    ostringstream os;
+    os << "Delta J is neither of -1, 0, nor 1\n";
+    os << "Upper J: " << Ju << "; Lower J: " << Jl;
+    throw std::runtime_error(os.str());
+  }
+  else if(Ju < Rational(1, 2)) {
+    ostringstream os;
+    os << "Upper J must be above 0\n";
+    os << "Upper J: " << Ju << "; Lower J: " << Jl;
+    throw std::runtime_error(os.str());
+  }
 }
 
 
@@ -147,7 +162,7 @@ void ZeemanEffectData::init(const Numeric& gu, const Numeric& gl, const QuantumI
   if(is_Wigner3_ready(J_max))
     wig_temp_init((2*J_max).toInt());
   else
-    throw std::runtime_error("You have not prepared the wigner library properly, see Wigner3Init for details\nLikely error: your declared largest_wigner_symbol_parameter is not large enough");
+    throw std::runtime_error("You have not prepared the wigner library properly, see Wigner{3,6}Init for details\nLikely error: your declared largest_wigner_symbol_parameter is not large enough");
 
   // Find M-vectors
   Rational end, start, dM;
@@ -176,7 +191,7 @@ void ZeemanEffectData::init(const Numeric& gu, const Numeric& gl, const QuantumI
       else              start = -Ju + 2;
       break;
     case ZeemanPolarizationType::None:
-      throw std::runtime_error("To developer: never initialize ZeemanEffectData without known polarization.");
+      throw std::runtime_error("To developer: never initialize ZeemanEffectData without known polarization.  A normal user cannot see this error!");
       break;
   }
   
@@ -217,7 +232,7 @@ const ZeemanPolarizationVector& select_zeeman_polarization(const ZeemanDataOutpu
 {
   switch(mpolar) {
     case ZeemanPolarizationType::None:
-      throw std::runtime_error("Not allowed");
+      throw std::runtime_error("Not allowed.  A normal user cannot see this.  Developer error!");
     case ZeemanPolarizationType::Pi:
       return data.pi;
     case ZeemanPolarizationType::SigmaMinus:
@@ -225,7 +240,7 @@ const ZeemanPolarizationVector& select_zeeman_polarization(const ZeemanDataOutpu
     case ZeemanPolarizationType::SigmaPlus:
       return data.sp;
   }
-  throw std::runtime_error("Not allowed");
+  throw std::runtime_error("Not allowed.  A normal user cannot see this.  Developer error!");
 }
 
 
@@ -233,9 +248,9 @@ ZeemanDataOutput zeeman_polarization(Numeric theta, Numeric eta)
 {
   const Numeric ST=std::sin(theta), CT=std::cos(theta), ST2=ST*ST, CT2=CT*CT, C2E=std::cos(2*eta), S2E=std::sin(2*eta), ST2C2E=ST2*C2E, ST2S2E=ST2*S2E;
   
-  return {(ZeemanPolarizationVector() <<     ST2, -ST2C2E, -ST2S2E,     0,     0, -2*ST2S2E,  2*ST2C2E).finished(),  //PI
-          (ZeemanPolarizationVector() << 1 + CT2,  ST2C2E,  ST2S2E,  2*CT,  4*CT,  2*ST2S2E, -2*ST2C2E).finished(),  //SM
-          (ZeemanPolarizationVector() << 1 + CT2,  ST2C2E,  ST2S2E, -2*CT, -4*CT,  2*ST2S2E, -2*ST2C2E).finished()}; //SP
+  return {ZeemanPolarizationVector(    ST2, -ST2C2E, -ST2S2E,     0,     0, -2*ST2S2E,  2*ST2C2E),  //PI
+          ZeemanPolarizationVector(1 + CT2,  ST2C2E,  ST2S2E,  2*CT,  4*CT,  2*ST2S2E, -2*ST2C2E),  //SM
+          ZeemanPolarizationVector(1 + CT2,  ST2C2E,  ST2S2E, -2*CT, -4*CT,  2*ST2S2E, -2*ST2C2E)}; //SP
 }
 
 
@@ -244,16 +259,16 @@ ZeemanDataOutput zeeman_dpolarization_dtheta(Numeric theta, const Numeric eta)
   const Numeric ST=std::sin(theta), CT=std::cos(theta), C2E=std::cos(2*eta), S2E=std::sin(2*eta);
   const Numeric dST = CT, dST2 = 2*ST*dST, dCT = -ST, dST2C2E = dST2*C2E, dST2S2E = dST2*S2E, dCT2 = 2*CT*dCT;
   
-  return {(ZeemanPolarizationVector() << dST2, -dST2C2E, -dST2S2E,      0,      0, -2*dST2S2E,  2*dST2C2E).finished(),  //PI
-          (ZeemanPolarizationVector() << dCT2,  dST2C2E,  dST2S2E,  2*dCT,  4*dCT,  2*dST2S2E, -2*dST2C2E).finished(),  //SM
-          (ZeemanPolarizationVector() << dCT2,  dST2C2E,  dST2S2E, -2*dCT, -4*dCT,  2*dST2S2E, -2*dST2C2E).finished()}; //SP
+  return {ZeemanPolarizationVector(dST2, -dST2C2E, -dST2S2E,      0,      0, -2*dST2S2E,  2*dST2C2E),  //PI
+          ZeemanPolarizationVector(dCT2,  dST2C2E,  dST2S2E,  2*dCT,  4*dCT,  2*dST2S2E, -2*dST2C2E),  //SM
+          ZeemanPolarizationVector(dCT2,  dST2C2E,  dST2S2E, -2*dCT, -4*dCT,  2*dST2S2E, -2*dST2C2E)}; //SP
 }
 
 ZeemanDataOutput zeeman_dpolarization_deta(Numeric theta, Numeric eta)
 {
   const Numeric ST=std::sin(theta), ST2=ST*ST, C2E=std::cos(2*eta), S2E=std::sin(2*eta), dST2C2E=-2*ST2*S2E, dST2S2E=2*ST2*C2E;
   
-  return {(ZeemanPolarizationVector() << 0, -dST2C2E, -dST2S2E, 0, 0, -2*dST2S2E,  2*dST2C2E).finished(),
-          (ZeemanPolarizationVector() << 0,  dST2C2E,  dST2S2E, 0, 0,  2*dST2S2E, -2*dST2C2E).finished(),
-          (ZeemanPolarizationVector() << 0,  dST2C2E,  dST2S2E, 0, 0,  2*dST2S2E, -2*dST2C2E).finished()};
+  return {ZeemanPolarizationVector(0, -dST2C2E, -dST2S2E, 0, 0, -2*dST2S2E,  2*dST2C2E),
+          ZeemanPolarizationVector(0,  dST2C2E,  dST2S2E, 0, 0,  2*dST2S2E, -2*dST2C2E),
+          ZeemanPolarizationVector(0,  dST2C2E,  dST2S2E, 0, 0,  2*dST2S2E, -2*dST2C2E)};
 }

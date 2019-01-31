@@ -36,6 +36,7 @@ void alter_linerecord( LineRecord& new_LR,
 void create_Zeeman_linerecordarrays(ArrayOfArrayOfLineRecord& aoaol,
                                     const ArrayOfArrayOfSpeciesTag& abs_species,
                                     const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                    const bool zero_values,
                                     const Verbosity& verbosity);
 
 void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky, 
