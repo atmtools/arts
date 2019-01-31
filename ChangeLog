@@ -1,11 +1,30 @@
+2019-01-31  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1208
+
+	* src/linefunctions.cc (Linefunctions::apply_cutoff):
+
+	Bug fix. MapToEigen was called on a temporary Vector which led to
+	f_grid_cutoff referencing invalid frequency values. f_grid_cutoff was
+	almost always zero or close to zero on Linux.
+	Due to differences in memory management, the values of the temporary
+	happened to be overwritten on Linux immediately but not on OSX. Thus
+	explaining the difference of 10% in the test case for the LTE/NLTE new
+	method between the two systems.
+
+	* controlfiles/artscomponents/nlte/TestNLTE_LTE_new_method.xml,
+	controlfiles/artscomponents/nlte/TestNLTE_NLTE_new_method.xml:
+
+	Updated with "correct" values.
+
 2019-01-30  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1207
 
 	* controlfiles/artscomponents/nlte/TestNLTE.arts:
 
-	Add error messages to CompareRelative to indicate which test has
-	failed.
+	Add error messages to CompareRelative to give an indication which test
+	has failed.
 
 2019-01-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 

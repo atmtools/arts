@@ -1496,7 +1496,7 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
                                                       const Index& this_species_location_in_tags,
                                                       const Index& zeeman_index,
                                                       const bool cutoff_call)
-{  
+{
   /* Single line shape solver
      
      The equation being solved here:
@@ -1591,7 +1591,7 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
   auto dN = dN_full.middleRows(start_cutoff, nelem_cutoff);
   auto data = data_block_full.middleRows(start_cutoff, nelem_cutoff);
   auto f_grid = f_grid_full.middleRows(start_cutoff, nelem_cutoff);
-  
+
   switch(line.GetExternalLineShapeType()) {
     // Use data as provided by the pressure broadening scheme
     case LineShapeType::ByPressureBroadeningData:
@@ -1883,6 +1883,7 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
   // Cutoff frequency is applied at the end because 
   // the entire process above is complicated and applying
   // cutoff last means that the code is kept cleaner
+
   if(need_cutoff)
     apply_cutoff(F, dF, N, dN,
                  derivatives_data, derivatives_data_position, line,
@@ -1959,8 +1960,9 @@ void Linefunctions::apply_cutoff(Eigen::Ref<Eigen::VectorXcd> F,
   auto nj = dF.cols(); 
   
   // Setup compute variables
-  
-  const auto f_grid_cutoff = MapToEigen(Vector(1, (line.F() > 0) ? line.F() + line.CutOff() : line.F() - line.CutOff()));
+
+  const auto v = Vector(1, (line.F() > 0) ? line.F() + line.CutOff() : line.F() - line.CutOff());
+  const auto f_grid_cutoff = MapToEigen(v);
   Eigen::VectorXcd Fc(1), Nc(1);
   Eigen::RowVectorXcd dFc(nj), dNc(nj), data(Linefunctions::ExpectedDataSize());
   Index _tmp1, _tmp2;
