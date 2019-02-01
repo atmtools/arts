@@ -259,7 +259,8 @@ void abs_linesReadFromHitran(// WS Output:
     }
 #else
     if (filename_lower.nelem() < 10
-        || filename_lower.substr(0, 10) != "hitran2012")
+        || (filename_lower.substr(0, 10) != "hitran2012"
+            && filename_lower.substr(0, 10) != "hitran2016"))
     {
         ostringstream os;
         os << "'" << filename << "'\n"
