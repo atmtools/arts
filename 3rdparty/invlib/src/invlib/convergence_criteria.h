@@ -39,12 +39,12 @@ struct Rodgers531
 
     template<typename JacobianType, typename SaType, typename SeType>
     auto operator()(const VectorType & xi,
-                    const VectorType & yi,
-                    const VectorType & y,
+                    const VectorType & /*yi*/,
+                    const VectorType & /*y*/,
                     const VectorType & g,
-                    const JacobianType & K,
-                    const SaType & Sa,
-                    const SeType & Se)
+                    const JacobianType & /*K*/,
+                    const SaType & /*Sa*/,
+                    const SeType & /*Se*/)
         -> typename VectorType::RealType
     {
         if (!x_im1_ptr) {

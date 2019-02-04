@@ -254,7 +254,6 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STAN
         VectorType g  = tmp * (yi - y) + inv(Sa) * (x - xa);
         dx = M.step(x, g, H, (*this));
         x += dx;
-        std::cout << dx << std::endl;
 
         // Check for convergence.
         yi = evaluate(x);

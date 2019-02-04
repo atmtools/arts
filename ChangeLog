@@ -2,6 +2,23 @@
 
 	* arts-2-3-1196
 
+	* 3rdparty/invlib/src/invlib/map.h: <typename> typename syntax for
+	  template template not available in gcc4.
+
+	* 3rdparty/invlib/src/invlib/map.cc: Removed print statement.
+
+	* 3rdparty/invlib/src/invlib/optimization/levenberg_marquardt.cc:
+	  Fixed compiler warnings.
+
+	* 3rdparty/invlib/src/invlib/convergence_criteria.h: Fixed compiler
+	  warnings.
+
+	* 3rdparty/invlib/src/invlib/m_oem.cc: Fixed compiler warnings.
+
+2019-02-04  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1196
+
 	* src/test_covariance_matrix.cc: Fixed call to
 	  Sparse::insert_elements.
 

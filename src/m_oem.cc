@@ -1721,7 +1721,6 @@ void OEM(
             else if ( (method == "lm") || (method == "ml") )
             {
                 Normed<> s(T, apply_norm);
-                OEMCovarianceMatrix SaInv = inv(Sa);
 
                 Sparse diagonal = Sparse::diagonal(covmat_sx.inverse_diagonal());
                 CovarianceMatrix SaDiag{};
@@ -1730,7 +1729,6 @@ void OEM(
                                                      std::make_pair(0, 0),
                                                      make_shared<Sparse>(diagonal)));
                 OEMCovarianceMatrix SaInvLM = inv(OEMCovarianceMatrix(SaDiag));
-
                 LM_S lm(SaInvLM, s);
 
                 lm.set_tolerance(stop_dx);
@@ -1752,7 +1750,6 @@ void OEM(
             }
             else if ( (method == "lm_cg") || (method == "ml_cg") )
             {
-                OEMCovarianceMatrix SaInv = inv(Sa);
                 Normed<CG> cg(T, apply_norm, 1e-10, 0);
 
                 Sparse diagonal = Sparse::diagonal(covmat_sx.inverse_diagonal());

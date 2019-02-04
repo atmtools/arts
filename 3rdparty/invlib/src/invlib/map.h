@@ -245,7 +245,7 @@ template
     typename SeType     = MatrixType,
     typename VectorType = typename MatrixType::VectorType,
     Formulation Form    = Formulation::STANDARD,
-    template <typename> typename ConvergenceCriterion = Rodgers531
+    template <class> class ConvergenceCriterion = Rodgers531
 >
 class MAP;
 
@@ -278,7 +278,7 @@ template
     typename SaType,
     typename SeType,
     typename VectorType,
-    template<typename> typename ConvergenceCriterion
+    template<class> class ConvergenceCriterion
 >
 class MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STANDARD, ConvergenceCriterion>
     : public MAPBase<ForwardModel, MatrixType, SaType, SeType, VectorType>
@@ -371,7 +371,7 @@ template
     typename SaType,
     typename SeType,
     typename VectorType,
-    template<typename> typename ConvergenceCriterion
+    template<class> class ConvergenceCriterion
 >
     class MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::NFORM, ConvergenceCriterion>
     : public MAPBase<ForwardModel, MatrixType, SaType, SeType, VectorType>
@@ -463,7 +463,7 @@ template
     typename SaType,
     typename SeType,
     typename VectorType,
-    template<typename> typename ConvergenceCriterion
+    template<class> class ConvergenceCriterion
 >
 class MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFORM, ConvergenceCriterion>
     : public MAPBase<ForwardModel, MatrixType, SaType, SeType, VectorType>
