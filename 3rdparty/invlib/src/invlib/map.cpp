@@ -184,7 +184,7 @@ template
     typename SaType,
     typename SeType,
     typename VectorType,
-    template <typename> typename ConvergenceCriterion
+    template <class> class ConvergenceCriterion
 >
 MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STANDARD, ConvergenceCriterion>
 ::MAP( ForwardModel &F_,
@@ -203,7 +203,7 @@ template
     typename SaType,
     typename SeType,
     typename VectorType,
-    template <typename> typename ConvergenceCriterion
+    template <class> class ConvergenceCriterion
 >
 template<typename Minimizer, template <LogType> class Log, typename ... LogParams>
 auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STANDARD, ConvergenceCriterion>
@@ -299,7 +299,7 @@ template
     typename SaType,
     typename SeType,
     typename VectorType,
-    template <typename> typename ConvergenceCriterion
+    template <class> class ConvergenceCriterion
 >
 MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::NFORM, ConvergenceCriterion>
 ::MAP( ForwardModel &F_,
@@ -318,7 +318,7 @@ template
     typename SaType,
     typename SeType,
     typename VectorType,
-    template <typename> typename ConvergenceCriterion
+    template <class> class ConvergenceCriterion
 >
 template<typename Minimizer, template <LogType> class Log, typename ... LogParams>
 auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::NFORM, ConvergenceCriterion>
@@ -412,7 +412,7 @@ template
     typename SaType,
     typename SeType,
     typename VectorType,
-    template <typename> typename ConvergenceCriterion
+    template <class> class ConvergenceCriterion
 >
 MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFORM, ConvergenceCriterion>
 ::MAP( ForwardModel &F_,
@@ -431,7 +431,7 @@ template
     typename SaType,
     typename SeType,
     typename VectorType,
-    template <typename> typename ConvergenceCriterion
+    template <class> class ConvergenceCriterion
 >
 auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFORM, ConvergenceCriterion>
 ::gain_matrix(const VectorType &x)
@@ -451,7 +451,7 @@ template
     typename SaType,
     typename SeType,
     typename VectorType,
-    template <typename> typename ConvergenceCriterion
+    template <class> class ConvergenceCriterion
 >
 template<typename Minimizer, template <LogType> class Log, typename ... LogParams>
 auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFORM, ConvergenceCriterion>
