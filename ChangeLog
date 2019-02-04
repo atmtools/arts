@@ -1,3 +1,25 @@
+2019-02-04  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1196
+
+	* src/covariance_matrix.[h, cc]: Take into account inverse block
+	  when computing number of rows. Added function that returns
+          diagonal of precision Matrix.
+
+        * src/matpackII.[h, cc]: Added function to create sparse diagonal
+          matrix from vector.
+
+        * src/m_oem.cc: Use diagonal of precision matrix as damping
+          matrix in LM algorithm.
+
+        * src/oem.h: Set convergence criterion to be used by OEM.
+
+        * 3rdparty/invlib/src/invlib/convergence_criterion.h: Added header
+          file containing convergence criteria.
+
+        * 3rdparty/invlib/src/invlib/map.[cpp, h]: Handle convergence generic
+          convergence criteria.
+
 2019-02-01  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1210
@@ -224,6 +246,7 @@
 	because that's supposed to be better for Eigen (it removes the need for
 	strange .transform())
 
+>>>>>>> .r11225
 2019-01-10  Richard Larsson  <larsson@mps.mpg.de>
 
 	* arts-2-3-1195

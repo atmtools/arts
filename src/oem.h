@@ -44,7 +44,8 @@ using OEM_STANDARD = invlib::MAP<
     OEMCovarianceMatrix,
     OEMCovarianceMatrix,
     OEMVector,
-    Formulation::STANDARD>;
+    Formulation::STANDARD,
+    invlib::Rodgers531>;
 
 // N-Form.
 

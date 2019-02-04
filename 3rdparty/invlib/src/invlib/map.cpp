@@ -37,6 +37,7 @@ auto MAPBase<ForwardModel, MatrixType, SaType, SeType, VectorType>
 {
     VectorType dy = y - yi;
     VectorType dx = xa - x;
+
     return dot(dy, inv(Se) * dy) + dot(dx, inv(Sa) * dx);
 }
 
@@ -55,6 +56,7 @@ auto MAPBase<ForwardModel, MatrixType, SaType, SeType, VectorType>
     VectorType y = evaluate(x);
     VectorType dy = y - *y_ptr;
     VectorType dx = xa - x;
+
     return dot(dy, inv(Se) * dy) + dot(dx, inv(Sa) * dx);
 }
 
@@ -181,9 +183,10 @@ template
     typename MatrixType,
     typename SaType,
     typename SeType,
-    typename VectorType
+    typename VectorType,
+    template <typename> typename ConvergenceCriterion
 >
-MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STANDARD>
+MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STANDARD, ConvergenceCriterion>
 ::MAP( ForwardModel &F_,
        const VectorType   &xa_,
        const SaType &Sa_,
@@ -199,10 +202,11 @@ template
     typename MatrixType,
     typename SaType,
     typename SeType,
-    typename VectorType
+    typename VectorType,
+    template <typename> typename ConvergenceCriterion
 >
 template<typename Minimizer, template <LogType> class Log, typename ... LogParams>
-auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STANDARD>
+auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STANDARD, ConvergenceCriterion>
 ::compute(VectorType       &x,
           const VectorType &y,
           Minimizer M,
@@ -236,6 +240,9 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STAN
     RealType conv = NAN;
     log.step(iterations, cost, cost_x, cost_y, conv, M);
 
+    ConvergenceCriterion<VectorType> criterion{};
+    criterion(x, yi, y, x, K, Sa, Se);
+
     while ((iterations < M.get_maximum_iterations())
            && !M.stop_iteration()
            && !converged)
@@ -247,16 +254,16 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STAN
         VectorType g  = tmp * (yi - y) + inv(Sa) * (x - xa);
         dx = M.step(x, g, H, (*this));
         x += dx;
+        std::cout << dx << std::endl;
 
         // Check for convergence.
-        conv = dot(dx, H * dx) / n;
+        yi = evaluate(x);
+        conv = criterion(x, yi, y, g, K, Sa, Se);
+
         if (conv < M.get_tolerance())
         {
             converged = true;
-            yi = evaluate(x);
-        }
-        else
-        {
+        } else {
             K = Jacobian(x, yi);
         }
 
@@ -275,7 +282,11 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STAN
     auto compute_time = duration_cast<duration<double>>(t2 - t1);
     log.time(compute_time.count(), evaluate_time.count(), Jacobian_time.count());
 
-    return 0;
+    if (converged) {
+        return 0;
+    } else {
+        return 1;
+    }
 }
 
 // --------------- //
@@ -288,9 +299,10 @@ template
     typename MatrixType,
     typename SaType,
     typename SeType,
-    typename VectorType
+    typename VectorType,
+    template <typename> typename ConvergenceCriterion
 >
-MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::NFORM>
+MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::NFORM, ConvergenceCriterion>
 ::MAP( ForwardModel &F_,
        const VectorType   &xa_,
        const SaType &Sa_,
@@ -306,10 +318,11 @@ template
     typename MatrixType,
     typename SaType,
     typename SeType,
-    typename VectorType
+    typename VectorType,
+    template <typename> typename ConvergenceCriterion
 >
 template<typename Minimizer, template <LogType> class Log, typename ... LogParams>
-auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::NFORM>
+auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::NFORM, ConvergenceCriterion>
 ::compute(VectorType       &x,
           const VectorType &y,
           Minimizer M,
@@ -336,6 +349,12 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::NFOR
     cost_y = this->Base::cost_y(y, yi);
     cost   = cost_x + cost_y;
 
+    RealType conv = NAN;
+    log.step(iterations, cost, cost_x, cost_y, conv, M);
+
+    ConvergenceCriterion<VectorType> criterion{};
+    criterion(x, yi, y, x, K, Sa, Se);
+
     bool converged = false;
     iterations = 0;
 
@@ -351,16 +370,13 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::NFOR
         dx = M.step(xa, g, H, (*this));
         x = xa - dx;
 
-        // Test for convergence.
-        g  = tmp * (yi - y) + inv(Sa) * (x - xa);
-        RealType conv = dot(dx, g) / n;
-        if (conv < M.get_tolerance())
-        {
+        // Check for convergence.
+        yi = evaluate(x);
+        conv = criterion(x, yi, y, g, K, Sa, Se);
+
+        if (conv < M.get_tolerance()) {
             converged = true;
-            yi = evaluate(x);
-        }
-        else
-        {
+        } else {
             K = Jacobian(x, yi);
         }
 
@@ -379,7 +395,11 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::NFOR
     auto compute_time = duration_cast<duration<double>>(t2 - t1);
     log.time(compute_time.count(), evaluate_time.count(), Jacobian_time.count());
 
-    return 0;
+    if (converged) {
+        return 0;
+    } else {
+        return 1;
+    }
 }
 
 // --------------- //
@@ -392,9 +412,10 @@ template
     typename MatrixType,
     typename SaType,
     typename SeType,
-    typename VectorType
+    typename VectorType,
+    template <typename> typename ConvergenceCriterion
 >
-MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFORM>
+MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFORM, ConvergenceCriterion>
 ::MAP( ForwardModel &F_,
        const VectorType   &xa_,
        const SaType &Sa_,
@@ -410,9 +431,10 @@ template
     typename MatrixType,
     typename SaType,
     typename SeType,
-    typename VectorType
+    typename VectorType,
+    template <typename> typename ConvergenceCriterion
 >
-auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFORM>
+auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFORM, ConvergenceCriterion>
 ::gain_matrix(const VectorType &x)
     -> MatrixType
 {
@@ -429,10 +451,11 @@ template
     typename MatrixType,
     typename SaType,
     typename SeType,
-    typename VectorType
+    typename VectorType,
+    template <typename> typename ConvergenceCriterion
 >
 template<typename Minimizer, template <LogType> class Log, typename ... LogParams>
-auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFORM>
+auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFORM, ConvergenceCriterion>
 ::compute(VectorType       &x,
           const VectorType &y,
           Minimizer M,
@@ -450,17 +473,20 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFOR
     }
     MeasurementVectorType yi; yi.resize(m);
     JacobianType K = Jacobian(x, yi);
-    VectorType dx, yold;
+    VectorType dx;
 
     cost_x = this->Base::cost_x(x);
     cost_y = this->Base::cost_y(y, yi);
     cost   = cost_x + cost_y;
 
+    bool converged = false;
+    iterations = 0;
+
     RealType conv = NAN;
     log.step(iterations, cost, cost_x, cost_y, conv, M);
 
-    bool converged = false;
-    iterations = 0;
+    ConvergenceCriterion<VectorType> criterion{};
+    criterion(x, yi, y, x, K, Sa, Se);
 
     while ((iterations < M.get_maximum_iterations())
            && !M.stop_iteration()
@@ -473,12 +499,9 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFOR
         dx = M.step(xa, g, H, (*this));
         x = xa - tmp * dx;
 
-        // Check convergence.
-        yold = yi;
+        // Check for convergence.
         yi = evaluate(x);
-        VectorType dy = yi - yold;
-        VectorType r = inv(Se) * H * inv(Se) * dy;
-        conv = dot(dy, r) / m;
+        conv = criterion(x, yi, y, g, K, Sa, Se);
 
         if (conv < M.get_tolerance()) {
             converged = true;
@@ -494,12 +517,16 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFOR
         log.step(iterations, cost, cost_x, cost_y, conv, M);
     }
 
+    log.finalize(converged, iterations, cost, cost_x, cost_y);
+
     // Timing output.
     auto t2 = std::chrono::steady_clock::now();
     auto compute_time = duration_cast<duration<double>>(t2 - t1);
     log.time(compute_time.count(), evaluate_time.count(), Jacobian_time.count());
 
-    log.finalize(converged, iterations, cost, cost_x, cost_y);
-
-    return 0;
+    if (converged) {
+        return 0;
+    } else {
+        return 1;
+    }
 }

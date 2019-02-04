@@ -351,6 +351,16 @@ public:
      */
     Vector diagonal() const;
 
+    /** Diagonal of the inverse of the covariance matrix as vector
+     *
+     * Extracts the diagonal elements from the inverse of the covariance matrix.
+     * This can trigger the computation of the inverse of the matrix, if it has
+     * not been provided by the user.
+     *
+     * @return A vector containing the diagonal elements.
+     */
+    Vector inverse_diagonal() const;
+
     // Friend declarations.
     friend void mult(MatrixView, ConstMatrixView, const CovarianceMatrix &);
     friend void mult(MatrixView, const CovarianceMatrix &, ConstMatrixView);

@@ -178,6 +178,19 @@ Sparse::Sparse(Index r, Index c) :
   // Nothing to do here.
 }
 
+Sparse Sparse::diagonal(ConstVectorView v)
+{
+    Index n = v.nelem();
+    ArrayOfIndex indices(n);
+    for (Index i = 0; i < n; ++i) {
+        indices[i] = i;
+    }
+    Sparse m(n, n);
+    m.insert_elements(n, indices, indices, v);
+    return m;
+}
+
+
 Vector Sparse::diagonal() const
 {
     Index m = std::min(nrows(), ncols());
@@ -363,7 +376,7 @@ void Sparse::insert_row(Index r, Vector v)
 void Sparse::insert_elements(Index nelems,
                              const ArrayOfIndex &rowind,
                              const ArrayOfIndex &colind,
-                             const Vector       &data)
+                             ConstVectorView    data)
 {
     typedef Eigen::Triplet<Numeric> T;
     std::vector<T> tripletList(nelems);

@@ -13,14 +13,16 @@ using std::chrono::duration_cast;
 #include "invlib/algebra/solvers.h"
 #include "invlib/log.h"
 #include "invlib/traits.h"
+#include "invlib/convergence_criteria.h"
 
 /** file map.h
  * \brief Maximum A Posteriori Estimators
  *
- * This file provides class templates for the inversion of a given forward model
- * using maximum a posteriori estimators. Under the assumption of a Gaussian
- * prior and measurement error, that means that a solution of the inverse problem
- * is obtained by minimizing the cost function
+ * This file provides a maximum a posteriori (MAP) solver class templates for
+ * the solution of approximately linear inverse problems with Gaussian a priori
+ * and measurement uncertainties. Under these assumptions, the maximum as well
+ * as the epectation value, which coincide in this case, is obtained by
+ * minimizing the cost function
  *
  * \f[
  *   J(\mathbf{x}) &= \frac{1}{2}
@@ -30,7 +32,7 @@ using std::chrono::duration_cast;
  *         (\mathbf{x} - \mathbf{x}_a) \right)
  * \f]
  *
- * To this end, this file provides the class template MAP, and three partial
+ * This file provides the class template MAP, and three partial
  * specializations, one for each of the three different possible formulations of
  * the problem, here called the standard, n-form and m-form as given in formulas
  * (5.8), (5.9), (5.10) in \cite rodgers, respectively.
@@ -38,7 +40,6 @@ using std::chrono::duration_cast;
  * Methods common to all three methods are aggregated in the base class MAPBase.
  *
  */
-
 namespace invlib
 {
 
@@ -63,7 +64,7 @@ enum class Formulation {STANDARD = 0, NFORM = 1, MFORM = 2};
  * vector.
  *
  * To allow for maximum flexibility the type of the ForwardModel used is a
- * class template parameter. To be used with the MAP class, the functions
+ * class template parameter. To be used with the MAP class, the
  * ForwardModel type must provide the following member functions:
  *
  * - VectorType evaluate(const VectorType& x): Evaluate the forward model at the given
@@ -243,7 +244,8 @@ template
     typename SaType     = MatrixType,
     typename SeType     = MatrixType,
     typename VectorType = typename MatrixType::VectorType,
-    Formulation Form    = Formulation::STANDARD
+    Formulation Form    = Formulation::STANDARD,
+    template <typename> typename ConvergenceCriterion = Rodgers531
 >
 class MAP;
 
@@ -260,6 +262,14 @@ class MAP;
  * covariance matrices so it is advisable to give the precision matrices
  * directly in order to avoid repeated computation of their inverses. Each step
  * requires the solution of an n-times-n system of linear equations.
+ *
+ * \tparam ForwardModel The class implementing the forward model to invert.
+ * \tparam SaType The type used to represent state space covariance matrices.
+ * \tparam SeType The type used to represent measurement space covariance matrices.
+ * \tparam VectorType The type used to represent vectors.
+ * \tparam Form Form enum specifying the which formulation of the OEM to use.
+ * \tparam ConvergenceCriterion Template representation of the convergence criterion
+ *         to use. See convergence_criteria.h.
  */
 template
 <
@@ -267,9 +277,10 @@ template
     typename MatrixType,
     typename SaType,
     typename SeType,
-    typename VectorType
+    typename VectorType,
+    template<typename> typename ConvergenceCriterion
 >
-class MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STANDARD>
+class MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STANDARD, ConvergenceCriterion>
     : public MAPBase<ForwardModel, MatrixType, SaType, SeType, VectorType>
 {
 
@@ -345,6 +356,13 @@ public:
  * Each step requires the solution of an n-times-n linear system of
  * equations.
  *
+ * \tparam ForwardModel The class implementing the forward model to invert.
+ * \tparam SaType The type used to represent state space covariance matrices.
+ * \tparam SeType The type used to represent measurement space covariance matrices.
+ * \tparam VectorType The type used to represent vectors.
+ * \tparam Form Form enum specifying the which formulation of the OEM to use.
+ * \tparam ConvergenceCriterion Template representation of the convergence criterion
+ *         to use. See convergence_criteria.h.
  */
 template
 <
@@ -352,9 +370,10 @@ template
     typename MatrixType,
     typename SaType,
     typename SeType,
-    typename VectorType
+    typename VectorType,
+    template<typename> typename ConvergenceCriterion
 >
-class MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::NFORM>
+    class MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::NFORM, ConvergenceCriterion>
     : public MAPBase<ForwardModel, MatrixType, SaType, SeType, VectorType>
 {
 
@@ -429,16 +448,24 @@ public:
  * Each step requires the solution of an m-times-m linear system of
  * equations.
  *
+ * \tparam ForwardModel The class implementing the forward model to invert.
+ * \tparam SaType The type used to represent state space covariance matrices.
+ * \tparam SeType The type used to represent measurement space covariance matrices.
+ * \tparam VectorType The type used to represent vectors.
+ * \tparam Form Form enum specifying the which formulation of the OEM to use.
+ * \tparam ConvergenceCriterion Template representation of the convergence criterion
+ *         to use. See convergence_criteria.h.
  */
 template
 <
-typename ForwardModel,
-typename MatrixType,
-typename SaType,
-typename SeType,
-typename VectorType
+    typename ForwardModel,
+    typename MatrixType,
+    typename SaType,
+    typename SeType,
+    typename VectorType,
+    template<typename> typename ConvergenceCriterion
 >
-class MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFORM>
+class MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFORM, ConvergenceCriterion>
     : public MAPBase<ForwardModel, MatrixType, SaType, SeType, VectorType>
 {
 

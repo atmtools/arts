@@ -1722,7 +1722,16 @@ void OEM(
             {
                 Normed<> s(T, apply_norm);
                 OEMCovarianceMatrix SaInv = inv(Sa);
-                LM_S lm(SaInv, s);
+
+                Sparse diagonal = Sparse::diagonal(covmat_sx.inverse_diagonal());
+                CovarianceMatrix SaDiag{};
+                SaDiag.add_correlation_inverse(Block(Range(0, n),
+                                                     Range(0, n),
+                                                     std::make_pair(0, 0),
+                                                     make_shared<Sparse>(diagonal)));
+                OEMCovarianceMatrix SaInvLM = inv(OEMCovarianceMatrix(SaDiag));
+
+                LM_S lm(SaInvLM, s);
 
                 lm.set_tolerance(stop_dx);
                 lm.set_maximum_iterations((unsigned int) max_iter);
@@ -1745,7 +1754,14 @@ void OEM(
             {
                 OEMCovarianceMatrix SaInv = inv(Sa);
                 Normed<CG> cg(T, apply_norm, 1e-10, 0);
-                LM_CG_S lm(SaInv, cg);
+
+                Sparse diagonal = Sparse::diagonal(covmat_sx.inverse_diagonal());
+                CovarianceMatrix SaDiag{};
+                SaDiag.add_correlation_inverse(Block(Range(0, n),
+                                                     Range(0, n),
+                                                     std::make_pair(0, 0),
+                                                     make_shared<Sparse>(diagonal)));
+                LM_CG_S lm(SaDiag, cg);
 
                 lm.set_maximum_iterations((unsigned int) max_iter);
                 lm.set_lambda(lm_ga_settings[0]);

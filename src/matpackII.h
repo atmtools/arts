@@ -59,6 +59,7 @@
 
 class Sparse {
 public:
+
     // Constructors:
     Sparse();
     Sparse(Index r, Index c);
@@ -70,7 +71,7 @@ public:
     void insert_elements(Index nnz,
                          const ArrayOfIndex &rowind,
                          const ArrayOfIndex &colind,
-                         const Vector       &data);
+                         ConstVectorView    data);
 
     // Resize function:
     void resize(Index r, Index c);
@@ -81,6 +82,13 @@ public:
     Index ncols() const;
     Index nnz()   const;
 
+    /** Create a sparse matrix from a vector.
+     *
+     * @param v vector containing the diagonal elements.
+     * @return Sparse matrix with the elements of the given vector
+     *     on the diagonal.
+     */
+    static Sparse diagonal(ConstVectorView v);
 
     /** Diagonal elements as vector
      *

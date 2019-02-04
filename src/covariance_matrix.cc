@@ -204,16 +204,26 @@ Matrix CovarianceMatrix::get_inverse() const {
 
 Index CovarianceMatrix::nrows() const
 {
-    Index m = 0;
+    Index m1 = 0;
 
     for (const Block & c : correlations_) {
         Index i,j;
         std::tie(i,j) = c.get_indices();
         if (i == j) {
-            m += c.nrows();
+            m1 += c.nrows();
         }
     }
-    return m;
+
+    Index m2 = 0;
+    for (const Block & c : inverses_) {
+        Index i,j;
+        std::tie(i,j) = c.get_indices();
+        if (i == j) {
+            m2 += c.nrows();
+        }
+    }
+
+    return std::max(m1, m2);
 }
 
 Index CovarianceMatrix::ncols() const
@@ -423,17 +433,17 @@ void CovarianceMatrix::invert_correlation_block(std::vector<Block> &inverses,
     std::sort(blocks.begin(), blocks.end(), comp);
 
 
-    // Nothing to do if single block which already has inverse.
-    if ((blocks.size() == 1) && has_inverse(blocks[0]->get_indices())) {
-        return;
-    }
+    auto block_has_inverse = [this](const Block *a) {
+        return has_inverse(a->get_indices());
+    };
+    if (std::all_of(blocks.begin(), blocks.end(), block_has_inverse)) return;
 
     // Otherwise go on to precompute the inverse of a block consisting
     // of correlations between multiple retrieval quantities.
 
     // The single blocks corresponding to a set of correlated retrieval quantities
     // can be distributed freely over the covariance matrix, so we need to establish
-    // a mapping to a continues square matrix to compute the inverse. This is done by
+    // a mapping to a continuous square matrix to compute the inverse. This is done by
     // mapping the coordinates of each block to a start row and extent in the continuous
     // matrix A. We also record which retrieval quantity indices belong to this
     // set of retrieval quantities.
@@ -530,6 +540,22 @@ Vector CovarianceMatrix::diagonal() const
 {
     Vector diag(nrows());
     for (const Block &b : correlations_) {
+        Index i,j;
+        tie(i,j) = b.get_indices();
+
+        if (i == j) {
+            diag[b.get_row_range()] = b.diagonal();
+        }
+    }
+    return diag;
+}
+
+Vector CovarianceMatrix::inverse_diagonal() const
+{
+    compute_inverse();
+
+    Vector diag(nrows());
+    for (const Block &b : inverses_) {
         Index i,j;
         tie(i,j) = b.get_indices();
 
