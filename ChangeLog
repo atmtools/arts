@@ -1,5 +1,12 @@
 2019-02-04  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
+	* arts-2-3-1198
+
+	* 3rdparty/invlib/src/invlib/convergence_criteria.h: Removed
+	  offending call to unique_ptr constructor.
+
+2019-02-04  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
 	* arts-2-3-1197
 
 	* 3rdparty/invlib/src/invlib/map.cc: Forgot to change syntax

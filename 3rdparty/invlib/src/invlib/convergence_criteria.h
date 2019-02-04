@@ -37,6 +37,8 @@ struct Rodgers531
 {
     using RealType = typename VectorType::RealType;
 
+    Rodgers531() {x_im1_ptr.resize(0);}
+
     template<typename JacobianType, typename SaType, typename SeType>
     auto operator()(const VectorType & xi,
                     const VectorType & /*yi*/,
@@ -47,19 +49,22 @@ struct Rodgers531
                     const SeType & /*Se*/)
         -> typename VectorType::RealType
     {
-        if (!x_im1_ptr) {
-            x_im1_ptr = std::unique_ptr<VectorType>(new VectorType(xi));
+        if (x_im1_ptr.rows() == 0) {
+            x_im1_ptr = xi;
             return std::numeric_limits<RealType>::max();
         }
 
         // Order here must be reversed compared to Rodgers because
         // g here is the gradient of the cost function.
-        VectorType dx = *x_im1_ptr - xi;
+        VectorType dx = x_im1_ptr - xi;
         auto conv = abs(dot(dx, g) / xi.rows());
+
+        x_im1_ptr = xi;
+
         return conv;
     }
 
-    std::unique_ptr<VectorType> x_im1_ptr = nullptr;
+    VectorType x_im1_ptr{};
 
 };
 
@@ -71,6 +76,8 @@ struct Rodgers530
 {
     using RealType = typename VectorType::RealType;
 
+    Rodgers530() {x_im1_ptr.resize(0);}
+
     template<typename JacobianType, typename SaType, typename SeType>
     auto operator()(const VectorType & xi,
                     const VectorType & yi,
@@ -81,22 +88,21 @@ struct Rodgers530
                     const SeType & Se)
     -> typename VectorType::RealType
     {
-        if (!x_im1_ptr) {
-            x_im1_ptr = std::unique_ptr<VectorType>(new VectorType(xi));
+        if (x_im1_ptr.rows() == 0) {
+            x_im1_ptr = xi;
             return std::numeric_limits<RealType>::max();
         }
 
-
-        VectorType dx = xi - *x_im1_ptr;
+        VectorType dx = xi - x_im1_ptr;
         VectorType Hdx = (transp(K) * inv(Se) * K + inv(Sa)) * dx;
         auto conv = dot(dx, Hdx) / xi.rows();
 
-        *x_im1_ptr = xi;
+        x_im1_ptr = xi;
 
         return conv;
     }
 
-    std::unique_ptr<VectorType> x_im1_ptr = nullptr;
+    VectorType x_im1_ptr;
 };
 
 template
