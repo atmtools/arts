@@ -113,7 +113,7 @@ std::shared_ptr<Sparse> create_sparse_covariance_matrix_1D(
             elements.push_back(f(gv1[k], gv2[l]));
         }
     }
-    s->insert_elements(nelem, row_indices, col_indices, elements);
+    s->insert_elements(nelem, row_indices, col_indices, Vector(elements));
     return s;
 }
 

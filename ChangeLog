@@ -2,6 +2,13 @@
 
 	* arts-2-3-1196
 
+	* src/test_covariance_matrix.cc: Fixed call to
+	  Sparse::insert_elements.
+
+2019-02-04  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1196
+
 	* src/covariance_matrix.[h, cc]: Take into account inverse block
 	  when computing number of rows. Added function that returns
           diagonal of precision Matrix.
