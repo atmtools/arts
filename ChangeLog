@@ -1,3 +1,20 @@
+2019-02-05  Richard Larsson <larsson@mps.mpg.de>
+
+	* arts-2-3-1218
+	
+	* src/zeeman.cc:  Moving some code to make it easier to read.
+	
+	* src/zeemandata.cc:  Made the errors clearer.
+	
+	* src/transmissionmatrix.cc:  Fix to logic error in dtransmat4.
+	Before, small derivatives caused large errors.  Especially,
+	for a very special derivative, something similar to a ZeroDiv-
+	operation could occur.  For all small values of the derivatives,
+	additionally, the previous logic performed many computations of the 
+	type g(x)~=N, f(y)~=N, C=f(y)-g(x), which of course produced a
+	noisy jacobian as the numerical accuracy is poor for the above 
+	operation.  The fixed logic makes the Jacobian appear less noisy
+
 2019-02-05  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1217

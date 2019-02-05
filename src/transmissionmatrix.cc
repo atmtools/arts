@@ -656,10 +656,10 @@ inline void dtransmat4(TransmissionMatrix& T,
           const Complex dix = - dx * ix * ix;
           const Complex diy = - dy * iy * iy;
           const Complex dx2dy2 = dx2 + dy2;
-          const Complex dC0c = ((either_zero ? 0.0 : dcy*x2 + cy*dx2 + dcx*y2 + cx*dy2) - C0c*dx2dy2) * inv_x2y2;
-          const Complex dC1c = ((either_zero ? 0.0 : dsy*x2*iy + sy*dx2*iy + sy*x2*diy + dsx*y2*ix + sx*dy2*ix + sx*y2*dix) - C1c*dx2dy2)*inv_x2y2;
-          const Complex dC2c = ((dcx - dcy) - C2c*dx2dy2)*inv_x2y2;
-          const Complex dC3c = ((dsx*ix + sx*dix - dsy*iy - sy*diy) - C3c*dx2dy2)*inv_x2y2;
+          const Complex dC0c = either_zero ? 0.0 : (dcy*x2 + cy*dx2 + dcx*y2 + cx*dy2 - C0c*dx2dy2) * inv_x2y2;
+          const Complex dC1c = either_zero ? 0.0 : (dsy*x2*iy + sy*dx2*iy + sy*x2*diy + dsx*y2*ix + sx*dy2*ix + sx*y2*dix - C1c*dx2dy2)*inv_x2y2;
+          const Complex dC2c = both_zero ? 0.0 : (dcx - dcy - C2c*dx2dy2)*inv_x2y2;
+          const Complex dC3c = both_zero ? 0.0 : ((x_zero ? - dsy*iy - sy*diy : y_zero ? dsx*ix +sx*dix : dsx*ix + sx*dix - dsy*iy - sy*diy) - C3c*dx2dy2)*inv_x2y2;
           
           const Numeric& dC0 = reinterpret_cast<const Numeric (&)[2]>(dC0c)[0];
           const Numeric& dC1 = reinterpret_cast<const Numeric (&)[2]>(dC1c)[0];
@@ -792,10 +792,10 @@ inline void dtransmat4(TransmissionMatrix& T,
           const Complex dix = - dx * ix * ix;
           const Complex diy = - dy * iy * iy;
           const Complex dx2dy2 = dx2 + dy2;
-          const Complex dC0c = ((either_zero ? 0.0 : dcy*x2 + cy*dx2 + dcx*y2 + cx*dy2) - C0c*dx2dy2) * inv_x2y2;
-          const Complex dC1c = ((either_zero ? 0.0 : dsy*x2*iy + sy*dx2*iy + sy*x2*diy + dsx*y2*ix + sx*dy2*ix + sx*y2*dix) - C1c*dx2dy2)*inv_x2y2;
-          const Complex dC2c = ((dcx - dcy) - C2c*dx2dy2)*inv_x2y2;
-          const Complex dC3c = ((dsx*ix + sx*dix - dsy*iy - sy*diy) - C3c*dx2dy2)*inv_x2y2;
+          const Complex dC0c = either_zero ? 0.0 : (dcy*x2 + cy*dx2 + dcx*y2 + cx*dy2 - C0c*dx2dy2) * inv_x2y2;
+          const Complex dC1c = either_zero ? 0.0 : (dsy*x2*iy + sy*dx2*iy + sy*x2*diy + dsx*y2*ix + sx*dy2*ix + sx*y2*dix - C1c*dx2dy2)*inv_x2y2;
+          const Complex dC2c = both_zero ? 0.0 : (dcx - dcy - C2c*dx2dy2)*inv_x2y2;
+          const Complex dC3c = both_zero ? 0.0 : ((x_zero ? - dsy*iy - sy*diy : y_zero ? dsx*ix +sx*dix : dsx*ix + sx*dix - dsy*iy - sy*diy) - C3c*dx2dy2)*inv_x2y2;
           
           const Numeric& dC0 = reinterpret_cast<const Numeric (&)[2]>(dC0c)[0];
           const Numeric& dC1 = reinterpret_cast<const Numeric (&)[2]>(dC1c)[0];

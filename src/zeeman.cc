@@ -180,51 +180,56 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
           // Propagation matrix calculations
           MapToEigen(abs).leftCols<4>().middleRows(start, nelem).noalias() += numdens * F_seg.real() * pol_real;
           MapToEigen(abs).rightCols<3>().middleRows(start, nelem).noalias() += numdens * F_seg.imag() * pol_imag;
-          for(Index j=0; j<nq; j++) {
-            auto dF_seg =      dF.col(j).segment(start, nelem);
-            auto dabs = dpropmat_clearsky_dx[j].GetData()(0, 0, joker, joker);
-            
-            if(flag_partials[flag_partials_positions[j]] == JacPropMatType::Temperature) {
-              MapToEigen(dabs).leftCols<4>().middleRows(start, nelem).noalias() += numdens    * dF_seg.real() * pol_real +
-                                                                                  dnumdens_dT *  F_seg.real() * pol_real;
-              MapToEigen(dabs).rightCols<3>().middleRows(start, nelem).noalias() += numdens    * dF_seg.imag() * pol_imag +
-                                                                                   dnumdens_dT *  F_seg.imag() * pol_imag;
-            }
-            else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticU) {
-              MapToEigen(dabs).leftCols<4>().middleRows(start, nelem).noalias() += numdens * X.dH_du     * dF_seg.real() * pol_real +
-                                                                                   numdens * X.deta_du   *  F_seg.real() * dpol_deta.attenuation() +
-                                                                                   numdens * X.dtheta_du *  F_seg.real() * dpol_dtheta.attenuation();
-              MapToEigen(dabs).rightCols<3>().middleRows(start, nelem).noalias() += numdens * X.dH_du     * dF_seg.imag() * pol_imag +
-                                                                                    numdens * X.deta_du   *  F_seg.imag() * dpol_deta.dispersion() +
-                                                                                    numdens * X.dtheta_du *  F_seg.imag() * dpol_dtheta.dispersion();
-            }
-            else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticV) {
-              MapToEigen(dabs).leftCols<4>().middleRows(start, nelem).noalias() += numdens * X.dH_dv     * dF_seg.real() * pol_real +
-                                                                                   numdens * X.deta_dv   *  F_seg.real() * dpol_deta.attenuation() +
-                                                                                   numdens * X.dtheta_dv *  F_seg.real() * dpol_dtheta.attenuation();
-              MapToEigen(dabs).rightCols<3>().middleRows(start, nelem).noalias() += numdens * X.dH_dv     * dF_seg.imag() * pol_imag +
-                                                                                    numdens * X.deta_dv   *  F_seg.imag() * dpol_deta.dispersion() +
-                                                                                    numdens * X.dtheta_dv *  F_seg.imag() * dpol_dtheta.dispersion();
-            }
-            else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticW) {
-              MapToEigen(dabs).leftCols<4>().middleRows(start, nelem).noalias() += numdens * X.dH_dw     * dF_seg.real() * pol_real +
-                                                                                   numdens * X.deta_dw   *  F_seg.real() * dpol_deta.attenuation() +
-                                                                                   numdens * X.dtheta_dw *  F_seg.real() * dpol_dtheta.attenuation();
-              MapToEigen(dabs).rightCols<3>().middleRows(start, nelem).noalias() += numdens * X.dH_dw     * dF_seg.imag() * pol_imag +
-                                                                                    numdens * X.deta_dw   *  F_seg.imag() * dpol_deta.dispersion() +
-                                                                                    numdens * X.dtheta_dw *  F_seg.imag() * dpol_dtheta.dispersion();
-            }
-            else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::VMR) {
-              if(flag_partials[flag_partials_positions[j]].QuantumIdentity() < line.QuantumIdentity()) {
-                MapToEigen(dabs).leftCols<4>().middleRows(start, nelem).noalias() += numdens      * dF_seg.real() * pol_real +
-                                                                                    dnumdens_dmvr *  F_seg.real() * pol_real;
-                MapToEigen(dabs).rightCols<3>().middleRows(start, nelem).noalias() += numdens      * dF_seg.imag() * pol_imag +
-                                                                                     dnumdens_dmvr *  F_seg.imag() * pol_imag;
+          
+          if(nq) {
+            auto dF_tmp = dF.middleRows(start, nelem);
+            for(Index j=0; j<nq; j++) {
+              auto dF_seg =      dF_tmp.col(j);
+              Eigen::Map<Eigen::Matrix<Numeric, Eigen::Dynamic, 7, Eigen::RowMajor>>
+              dabs(dpropmat_clearsky_dx[j].GetData().get_c_array(), f_grid.nelem(), 7);
+              
+              if(flag_partials[flag_partials_positions[j]] == JacPropMatType::Temperature) {
+                dabs.leftCols<4>().middleRows(start, nelem).noalias() += numdens    * dF_seg.real() * pol_real +
+                                                                        dnumdens_dT *  F_seg.real() * pol_real;
+                dabs.rightCols<3>().middleRows(start, nelem).noalias() += numdens    * dF_seg.imag() * pol_imag +
+                                                                                    dnumdens_dT *  F_seg.imag() * pol_imag;
               }
-            }
-            else {
-              MapToEigen(dabs).leftCols<4>().middleRows(start, nelem).noalias() += numdens * dF_seg.real() * pol_real;
-              MapToEigen(dabs).rightCols<3>().middleRows(start, nelem).noalias() += numdens * dF_seg.imag() * pol_imag;
+              else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticU) {
+                dabs.leftCols<4>().middleRows(start, nelem).noalias() += numdens * X.dH_du     * dF_seg.real() * pol_real +
+                                                                         numdens * X.deta_du   *  F_seg.real() * dpol_deta.attenuation() +
+                                                                         numdens * X.dtheta_du *  F_seg.real() * dpol_dtheta.attenuation();
+                dabs.rightCols<3>().middleRows(start, nelem).noalias() += numdens * X.dH_du     * dF_seg.imag() * pol_imag +
+                                                                          numdens * X.deta_du   *  F_seg.imag() * dpol_deta.dispersion() +
+                                                                          numdens * X.dtheta_du *  F_seg.imag() * dpol_dtheta.dispersion();
+              }
+              else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticV) {
+                dabs.leftCols<4>().middleRows(start, nelem).noalias() += numdens * X.dH_dv     * dF_seg.real() * pol_real +
+                                                                         numdens * X.deta_dv   *  F_seg.real() * dpol_deta.attenuation() +
+                                                                         numdens * X.dtheta_dv *  F_seg.real() * dpol_dtheta.attenuation();
+                dabs.rightCols<3>().middleRows(start, nelem).noalias() += numdens * X.dH_dv     * dF_seg.imag() * pol_imag +
+                                                                          numdens * X.deta_dv   *  F_seg.imag() * dpol_deta.dispersion() +
+                                                                          numdens * X.dtheta_dv *  F_seg.imag() * dpol_dtheta.dispersion();
+              }
+              else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticW) {
+                dabs.leftCols<4>().middleRows(start, nelem).noalias() += numdens * X.dH_dw     * dF_seg.real() * pol_real +
+                                                                         numdens * X.deta_dw   *  F_seg.real() * dpol_deta.attenuation() +
+                                                                         numdens * X.dtheta_dw *  F_seg.real() * dpol_dtheta.attenuation();
+                dabs.rightCols<3>().middleRows(start, nelem).noalias() += numdens * X.dH_dw     * dF_seg.imag() * pol_imag +
+                                                                          numdens * X.deta_dw   *  F_seg.imag() * dpol_deta.dispersion() +
+                                                                          numdens * X.dtheta_dw *  F_seg.imag() * dpol_dtheta.dispersion();
+              }
+              else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::VMR) {
+                if(flag_partials[flag_partials_positions[j]].QuantumIdentity() < line.QuantumIdentity()) {
+                  dabs.leftCols<4>().middleRows(start, nelem).noalias() += numdens      * dF_seg.real() * pol_real +
+                                                                          dnumdens_dmvr *  F_seg.real() * pol_real;
+                  dabs.rightCols<3>().middleRows(start, nelem).noalias() += numdens      * dF_seg.imag() * pol_imag +
+                                                                           dnumdens_dmvr *  F_seg.imag() * pol_imag;
+                }
+              }
+              else {
+                dabs.leftCols<4>().middleRows(start, nelem).noalias() += numdens * dF_seg.real() * pol_real;
+                dabs.rightCols<3>().middleRows(start, nelem).noalias() += numdens * dF_seg.imag() * pol_imag;
+              }
             }
           }
         
@@ -237,36 +242,40 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
             auto nlte_src = nlte_source[ispecies].GetData()(0, 0, joker, joker);
             
             MapToEigen(nlte_src).leftCols<4>().middleRows(start, nelem).noalias() += B * numdens * N_seg.real() * pol_real;
+            
+            auto dN_tmp = dN.middleRows(start, nelem);
             for(Index j=0; j<nq; j++) {
-              auto dN_seg = dN.col(j).segment(start, nelem);
-              auto dnlte_dx_src = dnlte_dx_source[j].GetData()(0, 0, joker, joker);
-              auto nlte_dsrc_dx = nlte_dsource_dx[j].GetData()(0, 0, joker, joker);
+              auto dN_seg = dN_tmp.col(j);
+              
+              Eigen::Map<Eigen::Matrix<Numeric, Eigen::Dynamic, 4, Eigen::RowMajor>>
+              dnlte_dx_src(dnlte_dx_source[j].GetData().get_c_array(), f_grid.nelem(), 4),
+              nlte_dsrc_dx(nlte_dsource_dx[j].GetData().get_c_array(), f_grid.nelem(), 4);
               
               if(flag_partials[flag_partials_positions[j]] == JacPropMatType::Temperature) {
-                MapToEigen(dnlte_dx_src).leftCols<4>().middleRows(start, nelem).noalias() += B * dnumdens_dT *  N_seg.real() * pol_real +
-                                                                                             B *  numdens    * dN_seg.real() * pol_real;
+                dnlte_dx_src.middleRows(start, nelem).noalias() += B * dnumdens_dT *  N_seg.real() * pol_real +
+                                                                   B *  numdens    * dN_seg.real() * pol_real;
                 
-                MapToEigen(nlte_dsrc_dx).leftCols<4>().middleRows(start, nelem).noalias() += numdens * dB_dT * N_seg.real() * pol_real;
+                nlte_dsrc_dx.middleRows(start, nelem).noalias() += numdens * dB_dT * N_seg.real() * pol_real;
               }
               else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticU)
-                MapToEigen(dnlte_dx_src).leftCols<4>().middleRows(start, nelem).noalias() += B * numdens * X.dH_du     * dN_seg.real() * pol_real +
-                                                                                             B * numdens * X.deta_du   *  N_seg.real() * dpol_deta.attenuation() +
-                                                                                             B * numdens * X.dtheta_du *  N_seg.real() * dpol_dtheta.attenuation();
+                dnlte_dx_src.middleRows(start, nelem).noalias() += B * numdens * X.dH_du     * dN_seg.real() * pol_real +
+                                                                   B * numdens * X.deta_du   *  N_seg.real() * dpol_deta.attenuation() +
+                                                                   B * numdens * X.dtheta_du *  N_seg.real() * dpol_dtheta.attenuation();
               else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticV)
-                MapToEigen(dnlte_dx_src).leftCols<4>().middleRows(start, nelem).noalias() += B * numdens * X.dH_dv     * dN_seg.real() * pol_real +
-                                                                                             B * numdens * X.deta_dv   *  N_seg.real() * dpol_deta.attenuation() +
-                                                                                             B * numdens * X.dtheta_dv *  N_seg.real() * dpol_dtheta.attenuation();
+                dnlte_dx_src.middleRows(start, nelem).noalias() += B * numdens * X.dH_dv     * dN_seg.real() * pol_real +
+                                                                   B * numdens * X.deta_dv   *  N_seg.real() * dpol_deta.attenuation() +
+                                                                   B * numdens * X.dtheta_dv *  N_seg.real() * dpol_dtheta.attenuation();
               else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::MagneticW)
-                MapToEigen(dnlte_dx_src).leftCols<4>().middleRows(start, nelem).noalias() += B * numdens * X.dH_dw     * dN_seg.real() * pol_real +
-                                                                                             B * numdens * X.deta_dw   *  N_seg.real() * dpol_deta.attenuation() +
-                                                                                             B * numdens * X.dtheta_dw *  N_seg.real() * dpol_dtheta.attenuation();
+                dnlte_dx_src.middleRows(start, nelem).noalias() += B * numdens * X.dH_dw     * dN_seg.real() * pol_real +
+                                                                   B * numdens * X.deta_dw   *  N_seg.real() * dpol_deta.attenuation() +
+                                                                   B * numdens * X.dtheta_dw *  N_seg.real() * dpol_dtheta.attenuation();
               else if(flag_partials[flag_partials_positions[j]] == JacPropMatType::VMR) {
                 if(flag_partials[flag_partials_positions[j]].QuantumIdentity() < line.QuantumIdentity())
-                  MapToEigen(dnlte_dx_src).leftCols<4>().middleRows(start, nelem).noalias() += B * dnumdens_dmvr *  N_seg.real() * pol_real +
-                                                                                               B *  numdens      * dN_seg.real() * pol_real;
+                  dnlte_dx_src.middleRows(start, nelem).noalias() += B * dnumdens_dmvr *  N_seg.real() * pol_real +
+                                                                     B *  numdens      * dN_seg.real() * pol_real;
               }
               else
-                MapToEigen(dnlte_dx_src).leftCols<4>().middleRows(start, nelem).noalias() += B * numdens * dN_seg.real() * pol_real;
+                dnlte_dx_src.middleRows(start, nelem).noalias() += B * numdens * dN_seg.real() * pol_real;
             }
           }
         }
