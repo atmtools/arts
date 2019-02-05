@@ -1,20 +1,27 @@
 2019-02-04  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
-	* arts-2-3-1198
+	* arts-2-3-1216
+
+	* src/m_fos.cc: Added missing check for jacobian_do for
+	  computation of temperature Jacobian.
+
+2019-02-04  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1215
 
 	* 3rdparty/invlib/src/invlib/convergence_criteria.h: Removed
 	  offending call to unique_ptr constructor.
 
 2019-02-04  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
-	* arts-2-3-1197
+	* arts-2-3-1214
 
 	* 3rdparty/invlib/src/invlib/map.cc: Forgot to change syntax
 	  here as well.
 
 2019-02-04  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
-	* arts-2-3-1196
+	* arts-2-3-1213
 
 	* 3rdparty/invlib/src/invlib/map.h: <typename> typename syntax for
 	  template template not available in gcc4.
@@ -31,14 +38,14 @@
 
 2019-02-04  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
-	* arts-2-3-1196
+	* arts-2-3-1212
 
 	* src/test_covariance_matrix.cc: Fixed call to
 	  Sparse::insert_elements.
 
 2019-02-04  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
-	* arts-2-3-1196
+	* arts-2-3-1211
 
 	* src/covariance_matrix.[h, cc]: Take into account inverse block
 	  when computing number of rows. Added function that returns
