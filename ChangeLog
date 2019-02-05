@@ -1,3 +1,15 @@
+2019-02-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1217
+
+	* controlfiles/artscomponents/lineshapes/TestHTP.arts,
+	controlfiles/artscomponents/lineshapes/TestSDVP.arts,
+	controlfiles/artscomponents/wfuns/TestSpectroscopy.arts:
+
+	Increased thresholds for testjac and dpropmat_clearsky_dx comparisons
+	with reference values from 1e-4 to 2e-4. Accounts for numerical
+	differences between different compilers (I'm looking at you, Clang).
+
 2019-02-04  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1216

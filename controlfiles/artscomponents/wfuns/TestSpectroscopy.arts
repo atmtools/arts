@@ -110,7 +110,7 @@ Arts2{
   ReadXML(testy, "testdata/comparedata/y.xml")
   CompareRelative(testy, y, 1e-6)
   ReadXML(testjac, "testdata/comparedata/dy.xml")
-  CompareRelative(testjac, jacobian, 1e-4)
+  CompareRelative(testjac, jacobian, 2e-4)
   
   # Turn off the jacobian to make for faster calculations for perturbations below
   jacobianOff
