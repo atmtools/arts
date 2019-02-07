@@ -90,141 +90,124 @@ bool QuantumNumbers::CompareDetailed(QuantumMatchInfoEnum& imatch, const Quantum
 }
 
 
-// Tests that all of other is in this 
-bool QuantumIdentifier::operator>(const QuantumIdentifier& other) const
+
+// Tests if this is in other upper 
+bool QuantumIdentifier::InUpper(const QuantumIdentifier& other) const
 {
   if(mspecies not_eq other.mspecies)
     return false;
   if(miso not_eq other.miso)
     return false;
-  if(mqtype == QuantumIdentifier::ALL or other.mqtype == QuantumIdentifier::ALL)
+  
+  if(mqtype == QuantumIdentifier::NONE or other.mqtype == QuantumIdentifier::NONE)
+    return false;
+  else if(mqtype == QuantumIdentifier::ALL or other.mqtype == QuantumIdentifier::ALL)
     return true;
-  if(mqtype not_eq other.mqtype)
-    throw std::runtime_error("Can never compare different types of identifiers");
+  else if(mqtype not_eq QuantumIdentifier::ENERGY_LEVEL or other.mqtype not_eq QuantumIdentifier::TRANSITION)
+    throw runtime_error("One of your inputs is bad.  You are using function comparing energy levels to the upper state of lines, but the types mismatch");
   
   Index qnri = 0;
-  
-  switch(mqtype)
-  {
-    case QuantumIdentifier::TRANSITION:
-      while (qnri != Index(QuantumNumberType::FINAL_ENTRY))
-      {
-        if(mqm[TRANSITION_UPPER_INDEX][qnri].isUndefined())
-        {
-          if(not other.mqm[TRANSITION_UPPER_INDEX][qnri].isUndefined())
-            return false;
-        }
-        else 
-        {
-          if(other.mqm[TRANSITION_LOWER_INDEX][qnri] not_eq mqm[TRANSITION_LOWER_INDEX][qnri])
-            return false;
-        }
-        if(mqm[TRANSITION_LOWER_INDEX][qnri].isUndefined())
-        {
-          if(not other.mqm[TRANSITION_LOWER_INDEX][qnri].isUndefined())
-            return false;
-        }
-        else 
-        {
-          if(other.mqm[TRANSITION_LOWER_INDEX][qnri] not_eq mqm[TRANSITION_LOWER_INDEX][qnri])
-            return false;
-        }
-        qnri++;
-      }
-      return true;
-      break;
-    case QuantumIdentifier::ENERGY_LEVEL:
-      while (qnri != Index(QuantumNumberType::FINAL_ENTRY))
-      {
-        if(mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined())
-        {
-          if(not other.mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined())
-            return false;
-        }
-        else 
-        {
-          if(other.mqm[ENERGY_LEVEL_INDEX][qnri] not_eq mqm[ENERGY_LEVEL_INDEX][qnri])
-            return false;
-        }
-        qnri++;
-      }
-      return true;
-      break;
-    case QuantumIdentifier::NONE:
-      return false;
-      break;
-    case  QuantumIdentifier::ALL: // Must be caught earlier
-    default:
-      throw std::runtime_error("This is a developer error");
+  while (qnri not_eq Index(QuantumNumberType::FINAL_ENTRY)) {
+    if(other.mqm[TRANSITION_UPPER_INDEX][qnri].isUndefined()) {
+      if(not mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined())
+        return false;
+    }
+    else  {
+      if(other.mqm[TRANSITION_UPPER_INDEX][qnri] not_eq mqm[ENERGY_LEVEL_INDEX][qnri])
+        return false;
+    }
+    qnri++;
   }
+  
+  return true;
+}
+
+
+
+// Tests that if this is in other lower
+bool QuantumIdentifier::InLower(const QuantumIdentifier& other) const
+{
+  if(mspecies not_eq other.mspecies)
+    return false;
+  if(miso not_eq other.miso)
+    return false;
+  
+  if(mqtype == QuantumIdentifier::NONE or other.mqtype == QuantumIdentifier::NONE)
+    return false;
+  else if(mqtype == QuantumIdentifier::ALL or other.mqtype == QuantumIdentifier::ALL)
+    return true;
+  else if(mqtype not_eq QuantumIdentifier::ENERGY_LEVEL or other.mqtype not_eq QuantumIdentifier::TRANSITION)
+    throw runtime_error("One of your inputs is bad.  You are using function comparing energy levels to the lower state of lines, but the types mismatch");
+  
+  Index qnri = 0;
+  while (qnri not_eq Index(QuantumNumberType::FINAL_ENTRY)) {
+    if(other.mqm[TRANSITION_LOWER_INDEX][qnri].isUndefined()) {
+      if(not mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined())
+        return false;
+    }
+    else  {
+      if(other.mqm[TRANSITION_LOWER_INDEX][qnri] not_eq mqm[ENERGY_LEVEL_INDEX][qnri])
+        return false;
+    }
+    qnri++;
+  }
+  
+  return true;
 }
 
 
 // Tests that all of this is in other 
-bool QuantumIdentifier::operator<(const QuantumIdentifier& other) const
+bool QuantumIdentifier::In(const QuantumIdentifier& other) const
 {
   if(mspecies not_eq other.mspecies)
     return false;
   if(miso not_eq other.miso)
     return false;
-  if(mqtype == QuantumIdentifier::ALL or other.mqtype == QuantumIdentifier::ALL)
+  
+  if(mqtype == QuantumIdentifier::NONE or other.mqtype == QuantumIdentifier::NONE)
+    return false;
+  else if(mqtype == QuantumIdentifier::ALL or other.mqtype == QuantumIdentifier::ALL)
     return true;
-  if(mqtype not_eq other.mqtype)
-    throw std::runtime_error("Can never compare different types of identifiers");
-  
-  Index qnri = 0;
-  
-  switch(mqtype)
-  {
-    case QuantumIdentifier::TRANSITION:
-      while (qnri != Index(QuantumNumberType::FINAL_ENTRY))
-      {
-        if(other.mqm[TRANSITION_UPPER_INDEX][qnri].isUndefined())
-        {
-          if(not mqm[TRANSITION_UPPER_INDEX][qnri].isUndefined())
-            return false;
-        }
-        else 
-        {
-          if(other.mqm[TRANSITION_LOWER_INDEX][qnri] not_eq mqm[TRANSITION_LOWER_INDEX][qnri])
-            return false;
-        }
-        if(other.mqm[TRANSITION_LOWER_INDEX][qnri].isUndefined())
-        {
-          if(not mqm[TRANSITION_LOWER_INDEX][qnri].isUndefined())
-            return false;
-        }
-        else 
-        {
-          if(other.mqm[TRANSITION_LOWER_INDEX][qnri] not_eq mqm[TRANSITION_LOWER_INDEX][qnri])
-            return false;
-        }
-        qnri++;
+  else if(mqtype not_eq other.mqtype)
+    throw std::runtime_error("Can never compare different types of identifiers with QID.In(QID), one of your inputs is of wrong QuantumIdentifier type");
+  else if(mqtype == QuantumIdentifier::TRANSITION) {
+    Index qnri = 0;
+    while (qnri not_eq Index(QuantumNumberType::FINAL_ENTRY)) {
+      if(other.mqm[TRANSITION_LOWER_INDEX][qnri].isUndefined()) {
+        if(not mqm[TRANSITION_LOWER_INDEX][qnri].isUndefined())
+          return false;
       }
-      return true;
-      break;
-    case QuantumIdentifier::ENERGY_LEVEL:
-      while (qnri != Index(QuantumNumberType::FINAL_ENTRY)) {
-        if(other.mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined()) {
-          if(not mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined()) {
-            return false;
-          }
-        }
-        else if(not mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined()) {
-          if(other.mqm[ENERGY_LEVEL_INDEX][qnri] not_eq mqm[ENERGY_LEVEL_INDEX][qnri]) {
-            return false;
-          }
-        }
-        qnri++;
+      else  {
+        if(other.mqm[TRANSITION_LOWER_INDEX][qnri] not_eq mqm[TRANSITION_LOWER_INDEX][qnri])
+          return false;
       }
-      return true;
-      break;
-    case QuantumIdentifier::NONE:
-      return false;
-      break;
-    case  QuantumIdentifier::ALL: // Must be caught earlier
-    default:
-      throw std::runtime_error("This is a developer error");
+      
+      if(other.mqm[TRANSITION_UPPER_INDEX][qnri].isUndefined()) {
+        if(not mqm[TRANSITION_UPPER_INDEX][qnri].isUndefined())
+          return false;
+      }
+      else  {
+        if(other.mqm[TRANSITION_UPPER_INDEX][qnri] not_eq mqm[TRANSITION_UPPER_INDEX][qnri])
+          return false;
+      }
+      qnri++;
+    }
+    return true;
+  }
+  else {
+    Index qnri = 0;
+    while (qnri not_eq Index(QuantumNumberType::FINAL_ENTRY)) {
+      if(other.mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined()) {
+        if(not mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined())
+          return false;
+      }
+      else  {
+        if(other.mqm[ENERGY_LEVEL_INDEX][qnri] not_eq mqm[ENERGY_LEVEL_INDEX][qnri])
+          return false;
+      }
+      qnri++;
+    }
+    return true;
   }
 }
 

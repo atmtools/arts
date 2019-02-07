@@ -4439,7 +4439,7 @@ void nlte_fieldSetLteExternalPartitionFunction(Index& nlte_do,
       {
         const QuantumIdentifier line_id = line.QuantumIdentity();
         
-        if(line_id.LowerQuantumId() > qi)
+        if(qi.InLower(line_id))
         {
           line.SetNLTELowerIndex(in);
           line.SetLinePopulationType(LinePopulationType::ByPopulationDistribution);
@@ -4456,7 +4456,7 @@ void nlte_fieldSetLteExternalPartitionFunction(Index& nlte_do,
                   single_partition_function(t_field(ip, ilat, ilon), partition_functions.getParamType(line.Species(), line.Isotopologue()), 
                                                                      partition_functions.getParam(line.Species(), line.Isotopologue()));
         }
-        if(line_id.UpperQuantumId() > qi)
+        if(qi.InUpper(line_id))
         {
           line.SetNLTEUpperIndex(in);
           line.SetLinePopulationType(LinePopulationType::ByPopulationDistribution);
@@ -4528,7 +4528,7 @@ void nlte_fieldSetLteInternalPartitionFunction(Index& nlte_do,
       for(auto& line : abs_lines) {
         const QuantumIdentifier line_id = line.QuantumIdentity();
         
-        if(line_id.LowerQuantumId() > qi) {
+        if(qi.InLower(line_id)) {
           line.SetNLTELowerIndex(in);
           line.SetLinePopulationType(LinePopulationType::ByPopulationDistribution);
           
@@ -4547,7 +4547,7 @@ void nlte_fieldSetLteInternalPartitionFunction(Index& nlte_do,
             }
           }
         }
-        if(line_id.UpperQuantumId() > qi) {
+        if(qi.InUpper(line_id)) {
           line.SetNLTEUpperIndex(in);
           line.SetLinePopulationType(LinePopulationType::ByPopulationDistribution);
           

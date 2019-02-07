@@ -55,8 +55,8 @@ static const Numeric doppler_const = std::sqrt(2.0 * BOLTZMAN_CONST * AVOGADROS_
 // The Faddeeva function
 inline Complex w(Complex z) noexcept {return Faddeeva::w(z);} 
 
-void Linefunctions::set_lineshape(Eigen::VectorXcd& F, 
-                                  const Eigen::VectorXd& f_grid, 
+void Linefunctions::set_lineshape(Eigen::Ref<Eigen::VectorXcd> F, 
+                                  const Eigen::Ref<const Eigen::VectorXd> f_grid, 
                                   const LineRecord& line, 
                                   const ConstVectorView vmrs, 
                                   const Numeric& temperature, 
@@ -205,6 +205,7 @@ void Linefunctions::set_lineshape(Eigen::VectorXcd& F,
  * \retval F Lineshape
  * \retval dF Lineshape derivative
  * 
+ * \param data Block of allocated memory
  * \param f_grid Frequency grid of computations
  * \param zeeman_df Zeeman shift parameter for the line
  * \param magnetic_magnitude Absolute strength of the magnetic field
@@ -237,35 +238,35 @@ void Linefunctions::set_lorentz(Eigen::Ref<Eigen::VectorXcd> F,
   // The central frequency
   const Numeric F0 = F0_noshift + x.D0 + zeeman_df * magnetic_magnitude + x.DV;
   
-  data.col(0).noalias() = (PI * Complex(x.G0, F0) - Complex(0, PI) * f_grid.array()).matrix();
-  F.noalias() = data.col(0).cwiseInverse();
+  // Naming req data blocks
+  auto z  = data.col(0);
+  auto dw = data.col(1);
+  
+  z.noalias() = (PI * Complex(x.G0, F0) - Complex(0, PI) * f_grid.array()).matrix();
+  F.noalias() = z.cwiseInverse();
   
   if(nppd) {
-    data.col(1).noalias() = - PI * F.array().square().matrix();
+    dw.noalias() = - PI * F.array().square().matrix();
     
     for(auto iq=0; iq<nppd; iq++) {
       const auto& deriv = derivatives_data[derivatives_data_position[iq]];
       
       if(deriv == JacPropMatType::Temperature)
-        dF.col(iq).noalias() = Complex(dxdT.G0, dxdT.D0 + dxdT.DV) * data.col(1);
+        dF.col(iq).noalias() = Complex(dxdT.G0, dxdT.D0 + dxdT.DV) * dw;
       else if(is_frequency_parameter(deriv))
-        dF.col(iq).noalias() = Complex(0.0, -1.0) * data.col(1);
-      else if(deriv == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(deriv)) {
-        if(deriv.QuantumIdentity().In(quantum_identity))
-          dF.col(iq).noalias() = Complex(0.0, 1.0) * data.col(1);
-      }
-      else if(is_pressure_broadening_parameter(deriv)) {
-        if(deriv.QuantumIdentity().In(quantum_identity))
-          dF.col(iq).noalias() =  Complex(0.0, -1.0) * data.col(1);
-      }
+        dF.col(iq).noalias() = Complex(0.0, -1.0) * dw;
+      else if((deriv == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(deriv)) and deriv.QuantumIdentity().In(quantum_identity))
+        dF.col(iq).noalias() = Complex(0.0, 1.0) * dw;
+      else if(is_pressure_broadening_parameter(deriv) and deriv.QuantumIdentity().In(quantum_identity))
+        dF.col(iq).noalias() =  Complex(0.0, -1.0) * dw;
+      else if(is_magnetic_parameter(deriv))
+        dF.col(iq).noalias() = Complex(0.0, zeeman_df) * dw;
       else if(deriv == JacPropMatType::VMR) {
         if(deriv.QuantumIdentity().In(quantum_identity))
-          dF.col(iq).noalias() = Complex(dxdVMR.G0, dxdVMR.D0 + dxdVMR.DV) * data.col(1);
+          dF.col(iq).noalias() = Complex(dxdVMR.G0, dxdVMR.D0 + dxdVMR.DV) * dw;
         else
           dF.col(iq).setZero();
       }
-      else if(is_magnetic_parameter(deriv))
-        dF.col(iq).noalias() = Complex(0.0, zeeman_df) * data.col(1);
     }
   }
 }
@@ -621,6 +622,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
  * \retval F Lineshape
  * \retval dF Lineshape derivative
  * 
+ * \param data Block of allocated memory
  * \param f_grid Frequency grid of computations
  * \param zeeman_df Zeeman shift parameter for the line
  * \param magnetic_magnitude Absolute strength of the magnetic field
@@ -650,7 +652,7 @@ void Linefunctions::set_voigt(Eigen::Ref<Eigen::VectorXcd> F,
                               const Numeric& dGD_div_F0_dT,
                               const LineFunctionDataOutput& dxdT,
                               const LineFunctionDataOutput& dxdVMR)
-{
+{ 
   // Size of problem
   auto nppd = derivatives_data_position.nelem();
   
@@ -663,35 +665,35 @@ void Linefunctions::set_voigt(Eigen::Ref<Eigen::VectorXcd> F,
   // constant normalization factor for Voigt
   const Numeric fac = sqrtInvPI * invGD;
   
+  // Naming req data blocks
+  auto z  = data.col(0);
+  auto dw = data.col(1);
+  
   // Frequency grid
-  data.col(0).noalias() = invGD * (Complex(-F0, x.G0) + f_grid.array()).matrix();
+  z.noalias() = invGD * (Complex(-F0, x.G0) + f_grid.array()).matrix();
   
   // Line shape
-  F.noalias() = fac * data.col(0).unaryExpr(&w);
+  F.noalias() = fac * z.unaryExpr(&w);
   
   if(nppd) {
-    data.col(1).noalias() = 2 * (Complex(0, fac * sqrtInvPI) - data.col(0).cwiseProduct(F).array()).matrix();
+    dw.noalias() = 2 * (Complex(0, fac * sqrtInvPI) - z.cwiseProduct(F).array()).matrix();
     
     for(auto iq=0; iq<nppd; iq++) {
       const auto& deriv = derivatives_data[derivatives_data_position[iq]];
       
       if(is_frequency_parameter(deriv))
-        dF.col(iq).noalias() = invGD * data.col(1);
+        dF.col(iq).noalias() = invGD * dw;
       else if(deriv == JacPropMatType::Temperature)
-        dF.col(iq).noalias() = (data.col(1) * Complex(-dxdT.D0 - dxdT.DV, dxdT.G0) - (F + data.col(1).cwiseProduct(data.col(0))) * dGD_dT) * invGD;
-      else if(deriv == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(deriv)) {
-        if(deriv.QuantumIdentity().In(quantum_identity))
-          dF.col(iq).noalias() = -F/F0 - data.col(1) * invGD - data.col(1).cwiseProduct(data.col(0))/F0;
-      }
-      else if(is_pressure_broadening_parameter(deriv)) {
-        if(deriv.QuantumIdentity().In(quantum_identity))
-          dF.col(iq).noalias() = data.col(1) * invGD;
-      }
+        dF.col(iq).noalias() = dw * Complex(-dxdT.D0 - dxdT.DV, dxdT.G0) * invGD - F * dGD_dT * invGD - dw.cwiseProduct(z) * dGD_dT * invGD;
+      else if((deriv == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(deriv)) and deriv.QuantumIdentity().In(quantum_identity))
+        dF.col(iq).noalias() = -F/F0 - dw * invGD - dw.cwiseProduct(z)/F0;
+      else if(is_pressure_broadening_parameter(deriv) and deriv.QuantumIdentity().In(quantum_identity))
+        dF.col(iq).noalias() = dw * invGD;
       else if(is_magnetic_parameter(deriv))
-        dF.col(iq).noalias() = data.col(1) * (- zeeman_df * invGD);
+        dF.col(iq).noalias() = dw * (- zeeman_df * invGD);
       else if(deriv == JacPropMatType::VMR) {
         if(deriv.QuantumIdentity().In(quantum_identity))
-          dF.col(iq).noalias() = data.col(1) * Complex(- dxdVMR.D0 - dxdVMR.DV, dxdVMR.G0) * invGD;
+          dF.col(iq).noalias() = dw * Complex(- dxdVMR.D0 - dxdVMR.DV, dxdVMR.G0) * invGD;
         else
           dF.col(iq).setZero();
       }
@@ -709,6 +711,7 @@ void Linefunctions::set_voigt(Eigen::Ref<Eigen::VectorXcd> F,
  * \retval F Lineshape
  * \retval dF Lineshape derivative
  * 
+ * \param data Block of allocated memory
  * \param f_grid Frequency grid of computations
  * \param zeeman_df Zeeman shift parameter for the line
  * \param magnetic_magnitude Absolute strength of the magnetic field
@@ -738,21 +741,25 @@ void Linefunctions::set_doppler(Eigen::Ref<Eigen::VectorXcd> F,
   const Numeric F0 = F0_noshift + zeeman_df * magnetic_magnitude;
   const Numeric invGD = 1.0 / (GD_div_F0 * F0);
   
-  data.col(0).noalias() = (f_grid.array() - F0).matrix() * invGD;
-  data.col(1).noalias() = -data.col(0).cwiseAbs2();
-  F.noalias() = invGD * sqrtInvPI * data.col(1).array().exp().matrix();
+  // Naming data blocks
+  auto x = data.col(0);
+  auto mx2 = data.col(1);
+  
+  x.noalias() = (f_grid.array() - F0).matrix() * invGD;
+  mx2.noalias() = -data.col(0).cwiseAbs2();
+  F.noalias() = invGD * sqrtInvPI * mx2.array().exp().matrix();
   
   for(auto iq=0; iq<nppd; iq++) {
     const auto& deriv = derivatives_data[derivatives_data_position[iq]];
     
     if(is_frequency_parameter(deriv))
-      dF.col(iq).noalias() = - 2 * invGD * F.cwiseProduct(data.col(0));
+      dF.col(iq).noalias() = - 2 * invGD * F.cwiseProduct(x);
     else if(deriv == JacPropMatType::Temperature)
-      dF.col(iq).noalias() = - dGD_div_F0_dT * F0 * invGD * (2.0 * F.cwiseProduct(data.col(1)) + F);
-    else if(deriv == JacPropMatType::LineCenter) {
-      if(deriv.QuantumIdentity().In(quantum_identity))
-      dF.col(iq).noalias() = - F.cwiseProduct(data.col(1)) * (2/F0) + F.cwiseProduct(data.col(0)) * 2 * (invGD - 1/F0);
-    }
+      dF.col(iq).noalias() = - dGD_div_F0_dT * F0 * invGD * (2.0 * F.cwiseProduct(mx2) + F);
+    else if(deriv == JacPropMatType::LineCenter and deriv.QuantumIdentity().In(quantum_identity))
+      dF.col(iq).noalias() = - F.cwiseProduct(mx2) * (2/F0) + F.cwiseProduct(x) * 2 * (invGD - 1/F0);
+    else if(deriv == JacPropMatType::VMR)
+      dF.col(iq).setZero();  // Must reset incase other lineshapes are mixed in
   }
 }
 
@@ -817,32 +824,31 @@ void Linefunctions::set_voigt_from_full_linemixing(Eigen::Ref<Eigen::VectorXcd> 
     F[iv] = fac * w;
     
     for(auto iq=0; iq<nppd; iq++) {
+      const auto& deriv = derivatives_data[derivatives_data_position[iq]];
+      
       if(iq==0)
         dw_over_dz = 2.0 * (z * w - sqrtInvPI);
       
-      if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]] ))
+      if(is_frequency_parameter(deriv))
         dF(iv, iq) = fac * dw_over_dz * invGD;
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature) {
+      else if(deriv == JacPropMatType::Temperature) {
         dz = (deigenvalue_dT - dL0_dT) - z * dGD_dT;
         
         dF(iv, iq) = -F[iv] * dGD_dT;
         dF(iv, iq) += fac * dw_over_dz * dz;
         dF(iv, iq) *= invGD;
       }
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter or is_line_mixing_parameter(derivatives_data[derivatives_data_position[iq]])) // No //external inputs --- errors because of frequency shift when Zeeman is used?
+      else if((deriv == JacPropMatType::LineCenter or is_line_mixing_parameter(deriv)) and deriv.QuantumIdentity().In(quantum_identity))
       {
-        if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-        {
-          dz = -z * GD_div_F0 - 1.0;
-          
-          dF(iv, iq) = -F[iv] * GD_div_F0;
-          dF(iv, iq) += dw_over_dz * dz;
-          dF(iv, iq) *= fac * invGD;
-        }
+        dz = -z * GD_div_F0 - 1.0;
+        
+        dF(iv, iq) = -F[iv] * GD_div_F0;
+        dF(iv, iq) += dw_over_dz * dz;
+        dF(iv, iq) *= fac * invGD;
       }
-      else if(is_pressure_broadening_parameter(derivatives_data[derivatives_data_position[iq]]) /*or derivatives_data[derivatives_data_position[iq]] == JacPropMatType::VMR*/)
+      else if(is_pressure_broadening_parameter(deriv))
       {
-        if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
+        if(deriv.QuantumIdentity().In(quantum_identity))
           dF(iv, iq) = fac * dw_over_dz * ( Complex(-1.0, 1.0) * invGD);
         else if(not iv)
           dF.col(iq).setZero();
@@ -887,14 +893,10 @@ void Linefunctions::apply_linemixing_scaling(Eigen::Ref<Eigen::VectorXcd> F,
     
     if(deriv == JacPropMatType::Temperature)
       dF.col(iq).noalias() += F * Complex(dT.G, -dT.Y);
-    else if(is_line_mixing_line_strength_parameter(deriv)) {
-      if(deriv.QuantumIdentity().In(quantum_identity))
-        dF.col(iq).noalias() = F;
-    }
-    else if(deriv == JacPropMatType::VMR) {
-      if(deriv.QuantumIdentity().In(quantum_identity))
-        dF.col(iq).noalias() += F * Complex(dVMR.G, - dVMR.Y);
-    }
+    else if(is_line_mixing_line_strength_parameter(deriv) and deriv.QuantumIdentity().In(quantum_identity))
+      dF.col(iq).noalias() = F;
+    else if(deriv == JacPropMatType::VMR and deriv.QuantumIdentity().In(quantum_identity))
+      dF.col(iq).noalias() += F * Complex(dVMR.G, - dVMR.Y);
   }
   
   F *= LM;
@@ -942,16 +944,14 @@ void Linefunctions::apply_rosenkranz_quadratic_scaling(Eigen::Ref<Eigen::VectorX
     F[iv] *= fun;
     
     for(auto iq=0; iq<nppd; iq++) {
+      const auto& deriv = derivatives_data[derivatives_data_position[iq]];
+      
       dF(iv, iq) *= fun;
-      if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
+      if(deriv == JacPropMatType::Temperature)
         dF(iv, iq) += dmafac_dT_div_fun * F[iv];
-      else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
-        if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
-          const Numeric dmafac_dF0_div_fun = -invF0 - PLANCK_CONST/(2.0*BOLTZMAN_CONST*T*std::tanh(F0*PLANCK_CONST/(2.0*BOLTZMAN_CONST*T)));
-          dF(iv, iq) += dmafac_dF0_div_fun * F[iv];
-        }
-      }
-      else if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]]))
+      else if(deriv == JacPropMatType::LineCenter and deriv.QuantumIdentity().In(quantum_identity))
+        dF(iv, iq) += (-invF0 - PLANCK_CONST/(2.0*BOLTZMAN_CONST*T*std::tanh(F0*PLANCK_CONST/(2.0*BOLTZMAN_CONST*T)))) * F[iv];
+      else if(is_frequency_parameter(deriv))
         dF(iv, iq) += (2.0 / f_grid[iv]) * F[iv];
     }
   }
@@ -993,20 +993,24 @@ void Linefunctions::apply_VVH_scaling(Eigen::Ref<Eigen::VectorXcd> F,
   const Numeric tanh_f0part = std::tanh(c1 * F0);
   const Numeric denom = F0 * tanh_f0part;
   
-  data.col(0).noalias() = (c1 * f_grid.array()).tanh().matrix();
-  data.col(1).noalias() = f_grid.cwiseProduct(data.col(0)) / denom;
-  F.array() *= data.col(1).array();
+  // Name the data
+  auto tanh_f = data.col(0);
+  auto ftanh_f = data.col(1);
   
-  dF.array().colwise() *= data.col(1).array();
+  tanh_f.noalias() = (c1 * f_grid.array()).tanh().matrix();
+  ftanh_f.noalias() = f_grid.cwiseProduct(tanh_f) / denom;
+  F.array() *= ftanh_f.array();
+  
+  dF.array().colwise() *= ftanh_f.array();
   for(auto iq=0; iq<nppd; iq++) {
-    if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
-      dF.col(iq).noalias() += -c1/T * ((denom - F0/tanh_f0part) * F - denom * data.col(1).cwiseProduct(F) + f_grid.cwiseProduct(F).cwiseQuotient(data.col(0)));
-    else if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]]))
-      dF.col(iq).noalias() += F.cwiseQuotient(f_grid) + c1 * (F.cwiseQuotient(data.col(0)) - F.cwiseProduct(data.col(0)));
-    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
-      if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-        dF.col(iq).noalias() += (-1.0/F0 + c1*tanh_f0part - c1/tanh_f0part) * F;
-    }
+    const auto& deriv = derivatives_data[derivatives_data_position[iq]];
+    
+    if(deriv == JacPropMatType::Temperature)
+      dF.col(iq).noalias() += -c1/T * ((denom - F0/tanh_f0part) * F - denom * ftanh_f.cwiseProduct(F) + f_grid.cwiseProduct(F).cwiseQuotient(tanh_f));
+    else if(is_frequency_parameter(deriv))
+      dF.col(iq).noalias() += F.cwiseQuotient(f_grid) + c1 * (F.cwiseQuotient(tanh_f) - F.cwiseProduct(tanh_f));
+    else if(deriv == JacPropMatType::LineCenter and deriv.QuantumIdentity().In(quantum_identity))
+      dF.col(iq).noalias() += (-1.0/F0 + c1*tanh_f0part - c1/tanh_f0part) * F;
   }
 }
 
@@ -1047,15 +1051,15 @@ void Linefunctions::apply_VVW_scaling(Eigen::Ref<Eigen::VectorXcd> F,
     F[iv] *= fac;
     
     for(auto iq=0; iq<nppd; iq++) {
+      const auto& deriv = derivatives_data[derivatives_data_position[iq]];
+      
       // The factor is applied to all partial derivatives
       dF(iv, iq) *= fac;
       
       // These partial derivatives are special
-      if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
-        if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-          dF(iv, iq) -= 2.0 * invF0 * F[iv] ;
-      }
-      else if(is_frequency_parameter(derivatives_data[derivatives_data_position[iq]]))
+      if(deriv == JacPropMatType::LineCenter and deriv.QuantumIdentity().In(quantum_identity))
+        dF(iv, iq) -= 2.0 * invF0 * F[iv];
+      else if(is_frequency_parameter(deriv))
         dF(iv, iq) += 2.0 / f_grid[iv] * F[iv];
     }
   }
@@ -1108,16 +1112,14 @@ void Linefunctions::apply_linestrength_scaling(Eigen::Ref<Eigen::VectorXcd> F,
   F *= S;
   dF *= S;
   for(auto iq=0; iq<nppd; iq++) {
-    if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
+    const auto& deriv = derivatives_data[derivatives_data_position[iq]];
+    
+    if(deriv == JacPropMatType::Temperature)
       dF.col(iq).noalias() += F * (dK2_dT / K2 + dK1_dT / K1 - invQT * dQT_dT);
-    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineStrength) {
-      if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-        dF.col(iq).noalias() = F / S0;  //nb. overwrite
-    }
-    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
-      if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
-        dF.col(iq).noalias() += F * dK2_dF0 / K2;
-    }
+    else if(deriv == JacPropMatType::LineStrength and deriv.QuantumIdentity().In(quantum_identity))
+      dF.col(iq).noalias() = F / S0;  //nb. overwrite
+    else if(deriv == JacPropMatType::LineCenter and deriv.QuantumIdentity().In(quantum_identity))
+      dF.col(iq).noalias() += F * dK2_dF0 / K2;
   }
 }
 
@@ -1183,37 +1185,35 @@ void Linefunctions::apply_linestrength_scaling_vibrational_nlte(Eigen::Ref<Eigen
   dN.noalias() = dF * (S_src - S_abs);
   dF *= S_abs;
   for(auto iq=0; iq<nppd; iq++) {
-    if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature) {
+    const auto& deriv = derivatives_data[derivatives_data_position[iq]];
+    
+    if(deriv == JacPropMatType::Temperature) {
       const Numeric dS_dT_abs = S_abs * (dK2_dT / K2 + dK1_dT / K1 + dK3_dT / K3 - invQT * dQT_dT);
       const Numeric dS_dT_src = S_src * (dK2_dT / K2 + dK1_dT / K1 + dK4_dT / K4 - invQT * dQT_dT);
       
       dN.col(iq).noalias() += F * (dS_dT_src - dS_dT_abs);
       dF.col(iq).noalias() += F * dS_dT_abs;
     }
-    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineStrength) {
-      if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
-        dF.col(iq).noalias() = F * dS_dS0_abs;
-        dN.col(iq).noalias() = F * (dS_dS0_src - dS_dS0_abs);
-      }
+    else if(deriv == JacPropMatType::LineStrength and deriv.QuantumIdentity().In(quantum_identity)) {
+      dF.col(iq).noalias() = F * dS_dS0_abs;
+      dN.col(iq).noalias() = F * (dS_dS0_src - dS_dS0_abs);
     }
-    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
-      if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
-        const Numeric dS_dF0_abs = S_abs * (dK2_dF0 / K2 + dK3_dF0 / K3);
-        const Numeric dS_dF0_src = S_src * (dK2_dF0 / K2);
-        
-        dN.col(iq).noalias() += F * (dS_dF0_src - dS_dF0_abs);
-        dF.col(iq).noalias() += F * dS_dF0_abs;
-      }
+    else if(deriv == JacPropMatType::LineCenter and deriv.QuantumIdentity().In(quantum_identity)) {
+      const Numeric dS_dF0_abs = S_abs * (dK2_dF0 / K2 + dK3_dF0 / K3);
+      const Numeric dS_dF0_src = S_src * (dK2_dF0 / K2);
+      
+      dN.col(iq).noalias() += F * (dS_dF0_src - dS_dF0_abs);
+      dF.col(iq).noalias() += F * dS_dF0_abs;
     }
-    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::NLTE) {
-      if(quantum_identity.LowerQuantumId() > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
+    else if(deriv == JacPropMatType::NLTE) {
+      if(deriv.QuantumIdentity().InLower(quantum_identity)) {
         const Numeric dS_dTl_abs = S_abs * dK3_dTl / K3;
         const Numeric dS_dTl_src = 0;
         
         dN.col(iq).noalias() = F * (dS_dTl_src - dS_dTl_abs);
         dF.col(iq).noalias() = F * dS_dTl_abs;
       }
-      else if(quantum_identity.UpperQuantumId() > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
+      else if(deriv.QuantumIdentity().InUpper(quantum_identity)) {
         const Numeric dS_dTu_abs = S_abs * dK3_dTu / K3;
         const Numeric dS_dTu_src = S_src * dK4_dTu / K4;
         
@@ -1222,6 +1222,7 @@ void Linefunctions::apply_linestrength_scaling_vibrational_nlte(Eigen::Ref<Eigen
       }
     }
   }
+  
   N.noalias() = F * (S_src - S_abs);
   F *= S_abs;
 }
@@ -1267,20 +1268,22 @@ void Linefunctions::apply_linestrength_from_full_linemixing(Eigen::Ref<Eigen::Ve
   
   for(Index iq = 0; iq < nppd; iq++)
   {
-    if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature)
+    const auto& deriv = derivatives_data[derivatives_data_position[iq]];
+    
+    if(deriv == JacPropMatType::Temperature)
     {
       dF.col(iq) *= S_LM;
       dF.col(iq).noalias() += F * (dS_LM_dT * f0_factor + 
       S_LM * C1 * F0_invT * F0_invT * exp_factor) * isotopic_ratio;
     }
-    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineStrength)
+    else if(deriv == JacPropMatType::LineStrength)
     {
-      if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
+      if(deriv.QuantumIdentity().In(quantum_identity))
         throw std::runtime_error("Not working yet");
     }
-    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(derivatives_data[derivatives_data_position[iq]]))
+    else if(deriv == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(deriv))
     {
-      if(quantum_identity > derivatives_data[derivatives_data_position[iq]].QuantumIdentity())
+      if(deriv.QuantumIdentity().In(quantum_identity))
         throw std::runtime_error("Not working yet");
     }
     else
@@ -2091,27 +2094,25 @@ void Linefunctions::apply_linestrength_from_nlte_level_distributions(Eigen::Ref<
 
   // Partial derivatives
   for(auto iq=0; iq<nppd; iq++) {
-    if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::Temperature) {
-      Numeric done_over_b_dT = PLANCK_CONST*F0*exp_T/(c2*BOLTZMAN_CONST*T*T);
-      dN.col(iq).noalias() += F*e*done_over_b_dT;
+    const auto& deriv = derivatives_data[derivatives_data_position[iq]];
+    
+    if(deriv == JacPropMatType::Temperature)
+      dN.col(iq).noalias() += F*e*PLANCK_CONST*F0*exp_T/(c2*BOLTZMAN_CONST*T*T);
+    else if(deriv == JacPropMatType::LineCenter and deriv.QuantumIdentity().In(quantum_identity)) {
+      Numeric done_over_b_df0 = PLANCK_CONST*exp_T/(c2*BOLTZMAN_CONST*T) - 3.0*b/F0;
+      Numeric de_df0 = c1 * r2 * A21;
+      Numeric dk_df0 = c1 * (r1*x - r2) * (A21 / c2) - 3.0*k/F0;
+      
+      dN.col(iq).noalias() += F*(e*done_over_b_df0 + de_df0/b - dk_df0);
+      dF.col(iq).noalias() += F*dk_df0;
     }
-    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::LineCenter) {
-      if(derivatives_data[derivatives_data_position[iq]].QuantumIdentity().In(quantum_identity)) {
-        Numeric done_over_b_df0 = PLANCK_CONST*exp_T/(c2*BOLTZMAN_CONST*T) - 3.0*b/F0;
-        Numeric de_df0 = c1 * r2 * A21;
-        Numeric dk_df0 = c1 * (r1*x - r2) * (A21 / c2) - 3.0*k/F0;
-        
-        dN.col(iq).noalias() += F*(e*done_over_b_df0 + de_df0/b - dk_df0);
-        dF.col(iq).noalias() += F*dk_df0;
-      }
-    }
-    else if(derivatives_data[derivatives_data_position[iq]] == JacPropMatType::NLTE) {
-      if(quantum_identity.LowerQuantumId() > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
+    else if(deriv == JacPropMatType::NLTE) {
+      if(deriv.QuantumIdentity().InLower(quantum_identity)) {
         const Numeric dk_dr2 = - c3 * A21 / c2, de_dr2 = c3 * A21, dratio_dr2 = de_dr2/b - dk_dr2;
         dN.col(iq).noalias() = F*dratio_dr2;
         dF.col(iq).noalias() += F*dk_dr2;
       }
-      else if(quantum_identity.UpperQuantumId() > derivatives_data[derivatives_data_position[iq]].QuantumIdentity()) {
+      else if(deriv.QuantumIdentity().InUpper(quantum_identity)) {
         const Numeric dk_dr1 = c3 * x * A21 / c2;
         dF.col(iq).noalias() += F*dk_dr1;
       }

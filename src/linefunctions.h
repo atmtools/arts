@@ -52,8 +52,8 @@ namespace Linefunctions
 {
   constexpr Index ExpectedDataSize(){return 2;}
   
-  void set_lineshape(Eigen::VectorXcd& F, 
-                     const Eigen::VectorXd& f_grid, 
+  void set_lineshape(Eigen::Ref<Eigen::VectorXcd> F, 
+                     const Eigen::Ref<const Eigen::VectorXd> f_grid, 
                      const LineRecord& line, 
                      const ConstVectorView vmrs, 
                      const Numeric& temperature, 

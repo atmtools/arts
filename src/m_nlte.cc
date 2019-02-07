@@ -79,7 +79,7 @@ void nlte_collision_factorsCalcFromCoeffs(Vector& Cij,
   for(Index i=0; i<abs_lines.nelem(); i++) {
     const LineRecord& line = abs_lines[i];
     for(Index j=0; j<nlte_collision_coefficients.nelem(); j++) {
-      if(line.QuantumIdentity() > nlte_collision_identifiers[j]) {
+      if(nlte_collision_identifiers[j].In(line.QuantumIdentity())) {
         const GriddedField1& gf1 = nlte_collision_coefficients[0];
         
         GridPosPoly gp;

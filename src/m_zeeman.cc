@@ -78,9 +78,9 @@ void zeeman_linerecord_precalcModifyFromData(ArrayOfArrayOfLineRecord& zeeman_li
       Index upper=-1, lower=-1;
       for(Index k=0; k<keys.nelem(); k++) {
         const QuantumIdentifier& qid = keys[k];
-        if(qid < line.QuantumIdentity().LowerQuantumId())
+        if(qid.InLower(line.QuantumIdentity()))
           lower = k;
-        else if(qid < line.QuantumIdentity().UpperQuantumId())
+        else if(qid.InUpper(line.QuantumIdentity()))
           upper = k;
       }
       
@@ -112,9 +112,9 @@ void zeeman_linerecord_precalcPrintMissing(const ArrayOfArrayOfLineRecord& zeema
       auto& line = lines[j];
       bool found=false;
       for(auto& key: keys) {
-        if(key.In(line.QuantumIdentity().LowerQuantumId()))
+        if(key.InLower(line.QuantumIdentity()))
           found = true;
-        if(key.In(line.QuantumIdentity().UpperQuantumId()))
+        if(key.InUpper(line.QuantumIdentity()))
           found = true;
         if(found)
           break;

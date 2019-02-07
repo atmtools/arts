@@ -64,6 +64,7 @@ Arts2{
     
     # Compute the new nlte_field
     nlte_fieldForSingleSpeciesNonOverlappingLines(df=1e-4, nz=10, nf=401, dampened=0, iteration_limit=100, convergence_limit=1e-4)
+    #WriteXML("ascii", nlte_field, "testdata/nlte_testdata.xml")
     
     # Compare with stored data to make sure it is OK
     Tensor4Create(nlte_testdata)

@@ -1,3 +1,33 @@
+2019-02-07  Richard Larsson <larsson@mps.mpg.de>
+
+	* arts-2-3-1219
+	
+	* src/quantum.cc,h:  Encountered bug in quantum comparitor
+	(the upper state was never checked during transition-type ID).
+	Decided to redesign comparitor because the overload of < and >
+	were too difficult.  Also introduced (InLower) and (InUpper) to
+	reduce copy-creation of QuantumIdentifiers when levels needed
+	to be identified in a transition.
+	
+	* src/zeeman.cc:
+	* src/m_zeeman.cc:
+	* src/m_nlte.cc:
+	* src/m_atmopshere.cc:
+	Removed use of "<" and ">" for quantum IDs.
+	
+	* src/linefunctions.cc:
+	Removed use of "<" and ">" for quantum IDs.
+	Also, named data blocks.
+	
+	* controlfiles/artscomponents/nlte/testdata/nlte_testdata.xml:
+	Updated because it is the only test case affected by the
+	quantum.cc,h bug.  Changes are relatively large, and the
+	reason is that ARTS previosly computed the wrong line-collisional
+	quenching.
+	
+	* controlfiles/artscomponents/nlte/testRotationalConvergence.arts:
+	Added an out-commented WriteXML-statement.
+
 2019-02-05  Richard Larsson <larsson@mps.mpg.de>
 
 	* arts-2-3-1218

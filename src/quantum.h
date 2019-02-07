@@ -378,14 +378,10 @@ public:
     QuantumNumbers& UpperQuantumNumbers() {assert(mqtype==TRANSITION); return mqm[TRANSITION_UPPER_INDEX];};
     QuantumNumbers& LowerQuantumNumbers() {assert(mqtype==TRANSITION); return mqm[TRANSITION_LOWER_INDEX];};
     
-    //! Tests if RHS contains LHS
-    bool In(const QuantumIdentifier& that) const {return operator<(that);}
-    
-    //! Tests that all of other is in this
-    bool operator>(const QuantumIdentifier& other) const;
-    
-    //! Tests that all of this is in other 
-    bool operator<(const QuantumIdentifier& other) const;
+    //! Tests if RHS contains LHS some how
+    bool In(const QuantumIdentifier& other) const;
+    bool InLower(const QuantumIdentifier& other) const;
+    bool InUpper(const QuantumIdentifier& other) const;
     
     //! Tests if there are any defined quantum numbers
     bool any_quantumnumbers() const;
