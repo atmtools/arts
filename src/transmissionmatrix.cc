@@ -30,6 +30,9 @@
 #include "complex.h"
 
 
+const Numeric lower_is_considered_zero_for_sinc_likes = 1e-7;
+
+
 inline Numeric vector1(const StokesVector& a, const ConstVectorView& B, const StokesVector& da, const ConstVectorView& dB_dT, const StokesVector& dS, bool dT, Index i) noexcept
 {
   if(dT)
@@ -282,8 +285,8 @@ inline void transmat4(TransmissionMatrix& T,
         const Complex cx = std::cosh(x);
         const Complex sx = std::sinh(x);
         
-        const bool x_zero = x == 0.0;
-        const bool y_zero = y == 0.0;
+        const bool x_zero = std::abs(x) < lower_is_considered_zero_for_sinc_likes;
+        const bool y_zero = std::abs(y) < lower_is_considered_zero_for_sinc_likes;
         const bool both_zero = y_zero and x_zero;
         const bool either_zero = y_zero or x_zero;
             
@@ -570,8 +573,8 @@ inline void dtransmat4(TransmissionMatrix& T,
       const Complex cx = std::cosh(x);
       const Complex sx = std::sinh(x);
       
-      const bool x_zero = x == 0.0;
-      const bool y_zero = y == 0.0;
+      const bool x_zero = std::abs(x) < lower_is_considered_zero_for_sinc_likes;
+      const bool y_zero = std::abs(y) < lower_is_considered_zero_for_sinc_likes;
       const bool both_zero = y_zero and x_zero;
       const bool either_zero = y_zero or x_zero;
       

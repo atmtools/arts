@@ -1,5 +1,16 @@
 2019-02-07  Richard Larsson <larsson@mps.mpg.de>
 
+	* arts-2-3-1220
+	
+	* src/transmissionmatrix.cc:  Now assumes a value
+	is zero if it is below 1e-7 for the purposes of
+	sin(x)/x, cos(x)/x, cosh(x)/x, and sinh(x)/x
+	
+	Open question:
+	I need something better than this for said type of functions?
+
+2019-02-07  Richard Larsson <larsson@mps.mpg.de>
+
 	* arts-2-3-1219
 	
 	* src/quantum.cc,h:  Encountered bug in quantum comparitor
