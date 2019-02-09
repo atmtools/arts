@@ -30,7 +30,7 @@
 #include "complex.h"
 
 
-const Numeric lower_is_considered_zero_for_sinc_likes = 1e-7;
+const Numeric lower_is_considered_zero_for_sinc_likes = 1e-4;
 
 
 inline Numeric vector1(const StokesVector& a, const ConstVectorView& B, const StokesVector& da, const ConstVectorView& dB_dT, const StokesVector& dS, bool dT, Index i) noexcept

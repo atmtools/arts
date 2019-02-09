@@ -1,3 +1,14 @@
+2019-02-09  Richard Larsson <larsson@mps.mpg.de>
+
+	* arts-2-3-1221
+	
+	* src/transmissionmatrix.cc:  Switched from 1e-7 to 1e-4
+	afterthe tests in the other file show this beig a minimum of
+	the four limits of interest.  Should be on order of ~1e-8
+	now, the 1e-7 limit resulted in 1% relative error...
+	
+	* src/test_propagationmatrix.cc: Test of limits.
+
 2019-02-07  Richard Larsson <larsson@mps.mpg.de>
 
 	* arts-2-3-1220

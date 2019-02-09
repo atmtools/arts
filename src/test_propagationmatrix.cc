@@ -490,16 +490,43 @@ void test_lineshape_xsec()
 }
 
 
+void test_sinc_likes_0limit()
+{
+  Numeric start=1.0;
+  Numeric end=1e-7;
+  int n=10000;
+  
+  Vector x(n), sx(n), shx(n), cx(n), chx(n);
+  nlogspace(x, start, end, n);
+  
+  for(int i=0; i<n; i++) {
+    sx[i] = std::sin(x[i]);
+    cx[i] = std::cos(x[i]);
+    shx[i] = std::sinh(x[i]);
+    chx[i] = std::cosh(x[i]);
+  }
+  
+  std::cout<<std::scientific<<std::setprecision(15)<<"x\tabs(sx/x-1)\tabs(shx/x-1)\tabs((chx-cx)/2x^2-1/2)\tabs((shx/x-sx/x)/2x^2-1/6)\n";
+  
+  for(int i=0; i<n; i++)
+    std::cout << x[i] << '\t'
+              << std::abs(sx[i]/x[i]-1.0) << '\t'
+              << std::abs(shx[i]/x[i]-1.0) << '\t'
+              << std::abs((chx[i]-cx[i])/(2*x[i]*x[i])-0.5) << '\t'
+              << std::abs((shx[i]/x[i]-sx[i]/x[i])/(2*x[i]*x[i])-1.0/6.0) << '\n';
+}
+
+
 int main()
 {
-    std::cout<<"Testing Propmat Partials\n";
     /*test_linefunctionsdata();
     test_speed_of_pressurebroadening();
     test_transmissionmatrix();
     test_r_deriv_propagationmatrix();
     test_transmat_from_propmat();
-    test_transmat_to_cumulativetransmat();*/
-    test_lineshape_xsec();
+    test_transmat_to_cumulativetransmat();
+    test_lineshape_xsec();*/
+    test_sinc_likes_0limit();
     return 0;
 }
 
