@@ -305,10 +305,10 @@ void get_gp_rq_to_atmgrids(
   if( atmosphere_dim >= 2 )
     {
       gp_lat.resize( lat_grid.nelem() );
-      n_lat = rq.Grids()[1].nelem();
+      n_lat = rq.Grids()[0].nelem();
       if( n_lat > 1 )
         {
-          gridpos( gp_lat, rq.Grids()[1], lat_grid, inf_proxy );
+          gridpos( gp_lat, rq.Grids()[0], lat_grid, inf_proxy );
           jacobian_type_extrapol( gp_lat );
         }
       else
@@ -323,10 +323,10 @@ void get_gp_rq_to_atmgrids(
   if( atmosphere_dim >= 3 )
     {
       gp_lon.resize( lon_grid.nelem() );
-      n_lon = rq.Grids()[2].nelem();
+      n_lon = rq.Grids()[1].nelem();
       if( n_lon > 1 )
         {
-          gridpos( gp_lon, rq.Grids()[2], lon_grid, inf_proxy );
+          gridpos( gp_lon, rq.Grids()[1], lon_grid, inf_proxy );
           jacobian_type_extrapol( gp_lon );
         }
       else

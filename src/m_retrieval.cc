@@ -1096,7 +1096,7 @@ void retrievalAddSurfaceQuantity(
   
   check_and_add_block( covmat_sx, jacobian_quantities.back(),
                        jacobian_quantities.nelem() - 1,
-                       atmosphere_dim, covmat_block, covmat_inv_block );
+                       atmosphere_dim - 1, covmat_block, covmat_inv_block );
 }
 
 

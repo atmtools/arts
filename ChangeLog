@@ -1,3 +1,14 @@
+2019-02-13  David Duncan  <david.duncan@chalmers.se>
+
+	* arts-2-3-1223
+	
+	* src/m_oem.cc(get_gp_atmgrids_to_rq): Fixed indexing of retrieval grids
+	  for surface quantities.
+
+	* src/m_retrieval.cc(retrievalAddSurfaceQuantity): Fixed dimension
+	  argument in call to check_and_add_block.
+
+
 2019-02-13  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1222
