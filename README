@@ -148,10 +148,10 @@ make arts
 OPTIONAL FEATURES
 =================
 
-To compile features that rely on Fortran code located in the 3rdparty
+To include features that rely on Fortran code located in the 3rdparty
 subdirectory use:
 
-cmake -DENABLE_FORTRAN=1 ..
+cmake -DENABLE_FORTRAN=1 -DCMAKE_Fortran_COMPILER=gfortran ..
 
 This enables Disort, Fastem, Refice and Tmatrix.
 
@@ -231,7 +231,7 @@ INTEL COMPILER
 If you want to compile with the Intel compiler[1], start with an empty build
 directory and run:
 
-CC=icc CXX=icpc cmake ..
+cmake -DCMAKE_C_COMPILER=icc -DCMAKE_CXX_COMPILER=icpc ..
 
 [1] http://software.intel.com/c-compilers
 
@@ -242,14 +242,16 @@ LLVM/CLANG COMPILER
 If you want to compile with the LLVM/Clang compiler[1], start with an empty build
 directory and run:
 
-CC=clang CXX=clang++ cmake ..
+cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ ..
 
-Optionally, you can enable C++11 support and the new implementation of the standard
-C++ library[2] (if available):
+You might also have to explicitly pick the right Fortran compiler since clang
+doesn't have one:
 
-CC=clang CXX=clang++ CXXFLAGS="-std=c++11 -stdlib=libc++" cmake ..
+cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
+-DENABLE_FORTRAN=1 -DCMAKE_Fortran_COMPILER=gfortran ..
 
-Note that at this point, clang does not support OpenMP.
+Note that at this point, on OS X the default Apple Clang compiler does not
+support OpenMP. Other versions of Clang support it via libomp.
 
 [1] http://clang.llvm.org
 [2] http://libcxx.llvm.org
@@ -283,6 +285,9 @@ VALGRIND PROFILING
 
 The callgrind plugin included in valgrind is the recommended profiling method
 for ARTS.
+
+Due to limitations of valgrind, you need to disable the tmatrix code
+(-DNO_TMATRIX=1) when compiling ARTS with Fortran support.
 
 Certain things should be taken into account when calling ARTS with valgrind.
 Since recursion (cycles) will lead to wrong profiling results it is
