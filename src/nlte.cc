@@ -90,11 +90,11 @@ void dampened_statistical_equilibrium_equation(MatrixView A,
 }
 
 
-void use_total_number_count_statistical_equilibrium_matrix(MatrixView A, VectorView x, ConstVectorView r, const Index row)
+void set_constant_statistical_equilibrium_matrix(MatrixView A, VectorView x, const Numeric& sem_ratio, const Index row)
 {
   assert(A.ncols() == A.nrows() and A.ncols() == x.nelem() and row < A.ncols());
-  A(row, joker) = 1;
-  x[row] = r.sum();
+  A(row, joker) = 1.0;
+  x[row] = sem_ratio;
 }
 
 
@@ -144,50 +144,6 @@ Vector createBji(ConstVectorView Bij, const ArrayOfLineRecord& abs_lines)
 }
 
 
-// // See Pack 1979...
-// Vector createCijFromPressureBroadening(const ArrayOfLineRecord& abs_lines, 
-//                                        ConstVectorView vmrs,
-//                                        const ArrayOfIndex& broad_spec_locations,
-//                                        const Numeric& T,
-//                                        const Numeric& P,
-//                                        const Index this_species,
-//                                        const Index water_species)
-// {
-//   const Index n = abs_lines.nelem();
-//   Vector Cij(n);
-//   setCijFromPressureBroadening(Cij, abs_lines, vmrs, broad_spec_locations, T, P, this_species, water_species, n);
-//   return Cij;
-// }
-
-
-// void setCijFromPressureBroadening(VectorView Cij, 
-//                                   const ArrayOfLineRecord& abs_lines, 
-//                                   ConstVectorView vmrs,
-//                                   const ArrayOfIndex& broad_spec_locations,
-//                                   const Numeric& T,
-//                                   const Numeric& P,
-//                                   const Index this_species,
-//                                   const Index water_species,
-//                                   const Index n)
-// {
-// //FIXME: Fix this function!
-//   assert(n == Cij.nelem() and n == abs_lines.nelem());
-//   
-//   extern const Numeric PI, SPEED_OF_LIGHT, BOLTZMAN_CONST;
-//   const static Numeric c0 = 2.0 * PI * BOLTZMAN_CONST * SPEED_OF_LIGHT;
-//   const Numeric constant = T * c0;
-//   
-//   // Base equation for single state:  C21 = kT 2PI c G21 (where G21 is the pressure broadening at 1 Pascal)
-//   for(Index i = 0; i < n; i++) {
-//     const LineRecord& line = abs_lines[i];
-//     Numeric g0, g2, eta, df_0, df_2, f_VC;
-//     line.SetPressureBroadeningParameters(g0, g2, eta, df_0, df_2, f_VC, T, P, this_species, water_species, broad_spec_locations, vmrs);
-//     //Cij[i] = (g0 + 1.5*g2) / P * BOLTZMAN_CONST * T * 2 * PI * SPEED_OF_LIGHT * SPEED_OF_LIGHT / 100;
-//     Cij[i] = 2e12/3 * constant * g0;  // FIXME: MANY ERRORS IN THIS CODE!
-//   }
-// }
-
-
 Vector createCji(ConstVectorView Cij, const ArrayOfLineRecord& abs_lines, const Numeric& T)
 { 
   const Index n = abs_lines.nelem();
@@ -208,6 +164,44 @@ void setCji(VectorView Cji, ConstVectorView Cij, const ArrayOfLineRecord& abs_li
   // Base equation for single state:  C12 = C21 exp(-hf / kT) g2 / g1
   for(Index i = 0; i < n; i++) 
     Cji[i] = Cij[i] * exp(constant * abs_lines[i].F()) * abs_lines[i].G_upper() / abs_lines[i].G_lower();
+}
+
+
+void nlte_collision_factorsCalcFromCoeffs(Vector& Cij,
+                                          Vector& Cji,
+                                          const ArrayOfLineRecord& abs_lines,
+                                          const ArrayOfGriddedField1& nlte_collision_coefficients,
+                                          const ArrayOfQuantumIdentifier& nlte_collision_identifiers,
+                                          const Numeric& T,
+                                          const Numeric& P)
+{
+  if(nlte_collision_coefficients.nelem() not_eq nlte_collision_identifiers.nelem())
+    throw std::runtime_error("Bad length of nlte_collision_* parameters.");
+  
+  extern const Numeric BOLTZMAN_CONST;
+  
+  const Numeric n = P / (BOLTZMAN_CONST * T);
+  
+  for(Index i=0; i<abs_lines.nelem(); i++) {
+    const LineRecord& line = abs_lines[i];
+    for(Index j=0; j<nlte_collision_coefficients.nelem(); j++) {
+      if(nlte_collision_identifiers[j].In(line.QuantumIdentity())) {
+        const GriddedField1& gf1 = nlte_collision_coefficients[0];
+        
+        GridPosPoly gp;
+        gridpos_poly(gp, gf1.get_numeric_grid(0), T, 1, 0.5);
+        
+        Vector itw(gp.idx.nelem());
+        interpweights(itw,   gp);
+        
+        Cij[i] = interp(itw, gf1.data, gp) * n;
+        
+        break;
+      }
+    }
+  }
+  
+  setCji(Cji, Cij, abs_lines, T, Cij.nelem());
 }
 
 

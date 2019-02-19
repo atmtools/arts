@@ -57,6 +57,7 @@ Arts2{
     
     # Initialize the ratio-field
     nlte_fieldSetLteInternalPartitionFunction
+    nlte_fieldRescalePopulationLevels(s=0.75)
 
     # Check that we are performing sane computations
     propmat_clearsky_agenda_checkedCalc

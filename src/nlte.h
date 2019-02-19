@@ -19,6 +19,7 @@
 
 #include "linerecord.h"
 #include "matpackI.h"
+#include "gridded_fields.h"
 
 
 void statistical_equilibrium_equation(MatrixView A,
@@ -46,7 +47,7 @@ void dampened_statistical_equilibrium_equation(MatrixView A,
                                                const Numeric& total_number_count=1.0);
 
 
-void use_total_number_count_statistical_equilibrium_matrix(MatrixView A, VectorView x, ConstVectorView r, const Index row);
+void set_constant_statistical_equilibrium_matrix(MatrixView A, VectorView x, const Numeric& sem_ratio, const Index row);
 
 
 Vector createAij(const ArrayOfLineRecord& abs_lines);
@@ -58,30 +59,19 @@ Vector createBij(const ArrayOfLineRecord& abs_lines);
 Vector createBji(ConstVectorView Bij, const ArrayOfLineRecord& abs_lines);
 
 
-// Vector createCijFromPressureBroadening(const ArrayOfLineRecord& abs_lines, 
-//                                        ConstVectorView vmrs,
-//                                        const ArrayOfIndex& broad_spec_locations,
-//                                        const Numeric& T,
-//                                        const Numeric& P,
-//                                        const Index this_species,
-//                                        const Index water_species);
-// 
-// 
-// void setCijFromPressureBroadening(VectorView Cij, 
-//                                   const ArrayOfLineRecord& abs_lines, 
-//                                   ConstVectorView vmrs,
-//                                   const ArrayOfIndex& broad_spec_locations,
-//                                   const Numeric& T,
-//                                   const Numeric& P,
-//                                   const Index this_species,
-//                                   const Index water_species,
-//                                   const Index n);
-
-
 Vector createCji(ConstVectorView Cij, const ArrayOfLineRecord& abs_lines, const Numeric& T);
 
 
 void setCji(VectorView Cji, ConstVectorView Cij, const ArrayOfLineRecord& abs_lines, const Numeric& T, const Index n);
+
+
+void nlte_collision_factorsCalcFromCoeffs(Vector& Cij,
+                                          Vector& Cji,
+                                          const ArrayOfLineRecord& abs_lines,
+                                          const ArrayOfGriddedField1& nlte_collision_coefficients,
+                                          const ArrayOfQuantumIdentifier& nlte_collision_identifiers,
+                                          const Numeric& T,
+                                          const Numeric& P);
 
 
 void nlte_positions_in_statistical_equilibrium_matrix(ArrayOfIndex& upper, ArrayOfIndex& lower, 

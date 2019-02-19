@@ -61,44 +61,6 @@ void ArrayOfQuantumIdentifierFromLines(ArrayOfQuantumIdentifier& qid,
 }
 
 
-void nlte_collision_factorsCalcFromCoeffs(Vector& Cij,
-                                          Vector& Cji,
-                                          const ArrayOfLineRecord& abs_lines,
-                                          const ArrayOfGriddedField1& nlte_collision_coefficients,
-                                          const ArrayOfQuantumIdentifier& nlte_collision_identifiers,
-                                          const Numeric& T,
-                                          const Numeric& P)
-{
-  if(nlte_collision_coefficients.nelem() not_eq nlte_collision_identifiers.nelem())
-    throw std::runtime_error("Bad length of nlte_collision_* parameters.");
-  
-  extern const Numeric BOLTZMAN_CONST;
-  
-  const Numeric n = P / (BOLTZMAN_CONST * T);
-  
-  for(Index i=0; i<abs_lines.nelem(); i++) {
-    const LineRecord& line = abs_lines[i];
-    for(Index j=0; j<nlte_collision_coefficients.nelem(); j++) {
-      if(nlte_collision_identifiers[j].In(line.QuantumIdentity())) {
-        const GriddedField1& gf1 = nlte_collision_coefficients[0];
-        
-        GridPosPoly gp;
-        gridpos_poly(gp, gf1.get_numeric_grid(0), T, 1, 0.5);
-        
-        Vector itw(gp.idx.nelem());
-        interpweights(itw,   gp);
-        
-        Cij[i] = interp(itw, gf1.data, gp) * n;
-        
-        break;
-      }
-    }
-  }
-  
-  setCji(Cji, Cij, abs_lines, T, Cij.nelem());
-}
-
-
 void nlte_fieldRescalePopulationLevels(Tensor4& nlte_field, const Numeric& scale, const Verbosity&)
 { 
   nlte_field *= scale;
@@ -196,7 +158,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
       else
         statistical_equilibrium_equation(SEE, Aij, Bij, Bji, Cij, Cji, iy(joker, ip), upper, lower);
       
-      use_total_number_count_statistical_equilibrium_matrix(SEE, x, r, unique);
+      set_constant_statistical_equilibrium_matrix(SEE, x, r.sum(), unique);
       solve(nlte_field(joker, ip, 0, 0), SEE, x);
       
       for(Index il=0; il<nlevels; il++) {

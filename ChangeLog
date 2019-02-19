@@ -1,3 +1,27 @@
+2019-02-19  Richard Larsson <larsson@mps.mpg.de>
+
+	* arts-2-3-1224
+	
+	* controlfiles/artscomponents/nlte/testRotationalConvergence.arts:
+	Scale nlte_field by orth-number 0.75.  The goal is to update collisional
+	effects to include more species, so the cheat we used to create the same
+	nlte_field as other models have been dismissed.  Now instead, to reproduce
+	other models value, rescale our nlte_field to unity per level.
+	
+	* controlfiles/artscomponents/nlte/testdata/H2O.xml: Set VMR to 100%
+	
+	* controlfiles/artscomponents/nlte/testdata/nlte_testdata.xml: Updated
+	numbers here are close enough to 0.75 times old numbers (on 1e-14 order)
+	
+	* src/m_nlte.cc:  Moved collisional function
+	(nlte_collision_factorsCalcFromCoeffs) to nlte.cc.  Changed so that
+	the ratio is constant at all levels to the original values.
+	
+	* src/nlte.{cc,h}:  As above but also removed unused functions.
+	
+	* controlfiles/artscomponents/helpers/TestRegridding.arts:   Saw that
+	this failed because of the delayed name-change in xml-data... fixed
+
 2019-02-13  David Duncan  <david.duncan@chalmers.se>
 
 	* arts-2-3-1223

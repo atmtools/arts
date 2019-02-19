@@ -70,7 +70,7 @@ ReadXML( lsmask_raw, casefull )
 
 # reading B-field w-component
 Copy( casefull, Bname )
-StringSet( caseext, ".B_w.xml" )
+StringSet( caseext, ".mag_w.xml" )
 Append( casefull, caseext )
 ReadXML( B_field_raw, casefull )
 
