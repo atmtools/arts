@@ -81,7 +81,7 @@ CompareRelative(y,y_nlte_ref,1e-5, "NLTE old method")
 Tensor4Create(tmp_t4)
 ArrayOfQuantumIdentifierCreate(tmp_aoqi)
 Copy(tmp_t4, nlte_field)
-Copy(tmp_aoqi, nlte_quantum_identifiers)
+Copy(tmp_aoqi, nlte_level_identifiers)
 nlteOff
 
 abs_xsec_agenda_checkedCalc
@@ -105,7 +105,7 @@ CompareRelative(y,y_lte_ref,1e-5, "LTE old method")
 #        which only works in AddLines2.
 AgendaSet(abs_xsec_agenda) { abs_xsec_per_speciesInit abs_xsec_per_speciesAddLines2 }
 Copy(nlte_field, tmp_t4)
-Copy(nlte_quantum_identifiers, tmp_aoqi)
+Copy(nlte_level_identifiers, tmp_aoqi)
 IndexSet(nlte_do, 1)
 
 abs_xsec_agenda_checkedCalc

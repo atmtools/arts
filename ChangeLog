@@ -1,3 +1,40 @@
+2019-02-21  Richard Larsson <larsson@mps.mpg.de>
+
+	* arts-2-3-1225
+	
+	* controlfiles/artscomponents/nlte/TestNLTE.arts:
+	Renamed nlte_quantum_identifiers→nlte_level_identifiers
+	
+        * controlfiles/artscomponents/nlte/TestPopulationDensityNLTE_lineshape.arts:
+        dito
+        
+        * controlfiles/artscomponents/nlte/testRotationalConvergence.arts:
+        dito.  Also using new collision_coefficientsFromSplitFiles.
+        
+        * controlfiles/artscomponents/nlte/testdata/nlte_testdata.xml:
+        Fixed because a previous bug did not use the correct quantum number
+        definitions
+        
+        * src/m_nlte.cc:  Added isotopologue_ratios to
+        nlte_fieldForSingleSpeciesNonOverlappingLines for use in collisions.
+        Made collision_coefficientsFromSplitFiles as a way to read collision
+        data.  Also renamed variables to fit with intent better
+        
+        * src/nlte.cc,h:  Removed all the asserts and debug options because
+        they made the code difficult to read.  Found bug in collision coefficients
+        that made the same level collision coefficient be used for all lines.
+        Added check_collision_line_identifiers.
+        
+        * src/workspace.cc:
+        Renames:  
+        nlte_quantum_identifiers→nlte_level_identifiers
+        nlte_collision_identifiers→collision_line_identifiers
+        nlte_collision_coefficients→collision_coefficients
+        
+        Retyped collision_coefficients:
+        ArrayOfGriddedField1→ArrayOfArrayOfGriddedField1
+        to support multiple colliders
+
 2019-02-19  Richard Larsson <larsson@mps.mpg.de>
 
 	* arts-2-3-1224

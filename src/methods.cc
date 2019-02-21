@@ -3412,7 +3412,7 @@ void define_md_data_raw()
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "t_field_raw", "z_field_raw", "vmr_field_raw", 
-             "nlte_field_raw", "nlte_quantum_identifiers" ),
+             "nlte_field_raw", "nlte_level_identifiers" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -3440,7 +3440,7 @@ void define_md_data_raw()
          "   4. Non-LTE temperature fields and matching identifiers\n"
          "The data is stored in different files. This method reads all\n"
          "files and creates the variables *t_field_raw*, *z_field_raw*,\n"
-         "*vmr_field_raw*, *nlte_field_raw*, and *nlte_quantum_identifiers*.\n"
+         "*vmr_field_raw*, *nlte_field_raw*, and *nlte_level_identifiers*.\n"
          "\n"
          "Files in a scenarios should be named matching the pattern of:\n"
          "tropical.H2O.xml\n"
@@ -3451,7 +3451,7 @@ void define_md_data_raw()
          "species, the same profile will be used.\n"
          ),
         AUTHORS( "Claudia Emde", "Richard Larsson" ),
-        OUT( "t_field_raw", "z_field_raw", "vmr_field_raw", "nlte_field_raw", "nlte_quantum_identifiers" ),
+        OUT( "t_field_raw", "z_field_raw", "vmr_field_raw", "nlte_field_raw", "nlte_level_identifiers" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -8954,7 +8954,7 @@ void define_md_data_raw()
         "of transitions of water.  Note that using this method directly is not\n"
         "best practice, as the quantum identifiers of the levels have to be known\n"
         "at an early stage in NLTE calculations, and will usually populate the\n"
-        "*nlte_quantum_identifiers* variable, meaning it is better to use *jacobianAddNLTE*\n"
+        "*nlte_level_identifiers* variable, meaning it is better to use *jacobianAddNLTE*\n"
         "directly than to individually call this function\n"
       ),
       AUTHORS("Richard Larsson"),
@@ -8986,7 +8986,7 @@ void define_md_data_raw()
         "as *jacobianAddNLTE*, ordered as energy_level_identities describes\n"
         "\n"
         "This method is preferred to *jacobianAddNLTE*, since *energy_level_identities*\n"
-        "is conveniently almost always the same as *nlte_quantum_identifiers*\n"
+        "is conveniently almost always the same as *nlte_level_identifiers*\n"
       ),
       AUTHORS("Richard Larsson"),
       OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -10865,8 +10865,8 @@ void define_md_data_raw()
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("nlte_field", "abs_species", "abs_lines_per_species", "nlte_quantum_identifiers", 
-         "nlte_collision_coefficients", "nlte_collision_identifiers",
+      IN("nlte_field", "abs_species", "abs_lines_per_species", "nlte_level_identifiers", 
+         "collision_coefficients", "collision_line_identifiers", "isotopologue_ratios",
          "iy_space_agenda", "iy_surface_agenda", 
          "iy_cloudbox_agenda", "propmat_clearsky_agenda", "water_p_eq_agenda",
          "vmr_field", "t_field", "z_field", "p_grid", "atmosphere_dim",
@@ -10880,6 +10880,25 @@ void define_md_data_raw()
                "number of frequency grid-points per line", 
                "use transmission dampening or not",
                "max number of iterations before defaul break of iterations")
+    ));
+    
+    md_data_raw.push_back     
+    ( MdRecord
+    ( NAME( "collision_coefficientsFromSplitFiles" ),
+      DESCRIPTION
+      ( "Reads *collision_coefficients* and *collision_line_identifiers* from location on filesystem\n"
+        "with many species.  The species in this location must match *abs_species*.  The location\n"
+        "must also contain an ArrayOfQuantumIdentifier file ending with qid.xml\n"),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "collision_coefficients", "collision_line_identifiers" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_species"),
+      GIN("basename"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT("./"),
+      GIN_DESC("path to files to read")
     ));
     
   md_data_raw.push_back
@@ -11263,10 +11282,10 @@ void define_md_data_raw()
          "\n"
          "The variables are set as follows:\n"
          "   nlte_field             : Empty.\n"
-         "   nlte_quantum_identifiers : Empty.\n"
+         "   nlte_level_identifiers : Empty.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
-        OUT( "nlte_do", "nlte_field", "nlte_quantum_identifiers" ),
+        OUT( "nlte_do", "nlte_field", "nlte_level_identifiers" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -11290,7 +11309,7 @@ void define_md_data_raw()
          "lines in *abs_lines_per_species* will have an internal tag to the relevant\n"
          "quantum identifier, which is a requirement for deeper code.\n"
          "\n"
-         "If vibrational_energies is input it must match *nlte_quantum_identifiers*\n"
+         "If vibrational_energies is input it must match *nlte_level_identifiers*\n"
          "in length.  The vibrational energies of the affected lines will then be\n"
          "set by the function.  Otherwise, it is assumed the vibrational energies\n"
          "are set by another method.  If they are not set, calculations will complain\n"
@@ -11315,7 +11334,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_lines_per_species", "nlte_quantum_identifiers", "abs_species"),
+        IN( "abs_lines_per_species", "nlte_level_identifiers", "abs_species"),
         GIN("vibrational_energies", "population_type"),
         GIN_TYPE("Vector", "Index"),
         GIN_DEFAULT("[]", "1"),
@@ -11338,7 +11357,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_lines_per_species", "nlte_quantum_identifiers", "partition_functions", "t_field"),
+        IN( "abs_lines_per_species", "nlte_level_identifiers", "partition_functions", "t_field"),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -11383,7 +11402,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_lines_per_species", "nlte_quantum_identifiers", "t_field"),
+        IN( "abs_lines_per_species", "nlte_level_identifiers", "t_field"),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

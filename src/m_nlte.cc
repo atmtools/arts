@@ -71,9 +71,10 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
                                                    Tensor4&                        nlte_field,
                                                    const ArrayOfArrayOfSpeciesTag& abs_species,
                                                    const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                                                   const ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
-                                                   const ArrayOfGriddedField1& nlte_collision_coefficients,
-                                                   const ArrayOfQuantumIdentifier& nlte_collision_identifiers,
+                                                   const ArrayOfQuantumIdentifier& nlte_level_identifiers,
+                                                   const ArrayOfArrayOfGriddedField1& collision_coefficients,
+                                                   const ArrayOfQuantumIdentifier& collision_line_identifiers,
+                                                   const SpeciesAuxData&           isotopologue_ratios,
                                                    const Agenda&                   iy_space_agenda,
                                                    const Agenda&                   iy_surface_agenda,
                                                    const Agenda&                   iy_cloudbox_agenda,
@@ -104,7 +105,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
   Matrix iy;
   Tensor3 iy_transmission;
   
-  const Index nlevels = nlte_quantum_identifiers.nelem(), np = p_grid.nelem();
+  const Index nlevels = nlte_level_identifiers.nelem(), np = p_grid.nelem();
   if(nlevels < 5)
     throw std::runtime_error("Must have more than a four levels");
   
@@ -120,7 +121,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
   
   const Index nlines = lines.nelem();
   if(nlevels >= nlines)
-    throw std::runtime_error("Bad number of lines... overlapping lines in nlte_quantum_identifiers?");
+    throw std::runtime_error("Bad number of lines... overlapping lines in nlte_level_identifiers?");
   
   // Create basic compute vectors
   const Vector Aij = createAij(lines);
@@ -129,7 +130,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
   Vector Cij(nlines), Cji(nlines);
   
   ArrayOfIndex upper, lower;
-  nlte_positions_in_statistical_equilibrium_matrix(upper, lower, lines, nlte_quantum_identifiers);
+  nlte_positions_in_statistical_equilibrium_matrix(upper, lower, lines, nlte_level_identifiers);
   const Index unique = find_first_unique_in_lower(upper, lower);
   
   // Compute arrays
@@ -151,7 +152,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
     
     for(Index ip = 0; ip < np; ip++) {
       r = nlte_field(joker, ip, 0, 0);
-      nlte_collision_factorsCalcFromCoeffs(Cij, Cji, lines, nlte_collision_coefficients, nlte_collision_identifiers, t_field(ip, 0, 0), p_grid[ip]);
+      nlte_collision_factorsCalcFromCoeffs(Cij, Cji, lines, abs_species, collision_coefficients, collision_line_identifiers, isotopologue_ratios, vmr_field(joker, ip, 0, 0), t_field(ip, 0, 0), p_grid[ip]);
       
       if(dampened)
         dampened_statistical_equilibrium_equation(SEE, r, Aij, Bij, Bji, Cij, Cji, iy(joker, ip), iy_transmission(0, joker, ip), upper, lower);
@@ -175,14 +176,50 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
 }
 
 
+void collision_coefficientsFromSplitFiles(ArrayOfArrayOfGriddedField1& collision_coefficients,
+                                          ArrayOfQuantumIdentifier& collision_line_identifiers,
+                                          const ArrayOfArrayOfSpeciesTag& abs_species,
+                                          const String& basename,
+                                          const Verbosity& verbosity)
+{
+  // Standard ARTS basename-assumption
+  String tmp_basename = basename, filename;
+  if (basename.length() && basename[basename.length()-1] != '/')
+    tmp_basename += ".";
+  
+  // Read the identification file
+  filename = tmp_basename + "qid.xml";
+  xml_read_from_file(filename, collision_line_identifiers, verbosity);
+  check_collision_line_identifiers(collision_line_identifiers);
+  
+  // Inner array size has to be this constantly
+  const Index n = collision_line_identifiers.nelem();
+  
+  // Set species dimensions and fill the array
+  collision_coefficients.resize(abs_species.nelem());
+  for(Index i=0; i<collision_coefficients.nelem(); i++) {
+    ArrayOfGriddedField1 aogf1;
+    
+    // Read the file for a species and check that the size is correct of the array
+    filename = tmp_basename + abs_species[i][0].SpeciesNameMain() + ".xml";
+    xml_read_from_file(filename, aogf1, verbosity);
+    if(aogf1.nelem() not_eq n)
+      throw std::runtime_error("Mismatch between collision_line_identifiers and some collision_coefficients");
+    collision_coefficients[i] = aogf1;
+  }
+}
+
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void nlteOff(Index&   nlte_do,
              Tensor4& t_nlte_field,
-             ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
+             ArrayOfQuantumIdentifier& nlte_level_identifiers,
              const    Verbosity& )
 {
   nlte_do = 0;
   t_nlte_field.resize(0, 0, 0, 0);
-  nlte_quantum_identifiers.resize(0);
+  nlte_level_identifiers.resize(0);
 }
+

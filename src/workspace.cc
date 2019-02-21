@@ -3188,10 +3188,10 @@ void Workspace::define_wsv_data()
 
  wsv_data.push_back
    (WsvRecord
-    ( NAME( "nlte_quantum_identifiers" ),
+    ( NAME( "nlte_level_identifiers" ),
       DESCRIPTION
       (
-        "An array of non-lte quantum identifiers.\n"
+        "An array of non-lte quantum identifiers for levels.\n"
         "Used to match *abs_lines_per_species* to NLTE\n"
         "temperatures/ratios.\n"
        ),
@@ -3199,22 +3199,22 @@ void Workspace::define_wsv_data()
    
    wsv_data.push_back
    (WsvRecord
-   ( NAME( "nlte_collision_identifiers" ),
+   ( NAME( "collision_line_identifiers" ),
      DESCRIPTION
      (
        "An array of quantum identifiers for finding collisional rates\n"
-       "in *nlte_collision_coefficients*\n"
+       "in *collision_coefficients*\n"
      ),
      GROUP( "ArrayOfQuantumIdentifier" )));
    
    wsv_data.push_back
    (WsvRecord
-   ( NAME( "nlte_collision_coefficients" ),
+   ( NAME( "collision_coefficients" ),
      DESCRIPTION
      (
        "An array of coefficients for effective collisions\n"
      ),
-     GROUP( "ArrayOfGriddedField1" )));
+     GROUP( "ArrayOfArrayOfGriddedField1" )));
    
  wsv_data.push_back
    (WsvRecord

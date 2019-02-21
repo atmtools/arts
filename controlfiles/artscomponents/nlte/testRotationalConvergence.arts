@@ -38,9 +38,9 @@ Arts2{
     # Data reading
     AtmRawRead(basename="testdata/")
     ReadXML(abs_lines, "testdata/lines.xml")
-    ReadXML(nlte_collision_identifiers, "spectroscopy/nlte/H2O/nlte_collision_identities.xml")
-    ReadXML(nlte_collision_coefficients, "spectroscopy/nlte/H2O/nlte_collision_coefficients.xml")
-    ReadXML(nlte_quantum_identifiers, "testdata/qi.xml")
+    
+    collision_coefficientsFromSplitFiles(basename="spectroscopy/nlte/H2O/")
+    ReadXML(nlte_level_identifiers, "testdata/qi.xml")
     
     # Interpretation of data
     isotopologue_ratiosInitFromBuiltin
@@ -51,7 +51,7 @@ Arts2{
     AtmFieldsCalc
     abs_lines_per_speciesCreateFromLines
     
-    # No fancy computations by turning all of these offf
+    # No fancy computations by turning all of these off
     jacobianOff
     cloudboxOff
     

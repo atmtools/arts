@@ -20,6 +20,7 @@
 #include "linerecord.h"
 #include "matpackI.h"
 #include "gridded_fields.h"
+#include "absorption.h"
 
 
 void statistical_equilibrium_equation(MatrixView A,
@@ -68,8 +69,11 @@ void setCji(VectorView Cji, ConstVectorView Cij, const ArrayOfLineRecord& abs_li
 void nlte_collision_factorsCalcFromCoeffs(Vector& Cij,
                                           Vector& Cji,
                                           const ArrayOfLineRecord& abs_lines,
-                                          const ArrayOfGriddedField1& nlte_collision_coefficients,
-                                          const ArrayOfQuantumIdentifier& nlte_collision_identifiers,
+                                          const ArrayOfArrayOfSpeciesTag& abs_species,
+                                          const ArrayOfArrayOfGriddedField1& collision_coefficients,
+                                          const ArrayOfQuantumIdentifier& collision_line_identifiers,
+                                          const SpeciesAuxData& isotopologue_ratios,
+                                          const ConstVectorView vmr,
                                           const Numeric& T,
                                           const Numeric& P);
 
@@ -79,3 +83,6 @@ void nlte_positions_in_statistical_equilibrium_matrix(ArrayOfIndex& upper, Array
                                                       const ArrayOfQuantumIdentifier& nlte_quantum_identifiers);
 
 Index find_first_unique_in_lower(const ArrayOfIndex& upper, const ArrayOfIndex& lower) noexcept;
+
+
+void check_collision_line_identifiers(const ArrayOfQuantumIdentifier& collision_line_identifiers);

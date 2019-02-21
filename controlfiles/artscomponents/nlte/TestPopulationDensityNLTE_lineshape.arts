@@ -34,7 +34,7 @@ Arts2 {
   Extract(QI, qi_lines, 0)
   
   # NLTE matching information
-  ReadXML(nlte_quantum_identifiers, "testdata/o2-qi.xml")
+  ReadXML(nlte_level_identifiers, "testdata/o2-qi.xml")
   nlteSetByQuantumIdentifiers(population_type=2)
   
   # Silly parameters that have to be set by agendas and ARTS in general but are completely useless for these calculations
@@ -53,7 +53,7 @@ Arts2 {
   jacobianAddAbsSpecies(g1=p_grid, g2=[0], g3=[0], species="O2-66", for_species_tag=0)
   jacobianAddBasicCatalogParameters(catalog_identities=qi_lines, catalog_parameters=["Line Strength", "Line Center"])
   jacobianAddShapeCatalogParameters(line_identities=qi_lines, variables=["G0", "D0", "Y", "G", "DV"], coefficients=["X0", "X1", "X2"], species=["SELF", "AIR"])
-  jacobianAddNLTEs(g1=p_grid, g2=[0], g3=[0], energy_level_identities=nlte_quantum_identifiers, dx=1e-6)
+  jacobianAddNLTEs(g1=p_grid, g2=[0], g3=[0], energy_level_identities=nlte_level_identifiers, dx=1e-6)
   jacobianClose
   
   # Perform calculations for analytical propagation matrix and derivatives
