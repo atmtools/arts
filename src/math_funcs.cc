@@ -911,25 +911,24 @@ void reshape( MatrixView X, ConstVectorView x )
     }
 }
 
-//! calculate_weights_linear
 
+
+//! calculate_weights_linear
+/*!
+  Function to set the evaluation points and the corresponding weights
+  for numerical integration on the domain from [-1,1]
+
+  Parameters:
+
+  \param[out] x evaluation points
+  \paran[out] w integration weights
+  \param[in] nph       number of evaluation points per hemisphere
+*/
 void calculate_weights_linear(
         Vector &x,
         Vector &w,
         const Index nph
         )
-/*!
-Function to set the evaluation points and the corresponding weights
-for numerical integration on the domain from [-1,1]
-
-Parameters:
-
-\param[out] x evaluation points
-\paran[out] w integration weights
-\param[in] nph       number of evaluation points per hemisphere
-
-
-*/
 {
 
   Index N=nph * 2;

@@ -8689,13 +8689,13 @@ void define_md_data_raw()
           "Also note *jacobianAddShapeCatalogParameter* as this allows addition\n"
           "of shape parameters, e.g., pressure broadening coefficients\n"
           "\n"
-          "Each call to this function adds just a single value to *x*\n"
+          "Each call to this function adds just a single value to *x*.\n"
           "\n"
           "Example given the catalog_identity=\"O2-66 TR UP v1 0 J 1 LO v1 0 J 0\",\n"
           "only the O2 ground-level 119 GHz line can be accessed and only its\n"
           "catalog_parameter will be accessed.  However, the more lenient\n"
           "catalog_identity=\"O2-66 TR UP J 1 LO J 0\" may be used, but then the\n"
-          "118 GHz line belonging to v1=1 branch will be added to the same *x*\n"
+          "118 GHz line belonging to v1=1 branch will be added to the same *x*.\n"
       ),
       AUTHORS( "Richard Larsson" ),
       OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -8746,7 +8746,7 @@ void define_md_data_raw()
          "that the deviation is a constant off-set, a shift, common for all\n"
          "frequencies (and not varying between measurement blocks).\n"
          "\n"
-         "This metmhod adds one element to the stae vector (*x*).\n"
+         "This method adds one element to the state vector (*x*).\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -8773,7 +8773,7 @@ void define_md_data_raw()
          "that the deviation varies linearly over the frequency range\n"
          "(following ARTS basis function for polynomial order 1).\n"
          "\n"
-         "This metmhod adds one element to the stae vector (*x*).\n"
+         "This method adds one element to the state vector (*x*).\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -8825,9 +8825,8 @@ void define_md_data_raw()
         "coefficient at the level of this function, so many errors will only be reported\n"
         "at a later stage\n"
         "\n"
-        "For other spectroscopic parameters, see\n"
-        "*jacobianAddBasicCatalogParameter*.  Also see said function for an example of how\n"
-        "to set the QuantumIdentifier\n"
+        "For other spectroscopic parameters, see *jacobianAddBasicCatalogParameter*.\n"
+        "Also see said function for an example of how to set the QuantumIdentifier\n"
       ),
       AUTHORS("Richard Larsson"),
       OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -14903,7 +14902,7 @@ void define_md_data_raw()
         (
             "Adds an absorption species to the retrieval quantities.\n"
             "\n"
-            "Similar to jacobianAddAbsSpecies but also sets the corresponding block in\n"
+            "Similar to *jacobianAddAbsSpecies* but also sets the corresponding block in\n"
             "*covmat_sx* to the matrices provided in *covmat_block* and *covmat_inv_block*.\n"
             "The dimensions of *covmat_block* are required to agree with the dimensions of the\n"
             "retrieval grid.\n"
@@ -14912,6 +14911,8 @@ void define_md_data_raw()
             "If provided, this matrix will be used as the inverse for the covariance matrix block\n"
             "and numerical inversion of this block is thus avoided. Note, however, that this is\n"
             "only effective if this block is uncorrelated with any other retrieval quantity.\n"
+            "\n"
+            "For number and order of elements added to *x*, see *jacobianAddAbsSpecies*.\n"
             ),
         AUTHORS( "Simon Pfreundschuh" ),
         OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
@@ -14944,8 +14945,10 @@ void define_md_data_raw()
     ( NAME( "retrievalAddFreqShift" ),
       DESCRIPTION
       (
-          "Same as *jacobianAddFreqShift* but also add the correlation block\n"
+          "Same as *jacobianAddFreqShift* but also adds the correlation block\n"
           "contained in *covmat_block* and *covmat_inv_block* to *covmat_sx*.\n"
+          "\n"
+          "For number and order of elements added to *x*, see *jacobianAddFreqShift*.\n"
           ),
       AUTHORS( "Simon Pfreundschuh" ),
       OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
@@ -14967,7 +14970,9 @@ void define_md_data_raw()
       DESCRIPTION
       (
           "Same as *jacobianAddFreqShift* but also adds the correlation block\n"
-          " contained in *covmat_block* and *covmat_inv_block* to *covmat_sx*.\n"
+          "contained in *covmat_block* and *covmat_inv_block* to *covmat_sx*.\n"
+          "\n"
+          "For number and order of elements added to *x*, see *jacobianAddFreqStretch*.\n"
           ),
       AUTHORS( "Simon Pfreundschuh" ),
       OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
@@ -15017,7 +15022,9 @@ void define_md_data_raw()
       DESCRIPTION
       (
           "Siminlar to *jacobianAddCatalogParameter* but also adds a corresponding\n"
-          " block to *covmat_sx* with the given *var* as variance value.\n"
+          "block to *covmat_sx* with the given *var* as variance value.\n"
+          "\n"
+          "For number and order of elements added to *x*, see *jacobianAddCatalogParameter*.\n"
           ),
       AUTHORS( "Simon Pfreundschuh" ),
       OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
@@ -15043,6 +15050,8 @@ void define_md_data_raw()
           "\n"
           "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
           "which avoids its numerical computation.\n"
+          "\n"
+          "For number and order of elements added to *x*, see *jacobianAddCatalogParameters*.\n"
       ),
       AUTHORS( "Simon Pfreundschuh" ),
       OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
@@ -15068,6 +15077,8 @@ void define_md_data_raw()
           "\n"
           "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
           "which avoids its numerical computation.\n"
+          "\n"
+          "For number and order of elements added to *x*, see *jacobianAddAbsMagField*.\n"
       ),
       AUTHORS( "Simon Pfreundschuh"),
       OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
@@ -15097,6 +15108,8 @@ void define_md_data_raw()
           "\n"
           "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
           "which avoids its numerical computation.\n"
+          "\n"
+          "For number and order of elements added to *x*, see *jacobianAddPointingZa*.\n"
           ),
       AUTHORS( "Simon Pfreundschuh"),
       OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
@@ -15125,6 +15138,8 @@ void define_md_data_raw()
           "\n"
           "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
           "which avoids its numerical computation.\n"
+          "\n"
+          "For number and order of elements added to *x*, see *jacobianAddPolyfit*.\n"
           ),
       AUTHORS( "Simon Pfreundschuh" ),
       OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
@@ -15158,6 +15173,8 @@ void define_md_data_raw()
           "\n"
           "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
           "which avoids its numerical computation.\n"
+          "\n"
+          "For number and order of elements added to *x*, see *jacobianAddScatSpecies*.\n"
           ),
       AUTHORS( "Simon Pfreundschuh" ),
       OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
@@ -15192,6 +15209,8 @@ void define_md_data_raw()
           "\n"
           "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
           "which avoids its numerical computation.\n"
+          "\n"
+          "For number and order of elements added to *x*, see *jacobianAddAbsSinefit*.\n"
           ),
       AUTHORS( "Simon Pfreundschuh" ),
       OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
@@ -15225,6 +15244,8 @@ void define_md_data_raw()
           "\n"
           "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
           "which avoids its numerical computation.\n"
+          "\n"
+          "For number and order of elements added to *x*, see *jacobianAddSpecialSpecies*.\n"
           ),
       AUTHORS( "Simon Pfreundschuh" ),
       OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
@@ -15250,36 +15271,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-    ( NAME( "retrievalAddWind" ),
-      DESCRIPTION
-      (
-          "Same as *jacobianAddWind* but also adds a new block to *covmat_sx*\n"
-          "using the matrices in *covmat_block* and *covmat_inv_block*.\n"
-          "\n"
-          "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
-          "which avoids its numerical computation.\n"
-          ),
-      AUTHORS( "Simon Pfreundschuh" ),
-      OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN( "covmat_sx", "jacobian_quantities", "jacobian_agenda", 
-          "atmosphere_dim", "covmat_block", "covmat_inv_block", "p_grid",
-          "lat_grid", "lon_grid" ),
-      GIN( "g1", "g2", "g3", "component", "dfrequency" ),
-      GIN_TYPE( "Vector", "Vector", "Vector", "String", "Numeric" ),
-      GIN_DEFAULT( NODEF, NODEF, NODEF, "v", "0.1" ),
-      GIN_DESC( "Pressure retrieval grid.",
-                "Latitude retrieval grid.",
-                "Longitude retrieval grid.",
-                "Wind component to retrieve",
-                "This is the frequency perturbation"
-          )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
     ( NAME( "retrievalAddSurfaceQuantity" ),
       DESCRIPTION
       (
@@ -15288,6 +15279,8 @@ void define_md_data_raw()
         "\n"
         "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
         "which avoids its numerical computation.\n"
+        "\n"
+        "For number and order of elements added to *x*, see *jacobianAddSurfaceQuantity*.\n"
       ),
       AUTHORS( "Patrick Eriksson" ),
       OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
@@ -15316,6 +15309,8 @@ void define_md_data_raw()
         "\n"
         "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
         "which avoids its numerical computation.\n"
+        "\n"
+        "For number and order of elements added to *x*, see *jacobianAddTemperature*.\n"
         ),
       AUTHORS( "Simon Pfreundschuh"),
       OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
@@ -15334,6 +15329,38 @@ void define_md_data_raw()
                 "Flag to assume HSE or not (\"on\" or \"off\").",
                 "Calculation method. See above.",
                 "Size of perturbation [K]." 
+          )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "retrievalAddWind" ),
+      DESCRIPTION
+      (
+          "Same as *jacobianAddWind* but also adds a new block to *covmat_sx*\n"
+          "using the matrices in *covmat_block* and *covmat_inv_block*.\n"
+          "\n"
+          "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
+          "which avoids its numerical computation.\n"
+          "\n"
+          "For number and order of elements added to *x*, see *jacobianAddWind*.\n"
+          ),
+      AUTHORS( "Simon Pfreundschuh" ),
+      OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "covmat_sx", "jacobian_quantities", "jacobian_agenda", 
+          "atmosphere_dim", "covmat_block", "covmat_inv_block", "p_grid",
+          "lat_grid", "lon_grid" ),
+      GIN( "g1", "g2", "g3", "component", "dfrequency" ),
+      GIN_TYPE( "Vector", "Vector", "Vector", "String", "Numeric" ),
+      GIN_DEFAULT( NODEF, NODEF, NODEF, "v", "0.1" ),
+      GIN_DESC( "Pressure retrieval grid.",
+                "Latitude retrieval grid.",
+                "Longitude retrieval grid.",
+                "Wind component to retrieve",
+                "This is the frequency perturbation"
           )
         ));
 

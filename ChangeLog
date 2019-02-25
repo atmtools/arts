@@ -1,3 +1,16 @@
+2019-02-25  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* src/methods.cc: Added comment to all retrievalAdd-methods to see
+	the corresponding jacoboianAdd for number and order of x elements.
+
+	* src/workspace.cc: Extended description of *x* and *y*, with
+	focus on order of data inside these vectors. Added comment to
+	jacobian referring to link to x and y.
+
+	General note: If you add a jacobianAdd... method, make sure you
+	describe the order of elements added to x. The description of *x*
+	refers to these Add-methods about this.
+
 2019-02-21  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1226
