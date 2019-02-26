@@ -1,3 +1,29 @@
+2019-02-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1228
+
+	* src/groups.cc, src/xml_io_array_types.cc, src/xml_io_instantiation.h,
+	src/xml_io_types.h:
+
+	Add WSV group ArrayOfTensor5.
+
+	* src/agendas.cc: Add dobatch_calc_agenda.
+
+	* src/m_basic_types.cc, src/methods.cc: Add Compare for ArrayOfTensor7.
+
+	* src/m_batch.cc, src/methods.cc:
+
+	Add DOBatchCalc, a batch method tailored to radiation field
+	calculations.
+
+	* src/workspace.cc: Add dobatch_calc_agenda, dobatch_doit_i_field,
+	dobatch_radiance_field, dobatch_irradiance_field,
+	dobatch_spectral_irradiance_field.
+
+	* controlfiles/CMakeLists.txt, controlfiles/artscomponents/dobatch/:
+
+	Add test case for DOBatchCalc.
+	
 2019-02-25  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1227

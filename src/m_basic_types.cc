@@ -2298,6 +2298,51 @@ void Compare(const ArrayOfMatrix&    var1,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void Compare(const ArrayOfTensor7&    var1,
+             const ArrayOfTensor7&    var2,
+             const Numeric&   maxabsdiff,
+             const String&    error_message,
+             const String&    var1name,
+             const String&    var2name,
+             const String&,
+             const String&,
+             const Verbosity& verbosity)
+{
+  if( var1.nelem() != var2.nelem() )
+  {
+    ostringstream os;
+    os << "The two arrays do not have the same size." << endl
+    << var1name << " nelem: " << var1.nelem() << endl
+    << var2name << " nelem: " << var2.nelem() << endl;
+    throw runtime_error(os.str());
+  }
+
+  bool failed = false;
+  ostringstream fail_msg;
+  for (Index i = 0; i < var1.nelem(); i++)
+  {
+    try
+    {
+      ostringstream vn1, vn2;
+      vn1 << var1name << "[" << i << "]";
+      vn2 << var2name << "[" << i << "]";
+      Compare(var1[i], var2[i], maxabsdiff, error_message,
+              vn1.str(), vn2.str(), "", "", verbosity);
+    }
+    catch (const std::runtime_error &e)
+    {
+      failed = true;
+      fail_msg << endl << e.what() << endl
+      << "Mismatch at array index: " << i << endl;
+    }
+  }
+
+  if (failed)
+    throw runtime_error(fail_msg.str());
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Compare(const GriddedField3&    var1,
              const GriddedField3&    var2,
              const Numeric&   maxabsdiff,

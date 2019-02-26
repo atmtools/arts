@@ -647,4 +647,150 @@ void ybatchMetProfilesClear(
 }
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void DOBatchCalc(Workspace& ws,
+                 ArrayOfTensor7& dobatch_doit_i_field,
+                 ArrayOfTensor5& dobatch_radiance_field,
+                 ArrayOfTensor4& dobatch_irradiance_field,
+                 ArrayOfTensor5& dobatch_spectral_irradiance_field,
+                 const Index& ybatch_start,
+                 const Index& ybatch_n,
+                 const Agenda& dobatch_calc_agenda,
+                 const Index& robust,
+                 const Verbosity& verbosity)
+{
+    CREATE_OUTS;
+
+    Index first_ybatch_index = 0;
+
+    ArrayOfString fail_msg;
+    bool do_abort = false;
+
+    // We allow a start index ybatch_start that is different from 0. We
+    // will calculate ybatch_n jobs starting at the start
+    // index. Internally, we count from zero, which is the right
+    // counting for the output array ybatch. When we call
+    // ybatch_calc_agenda, we add ybatch_start to the internal index
+    // count.
+
+    // We create a counter, so that we can generate nice output about
+    // how many jobs are already done. (All parallel threads later will
+    // increment this, so that we really get an accurate total count!)
+    Index job_counter = 0;
+
+    // Resize the output arrays:
+    dobatch_doit_i_field.resize(ybatch_n);
+    dobatch_radiance_field.resize(ybatch_n);
+    dobatch_irradiance_field.resize(ybatch_n);
+    dobatch_spectral_irradiance_field.resize(ybatch_n);
+
+    // We have to make a local copy of the Workspace and the agendas because
+    // only non-reference types can be declared firstprivate in OpenMP
+    Workspace l_ws(ws);
+    Agenda l_dobatch_calc_agenda(dobatch_calc_agenda);
+
+    // Go through the batch:
+
+    if (ybatch_n)
+#pragma omp parallel for       \
+  schedule(dynamic)            \
+  if (!arts_omp_in_parallel()  \
+      && ybatch_n > 1)         \
+  firstprivate(l_ws, l_dobatch_calc_agenda)
+        for (Index ybatch_index = first_ybatch_index;
+             ybatch_index < ybatch_n;
+             ybatch_index++)
+        {
+            Index l_job_counter;      // Thread-local copy of job counter.
+
+            if (do_abort) continue;
+#pragma omp critical (dobatchCalc_job_counter)
+            {
+                l_job_counter = ++job_counter;
+            }
+
+            {
+                ostringstream os;
+                os << "  Job " << l_job_counter << " of " << ybatch_n
+                   << ", Index " << ybatch_start + ybatch_index
+                   << ", Thread-Id "
+                   << arts_omp_get_thread_num() << "\n";
+                out2 << os.str();
+            }
+
+            try
+            {
+                Tensor7 doit_i_field;
+                Tensor5 radiance_field;
+                Tensor4 irradiance_field;
+                Tensor5 spectral_irradiance_field;
+
+                dobatch_calc_agendaExecute(l_ws, doit_i_field,
+                                           radiance_field,
+                                           irradiance_field,
+                                           spectral_irradiance_field,
+                                           ybatch_start + ybatch_index,
+                                           l_dobatch_calc_agenda);
+
+#pragma omp critical (dobatchCalc_assign_doit_i_field)
+                dobatch_doit_i_field[ybatch_index] = doit_i_field;
+#pragma omp critical (dobatchCalc_assign_radiance_field)
+                dobatch_radiance_field[ybatch_index] = radiance_field;
+#pragma omp critical (dobatchCalc_assign_irradiance_field)
+                dobatch_irradiance_field[ybatch_index] = irradiance_field;
+#pragma omp critical (dobatchCalc_assign_spectral_irradiance_field)
+                dobatch_spectral_irradiance_field[ybatch_index] =
+                    spectral_irradiance_field;
+
+            }
+            catch (const std::runtime_error& e)
+            {
+                if (robust && !do_abort)
+                {
+                    ostringstream os;
+                    os << "WARNING! Job at ybatch_index "
+                       << ybatch_start + ybatch_index << " failed.\n"
+                       << "element in output variables will be empty for this job.\n"
+                       << "The runtime error produced was:\n"
+                       << e.what() << "\n";
+                    out0 << os.str();
+                }
+                else
+                {
+                    // The user wants the batch job to fail if one of the
+                    // jobs goes wrong.
+#pragma omp critical (dobatchCalc_setabort)
+                    do_abort = true;
+
+                    ostringstream os;
+                    os << "  Job at ybatch_index "
+                       << ybatch_start + ybatch_index
+                       << " failed. Aborting...\n";
+                    out1 << os.str();
+                }
+                ostringstream os;
+                os << "Run-time error at ybatch_index "
+                   << ybatch_start + ybatch_index << ": \n" << e.what();
+#pragma omp critical (dobatchCalc_push_fail_msg)
+                fail_msg.push_back(os.str());
+            }
+        }
+
+    if (fail_msg.nelem())
+    {
+        ostringstream os;
+
+        if (!do_abort) os << "\nError messages from failed batch cases:\n";
+        for (ArrayOfString::const_iterator it = fail_msg.begin();
+             it != fail_msg.end(); it++)
+            os << *it << '\n';
+
+        if (do_abort)
+            throw runtime_error(os.str());
+        else
+            out0 << os.str();
+    }
+
+}
+
 

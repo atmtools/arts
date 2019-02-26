@@ -1405,6 +1405,88 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Index" )));
 
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "dobatch_calc_agenda" ),
+      DESCRIPTION
+      (
+        "Agenda defining the calculations to perform for each batch case.\n"
+       ),
+      GROUP( "Agenda" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "dobatch_doit_i_field" ),
+      DESCRIPTION
+      (
+       "Batch of radiation fields.\n"
+       "\n"
+       "Each element of *dobatch_doit_i_field* corresponds to a radiation field.\n"
+       "See further *DOBatchCalc*.\n"
+       "\n"
+       "Usage: Most commonly produced by *DOBatchCalc*.\n"
+       "\n"
+       "Unit:  See *doit_i_field*.\n"
+       "\n"
+       "Dimensions: Number of array elements equals number of batch cases.\n"
+       ),
+      GROUP( "ArrayOfTensor7" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "dobatch_radiance_field" ),
+      DESCRIPTION
+      (
+       "Batch of radiance fields.\n"
+       "\n"
+       "Each element of *dobatch_radiance_field* corresponds to a radiance field.\n"
+       "See further *DOBatchCalc*.\n"
+       "\n"
+       "Usage: Most commonly produced by *DOBatchCalc*.\n"
+       "\n"
+       "Unit:  See *radiance_field*.\n"
+       "\n"
+       "Dimensions: Number of array elements equals number of batch cases.\n"
+       ),
+      GROUP( "ArrayOfTensor5" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "dobatch_irradiance_field" ),
+      DESCRIPTION
+      (
+       "Batch of irradiance fields.\n"
+       "\n"
+       "Each element of *dobatch_irradiance_field* corresponds to a irradiance field.\n"
+       "See further *DOBatchCalc*.\n"
+       "\n"
+       "Usage: Most commonly produced by *DOBatchCalc*.\n"
+       "\n"
+       "Unit:  See *irradiance_field*.\n"
+       "\n"
+       "Dimensions: Number of array elements equals number of batch cases.\n"
+       ),
+      GROUP( "ArrayOfTensor4" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "dobatch_spectral_irradiance_field" ),
+      DESCRIPTION
+      (
+       "Batch of spectral irradiance fields.\n"
+       "\n"
+       "Each element of *dobatch_spectral_irradiance_field* corresponds to a\n"
+       "spectral irradiance field.\n"
+       "See further *DOBatchCalc*.\n"
+       "\n"
+       "Usage: Most commonly produced by *DOBatchCalc*.\n"
+       "\n"
+       "Unit:  See *spectral_irradiance_field*.\n"
+       "\n"
+       "Dimensions: Number of array elements equals number of batch cases.\n"
+       ),
+      GROUP( "ArrayOfTensor5" )));
+
    wsv_data.push_back
    (WsvRecord
    ( NAME( "dsrc_coef_dx" ),

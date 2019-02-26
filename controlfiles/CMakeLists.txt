@@ -114,6 +114,7 @@ arts_test_run_ctlfile(fast artscomponents/ycalcappend/TestYCalcAppend.arts)
 
 arts_test_run_ctlfile(fast artscomponents/heatingrates/TestHeatingRates.arts)
 
+arts_test_run_ctlfile(fast artscomponents/dobatch/TestDOBatch.arts)
 
 if (ENABLE_FFTW)
   arts_test_run_ctlfile(fast artscomponents/hitran-xsec/TestHitranXsec.arts)

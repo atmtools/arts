@@ -105,6 +105,22 @@ void define_agenda_data()
       INPUT(  "abs_species", "jacobian_quantities", "abs_species_active",
               "f_grid", "abs_p", "abs_t", "abs_nlte", "abs_vmrs" )));
 
+  agenda_data.push_back
+     (AgRecord
+      ( NAME( "dobatch_calc_agenda" ),
+        DESCRIPTION
+        (
+         "Calculations to perform for each batch case.\n"
+         "\n"
+         "Must produce a *doit_i_field*, *radiance_field*, *radiation_field*\n"
+         "and *spectral_irradiance_field*.\n"
+         "\n"
+         "See further *dobatchCalc*.\n"
+        ),
+        OUTPUT( "doit_i_field", "radiance_field",
+                "irradiance_field", "spectral_irradiance_field" ),
+        INPUT( "ybatch_index" )));
+
  agenda_data.push_back
     (AgRecord
      ( NAME( "doit_conv_test_agenda" ),

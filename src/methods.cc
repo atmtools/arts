@@ -4152,7 +4152,7 @@ void define_md_data_raw()
       ( NAME( "Compare" ),
         DESCRIPTION
         (
-         "Checks the consistency between two variables.\n" 
+         "Checks the consistency between two variables.\n"
          "\n"
          "The two variables are checked to not deviate outside the specified\n"
          "value (*maxabsdiff*). An error is issued if this is not fulfilled.\n"
@@ -4168,15 +4168,18 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN(),
         GIN( "var1", "var2", "maxabsdiff", "error_message" ),
-        GIN_TYPE( "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor7,"
-                  "ArrayOfVector, ArrayOfMatrix, GriddedField3, Sparse,"
-                  "SingleScatteringData",
+        GIN_TYPE( // INPUT 1
                   "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor7,"
-                  "ArrayOfVector, ArrayOfMatrix, GriddedField3, Sparse,"
-                  "SingleScatteringData",
+                  "ArrayOfVector, ArrayOfMatrix, ArrayOfTensor7, GriddedField3,"
+                  "Sparse, SingleScatteringData",
+                  // INPUT 2
+                  "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor7,"
+                  "ArrayOfVector, ArrayOfMatrix, ArrayOfTensor7, GriddedField3,"
+                  "Sparse, SingleScatteringData",
+                  // OTHER INPUT
                   "Numeric", "String" ),
         GIN_DEFAULT( NODEF, NODEF, "", "" ),
-        GIN_DESC( "A first variable", "A second variable", 
+        GIN_DESC( "A first variable", "A second variable",
                   "Threshold for maximum absolute difference.",
                   "Additional error message."),
         SETMETHOD(      false ),
@@ -4193,7 +4196,7 @@ void define_md_data_raw()
       (
        "Set complex refractive index to a constant value.\n"
        "\n"
-       "Frequency and temperature grids are set to have length 1 (and\n" 
+       "Frequency and temperature grids are set to have length 1 (and\n"
        "set to the value 0).\n"
        ),
       AUTHORS( "Oliver Lemke" ),
@@ -4208,7 +4211,7 @@ void define_md_data_raw()
       GIN_DESC( "Real part of refractive index",
                 "Imag part of refractive index" )
       ));
-    
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "complex_refr_indexIceMatzler06" ),
@@ -4751,11 +4754,11 @@ void define_md_data_raw()
         GIN(        "shape",  "diameter_volume_equ", "aspect_ratio" ),
         GIN_TYPE(   "String", "Numeric",             "Numeric" ),
         GIN_DEFAULT( NODEF,   NODEF,                 NODEF ),
-        GIN_DESC( "Particle shape.", 
-                  "Particle equivalent volume diameter.", 
+        GIN_DESC( "Particle shape.",
+                  "Particle equivalent volume diameter.",
                   "Particle aspect ratio." )
         ));
-    
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "diameter_volume_equFromDiameter_max" ),
@@ -4781,11 +4784,11 @@ void define_md_data_raw()
         GIN(         "shape",  "diameter_max", "aspect_ratio" ),
         GIN_TYPE(    "String", "Numeric",      "Numeric" ),
         GIN_DEFAULT( NODEF,    NODEF,          NODEF ),
-        GIN_DESC( "Particle shape.", 
-                  "Maximum dimension of the particle.", 
+        GIN_DESC( "Particle shape.",
+                  "Maximum dimension of the particle.",
                   "Particle aspect ratio." )
         ));
-    
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "DiffZaAa" ),
@@ -4809,7 +4812,7 @@ void define_md_data_raw()
         GIN_DESC( "Reference line-of-sight (a single LOS).",
                   "Other line-of-sights (can be multiple LOS)." )
       ));
-    
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "DisortCalc" ),
@@ -4949,7 +4952,7 @@ void define_md_data_raw()
         IN( "atmfields_checked", "atmgeom_checked", "scat_data_checked",
             "cloudbox_checked", "cloudbox_on", "cloudbox_limits",
             "propmat_clearsky_agenda",
-            "surface_rtprop_agenda", "atmosphere_dim", 
+            "surface_rtprop_agenda", "atmosphere_dim",
             "pnd_field", "t_field", "z_field", "vmr_field", "p_grid",
             "scat_data", "f_grid", "scat_za_grid", "stokes_dim" ),
         GIN(         "nstreams", "do_deltam", "pfct_method", "new_optprop", "Npfct" ),
@@ -5009,7 +5012,7 @@ void define_md_data_raw()
                   "Mass-dimension relationship exponent [-].",
                   "Flag whether to ignore parametrization value checks." )
       ));
-    
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "dNdD_H11" ),
@@ -5040,8 +5043,8 @@ void define_md_data_raw()
         GIN_DEFAULT( NODEF,    NODEF ),
         GIN_DESC( "Maximum dimension of the particles [m]",
                   "Ambient atmospheric temperature [K]" )
-        ));  
-    
+        ));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "dNdD_H13_Ar" ),
@@ -5071,8 +5074,8 @@ void define_md_data_raw()
         GIN_DEFAULT( NODEF,    NODEF ),
         GIN_DESC( "Maximum dimension of the particles [m]",
                   "Ambient atmospheric temperature [K]" )
-        ));  
-    
+        ));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "dNdD_H98" ),
@@ -5097,8 +5100,8 @@ void define_md_data_raw()
         GIN_DEFAULT( NODEF,                        NODEF ),
         GIN_DESC( "Volume equivalent sphere diameter of the particles [m]",
                   "Atmospheric liquid water content [kg/m3]" )
-        ));  
-   
+        ));
+
   md_data_raw.push_back
     ( MdRecord
      ( NAME( "dNdD_MGD_IWC" ),
@@ -5127,7 +5130,7 @@ void define_md_data_raw()
                 "Density of the particles [kg/m^3]",
                 "Atmospheric ice water content [kg/m3]")
       ));
-    
+
   md_data_raw.push_back
     ( MdRecord
      ( NAME( "dNdD_MGD_LWC" ),
@@ -5157,7 +5160,7 @@ void define_md_data_raw()
                 "Atmospheric ice water content [kg/m3]")
 
       ));
-    
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "dNdD_MH97" ),
@@ -5200,7 +5203,7 @@ void define_md_data_raw()
                   "Distribution parameter perturbance flag.",
                   "Flag whether to ignore parametrization value checks." )
         ));
-    
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "dNdD_MP48" ),
@@ -5234,8 +5237,8 @@ void define_md_data_raw()
                   "Precipitation rate [mm/h or kg/m2/s]",
                   "Precipitation rate unit",
                   "Material density [kg/m3] (required if PRunit!='mm/h')" )
-        ));  
-    
+        ));
+
     md_data_raw.push_back
     ( MdRecord
      ( NAME( "dNdD_SB06" ),
@@ -5315,7 +5318,7 @@ void define_md_data_raw()
                 "Mass concentration [kg/m^3]",
                 "Type of particle size distribution (hydrometeor type)")
       ));
-    
+
   md_data_raw.push_back
     ( MdRecord
      ( NAME( "dNdD_MY05" ),
@@ -5351,7 +5354,7 @@ void define_md_data_raw()
                "Mass concentration [kg/m^3]",
                "Type of particle size distribution (hydrometeor type)")
       ));
-    
+
     md_data_raw.push_back
     ( MdRecord
      ( NAME( "dNdD_MY05_M" ),
@@ -5387,8 +5390,8 @@ void define_md_data_raw()
                "Mass concentration [kg/m^3]",
                "Type of particle size distribution (hydrometeor type)")
       ));
-    
-    
+
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "dNdD_W16" ),
@@ -5419,7 +5422,61 @@ void define_md_data_raw()
                   "Rain water mass content [kg/m3].",
                   "Flag whether to ignore parametrization value checks." )
         ));
-    
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "DOBatchCalc" ),
+        DESCRIPTION
+        (
+         "Performs batch calculations for radiation fields.\n"
+         "\n"
+         "We perform *ybatch_n* jobs, starting at index *ybatch_start*. (Zero\n"
+         "based indexing, as usual.) The output arrays will have\n"
+         "ybatch_n elements. Indices in the output array start\n"
+         "with zero, independent of *ybatch_start*.\n"
+         "\n"
+         "WARNING, MEMORY INTENSIVE!!!: Since the outputs of this methods can\n"
+         "be very large, make sure you only pass back output you need.\n"
+         "Estimate the size of your output by looking at the dimensions\n"
+         "beforehand. If you only want to pass back some fields, make sure to\n"
+         "empty the others at the end of your *dobatch_calc_agenda*. E.g.:\n"
+         "Tensor7SetConstant(doit_i_field, 0, 0, 0, 0, 0, 0, 0, 0.)\n"
+         "\n"
+         "The method performs the following:\n"
+         "   1. Sets *ybatch_index* = *ybatch_start*.\n"
+         "   2. Performs a-d until\n"
+         "      *ybatch_index* = *ybatch_start* + *ybatch_n*.\n"
+         "        a. Executes *dobatch_calc_agenda*.\n"
+         "        b. If *ybatch_index* = *ybatch_start*, resizes the output\n"
+         "           arrays based on *ybatch_n*.\n"
+         "        c. Copies calculated fields to *ybatch_index* - *ybatch_start*\n"
+         "           of output arrays.\n"
+         "        d. Adds 1 to *ybatch_index*.\n"
+         "\n"
+         "Beside the *dobatch_calc_agenda*, the WSVs *ybatch_start*\n"
+         "and *ybatch_n* must be set before calling this method.\n"
+         "\n"
+         "The input variable *ybatch_start* is set to a default of zero in\n"
+         "*general.arts*.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT( "dobatch_doit_i_field", "dobatch_radiance_field",
+             "dobatch_irradiance_field", "dobatch_spectral_irradiance_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "ybatch_start", "ybatch_n", "dobatch_calc_agenda" ),
+        GIN( "robust" ),
+        GIN_TYPE(    "Index" ),
+        GIN_DEFAULT( "0" ),
+        GIN_DESC( "A flag with value 1 or 0. If set to one, the batch\n"
+                  "calculation will continue, even if individual jobs fail. In\n"
+                  "that case, a warning message is written to screen and file\n"
+                  "(out1 output stream), and the output array entry for the\n"
+                  "failed job in the output fields is left empty."
+                 )
+        ));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "DOAngularGridsSet" ),

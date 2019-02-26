@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<arts format="binary" version="1">
+<Array type="Tensor7" nelem="4">
+<Tensor7 nlibraries="2" nvitrines="75" nshelves="1" nbooks="1" npages="40" nrows="1" ncols="1">
+</Tensor7>
+<Tensor7 nlibraries="2" nvitrines="75" nshelves="1" nbooks="1" npages="40" nrows="1" ncols="1">
+</Tensor7>
+<Tensor7 nlibraries="2" nvitrines="75" nshelves="1" nbooks="1" npages="40" nrows="1" ncols="1">
+</Tensor7>
+<Tensor7 nlibraries="2" nvitrines="75" nshelves="1" nbooks="1" npages="40" nrows="1" ncols="1">
+</Tensor7>
+</Array>
+</arts>

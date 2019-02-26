@@ -130,6 +130,7 @@ void define_wsv_group_names()
   wsv_group_names.push_back("ArrayOfTelsemAtlas");
   wsv_group_names.push_back("ArrayOfTensor3");
   wsv_group_names.push_back("ArrayOfTensor4");
+  wsv_group_names.push_back("ArrayOfTensor5");
   wsv_group_names.push_back("ArrayOfTensor6");
   wsv_group_names.push_back("ArrayOfTensor7");
   wsv_group_names.push_back("ArrayOfTransmissionMatrix");
