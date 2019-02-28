@@ -37,6 +37,15 @@
 #include "matpackIV.h"
 #include "complex.h"
 
+class PropagationMatrix;
+
+class LazyPropagationMatrixScale {
+public:
+  LazyPropagationMatrixScale(const PropagationMatrix& p, const Numeric& x) : pm(p), scale(x) {}
+  const PropagationMatrix& pm;
+  const Numeric& scale;
+};
+
 enum class CaseOfPropagationMatrix
 {
   Diagonal=1,
@@ -221,9 +230,16 @@ public:
     }
     return *this;
   }
-
+  
+  PropagationMatrix& operator=(const LazyPropagationMatrixScale& lpms)
+  {
+    operator=(lpms.pm);
+    mdata *= lpms.scale;
+    return *this;
+  }
   PropagationMatrix&  operator=(const PropagationMatrix& other)
-  { mvectortype = other.mvectortype;
+  {
+    mvectortype = other.mvectortype;
     mstokes_dim = other.mstokes_dim;
     mfreqs = other.mfreqs;
     mza = other.mza;
@@ -296,7 +312,9 @@ public:
     { mdata(ia, iz, iv, joker) *= x; }
   
   PropagationMatrix& operator+=(const PropagationMatrix& other)
-    { mdata += other.mdata; return *this; }
+  { mdata += other.mdata; return *this; }
+  PropagationMatrix& operator+=(const LazyPropagationMatrixScale& lpms)
+  { MultiplyAndAdd(lpms.scale, lpms.pm); return *this; }
   PropagationMatrix& operator+=(ConstVectorView x) 
   { 
     for(Index i = 0; i < NumberOfNeededVectors(); i++)
@@ -536,11 +554,23 @@ public:
     return *this;
   }
   
+  StokesVector& operator+=(const LazyPropagationMatrixScale& lpms)
+  { MultiplyAndAdd(lpms.scale, lpms.pm); return *this; }
+  
   StokesVector& operator=(const PropagationMatrix& x)
   {
     mstokes_dim = x.StokesDimensions();
     mfreqs = x.NumberOfFrequencies();
+    mza = x.NumberOfZenithAngles();
+    maa = x.NumberOfAzimuthAngles();
     mdata = x.GetData()(joker, joker, joker, Range(0, mstokes_dim, 1));
+    return *this;
+  }
+  
+  StokesVector& operator=(const LazyPropagationMatrixScale& lpms)
+  {
+    operator=(lpms.pm);
+    mdata *= lpms.scale;
     return *this;
   }
   
@@ -550,21 +580,23 @@ public:
     return *this;
   }
   
-  void MultiplyAndAdd(const Numeric x, const StokesVector& y)
+  void MultiplyAndAdd(const Numeric x, const PropagationMatrix& y)
   {
-    assert(mstokes_dim == y.mstokes_dim);
-    assert(mfreqs == y.mfreqs);
+    assert(mstokes_dim == y.StokesDimensions());
+    assert(mfreqs == y.NumberOfFrequencies());
+    assert(mza == y.NumberOfZenithAngles());
+    assert(maa == y.NumberOfAzimuthAngles());
+    
+    const ConstTensor4View data = y.GetData();
     
     for(Index i = 0; i < maa; i++)
     for(Index j = 0; j < mza; j++)
-    for(Index k = 0; k < mfreqs; k++)
-    {
-      switch(mstokes_dim)
-      {
-        case 4: mdata(i,j,k, 3) += x * y.mdata(i,j,k, 3); /* FALLTHROUGH */
-        case 3: mdata(i,j,k, 2) += x * y.mdata(i,j,k, 2); /* FALLTHROUGH */
-        case 2: mdata(i,j,k, 1) += x * y.mdata(i,j,k, 1); /* FALLTHROUGH */
-        case 1: mdata(i,j,k, 0) += x * y.mdata(i,j,k, 0); /* FALLTHROUGH */
+    for(Index k = 0; k < mfreqs; k++) {
+      switch(mstokes_dim) {
+        case 4: mdata(i,j,k, 3) += x * data(i,j,k, 3); /* FALLTHROUGH */
+        case 3: mdata(i,j,k, 2) += x * data(i,j,k, 2); /* FALLTHROUGH */
+        case 2: mdata(i,j,k, 1) += x * data(i,j,k, 1); /* FALLTHROUGH */
+        case 1: mdata(i,j,k, 0) += x * data(i,j,k, 0); /* FALLTHROUGH */
       }
     }
   }
@@ -613,5 +645,7 @@ std::ostream& operator<<(std::ostream& os, const StokesVector& pm);
 std::ostream& operator<<(std::ostream& os, const ArrayOfStokesVector& apm);
 std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfStokesVector& aapm);
 
+inline LazyPropagationMatrixScale operator*(const PropagationMatrix& pm, const Numeric& x) {return LazyPropagationMatrixScale(pm, x);}
+inline LazyPropagationMatrixScale operator*(const Numeric& x, const PropagationMatrix& pm) {return LazyPropagationMatrixScale(pm, x);}
 
 #endif //propagationmatrix_h

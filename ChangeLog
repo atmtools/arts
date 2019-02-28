@@ -1,3 +1,49 @@
+2019-02-28  Richard Larsson <larsson@mps.mpg.de>
+
+	* arts-2-3-1229
+	
+	Some partial code making some complicated 3D field-calculations
+	easier
+	
+	* src/CMakeLists.txt:  Adding field.h and propmat_field.cc,h.  The
+	former contains a generic 3D field implementation and the latter a
+	way to compute the propagation matrix and source vectors from the
+	emission-case.  The latter is only intended to be used internally
+	and need many checks around it to ensure sanity.
+	
+	* src/field.h:  Contains Field3D.  I am sure better implementations
+	can be made, but this implements a way to call a field with GridPos
+	arguments to get interpolated values.  So long as "num * field[pos]"
+	can be sent to the base "operator+=" and "operator=", it should work
+	for the type.  (So not for matpack-types, but it should work for Eigen
+	types.)
+	
+	* src/propmat_field.cc,h:  Implements a way to compute and fill a 
+	FieldOfPropagationMatrix and a couple of FieldOfStokesVector(s) for
+	a very simple atmosphere.  The combination with the above interpolations
+	have been tested to produce identical results for TestNLTE.arts
+	file.  So long as the ppath_lmax-variable is negative.  Otherwise the
+	errors introduced are large (more than a few percentages).  I suspect
+	the latter is because we should probably interpolate on xsec rather
+	than propmat, but for my intended use this does not matter as long
+	distances are acceptable.
+	
+	* src/m_nlte.cc:  Introduced proper names for variables of the NLTE
+	calculations.
+	
+	* src/m_radiation_field.cc: Same.  But also removed unused stuff.
+	
+	* src/methods.cc,workspace.cc:  Paired to the above.
+	
+	* src/propagationmatrix.h:  Introduced a simple delayed evaluator for
+	adding scaled propagation matrices together.  I hope it is lazy (or 
+	at least only makes a copy for a single allocator).  It works with
+	Field3D anyways.
+	
+	I also found a bug in StokesVector that would have been important if 
+	anyone was actually using the zenith and azimuth angle dimensions of
+	this class...
+
 2019-02-26  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1228

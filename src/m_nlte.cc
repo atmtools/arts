@@ -102,8 +102,8 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
   if(nlte_field.empty())
     throw std::runtime_error("Error in NLTE field, it is empty");
   
-  Matrix iy;
-  Tensor3 iy_transmission;
+  Matrix line_irradiance;
+  Tensor3 line_transmission;
   
   const Index nlevels = nlte_level_identifiers.nelem(), np = p_grid.nelem();
   if(nlevels < 5)
@@ -145,7 +145,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
     max_change=0.0;
     
     //Compute radiation and transmission
-    radiation_fieldCalcForSingleSpeciesNonOverlappingLines(ws, iy, iy_transmission, abs_species, abs_lines_per_species, 
+    line_irradianceCalcForSingleSpeciesNonOverlappingLines(ws, line_irradiance, line_transmission, abs_species, abs_lines_per_species, 
                                                            nlte_field, vmr_field, t_field, z_field,
                                                            p_grid, atmosphere_dim, surface_props_data, iy_space_agenda, iy_surface_agenda,
                                                            iy_cloudbox_agenda, propmat_clearsky_agenda, water_p_eq_agenda, df, nz, nf, verbosity);
@@ -155,9 +155,9 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
       nlte_collision_factorsCalcFromCoeffs(Cij, Cji, lines, abs_species, collision_coefficients, collision_line_identifiers, isotopologue_ratios, vmr_field(joker, ip, 0, 0), t_field(ip, 0, 0), p_grid[ip]);
       
       if(dampened)
-        dampened_statistical_equilibrium_equation(SEE, r, Aij, Bij, Bji, Cij, Cji, iy(joker, ip), iy_transmission(0, joker, ip), upper, lower);
+        dampened_statistical_equilibrium_equation(SEE, r, Aij, Bij, Bji, Cij, Cji, line_irradiance(joker, ip), line_transmission(0, joker, ip), upper, lower);
       else
-        statistical_equilibrium_equation(SEE, Aij, Bij, Bji, Cij, Cji, iy(joker, ip), upper, lower);
+        statistical_equilibrium_equation(SEE, Aij, Bij, Bji, Cij, Cji, line_irradiance(joker, ip), upper, lower);
       
       set_constant_statistical_equilibrium_matrix(SEE, x, r.sum(), unique);
       solve(nlte_field(joker, ip, 0, 0), SEE, x);

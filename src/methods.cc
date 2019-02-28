@@ -14191,49 +14191,17 @@ void define_md_data_raw()
         GIN_DESC("TBD")
         ));
     
- md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "radiation_fieldCalcFromiyCalc" ),
-        DESCRIPTION
-        (
-         "Calculates *radiation_field* using *iyCalc* for all combinations of the\n"
-         "input zenith angle coordinates and azimuth angle coordinates.\n"
-         "\n"
-         "Only accepts full spherical coverage over Zenith [0, 180] but accepts\n"
-         "single azimuth angle as spherical symmetry.  With aa_coord.nelem()>1,\n"
-         "aa_cord must be defined on [-180, 180].\n"
-         "\n"
-         "Output *iy* is defined as the integration of those angles divided by 4PI.\n"
-         ),
-        AUTHORS( "Richard Larsson" ),
-        OUT( "iy", "radiation_field", "transmission_field" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "atmosphere_dim", "cloudbox_on", 
-            "stokes_dim", "ppath_lmax", "ppath_lraytrace", "f_grid", "p_grid",
-            "rte_pos", "t_field", "z_field", "wind_u_field", "wind_v_field", "wind_w_field",
-            "mag_u_field", "mag_v_field", "mag_w_field",
-            "vmr_field", "nlte_field", "abs_species", "iy_unit", "surface_props_data",
-            "ppath_agenda", "iy_main_agenda", "iy_space_agenda", "iy_surface_agenda", 
-            "iy_cloudbox_agenda", "propmat_clearsky_agenda", "water_p_eq_agenda" ),
-        GIN("za_coords", "aa_coords", "do_transmission_field"),
-        GIN_TYPE("Vector", "Vector", "Index"),
-        GIN_DEFAULT(NODEF, NODEF, NODEF),
-        GIN_DESC("Zenith angle coordinates [0,180]",
-                 "Azimuth angle coordinates [-180,180]",
-                 "Index to also return *transmission_field*")
-      ));
-    
     md_data_raw.push_back
     ( MdRecord
-    ( NAME( "radiation_fieldCalcForSingleSpeciesNonOverlappingLines" ),
+    ( NAME( "line_irradianceCalcForSingleSpeciesNonOverlappingLines" ),
       DESCRIPTION
       (
-        "Exists only as a temporary method... do not use\n"
+        "Computes the line irradiance and line transmission\n"
+        "\n"
+        "Presently only works for 1D atmospheres\n"
       ),
       AUTHORS( "Richard Larsson" ),
-      OUT( "iy", "iy_transmission" ),
+      OUT( "line_irradiance", "line_transmission" ),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),

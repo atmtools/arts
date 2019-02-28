@@ -275,6 +275,7 @@ add_library (artscore STATIC
   ppath.cc
   pressurebroadeningdata.cc
   propagationmatrix.cc
+  propmat_field.cc
   psd.cc
   quantum.cc
   quantum_parser_hitran.cc

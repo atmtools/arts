@@ -2651,6 +2651,30 @@ void Workspace::define_wsv_data()
        "Unit:  degrees\n"
        ),
       GROUP( "Vector" )));
+   
+   
+   wsv_data.push_back
+   (WsvRecord
+   ( NAME( "line_irradiance" ),
+     DESCRIPTION
+     (
+       "Irradiance as seen by a single absorption line\n"
+       "\n"
+       "Used internally for, e.g., NLTE effects\n"
+     ),
+     GROUP( "Matrix" )));
+   
+   
+   wsv_data.push_back
+   (WsvRecord
+   ( NAME( "line_transmission" ),
+     DESCRIPTION
+     (
+       "Transmission as seen by a single absorption line\n"
+       "\n"
+       "Used internally for, e.g., NLTE effects\n"
+     ),
+     GROUP( "Tensor3" )));
 
        
     wsv_data.push_back
