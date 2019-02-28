@@ -101,7 +101,7 @@ inline std::ostream& operator<<(std::ostream& os, const Field3D<base>& v)
   for(size_t i=0; i<v.npages(); i++)
     for(size_t j=0; j<v.nrows(); j++)
       for(size_t k=0; k<v.ncols(); k++)
-        os << MapToEigen(v(i, j, k).Kjj()).transpose() << '\n';
+        os << v(i, j, k) << '\n';
   return os;
 }
 

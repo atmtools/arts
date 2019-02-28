@@ -1,5 +1,12 @@
 2019-02-28  Richard Larsson <larsson@mps.mpg.de>
 
+	* arts-2-3-1230
+	
+	* src/field.h:  Small fix because the output operator was only designed
+	for StokesVector and PropagationMatrix
+
+2019-02-28  Richard Larsson <larsson@mps.mpg.de>
+
 	* arts-2-3-1229
 	
 	Some partial code making some complicated 3D field-calculations
