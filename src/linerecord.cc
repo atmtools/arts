@@ -2999,7 +2999,7 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                     }
                     
                     // linemixing pressure limit
-                    if(token == "MLM")
+                    if(token == "LML")
                     {
                       Numeric value;
                       icecream >> double_imanip() >> value;
@@ -3231,7 +3231,7 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
               if(need_cut)
                 ls << " CUT " << CUT;
               if(need_lml)
-                ls << " MLM " << LML;
+                ls << " LML " << LML;
               if(need_mtm)
                 ls << " MTM " << MTM;
               if(need_lnt)
