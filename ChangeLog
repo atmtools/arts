@@ -1,3 +1,20 @@
+2019-03-01  Richard Larsson <larsson@mps.mpg.de>
+
+	* arts-2-3-1231
+	
+	It should now be possible to do bad linemixing calculations again.
+	
+	* src/linerecord.h:  Adding a linemixing_limit to LineRecord.
+	This does the calculations regardless but sets the linemixing
+	values to 0 if outside the pressure range given.  Defaults to
+	-1, and any value below 0 is simply going to return the computed 
+	values.  Also removed unused speedup-variables.
+	
+	* src/linefunctiondata.cc,h:  Adding a linemixing boolean to the
+	inpute of all functions computing those parameters
+	
+	* src/linefunctions.cc,h: Removed outdated comments.
+
 2019-02-28  Richard Larsson <larsson@mps.mpg.de>
 
 	* arts-2-3-1230

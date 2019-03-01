@@ -272,8 +272,7 @@ public:
       mquantum_numbers_str(""),
       mzeemandata(),
       mcutoff(-1.0),
-      mspeedup_counter(-1),
-      mspeedup_multiplier(-1.0),
+      mlinemixing_limit(-1.0),
       mmirroring(MirroringType::None),
       mlinenorm(LineNormalizationType::None),
       mlineshape(LineShapeType::ByPressureBroadeningData),
@@ -323,8 +322,7 @@ public:
       mquantum_numbers_str(""),
       mzeemandata(),
       mcutoff(-1.0),
-      mspeedup_counter(-1),
-      mspeedup_multiplier(-1.0),
+      mlinemixing_limit(-1.0),
       mmirroring(MirroringType::None),
       mlinenorm(LineNormalizationType::None),
       mlineshape(LineShapeType::ByPressureBroadeningData),
@@ -516,9 +514,18 @@ public:
   const QuantumNumbers& LowerQuantumNumbers() const {return mqid.LowerQuantumNumbers();}
   const QuantumNumbers& UpperQuantumNumbers() const {return mqid.UpperQuantumNumbers();}
   
+  /**Do linemixing test*/
+  bool do_linemixing(const Numeric& P) const
+  {
+    if(mlinemixing_limit < 0)
+      return true;
+    else
+      return mlinemixing_limit > P;
+  }
+  
   void SetLineMixingParameters(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& T, const Numeric& P, const Index this_species,
                                const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species) const {
-    const auto X = mlinefunctiondata.GetParams(mti0, T, P, vmrs[this_species], vmrs, abs_species);
+    const auto X = mlinefunctiondata.GetParams(mti0, T, P, vmrs[this_species], vmrs, abs_species, do_linemixing(P));
     Y = X.Y;
     G = X.G;
     DV = X.DV;
@@ -527,7 +534,7 @@ public:
   void SetPressureBroadeningParameters(Numeric& G0, Numeric& G2, Numeric& ETA, Numeric& D0, Numeric& D2, Numeric& FVC,
                                        const Numeric& T, const Numeric& P, const Index this_species,
                                        const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species) const {
-    auto X = mlinefunctiondata.GetParams(mti0, T, P, vmrs[this_species], vmrs, abs_species);
+    auto X = mlinefunctiondata.GetParams(mti0, T, P, vmrs[this_species], vmrs, abs_species, do_linemixing(P));
     G0 = X.G0;
     D0 = X.D0;
     G2 = X.G2;
@@ -539,7 +546,7 @@ public:
   void SetPressureBroadeningParametersTemperatureDerivative(Numeric& dG0, Numeric& dG2, Numeric& dETA, Numeric& dD0, Numeric& dD2, Numeric& dFVC,
                                                             const Numeric& T, const Numeric& dT, const Numeric& P, 
                                                             const Index this_species, const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species) const {
-    auto X = mlinefunctiondata.GetTemperatureDerivs(mti0, T, dT, P, vmrs[this_species], vmrs, abs_species);
+    auto X = mlinefunctiondata.GetTemperatureDerivs(mti0, T, dT, P, vmrs[this_species], vmrs, abs_species, do_linemixing(P));
     dG0 = X.G0;
     dD0 = X.D0;
     dG2 = X.G2;
@@ -575,7 +582,7 @@ public:
                                 const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species, 
                                 const RetrievalQuantity& derivative) const
   {
-    return mlinefunctiondata.GetLineParamDeriv(mti0, T, P, vmrs[this_species], vmrs, abs_species, derivative, mqid);
+    return mlinefunctiondata.GetLineParamDeriv(mti0, T, P, vmrs[this_species], vmrs, abs_species, derivative, mqid, do_linemixing(P));
   }
   
   
@@ -583,7 +590,7 @@ public:
   LineFunctionDataOutput GetShapeParams(const Numeric& T, const Numeric& P, const Index this_species,
                                         const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species) const
   {
-    return mlinefunctiondata.GetParams(mti0, T, P, vmrs[this_species], vmrs, abs_species);
+    return mlinefunctiondata.GetParams(mti0, T, P, vmrs[this_species], vmrs, abs_species, do_linemixing(P));
   }
   
   /*! Method to compute the temperature derivatives of line mixing and pressure broadening parameters */
@@ -591,7 +598,7 @@ public:
                                            const Index this_species, const ConstVectorView vmrs,
                                            const ArrayOfArrayOfSpeciesTag& abs_species) const
   {
-    return mlinefunctiondata.GetTemperatureDerivs(mti0, T, dT, P, vmrs[this_species], vmrs, abs_species);
+    return mlinefunctiondata.GetTemperatureDerivs(mti0, T, dT, P, vmrs[this_species], vmrs, abs_species, do_linemixing(P));
   }
   
   /*! Method to compute the temperature derivatives of line mixing and pressure broadening parameters */
@@ -600,7 +607,7 @@ public:
                                              const ArrayOfArrayOfSpeciesTag& abs_species,
                                              const QuantumIdentifier& vmr_qi) const
   {
-    return mlinefunctiondata.GetVMRDerivs(mti0, T, P, vmrs[this_species], vmrs, abs_species, vmr_qi, mqid);
+    return mlinefunctiondata.GetVMRDerivs(mti0, T, P, vmrs[this_species], vmrs, abs_species, vmr_qi, mqid, do_linemixing(P));
   }
   
   /** Pressure Broadening Data */
@@ -614,11 +621,9 @@ public:
   const Numeric& CutOff() const {return mcutoff;}
   void SetCutOff(const Numeric& cutoff) {mcutoff = cutoff;}
   
-  /** Speedup coefficient*/
-  Index SpeedUpIndex() const {return mspeedup_counter;}
-  void SetSpeedUpIndex(const Index speedup) {mspeedup_counter = speedup;}
-  const Numeric& SpeedUpCoeff() const {return mspeedup_multiplier;}
-  void SetSpeedUpCoeff(const Numeric& speedup) {mspeedup_multiplier = speedup;}
+  /** Cutoff frequency */
+  const Numeric& LineMixingLimit() const {return mlinemixing_limit;}
+  void SetLineMixingLimit(const Numeric& limit) {mlinemixing_limit = limit;}
   
   /** Line shape mirroring factor */
   const MirroringType& GetMirroringType() const {return mmirroring;}
@@ -1051,9 +1056,8 @@ private:
   /** Cutoff frequency */
   Numeric mcutoff;
   
-  /** Speedup Coefficient */
-  Index mspeedup_counter;
-  Numeric mspeedup_multiplier;
+  /** Line mixing pressure limit */
+  Numeric mlinemixing_limit;
   
   /** Line shape mirroring effect type */
   MirroringType mmirroring;

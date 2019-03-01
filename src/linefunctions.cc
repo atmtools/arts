@@ -1461,7 +1461,6 @@ Numeric Linefunctions::dDopplerConstant_dT(const Numeric& T, const Numeric& mass
  * \param isotopologue_ratio The ratio of the isotopologue in the atmosphere at this level
  * \param magnetic_magnitude Absolute strength of the magnetic field
  * \param ddoppler_constant_dT Temperature derivative of doppler_constant
- * \param pressure_limit_for_linemixing As WSV lm_p_lim
  * \param partition_function_at_temperature As name suggests
  * \param dpartition_function_at_temperature_dT Temeperature derivative of partition_function_at_temperature
  * \param partition_function_at_line_temperature As name suggests
@@ -1925,7 +1924,6 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
  * \param isotopologue_ratio The ratio of the isotopologue in the atmosphere at this level
  * \param magnetic_magnitude Absolute strength of the magnetic field
  * \param ddoppler_constant_dT Temperature derivative of doppler_constant
- * \param pressure_limit_for_linemixing As WSV lm_p_lim
  * \param partition_function_at_temperature As name suggests
  * \param dpartition_function_at_temperature_dT Temeperature derivative of partition_function_at_temperature
  * \param partition_function_at_line_temperature As name suggests

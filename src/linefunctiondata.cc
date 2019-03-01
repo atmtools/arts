@@ -472,6 +472,7 @@ LineFunctionDataOutput LineFunctionData::GetParams(const Numeric& T0,
                                                    const Numeric& self_vmr,
                                                    const ConstVectorView& rtp_vmr, 
                                                    const ArrayOfArrayOfSpeciesTag& abs_species,
+                                                   const bool do_linemixing,
                                                    const bool normalization) const
 {
   LineFunctionDataOutput m;
@@ -565,9 +566,16 @@ LineFunctionDataOutput LineFunctionData::GetParams(const Numeric& T0,
   m.D2  *= scale;
   m.FVC *= scale;
   if(normalization) m.ETA /= total_vmr;
-  m.Y   *= scale;
-  m.G   *= scale * P;
-  m.DV  *= scale * P;
+  if(do_linemixing) {
+    m.Y   *= scale;
+    m.G   *= scale * P;
+    m.DV  *= scale * P;
+  }
+  else {
+    m.Y = 0.0;
+    m.G = 0.0;
+    m.DV = 0.0;
+  }
   
   return m;
 }
@@ -600,6 +608,7 @@ LineFunctionDataOutput LineFunctionData::GetVMRDerivs(const Numeric& T0,
                                                       const ArrayOfArrayOfSpeciesTag& abs_species,
                                                       const QuantumIdentifier& vmr_qi, 
                                                       const QuantumIdentifier& line_qi,
+                                                      const bool do_linemixing,
                                                       const bool normalization) const
 {
   LineFunctionDataOutput d;
@@ -712,9 +721,16 @@ LineFunctionDataOutput LineFunctionData::GetVMRDerivs(const Numeric& T0,
   d.D2  *= scale;
   d.FVC *= scale;
   if(normalization) d.ETA /= total_vmr;
-  d.Y   *= scale;
-  d.G   *= scale * P;
-  d.DV  *= scale * P;
+  if(do_linemixing) {
+    d.Y   *= scale;
+    d.G   *= scale * P;
+    d.DV  *= scale * P;
+  }
+  else {
+    d.Y = 0.0;
+    d.G = 0.0;
+    d.DV = 0.0;
+  }
   
   return d;
 
@@ -744,6 +760,7 @@ LineFunctionDataOutput LineFunctionData::GetTemperatureDerivs(const Numeric& T0,
                                                               const Numeric& self_vmr,
                                                               const ConstVectorView& rtp_vmr, 
                                                               const ArrayOfArrayOfSpeciesTag& abs_species,
+                                                              const bool do_linemixing,
                                                               const bool normalization) const
 {
   LineFunctionDataOutput d;
@@ -837,9 +854,16 @@ LineFunctionDataOutput LineFunctionData::GetTemperatureDerivs(const Numeric& T0,
   d.D2  *= scale;
   d.FVC *= scale;
   if(normalization) d.ETA /= total_vmr;
-  d.Y   *= scale;
-  d.G   *= scale * P;
-  d.DV  *= scale * P;
+  if(do_linemixing) {
+    d.Y   *= scale;
+    d.G   *= scale * P;
+    d.DV  *= scale * P;
+  }
+  else {
+    d.Y = 0.0;
+    d.G = 0.0;
+    d.DV = 0.0;
+  }
   
   return d;
 }
@@ -872,6 +896,7 @@ LineFunctionDataOutput LineFunctionData::GetReferenceT0Derivs(const Numeric& T0,
                                                               const ArrayOfArrayOfSpeciesTag& abs_species,
                                                               const RetrievalQuantity& rt,
                                                               const QuantumIdentifier& line_qi,
+                                                              const bool do_linemixing,
                                                               const bool normalization) const
 {
   LineFunctionDataOutput d;
@@ -980,9 +1005,16 @@ LineFunctionDataOutput LineFunctionData::GetReferenceT0Derivs(const Numeric& T0,
   d.D2  *= scale;
   d.FVC *= scale;
   if(normalization) d.ETA /= total_vmr;
-  d.Y   *= scale;
-  d.G   *= scale * P;
-  d.DV  *= scale * P;
+  if(do_linemixing) {
+    d.Y   *= scale;
+    d.G   *= scale * P;
+    d.DV  *= scale * P;
+  }
+  else {
+    d.Y = 0.0;
+    d.G = 0.0;
+    d.DV = 0.0;
+  }
   
   return d;
 }
@@ -1016,6 +1048,7 @@ Numeric LineFunctionData::GetLineParamDeriv(const Numeric& T0,
                                             const ArrayOfArrayOfSpeciesTag& abs_species,
                                             const RetrievalQuantity& rt, 
                                             const QuantumIdentifier& line_qi,
+                                            const bool do_linemixing,
                                             const bool normalization) const
 {
   Numeric val=0.0;
@@ -1099,16 +1132,22 @@ Numeric LineFunctionData::GetLineParamDeriv(const Numeric& T0,
     param = IndexOfParam("ETA");
   else if(rt.PropMatType() == JacPropMatType::LineFunctionDataYX0 or
           rt.PropMatType() == JacPropMatType::LineFunctionDataYX1 or
-          rt.PropMatType() == JacPropMatType::LineFunctionDataYX2)
+          rt.PropMatType() == JacPropMatType::LineFunctionDataYX2) {
+    if(not do_linemixing) return val;
     param = IndexOfParam("Y");
+  }
   else if(rt.PropMatType() == JacPropMatType::LineFunctionDataGX0 or
           rt.PropMatType() == JacPropMatType::LineFunctionDataGX1 or
-          rt.PropMatType() == JacPropMatType::LineFunctionDataGX2)
+          rt.PropMatType() == JacPropMatType::LineFunctionDataGX2) {
+    if(not do_linemixing) return val;
     param = IndexOfParam("G");
+  }
   else if(rt.PropMatType() == JacPropMatType::LineFunctionDataDVX0 or
           rt.PropMatType() == JacPropMatType::LineFunctionDataDVX1 or
-          rt.PropMatType() == JacPropMatType::LineFunctionDataDVX2)
+          rt.PropMatType() == JacPropMatType::LineFunctionDataDVX2) {
+    if(not do_linemixing) return val;
     param = IndexOfParam("DV");
+  }
   else
     throw std::runtime_error("Developer error!  This should not happen");
   

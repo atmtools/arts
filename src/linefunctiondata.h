@@ -204,6 +204,7 @@ public:
                                    const Numeric& self_vmr,
                                    const ConstVectorView& rtp_vmr,
                                    const ArrayOfArrayOfSpeciesTag& abs_species,
+                                   const bool do_linemixing=true,
                                    const bool normalization=true) const;
 
   LineFunctionDataOutput GetTemperatureDerivs(const Numeric& T0,
@@ -213,6 +214,7 @@ public:
                                               const Numeric& self_vmr,
                                               const ConstVectorView& rtp_vmr,
                                               const ArrayOfArrayOfSpeciesTag& abs_species,
+                                              const bool do_linemixing=true,
                                               const bool normalization=true) const;
 
   LineFunctionDataOutput GetReferenceT0Derivs(const Numeric& T0,
@@ -223,6 +225,7 @@ public:
                                               const ArrayOfArrayOfSpeciesTag& abs_species,
                                               const RetrievalQuantity& rt, 
                                               const QuantumIdentifier& line_qi,
+                                              const bool do_linemixing=true,
                                               const bool normalization=true) const;
 
   LineFunctionDataOutput GetVMRDerivs(const Numeric& T0,
@@ -233,6 +236,7 @@ public:
                                       const ArrayOfArrayOfSpeciesTag& abs_species,
                                       const QuantumIdentifier& vmr_qi, 
                                       const QuantumIdentifier& line_qi,
+                                      const bool do_linemixing=true,
                                       const bool normalization=true) const;
               
   Numeric GetLineParamDeriv(const Numeric& T0,
@@ -243,6 +247,7 @@ public:
                             const ArrayOfArrayOfSpeciesTag& abs_species,
                             const RetrievalQuantity& rt, 
                             const QuantumIdentifier& line_qi,
+                            const bool do_linemixing=true,
                             const bool normalization=true) const;
                             
   // Read data

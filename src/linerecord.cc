@@ -2995,25 +2995,15 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                     {
                       Numeric value;
                       icecream >> double_imanip() >> value;
-                      
-                      if(value > 0)
-                        mcutoff = value;
+                      mcutoff = value;
                     }
                     
-                    // cutoff frequency
-                    if(token == "SPD")
+                    // linemixing pressure limit
+                    if(token == "MLM")
                     {
-                      Index count;
-                      icecream >> count;
-                      
-                      if(count > 0)
-                        mspeedup_counter = count;
-                      
                       Numeric value;
                       icecream >> double_imanip() >> value;
-                      
-                      if(value > 0)
-                        mspeedup_multiplier = value;
+                      mlinemixing_limit = value;
                     }
                     
                     // mirroring
@@ -3225,24 +3215,23 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
           
           // Line shape modifications
           {
-            const Numeric CUT  = lr.CutOff();
-            const Index   SPDI = lr.SpeedUpIndex();
-            const Numeric SPDC = lr.SpeedUpCoeff();
-            const Index   MTM  = (Index) lr.GetMirroringType();
-            const Index   LNT  = (Index) lr.GetLineNormalizationType();
-            const Index   LST  = (Index) lr.GetExternalLineShapeType();
+            const Numeric CUT = lr.CutOff();
+            const Numeric LML = lr.LineMixingLimit();
+            const Index   MTM = (Index) lr.GetMirroringType();
+            const Index   LNT = (Index) lr.GetLineNormalizationType();
+            const Index   LST = (Index) lr.GetExternalLineShapeType();
             
-            const bool need_cut = CUT > 0, need_spd = (SPDC > 0 and SPDI > 0), need_mtm = MTM, need_lnt = LNT, need_lst = LST;
+            const bool need_cut = CUT > 0, need_lml = not(LML < 0), need_mtm = MTM, need_lnt = LNT, need_lst = LST;
             
-            const Index nelem = (Index) need_cut + (Index) need_spd + (Index) need_mtm + (Index) need_lnt + (Index) need_lst;
+            const Index nelem = (Index) need_cut + (Index) need_lml + (Index) need_mtm + (Index) need_lnt + (Index) need_lst;
             
             if(nelem)
             {
               ls << " LSM " << nelem;
               if(need_cut)
                 ls << " CUT " << CUT;
-              if(need_spd)
-                ls << " SPD " << SPDI << " " << SPDC;
+              if(need_lml)
+                ls << " MLM " << LML;
               if(need_mtm)
                 ls << " MTM " << MTM;
               if(need_lnt)
