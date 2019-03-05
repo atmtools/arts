@@ -10922,10 +10922,10 @@ void define_md_data_raw()
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("nlte_field", "abs_species", "abs_lines_per_species", "nlte_level_identifiers", 
-         "collision_coefficients", "collision_line_identifiers", "isotopologue_ratios",
+         "collision_coefficients", "collision_line_identifiers", "isotopologue_ratios", "iy_main_agenda", "ppath_agenda",
          "iy_space_agenda", "iy_surface_agenda", 
          "iy_cloudbox_agenda", "propmat_clearsky_agenda", "water_p_eq_agenda",
-         "vmr_field", "t_field", "z_field", "p_grid", "atmosphere_dim",
+         "vmr_field", "t_field", "z_field", "p_grid", "atmosphere_dim", "refellipsoid",
          "surface_props_data", "nlte_do" ),
       GIN("df", "convergence_limit", "nz", "nf", "dampened", "iteration_limit"),
       GIN_TYPE("Numeric", "Numeric", "Index", "Index", "Index", "Index"),
@@ -14210,6 +14210,32 @@ void define_md_data_raw()
           "atmosphere_dim", "surface_props_data", "iy_space_agenda", "iy_surface_agenda", 
           "iy_cloudbox_agenda", "propmat_clearsky_agenda", "water_p_eq_agenda"
         ),
+      GIN(     "df",      "nz",    "nf"),
+      GIN_TYPE("Numeric", "Index", "Index"),
+      GIN_DEFAULT(NODEF,  NODEF,   NODEF),
+      GIN_DESC("relative frequency to line center",
+               "number of zeniths",
+               "number of frequencies per line")
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D" ),
+      DESCRIPTION
+      (
+        "Computes the line irradiance and line transmission\n"
+        "\n"
+        "Presently only works for 1D atmospheres\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "line_irradiance", "line_transmission" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_species", "abs_lines_per_species", "nlte_field",  "vmr_field", 
+          "t_field", "z_field", "p_grid",
+          "refellipsoid", "surface_props_data", "iy_main_agenda", "ppath_agenda", "iy_space_agenda", "iy_surface_agenda", 
+          "iy_cloudbox_agenda", "propmat_clearsky_agenda" ),
       GIN(     "df",      "nz",    "nf"),
       GIN_TYPE("Numeric", "Index", "Index"),
       GIN_DEFAULT(NODEF,  NODEF,   NODEF),

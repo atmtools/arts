@@ -24,6 +24,295 @@
 #include "absorption.h"
 #include "linefunctions.h"
 #include "ppath.h"
+#include "propmat_field.h"
+#include "sorting.h"
+
+
+Numeric integrate_convolved(const RadiationVector& I,
+                            const Eigen::Ref<Eigen::VectorXcd> F,
+                            const Vector& f)
+{
+  Numeric val=0.0;
+  
+  const Index n=f.nelem();
+  for(Index i=0; i<n-1; i++)
+    val += 0.5 * (f[i+1] - f[i]) * (I(i, 0) * F[i].real() + I(i+1, 0) * F[i+1].real());
+  
+  return val;
+}
+
+
+
+Numeric integrate_zenith(const VectorView j,
+                         const Vector& cosza,
+                         const Array<Index>& sorted_index)
+{
+  Numeric val=0.0;
+  
+  const Index n=cosza.nelem();
+  for(Index i=0; i<n-1; i++)
+    val += 0.25 * (cosza[sorted_index[i]] - cosza[sorted_index[i+1]]) * (j[sorted_index[i]] + j[sorted_index[i+1]]);
+  
+  return val;
+}
+
+
+void ppath_fieldFromDownUpLimbGeoms(Workspace&            ws,
+                                    ArrayOfPpath&         ppath_field,
+                                    const Agenda&         ppath_agenda,
+                                    const Numeric&        ppath_lmax,
+                                    const Numeric&        ppath_lraytrace,
+                                    const Index&          atmgeom_checked,
+                                    const Tensor3&        t_field,
+                                    const Tensor3&        z_field,
+                                    const Tensor4&        vmr_field,
+                                    const Vector&         f_grid,
+                                    const Index&          cloudbox_on, 
+                                    const Index&          cloudbox_checked,
+                                    const Index&          ppath_inside_cloudbox_do,
+                                    const Vector&         rte_pos,
+                                    const Vector&         rte_los,
+                                    const Vector&         rte_pos2,
+                                    const Vector&         refellipsoid,
+                                    const Index&          atmosphere_dim,
+                                    const Index&          zenith_angles_per_position,
+                                    const Verbosity&      verbosity)
+{
+  extern const Numeric RAD2DEG;
+  
+  if(atmosphere_dim not_eq 1)
+    throw std::runtime_error("Only for 1D atmospheres");
+  if(refellipsoid[1] not_eq 0.0)
+    throw std::runtime_error("Not allowed for non-spherical planets");
+  if(ppath_lmax >= 0)
+    throw std::runtime_error("Only allowed for long paths (ppath_lmax < 0)");
+  
+  // Positions and angles of interest
+  const Numeric zmin = z_field(0, 0, 0);
+  const Numeric zmax = z_field(z_field.npages()-1, 0, 0);
+  const Numeric r=refellipsoid[0];
+  const Numeric above_surface_tangent = 90 - RAD2DEG * std::acos((r)/(r + zmax)) + 1e-4;
+  const Numeric below_surface_tangent = 90 - RAD2DEG * std::acos((r)/(r + zmax)) - 1e-4;
+  const Numeric top_tangent = 90-1e-4;
+  
+  ppath_field.resize(3*zenith_angles_per_position);
+  Index ppath_field_pos=0;
+  
+  Vector zenith_angles(zenith_angles_per_position);
+  
+  // Upwards:
+  nlinspace(zenith_angles, 0, 90, zenith_angles_per_position);
+  Vector rte_pos_true=rte_pos;
+  rte_pos_true[0] = zmin;
+  Vector rte_los_true=rte_los;
+  for(Index iz=0; iz<zenith_angles_per_position; iz++) {
+    rte_los_true[0] = zenith_angles[iz];
+    
+    ppathCalc(ws, ppath_field[ppath_field_pos],
+              ppath_agenda, ppath_lmax, ppath_lraytrace, atmgeom_checked, 
+              t_field, z_field, vmr_field, f_grid, cloudbox_on,
+              cloudbox_checked, ppath_inside_cloudbox_do, 
+              rte_pos_true, rte_los_true,
+              rte_pos2, verbosity);
+    
+    ppath_field_pos++;
+  }
+  
+  // Limb:
+  nlinspace(zenith_angles, above_surface_tangent, top_tangent, zenith_angles_per_position);
+  rte_pos_true[0] = zmax;
+  for(Index iz=0; iz<zenith_angles_per_position; iz++) {
+    rte_los_true[0] = 180 - zenith_angles[iz];
+    
+    ppathCalc(ws, ppath_field[ppath_field_pos],
+              ppath_agenda, ppath_lmax, ppath_lraytrace, atmgeom_checked, 
+              t_field, z_field, vmr_field, f_grid, cloudbox_on,
+              cloudbox_checked, ppath_inside_cloudbox_do, 
+              rte_pos_true, rte_los_true,
+              rte_pos2, verbosity);
+    
+    ppath_field_pos++;
+  }
+  
+  // Downwards:
+  nlinspace(zenith_angles, 0, below_surface_tangent, zenith_angles_per_position);
+  for(Index iz=0; iz<zenith_angles_per_position; iz++) {
+    rte_los_true[0] = 180 - zenith_angles[iz];
+    
+    ppathCalc(ws, ppath_field[ppath_field_pos],
+              ppath_agenda, ppath_lmax, ppath_lraytrace, atmgeom_checked, 
+              t_field, z_field, vmr_field, f_grid, cloudbox_on,
+              cloudbox_checked, ppath_inside_cloudbox_do, 
+              rte_pos_true, rte_los_true,
+              rte_pos2, verbosity);
+    
+    ppath_field_pos++;
+  }
+}
+
+Index grid_index_from_gp(const GridPos& gp) {
+  if(gp.fd[1] == 1.0)
+    return gp.idx;
+  else if(gp.fd[0] == 1.0)
+    return gp.idx + 1;
+  assert(false);
+}
+
+
+void sorted_index_of_ppath_field(ArrayOfArrayOfIndex& sorted_index,
+                                 ArrayOfVector& cos_zenith_angles,
+                                 const ArrayOfPpath& ppath_field)
+{
+  extern const Numeric DEG2RAD;
+  
+  Index nalt=0;
+  for(auto& path: ppath_field)
+    for(auto& gp: path.gp_p)
+      nalt = std::max(nalt, grid_index_from_gp(gp));
+  nalt+= 1;
+  
+  // Get the data, which is of unknown length
+  Array<ArrayOfNumeric> zeniths_array(nalt, ArrayOfNumeric(0));
+  for(auto& path: ppath_field) {
+    for(Index ip=0; ip<path.np; ip++) {
+      const Index ind = grid_index_from_gp(path.gp_p[ip]);
+      zeniths_array[ind].push_back(path.los(ip, 0));
+    }
+  }
+  
+  // Finalize sorting
+  sorted_index.resize(nalt);
+  cos_zenith_angles.resize(nalt);
+  for(Index i=0; i<nalt; i++) {
+    Vector& data = cos_zenith_angles[i];
+    data.resize(zeniths_array[i].nelem());
+    
+    for(Index j=0; j<data.nelem(); j++)
+      data[j] = zeniths_array[i][j];
+    get_sorted_indexes(sorted_index[i], data);
+    
+    for(Index j=0; j<data.nelem(); j++)
+      data[j] = std::cos(DEG2RAD * data[j]);
+  }
+}
+
+
+void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(Workspace&                      ws,
+                                                                    Matrix&                         line_irradiance,
+                                                                    Tensor3&                        line_transmission,
+                                                                    const ArrayOfArrayOfSpeciesTag& abs_species,
+                                                                    const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                                                    const Tensor4&                  nlte_field,
+                                                                    const Tensor4&                  vmr_field,
+                                                                    const Tensor3&                  t_field,
+                                                                    const Tensor3&                  z_field,
+                                                                    const Vector&                   p_grid,
+                                                                    const Vector&                   refellipsoid,
+                                                                    const Tensor3&                  surface_props_data,
+                                                                    const Agenda&                   ppath_agenda,
+                                                                    const Agenda&                   iy_main_agenda,
+                                                                    const Agenda&                   iy_space_agenda,
+                                                                    const Agenda&                   iy_surface_agenda,
+                                                                    const Agenda&                   iy_cloudbox_agenda,
+                                                                    const Agenda&                   propmat_clearsky_agenda,
+                                                                    const Numeric&                  df,
+                                                                    const Index&                    nz,
+                                                                    const Index&                    nf,
+                                                                    const Verbosity&                verbosity)
+{
+  if(abs_lines_per_species.nelem() not_eq 1) throw std::runtime_error("Only for one species...");
+  if(nf % 2 not_eq 1) throw std::runtime_error("Must hit line center, nf % 2 must be 1.");
+  const Index nl = abs_lines_per_species[0].nelem();
+  const Index np = p_grid.nelem();
+  
+  // Compute variables
+  ArrayOfTensor3 diy_dx;
+  FieldOfPropagationMatrix propmat_field;
+  FieldOfStokesVector absorption_field, additional_source_field;
+  ArrayOfPpath ppath_field;
+  
+  // Check that the lines and nf is correct
+  Vector f_grid(nf*nl);
+  for(Index il=0; il<nl; il++) {
+    const Numeric d = abs_lines_per_species[0][il].F() * df;
+    nlinspace(f_grid[Range(il*nf, nf)], abs_lines_per_species[0][il].F()-d, abs_lines_per_species[0][il].F()+d, nf);
+  }
+  
+  ppath_fieldFromDownUpLimbGeoms(ws, ppath_field, ppath_agenda, -1, 1e99, 1,
+                                 t_field, z_field, vmr_field, f_grid, 0, 1, 0,
+                                 Vector(1, 0), Vector(1, 0), Vector(0),
+                                 refellipsoid, 1, nz, verbosity);
+  
+  ArrayOfArrayOfIndex sorted_index;
+  ArrayOfVector cos_zenith_angles;
+  sorted_index_of_ppath_field(sorted_index, cos_zenith_angles, ppath_field);
+  
+  field_of_propagation(ws, propmat_field, absorption_field, additional_source_field,
+                       1, f_grid, p_grid, z_field, t_field, nlte_field, vmr_field,
+                       ArrayOfRetrievalQuantity(0), propmat_clearsky_agenda);
+  
+  Array<Array<Eigen::VectorXcd>> lineshapes(nl, Array<Eigen::VectorXcd>(np, Eigen::VectorXcd(nf*nl)));
+  for(Index il=0; il<nl; il++)
+    for(Index ip=0; ip<np; ip++)
+      Linefunctions::set_lineshape(lineshapes[il][ip], MapToEigen(f_grid), abs_lines_per_species[0][il], 
+                                   Vector(1, vmr_field(0, ip, 0, 0)),  t_field(ip, 0, 0), p_grid[ip], 0.0,
+                                   abs_species, 0, 0);
+  
+  // Counting the path index so we can make the big loop parallel
+  ArrayOfArrayOfIndex counted_path_index(ppath_field.nelem());
+  ArrayOfIndex counter(np, 0);
+  for(Index i=0; i<ppath_field.nelem(); i++) {
+    const Ppath& path=ppath_field[i];
+    counted_path_index[i].resize(path.np);
+    for(Index ip_path=0; ip_path<path.np; ip_path++) {
+      const Index ip_grid = grid_index_from_gp(path.gp_p[ip_path]);
+      counted_path_index[i][ip_path] = counter[ip_grid];
+      counter[ip_grid]++;
+    }
+  }
+  
+  line_irradiance = Matrix(nl, np, 0.0);
+  line_transmission = Tensor3(1, nl, np, 0.0);
+  
+  Array<Array<Array<Numeric>>> line_radiance(np, Array<Array<Numeric>>(nl));
+  ArrayOfMatrix line_radiance2(np);
+  for(Index i=0; i<np; i++) {
+    line_radiance2[i].resize(sorted_index[i].nelem(), nl);
+  }
+  
+  Workspace l_ws (ws);
+  Agenda l_iy_main_agenda (iy_main_agenda);
+  Agenda l_iy_space_agenda (iy_space_agenda);
+  Agenda l_iy_surface_agenda (iy_surface_agenda);
+  Agenda l_iy_cloudbox_agenda (iy_cloudbox_agenda);
+  
+//   #pragma omp parallel for if(not arts_omp_in_parallel()) schedule(guided) firstprivate(l_ws, l_iy_main_agenda, l_iy_space_agenda, l_iy_surface_agenda, l_iy_cloudbox_agenda)
+  for(Index i=0; i<ppath_field.nelem(); i++) {
+    const Ppath& path=ppath_field[i];
+    
+    thread_local ArrayOfRadiationVector lvl_rad;
+    thread_local ArrayOfRadiationVector src_rad;
+    thread_local ArrayOfTransmissionMatrix lyr_tra;
+    thread_local ArrayOfTransmissionMatrix tot_tra;
+    
+    emission_from_propmat_field(l_ws, lvl_rad, src_rad, lyr_tra, tot_tra,
+                                propmat_field,absorption_field, additional_source_field,
+                                f_grid, z_field, t_field, vmr_field,
+                                path, l_iy_main_agenda, l_iy_space_agenda, l_iy_surface_agenda,
+                                l_iy_cloudbox_agenda, surface_props_data, verbosity);
+    for(Index ip_path=0; ip_path<path.np; ip_path++) {
+      const Index ip_grid = grid_index_from_gp(path.gp_p[ip_path]);
+      for(Index il=0; il<nl; il++) {
+        line_radiance[ip_grid][il].push_back(integrate_convolved(lvl_rad[ip_path], lineshapes[il][ip_grid], f_grid));
+        line_radiance2[ip_grid](counted_path_index[i][ip_path], il) = integrate_convolved(lvl_rad[ip_path], lineshapes[il][ip_grid], f_grid);
+      }
+    }
+  }
+  
+  for(Index ip=0; ip<np; ip++)
+    for(Index il=0; il<nl; il++)
+      line_irradiance(il, ip) = integrate_zenith(line_radiance2[ip](joker, il), cos_zenith_angles[ip], sorted_index[ip]);
+}
 
 
 void line_irradianceCalcForSingleSpeciesNonOverlappingLines(Workspace&                      ws,

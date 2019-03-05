@@ -31,8 +31,9 @@ Arts2{
     # Set constants
     IndexSet(stokes_dim, 1)
     NumericSet(rte_alonglos_v, 0.0)
-    NumericSet(ppath_lmax, 1e10)
+    NumericSet(ppath_lmax, -1)
     NumericSet(lm_p_lim, 0.0)
+    MatrixSetConstant(z_surface, 1, 1, 0.0)
     abs_speciesSet(species=["H2O-161"])
     
     # Data reading

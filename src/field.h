@@ -54,7 +54,7 @@ public:
   
   const base& operator()(size_t col=0, size_t row=0, size_t page=0) const {return data[col + row * mcols + page * mrows * mcols];}
   
-  base operator()(const GridPos& page, const GridPos& row, const GridPos& col) const 
+  base operator()(const GridPos& page={0, {0, 1}}, const GridPos& row={0, {0, 1}}, const GridPos& col={0, {0, 1}}) const 
   {
     const size_t pos[8] = {col.idx + 0 + (row.idx + 0) * mcols + (page.idx + 0) * mrows * mcols,
                            col.idx + 1 + (row.idx + 0) * mcols + (page.idx + 0) * mrows * mcols,

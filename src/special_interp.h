@@ -64,9 +64,9 @@ void interp_atmfield_by_gp(
 Numeric interp_atmfield_by_gp( 
         const Index&            atmosphere_dim,
         ConstTensor3View        x_field,
-        const GridPos&          gp_p,
-        const GridPos&          gp_lat,
-        const GridPos&          gp_lon );
+        const GridPos&          gp_p={0, {0, 1}},
+        const GridPos&          gp_lat={0, {0, 1}},
+        const GridPos&          gp_lon={0, {0, 1}});
 
 void interp_cloudfield_gp2itw( 
               VectorView      itw, 

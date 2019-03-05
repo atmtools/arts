@@ -75,6 +75,8 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
                                                    const ArrayOfArrayOfGriddedField1& collision_coefficients,
                                                    const ArrayOfQuantumIdentifier& collision_line_identifiers,
                                                    const SpeciesAuxData&           isotopologue_ratios,
+                                                   const Agenda&                   iy_main_agenda,
+                                                   const Agenda&                   ppath_agenda,
                                                    const Agenda&                   iy_space_agenda,
                                                    const Agenda&                   iy_surface_agenda,
                                                    const Agenda&                   iy_cloudbox_agenda,
@@ -85,6 +87,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
                                                    const Tensor3&                  z_field,
                                                    const Vector&                   p_grid,
                                                    const Index&                    atmosphere_dim,
+                                                   const Vector&                   refellipsoid,
                                                    const Tensor3&                  surface_props_data,
                                                    const Index&                    nlte_do,
                                                    const Numeric&                  df,
@@ -144,11 +147,18 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
     // Reset change
     max_change=0.0;
     
-    //Compute radiation and transmission
-    line_irradianceCalcForSingleSpeciesNonOverlappingLines(ws, line_irradiance, line_transmission, abs_species, abs_lines_per_species, 
-                                                           nlte_field, vmr_field, t_field, z_field,
-                                                           p_grid, atmosphere_dim, surface_props_data, iy_space_agenda, iy_surface_agenda,
-                                                           iy_cloudbox_agenda, propmat_clearsky_agenda, water_p_eq_agenda, df, nz, nf, verbosity);
+//     //Compute radiation and transmission
+//     line_irradianceCalcForSingleSpeciesNonOverlappingLines(ws, line_irradiance, line_transmission, abs_species, abs_lines_per_species, 
+//                                                            nlte_field, vmr_field, t_field, z_field,
+//                                                            p_grid, atmosphere_dim, surface_props_data, iy_space_agenda, iy_surface_agenda,
+//                                                            iy_cloudbox_agenda, propmat_clearsky_agenda, water_p_eq_agenda, df, nz, nf, verbosity);
+    
+    line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(ws, line_irradiance, line_transmission, abs_species, abs_lines_per_species,
+                                                                   nlte_field, vmr_field, t_field, z_field,
+                                                                   p_grid, refellipsoid, surface_props_data, ppath_agenda,
+                                                                   iy_main_agenda, iy_space_agenda, iy_surface_agenda, 
+                                                                   iy_cloudbox_agenda, propmat_clearsky_agenda,
+                                                                   df, nz, nf, verbosity);
     
     for(Index ip = 0; ip < np; ip++) {
       r = nlte_field(joker, ip, 0, 0);
