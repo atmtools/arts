@@ -1277,7 +1277,6 @@ std::ostream& operator<<(std::ostream& os, const LineFunctionData& lfd) {
     for(Index j=nshapes; j<nmixing+nshapes; j++) {
       os << lfd.TemperatureType2String(lfd.mtypes[i][j]) << " ";
       if(lfd.mlm == LineFunctionData::LineMixingOrderType::Interp) {
-        counter++;
         os << lfd.mdata[i].nelem() - counter << " ";
         for(; counter < lfd.mdata[i].nelem(); counter++)
           os << lfd.mdata[i][counter] << " ";
@@ -1470,7 +1469,7 @@ std::tuple<LineFunctionData::LineMixingOrderType, Array<LineFunctionData::Temper
       break;
     case LineFunctionData::LineMixingOrderType::Interp:
       mtypes.resize(1);
-      mtypes[0] = LineFunctionData::TemperatureType::T1;
+      mtypes[0] = LineFunctionData::TemperatureType::LM_AER;
       break;
     case LineFunctionData::LineMixingOrderType::ConstG:
       mtypes.resize(1);

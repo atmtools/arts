@@ -1,5 +1,18 @@
 2019-03-05  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-1234
+
+	* src/linefunctiondata.cc (splitLineMixingData):
+
+	Set correct TemperatureType LM_AER, not T1, for
+	LineMixingOrderType::Interp. Fixes line mixing calculations with AER
+	catalog.
+
+	(operator<<): Remove spurious counter++ to avoid first element of line
+	mixing interp data being discarded on writing.
+
+2019-03-05  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-1233
 
 	* src/linerecord.cc (LineRecord::ReadFromLBLRTMStream):
