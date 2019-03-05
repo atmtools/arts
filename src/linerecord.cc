@@ -990,7 +990,10 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
     if( test==-1 || test==-3 )
       getline(is,line);
     else // the line is done and we are happy to leave
+    {
+      mlinefunctiondata = LineFunctionData(pb, LineMixingData(), mqid.SpeciesName(), mti0);
       return false;
+    }
   }
   
   // In case we are unable to leave, the next line is a line mixing parameter line

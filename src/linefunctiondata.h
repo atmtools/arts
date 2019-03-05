@@ -112,6 +112,7 @@ public:
     else if(type == "LM1") mlm = LineMixingOrderType::LM1;
     else if(type == "LM2") mlm = LineMixingOrderType::LM2;
     else if(type == "INT") mlm = LineMixingOrderType::Interp;
+    else if(type == "ConstG") mlm = LineMixingOrderType::ConstG;
     else {
       ostringstream os;
       os << "Cannot recognize type " << type << " as a line mixing functionality\n" ;
