@@ -82,6 +82,16 @@ void field_of_propagation(Workspace&                        ws,
   }
 }
 
+FieldOfTransmissionMatrix transmat_field_calc_from_propmat_field(const FieldOfPropagationMatrix& propmat_field,
+                                                                 const Numeric& r)
+{
+  FieldOfTransmissionMatrix transmat_field(propmat_field.npages(), propmat_field.nrows(), propmat_field.ncols());
+  for(size_t ip=0; ip<propmat_field.npages(); ip++)
+    for(size_t ir=0; ir<propmat_field.nrows(); ir++)
+      for(size_t ic=0; ic<propmat_field.ncols(); ic++)
+        transmat_field(ip, ir, ic) = TransmissionMatrix(propmat_field(ip, ir, ic), r);
+  return transmat_field;
+}
 
 void emission_from_propmat_field(
   Workspace&                        ws,

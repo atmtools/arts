@@ -37,12 +37,12 @@
 #include "matpackIV.h"
 #include "complex.h"
 
-class PropagationMatrix;
 
-class LazyPropagationMatrixScale {
+template<class base>
+class LazyScale {
 public:
-  LazyPropagationMatrixScale(const PropagationMatrix& p, const Numeric& x) : pm(p), scale(x) {}
-  const PropagationMatrix& pm;
+  LazyScale(const base& t, const Numeric& x) : bas(t), scale(x) {}
+  const base& bas;
   const Numeric& scale;
 };
 
@@ -231,9 +231,9 @@ public:
     return *this;
   }
   
-  PropagationMatrix& operator=(const LazyPropagationMatrixScale& lpms)
+  PropagationMatrix& operator=(const LazyScale<PropagationMatrix>& lpms)
   {
-    operator=(lpms.pm);
+    operator=(lpms.bas);
     mdata *= lpms.scale;
     return *this;
   }
@@ -313,8 +313,8 @@ public:
   
   PropagationMatrix& operator+=(const PropagationMatrix& other)
   { mdata += other.mdata; return *this; }
-  PropagationMatrix& operator+=(const LazyPropagationMatrixScale& lpms)
-  { MultiplyAndAdd(lpms.scale, lpms.pm); return *this; }
+  PropagationMatrix& operator+=(const LazyScale<PropagationMatrix>& lpms)
+  { MultiplyAndAdd(lpms.scale, lpms.bas); return *this; }
   PropagationMatrix& operator+=(ConstVectorView x) 
   { 
     for(Index i = 0; i < NumberOfNeededVectors(); i++)
@@ -554,8 +554,8 @@ public:
     return *this;
   }
   
-  StokesVector& operator+=(const LazyPropagationMatrixScale& lpms)
-  { MultiplyAndAdd(lpms.scale, lpms.pm); return *this; }
+  StokesVector& operator+=(const LazyScale<PropagationMatrix>& lpms)
+  { MultiplyAndAdd(lpms.scale, lpms.bas); return *this; }
   
   StokesVector& operator=(const PropagationMatrix& x)
   {
@@ -567,9 +567,9 @@ public:
     return *this;
   }
   
-  StokesVector& operator=(const LazyPropagationMatrixScale& lpms)
+  StokesVector& operator=(const LazyScale<PropagationMatrix>& lpms)
   {
-    operator=(lpms.pm);
+    operator=(lpms.bas);
     mdata *= lpms.scale;
     return *this;
   }
@@ -645,7 +645,8 @@ std::ostream& operator<<(std::ostream& os, const StokesVector& pm);
 std::ostream& operator<<(std::ostream& os, const ArrayOfStokesVector& apm);
 std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfStokesVector& aapm);
 
-inline LazyPropagationMatrixScale operator*(const PropagationMatrix& pm, const Numeric& x) {return LazyPropagationMatrixScale(pm, x);}
-inline LazyPropagationMatrixScale operator*(const Numeric& x, const PropagationMatrix& pm) {return LazyPropagationMatrixScale(pm, x);}
+inline LazyScale<PropagationMatrix> operator*(const PropagationMatrix& pm, const Numeric& x) {return LazyScale<PropagationMatrix>(pm, x);}
+inline LazyScale<PropagationMatrix> operator*(const Numeric& x, const PropagationMatrix& pm) {return LazyScale<PropagationMatrix>(pm, x);}
 
 #endif //propagationmatrix_h
+

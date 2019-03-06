@@ -158,7 +158,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
                                                                    p_grid, refellipsoid, surface_props_data, ppath_agenda,
                                                                    iy_main_agenda, iy_space_agenda, iy_surface_agenda, 
                                                                    iy_cloudbox_agenda, propmat_clearsky_agenda,
-                                                                   df, nz, nf, verbosity);
+                                                                   df, nz, nf, 1.0, verbosity);
     
     for(Index ip = 0; ip < np; ip++) {
       r = nlte_field(joker, ip, 0, 0);

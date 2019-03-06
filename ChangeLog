@@ -1,5 +1,33 @@
 2019-03-06  Richard Larsson <larsson@mps.mpg.de>
 
+	* arts-2-3-1237
+	
+	* src/m_nlte.cc:  Changed call to
+	line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D since
+	it now takes a distance variable.  This makes very little difference
+	in output results or in speed of achieving said results.
+	
+	* src/m_radiation_field.cc:  Added integrate_convolved for
+	TransmissionMatrix.  Activated the parallel region of code.
+	The parallel part behaves very poorly, 8 threads speeding 
+	up the results only by about a factor 2.5.  Also added
+	some computations of line_transmission.
+	
+	* src/propmat_field.cc,h:  Added a way to compute the field
+	of local transmission given a propagation matrix field.  Not
+	physically correct for large distances, of course, but it is
+	nice to have for the NLTE stuff for now.
+	
+	* src/transmissionmatrix.cc,h:  To aid the above, I made an
+	initializer for a transmission matrix that can take only a
+	single propagation matrix.  Also added the lazy operations
+	for the interpolated fields to work.
+	
+	* src/propagationmatrix.h: Made the lazy implementation a template
+	class instead to not have to rewrite for the above.
+
+2019-03-06  Richard Larsson <larsson@mps.mpg.de>
+
 	* arts-2-3-1236
 	
 	* src/group.cc:  Added ArrayOfPpath to variables.

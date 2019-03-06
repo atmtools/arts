@@ -14274,12 +14274,13 @@ void define_md_data_raw()
           "t_field", "z_field", "p_grid",
           "refellipsoid", "surface_props_data", "iy_main_agenda", "ppath_agenda", "iy_space_agenda", "iy_surface_agenda", 
           "iy_cloudbox_agenda", "propmat_clearsky_agenda" ),
-      GIN(     "df",      "nz",    "nf"),
-      GIN_TYPE("Numeric", "Index", "Index"),
-      GIN_DEFAULT(NODEF,  NODEF,   NODEF),
+      GIN(     "df",      "nz",    "nf", "r"),
+      GIN_TYPE("Numeric", "Index", "Index", "Numeric"),
+      GIN_DEFAULT(NODEF,  NODEF,   NODEF, "1.0"),
       GIN_DESC("relative frequency to line center",
                "number of zeniths",
-               "number of frequencies per line")
+               "number of frequencies per line",
+               "Distance assumed when computing local (1-T)")
     ));
 
     md_data_raw.push_back

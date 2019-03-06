@@ -32,6 +32,7 @@
 #include "transmissionmatrix.h"
 #include "field.h"
 
+typedef Field3D<TransmissionMatrix> FieldOfTransmissionMatrix;
 typedef Field3D<PropagationMatrix> FieldOfPropagationMatrix;
 typedef Field3D<StokesVector> FieldOfStokesVector;
 
@@ -48,6 +49,9 @@ void field_of_propagation(Workspace&                        ws,
                           const Tensor4&                    vmr_field,
                           const ArrayOfRetrievalQuantity&   jacobian_quantities,
                           const Agenda&                     propmat_clearsky_agenda);
+
+FieldOfTransmissionMatrix transmat_field_calc_from_propmat_field(const FieldOfPropagationMatrix& propmat_field,
+                                                                 const Numeric& r=1.0);
 
 void emission_from_propmat_field(
   Workspace&                        ws,

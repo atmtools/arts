@@ -79,6 +79,20 @@ Numeric integrate_convolved(const RadiationVector& I,
 }
 
 
+Numeric integrate_convolved(const TransmissionMatrix& T,
+                            const Eigen::VectorXcd& F,
+                            const Vector& f)
+{
+  Numeric val=0.0;
+  
+  const Index n=f.nelem();
+  for(Index i=0; i<n-1; i++)
+    val += 0.5 * (f[i+1] - f[i]) * (T(i, 0, 0) * F[i].real() + T(i+1, 0, 0) * F[i+1].real());
+  
+  return 1.0-val;
+}
+
+
 Numeric integrate_zenith(const VectorView j,
                          const Vector& cosza,
                          const Array<Index>& sorted_index)
@@ -160,6 +174,7 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(Workspace&  
                                                                     const Numeric&                  df,
                                                                     const Index&                    nz,
                                                                     const Index&                    nf,
+                                                                    const Numeric&                  r,
                                                                     const Verbosity&                verbosity)
 {
   if(abs_lines_per_species.nelem() not_eq 1) throw std::runtime_error("Only for one species...");
@@ -223,9 +238,8 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(Workspace&  
   line_transmission = Tensor3(1, nl, np, 0.0);
   
   ArrayOfMatrix line_radiance(np);
-  for(Index i=0; i<np; i++) {
+  for(Index i=0; i<np; i++)
     line_radiance[i].resize(sorted_index[i].nelem(), nl);
-  }
   
   Workspace l_ws (ws);
   Agenda l_iy_main_agenda (iy_main_agenda);
@@ -233,7 +247,10 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(Workspace&  
   Agenda l_iy_surface_agenda (iy_surface_agenda);
   Agenda l_iy_cloudbox_agenda (iy_cloudbox_agenda);
   
-//   #pragma omp parallel for if(not arts_omp_in_parallel()) schedule(guided) firstprivate(l_ws, l_iy_main_agenda, l_iy_space_agenda, l_iy_surface_agenda, l_iy_cloudbox_agenda)
+  #pragma omp parallel for if(not arts_omp_in_parallel()) \
+  schedule(guided) default(shared) \
+  firstprivate(l_ws, l_iy_main_agenda, l_iy_space_agenda, \
+               l_iy_surface_agenda, l_iy_cloudbox_agenda)
   for(Index i=0; i<ppath_field.nelem(); i++) {
     const Ppath& path=ppath_field[i];
     
@@ -243,10 +260,11 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(Workspace&  
     thread_local ArrayOfTransmissionMatrix tot_tra;
     
     emission_from_propmat_field(l_ws, lvl_rad, src_rad, lyr_tra, tot_tra,
-                                propmat_field,absorption_field, additional_source_field,
+                                propmat_field, absorption_field, additional_source_field,
                                 f_grid, z_field, t_field, vmr_field,
                                 path, l_iy_main_agenda, l_iy_space_agenda, l_iy_surface_agenda,
                                 l_iy_cloudbox_agenda, surface_props_data, verbosity);
+    
     for(Index ip_path=0; ip_path<path.np; ip_path++) {
       const Index ip_grid = grid_index_from_gp(path.gp_p[ip_path]);
       for(Index il=0; il<nl; il++)
@@ -257,6 +275,13 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(Workspace&  
   for(Index ip=0; ip<np; ip++)
     for(Index il=0; il<nl; il++)
       line_irradiance(il, ip) = integrate_zenith(line_radiance[ip](joker, il), cos_zenith_angles[ip], sorted_index[ip]);
+  
+  if(r>0) {
+    const FieldOfTransmissionMatrix transmat_field = transmat_field_calc_from_propmat_field(propmat_field, r);
+    for(Index ip=0; ip<np; ip++)
+      for(Index il=0; il<nl; il++)
+        line_transmission(0, il, ip) = integrate_convolved(transmat_field(ip, 0, 0), lineshapes[il][ip], f_grid);
+  }
 }
 
 

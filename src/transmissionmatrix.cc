@@ -1281,3 +1281,11 @@ std::istream& operator>>(std::istream& data, RadiationVector& rv) {
   for(auto& R: rv.R1) data >> R[0];
   return data;
 }
+
+
+
+TransmissionMatrix::TransmissionMatrix(const PropagationMatrix& pm, const Numeric& r)
+{
+  *this = TransmissionMatrix(pm.NumberOfFrequencies(), pm.StokesDimensions());
+  transmat(*this, pm, pm, r);  // Slower to compute, faster to implement...
+}

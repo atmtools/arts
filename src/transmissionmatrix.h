@@ -53,6 +53,7 @@ public:
   TransmissionMatrix(const TransmissionMatrix& tm)            = default;
   TransmissionMatrix& operator=(const TransmissionMatrix& tm) = default;
   TransmissionMatrix& operator=(TransmissionMatrix&& tm)      = default;
+  TransmissionMatrix(const PropagationMatrix& pm, const Numeric& r=1.0);
   
   operator Tensor3() const {
     Tensor3 T(Frequencies(), stokes_dim, stokes_dim);
@@ -111,6 +112,7 @@ public:
   }
   
   Index StokesDim() const {return stokes_dim;}
+  
   Index Frequencies() const {
     switch(stokes_dim) {
       case 4: return Index(T4.size());
@@ -120,9 +122,35 @@ public:
     }
   }
   
+  TransmissionMatrix& operator+=(const LazyScale<TransmissionMatrix>& lstm) {
+    for(size_t i=0; i<T4.size(); i++) T4[i].noalias() = lstm.scale * lstm.bas.Mat4(i);
+    for(size_t i=0; i<T3.size(); i++) T3[i].noalias() = lstm.scale * lstm.bas.Mat3(i);
+    for(size_t i=0; i<T2.size(); i++) T2[i].noalias() = lstm.scale * lstm.bas.Mat2(i);
+    for(size_t i=0; i<T1.size(); i++) T1[i].noalias() = lstm.scale * lstm.bas.Mat1(i);
+    return *this;
+  }
+  
+  TransmissionMatrix& operator*=(const Numeric& scale) {
+    for(auto& T: T4) T *= scale;
+    for(auto& T: T3) T *= scale;
+    for(auto& T: T2) T *= scale;
+    for(auto& T: T1) T *= scale;
+    return *this;
+  }
+  
+  TransmissionMatrix& operator=(const LazyScale<TransmissionMatrix>& lstm) {
+    operator=(lstm.bas);
+    operator*=(lstm.scale);
+    return *this;
+  }
+  
   friend std::ostream& operator<<(std::ostream& os, const TransmissionMatrix& tm);
   friend std::istream& operator>>(std::istream& data, TransmissionMatrix& tm);
 };
+
+
+inline LazyScale<TransmissionMatrix> operator*(const TransmissionMatrix& tm, const Numeric& x) {return LazyScale<TransmissionMatrix>(tm, x);}
+inline LazyScale<TransmissionMatrix> operator*(const Numeric& x, const TransmissionMatrix& tm) {return LazyScale<TransmissionMatrix>(tm, x);}
 
 
 class RadiationVector {
@@ -314,6 +342,7 @@ public:
   }
   
   Index StokesDim() const {return stokes_dim;}
+  
   Index Frequencies() const {
     switch(stokes_dim) {
       case 4: return Index(R4.size());
