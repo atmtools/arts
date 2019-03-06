@@ -12469,7 +12469,45 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-        ));
+      ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "ppath_fieldFromDownUpLimbGeoms" ),
+      DESCRIPTION
+      (
+        "Computes ppath_field from \"standalone\" sensors looking upwards from\n"
+        "0 m altitude with zenith angles range [0, 90], downwards from the top\n"
+        "of the atmosphere covering the zenith angle range from 180 degrees to\n"
+        "the surface tangent minus 1e-4 degrees, and through the limb covering\n"
+        "at the same position as the downwards looking sensor covering the zenith\n"
+        "angle range from the surface tangent plus 1e-4 degrees to 90 degrees minus\n"
+        "1e-4 degrees.\n"
+        "\n"
+        "The top of the atmosphere is from *z_field*(-1, 0, 0) [python range notation].\n"
+        "\n"
+        "The field will consist of 3*nz arrays structured as [up, limb, down]\n"
+        "\n"
+        "The intent of this function is to generate a field so that calculations\n"
+        "of *ppvar_iy* of all the fields will cover the zenith angle space\n"
+        "of all positions in *z_field*.\n"
+        "\n"
+        "Only works for *atmosphere_dim* 1, spherical planets, and *ppath_lmax*<0\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "ppath_field" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "ppath_agenda", "ppath_lmax", "ppath_lraytrace",
+          "atmgeom_checked", "t_field", "z_field", "vmr_field", "f_grid",
+          "cloudbox_on", "cloudbox_checked", "ppath_inside_cloudbox_do", 
+          "rte_pos", "rte_los", "rte_pos2", "refellipsoid", "atmosphere_dim" ),
+      GIN("nz"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("3"),
+      GIN_DESC("Number of zenith angles per position")
+    ));
 
   md_data_raw.push_back
     ( MdRecord

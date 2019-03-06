@@ -1575,3 +1575,97 @@ void VectorZtanToZa1D(
         }
     }
 }
+
+
+void ppath_fieldFromDownUpLimbGeoms(Workspace&            ws,
+                                    ArrayOfPpath&         ppath_field,
+                                    const Agenda&         ppath_agenda,
+                                    const Numeric&        ppath_lmax,
+                                    const Numeric&        ppath_lraytrace,
+                                    const Index&          atmgeom_checked,
+                                    const Tensor3&        t_field,
+                                    const Tensor3&        z_field,
+                                    const Tensor4&        vmr_field,
+                                    const Vector&         f_grid,
+                                    const Index&          cloudbox_on, 
+                                    const Index&          cloudbox_checked,
+                                    const Index&          ppath_inside_cloudbox_do,
+                                    const Vector&         rte_pos,
+                                    const Vector&         rte_los,
+                                    const Vector&         rte_pos2,
+                                    const Vector&         refellipsoid,
+                                    const Index&          atmosphere_dim,
+                                    const Index&          zenith_angles_per_position,
+                                    const Verbosity&      verbosity)
+{
+  extern const Numeric RAD2DEG;
+  
+  if(atmosphere_dim not_eq 1)
+    throw std::runtime_error("Only for 1D atmospheres");
+  if(refellipsoid[1] not_eq 0.0)
+    throw std::runtime_error("Not allowed for non-spherical planets");
+  if(ppath_lmax >= 0)
+    throw std::runtime_error("Only allowed for long paths (ppath_lmax < 0)");
+  
+  // Positions and angles of interest
+  const Numeric zmin = z_field(0, 0, 0);
+  const Numeric zmax = z_field(z_field.npages()-1, 0, 0);
+  const Numeric r=refellipsoid[0];
+  const Numeric above_surface_tangent = 90 - RAD2DEG * std::acos((r)/(r + zmax)) + 1e-4;
+  const Numeric below_surface_tangent = 90 - RAD2DEG * std::acos((r)/(r + zmax)) - 1e-4;
+  const Numeric top_tangent = 90-1e-4;
+  
+  ppath_field.resize(3*zenith_angles_per_position);
+  Index ppath_field_pos=0;
+  
+  Vector zenith_angles(zenith_angles_per_position);
+  
+  // Upwards:
+  nlinspace(zenith_angles, 0, 90, zenith_angles_per_position);
+  Vector rte_pos_true=rte_pos;
+  rte_pos_true[0] = zmin;
+  Vector rte_los_true=rte_los;
+  for(Index iz=0; iz<zenith_angles_per_position; iz++) {
+    rte_los_true[0] = zenith_angles[iz];
+    
+    ppathCalc(ws, ppath_field[ppath_field_pos],
+              ppath_agenda, ppath_lmax, ppath_lraytrace, atmgeom_checked, 
+              t_field, z_field, vmr_field, f_grid, cloudbox_on,
+              cloudbox_checked, ppath_inside_cloudbox_do, 
+              rte_pos_true, rte_los_true,
+              rte_pos2, verbosity);
+    
+    ppath_field_pos++;
+  }
+  
+  // Limb:
+  nlinspace(zenith_angles, above_surface_tangent, top_tangent, zenith_angles_per_position);
+  rte_pos_true[0] = zmax;
+  for(Index iz=0; iz<zenith_angles_per_position; iz++) {
+    rte_los_true[0] = 180 - zenith_angles[iz];
+    
+    ppathCalc(ws, ppath_field[ppath_field_pos],
+              ppath_agenda, ppath_lmax, ppath_lraytrace, atmgeom_checked, 
+              t_field, z_field, vmr_field, f_grid, cloudbox_on,
+              cloudbox_checked, ppath_inside_cloudbox_do, 
+              rte_pos_true, rte_los_true,
+              rte_pos2, verbosity);
+    
+    ppath_field_pos++;
+  }
+  
+  // Downwards:
+  nlinspace(zenith_angles, 0, below_surface_tangent, zenith_angles_per_position);
+  for(Index iz=0; iz<zenith_angles_per_position; iz++) {
+    rte_los_true[0] = 180 - zenith_angles[iz];
+    
+    ppathCalc(ws, ppath_field[ppath_field_pos],
+              ppath_agenda, ppath_lmax, ppath_lraytrace, atmgeom_checked, 
+              t_field, z_field, vmr_field, f_grid, cloudbox_on,
+              cloudbox_checked, ppath_inside_cloudbox_do, 
+              rte_pos_true, rte_los_true,
+              rte_pos2, verbosity);
+    
+    ppath_field_pos++;
+  }
+}

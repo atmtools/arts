@@ -28,8 +28,45 @@
 #include "sorting.h"
 
 
+void error_in_integrate(const String& error_msg,
+                        const Numeric& value_that_should_be_unity)
+{
+  if(std::abs(value_that_should_be_unity-1.0) > 1e-4) {
+    std::ostringstream os;
+    os << "Failure in normalization:\n" << error_msg << "\n";
+    throw std::runtime_error(os.str());
+  }
+}
+
+
+Numeric test_integrate_convolved(const Eigen::Ref<Eigen::VectorXcd> F,
+                                 const Vector& f)
+{
+  Numeric val=0.0;
+  
+  const Index n=f.nelem();
+  for(Index i=0; i<n-1; i++)
+    val += 0.5 * (f[i+1] - f[i]) * (F[i].real() + F[i+1].real());
+  
+  return val;  // Should return 1.0
+}
+
+
+Numeric test_integrate_zenith(const Vector& cosza,
+                              const Array<Index>& sorted_index)
+{
+  Numeric val=0.0;
+  
+  const Index n=cosza.nelem();
+  for(Index i=0; i<n-1; i++)
+    val += 0.5 * (cosza[sorted_index[i]] - cosza[sorted_index[i+1]]);
+  
+  return val;  // Should return 1.0
+}
+
+
 Numeric integrate_convolved(const RadiationVector& I,
-                            const Eigen::Ref<Eigen::VectorXcd> F,
+                            const Eigen::VectorXcd& F,
                             const Vector& f)
 {
   Numeric val=0.0;
@@ -40,7 +77,6 @@ Numeric integrate_convolved(const RadiationVector& I,
   
   return val;
 }
-
 
 
 Numeric integrate_zenith(const VectorView j,
@@ -54,100 +90,6 @@ Numeric integrate_zenith(const VectorView j,
     val += 0.25 * (cosza[sorted_index[i]] - cosza[sorted_index[i+1]]) * (j[sorted_index[i]] + j[sorted_index[i+1]]);
   
   return val;
-}
-
-
-void ppath_fieldFromDownUpLimbGeoms(Workspace&            ws,
-                                    ArrayOfPpath&         ppath_field,
-                                    const Agenda&         ppath_agenda,
-                                    const Numeric&        ppath_lmax,
-                                    const Numeric&        ppath_lraytrace,
-                                    const Index&          atmgeom_checked,
-                                    const Tensor3&        t_field,
-                                    const Tensor3&        z_field,
-                                    const Tensor4&        vmr_field,
-                                    const Vector&         f_grid,
-                                    const Index&          cloudbox_on, 
-                                    const Index&          cloudbox_checked,
-                                    const Index&          ppath_inside_cloudbox_do,
-                                    const Vector&         rte_pos,
-                                    const Vector&         rte_los,
-                                    const Vector&         rte_pos2,
-                                    const Vector&         refellipsoid,
-                                    const Index&          atmosphere_dim,
-                                    const Index&          zenith_angles_per_position,
-                                    const Verbosity&      verbosity)
-{
-  extern const Numeric RAD2DEG;
-  
-  if(atmosphere_dim not_eq 1)
-    throw std::runtime_error("Only for 1D atmospheres");
-  if(refellipsoid[1] not_eq 0.0)
-    throw std::runtime_error("Not allowed for non-spherical planets");
-  if(ppath_lmax >= 0)
-    throw std::runtime_error("Only allowed for long paths (ppath_lmax < 0)");
-  
-  // Positions and angles of interest
-  const Numeric zmin = z_field(0, 0, 0);
-  const Numeric zmax = z_field(z_field.npages()-1, 0, 0);
-  const Numeric r=refellipsoid[0];
-  const Numeric above_surface_tangent = 90 - RAD2DEG * std::acos((r)/(r + zmax)) + 1e-4;
-  const Numeric below_surface_tangent = 90 - RAD2DEG * std::acos((r)/(r + zmax)) - 1e-4;
-  const Numeric top_tangent = 90-1e-4;
-  
-  ppath_field.resize(3*zenith_angles_per_position);
-  Index ppath_field_pos=0;
-  
-  Vector zenith_angles(zenith_angles_per_position);
-  
-  // Upwards:
-  nlinspace(zenith_angles, 0, 90, zenith_angles_per_position);
-  Vector rte_pos_true=rte_pos;
-  rte_pos_true[0] = zmin;
-  Vector rte_los_true=rte_los;
-  for(Index iz=0; iz<zenith_angles_per_position; iz++) {
-    rte_los_true[0] = zenith_angles[iz];
-    
-    ppathCalc(ws, ppath_field[ppath_field_pos],
-              ppath_agenda, ppath_lmax, ppath_lraytrace, atmgeom_checked, 
-              t_field, z_field, vmr_field, f_grid, cloudbox_on,
-              cloudbox_checked, ppath_inside_cloudbox_do, 
-              rte_pos_true, rte_los_true,
-              rte_pos2, verbosity);
-    
-    ppath_field_pos++;
-  }
-  
-  // Limb:
-  nlinspace(zenith_angles, above_surface_tangent, top_tangent, zenith_angles_per_position);
-  rte_pos_true[0] = zmax;
-  for(Index iz=0; iz<zenith_angles_per_position; iz++) {
-    rte_los_true[0] = 180 - zenith_angles[iz];
-    
-    ppathCalc(ws, ppath_field[ppath_field_pos],
-              ppath_agenda, ppath_lmax, ppath_lraytrace, atmgeom_checked, 
-              t_field, z_field, vmr_field, f_grid, cloudbox_on,
-              cloudbox_checked, ppath_inside_cloudbox_do, 
-              rte_pos_true, rte_los_true,
-              rte_pos2, verbosity);
-    
-    ppath_field_pos++;
-  }
-  
-  // Downwards:
-  nlinspace(zenith_angles, 0, below_surface_tangent, zenith_angles_per_position);
-  for(Index iz=0; iz<zenith_angles_per_position; iz++) {
-    rte_los_true[0] = 180 - zenith_angles[iz];
-    
-    ppathCalc(ws, ppath_field[ppath_field_pos],
-              ppath_agenda, ppath_lmax, ppath_lraytrace, atmgeom_checked, 
-              t_field, z_field, vmr_field, f_grid, cloudbox_on,
-              cloudbox_checked, ppath_inside_cloudbox_do, 
-              rte_pos_true, rte_los_true,
-              rte_pos2, verbosity);
-    
-    ppath_field_pos++;
-  }
 }
 
 Index grid_index_from_gp(const GridPos& gp) {
@@ -247,6 +189,9 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(Workspace&  
   ArrayOfVector cos_zenith_angles;
   sorted_index_of_ppath_field(sorted_index, cos_zenith_angles, ppath_field);
   
+  for(Index ip=0; ip<np; ip++)
+    error_in_integrate("Your lineshape integration does normalize.  Increase nf and decrease df until it does.", test_integrate_zenith(cos_zenith_angles[ip], sorted_index[ip]));
+    
   field_of_propagation(ws, propmat_field, absorption_field, additional_source_field,
                        1, f_grid, p_grid, z_field, t_field, nlte_field, vmr_field,
                        ArrayOfRetrievalQuantity(0), propmat_clearsky_agenda);
@@ -257,6 +202,9 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(Workspace&  
       Linefunctions::set_lineshape(lineshapes[il][ip], MapToEigen(f_grid), abs_lines_per_species[0][il], 
                                    Vector(1, vmr_field(0, ip, 0, 0)),  t_field(ip, 0, 0), p_grid[ip], 0.0,
                                    abs_species, 0, 0);
+  for(auto& aols: lineshapes)
+    for(auto& ls: aols)
+      error_in_integrate("Your lineshape integration does normalize.  Increase nf and decrease df until it does.", test_integrate_convolved(ls, f_grid));
   
   // Counting the path index so we can make the big loop parallel
   ArrayOfArrayOfIndex counted_path_index(ppath_field.nelem());
@@ -274,10 +222,9 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(Workspace&  
   line_irradiance = Matrix(nl, np, 0.0);
   line_transmission = Tensor3(1, nl, np, 0.0);
   
-  Array<Array<Array<Numeric>>> line_radiance(np, Array<Array<Numeric>>(nl));
-  ArrayOfMatrix line_radiance2(np);
+  ArrayOfMatrix line_radiance(np);
   for(Index i=0; i<np; i++) {
-    line_radiance2[i].resize(sorted_index[i].nelem(), nl);
+    line_radiance[i].resize(sorted_index[i].nelem(), nl);
   }
   
   Workspace l_ws (ws);
@@ -302,16 +249,14 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(Workspace&  
                                 l_iy_cloudbox_agenda, surface_props_data, verbosity);
     for(Index ip_path=0; ip_path<path.np; ip_path++) {
       const Index ip_grid = grid_index_from_gp(path.gp_p[ip_path]);
-      for(Index il=0; il<nl; il++) {
-        line_radiance[ip_grid][il].push_back(integrate_convolved(lvl_rad[ip_path], lineshapes[il][ip_grid], f_grid));
-        line_radiance2[ip_grid](counted_path_index[i][ip_path], il) = integrate_convolved(lvl_rad[ip_path], lineshapes[il][ip_grid], f_grid);
-      }
+      for(Index il=0; il<nl; il++)
+        line_radiance[ip_grid](counted_path_index[i][ip_path], il) = integrate_convolved(lvl_rad[ip_path], lineshapes[il][ip_grid], f_grid);
     }
   }
   
   for(Index ip=0; ip<np; ip++)
     for(Index il=0; il<nl; il++)
-      line_irradiance(il, ip) = integrate_zenith(line_radiance2[ip](joker, il), cos_zenith_angles[ip], sorted_index[ip]);
+      line_irradiance(il, ip) = integrate_zenith(line_radiance[ip](joker, il), cos_zenith_angles[ip], sorted_index[ip]);
 }
 
 

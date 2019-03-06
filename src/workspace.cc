@@ -3869,6 +3869,19 @@ void Workspace::define_wsv_data()
         "Agenda calculating complete propagation paths.\n"
        ),
       GROUP( "Agenda" )));
+   
+   
+   wsv_data.push_back
+   (WsvRecord
+   ( NAME( "ppath_field" ),
+     DESCRIPTION
+     (
+       "An array meant to build up the necessary geometries for radiative field calculations\n"
+       "Can be ordered or not\n"
+       "\n"
+       "Size: user-defined\n"
+     ),
+     GROUP( "ArrayOfPpath" )));
 
   wsv_data.push_back
    (WsvRecord

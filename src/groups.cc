@@ -98,6 +98,7 @@ void define_wsv_group_names()
   wsv_group_names.push_back("ArrayOfArrayOfIndex");
   wsv_group_names.push_back("ArrayOfArrayOfLineRecord");
   wsv_group_names.push_back("ArrayOfArrayOfMatrix");
+  wsv_group_names.push_back("ArrayOfPpath");
   wsv_group_names.push_back("ArrayOfArrayOfPropagationMatrix");
   wsv_group_names.push_back("ArrayOfArrayOfRadiationVector");
   wsv_group_names.push_back("ArrayOfArrayOfScatteringMetaData");

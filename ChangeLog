@@ -1,3 +1,21 @@
+2019-03-06  Richard Larsson <larsson@mps.mpg.de>
+
+	* arts-2-3-1236
+	
+	* src/group.cc:  Added ArrayOfPpath to variables.
+	
+	* src/m_ppath.cc:  Moved ppath_fieldFromDownUpLimbGeoms here
+	
+	* src/m_radiation_field.cc:  Moved ppath_fieldFromDownUpLimbGeoms
+	away from here.  Also added some checks and removed some code I 
+	had around before attempting to parallelize the main loop.  I
+	still don't know why the parallelization won't work...
+	
+	* src/methods.cc,workspace.cc: Added ppath_field and 
+	ppath_fieldFromDownUpLimbGeoms as a variable and method, respectively.
+	I want this here mostly so I can plot the geometry externally without
+	having to manually edit code to generate the geometry-output file.
+
 2019-03-05  Richard Larsson <larsson@mps.mpg.de>
 
 	* arts-2-3-1235
