@@ -629,19 +629,22 @@ public:
   const MirroringType& GetMirroringType() const {return mmirroring;}
   void SetMirroringType(const MirroringType in) {mmirroring = in;}
   void SetMirroringTypeFromIndex(const Index in);
-  Index GetMirroringTypeIndex() const {return (Index) mmirroring;}
+  void SetMirroringTypeFromString(const String& in);
+  String GetMirroringTypeString() const;
   
   /** Line shape normalization factor */
   const LineNormalizationType& GetLineNormalizationType() const {return mlinenorm;}
   void SetLineNormalizationType(const LineNormalizationType in) {mlinenorm = in;}
   void SetLineNormalizationTypeFromIndex(const Index in);
-  Index GetLineNormalizationTypeIndex() const {return (Index) mlinenorm;}
+  void SetLineNormalizationTypeFromString(const String& in);
+  String GetLineNormalizationTypeString() const;
   
   /** Line shape type*/
   const LineShapeType& GetExternalLineShapeType() const {return mlineshape;}
   void SetExternalLineShapeType(const LineShapeType in) {mlineshape = in;}
   void SetExternalLineShapeTypeFromIndex(const Index in);
-  Index GetExternalLineShapeTypeIndex() const {return (Index) mlineshape;}
+  void SetExternalLineShapeTypeFromString(const String& in);
+  String GetExternalLineShapeTypeString() const;
   
   LineFunctionData::LineShapeType GetInternalLineShapeType() const {return mlinefunctiondata.LineShape(); }
   
@@ -649,7 +652,8 @@ public:
   const LinePopulationType& GetLinePopulationType() const {return mpopulation;}
   void SetLinePopulationType(const LinePopulationType in) {mpopulation = in;}
   void SetLinePopulationTypeFromIndex(const Index in);
-  Index GetLinePopulationTypeIndex() const {return (Index) mpopulation;}
+  void SetLinePopulationTypeFromString(const String& in);
+  String GetLinePopulationTypeString() const;
   
   /** Read one line from a stream associated with a HITRAN 1986-2001 file. The
     HITRAN format is as follows (directly from the HITRAN documentation):

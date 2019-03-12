@@ -255,6 +255,42 @@ void ppathCalc(
 }
 
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ppath_fieldCalc(      
+Workspace&            ws,
+ArrayOfPpath&         ppath_field,
+const Agenda&         ppath_agenda,
+const Numeric&        ppath_lmax,
+const Numeric&        ppath_lraytrace,
+const Index&          atmgeom_checked,
+const Tensor3&        t_field,
+const Tensor3&        z_field,
+const Tensor4&        vmr_field,
+const Vector&         f_grid,
+const Index&          cloudbox_on, 
+const Index&          cloudbox_checked,
+const Index&          ppath_inside_cloudbox_do,
+const Matrix&         sensor_pos,
+const Matrix&         sensor_los,
+const Vector&         rte_pos2,
+const Verbosity&      verbosity)
+{
+  auto n = sensor_pos.nrows();
+  ppath_field.resize(n);
+  
+  if(sensor_los.nrows() not_eq n)
+    throw std::runtime_error("Your sensor position matrix and sensor line of sight matrix do not match in size.\n");
+  
+  for(auto i=0; i<n; i++)
+    ppathCalc(ws, ppath_field[i],
+              ppath_agenda, ppath_lmax, ppath_lraytrace, atmgeom_checked,
+              t_field, z_field, vmr_field, f_grid,
+              cloudbox_on, cloudbox_checked, ppath_inside_cloudbox_do,
+              sensor_pos(i, joker), sensor_los(i, joker), rte_pos2, verbosity);
+}
+
+
 Index first_pos_before_altitude(const Ppath& p, const Numeric& alt)
 {
   // Checker flags

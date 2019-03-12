@@ -3012,28 +3012,28 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                     // mirroring
                     else if(token == "MTM")
                     {
-                      Index value;
+                      String value;
                       icecream >> value;
                       
-                      SetMirroringTypeFromIndex(value);
+                      SetMirroringTypeFromString(value);
                     }
                     
                     // line normalization
                     else if(token == "LNT")
                     {
-                      Index value;
+                      String value;
                       icecream >> value;
                       
-                      SetLineNormalizationTypeFromIndex(value);
+                      SetLineNormalizationTypeFromString(value);
                     }
                     
                     // line shape
                     else if(token == "LST")
                     {
-                      Index value;
+                      String value;
                       icecream >> value;
                       
-                      SetExternalLineShapeTypeFromIndex(value);
+                      SetExternalLineShapeTypeFromString(value);
                     }
                     else
                     {
@@ -3236,11 +3236,11 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
               if(need_lml)
                 ls << " LML " << LML;
               if(need_mtm)
-                ls << " MTM " << MTM;
+                ls << " MTM " << lr.GetMirroringTypeString();
               if(need_lnt)
-                ls << " LNT " << LNT;
+                ls << " LNT " << lr.GetLineNormalizationTypeString();
               if(need_lst)
-                ls << " LST " << LST;
+                ls << " LST " << lr.GetExternalLineShapeTypeString();
             }
             
           }
@@ -3377,6 +3377,126 @@ void match_lines_by_quantum_identifier(ArrayOfIndex& matches,
     {
         assert(0);
     }
+}
+
+void LineRecord::SetMirroringTypeFromString(const String& in)
+{
+  if(in == "NONE")
+    mmirroring = MirroringType::None;
+  else if(in == "LP")
+    mmirroring = MirroringType::Lorentz;
+  else if(in == "SAME")
+    mmirroring = MirroringType::SameAsLineShape;
+  else if(in == "MAN")
+    mmirroring = MirroringType::Manual;
+  else
+    throw std::runtime_error("Cannot recognize the mirroring type");
+}
+
+String LineRecord::GetMirroringTypeString() const
+{
+  switch(mmirroring) {
+    case MirroringType::None:
+      return "NONE";
+    case MirroringType::Lorentz:
+      return "LP";
+    case MirroringType::SameAsLineShape:
+      return "SAME";
+    case MirroringType::Manual:
+      return "MAN";
+    default:
+      throw std::runtime_error("Cannot recognize the mirroring type");
+  }
+}
+
+void LineRecord::SetLineNormalizationTypeFromString(const String& in)
+{
+  if(in == "NONE")
+    mlinenorm = LineNormalizationType::None;
+  else if(in == "VVH")
+    mlinenorm = LineNormalizationType::VVH;
+  else if(in == "VVW")
+    mlinenorm = LineNormalizationType::VVW;
+  else if(in == "RQ")
+    mlinenorm = LineNormalizationType::RosenkranzQuadratic;
+  else
+    throw std::runtime_error("Cannot recognize the mirroring type");
+}
+
+String LineRecord::GetLineNormalizationTypeString() const
+{
+  switch(mlinenorm) {
+    case LineNormalizationType::None:
+      return "NONE";
+    case LineNormalizationType::VVH:
+      return "VVH";
+    case LineNormalizationType::VVW:
+      return "VVW";
+    case LineNormalizationType::RosenkranzQuadratic:
+      return "RQ";
+    default:
+      throw std::runtime_error("Cannot recognize the mirroring type");
+  }
+}
+
+void LineRecord::SetExternalLineShapeTypeFromString(const String& in)
+{
+  if(in == "LF")
+    mlineshape = LineShapeType::ByPressureBroadeningData;
+  else if(in == "DP")
+    mlineshape = LineShapeType::Doppler;
+  else if(in == "LP")
+    mlineshape = LineShapeType::Lorentz;
+  else if(in == "VP")
+    mlineshape = LineShapeType::Voigt;
+  else if(in == "HTP")
+    mlineshape = LineShapeType::HTP;
+  else
+    throw std::runtime_error("Cannot recognize the mirroring type");
+}
+
+String LineRecord::GetExternalLineShapeTypeString() const
+{
+  switch(mlineshape) {
+    case LineShapeType::ByPressureBroadeningData:
+      return "LF";
+    case LineShapeType::Doppler:
+      return "DP";
+    case LineShapeType::Lorentz:
+      return "LP";
+    case LineShapeType::Voigt:
+      return "VP";
+    case LineShapeType::HTP:
+      return "HTP";
+    default:
+      throw std::runtime_error("Cannot recognize the mirroring type");
+  }
+}
+
+void LineRecord::SetLinePopulationTypeFromString(const String& in)
+{
+  if(in == "LTE")
+    mpopulation = LinePopulationType::ByLTE;
+  else if(in == "TV")
+    mpopulation = LinePopulationType::ByVibrationalTemperatures;
+  else if(in == "ND")
+    mpopulation = LinePopulationType::ByPopulationDistribution;
+  else
+    throw std::runtime_error("Cannot recognize the mirroring type");
+}
+
+String LineRecord::GetLinePopulationTypeString() const
+{
+  switch(mpopulation) {
+    case LinePopulationType::ByLTE:
+      return "LTE";
+    case LinePopulationType::ByVibrationalTemperatures:
+      return "TV";
+    case LinePopulationType::ByPopulationDistribution:
+      return "ND";
+    default:
+      throw std::runtime_error("Cannot recognize the mirroring type");
+  }
 }
 
 void LineRecord::SetMirroringTypeFromIndex(const Index in)

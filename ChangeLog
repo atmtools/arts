@@ -1,3 +1,19 @@
+2019-03-12  Richard Larsson <larsson@mps.mpg.de>
+
+	* arts-2-3-1238
+	
+	Breaks some controlfiles.  If you were using the experimental
+	line modification terms for the *2 xsec calculations.
+	
+	* src/linerecord.cc,h: Changed names for the modification terms
+	so they are human-readable.  Before, "LSM 1 MTM 1" meant mirrored by
+	Lorentz function.  Now it reads "LSM 1 MTM LP".  Difficult to understand,
+	but human-readable without lookup tables so long as you know the basics.
+	
+	* src/m_ppath.cc:  Added a ppath_fieldCalc which takes sensor_los
+	and sensor_pos to generate the field.  Mostly because it helps me
+	plot the ppath_field in python.
+
 2019-03-06  Richard Larsson <larsson@mps.mpg.de>
 
 	* arts-2-3-1237

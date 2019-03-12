@@ -12542,6 +12542,30 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "ppath_fieldCalc" ),
+        DESCRIPTION
+        (
+         "Stand-alone calculation of propagation path field from sensors.\n"
+         "\n"
+         "Uses *ppathCalc* internally.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT( "ppath_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "ppath_agenda", "ppath_lmax", "ppath_lraytrace",
+            "atmgeom_checked", "t_field", "z_field", "vmr_field", "f_grid",
+            "cloudbox_on", "cloudbox_checked", "ppath_inside_cloudbox_do", 
+            "sensor_pos", "sensor_los", "rte_pos2" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "ppathCalcFromAltitude" ),
         DESCRIPTION
         (
