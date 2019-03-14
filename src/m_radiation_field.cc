@@ -335,7 +335,7 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLines(Workspace&          
                                       Tensor3(0, 0, 0), Tensor3(0, 0, 0), Tensor3(0, 0, 0),
                                       Tensor3(0, 0, 0), Tensor3(0, 0, 0), Tensor3(0, 0, 0),
                                       z_field(0, joker, joker), 1e99, 0.0, surface_props_data,
-                                      za_grid, verbosity);
+                                      za_grid, 0, verbosity);
     
     // Integrate over the sphere
     for(Index ip=0; ip<np; ip++) {
@@ -411,7 +411,8 @@ void doit_i_fieldClearskyPlaneParallel(
   const Numeric&                    ppath_lmax,
   const Numeric&                    rte_alonglos_v,
   const Tensor3&                    surface_props_data,
-  const Vector&                     scat_za_grid, 
+  const Vector&                     scat_za_grid,
+  const Index&                      use_parallel_iy,
   const Verbosity&                  verbosity )
 {
   // Check input
@@ -464,7 +465,7 @@ void doit_i_fieldClearskyPlaneParallel(
   if (nza)
 #pragma omp parallel for       \
   if (!arts_omp_in_parallel()  \
-      && nza > 1)         \
+      && nza > 1 && !use_parallel_iy) \
   firstprivate(l_ws)
   for( Index i=0; i<nza; i++ )
     {
@@ -489,20 +490,57 @@ void doit_i_fieldClearskyPlaneParallel(
                               cloudbox_limits, ppath_inside_cloudbox_do,
                               rte_pos, rte_los, ppath_lmax, verbosity );
 
-          iyEmissionStandard( l_ws, iy, iy_aux, diy_dx, ppvar_p, ppvar_t,ppvar_nlte,
-                              ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f, ppvar_iy,
-                              ppvar_trans_cumulat,ppvar_trans_partial,iy_id, stokes_dim, f_grid,
-                              atmosphere_dim,p_grid, z_field, t_field, nlte_field,
-                              vmr_field, abs_species,wind_u_field, wind_v_field,
-                              wind_w_field, mag_u_field, mag_v_field, mag_w_field,
-                              cloudbox_on, iy_unit, iy_aux_vars, jacobian_do,
-                              jacobian_quantities, ppath, rte_pos2,
-                              propmat_clearsky_agenda, water_p_eq_agenda,
-                              iy_main_agenda, iy_space_agenda,
-                              iy_surface_agenda, iy_cloudbox_agenda,
-                              iy_agenda_call1, iy_transmission, rte_alonglos_v,
-                              surface_props_data, verbosity );
-          assert( iy.nrows() == nf );
+          if (use_parallel_iy)
+          {
+            iyEmissionStandardParallel(l_ws, iy, iy_aux, diy_dx, ppvar_p,
+                                       ppvar_t, ppvar_nlte,
+                                       ppvar_vmr, ppvar_wind, ppvar_mag,
+                                       ppvar_f, ppvar_iy,
+                                       ppvar_trans_cumulat, ppvar_trans_partial,
+                                       iy_id, stokes_dim, f_grid,
+                                       atmosphere_dim, p_grid, z_field, t_field,
+                                       nlte_field,
+                                       vmr_field, abs_species, wind_u_field,
+                                       wind_v_field,
+                                       wind_w_field, mag_u_field, mag_v_field,
+                                       mag_w_field,
+                                       cloudbox_on, iy_unit, iy_aux_vars,
+                                       jacobian_do,
+                                       jacobian_quantities, ppath, rte_pos2,
+                                       propmat_clearsky_agenda,
+                                       water_p_eq_agenda,
+                                       iy_main_agenda, iy_space_agenda,
+                                       iy_surface_agenda, iy_cloudbox_agenda,
+                                       iy_agenda_call1, iy_transmission,
+                                       rte_alonglos_v,
+                                       surface_props_data, verbosity);
+          }
+          else
+          {
+            iyEmissionStandard(l_ws, iy, iy_aux, diy_dx, ppvar_p,
+                               ppvar_t, ppvar_nlte,
+                               ppvar_vmr, ppvar_wind, ppvar_mag,
+                               ppvar_f, ppvar_iy,
+                               ppvar_trans_cumulat, ppvar_trans_partial,
+                               iy_id, stokes_dim, f_grid,
+                               atmosphere_dim, p_grid, z_field, t_field,
+                               nlte_field,
+                               vmr_field, abs_species, wind_u_field,
+                               wind_v_field,
+                               wind_w_field, mag_u_field, mag_v_field,
+                               mag_w_field,
+                               cloudbox_on, iy_unit, iy_aux_vars,
+                               jacobian_do,
+                               jacobian_quantities, ppath, rte_pos2,
+                               propmat_clearsky_agenda,
+                               water_p_eq_agenda,
+                               iy_main_agenda, iy_space_agenda,
+                               iy_surface_agenda, iy_cloudbox_agenda,
+                               iy_agenda_call1, iy_transmission,
+                               rte_alonglos_v,
+                               surface_props_data, verbosity);
+          }
+
           assert( iy.ncols() == stokes_dim );
 
           // First and last points are most easily handled separately

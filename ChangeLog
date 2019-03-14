@@ -1,3 +1,30 @@
+2019-03-14  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1239
+	
+	* src/methods.cc, src/m_rte.cc:
+
+	(iyEmissionStandardParallel): Added a parallelized version of
+	iyEmissionStandard. Parallelization over ppath points is achieved at
+	the expense of memory. K and dK_dx at all ppath points are stored into
+	arrays. Transmission calculation is moved into its own loop. With this
+	setup both loops can be parallelized.
+	
+	(iyEmissionStandardOld): Removed.
+
+	* src/m_radiation_field.cc, src/methods.cc:
+
+	(doit_i_fieldClearskyPlaneParallel):
+
+	Add new generic input use_parallel_iy. If set to 1,
+	iyEmissionStandardParallel is called and parallelization of zenith
+	angles is deactivated.
+
+	(line_irradianceCalcForSingleSpeciesNonOverlappingLines):
+
+	Add use_parallel_iy (0) parameter to doit_i_fieldClearskyPlaneParallel
+	call.
+
 2019-03-12  Richard Larsson <larsson@mps.mpg.de>
 
 	* arts-2-3-1238

@@ -5882,10 +5882,11 @@ void define_md_data_raw()
             "z_surface", "ppath_lmax", "rte_alonglos_v", "surface_props_data",
             "scat_za_grid" 
             ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN("use_parallel_iy"),
+        GIN_TYPE("Index"),
+        GIN_DEFAULT("0"),
+        GIN_DESC("0: Parallelize over zenith angles\n"
+                 "1: Use more memory intensiv iyEmissionStandardParallel*")
         ));
 
   md_data_raw.push_back
@@ -7820,7 +7821,7 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-    
+
     md_data_raw.push_back
     ( MdRecord
     ( NAME( "iyEmissionStandard" ),
@@ -7872,6 +7873,39 @@ void define_md_data_raw()
           "p_grid", "z_field", "t_field", "nlte_field", "vmr_field",
           "abs_species", "wind_u_field", "wind_v_field", "wind_w_field",
           "mag_u_field", "mag_v_field", "mag_w_field", 
+          "cloudbox_on", "iy_unit", "iy_aux_vars",
+          "jacobian_do", "jacobian_quantities", "ppath", "rte_pos2",
+          "propmat_clearsky_agenda", "water_p_eq_agenda", "iy_main_agenda",
+          "iy_space_agenda", "iy_surface_agenda", "iy_cloudbox_agenda",
+          "iy_agenda_call1", "iy_transmission", "rte_alonglos_v",
+          "surface_props_data" ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()
+    ));
+
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "iyEmissionStandardParallel" ),
+      DESCRIPTION
+      (
+        "Parallelized version of *iyEmissionStandard* at the expense of\n"
+        "higher memory usage.\n"
+        "\n"
+        "For documentation see *iyEmissionStandard*.\n"
+       ),
+      AUTHORS( "Patrick Eriksson", "Richard Larsson", "Oliver Lemke" ),
+      OUT( "iy", "iy_aux", "diy_dx", "ppvar_p", "ppvar_t", "ppvar_nlte",
+           "ppvar_vmr", "ppvar_wind", "ppvar_mag", "ppvar_f", "ppvar_iy",
+           "ppvar_trans_cumulat", "ppvar_trans_partial" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "diy_dx", "iy_id", "stokes_dim", "f_grid", "atmosphere_dim",
+          "p_grid", "z_field", "t_field", "nlte_field", "vmr_field",
+          "abs_species", "wind_u_field", "wind_v_field", "wind_w_field",
+          "mag_u_field", "mag_v_field", "mag_w_field",
           "cloudbox_on", "iy_unit", "iy_aux_vars",
           "jacobian_do", "jacobian_quantities", "ppath", "rte_pos2",
           "propmat_clearsky_agenda", "water_p_eq_agenda", "iy_main_agenda",
