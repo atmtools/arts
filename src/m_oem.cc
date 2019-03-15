@@ -154,16 +154,16 @@ void get_gp_atmsurf_to_rq(
 {
   if( atmosphere_dim >= 2 )
     {
-      gp_lat.resize( rq.Grids()[1].nelem() );
-      gridpos( gp_lat, lat_grid, rq.Grids()[1], 0 );
+      gp_lat.resize( rq.Grids()[0].nelem() );
+      gridpos( gp_lat, lat_grid, rq.Grids()[0], 0 );
     }
   else
     { gp_lat.resize(0); }
   //
   if( atmosphere_dim >= 3 )
     {
-      gp_lon.resize( rq.Grids()[2].nelem() );
-      gridpos( gp_lon, lon_grid, rq.Grids()[2], 0 );
+      gp_lon.resize( rq.Grids()[1].nelem() );
+      gridpos( gp_lon, lon_grid, rq.Grids()[1], 0 );
     }
   else
     { gp_lon.resize(0); }
@@ -336,6 +336,254 @@ void get_gp_rq_to_atmgrids(
     {
       gp_lon.resize(0);
       n_lon = 1;
+    }
+}
+
+
+/* So far just a temporary test */
+void regrid_atmfield_by_gp_oem( 
+         Tensor3&          field_new, 
+   const Index&            atmosphere_dim, 
+   ConstTensor3View        field_old, 
+   const ArrayOfGridPos&   gp_p,
+   const ArrayOfGridPos&   gp_lat,
+   const ArrayOfGridPos&   gp_lon )
+{
+  const Index n1 = gp_p.nelem();
+
+  const bool np_is1   = field_old.npages() == 1 ? true : false; 
+  const bool nlat_is1 = atmosphere_dim > 1 && field_old.nrows() == 1 ? true : false; 
+  const bool nlon_is1 = atmosphere_dim > 2 && field_old.ncols() == 1 ? true : false; 
+
+  // If no length 1, we can use standard function
+  if( !np_is1 && !nlat_is1 && !nlon_is1 )
+    {
+      regrid_atmfield_by_gp( field_new, atmosphere_dim, field_old, 
+                             gp_p, gp_lat, gp_lon );
+    }
+  else
+    {
+      //--- 1D (1 possibilities left) -------------------------------------------
+      if( atmosphere_dim == 1 )
+        {                                  // 1: No interpolation at all
+          field_new.resize( n1, 1, 1 );
+          field_new(joker,0,0) = field_old(0,0,0);
+        }
+
+      //--- 2D (3 possibilities left) -------------------------------------------
+      else if( atmosphere_dim == 2 )
+        {
+          const Index n2 = gp_lat.nelem();
+          field_new.resize( n1, n2, 1 );
+          //
+          if( np_is1 && nlat_is1 )     // 1: No interpolation at all
+            {
+              // Here we need no interpolation at all
+              field_new(joker,joker,0) = field_old(0,0,0);
+            }
+          else if( np_is1 )            // 2: Latitude interpolation
+            {
+              Matrix itw( n2, 2 );
+              interpweights( itw, gp_lat );
+              Vector tmp(n2);
+              interp( tmp, itw, field_old(0,joker,0), gp_lat ); 
+              for( Index p=0; p<n1; p++ )
+                {
+                  assert( gp_p[p].fd[0] < 1e-6 );
+                  field_new(p,joker,0) = tmp;
+                }
+            }
+          else                          // 3: Pressure interpolation
+            {
+              Matrix itw( n1, 2 );
+              interpweights( itw, gp_p );
+              Vector tmp(n1);
+              interp( tmp, itw, field_old(joker,0,0), gp_p ); 
+              for( Index lat=0; lat<n2; lat++ )
+                {
+                  assert( gp_lat[lat].fd[0] < 1e-6 );
+                  field_new(joker,lat,0) = tmp;
+                }
+            }
+        }
+      
+      //--- 3D (7 possibilities left) -------------------------------------------
+      else if( atmosphere_dim == 3 )
+        {
+          const Index n2 = gp_lat.nelem();
+          const Index n3 = gp_lon.nelem();
+          field_new.resize( n1, n2, n3 );
+          //
+          if( np_is1 && nlat_is1 && nlon_is1 )  // 1: No interpolation at all
+            {
+              field_new(joker,joker,joker) = field_old(0,0,0);
+            }
+          
+          else if( np_is1 )   // No pressure interpolation --------------
+            {
+              if( nlat_is1 )      // 2: Just longitude interpolation
+                {
+                  Matrix itw( n3, 2 );
+                  interpweights( itw, gp_lon );
+                  Vector tmp(n3);
+                  interp( tmp, itw, field_old(0,0,joker), gp_lon ); 
+                  for( Index p=0; p<n1; p++ )
+                    {
+                      assert( gp_p[p].fd[0] < 1e-6 );
+                      for( Index lat=0; lat<n2; lat++ )
+                        {
+                          assert( gp_lat[lat].fd[0] < 1e-6 );
+                          field_new(p,lat,joker) = tmp;
+                        }
+                    }
+                }
+              else if( nlon_is1 )  // 3: Just latitude interpolation
+                {
+                  Matrix itw( n2, 2 );
+                  interpweights( itw, gp_lat );
+                  Vector tmp(n2);
+                  interp( tmp, itw, field_old(0,joker,0), gp_lat ); 
+                  for( Index p=0; p<n1; p++ )
+                    {
+                      assert( gp_p[p].fd[0] < 1e-6 );
+                      for( Index lon=0; lon<n3; lon++ )
+                        {
+                          assert( gp_lon[lon].fd[0] < 1e-6 );
+                          field_new(p,joker,lon) = tmp;
+                        }
+                    }
+                }
+              else                 // 4: Both lat and lon interpolation
+                {
+                  Tensor3 itw( n2, n3, 4 );
+                  interpweights( itw, gp_lat, gp_lon );
+                  Matrix  tmp( n2, n3 );
+                  interp( tmp, itw, field_old(0,joker,joker), gp_lat, gp_lon );
+                  for( Index p=0; p<n1; p++ )
+                    {
+                      assert( gp_p[p].fd[0] < 1e-6 );
+                      field_new(p,joker,joker) = tmp;
+                    }
+                }
+            }
+          
+          else  // Pressure interpolation --------------
+            {
+              if( nlat_is1 && nlon_is1 )   // 5: Just pressure interpolatiom
+                {
+                  Matrix itw( n1, 2 );
+                  interpweights( itw, gp_p );
+                  Vector tmp(n1);
+                  interp( tmp, itw, field_old(joker,0,0), gp_p ); 
+                  for( Index lat=0; lat<n2; lat++ )
+                    {
+                      assert( gp_lat[lat].fd[0] < 1e-6 );
+                      for( Index lon=0; lon<n3; lon++ )
+                        {
+                          assert( gp_lon[lon].fd[0] < 1e-6 );
+                          field_new(joker,lat,lon) = tmp;
+                        }
+                    }
+                }
+              else if( nlat_is1 )        // 6: Both p and lon interpolation
+                {
+                  Tensor3 itw( n1, n3, 4 );
+                  interpweights( itw, gp_p, gp_lon );
+                  Matrix  tmp( n1, n3 );
+                  interp( tmp, itw, field_old(joker,0,joker), gp_p, gp_lon );
+                  for( Index lat=0; lat<n2; lat++ )
+                    {
+                      assert( gp_lat[lat].fd[0] < 1e-6 );
+                      field_new(joker,lat,joker) = tmp;
+                    }
+                }
+              else                       // 7: Both p and lat interpolation
+                {
+                  Tensor3 itw( n1, n2, 4 );
+                  interpweights( itw, gp_p, gp_lat );
+                  Matrix  tmp( n1, n2 );
+                  interp( tmp, itw, field_old(joker,joker,0), gp_p, gp_lat );
+                  for( Index lon=0; lon<n3; lon++ )
+                    {
+                      assert( gp_lon[lon].fd[0] < 1e-6 );
+                      field_new(joker,joker,lon) = tmp;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+/* So far just a temporary test */
+void regrid_atmsurf_by_gp_oem( 
+         Matrix&           field_new, 
+   const Index&            atmosphere_dim, 
+   ConstMatrixView         field_old, 
+   const ArrayOfGridPos&   gp_lat,
+   const ArrayOfGridPos&   gp_lon )
+{
+  // As 1D is so simple, let's do it here and not go to standard function
+  if( atmosphere_dim == 1 )
+    {
+      field_new = field_old;
+    }
+  else
+    {
+      const bool nlat_is1 = field_old.nrows() == 1 ? true : false; 
+      const bool nlon_is1 = atmosphere_dim > 2 && field_old.ncols() == 1 ? true : false; 
+      
+      // If no length 1, we can use standard function
+      if( !nlat_is1 && !nlon_is1 )
+        {
+          regrid_atmsurf_by_gp( field_new, atmosphere_dim, field_old, 
+                                gp_lat, gp_lon );
+        }
+      else
+        {
+          if( atmosphere_dim == 2 )
+            {                                  // 1: No interpolation at all
+              const Index n1 = gp_lat.nelem();
+              field_new.resize( n1, 1 );
+              field_new(joker,0) = field_old(0,0);
+            }
+          else
+            {
+              const Index n1 = gp_lat.nelem();
+              const Index n2 = gp_lon.nelem();
+              field_new.resize( n1, n2 );
+              //
+              if( nlat_is1 && nlon_is1 )      // 1: No interpolation at all
+                {
+                  field_new(joker,joker) = field_old(0,0);
+                }
+              else if( nlon_is1 )             // 2: Just latitude interpolation
+                {
+                  Matrix itw( n1, 2 );
+                  interpweights( itw, gp_lat );
+                  Vector tmp(n1);
+                  interp( tmp, itw, field_old(joker,0), gp_lat ); 
+                  for( Index lon=0; lon<n2; lon++ )
+                    {
+                      assert( gp_lon[lon].fd[0] < 1e-6 );
+                      field_new(joker,lon) = tmp;
+                    }
+                }
+              else                            // 2: Just longitude interpolation
+                {
+                  Matrix itw( n2, 2 );
+                  interpweights( itw, gp_lon );
+                  Vector tmp(n2);
+                  interp( tmp, itw, field_old(0,joker), gp_lon ); 
+                  for( Index lat=0; lat<n1; lat++ )
+                    {
+                      assert( gp_lat[lat].fd[0] < 1e-6 );
+                      field_new(lat,joker) = tmp;
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -597,7 +845,7 @@ void xaStandard(
           ArrayOfGridPos gp_p, gp_lat, gp_lon;
           get_gp_atmgrids_to_rq( gp_p, gp_lat, gp_lon, jacobian_quantities [q],
                                  atmosphere_dim, p_grid, lat_grid, lon_grid );
-          Tensor3 t_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
+          Tensor3 t_x;
           regrid_atmfield_by_gp( t_x, atmosphere_dim, t_field,
                                  gp_p, gp_lat, gp_lon );
           flat( xa[ind], t_x );
@@ -625,7 +873,7 @@ void xaStandard(
                                      jacobian_quantities[q],
                                      atmosphere_dim,
                                      p_grid, lat_grid, lon_grid );
-              Tensor3 vmr_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
+              Tensor3 vmr_x;
               regrid_atmfield_by_gp( vmr_x, atmosphere_dim,
                                      vmr_field(isp,joker,joker,joker),
                                      gp_p, gp_lat, gp_lon );
@@ -637,7 +885,7 @@ void xaStandard(
               else if( jacobian_quantities[q].Mode() == "nd" )
                 {
                   // Here we need to also interpolate *t_field*
-                  Tensor3 t_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
+                  Tensor3 t_x;
                   regrid_atmfield_by_gp( t_x, atmosphere_dim,  t_field,
                                          gp_p, gp_lat, gp_lon );
                   // Calculate number density for species (vmr*nd_tot)
@@ -656,7 +904,7 @@ void xaStandard(
               else if( jacobian_quantities[q].Mode() == "rh" )
                 {
                   // Here we need to also interpolate *t_field*
-                  Tensor3 t_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
+                  Tensor3 t_x;
                   regrid_atmfield_by_gp( t_x, atmosphere_dim,  t_field,
                                          gp_p, gp_lat, gp_lon );
                   Tensor3 water_p_eq;
@@ -730,7 +978,7 @@ void xaStandard(
               ArrayOfGridPos gp_p, gp_lat, gp_lon;
               get_gp_atmgrids_to_rq( gp_p, gp_lat, gp_lon,jacobian_quantities[q],
                                      atmosphere_dim, p_grid, lat_grid, lon_grid );
-              Tensor3 pbp_x(gp_p.nelem(),gp_lat.nelem(),gp_lon.nelem());
+              Tensor3 pbp_x;
               regrid_atmfield_by_gp( pbp_x, atmosphere_dim,
                                      particle_bulkprop_field(isp,joker,joker,joker),
                                      gp_p, gp_lat, gp_lon );
@@ -756,7 +1004,7 @@ void xaStandard(
           get_gp_atmgrids_to_rq(gp_p, gp_lat, gp_lon, jacobian_quantities[q],
                                 atmosphere_dim, p_grid, lat_grid, lon_grid);
 
-          Tensor3 wind_x(gp_p.nelem(), gp_lat.nelem(), gp_lon.nelem());
+          Tensor3 wind_x;
           regrid_atmfield_by_gp(wind_x, atmosphere_dim, source_field,
                                 gp_p, gp_lat, gp_lon);
           flat(xa[ind], wind_x);
@@ -774,9 +1022,7 @@ void xaStandard(
                                 atmosphere_dim, p_grid, lat_grid, lon_grid);
           
           //all three component's hyoptenuse is the strength
-          Tensor3 mag_u(gp_p.nelem(), gp_lat.nelem(), gp_lon.nelem());
-          Tensor3 mag_v(gp_p.nelem(), gp_lat.nelem(), gp_lon.nelem());
-          Tensor3 mag_w(gp_p.nelem(), gp_lat.nelem(), gp_lon.nelem());
+          Tensor3 mag_u, mag_v, mag_w;
           regrid_atmfield_by_gp(mag_u, atmosphere_dim, mag_u_field,
                                 gp_p, gp_lat, gp_lon);
           regrid_atmfield_by_gp(mag_v, atmosphere_dim, mag_v_field,
@@ -805,7 +1051,7 @@ void xaStandard(
           get_gp_atmgrids_to_rq(gp_p, gp_lat, gp_lon, jacobian_quantities[q],
                                 atmosphere_dim, p_grid, lat_grid, lon_grid);
           
-          Tensor3 mag_x(gp_p.nelem(), gp_lat.nelem(), gp_lon.nelem());
+          Tensor3 mag_x;
           regrid_atmfield_by_gp(mag_x, atmosphere_dim, source_field,
                                 gp_p, gp_lat, gp_lon);
           flat(xa[ind], mag_x);
@@ -837,12 +1083,12 @@ void xaStandard(
           }
 
         ArrayOfGridPos gp_lat, gp_lon;
-        get_gp_atmsurf_to_rq( gp_lat, gp_lon, jacobian_quantities [q],
+        get_gp_atmsurf_to_rq( gp_lat, gp_lon, jacobian_quantities[q],
                               atmosphere_dim, lat_grid, lon_grid );
-        Matrix surf_x(gp_lat.nelem(),gp_lon.nelem());
-        regrid_atmsurf_by_gp( surf_x, atmosphere_dim,
-                              surface_props_data(isu,joker,joker),
-                              gp_lat, gp_lon );
+        Matrix surf_x;
+        regrid_atmsurf_by_gp_oem( surf_x, atmosphere_dim,
+                                  surface_props_data(isu,joker,joker),
+                                  gp_lat, gp_lon );
         flat( xa[ind], surf_x );
       }
 
@@ -958,8 +1204,8 @@ void x2artsAtmAndSurf(
           // Map values in x back to t_field
           Tensor3 t_x( n_p, n_lat, n_lon );
           reshape( t_x, x_t[ind] );
-          regrid_atmfield_by_gp( t_field, atmosphere_dim, t_x,
-                                 gp_p, gp_lat, gp_lon );
+          regrid_atmfield_by_gp_oem( t_field, atmosphere_dim, t_x,
+                                     gp_p, gp_lat, gp_lon );
         }
 
 
@@ -984,8 +1230,8 @@ void x2artsAtmAndSurf(
             //
             Tensor3 t3_x( n_p, n_lat, n_lon );
             reshape( t3_x, x_t[ind] );
-            regrid_atmfield_by_gp( x_field, atmosphere_dim, t3_x,
-                                   gp_p, gp_lat, gp_lon );
+            regrid_atmfield_by_gp_oem( x_field, atmosphere_dim, t3_x,
+                                       gp_p, gp_lat, gp_lon );
           }
           //
           if( jacobian_quantities[q].Mode() == "rel" )
@@ -1086,8 +1332,8 @@ void x2artsAtmAndSurf(
               Tensor3 pbfield_x( n_p, n_lat, n_lon );
               reshape( pbfield_x, x_t[ind] );
               Tensor3 pbfield;
-              regrid_atmfield_by_gp( pbfield, atmosphere_dim, pbfield_x,
-                                     gp_p, gp_lat, gp_lon );
+              regrid_atmfield_by_gp_oem( pbfield, atmosphere_dim, pbfield_x,
+                                         gp_p, gp_lat, gp_lon );
               particle_bulkprop_field(isp,joker,joker,joker) = pbfield;
             }
         }
@@ -1113,8 +1359,8 @@ void x2artsAtmAndSurf(
 
           Tensor3 wind_field(target_field.npages(), target_field.nrows(),
                              target_field.ncols());
-          regrid_atmfield_by_gp(wind_field, atmosphere_dim, wind_x,
-                                 gp_p, gp_lat, gp_lon);
+          regrid_atmfield_by_gp_oem( wind_field, atmosphere_dim, wind_x,
+                                     gp_p, gp_lat, gp_lon);
 
           if (jacobian_quantities[q].Subtag() == "u") {
               wind_u_field = wind_field;
@@ -1146,8 +1392,8 @@ void x2artsAtmAndSurf(
 
           Tensor3 mag_field(target_field.npages(), target_field.nrows(),
                              target_field.ncols());
-          regrid_atmfield_by_gp(mag_field, atmosphere_dim, mag_x,
-                                 gp_p, gp_lat, gp_lon);
+          regrid_atmfield_by_gp_oem( mag_field, atmosphere_dim, mag_x,
+                                     gp_p, gp_lat, gp_lon);
 
           if (jacobian_quantities[q].Subtag() == "u") {
               mag_u_field = mag_field;
@@ -1205,11 +1451,12 @@ void x2artsAtmAndSurf(
           Matrix surf_x( n_lat, n_lon );
           reshape( surf_x, x_t[ind] );
           Matrix surf;
-          regrid_atmsurf_by_gp( surf, atmosphere_dim, surf_x, gp_lat, gp_lon );
+          regrid_atmsurf_by_gp_oem( surf, atmosphere_dim, surf_x, gp_lat, gp_lon );
           surface_props_data(isu,joker,joker) = surf;
         }
     }
 }
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */

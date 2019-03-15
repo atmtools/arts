@@ -1780,6 +1780,7 @@ void interp( VectorView            ia,
       Index iti = 0;
       for ( Index c=0; c<2; ++c )
         {
+          assert( tc.idx+c < a.nelem() );    // Temporary !?
           tia += a.get(tc.idx+c) * itw.get(i,iti);
           ++iti;
         }
@@ -2580,6 +2581,8 @@ void interp( MatrixView            ia,
           for ( Index r=0; r<2; ++r )
             for ( Index c=0; c<2; ++c )
             {
+              assert( tr.idx+r < a.nrows() );   // Temporary !?
+              assert( tc.idx+c < a.ncols() );   // Temporary !?
               tia += a.get(tr.idx+r,
                            tc.idx+c) * itw.get(ir,ic,iti);
               ++iti;
@@ -2656,6 +2659,9 @@ void interp( Tensor3View           ia,
                 for ( Index r=0; r<2; ++r )
                   for ( Index c=0; c<2; ++c )
                     {
+                      assert( tp.idx+p < a.npages() );  // Temporary !?
+                      assert( tr.idx+r < a.nrows() );   // Temporary !?
+                      assert( tc.idx+c < a.ncols() );   // Temporary !?
                       tia += a.get(tp.idx+p,
                                    tr.idx+r,
                                    tc.idx+c) * itw.get(ip,ir,ic,

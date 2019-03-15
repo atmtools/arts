@@ -1,7 +1,41 @@
+2019-03-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1240
+
+	* Work to allow that atmospheric and surafec retrieval grids can
+	have length 1. The calculation of Jacobian worked (and the option
+	has been in Qpack since long), but several fixes were needed to
+	make this possible for ARTS-OEM. Basic tests for 3D done, no
+	actual retrieval made yet.
+
+	A length-1 grid means that the quantity to retrieve is assumed to
+	be constant in this dimension. For example, if you want to
+	retrieve a scaling factor for the complete vertical column, set
+	the pressure retrieval grid to have length 1 and set unit to
+	"rel". A result of 1.1 means that the retrieval indicates that the
+	column is 10% higher than a priori.
+
+	* src/m_oem.cc (regrid_atmsurf_by_gp_oem): Works as
+	regrid_atmsurf_by_gp, but also handles length-1 retrieval grids.
+
+	* src/m_oem.cc (regrid_atmfield_by_gp_oem): Works as
+	regrid_atmfield_by_gp, but also handles length-1 retrieval grids
+	including combinations.
+
+	* src/interpolation.cc (interp): Added asserts in 1D, 2D and 3D
+	version of green interpolation. These should be temporary, but
+	useful as a help to check that length-1 p, lat and lon retrieval
+	grids are handled correctly.
+
+	* src/m_oem.cc (get_gp_atmsurf_to_rq): Did not work for 2D and 3D!
+
+	* src/m_oem.cc (xaStandard): Removed sizing of variabls that are
+	set by regrid_atmfield_by_gp. The variable is sized inside the function.
+
 2019-03-14  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1239
-	
+
 	* src/methods.cc, src/m_rte.cc:
 
 	(iyEmissionStandardParallel): Added a parallelized version of
@@ -9,7 +43,7 @@
 	the expense of memory. K and dK_dx at all ppath points are stored into
 	arrays. Transmission calculation is moved into its own loop. With this
 	setup both loops can be parallelized.
-	
+
 	(iyEmissionStandardOld): Removed.
 
 	* src/m_radiation_field.cc, src/methods.cc:
@@ -28,7 +62,7 @@
 2019-03-12  Richard Larsson <larsson@mps.mpg.de>
 
 	* arts-2-3-1238
-	
+
 	Breaks some controlfiles.  If you were using the experimental
 	line modification terms for the *2 xsec calculations.
 	
