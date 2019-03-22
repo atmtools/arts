@@ -110,17 +110,24 @@ Numeric barometric_heightformula ( //output is p1
 Numeric dinvplanckdI(
         const Numeric&  i,
         const Numeric&  f )
+try
 {
-  assert( i >= 0 );
-  assert( f > 0 );
+  if(i <= 0) throw "Non-positive radiance";
+  if(f <= 0) throw "Non-positive frequency";
 
   static const Numeric a = PLANCK_CONST / BOLTZMAN_CONST;
   static const Numeric b = 2 * PLANCK_CONST / ( SPEED_OF_LIGHT*SPEED_OF_LIGHT );
-
   const Numeric d    = b * f*f*f / i;
   const Numeric binv = a * f / log( d + 1 );
 
   return binv*binv / ( a * f * i * (1/d+1) ); 
+}
+catch (const char * e)
+{
+  std::ostringstream os;
+  os << "Errors raised by *dinvplanckdI* internal function:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
 }
 
 
@@ -180,24 +187,23 @@ void fresnel(
 Numeric invplanck(
         const Numeric&  i,
         const Numeric&  f )
+try
 {
-  if (i < 0)
-  {
-      ostringstream os;
-      os << "Conversion to Planck brightness temperature failed: Radiance must be >= 0.\n"
-      << "Provided radiance = " << i;
-      throw runtime_error(os.str());
-  }
-
-//  assert( i >= 0 );
-  assert( f > 0 );
-
+  if(i <= 0) throw "Non-positive radiance";
+  if(f <  0) throw "Non-positive frequency";
+  
   static const Numeric a = PLANCK_CONST / BOLTZMAN_CONST;
   static const Numeric b = 2 * PLANCK_CONST / ( SPEED_OF_LIGHT*SPEED_OF_LIGHT );
 
   return   ( a * f ) / log( (b*f*f*f)/i + 1.0 );
 }
-
+catch (const char * e)
+{
+  std::ostringstream os;
+  os << "Errors raised by *invplanck* internal function:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
+}
 
 
 //! invrayjean
@@ -214,12 +220,21 @@ Numeric invplanck(
 Numeric invrayjean(
         const Numeric&  i,
         const Numeric&  f )
+try
 {
-  assert( f > 0 );
+//   if(i <  0) throw "Negative radiance";
+  if(f <= 0) throw "Non-positive frequency";
 
   static const Numeric   a = SPEED_OF_LIGHT*SPEED_OF_LIGHT/(2*BOLTZMAN_CONST);
 
   return  ( a * i ) / ( f * f );
+}
+catch (const char * e)
+{
+  std::ostringstream os;
+  os << "Errors raised by *invrayjean* internal function:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
 }
 
 
@@ -237,10 +252,19 @@ Numeric invrayjean(
 Numeric number_density(  
         const Numeric&   p,
         const Numeric&   t )
+try
 {
-  assert( p >= 0 );
-  assert( t > 0 );
+  if(p < 0 ) throw "Negative pressure";
+  if(t <= 0) throw "Non-positive temperature";
+  
   return   p / ( t * BOLTZMAN_CONST );
+}
+catch (const char * e)
+{
+  std::ostringstream os;
+  os << "Errors raised by *number_density* internal function:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
 }
 
 
@@ -258,10 +282,19 @@ Numeric number_density(
 Numeric dnumber_density_dt(  
         const Numeric&   p,
         const Numeric&   t )
+try
 {
-    assert( p >= 0 );
-    assert( t > 0 );
-    return   - p / ( t * BOLTZMAN_CONST * t );
+  if(p < 0 ) throw "Negative pressure";
+  if(t <= 0) throw "Non-positive temperature";
+  
+  return   - p / ( t * BOLTZMAN_CONST * t );
+}
+catch (const char * e)
+{
+  std::ostringstream os;
+  os << "Errors raised by *dnumber_density_dt* internal function:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
 }
 
 
@@ -282,20 +315,22 @@ Numeric dnumber_density_dt(
 Numeric planck( 
         const Numeric&   f, 
         const Numeric&   t )
+try
 {
-  assert( t >= 0 );
-  assert( f > 0 );
-
-  if( t == 0 )
-    { return 0; }
-
-  else
-    {
-    static const Numeric a = 2 * PLANCK_CONST / (SPEED_OF_LIGHT*SPEED_OF_LIGHT);
-    static const Numeric b = PLANCK_CONST / BOLTZMAN_CONST;
+  if(t <= 0) throw "Non-positive temperature";
+  if(f <= 0) throw "Non-positive frequency";
   
-    return  ( a * f*f*f ) / ( exp( (b*f)/t ) - 1.0 );
-    }
+  static const Numeric a = 2 * PLANCK_CONST / (SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+  static const Numeric b = PLANCK_CONST / BOLTZMAN_CONST;
+
+  return  ( a * f*f*f ) / ( exp( (b*f)/t ) - 1.0 );
+}
+catch (const char * e)
+{
+  std::ostringstream os;
+  os << "Errors raised by *planck* internal function:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
 }
 
 //! planck
@@ -315,23 +350,30 @@ Numeric planck(
 void planck( VectorView  b,
         ConstVectorView  f, 
         const Numeric&   t )
+try
 {
-  const Index nf = f.nelem();
-
-  assert( t >= 0 );
-  assert( b.nelem() == nf );
-
-  if( t == 0 )
-    { b = 0; }
-
-  else
-    {
-    static const Numeric a = 2 * PLANCK_CONST / (SPEED_OF_LIGHT*SPEED_OF_LIGHT);
-    static const Numeric c = PLANCK_CONST / BOLTZMAN_CONST;
-           const Numeric d = c / t;
-    for( Index i=0; i<nf; i++ )
-      { b[i] = ( a * f[i]*f[i]*f[i] ) / ( exp( d*f[i] ) - 1.0 ); }
-    }
+  if(b.nelem() not_eq f.nelem()) throw "Vector size mismatch: frequency dim is bad";
+  
+  for(Index i=0; i<f.nelem(); i++) b[i] = planck(f[i], t);
+}
+catch (const char * e)
+{
+  std::ostringstream os;
+  os << "Errors raised by *planck* internal function:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
+}
+catch (const std::exception& e)
+{
+  std::ostringstream os;
+  os << "Errors in calls by *planck* internal function:\n";
+  os << e.what();
+  
+  Index n=0;
+  for(auto& F: f) if(F <= 0) n++;
+  if(n) os << '\t' << "You have " << n << " frequency grid points that reports a negative frequency!\n";
+  
+  throw std::runtime_error(os.str());
 }
 
 
@@ -351,24 +393,26 @@ void planck( VectorView  b,
 Numeric dplanck_dt( 
 const Numeric&   f, 
 const Numeric&   t )
+try
 {
-    assert( t >= 0 );
-    assert( f > 0 );
-    
-    if( t == 0 )
-    { return 0; }
-    
-    else
-    {
-        static const Numeric a = 2 * PLANCK_CONST / (SPEED_OF_LIGHT*SPEED_OF_LIGHT);
-        static const Numeric b = PLANCK_CONST / BOLTZMAN_CONST;
-        
-        const Numeric exp_t = exp(b*f/t);
-        const Numeric exp_t_m1 = exp_t-1.0;
-        const Numeric f2 = f*f;
-        
-        return  a*b*f2*f2*exp_t/( t*t*exp_t_m1*exp_t_m1);
-    }
+  if(t <= 0) throw "Non-positive temperature";
+  if(f <= 0) throw "Non-positive frequency";
+  
+  static const Numeric a = 2 * PLANCK_CONST / (SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+  static const Numeric b = PLANCK_CONST / BOLTZMAN_CONST;
+  
+  const Numeric exp_t = exp(b*f/t);
+  const Numeric exp_t_m1 = exp_t-1.0;
+  const Numeric f2 = f*f;
+  
+  return  a*b*f2*f2*exp_t/( t*t*exp_t_m1*exp_t_m1);
+}
+catch (const char * e)
+{
+  std::ostringstream os;
+  os << "Errors raised by *dplanck_dt* internal function:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
 }
 
 
@@ -387,23 +431,25 @@ const Numeric&   t )
 Numeric dplanck_df( 
 const Numeric&   f, 
 const Numeric&   t )
+try
 {
-    assert( t >= 0 );
-    assert( f > 0 );
-    
-    if( t == 0 )
-    { return 0; }
-    
-    else
-    {
-        static const Numeric a = 2 * PLANCK_CONST / (SPEED_OF_LIGHT*SPEED_OF_LIGHT);
-        static const Numeric b = PLANCK_CONST / BOLTZMAN_CONST;
-        
-        const Numeric exp_t = exp(b*f/t);
-        const Numeric exp_t_m1 = exp_t-1.0;
-        
-        return  -(a*f*f*(3.0*t - 3.0*t*exp_t + b*f*exp_t))/(t*exp_t_m1*exp_t_m1);
-    }
+  if(t <= 0) throw "Non-positive temperature";
+  if(f <= 0) throw "Non-positive frequency";
+  
+  static const Numeric a = 2 * PLANCK_CONST / (SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+  static const Numeric b = PLANCK_CONST / BOLTZMAN_CONST;
+  
+  const Numeric exp_t = exp(b*f/t);
+  const Numeric exp_t_m1 = exp_t-1.0;
+  
+  return  -(a*f*f*(3.0*t - 3.0*t*exp_t + b*f*exp_t))/(t*exp_t_m1*exp_t_m1);
+}
+catch (const char * e)
+{
+  std::ostringstream os;
+  os << "Errors raised by *dplanck_df* internal function:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
 }
 
 
@@ -422,10 +468,19 @@ const Numeric&   t )
 Numeric rayjean(
         const Numeric&  f,
         const Numeric&  t )
+try
 {
-  assert( f > 0 );
+  if(t <= 0) throw "Non-positive temperature";
+  if(f <  0) throw "Negative frequency";
 
   static const Numeric   a = SPEED_OF_LIGHT*SPEED_OF_LIGHT/(2*BOLTZMAN_CONST);
 
   return  ( f * f ) / ( a * t );
+}
+catch (const char * e)
+{
+  std::ostringstream os;
+  os << "Errors raised by *rayjean* internal function:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
 }

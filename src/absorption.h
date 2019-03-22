@@ -622,6 +622,10 @@ private:
 void checkIsotopologueRatios(const ArrayOfArrayOfSpeciesTag& abs_species,
                              const SpeciesAuxData& sad);
 
+/** Check that partition functions for the given species are correctly defined. */
+void checkPartitionFunctions(const ArrayOfArrayOfSpeciesTag& abs_species,
+                             const SpeciesAuxData& partfun);
+
 /** Fill SpeciesAuxData with default isotopologue ratios from species data. */
 void fillSpeciesAuxDataWithIsotopologueRatiosFromSpeciesData(SpeciesAuxData& sad);
 

@@ -375,7 +375,7 @@ void checkIsotopologueRatios(const ArrayOfArrayOfSpeciesTag& abs_species,
     if (species_data.nelem() != isoratios.nspecies())
       {
         ostringstream os;
-        os << "Number of species in SpeciesAuxData (" << isoratios.nspecies()
+        os << "Number of species in SpeciesAuxData (" << isoratios.nspecies() << ") "
         << "does not fit builtin species data (" << species_data.nelem() << ").";
         throw runtime_error(os.str());
       }
@@ -423,6 +423,48 @@ void checkIsotopologueRatios(const ArrayOfArrayOfSpeciesTag& abs_species,
             }
           }
       }
+}
+
+
+void checkPartitionFunctions(const ArrayOfArrayOfSpeciesTag& abs_species,
+                             const SpeciesAuxData& partfun)
+{
+  using global_data::species_data;
+  
+  // Check total number of species:
+  if (species_data.nelem() != partfun.nspecies())
+  {
+    ostringstream os;
+    os << "Number of species in SpeciesAuxData (" << partfun.nspecies() << ") "
+    << "does not fit builtin species data (" << species_data.nelem() << ").";
+    throw runtime_error(os.str());
+  }
+  
+  // For the selected species, we check all isotopes by looping over the
+  // species data. (Trying to check only the isotopes actually used gets
+  // quite complicated, actually, so we do the simple thing here.)
+  
+  // Loop over the absorption species:
+  for (Index i=0; i<abs_species.nelem(); i++)
+  {
+    // sp is the index of this species in the internal lookup table
+    const Index sp = abs_species[i][0].Species();
+    
+    // Get handle on species data for this species:
+    const SpeciesRecord& this_sd = species_data[sp];
+    
+    // Check number of isotopologues:
+    if (this_sd.Isotopologue().nelem() != partfun.nisotopologues(sp))
+    {
+      ostringstream os;
+      os << "Incorrect number of isotopologues in partition function data.\n"
+      << "Species: " << this_sd.Name() << ".\n"
+      << "Number of isotopes in SpeciesAuxData ("
+      << partfun.nisotopologues(sp) << ") "
+      << "does not fit builtin species data (" << this_sd.Isotopologue().nelem() << ").";
+      throw runtime_error(os.str());
+    }
+  }
 }
 
 

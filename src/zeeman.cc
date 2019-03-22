@@ -69,18 +69,52 @@ ZeemanDerived zeeman_internal_variables_manual(Numeric H, Numeric theta, Numeric
   return {H, theta, eta,  0, 0, 0,  0, 0, 0,  0, 0, 0};
 }
 
+template<class T>
+bool bad_propmat(const Array<T>& main,
+                 const Vector& f_grid,
+                 const Index sd=4)
+{
+  const Index nf=f_grid.nelem();
+  for(auto& var : main) {
+    const bool bad_stokes = sd not_eq var.StokesDimensions();
+    const bool bad_freq   = nf not_eq var.NumberOfFrequencies();
+    if(bad_freq or bad_stokes) return true;
+  }
+  return false;
+}
+
+bool bad_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species)
+{
+  for(auto& species: abs_species) {
+    if(species.nelem()) {
+      for(auto& spec: species)
+        if(species[0].Species() not_eq spec.Species() or species[0].Isotopologue() not_eq spec.Isotopologue() or species[0].Type() not_eq spec.Type())
+          return true;
+    }
+    else
+      return true;
+  }
+  return false;
+}
+
+bool any_negative(const Vector& var)
+{
+  for(auto& v: var) if(v < 0) return true;
+  return false;
+}
+
 void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky, 
                        ArrayOfStokesVector& nlte_source,
                        ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
                        ArrayOfStokesVector& dnlte_dx_source,
                        ArrayOfStokesVector& nlte_dsource_dx,
                        const ArrayOfArrayOfSpeciesTag& abs_species, 
-                       const ArrayOfRetrievalQuantity& flag_partials,
+                       const ArrayOfRetrievalQuantity& jacobian_quantities,
                        const ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
                        const SpeciesAuxData& isotopologue_ratios, 
                        const SpeciesAuxData& partition_functions,
                        const Vector& f_grid,
-                       const Vector& rtp_vmrs, 
+                       const Vector& rtp_vmr, 
                        const Vector& rtp_nlte, 
                        const Vector& rtp_mag,
                        const Vector& rtp_los,
@@ -90,17 +124,42 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
                        const Numeric& H0,
                        const Numeric& theta0,
                        const Numeric& eta0)
+try
 {
   extern const Numeric DEG2RAD;
   
   // Find relevant derivatives in retrieval quantities positions
-  const ArrayOfIndex flag_partials_positions = equivlent_propmattype_indexes(flag_partials);
+  const ArrayOfIndex jacobian_quantities_positions = equivlent_propmattype_indexes(jacobian_quantities);
   
   // Size of problem
   const Index nf = f_grid.nelem();
-  const Index nq = flag_partials_positions.nelem();
+  const Index nq = jacobian_quantities_positions.nelem();
   const Index ns = abs_species.nelem();
   const Index nn = rtp_nlte.nelem();
+  
+  // Possible things that can go wrong in this code (excluding line parameters)
+  const bool do_src = not nlte_source.empty();
+  const bool do_jac = not jacobian_quantities_positions.nelem();
+  if(bad_abs_species(abs_species)) throw "*abs_species* sub-arrays must have the same species, isotopologue, and type as first sub-array.";
+  if((rtp_mag.nelem() not_eq 3) and (not manual_tag)) throw "Only for 3D *rtp_mag* or a manual magnetic field";
+  if(rtp_vmr.nelem() not_eq abs_species.nelem()) throw "*rtp_vmr* must match *abs_species*";
+  if(zeeman_linerecord_precalc.nelem() % 3) throw "*zeeman_linerecord_precalc* must be multiple of 3 for polarization states";
+  if(abs_species.nelem() not_eq propmat_clearsky.nelem()) throw "*abs_species* must match *propmat_clearsky*";
+  if(bad_propmat(propmat_clearsky, f_grid)) throw "*propmat_clearsky* must have *stokes_dim* 4 and frequency dim same as *f_grid*";
+  if(do_src and (nlte_source.nelem() not_eq abs_species.nelem())) throw "*abs_species* must match *nlte_source* when non-LTE is on";
+  if(do_src and bad_propmat(nlte_source, f_grid)) throw "*nlte_source* must have *stokes_dim* 4 and frequency dim same as *f_grid* when non-LTE is on";
+  if(do_jac and (nq not_eq dpropmat_clearsky_dx.nelem())) throw "*dpropmat_clearsky_dx* must match derived form of *jacobian_quantities*";
+  if(do_jac and bad_propmat(dpropmat_clearsky_dx, f_grid)) throw "*dpropmat_clearsky_dx* must have Stokes dim 4 and frequency dim same as *f_grid*";
+  if(do_jac and do_src and (nq not_eq dnlte_dx_source.nelem())) throw "*dnlte_dx_source* must match derived form of *jacobian_quantities* when non-LTE is on";
+  if(do_jac and do_src and bad_propmat(dnlte_dx_source, f_grid)) throw "*dnlte_dx_source* must have Stokes dim 4 and frequency dim same as *f_grid* when non-LTE is on";
+  if(do_jac and do_src and (nq not_eq nlte_dsource_dx.nelem())) throw "*nlte_dsource_dx* must match derived form of *jacobian_quantities* when non-LTE is on";
+  if(do_jac and do_src and bad_propmat(nlte_dsource_dx, f_grid)) throw "*nlte_dsource_dx* must have Stokes dim 4 and frequency dim same as *f_grid* when non-LTE is on";
+  if(any_negative(f_grid)) throw "Negative frequency (at least one value).";
+  if(any_negative(rtp_vmr)) throw "Negative VMR (at least one value).";
+  if(any_negative(rtp_nlte)) throw "Negative NLTE (at least one value).";
+  if(rtp_temperature <= 0) throw "Non-positive temperature";
+  if(rtp_pressure <= 0) throw "Non-positive pressure";
+  if(manual_tag and H0 < 0) throw "Negative manual magnetic field strength";
   
   // Pressure information
   const Numeric dnumdens_dmvr = number_density(rtp_pressure, rtp_temperature);
@@ -115,16 +174,9 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
   const auto f_grid_eigen = MapToEigen(f_grid);
   Index start, nelem;
   
-  // Magnetic field variables
-  const Numeric u = rtp_mag[0];
-  const Numeric v = rtp_mag[1];
-  const Numeric w = rtp_mag[2];
-  const Numeric z = DEG2RAD * rtp_los[0];
-  const Numeric a = DEG2RAD * rtp_los[1];
-  
   // Magnetic field internals and derivatives...
   const auto X = manual_tag ? zeeman_internal_variables_manual(H0, DEG2RAD*theta0, DEG2RAD*eta0) :
-                              zeeman_internal_variables(u, v, w, z, a);
+                              zeeman_internal_variables(rtp_mag[0], rtp_mag[1], rtp_mag[2], DEG2RAD * rtp_los[0], DEG2RAD * rtp_los[1]);
   
   // Polarization
   const auto polarization_scale_data        = zeeman_polarization(        X.theta, X.eta);
@@ -139,12 +191,12 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
       
       // Temperature constants
       Numeric t0=-1.0, qt, qt0, dqt_dT;
-      const Numeric numdens = rtp_vmrs[ispecies] * dnumdens_dmvr;
-      const Numeric dnumdens_dT = rtp_vmrs[ispecies] * dnumdens_dt_dmvr;
+      const Numeric numdens = rtp_vmr[ispecies] * dnumdens_dmvr;
+      const Numeric dnumdens_dT = rtp_vmr[ispecies] * dnumdens_dt_dmvr;
       const Numeric dc = Linefunctions::DopplerConstant(rtp_temperature, lines[0].IsotopologueData().Mass());
       const Numeric ddc_dT = Linefunctions::dDopplerConstant_dT(rtp_temperature, lines[0].IsotopologueData().Mass());
       const Numeric isotop_ratio = isotopologue_ratios.getParam(lines[0].Species(), lines[0].Isotopologue())[0].data[0];
-      const Numeric partial_pressure = rtp_pressure * rtp_vmrs[ispecies];
+      const Numeric partial_pressure = rtp_pressure * rtp_vmr[ispecies];
       
       for(const LineRecord& line: lines) {
         if(line.Ti0() not_eq t0) {
@@ -154,8 +206,8 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
                              partition_functions.getParamType(line.Species(), line.Isotopologue()),
                              partition_functions.getParam(line.Species(), line.Isotopologue()));
           
-          if(do_temperature_jacobian(flag_partials))
-            dpartition_function_dT(dqt_dT, qt, rtp_temperature, temperature_perturbation(flag_partials),
+          if(do_temperature_jacobian(jacobian_quantities))
+            dpartition_function_dT(dqt_dT, qt, rtp_temperature, temperature_perturbation(jacobian_quantities),
                                    partition_functions.getParamType(line.Species(), line.Isotopologue()),
                                    partition_functions.getParam(line.Species(), line.Isotopologue()));
         }
@@ -167,7 +219,7 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
         
         for(Index iz=0; iz<line.ZeemanEffect().nelem(); iz++) {
           Linefunctions::set_cross_section_for_single_line(F, dF, N, dN, data, start, nelem, f_grid_eigen, line,
-                                                           flag_partials, flag_partials_positions, rtp_vmrs, 
+                                                           jacobian_quantities, jacobian_quantities_positions, rtp_vmr, 
                                                            rtp_nlte, rtp_pressure, rtp_temperature, dc, partial_pressure, 
                                                            isotop_ratio, X.H, ddc_dT, qt, dqt_dT, qt0,
                                                            abs_species, ispecies, iz);
@@ -184,7 +236,7 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
           if(nq) {
             auto dF_tmp = dF.middleRows(start, nelem);
             for(Index j=0; j<nq; j++) {
-              const auto& deriv = flag_partials[flag_partials_positions[j]];
+              const auto& deriv = jacobian_quantities[jacobian_quantities_positions[j]];
               auto dF_seg =      dF_tmp.col(j);
               Eigen::Map<Eigen::Matrix<Numeric, Eigen::Dynamic, 7, Eigen::RowMajor>>
               dabs(dpropmat_clearsky_dx[j].GetData().get_c_array(), f_grid.nelem(), 7);
@@ -244,7 +296,7 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
             
             auto dN_tmp = dN.middleRows(start, nelem);
             for(Index j=0; j<nq; j++) {
-              const auto& deriv = flag_partials[flag_partials_positions[j]];
+              const auto& deriv = jacobian_quantities[jacobian_quantities_positions[j]];
               auto dN_seg = dN_tmp.col(j);
               
               Eigen::Map<Eigen::Matrix<Numeric, Eigen::Dynamic, 4, Eigen::RowMajor>>
@@ -280,6 +332,21 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
       }
     }
   }
+}
+catch(const char * e)
+{
+  std::ostringstream os;
+  os << "Errors raised by *zeeman_on_the_fly* internal function:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
+}
+catch(const std::exception& e)
+{
+  // Initialize an error message:
+  std::ostringstream os;
+  os << "Errors in calls by *zeeman_on_the_fly* internal function:\n";
+  os << e.what();
+  throw std::runtime_error(os.str());
 }
 
 

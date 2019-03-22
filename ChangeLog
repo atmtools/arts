@@ -1,3 +1,45 @@
+2019-03-22  Richard Larsson <larsson@mps.mpg.de>
+
+	* arts-2-3-1241
+	
+	* src/absorption.cc,h: Added error checking for partition_function as
+	a copy of the error checking that already existed for isotopologue_ratio
+	bar that some values must be positive.
+	
+	* src/m_zeeman.cc:  Changed the error checking.  Also changed so that
+	the code can now be run for any atmospheric dimensionality IF the
+	magnetic field is set manually.
+	
+	* src/physics_funcs.cc: Changed error checking from asserts to try-catch.
+	My implementation of OEM kept crashing when data input was bad.  Oliver
+	confirms the loss of speed is not significant (speed is reduced
+	by a few percentages for some functions, but is faster for for others).
+	
+	NOTE: Instead of just chaninh the asserts, I added physical checks to most
+	of the functions.  To some, the checks are mathematical (i.e., 0 frequency
+	and 0 radiance are both reasonable physically, but not during some
+	operations if it means a division by 0).  However, because of
+          TestDOIT,
+          TestDOITprecalcInit,
+          TestDOITsensorInsideCloudbox, and
+          TestRteCalcMC,
+        the check that the radiance has to be non-negative
+          if(i <  0) throw "Negative radiance";
+        has been removed from invrayjean.  Each of these four tests operates on
+        negative radiances.  Because I am unsure if it is a requirement of the
+        doit and mc formalisms to operate on negative frequencies, I removed the
+        conversion comment. I do, however, strongly suspect that other ARTS files
+        might experience other problems because of these checks.  I believe it would
+        be a better idea to let doit and mc have their own non-physical conversion
+        functions rather than using physics_funcs.cc since they need negative
+        radiances.  I have not made said change.  Instead, invrayjean can still
+        output nonsense results.
+	
+	* src/zeeman.cc,h: Also changed error checking.  I think after this the
+	only errors that can occur for m_zeeman.cc that are significant are for
+	bad line record data.  Anything else should yield a proper runtime_error,
+	or run through producing zeroes.
+
 2019-03-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1240

@@ -18,6 +18,7 @@
    
    
 #include "abs_species_tags.h"
+#include "linerecord.h"
 #include "physics_funcs.h"
 #include "rte.h"
 #include "global_data.h"
@@ -45,12 +46,12 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
                        ArrayOfStokesVector& dnlte_dx_source,
                        ArrayOfStokesVector& nlte_dsource_dx,
                        const ArrayOfArrayOfSpeciesTag& abs_species, 
-                       const ArrayOfRetrievalQuantity& flag_partials,
+                       const ArrayOfRetrievalQuantity& jacobian_quantities,
                        const ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
                        const SpeciesAuxData& isotopologue_ratios, 
                        const SpeciesAuxData& partition_functions,
                        const Vector& f_grid,
-                       const Vector& rtp_vmrs, 
+                       const Vector& rtp_vmr, 
                        const Vector& rtp_nlte, 
                        const Vector& rtp_mag,
                        const Vector& rtp_los,

@@ -17,6 +17,7 @@
    USA. */
 
 #include "auto_md.h"
+#include "propagationmatrix.h"
 #include "zeeman.h"
 #include "global_data.h"
 
@@ -156,51 +157,39 @@ void propmat_clearskyAddZeeman(ArrayOfPropagationMatrix& propmat_clearsky,
                                const Numeric& manual_zeeman_theta,
                                const Numeric& manual_zeeman_eta,
                                const Verbosity&)
+try
 {
-  // Check that correct isotopologue ratios are defined for the species
-  // we want to calculate
+  if(zeeman_linerecord_precalc.nelem() == 0) return;
+  
+  // Check that correct isotopologue ratios are defined
   checkIsotopologueRatios(abs_species, isotopologue_ratios);
+  checkPartitionFunctions(abs_species, partition_functions);
   
-  const Index nzeeman = zeeman_linerecord_precalc.nelem();
+  if((atmosphere_dim not_eq 3) and (not manual_zeeman_tag)) throw "Only for 3D *atmosphere_dim* or a manual magnetic field";
+  if((ppath_los.nelem() not_eq 2) and (not manual_zeeman_tag)) throw "Only for 2D *ppath_los* or a manual magnetic field";
   
-  bool do_src = !nlte_source.empty();
-  {// Begin TEST(s)
-    if (abs_species.nelem() == 0)
-        throw std::runtime_error("No Zeeman species have been defined.");
-    if( propmat_clearsky[0].StokesDimensions()  != 4 )
-        throw std::runtime_error("Zeeman Effect is only implemented for Stokes dimension 4.");
-    if( propmat_clearsky[0].NumberOfFrequencies() != f_grid.nelem() )
-        throw std::runtime_error("Frequency dimension of *propmat_clearsky* not equal to length of *f_grid*.");
-    if( propmat_clearsky.nelem() != abs_species.nelem() )
-        throw std::runtime_error("Species dimension of *propmat_clearsky* not equal to length of *abs_species*.");
-    if( rtp_mag.nelem() != 3 )
-        throw std::runtime_error("*rtp_mag* must have length 3.");
-    if( atmosphere_dim != 3 )
-        throw std::runtime_error("*atmosphere_dim* must be 3.  Zeeman Effect is only implemented for 3D geometry.");
-    if( ppath_los.nelem() != 2 )
-        throw std::runtime_error("*ppath_los* is not set correctly.");
-    if( zeeman_linerecord_precalc.nelem() % 3 != 0 )
-        throw std::runtime_error("Length of *zeeman_linerecord_precalc* must be multiple of 3 for polarization states.  It is not.");
-    if(do_src) {
-        if(nlte_source.nelem() != abs_species.nelem())
-        throw std::runtime_error("Species dimension of *nlte_source* not equal to length of *abs_species*.");
-        if(nlte_source[0].NumberOfFrequencies() != f_grid.nelem())
-        throw std::runtime_error("Frequency dimension of *nlte_source* not equal to length of *f_grid*.");
-        if(nlte_source[0].StokesDimensions() != 4)
-        throw std::runtime_error("Zeeman Effect is only implemented for Stokes dimension 4.");
-    }
-  }// End   TEST(s)
-  
-  if(nzeeman==0)
-      return;
-  
+  // Change to LOS by radiation
   Vector rtp_los;
-  mirror_los(rtp_los, ppath_los, atmosphere_dim);
+  if(not manual_zeeman_tag) mirror_los(rtp_los, ppath_los, atmosphere_dim);
   
-  // NEW method
+  // Main computations
   zeeman_on_the_fly(propmat_clearsky, nlte_source, dpropmat_clearsky_dx, dnlte_dx_source, nlte_dsource_dx,
                     abs_species, jacobian_quantities, zeeman_linerecord_precalc, isotopologue_ratios,
                     partition_functions, f_grid, rtp_vmr, rtp_nlte, rtp_mag, rtp_los, rtp_pressure,
                     rtp_temperature, manual_zeeman_tag, manual_zeeman_magnetic_field_strength,
                     manual_zeeman_theta, manual_zeeman_eta);
+}
+catch(const char * e)
+{
+  std::ostringstream os;
+  os << "Errors raised by *propmat_clearskyAddZeeman*:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
+}
+catch(const std::exception& e)
+{
+  std::ostringstream os;
+  os << "Errors in calls by *propmat_clearskyAddZeeman*:\n";
+  os << e.what();
+  throw std::runtime_error(os.str());
 }

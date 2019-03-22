@@ -317,6 +317,8 @@ inline Numeric& select_line_mixing_param(Numeric& Y,
 }
 
 
+struct LBLRTM_data {Numeric y, g;} ;
+
 //! Special function for line mixing of LBLRTM type
 /*! 
  * LBLRTM interpolates linearly a set of variables.  Data-structure must be as data variable
@@ -331,17 +333,17 @@ inline Numeric& select_line_mixing_param(Numeric& Y,
  * \author Richard Larsson
  * \date   2018-07-16
  */
-inline std::tuple<Numeric, Numeric> special_line_mixing_aer(const Numeric& T,
-                                                            const ConstVectorView data) noexcept {
+inline LBLRTM_data special_line_mixing_aer(const Numeric& T,
+                                           const ConstVectorView data) noexcept {
   if(T < data[1])
-    return std::make_tuple(data[4] + (T - data[0]) * (data[5] - data[4]) / (data[1] - data[0]),
-                           data[8] + (T - data[0]) * (data[9] - data[8]) / (data[1] - data[0]));
+    return {data[4] + (T - data[0]) * (data[5] - data[4]) / (data[1] - data[0]),
+            data[8] + (T - data[0]) * (data[9] - data[8]) / (data[1] - data[0])};
   else if(T > data[2])
-    return std::make_tuple(data[6 ] + (T - data[2]) * (data[7 ] - data[6 ]) / (data[3] - data[2]),
-                           data[10] + (T - data[2]) * (data[11] - data[10]) / (data[3] - data[2]));
+    return {data[6 ] + (T - data[2]) * (data[7 ] - data[6 ]) / (data[3] - data[2]),
+            data[10] + (T - data[2]) * (data[11] - data[10]) / (data[3] - data[2])};
   else
-    return std::make_tuple(data[5] + (T - data[1]) * (data[6 ] - data[5]) / (data[2] - data[1]),
-                           data[9] + (T - data[1]) * (data[10] - data[9]) / (data[2] - data[1]));
+    return {data[5] + (T - data[1]) * (data[6 ] - data[5]) / (data[2] - data[1]),
+            data[9] + (T - data[1]) * (data[10] - data[9]) / (data[2] - data[1])};
 }
 
 
@@ -540,9 +542,9 @@ LineFunctionDataOutput LineFunctionData::GetParams(const Numeric& T0,
         case TemperatureType::LM_AER:
           {
             // Special case adding to both G and Y and nothing else!
-            const std::tuple<Numeric, Numeric> X = special_line_mixing_aer(T, mdata[i][Range(current, joker)]);
-            m.Y += partial_vmr * std::get<0>(X);
-            m.G += partial_vmr * std::get<1>(X);
+            auto X = special_line_mixing_aer(T, mdata[i][Range(current, joker)]);
+            m.Y += partial_vmr * X.y;
+            m.G += partial_vmr * X.g;
           }
           break;
       }
@@ -690,9 +692,9 @@ LineFunctionDataOutput LineFunctionData::GetVMRDerivs(const Numeric& T0,
         case TemperatureType::LM_AER:
         {
           // Special case adding to both G and Y and nothing else!
-          const std::tuple<Numeric, Numeric> X = special_line_mixing_aer(T, mdata[i][Range(current, joker)]);
-          if(air) { d.Y -= std::get<0>(X); d.G -= std::get<1>(X); }
-          else    { d.Y += std::get<0>(X); d.G += std::get<1>(X); }
+          auto X = special_line_mixing_aer(T, mdata[i][Range(current, joker)]);
+          if(air) { d.Y -= X.y; d.G -= X.g; }
+          else    { d.Y += X.y; d.G += X.g; }
         }
         current += TemperatureTypeNelem(mtypes[i][j+LineShapeTypeNelem()]);
         continue;
@@ -828,10 +830,10 @@ LineFunctionDataOutput LineFunctionData::GetTemperatureDerivs(const Numeric& T0,
         case TemperatureType::LM_AER:
           {
               // Special case adding to both G and Y and nothing else!
-              const std::tuple<Numeric, Numeric> X1 = special_line_mixing_aer(T+dT, mdata[i][Range(current, joker)]);
-              const std::tuple<Numeric, Numeric> X0 = special_line_mixing_aer(T,    mdata[i][Range(current, joker)]);
-              d.Y += partial_vmr * (std::get<0>(X1) - std::get<0>(X0)) / dT;
-              d.G += partial_vmr * (std::get<1>(X1) - std::get<1>(X0)) / dT;
+              auto X1 = special_line_mixing_aer(T+dT, mdata[i][Range(current, joker)]);
+              auto X0 = special_line_mixing_aer(T,    mdata[i][Range(current, joker)]);
+              d.Y += partial_vmr * (X1.y - X0.y) / dT;
+              d.G += partial_vmr * (X1.g - X0.g) / dT;
           }
           break;
       }
