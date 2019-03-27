@@ -3423,7 +3423,7 @@ void jacobianDoit(//WS Output:
 
               jacobian(joker,it) = dydx;
             }
-            catch (const std::runtime_error &e)
+            catch (const std::exception &e)
             {
               if( robust )
               {

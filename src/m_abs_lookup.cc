@@ -1394,7 +1394,7 @@ void abs_lookupSetupBatch(// WS Output:
                   t3_dummy, t3_dummy, t3_dummy, t3_dummy,
                   t3_dummy, t3_dummy, partition_functions,
                   abs_f_interp_order, 0, 0, verbosity );
-      } catch (const std::runtime_error& e) {
+      } catch (const std::exception& e) {
           // If `robust`, skip field and continue, ...
           if (robust)
           {

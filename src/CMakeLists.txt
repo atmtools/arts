@@ -309,7 +309,7 @@ add_library (artscore STATIC
         m_fluxes.cc)
 add_dependencies (artscore auto_version_h)
 
-target_link_libraries (artscore ${ZLIB_LIBRARIES})
+target_link_libraries (artscore ${ZLIB_LIBRARIES} wigner)
 
 if (FFTW_FOUND)
   include_directories (${FFTW_INCLUDE_DIR})
@@ -345,7 +345,7 @@ add_library (matpack STATIC
         )
 
 include_directories ( SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty )
-target_link_libraries( matpack ${LAPACK_LIBRARIES} wigner )
+target_link_libraries( matpack ${LAPACK_LIBRARIES} )
 
 ########### next target ###############
 
@@ -471,7 +471,12 @@ target_link_libraries (test_tensor matpack)
 
 add_executable (test_matpack describe.h describe.cc
                 wigner_functions.cc test_matpack.cc)
-target_link_libraries (test_matpack matpack test_utils)
+target_link_libraries (test_matpack matpack artscore test_utils)
+
+########### next testcase ###############
+
+add_executable (test_matpack_simple test_matpack_simple.cc)
+target_link_libraries (test_matpack_simple test_utils)
 
 ########### next testcase ###############
 

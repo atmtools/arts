@@ -1168,7 +1168,7 @@ int main (int argc, char **argv)
             // Execute main agenda:
             Arts2(workspace, tasklist, verbosity);
           }
-          catch (const std::runtime_error &x)
+          catch (const std::exception &x)
           {
             ostringstream os;
             os << "Run-time error in controlfile: " << parameters.controlfiles[i] << '\n'

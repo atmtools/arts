@@ -1660,7 +1660,7 @@ void iyb_calc_body(
 
     }  // End try
 
-    catch (const std::runtime_error &e)
+    catch (const std::exception &e)
     {
 #pragma omp critical (iyb_calc_fail)
         { fail_msg = e.what(); failed = true; }
@@ -1784,7 +1784,7 @@ firstprivate(l_ws, l_iy_main_agenda, l_geo_pos_agenda)
                   geo_pos_matrix(ilos,joker) = geo_pos;
                 }
           }
-          catch (const std::runtime_error &e)
+          catch (const std::exception &e)
           {
 #pragma omp critical (iyb_calc_fail)
               { fail_msg = e.what(); failed = true; }
@@ -1830,7 +1830,7 @@ firstprivate(l_ws, l_iy_main_agenda, l_geo_pos_agenda)
                   geo_pos_matrix(ilos,joker) = geo_pos;
                 }
           }
-          catch (const std::runtime_error &e)
+          catch (const std::exception &e)
           {
 #pragma omp critical (iyb_calc_fail)
               { fail_msg = e.what(); failed = true; }

@@ -458,7 +458,7 @@ int main()
       ofs << "    {\n";
       ofs << "        input_agenda.execute(ws);\n";
       ofs << "    }\n";
-      ofs << "    catch (const std::runtime_error &e)\n";
+      ofs << "    catch (const std::exception &e)\n";
       ofs << "    {\n";
       ofs << "        ostringstream os;\n";
       ofs << "        os << \"Run-time error in agenda: \"\n";

@@ -69,7 +69,7 @@ const char * InteractiveWorkspace::execute_agenda(const Agenda *a)
     resize();
     try {
         a->execute(*this);
-    } catch(const std::runtime_error &e) {
+    } catch(const std::exception &e) {
         string_buffer = e.what();
         return string_buffer.c_str();
     }
@@ -114,7 +114,7 @@ const char * InteractiveWorkspace::execute_workspace_method(long id,
             out1 << "- " + m.Name() + "\n";
         }
         getaways[id](*this, mr);
-    } catch (const std::runtime_error &e) {
+    } catch (const std::exception &e) {
         string_buffer = e.what();
         return string_buffer.c_str();
     }

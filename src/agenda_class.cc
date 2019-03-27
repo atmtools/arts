@@ -250,17 +250,7 @@ void Agenda::execute(Workspace& ws) const
           getaways[mrr.Id()](ws, mrr);
 
         }
-      catch (const std::runtime_error &x)
-        {
-          aout1 << "}\n";
-
-          ostringstream os;
-          os << "Run-time error in method: " << mdd.Name() << '\n'
-             << x.what();
-
-          throw runtime_error(os.str());
-        }
-        catch (const std::bad_alloc &x)
+      catch (const std::bad_alloc &x)
         {
           aout1 << "}\n";
 
@@ -268,6 +258,16 @@ void Agenda::execute(Workspace& ws) const
           os << "Memory allocation error in method: " << mdd.Name() << '\n'
              << "For memory intensive jobs it could help to limit the\n"
              << "number of threads with the -n option.\n"
+             << x.what();
+
+          throw runtime_error(os.str());
+        }
+      catch (const std::exception &x)
+        {
+          aout1 << "}\n";
+
+          ostringstream os;
+          os << "Run-time error in method: " << mdd.Name() << '\n'
              << x.what();
 
           throw runtime_error(os.str());

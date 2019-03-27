@@ -1752,7 +1752,7 @@ void batch_atm_fields_compactAddSpecies(// WS Output:
         try {
             atm_fields_compactAddSpecies(batch_atm_fields_compact[i], name, species, prepend, verbosity);
         }
-        catch (const std::runtime_error &e)
+        catch (const std::exception &e)
         {
 #pragma omp critical (batch_atm_fields_compactAddSpecies_fail)
             { fail_msg = e.what(); failed = true; }
@@ -1832,7 +1832,7 @@ void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
                                        field_names,
                                        verbosity);
         }
-      catch (const std::runtime_error &e)
+      catch (const std::exception &e)
         {
 #pragma omp critical (batch_atm_fields_compactFromArrayOfMatrix_fail)
             { fail_msg = e.what(); failed = true; }

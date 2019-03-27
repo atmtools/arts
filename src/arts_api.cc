@@ -93,7 +93,7 @@ Agenda * parse_agenda(const char *filename)
         parser.parse_tasklist();
         a->set_name(filename);
         a->set_main_agenda();
-    } catch(const std::runtime_error &e) {
+    } catch(const std::exception &e) {
         string_buffer = std::string(e.what());
         return nullptr;
     }

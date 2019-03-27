@@ -1,3 +1,27 @@
+2019-03-27  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1242
+
+	* src/agenda_class.cc, src/arts_api.cc, src/interactive_workspace.cc,
+	src/m_abs_lookup.cc, src/m_batch.cc, src/m_cloudbox.cc,
+	src/m_general.cc, src/m_radiation_field.cc, src/main.cc:
+
+	Replace std::runtime_error by std::exception in catch blocks in several
+	strategic places such as top-level error handling and exception
+	barriers at parallelized loop boundaries.
+	This will prevent abnormal program termination in standalone mode as
+	well as in the Python API mode not only for std::runtime_error, but
+	also all other exceptions.
+
+	* src/test_matpack_simple.cc:
+
+	Add simpler matpack test for low-level testing that only depends on
+	the matpack library. The other test_matpack depends on artscore which
+	triggers a complete rebuild when changing any matpack header. This is
+	annoyingly time-consuming when testing changes in matpack.
+
+	* src/CMakeLists.txt: Link wigner to artscore instead of matpack.
+
 2019-03-22  Richard Larsson <larsson@mps.mpg.de>
 
 	* arts-2-3-1241

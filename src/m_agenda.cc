@@ -101,7 +101,7 @@ void AgendaExecute(Workspace& ws,
 
     try {
         this_agenda.execute (ws);
-    } catch (const std::runtime_error &e) {
+    } catch (const std::exception &e) {
         ostringstream os;
         os << "Run-time error in agenda: "
         << this_agenda.name() << '\n' << e.what();

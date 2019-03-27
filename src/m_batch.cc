@@ -207,7 +207,7 @@ void ybatchCalc(Workspace&      ws,
                 }
             }
         }
-      catch (const std::runtime_error &e)
+      catch (const std::exception &e)
         {
           if (robust && !do_abort)
             {
@@ -743,7 +743,7 @@ void DOBatchCalc(Workspace& ws,
                     spectral_irradiance_field;
 
             }
-            catch (const std::runtime_error& e)
+            catch (const std::exception &e)
             {
                 if (robust && !do_abort)
                 {

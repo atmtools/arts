@@ -1035,7 +1035,7 @@ shared(out3, scat_data_files, arr_ssd, arr_smd)
             xml_read_from_file ( scat_meta_file, smd, verbosity );
           }
       }
-      catch (const std::runtime_error &e)
+      catch (const std::exception &e)
       {
         ostringstream os;
         os << "Run-time error reading scattering data : \n" << e.what();
