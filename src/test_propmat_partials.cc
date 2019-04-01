@@ -164,12 +164,9 @@ void test_K1_and_K2()
 void test_lineshape()
 {
     // Physical constants
-    extern const Numeric SPEED_OF_LIGHT;
-    extern const Numeric BOLTZMAN_CONST;
-    extern const Numeric AVOGADROS_NUMB;
+    extern const Numeric DOPPLER_CONST;
     
-    static const Numeric doppler_const = sqrt(2.0 * BOLTZMAN_CONST *
-    AVOGADROS_NUMB) / SPEED_OF_LIGHT; 
+    static const Numeric doppler_const = DOPPLER_CONST; 
     const ArrayOfNumeric empty_aon;
     
     const LineRecord line(6,0,61150556350.7454,0.0,4.03935532732085e-19,

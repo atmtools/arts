@@ -567,7 +567,7 @@ Numeric AdiabaticFactor::mol_X(const int L,
     extern const Numeric PI;
     
     // Mean speed of collisions
-    const Numeric invmu = AVOGADROS_NUMB * (1/main_mass + 1/collider_mass);
+    const Numeric invmu = 1000*AVOGADROS_NUMB * (1/main_mass + 1/collider_mass);
     const Numeric vm = 2 * sqrt(2.0 * BOLTZMAN_CONST * T * invmu / PI);
     
     // Save the values that are constant

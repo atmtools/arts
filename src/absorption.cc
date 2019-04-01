@@ -647,11 +647,8 @@ void xsec_species( MatrixView               xsec_attenuation,
 {
     CREATE_OUT3;
 
-    extern const Numeric BOLTZMAN_CONST;
-    extern const Numeric AVOGADROS_NUMB;
-    extern const Numeric SPEED_OF_LIGHT;
-    static const Numeric doppler_const = sqrt(2.0 * BOLTZMAN_CONST *
-                                              AVOGADROS_NUMB) / SPEED_OF_LIGHT;    
+    extern const Numeric DOPPLER_CONST;
+    static const Numeric doppler_const = DOPPLER_CONST;
     
     // dimension of f_grid, abs_lines
     const Index nf = f_grid.nelem();
@@ -1720,11 +1717,8 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
         throw std::runtime_error(os.str());
     }
     
-    extern const Numeric BOLTZMAN_CONST;
-    extern const Numeric AVOGADROS_NUMB;
-    extern const Numeric SPEED_OF_LIGHT;
-    static const Numeric doppler_const = sqrt(2.0 * BOLTZMAN_CONST *
-                                              AVOGADROS_NUMB) / SPEED_OF_LIGHT;
+    extern const Numeric DOPPLER_CONST;
+    static const Numeric doppler_const = DOPPLER_CONST;
     
     Index test_polarization = -100;
     for(auto& lr : abs_lines) {

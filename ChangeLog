@@ -1,3 +1,67 @@
+2019-04-01  Richard Larsson <larsson@mps.mpg.de>
+
+	* arts-2-3-1243
+	
+	* controlfiles/artscomponents/*:  All the files were checked, the change was
+	on the order of the second to the fourth digits at worst.  Often much less
+	than that.  Still because the check was wanted better than sixth digit 
+	in most files, the update is required.
+	
+	* src/absorption.cc,src/linefunctions.cc,src/linemixing.cc:
+	* src/m_linemixing.cc, src/test_propmat_partials.cc:  Make use of 
+	an external Doppler constant.
+	
+	* src/constants.cc,h:  Updated most values to be in constants.h as
+	constexpr.  I am trying to follow the planned May-update of SI units as
+	best as I understand it.  All constants in this new update can be found from
+	measurements of two other constants.  In the implementation, I choose
+	these two other constants to be the fine structure constant and the
+	Rydberg constant.  This follows the Wikipedia article on the subject, which
+	in turn follows the NIST recommended CODATA paper from 2016, and
+	a working draft of the SI update (with the exact same numbers).  Other
+	constants, such as the electron mass, are then computed from these values.
+	
+	Making this update, ARTS no longer has its own definition of the mol.
+	Instead of multiplying the SI constant by 1000, now
+	this multiplication has to happen elsewhere.  This is mostly changed to fix
+	an internal inconsistency of R != k NA.  To enforce self-consistency
+	in several of these units, they are computed as part of constexpr
+	(which should mean on compile time if any optimizations are on) instead
+	of as pure values.
+	
+	WARNING: if you need the old ARTS redefinition of the mol, you need to
+	create an ARTS_MOL constant in constants.cc and switch to using it
+	instead of using the old modified AVOGADROS_NUMB
+	
+	Note that you can also use "constants.h" as a standalone include 
+	if you wish to use constexpr constants instead of extern statics.  I
+	did some limited tests in linefunctions.cc, and it sped several of the
+	short tests up by about 0.05 sec (these tests take about 0.2 sec, so
+	relatively high speed improvement).  I did not extend the test to longer
+	running tests, where the static property is able catch up [?!?!]
+	(I started doing some minor extension probing to see how much work was
+	required, which is why the Conversion namespace also exists in constants.h.
+	I will not continue any extensive porting work, but I did test
+	the namespace in some now reverted codepaths, so it should be mostly 
+	fine to use.)
+	
+	* src/m_basic_types.cc,src/methods.cc:  Added PrintPhysicalConstants to
+	print the constants to the accuracy they are stored in.  Here are the
+	differences running that function for old → new constants that change:
+	
+	Avogadro's constant:  6.022045000000000e+26 →  6.022140760000000e+23
+	Bohr's magneton:      9.274009680000000e-24 →  9.274010070678952e-24
+	Boltzmann's constant: 1.380662000000000e-23 →  1.380649000000000e-23
+	Electron charge:     -1.602176565000000e-19 → -1.602176634000000e-19
+	Electron mass:        9.109382910000000e-31 →  9.109383709046823e-31
+	Ideal gas constant:   8.314462100000000e+00 →  8.314462618153240e+00
+	Planck's constant:    6.626180000000000e-34 →  6.626070150000000e-34
+	Vacuum permittivity:  8.854187817620000e-12 →  8.854187816292039e-12
+	Doppler constant:     4.301401469102398e-07 →  4.301415417776785e-07
+	
+	So not very large changes, but a 5th digit error running through 100 layers
+	can mean a fourth unit error in outcome.  But only for weak signals.
+
 2019-03-27  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1242

@@ -237,7 +237,7 @@ AgendaSet( forloop_agenda_Bres ){
 
   #now reading and regridding of each of the 3 B-field components separately
   Copy( casefull, atmcase )
-  StringSet( caseext, ".B_u" )
+  StringSet( caseext, ".mag_u" )
   Append( casefull, caseext )
   ReadXML( gf3tmp, casefull )
   GriddedFieldPRegrid( gf3tmp, p_grid, gf3tmp, interp_order, 1 )
@@ -246,7 +246,7 @@ AgendaSet( forloop_agenda_Bres ){
 
   #now reading and regridding of each of the 3 B-field components separately
   Copy( casefull, atmcase )
-  StringSet( caseext, ".B_v" )
+  StringSet( caseext, ".mag_v" )
   Append( casefull, caseext )
   ReadXML( gf3tmp, casefull )
   GriddedFieldPRegrid( gf3tmp, p_grid, gf3tmp, interp_order, 1 )
@@ -255,7 +255,7 @@ AgendaSet( forloop_agenda_Bres ){
 
   #now reading and regridding of each of the 3 B-field components separately
   Copy( casefull, atmcase )
-  StringSet( caseext, ".B_w" )
+  StringSet( caseext, ".mag_w" )
   Append( casefull, caseext )
   ReadXML( gf3tmp, casefull )
   GriddedFieldPRegrid( gf3tmp, p_grid, gf3tmp, interp_order, 1 )

@@ -12898,6 +12898,25 @@ void define_md_data_raw()
 
   md_data_raw.push_back     
     ( MdRecord
+      ( NAME( "PrintPhysicalConstants" ),
+        DESCRIPTION
+        (
+         "Prints (most) physical constants used in ARTS.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back     
+    ( MdRecord
       ( NAME( "PrintWorkspace" ),
         DESCRIPTION
         (

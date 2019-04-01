@@ -1032,16 +1032,10 @@ void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
                                              const Index& this_species,
                                              const Index& this_level,
                                              const Index& n)
-{ 
-  // Physical constants
-  extern const Numeric BOLTZMAN_CONST;
-  extern const Numeric AVOGADROS_NUMB;
-  extern const Numeric SPEED_OF_LIGHT;
-  
+{
   // internal constant
   const Index nf  = f_grid.nelem(), nppd = derivatives_data_position.nelem();
-  const Numeric kT = BOLTZMAN_CONST * T;
-  const Numeric doppler_const = sqrt( 2.0 * kT * AVOGADROS_NUMB / isotopologue_mass ) / SPEED_OF_LIGHT,
+  const Numeric doppler_const = Linefunctions::DopplerConstant(T, isotopologue_mass),
     ddoppler_const_dT = doppler_const / T;
   const QuantumIdentifier QI;
   
@@ -1268,12 +1262,11 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
   
   // Physical constants
   extern const Numeric SPEED_OF_LIGHT;
-  extern const Numeric BOLTZMAN_CONST;
-  extern const Numeric AVOGADROS_NUMB;
+  extern const Numeric DOPPLER_CONST;
   extern const Numeric ATM2PA;
   
   // HITRAN to ARTS constants
-  const Numeric doppler_const = sqrt( 2.0 * BOLTZMAN_CONST * AVOGADROS_NUMB ) / SPEED_OF_LIGHT;
+  const Numeric doppler_const = DOPPLER_CONST;
   static const Numeric w2Hz               = SPEED_OF_LIGHT *1E2;
   static const Numeric lower_energy_const = wavenumber_to_joule(1.0);
   static const Numeric I0_hi2arts         = 1E-2 * SPEED_OF_LIGHT;

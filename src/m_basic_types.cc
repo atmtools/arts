@@ -3003,3 +3003,35 @@ void CompareRelative(const ArrayOfArrayOfStokesVector&    var1,
   _cr_internal_(var1, var2, maxabsreldiff, error_message, var1name, var2name, "", "", verbosity);
 }
 
+
+void PrintPhysicalConstants(const Verbosity& verbosity)
+{
+  CREATE_OUT0;
+  
+  extern const Numeric AVOGADROS_NUMB;
+  extern const Numeric BOHR_MAGNETON;
+  extern const Numeric BOLTZMAN_CONST;
+  extern const Numeric ELECTRON_CHARGE;
+  extern const Numeric ELECTRON_MASS;
+  extern const Numeric GAS_CONSTANT;
+  extern const Numeric PLANCK_CONST;
+  extern const Numeric SPEED_OF_LIGHT;
+  extern const Numeric VACUUM_PERMITTIVITY;
+  extern const Numeric DOPPLER_CONST;
+  
+  out0 << std::setprecision(15) << std::scientific;
+  out0 << "---------------------------------------------------------\n"
+       << "Numerical const in ARTS \tValue\n"
+       << "Avogadro's constant:    \t " << AVOGADROS_NUMB << '\n'
+       << "Bohr's magneton:        \t " << BOHR_MAGNETON << '\n'
+       << "Boltzmann's constant:   \t " << BOLTZMAN_CONST << '\n'
+       << "Electron charge:        \t"  << ELECTRON_CHARGE << '\n'
+       << "Electron mass:          \t " << ELECTRON_MASS <<'\n'
+       << "Ideal gas constant:     \t " << GAS_CONSTANT << '\n'
+       << "Planck's constant:      \t " << PLANCK_CONST << '\n'
+       << "Speed of light:         \t " << SPEED_OF_LIGHT << '\n'
+       << "Vacuum permittivity:    \t " << VACUUM_PERMITTIVITY << '\n'
+       << "Doppler constant:       \t " << DOPPLER_CONST << '\n'
+       << "---------------------------------------------------------\n";
+}
+

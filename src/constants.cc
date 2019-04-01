@@ -47,6 +47,7 @@
 
 #include "mystring.h"
 #include "matpackI.h"
+#include "constants.h"
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -66,19 +67,19 @@ extern const Numeric ATM2PA         = 1.01325e5;
     \author Patrick Eriksson 
     \date   08.04.2000
 */
-extern const Numeric AVOGADROS_NUMB = 6.0220450e26;
+extern const Numeric AVOGADROS_NUMB = Constant::NA;
 
 /** Bohr Magneton
  *  \author Richard Larsson
  *  \date   2012-09-26
  */
-extern const Numeric BOHR_MAGNETON = 9.27400968e-24;
+extern const Numeric BOHR_MAGNETON = Constant::bohr_magneton;
 
 /** Global constant, the Boltzmann constant [J/K]
     \author Patrick Eriksson 
     \date   08.04.2000
 */
-extern const Numeric BOLTZMAN_CONST = 1.380662e-23;
+extern const Numeric BOLTZMAN_CONST = Constant::k;
 
 
 /** Global constant, Planck temperature for cosmic background radiation [K]
@@ -130,14 +131,14 @@ extern const Numeric EARTH_RADIUS   = 6.3781e6;
     \author Patrick Eriksson 
     \date   2012-04-04
 */
-extern const Numeric ELECTRON_CHARGE   = -1.602176565e-19;
+extern const Numeric ELECTRON_CHARGE   = - Constant::e;
 
 
 /** Global constant, the mass of an electron [kg]
     \author Patrick Eriksson 
     \date   2012-04-04
 */
-extern const Numeric ELECTRON_MASS   = 9.10938291e-31;
+extern const Numeric ELECTRON_MASS   = Constant::m_e;
 
 
 /** Global constant, e (Euler's number)
@@ -152,7 +153,7 @@ extern const Numeric EULER_NUMBER   = 2.7182818284590452;
     \author Patrick Eriksson
     \date   2012-03-19
 */
-extern const Numeric GAS_CONSTANT   = 8.3144621;
+extern const Numeric GAS_CONSTANT   = Constant::R;
 
 
 /** Global constant, Lande factor gs
@@ -188,14 +189,14 @@ extern const Numeric NAT_LOG_2      = 0.69314718055994;
     \author Patrick Eriksson 
     \date   08.04.2000
 */
-extern const Numeric PI             = 3.141592653589793;
+extern const Numeric PI             = Constant::pi;
 
 
 /** Global constant, the Planck constant [Js]
     \author Patrick Eriksson 
     \date   08.04.2000
 */
-extern const Numeric PLANCK_CONST   = 6.626180e-34;
+extern const Numeric PLANCK_CONST   = Constant::h;
 
 
 /** Global constant, conversion from radians to degrees
@@ -213,7 +214,7 @@ extern const Numeric RAD2DEG        = 57.295779513082323;
     \author Patrick Eriksson 
     \date   08.04.2000
 */
-extern const Numeric SPEED_OF_LIGHT = 2.99792458e8;
+extern const Numeric SPEED_OF_LIGHT = Constant::c;
 
 
 /** Global constant, converts Hz to cm-1.
@@ -258,9 +259,9 @@ extern const Numeric TORR2PA        = 133.3227;
 
     \author Patrick Eriksson \date 2012-04-04
 */
-extern const Numeric  VACUUM_PERMITTIVITY  = 8.854187817620e-12;
+extern const Numeric  VACUUM_PERMITTIVITY  = Constant::vacuum_permittivity;
 
-
+extern const Numeric DOPPLER_CONST = std::sqrt(Constant::doppler_broadening_const_squared);
 
 
 

@@ -41,15 +41,14 @@
 extern const Numeric PI;
 extern const Numeric PLANCK_CONST;
 extern const Numeric BOLTZMAN_CONST;
-extern const Numeric AVOGADROS_NUMB;
 extern const Numeric SPEED_OF_LIGHT;
+extern const Numeric DOPPLER_CONST;
 
 // Derived constants 
 static const Numeric invPI = 1.0 / PI;
 static const Numeric sqrtInvPI =  std::sqrt(invPI);
 static const Numeric sqrtPI = std::sqrt(PI);
 static const Numeric C1 = - PLANCK_CONST / BOLTZMAN_CONST;
-static const Numeric doppler_const = std::sqrt(2.0 * BOLTZMAN_CONST * AVOGADROS_NUMB ) / SPEED_OF_LIGHT; 
 
 
 // The Faddeeva function
@@ -1422,7 +1421,7 @@ void Linefunctions::apply_linefunctiondata_jacobian_scaling(Eigen::Ref<Eigen::Ma
  */
 Numeric Linefunctions::DopplerConstant(const Numeric& T, const Numeric& mass)
 {
-  return doppler_const * std::sqrt(T / mass);
+  return DOPPLER_CONST * std::sqrt(T / mass);
 }
 
 
@@ -1434,7 +1433,7 @@ Numeric Linefunctions::DopplerConstant(const Numeric& T, const Numeric& mass)
  */
 Numeric Linefunctions::dDopplerConstant_dT(const Numeric& T, const Numeric& mass)
 {
-  return 0.5 * doppler_const / std::sqrt(T * mass);
+  return 0.5 * DOPPLER_CONST / std::sqrt(T * mass);
 }
 
 
