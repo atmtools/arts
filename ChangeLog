@@ -1,3 +1,10 @@
+2019-04-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1244
+
+	* src/workspace.cc: Added information on assumption of implied
+	azimuth angle for 1D and 2D. 
+
 2019-04-01  Richard Larsson <larsson@mps.mpg.de>
 
 	* arts-2-3-1243
