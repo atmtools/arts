@@ -350,15 +350,15 @@ optical thickness of the atmosphere between the surface and cloud box
 is sufficiently high.
 
 
-\section{Wind and magnetic vector fields}
-\label{sec:atm:vecfields}
+\section{Wind vector fields}
+\label{sec:atm:windfields}
 %
 The atmospheric fields discussed above are scalar quantities, while some
 atmospheric variables can be seen as vector fields. However, in ARTS input
 vector fields are broken down into the zonal, meridional and vertical
 components and are given as three scalar fields. This division into scalar
 values is used to allow that one or several of the components easily can be set
-to zero, which is done be setting the corresponding workspace variable to be
+to zero, which is done by setting the corresponding workspace variable to be
 empty. Following the standard naming scheme for winds, the components are
 denoted as
 \begin{description}
@@ -381,13 +381,24 @@ above, the winds components are defined as follows
   moving upwards, i.e.\ towards higher altitudes.
 \end{itemize}
 As described above, one, two or all of these variables can be set to be empty,
-if the corresponding wind component is zero. Winds affect the radiative
-transfer by inducing Doppler shifts, see further Chapter~\ref{sec:winds}.
+if the corresponding wind component is zero.
 
+Winds affect the radiative transfer by inducing Doppler shifts, see further
+Chapter~\ref{sec:winds}. Note that \WindWE\ causes no Doppler shift for 1D and 2D
+atmospheric setups. Considering the sensor viewing conventions in the 1D
+atmosphere case as laid out in Sec.~\ref{sec:fm_defs:atmdim}, positive \WindSN\
+correspond to tail winds, negative to head winds.
+
+
+\section{Magnetic field vector fields}
+\label{sec:atm:magfields}
 
 To consider Faraday rotation (Sec.~\ref{sec:faraday}) and Zeeman splitting
-(Sec.~\ref{sec:absorption:zeeman}), also the \textindex{magnetic field} must
-be specified. The three component fields are \wsvindex{mag\_u\_field},
+(Sec.~\ref{sec:absorption:zeeman}), the \textindex{magnetic field} must
+be specified. The same strategy of specifying the vector field by three scalar
+components is applied as for the winds field (see above).
+
+The three component fields are \wsvindex{mag\_u\_field},
 \wsvindex{mag\_v\_field} and \wsvindex{mag\_w\_field}. All three components
 must be specified (but can be set to zero for a part of, or the complete,
 atmosphere). However, some component can be irrelevant for the calculations.
