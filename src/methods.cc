@@ -16448,29 +16448,24 @@ void define_md_data_raw()
       ( NAME( "scat_dataCheck" ),
         DESCRIPTION
         (
-         "Furthermore, by default it is checked that *scat_data* does not\n"
-         "contain any invalid values and that the scattering matrix is\n"
-         "properly normalized. Proper normalization is defined by the maximum\n"
-         "allowed albedo deviation *sca_mat_threshold* (for details see\n"
-         "*scat_dataCheck*).\n"
-
          "Method for checking the validity and consistency of the single\n"
          "scattering properties in *scat_data*.\n"
          "\n"
-         "This function checks that *scat_data* does not contain any NaN and\n"
-         "that the 'scalar' properties K11, Z11, and a1 are non-negative.\n"
+         "It checks that *scat_data* does not contain any invalid values,\n"
+         "that is any NaN elements in K, Z, or a or any negative values in\n"
+         "the 'scalar' properties K11, Z11, and a1.\n"
          "\n"
-         "When *check_type* is 'all', this function checks that the solid\n"
+         "When *check_type* is 'all', it is furthermore checked that the\n"
+         "scattering matrix is properly normalized, that is that the solid\n"
          "sphere integrated scattering matrix (int_Z11), which is supposed to\n"
          "be normalized to the scattering cross section, is sufficiently\n"
          "consistent with the scattering cross section (C_sca) derived from\n"
          "the difference of extinction (K11) and absorption (a1):\n"
          "int_z11 ~ C_sca = K11-a1.\n"
-         "The check is skipped if *check_type* is 'sane'.\n"
-         "\n"
          "Sufficient consistency is defined by the maximum allowed deviation\n"
          "in single scattering albedo, *sca_mat_threshold*, testing for\n"
          "  ( <int_Z11>/<C_sca>-1. ) * ( <C_sca>/<K11> ) <= sca_mat_threshold.\n"
+         "The check is skipped if *check_type* is 'sane'.\n"
          ),
         AUTHORS( "Claudia Emde", "Jana Mendrok" ),
         OUT(),
@@ -16481,7 +16476,8 @@ void define_md_data_raw()
         GIN(         "check_type", "sca_mat_threshold" ),
         GIN_TYPE(    "String",     "Numeric" ),
         GIN_DEFAULT( "all",        "5e-2" ),
-        GIN_DESC( "The level of checks to apply on scat_data (see above).",
+        GIN_DESC( "The level of checks to apply on scat_data ('sane' or 'all';"
+                  " see above).",
                   "Threshold for allowed albedo deviation (see above)." )
         ));
 

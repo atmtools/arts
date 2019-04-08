@@ -1,3 +1,9 @@
+2019-04-08 Jana Mendrok  <jana.mendrok@gmail.com>
+
+	* arts-2-3-1246
+
+	* src/methods.cc (scat_dataCheck): Cleaned up messy, redundant doc.
+
 2019-04-04 Jana Mendrok  <jana.mendrok@gmail.com>
 
 	* arts-2-3-1245
