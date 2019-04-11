@@ -487,150 +487,130 @@ void nlteSetByQuantumIdentifiers(Index&                           nlte_do,
                                  const ArrayOfQuantumIdentifier&  nlte_quantum_identifiers,
                                  const ArrayOfArrayOfSpeciesTag&  abs_species,
                                  const Vector&                    vibrational_energies,
-                                 const Index&                     population_type,
+                                 const String&                    population_type,
                                  const Verbosity&)
 {
-    nlte_do = 1;
+  nlte_do = 1;
 
-    const bool do_ev = vibrational_energies.nelem();
+  const bool do_ev = vibrational_energies.nelem();
 
-    if(do_ev)
-    {
-        if( vibrational_energies.nelem()!=nlte_quantum_identifiers.nelem() )
-        {
-            ostringstream os;
-            os << "Your vibrational energy levels vector is not the same size as\n"
-            << "your *nlte_quantum_identifiers* array.  These must be the same\n"
-            << "size and the content should match.\n";
-            throw std::runtime_error(os.str());
-        }
-    }
-    
-    if(not (population_type < (Index) LinePopulationType::End) and not (population_type > 0))
-    {
-      throw std::runtime_error("Cannot understand given population type");
-    }
-    
-    // All energies must be positive
-    for(Index ii=0; ii< vibrational_energies.nelem();ii++)
-      if(vibrational_energies[ii]<0)
-        {
+  if(do_ev) {
+      if( vibrational_energies.nelem()!=nlte_quantum_identifiers.nelem() ) {
           ostringstream os;
-          os << "Some of your vibrational energy levels are negative.  They should be positive.\n"
-             << "Your vibrational levels are:\n" <<vibrational_energies;
+          os << "Your vibrational energy levels vector is not the same size as\n"
+          << "your *nlte_quantum_identifiers* array.  These must be the same\n"
+          << "size and the content should match.\n";
           throw std::runtime_error(os.str());
-        }
-        
-    
-    #pragma omp parallel for        \
-    if (!arts_omp_in_parallel()) 
-    for (Index qi = 0; qi < nlte_quantum_identifiers.nelem(); qi++)
+      }
+  }
+  
+  const LinePopulationType poptyp = LinePopulationTypeFromString(population_type);
+  
+  // All energies must be positive
+  for(Index ii=0; ii< vibrational_energies.nelem();ii++) {
+    if(vibrational_energies[ii]<0)
     {
-        ArrayOfIndex matches;
-        ArrayOfQuantumMatchInfo match_info;
-        
-        for (Index s = 0; s < abs_lines_per_species.nelem(); s++)
-        {
-
-            // Skip this species if qi is not part of the species represented by this abs_lines
-            if(abs_species[s][0].Species() != nlte_quantum_identifiers[qi].Species())
-                continue;
-
-            ArrayOfLineRecord& species_lines = abs_lines_per_species[s];
-
-            // Run internal mathcing routine
-            match_lines_by_quantum_identifier(matches, match_info, nlte_quantum_identifiers[qi], species_lines);
-
-            // Use info about mathced lines to tag the relevant parameter
-            for (Index i = 0; i < matches.nelem(); i++)
-            {
-                // For each line record
-                LineRecord& lr = species_lines[matches[i]];
-
-                // If any of the levels match partially or fully set the right quantum number
-                switch (match_info[i].Upper())
-                {
-                    case QMI_NONE:    break;
-                    case QMI_FULL:
-                        if(lr.NLTEUpperIndex()==-1)
-                        {
-                            lr.SetNLTEUpperIndex(qi);
-                            if(do_ev)
-                              lr.SetEvupp(vibrational_energies[qi]);
-                            lr.SetLinePopulationTypeFromIndex(population_type);
-                        }
-                        else
-                        {
-                            ostringstream os;
-                            os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
-                            "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
-                            "\nset twice by the input quantum identifiers.  All levels must "<<
-                            "point at a unique state. " << qi;
-                            throw std::runtime_error(os.str());
-                        }
-                        break;
-                    case QMI_PARTIAL:
-                        if(lr.NLTEUpperIndex()==-1)
-                        {
-                            lr.SetNLTEUpperIndex(qi);
-                            if(do_ev)
-                              lr.SetEvupp(vibrational_energies[qi]);
-                            lr.SetLinePopulationTypeFromIndex(population_type);
-                        }
-                        else
-                        {
-                            ostringstream os;
-                            os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
-                            "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
-                            "\nset twice by the input quantum identifiers.  All levels must "<<
-                            "point at a unique state. " << qi;
-                            throw std::runtime_error(os.str());
-                        }
-                        break;
-                }
-                switch (match_info[i].Lower())
-                {
-                    case QMI_NONE:    break;
-                    case QMI_FULL:
-                        if(lr.NLTELowerIndex()==-1)
-                        {
-                            lr.SetNLTELowerIndex(qi);
-                            if(do_ev)
-                              lr.SetEvlow(vibrational_energies[qi]);
-                            lr.SetLinePopulationTypeFromIndex(population_type);
-                        }
-                        else
-                        {
-                            ostringstream os;
-                            os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
-                            "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
-                            "\nset twice by the input quantum identifiers.  All levels must "<<
-                            "point at a unique state. " << qi;
-                            throw std::runtime_error(os.str());
-                        }
-                        break;
-                    case QMI_PARTIAL:
-                        if(lr.NLTELowerIndex()==-1)
-                        {
-                            lr.SetNLTELowerIndex(qi);
-                            if(do_ev)
-                              lr.SetEvlow(vibrational_energies[qi]);
-                            lr.SetLinePopulationTypeFromIndex(population_type);
-                        }
-                        else
-                        {
-                            ostringstream os;
-                            os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
-                            "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
-                            "\nset twice by the input quantum identifiers.  All levels must "<<
-                            "point at a unique state. " << qi;
-                            throw std::runtime_error(os.str());
-                        }
-                        break;
-                }
-            }
-        }
+      ostringstream os;
+      os << "Some of your vibrational energy levels are negative.  They should be positive.\n"
+      << "Your vibrational levels are:\n" <<vibrational_energies;
+      throw std::runtime_error(os.str());
     }
+  }
+  
+  for (Index qi = 0; qi < nlte_quantum_identifiers.nelem(); qi++) {
+    ArrayOfIndex matches;
+    ArrayOfQuantumMatchInfo match_info;
+    
+    for (Index s = 0; s < abs_lines_per_species.nelem(); s++) {
+      
+      // Skip this species if qi is not part of the species represented by this abs_lines
+      if(abs_species[s][0].Species() != nlte_quantum_identifiers[qi].Species())
+        continue;
+      
+      ArrayOfLineRecord& species_lines = abs_lines_per_species[s];
+      
+      // Run internal mathcing routine
+      match_lines_by_quantum_identifier(matches, match_info, nlte_quantum_identifiers[qi], species_lines);
+      
+      // Use info about mathced lines to tag the relevant parameter
+      for (Index i = 0; i < matches.nelem(); i++) {
+        // For each line record
+        LineRecord& lr = species_lines[matches[i]];
+        
+        // If any of the levels match partially or fully set the right quantum number
+        switch (match_info[i].Upper()) {
+          case QMI_NONE:    break;
+          case QMI_FULL:
+            if(lr.NLTEUpperIndex()==-1) {
+              lr.SetNLTEUpperIndex(qi);
+              if(do_ev)
+                lr.SetEvupp(vibrational_energies[qi]);
+              lr.SetLinePopulationType(poptyp);
+            }
+            else {
+              ostringstream os;
+              os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
+              "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
+              "\nset twice by the input quantum identifiers.  All levels must "<<
+              "point at a unique state. " << qi;
+              throw std::runtime_error(os.str());
+            }
+            break;
+          case QMI_PARTIAL:
+            if(lr.NLTEUpperIndex()==-1) {
+              lr.SetNLTEUpperIndex(qi);
+              if(do_ev)
+                lr.SetEvupp(vibrational_energies[qi]);
+              lr.SetLinePopulationType(poptyp);
+            }
+            else {
+              ostringstream os;
+              os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
+              "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
+              "\nset twice by the input quantum identifiers.  All levels must "<<
+              "point at a unique state. " << qi;
+              throw std::runtime_error(os.str());
+            }
+            break;
+        }
+        switch (match_info[i].Lower()) {
+          case QMI_NONE:    break;
+          case QMI_FULL:
+            if(lr.NLTELowerIndex()==-1) {
+              lr.SetNLTELowerIndex(qi);
+              if(do_ev)
+                lr.SetEvlow(vibrational_energies[qi]);
+              lr.SetLinePopulationType(poptyp);
+            }
+            else {
+              ostringstream os;
+              os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
+              "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
+              "\nset twice by the input quantum identifiers.  All levels must "<<
+              "point at a unique state. " << qi;
+              throw std::runtime_error(os.str());
+            }
+            break;
+          case QMI_PARTIAL:
+            if(lr.NLTELowerIndex()==-1) {
+              lr.SetNLTELowerIndex(qi);
+              if(do_ev)
+                lr.SetEvlow(vibrational_energies[qi]);
+              lr.SetLinePopulationType(poptyp);
+            }
+            else {
+              ostringstream os;
+              os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
+              "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
+              "\nset twice by the input quantum identifiers.  All levels must "<<
+              "point at a unique state. " << qi;
+              throw std::runtime_error(os.str());
+            }
+            break;
+        }
+      }
+    }
+  }
 }
 
 
@@ -785,24 +765,6 @@ void abs_linesSetMirroringForAll(ArrayOfLineRecord& abs_lines,
 }
 
 
-void abs_linesSetShapeForAll(ArrayOfLineRecord& abs_lines,
-                             const String& option,
-                             const Verbosity&)
-{
-  LineShapeType a;
-  if(option == "ByPressureBroadeningData") a = LineShapeType::ByPressureBroadeningData;
-  else if(option == "Doppler")             a = LineShapeType::Doppler;
-  else if(option == "Lorentz")             a = LineShapeType::Lorentz;
-  else if(option == "Voigt")               a = LineShapeType::Voigt;
-  else if(option == "HTP")                 a = LineShapeType::HTP;
-  else
-    throw std::runtime_error("Cannot understand mirroring type option, see builtin documentation for details");
-  
-  for(LineRecord& line: abs_lines)
-    line.SetExternalLineShapeType(a);
-}
-
-
 void abs_linesCutOffForAll(ArrayOfLineRecord& abs_lines,
                            const Numeric& option,
                            const Verbosity&)
@@ -847,16 +809,6 @@ void abs_lines_per_speciesSetMirroringForAll(ArrayOfArrayOfLineRecord& abs_lines
   for(auto& abs_lines: abs_lines_per_species)
     abs_linesSetMirroringForAll(abs_lines, option, verbosity);
 }
-
-
-void abs_lines_per_speciesSetShapeForAll(ArrayOfArrayOfLineRecord& abs_lines_per_species,
-                                         const String& option,
-                                         const Verbosity& verbosity)
-{
-  for(auto& abs_lines: abs_lines_per_species)
-    abs_linesSetShapeForAll(abs_lines, option, verbosity);
-}
-
 
 void abs_lines_per_speciesCutOffForAll(ArrayOfArrayOfLineRecord& abs_lines_per_species,
                                        const Numeric& option,

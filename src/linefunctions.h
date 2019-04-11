@@ -170,47 +170,39 @@ namespace Linefunctions
                          const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                          const QuantumIdentifier& quantum_identity=QuantumIdentifier());
   
-  void apply_linestrength_scaling(Eigen::Ref<Eigen::VectorXcd> F,
-                                  Eigen::Ref<Eigen::MatrixXcd> dF,
-                                  const Numeric& S0,
-                                  const Numeric& isotopic_ratio,
-                                  const Numeric& QT,
-                                  const Numeric& QT0,
-                                  const Numeric& K1,
-                                  const Numeric& K2,
-                                  const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
-                                  const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
-                                  const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
-                                  const Numeric& dQT_dT=0.0,
-                                  const Numeric& dK1_dT=0.0,
-                                  const Numeric& dK2_dT=0.0,
-                                  const Numeric& dK2_dF0=0.0);
+  void apply_linestrength_scaling_by_lte(Eigen::Ref<Eigen::VectorXcd> F,
+                                         Eigen::Ref<Eigen::MatrixXcd> dF,
+                                         Eigen::Ref<Eigen::VectorXcd> N,
+                                         Eigen::Ref<Eigen::MatrixXcd> dN,
+                                         const LineRecord& line,
+                                         const Numeric& T,
+                                         const Numeric& isotopic_ratio,
+                                         const Numeric& zeeman_scaling,
+                                         const Numeric& QT,
+                                         const Numeric& QT0,
+                                         const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                         const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
+                                         const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
+                                         const Numeric& dQT_dT=0.0);
   
-  void apply_linestrength_scaling_vibrational_nlte(Eigen::Ref<Eigen::VectorXcd> F,
-                                                   Eigen::Ref<Eigen::MatrixXcd> dF,
-                                                   Eigen::Ref<Eigen::VectorXcd> N,
-                                                   Eigen::Ref<Eigen::MatrixXcd> dN,
-                                                   const Numeric& S0,
-                                                   const Numeric& isotopic_ratio,
-                                                   const Numeric& QT,
-                                                   const Numeric& QT0,
-                                                   const Numeric& K1,
-                                                   const Numeric& K2,
-                                                   const Numeric& K3,
-                                                   const Numeric& K4,
-                                                   const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
-                                                   const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
-                                                   const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
-                                                   const Numeric& dQT_dT=0.0,
-                                                   const Numeric& dK1_dT=0.0,
-                                                   const Numeric& dK2_dT=0.0,
-                                                   const Numeric& dK2_dF0=0.0,
-                                                   const Numeric& dK3_dT=0.0,
-                                                   const Numeric& dK3_dF0=0.0,
-                                                   const Numeric& dK3_dTl=0.0,
-                                                   const Numeric& dK3_dTu=0.0,
-                                                   const Numeric& dK4_dT=0.0,
-                                                   const Numeric& dK4_dTu=0.0);
+  void apply_linestrength_scaling_by_vibrational_nlte(Eigen::Ref<Eigen::VectorXcd> F,
+                                                      Eigen::Ref<Eigen::MatrixXcd> dF,
+                                                      Eigen::Ref<Eigen::VectorXcd> N,
+                                                      Eigen::Ref<Eigen::MatrixXcd> dN,
+                                                      const LineRecord& line,
+                                                      const Numeric& T,
+                                                      const Numeric& Tu,
+                                                      const Numeric& Tl,
+                                                      const Numeric& Evu,
+                                                      const Numeric& Evl,
+                                                      const Numeric& isotopic_ratio,
+                                                      const Numeric& zeeman_scaling,
+                                                      const Numeric& QT,
+                                                      const Numeric& QT0,
+                                                      const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                                      const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
+                                                      const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
+                                                      const Numeric& dQT_dT=0.0);
   
   void apply_linestrength_from_full_linemixing(Eigen::Ref<Eigen::VectorXcd> F,
                                                Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -246,9 +238,9 @@ namespace Linefunctions
                                               const ConstVectorView& vmrs,
                                               const ArrayOfArrayOfSpeciesTag& species);
   
-  Numeric DopplerConstant(const Numeric& T, const Numeric& mass);
+  Numeric DopplerConstant(Numeric T, Numeric mass);
   
-  Numeric dDopplerConstant_dT(const Numeric& T, const Numeric& mass);
+  Numeric dDopplerConstant_dT(const Numeric& T, const Numeric& dc);
   
   void set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXcd>  F_full,
                                          Eigen::Ref<Eigen::MatrixXcd> dF_full,

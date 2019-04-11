@@ -28,6 +28,16 @@
 #include "absorption.h"
 
 
+enum class RelmatType {
+  FullMatrix,
+  Population,
+  Dipole,
+  ReducedDipole,
+  SecondOrderRosenkranz,
+  FirstOrderRosenkranz
+};
+
+
 class AdiabaticFactor {
 public:
   enum class Type {Hartmann};
@@ -134,6 +144,6 @@ Matrix hartmann_ecs_interface(const ArrayOfLineRecord& abs_lines,
                               const ArrayOfGriddedField1& partition_data,
                               const Numeric& T,
                               const Index& size,
-                              const Index type);
+                              const RelmatType type);
 
 #endif // linemixing_h

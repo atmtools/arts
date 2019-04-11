@@ -58,17 +58,59 @@
 /** Namespace containing several constants, physical and mathematical **/
 namespace Constant {
   template <class T> constexpr T pow2(T x) {return x*x;}
+  template <class T> constexpr T pow3(T x) {return x*x*x;}
+  
+  /** The following mathematical constants are generated in python Decimal package by the code:
+    * 
+    import decimal as d
+    pi_str = '3.141592653589793238462643383279502884197169399375105820974944592307816406286'
+    d.getcontext().prec = len(pi_str) - 2
+    pi = d.Decimal()
+    two = d.Decimal('2')
+    print('pi =', pi)
+    print('inv_pi =', 1/pi)
+    print('sqrt_pi =', pi.sqrt())
+    print('inv_sqrt_pi =', 1/pi.sqrt())
+    print('sqrt_2 =', two.sqrt())
+    print('inv_sqrt_2 =', 1/two.sqrt())
+    print('ln_2 = ', two.ln())
+    print('inv_ln_2 =', 1/two.ln())
+    print('sqrt_ln_2 =', two.ln().sqrt())
+    print('inv_sqrt_ln_2 =', 1/two.ln().sqrt())
+   *
+  To improve the numerical accuracy further, insert larger pi string */
   
   /** Pi, related to circles
    From: //www.geom.uiuc.edu/~huberty/math5337/groupe/digits.html 2019-04-01
    **/
   constexpr Numeric pi = 3.141592653589793238462643383279502884197169399375105820974944592307816406286;
   
-  /** Square root of Pi, related to circles and line shape normalization
-   Code: import decimal as d; d.getcontext().prec = 76; print(d.Decimal(PI).sqrt());
-   where PI is an instance of str, not of float, of pi above.
-   **/
+  /** Inverse of pi */
+  constexpr Numeric inv_pi = 0.3183098861837906715377675267450287240689192914809128974953346881177935952685;
+  
+  /** Square root of Pi */
   constexpr Numeric sqrt_pi = 1.772453850905516027298167483341145182797549456122387128213807789852911284591;
+  
+  /** Inverse of the square root of pi */
+  constexpr Numeric inv_sqrt_pi = 0.5641895835477562869480794515607725858440506293289988568440857217106424684415;
+  
+  /** Square root of 2 */
+  constexpr Numeric sqrt_2 = 1.414213562373095048801688724209698078569671875376948073176679737990732478462;
+  
+  /** Inverse of the square root of 2 */
+  constexpr Numeric inv_sqrt_2 = 0.7071067811865475244008443621048490392848359376884740365883398689953662392311;
+  
+  /** Natural logarithm of 2 */
+  constexpr Numeric ln_2 = 0.6931471805599453094172321214581765680755001343602552541206800094933936219697;
+  
+  /** Inverse of the natural logarithm of 2 */
+  constexpr Numeric inv_ln_2 = 1.442695040888963407359924681001892137426645954152985934135449406931109219181;
+  
+  /** Square root of natural logarithm of 2 */
+  constexpr Numeric sqrt_ln_2 = 0.8325546111576977563531646448952010476305888522644407291668291172340794351973;
+  
+  /** Inverse of the square root of the natural logarithm of 2 */
+  constexpr Numeric inv_sqrt_ln_2 = 1.201122408786449794857803286095221722566764028068699423868879896733837175546;
   
   /** Cesium-133 Unperturbed ground-state hyperfine transition frequency [Hz]
    From: https://en.wikipedia.org/wiki/2019_redefinition_of_SI_base_units 2019-04-01
@@ -145,8 +187,14 @@ namespace Constant {
   /** Magnetic constant [H/m] **/
   constexpr Numeric magnetic_constant = 2 * h * alpha / (c * pow2(e));
   
+  /** Magnetic constant convenience name [H/m] **/
+  constexpr Numeric mu_0 = magnetic_constant;
+  
   /** Vacuum permittivity [F/m] **/
   constexpr Numeric vacuum_permittivity = pow2(e) / (2 * h * c * alpha);
+  
+  /** Vacuum permittivity convenience name [F/m] **/
+  constexpr Numeric epsilon_0 = vacuum_permittivity;
   
   /** Mass of resting electron [kg] **/
   constexpr Numeric electron_mass = 2 * h * R_inf / (c * pow2(alpha));
@@ -196,6 +244,12 @@ namespace Conversion {
   constexpr Numeric FREQ2ANGCM = 1/ANGCM2FREQ;
   template <class T> constexpr Numeric angcm2freq(T x) {return x*ANGCM2FREQ;}
   template <class T> constexpr Numeric freq2angcm(T x) {return x*FREQ2ANGCM;}
+  
+  /** Conversion constant Angular frequency to frequency and back.  Use conversion formulae instead of pure constant if possible. **/
+  constexpr Numeric ANGFREQ2FREQ = 1 / (2*pi);
+  constexpr Numeric FREQ2ANGFREQ = 1/ANGCM2FREQ;
+  template <class T> constexpr Numeric angfreq2freq(T x) {return x*ANGFREQ2FREQ;}
+  template <class T> constexpr Numeric freq2angfreq(T x) {return x*FREQ2ANGFREQ;}
   
   /** Conversion wavelength to frequency and back. **/
   template <class T> constexpr Numeric wavelen2freq(T x) {return c/x;}

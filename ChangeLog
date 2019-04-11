@@ -1,3 +1,45 @@
+2019-04-11  Richard Larsson <larsson@mps.mpg.de>
+
+	* arts-2-3-1247
+	
+	* controlfiles/artscomponents/nlte/TestPopulationDensityNLTE_lineshape.arts:
+	Updated naming of input for selecting NLTE type
+	
+	* src/absorption.cc:  Updated interface to temperature derivatives in
+	Linefunctions
+	
+	* src/constants.h:  Added several constants used elsewhere in the code
+	
+	* src/jacobian.cc,h: Updated do_vmr_jacobian to be easier to read out from
+	
+	* src/linefunctions.cc,h: Updated to use the Constant namespace. Also
+	simplified interface to the line strength calculators. Also udpated Doppler
+	derivative
+	
+	* src/linemixing.cc,h: Named the interface to the internalized relmat
+	calculator.  Doing some more tests on this atm but by workstation cannot
+	handle the ram-usage of some operations so that code is on another machine.
+	TBCS
+	
+	* src/linerecord.cc,h: Removed dual line shape specifications.  Also removed
+	Index interface to this so no longer necessary to have "END" as enum 
+	variable
+	
+	* src/m_linemixing.cc: As above.
+	
+	* src/m_linerecord.cc: As above
+	
+	* src/m_nlte.cc: Commented out unused agenda.  Still kept around because
+	the code should update again in future to allow selection of NLTE method.
+	
+	* src/m_radiation_field.cc: Remove stupid compiler warning
+	
+	* src/methods.cc: Removed some methods related to different line 
+	shape selections
+	
+	* src/zeeman.cc: Updated to use things as above
+
+
 2019-04-08 Jana Mendrok  <jana.mendrok@gmail.com>
 
 	* arts-2-3-1246

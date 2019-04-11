@@ -109,9 +109,8 @@ Numeric integrate_zenith(const VectorView j,
 Index grid_index_from_gp(const GridPos& gp) {
   if(gp.fd[1] == 1.0)
     return gp.idx;
-  else if(gp.fd[0] == 1.0)
+  else
     return gp.idx + 1;
-  assert(false);
 }
 
 

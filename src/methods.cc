@@ -919,55 +919,6 @@ void define_md_data_raw()
     
     md_data_raw.push_back
     ( MdRecord
-    ( NAME( "abs_linesSetShapeForAll" ),
-      DESCRIPTION
-      (
-        "Sets shape type for all lines.\n"
-        "\n"
-        "Available options:\n"
-        "   ByPressureBroadeningData\n"
-        "   Doppler\n"
-        "   Lorentz\n"
-        "   Voigt\n"
-        "   HTP\n"
-        "\n"
-        "WARNING: this option exists only for testing and migth break ARTS,\n"
-        "use with care.  Change pressure broadening data to be sure what will\n"
-        "happen\n"
-      ),
-      AUTHORS( "Richard Larsson" ),
-      OUT( "abs_lines" ),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN( "abs_lines" ),
-      GIN( "option"),
-      GIN_TYPE( "String" ),
-      GIN_DEFAULT( NODEF ),
-      GIN_DESC( "Method of line mirroring" )
-    ));
-    
-    md_data_raw.push_back
-    ( MdRecord
-    ( NAME( "abs_lines_per_speciesSetShapeForAll" ),
-      DESCRIPTION
-      (
-        "See *abs_linesSetShapeForAll*\n"
-      ),
-      AUTHORS( "Richard Larsson" ),
-      OUT( "abs_lines_per_species" ),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN( "abs_lines_per_species" ),
-      GIN( "option"),
-      GIN_TYPE( "String" ),
-      GIN_DEFAULT( NODEF ),
-      GIN_DESC( "Method of line mirroring" )
-    ));
-    
-    md_data_raw.push_back
-    ( MdRecord
     ( NAME( "abs_linesCutOffForAll" ),
       DESCRIPTION
       (
@@ -11416,8 +11367,9 @@ void define_md_data_raw()
          "to more than one energy state, errors should be thrown, but be careful.\n"
          "\n"
          "Set type of population to change computations and expected input as:\n"
-         "   1:  Compute population by ratio found from vibrational temperatures\n"
-         "   2:  Input population levels manually\n"
+         "\tLTE: Compute population by ratios found from LTE temperatures\n"
+         "\tTV:  Compute population by ratios found from NLTE vibrational temperatures\n"
+         "\tND:  Compute population by ratios found from NLTE number densities\n"
          ),
         AUTHORS( "Richard Larsson" ),
         OUT( "nlte_do", "abs_lines_per_species" ),
@@ -11426,10 +11378,10 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "abs_lines_per_species", "nlte_level_identifiers", "abs_species"),
         GIN("vibrational_energies", "population_type"),
-        GIN_TYPE("Vector", "Index"),
-        GIN_DEFAULT("[]", "1"),
+        GIN_TYPE("Vector", "String"),
+        GIN_DEFAULT("[]", "TV"),
         GIN_DESC("Vector of vibrational energies.  If empty, assume known or unimportant vibrational energies.",
-                 "Index for setting the type of population.")
+                 "String for setting the type of population.")
         ));
 
   md_data_raw.push_back

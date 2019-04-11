@@ -21,6 +21,7 @@
 #include "linefunctions.h"
 #include "linescaling.h"
 #include "species_info.h"
+#include "constants.h"
 
 typedef struct {Numeric H, theta, eta, dH_du, dH_dv, dH_dw, dtheta_du, dtheta_dv, dtheta_dw, deta_du, deta_dv, deta_dw;} ZeemanDerived;
 
@@ -126,8 +127,6 @@ void zeeman_on_the_fly(ArrayOfPropagationMatrix& propmat_clearsky,
                        const Numeric& eta0)
 try
 {
-  extern const Numeric DEG2RAD;
-  
   // Find relevant derivatives in retrieval quantities positions
   const ArrayOfIndex jacobian_quantities_positions = equivlent_propmattype_indexes(jacobian_quantities);
   
@@ -175,8 +174,9 @@ try
   Index start, nelem;
   
   // Magnetic field internals and derivatives...
-  const auto X = manual_tag ? zeeman_internal_variables_manual(H0, DEG2RAD*theta0, DEG2RAD*eta0) :
-                              zeeman_internal_variables(rtp_mag[0], rtp_mag[1], rtp_mag[2], DEG2RAD * rtp_los[0], DEG2RAD * rtp_los[1]);
+  const auto X = manual_tag ? zeeman_internal_variables_manual(H0, Conversion::deg2rad(theta0), Conversion::deg2rad(eta0))
+                            : zeeman_internal_variables(rtp_mag[0], rtp_mag[1], rtp_mag[2],
+                                                        Conversion::deg2rad(rtp_los[0]), Conversion::deg2rad(rtp_los[1]));
   
   // Polarization
   const auto polarization_scale_data        = zeeman_polarization(        X.theta, X.eta);
@@ -194,7 +194,7 @@ try
       const Numeric numdens = rtp_vmr[ispecies] * dnumdens_dmvr;
       const Numeric dnumdens_dT = rtp_vmr[ispecies] * dnumdens_dt_dmvr;
       const Numeric dc = Linefunctions::DopplerConstant(rtp_temperature, lines[0].IsotopologueData().Mass());
-      const Numeric ddc_dT = Linefunctions::dDopplerConstant_dT(rtp_temperature, lines[0].IsotopologueData().Mass());
+      const Numeric ddc_dT = Linefunctions::dDopplerConstant_dT(rtp_temperature, dc);
       const Numeric isotop_ratio = isotopologue_ratios.getParam(lines[0].Species(), lines[0].Isotopologue())[0].data[0];
       const Numeric partial_pressure = rtp_pressure * rtp_vmr[ispecies];
       

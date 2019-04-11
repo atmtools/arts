@@ -543,7 +543,9 @@ bool species_iso_match(const RetrievalQuantity& rq, const Index species, const I
 
 bool do_temperature_jacobian(const ArrayOfRetrievalQuantity& js);
 
-std::tuple<bool, const QuantumIdentifier&> do_vmr_jacobian(const ArrayOfRetrievalQuantity& js, const QuantumIdentifier& line_qid);
+struct jacobianVMRcheck {bool test; const QuantumIdentifier& qid;};
+
+jacobianVMRcheck do_vmr_jacobian(const ArrayOfRetrievalQuantity& js, const QuantumIdentifier& line_qid);
 
 bool do_line_center_jacobian(const ArrayOfRetrievalQuantity& js);
 

@@ -202,11 +202,10 @@ enum class MirroringType : Index
   // Add new entries before End to keep safe with existing catalogs.
   // LineRecord effect:  Adds MTM (Index)MirroringType under line modifications when saving ARTSCAT5
   // 0 is ignored on printing
-  None=0,
-  Lorentz=1,
-  SameAsLineShape=2,
-  Manual=3,
-  End
+  None,             // No mirroring
+  Lorentz,          // Mirror, but use Lorentz line shape
+  SameAsLineShape,  // Mirror using the same line shape
+  Manual,           // Mirror by having a line in the array of line record with negative F0
 };
 
 enum class LineNormalizationType : Index
@@ -215,24 +214,10 @@ enum class LineNormalizationType : Index
   // Add new entries before End to keep safe with existing catalogs.
   // LineRecord effect:  Adds LNT (Index)LineNormalizationType under line modifications when saving ARTSCAT5
   // 0 is ignored on printing
-  None=0,
-  VVH=1,
-  VVW=2,
-  RosenkranzQuadratic=3,
-  End
-};
-
-enum class LineShapeType : Index
-{
-  // Describes the type of line shape.
-  // LineRecord effect:  Adds LST (Index)LineShapeType under line modifications when saving ARTSCAT5
-  // 0 is ignored on printing
-  ByPressureBroadeningData=0,
-  Doppler=1,
-  Lorentz=2,
-  Voigt=3,
-  HTP=4,
-  End
+  None,                 // Do not renormalize the line shape
+  VVH,                  // Renormalize with Van Vleck and Huber specifications
+  VVW,                  // Renormalize with Van Vleck and Weiskopf specifications
+  RosenkranzQuadratic,  // Renormalize using Rosenkranz's quadratic specifications
 };
 
 enum class LinePopulationType : Index
@@ -240,10 +225,9 @@ enum class LinePopulationType : Index
   // Describes the type of population level counter.
   // LineRecord effect:  Adds POP (Index)LinePopulationType under line modifications when saving ARTSCAT5
   // 0 is ignored on printing
-  ByLTE=0,
-  ByVibrationalTemperatures=1,
-  ByPopulationDistribution=2,
-  End
+  ByLTE,                      // Assume line is in LTE
+  ByVibrationalTemperatures,  // Assume line is in NLTE described by vibrational temperatures
+  ByPopulationDistribution,   // Assume line is in NLTE and the upper-to-lower ratio is known
 };
 
 class LineRecord {
@@ -275,7 +259,6 @@ public:
       mlinemixing_limit(-1.0),
       mmirroring(MirroringType::None),
       mlinenorm(LineNormalizationType::None),
-      mlineshape(LineShapeType::ByPressureBroadeningData),
       mpopulation(LinePopulationType::ByLTE)
  { /* Nothing to do here. */ }
 
@@ -325,7 +308,6 @@ public:
       mlinemixing_limit(-1.0),
       mmirroring(MirroringType::None),
       mlinenorm(LineNormalizationType::None),
-      mlineshape(LineShapeType::ByPressureBroadeningData),
       mpopulation(LinePopulationType::ByLTE)
   {
     mlinefunctiondata = LineFunctionData(sgam, nself, agam, nair, psf);
@@ -563,9 +545,7 @@ public:
   Numeric GetLineFunctionDataVariable(const String& spec, const String& var, const String& coeff) const { return mlinefunctiondata.Get(spec, coeff, var); }  
   void SetSpecial() {mlinefunctiondata.SetStandard(false);}
   void SetStandard() {mlinefunctiondata.SetStandard(true);}
-  LineFunctionData::LineShapeType LineFunctionDataLineShapeType() const { return mlinefunctiondata.LineShape(); }
-  LineFunctionData::LineMixingOrderType LineFunctionDataLineMixingType() const { return mlinefunctiondata.LineMixing(); }
-  bool LineMixingNoneType() const {return LineFunctionDataLineMixingType() == LineFunctionData::LineMixingOrderType::None;}
+  bool LineMixingNoneType() const {return GetLineMixingOrderType() == LineFunctionData::LineMixingOrderType::None;}
   bool LineMixingByBand() const {return not mlinefunctiondata.DoStandardCalcs();}
   bool LineFunctionDataHasAir() const { if(mlinefunctiondata.AirBroadening()) return true; else return false; }
   
@@ -610,7 +590,7 @@ public:
     return mlinefunctiondata.GetVMRDerivs(mti0, T, P, vmrs[this_species], vmrs, abs_species, vmr_qi, mqid, do_linemixing(P));
   }
   
-  /** Pressure Broadening Data */
+  /** Zeeman Effect Data */
   ZeemanEffectData& ZeemanEffect() { return mzeemandata; }
   ZeemanPolarizationType ZeemanPolarization() const { return mzeemandata.PolarizationType(); }
   const ZeemanEffectData& ZeemanEffect() const { return mzeemandata; }
@@ -621,38 +601,26 @@ public:
   const Numeric& CutOff() const {return mcutoff;}
   void SetCutOff(const Numeric& cutoff) {mcutoff = cutoff;}
   
-  /** Cutoff frequency */
+  /** Line mixing pressure limit */
   const Numeric& LineMixingLimit() const {return mlinemixing_limit;}
   void SetLineMixingLimit(const Numeric& limit) {mlinemixing_limit = limit;}
   
   /** Line shape mirroring factor */
   const MirroringType& GetMirroringType() const {return mmirroring;}
   void SetMirroringType(const MirroringType in) {mmirroring = in;}
-  void SetMirroringTypeFromIndex(const Index in);
-  void SetMirroringTypeFromString(const String& in);
   String GetMirroringTypeString() const;
   
   /** Line shape normalization factor */
   const LineNormalizationType& GetLineNormalizationType() const {return mlinenorm;}
   void SetLineNormalizationType(const LineNormalizationType in) {mlinenorm = in;}
-  void SetLineNormalizationTypeFromIndex(const Index in);
-  void SetLineNormalizationTypeFromString(const String& in);
   String GetLineNormalizationTypeString() const;
   
-  /** Line shape type*/
-  const LineShapeType& GetExternalLineShapeType() const {return mlineshape;}
-  void SetExternalLineShapeType(const LineShapeType in) {mlineshape = in;}
-  void SetExternalLineShapeTypeFromIndex(const Index in);
-  void SetExternalLineShapeTypeFromString(const String& in);
-  String GetExternalLineShapeTypeString() const;
+  LineFunctionData::LineShapeType GetLineShapeType() const {return mlinefunctiondata.LineShape(); }
+  LineFunctionData::LineMixingOrderType GetLineMixingOrderType() const {return mlinefunctiondata.LineMixing(); }
   
-  LineFunctionData::LineShapeType GetInternalLineShapeType() const {return mlinefunctiondata.LineShape(); }
-  
-  /** Line population type*/
+  /** Line population type */
   const LinePopulationType& GetLinePopulationType() const {return mpopulation;}
   void SetLinePopulationType(const LinePopulationType in) {mpopulation = in;}
-  void SetLinePopulationTypeFromIndex(const Index in);
-  void SetLinePopulationTypeFromString(const String& in);
   String GetLinePopulationTypeString() const;
   
   /** Read one line from a stream associated with a HITRAN 1986-2001 file. The
@@ -1069,10 +1037,7 @@ private:
   /** Line shape normalization type */
   LineNormalizationType mlinenorm;
   
-  /** Line shape type */
-  LineShapeType mlineshape;
-  
-  /** Line shape type */
+  /** Line LTE/NLTE type */
   LinePopulationType mpopulation;
 };
 
@@ -1130,5 +1095,11 @@ void match_lines_by_quantum_identifier(ArrayOfIndex& matches,
                                        ArrayOfQuantumMatchInfo& match_info,
                                        const QuantumIdentifier& qi,
                                        const ArrayOfLineRecord& abs_lines);
+
+LinePopulationType LinePopulationTypeFromString(const String& in);
+
+MirroringType MirroringTypeFromString(const String& in);
+
+LineNormalizationType LineNormalizationTypeFromString(const String& in);
 
 #endif // linerecord_h

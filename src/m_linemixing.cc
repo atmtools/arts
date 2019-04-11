@@ -1816,9 +1816,9 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
       }
       else {
         Numeric QT = -1, QT0 = -1, part_ratio;
-        Eigen::VectorXcd F(nf);
+        Eigen::VectorXcd F(nf), N(0);
         Eigen::Matrix<Complex, Eigen::Dynamic, Linefunctions::ExpectedDataSize()> data(nf, Linefunctions::ExpectedDataSize());
-        Eigen::MatrixXcd dF(nf, jacobian_quantities_position.nelem());
+        Eigen::MatrixXcd dF(nf, jacobian_quantities_position.nelem()), dN(0, 0);
         const Numeric GD_div_F0 = doppler_const * sqrt(abs_t[ip] / mass);
         
         for( long iline=0; iline<nlines; iline++ ) {
@@ -1845,9 +1845,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                                    0.0, 0.0, abs_lines_per_band[iband][iline].F(),
                                    GD_div_F0, X); // Derivatives need to be added...
           
-          Linefunctions::apply_linestrength_scaling(F, dF, 
-                                                    abs_lines_per_band[iband][iline].I0(), iso_ratio,
-                                                    QT, QT0, K1, K2);
+          Linefunctions::apply_linestrength_scaling_by_lte(F, dF, N, dN, abs_lines_per_band[iband][iline], abs_t[ip], iso_ratio, 1.0, QT, QT0);
           
           for(Index ii = 0; ii < nf; ii++) {
             const Numeric& y = F[ii].real();
@@ -2048,7 +2046,7 @@ void TestLineMixing(ArrayOfArrayOfMatrix& relmat_per_band,
   Numeric T=150;
   
   for(Index i=0; i< size; i++) {
-      relmat_per_band[0][i] = hartmann_ecs_interface(abs_lines, SpeciesTag("CO2"), collider_species, collider_species_vmr, partition_type, partition_data, T, wigner_initialized,  2);
+      relmat_per_band[0][i] = hartmann_ecs_interface(abs_lines, SpeciesTag("CO2"), collider_species, collider_species_vmr, partition_type, partition_data, T, wigner_initialized,  RelmatType::SecondOrderRosenkranz);
     T += 2;
     std::cout<<"doing temp "<<T<<'\n';
   }

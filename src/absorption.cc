@@ -2231,7 +2231,7 @@ void xsec_species2(Matrix& xsec,
           this_iso = line.Isotopologue();
           dc = Linefunctions::DopplerConstant(temperature, line.IsotopologueData().Mass());
           if(do_temperature)
-            ddc_dT = Linefunctions::dDopplerConstant_dT(temperature, line.IsotopologueData().Mass());
+            ddc_dT = Linefunctions::dDopplerConstant_dT(temperature, dc);
         }
       }
     

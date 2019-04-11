@@ -455,28 +455,41 @@ Matrix hartmann_ecs_interface(const ArrayOfLineRecord& abs_lines,
                               const ArrayOfGriddedField1& partition_data,
                               const Numeric& T,
                               const Index& size,
-                              const Index type)
+                              const RelmatType type)
 {
-  const Vector population = population_density_vector(abs_lines, partition_type, partition_data, T);
-  if(type == - 1) return Matrix(population);
-  
-  const Vector dipole = dipole_vector(abs_lines, partition_type, partition_data);
-  if(type == - 2) return Matrix(dipole);
-  
-  const Vector d0 = reduced_dipole_vector(abs_lines, main_species, size);
-  if(type == - 3) return Matrix(d0);
-  
-  if(type < 0) throw std::runtime_error("Developer error: Invalid type-statement.\n");
-  
-  const Matrix W = hartmann_relaxation_matrix(abs_lines, main_species, population, d0, collider_species, collider_species_vmr, T, size);
-  if(not type) return W;
-  
-  Matrix X(type*2, abs_lines.nelem());
   switch(type) {
-    case 2:
+    case RelmatType::Population: {
+        const Vector X = population_density_vector(abs_lines, partition_type, partition_data, T);
+        return Matrix(X);
+      }
+      break;
+    case RelmatType::Dipole: {
+        const Vector X = dipole_vector(abs_lines, partition_type, partition_data);
+        return Matrix(X);
+      }
+      break;
+    case RelmatType::ReducedDipole: {
+        const Vector X = reduced_dipole_vector(abs_lines, main_species, size);
+        return Matrix(X);
+      }
+      break;
+    default:
+      break;
+  }
+  
+  const Vector population = population_density_vector(abs_lines, partition_type, partition_data, T);
+  const Vector dipole = dipole_vector(abs_lines, partition_type, partition_data);
+  const Vector d0 = reduced_dipole_vector(abs_lines, main_species, size);
+  const Matrix W = hartmann_relaxation_matrix(abs_lines, main_species, population, d0, collider_species, collider_species_vmr, T, size);
+  
+  if(type == RelmatType::FullMatrix) return W;
+  
+  Matrix X(type == RelmatType::SecondOrderRosenkranz ? 4 : 2, abs_lines.nelem());
+  switch(type) {
+    case RelmatType::SecondOrderRosenkranz:
       X(2, joker) = rosenkranz_scaling_second_order(abs_lines, W, d0); 
       X(3, joker) = rosenkranz_shifting_second_order(abs_lines, W); /* fallthrough */
-    case 1:
+    case RelmatType::FirstOrderRosenkranz:
       X(0, joker) = pressure_broadening_from_diagonal(W);
       X(1, joker) = rosenkranz_first_order(abs_lines, W, d0);
       break;

@@ -81,7 +81,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(Workspace&                   
                                                    const Agenda&                   iy_surface_agenda,
                                                    const Agenda&                   iy_cloudbox_agenda,
                                                    const Agenda&                   propmat_clearsky_agenda,
-                                                   const Agenda&                   water_p_eq_agenda,
+                                                   const Agenda&                   /*water_p_eq_agenda*/,
                                                    const Tensor4&                  vmr_field,
                                                    const Tensor3&                  t_field,
                                                    const Tensor3&                  z_field,
