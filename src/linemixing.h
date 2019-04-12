@@ -58,30 +58,25 @@ public:
   
   
   Numeric mol_X(const int L,
-                const int step,
                 const Numeric& B0,
                 const Numeric& T,
                 const Numeric& main_mass,
-                const Numeric& collider_mass,
-                const bool init);
+                const Numeric& collider_mass) const;
   
   Numeric get(const int L,
-              const int step,
               const Numeric& B0,
               const Numeric& T,
               const Numeric& main_mass,
-              const Numeric& collider_mass,
-              const bool init) {
+              const Numeric& collider_mass) const {
     switch(mtype) {
       case Type::Hartmann:
-        return mol_X(L, step, B0, T, main_mass, collider_mass, init);
+        return mol_X(L, B0, T, main_mass, collider_mass);
     }
     return 0;
   }
   
 private:
   Type mtype;
-  Numeric msave;
   Vector mdata;
 };
 
@@ -119,20 +114,21 @@ private:
   Vector mdata;
 };
 
+struct OffDiagonalElementOutput {Numeric ij, ji;};
 
 namespace OffDiagonalElement {
   enum class Type {CO2_IR};
   
-  tuple<Numeric, Numeric> CO2_IR(const LineRecord& j_line,
-                                 const LineRecord& k_line,
-                                 const Numeric& j_rho,
-                                 const Numeric& k_rho,
-                                 const BasisRate& br,
-                                 AdiabaticFactor& af,
-                                 const Numeric& T,
-                                 const Numeric& B0,
-                                 const Numeric& main_mass,
-                                 const Numeric& collider_mass);
+  OffDiagonalElementOutput CO2_IR(const LineRecord& j_line,
+                                  const LineRecord& k_line,
+                                  const Numeric& j_rho,
+                                  const Numeric& k_rho,
+                                  const BasisRate& br,
+                                  const AdiabaticFactor& af,
+                                  const Numeric& T,
+                                  const Numeric& B0,
+                                  const Numeric& main_mass,
+                                  const Numeric& collider_mass);
 };
 
 

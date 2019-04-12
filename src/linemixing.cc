@@ -24,6 +24,7 @@
 #include "wigner_functions.h"
 #include "sorting.h"
 #include "linescaling.h"
+#include "constants.h"
 
 //! Rotational constants of supported scenarios
 /*!
@@ -32,23 +33,20 @@
  */
 inline Numeric getB0(const SpeciesTag& main)
 {
-  extern const Numeric SPEED_OF_LIGHT;
-  const Numeric hi2arts = 1e-2 * SPEED_OF_LIGHT;
-  
   if(main.IsSpecies("CO2"))
-    return 0.39021 * hi2arts;  // Herzberg 1966
+    return  Conversion::kaycm2freq(0.39021);  // Herzberg 1966
   else if(main.IsSpecies("O2")) {
     if(main.IsIsotopologue("66"))
       return 43100.44276e6;  // B.J. Drouin et al. Journal of Quantitative Spectroscopy & Radiative Transfer 111 (2010) 1167–1173
     else if(main.IsIsotopologue("67"))
-      return 1.35 * hi2arts;
+      return Conversion::kaycm2freq(1.35);
     else if(main.IsIsotopologue("68"))
       return 40707.38657e6;  // B.J. Drouin et al. Journal of Quantitative Spectroscopy & Radiative Transfer 111 (2010) 1167–1173
     else if(main.IsIsotopologue("88"))
       return 38313.72938e6;  // B.J. Drouin et al. Journal of Quantitative Spectroscopy & Radiative Transfer 111 (2010) 1167–1173
   }
   else if(main.IsSpecies("CH4"))
-    return 5.2 * hi2arts;
+    return Conversion::kaycm2freq(5.2);
   
   throw std::runtime_error("Unsupported main species/isotopologue.  Check your broadening data");
 }
@@ -80,15 +78,18 @@ inline AdiabaticFactor adiabatic_factor(const SpeciesTag& main, const SpeciesTag
  */
 inline BasisRate basis_rate(const SpeciesTag& main, const SpeciesTag& collider, const Numeric& T, const Numeric& T0)
 {
-  extern const Numeric HZ2CM;
-  extern const Numeric ATM2PA;
-  
   if(main.IsSpecies("CO2") and collider.IsSpecies("N2"))
-    return BasisRate({0.0180 * pow(T0/T, 0.85) / (HZ2CM * ATM2PA),
-      0.81 * pow(T0/T, 0.0152), 0.008}, BasisRate::Type::Hartmann);
+    return BasisRate({
+      Conversion:: hitran2arts_broadening(0.0180) * std::pow(T0/T, 0.85),  // Hz/Pa
+      0.81 * std::pow(T0/T, 0.0152),  // unitless
+      0.008},  // unitless
+      BasisRate::Type::Hartmann);
   else if(main.IsSpecies("CO2") and collider.IsSpecies("O2"))
-    return BasisRate({0.0168 * pow(T0/T, 0.50) / (HZ2CM * ATM2PA),
-      0.82 * pow(T0/T, -0.091 ), 0.007}, BasisRate::Type::Hartmann);
+    return BasisRate({
+      Conversion:: hitran2arts_broadening(0.0168) * std::pow(T0/T, 0.50),  // Hz/Pa
+      0.82 * std::pow(T0/T, -0.091),  // unitless 
+      0.007},  // unitless
+      BasisRate::Type::Hartmann);
   
   throw std::runtime_error("Unsupported species pairs, main-collider.  Check your broadening data");
 }
@@ -141,10 +142,10 @@ Matrix relaxation_matrix_calculations(const ArrayOfLineRecord& lines,
       const Numeric& popj = population[j];
       
       if(i == j) {
-        W(i, j) = 2* lines[i].Agam() * pow(lines[i].Ti0()/T, lines[i].Nair());  // FIXME: ADOPT THIS TO BE FOR COLLIDER SPECIES AND NOT JUST AIR
+        W(i, j) = lines[i].Agam() * pow(lines[i].Ti0()/T, lines[i].Nair());  // FIXME: ADOPT THIS TO BE FOR COLLIDER SPECIES AND NOT JUST AIR
       }
       else {
-      tuple<Numeric, Numeric> X;
+      OffDiagonalElementOutput X;
         switch(spec) {
           case Species::CO2:
             X = OffDiagonalElement::CO2_IR(lines[i], lines[j], popi, popj, br, af, T, B0, main.SpeciesMass(), collider.SpeciesMass());
@@ -152,8 +153,8 @@ Matrix relaxation_matrix_calculations(const ArrayOfLineRecord& lines,
           default: throw std::runtime_error("DEVELOPER BUG:  Add species here as well, the other one is to check if the computations are valid at all...");
         }
         
-        W(i, j) = std::move(std::get<0>(X));
-        W(j, i) = std::move(std::get<1>(X));
+        W(i, j) = X.ij;
+        W(j, i) = X.ji;
       }
     }
     
@@ -189,10 +190,14 @@ void normalize_relaxation_matrix(Matrix& W,
   
   // Sorted matrix
   Matrix Wr(n, n);
-  for(Index i=0; i<n; i++)
-    for(Index j=0; j<n; j++)
-      Wr(i, j) = (j == i) ?     W(sorted[i], sorted[j]) : 
-                           -abs(W(sorted[i], sorted[j]));
+  for(Index i=0; i<n; i++) {
+    for(Index j=0; j<n; j++) {
+      if(j==i)
+        Wr(i, j) = W(sorted[i], sorted[j]);
+      else
+        Wr(i, j) = -std::abs(W(sorted[i], sorted[j]));
+    }
+  }
   
   // Renormalization procedure
   for(Index i=0; i<n; i++) {
@@ -201,32 +206,24 @@ void normalize_relaxation_matrix(Matrix& W,
     Numeric Sup=0, Slo=0;
     for(Index j=0; j<n; j++) {
       if(j <= i)
-        Sup += abs(d0[sorted[j]]) * Wr(i, j);
+        Sup += std::abs(d0[sorted[j]]) * Wr(i, j);
       else
-        Slo += abs(d0[sorted[j]]) * Wr(i, j);
+        Slo += std::abs(d0[sorted[j]]) * Wr(i, j);
     }
     
     // The ratio between upper and lower contributions
     const Numeric UL = Sup / Slo;
     
     // Rescale to fulfill sum-rule, note how the loop for the upper triangle so the last row cannot be renormalized properly
-    const Numeric& rho_i = population[sorted[i]];
     for(Index j=i; j<n; j++) {
-      if(j not_eq i) {
+      const Numeric r = population[sorted[i]] / population[sorted[j]];
+      Wr(j, i) = r * Wr(i, j);
+      if(j not_eq i)
         Wr(i, j) *= -UL;
-        Wr(j, i) = rho_i / population[sorted[j]] * Wr(i, j);
-      }
     }
   }
   
-  // Test the sum-rule
-  for(Index i=0; i<n; i++) {
-    Numeric sum=0;
-    for(Index j=0; j<n; j++)
-      sum += Wr(i, j) * d0[sorted[j]] / d0[sorted[i]];
-  }
-  
-  // Resort matrix before returning
+  // Backsort matrix before returning
   for(Index i=0; i<n; i++)
     for(Index j=0; j<n; j++)
       W(sorted[i], sorted[j]) = Wr(i, j);
@@ -298,60 +295,14 @@ inline Vector population_density_vector(const ArrayOfLineRecord& abs_lines,
  \param partition_data: the partition function data
  \return dipole moment of the absorption lines
 */
-inline Vector dipole_vector(const ArrayOfLineRecord& abs_lines,
-                            const SpeciesAuxData::AuxType& partition_type,
-                            const ArrayOfGriddedField1& partition_data)
+inline Vector dipole_vector(const ArrayOfLineRecord& abs_lines)
 {
   const Index n=abs_lines.nelem();
-  Vector a(n);
+  Vector d(n);
   
-  for(Index i=0; i<n; i++) {
-    const Numeric QT0 = single_partition_function(abs_lines[i].Ti0(), partition_type, partition_data);
-    const Numeric gT0 = stimulated_emission(abs_lines[i].Ti0(), abs_lines[i].F());
-    const Numeric bT0 = boltzman_factor(abs_lines[i].Ti0(), abs_lines[i].Elow());
-    a[i] = sqrt(abs_lines[i].I0() * QT0 / (abs_lines[i].F() * bT0 * (1 - gT0)));
-  }
-  
-  return a;
-}
-
-
-/*! Computes the reduced dipole moment
- \param abs_lines: all absorption lines
- \param main: the main species 
- \return reduced dipole moment of the absorption lines
- */
-inline Vector reduced_dipole_vector(const ArrayOfLineRecord& abs_lines,
-                                    const SpeciesTag& main,
-                                    const Index& size)
-{
-  // Create a temporary table
-  wig_temp_init(2*int(size));
-  
-  const Index n=abs_lines.nelem();
-  Vector a(n);
-  
-  if(main.IsSpecies("CO2")) {
-    for(Index i=0; i<n; i++) {
-      const QuantumIdentifier& qi = abs_lines[i].QuantumIdentity();
-      
-      const Rational& J1 = qi.LowerQuantumNumbers()[QuantumNumberType::J];
-      const Rational& l1 = qi.LowerQuantumNumbers()[QuantumNumberType::l2];
-      const Rational& J2 = qi.UpperQuantumNumbers()[QuantumNumberType::J];
-      const Rational& l2 = qi.UpperQuantumNumbers()[QuantumNumberType::l2];
-      
-      const int sqn = ((J2.toIndex() + l2.toIndex()) % 2 ? -1 : +1);
-      const Numeric w3j = wigner3j(J1, 1, J2, l1, l2-l1, -l2);
-      a[i] = sqn * sqrt((2*J2).toInt() + 1) * w3j;
-    }
-  }
-  else {
-    throw std::runtime_error("Cannot support species at this point");
-  }
-  
-  // Remove the temporary table
-  wig_temp_free();
-  return a;
+  for(Index i=0; i<n; i++)
+    d[i] = std::sqrt(abs_lines[i].electric_dipole_moment_squared());
+  return d;
 }
 
 
@@ -363,15 +314,11 @@ inline Vector rosenkranz_first_order(const ArrayOfLineRecord& abs_lines,
   Vector Y(n);
   
   for(Index i=0; i<n; i++) {
-    const Numeric& di = d0[i];
     Numeric sum=0;
     for(Index j=0; j<n; j++) {
-      if(i not_eq j) {
-        const Numeric& dj = d0[j];
-        const Numeric r = dj / di;
-        const Numeric df = abs_lines[i].F() - abs_lines[j].F();
-        sum += r * W(i, j) / df;
-      }
+      const Numeric df = abs_lines[i].F() - abs_lines[j].F();
+      if(std::isnormal(df))
+        sum += d0[j] / d0[i] * W(i, j) / df;
     }
     Y[i] = 2*sum;
   }
@@ -388,10 +335,9 @@ inline Vector rosenkranz_shifting_second_order(const ArrayOfLineRecord& abs_line
   for(Index i=0; i<n; i++) {
     Numeric sum=0;
     for(Index j=0; j<n; j++) {
-      if(i not_eq j) {
-        const Numeric df = abs_lines[j].F() - abs_lines[i].F();
+      const Numeric df = abs_lines[j].F() - abs_lines[i].F();
+      if(std::isnormal(df))
         sum += W(i, j) * W(j, i) / df;
-      }
     }
     DV[i] = sum;
   }
@@ -413,28 +359,27 @@ inline Vector rosenkranz_scaling_second_order(const ArrayOfLineRecord& abs_lines
     Numeric sum2=0;
     Numeric sum3=0;
     Numeric sum4=0;
-    Numeric sum_tmp=0;
     for(Index j=0; j<n; j++) {
-      if(i not_eq j) {
+      const Numeric df = abs_lines[j].F() - abs_lines[i].F();
+      if(std::isnormal(df)) {
         const Numeric& dj = d0[j];
         const Numeric r = dj / di;
-        const Numeric df = abs_lines[j].F() - abs_lines[i].F();
         
-        sum1 += W(i, j) * W(j, i) / pow(df, 2);
+        sum1 += W(i, j) * W(j, i) / Constant::pow2(df);
         sum2 += r * W(i, j) / df;
-        sum3 += r * W(i, j) * W(i, i) / pow(df, 2);
+        sum3 += r * W(i, j) * W(i, i) / Constant::pow2(df);
+        
+        Numeric sum_tmp=0;
         for(Index k=0; k<n; k++) {
-          if(k not_eq i) {
-            const Numeric dfk = abs_lines[k].F() - abs_lines[i].F();
+          const Numeric dfk = abs_lines[k].F() - abs_lines[i].F();
+          if(std::isnormal(dfk))
             sum_tmp += W(k, j) * W(i, k) / (dfk * df);
-          }
         }
         sum4 += r * sum_tmp;
       }
     }
-    G[i] = sum1 - pow(sum2, 2) + 2*sum3 - 2*sum4;
+    G[i] = sum1 - Constant::pow2(sum2) + 2*sum3 - 2*sum4;
   }
-  
   return G;
 }
 
@@ -464,12 +409,7 @@ Matrix hartmann_ecs_interface(const ArrayOfLineRecord& abs_lines,
       }
       break;
     case RelmatType::Dipole: {
-        const Vector X = dipole_vector(abs_lines, partition_type, partition_data);
-        return Matrix(X);
-      }
-      break;
-    case RelmatType::ReducedDipole: {
-        const Vector X = reduced_dipole_vector(abs_lines, main_species, size);
+        const Vector X = dipole_vector(abs_lines);
         return Matrix(X);
       }
       break;
@@ -478,20 +418,19 @@ Matrix hartmann_ecs_interface(const ArrayOfLineRecord& abs_lines,
   }
   
   const Vector population = population_density_vector(abs_lines, partition_type, partition_data, T);
-  const Vector dipole = dipole_vector(abs_lines, partition_type, partition_data);
-  const Vector d0 = reduced_dipole_vector(abs_lines, main_species, size);
-  const Matrix W = hartmann_relaxation_matrix(abs_lines, main_species, population, d0, collider_species, collider_species_vmr, T, size);
+  const Vector dipole = dipole_vector(abs_lines);
+  const Matrix W = hartmann_relaxation_matrix(abs_lines, main_species, population, dipole, collider_species, collider_species_vmr, T, size);
   
   if(type == RelmatType::FullMatrix) return W;
   
   Matrix X(type == RelmatType::SecondOrderRosenkranz ? 4 : 2, abs_lines.nelem());
   switch(type) {
     case RelmatType::SecondOrderRosenkranz:
-      X(2, joker) = rosenkranz_scaling_second_order(abs_lines, W, d0); 
+      X(2, joker) = rosenkranz_scaling_second_order(abs_lines, W, dipole); 
       X(3, joker) = rosenkranz_shifting_second_order(abs_lines, W); /* fallthrough */
     case RelmatType::FirstOrderRosenkranz:
       X(0, joker) = pressure_broadening_from_diagonal(W);
-      X(1, joker) = rosenkranz_first_order(abs_lines, W, d0);
+      X(1, joker) = rosenkranz_first_order(abs_lines, W, dipole);
       break;
     default: throw std::runtime_error("Developer error: Invalid type-statement.\n");
   }
@@ -499,53 +438,57 @@ Matrix hartmann_ecs_interface(const ArrayOfLineRecord& abs_lines,
 }
 
 
-tuple<Numeric, Numeric> OffDiagonalElement::CO2_IR(const LineRecord& j_line,
-                                                   const LineRecord& k_line,
-                                                   const Numeric& j_rho,
-                                                   const Numeric& k_rho,
-                                                   const BasisRate& br,
-                                                   AdiabaticFactor& af, // non-const to save parts of calcs
-                                                   const Numeric& T,
-                                                   const Numeric& B0,
-                                                   const Numeric& main_mass,
-                                                   const Numeric& collider_mass)
+OffDiagonalElementOutput OffDiagonalElement::CO2_IR(const LineRecord& j_line,
+                                                    const LineRecord& k_line,
+                                                    const Numeric& j_rho,
+                                                    const Numeric& k_rho,
+                                                    const BasisRate& br,
+                                                    const AdiabaticFactor& af,
+                                                    const Numeric& T,
+                                                    const Numeric& B0,
+                                                    const Numeric& main_mass,
+                                                    const Numeric& collider_mass)
 {
-  const bool jbig = j_line.LowerQuantumNumbers()[QuantumNumberType::J] >= k_line.LowerQuantumNumbers()[QuantumNumberType::J];
+  // Point at quantum numbers
+  const Rational& Jku  = k_line.UpperQuantumNumbers()[QuantumNumberType::J ];
+  const Rational& Jkl  = k_line.LowerQuantumNumbers()[QuantumNumberType::J ];
+  const Rational& Jju  = j_line.UpperQuantumNumbers()[QuantumNumberType::J ];
+  const Rational& Jjl  = j_line.LowerQuantumNumbers()[QuantumNumberType::J ];
+  const Rational& l2ju = j_line.UpperQuantumNumbers()[QuantumNumberType::l2];
+  const Rational& l2ku = k_line.UpperQuantumNumbers()[QuantumNumberType::l2];
+  const Rational& l2jl = j_line.LowerQuantumNumbers()[QuantumNumberType::l2];
+  const Rational& l2kl = k_line.LowerQuantumNumbers()[QuantumNumberType::l2];
   
-  // Prepare for the wigner calculations --- NOTE: twice the values of J and l required for Wigner-solver
-  const int Ji   = jbig ? (2*j_line.UpperQuantumNumbers()[  QuantumNumberType::J]).toInt():
-                          (2*k_line.UpperQuantumNumbers()[  QuantumNumberType::J]).toInt();
-  const int Jf   = jbig ? (2*j_line.LowerQuantumNumbers()[  QuantumNumberType::J]).toInt():
-                          (2*k_line.LowerQuantumNumbers()[  QuantumNumberType::J]).toInt();
-  const int Ji_p = jbig ? (2*k_line.UpperQuantumNumbers()[  QuantumNumberType::J]).toInt():
-                          (2*j_line.UpperQuantumNumbers()[  QuantumNumberType::J]).toInt();
-  const int Jf_p = jbig ? (2*k_line.LowerQuantumNumbers()[  QuantumNumberType::J]).toInt():
-                          (2*j_line.LowerQuantumNumbers()[  QuantumNumberType::J]).toInt();
-  const int li   = jbig ? (2*j_line.UpperQuantumNumbers()[  QuantumNumberType::l2]).toInt():
-                          (2*k_line.UpperQuantumNumbers()[  QuantumNumberType::l2]).toInt();
-  const int lf   = jbig ? (2*j_line.LowerQuantumNumbers()[  QuantumNumberType::l2]).toInt():
-                          (2*k_line.LowerQuantumNumbers()[  QuantumNumberType::l2]).toInt();
+  const bool jbig = Jjl >= Jkl;
+  
+  // Prepare for the wigner calculations --- NOTE: twice the values of J and l2 required for fast Wigner-solver
+  // Also, prepare for initial and final phase to go from j to k if Jj >= Jk and vice verse
+  const int Ji   = (2*(jbig ? Jju : Jku)).toInt();
+  const int Jf   = (2*(jbig ? Jjl : Jkl)).toInt();
+  const int Ji_p = (2*(jbig ? Jku : Jju)).toInt();
+  const int Jf_p = (2*(jbig ? Jkl : Jjl)).toInt();
+  const int li   = (2*(jbig ? l2ju : l2ku)).toInt();
+  const int lf   = (2*(jbig ? l2jl : l2kl)).toInt();
 
   // Find best start and end-point of the summing loop
   const int st = std::max(Ji - Ji_p, Jf - Jf_p);
   const int en = std::min(Ji + Ji_p, Jf + Jf_p);
   
   // Adiabatic factor for Ji
-  const Numeric AF1 = af.get(Ji/2, 2, B0, T, main_mass, collider_mass, true);
+  const Numeric AF1 = af.get(Ji/2, B0, T, main_mass, collider_mass);
   
-  // Scale constant for final state NOTE: "%4" and lack of 2*J because wigner double these numbers
+  // Scale constant for final state NOTE: "%4" and lack of 2*J because Fast library already doubles these numbers
   const Numeric K1  = ((li+lf)%4 ? 1.0:-1.0) *
         Numeric(Ji_p+1) * sqrt(Numeric((Jf+1)*(Jf_p+1))) * AF1;
   
   Numeric sum=0;
   
-  for(int L = st?st:4; L <= en; L+=4)
-  { 
+  for(int L = st?st:4; L <= en; L+=4) { 
     // Basis rate for L
     const Numeric QL = br.get(L/2, B0, T);
     
     // Adiabatic factor for L
-    const Numeric AF2 = af.get(L/2, 2, B0, T, main_mass, collider_mass, false);
+    const Numeric AF2 = af.get(L/2, B0, T, main_mass, collider_mass);
     
     // The wigner-symbol following Niro etal 2004
     const Numeric y = co2_ecs_wigner_symbol(Ji, Jf, Ji_p, Jf_p, L, li, lf);
@@ -555,7 +498,9 @@ tuple<Numeric, Numeric> OffDiagonalElement::CO2_IR(const LineRecord& j_line,
   }
   
   sum *= K1;
-  return tuple<Numeric, Numeric>(jbig ? sum : sum * k_rho / j_rho , jbig ? sum * j_rho / k_rho : sum);
+  
+  const Numeric r = k_rho / j_rho;
+  return {jbig ? sum : sum * r , jbig ? sum / r : sum};
 }
 
 
@@ -565,32 +510,24 @@ tuple<Numeric, Numeric> OffDiagonalElement::CO2_IR(const LineRecord& j_line,
  * 
  */
 Numeric AdiabaticFactor::mol_X(const int L,
-                               const int s,
                                const Numeric& B0,
                                const Numeric& T,
                                const Numeric& main_mass,
-                               const Numeric& collider_mass,
-                               const bool init)
+                               const Numeric& collider_mass) const
 { 
+  using namespace Constant;
+  using namespace Conversion;
+  
   if(L < 1) return 0.;
   
-  if(init) {
-    extern const Numeric AVOGADROS_NUMB;
-    extern const Numeric BOLTZMAN_CONST;
-    extern const Numeric PI;
-    
-    // Mean speed of collisions
-    const Numeric invmu = 1000*AVOGADROS_NUMB * (1/main_mass + 1/collider_mass);
-    const Numeric vm = 2 * sqrt(2.0 * BOLTZMAN_CONST * T * invmu / PI);
-    
-    // Save the values that are constant
-    msave = pow(B0 * mdata[Index(HartmannPos::dc)] / vm, 2) / 24.0;
-  }
+  constexpr Numeric constant = 2000 * R * inv_pi * pow2(inv_ln_2);
   
-  // Energy of rotational states of the main molecule squared
-  const Index wj2 = (s*(-2*L + s - 1)) * (s*(-2*L + s - 1));
+  // Mean speed of collisions
+  const Numeric invmu = (1/main_mass + 1/collider_mass);
+  const Numeric vm2 = constant * T * invmu;
   
-  return pow(1.0 + msave * Numeric(wj2), -2);
+  // FIXME: With or without freq2angfreq???
+  return inv_pow2(1.0 + pow2(freq2angfreq(B0) * (4*L-2) * mdata[Index(HartmannPos::dc)]) / vm2 / 24.0);
 }
 
 
@@ -610,5 +547,5 @@ Numeric BasisRate::mol_X(const int L, const Numeric& B0, const Numeric& T) const
   
   const Numeric EL = Numeric(L*L + L);
   
-  return a1 * pow( EL, -a2 ) *  exp(- a3 * PLANCK_CONST * B0 * EL / (BOLTZMAN_CONST * T));
+  return a1 * std::pow( EL, -a2 ) *  std::exp(- a3 * PLANCK_CONST * B0 * EL / (BOLTZMAN_CONST * T));
 }

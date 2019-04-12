@@ -35,6 +35,7 @@
 #include "quantum.h"
 #include "linefunctiondata.h"
 #include "zeemandata.h"
+#include "constants.h"
 
 /* Forward declaration of classes */
 class SpeciesRecord;
@@ -452,6 +453,16 @@ public:
   /** ARTSCAT-4/5 Einstein A-coefficient in <b> 1/s </b>: */
   Numeric A() const { return ma; }
   
+  Numeric electric_dipole_moment_squared() const {
+    return 3 * Constant::h * Constant::epsilon_0 / (16 * Constant::pi) *
+    ma * Constant::pow3(Constant::c/mf);
+  }
+  
+  Numeric magnetic_dipole_moment_squared() const {
+    return 3 * Constant::h / (16 * Constant::pi * Constant::mu_0) *
+    ma * Constant::pow3(Constant::c/mf);
+  }
+  
   /** ARTSCAT-4/5 Upper state stat. weight: */
   Numeric G_upper() const { return mgupper; }
   
@@ -495,6 +506,9 @@ public:
   const QuantumIdentifier& QuantumIdentity() const {return mqid;}
   const QuantumNumbers& LowerQuantumNumbers() const {return mqid.LowerQuantumNumbers();}
   const QuantumNumbers& UpperQuantumNumbers() const {return mqid.UpperQuantumNumbers();}
+  bool InQuantumID(const QuantumIdentifier& qid) const {return mqid.In(qid);}
+  bool UpperStateInQuantumID(const QuantumIdentifier& qid) const {return mqid.InUpper(qid);}
+  bool LowerStateInQuantumID(const QuantumIdentifier& qid) const {return mqid.InLower(qid);}
   
   /**Do linemixing test*/
   bool do_linemixing(const Numeric& P) const

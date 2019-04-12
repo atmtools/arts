@@ -787,6 +787,40 @@ void SetBandIdentifiersAuto(ArrayOfQuantumIdentifier& band_identifiers,
 }
 
 
+void SetBandIdentifiersFromLines(ArrayOfQuantumIdentifier& band_identifiers,
+                                 const ArrayOfLineRecord& abs_lines,
+                                 const QuantumIdentifier& band_quantums,
+                                 const Verbosity&)
+{
+  if(not band_quantums.IsEnergyLevelType())
+    throw std::runtime_error("band_quantums must be energy type");
+  
+  auto& qns = band_quantums.EnergyLevelQuantumNumbers();
+  
+  band_identifiers.resize(0);
+  
+  for(auto& line: abs_lines) {
+    QuantumIdentifier qid = line.QuantumIdentity();  // Copy
+    auto& upper = qid.UpperQuantumNumbers();
+    auto& lower = qid.LowerQuantumNumbers();
+    
+    for(Index i=0; i<Index(QuantumNumberType::FINAL_ENTRY); i++) {
+      if(qns[i].isUndefined()) {
+        upper.Set(i, RATIONAL_UNDEFINED);  // Make undefined unwanted numbers
+        lower.Set(i, RATIONAL_UNDEFINED);  // Make undefined unwanted numbers
+      }
+    }
+    
+    bool copy=false;
+    for(auto& bid: band_identifiers)
+      if(bid.In(qid))
+        copy=true;
+    if(not copy)
+      band_identifiers.push_back(qid);
+  }
+}
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_bandFromband_identifiers( ArrayOfArrayOfLineRecord&       abs_lines_per_band,
                                              ArrayOfArrayOfSpeciesTag&       abs_species_per_band,
@@ -794,73 +828,33 @@ void abs_lines_per_bandFromband_identifiers( ArrayOfArrayOfLineRecord&       abs
                                              const ArrayOfArrayOfSpeciesTag& abs_species,
                                              const ArrayOfQuantumIdentifier& band_identifiers,
                                              const Index& change_linemixing_to_bandwise,
-                                             const Verbosity&                verbosity)
+                                             const Verbosity&)
 {
-  CREATE_OUT3;
-  out3<<"Sets line mixing tag for provided bands. " <<
-  "Requires \"*-LM-*\" tag in abs_species.\n";
-  
   if(abs_lines_per_species.nelem() not_eq abs_species.nelem())
       throw std::runtime_error("Mismatching abs_species and abs_lines_per_species");
   
   abs_lines_per_band.resize(band_identifiers.nelem());
   abs_species_per_band.resize(band_identifiers.nelem());
   
-  // This is a preallocated finding of a band
-  LineMixingData lmd_byband;
-  lmd_byband.SetByBandType(); 
-  
-  #pragma omp parallel for        \
-  if (!arts_omp_in_parallel())    
-  for (Index qi = 0; qi < band_identifiers.nelem(); qi++) {
+  for (Index qi=0; qi<band_identifiers.nelem(); qi++) {
     const QuantumIdentifier& band_id = band_identifiers[qi];
     
-    // Two variables that are used inside the loop
-    ArrayOfIndex matches;
-    ArrayOfQuantumMatchInfo match_info;
-    
-    for (Index s = 0; s < abs_lines_per_species.nelem(); s++) {
-      // Skip this species if qi is not part of the species represented by this abs_lines
-      if(abs_species[s][0].Species() not_eq band_id.Species() or 
-         abs_species[s][0].LineMixing() == SpeciesTag::LINE_MIXING_OFF)
-        continue;
-      
+    for (Index s=0; s<abs_lines_per_species.nelem(); s++) {
       ArrayOfLineRecord& species_lines = abs_lines_per_species[s];
       
-      // Copy this
       abs_species_per_band[qi] = abs_species[s];
       
-      // Run internal mathcing routine
-      match_lines_by_quantum_identifier(matches, match_info, band_id, species_lines);
-      
-      // Use info about mathced lines to tag the relevant parameter
-      for (Index i = 0; i < matches.nelem(); i++) {
-        QuantumMatchInfo& qm = match_info[i];
-        
-        LineRecord& lr = species_lines[matches[i]];
-        
-        // If any of the levels match partially or fully set the right quantum number
-        if(qm.Upper()==QMI_NONE or qm.Lower()==QMI_NONE)
-          continue;
-        else {
-          abs_lines_per_band[qi].push_back(lr);
-          if(change_linemixing_to_bandwise)
-            lr.SetSpecial();
+      for(auto& line: species_lines) {
+        if(line.InQuantumID(band_id)) {
+          if(not line.LineMixingByBand()) {
+            if(change_linemixing_to_bandwise)
+              line.SetSpecial();
+            abs_lines_per_band[qi].push_back(line);
+          }
         }
       }
     }
   }
-  
-  for (Index qi = 0; qi < band_identifiers.nelem(); qi++) {
-    Index nlines = abs_lines_per_band[qi].nelem();
-    out3 << "Found " << nlines << " lines of the band: " << band_identifiers[qi] << "\n";
-    if(nlines)
-      out3 << "\tfrequency range: " << round(abs_lines_per_band[qi][0].F()/1e9) << " to " 
-                                   << round(abs_lines_per_band[qi][nlines-1].F()/1e9) << " GHz\n";
-    else 
-      out3 << "\tfrequency range: NA\n";
-  }
-  
 }
 
 
@@ -2040,19 +2034,14 @@ void TestLineMixing(ArrayOfArrayOfMatrix& relmat_per_band,
   const SpeciesAuxData::AuxType& partition_type = partition_functions.getParamType(abs_lines[0].Species(), abs_lines[0].Isotopologue());
   const ArrayOfGriddedField1& partition_data = partition_functions.getParam(abs_lines[0].Species(), abs_lines[0].Isotopologue());
   
-  const Index size = 75;
+  const Index size = 4;
   relmat_per_band.resize(1);
   relmat_per_band[0].resize(size);
-  Numeric T=150;
+  Index i=0;
+  Vector Tv = {200, 250, 296, 340};
   
-  for(Index i=0; i< size; i++) {
+  for(i=0; i< size; i++) {
+      const Numeric T=Tv[i];
       relmat_per_band[0][i] = hartmann_ecs_interface(abs_lines, SpeciesTag("CO2"), collider_species, collider_species_vmr, partition_type, partition_data, T, wigner_initialized,  RelmatType::SecondOrderRosenkranz);
-    T += 2;
-    std::cout<<"doing temp "<<T<<'\n';
   }
-  
-//   T = 296;
-//   relmat_per_band[0][0] = hartmann_ecs_interface(abs_lines, SpeciesTag("CO2"), collider_species, collider_species_vmr, partition_type, partition_data, T, wigner_initialized,  0);
-//   relmat_per_band[0][1] = hartmann_ecs_interface(abs_lines, SpeciesTag("CO2"), collider_species, collider_species_vmr, partition_type, partition_data, T, wigner_initialized,  -3);
-//   relmat_per_band[0][2] = hartmann_ecs_interface(abs_lines, SpeciesTag("CO2"), collider_species, collider_species_vmr, partition_type, partition_data, T, wigner_initialized,  -1);
 }

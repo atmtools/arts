@@ -1,3 +1,27 @@
+2019-04-12  Richard Larsson <larsson@mps.mpg.de>
+
+	* arts-2-3-1248
+	
+	* src/constants.h:  Added h_bar for h/2pi and two_pi for 2pi and some functions
+	
+	* src/linemixing.cc,h:  Fix some units and question some others.  Now I think
+	the ARTS C++ re-implementation of Relmat F90 is very close to working
+	(visually similar y-values as LBLRTM has)
+	
+	* src/linerecord.h:  Added some comparison functions and a way to get the 
+	dipole moment.
+	
+	* src/m_linemixing.cc:  Added SetBandIdentifiersFromLines as a method.  Fixed
+	abs_lines_per_bandFromband_identifiers since it did not work.  Updated the
+	test-function TestLineMixing to be similar to LBLRTM.  It seems to be, but
+	I might be off by some rescaling factor.
+	
+	* src/methods.cc:  Added said method.  Is the description good enough?
+	
+	* src/quantum.cc,h:  Changed the comparisons around because somehow a check
+	failed.  I think they are doing the same thing still, but it is clearer for
+	me to read this version, and the results look good now.
+
 2019-04-11  Richard Larsson <larsson@mps.mpg.de>
 
 	* arts-2-3-1247

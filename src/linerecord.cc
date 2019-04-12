@@ -3396,6 +3396,7 @@ String LineRecord::GetMirroringTypeString() const
     case MirroringType::Manual:
       return "MAN";
   }
+  throw std::runtime_error("Developer bug:  Add new population types to GetMirroringTypeString");
 }
 
 LineNormalizationType LineNormalizationTypeFromString(const String& in)
@@ -3426,6 +3427,7 @@ String LineRecord::GetLineNormalizationTypeString() const
     case LineNormalizationType::RosenkranzQuadratic:
       return "RQ";
   }
+  throw std::runtime_error("Developer bug:  Add new population types to GetLineNormalizationTypeString");
 }
 
 LinePopulationType LinePopulationTypeFromString(const String& in)
@@ -3452,4 +3454,5 @@ String LineRecord::GetLinePopulationTypeString() const
     case LinePopulationType::ByPopulationDistribution:
       return "ND";
   }
+  throw std::runtime_error("Developer bug:  Add new population types to GetLinePopulationTypeString");
 }

@@ -17484,6 +17484,36 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
+  
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "SetBandIdentifiersFromLines" ),
+        DESCRIPTION
+        (
+         "Sets (not adds to) *band_identifiers* to all uniques in *abs_lines*\n"
+         "\n"
+         "Will set all Quantum Numbers that are in the line as undefined\n"
+         "if they do not exist in *band_quantums* before comparing the resulting\n"
+         "QuantumIdentifier to the ones already in *band_identifiers*.  If new, push_back\n"
+         "is called adding the ID.  The functions does not check the species or isotopologue,\n"
+         "but you might have to define one anyways for the *band_quantums* input to work.\n"
+         "\n"
+         "Example *band_quantums*=\"O2-66 EN v1 0\" means all quantum numbers that\n"
+         "are not v1 will be removed, and *band_identifiers* will consist of all the\n"
+         "identifiers of combinations of v1, e.g., v1 0 to v1 1, v1 0 to v1 0, and so on.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT( "band_identifiers"),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_lines" ),
+        GIN("band_quantums"),
+        GIN_TYPE("QuantumIdentifier"),
+        GIN_DEFAULT(NODEF),
+        GIN_DESC("Quantum numbers that are defined for the band")
+        ));
 
   md_data_raw.push_back
     ( MdRecord

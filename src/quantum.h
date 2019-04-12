@@ -222,10 +222,6 @@ if (name == #ID) this->Set(QuantumNumberType::ID, r)
     bool Compare(const QuantumNumbers& qn) const;
 
     bool CompareDetailed(QuantumMatchInfoEnum& imatch, const QuantumNumbers& qn) const;
-    
-    bool operator<(const QuantumNumbers& other) const;
-    
-    bool operator>(const QuantumNumbers& other) const;
 
 private:
     QuantumContainer mqnumbers;
@@ -375,8 +371,10 @@ public:
     
     const QuantumNumbers& UpperQuantumNumbers() const {assert(mqtype==TRANSITION); return mqm[TRANSITION_UPPER_INDEX];};
     const QuantumNumbers& LowerQuantumNumbers() const {assert(mqtype==TRANSITION); return mqm[TRANSITION_LOWER_INDEX];};
+    const QuantumNumbers& EnergyLevelQuantumNumbers() const {assert(mqtype == ENERGY_LEVEL); return mqm[ENERGY_LEVEL_INDEX];}
     QuantumNumbers& UpperQuantumNumbers() {assert(mqtype==TRANSITION); return mqm[TRANSITION_UPPER_INDEX];};
     QuantumNumbers& LowerQuantumNumbers() {assert(mqtype==TRANSITION); return mqm[TRANSITION_LOWER_INDEX];};
+    QuantumNumbers& EnergyLevelQuantumNumbers() {assert(mqtype == ENERGY_LEVEL); return mqm[ENERGY_LEVEL_INDEX];}
     
     //! Tests if RHS contains LHS some how
     bool In(const QuantumIdentifier& other) const;
@@ -385,6 +383,8 @@ public:
     
     //! Tests if there are any defined quantum numbers
     bool any_quantumnumbers() const;
+    
+    bool IsEnergyLevelType() const {return mqtype == ENERGY_LEVEL;}
 
 private:
     QType mqtype;

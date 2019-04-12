@@ -166,101 +166,38 @@ bool QuantumIdentifier::In(const QuantumIdentifier& other) const
   
   if(mqtype == QuantumIdentifier::NONE or other.mqtype == QuantumIdentifier::NONE)
     return false;
-  else if(mqtype == QuantumIdentifier::ALL or other.mqtype == QuantumIdentifier::ALL)
-    return true;
+  else if(mqtype == QuantumIdentifier::ALL or other.mqtype == QuantumIdentifier::ALL) {}
   else if(mqtype not_eq other.mqtype)
     throw std::runtime_error("Can never compare different types of identifiers with QID.In(QID), one of your inputs is of wrong QuantumIdentifier type");
   else if(mqtype == QuantumIdentifier::TRANSITION) {
-    Index qnri = 0;
-    while (qnri not_eq Index(QuantumNumberType::FINAL_ENTRY)) {
-      if(other.mqm[TRANSITION_LOWER_INDEX][qnri].isUndefined()) {
-        if(not mqm[TRANSITION_LOWER_INDEX][qnri].isUndefined())
-          return false;
-      }
-      else  {
-        if(other.mqm[TRANSITION_LOWER_INDEX][qnri] not_eq mqm[TRANSITION_LOWER_INDEX][qnri])
-          return false;
-      }
+    auto& other_low = other.mqm[TRANSITION_LOWER_INDEX];
+    auto& other_upp = other.mqm[TRANSITION_UPPER_INDEX];
+    auto& this_low = mqm[TRANSITION_LOWER_INDEX];
+    auto& this_upp = mqm[TRANSITION_UPPER_INDEX];
+    
+    for(Index i=0; i<Index(QuantumNumberType::FINAL_ENTRY); i++) {
+      if(other_low[i].isUndefined()) {}
+      else if(this_low[i].isUndefined()) return false;
+      else if(this_low[i] not_eq other_low[i]) return false;
       
-      if(other.mqm[TRANSITION_UPPER_INDEX][qnri].isUndefined()) {
-        if(not mqm[TRANSITION_UPPER_INDEX][qnri].isUndefined())
-          return false;
-      }
-      else  {
-        if(other.mqm[TRANSITION_UPPER_INDEX][qnri] not_eq mqm[TRANSITION_UPPER_INDEX][qnri])
-          return false;
-      }
-      qnri++;
+      if(other_upp[i].isUndefined()) {}
+      else if(this_upp[i].isUndefined()) return false;
+      else if(this_upp[i] not_eq other_upp[i]) return false;
     }
-    return true;
   }
   else {
-    Index qnri = 0;
-    while (qnri not_eq Index(QuantumNumberType::FINAL_ENTRY)) {
-      if(other.mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined()) {
-        if(not mqm[ENERGY_LEVEL_INDEX][qnri].isUndefined())
-          return false;
-      }
-      else  {
-        if(other.mqm[ENERGY_LEVEL_INDEX][qnri] not_eq mqm[ENERGY_LEVEL_INDEX][qnri])
-          return false;
-      }
-      qnri++;
+    auto& other_qn = other.mqm[ENERGY_LEVEL_INDEX];
+    auto& this_qn = mqm[ENERGY_LEVEL_INDEX];
+    
+    for(Index i=0; i<Index(QuantumNumberType::FINAL_ENTRY); i++) {
+      if(other_qn[i].isUndefined()) {}
+      else if(this_qn[i].isUndefined()) return false;
+      else if(this_qn[i] not_eq other_qn[i]) return false;
     }
-    return true;
   }
-}
-
-
-// Tests that all of other is in this
-bool QuantumNumbers::operator<(const QuantumNumbers& other) const
-{
-  Index qnri = 0;
   
-  while (qnri != Index(QuantumNumberType::FINAL_ENTRY))
-  {
-    if(other.mqnumbers[qnri].isUndefined())
-    {
-      if(not mqnumbers[qnri].isUndefined())
-        return false;
-    }
-    else if(not mqnumbers[qnri].isUndefined())
-    {
-      if(other.mqnumbers[qnri] not_eq mqnumbers[qnri])
-      {
-        return false;
-      }
-    }
-    qnri++;
-  }
   return true;
 }
-
-
-// Tests that all of this is in other
-bool QuantumNumbers::operator>(const QuantumNumbers& other) const
-{
-  Index qnri = 0;
-  
-  while (qnri != Index(QuantumNumberType::FINAL_ENTRY))
-  {
-    if(mqnumbers[qnri].isUndefined())
-    {
-      if(not other.mqnumbers[qnri].isUndefined())
-        return false;
-    }
-    else if(not other.mqnumbers[qnri].isUndefined())
-    {
-      if(other.mqnumbers[qnri] not_eq mqnumbers[qnri])
-      {
-        return false;
-      }
-    }
-    qnri++;
-  }
-  return true;
-}
-
 
 
 bool IsValidQuantumNumberName(String name)

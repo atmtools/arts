@@ -59,16 +59,21 @@
 namespace Constant {
   template <class T> constexpr T pow2(T x) {return x*x;}
   template <class T> constexpr T pow3(T x) {return x*x*x;}
+  template <class T> constexpr Numeric inv(T x) {return 1e0/x;}
+  template <class T> constexpr Numeric inv_pow2(T x) {return inv(pow2(x));}
+  template <class T> constexpr Numeric inv_pow3(T x) {return inv(pow3(x));}
   
   /** The following mathematical constants are generated in python Decimal package by the code:
     * 
     import decimal as d
     pi_str = '3.141592653589793238462643383279502884197169399375105820974944592307816406286'
-    d.getcontext().prec = len(pi_str) - 2
-    pi = d.Decimal()
+    d.getcontext().prec = len(pi_str) - 1
+    pi = d.Decimal(pi_str)
     two = d.Decimal('2')
     print('pi =', pi)
     print('inv_pi =', 1/pi)
+    print('two_pi =', two*pi)
+    print('inv_two_pi =', 1/two_pi)
     print('sqrt_pi =', pi.sqrt())
     print('inv_sqrt_pi =', 1/pi.sqrt())
     print('sqrt_2 =', two.sqrt())
@@ -77,7 +82,7 @@ namespace Constant {
     print('inv_ln_2 =', 1/two.ln())
     print('sqrt_ln_2 =', two.ln().sqrt())
     print('inv_sqrt_ln_2 =', 1/two.ln().sqrt())
-   *
+    *
   To improve the numerical accuracy further, insert larger pi string */
   
   /** Pi, related to circles
@@ -88,7 +93,13 @@ namespace Constant {
   /** Inverse of pi */
   constexpr Numeric inv_pi = 0.3183098861837906715377675267450287240689192914809128974953346881177935952685;
   
-  /** Square root of Pi */
+  /** Two times pi **/
+  constexpr Numeric two_pi = 6.283185307179586476925286766559005768394338798750211641949889184615632812572;
+  
+  /** Inverse of two pi **/
+  constexpr Numeric inv_two_pi = 0.1591549430918953357688837633725143620344596457404564487476673440588967976342;
+  
+  /** Square root of pi */
   constexpr Numeric sqrt_pi = 1.772453850905516027298167483341145182797549456122387128213807789852911284591;
   
   /** Inverse of the square root of pi */
@@ -132,6 +143,12 @@ namespace Constant {
   
   /** Planck constant convenience name [J s] **/
   constexpr Numeric h = planck_constant;
+  
+  /** Reduced planck constant [J s] **/
+  constexpr Numeric reduced_planck_constant = h * inv_two_pi;
+  
+  /** Reduced planck constant convenience name [J s] **/
+  constexpr Numeric h_bar = reduced_planck_constant;
   
   /** Elementary charge [C]
    From: https://en.wikipedia.org/wiki/2019_redefinition_of_SI_base_units 2019-04-01
@@ -203,7 +220,7 @@ namespace Constant {
   constexpr Numeric m_e = electron_mass;
   
   /** Bohr magneton [J/T] **/
-  constexpr Numeric bohr_magneton = e * h / (4 * pi * m_e);
+  constexpr Numeric bohr_magneton = e * h_bar / (2 * m_e);
   
   /** Ideal gas constant [J/mol K] **/
   constexpr Numeric ideal_gas_constant = k * NA;
@@ -240,16 +257,14 @@ namespace Conversion {
   template <class T> constexpr Numeric freq2kaycm(T x) {return x*FREQ2KAYCM;}
   
   /** Conversion constant Angular wavenumber to frequency and back.  Use conversion formulae instead of pure constant if possible. **/
-  constexpr Numeric ANGCM2FREQ = KAYCM2FREQ / (2*pi);
+  constexpr Numeric ANGCM2FREQ = KAYCM2FREQ * inv_two_pi;
   constexpr Numeric FREQ2ANGCM = 1/ANGCM2FREQ;
   template <class T> constexpr Numeric angcm2freq(T x) {return x*ANGCM2FREQ;}
   template <class T> constexpr Numeric freq2angcm(T x) {return x*FREQ2ANGCM;}
   
-  /** Conversion constant Angular frequency to frequency and back.  Use conversion formulae instead of pure constant if possible. **/
-  constexpr Numeric ANGFREQ2FREQ = 1 / (2*pi);
-  constexpr Numeric FREQ2ANGFREQ = 1/ANGCM2FREQ;
-  template <class T> constexpr Numeric angfreq2freq(T x) {return x*ANGFREQ2FREQ;}
-  template <class T> constexpr Numeric freq2angfreq(T x) {return x*FREQ2ANGFREQ;}
+  /** Conversion constant Angular frequency to frequency and back **/
+  template <class T> constexpr Numeric angfreq2freq(T x) {return x*inv_two_pi;}
+  template <class T> constexpr Numeric freq2angfreq(T x) {return x*two_pi;}
   
   /** Conversion wavelength to frequency and back. **/
   template <class T> constexpr Numeric wavelen2freq(T x) {return c/x;}
