@@ -1,3 +1,11 @@
+2019-04-15  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1249
+
+	* .travis.yml:
+
+	Use correct gfortran version that matches the gcc version.
+
 2019-04-12  Richard Larsson <larsson@mps.mpg.de>
 
 	* arts-2-3-1248
