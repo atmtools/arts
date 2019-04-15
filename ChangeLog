@@ -1,3 +1,26 @@
+2019-04-15  Richard Larsson <larsson@mps.mpg.de>
+
+	* arts-2-3-1250
+	
+	* src/absorption.h:  Added a convenience interface for partition functions
+	
+	* src/linefunctiondata.cc,h:  Made setting line mixing easier.  Also
+	activated a lot of runtime throwing that I had forgotten was commented out.
+	Also changed so that all interpolation has to be exact, not to a relative
+	number.  Will revert typhon for thi shortly.
+	
+	* src/linemixing.cc,h:  Made several functions easier to access by moving
+	them to .h.  Removed asserts and made proper checks instead.  Also added
+	least square solver for fitting second order coefficients.  Also removed
+	type-by-type interface.
+	
+	* src/linerecord.h:  Added interface for changing line mixing AER style.
+	Also made convenience function for line comparisons.
+	
+	* src/m_linemixing.cc:  Renamed TestLineMixing to
+	abs_lines_per_bandRelaxationMatrixLineMixingInAir and made it set the line
+	records to GIN line mixing style.
+
 2019-04-15  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1249

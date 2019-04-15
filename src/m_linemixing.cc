@@ -2016,32 +2016,123 @@ void SetLineMixingCoefficinetsFromRelmat( // WS Input And Output:
         squared = true;
       }
       
-      // Overwrite the linemixing data
-      abs_lines_per_band[iband][iline].SetLineMixing2SecondOrderData(dvec);
+      // Overwrite the linemixing data NOTE: Conversion to modern LM-format... y0 y1 ny, g0...dv1 ndv
+      abs_lines_per_band[iband][iline].SetLineMixing2SecondOrderData(
+        Vector({dvec[0], dvec[1], dvec[7], 
+                dvec[2], dvec[3], dvec[8],
+                dvec[4], dvec[5], dvec[9]}));
     }
   }
 }
 
 
-void TestLineMixing(ArrayOfArrayOfMatrix& relmat_per_band,
-                    const ArrayOfLineRecord& abs_lines,
-                    const SpeciesAuxData& partition_functions,
-                    const Index& wigner_initialized,
-                    const Verbosity&)
+void abs_lines_per_bandRelaxationMatrixLineMixingInAir(ArrayOfArrayOfMatrix& relmat_per_band,
+                                                       ArrayOfArrayOfLineRecord& abs_lines_per_band,
+                                                       const ArrayOfArrayOfSpeciesTag& abs_species_per_band,
+                                                       const SpeciesAuxData& partition_functions,
+                                                       const Index& wigner_initialized,
+                                                       const Vector& temperatures,
+                                                       const String& linemixing_type,
+                                                       const Index& do_g,
+                                                       const Index& do_dv,
+                                                       const Verbosity&)
 {
+  checkPartitionFunctions(abs_species_per_band, partition_functions);
+  
+  auto lsize = abs_lines_per_band.nelem();
+  auto tsize = temperatures.nelem();
+  
+  // Only for Earth's atmosphere
   const ArrayOfSpeciesTag collider_species = {SpeciesTag("O2-66"), SpeciesTag("N2-44")};
   const Vector collider_species_vmr = {0.21, 0.79};
-  const SpeciesAuxData::AuxType& partition_type = partition_functions.getParamType(abs_lines[0].Species(), abs_lines[0].Isotopologue());
-  const ArrayOfGriddedField1& partition_data = partition_functions.getParam(abs_lines[0].Species(), abs_lines[0].Isotopologue());
   
-  const Index size = 4;
-  relmat_per_band.resize(1);
-  relmat_per_band[0].resize(size);
-  Index i=0;
-  Vector Tv = {200, 250, 296, 340};
+  // Ensure the species are consistent
+  for(auto i=0; i<lsize; i++) {
+    const auto& st = abs_species_per_band[i][0];
+    
+    // Ensure only CO2-626 in line data for now :::FIXME:::Longterm:::
+    if(not st.IsSpecies("CO2") or not st.IsIsotopologue("626"))
+      throw std::runtime_error("Limited functionality:  Only applicable to CO2-626 for now.");
+    
+    for(auto& line: abs_lines_per_band[i])
+      if(line.Species() not_eq st.Species() or line.Isotopologue() not_eq st.Isotopologue())
+        throw std::runtime_error("Must be same Isotopologue and Species.");
+  }
   
-  for(i=0; i< size; i++) {
-      const Numeric T=Tv[i];
-      relmat_per_band[0][i] = hartmann_ecs_interface(abs_lines, SpeciesTag("CO2"), collider_species, collider_species_vmr, partition_type, partition_data, T, wigner_initialized,  RelmatType::SecondOrderRosenkranz);
+  // Ensure increasing temperatures
+  for(auto i=1; i<tsize; i++)
+    if(temperatures[i] <= temperatures[i-1])
+      throw std::runtime_error("Must have strictly increasing temperatures");
+  
+  // Size of relaxation matrix
+  relmat_per_band.resize(lsize);
+  for(auto& r: relmat_per_band) r.resize(tsize);
+  
+  for(auto j=0; j<lsize; j++) {
+    for(auto i=0; i<tsize; i++) {
+        relmat_per_band[j][i] = hartmann_ecs_interface(abs_lines_per_band[j], abs_species_per_band[j],
+                                                       collider_species, collider_species_vmr, 
+                                                       partition_functions, temperatures[i], wigner_initialized);
+    }
+  }
+  
+  for(auto i=0; i<lsize; i++) {
+    auto& lines = abs_lines_per_band[i];
+    const auto n = lines.nelem();
+    if(n<1) continue;
+    
+    Matrix Y(tsize, n, 0);
+    Matrix G(tsize, n, 0);
+    Matrix DV(tsize, n, 0);
+    Vector d0=dipole_vector(lines);
+    
+    for(auto j=0; j<tsize; j++) {
+      Y(j, joker) = rosenkranz_first_order(lines, relmat_per_band[i][j], d0);
+      G(j, joker) = rosenkranz_scaling_second_order(lines, relmat_per_band[i][j], d0);
+      DV(j, joker) = rosenkranz_shifting_second_order(lines, relmat_per_band[i][j]);
+    }
+    
+    if(linemixing_type == "AER") {
+      if(tsize not_eq 4 or temperatures[0] not_eq 200 or temperatures[1] not_eq 250 or temperatures[2] not_eq 296 or temperatures[3] not_eq 340)
+        throw std::runtime_error("Bad temepratures.  Must be 4-long vector of [200, 250, 296, 340] for AER type interpolation.");
+      
+      Vector data(12, 0); data[0]=200; data[1]=250; data[2]=296; data[3]=340;
+      for(auto k=0; k<n; k++) {
+        data[Range(4, 4)] = Y(joker, k);;
+        if(do_g) data[Range(8, 4)] = G(joker, k);
+        lines[k].SetLineMixing2AER(data);
+      }
+    }
+    else if(linemixing_type == "LM2") {
+      Vector data(9, 0);
+      
+      for(auto k=0; k<n; k++) {
+        auto& line = lines[k];
+        const Numeric exp = line.Nair();
+        
+        auto X = compute_2nd_order_lm_coeff(Y(joker, k), temperatures, exp, line.Ti0());
+        data[0] = X.y0;
+        data[1] = X.y1;
+        data[2] = exp;
+        
+        if(do_g) {
+          X = compute_2nd_order_lm_coeff(G(joker, k), temperatures, 2*exp, line.Ti0());
+          data[3] = X.y0;
+          data[4] = X.y1;
+          data[5] = 2*exp;
+        }
+        
+        if(do_dv) {
+          X = compute_2nd_order_lm_coeff(DV(joker, k), temperatures, 2*exp, line.Ti0());
+          data[6] = X.y0;
+          data[7] = X.y1;
+          data[8] = 2*exp;
+        }
+        line.SetLineMixing2SecondOrderData(data);
+      }
+    }
+    else {
+      throw std::runtime_error("Cannot interpret type of line mixing");
+    }
   }
 }

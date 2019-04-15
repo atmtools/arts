@@ -532,9 +532,9 @@ void QuantumIdentifier::SetFromStringForCO2Band(String upper, String lower, Stri
   
   os << "CO2-" << iso << " TR " <<
   "UP " <<
-  "v1 " << upper[0] << "/1 v2 " << upper[1] << "/1 l2 " << upper[2] << "/1 v3 " << upper[3] << "/1 r " << upper[4] << "/1 " <<
+  "v1 " << upper[0] << " v2 " << upper[1] << " l2 " << upper[2] << " v3 " << upper[3] << " r " << upper[4] << " " <<
   "LO " <<
-  "v1 " << lower[0] << "/1 v2 " << lower[1] << "/1 l2 " << lower[2] << "/1 v3 " << lower[3] << "/1 r " << lower[4] << "/1";
+  "v1 " << lower[0] << " v2 " << lower[1] << " l2 " << lower[2] << " v3 " << lower[3] << " r " << lower[4];
   
   SetFromString(os.str());
 }

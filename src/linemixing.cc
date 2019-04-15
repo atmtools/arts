@@ -25,6 +25,7 @@
 #include "sorting.h"
 #include "linescaling.h"
 #include "constants.h"
+#include "lin_alg.h"
 
 //! Rotational constants of supported scenarios
 /*!
@@ -118,14 +119,13 @@ Matrix relaxation_matrix_calculations(const ArrayOfLineRecord& lines,
                                      )
 {
   const Index n = lines.nelem();
-  
-  assert(n);
-  assert(n == population.nelem());
   Matrix W(n, n);
   
   const BasisRate br = basis_rate(main, collider, T, lines[0].Ti0());
-  AdiabaticFactor af = adiabatic_factor(main, collider);
+  const AdiabaticFactor af = adiabatic_factor(main, collider);
   const Numeric B0   = getB0(main);
+  const ArrayOfArrayOfSpeciesTag pseudo_species({ArrayOfSpeciesTag(1, collider), ArrayOfSpeciesTag(1, main)});
+  const Vector pseudo_vmrs({1, 0});
   
   Species spec;
   if(main.IsSpecies("CO2"))
@@ -137,14 +137,14 @@ Matrix relaxation_matrix_calculations(const ArrayOfLineRecord& lines,
     // Create a temporary table to allow openmp
     wig_temp_init(2*int(size));
     
+    const auto shape_parameters = lines[i].GetShapeParams(T, 1, 1, pseudo_vmrs, pseudo_species);
+    W(i, i) = shape_parameters.G0;
+    
     const Numeric& popi = population[i];
     for(Index j=0; j<n; j++) {
       const Numeric& popj = population[j];
       
-      if(i == j) {
-        W(i, j) = lines[i].Agam() * pow(lines[i].Ti0()/T, lines[i].Nair());  // FIXME: ADOPT THIS TO BE FOR COLLIDER SPECIES AND NOT JUST AIR
-      }
-      else {
+      if(i not_eq j) {
       OffDiagonalElementOutput X;
         switch(spec) {
           case Species::CO2:
@@ -179,23 +179,20 @@ void normalize_relaxation_matrix(Matrix& W,
 {
   const Index n=d0.nelem();
   
-  assert(W.ncols() == n);
-  assert(W.nrows() == n);
-  assert(population.nelem() == n);
-  
   // Index list showing sorting of W
-  ArrayOfIndex back_sorted(n), sorted(n);
-  get_sorted_indexes(back_sorted, population);
-  for(Index i=0; i<n; i++) sorted[i] = back_sorted[n-i-1];
+  ArrayOfIndex sorted(n, 0);
+  
+  get_sorted_indexes(sorted, population);
+  for(Index i=0; i<n-i-1; i++) std::swap(sorted[i], sorted[n-i-1]);
   
   // Sorted matrix
   Matrix Wr(n, n);
   for(Index i=0; i<n; i++) {
+    Wr(i, i) = W(sorted[i], sorted[i]);
     for(Index j=0; j<n; j++) {
-      if(j==i)
-        Wr(i, j) = W(sorted[i], sorted[j]);
-      else
+      if(i not_eq j) {
         Wr(i, j) = -std::abs(W(sorted[i], sorted[j]));
+      }
     }
   }
   
@@ -255,9 +252,11 @@ inline Matrix hartmann_relaxation_matrix(const ArrayOfLineRecord& abs_lines,
   
   // Create and normalize the matrix
   Matrix W(n, n, 0);
-  for(Index ic=0; ic<c; ic++)
-    W += relaxation_matrix_calculations(abs_lines, population, main_species, colliders[ic], colliders_vmr[ic], T, size);
-  normalize_relaxation_matrix(W, population, d0);
+  if(n) {
+    for(Index ic=0; ic<c; ic++)
+      W += relaxation_matrix_calculations(abs_lines, population, main_species, colliders[ic], colliders_vmr[ic], T, size);
+    normalize_relaxation_matrix(W, population, d0);
+  }
   
   return W;
 }
@@ -265,24 +264,25 @@ inline Matrix hartmann_relaxation_matrix(const ArrayOfLineRecord& abs_lines,
 
 /*! Computes the population distribution
  \param abs_lines: all absorption lines
- \param partition_type: the partition function type
- \param partition_data: the partition function data
+ \param partition_functions: the partition functions
  \param T: Atmospheric temperature
  \return population distribution of the absorption lines
 */
 inline Vector population_density_vector(const ArrayOfLineRecord& abs_lines,
-                                        const SpeciesAuxData::AuxType& partition_type,
-                                        const ArrayOfGriddedField1& partition_data,
+                                        const SpeciesAuxData& partition_functions,
                                         const Numeric& T)
 {
-  const Index n=abs_lines.nelem();
+  auto n=abs_lines.nelem();
   Vector a(n);
   
-  const Numeric QT = single_partition_function(T, partition_type, partition_data);
-  
-  for(Index i=0; i<n; i++) {
-    const Numeric bT = boltzman_factor(T, abs_lines[i].Elow());
-    a[i] = abs_lines[i].G_lower() * bT / QT;
+  if(n) {
+    const Numeric QT = single_partition_function(T, partition_functions.getParamType(abs_lines[0]), partition_functions.getParam(abs_lines[0]));
+    
+    for(auto i=0; i<n; i++) {
+      if(abs_lines[i].IsNotSameSpecIso(abs_lines[0]))
+        throw std::runtime_error("Not the same species-isotopologue in a set of lines means they are not part of the same band.");
+      a[i] = abs_lines[i].G_lower() * boltzman_factor(T, abs_lines[i].Elow()) / QT;
+    }
   }
   
   return a;
@@ -290,15 +290,13 @@ inline Vector population_density_vector(const ArrayOfLineRecord& abs_lines,
 
 
 /*! Computes the dipole moment
- \param abs_lines: all absorption lines
- \param partition_type: the partition function type
- \param partition_data: the partition function data
+ \param abs_lines: all absorption lines of the band
  \return dipole moment of the absorption lines
 */
-inline Vector dipole_vector(const ArrayOfLineRecord& abs_lines)
+Vector dipole_vector(const ArrayOfLineRecord& abs_lines)
 {
   const Index n=abs_lines.nelem();
-  Vector d(n);
+  Vector d(n, 0);
   
   for(Index i=0; i<n; i++)
     d[i] = std::sqrt(abs_lines[i].electric_dipole_moment_squared());
@@ -306,12 +304,12 @@ inline Vector dipole_vector(const ArrayOfLineRecord& abs_lines)
 }
 
 
-inline Vector rosenkranz_first_order(const ArrayOfLineRecord& abs_lines,
-                                     const Matrix& W,
-                                     const Vector& d0)
+Vector rosenkranz_first_order(const ArrayOfLineRecord& abs_lines,
+                              const Matrix& W,
+                              const Vector& d0)
 {
   const Index n=abs_lines.nelem();
-  Vector Y(n);
+  Vector Y(n, 0);
   
   for(Index i=0; i<n; i++) {
     Numeric sum=0;
@@ -326,11 +324,11 @@ inline Vector rosenkranz_first_order(const ArrayOfLineRecord& abs_lines,
   return Y;
 }
 
-inline Vector rosenkranz_shifting_second_order(const ArrayOfLineRecord& abs_lines,
-                                               const Matrix& W)
+Vector rosenkranz_shifting_second_order(const ArrayOfLineRecord& abs_lines,
+                                        const Matrix& W)
 {
   const Index n=abs_lines.nelem();
-  Vector DV(n);
+  Vector DV(n, 0);
   
   for(Index i=0; i<n; i++) {
     Numeric sum=0;
@@ -346,12 +344,12 @@ inline Vector rosenkranz_shifting_second_order(const ArrayOfLineRecord& abs_line
 }
 
 
-inline Vector rosenkranz_scaling_second_order(const ArrayOfLineRecord& abs_lines,
-                                              const Matrix& W,
-                                              const Vector& d0)
+Vector rosenkranz_scaling_second_order(const ArrayOfLineRecord& abs_lines,
+                                       const Matrix& W,
+                                       const Vector& d0)
 {
   const Index n=abs_lines.nelem();
-  Vector G(n);
+  Vector G(n, 0);
   
   for(Index i=0; i<n; i++) {
     const Numeric& di = d0[i];
@@ -387,54 +385,25 @@ inline Vector rosenkranz_scaling_second_order(const ArrayOfLineRecord& abs_lines
 inline Vector pressure_broadening_from_diagonal(const Matrix& W)
 {
   const Index n=W.ncols();
-  Vector g(n);
-  for(Index i=0; i<n; i++) g[i] = W(i, i);
+  Vector g(n, 0);
+  for(Index i=0; i<n; i++)
+    g[i] = W(i, i);
   return g;
 }
 
+
 Matrix hartmann_ecs_interface(const ArrayOfLineRecord& abs_lines,
-                              const SpeciesTag& main_species,
+                              const ArrayOfSpeciesTag& main_species,
                               const ArrayOfSpeciesTag& collider_species,
                               const Vector& collider_species_vmr,
-                              const SpeciesAuxData::AuxType& partition_type,
-                              const ArrayOfGriddedField1& partition_data,
+                              const SpeciesAuxData& partition_functions,
                               const Numeric& T,
-                              const Index& size,
-                              const RelmatType type)
+                              const Index& size)
 {
-  switch(type) {
-    case RelmatType::Population: {
-        const Vector X = population_density_vector(abs_lines, partition_type, partition_data, T);
-        return Matrix(X);
-      }
-      break;
-    case RelmatType::Dipole: {
-        const Vector X = dipole_vector(abs_lines);
-        return Matrix(X);
-      }
-      break;
-    default:
-      break;
-  }
-  
-  const Vector population = population_density_vector(abs_lines, partition_type, partition_data, T);
+  const Vector population = population_density_vector(abs_lines, partition_functions, T);
   const Vector dipole = dipole_vector(abs_lines);
-  const Matrix W = hartmann_relaxation_matrix(abs_lines, main_species, population, dipole, collider_species, collider_species_vmr, T, size);
-  
-  if(type == RelmatType::FullMatrix) return W;
-  
-  Matrix X(type == RelmatType::SecondOrderRosenkranz ? 4 : 2, abs_lines.nelem());
-  switch(type) {
-    case RelmatType::SecondOrderRosenkranz:
-      X(2, joker) = rosenkranz_scaling_second_order(abs_lines, W, dipole); 
-      X(3, joker) = rosenkranz_shifting_second_order(abs_lines, W); /* fallthrough */
-    case RelmatType::FirstOrderRosenkranz:
-      X(0, joker) = pressure_broadening_from_diagonal(W);
-      X(1, joker) = rosenkranz_first_order(abs_lines, W, dipole);
-      break;
-    default: throw std::runtime_error("Developer error: Invalid type-statement.\n");
-  }
-  return X;
+  const Matrix W = hartmann_relaxation_matrix(abs_lines, main_species[0], population, dipole, collider_species, collider_species_vmr, T, size);
+  return W;
 }
 
 
@@ -548,4 +517,51 @@ Numeric BasisRate::mol_X(const int L, const Numeric& B0, const Numeric& T) const
   const Numeric EL = Numeric(L*L + L);
   
   return a1 * std::pow( EL, -a2 ) *  std::exp(- a3 * PLANCK_CONST * B0 * EL / (BOLTZMAN_CONST * T));
+}
+
+
+SecondOrderLineMixingCoeffs compute_2nd_order_lm_coeff(ConstVectorView y, ConstVectorView x, const Numeric exp, const Numeric x0)
+{
+  const auto n=y.nelem();
+  
+  if(n not_eq x.nelem()) throw std::runtime_error("Bad input to compute_2nd_order_lm_coeff");
+  
+  Index best_x=0;
+  for(auto i=0; i<n-1; i++) {
+    if(x[i] >= x[i+1])
+      throw std::runtime_error("Bad structure on x-input; must be constantly increasing");
+    if(x[i] > x0)
+      best_x++;
+  }
+  
+  Matrix A(n, 2);
+  Vector ans(2, y[best_x]*0.5), dans(2, 0), delta(n, 0);
+  
+  Numeric rel_res=1e99;
+  Numeric rel_res_limit=1e-16;
+  auto loop_count=0;
+  constexpr auto max_loop_count=20;
+  
+  do {
+    for(auto i=0; i<n; i++) {
+      const Numeric theta = x0 / x[i];
+      const Numeric TP = pow(theta, exp);
+      A(i, 0) = TP;
+      A(i, 1) = (theta - 1.0) * TP;
+      const Numeric f = ans[0] * TP + ans[1] * (theta - 1.0) * TP;
+      delta[i] = y[i] - f;
+    }
+    
+    // Least square fit
+    const Numeric res = lsf(dans, A, delta);
+    
+    if(not std::isnormal(res)) break;
+    
+    rel_res = std::abs(dans[0]/ans[0]) + std::abs(dans[1]/ans[1]);
+    ans += dans;
+    loop_count+=1;
+    
+  } while(rel_res > rel_res_limit and loop_count < max_loop_count);
+  
+  return {ans[0], ans[1]};
 }

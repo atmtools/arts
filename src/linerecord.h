@@ -552,6 +552,7 @@ public:
   }
   
   void SetLineMixing2SecondOrderData(ConstVectorView d) { mlinefunctiondata.ChangeLineMixingfromSimpleLM2(d); }
+  void SetLineMixing2AER(ConstVectorView d) { mlinefunctiondata.ChangeLineMixing2AER(d); }
   
   LineFunctionData GetLineFunctionData() const {return mlinefunctiondata;}
   void SetLineFunctionData(const LineFunctionData& lfd) {mlinefunctiondata=lfd;}
@@ -636,6 +637,8 @@ public:
   const LinePopulationType& GetLinePopulationType() const {return mpopulation;}
   void SetLinePopulationType(const LinePopulationType in) {mpopulation = in;}
   String GetLinePopulationTypeString() const;
+  
+  bool IsNotSameSpecIso(const LineRecord& other) const {return mqid.Species() not_eq other.mqid.Species() or mqid.Isotopologue() not_eq other.mqid.Isotopologue();}
   
   /** Read one line from a stream associated with a HITRAN 1986-2001 file. The
     HITRAN format is as follows (directly from the HITRAN documentation):

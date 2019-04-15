@@ -588,6 +588,10 @@ public:
 
     /** Return a constant reference to the parameters. */
     const ArrayOfGriddedField1& getParam(const Index species, const Index isotopologue) const;
+    
+    /** Return a constant reference to the parameters. */
+    const ArrayOfGriddedField1& getParam(const LineRecord& lr) const
+    { return getParam(lr.Species(), lr.Isotopologue()); }
 
     /** Return a parameter type as string. */
     String getTypeString(const Index species, const Index isotopologue) const;
@@ -607,6 +611,10 @@ public:
     const AuxType& getParamType(const Index species,
                                 const Index isotopologue) const
     { return mparam_type[species][isotopologue]; }
+
+    /** Return a constant reference to the parameter types. */
+    const AuxType& getParamType(const LineRecord& lr) const
+    { return getParamType(lr.Species(), lr.Isotopologue()); }
 
     /** Read parameters from input stream (only for version 1 format). */
     bool ReadFromStream(String& artsid, istream& is, Index nparams,

@@ -19095,21 +19095,24 @@ void define_md_data_raw()
     
     md_data_raw.push_back
     ( MdRecord
-    ( NAME( "TestLineMixing" ),
+    ( NAME( "abs_lines_per_bandRelaxationMatrixLineMixingInAir" ),
       DESCRIPTION
       (
         "A dummy method to test line mixing.\n"
       ),
       AUTHORS( "Richard Larsson" ),
-      OUT("relmat_per_band"),
+      OUT("relmat_per_band", "abs_lines_per_band"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines", "partition_functions", "wigner_initialized"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()
+      IN("abs_lines_per_band", "abs_species_per_band", "partition_functions", "wigner_initialized"),
+      GIN("temperatures", "linemixing_type", "do_g", "do_dv"),
+      GIN_TYPE("Vector", "String", "Index", "Index"),
+      GIN_DEFAULT(NODEF, "LM2", "1", "1",),
+      GIN_DESC("Vector of temperatures to compute the relaxation matrix at",
+               "String describing type of line mixing adaptation in linerecord after computations",
+               "Index to indicate if g is to be left as zero",
+               "Index to indicate if dv is to be left as zero")
     ));
  
   md_data_raw.push_back

@@ -41,9 +41,9 @@ typedef struct{Numeric G0, D0, G2, D2, FVC, ETA, Y, G, DV;} LineFunctionDataOutp
 class LineFunctionData {
 public:
   
-  #define LineFunctionData_SelfBroadening "SELF"
-  #define LineFunctionData_BathBroadening "AIR"
-  #define LineFunctionData_NoLineMixing "#"
+  #define LineFunctionData_SelfBroadening String("SELF")
+  #define LineFunctionData_BathBroadening String("AIR")
+  #define LineFunctionData_NoLineMixing String("#")
   
   // Line shape models
   enum class LineShapeType {DP, LP, VP, SDVP, HTP, };
@@ -108,11 +108,11 @@ public:
   }
   
   void StringSetLineMixingType(const String& type) {
-    if(type == LineFunctionData_NoLineMixing)      mlm = LineMixingOrderType::None; 
-    else if(type == "LM1") mlm = LineMixingOrderType::LM1;
-    else if(type == "LM2") mlm = LineMixingOrderType::LM2;
-    else if(type == "INT") mlm = LineMixingOrderType::Interp;
-    else if(type == "ConstG") mlm = LineMixingOrderType::ConstG;
+    if(type == LineFunctionData_NoLineMixing) mlm = LineMixingOrderType::None; 
+    else if(type == String("LM1"))            mlm = LineMixingOrderType::LM1;
+    else if(type == String("LM2"))            mlm = LineMixingOrderType::LM2;
+    else if(type == String("INT"))            mlm = LineMixingOrderType::Interp;
+    else if(type == String("ConstG"))         mlm = LineMixingOrderType::ConstG;
     else {
       ostringstream os;
       os << "Cannot recognize type " << type << " as a line mixing functionality\n" ;
@@ -143,11 +143,11 @@ public:
   }
   
   void StringSetLineShapeType(const String& type) {
-    if(type == "DP")        mp = LineShapeType::DP;
-    else if(type == "LP")   mp = LineShapeType::LP;
-    else if(type == "VP")   mp = LineShapeType::VP;
-    else if(type == "SDVP") mp = LineShapeType::SDVP;
-    else if(type == "HTP")  mp = LineShapeType::HTP;
+    if(type == String("DP"))        mp = LineShapeType::DP;
+    else if(type == String("LP"))   mp = LineShapeType::LP;
+    else if(type == String("VP"))   mp = LineShapeType::VP;
+    else if(type == String("SDVP")) mp = LineShapeType::SDVP;
+    else if(type == String("HTP"))  mp = LineShapeType::HTP;
     else {
       ostringstream os;
       os << "Cannot recognize type " << type << " as a line shape functionality\n" ;
@@ -157,7 +157,7 @@ public:
   
   Index TemperatureTypeNelem(const TemperatureType type) const {
     switch(type) {
-      case TemperatureType::LM_AER: return -1;
+      case TemperatureType::LM_AER: return 12;
       case TemperatureType::None:   return 0;
       case TemperatureType::T0:     return 1;
       case TemperatureType::T1:     return 2;
@@ -167,6 +167,13 @@ public:
       case TemperatureType::T5:     return 2;
     }
     return -1;
+  }
+  
+  Index LineShapeDataNelemForSpecies(Index ispec) const {
+    Index count=0;
+    for(auto i=0; i<LineShapeTypeNelem(); i++)
+      count += TemperatureTypeNelem(mtypes[ispec][i]);
+    return count;
   }
   
   String TemperatureType2String(const TemperatureType type) const {
@@ -184,14 +191,14 @@ public:
   }
   
   void StringSetTemperatureType(const Index ispecies, const Index iparam, const String& type) {
-    if(type == "LM_AER")   mtypes[ispecies][iparam] = TemperatureType::LM_AER;
+    if(type == String("LM_AER"))                   mtypes[ispecies][iparam] = TemperatureType::LM_AER;
     else if(type == LineFunctionData_NoLineMixing) mtypes[ispecies][iparam] = TemperatureType::None;
-    else if(type == "T0")  mtypes[ispecies][iparam] = TemperatureType::T0;
-    else if(type == "T1")  mtypes[ispecies][iparam] = TemperatureType::T1;
-    else if(type == "T2")  mtypes[ispecies][iparam] = TemperatureType::T2;
-    else if(type == "T3")  mtypes[ispecies][iparam] = TemperatureType::T3;
-    else if(type == "T4")  mtypes[ispecies][iparam] = TemperatureType::T4;
-    else if(type == "T5")  mtypes[ispecies][iparam] = TemperatureType::T5;
+    else if(type == String("T0"))                  mtypes[ispecies][iparam] = TemperatureType::T0;
+    else if(type == String("T1"))                  mtypes[ispecies][iparam] = TemperatureType::T1;
+    else if(type == String("T2"))                  mtypes[ispecies][iparam] = TemperatureType::T2;
+    else if(type == String("T3"))                  mtypes[ispecies][iparam] = TemperatureType::T3;
+    else if(type == String("T4"))                  mtypes[ispecies][iparam] = TemperatureType::T4;
+    else if(type == String("T5"))                  mtypes[ispecies][iparam] = TemperatureType::T5;
     else {
       ostringstream os;
       os << "Cannot recognize type " << type << " as a type of temperature type\n" ;
@@ -279,7 +286,9 @@ public:
   LineFunctionDataOutput AirBroadening(const Numeric& theta, const Numeric& P, const Numeric& self_vmr) const;
   
   // Changes and alterations of internal data
-  void ChangeLineMixingfromSimpleLM2(const Vector& lm2data);
+  void ChangeLineMixing(const LineMixingOrderType lm, const Array<TemperatureType>& ts, const Vector& data);
+  void ChangeLineMixingfromSimpleLM2(const Vector& data) {ChangeLineMixing(LineMixingOrderType::LM2, {TemperatureType::T4, TemperatureType::T4, TemperatureType::T4}, data);}
+  void ChangeLineMixing2AER(const Vector& data) {ChangeLineMixing(LineMixingOrderType::Interp, {TemperatureType::LM_AER}, data);}
   void SetStandard(const bool standard) {do_line_in_standard_calculations=standard;}
   void Set(const Numeric& X, const String& species, const String& coefficient, const String& variable);
   Numeric Get(const String& species, const String& coefficient, const String& variable) const;

@@ -133,13 +133,29 @@ namespace OffDiagonalElement {
 
 
 Matrix hartmann_ecs_interface(const ArrayOfLineRecord& abs_lines,
-                              const SpeciesTag& main_species,
+                              const ArrayOfSpeciesTag& main_species,
                               const ArrayOfSpeciesTag& collider_species,
                               const Vector& collider_species_vmr,
-                              const SpeciesAuxData::AuxType& partition_type,
-                              const ArrayOfGriddedField1& partition_data,
+                              const SpeciesAuxData& partition_functions,
                               const Numeric& T,
-                              const Index& size,
-                              const RelmatType type);
+                              const Index& size);
+
+Vector dipole_vector(const ArrayOfLineRecord& abs_lines);
+
+Vector rosenkranz_scaling_second_order(const ArrayOfLineRecord& abs_lines,
+                                       const Matrix& W,
+                                       const Vector& d0);
+
+Vector rosenkranz_shifting_second_order(const ArrayOfLineRecord& abs_lines,
+                                        const Matrix& W);
+
+Vector rosenkranz_first_order(const ArrayOfLineRecord& abs_lines,
+                              const Matrix& W,
+                              const Vector& d0);
+
+
+struct SecondOrderLineMixingCoeffs {Numeric y0, y1;};
+
+SecondOrderLineMixingCoeffs compute_2nd_order_lm_coeff(ConstVectorView y, ConstVectorView x, const Numeric exp, const Numeric x0);
 
 #endif // linemixing_h

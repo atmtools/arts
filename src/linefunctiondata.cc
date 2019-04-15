@@ -523,7 +523,7 @@ LineFunctionDataOutput LineFunctionData::GetParams(const Numeric& T0,
         case TemperatureType::T3: param += partial_vmr * main_t3(T, T0, x0, x1); break;
         case TemperatureType::T4: param += partial_vmr * main_t4(T, T0, x0, x1, x2); break;
         case TemperatureType::T5: param += partial_vmr * main_t5(T, T0, x0, x1); break;
-        case TemperatureType::LM_AER: /* throw std::runtime_error("Not allowed for line shape parameters"); */ break;
+        case TemperatureType::LM_AER: throw std::runtime_error("Not allowed for line shape parameters"); break;
       }
       current += TemperatureTypeNelem(mtypes[i][j]);
     }
@@ -671,7 +671,7 @@ LineFunctionDataOutput LineFunctionData::GetVMRDerivs(const Numeric& T0,
         case TemperatureType::T3: val = main_t3(T, T0, x0, x1); break;
         case TemperatureType::T4: val = main_t4(T, T0, x0, x1, x2); break;
         case TemperatureType::T5: val = main_t5(T, T0, x0, x1); break;
-        case TemperatureType::LM_AER: /* throw std::runtime_error("Not allowed for line shape parameters"); */ break;
+        case TemperatureType::LM_AER: throw std::runtime_error("Not allowed for line shape parameters"); break;
       }
       current += TemperatureTypeNelem(mtypes[i][j]);
       if(air) select_line_shape_param(d.G0, d.D0, d.G2, d.D2, d.FVC, d.ETA, j, mp) -= val;
@@ -811,7 +811,7 @@ LineFunctionDataOutput LineFunctionData::GetTemperatureDerivs(const Numeric& T0,
         case TemperatureType::T3: param += partial_vmr * dmain_dT_t3(x1); break;
         case TemperatureType::T4: param += partial_vmr * dmain_dT_t4(T, T0, x0, x1, x2); break;
         case TemperatureType::T5: param += partial_vmr * dmain_dT_t5(T, T0, x0, x1); break;
-        case TemperatureType::LM_AER: /* throw std::runtime_error("Not allowed for line shape parameters");*/ break;
+        case TemperatureType::LM_AER: throw std::runtime_error("Not allowed for line shape parameters"); break;
       }
       current += TemperatureTypeNelem(mtypes[i][j]);
     }
@@ -973,7 +973,7 @@ LineFunctionDataOutput LineFunctionData::GetReferenceT0Derivs(const Numeric& T0,
       case TemperatureType::T3: param += partial_vmr * dmain_dT0_t3(x1); break;
       case TemperatureType::T4: param += partial_vmr * dmain_dT0_t4(T, T0, x0, x1, x2); break;
       case TemperatureType::T5: param += partial_vmr * dmain_dT0_t5(T, T0,x0, x1); break;
-      case TemperatureType::LM_AER: /* throw std::runtime_error("Not allowed for line shape parameters"); */ break;
+      case TemperatureType::LM_AER: throw std::runtime_error("Not allowed for line shape parameters"); break;
     }
     current += TemperatureTypeNelem(mtypes[this_derivative][j]);
   }
@@ -1267,7 +1267,7 @@ std::ostream& operator<<(std::ostream& os, const LineFunctionData& lfd) {
     // Now we must count the data
     Index counter=0;
     
-    // For everything that relates to shapes, do the same thing
+    // For everything that relates to shapes
     for(Index j=0; j<nshapes; j++) {
       os << lfd.TemperatureType2String(lfd.mtypes[i][j]) << " ";  // Name the temperature type
       for(Index k=0; k<lfd.TemperatureTypeNelem(lfd.mtypes[i][j]); k++)
@@ -1275,19 +1275,12 @@ std::ostream& operator<<(std::ostream& os, const LineFunctionData& lfd) {
       counter += lfd.TemperatureTypeNelem(lfd.mtypes[i][j]);  // Count how much data has been printed
     }
     
-    // For mixing we must take care with the interp. values but otherwise we act the same as prev. loop
+    // For everything that relates to mixing
     for(Index j=nshapes; j<nmixing+nshapes; j++) {
       os << lfd.TemperatureType2String(lfd.mtypes[i][j]) << " ";
-      if(lfd.mlm == LineFunctionData::LineMixingOrderType::Interp) {
-        os << lfd.mdata[i].nelem() - counter << " ";
-        for(; counter < lfd.mdata[i].nelem(); counter++)
-          os << lfd.mdata[i][counter] << " ";
-      }
-      else {
-        for(Index k=0; k<lfd.TemperatureTypeNelem(lfd.mtypes[i][j]); k++)
-          os << lfd.mdata[i][counter+k] << " ";
-        counter += lfd.TemperatureTypeNelem(lfd.mtypes[i][j]);
-      }
+      for(Index k=0; k<lfd.TemperatureTypeNelem(lfd.mtypes[i][j]); k++)
+        os << lfd.mdata[i][counter+k] << " ";
+      counter += lfd.TemperatureTypeNelem(lfd.mtypes[i][j]);
     }
   }
   
@@ -1361,11 +1354,7 @@ std::istream& operator>>(std::istream& data, LineFunctionData& lfd) {
       data >> s;  // Should contain a temperature tag
       lfd.StringSetTemperatureType(i, j, s);
       
-      // Find the count of species, negative numbers means the next data value has this number
       c = lfd.TemperatureTypeNelem(lfd.mtypes[i][j]);
-      if(c < 0)
-        data >> c;
-      
       // Add all new numbers for this line to the numbers
       for(Index k=0; k<c; k++) {
         data >> double_imanip() >> n;
@@ -1861,38 +1850,43 @@ Vector LineFunctionData::PlanetaryForeignN() const
   return v;
 }
 
-void LineFunctionData::ChangeLineMixingfromSimpleLM2(const Vector& lm2data)
+
+void LineFunctionData::ChangeLineMixing(const LineMixingOrderType lm, const Array<TemperatureType>& ts, const Vector& data)
 {
-  const Vector data = LM2DatafromLineMixingDataVector(lm2data);
-  mlm = LineMixingOrderType::LM2;
-  
-  // Add all species up
-  for(Index i=0; i<mspecies.nelem(); i++) {
-    Index current = 0;
+  for(Index species=0; species<mspecies.nelem(); species++) {
+    const Index current=LineShapeDataNelemForSpecies(species);
     
-    // Do the line shape parameters
-    for(Index j=0; j<LineShapeTypeNelem(); j++)
-      current += TemperatureTypeNelem(mtypes[i][j]);
+    // Count for new items
+    Index temperature_count=0;
+    for(auto i=0; i<ts.nelem(); i++)
+      temperature_count += TemperatureTypeNelem(ts[i]);
     
-    // New data
-    Vector newdata(current + data.nelem());
-    newdata[Range(0, current)] = mdata[i][Range(0, current)];
-    newdata[Range(current, joker)] = data;
-    mdata[i] = newdata;
+    // Check for sanity
+    if(data.nelem() not_eq temperature_count)
+      throw std::runtime_error("Mismatch between data and temperature lengths.  Data must match request by temperature array");
     
-    // New types special for LM2
-    Array<TemperatureType> newtypes(LineShapeTypeNelem() + LineMixingTypeNelem());
-    for(Index j=0; j<LineShapeTypeNelem(); j++) newtypes[j] = mtypes[i][j];
-    newtypes[mtypes[i].nelem()-1] = TemperatureType::T4;
-    newtypes[mtypes[i].nelem()-2] = TemperatureType::T4;
-    newtypes[mtypes[i].nelem()-3] = TemperatureType::T4;
-    mtypes[i]= newtypes;
+    Vector newdata(current + temperature_count, 0);
+    Array<TemperatureType> newtypes(LineShapeTypeNelem() + ts.nelem());
     
-    // No errors but still need to reshape
-    Vector newerrors(current + data.nelem(), 0);
-    newerrors[Range(0, current)] = merrors[i][Range(0, current)];
-    merrors[i] = newerrors;
+    // Old data and error exists so copy them
+    for(auto i=0; i<current; i++)
+      newdata[i] = mdata[species][i]; // Copy old
+    
+    // New data and error does not have to be same length
+    for(auto i=0; i<data.nelem(); i++)
+      newdata[current + i] = data[i]; // Copy new
+    
+    for(auto i=0; i<LineShapeTypeNelem(); i++)
+      newtypes[i] = mtypes[species][i];  // Copy old
+    for(auto i=0; i<ts.nelem(); i++)
+      newtypes[LineShapeTypeNelem() + i] = ts[i];  // Copy new
+    
+    // Overwrite the old data
+    mdata[species] = newdata;
+    mtypes[species] = newtypes;
   }
+  
+  mlm = lm;
 }
 
 void LineFunctionData::Set(const Numeric& X, const String& species, const String& coefficient, const String& variable)
