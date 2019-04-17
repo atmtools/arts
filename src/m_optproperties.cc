@@ -1101,22 +1101,53 @@ void pha_matCalc(Tensor4& pha_mat,
   if (atmosphere_dim > 2)
     ilon = scat_lon_index;
 
-  // this is a loop over the different scattering elements
-  for (Index pt_index = 0; pt_index < N_se; ++ pt_index)
-    // these are loops over zenith angle and azimuth angle
-    for (Index za_index = 0; za_index < Nza; ++ za_index)
-      for (Index aa_index = 0; aa_index < Naa; ++ aa_index)
-        // now the last two loops over the stokes dimension.
-        for (Index stokes_index_1 = 0; stokes_index_1 < stokes_dim; 
-             ++  stokes_index_1)
-          for (Index stokes_index_2 = 0; stokes_index_2 < stokes_dim;
-               ++ stokes_index_2)
-            //summation of the product of pnd_field and 
-            //pha_mat_spt.
-            pha_mat(za_index, aa_index, stokes_index_1, stokes_index_2) += 
-              ( pha_mat_spt(pt_index, za_index, aa_index,  
-                            stokes_index_1, stokes_index_2) * 
-                pnd_field(pt_index,scat_p_index, ilat, ilon) );
+  if (atmosphere_dim == 1)
+  {
+      // For 1d atmospheres, we additinally integrate the phase matrix over the
+      // azimuth, because there is no azimuth dependency of the incoming
+      // field.
+
+      Numeric grid_step_size_azimuth = 360./(Numeric)(Naa - 1) * DEG2RAD;
+
+      // this is a loop over the different scattering elements
+      for (Index pt_index = 0; pt_index < N_se; ++pt_index)
+          // these are loops over zenith angle and azimuth angle
+          for (Index za_index = 0; za_index < Nza; ++za_index)
+              for (Index aa_index = 0; aa_index < Naa-1; ++aa_index)
+                  // now the last two loops over the stokes dimension.
+                  for (Index stokes_index_1 = 0; stokes_index_1 < stokes_dim;
+                       ++stokes_index_1)
+                      for (Index stokes_index_2 = 0; stokes_index_2 < stokes_dim;
+                           ++stokes_index_2)
+                          //summation of the product of pnd_field and
+                          //pha_mat_spt.
+                          pha_mat(za_index, 0, stokes_index_1, stokes_index_2) +=
+                                  ((pha_mat_spt(pt_index, za_index, aa_index,
+                                               stokes_index_1, stokes_index_2)+
+                                    pha_mat_spt(pt_index, za_index, aa_index+1,
+                                                      stokes_index_1, stokes_index_2)) / 2 *
+                                    grid_step_size_azimuth *
+                                    pnd_field(pt_index, scat_p_index, ilat, ilon));
+  }
+  else
+  {
+      // this is a loop over the different scattering elements
+      for (Index pt_index = 0; pt_index < N_se; ++pt_index)
+          // these are loops over zenith angle and azimuth angle
+          for (Index za_index = 0; za_index < Nza; ++za_index)
+              for (Index aa_index = 0; aa_index < Naa; ++aa_index)
+                  // now the last two loops over the stokes dimension.
+                  for (Index stokes_index_1 = 0; stokes_index_1 < stokes_dim;
+                       ++stokes_index_1)
+                      for (Index stokes_index_2 = 0; stokes_index_2 < stokes_dim;
+                           ++stokes_index_2)
+                          //summation of the product of pnd_field and
+                          //pha_mat_spt.
+                          pha_mat(za_index, aa_index, stokes_index_1, stokes_index_2) +=
+                                  (pha_mat_spt(pt_index, za_index, aa_index,
+                                               stokes_index_1, stokes_index_2) *
+                                   pnd_field(pt_index, scat_p_index, ilat, ilon));
+  }
 }
 
 
@@ -1414,9 +1445,10 @@ void DoitScatteringDataPrepare(Workspace& ws,//Output:
                                ArrayOfTensor7& pha_mat_sptDOITOpt,
                                ArrayOfArrayOfSingleScatteringData& scat_data_mono,
                                Tensor7& pha_mat_doit,
+                               //Output and Input:
+                               Vector& scat_aa_grid,
                                //Input:
                                const Index& doit_za_grid_size,
-                               const Vector& scat_aa_grid,
                                const ArrayOfArrayOfSingleScatteringData& scat_data,
                                const Index& scat_data_checked,
                                const Index& f_index,
@@ -1436,7 +1468,7 @@ void DoitScatteringDataPrepare(Workspace& ws,//Output:
   const Index Naa = scat_aa_grid.nelem();
   Vector grid_stepsize(2);
   grid_stepsize[0] = 180./(Numeric)(doit_za_grid_size - 1);
-  grid_stepsize[1] = 360./(Numeric)(Naa - 1);
+  //grid_stepsize[1] = 360./(Numeric)(Naa - 1);
 
   // Initialize variable *pha_mat_spt*
   Tensor5 pha_mat_spt_local(pnd_field.nbooks(), doit_za_grid_size,
@@ -1568,6 +1600,12 @@ void DoitScatteringDataPrepare(Workspace& ws,//Output:
                 = pha_mat_local;
             }
         }
+
+        // Set incoming azimuth grid scattering to zero, because there is no
+        // no azimuth dependcy for 1d atmospheres
+        scat_aa_grid.resize(1);
+        scat_aa_grid = 0;
+
     }   
 }
 

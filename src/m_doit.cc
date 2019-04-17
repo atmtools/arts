@@ -2071,9 +2071,9 @@ void doit_scat_fieldCalc(
   
   // Number of azimuth angles.
   const Index Naa = scat_aa_grid.nelem();
-  
-  if (scat_aa_grid[0] != 0. || scat_aa_grid[Naa-1] != 360.)
-    throw runtime_error("The range of *scat_za_grid* must [0 360]."); 
+
+  if (Naa > 1 && (scat_aa_grid[0] != 0. || scat_aa_grid[Naa-1] != 360.))
+    throw runtime_error("The range of *scat_aa_grid* must [0 360].");
 
   // Get stokes dimension from *doit_scat_field*:
   const Index stokes_dim = doit_scat_field.ncols();
@@ -2145,12 +2145,16 @@ void doit_scat_fieldCalc(
   
   Tensor5 pha_mat_spt_local(pnd_field.nbooks(), doit_za_grid_size,
                             scat_aa_grid.nelem(), stokes_dim, stokes_dim, 0.);
-  
+
   // Equidistant step size for integration
   Vector grid_stepsize(2);
   grid_stepsize[0] = 180./(Numeric)(doit_za_grid_size - 1);
-  grid_stepsize[1] = 360./(Numeric)(Naa - 1);     
-  
+  if (Naa > 1)
+    {
+      grid_stepsize[1] = 360./(Numeric)(Naa - 1);
+    }
+
+
   Tensor3 product_field(Nza, Naa, stokes_dim, 0);
  
   out2 << "  Calculate the scattered field\n";
@@ -2195,16 +2199,26 @@ void doit_scat_fieldCalc(
                 }//end za_in loop
               //integration of the product of ifield_in and pha
               //  over zenith angle and azimuth angle grid. It calls
-              for (Index i = 0; i < stokes_dim; i++)
+              if (Naa == 1)
                 {
-                  doit_scat_field( p_index, 0, 0, scat_za_index_local, 0, i)
-                    = AngIntegrate_trapezoid_opti
-                    (product_field(joker, joker, i),
-                     scat_za_grid,
-                     scat_aa_grid,
-                     grid_stepsize);
-                  
-                }//end i loop
+                  for (Index i = 0; i < stokes_dim; i++)
+                    {
+                        doit_scat_field(p_index, 0, 0, scat_za_index_local, 0, i) =
+                                AngIntegrate_trapezoid(product_field(joker, 0, i),
+                                                       scat_za_grid) / 2 / PI;
+                    }//end i loop
+                }
+              else
+                {
+                  for (Index i = 0; i < stokes_dim; i++)
+                    {
+                      doit_scat_field(p_index, 0, 0, scat_za_index_local, 0, i) =
+                                AngIntegrate_trapezoid_opti(product_field(joker, joker, i),
+                                                            scat_za_grid,
+                                                            scat_aa_grid,
+                                                            grid_stepsize);
+                    }
+                }
             }//end za_prop loop
         }//end p_index loop
     }//end atmosphere_dim = 1
@@ -2293,9 +2307,9 @@ void doit_scat_fieldCalc(
                               doit_scat_field( p_index,
                                                lat_index,
                                                lon_index,
-                                               scat_za_index_local, 
+                                               scat_za_index_local,
                                                scat_aa_index_local,
-                                               i)  =  
+                                               i)  =
                                 AngIntegrate_trapezoid_opti(product_field
                                                             ( joker,
                                                               joker, i),
@@ -2351,7 +2365,7 @@ void doit_scat_fieldCalcLimb(
   // Number of azimuth angles.
   const Index Naa = scat_aa_grid.nelem();
    
-  if (scat_aa_grid[0] != 0. || scat_aa_grid[Naa-1] != 360.)
+  if (Naa > 1 && (scat_aa_grid[0] != 0. || scat_aa_grid[Naa-1] != 360.))
     throw runtime_error("The range of *scat_aa_grid* must [0 360].");
 
   // Get stokes dimension from *doit_scat_field*:
@@ -2454,17 +2468,22 @@ void doit_scat_fieldCalcLimb(
   
   // Original scattered field, on equidistant zenith angle grid.
   Matrix doit_scat_field_org(doit_za_grid_size, stokes_dim, 0);
-  
-  //  Grid stepsize of zenith and azimuth angle grid, these are needed for the 
-  // integration function. 
+
+  //  Grid stepsize of zenith and azimuth angle grid, these are needed for the
+  // integration function.
   Vector grid_stepsize(2);
   grid_stepsize[0] = 180./(Numeric)(doit_za_grid_size - 1);
-  grid_stepsize[1] = 360./(Numeric)(Naa - 1);
+  if (Naa > 1)
+  {
+    grid_stepsize[1] = 360./(Numeric)(Naa - 1);
+  }
+
     
   Tensor3 product_field(doit_za_grid_size, Naa, stokes_dim, 0);
 
   if  ( atmosphere_dim == 1 )
     {
+
         // Get pha_mat at the grid positions
         // Since atmosphere_dim = 1, there is no loop over lat and lon grids
         for (Index p_index = 0;
@@ -2502,18 +2521,18 @@ void doit_scat_fieldCalcLimb(
             {
                 out3 << "Multiplication of phase matrix with incoming" <<
                 " intensities \n";
-            
+
               product_field = 0;
 
-              // za_in and aa_in are for incoming zenith and azimuth 
+              // za_in and aa_in are for incoming zenith and azimuth
               // angle direction for which pha_mat is calculated
               for( Index za_in = 0; za_in < doit_za_grid_size; za_in ++)
                 {
                   for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
                     {
-                      // Multiplication of phase matrix with incoming 
+                      // Multiplication of phase matrix with incoming
                       // intensity field.
-                    
+
                       for ( Index i = 0; i < stokes_dim; i++)
                         {
                           for (Index j = 0; j< stokes_dim; j++)
@@ -2523,19 +2542,32 @@ void doit_scat_fieldCalcLimb(
                                 doit_i_field_int(za_in, j);
                             }
                         }
-                      
+
                     }//end aa_in loop
                 }//end za_in loop
-            
-              out3 << "Compute integral. \n"; 
-              for (Index i = 0; i < stokes_dim; i++)
+
+              out3 << "Compute integral. \n";
+              if (Naa == 1)
                 {
-                  doit_scat_field_org(scat_za_index_local, i)=
-                    AngIntegrate_trapezoid_opti(product_field(joker, joker, i),
-                                                za_grid,
-                                                scat_aa_grid,
-                                                grid_stepsize);
-                }//end i loop
+                  for (Index i = 0; i < stokes_dim; i++)
+                    {
+                      doit_scat_field_org(scat_za_index_local, i) =
+                              AngIntegrate_trapezoid(product_field(joker, 0, i),
+                                                     za_grid) / 2 / PI;
+                    }//end i loop
+                }
+              else
+                {
+                  for (Index i = 0; i < stokes_dim; i++)
+                    {
+                      doit_scat_field_org(scat_za_index_local, i) =
+                              AngIntegrate_trapezoid_opti(product_field(joker, joker, i),
+                                                          za_grid,
+                                                          scat_aa_grid,
+                                                          grid_stepsize);
+                    }
+                }
+
             }//end za_prop loop
           
           // Interpolation on scat_za_grid, which is used in 
@@ -2572,6 +2604,7 @@ void doit_scat_fieldCalcLimb(
   
   
   else if( atmosphere_dim == 3 ){
+
     // Loop over all positions
     for (Index p_index = 0; p_index <= cloudbox_limits[1] - cloudbox_limits[0];
          p_index ++)

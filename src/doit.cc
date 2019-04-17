@@ -581,10 +581,6 @@ void cloud_ppath_update1D(Workspace& ws,
                           const Index& scat_za_interp,
                           const Verbosity& verbosity)
 {
-  Matrix iy;
-  Matrix surface_emission;
-  Matrix surface_los;
-  Tensor4 surface_rmatrix;
   Ppath ppath_step;
   // Input variables are checked in the WSMs i_fieldUpdateSeqXXX, from 
   // where this function is called.
@@ -723,10 +719,6 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
                                 const Index& scat_za_interp,
                                 const Verbosity& verbosity)
 {
-  Matrix iy;
-  Matrix surface_emission;
-  Matrix surface_los;
-  Tensor4 surface_rmatrix;
   Ppath ppath_step;
   // Input variables are checked in the WSMs i_fieldUpdateSeqXXX, from 
   // where this function is called.
@@ -2778,7 +2770,7 @@ doit_scat_fieldNormalize(Workspace& ws,
     // Number of azimuth angles.
     const Index Naa = scat_aa_grid.nelem();
 
-    if (scat_aa_grid[0] != 0. || scat_aa_grid[Naa-1] != 360.)
+    if (Naa > 1 && (scat_aa_grid[0] != 0. || scat_aa_grid[Naa-1] != 360.))
         throw runtime_error("The range of *scat_aa_grid* must [0 360].");
 
     // Get stokes dimension from *doit_scat_field*:

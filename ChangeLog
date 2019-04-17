@@ -1,3 +1,35 @@
+2019-04-17  Manfred Brath  <manfred.brath@uni-hamburg.de>
+
+    * arts-2-3-1251
+
+    *src/doit.cc (cloud_ppath_update1D, cloud_ppath_update1D_noseq):
+    Removed needless variables
+    
+    *src/doit.cc (doit_scat_fieldNormalize):
+    Adjusted azimuth angle grid check, so that it can now handle case,
+    where the incoming azimuth grid has a size of one.
+    
+    *src/doit.cc (doit_scat_fieldCalc, doit_scat_fieldCalcLimb):
+    Adjusted azimuth angle grid check and adjusted the method, so that it
+    can now handle for 1D atmospheres case where the incoming azimuth grid
+    has a size of one.
+    
+    *src/m_optproperties.cc (pha_matCalc):
+    Changed it so that now for 1D atmospheres the integration over the
+    incoming azimuth direction is already done within pha_matCalc and not
+    within doit_scat_fieldCalc or doit_scat_fieldCalcLimb.
+    
+    *src/m_optproperties.cc (DoitScatteringDataPrepare):
+    Due to above changes in pha_matCalc for 1D atmospheres, the incoming
+    azimuth grid is resized to one, as the integration over the
+    incoming azimuth direction is already done within pha_matCalc.
+    scat_aa_grid is changed from input to input and output. No further
+    integration over incoming azimuth direction is needed in the preceeding
+    calculation steps.
+    
+    *src/methods.cc (DoitScatteringDataPrepare):
+    Changed scat_aa_grid form input to input and output.
+
 2019-04-15  Richard Larsson <larsson@mps.mpg.de>
 
 	* arts-2-3-1250

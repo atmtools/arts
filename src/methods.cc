@@ -5608,7 +5608,7 @@ void define_md_data_raw()
          "matrices are stored in *pha_mat_sptDOITOpt*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUT( "pha_mat_sptDOITOpt", "scat_data_mono", "pha_mat_doit" ),
+        OUT( "pha_mat_sptDOITOpt", "scat_data_mono", "pha_mat_doit","scat_aa_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
