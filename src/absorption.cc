@@ -205,6 +205,14 @@ const ArrayOfGriddedField1& SpeciesAuxData::getParam(const Index species,
     return mparams[species][isotopologue];
 }
 
+Numeric SpeciesAuxData::getIsotopologueRatio(const SpeciesTag& st) const
+{
+  Numeric val=1.0;
+  if(st.Isotopologue() > -1)
+    val = getParam(st.Species(), st.Isotopologue())[0].data[0];
+  return val;
+}
+
 
 String SpeciesAuxData::getTypeString(const Index species, const Index isotopologue) const
 {
@@ -2143,7 +2151,7 @@ void xsec_species2(Matrix& xsec,
                    const Vector& f_grid,
                    const Vector& abs_p,
                    const Vector& abs_t,
-                   const Matrix& abs_t_nlte,
+                   const Matrix& abs_nlte,
                    const Matrix& all_vmrs,
                    const ArrayOfArrayOfSpeciesTag& abs_species,
                    const Index this_species,
@@ -2237,7 +2245,7 @@ void xsec_species2(Matrix& xsec,
     
       Linefunctions::set_cross_section_for_single_line(F, dF, N, dN, data, start, nelem, f_grid_eigen, line,
         jacobian_quantities, jacobian_propmat_positions, all_vmrs(joker, ip), 
-        nt?abs_t_nlte(joker, ip):Vector(0), pressure, temperature, dc, partial_pressure, 
+        nt?abs_nlte(joker, ip):Vector(0), pressure, temperature, dc, partial_pressure, 
         isotopologue_ratios.getParam(line.Species(), this_iso)[0].data[0],
         0.0, ddc_dT, qt, dqt_dT, qt0, abs_species, this_species, 0);
       

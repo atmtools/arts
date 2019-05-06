@@ -1,15 +1,18 @@
 /* Copyright (C) 2018
  Richard Larsson <larsson@mps.mpg.de>
+
  
  This program is free software; you can redistribute it and/or modify it
  under the terms of the GNU General Public License as published by the
  Free Software Foundation; either version 2, or (at your option) any
  later version.
+
  
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
@@ -32,6 +35,7 @@
  Main functions of this file is to compute a 
  variable based on some temperature fit.  The
  implemented temperature fits are:
+
   
   t0: a constant
   t1: standard HITRAN, x0 (T0 / T) ^ x1
@@ -39,23 +43,27 @@
   t3: speed-dependent parameters, x0 + x1 (T - T0)
   t4: second order line mixing, (x0 + x1 (T0 / T - 1)) (T0 / T) ^ x2
   t5: ARTS pressure shift, x0 * (T0 / T) ^ (0.25 + 1.5*x1)
+
   
  Note that each of these temperature fits need
  to have not only a main function implemented,
  but a derivative based on how many parameters
  are required for ALL OTHER temperature fits.
+
  
  At the moment, we have three coefficients, the 
  atmospheric temperature, and the temperature
  at which the line parameters were derived.
  This means that each main function must implement
  derivative functionality with regards to:
+
  
   x0
   x1,
   x2,
   T, and
   T0,
+
   
  where x0-x2 are coefficients often derived from lab
  work, T is the atmospheric temperature, and T0 is the
@@ -63,6 +71,7 @@
  that the latter has to be the same not just for line
  broadening and mixing parameters, but also for other
  line parameters, notably, the line strength.
+
  
  Update all derivatives when/if there are more coefficients
  in the future.
@@ -499,6 +508,7 @@ LineFunctionDataOutput LineFunctionData::GetParams(const Numeric& T0,
       if(this_species == -1) continue;  // Species does not exist
       partial_vmr = rtp_vmr[this_species];
     }
+
     // Sum up VMR
     total_vmr += partial_vmr;
     
@@ -550,6 +560,7 @@ LineFunctionDataOutput LineFunctionData::GetParams(const Numeric& T0,
       }
       current += TemperatureTypeNelem(mtypes[i][j+LineShapeTypeNelem()]);
     }
+
     
     // Stop destroying names
     #undef x0
@@ -628,6 +639,7 @@ LineFunctionDataOutput LineFunctionData::GetVMRDerivs(const Numeric& T0,
       if(vmr_qi.In(line_qi))  // Limitation: vmr_qi must be distinct species and isotopologue!
         do_this=true;
     }
+
     else if(i == mspecies.nelem()-1 and mbath) { // The last value might be air-broadening (set total_vmr to 1)
       partial_vmr = 1 - total_vmr;  // Ignore air-broadening for derivatives here because spectroscopy is unclear...
       air=true;
@@ -646,6 +658,7 @@ LineFunctionDataOutput LineFunctionData::GetVMRDerivs(const Numeric& T0,
       
       partial_vmr = rtp_vmr[this_species];
     }
+
     // Sum up VMR
     total_vmr += partial_vmr;
     
@@ -787,6 +800,7 @@ LineFunctionDataOutput LineFunctionData::GetTemperatureDerivs(const Numeric& T0,
       if(this_species == -1) continue;  // Species does not exist
       partial_vmr = rtp_vmr[this_species];
     }
+
     // Sum up VMR
     total_vmr += partial_vmr;
     
@@ -839,6 +853,7 @@ LineFunctionDataOutput LineFunctionData::GetTemperatureDerivs(const Numeric& T0,
       }
       current += TemperatureTypeNelem(mtypes[i][j+LineShapeTypeNelem()]);
     }
+
     
     // Stop destroying names
     #undef x0
@@ -920,6 +935,7 @@ LineFunctionDataOutput LineFunctionData::GetReferenceT0Derivs(const Numeric& T0,
       }
       partial_vmr = self_vmr;
     }
+
     else if(i == mspecies.nelem()-1 and mbath) { // The last value might be air-broadening (set total_vmr to 1)
       if(rt.Mode() == LineFunctionData_BathBroadening) { 
         this_vmr = 1 - total_vmr;
@@ -927,6 +943,7 @@ LineFunctionDataOutput LineFunctionData::GetReferenceT0Derivs(const Numeric& T0,
       }
       partial_vmr = 1 - total_vmr;
     }
+
     else {  // Otherwise we have to find the species in the list of species tags
       Index this_species=-1;
       for(Index j=0; j<abs_species.nelem(); j++) {
@@ -945,6 +962,7 @@ LineFunctionDataOutput LineFunctionData::GetReferenceT0Derivs(const Numeric& T0,
       if(this_species == -1) continue;  // Species does not exist
       partial_vmr = rtp_vmr[this_species];
     }
+
     
     // Sum up VMR
     total_vmr += partial_vmr;
@@ -991,6 +1009,7 @@ LineFunctionDataOutput LineFunctionData::GetReferenceT0Derivs(const Numeric& T0,
       case TemperatureType::T5: param += partial_vmr * dmain_dT0_t5(T, T0, x0, x1); break;
       case TemperatureType::LM_AER: /* No derivatives for it depends on T not T0 */ break;
     }
+
     current += TemperatureTypeNelem(mtypes[this_derivative][j+LineShapeTypeNelem()]);
   }
   
@@ -1069,6 +1088,7 @@ Numeric LineFunctionData::GetLineParamDeriv(const Numeric& T0,
       }
       partial_vmr = self_vmr;
     }
+
     else if(i == mspecies.nelem()-1 and mbath) { // The last value might be air-broadening (set total_vmr to 1)
       if(rt.Mode() == LineFunctionData_BathBroadening) { // if it still is not set by this point, it is going to
         this_vmr = 1 - total_vmr;
@@ -1274,6 +1294,7 @@ std::ostream& operator<<(std::ostream& os, const LineFunctionData& lfd) {
         os << lfd.mdata[i][counter+k] << " ";  // Print the assoc. data
       counter += lfd.TemperatureTypeNelem(lfd.mtypes[i][j]);  // Count how much data has been printed
     }
+
     
     // For everything that relates to mixing
     for(Index j=nshapes; j<nmixing+nshapes; j++) {
@@ -1326,6 +1347,7 @@ std::istream& operator>>(std::istream& data, LineFunctionData& lfd) {
       if(i not_eq 0)  // but self has to be first for consistent behavior
         throw std::runtime_error("Self broadening must be first, it is not\n");
     }
+
     else if(s == LineFunctionData_BathBroadening) {
       // If the species is air, then we need to flag this
       lfd.mbath = true;
@@ -1640,6 +1662,7 @@ JacPropMatType select_derivativeLineFunctionData(const String& var, const String
   (var == #ID) {      if(coeff == "X0") return JacPropMatType::LineFunctionData ## ID ## X0; \
                  else if(coeff == "X1") return JacPropMatType::LineFunctionData ## ID ## X1; \
                  else if(coeff == "X2") return JacPropMatType::LineFunctionData ## ID ## X2; }
+
   
   if      ReturnJacPropMatType(G0 )
   else if ReturnJacPropMatType(D0 )
@@ -1986,4 +2009,22 @@ LineFunctionDataOutput mirroredOutput(const LineFunctionDataOutput& v) noexcept
   t.D2 *= -1;
   t.DV *= -1;
   return t;
+}
+
+void LineFunctionData::Remove(Index i)
+{
+  if(i >= mdata.nelem())
+    throw std::runtime_error("Trying to remove values that do not exist");
+
+  if(mself and i==0)
+    mself=false;
+
+  if(mbath and i==(mdata.nelem()-1))
+    mbath=false;
+
+  if(merrors.nelem() == mdata.nelem())  // Is this available?  Then remove, otherwise ignore.
+    merrors.erase(merrors.begin()+i);
+  mdata.erase(mdata.begin()+i);
+  mtypes.erase(mtypes.begin()+i);
+  mspecies.erase(mspecies.begin()+i);
 }

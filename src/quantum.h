@@ -129,6 +129,7 @@ public:
         assert(qn < Index(QuantumNumberType::FINAL_ENTRY));
         return mqnumbers[qn];
     }
+
     
     //! Return copy of quantum number
     const Rational operator[](const QuantumNumberType qn) const
@@ -143,6 +144,7 @@ public:
         assert(qn < Index(QuantumNumberType::FINAL_ENTRY));
         mqnumbers[qn] = r;
     }
+
     
     //! Set quantum number
     void Set(QuantumNumberType qn, Rational r)
@@ -198,6 +200,7 @@ if (name == #ID) this->Set(QuantumNumberType::ID, r)
 
 #undef INPUT_QUANTUM
     }
+
     
     const QuantumContainer& GetNumbers() const { return mqnumbers; }
 
@@ -240,6 +243,7 @@ public:
     
     enum class Level : Index { Upper=0, Lower=1 };
   
+
     //! Set lower quantum number
     void SetLower(const Index i, const Rational r) {  mqns[Index(Level::Lower)].Set(i, r); }
     void SetLower(const QuantumNumberType i, const Rational r) { mqns[Index(Level::Lower)].Set(i, r); }
@@ -282,16 +286,20 @@ private:
 /*!
  Describes either a transition or an energy level and can be used
  to find matching lines.
+
  
  For transitions, the QI contains upper and lower quantum numbers.
  For energy levels, it only holds one set of quantum numbers which
  are then matched against the upper and lower qns of the lines.
+
  
  File format:
+
  
  Transition:   SPECIES_NAME-ISOTOPE TR UP QUANTUMNUMBERS LO QUANTUMNUMBERS
  Energy level: SPECIES_NAME-ISOTOPE EN QUANTUMNUMBERS
  All lines:    SPECIES_NAME-ISOTOPE ALL
+
  
  H2O-161 TR UP J 0/1 v1 2/3 LO J 1/1 v2 1/2
  H2O-161 EN J 0/1 v1 2/3
@@ -309,19 +317,23 @@ public:
         ALL,
         NONE 
     } QType;
+
     
     QuantumIdentifier() : mqtype(NONE), mspecies(-1), miso(-1), mqm(0) {}
+
     
     QuantumIdentifier(const QuantumIdentifier::QType qt, const Index species, const Index iso) : mspecies(species), miso(iso) { SetType(qt); }
 
     QuantumIdentifier(const Index spec, const Index isot, const QuantumNumbers& upper, const QuantumNumbers& lower)
     : mqtype(QuantumIdentifier::TRANSITION), mspecies(spec), miso(isot), mqm(2) { mqm[TRANSITION_LOWER_INDEX] = lower; mqm[TRANSITION_UPPER_INDEX] = upper; }
     
+
     QuantumIdentifier(const Index spec, const Index isot, const QuantumNumbers& qnr)
     : mspecies(spec), miso(isot)
     {
       SetEnergyLevel(qnr);
     }
+
     
     QuantumIdentifier(String x) {SetFromString(x);}
 
@@ -371,18 +383,23 @@ public:
     
     const QuantumNumbers& UpperQuantumNumbers() const {assert(mqtype==TRANSITION); return mqm[TRANSITION_UPPER_INDEX];};
     const QuantumNumbers& LowerQuantumNumbers() const {assert(mqtype==TRANSITION); return mqm[TRANSITION_LOWER_INDEX];};
+    Rational UpperQuantumNumber(QuantumNumberType X) const {assert(mqtype==TRANSITION); return mqm[TRANSITION_UPPER_INDEX][X];};
+    Rational LowerQuantumNumber(QuantumNumberType X) const {assert(mqtype==TRANSITION); return mqm[TRANSITION_LOWER_INDEX][X];};
     const QuantumNumbers& EnergyLevelQuantumNumbers() const {assert(mqtype == ENERGY_LEVEL); return mqm[ENERGY_LEVEL_INDEX];}
     QuantumNumbers& UpperQuantumNumbers() {assert(mqtype==TRANSITION); return mqm[TRANSITION_UPPER_INDEX];};
     QuantumNumbers& LowerQuantumNumbers() {assert(mqtype==TRANSITION); return mqm[TRANSITION_LOWER_INDEX];};
     QuantumNumbers& EnergyLevelQuantumNumbers() {assert(mqtype == ENERGY_LEVEL); return mqm[ENERGY_LEVEL_INDEX];}
     
+
     //! Tests if RHS contains LHS some how
     bool In(const QuantumIdentifier& other) const;
     bool InLower(const QuantumIdentifier& other) const;
     bool InUpper(const QuantumIdentifier& other) const;
+
     
     //! Tests if there are any defined quantum numbers
     bool any_quantumnumbers() const;
+
     
     bool IsEnergyLevelType() const {return mqtype == ENERGY_LEVEL;}
 
@@ -398,6 +415,7 @@ inline bool operator==(const QuantumIdentifier& a,const QuantumIdentifier& b){
         a.Species()==b.Species() &&
         a.Type()==b.Type()))
         return false;
+
     
     if(a.Type()==QuantumIdentifier::ENERGY_LEVEL)
         return a.QuantumMatch()[a.ENERGY_LEVEL_INDEX].Compare(b.QuantumMatch()[b.ENERGY_LEVEL_INDEX]);

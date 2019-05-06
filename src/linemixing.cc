@@ -26,6 +26,7 @@
 #include "linescaling.h"
 #include "constants.h"
 #include "lin_alg.h"
+#include "linefunctions.h"
 
 //! Rotational constants of supported scenarios
 /*!
@@ -115,8 +116,7 @@ Matrix relaxation_matrix_calculations(const ArrayOfLineRecord& lines,
                                       const SpeciesTag& collider,
                                       const Numeric& collider_vmr,
                                       const Numeric& T,
-                                      const Index& size
-                                     )
+                                      const Index& size)
 {
   const Index n = lines.nelem();
   Matrix W(n, n);
@@ -132,7 +132,7 @@ Matrix relaxation_matrix_calculations(const ArrayOfLineRecord& lines,
     spec = Species::CO2;
   else throw std::runtime_error("Unsupported species");
   
-  #pragma omp parallel for if(DO_FAST_WIGNER && !arts_omp_in_parallel())
+  #pragma omp parallel for schedule(guided, 1) if(DO_FAST_WIGNER && !arts_omp_in_parallel())
   for(Index i=0; i<n; i++) {
     // Create a temporary table to allow openmp
     wig_temp_init(2*int(size));
@@ -175,14 +175,25 @@ Matrix relaxation_matrix_calculations(const ArrayOfLineRecord& lines,
  */
 void normalize_relaxation_matrix(Matrix& W,
                                  const Vector& population,
-                                 const Vector& d0)
+                                 const Vector& d0,
+                                 const ArrayOfLineRecord& lines,
+                                 const SpeciesAuxData& partition_functions,
+                                 const Numeric& T)
 {
   const Index n=d0.nelem();
   
   // Index list showing sorting of W
   ArrayOfIndex sorted(n, 0);
+  Vector test(n);
+  if(n) {
+    const Numeric QT = single_partition_function(T, partition_functions.getParamType(lines[0]), partition_functions.getParam(lines[0]));
+    for(Index i=0; i<n; i++){
+      const Numeric QT0 = single_partition_function(lines[i].Ti0(), partition_functions.getParamType(lines[i]), partition_functions.getParam(lines[i]));
+      test[i] = Linefunctions::lte_linestrength(lines[i].I0(), lines[i].Elow(), lines[i].F(), QT0, lines[i].Ti0(), QT, T);
+    }
+  }
   
-  get_sorted_indexes(sorted, population);
+  get_sorted_indexes(sorted, test);
   for(Index i=0; i<n-i-1; i++) std::swap(sorted[i], sorted[n-i-1]);
   
   // Sorted matrix
@@ -208,8 +219,8 @@ void normalize_relaxation_matrix(Matrix& W,
         Slo += std::abs(d0[sorted[j]]) * Wr(i, j);
     }
     
-    // The ratio between upper and lower contributions
-    const Numeric UL = Sup / Slo;
+    Numeric UL = Sup / Slo;
+    if(not std::isnormal(UL)) UL = 1.0;
     
     // Rescale to fulfill sum-rule, note how the loop for the upper triangle so the last row cannot be renormalized properly
     for(Index j=i; j<n; j++) {
@@ -219,6 +230,9 @@ void normalize_relaxation_matrix(Matrix& W,
         Wr(i, j) *= -UL;
     }
   }
+  
+  for(Index i=0; i<n-1; i++)
+    Wr(n-1, i) = 0;  // TEST!
   
   // Backsort matrix before returning
   for(Index i=0; i<n; i++)
@@ -243,6 +257,7 @@ inline Matrix hartmann_relaxation_matrix(const ArrayOfLineRecord& abs_lines,
                                          const Vector& d0,
                                          const ArrayOfSpeciesTag& colliders,
                                          const Vector& colliders_vmr,
+                                         const SpeciesAuxData& partition_functions,
                                          const Numeric& T,
                                          const Index& size)
 {
@@ -255,10 +270,23 @@ inline Matrix hartmann_relaxation_matrix(const ArrayOfLineRecord& abs_lines,
   if(n) {
     for(Index ic=0; ic<c; ic++)
       W += relaxation_matrix_calculations(abs_lines, population, main_species, colliders[ic], colliders_vmr[ic], T, size);
-    normalize_relaxation_matrix(W, population, d0);
+    normalize_relaxation_matrix(W, population, d0, abs_lines, partition_functions, T);
   }
   
   return W;
+}
+
+
+inline Numeric population_density(Numeric T, Numeric E0, Numeric F0, Numeric QT) {
+  return (1.0 - stimulated_emission(T, F0)) * boltzman_factor(T, E0) / QT;
+}
+
+
+inline Numeric dpopulation_densitydT(Numeric T, Numeric E0, Numeric F0, Numeric QT, Numeric dQTdT) {
+  using namespace Constant;
+  return (1.0 - dstimulated_emissiondT(T, F0)) *  boltzman_factor(  T, E0) / QT +
+         (1.0 -  stimulated_emission(  T, F0)) * dboltzman_factordT(T, E0) / QT +
+         (1.0 -  stimulated_emission(  T, F0)) *  boltzman_factor(  T, E0) * (-dQTdT) / pow2(QT);
 }
 
 
@@ -268,12 +296,12 @@ inline Matrix hartmann_relaxation_matrix(const ArrayOfLineRecord& abs_lines,
  \param T: Atmospheric temperature
  \return population distribution of the absorption lines
 */
-inline Vector population_density_vector(const ArrayOfLineRecord& abs_lines,
-                                        const SpeciesAuxData& partition_functions,
-                                        const Numeric& T)
+Vector population_density_vector(const ArrayOfLineRecord& abs_lines,
+                                 const SpeciesAuxData& partition_functions,
+                                 const Numeric& T)
 {
   auto n=abs_lines.nelem();
-  Vector a(n);
+  Vector p(n);
   
   if(n) {
     const Numeric QT = single_partition_function(T, partition_functions.getParamType(abs_lines[0]), partition_functions.getParam(abs_lines[0]));
@@ -281,11 +309,11 @@ inline Vector population_density_vector(const ArrayOfLineRecord& abs_lines,
     for(auto i=0; i<n; i++) {
       if(abs_lines[i].IsNotSameSpecIso(abs_lines[0]))
         throw std::runtime_error("Not the same species-isotopologue in a set of lines means they are not part of the same band.");
-      a[i] = abs_lines[i].G_lower() * boltzman_factor(T, abs_lines[i].Elow()) / QT;
+      p[i] = population_density(T, abs_lines[i].Elow(), abs_lines[i].F(), QT);
     }
   }
   
-  return a;
+  return p;
 }
 
 
@@ -293,13 +321,19 @@ inline Vector population_density_vector(const ArrayOfLineRecord& abs_lines,
  \param abs_lines: all absorption lines of the band
  \return dipole moment of the absorption lines
 */
-Vector dipole_vector(const ArrayOfLineRecord& abs_lines)
+Vector dipole_vector(const ArrayOfLineRecord& abs_lines,
+                     const SpeciesAuxData& partition_functions)
 {
   const Index n=abs_lines.nelem();
   Vector d(n, 0);
+  if(not n) return d;
   
-  for(Index i=0; i<n; i++)
-    d[i] = std::sqrt(abs_lines[i].electric_dipole_moment_squared());
+  const Numeric T0 = abs_lines[0].Ti0();
+  const Vector p0 = population_density_vector(abs_lines, partition_functions, T0);
+  for(Index i=0; i<n; i++) {
+    if(T0 not_eq abs_lines[i].Ti0()) throw "Bad T0";
+      d[i] = std::sqrt(abs_lines[i].I0()/p0[i]);
+  }
   return d;
 }
 
@@ -382,16 +416,6 @@ Vector rosenkranz_scaling_second_order(const ArrayOfLineRecord& abs_lines,
 }
 
 
-inline Vector pressure_broadening_from_diagonal(const Matrix& W)
-{
-  const Index n=W.ncols();
-  Vector g(n, 0);
-  for(Index i=0; i<n; i++)
-    g[i] = W(i, i);
-  return g;
-}
-
-
 Matrix hartmann_ecs_interface(const ArrayOfLineRecord& abs_lines,
                               const ArrayOfSpeciesTag& main_species,
                               const ArrayOfSpeciesTag& collider_species,
@@ -401,8 +425,8 @@ Matrix hartmann_ecs_interface(const ArrayOfLineRecord& abs_lines,
                               const Index& size)
 {
   const Vector population = population_density_vector(abs_lines, partition_functions, T);
-  const Vector dipole = dipole_vector(abs_lines);
-  const Matrix W = hartmann_relaxation_matrix(abs_lines, main_species[0], population, dipole, collider_species, collider_species_vmr, T, size);
+  const Vector dipole = dipole_vector(abs_lines, partition_functions);
+  const Matrix W = hartmann_relaxation_matrix(abs_lines, main_species[0], population, dipole, collider_species, collider_species_vmr, partition_functions, T, size);
   return W;
 }
 
@@ -419,14 +443,14 @@ OffDiagonalElementOutput OffDiagonalElement::CO2_IR(const LineRecord& j_line,
                                                     const Numeric& collider_mass)
 {
   // Point at quantum numbers
-  const Rational& Jku  = k_line.UpperQuantumNumbers()[QuantumNumberType::J ];
-  const Rational& Jkl  = k_line.LowerQuantumNumbers()[QuantumNumberType::J ];
-  const Rational& Jju  = j_line.UpperQuantumNumbers()[QuantumNumberType::J ];
-  const Rational& Jjl  = j_line.LowerQuantumNumbers()[QuantumNumberType::J ];
-  const Rational& l2ju = j_line.UpperQuantumNumbers()[QuantumNumberType::l2];
-  const Rational& l2ku = k_line.UpperQuantumNumbers()[QuantumNumberType::l2];
-  const Rational& l2jl = j_line.LowerQuantumNumbers()[QuantumNumberType::l2];
-  const Rational& l2kl = k_line.LowerQuantumNumbers()[QuantumNumberType::l2];
+  const Rational Jku  = k_line.UpperQuantumNumber(QuantumNumberType::J );
+  const Rational Jkl  = k_line.LowerQuantumNumber(QuantumNumberType::J );
+  const Rational Jju  = j_line.UpperQuantumNumber(QuantumNumberType::J );
+  const Rational Jjl  = j_line.LowerQuantumNumber(QuantumNumberType::J );
+  const Rational l2ju = j_line.UpperQuantumNumber(QuantumNumberType::l2);
+  const Rational l2ku = k_line.UpperQuantumNumber(QuantumNumberType::l2);
+  const Rational l2jl = j_line.LowerQuantumNumber(QuantumNumberType::l2);
+  const Rational l2kl = k_line.LowerQuantumNumber(QuantumNumberType::l2);
   
   const bool jbig = Jjl >= Jkl;
   
@@ -440,7 +464,7 @@ OffDiagonalElementOutput OffDiagonalElement::CO2_IR(const LineRecord& j_line,
   const int lf   = (2*(jbig ? l2jl : l2kl)).toInt();
 
   // Find best start and end-point of the summing loop
-  const int st = std::max(Ji - Ji_p, Jf - Jf_p);
+//   const int st = std::max(Ji - Ji_p, Jf - Jf_p);
   const int en = std::min(Ji + Ji_p, Jf + Jf_p);
   
   // Adiabatic factor for Ji
@@ -451,8 +475,8 @@ OffDiagonalElementOutput OffDiagonalElement::CO2_IR(const LineRecord& j_line,
         Numeric(Ji_p+1) * sqrt(Numeric((Jf+1)*(Jf_p+1))) * AF1;
   
   Numeric sum=0;
-  
-  for(int L = st?st:4; L <= en; L+=4) { 
+  for(int L = 4; L <= en; L+=4) { 
+//   for(int L = st>4?st:4; L <= en; L+=4) { 
     // Basis rate for L
     const Numeric QL = br.get(L/2, B0, T);
     
@@ -489,7 +513,7 @@ Numeric AdiabaticFactor::mol_X(const int L,
   
   if(L < 1) return 0.;
   
-  constexpr Numeric constant = 2000 * R * inv_pi * pow2(inv_ln_2);
+  static constexpr Numeric constant = 2000 * R * inv_pi * pow2(inv_ln_2);
   
   // Mean speed of collisions
   const Numeric invmu = (1/main_mass + 1/collider_mass);
@@ -507,16 +531,14 @@ Numeric AdiabaticFactor::mol_X(const int L,
  */
 Numeric BasisRate::mol_X(const int L, const Numeric& B0, const Numeric& T) const
 {
-  extern const Numeric PLANCK_CONST;
-  extern const Numeric BOLTZMAN_CONST;
+  using namespace Constant;
   
   const Numeric& a1 = mdata[Index(HartmannPos::a1)];
   const Numeric& a2 = mdata[Index(HartmannPos::a2)];
   const Numeric& a3 = mdata[Index(HartmannPos::a3)];
   
   const Numeric EL = Numeric(L*L + L);
-  
-  return a1 * std::pow( EL, -a2 ) *  std::exp(- a3 * PLANCK_CONST * B0 * EL / (BOLTZMAN_CONST * T));
+  return a1 / std::pow( EL, a2 ) *  std::exp(- a3 * h * B0 * EL / (k * T));
 }
 
 
@@ -564,4 +586,39 @@ SecondOrderLineMixingCoeffs compute_2nd_order_lm_coeff(ConstVectorView y, ConstV
   } while(rel_res > rel_res_limit and loop_count < max_loop_count);
   
   return {ans[0], ans[1]};
+}
+
+
+ComplexVector equivalent_linestrengths(const Vector& population,
+                                       const Vector& dipole,
+                                       const Eigen::ComplexEigenSolver<Eigen::MatrixXcd>& M)
+{
+  const auto n=population.nelem();
+  
+  auto& V = M.eigenvectors();
+  auto Vinv = V.inverse().eval();
+  
+  ComplexVector B(n);
+  
+  for(auto i=0; i<n; i++) {
+    for(auto j1=0; j1<n; j1++) {
+      for(auto j2=0; j2<n; j2++) {
+        B[i] += population[j1]*dipole[j1]*dipole[j2]*V(i, j2)*Vinv(j1, i);
+      }
+    }
+  }
+  return B;
+}
+
+
+Numeric total_linestrengths(const Vector& population,
+                            const Vector& dipole)
+{
+  using namespace Constant;
+  const auto n=population.nelem();
+  
+  Numeric I0=0;
+  for(auto i=0; i<n; i++)
+    I0 += pi * population[i] * pow2(dipole[i]);
+  return I0;
 }

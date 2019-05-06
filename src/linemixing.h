@@ -140,7 +140,12 @@ Matrix hartmann_ecs_interface(const ArrayOfLineRecord& abs_lines,
                               const Numeric& T,
                               const Index& size);
 
-Vector dipole_vector(const ArrayOfLineRecord& abs_lines);
+Vector population_density_vector(const ArrayOfLineRecord& abs_lines,
+                                 const SpeciesAuxData& partition_functions,
+                                 const Numeric& T);
+
+Vector dipole_vector(const ArrayOfLineRecord& abs_lines,
+                     const SpeciesAuxData& partition_functions);
 
 Vector rosenkranz_scaling_second_order(const ArrayOfLineRecord& abs_lines,
                                        const Matrix& W,
@@ -157,5 +162,12 @@ Vector rosenkranz_first_order(const ArrayOfLineRecord& abs_lines,
 struct SecondOrderLineMixingCoeffs {Numeric y0, y1;};
 
 SecondOrderLineMixingCoeffs compute_2nd_order_lm_coeff(ConstVectorView y, ConstVectorView x, const Numeric exp, const Numeric x0);
+
+ComplexVector equivalent_linestrengths(const Vector& population,
+                                       const Vector& dipole,
+                                       const Eigen::ComplexEigenSolver<Eigen::MatrixXcd>& M);
+
+Numeric total_linestrengths(const Vector& population,
+                            const Vector& dipole);
 
 #endif // linemixing_h

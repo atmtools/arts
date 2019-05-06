@@ -170,6 +170,8 @@ namespace Linefunctions
                          const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                          const QuantumIdentifier& quantum_identity=QuantumIdentifier());
   
+  Numeric lte_linestrength(Numeric S0, Numeric E0, Numeric F0, Numeric QT0, Numeric T0, Numeric QT, Numeric T);
+  
   void apply_linestrength_scaling_by_lte(Eigen::Ref<Eigen::VectorXcd> F,
                                          Eigen::Ref<Eigen::MatrixXcd> dF,
                                          Eigen::Ref<Eigen::VectorXcd> N,

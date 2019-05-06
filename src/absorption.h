@@ -589,6 +589,9 @@ public:
     /** Return a constant reference to the parameters. */
     const ArrayOfGriddedField1& getParam(const Index species, const Index isotopologue) const;
     
+    /** Returns mparams[st.Species()][st.Isotopologue()][0].data[0] if st.Isotopologue() > 0, else 1 */
+    Numeric getIsotopologueRatio(const SpeciesTag& st) const;
+    
     /** Return a constant reference to the parameters. */
     const ArrayOfGriddedField1& getParam(const LineRecord& lr) const
     { return getParam(lr.Species(), lr.Isotopologue()); }

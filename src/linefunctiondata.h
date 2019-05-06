@@ -1,15 +1,18 @@
 /* Copyright (C) 2018
  Richard Larsson <larsson@mps.mpg.de>
+
  
  This program is free software; you can redistribute it and/or modify it
  under the terms of the GNU General Public License as published by the
  Free Software Foundation; either version 2, or (at your option) any
  later version.
+
  
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
@@ -40,6 +43,7 @@ typedef struct{Numeric G0, D0, G2, D2, FVC, ETA, Y, G, DV;} LineFunctionDataOutp
 
 class LineFunctionData {
 public:
+
   
   #define LineFunctionData_SelfBroadening String("SELF")
   #define LineFunctionData_BathBroadening String("AIR")
@@ -93,6 +97,7 @@ public:
       case LineMixingOrderType::Interp: return Index(InterpParam::Size);
       case LineMixingOrderType::ConstG: return Index(ConstGParam::Size);;
     }
+
     return -1;  // Should not reach
   }
   
@@ -104,6 +109,7 @@ public:
       case LineMixingOrderType::Interp: return "INT";
       case LineMixingOrderType::ConstG: return "ConstG";
     }
+
     return "-1";
   }
   
@@ -118,6 +124,7 @@ public:
       os << "Cannot recognize type " << type << " as a line mixing functionality\n" ;
       throw std::runtime_error(os.str());
     }
+
   }
   
   Index LineShapeTypeNelem() const {
@@ -128,6 +135,7 @@ public:
       case LineShapeType::SDVP: return Index(SpeedVoigtParam::Size);
       case LineShapeType::HTP:  return Index(HTPParam::Size);
     }
+
     return -1;  // Should not reach
   }
   
@@ -139,6 +147,7 @@ public:
       case LineShapeType::SDVP: return "SDVP";
       case LineShapeType::HTP:  return "HTP";
     }
+
     return "-1";
   }
   
@@ -153,6 +162,7 @@ public:
       os << "Cannot recognize type " << type << " as a line shape functionality\n" ;
       throw std::runtime_error(os.str());
     }
+
   }
   
   Index TemperatureTypeNelem(const TemperatureType type) const {
@@ -166,6 +176,7 @@ public:
       case TemperatureType::T4:     return 3;
       case TemperatureType::T5:     return 2;
     }
+
     return -1;
   }
   
@@ -187,6 +198,7 @@ public:
       case TemperatureType::T4:     return "T4";
       case TemperatureType::T5:     return "T5";
     }
+
     return "-1";
   }
   
@@ -292,7 +304,10 @@ public:
   void SetStandard(const bool standard) {do_line_in_standard_calculations=standard;}
   void Set(const Numeric& X, const String& species, const String& coefficient, const String& variable);
   Numeric Get(const String& species, const String& coefficient, const String& variable) const;
-  
+    void Remove(Index);
+    void RemoveSelf() {if(mself) Remove(0);}
+    void KeepOnlyBath() {if(not mbath) throw std::runtime_error("Cannot comply because no air broadening exist!"); else while(mdata.nelem() > 1) Remove(0);}
+
 private:
   bool do_line_in_standard_calculations;
   bool mself;

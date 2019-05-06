@@ -986,6 +986,7 @@ void calculate_xsec_from_full_relmat(ArrayOfMatrix& xsec,
         if(do_temperature) {
           sum_perturbedT += d0_signs[il1] * d0[il1] * invF_perturbedT(il1, il2).imag() * d0_signs[il2] * d0[il2] * rhoT_perturbedT[il2];
         }
+
       }
     }
     
@@ -1044,6 +1045,7 @@ void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
     
     if(do_temperature_jacobian(derivatives_data))
     {
+
       const LineFunctionDataOutput dT({dpressure_broadening_dT[iline], dpsf_dT[iline], 0., 0., 0., 0., dY_dT[iline], dG_dT[iline], dDV_dT[iline]});
       Linefunctions::set_voigt(F, dF, data, MapToEigen(f_grid), 0.0, 0.0, f0[iline], doppler_const, 
                                X, derivatives_data, derivatives_data_position, QI, ddoppler_const_dT, dT);
@@ -1129,6 +1131,7 @@ void SetRelaxationMatrixCalcType( ArrayOfIndex& relmat_type_per_band,
       if(type[i] not_eq hartman_tran_type or type[i] not_eq linear_type)
         throw std::runtime_error("Not a supported type.  Check documentation for supported types");
       relmat_type_per_band[i] = type[i];
+
     }
     
     out2 << "Mix of line mixing types set for each band\n";
@@ -1178,6 +1181,7 @@ extern "C"
         double *G,
         double *DV
     );
+
     
     extern void arts_relmat_interface__linear_type(
       long   *nlines,
@@ -1217,6 +1221,7 @@ extern "C"
       double *G,
       double *DV
     );
+
     
     extern double* wigner3j_(double*, double*, double*, double*, double*, double*);
     extern double* wigner6j_(double*, double*, double*, double*, double*, double*);
@@ -1625,6 +1630,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             &tolerance_in_rule_nr2, &bool_use_adiabatic_factor,
             W.get_c_array(), dipole.get_c_array(), rhoT.get_c_array(), Y.get_c_array(), G.get_c_array(), DV.get_c_array() );
         }
+
         else if(relmat_type_per_band[iband] == linear_type) {
           arts_relmat_interface__linear_type(
             &nlines, &fmin, &fmax,
@@ -1796,6 +1802,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             else if(order_of_linemixing_type==1) {
               relmat_per_band[ip][iband].resize(1, nlines);
               relmat_per_band[ip][iband](0, joker) = Y;
+
             }
             else if(order_of_linemixing==2) {
               relmat_per_band[ip][iband].resize(3, nlines);
@@ -1803,6 +1810,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
               relmat_per_band[ip][iband](1, joker) = G;
               relmat_per_band[ip][iband](2, joker) = DV;
             }
+
             else
               relmat_per_band[ip][iband] = W;
           }
@@ -1851,6 +1859,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
               #pragma omp atomic
               dabs_xsec_per_species_dx[this_species][jj](ii, ip) += dy_dx;
             }
+
           }
         }
       }
@@ -2026,76 +2035,170 @@ void SetLineMixingCoefficinetsFromRelmat( // WS Input And Output:
 }
 
 
-void abs_lines_per_bandRelaxationMatrixLineMixingInAir(ArrayOfArrayOfMatrix& relmat_per_band,
-                                                       ArrayOfArrayOfLineRecord& abs_lines_per_band,
-                                                       const ArrayOfArrayOfSpeciesTag& abs_species_per_band,
-                                                       const SpeciesAuxData& partition_functions,
-                                                       const Index& wigner_initialized,
-                                                       const Vector& temperatures,
-                                                       const String& linemixing_type,
-                                                       const Index& do_g,
-                                                       const Index& do_dv,
-                                                       const Verbosity&)
+
+void PrintSelfLineMixingStatus(const ArrayOfArrayOfLineRecord& abs_lines_per_band,
+                               const ArrayOfArrayOfSpeciesTag& abs_species_per_band,
+                               const Numeric& T,
+                               const Verbosity&)
 {
-  checkPartitionFunctions(abs_species_per_band, partition_functions);
+  constexpr QuantumNumberType J  = QuantumNumberType::J;
+  const Vector vmrs(abs_lines_per_band.nelem(), 1.0);
+  Numeric Y, G, DV;
   
-  auto lsize = abs_lines_per_band.nelem();
-  auto tsize = temperatures.nelem();
+  for(Index i=0; i<abs_lines_per_band.nelem(); i++) {
+    std::cout.precision(5);
+    std::cout<<std::scientific<<"BAND " << i+1 << "\n";
+    std::cout<<"JF\tJI\tY("<<T<<")\tG("<<T<<")\tDV("<<T<<")\tF0\tE0\n";
+    for(const auto& line: abs_lines_per_band[i]) {
+      std::cout<< line.LowerQuantumNumber(J)  << '\t' << line.UpperQuantumNumber(J)  << '\t';
+      line.SetLineMixingParameters(Y, G, DV, T, 101325, i, vmrs, abs_species_per_band);
+      std::cout << Y << '\t' << G << '\t' << DV << '\t' << line.F() << '\t' << line.Elow() << '\n';
+    }
+  }
+}
+
+
+void relmatInAir(Matrix& relmat,
+                 const ArrayOfLineRecord& abs_lines,
+                 const ArrayOfArrayOfSpeciesTag& abs_species,
+                 const SpeciesAuxData& partition_functions,
+                 const Index& wigner_initialized,
+                 const Numeric& temperature,
+                 const Index& species,
+                 const Verbosity&)
+try
+{
+  checkPartitionFunctions(abs_species, partition_functions);
   
   // Only for Earth's atmosphere
   const ArrayOfSpeciesTag collider_species = {SpeciesTag("O2-66"), SpeciesTag("N2-44")};
   const Vector collider_species_vmr = {0.21, 0.79};
   
   // Ensure the species are consistent
-  for(auto i=0; i<lsize; i++) {
-    const auto& st = abs_species_per_band[i][0];
-    
-    // Ensure only CO2-626 in line data for now :::FIXME:::Longterm:::
-    if(not st.IsSpecies("CO2") or not st.IsIsotopologue("626"))
-      throw std::runtime_error("Limited functionality:  Only applicable to CO2-626 for now.");
-    
-    for(auto& line: abs_lines_per_band[i])
-      if(line.Species() not_eq st.Species() or line.Isotopologue() not_eq st.Isotopologue())
-        throw std::runtime_error("Must be same Isotopologue and Species.");
-  }
+  const auto& st = abs_species[species][0];
   
+  // Ensure only CO2-626 in line data for now :::FIXME:::Longterm:::
+  if(not st.IsSpecies("CO2") or not st.IsIsotopologue("626"))
+    throw "Limit in functionality encountered.  We only support CO2-626 for now.";
+  
+  for(auto& line: abs_lines)
+    if(line.Species() not_eq st.Species() or line.Isotopologue() not_eq st.Isotopologue())
+      throw "Must be same Isotopologue and Species in all lines.";
+  relmat = hartmann_ecs_interface(abs_lines, abs_species[species],
+                                  collider_species, collider_species_vmr,
+                                  partition_functions, temperature, wigner_initialized);
+}
+catch(const char * e)
+{
+  std::ostringstream os;
+  os << "Errors raised by *relmatInAir*:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
+}
+catch(const std::exception& e)
+{
+  std::ostringstream os;
+  os << "Errors in calls by *relmatInAir*:\n";
+  os << e.what();
+  throw std::runtime_error(os.str());
+}
+
+
+void relmat_per_bandInAir(ArrayOfArrayOfMatrix& relmat_per_band,
+                          const ArrayOfArrayOfLineRecord& abs_lines_per_band,
+                          const ArrayOfArrayOfSpeciesTag& abs_species_per_band,
+                          const SpeciesAuxData& partition_functions,
+                          const Index& wigner_initialized,
+                          const Vector& temperatures,
+                          const Verbosity& verbosity)
+try
+{
+  auto lsize = abs_lines_per_band.nelem();
+  auto tsize = temperatures.nelem();
+
   // Ensure increasing temperatures
   for(auto i=1; i<tsize; i++)
     if(temperatures[i] <= temperatures[i-1])
-      throw std::runtime_error("Must have strictly increasing temperatures");
-  
+      throw "Must have strictly increasing GIN temperatures";
+
   // Size of relaxation matrix
   relmat_per_band.resize(lsize);
   for(auto& r: relmat_per_band) r.resize(tsize);
-  
+
   for(auto j=0; j<lsize; j++) {
     for(auto i=0; i<tsize; i++) {
-        relmat_per_band[j][i] = hartmann_ecs_interface(abs_lines_per_band[j], abs_species_per_band[j],
-                                                       collider_species, collider_species_vmr, 
-                                                       partition_functions, temperatures[i], wigner_initialized);
+      relmatInAir(relmat_per_band[j][i],
+                  abs_lines_per_band[j], abs_species_per_band,
+                  partition_functions, wigner_initialized,
+                  temperatures[i], j, verbosity);
     }
   }
-  
+}
+catch(const char * e)
+{
+  std::ostringstream os;
+  os << "Errors raised by *relmat_per_bandInAir*:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
+}
+catch(const std::exception& e)
+{
+  std::ostringstream os;
+  os << "Errors in calls by *relmat_per_bandInAir*:\n";
+  os << e.what();
+  throw std::runtime_error(os.str());
+}
+
+
+void abs_lines_per_bandSetLineMixingFromRelmat(ArrayOfArrayOfLineRecord& abs_lines_per_band,
+                                               const ArrayOfArrayOfMatrix& relmat_per_band,
+                                               const SpeciesAuxData& partition_functions,
+                                               const Vector& temperatures,
+                                               const String& linemixing_type,
+                                               const Index& do_g,
+                                               const Index& do_dv,
+                                               const Verbosity&)
+try
+{
+  auto lsize = abs_lines_per_band.nelem();
+  auto tsize = temperatures.nelem();
+
+  if(relmat_per_band.nelem() not_eq abs_lines_per_band.nelem())
+    throw "Mismatch between number of bands in abs_lines_per_band and relmat_per_band";
+
+  for(auto j=0; j<lsize; j++) {
+    if(relmat_per_band[j].nelem() not_eq temperatures.nelem())
+      throw "Mismatch between number of temperatures in relmat_per_band and GIN temperatures";
+
+    for(auto i=0; i<tsize; i++) {
+      if(relmat_per_band[j][i].nrows() not_eq relmat_per_band[j][i].ncols())
+        throw "Non-square relaxation matrix; this invalidates relmat_per_band";
+
+      if(relmat_per_band[j][i].nrows() not_eq abs_lines_per_band[j].nelem())
+        throw "Mismatch between relmat_per_band matrix size and line counts in abs_lines_per_band";
+    }
+  }
+
   for(auto i=0; i<lsize; i++) {
     auto& lines = abs_lines_per_band[i];
     const auto n = lines.nelem();
     if(n<1) continue;
-    
+
     Matrix Y(tsize, n, 0);
     Matrix G(tsize, n, 0);
     Matrix DV(tsize, n, 0);
-    Vector d0=dipole_vector(lines);
-    
+    Vector d0=dipole_vector(lines, partition_functions);
+
     for(auto j=0; j<tsize; j++) {
       Y(j, joker) = rosenkranz_first_order(lines, relmat_per_band[i][j], d0);
       G(j, joker) = rosenkranz_scaling_second_order(lines, relmat_per_band[i][j], d0);
       DV(j, joker) = rosenkranz_shifting_second_order(lines, relmat_per_band[i][j]);
     }
-    
+
     if(linemixing_type == "AER") {
       if(tsize not_eq 4 or temperatures[0] not_eq 200 or temperatures[1] not_eq 250 or temperatures[2] not_eq 296 or temperatures[3] not_eq 340)
-        throw std::runtime_error("Bad temepratures.  Must be 4-long vector of [200, 250, 296, 340] for AER type interpolation.");
-      
+        throw "Bad GIN temperatures.  Must be 4-long vector of [200, 250, 296, 340] for AER type interpolation.";
+
       Vector data(12, 0); data[0]=200; data[1]=250; data[2]=296; data[3]=340;
       for(auto k=0; k<n; k++) {
         data[Range(4, 4)] = Y(joker, k);;
@@ -2105,23 +2208,23 @@ void abs_lines_per_bandRelaxationMatrixLineMixingInAir(ArrayOfArrayOfMatrix& rel
     }
     else if(linemixing_type == "LM2") {
       Vector data(9, 0);
-      
+
       for(auto k=0; k<n; k++) {
         auto& line = lines[k];
         const Numeric exp = line.Nair();
-        
+
         auto X = compute_2nd_order_lm_coeff(Y(joker, k), temperatures, exp, line.Ti0());
         data[0] = X.y0;
         data[1] = X.y1;
         data[2] = exp;
-        
+
         if(do_g) {
           X = compute_2nd_order_lm_coeff(G(joker, k), temperatures, 2*exp, line.Ti0());
           data[3] = X.y0;
           data[4] = X.y1;
           data[5] = 2*exp;
         }
-        
+
         if(do_dv) {
           X = compute_2nd_order_lm_coeff(DV(joker, k), temperatures, 2*exp, line.Ti0());
           data[6] = X.y0;
@@ -2132,7 +2235,184 @@ void abs_lines_per_bandRelaxationMatrixLineMixingInAir(ArrayOfArrayOfMatrix& rel
       }
     }
     else {
-      throw std::runtime_error("Cannot interpret type of line mixing");
+      throw "Cannot interpret type of line mixing";
     }
   }
+}
+catch(const char * e)
+{
+  std::ostringstream os;
+  os << "Errors raised by *abs_lines_per_bandSetLineMixingFromRelmat*:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
+}
+catch(const std::exception& e)
+{
+  std::ostringstream os;
+  os << "Errors in calls by *abs_lines_per_bandSetLineMixingFromRelmat*:\n";
+  os << e.what();
+  throw std::runtime_error(os.str());
+}
+
+
+#include <Eigen/Eigenvalues>
+#include "Faddeeva.hh"
+#include "physics_funcs.h"
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_xsec_per_speciesAddLineMixedLines(// WS Output:
+                                           ArrayOfMatrix& abs_xsec_per_species,
+                                           // WS Input:             
+                                           const ArrayOfArrayOfSpeciesTag& abs_species_per_band,
+                                           const ArrayOfArrayOfSpeciesTag& abs_species,
+                                           const Vector& f_grid,
+                                           const Vector& abs_p,
+                                           const Vector& abs_t,
+                                           const ArrayOfArrayOfMatrix& relmat_per_band,
+                                           const ArrayOfArrayOfLineRecord& abs_lines_per_band,
+                                           const SpeciesAuxData& isotopologue_ratios,
+                                           const SpeciesAuxData& partition_functions,
+                                           const Verbosity&)
+try
+{
+  const auto nb=abs_lines_per_band.nelem();
+  const auto nf=f_grid.nelem();
+  const auto np=abs_t.nelem();
+  
+  ComplexVector F(nf);
+  for(auto ip=0; ip<np; ip++) {
+    for(auto ib=0; ib<nb; ib++) {
+      const Index pos = find_first(abs_species, abs_species_per_band[ib]);
+      if(pos < 0) throw "Bad input, band species is not in absorption species";
+      
+      const auto& species = abs_species_per_band[pos][0];
+      const auto& band = abs_lines_per_band[ib];
+      
+      const auto N = abs_lines_per_band[ib].nelem();
+      const auto& W = relmat_per_band[ib][ip];  // nb. should be complex but is only real for now
+      Eigen::MatrixXcd M(N, N);
+      for(auto i1=0; i1<N; i1++) {
+        for(auto i2=0; i2<N; i2++) {
+          if(i1 not_eq i2)
+            M(i1, i2) =              + Complex(0, abs_p[ip]) * W(i1, i2);
+          else
+            M(i1, i2) = band[i1].F() + Complex(0, abs_p[ip]) * W(i1, i2);
+        }
+      }
+      
+      const Vector population = population_density_vector(band, partition_functions, abs_t[ip]);
+      const Vector dipole = dipole_vector(band, partition_functions);
+      const Eigen::ComplexEigenSolver<Eigen::MatrixXcd> decM(M, true);
+      const auto& D = decM.eigenvalues();
+      const ComplexVector B = equivalent_linestrengths(population, dipole, decM);
+      
+      F = 0;
+      for(Index il=0; il<N; il++) {
+        const Numeric gammaD = Linefunctions::DopplerConstant(abs_t[ip], species.SpeciesMass())*D[il].real();
+        for(auto iv=0; iv<nf; iv++) {
+          const Complex z = (f_grid[iv] - std::conj(D[il])) / gammaD;
+          const Complex w = Faddeeva::w(z);
+          F[iv] += (Constant::inv_sqrt_pi / gammaD) * w * std::conj(B[il]);
+        }
+      }
+      
+      for(Index iv=0; iv<nf; iv++) {
+        abs_xsec_per_species[pos](iv, ip) += isotopologue_ratios.getIsotopologueRatio(species) * F[iv].real();
+      }
+    }
+  }
+}
+catch(const char * e)
+{
+  std::ostringstream os;
+  os << "Errors raised by *abs_xsec_per_speciesAddLineMixedLines*:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
+}
+catch(const std::exception& e)
+{
+  std::ostringstream os;
+  os << "Errors in calls by *abs_xsec_per_speciesAddLineMixedLines*:\n";
+  os << e.what();
+  throw std::runtime_error(os.str());
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_xsec_per_speciesAddLineMixedLinesInAir(// WS Output:
+                                                ArrayOfMatrix& abs_xsec_per_species,
+                                                // WS Input:             
+                                                const ArrayOfArrayOfSpeciesTag& abs_species_per_band,
+                                                const ArrayOfArrayOfSpeciesTag& abs_species,
+                                                const Vector& f_grid,
+                                                const Vector& abs_p,
+                                                const Vector& abs_t,
+                                                const ArrayOfArrayOfLineRecord& abs_lines_per_band,
+                                                const SpeciesAuxData& isotopologue_ratios,
+                                                const SpeciesAuxData& partition_functions,
+                                                const Index& wigner_initialized,
+                                                const Verbosity& verbosity)
+try
+{
+  const auto nb=abs_lines_per_band.nelem();
+  const auto nf=f_grid.nelem();
+  const auto np=abs_t.nelem();
+  
+  ComplexVector F(nf);
+  for(auto ip=0; ip<np; ip++) {
+    for(auto ib=0; ib<nb; ib++) {
+      const Index pos = find_first(abs_species, abs_species_per_band[ib]);
+      if(pos < 0) throw "Bad input, band species is not in absorption species";
+      const auto& species = abs_species_per_band[pos][0];
+      const auto& band = abs_lines_per_band[ib];
+      
+      // nb. Make this agenda once more possibilities are available...
+      Matrix W;
+      relmatInAir(W, abs_lines_per_band[ib], abs_species_per_band, partition_functions, wigner_initialized, abs_t[ip], ib, verbosity);
+      
+      const auto N = abs_lines_per_band[ib].nelem();
+      Eigen::MatrixXcd M(N, N);
+      for(auto i1=0; i1<N; i1++) {
+        for(auto i2=0; i2<N; i2++) {
+          if(i1 not_eq i2)
+            M(i1, i2) =              + Complex(0, abs_p[ip]) * W(i1, i2);
+          else
+            M(i1, i2) = band[i1].F() + Complex(0, abs_p[ip]) * W(i1, i2);
+        }
+      }
+      
+      const Vector population = population_density_vector(band, partition_functions, abs_t[ip]);
+      const Vector dipole = dipole_vector(band, partition_functions);
+      const Eigen::ComplexEigenSolver<Eigen::MatrixXcd> decM(M, true);
+      const auto& D = decM.eigenvalues();
+      const ComplexVector B = equivalent_linestrengths(population, dipole, decM);
+      
+      F = 0;
+      for(Index il=0; il<N; il++) {
+        const Numeric gammaD = Linefunctions::DopplerConstant(abs_t[ip], species.SpeciesMass())*D[il].real();
+        for(auto iv=0; iv<nf; iv++) {
+          const Complex z = (f_grid[iv] - std::conj(D[il])) / gammaD;
+          const Complex w = Faddeeva::w(z);
+          F[iv] += (Constant::inv_sqrt_pi / gammaD) * w * std::conj(B[il]);
+        }
+      }
+      
+      for(Index iv=0; iv<nf; iv++) {
+        abs_xsec_per_species[pos](iv, ip) += isotopologue_ratios.getIsotopologueRatio(species) * F[iv].real();
+      }
+    }
+  }
+}
+catch(const char * e)
+{
+  std::ostringstream os;
+  os << "Errors raised by *abs_xsec_per_speciesAddLineMixedLinesInAir*:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
+}
+catch(const std::exception& e)
+{
+  std::ostringstream os;
+  os << "Errors in calls by *abs_xsec_per_speciesAddLineMixedLinesInAir*:\n";
+  os << e.what();
+  throw std::runtime_error(os.str());
 }

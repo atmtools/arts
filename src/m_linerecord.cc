@@ -1,15 +1,18 @@
 /* Copyright (C) 2015
  Richard Larsson <ric.larsson@gmail.com>
+
  
  This program is free software; you can redistribute it and/or modify it
  under the terms of the GNU General Public License as published by the
  Free Software Foundation; either version 2, or (at your option) any
  later version.
+
  
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
@@ -30,6 +33,7 @@ void abs_linesShiftFrequency(ArrayOfLineRecord& abs_lines, const Numeric& freqeu
     // Catch use case that is not a use case
     if(abs_lines.nelem()==0)
         throw std::runtime_error("*abs_lines* is empty.  Is shifting frequency really intended?");
+
     
     // Shift all line center frequencies
     for(Index jj=0;jj<abs_lines.nelem();jj++)
@@ -42,10 +46,12 @@ void abs_linesShiftFrequency(ArrayOfLineRecord& abs_lines, const Numeric& freqeu
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesRelativeLineStrengthShift(ArrayOfLineRecord& abs_lines, const Numeric& relative_line_strength_shift, const Verbosity&)
 {
+
     
     // Catch use case that is not a use case
     if(abs_lines.nelem()==0)
         throw std::runtime_error("*abs_lines* is empty.  Is shifting line strength really intended?");
+
     
     // Rescale all line strengths
     for(Index jj=0;jj<abs_lines.nelem();jj++)
@@ -58,10 +64,12 @@ void abs_linesRelativeLineStrengthShift(ArrayOfLineRecord& abs_lines, const Nume
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesShiftFrequency(ArrayOfArrayOfLineRecord& abs_lines_per_species, const Numeric& freqeuncy_shift, const Verbosity&)
 {
+
     
     // Catch use case that is not a use case
     if(abs_lines_per_species.nelem()==0)
         throw std::runtime_error("*abs_lines_per_species* is empty.  Is shifting frequency really intended?");
+
     
     // Simply shift all lines from their original frequency by input *freqeuncy_shift*.
     for(Index ii=0;ii<abs_lines_per_species.nelem();ii++)
@@ -79,10 +87,12 @@ void abs_lines_per_speciesShiftFrequency(ArrayOfArrayOfLineRecord& abs_lines_per
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesRelativeLineStrengthShift(ArrayOfArrayOfLineRecord& abs_lines_per_species, const Numeric& relative_line_strength_shift, const Verbosity&)
 {
+
     
     // Catch use case that is not a use case
     if(abs_lines_per_species.nelem()==0)
         throw std::runtime_error("*abs_lines_per_species* is empty.  Is shifting line strength really intended?");
+
     
     // Simply rescale all lines from their original line strength by input *relative_line_strength_shift*.
     for(Index ii=0;ii<abs_lines_per_species.nelem();ii++)
@@ -136,6 +146,7 @@ void abs_linesReplaceWithLines(ArrayOfLineRecord& abs_lines,
     // If any of the levels match partially or fully set the right quantum number
     switch (match_info[0].Upper())
     {
+
       case QMI_NONE:
         {
         ostringstream os;
@@ -152,6 +163,7 @@ void abs_linesReplaceWithLines(ArrayOfLineRecord& abs_lines,
         throw std::runtime_error(os.str());
         break;
         }
+
       case QMI_FULL:
         {
         lr_old = replacement_lines[ri];
@@ -236,6 +248,7 @@ void abs_linesReplaceParameterWithLinesParameter(ArrayOfLineRecord& abs_lines,
         throw std::runtime_error(os.str());
         break;
         }
+
       case QMI_FULL:
         switch (parameter_switch)
         {
@@ -277,8 +290,10 @@ void abs_linesChangeBaseParameterForMatchingLines(ArrayOfLineRecord& abs_lines,
                                               const Index& loose_matching,
                                               const Verbosity&)
 {
+
     
     Index parameter_switch = -1;
+
     
     if(parameter_name.nelem()==0)
         throw std::runtime_error("parameter_name is empty.\n");
@@ -288,6 +303,7 @@ void abs_linesChangeBaseParameterForMatchingLines(ArrayOfLineRecord& abs_lines,
         parameter_switch = 1;
     else if(parameter_name == "Lower State Energy")
         parameter_switch = 4;
+
     
     ArrayOfIndex matches;
     ArrayOfQuantumMatchInfo match_info;
@@ -298,24 +314,31 @@ void abs_linesChangeBaseParameterForMatchingLines(ArrayOfLineRecord& abs_lines,
         throw std::runtime_error("Multiple matches in comparison.  You set loose_matching to not allow this!\n");
     else if( matches.nelem()==0 )
         throw std::runtime_error("No match found!  Make sure your QuantumIdentifier is in abs_lines before using this function.\n(For instance, try to make sure quantum numbers are defined the same way.)\n");
+
     
     bool any=false;
+
     
     for(Index mii =0; mii<matches.nelem(); mii++)
     {
+
         
         // Skip if there are none in any of the levels
         if((match_info[mii].Upper()==QMI_NONE||match_info[mii].Lower()==QMI_NONE)&&loose_matching==0)
             continue;
+
         
         // Skip if there are any partials unless we accept loose matching
         if((match_info[mii].Upper()==QMI_PARTIAL||match_info[mii].Lower()==QMI_PARTIAL)&&loose_matching==0)
             continue;
+
         
         if(!any)
             any = true;
+
         
         LineRecord& lr = abs_lines[matches[mii]];
+
         
         switch (parameter_switch)
         {
@@ -346,8 +369,10 @@ void abs_linesChangeBaseParameterForMatchingLines(ArrayOfLineRecord& abs_lines,
                 break;
             }
             
+
         }
     }
+
     
     if(!any)
         throw std::runtime_error("You have no matches.  This is not accepted as a valid use case.  (Is your matching information correct?)\n");
@@ -362,8 +387,10 @@ void abs_linesSetBaseParameterForMatchingLines(ArrayOfLineRecord& abs_lines,
                                                const Index& loose_matching,
                                                const Verbosity&)
 {
+
     
     Index parameter_switch = -1;
+
     
     if(parameter_name.nelem()==0)
         throw std::runtime_error("parameter_name is empty.\n");
@@ -373,6 +400,7 @@ void abs_linesSetBaseParameterForMatchingLines(ArrayOfLineRecord& abs_lines,
         parameter_switch = 1;
     else if(parameter_name == "Lower State Energy")
         parameter_switch = 4;
+
     
     ArrayOfIndex matches;
     ArrayOfQuantumMatchInfo match_info;
@@ -383,23 +411,29 @@ void abs_linesSetBaseParameterForMatchingLines(ArrayOfLineRecord& abs_lines,
         throw std::runtime_error("Multiple matches in comparison.  You set loose_matching to not allow this!\n");
     else if( matches.nelem()==0 )
         throw std::runtime_error("No match found!  Make sure your QuantumIdentifier is in abs_lines before using this function.\n(For instance, try to make sure quantum numbers are defined the same way.)\n");
+
     
     bool any=false;
+
     
     for(Index mii =0; mii<matches.nelem(); mii++)
     {
         // Skip if there are none in any of the levels
         if((match_info[mii].Upper()==QMI_NONE||match_info[mii].Lower()==QMI_NONE)&&loose_matching==0)
             continue;
+
         
         // Skip if there are any partials unless we accept loose matching
         if((match_info[mii].Upper()==QMI_PARTIAL||match_info[mii].Lower()==QMI_PARTIAL)&&loose_matching==0)
             continue;
+
         
         if(!any)
             any = true;
+
         
         LineRecord& lr = abs_lines[matches[mii]];
+
         
         switch (parameter_switch)
         {
@@ -421,8 +455,10 @@ void abs_linesSetBaseParameterForMatchingLines(ArrayOfLineRecord& abs_lines,
                 break;
             }
             
+
         }
     }
+
     
     if(!any)
         throw std::runtime_error("You have no matches.  This is not accepted as a valid use case.  (Is your matching information correct?)\n");
@@ -444,6 +480,7 @@ void abs_linesSetLineFunctionDataParameterForMatchingLines(ArrayOfLineRecord& ab
       lr.SetLineFunctionDataVariable(new_value, species, parameter, coefficient);
       if(not any) any = true;
     }
+
   }
   
   if(not any) throw std::runtime_error("You have no matches.  This is not accepted as a valid use case.  (Is your matching information correct?)\n");
@@ -470,6 +507,7 @@ void abs_linesChangeLineFunctionDataParameterForMatchingLines(ArrayOfLineRecord&
         lr.SetLineFunctionDataVariable(old + change, species, parameter, coefficient);
       if(not any) any = true;
     }
+
   }
   
   if(not any) {
@@ -515,6 +553,7 @@ void nlteSetByQuantumIdentifiers(Index&                           nlte_do,
       << "Your vibrational levels are:\n" <<vibrational_energies;
       throw std::runtime_error(os.str());
     }
+
   }
   
   for (Index qi = 0; qi < nlte_quantum_identifiers.nelem(); qi++) {
@@ -623,15 +662,19 @@ void f_gridFromabs_linesSet(Vector& f_grid,
                             const Verbosity&         verbosity)
 {
     CREATE_OUT2;
+
     
     const Index lines = abs_lines.nelem();
+
     
     if(line_nr<0)
         f_grid.resize(lines*nr_f_per_line);
     else
         f_grid.resize(nr_f_per_line);
+
     
     out2 << "  Creating f_grid vector of length "<<f_grid.nelem();
+
     
     if(lines == 0)
         throw std::runtime_error("You need at least one line to run this code.\n");
@@ -639,9 +682,11 @@ void f_gridFromabs_linesSet(Vector& f_grid,
         throw std::runtime_error("You specified a line number that is outside the range of abs_lines.\n");
     if(nr_f_per_line<1)
         throw std::runtime_error("You need more than 0 frequencies per line to execute this function.\n");
+
     
     // Helper variable to ensure that there are no overlaps
     Numeric f_max = 0.0;
+
     
     if(line_nr>=0) // there is a line, then set frequency for a single line
     {
@@ -675,12 +720,15 @@ void f_gridFromabs_lines_per_speciesSetFromSpeciesTag(Vector& f_grid,
                                                       const Verbosity&                verbosity)
 {
     CREATE_OUT2;
+
     
     if(species_tag == "")
         throw std::runtime_error("You need at least one tag in this code.\n");
+
     
     ArrayOfSpeciesTag st;
     array_species_tag_from_string(st,species_tag);
+
     
     for(Index ii=0; ii<abs_species.nelem(); ii++)
     {
@@ -704,6 +752,7 @@ void f_gridFromabs_lines_per_speciesSetFromSpeciesTag(Vector& f_grid,
             }
         }
     }
+
     
     throw std::runtime_error("No frequency set for the given species_tag.\n");
 }
@@ -816,4 +865,45 @@ void abs_lines_per_speciesCutOffForAll(ArrayOfArrayOfLineRecord& abs_lines_per_s
 {
   for(auto& abs_lines: abs_lines_per_species)
     abs_linesCutOffForAll(abs_lines, option, verbosity);
+}
+
+void abs_linesRemoveSelfFromLineFunctionData(ArrayOfLineRecord& abs_lines,
+                                             const Verbosity&)
+{
+  for(auto& line: abs_lines)
+    line.LineFunctionDataRemoveSelf();
+}
+
+
+void abs_lines_per_speciesRemoveSelfFromLineFunctionData(ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                                         const Verbosity& verbosity)
+{
+  for(auto& lines: abs_lines_per_species)
+    abs_linesRemoveSelfFromLineFunctionData(lines, verbosity);
+}
+
+void abs_linesRemoveAllButAirBroadening(ArrayOfLineRecord& abs_lines,
+                                        const Verbosity&)
+{
+  for(auto& line: abs_lines)
+    line.LineFunctionDataOnlyAir();
+}
+
+
+void abs_lines_per_speciesRemoveAllButAirBroadening(ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                                    const Verbosity& verbosity)
+{
+  for(auto& lines: abs_lines_per_species)
+    abs_linesRemoveAllButAirBroadening(lines, verbosity);
+}
+
+
+void abs_linesFromSplitLines(ArrayOfLineRecord& abs_lines,
+                             const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                             const Verbosity&)
+{
+  abs_lines.resize(0);
+  for(const auto& lines: abs_lines_per_species)
+    for(const auto& line: lines)
+      abs_lines.push_back(line);
 }

@@ -485,7 +485,26 @@ void define_md_data_raw()
         GIN_DESC( "Line shape function for each species.",
                   "Normalization factor for each species.",
                   "Cutoff frequency [Hz] for each species." )
-        ));
+      ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_linesFromSplitLines" ),
+      DESCRIPTION
+      (
+        "Combines *abs_lines_per_species* in to *abs_lines* without sorting\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_lines" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lines_per_species" ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()
+    ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -790,6 +809,28 @@ void define_md_data_raw()
       GIN_DESC( "Line-array that replace lines in *abs_lines*.",
                 "Name of parameter to be replaced"
       )
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_lines_per_bandSetLineMixingFromRelmat" ),
+      DESCRIPTION
+      (
+        "A dummy method to test line mixing.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT("abs_lines_per_band"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_band", "relmat_per_band", "partition_functions"),
+      GIN("temperatures", "linemixing_type", "do_g", "do_dv"),
+      GIN_TYPE("Vector", "String", "Index", "Index"),
+      GIN_DEFAULT(NODEF, "LM2", "1", "1",),
+      GIN_DESC("Vector of temperatures to compute the relaxation matrix at",
+               "String describing type of line mixing adaptation in linerecord after computations",
+               "Index to indicate if g is to be left as zero",
+               "Index to indicate if dv is to be left as zero")
     ));
     
     md_data_raw.push_back
@@ -2099,6 +2140,29 @@ void define_md_data_raw()
           "abs_species", "jacobian_quantities", "abs_species_active",
           "f_grid", "abs_p", "abs_t", "abs_nlte",
           "abs_vmrs", "abs_lines_per_species",
+          "isotopologue_ratios", "partition_functions"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "abs_xsec_per_speciesAddLineMixedLines" ),
+      DESCRIPTION
+      (
+        "Calculates the band-wise cross-section TEST FUNCTION\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_xsec_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_xsec_per_species",
+          "abs_species_per_band", "abs_species",
+          "f_grid", "abs_p", "abs_t",
+          "relmat_per_band", "abs_lines_per_band",
           "isotopologue_ratios", "partition_functions"),
       GIN(),
       GIN_TYPE(),
@@ -12869,6 +12933,25 @@ void define_md_data_raw()
 
   md_data_raw.push_back     
     ( MdRecord
+      ( NAME( "PrintSelfLineMixingStatus" ),
+        DESCRIPTION
+        (
+         "Test function for printing status of linemixing.\n"
+         ),
+        AUTHORS( "Richard Larsson" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN("abs_lines_per_band", "abs_species_per_band"),
+        GIN("temperature"),
+        GIN_TYPE("Numeric"),
+        GIN_DEFAULT("296"),
+        GIN_DESC("Temperature to evaluate at")
+        ));
+
+  md_data_raw.push_back     
+    ( MdRecord
       ( NAME( "PrintWorkspace" ),
         DESCRIPTION
         (
@@ -19095,24 +19178,21 @@ void define_md_data_raw()
     
     md_data_raw.push_back
     ( MdRecord
-    ( NAME( "abs_lines_per_bandRelaxationMatrixLineMixingInAir" ),
+    ( NAME( "relmat_per_bandInAir" ),
       DESCRIPTION
       (
         "A dummy method to test line mixing.\n"
       ),
       AUTHORS( "Richard Larsson" ),
-      OUT("relmat_per_band", "abs_lines_per_band"),
+      OUT("relmat_per_band"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines_per_band", "abs_species_per_band", "partition_functions", "wigner_initialized"),
-      GIN("temperatures", "linemixing_type", "do_g", "do_dv"),
-      GIN_TYPE("Vector", "String", "Index", "Index"),
-      GIN_DEFAULT(NODEF, "LM2", "1", "1",),
-      GIN_DESC("Vector of temperatures to compute the relaxation matrix at",
-               "String describing type of line mixing adaptation in linerecord after computations",
-               "Index to indicate if g is to be left as zero",
-               "Index to indicate if dv is to be left as zero")
+      GIN("temperatures"),
+      GIN_TYPE("Vector"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Vector of temperatures to compute the relaxation matrix at")
     ));
  
   md_data_raw.push_back

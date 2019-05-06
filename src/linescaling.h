@@ -123,8 +123,9 @@ Numeric dsingle_partition_function_dT(const Numeric& QT, const Numeric& T, const
                                       const SpeciesAuxData::AuxType& partition_type,
                                       const ArrayOfGriddedField1& partition_data);
 
-Numeric stimulated_emission(const Numeric& T,
-                            const Numeric& F0);
+Numeric stimulated_emission(Numeric, Numeric);
+Numeric dstimulated_emissiondT(Numeric, Numeric);
+Numeric dstimulated_emissiondF0(Numeric, Numeric);
 
 Numeric stimulated_relative_emission(const Numeric& gamma, 
                                      const Numeric& gamma_ref);
@@ -147,7 +148,9 @@ Numeric dboltzman_ratio_dT(const Numeric& boltzmann_ratio,
                            const Numeric& T,
                            const Numeric& E0);
 
-Numeric boltzman_factor(const Numeric& T, const Numeric& E0);
+Numeric boltzman_factor(Numeric, Numeric);
+Numeric dboltzman_factordT(Numeric, Numeric);
+Numeric dboltzman_factordE0(Numeric, Numeric);
 
 Numeric absorption_nlte_ratio(const Numeric& gamma,
                               const Numeric& r_upp=1.0,

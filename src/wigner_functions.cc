@@ -53,8 +53,11 @@ Numeric wigner3j(const Rational j1,const Rational j2,const Rational j3,
             e = int((2*m2).toIndex()), 
             f = int((2*m3).toIndex());
   double g;
-            
+  
+  wig_temp_init(std::max(std::max(std::abs(a), std::max(std::abs(b), std::abs(c))), 
+                         std::max(std::abs(d), std::max(std::abs(e), std::abs(f)))));
   g = WIGNER3(a, b, c, d, e, f);
+  wig_temp_free();
   
   return Numeric(g);
 }

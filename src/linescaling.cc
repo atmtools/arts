@@ -497,14 +497,30 @@ Numeric dsingle_partition_function_dT(const Numeric& QT, const Numeric& T, const
 }
 
 
-Numeric stimulated_emission(const Numeric& T,
-                            const Numeric& F0)
+Numeric stimulated_emission(Numeric T,
+                            Numeric F0)
 {
-  extern const Numeric PLANCK_CONST;
-  extern const Numeric BOLTZMAN_CONST;
-  static const Numeric c = - PLANCK_CONST / BOLTZMAN_CONST;
-  
-  return exp(c * F0 / T);
+  using namespace Constant;
+  static constexpr Numeric c1 = - h / k;
+  return std::exp(c1 * F0 / T);
+}
+
+
+Numeric dstimulated_emissiondT(Numeric T,
+                               Numeric F0)
+{
+  using namespace Constant;
+  static constexpr Numeric c1 = - h / k;
+  return -F0*c1*std::exp(F0*c1/T)/pow2(T);
+}
+
+
+Numeric dstimulated_emissiondF0(Numeric T,
+                                Numeric F0)
+{
+  using namespace Constant;
+  static constexpr Numeric c1 = - h / k;
+  return c1*std::exp(F0*c1/T)/T;
 }
 
 
@@ -568,13 +584,32 @@ Numeric dboltzman_ratio_dT(const Numeric& boltzmann_ratio,
 
 
 // Boltzmann factor at T
-Numeric boltzman_factor(const Numeric& T,
-                        const Numeric& E0)
+Numeric boltzman_factor(Numeric T,
+                        Numeric E0)
 {
-  extern const Numeric BOLTZMAN_CONST;
-  static const Numeric c = 1 / BOLTZMAN_CONST;
-  
-  return exp(-E0 * c / T);
+  using namespace Constant;
+  static constexpr Numeric c1 = - 1 / k;
+  return std::exp(c1 * E0 / T);
+}
+
+
+// Boltzmann factor at T
+Numeric dboltzman_factordT(Numeric T,
+                           Numeric E0)
+{
+  using namespace Constant;
+  static constexpr Numeric c1 = - 1 / k;
+  return -E0*c1*std::exp(E0*c1/T)/pow2(T);
+}
+
+
+// Boltzmann factor at T
+Numeric dboltzman_factordE0(Numeric T,
+                            Numeric E0)
+{
+  using namespace Constant;
+  static constexpr Numeric c1 = - 1 / k;
+  return c1*std::exp(E0*c1/T)/T;
 }
 
 

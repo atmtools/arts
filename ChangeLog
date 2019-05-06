@@ -1,3 +1,40 @@
+2019-05-06  Richard Larsson <larsson@mps.mpg.de>
+
+    * arts-2-3-1252
+    
+    * src/absorption.{cc,h}:  Added "getIsotopologueRatio" for a speciesTag
+    
+    * src/constants.h: Added a static field as well.  Not sure what it is
+    doing in practice, but the advice I read is that static is good for
+    things that can be constexpr, but in cases that they are not evaluated
+    on compile is good to leave static...
+    
+    * src/linefunctiondata.cc,h:  Added method to remove species from broadening
+    data.  Mostly to save HD space in LM-modes
+    
+    * src/linefunctions.cc,h:  Added lte_linestrength to make life easier
+    
+    * src/linescaling.cc,h:  Added some functions to make linemixing derivatives
+    easier.  Not used yet...
+    
+    * src/m_linemixing.cc:  Added and changed several test functions.  Nothing
+    easy to use yet, and definitely not tested, but
+    (abs_xsec_per_speciesAddLineMixedLines) can produce numbers that 1)
+    emulates the values from the HITRAN linemixing code for Y, and 2) that
+    does not look bad in xsec-format.  In fact, the HITRAN xsec code seems
+    slightly worse in my view, but I have yet to verify it properly
+    
+    * src/linemixing.cc,h:  Modified after many tests to produce reasonable
+    results in xsec.  Need to verify modifications step-by-step still...
+    
+    * src/m_linerecord.cc:  Added methods to modify a LineRecord in various
+    formats.
+    
+    * src/quantum.h:  Added easier way to get quantum numbers back from QID.
+    
+    * src/wigner_functions.cc:  Modified an initialization bit.  These
+    functions require a bit of work possibly...
+
 2019-04-17  Manfred Brath  <manfred.brath@uni-hamburg.de>
 
     * arts-2-3-1251

@@ -36,6 +36,7 @@
 #include "linefunctiondata.h"
 #include "zeemandata.h"
 #include "constants.h"
+#include "wigner_functions.h"
 
 /* Forward declaration of classes */
 class SpeciesRecord;
@@ -454,13 +455,26 @@ public:
   Numeric A() const { return ma; }
   
   Numeric electric_dipole_moment_squared() const {
-    return 3 * Constant::h * Constant::epsilon_0 / (16 * Constant::pi) *
-    ma * Constant::pow3(Constant::c/mf);
+    using namespace Constant;
+    return 3 * h * epsilon_0 / (16 * pi) * ma * pow3(c/mf);
   }
   
   Numeric magnetic_dipole_moment_squared() const {
-    return 3 * Constant::h / (16 * Constant::pi * Constant::mu_0) *
-    ma * Constant::pow3(Constant::c/mf);
+    using namespace Constant;
+    return 3 * h / (16 * pi * mu_0) * ma * pow3(c/mf);
+  }
+  
+  Numeric reduced_rovibrational_dipole(Rational k=1) const {
+    const Rational Jf = LowerQuantumNumber(QuantumNumberType::J);
+    const Rational Ji = UpperQuantumNumber(QuantumNumberType::J);
+    const Rational lf = LowerQuantumNumber(QuantumNumberType::l2);
+    const Rational li = UpperQuantumNumber(QuantumNumberType::l2);
+    const Numeric val = std::sqrt(2*Jf.toNumeric() + 1) * wigner3j(Jf, k,      Ji,
+                                                                   li, lf-li, -lf);
+    if((Jf + lf) % 2)
+      return - val;
+    else
+      return + val;
   }
   
   /** ARTSCAT-4/5 Upper state stat. weight: */
@@ -506,6 +520,8 @@ public:
   const QuantumIdentifier& QuantumIdentity() const {return mqid;}
   const QuantumNumbers& LowerQuantumNumbers() const {return mqid.LowerQuantumNumbers();}
   const QuantumNumbers& UpperQuantumNumbers() const {return mqid.UpperQuantumNumbers();}
+  Rational LowerQuantumNumber(QuantumNumberType X) const {return mqid.LowerQuantumNumber(X);}
+  Rational UpperQuantumNumber(QuantumNumberType X) const {return mqid.UpperQuantumNumber(X);}
   bool InQuantumID(const QuantumIdentifier& qid) const {return mqid.In(qid);}
   bool UpperStateInQuantumID(const QuantumIdentifier& qid) const {return mqid.InUpper(qid);}
   bool LowerStateInQuantumID(const QuantumIdentifier& qid) const {return mqid.InLower(qid);}
@@ -556,6 +572,8 @@ public:
   
   LineFunctionData GetLineFunctionData() const {return mlinefunctiondata;}
   void SetLineFunctionData(const LineFunctionData& lfd) {mlinefunctiondata=lfd;}
+  void LineFunctionDataOnlyAir() {mlinefunctiondata.KeepOnlyBath();}
+  void LineFunctionDataRemoveSelf() {mlinefunctiondata.RemoveSelf();}
   void SetLineFunctionDataVariable(const Numeric& X, const String& spec, const String& var, const String& coeff) { mlinefunctiondata.Set(X, spec, coeff, var); }
   Numeric GetLineFunctionDataVariable(const String& spec, const String& var, const String& coeff) const { return mlinefunctiondata.Get(spec, coeff, var); }  
   void SetSpecial() {mlinefunctiondata.SetStandard(false);}

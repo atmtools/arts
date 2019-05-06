@@ -1000,6 +1000,16 @@ void Linefunctions::apply_VVW_scaling(Eigen::Ref<Eigen::VectorXcd> F,
 }
 
 
+Numeric Linefunctions::lte_linestrength(Numeric S0, Numeric E0, Numeric F0, Numeric QT0, Numeric T0, Numeric QT, Numeric T)
+{
+  const Numeric gamma = stimulated_emission(T, F0);
+  const Numeric gamma_ref = stimulated_emission(T0, F0);
+  const Numeric K1 = boltzman_ratio(T, T0, E0);
+  const Numeric K2 = stimulated_relative_emission(gamma, gamma_ref);
+  return S0 * K1 * K2 * QT0/QT;
+}
+
+
 /*!
  * Applies linestrength to already set line shape by LTE population type
  * 
