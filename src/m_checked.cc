@@ -515,11 +515,8 @@ void cloudbox_checkedCalc(
         ow << "The scattering methods are not (yet?) handling winds. For this\n"
            << "reason, the WSVs for wind fields must all be empty with an\n."
            << "active cloudbox.";
-        if( wind_w_field.npages() > 0 )
-          { throw runtime_error( ow.str() ); }
-        if( wind_v_field.npages() > 0 )
-          { throw runtime_error( ow.str() ); }
-        if( atmosphere_dim > 2  &&  wind_u_field.npages() > 0 )
+        if( !wind_w_field.empty() || !wind_v_field.empty() ||
+            !wind_u_field.empty() )
           { throw runtime_error( ow.str() ); }
       }
 
@@ -1032,6 +1029,11 @@ void sensor_checkedCalc(
 
   // Sensor position and LOS.
   //
+  if( sensor_pos.empty() )
+    throw runtime_error( "*sensor_pos* is empty. This is not allowed." );
+  if( sensor_los.empty() )
+    throw runtime_error( "*sensor_los* is empty. This is not allowed." );
+  //    
   if( sensor_pos.ncols() != atmosphere_dim )
     throw runtime_error( "The number of columns of sensor_pos must be "
                          "equal to the atmospheric dimensionality." );

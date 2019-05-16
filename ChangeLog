@@ -1,3 +1,13 @@
+2019-05-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-2-3-1253
+
+	* src/m_checked.cc (cloudbox_checkedCalc): Now using .empty() to
+	check if wind WSVs are empty.
+
+	(sensor_checkedCalc): There was an assert for empty sensor_los.
+	Now catched properly. Added same check for sensor_pos.
+
 2019-05-06  Richard Larsson <larsson@mps.mpg.de>
 
     * arts-2-3-1252
