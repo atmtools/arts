@@ -172,7 +172,7 @@ void transform_jacobian(
     else if (tfun == "atanh") {
       const Vector pars = jq.TFuncParameters();
       for (Index c = jis[i][0]; c <= jis[i][1]; ++c) {
-        jacobian(joker,c) *= 2*(pars[1]-pars[0]) / pow(exp(-x_t[c])+exp(x[c]),2.0);
+        jacobian(joker,c) *= 2*(pars[1]-pars[0]) / pow(exp(-x_t[c])+exp(x_t[c]),2.0);
       }
     }
     else{

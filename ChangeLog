@@ -1,5 +1,12 @@
 2019-05-28  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
+	* arts-2-3-1245
+
+	* src/jacobian.cc(transform_x_back):
+	Missed one term in atanh backtransform.
+
+2019-05-28  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
 	* arts-2-3-1244
 
 	* src/jacobian.[h, cc](transform_x_back):
