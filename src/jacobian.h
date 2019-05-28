@@ -275,7 +275,8 @@ void transform_x(
 
 void transform_x_back(
     Vector&                           x_t,
-    const ArrayOfRetrievalQuantity&   jqs );
+    const ArrayOfRetrievalQuantity&   jqs,
+    bool                              revert_functional_transforms = true);
 
 
 

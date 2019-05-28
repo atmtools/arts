@@ -148,6 +148,9 @@ void transform_jacobian(
   //
   jac_ranges_indices( jis, any_affine, jqs, true );
 
+  Vector x_t(x);
+  transform_x_back( x_t, jqs, false);
+
   // Apply functional transformations
   for (Index i = 0; i < jqs.nelem(); ++i) {
     const RetrievalQuantity &jq = jqs[i];
@@ -158,18 +161,18 @@ void transform_jacobian(
     }
     else if (tfun == "log") {
       for (Index c = jis[i][0]; c <= jis[i][1]; ++c) {
-        jacobian(joker,c) *= exp( x[c] );
+        jacobian(joker,c) *= exp( x_t[c] );
       }
     }
     else if (tfun == "log10") {
       for (Index c = jis[i][0]; c <= jis[i][1]; ++c) {
-        jacobian(joker,c) *= NAT_LOG_TEN * pow(10.0,x[c]);
+        jacobian(joker,c) *= NAT_LOG_TEN * pow(10.0,x_t[c]);
       }
     }
     else if (tfun == "atanh") {
       const Vector pars = jq.TFuncParameters();
       for (Index c = jis[i][0]; c <= jis[i][1]; ++c) {
-        jacobian(joker,c) *= 2*(pars[1]-pars[0]) / pow(exp(-x[c])+exp(x[c]),2.0);
+        jacobian(joker,c) *= 2*(pars[1]-pars[0]) / pow(exp(-x_t[c])+exp(x[c]),2.0);
       }
     }
     else{
@@ -218,7 +221,7 @@ void transform_jacobian(
  */
 void transform_x(
     Vector&                           x,
-    const ArrayOfRetrievalQuantity&   jqs )
+    const ArrayOfRetrievalQuantity&   jqs)
 {
   // Range indices without affine trans
   ArrayOfArrayOfIndex jis;
@@ -228,67 +231,67 @@ void transform_x(
   
   // Apply functional transformations
   for (Index i = 0; i < jqs.nelem(); ++i) {
-    const RetrievalQuantity &jq = jqs[i];
-    const String tfun = jq.TransformationFunc();
-    // Remember to add new functions also to transform_jacobian and transform_x_back
-    if (tfun == "") {
-      // Nothing to do
-    }
-    else if (tfun == "log") {
-      const Vector pars = jq.TFuncParameters();
-      for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
-        if( x[r] <= pars[0] )
-          {
-            ostringstream os;
-            os << "log-transformation selected for retrieval quantity with\n"
-               << "index " << i << " (0-based), but at least one value <= z_min\n"
-               << "found for this quantity. This is not allowed.";
-            throw std::runtime_error(os.str());
-          }
-        x[r] = log( x[r] - pars[0] );
+      const RetrievalQuantity &jq = jqs[i];
+      const String tfun = jq.TransformationFunc();
+      // Remember to add new functions also to transform_jacobian and transform_x_back
+      if (tfun == "") {
+          // Nothing to do
       }
-    }
-    else if (tfun == "log10") {
-      const Vector pars = jq.TFuncParameters();
-      for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
-        if( x[r] <= 0 )
-          {
-            ostringstream os;
-            os << "log10-transformation selected for retrieval quantity with\n"
-               << "index " << i << " (0-based), but at least one value <= z_min\n"
-               << "found for this quantity. This is not allowed.";
-            throw std::runtime_error(os.str());
+      else if (tfun == "log") {
+          const Vector pars = jq.TFuncParameters();
+          for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
+              if( x[r] <= pars[0] )
+              {
+                  ostringstream os;
+                  os << "log-transformation selected for retrieval quantity with\n"
+                     << "index " << i << " (0-based), but at least one value <= z_min\n"
+                     << "found for this quantity. This is not allowed.";
+                  throw std::runtime_error(os.str());
+              }
+              x[r] = log( x[r] - pars[0] );
           }
-        x[r] = log10( x[r] - pars[0] );
       }
-    }
-    else if (tfun == "atanh") {
-      const Vector pars = jq.TFuncParameters();
-      for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
-        if( x[r] <= pars[0] )
-          {
-            ostringstream os;
-            os << "atanh-transformation selected for retrieval quantity with\n"
-               << "index " << i << " (0-based), but at least one value <= z_min\n"
-               << "found for this quantity. This is not allowed.";
-            throw std::runtime_error(os.str());
+      else if (tfun == "log10") {
+          const Vector pars = jq.TFuncParameters();
+          for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
+              if( x[r] <= 0 )
+              {
+                  ostringstream os;
+                  os << "log10-transformation selected for retrieval quantity with\n"
+                     << "index " << i << " (0-based), but at least one value <= z_min\n"
+                     << "found for this quantity. This is not allowed.";
+                  throw std::runtime_error(os.str());
+              }
+              x[r] = log10( x[r] - pars[0] );
           }
-        if( x[r] >= pars[1] )
-          {
-            ostringstream os;
-            os << "atanh-transformation selected for retrieval quantity with\n"
-               << "index " << i << " (0-based), but at least one value is\n"
-               << ">= z_max. This is not allowed.";
-            throw std::runtime_error(os.str());
-          }
-        x[r] = atanh( 2*(x[r]-pars[0])/(pars[1]-pars[0]) - 1 );
       }
-    }
-    else{
-      assert(0);
-    }
+      else if (tfun == "atanh") {
+          const Vector pars = jq.TFuncParameters();
+          for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
+              if( x[r] <= pars[0] )
+              {
+                  ostringstream os;
+                  os << "atanh-transformation selected for retrieval quantity with\n"
+                     << "index " << i << " (0-based), but at least one value <= z_min\n"
+                     << "found for this quantity. This is not allowed.";
+                  throw std::runtime_error(os.str());
+              }
+              if( x[r] >= pars[1] )
+              {
+                  ostringstream os;
+                  os << "atanh-transformation selected for retrieval quantity with\n"
+                     << "index " << i << " (0-based), but at least one value is\n"
+                     << ">= z_max. This is not allowed.";
+                  throw std::runtime_error(os.str());
+              }
+              x[r] = atanh( 2*(x[r]-pars[0])/(pars[1]-pars[0]) - 1 );
+          }
+      }
+      else{
+          assert(0);
+      }
   }
-  
+
   // Apply affine transformations
   if( any_affine )
     {
@@ -330,7 +333,8 @@ void transform_x(
  */
 void transform_x_back(
     Vector&                           x_t,
-    const ArrayOfRetrievalQuantity&   jqs )
+    const ArrayOfRetrievalQuantity&   jqs,
+    bool revert_functional_transforms)
 {
   // Range indices without affine trans
   ArrayOfArrayOfIndex jis;
@@ -365,36 +369,38 @@ void transform_x_back(
       swap(x_t, x);
     }
 
-  // Revert functional transformations
-  for (Index i = 0; i < jqs.nelem(); ++i) {
-    const RetrievalQuantity &jq = jqs[i];
-    const String tfun = jq.TransformationFunc();
-    // Remember to add new functions also to transform_jacobian and transform_x_back
-    if (tfun == "") {
-      // Nothing to do
-    }
-    else if (tfun == "log") {
-      const Vector pars = jq.TFuncParameters();
-      for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
-        x_t[r] = pars[0] + exp( x_t[r] );
+  if (revert_functional_transforms) {
+      // Revert functional transformations
+      for (Index i = 0; i < jqs.nelem(); ++i) {
+          const RetrievalQuantity &jq = jqs[i];
+          const String tfun = jq.TransformationFunc();
+          // Remember to add new functions also to transform_jacobian and transform_x_back
+          if (tfun == "") {
+              // Nothing to do
+          }
+          else if (tfun == "log") {
+              const Vector pars = jq.TFuncParameters();
+              for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
+                  x_t[r] = pars[0] + exp( x_t[r] );
+              }
+          }
+          else if (tfun == "log10") {
+              const Vector pars = jq.TFuncParameters();
+              for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
+                  x_t[r] = pars[0] + pow( 10.0, x_t[r] );
+              }
+          }
+          else if (tfun == "atanh") {
+              const Vector pars = jq.TFuncParameters();
+              for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
+                  x_t[r] = pars[0] + ((pars[1]-pars[0])/2) * ( 1 + tanh( x_t[r] ) );
+              }
+          }
+          else{
+              assert(0);
+          }
       }
-    }
-    else if (tfun == "log10") {
-      const Vector pars = jq.TFuncParameters();
-      for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
-        x_t[r] = pars[0] + pow( 10.0, x_t[r] );
-      }
-    }
-    else if (tfun == "atanh") {
-      const Vector pars = jq.TFuncParameters();
-      for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
-        x_t[r] = pars[0] + ((pars[1]-pars[0])/2) * ( 1 + tanh( x_t[r] ) );
-      }
-    }
-    else{
-      assert(0);
-    }
-  }  
+  }
 }
 
 

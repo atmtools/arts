@@ -1,3 +1,13 @@
+2019-05-28  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1244
+
+	* src/jacobian.[h, cc](transform_x_back):
+	Added option to exclude functional transforms from backtransformation.
+
+	* src/m_jacobian.cc(transform_jacobian):
+	Fixed indexing of elements in x vector.
+
 2019-05-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-2-3-1253
