@@ -1,3 +1,62 @@
+2019-06-14  Richard Larsson <larsson@mps.mpg.de>
+
+	* arts-2-3-1246
+	
+	* src/jacobian.{cc,h}:  Split is_line_mixing_line_strength_parameter
+	into real and imaginary parts that are called by the original but
+	also separately
+	
+	* src/linefunctions.{cc,h}:  Fix the mirroring in pure lineshape (which no
+	one is using as far as I know).  Updated sign usage that confused me in
+	set_voigt.  Made apply_linemixing_scaling into apply_linemixing_scaling_and_mirroring
+	since there is supposed to be a conjugate on the line mixing strength component
+	of line mixing when adding the mirrored line.
+	
+	* src/linemixing.{cc,h}:  Still experimenting with these things.  Noticed that
+	since ARTS uses (1-iY) as line mixing order, there is a need to add a minus sign
+	in creation of Y.  Might be that similar things are required for G and DF but
+	since these are squared I am less sure.  Important additions are the Molecule
+	class since the computations for O2 Hamiltonian are too complicated to keep repeating
+	outside or by manual data.
+	
+	* src/linerecord.{cc,h}:  The biggest change is here and why the code is committed now.
+	ARTS is using internally (1-iY) as first order line mixing factor.  It seems LBLRTM is
+	using (1+iY) because the internal linemixing calculations that are still being evaluated
+	shows that this gives better agreement than the other way around.  I would recommend
+	anyone that has used the aer catalog to check the sanity of their results after updating
+	to this version of ARTS.
+	
+	Also, I added quadra and di pole handles to LineRecord.
+	
+	* src/m_linemixing.cc:  Still experimenting with things here.
+	
+	* src/m_oem.cc:  Added MatrixFromCovarianceMatrix convenience function since the 
+	typhon CovarianceMatrix reading failed with a strange error and I want to store
+	my final CovarianceMatrix.
+	
+	* src/propagationmatrix.h:  Added noexcept at rvalue junction.  Don't know exactly
+	what this does but have been informed it is important for copy or move operation
+	selections.
+	
+	* src/rational.{cc,h}:  Made Rational constexpr-able because of some extra time while 
+	running longer simulations.  I also made a slight design change so that it is considered
+	a logical error to use an undefined Rational in any kind of arithmetic operation.  Checks
+	on validity of accessing Rational should happen at an earlier stage than inside its
+	operations anyways.  Also added a sqrt() function that returns a Numeric (which is not
+	constexpr since we do not have a constexpr sqrt() in ARTS).
+	
+	* src/test_matpack.cc:  Added tests of Rational that fails at compile-time if the class
+	gets broken by changes to its interface.  There are no runtime code in the updated test.
+	
+	* src/transmissionmatrix.h: Same as propagationmatrix.h changes.
+	
+	* src/wigner_functions.{cc,h}:  Added initializations for the direct calls to wigner3j and
+	wigner6j.  Also added comment on O2 wigner-symbol.
+	
+	* src/zeemandata.cc:  Updated order of operations because while a div-0 operation is valid,
+	it produces an undefined Rational.  Since follow-up operations on said undefined Rational
+	are now considered logical errors, the old operations order threw a fit.
+
 2019-05-28  Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1245

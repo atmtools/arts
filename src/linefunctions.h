@@ -134,14 +134,17 @@ namespace Linefunctions
                                       const Complex& deigenvalue_dT=0.0,
                                       const Numeric& dL0_dT=0.0);
   
-  void apply_linemixing_scaling(Eigen::Ref<Eigen::VectorXcd> F,
-                                Eigen::Ref<Eigen::MatrixXcd> dF,
-                                const LineFunctionDataOutput& X,
-                                const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
-                                const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
-                                const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
-                                const LineFunctionDataOutput& dT=NoLineFunctionDataOutput(),
-                                const LineFunctionDataOutput& dVMR=NoLineFunctionDataOutput());
+  void apply_linemixing_scaling_and_mirroring(Eigen::Ref<Eigen::VectorXcd> F,
+                                              Eigen::Ref<Eigen::MatrixXcd> dF,
+                                              const Eigen::Ref<Eigen::VectorXcd> Fm,
+                                              const Eigen::Ref<Eigen::MatrixXcd> dFm,
+                                              const LineFunctionDataOutput& X,
+                                              const bool with_mirroring,
+                                              const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
+                                              const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
+                                              const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
+                                              const LineFunctionDataOutput& dT=NoLineFunctionDataOutput(),
+                                              const LineFunctionDataOutput& dVMR=NoLineFunctionDataOutput());
   
   void apply_rosenkranz_quadratic_scaling(Eigen::Ref<Eigen::VectorXcd> F,
                                           Eigen::Ref<Eigen::MatrixXcd> dF,

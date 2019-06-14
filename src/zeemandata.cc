@@ -68,13 +68,19 @@ inline Numeric caseB(const Rational& N,
   const Rational NN = N*(N+1);
   const Rational SS = S*(S+1);
   const Rational LL = Lambda*Lambda;
-  const Rational T1 = (JJ + SS - NN)           / JJ / 2;
-  const Rational T2 = (JJ - SS + NN) * LL / NN / JJ / 2;
   
   Numeric g;
-  if(JJ == 0)          g = 0.0;
-  else if(NN not_eq 0) g = GS * T1.toNumeric() + GL * T2.toNumeric();
-  else                 g = GS * T1.toNumeric();
+  if(JJ == 0)
+    g = 0.0;
+  else if(NN not_eq 0) {
+    const Rational T1 = (JJ + SS - NN)           / JJ / 2;
+    const Rational T2 = (JJ - SS + NN) * LL / NN / JJ / 2;
+    g = GS * T1.toNumeric() + GL * T2.toNumeric();
+  }
+  else {
+    const Rational T1 = (JJ + SS - NN)           / JJ / 2;
+    g = GS * T1.toNumeric();
+  }
   return g;
 }
 
@@ -87,13 +93,16 @@ inline Numeric caseA(const Rational& Omega,
                      const Numeric& GL) noexcept
 {  
   const Rational JJ = J*(J+1);
-  const Rational DIV = Omega / JJ;
-  const Rational T1 = Sigma  * DIV;
-  const Rational T2 = Lambda * DIV;
   
   Numeric g;
-  if(JJ == 0) g = 0.0;
-  else        g = GS * T1.toNumeric() + GL * T2.toNumeric();
+  if(JJ == 0)
+    g = 0.0;
+  else {
+    const Rational DIV = Omega / JJ;
+    const Rational T1 = Sigma  * DIV;
+    const Rational T2 = Lambda * DIV;
+    g = GS * T1.toNumeric() + GL * T2.toNumeric();
+  }
   return g; 
 }
 

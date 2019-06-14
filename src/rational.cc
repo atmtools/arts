@@ -30,32 +30,11 @@ USA. */
 #include "mystring.h"
 
 
-Index Rational::toIndex() const
-{
-  if(isUndefined())
-    throw std::runtime_error("Cannot convert undefined Rational to Index."); 
-  else if(mdenom == 1)
-    return mnom;
-  else if (mnom%mdenom) {
-      std::ostringstream os;
-      os << "Cannot convert Rational " << *this << " to Index.";
-      throw std::runtime_error(os.str());
-  }
-  return mnom/mdenom;
-}
-
-
-int Rational::toInt() const
-{
-  return int(toIndex());
-}
-
-
 void Rational::Simplify()
 {
     Index ii = mdenom;
 
-    while( ii != 0 )
+    while( ii > 0 )
     {
         if( mnom % ii == 0 && mdenom % ii == 0 )
         {

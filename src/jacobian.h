@@ -500,6 +500,10 @@ bool is_nlte_parameter(const RetrievalQuantity& t);
 
 bool is_line_mixing_DF_parameter(const RetrievalQuantity& t);
 
+bool is_imag_line_mixing_strength_parameter(const RetrievalQuantity& t);
+
+bool is_real_line_mixing_strength_parameter(const RetrievalQuantity& t);
+
 bool is_line_mixing_line_strength_parameter(const RetrievalQuantity& t);
 
 bool is_line_mixing_parameter(const RetrievalQuantity& t);

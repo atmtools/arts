@@ -109,8 +109,7 @@ void Linefunctions::set_lineshape(Eigen::Ref<Eigen::VectorXcd> F,
           break;
       }
       
-      // Apply mirroring;  FIXME: Add conjugate?
-      F.noalias() -= Fm;
+      F.noalias() += Fm;
       break;
     }
   }
@@ -596,7 +595,7 @@ void Linefunctions::set_voigt(Eigen::Ref<Eigen::VectorXcd> F,
   const Numeric F0 = F0_noshift + zeeman_df * magnetic_magnitude + x.D0 + x.DV;
   const Numeric GD = GD_div_F0 * F0;
   const Numeric invGD = 1.0 / GD;
-  const Numeric dGD_dT = dGD_div_F0_dT * F0 + GD_div_F0 * (-dxdT.D0 - dxdT.DV);
+  const Numeric dGD_dT = dGD_div_F0_dT * F0 - GD_div_F0 * (dxdT.D0 + dxdT.DV);
   
   // constant normalization factor for Voigt
   const Numeric fac = Constant::inv_sqrt_pi * invGD;
@@ -793,47 +792,81 @@ void Linefunctions::set_voigt_from_full_linemixing(Eigen::Ref<Eigen::VectorXcd> 
 
 
 /*!
- * Applies line mixing scaling to already set lineshape
+ * Applies line mixing scaling to already set lineshape and line mirror
+ * 
+ * Equation: 
+ *   with_mirroring:
+ *     F := (1+G-iY) * F + (1+G+iY) * Fm
+ *   else:
+ *     F := (1+G-iY) * F
+ * 
+ * and appropriate derivatives
  * 
  * \retval F Lineshape
  * \retval dF Lineshape derivative
  * 
- * \param Y First-order line-mixing coefficient
- * \param G Second order line-mixing coefficient
+ * \param Fm Mirrored lineshape
+ * \param dFm Mirrored lineshape derivative
+ * \param X Variable with line mixing information
  * \param derivatives_data Information about the derivatives in dF
  * \param derivatives_data_position Information about the derivatives positions in dF
  * \param quantum_identity ID of the absorption line
- * \param dY_dT Temperature derivative of Y
- * \param dG_dT Temperature derivative of G
- * \param df_range Frequency range to use inside dF
+ * \param dT Variable with line mixing temperature derivative information
+ * \param dVMR Variable with line mixing VMR derivative information
  * 
  */
-void Linefunctions::apply_linemixing_scaling(Eigen::Ref<Eigen::VectorXcd> F,
-                                             Eigen::Ref<Eigen::MatrixXcd> dF,
-                                             const LineFunctionDataOutput& X,
-                                             const ArrayOfRetrievalQuantity& derivatives_data,
-                                             const ArrayOfIndex& derivatives_data_position,
-                                             const QuantumIdentifier& quantum_identity,
-                                             const LineFunctionDataOutput& dT,
-                                             const LineFunctionDataOutput& dVMR)
+void Linefunctions::apply_linemixing_scaling_and_mirroring(Eigen::Ref<Eigen::VectorXcd> F,
+                                                           Eigen::Ref<Eigen::MatrixXcd> dF,
+                                                           const Eigen::Ref<Eigen::VectorXcd> Fm,
+                                                           const Eigen::Ref<Eigen::MatrixXcd> dFm,
+                                                           const LineFunctionDataOutput& X,
+                                                           const bool with_mirroring,
+                                                           const ArrayOfRetrievalQuantity& derivatives_data,
+                                                           const ArrayOfIndex& derivatives_data_position,
+                                                           const QuantumIdentifier& quantum_identity,
+                                                           const LineFunctionDataOutput& dT,
+                                                           const LineFunctionDataOutput& dVMR)
 {
   auto nppd = derivatives_data_position.nelem();
   
   const Complex LM = Complex(1.0 + X.G, -X.Y);
   
   dF *= LM;
-  for(auto iq=0; iq<nppd; iq++) {
-    const auto& deriv = derivatives_data[derivatives_data_position[iq]];
-    
-    if(deriv == JacPropMatType::Temperature)
-      dF.col(iq).noalias() += F * Complex(dT.G, -dT.Y);
-    else if(is_line_mixing_line_strength_parameter(deriv) and deriv.QuantumIdentity().In(quantum_identity))
-      dF.col(iq).noalias() = F;
-    else if(deriv == JacPropMatType::VMR and deriv.QuantumIdentity().In(quantum_identity))
-      dF.col(iq).noalias() += F * Complex(dVMR.G, - dVMR.Y);
+  if(with_mirroring) dF.noalias() += dFm * std::conj(LM);
+
+  if(with_mirroring) {
+    for(auto iq=0; iq<nppd; iq++) {
+      const auto& deriv = derivatives_data[derivatives_data_position[iq]];
+      
+      if(deriv == JacPropMatType::Temperature) {
+        const auto c = Complex(dT.G, -dT.Y);
+        dF.col(iq).noalias() += F * c + Fm * std::conj(c);
+      }
+      else if(is_real_line_mixing_strength_parameter(deriv) and deriv.QuantumIdentity().In(quantum_identity))
+        dF.col(iq).noalias() = F + Fm;
+      else if(is_imag_line_mixing_strength_parameter(deriv) and deriv.QuantumIdentity().In(quantum_identity))
+        dF.col(iq).noalias() = F - Fm;
+      else if(deriv == JacPropMatType::VMR and deriv.QuantumIdentity().In(quantum_identity)) {
+        const auto c = Complex(dVMR.G, -dVMR.Y);
+        dF.col(iq).noalias() += F * c + Fm * std::conj(c);
+      }
+    }
+  }
+  else {
+    for(auto iq=0; iq<nppd; iq++) {
+      const auto& deriv = derivatives_data[derivatives_data_position[iq]];
+      
+      if(deriv == JacPropMatType::Temperature)
+        dF.col(iq).noalias() += F * Complex(dT.G, -dT.Y);
+      else if(is_line_mixing_line_strength_parameter(deriv) and deriv.QuantumIdentity().In(quantum_identity))
+        dF.col(iq).noalias() = F;
+      else if(deriv == JacPropMatType::VMR and deriv.QuantumIdentity().In(quantum_identity))
+        dF.col(iq).noalias() += F * Complex(dVMR.G, -dVMR.Y);
+    }
   }
   
   F *= LM;
+  if(with_mirroring) F.noalias() += Fm * std::conj(LM);
 }
 
 /*!
@@ -1574,11 +1607,11 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
   // The user sets if they want mirroring by LSM MTM followed by an index
   // that is interpreted as either mirroring by the same line shape or as 
   // mirroring by Lorentz lineshape
+  const bool with_mirroring = line.GetMirroringType() not_eq MirroringType::None and 
+                              line.GetMirroringType() not_eq MirroringType::Manual;
   switch(line.GetMirroringType()) {
     case MirroringType::None:
     case MirroringType::Manual:
-      N.setZero();
-      dN.setZero();
       break;
     case MirroringType::Lorentz:
       set_lorentz(N, dN, data, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
@@ -1613,13 +1646,10 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
       break;
   }
   
-  // Apply mirroring; FIXME: should these be the conjugates?
-  F.noalias() += N;
-  dF.noalias() += dN;
-  
-  // Mixing can only apply to non-Doppler shapes
+  // Mixing and mirroring can only apply to non-Doppler shapes
   if(line.GetLineShapeType() not_eq LineFunctionData::LineShapeType::DP) {
-    apply_linemixing_scaling(F, dF, X, derivatives_data, derivatives_data_position, QI, dXdT, dXdVMR);
+    apply_linemixing_scaling_and_mirroring(F, dF, N, dN, X, with_mirroring,
+                                           derivatives_data, derivatives_data_position, QI, dXdT, dXdVMR);
     
     // Apply line mixing and pressure broadening partial derivatives        
     apply_linefunctiondata_jacobian_scaling(dF, derivatives_data, derivatives_data_position, QI, line,

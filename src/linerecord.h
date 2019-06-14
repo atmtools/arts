@@ -459,7 +459,7 @@ public:
     return 3 * h * epsilon_0 / (16 * pi) * ma * pow3(c/mf);
   }
   
-  Numeric magnetic_dipole_moment_squared() const {
+  Numeric magnetic_quadrapole_moment_squared() const {
     using namespace Constant;
     return 3 * h / (16 * pi * mu_0) * ma * pow3(c/mf);
   }
@@ -469,9 +469,22 @@ public:
     const Rational Ji = UpperQuantumNumber(QuantumNumberType::J);
     const Rational lf = LowerQuantumNumber(QuantumNumberType::l2);
     const Rational li = UpperQuantumNumber(QuantumNumberType::l2);
-    const Numeric val = std::sqrt(2*Jf.toNumeric() + 1) * wigner3j(Jf, k,      Ji,
-                                                                   li, lf-li, -lf);
-    if((Jf + lf) % 2)
+    const Numeric val = sqrt(2*Jf + 1) * wigner3j(Jf, k,      Ji,
+                                                  li, lf-li, -lf);
+    if((Jf + lf + 1) % 2)
+      return - val;
+    else
+      return + val;
+  }
+  
+  Numeric reduced_magnetic_quadrapole() const {
+    const Rational Jf = LowerQuantumNumber(QuantumNumberType::J);
+    const Rational Ji = UpperQuantumNumber(QuantumNumberType::J);
+    const Rational N  = LowerQuantumNumber(QuantumNumberType::N);
+    constexpr Rational one(1, 1);
+    const Numeric val = sqrt(6 * (2*Jf + 1) * (2*Ji + 1)) * wigner6j(one,  one,  one,
+                                                                     Ji,   Jf,   N);
+    if((Jf + N) % 2)
       return - val;
     else
       return + val;

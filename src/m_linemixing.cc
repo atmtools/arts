@@ -1050,7 +1050,7 @@ void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
       Linefunctions::set_voigt(F, dF, data, MapToEigen(f_grid), 0.0, 0.0, f0[iline], doppler_const, 
                                X, derivatives_data, derivatives_data_position, QI, ddoppler_const_dT, dT);
       
-      Linefunctions::apply_linemixing_scaling(F, dF, X, derivatives_data, derivatives_data_position, QI, dT);
+      Linefunctions::apply_linemixing_scaling_and_mirroring(F, dF, F, dF, X, false, derivatives_data, derivatives_data_position, QI, dT);
       
       Linefunctions::apply_dipole(F, dF, f0[iline], T, d0[iline], rhoT[iline], isotopologue_ratio, 
                                   derivatives_data, derivatives_data_position, QI, drhoT_dT[iline]);
@@ -1060,7 +1060,7 @@ void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
       Linefunctions::set_voigt(F, dF, data, MapToEigen(f_grid), 0.0, 0.0, f0[iline], doppler_const, 
                                X, derivatives_data, derivatives_data_position, QI);
       
-      Linefunctions::apply_linemixing_scaling(F, dF, X, derivatives_data, derivatives_data_position, QI);
+      Linefunctions::apply_linemixing_scaling_and_mirroring(F, dF, F, dF, X, false, derivatives_data, derivatives_data_position, QI);
       
       Linefunctions::apply_dipole(F, dF, f0[iline], T, d0[iline], rhoT[iline], isotopologue_ratio, derivatives_data, derivatives_data_position, QI);
     }
@@ -2077,9 +2077,11 @@ try
   // Ensure the species are consistent
   const auto& st = abs_species[species][0];
   
-  // Ensure only CO2-626 in line data for now :::FIXME:::Longterm:::
-  if(not st.IsSpecies("CO2") or not st.IsIsotopologue("626"))
-    throw "Limit in functionality encountered.  We only support CO2-626 for now.";
+  if(st.IsSpecies("CO2") and st.IsIsotopologue("626")) {}
+  else if (st.IsSpecies("O2") and st.IsIsotopologue("66")) {}
+  else
+    throw "Limit in functionality encountered.  We only support CO2-626 and O2-66 for now.";
+  
   
   for(auto& line: abs_lines)
     if(line.Species() not_eq st.Species() or line.Isotopologue() not_eq st.Isotopologue())
@@ -2311,7 +2313,10 @@ try
         for(auto iv=0; iv<nf; iv++) {
           const Complex z = (f_grid[iv] - std::conj(D[il])) / gammaD;
           const Complex w = Faddeeva::w(z);
-          F[iv] += (Constant::inv_sqrt_pi / gammaD) * w * std::conj(B[il]);
+          const Complex zm = (f_grid[iv] + D[il]) / gammaD;
+          const Complex wm = Faddeeva::w(zm);
+//           if(not iv) std::cout<<w<<" at "<<z<<". "<<wm<<" at "<<zm<<'.'<<'\n';
+          F[iv] += (Constant::inv_sqrt_pi / gammaD) * (w*std::conj(B[il]) + wm*B[il]);
         }
       }
       

@@ -1062,9 +1062,7 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
   
   Y /= ATM2PA;
   G /= ATM2PA/ATM2PA;
-  
-  // Set the data in the class
-  
+  Y *= -1;  // ARTS uses (1-iY) as line-mixing factor, LBLRTM CO2 uses (1+iY), so we must change sign
   
   // Test that this is the end  
   {

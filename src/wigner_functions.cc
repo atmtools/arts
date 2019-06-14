@@ -46,16 +46,17 @@
 Numeric wigner3j(const Rational j1,const Rational j2,const Rational j3,
                  const Rational m1,const Rational m2,const Rational m3)
 {
-  const int a = int((2*j1).toIndex()),
-            b = int((2*j2).toIndex()), 
-            c = int((2*j3).toIndex()), 
-            d = int((2*m1).toIndex()), 
-            e = int((2*m2).toIndex()), 
-            f = int((2*m3).toIndex());
+  const int a = (2*j1).toInt(),
+            b = (2*j2).toInt(), 
+            c = (2*j3).toInt(), 
+            d = (2*m1).toInt(), 
+            e = (2*m2).toInt(), 
+            f = (2*m3).toInt();
   double g;
+  const int j = std::max({std::abs(a), std::abs(b), std::abs(c),
+                          std::abs(d), std::abs(e), std::abs(f)}) * 3/2 + 1;
   
-  wig_temp_init(std::max(std::max(std::abs(a), std::max(std::abs(b), std::abs(c))), 
-                         std::max(std::abs(d), std::max(std::abs(e), std::abs(f)))));
+  wig_temp_init(j);
   g = WIGNER3(a, b, c, d, e, f);
   wig_temp_free();
   
@@ -77,15 +78,19 @@ Numeric wigner3j(const Rational j1,const Rational j2,const Rational j3,
 Numeric wigner6j(const Rational j1,const Rational j2,const Rational j3,
                  const Rational l1,const Rational l2,const Rational l3)
 {
-  const int a = int((2*j1).toIndex()),
-            b = int((2*j2).toIndex()), 
-            c = int((2*j3).toIndex()), 
-            d = int((2*l1).toIndex()), 
-            e = int((2*l2).toIndex()), 
-            f = int((2*l3).toIndex());
+  const int a = (2*j1).toInt(),
+            b = (2*j2).toInt(), 
+            c = (2*j3).toInt(), 
+            d = (2*l1).toInt(), 
+            e = (2*l2).toInt(), 
+            f = (2*l3).toInt();
   double g;
-  
+  const int j = std::max({std::abs(a), std::abs(b), std::abs(c),
+                          std::abs(d), std::abs(e), std::abs(f)});
+
+  wig_temp_init(j);
   g = WIGNER6(a, b, c, d, e, f);
+  wig_temp_free();
   
   return Numeric(g);
 }
@@ -99,7 +104,7 @@ Numeric wigner6j(const Rational j1,const Rational j2,const Rational j3,
  | li    0  -li |  | -lf    0  lf |  | Jf_p  Ji_p  L |
  \              /  \              /  \               /
  
- Note: The wig3jj and wig6jj functions takes two times the physical values
+ Note: The wigner library takes two times the physical values
        so, e.g., the 1 must be 2.  This hold true for all user inputs as well!
        
  Reference: 
@@ -118,8 +123,40 @@ Numeric co2_ecs_wigner_symbol(int Ji, int Jf, int Ji_p, int Jf_p, int L, int li,
 }
 
 
-
-Numeric o2_ecs_wigner_Qsymbol(int Nl, int Nk, int Jl, int Jk, int Jl_p, int Jk_p, int L)
+/*! Returns the wigner symbol used in Makarov etal 2013
+ 
+ Symbol:
+ /             \  /             \  /                 \  /                 \
+ |  Nl  Nk  L  |  |  L  Jk  Jl  |  |  L  Jk_p  Jl_p  |  |  L  Jk    Jl    |
+ |             |  <             >  <                 >  <                 >
+ |  0   0   0  |  |  1  Nl  Nk  |  |  1  Nl    Nk    |  |  1  Jl_p  Jk_p  |
+ \             /  \             /  \                 /  \                 /
+ 
+ 
+ Note: The wigner library takes two times the physical values
+       so, e.g., the 1 must be 2.  This hold true for all user inputs as well!
+  
+  Reference:
+  D.S. Makarov, M.Yu. Tretyakov, C. Boulet,
+  Line mixing in the 60-GHz atmospheric oxygen band: Comparison of the MPM and ECS model,
+  Journal of Quantitative Spectroscopy and Radiative Transfer,
+  Volume 124,
+  2013,
+  Pages 1-10,
+  ISSN 0022-4073,
+  https://doi.org/10.1016/j.jqsrt.2013.02.019.
+  (http://www.sciencedirect.com/science/article/pii/S0022407313000745)
+  Abstract: Precise profiles of the 60-GHz molecular oxygen band recorded earlier in a wide temperature range by means of a resonator spectrometer at atmospheric pressure were treated. High signal-to-noise ratio allows careful study of the band shape taking into consideration the mixing effect. Comparative analysis of the band profile calculated by an extended MPM (Millimeter-wave Propagation Model) and by the ECS (Energy Corrected Sudden) approximation model is presented. Some limitations of the MPM approach are discussed on the basis of the comparison of the two models. Interbranch coupling is shown to make a noticeable contribution to absorption which means that it should be taken into account as it is expected to improve band profile modeling accuracy.
+  Keywords: Molecular oxygen; Microwave spectroscopy; Profile shape modeling; Collisional coupling
+  
+  Note:  The ARTS implementation has not been tested in detail
+  
+  SIXJ(A,B,C,D,F) 
+  C            |  A  B  1  |       A+B+C+D                                
+  C            |  D  C  F  | = (-1)         W(ABCD;1F)                    
+  C            |_         _|                           
+ */
+Numeric o2_ecs_wigner_symbol(int Nl, int Nk, int Jl, int Jk, int Jl_p, int Jk_p, int L)
 {
   return WIGNER3(Nl, Nk, L,
                  0,  0,  0) * WIGNER6(L, Jk, Jl,
@@ -206,24 +243,19 @@ void ECS_wigner_CO2(Matrix& M,
   }
 }
 
+bool is_wigner_ready(int j) {
+  extern int wigxjpf_max_prime_decomp;
+  return not (j > wigxjpf_max_prime_decomp);
+}
+
 bool is_Wigner3_ready(const Rational& J)
 {
-  extern int wigxjpf_max_prime_decomp;
-  
   const int test = (J*6).toInt()/2 + 1;  // nb. J can be half-valued
-  if(test > wigxjpf_max_prime_decomp)
-    return false;
-  else
-    return true;
+  return is_wigner_ready(test);
 }
 
 bool is_Wigner6_ready(const Rational& J)
 {
-  extern int wigxjpf_max_prime_decomp;
-  
   const int test = (J*4).toInt() + 1;  // nb. J can be half-valued
-  if(test > wigxjpf_max_prime_decomp)
-    return false;
-  else
-    return true;
+  return is_wigner_ready(test);
 }

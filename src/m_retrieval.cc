@@ -1114,7 +1114,6 @@ void retrievalDefClose(Workspace& ws,
     ArrayOfArrayOfIndex ji_t;
     bool any_affine;
     jac_ranges_indices( ji_t, any_affine, jacobian_quantities );
-
     if (!covmat_sx.has_diagonal_blocks(ji_t)) {
         throw runtime_error("*covmat_sx* does not contain a diagonal block for each retrieval"
                             " quantity in the Jacobian.");

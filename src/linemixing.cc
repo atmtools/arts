@@ -24,7 +24,6 @@
 #include "wigner_functions.h"
 #include "sorting.h"
 #include "linescaling.h"
-#include "constants.h"
 #include "lin_alg.h"
 #include "linefunctions.h"
 
@@ -47,10 +46,13 @@ inline Numeric getB0(const SpeciesTag& main)
     else if(main.IsIsotopologue("88"))
       return 38313.72938e6;  // B.J. Drouin et al. Journal of Quantitative Spectroscopy & Radiative Transfer 111 (2010) 1167–1173
   }
+  else if(main.IsSpecies("O2")) {
+    return -1e99;
+  }
   else if(main.IsSpecies("CH4"))
     return Conversion::kaycm2freq(5.2);
   
-  throw std::runtime_error("Unsupported main species/isotopologue.  Check your broadening data");
+  throw std::runtime_error("Error in getB0: Unsupported main species/isotopologue.  Check your broadening data");
 }
 
 //! Adiabatic function format for supported scenarios
@@ -65,8 +67,11 @@ inline AdiabaticFactor adiabatic_factor(const SpeciesTag& main, const SpeciesTag
     return AdiabaticFactor({2.2e-10}, AdiabaticFactor::Type::Hartmann);
   else if(main.IsSpecies("CO2") and collider.IsSpecies("O2"))
     return AdiabaticFactor({2.4e-10}, AdiabaticFactor::Type::Hartmann);
+  else if(main.IsSpecies("O2")) {
+    return AdiabaticFactor({0.545e-10}, AdiabaticFactor::Type::Hartmann);
+  }
       
-  throw std::runtime_error("Unsupported species pairs, main-collider.  Check your broadening data");
+  throw std::runtime_error("Error in adiabatic_factor: Unsupported species pairs, main-collider.  Check your broadening data");
 }
 
 
@@ -92,13 +97,15 @@ inline BasisRate basis_rate(const SpeciesTag& main, const SpeciesTag& collider, 
       0.82 * std::pow(T0/T, -0.091),  // unitless 
       0.007},  // unitless
       BasisRate::Type::Hartmann);
+  else if(main.IsSpecies("O2"))
+    return BasisRate({-1e99, -1e99, -1e99}, BasisRate::Type::Hartmann);
   
-  throw std::runtime_error("Unsupported species pairs, main-collider.  Check your broadening data");
+  throw std::runtime_error("Error in basis_rate: Unsupported species pairs, main-collider.  Check your broadening data");
 }
 
 
 // A helper for insider relaxation_matrix_calculations
-enum class Species {CO2};
+enum class Species {CO2, O2_66};
 
 
 /*! Computes an individual W
@@ -117,6 +124,7 @@ Matrix relaxation_matrix_calculations(const ArrayOfLineRecord& lines,
                                       const Numeric& collider_vmr,
                                       const Numeric& T,
                                       const Index& size)
+try
 {
   const Index n = lines.nelem();
   Matrix W(n, n);
@@ -130,7 +138,9 @@ Matrix relaxation_matrix_calculations(const ArrayOfLineRecord& lines,
   Species spec;
   if(main.IsSpecies("CO2"))
     spec = Species::CO2;
-  else throw std::runtime_error("Unsupported species");
+  else if(main.IsSpecies("O2") and main.IsIsotopologue("66"))
+    spec = Species::O2_66;
+  else throw "Unsupported species";
   
   #pragma omp parallel for schedule(guided, 1) if(DO_FAST_WIGNER && !arts_omp_in_parallel())
   for(Index i=0; i<n; i++) {
@@ -150,7 +160,10 @@ Matrix relaxation_matrix_calculations(const ArrayOfLineRecord& lines,
           case Species::CO2:
             X = OffDiagonalElement::CO2_IR(lines[i], lines[j], popi, popj, br, af, T, B0, main.SpeciesMass(), collider.SpeciesMass());
             break;
-          default: throw std::runtime_error("DEVELOPER BUG:  Add species here as well, the other one is to check if the computations are valid at all...");
+          case Species::O2_66:
+            X = OffDiagonalElement::O2_66_MW(lines[i], lines[j], popi, popj, T, collider.SpeciesMass());
+            break;
+          default: throw "DEVELOPER BUG:  Add species here as well, the other one is to check if the computations are valid at all...";
         }
         
         W(i, j) = X.ij;
@@ -166,6 +179,20 @@ Matrix relaxation_matrix_calculations(const ArrayOfLineRecord& lines,
   W *= collider_vmr;
   return W;
 }
+catch(const char * e)
+{
+  std::ostringstream os;
+  os << "Errors raised by *relaxation_matrix_calculations*:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
+}
+catch(const std::exception& e)
+{
+  std::ostringstream os;
+  os << "Errors in calls by *relaxation_matrix_calculations*:\n";
+  os << e.what();
+  throw std::runtime_error(os.str());
+}
 
 
 /*! Renormalize W
@@ -179,8 +206,11 @@ void normalize_relaxation_matrix(Matrix& W,
                                  const ArrayOfLineRecord& lines,
                                  const SpeciesAuxData& partition_functions,
                                  const Numeric& T)
+try
 {
-  const Index n=d0.nelem();
+  const Index n=lines.nelem();
+  
+  Vector d = reduced_dipole_vector(lines, RedPoleType::ElectricRoVibDipole);
   
   // Index list showing sorting of W
   ArrayOfIndex sorted(n, 0);
@@ -214,9 +244,9 @@ void normalize_relaxation_matrix(Matrix& W,
     Numeric Sup=0, Slo=0;
     for(Index j=0; j<n; j++) {
       if(j <= i)
-        Sup += std::abs(d0[sorted[j]]) * Wr(i, j);
+        Sup += std::abs(d[sorted[j]]) * Wr(i, j);
       else
-        Slo += std::abs(d0[sorted[j]]) * Wr(i, j);
+        Slo += std::abs(d[sorted[j]]) * Wr(i, j);
     }
     
     Numeric UL = Sup / Slo;
@@ -239,6 +269,20 @@ void normalize_relaxation_matrix(Matrix& W,
     for(Index j=0; j<n; j++)
       W(sorted[i], sorted[j]) = Wr(i, j);
 }
+catch(const char * e)
+{
+  std::ostringstream os;
+  os << "Errors raised by *normalize_relaxation_matrix*:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
+}
+catch(const std::exception& e)
+{
+  std::ostringstream os;
+  os << "Errors in calls by *normalize_relaxation_matrix*:\n";
+  os << e.what();
+  throw std::runtime_error(os.str());
+}
 
 
 /*! Computes an individual W
@@ -260,6 +304,7 @@ inline Matrix hartmann_relaxation_matrix(const ArrayOfLineRecord& abs_lines,
                                          const SpeciesAuxData& partition_functions,
                                          const Numeric& T,
                                          const Index& size)
+try
 {
   // Size of problem
   const Index n=abs_lines.nelem();
@@ -274,6 +319,20 @@ inline Matrix hartmann_relaxation_matrix(const ArrayOfLineRecord& abs_lines,
   }
   
   return W;
+}
+catch(const char * e)
+{
+  std::ostringstream os;
+  os << "Errors raised by *hartmann_relaxation_matrix*:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
+}
+catch(const std::exception& e)
+{
+  std::ostringstream os;
+  os << "Errors in calls by *hartmann_relaxation_matrix*:\n";
+  os << e.what();
+  throw std::runtime_error(os.str());
 }
 
 
@@ -299,6 +358,7 @@ inline Numeric dpopulation_densitydT(Numeric T, Numeric E0, Numeric F0, Numeric 
 Vector population_density_vector(const ArrayOfLineRecord& abs_lines,
                                  const SpeciesAuxData& partition_functions,
                                  const Numeric& T)
+try
 {
   auto n=abs_lines.nelem();
   Vector p(n);
@@ -308,12 +368,26 @@ Vector population_density_vector(const ArrayOfLineRecord& abs_lines,
     
     for(auto i=0; i<n; i++) {
       if(abs_lines[i].IsNotSameSpecIso(abs_lines[0]))
-        throw std::runtime_error("Not the same species-isotopologue in a set of lines means they are not part of the same band.");
+        throw "Not the same species-isotopologue in a set of lines means they are not part of the same band.";
       p[i] = population_density(T, abs_lines[i].Elow(), abs_lines[i].F(), QT);
     }
   }
   
   return p;
+}
+catch(const char * e)
+{
+  std::ostringstream os;
+  os << "Errors raised by *population_density_vector*:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
+}
+catch(const std::exception& e)
+{
+  std::ostringstream os;
+  os << "Errors in calls by *population_density_vector*:\n";
+  os << e.what();
+  throw std::runtime_error(os.str());
 }
 
 
@@ -323,6 +397,7 @@ Vector population_density_vector(const ArrayOfLineRecord& abs_lines,
 */
 Vector dipole_vector(const ArrayOfLineRecord& abs_lines,
                      const SpeciesAuxData& partition_functions)
+try
 {
   const Index n=abs_lines.nelem();
   Vector d(n, 0);
@@ -335,6 +410,60 @@ Vector dipole_vector(const ArrayOfLineRecord& abs_lines,
       d[i] = std::sqrt(abs_lines[i].I0()/p0[i]);
   }
   return d;
+}
+catch(const char * e)
+{
+  std::ostringstream os;
+  os << "Errors raised by *dipole_vector*:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
+}
+catch(const std::exception& e)
+{
+  std::ostringstream os;
+  os << "Errors in calls by *dipole_vector*:\n";
+  os << e.what();
+  throw std::runtime_error(os.str());
+}
+
+
+/*! Computes the dipole moment
+ * \param abs_lines: all absorption lines of the band
+ * \return dipole moment of the absorption lines
+ */
+Vector reduced_dipole_vector(const ArrayOfLineRecord& abs_lines,
+                             const RedPoleType type)
+try
+{
+  const Index n=abs_lines.nelem();
+  Vector d(n, 0);
+  if(not n) return d;
+  
+  switch(type) {
+    case RedPoleType::ElectricRoVibDipole:
+      for(Index i=0; i<n; i++)
+        d[i] = abs_lines[i].reduced_rovibrational_dipole();
+      break;
+    case RedPoleType::MagneticQuadrapole:
+      for(Index i=0; i<n; i++)
+        d[i] = abs_lines[i].reduced_magnetic_quadrapole();
+      break;
+  }
+  return d;
+}
+catch(const char * e)
+{
+  std::ostringstream os;
+  os << "Errors raised by *reduced_dipole_vector*:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
+}
+catch(const std::exception& e)
+{
+  std::ostringstream os;
+  os << "Errors in calls by *reduced_dipole_vector*:\n";
+  os << e.what();
+  throw std::runtime_error(os.str());
 }
 
 
@@ -352,7 +481,7 @@ Vector rosenkranz_first_order(const ArrayOfLineRecord& abs_lines,
       if(std::isnormal(df))
         sum += d0[j] / d0[i] * W(i, j) / df;
     }
-    Y[i] = 2*sum;
+    Y[i] = -2*sum;  // Sign change because ARTS uses (1-iY)
   }
   
   return Y;
@@ -371,7 +500,7 @@ Vector rosenkranz_shifting_second_order(const ArrayOfLineRecord& abs_lines,
       if(std::isnormal(df))
         sum += W(i, j) * W(j, i) / df;
     }
-    DV[i] = sum;
+    DV[i] = sum;  // Does this require a sign change????
   }
   
   return DV;
@@ -423,11 +552,19 @@ Matrix hartmann_ecs_interface(const ArrayOfLineRecord& abs_lines,
                               const SpeciesAuxData& partition_functions,
                               const Numeric& T,
                               const Index& size)
+try
 {
   const Vector population = population_density_vector(abs_lines, partition_functions, T);
   const Vector dipole = dipole_vector(abs_lines, partition_functions);
   const Matrix W = hartmann_relaxation_matrix(abs_lines, main_species[0], population, dipole, collider_species, collider_species_vmr, partition_functions, T, size);
   return W;
+}
+catch(const std::exception& e)
+{
+  std::ostringstream os;
+  os << "Errors in calls by *hartmann_ecs_interface*:\n";
+  os << e.what();
+  throw std::runtime_error(os.str());
 }
 
 
@@ -494,6 +631,91 @@ OffDiagonalElementOutput OffDiagonalElement::CO2_IR(const LineRecord& j_line,
   
   const Numeric r = k_rho / j_rho;
   return {jbig ? sum : sum * r , jbig ? sum / r : sum};
+}
+
+
+Numeric o2_66_inelastic_cross_section_makarov(int L, Numeric T) {
+  using namespace Constant;
+  using namespace Molecule::O2_66;
+  
+  Numeric const1 = 0.086 + 8154e-7 * T;
+  static constexpr Numeric const2 = 0.5805;
+  
+  return (2*L + 1) / std::pow(L*L + L, const1) * 
+  std::exp(-const2 * h * hamiltonian_freq(L) / (k * T));
+}
+
+
+Numeric o2_66_adiabatic_factor_makarov(int L, Numeric T, Numeric collider_mass) {
+  using namespace Constant;
+  using namespace Conversion;
+  using namespace Molecule::O2_66;
+  
+  static constexpr Numeric const1 = 0.545e-10;
+  static constexpr Numeric constant = 2000 * R * inv_pi * pow2(inv_ln_2);
+  
+  // Mean speed of collisions
+  const Numeric invmu = (1/mass + 1/collider_mass);
+  const Numeric vm2 = constant * T * invmu;
+  
+  return inv_pow2(1.0 + pow2(freq2angfreq(hamiltonian_freq(L)-hamiltonian_freq(L-2)) * const1) / vm2 / 24.0);\
+}
+
+
+OffDiagonalElementOutput OffDiagonalElement::O2_66_MW(const LineRecord& line1,
+                                                      const LineRecord& line2,
+                                                      const Numeric& rho1,
+                                                      const Numeric& rho2,
+                                                      const Numeric& T,
+                                                      const Numeric& collider_mass)
+{
+  const Rational J1u = line1.UpperQuantumNumber(QuantumNumberType::J);
+  const Rational N1u = line1.UpperQuantumNumber(QuantumNumberType::N);
+  const Rational J1l = line1.LowerQuantumNumber(QuantumNumberType::J);
+  const Rational N1l = line1.LowerQuantumNumber(QuantumNumberType::N);
+  const Rational J2u = line2.UpperQuantumNumber(QuantumNumberType::J);
+  const Rational N2u = line2.UpperQuantumNumber(QuantumNumberType::N);
+  const Rational J2l = line2.LowerQuantumNumber(QuantumNumberType::J);
+  const Rational N2l = line2.LowerQuantumNumber(QuantumNumberType::N);
+  
+  // Find which is the 'upper' transition
+  const bool onebig = Molecule::O2_66::hamiltonian_freq(J1u.toNumeric(), (J1u-N1u).toInt(), (J1u-N1u).toInt())
+                    > Molecule::O2_66::hamiltonian_freq(J2u.toNumeric(), (J2u-N2u).toInt(), (J2u-N2u).toInt());
+  
+  // Define the transitions as in Makarov etal 2013, double the value for wiglib
+  const int Nk  = (2 * (onebig ? N1u : N2u).toInt());
+  const int Nkp = (2 * (onebig ? N1l : N2l).toInt());
+  const int Jk  = (2 * (onebig ? J1u : J2u).toInt());
+  const int Jkp = (2 * (onebig ? J1l : J2l).toInt());
+  const int Nl  = (2 * (onebig ? N2u : N1u).toInt());
+  const int Nlp = (2 * (onebig ? N2l : N1l).toInt());
+  const int Jl  = (2 * (onebig ? J2u : J1u).toInt());
+  const int Jlp = (2 * (onebig ? J2l : J1l).toInt());
+  
+  if(Nl not_eq Nlp or Nk not_eq Nkp)
+    throw "ERRROR, bad N-values";
+  
+  // 'length' of numbers
+  const Numeric lNk  = std::sqrt(Nk  + 1.0);
+  const Numeric lNl  = std::sqrt(Nl  + 1.0);
+  const Numeric lJk  = std::sqrt(Jk  + 1.0);
+  const Numeric lJl  = std::sqrt(Jl  + 1.0);
+  const Numeric lJkp = std::sqrt(Jkp + 1.0);
+  const Numeric lJlp = std::sqrt(Jlp + 1.0);
+  
+  // Constant independenf of L
+  const Numeric const1 = lNk * lNl * std::sqrt(lJk*lJl*lJkp*lJlp) * o2_66_inelastic_cross_section_makarov(Nk/2, T);
+  
+  Numeric sum=0;
+  for(int L=4; L<400; L+=4) {
+    const int sgn = ((Jk+Jl+L+2) % 4) ? 1 : -1;
+    
+    const Numeric const2 = sgn * const1 * o2_66_adiabatic_factor_makarov(L/2, T, collider_mass) / o2_66_inelastic_cross_section_makarov(L/2, T);
+    
+    sum += o2_ecs_wigner_symbol(Nl, Nk, Jl, Jk, Jlp, Jkp, L) * const2;
+  }
+  
+  return {onebig ? sum : sum * rho2 / rho1 , onebig ? sum * rho1 / rho2 : sum};
 }
 
 

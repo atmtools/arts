@@ -830,12 +830,32 @@ void test42()
 
 void test43()
 {
-    Rational r(3,2);
-    Rational r2;
-    r2 = 1;
-    cout << r2+r << endl;
-    cout << 1+r << endl;
-    cout << r+1 << endl;
+  // Simple construction compile-time test
+  constexpr Rational r(3, 2);  // should be 3/2
+  static_assert(r.Nom() == 3, "Setup of rational fail to initialize properly");
+  static_assert(r.Denom() == 2, "Setup of rational fail to initialize properly");
+  
+  // Simple expression compile-time test
+  constexpr Rational r2 = 1 + r;  // should be 5/2
+  static_assert(r2.Nom() == 5, "Setup of rational fail to initialize properly");
+  static_assert(r2.Denom() == 2, "Setup of rational fail to initialize properly");
+  
+  // Div-zero by index generates an undefined rational, div-by-undefined rational is a logical error
+  constexpr Rational r3 = r/0;  // should be undefined
+  static_assert(r3.Nom() == 3, "Setup of rational fail to initialize properly");
+  static_assert(r3.Denom() == 0, "Setup of rational fail to initialize properly");
+  static_assert(r3 not_eq r3, "Setup of rational fail to initialize properly");
+  static_assert(r3.isUndefined(), "Setup of rational fail to initialize properly");
+  
+  // Complicated expression compile-time test
+  constexpr Rational r4 = ((2*((((((r++)++)++)++) * Rational(1, 3))--))%3);  // should be 1/6
+  static_assert(r4.Nom() == 1, "Setup of rational fail to initialize properly");
+  static_assert(r4.Denom() == 6, "Setup of rational fail to initialize properly");
+  
+  // The simplify operation still does not work so some expressions can look a little bit silly
+  constexpr Rational r5 = 10 % Rational(6, 4);  // should be 1
+  static_assert(r5.Nom() == 4, "Setup of rational fail to initialize properly");
+  static_assert(r5.Denom() == 4, "Setup of rational fail to initialize properly");
 }
 
 
@@ -1531,9 +1551,9 @@ int main()
 //  test40();
 //  test41();
 //    test42();
-//    test43();
+    test43();
 //    test44();
-    test45();
+//    test45();
 //    test46();
 //  test47();
 

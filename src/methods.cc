@@ -10341,7 +10341,26 @@ void define_md_data_raw()
                   "Index of page or row or column to extract.",
                   "Direction. \"page\" or \"row\" or \"column\"." 
                   )
-        ));
+      ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "MatrixFromCovarianceMatrix" ),
+      DESCRIPTION
+      (
+        "Turns a covariance matrix into a Matrix.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Matrix"),
+      GOUT_DESC("Dense Matrix."),
+      IN(),
+      GIN("in"),
+      GIN_TYPE("CovarianceMatrix"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Input covariance matrix.")
+    ));
 
   md_data_raw.push_back
     ( MdRecord

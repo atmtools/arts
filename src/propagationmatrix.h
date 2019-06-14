@@ -75,11 +75,10 @@ public:
   mza(pm.mza), maa(pm.maa), 
   mdata(pm.mdata), mvectortype(pm.mvectortype) {}
     
-  PropagationMatrix(PropagationMatrix&& pm) :
+  PropagationMatrix(PropagationMatrix&& pm) noexcept :
   mfreqs(std::move(pm.mfreqs)), mstokes_dim(std::move(pm.mstokes_dim)),
   mza(std::move(pm.mza)), maa(std::move(pm.maa)),
-  mdata(), mvectortype(std::move(pm.mvectortype))
-  { swap(mdata, pm.mdata); }
+  mdata(std::move(pm.mdata)), mvectortype(std::move(pm.mvectortype)) {}
   
   explicit PropagationMatrix(ConstTensor4View x) : mfreqs(x.nrows()), mza(x.npages()), maa(x.nbooks()), mdata(x), mvectortype(false)
   {
@@ -217,7 +216,7 @@ public:
                         const Index iv=0, const Index iz=0, const Index ia=0)
     const;
   
-  PropagationMatrix& operator=(PropagationMatrix&& pm)
+  PropagationMatrix& operator=(PropagationMatrix&& pm) noexcept
   {
     if (this != &pm)
     {
@@ -225,7 +224,7 @@ public:
       mstokes_dim = std::move(pm.mstokes_dim);
       mza = std::move(pm.mza);
       maa = std::move(pm.maa);
-      swap(mdata, pm.mdata);
+      mdata = std::move(pm.mdata);
       mvectortype = std::move(pm.mvectortype);
     }
     return *this;

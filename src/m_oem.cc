@@ -2122,6 +2122,16 @@ void covmat_ssCalc(
     mult(covmat_ss, tmp1, tmp2);
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void MatrixFromCovarianceMatrix(
+  Matrix& S,
+  const CovarianceMatrix& Sc,
+  const Verbosity& /*v*/)
+{
+  S = Matrix(Sc);
+}
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void avkCalc(
     Matrix& avk,

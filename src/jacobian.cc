@@ -1893,15 +1893,22 @@ bool is_line_mixing_DF_parameter(const RetrievalQuantity& t)
          t == JacPropMatType::LineFunctionDataDVX2;
 }
 
-bool is_line_mixing_line_strength_parameter(const RetrievalQuantity& t)
-{
+bool is_imag_line_mixing_strength_parameter(const RetrievalQuantity& t) {
   return t == JacPropMatType::LineFunctionDataYX0 or
          t == JacPropMatType::LineFunctionDataYX1 or
-         t == JacPropMatType::LineFunctionDataYX2 or
-         
-         t == JacPropMatType::LineFunctionDataGX0 or
+         t == JacPropMatType::LineFunctionDataYX2;
+}
+
+bool is_real_line_mixing_strength_parameter(const RetrievalQuantity& t) {
+  return t == JacPropMatType::LineFunctionDataGX0 or
          t == JacPropMatType::LineFunctionDataGX1 or
          t == JacPropMatType::LineFunctionDataGX2;
+}
+
+bool is_line_mixing_line_strength_parameter(const RetrievalQuantity& t)
+{
+  return is_imag_line_mixing_strength_parameter(t) or
+         is_real_line_mixing_strength_parameter(t);
 }
 
 bool is_line_mixing_parameter(const RetrievalQuantity& t)

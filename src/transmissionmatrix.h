@@ -49,10 +49,19 @@ public:
   T2(stokes_dim==2?nf:0, Eigen::Matrix2d::Identity()), 
   T1(stokes_dim==1?nf:0, Eigen::Matrix<double, 1, 1>::Identity())
   { assert(stokes_dim < 5 and stokes_dim > 0); }
-  TransmissionMatrix(TransmissionMatrix&& tm)                 = default;
+  TransmissionMatrix(TransmissionMatrix&& tm) noexcept : stokes_dim(std::move(tm.stokes_dim)),
+  T4(std::move(tm.T4)), T3(std::move(tm.T3)), T2(std::move(tm.T2)), T1(std::move(tm.T1)) {}
   TransmissionMatrix(const TransmissionMatrix& tm)            = default;
   TransmissionMatrix& operator=(const TransmissionMatrix& tm) = default;
-  TransmissionMatrix& operator=(TransmissionMatrix&& tm)      = default;
+  TransmissionMatrix& operator=(TransmissionMatrix&& tm) noexcept
+  {
+    stokes_dim = std::move(tm.stokes_dim);
+    T4 = std::move(tm.T4);
+    T3 = std::move(tm.T3);
+    T2 = std::move(tm.T2);
+    T1 = std::move(tm.T1);
+    return *this;
+  }
   TransmissionMatrix(const PropagationMatrix& pm, const Numeric& r=1.0);
   
   operator Tensor3() const {
@@ -167,10 +176,19 @@ public:
   R2(stokes_dim==2?nf:0, Eigen::Vector2d::Zero()), 
   R1(stokes_dim==1?nf:0, Eigen::Matrix<double, 1, 1>::Zero())
   { assert(stokes_dim < 5 and stokes_dim > 0); }
-  RadiationVector(RadiationVector&& rv)                 = default;
+  RadiationVector(RadiationVector&& rv) noexcept : stokes_dim(std::move(rv.stokes_dim)),
+  R4(std::move(rv.R4)), R3(std::move(rv.R3)), R2(std::move(rv.R2)), R1(std::move(rv.R1)) {}
   RadiationVector(const RadiationVector& rv)            = default;
   RadiationVector& operator=(const RadiationVector& rv) = default;
-  RadiationVector& operator=(RadiationVector&& rv)      = default;
+  RadiationVector& operator=(RadiationVector&& rv) noexcept
+  {
+    stokes_dim = std::move(rv.stokes_dim);
+    R4 = std::move(rv.R4);
+    R3 = std::move(rv.R3);
+    R2 = std::move(rv.R2);
+    R1 = std::move(rv.R1);
+    return *this;
+  }
   
   void leftMul(const TransmissionMatrix& T) {
     for(size_t i=0; i<R4.size(); i++) R4[i] = T.Mat4(i) * R4[i];
