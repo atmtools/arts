@@ -658,7 +658,7 @@ Numeric o2_66_adiabatic_factor_makarov(int L, Numeric T, Numeric collider_mass) 
   const Numeric invmu = (1/mass + 1/collider_mass);
   const Numeric vm2 = constant * T * invmu;
   
-  return inv_pow2(1.0 + pow2(freq2angfreq(hamiltonian_freq(L)-hamiltonian_freq(L-2)) * const1) / vm2 / 24.0);\
+  return 1 / pow2(1.0 + pow2(freq2angfreq(hamiltonian_freq(L)-hamiltonian_freq(L-2)) * const1) / vm2 / 24.0);\
 }
 
 
@@ -742,7 +742,7 @@ Numeric AdiabaticFactor::mol_X(const int L,
   const Numeric vm2 = constant * T * invmu;
   
   // FIXME: With or without freq2angfreq???
-  return inv_pow2(1.0 + pow2(freq2angfreq(B0) * (4*L-2) * mdata[Index(HartmannPos::dc)]) / vm2 / 24.0);
+  return 1 / pow2(1.0 + pow2(freq2angfreq(B0) * (4*L-2) * mdata[Index(HartmannPos::dc)]) / vm2 / 24.0);
 }
 
 

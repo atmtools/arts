@@ -28,6 +28,7 @@
 
 
 #include "linefunctiondata.h"
+#include "constants.h"
 #include "file.h"
 
 
@@ -2002,13 +2003,38 @@ Numeric LineFunctionData::Get(const String& species, const String& coefficient, 
   return mdata[ispecies][current+ic];
 }
 
-LineFunctionDataOutput mirroredOutput(const LineFunctionDataOutput& v) noexcept
+LineFunctionDataOutput mirroredOutput(LineFunctionDataOutput v) noexcept
 {
-  auto t = v;
-  t.D0 *= -1;
-  t.D2 *= -1;
-  t.DV *= -1;
-  return t;
+  v.D0 *= -1;
+  v.D2 *= -1;
+  v.DV *= -1;
+  return v;
+}
+
+LineFunctionDataOutput si2cgs(LineFunctionDataOutput v)
+{
+  using Conversion::freq2kaycm;
+  
+  v.G0 = freq2kaycm(v.G0);
+  v.D0 = freq2kaycm(v.D0);
+  v.G2 = freq2kaycm(v.G2);
+  v.D2 = freq2kaycm(v.D2);
+  v.FVC = freq2kaycm(v.FVC);
+  v.DV = freq2kaycm(v.DV);
+  return v;
+}
+
+LineFunctionDataOutput cgs2si(LineFunctionDataOutput v)
+{
+  using Conversion::kaycm2freq;
+  
+  v.G0 = kaycm2freq(v.G0);
+  v.D0 = kaycm2freq(v.D0);
+  v.G2 = kaycm2freq(v.G2);
+  v.D2 = kaycm2freq(v.D2);
+  v.FVC = kaycm2freq(v.FVC);
+  v.DV = kaycm2freq(v.DV);
+  return v;
 }
 
 void LineFunctionData::Remove(Index i)

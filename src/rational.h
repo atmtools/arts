@@ -37,22 +37,20 @@ class Rational
 public:
     
     // Defining an object
-    constexpr Rational() : mnom(0), mdenom(1) {}
-    constexpr Rational(const Index n1) : mnom(n1), mdenom(1) {}
-    constexpr Rational(const Index n1, const Index n2) : mnom(n1), mdenom(n2) {}
+    constexpr Rational(const Index n1=0, const Index n2=1) : mnom(n1), mdenom(n2) {}
     
     // Reading values of object
     constexpr Index Nom() const {return mnom;}
     constexpr Index Denom() const {return mdenom;}
 
     // Status of object
-    constexpr bool isUndefined() const { return (mdenom == 0); }
-    constexpr bool isDefined() const { return mdenom not_eq 0; }
+    constexpr bool isUndefined() const {return (mdenom == 0);}
+    constexpr bool isDefined() const {return mdenom not_eq 0;}
     constexpr bool isIndex() const {return isDefined() and not bool(mnom%mdenom);}
 
     // Converting object
-    constexpr Index toIndex() const {return isIndex() ? mnom/mdenom : throw std::logic_error("Rational is not also Index");}
-    constexpr Numeric toNumeric() const {return Numeric(mnom)/Numeric(mdenom); }
+    constexpr Index toIndex() const {return isIndex() ? mnom/mdenom : throw std::logic_error("Rational is not representative of an integer");}
+    constexpr Numeric toNumeric() const {return Numeric(mnom)/Numeric(mdenom);}
     constexpr int toInt() const {return int(toIndex());}
 
     // Useful. Keep this around and/or improve.
@@ -74,13 +72,24 @@ public:
     Rational& operator++() {mnom += mdenom; return *this;}
     Rational& operator--() {mnom -= mdenom; return *this;}
     
-    // Boolean
-    explicit constexpr operator bool() const {return bool(mnom) and bool(mdenom);}
+    // Typecasts
+    explicit constexpr operator bool() const {return isDefined() and bool(mnom);}
+    explicit constexpr operator Numeric() const {return toNumeric();}
+    explicit constexpr operator Index() const {return toIndex();}
+    explicit constexpr operator int() const {return toInt();}
     
 private:
     // Rational is supposed to be used rationally ( mnom / mdenom )
     Index mnom;
     Index mdenom;
+    
+    // Used in Simplify() for reducing denominator
+    void fixSign()  {
+      if(mdenom < 0) {
+        mnom = - mnom;
+        mdenom = - mdenom;
+      }
+    }
 };
 
 #define RATIONAL_UNDEFINED Rational(0, 0)
@@ -103,14 +112,16 @@ constexpr Rational operator+(Rational a)
 constexpr Rational operator+(Rational a, Rational b)
 {
   return (a.isDefined() and b.isDefined()) ?
-         Rational(a.Nom()*b.Denom() + b.Nom()*a.Denom(), a.Denom() * b.Denom()) :
+         (a.Denom() == b.Denom()) ?
+         Rational(a.Nom() + b.Nom(), a.Denom()) :
+         Rational(a.Nom()*b.Denom() + b.Nom()*a.Denom(), a.Denom()*b.Denom()) :
   throw std::logic_error("Undefined Rational in operator+");
 }
 
 constexpr Rational operator+(Rational a, Index b) 
 {
   return a.isDefined() ? 
-         Rational(a.Nom()+b*a.Denom(),a.Denom()) :
+         Rational(a.Nom()+b*a.Denom(), a.Denom()) :
   throw std::logic_error("Undefined Rational in operator+");
 }
 
@@ -119,14 +130,16 @@ constexpr Rational operator+(Index b, Rational a) {return operator+(a, b);}
 constexpr Rational operator-(Rational a, Rational b)
 {
   return (a.isDefined() and b.isDefined()) ? 
-         Rational(a.Nom()*b.Denom() - b.Nom()*a.Denom(), a.Denom() * b.Denom()) :
+         (a.Denom() == b.Denom()) ?
+         Rational(a.Nom() - b.Nom(), a.Denom()) :
+         Rational(a.Nom()*b.Denom() - b.Nom()*a.Denom(), a.Denom()*b.Denom()) :
   throw std::logic_error("Undefined Rational in operator-");
 }
 
 constexpr Rational operator-(Rational a, Index b)
 {
   return a.isDefined() ?
-         Rational( a.Nom()-b*a.Denom(), a.Denom()) :
+         Rational(a.Nom()-b*a.Denom(), a.Denom()) :
   throw std::logic_error("Undefined Rational in operator-");
 }
 
@@ -140,35 +153,35 @@ constexpr Rational operator-(Index b, Rational a)
 constexpr Rational operator/(Rational a, Rational b)
 {
   return (a.isDefined() and b.isDefined()) ?
-         Rational(a.Nom()*b.Denom(),a.Denom() * b.Nom()) :
+         Rational(a.Nom()*b.Denom(), a.Denom()*b.Nom()) :
   (throw std::logic_error("Undefined Rational in operator/"));
 }
 
 constexpr Rational operator/(Rational a, Index b)
 {
   return a.isDefined() ?
-         Rational(a.Nom(),a.Denom()*b) :
+         Rational(a.Nom(), a.Denom()*b) :
   throw std::logic_error("Undefined Rational in operator/");
 }
 
 constexpr Rational operator/(Index b, Rational a)
 {
   return a.isDefined() ?
-         Rational(a.Denom()*b,a.Nom()) :
+         Rational(a.Denom()*b, a.Nom()) :
   throw std::logic_error("Undefined Rational in operator/");
 }
 
 constexpr Rational operator*(Rational a, Rational b)
 {
   return (a.isDefined() and b.isDefined()) ?
-         Rational(a.Nom()*b.Nom(),a.Denom() * b.Denom()) :
+         Rational(a.Nom()*b.Nom(), a.Denom()*b.Denom()) :
   throw std::logic_error("Undefined Rational in operator*");
 }
 
 constexpr Rational operator*(Rational a, Index b)
 {
   return a.isDefined() ?
-         Rational(a.Nom()*b,a.Denom()) :
+         Rational(a.Nom()*b, a.Denom()) :
   throw std::logic_error("Undefined Rational in operator*");
 }
 
@@ -177,6 +190,8 @@ constexpr Rational operator*(Index b, Rational a) {return operator*(a, b);}
 constexpr Rational operator%(Rational a, Rational b)
 {
   return (a.isDefined() and b.isDefined()) ?
+         (a.Denom() == b.Denom()) ?
+         Rational(a.Nom()%b.Nom(), a.Denom()) :
          Rational((a.Nom()*b.Denom())%(a.Denom()*b.Nom()), a.Denom()*b.Denom()) :
   throw std::logic_error("Undefined Rational in operator%");
 }
@@ -184,7 +199,7 @@ constexpr Rational operator%(Rational a, Rational b)
 constexpr Rational operator%(Rational a, Index b)
 {
   return a.isDefined() ?
-         Rational(a.Nom()%b,a.Denom()) :
+         Rational(a.Nom()%b, a.Denom()) :
   throw std::logic_error("Undefined Rational in operator%");
 }
 
@@ -204,15 +219,14 @@ constexpr bool operator<=(Rational a, Rational b) {return not operator>(a, b);}
 constexpr bool operator>=(Rational a, Rational b) {return not operator<(a, b);}
 constexpr bool operator!(Rational a) {return a.Nom() and a.isDefined();}
 
-inline Numeric fac(const Rational& r) { return (::fac(r.toIndex())); }
-
+inline Numeric fac(const Rational& r) {return (::fac(r.toIndex()));}
 inline Numeric sqrt(const Rational& r) {return std::sqrt(r.toNumeric());}
 
 std::ostream& operator<<(std::ostream& os, const Rational& a);
 
 std::istream& operator>>(std::istream& os, Rational& a);
 
-Rational abs(const Rational& a);
+constexpr Rational abs(Rational a) {return a < 0 ? -a : a;}  // Let other operators find out if this is allowed instead
 
 typedef Array<Rational> ArrayOfRational;
 

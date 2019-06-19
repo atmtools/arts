@@ -59,9 +59,6 @@
 namespace Constant {
   template <class T> constexpr T pow2(T x) {return x*x;}
   template <class T> constexpr T pow3(T x) {return x*x*x;}
-  template <class T> constexpr Numeric inv(T x) {return 1e0/x;}
-  template <class T> constexpr Numeric inv_pow2(T x) {return inv(pow2(x));}
-  template <class T> constexpr Numeric inv_pow3(T x) {return inv(pow3(x));}
   
   /** The following mathematical constants are generated in python Decimal package by the code:
     * 
@@ -124,12 +121,14 @@ namespace Constant {
   static constexpr Numeric inv_sqrt_ln_2 = 1.201122408786449794857803286095221722566764028068699423868879896733837175546;
   
   /** Cesium-133 Unperturbed ground-state hyperfine transition frequency [Hz]
-   From: https://en.wikipedia.org/wiki/2019_redefinition_of_SI_base_units 2019-04-01
+   From: https://en.wikipedia.org/wiki/2019_redefinition_of_SI_base_units
+   Date: 2019-04-01
    **/
   static constexpr Numeric Delta_nu_Cs = 9192631770;
   
   /** Speed of light [m/s]
-   From: https://en.wikipedia.org/wiki/2019_redefinition_of_SI_base_units 2019-04-01
+   From: https://en.wikipedia.org/wiki/2019_redefinition_of_SI_base_units
+   Date: 2019-04-01
     **/
   static constexpr Numeric speed_of_light = 299792458;
   
@@ -137,7 +136,8 @@ namespace Constant {
   static constexpr Numeric c = speed_of_light;
   
   /** Planck constant [J s]
-   From: https://en.wikipedia.org/wiki/2019_redefinition_of_SI_base_units 2019-04-01
+   From: https://en.wikipedia.org/wiki/2019_redefinition_of_SI_base_units
+   Date: 2019-04-01
     **/
   static constexpr Numeric planck_constant = 6.62607015e-34;
   
@@ -151,7 +151,8 @@ namespace Constant {
   static constexpr Numeric h_bar = reduced_planck_constant;
   
   /** Elementary charge [C]
-   From: https://en.wikipedia.org/wiki/2019_redefinition_of_SI_base_units 2019-04-01
+   From: https://en.wikipedia.org/wiki/2019_redefinition_of_SI_base_units
+   Date: 2019-04-01
     **/
   static constexpr Numeric elementary_charge = 1.602176634e-19;
   
@@ -159,7 +160,8 @@ namespace Constant {
   static constexpr Numeric e = elementary_charge;
   
   /** Boltzmann constant [J/K]
-   From: https://en.wikipedia.org/wiki/2019_redefinition_of_SI_base_units 2019-04-01
+   From: https://en.wikipedia.org/wiki/2019_redefinition_of_SI_base_units
+   Date: 2019-04-01
     **/
   static constexpr Numeric boltzmann_constant = 1.380649e-23;
   
@@ -167,7 +169,8 @@ namespace Constant {
   static constexpr Numeric k = boltzmann_constant;
   
   /** Avogadro constant [1/mol]
-   From: https://en.wikipedia.org/wiki/2019_redefinition_of_SI_base_units 2019-04-01
+   From: https://en.wikipedia.org/wiki/2019_redefinition_of_SI_base_units
+   Date: 2019-04-01
     **/
   static constexpr Numeric avogadro_constant = 6.02214076e23;
   
@@ -175,28 +178,27 @@ namespace Constant {
   static constexpr Numeric NA = avogadro_constant;
   
   /** Luminous efficacy of monochromatic 540 THz radiation [lm / W]
-   From: https://en.wikipedia.org/wiki/2019_redefinition_of_SI_base_units 2019-04-01
+   From: https://en.wikipedia.org/wiki/2019_redefinition_of_SI_base_units
+   Date: 2019-04-01
     **/
   static constexpr Numeric K_cd = 683;
   
   /** Fine structure constant [-]
-   From: https://physics.nist.gov/cgi-bin/cuu/Value?alph 2019-04-01
-   Reported error: (17)
-   
-   NOTE: Value from before update to new SI.  Double check in May.
+   From: https://physics.nist.gov/cgi-bin/cuu/Value?alph
+   Date: 2019-06-18
+   Reported error: (11)
     **/
-  static constexpr Numeric fine_structure_constant = 7.2973525664e-3;
+  static constexpr Numeric fine_structure_constant = 7.2973525693e-3;
   
   /** Fine structure constant convenience name [-] **/
   static constexpr Numeric alpha = fine_structure_constant;
   
   /** Rydberg constant [1/m]
-    From: https://physics.nist.gov/cgi-bin/cuu/Value?ryd 2019-04-01
-    Reported error: (65)
-    
-    NOTE: Value from before update to new SI.  Double check in May.
+    From: https://physics.nist.gov/cgi-bin/cuu/Value?ryd
+    Date: 2016-06-18
+    Reported error: (21)
     **/
-  static constexpr Numeric rydberg_constant = 10973731.568508;
+  static constexpr Numeric rydberg_constant = 10973731.568160;
   
   /** Rydberg constant convenience name [1/m] **/
   static constexpr Numeric R_inf = rydberg_constant;
@@ -290,20 +292,20 @@ namespace Conversion {
   /** Conversion from cm-1 per molecule per cm^2 to Hz per molecule per m^2 **/
   static constexpr Numeric HITRAN2ARTS_LS = KAYCM2FREQ * 1e-4;
   static constexpr Numeric ARTS2HITRAN_LS = 1 / HITRAN2ARTS_LS;
-  template <class T> constexpr Numeric hitran2arts_linestrength(T x) {return x*HITRAN2ARTS_LS;}
-  template <class T> constexpr Numeric arts2hitran_linestrength(T x) {return x*ARTS2HITRAN_LS;}
+  template <class T> constexpr T hitran2arts_linestrength(T x) {return x*HITRAN2ARTS_LS;}
+  template <class T> constexpr T arts2hitran_linestrength(T x) {return x*ARTS2HITRAN_LS;}
   
   /** Conversion from cm-1 per atmosphere to Hz per Pascal **/
   static constexpr Numeric HITRAN2ARTS_GAMMA = KAYCM2FREQ / ATM2PA;
   static constexpr Numeric ARTS2HITRAN_GAMMA = 1 / HITRAN2ARTS_GAMMA;
-  template <class T> constexpr Numeric hitran2arts_broadening(T x) {return x*HITRAN2ARTS_GAMMA;}
-  template <class T> constexpr Numeric arts2hitran_broadening(T x) {return x*ARTS2HITRAN_GAMMA;}
+  template <class T> constexpr T hitran2arts_broadening(T x) {return x*HITRAN2ARTS_GAMMA;}
+  template <class T> constexpr T arts2hitran_broadening(T x) {return x*ARTS2HITRAN_GAMMA;}
   
   /** Conversion from cm-1 to Joule **/
   static constexpr Numeric HITRAN2ARTS_ENERGY = h * KAYCM2FREQ;
   static constexpr Numeric ARTS2HITRAN_ENERGY = 1 / HITRAN2ARTS_ENERGY;
-  template <class T> constexpr Numeric hitran2arts_energy(T x) {return x*HITRAN2ARTS_ENERGY;}
-  template <class T> constexpr Numeric arts2hitran_energy(T x) {return x*ARTS2HITRAN_ENERGY;}
+  template <class T> constexpr T hitran2arts_energy(T x) {return x*HITRAN2ARTS_ENERGY;}
+  template <class T> constexpr T arts2hitran_energy(T x) {return x*ARTS2HITRAN_ENERGY;}
 };
 
 #endif

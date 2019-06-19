@@ -105,6 +105,53 @@ void test01()
             <<MapToEigen(B(Range(1,2), Range(1,3)))<<"\n=\n"<<MapToEigen(C(Range(1,3), Range(0,3)))<<"\n\n";
 }
 
+void test02()
+{
+  constexpr Numeric nul=0.f;
+  constexpr Numeric one=1.f;
+  constexpr Numeric two=2.f;
+  constexpr Numeric tre=3.f;
+  constexpr Numeric fyr=4.f;
+  
+  constexpr Complex r(one, nul);
+  constexpr Complex i(nul, one);
+  
+  constexpr Complex a(one, two);
+  constexpr Complex b(tre, two);
+  constexpr Complex c(tre, fyr);
+  
+  // Test that every operator is treated as Numeric regardless of basic types
+  static_assert(tre + a == 3 + a, "Bad operator+ int Complex");
+  static_assert(tre - a == 3 - a, "Bad operator- int Complex");
+  static_assert(tre * a == 3 * a, "Bad operator* int Complex");
+  static_assert(tre / a == 3 / a, "Bad operator/ int Complex");
+  static_assert(a + fyr == a + 4, "Bad operator+ Complex int");
+  static_assert(a - fyr == a - 4, "Bad operator- Complex int");
+  static_assert(a * fyr == a * 4, "Bad operator* Complex int");
+  static_assert(a / fyr == a / 4, "Bad operator/ Complex int");
+  static_assert(tre + a == 3.f + a, "Bad operator+ float Complex");
+  static_assert(tre - a == 3.f - a, "Bad operator- float Complex");
+  static_assert(tre * a == 3.f * a, "Bad operator* float Complex");
+  static_assert(tre / a == 3.f / a, "Bad operator/ float Complex");
+  static_assert(a + fyr == a + 4.f, "Bad operator+ Complex float");
+  static_assert(a - fyr == a - 4.f, "Bad operator- Complex float");
+  static_assert(a * fyr == a * 4.f, "Bad operator* Complex float");
+  static_assert(a / fyr == a / 4.f, "Bad operator/ Complex float");
+  
+  // Test the most basic test of (1, 0)*z and (0, 1)*z
+  static_assert(r*a == Complex( one*one, one*two), "Bad Complex(1, 0) Complex ");
+  static_assert(i*a == Complex(-one*two, one*one), "Bad Complex(0, 1) Complex ");
+  
+  // Test key helper function
+  static_assert(abs2(c) == tre*tre + fyr*fyr, "Bad Numeric abs2(Complex)");
+  
+  // Test Complex-Complex operators
+  static_assert(a + b == Complex(one + tre, two + two), "Bad operator+ Complex Complex");
+  static_assert(a - b == Complex(one - tre, two - two), "Bad operator- Complex Complex");
+  static_assert(a * b == Complex(one * tre - two * two, one * two + two * tre), "Bad operator* Complex Complex");
+  static_assert(a / b == Complex(one * tre + two * two, two * tre - one * two) / abs2(b), "Bad operator/ Complex Complex");
+}
+
 int main()
 {
   test01();

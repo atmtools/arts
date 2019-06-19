@@ -1,3 +1,45 @@
+2019-06-19  Richard Larsson <larsson@mps.mpg.de>
+
+	* arts-2-3-1247
+	
+	* controlfiles/*:  Updated numerical values in complex heavy
+	functions
+	
+	* src/complex.cc,h: Made constexpr Complex operators.  The main 
+	point of this change was that I found myself having to spend time
+	changing 1/c to 1.0/c.  The former clearly indicates the latter,
+	so there is something fishy with C++ std::complex...
+	
+	Anyways, the change had an unforeseen consequence that several tests 
+	started to fail.  These tests are all those that have several "large"
+	times "small" complex or numerics.  So I believe the actual error is 
+	just in rounding and not in anything serious.  Perhaps this change will
+	actually allow clang and gcc to agree in the future?  Mac Clang did not
+	agree with Linux GCC in some previous versions of the updated tests.
+	
+	* src/constants.h:  After May SI update, two of the constants have
+	changed numerical values, and as I noted before, when I added constants.h,
+	I have gone back to update these.
+	
+	* src/linefunctiondata.cc,h:  Contains CGS2SI and inverse functions.
+	
+	* src/linefunctions.cc,h:  Added implementation of HTP lineshape by
+	original authors and adjusted them to fit with how ARTS deal with 
+	lineshapes (normalized and the same dispersion-signage).  Also 
+	made set_htp2 as a temporary test-function to play with values.  This
+	requires CGS units as input but outputs in ARTS format
+	
+	* src/rational.cc,h: minor tweaks and a fix to the problem with
+	negative denoms
+	
+	* src/test_complex.cc:  Added static tests of the complex implementation
+	
+	* src/test_matpack.cc:  Added some static tests
+	
+	* src/test_propagationmatrix.cc:  Added runtime tests to play with the
+	HTP implementation.  Will have to extend HTP implementation to give the
+	derivatives in the future.
+
 2019-06-14  Richard Larsson <larsson@mps.mpg.de>
 
 	* arts-2-3-1246

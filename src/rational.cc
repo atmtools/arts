@@ -32,16 +32,17 @@ USA. */
 
 void Rational::Simplify()
 {
+    fixSign();
     Index ii = mdenom;
 
-    while( ii > 0 )
+    while( ii != 0 )
     {
-        if( mnom % ii == 0 && mdenom % ii == 0 )
+        if( mnom % ii == 0 and mdenom % ii == 0 )
         {
             mnom /= ii;
             mdenom /= ii;
 
-            if( mnom == 1 || mdenom == 1 || mnom == 0 || mnom == -1 )
+            if( mnom == 1 or mdenom == 1 or mnom == 0 or mnom == -1 )
                 break;
         }
         if( mdenom < ii )
@@ -106,9 +107,4 @@ std::istream& operator>>(std::istream& is, Rational& a)
     }
 
     return is;
-}
-
-Rational abs(const Rational& a)
-{
-    return a.Nom()<0?-a:a;
 }

@@ -320,4 +320,9 @@ namespace Linefunctions
                                                         const QuantumIdentifier& quantum_identity=QuantumIdentifier());
   };
 
+  void set_htp2(Vector f_grid, 
+                Numeric F0_noshift_si, 
+                Numeric GD_div_F0,
+                LineFunctionDataOutput x_si);
+  
 #endif //linefunctions_h

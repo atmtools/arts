@@ -338,6 +338,10 @@ ArrayOfString all_variablesLineFunctionData();
 
 constexpr LineFunctionDataOutput NoLineFunctionDataOutput(){return {0, 0, 0, 0, 0, 0, 0, 0, 0};}
 
-LineFunctionDataOutput mirroredOutput(const LineFunctionDataOutput& v) noexcept;
+LineFunctionDataOutput mirroredOutput(LineFunctionDataOutput v) noexcept;
+
+LineFunctionDataOutput si2cgs(LineFunctionDataOutput v);
+
+LineFunctionDataOutput cgs2si(LineFunctionDataOutput v);
 
 #endif // linefunctiondata_h

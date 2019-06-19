@@ -167,6 +167,9 @@ void Linefunctions::set_lorentz(Eigen::Ref<Eigen::VectorXcd> F,
                                 const LineFunctionDataOutput& dxdT,
                                 const LineFunctionDataOutput& dxdVMR)
 {
+  constexpr Complex cpi(0, Constant::pi);
+  constexpr Complex iz(0.0, 1.0);
+  
   // Size of the problem
   auto nppd = derivatives_data_position.nelem();
   
@@ -177,7 +180,7 @@ void Linefunctions::set_lorentz(Eigen::Ref<Eigen::VectorXcd> F,
   auto z  = data.col(0);
   auto dw = data.col(1);
   
-  z.noalias() = (Constant::pi * Complex(x.G0, F0) - Complex(0, Constant::pi) * f_grid.array()).matrix();
+  z.noalias() = (Constant::pi * Complex(x.G0, F0) - cpi * f_grid.array()).matrix();
   F.noalias() = z.cwiseInverse();
   
   if(nppd) {
@@ -189,13 +192,13 @@ void Linefunctions::set_lorentz(Eigen::Ref<Eigen::VectorXcd> F,
       if(deriv == JacPropMatType::Temperature)
         dF.col(iq).noalias() = Complex(dxdT.G0, dxdT.D0 + dxdT.DV) * dw;
       else if(is_frequency_parameter(deriv))
-        dF.col(iq).noalias() = Complex(0.0, -1.0) * dw;
+        dF.col(iq).noalias() = - iz * dw;
       else if((deriv == JacPropMatType::LineCenter or is_line_mixing_DF_parameter(deriv)) and deriv.QuantumIdentity().In(quantum_identity))
-        dF.col(iq).noalias() = Complex(0.0, 1.0) * dw;
+        dF.col(iq).noalias() =   iz * dw;
       else if(is_pressure_broadening_parameter(deriv) and deriv.QuantumIdentity().In(quantum_identity))
-        dF.col(iq).noalias() =  Complex(0.0, -1.0) * dw;
+        dF.col(iq).noalias() = - iz * dw;
       else if(is_magnetic_parameter(deriv))
-        dF.col(iq).noalias() = Complex(0.0, zeeman_df) * dw;
+        dF.col(iq).noalias() = iz * zeeman_df * dw;
       else if(deriv == JacPropMatType::VMR) {
         if(deriv.QuantumIdentity().In(quantum_identity))
           dF.col(iq).noalias() = Complex(dxdVMR.G0, dxdVMR.D0 + dxdVMR.DV) * dw;
@@ -1961,3 +1964,309 @@ void Linefunctions::apply_linestrength_from_nlte_level_distributions(Eigen::Ref<
   F *= k;
 }
 
+
+Complex qSDV(Numeric sg0,
+             Numeric GamD,
+             Numeric Gam0,
+             Numeric Gam2,
+             Numeric Shift0,
+             Numeric Shift2,
+             Numeric sg) 
+{
+  using std::abs;
+  using std::sqrt;
+  using std::imag;
+  using std::real;
+  using std::conj;
+  using Constant::c;
+  using Constant::pow2;
+  using Constant::inv_pi;
+  using Constant::sqrt_pi;
+  using Constant::sqrt_ln_2;
+  using Constant::inv_sqrt_pi;
+  using Conversion::hitran2arts_linestrength;
+  
+  const Numeric cte = sqrt_ln_2 / GamD;
+  constexpr Complex iz(0, 1);
+  
+  // Calculating the different parameters 
+  const Complex c0(Gam0, -Shift0);
+  const Complex c2(Gam2, -Shift2);
+  const Complex c0t = (c0 - 1.5 * c2);
+  const Complex c2t = c2;
+  
+  const Complex Y = pow2(1 / (2 * cte * c2t));
+  const Complex X = (iz * (sg - sg0) + c0t) / c2t;
+  
+  Complex Aterm;
+  if(abs(c2t) == 0) {
+    const Complex Z1 = (iz * (sg - sg0) + c0t) * cte;
+    const Numeric xZ1 = - imag(Z1);
+    const Numeric yZ1 = + real(Z1);
+    const Complex W1 = w(Complex(xZ1, yZ1));
+    Aterm = sqrt_pi * cte * W1;
+  }
+  else if(abs(X) <= 3e-8 * abs(Y)) {
+    const Complex Z1 = (iz * (sg - sg0) + c0t) * cte;
+    const Complex Z2 = sqrt(X + Y) + sqrt(Y);
+    const Numeric xZ1 = - imag(Z1);
+    const Numeric yZ1 = + real(Z1);
+    const Numeric xZ2 = - imag(Z2);
+    const Numeric yZ2 = + real(Z2);
+    const Complex W1 = w(Complex(xZ1, yZ1));
+    const Complex W2 = w(Complex(xZ2, yZ2));
+    Aterm = sqrt_pi * cte * (W1 - W2);
+  }
+  else if(abs(Y) <= 1e-15 * abs(X)) {
+    if (abs(sqrt(X)) <= 4e3) {
+      const Numeric xXb = - imag(sqrt(X));
+      const Numeric yXb = + real(sqrt(X));
+      const Complex Wb = w(Complex(xXb, yXb));
+      Aterm = (2 * sqrt_pi / c2t) * (inv_sqrt_pi - sqrt(X) * Wb);
+    }
+    else
+      Aterm = (1 / c2t) * (1 / X - 1 / pow2(X));
+  }
+  else {
+    // calculating Z1 and Z2
+    const Complex Z1 = sqrt(X + Y) - sqrt(Y);
+    const Complex Z2 = Z1 + 2 * sqrt(Y);
+    
+    // calculating the real and imaginary parts of Z1 and Z2
+    const Numeric xZ1 = - imag(Z1);
+    const Numeric yZ1 = + real(Z1);
+    const Numeric xZ2 = - imag(Z2);
+    const Numeric yZ2 = + real(Z2);
+    
+    // NOTE: the region of w might matter according to original code!  So this might need changing...
+    const Complex W1 = w(Complex(xZ1, yZ1));
+    const Complex W2 = w(Complex(xZ2, yZ2));
+    
+    Aterm = sqrt_pi * cte * (W1 - W2);
+  }
+  
+  return conj(hitran2arts_linestrength(inv_pi * Aterm) / pow2(c));
+}
+
+
+Complex qSDHC(Numeric sg0,
+              Numeric GamD,
+              Numeric Gam0,
+              Numeric Gam2,
+              Numeric Shift0,
+              Numeric Shift2,
+              Numeric anuVC, 
+              Numeric sg) 
+{
+  using std::abs;
+  using std::sqrt;
+  using std::imag;
+  using std::real;
+  using std::conj;
+  using Constant::c;
+  using Constant::pow2;
+  using Constant::inv_pi;
+  using Constant::sqrt_pi;
+  using Constant::sqrt_ln_2;
+  using Constant::inv_sqrt_pi;
+  using Conversion::hitran2arts_linestrength;
+  
+  const Numeric cte = sqrt_ln_2 / GamD;
+  constexpr Complex iz(0, 1);
+  
+  // Calculating the different parameters
+  const Complex c0(Gam0, - Shift0);
+  const Complex c2(Gam2, - Shift2);
+  const Complex c0t = (c0 - 1.5 * c2) + anuVC;
+  const Complex c2t = c2;
+  const Complex Y = pow2(1 / (2 * cte * c2t));
+  const Complex X = (iz * (sg - sg0) + c0t) / c2t;
+  
+  Complex Aterm;
+  if(abs(c2t) == 0.0) {
+    const Complex Z1 = (iz * (sg - sg0) + c0t) * cte;
+    const Numeric xZ1 = - imag(Z1);
+    const Numeric yZ1 = + real(Z1);
+    
+    const Complex W1 = w(Complex(xZ1, yZ1));
+    
+    Aterm = sqrt_pi * cte * W1;
+  }
+  else if(abs(X) <= 3e-8 * abs(Y)) {
+    const Complex Z1 = (iz * (sg - sg0) + c0t) * cte;
+    const Complex Z2 = sqrt(X + Y) + sqrt(Y);
+    
+    const Numeric xZ1 = - imag(Z1);
+    const Numeric yZ1 = + real(Z1);
+    const Numeric xZ2 = - imag(Z2);
+    const Numeric yZ2 = + real(Z2);
+    
+    const Complex W1 = w(Complex(xZ1, yZ1));
+    const Complex W2 = w(Complex(xZ2, yZ2));
+    
+    Aterm = sqrt_pi*cte*(W1 - W2);
+  }
+  else if(abs(Y) <= 1e-15 * abs(X)){
+    if (abs(sqrt(X)) <= 4e3) {
+      const Numeric xXb = - imag(sqrt(X));
+      const Numeric yXb = + real(sqrt(X));
+      
+      const Complex Wb = w(Complex(xXb, yXb));
+      
+      Aterm = (2 * sqrt_pi / c2t) * (inv_sqrt_pi - sqrt(X) * Wb);
+    }
+    else
+      Aterm = (1 / c2t) * (1 / X - 1.5 / pow2(X));
+  }
+  else {
+    //calculating Z1 and Z2
+    const Complex Z1 = sqrt(X + Y) - sqrt(Y);
+    const Complex Z2 = Z1 + 2 * sqrt(Y);
+    
+    //calculating the real and imaginary parts of Z1 and Z2
+    const Numeric xZ1 = - imag(Z1);
+    const Numeric yZ1 = + real(Z1);
+    const Numeric xZ2 = - imag(Z2);
+    const Numeric yZ2 = + real(Z2);
+    
+    // NOTE: the region of w might matter according to original code!  So this might need changing...
+    const Complex W1 = w(Complex(xZ1, yZ1));
+    const Complex W2 = w(Complex(xZ2, yZ2));
+    
+    Aterm = sqrt_pi * cte * (W1 - W2);
+  }
+  
+  return conj(hitran2arts_linestrength(inv_pi * Aterm / (1 - anuVC * Aterm)) / pow2(c));
+}
+
+
+Complex pCqSDHC(Numeric sg0,
+                Numeric GamD,
+                Numeric Gam0,
+                Numeric Gam2,
+                Numeric Shift0,
+                Numeric Shift2,
+                Numeric anuVC,
+                Numeric eta,
+                Numeric sg)
+{
+  using std::abs;
+  using std::sqrt;
+  using std::imag;
+  using std::real;
+  using std::conj;
+  using Constant::c;
+  using Constant::pow2;
+  using Constant::pow3;
+  using Constant::inv_pi;
+  using Constant::sqrt_pi;
+  using Constant::sqrt_ln_2;
+  using Constant::inv_sqrt_pi;
+  using Conversion::hitran2arts_linestrength;
+  
+  const Numeric cte = sqrt_ln_2 / GamD;
+  constexpr Complex iz(0, 1);
+  
+  // Calculating the different parameters
+  const Complex c0(Gam0, -Shift0);
+  const Complex c2(Gam2, -Shift2);
+  const Complex c0t = (1 - eta) * (c0 - 1.5 * c2) + anuVC;
+  const Complex c2t = (1 - eta) * c2;
+  const Complex Y = pow2(1 / (2 * cte * c2t));
+  const Complex X = (iz * (sg - sg0) + c0t) / c2t;
+  
+  Complex Aterm, Bterm;
+  if(abs(c2t) == 0) {
+    const Complex Z1=(iz * (sg - sg0) + c0t) * cte;
+    const Numeric xZ1 = - imag(Z1);
+    const Numeric yZ1 = + real(Z1);
+    const Complex W1 = w(Complex(xZ1, yZ1));
+    
+    Aterm = sqrt_pi * cte * W1;
+    if (abs(Z1) <= 4e3)
+      Bterm = sqrt_pi * cte * ((1 - pow2(Z1)) * W1 + Z1 * inv_sqrt_pi);
+    else
+      Bterm = cte * (sqrt_pi * W1 + 0.5 / Z1 - 0.75 / pow3(Z1));
+  }
+  else if(abs(X) <= 3e-8 * abs(Y)) {
+    const Complex Z1 = (iz * (sg - sg0) + c0t) * cte;
+    const Complex Z2 = sqrt(X + Y) + sqrt(Y);
+    const Numeric xZ1 = - imag(Z1);
+    const Numeric yZ1 = + real(Z1);
+    const Numeric xZ2 = - imag(Z2);
+    const Numeric yZ2 = + real(Z2);
+    
+    const Complex W1 = w(Complex(xZ1, yZ1));
+    const Complex W2 = w(Complex(xZ2, yZ2));
+    
+    Aterm = sqrt_pi * cte * (W1 - W2);
+    Bterm = (-1 + sqrt_pi / (2 * sqrt(Y)) * (1 - pow2(Z1)) * W1 -  sqrt_pi / (2 * sqrt(Y)) * (1 - pow2(Z2)) * W2) / c2t;
+  }
+  else if(abs(Y) <= 1e-15 * abs(X)) {
+    const Numeric xZ1 = - imag(sqrt(X + Y));
+    const Numeric yZ1 = + real(sqrt(X + Y));
+    const Complex W1 = w(Complex(xZ1, yZ1));
+    if(abs(sqrt(X)) <= 4e3) {
+      const Numeric xXb = - imag(sqrt(X));
+      const Numeric yXb = + real(sqrt(X));
+      const Complex Wb = w(Complex(xXb, yXb));
+      
+      Aterm = (2 * sqrt_pi / c2t) * (inv_sqrt_pi - sqrt(X) * Wb);
+      Bterm = (1 / c2t) * (-1 + 2 * sqrt_pi * (1 - X - 2 * Y) * (inv_sqrt_pi - sqrt(X) * Wb) + 2 * sqrt_pi * sqrt(X + Y) * W1);
+    }
+    else {
+      Aterm = (1 / c2t) * (1 / X - 1.5 / pow2(X));
+      Bterm = (1 / c2t) * (-1 + (1 - X - 2 * Y) *  (1 / X - 1.5 / pow2(X)) + 2 * sqrt_pi * sqrt(X + Y) * W1);
+    }
+  }
+  else {
+    // calculating Z1 and Z2
+    const Complex Z1 = sqrt(X + Y) - sqrt(Y);
+    const Complex Z2 = Z1 + 2 * sqrt(Y);
+    
+    // calculating the real and imaginary parts of Z1 and Z2
+    const Numeric xZ1 = - imag(Z1);
+    const Numeric yZ1 = + real(Z1);
+    const Numeric xZ2 = - imag(Z2);
+    const Numeric yZ2 = + real(Z2);
+    
+    // NOTE: the region of w might matter according to original code!  So this might need changing...
+    const Complex W1 = w(Complex(xZ1, yZ1));
+    const Complex W2 = w(Complex(xZ2, yZ2));
+    
+    // calculating the A and B terms of the profile
+    Aterm = sqrt_pi * cte * (W1 - W2);
+    Bterm=(-1 + sqrt_pi / (2 * sqrt(Y)) * (1 - pow2(Z1)) * W1 - sqrt_pi / (2 * sqrt(Y)) * (1 - pow2(Z2)) * W2) / c2t;
+  }
+
+  return conj(hitran2arts_linestrength(inv_pi * (Aterm / (1 - (anuVC - eta * (c0 - 1.5 * c2)) * Aterm + eta * c2 * Bterm))) / pow2(c));
+}
+
+
+void set_htp2(Vector f_grid, 
+              Numeric F0_noshift_si, 
+              Numeric GD_div_F0,
+              LineFunctionDataOutput x_si)
+{ 
+  using Conversion::freq2kaycm;
+  
+  const LineFunctionDataOutput x_cgs = si2cgs(x_si);
+  const Numeric F0_cgs = freq2kaycm(F0_noshift_si);
+  const Numeric GD_cgs = Constant::sqrt_ln_2 * GD_div_F0 * F0_cgs;
+  
+  for(Index i=0; i<f_grid.nelem(); i++) {
+    const Complex WSDS = qSDV(F0_cgs, GD_cgs, x_cgs.G0, x_cgs.G2, x_cgs.D0, x_cgs.D2, freq2kaycm(f_grid[i]));
+    const Complex WSDH = qSDHC(F0_cgs, GD_cgs, x_cgs.G0, x_cgs.G2, x_cgs.D0, x_cgs.D2, x_cgs.FVC, freq2kaycm(f_grid[i]));
+    const Complex WHTP = pCqSDHC(F0_cgs, GD_cgs, x_cgs.G0, x_cgs.G2, x_cgs.D0, x_cgs.D2, x_cgs.FVC, x_cgs.ETA, freq2kaycm(f_grid[i]));
+    const Complex L1 = std::conj(Constant::inv_pi * 1 / Complex(x_si.G0, f_grid[i] - F0_noshift_si - x_si.D0));
+    const Complex L2 = Constant::inv_pi * 1 / Complex(x_si.G0, F0_noshift_si + x_si.D0 - f_grid[i]);
+    const Complex W = Constant::inv_sqrt_pi / (GD_div_F0*F0_noshift_si) * w(Complex(f_grid[i] - (F0_noshift_si + x_si.D0), x_si.G0)/(GD_div_F0*F0_noshift_si));
+    std::cout << f_grid[i] << " "
+              << WSDS.real() << " " << WSDS.imag() << " " 
+              << WSDH.real() << " " << WSDH.imag() << " " 
+              << WHTP.real() << " " << WHTP.imag() << " " 
+              << L1.real() << " " << L1.imag() << " " 
+              << L2.real() << " " << L2.imag() << " "
+              << W.real() << " " << W.imag() << "\n";
+  }
+}

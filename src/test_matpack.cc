@@ -856,6 +856,9 @@ void test43()
   constexpr Rational r5 = 10 % Rational(6, 4);  // should be 1
   static_assert(r5.Nom() == 4, "Setup of rational fail to initialize properly");
   static_assert(r5.Denom() == 4, "Setup of rational fail to initialize properly");
+  static_assert(r5.toInt() == 1, "Setup of rational fail to initialize properly");
+  static_assert(r5.toIndex() == 1, "Setup of rational fail to initialize properly");
+  static_assert(r5.toNumeric() == 1e0, "Setup of rational fail to initialize properly");
 }
 
 

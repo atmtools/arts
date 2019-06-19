@@ -32,49 +32,6 @@
 using std::setw;
 using std::runtime_error;
 
-std::complex<float> operator+ (const double& d, const std::complex<float>& c)
-{
-    return (float(d) + c);
-}
-
-std::complex<float> operator* (const double& d, const std::complex<float>& c)
-{
-    return (float(d) * c);
-}
-
-
-std::complex<float> operator+ (const std::complex<float>& c, const double& d)
-{
-    return (c + float(d));
-}
-
-std::complex<float> operator* (const std::complex<float>& c, const double& d)
-{
-    return (c * float(d));
-}
-
-
-
-std::complex<double> operator+ (const float& f, const std::complex<double>& c)
-{
-    return (double(f) + c);
-}
-
-std::complex<double> operator* (const float& f, const std::complex<double>& c)
-{
-    return (double(f) * c);
-}
-
-std::complex<double> operator+ (const std::complex<double>& c, const float& f)
-{
-    return (c + double(f));
-}
-
-std::complex<double> operator* (const std::complex<double>& c, const float& f)
-{
-    return (c * double(f));
-}
-
 
 // Functions for ConstComplexVectorView:
 // ------------------------------
