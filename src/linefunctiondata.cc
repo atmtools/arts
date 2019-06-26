@@ -84,7 +84,7 @@
 **********************************/
 
 //! Returns x0
-constexpr Numeric main_t0(const Numeric& x0) { return x0; }
+constexpr Numeric main_t0(const Numeric& x0) noexcept { return x0; }
 
 //! Returns x0 * pow(TH, x1)
 inline Numeric main_t1(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1) noexcept  { return x0 * pow(T0/T, x1); }
@@ -93,7 +93,7 @@ inline Numeric main_t1(const Numeric& T, const Numeric& T0, const Numeric& x0, c
 inline Numeric main_t2(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return x0 * pow(T0/T, x1) * (1 + x2 * log(T/T0)); }
 
 //! Returns x0 + x1 * (T - T0)
-constexpr Numeric main_t3(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1) { return x0 + x1 * (T - T0); }
+constexpr Numeric main_t3(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1) noexcept { return x0 + x1 * (T - T0); }
 
 //! Returns (x0 + x1 * (TH - 1)) * pow(TH, x2)
 inline Numeric main_t4(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return (x0 + x1 * (T0/T - 1.)) * pow(T0/T, x2); }
@@ -107,7 +107,7 @@ inline Numeric main_t5(const Numeric& T, const Numeric& T0, const Numeric& x0, c
 **********************************/
 
 //! Returns 1
-constexpr Numeric dmain_dx0_t0() { return 1; }
+constexpr Numeric dmain_dx0_t0() noexcept { return 1; }
 
 //! Returns pow(T0/T, x1)
 inline Numeric dmain_dx0_t1(const Numeric& T, const Numeric& T0, const Numeric& x1) noexcept { return pow(T0/T, x1); }
@@ -116,7 +116,7 @@ inline Numeric dmain_dx0_t1(const Numeric& T, const Numeric& T0, const Numeric& 
 inline Numeric dmain_dx0_t2(const Numeric& T, const Numeric& T0, const Numeric& x1, const Numeric& x2) noexcept { return pow(T0/T, x1)*(x2*log(T/T0) + 1); }
 
 //! Returns 1
-constexpr Numeric dmain_dx0_t3() { return 1; }
+constexpr Numeric dmain_dx0_t3() noexcept { return 1; }
 
 //! Returns pow(T0/T, x2)
 inline Numeric dmain_dx0_t4(const Numeric& T, const Numeric& T0, const Numeric& x2) noexcept { return pow(T0/T, x2); }
@@ -130,7 +130,7 @@ inline Numeric dmain_dx0_t5(const Numeric& T, const Numeric& T0, const Numeric& 
 **********************************/
 
 //! Returns 0
-constexpr Numeric dmain_dx1_t0() { return 0.; }
+constexpr Numeric dmain_dx1_t0() noexcept { return 0.; }
 
 //! Returns x0*pow(T0/T, x1)*log(T0/T)
 inline Numeric dmain_dx1_t1(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1) noexcept { return x0*pow(T0/T, x1)*log(T0/T); }
@@ -139,7 +139,7 @@ inline Numeric dmain_dx1_t1(const Numeric& T, const Numeric& T0, const Numeric& 
 inline Numeric dmain_dx1_t2(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return x0*pow(T0/T,x1)*(x2*log(T/T0)+1.)*log(T0/T); }
 
 //! Returns (T - T0)
-constexpr Numeric dmain_dx1_t3(const Numeric& T, const Numeric& T0) { return (T - T0); }
+constexpr Numeric dmain_dx1_t3(const Numeric& T, const Numeric& T0) noexcept { return (T - T0); }
 
 //! Returns pow(T0/T, x2)*(T0/T - 1)
 inline Numeric dmain_dx1_t4(const Numeric& T, const Numeric& T0, const Numeric& x2) noexcept { return pow(T0/T, x2)*(T0/T - 1.); }
@@ -153,22 +153,22 @@ inline Numeric dmain_dx1_t5(const Numeric& T, const Numeric& T0, const Numeric& 
 **********************************/
 
 //! Returns 0
-constexpr Numeric dmain_dx2_t0() { return 0.; }
+constexpr Numeric dmain_dx2_t0() noexcept { return 0.; }
 
 //! Returns 0
-constexpr Numeric dmain_dx2_t1() { return 0.; }
+constexpr Numeric dmain_dx2_t1() noexcept { return 0.; }
 
 //! Returns x0*pow(T0/T, x1)*log(T/T0)
 inline Numeric dmain_dx2_t2(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1) noexcept { return x0*pow(T0/T, x1)*log(T/T0); }
 
 //! Returns 0
-constexpr Numeric dmain_dx2_t3() { return 0.; }
+constexpr Numeric dmain_dx2_t3() noexcept { return 0.; }
 
 //! Returns pow(T0/T, x2)*(x0 + x1*(T0/T-1))*log(T0/T)
 inline Numeric dmain_dx2_t4(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return pow(T0/T,x2)*(x0+x1*(T0/T-1))*log(T0/T); }
 
 //! Returns 0
-constexpr Numeric dmain_dx2_t5() { return 0.; }
+constexpr Numeric dmain_dx2_t5() noexcept { return 0.; }
 
 
 /**********************************
@@ -176,7 +176,7 @@ constexpr Numeric dmain_dx2_t5() { return 0.; }
 **********************************/
 
 //! Returns 0
-constexpr Numeric dmain_dT_t0() { return 0.; }
+constexpr Numeric dmain_dT_t0() noexcept { return 0.; }
 
 //! Returns -x0*x1*pow(T0/T, x1)/T
 inline Numeric dmain_dT_t1(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1) noexcept { return -x0*x1*pow(T0/T, x1)/T; }
@@ -185,7 +185,7 @@ inline Numeric dmain_dT_t1(const Numeric& T, const Numeric& T0, const Numeric& x
 inline Numeric dmain_dT_t2(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return -x0*x1*pow(T0/T,x1)*(x2*log(T/T0)+1.)/T+x0*x2*pow(T0/T,x1)/T; }
 
 //! Returns x1
-constexpr Numeric dmain_dT_t3(const Numeric& x1) { return x1; }
+constexpr Numeric dmain_dT_t3(const Numeric& x1) noexcept { return x1; }
 
 //! Returns -x2*pow(T0/T, x2)*(x0 + x1*(T0/T-1))/T - T0*x1*pow(T0/T, x2)/pow(T, 2)
 inline Numeric dmain_dT_t4(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return -x2*pow(T0/T,x2)*(x0+x1*(T0/T-1.))/T-T0*x1*pow(T0/T,x2)/pow(T,2); }
@@ -199,7 +199,7 @@ inline Numeric dmain_dT_t5(const Numeric& T, const Numeric& T0, const Numeric& x
 **********************************/
 
 //! Returns 0
-constexpr Numeric dmain_dT0_t0() { return 0.; }
+constexpr Numeric dmain_dT0_t0() noexcept { return 0.; }
 
 //! Returns x0*x1*pow(T0/T, x1)/T0
 inline Numeric dmain_dT0_t1(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1) noexcept { return x0*x1*pow(T0/T, x1)/T0; }
@@ -208,7 +208,7 @@ inline Numeric dmain_dT0_t1(const Numeric& T, const Numeric& T0, const Numeric& 
 inline Numeric dmain_dT0_t2(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return x0*x1*pow(T0/T,x1)*(x2*log(T/T0)+1.)/T0-x0*x2*pow(T0/T,x1)/T0; }
 
 //! Returns -x1
-constexpr Numeric dmain_dT0_t3(const Numeric& x1) { return -x1; }
+constexpr Numeric dmain_dT0_t3(const Numeric& x1) noexcept { return -x1; }
 
 //! Returns x2*pow(T0/T, x2)*(x0 + x1*(T0/T - 1))/T0 + x1*pow(T0/T, x2)/T
 inline Numeric dmain_dT0_t4(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return x2*pow(T0/T,x2)*(x0+x1*(T0/T-1.))/T0+x1*pow(T0/T,x2)/T; }
@@ -485,7 +485,7 @@ LineFunctionDataOutput LineFunctionData::GetParams(const Numeric& T0,
                                                    const ConstVectorView& rtp_vmr, 
                                                    const ArrayOfArrayOfSpeciesTag& abs_species,
                                                    const bool do_linemixing,
-                                                   const bool normalization) const
+                                                   const bool normalization) const noexcept
 {
   LineFunctionDataOutput m;
   m.G0=0; m.D0=0; m.G2=0; m.D2=0; m.FVC=0; m.ETA=0; m.Y=0; m.G=0; m.DV=0;
@@ -534,7 +534,7 @@ LineFunctionDataOutput LineFunctionData::GetParams(const Numeric& T0,
         case TemperatureType::T3: param += partial_vmr * main_t3(T, T0, x0, x1); break;
         case TemperatureType::T4: param += partial_vmr * main_t4(T, T0, x0, x1, x2); break;
         case TemperatureType::T5: param += partial_vmr * main_t5(T, T0, x0, x1); break;
-        case TemperatureType::LM_AER: throw std::runtime_error("Not allowed for line shape parameters"); break;
+        case TemperatureType::LM_AER: break;
       }
       current += TemperatureTypeNelem(mtypes[i][j]);
     }
@@ -623,7 +623,7 @@ LineFunctionDataOutput LineFunctionData::GetVMRDerivs(const Numeric& T0,
                                                       const QuantumIdentifier& vmr_qi, 
                                                       const QuantumIdentifier& line_qi,
                                                       const bool do_linemixing,
-                                                      const bool normalization) const
+                                                      const bool normalization) const noexcept
 {
   LineFunctionDataOutput d;
   d.G0=0; d.D0=0; d.G2=0; d.D2=0; d.FVC=0; d.ETA=0; d.Y=0; d.G=0; d.DV=0;
@@ -685,7 +685,7 @@ LineFunctionDataOutput LineFunctionData::GetVMRDerivs(const Numeric& T0,
         case TemperatureType::T3: val = main_t3(T, T0, x0, x1); break;
         case TemperatureType::T4: val = main_t4(T, T0, x0, x1, x2); break;
         case TemperatureType::T5: val = main_t5(T, T0, x0, x1); break;
-        case TemperatureType::LM_AER: throw std::runtime_error("Not allowed for line shape parameters"); break;
+        case TemperatureType::LM_AER: break;
       }
       current += TemperatureTypeNelem(mtypes[i][j]);
       if(air) select_line_shape_param(d.G0, d.D0, d.G2, d.D2, d.FVC, d.ETA, j, mp) -= val;
@@ -777,7 +777,7 @@ LineFunctionDataOutput LineFunctionData::GetTemperatureDerivs(const Numeric& T0,
                                                               const ConstVectorView& rtp_vmr, 
                                                               const ArrayOfArrayOfSpeciesTag& abs_species,
                                                               const bool do_linemixing,
-                                                              const bool normalization) const
+                                                              const bool normalization) const noexcept
 {
   LineFunctionDataOutput d;
   d.G0=0; d.D0=0; d.G2=0; d.D2=0; d.FVC=0; d.ETA=0; d.Y=0; d.G=0; d.DV=0;
@@ -826,7 +826,7 @@ LineFunctionDataOutput LineFunctionData::GetTemperatureDerivs(const Numeric& T0,
         case TemperatureType::T3: param += partial_vmr * dmain_dT_t3(x1); break;
         case TemperatureType::T4: param += partial_vmr * dmain_dT_t4(T, T0, x0, x1, x2); break;
         case TemperatureType::T5: param += partial_vmr * dmain_dT_t5(T, T0, x0, x1); break;
-        case TemperatureType::LM_AER: throw std::runtime_error("Not allowed for line shape parameters"); break;
+        case TemperatureType::LM_AER: break;
       }
       current += TemperatureTypeNelem(mtypes[i][j]);
     }
@@ -915,7 +915,7 @@ LineFunctionDataOutput LineFunctionData::GetReferenceT0Derivs(const Numeric& T0,
                                                               const RetrievalQuantity& rt,
                                                               const QuantumIdentifier& line_qi,
                                                               const bool do_linemixing,
-                                                              const bool normalization) const
+                                                              const bool normalization) const noexcept
 {
   LineFunctionDataOutput d;
   d.G0=0; d.D0=0; d.G2=0; d.D2=0; d.FVC=0; d.ETA=0; d.Y=0; d.G=0; d.DV=0;
@@ -992,7 +992,7 @@ LineFunctionDataOutput LineFunctionData::GetReferenceT0Derivs(const Numeric& T0,
       case TemperatureType::T3: param += partial_vmr * dmain_dT0_t3(x1); break;
       case TemperatureType::T4: param += partial_vmr * dmain_dT0_t4(T, T0, x0, x1, x2); break;
       case TemperatureType::T5: param += partial_vmr * dmain_dT0_t5(T, T0,x0, x1); break;
-      case TemperatureType::LM_AER: throw std::runtime_error("Not allowed for line shape parameters"); break;
+      case TemperatureType::LM_AER: break;
     }
     current += TemperatureTypeNelem(mtypes[this_derivative][j]);
   }
@@ -1008,7 +1008,7 @@ LineFunctionDataOutput LineFunctionData::GetReferenceT0Derivs(const Numeric& T0,
       case TemperatureType::T3: param += partial_vmr * dmain_dT0_t3(x1); break;
       case TemperatureType::T4: param += partial_vmr * dmain_dT0_t4(T, T0, x0, x1, x2); break;
       case TemperatureType::T5: param += partial_vmr * dmain_dT0_t5(T, T0, x0, x1); break;
-      case TemperatureType::LM_AER: /* No derivatives for it depends on T not T0 */ break;
+      case TemperatureType::LM_AER: break;
     }
 
     current += TemperatureTypeNelem(mtypes[this_derivative][j+LineShapeTypeNelem()]);
@@ -1071,10 +1071,9 @@ Numeric LineFunctionData::GetLineParamDeriv(const Numeric& T0,
                                             const RetrievalQuantity& rt, 
                                             const QuantumIdentifier& line_qi,
                                             const bool do_linemixing,
-                                            const bool normalization) const
+                                            const bool normalization) const noexcept
 {
   Numeric val=0.0;
-  
   // Doppler broadening has no types...
   if(not is_linefunctiondata_parameter(rt) or not rt.QuantumIdentity().In(line_qi)) return val;
   
@@ -1083,7 +1082,7 @@ Numeric LineFunctionData::GetLineParamDeriv(const Numeric& T0,
   Index this_derivative=-1;
   for(Index i=0; i<mspecies.nelem(); i++) {
     if(i == 0 and mself) { // The first value might be self-broadening (use self_vmr)
-      if(rt.Mode() == LineFunctionData_SelfBroadening or line_qi.SpeciesName() == rt.Mode()) {
+      if((rt.Mode() == LineFunctionData_SelfBroadening) or (line_qi.SpeciesName() == rt.Mode())) {
         this_vmr = self_vmr;
         this_derivative = i;
       }
@@ -1129,113 +1128,70 @@ Numeric LineFunctionData::GetLineParamDeriv(const Numeric& T0,
   #define x2 mdata[this_derivative][current+2]
   
   Index param;
-  if(rt.PropMatType() == JacPropMatType::LineFunctionDataG0X0 or
-     rt.PropMatType() == JacPropMatType::LineFunctionDataG0X1 or
-     rt.PropMatType() == JacPropMatType::LineFunctionDataG0X2)
+  if(is_pressure_broadening_G0(rt))
     param = IndexOfParam("G0");
-  else if(rt.PropMatType() == JacPropMatType::LineFunctionDataD0X0 or
-          rt.PropMatType() == JacPropMatType::LineFunctionDataD0X1 or
-          rt.PropMatType() == JacPropMatType::LineFunctionDataD0X2)
+  else if(is_pressure_broadening_D0(rt))
     param = IndexOfParam("D0");
-  else if(rt.PropMatType() == JacPropMatType::LineFunctionDataG2X0 or
-          rt.PropMatType() == JacPropMatType::LineFunctionDataG2X1 or
-          rt.PropMatType() == JacPropMatType::LineFunctionDataG2X2)
+  else if(is_pressure_broadening_G2(rt))
     param = IndexOfParam("G2");
-  else if(rt.PropMatType() == JacPropMatType::LineFunctionDataD2X0 or
-          rt.PropMatType() == JacPropMatType::LineFunctionDataD2X1 or
-          rt.PropMatType() == JacPropMatType::LineFunctionDataD2X2)
+  else if(is_pressure_broadening_D2(rt))
     param = IndexOfParam("D2");
-  else if(rt.PropMatType() == JacPropMatType::LineFunctionDataFVCX0 or
-          rt.PropMatType() == JacPropMatType::LineFunctionDataFVCX1 or
-          rt.PropMatType() == JacPropMatType::LineFunctionDataFVCX2)
+  else if(is_pressure_broadening_FVC(rt))
     param = IndexOfParam("FVC");
-  else if(rt.PropMatType() == JacPropMatType::LineFunctionDataETAX0 or
-          rt.PropMatType() == JacPropMatType::LineFunctionDataETAX1 or
-          rt.PropMatType() == JacPropMatType::LineFunctionDataETAX2)
+  else if(is_pressure_broadening_ETA(rt))
     param = IndexOfParam("ETA");
-  else if(rt.PropMatType() == JacPropMatType::LineFunctionDataYX0 or
-          rt.PropMatType() == JacPropMatType::LineFunctionDataYX1 or
-          rt.PropMatType() == JacPropMatType::LineFunctionDataYX2) {
+  else if(is_pressure_broadening_Y(rt)) {
     if(not do_linemixing) return val;
     param = IndexOfParam("Y");
   }
-  else if(rt.PropMatType() == JacPropMatType::LineFunctionDataGX0 or
-          rt.PropMatType() == JacPropMatType::LineFunctionDataGX1 or
-          rt.PropMatType() == JacPropMatType::LineFunctionDataGX2) {
+  else if(is_pressure_broadening_G(rt)) {
     if(not do_linemixing) return val;
     param = IndexOfParam("G");
   }
-  else if(rt.PropMatType() == JacPropMatType::LineFunctionDataDVX0 or
-          rt.PropMatType() == JacPropMatType::LineFunctionDataDVX1 or
-          rt.PropMatType() == JacPropMatType::LineFunctionDataDVX2) {
+  else if(is_pressure_broadening_DV(rt)) {
     if(not do_linemixing) return val;
     param = IndexOfParam("DV");
   }
   else
-    throw std::runtime_error("Developer error!  This should not happen");
+    param = -1;
   
   // Skip to the right current position if it exists
   if(param == -1) return val;
   else for(Index j=0; j<param; j++) current += TemperatureTypeNelem(mtypes[this_derivative][j]);
   
   // Now perform the calculations, we know the type is available and in the below top level switch-statement 
-  switch(rt.PropMatType()) {
-    case JacPropMatType::LineFunctionDataG0X0:  
-    case JacPropMatType::LineFunctionDataD0X0:
-    case JacPropMatType::LineFunctionDataG2X0:
-    case JacPropMatType::LineFunctionDataD2X0:
-    case JacPropMatType::LineFunctionDataETAX0:
-    case JacPropMatType::LineFunctionDataFVCX0:
-    case JacPropMatType::LineFunctionDataYX0:
-    case JacPropMatType::LineFunctionDataGX0:
-    case JacPropMatType::LineFunctionDataDVX0:
-      switch(mtypes[this_derivative][param]) {
-        case TemperatureType::None: case TemperatureType::LM_AER: val = 0; break;
-        case TemperatureType::T0: val = dmain_dx0_t0(); break;
-        case TemperatureType::T1: val = dmain_dx0_t1(T, T0, x1); break;
-        case TemperatureType::T2: val = dmain_dx0_t2(T, T0, x1, x2); break;
-        case TemperatureType::T3: val = dmain_dx0_t3(); break;
-        case TemperatureType::T4: val = dmain_dx0_t4(T, T0, x2); break;
-        case TemperatureType::T5: val = dmain_dx0_t5(T, T0, x1); break;
-      } break;
-    case JacPropMatType::LineFunctionDataG0X1:
-    case JacPropMatType::LineFunctionDataD0X1:
-    case JacPropMatType::LineFunctionDataG2X1:
-    case JacPropMatType::LineFunctionDataD2X1:
-    case JacPropMatType::LineFunctionDataETAX1:
-    case JacPropMatType::LineFunctionDataFVCX1:
-    case JacPropMatType::LineFunctionDataYX1:
-    case JacPropMatType::LineFunctionDataGX1:
-    case JacPropMatType::LineFunctionDataDVX1:
-      switch(mtypes[this_derivative][param]) {
-        case TemperatureType::None: case TemperatureType::LM_AER: val = 0; break;
-        case TemperatureType::T0: val = dmain_dx1_t0(); break;
-        case TemperatureType::T1: val = dmain_dx1_t1(T, T0, x0, x1); break;
-        case TemperatureType::T2: val = dmain_dx1_t2(T, T0, x0, x1, x2); break;
-        case TemperatureType::T3: val = dmain_dx1_t3(T, T0); break;
-        case TemperatureType::T4: val = dmain_dx1_t4(T, T0, x2); break;
-        case TemperatureType::T5: val = dmain_dx1_t5(T, T0, x0, x1); break;
-      } break;
-    case JacPropMatType::LineFunctionDataG0X2:
-    case JacPropMatType::LineFunctionDataD0X2:
-    case JacPropMatType::LineFunctionDataG2X2:
-    case JacPropMatType::LineFunctionDataD2X2:
-    case JacPropMatType::LineFunctionDataETAX2:
-    case JacPropMatType::LineFunctionDataFVCX2:
-    case JacPropMatType::LineFunctionDataYX2:
-    case JacPropMatType::LineFunctionDataGX2:
-    case JacPropMatType::LineFunctionDataDVX2:
-      switch(mtypes[this_derivative][param]) {
-        case TemperatureType::None: case TemperatureType::LM_AER: val = 0; break;
-        case TemperatureType::T0: val = dmain_dx2_t0(); break;
-        case TemperatureType::T1: val = dmain_dx2_t1(); break;
-        case TemperatureType::T2: val = dmain_dx2_t2(T, T0, x0, x1); break;
-        case TemperatureType::T3: val = dmain_dx2_t3(); break;
-        case TemperatureType::T4: val = dmain_dx2_t4(T, T0, x0, x1, x2); break;
-        case TemperatureType::T5: val = dmain_dx2_t5(); break;
-      } break;
-    default: 
-      throw std::runtime_error("Developer error:  This should not happen");
+  if(is_linefunctiondata_parameter_X0(rt)) {
+    switch(mtypes[this_derivative][param]) {
+      case TemperatureType::None: case TemperatureType::LM_AER: val = 0; break;
+      case TemperatureType::T0: val = dmain_dx0_t0(); break;
+      case TemperatureType::T1: val = dmain_dx0_t1(T, T0, x1); break;
+      case TemperatureType::T2: val = dmain_dx0_t2(T, T0, x1, x2); break;
+      case TemperatureType::T3: val = dmain_dx0_t3(); break;
+      case TemperatureType::T4: val = dmain_dx0_t4(T, T0, x2); break;
+      case TemperatureType::T5: val = dmain_dx0_t5(T, T0, x1); break;
+    }
+  }
+  else if(is_linefunctiondata_parameter_X1(rt)) {
+    switch(mtypes[this_derivative][param]) {
+      case TemperatureType::None: case TemperatureType::LM_AER: val = 0; break;
+      case TemperatureType::T0: val = dmain_dx1_t0(); break;
+      case TemperatureType::T1: val = dmain_dx1_t1(T, T0, x0, x1); break;
+      case TemperatureType::T2: val = dmain_dx1_t2(T, T0, x0, x1, x2); break;
+      case TemperatureType::T3: val = dmain_dx1_t3(T, T0); break;
+      case TemperatureType::T4: val = dmain_dx1_t4(T, T0, x2); break;
+      case TemperatureType::T5: val = dmain_dx1_t5(T, T0, x0, x1); break;
+    }
+  }
+  else if(is_linefunctiondata_parameter_X2(rt)) {
+    switch(mtypes[this_derivative][param]) {
+      case TemperatureType::None: case TemperatureType::LM_AER: val = 0; break;
+      case TemperatureType::T0: val = dmain_dx2_t0(); break;
+      case TemperatureType::T1: val = dmain_dx2_t1(); break;
+      case TemperatureType::T2: val = dmain_dx2_t2(T, T0, x0, x1); break;
+      case TemperatureType::T3: val = dmain_dx2_t3(); break;
+      case TemperatureType::T4: val = dmain_dx2_t4(T, T0, x0, x1, x2); break;
+      case TemperatureType::T5: val = dmain_dx2_t5(); break;
+    }
   }
   
   // Stop destroying names
@@ -1243,24 +1199,14 @@ Numeric LineFunctionData::GetLineParamDeriv(const Numeric& T0,
   #undef x1
   #undef x2
   
-  switch(rt.PropMatType()){ // Squared parameters
-    case JacPropMatType::LineFunctionDataGX0:
-    case JacPropMatType::LineFunctionDataGX1:
-    case JacPropMatType::LineFunctionDataGX2:
-    case JacPropMatType::LineFunctionDataDVX0:
-    case JacPropMatType::LineFunctionDataDVX1:
-    case JacPropMatType::LineFunctionDataDVX2:
-      val *= P;
-      break;
-    default: {/*pass*/}
-  }
+  if(is_pressure_broadening_G(rt) or is_pressure_broadening_DV(rt)) // Squared parameters
+    val *= P;
   
-  const bool is_eta = is_pressure_broadening_correlation(rt);
-  if(normalization and is_eta)
+  if(normalization and is_pressure_broadening_ETA(rt))
     val *= this_vmr / total_vmr;
   else if(normalization)
     val *= this_vmr / total_vmr * P;
-  else if(is_eta)
+  else if(is_pressure_broadening_ETA(rt))
     val *= this_vmr;
   else
     val *= this_vmr * P;
@@ -2035,6 +1981,18 @@ LineFunctionDataOutput cgs2si(LineFunctionDataOutput v)
   v.FVC = kaycm2freq(v.FVC);
   v.DV = kaycm2freq(v.DV);
   return v;
+}
+
+std::ostream& operator<<(std::ostream& os, const LineFunctionDataOutput& v) {
+  return os << "G0: " << v.G0 
+            << " D0: " << v.D0 
+            << " G2: " << v.G2 
+            << " D2: " << v.D2 
+            << " FVC: " << v.FVC 
+            << " ETA: " << v.ETA 
+            << " Y: " << v.Y 
+            << " G: " << v.G 
+            << " DV: " << v.DV;
 }
 
 void LineFunctionData::Remove(Index i)

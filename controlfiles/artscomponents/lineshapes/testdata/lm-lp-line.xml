@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<arts format="ascii" version="1">
+<ArrayOfLineRecord version="ARTSCAT-5" nelem="1">
+@ O2-66 100000000000 1e-15 296 3e-20 0 3 1 LF LP LM2 1 AIR T1 10000 0.7 T5 1000 0.7 T4 1e-07 1e-09 0.8 T4 1e-11 1e-13 1.6 T4 0.0001 1e-06 1.6  QN UP J 1 LO J 0
+</ArrayOfLineRecord>
+</arts>

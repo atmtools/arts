@@ -12,64 +12,119 @@ import typhon
 import matplotlib.pyplot as plt
 import numpy as np
 
-lineshapes = ["doppler", "lorentz", "voigt", "htp-vp", "sdvp", "htp"]
+SAVE_FIGURES = False
 
-num_dplots = {"doppler": 5,
-              "lorentz": 31,
-              "voigt": 31,
-              "htp-vp": 25,
-              "sdvp": 21,
-              "htp": 29,}
+lineshapes = ["lp", "lm-lp", "vp", "lm-vp",
+              "htp-vp", 'htp-sdvp', 'htp']
 
-type_dplots = {"doppler": ["T", "f", "vmr", "s0", "f0"],
-               "lorentz": ["T", "f", "vmr", "s0", "f0", "SELF-G0-X0", "AIR-G0-X0", "SELF-G0-X1", "AIR-G0-X1", "SELF-D0-X0", "AIR-D0-X0", "SELF-D0-X1", "AIR-D0-X1", "SELF-Y-X0", "AIR-Y-X0", "SELF-Y-X1", "AIR-Y-X1", "SELF-Y-X2", "AIR-Y-X2", "SELF-G-X0", "AIR-G-X0", "SELF-G-X1", "AIR-G-X1", "SELF-G-X2", "AIR-G-X2", "SELF-DV-X0", "AIR-DV-X0", "SELF-DV-X1", "AIR-DV-X1", "SELF-DV-X2", "AIR-DV-X2"],
-               "voigt": ["T", "f", "vmr", "s0", "f0", "SELF-G0-X0", "AIR-G0-X0", "SELF-G0-X1", "AIR-G0-X1", "SELF-D0-X0", "AIR-D0-X0", "SELF-D0-X1", "AIR-D0-X1", "SELF-Y-X0", "AIR-Y-X0", "SELF-Y-X1", "AIR-Y-X1", "SELF-Y-X2", "AIR-Y-X2", "SELF-G-X0", "AIR-G-X0", "SELF-G-X1", "AIR-G-X1", "SELF-G-X2", "AIR-G-X2", "SELF-DV-X0", "AIR-DV-X0", "SELF-DV-X1", "AIR-DV-X1", "SELF-DV-X2", "AIR-DV-X2"],
-               "htp-vp": ["T", "f", "vmr", "s0", "f0", "SELF-G0-X0", "AIR-G0-X0", "SELF-G0-X1", "AIR-G0-X1", "SELF-D0-X0", "AIR-D0-X0", "SELF-D0-X1", "AIR-D0-X1", "SELF-Y-X0", "AIR-Y-X0", "SELF-Y-X1", "AIR-Y-X1", "SELF-Y-X2", "AIR-Y-X2", "SELF-G-X0", "AIR-G-X0", "SELF-G-X1", "AIR-G-X1", "SELF-G-X2", "AIR-G-X2"],
-               "sdvp": ["T", "f", "vmr", "s0", "f0", "SELF-G0-X0", "AIR-G0-X0", "SELF-G0-X1", "AIR-G0-X1", "SELF-D0-X0", "AIR-D0-X0", "SELF-D0-X1", "AIR-D0-X1", "SELF-G2-X0", "AIR-G2-X0", "SELF-G2-X1", "AIR-G2-X1", "SELF-D2-X0", "AIR-D2-X0", "SELF-D2-X1", "AIR-D2-X1"],
-               "htp": ["T", "f", "vmr", "s0", "f0", "SELF-G0-X0", "AIR-G0-X0", "SELF-G0-X1", "AIR-G0-X1", "SELF-D0-X0", "AIR-D0-X0", "SELF-D0-X1", "AIR-D0-X1", "SELF-G2-X0", "AIR-G2-X0", "SELF-G2-X1", "AIR-G2-X1", "SELF-D2-X0", "AIR-D2-X0", "SELF-D2-X1", "AIR-D2-X1", "SELF-FVC-X0", "AIR-FVC-X0", "SELF-FVC-X1", "AIR-FVC-X1", "SELF-ETA-X0", "AIR-ETA-X0", "SELF-ETA-X1", "AIR-ETA-X1"],}
+freq = np.linspace(90, 110, 101) - 100
 
-pert_dplots = {"doppler": [0.0001, 100, 0.0001, 1e-30, 1e1],
-               "lorentz": [0.0001, 100, 0.0001, 1e-30, 1e1, 20, 20, 0.8e-3, 0.8e-3, 1, 1, 0.8e-3, 0.8e-3, 1e-10, 1e-10, 1e-12, 1e-12, 0.8e-3, 0.8e-3, 1e-14, 1e-14, 1e-16, 1e-16, 0.8e-3, 0.8e-3, 1e-2, 1e-2, 1e-4, 1e-4, 0.8e-3, 0.8e-3],
-               "voigt": [0.0001, 100, 0.0001, 1e-30, 1e1, 20, 20, 0.8e-3, 0.8e-3, 1, 1, 0.8e-3, 0.8e-3, 1e-10, 1e-10, 1e-12, 1e-12, 0.8e-3, 0.8e-3, 1e-14, 1e-14, 1e-16, 1e-16, 0.8e-3, 0.8e-3, 1e-2, 1e-2, 1e-4, 1e-4, 0.8e-3, 0.8e-3],
-               "htp-vp": [0.0001, 100, 0.0001, 1e-30, 1e1, 20, 20, 0.8e-3, 0.8e-3, 1, 1, 0.8e-3, 0.8e-3, 1e-10, 1e-10, 1e-12, 1e-12, 0.8e-3, 0.8e-3, 1e-14, 1e-14, 1e-16, 1e-16, 0.8e-3, 0.8e-3],
-               "sdvp": [0.0001, 100, 0.0001, 1e-30, 1e1, 20, 20, 0.8e-3, 0.8e-3, 1, 1, 0.8e-3, 0.8e-3, 2, 4, 1e-2, 1e-2, 1, 5e-1, 1e-2, 1e-2],
-               "htp": [0.0001, 100, 0.0001, 1e-30, 1e1, 20, 20, 0.8e-3, 0.8e-3, 1, 1, 0.8e-3, 0.8e-3, 2, 4, 1e-2, 1e-2, 1, 5e-1, 1e-2, 1e-2, 20, 20, 2, 2, 1e-4, 1e-4, 1e-4, 1e-4],}
+derivs = ['dT', 'df', 'dvmr', 'ds0', 'df0',
+          'G0-X0', 'G0-X1', 'D0-X0', 'D0-X1', 'G2-X0', 'G2-X1', 'D2-X0', 'D2-X1',
+          'FVC-X0', 'FVC-X1', 'ETA-X0', 'ETA-X1', 'Y-X0', 'Y-X1', 'Y-X2',
+          'G-X0', 'G-X1', 'G-X2', 'DV-X0', 'DV-X1', 'DV-X2']
+perturbs = [0.0001, 100, 0.0001, 1e-17, 1e1, 20, 0.8e-3, 1, 0.8e-3, 4, 1e-2, 5e-1, 1e-2, 20, 2, 1e-6, 1e-8,
+            1e-10, 1e-12, 0.8e-3, 1e-14, 1e-16, 0.8e-3, 1e-2, 1e-4, 0.8e-3]
 
-plot_shape = True
+nshapes = len(lineshapes)
+nderivs = len(derivs)
 
-for ls in lineshapes:
-    N = num_dplots[ls]
-    typ = type_dplots[ls]
-    pert = pert_dplots[ls]
-    
-    pm = typhon.arts.xml.load("testdata/test-" + ls + 
-                              "/propmat.xml")[0].data[0, 0, :, 0]
-    adpm = typhon.arts.xml.load("testdata/test-"+ls+"/dpropmat.xml")
-    f = np.linspace(90, 110, 1001)
-    
-    if plot_shape:
-        plt.figure(figsize=(5, 5))
-        plt.plot(f, pm)
-        plt.title(ls.upper())
-        plt.show()
-    
-    X = int(np.sqrt(N))
-    Y = N//X + 1
-    plt.figure(figsize=(4*Y, 4*X))
-    for i in range(N):
-        pmd = typhon.arts.xml.load("testdata/test-" +
-                                   ls + "/propmat-d" + 
-                                   typ[i]+".xml")[0].data[0, 0, :, 0]
-        plt.subplot(X, Y, i + 1)
-        plt.plot(f, abs(pmd-pm)/pert[i])
-        plt.semilogy(f, abs(adpm[i].data[0, 0, :, 0]))
-        plt.legend(("analytical", "perturbed"),loc=8)
-        plt.title('d'+typ[i])
-    plt.tight_layout()
+# Plot the lineshape
+plt.figure(figsize=(8, 8))
+plt.clf()
+for il in range(nshapes):
+    ls = lineshapes[il]
+    x = typhon.arts.xml.load('testdata/test-{}/propmat.xml'.format(ls))[0].data.flatten()
+    plt.semilogy(freq, x)
+    plt.legend(lineshapes)
+    plt.xlabel('Freq [GHZ]')
+    plt.ylabel('Absorption Single Line [m$^{-1}$]')
+plt.title('High pressure lineshapes')
+if SAVE_FIGURES:
+    plt.savefig('ls.png', dpi=300)
+else:
     plt.show()
 
-#pmd =typhon.arts.xml.load("testdata/test-"+ls+"/propmat-dT.xml")
-#plt.subplot(6, 6, 1)
-#plt.semilogy(f,abs(pmd[0].data[0, 0, :, 0] - pm[0].data[0, 0, :, 0]) / 0.0001)
-#plt.title("Temperature")
 
+# Plot the lineshape diff to VP
+plt.figure(figsize=(8, 8))
+plt.clf()
+for il in range(nshapes):
+    ls = lineshapes[il]
+    x = typhon.arts.xml.load('testdata/test-{}/propmat.xml'.format(ls))[0].data.flatten()
+    x0 = typhon.arts.xml.load('testdata/test-{}/propmat.xml'.format('vp'))[0].data.flatten()
+    plt.plot(freq, x-x0)
+    plt.legend(lineshapes)
+    plt.xlabel('Freq [GHZ]')
+    plt.ylabel('Absorption Single Line Diff [m$^{-1}$]')
+plt.title('Diff of high pressure lineshapes to Voigt')
+if SAVE_FIGURES:
+    plt.savefig('ls-diff.png', dpi=300)
+else:
+    plt.show()
+
+
+# Plot the lineshape
+X = int(np.sqrt(nderivs))
+Y = nderivs//X + 1
+plt.figure(figsize=(10*X, 8*Y))
+plt.clf()
+dpmat = np.zeros((nshapes), dtype=int)
+for ids in range(nderivs):
+    plt.subplot(X, Y, ids+1)
+    dx = perturbs[ids]
+    der = derivs[ids]
+    this_leg = []
+    for il in range(nshapes):
+        ls = lineshapes[il]
+        x0 = typhon.arts.xml.load('testdata/test-{}/propmat.xml'.format(ls))[0].data.flatten()
+        try:
+            x1 = typhon.arts.xml.load('testdata/test-{}/propmat-{}.xml'.format(ls, der))[0].data.flatten()
+        except FileNotFoundError:
+            continue
+        dp = typhon.arts.xml.load('testdata/test-{}/dpropmat.xml'.format(ls))[dpmat[il]].data.flatten()
+        plt.plot(freq, (x1-x0) / dx)
+        plt.plot(freq, dp)
+        plt.xlabel('Freq [GHZ]')
+        this_leg.append('{} perturbed'.format(ls))
+        this_leg.append('{} analytical'.format(ls))
+        dpmat[il] += 1
+    plt.legend(this_leg)
+    plt.title(der)
+plt.tight_layout()
+if SAVE_FIGURES:
+    plt.savefig('dls.png', dpi=100)
+else:
+    plt.show()
+
+
+# Plot the lineshape
+X = int(np.sqrt(nderivs))
+Y = nderivs//X + 1
+plt.figure(figsize=(10*X, 8*Y))
+plt.clf()
+dpmat = np.zeros((nshapes), dtype=int)
+for ids in range(nderivs):
+    plt.subplot(X, Y, ids+1)
+    dx = perturbs[ids]
+    der = derivs[ids]
+    this_leg = []
+    for il in range(nshapes):
+        ls = lineshapes[il]
+        x0 = typhon.arts.xml.load('testdata/test-{}/propmat.xml'.format(ls))[0].data.flatten()
+        try:
+            x1 = typhon.arts.xml.load('testdata/test-{}/propmat-{}.xml'.format(ls, der))[0].data.flatten()
+        except FileNotFoundError:
+            continue
+        dp = typhon.arts.xml.load('testdata/test-{}/dpropmat.xml'.format(ls))[dpmat[il]].data.flatten()
+        plt.plot(freq, (x1-x0) / dx / dp)
+        plt.xlabel('Freq [GHZ]')
+        this_leg.append('{} ratio'.format(ls))
+        dpmat[il] += 1
+    plt.legend(this_leg)
+    plt.title(der)
+plt.tight_layout()
+if SAVE_FIGURES:
+    plt.savefig('dls-ratio.png', dpi=100)
+else:
+    plt.show()

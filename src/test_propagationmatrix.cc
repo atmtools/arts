@@ -517,38 +517,6 @@ void test_sinc_likes_0limit()
 }
 
 
-void test_htp()
-{
-  constexpr Numeric F0 = 2e6;
-  constexpr Numeric GD_div_F0 = 1 / F0;
-  
-  constexpr Numeric G0 = 30e3;
-  constexpr Numeric G2 = 10e3;
-  constexpr Numeric D0 = 3e3;
-  constexpr Numeric D2 = 2e3;
-  
-  constexpr Numeric FVC = 10e3;
-  constexpr Numeric ETA = 0.2;
-  
-  constexpr Numeric Y = 0;
-  constexpr Numeric G = 0;
-  constexpr Numeric DV = 0;
-  
-  constexpr LineFunctionDataOutput x = {G0, D0, G2, D2, FVC, ETA, Y, G, DV};
-  
-  constexpr Numeric f_grid_0 = 2.5e5;
-  constexpr Numeric df = 1e2;
-  constexpr size_t n = 35001;
-  Vector f_grid(n);
-  
-  std::cout<<std::scientific<<std::setprecision(15);
-  for(size_t i=0; i<n; i++) 
-    f_grid[i] = f_grid_0 + Numeric(i) * df;
-  
-  set_htp2(f_grid, F0, GD_div_F0, x);
-}
-
-
 int main()
 {
     /*test_linefunctionsdata();
@@ -558,8 +526,7 @@ int main()
     test_transmat_from_propmat();
     test_transmat_to_cumulativetransmat();
     test_lineshape_xsec();*/
-//     test_sinc_likes_0limit();
-    test_htp();
+    test_sinc_likes_0limit();
     return 0;
 }
 

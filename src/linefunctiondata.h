@@ -40,6 +40,7 @@
 
 // List of all variables that can be returned
 typedef struct{Numeric G0, D0, G2, D2, FVC, ETA, Y, G, DV;} LineFunctionDataOutput;
+std::ostream& operator<<(std::ostream& os, const LineFunctionDataOutput& v);
 
 class LineFunctionData {
 public:
@@ -89,7 +90,7 @@ public:
   LineFunctionData(const PressureBroadeningData& pb, const LineMixingData& lm, const String& species, const Numeric& T0);
   
   // Identification calls
-  Index LineMixingTypeNelem() const {
+  Index LineMixingTypeNelem() const noexcept {
     switch(mlm) {
       case LineMixingOrderType::None:   return Index(NoLineMixingParam::Size);
       case LineMixingOrderType::LM1:    return Index(FirstOrderParam::Size);
@@ -101,7 +102,7 @@ public:
     return -1;  // Should not reach
   }
   
-  String LineMixingType2String() const {
+  String LineMixingType2String() const noexcept {
     switch(mlm) {
       case LineMixingOrderType::None:   return LineFunctionData_NoLineMixing;
       case LineMixingOrderType::LM1:    return "LM1";
@@ -113,21 +114,15 @@ public:
     return "-1";
   }
   
-  void StringSetLineMixingType(const String& type) {
+  void StringSetLineMixingType(const String& type) noexcept {
     if(type == LineFunctionData_NoLineMixing) mlm = LineMixingOrderType::None; 
     else if(type == String("LM1"))            mlm = LineMixingOrderType::LM1;
     else if(type == String("LM2"))            mlm = LineMixingOrderType::LM2;
     else if(type == String("INT"))            mlm = LineMixingOrderType::Interp;
     else if(type == String("ConstG"))         mlm = LineMixingOrderType::ConstG;
-    else {
-      ostringstream os;
-      os << "Cannot recognize type " << type << " as a line mixing functionality\n" ;
-      throw std::runtime_error(os.str());
-    }
-
   }
   
-  Index LineShapeTypeNelem() const {
+  Index LineShapeTypeNelem() const noexcept {
     switch(mp) {
       case LineShapeType::DP:   return Index(DopplerParam::Size);
       case LineShapeType::LP:   return Index(LorentzParam::Size);
@@ -139,7 +134,7 @@ public:
     return -1;  // Should not reach
   }
   
-  String LineShapeType2String() const {
+  String LineShapeType2String() const noexcept {
     switch(mp) {
       case LineShapeType::DP:   return "DP";
       case LineShapeType::LP:   return "LP";
@@ -151,21 +146,15 @@ public:
     return "-1";
   }
   
-  void StringSetLineShapeType(const String& type) {
+  void StringSetLineShapeType(const String& type) noexcept {
     if(type == String("DP"))        mp = LineShapeType::DP;
     else if(type == String("LP"))   mp = LineShapeType::LP;
     else if(type == String("VP"))   mp = LineShapeType::VP;
     else if(type == String("SDVP")) mp = LineShapeType::SDVP;
     else if(type == String("HTP"))  mp = LineShapeType::HTP;
-    else {
-      ostringstream os;
-      os << "Cannot recognize type " << type << " as a line shape functionality\n" ;
-      throw std::runtime_error(os.str());
-    }
-
   }
   
-  Index TemperatureTypeNelem(const TemperatureType type) const {
+  Index TemperatureTypeNelem(const TemperatureType type) const noexcept {
     switch(type) {
       case TemperatureType::LM_AER: return 12;
       case TemperatureType::None:   return 0;
@@ -180,14 +169,14 @@ public:
     return -1;
   }
   
-  Index LineShapeDataNelemForSpecies(Index ispec) const {
+  Index LineShapeDataNelemForSpecies(Index ispec) const noexcept {
     Index count=0;
     for(auto i=0; i<LineShapeTypeNelem(); i++)
       count += TemperatureTypeNelem(mtypes[ispec][i]);
     return count;
   }
   
-  String TemperatureType2String(const TemperatureType type) const {
+  String TemperatureType2String(const TemperatureType type) const noexcept {
     switch(type) {
       case TemperatureType::LM_AER: return "LM_AER";
       case TemperatureType::None:   return LineFunctionData_NoLineMixing;
@@ -202,7 +191,7 @@ public:
     return "-1";
   }
   
-  void StringSetTemperatureType(const Index ispecies, const Index iparam, const String& type) {
+  void StringSetTemperatureType(const Index ispecies, const Index iparam, const String& type) noexcept {
     if(type == String("LM_AER"))                   mtypes[ispecies][iparam] = TemperatureType::LM_AER;
     else if(type == LineFunctionData_NoLineMixing) mtypes[ispecies][iparam] = TemperatureType::None;
     else if(type == String("T0"))                  mtypes[ispecies][iparam] = TemperatureType::T0;
@@ -211,11 +200,6 @@ public:
     else if(type == String("T3"))                  mtypes[ispecies][iparam] = TemperatureType::T3;
     else if(type == String("T4"))                  mtypes[ispecies][iparam] = TemperatureType::T4;
     else if(type == String("T5"))                  mtypes[ispecies][iparam] = TemperatureType::T5;
-    else {
-      ostringstream os;
-      os << "Cannot recognize type " << type << " as a type of temperature type\n" ;
-      throw std::runtime_error(os.str());
-    }
   }
 
   LineFunctionDataOutput GetParams(const Numeric& T0,
@@ -225,7 +209,7 @@ public:
                                    const ConstVectorView& rtp_vmr,
                                    const ArrayOfArrayOfSpeciesTag& abs_species,
                                    const bool do_linemixing=true,
-                                   const bool normalization=true) const;
+                                   const bool normalization=true) const noexcept;
 
   LineFunctionDataOutput GetTemperatureDerivs(const Numeric& T0,
                                               const Numeric& T,
@@ -235,7 +219,7 @@ public:
                                               const ConstVectorView& rtp_vmr,
                                               const ArrayOfArrayOfSpeciesTag& abs_species,
                                               const bool do_linemixing=true,
-                                              const bool normalization=true) const;
+                                              const bool normalization=true) const noexcept;
 
   LineFunctionDataOutput GetReferenceT0Derivs(const Numeric& T0,
                                               const Numeric& T,
@@ -246,7 +230,7 @@ public:
                                               const RetrievalQuantity& rt, 
                                               const QuantumIdentifier& line_qi,
                                               const bool do_linemixing=true,
-                                              const bool normalization=true) const;
+                                              const bool normalization=true) const noexcept;
 
   LineFunctionDataOutput GetVMRDerivs(const Numeric& T0,
                                       const Numeric& T,
@@ -257,7 +241,7 @@ public:
                                       const QuantumIdentifier& vmr_qi, 
                                       const QuantumIdentifier& line_qi,
                                       const bool do_linemixing=true,
-                                      const bool normalization=true) const;
+                                      const bool normalization=true) const noexcept;
               
   Numeric GetLineParamDeriv(const Numeric& T0,
                             const Numeric& T,
@@ -268,15 +252,15 @@ public:
                             const RetrievalQuantity& rt, 
                             const QuantumIdentifier& line_qi,
                             const bool do_linemixing=true,
-                            const bool normalization=true) const;
+                            const bool normalization=true) const noexcept;
                             
   // Read data
-  const ArrayOfSpeciesTag& Species() const { return mspecies; }
-  bool SelfBroadening() const { return mself; }
-  bool AirBroadening() const { return mbath; }
-  bool DoStandardCalcs() const { return do_line_in_standard_calculations; }
-  LineShapeType LineShape() const { return mp; }
-  LineMixingOrderType LineMixing() const { return mlm; }
+  const ArrayOfSpeciesTag& Species() const noexcept { return mspecies; }
+  bool SelfBroadening() const noexcept { return mself; }
+  bool AirBroadening() const noexcept { return mbath; }
+  bool DoStandardCalcs() const noexcept { return do_line_in_standard_calculations; }
+  LineShapeType LineShape() const noexcept { return mp; }
+  LineMixingOrderType LineMixing() const noexcept { return mlm; }
   
   friend std::ostream& operator<<(std::ostream& os, const LineFunctionData& lfd);
   friend std::istream& operator>>(std::istream& is, LineFunctionData& lfd);

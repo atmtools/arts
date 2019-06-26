@@ -1826,7 +1826,7 @@ void get_diydx(VectorView diy1,
 //             Propmat partials descriptions
 //======================================================================
 
-Index number_of_propmattypes(const ArrayOfRetrievalQuantity& js)
+Index number_of_propmattypes(const ArrayOfRetrievalQuantity& js) noexcept
 {
   Index n=0;
   for(const auto& j : js)
@@ -1845,7 +1845,7 @@ ArrayOfIndex equivlent_propmattype_indexes(const ArrayOfRetrievalQuantity& js)
   return pos;
 }
 
-Index equivlent_propmattype_index(const ArrayOfRetrievalQuantity& js, const Index i)
+Index equivlent_propmattype_index(const ArrayOfRetrievalQuantity& js, const Index i) noexcept
 {
   Index j = -1;
   for(Index k=0; k<=i; k++)
@@ -1854,7 +1854,7 @@ Index equivlent_propmattype_index(const ArrayOfRetrievalQuantity& js, const Inde
   return j;
 }
 
-bool is_wind_parameter(const RetrievalQuantity& t)
+bool is_wind_parameter(const RetrievalQuantity& t) noexcept
 {
   return t == JacPropMatType::WindMagnitude or 
          t == JacPropMatType::WindU         or 
@@ -1862,17 +1862,17 @@ bool is_wind_parameter(const RetrievalQuantity& t)
          t == JacPropMatType::WindW;
 }
 
-bool is_frequency_parameter(const RetrievalQuantity& t)
+bool is_frequency_parameter(const RetrievalQuantity& t) noexcept
 {
   return is_wind_parameter(t) or t == JacPropMatType::Frequency;
 }
 
-bool is_derived_magnetic_parameter(const RetrievalQuantity& t)
+bool is_derived_magnetic_parameter(const RetrievalQuantity& t) noexcept
 {
   return t == JacPropMatType::MagneticMagnitude;
 }
 
-bool is_magnetic_parameter(const RetrievalQuantity& t)
+bool is_magnetic_parameter(const RetrievalQuantity& t) noexcept
 {
   return 
   t == JacPropMatType::MagneticU   or 
@@ -1881,95 +1881,137 @@ bool is_magnetic_parameter(const RetrievalQuantity& t)
   is_derived_magnetic_parameter(t);
 }
 
-bool is_nlte_parameter(const RetrievalQuantity& t)
+bool is_nlte_parameter(const RetrievalQuantity& t) noexcept
 {
   return t == JacPropMatType::NLTE;
 }
 
-bool is_line_mixing_DF_parameter(const RetrievalQuantity& t) 
-{
-  return t == JacPropMatType::LineFunctionDataDVX0 or
-         t == JacPropMatType::LineFunctionDataDVX1 or
-         t == JacPropMatType::LineFunctionDataDVX2;
-}
-
-bool is_imag_line_mixing_strength_parameter(const RetrievalQuantity& t) {
-  return t == JacPropMatType::LineFunctionDataYX0 or
-         t == JacPropMatType::LineFunctionDataYX1 or
-         t == JacPropMatType::LineFunctionDataYX2;
-}
-
-bool is_real_line_mixing_strength_parameter(const RetrievalQuantity& t) {
-  return t == JacPropMatType::LineFunctionDataGX0 or
-         t == JacPropMatType::LineFunctionDataGX1 or
-         t == JacPropMatType::LineFunctionDataGX2;
-}
-
-bool is_line_mixing_line_strength_parameter(const RetrievalQuantity& t)
-{
-  return is_imag_line_mixing_strength_parameter(t) or
-         is_real_line_mixing_strength_parameter(t);
-}
-
-bool is_line_mixing_parameter(const RetrievalQuantity& t)
-{
-  return is_line_mixing_DF_parameter(t) or 
-         is_line_mixing_line_strength_parameter(t);
-}
-
-bool is_pressure_broadening_speed_independent(const RetrievalQuantity& t)
+bool is_pressure_broadening_G0(const RetrievalQuantity& t) noexcept
 {
   return t == JacPropMatType::LineFunctionDataG0X0 or
          t == JacPropMatType::LineFunctionDataG0X1 or
-         t == JacPropMatType::LineFunctionDataG0X2 or
-         
-         t == JacPropMatType::LineFunctionDataD0X0 or
+         t == JacPropMatType::LineFunctionDataG0X2;
+}
+
+bool is_pressure_broadening_D0(const RetrievalQuantity& t) noexcept
+{
+  return t == JacPropMatType::LineFunctionDataD0X0 or
          t == JacPropMatType::LineFunctionDataD0X1 or
          t == JacPropMatType::LineFunctionDataD0X2;
 }
 
-bool is_pressure_broadening_speed_dependent(const RetrievalQuantity& t)
+bool is_pressure_broadening_G2(const RetrievalQuantity& t) noexcept
 {
   return t == JacPropMatType::LineFunctionDataG2X0 or
          t == JacPropMatType::LineFunctionDataG2X1 or
-         t == JacPropMatType::LineFunctionDataG2X2 or
-         
-         t == JacPropMatType::LineFunctionDataD2X0 or
+         t == JacPropMatType::LineFunctionDataG2X2;
+}
+
+bool is_pressure_broadening_D2(const RetrievalQuantity& t) noexcept
+{
+  return t == JacPropMatType::LineFunctionDataD2X0 or
          t == JacPropMatType::LineFunctionDataD2X1 or
          t == JacPropMatType::LineFunctionDataD2X2;
 }
 
-bool is_pressure_broadening_correlation(const RetrievalQuantity& t)
-{
-  return t == JacPropMatType::LineFunctionDataETAX0 or
-         t == JacPropMatType::LineFunctionDataETAX1 or
-         t == JacPropMatType::LineFunctionDataETAX2;
-}
-
-bool is_pressure_broadening_velocity_changing_collision_frequency(const RetrievalQuantity& t)
+bool is_pressure_broadening_FVC(const RetrievalQuantity& t) noexcept
 {
   return t == JacPropMatType::LineFunctionDataFVCX0 or
          t == JacPropMatType::LineFunctionDataFVCX1 or
          t == JacPropMatType::LineFunctionDataFVCX2;
 }
 
-bool is_pressure_broadening_parameter(const RetrievalQuantity& t)
+bool is_pressure_broadening_ETA(const RetrievalQuantity& t) noexcept
 {
-  return is_pressure_broadening_speed_independent(t)            or
-         is_pressure_broadening_speed_dependent(t)              or
-         is_pressure_broadening_velocity_changing_collision_frequency(t) or
-         is_pressure_broadening_correlation(t);
+  return t == JacPropMatType::LineFunctionDataETAX0 or
+         t == JacPropMatType::LineFunctionDataETAX1 or
+         t == JacPropMatType::LineFunctionDataETAX2;
 }
 
-
-bool is_linefunctiondata_parameter(const RetrievalQuantity& t)
+bool is_pressure_broadening_Y(const RetrievalQuantity& t) noexcept
 {
-  return is_pressure_broadening_parameter(t) or 
-         is_line_mixing_parameter(t);
+  return t == JacPropMatType::LineFunctionDataYX0 or
+         t == JacPropMatType::LineFunctionDataYX1 or
+         t == JacPropMatType::LineFunctionDataYX2;
 }
 
+bool is_pressure_broadening_G(const RetrievalQuantity& t) noexcept
+{
+  return t == JacPropMatType::LineFunctionDataGX0 or
+         t == JacPropMatType::LineFunctionDataGX1 or
+         t == JacPropMatType::LineFunctionDataGX2;
+}
 
-bool is_line_parameter(const RetrievalQuantity& t)
+bool is_pressure_broadening_DV(const RetrievalQuantity& t) noexcept
+{
+  return t == JacPropMatType::LineFunctionDataDVX0 or
+         t == JacPropMatType::LineFunctionDataDVX1 or
+         t == JacPropMatType::LineFunctionDataDVX2;
+}
+
+bool is_linefunctiondata_parameter_X0(const RetrievalQuantity& t) noexcept
+{
+  return t == JacPropMatType::LineFunctionDataG0X0 or
+         t == JacPropMatType::LineFunctionDataD0X0 or
+         t == JacPropMatType::LineFunctionDataG2X0 or
+         t == JacPropMatType::LineFunctionDataD2X0 or
+         t == JacPropMatType::LineFunctionDataETAX0 or
+         t == JacPropMatType::LineFunctionDataFVCX0 or
+         t == JacPropMatType::LineFunctionDataYX0 or
+         t == JacPropMatType::LineFunctionDataGX0 or
+         t == JacPropMatType::LineFunctionDataDVX0;
+}
+
+bool is_linefunctiondata_parameter_X1(const RetrievalQuantity& t) noexcept
+{
+  return t == JacPropMatType::LineFunctionDataG0X1 or
+         t == JacPropMatType::LineFunctionDataD0X1 or
+         t == JacPropMatType::LineFunctionDataG2X1 or
+         t == JacPropMatType::LineFunctionDataD2X1 or
+         t == JacPropMatType::LineFunctionDataETAX1 or
+         t == JacPropMatType::LineFunctionDataFVCX1 or
+         t == JacPropMatType::LineFunctionDataYX1 or
+         t == JacPropMatType::LineFunctionDataGX1 or
+         t == JacPropMatType::LineFunctionDataDVX1;
+}
+
+bool is_linefunctiondata_parameter_X2(const RetrievalQuantity& t) noexcept
+{
+  return t == JacPropMatType::LineFunctionDataG0X2 or
+         t == JacPropMatType::LineFunctionDataD0X2 or
+         t == JacPropMatType::LineFunctionDataG2X2 or
+         t == JacPropMatType::LineFunctionDataD2X2 or
+         t == JacPropMatType::LineFunctionDataETAX2 or
+         t == JacPropMatType::LineFunctionDataFVCX2 or
+         t == JacPropMatType::LineFunctionDataYX2 or
+         t == JacPropMatType::LineFunctionDataGX2 or
+         t == JacPropMatType::LineFunctionDataDVX2;
+}
+
+bool is_linefunctiondata_parameter_bar_linemixing(const RetrievalQuantity& t) noexcept
+{
+  return is_pressure_broadening_G0(t) or
+         is_pressure_broadening_D0(t) or
+         is_pressure_broadening_G2(t) or
+         is_pressure_broadening_D2(t) or
+         is_pressure_broadening_FVC(t) or
+         is_pressure_broadening_ETA(t);
+}
+
+bool is_linefunctiondata_parameter(const RetrievalQuantity& t) noexcept
+{
+  return is_pressure_broadening_G0(t) or
+         is_pressure_broadening_D0(t) or
+         is_pressure_broadening_G2(t) or
+         is_pressure_broadening_D2(t) or
+         is_pressure_broadening_FVC(t) or
+         is_pressure_broadening_ETA(t) or 
+         is_pressure_broadening_Y(t) or
+         is_pressure_broadening_G(t) or
+         is_pressure_broadening_DV(t);
+}
+
+bool is_line_parameter(const RetrievalQuantity& t) noexcept
 {
   return t == JacPropMatType::LineCenter   or
          t == JacPropMatType::LineStrength or
@@ -1995,7 +2037,7 @@ bool supports_hitran_xsec(const ArrayOfRetrievalQuantity& js)
   return testvar;
 }
 
-bool supports_continuum(const ArrayOfRetrievalQuantity& js) 
+bool supports_continuum(const ArrayOfRetrievalQuantity& js)
 {
   bool testvar = false;
   for(const auto& j : js)
@@ -2006,7 +2048,7 @@ bool supports_continuum(const ArrayOfRetrievalQuantity& js)
   return testvar;
 }
 
-bool supports_LBL_without_phase(const ArrayOfRetrievalQuantity& js) 
+bool supports_LBL_without_phase(const ArrayOfRetrievalQuantity& js)
 {
   for(const auto& j : js)
     if(j not_eq JacPropMatType::VMR or j not_eq JacPropMatType::LineStrength or not is_nlte_parameter(j))
@@ -2099,7 +2141,7 @@ bool species_iso_match(const RetrievalQuantity& rq, const Index species, const I
   return false;
 }
 
-bool do_temperature_jacobian(const ArrayOfRetrievalQuantity& js) 
+bool do_temperature_jacobian(const ArrayOfRetrievalQuantity& js) noexcept
 {
   for(const auto& j : js)
     if(j == JacPropMatType::Temperature)
@@ -2107,7 +2149,7 @@ bool do_temperature_jacobian(const ArrayOfRetrievalQuantity& js)
   return false;
 }
 
-jacobianVMRcheck do_vmr_jacobian(const ArrayOfRetrievalQuantity& js, const QuantumIdentifier& line_qid) 
+jacobianVMRcheck do_vmr_jacobian(const ArrayOfRetrievalQuantity& js, const QuantumIdentifier& line_qid) noexcept
 {
   for(const auto& j : js)
     if(j == JacPropMatType::VMR)
@@ -2116,7 +2158,7 @@ jacobianVMRcheck do_vmr_jacobian(const ArrayOfRetrievalQuantity& js, const Quant
   return {false, line_qid};
 }
 
-bool do_line_center_jacobian(const ArrayOfRetrievalQuantity& js) 
+bool do_line_center_jacobian(const ArrayOfRetrievalQuantity& js) noexcept
 {
   for(const auto& j : js)
     if(j == JacPropMatType::LineCenter)
@@ -2124,7 +2166,7 @@ bool do_line_center_jacobian(const ArrayOfRetrievalQuantity& js)
   return false;
 }
 
-bool do_frequency_jacobian(const ArrayOfRetrievalQuantity& js) 
+bool do_frequency_jacobian(const ArrayOfRetrievalQuantity& js) noexcept
 {
   for(const auto& j : js)
     if(is_frequency_parameter(j))
@@ -2132,7 +2174,7 @@ bool do_frequency_jacobian(const ArrayOfRetrievalQuantity& js)
   return false;
 }
 
-bool do_magnetic_jacobian(const ArrayOfRetrievalQuantity& js) 
+bool do_magnetic_jacobian(const ArrayOfRetrievalQuantity& js) noexcept
 {
   for(const auto& j : js)
     if(is_magnetic_parameter(j))
@@ -2140,23 +2182,7 @@ bool do_magnetic_jacobian(const ArrayOfRetrievalQuantity& js)
   return false;
 }
 
-Index get_first_frequency_index(const ArrayOfRetrievalQuantity& js, const ArrayOfIndex& pos)
-{
-  for(Index i=0; i<pos.nelem(); i++)
-    if(is_frequency_parameter(js[pos[i]]))
-      return i;
-  return js.nelem();
-}
-
-Index get_first_pressure_term_index(const ArrayOfRetrievalQuantity& js, const ArrayOfIndex& pos) 
-{
-  for(Index i=0; i<pos.nelem(); i++)
-    if(is_pressure_broadening_parameter(js[pos[i]]))
-      return i;
-  return js.nelem();
-}
-
-Numeric temperature_perturbation(const ArrayOfRetrievalQuantity& js)
+Numeric temperature_perturbation(const ArrayOfRetrievalQuantity& js) noexcept
 {
   for(const auto& j : js)
     if(j == JacPropMatType::Temperature)
@@ -2164,7 +2190,7 @@ Numeric temperature_perturbation(const ArrayOfRetrievalQuantity& js)
   return 0;
 }
 
-Numeric frequency_perturbation(const ArrayOfRetrievalQuantity& js)
+Numeric frequency_perturbation(const ArrayOfRetrievalQuantity& js) noexcept
 {
   for(const auto& j : js)
     if(is_frequency_parameter(j))
@@ -2172,7 +2198,7 @@ Numeric frequency_perturbation(const ArrayOfRetrievalQuantity& js)
   return 0;
 }
 
-Numeric magnetic_field_perturbation(const ArrayOfRetrievalQuantity& js)
+Numeric magnetic_field_perturbation(const ArrayOfRetrievalQuantity& js) noexcept
 {
   for(const auto& j : js)
     if(is_magnetic_parameter(j))

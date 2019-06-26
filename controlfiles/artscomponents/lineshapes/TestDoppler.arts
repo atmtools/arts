@@ -10,7 +10,7 @@ Arts2{
   isotopologue_ratiosInitFromBuiltin
   partition_functionsInitFromBuiltin
   abs_speciesSet(species=["O2-66"])
-  VectorNLinSpace(f_grid, 1001, 99.99e9, 100.01e9)
+  VectorNLinSpace(f_grid, 101, 99.99e9, 100.01e9)
   VectorSet(rtp_nlte, [0.6, 0.4])
   VectorSet(rtp_vmr, [0.21])
   NumericSet(rtp_temperature, 250)
@@ -25,7 +25,7 @@ Arts2{
   ArrayOfPropagationMatrixCreate(testdata)
   
   # Absorption lines (Doppler, no Zeeman, no NLTE, no mirroring, no normalization)
-  ReadXML(abs_lines, "testdata/doppler-line.xml")
+  ReadXML(abs_lines, "testdata/dp-line.xml")
   ArrayOfLineRecordCreate(aolr)
   Copy(aolr, abs_lines)
   abs_lines_per_speciesCreateFromLines
@@ -57,11 +57,11 @@ Arts2{
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-doppler/propmat.xml")
-  #WriteXML("ascii", dpropmat_clearsky_dx, "testdata/test-doppler/dpropmat.xml")
-  ReadXML(testdata, "testdata/test-doppler/propmat.xml")
+  #WriteXML("ascii", propmat_clearsky, "testdata/test-dp/propmat.xml")
+  #WriteXML("ascii", dpropmat_clearsky_dx, "testdata/test-dp/dpropmat.xml")
+  ReadXML(testdata, "testdata/test-dp/propmat.xml")
   CompareRelative(testdata, propmat_clearsky, 1e-6)
-  ReadXML(testdata, "testdata/test-doppler/dpropmat.xml")
+  ReadXML(testdata, "testdata/test-dp/dpropmat.xml")
   CompareRelative(testdata, dpropmat_clearsky_dx, 1e-4)
   
   # Turn off the jacobian to make for faster calculations for perturbations below
@@ -73,18 +73,18 @@ Arts2{
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
   NumericSet(rtp_temperature, 250)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-doppler/propmat-dT.xml")
-  ReadXML(testdata, "testdata/test-doppler/propmat-dT.xml")
+  #WriteXML("ascii", propmat_clearsky, "testdata/test-dp/propmat-dT.xml")
+  ReadXML(testdata, "testdata/test-dp/propmat-dT.xml")
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed frequency derivative
-  VectorNLinSpace(f_grid, 1001, 999900001e2, 1000100001e2)
+  VectorNLinSpace(f_grid, 101, 999900001e2, 1000100001e2)
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
-  VectorNLinSpace(f_grid, 1001, 99.99e9, 100.01e9)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-doppler/propmat-df.xml")
-  ReadXML(testdata, "testdata/test-doppler/propmat-df.xml")
+  VectorNLinSpace(f_grid, 101, 99.99e9, 100.01e9)
+  #WriteXML("ascii", propmat_clearsky, "testdata/test-dp/propmat-df.xml")
+  ReadXML(testdata, "testdata/test-dp/propmat-df.xml")
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed VMR derivative
@@ -93,19 +93,19 @@ Arts2{
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
   VectorSet(rtp_vmr, [0.21])
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-doppler/propmat-dvmr.xml")
-  ReadXML(testdata, "testdata/test-doppler/propmat-dvmr.xml")
+  #WriteXML("ascii", propmat_clearsky, "testdata/test-dp/propmat-dvmr.xml")
+  ReadXML(testdata, "testdata/test-dp/propmat-dvmr.xml")
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed line strength derivative
-  abs_linesChangeBaseParameterForMatchingLines(QI=QI, parameter_name="Line Strength", change=1e-30, relative=0, loose_matching=0)
+  abs_linesChangeBaseParameterForMatchingLines(QI=QI, parameter_name="Line Strength", change=1e-17, relative=0, loose_matching=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
   Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-doppler/propmat-ds0.xml")
-  ReadXML(testdata, "testdata/test-doppler/propmat-ds0.xml")
+  #WriteXML("ascii", propmat_clearsky, "testdata/test-dp/propmat-ds0.xml")
+  ReadXML(testdata, "testdata/test-dp/propmat-ds0.xml")
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed line center derivative
@@ -115,7 +115,7 @@ Arts2{
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
   Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-doppler/propmat-df0.xml")
-  ReadXML(testdata, "testdata/test-doppler/propmat-df0.xml")
+  #WriteXML("ascii", propmat_clearsky, "testdata/test-dp/propmat-df0.xml")
+  ReadXML(testdata, "testdata/test-dp/propmat-df0.xml")
   CompareRelative(testdata, propmat_clearsky, 1e-6)
 }

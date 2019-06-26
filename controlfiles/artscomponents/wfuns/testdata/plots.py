@@ -19,7 +19,7 @@ typ = ["s0", "f0", "SELF-G0-X0", "AIR-G0-X0", "SELF-G0-X1", "AIR-G0-X1", "SELF-D
 pert = [1e-17, 1e1, 20, 20, 0.8e-3, 0.8e-3, 1, 1, 0.8e-3, 0.8e-3, 2, 4, 1e-2, 1e-2, 1, 5e-1, 1e-2, 1e-2, 20, 20, 2, 2, 1e-4, 1e-4, 1e-4, 1e-4]
 
 plot_shape = True
-    
+
 y = typhon.arts.xml.load("comparedata/y.xml")
 dy = typhon.arts.xml.load("comparedata/dy.xml")
 NF = 100

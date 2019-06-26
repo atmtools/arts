@@ -57,8 +57,14 @@
 
 /** Namespace containing several constants, physical and mathematical **/
 namespace Constant {
+  /** power of two */
   template <class T> constexpr T pow2(T x) {return x*x;}
-  template <class T> constexpr T pow3(T x) {return x*x*x;}
+  
+  /** power of three */
+  template <class T> constexpr T pow3(T x) {return pow2(x)*x;}
+  
+  /** power of four */
+  template <class T> constexpr T pow4(T x) {return pow2(pow2(x));}
   
   /** The following mathematical constants are generated in python Decimal package by the code:
     * 
@@ -242,15 +248,32 @@ namespace Conversion {
   /** Conversion constant degrees to radians and back.  Use conversion formulae instead of pure constant if possible. NOTE:  No constexpr cos etal in ARTS yet. **/
   static constexpr Numeric DEG2RAD = pi/180;
   static constexpr Numeric RAD2DEG = 1/DEG2RAD;
+  /** Converts degrees to radians  */
   template <class T> constexpr Numeric deg2rad(T x) {return x*DEG2RAD;}
+  
+  /** Converts radians to degrees  */
   template <class T> constexpr Numeric rad2deg(T x) {return x*RAD2DEG;}
+  
+  /** Returns the cosine of the deg2rad of the input  */
   template <class T> Numeric cosd(T x) {return std::cos(deg2rad(x));}
+  
+  /** Returns the sine of the deg2rad of the input  */
   template <class T> Numeric sind(T x) {return std::sin(deg2rad(x));}
+  
+  /** Returns the tangent of the deg2rad of the input  */
   template <class T> Numeric tand(T x) {return std::tan(deg2rad(x));}
+  
+  /** Returns rad2deg of the arc-cosine of the input  */
   template <class T> Numeric acosd(T x) {return rad2deg(std::acos(x));}
+  
+  /** Returns rad2deg of the arc-sine of the input  */
   template <class T> Numeric asind(T x) {return rad2deg(std::asin(x));}
+  
+  /** Returns rad2deg of the arc-tangent of the input  */
   template <class T> Numeric atand(T x) {return rad2deg(std::atan(x));}
-  template <class T1, class T2> Numeric atand2(T1 x, T2 y) {return rad2deg(std::atan2(x, y));}
+  
+  /** Returns rad2deg of the arc-tangent of inputs #T1/#T2  */
+  template <class T1, class T2> Numeric atan2d(T1 y, T2 x) {return rad2deg(std::atan2(y, x));}
   
   /** Conversion constant Kayser wavenumber to frequency and back.  Use conversion formulae instead of pure constant if possible. **/
   static constexpr Numeric KAYCM2FREQ = 100*c;

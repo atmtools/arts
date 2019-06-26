@@ -28,9 +28,10 @@
 
 #include "transmissionmatrix.h"
 #include "complex.h"
+#include "constants.h"
 
 
-const Numeric lower_is_considered_zero_for_sinc_likes = 1e-4;
+constexpr Numeric lower_is_considered_zero_for_sinc_likes = 1e-4;
 
 
 inline Numeric vector1(const StokesVector& a, const ConstVectorView& B, const StokesVector& da, const ConstVectorView& dB_dT, const StokesVector& dS, bool dT, Index i) noexcept
@@ -248,7 +249,7 @@ inline void transmat4(TransmissionMatrix& T,
                       const Index iz=0,
                       const Index ia=0) noexcept
 { 
-    static const Numeric sqrt_05 = std::sqrt(0.5);
+    static constexpr Numeric sqrt_05 = Constant::inv_sqrt_2;
     for(Index i=0; i<K1.NumberOfFrequencies(); i++) {
       const Numeric a = -0.5 * r * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i]), 
                     b = -0.5 * r * (K1.K12(iz, ia)[i] + K2.K12(iz, ia)[i]), 
@@ -529,7 +530,7 @@ inline void dtransmat4(TransmissionMatrix& T,
                        const Index iz,
                        const Index ia) noexcept
 {
-  static const Numeric sqrt_05 = std::sqrt(0.5);
+  static constexpr Numeric sqrt_05 = Constant::inv_sqrt_2;
   for(Index i=0; i<K1.NumberOfFrequencies(); i++) {
     const Numeric a = -0.5 * r * (K1.Kjj(iz, ia)[i] + K2.Kjj(iz, ia)[i]), 
                   b = -0.5 * r * (K1.K12(iz, ia)[i] + K2.K12(iz, ia)[i]), 
@@ -598,7 +599,7 @@ inline void dtransmat4(TransmissionMatrix& T,
       const Numeric& C1 = reinterpret_cast<const Numeric (&)[2]>(C1c)[0];
       const Numeric& C2 = reinterpret_cast<const Numeric (&)[2]>(C2c)[0];
       const Numeric& C3 = reinterpret_cast<const Numeric (&)[2]>(C3c)[0];
-      T.Mat4(i).noalias() = exp_a * (Eigen::Matrix4cd() << 
+      T.Mat4(i).noalias() = exp_a * (Eigen::Matrix4d() << 
         C0 + C2 * (b2 + c2 + d2),
         C1 * b + C2 * (-c * u - d * v) + C3 * ( b * ( b2 + c2 + d2) - u * (b * u - d * w) - v * (b * v + c * w)),
         C1 * c + C2 * ( b * u - d * w) + C3 * ( c * ( b2 + c2 + d2) - u * (c * u + d * v) - w * (b * v + c * w)),
@@ -617,7 +618,7 @@ inline void dtransmat4(TransmissionMatrix& T,
         C1 * d + C2 * (-b * v - c * w) + C3 * ( b * (b * d + u * w) + c * (c * d - u * v) - d * (-d2 + v2 + w2)),
         C2 * (b * d + u * w) - C1 * v  + C3 * (-b * (b * v + c * w) - u * (c * d - u * v) + v * (-d2 + v2 + w2)),
         C2 * (c * d - u * v) - C1 * w  + C3 * (-c * (b * v + c * w) + u * (b * d + u * w) + w * (-d2 + v2 + w2)),
-        C0 + C2 * (d2 - v2 - w2)).finished().real();
+        C0 + C2 * (d2 - v2 - w2)).finished();
     
       for(Index j=0; j<dK1.nelem(); j++) {
         if(dK1[j].NumberOfFrequencies()) {

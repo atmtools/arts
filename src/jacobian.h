@@ -466,21 +466,17 @@ void get_diydx(VectorView diy1,
 //             Propmat partials descriptions
 //======================================================================
 
-Index get_first_frequency_index(const ArrayOfRetrievalQuantity& js, const ArrayOfIndex& pos);
-
-Index get_first_pressure_term_index(const ArrayOfRetrievalQuantity& js, const ArrayOfIndex& pos);
-
-Index number_of_propmattypes(const ArrayOfRetrievalQuantity& js);
+Index number_of_propmattypes(const ArrayOfRetrievalQuantity& js) noexcept;
 
 ArrayOfIndex equivlent_propmattype_indexes(const ArrayOfRetrievalQuantity& js);
 
-Index equivlent_propmattype_index(const ArrayOfRetrievalQuantity& js, const Index i);
+Index equivlent_propmattype_index(const ArrayOfRetrievalQuantity& js, const Index i) noexcept;
 
-Numeric temperature_perturbation(const ArrayOfRetrievalQuantity& js);
+Numeric temperature_perturbation(const ArrayOfRetrievalQuantity& js) noexcept;
 
-Numeric frequency_perturbation(const ArrayOfRetrievalQuantity& js);
+Numeric frequency_perturbation(const ArrayOfRetrievalQuantity& js) noexcept;
 
-Numeric magnetic_field_perturbation(const ArrayOfRetrievalQuantity& js);
+Numeric magnetic_field_perturbation(const ArrayOfRetrievalQuantity& js) noexcept;
 
 String propmattype_string(const RetrievalQuantity& rq);
 
@@ -488,39 +484,34 @@ String propmattype_string(const RetrievalQuantity& rq);
 //             Propmat partials boolean functions
 //======================================================================
 
-bool is_wind_parameter(const RetrievalQuantity& t);
+/** Checks if the quantity is a wind parameter  */
+bool is_wind_parameter(const RetrievalQuantity& t) noexcept;
 
-bool is_frequency_parameter(const RetrievalQuantity& t);
+/** Checks if you need the measurement frequency for the quantity  */
+bool is_frequency_parameter(const RetrievalQuantity& t) noexcept;
 
-bool is_derived_magnetic_parameter(const RetrievalQuantity& t);
+bool is_derived_magnetic_parameter(const RetrievalQuantity& t) noexcept;
 
-bool is_magnetic_parameter(const RetrievalQuantity& t);
+bool is_magnetic_parameter(const RetrievalQuantity& t) noexcept;
 
-bool is_nlte_parameter(const RetrievalQuantity& t);
+bool is_nlte_parameter(const RetrievalQuantity& t) noexcept;
 
-bool is_line_mixing_DF_parameter(const RetrievalQuantity& t);
+bool is_pressure_broadening_G0(const RetrievalQuantity& t) noexcept;
+bool is_pressure_broadening_D0(const RetrievalQuantity& t) noexcept;
+bool is_pressure_broadening_G2(const RetrievalQuantity& t) noexcept;
+bool is_pressure_broadening_D2(const RetrievalQuantity& t) noexcept;
+bool is_pressure_broadening_FVC(const RetrievalQuantity& t) noexcept;
+bool is_pressure_broadening_ETA(const RetrievalQuantity& t) noexcept;
+bool is_pressure_broadening_Y(const RetrievalQuantity& t) noexcept;
+bool is_pressure_broadening_G(const RetrievalQuantity& t) noexcept;
+bool is_pressure_broadening_DV(const RetrievalQuantity& t) noexcept;
+bool is_linefunctiondata_parameter_X0(const RetrievalQuantity& t) noexcept;
+bool is_linefunctiondata_parameter_X1(const RetrievalQuantity& t) noexcept;
+bool is_linefunctiondata_parameter_X2(const RetrievalQuantity& t) noexcept;
+bool is_linefunctiondata_parameter_bar_linemixing(const RetrievalQuantity& t) noexcept;
+bool is_linefunctiondata_parameter(const RetrievalQuantity& t) noexcept;
 
-bool is_imag_line_mixing_strength_parameter(const RetrievalQuantity& t);
-
-bool is_real_line_mixing_strength_parameter(const RetrievalQuantity& t);
-
-bool is_line_mixing_line_strength_parameter(const RetrievalQuantity& t);
-
-bool is_line_mixing_parameter(const RetrievalQuantity& t);
-
-bool is_pressure_broadening_speed_independent(const RetrievalQuantity& t);
-
-bool is_pressure_broadening_speed_dependent(const RetrievalQuantity& t);
-
-bool is_pressure_broadening_correlation(const RetrievalQuantity& t);
-
-bool is_pressure_broadening_velocity_changing_collision_frequency(const RetrievalQuantity& t);
-
-bool is_pressure_broadening_parameter(const RetrievalQuantity& t);
-
-bool is_linefunctiondata_parameter(const RetrievalQuantity& t);
-
-bool is_line_parameter(const RetrievalQuantity& t);
+bool is_line_parameter(const RetrievalQuantity& t) noexcept;
 
 bool supports_CIA(const ArrayOfRetrievalQuantity& js);
 
@@ -546,17 +537,17 @@ bool species_match(const RetrievalQuantity& rq, const ArrayOfSpeciesTag& st);
 bool species_match(const RetrievalQuantity& rq, const Index species);
 bool species_iso_match(const RetrievalQuantity& rq, const Index species, const Index iso);
 
-bool do_temperature_jacobian(const ArrayOfRetrievalQuantity& js);
+bool do_temperature_jacobian(const ArrayOfRetrievalQuantity& js) noexcept;
 
 struct jacobianVMRcheck {bool test; const QuantumIdentifier& qid;};
 
-jacobianVMRcheck do_vmr_jacobian(const ArrayOfRetrievalQuantity& js, const QuantumIdentifier& line_qid);
+jacobianVMRcheck do_vmr_jacobian(const ArrayOfRetrievalQuantity& js, const QuantumIdentifier& line_qid) noexcept;
 
-bool do_line_center_jacobian(const ArrayOfRetrievalQuantity& js);
+bool do_line_center_jacobian(const ArrayOfRetrievalQuantity& js) noexcept;
 
-bool do_frequency_jacobian(const ArrayOfRetrievalQuantity& js);
+bool do_frequency_jacobian(const ArrayOfRetrievalQuantity& js) noexcept;
 
-bool do_magnetic_jacobian(const ArrayOfRetrievalQuantity& js);
+bool do_magnetic_jacobian(const ArrayOfRetrievalQuantity& js) noexcept;
 
 #endif // jacobian_h
 

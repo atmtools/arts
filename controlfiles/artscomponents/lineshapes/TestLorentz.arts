@@ -10,7 +10,7 @@ Arts2{
   isotopologue_ratiosInitFromBuiltin
   partition_functionsInitFromBuiltin
   abs_speciesSet(species=["O2-66"])
-  VectorNLinSpace(f_grid, 1001, 90e9, 110e9)
+  VectorNLinSpace(f_grid, 101, 90e9, 110e9)
   VectorSet(rtp_nlte, [0.6, 0.4])
   VectorSet(rtp_vmr, [0.21])
   NumericSet(rtp_temperature, 250)
@@ -25,7 +25,7 @@ Arts2{
   ArrayOfPropagationMatrixCreate(testdata)
   
   ## Absorption lines (Doppler, no Zeeman, no NLTE, no mirroring, no normalization)
-  ReadXML(abs_lines, "testdata/lorentz-line.xml")
+  ReadXML(abs_lines, "testdata/lp-line.xml")
   ArrayOfLineRecordCreate(aolr)
   Copy(aolr, abs_lines)
   abs_lines_per_speciesCreateFromLines
@@ -51,43 +51,21 @@ Arts2{
   jacobianAddWind(g1=p_grid, g2=[0], g3=[0], dfrequency=0.1)
   jacobianAddAbsSpecies(g1=p_grid, g2=[0], g3=[0], species="O2-66", for_species_tag=0)
   jacobianAddBasicCatalogParameters(catalog_identities=qi_lines, catalog_parameters=["Line Strength", "Line Center"])
-  jacobianAddShapeCatalogParameter(line_identity=QI, variable="G0", coefficient="X0", species="SELF")
   jacobianAddShapeCatalogParameter(line_identity=QI, variable="G0", coefficient="X0", species="AIR")
-  jacobianAddShapeCatalogParameter(line_identity=QI, variable="G0", coefficient="X1", species="SELF")
   jacobianAddShapeCatalogParameter(line_identity=QI, variable="G0", coefficient="X1", species="AIR")
-  jacobianAddShapeCatalogParameter(line_identity=QI, variable="D0", coefficient="X0", species="SELF")
   jacobianAddShapeCatalogParameter(line_identity=QI, variable="D0", coefficient="X0", species="AIR")
-  jacobianAddShapeCatalogParameter(line_identity=QI, variable="D0", coefficient="X1", species="SELF")
   jacobianAddShapeCatalogParameter(line_identity=QI, variable="D0", coefficient="X1", species="AIR")
-  jacobianAddShapeCatalogParameter(line_identity=QI, variable="Y", coefficient="X0", species="SELF")
-  jacobianAddShapeCatalogParameter(line_identity=QI, variable="Y", coefficient="X0", species="AIR")
-  jacobianAddShapeCatalogParameter(line_identity=QI, variable="Y", coefficient="X1", species="SELF")
-  jacobianAddShapeCatalogParameter(line_identity=QI, variable="Y", coefficient="X1", species="AIR")
-  jacobianAddShapeCatalogParameter(line_identity=QI, variable="Y", coefficient="X2", species="SELF")
-  jacobianAddShapeCatalogParameter(line_identity=QI, variable="Y", coefficient="X2", species="AIR")
-  jacobianAddShapeCatalogParameter(line_identity=QI, variable="G", coefficient="X0", species="SELF")
-  jacobianAddShapeCatalogParameter(line_identity=QI, variable="G", coefficient="X0", species="AIR")
-  jacobianAddShapeCatalogParameter(line_identity=QI, variable="G", coefficient="X1", species="SELF")
-  jacobianAddShapeCatalogParameter(line_identity=QI, variable="G", coefficient="X1", species="AIR")
-  jacobianAddShapeCatalogParameter(line_identity=QI, variable="G", coefficient="X2", species="SELF")
-  jacobianAddShapeCatalogParameter(line_identity=QI, variable="G", coefficient="X2", species="AIR")
-  jacobianAddShapeCatalogParameter(line_identity=QI, variable="DV", coefficient="X0", species="SELF")
-  jacobianAddShapeCatalogParameter(line_identity=QI, variable="DV", coefficient="X0", species="AIR")
-  jacobianAddShapeCatalogParameter(line_identity=QI, variable="DV", coefficient="X1", species="SELF")
-  jacobianAddShapeCatalogParameter(line_identity=QI, variable="DV", coefficient="X1", species="AIR")
-  jacobianAddShapeCatalogParameter(line_identity=QI, variable="DV", coefficient="X2", species="SELF")
-  jacobianAddShapeCatalogParameter(line_identity=QI, variable="DV", coefficient="X2", species="AIR")
   jacobianClose
   
   # Perform calculations for analytical propagation matrix and derivatives
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat.xml")
-  #WriteXML("ascii", dpropmat_clearsky_dx, "testdata/test-lorentz/dpropmat.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat.xml")
+  #WriteXML("ascii", propmat_clearsky, "testdata/test-lp/propmat.xml")
+  #WriteXML("ascii", dpropmat_clearsky_dx, "testdata/test-lp/dpropmat.xml")
+  ReadXML(testdata, "testdata/test-lp/propmat.xml")
   CompareRelative(testdata, propmat_clearsky, 1e-6)
-  ReadXML(testdata, "testdata/test-lorentz/dpropmat.xml")
+  ReadXML(testdata, "testdata/test-lp/dpropmat.xml")
   CompareRelative(testdata, dpropmat_clearsky_dx, 1e-4)
   
   # Turn off the jacobian to make for faster calculations for perturbations below
@@ -99,18 +77,18 @@ Arts2{
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
   NumericSet(rtp_temperature, 250)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dT.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dT.xml")
+  #WriteXML("ascii", propmat_clearsky, "testdata/test-lp/propmat-dT.xml")
+  ReadXML(testdata, "testdata/test-lp/propmat-dT.xml")
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed frequency derivative
-  VectorNLinSpace(f_grid, 1001, 90000000100, 110000000100)
+  VectorNLinSpace(f_grid, 101, 90000000100, 110000000100)
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
-  VectorNLinSpace(f_grid, 1001, 90e9, 110e9)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-df.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-df.xml")
+  VectorNLinSpace(f_grid, 101, 90e9, 110e9)
+  #WriteXML("ascii", propmat_clearsky, "testdata/test-lp/propmat-df.xml")
+  ReadXML(testdata, "testdata/test-lp/propmat-df.xml")
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed VMR derivative
@@ -119,19 +97,19 @@ Arts2{
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
   VectorSet(rtp_vmr, [0.21])
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dvmr.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dvmr.xml")
+  #WriteXML("ascii", propmat_clearsky, "testdata/test-lp/propmat-dvmr.xml")
+  ReadXML(testdata, "testdata/test-lp/propmat-dvmr.xml")
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed line strength derivative
-  abs_linesChangeBaseParameterForMatchingLines(QI=QI, parameter_name="Line Strength", change=1e-30, relative=0, loose_matching=0)
+  abs_linesChangeBaseParameterForMatchingLines(QI=QI, parameter_name="Line Strength", change=1e-17, relative=0, loose_matching=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
   Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-ds0.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-ds0.xml")
+  #WriteXML("ascii", propmat_clearsky, "testdata/test-lp/propmat-ds0.xml")
+  ReadXML(testdata, "testdata/test-lp/propmat-ds0.xml")
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed line center derivative
@@ -141,20 +119,8 @@ Arts2{
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
   Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-df0.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-df0.xml")
-  CompareRelative(testdata, propmat_clearsky, 1e-6)
-  
-  
-  # Perform calculations for perturbed SELF-G0-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G0", coefficient="X0", species="SELF", change=20, relative=0)
-  abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
-  propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
-  Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dSELF-G0-X0.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dSELF-G0-X0.xml")
+  #WriteXML("ascii", propmat_clearsky, "testdata/test-lp/propmat-df0.xml")
+  ReadXML(testdata, "testdata/test-lp/propmat-df0.xml")
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed AIR-G0-X0 derivative
@@ -164,19 +130,8 @@ Arts2{
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
   Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dAIR-G0-X0.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dAIR-G0-X0.xml")
-  CompareRelative(testdata, propmat_clearsky, 1e-6)
-  
-  # Perform calculations for perturbed SELF-G0-X1 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G0", coefficient="X1", species="SELF", change=0.8e-3, relative=0)
-  abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
-  propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
-  Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dSELF-G0-X1.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dSELF-G0-X1.xml")
+  #WriteXML("ascii", propmat_clearsky, "testdata/test-lp/propmat-G0-X0.xml")
+  ReadXML(testdata, "testdata/test-lp/propmat-G0-X0.xml")
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed AIR-G0-X1 derivative
@@ -186,20 +141,8 @@ Arts2{
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
   Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dAIR-G0-X1.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dAIR-G0-X1.xml")
-  CompareRelative(testdata, propmat_clearsky, 1e-6)
-  
-  
-  # Perform calculations for perturbed SELF-D0-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="D0", coefficient="X0", species="SELF", change=1, relative=0)
-  abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
-  propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
-  Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dSELF-D0-X0.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dSELF-D0-X0.xml")
+  #WriteXML("ascii", propmat_clearsky, "testdata/test-lp/propmat-G0-X1.xml")
+  ReadXML(testdata, "testdata/test-lp/propmat-G0-X1.xml")
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed AIR-D0-X0 derivative
@@ -209,19 +152,8 @@ Arts2{
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
   Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dAIR-D0-X0.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dAIR-D0-X0.xml")
-  CompareRelative(testdata, propmat_clearsky, 1e-6)
-  
-  # Perform calculations for perturbed SELF-D0-X1 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="D0", coefficient="X1", species="SELF", change=0.8e-3, relative=0)
-  abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
-  propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
-  Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dSELF-D0-X1.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dSELF-D0-X1.xml")
+  #WriteXML("ascii", propmat_clearsky, "testdata/test-lp/propmat-D0-X0.xml")
+  ReadXML(testdata, "testdata/test-lp/propmat-D0-X0.xml")
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed AIR-D0-X1 derivative
@@ -231,208 +163,7 @@ Arts2{
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
   Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dAIR-D0-X1.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dAIR-D0-X1.xml")
-  CompareRelative(testdata, propmat_clearsky, 1e-6)
-  
-  
-  # Perform calculations for perturbed SELF-Y-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X0", species="SELF", change=1e-10, relative=0)
-  abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
-  propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
-  Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dSELF-Y-X0.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dSELF-Y-X0.xml")
-  CompareRelative(testdata, propmat_clearsky, 1e-6)
-  
-  # Perform calculations for perturbed AIR-Y-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X0", species="AIR", change=1e-10, relative=0)
-  abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
-  propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
-  Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dAIR-Y-X0.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dAIR-Y-X0.xml")
-  CompareRelative(testdata, propmat_clearsky, 1e-6)
-  
-  # Perform calculations for perturbed SELF-Y-X1 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X1", species="SELF", change=1e-12, relative=0)
-  abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
-  propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
-  Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dSELF-Y-X1.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dSELF-Y-X1.xml")
-  CompareRelative(testdata, propmat_clearsky, 1e-6)
-  
-  # Perform calculations for perturbed AIR-Y-X1 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X1", species="AIR", change=1e-12, relative=0)
-  abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
-  propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
-  Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dAIR-Y-X1.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dAIR-Y-X1.xml")
-  CompareRelative(testdata, propmat_clearsky, 1e-6)
-  
-  # Perform calculations for perturbed SELF-Y-X2 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X2", species="SELF", change=0.8e-3, relative=0)
-  abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
-  propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
-  Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dSELF-Y-X2.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dSELF-Y-X2.xml")
-  CompareRelative(testdata, propmat_clearsky, 1e-6)
-  
-  # Perform calculations for perturbed AIR-Y-X2 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X2", species="AIR", change=0.8e-3, relative=0)
-  abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
-  propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
-  Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dAIR-Y-X2.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dAIR-Y-X2.xml")
-  CompareRelative(testdata, propmat_clearsky, 1e-6)
-  
-  
-  # Perform calculations for perturbed SELF-G-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G", coefficient="X0", species="SELF", change=1e-14, relative=0)
-  abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
-  propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
-  Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dSELF-G-X0.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dSELF-G-X0.xml")
-  CompareRelative(testdata, propmat_clearsky, 1e-6)
-  
-  # Perform calculations for perturbed AIR-G-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G", coefficient="X0", species="AIR", change=1e-14, relative=0)
-  abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
-  propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
-  Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dAIR-G-X0.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dAIR-G-X0.xml")
-  CompareRelative(testdata, propmat_clearsky, 1e-6)
-  
-  # Perform calculations for perturbed SELF-G-X1 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G", coefficient="X1", species="SELF", change=1e-16, relative=0)
-  abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
-  propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
-  Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dSELF-G-X1.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dSELF-G-X1.xml")
-  CompareRelative(testdata, propmat_clearsky, 1e-6)
-  
-  # Perform calculations for perturbed AIR-G-X1 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G", coefficient="X1", species="AIR", change=1e-16, relative=0)
-  abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
-  propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
-  Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dAIR-G-X1.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dAIR-G-X1.xml")
-  CompareRelative(testdata, propmat_clearsky, 1e-6)
-  
-  # Perform calculations for perturbed SELF-G-X2 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G", coefficient="X2", species="SELF", change=0.8e-3, relative=0)
-  abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
-  propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
-  Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dSELF-G-X2.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dSELF-G-X2.xml")
-  CompareRelative(testdata, propmat_clearsky, 1e-6)
-  
-  # Perform calculations for perturbed AIR-G-X2 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G", coefficient="X2", species="AIR", change=0.8e-3, relative=0)
-  abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
-  propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
-  Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dAIR-G-X2.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dAIR-G-X2.xml")
-  CompareRelative(testdata, propmat_clearsky, 1e-6)
-  
-  
-  # Perform calculations for perturbed SELF-DV-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X0", species="SELF", change=1e-2, relative=0)
-  abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
-  propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
-  Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dSELF-DV-X0.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dSELF-DV-X0.xml")
-  CompareRelative(testdata, propmat_clearsky, 1e-6)
-  
-  # Perform calculations for perturbed AIR-DV-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X0", species="AIR", change=1e-2, relative=0)
-  abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
-  propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
-  Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dAIR-DV-X0.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dAIR-DV-X0.xml")
-  CompareRelative(testdata, propmat_clearsky, 1e-6)
-  
-  # Perform calculations for perturbed SELF-DV-X1 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X1", species="SELF", change=1e-4, relative=0)
-  abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
-  propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
-  Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dSELF-DV-X1.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dSELF-DV-X1.xml")
-  CompareRelative(testdata, propmat_clearsky, 1e-6)
-  
-  # Perform calculations for perturbed AIR-DV-X1 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X1", species="AIR", change=1e-4, relative=0)
-  abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
-  propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
-  Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dAIR-DV-X1.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dAIR-DV-X1.xml")
-  CompareRelative(testdata, propmat_clearsky, 1e-6)
-  
-  # Perform calculations for perturbed SELF-DV-X2 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X2", species="SELF", change=0.8e-3, relative=0)
-  abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
-  propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
-  Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dSELF-DV-X2.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dSELF-DV-X2.xml")
-  CompareRelative(testdata, propmat_clearsky, 1e-6)
-  
-  # Perform calculations for perturbed AIR-DV-X2 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X2", species="AIR", change=0.8e-3, relative=0)
-  abs_lines_per_speciesCreateFromLines
-  abs_xsec_agenda_checkedCalc
-  propmat_clearskyInit
-  propmat_clearskyAddOnTheFly
-  Copy(abs_lines, aolr)
-  #WriteXML("ascii", propmat_clearsky, "testdata/test-lorentz/propmat-dAIR-DV-X2.xml")
-  ReadXML(testdata, "testdata/test-lorentz/propmat-dAIR-DV-X2.xml")
+  #WriteXML("ascii", propmat_clearsky, "testdata/test-lp/propmat-D0-X1.xml")
+  ReadXML(testdata, "testdata/test-lp/propmat-D0-X1.xml")
   CompareRelative(testdata, propmat_clearsky, 1e-6)
 }

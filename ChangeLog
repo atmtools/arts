@@ -1,3 +1,43 @@
+2019-06-26  Richard Larsson <larsson@mps.mpg.de>
+
+	* arts-2-3-1248
+	
+	* controlfiles/*: Updated the lineshapes tests to include a larger
+	variation to showcase easier potential errors.  There are many 
+	things wrt HTP that I don't follow properly, but the forward shape
+	looks mostly normal now that all the lines are generated from the
+	same input.  The derivatives though... I have no idea why they look
+	so strange for the difference between HTP and using the HTP algo
+	with SDVP input.  There is also a constant that I don't fully follow
+	why I must use for dF on line 2148 of linefunctions.cc...  I get one
+	use, but two???  I don't understand this at all...
+	
+	* controlfiles/CMakeLists.txt:  Added some more lineshapes tests
+	but made them much smaller to not take time.
+	
+	* src/constants.h:  Saw that, e.g., Fortran defines atan2d not
+	atand2 as I did, so I changed it before it becomes a thing.  Also
+	added some comments so my parser can see the variables and functions
+	easier.
+	
+	* src/jacobian.cc,h:  Restructured some jacobian keys to work with
+	HTP lineshape easier.
+	
+	* src/linefunctiondata.cc: Made operator<< for 
+	LineFunctionDataOutput.  Also make use of restructure above to
+	make the code shorter.
+	
+	* src/linefunctions.cc.h:  Removed old set_htp.  Adopted
+	pCqSDHC to return derivatives.  Made a wrapper calling it
+	similar to old set_htp, and called it set_htp.  Still have problems
+	understanding this.  I don't get why I need line 2148, and I am also
+	unsure how to deal with line mixing for htp...
+	
+	* src/test_propagationmatrix.cc:  Removed the previous test 
+	implementation.
+	
+	* src/transmissionmatrix.cc:  Minor tweaks
+
 2019-06-19  Richard Larsson <larsson@mps.mpg.de>
 
 	* arts-2-3-1247
