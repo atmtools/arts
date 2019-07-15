@@ -1,5 +1,13 @@
 2019-07-15  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-1252
+
+	* controlfiles/artscomponents/wfuns/JHyb_*.xml.gz:
+
+	Replace corrupted gz files with fresh versions provided by Richard.
+
+2019-07-15  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-1251
 
 	* src/m_basic_types.cc, src/methods.cc:
