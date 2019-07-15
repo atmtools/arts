@@ -1,3 +1,49 @@
+2019-07-15  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1250
+
+	* Fix number of issues found by the clang analyzer.
+
+	* src/m_cloudradar.cc: Comment out unimplemented iy_aux features.
+
+	* 3rdparty/invlib/src/invlib/map.cpp: Initialize member iterations.
+
+	* src/disort.cc: Reduce scope of pfct_za_grid_size.
+
+	* src/libmicrohttpd/daemon.c: Remove shadowing variable.
+
+	* src/m_linemixing.cc: Improve continue condition.
+
+	Negative values should be excluded to avoid false
+	positive from clang analyzer about possible use of a
+	garbage value. The analyzer doesn't know that our signed
+	Index can only contain positive values here.
+
+	* src/legendre.cc: Remove dead assignment.
+
+	* src/montecarlo.cc:
+
+	Define evop0 closer to where it's used.
+
+	Define I1 and Q1 in local scope only.
+
+	* src/m_montecarlo.cc: Use continue instead of break for consistency.
+
+	* src/linescaling.cc, src/telsem.cc:
+
+	Define helper variables locally in scope.
+
+	* src/check_input.cc:
+
+	Add missing initialization of any_nlte_lines to avoid use of an
+	uninitialized value.
+
+	Remove unneeded else statement. Follow clang-tidy's advise.
+
+	* src/linerecord.cc, src/parser.cc:
+
+	Initialize Numerics before using double_imanip.
+
 2019-06-27  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1249

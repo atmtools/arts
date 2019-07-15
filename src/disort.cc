@@ -2051,10 +2051,9 @@ void run_disort( Workspace& ws,
   
   // Phase function
   Vector scat_angle_grid;
-  Index pfct_za_grid_size;
   if( pfct_method=="interpolate" )
   {
-    pfct_za_grid_size=181;
+    constexpr Index pfct_za_grid_size = 181;
     nlinspace(scat_angle_grid, 0, 180, pfct_za_grid_size);
   }
   else
@@ -2194,7 +2193,7 @@ void run_disort( Workspace& ws,
         phase_functionCalc2(phase_function,
                             scat_data, f_index,
                             pnd_field, t_field, cloudbox_limits,
-                            pfct_za_grid_size, verbosity);
+                            scat_angle_grid.nelem(), verbosity);
         for( Index l=0; l<nlyr; l++ )
           if( phase_function(l,0)==0. )
             assert( ssalb[l]==0. );

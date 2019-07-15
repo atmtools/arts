@@ -817,9 +817,11 @@ void iyActiveSingleScat2(
   // Init iy_aux 
   const Index naux = iy_aux_vars.nelem();
   iy_aux.resize( naux );
-  Index auxBackScat = -1;
-  Index auxOptDepth = -1;
-  Index auxPartAtte = -1;
+
+  // Not implemented in this function yet
+//  Index auxBackScat = -1;
+//  Index auxOptDepth = -1;
+//  Index auxPartAtte = -1;
   //
   for( Index i=0; i<naux; i++ ) {
     iy_aux[i].resize(nf*np,ns); 
@@ -827,23 +829,23 @@ void iyActiveSingleScat2(
     
     if( iy_aux_vars[i] == "Radiative background" )
       iy_aux[i](joker,0) = (Numeric)min( (Index)2, rbi-1 );
-    else if( iy_aux_vars[i] == "Backscattering" ) {
-      iy_aux[i]   = 0;
-      auxBackScat = i;
-    }
-    else if( iy_aux_vars[i] == "Optical depth" )
-      auxOptDepth = i;
-    else if( iy_aux_vars[i] == "Particle extinction" ) {
-      iy_aux[i](Range(0,nf,np),joker) = 0;          
-      auxPartAtte = i;
-    }
+//    else if( iy_aux_vars[i] == "Backscattering" ) {
+//      iy_aux[i]   = 0;
+//      auxBackScat = i;
+//    }
+//    else if( iy_aux_vars[i] == "Optical depth" )
+//      auxOptDepth = i;
+//    else if( iy_aux_vars[i] == "Particle extinction" ) {
+//      iy_aux[i](Range(0,nf,np),joker) = 0;
+//      auxPartAtte = i;
+//    }
     else {
       ostringstream os;
       os << "The only allowed strings in *iy_aux_vars* are:\n"
       << "  \"Radiative background\"\n"
-      << "  \"Backscattering\"\n"
-      << "  \"Optical depth\"\n"
-      << "  \"Particle extinction\"\n"
+//      << "  \"Backscattering\"\n"
+//      << "  \"Optical depth\"\n"
+//      << "  \"Particle extinction\"\n"
       << "but you have selected: \"" << iy_aux_vars[i] << "\"";
       throw runtime_error( os.str() );      
     }
@@ -864,7 +866,7 @@ void iyActiveSingleScat2(
   
   ArrayOfMatrix ppvar_dpnd_dx(0);
   ArrayOfIndex clear2cloudy;
-  Matrix scalar_ext(np,nf,0);  // Only used for iy_aux
+//  Matrix scalar_ext(np,nf,0);  // Only used for iy_aux
   Index nf_ssd = scat_data[0][0].pha_mat_data.nlibraries();
   Index duplicate_freqs = ((nf==nf_ssd)?0:1);
   Tensor6 pha_mat_1se(nf_ssd,1,1,1,ns,ns);
@@ -998,8 +1000,8 @@ void iyActiveSingleScat2(
         
         K_this += Kp;
         
-        if( auxPartAtte >= 0 )
-          scalar_ext(ip,joker) = Kp.Kjj();
+//        if( auxPartAtte >= 0 )
+//          scalar_ext(ip,joker) = Kp.Kjj();
         
         if( trans_in_jacobian && j_analytical_do )
           FOR_ANALYTICAL_JACOBIANS_DO ( dK_this_dx[iq] += dKp_dx[iq]; );

@@ -2401,7 +2401,7 @@ void chk_nlte(const Tensor4&                   t_nlte_field,
     chk_atm_field( "t_nlte_field", t_nlte_field, atmosphere_dim, nlte_quantum_identifiers.nelem(),
                   p_grid, lat_grid, lon_grid );
 
-    bool any_nlte_lines;
+    bool any_nlte_lines = false;
 
     // This check is expensive but necessary for sanity of calculations
     for(Index ii = 0; ii<abs_lines_per_species.nelem(); ii++ )
@@ -2421,8 +2421,9 @@ void chk_nlte(const Tensor4&                   t_nlte_field,
                     << "methods.\n";
                     throw std::runtime_error(os.str());
                 }
-                else // Everything looks fine and we have an NLTE level!
-                    any_nlte_lines=true;
+
+                // Everything looks fine and we have an NLTE level!
+                any_nlte_lines=true;
             }
 
             // This number indicates the NLTE position for the upper state
@@ -2437,8 +2438,9 @@ void chk_nlte(const Tensor4&                   t_nlte_field,
                     << "methods.\n";
                     throw std::runtime_error(os.str());
                 }
-                else // Everything looks fine and we have an NLTE level!
-                    any_nlte_lines=true;
+
+                // Everything looks fine and we have an NLTE level!
+                any_nlte_lines=true;
             }
         }
 

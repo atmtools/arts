@@ -266,24 +266,16 @@ Numeric TelsemAtlas::interp_freq2(Numeric emiss19,
                                   Numeric f,
                                   Index class2) const
 {
-    Numeric a = 0.0;
-    Numeric b = 0.0;
-    Numeric c = 0.0;
     Numeric emiss = 0.0;
     if (f <= 19.35) {
-        a = 1;
-        b = 0.0;
-        c = 0.0;
         emiss = emiss19;
     } else if ((19.35 < f) && (f <= 37.0)) {
-        a = (37.0 - f) / (37.0 - 19.35);
-        b = (f - 19.35) / (37.0 - 19.35);
-        c = 0.0;
+        const Numeric a = (37.0 - f) / (37.0 - 19.35);
+        const Numeric b = (f - 19.35) / (37.0 - 19.35);
         emiss = a * emiss19 + b * emiss37;
     } else if ((f > 37.0) && (f < 85.5)) {
-        a = 0;
-        b = (85.5 - f) / (85.5 - 37.0);
-        c = (f - 37.0) / (85.5 - 37.0);
+        const Numeric b = (85.5 - f) / (85.5 - 37.0);
+        const Numeric c = (f - 37.0) / (85.5 - 37.0);
         emiss = b * emiss37 + c * emiss85;
     } else if (85.5 <= f) {
         emiss = emiss85;

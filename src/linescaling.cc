@@ -180,37 +180,37 @@ void GetLineScalingData_dT(Numeric& dq_t_dT,
         const Numeric gamma_p = 1/gamma;
         
         //r_low and r_upp are ratios for the population level compared to LTE conditions
-        Numeric r_low, r_upp;
         Numeric dr_low, dr_upp;
         if( atm_tv_low > 1e-4 *atm_t ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
         {
-            r_low = exp( - line_evlow / BOLTZMAN_CONST * (atm_t-atm_tv_low) / (atm_t*atm_tv_low) );
+            const Numeric r_low =
+                exp( - line_evlow / BOLTZMAN_CONST * (atm_t-atm_tv_low) / (atm_t*atm_tv_low) );
             dr_low = r_low * line_evlow ;
         }
         else if( atm_tv_low >= 0.0 )
         {
-            r_low = 0.0;
             dr_low = 0.0;
         }
         else
         {
-            r_low = 1.0;
+            constexpr Numeric r_low = 1.0;
             dr_low = r_low * line_evlow  ;
         }
         
         if( atm_tv_upp > 1e-4 *atm_t ) // where 1e-4 is considered a small number so that the multiplication in the denominator does not reach zero
         {
-            r_upp = exp( - line_evupp / BOLTZMAN_CONST * (atm_t-atm_tv_upp) / (atm_t*atm_tv_upp) );
+            const Numeric r_upp =
+                exp( - line_evupp / BOLTZMAN_CONST * (atm_t-atm_tv_upp) / (atm_t*atm_tv_upp) );
+
             dr_upp = - r_upp *(line_evupp - PLANCK_CONST*line_f)*gamma;
         }
         else if( atm_tv_upp >= 0.0 )
         {
-            r_upp = 0.0;
             dr_upp = 0.0;
         }
         else
         {
-            r_upp = 1.0;
+            constexpr Numeric r_upp = 1.0;
             dr_upp = - r_upp *(line_evupp - PLANCK_CONST*line_f)*gamma;
         }
         

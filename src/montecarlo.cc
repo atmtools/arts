@@ -1145,7 +1145,6 @@ void mcPathTraceRadar(
   Index         istep = 0;  // Counter for number of steps
   Matrix        old_evol_op(stokes_dim,stokes_dim);
   Vector local_rte_los(2);
-  Numeric evop0, I1, Q1;
 
   CREATE_OUT0;
 
@@ -1224,16 +1223,7 @@ void mcPathTraceRadar(
   stot = ppath_step.end_lstep; 
   ttot = ppath_step.end_lstep / SPEED_OF_LIGHT;
 
-  evop0 = 1;
-  I1 = Iprop[0];
-  if( stokes_dim > 1 )
-    {
-      Q1 = Iprop[1];
-    }
-  else
-    {
-      Q1 = 0.0;
-    }
+  Numeric evop0 = 1;
   while( (evop0>r) && (!termination_flag) )
     {
       istep++;
@@ -1323,7 +1313,7 @@ void mcPathTraceRadar(
       // Handle cross-talk for ptype==30
       if( stokes_dim > 1 && anyptype_nonTotRan ) 
         {
-          Q1 = evol_op(0,1) * Iprop[1] / Iprop[0];
+          const Numeric Q1 = evol_op(0,1) * Iprop[1] / Iprop[0];
           evop0 += Q1;
         }
       if( evop0>r )
@@ -1365,8 +1355,8 @@ void mcPathTraceRadar(
       kQ = ext_mat(0,1) / 2;   // Factor 2 as sum of end point values
       if( anyptype_nonTotRan )
         {
-          I1 = evol_opArray[0](0,0);
-          Q1 = evol_opArray[0](0,1) * Iprop[1] / Iprop[0];
+          const Numeric I1 = evol_opArray[0](0,0);
+          const Numeric Q1 = evol_opArray[0](0,1) * Iprop[1] / Iprop[0];
 
           // Need to use root finding to solve for ds
           brent_zero( ds, ( Numeric )0.0, ppath_step.lstep[ip-1], tol, r, I1, Q1, kI, kQ );

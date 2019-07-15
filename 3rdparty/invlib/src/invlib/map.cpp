@@ -191,7 +191,8 @@ MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STANDARD,
        const VectorType   &xa_,
        const SaType &Sa_,
        const SeType &Se_ )
-    : Base(F_, xa_, Sa_, Se_), cost(-1.0), cost_x(-1.0), cost_y(-1.0)
+    : Base(F_, xa_, Sa_, Se_), cost(-1.0), cost_x(-1.0), cost_y(-1.0),
+      iterations(0)
 {
     // Nothing to do here.
 }

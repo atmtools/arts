@@ -1358,7 +1358,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
     long nlines = (long) this_band.nelem();
     
     // Worth doing anything?
-    if(nlines==0) { continue; }
+    if(nlines<=0) { continue; }
     
     // Send in frequency range
     Numeric fmin, fmax;

@@ -4028,7 +4028,6 @@ gauss_legendre_tbl(Index n, Numeric *x, Numeric *w, Numeric eps)
 
         /* Newton iterations, at least one */
         j = 0;
-        dx = dw = std::numeric_limits<Numeric>::max();
 
         do
         {

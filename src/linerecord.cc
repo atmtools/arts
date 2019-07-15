@@ -2994,7 +2994,7 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                     // cutoff frequency
                     if(token == "CUT")
                     {
-                      Numeric value;
+                      Numeric value = NAN;
                       icecream >> double_imanip() >> value;
                       mcutoff = value;
                     }
@@ -3002,7 +3002,7 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                     // linemixing pressure limit
                     if(token == "LML")
                     {
-                      Numeric value;
+                      Numeric value = NAN;
                       icecream >> double_imanip() >> value;
                       mlinemixing_limit = value;
                     }

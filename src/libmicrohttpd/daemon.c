@@ -2226,13 +2226,11 @@ MHD_start_daemon_va (unsigned int options,
 	     and may also be missing on older POSIX systems; good luck if you have any of those,
 	     your IPv6 socket may then also bind against IPv4... */
 #ifndef WINDOWS
-	  const int on = 1;
-	  setsockopt (socket_fd, 
+	  setsockopt (socket_fd,
 		      IPPROTO_IPV6, IPV6_V6ONLY, 
 		      &on, sizeof (on));
 #else
-	  const char on = 1;
-	  setsockopt (socket_fd, 
+	  setsockopt (socket_fd,
 		      IPPROTO_IPV6, IPV6_V6ONLY, 
 		      &on, sizeof (on));
 #endif

@@ -717,7 +717,7 @@ String ArtsParser::set_gin_to_default(const MdRecord*       mdd,
         }
         else if (mdd->GInType()[gin_index] == get_wsv_group_id ("Numeric"))
         {
-            Numeric n;
+            Numeric n = NAN;
             istringstream is(mdd->GInDefault()[gin_index]);
             is >> double_imanip() >> n;
             tv = n;

@@ -854,8 +854,8 @@ void MCRadar(// Workspace reference:
               Numeric rn = rng.draw();
               if( rn > albedo )
                 {
-                  keepgoing = false; // Redundant?
-                  break; // Best way to control logic?
+                  keepgoing = false;
+                  continue;
                 }
 
               Vector rte_los_geom(2);
