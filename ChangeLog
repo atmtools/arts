@@ -1,5 +1,15 @@
 2019-07-15  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-1251
+
+	* src/m_basic_types.cc, src/methods.cc:
+
+	Don't define DiagonalMatrix as a template method. Since only explicit
+	overloads for two types exist and no generic implementation,
+	templates are not needed.
+
+2019-07-15  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-1250
 
 	* Fix number of issues found by the clang analyzer.

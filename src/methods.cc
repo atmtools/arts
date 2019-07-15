@@ -17684,10 +17684,7 @@ void define_md_data_raw()
         GIN(      "v" ),
         GIN_TYPE( "Vector" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "The vector containing the diagonal elements." ),
-        SETMETHOD(      false ),
-        AGENDAMETHOD(   false ),
-        USES_TEMPLATES( true  )
+        GIN_DESC( "The vector containing the diagonal elements." )
         ));
 
   md_data_raw.push_back
