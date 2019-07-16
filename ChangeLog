@@ -1,5 +1,29 @@
 2019-07-16  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-1255
+
+	* 3rdparty/invlib/src/invlib/convergence_criteria.h,
+	src/linemixing.cc
+
+	Comment out names of unused parameters to silence compiler warnings.
+
+	* src/m_cloudradar.cc, src/m_optproperties.cc, src/rt4.cc:
+
+	Don't implicitly convert floats to bool. Replaced by proper comparison
+	for readability and to silence compiler warning.
+
+	* src/m_optproperties.cc (pha_mat_sptFromMonoData):
+
+	Initialize T_gp to satisfy clang analyzer.
+
+	* src/covariance_matrix.cc (CovarianceMatrix::generate_blocks),
+	3rdparty/invlib/src/invlib/interfaces/arts_wrapper.h
+	(ArtsCovarianceMatrixWrapper::ArtsCovarianceMatrixWrapper):
+
+	Rename local variable to avoid shadowing a class function of same name.
+
+2019-07-16  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-1254
 
 	* src/matpackII.cc (Sparse::insert_elements):

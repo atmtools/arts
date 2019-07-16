@@ -659,7 +659,7 @@ void run_rt4( Workspace& ws,
         }
 
       Index pfct_failed = 0;
-      if( pndtot )
+      if( pndtot != 0 )
       {
         if( nummu_new<nummu )
         {
@@ -1239,7 +1239,7 @@ void run_rt4_new( Workspace& ws,
         }
 
       Index pfct_failed = 0;
-      if( pndtot )
+      if( pndtot != 0 )
       {
         if( nummu_new<nummu )
         {

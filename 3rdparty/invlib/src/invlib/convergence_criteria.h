@@ -80,9 +80,9 @@ struct Rodgers530
 
     template<typename JacobianType, typename SaType, typename SeType>
     auto operator()(const VectorType & xi,
-                    const VectorType & yi,
-                    const VectorType & y,
-                    const VectorType & g,
+                    const VectorType & /* yi */,
+                    const VectorType & /* y */,
+                    const VectorType & /* g */,
                     const JacobianType & K,
                     const SaType & Sa,
                     const SeType & Se)
@@ -114,10 +114,10 @@ struct Rodgers533
     using RealType = typename VectorType::RealType;
 
     template<typename JacobianType, typename SaType, typename SeType>
-        auto operator()(VectorType & xi,
+        auto operator()(VectorType & /* xi */,
                         VectorType & yi,
                         VectorType & y,
-                        VectorType & g,
+                        VectorType & /* g */,
                         JacobianType & K,
                         SaType & Sa,
                         SeType & Se)

@@ -438,7 +438,7 @@ void iyActiveSingleScat(
                                          scat_data[i_ss][i_se],
                                          ppvar_t[Range(ip,1)], pdir, idir,
                                          0, t_interp_order );
-                      if( t_ok[0] )
+                      if( t_ok[0] != 0 )
                         if( duplicate_freqs )
                           for( Index iv=0; iv<nf; iv++ )
                             Pe(i_se_flat,ip,iv,joker,joker) =

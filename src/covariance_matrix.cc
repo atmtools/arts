@@ -369,17 +369,17 @@ void CovarianceMatrix::generate_blocks(std::vector<std::vector<const Block *>> &
         std::tie(ci, cj) = correlations_[i].get_indices();
     }
 
-    std::vector<bool> has_block(correlations_.size(), false);
+    std::vector<bool> has_blocks(correlations_.size(), false);
     std::queue<Index> rq_queue{};
     for (size_t i = 0; i < correlations_.size(); ++i) {
-        if (!has_block[i]) {
+        if (!has_blocks[i]) {
             Index ci, cj;
             std::tie(ci, cj) = correlations_[i].get_indices();
             rq_queue.push(ci);
             if (ci != cj) {
                 rq_queue.push(cj);
             }
-            has_block[i] = true;
+            has_blocks[i] = true;
             corr_blocks.push_back(std::vector<const Block *>{&correlations_[i]});
 
             while (!rq_queue.empty()) {
@@ -387,7 +387,7 @@ void CovarianceMatrix::generate_blocks(std::vector<std::vector<const Block *>> &
                 rq_queue.pop();
 
                 for (size_t j = 0; j < correlations_.size(); ++j) {
-                    if (!has_block[j]) {
+                    if (!has_blocks[j]) {
                         std::tie(ci, cj) = correlations_[j].get_indices();
                         if ((ci == rq_index) || (cj == rq_index)) {
                             if (ci != rq_index) {
@@ -397,7 +397,7 @@ void CovarianceMatrix::generate_blocks(std::vector<std::vector<const Block *>> &
                                 rq_queue.push(cj);
                             }
                             corr_blocks.back().push_back(&correlations_[j]);
-                            has_block[j] = true;
+                            has_blocks[j] = true;
                         }
                     }
                 }

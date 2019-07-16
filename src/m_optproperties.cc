@@ -2616,7 +2616,7 @@ void pha_mat_sptFromMonoData(// Output:
       throw runtime_error( os.str() );
   }
 
-  GridPos T_gp, Tred_gp;
+  GridPos T_gp = {0, {0, 1}}, Tred_gp;
   Vector itw(2);
 
   // Initialisation

@@ -202,7 +202,7 @@ catch(const std::exception& e)
  */
 void normalize_relaxation_matrix(Matrix& W,
                                  const Vector& population,
-                                 const Vector& d0,
+                                 const Vector& /* d0 */,
                                  const ArrayOfLineRecord& lines,
                                  const SpeciesAuxData& partition_functions,
                                  const Numeric& T)

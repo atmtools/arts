@@ -233,8 +233,8 @@ public:
     //  Constructors and Destructors   //
     // ------------------------------- //
 
-    ArtsCovarianceMatrixWrapper(const CovarianceMatrix & covmat, bool is_inverse = false)
-        : is_inverse_(is_inverse), covmat_(covmat)
+    ArtsCovarianceMatrixWrapper(const CovarianceMatrix & covmat, bool be_inverse = false)
+        : is_inverse_(be_inverse), covmat_(covmat)
     {
     // Nothing to do here.
     }
