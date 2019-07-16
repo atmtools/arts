@@ -365,7 +365,7 @@ void Sparse::insert_row(Index r, Vector v)
 /*!
   Efficient inserting of a vector of elements into the sparse matrix.
   Overwrites elements currently in the matrix. The complexity is linear
-  in the number of elements and should therfore be the preferred way
+  in the number of elements and should therefore be the preferred way
   of inserting elements into the sparse matrix.
 
   \param nelems The number of elements to insert.
@@ -383,8 +383,7 @@ void Sparse::insert_elements(Index nelems,
 
     for (Index i = 0; i < nelems; i++)
     {
-        tripletList.push_back(T((int) rowind[i], (int) colind[i], data[i]));
-
+        tripletList[i] = T((int) rowind[i], (int) colind[i], data[i]);
     }
 
     matrix.setFromTriplets(tripletList.begin(), tripletList.end());

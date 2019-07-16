@@ -1,3 +1,15 @@
+2019-07-16  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1254
+
+	* src/matpackII.cc (Sparse::insert_elements):
+
+	Set tripletList elements with index operator instead of push_back.
+	Because the tripletList was already pre-allocated with n elements,
+	push_back led to twice the number of elements being added into the
+	Sparse matrix. Since the first half of triplets were all (0, 0, 0), no
+	further bugs should have been caused by this.
+
 2019-07-16  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1253
