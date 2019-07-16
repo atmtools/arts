@@ -843,6 +843,38 @@ void run_rt4( Workspace& ws,
             os << "Continuing with nstreams=" << 2*nummu_new
                << ". Output for this frequency might be erroneous.";
             out1 << os.str();
+
+            nhstreams_new = nummu_new-nhza;
+            mu_values_new.resize(nummu_new);
+            mu_values_new=0.;
+            quad_weights_new.resize(nummu_new);
+            quad_weights_new=0.;
+            get_quad_angles( mu_values_new, quad_weights_new,
+                            scat_za_grid, scat_aa_grid_new,
+                            quad_type, nhstreams_new, nhza, nummu_new );
+            extinct_matrix_new.resize(1,num_scatlayers,2,nummu_new,stokes_dim,stokes_dim);
+            extinct_matrix_new = 0.;
+            emis_vector_new.resize(1,num_scatlayers,2,nummu_new,stokes_dim);
+            emis_vector_new = 0.;
+            if( new_optprop )
+                par_optpropCalc2( emis_vector_new, extinct_matrix_new,
+                                //scatlayers,
+                                scat_data, scat_za_grid, f_index,
+                                pnd_field,
+                                t_field(Range(0,num_layers+1),joker,joker),
+                                cloudbox_limits, stokes_dim );
+            else
+                par_optpropCalc( emis_vector_new(0,joker,joker,joker,joker),
+                                extinct_matrix_new(0,joker,joker,joker,joker,joker),
+                                //scatlayers,
+                                scat_data, scat_za_grid, f_index,
+                                pnd_field,
+                                t_field(Range(0,num_layers+1),joker,joker),
+                                cloudbox_limits, stokes_dim, nummu_new,
+                                verbosity );
+            //   - resize & recalc scatter_matrix
+            scatter_matrix_new.resize(num_scatlayers,4,nummu_new,stokes_dim,nummu_new,stokes_dim);
+            scatter_matrix_new = 0.;
             pfct_failed = -1;
             sca_optpropCalc( scatter_matrix_new, pfct_failed,
                              emis_vector_new(0,joker,joker,joker,joker),

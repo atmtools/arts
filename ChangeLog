@@ -1,3 +1,23 @@
+2019-07-16  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1253
+
+	* 3rdparts/disort1.2/ErrPack.f
+	Replaced STOP statement with RETURN to avoid hard shutdown of
+	ARTS on convergence error.
+
+	* src/m_psd.cc:
+	Allow D_m and N_0^* to be used as parameters.
+
+	* src/m_retrieval.cc:
+	Fixed error messages when dimensions of covariance matrix
+	are wrong.
+
+	src/rt4.cc:
+	Fix required to avoid run_rt4 method from crashing when maximum
+	number of stream is reached.
+
+
 2019-07-15  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1252

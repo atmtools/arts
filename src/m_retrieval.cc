@@ -30,7 +30,11 @@ void check_and_add_block(CovarianceMatrix &covmat,
             std::shared_ptr<Sparse> mat = make_shared<Sparse>(covmat_block);
             covmat.add_correlation(Block(range, range, std::make_pair(rq_index,rq_index), mat));
         } else {
-            throw runtime_error("Matrix in covmat_block is inconsistent with the retrieval grids.");
+            ostringstream os;
+            os << "The matrix in covmat_block is was expected to have dimensions ["
+               << n_gps << ", " << n_gps << "] but found  to have dimensions ["
+               << covmat_block.nrows() << ", " << covmat_block.ncols() << "].";
+            throw runtime_error(os.str());
         }
     }
     if (!covmat_inv_block.empty()) {
@@ -38,8 +42,11 @@ void check_and_add_block(CovarianceMatrix &covmat,
             std::shared_ptr<Sparse> mat = make_shared<Sparse>(covmat_inv_block);
             covmat.add_correlation_inverse(Block(range, range, std::make_pair(rq_index, rq_index), mat));
         } else {
-            throw runtime_error("Matrix in covmat_inv_block is inconsistent with the retrieval"
-                                "grids.");
+            ostringstream os;
+            os <<"The matrix in covmat_inv_block is was expected to have dimensions ["
+               << n_gps << ", " << n_gps << "] but found  to have dimensions [" <<
+                covmat_block.nrows() << ", " << covmat_block.ncols() << "].";
+            throw runtime_error(os.str());
         }
     }
 }
@@ -657,9 +664,10 @@ void covmat_sxAddBlock(CovarianceMatrix&               covmat_sx,
 
     if ((m != jq_m) || (n != jq_n)) {
         ostringstream os;
-        os << "The dimensions of the covariance block ( " << block.nrows();
-        os << " x " << block.ncols() << " )" << " are inconsistent with respect";
-        os << " to retrieval quantities " << ii << " and " << jj << ", respectively.";
+        os << "The covariance block for retrieval quantities " << ii
+           << " and " << jj << " was expected to have dimensions ["
+           << jq_m << ", " << jq_n << "] but found to have dimensions "
+           << "[" << m << ", " << n << "].";
 
         throw runtime_error(os.str());
     }

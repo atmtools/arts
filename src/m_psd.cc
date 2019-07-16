@@ -1135,7 +1135,11 @@ Numeric dm_from_iwc_n0(Numeric iwc, Numeric n0, Numeric rho) {
 }
 
 Numeric n0_from_iwc_dm(Numeric iwc, Numeric dm, Numeric rho) {
-    return 256.0 * iwc / PI / rho / pow(dm, 4.0);
+    if (dm > 1e-9) {
+        return 256.0 * iwc / PI / rho / pow(dm, 4.0);
+    } else {
+        return 0.0;
+    }
 }
 
 Numeric n0_from_t(Numeric t) {
@@ -1173,11 +1177,12 @@ void psdD14(
 
 
     // Check and determine dependent and fixed parameters
-    const bool n0_depend = (Index) n0 == -999;
-    const bool dm_depend = (Index) dm == -999;
+    const bool n0_depend  = (Index) n0 == -999;
+    const bool dm_depend  = (Index) dm == -999;
+    const bool iwc_depend = (Index) iwc == -999;
 
     // Check fixed parameters
-    const bool iwc_fixed = !(std::isnan(iwc));
+    const bool iwc_fixed = !(std::isnan(iwc)) && !iwc_depend;
     const bool n0_fixed  = !(std::isnan(n0)) && !n0_depend;
     const bool dm_fixed  = !(std::isnan(dm)) && !dm_depend;
 
@@ -1188,6 +1193,7 @@ void psdD14(
                             "non-NAN, non-dependent values in iwc, n0, dm must be equal to\n"
                             "one or two.");
     }
+
 
     ArrayOfIndex i_pai = {-1,-1,-1}; // Position in pnd_agenda_input
 

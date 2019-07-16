@@ -16,7 +16,7 @@ c        Print out a warning or error message;  abort if error
 
       IF ( FATAL )  THEN
          WRITE ( *, '(/,2A,/)' )  ' ******* ERROR >>>>>>  ', MESSAG
-         STOP
+         RETURN
       END IF
 
       NumMsg = NumMsg + 1
