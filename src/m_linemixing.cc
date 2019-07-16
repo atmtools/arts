@@ -1229,30 +1229,37 @@ extern "C"
 #endif //ENABLE_RELMAT
 
 
+// Ignore function arguments if compiled without RELMAT support
+#ifdef ENABLE_RELMAT
+#define _UU_
+#else
+#define _UU_ _U_
+#endif
+
 void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
-                                            ArrayOfMatrix&                   abs_xsec_per_species,
-                                            ArrayOfArrayOfMatrix&            dabs_xsec_per_species_dx,
-                                            ArrayOfArrayOfMatrix&            relmat_per_band,
+                                            ArrayOfMatrix&                   abs_xsec_per_species _UU_,
+                                            ArrayOfArrayOfMatrix&            dabs_xsec_per_species_dx _UU_,
+                                            ArrayOfArrayOfMatrix&            relmat_per_band _UU_,
                                             // WS Input:                     
-                                            const ArrayOfArrayOfLineRecord&  abs_lines_per_band,
-                                            const ArrayOfArrayOfSpeciesTag&  abs_species_per_band,
-                                            const ArrayOfQuantumIdentifier&  band_identifiers,
-                                            const ArrayOfArrayOfSpeciesTag&  abs_species,
-                                            const SpeciesAuxData&            isotopologue_ratios,
-                                            const SpeciesAuxData&            partition_functions,
-                                            const ArrayOfRetrievalQuantity&  jacobian_quantities,
-                                            const Vector&                    f_grid,
-                                            const Vector&                    abs_p,
-                                            const Vector&                    abs_t,
-                                            const Numeric&                   lm_p_lim,
-                                            const ArrayOfIndex&              relmat_type_per_band,
-                                            const Index&                     wigner_initialized,
-                                            const Numeric&                   pressure_rule_limit,
-                                            const Index&                     write_relmat_per_band,
-                                            const Index&                     error_handling,
-                                            const Index&                     order_of_linemixing,
-                                            const Index&                     use_adiabatic_factor,
-                                            const Verbosity& verbosity)
+                                            const ArrayOfArrayOfLineRecord&  abs_lines_per_band _UU_,
+                                            const ArrayOfArrayOfSpeciesTag&  abs_species_per_band _UU_,
+                                            const ArrayOfQuantumIdentifier&  band_identifiers _UU_,
+                                            const ArrayOfArrayOfSpeciesTag&  abs_species _UU_,
+                                            const SpeciesAuxData&            isotopologue_ratios _UU_,
+                                            const SpeciesAuxData&            partition_functions _UU_,
+                                            const ArrayOfRetrievalQuantity&  jacobian_quantities _UU_,
+                                            const Vector&                    f_grid _UU_,
+                                            const Vector&                    abs_p _UU_,
+                                            const Vector&                    abs_t _UU_,
+                                            const Numeric&                   lm_p_lim _UU_,
+                                            const ArrayOfIndex&              relmat_type_per_band _UU_,
+                                            const Index&                     wigner_initialized _UU_,
+                                            const Numeric&                   pressure_rule_limit _UU_,
+                                            const Index&                     write_relmat_per_band _UU_,
+                                            const Index&                     error_handling _UU_,
+                                            const Index&                     order_of_linemixing _UU_,
+                                            const Index&                     use_adiabatic_factor _UU_,
+                                            const Verbosity& verbosity _UU_)
 #ifdef ENABLE_RELMAT
 {
   CREATE_OUT3;
@@ -1881,6 +1888,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
    throw std::runtime_error("This version of ARTS was compiled without external line mixing support.");
 }
 #endif //ENABLE_RELMAT
+#undef _UU_
 
 
 void SetLineMixingCoefficinetsFromRelmat( // WS Input And Output:

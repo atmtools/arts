@@ -1,5 +1,19 @@
 2019-07-16  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-1256
+
+	* CMakeLists.txt:
+
+	Add compiler flag -Wno-deprecated-copy for now to get on top of
+	GCC 9's warning frenzy. Should be fixed eventually though.
+
+	* src/m_linemixing.cc (abs_xsec_per_speciesAddLineMixedBands):
+
+	Add macro to suppress warnings of unused parameters when compiling
+	without Fortran support.
+
+2019-07-16  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-1255
 
 	* 3rdparty/invlib/src/invlib/convergence_criteria.h,
