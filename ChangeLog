@@ -1,3 +1,11 @@
+2019-07-17  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1257
+
+	* controlfiles/artscomponents/doit/yREFERENCE_DOITaccelerated.xml:
+
+	Update reference file to account for slight numerical changes.
+
 2019-07-16  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1256
