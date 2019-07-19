@@ -111,14 +111,6 @@ ConstComplexVectorView::ConstComplexVectorView(const Complex& a) :
   // Nothing to do here.
 }
 
-/** Default constructor. This is necessary, so that we can have a
-    default constructor for the derived class Vector. */
-ConstComplexVectorView::ConstComplexVectorView() :
-  mrange(0,0), mdata(NULL)
-{
-  // Nothing to do here.
-}
-
 /** Explicit constructor. This one is used by Vector to initialize its
     own VectorView part. */
 ConstComplexVectorView::ConstComplexVectorView( Complex *data,
@@ -193,37 +185,12 @@ ComplexVectorView::ComplexVectorView (ComplexVector& v)
   mrange = v.mrange;
 }
 
-/** Const index operator for subrange. We have to also account for the case,
-    that *this is already a subrange of a Vector. This allows correct
-    recursive behavior.  Has to be redifined here, because the
-    one from ConstComplexVectorView is hidden. */
-ConstComplexVectorView ComplexVectorView::operator[](const Range& r) const
-{
-    return ConstComplexVectorView::operator[](r);
-}
-
 /** Index operator for subrange. We have to also account for the case,
     that *this is already a subrange of a Vector. This allows correct
     recursive behavior.  */
 ComplexVectorView ComplexVectorView::operator[](const Range& r)
 {
     return ComplexVectorView(mdata, mrange, r);
-}
-
-/** Return const iterator to first element. Has to be redefined here,
-    since it is hiden by the non-const operator of the derived
-    class.*/
-ConstComplexIterator1D ComplexVectorView::begin() const
-{
-    return ConstComplexVectorView::begin();
-}
-
-/** Return const iterator behind last element. Has to be redefined
-    here, since it is hiden by the non-const operator of the derived
-    class.*/
-ConstComplexIterator1D ComplexVectorView::end() const
-{
-    return ConstComplexVectorView::end();
 }
 
 /** Return iterator to first element. */
@@ -532,14 +499,6 @@ Complex * ComplexVectorView::get_c_array()
 */
 ComplexVectorView::ComplexVectorView(Complex& a) :
 ConstComplexVectorView(a)
-{
-  // Nothing to do here.
-}
-
-/** Default constructor. This is necessary, so that we can have a
-    default constructor for the derived class Vector. */
-ComplexVectorView::ComplexVectorView() :
-ConstComplexVectorView()
 {
   // Nothing to do here.
 }
@@ -976,14 +935,6 @@ ConstComplexVectorView ConstComplexMatrixView::diagonal() const
 }
 
 
-/** Default constructor. This is necessary, so that we can have a
-    default constructor for derived classes. */
-ConstComplexMatrixView::ConstComplexMatrixView() :
-  mrr(0,0,1), mcr(0,0,1), mdata(NULL)
-{
-  // Nothing to do here.
-}
-
 /** Explicit constructor. This one is used by Matrix to initialize its
     own MatrixView part. The row range rr must have a
     stride to account for the length of one row. */
@@ -1074,37 +1025,6 @@ std::ostream& operator<<(std::ostream& os, const ConstComplexMatrixView& v)
 // Functions for ComplexMatrixView:
 // -------------------------
 
-/** Const index operator for subrange. We have to also account for the
-    case, that *this is already a subrange of a ComplexMatrix. This allows
-    correct recursive behavior. Has to be redefined here, since it is
-    hiden by the non-const operator of the derived class. */
-ConstComplexMatrixView ComplexMatrixView::operator()(const Range& r, const Range& c) const
-{
-    return ConstComplexMatrixView::operator()(r,c);  
-}
-
-/** Const index operator returning a column as an object of type
-    ConstComplexVectorView. Has to be redefined here, since it is
-    hiden by the non-const operator of the derived class.
-
-    \param r A range of rows.
-    \param c Index of selected column */
-ConstComplexVectorView ComplexMatrixView::operator()(const Range& r, Index c) const
-{
-    return ConstComplexMatrixView::operator()(r,c);
-}
-
-/** Const index operator returning a row as an object of type
-    ConstComplexVectorView. Has to be redefined here, since it is
-    hiden by the non-const operator of the derived class.
-
-    \param r Index of selected row.
-    \param c Range of columns */
-ConstComplexVectorView ComplexMatrixView::operator()(Index r, const Range& c) const
-{
-    return ConstComplexMatrixView::operator()(r,c);
-}
-
 /** Index operator for subrange. We have to also account for the case,
  t hat *this is already a subrange of a Complex*Matrix. This allows correct
     recursive behavior.  */
@@ -1139,19 +1059,6 @@ ComplexVectorView ComplexMatrixView::operator()(Index r, const Range& c)
 
   return ComplexVectorView(mdata + mrr.mstart + r*mrr.mstride,
                     mcr, c);
-}
-
-/** Return const iterator to first row. Has to be redefined here, since it is
-    hiden by the non-const operator of the derived class.*/
-ConstComplexIterator2D ComplexMatrixView::begin() const
-{
-    return ConstComplexMatrixView::begin();
-}
-
-/** Return const iterator behind last row. */
-ConstComplexIterator2D ComplexMatrixView::end() const
-{
-    return ConstComplexMatrixView::end();
 }
 
 /** Return iterator to first row. */
@@ -1615,16 +1522,6 @@ void copy(Numeric x,
 
 // Functions for ComplexMatrix:
 // ---------------------
-
-/** Default constructor. */
-ComplexMatrix::ComplexMatrix() :
-ComplexMatrixView::ComplexMatrixView()
-{
-  // Nothing to do here. However, note that the default constructor
-  // for ComplexMatrixView has been called in the initializer list. That is
-  // crucial, otherwise internal range objects will not be properly
-  // initialized. 
-}
 
 /** Constructor setting size. This constructor has to set the stride
     in the row range correctly! */

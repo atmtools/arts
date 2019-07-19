@@ -1,3 +1,21 @@
+2019-07-19  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1262
+
+	* src/matpack*.{h,cc}, complex.{h,cc}:
+
+	Replace manually implemented default constructors with empty bodies by
+	"defaulted" default constructors. They where only used for providing
+	a member initialization list. Instead, member list-initialization is
+	now used when the member is defined.
+
+	Big cleanup, removes over 3000 lines of code:
+
+	Remove all reimplementations of const functions in Views that are
+	already defined in the base (ConstView) class but hidden by the newly
+	defined non-const versions. Instead of reimplementing them in the
+	derived class, they can be made visible by a single 'using' statement.
+	
 2019-07-19 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
 	* arts-2-3-1261

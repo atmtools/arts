@@ -39,7 +39,7 @@ class Iterator6D {
 public:
   // Constructors:
   /** Default constructor. */
-  Iterator6D() : msv(), mstride(0) { /* Nothing to do here. */ }
+  Iterator6D()  = default;
 
   /** Explicit constructor. */
   Iterator6D(const Tensor5View& x, Index stride) : msv(x), mstride(stride)
@@ -83,7 +83,7 @@ private:
   /** Current position. */
   Tensor5View msv;
   /** Stride. */
-  Index mstride;
+  Index mstride{0};
 };
 
 /** Const version of Iterator6D. */
@@ -91,7 +91,7 @@ class ConstIterator6D {
 public:
   // Constructors:
   /** Default constructor. */
-  ConstIterator6D() : msv(), mstride(0) { /* Nothing to do here. */ }
+  ConstIterator6D() = default;
 
   /** Explicit constructor. */
   ConstIterator6D(const ConstTensor5View& x, Index stride) : msv(x), mstride(stride)
@@ -135,7 +135,7 @@ private:
   /** Current position. */
   ConstTensor5View msv;
   /** Stride. */
-  Index mstride;
+  Index mstride{0};
 };
 
 
@@ -415,7 +415,7 @@ public:
 
 protected:
   // Constructors:
-  ConstTensor6View();
+  ConstTensor6View() = default;
   ConstTensor6View(Numeric *data,
                    const Range& v, const Range& s, const Range& b,
                    const Range& p, const Range& r, const Range& c);
@@ -428,19 +428,19 @@ protected:
   // Data members:
   // -------------
   /** The vitrine range of mdata that is actually used. */
-  Range mvr;
+  Range mvr{0, 0, 1};
   /** The shelf range of mdata that is actually used. */
-  Range msr;
+  Range msr{0, 0, 1};
   /** The book range of mdata that is actually used. */
-  Range mbr;
+  Range mbr{0, 0, 1};
   /** The page range of mdata that is actually used. */
-  Range mpr;
+  Range mpr{0, 0, 1};
   /** The row range of mdata that is actually used. */
-  Range mrr;
+  Range mrr{0, 0, 1};
   /** The column range of mdata that is actually used. */
-  Range mcr;
+  Range mcr{0, 0, 1};
   /** Pointer to the plain C array that holds the data */
-  Numeric *mdata;
+  Numeric *mdata{nullptr};
 };
 
 /** The Tensor6View class
@@ -454,221 +454,13 @@ protected:
     which also allocates storage. */
 class Tensor6View : public ConstTensor6View {
 public:
+  // Make const methods visible from base class
+  using ConstTensor6View::begin;
+  using ConstTensor6View::end;
+  using ConstTensor6View::operator();
+  using ConstTensor6View::get;
+
   constexpr Tensor6View(const Tensor6View&) = default;
-
-  // Const index operators:
-
-  // Result 6D (1 combination)
-  // ------
-  ConstTensor6View operator()( const Range& v, const Range& s, const Range& b,
-                               const Range& p, const Range& r, const Range& c) const;
-
-  // Result 5D (6 combinations)
-  // -----|
-  ConstTensor5View operator()( const Range& v, const Range& s, const Range& b,
-                               const Range& p, const Range& r, Index        c) const;
-  // ----|-
-  ConstTensor5View operator()( const Range& v, const Range& s, const Range& b,
-                               const Range& p, Index        r, const Range& c) const;
-  // ---|--
-  ConstTensor5View operator()( const Range& v, const Range& s, const Range& b,
-                               Index        p, const Range& r, const Range& c) const;
-  // --|---
-  ConstTensor5View operator()( const Range& v, const Range& s, Index        b,
-                               const Range& p, const Range& r, const Range& c) const;
-  // -|----
-  ConstTensor5View operator()( const Range& v, Index        s, const Range& b,
-                               const Range& p, const Range& r, const Range& c) const;
-  // |-----
-  ConstTensor5View operator()( Index        v, const Range& s, const Range& b,
-                               const Range& p, const Range& r, const Range& c) const;
-
-  // Result 4D (5+4+3+2+1 = 15 combinations)
-  // ----||
-  ConstTensor4View operator()( const Range& v, const Range& s, const Range& b,
-                               const Range& p, Index        r, Index        c) const;
-  // ---|-|
-  ConstTensor4View operator()( const Range& v, const Range& s, const Range& b,
-                               Index        p, const Range& r, Index        c) const;
-  // --|--|
-  ConstTensor4View operator()( const Range& v, const Range& s, Index        b,
-                               const Range& p, const Range& r, Index        c) const;
-  // -|---|
-  ConstTensor4View operator()( const Range& v, Index        s, const Range& b,
-                               const Range& p, const Range& r, Index        c) const;
-  // |----|
-  ConstTensor4View operator()( Index        v, const Range& s, const Range& b,
-                               const Range& p, const Range& r, Index        c) const;
-  // ---||-
-  ConstTensor4View operator()( const Range& v, const Range& s, const Range& b,
-                               Index        p, Index        r, const Range& c) const;
-  // --|-|-
-  ConstTensor4View operator()( const Range& v, const Range& s, Index        b,
-                               const Range& p, Index        r, const Range& c) const;
-  // -|--|-
-  ConstTensor4View operator()( const Range& v, Index        s, const Range& b,
-                               const Range& p, Index        r, const Range& c) const;
-  // |---|-
-  ConstTensor4View operator()( Index        v, const Range& s, const Range& b,
-                               const Range& p, Index        r, const Range& c) const;
-  // --||--
-  ConstTensor4View operator()( const Range& v, const Range& s, Index        b,
-                               Index        p, const Range& r, const Range& c) const;
-  // -|-|--
-  ConstTensor4View operator()( const Range& v, Index        s, const Range& b,
-                               Index        p, const Range& r, const Range& c) const;
-  // |--|--
-  ConstTensor4View operator()( Index        v, const Range& s, const Range& b,
-                               Index        p, const Range& r, const Range& c) const;
-  // -||---
-  ConstTensor4View operator()( const Range& v, Index        s, Index        b,
-                               const Range& p, const Range& r, const Range& c) const;
-  // |-|---
-  ConstTensor4View operator()( Index        v, const Range& s, Index        b,
-                               const Range& p, const Range& r, const Range& c) const;
-  // ||----
-  ConstTensor4View operator()( Index        v, Index        s, const Range& b,
-                               const Range& p, const Range& r, const Range& c) const;
-
-  // Result 3D (4+3+2+1+ 3+2+1+ 2+1 +1 = 20 combinations)
-  // ---|||
-  ConstTensor3View operator()( const Range& v, const Range& s, const Range& b,
-                               Index        p, Index        r, Index        c) const;
-  // --|-||
-  ConstTensor3View operator()( const Range& v, const Range& s, Index        b,
-                               const Range& p, Index        r, Index        c) const;
-  // -|--||
-  ConstTensor3View operator()( const Range& v, Index        s, const Range& b,
-                               const Range& p, Index        r, Index        c) const;
-  // |---||
-  ConstTensor3View operator()( Index        v, const Range& s, const Range& b,
-                               const Range& p, Index        r, Index        c) const;
-  // --||-|
-  ConstTensor3View operator()( const Range& v, const Range& s, Index        b,
-                               Index        p, const Range& r, Index        c) const;
-  // -|-|-|
-  ConstTensor3View operator()( const Range& v, Index        s, const Range& b,
-                               Index        p, const Range& r, Index        c) const;
-  // |--|-|
-  ConstTensor3View operator()( Index        v, const Range& s, const Range& b,
-                               Index        p, const Range& r, Index        c) const;
-  // -||--|
-  ConstTensor3View operator()( const Range& v, Index        s, Index        b,
-                               const Range& p, const Range& r, Index        c) const;
-  // |-|--|
-  ConstTensor3View operator()( Index        v, const Range& s, Index        b,
-                               const Range& p, const Range& r, Index        c) const;
-  // ||---|
-  ConstTensor3View operator()( Index        v, Index        s, const Range& b,
-                               const Range& p, const Range& r, Index        c) const;
-  // --|||-
-  ConstTensor3View operator()( const Range& v, const Range& s, Index        b,
-                               Index        p, Index        r, const Range& c) const;
-  // -|-||-
-  ConstTensor3View operator()( const Range& v, Index        s, const Range& b,
-                               Index        p, Index        r, const Range& c) const;
-  // |--||-
-  ConstTensor3View operator()( Index        v, const Range& s, const Range& b,
-                               Index        p, Index        r, const Range& c) const;
-  // -||-|-
-  ConstTensor3View operator()( const Range& v, Index        s, Index        b,
-                               const Range& p, Index        r, const Range& c) const;
-  // |-|-|-
-  ConstTensor3View operator()( Index        v, const Range& s, Index        b,
-                               const Range& p, Index        r, const Range& c) const;
-  // ||--|-
-  ConstTensor3View operator()( Index        v, Index        s, const Range& b,
-                               const Range& p, Index        r, const Range& c) const;
-  // -|||--
-  ConstTensor3View operator()( const Range& v, Index        s, Index        b,
-                               Index        p, const Range& r, const Range& c) const;
-  // |-||--
-  ConstTensor3View operator()( Index        v, const Range& s, Index        b,
-                               Index        p, const Range& r, const Range& c) const;
-  // ||-|--
-  ConstTensor3View operator()( Index        v, Index        s, const Range& b,
-                               Index        p, const Range& r, const Range& c) const;
-  // |||---
-  ConstTensor3View operator()( Index        v, Index        s, Index        b,
-                               const Range& p, const Range& r, const Range& c) const;
-
-  // Result 2D (15 combinations)
-  // IIII--
-  ConstMatrixView  operator()( Index        v, Index        s, Index        b,
-                               Index        p, const Range& r, const Range& c) const;
-  // III-I-
-  ConstMatrixView  operator()( Index        v, Index        s, Index        b,
-                               const Range& p, Index        r, const Range& c) const;
-  // II-II-
-  ConstMatrixView  operator()( Index        v, Index        s, const Range& b,
-                               Index        p, Index        r, const Range& c) const;
-  // I-III-
-  ConstMatrixView  operator()( Index        v, const Range& s, Index        b,
-                               Index        p, Index        r, const Range& c) const;
-  // -IIII-
-  ConstMatrixView  operator()( const Range& v, Index        s, Index        b,
-                               Index        p, Index        r, const Range& c) const;
-  // III--I
-  ConstMatrixView  operator()( Index        v, Index        s, Index        b,
-                               const Range& p, const Range& r, Index        c) const;
-  // II-I-I
-  ConstMatrixView  operator()( Index        v, Index        s, const Range& b,
-                               Index        p, const Range& r, Index        c) const;
-  // I-II-I
-  ConstMatrixView  operator()( Index        v, const Range& s, Index        b,
-                               Index        p, const Range& r, Index        c) const;
-  // -III-I
-  ConstMatrixView  operator()( const Range& v, Index        s, Index        b,
-                               Index        p, const Range& r, Index        c) const;
-  // II--II
-  ConstMatrixView  operator()( Index        v, Index        s, const Range& b,
-                               const Range& p, Index        r, Index        c) const;
-  // I-I-II
-  ConstMatrixView  operator()( Index        v, const Range& s, Index        b,
-                               const Range& p, Index        r, Index        c) const;
-  // -II-II
-  ConstMatrixView  operator()( const Range& v, Index        s, Index        b,
-                               const Range& p, Index        r, Index        c) const;
-  // I--III
-  ConstMatrixView  operator()( Index        v, const Range& s, const Range& b,
-                               Index        p, Index        r, Index        c) const;
-  // -I-III
-  ConstMatrixView  operator()( const Range& v, Index        s, const Range& b,
-                               Index        p, Index        r, Index        c) const;
-  // --IIII
-  ConstMatrixView  operator()( const Range& v, const Range& s, Index        b,
-                               Index        p, Index        r, Index        c) const;
-
-  // Result 1D (6 combinations)
-  // IIIII-
-  ConstVectorView  operator()( Index        v, Index        s, Index        b,
-                               Index        p, Index        r, const Range& c) const;
-  // IIII-I
-  ConstVectorView  operator()( Index        v, Index        s, Index        b,
-                               Index        p, const Range& r, Index        c) const;
-  // III-II
-  ConstVectorView  operator()( Index        v, Index        s, Index        b,
-                               const Range& p, Index        r, Index        c) const;
-  // II-III
-  ConstVectorView  operator()( Index        v, Index        s, const Range& b,
-                               Index        p, Index        r, Index        c) const;
-  // I-IIII
-  ConstVectorView  operator()( Index        v, const Range& s, Index        b,
-                               Index        p, Index        r, Index        c) const;
-  // -IIIII
-  ConstVectorView  operator()( const Range& v, Index        s, Index        b,
-                               Index        p, Index        r, Index        c) const;
-
-  // Result scalar (1 combination)
-  // IIIIII
-  Numeric operator() ( Index        v, Index        s, Index        b,
-                       Index        p, Index        r, Index        c) const
-      { return ConstTensor6View::operator()(v,s,b,p,r,c);  }
-
-  /** Get element implementation without assertions. */
-  Numeric get( Index        v, Index        s, Index        b,
-               Index        p, Index        r, Index        c) const
-      { return ConstTensor6View::get(v,s,b,p,r,c);  }
 
   // Non-const index operators:
 
@@ -899,9 +691,6 @@ public:
   const Numeric *get_c_array() const;
   Numeric *get_c_array();
 
-  // Functions returning const iterators:
-  ConstIterator6D begin() const;
-  ConstIterator6D end() const;
   // Functions returning iterators:
   Iterator6D begin();
   Iterator6D end();
@@ -935,7 +724,7 @@ public:
 
 protected:
   // Constructors:
-  Tensor6View();
+  Tensor6View() = default;
   Tensor6View(Numeric *data,
               const Range& v, const Range& s, const Range& b,
               const Range& p, const Range& r, const Range& c);
@@ -957,7 +746,7 @@ protected:
 class Tensor6 : public Tensor6View {
 public:
   // Constructors:
-  Tensor6();
+  Tensor6() = default;
   Tensor6(Index        v, Index        s, Index        b,
           Index        p, Index        r, Index        c);
   Tensor6(Index        v, Index        s, Index        b,

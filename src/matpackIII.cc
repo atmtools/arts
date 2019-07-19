@@ -179,14 +179,6 @@ ConstTensor3View::ConstTensor3View(const ConstMatrixView& a) :
   // Nothing to do here.
 }
 
-/** Default constructor. This is necessary, so that we can have a
-    default constructor for derived classes. */
-ConstTensor3View::ConstTensor3View() :
-  mpr(0,0,1), mrr(0,0,1), mcr(0,0,1), mdata(NULL)
-{
-  // Nothing to do here.
-}
-
 /** Explicit constructor. This one is used by Tensor3 to initialize
     its own Tensor3View part. The row range rr must have a stride to
     account for the length of one row. The page range pr must have a
@@ -252,84 +244,6 @@ std::ostream& operator<<(std::ostream& os, const ConstTensor3View& v)
 
 // Functions for Tensor3View:
 // -------------------------
-
-/** Const index operator for subrange. We have to also account for the
-    case, that *this is already a subrange of a Tensor3. This allows
-    correct recursive behavior. Has to be redefined here, since it is
-    hiden by the non-const operator of the derived class. */
-ConstTensor3View Tensor3View::operator()(const Range& p,
-                                                const Range& r,
-                                                const Range& c) const
-{
-  return ConstTensor3View::operator()(p,r,c);  
-}
-
-/** Const index operator returning an object of type
-    ConstMatrixView. (Reducing the dimension by one.) Has to be
-    redefined here, since it is hiden by the non-const operator of the
-    derived class. */
-ConstMatrixView Tensor3View::operator()(const Range& p,
-                                                    const Range& r,
-                                                    Index c) const
-{
-  return ConstTensor3View::operator()(p,r,c);  
-}
-
-/** Const index operator returning an object of type
-    ConstMatrixView. (Reducing the dimension by one.) Has to be
-    redefined here, since it is hiden by the non-const operator of the
-    derived class. */
-ConstMatrixView Tensor3View::operator()(const Range& p,
-                                                    Index        r,
-                                                    const Range& c) const
-{
-  return ConstTensor3View::operator()(p,r,c);  
-}
-
-/** Const index operator returning an object of type
-    ConstMatrixView. (Reducing the dimension by one.) Has to be
-    redefined here, since it is hiden by the non-const operator of the
-    derived class. */
-ConstMatrixView Tensor3View::operator()(Index p,
-                                                    const Range& r,
-                                                    const Range& c) const
-{
-  return ConstTensor3View::operator()(p,r,c);  
-}
-
-/** Const index operator returning an object of type
-    ConstVectorView. (Reducing the dimension by two.) Has to be
-    redefined here, since it is hiden by the non-const operator of the
-    derived class. */
-ConstVectorView Tensor3View::operator()(Index p,
-                                                    Index r,
-                                                    const Range& c) const
-{
-  return ConstTensor3View::operator()(p,r,c);  
-}
-
-/** Const index operator returning an object of type
-    ConstVectorView. (Reducing the dimension by two.) Has to be
-    redefined here, since it is hiden by the non-const operator of the
-    derived class. */
-ConstVectorView Tensor3View::operator()(Index p,
-                                                    const Range& r,
-                                                    Index c) const
-{
-  return ConstTensor3View::operator()(p,r,c);  
-}
-
-/** Const index operator returning an object of type
-    ConstVectorView. (Reducing the dimension by two.) Has to be
-    redefined here, since it is hiden by the non-const operator of the
-    derived class. */
-ConstVectorView Tensor3View::operator()(const Range& p,
-                                                    Index r,
-                                                    Index c) const
-{
-  return ConstTensor3View::operator()(p,r,c);  
-}
-
 
 /** Index operator for subrange. We have to also account for the
     case, that *this is already a subrange of a Tensor3. This allows
@@ -470,19 +384,6 @@ const Numeric *Tensor3View::get_c_array() const
       throw std::runtime_error("A Tensor3View can only be converted to a plain C-array if it's pointing to a continuous block of data");
 
   return mdata;
-}
-
-/** Return const iterator to first row. Has to be redefined here, since it is
-    hiden by the non-const operator of the derived class.*/
-ConstIterator3D Tensor3View::begin() const
-{
-  return ConstTensor3View::begin();
-}
-
-/** Return const iterator behind last row. */
-ConstIterator3D Tensor3View::end() const
-{
-  return ConstTensor3View::end();
 }
 
 /** Return iterator to first page. */
@@ -683,14 +584,6 @@ Tensor3View::Tensor3View(const MatrixView& a) :
   // Nothing to do here.
 }
 
-/** Default constructor. This is necessary, so that we can have a
-    default constructor for the derived class Tensor3. */
-Tensor3View::Tensor3View() :
-  ConstTensor3View()
-{
-  // Nothing to do here.
-}
-
 /** Explicit constructor. This one is used by Tensor3 to initialize its
     own Tensor3View part. The row range rr must have a
     stride to account for the length of one row. */
@@ -765,16 +658,6 @@ void copy(Numeric x,
 
 // Functions for Tensor3:
 // ---------------------
-
-/** Default constructor. */
-Tensor3::Tensor3() :
-  Tensor3View::Tensor3View()
-{
-  // Nothing to do here. However, note that the default constructor
-  // for Tensor3View has been called in the initializer list. That is
-  // crucial, otherwise internal range objects will not be properly
-  // initialized. 
-}
 
 /** Constructor setting size. This constructor has to set the strides
     in the page and row ranges correctly! */

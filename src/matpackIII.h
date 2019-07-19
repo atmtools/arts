@@ -35,7 +35,7 @@ class Iterator3D {
 public:
   // Constructors:
   /** Default constructor. */
-  Iterator3D() : msv(), mstride(0) { /* Nothing to do here. */ }
+  Iterator3D() = default;
 
   /** Explicit constructor. */
   Iterator3D(const MatrixView& x, Index stride) : msv(x), mstride(stride)
@@ -71,7 +71,7 @@ private:
   /** Current position. */
   MatrixView msv;
   /** Stride. */
-  Index mstride;
+  Index mstride{0};
 };
 
 /** Const version of Iterator3D. */
@@ -79,7 +79,7 @@ class ConstIterator3D {
 public:
   // Constructors:
   /** Default constructor. */
-  ConstIterator3D() : msv(), mstride(0) { /* Nothing to do here. */ }
+  ConstIterator3D() = default;
 
   /** Explicit constructor. */
   ConstIterator3D(const ConstMatrixView& x, Index stride)
@@ -116,7 +116,7 @@ private:
   /** Current position. */
   ConstMatrixView msv;
   /** Stride. */
-  Index mstride;
+  Index mstride{0};
 };
 
 
@@ -209,7 +209,7 @@ public:
 
 protected:
   // Constructors:
-  ConstTensor3View();
+  ConstTensor3View() = default;
   ConstTensor3View(Numeric *data,
                    const Range& p, const Range& r, const Range& c);
   ConstTensor3View(Numeric *data,
@@ -219,13 +219,13 @@ protected:
   // Data members:
   // -------------
   /** The page range of mdata that is actually used. */
-  Range mpr;
+  Range mpr{0, 0, 1};
   /** The row range of mdata that is actually used. */
-  Range mrr;
+  Range mrr{0, 0, 1};
   /** The column range of mdata that is actually used. */
-  Range mcr;
+  Range mcr{0, 0, 1};
   /** Pointer to the plain C array that holds the data */
-  Numeric *mdata;
+  Numeric *mdata{nullptr};
 };
 
 /** The Tensor3View class
@@ -239,27 +239,13 @@ protected:
     which also allocates storage. */
 class Tensor3View : public ConstTensor3View {
 public:
+  // Make const methods visible from base class
+  using ConstTensor3View::begin;
+  using ConstTensor3View::end;
+  using ConstTensor3View::operator();
+  using ConstTensor3View::get;
+
   constexpr Tensor3View(const Tensor3View&) = default;
-
-  // Const index operators:
-  ConstTensor3View operator()( const Range& p, const Range& r, const Range& c ) const;
-
-  ConstMatrixView  operator()( const Range& p, const Range& r, Index c        ) const;
-  ConstMatrixView  operator()( const Range& p, Index r,        const Range& c ) const;
-  ConstMatrixView  operator()( Index p,        const Range& r, const Range& c ) const;
-
-  ConstVectorView  operator()( Index p,        Index r,        const Range& c ) const;
-  ConstVectorView  operator()( Index p,        const Range& r, Index c        ) const;
-  ConstVectorView  operator()( const Range& p, Index r,        Index c        ) const;
-
-  /** Plain const index operator. Has to be redefined here, since it is
-    hiden by the non-const operator of the derived class. */
-  Numeric operator()(Index p, Index r, Index c) const
-    { return ConstTensor3View::operator()(p,r,c); }
-
-  /** Get element implementation without assertions. */
-  Numeric get(Index p, Index r, Index c) const
-    { return ConstTensor3View::get(p,r,c); }
 
   // Non-const index operators:
 
@@ -300,9 +286,6 @@ public:
   const Numeric *get_c_array() const;
   Numeric *get_c_array();
 
-  // Functions returning const iterators:
-  ConstIterator3D begin() const;
-  ConstIterator3D end() const;
   // Functions returning iterators:
   Iterator3D begin();
   Iterator3D end();
@@ -339,7 +322,7 @@ public:
 
 protected:
   // Constructors:
-  Tensor3View();
+  Tensor3View() = default;
   Tensor3View(Numeric *data, const Range& p, const Range& r, const Range& c);
   Tensor3View(Numeric *data,
               const Range& pp, const Range& pr, const Range& pc,
@@ -357,7 +340,7 @@ protected:
 class Tensor3 : public Tensor3View {
 public:
   // Constructors:
-  Tensor3();
+  Tensor3() = default;
   Tensor3(Index p, Index r, Index c);
   Tensor3(Index p, Index r, Index c, Numeric fill);
   Tensor3(const ConstTensor3View& v);

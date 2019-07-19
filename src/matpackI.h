@@ -250,7 +250,7 @@ public:
   using iterator_category = std::random_access_iterator_tag;
 
    /** Default constructor. */
-  Iterator1D() : mx(NULL), mstride(0) { /* Nothing to do here. */ }
+  Iterator1D() = default;
 
   /** Explicit constructor. */
   Iterator1D(Numeric *x, Index stride) : mx(x), mstride(stride)
@@ -283,9 +283,9 @@ public:
 
 private:
   /** Current position. */
-  Numeric *mx;
+  Numeric *mx{nullptr};
   /** Stride. */
-  Index mstride;
+  Index mstride{0};
 };
 
 /** The constant iterator class for sub vectors. This takes into
@@ -299,11 +299,10 @@ public:
   using iterator_category = std::random_access_iterator_tag;
 
   /** Default constructor. */
-  ConstIterator1D() : mx(NULL), mstride(0)
-    { /* Nothing to do here. */ }
+  ConstIterator1D() = default;
 
   /** Explicit constructor. */
-  ConstIterator1D(Numeric *x, Index stride) : mx(x), mstride(stride)
+  ConstIterator1D(const Numeric *x, Index stride) : mx(x), mstride(stride)
       { /* Nothing to do here. */ }
 
   // Operators:
@@ -323,9 +322,9 @@ public:
                    Iterator1D target);
 private:
   /** Current position. */
-  const Numeric *mx;
+  const Numeric *mx{nullptr};
   /** Stride. */
-  Index mstride;
+  Index mstride{0};
 };
 
 // Declare the vector class:
@@ -425,16 +424,16 @@ public:
 
 protected:
   // Constructors:
-  ConstVectorView();
+  ConstVectorView() = default;
   ConstVectorView(Numeric *data, const Range& range);
   ConstVectorView(Numeric *data, const Range& p, const Range& n);
 
   // Data members:
   // -------------
   /** The range of mdata that is actually used. */
-  Range mrange;
+  Range mrange{0, 0};
   /** Pointer to the plain C array that holds the data */
-  Numeric *mdata;
+  Numeric *mdata{nullptr};
 };
 
 /** The VectorView class.
@@ -450,6 +449,12 @@ protected:
     constant index operators and iterators. */
 class VectorView : public ConstVectorView {
 public:
+  // Make const methods visible from base class
+  using ConstVectorView::begin;
+  using ConstVectorView::end;
+  using ConstVectorView::operator[];
+  using ConstVectorView::get;
+
   constexpr VectorView (const VectorView&) = default;
 
   VectorView (const Vector&);
@@ -457,18 +462,6 @@ public:
 
   // Typedef for compatibility with STL
   typedef Iterator1D iterator;
-
-  // Const index operators:
-  /** Plain const index operator. Has to be redifined here, because the
-    one from ConstVectorView is hidden. */
-  Numeric operator[](Index n) const
-    { return ConstVectorView::operator[](n); }
-
-  /** Get element implementation without assertions. */
-  Numeric get(Index n) const
-    { return ConstVectorView::get(n); }
-
-  ConstVectorView operator[](const Range& r) const;
 
   /** Plain Index operator. */
   Numeric& operator[](Index n)
@@ -488,9 +481,6 @@ public:
 
   VectorView operator[](const Range& r);
 
-  // Constant iterators:
-  ConstIterator1D begin() const;
-  ConstIterator1D end() const;
   // Iterators:
   Iterator1D begin();
   Iterator1D end();
@@ -538,7 +528,7 @@ public:
 
 protected:
   // Constructors:
-  VectorView();
+  VectorView() = default;
   VectorView(Numeric *data, const Range& range);
   VectorView(Numeric *data, const Range& p, const Range& n);
 };
@@ -550,7 +540,7 @@ class Iterator2D {
 public:
   // Constructors:
   /** Default constructor. */
-  Iterator2D() : msv(), mstride(0)  { /* Nothing to do here. */ }
+  Iterator2D() = default;
 
   /** Explicit constructor. */
   Iterator2D(const VectorView& x, Index stride) : msv(x), mstride(stride)
@@ -580,7 +570,7 @@ private:
   /** Current position. */
   VectorView msv;
   /** Row stride. */
-  Index mstride;
+  Index mstride{0};
 };
 
 /** The const row iterator class for sub matrices. This takes into account the
@@ -590,7 +580,7 @@ class ConstIterator2D {
 public:
   // Constructors:
   /** Default constructor. */
-  ConstIterator2D() : msv(), mstride(0) { /* Nothing to do here. */ }
+  ConstIterator2D() = default;
 
   /** Explicit constructor. */
   ConstIterator2D(const ConstVectorView& x, Index stride)
@@ -621,7 +611,7 @@ private:
   /** Current position. */
   ConstVectorView msv;
   /** Row stride. */
-  Index mstride;
+  Index mstride{0};
 };
 
 /** The Vector class. This is a subvector that also allocates storage
@@ -637,7 +627,7 @@ private:
 class Vector : public VectorView {
 public:
   // Constructors:
-  Vector();
+  Vector() = default;
   Vector(std::initializer_list<Numeric> init);
   explicit Vector(Index n);
   Vector(Index n, Numeric fill);
@@ -781,7 +771,7 @@ public:
 
 protected:
   // Constructors:
-  ConstMatrixView();
+  ConstMatrixView() = default;
   ConstMatrixView(Numeric *data, const Range& r, const Range& c);
   ConstMatrixView(Numeric *data,
                   const Range& pr, const Range& pc,
@@ -790,11 +780,11 @@ protected:
   // Data members:
   // -------------
   /** The row range of mdata that is actually used. */
-  Range mrr;
+  Range mrr{0, 0, 1};
   /** The column range of mdata that is actually used. */
-  Range mcr;
+  Range mcr{0, 0, 1};
   /** Pointer to the plain C array that holds the data */
-  Numeric *mdata;
+  Numeric *mdata{nullptr};
 };
 
 /** The MatrixView class
@@ -808,24 +798,17 @@ protected:
     which also allocates storage. */
 class MatrixView : public ConstMatrixView {
 public:
+  // Make const methods visible from base class
+  using ConstMatrixView::begin;
+  using ConstMatrixView::end;
+  using ConstMatrixView::operator();
+  using ConstMatrixView::get;
+
   constexpr MatrixView(const MatrixView&) = default;
 
   // Typedef for compatibility with STL
   typedef Iterator2D iterator;
 
-  // Const index operators:
-  /** Plain const index operator. Has to be redefined here, since it is
-    hiden by the non-const operator of the derived class. */
-  Numeric operator()(Index r, Index c) const
-    { return ConstMatrixView::operator()(r,c); }
-
-  /** Get element implementation without assertions. */
-  Numeric get(Index r, Index c) const
-    { return ConstMatrixView::get(r,c); }
-
-  ConstMatrixView operator()(const Range& r, const Range& c) const;
-  ConstVectorView operator()(const Range& r, Index c) const;
-  ConstVectorView operator()(Index r, const Range& c) const;
   // Index Operators:
   /** Plain index operator. */
   Numeric& operator()(Index r, Index c)
@@ -852,9 +835,6 @@ public:
   VectorView operator()(const Range& r, Index c);
   VectorView operator()(Index r, const Range& c);
 
-  // Functions returning const iterators:
-  ConstIterator2D begin() const;
-  ConstIterator2D end() const;
   // Functions returning iterators:
   Iterator2D begin();
   Iterator2D end();
@@ -905,7 +885,7 @@ public:
 
 protected:
   // Constructors:
-  MatrixView();
+  MatrixView() = default;
   MatrixView(Numeric *data, const Range& r, const Range& c);
   MatrixView(Numeric *data,
              const Range& pr, const Range& pc,
@@ -923,7 +903,7 @@ protected:
 class Matrix : public MatrixView {
 public:
   // Constructors:
-  Matrix();
+  Matrix() = default;
   Matrix(Index r, Index c);
   Matrix(Index r, Index c, Numeric fill);
   Matrix(const ConstMatrixView& v);

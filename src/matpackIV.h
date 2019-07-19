@@ -39,7 +39,7 @@ class Iterator4D {
 public:
   // Constructors:
   /** Default constructor. */
-  Iterator4D() : msv(), mstride(0) { /* Nothing to do here. */ }
+  Iterator4D() = default;
 
   /** Explicit constructor. */
   Iterator4D(const Tensor3View& x, Index stride)
@@ -73,7 +73,7 @@ private:
   /** Current position. */
   Tensor3View msv;
   /** Stride. */
-  Index mstride;
+  Index mstride{0};
 };
 
 /** Const version of Iterator4D. */
@@ -84,7 +84,7 @@ public:
   // -----------------------------
 
   /** Default constructor. */
-  ConstIterator4D() : msv(), mstride(0) { /* Nothing to do here. */ }
+  ConstIterator4D() = default;
 
   /** Explicit constructor. */
   ConstIterator4D(const ConstTensor3View& x, Index stride)
@@ -118,7 +118,7 @@ private:
   /** Current position. */
   ConstTensor3View msv;
   /** Stride. */
-  Index mstride;
+  Index mstride{0};
 };
 
 
@@ -218,7 +218,7 @@ public:
 
 protected:
   // Constructors:
-  ConstTensor4View();
+  ConstTensor4View() = default;
   ConstTensor4View(Numeric *data,
                    const Range& b, const Range& p, const Range& r, const Range& c);
   ConstTensor4View(Numeric *data,
@@ -228,15 +228,15 @@ protected:
   // Data members:
   // -------------
   /** The book range of mdata that is actually used. */
-  Range mbr;
+  Range mbr{0, 0, 1};
   /** The page range of mdata that is actually used. */
-  Range mpr;
+  Range mpr{0, 0, 1};
   /** The row range of mdata that is actually used. */
-  Range mrr;
+  Range mrr{0, 0, 1};
   /** The column range of mdata that is actually used. */
-  Range mcr;
+  Range mcr{0, 0, 1};
   /** Pointer to the plain C array that holds the data */
-  Numeric *mdata;
+  Numeric *mdata{nullptr};
 };
 
 /** The Tensor4View class
@@ -250,36 +250,13 @@ protected:
     which also allocates storage. */
 class Tensor4View : public ConstTensor4View {
 public:
+  // Make const methods visible from base class
+  using ConstTensor4View::begin;
+  using ConstTensor4View::end;
+  using ConstTensor4View::operator();
+  using ConstTensor4View::get;
+
   constexpr Tensor4View(const Tensor4View&) = default;
-
-  // Const index operators:
-  ConstTensor4View operator()( const Range& b, const Range& p, const Range& r, const Range& c ) const;
-
-  ConstTensor3View operator()( const Range& b, const Range& p, const Range& r, Index c        ) const;
-  ConstTensor3View operator()( const Range& b, const Range& p, Index r,        const Range& c ) const;
-  ConstTensor3View operator()( const Range& b, Index p,        const Range& r, const Range& c ) const;
-  ConstTensor3View operator()( Index b,        const Range& p, const Range& r, const Range& c ) const;
-
-  ConstMatrixView  operator()( const Range& b, const Range& p, Index r,        Index c        ) const;
-  ConstMatrixView  operator()( const Range& b, Index p,        const Range& r, Index c        ) const;
-  ConstMatrixView  operator()( const Range& b, Index p,        Index r,        const Range& c ) const;
-  ConstMatrixView  operator()( Index b,        const Range& p, Index r,        const Range& c ) const;
-  ConstMatrixView  operator()( Index b,        const Range& p, const Range& r, Index c        ) const;
-  ConstMatrixView  operator()( Index b,        Index p,        const Range& r, const Range& c ) const;
-
-  ConstVectorView  operator()( const Range& b, Index p,        Index r,        Index c        ) const;
-  ConstVectorView  operator()( Index b,        const Range& p, Index r,        Index c        ) const;
-  ConstVectorView  operator()( Index b,        Index p,        const Range& r, Index c        ) const;
-  ConstVectorView  operator()( Index b,        Index p,        Index r,        const Range& c ) const;
-
-  /** Plain const index operator. Has to be redefined here, since it is
-    hiden by the non-const operator of the derived class. */
-  Numeric operator()(Index b, Index p, Index r, Index c) const
-    { return ConstTensor4View::operator()(b,p,r,c); }
-
-  /** Get element implementation without assertions. */
-  Numeric get(Index b, Index p, Index r, Index c) const
-    { return ConstTensor4View::get(b,p,r,c); }
 
   // Non-const index operators:
 
@@ -331,9 +308,6 @@ public:
   const Numeric *get_c_array() const;
   Numeric *get_c_array();
 
-  // Functions returning const iterators:
-  ConstIterator4D begin() const;
-  ConstIterator4D end()   const;
   // Functions returning iterators:
   Iterator4D begin();
   Iterator4D end();
@@ -372,7 +346,7 @@ public:
 
 protected:
   // Constructors:
-  Tensor4View();
+  Tensor4View() = default;
   Tensor4View(Numeric *data,
               const Range& b, const Range& p, const Range& r, const Range& c);
   Tensor4View(Numeric *data,
@@ -392,7 +366,7 @@ protected:
 class Tensor4 : public Tensor4View {
 public:
   // Constructors:
-  Tensor4();
+  Tensor4() = default;
   Tensor4(Index b, Index p, Index r, Index c);
   Tensor4(Index b, Index p, Index r, Index c, Numeric fill);
   Tensor4(const ConstTensor4View& v);

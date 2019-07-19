@@ -258,14 +258,6 @@ ConstVectorView::ConstVectorView(const Numeric& a) :
   // Nothing to do here.
 }
 
-/** Default constructor. This is necessary, so that we can have a
-    default constructor for the derived class Vector. */
-ConstVectorView::ConstVectorView() :
-  mrange(0,0), mdata(NULL)
-{
-  // Nothing to do here.
-}
-
 /** Explicit constructor. This one is used by Vector to initialize its
     own VectorView part. */
 ConstVectorView::ConstVectorView( Numeric *data,
@@ -339,15 +331,6 @@ VectorView::VectorView (Vector& v)
   mrange = v.mrange;
 }
 
-/** Const index operator for subrange. We have to also account for the case,
-    that *this is already a subrange of a Vector. This allows correct
-    recursive behavior.  Has to be redifined here, because the
-    one from ConstVectorView is hidden. */
-ConstVectorView VectorView::operator[](const Range& r) const
-{
-  return ConstVectorView::operator[](r);
-}
-
 /** Index operator for subrange. We have to also account for the case,
     that *this is already a subrange of a Vector. This allows correct
     recursive behavior.  */
@@ -356,21 +339,6 @@ VectorView VectorView::operator[](const Range& r)
   return VectorView(mdata, mrange, r);
 }
 
-/** Return const iterator to first element. Has to be redefined here,
-    since it is hiden by the non-const operator of the derived
-    class.*/
-ConstIterator1D VectorView::begin() const
-{
-  return ConstVectorView::begin();
-}
-
-/** Return const iterator behind last element. Has to be redefined
-    here, since it is hiden by the non-const operator of the derived
-    class.*/
-ConstIterator1D VectorView::end() const
-{
-  return ConstVectorView::end();
-}
 
 /** Return iterator to first element. */
 Iterator1D VectorView::begin()
@@ -586,14 +554,6 @@ VectorView::VectorView(Numeric& a) :
   // Nothing to do here.
 }
 
-/** Default constructor. This is necessary, so that we can have a
-    default constructor for the derived class Vector. */
-VectorView::VectorView() :
-  ConstVectorView()
-{
-  // Nothing to do here.
-}
-
 /** Explicit constructor. This one is used by Vector to initialize its
     own VectorView part. */
 VectorView::VectorView(Numeric *data,
@@ -650,12 +610,6 @@ void copy(Numeric x,
 
 // Functions for Vector:
 // ---------------------
-
-/** Default constructor. */
-Vector::Vector()
-{
-  // Nothing to do here
-}
 
 /** Initialization list constructor. */
 Vector::Vector(std::initializer_list<Numeric> init) : VectorView(
@@ -966,14 +920,6 @@ ConstVectorView ConstMatrixView::diagonal() const
 }
 
 
-/** Default constructor. This is necessary, so that we can have a
-    default constructor for derived classes. */
-ConstMatrixView::ConstMatrixView() :
-  mrr(0,0,1), mcr(0,0,1), mdata(NULL)
-{
-  // Nothing to do here.
-}
-
 /** Explicit constructor. This one is used by Matrix to initialize its
     own MatrixView part. The row range rr must have a
     stride to account for the length of one row. */
@@ -1064,37 +1010,6 @@ std::ostream& operator<<(std::ostream& os, const ConstMatrixView& v)
 // Functions for MatrixView:
 // -------------------------
 
-/** Const index operator for subrange. We have to also account for the
-    case, that *this is already a subrange of a Matrix. This allows
-    correct recursive behavior. Has to be redefined here, since it is
-    hiden by the non-const operator of the derived class. */
-ConstMatrixView MatrixView::operator()(const Range& r, const Range& c) const
-{
-  return ConstMatrixView::operator()(r,c);
-}
-
-/** Const index operator returning a column as an object of type
-    ConstVectorView. Has to be redefined here, since it is
-    hiden by the non-const operator of the derived class.
-
-    \param r A range of rows.
-    \param c Index of selected column */
-ConstVectorView MatrixView::operator()(const Range& r, Index c) const
-{
-  return ConstMatrixView::operator()(r,c);
-}
-
-/** Const index operator returning a row as an object of type
-    ConstVectorView. Has to be redefined here, since it is
-    hiden by the non-const operator of the derived class.
-
-    \param r Index of selected row.
-    \param c Range of columns */
-ConstVectorView MatrixView::operator()(Index r, const Range& c) const
-{
-  return ConstMatrixView::operator()(r,c);
-}
-
 /** Index operator for subrange. We have to also account for the case,
     that *this is already a subrange of a Matrix. This allows correct
     recursive behavior.  */
@@ -1131,18 +1046,18 @@ VectorView MatrixView::operator()(Index r, const Range& c)
                     mcr, c);
 }
 
-/** Return const iterator to first row. Has to be redefined here, since it is
-    hiden by the non-const operator of the derived class.*/
-ConstIterator2D MatrixView::begin() const
-{
-  return ConstMatrixView::begin();
-}
-
-/** Return const iterator behind last row. */
-ConstIterator2D MatrixView::end() const
-{
-  return ConstMatrixView::end();
-}
+///** Return const iterator to first row. Has to be redefined here, since it is
+//    hiden by the non-const operator of the derived class.*/
+//ConstIterator2D MatrixView::begin() const
+//{
+//  return ConstMatrixView::begin();
+//}
+//
+///** Return const iterator behind last row. */
+//ConstIterator2D MatrixView::end() const
+//{
+//  return ConstMatrixView::end();
+//}
 
 /** Return iterator to first row. */
 Iterator2D MatrixView::begin()
@@ -1446,14 +1361,6 @@ MatrixView& MatrixView::operator-=(const ConstVectorView& x)
   return *this;
 }
 
-/** Default constructor. This is necessary, so that we can have a
-    default constructor for the derived class Matrix. */
-MatrixView::MatrixView() :
-  ConstMatrixView()
-{
-  // Nothing to do here.
-}
-
 /** Explicit constructor. This one is used by Matrix to initialize its
     own MatrixView part. The row range rr must have a
     stride to account for the length of one row. */
@@ -1527,16 +1434,6 @@ void copy(Numeric x,
 
 // Functions for Matrix:
 // ---------------------
-
-/** Default constructor. */
-Matrix::Matrix() :
-  MatrixView::MatrixView()
-{
-  // Nothing to do here. However, note that the default constructor
-  // for MatrixView has been called in the initializer list. That is
-  // crucial, otherwise internal range objects will not be properly
-  // initialized.
-}
 
 /** Constructor setting size. This constructor has to set the stride
     in the row range correctly! */

@@ -42,7 +42,7 @@ public:
   // ------------------------
 
   /** Default constructor. */
-  Iterator5D() : msv(), mstride(0) { /* Nothing to do here. */ }
+  Iterator5D() = default;
 
   /** Explicit constructor. */
   Iterator5D(const Tensor4View& x, Index stride) : msv(x), mstride(stride)
@@ -81,7 +81,7 @@ private:
   /** Current position. */
   Tensor4View msv;
   /** Stride. */
-  Index mstride;
+  Index mstride{0};
 };
 
 /** Const version of Iterator5D. */
@@ -89,7 +89,7 @@ class ConstIterator5D {
 public:
   // Constructors:
   /** Default constructor. */
-  ConstIterator5D() : msv(), mstride(0) { /* Nothing to do here. */ }
+  ConstIterator5D() = default;
 
   /** Explicit constructor. */
   ConstIterator5D(const ConstTensor4View& x, Index stride)
@@ -129,7 +129,7 @@ private:
   /** Current position. */
   ConstTensor4View msv;
   /** Stride. */
-  Index mstride;
+  Index mstride{0};
 };
 
 
@@ -247,7 +247,7 @@ public:
 
 protected:
   // Constructors:
-  ConstTensor5View();
+  ConstTensor5View() = default;
   ConstTensor5View(Numeric *data,
                    const Range& s, const Range& b, const Range& p, const Range& r, const Range& c);
   ConstTensor5View(Numeric *data,
@@ -257,17 +257,17 @@ protected:
   // Data members:
   // -------------
   /** The shelf range of mdata that is actually used. */
-  Range msr;
+  Range msr{0, 0, 1};
   /** The book range of mdata that is actually used. */
-  Range mbr;
+  Range mbr{0, 0, 1};
   /** The page range of mdata that is actually used. */
-  Range mpr;
+  Range mpr{0, 0, 1};
   /** The row range of mdata that is actually used. */
-  Range mrr;
+  Range mrr{0, 0, 1};
   /** The column range of mdata that is actually used. */
-  Range mcr;
+  Range mcr{0, 0, 1};
   /** Pointer to the plain C array that holds the data */
-  Numeric *mdata;
+  Numeric *mdata{nullptr};
 };
 
 /** The Tensor5View class
@@ -281,53 +281,13 @@ protected:
     which also allocates storage. */
 class Tensor5View : public ConstTensor5View {
 public:
+  // Make const methods visible from base class
+  using ConstTensor5View::begin;
+  using ConstTensor5View::end;
+  using ConstTensor5View::operator();
+  using ConstTensor5View::get;
+
   constexpr Tensor5View(const Tensor5View&) = default;
-
-  // Const index operators:
-  ConstTensor5View operator()( const Range& s, const Range& b, const Range& p, const Range& r, const Range& c ) const;
-
-  ConstTensor4View operator()( const Range& s, const Range& b, const Range& p, const Range& r, Index c        ) const;
-  ConstTensor4View operator()( const Range& s, const Range& b, const Range& p, Index r,        const Range& c ) const;
-  ConstTensor4View operator()( const Range& s, const Range& b, Index p,        const Range& r, const Range& c ) const;
-  ConstTensor4View operator()( const Range& s, Index b,        const Range& p, const Range& r, const Range& c ) const;
-  ConstTensor4View operator()( Index s,        const Range& b, const Range& p, const Range& r, const Range& c ) const;
-
-  ConstTensor3View operator()( const Range& s, const Range& b, const Range& p, Index r,        Index c        ) const;
-  ConstTensor3View operator()( const Range& s, const Range& b, Index p,        const Range& r, Index c        ) const;
-  ConstTensor3View operator()( const Range& s, const Range& b, Index p,        Index r,        const Range& c ) const;
-  ConstTensor3View operator()( const Range& s, Index b,        const Range& p, Index r,        const Range& c ) const;
-  ConstTensor3View operator()( const Range& s, Index b,        const Range& p, const Range& r, Index c        ) const;
-  ConstTensor3View operator()( const Range& s, Index b,        Index p,        const Range& r, const Range& c ) const;
-  ConstTensor3View operator()( Index s,        const Range& b, Index p,        const Range& r, const Range& c ) const;
-  ConstTensor3View operator()( Index s,        const Range& b, const Range& p, Index r,        const Range& c ) const;
-  ConstTensor3View operator()( Index s,        const Range& b, const Range& p, const Range& r, Index c        ) const;
-  ConstTensor3View operator()( Index s,        Index b,        const Range& p, const Range& r, const Range& c ) const;
-
-  ConstMatrixView  operator()( const Range& s, const Range& b, Index p,        Index r,        Index c        ) const;
-  ConstMatrixView  operator()( const Range& s, Index b,        const Range& p, Index r,        Index c        ) const;
-  ConstMatrixView  operator()( const Range& s, Index b,        Index p,        const Range& r, Index c        ) const;
-  ConstMatrixView  operator()( const Range& s, Index b,        Index p,        Index r,        const Range& c ) const;
-  ConstMatrixView  operator()( Index s,        const Range& b, Index p,        Index r,        const Range& c ) const;
-  ConstMatrixView  operator()( Index s,        const Range& b, Index p,        const Range& r, Index c        ) const;
-  ConstMatrixView  operator()( Index s,        const Range& b, const Range& p, Index r,        Index c        ) const;
-  ConstMatrixView  operator()( Index s,        Index b,        const Range& p, const Range& r, Index c        ) const;
-  ConstMatrixView  operator()( Index s,        Index b,        const Range& p, Index r,        const Range& c ) const;
-  ConstMatrixView  operator()( Index s,        Index b,        Index p,        const Range& r, const Range& c ) const;
-
-  ConstVectorView  operator()( const Range& s, Index b,        Index p,        Index r,        Index c        ) const;
-  ConstVectorView  operator()( Index s,        const Range& b, Index p,        Index r,        Index c        ) const;
-  ConstVectorView  operator()( Index s,        Index b,        const Range& p, Index r,        Index c        ) const;
-  ConstVectorView  operator()( Index s,        Index b,        Index p,        const Range& r, Index c        ) const;
-  ConstVectorView  operator()( Index s,        Index b,        Index p,        Index r,        const Range& c ) const;
-
-  /** Plain const index operator. Has to be redefined here, since it is
-    hiden by the non-const operator of the derived class. */
-  Numeric operator()(Index s, Index b, Index p, Index r, Index c) const
-    { return ConstTensor5View::operator()(s,b,p,r,c); }
-
-  /** Get element implementation without assertions. */
-  Numeric get(Index s, Index b, Index p, Index r, Index c) const
-    { return ConstTensor5View::get(s,b,p,r,c); }
 
   // Non-const index operators:
 
@@ -399,9 +359,6 @@ public:
   const Numeric *get_c_array() const;
   Numeric *get_c_array();
   
-  // Functions returning const iterators:
-  ConstIterator5D begin() const;
-  ConstIterator5D end()   const;
   // Functions returning iterators:
   Iterator5D begin();
   Iterator5D end();
@@ -439,7 +396,7 @@ public:
 
 protected:
   // Constructors:
-  Tensor5View();
+  Tensor5View() = default;
   Tensor5View(Numeric *data,
               const Range& s, const Range& b, const Range& p, const Range& r, const Range& c);
   Tensor5View(Numeric *data,
@@ -458,7 +415,7 @@ protected:
 class Tensor5 : public Tensor5View {
 public:
   // Constructors:
-  Tensor5();
+  Tensor5() = default;
   Tensor5(Index s, Index b, Index p, Index r, Index c);
   Tensor5(Index s, Index b, Index p, Index r, Index c, Numeric fill);
   Tensor5(const ConstTensor5View& v);

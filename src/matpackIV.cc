@@ -448,18 +448,6 @@ ConstTensor4View::ConstTensor4View(const ConstTensor3View& a) :
   // Nothing to do here.
 }
 
-/** Default constructor. This is necessary, so that we can have a
-    default constructor for derived classes. */
-ConstTensor4View::ConstTensor4View() :
-  mbr(0,0,1),
-  mpr(0,0,1),
-  mrr(0,0,1),
-  mcr(0,0,1),
-  mdata(NULL)
-{
-  // Nothing to do here.
-}
-
 /** Explicit constructor. This one is used by Tensor4 to initialize
     its own Tensor4View part. The page range pr must have a stride to
     account for the length of one page. The book range br must have a
@@ -528,186 +516,6 @@ std::ostream& operator<<(std::ostream& os, const ConstTensor4View& v)
 
 // Functions for Tensor4View:
 // -------------------------
-
-/** Const index operator for subrange. We have to also account for the
-    case, that *this is already a subrange of a Tensor4. This allows
-    correct recursive behavior. Has to be redefined here, since it is
-    hiden by the non-const operator of the derived class. */
-ConstTensor4View Tensor4View::operator()(const Range& b,
-                                                const Range& p,
-                                                const Range& r,
-                                                const Range& c) const
-{
-  return ConstTensor4View::operator()(b,p,r,c);
-}
-
-/** Const index operator returning an object of type
-    ConstTensor3View. (Reducing the dimension by one.) Has to be
-    redefined here, since it is hiden by the non-const operator of the
-    derived class. */
-ConstTensor3View Tensor4View::operator()(const Range& b,
-                                                const Range& p,
-                                                const Range& r,
-                                                Index c       ) const
-{
-  return ConstTensor4View::operator()(b,p,r,c);
-}
-
-/** Const index operator returning an object of type
-    ConstTensor3View. (Reducing the dimension by one.) Has to be
-    redefined here, since it is hiden by the non-const operator of the
-    derived class. */
-ConstTensor3View Tensor4View::operator()(const Range& b,
-                                                const Range& p,
-                                                Index r,
-                                                const Range& c) const
-{
-  return ConstTensor4View::operator()(b,p,r,c);
-}
-
-/** Const index operator returning an object of type
-    ConstTensor3View. (Reducing the dimension by one.) Has to be
-    redefined here, since it is hiden by the non-const operator of the
-    derived class. */
-ConstTensor3View Tensor4View::operator()(const Range& b,
-                                                Index p,
-                                                const Range& r,
-                                                const Range& c) const
-{
-  return ConstTensor4View::operator()(b,p,r,c);
-}
-
-/** Const index operator returning an object of type
-    ConstTensor3View. (Reducing the dimension by one.) Has to be
-    redefined here, since it is hiden by the non-const operator of the
-    derived class. */
-ConstTensor3View Tensor4View::operator()(Index b,
-                                                const Range& p,
-                                                const Range& r,
-                                                const Range& c) const
-{
-  return ConstTensor4View::operator()(b,p,r,c);
-}
-
-/** Const index operator returning an object of type
-    ConstMatrixView. (Reducing the dimension by two.) Has to be
-    redefined here, since it is hiden by the non-const operator of the
-    derived class. */
-ConstMatrixView Tensor4View::operator()(const Range& b,
-                                               const Range& p,
-                                               Index r,
-                                               Index c       ) const
-{
-  return ConstTensor4View::operator()(b,p,r,c);
-}
-
-/** Const index operator returning an object of type
-    ConstMatrixView. (Reducing the dimension by two.) Has to be
-    redefined here, since it is hiden by the non-const operator of the
-    derived class. */
-ConstMatrixView Tensor4View::operator()(const Range& b,
-                                               Index p,
-                                               const Range& r,
-                                               Index c       ) const
-{
-  return ConstTensor4View::operator()(b,p,r,c);
-}
-
-/** Const index operator returning an object of type
-    ConstMatrixView. (Reducing the dimension by two.) Has to be
-    redefined here, since it is hiden by the non-const operator of the
-    derived class. */
-ConstMatrixView Tensor4View::operator()(const Range& b,
-                                               Index p,
-                                               Index r,
-                                               const Range& c) const
-{
-  return ConstTensor4View::operator()(b,p,r,c);
-}
-
-/** Const index operator returning an object of type
-    ConstMatrixView. (Reducing the dimension by two.) Has to be
-    redefined here, since it is hiden by the non-const operator of the
-    derived class. */
-ConstMatrixView Tensor4View::operator()(Index b,
-                                               const Range& p,
-                                               Index r,
-                                               const Range& c) const
-{
-  return ConstTensor4View::operator()(b,p,r,c);
-}
-
-/** Const index operator returning an object of type
-    ConstMatrixView. (Reducing the dimension by two.) Has to be
-    redefined here, since it is hiden by the non-const operator of the
-    derived class. */
-ConstMatrixView Tensor4View::operator()(Index b,
-                                               const Range& p,
-                                               const Range& r,
-                                               Index c       ) const
-{
-  return ConstTensor4View::operator()(b,p,r,c);
-}
-
-/** Const index operator returning an object of type
-    ConstMatrixView. (Reducing the dimension by two.) Has to be
-    redefined here, since it is hiden by the non-const operator of the
-    derived class. */
-ConstMatrixView Tensor4View::operator()(Index b,
-                                               Index p,
-                                               const Range& r,
-                                               const Range& c) const
-{
-  return ConstTensor4View::operator()(b,p,r,c);
-}
-
-/** Const index operator returning an object of type
-    ConstVectorView. (Reducing the dimension by three.) Has to be
-    redefined here, since it is hiden by the non-const operator of the
-    derived class. */
-ConstVectorView Tensor4View::operator()(const Range& b,
-                                               Index p,
-                                               Index r,
-                                               Index c       ) const
-{
-  return ConstTensor4View::operator()(b,p,r,c);
-}
-
-/** Const index operator returning an object of type
-    ConstVectorView. (Reducing the dimension by three.) Has to be
-    redefined here, since it is hiden by the non-const operator of the
-    derived class. */
-ConstVectorView Tensor4View::operator()(Index b,
-                                               const Range& p,
-                                               Index r,
-                                               Index c       ) const
-{
-  return ConstTensor4View::operator()(b,p,r,c);
-}
-
-/** Const index operator returning an object of type
-    ConstVectorView. (Reducing the dimension by three.) Has to be
-    redefined here, since it is hiden by the non-const operator of the
-    derived class. */
-ConstVectorView Tensor4View::operator()(Index b,
-                                               Index p,
-                                               const Range& r,
-                                               Index c       ) const
-{
-  return ConstTensor4View::operator()(b,p,r,c);
-}
-
-/** Const index operator returning an object of type
-    ConstVectorView. (Reducing the dimension by three.) Has to be
-    redefined here, since it is hiden by the non-const operator of the
-    derived class. */
-ConstVectorView Tensor4View::operator()(Index b,
-                                               Index p,
-                                               Index r,
-                                               const Range& c) const
-{
-  return ConstTensor4View::operator()(b,p,r,c);
-}
 
 /** Index operator for subrange. We have to also account for the
     case, that *this is already a subrange of a Tensor4. This allows
@@ -1002,19 +810,6 @@ VectorView Tensor4View::operator()(Index b,
                     c);
 }
 
-/** Return const iterator to first book. Has to be redefined here, since it is
-    hiden by the non-const operator of the derived class.*/
-ConstIterator4D Tensor4View::begin() const
-{
-  return ConstTensor4View::begin();
-}
-
-/** Return const iterator behind last book. */
-ConstIterator4D Tensor4View::end() const
-{
-  return ConstTensor4View::end();
-}
-
 /** Return iterator to first book. */
 Iterator4D Tensor4View::begin()
 {
@@ -1217,14 +1012,6 @@ Tensor4View::Tensor4View(const Tensor3View& a) :
   // Nothing to do here.
 }
 
-/** Default constructor. This is necessary, so that we can have a
-    default constructor for the derived class Tensor4. */
-Tensor4View::Tensor4View() :
-  ConstTensor4View()
-{
-  // Nothing to do here.
-}
-
 /** Explicit constructor. This one is used by Tensor4 to initialize its
     own Tensor4View part. The row range rr must have a
     stride to account for the length of one row. */
@@ -1302,16 +1089,6 @@ void copy(Numeric x,
 
 // Functions for Tensor4:
 // ---------------------
-
-/** Default constructor. */
-Tensor4::Tensor4() :
-  Tensor4View::Tensor4View()
-{
-  // Nothing to do here. However, note that the default constructor
-  // for Tensor4View has been called in the initializer list. That is
-  // crucial, otherwise internal range objects will not be properly
-  // initialized.
-}
 
 /** Constructor setting size. This constructor has to set the strides
     in the book, page and row ranges correctly! */

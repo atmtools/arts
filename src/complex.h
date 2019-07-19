@@ -118,7 +118,7 @@ typedef Eigen::Map<const ComplexMatrixType, 0, ComplexStrideType> ComplexConstMa
 class ComplexIterator1D {
 public:
     /** Default constructor. */
-    ComplexIterator1D() : mx(NULL), mstride(0) { /* Nothing to do here. */ }
+    ComplexIterator1D() = default;
     
     /** Explicit constructor. */
     ComplexIterator1D(Complex *x, Index stride) : mx(x), mstride(stride)
@@ -143,9 +143,9 @@ public:
     
 private:
     /** Current position. */
-    Complex *mx;
+    Complex *mx{nullptr};
     /** Stride. */
-    Index mstride;
+    Index mstride{0};
 };
 
 /** The constant iterator class for sub vectors. This takes into
@@ -153,9 +153,8 @@ private:
 class ConstComplexIterator1D {
 public:
     /** Default constructor. */
-    ConstComplexIterator1D() : mx(NULL), mstride(0)
-    { /* Nothing to do here. */ }
-    
+    ConstComplexIterator1D() = default;
+
     /** Explicit constructor. */
     ConstComplexIterator1D(Complex *x, Index stride) : mx(x), mstride(stride)
     { /* Nothing to do here. */ }
@@ -177,9 +176,9 @@ public:
                      ComplexIterator1D target);
 private:
     /** Current position. */
-    const Complex *mx;
+    const Complex *mx{nullptr};
     /** Stride. */
-    Index mstride;
+    Index mstride{0};
 };
 
 // Declare the complex vector class:
@@ -268,16 +267,16 @@ public:
     
 protected:
     // Constructors:
-    ConstComplexVectorView();
+    ConstComplexVectorView() = default;
     ConstComplexVectorView(Complex *data, const Range& range);
     ConstComplexVectorView(Complex *data, const Range& p, const Range& n);
     
     // Data members:
     // -------------
     /** The range of mdata that is actually used. */
-    Range mrange;
+    Range mrange{0, 0};
     /** Pointer to the plain C array that holds the data */
-    Complex *mdata;
+    Complex *mdata{nullptr};
 };
 
 /** The ComplexVectorView class.
@@ -293,6 +292,14 @@ protected:
  constant index operators and iterators. */
 class ComplexVectorView : public ConstComplexVectorView {
 public:
+    // Make const methods visible from base class
+    using ConstComplexVectorView::begin;
+    using ConstComplexVectorView::end;
+    using ConstComplexVectorView::operator[];
+    using ConstComplexVectorView::get;
+    using ConstComplexVectorView::get_real;
+    using ConstComplexVectorView::get_imag;
+
     constexpr ComplexVectorView(const ComplexVectorView&) = default;
     ComplexVectorView (const ComplexVector&);
     ComplexVectorView (ComplexVector& v);
@@ -300,22 +307,6 @@ public:
     // Typedef for compatibility with STL
     typedef ComplexIterator1D iterator;
     
-    // Const index operators:
-    /** Plain const index operator. Has to be redifined here, because the
-     one from ConstVectorView is hidden. */                           
-    const Complex& operator[](Index n) const
-     { return ConstComplexVectorView::operator[](n); }
-     
-     /** Get element implementation without assertions. */
-     const Complex& get(Index n) const
-     { return ConstComplexVectorView::get(n); }
-     const Numeric& get_real(Index n) const
-     { return ConstComplexVectorView::get_real(n); }
-     const Numeric& get_imag(Index n) const
-     { return ConstComplexVectorView::get_imag(n); }
-     
-     ConstComplexVectorView operator[](const Range& r) const;
-     
      /** Plain Index operator. */
      Complex& operator[](Index n)
      { // Check if index is valid:
@@ -342,9 +333,6 @@ public:
      
      ComplexVectorView operator[](const Range& r);
      
-     // Constant iterators:
-     ConstComplexIterator1D begin() const;
-     ConstComplexIterator1D end() const;
      // ComplexIterators:
      ComplexIterator1D begin();
      ComplexIterator1D end();
@@ -416,7 +404,7 @@ public:
      
 protected:
     // Constructors:
-    ComplexVectorView();
+    ComplexVectorView() = default;
     ComplexVectorView(Complex *data, const Range& range);
     ComplexVectorView(Complex *data, const Range& p, const Range& n);
 };
@@ -428,7 +416,7 @@ class ComplexIterator2D {
 public:
     // Constructors:
     /** Default constructor. */
-    ComplexIterator2D() : msv(), mstride(0)  { /* Nothing to do here. */ }
+    ComplexIterator2D() = default;
     
     /** Explicit constructor. */
     ComplexIterator2D(const ComplexVectorView& x, Index stride) : msv(x), mstride(stride)
@@ -458,7 +446,7 @@ private:
     /** Current position. */
     ComplexVectorView msv;
     /** Row stride. */
-    Index mstride;
+    Index mstride{0};
 };
 
 /** The const row iterator class for sub matrices. This takes into account the
@@ -468,7 +456,7 @@ class ConstComplexIterator2D {
 public:
     // Constructors:
     /** Default constructor. */
-    ConstComplexIterator2D() : msv(), mstride(0) { /* Nothing to do here. */ }
+    ConstComplexIterator2D() = default;
     
     /** Explicit constructor. */
     ConstComplexIterator2D(const ConstComplexVectorView& x, Index stride)
@@ -499,7 +487,7 @@ private:
     /** Current position. */
     ConstComplexVectorView msv;
     /** Row stride. */
-    Index mstride;
+    Index mstride{0};
 };
 
 /** The ComplexVector class. This is a subvector that also allocates storage
@@ -643,7 +631,7 @@ public:
     
 protected:
     // Constructors:
-    ConstComplexMatrixView();
+    ConstComplexMatrixView() = default;
     ConstComplexMatrixView(Complex *data, const Range& r, const Range& c);
     ConstComplexMatrixView(Complex *data,
                     const Range& pr, const Range& pc,
@@ -652,11 +640,11 @@ protected:
     // Data members:
     // -------------
     /** The row range of mdata that is actually used. */
-    Range mrr;
+    Range mrr{0, 0, 1};
     /** The column range of mdata that is actually used. */
-    Range mcr;
+    Range mcr{0, 0, 1};
     /** Pointer to the plain C array that holds the data */
-    Complex *mdata;
+    Complex *mdata{nullptr};
 };
 
 /** The ComplexMatrixView class
@@ -670,28 +658,19 @@ protected:
  which also allocates storage. */
 class ComplexMatrixView : public ConstComplexMatrixView {
 public:
+    // Make const methods visible from base class
+    using ConstComplexMatrixView::begin;
+    using ConstComplexMatrixView::end;
+    using ConstComplexMatrixView::operator();
+    using ConstComplexMatrixView::get;
+    using ConstComplexMatrixView::get_real;
+    using ConstComplexMatrixView::get_imag;
+
     constexpr ComplexMatrixView(const ComplexMatrixView&) = default;
 
     // Typedef for compatibility with STL
     typedef ComplexIterator2D iterator;
     
-    // Const index operators:
-    /** Plain const index operator. Has to be redefined here, since it is
-     h iden by the non-const operator of the derived class. */         
-    Complex operator()(Index r, Index c) const
-     { return ConstComplexMatrixView::operator()(r,c); }
-     
-     /** Get element implementation without assertions. */
-     Complex get(Index r, Index c) const
-     { return ConstComplexMatrixView::get(r,c); }
-     Numeric get_real(Index r, Index c) const
-     { return ConstComplexMatrixView::get_real(r,c); }
-     Numeric get_imag(Index r, Index c) const
-     { return ConstComplexMatrixView::get_imag(r,c); }
-     
-     ConstComplexMatrixView operator()(const Range& r, const Range& c) const;
-     ConstComplexVectorView operator()(const Range& r, Index c) const;
-     ConstComplexVectorView operator()(Index r, const Range& c) const;
      // Index Operators:
      /** Plain index operator. */
      Complex& operator()(Index r, Index c)
@@ -726,9 +705,6 @@ public:
      ComplexVectorView operator()(const Range& r, Index c);
      ComplexVectorView operator()(Index r, const Range& c);
      
-     // Functions returning const iterators:
-     ConstComplexIterator2D begin() const;
-     ConstComplexIterator2D end() const;
      // Functions returning iterators:
      ComplexIterator2D begin();
      ComplexIterator2D end();
@@ -815,7 +791,7 @@ protected:
 class ComplexMatrix : public ComplexMatrixView {
 public:
     // Constructors:
-    ComplexMatrix();
+    ComplexMatrix() = default;
     ComplexMatrix(Index r, Index c);
     ComplexMatrix(Index r, Index c, Complex fill);
     ComplexMatrix(Index r, Index c, Numeric fill);
