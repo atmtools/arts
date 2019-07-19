@@ -161,6 +161,11 @@ The class Tensor7 is just a special case of a Tensor7View
 which also allocates storage. */
 class ConstTensor7View {
 public:
+  constexpr ConstTensor7View(const ConstTensor7View&) = default;
+  constexpr ConstTensor7View(ConstTensor7View&&) = default;
+  ConstTensor7View& operator=(const ConstTensor7View&) = default;
+  ConstTensor7View& operator=(ConstTensor7View&&) = default;
+
   // Member functions:
   bool empty() const;
   Index nlibraries() const;
@@ -780,6 +785,7 @@ The class Tensor7 is just a special case of a Tensor7View
 which also allocates storage. */
 class Tensor7View : public ConstTensor7View {
 public:
+  constexpr Tensor7View(const Tensor7View&) = default;
 
   // Const index operators:
 
@@ -1898,7 +1904,7 @@ public:
   Tensor7View& operator-=(const ConstTensor7View& x);
 
   //! Destructor.
-  virtual ~Tensor7View() {}
+  virtual ~Tensor7View() = default;
 
   // Friends:
 

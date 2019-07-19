@@ -131,6 +131,8 @@ public:
 
   // Helper functions
   void push_back_n(const base& elem, const Index n);
+
+  virtual ~Array() = default;
 };
 
 

@@ -300,32 +300,11 @@ class IsotopologueRecord{
 public:
 
   /** Default constructor. Needed by make_array. */
-  IsotopologueRecord() : mname(),
-                    mabundance(0.),
-                    mmass(0.),
-                    mmytrantag(-1),
-                    mhitrantag(-1),
-                    mjpltags(),
-                    mqcoeff(),
-                    mqcoefftype(-1),
-                    mqcoeffgrid(),
-                    mqcoeffinterporder(-1)
-  { /* Nothing left to do here. */ }
-
-  /** Copy constructor. We need this, since operator= does not work
-      correctly for Arrays. (Target Array has to be resized first.) */
-  IsotopologueRecord(const IsotopologueRecord& x) :
-    mname(x.mname),
-    mabundance(x.mabundance),
-    mmass(x.mmass),
-    mmytrantag(x.mmytrantag),
-    mhitrantag(x.mhitrantag),
-    mjpltags(x.mjpltags),
-    mqcoeff(),
-    mqcoefftype(),
-    mqcoeffgrid(),
-    mqcoeffinterporder()
-  { /* Nothing left to do here. */ }
+  IsotopologueRecord() = default;
+  IsotopologueRecord(const IsotopologueRecord&) = default;
+  IsotopologueRecord(IsotopologueRecord&&) = default;
+  IsotopologueRecord& operator=(const IsotopologueRecord&) = default;
+  IsotopologueRecord& operator=(IsotopologueRecord&&) = default;
 
   /** Constructor that sets the values. */
   IsotopologueRecord(const String&  name,

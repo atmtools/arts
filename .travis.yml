@@ -1,29 +1,29 @@
 language: cpp
 matrix:
   include:
-    - name: LLVM 6 w/o Fortran
+    - name: LLVM 8 w/o Fortran
       os: linux
-      dist: trusty
+      dist: xenial
       addons:
         apt:
           sources:
             - ubuntu-toolchain-r-test
-            - llvm-toolchain-trusty-6.0
+            - llvm-toolchain-xenial-8
           packages:
-            - clang-6.0
+            - clang-8
       env:
-        - MATRIX_EVAL="CC=clang-6.0 && CXX=clang++-6.0 && WITH_FORTRAN=0"
-    - name: GCC 8 w/ Fortran
+        - MATRIX_EVAL="CC=clang-8 && CXX=clang++-8 && WITH_FORTRAN=0"
+    - name: GCC 9 w/ Fortran
       os: linux
       addons:
         apt:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - g++-8
-            - gfortran-8
+            - g++-9
+            - gfortran-9
       env:
-        - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8 && FC=gfortran-8 && WITH_FORTRAN=1"
+        - MATRIX_EVAL="CC=gcc-9 && CXX=g++-9 && FC=gfortran-9 && WITH_FORTRAN=1"
     - name: GCC 4.9 w/ Fortran
       os: linux
       addons:

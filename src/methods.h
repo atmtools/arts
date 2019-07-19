@@ -84,6 +84,9 @@ public:
            bool                 pass_wsv_names  = false
            );
 
+  MdRecord(const MdRecord&) = default;
+  MdRecord(MdRecord&&) = default;
+
   // Methods returning the lookup information:
   const String&            Name()           const { return mname; }   
   const String&            Description()    const { return mdescription; }

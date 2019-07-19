@@ -57,16 +57,12 @@ class my_basic_string : public std::basic_string<charT>
 {
 public:
   // Constructors:
-  my_basic_string();
+  my_basic_string() = default;
   explicit my_basic_string(Index n, char c=' ');
   my_basic_string(const std::basic_string<charT>& A,
                   Index pos=0,
                   Index numpos=my_basic_string<charT>::npos);
   my_basic_string(const char A[]);
-
-  // Assignment operators:
-  my_basic_string& operator=(const my_basic_string<charT>& A);
-  //  my_basic_string& operator=(const char A[]);
 
   // Insert string before all occurrences of the substring.
   void insert_substr(const my_basic_string<charT>& searchstr,
@@ -109,12 +105,6 @@ public:
 
 
 // Constructors:
-
-/** Default constructor. */
-template<class charT>
-inline my_basic_string<charT>::my_basic_string() : std::basic_string<charT>()
-{ /* Nothing to do here. */ }
-
 
 /** Constructor setting size. You may give as a second argument a
     character with which to fill the new string. Per default this is
@@ -180,20 +170,6 @@ inline my_basic_string<charT>::my_basic_string(const std::basic_string<charT>& A
 template<class charT>
 inline my_basic_string<charT>::my_basic_string(const char A[]) : std::basic_string<charT>(A)
 { /* Nothing to do here. */ }
-
-
-/** Assignment from another my_basic_string.
-
-    The two partners do not have to have the same size. Size of the
-    target string is adjusted automatically, just as string does
-    it.
-*/
-template<class charT>
-inline my_basic_string<charT>& my_basic_string<charT>::operator=(const my_basic_string<charT>& A)
-{
-  std::basic_string<charT>::operator=(A);
-  return *this;
-}
 
 
 /** Insert string before all occurrences of the substring.

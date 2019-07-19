@@ -293,7 +293,6 @@ else (CMAKE_GENERATOR STREQUAL "Xcode")
   ARTS_ADD_COMPILER_FLAG (Wno-unknown-pragmas)
   ARTS_ADD_COMPILER_FLAG (Wno-return-type-c-linkage)
   ARTS_ADD_COMPILER_FLAG (Wno-strict-overflow)
-  ARTS_ADD_COMPILER_FLAG (Wno-deprecated-copy)  # FIXME OLE
 endif (CMAKE_GENERATOR STREQUAL "Xcode")
 
 

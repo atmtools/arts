@@ -151,6 +151,11 @@ class Tensor5;
     which also allocates storage. */
 class ConstTensor5View {
 public:
+  constexpr ConstTensor5View(const ConstTensor5View&) = default;
+  constexpr ConstTensor5View(ConstTensor5View&&) = default;
+  ConstTensor5View& operator=(const ConstTensor5View&) = default;
+  ConstTensor5View& operator=(ConstTensor5View&&) = default;
+
   // Member functions:
   bool empty() const;
   Index nshelves() const;
@@ -229,7 +234,7 @@ public:
   ConstIterator5D end()   const;
 
   //! Destructor
-  virtual ~ConstTensor5View() {}
+  virtual ~ConstTensor5View() = default;
 
   // Friends:
   friend class Tensor5View;
@@ -276,6 +281,7 @@ protected:
     which also allocates storage. */
 class Tensor5View : public ConstTensor5View {
 public:
+  constexpr Tensor5View(const Tensor5View&) = default;
 
   // Const index operators:
   ConstTensor5View operator()( const Range& s, const Range& b, const Range& p, const Range& r, const Range& c ) const;
@@ -418,7 +424,7 @@ public:
   Tensor5View& operator-=(const ConstTensor5View& x);
 
   //! Destructor
-  virtual ~Tensor5View() {}
+  virtual ~Tensor5View() = default;
 
   // Friends:
   // friend class VectorView;

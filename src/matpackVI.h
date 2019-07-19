@@ -158,6 +158,11 @@ class Tensor6;
     which also allocates storage. */
 class ConstTensor6View {
 public:
+  constexpr ConstTensor6View(const ConstTensor6View&) = default;
+  constexpr ConstTensor6View(ConstTensor6View&&) = default;
+  ConstTensor6View& operator=(const ConstTensor6View&) = default;
+  ConstTensor6View& operator=(ConstTensor6View&&) = default;
+
   // Member functions:
   bool empty() const;
   Index nvitrines() const;
@@ -398,7 +403,7 @@ public:
   ConstIterator6D end() const;
 
   // Destructor:
-  virtual ~ConstTensor6View() {}
+  virtual ~ConstTensor6View() = default;
   
   // Friends:
   friend class ConstIterator7D;
@@ -449,6 +454,7 @@ protected:
     which also allocates storage. */
 class Tensor6View : public ConstTensor6View {
 public:
+  constexpr Tensor6View(const Tensor6View&) = default;
 
   // Const index operators:
 
@@ -918,7 +924,7 @@ public:
   Tensor6View& operator-=(const ConstTensor6View& x);
 
   // Destructor:
-  virtual ~Tensor6View() {}
+  virtual ~Tensor6View() = default;
   
   // Friends:
   friend class Iterator7D;

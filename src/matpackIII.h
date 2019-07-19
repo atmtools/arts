@@ -138,6 +138,11 @@ class Tensor3;
     which also allocates storage. */
 class ConstTensor3View {
 public:
+  constexpr ConstTensor3View(const ConstTensor3View&) = default;
+  constexpr ConstTensor3View(ConstTensor3View&&) = default;
+  ConstTensor3View& operator=(const ConstTensor3View&) = default;
+  ConstTensor3View& operator=(ConstTensor3View&&) = default;
+
   // Member functions:
 
   bool empty() const;
@@ -189,7 +194,7 @@ public:
   ConstIterator3D end() const;
   
   //! Destructor
-  virtual ~ConstTensor3View() {}
+  virtual ~ConstTensor3View() = default;
 
   // Friends:
   friend class Tensor3View;
@@ -234,6 +239,7 @@ protected:
     which also allocates storage. */
 class Tensor3View : public ConstTensor3View {
 public:
+  constexpr Tensor3View(const Tensor3View&) = default;
 
   // Const index operators:
   ConstTensor3View operator()( const Range& p, const Range& r, const Range& c ) const;
@@ -319,7 +325,7 @@ public:
   Tensor3View& operator-=(const ConstTensor3View& x);
 
   //! Destructor
-  virtual ~Tensor3View() {}
+  virtual ~Tensor3View() = default;
 
   // Friends:
   friend class Iterator4D;

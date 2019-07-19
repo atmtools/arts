@@ -140,6 +140,11 @@ class Tensor4;
     which also allocates storage. */
 class ConstTensor4View {
 public:
+  constexpr ConstTensor4View(const ConstTensor4View&) = default;
+  constexpr ConstTensor4View(ConstTensor4View&&) = default;
+  ConstTensor4View& operator=(const ConstTensor4View&) = default;
+  ConstTensor4View& operator=(ConstTensor4View&&) = default;
+
   // Member functions:
 
   bool empty() const;
@@ -199,7 +204,7 @@ public:
   ConstIterator4D end()   const;
 
   //! Destructor
-  virtual ~ConstTensor4View() {}
+  virtual ~ConstTensor4View() = default;
 
   // Friends:
   friend class Tensor4View;
@@ -245,6 +250,7 @@ protected:
     which also allocates storage. */
 class Tensor4View : public ConstTensor4View {
 public:
+  constexpr Tensor4View(const Tensor4View&) = default;
 
   // Const index operators:
   ConstTensor4View operator()( const Range& b, const Range& p, const Range& r, const Range& c ) const;
@@ -350,7 +356,7 @@ public:
   Tensor4View& operator-=(const ConstTensor4View& x);
 
   //! Destructor
-  virtual ~Tensor4View() {}
+  virtual ~Tensor4View() = default;
 
   // Friends:
   // friend class VectorView;

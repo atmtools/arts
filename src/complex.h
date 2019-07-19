@@ -195,6 +195,11 @@ class ComplexMatrixView;
  case of a ComplexVectorView which also allocates storage. */
 class ConstComplexVectorView {
 public:
+    constexpr ConstComplexVectorView(const ConstComplexVectorView&) = default;
+    constexpr ConstComplexVectorView(ConstComplexVectorView&&) = default;
+    ConstComplexVectorView& operator=(const ConstComplexVectorView&) = default;
+    ConstComplexVectorView& operator=(ConstComplexVectorView&&) = default;
+
     // Typedef for compatibility with STL
     typedef ConstComplexIterator1D const_iterator;
     
@@ -239,7 +244,7 @@ public:
     operator ConstComplexMatrixView() const;
     
     //! Destructor
-    virtual ~ConstComplexVectorView() {}
+    virtual ~ConstComplexVectorView() = default;
     
     // Friends:
     friend class ComplexVectorView;
@@ -288,6 +293,7 @@ protected:
  constant index operators and iterators. */
 class ComplexVectorView : public ConstComplexVectorView {
 public:
+    constexpr ComplexVectorView(const ComplexVectorView&) = default;
     ComplexVectorView (const ComplexVector&);
     ComplexVectorView (ComplexVector& v);
     
@@ -397,7 +403,7 @@ public:
      };
      
      //! Destructor
-     virtual ~ComplexVectorView() {}
+     virtual ~ComplexVectorView() = default;
      
      // Friends:
      friend class ConstComplexIterator2D;
@@ -554,6 +560,11 @@ class ComplexMatrix;
  which also allocates storage. */
 class ConstComplexMatrixView {
 public:
+    constexpr ConstComplexMatrixView(const ConstComplexMatrixView&) = default;
+    constexpr ConstComplexMatrixView(ConstComplexMatrixView&&) = default;
+    ConstComplexMatrixView& operator=(const ConstComplexMatrixView&) = default;
+    ConstComplexMatrixView& operator=(ConstComplexMatrixView&&) = default;
+
     // Typedef for compatibility with STL
     typedef ConstComplexIterator2D const_iterator;
     
@@ -602,7 +613,7 @@ public:
     ConstComplexVectorView diagonal() const;
     
     //! Destructor
-    virtual ~ConstComplexMatrixView() {}
+    virtual ~ConstComplexMatrixView() = default;
     
     // Friends:
     friend class ComplexMatrixView;
@@ -659,6 +670,8 @@ protected:
  which also allocates storage. */
 class ComplexMatrixView : public ConstComplexMatrixView {
 public:
+    constexpr ComplexMatrixView(const ComplexMatrixView&) = default;
+
     // Typedef for compatibility with STL
     typedef ComplexIterator2D iterator;
     
@@ -775,7 +788,7 @@ public:
      };
      
      //! Destructor
-     virtual ~ComplexMatrixView() {}
+     virtual ~ComplexMatrixView() = default;
      
      // Friends:
      friend class ComplexVectorView;

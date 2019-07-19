@@ -341,6 +341,11 @@ class MatrixView;
     case of a VectorView which also allocates storage. */
 class ConstVectorView {
 public:
+  constexpr ConstVectorView(const ConstVectorView&) = default;
+  constexpr ConstVectorView(ConstVectorView&&) = default;
+  ConstVectorView& operator=(const ConstVectorView&) = default;
+  ConstVectorView& operator=(ConstVectorView&&) = default;
+
   // Typedef for compatibility with STL
   typedef ConstIterator1D const_iterator;
 
@@ -377,7 +382,7 @@ public:
   operator ConstMatrixView() const;
 
   //! Destructor
-  virtual ~ConstVectorView() {}
+  virtual ~ConstVectorView() = default;
 
   // Friends:
   friend class VectorView;
@@ -445,6 +450,8 @@ protected:
     constant index operators and iterators. */
 class VectorView : public ConstVectorView {
 public:
+  constexpr VectorView (const VectorView&) = default;
+
   VectorView (const Vector&);
   VectorView (Vector& v);
 
@@ -513,7 +520,7 @@ public:
   Numeric *get_c_array();
 
   //! Destructor
-  virtual ~VectorView() {}
+  virtual ~VectorView() = default;
 
   // Friends:
   friend class ConstIterator2D;
@@ -674,6 +681,11 @@ class Matrix;
     which also allocates storage. */
 class ConstMatrixView {
 public:
+  constexpr ConstMatrixView(const ConstMatrixView&) = default;
+  constexpr ConstMatrixView(ConstMatrixView&&) = default;
+  ConstMatrixView& operator=(const ConstMatrixView&) = default;
+  ConstMatrixView& operator=(ConstMatrixView&&) = default;
+
   // Typedef for compatibility with STL
   typedef ConstIterator2D const_iterator;
 
@@ -716,7 +728,7 @@ public:
   ConstVectorView diagonal() const;
 
   //! Destructor
-  virtual ~ConstMatrixView() {}
+  virtual ~ConstMatrixView() = default;
 
   // Friends:
   friend class MatrixView;
@@ -796,6 +808,8 @@ protected:
     which also allocates storage. */
 class MatrixView : public ConstMatrixView {
 public:
+  constexpr MatrixView(const MatrixView&) = default;
+
   // Typedef for compatibility with STL
   typedef Iterator2D iterator;
 
@@ -873,7 +887,7 @@ public:
   Numeric *get_c_array();
 
   //! Destructor
-  virtual ~MatrixView() {}
+  virtual ~MatrixView() = default;
 
   // Friends:
   friend class VectorView;
