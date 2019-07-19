@@ -1,3 +1,14 @@
+2019-07-19  Simon Pfreundschuh  <simon.pfreundschuh@chalmers.se>
+
+	* arts-2-3-1259
+
+	* doc/uguide/developer.txt:
+
+	Preparations for migration to git:
+	- Replaced SVN part with description of the git-based workflow
+	- Added short description of the new formatting and naming
+	  conventions
+
 2019-07-19  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1258

@@ -35,117 +35,174 @@
 %
 % Introduction
 %
-The aim of this section is to describe how the program is organized
-and to give detailed instructions how to make extensions. That means,
-it is addressed to the ARTS developers, not the users. If you only
-want to use ARTS, you should not need to read it. \textbf{But if you
-  want to make changes or additions, you should definitely read this
-  carefully, since it can safe you a lot of work to understand how
-  things are organized.}
+The aim of this section is to describe how the program is organized and to give
+detailed instructions how to make extensions. That means, it is addressed to the
+ARTS developers, not the users. If you only want to use ARTS, you should not
+need to read it. \textbf{But if you want to make changes or additions, you
+  should definitely read this carefully, since it can save you a lot of work to
+  understand how things are organized.}
 
 \section{Organization}
 %====================
 \label{sec:development:org}
  
 ARTS is written in C++ and uses the cross-platform, open-source build system
-CMake (\url{http://www.cmake.org/}). It is organized in a similar
-manner as most GNU packages. The top-level ARTS directory is either called
-\shortcode{arts} or \shortcode{arts-x.y}, where x.y is the release number. It
-contains various sub-directories, notably \shortcode{doc} for documentation,
-\shortcode{src} for the C++ source code, and \shortcode{aii} for the IDL
-interface. The document that you are reading right now, the ARTS Developer
-Guide, is located in \shortcode{doc/uguide}.
+CMake (\url{http://www.cmake.org/}). It is organized in a similar manner as most
+GNU packages. The top-level ARTS directory is either called \shortcode{arts} or
+\shortcode{arts-x.y}, where x.y is the release number. It contains various
+sub-directories, notably \shortcode{doc} for documentation, \shortcode{src} for
+the C++ source code, The document that you are reading right now, the ARTS
+Developer Guide, is located in \shortcode{doc/uguide}.
 
-There are two different versions of the ARTS package: The development
-version and the end-user version. Both contain the complete source
-code, the only difference is that the developers version also includes
-the SVN housekeeping data. If you want to join in the ARTS development
-(which we of course encourage you to do), you should write an email to
-the ARTS Development mailing list.
-Furthermore, for serious development work you need a computer running
-Unix, CMake, LaTeX, and the Doxygen program.  All
-this is freely and easily available on the Internet, and, what is
-more, all these tools are included in the standard Linux
-distributions like \href{http://www.ubuntu.com/}{\nolinkurl{Ubuntu}} or \href{http://www.opensuse.org/}{\nolinkurl{openSUSE}}.
+There are two different versions of the ARTS package: The development version
+and the end-user version. Both contain the complete source code, the only
+difference is that the developers version is where active development takes
+place.
 
-The end-user version contains everything that you need in order to
-compile and install ARTS in a fairly automatic manner. The only thing
-you should need is an ANSI-C++ compiler, and the CMake utility. Please
-see files \fileindex{arts/README} and \fileindex{arts/INSTALL} for
-installation instructions. We are developing with the GNU C++ compiler,
-no other compilers have been tried so far.
+The end-user version contains everything that you need in order to compile and
+install ARTS in a fairly automatic manner. The only thing you should need is an
+ANSI-C++ compiler, and the CMake utility. Please see files
+\fileindex{arts/README} and \fileindex{arts/INSTALL} for installation
+instructions. We are aiming to support recent version of the GNU and clang C++
+compilers.
 
 \section{The ARTS build system}
 %============================
 
-As mentioned above, CMake is used to construct the ARTS
-build system. A good introduction to the CMake system can be found in:
+As mentioned above, CMake is used to build the ARTS package. A good introduction
+to the CMake system can be found in:
 \begin{quote}
   \url{http://www.cmake.org/cmake/project/about.html}
 \end{quote}
-Using this tool makes a lot of things very easy, but also some
-things slightly more complicated.
 
-%The most important thing to keep in mind is that an ARTS release
-%is not just a copy of the ARTS development tree. Instead there is a
-%special make target `dist' that you can use to cut a release. How this
-%is done in detail is described in Section \ref{sec:release}. Mostly,
-%the GNU tools are smart enough to figure out automatically what should
-%go into the release. However, this can be controlled by editing the
-%\fileindex{Makefile.am} files which can be found in almost all directories.
-
-The support for documentation other than info and man pages is not
-very good in the GNU system, so we had to use some tricks to make sure
-that the Doxygen automatic documentation and the User Guide work as they
-should. 
 
 \subsection{Configure options}
 %========================================
 
-Here are some interesting options for CMake:
+For development, it is recommended to build ARTS using the
+\shortcode{RelWithDebInfo} configuration (see below), which aims to provide a
+reasonable trade-off between debugging capability and performance. To use ARTS
+in production, however, it is important to perform a release build, which is
+therefore set as the default configuration.
 
 \begin{description}
+\item[\shortcode{-DCMAKE\_BUILD\_TYPE=RelWithDebInfo}:] This is the build option
+  that should be used for development, as it will make it easier to track down
+  errors in the code. It does, however, not disable all compiler optimization,
+  so as to still provide reasonable performance.
 \item[\shortcode{-DCMAKE\_BUILD\_TYPE=Release}:] Removes '-g' from
 the compiler flags and includes \shortcode{\#define NDEBUG 1} in
 \fileindex{config.h}. The central switch to turn off all debugging
 features (index range checking for vectors, the trace facility,
-assertions,...). The default configuration \shortcode{RelWithDebInfo}
-turns on some optimizations and provides debugging information.
-
+assertions,...).
 \item[\shortcode{-DCMAKE\_BUILD\_TYPE=Debug}:] This switch turns off all
-optimizations. This should only be used if the default configuration
-makes debugging a certain problem difficult.
-
+  optimizations. This should only be used if the \shortcode{RelWithDebInfo}
+  configuration makes debugging a given problem difficult.
 \item[\shortcode{-DNO\_OPENMP=1}:] 
 Disables the generation of multi-threaded code. CMake tries to detect if the compiler supports OpenMP and enables it by default.
 
 \end{description}
 
 
-%\subsection{Adding directories or files}
-%%==================================
-%
-%If you add directories or just files, you have to make sure that they
-%also go into the distribution. In some cases (e.g., program source
-%code files) this is done automatically. But if you add any other kind
-%of file, for example a data or a documentation file, you have to edit
-%the \fileindex{Makefile.am} file in that directory to make sure that your
-%stuff goes into the distribution. It is a good idea to always check
-%the release in order to see if the things you added are really there.
-
-\section{Conventions}
+\section{Coding conventions}
 %===================
 \label{sec:development:conv}
 
-Here are some general rules for ARTS programming:
+With the aim of improving quality and consistency of the code, all new code that
+is added to ARTS should adhere to naming and formatting conventions from
+Google's C++ programming guidelines
+(\url{https://google.github.io/styleguide/cppguide.html#Formatting}). Adhering
+to a well-defined coding style will make it much easier for your fellow ARTS
+developers to understand and work with your code. A brief summary of the most
+important programming style and formatting conventions is given below.
 
-\subsection{Numeric types} Never use \shortcode{float} or
-\shortcode{double} explicitly, use the type \typeindex{Numeric} instead.
-This is set by CMake (to \shortcode{double} by default).
-In the same way, use \typeindex{Index} for all integers. It can take on
-positive or negative values and defaults to \shortcode{long}.
-To change the default types, run \shortcode{cmake} with the options
-\shortcode{-DINDEX=long} or \shortcode{-DNUMERIC=double}:
+
+\subsection{Naming conventions}
+
+Naming things is one of the two hard problems in computer science. Certainly,
+there is no single best way to do it and even with the best names code can still
+be bad. Yet still, the consistently naming of objects in your code will make it
+much easier for other developers to read and understand your code.
+
+In general, the use descriptive names in all your code is recommended.
+Try to avoid abbreviations except when they are very common. Giving proper
+names to objects increases the readability of the code and decreases the need
+for explanatory comments.
+
+\subsubsection{Variables}
+Variable names should use lower-case letters. Words should be separated using
+underscores:
+  \begin{code}
+  Index element_index = 0;
+  Numeric t_surface = 0.0; // common abbreviation
+  \end{code}
+
+\subsubsection{Classes, structs and type names}
+Classes, structs and user-defined type names should start with a capital letter
+and use camel case to separate different words.
+  \begin{code}
+  class CovarianceMatrix {};
+  \end{code}
+
+\subsubsection{Class member variables}
+
+Variables that are defined as data members of classes should be suffixed with
+a underscore (\shortcode{\_}). This convention has the important advantage
+that it allows inferring the scope of variables used inside definitions of
+member functions.
+
+  \begin{code}
+  class CovarianceMatrix {
+   private:
+    Numeric *elements_;
+  };
+  \end{code}
+
+\subsubsection{Constant names}
+Names of constants should be prefixed with a lower-case k. Following words
+should use camel case starting with a capital letter.
+  \begin{code}
+  const Numeric kAlmostPi = 3.0;
+  \end{code}
+
+\subsubsection{Function names}
+Function names should start with a capital letter and words should
+be separated using camel case.
+
+  \begin{code}
+  void InterpolateTo(const Vector &x_new) {
+    ...
+  }
+  \end{code}
+
+\subsection{Formatting}
+
+The formatting, i.e. the layout of your code, should adhere strictly to the
+Google guidelines. Google's indentation style is also supported by the
+clang-format tool, which provides functionality for automatic formatting. A
+format file for clang-format is provided in ARTS' top-level directory. Most
+development environments provide support for clang-format, which makes following
+these guidelines extremely easy.
+
+\begin{itemize}
+  \item Line length of 80 characters
+  \item No tabs, only spaces
+  \item 2 spaces per indentation level
+  \item Opening brace \texttt{\{} of function/class/struct definition and if/for blocks on the same line
+  \item No spaces on the inner side of the parentheses of the conditional
+    expressions of if statements.
+\end{itemize}
+
+\subsection{ARTS-specific rules}
+
+\subsubsection{Numeric types}
+
+Never use \shortcode{float} or \shortcode{double} explicitly, use the type
+\typeindex{Numeric} instead. This is set by CMake (to \shortcode{double} by
+default). In the same way, use \typeindex{Index} for all integers. It can take
+on positive or negative values and defaults to \shortcode{long}. To change the
+default types, run \shortcode{cmake} with the options \shortcode{-DINDEX=long}
+or \shortcode{-DNUMERIC=double}:
 
 \begin{code}
 cmake -DINDEX=int --DNUMERIC=float ..
@@ -323,19 +380,19 @@ overkill if you have many small functions. However, you should include
 them for important functions. 
 
 \begin{code}
-//! A dummy function.
-/*! 
- This function has no purpose at all,
- it just serves as an example... 
+  //! A dummy function.
+  /*! 
+  This function has no purpose at all,
+  it just serves as an example... 
 
-\param[out]     a This parameter is initialized by the
-                  function.
-\param[in,out]  b This parameter is modified by the function.
-\param[in]      c This parameter used but not changed by the function.
+  \param[out]     a This parameter is initialized by the
+  function.
+  \param[in,out]  b This parameter is modified by the function.
+  \param[in]      c This parameter used but not changed by the function.
 
-\return   Dummy value computed from a and b.         
-*/
-int dummy(int& a, int& b, int c);
+  \return   Dummy value computed from a and b.         
+  */
+  int dummy(int& a, int& b, int c);
 \end{code}
 
 \subsubsection{Generic multi-line comment}
@@ -343,11 +400,11 @@ int dummy(int& a, int& b, int c);
 Generated by \shortcode{doxymacs-insert-blank-multiline-comment}.
 
 \begin{code}
-//! A dummy comment.
-/*! 
- Some more elaborate description about this variable, 
- class, or whatever. 
-*/
+  //! A dummy comment.
+  /*! 
+  Some more elaborate description about this variable, 
+  class, or whatever. 
+  */
 \end{code}
 
 \subsubsection{Generic single-line comment}
@@ -355,13 +412,13 @@ Generated by \shortcode{doxymacs-insert-blank-multiline-comment}.
 Generated by \shortcode{doxymacs-insert-blank-singleline-comment}.
 
 \begin{code}
-//! Short comment here.
+  //! Short comment here.
 \end{code}
 
 
 \section{Extending ARTS}
 %======================
- \label{sec:development:extending}
+\label{sec:development:extending}
 
 \subsection{How to add a workspace variable}
 %---------------------------------------
@@ -376,7 +433,7 @@ variable can be added.
   already existing entries as templates. The ARTS concept works best
   if WSVs are only of a rather limited number of different types, so
   that generic WSMs can be used extensively, for example for IO.
-      
+  
   The name must be \emph{exactly} like you use it in the source code,
   because this is used to generate interface functions.
   
@@ -508,137 +565,117 @@ method can be added.
 %---------------------------------------
 \begin{enumerate}
 \item In \shortcode{cloudbox.cc}, add a non-WS method
-\shortcode{pnd\_fieldPSDNAME}, where \shortcode{PSDNAME} stands for the short
-name or name tag of the new particle size distribution (PSD) parametrization.
-This will be the method called by
-\builtindoc{pnd\_fieldCalcFromscat\_speciesFields}, the WSM that converts the
-particle-related atmospheric fields (typically hydrometeor fields like cloud ice
-mass content, rain rate, etc.) to the internally used \builtindoc{pnd\_field}.
+  \shortcode{pnd\_fieldPSDNAME}, where \shortcode{PSDNAME} stands for the short
+  name or name tag of the new particle size distribution (PSD) parametrization.
+  This will be the method called by
+  \builtindoc{pnd\_fieldCalcFromscat\_speciesFields}, the WSM that converts the
+  particle-related atmospheric fields (typically hydrometeor fields like cloud ice
+  mass content, rain rate, etc.) to the internally used \builtindoc{pnd\_field}.
 \item Update the built-in documentation of
-\builtindoc{pnd\_fieldCalcFromscat\_speciesFields} in \shortcode{methods.cc}.
-Particularly, add an entry in the table summarizing the implemented PSDs.
+  \builtindoc{pnd\_fieldCalcFromscat\_speciesFields} in \shortcode{methods.cc}.
+  Particularly, add an entry in the table summarizing the implemented PSDs.
 \item In \shortcode{m\_cloudbox.cc}, add a WSM \shortcode{dNdD\_PSDNAME} as a
-wrapper to the low-level calculation of the number density size distribution
-function $\mathrm{d}N/\mathrm{d}D$. Also add definition and documentation of
-the WSM to \shortcode{methods.cc} (see
-Section~\ref{sec:development:extending:wsm} for details).
+  wrapper to the low-level calculation of the number density size distribution
+  function $\mathrm{d}N/\mathrm{d}D$. Also add definition and documentation of
+  the WSM to \shortcode{methods.cc} (see
+  Section~\ref{sec:development:extending:wsm} for details).
 \end{enumerate}
 
-\section{SVN issues}
+\section{Version control}
 %======================
- \label{sec:development:cvs}
+\label{sec:development:cvs}
 
-The arts project is controlled by Subversion. This section describes some
-basic SVN commands. For more information see the extensive SVN
-documentation:
-\begin{quote}
-  \url{http://svnbook.red-bean.com/}
-\end{quote}
+ARTS uses git for version control. The central or \textit{upstream} repository
+is hosted on github (\url{https://github.com/atmtools/arts}). Contributions to
+ARTS are handled via pull requests on github. This is the de-facto standard
+workflow for open source development, so the time required to get familiar with
+it is certainly a worthy investment. Contributing a new feature or bug-fix to
+ARTS thus involves the following steps:
 
-
-
-
-\subsection{How to check out arts}
-%-----------------------------
 \begin{enumerate}
-\item Go to a temporary directory.
-\item Run: \shortcode{svn co https://www.arts.mi.uni-hamburg.de/svn/rt/arts/trunk arts}
+\item Fork the upstream repository
+\item Clone the ARTS fork from \textiti{your github account} onto your local
+  workstation
+\item Implement your changes
+\item Commit and push your changes to your ARTS fork
+\item Issue a pull request to merge your ARTS fork with the central repository
+\item One of the ARTS core developers will review your code and help with the
+  final integration
 \end{enumerate}
 
 
-\subsection{How to update (if you already have a copy)}
-%--------------------------------------------------
+The required steps are described below in more detail. Note that all of these
+steps are so common to modern software development, that it is very easy to find
+tutorials and manuals online that described them in more detail.
+
+
+\subsection{Forking the central repository}
+
+The forking of the central repository is through the web interface of
+\url{github.com}. This will create a copy of the central repository in
+\textit{your account}. This repository is your personal version of the ARTS
+repository. You can change all you want here without breaking ARTS for anyone
+else.
+
+\subsection{Clone your ARTS fork}
+
+So far your fork of ARTS exists only in your github account somewhere in
+the \textit{cloud}. To really work with the code, you need to obtain a copy
+of the code on your local workstation. This is done by \textit{cloning} the
+repository from your account:
+\begin{code}
+  git clone https://github.com/<your_username>/arts
+\end{code}
+
+where \shortcode{your\_username} is the name of your github account. The
+important point to note here is that you did not clone the central ARTS
+repository from \url{github.com/atmtools} but the one from your account. As
+explained above, this is your personal version of the ARTS repository
+and you can do anything you want with it.
+
+\subsection{Update your fork}
+
+One consequences of the forking of the central ARTS repository is that the
+fork in your own github account will not automatically be updated when
+changes are made to the upstream repository. Before checking in your changes
+into your repository it is therefore important that you update your repository
+with the most recent changes made to the upstream repository. For this two
+steps are required:
+
 \begin{enumerate}
-\item Go to the top ARTS directory (called simply \shortcode{arts}).
-\item Run: \shortcode{svn update}
-   
-  \textbf{IMPORTANT!} Always update, before you start to make changes
-  to the program, especially after a longer pause. If you edit an
-  outdated copy, it will be a lot more work to bring your changes into
-  the current copy of the program.
+\item Register the upstream repository as remote repository for your local clone of your ARTS fork:
+  \begin{code}
+    git remote --add upstream https://github.com/atmtools/arts
+  \end{code}
+\item Rebase your code onto the newest changes from the upstream repository:
+  \begin{code}
+    git fetch upstream master
+    git rebase -i upstream/master
+  \end{code}
 \end{enumerate}
 
+The first step here needs to be performed only the first time you are going
+through this process. Afterwards only the second step is required. A detailed
+description of the rebase step can be found at \url{https://www.atlassian.com/git/tutorials/rewriting-history/git-rebase}.
 
-\subsection{How to commit your changes}
-%---------------------------------------
-\begin{enumerate}
-\item You should make sure that the program compiles and runs without
-  obvious errors before you commit.
-\item If you have created a new source file, make it known to SVN by
-  running the command \shortcode{svn add <my\_file>} in the directory where
-  the file resides.
-  
-  In general, when you run \shortcode{svn update}, it will warn you about
-  any files it doesn't know by marking them with a \shortcode{?}. Files
-  that are created during the compilation process, but should not be
-  part of the package are ignored by SVN. You can view the list of ignored
-  files for the current directory with \shortcode{svn propget svn:ignore .}.
-  The list can be edited with \shortcode{svn propedit svn:ignore .}.
-\item Have you added the documentation for your new features?
-\item Open the file \fileindex{ChangeLog} in the top level ARTS directory
-  with your favorite editor.
-  
-  With Emacs, you can very easily add an entry by typing either
-  \begin{quote}
-    \shortcode{M-x add-change-log-entry}
-  \end{quote}
-  or \shortcode{C-x 4 a}.
-  
-  Specify the new version number and describe your changes.
+\subsection{Commit and push your changes}
 
-  \textbf{These keystrokes work also while you are editing some other
-    file in Emacs. Thus it is best to write your ChangeLog entry
-    already while you work on a file}. Whenever you make a change to a
-  file, there should be a ChangeLog Entry!
-\item Make sure that you have saved all your files. Go to the top
-  level ARTS directory and run: \shortcode{svn commit}.
-\item This will pop up an editor. Use the mouse to cut and paste the
-  ChangeLog message also to this editor window. Safe the file and exit
-  the editor. If you made changes in different directories, another
-  editor will pop up, already containing your message. Save again and
-  exit. Do this until no more editors come up. (Note: This works well
-  if you set
-  \begin{quote}
-    \shortcode{export EDITOR=xedit}
-  \end{quote}
-  in your shell startup file.
- 
-  With smart editors there can be problems, because they might
-  refuse to safe your file if you haven't made changes to it. With
-  xedit you just have to push the save button twice to override.
-\item Tell the other developers about it. The best way to do this is
-  to send an email to \shortcode{arts\_dev.mi@lists.uni-hamburg.de}.
-\end{enumerate}
+After implementing your changes, commit and push them to your ARTS fork. The
+changes are now publicly available from your github account. Note that at this
+point you can already share your code with others or across different machines.
+It has, however, not yet been integrated into the upstream repository. That
+means your changes are not yet affecting regular users of the ARTS development
+version.
 
+\subsection{Issuing a pull request}
 
-% FIXME OLE
-%\subsection{How to cut a release}
-%%----------------------------
-%\label{sec:release}
-%\begin{enumerate}
-%\item Change the release number in the file \fileindex{configure.in} in the
-%  top-level ARTS directory. (The line that you have to change is the
-%  one with \shortcode{AM\_INIT\_AUTOMAKE}.) Omit the subversion number (last digit).
-%\item Commit your changes (see other howto). 
-%\item In the top-level ARTS directory, run \shortcode{autogen.sh}.
-%\item In the top-level ARTS directory, run \shortcode{make distcheck}. This
-%  will not only cut the release, but also immediately try to build
-%  it, to see if it works. Unless you are on a very fast machine, this
-%  may take a while. Maybe you should go and have a cup of coffee.
-%\item If all goes well, you can find the release inside the top-level
-%  ARTS directory as a file \fileindex{arts-x.y.tar.gz}, where x.y is the
-%  release number.
-%\item Check the release carefully by trying to build and install the
-%  program. 
-%\end{enumerate}
-
-
-\subsection{How to move your arts working directory}
-%----------------------------------------------
-
-In general it is no problem to move your working directory. Only when you are
-using a build directory that is located outside the ARTS source tree, you
-have rerun \shortcode{cmake PATHTOARTS} in that directory.
+Once your changes have been pushed to the ARTS repository in your github
+account, you can issue a pull request. This is done most easily through the
+github web interface. This will notify the ARTS core developers that you want to
+integrate your changes into the upstream repository. On issuing your pull
+request, the ARTS test-suite will be run on your code. If all tests pass, an
+ARTS core developer will review your code and finally merge it into the central
+repository.
 
 \section{Debugging (use of assert)}
 %================================
@@ -708,9 +745,6 @@ your code that caused the error.
 
 Recommendation: In Emacs there is a special GDB mode. With this you
 can very conveniently step through your code.
-
-
-
 
 %%% Local Variables: 
 %%% mode: latex
