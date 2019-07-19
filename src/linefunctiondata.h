@@ -39,57 +39,118 @@
 
 
 // List of all variables that can be returned
-typedef struct{Numeric G0, D0, G2, D2, FVC, ETA, Y, G, DV;} LineFunctionDataOutput;
+typedef struct{
+  /** Speed independent broadening */
+  Numeric G0;
+  
+  /** Speed independent shifting */
+  Numeric D0;
+  
+  /** Speed dependent broadening */
+  Numeric G2;
+  
+  /** Speed dependent shifting */
+  Numeric D2;
+  
+  /** Frequency of velocity changing collisions */
+  Numeric FVC;
+  
+  /** The correlation parameter */
+  Numeric ETA;
+  
+  /** First order line mixing parameter */
+  Numeric Y;
+  
+  /** Second order line mixing parameter --- changes the strength of the line */
+  Numeric G;
+  
+  /** Second order line mixing parameter --- changes the frequency of the line */
+  Numeric DV;
+} LineFunctionDataOutput;
 std::ostream& operator<<(std::ostream& os, const LineFunctionDataOutput& v);
 
 class LineFunctionData {
 public:
 
-  
   #define LineFunctionData_SelfBroadening String("SELF")
   #define LineFunctionData_BathBroadening String("AIR")
   #define LineFunctionData_NoLineMixing String("#")
   
-  // Line shape models
+  /** Line shape models */
   enum class LineShapeType {DP, LP, VP, SDVP, HTP, };
   
-  // Line mixing models
+  /** Line mixing models */
   enum class LineMixingOrderType {None, LM1, LM2, ConstG, Interp, };
   
-  // Temperature dependencies
+  /** Temperature models; T# for analytical, rest for interpolated */
   enum class TemperatureType {None, T0, T1, T2, T3, T4, T5, LM_AER };
   
-  // Local variables allowed in the temperature functions
-  enum class VariableType {X0, X1, X2, };
-  
-  // Line shape models are defined by these variables (do leave Size at end)
+  /** Doppler line shape model parameters */
   enum class DopplerParam    : Index {                          Size};
+  
+  /** Lorentz line shape model parameters */
   enum class LorentzParam    : Index {G0, D0,                   Size};
+  
+  /** Voigt line shape model parameters */
   enum class VoigtParam      : Index {G0, D0,                   Size};
+  
+  /** Speed-dependent Voigt line shape model parameters */
   enum class SpeedVoigtParam : Index {G0, D0, G2, D2,           Size};
+  
+  /** Hartmann-Tran line shape model parameters */
   enum class HTPParam        : Index {G0, D0, G2, D2, FVC, ETA, Size};
   
-  // Line mixing models are defined by these variables (do leave Size at end)
+  /** No line mixing model */
   enum class NoLineMixingParam : Index {                        Size};
+  
+  /** First order line mixing model */
   enum class FirstOrderParam   : Index {Y,                      Size};
+  
+  /** Second-order line mixing model */
   enum class SecondOrderParam  : Index {Y, G, DV,               Size};
+  
+  /** Only compute G line mixing model */
   enum class ConstGParam       : Index {   G,                   Size};
+  
+  /** Interpolated line mixing model */
   enum class InterpParam       : Index {INTERPOLATED_VARIABLES, Size};
   
+  /** Default constructor to be used with iostream */
   LineFunctionData() = default;
   
+  /** Air-broadening constructor to keep up with old definitions of pure air-broadening
+   * 
+   * Will set up so the calculations are:
+   * G0 = sgam * svmr * theta^nself + agam * (1 - avmr) * theta&nair
+   * D0 = psf * theta^(1.5*nair + 0.25)
+   * 
+   * The rest are zero
+   * 
+   * \param sgam Self speed independent pressure broadening coefficient
+   * \param nself Self speed independent pressure broadening exponent coefficient
+   * \param agam Air speed independent pressure broadening coefficient
+   * \param nair Air speed independent pressure broadening exponent exponent coefficient
+   * \param psf Air speed independent pressure frequency shift coefficient
+   */
   LineFunctionData(const Numeric& sgam, const Numeric& nself, const Numeric& agam, const Numeric& nair, const Numeric& psf) :
   do_line_in_standard_calculations(true), mself(true), mbath(true), mspecies(2), mtypes(2, {TemperatureType::T1, TemperatureType::T5}),
-  mdata(2), merrors(2, Vector(4, 0)), mp(LineShapeType::VP), mlm(LineMixingOrderType::None)
-  {
+  mdata(2), merrors(2, Vector(4, 0)), mp(LineShapeType::VP), mlm(LineMixingOrderType::None) {
     mdata[0] = {sgam, nself, psf, nair};
     mdata[1] = {agam, nair, psf, nair};
   };
   
-  //! TRANSLATION MECHANISM TO BE DEPRECATED ASAP
+  /** General-broadening constructor to keep up with old definitions of all types of broadening.
+   
+   This constructor should be considered deprecated but still exists for historical reasons. 
+   
+   \param pb Pressure broadening data in old format
+   \param lm Line mixing data in old format
+   \param species Self species
+   \param T0 Reference temperature of parameters in lm and pb
+   */
   LineFunctionData(const PressureBroadeningData& pb, const LineMixingData& lm, const String& species, const Numeric& T0);
   
-  // Identification calls
+  /** Returns the number of line mixing elements requested */
   Index LineMixingTypeNelem() const noexcept {
     switch(mlm) {
       case LineMixingOrderType::None:   return Index(NoLineMixingParam::Size);
@@ -98,10 +159,10 @@ public:
       case LineMixingOrderType::Interp: return Index(InterpParam::Size);
       case LineMixingOrderType::ConstG: return Index(ConstGParam::Size);;
     }
-
-    return -1;  // Should not reach
+    std::terminate();  // Not allowed to reach, fix higher level code
   }
   
+  /** Returns the storage string for this line mixing */
   String LineMixingType2String() const noexcept {
     switch(mlm) {
       case LineMixingOrderType::None:   return LineFunctionData_NoLineMixing;
@@ -110,18 +171,24 @@ public:
       case LineMixingOrderType::Interp: return "INT";
       case LineMixingOrderType::ConstG: return "ConstG";
     }
-
-    return "-1";
+    std::terminate();  // Not allowed to reach, fix higher level code
   }
   
-  void StringSetLineMixingType(const String& type) noexcept {
+  /** Sets line mixing type according to string describing type */
+  void StringSetLineMixingType(const String& type) {
     if(type == LineFunctionData_NoLineMixing) mlm = LineMixingOrderType::None; 
     else if(type == String("LM1"))            mlm = LineMixingOrderType::LM1;
     else if(type == String("LM2"))            mlm = LineMixingOrderType::LM2;
     else if(type == String("INT"))            mlm = LineMixingOrderType::Interp;
     else if(type == String("ConstG"))         mlm = LineMixingOrderType::ConstG;
+    else {
+      std::ostringstream os;
+      os << "Type: " << type << ", is not accepted.  See documentation for accepted types\n";
+      throw std::runtime_error(os.str());
+    }
   }
   
+  /** Returns the number of line shape elements requested */
   Index LineShapeTypeNelem() const noexcept {
     switch(mp) {
       case LineShapeType::DP:   return Index(DopplerParam::Size);
@@ -130,10 +197,10 @@ public:
       case LineShapeType::SDVP: return Index(SpeedVoigtParam::Size);
       case LineShapeType::HTP:  return Index(HTPParam::Size);
     }
-
-    return -1;  // Should not reach
+    std::terminate();  // Not allowed to reach, fix higher level code
   }
   
+  /** Returns the storage string for this line shape */
   String LineShapeType2String() const noexcept {
     switch(mp) {
       case LineShapeType::DP:   return "DP";
@@ -142,18 +209,24 @@ public:
       case LineShapeType::SDVP: return "SDVP";
       case LineShapeType::HTP:  return "HTP";
     }
-
-    return "-1";
+    std::terminate();  // Not allowed to reach, fix higher level code
   }
   
-  void StringSetLineShapeType(const String& type) noexcept {
+  /** Sets line shape type according to string describing type */
+  void StringSetLineShapeType(const String& type) {
     if(type == String("DP"))        mp = LineShapeType::DP;
     else if(type == String("LP"))   mp = LineShapeType::LP;
     else if(type == String("VP"))   mp = LineShapeType::VP;
     else if(type == String("SDVP")) mp = LineShapeType::SDVP;
     else if(type == String("HTP"))  mp = LineShapeType::HTP;
+    else {
+      std::ostringstream os;
+      os << "Type: " << type << ", is not accepted.  See documentation for accepted types\n";
+      throw std::runtime_error(os.str());
+    }
   }
   
+  /** Returns the number of parameters for the select temperature model */
   Index TemperatureTypeNelem(const TemperatureType type) const noexcept {
     switch(type) {
       case TemperatureType::LM_AER: return 12;
@@ -165,10 +238,10 @@ public:
       case TemperatureType::T4:     return 3;
       case TemperatureType::T5:     return 2;
     }
-
-    return -1;
+    std::terminate();  // Not allowed to reach, fix higher level code
   }
   
+  /** Returns the number of temperature parameters requested for the line shape model */
   Index LineShapeDataNelemForSpecies(Index ispec) const noexcept {
     Index count=0;
     for(auto i=0; i<LineShapeTypeNelem(); i++)
@@ -176,6 +249,7 @@ public:
     return count;
   }
   
+  /** Returns the storage string for the temperature model type */
   String TemperatureType2String(const TemperatureType type) const noexcept {
     switch(type) {
       case TemperatureType::LM_AER: return "LM_AER";
@@ -187,11 +261,11 @@ public:
       case TemperatureType::T4:     return "T4";
       case TemperatureType::T5:     return "T5";
     }
-
-    return "-1";
+    std::terminate();  // Not allowed to reach, fix higher level code
   }
   
-  void StringSetTemperatureType(const Index ispecies, const Index iparam, const String& type) noexcept {
+  /** Sets the temperature model type from the storage string */
+  void StringSetTemperatureType(const Index ispecies, const Index iparam, const String& type) {
     if(type == String("LM_AER"))                   mtypes[ispecies][iparam] = TemperatureType::LM_AER;
     else if(type == LineFunctionData_NoLineMixing) mtypes[ispecies][iparam] = TemperatureType::None;
     else if(type == String("T0"))                  mtypes[ispecies][iparam] = TemperatureType::T0;
@@ -200,6 +274,11 @@ public:
     else if(type == String("T3"))                  mtypes[ispecies][iparam] = TemperatureType::T3;
     else if(type == String("T4"))                  mtypes[ispecies][iparam] = TemperatureType::T4;
     else if(type == String("T5"))                  mtypes[ispecies][iparam] = TemperatureType::T5;
+    else {
+      std::ostringstream os;
+      os << "Type: " << type << ", is not accepted.  See documentation for accepted types\n";
+      throw std::runtime_error(os.str());
+    }
   }
 
   LineFunctionDataOutput GetParams(const Numeric& T0,
@@ -254,53 +333,120 @@ public:
                             const bool do_linemixing=true,
                             const bool normalization=true) const noexcept;
                             
-  // Read data
+  //! Access to mspecies
   const ArrayOfSpeciesTag& Species() const noexcept { return mspecies; }
+  
+  //! Access to mself
   bool SelfBroadening() const noexcept { return mself; }
+  
+  //! Access to mbath
   bool AirBroadening() const noexcept { return mbath; }
+  
+  //! Access to do_line_in_standard_calculations
   bool DoStandardCalcs() const noexcept { return do_line_in_standard_calculations; }
+  
+  //! Access to mp
   LineShapeType LineShape() const noexcept { return mp; }
+  
+  //! Access to mlm
   LineMixingOrderType LineMixing() const noexcept { return mlm; }
   
   friend std::ostream& operator<<(std::ostream& os, const LineFunctionData& lfd);
   friend std::istream& operator>>(std::istream& is, LineFunctionData& lfd);
   
   // Special functions translating old behavior, all DEPRECATED
+  //! Access to self broadening if AirBroadening was used as constructor else UB
   Numeric SelfG0() const;
+  
+  //! Access to self broadening exponent if AirBroadening was used as constructor else UB
   Numeric SelfN() const;
+  
+  //! Access to air broadening if AirBroadening was used as constructor else UB
   Numeric AirG0() const;
+  
+  //! Access to air freq shift if AirBroadening was used as constructor else UB
   Numeric AirD0() const;
+  
+  //! Access to air broadening exponent if AirBroadening was used as constructor else UB
   Numeric AirN() const;
+  
+  //! Access to self broadening error if AirBroadening was used as constructor else UB
   Numeric dSelfG0() const;
+  
+  //! Access to self broadening exponent error if AirBroadening was used as constructor else UB
   Numeric dSelfN() const;
+  
+  //! Access to air broadening error if AirBroadening was used as constructor else UB
   Numeric dAirG0() const;
+  
+  //! Access to air freq shifting error if AirBroadening was used as constructor else UB
   Numeric dAirD0() const;
+  
+  //! Access to air broadening exponent error if AirBroadening was used as constructor else UB
   Numeric dAirN() const;
+  
+  //! Access to Planetary broadening data if following old method else UB
   Vector PlanetaryForeignG0() const;
+  
+  //! Access to Planetary freq shift data if following old method else UB
   Vector PlanetaryForeignD0() const;
+  
+  //! Access to Planetary broadening exponent data if following old method else UB
   Vector PlanetaryForeignN() const;
+  
   LineFunctionDataOutput AirBroadening(const Numeric& theta, const Numeric& P, const Numeric& self_vmr) const;
   
-  // Changes and alterations of internal data
+  //! Change line mixing model by replacing the current one with the new data and new temperature dependencies  
   void ChangeLineMixing(const LineMixingOrderType lm, const Array<TemperatureType>& ts, const Vector& data);
+  
+  //! Change line mixing model to LM2 style from Tretyakov et al.
   void ChangeLineMixingfromSimpleLM2(const Vector& data) {ChangeLineMixing(LineMixingOrderType::LM2, {TemperatureType::T4, TemperatureType::T4, TemperatureType::T4}, data);}
+  
+  //! Change line mixing model to AER style
   void ChangeLineMixing2AER(const Vector& data) {ChangeLineMixing(LineMixingOrderType::Interp, {TemperatureType::LM_AER}, data);}
+  
+  //! Set do_line_in_standard_calculations
   void SetStandard(const bool standard) {do_line_in_standard_calculations=standard;}
+  
+  //! Set variable and coefficient of species to X.  Slowly.
   void Set(const Numeric& X, const String& species, const String& coefficient, const String& variable);
+  
+  //! Get variable and coefficient of species.  Slowly.
   Numeric Get(const String& species, const String& coefficient, const String& variable) const;
-    void Remove(Index);
-    void RemoveSelf() {if(mself) Remove(0);}
-    void KeepOnlyBath() {if(not mbath) throw std::runtime_error("Cannot comply because no air broadening exist!"); else while(mdata.nelem() > 1) Remove(0);}
+  
+  //! Remove a species
+  void Remove(Index);
+  
+  //! Remove self if it exists
+  void RemoveSelf() {if(mself) Remove(0);}
+  
+  //! Keeps only air broadening but throws if mbath is false
+  void KeepOnlyBath() {if(not mbath) throw std::runtime_error("Cannot comply because no air broadening exist!"); else while(mdata.nelem() > 1) Remove(0);}
 
 private:
+  /** Should ANY normal calculations be performed? */
   bool do_line_in_standard_calculations;
+  
+  /** Do we have self-broadening? */
   bool mself;
+  
+  /** Do we have air-broadening? */
   bool mbath;
+  
+  /** List of species.  Note that first is ill-formed if mself, and last is ill-formed if mbath */
   ArrayOfSpeciesTag mspecies;
+  
+  /** List of temperature types per species, outer size is species, inner size is number of line shape and line mixing parameters in that order */
   Array<Array<TemperatureType>> mtypes;
+  
+  /** List of data per species, the internal vector is the sum of all temperature parameters required for line shape and line mixing computations */
   ArrayOfVector mdata;
+  
+  /** List of errors per species, same size as mdata or empty */
   ArrayOfVector merrors;
+  
   LineShapeType mp;
+  
   LineMixingOrderType mlm;
   
   // Model has data

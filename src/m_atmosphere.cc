@@ -3021,6 +3021,77 @@ void MagFieldsCalc( //WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void MagFieldsFromAltitudeRawCalc( //WS Output:
+                    Tensor3& mag_u_field,
+                    Tensor3& mag_v_field,
+                    Tensor3& mag_w_field,
+                    //WS Input
+                    const Vector&         lat_grid,
+                    const Vector&         lon_grid,
+                    const Tensor3&        z_field,
+                    const GriddedField3&        mag_u_field_raw,
+                    const GriddedField3&        mag_v_field_raw,
+                    const GriddedField3&        mag_w_field_raw,
+                    // WS Generic Input:
+                    const Index& interp_order,
+                    const Numeric& extrapolation_factor,
+                    const Verbosity& verbosity)
+{
+  const auto nalt = z_field.npages();
+  const auto nlat = z_field.nrows();
+  const auto nlon = z_field.ncols();
+  
+  // Check that the fields are correct
+  for(auto& gf3: {mag_u_field_raw, mag_v_field_raw, mag_w_field_raw}) {
+    if(gf3.get_grid_name(0) not_eq "Altitude" or gf3.get_grid_name(1) not_eq "Latitude" or gf3.get_grid_name(2) not_eq "Longitude") {
+      std::ostringstream os;
+      os << "Grids are bad\n";
+      os << "Grids must be Altitude, Latitude, Longitude, but are: " << gf3.get_grid_name(0) << ", " << gf3.get_grid_name(1) << ", " << gf3.get_grid_name(2) << '\n';
+      throw std::runtime_error(os.str());
+    }
+  }
+  
+  // Regrid and rename raw-fields
+  GriddedField3 u, v, w;
+  GriddedFieldLatLonRegrid(u, lat_grid, lon_grid, mag_u_field_raw, interp_order, verbosity);
+  GriddedFieldLatLonRegrid(v, lat_grid, lon_grid, mag_v_field_raw, interp_order, verbosity);
+  GriddedFieldLatLonRegrid(w, lat_grid, lon_grid, mag_w_field_raw, interp_order, verbosity);
+  
+  // Finally interpolate the three fields
+  mag_u_field.resize(nalt, nlat, nlon);
+  mag_v_field.resize(nalt, nlat, nlon);
+  mag_w_field.resize(nalt, nlat, nlon);
+  for(Index ilat=0; ilat<nlat; ilat++) {
+    for(Index ilon=0; ilon<nlon; ilon++) {
+      ArrayOfGridPosPoly gp;
+      Matrix itw;
+      
+      chk_interpolation_grids("Magnetic U Field Altitude", u.get_numeric_grid(0), z_field(joker, ilat, ilon), interp_order, extrapolation_factor, false);
+      gp = ArrayOfGridPosPoly(nalt);
+      gridpos_poly(gp, u.get_numeric_grid(0), z_field(joker, ilat, ilon), interp_order, extrapolation_factor);
+      itw = Matrix(nalt, gp[0].w.nelem());
+      interpweights(itw, gp);
+      interp(mag_u_field(joker, ilat, ilon), itw, u.data(joker, ilat, ilon), gp);
+      
+      chk_interpolation_grids("Magnetic V Field Altitude", v.get_numeric_grid(0), z_field(joker, ilat, ilon), interp_order, extrapolation_factor, false);
+      gp = ArrayOfGridPosPoly(nalt);
+      gridpos_poly(gp, v.get_numeric_grid(0), z_field(joker, ilat, ilon), interp_order, extrapolation_factor);
+      itw = Matrix(nalt, gp[0].w.nelem());
+      interpweights(itw, gp);
+      interp(mag_v_field(joker, ilat, ilon), itw, v.data(joker, ilat, ilon), gp);
+      
+      chk_interpolation_grids("Magnetic W Field Altitude", w.get_numeric_grid(0), z_field(joker, ilat, ilon), interp_order, extrapolation_factor, false);
+      gp = ArrayOfGridPosPoly(nalt);
+      gridpos_poly(gp, w.get_numeric_grid(0), z_field(joker, ilat, ilon), interp_order, extrapolation_factor);
+      itw = Matrix(nalt, gp[0].w.nelem());
+      interpweights(itw, gp);
+      interp(mag_w_field(joker, ilat, ilon), itw, w.data(joker, ilat, ilon), gp);
+    }
+  }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void WindFieldsCalc(//WS Output:
                     Tensor3& wind_u_field,
                     Tensor3& wind_v_field,

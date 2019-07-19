@@ -1,3 +1,45 @@
+2019-07-19  Richard Larsson <larsson@mps.mpg.de>
+
+	* arts-2-3-1263
+	
+	* 3rdparty/wigner/CMakeLists.txt:  Now prints a message
+	
+	* src/complex.h:  Added a constexpr conjugate.
+	
+	* src/constants.h:  Added some more constants and fixed error in text
+	
+	* src/lin_alg.h,cc:  Made the least square-fit remove its asserts.  It
+	reports R2 anyways.
+	
+	* src/linefunctiondata.cc:  Fixed some comments and minimized some
+	lines
+	
+	* src/linefunctions.cc: made set_htp fully into pCqSDHC.  I want to keep
+	the other functions around since they are easier to read but maybe
+	this should be removed because of no use?
+	
+	* src/linemixing.cc:  Begun work on the linear relaxation matrix
+	
+	* src/m_atmosphere.cc: added MagFieldsFromAltitudeRawCalc
+	
+	* src/m_jacobian.cc:  fixed error output
+	
+	* src/m_linemixing.cc:  Some restructure
+	
+	* src/m_oem.cc:  Throwing error when yf.nelem() not_eq y.nelem()
+	
+	* src/m_retrieval.cc: giving some numbers when error is thrown.  The
+	text is not good but numbers are better for guessing at the error than
+	not having them
+	
+	* src/methods.cc:  Added methods as above
+	
+	* src/propagationmatrix.h: Begun adding some comments to make my
+	intellisense aware of the functions.  Also helps doxygen some
+	
+	* src/rational.h:  returned to passively accepting most errors to 
+        keep the code easy
+
 2019-07-19  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1262

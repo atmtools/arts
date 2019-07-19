@@ -1123,8 +1123,11 @@ void retrievalDefClose(Workspace& ws,
     bool any_affine;
     jac_ranges_indices( ji_t, any_affine, jacobian_quantities );
     if (!covmat_sx.has_diagonal_blocks(ji_t)) {
-        throw runtime_error("*covmat_sx* does not contain a diagonal block for each retrieval"
-                            " quantity in the Jacobian.");
+        std::ostringstream os;
+        os << "*covmat_sx* does not contain a diagonal block for each retrieval"
+        " quantity in the Jacobian.\n";
+        os << " Fails test (!covmat_sx.has_diagonal_blocks(ji_t)) for ji_t " << ji_t << "\n";
+        throw runtime_error(os.str());
     }
     if (!covmat_sx.is_consistent(ji_t)) {
         throw runtime_error("The blocks in *covmat_sx* are not consistent with the retrieval"

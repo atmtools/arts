@@ -148,13 +148,13 @@ public:
   }
   
   
-  Numeric mol_X(const int L,
+  Numeric mol_X(const Numeric& L,
                 const Numeric& B0,
                 const Numeric& T,
                 const Numeric& main_mass,
                 const Numeric& collider_mass) const;
   
-  Numeric get(const int L,
+  Numeric get(const Numeric& L,
               const Numeric& B0,
               const Numeric& T,
               const Numeric& main_mass,
@@ -190,9 +190,9 @@ public:
       throw std::runtime_error("Bad initializaton of BasisRate, type and size disagree...");
   }
   
-  Numeric mol_X(const int L, const Numeric& B0, const Numeric& T) const;
+  Numeric mol_X(const Numeric& L, const Numeric& B0, const Numeric& T) const;
   
-  Numeric get(const int L, const Numeric& B0, const Numeric& T) const {
+  Numeric get(const Numeric& L, const Numeric& B0, const Numeric& T) const {
     switch(mtype) {
       case Type::Hartmann:
         return mol_X(L, B0, T);
@@ -277,5 +277,15 @@ ComplexVector equivalent_linestrengths(const Vector& population,
 
 Numeric total_linestrengths(const Vector& population,
                             const Vector& dipole);
+
+Matrix CO2_ir_training(const ArrayOfRational& Ji,
+                       const ArrayOfRational& Jf,
+                       const ArrayOfRational& l2i,
+                       const ArrayOfRational& l2f,
+                       const Vector& F0,
+                       const Vector& d,
+                       const Vector& rho,
+                       const Vector& gamma,
+                       const Numeric& T);
 
 #endif // linemixing_h

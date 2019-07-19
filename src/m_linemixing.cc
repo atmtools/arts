@@ -2083,7 +2083,6 @@ try
   else
     throw "Limit in functionality encountered.  We only support CO2-626 and O2-66 for now.";
   
-  
   for(auto& line: abs_lines)
     if(line.Species() not_eq st.Species() or line.Isotopologue() not_eq st.Isotopologue())
       throw "Must be same Isotopologue and Species in all lines.";
@@ -2312,12 +2311,12 @@ try
       for(Index il=0; il<N; il++) {
         const Numeric gammaD = Linefunctions::DopplerConstant(abs_t[ip], species.SpeciesMass())*D[il].real();
         for(auto iv=0; iv<nf; iv++) {
-          const Complex z = (f_grid[iv] - std::conj(D[il])) / gammaD;
+          const Complex z = (f_grid[iv] - conj(D[il])) / gammaD;
           const Complex w = Faddeeva::w(z);
           const Complex zm = (f_grid[iv] + D[il]) / gammaD;
           const Complex wm = Faddeeva::w(zm);
-//           if(not iv) std::cout<<w<<" at "<<z<<". "<<wm<<" at "<<zm<<'.'<<'\n';
-          F[iv] += (Constant::inv_sqrt_pi / gammaD) * (w*std::conj(B[il]) + wm*B[il]);
+          
+          F[iv] += (Constant::inv_sqrt_pi / gammaD) * (w*conj(B[il]) + wm*B[il]);
         }
       }
       
@@ -2356,33 +2355,52 @@ void abs_xsec_per_speciesAddLineMixedLinesInAir(// WS Output:
                                                 const SpeciesAuxData& isotopologue_ratios,
                                                 const SpeciesAuxData& partition_functions,
                                                 const Index& wigner_initialized,
+                                                const Index& minimum_line_count,
                                                 const Verbosity& verbosity)
 try
 {
+  CREATE_OUT2;
+  
   const auto nb=abs_lines_per_band.nelem();
   const auto nf=f_grid.nelem();
   const auto np=abs_t.nelem();
   
   ComplexVector F(nf);
-  for(auto ip=0; ip<np; ip++) {
-    for(auto ib=0; ib<nb; ib++) {
+  for(auto ib=0; ib<nb; ib++) {
+    const auto N = abs_lines_per_band[ib].nelem();
+    for(auto ip=0; ip<np; ip++) {
+      out2 << "Computing band " << ib+1 << "/"<<nb<<" on level "<<ip+1<<"/"<<np<<" with "<<N<<" lines\n";
+      
       const Index pos = find_first(abs_species, abs_species_per_band[ib]);
       if(pos < 0) throw "Bad input, band species is not in absorption species";
       const auto& species = abs_species_per_band[pos][0];
       const auto& band = abs_lines_per_band[ib];
       
       // nb. Make this agenda once more possibilities are available...
-      Matrix W;
-      relmatInAir(W, abs_lines_per_band[ib], abs_species_per_band, partition_functions, wigner_initialized, abs_t[ip], ib, verbosity);
-      
-      const auto N = abs_lines_per_band[ib].nelem();
       Eigen::MatrixXcd M(N, N);
-      for(auto i1=0; i1<N; i1++) {
-        for(auto i2=0; i2<N; i2++) {
-          if(i1 not_eq i2)
-            M(i1, i2) =              + Complex(0, abs_p[ip]) * W(i1, i2);
-          else
-            M(i1, i2) = band[i1].F() + Complex(0, abs_p[ip]) * W(i1, i2);
+      if(minimum_line_count > N) {
+        Matrix W;
+        relmatInAir(W, abs_lines_per_band[ib], abs_species_per_band, partition_functions, wigner_initialized, abs_t[ip], ib, verbosity);
+        for(auto i1=0; i1<N; i1++) {
+          auto x = abs_lines_per_band[ib][i1].GetShapeParams(abs_t[ip], abs_p[ip], 3, Vector({0.21, 0.79, 0}), 
+                                                             ArrayOfArrayOfSpeciesTag({ArrayOfSpeciesTag(1, SpeciesTag("O2")), ArrayOfSpeciesTag(1, SpeciesTag("N2")),
+                                                               ArrayOfSpeciesTag(1, SpeciesTag(species.SpeciesNameMain()))}));
+          for(auto i2=0; i2<N; i2++) {
+            if(i1 not_eq i2)
+              M(i1, i2) =                     + Complex(0, abs_p[ip]) * W(i1, i2);
+            else
+              M(i1, i2) = band[i1].F() + x.D0 + Complex(0, abs_p[ip]) * W(i1, i2);
+          }
+        }
+      }
+      else {
+        M.setZero();
+        for(auto il=0; il<N; il++) {
+          // "AIR"
+          auto x = abs_lines_per_band[ib][il].GetShapeParams(abs_t[ip], abs_p[ip], 3, Vector({0.21, 0.79, 0}), 
+                                                             ArrayOfArrayOfSpeciesTag({ArrayOfSpeciesTag(1, SpeciesTag("O2")), ArrayOfSpeciesTag(1, SpeciesTag("N2")),
+                                                                                       ArrayOfSpeciesTag(1, SpeciesTag(species.SpeciesNameMain()))}));
+          M(il, il) = Complex(0, x.G0);
         }
       }
       
@@ -2396,9 +2414,12 @@ try
       for(Index il=0; il<N; il++) {
         const Numeric gammaD = Linefunctions::DopplerConstant(abs_t[ip], species.SpeciesMass())*D[il].real();
         for(auto iv=0; iv<nf; iv++) {
-          const Complex z = (f_grid[iv] - std::conj(D[il])) / gammaD;
+          const Complex z = (f_grid[iv] - conj(D[il])) / gammaD;
           const Complex w = Faddeeva::w(z);
-          F[iv] += (Constant::inv_sqrt_pi / gammaD) * w * std::conj(B[il]);
+          const Complex zm = (f_grid[iv] + D[il]) / gammaD;
+          const Complex wm = Faddeeva::w(zm);
+          
+          F[iv] += (Constant::inv_sqrt_pi / gammaD) * (w*conj(B[il]) + wm*B[il]);
         }
       }
       

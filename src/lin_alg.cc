@@ -2502,16 +2502,12 @@ void linreg(
  *    \param  A   In: As equation
  *    \param  y   In: As equation
  */
-Numeric lsf(VectorView x, ConstMatrixView A, ConstVectorView y)
+Numeric lsf(VectorView x, ConstMatrixView A, ConstVectorView y) noexcept
 {
   // Size of the problem
   const Index n = x.nelem();
   Matrix AT, ATA(n, n);
   Vector ATy(n), r(n);
-  
-  // Is the size good?
-  assert(A.nrows() == y.nelem());
-  assert(A.ncols() == n);
   
   // Solver
   AT = transpose(A);

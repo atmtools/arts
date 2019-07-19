@@ -2710,7 +2710,7 @@ void jacobianAddMagField(
   else if(component == "strength")
     rq.PropType(JacPropMatType::MagneticMagnitude);
   else
-    throw runtime_error("The selection for *component* can only be \"u\", \"v\", \"w\", \"strength\", \"eta\", or \"theta\"." );
+    throw runtime_error("The selection for *component* can only be \"u\", \"v\", \"w\", or \"strength\"." );
   
   rq.MainTag( MAGFIELD_MAINTAG );
   rq.Subtag( component );

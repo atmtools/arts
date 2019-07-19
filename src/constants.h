@@ -72,13 +72,19 @@ namespace Constant {
     pi_str = '3.141592653589793238462643383279502884197169399375105820974944592307816406286'
     d.getcontext().prec = len(pi_str) - 1
     pi = d.Decimal(pi_str)
+    one = d.Decimal('1')
     two = d.Decimal('2')
+    ten = d.Decimal('10')
     print('pi =', pi)
     print('inv_pi =', 1/pi)
     print('two_pi =', two*pi)
-    print('inv_two_pi =', 1/two_pi)
+    print('inv_two_pi =', 1/(two*pi))
     print('sqrt_pi =', pi.sqrt())
     print('inv_sqrt_pi =', 1/pi.sqrt())
+    print('euler =', one.exp())
+    print('inv_euler =', 1/one.exp())
+    print('log10_euler =', one.exp().log10())
+    print('ln_10 =', ten.log())
     print('sqrt_2 =', two.sqrt())
     print('inv_sqrt_2 =', 1/two.sqrt())
     print('ln_2 = ', two.ln())
@@ -107,6 +113,18 @@ namespace Constant {
   
   /** Inverse of the square root of pi */
   static constexpr Numeric inv_sqrt_pi = 0.5641895835477562869480794515607725858440506293289988568440857217106424684415;
+  
+  /** Euler's number */
+  static constexpr Numeric euler = 2.718281828459045235360287471352662497757247093699959574966967627724076630354;
+  
+  /** Inverse of Euler's number */
+  static constexpr Numeric inv_euler = 0.3678794411714423215955237701614608674458111310317678345078368016974614957448;
+  
+  /** Ten's logarithm of Euler's number */
+  static constexpr Numeric log10_euler = 0.4342944819032518276511289189166050822943970058036665661144537831658646492089;
+  
+  /** Natural logarithm of 10 */
+  static constexpr Numeric ln_10 = 2.302585092994045684017991454684364207601101488628772976033327900967572609677;
   
   /** Square root of 2 */
   static constexpr Numeric sqrt_2 = 1.414213562373095048801688724209698078569671875376948073176679737990732478462;

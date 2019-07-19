@@ -38,11 +38,22 @@
 #include "complex.h"
 
 
+/** Class to help with hidden temporary variables for operations of type Numeric times Class
+ * 
+ * This class only exists in public settings and other classes are required to implement its
+ * understanding in their own operators to define the level of laziness
+ * 
+ */
 template<class base>
 class LazyScale {
 public:
+  //! Only constructor
   LazyScale(const base& t, const Numeric& x) : bas(t), scale(x) {}
+  
+  //! A const reference to a value
   const base& bas;
+  
+  //! A const reference to a Numeric
   const Numeric& scale;
 };
 
@@ -55,13 +66,46 @@ enum class CaseOfPropagationMatrix
 typedef Array<CaseOfPropagationMatrix> ArrayOfCaseOfPropagationMatrix;
 typedef Array<ArrayOfCaseOfPropagationMatrix> ArrayOfArrayOfCaseOfPropagationMatrix;
 
-/*! Propagation Matrix Holder Class With Some Computational Capabilities*/
+/*! Propagation Matrix Holder Class With Some Computational Capabilities
+ * 
+ * The idea comes from the fact that the propagation matrix has the looks
+ * 
+ * /            \
+ * | a  b  c  d |
+ * | b  a  u  v |
+ * | c -u  a  w |
+ * | d -v -w  a |
+ * \            /
+ * 
+ * So we instead store the inner parts of the matrix linearly as [a b c d u v w],
+ * and all computations happens on these variables instead.  Note that the variables
+ * changes with the Stokes dimension
+ * 
+ * Stokes Dim 4: [a b c d u v w]
+ * Stokes Dim 3: [a b c u]
+ * Stokes Dim 2: [a b]
+ * Stokes Dim 1: [a]
+ * 
+ * And for devs: the u-variable is at vector position of the Stokes Dim in case 4 and 3, 
+ * and that the other variables never change their positions, which is why the switch
+ * cases are all consistently fall-through-able in this class
+ */
 class PropagationMatrix
 {
 
 public:
   
-  //! Initialize variable sizes
+  /** Initialize variable sizes
+   * 
+   * Will create a Tensor4 of the size and order (nr_aa, nr_za, NumberOfNeededVectors(), nr_frequencies)
+   * 
+   * \param nr_frequencies Number of Dirac frequencies
+   * \param stokes_dim Stokes dimensionality
+   * \param nr_za Number of Dirac Zeniths
+   * \param nr_aa Number of Dirac Azimuths
+   * \param v Initial values of things in the created Tensor4
+   * 
+   */
   PropagationMatrix(const Index nr_frequencies=0, const Index stokes_dim=1, const Index nr_za=1, const Index nr_aa=1, const Numeric v=0.0) :
   mfreqs(nr_frequencies), mstokes_dim(stokes_dim), mza(nr_za), maa(nr_aa), mvectortype(false) 
   {
@@ -69,17 +113,19 @@ public:
     mdata = Tensor4(maa, mza, mfreqs, NumberOfNeededVectors(), v);
   }
     
-  //! Initialize from a constant other
+  //! Copy constructor
   PropagationMatrix(const PropagationMatrix& pm) :
   mfreqs(pm.mfreqs), mstokes_dim(pm.mstokes_dim), 
   mza(pm.mza), maa(pm.maa), 
   mdata(pm.mdata), mvectortype(pm.mvectortype) {}
-    
+  
+  //! Move constructor
   PropagationMatrix(PropagationMatrix&& pm) noexcept :
   mfreqs(std::move(pm.mfreqs)), mstokes_dim(std::move(pm.mstokes_dim)),
   mza(std::move(pm.mza)), maa(std::move(pm.maa)),
   mdata(std::move(pm.mdata)), mvectortype(std::move(pm.mvectortype)) {}
   
+  //! Initialize from Tensor4
   explicit PropagationMatrix(ConstTensor4View x) : mfreqs(x.nrows()), mza(x.npages()), maa(x.nbooks()), mdata(x), mvectortype(false)
   {
     switch(x.ncols()) {
@@ -91,24 +137,26 @@ public:
     }
   }
 
-  //! Initialize from matrix
+  /** Initialize from single stokes_dim-by-stokes_dim matrix
+   * 
+   * \param x The matrix
+   * \param assume_fit Assume a correct fit?  Do not set this in manual interface
+   * 
+   */
   explicit PropagationMatrix(ConstMatrixView x, const bool& assume_fit=false) : mfreqs(1), mstokes_dim(x.ncols()), mza(1), maa(1)
   {
     assert(mstokes_dim < 5 and mstokes_dim > 0);
     mvectortype = false;
     
-    if(not assume_fit)
-    {
-      if(not FittingShape(x))
-      {
+    if(not assume_fit) {
+      if(not FittingShape(x)) {
         throw std::runtime_error("Matrix not fit as propagation matrix");
       }
     }
     
     mdata.resize(1, 1, 1, NumberOfNeededVectors());
     
-    switch(mstokes_dim)
-    {
+    switch(mstokes_dim) {
       case 4: mdata(0, 0, 0, 5) = x(1, 3); mdata(0, 0, 0, 5) = x(2, 3); mdata(0, 0, 0, 3) = x(0, 3); /* FALLTHROUGH */
       case 3: mdata(0, 0, 0, mstokes_dim) = x(1, 2); mdata(0, 0, 0, 2) = x(0, 2); /* FALLTHROUGH */
       case 2: mdata(0, 0, 0, 1) = x(0, 1); /* FALLTHROUGH */
@@ -116,20 +164,27 @@ public:
     }
   };
   
+  /** Construct a PropagationMatrix from two scaled propagation matrices
+   * 
+   * Sets a new propagation matrix from the relation: (a + b) * scale
+   * 
+   * Assumes a and b have the same sizes, will crash if b is smaller than a
+   * 
+   * \param a Propmat 1
+   * \param b Propmat 2
+   * \param scale the scale
+   */
   PropagationMatrix(const PropagationMatrix& a, const PropagationMatrix& b, const Numeric& scale = 0.5) : 
   mfreqs(a.mfreqs),
   mstokes_dim(a.mstokes_dim),
   mza(a.mza),
   maa(a.maa),
   mdata(maa, mza, mfreqs, mstokes_dim),
-  mvectortype(false)
-  {
+  mvectortype(false) {
     for(Index i = 0; i < maa; i++)
     for(Index j = 0; j < mza; j++)
-    for(Index k = 0; k < mfreqs; k++)
-    {
-      switch(mstokes_dim)
-      {
+    for(Index k = 0; k < mfreqs; k++) {
+      switch(mstokes_dim) {
         case 4: 
           mdata(i, j, k, 3) = (a.mdata(i, j, k, 3) + b.mdata(i, j, k, 3)) * scale;
           mdata(i, j, k, 5) = (a.mdata(i, j, k, 5) + b.mdata(i, j, k, 5)) * scale;
@@ -158,18 +213,21 @@ public:
   /*! The number of frequencies of the propagation matrix */
   Index NumberOfAzimuthAngles() const {return maa;};
   
+  /*! Set mvectortype */
   void SetVectorType(bool vectortype) {mvectortype = vectortype;}
   
+  /*! Asks if the class is empty */
   bool IsEmpty() const {return not mfreqs or not mza or not maa;};
   
-  bool IsZero(const Index iv=0, const Index iz=0, const Index ia=0) const 
-  {
+  /*! False if any non-zeroes */
+  bool IsZero(const Index iv=0, const Index iz=0, const Index ia=0) const  {
     for(auto& n : mdata(ia, iz, iv, joker))
       if(n not_eq 0)
         return false;
     return true;
   };
   
+  /*! False if diagonal element is non-zero */
   bool IsRotational(const Index iv=0, const Index iz=0, const Index ia=0) const 
   {
     if(mdata(ia, iz, iv, 0) == 0.0) 
@@ -181,10 +239,8 @@ public:
   /* The number of required vectors to fill this PropagationMatrix --- designed for GetVector(i) */
   Index NumberOfNeededVectors() const
   {
-    if(not mvectortype)
-    {
-      switch(mstokes_dim)
-      {
+    if(not mvectortype) {
+      switch(mstokes_dim) {
         case 1: return 1; break;
         case 2: return 2; break;
         case 3: return 4; break;
@@ -192,16 +248,15 @@ public:
         default: throw std::runtime_error("Cannot understand the input in PropagationMatrix");
       }
     }
-    else
-    {
+    else {
       return mstokes_dim;
     }
   }
   
-  /*! access operator.  Please refrain from using this if possible */
+  /*! access operator.  Please refrain from using this if possible since it copies */
   Numeric operator()(const Index iv=0, const Index is1=0, const Index is2=0, const Index iz=0, const Index ia=0) const ;
   
-  /*! Adds the Faraday rotation to the PropagationMatrix at required ifreq
+  /*! Adds the Faraday rotation to the PropagationMatrix at required position
    * 
    * No vector function exists since rot is a function of frequency
    * 
@@ -209,6 +264,15 @@ public:
    * \param ifreq: frequency index
    */
   void AddFaraday(const Numeric& rot, const Index iv=0, const Index iz=0, const Index ia=0) {mdata(ia, iz, iv, mstokes_dim) += rot;}
+  
+  
+  /*! Sets the Faraday rotation to the PropagationMatrix at required position
+   * 
+   * No vector function exists since rot is a function of frequency
+   * 
+   * \param rot: rotation
+   * \param ifreq: frequency index
+   */
   void SetFaraday(const Numeric& rot, const Index iv=0, const Index iz=0, const Index ia=0) {mdata(ia, iz, iv, mstokes_dim)  = rot;}
   
   /*! Sets the dense matrix.  Avoid using if possible. */
@@ -216,10 +280,10 @@ public:
                         const Index iv=0, const Index iz=0, const Index ia=0)
     const;
   
+  //! Move operator
   PropagationMatrix& operator=(PropagationMatrix&& pm) noexcept
   {
-    if (this != &pm)
-    {
+    if (this != &pm) {
       mfreqs = std::move(pm.mfreqs);
       mstokes_dim = std::move(pm.mstokes_dim);
       mza = std::move(pm.mza);
@@ -230,12 +294,15 @@ public:
     return *this;
   }
   
+  //! Lazy copy operator
   PropagationMatrix& operator=(const LazyScale<PropagationMatrix>& lpms)
   {
     operator=(lpms.bas);
     mdata *= lpms.scale;
     return *this;
   }
+  
+  //! Copy operator
   PropagationMatrix&  operator=(const PropagationMatrix& other)
   {
     mvectortype = other.mvectortype;
@@ -246,17 +313,12 @@ public:
     mdata = other.mdata;
     return *this;
   }
-  PropagationMatrix&  operator=(ConstVectorView x) 
-  { 
-    for(Index i = 0; i < NumberOfNeededVectors(); i++){
-      for(Index j = 0; j < mza; j++){
-        for(Index k = 0; k < maa; k++){
-          mdata(k, j, joker, i) = x;}}}
-    return *this; 
-  }
+  
+  //! Sets all data to the same value, e.g., pm = 0
   PropagationMatrix&  operator=(const Numeric& x)
     { mdata = x; return *this; }
   
+  //! Sets a propagation Matrix 
   void SetAtPosition(const PropagationMatrix& x,
                      const Index iv=0, const Index iz=0, const Index ia=0)
     { mdata(ia, iz, iv, joker)  = x.mdata(ia, iz, iv, joker); }

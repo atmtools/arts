@@ -2172,6 +2172,31 @@ void define_md_data_raw()
     
     md_data_raw.push_back
     ( MdRecord
+    ( NAME( "abs_xsec_per_speciesAddLineMixedLinesInAir" ),
+      DESCRIPTION
+      (
+        "Calculates the band-wise cross-section TEST FUNCTION\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "abs_xsec_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_xsec_per_species",
+          "abs_species_per_band", "abs_species",
+          "f_grid", "abs_p", "abs_t",
+          "abs_lines_per_band",
+          "isotopologue_ratios", "partition_functions",
+          "wigner_initialized"),
+      GIN("minimum_line_count"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("10"),
+      GIN_DESC("If less than this number of lines in a \"band\", "
+               "relaxation matrix is set diagonal")
+    ));
+    
+    md_data_raw.push_back
+    ( MdRecord
     ( NAME( "abs_xsec_per_speciesAddLineMixedBands" ),
       DESCRIPTION
       (
@@ -10215,7 +10240,29 @@ void define_md_data_raw()
         GIN_TYPE( "Index" ),
         GIN_DEFAULT( "1" ),
         GIN_DESC( "Interpolation order (1=linear interpolation)." )
-        ));
+      ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+    ( NAME( "MagFieldsFromAltitudeRawCalc" ),
+      DESCRIPTION
+      (
+        "Regrids the rawfield by lat-lon and interpolates to z_field.\n"
+      ),
+      AUTHORS( "Richard Larsson" ),
+      OUT( "mag_u_field", "mag_v_field", "mag_w_field" ),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "lat_grid", "lon_grid", "z_field",
+          "mag_u_field_raw", "mag_v_field_raw",  "mag_w_field_raw", ),
+      GIN("interp_order", 
+          "extrapolating"),
+      GIN_TYPE( "Index", "Numeric" ),
+      GIN_DEFAULT( "1", "1e99" ),
+      GIN_DESC( "Interpolation order (1=linear interpolation).",
+                "Extrapolation allowed in interpolation of altitude.")
+    ));
 
     md_data_raw.push_back
     ( MdRecord
@@ -15431,7 +15478,7 @@ void define_md_data_raw()
           "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
           "which avoids its numerical computation.\n"
           "\n"
-          "For number and order of elements added to *x*, see *jacobianAddAbsSinefit*.\n"
+          "For number and order of elements added to *x*, see *jacobianAddSinefit*.\n"
           ),
       AUTHORS( "Simon Pfreundschuh" ),
       OUT( "covmat_sx", "jacobian_quantities", "jacobian_agenda" ),

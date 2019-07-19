@@ -581,13 +581,13 @@ OffDiagonalElementOutput OffDiagonalElement::CO2_IR(const LineRecord& j_line,
 {
   // Point at quantum numbers
   const Rational Jku  = k_line.UpperQuantumNumber(QuantumNumberType::J );
-  const Rational Jkl  = k_line.LowerQuantumNumber(QuantumNumberType::J );
   const Rational Jju  = j_line.UpperQuantumNumber(QuantumNumberType::J );
+  const Rational Jkl  = k_line.LowerQuantumNumber(QuantumNumberType::J );
   const Rational Jjl  = j_line.LowerQuantumNumber(QuantumNumberType::J );
-  const Rational l2ju = j_line.UpperQuantumNumber(QuantumNumberType::l2);
   const Rational l2ku = k_line.UpperQuantumNumber(QuantumNumberType::l2);
-  const Rational l2jl = j_line.LowerQuantumNumber(QuantumNumberType::l2);
+  const Rational l2ju = j_line.UpperQuantumNumber(QuantumNumberType::l2);
   const Rational l2kl = k_line.LowerQuantumNumber(QuantumNumberType::l2);
+  const Rational l2jl = j_line.LowerQuantumNumber(QuantumNumberType::l2);
   
   const bool jbig = Jjl >= Jkl;
   
@@ -631,6 +631,125 @@ OffDiagonalElementOutput OffDiagonalElement::CO2_IR(const LineRecord& j_line,
   
   const Numeric r = k_rho / j_rho;
   return {jbig ? sum : sum * r , jbig ? sum / r : sum};
+}
+
+
+constexpr auto params=10;
+void linearized_relaxation_matrix(Tensor3& M,
+                                  const ArrayOfRational& Ji,
+                                  const ArrayOfRational& Jf,
+                                  const ArrayOfRational& l2i,
+                                  const ArrayOfRational& l2f,
+                                  [[maybe_unused]] const Vector& F0,
+                                  const Vector& d,
+                                  const Vector& rho,
+                                  const Numeric& T,
+                                  const Vector& a=Vector(params, 1))
+{
+  const Index n = Ji.nelem();
+  Numeric c [params];
+  
+  Rational rmax = Ji[0];
+  for(auto& r: Ji) rmax = max(r, rmax);
+  for(auto& r: Jf) rmax = max(r, rmax);
+  
+  M = 0;
+  
+  #pragma omp parallel for schedule(guided, 1) if(DO_FAST_WIGNER && !arts_omp_in_parallel())
+  for(Index i = 0; i < n; i++) {
+    wig_temp_init(int(2*rmax));
+    for(Index j = 0; j < n; j++) {
+      if(i == j) continue;  // to next loop
+      if(Ji[i] < Ji[j]) continue;  // because we renormalize this
+      
+      const Numeric K1 = ((l2i[i]+l2f[i])%2 ? 1 : -1) * 
+      Numeric(2*Ji[j]+1) * sqrt((2*Jf[i]+1)*(2*Jf[j]+1));
+      const Numeric d_ratio = d[j] / d[i];
+      [[maybe_unused]] const Numeric exp = (Ji[i] == 0) ? Numeric(Ji[j]/Ji[i]) : Numeric(Ji[j])/0.5;
+      
+      const int en = std::min(int(Ji[i]*2) + int(Ji[j]*2),
+                              int(Jf[i]*2) + int(Jf[j]*2));
+      for(int L = 4; L <= en; L+=4) {
+        const Numeric K2 = co2_ecs_wigner_symbol(int(2*Ji[i]), int(2*Jf[i]), 
+                                                 int(2*Ji[j]), int(2*Jf[j]),
+                                                 L, int(2*l2i[i]), int(2*l2f[i]));
+        
+        const Numeric dE = L/2 * (L/2 + 1);
+        c[0] = 1;
+        c[1] = 1/T;
+        c[2] = dE;
+        c[3] = dE/T;
+        c[4] = dE*dE;
+        c[5] = std::log(dE);
+        c[6] = std::log(dE)/T;
+        c[7] = std::log(dE)*std::log(dE);
+        c[8] = 1/dE;
+        c[9] = 1/dE/dE;
+        
+        for(auto kk=0; kk<params; kk++)
+          M(i, j, kk) += a[kk] * K2 * (std::isnormal(c[kk]) ? c[kk] : 0);
+      }
+      
+      if(std::isnormal(d_ratio))
+        M(i, j, joker) *= d_ratio * K1;
+      else
+        M(i, j, joker) *= K1;
+      M(j, i, joker) = M(i, j, joker);
+      
+      M(i, j, joker) *= rho[j] / rho[i];
+      M(j, i, joker) *= rho[i] / rho[j];
+    }
+    
+    // Remove the temporary table
+    wig_temp_free();
+  }
+}                                             
+
+
+Matrix CO2_ir_training(const ArrayOfRational& Ji,
+                       const ArrayOfRational& Jf,
+                       const ArrayOfRational& l2i,
+                       const ArrayOfRational& l2f,
+                       const Vector& F0,
+                       const Vector& d,
+                       const Vector& rho,
+                       const Vector& gamma,
+                       const Numeric& T)
+{
+  const auto n = Ji.nelem();
+  
+  Vector a(params, 0);
+  Matrix A(n, params, 0);
+  Matrix W(n, n, 0);
+  Tensor3 M(n, n, params, 0);
+  
+  // Create the training-tensor
+  linearized_relaxation_matrix(M, Ji, Jf, l2i, l2f, F0, d, rho, T);
+  
+  // Set the over-determined matrix for least-square-fit
+  for(Index i=0; i<n; i++) {
+    for(Index j=0; j<n; j++) {
+      A(i, joker) += M(i, j, joker);
+    }
+  }
+  
+  // Perform least-square-fit
+  [[maybe_unused]] const Numeric R2 = lsf(a, A, gamma);
+  
+  // Create the proper tensor by recomputing the training tensor with new a-ratios
+  linearized_relaxation_matrix(M, Ji, Jf, l2i, l2f, F0, d, rho, T, a);
+  
+  // Fill the relaxation matrix
+  for(Index i=0; i<n; i++) {
+    for(Index j=0; j<n; j++) {
+      if(i==j)
+        W(i, j) = gamma[i];
+      else
+        W(i, j) = M(i, j, joker).sum();
+    }
+  }
+  
+  return W;
 }
 
 
@@ -724,7 +843,7 @@ OffDiagonalElementOutput OffDiagonalElement::O2_66_MW(const LineRecord& line1,
  * AF = (1 + 1/24 * (w(J) dc / v(T) )^2)^-2
  * 
  */
-Numeric AdiabaticFactor::mol_X(const int L,
+Numeric AdiabaticFactor::mol_X(const Numeric& L,
                                const Numeric& B0,
                                const Numeric& T,
                                const Numeric& main_mass,
@@ -751,7 +870,7 @@ Numeric AdiabaticFactor::mol_X(const int L,
  * BR = a1 (L*(L+1))^-a2 * exp(- a3 B0 L*(L+1) hc/kT)
  * 
  */
-Numeric BasisRate::mol_X(const int L, const Numeric& B0, const Numeric& T) const
+Numeric BasisRate::mol_X(const Numeric& L, const Numeric& B0, const Numeric& T) const
 {
   using namespace Constant;
   
@@ -759,7 +878,7 @@ Numeric BasisRate::mol_X(const int L, const Numeric& B0, const Numeric& T) const
   const Numeric& a2 = mdata[Index(HartmannPos::a2)];
   const Numeric& a3 = mdata[Index(HartmannPos::a3)];
   
-  const Numeric EL = Numeric(L*L + L);
+  const Numeric EL = L*L + L;
   return a1 / std::pow( EL, a2 ) *  std::exp(- a3 * h * B0 * EL / (k * T));
 }
 

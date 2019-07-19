@@ -59,7 +59,7 @@ ostream& operator << (ostream& os, const RetrievalQuantity& ot)
 /*!
     Determines the index range inside x and the Jacobian for each retrieval quantity
 
-    The ranges are given as an ArrayOfArrayOfIndex, where outermots dimension
+    The ranges are given as an ArrayOfArrayOfIndex, where outermost dimension
     corresponds to retrieval quantity. The inner dimension has throughout size
     2, where element 0 is the first index and element 1 is the last index of
     the range.

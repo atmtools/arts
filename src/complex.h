@@ -47,6 +47,7 @@ inline std::complex<float> operator* (const std::complex<float>& c, const double
 
 /** squared magnitude of c */
 constexpr Numeric abs2(Complex c) {return a1*a1 + b1*b1;}
+constexpr Complex conj(Complex c) {return Complex(a1, -b1);}
 
 // Basic constexpr operations for Complex that don't exist in the standard yet (C++11)
 // NOTE: Remove these if there is ever an overload warning updating the C++ compiler version

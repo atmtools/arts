@@ -84,22 +84,22 @@
 **********************************/
 
 //! Returns x0
-constexpr Numeric main_t0(const Numeric& x0) noexcept { return x0; }
+constexpr Numeric main_t0(Numeric x0) noexcept { return x0; }
 
 //! Returns x0 * pow(TH, x1)
-inline Numeric main_t1(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1) noexcept  { return x0 * pow(T0/T, x1); }
+inline Numeric main_t1(Numeric T, Numeric T0, Numeric x0, Numeric x1) noexcept  { return x0 * pow(T0/T, x1); }
 
 //! Returns x0 * pow(TH, x1) * (1 + x2 * log(1/TH))
-inline Numeric main_t2(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return x0 * pow(T0/T, x1) * (1 + x2 * log(T/T0)); }
+inline Numeric main_t2(Numeric T, Numeric T0, Numeric x0, Numeric x1, Numeric x2) noexcept { return x0 * pow(T0/T, x1) * (1 + x2 * log(T/T0)); }
 
 //! Returns x0 + x1 * (T - T0)
-constexpr Numeric main_t3(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1) noexcept { return x0 + x1 * (T - T0); }
+constexpr Numeric main_t3(Numeric T, Numeric T0, Numeric x0, Numeric x1) noexcept { return x0 + x1 * (T - T0); }
 
 //! Returns (x0 + x1 * (TH - 1)) * pow(TH, x2)
-inline Numeric main_t4(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return (x0 + x1 * (T0/T - 1.)) * pow(T0/T, x2); }
+inline Numeric main_t4(Numeric T, Numeric T0, Numeric x0, Numeric x1, Numeric x2) noexcept { return (x0 + x1 * (T0/T - 1.)) * pow(T0/T, x2); }
 
 //! Returns x0 * pow(TH, 0.25 + 1.5*x1)
-inline Numeric main_t5(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1) noexcept { return x0 * pow(T0/T, 0.25 + 1.5*x1); }
+inline Numeric main_t5(Numeric T, Numeric T0, Numeric x0, Numeric x1) noexcept { return x0 * pow(T0/T, 0.25 + 1.5*x1); }
 
 
 /**********************************
@@ -110,19 +110,19 @@ inline Numeric main_t5(const Numeric& T, const Numeric& T0, const Numeric& x0, c
 constexpr Numeric dmain_dx0_t0() noexcept { return 1; }
 
 //! Returns pow(T0/T, x1)
-inline Numeric dmain_dx0_t1(const Numeric& T, const Numeric& T0, const Numeric& x1) noexcept { return pow(T0/T, x1); }
+inline Numeric dmain_dx0_t1(Numeric T, Numeric T0, Numeric x1) noexcept { return pow(T0/T, x1); }
 
 //! Returns pow(T0/T, x1)*(x2*log(T/T0) + 1)
-inline Numeric dmain_dx0_t2(const Numeric& T, const Numeric& T0, const Numeric& x1, const Numeric& x2) noexcept { return pow(T0/T, x1)*(x2*log(T/T0) + 1); }
+inline Numeric dmain_dx0_t2(Numeric T, Numeric T0, Numeric x1, Numeric x2) noexcept { return pow(T0/T, x1)*(x2*log(T/T0) + 1); }
 
 //! Returns 1
 constexpr Numeric dmain_dx0_t3() noexcept { return 1; }
 
 //! Returns pow(T0/T, x2)
-inline Numeric dmain_dx0_t4(const Numeric& T, const Numeric& T0, const Numeric& x2) noexcept { return pow(T0/T, x2); }
+inline Numeric dmain_dx0_t4(Numeric T, Numeric T0, Numeric x2) noexcept { return pow(T0/T, x2); }
 
 //! Returns pow(T0/T, 1.5*x1 + 0.25)
-inline Numeric dmain_dx0_t5(const Numeric& T, const Numeric& T0, const Numeric& x1) noexcept { return pow(T0/T, 1.5*x1 + 0.25); }
+inline Numeric dmain_dx0_t5(Numeric T, Numeric T0, Numeric x1) noexcept { return pow(T0/T, 1.5*x1 + 0.25); }
 
 
 /**********************************
@@ -133,19 +133,19 @@ inline Numeric dmain_dx0_t5(const Numeric& T, const Numeric& T0, const Numeric& 
 constexpr Numeric dmain_dx1_t0() noexcept { return 0.; }
 
 //! Returns x0*pow(T0/T, x1)*log(T0/T)
-inline Numeric dmain_dx1_t1(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1) noexcept { return x0*pow(T0/T, x1)*log(T0/T); }
+inline Numeric dmain_dx1_t1(Numeric T, Numeric T0, Numeric x0, Numeric x1) noexcept { return x0*pow(T0/T, x1)*log(T0/T); }
 
 //! Returns x0*pow(T0/T, x1)*(x2*log(T/T0) + 1)*log(T0/T)
-inline Numeric dmain_dx1_t2(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return x0*pow(T0/T,x1)*(x2*log(T/T0)+1.)*log(T0/T); }
+inline Numeric dmain_dx1_t2(Numeric T, Numeric T0, Numeric x0, Numeric x1, Numeric x2) noexcept { return x0*pow(T0/T,x1)*(x2*log(T/T0)+1.)*log(T0/T); }
 
 //! Returns (T - T0)
-constexpr Numeric dmain_dx1_t3(const Numeric& T, const Numeric& T0) noexcept { return (T - T0); }
+constexpr Numeric dmain_dx1_t3(Numeric T, Numeric T0) noexcept { return (T - T0); }
 
 //! Returns pow(T0/T, x2)*(T0/T - 1)
-inline Numeric dmain_dx1_t4(const Numeric& T, const Numeric& T0, const Numeric& x2) noexcept { return pow(T0/T, x2)*(T0/T - 1.); }
+inline Numeric dmain_dx1_t4(Numeric T, Numeric T0, Numeric x2) noexcept { return pow(T0/T, x2)*(T0/T - 1.); }
 
 //! Returns 1.5*x0*pow(T0/T, 1.5*x1 + 0.25)*log(T0/T)
-inline Numeric dmain_dx1_t5(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1) noexcept { return 1.5*x0*pow(T0/T, 1.5*x1 + 0.25)*log(T0/T); }
+inline Numeric dmain_dx1_t5(Numeric T, Numeric T0, Numeric x0, Numeric x1) noexcept { return 1.5*x0*pow(T0/T, 1.5*x1 + 0.25)*log(T0/T); }
 
 
 /**********************************
@@ -159,13 +159,13 @@ constexpr Numeric dmain_dx2_t0() noexcept { return 0.; }
 constexpr Numeric dmain_dx2_t1() noexcept { return 0.; }
 
 //! Returns x0*pow(T0/T, x1)*log(T/T0)
-inline Numeric dmain_dx2_t2(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1) noexcept { return x0*pow(T0/T, x1)*log(T/T0); }
+inline Numeric dmain_dx2_t2(Numeric T, Numeric T0, Numeric x0, Numeric x1) noexcept { return x0*pow(T0/T, x1)*log(T/T0); }
 
 //! Returns 0
 constexpr Numeric dmain_dx2_t3() noexcept { return 0.; }
 
 //! Returns pow(T0/T, x2)*(x0 + x1*(T0/T-1))*log(T0/T)
-inline Numeric dmain_dx2_t4(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return pow(T0/T,x2)*(x0+x1*(T0/T-1))*log(T0/T); }
+inline Numeric dmain_dx2_t4(Numeric T, Numeric T0, Numeric x0, Numeric x1, Numeric x2) noexcept { return pow(T0/T,x2)*(x0+x1*(T0/T-1))*log(T0/T); }
 
 //! Returns 0
 constexpr Numeric dmain_dx2_t5() noexcept { return 0.; }
@@ -179,19 +179,20 @@ constexpr Numeric dmain_dx2_t5() noexcept { return 0.; }
 constexpr Numeric dmain_dT_t0() noexcept { return 0.; }
 
 //! Returns -x0*x1*pow(T0/T, x1)/T
-inline Numeric dmain_dT_t1(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1) noexcept { return -x0*x1*pow(T0/T, x1)/T; }
+inline Numeric dmain_dT_t1(Numeric T, Numeric T0, Numeric x0, Numeric x1) noexcept { return -x0*x1*pow(T0/T, x1)/T; }
 
 //! Returns -x0*x1*pow(T0/T, x1)*(x2*log(T/T0) + 1)/T + x0*x2*pow(T0/T, x1)/T
-inline Numeric dmain_dT_t2(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return -x0*x1*pow(T0/T,x1)*(x2*log(T/T0)+1.)/T+x0*x2*pow(T0/T,x1)/T; }
+inline Numeric dmain_dT_t2(Numeric T, Numeric T0, Numeric x0, Numeric x1, Numeric x2) noexcept { return -x0*x1*pow(T0/T,x1)*(x2*log(T/T0)+1.)/T+x0*x2*pow(T0/T,x1)/T; }
 
 //! Returns x1
-constexpr Numeric dmain_dT_t3(const Numeric& x1) noexcept { return x1; }
+constexpr Numeric dmain_dT_t3(Numeric x1) noexcept { return x1; }
 
 //! Returns -x2*pow(T0/T, x2)*(x0 + x1*(T0/T-1))/T - T0*x1*pow(T0/T, x2)/pow(T, 2)
-inline Numeric dmain_dT_t4(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return -x2*pow(T0/T,x2)*(x0+x1*(T0/T-1.))/T-T0*x1*pow(T0/T,x2)/pow(T,2); }
+[[gnu::const]] [[nodiscard]]
+inline Numeric dmain_dT_t4(Numeric T, Numeric T0, Numeric x0, Numeric x1, Numeric x2) noexcept { return -x2*pow(T0/T,x2)*(x0+x1*(T0/T-1.))/T-T0*x1*pow(T0/T,x2)/pow(T,2); }
 
 //! Returns -x0*pow(T0/T, 1.5*x1 + 0.25)*(1.5*x1 + 0.25)/T
-inline Numeric dmain_dT_t5(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1) noexcept { return -x0*pow(T0/T,1.5*x1 + 0.25)*(1.5*x1 + 0.25)/T; }
+inline Numeric dmain_dT_t5(Numeric T, Numeric T0, Numeric x0, Numeric x1) noexcept { return -x0*pow(T0/T,1.5*x1 + 0.25)*(1.5*x1 + 0.25)/T; }
 
 
 /**********************************
@@ -202,19 +203,19 @@ inline Numeric dmain_dT_t5(const Numeric& T, const Numeric& T0, const Numeric& x
 constexpr Numeric dmain_dT0_t0() noexcept { return 0.; }
 
 //! Returns x0*x1*pow(T0/T, x1)/T0
-inline Numeric dmain_dT0_t1(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1) noexcept { return x0*x1*pow(T0/T, x1)/T0; }
+inline Numeric dmain_dT0_t1(Numeric T, Numeric T0, Numeric x0, Numeric x1) noexcept { return x0*x1*pow(T0/T, x1)/T0; }
 
 //! Returns x0*x1*pow(T0/T, x1)*(x2*log(T/T0) + 1)/T0 - x0*x2*pow(T0/T, x1)/T0
-inline Numeric dmain_dT0_t2(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return x0*x1*pow(T0/T,x1)*(x2*log(T/T0)+1.)/T0-x0*x2*pow(T0/T,x1)/T0; }
+inline Numeric dmain_dT0_t2(Numeric T, Numeric T0, Numeric x0, Numeric x1, Numeric x2) noexcept { return x0*x1*pow(T0/T,x1)*(x2*log(T/T0)+1.)/T0-x0*x2*pow(T0/T,x1)/T0; }
 
 //! Returns -x1
-constexpr Numeric dmain_dT0_t3(const Numeric& x1) noexcept { return -x1; }
+constexpr Numeric dmain_dT0_t3(Numeric x1) noexcept { return -x1; }
 
 //! Returns x2*pow(T0/T, x2)*(x0 + x1*(T0/T - 1))/T0 + x1*pow(T0/T, x2)/T
-inline Numeric dmain_dT0_t4(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1, const Numeric& x2) noexcept { return x2*pow(T0/T,x2)*(x0+x1*(T0/T-1.))/T0+x1*pow(T0/T,x2)/T; }
+inline Numeric dmain_dT0_t4(Numeric T, Numeric T0, Numeric x0, Numeric x1, Numeric x2) noexcept { return x2*pow(T0/T,x2)*(x0+x1*(T0/T-1.))/T0+x1*pow(T0/T,x2)/T; }
 
 //! Returns x0*pow(T0/T, 1.5*x1 + 0.25)*(1.5*x1 + 0.25)/T0
-inline Numeric dmain_dT0_t5(const Numeric& T, const Numeric& T0, const Numeric& x0, const Numeric& x1) noexcept { return x0*pow(T0/T,1.5*x1 + 0.25)*(1.5*x1 + 0.25)/T0; }
+inline Numeric dmain_dT0_t5(Numeric T, Numeric T0, Numeric x0, Numeric x1) noexcept { return x0*pow(T0/T,1.5*x1 + 0.25)*(1.5*x1 + 0.25)/T0; }
 
 
 //! Select line parameter based on parameter order
@@ -251,6 +252,7 @@ inline Numeric& select_line_shape_param(Numeric& G0,
   switch(type) {
     case LineFunctionData::LineShapeType::DP:
       // Do not let this happen!
+      break;
     case LineFunctionData::LineShapeType::LP:
       switch(param) {
         case Index(LineFunctionData::LorentzParam::G0): return G0;
@@ -278,7 +280,7 @@ inline Numeric& select_line_shape_param(Numeric& G0,
         case Index(LineFunctionData::HTPParam::ETA): return ETA;
       } break;
   }
-  return G0;  // Only to suppress warnings, this is not allowed to happen!
+  std::terminate();  // Not allowed to reach, fix higher level code
 }
 
 
@@ -323,7 +325,7 @@ inline Numeric& select_line_mixing_param(Numeric& Y,
     case LineFunctionData::LineMixingOrderType::ConstG:
       switch(param) case Index(LineFunctionData::ConstGParam::G):  return G; break;
   }
-  return Y;  // Only to suppress warnings, this is not allowed to happen!
+  std::terminate();  // Not allowed to reach, fix higher level code
 }
 
 
@@ -334,16 +336,15 @@ struct LBLRTM_data {Numeric y, g;} ;
  * LBLRTM interpolates linearly a set of variables.  Data-structure must be as data variable
  * describes it.  This should be tested earlier than here.
  * 
- * \param Y           The imaginary part of the line shape due to line mixing
- * \param G           The strength-altering due to line mixing
- * \param partial_vmr The VMR of the species in question
  * \param T           The atmospheric temperature
  * \param data        The associated data struction [T1, T2, T3, T4, Y1, Y2, Y3, Y4, G1, G2, G3, G4]
+ * 
+ * \return A struct of Y and G Numerics
  * 
  * \author Richard Larsson
  * \date   2018-07-16
  */
-inline LBLRTM_data special_line_mixing_aer(const Numeric& T,
+inline LBLRTM_data special_line_mixing_aer(Numeric T,
                                            const ConstVectorView data) noexcept {
   if(T < data[1])
     return {data[4] + (T - data[0]) * (data[5] - data[4]) / (data[1] - data[0]),
@@ -363,11 +364,9 @@ inline LBLRTM_data special_line_mixing_aer(const Numeric& T,
  * 
  * If so, return true.  Otherwise, return false.
  * 
- * NOTE to devs:  Never use this function with non constant inputs
- * 
  * \param type
  * 
- * \return Whether to ignore said variable in these calculations
+ * \return Whether the parameter exist for this line
  * 
  * \author Richard Larsson
  * \date   2018-09-20
@@ -405,11 +404,9 @@ bool LineFunctionData::ComputesParam(const String& type) const noexcept
  * 
  * If so, return true.  Otherwise, return false.
  * 
- * NOTE to devs:  Never use this function with non constant inputs
- * 
  * \param type
  * 
- * \return Whether to ignore said variable in these calculations
+ * \return order of the variable of the type in line shape + line mixing list, or -1 if the variable does not exist
  * 
  * \author Richard Larsson
  * \date   2018-09-20
@@ -472,8 +469,10 @@ Index LineFunctionData::IndexOfParam(const String& type) const noexcept
  * \param self_vmr    The VMR of the species pressure
  * \param rtp_vmr     The VMR of all species in the atmosphere at a specific radiative transfer point
  * \param abs_species The list of all species in the atmosphere
+ * \param do_linemixing If false, set line mixing to 0 before returning
+ * \param normalization If true, rescales output to a total VMR of unity
  * 
- * \return A tuple of all required line broadening and line mixing parameters we consider in ARTS
+ * \return A struct of all required line broadening and line mixing parameters we consider in ARTS
  * 
  * \author Richard Larsson
  * \date   2018-07-16
@@ -487,8 +486,7 @@ LineFunctionDataOutput LineFunctionData::GetParams(const Numeric& T0,
                                                    const bool do_linemixing,
                                                    const bool normalization) const noexcept
 {
-  LineFunctionDataOutput m;
-  m.G0=0; m.D0=0; m.G2=0; m.D2=0; m.FVC=0; m.ETA=0; m.Y=0; m.G=0; m.DV=0;
+  LineFunctionDataOutput m{0, 0, 0, 0, 0, 0, 0, 0, 0};
   
   // Set up holders for partial and total VMR
   Numeric total_vmr=0, partial_vmr;
@@ -595,9 +593,9 @@ LineFunctionDataOutput LineFunctionData::GetParams(const Numeric& T0,
 }
 
 
-//! Compute the pressure broadening and line mixing parameters
+//! Compute the pressure broadening and line mixing parameters VMR derivatives
 /*! 
- * Computes pressure broadening and line mixing for the considered
+ * Computes pressure broadening and line mixing VMR derivatives for the considered
  * line function data given some atmospheric conditions
  * 
  * \param T0          The line reference temperature
@@ -608,8 +606,10 @@ LineFunctionDataOutput LineFunctionData::GetParams(const Numeric& T0,
  * \param abs_species The list of all species in the atmosphere
  * \param rt          The quantity to be retrieved
  * \param line_qi     The line information that tests if self is same as the rest
+ * \param do_linemixing If false, set line mixing to 0 before returning
+ * \param normalization If true, rescales output to a total VMR of unity
  * 
- * \return A tuple of all required line broadening and line mixing parameters we consider in ARTS
+ * \return A struct of all required line broadening and line mixing parameters we consider in ARTS
  * 
  * \author Richard Larsson
  * \date   2018-09-24
@@ -625,8 +625,7 @@ LineFunctionDataOutput LineFunctionData::GetVMRDerivs(const Numeric& T0,
                                                       const bool do_linemixing,
                                                       const bool normalization) const noexcept
 {
-  LineFunctionDataOutput d;
-  d.G0=0; d.D0=0; d.G2=0; d.D2=0; d.FVC=0; d.ETA=0; d.Y=0; d.G=0; d.DV=0;
+  LineFunctionDataOutput d{0, 0, 0, 0, 0, 0, 0, 0, 0};
   
   // Set up holders for partial and total VMR
   Numeric total_vmr=0, partial_vmr;
@@ -757,14 +756,17 @@ LineFunctionDataOutput LineFunctionData::GetVMRDerivs(const Numeric& T0,
  * Computes pressure broadening and line mixing temperature 
  * derivatives for the considered line function data given 
  * some atmospheric conditions
+ * 
  * \param T0          The line reference temperature
  * \param T           The atmospheric temperature
  * \param P           The atmospheric pressure
  * \param self_vmr    The VMR of the species pressure
  * \param rtp_vmr     The VMR of all species in the atmosphere at a specific radiative transfer point
  * \param abs_species The list of all species in the atmosphere
+ * \param do_linemixing If false, set line mixing to 0 before returning
+ * \param normalization If true, rescales output to a total VMR of unity
  * 
- * \return A reference pointing at Y, G, or DV.
+ * \return A struct of all required line broadening and line mixing parameters we consider in ARTS
  * 
  * \author Richard Larsson
  * \date   2018-07-16
@@ -779,8 +781,7 @@ LineFunctionDataOutput LineFunctionData::GetTemperatureDerivs(const Numeric& T0,
                                                               const bool do_linemixing,
                                                               const bool normalization) const noexcept
 {
-  LineFunctionDataOutput d;
-  d.G0=0; d.D0=0; d.G2=0; d.D2=0; d.FVC=0; d.ETA=0; d.Y=0; d.G=0; d.DV=0;
+  LineFunctionDataOutput d{0, 0, 0, 0, 0, 0, 0, 0, 0};
   
   // Set up holders for partial and total VMR
   Numeric total_vmr=0, partial_vmr;
@@ -887,11 +888,12 @@ LineFunctionDataOutput LineFunctionData::GetTemperatureDerivs(const Numeric& T0,
 }
 
 
-//! Compute the pressure broadening and line mixing parameters reference temperature derivatives for one broadening species
+//! Compute the pressure broadening and line mixing parameters reference temperature derivatives
 /*! 
  * Computes pressure broadening and line mixing reference temperature 
  * derivatives for the considered line function data given 
  * some atmospheric conditions
+ * 
  * \param T0          The line reference temperature
  * \param T           The atmospheric temperature
  * \param P           The atmospheric pressure
@@ -900,8 +902,10 @@ LineFunctionDataOutput LineFunctionData::GetTemperatureDerivs(const Numeric& T0,
  * \param abs_species The list of all species in the atmosphere
  * \param rt          The quantity to be retrieved
  * \param line_qi     The line information that must be more than rt.QuantumIdentity()
+ * \param do_linemixing If false, set line mixing to 0 before returning
+ * \param normalization If true, rescales output to a total VMR of unity
  * 
- * \return A reference pointing at Y, G, or DV.
+ * \return A struct of all required line broadening and line mixing parameters we consider in ARTS
  * 
  * \author Richard Larsson
  * \date   2018-07-16
@@ -917,8 +921,7 @@ LineFunctionDataOutput LineFunctionData::GetReferenceT0Derivs(const Numeric& T0,
                                                               const bool do_linemixing,
                                                               const bool normalization) const noexcept
 {
-  LineFunctionDataOutput d;
-  d.G0=0; d.D0=0; d.G2=0; d.D2=0; d.FVC=0; d.ETA=0; d.Y=0; d.G=0; d.DV=0;
+  LineFunctionDataOutput d{0, 0, 0, 0, 0, 0, 0, 0, 0};
   
   // Doppler broadening has no types...
   if(not rt.QuantumIdentity().In(line_qi)) return d;
@@ -1056,8 +1059,10 @@ LineFunctionDataOutput LineFunctionData::GetReferenceT0Derivs(const Numeric& T0,
  * \param abs_species The list of all species in the atmosphere
  * \param rt          The derivative
  * \param line_qi     The identifier of the current line
+ * \param do_linemixing If false, set line mixing to 0 before returning
+ * \param normalization If true, rescales output to a total VMR of unity
  * 
- * \return The derivative of the line parameter with regards to rt
+ * \return A Numeric of the requested parameter or 0 if unidentified
  * 
  * \author Richard Larsson
  * \date   2018-09-14
@@ -1074,6 +1079,7 @@ Numeric LineFunctionData::GetLineParamDeriv(const Numeric& T0,
                                             const bool normalization) const noexcept
 {
   Numeric val=0.0;
+  
   // Doppler broadening has no types...
   if(not is_linefunctiondata_parameter(rt) or not rt.QuantumIdentity().In(line_qi)) return val;
   
@@ -1256,7 +1262,7 @@ std::ostream& operator<<(std::ostream& os, const LineFunctionData& lfd) {
 }
 
 
-//! Reads data as created by operator<< can read it
+//! Reads data as created by operator<<
 std::istream& operator>>(std::istream& data, LineFunctionData& lfd) {
   lfd.mself = lfd.mbath = false;
   Index specs, c;
@@ -1685,6 +1691,17 @@ Numeric LineFunctionData::SelfN() const
 }
 
 
+//! Air broadening computations
+/**
+ * Computes and return the same struct as GetParams() assuming the data is Air Broadening Data.
+ * Otherwise, the function is used in an undefined manner.
+ * 
+ * \param theta Scaled temperature
+ * \param P Pressure
+ * \param self_vmr Volume mixing of species
+ * 
+ * \return Same as GetParams or nonsense
+ */
 LineFunctionDataOutput LineFunctionData::AirBroadening(const Numeric& theta, const Numeric& P, const Numeric& self_vmr) const
 {
   LineFunctionDataOutput t;

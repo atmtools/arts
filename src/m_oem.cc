@@ -1394,7 +1394,6 @@ void x2artsAtmAndSurf(
                              target_field.ncols());
           regrid_atmfield_by_gp_oem( mag_field, atmosphere_dim, mag_x,
                                      gp_p, gp_lat, gp_lon);
-
           if (jacobian_quantities[q].Subtag() == "u") {
               mag_u_field = mag_field;
           } else if (jacobian_quantities[q].Subtag() == "v") {
@@ -1838,6 +1837,14 @@ void OEM(
     if (yf.nelem() == 0) {
         inversion_iterate_agendaExecute( ws, yf, jacobian, xa, 1, 0,
                                          inversion_iterate_agenda );
+    }
+    
+    if(yf.nelem() not_eq y.nelem()) {
+      std::ostringstream os;
+      os << "Mismatch between simulated y and input y.\n";
+      os << "Input y is size " << y.nelem() << " but simulated y is " << yf.nelem() << "\n";
+      os << "Use your frequency grid vector and your sensor response matrix to match simulations with measurements.\n";
+      throw std::runtime_error(os.str());
     }
 
     // TODO: Get this from invlib log.
