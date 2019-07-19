@@ -1,5 +1,12 @@
 2019-07-19 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
 
+	* arts-2-3-1261
+
+	* doc/uguide/development.tex
+	Fixed typo in one latex command.
+
+2019-07-19 Simon Pfreundschuh <simon.pfreundschuh@chalmers.se>
+
 	* arts-2-3-1260
 
 	* src/m_linemixing.cc:
