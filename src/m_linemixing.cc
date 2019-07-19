@@ -1330,9 +1330,9 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
   // Setting up thermal bath:  only in simplistic air for now
   // This means: 21% O2 and 79% N2
   long    number_of_perturbers = 2;
-  long   *molecule_code_perturber = new long[number_of_perturbers];
-  long   *iso_code_perturber = new long[number_of_perturbers];
-  double *perturber_mass = new double[number_of_perturbers];
+  ArrayOfIndex molecule_code_perturber(number_of_perturbers);
+  ArrayOfIndex iso_code_perturber(number_of_perturbers);
+  Vector perturber_mass(number_of_perturbers);
   Vector  vmr(number_of_perturbers);
   
   // Setup air as background gas for now...
@@ -1376,10 +1376,10 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
     // Allocation of band specific inputs (types: to be used as fortran input)
     long   M = (this_band[0].IsotopologueData().HitranTag())/10;
     long   I = (this_band[0].IsotopologueData().HitranTag())%10;
-    long   *upper          = new long[4*nlines];
-    long   *lower          = new long[4*nlines];
-    long   *g_prime        = new long[nlines];
-    long   *g_double_prime = new long[nlines];
+    ArrayOfIndex upper(4 * nlines);
+    ArrayOfIndex lower(4 * nlines);
+    ArrayOfIndex g_prime(nlines);
+    ArrayOfIndex g_double_prime(nlines);
     Vector v0(nlines);
     Vector S(nlines);
     Vector gamma_air(nlines);
@@ -1629,11 +1629,11 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             &nlines, &fmin, &fmax,
             &M, &I, v0.get_c_array(), S.get_c_array(),
             gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
-            upper, lower,
-            g_prime, g_double_prime,
+            upper.data(), lower.data(),
+            g_prime.data(), g_double_prime.data(),
             &t, &p, &QT, &QT0, &mass,
-            &number_of_perturbers, molecule_code_perturber, 
-            iso_code_perturber, perturber_mass, vmr.get_c_array(), &error_handling_type, &order_of_linemixing_type,
+            &number_of_perturbers, molecule_code_perturber.data(), 
+            iso_code_perturber.data(), perturber_mass.get_c_array(), vmr.get_c_array(), &error_handling_type, &order_of_linemixing_type,
             &tolerance_in_rule_nr2, &bool_use_adiabatic_factor,
             W.get_c_array(), dipole.get_c_array(), rhoT.get_c_array(), Y.get_c_array(), G.get_c_array(), DV.get_c_array() );
         }
@@ -1643,11 +1643,11 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
             &nlines, &fmin, &fmax,
             &M, &I, v0.get_c_array(), S.get_c_array(),
             gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
-            upper, lower,
-            g_prime, g_double_prime,
+            upper.data(), lower.data(),
+            g_prime.data(), g_double_prime.data(),
             &t, &p, &QT, &QT0, &mass,
-            &number_of_perturbers, molecule_code_perturber, 
-            iso_code_perturber, perturber_mass, vmr.get_c_array(), &error_handling_type, &order_of_linemixing_type,
+            &number_of_perturbers, molecule_code_perturber.data(), 
+            iso_code_perturber.data(), perturber_mass.get_c_array(), vmr.get_c_array(), &error_handling_type, &order_of_linemixing_type,
             &tolerance_in_rule_nr2, &bool_use_adiabatic_factor,
             W.get_c_array(), dipole.get_c_array(), rhoT.get_c_array(), Y.get_c_array(), G.get_c_array(), DV.get_c_array() );
         }
@@ -1724,11 +1724,11 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
               &nlines, &fmin, &fmax,
               &M, &I, v0.get_c_array(), S.get_c_array(),
               gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
-              upper, lower,
-              g_prime, g_double_prime,
+              upper.data(), lower.data(),
+              g_prime.data(), g_double_prime.data(),
               &t_dt, &p, &QT_dt, &QT0, &mass,
-              &number_of_perturbers, molecule_code_perturber, 
-              iso_code_perturber, perturber_mass, vmr.get_c_array(), &e_tmp, &order_of_linemixing_type,
+              &number_of_perturbers, molecule_code_perturber.data(), 
+              iso_code_perturber.data(), perturber_mass.get_c_array(), vmr.get_c_array(), &e_tmp, &order_of_linemixing_type,
               &tolerance_in_rule_nr2, &bool_use_adiabatic_factor,
               W_dt.get_c_array(), dipole_dt.get_c_array(), rhoT_dt.get_c_array(), Y_dt.get_c_array(), G_dt.get_c_array(), DV_dt.get_c_array() );
           }
@@ -1737,11 +1737,11 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
               &nlines, &fmin, &fmax,
               &M, &I, v0.get_c_array(), S.get_c_array(),
               gamma_air.get_c_array(),E_double_prime.get_c_array(),n_air.get_c_array(),
-              upper, lower,
-              g_prime, g_double_prime,
+              upper.data(), lower.data(),
+              g_prime.data(), g_double_prime.data(),
               &t_dt, &p, &QT_dt, &QT0, &mass,
-              &number_of_perturbers, molecule_code_perturber, 
-              iso_code_perturber, perturber_mass, vmr.get_c_array(), &e_tmp, &order_of_linemixing_type,
+              &number_of_perturbers, molecule_code_perturber.data(), 
+              iso_code_perturber.data(), perturber_mass.get_c_array(), vmr.get_c_array(), &e_tmp, &order_of_linemixing_type,
               &tolerance_in_rule_nr2, &bool_use_adiabatic_factor,
               W_dt.get_c_array(), dipole_dt.get_c_array(), rhoT_dt.get_c_array(), Y_dt.get_c_array(), G_dt.get_c_array(), DV_dt.get_c_array() );
           }
@@ -1874,14 +1874,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
       // Remove the temporary table
       wig_temp_free();
     }
-    delete[] g_prime;
-    delete[] g_double_prime;
-    delete[] upper;
-    delete[] lower;
   }
-  delete[] iso_code_perturber;
-  delete[] molecule_code_perturber;
-  delete[] perturber_mass;
 }
 #else
 {
