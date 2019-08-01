@@ -1799,8 +1799,10 @@ Complex pCqSDHC(Numeric sg0,
   return inv_pi * Aterm / (1 - (anuVC - eta * (c0 - 1.5 * c2)) * Aterm + eta * c2 * Bterm);
 }
 
+constexpr Complex dw(Complex z, Complex w) noexcept {
+  return Complex(0, 2) * (Constant::inv_sqrt_pi - z * w);
+}
 
-constexpr Complex dw(Complex z, Complex w) noexcept {using Constant::inv_sqrt_pi; return Complex(0, 2) * (inv_sqrt_pi - z * w);}
 void pCqSDHC(Eigen::Ref<Eigen::VectorXcd> F,
              Eigen::Ref<Eigen::MatrixXcd> dF,
              size_t iv,
@@ -2152,11 +2154,14 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
   const Complex c0t = (1 - x.ETA) * (c0 - 1.5 * c2) + x.FVC;
   const Complex c2t = (1 - x.ETA) * c2;
   const Complex Y = pow2(1 / (2 * cte * c2t));
-  
+  const Complex sqrtY = sqrt(Y);
+
   // For all frequencies
   for(auto iv=0; iv<f_grid.size(); iv++) {
     const Complex X = (iz * (freq2kaycm(f_grid[iv]) - sg0) + c0t) / c2t;
-    
+    const Complex sqrtXY = sqrt(X + Y);
+    const Complex sqrtX = sqrt(X);
+
     // Declare terms required for the derivatives as external to the if-statement
     Complex Z1, Z2, Zb, W1, W2, Wb;
     Complex Aterm, Bterm;
@@ -2172,45 +2177,45 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
     }
     else if(abs(X) <= 3e-8 * abs(Y)) {  // If this method is executed very close to the line center
       Z1 = (iz * (freq2kaycm(f_grid[iv]) - sg0) + c0t) * cte;
-      Z2 = sqrt(X + Y) + sqrt(Y);
-      
+      Z2 = sqrtXY + sqrtY;
+
       W1 = w(iz * Z1);
       W2 = w(iz * Z2);
       
       Aterm = sqrt_pi * cte * (W1 - W2);
-      Bterm = (-1 + 
-      sqrt_pi / (2 * sqrt(Y)) * (1 - pow2(Z1)) * W1 -
-      sqrt_pi / (2 * sqrt(Y)) * (1 - pow2(Z2)) * W2) / c2t;
+      Bterm = (-1 +
+      sqrt_pi / (2 * sqrtY) * (1 - pow2(Z1)) * W1 -
+      sqrt_pi / (2 * sqrtY) * (1 - pow2(Z2)) * W2) / c2t;
     }
     else if(abs(Y) <= 1e-15 * abs(X)) {  // If this method is executed very far from the line center
-      Z1 = sqrt(X + Y);
+      Z1 = sqrtXY;
       
       W1 = w(iz * Z1);
       
-      if(abs(sqrt(X)) <= 4e3) {  // If X is small still
-        Zb = sqrt(X);
+      if(abs(sqrtX) <= 4e3) {  // If X is small still
+        Zb = sqrtX;
         Wb = w(iz * Zb);
         
-        Aterm = (2 * sqrt_pi / c2t) * (inv_sqrt_pi - sqrt(X) * Wb);
-        Bterm = (1 / c2t) * (-1 + 2 * sqrt_pi * (1 - X - 2 * Y) * (inv_sqrt_pi - sqrt(X) * Wb) + 2 * sqrt_pi * sqrt(X + Y) * W1);
+        Aterm = (2 * sqrt_pi / c2t) * (inv_sqrt_pi - sqrtX * Wb);
+        Bterm = (1 / c2t) * (-1 + 2 * sqrt_pi * (1 - X - 2 * Y) * (inv_sqrt_pi - sqrtX * Wb) + 2 * sqrt_pi * sqrtXY * W1);
       }
       else {
         Aterm = (1 / c2t) * (1 / X - 1.5 / pow2(X));
-        Bterm = (1 / c2t) * (-1 + (1 - X - 2 * Y) *  (1 / X - 1.5 / pow2(X)) + 2 * sqrt_pi * sqrt(X + Y) * W1);
+        Bterm = (1 / c2t) * (-1 + (1 - X - 2 * Y) *  (1 / X - 1.5 / pow2(X)) + 2 * sqrt_pi * sqrtXY * W1);
       }
     }
     else {  // General calculations
-      Z1 = sqrt(X + Y) - sqrt(Y);
-      Z2 = Z1 + 2 * sqrt(Y);
-      
+      Z1 = sqrtXY - sqrtY;
+      Z2 = Z1 + 2 * sqrtY;
+
       // NOTE: the region of w might matter according to original code!  So this might need changing...
       W1 = w(iz * Z1);
       W2 = w(iz * Z2);
       
       Aterm = sqrt_pi * cte * (W1 - W2);
       Bterm = (-1 + 
-      sqrt_pi / (2 * sqrt(Y)) * (1 - pow2(Z1)) * W1 - 
-      sqrt_pi / (2 * sqrt(Y)) * (1 - pow2(Z2)) * W2) / c2t;
+      sqrt_pi / (2 * sqrtY) * (1 - pow2(Z1)) * W1 -
+      sqrt_pi / (2 * sqrtY) * (1 - pow2(Z2)) * W2) / c2t;
     }
     
     F(iv) = Aterm/(pi*(((c0 - 1.5*c2)*x.ETA - x.FVC)*Aterm + Bterm*c2*x.ETA + 1));
@@ -2312,42 +2317,42 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
           else
             dZ1 = (iz*(freq2kaycm(f_grid[iv]) - sg0) + c0t)*dcte + cte*dc0t;  // for c0t
                       
-          const Complex dZ2 = dY/(2*sqrt(Y)) + dX/(2*sqrt(X + Y)) + dY/(2*sqrt(X + Y));  // for all
+          const Complex dZ2 = dY/(2*sqrtY) + dX/(2*sqrtXY) + dY/(2*sqrtXY);  // for all
           
           const Complex dW1 = iz * dZ1 * dw(Z1, W1);  // NEED TO CHECK DW!
           const Complex dW2 = iz * dZ2 * dw(Z2, W2);  // NEED TO CHECK DW!
           
           dAterm = sqrt_pi*((W1 - W2)*dcte + (dW1 - dW2)*cte);  // for all
           
-          dBterm = (sqrt_pi*(((pow2(Z1) - 1)*W1 - (pow2(Z2) - 1)*W2)*dY + 2*(-(pow2(Z1) - 1)*dW1 + (pow2(Z2) - 1)*dW2 - 2*W1*Z1*dZ1 + 2*W2*Z2*dZ2)*Y)*c2t + 2*(sqrt_pi*(pow2(Z1) - 1)*W1 - sqrt_pi*(pow2(Z2) - 1)*W2 + 2*sqrt(Y))*Y*dc2t)/(4*Y*sqrt(Y)*pow2(c2t));  // for all
+          dBterm = (sqrt_pi*(((pow2(Z1) - 1)*W1 - (pow2(Z2) - 1)*W2)*dY + 2*(-(pow2(Z1) - 1)*dW1 + (pow2(Z2) - 1)*dW2 - 2*W1*Z1*dZ1 + 2*W2*Z2*dZ2)*Y)*c2t + 2*(sqrt_pi*(pow2(Z1) - 1)*W1 - sqrt_pi*(pow2(Z2) - 1)*W2 + 2*sqrtY)*Y*dc2t)/(4*Y*sqrtY*pow2(c2t));  // for all
         }
         else if(abs(Y) <= 1e-15 * abs(X)) {
-          const Complex dZ1 = (dX + dY)/(2*sqrt(X + Y));  // for all
+          const Complex dZ1 = (dX + dY)/(2*sqrtXY);  // for all
           const Complex dW1 = iz * dZ1 * dw(Z1, W1);  // NEED TO CHECK DW!
-          if(abs(sqrt(X)) <= 4e3) {
-            const Complex dZb = dX/(2*sqrt(X));  // for all
+          if(abs(sqrtX) <= 4e3) {
+            const Complex dZb = dX/(2*sqrtX);  // for all
             const Complex dWb = iz * dZb * dw(Zb, Wb);  // NEED TO CHECK DW!
+
+            dAterm = (-sqrt_pi*(Wb*dX + 2*X*dWb)*c2t + 2*(sqrt_pi*Wb*sqrtX - 1)*sqrtX*dc2t)/(sqrtX*pow2(c2t));  // for all
             
-            dAterm = (-sqrt_pi*(Wb*dX + 2*X*dWb)*c2t + 2*(sqrt_pi*Wb*sqrt(X) - 1)*sqrt(X)*dc2t)/(sqrt(X)*pow2(c2t));  // for all
-            
-            dBterm = (-sqrt(X + Y)*(2*(sqrt_pi*Wb*sqrt(X) - 1)*(X + 2*Y - 1) + 2*sqrt_pi*sqrt(X + Y)*W1 - 1)*sqrt(X)*dc2t + (2*((sqrt_pi*Wb*sqrt(X) - 1)*(dX + 2*dY) + sqrt_pi*sqrt(X + Y)*dW1)*sqrt(X + Y)*sqrt(X) + sqrt_pi*(Wb*dX + 2*X*dWb)*sqrt(X + Y)*(X + 2*Y - 1) + sqrt_pi*(dX + dY)*W1*sqrt(X))*c2t)/(sqrt(X + Y)*sqrt(X)*pow2(c2t));  // for all
+            dBterm = (-sqrtXY*(2*(sqrt_pi*Wb*sqrtX - 1)*(X + 2*Y - 1) + 2*sqrt_pi*sqrtXY*W1 - 1)*sqrtX*dc2t + (2*((sqrt_pi*Wb*sqrtX - 1)*(dX + 2*dY) + sqrt_pi*sqrtXY*dW1)*sqrtXY*sqrtX + sqrt_pi*(Wb*dX + 2*X*dWb)*sqrtXY*(X + 2*Y - 1) + sqrt_pi*(dX + dY)*W1*sqrtX)*c2t)/(sqrtXY*sqrtX*pow2(c2t));  // for all
           }
           else {
             dAterm = ((-X + 3.0)*c2t*dX - (X - 1.5)*X*dc2t)/(pow3(X)*pow2(c2t));  // for all
             
-            dBterm = (((-2*sqrt_pi*sqrt(X + Y)*W1 + 1)*pow2(X) + (X - 1.5)*(X + 2*Y - 1))*sqrt(X + Y)*X*dc2t + ((X - 3.0)*sqrt(X + Y)*(X + 2*Y - 1)*dX - (X - 1.5)*sqrt(X + Y)*(dX + 2*dY)*X + 2*sqrt_pi*(X + Y)*pow3(X)*dW1 + sqrt_pi*(dX + dY)*W1*pow3(X))*c2t)/(sqrt(X + Y)*pow3(X)*pow2(c2t));  // for all
+            dBterm = (((-2*sqrt_pi*sqrtXY*W1 + 1)*pow2(X) + (X - 1.5)*(X + 2*Y - 1))*sqrtXY*X*dc2t + ((X - 3.0)*sqrtXY*(X + 2*Y - 1)*dX - (X - 1.5)*sqrtXY*(dX + 2*dY)*X + 2*sqrt_pi*(X + Y)*pow3(X)*dW1 + sqrt_pi*(dX + dY)*W1*pow3(X))*c2t)/(sqrtXY*pow3(X)*pow2(c2t));  // for all
           }
         }
         else {
-          const Complex dZ1 = -dY/(2*sqrt(Y)) + dX/(2*sqrt(X + Y)) + dY/(2*sqrt(X + Y));  // for all
-          const Complex dZ2 = dY/(2*sqrt(Y)) + dX/(2*sqrt(X + Y)) + dY/(2*sqrt(X + Y));  // for all
+          const Complex dZ1 = -dY/(2*sqrtY) + dX/(2*sqrtXY) + dY/(2*sqrtXY);  // for all
+          const Complex dZ2 = dY/(2*sqrtY) + dX/(2*sqrtXY) + dY/(2*sqrtXY);  // for all
           
           const Complex dW1 = iz * dZ1 * dw(Z1, W1);  // NEED TO CHECK DW!
           const Complex dW2 = iz * dZ2 * dw(Z2, W2);  // NEED TO CHECK DW!
           
           dAterm = sqrt_pi*((W1 - W2)*dcte + (dW1 - dW2)*cte);  // for all
           
-          dBterm = (sqrt_pi*(((pow2(Z1) - 1)*W1 - (pow2(Z2) - 1)*W2)*dY + 2*(-(pow2(Z1) - 1)*dW1 + (pow2(Z2) - 1)*dW2 - 2*W1*Z1*dZ1 + 2*W2*Z2*dZ2)*Y)*c2t + 2*(sqrt_pi*(pow2(Z1) - 1)*W1 - sqrt_pi*(pow2(Z2) - 1)*W2 + 2*sqrt(Y))*Y*dc2t)/(4*Y*sqrt(Y)*pow2(c2t));  // for all
+          dBterm = (sqrt_pi*(((pow2(Z1) - 1)*W1 - (pow2(Z2) - 1)*W2)*dY + 2*(-(pow2(Z1) - 1)*dW1 + (pow2(Z2) - 1)*dW2 - 2*W1*Z1*dZ1 + 2*W2*Z2*dZ2)*Y)*c2t + 2*(sqrt_pi*(pow2(Z1) - 1)*W1 - sqrt_pi*(pow2(Z2) - 1)*W2 + 2*sqrtY)*Y*dc2t)/(4*Y*sqrtY*pow2(c2t));  // for all
         }
             
         Numeric dFVC=0, dETA=0;

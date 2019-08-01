@@ -1,3 +1,16 @@
+2019-08-01  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1264
+
+	* src/linefunctions.cc:
+
+	(Linefunctions::set_htp): Precalculate sqrt terms that are regularly
+	used (sqrt(X+Y) and sqrt(y)). Improves performance of
+	propmat_clearskyAddOnTheFly by about 15%. Tested with TestHTP and
+	TestSDVP with 1M frequencies.
+
+	(dw): Add some linebreaks for readability.
+
 2019-07-19  Richard Larsson <larsson@mps.mpg.de>
 
 	* arts-2-3-1263
