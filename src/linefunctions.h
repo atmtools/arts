@@ -58,10 +58,10 @@ namespace Linefunctions
                      const ConstVectorView vmrs, 
                      const Numeric& temperature, 
                      const Numeric& pressure, 
+                     const Numeric& zeeman_df,
                      const Numeric& magnetic_magnitude,
                      const ArrayOfArrayOfSpeciesTag& abs_species,
-                     const Index& this_species,
-                     const Index& zeeman_index);
+                     const Index& this_species);
   
   void set_lorentz(Eigen::Ref<Eigen::VectorXcd> F, 
                    Eigen::Ref<Eigen::MatrixXcd> dF, 
@@ -182,7 +182,6 @@ namespace Linefunctions
                                          const LineRecord& line,
                                          const Numeric& T,
                                          const Numeric& isotopic_ratio,
-                                         const Numeric& zeeman_scaling,
                                          const Numeric& QT,
                                          const Numeric& QT0,
                                          const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
@@ -201,7 +200,6 @@ namespace Linefunctions
                                                       const Numeric& Evu,
                                                       const Numeric& Evl,
                                                       const Numeric& isotopic_ratio,
-                                                      const Numeric& zeeman_scaling,
                                                       const Numeric& QT,
                                                       const Numeric& QT0,
                                                       const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
@@ -265,6 +263,7 @@ namespace Linefunctions
                                          const Numeric& doppler_constant,
                                          const Numeric& partial_pressure,
                                          const Numeric& isotopologue_ratio,
+                                         const Numeric& zeeman_df,
                                          const Numeric& magnetic_magnitude,
                                          const Numeric& ddoppler_constant_dT,
                                          const Numeric& partition_function_at_temperature,
@@ -272,7 +271,6 @@ namespace Linefunctions
                                          const Numeric& partition_function_at_line_temperature,
                                          const ArrayOfArrayOfSpeciesTag& abs_species,
                                          const Index& this_species_location_in_tags,
-                                         const Index& zeeman_index,
                                          const bool cutoff_call=false);
   
   void apply_cutoff(Eigen::Ref<Eigen::VectorXcd> F,
@@ -289,14 +287,14 @@ namespace Linefunctions
                     const Numeric& doppler_constant,
                     const Numeric& partial_pressure,
                     const Numeric& isotopologue_ratio,
+                    const Numeric& zeeman_df,
                     const Numeric& magnetic_magnitude,
                     const Numeric& ddoppler_constant_dT,
                     const Numeric& partition_function_at_temperature,
                     const Numeric& dpartition_function_at_temperature_dT,
                     const Numeric& partition_function_at_line_temperature,
                     const ArrayOfArrayOfSpeciesTag& abs_species,
-                    const Index& this_species_location_in_tags,
-                    const Index& zeeman_index);
+                    const Index& this_species_location_in_tags);
   
   void find_cutoff_ranges(Index& start_cutoff,
                           Index& nelem_cutoff,

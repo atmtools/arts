@@ -2448,7 +2448,7 @@ void AtmFieldsCalc(//WS Output:
                    Tensor3& t_field,
                    Tensor3& z_field,
                    Tensor4& vmr_field,
-                   Tensor4& t_nlte_field,
+                   Tensor4& nlte_field,
                    //WS Input
                    const Vector&         p_grid,
                    const Vector&         lat_grid,
@@ -2456,7 +2456,7 @@ void AtmFieldsCalc(//WS Output:
                    const GriddedField3&        t_field_raw,
                    const GriddedField3&        z_field_raw,
                    const ArrayOfGriddedField3& vmr_field_raw,
-                   const ArrayOfGriddedField3& t_nlte_field_raw,
+                   const ArrayOfGriddedField3& nlte_field_raw,
                    const Index&          atmosphere_dim,
                    // WS Generic Input:
                    const Index& interp_order,
@@ -2532,11 +2532,11 @@ void AtmFieldsCalc(//WS Output:
                             temp_agfield3, verbosity);
       
       // Non-LTE interpolation
-      if(t_nlte_field_raw.nelem())
+      if(nlte_field_raw.nelem())
       {
-        GriddedFieldPRegrid(temp_agfield3, p_grid, t_nlte_field_raw, 
+        GriddedFieldPRegrid(temp_agfield3, p_grid, nlte_field_raw, 
                             interp_order, 0, verbosity);
-        FieldFromGriddedField(t_nlte_field, p_grid, lat_grid, lon_grid,
+        FieldFromGriddedField(nlte_field, p_grid, lat_grid, lon_grid,
                               temp_agfield3, verbosity);
       }
       
@@ -2558,11 +2558,11 @@ void AtmFieldsCalc(//WS Output:
       z_field.resize(p_grid.nelem(), lat_grid.nelem(), 1);
       vmr_field.resize(vmr_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(),
                        1);
-      if(t_nlte_field_raw.nelem())
-        t_nlte_field.resize(t_nlte_field_raw.nelem(),
+      if(nlte_field_raw.nelem())
+        nlte_field.resize(nlte_field_raw.nelem(),
                             p_grid.nelem(), lat_grid.nelem(),1);
       else 
-        t_nlte_field.resize(0,0,0,0);
+        nlte_field.resize(0,0,0,0);
       
       
       // Gridpositions:
@@ -2668,13 +2668,13 @@ void AtmFieldsCalc(//WS Output:
         }
         
         // Interpolat Non-LTE
-        for (Index qi_i = 0; qi_i < t_nlte_field_raw.nelem(); qi_i++)
+        for (Index qi_i = 0; qi_i < nlte_field_raw.nelem(); qi_i++)
         {
           ostringstream os; 
 
           if( !( 
-            t_nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LAT_GRID).nelem() != 1 &&
-            t_nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LON_GRID).nelem() == 1 ))
+            nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LAT_GRID).nelem() != 1 &&
+            nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LON_GRID).nelem() == 1 ))
             {
               os << "NLTE data of the " << qi_i << " temperature field has "
                  << "wrong dimension (1D or 3D). \n";
@@ -2685,28 +2685,28 @@ void AtmFieldsCalc(//WS Output:
           // error message if not):
           os << "Raw NLTE[" << qi_i << "] to p_grid, 2D case";
           chk_interpolation_pgrids(os.str(),
-            t_nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_P_GRID),
+            nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_P_GRID),
             p_grid, interp_order);
           os.str("");
           os << "Raw NLTE[" << qi_i << "] to lat_grid, 2D case";
           chk_interpolation_grids(os.str(),
-            t_nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LAT_GRID),
+            nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LAT_GRID),
             lat_grid, interp_order);
 
           // Calculate grid positions:
           p2gridpos_poly(gp_p, 
-                         t_nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_P_GRID), 
+                         nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_P_GRID), 
                          p_grid, interp_order);
           gridpos_poly(gp_lat,
-                       t_nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LAT_GRID), 
+                       nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LAT_GRID), 
                        lat_grid, interp_order);
                   
           // Interpolation weights:
           interpweights( itw, gp_p, gp_lat);
           
           // Interpolate:
-          interp( t_nlte_field(qi_i, joker, joker, 0),
-                  itw, t_nlte_field_raw[qi_i].data(joker, joker, 0),
+          interp( nlte_field(qi_i, joker, joker, 0),
+                  itw, nlte_field_raw[qi_i].data(joker, joker, 0),
                   gp_p, gp_lat);
         }
     }
@@ -2753,10 +2753,10 @@ void AtmFieldsCalc(//WS Output:
       FieldFromGriddedField(vmr_field, p_grid, lat_grid, lon_grid,
                            temp_agfield3, verbosity);
       
-      if(t_nlte_field_raw.nelem())
+      if(nlte_field_raw.nelem())
       {
         GriddedFieldLatLonRegrid(temp_agfield3, lat_grid, lon_grid,
-                                 t_nlte_field_raw, interp_order, verbosity);
+                                 nlte_field_raw, interp_order, verbosity);
         GriddedFieldPRegrid(temp_agfield3, p_grid, temp_agfield3,
                             interp_order, 0, verbosity);
       }
@@ -2786,14 +2786,14 @@ void AtmFieldsCalc(//WS Output:
     
   // what to do with negative nlte temperatures?
   if(nlte_when_negative!=-1) // Nothing
-    if(t_nlte_field_raw.nelem())
-      for( Index ib=0; ib<t_nlte_field.nbooks(); ib++ )
-        for( Index ip=0; ip<t_nlte_field.npages(); ip++ )
-          for( Index ir=0; ir<t_nlte_field.nrows(); ir++ )
-            for( Index ic=0; ic<t_nlte_field.ncols(); ic++ )
-              if( t_nlte_field(ib,ip,ir,ic) < 0 )
+    if(nlte_field_raw.nelem())
+      for( Index ib=0; ib<nlte_field.nbooks(); ib++ )
+        for( Index ip=0; ip<nlte_field.npages(); ip++ )
+          for( Index ir=0; ir<nlte_field.nrows(); ir++ )
+            for( Index ic=0; ic<nlte_field.ncols(); ic++ )
+              if( nlte_field(ib,ip,ir,ic) < 0 )
                 // Set to atmospheric temperature or to nil.
-                t_nlte_field(ib,ip,ir,ic) = 
+                nlte_field(ib,ip,ir,ic) = 
                   nlte_when_negative==1?t_field(ip,ir,ic):0; 
 }
 

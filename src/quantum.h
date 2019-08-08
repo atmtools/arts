@@ -28,6 +28,7 @@
 #include <map>
 #include <iostream>
 #include <stdexcept>
+#include <numeric>
 #include "matpack.h"
 #include "rational.h"
 #include "mystring.h"
@@ -114,19 +115,17 @@ typedef Array<QuantumMatchInfo> ArrayOfQuantumMatchInfo;
 class QuantumNumbers
 {
 public:
-    typedef Array<Rational> QuantumContainer;
+    typedef std::array<Rational, Index(QuantumNumberType::FINAL_ENTRY)> QuantumContainer;
 
     QuantumNumbers()
     {
-        mqnumbers.resize(Index(QuantumNumberType::FINAL_ENTRY));
-        for (Index i = 0; i < mqnumbers.nelem(); i++)
-            mqnumbers[i] = RATIONAL_UNDEFINED;
+        mqnumbers.fill(RATIONAL_UNDEFINED);
     }
 
     //! Return copy of quantum number
     const Rational operator[](const Index qn) const
     {
-        assert(qn < Index(QuantumNumberType::FINAL_ENTRY));
+        assert(qn < Index(QuantumNumberType::FINAL_ENTRY) and qn >= 0);
         return mqnumbers[qn];
     }
 
@@ -206,12 +205,8 @@ if (name == #ID) this->Set(QuantumNumberType::ID, r)
 
     Index nNumbers() const
     {
-        Index n = 0;
-        for (QuantumContainer::const_iterator it = mqnumbers.begin();
-             it != mqnumbers.end(); it++)
-            if (!(*it).isUndefined())
-                n++;
-        return n;
+      return std::accumulate(mqnumbers.cbegin(), mqnumbers.cend(), 0,
+                             [](Index i, Rational r){return r.isUndefined() ? i : i+1;});
     }
 
     //! Compare Quantum Numbers

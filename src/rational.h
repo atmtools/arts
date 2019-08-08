@@ -54,7 +54,7 @@ public:
     constexpr int toInt() const {return int(toIndex());}
 
     // Useful. Keep this around and/or improve.
-    void Simplify();
+    Rational& Simplify();
     
     // Assignment operators
     Rational& operator+=(const Rational& a) {mnom = mnom*a.Denom() + a.Nom()*mdenom;mdenom *= a.Denom(); return *this;}
@@ -84,11 +84,12 @@ private:
     Index mdenom;
     
     // Used in Simplify() for reducing denominator
-    void fixSign()  {
+    Rational& fixSign()  {
       if(mdenom < 0) {
         mnom = - mnom;
         mdenom = - mdenom;
       }
+      return *this;
     }
 };
 

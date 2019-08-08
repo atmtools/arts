@@ -23,6 +23,7 @@
  * \brief  Test Propagation Matrix Internal Partial Derivatives and PropagationMatrix
  */
 
+#include "zeemandata.h"
 #include "absorption.h"
 #include "linescaling.h"
 #include "linefunctions.h"
@@ -485,7 +486,7 @@ void test_lineshape_xsec()
   Eigen::VectorXd f_grid(101);
   for(int i=0; i<101; i++)
     f_grid[i] = Numeric(i-50)/50.0 * 1e4 + 100e9;
-  Linefunctions::set_lineshape(F, f_grid, vp_line, vmrs, 273., 100., 0., abs_species, 0, 0);
+  Linefunctions::set_lineshape(F, f_grid, vp_line, vmrs, 273., 100., 0., 0., abs_species, 0);
   std::cout<<F<<"\n";
 }
 
@@ -517,6 +518,65 @@ void test_sinc_likes_0limit()
 }
 
 
+void test_zeeman() {
+  define_species_data();
+  define_species_map();
+  
+  auto o266 = SpeciesTag("O2-66");
+  auto o268 = SpeciesTag("O2-68");
+  
+  Numeric g;
+  QuantumNumbers qn;
+  qn.Set(QuantumNumberType::Hund, Index(Hund::CaseB));
+  qn.Set(QuantumNumberType::Lambda, 0);
+  qn.Set(QuantumNumberType::v1, 0);
+  qn.Set(QuantumNumberType::S, 1);
+  
+  std::cout<<"Table from Larsson, Lankhaar, Eriksson (2019)\n";
+  for(Index i=1; i<51; i++) {
+    qn.Set(QuantumNumberType::J, i);
+    
+    qn.Set(QuantumNumberType::N, qn[QuantumNumberType::J]-1);
+    std::cout << i << "_" << i-1;
+    
+    g = Zeeman::GetAdvancedModel(QuantumIdentifier(o266.Species(), o266.Isotopologue(), qn, qn)).gl();
+    std::cout << '\t' << g;
+    
+    g = Zeeman::GetAdvancedModel(QuantumIdentifier(o268.Species(), o268.Isotopologue(), qn, qn)).gl();
+    std::cout << '\t' << g;
+    
+    g = Zeeman::GetSimpleModel(QuantumIdentifier(o266.Species(), o266.Isotopologue(), qn, qn)).gl();
+    std::cout << '\t' << g;
+    
+    qn.Set(QuantumNumberType::N, qn[QuantumNumberType::J]);
+    std::cout << '\t' << i << "_" << i;
+    
+    g = Zeeman::GetAdvancedModel(QuantumIdentifier(o266.Species(), o266.Isotopologue(), qn, qn)).gl();
+    std::cout << '\t' << g;
+    
+    g = Zeeman::GetAdvancedModel(QuantumIdentifier(o268.Species(), o268.Isotopologue(), qn, qn)).gl();
+    std::cout << '\t' << g;
+    
+    g = Zeeman::GetSimpleModel(QuantumIdentifier(o266.Species(), o266.Isotopologue(), qn, qn)).gl();
+    std::cout << '\t' << g;
+    
+    qn.Set(QuantumNumberType::N, qn[QuantumNumberType::J]+1);
+    std::cout << '\t' << i << "_" << i+1;
+    
+    g = Zeeman::GetAdvancedModel(QuantumIdentifier(o266.Species(), o266.Isotopologue(), qn, qn)).gl();
+    std::cout << '\t' << g;
+    
+    g = Zeeman::GetAdvancedModel(QuantumIdentifier(o268.Species(), o268.Isotopologue(), qn, qn)).gl();
+    std::cout << '\t' << g;
+    
+    g = Zeeman::GetSimpleModel(QuantumIdentifier(o266.Species(), o266.Isotopologue(), qn, qn)).gl();
+    std::cout << '\t' << g;
+    
+    std::cout<<'\n';
+  }
+}
+
+
 int main()
 {
     /*test_linefunctionsdata();
@@ -525,8 +585,9 @@ int main()
     test_r_deriv_propagationmatrix();
     test_transmat_from_propmat();
     test_transmat_to_cumulativetransmat();
-    test_lineshape_xsec();*/
-    test_sinc_likes_0limit();
+    test_lineshape_xsec();
+    test_sinc_likes_0limit();*/
+    test_zeeman();
     return 0;
 }
 

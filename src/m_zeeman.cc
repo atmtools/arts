@@ -35,10 +35,8 @@ void zeeman_linerecord_precalcCreateFromLines(ArrayOfArrayOfLineRecord& zeeman_l
   if (abs_species.nelem() != abs_lines_per_species.nelem())
     throw std::runtime_error("Dimension of *abs_species* and *abs_lines_per_species* don't match.");
   
-  zeeman_linerecord_precalc.resize(0);
-  zeeman_linerecord_precalc.reserve(24); //will always be multiple of three, default is high
-  
   // creating the ArrayOfArrayOfLineRecord
+  zeeman_linerecord_precalc.resize(0);
   create_Zeeman_linerecordarrays(zeeman_linerecord_precalc, abs_species, abs_lines_per_species, false, verbosity);
 }
 
@@ -56,10 +54,8 @@ void zeeman_linerecord_precalcCreateWithZeroSplitting(ArrayOfArrayOfLineRecord& 
   if (abs_species.nelem() != abs_lines_per_species.nelem())
     throw std::runtime_error("Dimension of *abs_species* and *abs_lines_per_species* don't match.");
   
-  zeeman_linerecord_precalc.resize(0);
-  zeeman_linerecord_precalc.reserve(24); //will always be multiple of three, default is high
-  
   // creating the ArrayOfArrayOfLineRecord
+  zeeman_linerecord_precalc.resize(0);
   create_Zeeman_linerecordarrays(zeeman_linerecord_precalc, abs_species, abs_lines_per_species, true, verbosity);
 }
 
@@ -86,9 +82,9 @@ void zeeman_linerecord_precalcModifyFromData(ArrayOfArrayOfLineRecord& zeeman_li
       }
       
       if(lower not_eq -1)
-        line.ZeemanEffect().LowerG() = data[lower];
+        line.ZeemanModel().gl() = data[lower];
       if(upper not_eq -1)
-        line.ZeemanEffect().UpperG() = data[upper];
+        line.ZeemanModel().gu() = data[upper];
       
       if(lower not_eq -1 or  upper not_eq -1) ++i;
       if(lower not_eq -1 and upper not_eq -1) ++j;

@@ -46,10 +46,10 @@ void Linefunctions::set_lineshape(Eigen::Ref<Eigen::VectorXcd> F,
                                   const ConstVectorView vmrs, 
                                   const Numeric& temperature, 
                                   const Numeric& pressure, 
+                                  const Numeric& zeeman_df,
                                   const Numeric& magnetic_magnitude,
                                   const ArrayOfArrayOfSpeciesTag& abs_species,
-                                  const Index& this_species,
-                                  const Index& zeeman_index)
+                                  const Index& this_species)
 {
   // Pressure broadening and line mixing terms
   const auto X = line.GetShapeParams(temperature, pressure, this_species, vmrs, abs_species);
@@ -60,16 +60,16 @@ void Linefunctions::set_lineshape(Eigen::Ref<Eigen::VectorXcd> F,
   switch(line.GetLineShapeType()) {
     case LineFunctionData::LineShapeType::HTP:
     case LineFunctionData::LineShapeType::SDVP:
-      set_htp(F, dF, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant, X);
+      set_htp(F, dF, f_grid, zeeman_df, magnetic_magnitude, line.F(), doppler_constant, X);
       break;
     case LineFunctionData::LineShapeType::VP:
-      set_voigt(F, dF, data, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant, X);
+      set_voigt(F, dF, data, f_grid, zeeman_df, magnetic_magnitude, line.F(), doppler_constant, X);
       break;
     case LineFunctionData::LineShapeType::DP:
-      set_doppler(F, dF, data, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), doppler_constant);
+      set_doppler(F, dF, data, f_grid, zeeman_df, magnetic_magnitude, line.F(), doppler_constant);
       break;
     case LineFunctionData::LineShapeType::LP:
-      set_lorentz(F, dF, data, f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, line.F(), X);
+      set_lorentz(F, dF, data, f_grid, zeeman_df, magnetic_magnitude, line.F(), X);
       break;
   }
   
@@ -81,7 +81,7 @@ void Linefunctions::set_lineshape(Eigen::Ref<Eigen::VectorXcd> F,
       // Set the mirroring computational vectors and size them as needed
       Eigen::VectorXcd Fm(F.size());
       
-      set_lorentz(Fm, dF, data, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), mirroredOutput(X));
+      set_lorentz(Fm, dF, data, f_grid, -zeeman_df, magnetic_magnitude, -line.F(), mirroredOutput(X));
       
       // Apply mirroring;  FIXME: Add conjugate?
       F.noalias() += Fm;
@@ -94,18 +94,18 @@ void Linefunctions::set_lineshape(Eigen::Ref<Eigen::VectorXcd> F,
       switch(line.GetLineShapeType())
       {
         case LineFunctionData::LineShapeType::DP:
-          set_doppler(Fm, dF, data, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), -doppler_constant);
+          set_doppler(Fm, dF, data, f_grid, -zeeman_df, magnetic_magnitude, -line.F(), -doppler_constant);
           break;
         case LineFunctionData::LineShapeType::LP:
-          set_lorentz(Fm, dF, data, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), mirroredOutput(X));
+          set_lorentz(Fm, dF, data, f_grid, -zeeman_df, magnetic_magnitude, -line.F(), mirroredOutput(X));
           break;
         case LineFunctionData::LineShapeType::VP:
-          set_voigt(Fm, dF, data, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), -doppler_constant, mirroredOutput(X));
+          set_voigt(Fm, dF, data, f_grid, -zeeman_df, magnetic_magnitude, -line.F(), -doppler_constant, mirroredOutput(X));
           break;
         case LineFunctionData::LineShapeType::HTP:
         case LineFunctionData::LineShapeType::SDVP:
           // WARNING: This mirroring is not tested and it might require, e.g., FVC to be treated differently
-          set_htp(Fm, dF, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, -line.F(), -doppler_constant, mirroredOutput(X));
+          set_htp(Fm, dF, f_grid, -zeeman_df, magnetic_magnitude, -line.F(), -doppler_constant, mirroredOutput(X));
           break;
       }
       
@@ -663,7 +663,6 @@ Numeric Linefunctions::lte_linestrength(Numeric S0, Numeric E0, Numeric F0, Nume
  * \param line The line data
  * \param T The atmospheric temperature
  * \param isotopic_ratio The ratio of the isotopologue in the atmosphere at this level
- * \param zeeman_scaling A line strength scaling for the Zeeman effect
  * \param QT Partition function at atmospheric temperature of level
  * \param QT0 Partition function at reference temperature
  * \param derivatives_data Information about the derivatives in dF
@@ -679,7 +678,6 @@ void Linefunctions::apply_linestrength_scaling_by_lte(Eigen::Ref<Eigen::VectorXc
                                                       const LineRecord& line,
                                                       const Numeric& T,
                                                       const Numeric& isotopic_ratio,
-                                                      const Numeric& zeeman_scaling,
                                                       const Numeric& QT,
                                                       const Numeric& QT0,
                                                       const ArrayOfRetrievalQuantity& derivatives_data,
@@ -695,7 +693,7 @@ void Linefunctions::apply_linestrength_scaling_by_lte(Eigen::Ref<Eigen::VectorXc
   const Numeric K2 = stimulated_relative_emission(gamma, gamma_ref);
   
   const Numeric invQT = 1.0/QT;
-  const Numeric S = zeeman_scaling * line.I0() * isotopic_ratio * QT0 * invQT * K1 * K2;
+  const Numeric S = line.I0() * isotopic_ratio * QT0 * invQT * K1 * K2;
   
   F *= S;
   dF *= S;
@@ -733,7 +731,6 @@ void Linefunctions::apply_linestrength_scaling_by_lte(Eigen::Ref<Eigen::VectorXc
  * \param Evu The upper state vibrational energy; if set funny, yields funny results
  * \param Evl The lower state vibrational energy; if set funny, yields funny results
  * \param isotopic_ratio The ratio of the isotopologue in the atmosphere at this level
- * \param zeeman_scaling A line strength scaling for the Zeeman effect
  * \param QT Partition function at atmospheric temperature of level
  * \param QT0 Partition function at reference temperature
  * \param derivatives_data Information about the derivatives in dF
@@ -753,7 +750,6 @@ void Linefunctions::apply_linestrength_scaling_by_vibrational_nlte(Eigen::Ref<Ei
                                                                    const Numeric& Evu,
                                                                    const Numeric& Evl,
                                                                    const Numeric& isotopic_ratio,
-                                                                   const Numeric& zeeman_scaling,
                                                                    const Numeric& QT,
                                                                    const Numeric& QT0,
                                                                    const ArrayOfRetrievalQuantity& derivatives_data,
@@ -777,9 +773,9 @@ void Linefunctions::apply_linestrength_scaling_by_vibrational_nlte(Eigen::Ref<Ei
   const Numeric QT_ratio = QT0 * invQT;
   
   const Numeric dS_dS0_abs = isotopic_ratio * QT_ratio * K1 * K2 * K3;
-  const Numeric S_abs = zeeman_scaling * line.I0() * dS_dS0_abs;
+  const Numeric S_abs = line.I0() * dS_dS0_abs;
   const Numeric dS_dS0_src = isotopic_ratio * QT_ratio * K1 * K2 * K4;
-  const Numeric S_src = zeeman_scaling * line.I0() * dS_dS0_src;
+  const Numeric S_src = line.I0() * dS_dS0_src;
   
   dN.noalias() = dF * (S_src - S_abs);
   dF *= S_abs;
@@ -1028,6 +1024,7 @@ Numeric Linefunctions::dDopplerConstant_dT(const Numeric& T, const Numeric& dc)
  * \param doppler_constant Frequency-independent part of the Doppler broadening
  * \param partial_pressure Pressure of species that line belongs to at this level
  * \param isotopologue_ratio The ratio of the isotopologue in the atmosphere at this level
+ * \param zeeman_df Zeeman shift parameter for the line
  * \param magnetic_magnitude Absolute strength of the magnetic field
  * \param ddoppler_constant_dT Temperature derivative of doppler_constant
  * \param partition_function_at_temperature As name suggests
@@ -1057,6 +1054,7 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
                                                       const Numeric& doppler_constant,
                                                       const Numeric& partial_pressure,
                                                       const Numeric& isotopologue_ratio,
+                                                      const Numeric& zeeman_df,
                                                       const Numeric& magnetic_magnitude,
                                                       const Numeric& ddoppler_constant_dT,
                                                       const Numeric& partition_function_at_temperature,
@@ -1064,7 +1062,6 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
                                                       const Numeric& partition_function_at_line_temperature,
                                                       const ArrayOfArrayOfSpeciesTag& abs_species,
                                                       const Index& this_species_location_in_tags,
-                                                      const Index& zeeman_index,
                                                       const bool cutoff_call)
 {
   /* Single line shape solver
@@ -1148,24 +1145,24 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
   switch(line.GetLineShapeType()) {
     case LineFunctionData::LineShapeType::DP:
       set_doppler(F, dF, data, 
-                  f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
+                  f_grid, zeeman_df, magnetic_magnitude, 
                   line.F(), doppler_constant, derivatives_data, derivatives_data_position, QI, ddoppler_constant_dT);
       break;
     case LineFunctionData::LineShapeType::HTP:
     case LineFunctionData::LineShapeType::SDVP:
       set_htp(F, dF, 
-              f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
+              f_grid, zeeman_df, magnetic_magnitude, 
               line.F(), doppler_constant, X, derivatives_data, derivatives_data_position, QI,
               ddoppler_constant_dT, dXdT, dXdVMR);
       break;
     case LineFunctionData::LineShapeType::LP:
       set_lorentz(F, dF, data,
-                  f_grid, line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
+                  f_grid, zeeman_df, magnetic_magnitude, 
                   line.F(), X, derivatives_data, derivatives_data_position, QI, dXdT, dXdVMR);
       break;
     case LineFunctionData::LineShapeType::VP:
       set_voigt(F, dF, data, f_grid, 
-                line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
+                zeeman_df, magnetic_magnitude, 
                 line.F(), doppler_constant, X, derivatives_data, derivatives_data_position, QI,
                 ddoppler_constant_dT, dXdT, dXdVMR);
       break;
@@ -1183,22 +1180,22 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
     case MirroringType::Manual:
       break;
     case MirroringType::Lorentz:
-      set_lorentz(N, dN, data, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
+      set_lorentz(N, dN, data, f_grid, -zeeman_df, magnetic_magnitude, 
                   -line.F(), mirroredOutput(X), derivatives_data, derivatives_data_position, QI, mirroredOutput(dXdT), mirroredOutput(dXdVMR));
       break;
     case MirroringType::SameAsLineShape:
       switch(line.GetLineShapeType()) {
         case LineFunctionData::LineShapeType::DP:
-          set_doppler(N, dN, data, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
+          set_doppler(N, dN, data, f_grid, -zeeman_df, magnetic_magnitude, 
                       -line.F(), -doppler_constant, derivatives_data, derivatives_data_position, QI, -ddoppler_constant_dT);
           break;
         case LineFunctionData::LineShapeType::LP:
-          set_lorentz(N, dN, data, f_grid, -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
+          set_lorentz(N, dN, data, f_grid, -zeeman_df, magnetic_magnitude, 
                       -line.F(), mirroredOutput(X), derivatives_data, derivatives_data_position, QI, mirroredOutput(dXdT), mirroredOutput(dXdVMR));
           break;
         case LineFunctionData::LineShapeType::VP:
           set_voigt(N, dN, data, f_grid, 
-                    -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
+                    -zeeman_df, magnetic_magnitude, 
                     -line.F(), -doppler_constant, mirroredOutput(X), derivatives_data, derivatives_data_position, QI,
                     -ddoppler_constant_dT, mirroredOutput(dXdT), mirroredOutput(dXdVMR));
           break;
@@ -1206,7 +1203,7 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
         case LineFunctionData::LineShapeType::SDVP:
           // WARNING: This mirroring is not tested and it might require, e.g., FVC to be treated differently
           set_htp(N, dN, f_grid, 
-                  -line.ZeemanEffect().SplittingConstant(zeeman_index), magnetic_magnitude, 
+                  -zeeman_df, magnetic_magnitude, 
                   -line.F(), -doppler_constant, mirroredOutput(X),
                   derivatives_data, derivatives_data_position, QI,
                   -ddoppler_constant_dT, mirroredOutput(dXdT), mirroredOutput(dXdVMR));
@@ -1246,7 +1243,7 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
   // Apply line strength by whatever method is necessary
   switch(line.GetLinePopulationType()) {
     case LinePopulationType::ByLTE:
-      apply_linestrength_scaling_by_lte(F, dF, N, dN, line, temperature, isotopologue_ratio, line.ZeemanEffect().StrengthScaling(zeeman_index),
+      apply_linestrength_scaling_by_lte(F, dF, N, dN, line, temperature, isotopologue_ratio,
                                         partition_function_at_temperature, partition_function_at_line_temperature,
                                         derivatives_data, derivatives_data_position, QI, dpartition_function_at_temperature_dT);
       break;
@@ -1262,7 +1259,7 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
                                                      line.NLTELowerIndex() < 0 ? temperature : nlte_distribution[line.NLTELowerIndex()],
                                                      line.Evupp() < 0 ? 0 : line.Evupp(),
                                                      line.Evlow() < 0 ? 0 : line.Evlow(),
-                                                     isotopologue_ratio, line.ZeemanEffect().StrengthScaling(zeeman_index),
+                                                     isotopologue_ratio,
                                                      partition_function_at_temperature, partition_function_at_line_temperature,
                                                      derivatives_data, derivatives_data_position, QI, dpartition_function_at_temperature_dT);
       break;
@@ -1298,13 +1295,12 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
                  volume_mixing_ratio_of_all_species,
                  nlte_distribution, pressure, temperature,
                  doppler_constant, partial_pressure,
-                 isotopologue_ratio, magnetic_magnitude,
+                 isotopologue_ratio, zeeman_df, magnetic_magnitude,
                  ddoppler_constant_dT,
                  partition_function_at_temperature,
                  dpartition_function_at_temperature_dT,
                  partition_function_at_line_temperature,
-                 abs_species, this_species_location_in_tags,
-                 zeeman_index);
+                 abs_species, this_species_location_in_tags);
 }
 
 
@@ -1354,14 +1350,14 @@ void Linefunctions::apply_cutoff(Eigen::Ref<Eigen::VectorXcd> F,
                                  const Numeric& doppler_constant,
                                  const Numeric& partial_pressure,
                                  const Numeric& isotopologue_ratio,
+                                 const Numeric& zeeman_df,
                                  const Numeric& magnetic_magnitude,
                                  const Numeric& ddoppler_constant_dT,
                                  const Numeric& partition_function_at_temperature,
                                  const Numeric& dpartition_function_at_temperature_dT,
                                  const Numeric& partition_function_at_line_temperature,
                                  const ArrayOfArrayOfSpeciesTag& abs_species,
-                                 const Index& this_species_location_in_tags,
-                                 const Index& zeeman_index)
+                                 const Index& this_species_location_in_tags)
 { 
   // Size of derivatives
   auto nj = dF.cols(); 
@@ -1380,12 +1376,12 @@ void Linefunctions::apply_cutoff(Eigen::Ref<Eigen::VectorXcd> F,
                                     volume_mixing_ratio_of_all_species,
                                     nlte_distribution, pressure, temperature,
                                     doppler_constant, partial_pressure, isotopologue_ratio,
-                                    magnetic_magnitude, ddoppler_constant_dT,
+                                    zeeman_df, magnetic_magnitude, ddoppler_constant_dT,
                                     partition_function_at_temperature,
                                     dpartition_function_at_temperature_dT,
                                     partition_function_at_line_temperature,
                                     abs_species, this_species_location_in_tags,
-                                    zeeman_index, true);
+                                    true);
   
   // Apply cutoff values
   F.array() -= Fc[0];

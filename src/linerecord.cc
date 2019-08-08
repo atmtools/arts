@@ -2964,21 +2964,10 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                   icecream >> mlinefunctiondata;
                   icecream >> token;
                 }
-                else if (token == "ZE")
+                else if (token == "ZM")
                 {
                   // Zeeman effect
-                  
-                  icecream >> token;
-                  mzeemandata.SetPolarizationTypeFromString(token);
-                  if(mzeemandata.PolarizationType() == ZeemanPolarizationType::None)
-                    throw std::runtime_error("Zeeman data is corrupt.  Must have PI, SP or SM as polarization type after ZE.");
-                  
-                  Numeric gu, gl;
-                  icecream >> double_imanip() >> gu;
-                  
-                  icecream >> double_imanip() >> gl;
-                  
-                  mzeemandata = ZeemanEffectData(gu, gl, mqid, mzeemandata.PolarizationType());  // NOTE:  Must be after QNs are defined or this will not work
+                  icecream >> mzeemanmodel;
                   icecream >> token;
                 }
                 else if (token == "LSM")
@@ -3200,9 +3189,8 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
           
           // Write Zeeman Effect Data
           {
-            const ZeemanEffectData& ze = lr.ZeemanEffect();
-            if (ze.PolarizationType() not_eq ZeemanPolarizationType::None)
-              ls << " ZE " << ze.StringFromPolarizationType() << " " << ze.UpperG() << " " << ze.LowerG();
+            auto ze = lr.ZeemanModel();
+            ls << " ZM " << ze;
             
           }
           

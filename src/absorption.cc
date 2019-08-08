@@ -1697,7 +1697,7 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
     const bool cut = (cutoff != -1) ? true : false;
     const bool calc_partials = flag_partials_position.nelem();
     const bool calc_partials_phase = partial_xsec_phase.nelem()==partial_xsec_attenuation.nelem();
-    const bool do_zeeman = (abs_lines.nelem()?(abs_lines[0].ZeemanEffect().PolarizationType()==ZeemanPolarizationType::None?false:true):false);
+    const bool do_zeeman = false;
     const bool do_lm     = abs_species[this_species][0].LineMixing() != SpeciesTag::LINE_MIXING_OFF;
     const bool no_ls_partials = supports_LBL_without_phase(flag_partials);
     
@@ -1727,15 +1727,6 @@ void xsec_species_line_mixing_wrapper(  MatrixView               xsec_attenuatio
     
     extern const Numeric DOPPLER_CONST;
     static const Numeric doppler_const = DOPPLER_CONST;
-    
-    Index test_polarization = -100;
-    for(auto& lr : abs_lines) {
-      if(test_polarization == -100)
-        test_polarization = Index(lr.ZeemanEffect().PolarizationType());
-      else if(test_polarization not_eq Index(lr.ZeemanEffect().PolarizationType())) { 
-        throw std::runtime_error("Cannot mix polarization types in this method...");
-      }
-    }
     
     // Check that the frequency grid is sorted in the case of lineshape
     // with cutoff. Duplicate frequency values are allowed.
@@ -1942,163 +1933,160 @@ firstprivate(attenuation, phase, fac, f_local, aux)
             
             Range this_f_range(0,0);
             
-            for(Index iz=0; iz<abs_lines[ii].ZeemanEffect().nelem(); iz++) 
+            xsec_single_line(   // OUTPUT   
+                                xsec_attenuation(joker,jj), calc_src?xsec_source(joker,jj):
+                                empty_vector,xsec_phase(joker,jj), 
+                                // HELPER
+                                attenuation, phase, dFa_dx, dFb_dx, dFa_dy, dFb_dy, this_f_range, fac, aux, 
+                                // FREQUENCY
+                                f_local,  f_grid,  f_grid.nelem(),  cutoff,
+                                abs_lines[ii].F(),
+                                // LINE STRENGTH
+                                abs_lines[ii].I0(), partition_ratio, K1*K2, abs_nlte_ratio, src_nlte_ratio,
+                                isotopologue_ratios.getParam(abs_lines[ii].Species(),
+                                                            abs_lines[ii].Isotopologue())[0].data[0],
+                                // ATMOSPHERIC TEMPERATURE
+                                t,
+                                // LINE SHAPE
+                                ind_ls, ind_lsn,
+                                // LINE BROADENING
+                                G0, G2, ETA, D0, D2, sigma, FVC,
+                                // LINE MIXING
+                                DV, Y,  G, 
+                                // FEATURE FLAGS
+                                cutoff>0, we_need_phase, calc_partials&&!no_ls_partials, calc_src);
+            
+            
+            if(calc_partials)
             {
-                xsec_single_line(   // OUTPUT   
-                                    xsec_attenuation(joker,jj), calc_src?xsec_source(joker,jj):
-                                    empty_vector,xsec_phase(joker,jj), 
-                                    // HELPER
-                                    attenuation, phase, dFa_dx, dFb_dx, dFa_dy, dFb_dy, this_f_range, fac, aux, 
-                                    // FREQUENCY
-                                    f_local,  f_grid,  f_grid.nelem(),  cutoff,
-                                    abs_lines[ii].F()+abs_lines[ii].ZeemanEffect().SplittingConstant(iz)*H_magntitude_Zeeman,
-                                    // LINE STRENGTH
-                                    abs_lines[ii].I0()*abs_lines[ii].ZeemanEffect().StrengthScaling(iz), partition_ratio, K1*K2, abs_nlte_ratio, src_nlte_ratio,
-                                    isotopologue_ratios.getParam(abs_lines[ii].Species(),
-                                                                abs_lines[ii].Isotopologue())[0].data[0],
-                                    // ATMOSPHERIC TEMPERATURE
-                                    t,
-                                    // LINE SHAPE
-                                    ind_ls, ind_lsn,
-                                    // LINE BROADENING
-                                    G0, G2, ETA, D0, D2, sigma, FVC,
-                                    // LINE MIXING
-                                    DV, Y,  G, 
-                                    // FEATURE FLAGS
-                                    cutoff>0, we_need_phase, calc_partials&&!no_ls_partials, calc_src);
-              
-              
-              if(calc_partials)
-              {
-                  // These needs to be calculated and returned when Temperature is in list
-                Numeric dG0dT, dD0dT,
-                dYdT,dGdT,dDVdT,
-                  dQ_dT, dK2_dT, dabs_nlte_ratio_dT=0.0,
-                  atm_tv_low, atm_tv_upp;
-                  if(do_temperature_jacobian(flag_partials))
-                  {
-                    auto dX = abs_lines[ii].GetShapeParams_dT(t, temperature_perturbation(flag_partials), p, this_species, vmrs, abs_species);
-                    dG0dT = dX.G0;
-                    dD0dT = dX.D0;
-                    dYdT = dX.Y;
-                    dGdT = dX.G;
-                    dDVdT = dX.DV;
-                    
-                    GetLineScalingData_dT(dqt_dT_cache,
-                                            dK2_dT,
-                                            dQ_dT, 
-                                            dabs_nlte_ratio_dT,
-                                            atm_tv_low, 
-                                            atm_tv_upp,
-                                            qt_cache,
-                                            abs_nlte_ratio,  
-                                            partition_functions.getParamType(abs_lines[ii].Species(), abs_lines[ii].Isotopologue()),
-                                            partition_functions.getParam(abs_lines[ii].Species(), abs_lines[ii].Isotopologue()),
-                                            t,
-                                            abs_lines[ii].Ti0(),
-                                            temperature_perturbation(flag_partials),
-                                            abs_lines[ii].F(),
-                                            calc_src,
-                                            abs_lines[ii].Evlow(),
-                                            abs_lines[ii].Evupp(),
-                                            abs_lines[ii].NLTELowerIndex(),
-                                            abs_lines[ii].NLTEUpperIndex(),
-                                            t_nlte);
-                  }
+                // These needs to be calculated and returned when Temperature is in list
+              Numeric dG0dT, dD0dT,
+              dYdT,dGdT,dDVdT,
+                dQ_dT, dK2_dT, dabs_nlte_ratio_dT=0.0,
+                atm_tv_low, atm_tv_upp;
+                if(do_temperature_jacobian(flag_partials))
+                {
+                  auto dX = abs_lines[ii].GetShapeParams_dT(t, temperature_perturbation(flag_partials), p, this_species, vmrs, abs_species);
+                  dG0dT = dX.G0;
+                  dD0dT = dX.D0;
+                  dYdT = dX.Y;
+                  dGdT = dX.G;
+                  dDVdT = dX.DV;
                   
-                  // These needs to be calculated when pressure broadening partial derivatives are needed
-                  // Note that this gives plenty of wasted calculations for all lines that are not specifically
-                  // requesting their individual partial derivatives...
-                  const Numeric gamma_dSelf=0.0, gamma_dForeign=0.0, gamma_dWater=0.0,
-                          psf_dSelf=0.0, psf_dForeign=0.0, psf_dWater=0.0, 
-                          gamma_dSelfExponent=0.0, gamma_dForeignExponent=0.0, gamma_dWaterExponent=0.0,
-                          psf_dSelfExponent=0.0, psf_dForeignExponent=0.0, psf_dWaterExponent=0.0;
-                          const Numeric dY0=0., dY1=0., dYexp=0., dG0=0., dG1=0., dGexp=0., dDV0=0., dDV1=0., dDVexp=0.;
-                  for(Index iq=0; iq<flag_partials_position.nelem(); iq++) {
-                    if(is_line_parameter(flag_partials[flag_partials_position[iq]]))
-                      throw std::runtime_error("Sorry, there has been a hard deprecation of old xsec line param derivatives\nPlease use a modern xsec method");
-                  }
-                      
-                  // Gather all new partial derivative calculations in this function
-                  partial_derivatives_lineshape_dependency(partial_xsec_attenuation,
-                                                          partial_xsec_phase, 
-                                                          partial_xsec_source,
-                                                          flag_partials, 
-                                                          flag_partials_position, 
-                                                          attenuation,
-                                                          phase,
-                                                          fac,
-                                                          dFa_dx, 
-                                                          dFb_dx, 
-                                                          dFa_dy, 
-                                                          dFb_dy,
-                                                          f_grid,
-                                                          this_f_range,
-                                                          //Temperature
-                                                          t,
-                                                          sigma,
-                                                          K2,
-                                                          dK2_dT,
-                                                          abs_nlte_ratio,//K3
-                                                          dabs_nlte_ratio_dT,
-                                                          src_nlte_ratio,//K4
-                                                          // Line parameters
-                                                          abs_lines[ii].F(),
-                                                          abs_lines[ii].I0() * abs_lines[ii].ZeemanEffect().StrengthScaling(iz),
-                                                          abs_lines[ii].Ti0(),
-                                                          abs_lines[ii].Elow(),
-                                                          abs_lines[ii].Evlow(),
-                                                          abs_lines[ii].Evupp(),
-                                                          (abs_lines[ii].NLTELowerIndex() > -1 and calc_src)?
-                                                          t_nlte[abs_lines[ii].NLTELowerIndex()]:-1.0,
-                                                          (abs_lines[ii].NLTEUpperIndex() > -1 and calc_src)?
-                                                          t_nlte[abs_lines[ii].NLTEUpperIndex()]:-1.0,
-                                                          Y,
-                                                          dYdT,
-                                                          dY0,
-                                                          dY1,
-                                                          dYexp,
-                                                          G,
-                                                          dGdT,
-                                                          dG0,
-                                                          dG1,
-                                                          dGexp,
-                                                          DV,
-                                                          dDVdT,
-                                                          dDV0,
-                                                          dDV1,
-                                                          dDVexp,
-                                                          abs_lines[ii].QuantumIdentity(),
-                                                          // LINE SHAPE
-                                                          ind_ls,
-                                                          ind_lsn,
-                                                          D0,//FIXME: For H-T, this part is difficult
-                                                          dD0dT,
-                                                          G0,
-                                                          dG0dT,
-                                                          gamma_dSelf,
-                                                          gamma_dForeign,
-                                                          gamma_dWater,
-                                                          psf_dSelf,
-                                                          psf_dForeign,
-                                                          psf_dWater,
-                                                          gamma_dSelfExponent,
-                                                          gamma_dForeignExponent,
-                                                          gamma_dWaterExponent,
-                                                          psf_dSelfExponent,
-                                                          psf_dForeignExponent,
-                                                          psf_dWaterExponent,
-                                                          // Partition data parameters
-                                                          dQ_dT,
-                                                          // Magnetic variables
-                                                          abs_lines[ii].ZeemanEffect().SplittingConstant(iz),
-                                                          H_magntitude_Zeeman,
-                                                          abs_lines[ii].ZeemanEffect().PolarizationType() not_eq ZeemanPolarizationType::None,
-                                                          // Programming
-                                                          jj, 
-                                                          calc_partials_phase,
-                                                          calc_src);
-              }
+                  GetLineScalingData_dT(dqt_dT_cache,
+                                          dK2_dT,
+                                          dQ_dT, 
+                                          dabs_nlte_ratio_dT,
+                                          atm_tv_low, 
+                                          atm_tv_upp,
+                                          qt_cache,
+                                          abs_nlte_ratio,  
+                                          partition_functions.getParamType(abs_lines[ii].Species(), abs_lines[ii].Isotopologue()),
+                                          partition_functions.getParam(abs_lines[ii].Species(), abs_lines[ii].Isotopologue()),
+                                          t,
+                                          abs_lines[ii].Ti0(),
+                                          temperature_perturbation(flag_partials),
+                                          abs_lines[ii].F(),
+                                          calc_src,
+                                          abs_lines[ii].Evlow(),
+                                          abs_lines[ii].Evupp(),
+                                          abs_lines[ii].NLTELowerIndex(),
+                                          abs_lines[ii].NLTEUpperIndex(),
+                                          t_nlte);
+                }
+                
+                // These needs to be calculated when pressure broadening partial derivatives are needed
+                // Note that this gives plenty of wasted calculations for all lines that are not specifically
+                // requesting their individual partial derivatives...
+                const Numeric gamma_dSelf=0.0, gamma_dForeign=0.0, gamma_dWater=0.0,
+                        psf_dSelf=0.0, psf_dForeign=0.0, psf_dWater=0.0, 
+                        gamma_dSelfExponent=0.0, gamma_dForeignExponent=0.0, gamma_dWaterExponent=0.0,
+                        psf_dSelfExponent=0.0, psf_dForeignExponent=0.0, psf_dWaterExponent=0.0;
+                        const Numeric dY0=0., dY1=0., dYexp=0., dG0=0., dG1=0., dGexp=0., dDV0=0., dDV1=0., dDVexp=0.;
+                for(Index iq=0; iq<flag_partials_position.nelem(); iq++) {
+                  if(is_line_parameter(flag_partials[flag_partials_position[iq]]))
+                    throw std::runtime_error("Sorry, there has been a hard deprecation of old xsec line param derivatives\nPlease use a modern xsec method");
+                }
+                    
+                // Gather all new partial derivative calculations in this function
+                partial_derivatives_lineshape_dependency(partial_xsec_attenuation,
+                                                        partial_xsec_phase, 
+                                                        partial_xsec_source,
+                                                        flag_partials, 
+                                                        flag_partials_position, 
+                                                        attenuation,
+                                                        phase,
+                                                        fac,
+                                                        dFa_dx, 
+                                                        dFb_dx, 
+                                                        dFa_dy, 
+                                                        dFb_dy,
+                                                        f_grid,
+                                                        this_f_range,
+                                                        //Temperature
+                                                        t,
+                                                        sigma,
+                                                        K2,
+                                                        dK2_dT,
+                                                        abs_nlte_ratio,//K3
+                                                        dabs_nlte_ratio_dT,
+                                                        src_nlte_ratio,//K4
+                                                        // Line parameters
+                                                        abs_lines[ii].F(),
+                                                        abs_lines[ii].I0(),
+                                                        abs_lines[ii].Ti0(),
+                                                        abs_lines[ii].Elow(),
+                                                        abs_lines[ii].Evlow(),
+                                                        abs_lines[ii].Evupp(),
+                                                        (abs_lines[ii].NLTELowerIndex() > -1 and calc_src)?
+                                                        t_nlte[abs_lines[ii].NLTELowerIndex()]:-1.0,
+                                                        (abs_lines[ii].NLTEUpperIndex() > -1 and calc_src)?
+                                                        t_nlte[abs_lines[ii].NLTEUpperIndex()]:-1.0,
+                                                        Y,
+                                                        dYdT,
+                                                        dY0,
+                                                        dY1,
+                                                        dYexp,
+                                                        G,
+                                                        dGdT,
+                                                        dG0,
+                                                        dG1,
+                                                        dGexp,
+                                                        DV,
+                                                        dDVdT,
+                                                        dDV0,
+                                                        dDV1,
+                                                        dDVexp,
+                                                        abs_lines[ii].QuantumIdentity(),
+                                                        // LINE SHAPE
+                                                        ind_ls,
+                                                        ind_lsn,
+                                                        D0,//FIXME: For H-T, this part is difficult
+                                                        dD0dT,
+                                                        G0,
+                                                        dG0dT,
+                                                        gamma_dSelf,
+                                                        gamma_dForeign,
+                                                        gamma_dWater,
+                                                        psf_dSelf,
+                                                        psf_dForeign,
+                                                        psf_dWater,
+                                                        gamma_dSelfExponent,
+                                                        gamma_dForeignExponent,
+                                                        gamma_dWaterExponent,
+                                                        psf_dSelfExponent,
+                                                        psf_dForeignExponent,
+                                                        psf_dWaterExponent,
+                                                        // Partition data parameters
+                                                        dQ_dT,
+                                                        // Magnetic variables
+                                                        0.0,
+                                                        H_magntitude_Zeeman,
+                                                        false,
+                                                        // Programming
+                                                        jj, 
+                                                        calc_partials_phase,
+                                                        calc_src);
             }
         }
     }
@@ -2247,7 +2235,7 @@ void xsec_species2(Matrix& xsec,
         jacobian_quantities, jacobian_propmat_positions, all_vmrs(joker, ip), 
         nt?abs_nlte(joker, ip):Vector(0), pressure, temperature, dc, partial_pressure, 
         isotopologue_ratios.getParam(line.Species(), this_iso)[0].data[0],
-        0.0, ddc_dT, qt, dqt_dT, qt0, abs_species, this_species, 0);
+        0.0, 0.0, ddc_dT, qt, dqt_dT, qt0, abs_species, this_species);
       
       auto ithread = arts_omp_get_thread_num();
       Fsum[ithread].segment(start, nelem).noalias() += F.segment(start, nelem);

@@ -2029,3 +2029,144 @@ void LineFunctionData::Remove(Index i)
   mtypes.erase(mtypes.begin()+i);
   mspecies.erase(mspecies.begin()+i);
 }
+
+
+std::istream& LineShape::from_artscat4(std::istream& is, Model& m, bool self_in_list) {
+  // Special case when self is part of this
+  Index i = self_in_list ? 1 : 0;
+  
+  // Set or reset variables
+  m.mshapetype = ShapeType::VP;
+  m.mself = i;
+  m.mbath = false;
+  m.mdata = std::vector<SingleSpeciesModel>(6+i);
+  m.mspecies = ArrayOfSpeciesTag(6+i);
+  
+  // Set species
+  m.mspecies[i+1] = SpeciesTag(String("N2"));
+  m.mspecies[i+2] = SpeciesTag(String("O2"));
+  m.mspecies[i+3] = SpeciesTag(String("H2O"));
+  m.mspecies[i+4] = SpeciesTag(String("CO2"));
+  m.mspecies[i+5] = SpeciesTag(String("H2"));
+  m.mspecies[i+6] = SpeciesTag(String("He"));
+  
+  // Temperature types
+  for(auto& v: m.mdata) {
+    v.G0().type = TemperatureModel::T1;
+    v.D0().type = TemperatureModel::T5;
+  }
+  
+  // ARTSCAT-4 has self variables that are copied even
+  // if you have the same species as part of the list
+  // above.  This is thrown away to keep the type and
+  // the code simpler in this ARTSCAT-5 formulation iff
+  // this species is not a self species
+  Numeric throwaways;
+  
+  // G0 main coefficient
+  if(self_in_list) is >> throwaways;
+  for(auto& v: m.mdata) is >> v.G0().X0;
+  
+  // G0 exponent is same as D0 exponent
+  if(self_in_list) is >> throwaways;
+  for(auto& v: m.mdata) {
+    is >> v.G0().X1;
+    v.D0().X1 = v.G0().X1;
+  }
+  
+  // D0 coefficient
+  for(std::vector<SingleSpeciesModel>::size_type k=i; k<m.mdata.size(); k++)
+    is >> m.mdata[i].D0().X0;
+  
+  return is;
+}
+
+
+std::istream& LineShape::from_linefunctiondata(std::istream& data, Model& m) {
+  m.mself = m.mbath = false;
+  Index specs;
+  String s;
+  
+  // The first tag should give the line shape scheme
+  data >> s;
+  m.mshapetype = LineShape::string2shapetype(s);
+  
+  // Order of elements for line shape
+  const auto shapeparams = LegacyLineFunctionData::lineshapetag2variablesvector(s);
+  
+  // The second tag should give the line mixing scheme
+  data >> s;
+  
+  // Order of elements for line mixing
+  const auto mixingparams = LegacyLineFunctionData::linemixingtag2variablesvector(s);
+  
+  // The third tag should contain the number of species
+  data >> specs;
+  m.mspecies.resize(specs);
+  m.mdata.resize(specs);
+  
+  if(not specs and m.mshapetype not_eq ShapeType::DP)
+    throw std::runtime_error("Need at least one species for non-Doppler line shapes");
+  
+  // For all species, we need to set the methods to compute them
+  for(Index i=0; i<specs; i++) {
+    
+    // This should be a species tag or one of the specials, SELF or BATH
+    data >> s;
+    if(s == "SELF") {
+      // If the species is self, then  we need to flag this
+      m.mself = true;
+      if(i not_eq 0)  // but self has to be first for consistent behavior
+        throw std::runtime_error("Self broadening must be first, it is not\n");
+    }
+    
+    else if(s == "AIR") {
+      // If the species is air, then we need to flag this
+      m.mbath = true;
+      if(i not_eq specs - 1)  // but air has to be last because it needs the rest's VMR
+        throw std::runtime_error("Air/bath broadening must be last, it is not\n");
+    }
+    else {
+      // Otherwise, we hope we find a species
+      try {
+        m.mspecies[i] = SpeciesTag(s);
+      }
+      catch(const std::runtime_error& e) {
+        ostringstream os;
+        os << "Encountered " << s << " in a position where a species should have been ";
+        os << "defined.\nPlease check your pressure broadening data structure and ensure ";
+        os << "that it follows the correct conventions.\n";
+        os << "SpeciesTag error reads:  " << e.what();
+        throw std::runtime_error(os.str());
+      }
+    }
+    
+    // For all parameters
+    for(auto& params: {shapeparams, mixingparams}) {
+      for(auto& param: params) {
+        data >> s;  // Should contain a temperature tag
+        
+        const Index ntemp = LegacyLineFunctionData::temperaturemodel2legacynelem(string2temperaturemodel(s));
+        
+        if(ntemp < nmaxTempModelParams) {
+          switch(ntemp) {
+            case 3: data >> m.mdata[i].Data()[Index(param)].X2; [[fallthrough]];
+            case 2: data >> m.mdata[i].Data()[Index(param)].X1; [[fallthrough]];
+            case 1: data >> m.mdata[i].Data()[Index(param)].X0; [[fallthrough]];
+            case 0: {} break;
+            default: throw std::runtime_error("Unknown number of input parameters in Legacy mode.");
+          }
+        }
+        else {  // Has to be the only allowed interpolation case
+          if(ntemp > nmaxInterpModels)
+            throw std::runtime_error("Too many input parameters in interpolation results Legacy mode.");
+          for(Index k=0; k<ntemp; k++)
+            data >> m.mdata[i].Interp()[k];
+        }
+      }
+    }
+  }
+  
+  return data;
+}
+

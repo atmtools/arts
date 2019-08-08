@@ -30,26 +30,25 @@ USA. */
 #include "mystring.h"
 
 
-void Rational::Simplify()
+Rational& Rational::Simplify()
 {
-    fixSign();
-    Index ii = mdenom;
+  fixSign();
+  Index ii = mdenom;
 
-    while( ii != 0 )
-    {
-        if( mnom % ii == 0 and mdenom % ii == 0 )
-        {
-            mnom /= ii;
-            mdenom /= ii;
+  while( ii != 0 ) {
+    if( mnom % ii == 0 and mdenom % ii == 0 ) {
+      mnom /= ii;
+      mdenom /= ii;
 
-            if( mnom == 1 or mdenom == 1 or mnom == 0 or mnom == -1 )
-                break;
-        }
-        if( mdenom < ii )
-            ii = mdenom;
-        else
-            ii--;
+      if( mnom == 1 or mdenom == 1 or mnom == -1 )
+        break;
     }
+    if( mdenom < ii )
+      ii = mdenom;
+    else
+      ii--;
+  }
+  return *this;
 }
 
 std::ostream& operator<<(std::ostream& os, const Rational& a)

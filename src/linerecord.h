@@ -256,7 +256,6 @@ public:
       mgupper( NAN ),
       mglower( NAN ),
       mquantum_numbers_str(""),
-      mzeemandata(),
       mcutoff(-1.0),
       mlinemixing_limit(-1.0),
       mmirroring(MirroringType::None),
@@ -305,7 +304,6 @@ public:
       mgupper( NAN ),
       mglower( NAN ),
       mquantum_numbers_str(""),
-      mzeemandata(),
       mcutoff(-1.0),
       mlinemixing_limit(-1.0),
       mmirroring(MirroringType::None),
@@ -637,11 +635,25 @@ public:
   }
   
   /** Zeeman Effect Data */
-  ZeemanEffectData& ZeemanEffect() { return mzeemandata; }
-  ZeemanPolarizationType ZeemanPolarization() const { return mzeemandata.PolarizationType(); }
-  const ZeemanEffectData& ZeemanEffect() const { return mzeemandata; }
-  void SetZeemanEffectData(ZeemanPolarizationType polar) { mzeemandata=ZeemanEffectData(mqid, polar); }
-  void SetZeemanEffectDataZero(ZeemanPolarizationType polar) { mzeemandata=ZeemanEffectData(0, 0, mqid, polar); }
+  void ZeemanModelInit() { mzeemanmodel = Zeeman::Model(mqid); }
+  void ZeemanModelInitZero() { mzeemanmodel = Zeeman::Model(); }
+  Numeric ZeemanModelStrength(Zeeman::Polarization type, Index i) const {
+    return mzeemanmodel.Strength(UpperQuantumNumber(QuantumNumberType::J),
+                                 LowerQuantumNumber(QuantumNumberType::J), type, i);
+  }
+  Numeric ZeemanModelSplitting(Zeeman::Polarization type, Index i) const { 
+    return mzeemanmodel.Splitting(UpperQuantumNumber(QuantumNumberType::J),
+                                  LowerQuantumNumber(QuantumNumberType::J), type, i);
+  }
+  Index ZeemanModelLineCount(Zeeman::Polarization type) const { 
+    return Zeeman::nelem(UpperQuantumNumber(QuantumNumberType::J), LowerQuantumNumber(QuantumNumberType::J), type);
+  }
+  Zeeman::Model ZeemanModel() const { 
+    return mzeemanmodel;
+  }
+  Zeeman::Model& ZeemanModel() { 
+    return mzeemanmodel;
+  }
   
   /** Cutoff frequency */
   const Numeric& CutOff() const {return mcutoff;}
@@ -1070,8 +1082,8 @@ private:
   /** Line function data (pressure broadening and line mixing) */
   LineFunctionData mlinefunctiondata;
   
-  /** Zeeman effect data class */
-  ZeemanEffectData mzeemandata;
+  /** Zeeman effect model class */
+  Zeeman::Model mzeemanmodel;
   
   /** Cutoff frequency */
   Numeric mcutoff;

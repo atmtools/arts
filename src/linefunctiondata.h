@@ -37,9 +37,11 @@
 #include "abs_species_tags.h"
 #include "jacobian.h"
 
+// Using some algorithms
+#include <numeric>
 
 // List of all variables that can be returned
-typedef struct{
+struct LineFunctionDataOutput{
   /** Speed independent broadening */
   Numeric G0;
   
@@ -66,7 +68,7 @@ typedef struct{
   
   /** Second order line mixing parameter --- changes the frequency of the line */
   Numeric DV;
-} LineFunctionDataOutput;
+};
 std::ostream& operator<<(std::ostream& os, const LineFunctionDataOutput& v);
 
 class LineFunctionData {
@@ -473,5 +475,570 @@ LineFunctionDataOutput mirroredOutput(LineFunctionDataOutput v) noexcept;
 LineFunctionDataOutput si2cgs(LineFunctionDataOutput v);
 
 LineFunctionDataOutput cgs2si(LineFunctionDataOutput v);
+
+
+namespace LineShape {
+  
+  /** Temperature models */
+  enum class TemperatureModel : Index {
+    None,   // 0
+    T0,     // Constant, X0
+    T1,     // Standard, X0 * (T0/T) ^ X1
+    T2,     // X0 * (T0/T) ^ X1 * (1 + X2 * log(T/T0));
+    T3,     // X0 + X1 * (T - T0)
+    T4,     // (X0 + X1 * (T0/T - 1)) * (T0/T)^X2;
+    T5,     // X0 * (T0/T)^(0.25 + 1.5*X1)
+    LM_AER  // Interpolation AER-style
+    // ALWAYS ADD NEW AT THE END
+  };
+  
+  inline String temperaturemodel2string(TemperatureModel type) noexcept {
+    switch(type) {
+      case TemperatureModel::None:   return "#";
+      case TemperatureModel::T0:     return "T0";
+      case TemperatureModel::T1:     return "T1";
+      case TemperatureModel::T2:     return "T2";
+      case TemperatureModel::T3:     return "T3";
+      case TemperatureModel::T4:     return "T4";
+      case TemperatureModel::T5:     return "T5";
+      case TemperatureModel::LM_AER: return "LM_AER";
+    }
+    std::terminate();  // Not allowed to reach, fix higher level code
+  }
+  
+  inline TemperatureModel string2temperaturemodel(const String& type) {
+    if(type == "#")                   return TemperatureModel::None;
+    else if(type == String("T0"))     return TemperatureModel::T0;
+    else if(type == String("T1"))     return TemperatureModel::T1;
+    else if(type == String("T2"))     return TemperatureModel::T2;
+    else if(type == String("T3"))     return TemperatureModel::T3;
+    else if(type == String("T4"))     return TemperatureModel::T4;
+    else if(type == String("T5"))     return TemperatureModel::T5;
+    else if(type == String("LM_AER")) return TemperatureModel::LM_AER;
+    else {
+      std::ostringstream os;
+      os << "Type: " << type << ", is not accepted.  "
+         << "See documentation for accepted types\n";
+      throw std::runtime_error(os.str());
+    }
+  }
+  
+  /** List of possible shape variables */
+  enum class Variable {
+    G0=0,   // Pressure broadening speed-independent
+    G2=1,   // Pressure broadening speed-dependent
+    D0=2,   // Pressure f-shifting speed-independent
+    D2=3,   // Pressure f-shifting speed-dependent
+    ETA=4,  // Correlation
+    FVC=5,  // Frequency of velocity-changing collisions
+    Y=6,    // First order line mixing coefficient
+    G=7,    // Second order line mixing coefficient
+    DV=8    // Second order line mixing f-shifting
+    // ALWAYS ADD NEW AT THE END
+  };
+  
+  struct ModelParameters {
+    TemperatureModel type;
+    Numeric X0;
+    Numeric X1;
+    Numeric X2;
+    // ALWAYS ADD NEW AT THE END
+  };
+  
+  inline std::ostream& operator<<(std::ostream& os, const ModelParameters& mp) {
+    os << temperaturemodel2string(mp.type) << ' ' << mp.X0 << ' ' << mp.X1 << ' ' << mp.X2;
+    return os;
+  }
+  
+  inline std::istream& operator>>(std::istream& is, ModelParameters& mp) {
+    String tmp;
+    is >> tmp >> mp.X0 >> mp.X1 >> mp.X2;
+    mp.type = string2temperaturemodel(tmp);
+    return is;
+  }
+
+  constexpr Index nmaxTempModelParams=3;
+  constexpr Index nVars=9;
+  constexpr Index nmaxInterpModels=12;
+
+  class SingleSpeciesModel {
+  private:
+    std::array<ModelParameters, nVars> X;
+    std::array<Numeric, nmaxInterpModels> V;
+
+    Numeric special_linemixing_aer(Numeric T,
+                                   Variable var) const noexcept
+    {
+      // Data starts at 4 for Y and 8 for G, and must be either
+      const Index i = (var == Variable::Y) ? 4 : 8;
+      
+      if(T < V[1])
+        return V[i+0] + (T-V[0]) * (V[i+1]-V[i+0]) / (V[1]-V[0]);
+      else if(T > V[2])
+        return V[i+2] + (T-V[2]) * (V[i+3]-V[i+2]) / (V[3]-V[2]);
+      else
+        return V[i+1] + (T-V[1]) * (V[i+2]-V[i+1]) / (V[2]-V[1]);
+    }
+    
+    Numeric special_linemixing_aer_dT(Numeric T,
+                                      Variable var) const noexcept
+    {
+      // Data starts at 4 for Y and 8 for G, and must be either
+      const Index i = (var == Variable::Y) ? 4 : 8;
+      
+      if(T < V[1])
+        return (V[i+1]-V[i+0]) / (V[1]-V[0]);
+      else if(T > V[2])
+        return (V[i+3]-V[i+2]) / (V[3]-V[2]);
+      else
+        return (V[i+2]-V[i+1]) / (V[2]-V[1]);
+    }
+    
+  public:
+    constexpr
+    SingleSpeciesModel(ModelParameters G0  = {TemperatureModel::None, 0, 0, 0},
+                       ModelParameters G2  = {TemperatureModel::None, 0, 0, 0},
+                       ModelParameters D0  = {TemperatureModel::None, 0, 0, 0},
+                       ModelParameters D2  = {TemperatureModel::None, 0, 0, 0},
+                       ModelParameters ETA = {TemperatureModel::None, 0, 0, 0},
+                       ModelParameters FVC = {TemperatureModel::None, 0, 0, 0},
+                       ModelParameters Y   = {TemperatureModel::None, 0, 0, 0},
+                       ModelParameters G   = {TemperatureModel::None, 0, 0, 0},
+                       ModelParameters DV  = {TemperatureModel::None, 0, 0, 0}) :
+    X({G0, G2, D0, D2, ETA, FVC, Y, G, DV}), V({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
+    {}
+    
+    #define x0 X[Index(var)].X0
+    #define x1 X[Index(var)].X1
+    #define x2 X[Index(var)].X2
+    
+    // Standard compute feature
+    Numeric compute(Numeric T, Numeric T0, Variable var) const noexcept {
+      using std::pow;
+      using std::log;
+      
+      switch(X[Index(var)].type) {
+        case TemperatureModel::None:
+          return 0;
+        case TemperatureModel::T0:
+          return x0;
+        case TemperatureModel::T1:
+          return x0 * pow(T0/T, x1);
+        case TemperatureModel::T2:
+          return x0 * pow(T0/T, x1) * (1 + x2 * log(T/T0));
+        case TemperatureModel::T3:
+          return x0 + x1 * (T - T0);
+        case TemperatureModel::T4:
+          return (x0 + x1 * (T0/T - 1.)) * pow(T0/T, x2);
+        case TemperatureModel::T5:
+          return x0 * pow(T0/T, 0.25 + 1.5*x1);
+        case TemperatureModel::LM_AER:
+          return special_linemixing_aer(T, var);
+      }
+    }
+    
+    // Standard compute feature for derivative wrt x0
+    Numeric compute_dX0(Numeric T, Numeric T0, Variable var) const noexcept {
+      using std::pow;
+      using std::log;
+      
+      switch(X[Index(var)].type) {
+        case TemperatureModel::None:
+          return 0;
+        case TemperatureModel::T0:
+          return 1;
+        case TemperatureModel::T1:
+          return pow(T0/T, x1);
+        case TemperatureModel::T2:
+          return pow(T0/T, x1)*(x2*log(T/T0) + 1);
+        case TemperatureModel::T3:
+          return 1;
+        case TemperatureModel::T4:
+          return pow(T0/T, x2);
+        case TemperatureModel::T5:
+          return pow(T0/T, 1.5*x1 + 0.25);
+        case TemperatureModel::LM_AER:
+          return 0;
+      }
+    }
+    
+    // Standard compute feature for derivative wrt x1
+    Numeric compute_dX1(Numeric T, Numeric T0, Variable var) const noexcept {
+      using std::pow;
+      using std::log;
+      
+      switch(X[Index(var)].type) {
+        case TemperatureModel::None:
+          return 0;
+        case TemperatureModel::T0:
+          return 0;
+        case TemperatureModel::T1:
+          return x0*pow(T0/T, x1)*log(T0/T);
+        case TemperatureModel::T2:
+          return x0*pow(T0/T,x1)*(x2*log(T/T0)+1.)*log(T0/T);
+        case TemperatureModel::T3:
+          return (T - T0); 
+        case TemperatureModel::T4:
+          return pow(T0/T, x2)*(T0/T - 1.);
+        case TemperatureModel::T5:
+          return 1.5*x0*pow(T0/T, 1.5*x1 + 0.25)*log(T0/T);
+        case TemperatureModel::LM_AER:
+          return 0;
+      }
+    }
+    
+    // Standard compute feature for derivative wrt x2
+    Numeric compute_dX2(Numeric T, Numeric T0, Variable var) const noexcept {
+      using std::pow;
+      using std::log;
+      
+      switch(X[Index(var)].type) {
+        case TemperatureModel::None:
+          return 0;
+        case TemperatureModel::T0:
+          return 0;
+        case TemperatureModel::T1:
+          return 0;
+        case TemperatureModel::T2:
+          return x0*pow(T0/T, x1)*log(T/T0);
+        case TemperatureModel::T3:
+          return 0; 
+        case TemperatureModel::T4:
+          return pow(T0/T,x2)*(x0+x1*(T0/T-1))*log(T0/T);
+        case TemperatureModel::T5:
+          return 0;
+        case TemperatureModel::LM_AER:
+          return 0;
+      }
+    }
+    
+    // Standard compute feature for derivative wrt T
+    Numeric compute_dT(Numeric T, Numeric T0, Variable var) const noexcept {
+      using std::pow;
+      using std::log;
+      
+      switch(X[Index(var)].type) {
+        case TemperatureModel::None:
+          return 0;
+        case TemperatureModel::T0:
+          return 0;
+        case TemperatureModel::T1:
+          return -x0*x1*pow(T0/T, x1)/T;
+        case TemperatureModel::T2:
+          return -x0*x1*pow(T0/T,x1)*(x2*log(T/T0)+1.)/T+x0*x2*pow(T0/T,x1)/T;
+        case TemperatureModel::T3:
+          return x1;
+        case TemperatureModel::T4:
+          return -x2*pow(T0/T,x2)*(x0+x1*(T0/T-1.))/T-T0*x1*pow(T0/T,x2)/pow(T,2);
+        case TemperatureModel::T5:
+          return -x0*pow(T0/T,1.5*x1 + 0.25)*(1.5*x1 + 0.25)/T;
+        case TemperatureModel::LM_AER:
+          return special_linemixing_aer_dT(T, var);
+      }
+    }
+    
+    // Standard compute feature for derivative wrt T0
+    Numeric compute_dT0(Numeric T, Numeric T0, Variable var) const noexcept {
+      using std::pow;
+      using std::log;
+      
+      switch(X[Index(var)].type) {
+        case TemperatureModel::None:
+          return 0;
+        case TemperatureModel::T0:
+          return 0;
+        case TemperatureModel::T1:
+          return x0*x1*pow(T0/T, x1)/T0;
+        case TemperatureModel::T2:
+          return x0*x1*pow(T0/T,x1)*(x2*log(T/T0)+1.)/T0-x0*x2*pow(T0/T,x1)/T0;
+        case TemperatureModel::T3:
+          return -x1;
+        case TemperatureModel::T4:
+          return x2*pow(T0/T,x2)*(x0+x1*(T0/T-1.))/T0+x1*pow(T0/T,x2)/T;
+        case TemperatureModel::T5:
+          return x0*pow(T0/T,1.5*x1 + 0.25)*(1.5*x1 + 0.25)/T0;
+        case TemperatureModel::LM_AER:
+          return 0;
+      }
+    }
+
+    #undef x0
+    #undef x1
+    #undef x2
+    
+    // Access normal data
+    #define ACCESS_INTERNAL(VARPOS) \
+    ModelParameters& VARPOS()       noexcept {return X[Index(Variable::VARPOS)];} \
+    ModelParameters  VARPOS() const noexcept {return X[Index(Variable::VARPOS)];}
+    ACCESS_INTERNAL(G0); ACCESS_INTERNAL(G2);
+    ACCESS_INTERNAL(D0); ACCESS_INTERNAL(D2);
+    ACCESS_INTERNAL(FVC); ACCESS_INTERNAL(ETA);
+    ACCESS_INTERNAL(Y); ACCESS_INTERNAL(G); ACCESS_INTERNAL(DV);
+    #undef ACCESS_INTERNAL
+    
+    // Access to all data
+    std::array<ModelParameters, nVars>&       Data()       noexcept {return X;}
+    const std::array<ModelParameters, nVars>& Data() const noexcept {return X;}
+    std::array<Numeric, nmaxInterpModels>&       Interp()       noexcept {return V;}
+    const std::array<Numeric, nmaxInterpModels>& Interp() const noexcept {return V;}
+    
+    // Read complete binary data... FIXME? adopt for versioning?  constexpr numbers above are assumed
+    std::istream& read(std::istream& is) {
+      is.read(reinterpret_cast<char*>(this), sizeof(SingleSpeciesModel));
+      return is;
+    }
+    
+    // Write complete binary data
+    std::ostream& write(std::ostream& os) const {
+      os.write(reinterpret_cast<const char*>(this), sizeof(SingleSpeciesModel));
+      return os;
+    }
+  };
+  
+  inline std::ostream& operator<<(std::ostream& os, const SingleSpeciesModel& ssm) {
+    for(const auto& mp: ssm.Data()) os << mp << ' ';
+    for(const auto& num: ssm.Interp()) os << num << ' ';
+    return os;
+  }
+  
+  inline std::istream& operator>>(std::istream& is, SingleSpeciesModel& ssm) {
+    for(auto& mp: ssm.Data()) is >> mp;
+    for(auto& num: ssm.Interp()) is >> num;
+    return is;
+  }
+  
+  enum class ShapeType {
+    DP,   // Doppler
+    LP,   // Lorentz
+    VP,   // Voigt
+    SDVP, // Speed-dependent Voigt
+    HTP,  // Hartmann-Tran
+  };
+  
+  inline String shapetype2string(ShapeType type) noexcept {
+    switch(type) {
+      case ShapeType::DP:   return "DP";
+      case ShapeType::LP:   return "LP";
+      case ShapeType::VP:   return "VP";
+      case ShapeType::SDVP: return "SDVP";
+      case ShapeType::HTP:  return "HTP";
+    }
+    std::terminate();  // Not allowed to reach, fix higher level code
+  }
+  
+  inline ShapeType string2shapetype(const String& type) {
+    if(type == "DP")                return ShapeType::DP;
+    else if(type == String("LP"))   return ShapeType::LP;
+    else if(type == String("VP"))   return ShapeType::VP;
+    else if(type == String("SDVP")) return ShapeType::SDVP;
+    else if(type == String("HTP"))  return ShapeType::HTP;
+    else {
+      std::ostringstream os;
+      os << "Type: " << type << ", is not accepted.  "
+      << "See documentation for accepted types\n";
+      throw std::runtime_error(os.str());
+    }
+  }
+
+  class Model {
+  private:
+    ShapeType mshapetype;
+    bool mself;
+    bool mbath;
+    ArrayOfSpeciesTag mspecies;
+    std::vector<SingleSpeciesModel> mdata;
+    
+  public:
+    // No line shape parameters means this is a Doppler line
+    Model() noexcept : mshapetype(ShapeType::DP), mself(false), mbath(false),
+                       mspecies(0), mdata(0) {}
+    
+    // Standard HITRAN means this is a Voigt line
+    Model(Numeric sgam, Numeric nself, Numeric agam, Numeric nair, Numeric psf) noexcept :
+    mshapetype(ShapeType::VP), mself(true), mbath(true), mspecies(2), mdata(2) {
+      mdata.front().G0() = {TemperatureModel::T1, sgam, nself, 0};
+      mdata.front().D0() = {TemperatureModel::T5, psf,  nair,  0};
+      mdata.back(). G0() = {TemperatureModel::T1, agam, nair,  0};
+      mdata.back(). D0() = {TemperatureModel::T5, psf,  nair,  0};
+    }
+    
+    // Check if this model has the same species as another model
+    bool same_broadening_species(const Model& other) const noexcept {
+      if(mself not_eq other.mself)
+        return false;
+      else if(mbath not_eq other.mbath)
+        return false;
+      else if(mspecies.nelem() not_eq other.mspecies.nelem())
+        return false;
+      else {
+        for(Index i=Index(mself); i<mspecies.nelem()-Index(mbath); i++)
+          if(mspecies[i].Species() not_eq other.mspecies[i].Species())
+            return false;
+        return true;
+      }
+    }
+    
+    // The VMR vector required based on atmospheric species and self-existence
+    Vector vmrs(const ConstVectorView& atmospheric_vmrs,
+                const ArrayOfArrayOfSpeciesTag& atmospheric_species,
+                const QuantumIdentifier& self) const {
+      assert(atmospheric_species.nelem() == atmospheric_vmrs.nelem());
+      
+      // Initialize list of VMRS to 0
+      Vector line_vmrs(mspecies.nelem(), 0);
+      const Index back = mspecies.nelem()-1;  // Last index
+      
+      // Loop species ignoring self and bath
+      for(Index i=0; i<mspecies.nelem(); i++) {
+        if(mbath and i == back) {}
+        else {
+          // Select target in-case this is self-broadening
+          const auto target = (mself and i == 0) ? 
+                                  self.Species() :
+                           mspecies[i].Species() ;
+          
+          // Find species in list or do nothing at all
+          Index this_species_index = -1;
+          for(Index j=0; j<atmospheric_species.nelem(); j++)
+            if(atmospheric_species[j][0].Species() == target)
+              this_species_index = j;
+          
+          // Set to non-zero in-case species exists
+          if(this_species_index not_eq -1)
+            line_vmrs[i] = atmospheric_vmrs[this_species_index];
+        }
+      }
+      
+      // Renormalize, if bath-species exist this is automatic.
+      if(mbath)
+        line_vmrs[back] = 1.0 - line_vmrs.sum();
+      else
+        for(auto& vmr: line_vmrs) vmr /= line_vmrs.sum();
+      
+      // The result must be non-zero, a real number, and finite
+      if(not std::isnormal(line_vmrs.sum()))
+        throw std::runtime_error("Bad VMRS, do the species exists or have any VMR?");
+      
+      return line_vmrs;
+    }
+    
+    // All main calculations
+    #define LSPC(XVAR, PVAR) \
+    Numeric XVAR (Numeric T, Numeric T0, Numeric P  [[maybe_unused]], const Vector& vmrs) const noexcept { \
+      return PVAR * std::inner_product(mdata.cbegin(), mdata.cend(), vmrs.begin(), 0.0, \
+                                       std::plus<Numeric>(), [=](const SingleSpeciesModel& x, Numeric vmr) -> Numeric \
+                                       {return vmr * x.compute(T, T0, Variable::XVAR);}); \
+    }
+    LSPC(G0, P) LSPC(G2, P) LSPC(D0, P) LSPC(D2, P) LSPC(ETA, 1) LSPC(FVC, P) LSPC(Y, P) LSPC(G, P*P) LSPC(DV, P*P)
+    #undef LSPC
+    
+    // All VMR derivatives
+    #define LSPC(XVAR, PVAR) \
+    Numeric XVAR (Numeric T, Numeric T0, Numeric P  [[maybe_unused]], const Index deriv_pos) const noexcept { \
+      if(deriv_pos not_eq -1) return PVAR * mdata[deriv_pos].compute(T, T0, Variable::XVAR); \
+      else return 0; \
+    }
+    LSPC(G0, P) LSPC(G2, P) LSPC(D0, P) LSPC(D2, P) LSPC(ETA, 1) LSPC(FVC, P) LSPC(Y, P) LSPC(G, P*P) LSPC(DV, P*P)
+    #undef LSPC
+    
+    // All shape model derivatives
+    #define LSPDC(XVAR, DERIV, PVAR) \
+    Numeric d ## XVAR ## DERIV (Numeric T, Numeric T0, Numeric P  [[maybe_unused]], const Vector& vmrs) const noexcept { \
+      return PVAR * std::inner_product(mdata.cbegin(), mdata.cend(), vmrs.begin(), 0.0, \
+      std::plus<Numeric>(), [=](const SingleSpeciesModel& x, Numeric vmr) -> Numeric \
+      {return vmr * x.compute ## DERIV (T, T0, Variable::XVAR);}); \
+    }
+    LSPDC(G0,  _dT,  P  ) LSPDC(G0,  _dT0,  P  ) LSPDC(G0,  _dX0, P  ) LSPDC(G0,  _dX1, P  ) LSPDC(G0,  _dX2, P  )
+    LSPDC(G2,  _dT,  P  ) LSPDC(G2,  _dT0,  P  ) LSPDC(G2,  _dX0, P  ) LSPDC(G2,  _dX1, P  ) LSPDC(G2,  _dX2, P  )
+    LSPDC(D0,  _dT,  P  ) LSPDC(D0,  _dT0,  P  ) LSPDC(D0,  _dX0, P  ) LSPDC(D0,  _dX1, P  ) LSPDC(D0,  _dX2, P  )
+    LSPDC(D2,  _dT,  P  ) LSPDC(D2,  _dT0,  P  ) LSPDC(D2,  _dX0, P  ) LSPDC(D2,  _dX1, P  ) LSPDC(D2,  _dX2, P  )
+    LSPDC(ETA, _dT,  1  ) LSPDC(ETA, _dT0,  1  ) LSPDC(ETA, _dX0, 1  ) LSPDC(ETA, _dX1, 1  ) LSPDC(ETA, _dX2, 1  )
+    LSPDC(FVC, _dT,  P  ) LSPDC(FVC, _dT0,  P  ) LSPDC(FVC, _dX0, P  ) LSPDC(FVC, _dX1, P  ) LSPDC(FVC, _dX2, P  )
+    LSPDC(Y,   _dT,  P  ) LSPDC(Y,   _dT0,  P  ) LSPDC(Y,   _dX0, P  ) LSPDC(Y,   _dX1, P  ) LSPDC(Y,   _dX2, P  )
+    LSPDC(G,   _dT,  P*P) LSPDC(G,   _dT0,  P*P) LSPDC(G,   _dX0, P*P) LSPDC(G,   _dX1, P*P) LSPDC(G,   _dX2, P*P)
+    LSPDC(DV,  _dT,  P*P) LSPDC(DV,  _dT0,  P*P) LSPDC(DV,  _dX0, P*P) LSPDC(DV,  _dX1, P*P) LSPDC(DV,  _dX2, P*P)
+    #undef LSPDC
+    
+    // Size and size manipulation
+    Index nelem() const {return mspecies.nelem();}
+    void resize(Index n) {mspecies.resize(n); mdata.resize(n);}
+    void reserve(Index n) {mspecies.reserve(n); mdata.reserve(n);}
+    
+    friend inline std::istream& operator>>(std::istream& is, Model& m);
+    friend inline std::ostream& operator<<(std::ostream& os, const Model& m);
+    friend std::istream& from_artscat4(std::istream& is, Model& lsc, bool self_in_list);
+    friend std::istream& from_linefunctiondata(std::istream& data, Model& lsc);;
+  };
+
+  std::istream& from_artscat4(std::istream& is, Model& lsc, bool self_in_list);
+  std::istream& from_linefunctiondata(std::istream& data, Model& lsc);
+  
+  inline std::ostream& operator<<(std::ostream& os, const Model& m) {
+    os << shapetype2string(m.mshapetype) << ' ' << m.nelem() << ' ' << m.mself << ' ' << m.mbath;
+    for(auto& s: m.mspecies) os << ' ' << s.SpeciesNameMain();
+    for(auto& d: m.mdata) os << ' ' << d;
+    return os;
+  }
+  
+  inline std::istream& operator>>(std::istream& is, Model& m) {
+    String tmp;
+    Index nelem;
+    is >> tmp >> nelem >> m.mself >> m.mbath;
+    m.mshapetype = string2shapetype(tmp);
+    m.mspecies.resize(nelem);
+    m.mdata.resize(nelem);
+    for(auto& s: m.mspecies) {is >> tmp; s = SpeciesTag(tmp);}
+    for(auto& d: m.mdata) is >> d;
+    return is;
+  }
+  
+  // Legacy dealing with reading old LineFunctionData
+  namespace LegacyLineFunctionData {
+    // Length per variable
+    inline Index temperaturemodel2legacynelem(TemperatureModel type) noexcept {
+      switch(type) {
+        case TemperatureModel::None:   return  0;
+        case TemperatureModel::T0:     return  1;
+        case TemperatureModel::T1:     return  2;
+        case TemperatureModel::T2:     return  3;
+        case TemperatureModel::T3:     return  2;
+        case TemperatureModel::T4:     return  3;
+        case TemperatureModel::T5:     return  2;
+        case TemperatureModel::LM_AER: return 12;
+      }
+      std::terminate();  // Not allowed to reach, fix higher level code
+    }
+    
+    /** Line shape models */
+    inline std::vector<Variable> lineshapetag2variablesvector(String type) {
+      if(type == String("DP"))        return {};
+      else if(type == String("LP"))   return {Variable::G0, Variable::D0};
+      else if(type == String("VP"))   return {Variable::G0, Variable::D0};
+      else if(type == String("SDVP")) return {Variable::G0, Variable::D0, Variable::G2, Variable::D2};
+      else if(type == String("HTP"))  return {Variable::G0, Variable::D0, Variable::G2, Variable::D2, Variable::FVC, Variable::ETA};
+      else {
+        std::ostringstream os;
+        os << "Type: " << type << ", is not accepted.  "
+        << "See documentation for accepted types\n";
+        throw std::runtime_error(os.str());
+      }
+    }
+    
+    /** Line mixing models */
+    inline std::vector<Variable> linemixingtag2variablesvector(String type) {
+      if(type == "#")           return {};
+      else if(type == "LM1")    return {Variable::Y};
+      else if(type == "LM2")    return {Variable::Y, Variable::G, Variable::DV};
+      else if(type == "INT")    return {};
+      else if(type == "ConstG") return {Variable::G};
+      else {
+        std::ostringstream os;
+        os << "Type: " << type << ", is not accepted.  "
+        << "See documentation for accepted types\n";
+        throw std::runtime_error(os.str());
+      }
+    }
+  };
+};
 
 #endif // linefunctiondata_h

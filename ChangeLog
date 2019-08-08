@@ -1,3 +1,72 @@
+2019-08-08  Richard Larsson <larsson@mps.mpg.de>
+
+	* arts-2-3-1265
+	
+	* controlfiles/*:  Updated Zeeman test as the latest JQSRT paper 
+	is now computed inside ARTS.  The updated code passes old tests
+	when run with old variables
+	
+	* src/absorption.cc:  Updated Zeeman calculations and removed 
+	some lingering code dealing with this.
+	
+	* src/linefunctiondata.cc,h:  Tinkerings with some classes to
+	replace LineFunctionData to make line catalogs easier.  Placed
+	in a namespace that can easily be removed if this is unpopular.
+	The new namespace can replace LineFunctionData, and handles
+	its IO already.  I believe it would be a good idea to consolidate
+	ARTSCAT5 around this new class before a stable release so that the
+	plethora of different input methods can be cleaned away.  Since there
+	exists translation methods today from PressureBroadeningData and
+	LineMixingData into LineFunctionData, if we remove LineFunctionData
+	we can also remove the other two classes.  I suggest these classes
+	removal is done after moving the code to github so people can
+	find a version of ARTS that can restore functionality of old
+	line catalogs.  Note, the new class will have a heavier memory
+	footprint than LineFunctionData for most common cases, perhaps
+	up to a factor 3 worse.  It should be faster, however, since
+	it does not require repeat scan-throughs of abs_species for
+	an entire array of line-records (so long as they are of the
+	same origin), and it is written to allow some more speed-ups
+	using the new C++ execution-policies (perhaps first in C++20,
+	with unseq policy).
+
+	* src/linefunctions.cc,h:  Removed line index and instead demand
+	pre-computed Zeeman information.  Zeeman strength is dealt with
+	elsewhere.
+	
+	* src/linerecord.cc,h:  Replace all of the old Zeeman stuff with
+	a new class that requires looping over polarization inside the
+	Zeeman routine.  Reduces memory footprint of Zeeman lines to less
+	than 1/3. Is not backwards compatible, though it should not 
+	change any existing setup that is creating the Zeeman line record
+	on the fly.
+	
+	* src/m_atmosphere.cc:  Changed t_nlte* variable in AtmFieldsCalc
+	since I noticed it was using the old name still.
+	
+	* src/m_radiation_field.cc:  Adopted to changes in 
+	linefunctions.cc,h.
+	
+	* src/m_zeeman.cc:  Adopted to use new Zeeman scheme.
+	
+	* src/quantum.h:  Noticed that QuantumContainer was dynamic container
+	even though its size is static.  So fixed it.
+	
+	* src/rational.cc,h:  Made Simplify() return itself.
+	
+	*src/test_propagationmatrix.cc:  Made a test to ensure internal
+	code reproduces paper results for Zeeman.
+	
+	* src/zeeman.cc:  Updated to deal with the new Zeeman::Model class.
+	
+	* src/zeemandata.cc,h:  Updated the Zeeman computations and placed
+	them in a namespace.  This is hard-coded into the cc-file with constants
+	from literature.  I would have preferred to have a way to input these
+	constants or change them on the fly but with ARTS way of dealing with
+	species-traits I don't think this will happen.  Thus it is easier to
+	just hard-copy these values whenever and ifever they are updated into
+	the cc-file.
+
 2019-08-01  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1264
