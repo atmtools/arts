@@ -1854,7 +1854,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
                                    0.0, 0.0, abs_lines_per_band[iband][iline].F(),
                                    GD_div_F0, X); // Derivatives need to be added...
           
-          Linefunctions::apply_linestrength_scaling_by_lte(F, dF, N, dN, abs_lines_per_band[iband][iline], abs_t[ip], iso_ratio, 1.0, QT, QT0);
+          Linefunctions::apply_linestrength_scaling_by_lte(F, dF, N, dN, abs_lines_per_band[iband][iline], abs_t[ip], iso_ratio, QT, QT0);
           
           for(Index ii = 0; ii < nf; ii++) {
             const Numeric& y = F[ii].real();

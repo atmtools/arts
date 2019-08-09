@@ -1,3 +1,17 @@
+2019-08-09  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1266
+
+	* src/m_linemixing.cc (abs_xsec_per_speciesAddLineMixedBands):
+
+	Adapt call to apply_linestrength_scaling_by_lte for removed
+	zeeman_scaling argument in previous commit. Fixes compilation if relmat
+	is enabled.
+
+	* src/quantum.h:
+
+	Add missing <array> include to fix compilation with clang.
+
 2019-08-08  Richard Larsson <larsson@mps.mpg.de>
 
 	* arts-2-3-1265

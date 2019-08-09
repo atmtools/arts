@@ -25,6 +25,7 @@
 #ifndef quantum_h
 #define quantum_h
 
+#include <array>
 #include <map>
 #include <iostream>
 #include <stdexcept>
