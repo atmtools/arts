@@ -136,7 +136,7 @@ public:
    */
   LineFunctionData(const Numeric& sgam, const Numeric& nself, const Numeric& agam, const Numeric& nair, const Numeric& psf) :
   do_line_in_standard_calculations(true), mself(true), mbath(true), mspecies(2), mtypes(2, {TemperatureType::T1, TemperatureType::T5}),
-  mdata(2), merrors(2, Vector(4, 0)), mp(LineShapeType::VP), mlm(LineMixingOrderType::None) {
+  mdata(2), mp(LineShapeType::VP), mlm(LineMixingOrderType::None) {
     mdata[0] = {sgam, nself, psf, nair};
     mdata[1] = {agam, nair, psf, nair};
   };
@@ -372,30 +372,6 @@ public:
   //! Access to air broadening exponent if AirBroadening was used as constructor else UB
   Numeric AirN() const;
   
-  //! Access to self broadening error if AirBroadening was used as constructor else UB
-  Numeric dSelfG0() const;
-  
-  //! Access to self broadening exponent error if AirBroadening was used as constructor else UB
-  Numeric dSelfN() const;
-  
-  //! Access to air broadening error if AirBroadening was used as constructor else UB
-  Numeric dAirG0() const;
-  
-  //! Access to air freq shifting error if AirBroadening was used as constructor else UB
-  Numeric dAirD0() const;
-  
-  //! Access to air broadening exponent error if AirBroadening was used as constructor else UB
-  Numeric dAirN() const;
-  
-  //! Access to Planetary broadening data if following old method else UB
-  Vector PlanetaryForeignG0() const;
-  
-  //! Access to Planetary freq shift data if following old method else UB
-  Vector PlanetaryForeignD0() const;
-  
-  //! Access to Planetary broadening exponent data if following old method else UB
-  Vector PlanetaryForeignN() const;
-  
   LineFunctionDataOutput AirBroadening(const Numeric& theta, const Numeric& P, const Numeric& self_vmr) const;
   
   //! Change line mixing model by replacing the current one with the new data and new temperature dependencies  
@@ -443,9 +419,6 @@ private:
   
   /** List of data per species, the internal vector is the sum of all temperature parameters required for line shape and line mixing computations */
   ArrayOfVector mdata;
-  
-  /** List of errors per species, same size as mdata or empty */
-  ArrayOfVector merrors;
   
   LineShapeType mp;
   

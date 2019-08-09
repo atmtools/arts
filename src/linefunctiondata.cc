@@ -1449,7 +1449,7 @@ std::tuple<LineFunctionData::LineMixingOrderType, Array<LineFunctionData::Temper
 
 //! Splits the old PressureBroadeningData
 std::tuple<LineFunctionData::LineShapeType,  Array<Array<LineFunctionData::TemperatureType>>, 
-ArrayOfVector, ArrayOfVector, ArrayOfSpeciesTag, bool, bool> splitPressureBroadeningData(const PressureBroadeningData& pb, const String& species)
+ArrayOfVector, ArrayOfSpeciesTag, bool, bool> splitPressureBroadeningData(const PressureBroadeningData& pb, const String& species)
 {
   const PressureBroadeningData::PB_Type pbType = pb.Type();
   
@@ -1459,7 +1459,6 @@ ArrayOfVector, ArrayOfVector, ArrayOfSpeciesTag, bool, bool> splitPressureBroade
   bool mself = true;
   bool mbath;
   ArrayOfVector mdata;
-  ArrayOfVector merrors;
   ArrayOfSpeciesTag mspecies;
   LineFunctionData::LineShapeType mp = LineFunctionData::LineShapeType::VP;
   Array<Array<LineFunctionData::TemperatureType>> mtypes;
@@ -1478,23 +1477,19 @@ ArrayOfVector, ArrayOfVector, ArrayOfSpeciesTag, bool, bool> splitPressureBroade
     case PressureBroadeningData::PB_AIR_BROADENING:
       mbath = true;
       mdata = ArrayOfVector(2, Vector(4));
-      merrors = ArrayOfVector(2, Vector(4, 0));
       mspecies = {SpeciesTag(species), SpeciesTag()};
       
       // For SELF broadening
-      mdata[0] = {pbData[0], pbData[1], pbData[4], pbData[3]}; 
-      merrors[0] = {pbData[5], pbData[6], 0, pbData[6]};
+      mdata[0] = {pbData[0], pbData[1], pbData[4], pbData[3]};
       
       // For AIR broadening
       mdata[1] = {pbData[2], pbData[3], pbData[4], pbData[3]};
-      merrors[1] = {pbData[7], pbData[8], pbData[9], pbData[8]};
       inx++;
       break;
     case PressureBroadeningData::PB_AIR_AND_WATER_BROADENING:
       mbath = true;
       if(speciesID == 2) { // Water
         mdata = ArrayOfVector(2, Vector(4));
-        merrors = ArrayOfVector(2, Vector(4, 0));
         mspecies = {SpeciesTag("H2O"), SpeciesTag()};
         
         mdata[0] = {pbData[6], pbData[7], pbData[8], pbData[7]};  // Self/water
@@ -1502,7 +1497,6 @@ ArrayOfVector, ArrayOfVector, ArrayOfSpeciesTag, bool, bool> splitPressureBroade
       }
       else { // not Water
         mdata = ArrayOfVector(3, Vector(4));
-        merrors = ArrayOfVector(3, Vector(4, 0));
         mspecies = {SpeciesTag(species), SpeciesTag("H2O"), SpeciesTag()};
         
         mdata[0] = {pbData[0], pbData[1], pbData[2], pbData[1]};  // self
@@ -1514,7 +1508,6 @@ ArrayOfVector, ArrayOfVector, ArrayOfSpeciesTag, bool, bool> splitPressureBroade
       mbath = false;
       if(speciesID not_eq -1) {
         mdata = ArrayOfVector(6, Vector(4));
-        merrors = ArrayOfVector(6, Vector(4, 0));
         mspecies.resize(6);
         
         if(speciesID == 0) { mdata[inx] = {pbData[1], pbData[8], pbData[14], pbData[8]};   mspecies[inx] = SpeciesTag("N2");  inx++; }// N2
@@ -1526,7 +1519,6 @@ ArrayOfVector, ArrayOfVector, ArrayOfSpeciesTag, bool, bool> splitPressureBroade
       }
       else {
         mdata = ArrayOfVector(7, Vector(4));
-        merrors = ArrayOfVector(7, Vector(4, 0));
         mspecies = {SpeciesTag(species), SpeciesTag("N2"), SpeciesTag("O2"), SpeciesTag("H2O"), SpeciesTag("CO2"), SpeciesTag("H2"), SpeciesTag("He")};
         
         mdata[inx] = {pbData[0], pbData[7], 0, pbData[7]}; // self
@@ -1550,7 +1542,7 @@ ArrayOfVector, ArrayOfVector, ArrayOfSpeciesTag, bool, bool> splitPressureBroade
   // Fix mtypes
   mtypes.resize(mdata.nelem(), {LineFunctionData::TemperatureType::T1, LineFunctionData::TemperatureType::T5});
   
-  return std::make_tuple(mp, mtypes, mdata, merrors, mspecies, mbath, mself);
+  return std::make_tuple(mp, mtypes, mdata, mspecies, mbath, mself);
 }
 
 
@@ -1560,26 +1552,22 @@ LineFunctionData::LineFunctionData(const PressureBroadeningData& pb,
                                    const Numeric& T0)
 {
   const std::tuple<LineMixingOrderType, Array<TemperatureType>, Vector, bool> LM = splitLineMixingData(lm, T0);
-  std::tuple<LineShapeType,  Array<Array<TemperatureType>>, ArrayOfVector, ArrayOfVector, ArrayOfSpeciesTag, bool, bool> PB = splitPressureBroadeningData(pb, species);
+  std::tuple<LineShapeType,  Array<Array<TemperatureType>>, ArrayOfVector, ArrayOfSpeciesTag, bool, bool> PB = splitPressureBroadeningData(pb, species);
   
   do_line_in_standard_calculations = std::get<3>(LM);
   mlm = std::get<0>(LM);
   mp = std::get<0>(PB);
-  mspecies = std::get<4>(PB);
-  mbath = std::get<5>(PB);
-  mself = std::get<6>(PB);
+  mspecies = std::get<3>(PB);
+  mbath = std::get<4>(PB);
+  mself = std::get<5>(PB);
   mtypes = std::get<1>(PB); for(auto&d: mtypes) for(auto& t: std::get<1>(LM)) d.push_back(t); if(mtypes.nelem() == 0) return;
   
   mdata.resize(mtypes.nelem());
-  merrors = ArrayOfVector(mtypes.nelem());
   for(Index i=0; i<mtypes.nelem(); i++) {
     mdata[i].resize(std::get<2>(PB)[i].nelem() + std::get<2>(LM).nelem());
-    merrors[i].resize(mdata[i].nelem());
     
     mdata[i][Range(0, std::get<2>(PB)[i].nelem())] = std::get<2>(PB)[i][Range(0, std::get<2>(PB)[i].nelem())];
     mdata[i][Range(std::get<2>(PB)[i].nelem(), joker)] = std::get<2>(LM);
-    
-    merrors[i][Range(0, std::get<3>(PB)[i].nelem())] = std::get<3>(PB)[i];
   }
 }
 
@@ -1715,126 +1703,6 @@ LineFunctionDataOutput LineFunctionData::AirBroadening(const Numeric& theta, con
   t.G0 = P * (pow(theta, an) * (1 - self_vmr) * aG0 + pow(theta, sn) * self_vmr * sG0);
   t.D0 = P * pow(theta, 1.5 * an + 0.25) * aD0;
   return t;
-}
-
-
-Numeric LineFunctionData::dAirG0() const
-{
-  if(mp == LineShapeType::VP)
-    if(mbath)
-      if(mtypes[mtypes.nelem()-1][0] == TemperatureType::T1 and mtypes[mtypes.nelem()-1][1] == TemperatureType::T5)
-        return merrors[mtypes.nelem()-1][0];
-  throw std::runtime_error("Unavailable error computations for select line.  Please use legacy line catalogs for intended calculations.");
-}
-
-
-Numeric LineFunctionData::dAirN() const
-{
-  if(mp == LineShapeType::VP)
-    if(mbath)
-      if(mtypes[mtypes.nelem()-1][0] == TemperatureType::T1 and mtypes[mtypes.nelem()-1][1] == TemperatureType::T5)
-        if(merrors[mtypes.nelem()-1][1] == merrors[mtypes.nelem()-1][3])
-          return merrors[mtypes.nelem()-1][1];
-  throw std::runtime_error("Unavailable error computations for select line.  Please use legacy line catalogs for intended calculations.");
-}
-
-
-Numeric LineFunctionData::dAirD0() const
-{
-  if(mp == LineShapeType::VP)
-    if(mbath)
-      if(mtypes[mtypes.nelem()-1][0] == TemperatureType::T1 and mtypes[mtypes.nelem()-1][1] == TemperatureType::T5)
-        return merrors[mtypes.nelem()-1][2];
-  throw std::runtime_error("Unavailable error computations for select line.  Please use legacy line catalogs for intended calculations.");
-}
-
-Numeric LineFunctionData::dSelfG0() const
-{
-  if(mp == LineShapeType::VP)
-    if(mself)
-      if(mtypes[0][0] == TemperatureType::T1 and mtypes[0][1] == TemperatureType::T5)
-        return merrors[0][0];
-  throw std::runtime_error("Unavailable error computations for select line.  Please use legacy line catalogs for intended calculations.");
-}
-
-
-Numeric LineFunctionData::dSelfN() const
-{
-  if(mp == LineShapeType::VP)
-    if(mbath)
-      if(mtypes[0][0] == TemperatureType::T1 and mtypes[0][1] == TemperatureType::T5)
-        if(merrors[0][1] == merrors[0][3])
-          return merrors[0][1];
-  throw std::runtime_error("Unavailable error computations for select line.  Please use legacy line catalogs for intended calculations.");
-}
-
-
-Vector LineFunctionData::PlanetaryForeignG0() const
-{
-  Vector v(6);
-  if(mspecies.nelem() == 7) {
-    for(Index i=1; i < 7; i++)
-      if(mtypes[i][0] == TemperatureType::T1)
-        v[i-1] = mdata[i][0];
-      else
-        throw std::runtime_error("Wrong type for wanted conversion, use a modern line catalog format.");
-  }
-  else {
-    ArrayOfSpeciesTag s({SpeciesTag("N2"), SpeciesTag("O2"), SpeciesTag("H2O"), SpeciesTag("CO2"), SpeciesTag("H2"), SpeciesTag("He")});
-    for(Index i=0; i<s.nelem(); i++) {
-      bool found = false;
-      for(Index j=0; j<mspecies.nelem(); j++) if(mspecies[j] == s[i]) if(mtypes[j][0] == TemperatureType::T1) {v[i]=mdata[j][0]; found=true; break;}
-      if(not found)
-        throw std::runtime_error("Wrong type for wanted conversion, use a modern line catalog format.");
-    }
-  }
-  return v;
-}
-
-
-Vector LineFunctionData::PlanetaryForeignD0() const
-{
-  Vector v(6);
-  if(mspecies.nelem() == 7) {
-    for(Index i=1; i < 7; i++)
-      if(mtypes[i][0] == TemperatureType::T1)
-        v[i-1] = mdata[i][2];
-      else
-        throw std::runtime_error("Wrong type for wanted conversion, use a modern line catalog format.");
-  }
-  else {
-    ArrayOfSpeciesTag s({SpeciesTag("N2"), SpeciesTag("O2"), SpeciesTag("H2O"), SpeciesTag("CO2"), SpeciesTag("H2"), SpeciesTag("He")});
-    for(Index i=0; i<s.nelem(); i++) {
-      bool found = false;
-      for(Index j=0; j<mspecies.nelem(); j++) if(mspecies[j] == s[i]) if(mtypes[j][0] == TemperatureType::T1) {v[i]=mdata[j][2]; found=true; break;}
-      if(not found)
-        throw std::runtime_error("Wrong type for wanted conversion, use a modern line catalog format.");
-    }
-  }
-  return v;
-}
-
-
-Vector LineFunctionData::PlanetaryForeignN() const
-{
-  Vector v(6);
-  if(mspecies.nelem() == 7) {
-    for(Index i=1; i < 7; i++)
-      if(mtypes[i][0] == TemperatureType::T1)
-        v[i-1] = mdata[i][1];
-      else
-        throw std::runtime_error("Wrong type for wanted conversion, use a modern line catalog format.");
-  }
-  else {
-    ArrayOfSpeciesTag s({SpeciesTag("N2"), SpeciesTag("O2"), SpeciesTag("H2O"), SpeciesTag("CO2"), SpeciesTag("H2"), SpeciesTag("He")});
-    for(Index i=0; i<s.nelem(); i++) {
-      bool found = false;
-      for(Index j=0; j<mspecies.nelem(); j++) if(mspecies[j] == s[i]) if(mtypes[j][0] == TemperatureType::T1) {v[i]=mdata[j][1]; found=true; break;}
-      if(not found)
-        throw std::runtime_error("Wrong type for wanted conversion, use a modern line catalog format.");
-    }
-  }
-  return v;
 }
 
 
@@ -2022,9 +1890,7 @@ void LineFunctionData::Remove(Index i)
 
   if(mbath and i==(mdata.nelem()-1))
     mbath=false;
-
-  if(merrors.nelem() == mdata.nelem())  // Is this available?  Then remove, otherwise ignore.
-    merrors.erase(merrors.begin()+i);
+  
   mdata.erase(mdata.begin()+i);
   mtypes.erase(mtypes.begin()+i);
   mspecies.erase(mspecies.begin()+i);

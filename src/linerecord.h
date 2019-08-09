@@ -249,13 +249,9 @@ public:
       mnlte_lower_index(-1),
       mevupp(-1.0),
       mnlte_upper_index(-1),
-      maux     (       ),
-      mdf      (-1.    ),
-      mdi0     (-1.    ),
       ma( NAN ),
       mgupper( NAN ),
       mglower( NAN ),
-      mquantum_numbers_str(""),
       mcutoff(-1.0),
       mlinemixing_limit(-1.0),
       mmirroring(MirroringType::None),
@@ -279,7 +275,7 @@ public:
               Numeric               nair,
               Numeric               nself,
               Numeric               /*tgam*/, 
-              const ArrayOfNumeric& aux,
+              const ArrayOfNumeric& /*aux*/,
               Numeric               /* df */,
               Numeric               /* di0 */,
               Numeric               /* dagam */,
@@ -297,13 +293,9 @@ public:
       mnlte_lower_index(-1),
       mevupp(-1.0),
       mnlte_upper_index(-1),
-      maux     (aux        ),
-      mdf      (-1.    ),
-      mdi0     (-1.    ),
       ma( NAN ),
       mgupper( NAN ),
       mglower( NAN ),
-      mquantum_numbers_str(""),
       mcutoff(-1.0),
       mlinemixing_limit(-1.0),
       mmirroring(MirroringType::None),
@@ -418,37 +410,6 @@ public:
   /** SGAM temperature exponent (dimensionless): */
   Numeric Nself() const { return mlinefunctiondata.SelfN(); }
 
-  /** Number of auxiliary parameters. This function is actually
-      redundant, since the number of auxiliary parameters can also be
-      obtained directly with Aux.nelem(). I just added the function in
-      order to have consistency of the interface with the catalgue
-      format. */
-  Index Naux() const   { return maux.nelem(); }
-
-  /** Auxiliary parameters. */
-  const ArrayOfNumeric& Aux() const { return maux; }
-
-  /** Accuracy for line position in <b> Hz </b>: */
-  Numeric dF() const  { return mdf; }
-
-  /** Accuracy for line intensity in <b> relative value </b>: */
-  Numeric dI0() const  { return mdi0; }
-
- /** Accuracy for air broadened width in <b> relative value </b>: */
-  Numeric dAgam() const  { return mlinefunctiondata.dAirG0(); }
-
-  /** Accuracy for self broadened width in <b> relative value </b>: */
-  Numeric dSgam() const  { return mlinefunctiondata.dSelfG0(); }
-
-  /** Accuracy for AGAM temperature exponent in <b> relative value </b>: */
-  Numeric dNair() const  { return mlinefunctiondata.dAirN(); }
-
-  /** Accuracy for SGAM temperature exponent in <b> relative value</b>: */
-  Numeric dNself() const { return mlinefunctiondata.dSelfN(); }
-
-  /** Accuracy for pressure shift in <b> relative value </b>: */
-  Numeric dPsf() const { return mlinefunctiondata.dAirD0(); }
-
   /** ARTSCAT-4/5 Einstein A-coefficient in <b> 1/s </b>: */
   Numeric A() const { return ma; }
   
@@ -493,31 +454,6 @@ public:
   
   /** ARTSCAT-4/5 Lower state stat. weight: */
   Numeric G_lower() const { return mglower; }
-  
-  /** ARTSCAT-4/5 foreign broadening parameters in <b> Hz/Pa </b>: */
-  const Vector Gamma_foreign() const { return mlinefunctiondata.PlanetaryForeignG0(); }
-  const Vector N_foreign() const { return mlinefunctiondata.PlanetaryForeignN(); }
-  const Vector Delta_foreign() const { return mlinefunctiondata.PlanetaryForeignD0(); }
-  
-  /** ARTSCAT-4/5 foreign broadening parameters */
-  Numeric Gamma_foreign(const Index i) const { return Gamma_foreign()[i]; }
-  Numeric N_foreign(const Index i) const { return N_foreign()[i]; }
-  Numeric Delta_foreign(const Index i) const { return Delta_foreign()[i]; }
-  
-  /** Upper state global quanta */
-  const String& Upper_GQuanta() const { return mupper_gquanta; }
-
-  /** Lower state global quanta */
-  const String& Lower_GQuanta() const { return mlower_gquanta; }
-
-  /** Upper state local quanta */
-  const String& Upper_LQuanta() const { return mupper_lquanta; }
-
-  /** Lower state local quanta */
-  const String& Lower_LQuanta() const { return mlower_lquanta; }
-
-  /** String with quantum numbers */
-  const String& QuantumNumbersString() const { return mquantum_numbers_str; }
 
   /** Quantum numbers */
   void SetQuantumNumberLower(const Index i, const Rational r) { mqid.LowerQuantumNumbers().Set(i,r); }
@@ -1046,15 +982,6 @@ private:
   // Upper state vibrational energy index:
   Index mnlte_upper_index;  // NOTE: Not stored in binary data
   
-  // Array to hold auxiliary parameters:
-  ArrayOfNumeric maux;  // NOTE: Not stored in binary data
-  
-  // Accuracy for line center frequency in Hz:
-  Numeric mdf;  // NOTE: Not stored in binary data
-  
-  // Accuracy for line intensity in %:
-  Numeric mdi0;  // NOTE: Not stored in binary data
-  
   // Einstein A-coefficient in 1/s:
   Numeric ma;
   
@@ -1063,21 +990,6 @@ private:
   
   // Lower state stat. weight:
   Numeric mglower;
-
-  /** Upper state global quanta */
-  String mupper_gquanta;  // NOTE: Not stored in binary data
-  
-  /** Lower state global quanta */
-  String mlower_gquanta;  // NOTE: Not stored in binary data
-  
-  /** Upper state local quanta */
-  String mupper_lquanta;  // NOTE: Not stored in binary data
-  
-  /** Lower state local quanta */
-  String mlower_lquanta;  // NOTE: Not stored in binary data
-
-  /** String with quantum numbers for ARTSCAT-4 */
-  String mquantum_numbers_str;  // NOTE: Not stored in binary data
   
   /** Line function data (pressure broadening and line mixing) */
   LineFunctionData mlinefunctiondata;

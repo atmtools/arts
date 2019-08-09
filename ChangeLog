@@ -1,3 +1,55 @@
+2019-08-09  Richard Larsson <larsson@mps.mpg.de>
+
+	* arts-2-3-1267
+	
+	This change removes parts of the LineRecord that only took space
+	and was left unused in the code.  This includes quantum number
+	strings, line error parameters, and auxillary data.  The quantum
+	number strings are parsed for select species already, so the
+	species of interst can still access this data.  If retrieval errors
+	depend on line shape errors then we need a line record that contains
+	the errors to be used in OEM to setup the covariance matrix.  If we
+	want this to work automatically, major redesigns are required anyways.
+	The main reduction in functionality comes from auxillary data, which
+	seems to have been an old attempt at implementing line mixing?
+	It looks very odd and I have no way to confirm whether it works 
+	or what it was supposed to do.  It could cause one runtime error
+	if it had data, but the rest of the data was never used so it 
+	should be safe to remove.
+	
+	Also, this version stops printing of ARTSCAT versions that are not
+	version 5.
+	
+	Remaining work to improve LineRecord:  Decouple NLTE without
+	losing code-readability.  Problem:  Each line has its own
+	'temperature', based on each energy state having a different
+	distribution.  Either, each line has to store their own 
+	level's distributions, or the NLTE data needs to be placed in a
+	python-like dictionary to be accessed by quantum numbers efficiently.
+	Presently, each line stores a key to the position of its energy level
+	distribution in the NLTE field.  I think a map-would be better but
+	cannot write such code myself since I don't understand how to make
+	it efficient.
+	
+	* src/linefunctiondata.cc,h:  Remove all access to merrors and to
+	much of the ARTSCAT4 printing.
+	
+	* src/linerecord.cc,h:  Remove all errors and strings and Arrays
+	from line record class.  Also removed printing of artscat 3 and 4,
+	setting their version to 5 to print as this version.  No reading is
+	affected by this change, though not all that is read is kept around
+	
+	* src/m_abs.cc:  Removed dablings with line shape parameters for O2.
+	I have no idea what the code I commented out actually does, because
+	there seems to be the intent that some data should exist.  However
+	said data is never accessed afterwards in the code.  It seems very
+	much like a failed or abandoned attempt at line mixing implementations,
+	where the tests for the code working were put in place but to code
+	actually doing the work was left out.  I left the code in, commented
+	out if someone can remember how and why it is there.  In case there
+	are someone using data that relies on this part working, we can
+	translate that to a new format...
+
 2019-08-09  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1266

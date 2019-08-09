@@ -463,8 +463,6 @@ bool LineRecord::ReadFromHitran2001Stream(istream& is, const Verbosity& verbosit
   Index df;
   // Extract HITRAN value:
   extract(df,line,1);
-  // Convert it to ARTS units (Hz)
-  convHitranIERF(mdf,df);
   }
 
   // Accuracy index for intensity reference
@@ -472,7 +470,6 @@ bool LineRecord::ReadFromHitran2001Stream(istream& is, const Verbosity& verbosit
   Index di0;
   // Extract HITRAN value:
     extract(di0,line,1);
-    convHitranIERSH(mdi0,di0);
   }
 
   // Accuracy index for halfwidth reference
@@ -924,8 +921,6 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
   Index df;
   // Extract HITRAN value:
   extract(df,line,1);
-  // Convert it to ARTS units (Hz)
-  convHitranIERF(mdf,df);
   }
 
   // Accuracy index for intensity reference
@@ -933,7 +928,6 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
   Index di0;
   // Extract HITRAN value:
     extract(di0,line,1);
-    convHitranIERSH(mdi0,di0);
   }
 
   // Accuracy index for halfwidth reference
@@ -942,12 +936,6 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
     Index dgam;
     // Extract HITRAN value:
     extract(dgam,line,1);
-    //Convert to ARTS units (%)
-    convHitranIERSH(dagam,dgam);
-    dsgam = dagam;
-    // convHitranIERSH(mdsgam,dgam);
-    // convHitranIERSH(mdnair,dgam);
-    // convHitranIERSH(mdnself,dgam);
   }
  
   
@@ -1471,28 +1459,24 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
 
   // Upper state global quanta
   {
-    mupper_gquanta = line.substr(0,15);
     Index eu;
     extract(eu,line,15);
   }
 
   // Lower state global quanta
   {
-    mlower_gquanta = line.substr(0,15);
     Index el;
     extract(el,line,15);
   }
 
   // Upper state local quanta
   {
-    mupper_lquanta = line.substr(0,15);
     Index eul;
     extract(eul,line,15);
   }
 
   // Lower state local quanta
   {
-    mlower_lquanta = line.substr(0,15);
     Index ell;
     extract(ell,line,15);
   }
@@ -1507,8 +1491,6 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
     Index df;
     // Extract HITRAN value:
     extract(df,line,1);
-    // Convert it to ARTS units (Hz)
-    convHitranIERF(mdf,df);
   }
 
   // Accuracy index for intensity
@@ -1516,8 +1498,6 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
     Index di0;
     // Extract HITRAN value:
     extract(di0,line,1);
-    //Convert to ARTS units (%)
-    convHitranIERSH(mdi0,di0);
   }
 
   // Accuracy index for air-broadened halfwidth
@@ -1526,8 +1506,6 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
     Index dgam;
     // Extract HITRAN value:
     extract(dgam,line,1);
-    //Convert to ARTS units (%)
-    convHitranIERSH(dagam,dgam);
   }
 
   // Accuracy index for self-broadened half-width
@@ -1536,8 +1514,6 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
     Index dgam;
     // Extract HITRAN value:
     extract(dgam,line,1);
-    //Convert to ARTS units (%)
-    convHitranIERSH(dsgam,dgam);
   }
   
   // Accuracy index for temperature-dependence exponent for agam
@@ -1546,8 +1522,6 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
     Index dn;
     // Extract HITRAN value:
     extract(dn,line,1);
-    //Convert to ARTS units (%)
-    convHitranIERSH(dnair,dn);
   }
 
   // Accuracy index for temperature-dependence exponent for sgam
@@ -1560,10 +1534,6 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
     Index dpsfi;
     // Extract HITRAN value (given in cm-1):
     extract(dpsfi,line,1);
-    // Convert it to ARTS units (Hz)
-    convHitranIERF(dpsf,dpsfi);
-    // ARTS wants this error in %
-    dpsf = dpsf / mf;
   }
 
   // These were all the parameters that we can extract from
@@ -1821,8 +1791,6 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
     // Extract MYTRAN postion accuracy:
     Numeric df;
     extract(df,line,8);
-    //  ARTS accuracy of line position  in Hz:
-    mdf = df * 1E6;
   } 
   
   // Intensity.
@@ -1955,8 +1923,6 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
   Index di0;
   // Extract MYTRAN value:
   extract(di0,line,1);
-  //convert to ARTS units (%)
-  convMytranIER(mdi0,di0);
   }
 
   // Accuracy index for AGAM
@@ -1965,9 +1931,6 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
   Index dgam;
   // Extract MYTRAN value:
   extract(dgam,line,1);
-  //convert to ARTS units (%)
-  convMytranIER(dagam,dgam);
-  dsgam=dagam;
   }
 
   // Accuracy index for NAIR 
@@ -1976,9 +1939,6 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
   Index dair;
   // Extract MYTRAN value:
   extract(dair,line,1); 
-  //convert to ARTS units (%);
-  convMytranIER(dnair,dair);
-  dnself=dnair;
   }
 
 
@@ -2121,8 +2081,6 @@ bool LineRecord::ReadFromJplStream(istream& is, const Verbosity& verbosity)
   {
     Numeric df;
     extract(df,line,8);
-    //convert to ARTS units (Hz)
-    mdf = df * 1E6; 
   } 
   
   // Intensity.
@@ -2281,7 +2239,7 @@ bool LineRecord::ReadFromArtscat3Stream(istream& is, const Verbosity& verbosity)
   // Remember if this stuff has already been initialized:
   static bool hinit = false;
   
-  mversion = 3;
+  mversion = 5;
   
   if ( !hinit )
   {
@@ -2425,6 +2383,7 @@ bool LineRecord::ReadFromArtscat3Stream(istream& is, const Verbosity& verbosity)
     icecream >> naux;
     
     // resize the aux array and read it
+    ArrayOfNumeric maux;
     maux.resize(naux);
     
     for (Index j = 0; j<naux; j++)
@@ -2437,6 +2396,7 @@ bool LineRecord::ReadFromArtscat3Stream(istream& is, const Verbosity& verbosity)
     Numeric dagam,dsgam,dnair,dnself,dpsf;
     try
     {
+      Numeric mdf, mdi0;
       icecream >> mdf;
       icecream >> mdi0;
       icecream >> dagam;
@@ -2450,8 +2410,6 @@ bool LineRecord::ReadFromArtscat3Stream(istream& is, const Verbosity& verbosity)
       // Nothing to do here, the accuracies are optional, so we
       // just set them to -1 and continue reading the next line of
       // the catalogue
-      mdf      = -1;
-      mdi0     = -1;
       dagam   = -1;
       dsgam   = -1;
       dnair   = -1;
@@ -2494,7 +2452,7 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
   
   PressureBroadeningData pb;
 
-  mversion = 4;
+  mversion = 5;
   
   if ( !hinit )
     {
@@ -2660,6 +2618,7 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
       pb.SetPlanetaryBroadeningFromCatalog(sgam,nself,gamma_foreign,n_foreign,delta_foreign);
       
       // Remaining entries are the quantum numbers
+      String mquantum_numbers_str;
       getline(icecream, mquantum_numbers_str);
 
       mquantum_numbers_str.trim();
@@ -3067,91 +3026,6 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
 
   switch (lr.Version()) {
     case 3:
-      os << "@"
-      << " " << lr.Name  ()
-      << " "
-      << setprecision(precision)
-      <<        lr.F     ()
-      << " " << lr.Psf   ()
-      << " " << lr.I0    ()
-      << " " << lr.Ti0   ()
-      << " " << lr.Elow  ()
-      << " " << lr.Agam  ()
-      << " " << lr.Sgam  ()
-      << " " << lr.Nair  ()
-      << " " << lr.Nself ()
-      << " " << lr.Ti0   () // Used to be Tgam. It is deprecated to have different temperatures for different parameters.
-      << " " << lr.Naux  ()
-      << " " << lr.dF    ()
-      << " " << lr.dI0   ()
-      << " " << lr.dAgam ()
-      << " " << lr.dSgam ()
-      << " " << lr.dNair ()
-      << " " << lr.dNself()
-      << " " << lr.dPsf  ();
-
-      // Added new lines for the spectroscopic parameters accuracies.
-      for ( Index i=0; i<lr.Naux(); ++i )
-        os << " " << lr.Aux()[i];
-      
-      break;
-      
-    case 4:
-      ls << "@"
-         << " " << lr.Name  ()
-         << " "
-         << setprecision(precision)
-         <<        lr.F()
-         << " " << lr.I0()
-         << " " << lr.Ti0()
-         << " " << lr.Elow()
-         << " " << lr.A()
-         << " " << lr.G_upper()
-         << " " << lr.G_lower()
-         << " " << lr.Sgam();
-      
-      for (Index s=0; s<6; ++s)
-        ls << " " << lr.Gamma_foreign(s);
-//      << " " << lr.Gamma_foreign(LineRecord::SPEC_POS_N2)
-//      << " " << lr.Gamma_foreign(LineRecord::SPEC_POS_O2)
-//      << " " << lr.Gamma_foreign(LineRecord::SPEC_POS_H2O)
-//      << " " << lr.Gamma_foreign(LineRecord::SPEC_POS_CO2)
-//      << " " << lr.Gamma_foreign(LineRecord::SPEC_POS_H2)
-//      << " " << lr.Gamma_foreign(LineRecord::SPEC_POS_He)
-
-      ls << " " << lr.Nself();
-      for (Index s=0; s<6; ++s)
-        ls << " " << lr.N_foreign(s);
-//      << " " << lr.N_foreign(LineRecord::SPEC_POS_N2)
-//      << " " << lr.N_foreign(LineRecord::SPEC_POS_O2)
-//      << " " << lr.N_foreign(LineRecord::SPEC_POS_H2O)
-//      << " " << lr.N_foreign(LineRecord::SPEC_POS_CO2)
-//      << " " << lr.N_foreign(LineRecord::SPEC_POS_H2)
-//      << " " << lr.N_foreign(LineRecord::SPEC_POS_He)
-
-      for (Index s=0; s<6; ++s)
-        ls << " " << lr.Delta_foreign(s);
-//      << " " << lr.Delta_foreign(LineRecord::SPEC_POS_N2)
-//      << " " << lr.Delta_foreign(LineRecord::SPEC_POS_O2)
-//      << " " << lr.Delta_foreign(LineRecord::SPEC_POS_H2O)
-//      << " " << lr.Delta_foreign(LineRecord::SPEC_POS_CO2)
-//      << " " << lr.Delta_foreign(LineRecord::SPEC_POS_H2)
-//      << " " << lr.Delta_foreign(LineRecord::SPEC_POS_He)
-
-        // Do not write quantas from Hitran into ARTSCAT-4
-        // because they're not compatible with our format
-        // Only quantum numbers in Agnes' format are valid
-//      ls << " " << lr.Upper_GQuanta()
-//         << " " << lr.Lower_GQuanta()
-//         << " " << lr.Upper_LQuanta()
-//         << " " << lr.Lower_LQuanta();
-
-      if (lr.QuantumNumbersString().nelem())
-          ls << " " << lr.QuantumNumbersString();
-      os << ls.str();
-      
-      break;
-
       case 5:
           ls << "@"
           << " " << lr.Name  ()
@@ -3188,11 +3062,7 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
           }
           
           // Write Zeeman Effect Data
-          {
-            auto ze = lr.ZeemanModel();
-            ls << " ZM " << ze;
-            
-          }
+          ls << " ZM " << lr.ZeemanModel();
           
           // Line shape modifications
           {

@@ -1838,27 +1838,27 @@ void abs_xsec_per_speciesAddLines(// WS Output:
 
           // First of all, let's find out if the species we are
           // dealing with is oxygen. 
-          if ( "O2" == species_name )
-            {
-              // Do we have overlap parameters in the aux fields of
-              // the LineRecord?
-              if ( 0 != ll[0].Naux() )
-                {
-                  // Yes. So let's make sure that the lineshape is one
-                  // that can use these parameters. 
-                  if ( "Rosenkranz_Voigt_Drayson" != lineshape_name &&
-                       "Rosenkranz_Voigt_Kuntz6"  != lineshape_name    )
-                    {
-                      ostringstream os;
-                      os 
-                        << "You are using a line catalogue that contains auxiliary parameters to\n"
-                        << "take care of overlap for oxygen lines. But you are not using a\n"
-                        << "lineshape that uses these parameters. Use Rosenkranz_Voigt_Drayson or\n"
-                        << "Rosenkranz_Voigt_Kuntz6.";
-                      throw runtime_error(os.str());                  
-                    }
-                }               
-            }
+//           if ( "O2" == species_name )
+//             {
+//               // Do we have overlap parameters in the aux fields of
+//               // the LineRecord?
+//               if ( 0 != ll[0].Naux() )
+//                 {
+//                   // Yes. So let's make sure that the lineshape is one
+//                   // that can use these parameters. 
+//                   if ( "Rosenkranz_Voigt_Drayson" != lineshape_name &&
+//                        "Rosenkranz_Voigt_Kuntz6"  != lineshape_name    )
+//                     {
+//                       ostringstream os;
+//                       os 
+//                         << "You are using a line catalogue that contains auxiliary parameters to\n"
+//                         << "take care of overlap for oxygen lines. But you are not using a\n"
+//                         << "lineshape that uses these parameters. Use Rosenkranz_Voigt_Drayson or\n"
+//                         << "Rosenkranz_Voigt_Kuntz6.";
+//                       throw runtime_error(os.str());                  
+//                     }
+//                 }               
+//             }
 
           // Now we go the opposite way. Let's see if the Rosenkranz
           // lineshapes are used.
@@ -1880,7 +1880,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                 {
                   // Do we have overlap parameters in the aux fields of
                   // the LineRecord?
-                  if ( 0 == ll[0].Naux() )
+//                   if ( 0 == ll[0].Naux() )
                     {
                       ostringstream os;
                       os 
