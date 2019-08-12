@@ -16,8 +16,8 @@ BUILDING ARTS
 
 Build Prerequisites:
 
-gcc/g++ (or llvm/clang)
-cmake (>=2.8.3)
+gcc/g++ >=8 (or llvm/clang >=8) older versions might work, but are untested
+cmake (>=3.1.0)
 zlib
 blas
 lapack

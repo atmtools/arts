@@ -24,17 +24,6 @@ matrix:
             - gfortran-9
       env:
         - MATRIX_EVAL="CC=gcc-9 && CXX=g++-9 && FC=gfortran-9 && WITH_FORTRAN=1"
-    - name: GCC 4.9 w/ Fortran
-      os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-4.9
-            - gfortran-4.9
-      env:
-         - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9 && FC=gfortran-4.9 && WITH_FORTRAN=1"
 
 before_install:
   - eval "${MATRIX_EVAL}"
