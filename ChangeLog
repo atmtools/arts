@@ -1,3 +1,27 @@
+2019-08-13  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1269
+
+	* CMakeLists.txt, cmake/modules/ArtsVersion.cmake,
+	cmake/scripts/update_auto_version_txt.cmake:
+
+	Add support for generating the ARTS version number once we have moved
+	to git and the ChangeLog will be dropped.
+
+	Main version will be read from VERSION file in the top level source
+	directory. If a .git directory is found, the hash of the current commit
+	will be appended to the version number for reference (and displayed in
+	arts -v). In addition, if the working copy contains local changes, a
+	'dirty' flag is appended to the version string.
+
+	With git, the main VERSION will not be touched by developers anymore on
+	every commit. As git is decentralized this will be impossible since
+	there is no sequential order in commits across forks anymore. (And that
+	is a _good_ thing :-) ).
+
+	In the future, the main version will be increased in the master branch
+	after new features have been added via pull requests.
+
 2019-08-12  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1268

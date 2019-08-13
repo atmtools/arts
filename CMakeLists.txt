@@ -369,10 +369,9 @@ endif (WITH_HITRAN2008)
 string (TOUPPER ${CMAKE_BUILD_TYPE} MY_BUILD_TYPE)
 set (COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${MY_BUILD_TYPE}}")
 
-add_custom_command (
-  OUTPUT auto_version.txt
+add_custom_target (
+  auto_version.txt
   COMMAND ${CMAKE_COMMAND} -D "ARTS_SOURCE_DIR:STRING=\"${CMAKE_SOURCE_DIR}\"" -P ${CMAKE_SOURCE_DIR}/cmake/scripts/update_auto_version_txt.cmake
-  DEPENDS ChangeLog
 )
 
 add_custom_target (UpdateAutoVersion ALL DEPENDS auto_version.txt)
