@@ -1,0 +1,14 @@
+*.plist
+*~
+.*.swp
+.DS_Store
+.svnignore
+/*.code-workspace
+/*.kdev4
+/.idea
+/.mailmap
+/.vscode
+/3rdparty/wigner/wigxjpf/gen/
+/build*/
+/controlfiles/**/*.rep
+heaptrack.*.gz

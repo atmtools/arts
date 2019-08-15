@@ -1,5 +1,16 @@
 2019-08-15  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-1272
+
+	* .gitignore:
+
+	Add ignore file for git based on a cleaned up version of
+	'svn propget -R svn:ignore'.
+
+	* README.md: Add mkdir command for build dir.
+
+2019-08-15  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-1271
 
 	* README.md: Convert README to Markdown.

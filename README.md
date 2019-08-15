@@ -37,11 +37,10 @@ To build the documentation you also need:
 Using cmake
 -----------
 
-Here are the steps to use cmake to build ARTS.
-
-Go into the build directory in the arts directory and run:
+Here are the steps to use cmake to build ARTS:
 
 ```bash
+mkdir build
 cd build
 cmake ..
 make
