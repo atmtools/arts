@@ -1,3 +1,29 @@
+2019-08-15  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-2-3-1270
+
+	* cmake/modules/ArtsVersion.cmake:
+
+	Change the format of how the commit hash is presented in the 'arts -v'
+	output. Appending it directly to the version number raised the concern
+	that the hash is now part of the version number. This is not the case.
+
+	The current arts version will still be major.minor.micro as it has
+	always been.
+
+	Note that a commit is not a version. The version number will be
+	increased after new features or bug fixes have been merged into the
+	main repository.
+
+	arts -v output will now look like this:
+
+	arts-2.3.1269 (git: fc6d7a91-dirty) (compiled Thu Aug 15 09:02:07 2019)
+	[...]
+
+	The hash is only presented there as an additional information for
+	tracking down issues during development, to identify commits in
+	forks and branches and whether the working copy contains local changes.
+
 2019-08-13  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1269

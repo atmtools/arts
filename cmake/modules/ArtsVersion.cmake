@@ -24,7 +24,7 @@ if (IS_DIRECTORY "${GIT_DIR}")
 endif()
 
 if (GIT_COMMIT_HASH)
-  set (${VERSION_NUMBER} "${ARTS_FULL_VERSION}-${GIT_COMMIT_HASH}")
+  set (${VERSION_NUMBER} "${ARTS_FULL_VERSION} (git: ${GIT_COMMIT_HASH})")
 else()
   set (${VERSION_NUMBER} "${ARTS_FULL_VERSION}")
 endif()
