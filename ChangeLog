@@ -1,5 +1,18 @@
 2019-08-15  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-1271
+
+	* README.md: Convert README to Markdown.
+
+	* CONTRIBUTING.md:
+
+	Add documentation on how to contribute to ARTS once we've moved to
+	GitHub.
+
+	* GITHUB-INTRO.md: Basic info on getting started with git/GitHub.
+
+2019-08-15  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-1270
 
 	* cmake/modules/ArtsVersion.cmake:
