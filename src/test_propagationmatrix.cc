@@ -146,6 +146,7 @@ void test_matrix_buildup()
 
 void test_linefunctionsdata()
 {
+#ifndef NEWARTSCAT
   define_species_data();
   define_species_map();
   
@@ -190,16 +191,17 @@ void test_linefunctionsdata()
   
   X = test.GetParams(296., 247., 2., 0.2, vmrs, aspt);
   std::cout << X.G0 << " " << X.D0 << " " << X.G2 << " " << X.D2 << " " << X.FVC << " " << X.ETA << " " << X.Y << " " << X.G << " " << X.DV << "\n";
+#endif
 }
 
 
 void test_speed_of_pressurebroadening()
 {
+#ifndef NEWARTSCAT 
   constexpr bool test_new=true;
   
   define_species_data();
   define_species_map();
-  
   const Index N=5000000;
   const Numeric T0=100, T1=300, dT=(T1-T0)/N;
   const Numeric P = 133.33;
@@ -261,6 +263,7 @@ void test_speed_of_pressurebroadening()
     printf("[%f, %f, %f, %f, %f, %f, %f, %f, %f], \n", 
              G0[i], D0[i], G2[i], D2[i], FVC[i], ETA[i], Y[i], G[i], DV[i]);
   printf("]).T\n");
+#endif
 }
 
 

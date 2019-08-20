@@ -344,7 +344,6 @@ bool LineRecord::ReadFromHitran2001Stream(istream& is, const Verbosity& verbosit
     Numeric r;
     extract(r,line,10);
   }
-  
 
   // Air broadening parameters.
   Numeric agam,sgam;
@@ -382,7 +381,6 @@ bool LineRecord::ReadFromHitran2001Stream(istream& is, const Verbosity& verbosit
     //    cout << "agam, sgam = " << magam << ", " << msgam << endl;
   }
 
-
   // Lower state energy.
   {
     // HITRAN parameter is in wavenumbers (cm^-1).
@@ -395,7 +393,6 @@ bool LineRecord::ReadFromHitran2001Stream(istream& is, const Verbosity& verbosit
     melow = wavenumber_to_joule(melow);
   }
 
-  
   // Temperature coefficient of broadening parameters.
   Numeric nair,nself;
   {
@@ -473,39 +470,26 @@ bool LineRecord::ReadFromHitran2001Stream(istream& is, const Verbosity& verbosit
   }
 
   // Accuracy index for halfwidth reference
-  Numeric dsgam,dagam;
   {
     Index dgam;
     // Extract HITRAN value:
     extract(dgam,line,1);
-    //Convert to ARTS units (%)
-    convHitranIERSH(dagam,dgam);
-    dsgam = dagam;
-    // convHitranIERSH(mdsgam,dgam);
-    // convHitranIERSH(mdnair,dgam);
-    // convHitranIERSH(mdnself,dgam);
   }
-
-  // Accuracy for pressure shift
-  // This is missing in HITRAN catalogue and it is set to -1.
-    Numeric dpsf =-1;
 
   // These were all the parameters that we can extract from
   // HITRAN. However, we still have to set the reference temperatures
   // to the appropriate value:
 
   // Reference temperature for Intensity in K.
-  // (This is fix for HITRAN)
   mti0 = 296.0;
-
-  // Reference temperature for AGAM and SGAM in K.
-  // (This is also fix for HITRAN)
-  //mtgam = 296.0; NOTE: Deprecated
   
-  // Assume that error index on dnair and dnself is unknown
-  PressureBroadeningData pb;
-  pb.SetAirBroadeningFromCatalog(sgam,nself,agam,nair,psf,dsgam,-1,dagam,-1,dpsf);
-  mlinefunctiondata = LineFunctionData(pb, LineMixingData(), mqid.SpeciesName(), mti0);
+  // Set line shape computer
+  #ifndef NEWARTSCAT
+  mlinefunctiondata = LineFunctionData(sgam, nself, agam, nair, psf);
+  #else
+  mlineshapemodel = LineShape::Model(sgam, nself, agam, nair, psf);
+  mstandard = true;
+  #endif
 
   // That's it!
   return false;
@@ -956,8 +940,10 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
   //mtgam = 296.0; NOTE: Deprecated
   
   // Assume that error index on dnair and dnself is unknown
+  #ifndef NEWARTSCAT
   PressureBroadeningData pb;
   pb.SetAirBroadeningFromCatalog(sgam,nself,agam,nair,psf,dsgam,-1,dagam,-1,dpsf);
+  #endif
   
   // Skip four
   {
@@ -979,7 +965,12 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
       getline(is,line);
     else // the line is done and we are happy to leave
     {
+      #ifndef NEWARTSCAT
       mlinefunctiondata = LineFunctionData(pb, LineMixingData(), mqid.SpeciesName(), mti0);
+      #else
+      mlineshapemodel = LineShape::Model(sgam, nself, agam, nair, psf);
+      mstandard = true;
+      #endif
       return false;
     }
   }
@@ -1058,16 +1049,36 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
     extract(test,line,2);
     if( test == -1 )
     {
+      #ifndef NEWARTSCAT
       LineMixingData lm;
       lm.SetLBLRTMFromTheirCatalog(T,Y,G);
+      
       mlinefunctiondata = LineFunctionData(pb, lm, mqid.SpeciesName(), mti0);
+      #else
+      mlineshapemodel = LineShape::Model(sgam, nself, agam, nair, psf,
+                                         {T[0], T[1], T[2], T[3],
+                                          Y[0], Y[1], Y[2], Y[3],
+                                          G[0], G[1], G[2], G[3]});
+      mstandard = true;
+      #endif
+      
       return false;
     }
     else if( test == -3 )
     {
+      #ifndef NEWARTSCAT
       LineMixingData lm;
       lm.SetLBLRTM_O2NonResonantFromTheirCatalog(T,Y,G); 
+      
       mlinefunctiondata = LineFunctionData(pb, lm, mqid.SpeciesName(), mti0);
+      #else
+      mlineshapemodel = LineShape::Model(sgam, nself, agam, nair, psf,
+                                         {T[0], T[1], T[2], T[3],
+                                          Y[0], Y[1], Y[2], Y[3],
+                                          G[0], G[1], G[2], G[3]});
+      mstandard = true;
+      #endif
+      
       return false;
     }
     else
@@ -1501,7 +1512,6 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
   }
 
   // Accuracy index for air-broadened halfwidth
-  Numeric dagam;
   {
     Index dgam;
     // Extract HITRAN value:
@@ -1509,7 +1519,6 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
   }
 
   // Accuracy index for self-broadened half-width
-  Numeric dsgam;
   {
     Index dgam;
     // Extract HITRAN value:
@@ -1517,19 +1526,13 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
   }
   
   // Accuracy index for temperature-dependence exponent for agam
-  Numeric dnair;
   {
     Index dn;
     // Extract HITRAN value:
     extract(dn,line,1);
   }
 
-  // Accuracy index for temperature-dependence exponent for sgam
-  // This is missing in HITRAN catalogue and is set to -1.
-  Numeric dnself =-1;
-
   // Accuracy index for pressure shift
-  Numeric dpsf;
   {
     Index dpsfi;
     // Extract HITRAN value (given in cm-1):
@@ -1541,15 +1544,15 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
   // to the appropriate value:
 
   // Reference temperature for Intensity in K.
-  // (This is fix for HITRAN 2004)
   mti0 = 296.0;
-
-  // Reference temperature for AGAM and SGAM in K.
-  // (This is also fix for HITRAN 2004)
-  //mtgam = 296.0; NOTE: Deprecated
-  PressureBroadeningData pb;
-  pb.SetAirBroadeningFromCatalog(sgam,nself,agam,nair,psf,dsgam,dnself,dagam,dnair,dpsf);
-  mlinefunctiondata = LineFunctionData(pb, LineMixingData(), mqid.SpeciesName(), mti0);
+  
+  // Set line shape computer
+  #ifndef NEWARTSCAT
+  mlinefunctiondata = LineFunctionData(sgam, nself, agam, nair, psf);
+  #else
+  mlineshapemodel = LineShape::Model(sgam, nself, agam, nair, psf);
+  mstandard = true;
+  #endif
   {
       Index garbage;
       extract(garbage,line,13);
@@ -1926,7 +1929,6 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
   }
 
   // Accuracy index for AGAM
-  Numeric dagam,dsgam;
   {
   Index dgam;
   // Extract MYTRAN value:
@@ -1934,7 +1936,6 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
   }
 
   // Accuracy index for NAIR 
-  Numeric dnair,dnself;
   {
   Index dair;
   // Extract MYTRAN value:
@@ -1962,10 +1963,14 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
       sgam *= pow(tgam/mti0,nself);
       psf  *= pow(tgam/mti0, (Numeric).25 + (Numeric)1.5*nair );
   }
-  // Unknown pressure shift error
-  PressureBroadeningData pb;
-  pb.SetAirBroadeningFromCatalog(sgam,nself,agam,nair,psf,dsgam,dnself,dagam,dnair,-1);
-  mlinefunctiondata = LineFunctionData(pb, LineMixingData(), mqid.SpeciesName(), mti0);
+  
+  // Set line shape computer
+  #ifndef NEWARTSCAT
+  mlinefunctiondata = LineFunctionData(sgam, nself, agam, nair, psf);
+  #else
+  mlineshapemodel = LineShape::Model(sgam, nself, agam, nair, psf);
+  mstandard = true;
+  #endif
   
   // That's it!
   return false;
@@ -2209,13 +2214,15 @@ bool LineRecord::ReadFromJplStream(istream& is, const Verbosity& verbosity)
   // to the appropriate value:
 
   // Reference temperature for Intensity in K.
-  // (This is fix for JPL)
   mti0 = 300.0;
   
-  // Assume that errors are unknown
-  PressureBroadeningData pb;
-  pb.SetAirBroadeningFromCatalog(sgam,nself,agam,nair,psf,-1,-1,-1,-1,-1);
-  mlinefunctiondata = LineFunctionData(pb, LineMixingData(), mqid.SpeciesName(), mti0);
+  // Set line shape computer
+  #ifndef NEWARTSCAT
+  mlinefunctiondata = LineFunctionData(sgam, nself, agam, nair, psf);
+  #else
+  mlineshapemodel = LineShape::Model(sgam, nself, agam, nair, psf);
+  mstandard = true;
+  #endif
   
   // That's it!
   return false;
@@ -2225,8 +2232,6 @@ bool LineRecord::ReadFromJplStream(istream& is, const Verbosity& verbosity)
 bool LineRecord::ReadFromArtscat3Stream(istream& is, const Verbosity& verbosity)
 {
   CREATE_OUT3;
- 
-  PressureBroadeningData pb;
   
   // Global species lookup data:
   using global_data::species_data;
@@ -2314,7 +2319,6 @@ bool LineRecord::ReadFromArtscat3Stream(istream& is, const Verbosity& verbosity)
       comment = false;
     }
   }
-  
   
   // read the arts identifier String
   istringstream icecream(line);
@@ -2425,11 +2429,14 @@ bool LineRecord::ReadFromArtscat3Stream(istream& is, const Verbosity& verbosity)
         psf  = psf  * pow(tgam/mti0, (Numeric).25 + (Numeric)1.5*nair );
     }
     
-    // Set pressure broadening
-    pb.SetAirBroadeningFromCatalog(sgam,nself,agam,nair,psf,dsgam,dnself,dagam,dnair,dpsf);
+    // Set line shape computer
+    #ifndef NEWARTSCAT
+    mlinefunctiondata = LineFunctionData(sgam, nself, agam, nair, psf);
+    #else
+    mlineshapemodel = LineShape::Model(sgam, nself, agam, nair, psf);
+    mstandard = true;
+    #endif
   }
-  
-  mlinefunctiondata = LineFunctionData(pb, LineMixingData(), mqid.SpeciesName(), mti0);
   
   // That's it!
   return false;
@@ -2450,7 +2457,9 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
   // Remember if this stuff has already been initialized:
   static bool hinit = false;
   
+  #ifndef NEWARTSCAT
   PressureBroadeningData pb;
+  #endif
 
   mversion = 5;
   
@@ -2575,6 +2584,8 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
       // Extract lower state stat. weight:
       icecream >> mglower;
 
+#ifndef NEWARTSCAT
+      
       // Extract broadening parameters:
       Numeric sgam;
       icecream >> sgam;
@@ -2616,6 +2627,11 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
       
       // Set pressure broadening
       pb.SetPlanetaryBroadeningFromCatalog(sgam,nself,gamma_foreign,n_foreign,delta_foreign);
+      
+#else
+      LineShape::from_artscat4(icecream, mlineshapemodel, mqid);
+      mstandard = true;
+#endif
       
       // Remaining entries are the quantum numbers
       String mquantum_numbers_str;
@@ -2684,7 +2700,9 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
       }
     }
     
+  #ifndef NEWARTSCAT
   mlinefunctiondata = LineFunctionData(pb, LineMixingData(), mqid.SpeciesName(), mti0);
+  #endif
     
   // That's it!
   return false;
@@ -2708,9 +2726,14 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
 
     mversion = 5;
     
+    #ifndef NEWARTSCAT
     PressureBroadeningData pb;
     LineMixingData lm;
     bool lfd=false;
+    #else
+    LineShape::Model line_mixing_model;
+    bool lmd_found = false;
+    #endif
 
     if ( !hinit )
     {
@@ -2843,6 +2866,7 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                 // Read pressure broadening (LEGACY)
                 if (token == "PB")
                 {
+                    #ifndef NEWARTSCAT
                     icecream >> token;
                     pb.StorageTag2SetType(token);
 
@@ -2855,6 +2879,10 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                     }
                     pb.SetDataFromVectorWithKnownType(broadening);
                     icecream >> token;
+                    #else
+                    LineShape::from_pressurebroadeningdata(icecream, mlineshapemodel, mqid);
+                    icecream >> token;
+                    #endif
                 }
                 else if (token == "QN")
                 {
@@ -2896,8 +2924,7 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                 }
                 else if (token == "LM") // LEGACY
                 {
-                    // Line mixing
-                  
+                    #ifndef NEWARTSCAT
                     icecream >> token;
                     lm.StorageTag2SetType(token);
 
@@ -2916,13 +2943,31 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                     }
                     lm.SetDataFromVectorWithKnownType(lmd);
                     icecream >> token;
+                    #else
+                    LineShape::from_linemixingdata(icecream, line_mixing_model);
+                    icecream >> token;
+                    lmd_found = true;
+                    #endif
                 }
                 else if(token == "LF")
                 {
+                  #ifndef NEWARTSCAT
                   lfd = true;
                   icecream >> mlinefunctiondata;
+                  #else
+                  LineShape::from_linefunctiondata(icecream, mlineshapemodel);
+                  mstandard = true;
+                  #endif
                   icecream >> token;
                 }
+                #ifdef NEWARTSCAT
+                else if(token == "LS")
+                {
+                  mstandard = true;
+                  icecream >> mlineshapemodel;
+                  icecream >> token;
+                }
+                #endif
                 else if (token == "ZM")
                 {
                   // Zeeman effect
@@ -3000,7 +3045,12 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
         throw std::runtime_error(os.str());
     }
     
+    #ifndef NEWARTSCAT
     if(not lfd) mlinefunctiondata = LineFunctionData(pb, lm, mqid.SpeciesName(), mti0);
+    #else
+    if(lmd_found)
+      mlineshapemodel.SetLineMixingModel(line_mixing_model.Data()[0]);
+    #endif
     
     // That's it!
     return false;
@@ -3025,7 +3075,6 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
   ostringstream ls;
 
   switch (lr.Version()) {
-    case 3:
       case 5:
           ls << "@"
           << " " << lr.Name  ()
@@ -3041,7 +3090,11 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
 
           // Write Pressure Broadening and Line Mixing
           {
+            #ifndef NEWARTSCAT
             ls << " LF " << lr.GetLineFunctionData();
+            #else
+            ls << " LS " << lr.GetLineShapeModel();
+            #endif
           }
 
           // Write Quantum Numbers

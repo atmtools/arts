@@ -22,6 +22,9 @@
  * \author Richard Larsson
  * \date   2014-11-06
  **/
+
+#ifndef NEWARTSCAT
+
 #include "pressurebroadeningdata.h"
 #include "linerecord.h"
 
@@ -2020,3 +2023,5 @@ String PressureBroadeningData::Type2StorageTag() const
   }
   return "-1";
 }
+
+#endif

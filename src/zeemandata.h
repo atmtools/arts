@@ -220,7 +220,7 @@ namespace Zeeman {
       auto ml = Ml(Ju, Jl, type, n);
       auto mu = Mu(Ju, Jl, type, n);
       auto dm = dM(type);
-      return PolarizationFactor(type) * pow2(wigner3j(Jl,  1,Ju,
+      return PolarizationFactor(type) * pow2(wigner3j(Jl,  1, Ju,
                                                       ml,-dm,-mu));
     }
     

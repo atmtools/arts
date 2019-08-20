@@ -58,17 +58,47 @@ void Linefunctions::set_lineshape(Eigen::Ref<Eigen::VectorXcd> F,
   const Numeric doppler_constant = DopplerConstant(temperature, line.IsotopologueData().Mass());
   
   switch(line.GetLineShapeType()) {
-    case LineFunctionData::LineShapeType::HTP:
-    case LineFunctionData::LineShapeType::SDVP:
+    case 
+#ifndef NEWARTSCAT
+LineFunctionData::LineShapeType
+#else
+LineShape::Type
+#endif
+::HTP:
+    case 
+#ifndef NEWARTSCAT
+LineFunctionData::LineShapeType
+#else
+LineShape::Type
+#endif
+::SDVP:
       set_htp(F, dF, f_grid, zeeman_df, magnetic_magnitude, line.F(), doppler_constant, X);
       break;
-    case LineFunctionData::LineShapeType::VP:
+    case 
+#ifndef NEWARTSCAT
+LineFunctionData::LineShapeType
+#else
+LineShape::Type
+#endif
+::VP:
       set_voigt(F, dF, data, f_grid, zeeman_df, magnetic_magnitude, line.F(), doppler_constant, X);
       break;
-    case LineFunctionData::LineShapeType::DP:
+    case 
+#ifndef NEWARTSCAT
+LineFunctionData::LineShapeType
+#else
+LineShape::Type
+#endif
+::DP:
       set_doppler(F, dF, data, f_grid, zeeman_df, magnetic_magnitude, line.F(), doppler_constant);
       break;
-    case LineFunctionData::LineShapeType::LP:
+    case 
+#ifndef NEWARTSCAT
+LineFunctionData::LineShapeType
+#else
+LineShape::Type
+#endif
+::LP:
       set_lorentz(F, dF, data, f_grid, zeeman_df, magnetic_magnitude, line.F(), X);
       break;
   }
@@ -81,7 +111,13 @@ void Linefunctions::set_lineshape(Eigen::Ref<Eigen::VectorXcd> F,
       // Set the mirroring computational vectors and size them as needed
       Eigen::VectorXcd Fm(F.size());
       
-      set_lorentz(Fm, dF, data, f_grid, -zeeman_df, magnetic_magnitude, -line.F(), mirroredOutput(X));
+      set_lorentz(Fm, dF, data, f_grid, -zeeman_df, magnetic_magnitude, -line.F(), 
+#ifndef NEWARTSCAT
+mirroredOutput
+#else
+LineShape::mirroredOutput
+#endif
+(X));
       
       // Apply mirroring;  FIXME: Add conjugate?
       F.noalias() += Fm;
@@ -93,19 +129,67 @@ void Linefunctions::set_lineshape(Eigen::Ref<Eigen::VectorXcd> F,
       
       switch(line.GetLineShapeType())
       {
-        case LineFunctionData::LineShapeType::DP:
+        case 
+#ifndef NEWARTSCAT
+LineFunctionData::LineShapeType
+#else
+LineShape::Type
+#endif
+::DP:
           set_doppler(Fm, dF, data, f_grid, -zeeman_df, magnetic_magnitude, -line.F(), -doppler_constant);
           break;
-        case LineFunctionData::LineShapeType::LP:
-          set_lorentz(Fm, dF, data, f_grid, -zeeman_df, magnetic_magnitude, -line.F(), mirroredOutput(X));
+        case 
+#ifndef NEWARTSCAT
+LineFunctionData::LineShapeType
+#else
+LineShape::Type
+#endif
+::LP:
+          set_lorentz(Fm, dF, data, f_grid, -zeeman_df, magnetic_magnitude, -line.F(), 
+#ifndef NEWARTSCAT
+mirroredOutput
+#else
+LineShape::mirroredOutput
+#endif
+(X));
           break;
-        case LineFunctionData::LineShapeType::VP:
-          set_voigt(Fm, dF, data, f_grid, -zeeman_df, magnetic_magnitude, -line.F(), -doppler_constant, mirroredOutput(X));
+        case 
+#ifndef NEWARTSCAT
+LineFunctionData::LineShapeType
+#else
+LineShape::Type
+#endif
+::VP:
+          set_voigt(Fm, dF, data, f_grid, -zeeman_df, magnetic_magnitude, -line.F(), -doppler_constant, 
+#ifndef NEWARTSCAT
+mirroredOutput
+#else
+LineShape::mirroredOutput
+#endif
+(X));
           break;
-        case LineFunctionData::LineShapeType::HTP:
-        case LineFunctionData::LineShapeType::SDVP:
+        case 
+#ifndef NEWARTSCAT
+LineFunctionData::LineShapeType
+#else
+LineShape::Type
+#endif
+::HTP:
+        case 
+#ifndef NEWARTSCAT
+LineFunctionData::LineShapeType
+#else
+LineShape::Type
+#endif
+::SDVP:
           // WARNING: This mirroring is not tested and it might require, e.g., FVC to be treated differently
-          set_htp(Fm, dF, f_grid, -zeeman_df, magnetic_magnitude, -line.F(), -doppler_constant, mirroredOutput(X));
+          set_htp(Fm, dF, f_grid, -zeeman_df, magnetic_magnitude, -line.F(), -doppler_constant, 
+#ifndef NEWARTSCAT
+mirroredOutput
+#else
+LineShape::mirroredOutput
+#endif
+(X));
           break;
       }
       
@@ -160,12 +244,30 @@ void Linefunctions::set_lorentz(Eigen::Ref<Eigen::VectorXcd> F,
                                 const Numeric& zeeman_df,
                                 const Numeric& magnetic_magnitude,
                                 const Numeric& F0_noshift,
-                                const LineFunctionDataOutput& x,
+                                const 
+#ifndef NEWARTSCAT
+LineFunctionDataOutput
+#else
+LineShape::Output
+#endif
+& x,
                                 const ArrayOfRetrievalQuantity& derivatives_data,
                                 const ArrayOfIndex& derivatives_data_position,
                                 const QuantumIdentifier& quantum_identity,
-                                const LineFunctionDataOutput& dxdT,
-                                const LineFunctionDataOutput& dxdVMR)
+                                const 
+#ifndef NEWARTSCAT
+LineFunctionDataOutput
+#else
+LineShape::Output
+#endif
+& dxdT,
+                                const 
+#ifndef NEWARTSCAT
+LineFunctionDataOutput
+#else
+LineShape::Output
+#endif
+& dxdVMR)
 {
   constexpr Complex cpi(0, Constant::pi);
   constexpr Complex iz(0.0, 1.0);
@@ -241,14 +343,32 @@ void Linefunctions::set_voigt(Eigen::Ref<Eigen::VectorXcd> F,
                               const Numeric& magnetic_magnitude,
                               const Numeric& F0_noshift, 
                               const Numeric& GD_div_F0,
-                              const LineFunctionDataOutput& x,
+                              const 
+#ifndef NEWARTSCAT
+LineFunctionDataOutput
+#else
+LineShape::Output
+#endif
+& x,
                               const ArrayOfRetrievalQuantity& derivatives_data,
                               const ArrayOfIndex& derivatives_data_position,
                               const QuantumIdentifier& quantum_identity,
                               const Numeric& dGD_div_F0_dT,
-                              const LineFunctionDataOutput& dxdT,
-                              const LineFunctionDataOutput& dxdVMR)
-{ 
+                              const 
+#ifndef NEWARTSCAT
+LineFunctionDataOutput
+#else
+LineShape::Output
+#endif
+& dxdT,
+                              const 
+#ifndef NEWARTSCAT
+LineFunctionDataOutput
+#else
+LineShape::Output
+#endif
+& dxdVMR)
+{
   constexpr Complex iz(0.0, 1.0);
   
   // Size of problem
@@ -426,13 +546,31 @@ void Linefunctions::apply_linemixing_scaling_and_mirroring(Eigen::Ref<Eigen::Vec
                                                            Eigen::Ref<Eigen::MatrixXcd> dF,
                                                            const Eigen::Ref<Eigen::VectorXcd> Fm,
                                                            const Eigen::Ref<Eigen::MatrixXcd> dFm,
-                                                           const LineFunctionDataOutput& X,
+                                                           const 
+#ifndef NEWARTSCAT
+LineFunctionDataOutput
+#else
+LineShape::Output
+#endif
+& X,
                                                            const bool with_mirroring,
                                                            const ArrayOfRetrievalQuantity& derivatives_data,
                                                            const ArrayOfIndex& derivatives_data_position,
                                                            const QuantumIdentifier& quantum_identity,
-                                                           const LineFunctionDataOutput& dT,
-                                                           const LineFunctionDataOutput& dVMR)
+                                                           const 
+#ifndef NEWARTSCAT
+LineFunctionDataOutput
+#else
+LineShape::Output
+#endif
+& dT,
+                                                           const 
+#ifndef NEWARTSCAT
+LineFunctionDataOutput
+#else
+LineShape::Output
+#endif
+& dVMR)
 {
   auto nppd = derivatives_data_position.nelem();
   
@@ -972,9 +1110,8 @@ void Linefunctions::apply_linefunctiondata_jacobian_scaling(Eigen::Ref<Eigen::Ma
   
   for(auto iq=0; iq<nppd; iq++) {
     const RetrievalQuantity& rt = derivatives_data[derivatives_data_position[iq]];
-    if(is_linefunctiondata_parameter(rt) and rt.QuantumIdentity().In(quantum_identity)) {
+    if(is_lineshape_parameter(rt) and rt.QuantumIdentity().In(quantum_identity))
       dF.col(iq) *= line.GetInternalDerivative(T,P,this_species,vmrs,species, rt);
-    }
   }
 }
 
@@ -1122,17 +1259,25 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
   // Pressure broadening and line mixing terms
   const auto X = line.GetShapeParams(temperature, pressure, this_species_location_in_tags, volume_mixing_ratio_of_all_species, abs_species);
   
+  constexpr
+  #ifndef NEWARTSCAT
+  LineFunctionDataOutput
+  #else
+  LineShape::Output
+  #endif
+  empty_output={0, 0, 0, 0, 0, 0, 0, 0, 0};
+  
   // Partial derivatives for temperature
   const auto dXdT = do_temperature ? line.GetShapeParams_dT(temperature, temperature_perturbation(derivatives_data), 
                                                             pressure, this_species_location_in_tags, 
                                                             volume_mixing_ratio_of_all_species,  abs_species)
-                                   : NoLineFunctionDataOutput();
+                                   : empty_output;
   
   // Partial derivatives for VMR... the first function 
   auto do_vmr = do_vmr_jacobian(derivatives_data, line.QuantumIdentity());  // At all, Species
   const auto dXdVMR = do_vmr.test ? line.GetShapeParams_dVMR(temperature, pressure, this_species_location_in_tags,
                                                              volume_mixing_ratio_of_all_species, abs_species, do_vmr.qid)
-                                  : NoLineFunctionDataOutput();
+                                  : empty_output;
   
   // Arrays on which all computations happen are segments of the full input, and the segmenting is part of the output
   auto  F = F_full.segment(start_cutoff, nelem_cutoff);
@@ -1143,24 +1288,54 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
   auto f_grid = f_grid_full.middleRows(start_cutoff, nelem_cutoff);
   
   switch(line.GetLineShapeType()) {
-    case LineFunctionData::LineShapeType::DP:
+    case 
+#ifndef NEWARTSCAT
+LineFunctionData::LineShapeType
+#else
+LineShape::Type
+#endif
+::DP:
       set_doppler(F, dF, data, 
                   f_grid, zeeman_df, magnetic_magnitude, 
                   line.F(), doppler_constant, derivatives_data, derivatives_data_position, QI, ddoppler_constant_dT);
       break;
-    case LineFunctionData::LineShapeType::HTP:
-    case LineFunctionData::LineShapeType::SDVP:
+    case 
+#ifndef NEWARTSCAT
+LineFunctionData::LineShapeType
+#else
+LineShape::Type
+#endif
+::HTP:
+    case 
+#ifndef NEWARTSCAT
+LineFunctionData::LineShapeType
+#else
+LineShape::Type
+#endif
+::SDVP:
       set_htp(F, dF, 
               f_grid, zeeman_df, magnetic_magnitude, 
               line.F(), doppler_constant, X, derivatives_data, derivatives_data_position, QI,
               ddoppler_constant_dT, dXdT, dXdVMR);
       break;
-    case LineFunctionData::LineShapeType::LP:
+    case 
+#ifndef NEWARTSCAT
+LineFunctionData::LineShapeType
+#else
+LineShape::Type
+#endif
+::LP:
       set_lorentz(F, dF, data,
                   f_grid, zeeman_df, magnetic_magnitude, 
                   line.F(), X, derivatives_data, derivatives_data_position, QI, dXdT, dXdVMR);
       break;
-    case LineFunctionData::LineShapeType::VP:
+    case 
+#ifndef NEWARTSCAT
+LineFunctionData::LineShapeType
+#else
+LineShape::Type
+#endif
+::VP:
       set_voigt(F, dF, data, f_grid, 
                 zeeman_df, magnetic_magnitude, 
                 line.F(), doppler_constant, X, derivatives_data, derivatives_data_position, QI,
@@ -1181,39 +1356,147 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
       break;
     case MirroringType::Lorentz:
       set_lorentz(N, dN, data, f_grid, -zeeman_df, magnetic_magnitude, 
-                  -line.F(), mirroredOutput(X), derivatives_data, derivatives_data_position, QI, mirroredOutput(dXdT), mirroredOutput(dXdVMR));
+                  -line.F(), 
+#ifndef NEWARTSCAT
+mirroredOutput
+#else
+LineShape::mirroredOutput
+#endif
+(X), derivatives_data, derivatives_data_position, QI, 
+#ifndef NEWARTSCAT
+mirroredOutput
+#else
+LineShape::mirroredOutput
+#endif
+(dXdT), 
+#ifndef NEWARTSCAT
+mirroredOutput
+#else
+LineShape::mirroredOutput
+#endif
+(dXdVMR));
       break;
     case MirroringType::SameAsLineShape:
       switch(line.GetLineShapeType()) {
-        case LineFunctionData::LineShapeType::DP:
+        case 
+#ifndef NEWARTSCAT
+LineFunctionData::LineShapeType
+#else
+LineShape::Type
+#endif
+::DP:
           set_doppler(N, dN, data, f_grid, -zeeman_df, magnetic_magnitude, 
                       -line.F(), -doppler_constant, derivatives_data, derivatives_data_position, QI, -ddoppler_constant_dT);
           break;
-        case LineFunctionData::LineShapeType::LP:
+        case 
+#ifndef NEWARTSCAT
+LineFunctionData::LineShapeType
+#else
+LineShape::Type
+#endif
+::LP:
           set_lorentz(N, dN, data, f_grid, -zeeman_df, magnetic_magnitude, 
-                      -line.F(), mirroredOutput(X), derivatives_data, derivatives_data_position, QI, mirroredOutput(dXdT), mirroredOutput(dXdVMR));
+                      -line.F(), 
+#ifndef NEWARTSCAT
+mirroredOutput
+#else
+LineShape::mirroredOutput
+#endif
+(X), derivatives_data, derivatives_data_position, QI, 
+#ifndef NEWARTSCAT
+mirroredOutput
+#else
+LineShape::mirroredOutput
+#endif
+(dXdT), 
+#ifndef NEWARTSCAT
+mirroredOutput
+#else
+LineShape::mirroredOutput
+#endif
+(dXdVMR));
           break;
-        case LineFunctionData::LineShapeType::VP:
+        case 
+#ifndef NEWARTSCAT
+LineFunctionData::LineShapeType
+#else
+LineShape::Type
+#endif
+::VP:
           set_voigt(N, dN, data, f_grid, 
                     -zeeman_df, magnetic_magnitude, 
-                    -line.F(), -doppler_constant, mirroredOutput(X), derivatives_data, derivatives_data_position, QI,
-                    -ddoppler_constant_dT, mirroredOutput(dXdT), mirroredOutput(dXdVMR));
+                    -line.F(), -doppler_constant, 
+#ifndef NEWARTSCAT
+mirroredOutput
+#else
+LineShape::mirroredOutput
+#endif
+(X), derivatives_data, derivatives_data_position, QI,
+                    -ddoppler_constant_dT, 
+#ifndef NEWARTSCAT
+mirroredOutput
+#else
+LineShape::mirroredOutput
+#endif
+(dXdT), 
+#ifndef NEWARTSCAT
+mirroredOutput
+#else
+LineShape::mirroredOutput
+#endif
+(dXdVMR));
           break;
-        case LineFunctionData::LineShapeType::HTP:
-        case LineFunctionData::LineShapeType::SDVP:
+        case 
+#ifndef NEWARTSCAT
+LineFunctionData::LineShapeType
+#else
+LineShape::Type
+#endif
+::HTP:
+        case 
+#ifndef NEWARTSCAT
+LineFunctionData::LineShapeType
+#else
+LineShape::Type
+#endif
+::SDVP:
           // WARNING: This mirroring is not tested and it might require, e.g., FVC to be treated differently
           set_htp(N, dN, f_grid, 
                   -zeeman_df, magnetic_magnitude, 
-                  -line.F(), -doppler_constant, mirroredOutput(X),
+                  -line.F(), -doppler_constant, 
+#ifndef NEWARTSCAT
+mirroredOutput
+#else
+LineShape::mirroredOutput
+#endif
+(X),
                   derivatives_data, derivatives_data_position, QI,
-                  -ddoppler_constant_dT, mirroredOutput(dXdT), mirroredOutput(dXdVMR));
+                  -ddoppler_constant_dT, 
+#ifndef NEWARTSCAT
+mirroredOutput
+#else
+LineShape::mirroredOutput
+#endif
+(dXdT), 
+#ifndef NEWARTSCAT
+mirroredOutput
+#else
+LineShape::mirroredOutput
+#endif
+(dXdVMR));
           break;
       }
       break;
   }
   
   // Mixing and mirroring can only apply to non-Doppler shapes
-  if(line.GetLineShapeType() not_eq LineFunctionData::LineShapeType::DP) {
+  if(line.GetLineShapeType() not_eq 
+#ifndef NEWARTSCAT
+LineFunctionData::LineShapeType
+#else
+LineShape::Type
+#endif
+::DP) {
     apply_linemixing_scaling_and_mirroring(F, dF, N, dN, X, with_mirroring,
                                            derivatives_data, derivatives_data_position, QI, dXdT, dXdVMR);
     
@@ -2111,13 +2394,31 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
              const Numeric& magnetic_magnitude_si,
              const Numeric& F0_noshift_si,
              const Numeric& GD_div_F0_si,
-             const LineFunctionDataOutput& x_si,
+             const 
+#ifndef NEWARTSCAT
+LineFunctionDataOutput
+#else
+LineShape::Output
+#endif
+& x_si,
              const ArrayOfRetrievalQuantity& derivatives_data,
              const ArrayOfIndex& derivatives_data_position,
              const QuantumIdentifier& quantum_identity,
              const Numeric& dGD_div_F0_dT_si,
-             const LineFunctionDataOutput& dxdT_si,
-             const LineFunctionDataOutput& dxdVMR_si)
+             const 
+#ifndef NEWARTSCAT
+LineFunctionDataOutput
+#else
+LineShape::Output
+#endif
+& dxdT_si,
+             const 
+#ifndef NEWARTSCAT
+LineFunctionDataOutput
+#else
+LineShape::Output
+#endif
+& dxdVMR_si)
 {
   using std::abs;
   using std::sqrt;
@@ -2136,9 +2437,9 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
   // Convert to CGS for using original function
   const Numeric sg0 = freq2kaycm(F0_noshift_si + zeeman_df_si * magnetic_magnitude_si);
   const Numeric GamD = GD_div_F0_si * sg0 / sqrt_ln_2;
-  const LineFunctionDataOutput x = si2cgs(x_si);
-  const LineFunctionDataOutput dT = si2cgs(dxdT_si);
-  const LineFunctionDataOutput dV = si2cgs(dxdVMR_si);
+  const auto x = si2cgs(x_si);
+  const auto dT = si2cgs(dxdT_si);
+  const auto dV = si2cgs(dxdVMR_si);
   
   // General normalization
   const Numeric cte = sqrt_ln_2 / GamD;

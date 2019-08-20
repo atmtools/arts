@@ -3795,11 +3795,23 @@ void jacobianAddShapeCatalogParameter(
   
   if(line_identity.Type() not_eq QuantumIdentifier::TRANSITION) throw std::runtime_error("Identity has to identify a line");
   
-  const JacPropMatType jpt = select_derivativeLineFunctionData(variable, coefficient);
+  const JacPropMatType jpt = select_derivativeLineShape(variable, coefficient);
   
   out3 << "Attempting to create RT tag for " << line_identity << 
           " " << variable << " " << coefficient << " for ";
-  if(species not_eq LineFunctionData_SelfBroadening and species not_eq LineFunctionData_BathBroadening) out3 << SpeciesTag(species).SpeciesNameMain() << "\n";
+  if(species not_eq 
+#ifndef NEWARTSCAT
+LineFunctionData_SelfBroadening
+#else
+LineShape::self_broadening
+#endif
+ and species not_eq 
+#ifndef NEWARTSCAT
+LineFunctionData_BathBroadening
+#else
+LineShape::bath_broadening
+#endif
+) out3 << SpeciesTag(species).SpeciesNameMain() << "\n";
   else out3 << species << "\n";
   
   // Create the quantity

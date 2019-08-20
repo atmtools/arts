@@ -1041,12 +1041,24 @@ void calculate_xsec_from_relmat_coefficients(ArrayOfMatrix& xsec,
   for(Index iline = 0; iline < n; iline++)
   {
     
-    const LineFunctionDataOutput X({pressure_broadening[iline], psf[iline], 0., 0., 0., 0., Y[iline], G[iline], DV[iline]});
+    const 
+#ifndef NEWARTSCAT
+LineFunctionDataOutput
+#else
+LineShape::Output
+#endif
+ X({pressure_broadening[iline], psf[iline], 0., 0., 0., 0., Y[iline], G[iline], DV[iline]});
     
     if(do_temperature_jacobian(derivatives_data))
     {
 
-      const LineFunctionDataOutput dT({dpressure_broadening_dT[iline], dpsf_dT[iline], 0., 0., 0., 0., dY_dT[iline], dG_dT[iline], dDV_dT[iline]});
+      const 
+#ifndef NEWARTSCAT
+LineFunctionDataOutput
+#else
+LineShape::Output
+#endif
+ dT({dpressure_broadening_dT[iline], dpsf_dT[iline], 0., 0., 0., 0., dY_dT[iline], dG_dT[iline], dDV_dT[iline]});
       Linefunctions::set_voigt(F, dF, data, MapToEigen(f_grid), 0.0, 0.0, f0[iline], doppler_const, 
                                X, derivatives_data, derivatives_data_position, QI, ddoppler_const_dT, dT);
       
@@ -1442,10 +1454,18 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
       }
       
       // Pressure broadening at relmat temperatures
+#ifndef NEWARTSCAT
       if(not this_line.LineFunctionDataHasAir()) {
+#else
+      if(not this_line.LineShapeModelHasAir()) {
+#endif
         std::ostringstream os;
         os << "Line does not not have air broadening but this function only uses air broadening.\n";
+#ifndef NEWARTSCAT
         os << "Its values are " << this_line.GetLineFunctionData();
+#else
+        os << "Its values are " << this_line.GetLineShapeModel();
+#endif
         throw std::runtime_error(os.str());
       }
       

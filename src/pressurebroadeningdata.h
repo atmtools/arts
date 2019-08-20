@@ -33,6 +33,7 @@
 #include "complex.h"
 #include "jacobian.h"
 
+#ifndef NEWARTSCAT
 
 /**
  This class should contain the data and metadata associated with pressure broadening.
@@ -775,5 +776,7 @@ private:
     ArrayOfVector mdata;
     ArrayOfVector mdataerror;
 };
+
+#endif
 
 #endif //pressurebroadeningdata_h

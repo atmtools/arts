@@ -62,41 +62,41 @@ enum class JacPropMatType : Index
   LineStrength,
   LineCenter,
   
-  LineFunctionDataG0X0,
-  LineFunctionDataG0X1,
-  LineFunctionDataG0X2,
+  LineShapeG0X0,
+  LineShapeG0X1,
+  LineShapeG0X2,
   
-  LineFunctionDataD0X0,
-  LineFunctionDataD0X1,
-  LineFunctionDataD0X2,
+  LineShapeD0X0,
+  LineShapeD0X1,
+  LineShapeD0X2,
   
-  LineFunctionDataG2X0,
-  LineFunctionDataG2X1,
-  LineFunctionDataG2X2,
+  LineShapeG2X0,
+  LineShapeG2X1,
+  LineShapeG2X2,
   
-  LineFunctionDataD2X0,
-  LineFunctionDataD2X1,
-  LineFunctionDataD2X2,
+  LineShapeD2X0,
+  LineShapeD2X1,
+  LineShapeD2X2,
   
-  LineFunctionDataFVCX0,
-  LineFunctionDataFVCX1,
-  LineFunctionDataFVCX2,
+  LineShapeFVCX0,
+  LineShapeFVCX1,
+  LineShapeFVCX2,
   
-  LineFunctionDataETAX0,
-  LineFunctionDataETAX1,
-  LineFunctionDataETAX2,
+  LineShapeETAX0,
+  LineShapeETAX1,
+  LineShapeETAX2,
   
-  LineFunctionDataYX0,
-  LineFunctionDataYX1,
-  LineFunctionDataYX2,
+  LineShapeYX0,
+  LineShapeYX1,
+  LineShapeYX2,
   
-  LineFunctionDataGX0,
-  LineFunctionDataGX1,
-  LineFunctionDataGX2,
+  LineShapeGX0,
+  LineShapeGX1,
+  LineShapeGX2,
   
-  LineFunctionDataDVX0,
-  LineFunctionDataDVX1,
-  LineFunctionDataDVX2,
+  LineShapeDVX0,
+  LineShapeDVX1,
+  LineShapeDVX2,
   
   NLTE,
   
@@ -505,11 +505,11 @@ bool is_pressure_broadening_ETA(const RetrievalQuantity& t) noexcept;
 bool is_pressure_broadening_Y(const RetrievalQuantity& t) noexcept;
 bool is_pressure_broadening_G(const RetrievalQuantity& t) noexcept;
 bool is_pressure_broadening_DV(const RetrievalQuantity& t) noexcept;
-bool is_linefunctiondata_parameter_X0(const RetrievalQuantity& t) noexcept;
-bool is_linefunctiondata_parameter_X1(const RetrievalQuantity& t) noexcept;
-bool is_linefunctiondata_parameter_X2(const RetrievalQuantity& t) noexcept;
-bool is_linefunctiondata_parameter_bar_linemixing(const RetrievalQuantity& t) noexcept;
-bool is_linefunctiondata_parameter(const RetrievalQuantity& t) noexcept;
+bool is_lineshape_parameter_X0(const RetrievalQuantity& t) noexcept;
+bool is_lineshape_parameter_X1(const RetrievalQuantity& t) noexcept;
+bool is_lineshape_parameter_X2(const RetrievalQuantity& t) noexcept;
+bool is_lineshape_parameter_bar_linemixing(const RetrievalQuantity& t) noexcept;
+bool is_lineshape_parameter(const RetrievalQuantity& t) noexcept;
 
 bool is_line_parameter(const RetrievalQuantity& t) noexcept;
 

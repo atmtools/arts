@@ -36,6 +36,8 @@ USA. */
 #include "complex.h"
 #include "jacobian.h"
 
+#ifndef NEWARTSCAT
+
 class LineMixingData
 {
 public:
@@ -136,5 +138,7 @@ private:
     LM_Type mtype;
     ArrayOfVector mdata;
 };
+
+#endif
 
 #endif // linemixingdata_h

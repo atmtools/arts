@@ -23,6 +23,8 @@ USA. */
    \date   2014-10-31
 **/
 
+#ifndef NEWARTSCAT
+
 #include "linemixingdata.h"
 #include "check_input.h"
 
@@ -1065,3 +1067,5 @@ String LineMixingData::Type2StorageTag() const
 
   return output;
 }
+
+#endif

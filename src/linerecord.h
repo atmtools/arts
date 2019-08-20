@@ -26,6 +26,8 @@
 #ifndef linerecord_h
 #define linerecord_h
 
+// #define NEWARTSCAT
+
 #include <stdexcept>
 #include <cmath>
 #include "messages.h"
@@ -201,9 +203,7 @@ class IsotopologueRecord;
 enum class MirroringType : Index
 {
   // Describes the type of mirroring line effects.
-  // Add new entries before End to keep safe with existing catalogs.
-  // LineRecord effect:  Adds MTM (Index)MirroringType under line modifications when saving ARTSCAT5
-  // 0 is ignored on printing
+  // LineRecord effect:  Adds MTM (String)MirroringType under line modifications when saving ARTSCAT5
   None,             // No mirroring
   Lorentz,          // Mirror, but use Lorentz line shape
   SameAsLineShape,  // Mirror using the same line shape
@@ -213,8 +213,7 @@ enum class MirroringType : Index
 enum class LineNormalizationType : Index
 {
   // Describes the type of normalization line effects.
-  // Add new entries before End to keep safe with existing catalogs.
-  // LineRecord effect:  Adds LNT (Index)LineNormalizationType under line modifications when saving ARTSCAT5
+  // LineRecord effect:  Adds LNT (String)LineNormalizationType under line modifications when saving ARTSCAT5
   // 0 is ignored on printing
   None,                 // Do not renormalize the line shape
   VVH,                  // Renormalize with Van Vleck and Huber specifications
@@ -225,8 +224,7 @@ enum class LineNormalizationType : Index
 enum class LinePopulationType : Index
 {
   // Describes the type of population level counter.
-  // LineRecord effect:  Adds POP (Index)LinePopulationType under line modifications when saving ARTSCAT5
-  // 0 is ignored on printing
+  // LineRecord effect:  Adds POP (String)LinePopulationType under line modifications when saving ARTSCAT5
   ByLTE,                      // Assume line is in LTE
   ByVibrationalTemperatures,  // Assume line is in NLTE described by vibrational temperatures
   ByPopulationDistribution,   // Assume line is in NLTE and the upper-to-lower ratio is known
@@ -252,6 +250,9 @@ public:
       ma( NAN ),
       mgupper( NAN ),
       mglower( NAN ),
+      #ifdef NEWARTSCAT
+      mstandard(true),
+      #endif
       mcutoff(-1.0),
       mlinemixing_limit(-1.0),
       mmirroring(MirroringType::None),
@@ -296,14 +297,18 @@ public:
       ma( NAN ),
       mgupper( NAN ),
       mglower( NAN ),
+      #ifndef NEWARTSCAT
+      mlinefunctiondata(sgam, nself, agam, nair, psf),
+      #else
+      mlineshapemodel(sgam, nself, agam, nair, psf),
+      mstandard(true),
+      #endif
       mcutoff(-1.0),
       mlinemixing_limit(-1.0),
       mmirroring(MirroringType::None),
       mlinenorm(LineNormalizationType::None),
       mpopulation(LinePopulationType::ByLTE)
-  {
-    mlinefunctiondata = LineFunctionData(sgam, nself, agam, nair, psf);
-  }
+  {}
 
   /** Return the version String. */
   String VersionString() const;
@@ -360,7 +365,13 @@ public:
   void setF( Numeric new_mf ) { mf = new_mf; }
 
   /** The pressure shift parameter in <b> Hz/Pa</b>. */
-  Numeric Psf() const   { return mlinefunctiondata.AirD0(); }
+  Numeric Psf() const   {
+#ifndef NEWARTSCAT
+    return mlinefunctiondata.AirD0();
+#else
+    return mlineshapemodel.Data().back().D0().X0;
+#endif
+  }
 
   /** The line intensity in <b> m^2*Hz</b> at the reference temperature \c Ti0. 
 
@@ -399,16 +410,40 @@ public:
   void SetNLTEUpperIndex(Index nlte_upper_index) {mnlte_upper_index = nlte_upper_index;}
   
   /** Air broadened width in <b> Hz/Pa</b>: */
-  Numeric Agam() const  { return mlinefunctiondata.AirG0(); }
+  Numeric Agam() const  { 
+#ifndef NEWARTSCAT
+    return mlinefunctiondata.AirG0();
+#else
+    return mlineshapemodel.Data().back().G0().X0;
+#endif
+  }
 
   /** Self broadened width in <b> Hz/Pa</b>: */
-  Numeric Sgam() const  { return mlinefunctiondata.SelfG0(); }
+  Numeric Sgam() const  {
+#ifndef NEWARTSCAT
+    return mlinefunctiondata.SelfG0();
+#else
+    return mlineshapemodel.Data().front().G0().X0;
+#endif
+  }
 
   /** AGAM temperature exponent (dimensionless): */
-  Numeric Nair() const  { return mlinefunctiondata.AirN(); }
+  Numeric Nair() const  {
+#ifndef NEWARTSCAT
+    return mlinefunctiondata.AirN();
+#else
+    return mlineshapemodel.Data().back().G0().X1;
+#endif
+  }
 
   /** SGAM temperature exponent (dimensionless): */
-  Numeric Nself() const { return mlinefunctiondata.SelfN(); }
+  Numeric Nself() const {
+#ifndef NEWARTSCAT
+    return mlinefunctiondata.SelfN(); 
+#else
+    return mlineshapemodel.Data().front().G0().X1;
+#endif
+  }
 
   /** ARTSCAT-4/5 Einstein A-coefficient in <b> 1/s </b>: */
   Numeric A() const { return ma; }
@@ -482,17 +517,29 @@ public:
       return mlinemixing_limit > P;
   }
   
-  void SetLineMixingParameters(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& T, const Numeric& P, const Index this_species,
+  void SetLineMixingParameters(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& T, const Numeric& P, const Index this_species [[maybe_unused]],
                                const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species) const {
+#ifndef NEWARTSCAT
     const auto X = mlinefunctiondata.GetParams(mti0, T, P, vmrs[this_species], vmrs, abs_species, do_linemixing(P));
     Y = X.Y;
     G = X.G;
     DV = X.DV;
+#else
+    if(do_linemixing(P)) {
+      const auto v = mlineshapemodel.vmrs(vmrs, abs_species, mqid);
+      Y = mlineshapemodel.Y(T, mti0, P, v);
+      G = mlineshapemodel.G(T, mti0, P, v);
+      DV = mlineshapemodel.DV(T, mti0, P, v);
+    }
+    else
+      Y = G = DV = 0;
+#endif
   }
 
   void SetPressureBroadeningParameters(Numeric& G0, Numeric& G2, Numeric& ETA, Numeric& D0, Numeric& D2, Numeric& FVC,
-                                       const Numeric& T, const Numeric& P, const Index this_species,
+                                       const Numeric& T, const Numeric& P, const Index this_species [[maybe_unused]],
                                        const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species) const {
+#ifndef NEWARTSCAT
     auto X = mlinefunctiondata.GetParams(mti0, T, P, vmrs[this_species], vmrs, abs_species, do_linemixing(P));
     G0 = X.G0;
     D0 = X.D0;
@@ -500,11 +547,21 @@ public:
     D2 = X.D2;
     FVC = X.FVC;
     ETA = X.ETA;
+#else
+    const auto v = mlineshapemodel.vmrs(vmrs, abs_species, mqid);
+    G0 = mlineshapemodel.G0(T, mti0, P, v);
+    D0 = mlineshapemodel.D0(T, mti0, P, v);
+    G2 = mlineshapemodel.G2(T, mti0, P, v);
+    D2 = mlineshapemodel.D2(T, mti0, P, v);
+    FVC = mlineshapemodel.FVC(T, mti0, P, v);
+    ETA = mlineshapemodel.ETA(T, mti0, P, v);
+#endif
   }
 
   void SetPressureBroadeningParametersTemperatureDerivative(Numeric& dG0, Numeric& dG2, Numeric& dETA, Numeric& dD0, Numeric& dD2, Numeric& dFVC,
-                                                            const Numeric& T, const Numeric& dT, const Numeric& P, 
-                                                            const Index this_species, const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species) const {
+                                                            const Numeric& T, const Numeric& dT [[maybe_unused]], const Numeric& P, 
+                                                            const Index this_species [[maybe_unused]], const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species) const {
+#ifndef NEWARTSCAT
     auto X = mlinefunctiondata.GetTemperatureDerivs(mti0, T, dT, P, vmrs[this_species], vmrs, abs_species, do_linemixing(P));
     dG0 = X.G0;
     dD0 = X.D0;
@@ -512,56 +569,193 @@ public:
     dD2 = X.D2;
     dFVC = X.FVC;
     dETA = X.ETA;
+#else
+    const auto v = mlineshapemodel.vmrs(vmrs, abs_species, mqid);
+    dG0 = mlineshapemodel.dG0_dT(T, mti0, P, v);
+    dD0 = mlineshapemodel.dD0_dT(T, mti0, P, v);
+    dG2 = mlineshapemodel.dG2_dT(T, mti0, P, v);
+    dD2 = mlineshapemodel.dD2_dT(T, mti0, P, v);
+    dFVC = mlineshapemodel.dFVC_dT(T, mti0, P, v);
+    dETA = mlineshapemodel.dETA_dT(T, mti0, P, v);
+#endif
   }
   
-  void SetLineMixing2SecondOrderData(ConstVectorView d) { mlinefunctiondata.ChangeLineMixingfromSimpleLM2(d); }
-  void SetLineMixing2AER(ConstVectorView d) { mlinefunctiondata.ChangeLineMixing2AER(d); }
+  void SetLineMixing2SecondOrderData(ConstVectorView d [[maybe_unused]]) {
+#ifndef NEWARTSCAT
+    mlinefunctiondata.ChangeLineMixingfromSimpleLM2(d);
+#else
+    throw std::runtime_error("UPDATE METHOD OF SETTING VARIABLES LOCALLY");
+#endif
+  }
+
+  void SetLineMixing2AER(ConstVectorView d) {
+#ifndef NEWARTSCAT
+    mlinefunctiondata.ChangeLineMixing2AER(d);
+#else
+    for(auto& sm: mlineshapemodel.Data())
+      for(Index i=0; i<d.nelem(); i++)
+        sm.Interp()[i] = d[i];
+#endif
+  }
   
+#ifndef NEWARTSCAT
   LineFunctionData GetLineFunctionData() const {return mlinefunctiondata;}
+#else
+  LineShape::Model GetLineShapeModel() const {return mlineshapemodel;}
+#endif
+
+#ifndef NEWARTSCAT
   void SetLineFunctionData(const LineFunctionData& lfd) {mlinefunctiondata=lfd;}
+#else
+  void SetLineShapeModel(const LineShape::Model& lsm) {mlineshapemodel=lsm;}
+#endif
+
+#ifndef NEWARTSCAT
   void LineFunctionDataOnlyAir() {mlinefunctiondata.KeepOnlyBath();}
+#else
+  void LineShapeModelOnlyAir() {
+    if(mlineshapemodel.Bath())
+      mlineshapemodel = LineShape::Model(mlineshapemodel.Data().back(), mlineshapemodel.ModelType());
+    else
+      throw std::runtime_error("Cannot keep only pure air since no air broadening exists");
+  }
+#endif
+
+#ifndef NEWARTSCAT
   void LineFunctionDataRemoveSelf() {mlinefunctiondata.RemoveSelf();}
+#else
+  void LineShapeModelRemoveSelf() {if(mlineshapemodel.Self()) mlineshapemodel.Remove(0);}
+#endif
+
+#ifndef NEWARTSCAT
   void SetLineFunctionDataVariable(const Numeric& X, const String& spec, const String& var, const String& coeff) { mlinefunctiondata.Set(X, spec, coeff, var); }
-  Numeric GetLineFunctionDataVariable(const String& spec, const String& var, const String& coeff) const { return mlinefunctiondata.Get(spec, coeff, var); }  
+#else
+  void SetLineShapeModelParameters(const LineShape::ModelParameters& x, const String& spec, const String& var) {
+    mlineshapemodel.Set(x, spec, LineShape::string2variable(var));
+  }
+  
+  void SetLineShapeModelParameter(const Numeric& X, const String& spec, const String& var, const String& coeff) {
+    auto x = GetLineShapeModelParameters(spec, var);
+    LineShape::SingleModelParameter(x, coeff) = X;
+    SetLineShapeModelParameters(x, spec, var);
+  }
+#endif
+
+#ifndef NEWARTSCAT
+  Numeric GetLineFunctionDataVariable(const String& spec, const String& var, const String& coeff) const { return mlinefunctiondata.Get(spec, coeff, var); }
+#else
+  LineShape::ModelParameters GetLineShapeModelParameters(const String& spec, const String& var) const { return mlineshapemodel.Get(spec, LineShape::string2variable(var)); }
+#endif
+
+#ifndef NEWARTSCAT
   void SetSpecial() {mlinefunctiondata.SetStandard(false);}
   void SetStandard() {mlinefunctiondata.SetStandard(true);}
-  bool LineMixingNoneType() const {return GetLineMixingOrderType() == LineFunctionData::LineMixingOrderType::None;}
+#else
+  void SetSpecial() {mstandard = false;}
+  void SetStandard() {mstandard = true;}
+#endif
+
+#ifndef NEWARTSCAT
   bool LineMixingByBand() const {return not mlinefunctiondata.DoStandardCalcs();}
-  bool LineFunctionDataHasAir() const { if(mlinefunctiondata.AirBroadening()) return true; else return false; }
+#else
+  bool LineMixingByBand() const {return not mstandard;}
+#endif
+
+#ifndef NEWARTSCAT
+  bool LineFunctionDataHasAir() const { return mlinefunctiondata.AirBroadening(); }
+#else
+  bool LineShapeModelHasAir() const noexcept {return mlineshapemodel.Bath();}
+#endif
   
   void SetAirPressureBroadening(Numeric& G0, Numeric& D0, const Numeric& T, const Numeric& P, const Numeric& self_vmr) const {
+#ifndef NEWARTSCAT
     auto X = mlinefunctiondata.AirBroadening(mti0/T, P, self_vmr);
     G0 = X.G0;
     D0 = X.D0;
+#else
+    G0 = P * (
+      mlineshapemodel.Data().front().compute(T, mti0, LineShape::Variable::G0) * self_vmr +
+      mlineshapemodel.Data().back().compute(T, mti0, LineShape::Variable::G0) * (1-self_vmr));
+    D0 = P * (
+      mlineshapemodel.Data().front().compute(T, mti0, LineShape::Variable::D0) * self_vmr +
+      mlineshapemodel.Data().back().compute(T, mti0, LineShape::Variable::D0) * (1-self_vmr));
+#endif
   }
-  Numeric PressureBroadeningAirBroadeningNair() const { return mlinefunctiondata.AirN(); }
-  Numeric PressureBroadeningAirBroadeningPsf( ) const { return mlinefunctiondata.AirD0(); }
-  Numeric PressureBroadeningAirBroadeningAgam() const { return mlinefunctiondata.AirG0(); }
+  
+  Numeric PressureBroadeningAirBroadeningNair() const { return Nair(); }
+  Numeric PressureBroadeningAirBroadeningPsf( ) const { return Psf(); }
+  Numeric PressureBroadeningAirBroadeningAgam() const { return Agam(); }
 
-  Numeric GetInternalDerivative(const Numeric& T, const Numeric& P, const Index this_species,
+  Numeric GetInternalDerivative(const Numeric& T, const Numeric& P, const Index this_species [[maybe_unused]],
                                 const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species, 
                                 const RetrievalQuantity& derivative) const
   {
+#ifndef NEWARTSCAT
     return mlinefunctiondata.GetLineParamDeriv(mti0, T, P, vmrs[this_species], vmrs, abs_species, derivative, mqid, do_linemixing(P));
+#else
+    const bool self = derivative.Mode() == LineShape::self_broadening;
+    const bool bath = derivative.Mode() == LineShape::bath_broadening;
+    const auto v = mlineshapemodel.vmrs(vmrs, abs_species, mqid);
+    if(mlineshapemodel.Self() and self)
+      return mlineshapemodel.GetInternalDeriv(T, mti0, P, 0, v, derivative.PropMatType());
+    else if(self) {
+      const auto pos = mlineshapemodel.this_species(mqid);
+      return mlineshapemodel.GetInternalDeriv(T, mti0, P, pos, v, derivative.PropMatType());
+    }
+    else if(mlineshapemodel.Bath() and bath)
+      return mlineshapemodel.GetInternalDeriv(T, mti0, P, mlineshapemodel.nelem()-1, v, derivative.PropMatType());
+    else if(bath)
+      return 0;
+    else {
+      const auto pos = mlineshapemodel.this_species(derivative.QuantumIdentity());
+      return mlineshapemodel.GetInternalDeriv(T, mti0, P, pos, v, derivative.PropMatType());
+    }
+#endif
   }
   
   
   /*! Method to compute the line mixing and pressure broadening parameters */
+#ifndef NEWARTSCAT
   LineFunctionDataOutput GetShapeParams(const Numeric& T, const Numeric& P, const Index this_species,
                                         const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species) const
   {
     return mlinefunctiondata.GetParams(mti0, T, P, vmrs[this_species], vmrs, abs_species, do_linemixing(P));
   }
+#else
+
+LineShape::Output GetShapeParams(const Numeric& T, const Numeric& P, const Index this_species [[maybe_unused]],
+                                   const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species) const {
+    const auto v = mlineshapemodel.vmrs(vmrs, abs_species, mqid);
+    auto x = mlineshapemodel.GetParams(T, mti0, P, v);
+    if(not do_linemixing(P))
+      x.Y = x.G = x.DV = 0;
+    return x;
+  }
+#endif
   
   /*! Method to compute the temperature derivatives of line mixing and pressure broadening parameters */
+#ifndef NEWARTSCAT
   LineFunctionDataOutput GetShapeParams_dT(const Numeric& T, const Numeric& dT, const Numeric& P,
                                            const Index this_species, const ConstVectorView vmrs,
                                            const ArrayOfArrayOfSpeciesTag& abs_species) const
   {
     return mlinefunctiondata.GetTemperatureDerivs(mti0, T, dT, P, vmrs[this_species], vmrs, abs_species, do_linemixing(P));
   }
+#else
+LineShape::Output GetShapeParams_dT(const Numeric& T, const Numeric& dT [[maybe_unused]], const Numeric& P,
+                                      const Index this_species [[maybe_unused]], const ConstVectorView vmrs,
+                                      const ArrayOfArrayOfSpeciesTag& abs_species) const
+  {
+    const auto v = mlineshapemodel.vmrs(vmrs, abs_species, mqid);
+    auto x = mlineshapemodel.GetTemperatureDerivs(T, mti0, P, v);
+    if(not do_linemixing(P))
+      x.Y = x.G = x.DV = 0;
+    return x;
+  }
+#endif
   
   /*! Method to compute the temperature derivatives of line mixing and pressure broadening parameters */
+#ifndef NEWARTSCAT
   LineFunctionDataOutput GetShapeParams_dVMR(const Numeric& T, const Numeric& P,
                                              const Index this_species, const ConstVectorView vmrs,
                                              const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -569,6 +763,34 @@ public:
   {
     return mlinefunctiondata.GetVMRDerivs(mti0, T, P, vmrs[this_species], vmrs, abs_species, vmr_qi, mqid, do_linemixing(P));
   }
+#else
+  LineShape::Output GetShapeParams_dVMR(const Numeric& T, const Numeric& P,
+                                        const Index this_species [[maybe_unused]], const ConstVectorView vmrs [[maybe_unused]],
+                                        const ArrayOfArrayOfSpeciesTag& abs_species [[maybe_unused]],
+                                        const QuantumIdentifier& vmr_qi) const
+  {
+    const bool self = vmr_qi.Species() == mqid.Species();
+    if(mlineshapemodel.Self() and self) {
+      auto x = mlineshapemodel.GetVMRDerivs(T, mti0, P, 0);
+      if(not do_linemixing(P))
+        x.Y = x.G = x.DV = 0;
+      return x;
+    }
+    else if(mlineshapemodel.Bath() and self) {
+      auto x = mlineshapemodel.GetVMRDerivs(T, mti0, P, mlineshapemodel.nelem()-1);
+      if(not do_linemixing(P))
+        x.Y = x.G = x.DV = 0;
+      return x;
+    }
+    else {
+      const auto pos = mlineshapemodel.this_species(vmr_qi);
+      auto x = mlineshapemodel.GetVMRDerivs(T, mti0, P, pos);
+      if(not do_linemixing(P))
+        x.Y = x.G = x.DV = 0;
+      return x;
+    }
+  }
+#endif
   
   /** Zeeman Effect Data */
   void ZeemanModelInit() { mzeemanmodel = Zeeman::Model(mqid); }
@@ -608,10 +830,13 @@ public:
   const LineNormalizationType& GetLineNormalizationType() const {return mlinenorm;}
   void SetLineNormalizationType(const LineNormalizationType in) {mlinenorm = in;}
   String GetLineNormalizationTypeString() const;
-  
+
+#ifndef NEWARTSCAT
   LineFunctionData::LineShapeType GetLineShapeType() const {return mlinefunctiondata.LineShape(); }
-  LineFunctionData::LineMixingOrderType GetLineMixingOrderType() const {return mlinefunctiondata.LineMixing(); }
-  
+#else
+  LineShape::Type GetLineShapeType() const noexcept {return mlineshapemodel.ModelType(); }
+#endif
+
   /** Line population type */
   const LinePopulationType& GetLinePopulationType() const {return mpopulation;}
   void SetLinePopulationType(const LinePopulationType in) {mpopulation = in;}
@@ -992,7 +1217,12 @@ private:
   Numeric mglower;
   
   /** Line function data (pressure broadening and line mixing) */
+#ifndef NEWARTSCAT
   LineFunctionData mlinefunctiondata;
+#else
+  LineShape::Model mlineshapemodel;
+  bool mstandard;
+#endif
   
   /** Zeeman effect model class */
   Zeeman::Model mzeemanmodel;

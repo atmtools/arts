@@ -1,3 +1,137 @@
+2019-08-20  Richard Larsson <larsson@mps.mpg.de>
+
+	* arts-2-3-1273
+	
+	This is a temporary update to make a move to a much simplified
+	version of ARTSCAT-5.  It contains a lot of #ifndef-statement
+	so that it is possible to go back to this version of ARTS and
+	correct the line reading routines in case some special version
+	of the very multi-dimensional current ARTSCAT-5 IO fails in the
+	new version.  It should not but not everything is not tested.
+	
+	By activating NEWARTSCAT in linerecord.h, most tests succeed
+	but some fail.  I am investigating and once fixed I will remove
+	all things that are not there when NEWARTSCAT is defined
+	
+	* src/jacobian.cc,h: Changed names of JacPropMatType
+	enums that deal with line shape to fit with the new
+	NEWARTSCAT.  This includes changing a few function names.
+	
+	* src/linefunctiondata.cc,h:
+	Includes constants.h and removes all of
+	LineFunctionData if NEWARTSCAT is defined.
+	
+	Fixed LineShape::Variable order to match
+	LineFunctionDataOutput.  The latter has
+	string and stream handling by operator<<,
+	variable2string, and string2variable.
+	
+	Added SingleModelParameter to select a single Numeric
+	in a ModelParameters.
+	
+	Adopted SingleSpeciesModel to initialize by names in 
+	correct order, and to also allow the interpolation
+	array in its initialization.
+	
+	Littered all functions I had to and likely a few I did
+	not have to with std::terminate() to remove annoying
+	and wrongful compiler warnings in complete switch-statements
+	
+	SingleSpeciesModel has a Get and a Set function call now to
+	access G0-DV by enum instead of by name.
+	
+	Renamed LineShape::ShapeType to LineShape::Type.
+	
+	Made LineShape::Output to match 1-to-1 LineFunctionDataOutput.
+	Added operator<< to print it, mirroredOutput to mirror variables
+	that are frequency shifting somehow, negativeOutput to return
+	a negative Output, si2cgs to return CGS Output from SI input.
+	
+	Added bath_broadening and self_broadening for all cases when
+	air and self broadening has to be addressed by name (e.g.,
+	Jacobian calculations).
+	
+	Added Model::OK() to test if the Model is Ok.
+	
+	Extended Model initialization to allow setting the interpolation
+	data.
+	
+	Further extended its initialization by allowing a single 
+	SingleSpeciesModel and Type to set Model for pure air-broadening.
+	
+	Further extended its initialization to allow setting individual
+	internal variables one-by-one.
+	
+	Fixed bugs in vmrs.  First fix is that Doppler profiles require no
+	VMRS so does not need to return a normal vmr-Vector.  Second fix
+	is that the renormalization for non-air broadening recomputed
+	the sum in a loop for a very poor renormalization routine.
+	
+	Added Model::this_species to find this species in mspecies.  Returns
+	-1 if the species is not in the species list.  Note that self and air
+	are not checked for.
+	
+	Fixed poor naming of VMR-derivatives.  Separated temperature 
+	derivatives since it requires the summing up.
+	
+	Fixed naming error in line shape parameter derivative calls.
+	
+	Added Output calculators to Model: GetParams, GetTemperatureDerivs,
+	GetVMRDerivs, and GetInternalDeriv to mimic LineFunctionData
+	
+	Added several access variables to part of the internal data.
+	
+	Added Set and Get to individual ModelParameters.
+	
+	Added Model::Remove to erase a species.
+	
+	Added SetLineMixingModel to set all line mixing according to
+	a single SingleSpeciesModel.
+	
+	Added from_linemixingdata and from_pressurebroadeningdata to
+	set a Model after ARTSCAT-5 PB and LM tags.  Requires the 
+	input stream and modifies it.
+	
+	Fixed IO for Model, operator<< and operator>> did not work properly
+	before for self and air broadening
+	
+	Added namespaces LegacyLineMixingData and LegacyPressureBroadeningData
+	to deal with said legacy reading.
+	
+	* src/linefunctions.cc,h:
+	These files are a lot uglier now because they are the main users of
+	NEWARTSCAT-syntax.
+	
+	Also, I believe there might be a bug in the VMR derivatives for
+	pure air broadening in the present version of ARTS.  The current
+	version uses negative influence on air-broadening VMR derivatives
+	since (1-self), but when self is not present the number should 
+	of course be positive instead.  I will need to update derivatives
+	when making NEWARTSCAT default...
+	
+	* src/linemixingdata.cc,h,src/pressurebroadeningdata.cc,h:
+	Completely covered by a "#ifndef NEWARTSCAT"
+	
+	* src/linerecord.cc,h: Removed some lingering unused variables.
+	Added several "#ifndef NEWARTSCAT"-clauses.  Made LineFunctionData's
+	standard-check part of the linerecord.
+	
+	* src/m_jacobian.cc: jacobianAddShapeCatalogParameter needed some
+	"#ifndef NEWARTSCAT"-clauses to work
+	
+	* src/m_linemixing.cc: calculate_xsec_from_relmat_coefficients and
+	abs_xsec_per_speciesAddLineMixedBands needed some 
+	"#ifndef NEWARTSCAT"-clauses to work
+	
+	* src/m_linerecord.cc: abs_linesReplaceParameterWithLinesParameter
+	and abs_linesSetLineFunctionDataParameterForMatchingLines needed some 
+	"#ifndef NEWARTSCAT"-clauses to work
+	
+	* src/test_propagationmatrix.cc:  Two tests not longer works with
+	NEWARTSCAT defined since the explicitly test LineFunctionData.
+	
+	* src/zeemandata.h:  Very minor text-alignment miss from before.
+
 2019-08-15  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-2-3-1272

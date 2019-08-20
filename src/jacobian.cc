@@ -1888,107 +1888,107 @@ bool is_nlte_parameter(const RetrievalQuantity& t) noexcept
 
 bool is_pressure_broadening_G0(const RetrievalQuantity& t) noexcept
 {
-  return t == JacPropMatType::LineFunctionDataG0X0 or
-         t == JacPropMatType::LineFunctionDataG0X1 or
-         t == JacPropMatType::LineFunctionDataG0X2;
+  return t == JacPropMatType::LineShapeG0X0 or
+         t == JacPropMatType::LineShapeG0X1 or
+         t == JacPropMatType::LineShapeG0X2;
 }
 
 bool is_pressure_broadening_D0(const RetrievalQuantity& t) noexcept
 {
-  return t == JacPropMatType::LineFunctionDataD0X0 or
-         t == JacPropMatType::LineFunctionDataD0X1 or
-         t == JacPropMatType::LineFunctionDataD0X2;
+  return t == JacPropMatType::LineShapeD0X0 or
+         t == JacPropMatType::LineShapeD0X1 or
+         t == JacPropMatType::LineShapeD0X2;
 }
 
 bool is_pressure_broadening_G2(const RetrievalQuantity& t) noexcept
 {
-  return t == JacPropMatType::LineFunctionDataG2X0 or
-         t == JacPropMatType::LineFunctionDataG2X1 or
-         t == JacPropMatType::LineFunctionDataG2X2;
+  return t == JacPropMatType::LineShapeG2X0 or
+         t == JacPropMatType::LineShapeG2X1 or
+         t == JacPropMatType::LineShapeG2X2;
 }
 
 bool is_pressure_broadening_D2(const RetrievalQuantity& t) noexcept
 {
-  return t == JacPropMatType::LineFunctionDataD2X0 or
-         t == JacPropMatType::LineFunctionDataD2X1 or
-         t == JacPropMatType::LineFunctionDataD2X2;
+  return t == JacPropMatType::LineShapeD2X0 or
+         t == JacPropMatType::LineShapeD2X1 or
+         t == JacPropMatType::LineShapeD2X2;
 }
 
 bool is_pressure_broadening_FVC(const RetrievalQuantity& t) noexcept
 {
-  return t == JacPropMatType::LineFunctionDataFVCX0 or
-         t == JacPropMatType::LineFunctionDataFVCX1 or
-         t == JacPropMatType::LineFunctionDataFVCX2;
+  return t == JacPropMatType::LineShapeFVCX0 or
+         t == JacPropMatType::LineShapeFVCX1 or
+         t == JacPropMatType::LineShapeFVCX2;
 }
 
 bool is_pressure_broadening_ETA(const RetrievalQuantity& t) noexcept
 {
-  return t == JacPropMatType::LineFunctionDataETAX0 or
-         t == JacPropMatType::LineFunctionDataETAX1 or
-         t == JacPropMatType::LineFunctionDataETAX2;
+  return t == JacPropMatType::LineShapeETAX0 or
+         t == JacPropMatType::LineShapeETAX1 or
+         t == JacPropMatType::LineShapeETAX2;
 }
 
 bool is_pressure_broadening_Y(const RetrievalQuantity& t) noexcept
 {
-  return t == JacPropMatType::LineFunctionDataYX0 or
-         t == JacPropMatType::LineFunctionDataYX1 or
-         t == JacPropMatType::LineFunctionDataYX2;
+  return t == JacPropMatType::LineShapeYX0 or
+         t == JacPropMatType::LineShapeYX1 or
+         t == JacPropMatType::LineShapeYX2;
 }
 
 bool is_pressure_broadening_G(const RetrievalQuantity& t) noexcept
 {
-  return t == JacPropMatType::LineFunctionDataGX0 or
-         t == JacPropMatType::LineFunctionDataGX1 or
-         t == JacPropMatType::LineFunctionDataGX2;
+  return t == JacPropMatType::LineShapeGX0 or
+         t == JacPropMatType::LineShapeGX1 or
+         t == JacPropMatType::LineShapeGX2;
 }
 
 bool is_pressure_broadening_DV(const RetrievalQuantity& t) noexcept
 {
-  return t == JacPropMatType::LineFunctionDataDVX0 or
-         t == JacPropMatType::LineFunctionDataDVX1 or
-         t == JacPropMatType::LineFunctionDataDVX2;
+  return t == JacPropMatType::LineShapeDVX0 or
+         t == JacPropMatType::LineShapeDVX1 or
+         t == JacPropMatType::LineShapeDVX2;
 }
 
-bool is_linefunctiondata_parameter_X0(const RetrievalQuantity& t) noexcept
+bool is_lineshape_parameter_X0(const RetrievalQuantity& t) noexcept
 {
-  return t == JacPropMatType::LineFunctionDataG0X0 or
-         t == JacPropMatType::LineFunctionDataD0X0 or
-         t == JacPropMatType::LineFunctionDataG2X0 or
-         t == JacPropMatType::LineFunctionDataD2X0 or
-         t == JacPropMatType::LineFunctionDataETAX0 or
-         t == JacPropMatType::LineFunctionDataFVCX0 or
-         t == JacPropMatType::LineFunctionDataYX0 or
-         t == JacPropMatType::LineFunctionDataGX0 or
-         t == JacPropMatType::LineFunctionDataDVX0;
+  return t == JacPropMatType::LineShapeG0X0 or
+         t == JacPropMatType::LineShapeD0X0 or
+         t == JacPropMatType::LineShapeG2X0 or
+         t == JacPropMatType::LineShapeD2X0 or
+         t == JacPropMatType::LineShapeETAX0 or
+         t == JacPropMatType::LineShapeFVCX0 or
+         t == JacPropMatType::LineShapeYX0 or
+         t == JacPropMatType::LineShapeGX0 or
+         t == JacPropMatType::LineShapeDVX0;
 }
 
-bool is_linefunctiondata_parameter_X1(const RetrievalQuantity& t) noexcept
+bool is_lineshape_parameter_X1(const RetrievalQuantity& t) noexcept
 {
-  return t == JacPropMatType::LineFunctionDataG0X1 or
-         t == JacPropMatType::LineFunctionDataD0X1 or
-         t == JacPropMatType::LineFunctionDataG2X1 or
-         t == JacPropMatType::LineFunctionDataD2X1 or
-         t == JacPropMatType::LineFunctionDataETAX1 or
-         t == JacPropMatType::LineFunctionDataFVCX1 or
-         t == JacPropMatType::LineFunctionDataYX1 or
-         t == JacPropMatType::LineFunctionDataGX1 or
-         t == JacPropMatType::LineFunctionDataDVX1;
+  return t == JacPropMatType::LineShapeG0X1 or
+         t == JacPropMatType::LineShapeD0X1 or
+         t == JacPropMatType::LineShapeG2X1 or
+         t == JacPropMatType::LineShapeD2X1 or
+         t == JacPropMatType::LineShapeETAX1 or
+         t == JacPropMatType::LineShapeFVCX1 or
+         t == JacPropMatType::LineShapeYX1 or
+         t == JacPropMatType::LineShapeGX1 or
+         t == JacPropMatType::LineShapeDVX1;
 }
 
-bool is_linefunctiondata_parameter_X2(const RetrievalQuantity& t) noexcept
+bool is_lineshape_parameter_X2(const RetrievalQuantity& t) noexcept
 {
-  return t == JacPropMatType::LineFunctionDataG0X2 or
-         t == JacPropMatType::LineFunctionDataD0X2 or
-         t == JacPropMatType::LineFunctionDataG2X2 or
-         t == JacPropMatType::LineFunctionDataD2X2 or
-         t == JacPropMatType::LineFunctionDataETAX2 or
-         t == JacPropMatType::LineFunctionDataFVCX2 or
-         t == JacPropMatType::LineFunctionDataYX2 or
-         t == JacPropMatType::LineFunctionDataGX2 or
-         t == JacPropMatType::LineFunctionDataDVX2;
+  return t == JacPropMatType::LineShapeG0X2 or
+         t == JacPropMatType::LineShapeD0X2 or
+         t == JacPropMatType::LineShapeG2X2 or
+         t == JacPropMatType::LineShapeD2X2 or
+         t == JacPropMatType::LineShapeETAX2 or
+         t == JacPropMatType::LineShapeFVCX2 or
+         t == JacPropMatType::LineShapeYX2 or
+         t == JacPropMatType::LineShapeGX2 or
+         t == JacPropMatType::LineShapeDVX2;
 }
 
-bool is_linefunctiondata_parameter_bar_linemixing(const RetrievalQuantity& t) noexcept
+bool is_lineshape_parameter_bar_linemixing(const RetrievalQuantity& t) noexcept
 {
   return is_pressure_broadening_G0(t) or
          is_pressure_broadening_D0(t) or
@@ -1998,7 +1998,7 @@ bool is_linefunctiondata_parameter_bar_linemixing(const RetrievalQuantity& t) no
          is_pressure_broadening_ETA(t);
 }
 
-bool is_linefunctiondata_parameter(const RetrievalQuantity& t) noexcept
+bool is_lineshape_parameter(const RetrievalQuantity& t) noexcept
 {
   return is_pressure_broadening_G0(t) or
          is_pressure_broadening_D0(t) or
@@ -2015,7 +2015,7 @@ bool is_line_parameter(const RetrievalQuantity& t) noexcept
 {
   return t == JacPropMatType::LineCenter   or
          t == JacPropMatType::LineStrength or
-         is_linefunctiondata_parameter(t)  or
+         is_lineshape_parameter(t)  or
          is_nlte_parameter(t);
 }
 
@@ -2208,7 +2208,7 @@ Numeric magnetic_field_perturbation(const ArrayOfRetrievalQuantity& js) noexcept
 
 String propmattype_string(const RetrievalQuantity& rq)
 {
-  #define linefunctiondatavariable(X1, X2) JacPropMatType::LineFunctionData ## X1 ## X2: return "Line-Function-Data: " #X1  " " #X2
+  #define linefunctiondatavariable(X1, X2) JacPropMatType::LineShape ## X1 ## X2: return "Line-Function-Data: " #X1  " " #X2
   switch(rq.PropMatType())
   {
     case JacPropMatType::VMR: return "VMR";
