@@ -43,8 +43,16 @@ $ git branch
 
 ## Work on your contribution
 Now you can start with the development of your new feature (or bug fix).
-During the work you can use ``git``'s commit and push mechanism to save and
-track your changes to your personal fork:
+You can commit changes as often as you like locally with:
+
+```bash
+$ git add FILENAME
+$ git commit
+```
+
+Use ``git``'s commit and push mechanism to save and track your changes to your
+personal fork:
+
 ```bash
 $ git push origin BRANCH_NAME
 ```
