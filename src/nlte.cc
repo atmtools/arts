@@ -18,6 +18,7 @@
 
 
 #include "nlte.h"
+#include "interpolation_poly.h"
 
 
 void statistical_equilibrium_equation(MatrixView A,

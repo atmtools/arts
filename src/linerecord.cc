@@ -484,12 +484,8 @@ bool LineRecord::ReadFromHitran2001Stream(istream& is, const Verbosity& verbosit
   mti0 = 296.0;
   
   // Set line shape computer
-  #ifndef NEWARTSCAT
-  mlinefunctiondata = LineFunctionData(sgam, nself, agam, nair, psf);
-  #else
   mlineshapemodel = LineShape::Model(sgam, nself, agam, nair, psf);
   mstandard = true;
-  #endif
 
   // That's it!
   return false;
@@ -915,17 +911,11 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
   }
 
   // Accuracy index for halfwidth reference
-  Numeric dsgam,dagam;
   {
     Index dgam;
     // Extract HITRAN value:
     extract(dgam,line,1);
   }
- 
-  
-  // Accuracy for pressure shift
-  // This is missing in HITRAN catalogue and it is set to -1.
-    Numeric dpsf =-1;
 
   // These were all the parameters that we can extract from
   // HITRAN. However, we still have to set the reference temperatures
@@ -934,16 +924,6 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
   // Reference temperature for Intensity in K.
   // (This is fix for HITRAN)
   mti0 = 296.0;
-
-  // Reference temperature for AGAM and SGAM in K.
-  // (This is also fix for HITRAN)
-  //mtgam = 296.0; NOTE: Deprecated
-  
-  // Assume that error index on dnair and dnself is unknown
-  #ifndef NEWARTSCAT
-  PressureBroadeningData pb;
-  pb.SetAirBroadeningFromCatalog(sgam,nself,agam,nair,psf,dsgam,-1,dagam,-1,dpsf);
-  #endif
   
   // Skip four
   {
@@ -965,12 +945,8 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
       getline(is,line);
     else // the line is done and we are happy to leave
     {
-      #ifndef NEWARTSCAT
-      mlinefunctiondata = LineFunctionData(pb, LineMixingData(), mqid.SpeciesName(), mti0);
-      #else
       mlineshapemodel = LineShape::Model(sgam, nself, agam, nair, psf);
       mstandard = true;
-      #endif
       return false;
     }
   }
@@ -1049,35 +1025,21 @@ bool LineRecord::ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity)
     extract(test,line,2);
     if( test == -1 )
     {
-      #ifndef NEWARTSCAT
-      LineMixingData lm;
-      lm.SetLBLRTMFromTheirCatalog(T,Y,G);
-      
-      mlinefunctiondata = LineFunctionData(pb, lm, mqid.SpeciesName(), mti0);
-      #else
       mlineshapemodel = LineShape::Model(sgam, nself, agam, nair, psf,
                                          {T[0], T[1], T[2], T[3],
                                           Y[0], Y[1], Y[2], Y[3],
                                           G[0], G[1], G[2], G[3]});
       mstandard = true;
-      #endif
       
       return false;
     }
     else if( test == -3 )
     {
-      #ifndef NEWARTSCAT
-      LineMixingData lm;
-      lm.SetLBLRTM_O2NonResonantFromTheirCatalog(T,Y,G); 
-      
-      mlinefunctiondata = LineFunctionData(pb, lm, mqid.SpeciesName(), mti0);
-      #else
       mlineshapemodel = LineShape::Model(sgam, nself, agam, nair, psf,
                                          {T[0], T[1], T[2], T[3],
                                           Y[0], Y[1], Y[2], Y[3],
                                           G[0], G[1], G[2], G[3]});
       mstandard = true;
-      #endif
       
       return false;
     }
@@ -1547,12 +1509,8 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
   mti0 = 296.0;
   
   // Set line shape computer
-  #ifndef NEWARTSCAT
-  mlinefunctiondata = LineFunctionData(sgam, nself, agam, nair, psf);
-  #else
   mlineshapemodel = LineShape::Model(sgam, nself, agam, nair, psf);
   mstandard = true;
-  #endif
   {
       Index garbage;
       extract(garbage,line,13);
@@ -1965,12 +1923,8 @@ bool LineRecord::ReadFromMytran2Stream(istream& is, const Verbosity& verbosity)
   }
   
   // Set line shape computer
-  #ifndef NEWARTSCAT
-  mlinefunctiondata = LineFunctionData(sgam, nself, agam, nair, psf);
-  #else
   mlineshapemodel = LineShape::Model(sgam, nself, agam, nair, psf);
   mstandard = true;
-  #endif
   
   // That's it!
   return false;
@@ -2217,12 +2171,8 @@ bool LineRecord::ReadFromJplStream(istream& is, const Verbosity& verbosity)
   mti0 = 300.0;
   
   // Set line shape computer
-  #ifndef NEWARTSCAT
-  mlinefunctiondata = LineFunctionData(sgam, nself, agam, nair, psf);
-  #else
   mlineshapemodel = LineShape::Model(sgam, nself, agam, nair, psf);
   mstandard = true;
-  #endif
   
   // That's it!
   return false;
@@ -2430,12 +2380,8 @@ bool LineRecord::ReadFromArtscat3Stream(istream& is, const Verbosity& verbosity)
     }
     
     // Set line shape computer
-    #ifndef NEWARTSCAT
-    mlinefunctiondata = LineFunctionData(sgam, nself, agam, nair, psf);
-    #else
     mlineshapemodel = LineShape::Model(sgam, nself, agam, nair, psf);
     mstandard = true;
-    #endif
   }
   
   // That's it!
@@ -2456,10 +2402,6 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
 
   // Remember if this stuff has already been initialized:
   static bool hinit = false;
-  
-  #ifndef NEWARTSCAT
-  PressureBroadeningData pb;
-  #endif
 
   mversion = 5;
   
@@ -2584,54 +2526,8 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
       // Extract lower state stat. weight:
       icecream >> mglower;
 
-#ifndef NEWARTSCAT
-      
-      // Extract broadening parameters:
-      Numeric sgam;
-      icecream >> sgam;
-
-      Vector gamma_foreign(6);
-      for (Index s=0; s<6; ++s)
-          icecream >> gamma_foreign[s];
-//      icecream >> mgamma_n2;
-//      icecream >> mgamma_o2;
-//      icecream >> mgamma_h2o;
-//      icecream >> mgamma_co2;
-//      icecream >> mgamma_h2;
-//      icecream >> mgamma_he;
-      
-      // Extract GAM temp. exponents:
-      Numeric nself;
-      icecream >> nself;
-    
-      Vector n_foreign(6);
-      for (Index s=0; s<6; ++s)
-          icecream >> n_foreign[s];
-//      icecream >> mn_n2;
-//      icecream >> mn_o2;
-//      icecream >> mn_h2o;
-//      icecream >> mn_co2;
-//      icecream >> mn_h2;
-//      icecream >> mn_he;
-
-      // Extract F pressure shifts:
-      Vector delta_foreign(6);
-      for (Index s=0; s<6; ++s)
-          icecream >> delta_foreign[s];
-//      icecream >> mdelta_n2;
-//      icecream >> mdelta_o2;
-//      icecream >> mdelta_h2o;
-//      icecream >> mdelta_co2;
-//      icecream >> mdelta_h2;
-//      icecream >> mdelta_he;
-      
-      // Set pressure broadening
-      pb.SetPlanetaryBroadeningFromCatalog(sgam,nself,gamma_foreign,n_foreign,delta_foreign);
-      
-#else
       LineShape::from_artscat4(icecream, mlineshapemodel, mqid);
       mstandard = true;
-#endif
       
       // Remaining entries are the quantum numbers
       String mquantum_numbers_str;
@@ -2700,10 +2596,6 @@ bool LineRecord::ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity)
       }
     }
     
-  #ifndef NEWARTSCAT
-  mlinefunctiondata = LineFunctionData(pb, LineMixingData(), mqid.SpeciesName(), mti0);
-  #endif
-    
   // That's it!
   return false;
 }
@@ -2726,14 +2618,8 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
 
     mversion = 5;
     
-    #ifndef NEWARTSCAT
-    PressureBroadeningData pb;
-    LineMixingData lm;
-    bool lfd=false;
-    #else
     LineShape::Model line_mixing_model;
     bool lmd_found = false;
-    #endif
 
     if ( !hinit )
     {
@@ -2866,23 +2752,9 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                 // Read pressure broadening (LEGACY)
                 if (token == "PB")
                 {
-                    #ifndef NEWARTSCAT
-                    icecream >> token;
-                    pb.StorageTag2SetType(token);
-
-                    nelem = pb.ExpectedVectorLengthFromType();
-
-                    Vector broadening(nelem);
-                    for (Index ib = 0; ib < nelem; ib++)
-                    {
-                        icecream >> double_imanip() >> broadening[ib];
-                    }
-                    pb.SetDataFromVectorWithKnownType(broadening);
-                    icecream >> token;
-                    #else
+                    mstandard = true;
                     LineShape::from_pressurebroadeningdata(icecream, mlineshapemodel, mqid);
                     icecream >> token;
-                    #endif
                 }
                 else if (token == "QN")
                 {
@@ -2924,50 +2796,22 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
                 }
                 else if (token == "LM") // LEGACY
                 {
-                    #ifndef NEWARTSCAT
-                    icecream >> token;
-                    lm.StorageTag2SetType(token);
-
-                    nelem = lm.ExpectedVectorLengthFromType();
-
-                    Vector lmd(nelem);
-                    for (Index l = 0; l < nelem; l++)
-                    {
-                        icecream >> double_imanip() >> lmd[l];
-                        if (!icecream)
-                        {
-                            ostringstream os;
-                            os << "Error parsing line mixing data element " << l+1;
-                            throw std::runtime_error(os.str());
-                        }
-                    }
-                    lm.SetDataFromVectorWithKnownType(lmd);
-                    icecream >> token;
-                    #else
                     LineShape::from_linemixingdata(icecream, line_mixing_model);
                     icecream >> token;
                     lmd_found = true;
-                    #endif
                 }
                 else if(token == "LF")
                 {
-                  #ifndef NEWARTSCAT
-                  lfd = true;
-                  icecream >> mlinefunctiondata;
-                  #else
-                  LineShape::from_linefunctiondata(icecream, mlineshapemodel);
                   mstandard = true;
-                  #endif
+                  LineShape::from_linefunctiondata(icecream, mlineshapemodel);
                   icecream >> token;
                 }
-                #ifdef NEWARTSCAT
                 else if(token == "LS")
                 {
                   mstandard = true;
                   icecream >> mlineshapemodel;
                   icecream >> token;
                 }
-                #endif
                 else if (token == "ZM")
                 {
                   // Zeeman effect
@@ -3045,12 +2889,8 @@ bool LineRecord::ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity)
         throw std::runtime_error(os.str());
     }
     
-    #ifndef NEWARTSCAT
-    if(not lfd) mlinefunctiondata = LineFunctionData(pb, lm, mqid.SpeciesName(), mti0);
-    #else
     if(lmd_found)
       mlineshapemodel.SetLineMixingModel(line_mixing_model.Data()[0]);
-    #endif
     
     // That's it!
     return false;
@@ -3090,11 +2930,7 @@ ostream& operator<< (ostream& os, const LineRecord& lr)
 
           // Write Pressure Broadening and Line Mixing
           {
-            #ifndef NEWARTSCAT
-            ls << " LF " << lr.GetLineFunctionData();
-            #else
             ls << " LS " << lr.GetLineShapeModel();
-            #endif
           }
 
           // Write Quantum Numbers

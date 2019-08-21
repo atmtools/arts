@@ -18,6 +18,7 @@
 
 
 #include "linescaling.h"
+#include "interpolation_poly.h"
 
 /*!
  *  Calculates the line strength scaling parameters for cross section calculations.

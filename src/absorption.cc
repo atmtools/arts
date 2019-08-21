@@ -43,7 +43,6 @@
 #include "messages.h"
 #include "logic.h"
 #include "interpolation_poly.h"
-#include "linemixingdata.h"
 #include "linescaling.h"
 
 #include "global_data.h"

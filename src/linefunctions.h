@@ -70,30 +70,12 @@ namespace Linefunctions
                    const Numeric& zeeman_df, 
                    const Numeric& magnetic_magnitude, 
                    const Numeric& F0_noshift, 
-                   const 
-#ifndef NEWARTSCAT
-LineFunctionDataOutput
-#else
-LineShape::Output
-#endif
-& X,
+                   const LineShape::Output& X,
                    const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
                    const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                    const QuantumIdentifier& quantum_identity=QuantumIdentifier(), 
-                   const 
-#ifndef NEWARTSCAT
-LineFunctionDataOutput
-#else
-LineShape::Output
-#endif
-& dT={0,0,0,0,0,0,0,0,0},
-                   const 
-#ifndef NEWARTSCAT
-LineFunctionDataOutput
-#else
-LineShape::Output
-#endif
-& dxdVMR={0,0,0,0,0,0,0,0,0});
+                   const LineShape::Output& dT={0,0,0,0,0,0,0,0,0},
+                   const LineShape::Output& dxdVMR={0,0,0,0,0,0,0,0,0});
   
   void set_htp(Eigen::Ref<Eigen::VectorXcd> F,
                Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -102,31 +84,13 @@ LineShape::Output
                const Numeric& magnetic_magnitude,
                const Numeric& F0_noshift,
                const Numeric& GD_div_F0,
-               const 
-#ifndef NEWARTSCAT
-LineFunctionDataOutput
-#else
-LineShape::Output
-#endif
-& X,
+               const LineShape::Output& X,
                const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
                const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                const Numeric& dGD_div_F0_dT=0.0,
-               const 
-#ifndef NEWARTSCAT
-LineFunctionDataOutput
-#else
-LineShape::Output
-#endif
-& dT={0,0,0,0,0,0,0,0,0},
-               const 
-#ifndef NEWARTSCAT
-LineFunctionDataOutput
-#else
-LineShape::Output
-#endif
-& dVMR={0,0,0,0,0,0,0,0,0});
+               const LineShape::Output& dT={0,0,0,0,0,0,0,0,0},
+               const LineShape::Output& dVMR={0,0,0,0,0,0,0,0,0});
   
   void set_voigt(Eigen::Ref<Eigen::VectorXcd> F,
                  Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -136,31 +100,13 @@ LineShape::Output
                  const Numeric& magnetic_magnitude,
                  const Numeric& F0_noshift,
                  const Numeric& GD_div_F0,
-                 const 
-#ifndef NEWARTSCAT
-LineFunctionDataOutput
-#else
-LineShape::Output
-#endif
-& X,
+                 const LineShape::Output& X,
                  const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
                  const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                  const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
                  const Numeric& dGD_div_F0_dT=0.0,
-                 const 
-#ifndef NEWARTSCAT
-LineFunctionDataOutput
-#else
-LineShape::Output
-#endif
-& dT={0,0,0,0,0,0,0,0,0},
-                 const 
-#ifndef NEWARTSCAT
-LineFunctionDataOutput
-#else
-LineShape::Output
-#endif
-& dVMR={0,0,0,0,0,0,0,0,0});
+                 const LineShape::Output& dT={0,0,0,0,0,0,0,0,0},
+                 const LineShape::Output& dVMR={0,0,0,0,0,0,0,0,0});
   
   void set_doppler(Eigen::Ref<Eigen::VectorXcd> F,
                    Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -192,31 +138,13 @@ LineShape::Output
                                               Eigen::Ref<Eigen::MatrixXcd> dF,
                                               const Eigen::Ref<Eigen::VectorXcd> Fm,
                                               const Eigen::Ref<Eigen::MatrixXcd> dFm,
-                                              const 
-#ifndef NEWARTSCAT
-LineFunctionDataOutput
-#else
-LineShape::Output
-#endif
-& X,
+                                              const LineShape::Output& X,
                                               const bool with_mirroring,
                                               const ArrayOfRetrievalQuantity& derivatives_data=ArrayOfRetrievalQuantity(),
                                               const ArrayOfIndex& derivatives_data_position=ArrayOfIndex(),
                                               const QuantumIdentifier& quantum_identity=QuantumIdentifier(),
-                                              const 
-#ifndef NEWARTSCAT
-LineFunctionDataOutput
-#else
-LineShape::Output
-#endif
-& dT={0,0,0,0,0,0,0,0,0},
-                                              const 
-#ifndef NEWARTSCAT
-LineFunctionDataOutput
-#else
-LineShape::Output
-#endif
-& dVMR={0,0,0,0,0,0,0,0,0});
+                                              const LineShape::Output& dT={0,0,0,0,0,0,0,0,0},
+                                              const LineShape::Output& dVMR={0,0,0,0,0,0,0,0,0});
   
   void apply_rosenkranz_quadratic_scaling(Eigen::Ref<Eigen::VectorXcd> F,
                                           Eigen::Ref<Eigen::MatrixXcd> dF,

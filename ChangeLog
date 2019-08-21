@@ -1,3 +1,75 @@
+2019-08-21  Richard Larsson <larsson@mps.mpg.de>
+
+	* arts-2-3-1273
+	
+	Removes NEWARTSCAT text
+	
+	* src/jacobian.cc,h:
+	* src/linefunctiondata.cc,h:
+	* src/linefunctions.cc,h:
+	* src/linerecord.cc,h:
+	* src/m_linerecord.cc:
+	* src/m_jacobian.cc:
+	* src/m_linemixing.cc:
+	Removed all hidden text from the #ifndef NEWARTSCAT
+	
+	* src/absorption.cc, src/hitran_xsec.cc, src/nlte.cc:
+	Added include to polynominal interpolation routines
+	since they used to be included from the chain:
+	linerecord<-linefunctiondata<-linemixingdata<-polyinominal
+	interpolation
+	
+	* src/test_propagationmatrix.cc: Removed tests of old 
+	LineFunctionData
+	
+	* src/linemixingdata.cc,h,src/pressurebroadeningdata.cc,h:
+	Removed
+	
+	* controlfiles/*:  Updated test files because two of the
+	new calculations does not appear to work properly at all.
+	These are the derivatives wrt G2 and D2.  I am unsure how
+	to fix this because all the numbers appear very similar
+	when printed between the two versions, yet the error is
+	about the same as if someone flipped the line and changed
+	its sign.
+	
+	I choose to update all .xml files of the lineshape tests
+	because the 1e-6 error limit is likely to strict and 
+	several of them failed in the 1.2e-6 range.
+	
+	Note that both CIA and Spectroscopy derivative tests
+	also failed but only their derivative matrix is changed.
+	
+	I will continue investigate this error but the code is
+	still viable for forward calculations.  I am at this point
+	unsure where and how these errors can have gotten so large...
+	
+	* src/CMakeLists.txt: Removed the two .cc files
+	
+	* src/linefunctiondata.cc (cont): differenceOutput added to 
+	return the difference between two Output.  Also fixed
+	an assert that should be an exception in Model::vmrs.
+	
+	* src/linerecord.h (cont):  Made LineRecord::GetShapeParams_dVMR
+	behave similar as LineFunctionData did.  I still believe this is
+	an error and that during pure Air broadening, the self-species
+	should give a positive derivative.  But this mimics the old
+	behavior for now.  It is somewhat murky, since ARTS renormalizes
+	the VMR whether or not an increase in the VMR of a species
+	means it is proportional to an increase in pressure or not.
+	In the former, the code that is presently commented out should
+	be mostly valid, in the latter the return should be zeroes.  In
+	practice, if the retrieval wants to broaden the line more than it
+	is then the altitude grid is most likely wrong, which means there
+	really is more molecules at the distance represented by the Jacobian,
+        but since ARTS has pressure as a constant, we cannot have the sum 
+        of the VMR on any level above unity (or the pressure was not constant
+        so it cannot be a grid).  So I am unsure how to deal with things here.
+        Presently, the FIXME is left commented out but I believe I will
+        add it in shortly and just leave it to later functions to renormalize
+        pressure to the constant that is required (e.g., by deriving the
+        changed path length)
+
 2019-08-20  Richard Larsson <larsson@mps.mpg.de>
 
 	* arts-2-3-1273

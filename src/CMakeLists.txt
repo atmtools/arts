@@ -207,7 +207,6 @@ add_library (artscore STATIC
   jacobian.cc
   legendre.cc
   lin_alg.cc
-  linemixingdata.cc
   linemixing.cc
   linerecord.cc
   linescaling.cc
@@ -273,7 +272,6 @@ add_library (artscore STATIC
   physics_funcs.cc
   poly_roots.cc
   ppath.cc
-  pressurebroadeningdata.cc
   propagationmatrix.cc
   propmat_field.cc
   psd.cc

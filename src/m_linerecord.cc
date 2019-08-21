@@ -259,11 +259,7 @@ void abs_linesReplaceParameterWithLinesParameter(ArrayOfLineRecord& abs_lines,
             lr_old.setI0(lr.I0());
             break;
           case 2: //"Shape data":
-#ifndef NEWARTSCAT
-            lr_old.SetLineFunctionData(lr.GetLineFunctionData());
-#else
             lr_old.SetLineShapeModel(lr.GetLineShapeModel());
-#endif
             break;
           case 4: //"Lower State Energy":
             lr_old.SetElow(lr.Elow());
@@ -480,11 +476,7 @@ void abs_linesSetLineFunctionDataParameterForMatchingLines(ArrayOfLineRecord& ab
   bool any=false;
   for(auto& lr: abs_lines) {
     if(QI.In(lr.QuantumIdentity())) {
-#ifndef NEWARTSCAT
-      lr.SetLineFunctionDataVariable(new_value, species, parameter, coefficient);
-#else
       lr.SetLineShapeModelParameter(new_value, species, parameter, coefficient);
-#endif
       if(not any) any = true;
     }
 
@@ -507,24 +499,12 @@ void abs_linesChangeLineFunctionDataParameterForMatchingLines(ArrayOfLineRecord&
   bool any=false;
   for(auto& lr: abs_lines) {
     if(QI.In(lr.QuantumIdentity())) {
-#ifndef NEWARTSCAT
-      const Numeric old = lr.GetLineFunctionDataVariable(species, parameter, coefficient);
-#else
       auto x = lr.GetLineShapeModelParameters(species, parameter);
       auto& old = LineShape::SingleModelParameter(x, coefficient);
-#endif
       if(relative)
-#ifndef NEWARTSCAT
-        lr.SetLineFunctionDataVariable(old * (1 + change), species, parameter, coefficient);
-#else
         lr.SetLineShapeModelParameter(old * (1 + change), species, parameter, coefficient);
-#endif
       else
-#ifndef NEWARTSCAT
-        lr.SetLineFunctionDataVariable(old + change, species, parameter, coefficient);
-#else
         lr.SetLineShapeModelParameter(old + change, species, parameter, coefficient);
-#endif
       if(not any) any = true;
     }
 
@@ -891,11 +871,7 @@ void abs_linesRemoveSelfFromLineFunctionData(ArrayOfLineRecord& abs_lines,
                                              const Verbosity&)
 {
   for(auto& line: abs_lines)
-#ifndef NEWARTSCAT
-    line.LineFunctionDataRemoveSelf();
-#else
     line.LineShapeModelRemoveSelf();
-#endif
 }
 
 
@@ -910,11 +886,7 @@ void abs_linesRemoveAllButAirBroadening(ArrayOfLineRecord& abs_lines,
                                         const Verbosity&)
 {
   for(auto& line: abs_lines)
-#ifndef NEWARTSCAT
-    line.LineFunctionDataOnlyAir();
-#else
     line.LineShapeModelOnlyAir();
-#endif
 }
 
 
