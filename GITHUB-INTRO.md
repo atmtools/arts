@@ -9,7 +9,11 @@ to use the email used to register on GitHub:
 ```bash
 $ git config --global user.name "John Doe"
 $ git config --global user.email johndoe@example.com
+$ git config --global pull.rebase true
 ```
+
+This also enables the [rebase][atlassian-rebase] option for the pull command by
+default to get a clean order of commits in branches.
 
 We highly recommend to [setup a SSH key][github-ssh] to simplify the 
 authentication with the GitHub server
@@ -56,19 +60,9 @@ upstream https://github.com/atmtools/PROJECT.git (fetch)
 upstream https://github.com/atmtools/PROJECT.git (push)
 ```
 
-### Update your working copy
-Make sure to [pull changes][atlassian-pull] from the ``upstream`` ``master`` 
-branch at regular intervals to keep track of changes done to the project.
-We recommend to use the ``--rebase`` flag. This will
-[rewind your commits and reapply them][atlassian-rebase] on top of the 
-project's history to maintain a linear history.
-```bash
-$ git pull --rebase upstream master
-```
 
 [atlassian-rebase]: https://www.atlassian.com/git/tutorials/rewriting-history/git-rebase
 [atlassian-clone]: https://www.atlassian.com/git/tutorials/setting-up-a-repository/git-clone
-[atlassian-pull]: https://www.atlassian.com/git/tutorials/syncing/git-pull
 [github-fork]: https://help.github.com/en/articles/fork-a-repo
 [github-join]: https://github.com/join
 [github-remote]: https://help.github.com/en/articles/adding-a-remote

@@ -57,6 +57,23 @@ personal fork:
 $ git push origin BRANCH_NAME
 ```
 
+### Update your working copy
+Make sure to [pull changes][atlassian-pull] from the ``upstream`` ``master``
+branch at regular intervals to keep track of changes done to the project.
+We recommend to use the ``--rebase`` flag. This will
+[rewind your commits and reapply them][atlassian-rebase] on top of the
+project's history to maintain a linear history.
+```bash
+$ git pull --rebase upstream master
+```
+
+Since this changes the order of commits, you need to pass the ``-f`` option when
+you push your branch to your own fork again:
+
+```bash
+$ git push -f origin BRANCH_NAME
+```
+
 ## Pull request
 After pushing your changes to your fork navigate to the GitHub page of your
 fork and [create a Pull request][github-pr]. Add the needed information to the
@@ -77,4 +94,6 @@ $ git push origin --delete BRANCH_NAME  # server-side
 
 [atlassian-branch]: https://www.atlassian.com/git/tutorials/using-branches/
 [atlassian-checkout]: https://www.atlassian.com/git/tutorials/using-branches/git-checkout
+[atlassian-pull]: https://www.atlassian.com/git/tutorials/syncing/git-pull
+[atlassian-rebase]: https://www.atlassian.com/git/tutorials/rewriting-history/git-rebase
 [github-pr]: https://help.github.com/en/articles/creating-a-pull-request
