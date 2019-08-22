@@ -1,5 +1,15 @@
 2019-08-22  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-1277
+
+	* doc/uguide/development.tex:
+
+	Updated section "Version numbers".
+
+	* doc/uguide/concept.tex: Replace one occurrence of svn with git.
+
+2019-08-22  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-1276
 
 	* .clang-format:

@@ -266,12 +266,13 @@ exception. (Currently not really implemented in the GNU compiler,
 but please use it anyway.)
 
 \subsection{Version numbers} 
-The package version number is set in the \fileindex{ChangeLog} file in the
-top level ARTS directory. Always increase this when you do a SVN
-commit, even for small changes. In such cases increase the last digit
-by one. If you make a new distribution, increase the middle digit by
-one and omit the last digit. If you make a bug-fix distribution, you
-can add the last digit to indicate this. 
+The package version number is set in the \fileindex{VERSION} file in the top
+level ARTS directory. It will be incremented by the ARTS maintainers when new
+features or bug fixes have been added to ARTS, not on every commit. Never
+change this number when working in your own branch. The major and/or minor
+version number will be incremented on public releases. The micro version
+indicates the addition of new features during development or bugfixes for
+stable releases.
 
 \subsection{Header files} 
 The global header file \fileindex{arts.h} \emph{must} be included by every
@@ -530,8 +531,8 @@ method can be added.
   are needed for arts. In the usual case, you just have to add your
   \shortcode{.cc} file to the list of source files of the artscore
   library. Header files are not added to this list.
-\item Go to \shortcode{src} and run: \shortcode{svn add <my\_file>} to
-  make your file known to SVN.
+\item Go to \shortcode{src} and run: \shortcode{git add <my\_file>} to
+  make your file known to git.
 \end{enumerate}
 
 
