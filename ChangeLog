@@ -1,5 +1,15 @@
 2019-08-22  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-2-3-1276
+
+	* .clang-format:
+
+	Set format as described in developer guide 1.3. Most IDEs use this
+	file automatically. VSCode or CLion will automatically use it if you
+	enable clang-format in the IDE's settings.
+
+2019-08-22  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-2-3-1275
 
 	* GITHUB-INTRO.md, CONTRIBUTING.md:
