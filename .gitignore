@@ -12,3 +12,6 @@
 /build*/
 /controlfiles/**/*.rep
 heaptrack.*.gz
+3rdparty/wigner/fastwigxj/gen/
+3rdparty/wigner/fastwigxj/obj/
+
