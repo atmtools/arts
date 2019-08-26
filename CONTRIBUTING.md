@@ -40,6 +40,7 @@ $ git branch
   master
 * BRANCH_NAME
 ```
+_Use the ``--all`` flag to show local and remote-tracking branches._
 
 ## Work on your contribution
 Now you can start with the development of your new feature (or bug fix).
