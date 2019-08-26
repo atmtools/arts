@@ -43,7 +43,9 @@ $ git branch
 
 ## Work on your contribution
 Now you can start with the development of your new feature (or bug fix).
-You can commit changes as often as you like locally with:
+You can commit changes as often as you like locally. In your log message,
+follow the ["The seven rules of a great Git commit message"][git-commit].
+
 
 ```bash
 $ git add FILENAME
@@ -96,4 +98,5 @@ $ git push origin --delete BRANCH_NAME  # server-side
 [atlassian-checkout]: https://www.atlassian.com/git/tutorials/using-branches/git-checkout
 [atlassian-pull]: https://www.atlassian.com/git/tutorials/syncing/git-pull
 [atlassian-rebase]: https://www.atlassian.com/git/tutorials/rewriting-history/git-rebase
+[git-commit]: https://chris.beams.io/posts/git-commit/#seven-rules
 [github-pr]: https://help.github.com/en/articles/creating-a-pull-request
