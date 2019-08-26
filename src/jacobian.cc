@@ -1949,44 +1949,46 @@ bool is_pressure_broadening_DV(const RetrievalQuantity& t) noexcept
          t == JacPropMatType::LineShapeDVX2;
 }
 
+#define VARISLINESHAPEPARAM(X, Y) (t == JacPropMatType::LineShape ## X ## Y)
 bool is_lineshape_parameter_X0(const RetrievalQuantity& t) noexcept
 {
-  return t == JacPropMatType::LineShapeG0X0 or
-         t == JacPropMatType::LineShapeD0X0 or
-         t == JacPropMatType::LineShapeG2X0 or
-         t == JacPropMatType::LineShapeD2X0 or
-         t == JacPropMatType::LineShapeETAX0 or
-         t == JacPropMatType::LineShapeFVCX0 or
-         t == JacPropMatType::LineShapeYX0 or
-         t == JacPropMatType::LineShapeGX0 or
-         t == JacPropMatType::LineShapeDVX0;
+  return VARISLINESHAPEPARAM(G0,  X0) or
+         VARISLINESHAPEPARAM(D0,  X0) or
+         VARISLINESHAPEPARAM(G2,  X0) or
+         VARISLINESHAPEPARAM(D2,  X0) or
+         VARISLINESHAPEPARAM(FVC, X0) or
+         VARISLINESHAPEPARAM(ETA, X0) or
+         VARISLINESHAPEPARAM(Y,   X0) or
+         VARISLINESHAPEPARAM(G,   X0) or
+         VARISLINESHAPEPARAM(DV,  X0);
 }
 
 bool is_lineshape_parameter_X1(const RetrievalQuantity& t) noexcept
 {
-  return t == JacPropMatType::LineShapeG0X1 or
-         t == JacPropMatType::LineShapeD0X1 or
-         t == JacPropMatType::LineShapeG2X1 or
-         t == JacPropMatType::LineShapeD2X1 or
-         t == JacPropMatType::LineShapeETAX1 or
-         t == JacPropMatType::LineShapeFVCX1 or
-         t == JacPropMatType::LineShapeYX1 or
-         t == JacPropMatType::LineShapeGX1 or
-         t == JacPropMatType::LineShapeDVX1;
+  return VARISLINESHAPEPARAM(G0,  X1) or
+         VARISLINESHAPEPARAM(D0,  X1) or
+         VARISLINESHAPEPARAM(G2,  X1) or
+         VARISLINESHAPEPARAM(D2,  X1) or
+         VARISLINESHAPEPARAM(FVC, X1) or
+         VARISLINESHAPEPARAM(ETA, X1) or
+         VARISLINESHAPEPARAM(Y,   X1) or
+         VARISLINESHAPEPARAM(G,   X1) or
+         VARISLINESHAPEPARAM(DV,  X1);
 }
 
 bool is_lineshape_parameter_X2(const RetrievalQuantity& t) noexcept
 {
-  return t == JacPropMatType::LineShapeG0X2 or
-         t == JacPropMatType::LineShapeD0X2 or
-         t == JacPropMatType::LineShapeG2X2 or
-         t == JacPropMatType::LineShapeD2X2 or
-         t == JacPropMatType::LineShapeETAX2 or
-         t == JacPropMatType::LineShapeFVCX2 or
-         t == JacPropMatType::LineShapeYX2 or
-         t == JacPropMatType::LineShapeGX2 or
-         t == JacPropMatType::LineShapeDVX2;
+  return VARISLINESHAPEPARAM(G0,  X2) or
+         VARISLINESHAPEPARAM(D0,  X2) or
+         VARISLINESHAPEPARAM(G2,  X2) or
+         VARISLINESHAPEPARAM(D2,  X2) or
+         VARISLINESHAPEPARAM(FVC, X2) or
+         VARISLINESHAPEPARAM(ETA, X2) or
+         VARISLINESHAPEPARAM(Y,   X2) or
+         VARISLINESHAPEPARAM(G,   X2) or
+         VARISLINESHAPEPARAM(DV,  X2);
 }
+#undef VARISLINESHAPEPARAM
 
 bool is_lineshape_parameter_bar_linemixing(const RetrievalQuantity& t) noexcept
 {
