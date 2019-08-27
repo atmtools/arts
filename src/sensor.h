@@ -42,6 +42,7 @@
 #include "math_funcs.h"
 #include "matpackI.h"
 #include "matpackII.h"
+#include "messages.h"
 
 
 /*===========================================================================
