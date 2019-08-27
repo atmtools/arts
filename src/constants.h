@@ -54,6 +54,7 @@
 #ifndef CONSTANTS_IN_ARTS_H
 #define CONSTANTS_IN_ARTS_H
 
+#include "matpack.h"
 
 /** Namespace containing several constants, physical and mathematical **/
 namespace Constant {
