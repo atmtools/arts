@@ -366,7 +366,7 @@ void test_lineshape_xsec()
   Eigen::VectorXd f_grid(101);
   for(int i=0; i<101; i++)
     f_grid[i] = Numeric(i-50)/50.0 * 1e4 + 100e9;
-  Linefunctions::set_lineshape(F, f_grid, vp_line, vmrs, 273., 100., 0., 0., abs_species, 0);
+  Linefunctions::set_lineshape(F, f_grid, vp_line, vmrs, 273., 100., 0., 0., abs_species);
   std::cout<<F<<"\n";
 }
 

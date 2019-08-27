@@ -536,7 +536,8 @@ public:
         sm.Interp()[i] = d[i];
   }
   
-  LineShape::Model GetLineShapeModel() const {return mlineshapemodel;}
+  LineShape::Model& GetLineShapeModel() {return mlineshapemodel;}
+  const LineShape::Model& GetLineShapeModel() const {return mlineshapemodel;}
   
   void SetLineShapeModel(const LineShape::Model& lsm) {mlineshapemodel=lsm;}
   

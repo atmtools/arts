@@ -60,8 +60,7 @@ namespace Linefunctions
                      const Numeric& pressure, 
                      const Numeric& zeeman_df,
                      const Numeric& magnetic_magnitude,
-                     const ArrayOfArrayOfSpeciesTag& abs_species,
-                     const Index& this_species);
+                     const ArrayOfArrayOfSpeciesTag& abs_species);
   
   void set_lorentz(Eigen::Ref<Eigen::VectorXcd> F, 
                    Eigen::Ref<Eigen::MatrixXcd> dF, 
@@ -237,8 +236,7 @@ namespace Linefunctions
                                               const LineRecord& line,
                                               const Numeric& T,
                                               const Numeric& P,
-                                              const ConstVectorView& vmrs,
-                                              const ArrayOfArrayOfSpeciesTag& species);
+                                              const Vector& vmrs);
   
   Numeric DopplerConstant(Numeric T, Numeric mass);
   
@@ -255,7 +253,7 @@ namespace Linefunctions
                                          const LineRecord& line,
                                          const ArrayOfRetrievalQuantity& derivatives_data,
                                          const ArrayOfIndex& derivatives_data_position,
-                                         const ConstVectorView volume_mixing_ratio_of_all_species,
+                                         const Vector& volume_mixing_ratio_of_lineshape,
                                          const ConstVectorView nlte_distribution,
                                          const Numeric& pressure,
                                          const Numeric& temperature,
@@ -279,7 +277,7 @@ namespace Linefunctions
                     const ArrayOfRetrievalQuantity& derivatives_data,
                     const ArrayOfIndex& derivatives_data_position,
                     const LineRecord& line,
-                    const ConstVectorView volume_mixing_ratio_of_all_species,
+                    const Vector& volume_mixing_ratio_of_lineshape,
                     const ConstVectorView nlte_distribution,
                     const Numeric& pressure,
                     const Numeric& temperature,

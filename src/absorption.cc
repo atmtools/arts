@@ -2183,6 +2183,10 @@ void xsec_species2(Matrix& xsec,
     Numeric t0 = -1; // line temperature
     Numeric dc=0, ddc_dT=0, qt=0, qt0=1, dqt_dT=0; // Doppler and partition functions
     
+    // Line shape constants
+    LineShape::Model line_shape_model;
+    Vector line_shape_vmr(0);
+    
     // Reset sum-operators
     for(Index ithread=0; ithread<nthread; ithread++) {
       Fsum[ithread].setZero();
@@ -2193,7 +2197,7 @@ void xsec_species2(Matrix& xsec,
     
     #pragma omp parallel for if(nthread > 1) \
     schedule(guided, 4) \
-    firstprivate(this_iso, t0, dc, ddc_dT, qt, qt0, dqt_dT)
+    firstprivate(this_iso, t0, dc, ddc_dT, qt, qt0, dqt_dT, line_shape_model, line_shape_vmr)
     for(Index il=0; il<abs_lines.nelem(); il++) {
       const auto& line = abs_lines[il];
       
@@ -2229,9 +2233,14 @@ void xsec_species2(Matrix& xsec,
             ddc_dT = Linefunctions::dDopplerConstant_dT(temperature, dc);
         }
       }
+      
+      if(not line_shape_model.same_broadening_species(line.GetLineShapeModel())) {
+        line_shape_model = line.GetLineShapeModel();  // This should not be a copy but a reference assignment...
+        line_shape_vmr = line_shape_model.vmrs(all_vmrs(joker, ip), abs_species, line.QuantumIdentity());
+      }
     
       Linefunctions::set_cross_section_for_single_line(F, dF, N, dN, data, start, nelem, f_grid_eigen, line,
-        jacobian_quantities, jacobian_propmat_positions, all_vmrs(joker, ip), 
+        jacobian_quantities, jacobian_propmat_positions, line_shape_vmr, 
         nt?abs_nlte(joker, ip):Vector(0), pressure, temperature, dc, partial_pressure, 
         isotopologue_ratios.getParam(line.Species(), this_iso)[0].data[0],
         0.0, 0.0, ddc_dT, qt, dqt_dT, qt0, abs_species, this_species);
