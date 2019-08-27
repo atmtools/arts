@@ -37,6 +37,11 @@
 #ifndef surface_h
 #define surface_h
 
+#include "complex.h"
+#include "matpackIV.h"
+#include "mystring.h"
+#include "ppath.h"
+
 Numeric calc_incang(
    ConstVectorView   rte_los,
    ConstVectorView   specular_los );
