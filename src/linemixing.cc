@@ -147,7 +147,7 @@ try
     // Create a temporary table to allow openmp
     wig_temp_init(2*int(size));
     
-    const auto shape_parameters = lines[i].GetShapeParams(T, 1, 1, pseudo_vmrs, pseudo_species);
+    const auto shape_parameters = lines[i].GetShapeParams(T, 1, pseudo_vmrs, pseudo_species);
     W(i, i) = shape_parameters.G0;
     
     const Numeric& popi = population[i];

@@ -643,7 +643,7 @@ void xsec_species( MatrixView               xsec_attenuation,
                    ConstMatrixView          abs_t_nlte,
                    ConstMatrixView          all_vmrs,
                    const ArrayOfArrayOfSpeciesTag& abs_species,
-                   const Index              this_species,
+                   const Index              this_species [[maybe_unused]],
                    const ArrayOfLineRecord& abs_lines,
                    const Index              ind_ls,
                    const Index              ind_lsn,
@@ -902,7 +902,7 @@ firstprivate(ls_attenuation, fac, f_local, aux, qt_cache, qref_cache, iso_cache,
                         // Prepare pressure broadening parameters
                         Numeric gamma_0,gamma_2,eta,df_0,df_2,f_VC;
                         l_l.SetPressureBroadeningParameters(gamma_0,gamma_2,eta,df_0,df_2,f_VC,
-                                                            t_i, p_i, this_species, vmrs, abs_species);
+                                                            t_i, p_i, vmrs, abs_species);
                         
                         // Check the chache is the tempearture of the line and the isotope is the same to avoid recalculating the partition sum
                         if(iso_cache!=l_l.Isotopologue() || line_t_cache != l_l.Ti0())
@@ -1883,7 +1883,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
             
             // Pressure broadening parameters
             // Prepare pressure broadening parameters
-            auto X = abs_lines[ii].GetShapeParams(t, p, this_species, vmrs, abs_species);
+            auto X = abs_lines[ii].GetShapeParams(t, p, vmrs, abs_species);
             const Numeric& G0 = X.G0;
             const Numeric& D0 = X.D0;
             const Numeric& G2 = X.G2;
@@ -1965,7 +1965,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                 atm_tv_low, atm_tv_upp;
                 if(do_temperature_jacobian(flag_partials))
                 {
-                  auto dX = abs_lines[ii].GetShapeParams_dT(t, temperature_perturbation(flag_partials), p, this_species, vmrs, abs_species);
+                  auto dX = abs_lines[ii].GetShapeParams_dT(t, p, vmrs, abs_species);
                   dG0dT = dX.G0;
                   dD0dT = dX.D0;
                   dYdT = dX.Y;

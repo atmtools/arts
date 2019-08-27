@@ -1844,7 +1844,7 @@ void abs_xsec_per_speciesAddLineMixedBands( // WS Output:
           
           //abs_lines_per_band[iband][iline].SetAirPressureBroadening(W(iline, iline), psf[iline], abs_t[ip], abs_p[ip], 0.0);
           // FIXME:  Update this entire section... the below is a temporary workaround
-          auto X = abs_lines_per_band[iband][iline].GetShapeParams(abs_t[ip], abs_p[ip], 0, {0}, {{SpeciesTag("CO2")}});
+          auto X = abs_lines_per_band[iband][iline].GetShapeParams(abs_t[ip], abs_p[ip], {400e-6}, {{SpeciesTag("CO2")}});
           W(iline, iline) = X.G0;
           psf[iline] = X.D0;
           
@@ -2052,7 +2052,7 @@ void PrintSelfLineMixingStatus(const ArrayOfArrayOfLineRecord& abs_lines_per_ban
     std::cout<<"JF\tJI\tY("<<T<<")\tG("<<T<<")\tDV("<<T<<")\tF0\tE0\n";
     for(const auto& line: abs_lines_per_band[i]) {
       std::cout<< line.LowerQuantumNumber(J)  << '\t' << line.UpperQuantumNumber(J)  << '\t';
-      line.SetLineMixingParameters(Y, G, DV, T, 101325, i, vmrs, abs_species_per_band);
+      line.SetLineMixingParameters(Y, G, DV, T, 101325, vmrs, abs_species_per_band);
       std::cout << Y << '\t' << G << '\t' << DV << '\t' << line.F() << '\t' << line.Elow() << '\n';
     }
   }
@@ -2382,9 +2382,9 @@ try
         Matrix W;
         relmatInAir(W, abs_lines_per_band[ib], abs_species_per_band, partition_functions, wigner_initialized, abs_t[ip], ib, verbosity);
         for(auto i1=0; i1<N; i1++) {
-          auto x = abs_lines_per_band[ib][i1].GetShapeParams(abs_t[ip], abs_p[ip], 3, Vector({0.21, 0.79, 0}), 
+          auto x = abs_lines_per_band[ib][i1].GetShapeParams(abs_t[ip], abs_p[ip], Vector({0.21, 0.79, 0}), 
                                                              ArrayOfArrayOfSpeciesTag({ArrayOfSpeciesTag(1, SpeciesTag("O2")), ArrayOfSpeciesTag(1, SpeciesTag("N2")),
-                                                               ArrayOfSpeciesTag(1, SpeciesTag(species.SpeciesNameMain()))}));
+                                                                                       ArrayOfSpeciesTag(1, SpeciesTag(species.SpeciesNameMain()))}));
           for(auto i2=0; i2<N; i2++) {
             if(i1 not_eq i2)
               M(i1, i2) =                     + Complex(0, abs_p[ip]) * W(i1, i2);
@@ -2397,7 +2397,7 @@ try
         M.setZero();
         for(auto il=0; il<N; il++) {
           // "AIR"
-          auto x = abs_lines_per_band[ib][il].GetShapeParams(abs_t[ip], abs_p[ip], 3, Vector({0.21, 0.79, 0}), 
+          auto x = abs_lines_per_band[ib][il].GetShapeParams(abs_t[ip], abs_p[ip], Vector({0.21, 0.79, 0}), 
                                                              ArrayOfArrayOfSpeciesTag({ArrayOfSpeciesTag(1, SpeciesTag("O2")), ArrayOfSpeciesTag(1, SpeciesTag("N2")),
                                                                                        ArrayOfSpeciesTag(1, SpeciesTag(species.SpeciesNameMain()))}));
           M(il, il) = Complex(0, x.G0);

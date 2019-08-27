@@ -49,10 +49,10 @@ void Linefunctions::set_lineshape(Eigen::Ref<Eigen::VectorXcd> F,
                                   const Numeric& zeeman_df,
                                   const Numeric& magnetic_magnitude,
                                   const ArrayOfArrayOfSpeciesTag& abs_species,
-                                  const Index& this_species)
+                                  const Index& this_species [[maybe_unused]])
 {
   // Pressure broadening and line mixing terms
-  const auto X = line.GetShapeParams(temperature, pressure, this_species, vmrs, abs_species);
+  const auto X = line.GetShapeParams(temperature, pressure, vmrs, abs_species);
   
   Eigen::MatrixXcd dF(0, 0), data(F.size(), Linefunctions::ExpectedDataSize());
   const Numeric doppler_constant = DopplerConstant(temperature, line.IsotopologueData().Mass());
@@ -964,7 +964,7 @@ void Linefunctions::apply_linefunctiondata_jacobian_scaling(Eigen::Ref<Eigen::Ma
                                                             const LineRecord& line,
                                                             const Numeric& T,
                                                             const Numeric& P,
-                                                            const Index& this_species,
+                                                            const Index& this_species [[maybe_unused]],
                                                             const ConstVectorView& vmrs,
                                                             const ArrayOfArrayOfSpeciesTag& species)
 {
@@ -973,7 +973,7 @@ void Linefunctions::apply_linefunctiondata_jacobian_scaling(Eigen::Ref<Eigen::Ma
   for(auto iq=0; iq<nppd; iq++) {
     const RetrievalQuantity& rt = derivatives_data[derivatives_data_position[iq]];
     if(is_lineshape_parameter(rt) and rt.QuantumIdentity().In(quantum_identity))
-      dF.col(iq) *= line.GetInternalDerivative(T,P,this_species,vmrs,species, rt);
+      dF.col(iq) *= line.GetInternalDerivative(T, P, vmrs, species, rt);
   }
 }
 
@@ -1119,20 +1119,18 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
   const QuantumIdentifier& QI = line.QuantumIdentity();
   
   // Pressure broadening and line mixing terms
-  const auto X = line.GetShapeParams(temperature, pressure, this_species_location_in_tags, volume_mixing_ratio_of_all_species, abs_species);
+  const auto X = line.GetShapeParams(temperature, pressure, volume_mixing_ratio_of_all_species, abs_species);
   
   constexpr LineShape::Output empty_output={0, 0, 0, 0, 0, 0, 0, 0, 0};
   
   // Partial derivatives for temperature
-  const auto dXdT = do_temperature ? line.GetShapeParams_dT(temperature, temperature_perturbation(derivatives_data), 
-                                                            pressure, this_species_location_in_tags, 
-                                                            volume_mixing_ratio_of_all_species,  abs_species)
+  const auto dXdT = do_temperature ? line.GetShapeParams_dT(temperature, pressure, 
+                                                            volume_mixing_ratio_of_all_species, abs_species)
                                    : empty_output;
   
   // Partial derivatives for VMR... the first function 
   auto do_vmr = do_vmr_jacobian(derivatives_data, line.QuantumIdentity());  // At all, Species
-  const auto dXdVMR = do_vmr.test ? line.GetShapeParams_dVMR(temperature, pressure, this_species_location_in_tags,
-                                                             volume_mixing_ratio_of_all_species, abs_species, do_vmr.qid)
+  const auto dXdVMR = do_vmr.test ? line.GetShapeParams_dVMR(temperature, pressure, do_vmr.qid)
                                   : empty_output;
   
   // Arrays on which all computations happen are segments of the full input, and the segmenting is part of the output
