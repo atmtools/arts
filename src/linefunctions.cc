@@ -964,7 +964,6 @@ void Linefunctions::apply_linefunctiondata_jacobian_scaling(Eigen::Ref<Eigen::Ma
                                                             const LineRecord& line,
                                                             const Numeric& T,
                                                             const Numeric& P,
-                                                            const Index& this_species [[maybe_unused]],
                                                             const ConstVectorView& vmrs,
                                                             const ArrayOfArrayOfSpeciesTag& species)
 {
@@ -1220,8 +1219,8 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
     
     // Apply line mixing and pressure broadening partial derivatives        
     apply_linefunctiondata_jacobian_scaling(dF, derivatives_data, derivatives_data_position, QI, line,
-                                            temperature, pressure,  this_species_location_in_tags,
-                                            volume_mixing_ratio_of_all_species, abs_species);
+                                            temperature, pressure, volume_mixing_ratio_of_all_species,
+                                            abs_species);
   }
   
   // Line normalization if necessary

@@ -237,7 +237,6 @@ namespace Linefunctions
                                               const LineRecord& line,
                                               const Numeric& T,
                                               const Numeric& P,
-                                              const Index& this_species,
                                               const ConstVectorView& vmrs,
                                               const ArrayOfArrayOfSpeciesTag& species);
   

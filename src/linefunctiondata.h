@@ -773,14 +773,14 @@ namespace LineShape {
     LSPDC(DV,  _dT0,  P*P) LSPDC(DV,  _dX0, P*P) LSPDC(DV,  _dX1, P*P) LSPDC(DV,  _dX2, P*P)
     #undef LSPDC
     
-    Output GetParams(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const {
+    Output GetParams(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const noexcept {
       return {G0(T, T0, P, vmrs), D0(T, T0, P, vmrs),
               G2(T, T0, P, vmrs), D2(T, T0, P, vmrs),
               FVC(T, T0, P, vmrs), ETA(T, T0, P, vmrs),
               Y(T, T0, P, vmrs), G(T, T0, P, vmrs), DV(T, T0, P, vmrs)};
     }
     
-    Output GetTemperatureDerivs(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const {
+    Output GetTemperatureDerivs(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const noexcept {
       return {dG0_dT(T, T0, P, vmrs), dD0_dT(T, T0, P, vmrs),
               dG2_dT(T, T0, P, vmrs), dD2_dT(T, T0, P, vmrs),
               dFVC_dT(T, T0, P, vmrs), dETA_dT(T, T0, P, vmrs),
@@ -794,7 +794,7 @@ namespace LineShape {
               dY_dVMR(T, T0, P, pos), dG_dVMR(T, T0, P, pos), dDV_dVMR(T, T0, P, pos)};
     }
     
-    Numeric GetInternalDeriv(Numeric T, Numeric T0, Numeric P, Index pos, const Vector& vmrs, JacPropMatType deriv) const {
+    Numeric GetInternalDeriv(Numeric T, Numeric T0, Numeric P, Index pos, const Vector& vmrs, JacPropMatType deriv) const noexcept {
       if(pos < 0)
         return 0;
       

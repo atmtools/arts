@@ -481,7 +481,7 @@ public:
   bool LowerStateInQuantumID(const QuantumIdentifier& qid) const {return mqid.InLower(qid);}
   
   /**Do linemixing test*/
-  bool do_linemixing(const Numeric& P) const
+  bool do_linemixing(const Numeric& P) const noexcept
   {
     if(mlinemixing_limit < 0)
       return true;
@@ -581,30 +581,34 @@ public:
   Numeric PressureBroadeningAirBroadeningPsf( ) const { return Psf(); }
   Numeric PressureBroadeningAirBroadeningAgam() const { return Agam(); }
 
-  Numeric GetInternalDerivative(const Numeric& T, const Numeric& P, const ConstVectorView vmrs,
-                                const ArrayOfArrayOfSpeciesTag& abs_species, 
-                                const RetrievalQuantity& derivative) const
-  {
+  Numeric GetPrepInternalDerivative(const Numeric& T, const Numeric& P, const Vector& vmrs,
+                                    const RetrievalQuantity& derivative) const noexcept {
     const bool self = derivative.Mode() == LineShape::self_broadening;
     const bool bath = derivative.Mode() == LineShape::bath_broadening;
-    const auto v = mlineshapemodel.vmrs(vmrs, abs_species, mqid);
     if(mlineshapemodel.Self() and self)
-      return mlineshapemodel.GetInternalDeriv(T, mti0, P, 0, v, derivative.PropMatType());
+      return mlineshapemodel.GetInternalDeriv(T, mti0, P, 0, vmrs, derivative.PropMatType());
     else if(self) {
       const auto pos = mlineshapemodel.this_species(mqid);
-      return mlineshapemodel.GetInternalDeriv(T, mti0, P, pos, v, derivative.PropMatType());
+      return mlineshapemodel.GetInternalDeriv(T, mti0, P, pos, vmrs, derivative.PropMatType());
     }
     else if(mlineshapemodel.Bath() and bath)
-      return mlineshapemodel.GetInternalDeriv(T, mti0, P, mlineshapemodel.nelem()-1, v, derivative.PropMatType());
+      return mlineshapemodel.GetInternalDeriv(T, mti0, P, mlineshapemodel.nelem()-1, vmrs, derivative.PropMatType());
     else if(bath)
       return 0;
     else {
       const auto pos = mlineshapemodel.this_species(derivative.QuantumIdentity());
-      return mlineshapemodel.GetInternalDeriv(T, mti0, P, pos, v, derivative.PropMatType());
+      return mlineshapemodel.GetInternalDeriv(T, mti0, P, pos, vmrs, derivative.PropMatType());
     }
   }
+
+  Numeric GetInternalDerivative(const Numeric& T, const Numeric& P, const ConstVectorView vmrs,
+                                const ArrayOfArrayOfSpeciesTag& abs_species, 
+                                const RetrievalQuantity& derivative) const {
+    auto v = mlineshapemodel.vmrs(vmrs, abs_species, mqid);
+    return GetPrepInternalDerivative(T, P, v, derivative);
+  }
   
-  LineShape::Output GetPrepShapeParams(const Numeric& T, const Numeric& P, const Vector& vmrs) const {
+  LineShape::Output GetPrepShapeParams(const Numeric& T, const Numeric& P, const Vector& vmrs) const noexcept {
     auto x = mlineshapemodel.GetParams(T, mti0, P, vmrs);
     if(not do_linemixing(P))
       x.Y = x.G = x.DV = 0;
@@ -614,10 +618,11 @@ public:
   /*! Method to compute the line mixing and pressure broadening parameters */
   LineShape::Output GetShapeParams(const Numeric& T, const Numeric& P, const ConstVectorView vmrs,
                                    const ArrayOfArrayOfSpeciesTag& abs_species) const {
-    return GetPrepShapeParams(T, P, mlineshapemodel.vmrs(vmrs, abs_species, mqid));
+    auto v = mlineshapemodel.vmrs(vmrs, abs_species, mqid);
+    return GetPrepShapeParams(T, P, v);
   }
   
-  LineShape::Output GetPrepShapeParams_dT(const Numeric& T, const Numeric& P, const Vector& vmrs) const {
+  LineShape::Output GetPrepShapeParams_dT(const Numeric& T, const Numeric& P, const Vector& vmrs) const noexcept {
     auto x = mlineshapemodel.GetTemperatureDerivs(T, mti0, P, vmrs);
     if(not do_linemixing(P))
       x.Y = x.G = x.DV = 0;
@@ -627,13 +632,13 @@ public:
   /*! Method to compute the temperature derivatives of line mixing and pressure broadening parameters */
   LineShape::Output GetShapeParams_dT(const Numeric& T, const Numeric& P, const ConstVectorView vmrs,
                                       const ArrayOfArrayOfSpeciesTag& abs_species) const {
-    return GetPrepShapeParams_dT(T, P, mlineshapemodel.vmrs(vmrs, abs_species, mqid));
+    auto v = mlineshapemodel.vmrs(vmrs, abs_species, mqid);
+    return GetPrepShapeParams_dT(T, P, v);
   }
   
   /*! Method to compute the temperature derivatives of line mixing and pressure broadening parameters */
   LineShape::Output GetShapeParams_dVMR(const Numeric& T, const Numeric& P,
-                                        const QuantumIdentifier& vmr_qi) const
-  {
+                                        const QuantumIdentifier& vmr_qi) const noexcept {
     const bool self = vmr_qi.Species() == mqid.Species();
     if(mlineshapemodel.Self() and self) {
       auto x = mlineshapemodel.GetVMRDerivs(T, mti0, P, 0);
