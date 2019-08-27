@@ -417,10 +417,15 @@ namespace LineShape {
     #define ACCESS_INTERNAL(VARPOS)                                               \
     ModelParameters& VARPOS()       noexcept {return X[Index(Variable::VARPOS)];} \
     ModelParameters  VARPOS() const noexcept {return X[Index(Variable::VARPOS)];}
-    ACCESS_INTERNAL(G0); ACCESS_INTERNAL(G2);
-    ACCESS_INTERNAL(D0); ACCESS_INTERNAL(D2);
-    ACCESS_INTERNAL(FVC); ACCESS_INTERNAL(ETA);
-    ACCESS_INTERNAL(Y); ACCESS_INTERNAL(G); ACCESS_INTERNAL(DV);
+    ACCESS_INTERNAL(G0);
+    ACCESS_INTERNAL(D0);
+    ACCESS_INTERNAL(G2);
+    ACCESS_INTERNAL(D2);
+    ACCESS_INTERNAL(FVC);
+    ACCESS_INTERNAL(ETA);
+    ACCESS_INTERNAL(Y);
+    ACCESS_INTERNAL(G);
+    ACCESS_INTERNAL(DV);
     #undef ACCESS_INTERNAL
     
     // Access to all data
@@ -703,27 +708,51 @@ namespace LineShape {
       std::plus<Numeric>(), [=](const SingleSpeciesModel& x, Numeric vmr) -> Numeric                      \
       {return vmr * x.compute(T, T0, Variable::XVAR);});                                                  \
     }
-    LSPC(G0, P) LSPC(G2, P) LSPC(D0, P) LSPC(D2, P) LSPC(ETA, 1) LSPC(FVC, P) LSPC(Y, P) LSPC(G, P*P) LSPC(DV, P*P)
+    LSPC(G0, P)
+    LSPC(D0, P)
+    LSPC(G2, P)
+    LSPC(D2, P)
+    LSPC(FVC, P)
+    LSPC(ETA, 1)
+    LSPC(Y, P)
+    LSPC(G, P*P)
+    LSPC(DV, P*P)
     #undef LSPC
     
     // All VMR derivatives
-    #define LSPC(XVAR, PVAR)                                                                                               \
+    #define LSPCV(XVAR, PVAR)                                                                                              \
     Numeric d ## XVAR ## _dVMR (Numeric T, Numeric T0, Numeric P [[maybe_unused]], const Index deriv_pos) const noexcept { \
       if(deriv_pos not_eq -1) return PVAR * mdata[deriv_pos].compute(T, T0, Variable::XVAR);                               \
       else return 0;                                                                                                       \
     }
-    LSPC(G0, P) LSPC(G2, P) LSPC(D0, P) LSPC(D2, P) LSPC(ETA, 1) LSPC(FVC, P) LSPC(Y, P) LSPC(G, P*P) LSPC(DV, P*P)
-    #undef LSPC
+    LSPCV(G0, P)
+    LSPCV(D0, P)
+    LSPCV(G2, P)
+    LSPCV(D2, P)
+    LSPCV(FVC, P)
+    LSPCV(ETA, 1)
+    LSPCV(Y, P)
+    LSPCV(G, P*P)
+    LSPCV(DV, P*P)
+    #undef LSPCV
     
     // All shape model derivatives
-    #define LSPC(XVAR, PVAR)                                                                                          \
+    #define LSPCT(XVAR, PVAR)                                                                                         \
     Numeric d ## XVAR ## _dT (Numeric T, Numeric T0, Numeric P [[maybe_unused]], const Vector& vmrs) const noexcept { \
       return PVAR * std::inner_product(mdata.cbegin(), mdata.cend(), vmrs.begin(), 0.0,                               \
       std::plus<Numeric>(), [=](const SingleSpeciesModel& x, Numeric vmr) -> Numeric                                  \
       {return vmr * x.compute_dT (T, T0, Variable::XVAR);});                                                          \
     }
-    LSPC(G0, P) LSPC(G2, P) LSPC(D0, P) LSPC(D2, P) LSPC(ETA, 1) LSPC(FVC, P) LSPC(Y, P) LSPC(G, P*P) LSPC(DV, P*P)
-    #undef LSPC
+    LSPCT(G0, P)
+    LSPCT(D0, P)
+    LSPCT(G2, P)
+    LSPCT(D2, P)
+    LSPCT(FVC, P)
+    LSPCT(ETA, 1)
+    LSPCT(Y, P)
+    LSPCT(G, P*P)
+    LSPCT(DV, P*P)
+    #undef LSPCT
     
     // All shape model derivatives
     #define LSPDC(XVAR, DERIV, PVAR)                                                               \
@@ -734,11 +763,11 @@ namespace LineShape {
       else return 0;                                                                     \
     }
     LSPDC(G0,  _dT0,  P  ) LSPDC(G0,  _dX0, P  ) LSPDC(G0,  _dX1, P  ) LSPDC(G0,  _dX2, P  )
-    LSPDC(G2,  _dT0,  P  ) LSPDC(G2,  _dX0, P  ) LSPDC(G2,  _dX1, P  ) LSPDC(G2,  _dX2, P  )
     LSPDC(D0,  _dT0,  P  ) LSPDC(D0,  _dX0, P  ) LSPDC(D0,  _dX1, P  ) LSPDC(D0,  _dX2, P  )
+    LSPDC(G2,  _dT0,  P  ) LSPDC(G2,  _dX0, P  ) LSPDC(G2,  _dX1, P  ) LSPDC(G2,  _dX2, P  )
     LSPDC(D2,  _dT0,  P  ) LSPDC(D2,  _dX0, P  ) LSPDC(D2,  _dX1, P  ) LSPDC(D2,  _dX2, P  )
-    LSPDC(ETA, _dT0,  1  ) LSPDC(ETA, _dX0, 1  ) LSPDC(ETA, _dX1, 1  ) LSPDC(ETA, _dX2, 1  )
     LSPDC(FVC, _dT0,  P  ) LSPDC(FVC, _dX0, P  ) LSPDC(FVC, _dX1, P  ) LSPDC(FVC, _dX2, P  )
+    LSPDC(ETA, _dT0,  1  ) LSPDC(ETA, _dX0, 1  ) LSPDC(ETA, _dX1, 1  ) LSPDC(ETA, _dX2, 1  )
     LSPDC(Y,   _dT0,  P  ) LSPDC(Y,   _dX0, P  ) LSPDC(Y,   _dX1, P  ) LSPDC(Y,   _dX2, P  )
     LSPDC(G,   _dT0,  P*P) LSPDC(G,   _dX0, P*P) LSPDC(G,   _dX1, P*P) LSPDC(G,   _dX2, P*P)
     LSPDC(DV,  _dT0,  P*P) LSPDC(DV,  _dX0, P*P) LSPDC(DV,  _dX1, P*P) LSPDC(DV,  _dX2, P*P)

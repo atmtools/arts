@@ -645,15 +645,8 @@ LineShape::Output GetShapeParams_dT(const Numeric& T, const Numeric& dT [[maybe_
       
       return x;
     }
-//     FIXME:  Is this code good?  The influence of a species not in the list is towards air-broadening, so it is positive?
-//     else if(mlineshapemodel.Bath() and self) {
-//       auto x = mlineshapemodel.GetVMRDerivs(T, mti0, P, mlineshapemodel.nelem()-1);
-//
-//       if(not do_linemixing(P))
-//         x.Y = x.G = x.DV = 0;
-//
-//       return x;
-//     }
+    else if(mlineshapemodel.Bath() and self)
+      return {0,0,0, 0,0,0, 0,0,0};
     else {
       const auto pos = mlineshapemodel.this_species(vmr_qi);
       auto x = mlineshapemodel.GetVMRDerivs(T, mti0, P, pos);
