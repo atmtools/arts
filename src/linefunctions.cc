@@ -2078,7 +2078,37 @@ constexpr Complex pCqSDHC_to_arts(Complex x) noexcept
   using Conversion::hitran2arts_linestrength;
   
   return conj(hitran2arts_linestrength(x) / pow2(c));
-} 
+}
+
+
+constexpr Complex pCqSDHC_to_arts_freq_deriv(Complex x) noexcept 
+{
+  using Constant::c;
+  using Constant::pow4;
+  using Conversion::hitran2arts_linestrength;
+  
+  return hitran2arts_linestrength(hitran2arts_linestrength(x)) / pow4(c);
+}
+
+
+constexpr Complex pCqSDHC_to_arts_G2_deriv(Complex x) noexcept 
+{
+  using Constant::c;
+  using Constant::pow4;
+  using Conversion::hitran2arts_linestrength;
+  
+  return Complex(0, -1) * hitran2arts_linestrength(hitran2arts_linestrength(x)) / pow4(c);
+}
+
+
+constexpr Complex pCqSDHC_to_arts_D2_deriv(Complex x) noexcept 
+{
+  using Constant::c;
+  using Constant::pow4;
+  using Conversion::hitran2arts_linestrength;
+  
+  return Complex(0, 1) * hitran2arts_linestrength(hitran2arts_linestrength(x)) / pow4(c);
+}
 
 
 /*!
@@ -2231,21 +2261,12 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
         dc0t = (-(c0 - 1.5*c2)*dT.ETA + dT.FVC) + ((1 - x.ETA)*(dc0 - 1.5*dc2));  // for T
         dc2t = (-c2*dT.ETA) + ((1 - x.ETA)*dc2);  // for T
       }
-      //     else if(is_frequency_parameter(rt)) {
-      //       /* all zeroes already */
-      //     }
-      //     else if(is_magnetic_parameter(rt)) {
-      //       /* all zeroes already */
-      //     }
       else if(rt == JacPropMatType::VMR and rt.QuantumIdentity().In(quantum_identity)) {
         dc0 = Complex(dV.G0, -dV.D0);  // for VMR
         dc2 = Complex(dV.G2, -dV.D2);  // for VMR
         dc0t = (-(c0 - 1.5*c2)*dV.ETA + dV.FVC) + ((1 - x.ETA)*(dc0 - 1.5*dc2));  // for VMR
         dc2t = (-c2*dV.ETA) + ((1 - x.ETA)*dc2);  // for VMR
       }
-      //     else if(rt == JacPropMatType::LineCenter and rt.QuantumIdentity().In(quantum_identity)) {
-      //       /* all zeroes already */
-      //     }
       else if(is_pressure_broadening_G2(rt) and rt.QuantumIdentity().In(quantum_identity)) {
         dc2 = 1;  // for Gam2(T, VMR) and for Shift2(T, VMR), the derivative is wrt c2 for later computations
         dc0t = ((1 - x.ETA)*(dc0 - 1.5*dc2));
@@ -2305,70 +2326,70 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
         else
           dBterm = ((sqrt_pi*W1*pow3(Z1) + 0.5*pow2(Z1) - 0.75)*Z1*dcte + (sqrt_pi*pow4(Z1)*dW1 - 0.5*pow2(Z1)*dZ1 + 2.25*dZ1)*cte)/pow4(Z1);  // for all
         }
-        else if(abs(X) <= 3e-8 * abs(Y)) {
-          Complex dZ1;
-          if(is_magnetic_parameter(rt))
-            dZ1 = -iz*cte*freq2kaycm(zeeman_df_si);  // for H
-          else if(rt == JacPropMatType::LineCenter and rt.QuantumIdentity().In(quantum_identity))
-            dZ1 = -iz*cte;  // for sg0
-          else if(is_frequency_parameter(rt))
-            dZ1 = iz*cte;  // for sg
-          else
-            dZ1 = (iz*(freq2kaycm(f_grid[iv]) - sg0) + c0t)*dcte + cte*dc0t;  // for c0t
-                      
-          const Complex dZ2 = dY/(2*sqrtY) + dX/(2*sqrtXY) + dY/(2*sqrtXY);  // for all
-          
-          const Complex dW1 = iz * dZ1 * dw(Z1, W1);  // NEED TO CHECK DW!
-          const Complex dW2 = iz * dZ2 * dw(Z2, W2);  // NEED TO CHECK DW!
-          
-          dAterm = sqrt_pi*((W1 - W2)*dcte + (dW1 - dW2)*cte);  // for all
-          
-          dBterm = (sqrt_pi*(((pow2(Z1) - 1)*W1 - (pow2(Z2) - 1)*W2)*dY + 2*(-(pow2(Z1) - 1)*dW1 + (pow2(Z2) - 1)*dW2 - 2*W1*Z1*dZ1 + 2*W2*Z2*dZ2)*Y)*c2t + 2*(sqrt_pi*(pow2(Z1) - 1)*W1 - sqrt_pi*(pow2(Z2) - 1)*W2 + 2*sqrtY)*Y*dc2t)/(4*Y*sqrtY*pow2(c2t));  // for all
-        }
-        else if(abs(Y) <= 1e-15 * abs(X)) {
-          const Complex dZ1 = (dX + dY)/(2*sqrtXY);  // for all
-          const Complex dW1 = iz * dZ1 * dw(Z1, W1);  // NEED TO CHECK DW!
-          if(abs(sqrtX) <= 4e3) {
-            const Complex dZb = dX/(2*sqrtX);  // for all
-            const Complex dWb = iz * dZb * dw(Zb, Wb);  // NEED TO CHECK DW!
+      else if(abs(X) <= 3e-8 * abs(Y)) {
+        Complex dZ1;
+        if(is_magnetic_parameter(rt))
+          dZ1 = -iz*cte*freq2kaycm(zeeman_df_si);  // for H
+        else if(rt == JacPropMatType::LineCenter and rt.QuantumIdentity().In(quantum_identity))
+          dZ1 = -iz*cte;  // for sg0
+        else if(is_frequency_parameter(rt))
+          dZ1 = iz*cte;  // for sg
+        else
+          dZ1 = (iz*(freq2kaycm(f_grid[iv]) - sg0) + c0t)*dcte + cte*dc0t;  // for c0t
+                    
+        const Complex dZ2 = dY/(2*sqrtY) + dX/(2*sqrtXY) + dY/(2*sqrtXY);  // for all
+        
+        const Complex dW1 = iz * dZ1 * dw(Z1, W1);  // NEED TO CHECK DW!
+        const Complex dW2 = iz * dZ2 * dw(Z2, W2);  // NEED TO CHECK DW!
+        
+        dAterm = sqrt_pi*((W1 - W2)*dcte + (dW1 - dW2)*cte);  // for all
+        
+        dBterm = (sqrt_pi*(((pow2(Z1) - 1)*W1 - (pow2(Z2) - 1)*W2)*dY + 2*(-(pow2(Z1) - 1)*dW1 + (pow2(Z2) - 1)*dW2 - 2*W1*Z1*dZ1 + 2*W2*Z2*dZ2)*Y)*c2t + 2*(sqrt_pi*(pow2(Z1) - 1)*W1 - sqrt_pi*(pow2(Z2) - 1)*W2 + 2*sqrtY)*Y*dc2t)/(4*Y*sqrtY*pow2(c2t));  // for all
+      }
+      else if(abs(Y) <= 1e-15 * abs(X)) {
+        const Complex dZ1 = (dX + dY)/(2*sqrtXY);  // for all
+        const Complex dW1 = iz * dZ1 * dw(Z1, W1);  // NEED TO CHECK DW!
+        if(abs(sqrtX) <= 4e3) {
+          const Complex dZb = dX/(2*sqrtX);  // for all
+          const Complex dWb = iz * dZb * dw(Zb, Wb);  // NEED TO CHECK DW!
 
-            dAterm = (-sqrt_pi*(Wb*dX + 2*X*dWb)*c2t + 2*(sqrt_pi*Wb*sqrtX - 1)*sqrtX*dc2t)/(sqrtX*pow2(c2t));  // for all
-            
-            dBterm = (-sqrtXY*(2*(sqrt_pi*Wb*sqrtX - 1)*(X + 2*Y - 1) + 2*sqrt_pi*sqrtXY*W1 - 1)*sqrtX*dc2t + (2*((sqrt_pi*Wb*sqrtX - 1)*(dX + 2*dY) + sqrt_pi*sqrtXY*dW1)*sqrtXY*sqrtX + sqrt_pi*(Wb*dX + 2*X*dWb)*sqrtXY*(X + 2*Y - 1) + sqrt_pi*(dX + dY)*W1*sqrtX)*c2t)/(sqrtXY*sqrtX*pow2(c2t));  // for all
-          }
-          else {
-            dAterm = ((-X + 3.0)*c2t*dX - (X - 1.5)*X*dc2t)/(pow3(X)*pow2(c2t));  // for all
-            
-            dBterm = (((-2*sqrt_pi*sqrtXY*W1 + 1)*pow2(X) + (X - 1.5)*(X + 2*Y - 1))*sqrtXY*X*dc2t + ((X - 3.0)*sqrtXY*(X + 2*Y - 1)*dX - (X - 1.5)*sqrtXY*(dX + 2*dY)*X + 2*sqrt_pi*(X + Y)*pow3(X)*dW1 + sqrt_pi*(dX + dY)*W1*pow3(X))*c2t)/(sqrtXY*pow3(X)*pow2(c2t));  // for all
-          }
+          dAterm = (-sqrt_pi*(Wb*dX + 2*X*dWb)*c2t + 2*(sqrt_pi*Wb*sqrtX - 1)*sqrtX*dc2t)/(sqrtX*pow2(c2t));  // for all
+          
+          dBterm = (-sqrtXY*(2*(sqrt_pi*Wb*sqrtX - 1)*(X + 2*Y - 1) + 2*sqrt_pi*sqrtXY*W1 - 1)*sqrtX*dc2t + (2*((sqrt_pi*Wb*sqrtX - 1)*(dX + 2*dY) + sqrt_pi*sqrtXY*dW1)*sqrtXY*sqrtX + sqrt_pi*(Wb*dX + 2*X*dWb)*sqrtXY*(X + 2*Y - 1) + sqrt_pi*(dX + dY)*W1*sqrtX)*c2t)/(sqrtXY*sqrtX*pow2(c2t));  // for all
         }
         else {
-          const Complex dZ1 = -dY/(2*sqrtY) + dX/(2*sqrtXY) + dY/(2*sqrtXY);  // for all
-          const Complex dZ2 = dY/(2*sqrtY) + dX/(2*sqrtXY) + dY/(2*sqrtXY);  // for all
+          dAterm = ((-X + 3.0)*c2t*dX - (X - 1.5)*X*dc2t)/(pow3(X)*pow2(c2t));  // for all
           
-          const Complex dW1 = iz * dZ1 * dw(Z1, W1);  // NEED TO CHECK DW!
-          const Complex dW2 = iz * dZ2 * dw(Z2, W2);  // NEED TO CHECK DW!
-          
-          dAterm = sqrt_pi*((W1 - W2)*dcte + (dW1 - dW2)*cte);  // for all
-          
-          dBterm = (sqrt_pi*(((pow2(Z1) - 1)*W1 - (pow2(Z2) - 1)*W2)*dY + 2*(-(pow2(Z1) - 1)*dW1 + (pow2(Z2) - 1)*dW2 - 2*W1*Z1*dZ1 + 2*W2*Z2*dZ2)*Y)*c2t + 2*(sqrt_pi*(pow2(Z1) - 1)*W1 - sqrt_pi*(pow2(Z2) - 1)*W2 + 2*sqrtY)*Y*dc2t)/(4*Y*sqrtY*pow2(c2t));  // for all
+          dBterm = (((-2*sqrt_pi*sqrtXY*W1 + 1)*pow2(X) + (X - 1.5)*(X + 2*Y - 1))*sqrtXY*X*dc2t + ((X - 3.0)*sqrtXY*(X + 2*Y - 1)*dX - (X - 1.5)*sqrtXY*(dX + 2*dY)*X + 2*sqrt_pi*(X + Y)*pow3(X)*dW1 + sqrt_pi*(dX + dY)*W1*pow3(X))*c2t)/(sqrtXY*pow3(X)*pow2(c2t));  // for all
         }
-            
-        Numeric dFVC=0, dETA=0;
-        if(rt == JacPropMatType::Temperature) {
-          dETA = dT.ETA;
-          dFVC = dT.FVC;
-        }
-        else if(rt == JacPropMatType::VMR) {
-          dETA = dV.ETA;
-          dFVC = dV.FVC;
-        }
-        else if(is_pressure_broadening_ETA(rt) and rt.QuantumIdentity().In(quantum_identity))
-          dETA = 1;
-        else if(is_pressure_broadening_FVC(rt) and rt.QuantumIdentity().In(quantum_identity))
-          dFVC = 1;
+      }
+      else {
+        const Complex dZ1 = -dY/(2*sqrtY) + dX/(2*sqrtXY) + dY/(2*sqrtXY);  // for all
+        const Complex dZ2 = dY/(2*sqrtY) + dX/(2*sqrtXY) + dY/(2*sqrtXY);  // for all
         
-        dF.col(iq)(iv) = ((((c0 - 1.5*c2)*x.ETA - x.FVC)*Aterm + Bterm*c2*x.ETA + 1)*dAterm - (((c0 - 1.5*c2)*x.ETA - x.FVC)*dAterm + ((c0 - 1.5*c2)*dETA + (dc0 - 1.5*dc2)*x.ETA - dFVC)*Aterm + Bterm*c2*dETA + Bterm*x.ETA*dc2 + c2*x.ETA*dBterm)*Aterm) / (pi*pow2(((c0 - 1.5*c2)*x.ETA - x.FVC)*Aterm + Bterm*c2*x.ETA + 1));  // for all
+        const Complex dW1 = iz * dZ1 * dw(Z1, W1);  // NEED TO CHECK DW!
+        const Complex dW2 = iz * dZ2 * dw(Z2, W2);  // NEED TO CHECK DW!
+        
+        dAterm = sqrt_pi*((W1 - W2)*dcte + (dW1 - dW2)*cte);  // for all
+        
+        dBterm = (sqrt_pi*(((pow2(Z1) - 1)*W1 - (pow2(Z2) - 1)*W2)*dY + 2*(-(pow2(Z1) - 1)*dW1 + (pow2(Z2) - 1)*dW2 - 2*W1*Z1*dZ1 + 2*W2*Z2*dZ2)*Y)*c2t + 2*(sqrt_pi*(pow2(Z1) - 1)*W1 - sqrt_pi*(pow2(Z2) - 1)*W2 + 2*sqrtY)*Y*dc2t)/(4*Y*sqrtY*pow2(c2t));  // for all
+      }
+          
+      Numeric dFVC=0, dETA=0;
+      if(rt == JacPropMatType::Temperature) {
+        dETA = dT.ETA;
+        dFVC = dT.FVC;
+      }
+      else if(rt == JacPropMatType::VMR) {
+        dETA = dV.ETA;
+        dFVC = dV.FVC;
+      }
+      else if(is_pressure_broadening_ETA(rt) and rt.QuantumIdentity().In(quantum_identity))
+        dETA = 1;
+      else if(is_pressure_broadening_FVC(rt) and rt.QuantumIdentity().In(quantum_identity))
+        dFVC = 1;
+      
+      dF.col(iq)(iv) = ((((c0 - 1.5*c2)*x.ETA - x.FVC)*Aterm + Bterm*c2*x.ETA + 1)*dAterm - (((c0 - 1.5*c2)*x.ETA - x.FVC)*dAterm + ((c0 - 1.5*c2)*dETA + (dc0 - 1.5*dc2)*x.ETA - dFVC)*Aterm + Bterm*c2*dETA + Bterm*x.ETA*dc2 + c2*x.ETA*dBterm)*Aterm) / (pi*pow2(((c0 - 1.5*c2)*x.ETA - x.FVC)*Aterm + Bterm*c2*x.ETA + 1));  // for all
     }
   }
   
@@ -2381,11 +2402,14 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
        is_frequency_parameter(rt)       or
        is_pressure_broadening_G0(rt)    or
        is_pressure_broadening_D0(rt)    or
-       is_pressure_broadening_G2(rt)    or
-       is_pressure_broadening_D2(rt)    or
        is_pressure_broadening_FVC(rt))
-       dF.col(iq) = dF.col(iq).unaryExpr(&pCqSDHC_to_arts);  //  FIXME:  Why is this is a thing???
-    dF.col(iq) = dF.col(iq).unaryExpr(&pCqSDHC_to_arts);
+      dF.col(iq) = dF.col(iq).unaryExpr(&pCqSDHC_to_arts_freq_deriv);
+    else if(is_pressure_broadening_G2(rt))
+      dF.col(iq) = dF.col(iq).unaryExpr(&pCqSDHC_to_arts_G2_deriv);
+    else if(is_pressure_broadening_D2(rt))
+      dF.col(iq) = dF.col(iq).unaryExpr(&pCqSDHC_to_arts_D2_deriv);
+    else
+      dF.col(iq) = dF.col(iq).unaryExpr(&pCqSDHC_to_arts);
   }
 }
 
