@@ -38,7 +38,7 @@
   \param[in,out] is Input file stream
   \param[out] net Neural network parameters
 */
-void tessem_read_ascii(ifstream& is, TessemNN& net)
+void tessem_read_ascii(std::ifstream& is, TessemNN& net)
 {
     is >> net.nb_inputs >> net.nb_cache >> net.nb_outputs;
 
