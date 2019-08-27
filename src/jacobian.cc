@@ -2165,7 +2165,7 @@ Numeric magnetic_field_perturbation(const ArrayOfRetrievalQuantity& js) noexcept
 
 String propmattype_string(const RetrievalQuantity& rq)
 {
-  #define linefunctiondatavariable(X1, X2) JacPropMatType::LineShape ## X1 ## X2: return "Line-Function-Data: " #X1  " " #X2
+  #define linefunctiondatavariable(X1, X2) JacPropMatType::LineShape ## X1 ## X2: return "Line-Shape: " #X1  " " #X2
   switch(rq.PropMatType())
   {
     case JacPropMatType::VMR: return "VMR";
