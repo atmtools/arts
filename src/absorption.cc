@@ -643,7 +643,6 @@ void xsec_species( MatrixView               xsec_attenuation,
                    ConstMatrixView          abs_t_nlte,
                    ConstMatrixView          all_vmrs,
                    const ArrayOfArrayOfSpeciesTag& abs_species,
-                   const Index              this_species,
                    const ArrayOfLineRecord& abs_lines,
                    const Index              ind_ls,
                    const Index              ind_lsn,
@@ -902,7 +901,7 @@ firstprivate(ls_attenuation, fac, f_local, aux, qt_cache, qref_cache, iso_cache,
                         // Prepare pressure broadening parameters
                         Numeric gamma_0,gamma_2,eta,df_0,df_2,f_VC;
                         l_l.SetPressureBroadeningParameters(gamma_0,gamma_2,eta,df_0,df_2,f_VC,
-                                                            t_i, p_i, this_species, vmrs, abs_species);
+                                                            t_i, p_i, vmrs, abs_species);
                         
                         // Check the chache is the tempearture of the line and the isotope is the same to avoid recalculating the partition sum
                         if(iso_cache!=l_l.Isotopologue() || line_t_cache != l_l.Ti0())
@@ -1883,7 +1882,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
             
             // Pressure broadening parameters
             // Prepare pressure broadening parameters
-            auto X = abs_lines[ii].GetShapeParams(t, p, this_species, vmrs, abs_species);
+            auto X = abs_lines[ii].GetShapeParams(t, p, vmrs, abs_species);
             const Numeric& G0 = X.G0;
             const Numeric& D0 = X.D0;
             const Numeric& G2 = X.G2;
@@ -1965,7 +1964,7 @@ firstprivate(attenuation, phase, fac, f_local, aux)
                 atm_tv_low, atm_tv_upp;
                 if(do_temperature_jacobian(flag_partials))
                 {
-                  auto dX = abs_lines[ii].GetShapeParams_dT(t, temperature_perturbation(flag_partials), p, this_species, vmrs, abs_species);
+                  auto dX = abs_lines[ii].GetShapeParams_dT(t, p, vmrs, abs_species);
                   dG0dT = dX.G0;
                   dD0dT = dX.D0;
                   dYdT = dX.Y;
@@ -2141,7 +2140,6 @@ void xsec_species2(Matrix& xsec,
                    const Matrix& abs_nlte,
                    const Matrix& all_vmrs,
                    const ArrayOfArrayOfSpeciesTag& abs_species,
-                   const Index this_species,
                    const ArrayOfLineRecord& abs_lines,
                    const SpeciesAuxData& isotopologue_ratios,
                    const SpeciesAuxData& partition_functions)
@@ -2176,12 +2174,16 @@ void xsec_species2(Matrix& xsec,
     // Constants for this level
     const Numeric& temperature = abs_t[ip];
     const Numeric& pressure = abs_p[ip];
-    const Numeric partial_pressure = pressure * all_vmrs(this_species, ip);
     
     // Quasi-constants for this level, defined here to speed up later computations
     Index this_iso = -1; // line isotopologue number
     Numeric t0 = -1; // line temperature
     Numeric dc=0, ddc_dT=0, qt=0, qt0=1, dqt_dT=0; // Doppler and partition functions
+    
+    // Line shape constants
+    LineShape::Model line_shape_default_model;
+    LineShape::Model& line_shape_model{line_shape_default_model};
+    Vector line_shape_vmr(0);
     
     // Reset sum-operators
     for(Index ithread=0; ithread<nthread; ithread++) {
@@ -2193,7 +2195,7 @@ void xsec_species2(Matrix& xsec,
     
     #pragma omp parallel for if(nthread > 1) \
     schedule(guided, 4) \
-    firstprivate(this_iso, t0, dc, ddc_dT, qt, qt0, dqt_dT)
+    firstprivate(this_iso, t0, dc, ddc_dT, qt, qt0, dqt_dT, line_shape_model, line_shape_vmr)
     for(Index il=0; il<abs_lines.nelem(); il++) {
       const auto& line = abs_lines[il];
       
@@ -2229,12 +2231,17 @@ void xsec_species2(Matrix& xsec,
             ddc_dT = Linefunctions::dDopplerConstant_dT(temperature, dc);
         }
       }
+      
+      if(not line_shape_model.same_broadening_species(line.GetLineShapeModel())) {
+        line_shape_model = line.GetLineShapeModel();
+        line_shape_vmr = line_shape_model.vmrs(all_vmrs(joker, ip), abs_species, line.QuantumIdentity());
+      }
     
       Linefunctions::set_cross_section_for_single_line(F, dF, N, dN, data, start, nelem, f_grid_eigen, line,
-        jacobian_quantities, jacobian_propmat_positions, all_vmrs(joker, ip), 
-        nt?abs_nlte(joker, ip):Vector(0), pressure, temperature, dc, partial_pressure, 
+        jacobian_quantities, jacobian_propmat_positions, line_shape_vmr, 
+        nt?abs_nlte(joker, ip):Vector(0), pressure, temperature, dc, 
         isotopologue_ratios.getParam(line.Species(), this_iso)[0].data[0],
-        0.0, 0.0, ddc_dT, qt, dqt_dT, qt0, abs_species, this_species);
+        0.0, 0.0, ddc_dT, qt, dqt_dT, qt0);
       
       auto ithread = arts_omp_get_thread_num();
       Fsum[ithread].segment(start, nelem).noalias() += F.segment(start, nelem);

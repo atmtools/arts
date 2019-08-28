@@ -48,11 +48,10 @@ void Linefunctions::set_lineshape(Eigen::Ref<Eigen::VectorXcd> F,
                                   const Numeric& pressure, 
                                   const Numeric& zeeman_df,
                                   const Numeric& magnetic_magnitude,
-                                  const ArrayOfArrayOfSpeciesTag& abs_species,
-                                  const Index& this_species)
+                                  const ArrayOfArrayOfSpeciesTag& abs_species)
 {
   // Pressure broadening and line mixing terms
-  const auto X = line.GetShapeParams(temperature, pressure, this_species, vmrs, abs_species);
+  const auto X = line.GetShapeParams(temperature, pressure, vmrs, abs_species);
   
   Eigen::MatrixXcd dF(0, 0), data(F.size(), Linefunctions::ExpectedDataSize());
   const Numeric doppler_constant = DopplerConstant(temperature, line.IsotopologueData().Mass());
@@ -964,16 +963,14 @@ void Linefunctions::apply_linefunctiondata_jacobian_scaling(Eigen::Ref<Eigen::Ma
                                                             const LineRecord& line,
                                                             const Numeric& T,
                                                             const Numeric& P,
-                                                            const Index& this_species,
-                                                            const ConstVectorView& vmrs,
-                                                            const ArrayOfArrayOfSpeciesTag& species)
+                                                            const Vector& vmrs)
 {
   auto nppd = derivatives_data_position.nelem();
   
   for(auto iq=0; iq<nppd; iq++) {
     const RetrievalQuantity& rt = derivatives_data[derivatives_data_position[iq]];
     if(is_lineshape_parameter(rt) and rt.QuantumIdentity().In(quantum_identity))
-      dF.col(iq) *= line.GetInternalDerivative(T,P,this_species,vmrs,species, rt);
+      dF.col(iq) *= line.GetPrepInternalDerivative(T, P, vmrs, rt);
   }
 }
 
@@ -1046,12 +1043,11 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
                                                       const LineRecord& line,
                                                       const ArrayOfRetrievalQuantity& derivatives_data,
                                                       const ArrayOfIndex& derivatives_data_position,
-                                                      const ConstVectorView volume_mixing_ratio_of_all_species,
+                                                      const Vector& volume_mixing_ratio_of_lineshape,
                                                       const ConstVectorView nlte_distribution,
                                                       const Numeric& pressure,
                                                       const Numeric& temperature,
                                                       const Numeric& doppler_constant,
-                                                      const Numeric& partial_pressure,
                                                       const Numeric& isotopologue_ratio,
                                                       const Numeric& zeeman_df,
                                                       const Numeric& magnetic_magnitude,
@@ -1059,8 +1055,6 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
                                                       const Numeric& partition_function_at_temperature,
                                                       const Numeric& dpartition_function_at_temperature_dT,
                                                       const Numeric& partition_function_at_line_temperature,
-                                                      const ArrayOfArrayOfSpeciesTag& abs_species,
-                                                      const Index& this_species_location_in_tags,
                                                       const bool cutoff_call)
 {
   /* Single line shape solver
@@ -1119,20 +1113,18 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
   const QuantumIdentifier& QI = line.QuantumIdentity();
   
   // Pressure broadening and line mixing terms
-  const auto X = line.GetShapeParams(temperature, pressure, this_species_location_in_tags, volume_mixing_ratio_of_all_species, abs_species);
+  const auto X = line.GetPrepShapeParams(temperature, pressure, volume_mixing_ratio_of_lineshape);
   
   constexpr LineShape::Output empty_output={0, 0, 0, 0, 0, 0, 0, 0, 0};
   
   // Partial derivatives for temperature
-  const auto dXdT = do_temperature ? line.GetShapeParams_dT(temperature, temperature_perturbation(derivatives_data), 
-                                                            pressure, this_species_location_in_tags, 
-                                                            volume_mixing_ratio_of_all_species,  abs_species)
+  const auto dXdT = do_temperature ? line.GetPrepShapeParams_dT(temperature, pressure, 
+                                                                volume_mixing_ratio_of_lineshape)
                                    : empty_output;
   
   // Partial derivatives for VMR... the first function 
   auto do_vmr = do_vmr_jacobian(derivatives_data, line.QuantumIdentity());  // At all, Species
-  const auto dXdVMR = do_vmr.test ? line.GetShapeParams_dVMR(temperature, pressure, this_species_location_in_tags,
-                                                             volume_mixing_ratio_of_all_species, abs_species, do_vmr.qid)
+  const auto dXdVMR = do_vmr.test ? line.GetShapeParams_dVMR(temperature, pressure, do_vmr.qid)
                                   : empty_output;
   
   // Arrays on which all computations happen are segments of the full input, and the segmenting is part of the output
@@ -1222,8 +1214,7 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
     
     // Apply line mixing and pressure broadening partial derivatives        
     apply_linefunctiondata_jacobian_scaling(dF, derivatives_data, derivatives_data_position, QI, line,
-                                            temperature, pressure,  this_species_location_in_tags,
-                                            volume_mixing_ratio_of_all_species, abs_species);
+                                            temperature, pressure, volume_mixing_ratio_of_lineshape);
   }
   
   // Line normalization if necessary
@@ -1295,15 +1286,13 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
   if(need_cutoff)
     apply_cutoff(F, dF, N, dN,
                  derivatives_data, derivatives_data_position, line,
-                 volume_mixing_ratio_of_all_species,
+                 volume_mixing_ratio_of_lineshape,
                  nlte_distribution, pressure, temperature,
-                 doppler_constant, partial_pressure,
-                 isotopologue_ratio, zeeman_df, magnetic_magnitude,
-                 ddoppler_constant_dT,
+                 doppler_constant, isotopologue_ratio, zeeman_df,
+                 magnetic_magnitude, ddoppler_constant_dT,
                  partition_function_at_temperature,
                  dpartition_function_at_temperature_dT,
-                 partition_function_at_line_temperature,
-                 abs_species, this_species_location_in_tags);
+                 partition_function_at_line_temperature);
 }
 
 
@@ -1346,21 +1335,18 @@ void Linefunctions::apply_cutoff(Eigen::Ref<Eigen::VectorXcd> F,
                                  const ArrayOfRetrievalQuantity& derivatives_data,
                                  const ArrayOfIndex& derivatives_data_position,
                                  const LineRecord& line,
-                                 const ConstVectorView volume_mixing_ratio_of_all_species,
+                                 const Vector& volume_mixing_ratio_of_lineshape,
                                  const ConstVectorView nlte_distribution,
                                  const Numeric& pressure,
                                  const Numeric& temperature,
                                  const Numeric& doppler_constant,
-                                 const Numeric& partial_pressure,
                                  const Numeric& isotopologue_ratio,
                                  const Numeric& zeeman_df,
                                  const Numeric& magnetic_magnitude,
                                  const Numeric& ddoppler_constant_dT,
                                  const Numeric& partition_function_at_temperature,
                                  const Numeric& dpartition_function_at_temperature_dT,
-                                 const Numeric& partition_function_at_line_temperature,
-                                 const ArrayOfArrayOfSpeciesTag& abs_species,
-                                 const Index& this_species_location_in_tags)
+                                 const Numeric& partition_function_at_line_temperature)
 { 
   // Size of derivatives
   auto nj = dF.cols(); 
@@ -1376,14 +1362,13 @@ void Linefunctions::apply_cutoff(Eigen::Ref<Eigen::VectorXcd> F,
   // Recompute the line for a single frequency
   set_cross_section_for_single_line(Fc, dFc, Nc, dNc, data, _tmp1, _tmp2, f_grid_cutoff, line,
                                     derivatives_data, derivatives_data_position,
-                                    volume_mixing_ratio_of_all_species,
+                                    volume_mixing_ratio_of_lineshape,
                                     nlte_distribution, pressure, temperature,
-                                    doppler_constant, partial_pressure, isotopologue_ratio,
+                                    doppler_constant, isotopologue_ratio,
                                     zeeman_df, magnetic_magnitude, ddoppler_constant_dT,
                                     partition_function_at_temperature,
                                     dpartition_function_at_temperature_dT,
                                     partition_function_at_line_temperature,
-                                    abs_species, this_species_location_in_tags,
                                     true);
   
   // Apply cutoff values

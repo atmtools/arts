@@ -215,7 +215,7 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(Workspace&  
     for(Index ip=0; ip<np; ip++)
       Linefunctions::set_lineshape(lineshapes[il][ip], MapToEigen(f_grid), abs_lines_per_species[0][il], 
                                    Vector(1, vmr_field(0, ip, 0, 0)),  t_field(ip, 0, 0), p_grid[ip], 0.0, 0.0,
-                                   abs_species, 0);
+                                   abs_species);
   for(auto& aols: lineshapes)
     for(auto& ls: aols)
       error_in_integrate("Your lineshape integration does normalize.  Increase nf and decrease df until it does.", test_integrate_convolved(ls, f_grid));
@@ -341,7 +341,7 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLines(Workspace&          
       Eigen::VectorXcd F(nf);
       Linefunctions::set_lineshape(F, MapToEigen(f_grid), abs_lines_per_species[0][il], 
                                    Vector(1, vmr_field(0, ip, 0, 0)),  t_field(ip, 0, 0), p_grid[ip], 0.0, 0.0,
-                                   abs_species, 0);
+                                   abs_species);
       Numeric sx = 0;
       for(Index iv=0; iv<nf-1; iv++) {
         const Numeric intF = (F[iv].real() + F[iv+1].real()) * (f_grid[iv+1] - f_grid[iv]);

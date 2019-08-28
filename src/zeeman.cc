@@ -201,7 +201,11 @@ try
         const Numeric dc = Linefunctions::DopplerConstant(rtp_temperature, lines[0].IsotopologueData().Mass());
         const Numeric ddc_dT = Linefunctions::dDopplerConstant_dT(rtp_temperature, dc);
         const Numeric isotop_ratio = isotopologue_ratios.getParam(lines[0].Species(), lines[0].Isotopologue())[0].data[0];
-        const Numeric partial_pressure = rtp_pressure * rtp_vmr[ispecies];
+        
+        // Line shape constants
+        LineShape::Model line_shape_default_model;
+        LineShape::Model& line_shape_model{line_shape_default_model};
+        Vector line_shape_vmr(0);
         
         for(const LineRecord& line: lines) {
           if(line.Ti0() not_eq t0) {
@@ -217,13 +221,17 @@ try
                                     partition_functions.getParam(line.Species(), line.Isotopologue()));
           }
           
+          if(not line_shape_model.same_broadening_species(line.GetLineShapeModel())) {
+            line_shape_model = line.GetLineShapeModel();
+            line_shape_vmr = line_shape_model.vmrs(rtp_vmr, abs_species, line.QuantumIdentity());
+          }
+          
           const Index nz = line.ZeemanModelLineCount(polar);
           for(Index iz=0; iz<nz; iz++) {
             Linefunctions::set_cross_section_for_single_line(F, dF, N, dN, data, start, nelem, f_grid_eigen, line,
-                                                             jacobian_quantities, jacobian_quantities_positions, rtp_vmr, 
-                                                             rtp_nlte, rtp_pressure, rtp_temperature, dc, partial_pressure, 
-                                                             isotop_ratio, line.ZeemanModelSplitting(polar, iz), X.H, ddc_dT, qt, dqt_dT, qt0,
-                                                             abs_species, ispecies);
+                                                             jacobian_quantities, jacobian_quantities_positions, line_shape_vmr, 
+                                                             rtp_nlte, rtp_pressure, rtp_temperature, dc, isotop_ratio,
+                                                             line.ZeemanModelSplitting(polar, iz), X.H, ddc_dT, qt, dqt_dT, qt0);
             
             // Adjust by Zeeman line strength
             const auto zeeman_strength = line.ZeemanModelStrength(polar, iz);

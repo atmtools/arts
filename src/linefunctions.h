@@ -60,8 +60,7 @@ namespace Linefunctions
                      const Numeric& pressure, 
                      const Numeric& zeeman_df,
                      const Numeric& magnetic_magnitude,
-                     const ArrayOfArrayOfSpeciesTag& abs_species,
-                     const Index& this_species);
+                     const ArrayOfArrayOfSpeciesTag& abs_species);
   
   void set_lorentz(Eigen::Ref<Eigen::VectorXcd> F, 
                    Eigen::Ref<Eigen::MatrixXcd> dF, 
@@ -237,9 +236,7 @@ namespace Linefunctions
                                               const LineRecord& line,
                                               const Numeric& T,
                                               const Numeric& P,
-                                              const Index& this_species,
-                                              const ConstVectorView& vmrs,
-                                              const ArrayOfArrayOfSpeciesTag& species);
+                                              const Vector& vmrs);
   
   Numeric DopplerConstant(Numeric T, Numeric mass);
   
@@ -256,12 +253,11 @@ namespace Linefunctions
                                          const LineRecord& line,
                                          const ArrayOfRetrievalQuantity& derivatives_data,
                                          const ArrayOfIndex& derivatives_data_position,
-                                         const ConstVectorView volume_mixing_ratio_of_all_species,
+                                         const Vector& volume_mixing_ratio_of_lineshape,
                                          const ConstVectorView nlte_distribution,
                                          const Numeric& pressure,
                                          const Numeric& temperature,
                                          const Numeric& doppler_constant,
-                                         const Numeric& partial_pressure,
                                          const Numeric& isotopologue_ratio,
                                          const Numeric& zeeman_df,
                                          const Numeric& magnetic_magnitude,
@@ -269,8 +265,6 @@ namespace Linefunctions
                                          const Numeric& partition_function_at_temperature,
                                          const Numeric& dpartition_function_at_temperature_dT,
                                          const Numeric& partition_function_at_line_temperature,
-                                         const ArrayOfArrayOfSpeciesTag& abs_species,
-                                         const Index& this_species_location_in_tags,
                                          const bool cutoff_call=false);
   
   void apply_cutoff(Eigen::Ref<Eigen::VectorXcd> F,
@@ -280,21 +274,18 @@ namespace Linefunctions
                     const ArrayOfRetrievalQuantity& derivatives_data,
                     const ArrayOfIndex& derivatives_data_position,
                     const LineRecord& line,
-                    const ConstVectorView volume_mixing_ratio_of_all_species,
+                    const Vector& volume_mixing_ratio_of_lineshape,
                     const ConstVectorView nlte_distribution,
                     const Numeric& pressure,
                     const Numeric& temperature,
                     const Numeric& doppler_constant,
-                    const Numeric& partial_pressure,
                     const Numeric& isotopologue_ratio,
                     const Numeric& zeeman_df,
                     const Numeric& magnetic_magnitude,
                     const Numeric& ddoppler_constant_dT,
                     const Numeric& partition_function_at_temperature,
                     const Numeric& dpartition_function_at_temperature_dT,
-                    const Numeric& partition_function_at_line_temperature,
-                    const ArrayOfArrayOfSpeciesTag& abs_species,
-                    const Index& this_species_location_in_tags);
+                    const Numeric& partition_function_at_line_temperature);
   
   void find_cutoff_ranges(Index& start_cutoff,
                           Index& nelem_cutoff,
