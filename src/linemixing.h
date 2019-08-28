@@ -27,6 +27,7 @@
 #include "linerecord.h"
 #include "absorption.h"
 #include "constants.h"
+#include "complex.h"
 
 
 template<class T> inline Numeric rotational_energy_hund_b_molecule(

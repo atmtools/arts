@@ -27,6 +27,7 @@
 #ifndef tessem_h
 #define tessem_h
 
+#include <fstream>
 #include "matpackI.h"
 
 
@@ -45,7 +46,7 @@ typedef struct
     Vector y_max;
 } TessemNN;
 
-void tessem_read_ascii(ifstream& is, TessemNN& net);
+void tessem_read_ascii(std::ifstream& is, TessemNN& net);
 
 void tessem_prop_nn(VectorView& ny, const TessemNN& net, ConstVectorView nx);
 

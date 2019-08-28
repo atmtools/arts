@@ -39,6 +39,7 @@
 #include "agenda_class.h"
 #include "matpackVI.h"
 #include "ppath.h"
+#include "propagationmatrix.h"
 
 
 void rte_step_doit(//Output and Input:
