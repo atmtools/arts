@@ -3604,7 +3604,6 @@ void abs_xsec_per_speciesAddLines2(// WS Output:
                     abs_nlte,
                     abs_vmrs,
                     tgs,
-                    i,
                     ll,
                     isotopologue_ratios,
                     partition_functions);

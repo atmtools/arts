@@ -1048,7 +1048,6 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
                                                       const Numeric& pressure,
                                                       const Numeric& temperature,
                                                       const Numeric& doppler_constant,
-                                                      const Numeric& partial_pressure,
                                                       const Numeric& isotopologue_ratio,
                                                       const Numeric& zeeman_df,
                                                       const Numeric& magnetic_magnitude,
@@ -1056,8 +1055,6 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
                                                       const Numeric& partition_function_at_temperature,
                                                       const Numeric& dpartition_function_at_temperature_dT,
                                                       const Numeric& partition_function_at_line_temperature,
-                                                      const ArrayOfArrayOfSpeciesTag& abs_species,
-                                                      const Index& this_species_location_in_tags,
                                                       const bool cutoff_call)
 {
   /* Single line shape solver
@@ -1291,13 +1288,11 @@ void Linefunctions::set_cross_section_for_single_line(Eigen::Ref<Eigen::VectorXc
                  derivatives_data, derivatives_data_position, line,
                  volume_mixing_ratio_of_lineshape,
                  nlte_distribution, pressure, temperature,
-                 doppler_constant, partial_pressure,
-                 isotopologue_ratio, zeeman_df, magnetic_magnitude,
-                 ddoppler_constant_dT,
+                 doppler_constant, isotopologue_ratio, zeeman_df,
+                 magnetic_magnitude, ddoppler_constant_dT,
                  partition_function_at_temperature,
                  dpartition_function_at_temperature_dT,
-                 partition_function_at_line_temperature,
-                 abs_species, this_species_location_in_tags);
+                 partition_function_at_line_temperature);
 }
 
 
@@ -1345,16 +1340,13 @@ void Linefunctions::apply_cutoff(Eigen::Ref<Eigen::VectorXcd> F,
                                  const Numeric& pressure,
                                  const Numeric& temperature,
                                  const Numeric& doppler_constant,
-                                 const Numeric& partial_pressure,
                                  const Numeric& isotopologue_ratio,
                                  const Numeric& zeeman_df,
                                  const Numeric& magnetic_magnitude,
                                  const Numeric& ddoppler_constant_dT,
                                  const Numeric& partition_function_at_temperature,
                                  const Numeric& dpartition_function_at_temperature_dT,
-                                 const Numeric& partition_function_at_line_temperature,
-                                 const ArrayOfArrayOfSpeciesTag& abs_species,
-                                 const Index& this_species_location_in_tags)
+                                 const Numeric& partition_function_at_line_temperature)
 { 
   // Size of derivatives
   auto nj = dF.cols(); 
@@ -1372,12 +1364,11 @@ void Linefunctions::apply_cutoff(Eigen::Ref<Eigen::VectorXcd> F,
                                     derivatives_data, derivatives_data_position,
                                     volume_mixing_ratio_of_lineshape,
                                     nlte_distribution, pressure, temperature,
-                                    doppler_constant, partial_pressure, isotopologue_ratio,
+                                    doppler_constant, isotopologue_ratio,
                                     zeeman_df, magnetic_magnitude, ddoppler_constant_dT,
                                     partition_function_at_temperature,
                                     dpartition_function_at_temperature_dT,
                                     partition_function_at_line_temperature,
-                                    abs_species, this_species_location_in_tags,
                                     true);
   
   // Apply cutoff values

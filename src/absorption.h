@@ -842,7 +842,6 @@ void xsec_species2(Matrix& xsec,
                    const Matrix& abs_t_nlte,
                    const Matrix& all_vmrs,
                    const ArrayOfArrayOfSpeciesTag& abs_species,
-                   const Index this_species,
                    const ArrayOfLineRecord& abs_lines,
                    const SpeciesAuxData& isotopologue_ratios,
                    const SpeciesAuxData& partition_functions);

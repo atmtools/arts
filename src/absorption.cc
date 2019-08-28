@@ -2141,7 +2141,6 @@ void xsec_species2(Matrix& xsec,
                    const Matrix& abs_nlte,
                    const Matrix& all_vmrs,
                    const ArrayOfArrayOfSpeciesTag& abs_species,
-                   const Index this_species,
                    const ArrayOfLineRecord& abs_lines,
                    const SpeciesAuxData& isotopologue_ratios,
                    const SpeciesAuxData& partition_functions)
@@ -2176,7 +2175,6 @@ void xsec_species2(Matrix& xsec,
     // Constants for this level
     const Numeric& temperature = abs_t[ip];
     const Numeric& pressure = abs_p[ip];
-    const Numeric partial_pressure = pressure * all_vmrs(this_species, ip);
     
     // Quasi-constants for this level, defined here to speed up later computations
     Index this_iso = -1; // line isotopologue number
@@ -2241,9 +2239,9 @@ void xsec_species2(Matrix& xsec,
     
       Linefunctions::set_cross_section_for_single_line(F, dF, N, dN, data, start, nelem, f_grid_eigen, line,
         jacobian_quantities, jacobian_propmat_positions, line_shape_vmr, 
-        nt?abs_nlte(joker, ip):Vector(0), pressure, temperature, dc, partial_pressure, 
+        nt?abs_nlte(joker, ip):Vector(0), pressure, temperature, dc, 
         isotopologue_ratios.getParam(line.Species(), this_iso)[0].data[0],
-        0.0, 0.0, ddc_dT, qt, dqt_dT, qt0, abs_species, this_species);
+        0.0, 0.0, ddc_dT, qt, dqt_dT, qt0);
       
       auto ithread = arts_omp_get_thread_num();
       Fsum[ithread].segment(start, nelem).noalias() += F.segment(start, nelem);

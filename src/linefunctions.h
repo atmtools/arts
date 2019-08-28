@@ -258,7 +258,6 @@ namespace Linefunctions
                                          const Numeric& pressure,
                                          const Numeric& temperature,
                                          const Numeric& doppler_constant,
-                                         const Numeric& partial_pressure,
                                          const Numeric& isotopologue_ratio,
                                          const Numeric& zeeman_df,
                                          const Numeric& magnetic_magnitude,
@@ -266,8 +265,6 @@ namespace Linefunctions
                                          const Numeric& partition_function_at_temperature,
                                          const Numeric& dpartition_function_at_temperature_dT,
                                          const Numeric& partition_function_at_line_temperature,
-                                         const ArrayOfArrayOfSpeciesTag& abs_species,
-                                         const Index& this_species_location_in_tags,
                                          const bool cutoff_call=false);
   
   void apply_cutoff(Eigen::Ref<Eigen::VectorXcd> F,
@@ -282,16 +279,13 @@ namespace Linefunctions
                     const Numeric& pressure,
                     const Numeric& temperature,
                     const Numeric& doppler_constant,
-                    const Numeric& partial_pressure,
                     const Numeric& isotopologue_ratio,
                     const Numeric& zeeman_df,
                     const Numeric& magnetic_magnitude,
                     const Numeric& ddoppler_constant_dT,
                     const Numeric& partition_function_at_temperature,
                     const Numeric& dpartition_function_at_temperature_dT,
-                    const Numeric& partition_function_at_line_temperature,
-                    const ArrayOfArrayOfSpeciesTag& abs_species,
-                    const Index& this_species_location_in_tags);
+                    const Numeric& partition_function_at_line_temperature);
   
   void find_cutoff_ranges(Index& start_cutoff,
                           Index& nelem_cutoff,
