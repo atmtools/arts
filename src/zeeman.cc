@@ -203,7 +203,8 @@ try
         const Numeric isotop_ratio = isotopologue_ratios.getParam(lines[0].Species(), lines[0].Isotopologue())[0].data[0];
         
         // Line shape constants
-        LineShape::Model line_shape_model;
+        LineShape::Model line_shape_default_model;
+        LineShape::Model& line_shape_model{line_shape_default_model};
         Vector line_shape_vmr(0);
         
         for(const LineRecord& line: lines) {
@@ -221,7 +222,7 @@ try
           }
           
           if(not line_shape_model.same_broadening_species(line.GetLineShapeModel())) {
-            line_shape_model = line.GetLineShapeModel();  // This should not be a copy but a reference assignment...
+            line_shape_model = line.GetLineShapeModel();
             line_shape_vmr = line_shape_model.vmrs(rtp_vmr, abs_species, line.QuantumIdentity());
           }
           

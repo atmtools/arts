@@ -2181,7 +2181,8 @@ void xsec_species2(Matrix& xsec,
     Numeric dc=0, ddc_dT=0, qt=0, qt0=1, dqt_dT=0; // Doppler and partition functions
     
     // Line shape constants
-    LineShape::Model line_shape_model;
+    LineShape::Model line_shape_default_model;
+    LineShape::Model& line_shape_model{line_shape_default_model};
     Vector line_shape_vmr(0);
     
     // Reset sum-operators
@@ -2232,7 +2233,7 @@ void xsec_species2(Matrix& xsec,
       }
       
       if(not line_shape_model.same_broadening_species(line.GetLineShapeModel())) {
-        line_shape_model = line.GetLineShapeModel();  // This should not be a copy but a reference assignment...
+        line_shape_model = line.GetLineShapeModel();
         line_shape_vmr = line_shape_model.vmrs(all_vmrs(joker, ip), abs_species, line.QuantumIdentity());
       }
     
