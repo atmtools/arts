@@ -1904,7 +1904,6 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                              abs_nlte,
                              abs_vmrs,
                              tgs,
-                             i,
                              ll,
                              ls.Ind_ls(),
                              ls.Ind_lsn(),
