@@ -256,9 +256,9 @@ public:
     
     QuantumIdentifier(String x) {SetFromString(x);}
 
-    static const Index TRANSITION_UPPER_INDEX = 0;
-    static const Index TRANSITION_LOWER_INDEX = 1;
-    static const Index ENERGY_LEVEL_INDEX = 0;
+    static constexpr Index TRANSITION_UPPER_INDEX = 0;
+    static constexpr Index TRANSITION_LOWER_INDEX = 1;
+    static constexpr Index ENERGY_LEVEL_INDEX = 0;
 
     void SetType(const QuantumIdentifier::QType qt)
     {
