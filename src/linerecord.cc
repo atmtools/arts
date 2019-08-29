@@ -1253,6 +1253,7 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
   // Ok, we seem to have a valid species here.
 
   // Set mspecies from my cool index table:
+  mqid.SetType(QuantumIdentifier::TRANSITION);
   mqid.SetSpecies(hspec[mo]);
 
   // Extract isotopologue:
