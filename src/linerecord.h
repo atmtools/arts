@@ -1131,41 +1131,6 @@ typedef Array<LineRecord> ArrayOfLineRecord;
     \author Stefan Buehler */
 typedef Array< Array<LineRecord> > ArrayOfArrayOfLineRecord;
 
-
-//======================================================================
-//         Functions for searches inside the line catalog
-//======================================================================
-
-typedef enum {
-    LINE_MATCH_FIRST,
-    LINE_MATCH_UNIQUE,
-    LINE_MATCH_ALL
-} LineMatchingCriteria;
-
-
-//! Find lines matching the given criteria.
-/**
- \param[out] matches        Matching indexes in abs_lines
- \param[in]  species        Species index (-1 matches all)
- \param[in]  isotopologue   Isotopologue index (-1 matches all)
- \param[in]  qr             QuantumNumberRecord
- \param[in]  match_criteria One of LINE_MATCH_FIRST, LINE_MATCH_UNIQUE,
-                            LINE_MATCH_ALL
-
- \returns true if the match_criteria was satisfied
- */
-bool find_matching_lines(ArrayOfIndex& matches,
-                         const ArrayOfLineRecord& abs_lines,
-                         const Index species,
-                         const Index isotopologue,
-                         const QuantumNumberRecord qr,
-                         const LineMatchingCriteria match_criteria = LINE_MATCH_ALL);
-
-void match_lines_by_quantum_identifier(ArrayOfIndex& matches,
-                                       ArrayOfQuantumMatchInfo& match_info,
-                                       const QuantumIdentifier& qi,
-                                       const ArrayOfLineRecord& abs_lines);
-
 LinePopulationType LinePopulationTypeFromString(const String& in);
 
 MirroringType MirroringTypeFromString(const String& in);

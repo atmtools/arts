@@ -53,44 +53,6 @@ bool QuantumNumbers::Compare(const QuantumNumbers& qn) const
 }
 
 
-bool QuantumNumbers::CompareDetailed(QuantumMatchInfoEnum& imatch, const QuantumNumbers& qn) const
-{
-    const QuantumContainer& qnumbers2 = qn.GetNumbers();
-
-    bool match = true;
-
-    Index qnri = 0;
-
-    imatch = QMI_FULL;
-
-    // Compare all quantum numbers in mqnumbers and qnumbers2
-    while (match && qnri != Index(QuantumNumberType::FINAL_ENTRY))
-    {
-        // If one of the two numbers is undefined, it is considered as
-        // a match.
-        if (   (!mqnumbers[qnri].isUndefined() && qnumbers2[qnri].isUndefined())
-            || (mqnumbers[qnri].isUndefined() && !qnumbers2[qnri].isUndefined()))
-        {
-            imatch = QMI_PARTIAL;
-        }
-        else  if (!mqnumbers[qnri].isUndefined()
-                  && !qnumbers2[qnri].isUndefined()
-                  && mqnumbers[qnri] != qnumbers2[qnri])
-        {
-            match = false;
-            imatch = QMI_PARTIAL;
-        }
-
-        qnri++;
-    }
-
-    if (!match) imatch = QMI_NONE;
-
-    return match;
-}
-
-
-
 // Tests if this is in other upper 
 bool QuantumIdentifier::InUpper(const QuantumIdentifier& other) const
 {
@@ -537,14 +499,6 @@ void QuantumIdentifier::SetFromStringForCO2Band(String upper, String lower, Stri
   "v1 " << lower[0] << " v2 " << lower[1] << " l2 " << lower[2] << " v3 " << lower[3] << " r " << lower[4];
   
   SetFromString(os.str());
-}
-
-std::ostream& operator<<(std::ostream& os, const QuantumNumberRecord& qr)
-{
-    os << "Upper: " << qr.Upper() << " ";
-    os << "Lower: " << qr.Lower();
-
-    return os;
 }
 
 

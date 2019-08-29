@@ -469,49 +469,7 @@ void TestArrayOfAgenda(Workspace& ws,
     test_agenda_arrayExecute(ws, index, os.str(), test_agenda_array);
 }
 
-/* Workspace method: Doxygen documentation will be auto-generated */
-/*
-void Test(const ArrayOfArrayOfLineRecord& ast, const ArrayOfQuantumIdentifier& aqi, const Verbosity& verbosity)
-{
-    CREATE_OUT1;
 
-    ArrayOfIndex matches;
-    ArrayOfQuantumMatchInfo match_info;
-
-    for (Index qi = 0; qi < aqi.nelem(); qi++)
-    {
-        out1 << "QI: " << aqi[qi] << "\n";
-        for (Index s = 0; s < ast.nelem(); s++)
-        {
-            const ArrayOfLineRecord& species_lines = ast[s];
-
-            match_lines_by_quantum_identifier(matches, match_info, aqi[qi], species_lines);
-
-            // Output info about matched lines for debugging purposes
-            for (Index i = 0; i < matches.nelem(); i++)
-            {
-                const LineRecord& lr = ast[s][matches[i]];
-                out1 << "  Line: " << lr.Name() << " ";
-                switch (match_info[i].Upper())
-                {
-                    case QMI_NONE:    out1 << "Upper None    "; break;
-                    case QMI_FULL:    out1 << "Upper full    "; break;
-                    case QMI_PARTIAL: out1 << "Upper partial "; break;
-                }
-                switch (match_info[i].Lower())
-                {
-                    case QMI_NONE:    out1 << "Lower None    "; break;
-                    case QMI_FULL:    out1 << "Lower full    "; break;
-                    case QMI_PARTIAL: out1 << "Lower partial "; break;
-                }
-                out1 << " abs_lines_per_species[" << s << "][" << matches[i] << "]\n";
-//                out1 << "  UP: " << lr.QuantumNumbers().Upper()
-//                << " LO: " << lr.QuantumNumbers().Lower() << "\n";
-            }
-        }
-    }
-}
-*/
 void Test(const Verbosity& )
 {
   Numeric za,aa,dza_new,daa_new;

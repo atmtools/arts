@@ -79,37 +79,10 @@ enum class QuantumNumberType : Index {
 };
 
 
-//! Enum for details about matched quantum numbers.
-typedef enum {
-    QMI_NONE = 0,
-    QMI_FULL = 1,
-    QMI_PARTIAL = 2,
-} QuantumMatchInfoEnum;
-
 enum class Hund : Index {
     CaseA=0,
     CaseB=1
 };
-
-//! Class that holds details for matching info on upper and lower quantum numbers.
-class QuantumMatchInfo
-{
-public:
-    void SetUpper(const QuantumMatchInfoEnum qmie) { mupper = qmie; }
-    void SetLower(const QuantumMatchInfoEnum qmie) { mlower = qmie; }
-
-    const QuantumMatchInfoEnum& Upper() const { return mupper; }
-    const QuantumMatchInfoEnum& Lower() const { return mlower; }
-
-    QuantumMatchInfoEnum& Upper() { return mupper; }
-    QuantumMatchInfoEnum& Lower() { return mlower; }
-
-private:
-    QuantumMatchInfoEnum mupper;
-    QuantumMatchInfoEnum mlower;
-};
-
-typedef Array<QuantumMatchInfo> ArrayOfQuantumMatchInfo;
 
 
 //! Container class for Quantum Numbers
@@ -220,62 +193,12 @@ if (name == #ID) this->Set(QuantumNumberType::ID, r)
      */
     bool Compare(const QuantumNumbers& qn) const;
 
-    bool CompareDetailed(QuantumMatchInfoEnum& imatch, const QuantumNumbers& qn) const;
-
 private:
     QuantumContainer mqnumbers;
 };
 
 
 typedef Array<QuantumNumbers> ArrayOfQuantumNumbers;
-
-
-//! Record containing upper and lower quantum numbers
-class QuantumNumberRecord
-{
-public:
-    QuantumNumberRecord() : mqns(2) {}
-    QuantumNumberRecord(const ArrayOfQuantumNumbers& qns) : mqns(qns) {assert(mqns.nelem() == 2);}
-    
-    enum class Level : Index { Upper=0, Lower=1 };
-  
-
-    //! Set lower quantum number
-    void SetLower(const Index i, const Rational r) {  mqns[Index(Level::Lower)].Set(i, r); }
-    void SetLower(const QuantumNumberType i, const Rational r) { mqns[Index(Level::Lower)].Set(i, r); }
-    void SetLower(const String i, const Rational r) { mqns[Index(Level::Lower)].Set(i, r); }
-
-    //! Set upper quantum number
-    void SetUpper(const Index i, const Rational r) { mqns[Index(Level::Upper)].Set(i, r); }
-    void SetUpper(const QuantumNumberType i, const Rational r) { mqns[Index(Level::Upper)].Set(i, r); }
-    void SetUpper(const String i, const Rational r) { mqns[Index(Level::Upper)].Set(i, r); }
-
-    //! Get lower quantum number
-    Rational Lower(Index i) const { return mqns[Index(Level::Lower)][i]; }
-    Rational Lower(QuantumNumberType i) const { return mqns[Index(Level::Lower)][Index(i)]; }
-
-    //! Get upper quantum number
-    Rational Upper(Index i) const { return mqns[Index(Level::Upper)][i]; }
-    Rational Upper(QuantumNumberType i) const { return mqns[Index(Level::Upper)][Index(i)]; }
-
-    //! Get lower quantum numbers
-    QuantumNumbers& Lower() { return mqns[Index(Level::Lower)]; }
-
-    //! Get lower quantum numbers
-    const QuantumNumbers& Lower() const { return mqns[Index(Level::Lower)]; }
-
-    //! Get upper quantum numbers
-    QuantumNumbers& Upper() { return mqns[Index(Level::Upper)]; }
-
-    //! Get upper quantum numbers
-    const QuantumNumbers& Upper() const { return mqns[Index(Level::Upper)]; }
-    
-    const ArrayOfQuantumNumbers& Data() const {return mqns;}
-    ArrayOfQuantumNumbers& Data() {return mqns;}
-
-private:
-    ArrayOfQuantumNumbers mqns;
-};
 
 
 //! Class to identify and match lines by their quantum numbers
@@ -426,6 +349,13 @@ inline bool operator==(const QuantumIdentifier& a,const QuantumIdentifier& b){
       throw std::runtime_error("Programmer error --- added type is missing");
 }
 
+
+inline bool operator==(const QuantumNumbers& a, const QuantumNumbers& b)
+{
+  return a.Compare(b) and b.Compare(a);
+}
+
+
 typedef Array<QuantumIdentifier> ArrayOfQuantumIdentifier;
 
 
@@ -437,8 +367,6 @@ void ThrowIfQuantumNumberNameInvalid(String name);
 
 std::istream& operator>>(std::istream& is, QuantumNumbers& qn);
 std::ostream& operator<<(std::ostream& os, const QuantumNumbers& qn);
-
-std::ostream& operator<<(std::ostream& os, const QuantumNumberRecord& qr);
 
 std::istream& operator>>(std::istream& is, QuantumIdentifier& qi);
 std::ostream& operator<<(std::ostream& os, const QuantumIdentifier& qi);
