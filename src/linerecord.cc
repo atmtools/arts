@@ -1455,9 +1455,7 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is, const Verbosity& verbosit
   }
 
   // Parse quantum numbers.
-  QuantumNumberRecord qnr;
-  quantum_parser.Parse(qnr, qstr, mqid.Species());
-  mqid.SetTransition(qnr.Upper(), qnr.Lower());
+  quantum_parser.Parse(mqid, qstr);
 
   // Accuracy index for frequency
   {

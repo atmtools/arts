@@ -45,11 +45,11 @@ void parse_i3_hitran(Rational& qn, String& s, const Index species);
 void parse_f51_hitran(Rational& qn, String& s, const Index species);
 
 // Postprocessing functions for calculation of implicit quantum numbers
-void postprocess_group1_hitran(QuantumNumberRecord& qnr, const Index species);
-void postprocess_group2_hitran(QuantumNumberRecord& qnr, const Index species);
-void postprocess_group5_hitran(QuantumNumberRecord& qnr, const Index species);
-void postprocess_group6_hitran(QuantumNumberRecord& qnr, const Index species);
-void postprocess_group6oh_hitran(QuantumNumberRecord& qnr, const Index species);
+void postprocess_group1_hitran(QuantumIdentifier& qnr);
+void postprocess_group2_hitran(QuantumIdentifier& qnr);
+void postprocess_group5_hitran(QuantumIdentifier& qnr);
+void postprocess_group6_hitran(QuantumIdentifier& qnr);
+void postprocess_group6oh_hitran(QuantumIdentifier& qnr);
 
 
 
@@ -315,13 +315,12 @@ QuantumParserHITRAN2004::QuantumParserHITRAN2004()
 }
 
 
-void QuantumParserHITRAN2004::Parse(QuantumNumberRecord& qnr,
-                                    const String& quantum_string,
-                                    const Index species) const
+void QuantumParserHITRAN2004::Parse(QuantumIdentifier& qid,
+                                    const String& quantum_string) const
 {
-    const QuantumClassGroup& qcg = mspecies[species];
-    const Index qclass = mspecies[species].iclass;
-    const Index qgroup = mspecies[species].igroup;
+    const QuantumClassGroup& qcg = mspecies[qid.Species()];
+    const Index qclass = mspecies[qid.Species()].iclass;
+    const Index qgroup = mspecies[qid.Species()].igroup;
 
     if (qcg.iclass == -1 || qcg.igroup == -1)
         return;
@@ -331,13 +330,13 @@ void QuantumParserHITRAN2004::Parse(QuantumNumberRecord& qnr,
     qstr = quantum_string.substr(0,15);
     for (Index i = 0; i < mclass[qclass].nelem(); i++)
     {
-        mclass[qclass][i].Parse(qnr.Upper(), qstr, species);
+      mclass[qclass][i].Parse(qid.UpperQuantumNumbers(), qstr, qid.Species());
     }
 
     qstr = quantum_string.substr(15, 15);
     for (Index i = 0; i < mclass[qclass].nelem(); i++)
     {
-        mclass[qclass][i].Parse(qnr.Lower(), qstr, species);
+      mclass[qclass][i].Parse(qid.LowerQuantumNumbers(), qstr, qid.Species());
     }
 
     if (qgroup != GI_UNDEFINED)
@@ -345,7 +344,7 @@ void QuantumParserHITRAN2004::Parse(QuantumNumberRecord& qnr,
       qstr = quantum_string.substr(30, 15);
         for (Index i = 0; i < mgroup[qgroup].upper.nelem(); i++)
         {
-            mgroup[qgroup].upper[i].Parse(qnr.Upper(), qstr, species);
+          mgroup[qgroup].upper[i].Parse(qid.UpperQuantumNumbers(), qstr, qid.Species());
         }
     }
 
@@ -354,17 +353,17 @@ void QuantumParserHITRAN2004::Parse(QuantumNumberRecord& qnr,
         qstr = quantum_string.substr(45, 15);
         for (Index i = 0; i < mgroup[qgroup].lower.nelem(); i++)
         {
-            mgroup[qgroup].lower[i].Parse(qnr.Lower(), qstr, species);
+          mgroup[qgroup].lower[i].Parse(qid.LowerQuantumNumbers(), qstr, qid.Species());
         }
     }
 
     switch (qgroup)
     {
-        case GI_GROUP1: postprocess_group1_hitran(qnr, species); break;
-        case GI_GROUP2: postprocess_group2_hitran(qnr, species); break;
-        case GI_GROUP5: postprocess_group5_hitran(qnr, species); break;
-        case GI_GROUP6: postprocess_group6_hitran(qnr, species); break;
-        case GI_GROUP6OH: postprocess_group6oh_hitran(qnr, species); break;
+      case GI_GROUP1: postprocess_group1_hitran(qid); break;
+      case GI_GROUP2: postprocess_group2_hitran(qid); break;
+      case GI_GROUP5: postprocess_group5_hitran(qid); break;
+      case GI_GROUP6: postprocess_group6_hitran(qid); break;
+      case GI_GROUP6OH: postprocess_group6oh_hitran(qid); break;
         default: break;
     }
 }
@@ -639,118 +638,118 @@ void parse_f51_hitran(Rational& qn, String& s, const Index /* species */)
 /// Post-processing functions
 /////////////////////////////
 
-void postprocess_group1_hitran(QuantumNumberRecord& qnr, const Index species)
+void postprocess_group1_hitran(QuantumIdentifier& qid)
 {
-    if (species == species_index_from_species_name("HO2")
-        || species == species_index_from_species_name("NO2"))
+  if (qid.Species() == species_index_from_species_name("HO2")
+    || qid.Species() == species_index_from_species_name("NO2"))
     {
         // For these species, N is stored in field J, so we copy it here
         // to the correct quantum number
-        qnr.SetUpper(QuantumNumberType::N, qnr.Upper(QuantumNumberType::J));
-        qnr.SetLower(QuantumNumberType::N, qnr.Lower(QuantumNumberType::J));
+        qid.UpperQuantumNumbers().Set(QuantumNumberType::N, qid.UpperQuantumNumber(QuantumNumberType::J));
+        qid.LowerQuantumNumbers().Set(QuantumNumberType::N, qid.LowerQuantumNumber(QuantumNumberType::J));
         // Now we can calculate the correct J by using the Symmetry quantum
         // number. However, it does not represent Symmetry for these
         // species, but +1/2 or -1/2
-        qnr.SetUpper(QuantumNumberType::J, qnr.Upper(QuantumNumberType::N) + qnr.Upper(QuantumNumberType::Sym));
-        qnr.SetLower(QuantumNumberType::J, qnr.Lower(QuantumNumberType::N) + qnr.Lower(QuantumNumberType::Sym));
+        qid.UpperQuantumNumbers().Set(QuantumNumberType::J, qid.UpperQuantumNumber(QuantumNumberType::N) + qid.UpperQuantumNumber(QuantumNumberType::Sym));
+        qid.LowerQuantumNumbers().Set(QuantumNumberType::J, qid.LowerQuantumNumber(QuantumNumberType::N) + qid.LowerQuantumNumber(QuantumNumberType::Sym));
 
         // We don't need Sym after this point
-        qnr.SetUpper(QuantumNumberType::Sym, RATIONAL_UNDEFINED);
-        qnr.SetLower(QuantumNumberType::Sym, RATIONAL_UNDEFINED);
+        qid.UpperQuantumNumbers().Set(QuantumNumberType::Sym, RATIONAL_UNDEFINED);
+        qid.LowerQuantumNumbers().Set(QuantumNumberType::Sym, RATIONAL_UNDEFINED);
     }
 }
 
 
-void postprocess_group2_hitran(QuantumNumberRecord& qnr, const Index /* species */)
+void postprocess_group2_hitran(QuantumIdentifier& qid)
 {
-    qnr.SetUpper(QuantumNumberType::J, qnr.Lower(QuantumNumberType::J) - qnr.Lower(QuantumNumberType::dJ));
+    qid.UpperQuantumNumbers().Set(QuantumNumberType::J, qid.LowerQuantumNumber(QuantumNumberType::J) - qid.LowerQuantumNumber(QuantumNumberType::dJ));
 
     // We don't need dN and dJ after this point
-    qnr.SetLower(QuantumNumberType::dJ, RATIONAL_UNDEFINED);
+    qid.LowerQuantumNumbers().Set(QuantumNumberType::dJ, RATIONAL_UNDEFINED);
 }
 
 
-void postprocess_group5_hitran(QuantumNumberRecord& qnr, const Index DEBUG_ONLY(species))
+void postprocess_group5_hitran(QuantumIdentifier& qid)
 {
-    qnr.SetUpper(QuantumNumberType::N, qnr.Lower(QuantumNumberType::N) - qnr.Lower(QuantumNumberType::dN));
-    qnr.SetUpper(QuantumNumberType::J, qnr.Lower(QuantumNumberType::J) - qnr.Lower(QuantumNumberType::dJ));
+    qid.UpperQuantumNumbers().Set(QuantumNumberType::N, qid.LowerQuantumNumbers()[QuantumNumberType::N] - qid.LowerQuantumNumbers()[QuantumNumberType::dN]);
+    qid.UpperQuantumNumbers().Set(QuantumNumberType::J, qid.LowerQuantumNumbers()[QuantumNumberType::J] - qid.LowerQuantumNumbers()[QuantumNumberType::dJ]);
     
-    assert(species == species_index_from_species_name("O2"));
+    assert(qid.Species() == species_index_from_species_name("O2"));
     
-    if(qnr.Lower(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::O2_X_is_X)) {
-      qnr.SetLower(QuantumNumberType::Hund, Index(Hund::CaseB));
-      qnr.SetLower(QuantumNumberType::S, Rational(1, 1));
-      qnr.SetLower(QuantumNumberType::Lambda, Rational(0, 1));
+    if(qid.LowerQuantumNumber(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::O2_X_is_X)) {
+      qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseB));
+      qid.LowerQuantumNumbers().Set(QuantumNumberType::S, Rational(1, 1));
+      qid.LowerQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(0, 1));
     }
-    else if(qnr.Lower(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::O2_X_is_a)) {
-      qnr.SetLower(QuantumNumberType::Hund, Index(Hund::CaseB));
-      qnr.SetLower(QuantumNumberType::S, Rational(0, 1));
-      qnr.SetLower(QuantumNumberType::Lambda, Rational(2, 1));
+    else if(qid.LowerQuantumNumber(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::O2_X_is_a)) {
+      qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseB));
+      qid.LowerQuantumNumbers().Set(QuantumNumberType::S, Rational(0, 1));
+      qid.LowerQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(2, 1));
     }
-    else if(qnr.Lower(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::O2_X_is_b)) {
-      qnr.SetLower(QuantumNumberType::Hund, Index(Hund::CaseB));
-      qnr.SetLower(QuantumNumberType::S, Rational(0, 1));
-      qnr.SetLower(QuantumNumberType::Lambda, Rational(0, 1));
+    else if(qid.LowerQuantumNumber(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::O2_X_is_b)) {
+      qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseB));
+      qid.LowerQuantumNumbers().Set(QuantumNumberType::S, Rational(0, 1));
+      qid.LowerQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(0, 1));
     }
     
-    if(qnr.Upper(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::O2_X_is_X)) {
-      qnr.SetUpper(QuantumNumberType::Hund, Index(Hund::CaseB));
-      qnr.SetUpper(QuantumNumberType::S, Rational(1, 1));
-      qnr.SetUpper(QuantumNumberType::Lambda, Rational(0, 1));
+    if(qid.UpperQuantumNumber(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::O2_X_is_X)) {
+      qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseB));
+      qid.UpperQuantumNumbers().Set(QuantumNumberType::S, Rational(1, 1));
+      qid.UpperQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(0, 1));
     }
-    else if(qnr.Upper(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::O2_X_is_a)) {
-      qnr.SetUpper(QuantumNumberType::Hund, Index(Hund::CaseB));
-      qnr.SetUpper(QuantumNumberType::S, Rational(0, 1));
-      qnr.SetUpper(QuantumNumberType::Lambda, Rational(2, 1));
+    else if(qid.UpperQuantumNumber(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::O2_X_is_a)) {
+      qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseB));
+      qid.UpperQuantumNumbers().Set(QuantumNumberType::S, Rational(0, 1));
+      qid.UpperQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(2, 1));
     }
-    else if(qnr.Upper(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::O2_X_is_b)) {
-      qnr.SetUpper(QuantumNumberType::Hund, Index(Hund::CaseB));
-      qnr.SetUpper(QuantumNumberType::S, Rational(0, 1));
-      qnr.SetUpper(QuantumNumberType::Lambda, Rational(0, 1));
+    else if(qid.UpperQuantumNumber(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::O2_X_is_b)) {
+      qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseB));
+      qid.UpperQuantumNumbers().Set(QuantumNumberType::S, Rational(0, 1));
+      qid.UpperQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(0, 1));
     }
 
     // We don't need these after this point
-    qnr.SetLower(QuantumNumberType::dN, RATIONAL_UNDEFINED);
-    qnr.SetLower(QuantumNumberType::dJ, RATIONAL_UNDEFINED);
-    qnr.SetLower(QuantumNumberType::X, RATIONAL_UNDEFINED);
-    qnr.SetUpper(QuantumNumberType::X, RATIONAL_UNDEFINED);
+    qid.LowerQuantumNumbers().Set(QuantumNumberType::dN, RATIONAL_UNDEFINED);
+    qid.LowerQuantumNumbers().Set(QuantumNumberType::dJ, RATIONAL_UNDEFINED);
+    qid.LowerQuantumNumbers().Set(QuantumNumberType::X, RATIONAL_UNDEFINED);
+    qid.UpperQuantumNumbers().Set(QuantumNumberType::X, RATIONAL_UNDEFINED);
 }
 
 
-void postprocess_group6_hitran(QuantumNumberRecord& qnr, const Index species)
+void postprocess_group6_hitran(QuantumIdentifier& qid)
 {
-    qnr.SetUpper(QuantumNumberType::J, qnr.Lower(QuantumNumberType::J) - qnr.Lower(QuantumNumberType::dJ));
+  qid.UpperQuantumNumbers().Set(QuantumNumberType::J, qid.LowerQuantumNumbers()[QuantumNumberType::J] - qid.LowerQuantumNumbers()[QuantumNumberType::dJ]);
 
-    if (species == species_index_from_species_name("NO")) {
-      if(qnr.Lower(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::NO_X_is_X)) {
-        qnr.SetLower(QuantumNumberType::Hund, Index(Hund::CaseA));
-        qnr.SetLower(QuantumNumberType::S, Rational(1, 2));
-        qnr.SetLower(QuantumNumberType::Lambda, Rational(1, 1));
+    if (qid.Species() == species_index_from_species_name("NO")) {
+      if(qid.LowerQuantumNumber(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::NO_X_is_X)) {
+        qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseA));
+        qid.LowerQuantumNumbers().Set(QuantumNumberType::S, Rational(1, 2));
+        qid.LowerQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(1, 1));
       }
       else 
         throw std::runtime_error("Missing definition of NO... this is a developer bug because it should fail earlier...");
       
-      if(qnr.Upper(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::NO_X_is_X)) {
-        qnr.SetUpper(QuantumNumberType::Hund, Index(Hund::CaseA));
-        qnr.SetUpper(QuantumNumberType::S, Rational(1, 2));
-        qnr.SetUpper(QuantumNumberType::Lambda, Rational(1, 1));
+      if(qid.UpperQuantumNumber(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::NO_X_is_X)) {
+        qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseA));
+        qid.UpperQuantumNumbers().Set(QuantumNumberType::S, Rational(1, 2));
+        qid.UpperQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(1, 1));
       }
       else 
         throw std::runtime_error("Missing definition of NO... this is a developer bug because it should fail earlier...");
     }
-    else if (species == species_index_from_species_name("ClO")) {
-      if(qnr.Lower(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::ClO_X_is_X)) {
-        qnr.SetLower(QuantumNumberType::Hund, Index(Hund::CaseA));
-        qnr.SetLower(QuantumNumberType::S, Rational(1, 2));
-        qnr.SetLower(QuantumNumberType::Lambda, Rational(1, 1));
+    else if (qid.Species() == species_index_from_species_name("ClO")) {
+      if(qid.LowerQuantumNumber(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::ClO_X_is_X)) {
+        qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseA));
+        qid.LowerQuantumNumbers().Set(QuantumNumberType::S, Rational(1, 2));
+        qid.LowerQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(1, 1));
       }
       else 
         throw std::runtime_error("Missing definition of ClO... this is a developer bug because it should fail earlier...");
       
-      if(qnr.Upper(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::ClO_X_is_X)) {
-        qnr.SetUpper(QuantumNumberType::Hund, Index(Hund::CaseA));
-        qnr.SetUpper(QuantumNumberType::S, Rational(1, 2));
-        qnr.SetUpper(QuantumNumberType::Lambda, Rational(1, 1));
+      if(qid.UpperQuantumNumber(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::ClO_X_is_X)) {
+        qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseA));
+        qid.UpperQuantumNumbers().Set(QuantumNumberType::S, Rational(1, 2));
+        qid.UpperQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(1, 1));
       }
       else 
         throw std::runtime_error("Missing definition of ClO... this is a developer bug because it should fail earlier...");
@@ -759,60 +758,60 @@ void postprocess_group6_hitran(QuantumNumberRecord& qnr, const Index species)
       throw std::runtime_error("Unknown species accessing postprocessing of Hitran data... this is a developer bug");
 
     // We don't need these after this point
-    qnr.SetLower(QuantumNumberType::dJ, RATIONAL_UNDEFINED);
-    qnr.SetLower(QuantumNumberType::X, RATIONAL_UNDEFINED);
-    qnr.SetUpper(QuantumNumberType::X, RATIONAL_UNDEFINED);
+    qid.LowerQuantumNumbers().Set(QuantumNumberType::dJ, RATIONAL_UNDEFINED);
+    qid.LowerQuantumNumbers().Set(QuantumNumberType::X, RATIONAL_UNDEFINED);
+    qid.UpperQuantumNumbers().Set(QuantumNumberType::X, RATIONAL_UNDEFINED);
 }
 
 
-void postprocess_group6oh_hitran(QuantumNumberRecord& qnr, const Index DEBUG_ONLY(species))
+void postprocess_group6oh_hitran(QuantumIdentifier& qid)
 {
-  assert(species == species_index_from_species_name("OH"));
+  assert(qid.Species() == species_index_from_species_name("OH"));
   
-  qnr.SetUpper(QuantumNumberType::J, qnr.Lower(QuantumNumberType::J) - qnr.Lower(QuantumNumberType::dJ));
+  qid.UpperQuantumNumbers().Set(QuantumNumberType::J, qid.LowerQuantumNumbers()[QuantumNumberType::J] - qid.LowerQuantumNumbers()[QuantumNumberType::dJ]);
   
-  qnr.SetLower(QuantumNumberType::S, Rational(1, 2));
-  if(qnr.Lower(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::OH_X_is_X)) {
-    qnr.SetLower(QuantumNumberType::Hund, Index(Hund::CaseA));
-    qnr.SetLower(QuantumNumberType::Lambda, Rational(1, 1));
+  qid.LowerQuantumNumbers().Set(QuantumNumberType::S, Rational(1, 2));
+  if(qid.LowerQuantumNumber(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::OH_X_is_X)) {
+    qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseA));
+    qid.LowerQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(1, 1));
   }
-  else if(qnr.Lower(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::OH_X_is_A)) {
-    qnr.SetLower(QuantumNumberType::Hund, Index(Hund::CaseB));
-    qnr.SetLower(QuantumNumberType::Lambda, Rational(0, 1));
-    if(qnr.Lower(QuantumNumberType::Omega) == 1)
-      qnr.SetLower(QuantumNumberType::N, qnr.Lower(QuantumNumberType::J) - qnr.Lower(QuantumNumberType::S));
-    else if(qnr.Lower(QuantumNumberType::Omega) == 2)
-      qnr.SetLower(QuantumNumberType::N, qnr.Lower(QuantumNumberType::J) + qnr.Lower(QuantumNumberType::S));
+  else if(qid.LowerQuantumNumber(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::OH_X_is_A)) {
+    qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseB));
+    qid.LowerQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(0, 1));
+    if(qid.LowerQuantumNumber(QuantumNumberType::Omega) == 1)
+      qid.LowerQuantumNumbers().Set(QuantumNumberType::N, qid.LowerQuantumNumber(QuantumNumberType::J) - qid.LowerQuantumNumbers()[QuantumNumberType::S]);
+    else if(qid.LowerQuantumNumber(QuantumNumberType::Omega) == 2)
+      qid.LowerQuantumNumbers().Set(QuantumNumberType::N, qid.LowerQuantumNumber(QuantumNumberType::J) + qid.LowerQuantumNumbers()[QuantumNumberType::S]);
     else 
       throw std::runtime_error("Cannot understand value for OH");
   }
   else
     throw std::runtime_error("Missing definition of OH... this is a developer bug because it should fail earlier...");
   
-  qnr.SetUpper(QuantumNumberType::S, Rational(1, 2));
-  if(qnr.Upper(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::OH_X_is_X)) {
-    qnr.SetUpper(QuantumNumberType::Hund, Index(Hund::CaseA));
-    qnr.SetUpper(QuantumNumberType::Lambda, Rational(1, 1));
+  qid.UpperQuantumNumbers().Set(QuantumNumberType::S, Rational(1, 2));
+  if(qid.UpperQuantumNumber(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::OH_X_is_X)) {
+    qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseA));
+    qid.UpperQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(1, 1));
   }
-  else if(qnr.Upper(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::OH_X_is_A)) {
-    qnr.SetUpper(QuantumNumberType::Hund, Index(Hund::CaseB));
-    qnr.SetUpper(QuantumNumberType::Lambda, Rational(0, 1));
-    if(qnr.Upper(QuantumNumberType::Omega) == 1)
-      qnr.SetUpper(QuantumNumberType::N, qnr.Upper(QuantumNumberType::J) - qnr.Upper(QuantumNumberType::S));
-    else if(qnr.Upper(QuantumNumberType::Omega) == 2)
-      qnr.SetUpper(QuantumNumberType::N, qnr.Upper(QuantumNumberType::J) + qnr.Upper(QuantumNumberType::S));
+  else if(qid.UpperQuantumNumber(QuantumNumberType::X).toIndex() == Index(QuantumNumberTypeLabelsHitran::OH_X_is_A)) {
+    qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseB));
+    qid.UpperQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(0, 1));
+    if(qid.UpperQuantumNumber(QuantumNumberType::Omega) == 1)
+      qid.UpperQuantumNumbers().Set(QuantumNumberType::N, qid.UpperQuantumNumber(QuantumNumberType::J) - qid.UpperQuantumNumbers()[QuantumNumberType::S]);
+    else if(qid.UpperQuantumNumber(QuantumNumberType::Omega) == 2)
+      qid.UpperQuantumNumbers().Set(QuantumNumberType::N, qid.UpperQuantumNumber(QuantumNumberType::J) + qid.UpperQuantumNumbers()[QuantumNumberType::S]);
     else 
       throw std::runtime_error("Cannot understand value for OH");
     
-    qnr.SetLower(QuantumNumberType::Omega, RATIONAL_UNDEFINED);
-    qnr.SetUpper(QuantumNumberType::Omega, RATIONAL_UNDEFINED);
+    qid.LowerQuantumNumbers().Set(QuantumNumberType::Omega, RATIONAL_UNDEFINED);
+    qid.UpperQuantumNumbers().Set(QuantumNumberType::Omega, RATIONAL_UNDEFINED);
   }
   else
     throw std::runtime_error("Missing definition of OH... this is a developer bug because it should fail earlier...");
   
   // We don't need these after this point
-  qnr.SetLower(QuantumNumberType::dN, RATIONAL_UNDEFINED);
-  qnr.SetLower(QuantumNumberType::dJ, RATIONAL_UNDEFINED);
-  qnr.SetLower(QuantumNumberType::X, RATIONAL_UNDEFINED);
-  qnr.SetUpper(QuantumNumberType::X, RATIONAL_UNDEFINED);
+  qid.LowerQuantumNumbers().Set(QuantumNumberType::dN, RATIONAL_UNDEFINED);
+  qid.LowerQuantumNumbers().Set(QuantumNumberType::dJ, RATIONAL_UNDEFINED);
+  qid.LowerQuantumNumbers().Set(QuantumNumberType::X, RATIONAL_UNDEFINED);
+  qid.UpperQuantumNumbers().Set(QuantumNumberType::X, RATIONAL_UNDEFINED);
 }
