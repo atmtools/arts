@@ -1845,7 +1845,7 @@ void surf_albedoCalc( Workspace& ws,
   // atmospheric optical property prep part within the frequency loop further
   // below).
 
-  CREATE_OUT0;
+  CREATE_OUT2;
 
   chk_not_empty( "surface_rtprop_agenda", surface_rtprop_agenda );
 
@@ -1878,7 +1878,7 @@ void surf_albedoCalc( Workspace& ws,
       Matrix    surface_emission;
 
       Vector rtp_los(1, scat_za_grid[rza+frza]);
-      out0 << "Doing reflected dir #" << rza << " at " << rtp_los[0] << " degs\n";
+      out2 << "Doing reflected dir #" << rza << " at " << rtp_los[0] << " degs\n";
 
       surface_rtprop_agendaExecute( ws,
                                     surface_skin_t, surface_emission,
@@ -1904,7 +1904,7 @@ void surf_albedoCalc( Workspace& ws,
             dir_refl_coeff(rza,f_index) =
               surface_rmatrix(joker,f_index,0,0).sum();
         }
-      out0 << "  directional albedos[f_grid] = " <<  dir_refl_coeff(rza,joker)
+      out2 << "  directional albedos[f_grid] = " <<  dir_refl_coeff(rza,joker)
            << "\n";
     }
 
@@ -1977,7 +1977,7 @@ void surf_albedoCalc( Workspace& ws,
   for (Index f_index=0; f_index<nf; f_index++)
     {
       albedo[f_index] = dir_refl_coeff(joker,f_index).sum();
-      out0 << "at f=" << f_grid[f_index]*1e-9 << " GHz, ending up with albedo="
+      out2 << "at f=" << f_grid[f_index]*1e-9 << " GHz, ending up with albedo="
            << albedo[f_index] << "\n";
       if( albedo[f_index]<0 || albedo[f_index]>1. )
         {
