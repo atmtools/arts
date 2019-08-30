@@ -318,6 +318,8 @@ QuantumParserHITRAN2004::QuantumParserHITRAN2004()
 void QuantumParserHITRAN2004::Parse(QuantumIdentifier& qid,
                                     const String& quantum_string) const
 {
+    qid.SetTransition();
+
     const QuantumClassGroup& qcg = mspecies[qid.Species()];
     const Index qclass = mspecies[qid.Species()].iclass;
     const Index qgroup = mspecies[qid.Species()].igroup;

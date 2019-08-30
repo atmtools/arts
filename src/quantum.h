@@ -91,23 +91,26 @@ class QuantumNumbers
 public:
     typedef std::array<Rational, Index(QuantumNumberType::FINAL_ENTRY)> QuantumContainer;
 
-    QuantumNumbers()
-    {
-        mqnumbers.fill(RATIONAL_UNDEFINED);
-    }
+    constexpr QuantumNumbers() noexcept : mqnumbers({RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,
+                                                     RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,
+                                                     RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,
+                                                     RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,
+                                                     RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,
+                                                     RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,
+                                                     RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,
+                                                     RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED})
+    {}
 
     //! Return copy of quantum number
-    const Rational operator[](const Index qn) const
+    constexpr Rational operator[](const Index qn) const noexcept
     {
-        assert(qn < Index(QuantumNumberType::FINAL_ENTRY) and qn >= 0);
         return mqnumbers[qn];
     }
 
     
     //! Return copy of quantum number
-    const Rational operator[](const QuantumNumberType qn) const
+    constexpr Rational operator[](const QuantumNumberType qn) const noexcept
     {
-      assert(qn != QuantumNumberType::FINAL_ENTRY);
       return mqnumbers[Index(qn)];
     }
 
@@ -237,68 +240,44 @@ public:
         NONE 
     } QType;
 
+    constexpr QuantumIdentifier() noexcept : mqtype(QuantumIdentifier::NONE), mspecies(-1), miso(-1) {}
     
-    QuantumIdentifier() : mqtype(NONE), mspecies(-1), miso(-1), mqm(0) {}
+    constexpr QuantumIdentifier(const QuantumIdentifier::QType qt, const Index species, const Index iso) noexcept : mqtype(qt), mspecies(species), miso(iso) {}
 
-    
-    QuantumIdentifier(const QuantumIdentifier::QType qt, const Index species, const Index iso) : mspecies(species), miso(iso) { SetType(qt); }
-
-    QuantumIdentifier(const Index spec, const Index isot, const QuantumNumbers& upper, const QuantumNumbers& lower)
-    : mqtype(QuantumIdentifier::TRANSITION), mspecies(spec), miso(isot), mqm(2) { mqm[TRANSITION_LOWER_INDEX] = lower; mqm[TRANSITION_UPPER_INDEX] = upper; }
+    constexpr QuantumIdentifier(const Index spec, const Index isot, const QuantumNumbers& upper, const QuantumNumbers& lower) noexcept
+    : mqtype(QuantumIdentifier::TRANSITION), mspecies(spec), miso(isot), mqm({upper, lower}) {}
     
 
-    QuantumIdentifier(const Index spec, const Index isot, const QuantumNumbers& qnr)
-    : mspecies(spec), miso(isot)
-    {
-      SetEnergyLevel(qnr);
-    }
+    constexpr QuantumIdentifier(const Index spec, const Index isot, const QuantumNumbers& qnr) noexcept
+    : mqtype(QuantumIdentifier::ENERGY_LEVEL), mspecies(spec), miso(isot), mqm({qnr}) {}
 
-    
     QuantumIdentifier(String x) {SetFromString(x);}
 
     static constexpr Index TRANSITION_UPPER_INDEX = 0;
     static constexpr Index TRANSITION_LOWER_INDEX = 1;
     static constexpr Index ENERGY_LEVEL_INDEX = 0;
 
-    void SetType(const QuantumIdentifier::QType qt)
-    {
-        mqtype = qt;
-        switch (qt) {
-            case QuantumIdentifier::TRANSITION:
-                mqm.resize(2);
-                break;
-            case QuantumIdentifier::ENERGY_LEVEL:
-                mqm.resize(1);
-                break;
-            case QuantumIdentifier::ALL:
-            case QuantumIdentifier::NONE:
-              mqm.resize(0);
-              break;
-            default:
-                break;
-        }
-    }
-
     void SetSpecies(const Index &sp) { mspecies = sp; }
     void SetIsotopologue(const Index &iso) { miso = iso; }
     void SetTransition(const QuantumNumbers& upper, const QuantumNumbers& lower);
     void SetEnergyLevel(const QuantumNumbers& q);
     void SetAll();
+    void SetTransition() {mqtype = QuantumIdentifier::TRANSITION;};
     void SetFromString(String str);
     void SetFromStringForCO2Band(String upper, String lower, String iso);
 
-    QType Type() const { return mqtype; }
+    constexpr QType Type() const { return mqtype; }
     String TypeStr() const;
     String  SpeciesName() const;
-    Index  Species() const { return mspecies; }
+    constexpr Index  Species() const { return mspecies; }
     Index& Species() { return mspecies; }
-    Index  Isotopologue() const { return miso; }
+    constexpr Index  Isotopologue() const { return miso; }
     Index& Isotopologue() { return miso; }
-    const ArrayOfQuantumNumbers& QuantumMatch() const { return mqm; }
-    ArrayOfQuantumNumbers& QuantumMatch() { return mqm; }
+    const std::array<QuantumNumbers, 2>& QuantumMatch() const { return mqm; }
+    std::array<QuantumNumbers, 2>& QuantumMatch() { return mqm; }
     
-    QuantumIdentifier UpperQuantumId() const {assert(mqtype==TRANSITION); QuantumIdentifier qi(mspecies, miso, mqm[TRANSITION_UPPER_INDEX]); return qi;};
-    QuantumIdentifier LowerQuantumId() const {assert(mqtype==TRANSITION); QuantumIdentifier qi(mspecies, miso, mqm[TRANSITION_LOWER_INDEX]); return qi;};
+    constexpr QuantumIdentifier UpperQuantumId() const noexcept {return QuantumIdentifier(mspecies, miso, mqm[TRANSITION_UPPER_INDEX]);};
+    constexpr QuantumIdentifier LowerQuantumId() const noexcept {return QuantumIdentifier(mspecies, miso, mqm[TRANSITION_LOWER_INDEX]);};
     
     const QuantumNumbers& UpperQuantumNumbers() const {assert(mqtype==TRANSITION); return mqm[TRANSITION_UPPER_INDEX];};
     const QuantumNumbers& LowerQuantumNumbers() const {assert(mqtype==TRANSITION); return mqm[TRANSITION_LOWER_INDEX];};
@@ -308,25 +287,22 @@ public:
     QuantumNumbers& UpperQuantumNumbers() {assert(mqtype==TRANSITION); return mqm[TRANSITION_UPPER_INDEX];};
     QuantumNumbers& LowerQuantumNumbers() {assert(mqtype==TRANSITION); return mqm[TRANSITION_LOWER_INDEX];};
     QuantumNumbers& EnergyLevelQuantumNumbers() {assert(mqtype == ENERGY_LEVEL); return mqm[ENERGY_LEVEL_INDEX];}
-    
 
     //! Tests if RHS contains LHS some how
     bool In(const QuantumIdentifier& other) const;
     bool InLower(const QuantumIdentifier& other) const;
     bool InUpper(const QuantumIdentifier& other) const;
 
-    
     //! Tests if there are any defined quantum numbers
     bool any_quantumnumbers() const;
 
-    
     bool IsEnergyLevelType() const {return mqtype == ENERGY_LEVEL;}
 
 private:
     QType mqtype;
     Index mspecies;
     Index miso;
-    ArrayOfQuantumNumbers mqm;
+    std::array<QuantumNumbers, 2> mqm;
 };
 
 inline bool operator==(const QuantumIdentifier& a,const QuantumIdentifier& b){

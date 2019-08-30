@@ -343,7 +343,6 @@ String QuantumIdentifier::SpeciesName() const { return species_name_from_species
 void QuantumIdentifier::SetTransition(const QuantumNumbers& upper, const QuantumNumbers& lower)
 {
     mqtype = QuantumIdentifier::TRANSITION;
-    mqm.resize(2);
     mqm[TRANSITION_UPPER_INDEX] = upper;
     mqm[TRANSITION_LOWER_INDEX] = lower;
 }
@@ -352,7 +351,6 @@ void QuantumIdentifier::SetTransition(const QuantumNumbers& upper, const Quantum
 void QuantumIdentifier::SetEnergyLevel(const QuantumNumbers& q)
 {
     mqtype = QuantumIdentifier::ENERGY_LEVEL;
-    mqm.resize(1);
     mqm[ENERGY_LEVEL_INDEX] = q;
 }
 
@@ -360,7 +358,6 @@ void QuantumIdentifier::SetEnergyLevel(const QuantumNumbers& q)
 void QuantumIdentifier::SetAll()
 {
   mqtype = QuantumIdentifier::ALL;
-  mqm.resize(0);
 }
 
 
@@ -416,7 +413,7 @@ void QuantumIdentifier::SetFromString(String str)
     is >> token;
     if (token == "TR")
     {
-        SetType(QuantumIdentifier::TRANSITION);
+        mqtype = QuantumIdentifier::TRANSITION;
         is >> token;
         if (token != "UP")
         {
@@ -453,7 +450,7 @@ void QuantumIdentifier::SetFromString(String str)
     }
     else if (token == "EN")
     {
-        SetType(QuantumIdentifier::ENERGY_LEVEL);
+        mqtype = QuantumIdentifier::ENERGY_LEVEL;
 
         is >> token;
         Rational r;
@@ -467,11 +464,11 @@ void QuantumIdentifier::SetFromString(String str)
     }
     else if (token == "ALL")
     {
-      SetType(QuantumIdentifier::ALL);
+      mqtype = QuantumIdentifier::ALL;
     }
     else if (token == "NONE")
     {
-      SetType(QuantumIdentifier::NONE);
+      mqtype = QuantumIdentifier::NONE;
     }
     else
     {
