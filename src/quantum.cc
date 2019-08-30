@@ -53,44 +53,6 @@ bool QuantumNumbers::Compare(const QuantumNumbers& qn) const
 }
 
 
-bool QuantumNumbers::CompareDetailed(QuantumMatchInfoEnum& imatch, const QuantumNumbers& qn) const
-{
-    const QuantumContainer& qnumbers2 = qn.GetNumbers();
-
-    bool match = true;
-
-    Index qnri = 0;
-
-    imatch = QMI_FULL;
-
-    // Compare all quantum numbers in mqnumbers and qnumbers2
-    while (match && qnri != Index(QuantumNumberType::FINAL_ENTRY))
-    {
-        // If one of the two numbers is undefined, it is considered as
-        // a match.
-        if (   (!mqnumbers[qnri].isUndefined() && qnumbers2[qnri].isUndefined())
-            || (mqnumbers[qnri].isUndefined() && !qnumbers2[qnri].isUndefined()))
-        {
-            imatch = QMI_PARTIAL;
-        }
-        else  if (!mqnumbers[qnri].isUndefined()
-                  && !qnumbers2[qnri].isUndefined()
-                  && mqnumbers[qnri] != qnumbers2[qnri])
-        {
-            match = false;
-            imatch = QMI_PARTIAL;
-        }
-
-        qnri++;
-    }
-
-    if (!match) imatch = QMI_NONE;
-
-    return match;
-}
-
-
-
 // Tests if this is in other upper 
 bool QuantumIdentifier::InUpper(const QuantumIdentifier& other) const
 {
@@ -381,7 +343,6 @@ String QuantumIdentifier::SpeciesName() const { return species_name_from_species
 void QuantumIdentifier::SetTransition(const QuantumNumbers& upper, const QuantumNumbers& lower)
 {
     mqtype = QuantumIdentifier::TRANSITION;
-    mqm.resize(2);
     mqm[TRANSITION_UPPER_INDEX] = upper;
     mqm[TRANSITION_LOWER_INDEX] = lower;
 }
@@ -390,7 +351,6 @@ void QuantumIdentifier::SetTransition(const QuantumNumbers& upper, const Quantum
 void QuantumIdentifier::SetEnergyLevel(const QuantumNumbers& q)
 {
     mqtype = QuantumIdentifier::ENERGY_LEVEL;
-    mqm.resize(1);
     mqm[ENERGY_LEVEL_INDEX] = q;
 }
 
@@ -398,7 +358,6 @@ void QuantumIdentifier::SetEnergyLevel(const QuantumNumbers& q)
 void QuantumIdentifier::SetAll()
 {
   mqtype = QuantumIdentifier::ALL;
-  mqm.resize(0);
 }
 
 
@@ -454,7 +413,7 @@ void QuantumIdentifier::SetFromString(String str)
     is >> token;
     if (token == "TR")
     {
-        SetType(QuantumIdentifier::TRANSITION);
+        mqtype = QuantumIdentifier::TRANSITION;
         is >> token;
         if (token != "UP")
         {
@@ -491,7 +450,7 @@ void QuantumIdentifier::SetFromString(String str)
     }
     else if (token == "EN")
     {
-        SetType(QuantumIdentifier::ENERGY_LEVEL);
+        mqtype = QuantumIdentifier::ENERGY_LEVEL;
 
         is >> token;
         Rational r;
@@ -505,11 +464,11 @@ void QuantumIdentifier::SetFromString(String str)
     }
     else if (token == "ALL")
     {
-      SetType(QuantumIdentifier::ALL);
+      mqtype = QuantumIdentifier::ALL;
     }
     else if (token == "NONE")
     {
-      SetType(QuantumIdentifier::NONE);
+      mqtype = QuantumIdentifier::NONE;
     }
     else
     {
@@ -537,14 +496,6 @@ void QuantumIdentifier::SetFromStringForCO2Band(String upper, String lower, Stri
   "v1 " << lower[0] << " v2 " << lower[1] << " l2 " << lower[2] << " v3 " << lower[3] << " r " << lower[4];
   
   SetFromString(os.str());
-}
-
-std::ostream& operator<<(std::ostream& os, const QuantumNumberRecord& qr)
-{
-    os << "Upper: " << qr.Upper() << " ";
-    os << "Lower: " << qr.Lower();
-
-    return os;
 }
 
 

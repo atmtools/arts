@@ -75,42 +75,6 @@ main (int /*argc*/, char * /*argv*/ [])
 
 
         SpeciesTag stag("O2-66");
-        QuantumNumberRecord qnr;
-        qnr.SetUpper(QuantumNumberType::J, Rational(1, 1));
-        qnr.SetLower(QuantumNumberType::J, Rational(1, 1));
-
-        cout << "qnr:  " << qnr << endl;
-
-        WriteXML("ascii", qnr, "quantumrecord.xml", 0,
-                 "qnr", "", "", Verbosity(0, 2, 0));
-
-        QuantumNumberRecord qnr2;
-        ReadXML(qnr2, "qnr2", "quantumrecord.xml", "", Verbosity(0,2,0));
-        cout << "qnr2: " << qnr2 << endl;
-
-        
-        ArrayOfIndex matches;
-
-        timerStart(timer, v);
-        find_matching_lines(matches, abs_lines, stag.Species(), stag.Isotopologue(), qnr);
-        timerStop(timer, v);
-        Print(timer, 1, v);
-
-        cout << "========================================" << endl << endl;
-
-        cout << "Matches: " << matches.nelem() << endl;
-
-        for (Index i = 0; i < matches.nelem(); i++)
-        {
-            cout << abs_lines[matches[i]] << endl;
-            cout << abs_lines[matches[i]].QuantumIdentity() << endl;
-        }
-
-        cout << "========================================" << endl << endl;
-        
-        cout << "Search key: " << endl;
-        cout << "Species: " << stag.Name() << " species: " << stag.Species() << " iso: " << stag.Isotopologue() << endl;
-        cout << qnr << endl;
         
     }
     catch (const std::runtime_error &e)

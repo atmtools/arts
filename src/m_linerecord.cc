@@ -112,63 +112,20 @@ void abs_linesReplaceWithLines(ArrayOfLineRecord& abs_lines,
                                const ArrayOfLineRecord& replacement_lines, 
                                const Verbosity&)
 {
-  
-  //if(replacement_lines.nelem()==0)
-  //  throw std::runtime_error("replacement_lines is empty.\n");
-  
-  ArrayOfIndex matches;
-  ArrayOfQuantumMatchInfo match_info;
-
-  for (Index ri = 0; ri < replacement_lines.nelem(); ri++)
-  {
+  for (const auto& rline: replacement_lines) {
+    auto n=0;  // Counter for finds, API says a find must be unique
     
-    // Run internal mathcing routine
-    match_lines_by_quantum_identifier(matches, match_info, replacement_lines[ri].QuantumIdentity(), abs_lines);
+    for (auto& line: abs_lines) {
+      if (line.QuantumIdentity() == rline.QuantumIdentity()) {
+        line = rline;
+        n++;
+      }
+    }
     
-    // We demand that things are formatted the right way and that there are not multiple matches.
-    if( matches.nelem()>1 )
-    { 
-      ostringstream os;
-      os << "Multiple matches in comparison.  Something is wrong!\n"
-         << "Line is:\n" << replacement_lines[ri]<<std::endl;
+    if(n > 1) {
+      std::ostringstream os;
+      os << "\"" << rline.QuantumIdentity() << "\" is not a unique identifier wrt input catalog\n";
       throw std::runtime_error(os.str());
-    }
-    else if( matches.nelem()==0 )
-      { 
-        ostringstream os;
-        os << "No match found!  Make sure your replacement lines and abs_lines have the same quantum numbers definition.\n"
-         << "Line is:\n" << replacement_lines[ri]<<std::endl;
-        throw std::runtime_error(os.str());
-    }
-    
-    LineRecord& lr_old = abs_lines[matches[0]];
-    
-    // If any of the levels match partially or fully set the right quantum number
-    switch (match_info[0].Upper())
-    {
-
-      case QMI_NONE:
-        {
-        ostringstream os;
-        os << "There are no quantum numbers in your replacement ines so they match to abs_lines.\n"
-           << "replacement_line:\n"<<replacement_lines[ri]<<"\nabs_line:\n"<<lr_old<<std::endl;
-        throw std::runtime_error(os.str());
-        break;
-        }
-      case QMI_PARTIAL:
-        {
-        ostringstream os;
-        os << "Your replacement lines are only partially defined so they match to the abs_lines.\n"
-           << "replacement_line:\n"<<replacement_lines[ri]<<"\nabs_line:\n"<<lr_old<<std::endl;
-        throw std::runtime_error(os.str());
-        break;
-        }
-
-      case QMI_FULL:
-        {
-        lr_old = replacement_lines[ri];
-        break;
-        }
     }
   }
 }
@@ -181,7 +138,6 @@ void abs_linesReplaceParameterWithLinesParameter(ArrayOfLineRecord& abs_lines,
                                                  const String& parameter_name,
                                                  const Verbosity&)
 {
-  
   Index parameter_switch = -1;
   
   if(parameter_name.nelem()==0)
@@ -197,84 +153,35 @@ void abs_linesReplaceParameterWithLinesParameter(ArrayOfLineRecord& abs_lines,
   else if(parameter_name == "Lower State Energy")
     parameter_switch = 4;
   
-  ArrayOfIndex matches;
-  ArrayOfQuantumMatchInfo match_info;
-
-  for (Index ri = 0; ri < replacement_lines.nelem(); ri++)
-  {
-    const LineRecord& lr = replacement_lines[ri];
-    QuantumIdentifier QI;
-    QI.SetSpecies(lr.Species());
-    QI.SetIsotopologue(lr.Isotopologue());
-    QI.SetTransition(lr.UpperQuantumNumbers(),lr.LowerQuantumNumbers());
-
-    // Run internal matching routine
-    match_lines_by_quantum_identifier(matches, match_info, QI, abs_lines);
+  for (const auto& rline: replacement_lines) {
+    auto n=0;  // Counter for finds, API says a find must be unique
     
-    // We demand that things are formatted the right way and that there are not multiple matches.
-    if( matches.nelem()>1 )
-    { 
-      ostringstream os;
-      os << "Multiple matches in comparison.  Something is wrong!\n"
-         << "Line is:\n" << lr<<std::endl;
-      throw std::runtime_error(os.str());
-    }
-    else if( matches.nelem()==0 )
-      { 
-        ostringstream os;
-        os << "No match found!  Make sure your replacement lines and abs_lines have the same quantum numbers definition.\n"
-         << "Line is:\n" << lr<<std::endl;
-        throw std::runtime_error(os.str());
-    }
-    
-    LineRecord& lr_old = abs_lines[matches[0]];
-    
-    // If any of the levels match partially or fully set the right quantum number
-    switch (match_info[0].Upper())
-    {
-      case QMI_NONE:
-        {
-        ostringstream os;
-        os << "There are no quantum numbers in your replacement lines so they match to abs_lines.\n"
-           << "replacement_line:\n"<<lr<<"\nabs_line:\n"<<lr_old<<std::endl;
-        throw std::runtime_error(os.str());
-        break;
-        }
-      case QMI_PARTIAL:
-        {
-        ostringstream os;
-        os << "Your replacement lines are only partially defined so they match to the abs_lines.\n"
-           << "replacement_line:\n"<<lr<<"\nabs_line:\n"<<lr_old<<std::endl;
-        throw std::runtime_error(os.str());
-        break;
-        }
-
-      case QMI_FULL:
-        switch (parameter_switch)
-        {
+    for (auto& line: abs_lines) {
+      if (line.QuantumIdentity() == rline.QuantumIdentity()) {
+        n++;
+        
+        switch (parameter_switch) {
           case 0: //"Central Frequency":
-            lr_old.setF(lr.F());
+            line.setF(rline.F());
             break;
           case 1: //"Line Strength":
-            lr_old.setI0(lr.I0());
+            line.setI0(rline.I0());
             break;
           case 2: //"Shape data":
-            lr_old.SetLineShapeModel(lr.GetLineShapeModel());
+            line.SetLineShapeModel(rline.GetLineShapeModel());
             break;
           case 4: //"Lower State Energy":
-            lr_old.SetElow(lr.Elow());
+            line.SetElow(rline.Elow());
             break;
-          default:
-          {
+          default: {
             ostringstream os;
             os << "Unsupported paramter_name\n" << parameter_name
-               << "\nSee method description for supported parameter names.\n";
+            << "\nSee method description for supported parameter names.\n";
             throw std::runtime_error(os.str());
             break;
           }
-            
         }
-        break;
+      }
     }
   }
 }
@@ -282,99 +189,55 @@ void abs_linesReplaceParameterWithLinesParameter(ArrayOfLineRecord& abs_lines,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesChangeBaseParameterForMatchingLines(ArrayOfLineRecord& abs_lines, 
-                                              const QuantumIdentifier& QI, 
-                                              const String& parameter_name,
-                                              const Numeric& change,
-                                              const Index& relative,
-                                              const Index& loose_matching,
-                                              const Verbosity&)
+                                                  const QuantumIdentifier& QI, 
+                                                  const String& parameter_name,
+                                                  const Numeric& change,
+                                                  const Index& relative,
+                                                  const Index& loose_matching,
+                                                  const Verbosity&)
 {
+  Index parameter_switch = -1;
 
-    
-    Index parameter_switch = -1;
-
-    
-    if(parameter_name.nelem()==0)
-        throw std::runtime_error("parameter_name is empty.\n");
-    else if(parameter_name == "Central Frequency" or parameter_name == "Line Center")
-        parameter_switch = 0;
-    else if(parameter_name == "Line Strength")
-        parameter_switch = 1;
-    else if(parameter_name == "Lower State Energy")
-        parameter_switch = 4;
-
-    
-    ArrayOfIndex matches;
-    ArrayOfQuantumMatchInfo match_info;
-    // Run internal mathcing routine
-    match_lines_by_quantum_identifier(matches, match_info, QI, abs_lines);
-    // We demand that things are formatted the right way and that there are not multiple matches.
-    if( matches.nelem()>1 && loose_matching == 0 )
-        throw std::runtime_error("Multiple matches in comparison.  You set loose_matching to not allow this!\n");
-    else if( matches.nelem()==0 )
-        throw std::runtime_error("No match found!  Make sure your QuantumIdentifier is in abs_lines before using this function.\n(For instance, try to make sure quantum numbers are defined the same way.)\n");
-
-    
-    bool any=false;
-
-    
-    for(Index mii =0; mii<matches.nelem(); mii++)
-    {
-
-        
-        // Skip if there are none in any of the levels
-        if((match_info[mii].Upper()==QMI_NONE||match_info[mii].Lower()==QMI_NONE)&&loose_matching==0)
-            continue;
-
-        
-        // Skip if there are any partials unless we accept loose matching
-        if((match_info[mii].Upper()==QMI_PARTIAL||match_info[mii].Lower()==QMI_PARTIAL)&&loose_matching==0)
-            continue;
-
-        
-        if(!any)
-            any = true;
-
-        
-        LineRecord& lr = abs_lines[matches[mii]];
-
-        
-        switch (parameter_switch)
-        {
-            case 0: //"Central Frequency":
-                if(relative==0)
-                    lr.setF(lr.F()+change);
-                else 
-                    lr.setF(lr.F()*(1.0e0+change));
-                break;
-            case 1: //"Line Strength":
-                if(relative==0)
-                    lr.setI0(lr.I0()+change);
-                else 
-                    lr.setI0(lr.I0()*(1.0e0+change));
-                break;
-            case 4: //"Lower State Energy":
-                if(relative==0)
-                    lr.SetElow(lr.Elow()+change);
-                else 
-                    lr.SetElow(lr.Elow()*(1.0e0+change));
-                break;
-            default:
-            {
-                ostringstream os;
-                os << "Usupported paramter_name\n" << parameter_name
-                << "\nSee method description for supported parameter names.\n";
-                throw std::runtime_error(os.str());
-                break;
-            }
-            
-
+  if(parameter_name.nelem()==0)
+    throw std::runtime_error("parameter_name is empty.\n");
+  else if(parameter_name == "Central Frequency" or parameter_name == "Line Center")
+    parameter_switch = 0;
+  else if(parameter_name == "Line Strength")
+    parameter_switch = 1;
+  else if(parameter_name == "Lower State Energy")
+    parameter_switch = 4;
+  
+  for (auto& line: abs_lines) {
+    if (loose_matching ? QI.In(line.QuantumIdentity()) : line.QuantumIdentity() == QI) {
+      switch (parameter_switch) {
+        case 0: //"Central Frequency":
+          if(relative==0)
+            line.setF(line.F()+change);
+          else 
+            line.setF(line.F()*(1.0e0+change));
+          break;
+        case 1: //"Line Strength":
+          if(relative==0)
+            line.setI0(line.I0()+change);
+          else 
+            line.setI0(line.I0()*(1.0e0+change));
+          break;
+        case 4: //"Lower State Energy":
+          if(relative==0)
+            line.SetElow(line.Elow()+change);
+          else 
+            line.SetElow(line.Elow()*(1.0e0+change));
+          break;
+        default: {
+          ostringstream os;
+          os << "Usupported paramter_name\n" << parameter_name
+          << "\nSee method description for supported parameter names.\n";
+          throw std::runtime_error(os.str());
+          break;
         }
+      }
     }
-
-    
-    if(!any)
-        throw std::runtime_error("You have no matches.  This is not accepted as a valid use case.  (Is your matching information correct?)\n");
+  }
 }
 
 
@@ -386,81 +249,39 @@ void abs_linesSetBaseParameterForMatchingLines(ArrayOfLineRecord& abs_lines,
                                                const Index& loose_matching,
                                                const Verbosity&)
 {
-
-    
-    Index parameter_switch = -1;
-
-    
-    if(parameter_name.nelem()==0)
-        throw std::runtime_error("parameter_name is empty.\n");
-    else if(parameter_name == "Central Frequency")
-        parameter_switch = 0;
-    else if(parameter_name == "Line Strength")
-        parameter_switch = 1;
-    else if(parameter_name == "Lower State Energy")
-        parameter_switch = 4;
-
-    
-    ArrayOfIndex matches;
-    ArrayOfQuantumMatchInfo match_info;
-    // Run internal mathcing routine
-    match_lines_by_quantum_identifier(matches, match_info, QI, abs_lines);
-    // We demand that things are formatted the right way and that there are not multiple matches.
-    if( matches.nelem()>1 && loose_matching == 0 )
-        throw std::runtime_error("Multiple matches in comparison.  You set loose_matching to not allow this!\n");
-    else if( matches.nelem()==0 )
-        throw std::runtime_error("No match found!  Make sure your QuantumIdentifier is in abs_lines before using this function.\n(For instance, try to make sure quantum numbers are defined the same way.)\n");
-
-    
-    bool any=false;
-
-    
-    for(Index mii =0; mii<matches.nelem(); mii++)
-    {
-        // Skip if there are none in any of the levels
-        if((match_info[mii].Upper()==QMI_NONE||match_info[mii].Lower()==QMI_NONE)&&loose_matching==0)
-            continue;
-
-        
-        // Skip if there are any partials unless we accept loose matching
-        if((match_info[mii].Upper()==QMI_PARTIAL||match_info[mii].Lower()==QMI_PARTIAL)&&loose_matching==0)
-            continue;
-
-        
-        if(!any)
-            any = true;
-
-        
-        LineRecord& lr = abs_lines[matches[mii]];
-
-        
-        switch (parameter_switch)
-        {
-            case 0: //"Central Frequency":
-                lr.setF(new_value);
-                break;
-            case 1: //"Line Strength":
-                lr.setI0(new_value);
-                break;
-            case 4: //"Lower State Energy":
-                lr.SetElow(new_value);
-                break;
-            default:
-            {
-                ostringstream os;
-                os << "Usupported paramter_name\n" << parameter_name
-                << "\nSee method description for supported parameter names.\n";
-                throw std::runtime_error(os.str());
-                break;
-            }
-            
-
+  Index parameter_switch = -1;
+  
+  if(parameter_name.nelem()==0)
+    throw std::runtime_error("parameter_name is empty.\n");
+  else if(parameter_name == "Central Frequency" or parameter_name == "Line Center")
+    parameter_switch = 0;
+  else if(parameter_name == "Line Strength")
+    parameter_switch = 1;
+  else if(parameter_name == "Lower State Energy")
+    parameter_switch = 4;
+  
+  for (auto& line: abs_lines) {
+    if (loose_matching ? QI.In(line.QuantumIdentity()) : line.QuantumIdentity() == QI) {
+      switch (parameter_switch) {
+        case 0: //"Central Frequency":
+          line.setF(new_value);
+          break;
+        case 1: //"Line Strength":
+          line.setI0(new_value);
+          break;
+        case 4: //"Lower State Energy":
+          line.SetElow(new_value);
+          break;
+        default: {
+          ostringstream os;
+          os << "Usupported paramter_name\n" << parameter_name
+          << "\nSee method description for supported parameter names.\n";
+          throw std::runtime_error(os.str());
+          break;
         }
+      }
     }
-
-    
-    if(!any)
-        throw std::runtime_error("You have no matches.  This is not accepted as a valid use case.  (Is your matching information correct?)\n");
+  }
 }
 
 
@@ -533,119 +354,67 @@ void nlteSetByQuantumIdentifiers(Index&                           nlte_do,
   const bool do_ev = vibrational_energies.nelem();
 
   if(do_ev) {
-      if( vibrational_energies.nelem()!=nlte_quantum_identifiers.nelem() ) {
-          ostringstream os;
-          os << "Your vibrational energy levels vector is not the same size as\n"
-          << "your *nlte_quantum_identifiers* array.  These must be the same\n"
-          << "size and the content should match.\n";
-          throw std::runtime_error(os.str());
-      }
+    if( vibrational_energies.nelem()!=nlte_quantum_identifiers.nelem() ) {
+      ostringstream os;
+      os << "Your vibrational energy levels vector is not the same size as\n"
+      << "your *nlte_quantum_identifiers* array.  These must be the same\n"
+      << "size and the content should match.\n";
+      throw std::runtime_error(os.str());
+    }
   }
   
   const LinePopulationType poptyp = LinePopulationTypeFromString(population_type);
   
   // All energies must be positive
   for(Index ii=0; ii< vibrational_energies.nelem();ii++) {
-    if(vibrational_energies[ii]<0)
-    {
+    if(vibrational_energies[ii]<0) {
       ostringstream os;
       os << "Some of your vibrational energy levels are negative.  They should be positive.\n"
       << "Your vibrational levels are:\n" <<vibrational_energies;
       throw std::runtime_error(os.str());
     }
-
   }
   
   for (Index qi = 0; qi < nlte_quantum_identifiers.nelem(); qi++) {
-    ArrayOfIndex matches;
-    ArrayOfQuantumMatchInfo match_info;
-    
+    auto& id=nlte_quantum_identifiers[qi];
     for (Index s = 0; s < abs_lines_per_species.nelem(); s++) {
-      
-      // Skip this species if qi is not part of the species represented by this abs_lines
-      if(abs_species[s][0].Species() != nlte_quantum_identifiers[qi].Species())
+      if(abs_species[s][0].Species() != nlte_quantum_identifiers[qi].Species()) {
         continue;
+      }
       
       ArrayOfLineRecord& species_lines = abs_lines_per_species[s];
-      
-      // Run internal mathcing routine
-      match_lines_by_quantum_identifier(matches, match_info, nlte_quantum_identifiers[qi], species_lines);
-      
-      // Use info about mathced lines to tag the relevant parameter
-      for (Index i = 0; i < matches.nelem(); i++) {
-        // For each line record
-        LineRecord& lr = species_lines[matches[i]];
-        
-        // If any of the levels match partially or fully set the right quantum number
-        switch (match_info[i].Upper()) {
-          case QMI_NONE:    break;
-          case QMI_FULL:
-            if(lr.NLTEUpperIndex()==-1) {
-              lr.SetNLTEUpperIndex(qi);
-              if(do_ev)
-                lr.SetEvupp(vibrational_energies[qi]);
-              lr.SetLinePopulationType(poptyp);
-            }
-            else {
-              ostringstream os;
-              os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
-              "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
-              "\nset twice by the input quantum identifiers.  All levels must "<<
-              "point at a unique state. " << qi;
-              throw std::runtime_error(os.str());
-            }
-            break;
-          case QMI_PARTIAL:
-            if(lr.NLTEUpperIndex()==-1) {
-              lr.SetNLTEUpperIndex(qi);
-              if(do_ev)
-                lr.SetEvupp(vibrational_energies[qi]);
-              lr.SetLinePopulationType(poptyp);
-            }
-            else {
-              ostringstream os;
-              os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
-              "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
-              "\nset twice by the input quantum identifiers.  All levels must "<<
-              "point at a unique state. " << qi;
-              throw std::runtime_error(os.str());
-            }
-            break;
+      for (Index i = 0; i < species_lines.nelem(); i++) {
+        LineRecord& lr = species_lines[i];
+        if(lr.QuantumIdentity().UpperQuantumId().In(id)) {
+          if(lr.NLTEUpperIndex() not_eq -1) {
+            ostringstream os;
+            os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
+            "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
+            "\nset twice by the input quantum identifiers.  All levels must "<<
+            "point at a unique state. " << qi;
+            throw std::runtime_error(os.str());
+          }
+          
+          lr.SetNLTEUpperIndex(qi);
+          if(do_ev)
+            lr.SetEvupp(vibrational_energies[qi]);
+          lr.SetLinePopulationType(poptyp);
         }
-        switch (match_info[i].Lower()) {
-          case QMI_NONE:    break;
-          case QMI_FULL:
-            if(lr.NLTELowerIndex()==-1) {
-              lr.SetNLTELowerIndex(qi);
-              if(do_ev)
-                lr.SetEvlow(vibrational_energies[qi]);
-              lr.SetLinePopulationType(poptyp);
-            }
-            else {
-              ostringstream os;
-              os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
-              "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
-              "\nset twice by the input quantum identifiers.  All levels must "<<
-              "point at a unique state. " << qi;
-              throw std::runtime_error(os.str());
-            }
-            break;
-          case QMI_PARTIAL:
-            if(lr.NLTELowerIndex()==-1) {
-              lr.SetNLTELowerIndex(qi);
-              if(do_ev)
-                lr.SetEvlow(vibrational_energies[qi]);
-              lr.SetLinePopulationType(poptyp);
-            }
-            else {
-              ostringstream os;
-              os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
-              "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
-              "\nset twice by the input quantum identifiers.  All levels must "<<
-              "point at a unique state. " << qi;
-              throw std::runtime_error(os.str());
-            }
-            break;
+        
+        if(lr.QuantumIdentity().LowerQuantumId().In(id)) {
+          if(lr.NLTELowerIndex() not_eq -1) {
+            ostringstream os;
+            os << "The linerecord:\n"<<lr<<"\nhad the energy state level of "<<
+            "this quantum identifier:\n"<<nlte_quantum_identifiers[qi]<<
+            "\nset twice by the input quantum identifiers.  All levels must "<<
+            "point at a unique state. " << qi;
+            throw std::runtime_error(os.str());
+          }
+          
+          lr.SetNLTELowerIndex(qi);
+          if(do_ev)
+            lr.SetEvlow(vibrational_energies[qi]);
+          lr.SetLinePopulationType(poptyp);
         }
       }
     }

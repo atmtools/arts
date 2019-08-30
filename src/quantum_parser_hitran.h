@@ -37,15 +37,13 @@ public:
 
     //! Parse quantum numbers from string
     /**
-     \param[out] qnr Quantum numbers extracted from the string
+     \param[in,out] qid (out) Quantum numbers extracted from the
+                 string (in) must have defined Species()
      \param[in]  quantum_string Quantum number string as found
                  in the HITRAN catalog (Length: 15*4 characters).
-     \param[in]  ARTS species index to which the quantum numbers
-                 belong.
     */
-    void Parse(QuantumNumberRecord& qnr,
-               const String& quantum_string,
-               const Index species) const;
+    void Parse(QuantumIdentifier& qid,
+               const String& quantum_string) const;
 
 private:
 
