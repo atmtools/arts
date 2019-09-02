@@ -15,8 +15,6 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-
-
 /*===========================================================================
   ===  File description
   ===========================================================================*/
@@ -32,7 +30,6 @@
    that are of interest elsewhere.
 */
 
-
 #ifndef sensor_h
 #define sensor_h
 
@@ -44,59 +41,52 @@
 #include "matpackII.h"
 #include "messages.h"
 
-
 /*===========================================================================
   === Functions from sensor.cc
   ===========================================================================*/
 
-void antenna1d_matrix(      
-               Sparse&   H,
-          const Index&   antenna_dim,
-       ConstVectorView   antenna_dza,
-  const GriddedField4&   antenna_response,
-       ConstVectorView   za_grid,
-       ConstVectorView   f_grid,
-           const Index   n_pol,
-           const Index   do_norm );
+void antenna1d_matrix(Sparse& H,
+                      const Index& antenna_dim,
+                      ConstVectorView antenna_dza,
+                      const GriddedField4& antenna_response,
+                      ConstVectorView za_grid,
+                      ConstVectorView f_grid,
+                      const Index n_pol,
+                      const Index do_norm);
 
-void antenna2d_basic(      
-               Sparse&   H,
-          const Index&   antenna_dim,
-       ConstMatrixView   antenna_dlos,
-  const GriddedField4&   antenna_response,
-       ConstMatrixView   mblock_dlos,
-       ConstVectorView   f_grid,
-           const Index   n_pol,
-           const Index   do_norm );
+void antenna2d_basic(Sparse& H,
+                     const Index& antenna_dim,
+                     ConstMatrixView antenna_dlos,
+                     const GriddedField4& antenna_response,
+                     ConstMatrixView mblock_dlos,
+                     ConstVectorView f_grid,
+                     const Index n_pol,
+                     const Index do_norm);
 
-  void gaussian_response_autogrid(
-           Vector&   x,
-           Vector&   y,
-    const Numeric&   x0,
-    const Numeric&   fwhm,
-    const Numeric&   xwidth_si,
-    const Numeric&   dx_si );
+void gaussian_response_autogrid(Vector& x,
+                                Vector& y,
+                                const Numeric& x0,
+                                const Numeric& fwhm,
+                                const Numeric& xwidth_si,
+                                const Numeric& dx_si);
 
-void gaussian_response(
-          Vector&    y,
-    const Vector&    x,
-    const Numeric&   x0,
-    const Numeric&   fwhm );
+void gaussian_response(Vector& y,
+                       const Vector& x,
+                       const Numeric& x0,
+                       const Numeric& fwhm);
 
-void mixer_matrix(
-           Sparse&   H,
-           Vector&   f_mixer,
-    const Numeric&   lo,
-    const GriddedField1&   filter,
-   ConstVectorView   f_grid,
-      const Index&   n_pol,
-      const Index&   n_sp,
-      const Index&   do_norm );
+void mixer_matrix(Sparse& H,
+                  Vector& f_mixer,
+                  const Numeric& lo,
+                  const GriddedField1& filter,
+                  ConstVectorView f_grid,
+                  const Index& n_pol,
+                  const Index& n_sp,
+                  const Index& do_norm);
 
-void mueller_rotation(
-          Sparse&    H,
-    const Index&     stokes_dim,
-    const Numeric&   rotangle );
+void mueller_rotation(Sparse& H,
+                      const Index& stokes_dim,
+                      const Numeric& rotangle);
 
 void met_mm_polarisation_hmatrix(Sparse& H,
                                  const ArrayOfString& pol,
@@ -104,60 +94,50 @@ void met_mm_polarisation_hmatrix(Sparse& H,
                                  const Index stokes_dim,
                                  const String& iy_unit);
 
-void sensor_aux_vectors(
-               Vector&   sensor_response_f,
-         ArrayOfIndex&   sensor_response_pol,
-               Matrix&   sensor_response_dlos,
-       ConstVectorView   sensor_response_f_grid,
-   const ArrayOfIndex&   sensor_response_pol_grid,
-       ConstMatrixView   sensor_response_dlos_grid );
+void sensor_aux_vectors(Vector& sensor_response_f,
+                        ArrayOfIndex& sensor_response_pol,
+                        Matrix& sensor_response_dlos,
+                        ConstVectorView sensor_response_f_grid,
+                        const ArrayOfIndex& sensor_response_pol_grid,
+                        ConstMatrixView sensor_response_dlos_grid);
 
-void spectrometer_matrix( 
-           Sparse&         H,
-   ConstVectorView         ch_f,
-   const ArrayOfGriddedField1&   ch_response,
-   ConstVectorView         sensor_f,
-      const Index&         n_pol,
-      const Index&         n_sp,
-      const Index&         do_norm );
+void spectrometer_matrix(Sparse& H,
+                         ConstVectorView ch_f,
+                         const ArrayOfGriddedField1& ch_response,
+                         ConstVectorView sensor_f,
+                         const Index& n_pol,
+                         const Index& n_sp,
+                         const Index& do_norm);
 
-void stokes2pol(
-        VectorView   w,
-  const Index&    stokes_dim,
-  const Index&    ipol_1based,
-  const Numeric   nv = 1 );
+void stokes2pol(VectorView w,
+                const Index& stokes_dim,
+                const Index& ipol_1based,
+                const Numeric nv = 1);
 
-void find_effective_channel_boundaries(// Output:
-                                       Vector& fmin,
-                                       Vector& fmax,
-                                       // Input:
-                                       const Vector& f_backend,
-                                       const ArrayOfGriddedField1& backend_channel_response,
-                                       const Numeric& delta,
-                                       const Verbosity& verbosity);
+void find_effective_channel_boundaries(  // Output:
+    Vector& fmin,
+    Vector& fmax,
+    // Input:
+    const Vector& f_backend,
+    const ArrayOfGriddedField1& backend_channel_response,
+    const Numeric& delta,
+    const Verbosity& verbosity);
 
+void integration_func_by_vecmult(VectorView h,
+                                 ConstVectorView f,
+                                 ConstVectorView x_f_in,
+                                 ConstVectorView x_g_in);
 
+void integration_bin_by_vecmult(VectorView h,
+                                ConstVectorView x_g_in,
+                                const Numeric& limit1,
+                                const Numeric& limit2);
 
-void integration_func_by_vecmult(
-        VectorView   h,
-   ConstVectorView   f,
-   ConstVectorView   x_f_in,
-   ConstVectorView   x_g_in );
-
-void integration_bin_by_vecmult(
-        VectorView   h,
-   ConstVectorView   x_g_in,
-   const Numeric&    limit1, 
-   const Numeric&    limit2 );
-
-void summation_by_vecmult(
-        VectorView   h,
-   ConstVectorView   f,
-   ConstVectorView   x_f,
-   ConstVectorView   x_g,
-     const Numeric   x1,
-     const Numeric   x2 );
-
-
+void summation_by_vecmult(VectorView h,
+                          ConstVectorView f,
+                          ConstVectorView x_f,
+                          ConstVectorView x_g,
+                          const Numeric x1,
+                          const Numeric x2);
 
 #endif  // sensor_h

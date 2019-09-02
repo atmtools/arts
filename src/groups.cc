@@ -29,25 +29,22 @@
   \date   2000-08-04 */
 
 #include <map>
-#include "arts.h"
 #include "array.h"
+#include "arts.h"
 #include "mystring.h"
 #include "wsv_aux.h"
-
 
 /*! The names associated with Wsv groups as Strings.
   See function define_wsv_group_names for more information. */
 namespace global_data {
 ArrayOfString wsv_group_names;
 map<String, Index> WsvGroupMap;
-}
+}  // namespace global_data
 
 /*! Groups that can be used as keywords */
 ArrayOfIndex valid_keyword_groups;
 
-
-void define_valid_keyword_groups()
-{
+void define_valid_keyword_groups() {
   valid_keyword_groups.resize(0);
   valid_keyword_groups.push_back(get_wsv_group_id("String"));
   valid_keyword_groups.push_back(get_wsv_group_id("Index"));
@@ -57,17 +54,13 @@ void define_valid_keyword_groups()
   valid_keyword_groups.push_back(get_wsv_group_id("Vector"));
 }
 
-
-void define_wsv_group_map()
-{
+void define_wsv_group_map() {
   using global_data::wsv_group_names;
   using global_data::WsvGroupMap;
-  for ( Index i=0 ; i<wsv_group_names.nelem() ; ++i )
-    {
-      WsvGroupMap[wsv_group_names[i]] = i;
-    }
+  for (Index i = 0; i < wsv_group_names.nelem(); ++i) {
+    WsvGroupMap[wsv_group_names[i]] = i;
+  }
 }
-
 
 //! Define the array of workspace variable group names.
 /*!
@@ -81,14 +74,13 @@ void define_wsv_group_map()
   \author Stefan Buehler
   \date   2000-08-04
 */
-void define_wsv_group_names()
-{
+void define_wsv_group_names() {
   using global_data::wsv_group_names;
 
   //--------------------< Build the group names array >--------------------
   // Initialize to empty, just in case.
   wsv_group_names.resize(0);
-  
+
   wsv_group_names.push_back("Agenda");
   wsv_group_names.push_back("Any");
   wsv_group_names.push_back("ArrayOfAgenda");
@@ -178,100 +170,88 @@ void define_wsv_group_names()
   define_valid_keyword_groups();
 }
 
-
-bool is_valid_keyword_group(const Index group)
-{
-  for (Index i = 0; i < valid_keyword_groups.nelem(); i++)
-    {
-      if (valid_keyword_groups[i] == group)
-        return true;
-    }
+bool is_valid_keyword_group(const Index group) {
+  for (Index i = 0; i < valid_keyword_groups.nelem(); i++) {
+    if (valid_keyword_groups[i] == group) return true;
+  }
 
   return false;
 }
 
-void get_wsv_group_ids(ArrayOfIndex& ids, String name)
-{
+void get_wsv_group_ids(ArrayOfIndex& ids, String name) {
   ids.resize(0);
-  
+
   Index pos = 0;
-  while (pos < name.nelem())
-    {
-      switch (name[pos]) 
-        {
-        case ' ':
-        case '\r':
-        case '\t':
-        case '#':
-          name.erase(pos, 1);
-          break;
-        default:
-          pos++;
-        }
+  while (pos < name.nelem()) {
+    switch (name[pos]) {
+      case ' ':
+      case '\r':
+      case '\t':
+      case '#':
+        name.erase(pos, 1);
+        break;
+      default:
+        pos++;
     }
+  }
 
   pos = 0;
   Index prev = 0;
-  while (pos < name.nelem())
-    {
-      while (pos < name.nelem() && name[pos] != ',') pos ++;
-      Index id = get_wsv_group_id (name.substr(prev, pos-prev));
-      if (id == -1)
-        {
-          ids.resize(0);
-          return;
-        }
-      ids.push_back (id);
-      pos++;
-      prev = pos;
+  while (pos < name.nelem()) {
+    while (pos < name.nelem() && name[pos] != ',') pos++;
+    Index id = get_wsv_group_id(name.substr(prev, pos - prev));
+    if (id == -1) {
+      ids.resize(0);
+      return;
     }
+    ids.push_back(id);
+    pos++;
+    prev = pos;
+  }
 }
 
-bool is_agenda_group_id(const Index group)
-{
-  return (group == get_wsv_group_id("Agenda")
-          || group == get_wsv_group_id("ArrayOfAgenda"));
+bool is_agenda_group_id(const Index group) {
+  return (group == get_wsv_group_id("Agenda") ||
+          group == get_wsv_group_id("ArrayOfAgenda"));
 }
 
-Index get_wsv_group_id(const String& name)
-{
+Index get_wsv_group_id(const String& name) {
   using global_data::WsvGroupMap;
-  map<String, Index>::const_iterator it = WsvGroupMap.find (name);
+  map<String, Index>::const_iterator it = WsvGroupMap.find(name);
   if (it == WsvGroupMap.end())
     return -1;
   else
     return it->second;
 }
 
-String get_array_groups_as_string(bool basetype_is_group, bool return_basetype_only)
-{
+String get_array_groups_as_string(bool basetype_is_group,
+                                  bool return_basetype_only) {
   using global_data::wsv_group_names;
   String arraygroups;
 
   bool first = true;
-  for (Index i = 0; i < wsv_group_names.nelem(); i++)
-  {
-    if (wsv_group_names[i].substr(0, String("ArrayOf").length()) == "ArrayOf")
-    {
-      const String basetype = wsv_group_names[i].substr(String("ArrayOf").length(),
-                                                        wsv_group_names[i].length());
+  for (Index i = 0; i < wsv_group_names.nelem(); i++) {
+    if (wsv_group_names[i].substr(0, String("ArrayOf").length()) == "ArrayOf") {
+      const String basetype = wsv_group_names[i].substr(
+          String("ArrayOf").length(), wsv_group_names[i].length());
       bool basetype_exists = (get_wsv_group_id(basetype) != -1);
-      
-      if (return_basetype_only)
-      {
+
+      if (return_basetype_only) {
         // Return only the basetype of the array,
         // skip arrays whose basetype is not a WSV group
-        if (basetype_exists)
-        {
-          if (!first) arraygroups += ", "; else first = false;
+        if (basetype_exists) {
+          if (!first)
+            arraygroups += ", ";
+          else
+            first = false;
           arraygroups += basetype;
         }
-      }
-      else
-      {
-        if (!basetype_is_group || (basetype_is_group && basetype_exists))
-        {
-          if (!first) arraygroups += ", "; else first = false;
+      } else {
+        if (!basetype_is_group || (basetype_is_group && basetype_exists)) {
+          if (!first)
+            arraygroups += ", ";
+          else
+            first = false;
           arraygroups += wsv_group_names[i];
         }
       }

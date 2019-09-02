@@ -15,7 +15,6 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-
 ////////////////////////////////////////////////////////////////////////////
 //   File description
 ////////////////////////////////////////////////////////////////////////////
@@ -32,12 +31,11 @@
 
 #ifdef ENABLE_NETCDF
 
-#include "nc_io.h"
-#include "nc_io_types.h"
+#include "exceptions.h"
 #include "file.h"
 #include "messages.h"
-#include "exceptions.h"
-
+#include "nc_io.h"
+#include "nc_io_types.h"
 
 ////////////////////////////////////////////////////////////////////////////
 //   Default file name
@@ -52,16 +50,12 @@
  
  \author Oliver Lemke
 */
-void nca_filename(String& filename, const String&  varname)
-{
-  if ("" == filename)
-    {
-      extern const String out_basename;
-      filename = out_basename + "." + varname + ".nc";
-    }
+void nca_filename(String& filename, const String& varname) {
+  if ("" == filename) {
+    extern const String out_basename;
+    filename = out_basename + "." + varname + ".nc";
+  }
 }
-
-
 
 //! Gives the default filename, with file index, for the NetCDF formats.
 /*!
@@ -73,25 +67,20 @@ void nca_filename(String& filename, const String&  varname)
  
  \author Oliver Lemke
 */
-void nca_filename_with_index(String&       filename,
-                             const Index&  file_index,
-                             const String& varname)
-{
-  if ("" == filename)
-    {
-      extern const String out_basename;
-      ostringstream os;
-      os << out_basename << "." << varname << "." << file_index << ".nc";
-      filename = os.str();
-    }
-  else
-    {
-      ostringstream os;
-      os << filename << "." << file_index << ".nc";
-      filename = os.str();
-    }
+void nca_filename_with_index(String& filename,
+                             const Index& file_index,
+                             const String& varname) {
+  if ("" == filename) {
+    extern const String out_basename;
+    ostringstream os;
+    os << out_basename << "." << varname << "." << file_index << ".nc";
+    filename = os.str();
+  } else {
+    ostringstream os;
+    os << filename << "." << file_index << ".nc";
+    filename = os.str();
+  }
 }
-
 
 //! Reads a variable from a NetCDF file
 /*!
@@ -101,43 +90,37 @@ void nca_filename_with_index(String&       filename,
  
  \author Oliver Lemke
 */
-template<typename T>
-void nca_read_from_file(const String&    filename,
-                        T&               type,
-                        const Verbosity& verbosity)
-{
+template <typename T>
+void nca_read_from_file(const String& filename,
+                        T& type,
+                        const Verbosity& verbosity) {
   CREATE_OUT2;
-  
+
   String efilename = expand_path(filename);
-  
+
   out2 << "  Reading " << efilename << '\n';
 
 #pragma omp critical(netcdf__critical_region)
-    {
-  int ncid;
-  if (nc_open(efilename.c_str(), NC_NOWRITE, &ncid))
-    {
+  {
+    int ncid;
+    if (nc_open(efilename.c_str(), NC_NOWRITE, &ncid)) {
       ostringstream os;
       os << "Error reading file: " << efilename << endl;
       throw runtime_error(os.str());
     }
 
-  try
-    {
+    try {
       nca_read_from_file(ncid, type, verbosity);
-    }
-  catch (const std::runtime_error &e)
-    {
+    } catch (const std::runtime_error& e) {
       ostringstream os;
       os << "Error reading file: " << efilename << endl;
       os << e.what() << endl;
       throw runtime_error(os.str());
     }
 
-  nc_close(ncid);
-    }
+    nc_close(ncid);
+  }
 }
-
 
 //! Writes a variable to a NetCDF file
 /*!
@@ -147,43 +130,37 @@ void nca_read_from_file(const String&    filename,
  
  \author Oliver Lemke
 */
-template<typename T>
-void nca_write_to_file(const String&    filename,
-                       const T&         type,
-                       const Verbosity& verbosity)
-{
+template <typename T>
+void nca_write_to_file(const String& filename,
+                       const T& type,
+                       const Verbosity& verbosity) {
   CREATE_OUT2;
-  
+
   String efilename = add_basedir(filename);
-  
+
   out2 << "  Writing " << efilename << '\n';
 
 #pragma omp critical(netcdf__critical_region)
-    {
-  int ncid;
-  if (nc_create(efilename.c_str(), NC_CLOBBER, &ncid))
-    {
+  {
+    int ncid;
+    if (nc_create(efilename.c_str(), NC_CLOBBER, &ncid)) {
       ostringstream os;
       os << "Error writing file: " << efilename << endl;
       throw runtime_error(os.str());
     }
 
-  try
-    {
+    try {
       nca_write_to_file(ncid, type, verbosity);
-    }
-  catch (const std::runtime_error &e)
-    {
+    } catch (const std::runtime_error& e) {
       ostringstream os;
       os << "Error writing file: " << efilename << endl;
       os << e.what() << endl;
       throw runtime_error(os.str());
     }
 
-  nc_close(ncid);
-    }
+    nc_close(ncid);
+  }
 }
-
 
 //! Define NetCDF dimension.
 /** 
@@ -194,13 +171,14 @@ void nca_write_to_file(const String&    filename,
  
  \author Oliver Lemke
  */
-void nca_def_dim(const int ncid, const String& name, const Index nelem, int* ncdim)
-{
+void nca_def_dim(const int ncid,
+                 const String& name,
+                 const Index nelem,
+                 int* ncdim) {
   int retval;
   if ((retval = nc_def_dim(ncid, name.c_str(), nelem, ncdim)))
     nca_error(retval, "nc_def_dim");
 }
-
 
 //! Define NetCDF variable.
 /** 
@@ -213,14 +191,16 @@ void nca_def_dim(const int ncid, const String& name, const Index nelem, int* ncd
  
  \author Oliver Lemke
  */
-void nca_def_var(const int ncid, const String& name, const nc_type type, const int ndims,
-                 const int* dims, int* varid)
-{
+void nca_def_var(const int ncid,
+                 const String& name,
+                 const nc_type type,
+                 const int ndims,
+                 const int* dims,
+                 int* varid) {
   int retval;
   if ((retval = nc_def_var(ncid, name.c_str(), type, ndims, dims, varid)))
     nca_error(retval, "nc_def_var");
 }
-
 
 //! Define NetCDF dimensions and variable for an ArrayOfIndex.
 /** 
@@ -231,20 +211,18 @@ void nca_def_var(const int ncid, const String& name, const nc_type type, const i
  
  \author Oliver Lemke
  */
-int nca_def_ArrayOfIndex(const int ncid, const String& name, const ArrayOfIndex& a)
-{
+int nca_def_ArrayOfIndex(const int ncid,
+                         const String& name,
+                         const ArrayOfIndex& a) {
   int ncdims[1], varid;
-  if (a.nelem())
-    {
-      nca_def_dim(ncid, name+"_nelem", a.nelem(), &ncdims[0]);
-      nca_def_var(ncid, name, NC_INT, 1, &ncdims[0], &varid);
-    }
-  else
+  if (a.nelem()) {
+    nca_def_dim(ncid, name + "_nelem", a.nelem(), &ncdims[0]);
+    nca_def_var(ncid, name, NC_INT, 1, &ncdims[0], &varid);
+  } else
     varid = -1;
-  
+
   return varid;
 }
-
 
 //! Define NetCDF dimensions and variable for a Vector.
 /** 
@@ -255,20 +233,16 @@ int nca_def_ArrayOfIndex(const int ncid, const String& name, const ArrayOfIndex&
  
  \author Oliver Lemke
  */
-int nca_def_Vector(const int ncid, const String& name, const Vector& v)
-{
+int nca_def_Vector(const int ncid, const String& name, const Vector& v) {
   int ncdims[1], varid;
-  if (v.nelem())
-    {
-      nca_def_dim(ncid, name+"_nelem", v.nelem(), &ncdims[0]);
-      nca_def_var(ncid, name, NC_DOUBLE, 1, &ncdims[0], &varid);
-    }
-  else
+  if (v.nelem()) {
+    nca_def_dim(ncid, name + "_nelem", v.nelem(), &ncdims[0]);
+    nca_def_var(ncid, name, NC_DOUBLE, 1, &ncdims[0], &varid);
+  } else
     varid = -1;
-  
+
   return varid;
 }
-
 
 //! Define NetCDF dimensions and variable for a Matrix.
 /** 
@@ -279,21 +253,17 @@ int nca_def_Vector(const int ncid, const String& name, const Vector& v)
  
  \author Oliver Lemke
  */
-int nca_def_Matrix(const int ncid, const String& name, const Matrix& m)
-{
+int nca_def_Matrix(const int ncid, const String& name, const Matrix& m) {
   int ncdims[2], varid;
-  if (m.nrows() && m.ncols())
-    {
-      nca_def_dim(ncid, name+"_nrows", m.nrows(), &ncdims[0]);
-      nca_def_dim(ncid, name+"_ncols", m.ncols(), &ncdims[1]);
-      nca_def_var(ncid, name, NC_DOUBLE, 2, &ncdims[0], &varid);
-    }
-  else
+  if (m.nrows() && m.ncols()) {
+    nca_def_dim(ncid, name + "_nrows", m.nrows(), &ncdims[0]);
+    nca_def_dim(ncid, name + "_ncols", m.ncols(), &ncdims[1]);
+    nca_def_var(ncid, name, NC_DOUBLE, 2, &ncdims[0], &varid);
+  } else
     varid = -1;
-  
+
   return varid;
 }
-
 
 //! Define NetCDF dimensions and variable for a Tensor4.
 /** 
@@ -304,23 +274,19 @@ int nca_def_Matrix(const int ncid, const String& name, const Matrix& m)
  
  \author Oliver Lemke
  */
-int nca_def_Tensor4(const int ncid, const String& name, const Tensor4& t)
-{
+int nca_def_Tensor4(const int ncid, const String& name, const Tensor4& t) {
   int ncdims[4], varid;
-  if (t.nbooks() && t.npages() && t.nrows() && t.ncols())
-    {
-      nca_def_dim(ncid, name+"_nbooks", t.nbooks(), &ncdims[0]);
-      nca_def_dim(ncid, name+"_npages", t.npages(), &ncdims[1]);
-      nca_def_dim(ncid, name+"_nrows", t.nrows(), &ncdims[2]);
-      nca_def_dim(ncid, name+"_ncols", t.ncols(), &ncdims[3]);
-      nca_def_var(ncid, name, NC_DOUBLE, 4, &ncdims[0], &varid);
-    }
-  else
+  if (t.nbooks() && t.npages() && t.nrows() && t.ncols()) {
+    nca_def_dim(ncid, name + "_nbooks", t.nbooks(), &ncdims[0]);
+    nca_def_dim(ncid, name + "_npages", t.npages(), &ncdims[1]);
+    nca_def_dim(ncid, name + "_nrows", t.nrows(), &ncdims[2]);
+    nca_def_dim(ncid, name + "_ncols", t.ncols(), &ncdims[3]);
+    nca_def_var(ncid, name, NC_DOUBLE, 4, &ncdims[0], &varid);
+  } else
     varid = -1;
-  
+
   return varid;
 }
-
 
 //! Read a dimension from NetCDF file.
 /** 
@@ -331,24 +297,24 @@ int nca_def_Tensor4(const int ncid, const String& name, const Tensor4& t)
  
  \author Oliver Lemke
  */
-Index nc_get_dim(const int ncid, const String& name, const bool noerror)
-{
+Index nc_get_dim(const int ncid, const String& name, const bool noerror) {
   int retval, dimid;
   size_t ndim;
-  if ((retval = nc_inq_dimid(ncid, name.c_str(), &dimid)))
-    {
-      if (!noerror) nca_error(retval, "nc_inq_ndims("+name+")");
-      else return 0;
-    }
-  if ((retval = nc_inq_dimlen(ncid, dimid, &ndim)))
-    {
-      if (!noerror) nca_error(retval, "nc_inq_dimlen("+name+")");
-      else return 0;
-    }
-  
+  if ((retval = nc_inq_dimid(ncid, name.c_str(), &dimid))) {
+    if (!noerror)
+      nca_error(retval, "nc_inq_ndims(" + name + ")");
+    else
+      return 0;
+  }
+  if ((retval = nc_inq_dimlen(ncid, dimid, &ndim))) {
+    if (!noerror)
+      nca_error(retval, "nc_inq_dimlen(" + name + ")");
+    else
+      return 0;
+  }
+
   return (Index)ndim;
 }
-
 
 //! Read variable of type int from NetCDF file.
 /** 
@@ -358,15 +324,13 @@ Index nc_get_dim(const int ncid, const String& name, const bool noerror)
  
  \author Oliver Lemke
  */
-void nca_get_data_int(const int ncid, const String& name, int* data)
-{
+void nca_get_data_int(const int ncid, const String& name, int* data) {
   int retval, varid;
   if ((retval = nc_inq_varid(ncid, name.c_str(), &varid)))
-    nca_error(retval, "nc_inq_varid("+name+")");
+    nca_error(retval, "nc_inq_varid(" + name + ")");
   if ((retval = nc_get_var_int(ncid, varid, data)))
-    nca_error(retval, "nc_get_var("+name+")");
+    nca_error(retval, "nc_get_var(" + name + ")");
 }
-
 
 //! Read variable of type long from NetCDF file.
 /** 
@@ -376,15 +340,13 @@ void nca_get_data_int(const int ncid, const String& name, int* data)
  
  \author Oliver Lemke
  */
-void nca_get_data_long(const int ncid, const String& name, long* data)
-{
+void nca_get_data_long(const int ncid, const String& name, long* data) {
   int retval, varid;
   if ((retval = nc_inq_varid(ncid, name.c_str(), &varid)))
-    nca_error(retval, "nc_inq_varid("+name+")");
+    nca_error(retval, "nc_inq_varid(" + name + ")");
   if ((retval = nc_get_var_long(ncid, varid, data)))
-    nca_error(retval, "nc_get_var("+name+")");
+    nca_error(retval, "nc_get_var(" + name + ")");
 }
-
 
 //! Read variable of type double from NetCDF file.
 /** 
@@ -394,15 +356,13 @@ void nca_get_data_long(const int ncid, const String& name, long* data)
  
  \author Oliver Lemke
  */
-void nca_get_data_double(const int ncid, const String& name, Numeric* data)
-{
+void nca_get_data_double(const int ncid, const String& name, Numeric* data) {
   int retval, varid;
   if ((retval = nc_inq_varid(ncid, name.c_str(), &varid)))
-    nca_error(retval, "nc_inq_varid("+name+")");
+    nca_error(retval, "nc_inq_varid(" + name + ")");
   if ((retval = nc_get_var_double(ncid, varid, data)))
-    nca_error(retval, "nc_get_var("+name+")");
+    nca_error(retval, "nc_get_var(" + name + ")");
 }
-
 
 //! Read variable of type array of double from NetCDF file.
 /** 
@@ -412,16 +372,17 @@ void nca_get_data_double(const int ncid, const String& name, Numeric* data)
  
  \author Oliver Lemke
  */
-void nca_get_dataa_double(const int ncid, const String& name,
-                          size_t start, size_t count, Numeric* data)
-{
+void nca_get_dataa_double(const int ncid,
+                          const String& name,
+                          size_t start,
+                          size_t count,
+                          Numeric* data) {
   int retval, varid;
   if ((retval = nc_inq_varid(ncid, name.c_str(), &varid)))
-    nca_error(retval, "nc_inq_varid("+name+")");
+    nca_error(retval, "nc_inq_varid(" + name + ")");
   if ((retval = nc_get_vara_double(ncid, varid, &start, &count, data)))
-    nca_error(retval, "nc_get_var("+name+")");
+    nca_error(retval, "nc_get_var(" + name + ")");
 }
-
 
 //! Read variable of type array of char from NetCDF file.
 /** 
@@ -431,15 +392,13 @@ void nca_get_dataa_double(const int ncid, const String& name,
  
  \author Oliver Lemke
  */
-void nca_get_data_text(const int ncid, const String& name, char* data)
-{
+void nca_get_data_text(const int ncid, const String& name, char* data) {
   int retval, varid;
   if ((retval = nc_inq_varid(ncid, name.c_str(), &varid)))
-    nca_error(retval, "nc_inq_varid("+name+")");
+    nca_error(retval, "nc_inq_varid(" + name + ")");
   if ((retval = nc_get_var_text(ncid, varid, data)))
-    nca_error(retval, "nc_get_var("+name+")");
+    nca_error(retval, "nc_get_var(" + name + ")");
 }
-
 
 //! Read variable of type ArrayOfIndex from NetCDF file.
 /** 
@@ -451,21 +410,20 @@ void nca_get_data_text(const int ncid, const String& name, char* data)
  
  \author Oliver Lemke
  */
-void nca_get_data_ArrayOfIndex(const int ncid, const String& name, ArrayOfIndex& aoi,
-                               const bool noerror)
-{
-  Index nelem = nc_get_dim(ncid, name+"_nelem", noerror);
+void nca_get_data_ArrayOfIndex(const int ncid,
+                               const String& name,
+                               ArrayOfIndex& aoi,
+                               const bool noerror) {
+  Index nelem = nc_get_dim(ncid, name + "_nelem", noerror);
   aoi.resize(nelem);
-  if (nelem)
-    {
-      Index* ind_arr = new Index[nelem];
-      nca_get_data_long(ncid, name, ind_arr);
-      Index i = 0;
-      for (ArrayOfIndex::iterator it = aoi.begin(); it != aoi.end(); it++, i++)
-        *it = ind_arr[i];
-    }
+  if (nelem) {
+    Index* ind_arr = new Index[nelem];
+    nca_get_data_long(ncid, name, ind_arr);
+    Index i = 0;
+    for (ArrayOfIndex::iterator it = aoi.begin(); it != aoi.end(); it++, i++)
+      *it = ind_arr[i];
+  }
 }
-
 
 //! Read variable of type ArrayOfArrayOfSpeciesTag from NetCDF file.
 /** 
@@ -477,36 +435,35 @@ void nca_get_data_ArrayOfIndex(const int ncid, const String& name, ArrayOfIndex&
  
  \author Oliver Lemke
  */
-void nca_get_data_ArrayOfArrayOfSpeciesTag(const int                 ncid,
-                                           const String&             name,
+void nca_get_data_ArrayOfArrayOfSpeciesTag(const int ncid,
+                                           const String& name,
                                            ArrayOfArrayOfSpeciesTag& aast,
-                                           const bool                noerror)
-{
+                                           const bool noerror) {
   ArrayOfIndex species_count;
-  nca_get_data_ArrayOfIndex(ncid, name+"_count", species_count, noerror);
+  nca_get_data_ArrayOfIndex(ncid, name + "_count", species_count, noerror);
   aast.resize(species_count.nelem());
-  if (species_count.nelem())
-    {
-      Index species_strings_nelem = nc_get_dim(ncid, name+"_strings_nelem", noerror);
-      Index species_strings_length = nc_get_dim(ncid, name+"_strings_length", noerror);
-      char* species_strings = new char[species_strings_nelem*species_strings_length];
-      if (species_count.nelem()) nca_get_data_text(ncid, name+"_strings", species_strings);
+  if (species_count.nelem()) {
+    Index species_strings_nelem =
+        nc_get_dim(ncid, name + "_strings_nelem", noerror);
+    Index species_strings_length =
+        nc_get_dim(ncid, name + "_strings_length", noerror);
+    char* species_strings =
+        new char[species_strings_nelem * species_strings_length];
+    if (species_count.nelem())
+      nca_get_data_text(ncid, name + "_strings", species_strings);
 
-      Index si = 0;
-      for (Index i = 0; i < species_count.nelem(); i++)
-        {
-          aast[i].resize(0);
-          for (Index j = 0; j < species_count[i]; j++)
-            {
-              aast[i].push_back(SpeciesTag(&species_strings[si]));
-              si += species_strings_length;
-            }
-        }
-    
-      delete[] species_strings;
+    Index si = 0;
+    for (Index i = 0; i < species_count.nelem(); i++) {
+      aast[i].resize(0);
+      for (Index j = 0; j < species_count[i]; j++) {
+        aast[i].push_back(SpeciesTag(&species_strings[si]));
+        si += species_strings_length;
+      }
     }
-}
 
+    delete[] species_strings;
+  }
+}
 
 //! Read variable of type Vector from NetCDF file.
 /** 
@@ -518,13 +475,14 @@ void nca_get_data_ArrayOfArrayOfSpeciesTag(const int                 ncid,
  
  \author Oliver Lemke
  */
-void nca_get_data_Vector(const int ncid, const String& name, Vector& v, const bool noerror)
-{
-  Index nelem = nc_get_dim(ncid, name+"_nelem", noerror);
+void nca_get_data_Vector(const int ncid,
+                         const String& name,
+                         Vector& v,
+                         const bool noerror) {
+  Index nelem = nc_get_dim(ncid, name + "_nelem", noerror);
   v.resize(nelem);
   if (nelem) nca_get_data_double(ncid, name, v.get_c_array());
 }
-
 
 //! Read variable of type Matrix from NetCDF file.
 /** 
@@ -536,14 +494,15 @@ void nca_get_data_Vector(const int ncid, const String& name, Vector& v, const bo
  
  \author Oliver Lemke
  */
-void nca_get_data_Matrix(const int ncid, const String& name, Matrix& m, const bool noerror)
-{
-  Index nrows = nc_get_dim(ncid, name+"_nrows", noerror);
-  Index ncols = nc_get_dim(ncid, name+"_ncols", noerror);
+void nca_get_data_Matrix(const int ncid,
+                         const String& name,
+                         Matrix& m,
+                         const bool noerror) {
+  Index nrows = nc_get_dim(ncid, name + "_nrows", noerror);
+  Index ncols = nc_get_dim(ncid, name + "_ncols", noerror);
   m.resize(nrows, ncols);
   if (nrows && ncols) nca_get_data_double(ncid, name, m.get_c_array());
 }
-
 
 //! Read variable of type Tensor4 from NetCDF file.
 /** 
@@ -555,16 +514,18 @@ void nca_get_data_Matrix(const int ncid, const String& name, Matrix& m, const bo
  
  \author Oliver Lemke
  */
-void nca_get_data_Tensor4(const int ncid, const String& name, Tensor4& t, const bool noerror)
-{
-  Index nbooks = nc_get_dim(ncid, name+"_nbooks", noerror);
-  Index npages = nc_get_dim(ncid, name+"_npages", noerror);
-  Index nrows = nc_get_dim(ncid, name+"_nrows", noerror);
-  Index ncols = nc_get_dim(ncid, name+"_ncols", noerror);
+void nca_get_data_Tensor4(const int ncid,
+                          const String& name,
+                          Tensor4& t,
+                          const bool noerror) {
+  Index nbooks = nc_get_dim(ncid, name + "_nbooks", noerror);
+  Index npages = nc_get_dim(ncid, name + "_npages", noerror);
+  Index nrows = nc_get_dim(ncid, name + "_nrows", noerror);
+  Index ncols = nc_get_dim(ncid, name + "_ncols", noerror);
   t.resize(nbooks, npages, nrows, ncols);
-  if (nbooks && npages && nrows && ncols) nca_get_data_double(ncid, name, t.get_c_array());
+  if (nbooks && npages && nrows && ncols)
+    nca_get_data_double(ncid, name, t.get_c_array());
 }
-
 
 //! Write variable of type ArrayOfIndex to NetCDF file.
 /** 
@@ -575,25 +536,23 @@ void nca_get_data_Tensor4(const int ncid, const String& name, Tensor4& t, const 
  
  \author Oliver Lemke
  */
-bool nca_put_var_ArrayOfIndex(const int ncid, const int varid, const ArrayOfIndex& a)
-{
+bool nca_put_var_ArrayOfIndex(const int ncid,
+                              const int varid,
+                              const ArrayOfIndex& a) {
   bool fail = true;
-  if (a.nelem())
-    {
-      Index* ind_arr = new Index[a.nelem()];
-      for (Index i = 0; i < a.nelem(); i++)
-        ind_arr[i] = a[i];
+  if (a.nelem()) {
+    Index* ind_arr = new Index[a.nelem()];
+    for (Index i = 0; i < a.nelem(); i++) ind_arr[i] = a[i];
 
-      int retval;
-      if ((retval = nc_put_var_long(ncid, varid, ind_arr)))
-        nca_error(retval, "nc_put_var");
+    int retval;
+    if ((retval = nc_put_var_long(ncid, varid, ind_arr)))
+      nca_error(retval, "nc_put_var");
 
-      delete[] ind_arr;
-      fail = false;
-    }
+    delete[] ind_arr;
+    fail = false;
+  }
   return fail;
 }
-
 
 //! Write variable of type Vector to NetCDF file.
 /** 
@@ -604,18 +563,15 @@ bool nca_put_var_ArrayOfIndex(const int ncid, const int varid, const ArrayOfInde
  
  \author Oliver Lemke
  */
-bool nca_put_var_Vector(const int ncid, const int varid, const Vector& v)
-{
+bool nca_put_var_Vector(const int ncid, const int varid, const Vector& v) {
   bool fail = true;
-  if (v.nelem())
-    {
-      int retval;
-      if ((retval = nc_put_var_double(ncid, varid, v.get_c_array())))
-        nca_error(retval, "nc_put_var");
-    }
+  if (v.nelem()) {
+    int retval;
+    if ((retval = nc_put_var_double(ncid, varid, v.get_c_array())))
+      nca_error(retval, "nc_put_var");
+  }
   return fail;
 }
-
 
 //! Write variable of type Matrix to NetCDF file.
 /** 
@@ -626,18 +582,15 @@ bool nca_put_var_Vector(const int ncid, const int varid, const Vector& v)
  
  \author Oliver Lemke
  */
-bool nca_put_var_Matrix(const int ncid, const int varid, const Matrix& m)
-{
+bool nca_put_var_Matrix(const int ncid, const int varid, const Matrix& m) {
   bool fail = true;
-  if (m.nrows() && m.ncols())
-    {
-      int retval;
-      if ((retval = nc_put_var_double(ncid, varid, m.get_c_array())))
-        nca_error(retval, "nc_put_var");
-    }
+  if (m.nrows() && m.ncols()) {
+    int retval;
+    if ((retval = nc_put_var_double(ncid, varid, m.get_c_array())))
+      nca_error(retval, "nc_put_var");
+  }
   return fail;
 }
-
 
 //! Write variable of type Tensor4 to NetCDF file.
 /** 
@@ -648,15 +601,13 @@ bool nca_put_var_Matrix(const int ncid, const int varid, const Matrix& m)
  
  \author Oliver Lemke
  */
-bool nca_put_var_Tensor4(const int ncid, const int varid, const Tensor4& t)
-{
+bool nca_put_var_Tensor4(const int ncid, const int varid, const Tensor4& t) {
   bool fail = true;
-  if (t.nbooks() && t.npages() && t.nrows() && t.ncols())
-    {
-      int retval;
-      if ((retval = nc_put_var_double(ncid, varid, t.get_c_array())))
-        nca_error(retval, "nc_put_var");
-    }
+  if (t.nbooks() && t.npages() && t.nrows() && t.ncols()) {
+    int retval;
+    if ((retval = nc_put_var_double(ncid, varid, t.get_c_array())))
+      nca_error(retval, "nc_put_var");
+  }
   return fail;
 }
 
@@ -668,13 +619,11 @@ bool nca_put_var_Tensor4(const int ncid, const int varid, const Tensor4& t)
  \author Oliver Lemke
  */
 
-void nca_error(const int e, const String s)
-{
+void nca_error(const int e, const String s) {
   ostringstream os;
   os << "NetCDF error: " << s << ", " << e;
   throw runtime_error(os.str());
 }
-
 
 // We can't do the instantiation at the beginning of this file, because the
 // implementation of nca_write_to_file and nca_read_from_file have to be known.
@@ -682,4 +631,3 @@ void nca_error(const int e, const String s)
 #include "nc_io_instantiation.h"
 
 #endif /* ENABLE_NETCDF */
-

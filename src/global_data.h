@@ -26,10 +26,9 @@
 #define global_data_h
 
 #include <map>
+#include "agenda_record.h"
 #include "array.h"
 #include "methods.h"
-#include "agenda_record.h"
-
 
 // Needed for global_data::species_data
 class SpeciesRecord;

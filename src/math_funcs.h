@@ -17,8 +17,6 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-
-
 /*****************************************************************************
  ***  File description 
  *****************************************************************************/
@@ -31,8 +29,6 @@
    Contains the decleration of the functions in math_funcs.cc.
 */
 
-
-
 #ifndef math_funcs_h
 #define math_funcs_h
 
@@ -41,35 +37,31 @@
 
 Numeric fac(const Index n);
 
-Index integer_div( const Index& x, const Index& y );
+Index integer_div(const Index& x, const Index& y);
 
-Numeric last( ConstVectorView x );
+Numeric last(ConstVectorView x);
 
-Index last( const ArrayOfIndex& x );
+Index last(const ArrayOfIndex& x);
 
-void linspace(                      
-              Vector&     x,           
-              const Numeric  start,    
-              const Numeric  stop,        
-              const Numeric  step );
+void linspace(Vector& x,
+              const Numeric start,
+              const Numeric stop,
+              const Numeric step);
 
-void nlinspace(         
-              Vector&     x, 
-              const Numeric     start,     
-              const Numeric     stop,        
-              const Index       n );
+void nlinspace(Vector& x,
+               const Numeric start,
+               const Numeric stop,
+               const Index n);
 
-void nlinspace(         
-              VectorView        x, 
-              const Numeric     start,     
-              const Numeric     stop,        
-              const Index       n );
+void nlinspace(VectorView x,
+               const Numeric start,
+               const Numeric stop,
+               const Index n);
 
-void nlogspace(         
-               Vector&     x, 
-               const Numeric     start,     
-               const Numeric     stop,        
-               const Index         n );
+void nlogspace(Vector& x,
+               const Numeric start,
+               const Numeric stop,
+               const Index n);
 
 Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
                                ConstVectorView za_grid,
@@ -83,28 +75,26 @@ Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
                                     ConstVectorView aa_grid,
                                     ConstVectorView grid_stepsize);
 
-Numeric sign( const Numeric& x );
+Numeric sign(const Numeric& x);
 
-void mgd(
-          VectorView  psd,
-    const Vector&     x,
-    const Numeric&    n0,
-    const Numeric&    mu,
-    const Numeric&    la,
-    const Numeric&    ga );
+void mgd(VectorView psd,
+         const Vector& x,
+         const Numeric& n0,
+         const Numeric& mu,
+         const Numeric& la,
+         const Numeric& ga);
 
-void mgd_with_derivatives(
-          VectorView  psd,
-          MatrixView  jac_data,
-    const Vector&     x,
-    const Numeric&    n0,
-    const Numeric&    mu,
-    const Numeric&    la,
-    const Numeric&    ga,
-    const bool&       do_n0_jac,
-    const bool&       do_mu_jac,
-    const bool&       do_la_jac,
-    const bool&       do_ga_jac );
+void mgd_with_derivatives(VectorView psd,
+                          MatrixView jac_data,
+                          const Vector& x,
+                          const Numeric& n0,
+                          const Numeric& mu,
+                          const Numeric& la,
+                          const Numeric& ga,
+                          const bool& do_n0_jac,
+                          const bool& do_mu_jac,
+                          const bool& do_la_jac,
+                          const bool& do_ga_jac);
 
 /**! Shape functions for normalized PSD.
  *
@@ -121,35 +111,23 @@ void mgd_with_derivatives(
  * @param[IN] alpha The alpha parameter of the shape function.
  * @param[IN] beta  The beta parameter of the shape function.
  */
-void delanoe_shape_with_derivative(
-    VectorView  psd,
-    MatrixView  jac_data,
-    const Vector&     x,
-    const Numeric&    alpha,
-    const Numeric&    beta);
+void delanoe_shape_with_derivative(VectorView psd,
+                                   MatrixView jac_data,
+                                   const Vector& x,
+                                   const Numeric& alpha,
+                                   const Numeric& beta);
 
-Numeric mod_gamma_dist(Numeric x,
-                       Numeric N0,
-                       Numeric Lambda,
-                       Numeric mu,
-                       Numeric gamma);
+Numeric mod_gamma_dist(
+    Numeric x, Numeric N0, Numeric Lambda, Numeric mu, Numeric gamma);
 
-void unitl( Vector& x );
+void unitl(Vector& x);
 
-void flat( VectorView x, ConstMatrixView X );
-void flat( VectorView x, ConstTensor3View X );
+void flat(VectorView x, ConstMatrixView X);
+void flat(VectorView x, ConstTensor3View X);
 
-void reshape( MatrixView X, ConstVectorView x );
-void reshape( Tensor3View X, ConstVectorView x );
+void reshape(MatrixView X, ConstVectorView x);
+void reshape(Tensor3View X, ConstVectorView x);
 
-
-
-void calculate_weights_linear(
-        Vector &x,
-        Vector &w,
-        const Index nph
-);
-
-
+void calculate_weights_linear(Vector& x, Vector& w, const Index nph);
 
 #endif  // math_funcs_h

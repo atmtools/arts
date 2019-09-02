@@ -16,72 +16,68 @@
    USA. */
 
 #include <iostream>
+#include "absorption.h"
 #include "arts.h"
 #include "auto_md.h"
-#include "matpackII.h"
-#include "m_xml.h"
-#include "xml_io.h"
 #include "exceptions.h"
-#include "absorption.h"
+#include "m_xml.h"
+#include "matpackII.h"
+#include "xml_io.h"
 
-int
-main (int /*argc*/, char * /*argv*/ [])
-{
-    try {
-        QuantumNumbers q1;
-        QuantumNumbers q2;
+int main(int /*argc*/, char * /*argv*/[]) {
+  try {
+    QuantumNumbers q1;
+    QuantumNumbers q2;
 
-        q1.Set(QuantumNumberType::J, Rational(1,2));
-        q1.Set(QuantumNumberType::S, Rational(1,2));
+    q1.Set(QuantumNumberType::J, Rational(1, 2));
+    q1.Set(QuantumNumberType::S, Rational(1, 2));
 
-        q2.Set(QuantumNumberType::J, Rational(1,2));
-        q2.Set(QuantumNumberType::N, Rational(1,3));
-        q2.Set(QuantumNumberType::S, Rational(1,2));
+    q2.Set(QuantumNumberType::J, Rational(1, 2));
+    q2.Set(QuantumNumberType::N, Rational(1, 3));
+    q2.Set(QuantumNumberType::S, Rational(1, 2));
 
-        cout << "Compare q1==q2: " << q1.Compare(q2) << endl;
-        cout << "Compare q2==q1: " << q2.Compare(q1) << endl;
+    cout << "Compare q1==q2: " << q1.Compare(q2) << endl;
+    cout << "Compare q2==q1: " << q2.Compare(q1) << endl;
 
-        ostringstream os;
-        os << q2;
-        cout << "q1: " << q1 << endl;
-        cout << "q2: " << q2 << endl;
+    ostringstream os;
+    os << q2;
+    cout << "q1: " << q1 << endl;
+    cout << "q2: " << q2 << endl;
 
-        WriteXML("ascii", q1, "quantum.xml", 0,
-                 "q1", "", "", Verbosity(0, 2, 0));
+    WriteXML("ascii", q1, "quantum.xml", 0, "q1", "", "", Verbosity(0, 2, 0));
 
-        QuantumNumbers q3;
-        ReadXML(q3, "q3", "quantum.xml", "", Verbosity(0,2,0));
-        cout << "q3: " << q3 << endl;
+    QuantumNumbers q3;
+    ReadXML(q3, "q3", "quantum.xml", "", Verbosity(0, 2, 0));
+    cout << "q3: " << q3 << endl;
 
-        cout << endl << "========================================" << endl << endl;
+    cout << endl << "========================================" << endl << endl;
 
-        define_species_data();
-        define_species_map();
+    define_species_data();
+    define_species_map();
 
-        Verbosity v(2,2,2);
+    Verbosity v(2, 2, 2);
 
-        ArrayOfLineRecord abs_lines;
-        Timer timer;
+    ArrayOfLineRecord abs_lines;
+    Timer timer;
 
-        timerStart(timer, v);
-        abs_linesReadFromHitran(abs_lines,
-                                "/Users/olemke/Dropbox/Hacking/sat/catalogue/HITRAN2008/HITRAN08.par",
-                                1, 1.1876e+11, v);
-        //    1, 3e12, v);
-        //    118e9, 119e9, v);
-        timerStop(timer, v);
+    timerStart(timer, v);
+    abs_linesReadFromHitran(
+        abs_lines,
+        "/Users/olemke/Dropbox/Hacking/sat/catalogue/HITRAN2008/HITRAN08.par",
+        1,
+        1.1876e+11,
+        v);
+    //    1, 3e12, v);
+    //    118e9, 119e9, v);
+    timerStop(timer, v);
 
-        Print(timer, 1, v);
+    Print(timer, 1, v);
 
+    SpeciesTag stag("O2-66");
 
-        SpeciesTag stag("O2-66");
-        
-    }
-    catch (const std::runtime_error &e)
-    {
-        cout << e.what() << endl;
-    }
+  } catch (const std::runtime_error &e) {
+    cout << e.what() << endl;
+  }
 
-
-    return (0);
+  return (0);
 }

@@ -40,49 +40,49 @@
    @author SAB
 */
 class Parameters {
-public:
+ public:
   /** Default constructor. Care has to be taken to properly initialize
       all variables, e.g., bool options to false. */
-  Parameters() :
-    usage(),
-    helptext(),
-    help(false),
-    version(false),
-    basename(""),
-    outdir(""),
-    controlfiles(),
-    reporting(-1),
-    methods(""),
-    numthreads(0),
-    includepath(),
-    datapath(),
-    input(""),
-    workspacevariables(""),
-    describe(""),
-    groups(false),
-    plain(false),
-    docserver(0),
-    baseurl(""),
-    daemon(false),
-    gui(false)
-  { /* Nothing to be done here */ }
-  
+  Parameters()
+      : usage(),
+        helptext(),
+        help(false),
+        version(false),
+        basename(""),
+        outdir(""),
+        controlfiles(),
+        reporting(-1),
+        methods(""),
+        numthreads(0),
+        includepath(),
+        datapath(),
+        input(""),
+        workspacevariables(""),
+        describe(""),
+        groups(false),
+        plain(false),
+        docserver(0),
+        baseurl(""),
+        daemon(false),
+        gui(false) { /* Nothing to be done here */
+  }
+
   /** Short message how to call the program. */
   String usage;
   /** Longer message explaining the options. */
   String helptext;
   /** Only display the help text. */
-  bool help;                    
+  bool help;
   /** Display version information. */
-  bool version;                 
+  bool version;
   /** If this is specified (with the -b --basename option), it is used
       as the base name for the report file and for other output
-      files. */ 
+      files. */
   String basename;
   /** If this is specified (with the -o --outdir option), it is used
    as the base directory for the report file and for other output
    files. If a full path is given for an output file it will not
-   be affected by this. */ 
+   be affected by this. */
   String outdir;
   /** The filenames of the controlfiles. Can be only one or as many as
       you want. */
@@ -102,9 +102,9 @@ public:
   /** The maximum number of threads to use. */
   Index numthreads;
   /** List of paths to search for include files. */
-  ArrayOfString includepath; 
+  ArrayOfString includepath;
   /** List of paths to search for data files. */
-  ArrayOfString datapath; 
+  ArrayOfString datapath;
   /** This is complementary to the methods switch. It must be given
       the name of a variable (or group). Then it lists all methods that take this
       variable (or group) as input. */
@@ -112,7 +112,7 @@ public:
   /** If this is given the argument `all', it simply prints a list of 
       all workspace variables. If it is given the name of a method,
       it prints all variables needed by that method. */
-  String workspacevariables; 
+  String workspacevariables;
   /** Print the description String of the given workspace variable or
       method. */
   String describe;
@@ -130,7 +130,6 @@ public:
   bool gui;
 };
 
-
 /**
    Get the command line parameters. They are stored in the global
    variable parameters which is a structure of type Parameters. If
@@ -146,5 +145,4 @@ public:
  */
 bool get_parameters(int argc, char **argv);
 
-
-#endif // parameters_h
+#endif  // parameters_h

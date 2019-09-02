@@ -23,12 +23,12 @@
   \brief  Implementation of agendas.
 */
 
-#include <map>
-#include <iostream>
-#include "messages.h"
 #include "agenda_record.h"
-#include "wsv_aux.h"
+#include <iostream>
+#include <map>
+#include "messages.h"
 #include "workspace_ng.h"
+#include "wsv_aux.h"
 
 namespace global_data {
 //! The map associated with agenda_data.
@@ -36,7 +36,7 @@ map<String, Index> AgendaMap;
 
 extern const Array<AgRecord> agenda_data;
 extern const ArrayOfString wsv_group_names;
-}
+}  // namespace global_data
 
 //! The only non-trivial constructor for AgRecord, which sets all the fields.
 /*! 
@@ -49,14 +49,11 @@ extern const ArrayOfString wsv_group_names;
   \param output List of output WSVs.
   \param input List of input WSVs.
 */
-AgRecord::AgRecord(const char           name[],
-                   const char           description[],
+AgRecord::AgRecord(const char name[],
+                   const char description[],
                    const ArrayOfString& output,
-                   const ArrayOfString& input) : mname(name),
-                                                     mdescription(description),
-                                                     moutput(0),
-                                                     minput(0)
-{ 
+                   const ArrayOfString& input)
+    : mname(name), mdescription(description), moutput(0), minput(0) {
   // We must check that this agenda exists in the workspace
 
   // Find returns end() if the name is not found in the map.  If
@@ -66,50 +63,42 @@ AgRecord::AgRecord(const char           name[],
   // in workspace.cc for your agenda. If you have done so and
   // still get an assertion failure, then check that you spelled
   // the name in exactly the same way in both places.
-  if (Workspace::WsvMap.end() == Workspace::WsvMap.find(mname))
-  {
+  if (Workspace::WsvMap.end() == Workspace::WsvMap.find(mname)) {
     std::ostringstream os;
     os << "Agenda *" << mname << "* not found in WSV data.";
     throw std::runtime_error(os.str());
   }
 
   moutput.resize(output.nelem());
-  for (Index j = 0; j < output.nelem(); ++j)
-    {
-      moutput[j] = get_wsv_id(output[j]);
-      if (moutput[j] == -1)
-        {
-          ostringstream os;
+  for (Index j = 0; j < output.nelem(); ++j) {
+    moutput[j] = get_wsv_id(output[j]);
+    if (moutput[j] == -1) {
+      ostringstream os;
 
-          os << "Unknown output WSV " << output[j] << " in WSM " << mname;
-          throw runtime_error(os.str());
-        }
+      os << "Unknown output WSV " << output[j] << " in WSM " << mname;
+      throw runtime_error(os.str());
     }
+  }
 
   minput.resize(input.nelem());
-  for (Index j = 0; j < input.nelem(); ++j)
-    {
-      minput[j] = get_wsv_id(input[j]);
-      if (minput[j] == -1)
-        {
-          ostringstream os;
+  for (Index j = 0; j < input.nelem(); ++j) {
+    minput[j] = get_wsv_id(input[j]);
+    if (minput[j] == -1) {
+      ostringstream os;
 
-          os << "Unknown input WSV " << input[j] << " in WSM " << mname;
-          throw runtime_error(os.str());
-        }
+      os << "Unknown input WSV " << input[j] << " in WSM " << mname;
+      throw runtime_error(os.str());
     }
-
+  }
 }
 
-void define_agenda_map()
-{
+void define_agenda_map() {
   using global_data::agenda_data;
   using global_data::AgendaMap;
 
-  for (Index i = 0; i < agenda_data.nelem(); ++i)
-    {
-      AgendaMap[agenda_data[i].Name()] = i;
-    }
+  for (Index i = 0; i < agenda_data.nelem(); ++i) {
+    AgendaMap[agenda_data[i].Name()] = i;
+  }
 }
 
 //! Check that agendas.cc and workspace.cc are consistent.
@@ -123,8 +112,7 @@ void define_agenda_map()
 
   \return Always true.
 */
-bool check_agenda_data()
-{
+bool check_agenda_data() {
   // Make external data visible
   using global_data::agenda_data;
   DEBUG_ONLY(using global_data::AgendaMap);
@@ -134,46 +122,42 @@ bool check_agenda_data()
   k = 0;
 
   // Check, that each agenda from agenda_data occurs in wsv_data:
-  for (i = 0; i < agenda_data.nelem(); ++i)
-    {
-      //      cout << "Checking wsv_data for " << agenda_data[i].Name() << ".\n";
+  for (i = 0; i < agenda_data.nelem(); ++i) {
+    //      cout << "Checking wsv_data for " << agenda_data[i].Name() << ".\n";
+
+    // Find returns end() if the name is not found in the map.  If
+    // this assertion fails, it means that wsv_data does not contain
+    // this agenda.
+    // You have to add a record for your agenda in both files:
+    // workspace.cc and agendas.cc. The name has to be spelled
+    // exactly the same in both places.
+    // Uncomment the cout statement above and recompile to see which
+    // agenda causes the trouble.
+    assert(Workspace::WsvMap.end() !=
+           Workspace::WsvMap.find(agenda_data[i].Name()));
+  }
+
+  // Check, that each agenda from wsv_data occurs in agenda_data:
+  for (j = 0; j < Workspace::wsv_data.nelem(); ++j) {
+    // Is this an agenda WSV?
+    if (get_wsv_group_id("Agenda") == Workspace::wsv_data[j].Group() ||
+        get_wsv_group_id("ArrayOfAgenda") == Workspace::wsv_data[j].Group()) {
+      //      cout << "Checking agenda_data for " << Workspace::wsv_data[j].Name() << ".\n";
 
       // Find returns end() if the name is not found in the map.  If
-      // this assertion fails, it means that wsv_data does not contain
+      // this assertion fails, it means that agenda_data does not contain
       // this agenda.
       // You have to add a record for your agenda in both files:
       // workspace.cc and agendas.cc. The name has to be spelled
       // exactly the same in both places.
       // Uncomment the cout statement above and recompile to see which
       // agenda causes the trouble.
-      assert(Workspace::WsvMap.end() !=
-             Workspace::WsvMap.find(agenda_data[i].Name()));
+      assert(AgendaMap.end() != AgendaMap.find(Workspace::wsv_data[j].Name()));
+
+      // Counts the number of agenda WSVs in Workspace::wsv_data:
+      ++k;
     }
-
-  // Check, that each agenda from wsv_data occurs in agenda_data:
-  for (j = 0; j < Workspace::wsv_data.nelem(); ++j)
-    {
-      // Is this an agenda WSV?
-      if (get_wsv_group_id("Agenda") == Workspace::wsv_data[j].Group()
-          || get_wsv_group_id("ArrayOfAgenda") == Workspace::wsv_data[j].Group())
-        {
-          //      cout << "Checking agenda_data for " << Workspace::wsv_data[j].Name() << ".\n";
-
-          // Find returns end() if the name is not found in the map.  If
-          // this assertion fails, it means that agenda_data does not contain
-          // this agenda.
-          // You have to add a record for your agenda in both files:
-          // workspace.cc and agendas.cc. The name has to be spelled
-          // exactly the same in both places.
-          // Uncomment the cout statement above and recompile to see which
-          // agenda causes the trouble.
-          assert(AgendaMap.end() !=
-                 AgendaMap.find(Workspace::wsv_data[j].Name()));
-
-          // Counts the number of agenda WSVs in Workspace::wsv_data:
-          ++k;
-        }
-    }
+  }
 
   // As a last check we make sure that both lists contain the same
   // number of agendas:
@@ -190,41 +174,43 @@ bool check_agenda_data()
 
 \return Output stream.
 */
-ostream& operator<<(ostream& os, const AgRecord& agr)
-{
+ostream& operator<<(ostream& os, const AgRecord& agr) {
   bool first;
 
   os << "\n*-------------------------------------------------------------------*\n"
-  << "Workspace variable = " << agr.Name()
-  << "\n---------------------------------------------------------------------\n"
-  << "\n" << agr.Description() << "\n"
-  << "\n---------------------------------------------------------------------\n";
+     << "Workspace variable = " << agr.Name()
+     << "\n---------------------------------------------------------------------\n"
+     << "\n"
+     << agr.Description() << "\n"
+     << "\n---------------------------------------------------------------------\n";
 
   os << "Group  = Agenda\n";
 
   // Output:
   first = true;
   os << "Output = ";
-  for (Index i = 0; i < agr.Out().nelem(); ++i)
-    {
-      if (first) first = false;
-      else os << ", ";
+  for (Index i = 0; i < agr.Out().nelem(); ++i) {
+    if (first)
+      first = false;
+    else
+      os << ", ";
 
-      os << Workspace::wsv_data[agr.Out()[i]].Name();
-    }
+    os << Workspace::wsv_data[agr.Out()[i]].Name();
+  }
   os << "\n";
 
   // Input:
   first = true;
   os << "Input  = ";
-  for (Index i = 0; i < agr.In().nelem(); ++i)
-    {
-      if (first) first = false;
-      else os << ", ";
+  for (Index i = 0; i < agr.In().nelem(); ++i) {
+    if (first)
+      first = false;
+    else
+      os << ", ";
 
-      os << Workspace::wsv_data[agr.In()[i]].Name();
-    }
-      
+    os << Workspace::wsv_data[agr.In()[i]].Name();
+  }
+
   os << "\n*-------------------------------------------------------------------*\n";
 
   return os;
@@ -240,42 +226,38 @@ ostream& operator<<(ostream& os, const AgRecord& agr)
 
   \return Output stream.
 */
-ostream& operator<<(ostream& os, const WsvRecord& wr)
-{
+ostream& operator<<(ostream& os, const WsvRecord& wr) {
   using global_data::wsv_group_names;
 
   // We need a special treatment for the case that the WSV is an agenda.
 
-  if (get_wsv_group_id("Agenda") != wr.Group()
-      && get_wsv_group_id("ArrayOfAgenda") != wr.Group())
-    {
-      // No agenda.
-      
-      os << "\n*-------------------------------------------------------------------*\n"
-         << "Workspace variable = " << wr.Name() 
-         << "\n---------------------------------------------------------------------\n"
-         << "\n" << wr.Description() << "\n" 
-         << "\n---------------------------------------------------------------------\n"
-         << "Group = " << wsv_group_names[wr.Group()]
-         << "\n*-------------------------------------------------------------------*\n";
-    }
-  else
-    {
-      // Agenda.
+  if (get_wsv_group_id("Agenda") != wr.Group() &&
+      get_wsv_group_id("ArrayOfAgenda") != wr.Group()) {
+    // No agenda.
 
-      using global_data::agenda_data;
+    os << "\n*-------------------------------------------------------------------*\n"
+       << "Workspace variable = " << wr.Name()
+       << "\n---------------------------------------------------------------------\n"
+       << "\n"
+       << wr.Description() << "\n"
+       << "\n---------------------------------------------------------------------\n"
+       << "Group = " << wsv_group_names[wr.Group()]
+       << "\n*-------------------------------------------------------------------*\n";
+  } else {
+    // Agenda.
 
-      // AgendaMap is constant here and should never be changed
-      using global_data::AgendaMap;
+    using global_data::agenda_data;
 
-      map<String, Index>::const_iterator j =
-        AgendaMap.find(wr.Name());
+    // AgendaMap is constant here and should never be changed
+    using global_data::AgendaMap;
 
-      // Just for added safety, check that we really found something:
-      assert(j != AgendaMap.end());
+    map<String, Index>::const_iterator j = AgendaMap.find(wr.Name());
 
-      cout << agenda_data[j->second] << "\n";
-    }
+    // Just for added safety, check that we really found something:
+    assert(j != AgendaMap.end());
+
+    cout << agenda_data[j->second] << "\n";
+  }
 
   return os;
 }
@@ -285,10 +267,9 @@ ostream& operator<<(ostream& os, const WsvRecord& wr)
   \param ofs The stream to write to.
   \param agr Agenda record.
 */
-void write_agenda_wrapper_header(ofstream&       ofs,
+void write_agenda_wrapper_header(ofstream& ofs,
                                  const AgRecord& agr,
-                                 bool is_agenda_array)
-{
+                                 bool is_agenda_array) {
   using global_data::wsv_group_names;
 
   // Wrapper function
@@ -300,48 +281,39 @@ void write_agenda_wrapper_header(ofstream&       ofs,
   // Wrapper function output parameters
   const ArrayOfIndex& ago = agr.Out();
   ofs << "        // Output\n";
-  for (ArrayOfIndex::const_iterator j = ago.begin(); j != ago.end(); j++)
-    {
-      ofs << "        ";
-      ofs << wsv_group_names[Workspace::wsv_data[*j].Group()] << "& ";
-      ofs << Workspace::wsv_data[*j].Name() << ",\n";
-    }
+  for (ArrayOfIndex::const_iterator j = ago.begin(); j != ago.end(); j++) {
+    ofs << "        ";
+    ofs << wsv_group_names[Workspace::wsv_data[*j].Group()] << "& ";
+    ofs << Workspace::wsv_data[*j].Name() << ",\n";
+  }
 
   // Wrapper function input parameters
   const ArrayOfIndex& agi = agr.In();
   ofs << "        // Input\n";
-  for (ArrayOfIndex::const_iterator j = agi.begin(); j != agi.end(); j++)
-    {
-      // Ignore Input parameters that are also output
-      ArrayOfIndex::const_iterator it = ago.begin();
-      while (it != ago.end() && *it != *j)
-        it++;
+  for (ArrayOfIndex::const_iterator j = agi.begin(); j != agi.end(); j++) {
+    // Ignore Input parameters that are also output
+    ArrayOfIndex::const_iterator it = ago.begin();
+    while (it != ago.end() && *it != *j) it++;
 
-      if (it == ago.end())
-        {
-          String group_name = wsv_group_names[Workspace::wsv_data[*j].Group()];
+    if (it == ago.end()) {
+      String group_name = wsv_group_names[Workspace::wsv_data[*j].Group()];
 
-          ofs << "        const ";
-          ofs << group_name;
+      ofs << "        const ";
+      ofs << group_name;
 
-          // Don't pass by reference for elementary types
-          if (group_name != "Index" && group_name != "Numeric")
-            {
-              ofs << "&";
-            }
-          ofs << " " << Workspace::wsv_data[*j].Name() << ",\n";
-        }
+      // Don't pass by reference for elementary types
+      if (group_name != "Index" && group_name != "Numeric") {
+        ofs << "&";
+      }
+      ofs << " " << Workspace::wsv_data[*j].Name() << ",\n";
     }
+  }
 
   // Wrapper function agenda and silent parameters
   ofs << "        // Wrapper Input\n";
-  if (is_agenda_array)
-  {
+  if (is_agenda_array) {
     ofs << "        const ArrayOfAgenda& input_agenda_array)";
-  }
-  else
-  {
+  } else {
     ofs << "        const Agenda& input_agenda)";
   }
 }
-

@@ -18,21 +18,20 @@
 
 #include "absorption.h"
 
-
-void GetLineScalingData(Numeric& q_t, 
+void GetLineScalingData(Numeric& q_t,
                         Numeric& q_ref,
-                        Numeric& partition_ratio, 
-                        Numeric& K1, 
-                        Numeric& K2, 
-                        Numeric& abs_nlte_ratio, 
-                        Numeric& src_nlte_ratio, 
+                        Numeric& partition_ratio,
+                        Numeric& K1,
+                        Numeric& K2,
+                        Numeric& abs_nlte_ratio,
+                        Numeric& src_nlte_ratio,
                         const SpeciesAuxData::AuxType& partition_type,
                         const ArrayOfGriddedField1& partition_data,
                         const Numeric& atm_t,
                         const Numeric& line_t,
                         const Numeric& line_f,
                         const Numeric& line_elow,
-                        const bool&    do_nlte,
+                        const bool& do_nlte,
                         const Numeric& line_evlow,
                         const Numeric& line_evupp,
                         const Index& line_evlow_index,
@@ -41,26 +40,26 @@ void GetLineScalingData(Numeric& q_t,
 
 void GetLineScalingData_dT(Numeric& dq_t_dT,
                            Numeric& dK2_dT,
-                           Numeric& dpartition_ratio_dT, 
-                           Numeric& dabs_nlte_ratio_dT, 
+                           Numeric& dpartition_ratio_dT,
+                           Numeric& dabs_nlte_ratio_dT,
                            Numeric& atm_tv_low,
                            Numeric& atm_tv_upp,
                            const Numeric& q_t,
-                           const Numeric& abs_nlte_ratio,  
+                           const Numeric& abs_nlte_ratio,
                            const SpeciesAuxData::AuxType& partition_type,
                            const ArrayOfGriddedField1& partition_data,
                            const Numeric& atm_t,
                            const Numeric& line_t,
                            const Numeric& dt,
                            const Numeric& line_f,
-                           const bool&    do_nlte,
+                           const bool& do_nlte,
                            const Numeric& line_evlow,
                            const Numeric& line_evupp,
                            const Index& line_evlow_index,
                            const Index& line_evupp_index,
                            ConstVectorView atm_t_nlte);
 
-void GetLineScalingData_dF0(Numeric& dK2_dF0, 
+void GetLineScalingData_dF0(Numeric& dK2_dF0,
                             Numeric& dabs_nlte_ratio_dF0,
                             const Numeric& atm_t,
                             const Numeric& line_t,
@@ -70,64 +69,69 @@ void GetLineScalingData_dF0(Numeric& dK2_dF0,
                             const Numeric& line_evupp,
                             const Numeric& line_f);
 
-void partition_function( Numeric& q_ref,
-                         Numeric& q_t,
-                         const Numeric& line_t,
-                         const Numeric& atm_t,
-                         const SpeciesAuxData::AuxType& partition_type,
-                         const ArrayOfGriddedField1& partition_data);
+void partition_function(Numeric& q_ref,
+                        Numeric& q_t,
+                        const Numeric& line_t,
+                        const Numeric& atm_t,
+                        const SpeciesAuxData::AuxType& partition_type,
+                        const ArrayOfGriddedField1& partition_data);
 
-void dpartition_function_dT( Numeric& dq_t_dT,
-                             const Numeric& q_t,
-                             const Numeric& atm_t,
-                             const Numeric& dt,
-                             const SpeciesAuxData::AuxType& partition_type,
-                             const ArrayOfGriddedField1& partition_data);
+void dpartition_function_dT(Numeric& dq_t_dT,
+                            const Numeric& q_t,
+                            const Numeric& atm_t,
+                            const Numeric& dt,
+                            const SpeciesAuxData::AuxType& partition_type,
+                            const ArrayOfGriddedField1& partition_data);
 
-void GetChangeInPartitionRatio(Numeric& dQ_dT, 
+void GetChangeInPartitionRatio(Numeric& dQ_dT,
                                const Numeric& q_t,
                                const SpeciesAuxData::AuxType& partition_type,
                                const ArrayOfGriddedField1& partition_data,
                                const Numeric& atm_t,
                                const Numeric& dT);
 
-void CalculatePartitionFctFromData( Numeric& q_ref, 
-                                    Numeric& q_t, 
-                                    const Numeric& ref, 
-                                    const Numeric& t,
-                                    ConstVectorView t_grid, 
-                                    ConstVectorView q_grid, 
-                                    const Index& interp_order);
+void CalculatePartitionFctFromData(Numeric& q_ref,
+                                   Numeric& q_t,
+                                   const Numeric& ref,
+                                   const Numeric& t,
+                                   ConstVectorView t_grid,
+                                   ConstVectorView q_grid,
+                                   const Index& interp_order);
 
-void CalculatePartitionFctFromData_perturbed( Numeric& dQ_dT, 
-                                              const Numeric& t,
-                                              const Numeric& dT,
-                                              const Numeric& q_t,
-                                              ConstVectorView t_grid, 
-                                              ConstVectorView q_grid, 
-                                              const Index& interp_order);
+void CalculatePartitionFctFromData_perturbed(Numeric& dQ_dT,
+                                             const Numeric& t,
+                                             const Numeric& dT,
+                                             const Numeric& q_t,
+                                             ConstVectorView t_grid,
+                                             ConstVectorView q_grid,
+                                             const Index& interp_order);
 
-void CalculatePartitionFctFromCoeff(Numeric& q_ref, 
-                                    Numeric& q_t, 
-                                    const Numeric& ref, 
+void CalculatePartitionFctFromCoeff(Numeric& q_ref,
+                                    Numeric& q_t,
+                                    const Numeric& ref,
                                     const Numeric& t,
                                     ConstVectorView q_grid);
 
-void CalculatePartitionFctFromCoeff_dT(Numeric& dQ_dT, 
+void CalculatePartitionFctFromCoeff_dT(Numeric& dQ_dT,
                                        const Numeric& t,
                                        ConstVectorView q_grid);
 
-Numeric single_partition_function(const Numeric& T, const SpeciesAuxData::AuxType& partition_type, const ArrayOfGriddedField1& partition_data);
+Numeric single_partition_function(const Numeric& T,
+                                  const SpeciesAuxData::AuxType& partition_type,
+                                  const ArrayOfGriddedField1& partition_data);
 
-Numeric dsingle_partition_function_dT(const Numeric& QT, const Numeric& T, const Numeric& dT,
-                                      const SpeciesAuxData::AuxType& partition_type,
-                                      const ArrayOfGriddedField1& partition_data);
+Numeric dsingle_partition_function_dT(
+    const Numeric& QT,
+    const Numeric& T,
+    const Numeric& dT,
+    const SpeciesAuxData::AuxType& partition_type,
+    const ArrayOfGriddedField1& partition_data);
 
 Numeric stimulated_emission(Numeric, Numeric);
 Numeric dstimulated_emissiondT(Numeric, Numeric);
 Numeric dstimulated_emissiondF0(Numeric, Numeric);
 
-Numeric stimulated_relative_emission(const Numeric& gamma, 
+Numeric stimulated_relative_emission(const Numeric& gamma,
                                      const Numeric& gamma_ref);
 
 Numeric dstimulated_relative_emission_dT(const Numeric& gamma,
@@ -140,9 +144,7 @@ Numeric dstimulated_relative_emission_dF0(const Numeric& gamma,
                                           const Numeric& T,
                                           const Numeric& T0);
 
-Numeric boltzman_ratio(const Numeric& T,
-                       const Numeric& T0,
-                       const Numeric& E0);
+Numeric boltzman_ratio(const Numeric& T, const Numeric& T0, const Numeric& E0);
 
 Numeric dboltzman_ratio_dT(const Numeric& boltzmann_ratio,
                            const Numeric& T,
@@ -153,30 +155,30 @@ Numeric dboltzman_factordT(Numeric, Numeric);
 Numeric dboltzman_factordE0(Numeric, Numeric);
 
 Numeric absorption_nlte_ratio(const Numeric& gamma,
-                              const Numeric& r_upp=1.0,
-                              const Numeric& r_low=1.0);
+                              const Numeric& r_upp = 1.0,
+                              const Numeric& r_low = 1.0);
 
 Numeric dabsorption_nlte_rate_dT(const Numeric& gamma,
                                  const Numeric& T,
                                  const Numeric& F0,
                                  const Numeric& El,
                                  const Numeric& Eu,
-                                 const Numeric& r_upp=1.0,
-                                 const Numeric& r_low=1.0);
+                                 const Numeric& r_upp = 1.0,
+                                 const Numeric& r_low = 1.0);
 
 Numeric dabsorption_nlte_rate_dF0(const Numeric& gamma,
                                   const Numeric& T,
-                                  const Numeric& r_upp=1.0,
-                                  const Numeric& r_low=1.0);
+                                  const Numeric& r_upp = 1.0,
+                                  const Numeric& r_low = 1.0);
 
 Numeric dabsorption_nlte_rate_dTl(const Numeric& gamma,
                                   const Numeric& T,
                                   const Numeric& Tl,
                                   const Numeric& El,
-                                  const Numeric& r_low=1.0);
+                                  const Numeric& r_low = 1.0);
 
 Numeric dabsorption_nlte_rate_dTu(const Numeric& gamma,
                                   const Numeric& T,
                                   const Numeric& Tu,
                                   const Numeric& Eu,
-                                  const Numeric& r_upp=1.0);
+                                  const Numeric& r_upp = 1.0);

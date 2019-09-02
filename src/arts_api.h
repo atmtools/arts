@@ -26,268 +26,265 @@
   \brief This file contains all declarations of the ARTS C API.
 */
 
-#ifndef  ARTS_API_INCLUDED
+#ifndef ARTS_API_INCLUDED
 #define ARTS_API_INCLUDED
 
-#define DLL_PUBLIC __attribute__ ((visibility ("default")))
+#define DLL_PUBLIC __attribute__((visibility("default")))
 
-#include "interactive_workspace.h"
 #include "covariance_matrix.h"
+#include "interactive_workspace.h"
 
 extern "C" {
 
-    ////////////////////////////////////////////////////////////////////////////
-    // Structs Definitions
-    ////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+// Structs Definitions
+////////////////////////////////////////////////////////////////////////////
 
-    /** @struct VariableStruct
+/** @struct VariableStruct
      * Struct to describe a symbolic WSV
      */
-    struct VariableStruct {
-        /** @var VariableStruct::name
+struct VariableStruct {
+  /** @var VariableStruct::name
          * Pointer to the c_str of the name of the variable.
          */
-        const char* name;
-        /** @var VariableStruct::description
+  const char *name;
+  /** @var VariableStruct::description
          * Pointer to the c_str of the description of the variable.
          */
-        const char* description;
-        /** @var VariableStruct::group
+  const char *description;
+  /** @var VariableStruct::group
          * The Index value representing the group this variable belongs to.
          */
-        long group;
-    };
+  long group;
+};
 
-    /** @struct VariableValueStruct
+/** @struct VariableValueStruct
      * This struct is used to return the value of an instantiation of a symbolic
      * WSV in a given workspace.
      */
-    struct VariableValueStruct {
-        /** @var VariableValueStruct::ptr
+struct VariableValueStruct {
+  /** @var VariableValueStruct::ptr
          * Pointer to the data of the variable or NULL, if the variable
          * is uninitialized.
          */
-        const void* ptr;
-        /** @var VariableValueStruct::initialized
+  const void *ptr;
+  /** @var VariableValueStruct::initialized
          * Boolean indicating whether the variable is initialized.
          */
-        bool        initialized;
-        /** @var VariableValueStruct::dimensions
+  bool initialized;
+  /** @var VariableValueStruct::dimensions
          * Index array holding the dimensions of the variable. For an n-dimensional
          * tensor (Vector, Matrix, Tensor3, ...) the first n entries will be set to
          * the number of elements the variable contains in the this dimension with the
          * number of columns in the last position.
          */
-        long        dimensions[7];
-        /** @var VariableValueStruct::inner_pointer
+  long dimensions[7];
+  /** @var VariableValueStruct::inner_pointer
          * This field is only used to return sparse matrices. In this case inner pointer
          * will point to the array of column indices.
          */
-        const int *inner_ptr;
-        /** @var VariableValueStruct::outer_pointer
+  const int *inner_ptr;
+  /** @var VariableValueStruct::outer_pointer
          * This field is only used to return sparse matrices. In this case outer pointer
          * will point to the array of column indices.
          */
-        const int *outer_ptr;
+  const int *outer_ptr;
+};
 
-    };
-
-    /** @struct MethodStruct
+/** @struct MethodStruct
      * This struct is used to return the a description of a workspace method.
      */
-    struct MethodStruct {
-        /** @var MethodStruct::id
+struct MethodStruct {
+  /** @var MethodStruct::id
          * The WSMs index in md_data.
          */
-        long id;
-        /** @var MethodStruct::name
+  long id;
+  /** @var MethodStruct::name
          * c_str pointer to the name of the method as defined in methods.cc
          */
-        const char* name;
-        /** @var MethodStruct::description
+  const char *name;
+  /** @var MethodStruct::description
          * c_str pointer to the description of the method as defined in methods.cc
          */
-        const char* description;
-        // Output
-        /** @var MethodStruct::n_out
+  const char *description;
+  // Output
+  /** @var MethodStruct::n_out
          * c_str Number of output variables.
          */
-        unsigned long n_out;
-        /** @var MethodStruct::out
+  unsigned long n_out;
+  /** @var MethodStruct::out
          * Pointer to the ArrayOfIndex holding the indices of the output WSVs.
          */
-        const long * out;
-        // Generic Output
-        /** @var MethodStruct::n_g_out
+  const long *out;
+  // Generic Output
+  /** @var MethodStruct::n_g_out
          * The number of generic outputs of the methods.
          */
-        unsigned long n_g_out;
-        // Generic Output
-        /** @var MethodStruct::g_out_types
+  unsigned long n_g_out;
+  // Generic Output
+  /** @var MethodStruct::g_out_types
          * Pointer to the ArrayOfIndex holding the types of the generic output arguments.
          */
-        const long * g_out_types;
-        // Input
-        /** @var MethodStruct::n_in
+  const long *g_out_types;
+  // Input
+  /** @var MethodStruct::n_in
          * Number of the methods non-generic input arguments.
          */
-        unsigned long n_in;
-        /** @var MethodStruct::in
+  unsigned long n_in;
+  /** @var MethodStruct::in
          * Pointer to the ArrayOfIndex holding the indices of the input arguments.
          */
-        const long * in;
-        // Generic Input
-        /** @var MethodStruct::n_g_in
+  const long *in;
+  // Generic Input
+  /** @var MethodStruct::n_g_in
          * The number of generic input arguments of the method.
          */
-        unsigned long n_g_in;
-        /** @var MethodStruct::g_in
+  unsigned long n_g_in;
+  /** @var MethodStruct::g_in
          * Pointer to the ArrayOfIndex hodling the types of the generic input arguments.
          */
-        const long * g_in_types;
-    };
+  const long *g_in_types;
+};
 
-    /** @struct VersionStruct
+/** @struct VersionStruct
      * This struct is used to return the version of ARTS
      */
-    struct VersionStruct {
-        /** @var VersionStruct::major
+struct VersionStruct {
+  /** @var VersionStruct::major
          * long The major version number of ARTS
          */
-        long major;
-        /** @var VersionStruct::release
+  long major;
+  /** @var VersionStruct::release
          * long The major release number of this ARTS major version.
          */
-        long minor;
-        /** @var VersionStruct::
+  long minor;
+  /** @var VersionStruct::
          * long The minor release number of this ARTS major version.
          */
-        long revision;
-        /** @var MethodStruct::description
+  long revision;
+  /** @var MethodStruct::description
          * long The revision number of this ARTS major version.
          */
-    };
+};
 
-    /** @struct CovarianceMatrixBlockStruct
+/** @struct CovarianceMatrixBlockStruct
      * This struct is used to return the value of a block of a covariance
      * matrix through the API
      */
-    struct CovarianceMatrixBlockStruct {
-
-        /** @var CovarianceMatrixBlockStruct::indices
+struct CovarianceMatrixBlockStruct {
+  /** @var CovarianceMatrixBlockStruct::indices
          * The indices of the retrieval quantities that this block corresponds
          * to.
          */
-        long        indices[2];
+  long indices[2];
 
-        /** @var CovarianceMatrixBlockStruct::indices
+  /** @var CovarianceMatrixBlockStruct::indices
          * Row and column indices of the upper- and left-most elements
          * of this block w.r.t. to the full covariance matrix.
          */
-        long        position[2];
+  long position[2];
 
-        /** @var CovarianceMatrixBlockStruct::indices
+  /** @var CovarianceMatrixBlockStruct::indices
          * Number of rows and columns of this block.
          */
-        long        dimensions[2];
+  long dimensions[2];
 
-        /** @var CovarianceMatrixBlockStruct::ptr
+  /** @var CovarianceMatrixBlockStruct::ptr
          * Pointer to the data of the matrix the block consists of. If the
          * block holds a sparse matrix, this pointer will point to the
          * element vector. If the block holds a dense matrix, this pointer
          * will point to the 2D data array in row-major order.
          */
-        const void* ptr;
+  const void *ptr;
 
-        /** @var CovarianceMatrixBlockStruct::nnz
+  /** @var CovarianceMatrixBlockStruct::nnz
          * Contains the number of non-zero elements in the block if
          * it is represented by a sparse matrix. 0 otherwise.
          */
-        long nnz;
+  long nnz;
 
-        /** @var CovarianceMatrixBlockStruct::inner_pointer
+  /** @var CovarianceMatrixBlockStruct::inner_pointer
          * If the block contains a sparse matrix, this pointer
          * will point to the array of row indices. Otherwise
          * it will be 0.
          */
-        const int *inner_ptr;
-        /** @var CovarianceMatrixBlockStruct::outer_pointer
+  const int *inner_ptr;
+  /** @var CovarianceMatrixBlockStruct::outer_pointer
          * If the block contains a sparse matrix, this pointer
          * will point to the array of row indices. Otherwise
          * it will be 0.
          */
-        const int *outer_ptr;
+  const int *outer_ptr;
+};
 
-    };
+////////////////////////////////////////////////////////////////////////////
+// Setup and Finalization.
+////////////////////////////////////////////////////////////////////////////
 
-    ////////////////////////////////////////////////////////////////////////////
-    // Setup and Finalization.
-    ////////////////////////////////////////////////////////////////////////////
-
-    //! Add include path.
-    /**
+//! Add include path.
+/**
      * Pushes a given path to the back of the include path.
      *
      * \param path Pointer to cstring containing the path to
      *        add to the include path.
      */
-    DLL_PUBLIC
-    void include_path_push(const char *path);
+DLL_PUBLIC
+void include_path_push(const char *path);
 
-    //! Remove last include path.
-    /**
+//! Remove last include path.
+/**
      * Remove the most recently added include path. Will result
      * in an exception if the include path is empty.
      */
-    DLL_PUBLIC
-    void include_path_pop();
+DLL_PUBLIC
+void include_path_pop();
 
-    //! Add data path.
-    /**
+//! Add data path.
+/**
      * Adds a given path to the ARTS data path.
      *
      * \param path Pointer to cstring containing the path to
      *        add to the data path.
      */
-    DLL_PUBLIC
-    void data_path_push(const char *path);
+DLL_PUBLIC
+void data_path_push(const char *path);
 
-    //! Remove last data path.
-    /**
+//! Remove last data path.
+/**
      * Remove the most recently added data path. Will result
      * in an exception if the data path is empty.
      */
-    DLL_PUBLIC
-    void data_path_pop();
+DLL_PUBLIC
+void data_path_pop();
 
-    //! Initalize ARTS runtime.
-    /**
+//! Initalize ARTS runtime.
+/**
      * This function must be called before any other function to initialize the
      * ARTS C API otherwise bad things will probably happen.
      */
-    DLL_PUBLIC
-    void initialize();
+DLL_PUBLIC
+void initialize();
 
-    //! Finalize ARTS runtime.
-    /**
+//! Finalize ARTS runtime.
+/**
      * Deletes the error buffer.
      */
-    DLL_PUBLIC
-    void finalize();
+DLL_PUBLIC
+void finalize();
 
-    //! Get most recent error.
-    /**
+//! Get most recent error.
+/**
      * \return c_str pointing to the c_str holding the most recent error message.
      */
-    DLL_PUBLIC
-    const char * get_error();
+DLL_PUBLIC
+const char *get_error();
 
-    ////////////////////////////////////////////////////////////////////////////
-    // Parsing and executing agendas.
-    ////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+// Parsing and executing agendas.
+////////////////////////////////////////////////////////////////////////////
 
-    //! Parse Controlfile
-    /** Parses a controlfile into an Agenda and returns a handle to
+//! Parse Controlfile
+/** Parses a controlfile into an Agenda and returns a handle to
      *  to this agenda, which can be executed on a workspace using
      *  execute_agenda(...).
      *
@@ -298,20 +295,20 @@ extern "C" {
      *  \return Pointer to the agenda holding the parsed controlfile or NULL if
      *   an error occurred during parsing.
      */
-    DLL_PUBLIC
-    Agenda * parse_agenda(const char *filename);
+DLL_PUBLIC
+Agenda *parse_agenda(const char *filename);
 
-    //! Create Agenda
-    /** Creates an empyt agenda.
+//! Create Agenda
+/** Creates an empyt agenda.
      *
      *  \param name Name of the agenda
      *  \return Pointer to the newly created agenda.
      */
-    DLL_PUBLIC
-    Agenda * create_agenda(const char *name);
+DLL_PUBLIC
+Agenda *create_agenda(const char *name);
 
-    //! Add method to agenda
-    /**
+//! Add method to agenda
+/**
      * Add a method to the given agenda.
      *  \param a Pointer to agenda object.
      *  \param id Index of the method to add to the agenda.
@@ -320,24 +317,24 @@ extern "C" {
      *  \param n_args_in Number of non-generic and generic input arguments.
      *  \param args_in Indices of the input variables.
      */
-    DLL_PUBLIC
-    void agenda_add_method(Agenda *a, const Index id,
-                           unsigned long n_args_out,
-                           const long * args_out,
-                           unsigned long n_args_in,
-                           const long * args_in);
+DLL_PUBLIC
+void agenda_add_method(Agenda *a,
+                       const Index id,
+                       unsigned long n_args_out,
+                       const long *args_out,
+                       unsigned long n_args_in,
+                       const long *args_in);
 
-    //! Insert callback into agenda.
-    /**
+//! Insert callback into agenda.
+/**
      * Inserts callback to the given function object into the agenda.
      *
      */
-    DLL_PUBLIC
-    void agenda_insert_callback(Agenda *a,
-                                void (*f)(InteractiveWorkspace *));
+DLL_PUBLIC
+void agenda_insert_callback(Agenda *a, void (*f)(InteractiveWorkspace *));
 
-    //! Insert a set method into an agenda.
-    /**
+//! Insert a set method into an agenda.
+/**
      * This inserts a set method into the given agenda which sets the a workspace variable
      * given by its ID to to the value it currently has in the given workspace.
      *
@@ -346,118 +343,118 @@ extern "C" {
      *  \param Pointer to the callback function object
      *  \param Language type of the callback.
      */
-    DLL_PUBLIC
-    void agenda_insert_set(InteractiveWorkspace *ws,
-                            Agenda * a,
-                            long id,
-                            long group_id);
+DLL_PUBLIC
+void agenda_insert_set(InteractiveWorkspace *ws,
+                       Agenda *a,
+                       long id,
+                       long group_id);
 
-    //! Append agendas.
-    /*!
+//! Append agendas.
+/*!
       Appends the methods in agenda src to agenda dst. This can be
       used to emulate include statements in agenda definitions.
 
       \param dst The agenda to append the methods to
       \param src The agenda whose methods to append to src
     */
-    DLL_PUBLIC
-    void agenda_append(Agenda *dst, const Agenda *src);
+DLL_PUBLIC
+void agenda_append(Agenda *dst, const Agenda *src);
 
-    //! Clear Agenda
-    /**
+//! Clear Agenda
+/**
      *  Resets a given agenda to be emtpy.
      *  \param a Pointer to agenda object.
      */
-    DLL_PUBLIC
-    void agenda_clear(Agenda *a);
+DLL_PUBLIC
+void agenda_clear(Agenda *a);
 
-    //! Execute Agenda
-    /** Executes the given agenda on a given workspace.
+//! Execute Agenda
+/** Executes the given agenda on a given workspace.
      *
      *  \param workspace Pointer of the InteractiveWorkspace object to execute the agenda on.
      *  \param a Pointer to the agenda to execute.
      *  \return NULL if execution was successfull, otherwise pointer to the c_str holding the
      *  error message from ARTS.
      */
-    DLL_PUBLIC
-    const char * execute_agenda(InteractiveWorkspace *workspace, const Agenda *a);
+DLL_PUBLIC
+const char *execute_agenda(InteractiveWorkspace *workspace, const Agenda *a);
 
-    //! Destroy Agenda
-    /**
+//! Destroy Agenda
+/**
      * \param a Pointer to the agenda.
      */
-    DLL_PUBLIC
-    void destroy_agenda(Agenda *a);
+DLL_PUBLIC
+void destroy_agenda(Agenda *a);
 
-    ////////////////////////////////////////////////////////////////////////////
-    // Creating Workspaces
-    ////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+// Creating Workspaces
+////////////////////////////////////////////////////////////////////////////
 
-    //! Create new workspace.
-    /**
+//! Create new workspace.
+/**
      * \return Pointer to a newly created InteractiveWorkspace object.
      */
-    DLL_PUBLIC
-    InteractiveWorkspace* create_workspace(const Index verbosity = 1,
-                                           const Index agenda_verbosity = 0);
+DLL_PUBLIC
+InteractiveWorkspace *create_workspace(const Index verbosity = 1,
+                                       const Index agenda_verbosity = 0);
 
-    //! Destroy given workspace.
-    DLL_PUBLIC
-    void destroy_workspace(InteractiveWorkspace* workspace);
+//! Destroy given workspace.
+DLL_PUBLIC
+void destroy_workspace(InteractiveWorkspace *workspace);
 
-    ////////////////////////////////////////////////////////////////////////////
-    // Accessing WSV Group Information
-    ////////////////////////////////////////////////////////////////////////////
-    //! Return number of WSV groups.
-    DLL_PUBLIC
-    unsigned long get_number_of_groups();
+////////////////////////////////////////////////////////////////////////////
+// Accessing WSV Group Information
+////////////////////////////////////////////////////////////////////////////
+//! Return number of WSV groups.
+DLL_PUBLIC
+unsigned long get_number_of_groups();
 
-    //! Get pointer to name of given group.
-    DLL_PUBLIC
-    const char * get_group_name(int i);
+//! Get pointer to name of given group.
+DLL_PUBLIC
+const char *get_group_name(int i);
 
-    ////////////////////////////////////////////////////////////////////////////
-    // Accessing and Executing WSMs
-    ////////////////////////////////////////////////////////////////////////////
-    //! Return number of WSMs.
-    DLL_PUBLIC
-    unsigned long get_number_of_methods();
+////////////////////////////////////////////////////////////////////////////
+// Accessing and Executing WSMs
+////////////////////////////////////////////////////////////////////////////
+//! Return number of WSMs.
+DLL_PUBLIC
+unsigned long get_number_of_methods();
 
-    //! Return MethodStruct describing method with index i.
-    DLL_PUBLIC
-    MethodStruct get_method(Index i);
+//! Return MethodStruct describing method with index i.
+DLL_PUBLIC
+MethodStruct get_method(Index i);
 
-    //! Get name of generic input argument.
-    /**
+//! Get name of generic input argument.
+/**
      * \param i The index of the WSM
      * \param j The index of the generic input arguments
      * \return Pointer to c_str holding the name of the input argument as defined in
                methods.cc.
      */
-    DLL_PUBLIC
-    const char * get_method_g_in(Index i, Index j);
+DLL_PUBLIC
+const char *get_method_g_in(Index i, Index j);
 
-    //! Get default value of generic input argument.
-    /**
+//! Get default value of generic input argument.
+/**
      * \param i The index of the WSM
      * \param j The index of the generic input argument
      * \return Pointer to c_str holding the default value as defined in methods.cc.
      */
-    DLL_PUBLIC
-    const char * get_method_g_in_default(Index i, Index j);
+DLL_PUBLIC
+const char *get_method_g_in_default(Index i, Index j);
 
-    //! Get name value of generic output argument.
-    /**
+//! Get name value of generic output argument.
+/**
      * \param i The index of the WSM
      * \param j The index of the generic output argument
      * \return Pointer to c_str holding the name of the output argument as
      *         defined in methods.cc.
      */
-    DLL_PUBLIC
-    const char * get_method_g_out(Index i, Index j);
+DLL_PUBLIC
+const char *get_method_g_out(Index i, Index j);
 
-    //! Execute workspace method.
-    /**
+//! Execute workspace method.
+/**
      * Execute workspace method with given index. Input arguments are passed using pointers
      * to two arrays holding the indices of the input arguments and the output arguments,
      * respectively. The length of the input (output) arguments must of course match the
@@ -469,16 +466,16 @@ extern "C" {
      * \return NULL if execution of workspace method was successful, pointer to c_str
      *         hodling the ARTS error message otherwise.
      */
-    DLL_PUBLIC
-    const char * execute_workspace_method(InteractiveWorkspace *workspace,
-                                          long id,
-                                          unsigned long n_args_out,
-                                          const long * args_out,
-                                          unsigned long n_args_in,
-                                          const long * args_in);
+DLL_PUBLIC
+const char *execute_workspace_method(InteractiveWorkspace *workspace,
+                                     long id,
+                                     unsigned long n_args_out,
+                                     const long *args_out,
+                                     unsigned long n_args_in,
+                                     const long *args_in);
 
-    //! Print method documentation.
-    /**
+//! Print method documentation.
+/**
      *
      * This prints the documentation of the method as it is found for example
      * in the HTML browser to the stream buffer and returns a pointer to
@@ -486,43 +483,43 @@ extern "C" {
      *
      * \param id The id of the method.
      */
-    DLL_PUBLIC
-    const char * method_print_doc(long id);
+DLL_PUBLIC
+const char *method_print_doc(long id);
 
-    ////////////////////////////////////////////////////////////////////////////
-    // Accessing and Manipulating WSVs
-    ////////////////////////////////////////////////////////////////////////////
-    //! Lookup workspace variable by name.
-    /**
+////////////////////////////////////////////////////////////////////////////
+// Accessing and Manipulating WSVs
+////////////////////////////////////////////////////////////////////////////
+//! Lookup workspace variable by name.
+/**
      * \param s Pointer to the c_str holding the name of the variable.
      * \return Index of the variable or -1 if no variable with the given name
      *         exists.
      */
-    DLL_PUBLIC
-    long lookup_workspace_variable(const char *s);
+DLL_PUBLIC
+long lookup_workspace_variable(const char *s);
 
-    //! Get number of WSVs.
-    DLL_PUBLIC
-    unsigned long get_number_of_variables();
+//! Get number of WSVs.
+DLL_PUBLIC
+unsigned long get_number_of_variables();
 
-    //! Get WSV by index.
-    DLL_PUBLIC
-    VariableStruct get_variable(Index i);
+//! Get WSV by index.
+DLL_PUBLIC
+VariableStruct get_variable(Index i);
 
-    //! Get value WSV in given workspace.
-    /**
+//! Get value WSV in given workspace.
+/**
      * \param workspace Pointer to a InteractiveWorkspace object.
      * \param id Index of the workspace variable.
      * \param group_id Index of the group the variable belongs to.
      * \return VariableValueStruct providing access to the variable.
      */
-    DLL_PUBLIC
-    VariableValueStruct get_variable_value(InteractiveWorkspace *workspace,
-                                           Index id,
-                                           Index group_id);
+DLL_PUBLIC
+VariableValueStruct get_variable_value(InteractiveWorkspace *workspace,
+                                       Index id,
+                                       Index group_id);
 
-    //! Return block of covariance matrix.
-    /**
+//! Return block of covariance matrix.
+/**
      *
      * \param m Pointer to covariance matrix from which to return the
      *        block.
@@ -533,14 +530,13 @@ extern "C" {
      * \return Returns the block identified by the given pointer
      *         represented by CovarianceMatrixBlockStruct.
      */
-    DLL_PUBLIC
-    CovarianceMatrixBlockStruct get_covariance_matrix_block(
-        CovarianceMatrix *m,
-        long block_index,
-        bool inverse);
+DLL_PUBLIC
+CovarianceMatrixBlockStruct get_covariance_matrix_block(CovarianceMatrix *m,
+                                                        long block_index,
+                                                        bool inverse);
 
-    //! Sets the value of a WSV in a given workspace.
-    /**
+//! Sets the value of a WSV in a given workspace.
+/**
      * This method can be used to set the value of an ARTS WSV from external data. Currently
      * supported data types are:
      *
@@ -564,13 +560,13 @@ extern "C" {
      * \return Poiter to null-terminated string containing the error message if setting of
      * variable fails.
      */
-    DLL_PUBLIC
-    const char * set_variable_value(InteractiveWorkspace *workspace,
-                                    long id,
-                                    long group_id,
-                                    VariableValueStruct value);
-    //! Add variable of given type to workspace.
-    /**
+DLL_PUBLIC
+const char *set_variable_value(InteractiveWorkspace *workspace,
+                               long id,
+                               long group_id,
+                               VariableValueStruct value);
+//! Add variable of given type to workspace.
+/**
      * This adds and initializes a variable in the current workspace and also
      * adds a new entry to the global wsv_data array and updates WsvMap.
      *
@@ -581,11 +577,13 @@ extern "C" {
      *             If nullptr, a name will be auto-generated.
      * \return The index which indentifies the variable in the given workspace.
      */
-    DLL_PUBLIC
-    long add_variable(InteractiveWorkspace *workspace, long group_id, const char *name);
+DLL_PUBLIC
+long add_variable(InteractiveWorkspace *workspace,
+                  long group_id,
+                  const char *name);
 
-    //! Erase variable from workspace.
-    /**
+//! Erase variable from workspace.
+/**
      * This variable removes a variable from the workspace and the global wsv_data
      * and WsvMap. This is likely to invalidate indices of existing variables so it
      * should be used with care.
@@ -594,18 +592,18 @@ extern "C" {
      * \param id The index of the variable
      * \param group_id The index of the group of the variable
      */
-    DLL_PUBLIC
-    void erase_variable(InteractiveWorkspace *workspace, long id, long group_id);
+DLL_PUBLIC
+void erase_variable(InteractiveWorkspace *workspace, long id, long group_id);
 
-    //! Get ARTS Version
-    /**
+//! Get ARTS Version
+/**
      * This function returns the ARTS version number as a double precision floating
      * point number.
      *
      * \return The ARTS version.
      */
-    DLL_PUBLIC
-    VersionStruct get_version();
+DLL_PUBLIC
+VersionStruct get_version();
 }
 
 #endif

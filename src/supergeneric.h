@@ -33,9 +33,8 @@
 /*!  Used to mark supergeneric methods in file
   methods.cc.
 */
-class Any{
+class Any {
   // Nothing to do here.
 };
 
-
-#endif // supergeneric_h
+#endif  // supergeneric_h

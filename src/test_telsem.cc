@@ -24,8 +24,8 @@
   \brief  Tests for TELSEM2 interface.
 */
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <memory>
 #include <string>
 
@@ -50,79 +50,78 @@ Numeric test_telsem_interpolate(std::string atlas_file,
                                 std::string result_path,
                                 Numeric resolution,
                                 Numeric theta,
-                                Vector frequencies)
-{
-    TelsemAtlas atlas(atlas_file);
+                                Vector frequencies) {
+  TelsemAtlas atlas(atlas_file);
 
-    Index n_freqs = frequencies.nelem();
-    std::vector<std::unique_ptr<std::ifstream>> results_h, results_v;
-    results_h.reserve(n_freqs);
-    results_v.reserve(n_freqs);
+  Index n_freqs = frequencies.nelem();
+  std::vector<std::unique_ptr<std::ifstream>> results_h, results_v;
+  results_h.reserve(n_freqs);
+  results_v.reserve(n_freqs);
 
-    for (Index i = 0; i < n_freqs; ++i) {
-        std::string filename_h = result_path;
-        std::string filename_v = result_path;
-        filename_h += "/emisH_IND_MULT" + std::to_string(i + 1) + ".txt";
-        filename_v += "/emisV_IND_MULT" + std::to_string(i + 1) + ".txt";
+  for (Index i = 0; i < n_freqs; ++i) {
+    std::string filename_h = result_path;
+    std::string filename_v = result_path;
+    filename_h += "/emisH_IND_MULT" + std::to_string(i + 1) + ".txt";
+    filename_v += "/emisV_IND_MULT" + std::to_string(i + 1) + ".txt";
 
-        results_h.push_back(std::unique_ptr<std::ifstream>(new std::ifstream(filename_h, std::ifstream::in)));
-        results_v.push_back(std::unique_ptr<std::ifstream>(new std::ifstream(filename_v, std::ifstream::in)));
-    }
+    results_h.push_back(std::unique_ptr<std::ifstream>(
+        new std::ifstream(filename_h, std::ifstream::in)));
+    results_v.push_back(std::unique_ptr<std::ifstream>(
+        new std::ifstream(filename_v, std::ifstream::in)));
+  }
 
-    Index n_lat = static_cast<Index>(180.0 / resolution);
-    Index n_lon = static_cast<Index>(360.0 / resolution);
+  Index n_lat = static_cast<Index>(180.0 / resolution);
+  Index n_lon = static_cast<Index>(360.0 / resolution);
 
-    Numeric error = 0.0;
+  Numeric error = 0.0;
 
-    for (Index i = n_lat - 1; i >= 0; --i) {
-        for (Index j = 0; j < n_lon; ++j) {
+  for (Index i = n_lat - 1; i >= 0; --i) {
+    for (Index j = 0; j < n_lon; ++j) {
+      // An offset of half of the latitude resolution is added to avoid hitting
+      // the boundary between to cells.
 
-            // An offset of half of the latitude resolution is added to avoid hitting
-            // the boundary between to cells.
+      Numeric lat = 0.125 + resolution / 2.0 - 90.0 +
+                    static_cast<Numeric>(i) * resolution;
+      Numeric lon =
+          0.125 + resolution / 2.0 + static_cast<Numeric>(j) * resolution;
 
-            Numeric lat = 0.125 + resolution / 2.0 -90.0 + static_cast<Numeric>(i) * resolution;
-            Numeric lon = 0.125 + resolution / 2.0       + static_cast<Numeric>(j) * resolution;
+      Index cellnumber = atlas.calc_cellnum(lat, lon);
 
-            Index cellnumber = atlas.calc_cellnum(lat, lon);
+      Vector emis_h(3), emis_h_interp(n_freqs), emis_h_interp_ref(n_freqs),
+          emis_v(3), emis_v_interp(n_freqs), emis_v_interp_ref(n_freqs);
 
-            Vector emis_h(3), emis_h_interp(n_freqs), emis_h_interp_ref(n_freqs),
-                   emis_v(3), emis_v_interp(n_freqs), emis_v_interp_ref(n_freqs);
+      // Read reference emissivities.
+      for (Index k = 0; k < n_freqs; ++k) {
+        (*results_h[k]) >> emis_h_interp_ref[k];
+        (*results_v[k]) >> emis_v_interp_ref[k];
+      }
 
-            // Read reference emissivities.
-            for (Index k = 0; k < n_freqs; ++k) {
-                (*results_h[k]) >> emis_h_interp_ref[k];
-                (*results_v[k]) >> emis_v_interp_ref[k];
-            }
+      emis_h_interp = 0.0;
+      emis_v_interp = 0.0;
 
-            emis_h_interp = 0.0;
-            emis_v_interp = 0.0;
+      // Read emissivities from atlas.
+      if (atlas.contains(cellnumber)) {
+        emis_h = atlas.get_emis_h(cellnumber);
+        emis_v = atlas.get_emis_v(cellnumber);
 
-            // Read emissivities from atlas.
-            if (atlas.contains(cellnumber)) {
+        Index class1 = atlas.get_class1(cellnumber);
+        Index class2 = atlas.get_class2(cellnumber);
 
-                emis_h = atlas.get_emis_h(cellnumber);
-                emis_v = atlas.get_emis_v(cellnumber);
-
-                Index class1 = atlas.get_class1(cellnumber);
-                Index class2 = atlas.get_class2(cellnumber);
-
-                for (Index k = 0; k < n_freqs; ++k) {
-                    std::tie(emis_v_interp[k], emis_h_interp[k]) = atlas.emis_interp(theta,
-                                                                                     frequencies[k],
-                                                                                     class1,
-                                                                                     class2,
-                                                                                     emis_v,
-                                                                                     emis_h);
-                }
-            }
-
-            for (Index k = 0; k < n_freqs; ++k) {
-                error = std::max(error, std::fabs(emis_h_interp[k] - emis_h_interp_ref[k]));
-                error = std::max(error, std::fabs(emis_v_interp[k] - emis_v_interp_ref[k]));
-            }
+        for (Index k = 0; k < n_freqs; ++k) {
+          std::tie(emis_v_interp[k], emis_h_interp[k]) = atlas.emis_interp(
+              theta, frequencies[k], class1, class2, emis_v, emis_h);
         }
+      }
+
+      for (Index k = 0; k < n_freqs; ++k) {
+        error =
+            std::max(error, std::fabs(emis_h_interp[k] - emis_h_interp_ref[k]));
+        error =
+            std::max(error, std::fabs(emis_v_interp[k] - emis_v_interp_ref[k]));
+      }
     }
-    return error;
+  }
+  return error;
 }
 
 /** Test reading of TELSEM emissivities
@@ -139,98 +138,102 @@ Numeric test_telsem_interpolate(std::string atlas_file,
  */
 Numeric test_telsem_read(String atlas_file,
                          String result_path,
-                         Numeric resolution)
-{
-    TelsemAtlas atlas(atlas_file);
+                         Numeric resolution) {
+  TelsemAtlas atlas(atlas_file);
 
-    std::vector<std::unique_ptr<std::ifstream>> results_h, results_v;
-    results_h.reserve(3);
-    results_v.reserve(3);
+  std::vector<std::unique_ptr<std::ifstream>> results_h, results_v;
+  results_h.reserve(3);
+  results_v.reserve(3);
 
-    for (Index i = 0; i < 3; ++i) {
-        std::string filename_h = result_path;
-        std::string filename_v = result_path;
-        filename_h += "/emisH" + std::to_string(i + 1) + ".txt";
-        filename_v += "/emisV" + std::to_string(i + 1) + ".txt";
+  for (Index i = 0; i < 3; ++i) {
+    std::string filename_h = result_path;
+    std::string filename_v = result_path;
+    filename_h += "/emisH" + std::to_string(i + 1) + ".txt";
+    filename_v += "/emisV" + std::to_string(i + 1) + ".txt";
 
-        results_h.push_back(std::unique_ptr<std::ifstream>(new std::ifstream(filename_h, std::ifstream::in)));
-        results_v.push_back(std::unique_ptr<std::ifstream>(new std::ifstream(filename_v, std::ifstream::in)));
+    results_h.push_back(std::unique_ptr<std::ifstream>(
+        new std::ifstream(filename_h, std::ifstream::in)));
+    results_v.push_back(std::unique_ptr<std::ifstream>(
+        new std::ifstream(filename_v, std::ifstream::in)));
+  }
+
+  Index n_lat = static_cast<Index>(180.0 / resolution);
+  Index n_lon = static_cast<Index>(360.0 / resolution);
+
+  Numeric error = 0.0;
+
+  for (Index i = n_lat - 1; i >= 0; --i) {
+    for (Index j = 0; j < n_lon; ++j) {
+      // An offset of half of the latitude resolution is added to avoid hitting
+      // the boundary between to cells.
+
+      Numeric lat = 0.125 + resolution / 2.0 - 90.0 +
+                    static_cast<Numeric>(i) * resolution;
+      Numeric lon =
+          0.125 + resolution / 2.0 + static_cast<Numeric>(j) * resolution;
+
+      Index cellnumber = atlas.calc_cellnum(lat, lon);
+
+      Vector emis_h(3), emis_h_ref(3), emis_v(3), emis_v_ref(3);
+
+      // Read reference emissivities.
+      for (Index k = 0; k < 3; ++k) {
+        (*results_h[k]) >> emis_h_ref[k];
+        (*results_v[k]) >> emis_v_ref[k];
+      }
+
+      emis_h = 0.0;
+      emis_v = 0.0;
+
+      // Read emissivities from atlas.
+      if (atlas.contains(cellnumber)) {
+        emis_h = atlas.get_emis_h(cellnumber);
+        emis_v = atlas.get_emis_v(cellnumber);
+      }
+
+      for (Index k = 0; k < 3; ++k) {
+        error = std::max(error, std::fabs(emis_h[k] - emis_h_ref[k]));
+        error = std::max(error, std::fabs(emis_v[k] - emis_v_ref[k]));
+      }
     }
-
-    Index n_lat = static_cast<Index>(180.0 / resolution);
-    Index n_lon = static_cast<Index>(360.0 / resolution);
-
-    Numeric error = 0.0;
-
-    for (Index i = n_lat - 1; i >= 0; --i) {
-        for (Index j = 0; j < n_lon; ++j) {
-
-            // An offset of half of the latitude resolution is added to avoid hitting
-            // the boundary between to cells.
-
-            Numeric lat = 0.125 + resolution / 2.0 -90.0 + static_cast<Numeric>(i) * resolution;
-            Numeric lon = 0.125 + resolution / 2.0       + static_cast<Numeric>(j) * resolution;
-
-            Index cellnumber = atlas.calc_cellnum(lat, lon);
-
-            Vector emis_h(3), emis_h_ref(3), emis_v(3), emis_v_ref(3);
-
-            // Read reference emissivities.
-            for (Index k = 0; k < 3; ++k) {
-                (*results_h[k]) >> emis_h_ref[k];
-                (*results_v[k]) >> emis_v_ref[k];
-            }
-
-            emis_h = 0.0;
-            emis_v = 0.0;
-
-            // Read emissivities from atlas.
-            if (atlas.contains(cellnumber)) {
-                emis_h = atlas.get_emis_h(cellnumber);
-                emis_v = atlas.get_emis_v(cellnumber);
-            }
-
-            for (Index k = 0; k < 3; ++k) {
-                error = std::max(error, std::fabs(emis_h[k] - emis_h_ref[k]));
-                error = std::max(error, std::fabs(emis_v[k] - emis_v_ref[k]));
-            }
-        }
-    }
-    return error;
+  }
+  return error;
 }
 
-int main(int argc, const char ** argv) {
-
-    if (argc != 4) {
-        std::cout <<
-            "\nThis test uses the test results of the TELSEM2 fortran\n"
-            "module to test the ARTS TELSEM interface. \n\n Usage:\n"
-            "./test_telsem <atlas_path> <results_folder> <resolution> \n"
-            "where:\n - atlas_path: Path to the TELSEM2 atlas to load \n"
-            " - results_folder: The folder containing the result files \n"
-            "\t of the TELSEM2 tests.\n - resolution: The resolution used"
-            "to generate the lat/lon map.\n\n Note that for the interpolation"
-            "test the frequencies must match.\n\n";
-        return 0;
-    }
-
-    String atlas_file  = argv[1];
-    String result_path = argv[2];
-    Numeric resolution = std::stoi(argv[3]);
-
-    std::cout << "Atlas file:  " << atlas_file << std::endl;
-    std::cout << "Result path: " << result_path << std::endl;
-
-    // Reading of emissivities.
-
-    Numeric error = test_telsem_read(atlas_file, result_path, resolution);
-    std::cout << "Maximum error reading emissivities:       " << error << std::endl;
-
-    // Interpolation of emissivities.
-
-    Vector frequencies = {6.0, 25.0, 31.4, 60.0, 190.0};
-    Numeric theta      = 15.0; // Incidence angle
-    error = test_telsem_interpolate(atlas_file, result_path, resolution, theta, frequencies);
-    std::cout << "Maximum error interpolating emissivities: " << error << std::endl;
+int main(int argc, const char** argv) {
+  if (argc != 4) {
+    std::cout
+        << "\nThis test uses the test results of the TELSEM2 fortran\n"
+           "module to test the ARTS TELSEM interface. \n\n Usage:\n"
+           "./test_telsem <atlas_path> <results_folder> <resolution> \n"
+           "where:\n - atlas_path: Path to the TELSEM2 atlas to load \n"
+           " - results_folder: The folder containing the result files \n"
+           "\t of the TELSEM2 tests.\n - resolution: The resolution used"
+           "to generate the lat/lon map.\n\n Note that for the interpolation"
+           "test the frequencies must match.\n\n";
     return 0;
+  }
+
+  String atlas_file = argv[1];
+  String result_path = argv[2];
+  Numeric resolution = std::stoi(argv[3]);
+
+  std::cout << "Atlas file:  " << atlas_file << std::endl;
+  std::cout << "Result path: " << result_path << std::endl;
+
+  // Reading of emissivities.
+
+  Numeric error = test_telsem_read(atlas_file, result_path, resolution);
+  std::cout << "Maximum error reading emissivities:       " << error
+            << std::endl;
+
+  // Interpolation of emissivities.
+
+  Vector frequencies = {6.0, 25.0, 31.4, 60.0, 190.0};
+  Numeric theta = 15.0;  // Incidence angle
+  error = test_telsem_interpolate(
+      atlas_file, result_path, resolution, theta, frequencies);
+  std::cout << "Maximum error interpolating emissivities: " << error
+            << std::endl;
+  return 0;
 }

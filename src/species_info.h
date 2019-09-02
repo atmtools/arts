@@ -14,11 +14,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
- 
+
 #include "linerecord.h"
 
 Numeric get_lande_spin_constant(const Index species) noexcept;
- 
+
 Numeric get_lande_lambda_constant() noexcept;
 
 Numeric reduced_dipole(const LineRecord& line);

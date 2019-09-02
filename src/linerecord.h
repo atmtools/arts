@@ -26,17 +26,17 @@
 #ifndef linerecord_h
 #define linerecord_h
 
-#include <stdexcept>
 #include <cmath>
+#include <stdexcept>
+#include "array.h"
+#include "constants.h"
+#include "linefunctiondata.h"
+#include "matpackI.h"
 #include "messages.h"
 #include "mystring.h"
-#include "array.h"
-#include "matpackI.h"
 #include "quantum.h"
-#include "linefunctiondata.h"
-#include "zeemandata.h"
-#include "constants.h"
 #include "wigner_functions.h"
+#include "zeemandata.h"
 
 /* Forward declaration of classes */
 class SpeciesRecord;
@@ -198,120 +198,115 @@ class IsotopologueRecord;
     \author Stefan Buehler 
 */
 
-enum class MirroringType : Index
-{
+enum class MirroringType : Index {
   // Describes the type of mirroring line effects.
   // LineRecord effect:  Adds MTM (String)MirroringType under line modifications when saving ARTSCAT5
   None,             // No mirroring
   Lorentz,          // Mirror, but use Lorentz line shape
   SameAsLineShape,  // Mirror using the same line shape
-  Manual,           // Mirror by having a line in the array of line record with negative F0
+  Manual,  // Mirror by having a line in the array of line record with negative F0
 };
 
-enum class LineNormalizationType : Index
-{
+enum class LineNormalizationType : Index {
   // Describes the type of normalization line effects.
   // LineRecord effect:  Adds LNT (String)LineNormalizationType under line modifications when saving ARTSCAT5
   // 0 is ignored on printing
-  None,                 // Do not renormalize the line shape
-  VVH,                  // Renormalize with Van Vleck and Huber specifications
-  VVW,                  // Renormalize with Van Vleck and Weiskopf specifications
+  None,  // Do not renormalize the line shape
+  VVH,   // Renormalize with Van Vleck and Huber specifications
+  VVW,   // Renormalize with Van Vleck and Weiskopf specifications
   RosenkranzQuadratic,  // Renormalize using Rosenkranz's quadratic specifications
 };
 
-enum class LinePopulationType : Index
-{
+enum class LinePopulationType : Index {
   // Describes the type of population level counter.
   // LineRecord effect:  Adds POP (String)LinePopulationType under line modifications when saving ARTSCAT5
   ByLTE,                      // Assume line is in LTE
   ByVibrationalTemperatures,  // Assume line is in NLTE described by vibrational temperatures
-  ByPopulationDistribution,   // Assume line is in NLTE and the upper-to-lower ratio is known
+  ByPopulationDistribution,  // Assume line is in NLTE and the upper-to-lower ratio is known
 };
 
 class LineRecord {
-public:
-    
+ public:
   /** Default constructor. Initialize to default values. The indices
       are initialized to large numbers, so that we at least get range
       errors when we try to used un-initialized data. */
   LineRecord()
-    : mversion (5),
-      mqid(QuantumIdentifier::TRANSITION, 1000000, 1000000),
-      mf       (0.     ),
-      mi0      (0.     ),
-      mti0     (0.     ),
-      melow    (0.     ),
-      mevlow(-1.0),
-      mnlte_lower_index(-1),
-      mevupp(-1.0),
-      mnlte_upper_index(-1),
-      ma( NAN ),
-      mgupper( NAN ),
-      mglower( NAN ),
-      mstandard(true),
-      mcutoff(-1.0),
-      mlinemixing_limit(-1.0),
-      mmirroring(MirroringType::None),
-      mlinenorm(LineNormalizationType::None),
-      mpopulation(LinePopulationType::ByLTE)
- { /* Nothing to do here. */ }
+      : mversion(5),
+        mqid(QuantumIdentifier::TRANSITION, 1000000, 1000000),
+        mf(0.),
+        mi0(0.),
+        mti0(0.),
+        melow(0.),
+        mevlow(-1.0),
+        mnlte_lower_index(-1),
+        mevupp(-1.0),
+        mnlte_upper_index(-1),
+        ma(NAN),
+        mgupper(NAN),
+        mglower(NAN),
+        mstandard(true),
+        mcutoff(-1.0),
+        mlinemixing_limit(-1.0),
+        mmirroring(MirroringType::None),
+        mlinenorm(LineNormalizationType::None),
+        mpopulation(LinePopulationType::ByLTE) { /* Nothing to do here. */
+  }
 
   /** Constructor that sets all data elements explicitly. If
       assertions are not disabled (i.e., if NDEBUG is not \#defined),
       assert statements check that the species and isotopologue data
       exists. */
-  LineRecord( Index                 species,
-              Index                 isotopologue,
-              Numeric               f,
-              Numeric               psf,
-              Numeric               i0,
-              Numeric               ti0,
-              Numeric               elow,
-              Numeric               agam,
-              Numeric               sgam,
-              Numeric               nair,
-              Numeric               nself,
-              Numeric               /*tgam*/, 
-              const ArrayOfNumeric& /*aux*/,
-              Numeric               /* df */,
-              Numeric               /* di0 */,
-              Numeric               /* dagam */,
-              Numeric               /* dsgam */,
-              Numeric               /* dnair */,
-              Numeric               /* dnself */,
-              Numeric               /* dpsf */)
-    : mversion (5),
-      mqid(QuantumIdentifier::TRANSITION, species, isotopologue),
-      mf       (f          ),
-      mi0      (i0         ),
-      mti0     (ti0        ),
-      melow    (elow       ),
-      mevlow(-1.0),
-      mnlte_lower_index(-1),
-      mevupp(-1.0),
-      mnlte_upper_index(-1),
-      ma( NAN ),
-      mgupper( NAN ),
-      mglower( NAN ),
-      mlineshapemodel(sgam, nself, agam, nair, psf),
-      mstandard(true),
-      mcutoff(-1.0),
-      mlinemixing_limit(-1.0),
-      mmirroring(MirroringType::None),
-      mlinenorm(LineNormalizationType::None),
-      mpopulation(LinePopulationType::ByLTE)
-  {}
+  LineRecord(Index species,
+             Index isotopologue,
+             Numeric f,
+             Numeric psf,
+             Numeric i0,
+             Numeric ti0,
+             Numeric elow,
+             Numeric agam,
+             Numeric sgam,
+             Numeric nair,
+             Numeric nself,
+             Numeric /*tgam*/,
+             const ArrayOfNumeric& /*aux*/,
+             Numeric /* df */,
+             Numeric /* di0 */,
+             Numeric /* dagam */,
+             Numeric /* dsgam */,
+             Numeric /* dnair */,
+             Numeric /* dnself */,
+             Numeric /* dpsf */)
+      : mversion(5),
+        mqid(QuantumIdentifier::TRANSITION, species, isotopologue),
+        mf(f),
+        mi0(i0),
+        mti0(ti0),
+        melow(elow),
+        mevlow(-1.0),
+        mnlte_lower_index(-1),
+        mevupp(-1.0),
+        mnlte_upper_index(-1),
+        ma(NAN),
+        mgupper(NAN),
+        mglower(NAN),
+        mlineshapemodel(sgam, nself, agam, nair, psf),
+        mstandard(true),
+        mcutoff(-1.0),
+        mlinemixing_limit(-1.0),
+        mmirroring(MirroringType::None),
+        mlinenorm(LineNormalizationType::None),
+        mpopulation(LinePopulationType::ByLTE) {}
 
   /** Return the version String. */
   String VersionString() const;
-  
+
   /** Return the version number. */
   Index Version() const { return mversion; }
-  void SetVersion5() {mversion=5;}
-  
+  void SetVersion5() { mversion = 5; }
+
   /* Set to latest compatible version of the catalog to store all data */
-  void SetVersionToLatest() {mversion=5;}
-  
+  void SetVersionToLatest() { mversion = 5; }
+
   /** The index of the molecular species that this line belongs to.
    The species data can be accessed by species_data[Species()]. */
   Index Species() const { return mqid.Species(); }
@@ -351,15 +346,13 @@ public:
   const IsotopologueRecord& IsotopologueData() const;
 
   /** The line center frequency in <b> Hz</b>. */
-  Numeric F() const     { return mf; }
+  Numeric F() const { return mf; }
 
   /** Set the line center frequency in <b> Hz</b>. */
-  void setF( Numeric new_mf ) { mf = new_mf; }
+  void setF(Numeric new_mf) { mf = new_mf; }
 
   /** The pressure shift parameter in <b> Hz/Pa</b>. */
-  Numeric Psf() const   {
-    return mlineshapemodel.Data().back().D0().X0;
-  }
+  Numeric Psf() const { return mlineshapemodel.Data().back().D0().X0; }
 
   /** The line intensity in <b> m^2*Hz</b> at the reference temperature \c Ti0. 
 
@@ -373,137 +366,169 @@ public:
    m^-1</b>), \f$\nu\f$ is frequency, \f$n\f$ is the
    total number density, \f$x\f$ is the volume mixing ratio, and
    \f$F(\nu)\f$ is the lineshape function. */
-  Numeric I0() const    { return mi0; }
+  Numeric I0() const { return mi0; }
 
- /** Set Intensity */
-  void setI0( Numeric new_mi0 ) { mi0 = new_mi0; }
+  /** Set Intensity */
+  void setI0(Numeric new_mi0) { mi0 = new_mi0; }
 
   /** Reference temperature for I0 in <b> K</b>: */
-  Numeric Ti0() const   { return mti0; }
+  Numeric Ti0() const { return mti0; }
 
-  /** Lower state energy in <b> cm^-1</b>: */ //FIXME: really in cm-1 still?
-  Numeric Elow() const  { return melow; }
-  void SetElow( Numeric new_melow ) { melow = new_melow; }
-  
-  /** Lower state vibrational energy in <b> cm^-1</b>: */ //FIXME: really in cm-1 still?
-  Numeric Evlow() const  { return mevlow; }
-  void SetEvlow(Numeric evlow) {mevlow = evlow;}
-  Index NLTELowerIndex() const  { return mnlte_lower_index; }
-  void SetNLTELowerIndex(Index nlte_lower_index) {mnlte_lower_index = nlte_lower_index;}
-  
-  /** Upper state vibrational energy in <b> cm^-1</b>: */ //FIXME: really in cm-1 still?
-  Numeric Evupp() const  { return mevupp; }
-  void SetEvupp(Numeric evupp) {mevupp = evupp;}
-  Index NLTEUpperIndex() const  { return mnlte_upper_index; }
-  void SetNLTEUpperIndex(Index nlte_upper_index) {mnlte_upper_index = nlte_upper_index;}
-  
-  /** Air broadened width in <b> Hz/Pa</b>: */
-  Numeric Agam() const  {
-    return mlineshapemodel.Data().back().G0().X0;
+  /** Lower state energy in <b> cm^-1</b>: */  //FIXME: really in cm-1 still?
+  Numeric Elow() const { return melow; }
+  void SetElow(Numeric new_melow) { melow = new_melow; }
+
+  /** Lower state vibrational energy in <b> cm^-1</b>: */  //FIXME: really in cm-1 still?
+  Numeric Evlow() const { return mevlow; }
+  void SetEvlow(Numeric evlow) { mevlow = evlow; }
+  Index NLTELowerIndex() const { return mnlte_lower_index; }
+  void SetNLTELowerIndex(Index nlte_lower_index) {
+    mnlte_lower_index = nlte_lower_index;
   }
+
+  /** Upper state vibrational energy in <b> cm^-1</b>: */  //FIXME: really in cm-1 still?
+  Numeric Evupp() const { return mevupp; }
+  void SetEvupp(Numeric evupp) { mevupp = evupp; }
+  Index NLTEUpperIndex() const { return mnlte_upper_index; }
+  void SetNLTEUpperIndex(Index nlte_upper_index) {
+    mnlte_upper_index = nlte_upper_index;
+  }
+
+  /** Air broadened width in <b> Hz/Pa</b>: */
+  Numeric Agam() const { return mlineshapemodel.Data().back().G0().X0; }
 
   /** Self broadened width in <b> Hz/Pa</b>: */
-  Numeric Sgam() const  {
-    return mlineshapemodel.Data().front().G0().X0;
-  }
+  Numeric Sgam() const { return mlineshapemodel.Data().front().G0().X0; }
 
   /** AGAM temperature exponent (dimensionless): */
-  Numeric Nair() const  {
-    return mlineshapemodel.Data().back().G0().X1;
-  }
+  Numeric Nair() const { return mlineshapemodel.Data().back().G0().X1; }
 
   /** SGAM temperature exponent (dimensionless): */
-  Numeric Nself() const {
-    return mlineshapemodel.Data().front().G0().X1;
-  }
+  Numeric Nself() const { return mlineshapemodel.Data().front().G0().X1; }
 
   /** ARTSCAT-4/5 Einstein A-coefficient in <b> 1/s </b>: */
   Numeric A() const { return ma; }
-  
+
   Numeric electric_dipole_moment_squared() const {
     using namespace Constant;
-    return 3 * h * epsilon_0 / (16 * pi) * ma * pow3(c/mf);
+    return 3 * h * epsilon_0 / (16 * pi) * ma * pow3(c / mf);
   }
-  
+
   Numeric magnetic_quadrapole_moment_squared() const {
     using namespace Constant;
-    return 3 * h / (16 * pi * mu_0) * ma * pow3(c/mf);
+    return 3 * h / (16 * pi * mu_0) * ma * pow3(c / mf);
   }
-  
-  Numeric reduced_rovibrational_dipole(Rational k=1) const {
+
+  Numeric reduced_rovibrational_dipole(Rational k = 1) const {
     const Rational Jf = LowerQuantumNumber(QuantumNumberType::J);
     const Rational Ji = UpperQuantumNumber(QuantumNumberType::J);
     const Rational lf = LowerQuantumNumber(QuantumNumberType::l2);
     const Rational li = UpperQuantumNumber(QuantumNumberType::l2);
-    const Numeric val = sqrt(2*Jf + 1) * wigner3j(Jf, k,      Ji,
-                                                  li, lf-li, -lf);
-    if((Jf + lf + 1) % 2)
-      return - val;
+    const Numeric val =
+        sqrt(2 * Jf + 1) * wigner3j(Jf, k, Ji, li, lf - li, -lf);
+    if ((Jf + lf + 1) % 2)
+      return -val;
     else
-      return + val;
+      return +val;
   }
-  
+
   Numeric reduced_magnetic_quadrapole() const {
     const Rational Jf = LowerQuantumNumber(QuantumNumberType::J);
     const Rational Ji = UpperQuantumNumber(QuantumNumberType::J);
-    const Rational N  = LowerQuantumNumber(QuantumNumberType::N);
+    const Rational N = LowerQuantumNumber(QuantumNumberType::N);
     constexpr Rational one(1, 1);
-    const Numeric val = sqrt(6 * (2*Jf + 1) * (2*Ji + 1)) * wigner6j(one,  one,  one,
-                                                                     Ji,   Jf,   N);
-    if((Jf + N) % 2)
-      return - val;
+    const Numeric val = sqrt(6 * (2 * Jf + 1) * (2 * Ji + 1)) *
+                        wigner6j(one, one, one, Ji, Jf, N);
+    if ((Jf + N) % 2)
+      return -val;
     else
-      return + val;
+      return +val;
   }
-  
+
   /** ARTSCAT-4/5 Upper state stat. weight: */
   Numeric G_upper() const { return mgupper; }
-  
+
   /** ARTSCAT-4/5 Lower state stat. weight: */
   Numeric G_lower() const { return mglower; }
 
   /** Quantum numbers */
-  void SetQuantumNumberLower(const Index i, const Rational r) { mqid.LowerQuantumNumbers().Set(i,r); }
-  void SetQuantumNumberLower(const String i, const Rational r) {  mqid.LowerQuantumNumbers().Set(i,r); }
-  void SetQuantumNumberLower(const QuantumNumberType i, const Rational r) {  mqid.LowerQuantumNumbers().Set(i,r); }
-  void SetQuantumNumberUpper(const QuantumNumberType i, const Rational r) {  mqid.UpperQuantumNumbers().Set(i,r); }
-  void SetQuantumNumberUpper(const String i, const Rational r) { mqid.UpperQuantumNumbers().Set(i,r); }
-  void SetQuantumNumberUpper(const Index i, const Rational r) { mqid.UpperQuantumNumbers().Set(i,r); }
-  
+  void SetQuantumNumberLower(const Index i, const Rational r) {
+    mqid.LowerQuantumNumbers().Set(i, r);
+  }
+  void SetQuantumNumberLower(const String i, const Rational r) {
+    mqid.LowerQuantumNumbers().Set(i, r);
+  }
+  void SetQuantumNumberLower(const QuantumNumberType i, const Rational r) {
+    mqid.LowerQuantumNumbers().Set(i, r);
+  }
+  void SetQuantumNumberUpper(const QuantumNumberType i, const Rational r) {
+    mqid.UpperQuantumNumbers().Set(i, r);
+  }
+  void SetQuantumNumberUpper(const String i, const Rational r) {
+    mqid.UpperQuantumNumbers().Set(i, r);
+  }
+  void SetQuantumNumberUpper(const Index i, const Rational r) {
+    mqid.UpperQuantumNumbers().Set(i, r);
+  }
+
   /** Quantum identifier */
-  const QuantumIdentifier& QuantumIdentity() const {return mqid;}
-  const QuantumNumbers& LowerQuantumNumbers() const {return mqid.LowerQuantumNumbers();}
-  const QuantumNumbers& UpperQuantumNumbers() const {return mqid.UpperQuantumNumbers();}
-  Rational LowerQuantumNumber(QuantumNumberType X) const {return mqid.LowerQuantumNumber(X);}
-  Rational UpperQuantumNumber(QuantumNumberType X) const {return mqid.UpperQuantumNumber(X);}
-  bool InQuantumID(const QuantumIdentifier& qid) const {return mqid.In(qid);}
-  bool UpperStateInQuantumID(const QuantumIdentifier& qid) const {return mqid.InUpper(qid);}
-  bool LowerStateInQuantumID(const QuantumIdentifier& qid) const {return mqid.InLower(qid);}
-  
+  const QuantumIdentifier& QuantumIdentity() const { return mqid; }
+  const QuantumNumbers& LowerQuantumNumbers() const {
+    return mqid.LowerQuantumNumbers();
+  }
+  const QuantumNumbers& UpperQuantumNumbers() const {
+    return mqid.UpperQuantumNumbers();
+  }
+  Rational LowerQuantumNumber(QuantumNumberType X) const {
+    return mqid.LowerQuantumNumber(X);
+  }
+  Rational UpperQuantumNumber(QuantumNumberType X) const {
+    return mqid.UpperQuantumNumber(X);
+  }
+  bool InQuantumID(const QuantumIdentifier& qid) const { return mqid.In(qid); }
+  bool UpperStateInQuantumID(const QuantumIdentifier& qid) const {
+    return mqid.InUpper(qid);
+  }
+  bool LowerStateInQuantumID(const QuantumIdentifier& qid) const {
+    return mqid.InLower(qid);
+  }
+
   /**Do linemixing test*/
-  bool do_linemixing(const Numeric& P) const noexcept
-  {
-    if(mlinemixing_limit < 0)
+  bool do_linemixing(const Numeric& P) const noexcept {
+    if (mlinemixing_limit < 0)
       return true;
     else
       return mlinemixing_limit > P;
   }
-  
-  void SetLineMixingParameters(Numeric& Y, Numeric& G, Numeric& DV, const Numeric& T, const Numeric& P,
-                               const ConstVectorView vmrs, const ArrayOfArrayOfSpeciesTag& abs_species) const {
-    if(do_linemixing(P)) {
+
+  void SetLineMixingParameters(
+      Numeric& Y,
+      Numeric& G,
+      Numeric& DV,
+      const Numeric& T,
+      const Numeric& P,
+      const ConstVectorView vmrs,
+      const ArrayOfArrayOfSpeciesTag& abs_species) const {
+    if (do_linemixing(P)) {
       const auto v = mlineshapemodel.vmrs(vmrs, abs_species, mqid);
       Y = mlineshapemodel.Y(T, mti0, P, v);
       G = mlineshapemodel.G(T, mti0, P, v);
       DV = mlineshapemodel.DV(T, mti0, P, v);
-    }
-    else
+    } else
       Y = G = DV = 0;
   }
 
-  void SetPressureBroadeningParameters(Numeric& G0, Numeric& G2, Numeric& ETA, Numeric& D0, Numeric& D2, Numeric& FVC,
-                                       const Numeric& T, const Numeric& P, const ConstVectorView vmrs,
-                                       const ArrayOfArrayOfSpeciesTag& abs_species) const {
+  void SetPressureBroadeningParameters(
+      Numeric& G0,
+      Numeric& G2,
+      Numeric& ETA,
+      Numeric& D0,
+      Numeric& D2,
+      Numeric& FVC,
+      const Numeric& T,
+      const Numeric& P,
+      const ConstVectorView vmrs,
+      const ArrayOfArrayOfSpeciesTag& abs_species) const {
     const auto v = mlineshapemodel.vmrs(vmrs, abs_species, mqid);
     G0 = mlineshapemodel.G0(T, mti0, P, v);
     D0 = mlineshapemodel.D0(T, mti0, P, v);
@@ -513,9 +538,17 @@ public:
     ETA = mlineshapemodel.ETA(T, mti0, P, v);
   }
 
-  void SetPressureBroadeningParametersTemperatureDerivative(Numeric& dG0, Numeric& dG2, Numeric& dETA, Numeric& dD0, Numeric& dD2, Numeric& dFVC,
-                                                            const Numeric& T, const Numeric& P, const ConstVectorView vmrs,
-                                                            const ArrayOfArrayOfSpeciesTag& abs_species) const {
+  void SetPressureBroadeningParametersTemperatureDerivative(
+      Numeric& dG0,
+      Numeric& dG2,
+      Numeric& dETA,
+      Numeric& dD0,
+      Numeric& dD2,
+      Numeric& dFVC,
+      const Numeric& T,
+      const Numeric& P,
+      const ConstVectorView vmrs,
+      const ArrayOfArrayOfSpeciesTag& abs_species) const {
     const auto v = mlineshapemodel.vmrs(vmrs, abs_species, mqid);
     dG0 = mlineshapemodel.dG0_dT(T, mti0, P, v);
     dD0 = mlineshapemodel.dD0_dT(T, mti0, P, v);
@@ -524,198 +557,259 @@ public:
     dFVC = mlineshapemodel.dFVC_dT(T, mti0, P, v);
     dETA = mlineshapemodel.dETA_dT(T, mti0, P, v);
   }
-  
+
   void SetLineMixing2SecondOrderData(ConstVectorView d) {
-    mlineshapemodel.SetLineMixingModel(LineShape::LegacyLineMixingData::vector2modellm(d,
-                                       LineShape::LegacyLineMixingData::TypeLM::LM_2NDORDER).Data()[0]);
+    mlineshapemodel.SetLineMixingModel(
+        LineShape::LegacyLineMixingData::vector2modellm(
+            d, LineShape::LegacyLineMixingData::TypeLM::LM_2NDORDER)
+            .Data()[0]);
   }
 
   void SetLineMixing2AER(ConstVectorView d) {
-    for(auto& sm: mlineshapemodel.Data())
-      for(Index i=0; i<d.nelem(); i++)
-        sm.Interp()[i] = d[i];
+    for (auto& sm : mlineshapemodel.Data())
+      for (Index i = 0; i < d.nelem(); i++) sm.Interp()[i] = d[i];
   }
-  
-  LineShape::Model& GetLineShapeModel() {return mlineshapemodel;}
-  const LineShape::Model& GetLineShapeModel() const {return mlineshapemodel;}
-  
-  void SetLineShapeModel(const LineShape::Model& lsm) {mlineshapemodel=lsm;}
-  
+
+  LineShape::Model& GetLineShapeModel() { return mlineshapemodel; }
+  const LineShape::Model& GetLineShapeModel() const { return mlineshapemodel; }
+
+  void SetLineShapeModel(const LineShape::Model& lsm) { mlineshapemodel = lsm; }
+
   void LineShapeModelOnlyAir() {
-    if(mlineshapemodel.Bath())
-      mlineshapemodel = LineShape::Model(mlineshapemodel.Data().back(), mlineshapemodel.ModelType());
+    if (mlineshapemodel.Bath())
+      mlineshapemodel = LineShape::Model(mlineshapemodel.Data().back(),
+                                         mlineshapemodel.ModelType());
     else
-      throw std::runtime_error("Cannot keep only pure air since no air broadening exists");
+      throw std::runtime_error(
+          "Cannot keep only pure air since no air broadening exists");
   }
-  
-  void LineShapeModelRemoveSelf() {if(mlineshapemodel.Self()) mlineshapemodel.Remove(0);}
-  
-  void SetLineShapeModelParameters(const LineShape::ModelParameters& x, const String& spec, const String& var) {
+
+  void LineShapeModelRemoveSelf() {
+    if (mlineshapemodel.Self()) mlineshapemodel.Remove(0);
+  }
+
+  void SetLineShapeModelParameters(const LineShape::ModelParameters& x,
+                                   const String& spec,
+                                   const String& var) {
     mlineshapemodel.Set(x, spec, LineShape::string2variable(var));
   }
-  
-  void SetLineShapeModelParameter(const Numeric& X, const String& spec, const String& var, const String& coeff) {
+
+  void SetLineShapeModelParameter(const Numeric& X,
+                                  const String& spec,
+                                  const String& var,
+                                  const String& coeff) {
     auto x = GetLineShapeModelParameters(spec, var);
     LineShape::SingleModelParameter(x, coeff) = X;
     SetLineShapeModelParameters(x, spec, var);
   }
-  
-  LineShape::ModelParameters GetLineShapeModelParameters(const String& spec, const String& var) const { return mlineshapemodel.Get(spec, LineShape::string2variable(var)); }
-  
-  void SetSpecial() {mstandard = false;}
-  void SetStandard() {mstandard = true;}
-  
-  bool LineMixingByBand() const {return not mstandard;}
 
-  bool LineShapeModelHasAir() const noexcept {return mlineshapemodel.Bath();}
-  
-  void SetAirPressureBroadening(Numeric& G0, Numeric& D0, const Numeric& T, const Numeric& P, const Numeric& self_vmr) const {
-    G0 = P * (
-      mlineshapemodel.Data().front().compute(T, mti0, LineShape::Variable::G0) * self_vmr +
-      mlineshapemodel.Data().back().compute(T, mti0, LineShape::Variable::G0) * (1-self_vmr));
-    D0 = P * (
-      mlineshapemodel.Data().front().compute(T, mti0, LineShape::Variable::D0) * self_vmr +
-      mlineshapemodel.Data().back().compute(T, mti0, LineShape::Variable::D0) * (1-self_vmr));
+  LineShape::ModelParameters GetLineShapeModelParameters(
+      const String& spec, const String& var) const {
+    return mlineshapemodel.Get(spec, LineShape::string2variable(var));
   }
-  
+
+  void SetSpecial() { mstandard = false; }
+  void SetStandard() { mstandard = true; }
+
+  bool LineMixingByBand() const { return not mstandard; }
+
+  bool LineShapeModelHasAir() const noexcept { return mlineshapemodel.Bath(); }
+
+  void SetAirPressureBroadening(Numeric& G0,
+                                Numeric& D0,
+                                const Numeric& T,
+                                const Numeric& P,
+                                const Numeric& self_vmr) const {
+    G0 = P * (mlineshapemodel.Data().front().compute(
+                  T, mti0, LineShape::Variable::G0) *
+                  self_vmr +
+              mlineshapemodel.Data().back().compute(
+                  T, mti0, LineShape::Variable::G0) *
+                  (1 - self_vmr));
+    D0 = P * (mlineshapemodel.Data().front().compute(
+                  T, mti0, LineShape::Variable::D0) *
+                  self_vmr +
+              mlineshapemodel.Data().back().compute(
+                  T, mti0, LineShape::Variable::D0) *
+                  (1 - self_vmr));
+  }
+
   Numeric PressureBroadeningAirBroadeningNair() const { return Nair(); }
-  Numeric PressureBroadeningAirBroadeningPsf( ) const { return Psf(); }
+  Numeric PressureBroadeningAirBroadeningPsf() const { return Psf(); }
   Numeric PressureBroadeningAirBroadeningAgam() const { return Agam(); }
 
-  Numeric GetPrepInternalDerivative(const Numeric& T, const Numeric& P, const Vector& vmrs,
-                                    const RetrievalQuantity& derivative) const noexcept {
+  Numeric GetPrepInternalDerivative(const Numeric& T,
+                                    const Numeric& P,
+                                    const Vector& vmrs,
+                                    const RetrievalQuantity& derivative) const
+      noexcept {
     const bool self = derivative.Mode() == LineShape::self_broadening;
     const bool bath = derivative.Mode() == LineShape::bath_broadening;
-    if(mlineshapemodel.Self() and self)
-      return mlineshapemodel.GetInternalDeriv(T, mti0, P, 0, vmrs, derivative.PropMatType());
-    else if(self) {
+    if (mlineshapemodel.Self() and self)
+      return mlineshapemodel.GetInternalDeriv(
+          T, mti0, P, 0, vmrs, derivative.PropMatType());
+    else if (self) {
       const auto pos = mlineshapemodel.this_species(mqid);
-      return mlineshapemodel.GetInternalDeriv(T, mti0, P, pos, vmrs, derivative.PropMatType());
-    }
-    else if(mlineshapemodel.Bath() and bath)
-      return mlineshapemodel.GetInternalDeriv(T, mti0, P, mlineshapemodel.nelem()-1, vmrs, derivative.PropMatType());
-    else if(bath)
+      return mlineshapemodel.GetInternalDeriv(
+          T, mti0, P, pos, vmrs, derivative.PropMatType());
+    } else if (mlineshapemodel.Bath() and bath)
+      return mlineshapemodel.GetInternalDeriv(T,
+                                              mti0,
+                                              P,
+                                              mlineshapemodel.nelem() - 1,
+                                              vmrs,
+                                              derivative.PropMatType());
+    else if (bath)
       return 0;
     else {
-      const auto pos = mlineshapemodel.this_species(derivative.QuantumIdentity());
-      return mlineshapemodel.GetInternalDeriv(T, mti0, P, pos, vmrs, derivative.PropMatType());
+      const auto pos =
+          mlineshapemodel.this_species(derivative.QuantumIdentity());
+      return mlineshapemodel.GetInternalDeriv(
+          T, mti0, P, pos, vmrs, derivative.PropMatType());
     }
   }
 
-  Numeric GetInternalDerivative(const Numeric& T, const Numeric& P, const ConstVectorView vmrs,
-                                const ArrayOfArrayOfSpeciesTag& abs_species, 
+  Numeric GetInternalDerivative(const Numeric& T,
+                                const Numeric& P,
+                                const ConstVectorView vmrs,
+                                const ArrayOfArrayOfSpeciesTag& abs_species,
                                 const RetrievalQuantity& derivative) const {
     auto v = mlineshapemodel.vmrs(vmrs, abs_species, mqid);
     return GetPrepInternalDerivative(T, P, v, derivative);
   }
-  
-  LineShape::Output GetPrepShapeParams(const Numeric& T, const Numeric& P, const Vector& vmrs) const noexcept {
+
+  LineShape::Output GetPrepShapeParams(const Numeric& T,
+                                       const Numeric& P,
+                                       const Vector& vmrs) const noexcept {
     auto x = mlineshapemodel.GetParams(T, mti0, P, vmrs);
-    if(not do_linemixing(P))
-      x.Y = x.G = x.DV = 0;
+    if (not do_linemixing(P)) x.Y = x.G = x.DV = 0;
     return x;
   }
-  
+
   /*! Method to compute the line mixing and pressure broadening parameters */
-  LineShape::Output GetShapeParams(const Numeric& T, const Numeric& P, const ConstVectorView vmrs,
-                                   const ArrayOfArrayOfSpeciesTag& abs_species) const {
+  LineShape::Output GetShapeParams(
+      const Numeric& T,
+      const Numeric& P,
+      const ConstVectorView vmrs,
+      const ArrayOfArrayOfSpeciesTag& abs_species) const {
     auto v = mlineshapemodel.vmrs(vmrs, abs_species, mqid);
     return GetPrepShapeParams(T, P, v);
   }
-  
-  LineShape::Output GetPrepShapeParams_dT(const Numeric& T, const Numeric& P, const Vector& vmrs) const noexcept {
+
+  LineShape::Output GetPrepShapeParams_dT(const Numeric& T,
+                                          const Numeric& P,
+                                          const Vector& vmrs) const noexcept {
     auto x = mlineshapemodel.GetTemperatureDerivs(T, mti0, P, vmrs);
-    if(not do_linemixing(P))
-      x.Y = x.G = x.DV = 0;
+    if (not do_linemixing(P)) x.Y = x.G = x.DV = 0;
     return x;
   }
-  
+
   /*! Method to compute the temperature derivatives of line mixing and pressure broadening parameters */
-  LineShape::Output GetShapeParams_dT(const Numeric& T, const Numeric& P, const ConstVectorView vmrs,
-                                      const ArrayOfArrayOfSpeciesTag& abs_species) const {
+  LineShape::Output GetShapeParams_dT(
+      const Numeric& T,
+      const Numeric& P,
+      const ConstVectorView vmrs,
+      const ArrayOfArrayOfSpeciesTag& abs_species) const {
     auto v = mlineshapemodel.vmrs(vmrs, abs_species, mqid);
     return GetPrepShapeParams_dT(T, P, v);
   }
-  
+
   /*! Method to compute the temperature derivatives of line mixing and pressure broadening parameters */
-  LineShape::Output GetShapeParams_dVMR(const Numeric& T, const Numeric& P,
-                                        const QuantumIdentifier& vmr_qi) const noexcept {
+  LineShape::Output GetShapeParams_dVMR(const Numeric& T,
+                                        const Numeric& P,
+                                        const QuantumIdentifier& vmr_qi) const
+      noexcept {
     const bool self = vmr_qi.Species() == mqid.Species();
-    if(mlineshapemodel.Self() and self) {
+    if (mlineshapemodel.Self() and self) {
       auto x = mlineshapemodel.GetVMRDerivs(T, mti0, P, 0);
-      
-      if(mlineshapemodel.Bath())
-        x = LineShape::differenceOutput(x, mlineshapemodel.GetVMRDerivs(T, mti0, P, mlineshapemodel.nelem()-1));
-      
-      if(not do_linemixing(P))
-        x.Y = x.G = x.DV = 0;
-      
+
+      if (mlineshapemodel.Bath())
+        x = LineShape::differenceOutput(
+            x,
+            mlineshapemodel.GetVMRDerivs(
+                T, mti0, P, mlineshapemodel.nelem() - 1));
+
+      if (not do_linemixing(P)) x.Y = x.G = x.DV = 0;
+
       return x;
-    }
-    else if(mlineshapemodel.Bath() and self)
-      return {0,0,0, 0,0,0, 0,0,0};
+    } else if (mlineshapemodel.Bath() and self)
+      return {0, 0, 0, 0, 0, 0, 0, 0, 0};
     else {
       const auto pos = mlineshapemodel.this_species(vmr_qi);
       auto x = mlineshapemodel.GetVMRDerivs(T, mti0, P, pos);
-      
-      if(mlineshapemodel.Bath())
-        x = LineShape::differenceOutput(x, mlineshapemodel.GetVMRDerivs(T, mti0, P, mlineshapemodel.nelem()-1));
-      
-      if(not do_linemixing(P))
-        
-        x.Y = x.G = x.DV = 0;
+
+      if (mlineshapemodel.Bath())
+        x = LineShape::differenceOutput(
+            x,
+            mlineshapemodel.GetVMRDerivs(
+                T, mti0, P, mlineshapemodel.nelem() - 1));
+
+      if (not do_linemixing(P)) x.Y = x.G = x.DV = 0;
       return x;
     }
   }
-  
+
   /** Zeeman Effect Data */
   void ZeemanModelInit() { mzeemanmodel = Zeeman::Model(mqid); }
   void ZeemanModelInitZero() { mzeemanmodel = Zeeman::Model(); }
   Numeric ZeemanModelStrength(Zeeman::Polarization type, Index i) const {
     return mzeemanmodel.Strength(UpperQuantumNumber(QuantumNumberType::J),
-                                 LowerQuantumNumber(QuantumNumberType::J), type, i);
+                                 LowerQuantumNumber(QuantumNumberType::J),
+                                 type,
+                                 i);
   }
-  Numeric ZeemanModelSplitting(Zeeman::Polarization type, Index i) const { 
+  Numeric ZeemanModelSplitting(Zeeman::Polarization type, Index i) const {
     return mzeemanmodel.Splitting(UpperQuantumNumber(QuantumNumberType::J),
-                                  LowerQuantumNumber(QuantumNumberType::J), type, i);
+                                  LowerQuantumNumber(QuantumNumberType::J),
+                                  type,
+                                  i);
   }
-  Index ZeemanModelLineCount(Zeeman::Polarization type) const { 
-    return Zeeman::nelem(UpperQuantumNumber(QuantumNumberType::J), LowerQuantumNumber(QuantumNumberType::J), type);
+  Index ZeemanModelLineCount(Zeeman::Polarization type) const {
+    return Zeeman::nelem(UpperQuantumNumber(QuantumNumberType::J),
+                         LowerQuantumNumber(QuantumNumberType::J),
+                         type);
   }
-  Zeeman::Model ZeemanModel() const { 
-    return mzeemanmodel;
-  }
-  Zeeman::Model& ZeemanModel() { 
-    return mzeemanmodel;
-  }
-  
+  Zeeman::Model ZeemanModel() const { return mzeemanmodel; }
+  Zeeman::Model& ZeemanModel() { return mzeemanmodel; }
+
   /** Cutoff frequency */
-  const Numeric& CutOff() const {return mcutoff;}
-  void SetCutOff(const Numeric& cutoff) {mcutoff = cutoff;}
-  
+  const Numeric& CutOff() const { return mcutoff; }
+  void SetCutOff(const Numeric& cutoff) { mcutoff = cutoff; }
+
   /** Line mixing pressure limit */
-  const Numeric& LineMixingLimit() const {return mlinemixing_limit;}
-  void SetLineMixingLimit(const Numeric& limit) {mlinemixing_limit = limit;}
-  
+  const Numeric& LineMixingLimit() const { return mlinemixing_limit; }
+  void SetLineMixingLimit(const Numeric& limit) { mlinemixing_limit = limit; }
+
   /** Line shape mirroring factor */
-  const MirroringType& GetMirroringType() const {return mmirroring;}
-  void SetMirroringType(const MirroringType in) {mmirroring = in;}
+  const MirroringType& GetMirroringType() const { return mmirroring; }
+  void SetMirroringType(const MirroringType in) { mmirroring = in; }
   String GetMirroringTypeString() const;
-  
+
   /** Line shape normalization factor */
-  const LineNormalizationType& GetLineNormalizationType() const {return mlinenorm;}
-  void SetLineNormalizationType(const LineNormalizationType in) {mlinenorm = in;}
+  const LineNormalizationType& GetLineNormalizationType() const {
+    return mlinenorm;
+  }
+  void SetLineNormalizationType(const LineNormalizationType in) {
+    mlinenorm = in;
+  }
   String GetLineNormalizationTypeString() const;
 
-  LineShape::Type GetLineShapeType() const noexcept {return mlineshapemodel.ModelType();}
+  LineShape::Type GetLineShapeType() const noexcept {
+    return mlineshapemodel.ModelType();
+  }
 
   /** Line population type */
-  const LinePopulationType& GetLinePopulationType() const {return mpopulation;}
-  void SetLinePopulationType(const LinePopulationType in) {mpopulation = in;}
+  const LinePopulationType& GetLinePopulationType() const {
+    return mpopulation;
+  }
+  void SetLinePopulationType(const LinePopulationType in) { mpopulation = in; }
   String GetLinePopulationTypeString() const;
-  
-  bool IsNotSameSpecIso(const LineRecord& other) const {return mqid.Species() not_eq other.mqid.Species() or mqid.Isotopologue() not_eq other.mqid.Isotopologue();}
-  
+
+  bool IsNotSameSpecIso(const LineRecord& other) const {
+    return mqid.Species() not_eq other.mqid.Species() or
+           mqid.Isotopologue() not_eq other.mqid.Isotopologue();
+  }
+
   /** Read one line from a stream associated with a HITRAN 1986-2001 file. The
     HITRAN format is as follows (directly from the HITRAN documentation):
 
@@ -777,14 +871,12 @@ public:
     \author Stefan Buehler */
   bool ReadFromHitran2001Stream(istream& is, const Verbosity& verbosity);
 
-  
-/** LBLRTM uses the same format as HITRAN pre-2004 but also carry 
+  /** LBLRTM uses the same format as HITRAN pre-2004 but also carry 
     line mixing data, so we must read it separately.
 
    \author Richard Larsson
    \date   2014-09-24 */
   bool ReadFromLBLRTMStream(istream& is, const Verbosity& verbosity);
-
 
   /** Read one line from a stream associated with a HITRAN 2004 file. The
     HITRAN format is as follows:
@@ -859,8 +951,10 @@ public:
     \return false=ok (data returned), true=eof (no data returned)
 
     \author Stefan Buehler, Hermann Berg */
-  bool ReadFromHitran2004Stream(istream& is, const Verbosity& verbosity, const Numeric fmin=0);
-  
+  bool ReadFromHitran2004Stream(istream& is,
+                                const Verbosity& verbosity,
+                                const Numeric fmin = 0);
+
   /** Read one line from a stream associated with a MYTRAN2 file. The MYTRAN2
     format is as follows (directly taken from the abs_my.c documentation):
 
@@ -930,7 +1024,6 @@ public:
     \author Axel von Engeln 
   */
   bool ReadFromMytran2Stream(istream& is, const Verbosity& verbosity);
-
 
   /** Read one line from a stream associated with a JPL file. The JPL
     format is as follows (directly taken from the jpl documentation):
@@ -1028,7 +1121,6 @@ public:
    */
   bool ReadFromArtscat4Stream(istream& is, const Verbosity& verbosity);
 
-
   /** Read one line from a stream associated with an ARTSCAT-5 file.
    
    Format: see Documentation of class LineRecord
@@ -1048,65 +1140,65 @@ public:
    */
   bool ReadFromArtscat5Stream(istream& is, const Verbosity& verbosity);
 
-private:
+ private:
   // Version number:
   Index mversion;
-  
+
   // Identity of line
   QuantumIdentifier mqid;
-  
+
   // The line center frequency in Hz:
   Numeric mf;
-  
+
   // The line intensity in m^2/Hz:
   Numeric mi0;
-  
+
   // Reference temperature for I0 in K:
   Numeric mti0;
-  
+
   // Lower state energy in Joules:
   Numeric melow;
-  
+
   // Lower state vibrational energy in Joules:
   Numeric mevlow;  // NOTE: Not stored in binary data
-  
+
   // Lower state vibrational energy index:
   Index mnlte_lower_index;  // NOTE: Not stored in binary data
-  
+
   // Upper state vibrational energy in Joules:
   Numeric mevupp;  // NOTE: Not stored in binary data
-  
+
   // Upper state vibrational energy index:
   Index mnlte_upper_index;  // NOTE: Not stored in binary data
-  
+
   // Einstein A-coefficient in 1/s:
   Numeric ma;
-  
+
   // Upper state stat. weight:
   Numeric mgupper;
-  
+
   // Lower state stat. weight:
   Numeric mglower;
-  
+
   /** Line function data (pressure broadening and line mixing) */
   LineShape::Model mlineshapemodel;
   bool mstandard;
-  
+
   /** Zeeman effect model class */
   Zeeman::Model mzeemanmodel;
-  
+
   /** Cutoff frequency */
   Numeric mcutoff;
-  
+
   /** Line mixing pressure limit */
   Numeric mlinemixing_limit;
-  
+
   /** Line shape mirroring effect type */
   MirroringType mmirroring;
-  
+
   /** Line shape normalization type */
   LineNormalizationType mlinenorm;
-  
+
   /** Line LTE/NLTE type */
   LinePopulationType mpopulation;
 };
@@ -1116,7 +1208,6 @@ private:
 
     \author Stefan Buehler */
 ostream& operator<<(ostream& os, const LineRecord& lr);
-
 
 //======================================================================
 //         Typedefs for LineRecord Arrays
@@ -1129,7 +1220,7 @@ typedef Array<LineRecord> ArrayOfLineRecord;
 /** Holds a lists of spectral line data for each tag group.
     Dimensions: (tag_groups.nelem()) (number of lines for this tag)
     \author Stefan Buehler */
-typedef Array< Array<LineRecord> > ArrayOfArrayOfLineRecord;
+typedef Array<Array<LineRecord> > ArrayOfArrayOfLineRecord;
 
 LinePopulationType LinePopulationTypeFromString(const String& in);
 
@@ -1137,4 +1228,4 @@ MirroringType MirroringTypeFromString(const String& in);
 
 LineNormalizationType LineNormalizationTypeFromString(const String& in);
 
-#endif // linerecord_h
+#endif  // linerecord_h

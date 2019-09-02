@@ -41,40 +41,33 @@
 */
 
 class AgRecord {
-public:
-
+ public:
   //! Default constructor.
-  AgRecord() : mname(""),
-               mdescription(""),
-               moutput(0),
-               minput(0)
-  {
+  AgRecord() : mname(""), mdescription(""), moutput(0), minput(0) {
     // Nothing to do here.
   }
 
   // Initializing constructor. Implementation in .cc file.
-  AgRecord(const char           name[],
-           const char           description[],
+  AgRecord(const char name[],
+           const char description[],
            const ArrayOfString& output,
            const ArrayOfString& input);
 
-  const String&            Name()         const { return mname;          }   
-  const String&            Description()  const { return mdescription;   }
-  const ArrayOfIndex&      Out()          const { return moutput;        }
-  const ArrayOfIndex&      In()           const { return minput;         }
+  const String& Name() const { return mname; }
+  const String& Description() const { return mdescription; }
+  const ArrayOfIndex& Out() const { return moutput; }
+  const ArrayOfIndex& In() const { return minput; }
 
   //! Assignment operator.
   /*! To override the default assignment operator. AgRecords cannot be
       assigned! */
-  AgRecord operator=(const AgRecord& /* m */)
-  {
+  AgRecord operator=(const AgRecord& /* m */) {
     cout << "AgRecord cannot be assigned!\n";
     arts_exit();
     return AgRecord();
   }
 
-private:
-
+ private:
   //! The name of this agenda.
   String mname;
 
@@ -86,12 +79,11 @@ private:
 
   //! Workspace Input.
   ArrayOfIndex minput;
-
 };
 
-void  define_agenda_data();
+void define_agenda_data();
 
-void  define_agenda_map();
+void define_agenda_map();
 
 bool check_agenda_data();
 

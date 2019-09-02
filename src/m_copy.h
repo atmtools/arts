@@ -29,22 +29,20 @@
 #ifndef m_copy_h
 #define m_copy_h
 
+#include "agenda_class.h"
 #include "messages.h"
 #include "mystring.h"
 #include "workspace_ng.h"
-#include "agenda_class.h"
-
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-template< class T >
-void Copy(// WS Generic Output:
-          T& out,
-          const String& /* out_name */,
-          // WS Generic Input:
-          const T& in,
-          const String& /* in_name */,
-          const Verbosity&)
-{
+template <class T>
+void Copy(  // WS Generic Output:
+    T& out,
+    const String& /* out_name */,
+    // WS Generic Input:
+    const T& in,
+    const String& /* in_name */,
+    const Verbosity&) {
   out = in;
 }
 
@@ -56,13 +54,11 @@ void Copy(Workspace& ws,
           // WS Generic Input:
           const Agenda& in,
           const String& /* in_name */,
-          const Verbosity& verbosity)
-{
+          const Verbosity& verbosity) {
   out = in;
   out.set_name(out_name);
   out.check(ws, verbosity);
 }
-
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Copy(Workspace& ws,
@@ -72,14 +68,12 @@ void Copy(Workspace& ws,
           // WS Generic Input:
           const ArrayOfAgenda& in,
           const String& /* in_name */,
-          const Verbosity& verbosity)
-{
+          const Verbosity& verbosity) {
   out = in;
-  for (ArrayOfAgenda::iterator it = out.begin(); it != out.end(); it++)
-  {
+  for (ArrayOfAgenda::iterator it = out.begin(); it != out.end(); it++) {
     (*it).set_name(out_name);
     (*it).check(ws, verbosity);
   }
 }
 
-#endif // m_copy_h
+#endif  // m_copy_h

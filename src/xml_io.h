@@ -15,7 +15,6 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-
 ////////////////////////////////////////////////////////////////////////////
 //   File description
 ////////////////////////////////////////////////////////////////////////////
@@ -28,15 +27,14 @@
 
 */
 
-
 #ifndef xml_io_h
 #define xml_io_h
 
-#include "mystring.h"
 #include "absorption.h"
+#include "mystring.h"
 
-enum FileType{
-  FILE_TYPE_ASCII        = 0,
+enum FileType {
+  FILE_TYPE_ASCII = 0,
   FILE_TYPE_ZIPPED_ASCII = 1,
   FILE_TYPE_BINARY = 2
 };
@@ -44,45 +42,43 @@ enum FileType{
 enum NumericType { NUMERIC_TYPE_FLOAT, NUMERIC_TYPE_DOUBLE };
 enum EndianType { ENDIAN_TYPE_LITTLE, ENDIAN_TYPE_BIG };
 
-
 ////////////////////////////////////////////////////////////////////////////
 //   Default file names
 ////////////////////////////////////////////////////////////////////////////
 
 void filename_xml(String& filename, const String& varname);
 
-void filename_xml_with_index(String&       filename,
-                             const Index&  file_index,
+void filename_xml_with_index(String& filename,
+                             const Index& file_index,
                              const String& varname,
-                             const Index&  digits = 0);
-
+                             const Index& digits = 0);
 
 ////////////////////////////////////////////////////////////////////////////
 //   Generic IO routines for XML files
 ////////////////////////////////////////////////////////////////////////////
 
-template<typename T>
-void xml_read_from_file(const String&    filename,
-                        T&               type,
+template <typename T>
+void xml_read_from_file(const String& filename,
+                        T& type,
                         const Verbosity& verbosity);
 
-void xml_read_arts_catalogue_from_file(const String&      filename,
+void xml_read_arts_catalogue_from_file(const String& filename,
                                        ArrayOfLineRecord& type,
-                                       const Numeric&     fmin,
-                                       const Numeric&     fmax,
-                                       const Verbosity&   verbosity);
+                                       const Numeric& fmin,
+                                       const Numeric& fmax,
+                                       const Verbosity& verbosity);
 
-template<typename T>
-void xml_write_to_file(const String&    filename,
-                       const T&         type,
-                       const FileType   ftype,
-                       const Index      no_clobber,
+template <typename T>
+void xml_write_to_file(const String& filename,
+                       const T& type,
+                       const FileType ftype,
+                       const Index no_clobber,
                        const Verbosity& verbosity);
 
-template<typename T>
+template <typename T>
 void xml_read_from_file(const String&, T&, const Verbosity&);
 
-template<typename T>
+template <typename T>
 void xml_write_to_file(const String&, const T&, FileType, const Verbosity&);
 
 #endif

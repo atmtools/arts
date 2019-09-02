@@ -30,8 +30,8 @@
 #ifndef INTERACTIVE_WORKSPACE_INCLUDED
 #define INTERACTIVE_WORKSPACE_INCLUDED
 
-#include "workspace_ng.h"
 #include "agenda_class.h"
+#include "workspace_ng.h"
 
 extern void (*getaways[])(Workspace &, const MRecord &);
 
@@ -49,21 +49,16 @@ class InteractiveWorkspace;
  * which the callback is executed.
  */
 struct Callback {
+  Callback(void (*f)(InteractiveWorkspace *))
+      : _callback(f){
+            // Nothing to do here.
+        };
 
-    Callback(void (*f)(InteractiveWorkspace *))
-       : _callback(f)
-    {
-        // Nothing to do here.
-    };
+  virtual ~Callback(){};
 
-    virtual ~Callback() {};
+  virtual void execute(InteractiveWorkspace &ws) { (*_callback)(&ws); };
 
-    virtual void execute(InteractiveWorkspace &ws) {
-        (*_callback)(&ws);
-    };
-
-    void (*_callback)(InteractiveWorkspace *);
-
+  void (*_callback)(InteractiveWorkspace *);
 };
 
 //! The interactive workspace class.
@@ -72,67 +67,87 @@ struct Callback {
  * that are required to allow interactive simulation session.
  */
 class InteractiveWorkspace : private Workspace {
-public:
+ public:
+  InteractiveWorkspace(const Index verbosity = 1,
+                       const Index agenda_verbosity = 0);
 
-    InteractiveWorkspace(const Index verbosity= 1,
-                         const Index agenda_verbosity = 0);
+  using Workspace::is_initialized;
+  using Workspace::operator[];
 
-    using Workspace::is_initialized;
-    using Workspace::operator[];
+  static void initialize();
 
-    static void initialize();
+  const char *execute_agenda(const Agenda *a);
 
-    const char * execute_agenda(const Agenda *a);
+  const char *execute_workspace_method(long id,
+                                       const ArrayOfIndex &output,
+                                       const ArrayOfIndex &input);
 
+  void set_agenda_variable(Index id, const Agenda &src);
+  void set_index_variable(Index id, const Index &src);
+  void set_numeric_variable(Index id, const Numeric &src);
+  void set_string_variable(Index id, const char *src);
+  void set_array_of_string_variable(Index id, size_t n, const char *const *src);
+  void set_array_of_index_variable(Index id, size_t n, const Index *src);
+  void set_vector_variable(Index id, size_t n, const Numeric *src);
+  void set_matrix_variable(Index id, size_t m, size_t n, const Numeric *src);
+  void set_tensor3_variable(
+      Index id, size_t l, size_t m, size_t n, const Numeric *src);
+  void set_tensor4_variable(
+      Index id, size_t k, size_t l, size_t m, size_t n, const Numeric *src);
+  void set_tensor5_variable(Index id,
+                            size_t k,
+                            size_t l,
+                            size_t m,
+                            size_t n,
+                            size_t o,
+                            const Numeric *src);
+  void set_tensor6_variable(Index id,
+                            size_t k,
+                            size_t l,
+                            size_t m,
+                            size_t n,
+                            size_t o,
+                            size_t p,
+                            const Numeric *src);
+  void set_tensor7_variable(Index id,
+                            size_t k,
+                            size_t l,
+                            size_t m,
+                            size_t n,
+                            size_t o,
+                            size_t p,
+                            size_t q,
+                            const Numeric *src);
+  void set_sparse_variable(Index id,
+                           Index m,
+                           Index n,
+                           Index nnz,
+                           const Numeric *src,
+                           const int *inner_ptr,
+                           const int *outer_ptr);
+  void resize();
 
-    const char * execute_workspace_method(long id,
-                                          const ArrayOfIndex &output,
-                                          const ArrayOfIndex &input);
+  void execute_callback(Index callback_id) {
+    callbacks_[callback_id]->execute(*this);
+  }
 
-    void set_agenda_variable(Index id, const Agenda &src);
-    void set_index_variable(Index id, const Index &src);
-    void set_numeric_variable(Index id, const Numeric &src);
-    void set_string_variable(Index id, const char *src);
-    void set_array_of_string_variable(Index id, size_t n, const char * const *src);
-    void set_array_of_index_variable(Index id, size_t n, const Index *src);
-    void set_vector_variable(Index id, size_t n, const Numeric *src);
-    void set_matrix_variable(Index id, size_t m, size_t n, const Numeric *src);
-    void set_tensor3_variable(Index id, size_t l, size_t m, size_t n, const Numeric *src);
-    void set_tensor4_variable(Index id, size_t k, size_t l, size_t m, size_t n,
-                              const Numeric *src);
-    void set_tensor5_variable(Index id, size_t k, size_t l, size_t m, size_t n,
-                              size_t o, const Numeric *src);
-    void set_tensor6_variable(Index id, size_t k, size_t l, size_t m, size_t n,
-                              size_t o, size_t p, const Numeric *src);
-    void set_tensor7_variable(Index id, size_t k, size_t l, size_t m, size_t n,
-                              size_t o, size_t p, size_t q, const Numeric *src);
-    void set_sparse_variable(Index id, Index m, Index n, Index nnz,
-                             const Numeric *src,
-                             const int *inner_ptr,
-                             const int *outer_ptr);
-    void resize();
+  static Index add_callback(Callback *cb) {
+    Index id = callbacks_.size();
+    callbacks_.push_back(cb);
+    return id;
+  }
 
-    void execute_callback(Index callback_id) {
-        callbacks_[callback_id]->execute(*this);
-    }
-
-    static Index add_callback(Callback *cb) {
-        Index id = callbacks_.size();
-        callbacks_.push_back(cb);
-        return id;
-    }
-
-    //! Initialize workspace variable.
-    /*!
+  //! Initialize workspace variable.
+  /*!
       If unitialized, initializes the workspace variable. If variable
       exists it is reinitialized to be empty.
 
       \param id Workspace variable index of the variable to (re)initialize.
     */
-    void initialize_variable(Index id);
+  void initialize_variable(Index id);
 
-    //! Push a stack for a new variable to the workspace.
-    /*!
+  //! Push a stack for a new variable to the workspace.
+  /*!
     Registers a new variable with and adds a new stack to the given workspace.
     If name is nullptr, a unique name is created.
 
@@ -140,32 +155,30 @@ public:
     \param name Char pointer to the name of the variable.
     \return Index of the newly pushed stack
     */
-    Index add_variable(Index group_id, const char *name);
+  Index add_variable(Index group_id, const char *name);
 
-    //! Remove a variable stack from the workspace.
-    /*!
+  //! Remove a variable stack from the workspace.
+  /*!
     Remove the stack given by index id from the workspace. This is used by
     the C API to control the workspace size.
 
     \param i Index of the stack to erase.
     \param group_id Index of the group of the variable.
     */
-    void erase_variable(Index i, Index group_id);
+  void erase_variable(Index i, Index group_id);
 
-    //! Remove a variable stack from the workspace.
-    /*!
+  //! Remove a variable stack from the workspace.
+  /*!
     Remove the stack given by index id from the workspace. This is used by
     the C API to control the workspace size.
 
     \param i Index of the stack to erase.
     */
-    void swap(Index i, Index j);
+  void swap(Index i, Index j);
 
-private:
-
-    static size_t     n_anonymous_variables_;
-    static std::vector<Callback*> callbacks_;
-
+ private:
+  static size_t n_anonymous_variables_;
+  static std::vector<Callback *> callbacks_;
 };
 
-#endif // INTERACTIVE_WORKSPACE_INCLUDED
+#endif  // INTERACTIVE_WORKSPACE_INCLUDED

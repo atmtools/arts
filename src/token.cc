@@ -15,64 +15,65 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
+#include "token.h"
 #include "arts.h"
 #include "messages.h"
-#include "token.h"
 
 /** The name of the type associated with the different tokens. This
     has to be the name exactly as it appears in declarations of these
     variables in the program, because it is used by make_md_h.cc to
     automatically generate declarations for method functions. */
-String TokValTypeName[8] = {"String", "Index", "Numeric",
-                            "ArrayOfString", "ArrayOfIndex",
-                            "Vector", "Matrix", "undefined"};
+String TokValTypeName[8] = {"String",
+                            "Index",
+                            "Numeric",
+                            "ArrayOfString",
+                            "ArrayOfIndex",
+                            "Vector",
+                            "Matrix",
+                            "undefined"};
 
+// Conversion functions to read TokVal for the 6 different types:
 
-// Conversion functions to read TokVal for the 6 different types: 
-  
 TokVal::operator String() const {
-  assert (mtype == String_t);
+  assert(mtype == String_t);
   return ms;
 }
 
 TokVal::operator Index() const {
-  assert (mtype == Index_t);
+  assert(mtype == Index_t);
   return mn;
 }
-  
+
 TokVal::operator Numeric() const {
-  assert (mtype == Numeric_t);
+  assert(mtype == Numeric_t);
   return mx;
 }
 
-
 TokVal::operator ArrayOfString() const {
-  assert (mtype == Array_String_t);
+  assert(mtype == Array_String_t);
   return msv;
 }
 
 TokVal::operator ArrayOfIndex() const {
-  assert (mtype == Array_Index_t);
+  assert(mtype == Array_Index_t);
   return mnv;
 }
-  
+
 TokVal::operator Vector() const {
-  assert (mtype == Vector_t);
+  assert(mtype == Vector_t);
   return mxv;
 }
 
 TokVal::operator Matrix() const {
-  assert (mtype == Matrix_t);
+  assert(mtype == Matrix_t);
   return mm;
 }
 
-ostream& operator<<(ostream& os, const TokVal& a)
-{
+ostream& operator<<(ostream& os, const TokVal& a) {
   // This is needed for nice formating:
   bool first = true;
 
-  switch (a.mtype)
-    {
+  switch (a.mtype) {
     case String_t:
       os << "\"" << a.ms << "\"";
       break;
@@ -84,62 +85,63 @@ ostream& operator<<(ostream& os, const TokVal& a)
       break;
     case Array_String_t:
       os << "[";
-      for ( Index i=0; i<a.msv.nelem(); ++i )
-        {
-          if (first) first=false;
-          else os << ",";
-          os << "\"" << a.msv[i] << "\"";
-        }
+      for (Index i = 0; i < a.msv.nelem(); ++i) {
+        if (first)
+          first = false;
+        else
+          os << ",";
+        os << "\"" << a.msv[i] << "\"";
+      }
       os << "]";
       break;
     case Array_Index_t:
       os << "[";
-      for ( Index i=0; i<a.mnv.nelem(); ++i )
-        {
-          if (first) first=false;
-          else os << ",";
+      for (Index i = 0; i < a.mnv.nelem(); ++i) {
+        if (first)
+          first = false;
+        else
+          os << ",";
 
-          os << a.mnv[i];
-        }
+        os << a.mnv[i];
+      }
       os << "]";
       break;
     case Vector_t:
       os << "[";
-      for ( Index i=0; i<a.mxv.nelem(); ++i )
-        {
-          if (first) first=false;
-          else os << ",";
+      for (Index i = 0; i < a.mxv.nelem(); ++i) {
+        if (first)
+          first = false;
+        else
+          os << ",";
 
-          os << a.mxv[i];
-        }
+        os << a.mxv[i];
+      }
       os << "]";
       break;
     case Matrix_t:
       os << "[";
-      for ( Index i=0; i<a.mm.nrows(); ++i )
-        {
-          for ( Index j=0; i<a.mm.ncols(); ++j )
-            {
-              if (first) first=false;
-              else {
-                if (j == 0)
-                  os << ";";
-                else
-                  os << ",";
-              }
+      for (Index i = 0; i < a.mm.nrows(); ++i) {
+        for (Index j = 0; i < a.mm.ncols(); ++j) {
+          if (first)
+            first = false;
+          else {
+            if (j == 0)
+              os << ";";
+            else
+              os << ",";
+          }
 
-              os << a.mm(i, j);
-            }
+          os << a.mm(i, j);
         }
+      }
       os << "]";
       break;
     default:
       cerr << "Undefined token type.\n";
-      arts_exit ();
-    }
+      arts_exit();
+  }
   return os;
 }
-
 
 // main()
 // {

@@ -21,7 +21,6 @@
 #include "config.h"
 #include "debug.h"
 
-
 //--------------------< Set floating point type >--------------------
 /** The type to use for all floating point numbers. You should never
     use float or double explicitly, unless you have a very good
@@ -34,4 +33,4 @@ typedef NUMERIC Numeric;
     reason. Always use this type instead.  */
 typedef INDEX Index;
 
-#endif    // matpackI_h
+#endif  // matpackI_h

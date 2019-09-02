@@ -17,8 +17,6 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-
-
 /*****************************************************************************
  ***  File description 
  *****************************************************************************/
@@ -31,24 +29,20 @@
    Contains basic mathematical functions.
 */
 
-
-
 /*****************************************************************************
  *** External declarations
  *****************************************************************************/
 
-#include <iostream>
+#include "math_funcs.h"
 #include <cmath>
+#include <iostream>
 #include <stdexcept>
 #include "array.h"
-#include "math_funcs.h"
 #include "logic.h"
 #include "mystring.h"
 
 extern const Numeric DEG2RAD;
 extern const Numeric PI;
-
-
 
 /*****************************************************************************
  *** The functions (in alphabetical order)
@@ -66,19 +60,16 @@ extern const Numeric PI;
     \author Oliver Lemke
     \date   2003-08-15
 */
-Numeric fac(const Index n)
-{
+Numeric fac(const Index n) {
   Numeric sum;
 
   if (n == 0) return (1.0);
 
   sum = 1.0;
-  for (Index i = 1; i <= n; i++)
-    sum *= Numeric(i);
+  for (Index i = 1; i <= n; i++) sum *= Numeric(i);
 
-  return(sum);
+  return (sum);
 }
-
 
 //! integer_div
 /*! 
@@ -93,13 +84,10 @@ Numeric fac(const Index n)
     \author Patrick Eriksson 
     \date   2002-08-11
 */
-Index integer_div( const Index& x, const Index& y )
-{
-  assert( is_multiple( x, y ) );
-  return x/y;
+Index integer_div(const Index& x, const Index& y) {
+  assert(is_multiple(x, y));
+  return x / y;
 }
-
-
 
 //! Lagrange Interpolation (internal function).
 /*! 
@@ -122,54 +110,47 @@ Index integer_div( const Index& x, const Index& y )
   \date   2003-11-25
 */
 
-Numeric LagrangeInterpol4( ConstVectorView x,
-                           ConstVectorView y,
-                           const Numeric a)
-{
+Numeric LagrangeInterpol4(ConstVectorView x,
+                          ConstVectorView y,
+                          const Numeric a) {
   // lowermost grid spacing on x-axis
   const Numeric Dlimit = 1.00000e-15;
 
   // Check that dimensions of x and y vector agree
   const Index n_x = x.nelem();
   const Index n_y = y.nelem();
-  if ( (n_x != 4) || (n_y != 4) )
-    {
-      ostringstream os;
-      os << "The vectors x and y must all have the same length of 4 elements!\n"
-        << "Actual lengths:\n"
-        << "x:" << n_x << ", " << "y:" << n_y << ".";
-      throw runtime_error(os.str());
-    }
+  if ((n_x != 4) || (n_y != 4)) {
+    ostringstream os;
+    os << "The vectors x and y must all have the same length of 4 elements!\n"
+       << "Actual lengths:\n"
+       << "x:" << n_x << ", "
+       << "y:" << n_y << ".";
+    throw runtime_error(os.str());
+  }
 
   // assure that x1 =< a < x2 holds
-  if ( (a < x[1]) || (a > x[2]) )
-    {
-      ostringstream os;
-      os << "LagrangeInterpol4: the relation x[1] =< a < x[2] is not satisfied. " 
-         << "No interpolation can be calculated.\n";
-      throw runtime_error(os.str());
-    };
+  if ((a < x[1]) || (a > x[2])) {
+    ostringstream os;
+    os << "LagrangeInterpol4: the relation x[1] =< a < x[2] is not satisfied. "
+       << "No interpolation can be calculated.\n";
+    throw runtime_error(os.str());
+  };
 
   // calculate the Lagrange polynomial coefficients for a polynomial of the order of 3
   Numeric b[4];
-  for (Index i=0 ; i < 4 ; ++i)
-    {
-      b[i] = 1.000e0;
-      for (Index k=0 ; k < 4 ; ++k)
-        {
-          if ( (k != i) && (fabs(x[i]-x[k]) > Dlimit) )  
-            b[i] = b[i] * ( (a-x[k]) / (x[i]-x[k]) );
-        };
+  for (Index i = 0; i < 4; ++i) {
+    b[i] = 1.000e0;
+    for (Index k = 0; k < 4; ++k) {
+      if ((k != i) && (fabs(x[i] - x[k]) > Dlimit))
+        b[i] = b[i] * ((a - x[k]) / (x[i] - x[k]));
     };
+  };
 
   Numeric ya = 0.000e0;
-  for (Index i=0 ; i < n_x ; ++i) ya = ya + b[i]*y[i];
+  for (Index i = 0; i < n_x; ++i) ya = ya + b[i] * y[i];
 
   return ya;
 }
-
-
-
 
 //! last
 /*! 
@@ -181,13 +162,10 @@ Numeric LagrangeInterpol4( ConstVectorView x,
     \author Patrick Eriksson 
     \date   2000-06-27
 */
-Numeric last( ConstVectorView x )
-{
-  assert( x.nelem() > 0 );
-  return x[x.nelem()-1]; 
+Numeric last(ConstVectorView x) {
+  assert(x.nelem() > 0);
+  return x[x.nelem() - 1];
 }
-
-
 
 //! last
 /*! 
@@ -199,13 +177,10 @@ Numeric last( ConstVectorView x )
     \author Patrick Eriksson 
     \date   2000-06-27
 */
-Index last( const ArrayOfIndex& x )
-{
-  assert( x.nelem() > 0 );
-  return x[x.nelem()-1]; 
+Index last(const ArrayOfIndex& x) {
+  assert(x.nelem() > 0);
+  return x[x.nelem() - 1];
 }
-
-
 
 //! linspace
 /*! 
@@ -226,21 +201,15 @@ Index last( const ArrayOfIndex& x )
     \author Patrick Eriksson
     \date   2000-06-27
 */
-void linspace(                      
-              Vector&     x,           
-              const Numeric     start,    
-              const Numeric     stop,        
-              const Numeric     step )
-{
-  Index n = (Index) floor( (stop-start)/step ) + 1;
-  if ( n<1 )
-    n=1;
+void linspace(Vector& x,
+              const Numeric start,
+              const Numeric stop,
+              const Numeric step) {
+  Index n = (Index)floor((stop - start) / step) + 1;
+  if (n < 1) n = 1;
   x.resize(n);
-  for ( Index i=0; i<n; i++ )
-    x[i] = start + (double)i*step;
+  for (Index i = 0; i < n; i++) x[i] = start + (double)i * step;
 }
-
-
 
 //! nlinspace
 /*! 
@@ -259,32 +228,24 @@ void linspace(
     \author Patrick Eriksson
     \date   2000-06-27
 */
-void nlinspace(
-               Vector&     x,
-               const Numeric     start,     
-               const Numeric     stop,        
-               const Index       n )
-{
-  assert( 1<n );                // Number of points must be greater 1.
+void nlinspace(Vector& x,
+               const Numeric start,
+               const Numeric stop,
+               const Index n) {
+  assert(1 < n);  // Number of points must be greater 1.
   x.resize(n);
-  Numeric step = (stop-start)/((double)n-1) ;
-  for ( Index i=0; i<n-1; i++ )
-    x[i] = start + (double)i*step;
-  x[n-1] = stop;
+  Numeric step = (stop - start) / ((double)n - 1);
+  for (Index i = 0; i < n - 1; i++) x[i] = start + (double)i * step;
+  x[n - 1] = stop;
 }
-void nlinspace(
-               VectorView        x,
-               const Numeric     start,     
-               const Numeric     stop,        
-               const Index       n )
-{
-  Numeric step = (stop-start)/((double)n-1) ;
-  for ( Index i=0; i<n-1; i++ )
-    x[i] = start + (double)i*step;
-  x[n-1] = stop;
+void nlinspace(VectorView x,
+               const Numeric start,
+               const Numeric stop,
+               const Index n) {
+  Numeric step = (stop - start) / ((double)n - 1);
+  for (Index i = 0; i < n - 1; i++) x[i] = start + (double)i * step;
+  x[n - 1] = stop;
 }
-
-
 
 //! nlogspace
 /*! 
@@ -303,27 +264,23 @@ void nlinspace(
     \author Patrick Eriksson
     \date   2000-06-27
 */
-void nlogspace(         
-               Vector&     x, 
-               const Numeric     start,     
-               const Numeric     stop,        
-               const Index         n )
-{
+void nlogspace(Vector& x,
+               const Numeric start,
+               const Numeric stop,
+               const Index n) {
   // Number of points must be greater than 1:
-  assert( 1<n );        
+  assert(1 < n);
   // Only positive numbers are allowed for start and stop:
-  assert( 0<start );
-  assert( 0<stop );
+  assert(0 < start);
+  assert(0 < stop);
 
   x.resize(n);
   Numeric a = log(start);
-  Numeric step = (log(stop)-a)/((double)n-1);
+  Numeric step = (log(stop) - a) / ((double)n - 1);
   x[0] = start;
-  for ( Index i=1; i<n-1; i++ )
-    x[i] = exp(a + (double)i*step);
-  x[n-1] = stop;
+  for (Index i = 1; i < n - 1; i++) x[i] = exp(a + (double)i * step);
+  x[n - 1] = stop;
 }
-
 
 //! AngIntegrate_trapezoid
 /*! 
@@ -338,34 +295,28 @@ void nlogspace(
 */
 Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
                                ConstVectorView za_grid,
-                               ConstVectorView aa_grid)
-{
-
+                               ConstVectorView aa_grid) {
   Index n = za_grid.nelem();
   Index m = aa_grid.nelem();
   Vector res1(n);
-  assert (is_size(Integrand, n, m));
-  
-  for (Index i = 0; i < n ; ++i)
-    {
-      res1[i] = 0.0;
-      
-      for (Index j = 0; j < m - 1; ++j)
-        {
-          res1[i] +=  0.5 * DEG2RAD * (Integrand(i, j) + Integrand(i, j + 1)) *
-            (aa_grid[j + 1] - aa_grid[j]) * sin(za_grid[i] * DEG2RAD);
-        }
+  assert(is_size(Integrand, n, m));
+
+  for (Index i = 0; i < n; ++i) {
+    res1[i] = 0.0;
+
+    for (Index j = 0; j < m - 1; ++j) {
+      res1[i] += 0.5 * DEG2RAD * (Integrand(i, j) + Integrand(i, j + 1)) *
+                 (aa_grid[j + 1] - aa_grid[j]) * sin(za_grid[i] * DEG2RAD);
     }
+  }
   Numeric res = 0.0;
-  for (Index i = 0; i < n - 1; ++i)
-    {
-      res += 0.5 * DEG2RAD * (res1[i] + res1[i + 1]) * 
-        (za_grid[i + 1] - za_grid[i]);
-    }
-  
+  for (Index i = 0; i < n - 1; ++i) {
+    res +=
+        0.5 * DEG2RAD * (res1[i] + res1[i + 1]) * (za_grid[i + 1] - za_grid[i]);
+  }
+
   return res;
 }
-
 
 //! AngIntegrate_trapezoid_opti
 /*! 
@@ -389,48 +340,40 @@ Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
 Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
                                     ConstVectorView za_grid,
                                     ConstVectorView aa_grid,
-                                    ConstVectorView grid_stepsize)
-{
+                                    ConstVectorView grid_stepsize) {
   Numeric res = 0;
-  if ((grid_stepsize[0] > 0) && (grid_stepsize[1] > 0))
-    {
-      Index n = za_grid.nelem();
-      Index m = aa_grid.nelem();
-      Numeric stepsize_za = grid_stepsize[0];
-      Numeric stepsize_aa = grid_stepsize[1];
-      Vector res1(n);
-      assert (is_size(Integrand, n, m));
+  if ((grid_stepsize[0] > 0) && (grid_stepsize[1] > 0)) {
+    Index n = za_grid.nelem();
+    Index m = aa_grid.nelem();
+    Numeric stepsize_za = grid_stepsize[0];
+    Numeric stepsize_aa = grid_stepsize[1];
+    Vector res1(n);
+    assert(is_size(Integrand, n, m));
 
-      Numeric temp = 0.0;
-      
-      for (Index i = 0; i < n ; ++i)
-        {
-          temp = Integrand(i, 0);
-          for (Index j = 1; j < m - 1; j++)
-            {
-              temp += Integrand(i, j) * 2;
-            }
-          temp += Integrand(i, m-1);
-          temp *= 0.5 * DEG2RAD * stepsize_aa * sin(za_grid[i] * DEG2RAD);
-          res1[i] = temp;
-        }
+    Numeric temp = 0.0;
 
-      res = res1[0];
-      for (Index i = 1; i < n - 1; i++)
-        {
-          res += res1[i] * 2;
-        }
-      res += res1[n-1];
-      res *= 0.5 * DEG2RAD * stepsize_za;
+    for (Index i = 0; i < n; ++i) {
+      temp = Integrand(i, 0);
+      for (Index j = 1; j < m - 1; j++) {
+        temp += Integrand(i, j) * 2;
+      }
+      temp += Integrand(i, m - 1);
+      temp *= 0.5 * DEG2RAD * stepsize_aa * sin(za_grid[i] * DEG2RAD);
+      res1[i] = temp;
     }
-  else
-    {
-      res = AngIntegrate_trapezoid(Integrand, za_grid, aa_grid);
+
+    res = res1[0];
+    for (Index i = 1; i < n - 1; i++) {
+      res += res1[i] * 2;
     }
+    res += res1[n - 1];
+    res *= 0.5 * DEG2RAD * stepsize_za;
+  } else {
+    res = AngIntegrate_trapezoid(Integrand, za_grid, aa_grid);
+  }
 
   return res;
 }
-
 
 //! AngIntegrate_trapezoid
 /*! 
@@ -448,26 +391,21 @@ Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
     \return The resulting integral
 */
 Numeric AngIntegrate_trapezoid(ConstVectorView Integrand,
-                               ConstVectorView za_grid)
-{
-
+                               ConstVectorView za_grid) {
   Index n = za_grid.nelem();
-  assert (is_size(Integrand, n));
-  
+  assert(is_size(Integrand, n));
+
   Numeric res = 0.0;
-  for (Index i = 0; i < n - 1; ++i)
-    {
-      // in this place 0.5 * 2 * PI is calculated:
-      res += PI * DEG2RAD * (Integrand[i]* sin(za_grid[i] * DEG2RAD) 
-                             + Integrand[i + 1] * sin(za_grid[i + 1] * DEG2RAD))
-        * (za_grid[i + 1] - za_grid[i]);
-    }
-  
+  for (Index i = 0; i < n - 1; ++i) {
+    // in this place 0.5 * 2 * PI is calculated:
+    res += PI * DEG2RAD *
+           (Integrand[i] * sin(za_grid[i] * DEG2RAD) +
+            Integrand[i + 1] * sin(za_grid[i + 1] * DEG2RAD)) *
+           (za_grid[i + 1] - za_grid[i]);
+  }
+
   return res;
 }
-
-
-
 
 //! sign
 /*! 
@@ -482,17 +420,14 @@ Numeric AngIntegrate_trapezoid(ConstVectorView Integrand,
     \author Patrick Eriksson 
     \date   2000-06-27
 */
-Numeric sign( const Numeric& x )
-{
-  if( x < 0 )
+Numeric sign(const Numeric& x) {
+  if (x < 0)
     return -1.0;
-  else if( x == 0 )
+  else if (x == 0)
     return 0.0;
   else
     return 1.0;
 }
-
-
 
 /*! Modified gamma distribution
  *  
@@ -513,76 +448,60 @@ Numeric sign( const Numeric& x )
   \date 2017-06-07
 
 */
-void mgd(
-          VectorView  psd,
-    const Vector&     x,
-    const Numeric&    n0,
-    const Numeric&    mu,
-    const Numeric&    la,
-    const Numeric&    ga )
-{
+void mgd(VectorView psd,
+         const Vector& x,
+         const Numeric& n0,
+         const Numeric& mu,
+         const Numeric& la,
+         const Numeric& ga) {
   const Index nx = x.nelem();
 
-  assert( psd.nelem() == nx );
+  assert(psd.nelem() == nx);
 
-  if( ga == 1 )
-    {
-      if( mu == 0 )
-        {
-          // Exponential distribution
-          for( Index ix=0; ix<nx; ix++ )
-            {
-              const Numeric eterm = exp( -la*x[ix] );
-              psd[ix] = n0 * eterm;
-            }
-        }
-      else
-        {
-          if( mu > 10 )
-            {
-              ostringstream os;
-              os << "Given mu is " << mu << endl
-                 <<"Seems unreasonable. Have you mixed up the inputs?";
-              throw runtime_error(os.str());
-            }
-          // Gamma distribution
-          for( Index ix=0; ix<nx; ix++ )
-            {
-              const Numeric eterm = exp( -la*x[ix] );
-              const Numeric xterm = pow( x[ix], mu );
-              psd[ix] = n0 * xterm * eterm;
-              psd[ix] = n0 * pow( x[ix], mu ) * exp( -la*x[ix] );
-            }
-        }
+  if (ga == 1) {
+    if (mu == 0) {
+      // Exponential distribution
+      for (Index ix = 0; ix < nx; ix++) {
+        const Numeric eterm = exp(-la * x[ix]);
+        psd[ix] = n0 * eterm;
+      }
+    } else {
+      if (mu > 10) {
+        ostringstream os;
+        os << "Given mu is " << mu << endl
+           << "Seems unreasonable. Have you mixed up the inputs?";
+        throw runtime_error(os.str());
+      }
+      // Gamma distribution
+      for (Index ix = 0; ix < nx; ix++) {
+        const Numeric eterm = exp(-la * x[ix]);
+        const Numeric xterm = pow(x[ix], mu);
+        psd[ix] = n0 * xterm * eterm;
+        psd[ix] = n0 * pow(x[ix], mu) * exp(-la * x[ix]);
+      }
     }
-  else
-    {
-      // Complete MGD
-      if( mu > 10 )
-        {
-          ostringstream os;
-          os << "Given mu is " << mu << endl
-             <<"Seems unreasonable. Have you mixed up the inputs?";
-          throw runtime_error(os.str());
-        }
-      if( ga > 10 )
-        {
-          ostringstream os;
-          os << "Given gamma is " << ga << endl
-             <<"Seems unreasonable. Have you mixed up the inputs?";
-          throw runtime_error(os.str());
-        }
-      for( Index ix=0; ix<nx; ix++ )
-        {
-          const Numeric pterm = pow( x[ix], ga );
-          const Numeric eterm = exp( -la * pterm );
-          const Numeric xterm = pow( x[ix], mu );
-          psd[ix] = n0 * xterm * eterm;
-        }
+  } else {
+    // Complete MGD
+    if (mu > 10) {
+      ostringstream os;
+      os << "Given mu is " << mu << endl
+         << "Seems unreasonable. Have you mixed up the inputs?";
+      throw runtime_error(os.str());
     }
+    if (ga > 10) {
+      ostringstream os;
+      os << "Given gamma is " << ga << endl
+         << "Seems unreasonable. Have you mixed up the inputs?";
+      throw runtime_error(os.str());
+    }
+    for (Index ix = 0; ix < nx; ix++) {
+      const Numeric pterm = pow(x[ix], ga);
+      const Numeric eterm = exp(-la * pterm);
+      const Numeric xterm = pow(x[ix], mu);
+      psd[ix] = n0 * xterm * eterm;
+    }
+  }
 }
-
-
 
 /*! Modified gamma distribution, and derivatives
  *  
@@ -608,119 +527,113 @@ void mgd(
   \date 2017-06-07
 
 */
-void mgd_with_derivatives(
-          VectorView  psd,
-          MatrixView  jac_data,
-    const Vector&     x,
-    const Numeric&    n0,
-    const Numeric&    mu,
-    const Numeric&    la,
-    const Numeric&    ga,
-    const bool&       do_n0_jac,
-    const bool&       do_mu_jac,
-    const bool&       do_la_jac,
-    const bool&       do_ga_jac )
-{
+void mgd_with_derivatives(VectorView psd,
+                          MatrixView jac_data,
+                          const Vector& x,
+                          const Numeric& n0,
+                          const Numeric& mu,
+                          const Numeric& la,
+                          const Numeric& ga,
+                          const bool& do_n0_jac,
+                          const bool& do_mu_jac,
+                          const bool& do_la_jac,
+                          const bool& do_ga_jac) {
   const Index nx = x.nelem();
 
-  assert( psd.nelem() == nx );
-  assert( jac_data.nrows() == 4 );
-  assert( jac_data.ncols() == nx );
+  assert(psd.nelem() == nx);
+  assert(jac_data.nrows() == 4);
+  assert(jac_data.ncols() == nx);
 
-  if( ga == 1  &&  !do_ga_jac )
-    {
-      if( mu == 0  &&  !do_mu_jac )
-        {
-          // Exponential distribution
-          for( Index ix=0; ix<nx; ix++ )
-            {
-              const Numeric eterm = exp( -la*x[ix] );
-              psd[ix] = n0 * eterm;
-              if( do_n0_jac )
-                { jac_data(0,ix) = eterm; }
-              if( do_la_jac )
-                { jac_data(2,ix) = -x[ix] * psd[ix]; }
-            }
+  if (ga == 1 && !do_ga_jac) {
+    if (mu == 0 && !do_mu_jac) {
+      // Exponential distribution
+      for (Index ix = 0; ix < nx; ix++) {
+        const Numeric eterm = exp(-la * x[ix]);
+        psd[ix] = n0 * eterm;
+        if (do_n0_jac) {
+          jac_data(0, ix) = eterm;
         }
-      else
-        {
-          if( mu > 10 )
-            {
-              ostringstream os;
-              os << "Given mu is " << mu << endl
-                 <<"Seems unreasonable. Have you mixed up the inputs?";
-              throw runtime_error(os.str());
-            }
-          // Gamma distribution
-          for( Index ix=0; ix<nx; ix++ )
-            {
-              const Numeric eterm = exp( -la*x[ix] );
-              const Numeric xterm = pow( x[ix], mu );
-              psd[ix] = n0 * xterm * eterm;
-              if( do_n0_jac )
-                { jac_data(0,ix) = xterm * eterm; }
-              if( do_mu_jac )
-                { jac_data(1,ix) = log(x[ix]) * psd[ix]; }
-              if( do_la_jac )
-                { jac_data(2,ix) = -x[ix] * psd[ix]; }
-              psd[ix] = n0 * pow( x[ix], mu ) * exp( -la*x[ix] );
-            }
+        if (do_la_jac) {
+          jac_data(2, ix) = -x[ix] * psd[ix];
         }
+      }
+    } else {
+      if (mu > 10) {
+        ostringstream os;
+        os << "Given mu is " << mu << endl
+           << "Seems unreasonable. Have you mixed up the inputs?";
+        throw runtime_error(os.str());
+      }
+      // Gamma distribution
+      for (Index ix = 0; ix < nx; ix++) {
+        const Numeric eterm = exp(-la * x[ix]);
+        const Numeric xterm = pow(x[ix], mu);
+        psd[ix] = n0 * xterm * eterm;
+        if (do_n0_jac) {
+          jac_data(0, ix) = xterm * eterm;
+        }
+        if (do_mu_jac) {
+          jac_data(1, ix) = log(x[ix]) * psd[ix];
+        }
+        if (do_la_jac) {
+          jac_data(2, ix) = -x[ix] * psd[ix];
+        }
+        psd[ix] = n0 * pow(x[ix], mu) * exp(-la * x[ix]);
+      }
     }
-  else
-    {
-      // Complete MGD
-      if( mu > 10 )
-        {
-          ostringstream os;
-          os << "Given mu is " << mu << endl
-             <<"Seems unreasonable. Have you mixed up the inputs?";
-          throw runtime_error(os.str());
-        }
-      if( ga > 10 )
-        {
-          ostringstream os;
-          os << "Given gamma is " << ga << endl
-             <<"Seems unreasonable. Have you mixed up the inputs?";
-          throw runtime_error(os.str());
-        }
-      for( Index ix=0; ix<nx; ix++ )
-        {
-          const Numeric pterm = pow( x[ix], ga );
-          const Numeric eterm = exp( -la * pterm );
-          const Numeric xterm = pow( x[ix], mu );
-          psd[ix] = n0 * xterm * eterm;
-          if( do_n0_jac )
-            { jac_data(0,ix) = xterm * eterm; }
-          if( do_mu_jac )
-            { jac_data(1,ix) = log(x[ix]) * psd[ix]; }
-          if( do_la_jac )
-            { jac_data(2,ix) = -pterm * psd[ix]; }
-          if( do_ga_jac )
-            { jac_data(3,ix) = -la * pterm * log(x[ix]) * psd[ix]; }
-        }
+  } else {
+    // Complete MGD
+    if (mu > 10) {
+      ostringstream os;
+      os << "Given mu is " << mu << endl
+         << "Seems unreasonable. Have you mixed up the inputs?";
+      throw runtime_error(os.str());
     }
+    if (ga > 10) {
+      ostringstream os;
+      os << "Given gamma is " << ga << endl
+         << "Seems unreasonable. Have you mixed up the inputs?";
+      throw runtime_error(os.str());
+    }
+    for (Index ix = 0; ix < nx; ix++) {
+      const Numeric pterm = pow(x[ix], ga);
+      const Numeric eterm = exp(-la * pterm);
+      const Numeric xterm = pow(x[ix], mu);
+      psd[ix] = n0 * xterm * eterm;
+      if (do_n0_jac) {
+        jac_data(0, ix) = xterm * eterm;
+      }
+      if (do_mu_jac) {
+        jac_data(1, ix) = log(x[ix]) * psd[ix];
+      }
+      if (do_la_jac) {
+        jac_data(2, ix) = -pterm * psd[ix];
+      }
+      if (do_ga_jac) {
+        jac_data(3, ix) = -la * pterm * log(x[ix]) * psd[ix];
+      }
+    }
+  }
 }
 
-void delanoe_shape_with_derivative(
-    VectorView  psd,
-    MatrixView  jac_data,
-    const Vector&     x,
-    const Numeric&    alpha,
-    const Numeric&    beta)
-{
-    Numeric f_c = tgamma(4.0) / 256.0;
-    f_c *= pow(tgamma((alpha + 5.0) / beta), 4 + alpha);
-    f_c /= pow(tgamma((alpha + 4.0) / beta), 5 + alpha);
+void delanoe_shape_with_derivative(VectorView psd,
+                                   MatrixView jac_data,
+                                   const Vector& x,
+                                   const Numeric& alpha,
+                                   const Numeric& beta) {
+  Numeric f_c = tgamma(4.0) / 256.0;
+  f_c *= pow(tgamma((alpha + 5.0) / beta), 4 + alpha);
+  f_c /= pow(tgamma((alpha + 4.0) / beta), 5 + alpha);
 
-    Numeric f_d = tgamma((alpha + 5.0) / beta);
-    f_d /= tgamma((alpha + 4.0) / beta);
+  Numeric f_d = tgamma((alpha + 5.0) / beta);
+  f_d /= tgamma((alpha + 4.0) / beta);
 
-    for (Index i = 0; i < x.nelem(); ++i) {
-        Numeric xi = x[i];
-        psd[i] = beta * f_c * pow(xi, alpha) * exp(-pow(f_d * xi, beta));
-        jac_data(0, i) = psd[i] * (alpha / xi - beta * f_d * pow(f_d * xi, beta - 1.0));
-    }
+  for (Index i = 0; i < x.nelem(); ++i) {
+    Numeric xi = x[i];
+    psd[i] = beta * f_c * pow(xi, alpha) * exp(-pow(f_d * xi, beta));
+    jac_data(0, i) =
+        psd[i] * (alpha / xi - beta * f_d * pow(f_d * xi, beta - 1.0));
+  }
 }
 
 //! Generalized Modified Gamma Distribution
@@ -737,36 +650,27 @@ void delanoe_shape_with_derivative(
  \date   2015-01-19
  */
 
+Numeric mod_gamma_dist(
+    Numeric x, Numeric N0, Numeric Lambda, Numeric mu, Numeric gamma) {
+  Numeric dN;
 
-Numeric mod_gamma_dist(Numeric x,
-                       Numeric N0,
-                       Numeric Lambda,
-                       Numeric mu,
-                       Numeric gamma)
-{
-    Numeric dN;
-    
-    if (x > 0. && N0 > 0. && Lambda >0. && (mu+1)/gamma > 0.)
-    {
-        
-        //Distribution function
-        dN=N0*pow(x ,mu)*exp(-Lambda*pow(x,gamma));
-        
-        return dN;
-    }
-    else
-    {
-        ostringstream os;
-        os << "At least one argument is zero or negative.\n"
-        << "Modified gamma distribution can not be calculated.\n"
-        << "x      = "<< x << "\n"
-        << "N0     = "<< N0 << "\n"
-        << "lambda = "<< Lambda << "\n"
-        << "mu     = "<< mu << "\n"
-        << "gamma  = "<< gamma << "\n";
-        
-        throw runtime_error(os.str());
-    }
+  if (x > 0. && N0 > 0. && Lambda > 0. && (mu + 1) / gamma > 0.) {
+    //Distribution function
+    dN = N0 * pow(x, mu) * exp(-Lambda * pow(x, gamma));
+
+    return dN;
+  } else {
+    ostringstream os;
+    os << "At least one argument is zero or negative.\n"
+       << "Modified gamma distribution can not be calculated.\n"
+       << "x      = " << x << "\n"
+       << "N0     = " << N0 << "\n"
+       << "lambda = " << Lambda << "\n"
+       << "mu     = " << mu << "\n"
+       << "gamma  = " << gamma << "\n";
+
+    throw runtime_error(os.str());
+  }
 }
 
 //! unitl
@@ -780,13 +684,11 @@ Numeric mod_gamma_dist(Numeric x,
     \author Patrick Eriksson
     \date   2012-02-12
 */
-void unitl( Vector& x )
-{
-  assert( x.nelem() > 0 );
- 
-  const Numeric l = sqrt(x*x);
-  for(Index i=0; i<x.nelem(); i++ )
-    x[i] /= l;
+void unitl(Vector& x) {
+  assert(x.nelem() > 0);
+
+  const Numeric l = sqrt(x * x);
+  for (Index i = 0; i < x.nelem(); i++) x[i] /= l;
 }
 
 //! flat
@@ -802,20 +704,17 @@ void unitl( Vector& x )
     \author Patrick Eriksson
     \date   2015-09-09
 */
-void flat( VectorView x, ConstMatrixView X )
-{
-  assert( x.nelem() == X.nrows()*X.ncols() );
+void flat(VectorView x, ConstMatrixView X) {
+  assert(x.nelem() == X.nrows() * X.ncols());
 
-  Index i = 0; 
+  Index i = 0;
 
-  for( Index c=0; c<X.ncols(); c++ )
-    {
-      for( Index r=0; r<X.nrows(); r++ )
-        { 
-          x[i] = X(r,c);
-          i += 1;
-        }
+  for (Index c = 0; c < X.ncols(); c++) {
+    for (Index r = 0; r < X.nrows(); r++) {
+      x[i] = X(r, c);
+      i += 1;
     }
+  }
 }
 
 //! flat
@@ -831,23 +730,19 @@ void flat( VectorView x, ConstMatrixView X )
     \author Patrick Eriksson
     \date   2015-09-09
 */
-void flat( VectorView x, ConstTensor3View X )
-{
-    assert( x.nelem() == X.nrows()*X.ncols()*X.npages() );
+void flat(VectorView x, ConstTensor3View X) {
+  assert(x.nelem() == X.nrows() * X.ncols() * X.npages());
 
-    Index i = 0;
+  Index i = 0;
 
-    for( Index c=0; c<X.ncols(); c++ )
-    {
-        for( Index r=0; r<X.nrows(); r++ )
-        {
-            for( Index p=0; p<X.npages(); p++ )
-            {
-                x[i] = X(p,r,c);
-                i += 1;
-            }
-        }
+  for (Index c = 0; c < X.ncols(); c++) {
+    for (Index r = 0; r < X.nrows(); r++) {
+      for (Index p = 0; p < X.npages(); p++) {
+        x[i] = X(p, r, c);
+        i += 1;
+      }
     }
+  }
 }
 
 //! reshape
@@ -863,23 +758,19 @@ void flat( VectorView x, ConstTensor3View X )
     \author Patrick Eriksson
     \date   2015-09-10
 */
-void reshape( Tensor3View X, ConstVectorView x )
-{
-    assert( x.nelem() == X.nrows()*X.ncols()*X.npages() );
+void reshape(Tensor3View X, ConstVectorView x) {
+  assert(x.nelem() == X.nrows() * X.ncols() * X.npages());
 
-    Index i = 0;
+  Index i = 0;
 
-    for( Index c=0; c<X.ncols(); c++ )
-    {
-        for( Index r=0; r<X.nrows(); r++ )
-        {
-            for( Index p=0; p<X.npages(); p++ )
-            {
-                X(p,r,c) = x[i];
-                i += 1;
-            }
-        }
+  for (Index c = 0; c < X.ncols(); c++) {
+    for (Index r = 0; r < X.nrows(); r++) {
+      for (Index p = 0; p < X.npages(); p++) {
+        X(p, r, c) = x[i];
+        i += 1;
+      }
     }
+  }
 }
 
 //! reshape
@@ -895,23 +786,18 @@ void reshape( Tensor3View X, ConstVectorView x )
     \author Patrick Eriksson
     \date   2015-09-10
 */
-void reshape( MatrixView X, ConstVectorView x )
-{
-    assert( x.nelem() == X.nrows()*X.ncols() );
+void reshape(MatrixView X, ConstVectorView x) {
+  assert(x.nelem() == X.nrows() * X.ncols());
 
-    Index i = 0;
+  Index i = 0;
 
-    for( Index c=0; c<X.ncols(); c++ )
-    {
-        for( Index r=0; r<X.nrows(); r++ )
-        {
-            X(r,c) = x[i];
-            i += 1;
-        }
+  for (Index c = 0; c < X.ncols(); c++) {
+    for (Index r = 0; r < X.nrows(); r++) {
+      X(r, c) = x[i];
+      i += 1;
     }
+  }
 }
-
-
 
 //! calculate_weights_linear
 /*!
@@ -924,14 +810,8 @@ void reshape( MatrixView X, ConstVectorView x )
   \paran[out] w integration weights
   \param[in] nph       number of evaluation points per hemisphere
 */
-void calculate_weights_linear(
-        Vector &x,
-        Vector &w,
-        const Index nph
-        )
-{
-
-  Index N=nph * 2;
+void calculate_weights_linear(Vector& x, Vector& w, const Index nph) {
+  Index N = nph * 2;
 
   //directions in total
   nlinspace(x, -1, 1, N);
@@ -942,11 +822,8 @@ void calculate_weights_linear(
   // calculate weights
   w[0] = (x[1] - x[0]) / 2.;
 
-  for (Index i = 1; i < nph * 2 - 1; i++)
-  {
-    w[i] = (x[i+1] - x[i-1]) / 2.;
+  for (Index i = 1; i < nph * 2 - 1; i++) {
+    w[i] = (x[i + 1] - x[i - 1]) / 2.;
   }
-  w[x.nelem()-1] = (x[x.nelem()-1] - x[x.nelem() - 2]) / 2.;
-
+  w[x.nelem() - 1] = (x[x.nelem() - 1] - x[x.nelem() - 2]) / 2.;
 }
-

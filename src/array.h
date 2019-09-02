@@ -27,16 +27,15 @@
 #ifndef array_h
 #define array_h
 
-#include <vector>
-#include <iostream>
-#include <iomanip>
 #include <cassert>
 #include <climits>
+#include <iomanip>
+#include <iostream>
+#include <vector>
 #include "matpack.h"
 
-
 // Declare the existance of class Array:
-template<class base>
+template <class base>
 class Array;
 
 /** An array of Index. */
@@ -95,7 +94,6 @@ typedef Array<Tensor7> ArrayOfTensor7;
 
 typedef Array<ArrayOfTensor7> ArrayOfArrayOfTensor7;
 
-
 /** This can be used to make arrays out of anything.
 
     A simple \#define does not do for this, since I have to implement
@@ -105,17 +103,23 @@ typedef Array<ArrayOfTensor7> ArrayOfArrayOfTensor7;
     Because constructors are not inherited, I have to re-define all
     constructors.
 */
-template<class base>
-class Array : public std::vector<base>
-{
-public:
+template <class base>
+class Array : public std::vector<base> {
+ public:
   // Constructors:
-  Array()                     : std::vector<base>()  { /* Nothing to do here. */ }
-  explicit Array(Index n)     : std::vector<base>(n) { /* Nothing to do here. */ }
+  Array() : std::vector<base>() { /* Nothing to do here. */
+  }
+  explicit Array(Index n) : std::vector<base>(n) { /* Nothing to do here. */
+  }
   Array(Index n, const base& fillvalue);
-  Array(const Array<base>& A) : std::vector<base>(A) { /* Nothing to do here. */ }
-  Array(Array<base>&& A) noexcept : std::vector<base>(std::move(A)) { /* Nothing to do here. */ }
-  Array(std::initializer_list<base> init) : std::vector<base>(init) { /* Nothing to do here. */ }
+  Array(const Array<base>& A) : std::vector<base>(A) { /* Nothing to do here. */
+  }
+  Array(Array<base>&& A) noexcept
+      : std::vector<base>(std::move(A)) { /* Nothing to do here. */
+  }
+  Array(std::initializer_list<base> init)
+      : std::vector<base>(init) { /* Nothing to do here. */
+  }
 
   // Assignment operators:
   Array& operator=(base x);
@@ -135,29 +139,24 @@ public:
   virtual ~Array() = default;
 };
 
-
-
 // Member functions for Array:
 
 /** Constructor filling with constant value. */
-template<class base>
-inline Array<base>::Array(Index n, const base& fillvalue) :
-  std::vector<base>(n)
-{
+template <class base>
+inline Array<base>::Array(Index n, const base& fillvalue)
+    : std::vector<base>(n) {
   // Use fill to fill.
-  std::fill(this->begin(),this->end(),fillvalue);
+  std::fill(this->begin(), this->end(), fillvalue);
 }
 
-
 /** Assignment from base type (fill entire Array with this value). */
-template<class base>
-inline Array<base>& Array<base>::operator=(base x) 
-{
-  std::fill(this->begin(),this->end(),x);
+template <class base>
+inline Array<base>& Array<base>::operator=(base x) {
+  std::fill(this->begin(), this->end(), x);
   return *this;
 }
 
-//! Assignment from another Array. 
+//! Assignment from another Array.
 /*!
   This will adjust the size of the array automatically, so that
   structures containing arrays can be correctly copied without having
@@ -173,121 +172,103 @@ inline Array<base>& Array<base>::operator=(base x)
   \author Stefan Buehler
   \date   2002-12-19
 */
-template<class base>
-inline Array<base>& Array<base>::operator=(const Array<base>& A)
-{
+template <class base>
+inline Array<base>& Array<base>::operator=(const Array<base>& A) {
   //  cout << "size this / A = " << size() << " / " << A.size() << "\n";
   this->resize(A.size());
-  std::copy( A.begin(), A.end(), this->begin() );
+  std::copy(A.begin(), A.end(), this->begin());
   return *this;
 }
 
-template<class base>
-inline Array<base>& Array<base>::operator=(Array<base>&& A) noexcept
-{
+template <class base>
+inline Array<base>& Array<base>::operator=(Array<base>&& A) noexcept {
   std::vector<base>::operator=(std::move(A));
   return *this;
 }
 
 /** Number of elements. */
-template<class base>
-inline Index Array<base>::nelem() const
-{ 
+template <class base>
+inline Index Array<base>::nelem() const {
   size_t s = this->size();
-  assert(s<LONG_MAX);
+  assert(s < LONG_MAX);
   return static_cast<long>(s);
 }
 
 /** Constant index operator. We redifine this here so that we can have
     range checking by assert. */
-template<class base>
-inline const base& Array<base>::operator[](const Index n) const
-{
-  assert(0<=n);
-  assert(n<nelem());
+template <class base>
+inline const base& Array<base>::operator[](const Index n) const {
+  assert(0 <= n);
+  assert(n < nelem());
   return std::vector<base>::operator[](n);
 }
 
 /** Non-constant index operator. We redefine this here so that we can
     have range checking by assert. */
-template<class base>
-inline base& Array<base>::operator[](const Index n)
-{
-  assert(0<=n);
-  assert(n<nelem());
+template <class base>
+inline base& Array<base>::operator[](const Index n) {
+  assert(0 <= n);
+  assert(n < nelem());
   return std::vector<base>::operator[](n);
 }
 
 /** Append element n times */
-template<class base>
-inline void Array<base>::push_back_n(const base& elem, const Index n)
-{
-    for (Index i = 0; i < n; i++)
-        std::vector<base>::push_back(elem);
+template <class base>
+inline void Array<base>::push_back_n(const base& elem, const Index n) {
+  for (Index i = 0; i < n; i++) std::vector<base>::push_back(elem);
 }
-
 
 // Non-member functions:
 
 /** Output operator. */
-template<class base>
-inline std::ostream& operator<<(std::ostream& os, const Array<base>& v)
-{
-  typename Array<base>::const_iterator         i = v.begin();
+template <class base>
+inline std::ostream& operator<<(std::ostream& os, const Array<base>& v) {
+  typename Array<base>::const_iterator i = v.begin();
   const typename Array<base>::const_iterator end = v.end();
 
-  if ( i!=end )
-    {
-      os << std::setw(3) << *i;
-      ++i;
-    }
+  if (i != end) {
+    os << std::setw(3) << *i;
+    ++i;
+  }
 
-  for ( ; i!=end; ++i )
-    {
-      os << " " << std::setw(3) << *i;
-    }
+  for (; i != end; ++i) {
+    os << " " << std::setw(3) << *i;
+  }
 
   return os;
 }
 
 /** Max function. */
-template<class base>
-inline base max(const Array<base>& x)
-{ 
+template <class base>
+inline base max(const Array<base>& x) {
   // Initial value for max:
   base max = x[0];
 
-  typename Array<base>::const_iterator       xi = x.begin();
+  typename Array<base>::const_iterator xi = x.begin();
   const typename Array<base>::const_iterator xe = x.end();
 
-  for ( ; xi!=xe ; ++xi )
-    {
-      if ( *xi > max )
-        max = *xi;
-    }
+  for (; xi != xe; ++xi) {
+    if (*xi > max) max = *xi;
+  }
 
   return max;
 }
 
 /** Min function. */
-template<class base>
-inline base min(const Array<base>& x)
-{ 
+template <class base>
+inline base min(const Array<base>& x) {
   // Initial value for min:
   base min = x[0];
 
-  typename Array<base>::const_iterator       xi = x.begin();
+  typename Array<base>::const_iterator xi = x.begin();
   const typename Array<base>::const_iterator xe = x.end();
 
-  for ( ; xi!=xe ; ++xi )
-    {
-      if ( *xi < min )
-        min = *xi;
-    }
+  for (; xi != xe; ++xi) {
+    if (*xi < min) min = *xi;
+  }
 
   return min;
 }
-
 
 //! Find first occurance.
 /*!
@@ -304,12 +285,9 @@ inline base min(const Array<base>& x)
   \date   2002-11-28
 */
 template <class base>
-Index find_first( const Array<base>& x,
-                  const base& w )
-{
-  for ( Index i=0; i<x.nelem(); ++i )
-    if ( w == x[i] )
-      return i;
+Index find_first(const Array<base>& x, const base& w) {
+  for (Index i = 0; i < x.nelem(); ++i)
+    if (w == x[i]) return i;
 
   return -1;
 }
@@ -329,16 +307,11 @@ Index find_first( const Array<base>& x,
   \date   2002-11-28
 */
 template <class base>
-void find_all( ArrayOfIndex&      pos,
-               const Array<base>& x,
-               const base&        w )
-{
+void find_all(ArrayOfIndex& pos, const Array<base>& x, const base& w) {
   pos.resize(0);
-  for ( Index i=0; i<x.nelem(); ++i )
-    if ( w == x[i] )
-      pos.push_back(i);
+  for (Index i = 0; i < x.nelem(); ++i)
+    if (w == x[i]) pos.push_back(i);
 }
-
 
 /** Helper comparison class to sort an array or vector based on an ArrayOfNumeric.
 
@@ -351,47 +324,41 @@ void find_all( ArrayOfIndex&      pos,
 
  Source: http://stackoverflow.com/questions/8147911/locking-two-vectors-and-sorting-them
  */
-class CmpArrayOfNumeric
-{
-public:
-    CmpArrayOfNumeric(const ArrayOfNumeric& vec) : values(vec) {}
-    bool operator() (const int& a, const int& b) const
-    {
-        return values[a] < values[b];
-    }
+class CmpArrayOfNumeric {
+ public:
+  CmpArrayOfNumeric(const ArrayOfNumeric& vec) : values(vec) {}
+  bool operator()(const int& a, const int& b) const {
+    return values[a] < values[b];
+  }
 
-    const ArrayOfNumeric& values;
+  const ArrayOfNumeric& values;
 };
-
 
 //! Determine total number of elements in an ArrayOfArray
 template <class base>
-Index TotalNumberOfElements(const Array<Array<base> >& aa)
-{
-    Index N_aa = 0;
-    for (Index i = 0; i < aa.nelem(); i++)
-    {
-        N_aa += aa[i].nelem();
-    }
+Index TotalNumberOfElements(const Array<Array<base> >& aa) {
+  Index N_aa = 0;
+  for (Index i = 0; i < aa.nelem(); i++) {
+    N_aa += aa[i].nelem();
+  }
 
-    return N_aa;
+  return N_aa;
 }
-
 
 //! Determine the index of an element in a flattened version of the array
 template <class base>
-Index FlattenedIndex(const Array<Array<base> >& aa, Index outer, Index inner = 0)
-{
-    assert(outer < aa.nelem());
-    assert(inner < aa[outer].nelem());
+Index FlattenedIndex(const Array<Array<base> >& aa,
+                     Index outer,
+                     Index inner = 0) {
+  assert(outer < aa.nelem());
+  assert(inner < aa[outer].nelem());
 
-    Index N = 0;
-    for (Index i = 0; i < outer; i++)
-    {
-        N += aa[i].nelem();
-    }
+  Index N = 0;
+  for (Index i = 0; i < outer; i++) {
+    N += aa[i].nelem();
+  }
 
-    return N + inner;
+  return N + inner;
 }
 
 // It is not a good idea to put all the predefined array types in one

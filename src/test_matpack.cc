@@ -15,13 +15,13 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-#include "array.h"
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
-#include <algorithm>
+#include <iostream>
+#include "array.h"
 #include "describe.h"
 #include "exceptions.h"
-#include <iostream>
 #include "logic.h"
 #include "math_funcs.h"
 #include "matpackII.h"
@@ -36,56 +36,40 @@ using std::cout;
 using std::endl;
 using std::runtime_error;
 
+Numeric by_reference(const Numeric& x) { return x + 1; }
 
-Numeric by_reference(const Numeric& x)
-{
-  return x+1;
-}
+Numeric by_value(Numeric x) { return x + 1; }
 
-Numeric by_value(Numeric x)
-{
-  return x+1;
-}
+void fill_with_junk(VectorView x) { x = 999; }
 
-void fill_with_junk(VectorView x)
-{
-  x = 999;
-}
+void fill_with_junk(MatrixView x) { x = 888; }
 
-void fill_with_junk(MatrixView x)
-{
-  x = 888;
-}
-
-int test1()
-{
+int test1() {
   Vector v(20);
 
   cout << "v.nelem() = " << v.nelem() << "\n";
 
-  for (Index i=0; i<v.nelem(); ++i )
-    v[i] = (Numeric)i;
+  for (Index i = 0; i < v.nelem(); ++i) v[i] = (Numeric)i;
 
   cout << "v.begin() = " << *v.begin() << "\n";
 
   cout << "v = \n" << v << "\n";
 
-  fill_with_junk(v[Range(1,8,2)][Range(2,joker)]);
+  fill_with_junk(v[Range(1, 8, 2)][Range(2, joker)]);
   //  fill_with_junk(v);
 
-  Vector v2 = v[Range(2,4)];
+  Vector v2 = v[Range(2, 4)];
 
   cout << "v2 = \n" << v2 << "\n";
 
-  for (Index i=0 ; i<1000; ++i)
-    {
-      Vector v3(1000);
-      v3 = (Numeric)i;
-    }
+  for (Index i = 0; i < 1000; ++i) {
+    Vector v3(1000);
+    v3 = (Numeric)i;
+  }
 
   v2[Range(joker)] = 88;
 
-  v2[Range(0,2)] = 77;
+  v2[Range(0, 2)] = 77;
 
   cout << "v = \n" << v << "\n";
   cout << "v2 = \n" << v2 << "\n";
@@ -101,31 +85,32 @@ int test1()
   v3 *= 2;
   cout << "\nv3 after *2 = \n" << v3 << "\n";
 
-  Matrix M(10,15);
+  Matrix M(10, 15);
   {
-    Numeric n=0;
-    for (Index i=0; i<M.nrows(); ++i)
-      for (Index j=0; j<M.ncols(); ++j)
-        M(i,j) = ++n;
+    Numeric n = 0;
+    for (Index i = 0; i < M.nrows(); ++i)
+      for (Index j = 0; j < M.ncols(); ++j) M(i, j) = ++n;
   }
 
   cout << "\nM =\n" << M << "\n";
 
-  cout << "\nM(Range(2,4),Range(2,4)) =\n" << M(Range(2,4),Range(2,4)) << "\n";
+  cout << "\nM(Range(2,4),Range(2,4)) =\n"
+       << M(Range(2, 4), Range(2, 4)) << "\n";
 
   cout << "\nM(Range(2,4),Range(2,4))(Range(1,2),Range(1,2)) =\n"
-       << M(Range(2,4),Range(2,4))(Range(1,2),Range(1,2)) << "\n";
+       << M(Range(2, 4), Range(2, 4))(Range(1, 2), Range(1, 2)) << "\n";
 
-  cout << "\nM(1,Range(joker)) =\n" << M(1,Range(joker)) << "\n";
+  cout << "\nM(1,Range(joker)) =\n" << M(1, Range(joker)) << "\n";
 
   cout << "\nFilling M(1,Range(1,2)) with junk.\n";
-  fill_with_junk(M(1,Range(1,2)));
+  fill_with_junk(M(1, Range(1, 2)));
 
-  cout << "\nM(Range(0,4),Range(0,4)) =\n" << M(Range(0,4),Range(0,4)) << "\n";
+  cout << "\nM(Range(0,4),Range(0,4)) =\n"
+       << M(Range(0, 4), Range(0, 4)) << "\n";
 
   cout << "\nFilling M(Range(4,2,2),Range(6,3)) with junk.\n";
 
-  MatrixView s = M(Range(4,2,2),Range(6,3));
+  MatrixView s = M(Range(4, 2, 2), Range(6, 3));
   fill_with_junk(s);
 
   cout << "\nM =\n" << M << "\n";
@@ -133,63 +118,56 @@ int test1()
   const Matrix C = M;
 
   cout << "\nC(Range(3,4,2),Range(2,3,3)) =\n"
-       << C(Range(3,4,2),Range(2,3,3)) << "\n";
+       << C(Range(3, 4, 2), Range(2, 3, 3)) << "\n";
 
   cout << "\nC(Range(3,4,2),Range(2,3,3)).transpose() =\n"
-       << transpose(C(Range(3,4,2),Range(2,3,3))) << "\n";
+       << transpose(C(Range(3, 4, 2), Range(2, 3, 3))) << "\n";
 
   return 0;
 }
 
-void test2()
-{
+void test2() {
   Vector v(50000000);
 
   cout << "v.nelem() = " << v.nelem() << "\n";
 
   cout << "Filling\n";
-//   for (Index i=0; i<v.nelem(); ++i )
-//     v[i] = sqrt(i);
+  //   for (Index i=0; i<v.nelem(); ++i )
+  //     v[i] = sqrt(i);
   v = 1.;
   cout << "Done\n";
-
 }
 
-
-void test4()
-{
+void test4() {
   Vector a(10);
   Vector b(a.nelem());
 
-  for ( Index i=0; i<a.nelem(); ++i )
-    {
-      a[i] = (Numeric)(i+1);
-      b[i] = (Numeric)(a.nelem()-i);
-    }
+  for (Index i = 0; i < a.nelem(); ++i) {
+    a[i] = (Numeric)(i + 1);
+    b[i] = (Numeric)(a.nelem() - i);
+  }
 
   cout << "a = \n" << a << "\n";
   cout << "b = \n" << b << "\n";
-  cout << "a*b \n= " << a*b << "\n";
+  cout << "a*b \n= " << a * b << "\n";
 
-  Matrix A(11,6);
-  Matrix B(10,20);
-  Matrix C(20,5);
+  Matrix A(11, 6);
+  Matrix B(10, 20);
+  Matrix C(20, 5);
 
   B = 2;
   C = 3;
-  mult(A(Range(1,joker),Range(1,joker)),B,C);
+  mult(A(Range(1, joker), Range(1, joker)), B, C);
 
   //  cout << "\nB =\n" << B << "\n";
   //  cout << "\nC =\n" << C << "\n";
   cout << "\nB*C =\n" << A << "\n";
-
 }
 
-void test5()
-{
+void test5() {
   Vector a(10);
   Vector b(20);
-  Matrix M(10,20);
+  Matrix M(10, 20);
 
   // Fill b and M with a constant number:
   b = 1;
@@ -198,19 +176,17 @@ void test5()
   cout << "b = \n" << b << "\n";
   cout << "M =\n" << M << "\n";
 
-  mult(a,M,b);    // a = M*b
+  mult(a, M, b);  // a = M*b
   cout << "\na = M*b = \n" << a << "\n";
 
-  mult(transpose((MatrixView)b),transpose((MatrixView)a),M); // b^t = a^t * M
-  cout << "\nb^t = a^t * M = \n" <<  transpose((MatrixView)b) << "\n";
-
+  mult(transpose((MatrixView)b), transpose((MatrixView)a), M);  // b^t = a^t * M
+  cout << "\nb^t = a^t * M = \n" << transpose((MatrixView)b) << "\n";
 }
 
-void test6()
-{
+void test6() {
   Index n = 5000;
-  Vector x(1,n,1), y(n);
-  Matrix M(n,n);
+  Vector x(1, n, 1), y(n);
+  Matrix M(n, n);
   M = 1;
   //  cout << "x = \n" << x << "\n";
 
@@ -218,66 +194,59 @@ void test6()
   //  transform(x,sin,x);
   // transform(transpose(y),sin,transpose(x));
   //  cout << "sin(x) =\n" << y << "\n";
-  for (Index i=0; i<1000; ++i)
-    {
-      //      mult(y,M,x);
-      transform(y,sin,static_cast<MatrixView>(x));
-      x+=1;
-    }
+  for (Index i = 0; i < 1000; ++i) {
+    //      mult(y,M,x);
+    transform(y, sin, static_cast<MatrixView>(x));
+    x += 1;
+  }
   //  cout << "y =\n" << y << "\n";
 
   cout << "Done.\n";
 }
 
-void test7()
-{
-  Vector x(1,20000000,1);
+void test7() {
+  Vector x(1, 20000000, 1);
   Vector y(x.nelem());
-  transform(y,sin,x);
+  transform(y, sin, x);
   cout << "min(sin(x)), max(sin(x)) = " << min(y) << ", " << max(y) << "\n";
 }
 
-void test8()
-{
+void test8() {
   Vector x(80000000);
-  for ( Index i=0; i<x.nelem(); ++i )
-    x[i] = (Numeric)i;
-  cout << "Done." << "\n";
+  for (Index i = 0; i < x.nelem(); ++i) x[i] = (Numeric)i;
+  cout << "Done."
+       << "\n";
 }
 
-void test9()
-{
+void test9() {
   // Initialization of Matrix with view of other Matrix:
-  Matrix A(4,8);
-  Matrix B(A(Range(joker),Range(0,3)));
+  Matrix A(4, 8);
+  Matrix B(A(Range(joker), Range(0, 3)));
   cout << "B = " << B << "\n";
 }
 
-void test10()
-{
+void test10() {
   // Initialization of Matrix with a vector (giving a 1 column Matrix).
 
   // At the moment doing this with a non-const Vector will result in a
   // warning message.
-  Vector v(1,8,1);
+  Vector v(1, 8, 1);
   Matrix M((const Vector)v);
   cout << "M = " << M << "\n";
 }
 
-void test11()
-{
+void test11() {
   // Assignment between Vector and Matrix:
 
   // At the moment doing this with a non-const Vector will result in a
   // warning message.
-  Vector v(1,8,1);
-  Matrix M(v.nelem(),1);
+  Vector v(1, 8, 1);
+  Matrix M(v.nelem(), 1);
   M = v;
   cout << "M = " << M << "\n";
 }
 
-void test12()
-{
+void test12() {
   // Copying of Arrays
 
   Array<String> sa(3);
@@ -292,37 +261,33 @@ void test12()
   sc = sa;
 
   cout << "sc = \n" << sc << "\n";
-
 }
 
-void test13()
-{
+void test13() {
   // Mix vector and one-column matrix in += operator.
-  const Vector v(1,8,1);        // The const is necessary here to
-                                // avoid compiler warnings about
-                                // different conversion paths.
+  const Vector v(1, 8, 1);  // The const is necessary here to
+                            // avoid compiler warnings about
+                            // different conversion paths.
   Matrix M(v);
   M += v;
   cout << "M = \n" << M << "\n";
 }
 
-void test14()
-{
+void test14() {
   // Test explicit Array constructors.
   Array<String> a{"Test"};
-  Array<Index>  b{1,2};
-  Array<Numeric> c{1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0};
+  Array<Index> b{1, 2};
+  Array<Numeric> c{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0};
   cout << "a = \n" << a << "\n";
   cout << "b = \n" << b << "\n";
   cout << "c = \n" << c << "\n";
 }
 
-void test15()
-{
+void test15() {
   // Test String.
   String a = "Nur ein Test.";
   cout << "a = " << a << "\n";
-  String b(a,5,-1);
+  String b(a, 5, -1);
   cout << "b = " << b << "\n";
 }
 
@@ -340,80 +305,70 @@ void test15()
   cout << "a =\n" << a << "\n";
 }*/
 
-void test17()
-{
+void test17() {
   // Test Sum.
-  Vector a(1,10,1);
+  Vector a(1, 10, 1);
   cout << "a.sum() = " << a.sum() << "\n";
 }
 
-void test18()
-{
+void test18() {
   // Test elementvise square of a vector:
-  Vector a(1,10,1);
+  Vector a(1, 10, 1);
   a *= a;
   cout << "a *= a =\n" << a << "\n";
 }
 
-void test19()
-{
+void test19() {
   // There exists no explicit filling constructor of the form
   // Vector a(3,1.7).
   // But you can use the more general filling constructor with 3 arguments.
 
-  Vector a(1,10,1);
-  Vector b(5.3,10,0);
+  Vector a(1, 10, 1);
+  Vector b(5.3, 10, 0);
   cout << "a =\n" << a << "\n";
   cout << "b =\n" << b << "\n";
 }
 
-void test20()
-{
+void test20() {
   // Test initialization list constructor:
-  Vector a{1,2,3,4,5,6,7,8,9,10};
+  Vector a{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   cout << "a =\n" << a << "\n";
 }
 
-void test21()
-{
-  Numeric s=0;
+void test21() {
+  Numeric s = 0;
   // Test speed of call by reference:
   cout << "By reference:\n";
-  for ( Index i=0; i<(Index)1e8; ++i )
-    {
-      s += by_reference(s);
-      s -= by_reference(s);
-    }
+  for (Index i = 0; i < (Index)1e8; ++i) {
+    s += by_reference(s);
+    s -= by_reference(s);
+  }
   cout << "s = " << s << "\n";
 }
 
-void test22()
-{
-  Numeric s=0;
+void test22() {
+  Numeric s = 0;
   // Test speed of call by value:
   cout << "By value:\n";
-  for ( Index i=0; i<(Index)1e8; ++i )
-    {
-      s += by_value(s);
-      s -= by_value(s);
-    }
+  for (Index i = 0; i < (Index)1e8; ++i) {
+    s += by_value(s);
+    s -= by_value(s);
+  }
   cout << "s = " << s << "\n";
 }
 
-void test23()
-{
+void test23() {
   // Test constructors that fills with constant:
-  Vector a(10,3.5);
+  Vector a(10, 3.5);
   cout << "a =\n" << a << "\n";
-  Matrix b(10,10,4.5);
+  Matrix b(10, 10, 4.5);
   cout << "b =\n" << b << "\n";
 }
 
-void test24()
-{
+void test24() {
   // Try element-vise multiplication of Matrix and Vector:
-  Matrix a(5,1,2.5);
-  Vector b(1,5,1);
+  Matrix a(5, 1, 2.5);
+  Vector b(1, 5, 1);
   a *= b;
   cout << "a*=b =\n" << a << "\n";
   a /= b;
@@ -424,172 +379,157 @@ void test24()
   cout << "a-=b =\n" << a << "\n";
 }
 
-void test25()
-{
+void test25() {
   // Test min and max for Array:
-  Array<Index> a{1,2,3,4,5,6,5,4,3,2,1};
+  Array<Index> a{1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1};
   cout << "min/max of a = " << min(a) << "/" << max(a) << "\n";
 }
 
-void test26()
-{
+void test26() {
   cout << "Test filling constructor for Array:\n";
-  Array<String> a(4,"Hello");
+  Array<String> a(4, "Hello");
   cout << "a =\n" << a << "\n";
 }
 
-void test27()
-{
+void test27() {
   cout << "Test Arrays of Vectors:\n";
   Array<Vector> a;
-  a.push_back({1.0,2.0});
-  a.push_back(Vector(1.0,10,1.0));
+  a.push_back({1.0, 2.0});
+  a.push_back(Vector(1.0, 10, 1.0));
   cout << "a =\n" << a << "\n";
 }
 
-void test28()
-{
+void test28() {
   cout << "Test default constructor for Matrix:\n";
   Matrix a;
   Matrix b(a);
   cout << "b =\n" << b << "\n";
 }
 
-void test29()
-{
+void test29() {
   cout << "Test Arrays of Matrix:\n";
   ArrayOfMatrix a;
   Matrix b;
 
-  b.resize(2,2);
-  b(0,0) = 1;
-  b(0,1) = 2;
-  b(1,0) = 3;
-  b(1,1) = 4;
+  b.resize(2, 2);
+  b(0, 0) = 1;
+  b(0, 1) = 2;
+  b(1, 0) = 3;
+  b(1, 1) = 4;
   a.push_back(b);
   b *= 2;
   a.push_back(b);
 
-  a[0].resize(2,3);
+  a[0].resize(2, 3);
   a[0] = 4;
 
   a.resize(3);
-  a[2].resize(4,5);
+  a[2].resize(4, 5);
   a[2] = 5;
 
   cout << "a =\n" << a << "\n";
 }
 
-void test30()
-{
+void test30() {
   cout << "Test Matrices of size 0:\n";
-  Matrix a(0,0);
+  Matrix a(0, 0);
   //  cout << "a(0,0) =\n" << a(0,0) << "\n";
-  a.resize(2,2);
+  a.resize(2, 2);
   a = 1;
   cout << "a =\n" << a << "\n";
 
-  Matrix b(3,0);
+  Matrix b(3, 0);
   //  cout << "b(0,0) =\n" << b(0,0) << "\n";
-  b.resize(b.nrows(),b.ncols()+3);
+  b.resize(b.nrows(), b.ncols() + 3);
   b = 2;
   cout << "b =\n" << b << "\n";
 
-  Matrix c(0,3);
+  Matrix c(0, 3);
   //  cout << "c(0,0) =\n" << c(0,0) << "\n";
-  c.resize(c.nrows()+3,c.ncols());
+  c.resize(c.nrows() + 3, c.ncols());
   c = 3;
   cout << "c =\n" << c << "\n";
 }
 
-void test31()
-{
+void test31() {
   cout << "Test Tensor3:\n";
 
-  Tensor3 a(2,3,4,1.0);
+  Tensor3 a(2, 3, 4, 1.0);
 
   Index fill = 0;
 
   // Fill with some numbers
-  for ( Index i=0; i<a.npages(); ++i )
-    for ( Index j=0; j<a.nrows(); ++j )
-      for ( Index k=0; k<a.ncols(); ++k )
-        a(i,j,k) = (Numeric)(++fill);
+  for (Index i = 0; i < a.npages(); ++i)
+    for (Index j = 0; j < a.nrows(); ++j)
+      for (Index k = 0; k < a.ncols(); ++k) a(i, j, k) = (Numeric)(++fill);
 
   cout << "a =\n" << a << "\n";
 
   cout << "Taking out first row of first page:\n"
-       << a(0,0,Range(joker)) << "\n";
+       << a(0, 0, Range(joker)) << "\n";
 
   cout << "Taking out last column of second page:\n"
-       << a(1,Range(joker),a.ncols()-1) << "\n";
+       << a(1, Range(joker), a.ncols() - 1) << "\n";
 
   cout << "Taking out the first letter on every page:\n"
-       << a(Range(joker),0,0) << "\n";
+       << a(Range(joker), 0, 0) << "\n";
 
   cout << "Taking out first page:\n"
-       << a(0,Range(joker),Range(joker)) << "\n";
+       << a(0, Range(joker), Range(joker)) << "\n";
 
   cout << "Taking out last row of all pages:\n"
-       << a(Range(joker),a.nrows()-1,Range(joker)) << "\n";
+       << a(Range(joker), a.nrows() - 1, Range(joker)) << "\n";
 
   cout << "Taking out second column of all pages:\n"
-       << a(Range(joker),Range(joker),1) << "\n";
+       << a(Range(joker), Range(joker), 1) << "\n";
 
   a *= 2;
 
-  cout << "After element-vise multiplication with 2:\n"
-       << a << "\n";
+  cout << "After element-vise multiplication with 2:\n" << a << "\n";
 
-  transform(a,sqrt,a);
+  transform(a, sqrt, a);
 
-  cout << "After taking the square-root:\n"
-       << a << "\n";
+  cout << "After taking the square-root:\n" << a << "\n";
 
   Index s = 200;
   cout << "Let's allocate a large tensor, "
-       << (Numeric)(s*s*s*8)/1024./1024.
-       << " MB...\n";
+       << (Numeric)(s * s * s * 8) / 1024. / 1024. << " MB...\n";
 
-  a.resize(s,s,s);
+  a.resize(s, s, s);
 
   cout << "Set it to 1...\n";
 
   a = 1;
 
-  cout << "a(900,900,900) = " << a(90,90,90) << "\n";
+  cout << "a(900,900,900) = " << a(90, 90, 90) << "\n";
 
   fill = 0;
 
   cout << "Fill with running numbers, using for loops...\n";
-  for ( Index i=0; i<a.npages(); ++i )
-    for ( Index j=0; j<a.nrows(); ++j )
-      for ( Index k=0; k<a.ncols(); ++k )
-        a(i,j,k) = (Numeric)(++fill);
+  for (Index i = 0; i < a.npages(); ++i)
+    for (Index j = 0; j < a.nrows(); ++j)
+      for (Index k = 0; k < a.ncols(); ++k) a(i, j, k) = (Numeric)(++fill);
 
   cout << "Max(a) = ...\n";
 
   cout << max(a) << "\n";
-
 }
 
-void test32()
-{
+void test32() {
   cout << "Test von X = A*X:\n";
-  Matrix X(3,3),A(3,3),B(3,3);
+  Matrix X(3, 3), A(3, 3), B(3, 3);
 
-  for ( Index j=0; j<A.nrows(); ++j )
-    for ( Index k=0; k<A.ncols(); ++k )
-      {
-        X(j,k) = 1;
-        A(j,k) = (Numeric)(j+k);
-      }
+  for (Index j = 0; j < A.nrows(); ++j)
+    for (Index k = 0; k < A.ncols(); ++k) {
+      X(j, k) = 1;
+      A(j, k) = (Numeric)(j + k);
+    }
   cout << "A:\n" << A << "\n";
   cout << "X:\n" << X << "\n";
 
-  mult(B,A,X);
+  mult(B, A, X);
   cout << "B = A*X:\n" << B << "\n";
-  mult(X,A,X);
+  mult(X, A, X);
   cout << "X = A*X:\n" << X << "\n";
 
   cout << "This is not the same, and should not be, because you\n"
@@ -597,13 +537,12 @@ void test32()
        << "for mult!\n";
 }
 
-void test33()
-{
+void test33() {
   cout << "Making things look bigger than they are...\n";
 
   {
     cout << "1. Make a scalar look like a vector:\n";
-    Numeric a = 3.1415;         // Just any number here.
+    Numeric a = 3.1415;  // Just any number here.
     VectorView av(a);
     cout << "a, viewed as a vector: " << av << "\n";
     cout << "Describe a: " << describe(a) << "\n";
@@ -613,9 +552,10 @@ void test33()
   }
 
   {
-    cout << "\n2. Make a vector look like a matrix:\n"
-         << "This is an exception, because the new dimension is added at the end.\n";
-    Vector a{1,2,3,4,5};
+    cout
+        << "\n2. Make a vector look like a matrix:\n"
+        << "This is an exception, because the new dimension is added at the end.\n";
+    Vector a{1, 2, 3, 4, 5};
     MatrixView am = a;
     cout << "a, viewed as a matrix:\n" << am << "\n";
     cout << "Trasnpose view:\n" << transpose(am) << "\n";
@@ -625,7 +565,7 @@ void test33()
     Tensor3View at3 = am;
     cout << "at3 = \n" << at3 << "\n";
     cout << "Describe at3: " << describe(at3) << "\n";
-    at3 (0,2,0) += 1;
+    at3(0, 2, 0) += 1;
     cout << "a after Increasing element at3(0,2,0) by 1: \n" << a << "\n\n";
 
     Tensor4View at4 = at3;
@@ -644,125 +584,103 @@ void test33()
     cout << "at7 = \n" << at7 << "\n";
     cout << "Describe at7: " << describe(at7) << "\n";
 
-    at7(0,0,0,0,0,2,0) -=1 ;
+    at7(0, 0, 0, 0, 0, 2, 0) -= 1;
 
     cout << "After subtracting 1 from at7(0,0,0,0,0,2,0)\n"
          << "a = " << a << "\n";
 
     cout << "\nAll in one go:\n";
-    Numeric b = 3.1415;         // Just any number here.
-    Tensor7View bt7 =
-      Tensor6View(
-                  Tensor5View(
-                              Tensor4View(
-                                          Tensor3View(
-                                                      MatrixView(
-                                                                 VectorView(b)
-                                                                 )
-                                                      )
-                                          )
-                              )
-                  );
+    Numeric b = 3.1415;  // Just any number here.
+    Tensor7View bt7 = Tensor6View(
+        Tensor5View(Tensor4View(Tensor3View(MatrixView(VectorView(b))))));
     cout << "bt7:\n" << bt7 << "\n";
     cout << "Describe bt7: " << describe(bt7) << "\n";
   }
 }
 
-void junk4(Tensor4View a)
-{
-  cout << "Describe a: " << describe(a) << "\n";
-}
+void junk4(Tensor4View a) { cout << "Describe a: " << describe(a) << "\n"; }
 
-void junk2(ConstVectorView a)
-{
-  cout << "Describe a: " << describe(a) << "\n";
-}
+void junk2(ConstVectorView a) { cout << "Describe a: " << describe(a) << "\n"; }
 
-void test34()
-{
+void test34() {
   cout << "Test, if dimension expansion works implicitly.\n";
 
-  Tensor3 t3(2,3,4);
+  Tensor3 t3(2, 3, 4);
   junk4(t3);
 
   Numeric x;
   junk2(ConstVectorView(x));
 }
 
-void test35()
-{
+void test35() {
   cout << "Test the new copy semantics.\n";
-  Vector a(1,4,1);
+  Vector a(1, 4, 1);
   Vector b;
 
   b = a;
   cout << "b = " << b << "\n";
 
-  Vector aa(1,5,1);
+  Vector aa(1, 5, 1);
   ConstVectorView c = aa;
   b = c;
   cout << "b = " << b << "\n";
 
-  Vector aaa(1,6,1);
+  Vector aaa(1, 6, 1);
   VectorView d = aaa;
   b = d;
   cout << "b = " << b << "\n";
 }
 
-void test36()
-{
+void test36() {
   cout << "Test using naked joker on Vector.\n";
-  Vector a(1,4,1);
+  Vector a(1, 4, 1);
   VectorView b = a[joker];
   cout << "a = " << a << "\n";
   cout << "b = " << b << "\n";
 }
 
-void test37(const Index& i)
-{
-  Vector v1(5e-15, 10, 0.42e-15/11);
-  Vector v2=v1;
+void test37(const Index& i) {
+  Vector v1(5e-15, 10, 0.42e-15 / 11);
+  Vector v2 = v1;
   //  Index i = 10000000;
 
   v1 /= (Numeric)i;
-  v2 /=(Numeric)i;
+  v2 /= (Numeric)i;
   cout.precision(12);
   //  cout.setf(ios_base::scientific,ios_base::floatfield);
-  v1*=v1;
-  v2*=v2;
-cout << v1 << endl;
+  v1 *= v1;
+  v2 *= v2;
+  cout << v1 << endl;
   cout << v2 << endl;
 }
 
-void test38 ()
-{
-  Vector v (5, 0.);
-  Numeric * const a = v.get_c_array();
+void test38() {
+  Vector v(5, 0.);
+  Numeric* const a = v.get_c_array();
 
   a[4] = 5.;
 
   cout << v << endl;
   cout << endl << "========================" << endl << endl;
 
-  Matrix m (5, 5, 0.);
-  Numeric * const b = m.get_c_array();
+  Matrix m(5, 5, 0.);
+  Numeric* const b = m.get_c_array();
 
   b[4] = 5.;
 
   cout << m << endl;
   cout << endl << "========================" << endl << endl;
 
-  Tensor3 t3 (5, 6, 7, 0.);
-  Numeric * const c = t3.get_c_array();
+  Tensor3 t3(5, 6, 7, 0.);
+  Numeric* const c = t3.get_c_array();
 
   c[6] = 5.;
 
   cout << t3 << endl;
 }
 
-void test39 ()
-{
-  Vector v1(1,5,1),v2(5);
+void test39() {
+  Vector v1(1, 5, 1), v2(5);
 
   v2 = v1 * 2;
   // Unfortunately, this thing compiles, but at least it gives an
@@ -771,11 +689,9 @@ void test39 ()
   // tries to do a scalar product with v1.
 
   cout << v2 << endl;
-
 }
 
-void test40()
-{
+void test40() {
   Vector v(100);
 
   v = 5;
@@ -783,8 +699,7 @@ void test40()
   cout << v << endl;
 }
 
-void test41()
-{
+void test41() {
   const Vector v1(10, 1);
 
   ConstVectorView vv = v1[Range(0, 5)];
@@ -794,7 +709,7 @@ void test41()
 
   try {
     vv = 2;
-  } catch (const std::runtime_error &e) {
+  } catch (const std::runtime_error& e) {
     std::cerr << e.what() << endl;
     exit(EXIT_FAILURE);
   }
@@ -806,169 +721,162 @@ void test41()
 // Test behaviour of VectorView::operator MatrixView, for which I have fixed
 // a bug today.
 // SAB 2013-01-18
-void test42()
-{
-    cout << "test42\n";
-    Vector x{1,2,3,4,5,6,7,8,9,10};
-    cout << "x: " << x << endl;
+void test42() {
+  cout << "test42\n";
+  Vector x{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  cout << "x: " << x << endl;
 
-    VectorView y = x[Range(2,4,2)];
-    cout << "y: " << y << endl;
+  VectorView y = x[Range(2, 4, 2)];
+  cout << "y: " << y << endl;
 
-    ConstMatrixView z( (MatrixView) y );
-    cout << "z:\n" << z << endl;
+  ConstMatrixView z((MatrixView)y);
+  cout << "z:\n" << z << endl;
 
-    cout << "Every other z:\n" << z(Range(1,2,2),joker) << endl;
+  cout << "Every other z:\n" << z(Range(1, 2, 2), joker) << endl;
 
-    // Try write access also:
-    MatrixView zz( y);
-    zz(Range(1,2,2),joker) = 0;
-    cout << "zz:\n" << zz << endl;
-    cout << "New x: " << x << endl;
+  // Try write access also:
+  MatrixView zz(y);
+  zz(Range(1, 2, 2), joker) = 0;
+  cout << "zz:\n" << zz << endl;
+  cout << "New x: " << x << endl;
 }
 
-
-void test43()
-{
+void test43() {
   // Simple construction compile-time test
   constexpr Rational r(3, 2);  // should be 3/2
   static_assert(r.Nom() == 3, "Setup of rational fail to initialize properly");
-  static_assert(r.Denom() == 2, "Setup of rational fail to initialize properly");
-  
+  static_assert(r.Denom() == 2,
+                "Setup of rational fail to initialize properly");
+
   // Simple expression compile-time test
   constexpr Rational r2 = 1 + r;  // should be 5/2
   static_assert(r2.Nom() == 5, "Setup of rational fail to initialize properly");
-  static_assert(r2.Denom() == 2, "Setup of rational fail to initialize properly");
-  
+  static_assert(r2.Denom() == 2,
+                "Setup of rational fail to initialize properly");
+
   // Div-zero by index generates an undefined rational, div-by-undefined rational is a logical error
-  constexpr Rational r3 = r/0;  // should be undefined
+  constexpr Rational r3 = r / 0;  // should be undefined
   static_assert(r3.Nom() == 3, "Setup of rational fail to initialize properly");
-  static_assert(r3.Denom() == 0, "Setup of rational fail to initialize properly");
+  static_assert(r3.Denom() == 0,
+                "Setup of rational fail to initialize properly");
   static_assert(r3 not_eq r3, "Setup of rational fail to initialize properly");
-  static_assert(r3.isUndefined(), "Setup of rational fail to initialize properly");
-  
+  static_assert(r3.isUndefined(),
+                "Setup of rational fail to initialize properly");
+
   // Complicated expression compile-time test
-  constexpr Rational r4 = ((2*((((((r++)++)++)++) * Rational(1, 3))--))%3);  // should be 1/6
+  constexpr Rational r4 =
+      ((2 * ((((((r++)++)++)++) * Rational(1, 3))--)) % 3);  // should be 1/6
   static_assert(r4.Nom() == 1, "Setup of rational fail to initialize properly");
-  static_assert(r4.Denom() == 6, "Setup of rational fail to initialize properly");
-  
+  static_assert(r4.Denom() == 6,
+                "Setup of rational fail to initialize properly");
+
   // The simplify operation still does not work so some expressions can look a little bit silly
   constexpr Rational r5 = 10 % Rational(6, 4);  // should be 1
   static_assert(r5.Nom() == 4, "Setup of rational fail to initialize properly");
-  static_assert(r5.Denom() == 4, "Setup of rational fail to initialize properly");
-  static_assert(r5.toInt() == 1, "Setup of rational fail to initialize properly");
-  static_assert(r5.toIndex() == 1, "Setup of rational fail to initialize properly");
-  static_assert(r5.toNumeric() == 1e0, "Setup of rational fail to initialize properly");
+  static_assert(r5.Denom() == 4,
+                "Setup of rational fail to initialize properly");
+  static_assert(r5.toInt() == 1,
+                "Setup of rational fail to initialize properly");
+  static_assert(r5.toIndex() == 1,
+                "Setup of rational fail to initialize properly");
+  static_assert(r5.toNumeric() == 1e0,
+                "Setup of rational fail to initialize properly");
 }
 
+void test44() {
+#define docheck(fn, val, expect)                                           \
+  cout << #fn << "(" << val << ") = " << fn(x) << " (expected " << #expect \
+       << ")" << std::endl;
 
-void test44()
-{
-#define docheck(fn, val, expect) \
-  cout << #fn << "(" << val << ") = " << fn(x) << " (expected " << #expect << ")" << std::endl;
+  Vector x{1, 2, 3};
+  docheck(is_increasing, x, 1) docheck(is_decreasing, x, 0)
+      docheck(is_sorted, x, 1)
 
-    Vector x{1, 2, 3};
-    docheck(is_increasing, x, 1)
-    docheck(is_decreasing, x, 0)
-    docheck(is_sorted, x, 1)
+          x = {3, 2, 1};
+  docheck(is_increasing, x, 0) docheck(is_decreasing, x, 1)
+      docheck(is_sorted, x, 0)
 
-    x = {3, 2, 1};
-    docheck(is_increasing, x, 0)
-    docheck(is_decreasing, x, 1)
-    docheck(is_sorted, x, 0)
+          x = {1, 2, 2};
+  docheck(is_increasing, x, 0) docheck(is_decreasing, x, 0)
+      docheck(is_sorted, x, 1)
 
-    x = {1, 2, 2};
-    docheck(is_increasing, x, 0)
-    docheck(is_decreasing, x, 0)
-    docheck(is_sorted, x, 1)
+          x = {2, 2, 1};
+  docheck(is_increasing, x, 0) docheck(is_decreasing, x, 0)
+      docheck(is_sorted, x, 0)
 
-    x = {2, 2, 1};
-    docheck(is_increasing, x, 0)
-    docheck(is_decreasing, x, 0)
-    docheck(is_sorted, x, 0)
+          x = {1, NAN, 2};
+  docheck(is_increasing, x, 0) docheck(is_decreasing, x, 0)
+      docheck(is_sorted, x, 0)
 
-    x = {1, NAN, 2};
-    docheck(is_increasing, x, 0)
-    docheck(is_decreasing, x, 0)
-    docheck(is_sorted, x, 0)
+          x = {2, NAN, 1};
+  docheck(is_increasing, x, 0) docheck(is_decreasing, x, 0)
+      docheck(is_sorted, x, 0)
 
-    x = {2, NAN, 1};
-    docheck(is_increasing, x, 0)
-    docheck(is_decreasing, x, 0)
-    docheck(is_sorted, x, 0)
-
-    x = {NAN, NAN, NAN};
-    docheck(is_increasing, x, 0)
-    docheck(is_decreasing, x, 0)
-    docheck(is_sorted, x, 0)
+          x = {NAN, NAN, NAN};
+  docheck(is_increasing, x, 0) docheck(is_decreasing, x, 0)
+      docheck(is_sorted, x, 0)
 
 #undef docheck
 }
 
-
-void test45()
-{
-  #if DO_FAST_WIGNER
+void test45() {
+#if DO_FAST_WIGNER
   fastwigxj_load(FAST_WIGNER_PATH_3J, 3, NULL);
   fastwigxj_load(FAST_WIGNER_PATH_6J, 6, NULL);
   fastwigxj_dyn_init(3, 20000000);
   fastwigxj_dyn_init(6, 2000000);
-  #endif
-  wig_table_init(int(112*2), 6);
-  wig_temp_init(int(112*2));
-  
+#endif
+  wig_table_init(int(112 * 2), 6);
+  wig_temp_init(int(112 * 2));
+
   const Rational a(124, 1), b(2, 1), c(122, 1), d(0, 1), e(0, 1), f(0, 1);
-  Numeric x = wigner3j(a,b,c,d,e,f);
-  std::cout<<x<<std::endl<<std::endl;
-  
-  ArrayOfRational jl={112, 110, 108, 106, 104, 102, 100, 98, 
-    96, 94, 92, 90, 88, 86, 84, 82, 80, 78, 76, 74, 72, 70, 
-    68, 66, 64, 62, 60, 58, 56, 54, 52, 50, 48, 46, 44, 42, 
-    40, 38, 36, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 
-    12, 10, 8, 6, 4, 2, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 
-    22, 24, 0, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 2, 
-    46, 48, 50, 52, 54, 56, 4, 58, 60, 62, 64, 66, 6, 68, 
-    70, 72, 74, 76, 8, 78, 80, 82, 84, 10, 86, 88, 90, 12, 
-    92, 94, 96, 14, 98, 100, 102, 16, 104, 18, 20, 22, 24, 
-    26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 
-    54, 56, 58, 60, 62, 64, 66, 68, 70, 72, 74, 76, 78, 80, 
-    82, 84, 86, 88, 90, 92, 94, 96, 98, 100, 102, 104, 106, 
-    108, 110};
-  ArrayOfRational ju = {111, 109, 107, 105, 103, 101, 99, 97, 
-    95, 93, 91, 89, 87, 85, 83, 81, 79, 77, 75, 73, 71, 69, 
-    67, 65, 63, 61, 59, 57, 55, 53, 51, 49, 47, 45, 43, 41, 
-    39, 37, 35, 33, 31, 29, 27, 25, 23, 21, 19, 17, 15, 13, 
-    11, 9, 7, 5, 3, 1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 
-    24, 1, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 3, 46, 48, 
-    50, 52, 54, 56, 5, 58, 60, 62, 64, 66, 7, 68, 70, 72, 74, 
-    76, 9, 78, 80, 82, 84, 11, 86, 88, 90, 13, 92, 94, 96, 15, 
-    98, 100, 102, 17, 104, 19, 21, 23, 25, 27, 29, 31, 33, 35, 
-    37, 39, 41, 43, 45, 47, 49, 51, 53, 55, 57, 59, 61, 63, 
-    65, 67, 69, 71, 73, 75, 77, 79, 81, 83, 85, 87, 89, 91, 
-    93, 95, 97, 99, 101, 103, 105, 107, 109, 111};
-  
+  Numeric x = wigner3j(a, b, c, d, e, f);
+  std::cout << x << std::endl << std::endl;
+
+  ArrayOfRational jl = {
+      112, 110, 108, 106, 104, 102, 100, 98, 96,  94,  92,  90,  88,  86, 84,
+      82,  80,  78,  76,  74,  72,  70,  68, 66,  64,  62,  60,  58,  56, 54,
+      52,  50,  48,  46,  44,  42,  40,  38, 36,  34,  32,  30,  28,  26, 24,
+      22,  20,  18,  16,  14,  12,  10,  8,  6,   4,   2,   2,   4,   6,  8,
+      10,  12,  14,  16,  18,  20,  22,  24, 0,   26,  28,  30,  32,  34, 36,
+      38,  40,  42,  44,  2,   46,  48,  50, 52,  54,  56,  4,   58,  60, 62,
+      64,  66,  6,   68,  70,  72,  74,  76, 8,   78,  80,  82,  84,  10, 86,
+      88,  90,  12,  92,  94,  96,  14,  98, 100, 102, 16,  104, 18,  20, 22,
+      24,  26,  28,  30,  32,  34,  36,  38, 40,  42,  44,  46,  48,  50, 52,
+      54,  56,  58,  60,  62,  64,  66,  68, 70,  72,  74,  76,  78,  80, 82,
+      84,  86,  88,  90,  92,  94,  96,  98, 100, 102, 104, 106, 108, 110};
+  ArrayOfRational ju = {
+      111, 109, 107, 105, 103, 101, 99, 97, 95,  93,  91,  89,  87,  85, 83,
+      81,  79,  77,  75,  73,  71,  69, 67, 65,  63,  61,  59,  57,  55, 53,
+      51,  49,  47,  45,  43,  41,  39, 37, 35,  33,  31,  29,  27,  25, 23,
+      21,  19,  17,  15,  13,  11,  9,  7,  5,   3,   1,   2,   4,   6,  8,
+      10,  12,  14,  16,  18,  20,  22, 24, 1,   26,  28,  30,  32,  34, 36,
+      38,  40,  42,  44,  3,   46,  48, 50, 52,  54,  56,  5,   58,  60, 62,
+      64,  66,  7,   68,  70,  72,  74, 76, 9,   78,  80,  82,  84,  11, 86,
+      88,  90,  13,  92,  94,  96,  15, 98, 100, 102, 17,  104, 19,  21, 23,
+      25,  27,  29,  31,  33,  35,  37, 39, 41,  43,  45,  47,  49,  51, 53,
+      55,  57,  59,  61,  63,  65,  67, 69, 71,  73,  75,  77,  79,  81, 83,
+      85,  87,  89,  91,  93,  95,  97, 99, 101, 103, 105, 107, 109, 111};
+
   Vector v1(jl.nelem(), 1.0), v2(jl.nelem(), 1.0);
   Matrix W;
   ECS_wigner_CO2(W, jl, ju, 0, 1, v1, v2);
   Index testi = 5;
   std::cout << "Transition: " << jl[testi] << "-->" << ju[testi] << std::endl;
-  for(Index i=0; i<jl.nelem(); i++)
-    std::cout << "Matrix value for " << jl[i] << "-->" << ju[i] 
-              << ": " << MapToEigen(W(i, testi)).transpose() << std::endl;
+  for (Index i = 0; i < jl.nelem(); i++)
+    std::cout << "Matrix value for " << jl[i] << "-->" << ju[i] << ": "
+              << MapToEigen(W(i, testi)).transpose() << std::endl;
 }
 
-
-void test46()
-{
+void test46() {
   Vector v(5, 0.);
   nlinspace(v, 1, 10, 10);
   VectorView v1 = v;
-  auto compare_func = [](Numeric n){return n != 0;};
+  auto compare_func = [](Numeric n) { return n != 0; };
   cout << std::any_of(v1.begin(), v1.end(), compare_func) << endl;
   v1 = 0.;
   cout << std::any_of(v1.begin(), v1.end(), compare_func) << endl;
 }
-
 
 //! Test diagonal vector.
 /*!
@@ -979,217 +887,188 @@ void test46()
   \param[in] ntests Number of tests to run.
   \return True if all tests were passed, false otherwise.
 */
-bool test_diagonal( Index ntests )
-{
-    Rand<Index> rand( 1, 100 );
+bool test_diagonal(Index ntests) {
+  Rand<Index> rand(1, 100);
 
-    Index n_diag;
+  Index n_diag;
 
-    bool pass = true;
+  bool pass = true;
 
-    for ( Index i = 0; i < ntests; i++ )
-    {
-        Matrix A( rand(), rand() );
-        n_diag = std::min( A.ncols(), A.nrows() );
+  for (Index i = 0; i < ntests; i++) {
+    Matrix A(rand(), rand());
+    n_diag = std::min(A.ncols(), A.nrows());
 
-        ConstMatrixView AT = transpose(A);
-        ConstMatrixView B = A;
-        if  (n_diag > 3)
-        {
-            B =  A( Range(1, Joker() ,2), Range(1, Joker() ,2) );
-        }
-
-        ConstVectorView v( A.diagonal() );
-        ConstVectorView vt( AT.diagonal() );
-        ConstVectorView vb( B.diagonal() );
-
-        random_fill_matrix( A, 10, true );
-
-        for ( Index j = 0; j < n_diag; j++ )
-        {
-            pass = pass && ( v[j] == A(j,j) );
-            pass = pass && ( vt[j] == AT(j,j) );
-
-            if ( j < vb.nelem() )
-                pass = pass && ( vb[j] == B(j,j) );
-
-        }
-        cout << endl;
+    ConstMatrixView AT = transpose(A);
+    ConstMatrixView B = A;
+    if (n_diag > 3) {
+      B = A(Range(1, Joker(), 2), Range(1, Joker(), 2));
     }
 
-    if (pass)
-        cout << "test diagonal: Passed all tests." << endl;
+    ConstVectorView v(A.diagonal());
+    ConstVectorView vt(AT.diagonal());
+    ConstVectorView vb(B.diagonal());
+
+    random_fill_matrix(A, 10, true);
+
+    for (Index j = 0; j < n_diag; j++) {
+      pass = pass && (v[j] == A(j, j));
+      pass = pass && (vt[j] == AT(j, j));
+
+      if (j < vb.nelem()) pass = pass && (vb[j] == B(j, j));
+    }
+    cout << endl;
+  }
+
+  if (pass)
+    cout << "test diagonal: Passed all tests." << endl;
+  else
+    cout << "test diagonal: Failed." << endl;
+
+  return pass;
+}
+
+Numeric matrix_vector_mult(Index m, Index n, Index ntests, bool verbose) {
+  Numeric max_err = 0;
+  Matrix A(m, n);
+  Vector x(n), xt, x_ref(n), y(m), y_ref(m);
+
+  Rand<Index> random_row_stride(1, n / 4);
+  Rand<Index> random_column_stride(1, m / 4);
+
+  for (Index i = 0; i < ntests; i++) {
+    // A * x
+
+    random_fill_matrix(A, 1000, false);
+    random_fill_vector(x, 1000, false);
+
+    mult(y, A, x);
+    mult_general(y_ref, A, x);
+
+    Numeric err_mul = get_maximum_error(y, y_ref, true);
+    if (err_mul > max_err) max_err = err_mul;
+
+    if (verbose) {
+      cout << "\t A * x: max. rel. error = " << err_mul << endl;
+    }
+
+    // A^T  * y
+
+    mult(x, transpose(A), y);
+    mult_general(x_ref, transpose(A), y);
+
+    err_mul = get_maximum_error(x, x_ref, true);
+    if (err_mul > max_err) max_err = err_mul;
+
+    if (verbose) {
+      cout << "\t A^T * x: max. rel. error = " << err_mul << endl;
+    }
+
+    // Random stride
+    Index column_stride(random_column_stride()),
+        row_stride(random_row_stride());
+
+    Index m_sub, n_sub;
+    m_sub = (m - 1) / row_stride + 1;
+    n_sub = (n - 1) / column_stride + 1;
+
+    mult(y[Range(0, joker, row_stride)],
+         A(Range(0, m_sub), Range(0, n_sub)),
+         x[Range(0, joker, column_stride)]);
+    mult_general(y_ref[Range(0, joker, row_stride)],
+                 A(Range(0, m_sub), Range(0, n_sub)),
+                 x[Range(0, joker, column_stride)]);
+
+    err_mul = get_maximum_error(y[Range(0, joker, row_stride)],
+                                y_ref[Range(0, joker, row_stride)],
+                                true);
+    if (err_mul > max_err) max_err = err_mul;
+
+    if (verbose) {
+      cout << "\t Random stride: max. rel. error = " << err_mul << endl << endl;
+    }
+
+    // Random offset
+    if ((m > 1) && (n > 1)) {
+      Index y_offset = rand() % (m - 1);
+      Index x_offset = rand() % (n - 1);
+
+      m_sub = m - y_offset - 1;
+      n_sub = n - x_offset - 1;
+
+      mult(y[Range(y_offset, m_sub)],
+           A(Range(y_offset, m_sub), Range(x_offset, n_sub)),
+           x[Range(x_offset, n_sub)]);
+      mult_general(y_ref[Range(y_offset, m_sub)],
+                   A(Range(y_offset, m_sub), Range(x_offset, n_sub)),
+                   x[Range(x_offset, n_sub)]);
+
+      err_mul = get_maximum_error(
+          y[Range(y_offset, m_sub)], y_ref[Range(y_offset, m_sub)], true);
+      if (err_mul > max_err) max_err = err_mul;
+
+      if (verbose) {
+        cout << "\t Random offset: max. rel. error = " << err_mul << endl
+             << endl;
+      }
+    }
+  }
+
+  return max_err;
+}
+
+Numeric test_matrix_vector_multiplication(bool verbose) {
+  Numeric err, max_err;
+
+  if (verbose)
+    cout << "Matrix-Vector Multiplication: n = m = 100, ntests = 100" << endl;
+
+  max_err = matrix_vector_mult(100, 100, 100, verbose);
+  if (verbose) {
+    cout << endl;
+    cout << "Matrix-Vector Multiplication: n = 100, m = 20, ntests = 100"
+         << endl;
+  }
+
+  err = matrix_vector_mult(100, 20, 100, verbose);
+  if (err > max_err) max_err = err;
+  if (verbose) {
+    cout << endl;
+    cout << "Matrix-Vector Multiplication: n = 20, m = 100, ntests = 100"
+         << endl;
+  }
+
+  err = matrix_vector_mult(20, 100, 100, verbose);
+  if (err > max_err) max_err = err;
+  if (verbose) {
+    if (max_err < 1e-9)
+      cout << endl << "Matrix Vector Multiplication: PASSED" << endl;
     else
-        cout << "test diagonal: Failed." << endl;
+      cout << endl << "Matrix Vector Multiplication: FAILED" << endl;
+  }
 
-    return pass;
-}
+  err = matrix_vector_mult(100, 1, 100, verbose);
+  if (err > max_err) max_err = err;
+  if (verbose) {
+    cout << endl;
+    cout << "Matrix-Vector Multiplication: n = 20, m = 100, ntests = 100"
+         << endl;
+  }
 
-Numeric matrix_vector_mult( Index m,
-                            Index n,
-                            Index ntests,
-                            bool verbose )
-{
+  err = matrix_vector_mult(1, 100, 100, verbose);
+  if (err > max_err) max_err = err;
+  if (verbose) {
+    cout << endl;
+    cout << "Matrix-Vector Multiplication: n = 20, m = 100, ntests = 100"
+         << endl;
+  }
 
-    Numeric max_err = 0;
-    Matrix A(m,n);
-    Vector x(n), xt, x_ref(n), y(m), y_ref(m);
-
-    Rand<Index> random_row_stride( 1, n/4 );
-    Rand<Index> random_column_stride( 1, m/4 );
-
-    for ( Index i = 0; i <  ntests; i++ )
-    {
-
-        // A * x
-
-        random_fill_matrix( A, 1000, false );
-        random_fill_vector( x, 1000, false );
-
-        mult( y, A, x );
-        mult_general( y_ref, A, x );
-
-        Numeric err_mul = get_maximum_error( y, y_ref, true );
-        if (err_mul > max_err)
-            max_err = err_mul;
-
-        if (verbose)
-        {
-            cout << "\t A * x: max. rel. error = " << err_mul << endl;
-        }
-
-        // A^T  * y
-
-        mult( x, transpose(A), y );
-        mult_general( x_ref, transpose(A), y ) ;
-
-        err_mul = get_maximum_error( x, x_ref , true );
-        if (err_mul > max_err)
-            max_err =  err_mul;
-
-        if (verbose)
-        {
-            cout << "\t A^T * x: max. rel. error = " << err_mul << endl;
-        }
-
-        // Random stride
-        Index column_stride( random_column_stride() ),
-            row_stride( random_row_stride() );
-
-        Index m_sub, n_sub;
-        m_sub = (m - 1) / row_stride + 1;
-        n_sub = (n - 1) / column_stride + 1;
-
-        mult( y[ Range(0, joker, row_stride) ],
-              A( Range(0, m_sub), Range(0, n_sub) ),
-              x[ Range(0, joker, column_stride) ] );
-        mult_general( y_ref[ Range(0, joker, row_stride) ],
-                      A( Range(0, m_sub), Range(0, n_sub) ),
-                      x[ Range(0, joker, column_stride) ] );
-
-        err_mul = get_maximum_error( y[ Range(0, joker, row_stride) ],
-                             y_ref[ Range(0, joker, row_stride) ],
-                             true );
-        if (err_mul > max_err)
-            max_err = err_mul;
-
-        if (verbose)
-        {
-            cout << "\t Random stride: max. rel. error = " << err_mul << endl << endl;
-        }
-
-        // Random offset
-        if ((m > 1) && (n > 1))
-        {
-            Index y_offset = rand() % (m - 1);
-            Index x_offset = rand() % (n - 1);
-
-            m_sub = m - y_offset - 1;
-            n_sub = n - x_offset - 1;
-
-            mult( y[ Range(y_offset, m_sub) ],
-                A( Range(y_offset, m_sub), Range(x_offset, n_sub) ),
-                x[ Range(x_offset, n_sub) ] );
-            mult_general( y_ref[ Range(y_offset, m_sub) ],
-                        A( Range(y_offset, m_sub), Range(x_offset, n_sub) ),
-                        x[ Range(x_offset, n_sub) ] );
-
-            err_mul = get_maximum_error( y[ Range(y_offset, m_sub) ],
-                                        y_ref[ Range(y_offset, m_sub) ],
-                                        true );
-            if (err_mul > max_err)
-                max_err = err_mul;
-
-            if (verbose)
-            {
-                cout << "\t Random offset: max. rel. error = " << err_mul << endl << endl;
-            }
-        }
-    }
-
-    return max_err;
-}
-
-Numeric test_matrix_vector_multiplication( bool verbose )
-{
-    Numeric err, max_err;
-
-    if (verbose)
-        cout << "Matrix-Vector Multiplication: n = m = 100, ntests = 100" << endl;
-
-    max_err = matrix_vector_mult( 100, 100, 100, verbose );
-    if (verbose)
-    {
-        cout << endl;
-        cout << "Matrix-Vector Multiplication: n = 100, m = 20, ntests = 100" << endl;
-    }
-
-    err = matrix_vector_mult( 100, 20, 100, verbose );
-    if (err > max_err)
-        max_err = err;
-    if (verbose)
-    {
-        cout << endl;
-        cout << "Matrix-Vector Multiplication: n = 20, m = 100, ntests = 100" << endl;
-    }
-
-    err = matrix_vector_mult( 20, 100, 100, verbose );
-    if (err > max_err)
-        max_err = err;
-    if (verbose)
-    {
-        if (max_err < 1e-9)
-            cout << endl << "Matrix Vector Multiplication: PASSED" << endl;
-        else
-            cout << endl << "Matrix Vector Multiplication: FAILED" << endl;
-    }
-
-    err = matrix_vector_mult( 100, 1, 100, verbose );
-    if (err > max_err)
-        max_err = err;
-    if (verbose)
-    {
-        cout << endl;
-        cout << "Matrix-Vector Multiplication: n = 20, m = 100, ntests = 100" << endl;
-    }
-
-    err = matrix_vector_mult( 1, 100, 100, verbose );
-    if (err > max_err)
-        max_err = err;
-    if (verbose)
-    {
-        cout << endl;
-        cout << "Matrix-Vector Multiplication: n = 20, m = 100, ntests = 100" << endl;
-    }
-
-    if (verbose)
-    {
-        if (max_err < 1e-9)
-            cout << endl << "Matrix Vector Multiplication: PASSED" << endl;
-        else
-            cout << endl << "Matrix Vector Multiplication: FAILED" << endl;
-    }
-    return max_err;
+  if (verbose) {
+    if (max_err < 1e-9)
+      cout << endl << "Matrix Vector Multiplication: PASSED" << endl;
+    else
+      cout << endl << "Matrix Vector Multiplication: FAILED" << endl;
+  }
+  return max_err;
 }
 
 //! Perform matrix multiplication test.
@@ -1212,130 +1091,115 @@ Numeric test_matrix_vector_multiplication( bool verbose )
 
   \return The maximum element-wise, relative error that occured in the tests.
 */
-Numeric matrix_mult( Index k,
-                     Index m,
-                     Index n,
-                     Index ntests,
-                     Index nsubtests,
-                     bool verbose )
-{
-    Numeric max_err = 0;
-    Matrix A( m, k), B( k, n), C( m, n), C_ref( m, n );
+Numeric matrix_mult(
+    Index k, Index m, Index n, Index ntests, Index nsubtests, bool verbose) {
+  Numeric max_err = 0;
+  Matrix A(m, k), B(k, n), C(m, n), C_ref(m, n);
 
-    for ( Index i = 0; i < ntests; i++ )
-    {
-        random_fill_matrix( A, 1000, false );
-        random_fill_matrix( B, 1000, false );
+  for (Index i = 0; i < ntests; i++) {
+    random_fill_matrix(A, 1000, false);
+    random_fill_matrix(B, 1000, false);
 
-        if (verbose)
-        {
-            cout.precision(15);
-            cout << "MATRIX MULTIPLICATION: m = " << m << ", k = " << k;
-            cout << ", n = " << n << endl;
-        }
-
-        // A * B
-
-        random_fill_matrix( C, 10, false );
-        random_fill_matrix( C_ref, 10, false );
-
-        mult( C, A, B );
-        mult_general( C_ref, A, B );
-
-        Numeric err_mul = get_maximum_error( C, C_ref, true );
-        if (err_mul > max_err)
-            max_err = err_mul;
-
-
-        if (verbose)
-        {
-            cout << "\t" <<  "A * B: max. rel. error = " << err_mul << endl;
-        }
-
-        // A^T * B
-
-        Matrix AT( k, m );
-        random_fill_matrix( AT, 100.0, false );
-
-        mult( C, transpose(AT), B );
-        mult_general( C_ref, transpose(AT), B );
-        Numeric err_trans1 = get_maximum_error( C, C_ref, true );
-        if (err_trans1 > max_err)
-            max_err = err_trans1;
-
-        if (verbose)
-        {
-            cout << "\t" <<  "A^T * B: max. rel. err = " << err_trans1 << endl;
-        }
-
-        // A * B^T
-
-        Matrix BT( n, k );
-        random_fill_matrix( BT, 100.0, false );
-
-        mult( C, A, transpose(BT) );
-        mult_general( C_ref, A, transpose(BT) );
-        Numeric err_trans2 = get_maximum_error( C, C_ref, true );
-        if (err_trans2 > max_err)
-            max_err = err_trans2;
-
-        if (verbose)
-        {
-            cout << "\t" <<  "A * B^T: max. rel. err = " << err_trans2 << endl;
-        }
-
-        // A^T * B^T
-
-        mult( C, transpose(AT), transpose(BT) );
-        mult_general( C_ref, transpose(AT), transpose(BT) );
-        Numeric err_trans3 = get_maximum_error( C, C_ref, true );
-        if (err_trans3 > max_err)
-            max_err = err_trans3;
-
-        if (verbose)
-        {
-            cout << "\t" <<  "A^T * B^T: max. rel. err = " << err_trans3 << endl;
-            cout << endl;
-        }
+    if (verbose) {
+      cout.precision(15);
+      cout << "MATRIX MULTIPLICATION: m = " << m << ", k = " << k;
+      cout << ", n = " << n << endl;
     }
 
-    // Multiplication of submatrices.
-    Rand<Index> k_rand( 1, k - 1), m_rand( 1, m - 1 ), n_rand( 1, n - 1 );
+    // A * B
 
-    for ( Index i = 0; i < nsubtests - 1; i++ )
-    {
-        Index k1( k_rand() ), m1( m_rand() ), n1( n_rand() );
+    random_fill_matrix(C, 10, false);
+    random_fill_matrix(C_ref, 10, false);
 
-        Range r1( random_range( m1 ) );
-        Range r2( random_range( k1 ) );
-        Range r3( random_range( n1 ) );
+    mult(C, A, B);
+    mult_general(C_ref, A, B);
 
-        MatrixView C_sub( C( r1, r3  ) );
-        MatrixView C_sub_ref( C_ref( r1, r3  ) );
+    Numeric err_mul = get_maximum_error(C, C_ref, true);
+    if (err_mul > max_err) max_err = err_mul;
 
-        ConstMatrixView A_sub( A( r1, r2 ) );
-        ConstMatrixView B_sub( B( r2, r3 ) );
-
-        mult( C_sub, A_sub, B_sub );
-        mult_general( C_sub_ref, A_sub, B_sub );
-
-        Numeric err = get_maximum_error( C_sub, C_sub_ref, true );
-        if (err > max_err)
-            max_err = err;
-
-        if (verbose)
-        {
-            cout << "\t" <<  "Submatrix multiplication: max. rel. err = " << err;
-            cout << endl;
-        }
+    if (verbose) {
+      cout << "\t"
+           << "A * B: max. rel. error = " << err_mul << endl;
     }
 
-    if (verbose)
-    {
-        cout << endl;
+    // A^T * B
+
+    Matrix AT(k, m);
+    random_fill_matrix(AT, 100.0, false);
+
+    mult(C, transpose(AT), B);
+    mult_general(C_ref, transpose(AT), B);
+    Numeric err_trans1 = get_maximum_error(C, C_ref, true);
+    if (err_trans1 > max_err) max_err = err_trans1;
+
+    if (verbose) {
+      cout << "\t"
+           << "A^T * B: max. rel. err = " << err_trans1 << endl;
     }
 
-    return max_err;
+    // A * B^T
+
+    Matrix BT(n, k);
+    random_fill_matrix(BT, 100.0, false);
+
+    mult(C, A, transpose(BT));
+    mult_general(C_ref, A, transpose(BT));
+    Numeric err_trans2 = get_maximum_error(C, C_ref, true);
+    if (err_trans2 > max_err) max_err = err_trans2;
+
+    if (verbose) {
+      cout << "\t"
+           << "A * B^T: max. rel. err = " << err_trans2 << endl;
+    }
+
+    // A^T * B^T
+
+    mult(C, transpose(AT), transpose(BT));
+    mult_general(C_ref, transpose(AT), transpose(BT));
+    Numeric err_trans3 = get_maximum_error(C, C_ref, true);
+    if (err_trans3 > max_err) max_err = err_trans3;
+
+    if (verbose) {
+      cout << "\t"
+           << "A^T * B^T: max. rel. err = " << err_trans3 << endl;
+      cout << endl;
+    }
+  }
+
+  // Multiplication of submatrices.
+  Rand<Index> k_rand(1, k - 1), m_rand(1, m - 1), n_rand(1, n - 1);
+
+  for (Index i = 0; i < nsubtests - 1; i++) {
+    Index k1(k_rand()), m1(m_rand()), n1(n_rand());
+
+    Range r1(random_range(m1));
+    Range r2(random_range(k1));
+    Range r3(random_range(n1));
+
+    MatrixView C_sub(C(r1, r3));
+    MatrixView C_sub_ref(C_ref(r1, r3));
+
+    ConstMatrixView A_sub(A(r1, r2));
+    ConstMatrixView B_sub(B(r2, r3));
+
+    mult(C_sub, A_sub, B_sub);
+    mult_general(C_sub_ref, A_sub, B_sub);
+
+    Numeric err = get_maximum_error(C_sub, C_sub_ref, true);
+    if (err > max_err) max_err = err;
+
+    if (verbose) {
+      cout << "\t"
+           << "Submatrix multiplication: max. rel. err = " << err;
+      cout << endl;
+    }
+  }
+
+  if (verbose) {
+    cout << endl;
+  }
+
+  return max_err;
 }
 
 //! Perform matrix multiplication tests.
@@ -1350,147 +1214,169 @@ Numeric matrix_mult( Index k,
       k = m = n = 100
 
  */
-Numeric test_matrix_multiplication(bool verbose)
-{
-    Numeric max_err, err;
+Numeric test_matrix_multiplication(bool verbose) {
+  Numeric max_err, err;
 
-    // Trivial case k = m = n = 0.
-    max_err = matrix_mult( 0, 0, 0, 10, 0, verbose);
+  // Trivial case k = m = n = 0.
+  max_err = matrix_mult(0, 0, 0, 10, 0, verbose);
 
-    // k = 1, m = 1, n = 1.
-    err = matrix_mult( 1, 1, 1, 10, 0, verbose);
-    if (err > max_err)
-        max_err = err;
+  // k = 1, m = 1, n = 1.
+  err = matrix_mult(1, 1, 1, 10, 0, verbose);
+  if (err > max_err) max_err = err;
 
-    // k = 10, m = 1, n = 10.
-    err = matrix_mult( 10, 1, 10, 20, 20, verbose);
-    if (err > max_err)
-        max_err = err;
+  // k = 10, m = 1, n = 10.
+  err = matrix_mult(10, 1, 10, 20, 20, verbose);
+  if (err > max_err) max_err = err;
 
-    // k = 10, m = 1, n = 10.
-    err = matrix_mult( 10, 1, 10, 20, 20, verbose);
-    if (err > max_err)
-        max_err = err;
+  // k = 10, m = 1, n = 10.
+  err = matrix_mult(10, 1, 10, 20, 20, verbose);
+  if (err > max_err) max_err = err;
 
-    // k = 10, m = 1, n = 1.
-    err = matrix_mult( 10, 1, 1, 20, 20, verbose);
-    if (err > max_err)
-        max_err = err;
+  // k = 10, m = 1, n = 1.
+  err = matrix_mult(10, 1, 1, 20, 20, verbose);
+  if (err > max_err) max_err = err;
 
-    // k = 100, m = 100, n = 100.
-    err = matrix_mult( 200, 200, 200, 20, 20, verbose);
-    if (err > max_err)
-        max_err = err;
+  // k = 100, m = 100, n = 100.
+  err = matrix_mult(200, 200, 200, 20, 20, verbose);
+  if (err > max_err) max_err = err;
 
-    // k = 10, m = 100, n = 10.
-    err = matrix_mult( 10, 100, 10, 20, 20, verbose);
-    if (err > max_err)
-        max_err = err;
+  // k = 10, m = 100, n = 10.
+  err = matrix_mult(10, 100, 10, 20, 20, verbose);
+  if (err > max_err) max_err = err;
 
-    // k = 10, m = 100, n = 100.
-    err = matrix_mult( 10, 100, 100, 20, 20, verbose);
-    if (err > max_err)
-        max_err = err;
+  // k = 10, m = 100, n = 100.
+  err = matrix_mult(10, 100, 100, 20, 20, verbose);
+  if (err > max_err) max_err = err;
 
-    // k = 100, m = 100, n = 100, 100 submatrix multiplications.
-    err = matrix_mult( 100, 100, 100, 0, 100, verbose);
-    if (err > max_err)
-        max_err = err;
+  // k = 100, m = 100, n = 100, 100 submatrix multiplications.
+  err = matrix_mult(100, 100, 100, 0, 100, verbose);
+  if (err > max_err) max_err = err;
 
-    return max_err;
+  return max_err;
 }
 
 //! Check if the empty function is working correctly
-void test_empty()
-{
-    {
-        cout << "Array" << endl;
-        ArrayOfIndex v;
-        v.resize(0); cout << v.empty() << endl;
-        v.resize(1); cout << v.empty() << endl;
-    }
-    {
-        cout << "Vector" << endl;
-        Vector v;
-        v.resize(0); cout << v.empty() << endl;
-        v.resize(1); cout << v.empty() << endl;
-    }
-    {
-        cout << "Matrix" << endl;
-        Matrix v;
-        v.resize(0,1); cout << v.empty() << endl;
-        v.resize(1,0); cout << v.empty() << endl;
-        v.resize(1,1); cout << v.empty() << endl;
-    }
-    {
-        cout << "Tensor3" << endl;
-        Tensor3 v;
-        v.resize(0,1,1); cout << v.empty() << endl;
-        v.resize(1,0,1); cout << v.empty() << endl;
-        v.resize(1,1,0); cout << v.empty() << endl;
-        v.resize(1,1,1); cout << v.empty() << endl;
-    }
-    {
-        cout << "Tensor4" << endl;
-        Tensor4 v;
-        v.resize(0,1,1,1); cout << v.empty() << endl;
-        v.resize(1,0,1,1); cout << v.empty() << endl;
-        v.resize(1,1,0,1); cout << v.empty() << endl;
-        v.resize(1,1,1,0); cout << v.empty() << endl;
-        v.resize(1,1,1,1); cout << v.empty() << endl;
-    }
-    {
-        cout << "Tensor5" << endl;
-        Tensor5 v;
-        v.resize(0,1,1,1,1); cout << v.empty() << endl;
-        v.resize(1,0,1,1,1); cout << v.empty() << endl;
-        v.resize(1,1,0,1,1); cout << v.empty() << endl;
-        v.resize(1,1,1,0,1); cout << v.empty() << endl;
-        v.resize(1,1,1,1,0); cout << v.empty() << endl;
-        v.resize(1,1,1,1,1); cout << v.empty() << endl;
-    }
-    {
-        cout << "Tensor6" << endl;
-        Tensor6 v;
-        v.resize(0,1,1,1,1,1); cout << v.empty() << endl;
-        v.resize(1,0,1,1,1,1); cout << v.empty() << endl;
-        v.resize(1,1,0,1,1,1); cout << v.empty() << endl;
-        v.resize(1,1,1,0,1,1); cout << v.empty() << endl;
-        v.resize(1,1,1,1,0,1); cout << v.empty() << endl;
-        v.resize(1,1,1,1,1,0); cout << v.empty() << endl;
-        v.resize(1,1,1,1,1,1); cout << v.empty() << endl;
-    }
-    {
-        cout << "Tensor7" << endl;
-        Tensor7 v;
-        v.resize(0,1,1,1,1,1,1); cout << v.empty() << endl;
-        v.resize(1,0,1,1,1,1,1); cout << v.empty() << endl;
-        v.resize(1,1,0,1,1,1,1); cout << v.empty() << endl;
-        v.resize(1,1,1,0,1,1,1); cout << v.empty() << endl;
-        v.resize(1,1,1,1,0,1,1); cout << v.empty() << endl;
-        v.resize(1,1,1,1,1,0,1); cout << v.empty() << endl;
-        v.resize(1,1,1,1,1,1,0); cout << v.empty() << endl;
-        v.resize(1,1,1,1,1,1,1); cout << v.empty() << endl;
-    }
+void test_empty() {
+  {
+    cout << "Array" << endl;
+    ArrayOfIndex v;
+    v.resize(0);
+    cout << v.empty() << endl;
+    v.resize(1);
+    cout << v.empty() << endl;
+  }
+  {
+    cout << "Vector" << endl;
+    Vector v;
+    v.resize(0);
+    cout << v.empty() << endl;
+    v.resize(1);
+    cout << v.empty() << endl;
+  }
+  {
+    cout << "Matrix" << endl;
+    Matrix v;
+    v.resize(0, 1);
+    cout << v.empty() << endl;
+    v.resize(1, 0);
+    cout << v.empty() << endl;
+    v.resize(1, 1);
+    cout << v.empty() << endl;
+  }
+  {
+    cout << "Tensor3" << endl;
+    Tensor3 v;
+    v.resize(0, 1, 1);
+    cout << v.empty() << endl;
+    v.resize(1, 0, 1);
+    cout << v.empty() << endl;
+    v.resize(1, 1, 0);
+    cout << v.empty() << endl;
+    v.resize(1, 1, 1);
+    cout << v.empty() << endl;
+  }
+  {
+    cout << "Tensor4" << endl;
+    Tensor4 v;
+    v.resize(0, 1, 1, 1);
+    cout << v.empty() << endl;
+    v.resize(1, 0, 1, 1);
+    cout << v.empty() << endl;
+    v.resize(1, 1, 0, 1);
+    cout << v.empty() << endl;
+    v.resize(1, 1, 1, 0);
+    cout << v.empty() << endl;
+    v.resize(1, 1, 1, 1);
+    cout << v.empty() << endl;
+  }
+  {
+    cout << "Tensor5" << endl;
+    Tensor5 v;
+    v.resize(0, 1, 1, 1, 1);
+    cout << v.empty() << endl;
+    v.resize(1, 0, 1, 1, 1);
+    cout << v.empty() << endl;
+    v.resize(1, 1, 0, 1, 1);
+    cout << v.empty() << endl;
+    v.resize(1, 1, 1, 0, 1);
+    cout << v.empty() << endl;
+    v.resize(1, 1, 1, 1, 0);
+    cout << v.empty() << endl;
+    v.resize(1, 1, 1, 1, 1);
+    cout << v.empty() << endl;
+  }
+  {
+    cout << "Tensor6" << endl;
+    Tensor6 v;
+    v.resize(0, 1, 1, 1, 1, 1);
+    cout << v.empty() << endl;
+    v.resize(1, 0, 1, 1, 1, 1);
+    cout << v.empty() << endl;
+    v.resize(1, 1, 0, 1, 1, 1);
+    cout << v.empty() << endl;
+    v.resize(1, 1, 1, 0, 1, 1);
+    cout << v.empty() << endl;
+    v.resize(1, 1, 1, 1, 0, 1);
+    cout << v.empty() << endl;
+    v.resize(1, 1, 1, 1, 1, 0);
+    cout << v.empty() << endl;
+    v.resize(1, 1, 1, 1, 1, 1);
+    cout << v.empty() << endl;
+  }
+  {
+    cout << "Tensor7" << endl;
+    Tensor7 v;
+    v.resize(0, 1, 1, 1, 1, 1, 1);
+    cout << v.empty() << endl;
+    v.resize(1, 0, 1, 1, 1, 1, 1);
+    cout << v.empty() << endl;
+    v.resize(1, 1, 0, 1, 1, 1, 1);
+    cout << v.empty() << endl;
+    v.resize(1, 1, 1, 0, 1, 1, 1);
+    cout << v.empty() << endl;
+    v.resize(1, 1, 1, 1, 0, 1, 1);
+    cout << v.empty() << endl;
+    v.resize(1, 1, 1, 1, 1, 0, 1);
+    cout << v.empty() << endl;
+    v.resize(1, 1, 1, 1, 1, 1, 0);
+    cout << v.empty() << endl;
+    v.resize(1, 1, 1, 1, 1, 1, 1);
+    cout << v.empty() << endl;
+  }
 }
 
-
-void nlinspace(
-        Vector&     x,
-        const Numeric     start,
-        const Numeric     stop,
-        const Index       n )
-{
-  assert( 1<n );                // Number of points must be greater 1.
+void nlinspace(Vector& x,
+               const Numeric start,
+               const Numeric stop,
+               const Index n) {
+  assert(1 < n);  // Number of points must be greater 1.
   x.resize(n);
-  Numeric step = (stop-start)/((double)n-1) ;
-  for ( Index i=0; i<n-1; i++ )
-    x[i] = start + (double)i*step;
-  x[n-1] = stop;
+  Numeric step = (stop - start) / ((double)n - 1);
+  for (Index i = 0; i < n - 1; i++) x[i] = start + (double)i * step;
+  x[n - 1] = stop;
 }
 
-void test47()
-{
+void test47() {
   // Selecting empty matpack dimensions with Joker shouldn't fail
   Vector v;
   Matrix m;
@@ -1508,81 +1394,78 @@ void test47()
   std::cout << "mv2.ncols: " << mv2.ncols() << std::endl;
 }
 
+int main() {
+  //   test1();
+  //   test2();
+  //   test3();
+  //   test4();
+  //   test5();
+  //   test6();
+  //   test7();
+  //   test8();
+  //   test9();
+  //   test10();
+  //   test11();
+  //   test12();
+  //   test13();
+  //   test14();
+  //   test15();
+  //   test16();
+  //   test17();
+  //   test18();
+  //   test19();
+  //   test20();
+  //   test21();
+  //   test22();
+  //   test23();
+  //   test24();
+  //   test25();
+  //   test26();
+  //   test27();
+  //   test28();
+  //   test29();
+  //   test30();
+  //   test31();
+  //   test32();
+  //   test33();
+  //   test34();
+  //   test35();
+  //   test36();
+  //  Index i = 10000000;
+  //  test37(i);
+  //  test38();
+  //  test39();
+  //  test40();
+  //  test41();
+  //    test42();
+  test43();
+  //    test44();
+  //    test45();
+  //    test46();
+  //  test47();
 
-int main()
-{
-//   test1();
-//   test2();
-//   test3();
-//   test4();
-//   test5();
-//   test6();
-//   test7();
-//   test8();
-//   test9();
-//   test10();
-//   test11();
-//   test12();
-//   test13();
-//   test14();
-//   test15();
-//   test16();
-//   test17();
-//   test18();
-//   test19();
-//   test20();
-//   test21();
-//   test22();
-//   test23();
-//   test24();
-//   test25();
-//   test26();
-//   test27();
-//   test28();
-//   test29();
-//   test30();
-//   test31();
-//   test32();
-//   test33();
-//   test34();
-//   test35();
-//   test36();
-//  Index i = 10000000;
-//  test37(i);
-//  test38();
-//  test39();
-//  test40();
-//  test41();
-//    test42();
-    test43();
-//    test44();
-//    test45();
-//    test46();
-//  test47();
+  //    const double tolerance = 1e-9;
+  //    double error;
+  //
+  //    // Matrix Vector Multiplication.
+  //    error = test_matrix_vector_multiplication(false);
+  //    cout << "Matrix Vector Multiplication: ";
+  //    if (error > tolerance)
+  //        cout << "FAILED, maximum error: " << error << endl;
+  //    else
+  //        cout << "PASSED." << endl;
+  //
+  //    // Matrix Matrix Multiplication.
+  //    error = test_matrix_multiplication(false);
+  //
+  //    cout << "Matrix Matrix Multiplication: ";
+  //    if (error > tolerance)
+  //        cout << "FAILED, maximum error: " << error << endl;
+  //    else
+  //        cout << "PASSED." << endl;
 
-//    const double tolerance = 1e-9;
-//    double error;
-//
-//    // Matrix Vector Multiplication.
-//    error = test_matrix_vector_multiplication(false);
-//    cout << "Matrix Vector Multiplication: ";
-//    if (error > tolerance)
-//        cout << "FAILED, maximum error: " << error << endl;
-//    else
-//        cout << "PASSED." << endl;
-//
-//    // Matrix Matrix Multiplication.
-//    error = test_matrix_multiplication(false);
-//
-//    cout << "Matrix Matrix Multiplication: ";
-//    if (error > tolerance)
-//        cout << "FAILED, maximum error: " << error << endl;
-//    else
-//        cout << "PASSED." << endl;
+  //test_diagonal( 100 );
+  //test_empty();
 
-    //test_diagonal( 100 );
-    //test_empty();
-
-
-    return 1;
+  return 1;
 }

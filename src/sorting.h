@@ -16,8 +16,6 @@
    USA.
    */
 
-
-
 ////////////////////////////////////////////////////////////////////////////
 //   File description
 ////////////////////////////////////////////////////////////////////////////
@@ -36,8 +34,8 @@
 #include <algorithm>
 #include <functional>
 
-#include "matpack.h"
 #include "array.h"
+#include "matpack.h"
 
 /** IndexComp
  *
@@ -47,17 +45,13 @@
  * Date:   2003-08-20
  */
 template <typename T>
-class IndexComp : public binary_function<Index, Index, bool>
-{
-   const T	&m_data;
+class IndexComp : public binary_function<Index, Index, bool> {
+  const T& m_data;
 
-public:
-   IndexComp (const T& data ) : m_data (data) {}
+ public:
+  IndexComp(const T& data) : m_data(data) {}
 
-   bool operator()(Index a, Index b) const
-   {
-      return (m_data[a] < m_data[b]);
-   }
+  bool operator()(Index a, Index b) const { return (m_data[a] < m_data[b]); }
 };
 
 /** get_sorted_indexes
@@ -75,20 +69,17 @@ public:
  * \author Oliver Lemke <olemke@core-dump.info>
  * \date   2003-08-20
  */
-template <typename T> void
-get_sorted_indexes (ArrayOfIndex& sorted, const T& data)
-{
-  sorted.resize (0);
+template <typename T>
+void get_sorted_indexes(ArrayOfIndex& sorted, const T& data) {
+  sorted.resize(0);
 
   Index i = 0;
-  for (typename T::const_iterator it = data.begin (); it != data.end (); ++it)
-    {
-      sorted.push_back (i);
-      i++;
-    }
+  for (typename T::const_iterator it = data.begin(); it != data.end(); ++it) {
+    sorted.push_back(i);
+    i++;
+  }
 
-  sort (sorted.begin(), sorted.end(), IndexComp<T>(data));
+  sort(sorted.begin(), sorted.end(), IndexComp<T>(data));
 }
 
 #endif /* sorting_h */
-

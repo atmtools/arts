@@ -28,59 +28,50 @@
 #ifndef m_select_h
 #define m_select_h
 
+#include "agenda_class.h"
+#include "matpackII.h"
 #include "messages.h"
 #include "mystring.h"
 #include "workspace_ng.h"
-#include "agenda_class.h"
-#include "matpackII.h"
-
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-template< class T >
-void Select(// WS Generic Output:
-            Array<T>& needles,
-            // WS Generic Input:
-            const Array<T>& haystack,
-            const ArrayOfIndex& needleind,
-            const Verbosity&)
-{
+template <class T>
+void Select(  // WS Generic Output:
+    Array<T>& needles,
+    // WS Generic Input:
+    const Array<T>& haystack,
+    const ArrayOfIndex& needleind,
+    const Verbosity&) {
   // We construct the output in this dummy variable, so that the
   // method also works properly if needles and haystack are the same
   // variable.
-  Array<T> dummy( needleind.nelem() );
+  Array<T> dummy(needleind.nelem());
 
   // If needleind only contains -1 as the only element, copy the whole thing
-  if (needleind.nelem() == 1 && needleind[0] == -1)
-    {
-      needles = haystack;
-      return;
-    }
+  if (needleind.nelem() == 1 && needleind[0] == -1) {
+    needles = haystack;
+    return;
+  }
 
-  for( Index i = 0; i < needleind.nelem(); i++)
-    {
-      if (haystack.nelem() <= needleind[i])
-        {
-          ostringstream os;
-          os << "The input vector only has " << haystack.nelem()
-            << " elements. But one of the needle indexes is "
-            << needleind[i] << "." << endl;
-          os << "The indexes must be between 0 and " << haystack.nelem() - 1;
-          throw runtime_error (os.str());
-        }
-      else if (needleind[i] < 0)
-        {
-          ostringstream os;
-          os << "One of the needle indexes is " << needleind[i] << "." << endl;
-          os << "The indexes must be between 0 and " << haystack.nelem() - 1;
-          throw runtime_error (os.str());
-        }
-      else
-        dummy[i] = haystack[needleind[i]];
-    }
+  for (Index i = 0; i < needleind.nelem(); i++) {
+    if (haystack.nelem() <= needleind[i]) {
+      ostringstream os;
+      os << "The input vector only has " << haystack.nelem()
+         << " elements. But one of the needle indexes is " << needleind[i]
+         << "." << endl;
+      os << "The indexes must be between 0 and " << haystack.nelem() - 1;
+      throw runtime_error(os.str());
+    } else if (needleind[i] < 0) {
+      ostringstream os;
+      os << "One of the needle indexes is " << needleind[i] << "." << endl;
+      os << "The indexes must be between 0 and " << haystack.nelem() - 1;
+      throw runtime_error(os.str());
+    } else
+      dummy[i] = haystack[needleind[i]];
+  }
 
   needles = dummy;
 }
-
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Select(Workspace& /* ws */,
@@ -89,172 +80,140 @@ void Select(Workspace& /* ws */,
             // WS Generic Input:
             const ArrayOfAgenda& haystack,
             const ArrayOfIndex& needleind,
-            const Verbosity& verbosity)
-{
+            const Verbosity& verbosity) {
   Select(needles, haystack, needleind, verbosity);
 }
 
-
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Select(// WS Generic Output:
-            Vector& needles,
-            // WS Generic Input:
-            const Vector& haystack,
-            const ArrayOfIndex& needleind,
-            const Verbosity&)
-{
+void Select(  // WS Generic Output:
+    Vector& needles,
+    // WS Generic Input:
+    const Vector& haystack,
+    const ArrayOfIndex& needleind,
+    const Verbosity&) {
   // We construct the output in this dummy variable, so that the
   // method also works properly if needles and haystack are the same
   // variable.
-  Vector dummy( needleind.nelem() );
+  Vector dummy(needleind.nelem());
 
   // If needleind only contains -1 as the only element, copy the whole thing
-  if (needleind.nelem() == 1 && needleind[0] == -1)
-    {
-      needles = haystack;
-      return;
-    }
+  if (needleind.nelem() == 1 && needleind[0] == -1) {
+    needles = haystack;
+    return;
+  }
 
-  for( Index i = 0; i < needleind.nelem(); i++)
-    {
-      if (haystack.nelem() <= needleind[i])
-        {
-          ostringstream os;
-          os << "The input vector only has " << haystack.nelem()
-            << " elements. But one of the needle indexes is "
-            << needleind[i] << "." << endl;
-          os << "The indexes must be between 0 and " << haystack.nelem() - 1;
-          throw runtime_error (os.str());
-        }
-      else if (needleind[i] < 0)
-        {
-          ostringstream os;
-          os << "One of the needle indexes is " << needleind[i] << "." << endl;
-          os << "The indexes must be between 0 and " << haystack.nelem() - 1;
-          throw runtime_error (os.str());
-        }
-      else
-        dummy[i] = haystack[needleind[i]];
-    }
+  for (Index i = 0; i < needleind.nelem(); i++) {
+    if (haystack.nelem() <= needleind[i]) {
+      ostringstream os;
+      os << "The input vector only has " << haystack.nelem()
+         << " elements. But one of the needle indexes is " << needleind[i]
+         << "." << endl;
+      os << "The indexes must be between 0 and " << haystack.nelem() - 1;
+      throw runtime_error(os.str());
+    } else if (needleind[i] < 0) {
+      ostringstream os;
+      os << "One of the needle indexes is " << needleind[i] << "." << endl;
+      os << "The indexes must be between 0 and " << haystack.nelem() - 1;
+      throw runtime_error(os.str());
+    } else
+      dummy[i] = haystack[needleind[i]];
+  }
 
   needles = dummy;
 }
 
-
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Select(// WS Generic Output:
-            Matrix& needles,
-            // WS Generic Input:
-            const Matrix& haystack,
-            const ArrayOfIndex& needleind,
-            const Verbosity&)
-{
+void Select(  // WS Generic Output:
+    Matrix& needles,
+    // WS Generic Input:
+    const Matrix& haystack,
+    const ArrayOfIndex& needleind,
+    const Verbosity&) {
   // We construct the output in this dummy variable, so that the
   // method also works properly if needles and haystack are the same
   // variable.
-  Matrix dummy( needleind.nelem(), haystack.ncols() );
+  Matrix dummy(needleind.nelem(), haystack.ncols());
 
   // If needleind only contains -1 as the only element, copy the whole thing
-  if (needleind.nelem() == 1 && needleind[0] == -1)
-    {
-      needles = haystack;
-      return;
-    }
+  if (needleind.nelem() == 1 && needleind[0] == -1) {
+    needles = haystack;
+    return;
+  }
 
-  for( Index i = 0; i < needleind.nelem(); i++)
-    {
-      if (haystack.nrows() <= needleind[i])
-        {
-          ostringstream os;
-          os << "The input matrix only has " << haystack.nrows()
-            << " rows. But one of the needle indexes is "
-            << needleind[i] << "." << endl;
-          os << "The indexes must be between 0 and " << haystack.nrows() - 1;
-          throw runtime_error (os.str());
-        }
-      else if (needleind[i] < 0)
-        {
-          ostringstream os;
-          os << "One of the needle indexes is " << needleind[i] << "." << endl;
-          os << "The indexes must be between 0 and " << haystack.nrows() - 1;
-          throw runtime_error (os.str());
-        }
-      else
-        dummy(i, joker) = haystack(needleind[i], joker);
-    }
+  for (Index i = 0; i < needleind.nelem(); i++) {
+    if (haystack.nrows() <= needleind[i]) {
+      ostringstream os;
+      os << "The input matrix only has " << haystack.nrows()
+         << " rows. But one of the needle indexes is " << needleind[i] << "."
+         << endl;
+      os << "The indexes must be between 0 and " << haystack.nrows() - 1;
+      throw runtime_error(os.str());
+    } else if (needleind[i] < 0) {
+      ostringstream os;
+      os << "One of the needle indexes is " << needleind[i] << "." << endl;
+      os << "The indexes must be between 0 and " << haystack.nrows() - 1;
+      throw runtime_error(os.str());
+    } else
+      dummy(i, joker) = haystack(needleind[i], joker);
+  }
 
   needles = dummy;
 }
 
-
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Select(// WS Generic Output:
-            Sparse& needles,
-            // WS Generic Input:
-            const Sparse& haystack,
-            const ArrayOfIndex& needleind,
-            const Verbosity& verbosity)
-{
+void Select(  // WS Generic Output:
+    Sparse& needles,
+    // WS Generic Input:
+    const Sparse& haystack,
+    const ArrayOfIndex& needleind,
+    const Verbosity& verbosity) {
   CREATE_OUT3;
-  
+
   // We construct the output in this dummy variable, so that the
   // method also works properly if needles and haystack are the same
   // variable.
-  Sparse dummy( needleind.nelem(), haystack.ncols() );
+  Sparse dummy(needleind.nelem(), haystack.ncols());
 
   // If needleind only contains -1 as the only element, copy the whole thing
-  if (needleind.nelem() == 1 && needleind[0] == -1)
-    {
-      needles = haystack;
-      return;
-    }
+  if (needleind.nelem() == 1 && needleind[0] == -1) {
+    needles = haystack;
+    return;
+  }
 
-  for( Index i = 0; i < needleind.nelem(); i++)
-    {
-      if (haystack.nrows() <= needleind[i])
-        {
-          ostringstream os;
-          os << "The input matrix only has " << haystack.nrows()
-            << " rows. But one of the needle indexes is "
-            << needleind[i] << "." << endl;
-          os << "The indexes must be between 0 and " << haystack.nrows() - 1;
-          throw runtime_error (os.str());
-        }
-      else if (needleind[i] < 0)
-        {
-          ostringstream os;
-          os << "One of the needle indexes is " << needleind[i] << "." << endl;
-          os << "The indexes must be between 0 and " << haystack.nrows() - 1;
-          throw runtime_error (os.str());
-        }
-      else
-        {
-          // Copy this row of the sparse matrix.
-          // This code is inefficient for Sparse, but I leave it like
-          // this to be consistent with the other data types for which
-          // Select is implemented.
-          for ( Index j=0; j<haystack.ncols(); ++j)
-            {
-              Numeric value = haystack(needleind[i],j);
-              if (0 != value)
-                dummy.rw(i,j) = value;
-            }
-        }
+  for (Index i = 0; i < needleind.nelem(); i++) {
+    if (haystack.nrows() <= needleind[i]) {
+      ostringstream os;
+      os << "The input matrix only has " << haystack.nrows()
+         << " rows. But one of the needle indexes is " << needleind[i] << "."
+         << endl;
+      os << "The indexes must be between 0 and " << haystack.nrows() - 1;
+      throw runtime_error(os.str());
+    } else if (needleind[i] < 0) {
+      ostringstream os;
+      os << "One of the needle indexes is " << needleind[i] << "." << endl;
+      os << "The indexes must be between 0 and " << haystack.nrows() - 1;
+      throw runtime_error(os.str());
+    } else {
+      // Copy this row of the sparse matrix.
+      // This code is inefficient for Sparse, but I leave it like
+      // this to be consistent with the other data types for which
+      // Select is implemented.
+      for (Index j = 0; j < haystack.ncols(); ++j) {
+        Numeric value = haystack(needleind[i], j);
+        if (0 != value) dummy.rw(i, j) = value;
+      }
     }
+  }
 
-  if (dummy.nnz()==haystack.nnz())
-    {
-      // No data was actually removed.
-      out3 << "  Number of nonzero elements has stayed the same.\n";
-    }
-  else
-    {
-      out3 << "  Number of nonzero elements reduced from "
-           << haystack.nnz() << " to " << dummy.nnz() << ".\n";
-    }
+  if (dummy.nnz() == haystack.nnz()) {
+    // No data was actually removed.
+    out3 << "  Number of nonzero elements has stayed the same.\n";
+  } else {
+    out3 << "  Number of nonzero elements reduced from " << haystack.nnz()
+         << " to " << dummy.nnz() << ".\n";
+  }
 
   needles = dummy;
 }
 
-
-#endif // m_select_h
+#endif  // m_select_h

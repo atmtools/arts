@@ -10,9 +10,9 @@
 #ifndef agenda_wrappers_mpi_h
 #define agenda_wrappers_mpi_h
 
+#include "mpi.h"
 #include "oem.h"
 #include "oem_mpi.h"
-#include "mpi.h"
 
 //! Wrapper class for forward model using a distributed Jacobian with MPI.
 /*!
@@ -20,53 +20,50 @@
   y and the Jacobian. The measurement vector is returned as a full vector to each
   process which requires broadcasting the results after the computation.
  */
-class AgendaWrapperMPI
-{
-    Workspace *ws;
-    OEMMatrix local_jacobian;
-    const Agenda *inversion_iterate_agenda;
+class AgendaWrapperMPI {
+  Workspace *ws;
+  OEMMatrix local_jacobian;
+  const Agenda *inversion_iterate_agenda;
 
-public:
+ public:
+  const unsigned int m, n;
 
-    const unsigned int m,n;
+  AgendaWrapperMPI(Workspace *ws_,
+                   const Agenda *inversion_iterate_agenda_,
+                   Index m_,
+                   Index n_)
+      : ws(ws_),
+        local_jacobian(),
+        inversion_iterate_agenda(inversion_iterate_agenda_),
+        m(static_cast<unsigned int>(m_)),
+        n(static_cast<unsigned int>(n_)) {}
 
-    AgendaWrapperMPI(
-        Workspace *ws_,
-        const Agenda *inversion_iterate_agenda_,
-        Index m_, Index n_) :
-    ws(ws_), local_jacobian(),
-    inversion_iterate_agenda(inversion_iterate_agenda_),
-    m(static_cast<unsigned int>(m_)),
-    n(static_cast<unsigned int>(n_))
-    {}
+  MPIMatrix Jacobian(const OEMVector &xi, OEMVector &yi) {
+    yi.resize(m);
+    inversion_iterate_agendaExecute(
+        *ws, yi, local_jacobian, xi, 1, *inversion_iterate_agenda);
+    // Create MPI vector from local results, use conversion to vector
+    // to broadcast local results.
+    MPIVector yi_mpi(yi);
+    yi = yi_mpi;
 
-    MPIMatrix Jacobian(const OEMVector &xi, OEMVector &yi)
-    {
-        yi.resize(m);
-        inversion_iterate_agendaExecute( *ws, yi, local_jacobian, xi,
-                                         1, *inversion_iterate_agenda );
-        // Create MPI vector from local results, use conversion to vector
-        // to broadcast local results.
-        MPIVector yi_mpi(yi);
-        yi = yi_mpi;
+    MPIMatrix jacobian = local_jacobian;
+    return jacobian;
+  }
 
-        MPIMatrix jacobian = local_jacobian;
-        return jacobian;
-    }
+  OEMVector evaluate(const OEMVector &xi) {
+    Matrix dummy = local_jacobian;
+    OEMVector yi;
+    yi.resize(m);
+    inversion_iterate_agendaExecute(
+        *ws, yi, dummy, xi, 0, *inversion_iterate_agenda);
 
-    OEMVector evaluate(const OEMVector &xi)
-    {
-        Matrix dummy = local_jacobian;
-        OEMVector yi; yi.resize(m);
-        inversion_iterate_agendaExecute( *ws, yi, dummy, xi, 0,
-                                         *inversion_iterate_agenda );
-
-        // Create MPI vector from local results, use conversion to vector
-        // to broadcast local results.
-        MPIVector yi_mpi = yi;
-        yi = yi_mpi;
-        return yi;
-    }
+    // Create MPI vector from local results, use conversion to vector
+    // to broadcast local results.
+    MPIVector yi_mpi = yi;
+    yi = yi_mpi;
+    return yi;
+  }
 };
 
-#endif // agenda_wrapper_mpi_h
+#endif  // agenda_wrapper_mpi_h

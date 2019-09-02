@@ -15,7 +15,6 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-
 ////////////////////////////////////////////////////////////////////////////
 //   File description
 ////////////////////////////////////////////////////////////////////////////
@@ -32,20 +31,19 @@
 #ifndef xml_io_private_h
 #define xml_io_private_h
 
-#include "xml_io.h"
-#include <stdexcept>
 #include <cfloat>
-#include "matpackVII.h"
-#include "array.h"
-#include "messages.h"
-#include "ppath.h"
-#include "agenda_class.h"
+#include <stdexcept>
 #include "absorption.h"
-#include "gas_abs_lookup.h"
-#include "optproperties.h"
+#include "agenda_class.h"
+#include "array.h"
 #include "bifstream.h"
 #include "bofstream.h"
-
+#include "gas_abs_lookup.h"
+#include "matpackVII.h"
+#include "messages.h"
+#include "optproperties.h"
+#include "ppath.h"
+#include "xml_io.h"
 
 ////////////////////////////////////////////////////////////////////////////
 //   Functions to open and read XML files
@@ -53,8 +51,9 @@
 
 void xml_open_output_file(ostream& file, const String& name);
 
-void xml_open_input_file(ifstream& file, const String& name, const Verbosity& verbosity);
-
+void xml_open_input_file(ifstream& file,
+                         const String& name,
+                         const Verbosity& verbosity);
 
 ////////////////////////////////////////////////////////////////////////////
 //   XML parser classes
@@ -66,19 +65,18 @@ void xml_open_input_file(ifstream& file, const String& name, const Verbosity& ve
 */
 
 class XMLAttribute {
-public:
-  String name;                  /*!< Attribute name */
-  String value;                 /*!< Attribute value */
+ public:
+  String name;  /*!< Attribute name */
+  String value; /*!< Attribute value */
 };
-
 
 //! The ARTS XML tag class
 /*!
   Handles reading, writing and constructing of XML tags.
 */
 class ArtsXMLTag {
-public:
-  ArtsXMLTag(const Verbosity& rverbosity) : verbosity(rverbosity) {};
+ public:
+  ArtsXMLTag(const Verbosity& rverbosity) : verbosity(rverbosity){};
 
   String& get_name() { return name; }
 
@@ -100,12 +98,11 @@ public:
 
   void write_to_stream(ostream& os);
 
-private:
-  String name;                  /*!< Tag name */
-  Array<XMLAttribute> attribs;   /*!< List of attributes */
+ private:
+  String name;                 /*!< Tag name */
+  Array<XMLAttribute> attribs; /*!< List of attributes */
   const Verbosity& verbosity;
 };
-
 
 ////////////////////////////////////////////////////////////////////////////
 //   General XML handling routines
@@ -115,13 +112,17 @@ void xml_parse_error(const String& str_error);
 
 void xml_data_parse_error(ArtsXMLTag& tag, String str_error);
 
-void xml_read_header_from_stream(istream& is, FileType& ftype,
-                                 NumericType& ntype, EndianType& etype,
+void xml_read_header_from_stream(istream& is,
+                                 FileType& ftype,
+                                 NumericType& ntype,
+                                 EndianType& etype,
                                  const Verbosity& verbosity);
 
 void xml_read_footer_from_stream(istream& is, const Verbosity& verbosity);
 
-void xml_write_header_to_stream(ostream& os, FileType ftype, const Verbosity& verbosity);
+void xml_write_header_to_stream(ostream& os,
+                                FileType ftype,
+                                const Verbosity& verbosity);
 
 void xml_write_footer_to_stream(ostream& os, const Verbosity& verbosity);
 
@@ -129,4 +130,4 @@ void xml_set_stream_precision(ostream& os);
 
 void parse_xml_tag_content_as_string(std::istream& is_xml, String& content);
 
-#endif  /* xml_io_private_h */
+#endif /* xml_io_private_h */

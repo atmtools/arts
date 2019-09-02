@@ -27,14 +27,13 @@
 #ifndef mystring_h
 #define mystring_h
 
+#include <algorithm>
 #include <cassert>
 #include <climits>
-#include <string>
 #include <sstream>
-#include <algorithm>
-#include "matpack.h"
+#include <string>
 #include "array.h"
-
+#include "matpack.h"
 
 /**
    The implementation for String, the ARTS string class. 
@@ -52,16 +51,15 @@
    correctly, we have to derive our own class from basic_string,
    not from string directly.
 */
-template<class charT>
-class my_basic_string : public std::basic_string<charT>
-{
-public:
+template <class charT>
+class my_basic_string : public std::basic_string<charT> {
+ public:
   // Constructors:
   my_basic_string() = default;
-  explicit my_basic_string(Index n, char c=' ');
+  explicit my_basic_string(Index n, char c = ' ');
   my_basic_string(const std::basic_string<charT>& A,
-                  Index pos=0,
-                  Index numpos=my_basic_string<charT>::npos);
+                  Index pos = 0,
+                  Index numpos = my_basic_string<charT>::npos);
   my_basic_string(const char A[]);
 
   // Insert string before all occurrences of the substring.
@@ -69,20 +67,30 @@ public:
                      const my_basic_string<charT>& insstr);
 
   // Split string
-  void split(Array< my_basic_string<charT> > &aos,
-              const my_basic_string<charT> &delim) const;
-  
-  /** Convert to upper case */
-  void toupper() { std::transform ( this->begin(),  this->end(),
-                                    this->begin(), ::toupper); }
+  void split(Array<my_basic_string<charT> >& aos,
+             const my_basic_string<charT>& delim) const;
 
-  my_basic_string toupper() const { my_basic_string s = *this; s.toupper(); return s; }
+  /** Convert to upper case */
+  void toupper() {
+    std::transform(this->begin(), this->end(), this->begin(), ::toupper);
+  }
+
+  my_basic_string toupper() const {
+    my_basic_string s = *this;
+    s.toupper();
+    return s;
+  }
 
   /** Convert to lower case */
-  void tolower() { std::transform ( this->begin(),  this->end(),
-                                    this->begin(), ::tolower); }
-  
-  my_basic_string tolower() const { my_basic_string s = *this; s.tolower(); return s; }
+  void tolower() {
+    std::transform(this->begin(), this->end(), this->begin(), ::tolower);
+  }
+
+  my_basic_string tolower() const {
+    my_basic_string s = *this;
+    s.tolower();
+    return s;
+  }
 
   /** Trim leading and trailing whitespace */
   void trim();
@@ -100,9 +108,7 @@ public:
   typedef Index size_type;
 };
 
-
 // Member functions for my_basic_string:
-
 
 // Constructors:
 
@@ -113,11 +119,10 @@ public:
     \param n Number of characters
     \param c Optional fill character
 */
-template<class charT>
-inline my_basic_string<charT>::my_basic_string(Index n, char c) :
-  std::basic_string<charT>(n,c)
-{ /* Nothing to do here. */ }
-
+template <class charT>
+inline my_basic_string<charT>::my_basic_string(Index n, char c)
+    : std::basic_string<charT>(n, c) { /* Nothing to do here. */
+}
 
 /** Construnctor from a basic_string. This is important for handling
     of expressions like this to work correctly:
@@ -131,29 +136,28 @@ inline my_basic_string<charT>::my_basic_string(Index n, char c) :
     \param pos Start position (0 means from the beginning)
     \param numpos How many characters to copy
 */
-template<class charT>
-inline my_basic_string<charT>::my_basic_string(const std::basic_string<charT>& A,
-                                               Index pos,
-                                               Index numpos)
-{ 
+template <class charT>
+inline my_basic_string<charT>::my_basic_string(
+    const std::basic_string<charT>& A, Index pos, Index numpos) {
   // Range checks:
-  assert(0<=pos);               // Start index must be 0 or greater 0.
+  assert(0 <= pos);  // Start index must be 0 or greater 0.
 
   if (!A.size()) return;
 
-//   cout << "A = " << A << "\n";
-//   cout << "pos = " << pos << "\n";
-//   cout << "size = " << A.size() << "\n";
+  //   cout << "A = " << A << "\n";
+  //   cout << "pos = " << pos << "\n";
+  //   cout << "size = " << A.size() << "\n";
 
-  assert(static_cast<typename std::basic_string<charT>::size_type>(pos)<A.size());
+  assert(static_cast<typename std::basic_string<charT>::size_type>(pos) <
+         A.size());
   // At most the last element of the original string.
 
-  assert( numpos==my_basic_string<charT>::npos ||
-          ( (numpos >= 0) &&
-            (static_cast<typename std::basic_string<charT>::size_type>(numpos)<=(A.size()-pos))
-            )
-          );  // Number of characters to copy must be at the most the
-              // number left. -1 means all remaining characters. 
+  assert(numpos == my_basic_string<charT>::npos ||
+         ((numpos >= 0) &&
+          (static_cast<typename std::basic_string<charT>::size_type>(numpos) <=
+           (A.size() -
+            pos))));  // Number of characters to copy must be at the most the
+                      // number left. -1 means all remaining characters.
 
   // The assertions look complicated, because we have to cast pos and
   // npos to the unsigned size type of basic string to avoid warning
@@ -162,99 +166,88 @@ inline my_basic_string<charT>::my_basic_string(const std::basic_string<charT>& A
   // case npos -1 (=my_basic_string<charT>::npos) is also handled
   // correctly.)
 
-  std::basic_string<charT>::operator=(std::basic_string<charT>(A,pos,numpos));
-
+  std::basic_string<charT>::operator=(std::basic_string<charT>(A, pos, numpos));
 }
 
 /** Constructor from a C-style char array. */
-template<class charT>
-inline my_basic_string<charT>::my_basic_string(const char A[]) : std::basic_string<charT>(A)
-{ /* Nothing to do here. */ }
-
+template <class charT>
+inline my_basic_string<charT>::my_basic_string(const char A[])
+    : std::basic_string<charT>(A) { /* Nothing to do here. */
+}
 
 /** Insert string before all occurrences of the substring.
  
  \param[in] searchstr  String to search for.
  \param[in] insstr     String to insert.
 */
-template<class charT>
-inline void my_basic_string<charT>::insert_substr(const my_basic_string<charT>& searchstr,
-                                                  const my_basic_string<charT>& insstr)
-{ 
+template <class charT>
+inline void my_basic_string<charT>::insert_substr(
+    const my_basic_string<charT>& searchstr,
+    const my_basic_string<charT>& insstr) {
   size_t searchstr_size = searchstr.size();
   size_t insstr_size = insstr.size();
   size_t start_pos = 0;
 
-  while (start_pos != std::string::npos)
-    {
-      start_pos = this->find (searchstr, start_pos);
-      if (start_pos && start_pos != std::string::npos)
-        {
-          this->insert (start_pos, insstr);
-          start_pos += searchstr_size + insstr_size;
-        }
+  while (start_pos != std::string::npos) {
+    start_pos = this->find(searchstr, start_pos);
+    if (start_pos && start_pos != std::string::npos) {
+      this->insert(start_pos, insstr);
+      start_pos += searchstr_size + insstr_size;
     }
+  }
 }
-
 
 /** Split string into substrings.
  
  \param[out] aos    ArrayOfString containing the returned substrings.
  \param[in]  delim  Delimiter string.
  */
-template<class charT>
-inline void my_basic_string<charT>::split (Array< my_basic_string<charT> > &aos,
-                                           const my_basic_string<charT> &delim) const
-{
+template <class charT>
+inline void my_basic_string<charT>::split(
+    Array<my_basic_string<charT> >& aos,
+    const my_basic_string<charT>& delim) const {
   size_t pos, oldpos;
   pos = oldpos = 0;
   aos.resize(0);
-  
+
   while (oldpos < (size_t)this->nelem() &&
-         (pos = this->find(delim, oldpos)) != (size_t)my_basic_string<charT>::npos)
-  {
-    if (pos && pos-oldpos) aos.push_back(this->substr(oldpos, pos-oldpos));
-    oldpos = pos+delim.nelem();
+         (pos = this->find(delim, oldpos)) !=
+             (size_t)my_basic_string<charT>::npos) {
+    if (pos && pos - oldpos) aos.push_back(this->substr(oldpos, pos - oldpos));
+    oldpos = pos + delim.nelem();
   }
-  
+
   if (oldpos < (size_t)this->nelem()) aos.push_back(this->substr(oldpos));
 }
 
-
 /** Trim leading and trailing whitespace */
-template<class charT>
-void my_basic_string<charT>::trim()
-{
-    // Create ref to self for readability
-    my_basic_string& this_string = *this;
+template <class charT>
+void my_basic_string<charT>::trim() {
+  // Create ref to self for readability
+  my_basic_string& this_string = *this;
 
-    // Remove leading whitespace
-    while (0 != this_string.nelem()
-           && (' ' == this_string[0]
-               || '\t' == this_string[0]
-               || '\n' == this_string[0]
-               || '\r' == this_string[0]))
-        this_string.erase(0,1);
+  // Remove leading whitespace
+  while (0 != this_string.nelem() &&
+         (' ' == this_string[0] || '\t' == this_string[0] ||
+          '\n' == this_string[0] || '\r' == this_string[0]))
+    this_string.erase(0, 1);
 
-    // Remove trailing whitespace
-    while (0 != this_string.nelem()
-           && (' ' == this_string[this_string.nelem()-1]
-               || '\t' == this_string[this_string.nelem()-1]
-               || '\n' == this_string[this_string.nelem()-1]
-               || '\r' == this_string[this_string.nelem()-1]))
-        this_string.erase(this_string.nelem()-1);
+  // Remove trailing whitespace
+  while (0 != this_string.nelem() &&
+         (' ' == this_string[this_string.nelem() - 1] ||
+          '\t' == this_string[this_string.nelem() - 1] ||
+          '\n' == this_string[this_string.nelem() - 1] ||
+          '\r' == this_string[this_string.nelem() - 1]))
+    this_string.erase(this_string.nelem() - 1);
 }
-
 
 /** Number of elements. */
-template<class charT>
-inline Index my_basic_string<charT>::nelem() const
-{ 
+template <class charT>
+inline Index my_basic_string<charT>::nelem() const {
   size_t s = this->size();
-  assert(s<LONG_MAX);
+  assert(s < LONG_MAX);
   return static_cast<long>(s);
 }
-
 
 /**
   Constant index operator. We redifine this here so that we can have
@@ -262,14 +255,12 @@ inline Index my_basic_string<charT>::nelem() const
     
   \param[in] n Index  
 */
-template<class charT>
-inline char my_basic_string<charT>::operator[](Index n) const
-{
-  assert(0<=n);
-  assert(n<nelem());
+template <class charT>
+inline char my_basic_string<charT>::operator[](Index n) const {
+  assert(0 <= n);
+  assert(n < nelem());
   return std::basic_string<charT>::operator[](n);
 }
-
 
 /**
   Non-constant index operator. We redifine this here so that we can
@@ -277,14 +268,12 @@ inline char my_basic_string<charT>::operator[](Index n) const
     
   \param[in] n Index
 */
-template<class charT>
-inline char& my_basic_string<charT>::operator[](Index n)
-{
-  assert(0<=n);
-  assert(n<nelem());
+template <class charT>
+inline char& my_basic_string<charT>::operator[](Index n) {
+  assert(0 <= n);
+  assert(n < nelem());
   return std::basic_string<charT>::operator[](n);
 }
-
 
 /** The String type for ARTS. Implementation see documentation of
     class my_basic_string. */
@@ -296,7 +285,6 @@ typedef Array<String> ArrayOfString;
 /** An array of Strings. */
 typedef Array<Array<String> > ArrayOfArrayOfString;
 
-
 /** Extract something from the beginning of a string. This is just a small helper
  function to safe some typing.
 
@@ -305,30 +293,27 @@ typedef Array<Array<String> > ArrayOfArrayOfString;
  \param n     The width of the stuff to extract.
 
  \author Stefan Buehler */
-template<class T>
-void extract(T&      x,
-             String& line,
-             Index  n)
-{
-    // Initialize output to zero! This is important, because otherwise
-    // the output variable could `remember' old values.
-    x = T(0);
+template <class T>
+void extract(T& x, String& line, Index n) {
+  // Initialize output to zero! This is important, because otherwise
+  // the output variable could `remember' old values.
+  x = T(0);
 
-    // This will contain the short subString with the item to extract.
-    // Make it a String stream, for easy parsing,
-    // extracting subString of width n from line:
-    std::istringstream item( line.substr(0,n) );
+  // This will contain the short subString with the item to extract.
+  // Make it a String stream, for easy parsing,
+  // extracting subString of width n from line:
+  std::istringstream item(line.substr(0, n));
 
-    //  cout << "line = '" << line << "'\n";
-    //   cout << "line.substr(0,n) = " << line.substr(0,n) << endl;
-    //   cout << "item = " << item.str() << endl;
+  //  cout << "line = '" << line << "'\n";
+  //   cout << "line.substr(0,n) = " << line.substr(0,n) << endl;
+  //   cout << "item = " << item.str() << endl;
 
-    // Shorten line by n:
-    line.erase(0,n);
-    //  cout << "line = " << line << endl;
+  // Shorten line by n:
+  line.erase(0, n);
+  //  cout << "line = " << line << endl;
 
-    // Convert with the aid of String stream item:
-    item >> x;
+  // Convert with the aid of String stream item:
+  item >> x;
 }
 
 #endif  // mystring_h

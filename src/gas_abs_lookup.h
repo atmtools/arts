@@ -26,12 +26,11 @@
 #ifndef gas_abs_lookup_h
 #define gas_abs_lookup_h
 
-#include "matpackIV.h"
-#include "absorption.h"
 #include "abs_species_tags.h"
-#include "messages.h"
+#include "absorption.h"
 #include "interpolation_poly.h"
-
+#include "matpackIV.h"
+#include "messages.h"
 
 // Declare existance of some classes:
 class bifstream;
@@ -44,118 +43,124 @@ class Workspace;
     information that is necessary to use the table to extract
     absorption. Extraction routines are implemented as member functions. */
 class GasAbsLookup {
-public:
-  GasAbsLookup() : species(),
-                   nonlinear_species(),
-                   f_grid(),
-                   p_grid(),
-                   vmrs_ref(),
-                   t_ref(),
-                   t_pert(),
-                   nls_pert(),
-                   xsec()
-  { /* Nothing to do here */ }
+ public:
+  GasAbsLookup()
+      : species(),
+        nonlinear_species(),
+        f_grid(),
+        p_grid(),
+        vmrs_ref(),
+        t_ref(),
+        t_pert(),
+        nls_pert(),
+        xsec() { /* Nothing to do here */
+  }
 
   // Documentation is with the implementation!
-  void Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
-              ConstVectorView current_f_grid,
-              const Verbosity& verbosity );
+  void Adapt(const ArrayOfArrayOfSpeciesTag& current_species,
+             ConstVectorView current_f_grid,
+             const Verbosity& verbosity);
 
   // Documentation is with the implementation!
-  void Extract( Matrix&         sga,
-                const Index&    p_interp_order,
-                const Index&    t_interp_order,
-                const Index&    h2o_interp_order,
-                const Index&    f_interp_order,
-                const Numeric&  p,
-                const Numeric&  T,
-                ConstVectorView abs_vmrs,
-                ConstVectorView new_f_grid,
-                const Numeric&      extpolfac ) const;
+  void Extract(Matrix& sga,
+               const Index& p_interp_order,
+               const Index& t_interp_order,
+               const Index& h2o_interp_order,
+               const Index& f_interp_order,
+               const Numeric& p,
+               const Numeric& T,
+               ConstVectorView abs_vmrs,
+               ConstVectorView new_f_grid,
+               const Numeric& extpolfac) const;
 
   const Vector& GetFgrid() const;
 
   const Vector& GetPgrid() const;
-  
-  Index GetSpeciesIndex(const Index& isp) const {return species[isp][0].Species();}
+
+  Index GetSpeciesIndex(const Index& isp) const {
+    return species[isp][0].Species();
+  }
 
   // IO functions must be friends:
-  friend void xml_read_from_stream( istream& is_xml,
-                                    GasAbsLookup& gal,
-                                    bifstream *pbifs,
-                                    const Verbosity& verbosity);
-  friend void xml_write_to_stream ( ostream& os_xml,
-                                    const GasAbsLookup& gal,
-                                    bofstream *pbofs,
-                                    const String& name,
-                                    const Verbosity& verbosity);
-
-  friend void abs_lookupCalc(// Workspace reference:
-                             Workspace& ws,
-                             // WS Output:
-                             GasAbsLookup& abs_lookup,
-                             Index& abs_lookup_is_adapted,
-                             // WS Input:
-                             const ArrayOfArrayOfSpeciesTag& abs_species,
-                             const ArrayOfArrayOfSpeciesTag& abs_nls,
-                             const Vector& f_grid,
-                             const Vector& abs_p,
-                             const Matrix& abs_vmrs,
-                             const Vector& abs_t,
-                             const Vector& abs_t_pert,
-                             const Vector& abs_nls_pert,
-                             const Agenda& abs_xsec_agenda,
-                             // Verbosity object:
-                             const Verbosity& verbosity);
-
-  friend Numeric calc_lookup_error(// Parameters for lookup table:
-                                   Workspace& ws,
-                                   const GasAbsLookup& al,
-                                   const Index&        abs_p_interp_order,
-                                   const Index&        abs_t_interp_order,
-                                   const Index&        abs_nls_interp_order,
-                                   const bool          ignore_errors,
-                                   // Parameters for LBL:
-                                   const Agenda& abs_xsec_agenda,
-                                   // Parameters for both:
-                                   const Numeric&      local_p,
-                                   const Numeric&      local_t,
-                                   const Vector&       local_vmrs,
-                                   const Verbosity&    verbosity);
-
-  friend void abs_lookupTestAccuracy(// Workspace reference:
-                                Workspace& ws,
-                                // WS Input:
-                                const GasAbsLookup& abs_lookup,
-                                const Index& abs_lookup_is_adapted,
-                                const Index& abs_p_interp_order,
-                                const Index& abs_t_interp_order,
-                                const Index& abs_nls_interp_order,
-                                const Agenda& abs_xsec_agenda,
-                                // Verbosity object:
-                                const Verbosity& verbosity);
-
-  friend void abs_lookupTestAccMC(// Workspace reference:
-                                  Workspace& ws,
-                                  // WS Input:
-                                  const GasAbsLookup& abs_lookup,
-                                  const Index& abs_lookup_is_adapted,
-                                  const Index& abs_p_interp_order,
-                                  const Index& abs_t_interp_order,
-                                  const Index& abs_nls_interp_order,
-                                  const Index& mc_seed,
-                                  const Agenda& abs_xsec_agenda,
-                                  // Verbosity object:
+  friend void xml_read_from_stream(istream& is_xml,
+                                   GasAbsLookup& gal,
+                                   bifstream* pbifs,
+                                   const Verbosity& verbosity);
+  friend void xml_write_to_stream(ostream& os_xml,
+                                  const GasAbsLookup& gal,
+                                  bofstream* pbofs,
+                                  const String& name,
                                   const Verbosity& verbosity);
 
-  friend void nca_read_from_file(const int ncid, GasAbsLookup& gal, const Verbosity&);
-  
-  friend void nca_write_to_file(const int ncid, const GasAbsLookup& gal, const Verbosity&);
-  
-private:
+  friend void abs_lookupCalc(  // Workspace reference:
+      Workspace& ws,
+      // WS Output:
+      GasAbsLookup& abs_lookup,
+      Index& abs_lookup_is_adapted,
+      // WS Input:
+      const ArrayOfArrayOfSpeciesTag& abs_species,
+      const ArrayOfArrayOfSpeciesTag& abs_nls,
+      const Vector& f_grid,
+      const Vector& abs_p,
+      const Matrix& abs_vmrs,
+      const Vector& abs_t,
+      const Vector& abs_t_pert,
+      const Vector& abs_nls_pert,
+      const Agenda& abs_xsec_agenda,
+      // Verbosity object:
+      const Verbosity& verbosity);
 
+  friend Numeric calc_lookup_error(  // Parameters for lookup table:
+      Workspace& ws,
+      const GasAbsLookup& al,
+      const Index& abs_p_interp_order,
+      const Index& abs_t_interp_order,
+      const Index& abs_nls_interp_order,
+      const bool ignore_errors,
+      // Parameters for LBL:
+      const Agenda& abs_xsec_agenda,
+      // Parameters for both:
+      const Numeric& local_p,
+      const Numeric& local_t,
+      const Vector& local_vmrs,
+      const Verbosity& verbosity);
+
+  friend void abs_lookupTestAccuracy(  // Workspace reference:
+      Workspace& ws,
+      // WS Input:
+      const GasAbsLookup& abs_lookup,
+      const Index& abs_lookup_is_adapted,
+      const Index& abs_p_interp_order,
+      const Index& abs_t_interp_order,
+      const Index& abs_nls_interp_order,
+      const Agenda& abs_xsec_agenda,
+      // Verbosity object:
+      const Verbosity& verbosity);
+
+  friend void abs_lookupTestAccMC(  // Workspace reference:
+      Workspace& ws,
+      // WS Input:
+      const GasAbsLookup& abs_lookup,
+      const Index& abs_lookup_is_adapted,
+      const Index& abs_p_interp_order,
+      const Index& abs_t_interp_order,
+      const Index& abs_nls_interp_order,
+      const Index& mc_seed,
+      const Agenda& abs_xsec_agenda,
+      // Verbosity object:
+      const Verbosity& verbosity);
+
+  friend void nca_read_from_file(const int ncid,
+                                 GasAbsLookup& gal,
+                                 const Verbosity&);
+
+  friend void nca_write_to_file(const int ncid,
+                                const GasAbsLookup& gal,
+                                const Verbosity&);
+
+ private:
   //! The species tags for which the table is valid.
-  ArrayOfArrayOfSpeciesTag species; 
+  ArrayOfArrayOfSpeciesTag species;
 
   //! The species tags with non-linear treatment.
   /*! This is the list of species for which the H2O VMR should be
@@ -164,11 +169,11 @@ private:
     nonlinear_species is an empty vector, it means that all species
     should be treated linearly. (No absorption for perturbed species
     profiles is stored.) */
-  ArrayOfIndex nonlinear_species; 
+  ArrayOfIndex nonlinear_species;
 
   //! The frequency grid [Hz].
   /*! Must be sorted in ascending order. */
-  Vector    f_grid;
+  Vector f_grid;
 
   //! Frequency grid positions.
   /*! This is not stored with the table, it is calculated by the
@@ -179,10 +184,10 @@ private:
    same frequency grid.) This is the most comon case, so no point in
    doing it over and over again. */
   ArrayOfGridPosPoly fgp_default;
-  
+
   //! The pressure grid for the table [Pa].
   /*! Must be sorted in decreasing order. */
-  Vector    p_grid;  
+  Vector p_grid;
 
   //! The natural log of the pressure grid.
   /*! This is not stored with the table, it is calculated by the
@@ -190,7 +195,7 @@ private:
 
     We are interpolating the cross sections in log(p). Storing this
     with the table avoids having to calculate it over and over again.  */
-  Vector    log_p_grid;  
+  Vector log_p_grid;
 
   //! The reference VMR profiles.
   /*! The VMRs for all species, associated with p_grid. Dimension:
@@ -200,12 +205,12 @@ private:
     so we have to remember the associated VMR values. 
 
     Physical unit: Absolute value. */
-  Matrix    vmrs_ref;
+  Matrix vmrs_ref;
 
   //! The reference temperature profile [K].
   /*! This is a temperature profile. The dimension must be the same as
     p_grid. */
-  Vector    t_ref;
+  Vector t_ref;
 
   //! The vector of temperature perturbations [K].
   /*! This can have any number of elements. Example:
@@ -219,7 +224,7 @@ private:
     done. If t_pert is not empty, you will get an error message if you
     try to extract absorption for temperatures outside the range of
     t_pert. */
-  Vector    t_pert;
+  Vector t_pert;
 
   //! The vector of perturbations for the VMRs of the nonlinear species.
   /*!
@@ -234,7 +239,7 @@ private:
     If nonlinear_species is an empty vector, it means that there are
     no nonlinear species. Then nls_pert must also be an empty vector.
   */
-  Vector    nls_pert;
+  Vector nls_pert;
 
   //! Absorption cross sections.
   /*!
@@ -269,10 +274,8 @@ private:
     dimensions of abs_per_tg in ARTS-1-0. This should simplify
     computation of the lookup table with the old ARTS version.  */
   Tensor4 xsec;
-
 };
 
+ostream& operator<<(ostream& os, const GasAbsLookup& gal);
 
-ostream& operator<< (ostream& os, const GasAbsLookup& gal);
-
-#endif //  gas_abs_lookup_h
+#endif  //  gas_abs_lookup_h

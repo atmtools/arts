@@ -17,8 +17,6 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-
-
 /*===========================================================================
   ===  File description 
   ===========================================================================*/
@@ -31,12 +29,8 @@
    This file contains the declaration of functions in check_input.cc.
 */
 
-
-
 #ifndef checkinput_h
 #define checkinput_h
-
-
 
 /*===========================================================================
   === External declarations
@@ -44,94 +38,67 @@
 
 #include "agenda_class.h"
 #include "exceptions.h"
-#include "matpackVII.h"
-#include "mystring.h"
 #include "gridded_fields.h"
 #include "linerecord.h"
+#include "matpackVII.h"
+#include "mystring.h"
 //#include <cfloat>
-
 
 /*===========================================================================
   === Functions in check_input.cc
   ===========================================================================*/
 
-void chk_if_bool( 
-        const String&   x_name,
-        const Index&    x );
+void chk_if_bool(const String& x_name, const Index& x);
 
-void chk_if_in_range( 
-        const String&   x_name,
-        const Index&    x, 
-        const Index&    x_low, 
-        const Index&    x_high );
+void chk_if_in_range(const String& x_name,
+                     const Index& x,
+                     const Index& x_low,
+                     const Index& x_high);
 
-void chk_if_increasing( 
-        const String&       x_name,
-        const ArrayOfIndex& x ); 
+void chk_if_increasing(const String& x_name, const ArrayOfIndex& x);
 
-void chk_not_negative( 
-        const String&    x_name,
-        const Numeric&   x );
+void chk_not_negative(const String& x_name, const Numeric& x);
 
-void chk_if_in_range( 
-        const String&    x_name,
-        const Numeric&   x, 
-        const Numeric&   x_low, 
-        const Numeric&   x_high );
+void chk_if_in_range(const String& x_name,
+                     const Numeric& x,
+                     const Numeric& x_low,
+                     const Numeric& x_high);
 
-void chk_if_in_range_exclude_low(
-        const String&    x_name,
-        const Numeric&   x, 
-        const Numeric&   x_low, 
-        const Numeric&   x_high );
+void chk_if_in_range_exclude_low(const String& x_name,
+                                 const Numeric& x,
+                                 const Numeric& x_low,
+                                 const Numeric& x_high);
 
-void chk_if_in_range_exclude_high(
-        const String&    x_name,
-        const Numeric&   x, 
-        const Numeric&   x_low, 
-        const Numeric&   x_high );
+void chk_if_in_range_exclude_high(const String& x_name,
+                                  const Numeric& x,
+                                  const Numeric& x_low,
+                                  const Numeric& x_high);
 
-void chk_if_in_range_exclude(
-        const String&    x_name,
-        const Numeric&   x, 
-        const Numeric&   x_low, 
-        const Numeric&   x_high );
+void chk_if_in_range_exclude(const String& x_name,
+                             const Numeric& x,
+                             const Numeric& x_low,
+                             const Numeric& x_high);
 
-void chk_vector_length(
-        const String&      x_name,
-        ConstVectorView    x,
-        const Index&       l );
+void chk_vector_length(const String& x_name, ConstVectorView x, const Index& l);
 
-void chk_vector_length( 
-        const String&      x1_name,
-        const String&      x2_name,
-        ConstVectorView    x1, 
-        ConstVectorView    x2 );
+void chk_vector_length(const String& x1_name,
+                       const String& x2_name,
+                       ConstVectorView x1,
+                       ConstVectorView x2);
 
-void chk_if_increasing( 
-        const String&      x_name,
-        ConstVectorView    x );
+void chk_if_increasing(const String& x_name, ConstVectorView x);
 
-void chk_if_decreasing( 
-        const String&      x_name,
-        ConstVectorView    x );
+void chk_if_decreasing(const String& x_name, ConstVectorView x);
 
-void chk_if_equal(
-        const String&   x1_name,
-        const String&   x2_name,
-        ConstVectorView v1,
-        ConstVectorView v2,
-        Numeric         margin=1e-6);
+void chk_if_equal(const String& x1_name,
+                  const String& x2_name,
+                  ConstVectorView v1,
+                  ConstVectorView v2,
+                  Numeric margin = 1e-6);
 
-void chk_matrix_ncols( 
-        const String&      x_name,
-        ConstMatrixView    x,
-        const Index&       l );
+void chk_matrix_ncols(const String& x_name, ConstMatrixView x, const Index& l);
 
-void chk_matrix_nrows( 
-        const String&      x_name,
-        ConstMatrixView    x,
-        const Index&       l );
+void chk_matrix_nrows(const String& x_name, ConstMatrixView x, const Index& l);
 
 /** Subclasses of runtime_error.
  
@@ -140,8 +107,8 @@ void chk_matrix_nrows(
  \author Stefan Buehler
  \date   2013-04-23 */
 class runtime_error_not_found : public runtime_error {
-public:
-    runtime_error_not_found(const string& s) : runtime_error(s) {}
+ public:
+  runtime_error_not_found(const string& s) : runtime_error(s) {}
 };
 
 /** Subclasses of runtime_error.
@@ -151,8 +118,8 @@ public:
  \author Stefan Buehler
  \date   2013-04-23 */
 class runtime_error_not_unique : public runtime_error {
-public:
-    runtime_error_not_unique(const string& s) : runtime_error(s) {}
+ public:
+  runtime_error_not_unique(const string& s) : runtime_error(s) {}
 };
 
 /*===========================================================================
@@ -180,10 +147,7 @@ public:
   \date   2002-11-28
 */
 template <class T>
-Index chk_contains( const String&   x_name,
-                    const Array<T>& x,
-                    const T&        what )
-{
+Index chk_contains(const String& x_name, const Array<T>& x, const T& what) {
   // To generate error messages:
   ostringstream os;
 
@@ -191,30 +155,28 @@ Index chk_contains( const String&   x_name,
   ArrayOfIndex pos;
 
   // Find all positions of what in x and store in pos:
-  find_all( pos, x, what );
+  find_all(pos, x, what);
 
-  switch ( pos.nelem() ){
+  switch (pos.nelem()) {
+    case 0:
+      // Not found.
+      os << "The array *" << x_name << "* must contain the element " << what
+         << ",\n"
+         << "but it does not.";
+      throw runtime_error_not_found(os.str());
+      break;
 
-  case 0:
-    // Not found.
-    os << "The array *" << x_name
-      <<  "* must contain the element " << what << ",\n"
-      << "but it does not.";
-    throw runtime_error_not_found( os.str() );
-    break;
+    case 1:
+      // Found once, this is what we want!
+      return pos[0];
 
-  case 1:
-    // Found once, this is what we want!
-    return pos[0];
-
-  default:
-    // Found more than once.
-    os << "The array *" << x_name
-      <<  "* must contain the element " << what << "\n"
-      << "exactly once, but it does contain it "
-      << pos.nelem() << " times.";
-    throw runtime_error_not_unique( os.str() );
-    break;
+    default:
+      // Found more than once.
+      os << "The array *" << x_name << "* must contain the element " << what
+         << "\n"
+         << "exactly once, but it does contain it " << pos.nelem() << " times.";
+      throw runtime_error_not_unique(os.str());
+      break;
   }
 
   return -1;
@@ -237,184 +199,167 @@ Index chk_contains( const String&   x_name,
     \date   2007-05-18
 */
 template <class T>
-void chk_size( const String&   x_name,
-               const Array<T>& x,
-               const Index&    c ) 
-{
-  if ( x.nelem() != c )
-    {
-      ostringstream os;
-      os << "The array *" << x_name << "*\n"
-         << "does not have the right size.\n"
-         << "The size should be: " << c << "\n" 
-         << "but it is:          " << x.nelem();
-      throw runtime_error( os.str() );
-    }
+void chk_size(const String& x_name, const Array<T>& x, const Index& c) {
+  if (x.nelem() != c) {
+    ostringstream os;
+    os << "The array *" << x_name << "*\n"
+       << "does not have the right size.\n"
+       << "The size should be: " << c << "\n"
+       << "but it is:          " << x.nelem();
+    throw runtime_error(os.str());
+  }
 }
-
-
 
 /*===========================================================================
   === Functions for Tensors
   ===========================================================================*/
 
-void chk_size( const String&    x_name,
-               ConstVectorView  x,
-               const Index&     c );
+void chk_size(const String& x_name, ConstVectorView x, const Index& c);
 
-void chk_size( const String&    x_name,
-               ConstMatrixView  x,
-               const Index&     r,
-               const Index&     c );
+void chk_size(const String& x_name,
+              ConstMatrixView x,
+              const Index& r,
+              const Index& c);
 
-void chk_size( const String&    x_name,
-               ConstTensor3View x,
-               const Index&     p,
-               const Index&     r,
-               const Index&     c );
+void chk_size(const String& x_name,
+              ConstTensor3View x,
+              const Index& p,
+              const Index& r,
+              const Index& c);
 
-void chk_size( const String&    x_name,
-               ConstTensor4View x,
-               const Index&     b,
-               const Index&     p,
-               const Index&     r,
-               const Index&     c );
+void chk_size(const String& x_name,
+              ConstTensor4View x,
+              const Index& b,
+              const Index& p,
+              const Index& r,
+              const Index& c);
 
-void chk_size( const String&    x_name,
-               ConstTensor5View x,
-               const Index&     s,
-               const Index&     b,
-               const Index&     p,
-               const Index&     r,
-               const Index&     c );
+void chk_size(const String& x_name,
+              ConstTensor5View x,
+              const Index& s,
+              const Index& b,
+              const Index& p,
+              const Index& r,
+              const Index& c);
 
-void chk_size( const String&    x_name,
-               ConstTensor6View x,
-               const Index&     v,
-               const Index&     s,
-               const Index&     b,
-               const Index&     p,
-               const Index&     r,
-               const Index&     c );
+void chk_size(const String& x_name,
+              ConstTensor6View x,
+              const Index& v,
+              const Index& s,
+              const Index& b,
+              const Index& p,
+              const Index& r,
+              const Index& c);
 
-void chk_size( const String&    x_name,
-               ConstTensor7View x,
-               const Index&     l,
-               const Index&     v,
-               const Index&     s,
-               const Index&     b,
-               const Index&     p,
-               const Index&     r,
-               const Index&     c );
+void chk_size(const String& x_name,
+              ConstTensor7View x,
+              const Index& l,
+              const Index& v,
+              const Index& s,
+              const Index& b,
+              const Index& p,
+              const Index& r,
+              const Index& c);
 
-void chk_not_empty( 
-        const String&      x_name,
-        const Agenda&      x );
+void chk_not_empty(const String& x_name, const Agenda& x);
 
-void chk_interpolation_grids_loose(Index&          ing_min,
-                                   Index&          ing_max,
-                                   const String&   which_interpolation,
+void chk_interpolation_grids_loose(Index& ing_min,
+                                   Index& ing_max,
+                                   const String& which_interpolation,
                                    ConstVectorView old_grid,
                                    ConstVectorView new_grid,
                                    ConstVectorView data,
-                                   const Index     order=1);
+                                   const Index order = 1);
 
-void chk_interpolation_grids_loose_no_data_check(Index&          ing_min,
-                                                 Index&          ing_max,
-                                                 const String&   which_interpolation,
-                                                 ConstVectorView old_grid,
-                                                 ConstVectorView new_grid,
-                                                 const Index     order=1);
+void chk_interpolation_grids_loose_no_data_check(
+    Index& ing_min,
+    Index& ing_max,
+    const String& which_interpolation,
+    ConstVectorView old_grid,
+    ConstVectorView new_grid,
+    const Index order = 1);
 
-void chk_interpolation_pgrids_loose_no_data_check(Index&          ing_min,
-                                                  Index&          ing_max,
-                                                  const String&   which_interpolation,
-                                                  ConstVectorView old_pgrid,
-                                                  ConstVectorView new_pgrid,
-                                                  const Index     order=1);
+void chk_interpolation_pgrids_loose_no_data_check(
+    Index& ing_min,
+    Index& ing_max,
+    const String& which_interpolation,
+    ConstVectorView old_pgrid,
+    ConstVectorView new_pgrid,
+    const Index order = 1);
 
-void chk_interpolation_grids_loose_check_data(Index&          ing_min,
-                                              Index&          ing_max,
-                                              const String&   which_interpolation,
+void chk_interpolation_grids_loose_check_data(Index& ing_min,
+                                              Index& ing_max,
+                                              const String& which_interpolation,
                                               ConstVectorView old_grid,
                                               ConstVectorView new_grid,
-                                              ConstVectorView data );
+                                              ConstVectorView data);
 
-void chk_interpolation_grids(const String&   which_interpolation,
+void chk_interpolation_grids(const String& which_interpolation,
                              ConstVectorView old_grid,
                              ConstVectorView new_grid,
-                             const Index     order=1,
-                             const Numeric&  extpolfac=0.5,
-                             const bool      islog=false);
+                             const Index order = 1,
+                             const Numeric& extpolfac = 0.5,
+                             const bool islog = false);
 
-void chk_interpolation_grids(const String&   which_interpolation,
+void chk_interpolation_grids(const String& which_interpolation,
                              ConstVectorView old_grid,
-                             const Numeric&  new_grid,
-                             const Index     order=1,
-                             const Numeric&  extpolfac=0.5 );
+                             const Numeric& new_grid,
+                             const Index order = 1,
+                             const Numeric& extpolfac = 0.5);
 
-void chk_interpolation_pgrids(const String&   which_interpolation,
+void chk_interpolation_pgrids(const String& which_interpolation,
                               ConstVectorView old_pgrid,
                               ConstVectorView new_pgrid,
-                              const Index     order=1,
-                              const Numeric&  extpolfac=0.5 );
+                              const Index order = 1,
+                              const Numeric& extpolfac = 0.5);
 
-void chk_atm_grids(
-        const Index&      dim,
-        ConstVectorView   p_grid,
-        ConstVectorView   lat_grid,
-        ConstVectorView   lon_grid );
+void chk_atm_grids(const Index& dim,
+                   ConstVectorView p_grid,
+                   ConstVectorView lat_grid,
+                   ConstVectorView lon_grid);
 
-void chk_atm_field( 
-        const String&     x_name,
-        ConstTensor3View  x, 
-        const Index&      dim,
-        ConstVectorView   p_grid,
-        ConstVectorView   lat_grid,
-        ConstVectorView   lon_grid,
-        const bool&       chk_lat90 = 1);
+void chk_atm_field(const String& x_name,
+                   ConstTensor3View x,
+                   const Index& dim,
+                   ConstVectorView p_grid,
+                   ConstVectorView lat_grid,
+                   ConstVectorView lon_grid,
+                   const bool& chk_lat90 = 1);
 
-void chk_atm_field( 
-        const String&   x_name,
-        ConstTensor4View  x, 
-        const Index&    dim,
-        const Index&    nspecies,
-        ConstVectorView p_grid,
-        ConstVectorView lat_grid,
-        ConstVectorView lon_grid,
-        const bool&     check_nan = 1 );
+void chk_atm_field(const String& x_name,
+                   ConstTensor4View x,
+                   const Index& dim,
+                   const Index& nspecies,
+                   ConstVectorView p_grid,
+                   ConstVectorView lat_grid,
+                   ConstVectorView lon_grid,
+                   const bool& check_nan = 1);
 
-void chk_atm_vecfield_lat90( 
-        const String&     x1_name,
-        ConstTensor3View  x1, 
-        const String&     x2_name,
-        ConstTensor3View  x2, 
-        const Index&      dim,
-        ConstVectorView   lat_grid,
-        const Numeric&    threshold = 1e-3 );
+void chk_atm_vecfield_lat90(const String& x1_name,
+                            ConstTensor3View x1,
+                            const String& x2_name,
+                            ConstTensor3View x2,
+                            const Index& dim,
+                            ConstVectorView lat_grid,
+                            const Numeric& threshold = 1e-3);
 //        const Numeric&    threshold = 2*DBL_EPSILON );
 
-void chk_latlon_true(
-   const Index&      atmosphere_dim,
-   ConstVectorView   lat_grid,
-   ConstVectorView   lat_true,
-   ConstVectorView   lon_true );
+void chk_latlon_true(const Index& atmosphere_dim,
+                     ConstVectorView lat_grid,
+                     ConstVectorView lat_true,
+                     ConstVectorView lon_true);
 
-void chk_atm_surface( 
-        const String&     x_name,
-        const Matrix&     x, 
-        const Index&      dim,
-        ConstVectorView   lat_grid,
-        ConstVectorView   lon_grid );
+void chk_atm_surface(const String& x_name,
+                     const Matrix& x,
+                     const Index& dim,
+                     ConstVectorView lat_grid,
+                     ConstVectorView lon_grid);
 
-void chk_rte_pos( 
-        const Index&      atmosphere_dim,
-        ConstVectorView   rte_pos,
-        const bool&       is_rte_pos2=false );
+void chk_rte_pos(const Index& atmosphere_dim,
+                 ConstVectorView rte_pos,
+                 const bool& is_rte_pos2 = false);
 
-void chk_rte_los( 
-        const Index&      atmosphere_dim,
-        ConstVectorView   rte_los );
+void chk_rte_los(const Index& atmosphere_dim, ConstVectorView rte_los);
 
 void chk_griddedfield_gridname(const GriddedField& gf,
                                const Index gridindex,
@@ -422,12 +367,12 @@ void chk_griddedfield_gridname(const GriddedField& gf,
 
 void chk_met_mm_backend(const Matrix& bdsp);
 
-void chk_nlte(const Tensor4&                   t_nlte_field,
-              const ArrayOfQuantumIdentifier&  nlte_quantum_identifiers,
-              const ArrayOfArrayOfLineRecord&  abs_lines_per_species,
-              const Vector&                    p_grid,
-              const Vector&                    lat_grid,
-              const Vector&                    lon_grid,
-              const Index&                     atmosphere_dim);
+void chk_nlte(const Tensor4& t_nlte_field,
+              const ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
+              const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+              const Vector& p_grid,
+              const Vector& lat_grid,
+              const Vector& lon_grid,
+              const Index& atmosphere_dim);
 
 #endif  // checkinput_h

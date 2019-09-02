@@ -19,9 +19,8 @@
 #define sourcetext_h
 
 #include "array.h"
-#include "mystring.h"
 #include "exceptions.h"
-
+#include "mystring.h"
 
 /** A smart class to hold the text for parsing. A variable of this
     class can hold not only the text of the ARTS Control file, but
@@ -35,11 +34,11 @@
     
     @author Stefan Buehler */
 class SourceText {
-public:
-
+ public:
   /** Default constructor. */
-  SourceText() :  mLine(0), mColumn(0), mLineBreak(false)
-  { /* Nothing to be done here. */ }
+  SourceText()
+      : mLine(0), mColumn(0), mLineBreak(false) { /* Nothing to be done here. */
+  }
 
   /** Appends contents of file to the source text.
       @see read_text_from_file */
@@ -47,18 +46,17 @@ public:
 
   /** Return the current character. */
   char Current() {
-    if (reachedEot())
-      throw Eot( "", this->File(), this->Line(), this->Column() ); 
+    if (reachedEot()) throw Eot("", this->File(), this->Line(), this->Column());
 
     return mText[mLine][mColumn];
   }
 
   /** Check if the current position reached the end. */
   bool reachedEot() {
-    return (mLine >= mText.nelem()
-            || (mLine == mText.nelem()-1 && mColumn >= mText[mLine].nelem()));
+    return (mLine >= mText.nelem() ||
+            (mLine == mText.nelem() - 1 && mColumn >= mText[mLine].nelem()));
   }
-  
+
   /** Advance position pointer by one character. Sets mLineBreak if a
       line break occured.  
    
@@ -88,25 +86,23 @@ public:
   Index ColumnRaw() { return mColumn; }
 
   /** Return the current column. */
-  Index Column() { return mColumn+1; }
+  Index Column() { return mColumn + 1; }
 
   /** Return the current marked column. */
-  Index MarkedColumn() { return mMarkedColumn+1; }
+  Index MarkedColumn() { return mMarkedColumn + 1; }
 
   /** Set current position. */
-  void SetPosition(Index line, Index column)
-    {
-        mLine = line;
-        mColumn = column;
-    }
+  void SetPosition(Index line, Index column) {
+    mLine = line;
+    mColumn = column;
+  }
 
   /** Mark current position. */
-  void SetMark()
-    {
-        mMarkedLine = mLine;
-        mMarkedColumn = mColumn;
-    }
-    
+  void SetMark() {
+    mMarkedLine = mLine;
+    mMarkedColumn = mColumn;
+  }
+
   /** This sets the pointer to the first existing character in the
       text. (First few lines could be empty). */
   void Init();
@@ -117,13 +113,12 @@ public:
 
   /** Const version of LineBreak
       @see LineBreak */
-  bool  LineBreak() const { return mLineBreak; }
+  bool LineBreak() const { return mLineBreak; }
 
   /** Output operator for SourceText. (Only used for debugging) */
-  friend std::ostream& operator << (std::ostream& os, const SourceText& text);
+  friend std::ostream& operator<<(std::ostream& os, const SourceText& text);
 
-private:
-
+ private:
   /** Return the line number, but for the file that is associated
       with the given position. */
   Index GetSourceLine(const Index line);
@@ -155,4 +150,3 @@ private:
 };
 
 #endif /* sourcetext_h */
-

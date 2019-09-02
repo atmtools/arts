@@ -31,32 +31,23 @@
   The condition should have a simple and intuitive meaning!
 */
 
-
-#include <cmath> 
-#include <algorithm> 
-#include <stdexcept>
 #include "logic.h"
+#include <algorithm>
+#include <cmath>
+#include <stdexcept>
 #include "sorting.h"
 
-
 // For checking, if a Numeric equal zero we have to take into account the
-// numerical precicion. If a value is smaller than *precision* it is 
+// numerical precicion. If a value is smaller than *precision* it is
 // taken to be 0.
 #define precision 0.
-
-
 
 //! Checks if a variable equals 0 or 1.
 /*!
   \return       True if the variable is 0 or 1. Otherwise false.
   \param    x   A variable of type Index.
 */
-bool is_bool( const Index& x )
-{
-  return ( x==0 || x==1 );
-}
-
-
+bool is_bool(const Index& x) { return (x == 0 || x == 1); }
 
 //! Checks if an integer is a multiple of another integer.
 /*!
@@ -71,13 +62,10 @@ bool is_bool( const Index& x )
    \author Patrick Eriksson 
    \date   2002-08-11 
 */
-bool is_multiple( const Index& x, const Index& y )
-{
-  assert( y != 0 );
-  return ( 0 == fmod( Numeric(x), Numeric(y) ) );
+bool is_multiple(const Index& x, const Index& y) {
+  assert(y != 0);
+  return (0 == fmod(Numeric(x), Numeric(y)));
 }
-
-
 
 //! Verifies that the size of x is l.
 /*! 
@@ -88,13 +76,7 @@ bool is_multiple( const Index& x, const Index& y )
   \param  n The desired length.
   \return True if the size of x is l.
 */
-bool is_size( ConstVectorView   x,
-              const Index&      n ) 
-{
-  return( n == x.nelem() );
-}
-
-
+bool is_size(ConstVectorView x, const Index& n) { return (n == x.nelem()); }
 
 //! Verifies that the size of x is r by c.
 /*! 
@@ -103,15 +85,9 @@ bool is_size( ConstVectorView   x,
   \param  c The desired number of columns.
   \return True if the size of x is r x c.
 */
-bool is_size( ConstMatrixView   x,
-              const Index&      r,
-              const Index&      c ) 
-{
-  return( r == x.nrows() &&
-          c == x.ncols()     );
+bool is_size(ConstMatrixView x, const Index& r, const Index& c) {
+  return (r == x.nrows() && c == x.ncols());
 }
-
-
 
 //! Verifies that the size of x is [p,r,c].
 /*! 
@@ -121,17 +97,12 @@ bool is_size( ConstMatrixView   x,
   \param  c The desired number of columns.
   \return True if the size of x is correct.
 */
-bool is_size( ConstTensor3View  x,
-              const Index&      p,
-              const Index&      r,
-              const Index&      c ) 
-{
-  return( p == x.npages()     &&
-          r == x.nrows()      &&
-          c == x.ncols()     );
+bool is_size(ConstTensor3View x,
+             const Index& p,
+             const Index& r,
+             const Index& c) {
+  return (p == x.npages() && r == x.nrows() && c == x.ncols());
 }
-
-
 
 //! Verifies that the size of x is [b,p,r,c].
 /*! 
@@ -142,19 +113,14 @@ bool is_size( ConstTensor3View  x,
   \param  c The desired number of columns.
   \return True if the size of x is correct.
 */
-bool is_size( ConstTensor4View  x,
-              const Index&      b,
-              const Index&      p,
-              const Index&      r,
-              const Index&      c ) 
-{
-  return( b == x.nbooks()     &&
-          p == x.npages()     &&
-          r == x.nrows()      &&
-          c == x.ncols()     );
+bool is_size(ConstTensor4View x,
+             const Index& b,
+             const Index& p,
+             const Index& r,
+             const Index& c) {
+  return (b == x.nbooks() && p == x.npages() && r == x.nrows() &&
+          c == x.ncols());
 }
-
-
 
 //! Verifies that the size of x is [s,b,p,r,c].
 /*! 
@@ -166,21 +132,15 @@ bool is_size( ConstTensor4View  x,
   \param  c The desired number of columns.
   \return True if the size of x is correct.
 */
-bool is_size( ConstTensor5View  x,
-              const Index&      s,
-              const Index&      b,
-              const Index&      p,
-              const Index&      r,
-              const Index&      c ) 
-{
-  return( s == x.nshelves()   &&
-          b == x.nbooks()     &&
-          p == x.npages()     &&
-          r == x.nrows()      &&
-          c == x.ncols()     );
+bool is_size(ConstTensor5View x,
+             const Index& s,
+             const Index& b,
+             const Index& p,
+             const Index& r,
+             const Index& c) {
+  return (s == x.nshelves() && b == x.nbooks() && p == x.npages() &&
+          r == x.nrows() && c == x.ncols());
 }
-
-
 
 //! Verifies that the size of x is [v,s,b,p,r,c].
 /*! 
@@ -193,23 +153,16 @@ bool is_size( ConstTensor5View  x,
   \param  c The desired number of columns.
   \return True if the size of x is correct.
 */
-bool is_size( ConstTensor6View  x,
-              const Index&      v,
-              const Index&      s,
-              const Index&      b,
-              const Index&      p,
-              const Index&      r,
-              const Index&      c ) 
-{
-  return( v == x.nvitrines()  &&
-          s == x.nshelves()   &&
-          b == x.nbooks()     &&
-          p == x.npages()     &&
-          r == x.nrows()      &&
-          c == x.ncols()     );
+bool is_size(ConstTensor6View x,
+             const Index& v,
+             const Index& s,
+             const Index& b,
+             const Index& p,
+             const Index& r,
+             const Index& c) {
+  return (v == x.nvitrines() && s == x.nshelves() && b == x.nbooks() &&
+          p == x.npages() && r == x.nrows() && c == x.ncols());
 }
-
-
 
 //! Verifies that the size of x is [l,v,s,b,p,r,c].
 /*! 
@@ -223,25 +176,18 @@ bool is_size( ConstTensor6View  x,
   \param  c The desired number of columns.
   \return True if the size of x is correct.
 */
-bool is_size( ConstTensor7View  x,
-              const Index&      l,
-              const Index&      v,
-              const Index&      s,
-              const Index&      b,
-              const Index&      p,
-              const Index&      r,
-              const Index&      c ) 
-{
-  return( l == x.nlibraries() &&
-          v == x.nvitrines()  &&
-          s == x.nshelves()   &&
-          b == x.nbooks()     &&
-          p == x.npages()     &&
-          r == x.nrows()      &&
-          c == x.ncols()     );
+bool is_size(ConstTensor7View x,
+             const Index& l,
+             const Index& v,
+             const Index& s,
+             const Index& b,
+             const Index& p,
+             const Index& r,
+             const Index& c) {
+  return (l == x.nlibraries() && v == x.nvitrines() && s == x.nshelves() &&
+          b == x.nbooks() && p == x.npages() && r == x.nrows() &&
+          c == x.ncols());
 }
-
-
 
 //! Checks if a vector is sorted in ascending order.
 /*!
@@ -250,44 +196,32 @@ bool is_size( ConstTensor7View  x,
   \param   x   A vector.
   \return      True if sorted.
 */
-bool is_sorted( ConstVectorView   x )
-{
-  if( x.nelem() > 1 )
-    {
-      for( Index i=1; i<x.nelem(); i++ )
-        {
-          if( !(x[i] >= x[i-1]) )
-            return false;
-        }
+bool is_sorted(ConstVectorView x) {
+  if (x.nelem() > 1) {
+    for (Index i = 1; i < x.nelem(); i++) {
+      if (!(x[i] >= x[i - 1])) return false;
     }
+  }
   return true;
 }
 
-
-
-//! Checks if a vector is sorted and strictly increasing. 
+//! Checks if a vector is sorted and strictly increasing.
 /*! 
     Duplicated values are not allowed.
 
     \return      True if strictly increasing, otherwise false.
     \param   x   A vector.
 */
-bool is_increasing( ConstVectorView   x )
-{
-  if( x.nelem() > 1 )
-    {
-      for( Index i=1; i<x.nelem(); i++ )
-        {
-          if( !(x[i] > x[i-1]) )
-            return false;
-        }
+bool is_increasing(ConstVectorView x) {
+  if (x.nelem() > 1) {
+    for (Index i = 1; i < x.nelem(); i++) {
+      if (!(x[i] > x[i - 1])) return false;
     }
+  }
   return true;
 }
 
-
-
-//! Checks if an ArrayOfIndex is sorted and strictly increasing. 
+//! Checks if an ArrayOfIndex is sorted and strictly increasing.
 /*! 
     Duplicated values are not allowed. Clone of the similar funciton
     for vectors.  
@@ -299,20 +233,14 @@ bool is_increasing( ConstVectorView   x )
     \date   2007-05-18
 
 */
-bool is_increasing( const ArrayOfIndex&   x )
-{
-  if( x.nelem() > 1 )
-    {
-      for( Index i=1; i<x.nelem(); i++ )
-        {
-          if( x[i] <= x[i-1] )
-            return false;
-        }
+bool is_increasing(const ArrayOfIndex& x) {
+  if (x.nelem() > 1) {
+    for (Index i = 1; i < x.nelem(); i++) {
+      if (x[i] <= x[i - 1]) return false;
     }
+  }
   return true;
 }
-
-
 
 //! Checks if a vector is sorted in reversed order and is strictly decreasing.
 /*! 
@@ -321,20 +249,14 @@ bool is_increasing( const ArrayOfIndex&   x )
     \return      True if strictly decreasing, otherwise false.
     \param   x   A vector.
 */
-bool is_decreasing( ConstVectorView   x )
-{
-  if( x.nelem() > 1 )
-    {
-      for( Index i=1; i<x.nelem(); i++ )
-        {
-          if( !(x[i] < x[i-1]) )
-            return false;
-        }
+bool is_decreasing(ConstVectorView x) {
+  if (x.nelem() > 1) {
+    for (Index i = 1; i < x.nelem(); i++) {
+      if (!(x[i] < x[i - 1])) return false;
     }
+  }
   return true;
 }
-
-
 
 //! Checks if an ArrayOfIndex is unique, i.e., has no duplicate values
 /*! 
@@ -349,20 +271,16 @@ bool is_decreasing( ConstVectorView   x )
   \date   2008-08-24
 
 */
-bool is_unique( const ArrayOfIndex&   x )
-{
-  // We simply compare the second element to the first, 
+bool is_unique(const ArrayOfIndex& x) {
+  // We simply compare the second element to the first,
   // the third to the first and second, and so on.
 
-  for (Index i=1; i<x.nelem(); ++i)
-    for (Index s=0; s<i; ++s)
-      if (x[i]==x[s])
-        return false;
-  
+  for (Index i = 1; i < x.nelem(); ++i)
+    for (Index s = 0; s < i; ++s)
+      if (x[i] == x[s]) return false;
+
   return true;
 }
-
-
 
 //! Checks if a square matrix is singular.
 /*! 
@@ -374,29 +292,23 @@ bool is_unique( const ArrayOfIndex&   x )
     \return      True if matrix is singular.
     \param   A   A square matrix.
 */
-bool is_singular( ConstMatrixView A )
-{
-  assert( A.nrows() == A.ncols() );
+bool is_singular(ConstMatrixView A) {
+  assert(A.nrows() == A.ncols());
   Numeric temp = 0.;
-    
-  for( Index i=0; i<A.nrows(); i++)
-    {
-      Numeric big = 0.;
-      for( Index j=0; j<A.nrows(); j++)
-        {
-          if ((temp = fabs(A(i,j))) > big)
-            big = temp;
-        }
-      // Due to numerical precision the values can deviate from 0.0
-      if (big < precision)
-        {
-        throw runtime_error ("Matrix is singular.");
-        return true;
-        }
+
+  for (Index i = 0; i < A.nrows(); i++) {
+    Numeric big = 0.;
+    for (Index j = 0; j < A.nrows(); j++) {
+      if ((temp = fabs(A(i, j))) > big) big = temp;
     }
+    // Due to numerical precision the values can deviate from 0.0
+    if (big < precision) {
+      throw runtime_error("Matrix is singular.");
+      return true;
+    }
+  }
   return false;
 }
-
 
 //! Checks if a square matrix is diagonal.
 /*! 
@@ -408,23 +320,16 @@ bool is_singular( ConstMatrixView A )
     \return      True if matrix is diagonal.
     \param   A   A square matrix.
 */
-bool is_diagonal( ConstMatrixView A )
-{
-  assert( A.nrows() == A.ncols() );
- 
-  for( Index i=1; i<A.ncols(); i++ )
-    {
-      for( Index j=0; j<i; j++ )
-        {
-          if( fabs(A(i,j)) > precision ||  
-              fabs(A(j,i)) > precision )
-            return false;
-        }
+bool is_diagonal(ConstMatrixView A) {
+  assert(A.nrows() == A.ncols());
+
+  for (Index i = 1; i < A.ncols(); i++) {
+    for (Index j = 0; j < i; j++) {
+      if (fabs(A(i, j)) > precision || fabs(A(j, i)) > precision) return false;
     }
+  }
   return true;
 }
-
-
 
 //! Check, if two numbers agree within a given epsilon.
 /*! 
@@ -443,16 +348,14 @@ bool is_diagonal( ConstMatrixView A )
 
   \return True if the two numbers are the same.
  */
-bool is_same_within_epsilon( const Numeric& a,
-                             const Numeric& b,
-                             const Numeric& epsilon )
-{
-  if ( abs(a-b) <= epsilon * max(abs(a),abs(b)) )
+bool is_same_within_epsilon(const Numeric& a,
+                            const Numeric& b,
+                            const Numeric& epsilon) {
+  if (abs(a - b) <= epsilon * max(abs(a), abs(b)))
     return true;
   else
     return false;
 }
-
 
 //! Check if the given longitude grid is cyclic.
 /*!
@@ -463,10 +366,7 @@ bool is_same_within_epsilon( const Numeric& a,
 
  \return True if the grid is cyclic.
  */
-bool is_lon_cyclic( ConstVectorView grid,
-                    const Numeric& epsilon )
-{
-    return is_same_within_epsilon(grid[grid.nelem()-1] - grid[0],
-                                  360., epsilon);
+bool is_lon_cyclic(ConstVectorView grid, const Numeric& epsilon) {
+  return is_same_within_epsilon(
+      grid[grid.nelem() - 1] - grid[0], 360., epsilon);
 }
-

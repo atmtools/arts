@@ -50,5 +50,4 @@ void arts_omp_set_nested(int i);
 
 void arts_omp_set_dynamic(int i);
 
-
 #endif  // arts_omp_h

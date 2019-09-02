@@ -35,17 +35,15 @@
 #include "workspace_ng.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-template<typename T> void
-Delete(// Workspace reference
-       Workspace& ws,
-       // WS Generic Input:
-       const T&        x _U_,
-       // WS Generic Input Names:
-       const String&   x_name,
-       const Verbosity&)
-{
-  ws.del (ws.WsvMap.find (x_name)->second);
+template <typename T>
+void Delete(  // Workspace reference
+    Workspace& ws,
+    // WS Generic Input:
+    const T& x _U_,
+    // WS Generic Input Names:
+    const String& x_name,
+    const Verbosity&) {
+  ws.del(ws.WsvMap.find(x_name)->second);
 }
 
-
-#endif // m_ignore_h
+#endif  // m_ignore_h

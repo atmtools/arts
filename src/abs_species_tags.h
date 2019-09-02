@@ -33,55 +33,55 @@
 #define abs_species_h
 
 #include <stdexcept>
-#include "matpackI.h"
 #include "array.h"
-#include "mystring.h"
 #include "bifstream.h"
-
+#include "matpackI.h"
+#include "mystring.h"
 
 /** A tag group can consist of the sum of several of these.
 
     \author Stefan Buehler */
 class SpeciesTag {
-public:
+ public:
   /** Default constructor. */
-  SpeciesTag() : mspecies(-1),
-                 misotopologue(-1),
-                 mlf(0.),
-                 muf(0.),
-                 mtype(-1),
-                 mline_mixing(LINE_MIXING_OFF),
-                 mcia_second(-1),
-                 mcia_dataset(-1)
-  { /* Nothing to be done here. */ }
+  SpeciesTag()
+      : mspecies(-1),
+        misotopologue(-1),
+        mlf(0.),
+        muf(0.),
+        mtype(-1),
+        mline_mixing(LINE_MIXING_OFF),
+        mcia_second(-1),
+        mcia_dataset(-1) { /* Nothing to be done here. */
+  }
 
   // Documentation is with implementation.
-  SpeciesTag(String def); 
+  SpeciesTag(String def);
 
   // Documentation is with implementation.
   String Name() const;
-    
+
   /** Molecular species index. */
   Index Species() const { return mspecies; }
-  
+
   /** Molecular species index. */
   Index BathSpecies() const { return mcia_second; }
-  
+
   /** Name of main species */
   String SpeciesNameMain() const;
-  
+
   /** Mass of main species */
   Numeric SpeciesMass() const;
-  
+
   /** Check if the species is same as SpeciesTag(s).Species() */
   bool IsSpecies(const String& s) const;
-  
+
   /** Check if the isotopologue is same as SpeciesTag(s).Isotopologue() */
   bool IsIsotopologue(const String& s) const;
 
   /** Isotopologue species index.
       If this is equal to the number of isotopologues (one more than
-      allowed) it means all isotopologues of this species. */ 
+      allowed) it means all isotopologues of this species. */
   Index Isotopologue() const { return misotopologue; }
 
   /** The lower line center frequency in Hz.
@@ -110,56 +110,48 @@ public:
     \author Stefan Buehler
     \date   2002-11-29
   */
-  bool operator==(const SpeciesTag& other) const
-  {
-    if ( other.mspecies          != mspecies ) return false;
-    if ( other.misotopologue     != misotopologue ) return false;
-    if ( other.mlf               != mlf      ) return false;
-    if ( other.muf               != muf      ) return false;
-    if ( other.mtype             != mtype    ) return false;
-    if ( other.mline_mixing != mline_mixing ) return false;
-    if ( mtype == TYPE_CIA && (other.mcia_second != mcia_second
-                               || other.mcia_dataset != mcia_dataset)) return false;
+  bool operator==(const SpeciesTag& other) const {
+    if (other.mspecies != mspecies) return false;
+    if (other.misotopologue != misotopologue) return false;
+    if (other.mlf != mlf) return false;
+    if (other.muf != muf) return false;
+    if (other.mtype != mtype) return false;
+    if (other.mline_mixing != mline_mixing) return false;
+    if (mtype == TYPE_CIA && (other.mcia_second != mcia_second ||
+                              other.mcia_dataset != mcia_dataset))
+      return false;
     return true;
   }
-
 
   /** Enum for type of this tag.
 
   See private member mtype for more explanations.   */
-   enum {
-       TYPE_PLAIN,
-       TYPE_ZEEMAN,
-       TYPE_PREDEF,
-       TYPE_CIA,
-       TYPE_FREE_ELECTRONS,
-       TYPE_PARTICLES,
-       TYPE_HITRAN_XSEC
-   };
-
+  enum {
+    TYPE_PLAIN,
+    TYPE_ZEEMAN,
+    TYPE_PREDEF,
+    TYPE_CIA,
+    TYPE_FREE_ELECTRONS,
+    TYPE_PARTICLES,
+    TYPE_HITRAN_XSEC
+  };
 
   /** Enum for line mixing type of this tag.
 
   See private member mline_mixing for more explanations.   */
-   enum {
-       LINE_MIXING_OFF,
-       LINE_MIXING_ON
-   };
-  
+  enum { LINE_MIXING_OFF, LINE_MIXING_ON };
 
   /** Return the type of this tag.
    
    See private member mtype for more explanations.   */
   Index Type() const { return mtype; }
 
-
   /** Return line mixing status of this tag.
 
    See private member mtype for more explanations.   */
   Index LineMixing() const { return mline_mixing; }
 
-
-private:
+ private:
   //! Molecular species index.
   Index mspecies;
 
@@ -213,18 +205,16 @@ private:
   Index mcia_dataset;
 };
 
-
 /** Output operator for SpeciesTag. 
 
     \author Stefan Buehler */
-ostream& operator << (ostream& os, const SpeciesTag& ot);
-
+ostream& operator<<(ostream& os, const SpeciesTag& ot);
 
 /** A tag group is an array of SpeciesTags. This corresponds to one
     "species" in the controlfile. Example: "O3-666, O3-668"
 
     \author Stefan Buehler */
-typedef  Array<SpeciesTag> ArrayOfSpeciesTag;
+typedef Array<SpeciesTag> ArrayOfSpeciesTag;
 
 /** Contains the available tag groups. Contrary to the Bredbeck
     definition, tag groups may only consist of tags belonging to the
@@ -232,40 +222,36 @@ typedef  Array<SpeciesTag> ArrayOfSpeciesTag;
     associated with each tag group.
 
     \author Stefan Buehler */
-typedef  Array<ArrayOfSpeciesTag> ArrayOfArrayOfSpeciesTag;
-
+typedef Array<ArrayOfSpeciesTag> ArrayOfArrayOfSpeciesTag;
 
 //======================================================================
 //             Functions related to species and tags
 //======================================================================
 
-String get_tag_group_name( const ArrayOfSpeciesTag& tg );
+String get_tag_group_name(const ArrayOfSpeciesTag& tg);
 
-String get_species_name( const ArrayOfSpeciesTag& tg );
+String get_species_name(const ArrayOfSpeciesTag& tg);
 
-Index find_first_species_tg( const ArrayOfArrayOfSpeciesTag& tgs,
-                             const Index& spec );
+Index find_first_species_tg(const ArrayOfArrayOfSpeciesTag& tgs,
+                            const Index& spec);
 
-Index find_next_species_tg( const ArrayOfArrayOfSpeciesTag& tgs,
-                            const Index& spec,
-                            const Index& start );
+Index find_next_species_tg(const ArrayOfArrayOfSpeciesTag& tgs,
+                           const Index& spec,
+                           const Index& start);
 
-void array_species_tag_from_string( ArrayOfSpeciesTag& tags,
-                                    const String& names );
+void array_species_tag_from_string(ArrayOfSpeciesTag& tags,
+                                   const String& names);
 
-void check_abs_species( const ArrayOfArrayOfSpeciesTag& tags );
+void check_abs_species(const ArrayOfArrayOfSpeciesTag& tags);
 
 bool is_zeeman(const ArrayOfSpeciesTag& tg);
-
 
 //--------------------------------------------------------------------------------
 // Functions from ARTS-1-0. Are they still needed?
 //--------------------------------------------------------------------------------
 
-void get_tag_group_index_for_tag_group(
-              Index&         tags1_index, 
-        const ArrayOfArrayOfSpeciesTag&      tags1, 
-        const Array<SpeciesTag>&  tags2 );
+void get_tag_group_index_for_tag_group(Index& tags1_index,
+                                       const ArrayOfArrayOfSpeciesTag& tags1,
+                                       const Array<SpeciesTag>& tags2);
 
-
-#endif // abs_species_h
+#endif  // abs_species_h

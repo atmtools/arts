@@ -18,17 +18,16 @@
 #include "arts.h"
 
 #if HAVE_UNISTD_H
-# include <sys/types.h>
-# include <unistd.h>
+#include <sys/types.h>
+#include <unistd.h>
 #endif
 #ifdef _POSIX_VERSION
 #include <sys/times.h>
 #endif
-#include "legendre.h"
 #include "exceptions.h"
+#include "legendre.h"
 
-void test_gsl_int()
-{
+void test_gsl_int() {
   Vector x, w;
 
   std::cout << gsl_integration_glfixed_table_alloc(x, w, 20) << std::endl;
@@ -36,37 +35,30 @@ void test_gsl_int()
   std::cout << w << std::endl << std::endl;
 }
 
-
-int
-main (int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   Index l, m;
   Numeric x;
 
-  if (argc != 4)
-    {
-      cerr << "Usage: " << argv[0] << " l m x" << endl;
-      exit (1);
-    }
+  if (argc != 4) {
+    cerr << "Usage: " << argv[0] << " l m x" << endl;
+    exit(1);
+  }
 
-  l = atoi (argv[1]);
-  m = atoi (argv[2]);
-  x = strtod (argv[3], NULL);
+  l = atoi(argv[1]);
+  m = atoi(argv[2]);
+  x = strtod(argv[3], NULL);
 
-  try
-    {
-      cout << "l = " << l << "  m = " << m << "  x = " << x << endl;
-      cout << "Pml = " << legendre_poly (l, m, x) << endl;
-      cout << "dPml = " << legendre_poly_deriv (l, m, x) << endl;
-      cout << "Norm Pml = " << legendre_poly_norm_schmidt (l, m, x) << endl;
-      cout << "Norm dPml = " << legendre_poly_norm_schmidt_deriv (l, m, x) << endl;
-    }
-  catch (const std::runtime_error &e)
-    {
-      cerr << e.what ();
-    }
+  try {
+    cout << "l = " << l << "  m = " << m << "  x = " << x << endl;
+    cout << "Pml = " << legendre_poly(l, m, x) << endl;
+    cout << "dPml = " << legendre_poly_deriv(l, m, x) << endl;
+    cout << "Norm Pml = " << legendre_poly_norm_schmidt(l, m, x) << endl;
+    cout << "Norm dPml = " << legendre_poly_norm_schmidt_deriv(l, m, x) << endl;
+  } catch (const std::runtime_error &e) {
+    cerr << e.what();
+  }
 
-/*  struct tms cput_start, cput_end;
+  /*  struct tms cput_start, cput_end;
   const Index n = 1000000;
   Index clktck;
   Vector v2 (n), r2 (n);
@@ -99,4 +91,3 @@ main (int argc, char *argv[])
 
   return (0);
 }
-

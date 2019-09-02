@@ -39,40 +39,41 @@
 #ifndef messages_h
 #define messages_h
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
-#include "arts.h"
 #include "array.h"
+#include "arts.h"
 #include "arts_omp.h"
 
-
 class Verbosity {
-public:
+ public:
   Verbosity() : va(0), vs(1), vf(1), in_main_agenda(false) {}
-  
+
   Verbosity(Index vagenda, Index vscreen, Index vfile)
-  : va(vagenda), vs(vscreen), vf(vfile), in_main_agenda(false) {}
+      : va(vagenda), vs(vscreen), vf(vfile), in_main_agenda(false) {}
 
   /**
    Check if artsmessages contains valid message levels.
    
    \return True if ok. */
-  bool valid() const
-  { return (va>=0 && va<=3) && (vs>=0 && vs<=3) && (vf>=0 || vf<=3); }
-  
+  bool valid() const {
+    return (va >= 0 && va <= 3) && (vs >= 0 && vs <= 3) && (vf >= 0 || vf <= 3);
+  }
+
   Index get_agenda_verbosity() const { return va; }
   Index get_screen_verbosity() const { return vs; }
-  Index get_file_verbosity()   const { return vf; }
-  bool  is_main_agenda()       const { return in_main_agenda; }
-  
+  Index get_file_verbosity() const { return vf; }
+  bool is_main_agenda() const { return in_main_agenda; }
+
   void set_agenda_verbosity(Index v) { va = v; }
   void set_screen_verbosity(Index v) { vs = v; }
-  void set_file_verbosity(Index v)   { vf = v; }
+  void set_file_verbosity(Index v) { vf = v; }
   void set_main_agenda(bool main_agenda) { in_main_agenda = main_agenda; }
 
   friend ostream& operator<<(ostream& os, const Verbosity& v);
-private:
+
+ private:
   //! Verbosity for agenda output. Can be 0-3.
   Index va;
   //! Verbosity for output to screen. Can be 0-3.
@@ -82,118 +83,104 @@ private:
   bool in_main_agenda;
 };
 
-
 class ArtsOut {
-public:
-  ArtsOut (const int p, const Verbosity& v)
-  : verbosity(v), priority(p) { }
-  
-  int get_priority () const { return priority; }
-  const Verbosity& get_verbosity () const { return verbosity; }
-  
+ public:
+  ArtsOut(const int p, const Verbosity& v) : verbosity(v), priority(p) {}
+
+  int get_priority() const { return priority; }
+  const Verbosity& get_verbosity() const { return verbosity; }
+
   //! Does the current message have sufficient priority for output?
   /*!
    \return true if priority is sufficient, otherwise false. */
-  bool sufficient_priority() const
-  {
-    return (sufficient_priority_agenda()
-            && (sufficient_priority_screen() || sufficient_priority_file()));
+  bool sufficient_priority() const {
+    return (sufficient_priority_agenda() &&
+            (sufficient_priority_screen() || sufficient_priority_file()));
   }
 
   //! Does the current message have sufficient priority for agenda?
   /*!
    \return true if priority is sufficient, otherwise false. */
-  bool sufficient_priority_agenda() const
-  {
+  bool sufficient_priority_agenda() const {
     return (in_main_agenda() || verbosity.get_agenda_verbosity() >= priority);
   }
-  
+
   //! Does the current message have sufficient priority for screen?
   /*!
    \return true if priority is sufficient, otherwise false. */
-  bool sufficient_priority_screen() const
-  {
+  bool sufficient_priority_screen() const {
     return verbosity.get_screen_verbosity() >= priority;
   }
-  
+
   //! Does the current message have sufficient priority for file?
   /*!
    \return true if priority is sufficient, otherwise false. */
-  bool sufficient_priority_file() const
-  {
+  bool sufficient_priority_file() const {
     return verbosity.get_file_verbosity() >= priority;
   }
-  
+
   //! Are we in the main agenda?
   /*!
    \return true if in main agenda, otherwise false. */
-  bool in_main_agenda() const
-  {
-    return verbosity.is_main_agenda();
-  }
-  
-private:
+  bool in_main_agenda() const { return verbosity.is_main_agenda(); }
+
+ private:
   const Verbosity& verbosity;
   int priority;
 };
 
 class ArtsOut0 : public ArtsOut {
-public:
-  ArtsOut0 (const Verbosity& v) : ArtsOut(0, v) { }
+ public:
+  ArtsOut0(const Verbosity& v) : ArtsOut(0, v) {}
 };
 
 class ArtsOut1 : public ArtsOut {
-public:
-  ArtsOut1 (const Verbosity& v) : ArtsOut(1, v) { }
+ public:
+  ArtsOut1(const Verbosity& v) : ArtsOut(1, v) {}
 };
 
 class ArtsOut2 : public ArtsOut {
-public:
-  ArtsOut2 (const Verbosity& v) : ArtsOut(2, v) { }
+ public:
+  ArtsOut2(const Verbosity& v) : ArtsOut(2, v) {}
 };
 
 class ArtsOut3 : public ArtsOut {
-public:
-  ArtsOut3 (const Verbosity& v) : ArtsOut(3, v) { }
+ public:
+  ArtsOut3(const Verbosity& v) : ArtsOut(3, v) {}
 };
 
-
 /** Output operator for ArtsOut. */
-template<class T>
-ArtsOut& operator<<(ArtsOut& aos, const T& t)
-{
+template <class T>
+ArtsOut& operator<<(ArtsOut& aos, const T& t) {
   extern ofstream report_file;
-  
+
   // cout << "Printing object of type: " << typeid(t).name() << "\n";
-  
+
   // If we are not in the main agenda, then the condition for agenda
   // output must be fulfilled in addition to the condition for
-  // screen or file. 
-  
-  if (aos.sufficient_priority_agenda())
-  {
+  // screen or file.
+
+  if (aos.sufficient_priority_agenda()) {
     // We are marking the actual output operations as omp
     // critical, to somewhat reduce the mess when several threads
-    // output simultaneously. 
-    
+    // output simultaneously.
+
     // This works well if the output operations themselves are
     // atomic, that is if a string is prepared beforehand and then
     // put to outx with a single << operation.
-    
-    if (aos.sufficient_priority_screen())
-    {
-#pragma omp critical (ArtsOut_screen)
+
+    if (aos.sufficient_priority_screen()) {
+#pragma omp critical(ArtsOut_screen)
       {
         if (aos.get_priority() == 0)
-            cerr << t << flush;
+          cerr << t << flush;
         else
-            cout << t << flush;
+          cout << t << flush;
       }
     }
-    
-    if (aos.sufficient_priority_file())
-    {
-#pragma omp critical (ArtsOut_file)
+
+    if (aos.sufficient_priority_file()) {
+#pragma omp critical(ArtsOut_file)
       {
         //    if (report_file)              // Check if report file is good
         report_file << t << flush;
@@ -213,10 +200,10 @@ ArtsOut& operator<<(ArtsOut& aos, const T& t)
 #define CREATE_OUT2 ArtsOut2 out2(verbosity)
 #define CREATE_OUT3 ArtsOut3 out3(verbosity)
 
-#define CREATE_OUTS \
-ArtsOut0 out0(verbosity); \
-ArtsOut1 out1(verbosity); \
-ArtsOut2 out2(verbosity); \
-ArtsOut3 out3(verbosity)
+#define CREATE_OUTS         \
+  ArtsOut0 out0(verbosity); \
+  ArtsOut1 out1(verbosity); \
+  ArtsOut2 out2(verbosity); \
+  ArtsOut3 out3(verbosity)
 
-#endif // messages_h
+#endif  // messages_h

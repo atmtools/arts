@@ -18,18 +18,17 @@
 
 // #include "wigxjpf/inc/wigxjpf.h"
 #include "wigner_functions.h"
-#include "arts_omp.h"
-#include <stdexcept>
-#include <sstream>
 #include <algorithm>
-
+#include <sstream>
+#include <stdexcept>
+#include "arts_omp.h"
 
 #if DO_FAST_WIGNER
-  #define WIGNER3 fw3jja6
-  #define WIGNER6 fw6jja
+#define WIGNER3 fw3jja6
+#define WIGNER6 fw6jja
 #else
-  #define WIGNER3 wig3jj
-  #define WIGNER6 wig6jj
+#define WIGNER3 wig3jj
+#define WIGNER6 wig6jj
 #endif
 
 /*!
@@ -43,26 +42,30 @@
   
   See for definition: http://dlmf.nist.gov/34.2
 */
-Numeric wigner3j(const Rational j1,const Rational j2,const Rational j3,
-                 const Rational m1,const Rational m2,const Rational m3)
-{
-  const int a = (2*j1).toInt(),
-            b = (2*j2).toInt(), 
-            c = (2*j3).toInt(), 
-            d = (2*m1).toInt(), 
-            e = (2*m2).toInt(), 
-            f = (2*m3).toInt();
+Numeric wigner3j(const Rational j1,
+                 const Rational j2,
+                 const Rational j3,
+                 const Rational m1,
+                 const Rational m2,
+                 const Rational m3) {
+  const int a = (2 * j1).toInt(), b = (2 * j2).toInt(), c = (2 * j3).toInt(),
+            d = (2 * m1).toInt(), e = (2 * m2).toInt(), f = (2 * m3).toInt();
   double g;
-  const int j = std::max({std::abs(a), std::abs(b), std::abs(c),
-                          std::abs(d), std::abs(e), std::abs(f)}) * 3/2 + 1;
-  
+  const int j = std::max({std::abs(a),
+                          std::abs(b),
+                          std::abs(c),
+                          std::abs(d),
+                          std::abs(e),
+                          std::abs(f)}) *
+                    3 / 2 +
+                1;
+
   wig_temp_init(j);
   g = WIGNER3(a, b, c, d, e, f);
   wig_temp_free();
-  
+
   return Numeric(g);
 }
-
 
 /*!
  Run wigxjpf wig6jj for Rational symbol
@@ -75,23 +78,26 @@ Numeric wigner3j(const Rational j1,const Rational j2,const Rational j3,
  
  See for definition: http://dlmf.nist.gov/34.4
 */
-Numeric wigner6j(const Rational j1,const Rational j2,const Rational j3,
-                 const Rational l1,const Rational l2,const Rational l3)
-{
-  const int a = (2*j1).toInt(),
-            b = (2*j2).toInt(), 
-            c = (2*j3).toInt(), 
-            d = (2*l1).toInt(), 
-            e = (2*l2).toInt(), 
-            f = (2*l3).toInt();
+Numeric wigner6j(const Rational j1,
+                 const Rational j2,
+                 const Rational j3,
+                 const Rational l1,
+                 const Rational l2,
+                 const Rational l3) {
+  const int a = (2 * j1).toInt(), b = (2 * j2).toInt(), c = (2 * j3).toInt(),
+            d = (2 * l1).toInt(), e = (2 * l2).toInt(), f = (2 * l3).toInt();
   double g;
-  const int j = std::max({std::abs(a), std::abs(b), std::abs(c),
-                          std::abs(d), std::abs(e), std::abs(f)});
+  const int j = std::max({std::abs(a),
+                          std::abs(b),
+                          std::abs(c),
+                          std::abs(d),
+                          std::abs(e),
+                          std::abs(f)});
 
   wig_temp_init(j);
   g = WIGNER6(a, b, c, d, e, f);
   wig_temp_free();
-  
+
   return Numeric(g);
 }
 
@@ -114,14 +120,11 @@ Numeric wigner6j(const Rational j1,const Rational j2,const Rational j3,
  
  Note: Ignore typos, the above is tested in relmat
 */
-Numeric co2_ecs_wigner_symbol(int Ji, int Jf, int Ji_p, int Jf_p, int L, int li, int lf)
-{
-  return WIGNER3(Ji_p, L,  Ji,
-                 li,   0, -li) * WIGNER3( Jf_p, L, Jf,
-                                         -lf,   0, lf) * WIGNER6(Ji,   Jf,   2,
-                                                                 Jf_p, Ji_p, L) * Numeric(L + 1);
+Numeric co2_ecs_wigner_symbol(
+    int Ji, int Jf, int Ji_p, int Jf_p, int L, int li, int lf) {
+  return WIGNER3(Ji_p, L, Ji, li, 0, -li) * WIGNER3(Jf_p, L, Jf, -lf, 0, lf) *
+         WIGNER6(Ji, Jf, 2, Jf_p, Ji_p, L) * Numeric(L + 1);
 }
-
 
 /*! Returns the wigner symbol used in Makarov etal 2013
  
@@ -156,85 +159,78 @@ Numeric co2_ecs_wigner_symbol(int Ji, int Jf, int Ji_p, int Jf_p, int L, int li,
   C            |  D  C  F  | = (-1)         W(ABCD;1F)                    
   C            |_         _|                           
  */
-Numeric o2_ecs_wigner_symbol(int Nl, int Nk, int Jl, int Jk, int Jl_p, int Jk_p, int L)
-{
-  return WIGNER3(Nl, Nk, L,
-                 0,  0,  0) * WIGNER6(L, Jk, Jl,
-                                      2, Nl, Nk) * WIGNER6(L, Jk_p, Jl_p,
-                                                           2, Nl,   Nk  ) * WIGNER6(L, Jk,   Jl,
-                                                                                    2, Jl_p, Jk_p);
+Numeric o2_ecs_wigner_symbol(
+    int Nl, int Nk, int Jl, int Jk, int Jl_p, int Jk_p, int L) {
+  return WIGNER3(Nl, Nk, L, 0, 0, 0) * WIGNER6(L, Jk, Jl, 2, Nl, Nk) *
+         WIGNER6(L, Jk_p, Jl_p, 2, Nl, Nk) * WIGNER6(L, Jk, Jl, 2, Jl_p, Jk_p);
 }
 
-
-void ECS_wigner_CO2(Matrix& M, 
-                    const ArrayOfRational& Jl, 
-                    const ArrayOfRational& Ju, 
-                    const Rational& ll, 
-                    const Rational& lu, 
-                    ConstVectorView G0, 
-                    ConstVectorView population)
-{
+void ECS_wigner_CO2(Matrix& M,
+                    const ArrayOfRational& Jl,
+                    const ArrayOfRational& Ju,
+                    const Rational& ll,
+                    const Rational& lu,
+                    ConstVectorView G0,
+                    ConstVectorView population) {
   // Size of the problem
   const Index nj = Jl.nelem();
   M.resize(nj, nj);
-  
+
   // wig3jj and wig6jj operates on integers
-  int li = int((2*ll).toIndex());
-  int lf = int((2*lu).toIndex());
-  
+  int li = int((2 * ll).toIndex());
+  int lf = int((2 * lu).toIndex());
+
   // Size of the wigner calculators memory requirements
-  Index size=0;
-  for(Index i = 0; i < nj; i++)
-  {
+  Index size = 0;
+  for (Index i = 0; i < nj; i++) {
     Index tmp;
-    tmp = (2*Ju[i]).toIndex();
-    if(tmp > size) size = tmp;
-    tmp = (2*Jl[i]).toIndex();
-    if(tmp > size) size = tmp;
+    tmp = (2 * Ju[i]).toIndex();
+    if (tmp > size) size = tmp;
+    tmp = (2 * Jl[i]).toIndex();
+    if (tmp > size) size = tmp;
   }
-  
+
   // Main loop over all the lines
-  for(Index j=0; j<nj; j++) // For all lines
+  for (Index j = 0; j < nj; j++)  // For all lines
   {
-    for(Index k=0; k<=j; k++) // For all lines up til now
+    for (Index k = 0; k <= j; k++)  // For all lines up til now
     {
-      if(j == k)
+      if (j == k)
         M(j, k) = 2.0 * G0[j];
-      else
-      {
+      else {
         // Only perform this step for downwards transitions
         const bool jbig = Jl[j] >= Jl[k];
-        const Index big =   jbig ? j : k, small = jbig ? k : j;
-        
+        const Index big = jbig ? j : k, small = jbig ? k : j;
+
         // Conversion of type to fit with wigxjpf
-        const int Ji   = int((2*Ju[big]  ).toIndex()),
-                  Jf   = int((2*Jl[big]  ).toIndex()),
-                  Ji_p = int((2*Ju[small]).toIndex()),
-                  Jf_p = int((2*Jl[small]).toIndex());
-        
+        const int Ji = int((2 * Ju[big]).toIndex()),
+                  Jf = int((2 * Jl[big]).toIndex()),
+                  Ji_p = int((2 * Ju[small]).toIndex()),
+                  Jf_p = int((2 * Jl[small]).toIndex());
+
         // Find potential start and end point of loop by relevance
         const int st = std::max(Ji - Ji_p, Jf - Jf_p),
                   en = std::min(Ji + Ji_p, Jf + Jf_p);
-        
+
         // FIXME:  Adiabatic factor 1 and K1 goes here in relmat code...
-        
+
         Numeric x = 0.0;
-        
+
         // Loop over all relevant L: all the even numbers but not zero
-        for(int L = st?st:4; L <= en; L+=4)
-        { 
+        for (int L = st ? st : 4; L <= en; L += 4) {
           // FIXME:  Compute the basis rate (using coefficients or linearization)
-          
+
           // FIXME:  Adiabatic factor 2 shuold be computed here if coefficients method
           const Numeric AF2 = 1.0;
-          
+
           // This levels term... (n.b., there is 2L + 1, but sinc wigxjpf works on double digits, no need to write 2L)
-          const Numeric y = co2_ecs_wigner_symbol(Ji, Jf, Ji_p, Jf_p, L, li, lf) / AF2;
-          
+          const Numeric y =
+              co2_ecs_wigner_symbol(Ji, Jf, Ji_p, Jf_p, L, li, lf) / AF2;
+
           // Sum to the total
           x += y;
         }
-        
+
         const Numeric rk = population[big] / population[small];
         M(big, small) = x;
         M(small, big) = rk * M(big, small);
@@ -245,17 +241,15 @@ void ECS_wigner_CO2(Matrix& M,
 
 bool is_wigner_ready(int j) {
   extern int wigxjpf_max_prime_decomp;
-  return not (j > wigxjpf_max_prime_decomp);
+  return not(j > wigxjpf_max_prime_decomp);
 }
 
-bool is_Wigner3_ready(const Rational& J)
-{
-  const int test = (J*6).toInt()/2 + 1;  // nb. J can be half-valued
+bool is_Wigner3_ready(const Rational& J) {
+  const int test = (J * 6).toInt() / 2 + 1;  // nb. J can be half-valued
   return is_wigner_ready(test);
 }
 
-bool is_Wigner6_ready(const Rational& J)
-{
-  const int test = (J*4).toInt() + 1;  // nb. J can be half-valued
+bool is_Wigner6_ready(const Rational& J) {
+  const int test = (J * 4).toInt() + 1;  // nb. J can be half-valued
   return is_wigner_ready(test);
 }

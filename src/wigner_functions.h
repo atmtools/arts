@@ -16,35 +16,45 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
  * USA. */
 
-#include "rational.h"
 #include "../3rdparty/wigner/wigxjpf/inc/wigxjpf.h"
+#include "rational.h"
 
 #ifdef FAST_WIGNER_PATH_3J
-  #define DO_FAST_WIGNER 1
-  #include "../3rdparty/wigner/fastwigxj/inc/fastwigxj.h"
+#define DO_FAST_WIGNER 1
+#include "../3rdparty/wigner/fastwigxj/inc/fastwigxj.h"
 #else
-  #define DO_FAST_WIGNER 0
+#define DO_FAST_WIGNER 0
 #endif
 
-Numeric wigner3j(const Rational j1, const Rational j2, const Rational j3,
-                 const Rational m1, const Rational m2, const Rational m3);
+Numeric wigner3j(const Rational j1,
+                 const Rational j2,
+                 const Rational j3,
+                 const Rational m1,
+                 const Rational m2,
+                 const Rational m3);
 
-Numeric wigner6j(const Rational j1,const Rational j2,const Rational j3,
-                 const Rational l1,const Rational l2,const Rational l3);
+Numeric wigner6j(const Rational j1,
+                 const Rational j2,
+                 const Rational j3,
+                 const Rational l1,
+                 const Rational l2,
+                 const Rational l3);
 
 // Numeric wigner9j(const Rational j11,const Rational j12,const Rational j13,
 //                  const Rational j21,const Rational j22,const Rational j23,
 //                  const Rational j31,const Rational j32,const Rational j33);
 
-Numeric co2_ecs_wigner_symbol(int Ji, int Jf, int Ji_p, int Jf_p, int L, int li, int lf);
-Numeric o2_ecs_wigner_symbol(int Nl, int Nk, int Jl, int Jk, int Jl_p, int Jk_p, int L);
+Numeric co2_ecs_wigner_symbol(
+    int Ji, int Jf, int Ji_p, int Jf_p, int L, int li, int lf);
+Numeric o2_ecs_wigner_symbol(
+    int Nl, int Nk, int Jl, int Jk, int Jl_p, int Jk_p, int L);
 
-void ECS_wigner_CO2(Matrix& M, 
-                    const ArrayOfRational& Jl, 
-                    const ArrayOfRational& Ju, 
-                    const Rational& ll, 
-                    const Rational& lu, 
-                    ConstVectorView G0, 
+void ECS_wigner_CO2(Matrix& M,
+                    const ArrayOfRational& Jl,
+                    const ArrayOfRational& Ju,
+                    const Rational& ll,
+                    const Rational& lu,
+                    ConstVectorView G0,
                     ConstVectorView population);
 
 bool is_wigner_ready(int j);

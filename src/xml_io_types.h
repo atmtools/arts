@@ -15,7 +15,6 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-
 ////////////////////////////////////////////////////////////////////////////
 //   File description
 ////////////////////////////////////////////////////////////////////////////
@@ -32,8 +31,8 @@
 #ifndef xml_io_types_h
 #define xml_io_types_h
 
-#include <stdexcept>
 #include <cfloat>
+#include <stdexcept>
 #include "absorption.h"
 #include "agenda_class.h"
 #include "array.h"
@@ -46,24 +45,27 @@
 #include "hitran_xsec.h"
 #include "jacobian.h"
 #include "m_general.h"
-#include "mc_antenna.h"
-#include "mc_interp.h"
 #include "matpackII.h"
 #include "matpackVII.h"
+#include "mc_antenna.h"
+#include "mc_interp.h"
 #include "messages.h"
 #include "optproperties.h"
 #include "ppath.h"
 #include "propagationmatrix.h"
-#include "transmissionmatrix.h"
 #include "telsem.h"
 #include "tessem.h"
+#include "transmissionmatrix.h"
 #include "xml_io_private.h"
 
-#define TMPL_XML_READ_WRITE_STREAM(what) \
-  void xml_read_from_stream(istream&, what&, bifstream *, const Verbosity&); \
-  void xml_write_to_stream(ostream&, const what&, bofstream *, \
-                           const String&, const Verbosity&);
-
+#define TMPL_XML_READ_WRITE_STREAM(what)                  \
+  void xml_read_from_stream(                              \
+      istream &, what &, bifstream *, const Verbosity &); \
+  void xml_write_to_stream(ostream &,                     \
+                           const what &,                  \
+                           bofstream *,                   \
+                           const String &,                \
+                           const Verbosity &);
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded reading/writing routines for XML streams
@@ -118,8 +120,8 @@ TMPL_XML_READ_WRITE_STREAM(Verbosity)
 //=== Array Types ==========================================================
 
 TMPL_XML_READ_WRITE_STREAM(ArrayOfAgenda)
-TMPL_XML_READ_WRITE_STREAM(Array<IsotopologueRecord> )
-TMPL_XML_READ_WRITE_STREAM(Array<SpeciesRecord> )
+TMPL_XML_READ_WRITE_STREAM(Array<IsotopologueRecord>)
+TMPL_XML_READ_WRITE_STREAM(Array<SpeciesRecord>)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfArrayOfArrayOfGridPos)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfGriddedField1)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfGriddedField2)
@@ -180,11 +182,17 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfXsecRecord)
 // Undefine the macro to avoid it being used anywhere else
 #undef TMPL_XML_READ_WRITE_STREAM
 
-void xml_parse_from_stream(istream&, Vector&, bifstream*, ArtsXMLTag&, const Verbosity& verbosity);
+void xml_parse_from_stream(
+    istream &, Vector &, bifstream *, ArtsXMLTag &, const Verbosity &verbosity);
 
-void xml_read_from_stream(istream&, ArrayOfLineRecord&, const Numeric, const Numeric, bifstream*,
-                          const Verbosity&);
+void xml_read_from_stream(istream &,
+                          ArrayOfLineRecord &,
+                          const Numeric,
+                          const Numeric,
+                          bifstream *,
+                          const Verbosity &);
 
-void xml_parse_from_stream(istream&, ArrayOfString&, bifstream*, ArtsXMLTag&, const Verbosity&);
+void xml_parse_from_stream(
+    istream &, ArrayOfString &, bifstream *, ArtsXMLTag &, const Verbosity &);
 
-#endif  /* xml_io_types_h */
+#endif /* xml_io_types_h */

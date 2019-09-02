@@ -25,10 +25,10 @@
   \date   2000-07-31
 */
 
+#include "messages.h"
+#include "array.h"
 #include "arts.h"
 #include "mystring.h"
-#include "array.h"
-#include "messages.h"
 
 // The global message verbosity settings:
 Verbosity verbosity_at_launch;
@@ -44,13 +44,10 @@ String out_basename;
 /** The report file. */
 ofstream report_file;
 
-
-ostream& operator<<(ostream& os, const Verbosity& v)
-{
+ostream& operator<<(ostream& os, const Verbosity& v) {
   os << "Agenda Verbosity: " << v.get_agenda_verbosity() << "\n";
   os << "Screen Verbosity: " << v.get_screen_verbosity() << "\n";
   os << "File Verbosity  : " << v.get_file_verbosity() << "\n";
-  
+
   return os;
 }
-

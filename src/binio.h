@@ -28,19 +28,19 @@
 //
 // Set to 1 to build std::string supporting methods. You need the STL to
 // do this.
-#define BINIO_ENABLE_STRING	1
+#define BINIO_ENABLE_STRING 1
 
 // BINIO_ENABLE_IOSTREAM - Build iostream wrapper classes
 //
 // Set to 1 to build the iostream wrapper classes. You need the standard
 // C++ library to do this.
-#define BINIO_ENABLE_IOSTREAM	1
+#define BINIO_ENABLE_IOSTREAM 1
 
 // BINIO_ISO_STDLIB - Build with ISO C++ standard library compliance
 //
 // Set to 1 to build for the ISO standard C++ library (i.e. namespaces, STL and
 // templatized iostream). Set to 0 to build for the traditional C++ library.
-#define BINIO_ISO_STDLIB	1
+#define BINIO_ISO_STDLIB 1
 
 // BINIO_WITH_MATH - Build with 'math.h' dependency to allow float conversions
 //
@@ -50,35 +50,31 @@
 // system that doesn't support this format natively. For only reading these
 // numbers, however, these routines are not needed. If set to 0, writing
 // IEEE-754 numbers on an incompatible system will be disabled.
-#define BINIO_WITH_MATH		1
+#define BINIO_WITH_MATH 1
 
 /***** Implementation *****/
 
 // Disable annoying multiple inheritance compiler warning on MSVC6
 #ifdef _MSC_VER
-#	pragma warning(disable: 4250)
+#pragma warning(disable : 4250)
 #endif
 
 #if BINIO_ENABLE_STRING
 #include <string>
 #endif
 
-class binio
-{
-public:
-  typedef enum {
-    BigEndian	= 1 << 0,
-    FloatIEEE	= 1 << 1
-  } Flag;
+class binio {
+ public:
+  typedef enum { BigEndian = 1 << 0, FloatIEEE = 1 << 1 } Flag;
 
   typedef enum {
-    NoError	= 0,
-    Fatal	= 1 << 0,
-    Unsupported	= 1 << 1,
-    NotOpen	= 1 << 2,
-    Denied	= 1 << 3,
-    NotFound	= 1 << 4,
-    Eof		= 1 << 5
+    NoError = 0,
+    Fatal = 1 << 0,
+    Unsupported = 1 << 1,
+    NotOpen = 1 << 2,
+    Denied = 1 << 3,
+    NotFound = 1 << 4,
+    Eof = 1 << 5
   } ErrorCode;
 
   typedef enum { Set, Add, End } Offset;
@@ -97,16 +93,16 @@ public:
   virtual void seek(long, Offset = Set) = 0;
   virtual streampos pos() = 0;
 
-protected:
-  typedef long	Int;
+ protected:
+  typedef long Int;
   typedef double Float;
-  typedef unsigned char	Byte;	// has to be unsigned!
+  typedef unsigned char Byte;  // has to be unsigned!
 
-  typedef int		Flags;
+  typedef int Flags;
 
-  Flags			my_flags;
-  static const Flags	system_flags;
-  Error			err;
+  Flags my_flags;
+  static const Flags system_flags;
+  Error err;
 
   // Some math.h emulation functions...
 #if !BINIO_WITH_MATH
@@ -114,13 +110,12 @@ protected:
   Float ldexp(Float x, signed int exp) { return x * pow(2, exp); }
 #endif
 
-private:
+ private:
   static Flags detect_system_flags();
 };
 
-class binistream: virtual public binio
-{
-public:
+class binistream : virtual public binio {
+ public:
   binistream();
   virtual ~binistream();
 
@@ -138,18 +133,17 @@ public:
   bool ateof();
   void ignore(unsigned long amount = 1);
 
-protected:
+ protected:
   virtual Byte getByte() = 0;
   virtual void getRaw(char *c, streamsize n) = 0;
 
-private:
+ private:
   Float ieee_single2float(Byte *data);
   Float ieee_double2float(Byte *data);
 };
 
-class binostream: virtual public binio
-{
-public:
+class binostream : virtual public binio {
+ public:
   binostream();
   virtual ~binostream();
 
@@ -160,18 +154,17 @@ public:
   unsigned long writeString(const std::string &str);
 #endif
 
-protected:
+ protected:
   virtual void putByte(Byte) = 0;
   virtual void putRaw(const char *c, streamsize n) = 0;
 
-private:
+ private:
   void float2ieee_single(Float f, Byte *data);
   void float2ieee_double(Float f, Byte *data);
 };
 
-class binstream: public binistream, public binostream
-{
-public:
+class binstream : public binistream, public binostream {
+ public:
   binstream();
   virtual ~binstream();
 };
