@@ -172,6 +172,7 @@ void Workspace::define_wsv_data() {
       NAME("abs_cont_models"),
       DESCRIPTION(
           "Continuum / full model absorption model description parameter.\n"
+          "\n"
           "See the WSV `abs_cont_names' for a detailed description\n"
           "of the allowed continuum models. There should be one string here\n"
           "for each entry in `abs_cont_names'.See also the online\n"
@@ -181,8 +182,10 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("abs_cont_names"),
       DESCRIPTION(
-          "Continuum / full model absorption tag names. This variable should\n"
-          "contain a list of tag names of continuum and full models, respectively.\n"
+          "Continuum / full model absorption tag names.\n"
+          "\n"
+          "This variable should contain a list of tag names\n"
+          "of continuum and full models, respectively.\n"
           "Associated with this WSV is the WSV\n"
           "`abs_cont_models' which contains the specific model version of\n"
           "each continuum / full model absorption tag and the WSV\n"
@@ -325,6 +328,7 @@ void Workspace::define_wsv_data() {
       NAME("abs_cont_parameters"),
       DESCRIPTION(
           "Continuum model parameters. See the WSV *abs_cont_names*\n"
+          "\n"
           "for a detailed description of the allowed continuum models. There\n"
           "should be one parameter vector here for each entry in\n"
           "*abs_cont_names*. See also the online documentation in\n"
@@ -355,9 +359,11 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("abs_lineshape"),
       DESCRIPTION(
-          "Lineshape specification: function, norm, cutoff. There is one entry for\n"
-          "each abs_tag, not for each species. This means if you have several\n"
-          "abs_tags for different isotopologues or transitions of a species, you\n"
+          "Lineshape specification: function, norm, cutoff.\n"
+          "\n"
+          "There is one entry for each abs_tag, not for each species.\n"
+          "This means if you have several abs_tags for different\n"
+          "isotopologues or transitions of a species, you\n"
           "may use different lineshapes.  See *abs_lineshapeDefine* for more details.\n"),
       GROUP("ArrayOfLineshapeSpec")));
 
@@ -365,6 +371,7 @@ void Workspace::define_wsv_data() {
       NAME("abs_lines_per_species"),
       DESCRIPTION(
           "A list of spectral line data for each tag.\n"
+          "\n"
           "Dimensions: (tag_groups.nelem()) (# of lines for this tag)\n"),
       GROUP("ArrayOfArrayOfLineRecord")));
 
@@ -426,9 +433,11 @@ void Workspace::define_wsv_data() {
       NAME("abs_nls_interp_order"),
       DESCRIPTION(
           "The interpolation order to use when interpolating absorption between\n"
-          "the H2O values given by *abs_nls_pert*. This is used by methods\n"
-          "extracting absorption coefficients from the lookup table, and by\n"
-          "methods setting up parameters for lookup table generation. Has a\n"
+          "the H2O values given by *abs_nls_pert*.\n"
+          "\n"
+          "This is used by methods extracting absorption coefficients\n"
+          "from the lookup table, and by methods setting up\n"
+          "parameters for lookup table generation. Has a\n"
           "default value, which is set in general.arts.\n"
           "\n"
           "Note that the number of points used in the interpolation scheme is\n"
@@ -439,8 +448,10 @@ void Workspace::define_wsv_data() {
       NAME("abs_p_interp_order"),
       DESCRIPTION(
           "The interpolation order to use when interpolating absorption\n"
-          "between pressure levels. This is used by methods extracting\n"
-          "absorption coefficients from the lookup table, and by methods\n"
+          "between pressure levels.\n"
+          "\n"
+          "This is used by methods extracting absorption coefficients\n"
+          "from the lookup table, and by methods\n"
           "setting up parameters for lookup table generation. Has a\n"
           "default value, which is set in general.arts.\n"
           "\n"
@@ -464,7 +475,9 @@ void Workspace::define_wsv_data() {
       NAME("abs_t_interp_order"),
       DESCRIPTION(
           "The interpolation order to use when interpolating absorption between\n"
-          "the temperature values given by *abs_t_pert*. This is used by methods\n"
+          "the temperature values given by *abs_t_pert*.\n"
+          "\n"
+          "This is used by methods\n"
           "extracting absorption coefficients from the lookup table, and by\n"
           "methods setting up parameters for lookup table generation. Has a\n"
           "default value, which is set in general.arts.\n"
@@ -486,10 +499,10 @@ void Workspace::define_wsv_data() {
       NAME("abs_p"),
       DESCRIPTION(
           "List of pressures to be used for the calculation of absorption\n"
-          "coefficients. \n"
+          "coefficients.\n"
           "\n"
           "This can be copied from the global *p_grid*, but could also be\n"
-          "different. \n"
+          "different.\n"
           "\n"
           "Any absorption method should check that the length of this vector\n"
           "is the same as that of *abs_t*\n"
@@ -606,6 +619,7 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("abs_vmrs"),
       DESCRIPTION("The VMRs (unit: absolute number) on the abs_p grid.\n"
+                  "\n"
                   "Dimensions: [tag_groups.nelem(), abs_p.nelem()]\n"),
       GROUP("Matrix")));
 
@@ -1274,8 +1288,7 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("dsrc_coef_dx"),
       DESCRIPTION(
-          "The partial derivatives of the matrix of total scalar NLTE source\n"
-          "term.\n"
+          "The partial derivatives of the matrix of total scalar NLTE source term.\n"
           "\n"
           "Contains the derivative of the NLTE source term summed over all\n"
           "species as a function of *f_grid* and *abs_p*, i.e., for a single\n"
@@ -1370,9 +1383,12 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("dpropmat_clearsky_dx"),
       DESCRIPTION(
+          // FIXMEDOC
+          "Partial derivative of absorption coefficients.\n"
+          "\n"
           "This contains the partial derivative of absorption coefficients for\n"
           "one point in the atmosphere (one set of pressure, temperature, zn"
-          "magnetic field, and VMR values) with respect to one of of the input\n"
+          "magnetic field, and VMR values) with respect to one of the input\n"
           "parameters.\n"
           "\n"
           "Dimension: [ n_quantities ] [naa, nza, nf, f(stokes_dim)]\n"
@@ -1397,6 +1413,7 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("dnlte_dx_source"),
       DESCRIPTION(
+          // FIXMEDOC
           "NLTE partial derivatives output is two parts:  S*dB/dx+dS/dx*B.\n"
           "This should contain the latter term for one point in the atmosphere\n"
           "(one set of pressure, temperature, zn magnetic field, and VMR values)\n"
@@ -1410,6 +1427,7 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("nlte_dsource_dx"),
       DESCRIPTION(
+          // FIXMEDOC
           "NLTE partial derivatives output is two parts:  S*dB/dx+dS/dx*B.\n"
           "This should contain the first term for one point in the atmosphere\n"
           "(one set of pressure, temperature, zn magnetic field, and VMR values)\n"
@@ -1567,7 +1585,7 @@ void Workspace::define_wsv_data() {
                             "\n"
                             "Output of the method *doit_za_grid_optCalc*.\n"
                             "\n"
-                            "Usage:   Output of *doit_za_grid_optCalc*   \n"
+                            "Usage:   Output of *doit_za_grid_optCalc*\n"
                             "\n"
                             "Unit:    degrees \n"),
                 GROUP("Vector")));
@@ -1575,8 +1593,10 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("doit_za_grid_size"),
       DESCRIPTION(
-          "Number of equidistant grid points of the zenith angle grid, \n"
-          "defined from 0 to 180 deg, for the scattering integral calculation. \n"
+          "Number of equidistant grid points of the zenith angle grid.\n"
+          "\n"
+          "Grid points are defined from 0 to 180 deg, for the scattering\n"
+          "integral calculation.\n"
           "\n"
           "Usage: Output of *DOAngularGridsSet*.\n"),
       GROUP("Index")));
@@ -1743,7 +1763,7 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("f_index"),
       DESCRIPTION(
-          "Frequency index. \n"
+          "Frequency index.\n"
           "\n"
           "Not all methods handle all monochromatic frequencies (of *f_grid*) in\n"
           "parellel and this variable is used for communication between methods,\n"
@@ -1797,9 +1817,12 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("heating_rates"),
       DESCRIPTION(
+          "The heating rates of atmospheric layers.\n"
+          "\n"
           "The heating rate is defined as the rate of temperature change of an \n"
           "atmospheric layer due the heating by absorption of radiation or if it\n"
           "is negative the loss of energy by emission of radiation.\n"
+          "\n"
           "Units: K s^-1\n"
           "\n"
           "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
@@ -1878,24 +1901,27 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("irradiance_field"),
       DESCRIPTION(
-          "Irradiance also known as flux density. Radiant flux received by a surface per unit area\n"
-          "seperately for each hemisphere. \n"
+          "Irradiance also known as flux density.\n"
+          "\n"
+          "Radiant flux received by a surface per unit area\n"
+          "seperately for each hemisphere.\n"
           "The last dimension denotes the hemispheres. The first component is the downward irradiance\n"
           "and the second component is the upward irradiance"
           "Units: W m^-2\n"
           "\n"
-          "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
-          "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
-          "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
+          "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1,\n"
+          "       (cloudbox_limits[3] - cloudbox_limits[2]) +1,\n"
+          "       (cloudbox_limits[5] - cloudbox_limits[4]) +1,\n"
           "        2 ]\n"),
       GROUP("Tensor4")));
 
-  wsv_data.push_back(WsvRecord(
-      NAME("isotopologue_ratios"),
-      DESCRIPTION(
-          "Isotopologue ratios. This variable can be set to default values by\n"
-          "calling *isotopologue_ratiosInitFromBuiltin*\n"),
-      GROUP("SpeciesAuxData")));
+  wsv_data.push_back(
+      WsvRecord(NAME("isotopologue_ratios"),
+                DESCRIPTION("Contains the isotopologue ratios.\n"
+                            "\n"
+                            "This variable can be set to default values by\n"
+                            "calling *isotopologue_ratiosInitFromBuiltin*\n"),
+                GROUP("SpeciesAuxData")));
 
   wsv_data.push_back(WsvRecord(
       NAME("iy"),
@@ -2038,6 +2064,7 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("iy_surface_agenda_array"),
       DESCRIPTION(
+          // FIXMEDOC
           "Upwelling radiation from the surface, divided into surface types.\n"),
       GROUP("ArrayOfAgenda")));
 
@@ -2192,22 +2219,24 @@ void Workspace::define_wsv_data() {
 
   wsv_data.push_back(
       WsvRecord(NAME("line_irradiance"),
-                DESCRIPTION("Irradiance as seen by a single absorption line\n"
+                DESCRIPTION("Irradiance as seen by a single absorption line.\n"
                             "\n"
                             "Used internally for, e.g., NLTE effects\n"),
                 GROUP("Matrix")));
 
-  wsv_data.push_back(
-      WsvRecord(NAME("line_transmission"),
-                DESCRIPTION("Transmission as seen by a single absorption line\n"
-                            "\n"
-                            "Used internally for, e.g., NLTE effects\n"),
-                GROUP("Tensor3")));
+  wsv_data.push_back(WsvRecord(
+      NAME("line_transmission"),
+      DESCRIPTION("Transmission as seen by a single absorption line.\n"
+                  "\n"
+                  "Used internally for, e.g., NLTE effects\n"),
+      GROUP("Tensor3")));
 
   wsv_data.push_back(WsvRecord(
       NAME("lm_p_lim"),
       DESCRIPTION(
-          "If possitive, this is the lower pressure limit at which line\n"
+          "The pressure limit at which line mixing takes place.\n"
+          "\n"
+          "If positive, this is the lower pressure limit at which line\n"
           "mixing takes place.\n"
           "\n"
           "If negative, the abs of this is the extrapolation factor of any\n"
@@ -2466,7 +2495,7 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("mc_iteration_count"),
       DESCRIPTION(
-          "Counts the number of iterations (or photons) used in the MC\n "
+          "Counts the number of iterations (or photons) used in the MC\n"
           "scattering algorithm.\n"
           "\n"
           "Usage: Set by MCGeneral and other MC methods.\n"),
@@ -2505,14 +2534,16 @@ void Workspace::define_wsv_data() {
                   "Usage: Set by the user.\n"),
       GROUP("Index")));
 
-  wsv_data.push_back(WsvRecord(
-      NAME("mc_points"),
-      DESCRIPTION("Source to emission, position.\n"
-                  "\n"
-                  "Counts the number of MC endpoints in each grid cell.\n"
-                  "\n"
-                  "Usage: Set by MCGeneral and other MC methods.\n"),
-      GROUP("Tensor3")));
+  wsv_data.push_back(
+      WsvRecord(NAME("mc_points"),
+                DESCRIPTION(
+                    //FIXMEDOC
+                    "Source to emission, position.\n"
+                    "\n"
+                    "Counts the number of MC endpoints in each grid cell.\n"
+                    "\n"
+                    "Usage: Set by MCGeneral and other MC methods.\n"),
+                GROUP("Tensor3")));
 
   wsv_data.push_back(WsvRecord(
       NAME("mc_scat_order"),
@@ -2701,6 +2732,7 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("nlte_level_identifiers"),
       DESCRIPTION("An array of non-lte quantum identifiers for levels.\n"
+                  "\n"
                   "Used to match *abs_lines_per_species* to NLTE\n"
                   "temperatures/ratios.\n"),
       GROUP("ArrayOfQuantumIdentifier")));
@@ -2708,14 +2740,17 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("collision_line_identifiers"),
       DESCRIPTION(
+          //FIXMEDOC
           "An array of quantum identifiers for finding collisional rates\n"
           "in *collision_coefficients*\n"),
       GROUP("ArrayOfQuantumIdentifier")));
 
-  wsv_data.push_back(WsvRecord(
-      NAME("collision_coefficients"),
-      DESCRIPTION("An array of coefficients for effective collisions\n"),
-      GROUP("ArrayOfArrayOfGriddedField1")));
+  wsv_data.push_back(
+      WsvRecord(NAME("collision_coefficients"),
+                DESCRIPTION(
+                    //FIXMEDOC
+                    "An array of coefficients for effective collisions\n"),
+                GROUP("ArrayOfArrayOfGriddedField1")));
 
   wsv_data.push_back(
       WsvRecord(NAME("nelem"),
@@ -2805,13 +2840,13 @@ void Workspace::define_wsv_data() {
       GROUP("Vector")));
   wsv_data.push_back(
       WsvRecord(NAME("oem_errors"),
-                DESCRIPTION("Errors encountered during OEM execution \n"),
+                DESCRIPTION("Errors encountered during OEM execution.\n"),
                 GROUP("ArrayOfString")));
 
   wsv_data.push_back(WsvRecord(
       NAME("output_file_format"),
       DESCRIPTION(
-          "Output file format. \n"
+          "Output file format.\n"
           "\n"
           "This variable sets the format for output files. It could be set to\n"
           "\"ascii\" for plain xml files, \"zascii\" for zipped xml files, or\n"
@@ -2875,12 +2910,13 @@ void Workspace::define_wsv_data() {
           "Dimensions: [number of scattering elements, number of mass categories]\n"),
       GROUP("Matrix")));
 
-  wsv_data.push_back(WsvRecord(
-      NAME("partition_functions"),
-      DESCRIPTION(
-          "Partition functions. This variable can be set to default values by\n"
-          "calling *partition_functionsInitFromBuiltin*\n"),
-      GROUP("SpeciesAuxData")));
+  wsv_data.push_back(
+      WsvRecord(NAME("partition_functions"),
+                DESCRIPTION("Partition functions.\n"
+                            "\n"
+                            "This variable can be set to default values by\n"
+                            "calling *partition_functionsInitFromBuiltin*\n"),
+                GROUP("SpeciesAuxData")));
 
   wsv_data.push_back(WsvRecord(
       NAME("pha_mat"),
@@ -3154,7 +3190,9 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("ppath_field"),
       DESCRIPTION(
-          "An array meant to build up the necessary geometries for radiative field calculations\n"
+          "An array meant to build up the necessary geometries for radiative\n"
+          "field calculations.\n"
+          "\n"
           "Can be ordered or not\n"
           "\n"
           "Size: user-defined\n"),
@@ -3219,7 +3257,7 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_f"),
       DESCRIPTION(
-          "Doppler adjusted frequenices along the propagation path.\n"
+          "Doppler adjusted frequencies along the propagation path.\n"
           "\n"
           "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
           "\n"
@@ -3374,7 +3412,7 @@ void Workspace::define_wsv_data() {
       DESCRIPTION(
           "This contains the absorption coefficients for one point in the\n"
           "atmosphere (one set of pressure, temperature, magnetic field, and\n"
-          "VMR values)\n"
+          "VMR values).\n"
           "\n"
           "Dimensions: [ abs_species ] [naa, nza, nf, f(stokes_dim)]\n"
           "\n"
@@ -3491,6 +3529,7 @@ void Workspace::define_wsv_data() {
       DESCRIPTION(
           "Radiant flux per unit solid angle per unit projected area\n"
           "seperately for each hemisphere. \n"
+          "\n"
           "The last dimension denotes the hemispheres. The first component is the downward radiance\n"
           "and the second component is the upward radiance"
           "Units: W / (m^2 sr)\n"
@@ -3591,6 +3630,7 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(
       WsvRecord(NAME("relmat_per_band"),
                 DESCRIPTION("Relaxation matrix per band per pressure level.\n"
+                            "\n"
                             "Dimensions: [pressures][band][n_linex, nlines]\n"
                             "Units: Hz/Pa in HWHM\n"),
                 GROUP("ArrayOfArrayOfMatrix")));
@@ -3621,7 +3661,8 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("retrieval_eo"),
       DESCRIPTION(
-          "The estimated error in the retrieval due to uncertainty in the observations\n"
+          "The estimated error in the retrieval due to uncertainty in the observations.\n"
+          "\n"
           "The vector contains the square roots  of the diagonal elements of  the\n"
           "covariance matrix of the error due to measurement noise, *S_m* in Rodgers'\n"
           " book.\n"),
@@ -3630,10 +3671,12 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("retrieval_ss"),
       DESCRIPTION(
-          "The estimated error in the retrieval due to limited resolution of the \n"
-          " observation system. The vector contains the square roots of the diagonal\n"
-          " elements of the covariance matrix of the smoothing error, *S_s* in Rodgers'\n"
-          " book.\n"),
+          "The estimated error in the retrieval due to limited resolution of the\n"
+          "observation system.\n"
+          "\n"
+          "The vector contains the square roots of the diagonal\n"
+          "elements of the covariance matrix of the smoothing error, *S_s* in Rodgers'\n"
+          "book.\n"),
       GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
@@ -4643,6 +4686,8 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("spectral_irradiance_field"),
       DESCRIPTION(
+          "Spectral irradiance field.\n"
+          "\n"
           "Spectral irradiance is the radiative power per unit area\n"
           "and unit frequency. The last dimension denotes the hemispheres.\n"
           "The first component denotes the downward direction and the second\n"
@@ -4659,7 +4704,9 @@ void Workspace::define_wsv_data() {
 
   wsv_data.push_back(WsvRecord(
       NAME("specific_heat_capacity"),
-      DESCRIPTION("Specific heat capacity. It is the heat capacity per unit \n"
+      DESCRIPTION("Specific heat capacity.\n"
+                  "\n"
+                  "It is the heat capacity per unit \n"
                   "mass of a material.\n"
                   "Units: K J^-1 kg^-1\n"
                   "\n"
@@ -4831,6 +4878,7 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("surface_props_names"),
       DESCRIPTION(
+          //FIXMEDOC First sentence unclear.
           "Name on surface properties found *surface_props_data*.\n"
           "\n"
           "Each string names a property in *surface_props_data*. The user is free\n"
@@ -4994,7 +5042,9 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("telsem_atlases"),
       DESCRIPTION(
-          "TELSEM 2 emissivity atlases. Array should be filled with 12\n"
+          "TELSEM 2 emissivity atlases.\n"
+          "\n"
+          "Array should be filled with 12\n"
           "atlases, one for each month. Index 0 is January, index 11 December.\n"
           ""),
       GROUP("ArrayOfTelsemAtlas")));
@@ -5002,23 +5052,30 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("tessem_neth"),
       DESCRIPTION(
+          //FIXMEDOC Add more documentation?
           "TESSEM2 neural network parameters for horizontal polarization.\n"),
       GROUP("TessemNN")));
 
   wsv_data.push_back(WsvRecord(
       NAME("tessem_netv"),
       DESCRIPTION(
+          //FIXMEDOC Add more documentation?
           "TESSEM2 neural network parameters for vertical polarization.\n"),
       GROUP("TessemNN")));
 
-  wsv_data.push_back(
-      WsvRecord(NAME("test_agenda"),
-                DESCRIPTION("A dummy agenda for testing purposes.\n"),
-                GROUP("Agenda")));
+  wsv_data.push_back(WsvRecord(NAME("test_agenda"),
+                               DESCRIPTION(
+                                   "A dummy agenda for testing purposes.\n"
+                                   "\n"
+                                   "Only used for testing by developers.\n"),
+                               GROUP("Agenda")));
 
   wsv_data.push_back(
       WsvRecord(NAME("test_agenda_array"),
-                DESCRIPTION("Array of agenda for TestArrayOfAgenda case.\n"),
+                DESCRIPTION(
+                    "Array of agenda for TestArrayOfAgenda case.\n"
+                    "\n"
+                    "Only used for testing by developers.\n"),
                 GROUP("ArrayOfAgenda")));
 
   wsv_data.push_back(WsvRecord(
@@ -5252,8 +5309,8 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("wigner_initialized"),
       DESCRIPTION(
-          "Indicates if the wigner tables are initialized\n"
-          "If they are not, computations will be aborted\n"
+          "Indicates if the wigner tables are initialized.\n"
+          "If they are not, computations will be aborted.\n"
           "\n"
           "Will hold the value of provided maximum factorial value\n"
           "\n"
