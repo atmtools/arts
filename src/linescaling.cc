@@ -19,37 +19,6 @@
 #include "linescaling.h"
 #include "interpolation_poly.h"
 
-/*!
- *  Calculates the line strength scaling parameters for cross section calculations.
- * 
- *  The only atmospheric input is the temperature.  The line knows its energy and
- *  its reference temperature.  If a custom PF tag was applied, take that route,
- *  otherwise the partition function defaults to inbuilt partition function data.
- *  If atm_tv* are non-negative, then the non-LTE population levels are calculated.
- *  (This only works for rotational LTE at this point in time.)  The non-LTE implemnation
- *  has heritage from the FUTBOLIN implementation.
- *  
- * 
- *  \param  partition_ratio      Out:    The partition ratio to atmospheric temperature (LTE)
- *  \param  boltzmann_ratio      Out:    The boltzmann ratio to atmospheric temperature (LTE)
- *  \param  abs_nlte_ratio       Out:    The relative extra absorption due to NLTE effects
- *  \param  src_nlte_ratio       Out:    The relative extra source due to NLTE effects
- *  \param  partition_type       In:     Switch for partition type of line
- *  \param  partition_data       In:     Switch for partition data of line
- *  \param  atm_t                In:     The path point atmospheric temperature
- *  \param  line_t               In:     The line reference temperature
- *  \param  line_f               In:     The line central frequency
- *  \param  line_elow            In:     The line lower energy level
- *  \param  do_nlte              In:     Bool for "We need to to NLTE calculations"
- *  \param  line_evlow           In:     The line lower vibrational energy level
- *  \param  line_evupp           In:     The line upper vibrational energy level
- *  \param  line_evlow_index     In:     The line lower vibrational energy level index
- *  \param  line_evupp_index     In:     The line upper vibrational energy level index
- *  \param  atm_t_nlte           In:     Vector of NLTE temperatures.  The line knows which ones belong to it.
- * 
- *  \author Richard Larsson
- *  \date   2015-05-28
- */
 void GetLineScalingData(Numeric& q_t,
                         Numeric& q_ref,
                         Numeric& partition_ratio,
@@ -126,6 +95,7 @@ void GetLineScalingData(Numeric& q_t,
     src_nlte_ratio = r_upp;
   }
 }
+
 void GetLineScalingData_dT(Numeric& dq_t_dT,
                            Numeric& dK2_dT,
                            Numeric& dpartition_ratio_dT,
@@ -226,6 +196,7 @@ void GetLineScalingData_dT(Numeric& dq_t_dT,
         BOLTZMAN_CONST / atm_t / atm_t;
   }
 }
+
 void GetLineScalingData_dF0(Numeric& dK2_dF0,
                             Numeric& dabs_nlte_ratio_dF0,
                             const Numeric& atm_t,
