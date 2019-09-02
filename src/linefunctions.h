@@ -17,14 +17,14 @@
  * USA. */
 
 /*!
- * \file   lineshapesdata.h
- * \brief  Stuff related to lineshape functions.
+ * @file   linefunctions.h
+ * @author Richard Larsson
+ * @date   2017-05-16
+ * 
+ * @brief  Stuff related to lineshape functions.
  * 
  * This file should contain complete handling of individual lines.
  * The reason is that the old methods are cumbersome to adapt and need redesigning
- * 
- * \author Richard Larsson
- * \date   2017-05-16
  */
 
 #ifndef linefunctions_h
@@ -33,18 +33,6 @@
 #include "complex.h"
 #include "jacobian.h"
 #include "linerecord.h"
-
-/*
- * Class to solve the problem
- * 
- *      cross-section of a line equals line strength times line shape times rescaling and normalizations
- * 
- * which means
- *      
- *      dsigma = dS x F + S x dF
- * 
- * TODO: Find work-around for incomplete line-shapes like "Voigt Kuntz"
- */
 
 namespace Linefunctions {
 constexpr Index ExpectedDataSize() { return 2; }
