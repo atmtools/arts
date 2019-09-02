@@ -56,6 +56,8 @@ void define_agenda_data() {
   agenda_data.push_back(AgRecord(
       NAME("propmat_clearsky_agenda"),
       DESCRIPTION(
+          "Calculate the absorption coefficient matrix.\n"
+          "\n"
           "This agenda calculates the absorption coefficient matrix for all\n"
           "absorption species as a function of the given atmospheric state for\n"
           "one point in the atmosphere. The result is returned in\n"
