@@ -299,11 +299,87 @@ should add Doxygen headers to the following:
 \end{enumerate}
 
 The documentation headers are comment blocks that look like the
-examples below. They should be put above the \emph{definition} of a
-function, i.e., in the \shortcode{.cc} file.  Some functions are defined in
-the \shortcode{.h} file (e.g., inline member functions). In that case the
-comment can be put in the \shortcode{.h} file.
+examples below.
 
+Doxygen supports several different comment block styles. Over the years,
+probably all of them were used somewhere in ARTS. New code should follow the
+Doxygen JavaDoc style. If you edit existing documentation, it is recommended
+to convert it to the current style.
+
+\subsubsection{File comment}
+
+Each header and source code file should contain a doxygen comment stating the
+original author, creation date and a short summary of its contents.
+
+\begin{code}
+/**
+ * @file   dummy.cc
+ * @author John Doe <john.doe (at) example.com>
+ * @date   2011-03-02
+ *
+ * @brief  A dummy file.
+ *
+ * This file has no purpose at all,
+ * it just servers as an example...
+ */
+\end{code}
+
+\subsubsection{Function comment}
+
+Each function should be preceeded with a doxygen comment.
+It starts with a brief description, ending with a dot. Then follows a more
+detailed description of the function's purpose and parameters.
+
+The doxygen comment block should be put above the \emph{declaration} of the
+function, i.e., in the \shortcode{.h} file.  If a function is only declared in
+a \shortcode{.cc} file, the comment should be put there instead.
+
+If arguments are modified by the function you should add
+`[out]' after the \shortcode{@param} command, just like for the
+parameter \shortcode{a} in the example below. If a parameter is both input
+and output, it should say `[in,out]'. Parameters that are not modified inside
+the function, e.g. passed by value or const reference, should carry an `[in]'.
+The documentation for each parameter should start with a capital letter and
+end with a period, like in the example below.
+
+Author and date tags are not inserted by default, since they would be
+overkill if you have many small functions. However, you should include
+them for important functions.
+
+\begin{code}
+/** A dummy function.
+ *
+ * This function has no purpose at all,
+ * it just serves as an example...
+ *
+ * @param[out]     a This parameter is initialized by the function.
+ * @param[in,out]  b This parameter is modified by the function.
+ * @param[in]      c This parameter is not changed by the function.
+ *
+ * @return   Dummy value computed from a and b.
+ */
+int dummy(int& a, int& b, int c);
+\end{code}
+
+\subsubsection{Classes and structs}
+
+Classes und structs must be preceeded by a doxygen comment describing their
+intent and purpose. A short description should be provided for each member
+variable. Member function are documented as described in the previous section.
+
+\begin{code}
+/** Brief description of Foobar.
+ *
+ * Long description of Foobar.
+ */
+class FooBar {
+ private:
+  /** Number of elements. */
+  Index nelem;
+}
+\end{code}
+
+\subsubsection{Doxymacs for Emacs}
 There is an Emacs package (Doxymacs) that makes the insertion of
 documentation headers particularly easy. You can find documentation of
 this on the Doxymacs webpage: \url{http://doxymacs.sourceforge.net/}.
@@ -311,20 +387,20 @@ To use it for ARTS (provided you have it), put the following in your
 Emacs initialization file:
 
 \begin{code}
-(require 'doxymacs)
+    (require 'doxymacs)
 
-(setq doxymacs-doxygen-style "Qt")
+    (setq doxymacs-doxygen-style "JavaDoc")
 
-(defun my-doxymacs-font-lock-hook ()
-  (if (or (eq major-mode 'c-mode) (eq major-mode 'c++-mode))
-      (progn
-        (doxymacs-font-lock)
-        (doxymacs-mode))))
+    (defun my-doxymacs-font-lock-hook ()
+    (if (or (eq major-mode 'c-mode) (eq major-mode 'c++-mode))
+    (progn
+    (doxymacs-font-lock)
+    (doxymacs-mode))))
 
-(add-hook 'font-lock-mode-hook 'my-doxymacs-font-lock-hook)
+    (add-hook 'font-lock-mode-hook 'my-doxymacs-font-lock-hook)
 
-(setq doxymacs-doxygen-root "../doc/doxygen/html/")
-(setq doxymacs-doxygen-tags "../doc/doxygen/arts.tag")
+    (setq doxymacs-doxygen-root "../doc/doxygen/html/")
+    (setq doxymacs-doxygen-tags "../doc/doxygen/arts.tag")
 \end{code}
 
 The only really important lines are the first two, where the second
@@ -335,86 +411,26 @@ features (see Doxymacs documentation if you want to find out what this
 is).  The package allows you to automatically insert headers. The
 standard key-bindings are:
 \begin{quote}
-\begin{tabularx}{.8\hsize}{@{}lX}
-\texttt{C-c d ?} & look up documentation for the symbol under the point.\\
-\texttt{C-c d r} & rescan your Doxygen tags file.\\
-\texttt{C-c d f} & insert a Doxygen comment for the next function.\\
-\texttt{C-c d i} & insert a Doxygen comment for the current file.\\
-\texttt{C-c d ;} & insert a Doxygen comment for a member variable on the current line (like M-;).\\
-\texttt{C-c d m} & insert a blank multi-line Doxygen comment.\\
-\texttt{C-c d s} & insert a blank single-line Doxygen comment.\\
-\texttt{C-c d @} & insert grouping comments around the current region.\\
-\end{tabularx}
+    \begin{tabularx}{.8\hsize}{@{}lX}
+        \texttt{C-c d ?} & look up documentation for the symbol under the point.\\
+        \texttt{C-c d r} & rescan your Doxygen tags file.\\
+        \texttt{C-c d f} & insert a Doxygen comment for the next function.\\
+        \texttt{C-c d i} & insert a Doxygen comment for the current file.\\
+        \texttt{C-c d ;} & insert a Doxygen comment for a member variable on the current line (like M-;).\\
+        \texttt{C-c d m} & insert a blank multi-line Doxygen comment.\\
+        \texttt{C-c d s} & insert a blank single-line Doxygen comment.\\
+        \texttt{C-c d @} & insert grouping comments around the current region.\\
+    \end{tabularx}
 \end{quote}
-You can call the macros also by name, e.g., \shortcode{doxymacs-insert-file-comment}.
 
-\subsubsection{File comment}
+You can call macros to insert certain types of doxygen comment by name:
 
-Generated by \shortcode{doxymacs-insert-file-comment}.
-
-\begin{code}
-/*!
-\file   dummy.cc
-\author John Doe <john.doe (at) example.com>
-\date   2011-03-02
-
-\brief  A dummy file.
-
- This file has no purpose at all,
- it just servers as an example... 
-*/
-\end{code}
-
-\subsubsection{Function comment}
-
-Generated by \shortcode{doxymacs-insert-function-comment}. If
-arguments are modified by the function you should add `[out]' after
-the \shortcode{\char`\\ param} command, just like for the parameter
-\shortcode{a} in the example below. If a parameter is both input and
-output, you should say `[in,out]'. Parameters that are passed by
-value or not modified inside the function should carry an `[in]'. The
-documentation for each parameter should start with a capital letter and
-end with a period, like in the example below.
-
-Author and date tags are not inserted by default, since they would be
-overkill if you have many small functions. However, you should include
-them for important functions. 
-
-\begin{code}
-  //! A dummy function.
-  /*! 
-  This function has no purpose at all,
-  it just serves as an example... 
-
-  \param[out]     a This parameter is initialized by the
-  function.
-  \param[in,out]  b This parameter is modified by the function.
-  \param[in]      c This parameter used but not changed by the function.
-
-  \return   Dummy value computed from a and b.         
-  */
-  int dummy(int& a, int& b, int c);
-\end{code}
-
-\subsubsection{Generic multi-line comment}
-
-Generated by \shortcode{doxymacs-insert-blank-multiline-comment}.
-
-\begin{code}
-  //! A dummy comment.
-  /*! 
-  Some more elaborate description about this variable, 
-  class, or whatever. 
-  */
-\end{code}
-
-\subsubsection{Generic single-line comment}
-
-Generated by \shortcode{doxymacs-insert-blank-singleline-comment}.
-
-\begin{code}
-  //! Short comment here.
-\end{code}
+\begin{itemize}
+\item \shortcode{doxymacs-insert-file-comment}
+\item \shortcode{doxymacs-insert-function-comment}
+\item \shortcode{doxymacs-insert-blank-multiline-comment}
+\item \shortcode{doxymacs-insert-blank-singleline-comment}
+\end{itemize}
 
 
 \section{Extending ARTS}
