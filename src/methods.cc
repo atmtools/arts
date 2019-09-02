@@ -11311,66 +11311,6 @@ void define_md_data_raw() {
                "on the screen.")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("OEM_MPI"),
-      DESCRIPTION(
-          "Distributed version of the OEM."
-          "\n"
-          " Manipulates sensor_los, sensor_pos, sensor_time workspace variables. "
-          " Otherwise it is similar to the standard OEM WM. \n"),
-      AUTHORS("Patrick Eriksson, Simon Pfreundschuh"),
-      OUT("x",
-          "yf",
-          "jacobian",
-          "dxdy",
-          "oem_diagnostics",
-          "lm_ga_history",
-          "sensor_los",
-          "sensor_pos",
-          "sensor_time",
-          "covmat_sx",
-          "covmat_se"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("sensor_los",
-         "sensor_pos",
-         "sensor_time",
-         "covmat_sx",
-         "covmat_se",
-         "xa",
-         "y",
-         "jacobian_do",
-         "jacobian_quantities",
-         "inversion_iterate_agenda"),
-      GIN("method",
-          "max_start_cost",
-          "x_norm",
-          "max_iter",
-          "stop_dx",
-          "lm_ga_settings",
-          "clear_matrices",
-          "display_progress"),
-      GIN_TYPE("String",
-               "Numeric",
-               "Vector",
-               "Index",
-               "Numeric",
-               "Vector",
-               "Index",
-               "Index"),
-      GIN_DEFAULT(NODEF, "Inf", "[]", "10", "0.01", "[]", "0", "0"),
-      GIN_DESC("Iteration method. For this and all options below, see "
-               "further above.",
-               "Maximum allowed value of cost function at start.",
-               "Normalisation of Sx.",
-               "Maximum number of iterations.",
-               "Stop criterion for iterative inversions.",
-               "Settings associated with the ga factor of the LM method.",
-               "An option to save memory.",
-               "Flag to control if inversion diagnostics shall be printed "
-               "on the screen.")));
-
-  md_data_raw.push_back(MdRecord(
       NAME("avkCalc"),
       DESCRIPTION(
           "Calculates the averaging kernel matrix describing the sensitivity of the\n"

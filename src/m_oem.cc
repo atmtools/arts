@@ -3,16 +3,16 @@
    Stefan Buehler   <sbuehler@ltu.se>
 
    This program is free software; you can redistribute it and/or modify it
-   under the terms of the GNU General Public License as published by the
+   under the terms of the oem::GNU General Public License as published by the
    Free Software Foundation; either version 2, or (at your option) any
    later version.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   oem::GNU General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
+   You should have received a copy of the oem::GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
@@ -51,6 +51,10 @@
 #include "rte.h"
 #include "surface.h"
 
+#ifdef OEM_SUPPORT
+#include "oem.h"
+#endif
+
 extern const String ABSSPECIES_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
 extern const String POINTING_MAINTAG;
@@ -64,497 +68,6 @@ extern const String SINEFIT_MAINTAG;
 extern const String SURFACE_MAINTAG;
 extern const String WIND_MAINTAG;
 extern const String MAGFIELD_MAINTAG;
-
-/*===========================================================================
-  === Help functions for grid handling
-  ===========================================================================*/
-
-//! Determines grid positions for regridding of atmospheric fields to retrieval
-//  grids
-/*!
-  The grid positions arrays are sized inside the function. gp_lat is given
-  length 0 for atmosphere_dim=1 etc.
-
-  This regridding uses extpolfac=0.
-
-  \param[out] gp_p                 Pressure grid positions.
-  \param[out] gp_lat               Latitude grid positions.
-  \param[out] gp_lon               Longitude grid positions.
-  \param[in]  rq                   Retrieval quantity structure.
-  \param[in]  atmosphere_dim       As the WSV with same name.
-  \param[in]  p_grid               As the WSV with same name.
-  \param[in]  lat_grid             As the WSV with same name.
-  \param[in]  lon_grid             As the WSV with same name.
-
-  \author Patrick Eriksson
-  \date   2015-09-09
-*/
-void get_gp_atmgrids_to_rq(ArrayOfGridPos& gp_p,
-                           ArrayOfGridPos& gp_lat,
-                           ArrayOfGridPos& gp_lon,
-                           const RetrievalQuantity& rq,
-                           const Index& atmosphere_dim,
-                           const Vector& p_grid,
-                           const Vector& lat_grid,
-                           const Vector& lon_grid) {
-  gp_p.resize(rq.Grids()[0].nelem());
-  p2gridpos(gp_p, p_grid, rq.Grids()[0], 0);
-  //
-  if (atmosphere_dim >= 2) {
-    gp_lat.resize(rq.Grids()[1].nelem());
-    gridpos(gp_lat, lat_grid, rq.Grids()[1], 0);
-  } else {
-    gp_lat.resize(0);
-  }
-  //
-  if (atmosphere_dim >= 3) {
-    gp_lon.resize(rq.Grids()[2].nelem());
-    gridpos(gp_lon, lon_grid, rq.Grids()[2], 0);
-  } else {
-    gp_lon.resize(0);
-  }
-}
-
-//! Determines grid positions for regridding of atmospheric surfaces to retrieval
-//  grids
-/*!
-  The grid positions arrays are sized inside the function. gp_lat is given
-  length 0 for atmosphere_dim=1 etc.
-
-  This regridding uses extpolfac=0.
-
-  \param[out] gp_lat               Latitude grid positions.
-  \param[out] gp_lon               Longitude grid positions.
-  \param[in]  rq                   Retrieval quantity structure.
-  \param[in]  atmosphere_dim       As the WSV with same name.
-  \param[in]  lat_grid             As the WSV with same name.
-  \param[in]  lon_grid             As the WSV with same name.
-
-  \author Patrick Eriksson
-  \date   2018-04-12
-*/
-void get_gp_atmsurf_to_rq(ArrayOfGridPos& gp_lat,
-                          ArrayOfGridPos& gp_lon,
-                          const RetrievalQuantity& rq,
-                          const Index& atmosphere_dim,
-                          const Vector& lat_grid,
-                          const Vector& lon_grid) {
-  if (atmosphere_dim >= 2) {
-    gp_lat.resize(rq.Grids()[0].nelem());
-    gridpos(gp_lat, lat_grid, rq.Grids()[0], 0);
-  } else {
-    gp_lat.resize(0);
-  }
-  //
-  if (atmosphere_dim >= 3) {
-    gp_lon.resize(rq.Grids()[1].nelem());
-    gridpos(gp_lon, lon_grid, rq.Grids()[1], 0);
-  } else {
-    gp_lon.resize(0);
-  }
-}
-
-//! Determines grid positions for regridding of atmospheric fields to retrieval
-//  grids
-/*!
-  The grid positions arrays are sized inside the function. gp_lat is given
-  length 0 for atmosphere_dim=1 etc.
-
-  This regridding uses extpolfac=Inf (where Inf is a very large value).
-
-  Note that the length output arguments (n_p etc.) are for the retrieval grids
-  (not the length of grid positions arrays). n-Lat is set to 1 for
-  atmosphere_dim=1 etc.
-
-  \param[out] gp_p                 Pressure grid positions.
-  \param[out] gp_lat               Latitude grid positions.
-  \param[out] gp_lon               Longitude grid positions.
-  \param[out] n_p                  Length of retrieval pressure grid.
-  \param[out] n_lat                Length of retrieval lataitude grid.
-  \param[out] n_lon                Length of retrieval longitude grid.
-  \param[in]  rq                   Retrieval quantity structure.
-  \param[in]  atmosphere_dim       As the WSV with same name.
-  \param[in]  p_grid               As the WSV with same name.
-  \param[in]  lat_grid             As the WSV with same name.
-  \param[in]  lon_grid             As the WSV with same name.
-
-  \author Patrick Eriksson
-  \date   2015-09-09
-*/
-void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_p,
-                           ArrayOfGridPos& gp_lat,
-                           ArrayOfGridPos& gp_lon,
-                           Index& n_p,
-                           Index& n_lat,
-                           Index& n_lon,
-                           const RetrievalQuantity& rq,
-                           const Index& atmosphere_dim,
-                           const Vector& p_grid,
-                           const Vector& lat_grid,
-                           const Vector& lon_grid) {
-  // We want here an extrapolation to infinity ->
-  //                                        extremly high extrapolation factor
-  const Numeric inf_proxy = 1.0e99;
-
-  gp_p.resize(p_grid.nelem());
-  n_p = rq.Grids()[0].nelem();
-  if (n_p > 1) {
-    p2gridpos(gp_p, rq.Grids()[0], p_grid, inf_proxy);
-    jacobian_type_extrapol(gp_p);
-  } else {
-    gp4length1grid(gp_p);
-  }
-
-  if (atmosphere_dim >= 2) {
-    gp_lat.resize(lat_grid.nelem());
-    n_lat = rq.Grids()[1].nelem();
-    if (n_lat > 1) {
-      gridpos(gp_lat, rq.Grids()[1], lat_grid, inf_proxy);
-      jacobian_type_extrapol(gp_lat);
-    } else {
-      gp4length1grid(gp_lat);
-    }
-  } else {
-    gp_lat.resize(0);
-    n_lat = 1;
-  }
-  //
-  if (atmosphere_dim >= 3) {
-    gp_lon.resize(lon_grid.nelem());
-    n_lon = rq.Grids()[2].nelem();
-    if (n_lon > 1) {
-      gridpos(gp_lon, rq.Grids()[2], lon_grid, inf_proxy);
-      jacobian_type_extrapol(gp_lon);
-    } else {
-      gp4length1grid(gp_lon);
-    }
-  } else {
-    gp_lon.resize(0);
-    n_lon = 1;
-  }
-}
-
-//! Determines grid positions for regridding of atmospheric surfaces to retrieval
-//  grids
-/*!
-  The grid positions arrays are sized inside the function. gp_lat is given
-  length 0 for atmosphere_dim=1 etc.
-
-  This regridding uses extpolfac=Inf (where Inf is a very large value).
-
-  Note that the length output arguments (n_p etc.) are for the retrieval grids
-  (not the length of grid positions arrays). n-Lat is set to 1 for
-  atmosphere_dim=1 etc.
-
-  \param[out] gp_lat               Latitude grid positions.
-  \param[out] gp_lon               Longitude grid positions.
-  \param[out] n_lat                Length of retrieval lataitude grid.
-  \param[out] n_lon                Length of retrieval longitude grid.
-  \param[in]  rq                   Retrieval quantity structure.
-  \param[in]  atmosphere_dim       As the WSV with same name.
-  \param[in]  lat_grid             As the WSV with same name.
-  \param[in]  lon_grid             As the WSV with same name.
-
-  \author Patrick Eriksson
-  \date   2018-04-12
-*/
-void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_lat,
-                           ArrayOfGridPos& gp_lon,
-                           Index& n_lat,
-                           Index& n_lon,
-                           const RetrievalQuantity& rq,
-                           const Index& atmosphere_dim,
-                           const Vector& lat_grid,
-                           const Vector& lon_grid) {
-  // We want here an extrapolation to infinity ->
-  //                                        extremly high extrapolation factor
-  const Numeric inf_proxy = 1.0e99;
-
-  if (atmosphere_dim >= 2) {
-    gp_lat.resize(lat_grid.nelem());
-    n_lat = rq.Grids()[0].nelem();
-    if (n_lat > 1) {
-      gridpos(gp_lat, rq.Grids()[0], lat_grid, inf_proxy);
-      jacobian_type_extrapol(gp_lat);
-    } else {
-      gp4length1grid(gp_lat);
-    }
-  } else {
-    gp_lat.resize(0);
-    n_lat = 1;
-  }
-  //
-  if (atmosphere_dim >= 3) {
-    gp_lon.resize(lon_grid.nelem());
-    n_lon = rq.Grids()[1].nelem();
-    if (n_lon > 1) {
-      gridpos(gp_lon, rq.Grids()[1], lon_grid, inf_proxy);
-      jacobian_type_extrapol(gp_lon);
-    } else {
-      gp4length1grid(gp_lon);
-    }
-  } else {
-    gp_lon.resize(0);
-    n_lon = 1;
-  }
-}
-
-/* So far just a temporary test */
-void regrid_atmfield_by_gp_oem(Tensor3& field_new,
-                               const Index& atmosphere_dim,
-                               ConstTensor3View field_old,
-                               const ArrayOfGridPos& gp_p,
-                               const ArrayOfGridPos& gp_lat,
-                               const ArrayOfGridPos& gp_lon) {
-  const Index n1 = gp_p.nelem();
-
-  const bool np_is1 = field_old.npages() == 1 ? true : false;
-  const bool nlat_is1 =
-      atmosphere_dim > 1 && field_old.nrows() == 1 ? true : false;
-  const bool nlon_is1 =
-      atmosphere_dim > 2 && field_old.ncols() == 1 ? true : false;
-
-  // If no length 1, we can use standard function
-  if (!np_is1 && !nlat_is1 && !nlon_is1) {
-    regrid_atmfield_by_gp(
-        field_new, atmosphere_dim, field_old, gp_p, gp_lat, gp_lon);
-  } else {
-    //--- 1D (1 possibilities left) -------------------------------------------
-    if (atmosphere_dim == 1) {  // 1: No interpolation at all
-      field_new.resize(n1, 1, 1);
-      field_new(joker, 0, 0) = field_old(0, 0, 0);
-    }
-
-    //--- 2D (3 possibilities left) -------------------------------------------
-    else if (atmosphere_dim == 2) {
-      const Index n2 = gp_lat.nelem();
-      field_new.resize(n1, n2, 1);
-      //
-      if (np_is1 && nlat_is1)  // 1: No interpolation at all
-      {
-        // Here we need no interpolation at all
-        field_new(joker, joker, 0) = field_old(0, 0, 0);
-      } else if (np_is1)  // 2: Latitude interpolation
-      {
-        Matrix itw(n2, 2);
-        interpweights(itw, gp_lat);
-        Vector tmp(n2);
-        interp(tmp, itw, field_old(0, joker, 0), gp_lat);
-        for (Index p = 0; p < n1; p++) {
-          assert(gp_p[p].fd[0] < 1e-6);
-          field_new(p, joker, 0) = tmp;
-        }
-      } else  // 3: Pressure interpolation
-      {
-        Matrix itw(n1, 2);
-        interpweights(itw, gp_p);
-        Vector tmp(n1);
-        interp(tmp, itw, field_old(joker, 0, 0), gp_p);
-        for (Index lat = 0; lat < n2; lat++) {
-          assert(gp_lat[lat].fd[0] < 1e-6);
-          field_new(joker, lat, 0) = tmp;
-        }
-      }
-    }
-
-    //--- 3D (7 possibilities left) -------------------------------------------
-    else if (atmosphere_dim == 3) {
-      const Index n2 = gp_lat.nelem();
-      const Index n3 = gp_lon.nelem();
-      field_new.resize(n1, n2, n3);
-      //
-      if (np_is1 && nlat_is1 && nlon_is1)  // 1: No interpolation at all
-      {
-        field_new(joker, joker, joker) = field_old(0, 0, 0);
-      }
-
-      else if (np_is1)  // No pressure interpolation --------------
-      {
-        if (nlat_is1)  // 2: Just longitude interpolation
-        {
-          Matrix itw(n3, 2);
-          interpweights(itw, gp_lon);
-          Vector tmp(n3);
-          interp(tmp, itw, field_old(0, 0, joker), gp_lon);
-          for (Index p = 0; p < n1; p++) {
-            assert(gp_p[p].fd[0] < 1e-6);
-            for (Index lat = 0; lat < n2; lat++) {
-              assert(gp_lat[lat].fd[0] < 1e-6);
-              field_new(p, lat, joker) = tmp;
-            }
-          }
-        } else if (nlon_is1)  // 3: Just latitude interpolation
-        {
-          Matrix itw(n2, 2);
-          interpweights(itw, gp_lat);
-          Vector tmp(n2);
-          interp(tmp, itw, field_old(0, joker, 0), gp_lat);
-          for (Index p = 0; p < n1; p++) {
-            assert(gp_p[p].fd[0] < 1e-6);
-            for (Index lon = 0; lon < n3; lon++) {
-              assert(gp_lon[lon].fd[0] < 1e-6);
-              field_new(p, joker, lon) = tmp;
-            }
-          }
-        } else  // 4: Both lat and lon interpolation
-        {
-          Tensor3 itw(n2, n3, 4);
-          interpweights(itw, gp_lat, gp_lon);
-          Matrix tmp(n2, n3);
-          interp(tmp, itw, field_old(0, joker, joker), gp_lat, gp_lon);
-          for (Index p = 0; p < n1; p++) {
-            assert(gp_p[p].fd[0] < 1e-6);
-            field_new(p, joker, joker) = tmp;
-          }
-        }
-      }
-
-      else  // Pressure interpolation --------------
-      {
-        if (nlat_is1 && nlon_is1)  // 5: Just pressure interpolatiom
-        {
-          Matrix itw(n1, 2);
-          interpweights(itw, gp_p);
-          Vector tmp(n1);
-          interp(tmp, itw, field_old(joker, 0, 0), gp_p);
-          for (Index lat = 0; lat < n2; lat++) {
-            assert(gp_lat[lat].fd[0] < 1e-6);
-            for (Index lon = 0; lon < n3; lon++) {
-              assert(gp_lon[lon].fd[0] < 1e-6);
-              field_new(joker, lat, lon) = tmp;
-            }
-          }
-        } else if (nlat_is1)  // 6: Both p and lon interpolation
-        {
-          Tensor3 itw(n1, n3, 4);
-          interpweights(itw, gp_p, gp_lon);
-          Matrix tmp(n1, n3);
-          interp(tmp, itw, field_old(joker, 0, joker), gp_p, gp_lon);
-          for (Index lat = 0; lat < n2; lat++) {
-            assert(gp_lat[lat].fd[0] < 1e-6);
-            field_new(joker, lat, joker) = tmp;
-          }
-        } else  // 7: Both p and lat interpolation
-        {
-          Tensor3 itw(n1, n2, 4);
-          interpweights(itw, gp_p, gp_lat);
-          Matrix tmp(n1, n2);
-          interp(tmp, itw, field_old(joker, joker, 0), gp_p, gp_lat);
-          for (Index lon = 0; lon < n3; lon++) {
-            assert(gp_lon[lon].fd[0] < 1e-6);
-            field_new(joker, joker, lon) = tmp;
-          }
-        }
-      }
-    }
-  }
-}
-
-/* So far just a temporary test */
-void regrid_atmsurf_by_gp_oem(Matrix& field_new,
-                              const Index& atmosphere_dim,
-                              ConstMatrixView field_old,
-                              const ArrayOfGridPos& gp_lat,
-                              const ArrayOfGridPos& gp_lon) {
-  // As 1D is so simple, let's do it here and not go to standard function
-  if (atmosphere_dim == 1) {
-    field_new = field_old;
-  } else {
-    const bool nlat_is1 = field_old.nrows() == 1 ? true : false;
-    const bool nlon_is1 =
-        atmosphere_dim > 2 && field_old.ncols() == 1 ? true : false;
-
-    // If no length 1, we can use standard function
-    if (!nlat_is1 && !nlon_is1) {
-      regrid_atmsurf_by_gp(
-          field_new, atmosphere_dim, field_old, gp_lat, gp_lon);
-    } else {
-      if (atmosphere_dim == 2) {  // 1: No interpolation at all
-        const Index n1 = gp_lat.nelem();
-        field_new.resize(n1, 1);
-        field_new(joker, 0) = field_old(0, 0);
-      } else {
-        const Index n1 = gp_lat.nelem();
-        const Index n2 = gp_lon.nelem();
-        field_new.resize(n1, n2);
-        //
-        if (nlat_is1 && nlon_is1)  // 1: No interpolation at all
-        {
-          field_new(joker, joker) = field_old(0, 0);
-        } else if (nlon_is1)  // 2: Just latitude interpolation
-        {
-          Matrix itw(n1, 2);
-          interpweights(itw, gp_lat);
-          Vector tmp(n1);
-          interp(tmp, itw, field_old(joker, 0), gp_lat);
-          for (Index lon = 0; lon < n2; lon++) {
-            assert(gp_lon[lon].fd[0] < 1e-6);
-            field_new(joker, lon) = tmp;
-          }
-        } else  // 2: Just longitude interpolation
-        {
-          Matrix itw(n2, 2);
-          interpweights(itw, gp_lon);
-          Vector tmp(n2);
-          interp(tmp, itw, field_old(0, joker), gp_lon);
-          for (Index lat = 0; lat < n1; lat++) {
-            assert(gp_lat[lat].fd[0] < 1e-6);
-            field_new(lat, joker) = tmp;
-          }
-        }
-      }
-    }
-  }
-}
-
-/* Should this be a WSM? */
-void Tensor4Clip(Tensor4& x,
-                 const Index& iq,
-                 const Numeric& limit_low,
-                 const Numeric& limit_high) {
-  // Sizes
-  const Index nq = x.nbooks();
-
-  if (iq < -1) throw runtime_error("Argument *iq* must be >= -1.");
-  if (iq >= nq) {
-    ostringstream os;
-    os << "Argument *iq* is too high.\n"
-       << "You have selected index: " << iq << "\n"
-       << "but the number of quantities is only: " << nq << "\n"
-       << "(Note that zero-based indexing is used)\n";
-    throw runtime_error(os.str());
-  }
-
-  Index ifirst = 0, ilast = nq - 1;
-  if (iq > -1) {
-    ifirst = iq;
-    ilast = iq;
-  }
-
-  if (!std::isinf(limit_low)) {
-    for (Index i = ifirst; i <= ilast; i++) {
-      for (Index p = 0; p < x.npages(); p++) {
-        for (Index r = 0; r < x.nrows(); r++) {
-          for (Index c = 0; c < x.ncols(); c++) {
-            if (x(i, p, r, c) < limit_low) x(i, p, r, c) = limit_low;
-          }
-        }
-      }
-    }
-  }
-
-  if (!std::isinf(limit_high)) {
-    for (Index i = ifirst; i <= ilast; i++) {
-      for (Index p = 0; p < x.npages(); p++) {
-        for (Index r = 0; r < x.nrows(); r++) {
-          for (Index c = 0; c < x.ncols(); c++) {
-            if (x(i, p, r, c) > limit_high) x(i, p, r, c) = limit_high;
-          }
-        }
-      }
-    }
-  }
-}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void particle_bulkprop_fieldClip(Tensor4& particle_bulkprop_field,
@@ -657,10 +170,6 @@ void xClip(Vector& x,
     }
   }
 }
-
-/*===========================================================================
-  === Workspace methods associated with OEM
-  ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void xaStandard(Workspace& ws,
@@ -1568,136 +1077,8 @@ void x2artsSpectroscopy(const Verbosity&) {
   throw runtime_error("Retrievals of spectroscopic variables not yet handled.");
 }
 
-/*===========================================================================
-  === OEM itself (with wrappers and tempate definitions)
-  ===========================================================================*/
 
-// Include only if compiling with C++11.
 #ifdef OEM_SUPPORT
-
-#include "agenda_wrapper.h"
-#include "oem.h"
-
-//
-// Check input OEM input arguments.
-//
-void OEM_checks(Workspace& ws,
-                Vector& x,
-                Vector& yf,
-                Matrix& jacobian,
-                const Agenda& inversion_iterate_agenda,
-                const Vector& xa,
-                const CovarianceMatrix& covmat_sx,
-                const Vector& y,
-                const CovarianceMatrix& covmat_se,
-                const Index& jacobian_do,
-                const ArrayOfRetrievalQuantity& jacobian_quantities,
-                const String& method,
-                const Vector& x_norm,
-                const Index& max_iter,
-                const Numeric& stop_dx,
-                const Vector& lm_ga_settings,
-                const Index& clear_matrices,
-                const Index& display_progress) {
-  const Index nq = jacobian_quantities.nelem();
-  const Index n = xa.nelem();
-  const Index m = y.nelem();
-
-  if ((x.nelem() != n) && (x.nelem() != 0))
-    throw runtime_error(
-        "The length of *x* must be either the same as *xa* or 0.");
-  if (covmat_sx.ncols() != covmat_sx.nrows())
-    throw runtime_error("*covmat_sx* must be a square matrix.");
-  if (covmat_sx.ncols() != n)
-    throw runtime_error("Inconsistency in size between *x* and *covmat_sx*.");
-  if ((yf.nelem() != m) && (yf.nelem() != 0))
-    throw runtime_error(
-        "The length of *yf* must be either the same as *y* or 0.");
-  if (covmat_se.ncols() != covmat_se.nrows())
-    throw runtime_error("*covmat_se* must be a square matrix.");
-  if (covmat_se.ncols() != m)
-    throw runtime_error("Inconsistency in size between *y* and *covmat_se*.");
-  if (!jacobian_do)
-    throw runtime_error(
-        "Jacobian calculations must be turned on (but jacobian_do=0).");
-  if ((jacobian.nrows() != m) && (!jacobian.empty()))
-    throw runtime_error(
-        "The number of rows of the jacobian must be either the number of elements in *y* or 0.");
-  if ((jacobian.ncols() != n) && (!jacobian.empty()))
-    throw runtime_error(
-        "The number of cols of the jacobian must be either the number of elements in *xa* or 0.");
-
-  ArrayOfArrayOfIndex jacobian_indices;
-  bool any_affine;
-  jac_ranges_indices(jacobian_indices, any_affine, jacobian_quantities);
-  if (jacobian_indices.nelem() != nq)
-    throw runtime_error(
-        "Different number of elements in *jacobian_quantities* "
-        "and *jacobian_indices*.");
-  if (nq && jacobian_indices[nq - 1][1] + 1 != n)
-    throw runtime_error(
-        "Size of *covmat_sx* do not agree with Jacobian "
-        "information (*jacobian_indices*).");
-
-  // Check GINs
-  if (!(method == "li" || method == "gn" || method == "li_m" ||
-        method == "gn_m" || method == "ml" || method == "lm" ||
-        method == "li_cg" || method == "gn_cg" || method == "li_cg_m" ||
-        method == "gn_cg_m" || method == "lm_cg" || method == "ml_cg")) {
-    throw runtime_error(
-        "Valid options for *method* are \"nl\", \"gn\" and "
-        "\"ml\" or \"lm\".");
-  }
-
-  if (!(x_norm.nelem() == 0 || x_norm.nelem() == n)) {
-    throw runtime_error(
-        "The vector *x_norm* must have length 0 or match "
-        "*covmat_sx*.");
-  }
-
-  if (x_norm.nelem() > 0 && min(x_norm) <= 0) {
-    throw runtime_error("All values in *x_norm* must be > 0.");
-  }
-
-  if (max_iter <= 0) {
-    throw runtime_error("The argument *max_iter* must be > 0.");
-  }
-
-  if (stop_dx <= 0) {
-    throw runtime_error("The argument *stop_dx* must be > 0.");
-  }
-
-  if ((method == "ml") || (method == "lm") || (method == "lm_cg") ||
-      (method == "ml_cg")) {
-    if (lm_ga_settings.nelem() != 6) {
-      throw runtime_error(
-          "When using \"ml\", *lm_ga_setings* must be a "
-          "vector of length 6.");
-    }
-    if (min(lm_ga_settings) < 0) {
-      throw runtime_error(
-          "The vector *lm_ga_setings* can not contain any "
-          "negative value.");
-    }
-  }
-
-  if (clear_matrices < 0 || clear_matrices > 1)
-    throw runtime_error("Valid options for *clear_matrices* are 0 and 1.");
-  if (display_progress < 0 || display_progress > 1)
-    throw runtime_error("Valid options for *display_progress* are 0 and 1.");
-
-  // If necessary compute yf and jacobian.
-  if (x.nelem() == 0) {
-    x = xa;
-    inversion_iterate_agendaExecute(
-        ws, yf, jacobian, xa, 1, 0, inversion_iterate_agenda);
-  }
-  if ((yf.nelem() == 0) || (jacobian.empty())) {
-    inversion_iterate_agendaExecute(
-        ws, yf, jacobian, x, 1, 0, inversion_iterate_agenda);
-  }
-}
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void OEM(Workspace& ws,
          Vector& x,
@@ -1818,7 +1199,7 @@ void OEM(Workspace& ws,
   // Otherwise do inversion
   else {
     bool apply_norm = false;
-    OEMMatrix T{};
+    oem::Matrix T{};
     if (x_norm.nelem() == n) {
       T.resize(n, n);
       T *= 0.0;
@@ -1829,80 +1210,79 @@ void OEM(Workspace& ws,
       apply_norm = true;
     }
 
-    OEMCovarianceMatrix Se(covmat_se), Sa(covmat_sx);
-    OEMVector xa_oem(xa), y_oem(y), x_oem(x);
-    AgendaWrapper aw(&ws,
-                     (unsigned int)m,
-                     (unsigned int)n,
-                     jacobian,
-                     yf,
-                     &inversion_iterate_agenda);
-    OEM_STANDARD<AgendaWrapper> oem(aw, xa_oem, Sa, Se);
-    OEM_MFORM<AgendaWrapper> oem_m(aw, xa_oem, Sa, Se);
+    oem::CovarianceMatrix Se(covmat_se), Sa(covmat_sx);
+    oem::Vector xa_oem(xa), y_oem(y), x_oem(x);
+    oem::AgendaWrapper aw(&ws,
+                          (unsigned int)m,
+                          (unsigned int)n,
+                          jacobian,
+                          yf,
+                          &inversion_iterate_agenda);
+    oem::OEM_STANDARD<oem::AgendaWrapper> oem(aw, xa_oem, Sa, Se);
+    oem::OEM_MFORM<oem::AgendaWrapper> oem_m(aw, xa_oem, Sa, Se);
     int oem_verbosity = static_cast<int>(display_progress);
 
     int return_code = 0;
 
     try {
       if (method == "li") {
-        Normed<> s(T, apply_norm);
-        GN gn(stop_dx, 1, s);  // Linear case, only one step.
-        return_code = oem.compute<GN, ArtsLog>(
+        oem::Std s(T, apply_norm);
+        oem::GN gn(stop_dx, 1, s);  // Linear case, only one step.
+        return_code = oem.compute<oem::GN, oem::ArtsLog>(
             x_oem, y_oem, gn, oem_verbosity, lm_ga_history, true);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "li_m") {
-        Normed<> s(T, apply_norm);
-        GN gn(stop_dx, 1, s);  // Linear case, only one step.
-        return_code = oem_m.compute<GN, ArtsLog>(
+        oem::Std s(T, apply_norm);
+        oem::GN gn(stop_dx, 1, s);  // Linear case, only one step.
+        return_code = oem_m.compute<oem::GN, oem::ArtsLog>(
             x_oem, y_oem, gn, oem_verbosity, lm_ga_history, true);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "li_cg") {
-        Normed<CG> cg(T, apply_norm, 1e-10, 0);
-        GN_CG gn(stop_dx, 1, cg);  // Linear case, only one step.
-        return_code = oem.compute<GN_CG, ArtsLog>(
+        oem::CG cg(T, apply_norm, 1e-10, 0);
+        oem::GN_CG gn(stop_dx, 1, cg);  // Linear case, only one step.
+        return_code = oem.compute<oem::GN_CG, oem::ArtsLog>(
             x_oem, y_oem, gn, oem_verbosity, lm_ga_history, true);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "li_cg_m") {
-        Normed<CG> cg(T, apply_norm, 1e-10, 0);
-        GN_CG gn(stop_dx, 1, cg);  // Linear case, only one step.
-        return_code = oem_m.compute<GN_CG, ArtsLog>(
+        oem::CG cg(T, apply_norm, 1e-10, 0);
+        oem::GN_CG gn(stop_dx, 1, cg);  // Linear case, only one step.
+        return_code = oem_m.compute<oem::GN_CG, oem::ArtsLog>(
             x_oem, y_oem, gn, oem_verbosity, lm_ga_history, true);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "gn") {
-        Normed<> s(T, apply_norm);
-        GN gn(stop_dx, (unsigned int)max_iter, s);
-        return_code = oem.compute<GN, ArtsLog>(
+        oem::Std s(T, apply_norm);
+        oem::GN gn(stop_dx, (unsigned int)max_iter, s);
+        return_code = oem.compute<oem::GN, oem::ArtsLog>(
             x_oem, y_oem, gn, oem_verbosity, lm_ga_history);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "gn_m") {
-        Normed<> s(T, apply_norm);
-        GN gn(stop_dx, (unsigned int)max_iter, s);
-        return_code = oem_m.compute<GN, ArtsLog>(
+        oem::Std s(T, apply_norm);
+        oem::GN gn(stop_dx, (unsigned int)max_iter, s);
+        return_code = oem_m.compute<oem::GN, oem::ArtsLog>(
             x_oem, y_oem, gn, oem_verbosity, lm_ga_history);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "gn_cg") {
-        Normed<CG> cg(T, apply_norm, 1e-10, 0);
-        GN_CG gn(stop_dx, (unsigned int)max_iter, cg);
-        return_code = oem.compute<GN_CG, ArtsLog>(
+        oem::CG cg(T, apply_norm, 1e-10, 0);
+        oem::GN_CG gn(stop_dx, (unsigned int)max_iter, cg);
+        return_code = oem.compute<oem::GN_CG, oem::ArtsLog>(
             x_oem, y_oem, gn, oem_verbosity, lm_ga_history);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if (method == "gn_cg_m") {
-        Normed<CG> cg(T, apply_norm, 1e-10, 0);
-        GN_CG gn(stop_dx, (unsigned int)max_iter, cg);
-        return_code = oem_m.compute<GN_CG, ArtsLog>(
+        oem::CG cg(T, apply_norm, 1e-10, 0);
+        oem::GN_CG gn(stop_dx, (unsigned int)max_iter, cg);
+        return_code = oem_m.compute<oem::GN_CG, oem::ArtsLog>(
             x_oem, y_oem, gn, oem_verbosity, lm_ga_history);
         oem_diagnostics[0] = static_cast<Index>(return_code);
       } else if ((method == "lm") || (method == "ml")) {
-        Normed<> s(T, apply_norm);
-
+        oem::Std s(T, apply_norm);
         Sparse diagonal = Sparse::diagonal(covmat_sx.inverse_diagonal());
         CovarianceMatrix SaDiag{};
         SaDiag.add_correlation_inverse(Block(Range(0, n),
                                              Range(0, n),
                                              std::make_pair(0, 0),
                                              make_shared<Sparse>(diagonal)));
-        OEMCovarianceMatrix SaInvLM = inv(OEMCovarianceMatrix(SaDiag));
-        LM_S lm(SaInvLM, s);
+        oem::CovarianceMatrix SaInvLM = inv(oem::CovarianceMatrix(SaDiag));
+	oem::LM lm(SaInvLM, s);
 
         lm.set_tolerance(stop_dx);
         lm.set_maximum_iterations((unsigned int)max_iter);
@@ -1913,14 +1293,14 @@ void OEM(Workspace& ws,
         lm.set_lambda_threshold(lm_ga_settings[4]);
         lm.set_lambda_constraint(lm_ga_settings[5]);
 
-        return_code = oem.compute<LM_S&, ArtsLog>(
+        return_code = oem.compute<oem::LM&, oem::ArtsLog>(
             x_oem, y_oem, lm, oem_verbosity, lm_ga_history);
         oem_diagnostics[0] = static_cast<Index>(return_code);
         if (lm.get_lambda() > lm.get_lambda_maximum()) {
           oem_diagnostics[0] = 2;
         }
       } else if ((method == "lm_cg") || (method == "ml_cg")) {
-        Normed<CG> cg(T, apply_norm, 1e-10, 0);
+        oem::CG cg(T, apply_norm, 1e-10, 0);
 
         Sparse diagonal = Sparse::diagonal(covmat_sx.inverse_diagonal());
         CovarianceMatrix SaDiag{};
@@ -1928,7 +1308,7 @@ void OEM(Workspace& ws,
                                              Range(0, n),
                                              std::make_pair(0, 0),
                                              make_shared<Sparse>(diagonal)));
-        LM_CG_S lm(SaDiag, cg);
+	oem::LM_CG lm(SaDiag, cg);
 
         lm.set_maximum_iterations((unsigned int)max_iter);
         lm.set_lambda(lm_ga_settings[0]);
@@ -1937,7 +1317,7 @@ void OEM(Workspace& ws,
         lm.set_lambda_threshold(lm_ga_settings[3]);
         lm.set_lambda_maximum(lm_ga_settings[4]);
 
-        return_code = oem.compute<LM_CG_S&, ArtsLog>(
+        return_code = oem.compute<oem::LM_CG&, oem::ArtsLog>(
             x_oem, y_oem, lm, oem_verbosity, lm_ga_history);
         oem_diagnostics[0] = static_cast<Index>(return_code);
         if (lm.get_lambda() > lm.get_lambda_maximum()) {
@@ -1954,7 +1334,7 @@ void OEM(Workspace& ws,
       oem_diagnostics[3] = oem.cost_y;
       oem_diagnostics[4] = static_cast<Numeric>(oem.iterations);
       x_oem *= NAN;
-      std::vector<std::string> sv = handle_nested_exception(e);
+      std::vector<std::string> sv = oem::handle_nested_exception(e);
       for (auto& s : sv) {
         std::stringstream ss{s};
         std::string t{};
@@ -1967,7 +1347,7 @@ void OEM(Workspace& ws,
     }
 
     x = x_oem;
-    yf = aw.yi;
+    yf = aw.get_measurement_vector();
 
     // Shall empty jacobian and dxdy be returned?
     if (clear_matrices) {
@@ -2121,8 +1501,7 @@ void OEM(Workspace&,
       "WSM is not available because ARTS was compiled without "
       "OEM support.");
 }
-
-#endif  // OEM_SUPPORT
+#endif
 
 #if defined(OEM_SUPPORT) && 0
 
@@ -2248,7 +1627,7 @@ void OEM_MPI(Workspace& ws,
 
   // Create temporary MPI vector from local results and use conversion to
   // standard vector to broadcast results to all processes.
-  OEMVector tmp;
+  oem::Vector tmp;
   inversion_iterate_agendaExecute(
       ws, tmp, jacobian, xa, 1, inversion_iterate_agenda);
   yf = MPIVector(tmp);
@@ -2269,7 +1648,7 @@ void OEM_MPI(Workspace& ws,
   Numeric cost_start = NAN;
   if (method == "ml" || method == "lm" || display_progress ||
       max_start_cost > 0) {
-    OEMVector dy = y;
+    oem::Vector dy = y;
     dy -= yf;
     cost_start = dot(dy, SeInvMPI * dy);
   }
@@ -2295,7 +1674,7 @@ void OEM_MPI(Workspace& ws,
     dxdy.resize(n, m);
 
     OEMVector xa_oem(xa), y_oem(y), x_oem;
-    AgendaWrapperMPI aw(&ws, &inversion_iterate_agenda, m, n);
+    oem::AgendaWrapperMPI aw(&ws, &inversion_iterate_agenda, m, n);
 
     OEM_PS_PS_MPI<AgendaWrapperMPI> oem(aw, xa_oem, SaInvMPI, SeInvMPI);
 
@@ -2303,18 +1682,18 @@ void OEM_MPI(Workspace& ws,
     int return_value = 99;
 
     if (method == "li") {
-      CG cg(1e-12, 0);
-      GN_CG gn(stop_dx, (unsigned int)max_iter, cg);
-      return_value = oem.compute<GN_CG, invlib::MPILog>(
+      oem::CG cg(1e-12, 0);
+      oem::GN_CG gn(stop_dx, (unsigned int)max_iter, cg);
+      return_value = oem.compute<oem::GN_CG, invlib::MPILog>(
           x_oem, y_oem, gn, 2 * (int)display_progress);
     } else if (method == "gn") {
-      CG cg(1e-12, 0);
-      GN_CG gn(stop_dx, (unsigned int)max_iter, cg);
-      return_value = oem.compute<GN_CG, invlib::MPILog>(
+	    oem::CG cg(1e-12, 0);
+      oem::GN_CG gn(stop_dx, (unsigned int)max_iter, cg);
+      return_value = oem.compute<oem::GN_CG, invlib::MPILog>(
           x_oem, y_oem, gn, 2 * (int)display_progress);
     } else if ((method == "lm") || (method == "ml")) {
-      CG cg(1e-12, 0);
-      LM_CG_S_MPI lm(SaInvMPI, cg);
+	    oem::CG cg(1e-12, 0);
+      LM_CG_MPI lm(SaInvMPI, cg);
 
       lm.set_tolerance(stop_dx);
       lm.set_maximum_iterations((unsigned int)max_iter);
@@ -2324,7 +1703,7 @@ void OEM_MPI(Workspace& ws,
       lm.set_lambda_threshold(lm_ga_settings[3]);
       lm.set_lambda_maximum(lm_ga_settings[4]);
 
-      return_value = oem.compute<LM_CG_S_MPI, invlib::MPILog>(
+      return_value = oem.compute<oem::LM_CG_MPI, invlib::MPILog>(
           x_oem, y_oem, lm, 2 * (int)display_progress);
     }
 
