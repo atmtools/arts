@@ -1,4 +1,4 @@
-/* Copyright (C) 2006-2012 Oliver Lemke <olemke@core-dump.info>
+/* Copyright (C) 2006-2019 Oliver Lemke <olemke@core-dump.info>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -14,6 +14,11 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
+
+/**
+    \file   matpack.h
+    \author Stefan Buehler
+*/
 
 #ifndef matpack_h
 #define matpack_h
