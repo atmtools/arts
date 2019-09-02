@@ -67,9 +67,9 @@ extern const Numeric RAD2DEG;
 #define EXT_MAT_DATA scat_data[i_ss][i_se].ext_mat_data
 #define ABS_VEC_DATA scat_data[i_ss][i_se].abs_vec_data
 
-#define PND_LIMIT                                           \
-  1e-12  // If particle number density is below this value, \
-         // no transformations will be performed
+// If particle number density is below this value,
+// no transformations will be performed
+#define PND_LIMIT 1e-12
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void pha_mat_sptFromData(  // Output:
