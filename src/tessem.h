@@ -30,20 +30,18 @@
 #include <fstream>
 #include "matpackI.h"
 
-
-typedef struct
-{
-    Index nb_inputs;
-    Index nb_outputs;
-    Index nb_cache;
-    Vector b1;
-    Vector b2;
-    Matrix w1;
-    Matrix w2;
-    Vector x_min;
-    Vector x_max;
-    Vector y_min;
-    Vector y_max;
+typedef struct {
+  Index nb_inputs;
+  Index nb_outputs;
+  Index nb_cache;
+  Vector b1;
+  Vector b2;
+  Matrix w1;
+  Matrix w2;
+  Vector x_min;
+  Vector x_max;
+  Vector y_min;
+  Vector y_max;
 } TessemNN;
 
 void tessem_read_ascii(std::ifstream& is, TessemNN& net);
@@ -51,4 +49,3 @@ void tessem_read_ascii(std::ifstream& is, TessemNN& net);
 void tessem_prop_nn(VectorView& ny, const TessemNN& net, ConstVectorView nx);
 
 #endif /* tessem_h */
-

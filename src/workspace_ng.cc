@@ -29,8 +29,8 @@
 */
 
 #include "workspace_ng.h"
-#include "wsv_aux.h"
 #include "auto_workspace.h"
+#include "wsv_aux.h"
 
 WorkspaceMemoryHandler wsmh;
 
@@ -42,30 +42,26 @@ map<String, Index> Workspace::WsvMap;
 /*!
   Create the stacks for the WSVs.
 */
-Workspace::Workspace () : ws(0)
+Workspace::Workspace()
+    : ws(0)
 #ifndef NDEBUG
-, context("")
+      ,
+      context("")
 #endif
 {
 }
 
-
-void Workspace::define_wsv_map()
-{
-  for ( Index i=0 ; i<wsv_data.nelem() ; ++i )
-    {
-      WsvMap[wsv_data[i].Name()] = i;
-    }
+void Workspace::define_wsv_map() {
+  for (Index i = 0; i < wsv_data.nelem(); ++i) {
+    WsvMap[wsv_data[i].Name()] = i;
+  }
 }
 
-
-Index Workspace::add_wsv (const WsvRecord& wsv)
-{
+Index Workspace::add_wsv(const WsvRecord &wsv) {
   Workspace::wsv_data.push_back(wsv);
   Workspace::define_wsv_map();
-  return wsv_data.nelem()-1;
+  return wsv_data.nelem() - 1;
 }
-
 
 //! Delete WSV.
 /*!
@@ -73,19 +69,16 @@ Index Workspace::add_wsv (const WsvRecord& wsv)
 
   \param i WSV index.
  */
-void Workspace::del (Index i)
-{
-  WsvStruct *wsvs = ws[i].top ();
+void Workspace::del(Index i) {
+  WsvStruct *wsvs = ws[i].top();
 
-  if (wsvs && wsvs->wsv)
-    {
-      wsmh.deallocate (wsv_data[i].Group(), wsvs->wsv);
-      wsvs->wsv = NULL;
-      wsvs->auto_allocated = false;
-      wsvs->initialized = false;
-    }
+  if (wsvs && wsvs->wsv) {
+    wsmh.deallocate(wsv_data[i].Group(), wsvs->wsv);
+    wsvs->wsv = NULL;
+    wsvs->auto_allocated = false;
+    wsvs->initialized = false;
+  }
 }
-
 
 //! Duplicate WSV.
 /*!
@@ -93,30 +86,21 @@ void Workspace::del (Index i)
 
   \param i WSV index.
  */
-void Workspace::duplicate (Index i)
-{
+void Workspace::duplicate(Index i) {
   WsvStruct *wsvs = new WsvStruct;
 
   wsvs->auto_allocated = true;
-  if (ws[i].size() && ws[i].top()->wsv)
-    {
-      wsvs->wsv = wsmh.duplicate (wsv_data[i].Group(), ws[i].top()->wsv);
-      wsvs->initialized = true;
-    }
-  else
-    {
-      wsvs->wsv = NULL;
-      wsvs->initialized = false;
-    }
-  ws[i].push (wsvs);
+  if (ws[i].size() && ws[i].top()->wsv) {
+    wsvs->wsv = wsmh.duplicate(wsv_data[i].Group(), ws[i].top()->wsv);
+    wsvs->initialized = true;
+  } else {
+    wsvs->wsv = NULL;
+    wsvs->initialized = false;
+  }
+  ws[i].push(wsvs);
 }
 
-
-void Workspace::initialize ()
-{
-  ws.resize (wsv_data.nelem());
-}
-
+void Workspace::initialize() { ws.resize(wsv_data.nelem()); }
 
 //! Workspace copy constructor
 /*!
@@ -128,58 +112,47 @@ void Workspace::initialize ()
   \author Oliver Lemke
   \date   2007-11-28
 */
-Workspace::Workspace (const Workspace& workspace) : ws(workspace.ws.nelem())
-{
+Workspace::Workspace(const Workspace &workspace) : ws(workspace.ws.nelem()) {
 #ifndef NDEBUG
   context = workspace.context;
 #endif
-  for (Index i=0; i < workspace.ws.nelem(); i++)
-    {
-      WsvStruct *wsvs = new WsvStruct;
-      wsvs->auto_allocated = false;
-      if (workspace.ws[i].size() && workspace.ws[i].top()->wsv)
-        {
-          wsvs->wsv = workspace.ws[i].top()->wsv;
-          wsvs->initialized = workspace.ws[i].top()->initialized;
-        }
-      else
-        {
-          wsvs->wsv = NULL;
-          wsvs->initialized = false;
-        }
-      ws[i].push (wsvs);
+  for (Index i = 0; i < workspace.ws.nelem(); i++) {
+    WsvStruct *wsvs = new WsvStruct;
+    wsvs->auto_allocated = false;
+    if (workspace.ws[i].size() && workspace.ws[i].top()->wsv) {
+      wsvs->wsv = workspace.ws[i].top()->wsv;
+      wsvs->initialized = workspace.ws[i].top()->initialized;
+    } else {
+      wsvs->wsv = NULL;
+      wsvs->initialized = false;
     }
+    ws[i].push(wsvs);
+  }
 }
-
 
 //! Destruct the workspace
 /*!
   Frees all WSVs.
 */
-Workspace::~Workspace ()
-{
+Workspace::~Workspace() {
 #ifndef NDEBUG
-#pragma omp critical (ws_destruct)
-    if (context != "") cout << "WS destruct: " << context << endl;
+#pragma omp critical(ws_destruct)
+  if (context != "") cout << "WS destruct: " << context << endl;
 #endif
-  for (int i = 0; i < ws.nelem (); i++)
-    {
-      WsvStruct *wsvs;
+  for (int i = 0; i < ws.nelem(); i++) {
+    WsvStruct *wsvs;
 
-      while (ws[i].size ())
-        {
-          wsvs = ws[i].top ();
-          if (wsvs->auto_allocated && wsvs->wsv)
-            {
-              wsmh.deallocate (wsv_data[i].Group(), wsvs->wsv);
-            }
-          delete (wsvs);
-          ws[i].pop ();
-        }
+    while (ws[i].size()) {
+      wsvs = ws[i].top();
+      if (wsvs->auto_allocated && wsvs->wsv) {
+        wsmh.deallocate(wsv_data[i].Group(), wsvs->wsv);
+      }
+      delete (wsvs);
+      ws[i].pop();
     }
-  ws.empty ();
+  }
+  ws.empty();
 }
-
 
 //! Pop the topmost wsv from its stack.
 /*!
@@ -188,19 +161,16 @@ Workspace::~Workspace ()
 
   \param i WSV index.
  */
-void *Workspace::pop (Index i)
-{
-  WsvStruct *wsvs = ws[i].top ();
+void *Workspace::pop(Index i) {
+  WsvStruct *wsvs = ws[i].top();
   void *vp = NULL;
-  if (wsvs)
-    {
-      vp = wsvs->wsv;
-      delete wsvs;
-      ws[i].pop ();
-    }
+  if (wsvs) {
+    vp = wsvs->wsv;
+    delete wsvs;
+    ws[i].pop();
+  }
   return vp;
 }
-
 
 //! Pop the topmost wsv from its stack and free its memory.
 /*!
@@ -208,20 +178,16 @@ void *Workspace::pop (Index i)
 
   \param i WSV index.
  */
-void Workspace::pop_free (Index i)
-{
-  WsvStruct *wsvs = ws[i].top ();
+void Workspace::pop_free(Index i) {
+  WsvStruct *wsvs = ws[i].top();
 
-  if (wsvs)
-    {
-      if (wsvs->wsv)
-        wsmh.deallocate (wsv_data[i].Group(), wsvs->wsv);
+  if (wsvs) {
+    if (wsvs->wsv) wsmh.deallocate(wsv_data[i].Group(), wsvs->wsv);
 
-      delete wsvs;
-      ws[i].pop ();
-    }
+    delete wsvs;
+    ws[i].pop();
+  }
 }
-
 
 //! Push a new wsv onto its stack.
 /*!
@@ -230,15 +196,13 @@ void Workspace::pop_free (Index i)
   \param i WSV index.
   \param wsv Void pointer to variable that should be put on the stack.
   */
-void Workspace::push (Index i, void *wsv)
-{
+void Workspace::push(Index i, void *wsv) {
   WsvStruct *wsvs = new WsvStruct;
   wsvs->auto_allocated = false;
   wsvs->initialized = true;
   wsvs->wsv = wsv;
-  ws[i].push (wsvs);
+  ws[i].push(wsvs);
 }
-
 
 //! Push a new wsv onto its stack but mark it as uninitialized.
 /*!
@@ -249,15 +213,13 @@ void Workspace::push (Index i, void *wsv)
   \param i WSV index.
   \param wsv Void pointer to variable that should be put on the stack.
   */
-void Workspace::push_uninitialized (Index i, void *wsv)
-{
+void Workspace::push_uninitialized(Index i, void *wsv) {
   WsvStruct *wsvs = new WsvStruct;
   wsvs->auto_allocated = false;
   wsvs->initialized = false;
   wsvs->wsv = wsv;
-  ws[i].push (wsvs);
+  ws[i].push(wsvs);
 }
-
 
 //! Retrieve pointer to the given WSV.
 /*!
@@ -266,19 +228,15 @@ void Workspace::push_uninitialized (Index i, void *wsv)
 
   \param i WSV index.
 */
-void *Workspace::operator[](Index i)
-{
-  if (!ws[i].size ())
-    push (i, NULL);
+void *Workspace::operator[](Index i) {
+  if (!ws[i].size()) push(i, NULL);
 
-  if (!ws[i].top ()->wsv)
-    {
-      ws[i].top ()->auto_allocated = true;
-      ws[i].top ()->wsv = wsmh.allocate (wsv_data[i].Group());
-    }
+  if (!ws[i].top()->wsv) {
+    ws[i].top()->auto_allocated = true;
+    ws[i].top()->wsv = wsmh.allocate(wsv_data[i].Group());
+  }
 
-  ws[i].top ()->initialized = true;
+  ws[i].top()->initialized = true;
 
   return (ws[i].top()->wsv);
 }
-

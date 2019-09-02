@@ -25,10 +25,10 @@
 #ifndef test_utils_h
 #define test_utils_h
 
-#include "matpackI.h"
-#include "complex.h"
 #include <stdlib.h>
 #include <time.h>
+#include "complex.h"
+#include "matpackI.h"
 
 /** Random number class.
 
@@ -37,123 +37,89 @@
     time at construction is used to seed the generator.
 
 */
-template <class rand_type> class Rand
-{
+template <class rand_type>
+class Rand {
+ public:
+  Rand(rand_type lo, rand_type hi) : low(lo), range(hi - lo) { srand(rand()); }
 
-public:
-Rand( rand_type lo,
-      rand_type hi ) : low( lo ), range( hi - lo )
-    {
-        srand( rand() );
-    }
+  rand_type operator()() const {
+    rand_type r =
+        (rand_type)(((Numeric)rand()) / ((Numeric)RAND_MAX) * (Numeric)range);
+    return low + r;
+  }
 
-    rand_type operator ()() const
-    {
-        rand_type r = (rand_type) ( ((Numeric) rand()) /
-                                    ((Numeric) RAND_MAX) * (Numeric) range );
-        return  low + r;
-    }
-
-/** Random Index class.
+  /** Random Index class.
 
     Template specialization for values of type Index to avoid rounding
     problems.
 */
-private:
-    rand_type low, range;
-
+ private:
+  rand_type low, range;
 };
 
-template <> class Rand<Index>
-{
+template <>
+class Rand<Index> {
+ public:
+  Rand(Index lo, Index hi) : low(lo), range(hi - lo) {
+    // Avoid negative ranges.
+    if (hi <= lo) range = 0;
+    srand(rand());
+  }
 
-public:
-Rand( Index lo,
-      Index hi ) : low( lo ), range( hi - lo )
-    {
-        // Avoid negative ranges.
-        if (hi <= lo)
-            range = 0;
-        srand( rand() );
-    }
+  Index operator()() const { return low + rand() % (range + 1); }
 
-    Index operator ()() const
-    {
-        return  low + rand() % (range + 1);
-    }
-
-private:
-    Index low, range;
-
+ private:
+  Index low, range;
 };
 
 // Add noise to vector.
-void add_noise( VectorView v,
-                Numeric range );
+void add_noise(VectorView v, Numeric range);
 
 // Fill matrix with random values.
-void random_fill_matrix( MatrixView A,
-                         Numeric range,
-                         bool positive );
-void random_fill_matrix( ComplexMatrixView A,
-                         Numeric range,
-                         bool positive );
+void random_fill_matrix(MatrixView A, Numeric range, bool positive);
+void random_fill_matrix(ComplexMatrixView A, Numeric range, bool positive);
 
 // Fill sparse matrix with random values.
-void random_fill_matrix( Sparse &A,
-                         Numeric range,
-                         bool positive );
+void random_fill_matrix(Sparse& A, Numeric range, bool positive);
 
 // Fill a dense and a sparse matrix with the identical, random values.
-void random_fill_matrix( Matrix& A,
-                         Sparse& B,
-                         Numeric range,
-                         bool positive );
+void random_fill_matrix(Matrix& A, Sparse& B, Numeric range, bool positive);
 
 // Fill matrix with random values symmetrically.
-void random_fill_matrix_symmetric( MatrixView A,
-                                   Numeric range,
-                                   bool positive );
-void random_fill_matrix_symmetric( ComplexMatrixView A,
-                                   Numeric range,
-                                   bool positive );
-
-// Generate random, positive semi-definite matrix.
-void random_fill_matrix_pos_def( MatrixView A,
+void random_fill_matrix_symmetric(MatrixView A, Numeric range, bool positive);
+void random_fill_matrix_symmetric(ComplexMatrixView A,
                                   Numeric range,
-                                  bool positive );
+                                  bool positive);
 
 // Generate random, positive semi-definite matrix.
-void random_fill_matrix_pos_semi_def( MatrixView A,
-                                      Numeric range,
-                                      bool positive );
+void random_fill_matrix_pos_def(MatrixView A, Numeric range, bool positive);
+
+// Generate random, positive semi-definite matrix.
+void random_fill_matrix_pos_semi_def(MatrixView A,
+                                     Numeric range,
+                                     bool positive);
 
 // Fill vector with random values.
-void random_fill_vector( VectorView A,
-                         Numeric range,
-                         bool positive );
-
+void random_fill_vector(VectorView A, Numeric range, bool positive);
 
 // Pick random submatrix.
-MatrixView random_submatrix( MatrixView A,
-                             Index m,
-                             Index n );
+MatrixView random_submatrix(MatrixView A, Index m, Index n);
 
 // Generate random range in the range [0, n - 1]
-Range random_range( Index n );
+Range random_range(Index n);
 
 // Maximum element-wise error of two matrices.
-Numeric get_maximum_error( ConstMatrixView A1,
-                           ConstMatrixView A2,
-                           bool relative );
+Numeric get_maximum_error(ConstMatrixView A1,
+                          ConstMatrixView A2,
+                          bool relative);
 
-Numeric get_maximum_error( ConstComplexMatrixView A1,
-                           ConstComplexMatrixView A2,
-                           bool relative );
+Numeric get_maximum_error(ConstComplexMatrixView A1,
+                          ConstComplexMatrixView A2,
+                          bool relative);
 
 // Maximum element-wise error of two matrices.
-Numeric get_maximum_error( ConstVectorView v1,
-                           ConstVectorView v2,
-                           bool relative );
+Numeric get_maximum_error(ConstVectorView v1,
+                          ConstVectorView v2,
+                          bool relative);
 
-#endif // test_utils_h
+#endif  // test_utils_h

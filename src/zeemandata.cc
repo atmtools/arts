@@ -18,8 +18,7 @@
 #include "zeemandata.h"
 #include "species_info.h"
 
-Zeeman::Model Zeeman::GetSimpleModel(const QuantumIdentifier& qid)
-{
+Zeeman::Model Zeeman::GetSimpleModel(const QuantumIdentifier& qid) {
   const Numeric GS = get_lande_spin_constant(qid.Species());
   const Numeric GL = get_lande_lambda_constant();
   const Numeric gu = SimpleG(qid.UpperQuantumNumbers(), GS, GL);
@@ -27,57 +26,65 @@ Zeeman::Model Zeeman::GetSimpleModel(const QuantumIdentifier& qid)
   return Model({gu, gl});
 }
 
-
-Numeric case_b_g_coefficient_o2(Rational j, Rational n, 
-                                Numeric GS, Numeric GR, Numeric GLE,
-                                Numeric  B, Numeric  D, Numeric  H,
-                                Numeric gB, Numeric gD, Numeric gH,
-                                Numeric lB, Numeric lD, Numeric lH)
-{
+Numeric case_b_g_coefficient_o2(Rational j,
+                                Rational n,
+                                Numeric GS,
+                                Numeric GR,
+                                Numeric GLE,
+                                Numeric B,
+                                Numeric D,
+                                Numeric H,
+                                Numeric gB,
+                                Numeric gD,
+                                Numeric gH,
+                                Numeric lB,
+                                Numeric lD,
+                                Numeric lH) {
   using Constant::pow2;
   using Constant::pow3;
   using std::atan2;
-  using std::sqrt;
   using std::cos;
   using std::sin;
-  
-  if(j.isUndefined() or n.isUndefined())
+  using std::sqrt;
+
+  if (j.isUndefined() or n.isUndefined())
     return 0;
-  else if(j == 0)
+  else if (j == 0)
     return 0;
-  
+
   Numeric J = j.toNumeric();
-  
-  Numeric nom =
-  (lB + lD * (J*J+J+1) + lH * pow2(J*J+J+1)) * (2*sqrt(J*J+J)/(2*J+1));
-  
+
+  Numeric nom = (lB + lD * (J * J + J + 1) + lH * pow2(J * J + J + 1)) *
+                (2 * sqrt(J * J + J) / (2 * J + 1));
+
   Numeric denom =
-  B*J*(J-1) - D*pow2(J*(J-1)) + H*pow3(J*(J-1)) +
-  (gB + gD*J*(J-1) + gH*pow2(J*(J-1))) * (J-1) +
-  (lB + lD*J*(J-1) + lH*pow2(J*(J-1))) * (2./3. - 2*J/(2*J+1))
-  - (
-  B*(J+2)*(J+1) - D*pow2((J+2)*(J+1)) + H*pow3((J+2)*(J+1)) -
-  (gB + gD*(J+2)*(J+1) + gH*pow2((J+2)*(J+1))) * (J+2) +
-  (lB + lD*(J+2)*(J+1) + lH*pow2((J+2)*(J+1))) * (2./3. - 2*(J+1)/(2*J+1))
-  );
-  
-  Numeric phi = atan2(2*nom, denom) / 2;
-  
-  if(j == n)
-    return (GS + GR) / (J*(J+1)) - GR;
-  else   if(j < n)
-    return (GS + GR) * (pow2(cos(phi))/J - pow2(sin(phi))/(J+1)) + 2*GLE*cos(2*phi)/(2*J+1) - GR;
+      B * J * (J - 1) - D * pow2(J * (J - 1)) + H * pow3(J * (J - 1)) +
+      (gB + gD * J * (J - 1) + gH * pow2(J * (J - 1))) * (J - 1) +
+      (lB + lD * J * (J - 1) + lH * pow2(J * (J - 1))) *
+          (2. / 3. - 2 * J / (2 * J + 1)) -
+      (B * (J + 2) * (J + 1) - D * pow2((J + 2) * (J + 1)) +
+       H * pow3((J + 2) * (J + 1)) -
+       (gB + gD * (J + 2) * (J + 1) + gH * pow2((J + 2) * (J + 1))) * (J + 2) +
+       (lB + lD * (J + 2) * (J + 1) + lH * pow2((J + 2) * (J + 1))) *
+           (2. / 3. - 2 * (J + 1) / (2 * J + 1)));
+
+  Numeric phi = atan2(2 * nom, denom) / 2;
+
+  if (j == n)
+    return (GS + GR) / (J * (J + 1)) - GR;
+  else if (j < n)
+    return (GS + GR) * (pow2(cos(phi)) / J - pow2(sin(phi)) / (J + 1)) +
+           2 * GLE * cos(2 * phi) / (2 * J + 1) - GR;
   else /*if(j > n)*/
-    return (GS + GR) * (pow2(sin(phi))/J - pow2(cos(phi))/(J+1)) - 2*GLE*cos(2*phi)/(2*J+1) - GR;
+    return (GS + GR) * (pow2(sin(phi)) / J - pow2(cos(phi)) / (J + 1)) -
+           2 * GLE * cos(2 * phi) / (2 * J + 1) - GR;
 }
 
-
-Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
-{
-  if(qid.SpeciesName() == "O2") {
-    if(qid.Isotopologue() == SpeciesTag("O2-66").Isotopologue()) {
-      if(qid.LowerQuantumNumber(QuantumNumberType::v1) == 0 and
-         qid.UpperQuantumNumber(QuantumNumberType::v1) == 0) {
+Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) {
+  if (qid.SpeciesName() == "O2") {
+    if (qid.Isotopologue() == SpeciesTag("O2-66").Isotopologue()) {
+      if (qid.LowerQuantumNumber(QuantumNumberType::v1) == 0 and
+          qid.UpperQuantumNumber(QuantumNumberType::v1) == 0) {
         Numeric GS = 2.002084;
         Numeric GLE = 2.77e-3;
         Numeric GR = -1.16e-4;
@@ -90,19 +97,20 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
         Numeric gB = -252.58634e6;
         Numeric gD = -243.42;
         Numeric gH = -1.46e-3;
-        
+
         auto JU = qid.UpperQuantumNumber(QuantumNumberType::J);
         auto NU = qid.UpperQuantumNumber(QuantumNumberType::N);
-        Numeric gu = case_b_g_coefficient_o2(JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
+        Numeric gu = case_b_g_coefficient_o2(
+            JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
         auto JL = qid.LowerQuantumNumber(QuantumNumberType::J);
         auto NL = qid.LowerQuantumNumber(QuantumNumberType::N);
-        Numeric gl = case_b_g_coefficient_o2(JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
+        Numeric gl = case_b_g_coefficient_o2(
+            JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
         return Model({gu, gl});
       }
-    }
-    else if(qid.Isotopologue() == SpeciesTag("O2-68").Isotopologue()) {
-      if(qid.LowerQuantumNumber(QuantumNumberType::v1) == 0 and
-         qid.UpperQuantumNumber(QuantumNumberType::v1) == 0) {
+    } else if (qid.Isotopologue() == SpeciesTag("O2-68").Isotopologue()) {
+      if (qid.LowerQuantumNumber(QuantumNumberType::v1) == 0 and
+          qid.UpperQuantumNumber(QuantumNumberType::v1) == 0) {
         Numeric GS = 2.002025;
         Numeric GLE = 2.813e-3;
         Numeric GR = -1.26e-4;
@@ -115,29 +123,31 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid)
         Numeric gB = -238.51530e6;
         Numeric gD = -217.77;
         Numeric gH = -1.305e-3;
-        
+
         auto JU = qid.UpperQuantumNumber(QuantumNumberType::J);
         auto NU = qid.UpperQuantumNumber(QuantumNumberType::N);
-        Numeric gu = (JU == 0) ? 0 :
-        case_b_g_coefficient_o2(JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
+        Numeric gu =
+            (JU == 0)
+                ? 0
+                : case_b_g_coefficient_o2(
+                      JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
         auto JL = qid.LowerQuantumNumber(QuantumNumberType::J);
         auto NL = qid.LowerQuantumNumber(QuantumNumberType::N);
-        Numeric gl = (JL == 0) ? 0 :
-        case_b_g_coefficient_o2(JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
+        Numeric gl =
+            (JL == 0)
+                ? 0
+                : case_b_g_coefficient_o2(
+                      JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
         return Model({gu, gl});
       }
     }
   }
-  
+
   return Model({0, 0});
 }
 
-
-Zeeman::Model::Model(const QuantumIdentifier& qid)
-{
+Zeeman::Model::Model(const QuantumIdentifier& qid) {
   Model m = GetAdvancedModel(qid);
-  if(m.empty())
-    m = GetSimpleModel(qid);
+  if (m.empty()) m = GetSimpleModel(qid);
   *this = m;
 }
-

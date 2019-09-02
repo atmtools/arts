@@ -15,7 +15,6 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-
 ////////////////////////////////////////////////////////////////////////////
 //   File description
 ////////////////////////////////////////////////////////////////////////////
@@ -35,7 +34,6 @@
 #include "nc_io.h"
 #include "nc_io_types.h"
 
-
 //=== Matrix ==========================================================
 
 //! Reads a Matrix from a NetCDF file
@@ -43,24 +41,21 @@
   \param ncdi    NetCDF file descriptor
   \param m       Matrix
 */
-void nca_read_from_file(const int ncid, Matrix& m, const Verbosity&)
-{
+void nca_read_from_file(const int ncid, Matrix& m, const Verbosity&) {
   Index nrows, ncols;
-  nrows  = nc_get_dim(ncid, "nrows");
-  ncols  = nc_get_dim(ncid, "ncols");
+  nrows = nc_get_dim(ncid, "nrows");
+  ncols = nc_get_dim(ncid, "ncols");
 
   m.resize(nrows, ncols);
   nca_get_data_double(ncid, "Matrix", m.get_c_array());
 }
-
 
 //! Writes a Matrix to a NetCDF file
 /*!
   \param ncf     NetCDF file descriptor
   \param m       Matrix
 */
-void nca_write_to_file(const int ncid, const Matrix& m, const Verbosity&)
-{
+void nca_write_to_file(const int ncid, const Matrix& m, const Verbosity&) {
   int retval;
   int ncdims[2], varid;
   if ((retval = nc_def_dim(ncid, "nrows", m.nrows(), &ncdims[0])))
@@ -74,7 +69,6 @@ void nca_write_to_file(const int ncid, const Matrix& m, const Verbosity&)
     nca_error(retval, "nc_put_var");
 }
 
-
 //=== Tensor3 ==========================================================
 
 //! Reads a Tensor3 from a NetCDF file
@@ -82,25 +76,22 @@ void nca_write_to_file(const int ncid, const Matrix& m, const Verbosity&)
   \param ncf     NetCDF file descriptor
   \param t       Tensor3
 */
-void nca_read_from_file(const int ncid, Tensor3& t, const Verbosity&)
-{
+void nca_read_from_file(const int ncid, Tensor3& t, const Verbosity&) {
   Index npages, nrows, ncols;
   npages = nc_get_dim(ncid, "npages");
-  nrows  = nc_get_dim(ncid, "nrows");
-  ncols  = nc_get_dim(ncid, "ncols");
+  nrows = nc_get_dim(ncid, "nrows");
+  ncols = nc_get_dim(ncid, "ncols");
 
   t.resize(npages, nrows, ncols);
   nca_get_data_double(ncid, "Tensor3", t.get_c_array());
 }
-
 
 //! Writes a Tensor3 to a NetCDF file
 /*!
   \param ncf     NetCDF file descriptor
   \param t       Tensor3
 */
-void nca_write_to_file(const int ncid, const Tensor3& t, const Verbosity&)
-{
+void nca_write_to_file(const int ncid, const Tensor3& t, const Verbosity&) {
   int retval;
   int ncdims[3], varid;
   if ((retval = nc_def_dim(ncid, "npages", t.npages(), &ncdims[0])))
@@ -116,7 +107,6 @@ void nca_write_to_file(const int ncid, const Tensor3& t, const Verbosity&)
     nca_error(retval, "nc_put_var");
 }
 
-
 //=== Tensor4 ==========================================================
 
 //! Reads a Tensor4 from a NetCDF file
@@ -124,26 +114,23 @@ void nca_write_to_file(const int ncid, const Tensor3& t, const Verbosity&)
   \param ncf     NetCDF file descriptor
   \param t       Tensor4
 */
-void nca_read_from_file(const int ncid, Tensor4& t, const Verbosity&)
-{
+void nca_read_from_file(const int ncid, Tensor4& t, const Verbosity&) {
   Index nbooks, npages, nrows, ncols;
   nbooks = nc_get_dim(ncid, "nbooks");
   npages = nc_get_dim(ncid, "npages");
-  nrows  = nc_get_dim(ncid, "nrows");
-  ncols  = nc_get_dim(ncid, "ncols");
+  nrows = nc_get_dim(ncid, "nrows");
+  ncols = nc_get_dim(ncid, "ncols");
 
   t.resize(nbooks, npages, nrows, ncols);
   nca_get_data_double(ncid, "Tensor4", t.get_c_array());
 }
-
 
 //! Writes a Tensor4 to a NetCDF file
 /*!
   \param ncf     NetCDF file descriptor
   \param t       Tensor4
 */
-void nca_write_to_file(const int ncid, const Tensor4& t, const Verbosity&)
-{
+void nca_write_to_file(const int ncid, const Tensor4& t, const Verbosity&) {
   int retval;
   int ncdims[4], varid;
   if ((retval = nc_def_dim(ncid, "nbooks", t.nbooks(), &ncdims[0])))
@@ -161,7 +148,6 @@ void nca_write_to_file(const int ncid, const Tensor4& t, const Verbosity&)
     nca_error(retval, "nc_put_var");
 }
 
-
 //=== Tensor5 ==========================================================
 
 //! Reads a Tensor5 from a NetCDF file
@@ -169,27 +155,24 @@ void nca_write_to_file(const int ncid, const Tensor4& t, const Verbosity&)
   \param ncf     NetCDF file descriptor
   \param t       Tensor5
 */
-void nca_read_from_file(const int ncid, Tensor5& t, const Verbosity&)
-{
+void nca_read_from_file(const int ncid, Tensor5& t, const Verbosity&) {
   Index nshelves, nbooks, npages, nrows, ncols;
   nshelves = nc_get_dim(ncid, "nshelves");
   nbooks = nc_get_dim(ncid, "nbooks");
   npages = nc_get_dim(ncid, "npages");
-  nrows  = nc_get_dim(ncid, "nrows");
-  ncols  = nc_get_dim(ncid, "ncols");
+  nrows = nc_get_dim(ncid, "nrows");
+  ncols = nc_get_dim(ncid, "ncols");
 
   t.resize(nshelves, nbooks, npages, nrows, ncols);
   nca_get_data_double(ncid, "Tensor5", t.get_c_array());
 }
-
 
 //! Writes a Tensor5 to a NetCDF file
 /*!
   \param ncf     NetCDF file descriptor
   \param t       Tensor5
 */
-void nca_write_to_file(const int ncid, const Tensor5& t, const Verbosity&)
-{
+void nca_write_to_file(const int ncid, const Tensor5& t, const Verbosity&) {
   int retval;
   int ncdims[5], varid;
   if ((retval = nc_def_dim(ncid, "nshelves", t.nshelves(), &ncdims[0])))
@@ -209,7 +192,6 @@ void nca_write_to_file(const int ncid, const Tensor5& t, const Verbosity&)
     nca_error(retval, "nc_put_var");
 }
 
-
 //=== Vector ==========================================================
 
 //! Reads a Vector from a NetCDF file
@@ -217,8 +199,7 @@ void nca_write_to_file(const int ncid, const Tensor5& t, const Verbosity&)
   \param ncf     NetCDF file descriptor
   \param v       Vector
 */
-void nca_read_from_file(const int ncid, Vector& v, const Verbosity&)
-{
+void nca_read_from_file(const int ncid, Vector& v, const Verbosity&) {
   Index nelem;
   nelem = nc_get_dim(ncid, "nelem");
 
@@ -226,14 +207,12 @@ void nca_read_from_file(const int ncid, Vector& v, const Verbosity&)
   nca_get_data_double(ncid, "Vector", v.get_c_array());
 }
 
-
 //! Writes a Vector to a NetCDF file
 /*!
   \param ncid    NetCDF file descriptor
   \param v       Vector
 */
-void nca_write_to_file(const int ncid, const Vector& v, const Verbosity&)
-{
+void nca_write_to_file(const int ncid, const Vector& v, const Verbosity&) {
   int retval;
   int ncdim, varid;
   if ((retval = nc_def_dim(ncid, "nelem", v.nelem(), &ncdim)))
@@ -245,19 +224,16 @@ void nca_write_to_file(const int ncid, const Vector& v, const Verbosity&)
     nca_error(retval, "nc_put_var");
 }
 
-
 ////////////////////////////////////////////////////////////////////////////
 //   Dummy funtion for groups for which
 //   IO function have not yet been implemented
 ////////////////////////////////////////////////////////////////////////////
 
-#define TMPL_NC_READ_WRITE_FILE_DUMMY(what) \
-  void nca_write_to_file(const int, const what&, const Verbosity&) \
-  { \
+#define TMPL_NC_READ_WRITE_FILE_DUMMY(what)                                   \
+  void nca_write_to_file(const int, const what&, const Verbosity&) {          \
     throw runtime_error("NetCDF support not yet implemented for this type!"); \
-  } \
-  void nca_read_from_file(const int, what&, const Verbosity&) \
-  { \
+  }                                                                           \
+  void nca_read_from_file(const int, what&, const Verbosity&) {               \
     throw runtime_error("NetCDF support not yet implemented for this type!"); \
   }
 
@@ -267,4 +243,3 @@ void nca_write_to_file(const int ncid, const Vector& v, const Verbosity&)
 #undef TMPL_NC_READ_WRITE_FILE_DUMMY
 
 #endif /* ENABLE_NETCDF */
-

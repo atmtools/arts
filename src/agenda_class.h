@@ -27,8 +27,8 @@
 #define agenda_class_h
 
 #include <set>
-#include "token.h"
 #include "messages.h"
+#include "token.h"
 
 class MRecord;
 
@@ -42,23 +42,27 @@ class Workspace;
   calculation. 
 */
 class Agenda {
-public:
-
-  Agenda() : mname(), mml(), moutput_push(), moutput_dup(), main_agenda(false),
-             mchecked(false)
-  { /* Nothing to do here */ }
+ public:
+  Agenda()
+      : mname(),
+        mml(),
+        moutput_push(),
+        moutput_dup(),
+        main_agenda(false),
+        mchecked(false) { /* Nothing to do here */
+  }
 
   /*! 
     Copies an agenda.
   */
-  Agenda(const Agenda& x) : mname(x.mname),
-                            mml(x.mml),
-                            moutput_push(x.moutput_push),
-                            moutput_dup(x.moutput_dup),
-                            main_agenda(x.main_agenda),
-                            mchecked(x.mchecked)
-  { /* Nothing to do here */ }
-
+  Agenda(const Agenda& x)
+      : mname(x.mname),
+        mml(x.mml),
+        moutput_push(x.moutput_push),
+        moutput_dup(x.moutput_dup),
+        main_agenda(x.main_agenda),
+        mchecked(x.mchecked) { /* Nothing to do here */
+  }
 
   void append(const String& methodname, const TokVal& keywordvalue);
   void check(Workspace& ws, const Verbosity& verbosity);
@@ -69,7 +73,10 @@ public:
   inline Agenda& operator=(const Agenda& x);
   const Array<MRecord>& Methods() const { return mml; }
   bool has_method(const String& methodname) const;
-  void set_methods(const Array<MRecord>& ml) { mml = ml; mchecked = false; }
+  void set_methods(const Array<MRecord>& ml) {
+    mml = ml;
+    mchecked = false;
+  }
   void set_outputs_to_push_and_dup(const Verbosity& verbosity);
   bool is_input(Workspace& ws, Index var) const;
   bool is_output(Index var) const;
@@ -78,13 +85,16 @@ public:
   const ArrayOfIndex& get_output2push() const { return moutput_push; }
   const ArrayOfIndex& get_output2dup() const { return moutput_dup; }
   void print(ostream& os, const String& indent) const;
-  void set_main_agenda() { main_agenda = true; mchecked = true; }
+  void set_main_agenda() {
+    main_agenda = true;
+    mchecked = true;
+  }
   bool is_main_agenda() const { return main_agenda; }
   bool checked() const { return mchecked; }
 
-private:
-  String         mname; /*!< Agenda name. */
-  Array<MRecord> mml;   /*!< The actual list of methods to execute. */
+ private:
+  String mname;       /*!< Agenda name. */
+  Array<MRecord> mml; /*!< The actual list of methods to execute. */
 
   ArrayOfIndex moutput_push;
 
@@ -100,7 +110,6 @@ private:
 // Documentation with implementation.
 ostream& operator<<(ostream& os, const Agenda& a);
 
-
 /** Method runtime data. In contrast to MdRecord, an object of this
     class contains the runtime information for one method: The method
     id. This is all that the engine needs to execute the stack of methods.
@@ -110,41 +119,44 @@ ostream& operator<<(ostream& os, const Agenda& a);
 
     @author Stefan Buehler */
 class MRecord {
-public:
-  MRecord() : mid(-1),
-              moutput(),
-              minput(),
-              msetvalue(),
-              mtasks(),
-              minternal(false)
-  { /* Nothing to do here. */ }
+ public:
+  MRecord()
+      : mid(-1),
+        moutput(),
+        minput(),
+        msetvalue(),
+        mtasks(),
+        minternal(false) { /* Nothing to do here. */
+  }
 
-  MRecord(const MRecord& x) : mid(x.mid),
-                              moutput(x.moutput),
-                              minput(x.minput),
-                              msetvalue(x.msetvalue),
-                              mtasks(x.mtasks),
-                              minternal(x.minternal)
-  { /* Nothing to do here */ }
+  MRecord(const MRecord& x)
+      : mid(x.mid),
+        moutput(x.moutput),
+        minput(x.minput),
+        msetvalue(x.msetvalue),
+        mtasks(x.mtasks),
+        minternal(x.minternal) { /* Nothing to do here */
+  }
 
-  MRecord(const Index         id,
+  MRecord(const Index id,
           const ArrayOfIndex& output,
           const ArrayOfIndex& input,
-          const TokVal&       setvalue,
-          const Agenda&       tasks,
-                bool          internal = false) : mid(id),
-                                          moutput(output),
-                                          minput(input),
-                                          msetvalue(setvalue),
-                                          mtasks(tasks),
-                                          minternal(internal)
-  { /* Nothing to do here */ }
+          const TokVal& setvalue,
+          const Agenda& tasks,
+          bool internal = false)
+      : mid(id),
+        moutput(output),
+        minput(input),
+        msetvalue(setvalue),
+        mtasks(tasks),
+        minternal(internal) { /* Nothing to do here */
+  }
 
-  Index               Id()       const { return mid;       }
-  const ArrayOfIndex& Out()      const { return moutput;   }
-  const ArrayOfIndex& In()       const { return minput;    }
-  const TokVal&       SetValue() const { return msetvalue; }
-  const Agenda&       Tasks()    const { return mtasks;    }
+  Index Id() const { return mid; }
+  const ArrayOfIndex& Out() const { return moutput; }
+  const ArrayOfIndex& In() const { return minput; }
+  const TokVal& SetValue() const { return msetvalue; }
+  const Agenda& Tasks() const { return mtasks; }
 
   //! Indicates the origin of this method.
   /*!
@@ -177,8 +189,7 @@ public:
     \author Stefan Buehler
     \date   2002-12-02
     */
-  MRecord& operator=(const MRecord& x)
-  {
+  MRecord& operator=(const MRecord& x) {
     mid = x.mid;
 
     msetvalue = x.msetvalue;
@@ -205,26 +216,25 @@ public:
     \author Oliver Lemke
     \date   2008-02-27
   */
-  void ginput_only(ArrayOfIndex& ginonly) const
-  {
-    ginonly = minput;      // Input
-    for (ArrayOfIndex::const_iterator j = moutput.begin(); j < moutput.end(); ++j)
+  void ginput_only(ArrayOfIndex& ginonly) const {
+    ginonly = minput;  // Input
+    for (ArrayOfIndex::const_iterator j = moutput.begin(); j < moutput.end();
+         ++j)
       for (ArrayOfIndex::iterator k = ginonly.begin(); k < ginonly.end(); ++k)
-        if (*j == *k)
-          {
-            //              erase_vector_element(vi,k);
-            k = ginonly.erase(k) - 1;
-            // We need the -1 here, otherwise due to the
-            // following increment we would miss the element
-            // behind the erased one, which is now at the
-            // position of the erased one.
-          }
+        if (*j == *k) {
+          //              erase_vector_element(vi,k);
+          k = ginonly.erase(k) - 1;
+          // We need the -1 here, otherwise due to the
+          // following increment we would miss the element
+          // behind the erased one, which is now at the
+          // position of the erased one.
+        }
   }
 
   // Output operator:
   void print(ostream& os, const String& indent) const;
 
-private:
+ private:
   /** Method id. */
   Index mid;
   /** Output workspace variables. */
@@ -244,10 +254,7 @@ private:
 /*!
   Resizes the agenda's method list to n elements
  */
-inline void Agenda::resize(Index n)
-{
-  mml.resize(n);
-}
+inline void Agenda::resize(Index n) { mml.resize(n); }
 
 //! Return the number of agenda elements.
 /*!  
@@ -256,11 +263,7 @@ inline void Agenda::resize(Index n)
 
   \return Number of agenda elements.
 */
-inline Index Agenda::nelem() const
-{
-  return mml.nelem();
-}
-
+inline Index Agenda::nelem() const { return mml.nelem(); }
 
 //! Append a new method to end of list.
 /*! 
@@ -268,19 +271,16 @@ inline Index Agenda::nelem() const
 
   \param n New method to add.
 */
-inline void Agenda::push_back(const MRecord& n)
-{
+inline void Agenda::push_back(const MRecord& n) {
   mml.push_back(n);
   mchecked = false;
 }
-
 
 //! Assignment operator.
 /*! 
   Copies an agenda.
 */
-inline Agenda& Agenda::operator=(const Agenda& x)
-{
+inline Agenda& Agenda::operator=(const Agenda& x) {
   mml = x.mml;
   mname = x.mname;
   moutput_push = x.moutput_push;
@@ -296,4 +296,3 @@ ostream& operator<<(ostream& os, const MRecord& a);
 typedef Array<Agenda> ArrayOfAgenda;
 
 #endif
-

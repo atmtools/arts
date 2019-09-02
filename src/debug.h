@@ -31,38 +31,34 @@
 
 #include <iostream>
 
-
 // Use this macro around function parameter names and variable definitions
 // which are only used in assertions
 #define DEBUG_ONLY(...) __VA_ARGS__
 
 // Use this macro to output a counter value everytime a
 // certain place is reached
-#define DEBUG_COUNTER(n) \
-{ \
-  static Index n = 0; \
-  std::cerr << "DBG: " << #n << ": " << ++n << std::endl; \
-}
+#define DEBUG_COUNTER(n)                                    \
+  {                                                         \
+    static Index n = 0;                                     \
+    std::cerr << "DBG: " << #n << ": " << ++n << std::endl; \
+  }
 
 // Print value of expression for debugging
 #define DEBUG_PRINT(e) \
-{ \
-  std::cerr << "DBG: " << (e) << std::endl; \
-}
+  { std::cerr << "DBG: " << (e) << std::endl; }
 
 // Print expression and value for debugging
 #define DEBUG_VAR(e) \
-{ \
-  std::cerr << "DBG: " << #e << ": " << (e) << std::endl; \
-}
+  { std::cerr << "DBG: " << #e << ": " << (e) << std::endl; }
 
 // Print expression and value with the given fp precision for debugging
-#define DEBUG_VAR_FLT(p, e) \
-{ \
-  std::streamsize old_p = std::cerr.precision(); \
-  std::cerr << "DBG: " << #e << ": " << std::setprecision(p) \
-  << (e) << std::endl << std::setprecision(old_p); \
-}
+#define DEBUG_VAR_FLT(p, e)                                           \
+  {                                                                   \
+    std::streamsize old_p = std::cerr.precision();                    \
+    std::cerr << "DBG: " << #e << ": " << std::setprecision(p) << (e) \
+              << std::endl                                            \
+              << std::setprecision(old_p);                            \
+  }
 
 #else
 
@@ -79,5 +75,3 @@
 #endif /* NDEBUG */
 
 #endif /* debug_h */
-
-

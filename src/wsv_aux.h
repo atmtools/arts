@@ -28,10 +28,9 @@
 #ifndef wsv_aux_h
 #define wsv_aux_h
 
-#include "arts.h"
 #include "array.h"
+#include "arts.h"
 #include "exceptions.h"
-
 
 //! Returns list of ids of the given group names
 void get_wsv_group_ids(ArrayOfIndex& ids, String name);
@@ -43,8 +42,8 @@ bool is_agenda_group_id(const Index group_id);
 Index get_wsv_group_id(const String& name);
 
 //! Return string list of array types
-String get_array_groups_as_string(bool basetype_is_group = false, bool return_basetype_only = false);
-
+String get_array_groups_as_string(bool basetype_is_group = false,
+                                  bool return_basetype_only = false);
 
 /** This class contains all static information for one workspace
     variable.
@@ -55,71 +54,68 @@ String get_array_groups_as_string(bool basetype_is_group = false, bool return_ba
 
     \author Stefan Buehler */
 class WsvRecord {
-public:
-
+ public:
   /** Default constructor. */
-  WsvRecord() : mname(),
-                mdescription(),
-                mgroup(-1),
-                mimplicit(false)
-  { /* Nothing to do here */ }
+  WsvRecord()
+      : mname(),
+        mdescription(),
+        mgroup(-1),
+        mimplicit(false) { /* Nothing to do here */
+  }
 
   /** Initializing constructor.
 
     This is used by Workspace::define_wsv_data() to set the information for
     each workspace variable. */
-  WsvRecord(const char    name[],
-            const char    description[],
+  WsvRecord(const char name[],
+            const char description[],
             const String& group,
-            const bool    implicit = false)
-    : mname(name),
-      mdescription(description),
-      mgroup(-1),
-      mimplicit(implicit)
-  {
+            const bool implicit = false)
+      : mname(name),
+        mdescription(description),
+        mgroup(-1),
+        mimplicit(implicit) {
     // Map the group names to groups' indexes
     mgroup = get_wsv_group_id(group);
-    if (mgroup == -1)
-      {
-        ostringstream os;
+    if (mgroup == -1) {
+      ostringstream os;
 
-        os << "Unknown WSV Group " << group << " WSV " << mname;
-        throw runtime_error( os.str() );
-      }
+      os << "Unknown WSV Group " << group << " WSV " << mname;
+      throw runtime_error(os.str());
+    }
   }
 
   /** Initializing constructor.
 
     This is used by the parser to create automatically allocated variables */
-  WsvRecord(const char  name[],
-            const char  description[],
+  WsvRecord(const char name[],
+            const char description[],
             const Index group,
-            const bool  implicit = false)
-    : mname(name),
-      mdescription(description),
-      mgroup(group),
-      mimplicit(implicit)
-  {
+            const bool implicit = false)
+      : mname(name),
+        mdescription(description),
+        mgroup(group),
+        mimplicit(implicit) {
     // Nothing to do here
   }
   /** Name of this workspace variable. */
-  const String&  Name()        const { return mname;        }   
+  const String& Name() const { return mname; }
   /** A text describing this workspace variable. */
-  const String&  Description() const { return mdescription; }
+  const String& Description() const { return mdescription; }
   /** The wsv group to which this variable belongs. */
-  Index   Group()       const { return mgroup;       }
+  Index Group() const { return mgroup; }
   /** Returns true if the variable was automatically created. */
-  bool    Implicit()    const { return mimplicit;       }
-private:
+  bool Implicit() const { return mimplicit; }
+
+ private:
   String mname;
   String mdescription;
   Index mgroup;
   bool mimplicit;
 };
 
-
 /** Output operator for WsvRecord.
   \author Stefan Buehler */
 ostream& operator<<(ostream& os, const WsvRecord& wr);
 
-#endif   // wsv_aux_h
+#endif  // wsv_aux_h

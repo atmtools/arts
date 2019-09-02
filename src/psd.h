@@ -27,40 +27,33 @@
   \brief  Internal functions of PSD type
 */
 
-
 #ifndef psd_h
 #define psd_h
 
-#include "matpackVII.h"
-#include "interpolation.h"
-#include "optproperties.h"
 #include "array.h"
 #include "gridded_fields.h"
-#include "ppath.h"
+#include "interpolation.h"
+#include "matpackVII.h"
 #include "messages.h"
+#include "optproperties.h"
+#include "ppath.h"
 
-void psd_cloudice_MH97( Vector& psd, 
-                   const Vector& diameter,
-                   const Numeric& iwc,
-                   const Numeric& t,
-                   const bool noisy );
+void psd_cloudice_MH97(Vector& psd,
+                       const Vector& diameter,
+                       const Numeric& iwc,
+                       const Numeric& t,
+                       const bool noisy);
 
-void psd_rain_A12( Vector& psd,
-                   const Vector& diameter,
-                   const Numeric& rwc );
+void psd_rain_A12(Vector& psd, const Vector& diameter, const Numeric& rwc);
 
-void psd_rain_W16( Vector& psd,
-                   const Vector& diameter,
-                   const Numeric& rwc );
+void psd_rain_W16(Vector& psd, const Vector& diameter, const Numeric& rwc);
 
-void psd_snow_F07( Vector& psd,
-                   const Vector& diameter,
-                   const Numeric& swc,
-                   const Numeric& t,
-                   const Numeric alpha,
-                   const Numeric beta,
-                   const String& regime );
+void psd_snow_F07(Vector& psd,
+                  const Vector& diameter,
+                  const Numeric& swc,
+                  const Numeric& t,
+                  const Numeric alpha,
+                  const Numeric beta,
+                  const String& regime);
 
-
-#endif //psd_h
-
+#endif  //psd_h

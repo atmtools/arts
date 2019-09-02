@@ -32,33 +32,31 @@
 /** The outermost iterator class for rank 3 tensors. This takes into
     account the defined strided. */
 class Iterator3D {
-public:
+ public:
   // Constructors:
   /** Default constructor. */
   Iterator3D() = default;
 
   /** Explicit constructor. */
-  Iterator3D(const MatrixView& x, Index stride) : msv(x), mstride(stride)
-      { /* Nothing to do here. */ }
+  Iterator3D(const MatrixView& x, Index stride)
+      : msv(x), mstride(stride) { /* Nothing to do here. */
+  }
 
   // Operators:
   /** Prefix increment operator. */
-  Iterator3D& operator++()
-    { msv.mdata += mstride; return *this; }
+  Iterator3D& operator++() {
+    msv.mdata += mstride;
+    return *this;
+  }
 
   /** Not equal operator, needed for algorithms like copy. */
-  bool operator!=(const Iterator3D& other) const
-    { if ( msv.mdata +
-           msv.mrr.mstart +
-           msv.mcr.mstart
-           !=
-           other.msv.mdata +
-           other.msv.mrr.mstart +
-           other.msv.mcr.mstart )
-        return true;
-      else
-        return false;
-    }
+  bool operator!=(const Iterator3D& other) const {
+    if (msv.mdata + msv.mrr.mstart + msv.mcr.mstart !=
+        other.msv.mdata + other.msv.mrr.mstart + other.msv.mcr.mstart)
+      return true;
+    else
+      return false;
+  }
 
   /** The -> operator is needed, so that we can write i->begin() to get
     the 1D iterators. */
@@ -66,8 +64,8 @@ public:
 
   /** Dereferencing. */
   MatrixView& operator*() { return msv; }
- 
-private:
+
+ private:
   /** Current position. */
   MatrixView msv;
   /** Stride. */
@@ -76,33 +74,31 @@ private:
 
 /** Const version of Iterator3D. */
 class ConstIterator3D {
-public:
+ public:
   // Constructors:
   /** Default constructor. */
   ConstIterator3D() = default;
 
   /** Explicit constructor. */
   ConstIterator3D(const ConstMatrixView& x, Index stride)
-    : msv(x), mstride(stride)
-      { /* Nothing to do here. */ }
+      : msv(x), mstride(stride) { /* Nothing to do here. */
+  }
 
   // Operators:
   /** Prefix increment operator. */
-  ConstIterator3D& operator++() { msv.mdata += mstride; return *this; }
+  ConstIterator3D& operator++() {
+    msv.mdata += mstride;
+    return *this;
+  }
 
   /** Not equal operator, needed for algorithms like copy. */
-  bool operator!=(const ConstIterator3D& other) const
-    { if ( msv.mdata +
-           msv.mrr.mstart +
-           msv.mcr.mstart
-           !=
-           other.msv.mdata +
-           other.msv.mrr.mstart +
-           other.msv.mcr.mstart )
-        return true;
-      else
-        return false;
-    }
+  bool operator!=(const ConstIterator3D& other) const {
+    if (msv.mdata + msv.mrr.mstart + msv.mcr.mstart !=
+        other.msv.mdata + other.msv.mrr.mstart + other.msv.mcr.mstart)
+      return true;
+    else
+      return false;
+  }
 
   /** The -> operator is needed, so that we can write i->begin() to get
     the 1D iterators. */
@@ -111,18 +107,15 @@ public:
   /** Dereferencing. */
   const ConstMatrixView& operator*() const { return msv; }
 
-
-private:
+ private:
   /** Current position. */
   ConstMatrixView msv;
   /** Stride. */
   Index mstride{0};
 };
 
-
 // Declare class Tensor3:
 class Tensor3;
-
 
 /** A constant view of a Tensor3.
 
@@ -137,7 +130,7 @@ class Tensor3;
     The class Tensor3 is just a special case of a Tensor3View
     which also allocates storage. */
 class ConstTensor3View {
-public:
+ public:
   constexpr ConstTensor3View(const ConstTensor3View&) = default;
   constexpr ConstTensor3View(ConstTensor3View&&) = default;
   ConstTensor3View& operator=(const ConstTensor3View&) = default;
@@ -157,42 +150,42 @@ public:
   Index ncols() const { return mcr.mextent; }
 
   // Const index operators:
-  ConstTensor3View operator()( const Range& p, const Range& r, const Range& c ) const;
+  ConstTensor3View operator()(const Range& p,
+                              const Range& r,
+                              const Range& c) const;
 
-  ConstMatrixView  operator()( const Range& p, const Range& r, Index c        ) const;
-  ConstMatrixView  operator()( const Range& p, Index r,        const Range& c ) const;
-  ConstMatrixView  operator()( Index p,        const Range& r, const Range& c ) const;
+  ConstMatrixView operator()(const Range& p, const Range& r, Index c) const;
+  ConstMatrixView operator()(const Range& p, Index r, const Range& c) const;
+  ConstMatrixView operator()(Index p, const Range& r, const Range& c) const;
 
-  ConstVectorView  operator()( Index p,        Index r,        const Range& c ) const;
-  ConstVectorView  operator()( Index p,        const Range& r, Index c        ) const;
-  ConstVectorView  operator()( const Range& p, Index r,        Index c        ) const;
+  ConstVectorView operator()(Index p, Index r, const Range& c) const;
+  ConstVectorView operator()(Index p, const Range& r, Index c) const;
+  ConstVectorView operator()(const Range& p, Index r, Index c) const;
 
   /** Plain const index operator. */
-  Numeric operator()(Index p, Index r, Index c) const
-    { // Check if indices are valid:
-      assert( 0<=p );
-      assert( 0<=r );
-      assert( 0<=c );
-      assert( p<mpr.mextent );
-      assert( r<mrr.mextent );
-      assert( c<mcr.mextent );
+  Numeric operator()(Index p,
+                     Index r,
+                     Index c) const {  // Check if indices are valid:
+    assert(0 <= p);
+    assert(0 <= r);
+    assert(0 <= c);
+    assert(p < mpr.mextent);
+    assert(r < mrr.mextent);
+    assert(c < mcr.mextent);
 
-      return get(p, r, c);
-    }
+    return get(p, r, c);
+  }
 
   /** Get element implementation without assertions. */
-  Numeric get(Index p, Index r, Index c) const
-    {
-      return *( mdata +
-                mpr.mstart + p*mpr.mstride +
-                mrr.mstart + r*mrr.mstride +
-                mcr.mstart + c*mcr.mstride );
-    }
+  Numeric get(Index p, Index r, Index c) const {
+    return *(mdata + mpr.mstart + p * mpr.mstride + mrr.mstart +
+             r * mrr.mstride + mcr.mstart + c * mcr.mstride);
+  }
 
   // Functions returning iterators:
   ConstIterator3D begin() const;
   ConstIterator3D end() const;
-  
+
   //! Destructor
   virtual ~ConstTensor3View() = default;
 
@@ -207,14 +200,20 @@ public:
   // Special constructor to make a Tensor3 view of a matrix.
   ConstTensor3View(const ConstMatrixView& a);
 
-protected:
+ protected:
   // Constructors:
   ConstTensor3View() = default;
-  ConstTensor3View(Numeric *data,
-                   const Range& p, const Range& r, const Range& c);
-  ConstTensor3View(Numeric *data,
-                   const Range& pp, const Range& pr, const Range& pc,
-                   const Range& np, const Range& nr, const Range& nc);
+  ConstTensor3View(Numeric* data,
+                   const Range& p,
+                   const Range& r,
+                   const Range& c);
+  ConstTensor3View(Numeric* data,
+                   const Range& pp,
+                   const Range& pr,
+                   const Range& pc,
+                   const Range& np,
+                   const Range& nr,
+                   const Range& nc);
 
   // Data members:
   // -------------
@@ -225,7 +224,7 @@ protected:
   /** The column range of mdata that is actually used. */
   Range mcr{0, 0, 1};
   /** Pointer to the plain C array that holds the data */
-  Numeric *mdata{nullptr};
+  Numeric* mdata{nullptr};
 };
 
 /** The Tensor3View class
@@ -238,7 +237,7 @@ protected:
     The class Tensor3 is just a special case of a Tensor3View
     which also allocates storage. */
 class Tensor3View : public ConstTensor3View {
-public:
+ public:
   // Make const methods visible from base class
   using ConstTensor3View::begin;
   using ConstTensor3View::end;
@@ -249,47 +248,43 @@ public:
 
   // Non-const index operators:
 
-  Tensor3View operator()( const Range& p, const Range& r, const Range& c );
+  Tensor3View operator()(const Range& p, const Range& r, const Range& c);
 
-  MatrixView  operator()( const Range& p, const Range& r, Index c        );
-  MatrixView  operator()( const Range& p, Index r,        const Range& c );
-  MatrixView  operator()( Index p,        const Range& r, const Range& c );
+  MatrixView operator()(const Range& p, const Range& r, Index c);
+  MatrixView operator()(const Range& p, Index r, const Range& c);
+  MatrixView operator()(Index p, const Range& r, const Range& c);
 
-  VectorView  operator()( Index p,        Index r,        const Range& c );
-  VectorView  operator()( Index p,        const Range& r, Index c        );
-  VectorView  operator()( const Range& p, Index r,        Index c        );
+  VectorView operator()(Index p, Index r, const Range& c);
+  VectorView operator()(Index p, const Range& r, Index c);
+  VectorView operator()(const Range& p, Index r, Index c);
 
   /** Plain non-const index operator. */
-  Numeric&    operator()( Index p,        Index r,        Index c)
-    {
-      // Check if indices are valid:
-      assert( 0<=p );
-      assert( 0<=r );
-      assert( 0<=c );
-      assert( p<mpr.mextent );
-      assert( r<mrr.mextent );
-      assert( c<mcr.mextent );
+  Numeric& operator()(Index p, Index r, Index c) {
+    // Check if indices are valid:
+    assert(0 <= p);
+    assert(0 <= r);
+    assert(0 <= c);
+    assert(p < mpr.mextent);
+    assert(r < mrr.mextent);
+    assert(c < mcr.mextent);
 
-      return get(p, r, c);
-    }
+    return get(p, r, c);
+  }
 
   /** Get element implementation without assertions. */
-  Numeric& get(Index p, Index r, Index c)
-    {
-      return *( mdata +
-                mpr.mstart + p*mpr.mstride +
-                mrr.mstart + r*mrr.mstride +
-                mcr.mstart + c*mcr.mstride );
-    }
+  Numeric& get(Index p, Index r, Index c) {
+    return *(mdata + mpr.mstart + p * mpr.mstride + mrr.mstart +
+             r * mrr.mstride + mcr.mstart + c * mcr.mstride);
+  }
 
   // Conversion to a plain C-array
-  const Numeric *get_c_array() const;
-  Numeric *get_c_array();
+  const Numeric* get_c_array() const;
+  Numeric* get_c_array();
 
   // Functions returning iterators:
   Iterator3D begin();
   Iterator3D end();
-  
+
   // Assignment operators:
   Tensor3View& operator=(const ConstTensor3View& v);
   Tensor3View& operator=(const Tensor3View& v);
@@ -320,13 +315,17 @@ public:
   // Special constructor to make a Tensor3 view of a matrix.
   Tensor3View(const MatrixView& a);
 
-protected:
+ protected:
   // Constructors:
   Tensor3View() = default;
-  Tensor3View(Numeric *data, const Range& p, const Range& r, const Range& c);
-  Tensor3View(Numeric *data,
-              const Range& pp, const Range& pr, const Range& pc,
-              const Range& np, const Range& nr, const Range& nc);
+  Tensor3View(Numeric* data, const Range& p, const Range& r, const Range& c);
+  Tensor3View(Numeric* data,
+              const Range& pp,
+              const Range& pr,
+              const Range& pc,
+              const Range& np,
+              const Range& nr,
+              const Range& nc);
 };
 
 /** The Tensor3 class. This is a Tensor3View that also allocates storage
@@ -338,15 +337,16 @@ protected:
     2. Assignment operators.
     3. Resize function. */
 class Tensor3 : public Tensor3View {
-public:
+ public:
   // Constructors:
   Tensor3() = default;
   Tensor3(Index p, Index r, Index c);
   Tensor3(Index p, Index r, Index c, Numeric fill);
   Tensor3(const ConstTensor3View& v);
   Tensor3(const Tensor3& v);
-  Tensor3(Tensor3&& v) noexcept : Tensor3View(std::forward<Tensor3View>(v))
-  { v.mdata = nullptr; }
+  Tensor3(Tensor3&& v) noexcept : Tensor3View(std::forward<Tensor3View>(v)) {
+    v.mdata = nullptr;
+  }
 
   // Assignment operators:
   Tensor3& operator=(const Tensor3& x);
@@ -363,7 +363,6 @@ public:
   virtual ~Tensor3();
 };
 
-
 // Function declarations:
 // ----------------------
 
@@ -371,13 +370,9 @@ void copy(ConstIterator3D origin,
           const ConstIterator3D& end,
           Iterator3D target);
 
-void copy(Numeric x,
-          Iterator3D target,
-          const Iterator3D& end);
+void copy(Numeric x, Iterator3D target, const Iterator3D& end);
 
-void transform( Tensor3View y,
-                double (&my_func)(double),
-                ConstTensor3View x );
+void transform(Tensor3View y, double (&my_func)(double), ConstTensor3View x);
 
 Numeric max(const ConstTensor3View& x);
 
@@ -389,12 +384,11 @@ std::ostream& operator<<(std::ostream& os, const ConstTensor3View& v);
 // Helper function for debugging
 #ifndef NDEBUG
 
-Numeric debug_tensor3view_get_elem (Tensor3View& tv,
-                                    Index p, Index r, Index c);
+Numeric debug_tensor3view_get_elem(Tensor3View& tv, Index p, Index r, Index c);
 
 #endif
 ////////////////////////////////
 
 void mult(Tensor3View A, const ConstVectorView B, const ConstMatrixView C);
 
-#endif    // matpackIII_h
+#endif  // matpackIII_h

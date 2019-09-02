@@ -33,35 +33,27 @@ generator from the GNU Scientific Library <http://www.gnu.org/software/gsl/>.
 */
 
 #include "rng.h"
-#include <cstring>
-#include <iostream>
 #include <algorithm>
-#include <vector>
 #include <climits>
 #include <cstddef>
-#include <cstdlib>
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <vector>
 
 #include "arts.h"
 #include "messages.h"
 
-
 /*!
 Constructor creates instance of gsl_rng of type gsl_rng_mt19937
 */
-Rng::Rng()                            
-{
-  r = gsl_rng_alloc (gsl_rng_mt19937);
-}
-
+Rng::Rng() { r = gsl_rng_alloc(gsl_rng_mt19937); }
 
 /*!
 Destructor frees memory allocated to gsl_rng 
 */
-Rng::~Rng()
-{
-  gsl_rng_free (r);
-}
+Rng::~Rng() { gsl_rng_free(r); }
 
 /*!
  Seeds the Rng with the integer argument. 
@@ -69,68 +61,55 @@ Rng::~Rng()
  Every seed is only used once. The provided seed is increased by 1 until an
  unused seed is found.
 */
-void Rng::seed(unsigned long int n, const Verbosity& verbosity)
-{
+void Rng::seed(unsigned long int n, const Verbosity &verbosity) {
   // Static pool of previously used seeds.
   static vector<unsigned long int> seeds;
 
-#pragma omp critical (Rng_seed)
+#pragma omp critical(Rng_seed)
   {
     unsigned long int n_orig = n;
     //cout << "Requested seed: " << n;
-    while (find(seeds.begin(), seeds.end(), n) != seeds.end())
-    {
+    while (find(seeds.begin(), seeds.end(), n) != seeds.end()) {
       if (n >= ULONG_MAX - 1)
-        n=0;
+        n = 0;
       else
         n++;
-      
+
       // If all possible seeds were already used, we empty the pool and
       // start over.
-      if (n == n_orig)
-      {
+      if (n == n_orig) {
         CREATE_OUT0;
-        out0 << "Rng Warning: Couldn't find an unused seed. Clearing seed pool.\n";
+        out0
+            << "Rng Warning: Couldn't find an unused seed. Clearing seed pool.\n";
         seeds.empty();
         break;
       }
     }
     seeds.push_back(n);
-    seed_no=n;
+    seed_no = n;
     //cout << " Got seed: " << seed_no << endl;
   }
-  
-  gsl_rng_set(r,seed_no);
-}
 
+  gsl_rng_set(r, seed_no);
+}
 
 /*!
  Seeds the Rng with the integer argument. 
  */
-void Rng::force_seed(unsigned long int n)
-{
-  seed_no=n;
-  gsl_rng_set(r,seed_no);
+void Rng::force_seed(unsigned long int n) {
+  seed_no = n;
+  gsl_rng_set(r, seed_no);
 }
-
 
 /*!
 Draws a double from the uniform distribution [0,1)
 */
-double Rng::draw()
-{
-  return gsl_rng_uniform (r);
-}
-
+double Rng::draw() { return gsl_rng_uniform(r); }
 
 /*!
 Returns the seed number
 */
-unsigned long int Rng::showseed() const
-{
-  return seed_no; 
-}
-
+unsigned long int Rng::showseed() const { return seed_no; }
 
 /* 
    rng/mt.c
@@ -188,61 +167,54 @@ unsigned long int Rng::showseed() const
 
 */
 
-static inline unsigned long int mt_get (void *vstate);
-static double mt_get_double (void *vstate);
-static void mt_set (void *state, unsigned long int s);
+static inline unsigned long int mt_get(void *vstate);
+static double mt_get_double(void *vstate);
+static void mt_set(void *state, unsigned long int s);
 
-#define N 624   /* Period parameters */
+#define N 624 /* Period parameters */
 #define M 397
 
 /* most significant w-r bits */
-static const unsigned long UPPER_MASK = 0x80000000UL;   
+static const unsigned long UPPER_MASK = 0x80000000UL;
 
 /* least significant r bits */
-static const unsigned long LOWER_MASK = 0x7fffffffUL;   
+static const unsigned long LOWER_MASK = 0x7fffffffUL;
 
-typedef struct
-  {
-    unsigned long mt[N];
-    int mti;
-  }
-mt_state_t;
+typedef struct {
+  unsigned long mt[N];
+  int mti;
+} mt_state_t;
 
-static inline unsigned long
-mt_get (void *vstate)
-{
-  mt_state_t *state = (mt_state_t *) vstate;
+static inline unsigned long mt_get(void *vstate) {
+  mt_state_t *state = (mt_state_t *)vstate;
 
-  unsigned long k ;
+  unsigned long k;
   unsigned long int *const mt = state->mt;
 
 #define MAGIC(y) (((y)&0x1) ? 0x9908b0dfUL : 0)
 
-  if (state->mti >= N)
-    {   /* generate N words at one time */
-      int kk;
+  if (state->mti >= N) { /* generate N words at one time */
+    int kk;
 
-      for (kk = 0; kk < N - M; kk++)
-        {
-          unsigned long y = (mt[kk] & UPPER_MASK) | (mt[kk + 1] & LOWER_MASK);
-          mt[kk] = mt[kk + M] ^ (y >> 1) ^ MAGIC(y);
-        }
-      for (; kk < N - 1; kk++)
-        {
-          unsigned long y = (mt[kk] & UPPER_MASK) | (mt[kk + 1] & LOWER_MASK);
-          mt[kk] = mt[kk + (M - N)] ^ (y >> 1) ^ MAGIC(y);
-        }
-
-      {
-        unsigned long y = (mt[N - 1] & UPPER_MASK) | (mt[0] & LOWER_MASK);
-        mt[N - 1] = mt[M - 1] ^ (y >> 1) ^ MAGIC(y);
-      }
-
-      state->mti = 0;
+    for (kk = 0; kk < N - M; kk++) {
+      unsigned long y = (mt[kk] & UPPER_MASK) | (mt[kk + 1] & LOWER_MASK);
+      mt[kk] = mt[kk + M] ^ (y >> 1) ^ MAGIC(y);
+    }
+    for (; kk < N - 1; kk++) {
+      unsigned long y = (mt[kk] & UPPER_MASK) | (mt[kk + 1] & LOWER_MASK);
+      mt[kk] = mt[kk + (M - N)] ^ (y >> 1) ^ MAGIC(y);
     }
 
+    {
+      unsigned long y = (mt[N - 1] & UPPER_MASK) | (mt[0] & LOWER_MASK);
+      mt[N - 1] = mt[M - 1] ^ (y >> 1) ^ MAGIC(y);
+    }
+
+    state->mti = 0;
+  }
+
   /* Tempering */
-  
+
   k = mt[state->mti];
   k ^= (k >> 11);
   k ^= (k << 7) & 0x9d2c5680UL;
@@ -254,48 +226,38 @@ mt_get (void *vstate)
   return k;
 }
 
-static double
-mt_get_double (void * vstate)
-{
-  return (double)mt_get (vstate) / 4294967296.0 ;
+static double mt_get_double(void *vstate) {
+  return (double)mt_get(vstate) / 4294967296.0;
 }
 
-static void
-mt_set (void *vstate, unsigned long int s)
-{
-  mt_state_t *state = (mt_state_t *) vstate;
+static void mt_set(void *vstate, unsigned long int s) {
+  mt_state_t *state = (mt_state_t *)vstate;
   int i;
 
-  if (s == 0)
-    s = 4357;   /* the default seed is 4357 */
+  if (s == 0) s = 4357; /* the default seed is 4357 */
 
-  state->mt[0]= s & 0xffffffffUL;
+  state->mt[0] = s & 0xffffffffUL;
 
-  for (i = 1; i < N; i++)
-    {
-      /* See Knuth's "Art of Computer Programming" Vol. 2, 3rd
+  for (i = 1; i < N; i++) {
+    /* See Knuth's "Art of Computer Programming" Vol. 2, 3rd
          Ed. p.106 for multiplier. */
 
-      state->mt[i] =
-        (1812433253UL * (state->mt[i-1] ^ (state->mt[i-1] >> 30)) + i);
-      
-      state->mt[i] &= 0xffffffffUL;
-    }
+    state->mt[i] =
+        (1812433253UL * (state->mt[i - 1] ^ (state->mt[i - 1] >> 30)) + i);
+
+    state->mt[i] &= 0xffffffffUL;
+  }
 
   state->mti = i;
 }
 
-
-
-static const gsl_rng_type mt_type =
-{"mt19937",                     /* name */
- 0xffffffffUL,                  /* RAND_MAX  */
- 0,                             /* RAND_MIN  */
- sizeof (mt_state_t),
- &mt_set,
- &mt_get,
- &mt_get_double};
-
+static const gsl_rng_type mt_type = {"mt19937",    /* name */
+                                     0xffffffffUL, /* RAND_MAX  */
+                                     0,            /* RAND_MIN  */
+                                     sizeof(mt_state_t),
+                                     &mt_set,
+                                     &mt_get,
+                                     &mt_get_double};
 
 const gsl_rng_type *gsl_rng_mt19937 = &mt_type;
 unsigned long int gsl_rng_default_seed = 0;
@@ -320,13 +282,16 @@ unsigned long int gsl_rng_default_seed = 0;
 
 #define N1 100
 
-const gsl_rng_type * gsl_rng_generator_types[N1];
+const gsl_rng_type *gsl_rng_generator_types[N1];
 
-#define ADD(t) {if (i==N1) abort(); gsl_rng_generator_types[i] = (t); i++; };
+#define ADD(t)                        \
+  {                                   \
+    if (i == N1) abort();             \
+    gsl_rng_generator_types[i] = (t); \
+    i++;                              \
+  };
 
-const gsl_rng_type **
-gsl_rng_types_setup (void)
-{
+const gsl_rng_type **gsl_rng_types_setup(void) {
   int i = 0;
 
   /*  ADD(gsl_rng_borosh13);
@@ -414,38 +379,32 @@ gsl_rng_types_setup (void)
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-FILE * gsl_stream = NULL ;
-gsl_stream_handler_t * gsl_stream_handler = NULL;
+FILE *gsl_stream = NULL;
+gsl_stream_handler_t *gsl_stream_handler = NULL;
 
-void
-gsl_stream_printf (const char *label, const char *file, int line, 
-                   const char *reason)
-{
-  if (gsl_stream == NULL)
-    {
-      gsl_stream = stderr;
-    }
-  if (gsl_stream_handler)
-    {
-      (*gsl_stream_handler) (label, file, line, reason);
-      return;
-    }
-  fprintf (gsl_stream, "gsl: %s:%d: %s: %s\n", file, line, label, reason);
-
+void gsl_stream_printf(const char *label,
+                       const char *file,
+                       int line,
+                       const char *reason) {
+  if (gsl_stream == NULL) {
+    gsl_stream = stderr;
+  }
+  if (gsl_stream_handler) {
+    (*gsl_stream_handler)(label, file, line, reason);
+    return;
+  }
+  fprintf(gsl_stream, "gsl: %s:%d: %s: %s\n", file, line, label, reason);
 }
 
-gsl_stream_handler_t *
-gsl_set_stream_handler (gsl_stream_handler_t * new_handler)
-{
-  gsl_stream_handler_t * previous_handler = gsl_stream_handler;
+gsl_stream_handler_t *gsl_set_stream_handler(
+    gsl_stream_handler_t *new_handler) {
+  gsl_stream_handler_t *previous_handler = gsl_stream_handler;
   gsl_stream_handler = new_handler;
   return previous_handler;
 }
 
-FILE *
-gsl_set_stream (FILE * new_stream)
-{
-  FILE * previous_stream;
+FILE *gsl_set_stream(FILE *new_stream) {
+  FILE *previous_stream;
   if (gsl_stream == NULL) {
     gsl_stream = stderr;
   }
@@ -453,7 +412,6 @@ gsl_set_stream (FILE * new_stream)
   gsl_stream = new_stream;
   return previous_stream;
 }
-
 
 /* err/error.c
  * 
@@ -474,49 +432,44 @@ gsl_set_stream (FILE * new_stream)
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-gsl_error_handler_t * gsl_error_handler = NULL;
+gsl_error_handler_t *gsl_error_handler = NULL;
 
-static void no_error_handler (const char *reason, const char *file, int line, int gsl_errno);
+static void no_error_handler(const char *reason,
+                             const char *file,
+                             int line,
+                             int gsl_errno);
 
-void
-gsl_error (const char * reason, const char * file, int line, int gsl_errno)
-{
-  if (gsl_error_handler) 
-    {
-      (*gsl_error_handler) (reason, file, line, gsl_errno);
-      return ;
-    }
+void gsl_error(const char *reason, const char *file, int line, int gsl_errno) {
+  if (gsl_error_handler) {
+    (*gsl_error_handler)(reason, file, line, gsl_errno);
+    return;
+  }
 
-  gsl_stream_printf ("ERROR", file, line, reason);
+  gsl_stream_printf("ERROR", file, line, reason);
 
-  fprintf (stderr, "Default GSL error handler invoked.\n");
-  abort ();
+  fprintf(stderr, "Default GSL error handler invoked.\n");
+  abort();
 }
 
-gsl_error_handler_t *
-gsl_set_error_handler (gsl_error_handler_t * new_handler)
-{
-  gsl_error_handler_t * previous_handler = gsl_error_handler;
+gsl_error_handler_t *gsl_set_error_handler(gsl_error_handler_t *new_handler) {
+  gsl_error_handler_t *previous_handler = gsl_error_handler;
   gsl_error_handler = new_handler;
   return previous_handler;
 }
 
-
-gsl_error_handler_t *
-gsl_set_error_handler_off (void)
-{
-  gsl_error_handler_t * previous_handler = gsl_error_handler;
+gsl_error_handler_t *gsl_set_error_handler_off(void) {
+  gsl_error_handler_t *previous_handler = gsl_error_handler;
   gsl_error_handler = no_error_handler;
   return previous_handler;
 }
 
-static void
-no_error_handler (const char *reason _U_, const char *file _U_, int line _U_, int gsl_errno _U_)
-{
+static void no_error_handler(const char *reason _U_,
+                             const char *file _U_,
+                             int line _U_,
+                             int gsl_errno _U_) {
   /* do nothing */
   return;
 }
-
 
 /* rng/rng.c
  * 
@@ -537,180 +490,122 @@ no_error_handler (const char *reason _U_, const char *file _U_, int line _U_, in
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-gsl_rng *
-gsl_rng_alloc (const gsl_rng_type * T)
-{
+gsl_rng *gsl_rng_alloc(const gsl_rng_type *T) {
+  gsl_rng *r = (gsl_rng *)malloc(sizeof(gsl_rng));
 
-  gsl_rng *r = (gsl_rng *) malloc (sizeof (gsl_rng));
+  if (r == 0) {
+    GSL_ERROR_VAL("failed to allocate space for rng struct", GSL_ENOMEM, 0);
+  };
 
-  if (r == 0)
-    {
-      GSL_ERROR_VAL ("failed to allocate space for rng struct",
-                        GSL_ENOMEM, 0);
-    };
+  r->state = malloc(T->size);
 
-  r->state = malloc (T->size);
+  if (r->state == 0) {
+    free(r); /* exception in constructor, avoid memory leak */
 
-  if (r->state == 0)
-    {
-      free (r);         /* exception in constructor, avoid memory leak */
-
-      GSL_ERROR_VAL ("failed to allocate space for rng state",
-                        GSL_ENOMEM, 0);
-    };
+    GSL_ERROR_VAL("failed to allocate space for rng state", GSL_ENOMEM, 0);
+  };
 
   r->type = T;
 
-  gsl_rng_set (r, gsl_rng_default_seed);        /* seed the generator */
+  gsl_rng_set(r, gsl_rng_default_seed); /* seed the generator */
 
   return r;
 }
 
-int
-gsl_rng_memcpy (gsl_rng * dest, const gsl_rng * src)
-{
-  if (dest->type != src->type)
-    {
-      GSL_ERROR ("generators must be of the same type", GSL_EINVAL);
-    }
+int gsl_rng_memcpy(gsl_rng *dest, const gsl_rng *src) {
+  if (dest->type != src->type) {
+    GSL_ERROR("generators must be of the same type", GSL_EINVAL);
+  }
 
-  memcpy (dest->state, src->state, src->type->size);
+  memcpy(dest->state, src->state, src->type->size);
 
   return GSL_SUCCESS;
 }
 
-gsl_rng *
-gsl_rng_clone (const gsl_rng * q)
-{
-  gsl_rng *r = (gsl_rng *) malloc (sizeof (gsl_rng));
+gsl_rng *gsl_rng_clone(const gsl_rng *q) {
+  gsl_rng *r = (gsl_rng *)malloc(sizeof(gsl_rng));
 
-  if (r == 0)
-    {
-      GSL_ERROR_VAL ("failed to allocate space for rng struct",
-                        GSL_ENOMEM, 0);
-    };
+  if (r == 0) {
+    GSL_ERROR_VAL("failed to allocate space for rng struct", GSL_ENOMEM, 0);
+  };
 
-  r->state = malloc (q->type->size);
+  r->state = malloc(q->type->size);
 
-  if (r->state == 0)
-    {
-      free (r);         /* exception in constructor, avoid memory leak */
+  if (r->state == 0) {
+    free(r); /* exception in constructor, avoid memory leak */
 
-      GSL_ERROR_VAL ("failed to allocate space for rng state",
-                        GSL_ENOMEM, 0);
-    };
+    GSL_ERROR_VAL("failed to allocate space for rng state", GSL_ENOMEM, 0);
+  };
 
   r->type = q->type;
 
-  memcpy (r->state, q->state, q->type->size);
+  memcpy(r->state, q->state, q->type->size);
 
   return r;
 }
 
-void
-gsl_rng_set (const gsl_rng * r, unsigned long int seed)
-{
-  (r->type->set) (r->state, seed);
+void gsl_rng_set(const gsl_rng *r, unsigned long int seed) {
+  (r->type->set)(r->state, seed);
 }
 
 #ifndef HIDE_INLINE_STATIC
-unsigned long int
-gsl_rng_get (const gsl_rng * r)
-{
-  return (r->type->get) (r->state);
+unsigned long int gsl_rng_get(const gsl_rng *r) {
+  return (r->type->get)(r->state);
 }
 
-double
-gsl_rng_uniform (const gsl_rng * r)
-{
-  return (r->type->get_double) (r->state);
+double gsl_rng_uniform(const gsl_rng *r) {
+  return (r->type->get_double)(r->state);
 }
 
-double
-gsl_rng_uniform_pos (const gsl_rng * r)
-{
-  double x ;
-  do
-    {
-      x = (r->type->get_double) (r->state) ;
-    }
-  while (x == 0) ;
+double gsl_rng_uniform_pos(const gsl_rng *r) {
+  double x;
+  do {
+    x = (r->type->get_double)(r->state);
+  } while (x == 0);
 
-  return x ;
+  return x;
 }
 
-unsigned long int
-gsl_rng_uniform_int (const gsl_rng * r, unsigned long int n)
-{
+unsigned long int gsl_rng_uniform_int(const gsl_rng *r, unsigned long int n) {
   unsigned long int offset = r->type->min;
   unsigned long int range = r->type->max - offset;
   unsigned long int scale = range / n;
   unsigned long int k;
 
-  if (n > range) 
-    {
-      GSL_ERROR_VAL ("n exceeds maximum value of generator",
-                        GSL_EINVAL, 0) ;
-    }
+  if (n > range) {
+    GSL_ERROR_VAL("n exceeds maximum value of generator", GSL_EINVAL, 0);
+  }
 
-  do
-    {
-      k = (((r->type->get) (r->state)) - offset) / scale;
-    }
-  while (k >= n);
+  do {
+    k = (((r->type->get)(r->state)) - offset) / scale;
+  } while (k >= n);
 
   return k;
 }
 #endif
 
-unsigned long int
-gsl_rng_max (const gsl_rng * r)
-{
-  return r->type->max;
-}
+unsigned long int gsl_rng_max(const gsl_rng *r) { return r->type->max; }
 
-unsigned long int
-gsl_rng_min (const gsl_rng * r)
-{
-  return r->type->min;
-}
+unsigned long int gsl_rng_min(const gsl_rng *r) { return r->type->min; }
 
-const char *
-gsl_rng_name (const gsl_rng * r)
-{
-  return r->type->name;
-}
+const char *gsl_rng_name(const gsl_rng *r) { return r->type->name; }
 
-size_t
-gsl_rng_size (const gsl_rng * r)
-{
-  return r->type->size;
-}
+size_t gsl_rng_size(const gsl_rng *r) { return r->type->size; }
 
-void *
-gsl_rng_state (const gsl_rng * r)
-{
-  return r->state;
-}
+void *gsl_rng_state(const gsl_rng *r) { return r->state; }
 
-void
-gsl_rng_print_state (const gsl_rng * r)
-{
+void gsl_rng_print_state(const gsl_rng *r) {
   size_t i;
-  unsigned char *p = (unsigned char *) (r->state);
+  unsigned char *p = (unsigned char *)(r->state);
   const size_t n = r->type->size;
 
-  for (i = 0; i < n; i++)
-    {
-      /* FIXME: we're assuming that a char is 8 bits */
-      printf ("%.2x", *(p + i));
-    }
-
+  for (i = 0; i < n; i++) {
+    /* FIXME: we're assuming that a char is 8 bits */
+    printf("%.2x", *(p + i));
+  }
 }
 
-void
-gsl_rng_free (gsl_rng * r)
-{
-  free (r->state);
-  free (r);
+void gsl_rng_free(gsl_rng *r) {
+  free(r->state);
+  free(r);
 }

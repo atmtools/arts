@@ -16,9 +16,6 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-
-
-
 /*===========================================================================
   === File description 
   ===========================================================================*/
@@ -32,8 +29,6 @@
    the surface.
 */
 
-
-
 #ifndef surface_h
 #define surface_h
 
@@ -42,47 +37,40 @@
 #include "mystring.h"
 #include "ppath.h"
 
-Numeric calc_incang(
-   ConstVectorView   rte_los,
-   ConstVectorView   specular_los );
+Numeric calc_incang(ConstVectorView rte_los, ConstVectorView specular_los);
 
-void surface_calc(
-              Matrix&         iy,
-        ConstTensor3View      I,
-        ConstMatrixView       surface_los,
-        ConstTensor4View      surface_rmatrix,
-        ConstMatrixView       surface_emission );
+void surface_calc(Matrix& iy,
+                  ConstTensor3View I,
+                  ConstMatrixView surface_los,
+                  ConstTensor4View surface_rmatrix,
+                  ConstMatrixView surface_emission);
 
-void surface_specular_R_and_b(
-              MatrixView   surface_rmatrix,
-              VectorView   surface_emission,
-        const Complex&     Rv,
-        const Complex&     Rh,
-        const Numeric&     f,
-        const Index&       stokes_dim,
-        const Numeric&     surface_skin_t );
+void surface_specular_R_and_b(MatrixView surface_rmatrix,
+                              VectorView surface_emission,
+                              const Complex& Rv,
+                              const Complex& Rh,
+                              const Numeric& f,
+                              const Index& stokes_dim,
+                              const Numeric& surface_skin_t);
 
-void surface_props_check(
-    const Index&            atmosphere_dim,
-    const Vector&           lat_grid,
-    const Vector&           lon_grid,
-    const Tensor3&          surface_props_data,
-    const ArrayOfString&    surface_props_names );
+void surface_props_check(const Index& atmosphere_dim,
+                         const Vector& lat_grid,
+                         const Vector& lon_grid,
+                         const Tensor3& surface_props_data,
+                         const ArrayOfString& surface_props_names);
 
-void surface_props_interp(
-          Vector&           v,
-    const String&           vname,
-    const Index&            atmosphere_dim,
-    const ArrayOfGridPos&   gp_lat,
-    const ArrayOfGridPos&   gp_lon,
-    const Matrix&           itw,
-    const Tensor3&          surface_props_data,
-    const ArrayOfString&    surface_props_names );
+void surface_props_interp(Vector& v,
+                          const String& vname,
+                          const Index& atmosphere_dim,
+                          const ArrayOfGridPos& gp_lat,
+                          const ArrayOfGridPos& gp_lon,
+                          const Matrix& itw,
+                          const Tensor3& surface_props_data,
+                          const ArrayOfString& surface_props_names);
 
-void dsurface_check(
-    const ArrayOfString&    surface_props_names,
-    const ArrayOfString&    dsurface_names,
-    const ArrayOfTensor4    dsurface_rmatrix_dx,
-    const ArrayOfMatrix&    dsurface_emission_dx );
+void dsurface_check(const ArrayOfString& surface_props_names,
+                    const ArrayOfString& dsurface_names,
+                    const ArrayOfTensor4 dsurface_rmatrix_dx,
+                    const ArrayOfMatrix& dsurface_emission_dx);
 
 #endif  // surface_h

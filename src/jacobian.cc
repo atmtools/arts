@@ -23,37 +23,34 @@
   \brief  Routines for setting up the jacobian.
 */
 
+#include "jacobian.h"
 #include "arts.h"
 #include "auto_md.h"
 #include "check_input.h"
-#include "jacobian.h"
-#include "special_interp.h"
-#include "physics_funcs.h"
-#include "lin_alg.h"
-#include "rte.h"
 #include "global_data.h"
+#include "lin_alg.h"
+#include "physics_funcs.h"
+#include "rte.h"
+#include "special_interp.h"
 
 extern const Numeric NAT_LOG_TEN;
 
-extern const String  ABSSPECIES_MAINTAG;
-extern const String  SCATSPECIES_MAINTAG;
-extern const String  TEMPERATURE_MAINTAG;
-extern const String  WIND_MAINTAG;
-extern const String  MAGFIELD_MAINTAG;
-extern const String  FLUX_MAINTAG;
-extern const String  PROPMAT_SUBSUBTAG;
-extern const String  ELECTRONS_MAINTAG;
-extern const String  PARTICULATES_MAINTAG;
+extern const String ABSSPECIES_MAINTAG;
+extern const String SCATSPECIES_MAINTAG;
+extern const String TEMPERATURE_MAINTAG;
+extern const String WIND_MAINTAG;
+extern const String MAGFIELD_MAINTAG;
+extern const String FLUX_MAINTAG;
+extern const String PROPMAT_SUBSUBTAG;
+extern const String ELECTRONS_MAINTAG;
+extern const String PARTICULATES_MAINTAG;
 
-
-ostream& operator << (ostream& os, const RetrievalQuantity& ot)
-{
-  return os << "\n       Main tag = " << ot.MainTag() 
+ostream& operator<<(ostream& os, const RetrievalQuantity& ot) {
+  return os << "\n       Main tag = " << ot.MainTag()
             << "\n       Sub  tag = " << ot.Subtag()
             << "\n           Mode = " << ot.Mode()
             << "\n     Analytical = " << ot.Analytical();
 }
-
 
 //! jac_ranges_indices
 /*!
@@ -74,58 +71,50 @@ ostream& operator << (ostream& os, const RetrievalQuantity& ot)
     \author Simon Pfreundschuh and Patrick Eriksson 
     \date   2017-12-30
 */
-void jac_ranges_indices(
-          ArrayOfArrayOfIndex&      jis,
-          bool&                     any_affine,
-    const ArrayOfRetrievalQuantity& jqs,
-    const bool&                     before_affine )
-{
-  jis.resize( jqs.nelem() );
+void jac_ranges_indices(ArrayOfArrayOfIndex& jis,
+                        bool& any_affine,
+                        const ArrayOfRetrievalQuantity& jqs,
+                        const bool& before_affine) {
+  jis.resize(jqs.nelem());
 
   any_affine = false;
-  
+
   // Indices before affine transformation
-  if( before_affine )
-    {
-      for( Index i = 0; i < jqs.nelem(); ++i )
-        {
-          jis[i] = ArrayOfIndex(2);
-          if (i > 0) {
-            jis[i][0] = jis[i-1][1] + 1;
-          } else {
-            jis[i][0] = 0;
-          }
-          const RetrievalQuantity &jq = jqs[i];
-          jis[i][1] = jis[i][0] + jq.nelem() - 1;
-          if (jq.HasAffine()) {
-            any_affine = true;
-          }          
-        }
+  if (before_affine) {
+    for (Index i = 0; i < jqs.nelem(); ++i) {
+      jis[i] = ArrayOfIndex(2);
+      if (i > 0) {
+        jis[i][0] = jis[i - 1][1] + 1;
+      } else {
+        jis[i][0] = 0;
+      }
+      const RetrievalQuantity& jq = jqs[i];
+      jis[i][1] = jis[i][0] + jq.nelem() - 1;
+      if (jq.HasAffine()) {
+        any_affine = true;
+      }
     }
-  
+  }
+
   // After affine transformation
-  else
-    {
-      for( Index i = 0; i < jqs.nelem(); ++i )
-        {
-          jis[i] = ArrayOfIndex(2);
-          if (i > 0) {
-            jis[i][0] = jis[i-1][1] + 1;
-          } else {
-            jis[i][0] = 0;
-          }
-          const RetrievalQuantity &jq = jqs[i];
-          if (jq.HasAffine()) {
-            jis[i][1] = jis[i][0] + jq.TransformationMatrix().ncols() - 1;
-            any_affine = true;
-          } else {
-            jis[i][1] = jis[i][0] + jq.nelem() - 1;
-          }
-        }
+  else {
+    for (Index i = 0; i < jqs.nelem(); ++i) {
+      jis[i] = ArrayOfIndex(2);
+      if (i > 0) {
+        jis[i][0] = jis[i - 1][1] + 1;
+      } else {
+        jis[i][0] = 0;
+      }
+      const RetrievalQuantity& jq = jqs[i];
+      if (jq.HasAffine()) {
+        jis[i][1] = jis[i][0] + jq.TransformationMatrix().ncols() - 1;
+        any_affine = true;
+      } else {
+        jis[i][1] = jis[i][0] + jq.nelem() - 1;
+      }
     }
+  }
 }
-
-
 
 //! Handles transformations of the Jacobian
 /**
@@ -137,77 +126,70 @@ void jac_ranges_indices(
  *  \author Simon Pfreundschuh and Patrick Eriksson 
  *  \date   2017-12-30
  */
-void transform_jacobian(
-    Matrix&                           jacobian,
-    const Vector                      x,
-    const ArrayOfRetrievalQuantity&   jqs )
-{
+void transform_jacobian(Matrix& jacobian,
+                        const Vector x,
+                        const ArrayOfRetrievalQuantity& jqs) {
   // Range indices without affine trans
   ArrayOfArrayOfIndex jis;
   bool any_affine;
   //
-  jac_ranges_indices( jis, any_affine, jqs, true );
+  jac_ranges_indices(jis, any_affine, jqs, true);
 
   Vector x_t(x);
-  transform_x_back( x_t, jqs, false);
+  transform_x_back(x_t, jqs, false);
 
   // Apply functional transformations
   for (Index i = 0; i < jqs.nelem(); ++i) {
-    const RetrievalQuantity &jq = jqs[i];
+    const RetrievalQuantity& jq = jqs[i];
     const String tfun = jq.TransformationFunc();
     // Remember to add new functions also to transform_jacobian and transform_x_back
     if (tfun == "") {
       // Nothing to do
-    }
-    else if (tfun == "log") {
+    } else if (tfun == "log") {
       for (Index c = jis[i][0]; c <= jis[i][1]; ++c) {
-        jacobian(joker,c) *= exp( x_t[c] );
+        jacobian(joker, c) *= exp(x_t[c]);
       }
-    }
-    else if (tfun == "log10") {
+    } else if (tfun == "log10") {
       for (Index c = jis[i][0]; c <= jis[i][1]; ++c) {
-        jacobian(joker,c) *= NAT_LOG_TEN * pow(10.0,x_t[c]);
+        jacobian(joker, c) *= NAT_LOG_TEN * pow(10.0, x_t[c]);
       }
-    }
-    else if (tfun == "atanh") {
+    } else if (tfun == "atanh") {
       const Vector pars = jq.TFuncParameters();
       for (Index c = jis[i][0]; c <= jis[i][1]; ++c) {
-        jacobian(joker,c) *= 2*(pars[1]-pars[0]) / pow(exp(-x_t[c])+exp(x_t[c]),2.0);
+        jacobian(joker, c) *=
+            2 * (pars[1] - pars[0]) / pow(exp(-x_t[c]) + exp(x_t[c]), 2.0);
       }
-    }
-    else{
+    } else {
       assert(0);
     }
   }
-  
+
   // Apply affine transformations
-  if( any_affine )
-    {
-      ArrayOfArrayOfIndex jis_t;
-      jac_ranges_indices( jis_t, any_affine, jqs );
+  if (any_affine) {
+    ArrayOfArrayOfIndex jis_t;
+    jac_ranges_indices(jis_t, any_affine, jqs);
 
-      Matrix jacobian_t(jacobian.nrows(), jis_t.back()[1] + 1);
+    Matrix jacobian_t(jacobian.nrows(), jis_t.back()[1] + 1);
 
-      for (Index i = 0; i < jqs.nelem(); ++i) {
-        const RetrievalQuantity &jq = jqs[i];
-        Index col_start  = jis[i][0];
-        Index col_extent = jis[i][1] - jis[i][0] + 1;
-        Range col_range(col_start, col_extent);
-        Index col_start_t  = jis_t[i][0];
-        Index col_extent_t = jis_t[i][1] - jis_t[i][0] + 1;
-        Range col_range_t(col_start_t, col_extent_t);
-        if (jq.HasAffine()) {
-            mult(jacobian_t(joker, col_range_t),
-                 jacobian(joker, col_range),
-                 jq.TransformationMatrix());
-        } else {
-            jacobian_t(joker, col_range_t) = jacobian(joker, col_range);
-        }
+    for (Index i = 0; i < jqs.nelem(); ++i) {
+      const RetrievalQuantity& jq = jqs[i];
+      Index col_start = jis[i][0];
+      Index col_extent = jis[i][1] - jis[i][0] + 1;
+      Range col_range(col_start, col_extent);
+      Index col_start_t = jis_t[i][0];
+      Index col_extent_t = jis_t[i][1] - jis_t[i][0] + 1;
+      Range col_range_t(col_start_t, col_extent_t);
+      if (jq.HasAffine()) {
+        mult(jacobian_t(joker, col_range_t),
+             jacobian(joker, col_range),
+             jq.TransformationMatrix());
+      } else {
+        jacobian_t(joker, col_range_t) = jacobian(joker, col_range);
       }
-      swap(jacobian_t, jacobian);
     }
+    swap(jacobian_t, jacobian);
+  }
 }
-
 
 //! Handles transformations of the state vector
 /**
@@ -219,107 +201,94 @@ void transform_jacobian(
  *  \author Simon Pfreundschuh and Patrick Eriksson 
  *  \date   2017-12-30
  */
-void transform_x(
-    Vector&                           x,
-    const ArrayOfRetrievalQuantity&   jqs)
-{
+void transform_x(Vector& x, const ArrayOfRetrievalQuantity& jqs) {
   // Range indices without affine trans
   ArrayOfArrayOfIndex jis;
   bool any_affine;
   //
-  jac_ranges_indices( jis, any_affine, jqs, true );
-  
+  jac_ranges_indices(jis, any_affine, jqs, true);
+
   // Apply functional transformations
   for (Index i = 0; i < jqs.nelem(); ++i) {
-      const RetrievalQuantity &jq = jqs[i];
-      const String tfun = jq.TransformationFunc();
-      // Remember to add new functions also to transform_jacobian and transform_x_back
-      if (tfun == "") {
-          // Nothing to do
+    const RetrievalQuantity& jq = jqs[i];
+    const String tfun = jq.TransformationFunc();
+    // Remember to add new functions also to transform_jacobian and transform_x_back
+    if (tfun == "") {
+      // Nothing to do
+    } else if (tfun == "log") {
+      const Vector pars = jq.TFuncParameters();
+      for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
+        if (x[r] <= pars[0]) {
+          ostringstream os;
+          os << "log-transformation selected for retrieval quantity with\n"
+             << "index " << i << " (0-based), but at least one value <= z_min\n"
+             << "found for this quantity. This is not allowed.";
+          throw std::runtime_error(os.str());
+        }
+        x[r] = log(x[r] - pars[0]);
       }
-      else if (tfun == "log") {
-          const Vector pars = jq.TFuncParameters();
-          for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
-              if( x[r] <= pars[0] )
-              {
-                  ostringstream os;
-                  os << "log-transformation selected for retrieval quantity with\n"
-                     << "index " << i << " (0-based), but at least one value <= z_min\n"
-                     << "found for this quantity. This is not allowed.";
-                  throw std::runtime_error(os.str());
-              }
-              x[r] = log( x[r] - pars[0] );
-          }
+    } else if (tfun == "log10") {
+      const Vector pars = jq.TFuncParameters();
+      for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
+        if (x[r] <= 0) {
+          ostringstream os;
+          os << "log10-transformation selected for retrieval quantity with\n"
+             << "index " << i << " (0-based), but at least one value <= z_min\n"
+             << "found for this quantity. This is not allowed.";
+          throw std::runtime_error(os.str());
+        }
+        x[r] = log10(x[r] - pars[0]);
       }
-      else if (tfun == "log10") {
-          const Vector pars = jq.TFuncParameters();
-          for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
-              if( x[r] <= 0 )
-              {
-                  ostringstream os;
-                  os << "log10-transformation selected for retrieval quantity with\n"
-                     << "index " << i << " (0-based), but at least one value <= z_min\n"
-                     << "found for this quantity. This is not allowed.";
-                  throw std::runtime_error(os.str());
-              }
-              x[r] = log10( x[r] - pars[0] );
-          }
+    } else if (tfun == "atanh") {
+      const Vector pars = jq.TFuncParameters();
+      for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
+        if (x[r] <= pars[0]) {
+          ostringstream os;
+          os << "atanh-transformation selected for retrieval quantity with\n"
+             << "index " << i << " (0-based), but at least one value <= z_min\n"
+             << "found for this quantity. This is not allowed.";
+          throw std::runtime_error(os.str());
+        }
+        if (x[r] >= pars[1]) {
+          ostringstream os;
+          os << "atanh-transformation selected for retrieval quantity with\n"
+             << "index " << i << " (0-based), but at least one value is\n"
+             << ">= z_max. This is not allowed.";
+          throw std::runtime_error(os.str());
+        }
+        x[r] = atanh(2 * (x[r] - pars[0]) / (pars[1] - pars[0]) - 1);
       }
-      else if (tfun == "atanh") {
-          const Vector pars = jq.TFuncParameters();
-          for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
-              if( x[r] <= pars[0] )
-              {
-                  ostringstream os;
-                  os << "atanh-transformation selected for retrieval quantity with\n"
-                     << "index " << i << " (0-based), but at least one value <= z_min\n"
-                     << "found for this quantity. This is not allowed.";
-                  throw std::runtime_error(os.str());
-              }
-              if( x[r] >= pars[1] )
-              {
-                  ostringstream os;
-                  os << "atanh-transformation selected for retrieval quantity with\n"
-                     << "index " << i << " (0-based), but at least one value is\n"
-                     << ">= z_max. This is not allowed.";
-                  throw std::runtime_error(os.str());
-              }
-              x[r] = atanh( 2*(x[r]-pars[0])/(pars[1]-pars[0]) - 1 );
-          }
-      }
-      else{
-          assert(0);
-      }
+    } else {
+      assert(0);
+    }
   }
 
   // Apply affine transformations
-  if( any_affine )
-    {
-      ArrayOfArrayOfIndex jis_t;
-      jac_ranges_indices( jis_t, any_affine, jqs );
+  if (any_affine) {
+    ArrayOfArrayOfIndex jis_t;
+    jac_ranges_indices(jis_t, any_affine, jqs);
 
-      Vector x_t(jis_t.back()[1] + 1);
+    Vector x_t(jis_t.back()[1] + 1);
 
-      for (Index i = 0; i < jqs.nelem(); ++i) {
-        const RetrievalQuantity &jq = jqs[i];
-        Index col_start  = jis[i][0];
-        Index col_extent = jis[i][1] - jis[i][0] + 1;
-        Range col_range(col_start, col_extent);
-        Index col_start_t  = jis_t[i][0];
-        Index col_extent_t = jis_t[i][1] - jis_t[i][0] + 1;
-        Range col_range_t(col_start_t, col_extent_t);
-        if (jq.HasAffine()) {
-            Vector t(x[col_range]);
-            t -= jq.OffsetVector();
-            mult(x_t[col_range_t], transpose(jq.TransformationMatrix()), t);
-        } else {
-            x_t[col_range_t] = x[col_range];
-        }
+    for (Index i = 0; i < jqs.nelem(); ++i) {
+      const RetrievalQuantity& jq = jqs[i];
+      Index col_start = jis[i][0];
+      Index col_extent = jis[i][1] - jis[i][0] + 1;
+      Range col_range(col_start, col_extent);
+      Index col_start_t = jis_t[i][0];
+      Index col_extent_t = jis_t[i][1] - jis_t[i][0] + 1;
+      Range col_range_t(col_start_t, col_extent_t);
+      if (jq.HasAffine()) {
+        Vector t(x[col_range]);
+        t -= jq.OffsetVector();
+        mult(x_t[col_range_t], transpose(jq.TransformationMatrix()), t);
+      } else {
+        x_t[col_range_t] = x[col_range];
       }
-      swap(x, x_t);
     }
+    swap(x, x_t);
+  }
 }
-
 
 //! Handles back-transformations of the state vector
 /**
@@ -331,94 +300,84 @@ void transform_x(
  *  \author Simon Pfreundschuh and Patrick Eriksson 
  *  \date   2017-12-30
  */
-void transform_x_back(
-    Vector&                           x_t,
-    const ArrayOfRetrievalQuantity&   jqs,
-    bool revert_functional_transforms)
-{
+void transform_x_back(Vector& x_t,
+                      const ArrayOfRetrievalQuantity& jqs,
+                      bool revert_functional_transforms) {
   // Range indices without affine trans
   ArrayOfArrayOfIndex jis;
   bool any_affine;
   //
-  jac_ranges_indices( jis, any_affine, jqs, true );
+  jac_ranges_indices(jis, any_affine, jqs, true);
 
   // Revert affine transformations
   // Apply affine transformations
-  if( any_affine )
-    {
-      ArrayOfArrayOfIndex jis_t;
-      jac_ranges_indices( jis_t, any_affine, jqs );
+  if (any_affine) {
+    ArrayOfArrayOfIndex jis_t;
+    jac_ranges_indices(jis_t, any_affine, jqs);
 
-      Vector x(jis.back()[1] + 1);
+    Vector x(jis.back()[1] + 1);
 
-      for (Index i = 0; i < jqs.nelem(); ++i) {
-        const RetrievalQuantity &jq = jqs[i];
-        Index col_start  = jis[i][0];
-        Index col_extent = jis[i][1] - jis[i][0] + 1;
-        Range col_range(col_start, col_extent);
-        Index col_start_t  = jis_t[i][0];
-        Index col_extent_t = jis_t[i][1] - jis_t[i][0] + 1;
-        Range col_range_t(col_start_t, col_extent_t);
-        if (jq.HasAffine()) {
-            mult(x[col_range], jq.TransformationMatrix(), x_t[col_range_t]);
-            x[col_range] += jq.OffsetVector();
-        } else {
-            x[col_range] = x_t[col_range_t];
-        }
+    for (Index i = 0; i < jqs.nelem(); ++i) {
+      const RetrievalQuantity& jq = jqs[i];
+      Index col_start = jis[i][0];
+      Index col_extent = jis[i][1] - jis[i][0] + 1;
+      Range col_range(col_start, col_extent);
+      Index col_start_t = jis_t[i][0];
+      Index col_extent_t = jis_t[i][1] - jis_t[i][0] + 1;
+      Range col_range_t(col_start_t, col_extent_t);
+      if (jq.HasAffine()) {
+        mult(x[col_range], jq.TransformationMatrix(), x_t[col_range_t]);
+        x[col_range] += jq.OffsetVector();
+      } else {
+        x[col_range] = x_t[col_range_t];
       }
-      swap(x_t, x);
     }
+    swap(x_t, x);
+  }
 
   if (revert_functional_transforms) {
-      // Revert functional transformations
-      for (Index i = 0; i < jqs.nelem(); ++i) {
-          const RetrievalQuantity &jq = jqs[i];
-          const String tfun = jq.TransformationFunc();
-          // Remember to add new functions also to transform_jacobian and transform_x_back
-          if (tfun == "") {
-              // Nothing to do
-          }
-          else if (tfun == "log") {
-              const Vector pars = jq.TFuncParameters();
-              for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
-                  x_t[r] = pars[0] + exp( x_t[r] );
-              }
-          }
-          else if (tfun == "log10") {
-              const Vector pars = jq.TFuncParameters();
-              for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
-                  x_t[r] = pars[0] + pow( 10.0, x_t[r] );
-              }
-          }
-          else if (tfun == "atanh") {
-              const Vector pars = jq.TFuncParameters();
-              for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
-                  x_t[r] = pars[0] + ((pars[1]-pars[0])/2) * ( 1 + tanh( x_t[r] ) );
-              }
-          }
-          else{
-              assert(0);
-          }
+    // Revert functional transformations
+    for (Index i = 0; i < jqs.nelem(); ++i) {
+      const RetrievalQuantity& jq = jqs[i];
+      const String tfun = jq.TransformationFunc();
+      // Remember to add new functions also to transform_jacobian and transform_x_back
+      if (tfun == "") {
+        // Nothing to do
+      } else if (tfun == "log") {
+        const Vector pars = jq.TFuncParameters();
+        for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
+          x_t[r] = pars[0] + exp(x_t[r]);
+        }
+      } else if (tfun == "log10") {
+        const Vector pars = jq.TFuncParameters();
+        for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
+          x_t[r] = pars[0] + pow(10.0, x_t[r]);
+        }
+      } else if (tfun == "atanh") {
+        const Vector pars = jq.TFuncParameters();
+        for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
+          x_t[r] = pars[0] + ((pars[1] - pars[0]) / 2) * (1 + tanh(x_t[r]));
+        }
+      } else {
+        assert(0);
       }
+    }
   }
 }
-
 
 /*===========================================================================
   === Help sub-functions to handle analytical jacobians (in alphabetical order)
   ===========================================================================*/
 
 // Small help function, to make the code below cleaner
-void from_dpath_to_dx(
-        MatrixView   diy_dx,
-   ConstMatrixView   diy_dq,
-   const Numeric&    w )
-{
-  for( Index irow=0; irow<diy_dx.nrows(); irow++ )
-    { 
-      for( Index icol=0; icol<diy_dx.ncols(); icol++ )
-        { diy_dx(irow,icol) += w * diy_dq(irow,icol); }
+void from_dpath_to_dx(MatrixView diy_dx,
+                      ConstMatrixView diy_dq,
+                      const Numeric& w) {
+  for (Index irow = 0; irow < diy_dx.nrows(); irow++) {
+    for (Index icol = 0; icol < diy_dx.ncols(); icol++) {
+      diy_dx(irow, icol) += w * diy_dq(irow, icol);
     }
+  }
 }
 
 //! diy_from_path_to_rgrids
@@ -436,178 +395,174 @@ void from_dpath_to_dx(
     \author Patrick Eriksson 
     \date   2009-10-08
 */
-void diy_from_path_to_rgrids(
-         Tensor3View          diy_dx,
-   const RetrievalQuantity&   jacobian_quantity,
-   ConstTensor3View           diy_dpath,
-   const Index&               atmosphere_dim,
-   const Ppath&               ppath,
-   ConstVectorView            ppath_p )
-{
+void diy_from_path_to_rgrids(Tensor3View diy_dx,
+                             const RetrievalQuantity& jacobian_quantity,
+                             ConstTensor3View diy_dpath,
+                             const Index& atmosphere_dim,
+                             const Ppath& ppath,
+                             ConstVectorView ppath_p) {
   // If this is an integration target then diy_dx is just the sum of all in diy_dpath
-  if( jacobian_quantity.Integration() )
-    {
-      diy_dx(0, joker, joker) = diy_dpath(0, joker, joker);
-      for(Index i = 1; i < diy_dpath.npages(); i++)
-        diy_dx(0, joker, joker) += diy_dpath(i, joker, joker);
-      return;
-    }
+  if (jacobian_quantity.Integration()) {
+    diy_dx(0, joker, joker) = diy_dpath(0, joker, joker);
+    for (Index i = 1; i < diy_dpath.npages(); i++)
+      diy_dx(0, joker, joker) += diy_dpath(i, joker, joker);
+    return;
+  }
 
-  assert( jacobian_quantity.Grids().nelem() == atmosphere_dim );
-   
-  // We want here an extrapolation to infinity -> 
+  assert(jacobian_quantity.Grids().nelem() == atmosphere_dim);
+
+  // We want here an extrapolation to infinity ->
   //                                        extremly high extrapolation factor
-  const Numeric   extpolfac = 1.0e99;
+  const Numeric extpolfac = 1.0e99;
 
-  if( ppath.np > 1 )  // Otherwise nothing to do here
-    {
-      // Pressure
-      Index            nr1 = jacobian_quantity.Grids()[0].nelem();
-      ArrayOfGridPos   gp_p(ppath.np);
-      if( nr1 > 1 )
-        {
-          p2gridpos( gp_p, jacobian_quantity.Grids()[0], ppath_p, extpolfac );
-          jacobian_type_extrapol( gp_p );
-        }
-      else
-        { gp4length1grid( gp_p ); }        
-
-      // Latitude
-      Index            nr2 = 1;
-      ArrayOfGridPos   gp_lat;
-      if( atmosphere_dim > 1 )
-        {          
-          gp_lat.resize(ppath.np);
-          nr2    = jacobian_quantity.Grids()[1].nelem();
-          if( nr2 > 1 )
-            {
-              gridpos( gp_lat, jacobian_quantity.Grids()[1], 
-                       ppath.pos(joker,1), extpolfac );
-              jacobian_type_extrapol( gp_lat );
-            }
-          else
-            { gp4length1grid( gp_lat ); }
-        }
-
-      // Longitude
-      ArrayOfGridPos   gp_lon;
-      if( atmosphere_dim > 2 )
-        {
-          gp_lon.resize(ppath.np);
-          if( jacobian_quantity.Grids()[2].nelem() > 1 )
-            {          
-              gridpos( gp_lon, jacobian_quantity.Grids()[2], 
-                       ppath.pos(joker,2), extpolfac );
-              jacobian_type_extrapol( gp_lon );
-            }
-          else
-            { gp4length1grid( gp_lon ); }
-        }
-      
-      //- 1D
-      if( atmosphere_dim == 1 )
-        {
-          for( Index ip=0; ip<ppath.np; ip++ )
-            {
-              if( gp_p[ip].fd[1] > 0 )
-                {
-                  from_dpath_to_dx( diy_dx(gp_p[ip].idx,joker,joker),
-                                    diy_dpath(ip,joker,joker), gp_p[ip].fd[1] );
-                }
-              if( gp_p[ip].fd[0] > 0 )
-                {
-                  from_dpath_to_dx( diy_dx(gp_p[ip].idx+1,joker,joker),
-                                    diy_dpath(ip,joker,joker), gp_p[ip].fd[0] );
-                }
-            }
-        }
-
-      //- 2D
-      else if( atmosphere_dim == 2 )
-        {
-          for( Index ip=0; ip<ppath.np; ip++ )
-            {
-              Index ix = nr1*gp_lat[ip].idx + gp_p[ip].idx;
-              // Low lat, low p
-              if( gp_lat[ip].fd[1]>0 && gp_p[ip].fd[1]>0 )
-                from_dpath_to_dx( diy_dx(ix,joker,joker),
-                                  diy_dpath(ip,joker,joker), 
-                                  gp_lat[ip].fd[1]*gp_p[ip].fd[1] );
-              // Low lat, high p
-              if( gp_lat[ip].fd[1]>0 && gp_p[ip].fd[0]>0 )
-                from_dpath_to_dx( diy_dx(ix+1,joker,joker),
-                                  diy_dpath(ip,joker,joker), 
-                                  gp_lat[ip].fd[1]*gp_p[ip].fd[0] );
-              // High lat, low p
-              if( gp_lat[ip].fd[0]>0 && gp_p[ip].fd[1]>0 )
-                from_dpath_to_dx( diy_dx(ix+nr1,joker,joker),
-                                  diy_dpath(ip,joker,joker), 
-                                  gp_lat[ip].fd[0]*gp_p[ip].fd[1] );
-              // High lat, high p
-              if( gp_lat[ip].fd[0]>0 && gp_p[ip].fd[0]>0 )
-                from_dpath_to_dx( diy_dx(ix+nr1+1,joker,joker),
-                                  diy_dpath(ip,joker,joker), 
-                                  gp_lat[ip].fd[0]*gp_p[ip].fd[0] );
-            }
-        }
-
-      //- 3D
-      else if( atmosphere_dim == 3 )
-        {
-          for( Index ip=0; ip<ppath.np; ip++ )
-            {
-              Index   ix = nr2*nr1*gp_lon[ip].idx +
-                           nr1*gp_lat[ip].idx + gp_p[ip].idx;
-              // Low lon, low lat, low p
-              if( gp_lon[ip].fd[1]>0 && gp_lat[ip].fd[1]>0 && gp_p[ip].fd[1]>0 )
-                from_dpath_to_dx( diy_dx(ix,joker,joker),
-                                  diy_dpath(ip,joker,joker), 
-                             gp_lon[ip].fd[1]*gp_lat[ip].fd[1]*gp_p[ip].fd[1]);
-              // Low lon, low lat, high p
-              if( gp_lon[ip].fd[1]>0 && gp_lat[ip].fd[1]>0 && gp_p[ip].fd[0]>0 )
-                from_dpath_to_dx( diy_dx(ix+1,joker,joker),
-                                  diy_dpath(ip,joker,joker), 
-                             gp_lon[ip].fd[1]*gp_lat[ip].fd[1]*gp_p[ip].fd[0]);
-              // Low lon, high lat, low p
-              if( gp_lon[ip].fd[1]>0 && gp_lat[ip].fd[0]>0 && gp_p[ip].fd[1]>0 )
-                from_dpath_to_dx( diy_dx(ix+nr1,joker,joker),
-                                  diy_dpath(ip,joker,joker), 
-                             gp_lon[ip].fd[1]*gp_lat[ip].fd[0]*gp_p[ip].fd[1]);
-              // Low lon, high lat, high p
-              if( gp_lon[ip].fd[1]>0 && gp_lat[ip].fd[0]>0 && gp_p[ip].fd[0]>0 )
-                from_dpath_to_dx( diy_dx(ix+nr1+1,joker,joker),
-                                  diy_dpath(ip,joker,joker), 
-                             gp_lon[ip].fd[1]*gp_lat[ip].fd[0]*gp_p[ip].fd[0]);
-
-              // Increase *ix* (to be valid for high lon level)
-              ix += nr2*nr1;
-
-              // High lon, low lat, low p
-              if( gp_lon[ip].fd[0]>0 && gp_lat[ip].fd[1]>0 && gp_p[ip].fd[1]>0 )
-                from_dpath_to_dx( diy_dx(ix,joker,joker),
-                                  diy_dpath(ip,joker,joker), 
-                             gp_lon[ip].fd[0]*gp_lat[ip].fd[1]*gp_p[ip].fd[1]);
-              // High lon, low lat, high p
-              if( gp_lon[ip].fd[0]>0 && gp_lat[ip].fd[1]>0 && gp_p[ip].fd[0]>0 )
-                from_dpath_to_dx( diy_dx(ix+1,joker,joker),
-                                  diy_dpath(ip,joker,joker), 
-                             gp_lon[ip].fd[0]*gp_lat[ip].fd[1]*gp_p[ip].fd[0]);
-              // High lon, high lat, low p
-              if( gp_lon[ip].fd[0]>0 && gp_lat[ip].fd[0]>0 && gp_p[ip].fd[1]>0 )
-                from_dpath_to_dx( diy_dx(ix+nr1,joker,joker),
-                                  diy_dpath(ip,joker,joker), 
-                             gp_lon[ip].fd[0]*gp_lat[ip].fd[0]*gp_p[ip].fd[1]);
-              // High lon, high lat, high p
-              if( gp_lon[ip].fd[0]>0 && gp_lat[ip].fd[0]>0 && gp_p[ip].fd[0]>0 )
-                from_dpath_to_dx( diy_dx(ix+nr1+1,joker,joker),
-                                  diy_dpath(ip,joker,joker), 
-                             gp_lon[ip].fd[0]*gp_lat[ip].fd[0]*gp_p[ip].fd[0]);
-            }
-        }
+  if (ppath.np > 1)  // Otherwise nothing to do here
+  {
+    // Pressure
+    Index nr1 = jacobian_quantity.Grids()[0].nelem();
+    ArrayOfGridPos gp_p(ppath.np);
+    if (nr1 > 1) {
+      p2gridpos(gp_p, jacobian_quantity.Grids()[0], ppath_p, extpolfac);
+      jacobian_type_extrapol(gp_p);
+    } else {
+      gp4length1grid(gp_p);
     }
+
+    // Latitude
+    Index nr2 = 1;
+    ArrayOfGridPos gp_lat;
+    if (atmosphere_dim > 1) {
+      gp_lat.resize(ppath.np);
+      nr2 = jacobian_quantity.Grids()[1].nelem();
+      if (nr2 > 1) {
+        gridpos(gp_lat,
+                jacobian_quantity.Grids()[1],
+                ppath.pos(joker, 1),
+                extpolfac);
+        jacobian_type_extrapol(gp_lat);
+      } else {
+        gp4length1grid(gp_lat);
+      }
+    }
+
+    // Longitude
+    ArrayOfGridPos gp_lon;
+    if (atmosphere_dim > 2) {
+      gp_lon.resize(ppath.np);
+      if (jacobian_quantity.Grids()[2].nelem() > 1) {
+        gridpos(gp_lon,
+                jacobian_quantity.Grids()[2],
+                ppath.pos(joker, 2),
+                extpolfac);
+        jacobian_type_extrapol(gp_lon);
+      } else {
+        gp4length1grid(gp_lon);
+      }
+    }
+
+    //- 1D
+    if (atmosphere_dim == 1) {
+      for (Index ip = 0; ip < ppath.np; ip++) {
+        if (gp_p[ip].fd[1] > 0) {
+          from_dpath_to_dx(diy_dx(gp_p[ip].idx, joker, joker),
+                           diy_dpath(ip, joker, joker),
+                           gp_p[ip].fd[1]);
+        }
+        if (gp_p[ip].fd[0] > 0) {
+          from_dpath_to_dx(diy_dx(gp_p[ip].idx + 1, joker, joker),
+                           diy_dpath(ip, joker, joker),
+                           gp_p[ip].fd[0]);
+        }
+      }
+    }
+
+    //- 2D
+    else if (atmosphere_dim == 2) {
+      for (Index ip = 0; ip < ppath.np; ip++) {
+        Index ix = nr1 * gp_lat[ip].idx + gp_p[ip].idx;
+        // Low lat, low p
+        if (gp_lat[ip].fd[1] > 0 && gp_p[ip].fd[1] > 0)
+          from_dpath_to_dx(diy_dx(ix, joker, joker),
+                           diy_dpath(ip, joker, joker),
+                           gp_lat[ip].fd[1] * gp_p[ip].fd[1]);
+        // Low lat, high p
+        if (gp_lat[ip].fd[1] > 0 && gp_p[ip].fd[0] > 0)
+          from_dpath_to_dx(diy_dx(ix + 1, joker, joker),
+                           diy_dpath(ip, joker, joker),
+                           gp_lat[ip].fd[1] * gp_p[ip].fd[0]);
+        // High lat, low p
+        if (gp_lat[ip].fd[0] > 0 && gp_p[ip].fd[1] > 0)
+          from_dpath_to_dx(diy_dx(ix + nr1, joker, joker),
+                           diy_dpath(ip, joker, joker),
+                           gp_lat[ip].fd[0] * gp_p[ip].fd[1]);
+        // High lat, high p
+        if (gp_lat[ip].fd[0] > 0 && gp_p[ip].fd[0] > 0)
+          from_dpath_to_dx(diy_dx(ix + nr1 + 1, joker, joker),
+                           diy_dpath(ip, joker, joker),
+                           gp_lat[ip].fd[0] * gp_p[ip].fd[0]);
+      }
+    }
+
+    //- 3D
+    else if (atmosphere_dim == 3) {
+      for (Index ip = 0; ip < ppath.np; ip++) {
+        Index ix =
+            nr2 * nr1 * gp_lon[ip].idx + nr1 * gp_lat[ip].idx + gp_p[ip].idx;
+        // Low lon, low lat, low p
+        if (gp_lon[ip].fd[1] > 0 && gp_lat[ip].fd[1] > 0 && gp_p[ip].fd[1] > 0)
+          from_dpath_to_dx(
+              diy_dx(ix, joker, joker),
+              diy_dpath(ip, joker, joker),
+              gp_lon[ip].fd[1] * gp_lat[ip].fd[1] * gp_p[ip].fd[1]);
+        // Low lon, low lat, high p
+        if (gp_lon[ip].fd[1] > 0 && gp_lat[ip].fd[1] > 0 && gp_p[ip].fd[0] > 0)
+          from_dpath_to_dx(
+              diy_dx(ix + 1, joker, joker),
+              diy_dpath(ip, joker, joker),
+              gp_lon[ip].fd[1] * gp_lat[ip].fd[1] * gp_p[ip].fd[0]);
+        // Low lon, high lat, low p
+        if (gp_lon[ip].fd[1] > 0 && gp_lat[ip].fd[0] > 0 && gp_p[ip].fd[1] > 0)
+          from_dpath_to_dx(
+              diy_dx(ix + nr1, joker, joker),
+              diy_dpath(ip, joker, joker),
+              gp_lon[ip].fd[1] * gp_lat[ip].fd[0] * gp_p[ip].fd[1]);
+        // Low lon, high lat, high p
+        if (gp_lon[ip].fd[1] > 0 && gp_lat[ip].fd[0] > 0 && gp_p[ip].fd[0] > 0)
+          from_dpath_to_dx(
+              diy_dx(ix + nr1 + 1, joker, joker),
+              diy_dpath(ip, joker, joker),
+              gp_lon[ip].fd[1] * gp_lat[ip].fd[0] * gp_p[ip].fd[0]);
+
+        // Increase *ix* (to be valid for high lon level)
+        ix += nr2 * nr1;
+
+        // High lon, low lat, low p
+        if (gp_lon[ip].fd[0] > 0 && gp_lat[ip].fd[1] > 0 && gp_p[ip].fd[1] > 0)
+          from_dpath_to_dx(
+              diy_dx(ix, joker, joker),
+              diy_dpath(ip, joker, joker),
+              gp_lon[ip].fd[0] * gp_lat[ip].fd[1] * gp_p[ip].fd[1]);
+        // High lon, low lat, high p
+        if (gp_lon[ip].fd[0] > 0 && gp_lat[ip].fd[1] > 0 && gp_p[ip].fd[0] > 0)
+          from_dpath_to_dx(
+              diy_dx(ix + 1, joker, joker),
+              diy_dpath(ip, joker, joker),
+              gp_lon[ip].fd[0] * gp_lat[ip].fd[1] * gp_p[ip].fd[0]);
+        // High lon, high lat, low p
+        if (gp_lon[ip].fd[0] > 0 && gp_lat[ip].fd[0] > 0 && gp_p[ip].fd[1] > 0)
+          from_dpath_to_dx(
+              diy_dx(ix + nr1, joker, joker),
+              diy_dpath(ip, joker, joker),
+              gp_lon[ip].fd[0] * gp_lat[ip].fd[0] * gp_p[ip].fd[1]);
+        // High lon, high lat, high p
+        if (gp_lon[ip].fd[0] > 0 && gp_lat[ip].fd[0] > 0 && gp_p[ip].fd[0] > 0)
+          from_dpath_to_dx(
+              diy_dx(ix + nr1 + 1, joker, joker),
+              diy_dpath(ip, joker, joker),
+              gp_lon[ip].fd[0] * gp_lat[ip].fd[0] * gp_p[ip].fd[0]);
+      }
+    }
+  }
 }
-
-
 
 //! diy_from_pos_to_rgrids
 /*!
@@ -622,100 +577,95 @@ void diy_from_path_to_rgrids(
     \author Patrick Eriksson 
     \date   2018-04-10
 */
-void diy_from_pos_to_rgrids(
-         Tensor3View          diy_dx,
-   const RetrievalQuantity&   jacobian_quantity,
-   ConstMatrixView            diy_dpos,
-   const Index&               atmosphere_dim,
-   ConstVectorView            rtp_pos )
-{
-  assert( jacobian_quantity.Grids().nelem() == max(atmosphere_dim-1,Index(1)) );
-  assert( rtp_pos.nelem() == atmosphere_dim );
-  
-  // We want here an extrapolation to infinity -> 
+void diy_from_pos_to_rgrids(Tensor3View diy_dx,
+                            const RetrievalQuantity& jacobian_quantity,
+                            ConstMatrixView diy_dpos,
+                            const Index& atmosphere_dim,
+                            ConstVectorView rtp_pos) {
+  assert(jacobian_quantity.Grids().nelem() ==
+         max(atmosphere_dim - 1, Index(1)));
+  assert(rtp_pos.nelem() == atmosphere_dim);
+
+  // We want here an extrapolation to infinity ->
   //                                        extremly high extrapolation factor
-  const Numeric   extpolfac = 1.0e99;
+  const Numeric extpolfac = 1.0e99;
 
   // Handle 1D separately
-  if( atmosphere_dim == 1 )
-    {
-      diy_dx(0,joker,joker) = diy_dpos;
-      return;
-    }
+  if (atmosphere_dim == 1) {
+    diy_dx(0, joker, joker) = diy_dpos;
+    return;
+  }
 
   // Latitude
-  Index            nr1 = 1;
-  ArrayOfGridPos   gp_lat;
-  {          
+  Index nr1 = 1;
+  ArrayOfGridPos gp_lat;
+  {
     gp_lat.resize(1);
     nr1 = jacobian_quantity.Grids()[0].nelem();
-    if( nr1 > 1 )
-      {
-        gridpos( gp_lat, jacobian_quantity.Grids()[0], 
-                 Vector(1,rtp_pos[1]), extpolfac );
-        jacobian_type_extrapol( gp_lat );
-      }
-    else
-      { gp4length1grid( gp_lat ); }
+    if (nr1 > 1) {
+      gridpos(gp_lat,
+              jacobian_quantity.Grids()[0],
+              Vector(1, rtp_pos[1]),
+              extpolfac);
+      jacobian_type_extrapol(gp_lat);
+    } else {
+      gp4length1grid(gp_lat);
+    }
   }
 
   // Longitude
-  ArrayOfGridPos   gp_lon;
-  if( atmosphere_dim > 2 )
-    {
-      gp_lon.resize(1);
-      if( jacobian_quantity.Grids()[1].nelem() > 1 )
-        {          
-          gridpos( gp_lon, jacobian_quantity.Grids()[1], 
-                   Vector(1,rtp_pos[2]), extpolfac );
-          jacobian_type_extrapol( gp_lon );
-        }
-      else
-        { gp4length1grid( gp_lon ); }
+  ArrayOfGridPos gp_lon;
+  if (atmosphere_dim > 2) {
+    gp_lon.resize(1);
+    if (jacobian_quantity.Grids()[1].nelem() > 1) {
+      gridpos(gp_lon,
+              jacobian_quantity.Grids()[1],
+              Vector(1, rtp_pos[2]),
+              extpolfac);
+      jacobian_type_extrapol(gp_lon);
+    } else {
+      gp4length1grid(gp_lon);
     }
+  }
 
   //- 2D
-  if( atmosphere_dim == 2 )
-    {
-      if( gp_lat[0].fd[1] > 0 )
-        {
-          from_dpath_to_dx( diy_dx(gp_lat[0].idx,joker,joker),
-                            diy_dpos(joker,joker), gp_lat[0].fd[1] );
-        }
-      if( gp_lat[0].fd[0] > 0 )
-        {
-          from_dpath_to_dx( diy_dx(gp_lat[0].idx+1,joker,joker),
-                            diy_dpos(joker,joker), gp_lat[0].fd[0] );
-        }
+  if (atmosphere_dim == 2) {
+    if (gp_lat[0].fd[1] > 0) {
+      from_dpath_to_dx(diy_dx(gp_lat[0].idx, joker, joker),
+                       diy_dpos(joker, joker),
+                       gp_lat[0].fd[1]);
     }
+    if (gp_lat[0].fd[0] > 0) {
+      from_dpath_to_dx(diy_dx(gp_lat[0].idx + 1, joker, joker),
+                       diy_dpos(joker, joker),
+                       gp_lat[0].fd[0]);
+    }
+  }
   //- 3D
-  else 
-    {
-      Index ix = nr1*gp_lon[0].idx + gp_lat[0].idx;
-      // Low lon, low lat
-      if( gp_lon[0].fd[1]>0 && gp_lat[0].fd[1]>0 )
-        from_dpath_to_dx( diy_dx(ix,joker,joker),
-                          diy_dpos(joker,joker), 
-                          gp_lon[0].fd[1]*gp_lat[0].fd[1] );
-      // Low lon, high lat
-      if( gp_lon[0].fd[1]>0 && gp_lat[0].fd[0]>0 )
-        from_dpath_to_dx( diy_dx(ix+1,joker,joker),
-                          diy_dpos(joker,joker), 
-                          gp_lon[0].fd[1]*gp_lat[0].fd[0] );
-      // High lon, low lat
-      if( gp_lon[0].fd[0]>0 && gp_lat[0].fd[1]>0 )
-        from_dpath_to_dx( diy_dx(ix+nr1,joker,joker),
-                          diy_dpos(joker,joker), 
-                          gp_lon[0].fd[0]*gp_lat[0].fd[1] );
-      // High lon, high lat
-      if( gp_lon[0].fd[0]>0 && gp_lat[0].fd[0]>0 )
-        from_dpath_to_dx( diy_dx(ix+nr1+1,joker,joker),
-                          diy_dpos(joker,joker), 
-                          gp_lon[0].fd[0]*gp_lat[0].fd[0] );
-    }
+  else {
+    Index ix = nr1 * gp_lon[0].idx + gp_lat[0].idx;
+    // Low lon, low lat
+    if (gp_lon[0].fd[1] > 0 && gp_lat[0].fd[1] > 0)
+      from_dpath_to_dx(diy_dx(ix, joker, joker),
+                       diy_dpos(joker, joker),
+                       gp_lon[0].fd[1] * gp_lat[0].fd[1]);
+    // Low lon, high lat
+    if (gp_lon[0].fd[1] > 0 && gp_lat[0].fd[0] > 0)
+      from_dpath_to_dx(diy_dx(ix + 1, joker, joker),
+                       diy_dpos(joker, joker),
+                       gp_lon[0].fd[1] * gp_lat[0].fd[0]);
+    // High lon, low lat
+    if (gp_lon[0].fd[0] > 0 && gp_lat[0].fd[1] > 0)
+      from_dpath_to_dx(diy_dx(ix + nr1, joker, joker),
+                       diy_dpos(joker, joker),
+                       gp_lon[0].fd[0] * gp_lat[0].fd[1]);
+    // High lon, high lat
+    if (gp_lon[0].fd[0] > 0 && gp_lat[0].fd[0] > 0)
+      from_dpath_to_dx(diy_dx(ix + nr1 + 1, joker, joker),
+                       diy_dpos(joker, joker),
+                       gp_lon[0].fd[0] * gp_lat[0].fd[0]);
+  }
 }
-
-
 
 //! Help function for analytical jacobian calculations
 /*!
@@ -738,121 +688,95 @@ void diy_from_pos_to_rgrids(
     \author Patrick Eriksson 
     \date   2009-10-07
 */
-void get_pointers_for_analytical_jacobians( 
-         ArrayOfIndex&               abs_species_i, 
-         ArrayOfIndex&               scat_species_i, 
-         ArrayOfIndex&               is_t,
-         ArrayOfIndex&               wind_i,
-         ArrayOfIndex&               magfield_i,
-   const ArrayOfRetrievalQuantity&   jacobian_quantities,
-   const ArrayOfArrayOfSpeciesTag&   abs_species,
-   const Index&                      cloudbox_on,
-   const ArrayOfString&              scat_species )
-{
-  FOR_ANALYTICAL_JACOBIANS_DO( 
-    //
-    if( jacobian_quantities[iq].MainTag()   == TEMPERATURE_MAINTAG  &&
-        jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG  )
-    { is_t[iq] = Index(JacobianType::Temperature); }
-    else
-      { is_t[iq] = Index(JacobianType::None); }
-    //
-    if( jacobian_quantities[iq].MainTag() == ABSSPECIES_MAINTAG )
-      {
-        if( jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG )
-          {
-            bool test_available=false;
-            for(Index ii=0; ii<abs_species.nelem(); ii++)
-              {
-                if( abs_species[ii][0].Species() ==
-                    SpeciesTag(jacobian_quantities[iq].Subtag()).Species() )
-                  {
-                    test_available=true;
-                    abs_species_i[iq]=ii;
-                    break;
-                  }
-              }
-            if(!test_available)
-              {
-                ostringstream os;
-                os << "Could not find " << jacobian_quantities[iq].Subtag() <<
-                " in species of abs_species.\n";
-                throw std::runtime_error(os.str());
-              }
+void get_pointers_for_analytical_jacobians(
+    ArrayOfIndex& abs_species_i,
+    ArrayOfIndex& scat_species_i,
+    ArrayOfIndex& is_t,
+    ArrayOfIndex& wind_i,
+    ArrayOfIndex& magfield_i,
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const Index& cloudbox_on,
+    const ArrayOfString& scat_species) {
+  FOR_ANALYTICAL_JACOBIANS_DO(
+      //
+      if (jacobian_quantities[iq].MainTag() == TEMPERATURE_MAINTAG &&
+          jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG) {
+        is_t[iq] = Index(JacobianType::Temperature);
+      } else { is_t[iq] = Index(JacobianType::None); }
+      //
+      if (jacobian_quantities[iq].MainTag() == ABSSPECIES_MAINTAG) {
+        if (jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG) {
+          bool test_available = false;
+          for (Index ii = 0; ii < abs_species.nelem(); ii++) {
+            if (abs_species[ii][0].Species() ==
+                SpeciesTag(jacobian_quantities[iq].Subtag()).Species()) {
+              test_available = true;
+              abs_species_i[iq] = ii;
+              break;
+            }
           }
-        else
-          {
-            ArrayOfSpeciesTag  atag;
-            array_species_tag_from_string( atag, jacobian_quantities[iq].Subtag() );
-            abs_species_i[iq] = chk_contains( "abs_species", abs_species, atag );
-          }
-      }
-    else if( jacobian_quantities[iq].MainTag() == PARTICULATES_MAINTAG ||
-             jacobian_quantities[iq].MainTag() == ELECTRONS_MAINTAG)
-      {
-        abs_species_i[iq] = -9999;
-      }
-    else
-      { abs_species_i[iq] = -1; }
-    //
-    if( cloudbox_on  &&  jacobian_quantities[iq].MainTag() == SCATSPECIES_MAINTAG )
-      {
-        scat_species_i[iq] = find_first( scat_species,
-                                             jacobian_quantities[iq].Subtag() );
-        if( scat_species_i[iq] < 0 )
-          {
+          if (!test_available) {
             ostringstream os;
-            os << "Jacobian quantity with index " << iq << " refers to\n"
-               << "  " << jacobian_quantities[iq].Subtag()
-               << "\nbut this species could not be found in *scat_species*.";
-            throw runtime_error(os.str());
+            os << "Could not find " << jacobian_quantities[iq].Subtag()
+               << " in species of abs_species.\n";
+            throw std::runtime_error(os.str());
           }
-      }
-    else
-      { scat_species_i[iq] = -1; }
-    //
-    if( jacobian_quantities[iq].MainTag() == WIND_MAINTAG  &&
-        jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG  )
-      {
+        } else {
+          ArrayOfSpeciesTag atag;
+          array_species_tag_from_string(atag, jacobian_quantities[iq].Subtag());
+          abs_species_i[iq] = chk_contains("abs_species", abs_species, atag);
+        }
+      } else if (jacobian_quantities[iq].MainTag() == PARTICULATES_MAINTAG ||
+                 jacobian_quantities[iq].MainTag() == ELECTRONS_MAINTAG) {
+        abs_species_i[iq] = -9999;
+      } else { abs_species_i[iq] = -1; }
+      //
+      if (cloudbox_on &&
+          jacobian_quantities[iq].MainTag() == SCATSPECIES_MAINTAG) {
+        scat_species_i[iq] =
+            find_first(scat_species, jacobian_quantities[iq].Subtag());
+        if (scat_species_i[iq] < 0) {
+          ostringstream os;
+          os << "Jacobian quantity with index " << iq << " refers to\n"
+             << "  " << jacobian_quantities[iq].Subtag()
+             << "\nbut this species could not be found in *scat_species*.";
+          throw runtime_error(os.str());
+        }
+      } else { scat_species_i[iq] = -1; }
+      //
+      if (jacobian_quantities[iq].MainTag() == WIND_MAINTAG &&
+          jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG) {
         // Map u, v and w to 1, 2 and 3, respectively
         char c = jacobian_quantities[iq].Subtag()[0];
-        const Index test = Index( c ) - 116;
-        if( test == 1 )
+        const Index test = Index(c) - 116;
+        if (test == 1)
           wind_i[iq] = Index(JacobianType::WindFieldU);
-        else if(test == 2 )
+        else if (test == 2)
           wind_i[iq] = Index(JacobianType::WindFieldV);
-        else if(test == 3 )
+        else if (test == 3)
           wind_i[iq] = Index(JacobianType::WindFieldW);
-        else if(test == (Index('s')-116) )
+        else if (test == (Index('s') - 116))
           wind_i[iq] = Index(JacobianType::AbsWind);
-      }
-    else
-      { wind_i[iq] = Index(JacobianType::None); }
-    //
-    if( jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG  &&
-        jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG )
-      {
+      } else { wind_i[iq] = Index(JacobianType::None); }
+      //
+      if (jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG &&
+          jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG) {
         // Map u, v and w to 1, 2 and 3, respectively
         char c = jacobian_quantities[iq].Subtag()[0];
-        const Index test = Index( c ) - 116;
-        if( test == 1 )
+        const Index test = Index(c) - 116;
+        if (test == 1)
           magfield_i[iq] = Index(JacobianType::MagFieldU);
-        else if(test == 2 )
+        else if (test == 2)
           magfield_i[iq] = Index(JacobianType::MagFieldV);
-        else if(test == 3 )
+        else if (test == 3)
           magfield_i[iq] = Index(JacobianType::MagFieldW);
-        else if(test == (Index('s')-116) )
+        else if (test == (Index('s') - 116))
           magfield_i[iq] = Index(JacobianType::AbsMag);
-      }
-    else
-      { magfield_i[iq] = Index(JacobianType::None); }
-      
-   )
+      } else { magfield_i[iq] = Index(JacobianType::None); }
+
+  )
 }
-
-
-
-
 
 /*===========================================================================
   === Other functions, in alphabetical order
@@ -870,28 +794,21 @@ void get_pointers_for_analytical_jacobians(
    \author Mattias Ekstrom
    \date   2005-06-03
 */
-void calc_nd_field(       Tensor3View& nd,
-                    const VectorView&  p,
-                    const Tensor3View& t)
-{
-  assert( nd.npages()==t.npages() );
-  assert( nd.nrows()==t.nrows() );               
-  assert( nd.ncols()==t.ncols() );
-  assert( nd.npages()==p.nelem() );
-  
-  for (Index p_it=0; p_it<nd.npages(); p_it++)
-  {
-    for (Index lat_it=0; lat_it<nd.nrows(); lat_it++)
-    {
-      for (Index lon_it=0; lon_it<nd.ncols(); lon_it++)
-      {
-        nd(p_it,lat_it,lon_it) = number_density( p[p_it], t(p_it,lat_it,lon_it));
+void calc_nd_field(Tensor3View& nd, const VectorView& p, const Tensor3View& t) {
+  assert(nd.npages() == t.npages());
+  assert(nd.nrows() == t.nrows());
+  assert(nd.ncols() == t.ncols());
+  assert(nd.npages() == p.nelem());
+
+  for (Index p_it = 0; p_it < nd.npages(); p_it++) {
+    for (Index lat_it = 0; lat_it < nd.nrows(); lat_it++) {
+      for (Index lon_it = 0; lon_it < nd.ncols(); lon_it++) {
+        nd(p_it, lat_it, lon_it) =
+            number_density(p[p_it], t(p_it, lat_it, lon_it));
       }
     }
   }
 }
-
-
 
 //! Check that the retrieval grids are defined for each atmosphere dim
 /*!
@@ -920,146 +837,116 @@ void calc_nd_field(       Tensor3View& nd,
    
    \author Mattias Ekstrom
    \date   2005-05-11
-*/ 
-bool check_retrieval_grids(       ArrayOfVector& grids,
-                                  ostringstream& os,
-                            const Vector&        p_grid,
-                            const Vector&        lat_grid,
-                            const Vector&        lon_grid,
-                            const Vector&        p_retr,
-                            const Vector&        lat_retr,
-                            const Vector&        lon_retr,
-                            const String&        p_retr_name,
-                            const String&        lat_retr_name,
-                            const String&        lon_retr_name,
-                            const Index&         dim)
-{
-  assert( grids.nelem() == dim );
+*/
+bool check_retrieval_grids(ArrayOfVector& grids,
+                           ostringstream& os,
+                           const Vector& p_grid,
+                           const Vector& lat_grid,
+                           const Vector& lon_grid,
+                           const Vector& p_retr,
+                           const Vector& lat_retr,
+                           const Vector& lon_retr,
+                           const String& p_retr_name,
+                           const String& lat_retr_name,
+                           const String& lon_retr_name,
+                           const Index& dim) {
+  assert(grids.nelem() == dim);
 
-  if ( p_retr.nelem()==0 )
-    {
-      os << "The grid vector *" << p_retr_name << "* is empty,"
-         << " at least one pressure level\n"
-         << "should be specified.";
-      return false;
-    }
-  else if( !is_decreasing( p_retr ) )
-    {
-      os << "The pressure grid vector *" << p_retr_name << "* is not a\n"
-         << "strictly decreasing vector, which is required.";
-      return false;      
-    }
-  else if( p_grid.nelem() == 1 and p_grid.nelem() == p_retr.nelem())
-  {
-    if(p_grid[0] not_eq p_retr[0])
-    {
+  if (p_retr.nelem() == 0) {
+    os << "The grid vector *" << p_retr_name << "* is empty,"
+       << " at least one pressure level\n"
+       << "should be specified.";
+    return false;
+  } else if (!is_decreasing(p_retr)) {
+    os << "The pressure grid vector *" << p_retr_name << "* is not a\n"
+       << "strictly decreasing vector, which is required.";
+    return false;
+  } else if (p_grid.nelem() == 1 and p_grid.nelem() == p_retr.nelem()) {
+    if (p_grid[0] not_eq p_retr[0]) {
       os << "Mismatching 1-long grids for " << p_retr_name;
       return false;
     }
-    
-    // Necessary repeat but grids are OK
-    grids[0] = p_retr; 
-  }
-  else if ( log(p_retr[0])> 1.5*log(p_grid[0])-0.5*log(p_grid[1]) || 
-            log(p_retr[p_retr.nelem()-1])<1.5*log(p_grid[p_grid.nelem()-1])-
-                                          0.5*log(p_grid[p_grid.nelem()-2])) 
-    {
-      os << "The grid vector *" << p_retr_name << "* is not covered by the\n"
-         << "corresponding atmospheric grid.";
-      return false;
-    }
-  else
-    {
-      // Pressure grid ok, add it to grids
-      grids[0]=p_retr;  
-    }
 
-  if (dim>=2)
-  {
+    // Necessary repeat but grids are OK
+    grids[0] = p_retr;
+  } else if (log(p_retr[0]) > 1.5 * log(p_grid[0]) - 0.5 * log(p_grid[1]) ||
+             log(p_retr[p_retr.nelem() - 1]) <
+                 1.5 * log(p_grid[p_grid.nelem() - 1]) -
+                     0.5 * log(p_grid[p_grid.nelem() - 2])) {
+    os << "The grid vector *" << p_retr_name << "* is not covered by the\n"
+       << "corresponding atmospheric grid.";
+    return false;
+  } else {
+    // Pressure grid ok, add it to grids
+    grids[0] = p_retr;
+  }
+
+  if (dim >= 2) {
     // If 2D and 3D atmosphere, check latitude grid
-    if ( lat_retr.nelem()==0 )
-    {
+    if (lat_retr.nelem() == 0) {
       os << "The grid vector *" << lat_retr_name << "* is empty,"
          << " at least one latitude\n"
          << "should be specified for a 2D/3D atmosphere.";
       return false;
-    }
-    else if( !is_increasing( lat_retr ) )
-    {
+    } else if (!is_increasing(lat_retr)) {
       os << "The latitude grid vector *" << lat_retr_name << "* is not a\n"
          << "strictly increasing vector, which is required.";
-      return false;      
-    }
-    else if( lat_grid.nelem() == 1 and lat_grid.nelem() == lat_retr.nelem())
-    {
-      if(lat_grid[0] not_eq lat_retr[0])
-      {
+      return false;
+    } else if (lat_grid.nelem() == 1 and lat_grid.nelem() == lat_retr.nelem()) {
+      if (lat_grid[0] not_eq lat_retr[0]) {
         os << "Mismatching 1-long grids for " << lat_retr_name;
         return false;
       }
-      
+
       // Necessary repeat but grids are OK
-      grids[1] = lat_retr; 
-    }
-    else if ( lat_retr[0]<1.5*lat_grid[0]-0.5*lat_grid[1] || 
-              lat_retr[lat_retr.nelem()-1]>1.5*lat_grid[lat_grid.nelem()-1]-
-                                           0.5*lat_grid[lat_grid.nelem()-2] )
-    {
+      grids[1] = lat_retr;
+    } else if (lat_retr[0] < 1.5 * lat_grid[0] - 0.5 * lat_grid[1] ||
+               lat_retr[lat_retr.nelem() - 1] >
+                   1.5 * lat_grid[lat_grid.nelem() - 1] -
+                       0.5 * lat_grid[lat_grid.nelem() - 2]) {
       os << "The grid vector *" << lat_retr_name << "* is not covered by the\n"
          << "corresponding atmospheric grid.";
       return false;
-    }
-    else
-    {
+    } else {
       // Latitude grid ok, add it to grids
-      grids[1]=lat_retr;
+      grids[1] = lat_retr;
     }
-    if (dim==3)
-    {
+    if (dim == 3) {
       // For 3D atmosphere check longitude grid
-      if ( lon_retr.nelem()==0 )
-      {
+      if (lon_retr.nelem() == 0) {
         os << "The grid vector *" << lon_retr_name << "* is empty,"
            << " at least one longitude\n"
            << "should be specified for a 3D atmosphere.";
         return false;
-      }
-      else if( !is_increasing( lon_retr ) )
-      {
-      os << "The longitude grid vector *" << lon_retr_name << "* is not a\n"
-         << "strictly increasing vector, which is required.";
-      return false;      
-      }
-      else if( lon_grid.nelem() == 1 and lon_grid.nelem() == lon_retr.nelem())
-      {
-        if(lon_grid[0] not_eq lon_retr[0])
-        {
+      } else if (!is_increasing(lon_retr)) {
+        os << "The longitude grid vector *" << lon_retr_name << "* is not a\n"
+           << "strictly increasing vector, which is required.";
+        return false;
+      } else if (lon_grid.nelem() == 1 and
+                 lon_grid.nelem() == lon_retr.nelem()) {
+        if (lon_grid[0] not_eq lon_retr[0]) {
           os << "Mismatching 1-long grids for " << lon_retr_name;
           return false;
         }
-        
+
         // Necessary repeat but grids are OK
-        grids[2] = lon_retr; 
-      }
-      else if ( lon_retr[0]<1.5*lon_grid[0]-0.5*lon_grid[1] || 
-                lon_retr[lon_retr.nelem()-1]>1.5*lon_grid[lon_grid.nelem()-1]-
-                                             0.5*lon_grid[lon_grid.nelem()-2] )
-      {
-        os << "The grid vector *" << lon_retr_name << "* is not covered by the\n"
+        grids[2] = lon_retr;
+      } else if (lon_retr[0] < 1.5 * lon_grid[0] - 0.5 * lon_grid[1] ||
+                 lon_retr[lon_retr.nelem() - 1] >
+                     1.5 * lon_grid[lon_grid.nelem() - 1] -
+                         0.5 * lon_grid[lon_grid.nelem() - 2]) {
+        os << "The grid vector *" << lon_retr_name
+           << "* is not covered by the\n"
            << "corresponding atmospheric grid.";
         return false;
-      }
-      else
-      {
-        // Longitude grid ok, add it to grids      
-        grids[2]=lon_retr;
+      } else {
+        // Longitude grid ok, add it to grids
+        grids[2] = lon_retr;
       }
     }
   }
   return true;
-}             
-
-
+}
 
 //! Check that the retrieval grids are defined for each atmosphere dim
 /*!
@@ -1085,115 +972,91 @@ bool check_retrieval_grids(       ArrayOfVector& grids,
    
    \author Mattias Ekstrom
    \date   2005-05-11
-*/ 
-bool check_retrieval_grids(       ArrayOfVector& grids,
-                                  ostringstream& os,
-                            const Vector&        lat_grid,
-                            const Vector&        lon_grid,
-                            const Vector&        lat_retr,
-                            const Vector&        lon_retr,
-                            const String&        lat_retr_name,
-                            const String&        lon_retr_name,
-                            const Index&         dim)
-{
-  assert( grids.nelem() == max(dim-1,Index(1)) );
+*/
+bool check_retrieval_grids(ArrayOfVector& grids,
+                           ostringstream& os,
+                           const Vector& lat_grid,
+                           const Vector& lon_grid,
+                           const Vector& lat_retr,
+                           const Vector& lon_retr,
+                           const String& lat_retr_name,
+                           const String& lon_retr_name,
+                           const Index& dim) {
+  assert(grids.nelem() == max(dim - 1, Index(1)));
 
-  if (dim==1)
-  {
+  if (dim == 1) {
     // Here we only need to create a length 1 dummy grid
     grids[0].resize(1);
     grids[0][0] = 0;
   }
-  
-  if (dim>=2)
-  {
+
+  if (dim >= 2) {
     // If 2D and 3D atmosphere, check latitude grid
-    if ( lat_retr.nelem()==0 )
-    {
+    if (lat_retr.nelem() == 0) {
       os << "The grid vector *" << lat_retr_name << "* is empty,"
          << " at least one latitude\n"
          << "should be specified for a 2D/3D atmosphere.";
       return false;
-    }
-    else if( !is_increasing( lat_retr ) )
-    {
+    } else if (!is_increasing(lat_retr)) {
       os << "The latitude grid vector *" << lat_retr_name << "* is not a\n"
          << "strictly increasing vector, which is required.";
-      return false;      
-    }
-    else if( lat_grid.nelem() == 1 and lat_grid.nelem() == lat_retr.nelem())
-    {
-      if(lat_grid[0] not_eq lat_retr[0])
-      {
+      return false;
+    } else if (lat_grid.nelem() == 1 and lat_grid.nelem() == lat_retr.nelem()) {
+      if (lat_grid[0] not_eq lat_retr[0]) {
         os << "Mismatching 1-long grids for " << lat_retr_name;
         return false;
       }
-      
+
       // Necessary repeat but grids are OK
-      grids[0] = lat_retr; 
-    }
-    else if ( lat_retr[0]<1.5*lat_grid[0]-0.5*lat_grid[1] || 
-              lat_retr[lat_retr.nelem()-1]>1.5*lat_grid[lat_grid.nelem()-1]-
-                                           0.5*lat_grid[lat_grid.nelem()-2] )
-    {
+      grids[0] = lat_retr;
+    } else if (lat_retr[0] < 1.5 * lat_grid[0] - 0.5 * lat_grid[1] ||
+               lat_retr[lat_retr.nelem() - 1] >
+                   1.5 * lat_grid[lat_grid.nelem() - 1] -
+                       0.5 * lat_grid[lat_grid.nelem() - 2]) {
       os << "The grid vector *" << lat_retr_name << "* is not covered by the\n"
          << "corresponding atmospheric grid.";
       return false;
-    }
-    else
-    {
+    } else {
       // Latitude grid ok, add it to grids
-      grids[0]=lat_retr;
+      grids[0] = lat_retr;
     }
-    
-    if (dim==3)
-    {
+
+    if (dim == 3) {
       // For 3D atmosphere check longitude grid
-      if ( lon_retr.nelem()==0 )
-      {
+      if (lon_retr.nelem() == 0) {
         os << "The grid vector *" << lon_retr_name << "* is empty,"
            << " at least one longitude\n"
            << "should be specified for a 3D atmosphere.";
         return false;
-      }
-      else if( !is_increasing( lon_retr ) )
-      {
-      os << "The longitude grid vector *" << lon_retr_name << "* is not a\n"
-         << "strictly increasing vector, which is required.";
-      return false;      
-      }
-      else if( lon_grid.nelem() == 1 and lon_grid.nelem() == lon_retr.nelem())
-      {
-        if(lon_grid[0] not_eq lon_retr[0])
-        {
+      } else if (!is_increasing(lon_retr)) {
+        os << "The longitude grid vector *" << lon_retr_name << "* is not a\n"
+           << "strictly increasing vector, which is required.";
+        return false;
+      } else if (lon_grid.nelem() == 1 and
+                 lon_grid.nelem() == lon_retr.nelem()) {
+        if (lon_grid[0] not_eq lon_retr[0]) {
           os << "Mismatching 1-long grids for " << lon_retr_name;
           return false;
         }
-        
+
         // Necessary repeat but grids are OK
-        grids[1] = lon_retr; 
-      }
-      else if ( lon_retr[0]<1.5*lon_grid[0]-0.5*lon_grid[1] || 
-                lon_retr[lon_retr.nelem()-1]>1.5*lon_grid[lon_grid.nelem()-1]-
-                                             0.5*lon_grid[lon_grid.nelem()-2] )
-      {
-        os << "The grid vector *" << lon_retr_name << "* is not covered by the\n"
+        grids[1] = lon_retr;
+      } else if (lon_retr[0] < 1.5 * lon_grid[0] - 0.5 * lon_grid[1] ||
+                 lon_retr[lon_retr.nelem() - 1] >
+                     1.5 * lon_grid[lon_grid.nelem() - 1] -
+                         0.5 * lon_grid[lon_grid.nelem() - 2]) {
+        os << "The grid vector *" << lon_retr_name
+           << "* is not covered by the\n"
            << "corresponding atmospheric grid.";
         return false;
-      }
-      else
-      {
-        // Longitude grid ok, add it to grids      
-        grids[1]=lon_retr;
+      } else {
+        // Longitude grid ok, add it to grids
+        grids[1] = lon_retr;
       }
     }
   }
   return true;
-}             
-
-
-
-
+}
 
 //! Calculate array of GridPos for perturbation interpolation
 /*!
@@ -1214,41 +1077,33 @@ bool check_retrieval_grids(       ArrayOfVector& grids,
    
    \author Mattias Ekstrom
    \date   2005-05-12
-*/   
-void get_perturbation_gridpos(       ArrayOfGridPos& gp,
-                               const Vector&         atm_grid,
-                               const Vector&         jac_grid,
-                               const bool&           is_pressure)
-{
+*/
+void get_perturbation_gridpos(ArrayOfGridPos& gp,
+                              const Vector& atm_grid,
+                              const Vector& jac_grid,
+                              const bool& is_pressure) {
   Index nj = jac_grid.nelem();
   Index na = atm_grid.nelem();
-  Vector pert(nj+2);
-  
+  Vector pert(nj + 2);
+
   // Create perturbation grid, with extension outside the atmospheric grid
-  if ( is_pressure )
-  {
-    pert[0] = atm_grid[0]*10.0;
-    pert[nj+1] = atm_grid[na-1]*0.1;
+  if (is_pressure) {
+    pert[0] = atm_grid[0] * 10.0;
+    pert[nj + 1] = atm_grid[na - 1] * 0.1;
+  } else {
+    pert[0] = atm_grid[0] - 1.0;
+    pert[nj + 1] = atm_grid[na - 1] + 1.0;
   }
-  else
-  {    
-    pert[0] = atm_grid[0]-1.0;
-    pert[nj+1] = atm_grid[na-1]+1.0;
-  }
-  pert[Range(1,nj)] = jac_grid;
-  
+  pert[Range(1, nj)] = jac_grid;
+
   // Calculate the gridpos
   gp.resize(na);
-  if( is_pressure ){
-    p2gridpos( gp, pert, atm_grid);
-  }
-  else
-  { 
-    gridpos( gp, pert, atm_grid);
+  if (is_pressure) {
+    p2gridpos(gp, pert, atm_grid);
+  } else {
+    gridpos(gp, pert, atm_grid);
   }
 }
-
-
 
 //! Get limits for perturbation of a box
 /*!
@@ -1273,46 +1128,39 @@ void get_perturbation_gridpos(       ArrayOfGridPos& gp,
 
    \author Mattias Ekstrom
    \date   2005-02-25
-*/   
-void get_perturbation_limit(       ArrayOfIndex& limit,
-                             const Vector&       pert_grid,
-                             const Vector&       atm_limit)
-{
+*/
+void get_perturbation_limit(ArrayOfIndex& limit,
+                            const Vector& pert_grid,
+                            const Vector& atm_limit) {
   limit.resize(2);
-//   Index np = pert_grid.nelem()-1;
-  Index na = atm_limit.nelem()-1;
-  
+  //   Index np = pert_grid.nelem()-1;
+  Index na = atm_limit.nelem() - 1;
+
   // If the field is ordered in decreasing order set the
   // increment factor to -1
   Numeric inc = 1;
-  if (is_decreasing(pert_grid))
-    inc = -1;
+  if (is_decreasing(pert_grid)) inc = -1;
 
   // Check that the pert_grid is encompassing atm_limit
-//   assert( inc*pert_grid[0] < inc*atm_limit[0] &&
-//           inc*pert_grid[np] > inc*atm_limit[na]);
-      
+  //   assert( inc*pert_grid[0] < inc*atm_limit[0] &&
+  //           inc*pert_grid[np] > inc*atm_limit[na]);
+
   // Find first limit, check if following value is above lower limit
-  limit[0]=0;
-  while (inc*pert_grid[limit[0]+1] < inc*atm_limit[0]) 
-  {
+  limit[0] = 0;
+  while (inc * pert_grid[limit[0] + 1] < inc * atm_limit[0]) {
     limit[0]++;
   }
-  
+
   // Find last limit, check if previous value is below upper limit
-  limit[1]=pert_grid.nelem();
-  while (inc*pert_grid[limit[1]-1] > inc*atm_limit[na]) 
-  {
+  limit[1] = pert_grid.nelem();
+  while (inc * pert_grid[limit[1] - 1] > inc * atm_limit[na]) {
     limit[1]--;
   }
   // Check that the limits are ok
-  assert(limit[1]>limit[0]);
-  
+  assert(limit[1] > limit[0]);
 }
 
-                             
-
-//! Get range for perturbation 
+//! Get range for perturbation
 /*!
    This is a helper function that calculates the range in which the 
    perturbation should be added to the perturbation grid. This is needed
@@ -1325,21 +1173,17 @@ void get_perturbation_limit(       ArrayOfIndex& limit,
    
    \author Mattias Ekstrom
    \date   2004-10-14
-*/   
-void get_perturbation_range(       Range& range,
-                             const Index& index,
-                             const Index& length)
-{
-  if (index==0)
-    range = Range(index,2);
-  else if (index==length-1)
-    range = Range(index+1,2);
-  else 
-    range = Range(index+1,1);
-
+*/
+void get_perturbation_range(Range& range,
+                            const Index& index,
+                            const Index& length) {
+  if (index == 0)
+    range = Range(index, 2);
+  else if (index == length - 1)
+    range = Range(index + 1, 2);
+  else
+    range = Range(index + 1, 1);
 }
-
-
 
 //! Adopts grid postions to extrapolation used for jacobians
 /*!
@@ -1357,23 +1201,17 @@ void get_perturbation_range(       Range& range,
   \author Patrick Eriksson 
   \date   2015-09-10
 */
-void jacobian_type_extrapol( ArrayOfGridPos&   gp )
-{
-  for( Index i=0; i<gp.nelem(); i++ )
-    { 
-      if( gp[i].fd[0] < 0 ) 
-        {  
-          gp[i].fd[0] = 0; 
-          gp[i].fd[1] = 1; 
-        }
-      else if( gp[i].fd[0] > 1 ) 
-        {  
-          gp[i].fd[0] = 1; 
-          gp[i].fd[1] = 0; 
-        }
+void jacobian_type_extrapol(ArrayOfGridPos& gp) {
+  for (Index i = 0; i < gp.nelem(); i++) {
+    if (gp[i].fd[0] < 0) {
+      gp[i].fd[0] = 0;
+      gp[i].fd[1] = 1;
+    } else if (gp[i].fd[0] > 1) {
+      gp[i].fd[0] = 1;
+      gp[i].fd[1] = 0;
     }
+  }
 }
-
 
 //! Calculate the 1D perturbation for a relative perturbation.
 /*!
@@ -1389,33 +1227,27 @@ void jacobian_type_extrapol( ArrayOfGridPos&   gp )
    
    \author Mattias Ekstrom
    \date   2005-05-11
-*/   
-void perturbation_field_1d(       VectorView      field,
-                            const ArrayOfGridPos& p_gp,
-                            const Index&          p_pert_n,
-                            const Range&          p_range,
-                            const Numeric&        size,
-                            const Index&          method)
-{
+*/
+void perturbation_field_1d(VectorView field,
+                           const ArrayOfGridPos& p_gp,
+                           const Index& p_pert_n,
+                           const Range& p_range,
+                           const Numeric& size,
+                           const Index& method) {
   // Here we only perturb a vector
   Vector pert(field.nelem());
-  Matrix itw(p_gp.nelem(),2);
-  interpweights(itw,p_gp);
+  Matrix itw(p_gp.nelem(), 2);
+  interpweights(itw, p_gp);
   // For relative pert_field should be 1.0 and for absolute 0.0
-  Vector pert_field(p_pert_n,1.0-(Numeric)method);
+  Vector pert_field(p_pert_n, 1.0 - (Numeric)method);
   pert_field[p_range] += size;
-  interp( pert, itw, pert_field, p_gp);
-  if (method==0)
-  {
+  interp(pert, itw, pert_field, p_gp);
+  if (method == 0) {
     field *= pert;
-  }
-  else
-  {
+  } else {
     field += pert;
   }
-}            
-
-
+}
 
 //! Calculate the 2D perturbation for a relative perturbation.
 /*!
@@ -1434,36 +1266,30 @@ void perturbation_field_1d(       VectorView      field,
    
    \author Mattias Ekstrom
    \date   2005-05-11
-*/   
-void perturbation_field_2d(       MatrixView      field,
-                            const ArrayOfGridPos& p_gp,
-                            const ArrayOfGridPos& lat_gp,
-                            const Index&          p_pert_n,
-                            const Index&          lat_pert_n,
-                            const Range&          p_range,
-                            const Range&          lat_range,
-                            const Numeric&        size,
-                            const Index&          method)
-{
+*/
+void perturbation_field_2d(MatrixView field,
+                           const ArrayOfGridPos& p_gp,
+                           const ArrayOfGridPos& lat_gp,
+                           const Index& p_pert_n,
+                           const Index& lat_pert_n,
+                           const Range& p_range,
+                           const Range& lat_range,
+                           const Numeric& size,
+                           const Index& method) {
   // Here we perturb a matrix
-  Matrix pert(field.nrows(),field.ncols());
-  Tensor3 itw(p_gp.nelem(),lat_gp.nelem(),4);
-  interpweights(itw,p_gp,lat_gp);
+  Matrix pert(field.nrows(), field.ncols());
+  Tensor3 itw(p_gp.nelem(), lat_gp.nelem(), 4);
+  interpweights(itw, p_gp, lat_gp);
   // Init pert_field to 1.0 for relative and 0.0 for absolute
-  Matrix pert_field(p_pert_n,lat_pert_n,1.0-(Numeric)method);
-  pert_field(p_range,lat_range) += size;
-  interp( pert, itw, pert_field, p_gp, lat_gp);
-  if (method==0)
-  {
+  Matrix pert_field(p_pert_n, lat_pert_n, 1.0 - (Numeric)method);
+  pert_field(p_range, lat_range) += size;
+  interp(pert, itw, pert_field, p_gp, lat_gp);
+  if (method == 0) {
     field *= pert;
-  }
-  else
-  { 
+  } else {
     field += pert;
   }
-}            
-
-
+}
 
 //! Calculate the 3D perturbation for a relative perturbation.
 /*!
@@ -1485,39 +1311,33 @@ void perturbation_field_2d(       MatrixView      field,
    
    \author Mattias Ekstrom
    \date   2005-05-11
-*/   
-void perturbation_field_3d(       Tensor3View     field,
-                            const ArrayOfGridPos& p_gp,
-                            const ArrayOfGridPos& lat_gp,
-                            const ArrayOfGridPos& lon_gp,
-                            const Index&          p_pert_n,
-                            const Index&          lat_pert_n,
-                            const Index&          lon_pert_n,
-                            const Range&          p_range,
-                            const Range&          lat_range,
-                            const Range&          lon_range,
-                            const Numeric&        size,
-                            const Index&          method)
-{
+*/
+void perturbation_field_3d(Tensor3View field,
+                           const ArrayOfGridPos& p_gp,
+                           const ArrayOfGridPos& lat_gp,
+                           const ArrayOfGridPos& lon_gp,
+                           const Index& p_pert_n,
+                           const Index& lat_pert_n,
+                           const Index& lon_pert_n,
+                           const Range& p_range,
+                           const Range& lat_range,
+                           const Range& lon_range,
+                           const Numeric& size,
+                           const Index& method) {
   // Here we need to perturb a tensor3
-  Tensor3 pert(field.npages(),field.nrows(),field.ncols());
-  Tensor4 itw(p_gp.nelem(),lat_gp.nelem(),lon_gp.nelem(),8);
-  interpweights(itw,p_gp,lat_gp,lon_gp);
+  Tensor3 pert(field.npages(), field.nrows(), field.ncols());
+  Tensor4 itw(p_gp.nelem(), lat_gp.nelem(), lon_gp.nelem(), 8);
+  interpweights(itw, p_gp, lat_gp, lon_gp);
   // Init pert_field to 1.0 for relative and 0.0 for absolute
-  Tensor3 pert_field(p_pert_n,lat_pert_n,lon_pert_n,1.0-(Numeric)method);
-  pert_field(p_range,lat_range,lon_range) += size;
-  interp( pert, itw, pert_field, p_gp, lat_gp, lon_gp);
-  if (method==0)
-  {
+  Tensor3 pert_field(p_pert_n, lat_pert_n, lon_pert_n, 1.0 - (Numeric)method);
+  pert_field(p_range, lat_range, lon_range) += size;
+  interp(pert, itw, pert_field, p_gp, lat_gp, lon_gp);
+  if (method == 0) {
     field *= pert;
-  }
-  else
-  {
+  } else {
     field += pert;
   }
-}            
-
-
+}
 
 //! Calculates polynomial basis functions
 /*!
@@ -1532,122 +1352,113 @@ void perturbation_field_3d(       Tensor3View     field,
    
    \author Patrick Eriksson
    \date   2008-11-07
-*/   
-void polynomial_basis_func(
-        Vector&   b,
-  const Vector&   x,
-  const Index&    poly_coeff )
-{
+*/
+void polynomial_basis_func(Vector& b,
+                           const Vector& x,
+                           const Index& poly_coeff) {
   const Index l = x.nelem();
-  
-  assert( l > poly_coeff );
 
-  if( b.nelem() != l )
-    b.resize( l );
+  assert(l > poly_coeff);
 
-  if( poly_coeff == 0 )
-    { b = 1.0; }
-  else
-    {
-      const Numeric xmin = min( x );
-      const Numeric dx = 0.5 * ( max( x ) - xmin );
-      //
-      for( Index i=0; i<l; i++ )
-        {
-          b[i] = ( x[i] - xmin ) / dx - 1.0;
-          b[i] = pow( b[i], int(poly_coeff) );
-        }
-      //
-      b -= mean( b );
-    }  
+  if (b.nelem() != l) b.resize(l);
+
+  if (poly_coeff == 0) {
+    b = 1.0;
+  } else {
+    const Numeric xmin = min(x);
+    const Numeric dx = 0.5 * (max(x) - xmin);
+    //
+    for (Index i = 0; i < l; i++) {
+      b[i] = (x[i] - xmin) / dx - 1.0;
+      b[i] = pow(b[i], int(poly_coeff));
+    }
+    //
+    b -= mean(b);
+  }
 }
 
 extern const String POLYFIT_MAINTAG;
 extern const String SINEFIT_MAINTAG;
 extern const Numeric PI;
 
-void calcBaselineFit(
-        Vector&                    y_baseline,
-  const Vector&                    x,
-  const Index&                     mblock_index,
-  const Sparse&                    sensor_response,
-  const ArrayOfIndex&              sensor_response_pol_grid,
-  const Vector&                    sensor_response_f_grid,
-  const Matrix&                    sensor_response_dlos_grid,
-  const RetrievalQuantity&         rq,
-  const Index                      rq_index,
-  const ArrayOfArrayOfIndex&       jacobian_indices)
-{
+void calcBaselineFit(Vector& y_baseline,
+                     const Vector& x,
+                     const Index& mblock_index,
+                     const Sparse& sensor_response,
+                     const ArrayOfIndex& sensor_response_pol_grid,
+                     const Vector& sensor_response_f_grid,
+                     const Matrix& sensor_response_dlos_grid,
+                     const RetrievalQuantity& rq,
+                     const Index rq_index,
+                     const ArrayOfArrayOfIndex& jacobian_indices) {
+  bool is_sine_fit = false;
+  if (rq.MainTag() == POLYFIT_MAINTAG) {
+    is_sine_fit = false;
+  } else if (rq.MainTag() == SINEFIT_MAINTAG) {
+    is_sine_fit = true;
+  } else {
+    throw runtime_error(
+        "Retrieval quantity is neither a polynomial or a sine "
+        " baseline fit.");
+  }
 
-    bool is_sine_fit = false;
-    if (rq.MainTag() == POLYFIT_MAINTAG) {
-        is_sine_fit = false;
-    } else if (rq.MainTag() == SINEFIT_MAINTAG) {
-        is_sine_fit = true;
-    } else {
-        throw runtime_error("Retrieval quantity is neither a polynomial or a sine "
-                            " baseline fit." );
+  // Size and check of sensor_response
+  //
+  const Index nf = sensor_response_f_grid.nelem();
+  const Index npol = sensor_response_pol_grid.nelem();
+  const Index nlos = sensor_response_dlos_grid.nrows();
+
+  // Evaluate basis functions for fits.
+  Vector w, s, c;
+  if (is_sine_fit) {
+    s.resize(nf);
+    c.resize(nf);
+    Numeric period = rq.Grids()[0][0];
+    for (Index f = 0; f < nf; f++) {
+      Numeric a = (sensor_response_f_grid[f] - sensor_response_f_grid[0]) * 2 *
+                  PI / period;
+      s[f] = sin(a);
+      c[f] = cos(a);
     }
+  } else {
+    Numeric poly_coeff = rq.Grids()[0][0];
+    polynomial_basis_func(
+        w, sensor_response_f_grid, static_cast<Index>(poly_coeff));
+  }
 
-    // Size and check of sensor_response
-    //
-    const Index nf     = sensor_response_f_grid.nelem();
-    const Index npol   = sensor_response_pol_grid.nelem();
-    const Index nlos    = sensor_response_dlos_grid.nrows();
+  // Compute baseline
+  ArrayOfVector jg = rq.Grids();
+  const Index n1 = jg[1].nelem();
+  const Index n2 = jg[2].nelem();
+  const Index n3 = jg[3].nelem();
+  const Range rowind = get_rowindex_for_mblock(sensor_response, mblock_index);
+  const Index row4 = rowind.get_start();
+  Index col4 = jacobian_indices[rq_index][0];
 
-    // Evaluate basis functions for fits.
-    Vector w, s, c;
-    if (is_sine_fit) {
-        s.resize(nf);
-        c.resize(nf);
-        Numeric period = rq.Grids()[0][0];
-        for( Index f=0; f<nf; f++ )
-        {
-            Numeric a = (sensor_response_f_grid[f]-sensor_response_f_grid[0]) * 
-                2 * PI / period;
-            s[f] = sin( a );
-            c[f] = cos( a );
+  if (n3 > 1) {
+    col4 += mblock_index * n2 * n1;
+  }
+
+  for (Index l = 0; l < nlos; l++) {
+    const Index row3 = row4 + l * nf * npol;
+    const Index col3 = col4 + l * n1 * (is_sine_fit ? 2 : 1);
+
+    for (Index f = 0; f < nf; f++) {
+      const Index row2 = row3 + f * npol;
+
+      for (Index p = 0; p < npol; p++) {
+        Index col1 = col3;
+        if (n1 > 1) {
+          col1 += p;
         }
-    } else {
-        Numeric poly_coeff = rq.Grids()[0][0];
-        polynomial_basis_func( w, sensor_response_f_grid, static_cast<Index>(poly_coeff));
-    }
-
-    // Compute baseline
-    ArrayOfVector jg   = rq.Grids();
-    const Index n1     = jg[1].nelem();
-    const Index n2     = jg[2].nelem();
-    const Index n3     = jg[3].nelem();
-    const Range rowind = get_rowindex_for_mblock( sensor_response, mblock_index );
-    const Index row4   = rowind.get_start();
-    Index col4   = jacobian_indices[rq_index][0];
-
-    if( n3 > 1 ) {
-        col4 += mblock_index*n2*n1;
-    }
-
-    for( Index l=0; l<nlos; l++ ) {
-
-        const Index row3 = row4 + l*nf*npol;
-        const Index col3 = col4 + l * n1 * (is_sine_fit ? 2 : 1);
-
-        for( Index f=0; f<nf; f++ ) {
-
-            const Index row2 = row3 + f*npol;
-
-            for( Index p=0; p<npol; p++ ) {
-                Index col1 = col3;
-                if( n1 > 1 ) {
-                    col1 += p;
-                }
-                if (is_sine_fit) {
-                    y_baseline[row2+p] += x[col1] * s[f] + x[col1 + 1] * c[f];
-                } else {
-                    y_baseline[row2+p] += w[f] * x[col1];
-                }
-            }
+        if (is_sine_fit) {
+          y_baseline[row2 + p] += x[col1] * s[f] + x[col1 + 1] * c[f];
+        } else {
+          y_baseline[row2 + p] += w[f] * x[col1];
         }
+      }
     }
+  }
 }
 
 //! vmrunitscf
@@ -1667,44 +1478,33 @@ void calcBaselineFit(
     \author Patrick Eriksson 
     \date   2009-10-08
 */
-void vmrunitscf(  
-        Numeric&   x, 
-  const String&    unit, 
-  const Numeric&   vmr,
-  const Numeric&   p,
-  const Numeric&   t )
-{  
-  if( unit == "rel"  ||  unit == "logrel" )
-    { x = 1; }
-  else if( unit == "vmr" )
-    {
-        if(vmr==0)
-        { 
-            x = 0; 
-            return;
-        }
-        x = 1 / vmr;
+void vmrunitscf(Numeric& x,
+                const String& unit,
+                const Numeric& vmr,
+                const Numeric& p,
+                const Numeric& t) {
+  if (unit == "rel" || unit == "logrel") {
+    x = 1;
+  } else if (unit == "vmr") {
+    if (vmr == 0) {
+      x = 0;
+      return;
     }
-  else if( unit == "nd" )
-    {
-        if(vmr==0)
-        { 
-            x = 0; 
-            return;
-        }
-        x = 1 / ( vmr * number_density( p, t ) ); 
+    x = 1 / vmr;
+  } else if (unit == "nd") {
+    if (vmr == 0) {
+      x = 0;
+      return;
     }
-  else
-    {
-        ostringstream os;
-        os << "Allowed options for gas species jacobians are "
-        "\"rel\", \"vmr\" and \"nd\".\nYou have selected: "<<unit<<std::endl; 
-      throw std::runtime_error( os.str() );
-    }
+    x = 1 / (vmr * number_density(p, t));
+  } else {
+    ostringstream os;
+    os << "Allowed options for gas species jacobians are "
+          "\"rel\", \"vmr\" and \"nd\".\nYou have selected: "
+       << unit << std::endl;
+    throw std::runtime_error(os.str());
+  }
 }
-
-
-
 
 //! dxdvmrscf
 /*!
@@ -1724,29 +1524,25 @@ void vmrunitscf(
     \author Patrick Eriksson 
     \date   2015-12-11
 */
-void dxdvmrscf(  
-        Numeric&   x, 
-  const String&    unit, 
-  const Numeric&   vmr,
-  const Numeric&   p,
-  const Numeric&   t )
-{
-  if( unit == "rel"  ||  unit == "logrel" )
-    { x = vmr; }
-  else if( unit == "vmr" )
-    { x = 1; }
-  else if( unit == "nd" )
-    { x = 1 / number_density( p, t ); }
-  else
-    {
-        ostringstream os;
-        os << "Allowed options for gas species jacobians are "
-        "\"rel\", \"vmr\" and \"nd\".\nYou have selected: "<<unit<<std::endl; 
-      throw std::runtime_error( os.str() );
-    }
+void dxdvmrscf(Numeric& x,
+               const String& unit,
+               const Numeric& vmr,
+               const Numeric& p,
+               const Numeric& t) {
+  if (unit == "rel" || unit == "logrel") {
+    x = vmr;
+  } else if (unit == "vmr") {
+    x = 1;
+  } else if (unit == "nd") {
+    x = 1 / number_density(p, t);
+  } else {
+    ostringstream os;
+    os << "Allowed options for gas species jacobians are "
+          "\"rel\", \"vmr\" and \"nd\".\nYou have selected: "
+       << unit << std::endl;
+    throw std::runtime_error(os.str());
+  }
 }
-
-
 
 /*!
  *   The function helps to calculate the partial derivative of iy with respect
@@ -1782,8 +1578,7 @@ void get_diydx(VectorView diy1,
                ConstVectorView dJ1,
                ConstVectorView dJ2,
                const Index stokes_dim,
-               const bool transmission_only)
-{
+               const bool transmission_only) {
   /*
    * Solves 
    * 
@@ -1797,102 +1592,83 @@ void get_diydx(VectorView diy1,
    * 
    * FIXME:  Needs HSE
   */
-  
+
   // Computation vectors
   Vector a(stokes_dim), b(stokes_dim);
-  
+
   // The first time a level is involved in a layer
   mult(a, dT1, iYmJ);
-  if(not transmission_only)
-  {
+  if (not transmission_only) {
     mult(b, ImT, dJ1);
     a += b;
   }
   mult(diy1, cumulative_transmission, a);
-  
+
   // The second time a level is involved in a layer
   mult(a, dT2, iYmJ);
-  if(not transmission_only)
-  {
+  if (not transmission_only) {
     mult(b, ImT, dJ2);
     a += b;
   }
   mult(b, cumulative_transmission, a);
-  diy2 += b; 
+  diy2 += b;
 }
-
 
 //======================================================================
 //             Propmat partials descriptions
 //======================================================================
 
-Index number_of_propmattypes(const ArrayOfRetrievalQuantity& js) noexcept
-{
-  Index n=0;
-  for(const auto& j : js)
-    if(j not_eq JacPropMatType::NotPropagationMatrixType)
-      n++;
+Index number_of_propmattypes(const ArrayOfRetrievalQuantity& js) noexcept {
+  Index n = 0;
+  for (const auto& j : js)
+    if (j not_eq JacPropMatType::NotPropagationMatrixType) n++;
   return n;
 }
 
-ArrayOfIndex equivlent_propmattype_indexes(const ArrayOfRetrievalQuantity& js)
-{
+ArrayOfIndex equivlent_propmattype_indexes(const ArrayOfRetrievalQuantity& js) {
   ArrayOfIndex pos;
   pos.reserve(js.nelem());
-  for(Index i=0; i<js.nelem(); i++)
-    if(js[i] not_eq JacPropMatType::NotPropagationMatrixType)
-      pos.push_back(i);
+  for (Index i = 0; i < js.nelem(); i++)
+    if (js[i] not_eq JacPropMatType::NotPropagationMatrixType) pos.push_back(i);
   return pos;
 }
 
-Index equivlent_propmattype_index(const ArrayOfRetrievalQuantity& js, const Index i) noexcept
-{
+Index equivlent_propmattype_index(const ArrayOfRetrievalQuantity& js,
+                                  const Index i) noexcept {
   Index j = -1;
-  for(Index k=0; k<=i; k++)
-    if(js[k] not_eq JacPropMatType::NotPropagationMatrixType)
-      j++;
+  for (Index k = 0; k <= i; k++)
+    if (js[k] not_eq JacPropMatType::NotPropagationMatrixType) j++;
   return j;
 }
 
-bool is_wind_parameter(const RetrievalQuantity& t) noexcept
-{
-  return t == JacPropMatType::WindMagnitude or 
-         t == JacPropMatType::WindU         or 
-         t == JacPropMatType::WindV         or 
-         t == JacPropMatType::WindW;
+bool is_wind_parameter(const RetrievalQuantity& t) noexcept {
+  return t == JacPropMatType::WindMagnitude or t == JacPropMatType::WindU or
+         t == JacPropMatType::WindV or t == JacPropMatType::WindW;
 }
 
-bool is_frequency_parameter(const RetrievalQuantity& t) noexcept
-{
+bool is_frequency_parameter(const RetrievalQuantity& t) noexcept {
   return is_wind_parameter(t) or t == JacPropMatType::Frequency;
 }
 
-bool is_derived_magnetic_parameter(const RetrievalQuantity& t) noexcept
-{
+bool is_derived_magnetic_parameter(const RetrievalQuantity& t) noexcept {
   return t == JacPropMatType::MagneticMagnitude;
 }
 
-bool is_magnetic_parameter(const RetrievalQuantity& t) noexcept
-{
-  return 
-  t == JacPropMatType::MagneticU   or 
-  t == JacPropMatType::MagneticV   or 
-  t == JacPropMatType::MagneticW   or
-  is_derived_magnetic_parameter(t);
+bool is_magnetic_parameter(const RetrievalQuantity& t) noexcept {
+  return t == JacPropMatType::MagneticU or t == JacPropMatType::MagneticV or
+         t == JacPropMatType::MagneticW or is_derived_magnetic_parameter(t);
 }
 
-bool is_nlte_parameter(const RetrievalQuantity& t) noexcept
-{
+bool is_nlte_parameter(const RetrievalQuantity& t) noexcept {
   return t == JacPropMatType::NLTE;
 }
 
-#define ISLINESHAPETYPE(X)                                              \
-bool is_pressure_broadening_ ## X (const RetrievalQuantity& t) noexcept \
-{                                                                       \
-  return t == JacPropMatType::LineShape ## X ## X0 or                   \
-         t == JacPropMatType::LineShape ## X ## X1 or                   \
-         t == JacPropMatType::LineShape ## X ## X2;                     \
-}
+#define ISLINESHAPETYPE(X)                                               \
+  bool is_pressure_broadening_##X(const RetrievalQuantity& t) noexcept { \
+    return t == JacPropMatType::LineShape##X##X0 or                      \
+           t == JacPropMatType::LineShape##X##X1 or                      \
+           t == JacPropMatType::LineShape##X##X2;                        \
+  }
 ISLINESHAPETYPE(G0)
 ISLINESHAPETYPE(D0)
 ISLINESHAPETYPE(G2)
@@ -1904,316 +1680,291 @@ ISLINESHAPETYPE(G)
 ISLINESHAPETYPE(DV)
 #undef ISLINESHAPETYPE
 
-#define VARISLINESHAPEPARAM(X, Y) (t == JacPropMatType::LineShape ## X ## Y)
-bool is_lineshape_parameter_X0(const RetrievalQuantity& t) noexcept
-{
-  return VARISLINESHAPEPARAM(G0,  X0) or
-         VARISLINESHAPEPARAM(D0,  X0) or
-         VARISLINESHAPEPARAM(G2,  X0) or
-         VARISLINESHAPEPARAM(D2,  X0) or
-         VARISLINESHAPEPARAM(FVC, X0) or
-         VARISLINESHAPEPARAM(ETA, X0) or
-         VARISLINESHAPEPARAM(Y,   X0) or
-         VARISLINESHAPEPARAM(G,   X0) or
-         VARISLINESHAPEPARAM(DV,  X0);
+#define VARISLINESHAPEPARAM(X, Y) (t == JacPropMatType::LineShape##X##Y)
+bool is_lineshape_parameter_X0(const RetrievalQuantity& t) noexcept {
+  return VARISLINESHAPEPARAM(G0, X0) or VARISLINESHAPEPARAM(D0, X0) or
+         VARISLINESHAPEPARAM(G2, X0) or VARISLINESHAPEPARAM(D2, X0) or
+         VARISLINESHAPEPARAM(FVC, X0) or VARISLINESHAPEPARAM(ETA, X0) or
+         VARISLINESHAPEPARAM(Y, X0) or VARISLINESHAPEPARAM(G, X0) or
+         VARISLINESHAPEPARAM(DV, X0);
 }
 
-bool is_lineshape_parameter_X1(const RetrievalQuantity& t) noexcept
-{
-  return VARISLINESHAPEPARAM(G0,  X1) or
-         VARISLINESHAPEPARAM(D0,  X1) or
-         VARISLINESHAPEPARAM(G2,  X1) or
-         VARISLINESHAPEPARAM(D2,  X1) or
-         VARISLINESHAPEPARAM(FVC, X1) or
-         VARISLINESHAPEPARAM(ETA, X1) or
-         VARISLINESHAPEPARAM(Y,   X1) or
-         VARISLINESHAPEPARAM(G,   X1) or
-         VARISLINESHAPEPARAM(DV,  X1);
+bool is_lineshape_parameter_X1(const RetrievalQuantity& t) noexcept {
+  return VARISLINESHAPEPARAM(G0, X1) or VARISLINESHAPEPARAM(D0, X1) or
+         VARISLINESHAPEPARAM(G2, X1) or VARISLINESHAPEPARAM(D2, X1) or
+         VARISLINESHAPEPARAM(FVC, X1) or VARISLINESHAPEPARAM(ETA, X1) or
+         VARISLINESHAPEPARAM(Y, X1) or VARISLINESHAPEPARAM(G, X1) or
+         VARISLINESHAPEPARAM(DV, X1);
 }
 
-bool is_lineshape_parameter_X2(const RetrievalQuantity& t) noexcept
-{
-  return VARISLINESHAPEPARAM(G0,  X2) or
-         VARISLINESHAPEPARAM(D0,  X2) or
-         VARISLINESHAPEPARAM(G2,  X2) or
-         VARISLINESHAPEPARAM(D2,  X2) or
-         VARISLINESHAPEPARAM(FVC, X2) or
-         VARISLINESHAPEPARAM(ETA, X2) or
-         VARISLINESHAPEPARAM(Y,   X2) or
-         VARISLINESHAPEPARAM(G,   X2) or
-         VARISLINESHAPEPARAM(DV,  X2);
+bool is_lineshape_parameter_X2(const RetrievalQuantity& t) noexcept {
+  return VARISLINESHAPEPARAM(G0, X2) or VARISLINESHAPEPARAM(D0, X2) or
+         VARISLINESHAPEPARAM(G2, X2) or VARISLINESHAPEPARAM(D2, X2) or
+         VARISLINESHAPEPARAM(FVC, X2) or VARISLINESHAPEPARAM(ETA, X2) or
+         VARISLINESHAPEPARAM(Y, X2) or VARISLINESHAPEPARAM(G, X2) or
+         VARISLINESHAPEPARAM(DV, X2);
 }
 #undef VARISLINESHAPEPARAM
 
-bool is_lineshape_parameter_bar_linemixing(const RetrievalQuantity& t) noexcept
-{
-  return is_pressure_broadening_G0(t) or
-         is_pressure_broadening_D0(t) or
-         is_pressure_broadening_G2(t) or
-         is_pressure_broadening_D2(t) or
-         is_pressure_broadening_FVC(t) or
-         is_pressure_broadening_ETA(t);
+bool is_lineshape_parameter_bar_linemixing(
+    const RetrievalQuantity& t) noexcept {
+  return is_pressure_broadening_G0(t) or is_pressure_broadening_D0(t) or
+         is_pressure_broadening_G2(t) or is_pressure_broadening_D2(t) or
+         is_pressure_broadening_FVC(t) or is_pressure_broadening_ETA(t);
 }
 
-bool is_lineshape_parameter(const RetrievalQuantity& t) noexcept
-{
-  return is_pressure_broadening_G0(t) or
-         is_pressure_broadening_D0(t) or
-         is_pressure_broadening_G2(t) or
-         is_pressure_broadening_D2(t) or
-         is_pressure_broadening_FVC(t) or
-         is_pressure_broadening_ETA(t) or 
-         is_pressure_broadening_Y(t) or
-         is_pressure_broadening_G(t) or
+bool is_lineshape_parameter(const RetrievalQuantity& t) noexcept {
+  return is_pressure_broadening_G0(t) or is_pressure_broadening_D0(t) or
+         is_pressure_broadening_G2(t) or is_pressure_broadening_D2(t) or
+         is_pressure_broadening_FVC(t) or is_pressure_broadening_ETA(t) or
+         is_pressure_broadening_Y(t) or is_pressure_broadening_G(t) or
          is_pressure_broadening_DV(t);
 }
 
-bool is_line_parameter(const RetrievalQuantity& t) noexcept
-{
-  return t == JacPropMatType::LineCenter   or
-         t == JacPropMatType::LineStrength or
-         is_lineshape_parameter(t)  or
-         is_nlte_parameter(t);
+bool is_line_parameter(const RetrievalQuantity& t) noexcept {
+  return t == JacPropMatType::LineCenter or t == JacPropMatType::LineStrength or
+         is_lineshape_parameter(t) or is_nlte_parameter(t);
 }
 
-bool supports_CIA(const ArrayOfRetrievalQuantity& js)
-{
+bool supports_CIA(const ArrayOfRetrievalQuantity& js) {
   bool testvar = false;
-  for(const auto& j : js)
-    if(j == JacPropMatType::Temperature or j == JacPropMatType::VMR or is_frequency_parameter(j))
-      testvar=true;
-  return testvar;
-}
-
-bool supports_hitran_xsec(const ArrayOfRetrievalQuantity& js)
-{
-  bool testvar = false;
-  for(const auto& j : js)
-    if(j == JacPropMatType::Temperature or j == JacPropMatType::VMR or is_frequency_parameter(j))
-      testvar=true;
-  return testvar;
-}
-
-bool supports_continuum(const ArrayOfRetrievalQuantity& js)
-{
-  bool testvar = false;
-  for(const auto& j : js)
-    if(j == JacPropMatType::Temperature or j == JacPropMatType::VMR or is_frequency_parameter(j))
-      testvar=true;
-    else if(is_line_parameter(j))
-      throw std::runtime_error("Line specific parameters are not supported while using continuum tags.\nWe do not track what lines are in the continuum.\n");
-  return testvar;
-}
-
-bool supports_LBL_without_phase(const ArrayOfRetrievalQuantity& js)
-{
-  for(const auto& j : js)
-    if(j not_eq JacPropMatType::VMR or j not_eq JacPropMatType::LineStrength or not is_nlte_parameter(j))
-      return false;
-  return true;
-}
-
-bool supports_relaxation_matrix(const ArrayOfRetrievalQuantity& js) 
-{
-  bool testvar = false;
-  for(const auto& j : js)
-    if(j == JacPropMatType::Temperature or is_frequency_parameter(j))
-      testvar=true;
-    else if(is_line_parameter(j))
-      throw std::runtime_error("Line specific parameters are not supported while\n using the relaxation matrix line mixing routine.\n We do not yet track individual lines in the relaxation matrix calculations.\n");
-  return testvar;
-}
-
-bool supports_lookup(const ArrayOfRetrievalQuantity& js)
-{
-  bool testvar = false;
-  for(const auto& j : js)
-    if(j == JacPropMatType::Temperature or j == JacPropMatType::VMR or is_frequency_parameter(j))
-      testvar=true;
-    else if(is_line_parameter(j))
-      throw std::runtime_error("Line specific parameters are not supported while using Lookup table.\nWe do not track lines in the Lookup.\n");
-  return testvar;
-}
-
-bool supports_faraday(const ArrayOfRetrievalQuantity& js)
-{
-  bool testvar = false;
-  for(const auto& j : js)
-    if(is_derived_magnetic_parameter(j))
-      throw std::runtime_error("This method does not yet support Zeeman-style magnetic Jacobian calculations.\n Please use u, v, and w Jacobians instead.\n");
-    else if(j == JacPropMatType::MagneticU or j == JacPropMatType::MagneticV or j == JacPropMatType::MagneticW or j == JacPropMatType::Electrons or is_frequency_parameter(j)) 
+  for (const auto& j : js)
+    if (j == JacPropMatType::Temperature or j == JacPropMatType::VMR or
+        is_frequency_parameter(j))
       testvar = true;
   return testvar;
 }
 
-bool supports_particles(const ArrayOfRetrievalQuantity& js)
-{
-  for(const auto& j : js)
-    if(j not_eq JacPropMatType::NotPropagationMatrixType)
-      return true;
+bool supports_hitran_xsec(const ArrayOfRetrievalQuantity& js) {
+  bool testvar = false;
+  for (const auto& j : js)
+    if (j == JacPropMatType::Temperature or j == JacPropMatType::VMR or
+        is_frequency_parameter(j))
+      testvar = true;
+  return testvar;
+}
+
+bool supports_continuum(const ArrayOfRetrievalQuantity& js) {
+  bool testvar = false;
+  for (const auto& j : js)
+    if (j == JacPropMatType::Temperature or j == JacPropMatType::VMR or
+        is_frequency_parameter(j))
+      testvar = true;
+    else if (is_line_parameter(j))
+      throw std::runtime_error(
+          "Line specific parameters are not supported while using continuum tags.\nWe do not track what lines are in the continuum.\n");
+  return testvar;
+}
+
+bool supports_LBL_without_phase(const ArrayOfRetrievalQuantity& js) {
+  for (const auto& j : js)
+    if (j not_eq JacPropMatType::VMR or j not_eq JacPropMatType::LineStrength or
+        not is_nlte_parameter(j))
+      return false;
+  return true;
+}
+
+bool supports_relaxation_matrix(const ArrayOfRetrievalQuantity& js) {
+  bool testvar = false;
+  for (const auto& j : js)
+    if (j == JacPropMatType::Temperature or is_frequency_parameter(j))
+      testvar = true;
+    else if (is_line_parameter(j))
+      throw std::runtime_error(
+          "Line specific parameters are not supported while\n using the relaxation matrix line mixing routine.\n We do not yet track individual lines in the relaxation matrix calculations.\n");
+  return testvar;
+}
+
+bool supports_lookup(const ArrayOfRetrievalQuantity& js) {
+  bool testvar = false;
+  for (const auto& j : js)
+    if (j == JacPropMatType::Temperature or j == JacPropMatType::VMR or
+        is_frequency_parameter(j))
+      testvar = true;
+    else if (is_line_parameter(j))
+      throw std::runtime_error(
+          "Line specific parameters are not supported while using Lookup table.\nWe do not track lines in the Lookup.\n");
+  return testvar;
+}
+
+bool supports_faraday(const ArrayOfRetrievalQuantity& js) {
+  bool testvar = false;
+  for (const auto& j : js)
+    if (is_derived_magnetic_parameter(j))
+      throw std::runtime_error(
+          "This method does not yet support Zeeman-style magnetic Jacobian calculations.\n Please use u, v, and w Jacobians instead.\n");
+    else if (j == JacPropMatType::MagneticU or j == JacPropMatType::MagneticV or
+             j == JacPropMatType::MagneticW or j == JacPropMatType::Electrons or
+             is_frequency_parameter(j))
+      testvar = true;
+  return testvar;
+}
+
+bool supports_particles(const ArrayOfRetrievalQuantity& js) {
+  for (const auto& j : js)
+    if (j not_eq JacPropMatType::NotPropagationMatrixType) return true;
   return false;
 }
 
-bool supports_propmat_clearsky(const ArrayOfRetrievalQuantity& js)
-{   
-  for(const auto& j : js) 
-    if(j not_eq JacPropMatType::NotPropagationMatrixType)
-      return true;
+bool supports_propmat_clearsky(const ArrayOfRetrievalQuantity& js) {
+  for (const auto& j : js)
+    if (j not_eq JacPropMatType::NotPropagationMatrixType) return true;
   return false;
 }
 
-bool species_match(const RetrievalQuantity& rq, const ArrayOfSpeciesTag& ast)
-{
-  if(rq.QuantumIdentity().Type() == QuantumIdentifier::ALL) { // Single tag
-    for(const auto& s : ast) {
-      if(rq.QuantumIdentity().Species() not_eq s.Species()) 
+bool species_match(const RetrievalQuantity& rq, const ArrayOfSpeciesTag& ast) {
+  if (rq.QuantumIdentity().Type() == QuantumIdentifier::ALL) {  // Single tag
+    for (const auto& s : ast) {
+      if (rq.QuantumIdentity().Species() not_eq s.Species())
         return false;  // Species must match
-      if(rq.QuantumIdentity().Isotopologue() >= 0 and s.Isotopologue() >= 0 and rq.QuantumIdentity().Isotopologue() not_eq s.Isotopologue()) 
+      if (rq.QuantumIdentity().Isotopologue() >= 0 and s.Isotopologue() >= 0 and
+          rq.QuantumIdentity().Isotopologue() not_eq s.Isotopologue())
         return false;  // Isotopologue must match or be undefined
     }
-  }
-  else {
+  } else {
     ArrayOfSpeciesTag test;
     array_species_tag_from_string(test, rq.Subtag());
-    if(ast not_eq test)
+    if (ast not_eq test)
       return false;  // Match single tag perfectly or throw out
   }
   return true;
 }
 
-bool species_match(const RetrievalQuantity& rq, const Index species)
-{
-  if(rq == JacPropMatType::VMR)
-    if(rq.QuantumIdentity().Species() == species)
-      return true;
+bool species_match(const RetrievalQuantity& rq, const Index species) {
+  if (rq == JacPropMatType::VMR)
+    if (rq.QuantumIdentity().Species() == species) return true;
   return false;
 }
 
-bool species_iso_match(const RetrievalQuantity& rq, const Index species, const Index iso)
-{
+bool species_iso_match(const RetrievalQuantity& rq,
+                       const Index species,
+                       const Index iso) {
   const SpeciesRecord& spr = global_data::species_data[species];
-  if(species_match(rq, species))
-    if(rq.QuantumIdentity().Isotopologue() == iso or spr.Isotopologue().nelem() == iso or iso < 0)
+  if (species_match(rq, species))
+    if (rq.QuantumIdentity().Isotopologue() == iso or
+        spr.Isotopologue().nelem() == iso or iso < 0)
       return true;
   return false;
 }
 
-bool do_temperature_jacobian(const ArrayOfRetrievalQuantity& js) noexcept
-{
-  for(const auto& j : js)
-    if(j == JacPropMatType::Temperature)
-      return true;
+bool do_temperature_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
+  for (const auto& j : js)
+    if (j == JacPropMatType::Temperature) return true;
   return false;
 }
 
-jacobianVMRcheck do_vmr_jacobian(const ArrayOfRetrievalQuantity& js, const QuantumIdentifier& line_qid) noexcept
-{
-  for(const auto& j : js)
-    if(j == JacPropMatType::VMR)
-      if(j.QuantumIdentity().In(line_qid))
-        return {true, j.QuantumIdentity()};
+jacobianVMRcheck do_vmr_jacobian(const ArrayOfRetrievalQuantity& js,
+                                 const QuantumIdentifier& line_qid) noexcept {
+  for (const auto& j : js)
+    if (j == JacPropMatType::VMR)
+      if (j.QuantumIdentity().In(line_qid)) return {true, j.QuantumIdentity()};
   return {false, line_qid};
 }
 
-bool do_line_center_jacobian(const ArrayOfRetrievalQuantity& js) noexcept
-{
-  for(const auto& j : js)
-    if(j == JacPropMatType::LineCenter)
-      return true;
+bool do_line_center_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
+  for (const auto& j : js)
+    if (j == JacPropMatType::LineCenter) return true;
   return false;
 }
 
-bool do_frequency_jacobian(const ArrayOfRetrievalQuantity& js) noexcept
-{
-  for(const auto& j : js)
-    if(is_frequency_parameter(j))
-      return true;
+bool do_frequency_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
+  for (const auto& j : js)
+    if (is_frequency_parameter(j)) return true;
   return false;
 }
 
-bool do_magnetic_jacobian(const ArrayOfRetrievalQuantity& js) noexcept
-{
-  for(const auto& j : js)
-    if(is_magnetic_parameter(j))
-      return true;
+bool do_magnetic_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
+  for (const auto& j : js)
+    if (is_magnetic_parameter(j)) return true;
   return false;
 }
 
-Numeric temperature_perturbation(const ArrayOfRetrievalQuantity& js) noexcept
-{
-  for(const auto& j : js)
-    if(j == JacPropMatType::Temperature)
-      return j.Perturbation();
+Numeric temperature_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
+  for (const auto& j : js)
+    if (j == JacPropMatType::Temperature) return j.Perturbation();
   return 0;
 }
 
-Numeric frequency_perturbation(const ArrayOfRetrievalQuantity& js) noexcept
-{
-  for(const auto& j : js)
-    if(is_frequency_parameter(j))
-      return j.Perturbation();
+Numeric frequency_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
+  for (const auto& j : js)
+    if (is_frequency_parameter(j)) return j.Perturbation();
   return 0;
 }
 
-Numeric magnetic_field_perturbation(const ArrayOfRetrievalQuantity& js) noexcept
-{
-  for(const auto& j : js)
-    if(is_magnetic_parameter(j))
-      return j.Perturbation();
+Numeric magnetic_field_perturbation(
+    const ArrayOfRetrievalQuantity& js) noexcept {
+  for (const auto& j : js)
+    if (is_magnetic_parameter(j)) return j.Perturbation();
   return 0;
 }
 
-String propmattype_string(const RetrievalQuantity& rq)
-{
-  #define linefunctiondatavariable(X1, X2) JacPropMatType::LineShape ## X1 ## X2: return "Line-Shape: " #X1  " " #X2
-  switch(rq.PropMatType())
-  {
-    case JacPropMatType::VMR: return "VMR";
-    case JacPropMatType::Electrons: return "Electrons-VMR";
-    case JacPropMatType::Particulates: return "Particulate-VMR";
-    case JacPropMatType::Temperature: return "Temperature";
-    case JacPropMatType::MagneticMagnitude: return "Magnetic-Strength";
-    case JacPropMatType::MagneticU: return "Magnetic-u";
-    case JacPropMatType::MagneticV: return "Magnetic-v";
-    case JacPropMatType::MagneticW: return "Magnetic-w";
-    case JacPropMatType::WindMagnitude: return "Wind-Strength";
-    case JacPropMatType::WindU: return "Wind-u";
-    case JacPropMatType::WindV: return "Wind-v";
-    case JacPropMatType::WindW: return "Wind-w";
-    case JacPropMatType::Frequency: return "Frequency";
-    case JacPropMatType::LineStrength: return "Line-Strength";
-    case JacPropMatType::LineCenter: return "Line-Center";
-    case JacPropMatType::NLTE: return "NLTE-Level";
+String propmattype_string(const RetrievalQuantity& rq) {
+#define linefunctiondatavariable(X1, X2) \
+  JacPropMatType::LineShape##X1##X2 : return "Line-Shape: " #X1 " " #X2
+  switch (rq.PropMatType()) {
+    case JacPropMatType::VMR:
+      return "VMR";
+    case JacPropMatType::Electrons:
+      return "Electrons-VMR";
+    case JacPropMatType::Particulates:
+      return "Particulate-VMR";
+    case JacPropMatType::Temperature:
+      return "Temperature";
+    case JacPropMatType::MagneticMagnitude:
+      return "Magnetic-Strength";
+    case JacPropMatType::MagneticU:
+      return "Magnetic-u";
+    case JacPropMatType::MagneticV:
+      return "Magnetic-v";
+    case JacPropMatType::MagneticW:
+      return "Magnetic-w";
+    case JacPropMatType::WindMagnitude:
+      return "Wind-Strength";
+    case JacPropMatType::WindU:
+      return "Wind-u";
+    case JacPropMatType::WindV:
+      return "Wind-v";
+    case JacPropMatType::WindW:
+      return "Wind-w";
+    case JacPropMatType::Frequency:
+      return "Frequency";
+    case JacPropMatType::LineStrength:
+      return "Line-Strength";
+    case JacPropMatType::LineCenter:
+      return "Line-Center";
+    case JacPropMatType::NLTE:
+      return "NLTE-Level";
     case linefunctiondatavariable(G0, X0);
-    case linefunctiondatavariable(G0, X1);
-    case linefunctiondatavariable(G0, X2);
-    case linefunctiondatavariable(D0, X0);
-    case linefunctiondatavariable(D0, X1);
-    case linefunctiondatavariable(D0, X2);
-    case linefunctiondatavariable(G2, X0);
-    case linefunctiondatavariable(G2, X1);
-    case linefunctiondatavariable(G2, X2);
-    case linefunctiondatavariable(D2, X0);
-    case linefunctiondatavariable(D2, X1);
-    case linefunctiondatavariable(D2, X2);
-    case linefunctiondatavariable(ETA, X0);
-    case linefunctiondatavariable(ETA, X1);
-    case linefunctiondatavariable(ETA, X2);
-    case linefunctiondatavariable(FVC, X0);
-    case linefunctiondatavariable(FVC, X1);
-    case linefunctiondatavariable(FVC, X2);
-    case linefunctiondatavariable(Y, X0);
-    case linefunctiondatavariable(Y, X1);
-    case linefunctiondatavariable(Y, X2);
-    case linefunctiondatavariable(G, X0);
-    case linefunctiondatavariable(G, X1);
-    case linefunctiondatavariable(G, X2);
-    case linefunctiondatavariable(DV, X0);
-    case linefunctiondatavariable(DV, X1);
-    case linefunctiondatavariable(DV, X2);
-    case JacPropMatType::NotPropagationMatrixType: return "Not-A-Prop-Mat-Variable";
+        case linefunctiondatavariable(G0, X1);
+        case linefunctiondatavariable(G0, X2);
+        case linefunctiondatavariable(D0, X0);
+        case linefunctiondatavariable(D0, X1);
+        case linefunctiondatavariable(D0, X2);
+        case linefunctiondatavariable(G2, X0);
+        case linefunctiondatavariable(G2, X1);
+        case linefunctiondatavariable(G2, X2);
+        case linefunctiondatavariable(D2, X0);
+        case linefunctiondatavariable(D2, X1);
+        case linefunctiondatavariable(D2, X2);
+        case linefunctiondatavariable(ETA, X0);
+        case linefunctiondatavariable(ETA, X1);
+        case linefunctiondatavariable(ETA, X2);
+        case linefunctiondatavariable(FVC, X0);
+        case linefunctiondatavariable(FVC, X1);
+        case linefunctiondatavariable(FVC, X2);
+        case linefunctiondatavariable(Y, X0);
+        case linefunctiondatavariable(Y, X1);
+        case linefunctiondatavariable(Y, X2);
+        case linefunctiondatavariable(G, X0);
+        case linefunctiondatavariable(G, X1);
+        case linefunctiondatavariable(G, X2);
+        case linefunctiondatavariable(DV, X0);
+        case linefunctiondatavariable(DV, X1);
+        case linefunctiondatavariable(DV, X2);
+        case JacPropMatType::NotPropagationMatrixType:
+      return "Not-A-Prop-Mat-Variable";
   }
-  #undef linefunctiondatavariable
-  
+#undef linefunctiondatavariable
+
   return "UNDEFINED-CHECK-IF-CASE-LIST-IS-COMPLETE";
 }

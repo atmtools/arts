@@ -31,38 +31,36 @@
 #include "arts.h"
 
 #ifdef TIME_SUPPORT
+#include <sys/stat.h>
+#include <sys/times.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <sys/stat.h>
 #include <ctime>
-#include <sys/times.h>
 #endif
 #include <algorithm>
 #include <map>
 
+#include "absorption.h"
+#include "agenda_record.h"
+#include "arts_omp.h"
+#include "auto_md.h"
 #include "auto_version.h"
-#include "parameters.h"
-#include "messages.h"
+#include "docserver.h"
 #include "exceptions.h"
 #include "file.h"
-#include "methods.h"
-#include "parser.h"
-#include "auto_md.h"
-#include "absorption.h"
-#include "wsv_aux.h"
-#include "agenda_record.h"
-#include "mystring.h"
-#include "workspace_ng.h"
-#include "arts_omp.h"
-#include "docserver.h"
 #include "global_data.h"
+#include "messages.h"
+#include "methods.h"
+#include "mystring.h"
+#include "parameters.h"
+#include "parser.h"
+#include "workspace_ng.h"
+#include "wsv_aux.h"
 
 /** Remind the user of --help and exit return value 1. */
-void polite_goodby()
-{
+void polite_goodby() {
   cerr << "Try `arts --help' for help.\n";
-  arts_exit ();
-
+  arts_exit();
 }
 
 /**
@@ -78,43 +76,40 @@ void polite_goodby()
  
    \author Stefan Buehler 
 */
-void set_reporting_level(Index r)
-{
+void set_reporting_level(Index r) {
   extern Verbosity verbosity_at_launch;
-  
-  if ( -1 == r )
-    {
-      // Reporting was not specified, set default. (No output from
-      // agendas (except main of course), only the important stuff to
-      // the screen, nothing to the file.)
-      verbosity_at_launch.set_agenda_verbosity(0);
-      verbosity_at_launch.set_screen_verbosity(1);
-      verbosity_at_launch.set_file_verbosity(0);
-    }
-  else
-    {
-      // Reporting was specified. Check consistency and set report
-      // level accordingly. 
-        
-      // Separate the three digits:
-      verbosity_at_launch.set_agenda_verbosity(r/100);
-      verbosity_at_launch.set_screen_verbosity((r%100)/10);
-      verbosity_at_launch.set_file_verbosity(r%10);
 
-      if ( !verbosity_at_launch.valid() )
-        {
-          cerr << "Illegal value specified for --reporting (-r).\n"
-               << "The specified value is " << r << ", which would be\n"
-               << "interpreted as:\n"
-               << "Verbosity for agendas:     " << verbosity_at_launch.get_agenda_verbosity() << "\n"
-               << "Verbosity for screen:      " << verbosity_at_launch.get_screen_verbosity() << "\n"
-               << "Verbosity for report file: " << verbosity_at_launch.get_file_verbosity() << "\n"
-               << "Only values of 0-3 are allowed for each verbosity.\n";
-          arts_exit ();
-        }
+  if (-1 == r) {
+    // Reporting was not specified, set default. (No output from
+    // agendas (except main of course), only the important stuff to
+    // the screen, nothing to the file.)
+    verbosity_at_launch.set_agenda_verbosity(0);
+    verbosity_at_launch.set_screen_verbosity(1);
+    verbosity_at_launch.set_file_verbosity(0);
+  } else {
+    // Reporting was specified. Check consistency and set report
+    // level accordingly.
+
+    // Separate the three digits:
+    verbosity_at_launch.set_agenda_verbosity(r / 100);
+    verbosity_at_launch.set_screen_verbosity((r % 100) / 10);
+    verbosity_at_launch.set_file_verbosity(r % 10);
+
+    if (!verbosity_at_launch.valid()) {
+      cerr << "Illegal value specified for --reporting (-r).\n"
+           << "The specified value is " << r << ", which would be\n"
+           << "interpreted as:\n"
+           << "Verbosity for agendas:     "
+           << verbosity_at_launch.get_agenda_verbosity() << "\n"
+           << "Verbosity for screen:      "
+           << verbosity_at_launch.get_screen_verbosity() << "\n"
+           << "Verbosity for report file: "
+           << verbosity_at_launch.get_file_verbosity() << "\n"
+           << "Only values of 0-3 are allowed for each verbosity.\n";
+      arts_exit();
     }
+  }
 }
-
 
 /** React to option `methods'. If given the argument `all', it
     should simply prints a list of all methods. If given the name of
@@ -123,8 +118,7 @@ void set_reporting_level(Index r)
 
     \param methods All or name of a variable.
     \author Stefan Buehler */
-void option_methods(const String& methods)
-{
+void option_methods(const String& methods) {
   Workspace workspace;
   workspace.initialize();
   // Make global data visible:
@@ -138,122 +132,102 @@ void option_methods(const String& methods)
 
   // First check if the user gave the special name `all':
 
-  if ( "all" == methods )
-    {
-      if (!parameters.plain)
-        {
-          cout
-            << "\n*-------------------------------------------------------------------*\n"
-            << "Complete list of ARTS workspace methods:\n"
-            << "---------------------------------------------------------------------\n";
-        }
-      for ( Index i=0; i<md_data_raw.nelem(); ++i )
-        {
-          if (!parameters.plain) cout << "- ";
-          cout << md_data_raw[i].Name() << "\n";
-        }
-
-      if (!parameters.plain)
-        cout << "*-------------------------------------------------------------------*\n\n";
-
-      return;
+  if ("all" == methods) {
+    if (!parameters.plain) {
+      cout
+          << "\n*-------------------------------------------------------------------*\n"
+          << "Complete list of ARTS workspace methods:\n"
+          << "---------------------------------------------------------------------\n";
     }
+    for (Index i = 0; i < md_data_raw.nelem(); ++i) {
+      if (!parameters.plain) cout << "- ";
+      cout << md_data_raw[i].Name() << "\n";
+    }
+
+    if (!parameters.plain)
+      cout
+          << "*-------------------------------------------------------------------*\n\n";
+
+    return;
+  }
 
   // Ok, so the user has probably specified a workspace variable or
   // workspace variable group.
 
   // Check if the user gave the name of a specific variable.
-  map<String, Index>::const_iterator mi =
-    Workspace::WsvMap.find(methods);
-  if ( mi != Workspace::WsvMap.end() )
-    {
-      // If we are here, then the given name matches a variable.
-      Index wsv_key = mi->second;
+  map<String, Index>::const_iterator mi = Workspace::WsvMap.find(methods);
+  if (mi != Workspace::WsvMap.end()) {
+    // If we are here, then the given name matches a variable.
+    Index wsv_key = mi->second;
 
-      // List generic methods:
-      hitcount = 0;
-      cout 
+    // List generic methods:
+    hitcount = 0;
+    cout
         << "\n*-------------------------------------------------------------------*\n"
-        << "Generic and supergeneric methods that can generate " << Workspace::wsv_data[wsv_key].Name() 
-        << ":\n"
+        << "Generic and supergeneric methods that can generate "
+        << Workspace::wsv_data[wsv_key].Name() << ":\n"
         << "---------------------------------------------------------------------\n";
-      for ( Index i=0; i<md_data_raw.nelem(); ++i )
-        {
-          // Get handle on method record:
-          const MdRecord& mdd = md_data_raw[i];
+    for (Index i = 0; i < md_data_raw.nelem(); ++i) {
+      // Get handle on method record:
+      const MdRecord& mdd = md_data_raw[i];
 
-          // This if statement checks whether GOutType, the list
-          // of output variable types contains the group of the
-          // requested variable.
-          // The else clause picks up methods with supergeneric input.
-          if ( count( mdd.GOutType().begin(),
-                      mdd.GOutType().end(),
-                      Workspace::wsv_data[wsv_key].Group() ) )
-            {
+      // This if statement checks whether GOutType, the list
+      // of output variable types contains the group of the
+      // requested variable.
+      // The else clause picks up methods with supergeneric input.
+      if (count(mdd.GOutType().begin(),
+                mdd.GOutType().end(),
+                Workspace::wsv_data[wsv_key].Group())) {
+        cout << "- " << mdd.Name() << "\n";
+        ++hitcount;
+      } else if (count(mdd.GOutType().begin(),
+                       mdd.GOutType().end(),
+                       get_wsv_group_id("Any"))) {
+        for (Index j = 0; j < mdd.GOutType().nelem(); j++) {
+          if (mdd.GOutType()[j] == get_wsv_group_id("Any")) {
+            if (mdd.GOutSpecType()[j].nelem()) {
+              if (count(mdd.GOutSpecType()[j].begin(),
+                        mdd.GOutSpecType()[j].end(),
+                        Workspace::wsv_data[wsv_key].Group())) {
+                cout << "- " << mdd.Name() << "\n";
+                ++hitcount;
+              }
+            } else {
               cout << "- " << mdd.Name() << "\n";
               ++hitcount;
             }
-          else if  ( count( mdd.GOutType().begin(),
-                      mdd.GOutType().end(),
-                      get_wsv_group_id("Any") ) )
-            {
-              for (Index j = 0; j < mdd.GOutType().nelem(); j++)
-                {
-                  if (mdd.GOutType()[j] == get_wsv_group_id("Any"))
-                    {
-                      if (mdd.GOutSpecType()[j].nelem())
-                        {
-                          if (count( mdd.GOutSpecType()[j].begin(),
-                                     mdd.GOutSpecType()[j].end(),
-                                     Workspace::wsv_data[wsv_key].Group() ) )
-                            {
-                              cout << "- " << mdd.Name() << "\n";
-                              ++hitcount;
-                            }
-                        }
-                      else
-                        {
-                          cout << "- " << mdd.Name() << "\n";
-                          ++hitcount;
-                        }
-                    }
-                }
-            }
+          }
         }
-      if ( 0==hitcount )
-        cout << "none\n";
+      }
+    }
+    if (0 == hitcount) cout << "none\n";
 
-      // List specific methods:
-      hitcount = 0;
-      cout 
+    // List specific methods:
+    hitcount = 0;
+    cout
         << "\n---------------------------------------------------------------------\n"
-        << "Specific methods that can generate " << Workspace::wsv_data[wsv_key].Name() 
-        << ":\n"
+        << "Specific methods that can generate "
+        << Workspace::wsv_data[wsv_key].Name() << ":\n"
         << "---------------------------------------------------------------------\n";
-      for ( Index i=0; i<md_data_raw.nelem(); ++i )
-        {
-          // Get handle on method record:
-          const MdRecord& mdd = md_data_raw[i];
+    for (Index i = 0; i < md_data_raw.nelem(); ++i) {
+      // Get handle on method record:
+      const MdRecord& mdd = md_data_raw[i];
 
-          // This if statement checks whether Output, the list
-          // of output variables contains the workspace
-          // variable key.
-          if ( count( mdd.Out().begin(),
-                      mdd.Out().end(),
-                      wsv_key ) ) 
-            {
-              cout << "- " << mdd.Name() << "\n";
-              ++hitcount;
-            }
-        }
-      if ( 0==hitcount )
-        cout << "none\n";
+      // This if statement checks whether Output, the list
+      // of output variables contains the workspace
+      // variable key.
+      if (count(mdd.Out().begin(), mdd.Out().end(), wsv_key)) {
+        cout << "- " << mdd.Name() << "\n";
+        ++hitcount;
+      }
+    }
+    if (0 == hitcount) cout << "none\n";
 
-      cout
+    cout
         << "*-------------------------------------------------------------------*\n\n";
 
-      return;
-    }
+    return;
+  }
 
   // Check if the user gave the name of a variable group.
 
@@ -261,79 +235,64 @@ void option_methods(const String& methods)
   // returns an iterator, so to get the index we take the
   // difference to the begin() iterator.
   Index group_key =
-    find( wsv_group_names.begin(),
-          wsv_group_names.end(),
-          methods ) - wsv_group_names.begin();
+      find(wsv_group_names.begin(), wsv_group_names.end(), methods) -
+      wsv_group_names.begin();
 
   // group_key == wsv_goup_names.nelem() indicates that a
   // group with this name was not found.
-  if ( group_key != wsv_group_names.nelem() )
-    {
-      // List generic methods:
-      hitcount = 0;
-      cout 
+  if (group_key != wsv_group_names.nelem()) {
+    // List generic methods:
+    hitcount = 0;
+    cout
         << "\n*-------------------------------------------------------------------*\n"
-        << "Generic and supergeneric methods that can generate variables of group " 
+        << "Generic and supergeneric methods that can generate variables of group "
         << wsv_group_names[group_key] << ":\n"
         << "---------------------------------------------------------------------\n";
-      for ( Index i=0; i<md_data_raw.nelem(); ++i )
-        {
-          // Get handle on method record:
-          const MdRecord& mdd = md_data_raw[i];
+    for (Index i = 0; i < md_data_raw.nelem(); ++i) {
+      // Get handle on method record:
+      const MdRecord& mdd = md_data_raw[i];
 
-          // This if statement checks whether GOutType, the list
-          // of output variable types contains the
-          // requested group.
-          // The else clause picks up methods with supergeneric input.
-          if ( count( mdd.GOutType().begin(),
-                      mdd.GOutType().end(),
-                      group_key ) )
-            {
+      // This if statement checks whether GOutType, the list
+      // of output variable types contains the
+      // requested group.
+      // The else clause picks up methods with supergeneric input.
+      if (count(mdd.GOutType().begin(), mdd.GOutType().end(), group_key)) {
+        cout << "- " << mdd.Name() << "\n";
+        ++hitcount;
+      } else if (count(mdd.GOutType().begin(),
+                       mdd.GOutType().end(),
+                       get_wsv_group_id("Any"))) {
+        for (Index j = 0; j < mdd.GOutType().nelem(); j++) {
+          if (mdd.GOutType()[j] == get_wsv_group_id("Any")) {
+            if (mdd.GOutSpecType()[j].nelem()) {
+              if (count(mdd.GOutSpecType()[j].begin(),
+                        mdd.GOutSpecType()[j].end(),
+                        group_key)) {
+                cout << "- " << mdd.Name() << "\n";
+                ++hitcount;
+              }
+            } else {
               cout << "- " << mdd.Name() << "\n";
               ++hitcount;
             }
-          else if  ( count( mdd.GOutType().begin(),
-                      mdd.GOutType().end(),
-                      get_wsv_group_id("Any") ) )
-            {
-              for (Index j = 0; j < mdd.GOutType().nelem(); j++)
-                {
-                  if (mdd.GOutType()[j] == get_wsv_group_id("Any"))
-                    {
-                      if (mdd.GOutSpecType()[j].nelem())
-                        {
-                          if (count( mdd.GOutSpecType()[j].begin(),
-                                     mdd.GOutSpecType()[j].end(),
-                                     group_key ) )
-                            {
-                              cout << "- " << mdd.Name() << "\n";
-                              ++hitcount;
-                            }
-                        }
-                      else
-                        {
-                          cout << "- " << mdd.Name() << "\n";
-                          ++hitcount;
-                        }
-                    }
-                }
-            }
+          }
         }
-      if ( 0==hitcount )
-        cout << "none\n";
+      }
+    }
+    if (0 == hitcount) cout << "none\n";
 
-      cout
+    cout
         << "*-------------------------------------------------------------------*\n\n";
 
-      return;
-    }
+    return;
+  }
 
   // If we are here it means that what the user specified is neither
   // `all', nor a variable, nor a variable group.
   cerr << "The name " << methods << " matches neither `all',\n"
        << "nor the name of a workspace variable, nor the name\n"
        << "of a workspace variable group.\n";
-  arts_exit ();
+  arts_exit();
 }
 
 /** React to option `input'. Given the name of
@@ -343,8 +302,7 @@ void option_methods(const String& methods)
     \param input Name of a variable.
     \author Stefan Buehler
     \date   2001-07-24 */
-void option_input(const String& input)
-{
+void option_input(const String& input) {
   // Make global data visible:
   using global_data::md_data_raw;
   using global_data::wsv_group_names;
@@ -353,99 +311,82 @@ void option_input(const String& input)
   // workspace variable group.
 
   // Check if the user gave the name of a specific variable.
-  map<String, Index>::const_iterator mi =
-    Workspace::WsvMap.find(input);
-  if ( mi != Workspace::WsvMap.end() )
-    {
-      // This is used to count the number of matches to a query, so
-      // that `none' can be output if necessary
-      Index hitcount = 0;
-      
-      // If we are here, then the given name matches a variable.
-      Index wsv_key = mi->second;
+  map<String, Index>::const_iterator mi = Workspace::WsvMap.find(input);
+  if (mi != Workspace::WsvMap.end()) {
+    // This is used to count the number of matches to a query, so
+    // that `none' can be output if necessary
+    Index hitcount = 0;
 
-      // List generic methods:
-      cout 
-      << "\n*-------------------------------------------------------------------*\n"
-      << "Generic and supergeneric methods that can use " << Workspace::wsv_data[wsv_key].Name() << ":\n"
-      << "---------------------------------------------------------------------\n";
-      for ( Index i=0; i<md_data_raw.nelem(); ++i )
-        {
-          // Get handle on method record:
-          const MdRecord& mdd = md_data_raw[i];
-          
-          // This if statement checks whether GInType, the list
-          // of input variable types contains the group of the
-          // requested variable.
-          // The else clause picks up methods with supergeneric input.
-          if ( count( mdd.GInType().begin(),
-                      mdd.GInType().end(),
-                      Workspace::wsv_data[wsv_key].Group() ) )
-            {
+    // If we are here, then the given name matches a variable.
+    Index wsv_key = mi->second;
+
+    // List generic methods:
+    cout
+        << "\n*-------------------------------------------------------------------*\n"
+        << "Generic and supergeneric methods that can use "
+        << Workspace::wsv_data[wsv_key].Name() << ":\n"
+        << "---------------------------------------------------------------------\n";
+    for (Index i = 0; i < md_data_raw.nelem(); ++i) {
+      // Get handle on method record:
+      const MdRecord& mdd = md_data_raw[i];
+
+      // This if statement checks whether GInType, the list
+      // of input variable types contains the group of the
+      // requested variable.
+      // The else clause picks up methods with supergeneric input.
+      if (count(mdd.GInType().begin(),
+                mdd.GInType().end(),
+                Workspace::wsv_data[wsv_key].Group())) {
+        cout << "- " << mdd.Name() << "\n";
+        ++hitcount;
+      } else if (count(mdd.GInType().begin(),
+                       mdd.GInType().end(),
+                       get_wsv_group_id("Any"))) {
+        for (Index j = 0; j < mdd.GInType().nelem(); j++) {
+          if (mdd.GInType()[j] == get_wsv_group_id("Any")) {
+            if (mdd.GInSpecType()[j].nelem()) {
+              if (count(mdd.GInSpecType()[j].begin(),
+                        mdd.GInSpecType()[j].end(),
+                        Workspace::wsv_data[wsv_key].Group())) {
+                cout << "- " << mdd.Name() << "\n";
+                ++hitcount;
+              }
+            } else {
               cout << "- " << mdd.Name() << "\n";
               ++hitcount;
             }
-          else if  ( count( mdd.GInType().begin(),
-                      mdd.GInType().end(),
-                      get_wsv_group_id("Any") ) )
-            {
-              for (Index j = 0; j < mdd.GInType().nelem(); j++)
-                {
-                  if (mdd.GInType()[j] == get_wsv_group_id("Any"))
-                    {
-                      if (mdd.GInSpecType()[j].nelem())
-                        {
-                          if (count( mdd.GInSpecType()[j].begin(),
-                                     mdd.GInSpecType()[j].end(),
-                                     Workspace::wsv_data[wsv_key].Group() ) )
-                            {
-                              cout << "- " << mdd.Name() << "\n";
-                              ++hitcount;
-                            }
-                        }
-                      else
-                        {
-                          cout << "- " << mdd.Name() << "\n";
-                          ++hitcount;
-                        }
-                    }
-                }
-            }
+          }
         }
-      if ( 0==hitcount )
-        cout << "none\n";
+      }
+    }
+    if (0 == hitcount) cout << "none\n";
 
-      // List specific methods:
-      hitcount = 0;
-      cout 
-      << "\n---------------------------------------------------------------------\n"
-      << "Specific methods that require " << Workspace::wsv_data[wsv_key].Name() 
-      << ":\n"
-      << "---------------------------------------------------------------------\n";
-      for ( Index i=0; i<md_data_raw.nelem(); ++i )
-        {
-          // Get handle on method record:
-          const MdRecord& mdd = md_data_raw[i];
+    // List specific methods:
+    hitcount = 0;
+    cout
+        << "\n---------------------------------------------------------------------\n"
+        << "Specific methods that require "
+        << Workspace::wsv_data[wsv_key].Name() << ":\n"
+        << "---------------------------------------------------------------------\n";
+    for (Index i = 0; i < md_data_raw.nelem(); ++i) {
+      // Get handle on method record:
+      const MdRecord& mdd = md_data_raw[i];
 
-          // This if statement checks whether Output, the list
-          // of output variables contains the workspace
-          // variable key.
-          if ( count( mdd.In().begin(),
-                      mdd.In().end(),
-                      wsv_key ) ) 
-            {
-              cout << "- " << mdd.Name() << "\n";
-              ++hitcount;
-            }
-        }
-      if ( 0==hitcount )
-        cout << "none\n";
+      // This if statement checks whether Output, the list
+      // of output variables contains the workspace
+      // variable key.
+      if (count(mdd.In().begin(), mdd.In().end(), wsv_key)) {
+        cout << "- " << mdd.Name() << "\n";
+        ++hitcount;
+      }
+    }
+    if (0 == hitcount) cout << "none\n";
 
-      cout
+    cout
         << "*-------------------------------------------------------------------*\n\n";
 
-      return;
-    }
+    return;
+  }
 
   // Check if the user gave the name of a variable group.
 
@@ -453,83 +394,67 @@ void option_input(const String& input)
   // returns an iterator, so to get the index we take the
   // difference to the begin() iterator.
   Index group_key =
-    find( wsv_group_names.begin(),
-          wsv_group_names.end(),
-          input ) - wsv_group_names.begin();
+      find(wsv_group_names.begin(), wsv_group_names.end(), input) -
+      wsv_group_names.begin();
 
   // group_key == wsv_goup_names.nelem() indicates that a
   // group with this name was not found.
-  if ( group_key != wsv_group_names.nelem() )
-    {
-      // This is used to count the number of matches to a query, so
-      // that `none' can be output if necessary
-      Index hitcount = 0;
-      
-      // List generic methods:
-      cout
-      << "\n*-------------------------------------------------------------------*\n"
-      << "Generic and supergeneric methods that require a variable of group " 
-      << wsv_group_names[group_key] << ":\n"
-      << "---------------------------------------------------------------------\n";
-      for ( Index i=0; i<md_data_raw.nelem(); ++i )
-        {
-          // Get handle on method record:
-          const MdRecord& mdd = md_data_raw[i];
+  if (group_key != wsv_group_names.nelem()) {
+    // This is used to count the number of matches to a query, so
+    // that `none' can be output if necessary
+    Index hitcount = 0;
 
-          // This if statement checks whether GOutType, the list
-          // of output variable types contains the
-          // requested group.
-          // The else clause picks up methods with supergeneric input.
-          if ( count( mdd.GInType().begin(),
-                      mdd.GInType().end(),
-                      group_key ) )
-            {
+    // List generic methods:
+    cout
+        << "\n*-------------------------------------------------------------------*\n"
+        << "Generic and supergeneric methods that require a variable of group "
+        << wsv_group_names[group_key] << ":\n"
+        << "---------------------------------------------------------------------\n";
+    for (Index i = 0; i < md_data_raw.nelem(); ++i) {
+      // Get handle on method record:
+      const MdRecord& mdd = md_data_raw[i];
+
+      // This if statement checks whether GOutType, the list
+      // of output variable types contains the
+      // requested group.
+      // The else clause picks up methods with supergeneric input.
+      if (count(mdd.GInType().begin(), mdd.GInType().end(), group_key)) {
+        cout << "- " << mdd.Name() << "\n";
+        ++hitcount;
+      } else if (count(mdd.GInType().begin(),
+                       mdd.GInType().end(),
+                       get_wsv_group_id("Any"))) {
+        for (Index j = 0; j < mdd.GInType().nelem(); j++) {
+          if (mdd.GInType()[j] == get_wsv_group_id("Any")) {
+            if (mdd.GInSpecType()[j].nelem()) {
+              if (count(mdd.GInSpecType()[j].begin(),
+                        mdd.GInSpecType()[j].end(),
+                        group_key)) {
+                cout << "- " << mdd.Name() << "\n";
+                ++hitcount;
+              }
+            } else {
               cout << "- " << mdd.Name() << "\n";
               ++hitcount;
             }
-          else if  ( count( mdd.GInType().begin(),
-                      mdd.GInType().end(),
-                      get_wsv_group_id("Any") ) )
-            {
-              for (Index j = 0; j < mdd.GInType().nelem(); j++)
-                {
-                  if (mdd.GInType()[j] == get_wsv_group_id("Any"))
-                    {
-                      if (mdd.GInSpecType()[j].nelem())
-                        {
-                          if (count( mdd.GInSpecType()[j].begin(),
-                                     mdd.GInSpecType()[j].end(),
-                                     group_key ) )
-                            {
-                              cout << "- " << mdd.Name() << "\n";
-                              ++hitcount;
-                            }
-                        }
-                      else
-                        {
-                          cout << "- " << mdd.Name() << "\n";
-                          ++hitcount;
-                        }
-                    }
-                }
-            }
+          }
         }
-      if ( 0==hitcount )
-        cout << "none\n";
+      }
+    }
+    if (0 == hitcount) cout << "none\n";
 
-      cout
+    cout
         << "*-------------------------------------------------------------------*\n\n";
 
-      return;
-    }
+    return;
+  }
 
   // If we are here it means that what the user specified is neither
   // a variable nor a variable group.
   cerr << "The name " << input << " matches neither the name of a\n"
        << "workspace variable, nor the name of a workspace variable group.\n";
-  arts_exit ();
+  arts_exit();
 }
-
 
 /** React to option `workspacevariables'. If given the argument `all',
     it should simply prints a list of all variables. If given the
@@ -538,8 +463,7 @@ void option_input(const String& input)
 
     \param  workspacevariables All or name of a method.
     \author Stefan Buehler */
-void option_workspacevariables(const String& workspacevariables)
-{
+void option_workspacevariables(const String& workspacevariables) {
   // Make global data visible:
   using global_data::md_data;
   using global_data::MdMap;
@@ -552,87 +476,76 @@ void option_workspacevariables(const String& workspacevariables)
 
   // First check for `all':
 
-  if ( "all" == workspacevariables )
-    {
-      if (!parameters.plain)
-        {
-          cout
-            << "\n*-------------------------------------------------------------------*\n"
-            << "Complete list of ARTS workspace variables:\n"
-            << "---------------------------------------------------------------------\n";
-        }
-
-      for ( Index i=0; i<Workspace::wsv_data.nelem(); ++i )
-        {
-          if (!parameters.plain) cout << "- ";
-          cout << Workspace::wsv_data[i].Name() << "\n";
-        }
-
-      if (!parameters.plain)
-        cout << "*-------------------------------------------------------------------*\n\n";
-      return;
+  if ("all" == workspacevariables) {
+    if (!parameters.plain) {
+      cout
+          << "\n*-------------------------------------------------------------------*\n"
+          << "Complete list of ARTS workspace variables:\n"
+          << "---------------------------------------------------------------------\n";
     }
 
+    for (Index i = 0; i < Workspace::wsv_data.nelem(); ++i) {
+      if (!parameters.plain) cout << "- ";
+      cout << Workspace::wsv_data[i].Name() << "\n";
+    }
+
+    if (!parameters.plain)
+      cout
+          << "*-------------------------------------------------------------------*\n\n";
+    return;
+  }
 
   // Now check if the user gave the name of a method.
-  map<String, Index>::const_iterator mi =
-    MdMap.find(workspacevariables);
-  if ( mi != MdMap.end() )
-    {
-      // If we are here, then the given name matches a method.
-      // Assign the data record for this method to a local
-      // variable for easier access:
-      const MdRecord& mdr = md_data[mi->second];
-      
-      // List generic variables required by this method.
-      hitcount = 0;
-      cout
-      << "\n*-------------------------------------------------------------------*\n"
-      << "Generic workspace variables required by " << mdr.Name()
-      << " are of type:\n"
-      << "---------------------------------------------------------------------\n";
-      for ( Index i=0; i<mdr.GInType().nelem(); ++i )
-        {
-          cout << "- " << wsv_group_names[mdr.GInType()[i]] << "\n";
-          ++hitcount;
-        }
-      if ( 0==hitcount )
-        cout << "none\n";
+  map<String, Index>::const_iterator mi = MdMap.find(workspacevariables);
+  if (mi != MdMap.end()) {
+    // If we are here, then the given name matches a method.
+    // Assign the data record for this method to a local
+    // variable for easier access:
+    const MdRecord& mdr = md_data[mi->second];
 
-      // List specific variables required by this method.
-      hitcount = 0;
-      cout 
-      << "\n---------------------------------------------------------------------\n"
-      << "Specific workspace variables required by " << mdr.Name() << ":\n"
-      << "---------------------------------------------------------------------\n";
-      for ( Index i=0; i<mdr.In().nelem(); ++i )
-        {
-          cout << "- " << Workspace::wsv_data[mdr.In()[i]].Name() << "\n";
-          ++hitcount;
-        }
-      if ( 0==hitcount )
-        cout << "none\n";
+    // List generic variables required by this method.
+    hitcount = 0;
+    cout
+        << "\n*-------------------------------------------------------------------*\n"
+        << "Generic workspace variables required by " << mdr.Name()
+        << " are of type:\n"
+        << "---------------------------------------------------------------------\n";
+    for (Index i = 0; i < mdr.GInType().nelem(); ++i) {
+      cout << "- " << wsv_group_names[mdr.GInType()[i]] << "\n";
+      ++hitcount;
+    }
+    if (0 == hitcount) cout << "none\n";
 
-      cout
+    // List specific variables required by this method.
+    hitcount = 0;
+    cout
+        << "\n---------------------------------------------------------------------\n"
+        << "Specific workspace variables required by " << mdr.Name() << ":\n"
+        << "---------------------------------------------------------------------\n";
+    for (Index i = 0; i < mdr.In().nelem(); ++i) {
+      cout << "- " << Workspace::wsv_data[mdr.In()[i]].Name() << "\n";
+      ++hitcount;
+    }
+    if (0 == hitcount) cout << "none\n";
+
+    cout
         << "*-------------------------------------------------------------------*\n\n";
 
-      return;
-    }
+    return;
+  }
 
   // If we are here, then the user specified nothing that makes sense.
-  cerr << "The name " << workspacevariables << " matches neither `all',\n" 
+  cerr << "The name " << workspacevariables << " matches neither `all',\n"
        << "nor the name of a workspace method.\n";
-  arts_exit ();
+  arts_exit();
 }
-
 
 /** React to option `describe'. This should print the description
     String of the given workspace variable or method.
 
     \param describe What to describe.
     \author Stefan Buehler */
-void option_describe(const String& describe)
-{
+void option_describe(const String& describe) {
   // Make global data visible:
   using global_data::md_data_raw;
   using global_data::MdRawMap;
@@ -641,58 +554,46 @@ void option_describe(const String& describe)
   // described.
 
   // Find method id:
-  map<String, Index>::const_iterator i =
-    MdRawMap.find(describe);
-  if ( i != MdRawMap.end() )
-    {
-      // If we are here, then the given name matches a method.
-      cout << md_data_raw[i->second] << "\n";
-      return;
-    }
+  map<String, Index>::const_iterator i = MdRawMap.find(describe);
+  if (i != MdRawMap.end()) {
+    // If we are here, then the given name matches a method.
+    cout << md_data_raw[i->second] << "\n";
+    return;
+  }
 
   // Ok, let's now assume it is a variable that the user wants to have
   // described.
 
   // Find wsv id:
   i = Workspace::WsvMap.find(describe);
-  if ( i != Workspace::WsvMap.end() )
-    {
-      // If we are here, then the given name matches a workspace
-      // variable.
-      cout << Workspace::wsv_data[i->second] << "\n";
-      return;     
-    }
+  if (i != Workspace::WsvMap.end()) {
+    // If we are here, then the given name matches a workspace
+    // variable.
+    cout << Workspace::wsv_data[i->second] << "\n";
+    return;
+  }
 
   // If we are here, then the given name does not match anything.
-  cerr << "The name " << describe
-       << " matches neither method nor variable.\n";
-  arts_exit ();      
+  cerr << "The name " << describe << " matches neither method nor variable.\n";
+  arts_exit();
 }
-
 
 /** This function returns the modification time of the arts executable
     as a string.
 
     \author Oliver Lemke */
 #ifdef TIME_SUPPORT
-String arts_mod_time (String filename)
-{
+String arts_mod_time(String filename) {
   struct stat buf;
-  if (stat (filename.c_str(), &buf) != -1)
-    {
-      String ts = ctime (&buf.st_mtime);
-      return String(" (compiled ") + ts.substr (0, ts.length()-1) + ")";
-    }
-  else
-      return String("");
+  if (stat(filename.c_str(), &buf) != -1) {
+    String ts = ctime(&buf.st_mtime);
+    return String(" (compiled ") + ts.substr(0, ts.length() - 1) + ")";
+  } else
+    return String("");
 }
 #else
-String arts_mod_time (String)
-{
-  return String("");
-}
+String arts_mod_time(String) { return String(""); }
 #endif
-
 
 /** This is the main function of ARTS. (You never guessed that, did you?)
     The getopt_long function is used to parse the command line parameters.
@@ -708,168 +609,158 @@ String arts_mod_time (String)
     \param     argc Number of command line parameters 
     \param     argv Values of command line parameters
     \author    Stefan Buehler */
-int main (int argc, char **argv)
-{
-  extern const Parameters parameters; // Global variable that holds
-                                      // all command line parameters. 
-
+int main(int argc, char** argv) {
+  extern const Parameters parameters;  // Global variable that holds
+                                       // all command line parameters.
 
   //---------------< -1. Time the arts run if possible >---------------
 #ifdef TIME_SUPPORT
   struct tms arts_cputime_start;
   clock_t arts_realtime_start;
-  arts_realtime_start = times (&arts_cputime_start);
+  arts_realtime_start = times(&arts_cputime_start);
 #endif
-
 
   //---------------< 1. Get command line parameters >---------------
-  if ( get_parameters(argc, argv) )
-    {
-      // Print an error message and exit:
-      polite_goodby();
-    }
+  if (get_parameters(argc, argv)) {
+    // Print an error message and exit:
+    polite_goodby();
+  }
 
   //----------< 2. Evaluate the command line parameters >----------
-  if (parameters.help)
-    {
-      // Just print a help message and then exit.
-      cout << "\n" << parameters.usage << "\n\n";
-      cout << parameters.helptext << "\n\n";
-      arts_exit (EXIT_SUCCESS);
-    }
+  if (parameters.help) {
+    // Just print a help message and then exit.
+    cout << "\n" << parameters.usage << "\n\n";
+    cout << parameters.helptext << "\n\n";
+    arts_exit(EXIT_SUCCESS);
+  }
 
   ostringstream osfeatures;
-    {
-      osfeatures
-      << "Compiler: " << String(COMPILER) << endl;
+  {
+    osfeatures << "Compiler: " << String(COMPILER) << endl;
 
-      if (String(COMPILER) != "Xcode")
-        osfeatures << "Compile flags: " << COMPILE_FLAGS << endl;
-      
-      osfeatures
-        << "Features in this build: " << endl
-        << "   Numeric precision:    "
-        << ((sizeof (Numeric) == sizeof (double)) ? "double" : "float") << endl
-        << "   OpenMP support:       "
+    if (String(COMPILER) != "Xcode")
+      osfeatures << "Compile flags: " << COMPILE_FLAGS << endl;
+
+    osfeatures << "Features in this build: " << endl
+               << "   Numeric precision:    "
+               << ((sizeof(Numeric) == sizeof(double)) ? "double" : "float")
+               << endl
+               << "   OpenMP support:       "
 #ifdef _OPENMP
-        << "enabled" << endl
+               << "enabled" << endl
 #else
-        << "disabled" << endl
+               << "disabled" << endl
 #endif
-        << "   Documentation server: "
+               << "   Documentation server: "
 #ifdef ENABLE_DOCSERVER
-        << "enabled" << endl
+               << "enabled" << endl
 #else
-        << "disabled" << endl
+               << "disabled" << endl
 #endif
-        << "   Zipped XML support:   "
+               << "   Zipped XML support:   "
 #ifdef ENABLE_ZLIB
-        << "enabled" << endl
+               << "enabled" << endl
 #else
-        << "disabled" << endl
+               << "disabled" << endl
 #endif
-        << "   NetCDF support:       "
+               << "   NetCDF support:       "
 #ifdef ENABLE_NETCDF
-        << "enabled" << endl
+               << "enabled" << endl
 #else
-        << "disabled" << endl
+               << "disabled" << endl
 #endif
-        << "   Fortran support:      "
+               << "   Fortran support:      "
 #ifdef FORTRAN_COMPILER
-        << "enabled (" << FORTRAN_COMPILER << ")" << endl
+               << "enabled (" << FORTRAN_COMPILER << ")" << endl
 #else
-        << "disabled" << endl
+               << "disabled" << endl
 #endif
-        << "   Disort support:       "
+               << "   Disort support:       "
 #ifdef ENABLE_DISORT
-        << "enabled" << endl
+               << "enabled" << endl
 #else
-        << "disabled" << endl
+               << "disabled" << endl
 #endif
-        << "   RT4 support:          "
+               << "   RT4 support:          "
 #ifdef ENABLE_RT4
-        << "enabled" << endl
+               << "enabled" << endl
 #else
-        << "disabled" << endl
+               << "disabled" << endl
 #endif
-        << "   FASTEM support:       "
+               << "   FASTEM support:       "
 #ifdef ENABLE_FASTEM
-        << "enabled" << endl
+               << "enabled" << endl
 #else
-        << "disabled" << endl
+               << "disabled" << endl
 #endif
-        << "   OEM support:          "
+               << "   OEM support:          "
 #ifdef OEM_SUPPORT
-        << "enabled" << endl
-        << "   MPI support for OEM:  "
-    #ifdef ENABLE_MPI
-        << "enabled" << endl
-    #else
-        << "disabled" << endl
-    #endif
+               << "enabled" << endl
+               << "   MPI support for OEM:  "
+#ifdef ENABLE_MPI
+               << "enabled" << endl
 #else
-        << "disabled" << endl
+               << "disabled" << endl
 #endif
-        << "   Refice support:       "
+#else
+               << "disabled" << endl
+#endif
+               << "   Refice support:       "
 #ifdef ENABLE_REFICE
-        << "enabled" << endl
+               << "enabled" << endl
 #else
-        << "disabled" << endl
+               << "disabled" << endl
 #endif
-        << "   Relmat support:       "
+               << "   Relmat support:       "
 #ifdef ENABLE_RELMAT
-        << "enabled (under development)" << endl
+               << "enabled (under development)" << endl
 #else
-        << "disabled" << endl
+               << "disabled" << endl
 #endif
-        << "   Tmatrix support:      "
+               << "   Tmatrix support:      "
 #ifdef ENABLE_TMATRIX
 #ifdef ENABLE_TMATRIX_QUAD
-        << "enabled (quad-precision)" << endl
+               << "enabled (quad-precision)" << endl
 #else
-        << "enabled (double-precision)" << endl
+               << "enabled (double-precision)" << endl
 #endif
 #else
-        << "disabled" << endl
+               << "disabled" << endl
 #endif
-        << "   Hitran Xsec support:  "
+               << "   Hitran Xsec support:  "
 #ifdef ENABLE_FFTW
-        << "enabled (experimental)" << endl
+               << "enabled (experimental)" << endl
 #else
-        << "enabled (experimental, no FFTW support, using slow convolution method)" << endl
+               << "enabled (experimental, no FFTW support, using slow convolution method)"
+               << endl
 #endif
-        << "";
+               << "";
 
-      osfeatures  << "Include search paths: " << endl;
-      for (auto& path : parameters.includepath)
-      {
-        osfeatures <<  "   " << path << endl;
-      }
-
-      osfeatures << "Data searchpaths: " << endl;
-      for (auto& path : parameters.datapath)
-      {
-        osfeatures <<  "   " << path << endl;
-      }
+    osfeatures << "Include search paths: " << endl;
+    for (auto& path : parameters.includepath) {
+      osfeatures << "   " << path << endl;
     }
 
-  if (parameters.version)
-    {
-      cout << ARTS_FULL_VERSION << arts_mod_time (argv[0]) << endl;
-      cout << osfeatures.str();
-      arts_exit (EXIT_SUCCESS);
+    osfeatures << "Data searchpaths: " << endl;
+    for (auto& path : parameters.datapath) {
+      osfeatures << "   " << path << endl;
     }
+  }
 
-  if (parameters.numthreads)
-    {
+  if (parameters.version) {
+    cout << ARTS_FULL_VERSION << arts_mod_time(argv[0]) << endl;
+    cout << osfeatures.str();
+    arts_exit(EXIT_SUCCESS);
+  }
+
+  if (parameters.numthreads) {
 #ifdef _OPENMP
-      omp_set_num_threads ((int)parameters.numthreads);
+    omp_set_num_threads((int)parameters.numthreads);
 #else
-      cerr << "Ignoring commandline option --numthreads/-n.\n"
-           << "This option only works with an OpenMP enabled ARTS build.\n";
+    cerr << "Ignoring commandline option --numthreads/-n.\n"
+         << "This option only works with an OpenMP enabled ARTS build.\n";
 #endif
-    }
-
+  }
 
   // For the next couple of options we need to have the workspce and
   // method lookup data.
@@ -901,8 +792,8 @@ int main (int argc, char **argv)
   // Initialize AgendaMap:
   define_agenda_map();
 
-  // Check that agenda information in wsv_data and agenda_data is consistent: 
-  assert( check_agenda_data() );
+  // Check that agenda information in wsv_data and agenda_data is consistent:
+  assert(check_agenda_data());
 
   // While we are at it, we can also initialize the molecular data and
   // the coefficients of the partition function that we need for the
@@ -920,312 +811,281 @@ int main (int argc, char **argv)
   using global_data::wsv_group_names;
 
   // Now we are set to deal with the more interesting command line
-  // switches. 
-
+  // switches.
 
   // React to option `methods'. If given the argument `all', it
   // should simply prints a list of all methods. If given the name of
   // a variable, it should print all methods that produce this
   // variable as output.
-  if ( "" != parameters.methods )
-    {
-      option_methods(parameters.methods);
-      arts_exit (EXIT_SUCCESS);
-    }
+  if ("" != parameters.methods) {
+    option_methods(parameters.methods);
+    arts_exit(EXIT_SUCCESS);
+  }
 
   // React to option `input'. Given the name of a variable (or group)
   // it should print all methods that need this variable (or group) as
   // input.
-  if ( "" != parameters.input )
-    {
-      option_input(parameters.input);
-      arts_exit (EXIT_SUCCESS);
-    }
-  
+  if ("" != parameters.input) {
+    option_input(parameters.input);
+    arts_exit(EXIT_SUCCESS);
+  }
+
   // React to option `workspacevariables'. If given the argument `all',
   // it should simply prints a list of all variables. If given the
   // name of a method, it should print all variables that are needed
   // by that method.
-  if ( "" != parameters.workspacevariables )
-    {
-      option_workspacevariables(parameters.workspacevariables);
-      arts_exit (EXIT_SUCCESS);
-    }
+  if ("" != parameters.workspacevariables) {
+    option_workspacevariables(parameters.workspacevariables);
+    arts_exit(EXIT_SUCCESS);
+  }
 
   // React to option `describe'. This should print the description
   // String of the given workspace variable or method.
-  if ( "" != parameters.describe )
-    {
-      option_describe(parameters.describe);
-      arts_exit (EXIT_SUCCESS);
-    }
+  if ("" != parameters.describe) {
+    option_describe(parameters.describe);
+    arts_exit(EXIT_SUCCESS);
+  }
 
-  
   // React to option `groups'. This should simply print a list of all
   // workspace variable groups.
-  if ( parameters.groups )
-    {
-      if (!parameters.plain)
-        {
-          cout
-            << "\n*-------------------------------------------------------------------*\n"
-            << "Complete list of ARTS workspace variable groups:\n"
-            << "---------------------------------------------------------------------\n";
-        }
-
-      for ( Index i=0; i<wsv_group_names.nelem(); ++i )
-        {
-          if (!parameters.plain) cout << "- ";
-          cout << wsv_group_names[i] << "\n";
-        }
-
-      if (!parameters.plain)
-        cout << "*-------------------------------------------------------------------*\n\n";
-      arts_exit (EXIT_SUCCESS);
+  if (parameters.groups) {
+    if (!parameters.plain) {
+      cout
+          << "\n*-------------------------------------------------------------------*\n"
+          << "Complete list of ARTS workspace variable groups:\n"
+          << "---------------------------------------------------------------------\n";
     }
+
+    for (Index i = 0; i < wsv_group_names.nelem(); ++i) {
+      if (!parameters.plain) cout << "- ";
+      cout << wsv_group_names[i] << "\n";
+    }
+
+    if (!parameters.plain)
+      cout
+          << "*-------------------------------------------------------------------*\n\n";
+    arts_exit(EXIT_SUCCESS);
+  }
 
 #ifdef ENABLE_DOCSERVER
-  if ( 0 != parameters.docserver )
-    {
-      if (parameters.daemon) {
-        int pid = fork();
-        if (!pid)
-        {
-          Docserver docserver(parameters.docserver, parameters.baseurl);
-          docserver.launch(parameters.daemon);
-          arts_exit(0);
-        }
-        else
-        {
-          cout << "Docserver daemon started with PID: " << pid << endl;
-          arts_exit(0);
-        }
-      }
-      else
-      {
+  if (0 != parameters.docserver) {
+    if (parameters.daemon) {
+      int pid = fork();
+      if (!pid) {
         Docserver docserver(parameters.docserver, parameters.baseurl);
-        cout << "Starting the arts documentation server." << endl;
         docserver.launch(parameters.daemon);
         arts_exit(0);
+      } else {
+        cout << "Docserver daemon started with PID: " << pid << endl;
+        arts_exit(0);
       }
+    } else {
+      Docserver docserver(parameters.docserver, parameters.baseurl);
+      cout << "Starting the arts documentation server." << endl;
+      docserver.launch(parameters.daemon);
+      arts_exit(0);
     }
+  }
 #endif
 
   // Ok, we are past all the special options. This means the user
   // wants to get serious and really do a calculation. Check if we
   // have at least one control file:
-  if ( 0 == parameters.controlfiles.nelem() )
-    {
-      cerr << "You must specify at least one control file name.\n";
-      polite_goodby();
-    }
+  if (0 == parameters.controlfiles.nelem()) {
+    cerr << "You must specify at least one control file name.\n";
+    polite_goodby();
+  }
 
   // Set the basename according to the first control file, if not
   // explicitly specified.
-  if ( "" == parameters.basename )
-    {
-      extern String out_basename;
-      ArrayOfString fileparts;
-      parameters.controlfiles[0].split(fileparts, "/");
-      out_basename = fileparts[fileparts.nelem()-1];
-      // Find the last . in the name
-      String::size_type p = out_basename.rfind(".arts");
+  if ("" == parameters.basename) {
+    extern String out_basename;
+    ArrayOfString fileparts;
+    parameters.controlfiles[0].split(fileparts, "/");
+    out_basename = fileparts[fileparts.nelem() - 1];
+    // Find the last . in the name
+    String::size_type p = out_basename.rfind(".arts");
 
-      if (String::npos==p)
-        {
-          // This is an error handler for the case that somebody gives
-          // a supposed file name that does not contain the extension
-          // ".arts"
+    if (String::npos == p) {
+      // This is an error handler for the case that somebody gives
+      // a supposed file name that does not contain the extension
+      // ".arts"
 
-          cerr << "The controlfile must have the extension .arts.\n";
-          polite_goodby();
-        }
-      
-      // Kill everything starting from the `.'
-      out_basename.erase(p);
+      cerr << "The controlfile must have the extension .arts.\n";
+      polite_goodby();
     }
-  else
-    {
-      extern String out_basename;
-      out_basename = parameters.basename;
-    }
+
+    // Kill everything starting from the `.'
+    out_basename.erase(p);
+  } else {
+    extern String out_basename;
+    out_basename = parameters.basename;
+  }
 
   // Set the global reporting level, either from reporting command line
-  // option or default.  
+  // option or default.
   set_reporting_level(parameters.reporting);
 
   // Keep around a global copy of the verbosity levels at launch, so that
   // verbosityInit() can be used to reset them in the control file
   extern Verbosity verbosity_at_launch;
-  Verbosity verbosity;        
+  Verbosity verbosity;
   verbosity = verbosity_at_launch;
   verbosity.set_main_agenda(true);
-  
+
   CREATE_OUTS;
 
   //--------------------< Open report file >--------------------
   // This one needs its own little try block, because we have to
   // write error messages to cerr directly since the report file
   // will not exist.
-  try
-    {
-      extern String out_basename;       // Basis for file name
-      extern ofstream report_file;      // Report file pointer
-      ostringstream report_file_ext;
+  try {
+    extern String out_basename;   // Basis for file name
+    extern ofstream report_file;  // Report file pointer
+    ostringstream report_file_ext;
 
-      report_file_ext << ".rep";
-      open_output_file(report_file, out_basename + report_file_ext.str ());
-    }
-  catch (const std::runtime_error &x)
-    {
-      cerr << x.what() << "\n"
-           << "I have to be able to write to my report file.\n";
-      arts_exit ();
-    }
+    report_file_ext << ".rep";
+    open_output_file(report_file, out_basename + report_file_ext.str());
+  } catch (const std::runtime_error& x) {
+    cerr << x.what() << "\n"
+         << "I have to be able to write to my report file.\n";
+    arts_exit();
+  }
 
   // Now comes the global try block. Exceptions caught after this
   // one are general stuff like file opening errors.
-  try
-    {
-      out1 << "Executing ARTS.\n";
-      
-      // Output command line:
-      out1 << "Command line:\n";
-      for (Index i=0; i<argc; ++i) {
-          out1 << argv[i] << " ";
-      }
-      out1 << "\n";
-      
-      // Output full program name (with version number):		
-      out1 << "Version: " << ARTS_FULL_VERSION << arts_mod_time (argv[0]) << "\n";
+  try {
+    out1 << "Executing ARTS.\n";
 
-      // Output more details about the compilation:
-      out2 << osfeatures.str() << "\n";
+    // Output command line:
+    out1 << "Command line:\n";
+    for (Index i = 0; i < argc; ++i) {
+      out1 << argv[i] << " ";
+    }
+    out1 << "\n";
 
-      // Output some OpenMP specific information on output level 2:
+    // Output full program name (with version number):
+    out1 << "Version: " << ARTS_FULL_VERSION << arts_mod_time(argv[0]) << "\n";
+
+    // Output more details about the compilation:
+    out2 << osfeatures.str() << "\n";
+
+    // Output some OpenMP specific information on output level 2:
 #ifdef _OPENMP
-      out2 << "Running with OpenMP, "
-           << "maximum number of threads = "
-           << arts_omp_get_max_threads() << ".\n";
+    out2 << "Running with OpenMP, "
+         << "maximum number of threads = " << arts_omp_get_max_threads()
+         << ".\n";
 #else
-      out2 << "Running without OpenMP.\n";        
+    out2 << "Running without OpenMP.\n";
 #endif
 
-
-      // Output a short hello from each thread to out3:
+    // Output a short hello from each thread to out3:
 #ifdef _OPENMP
-#pragma omp parallel \
-  default(none) \
-  shared(out3)
-      {      
-        ostringstream os;
-        int tn = arts_omp_get_thread_num();
-        os << "   Thread " << tn << ": ready.\n";
-        out3 << os.str();
-      }
-#endif
-      out2 << "\n";
-
-      time_t rawtime;
-      struct tm * timeinfo;
-
-      time ( &rawtime );
-      timeinfo = localtime ( &rawtime );
-      out2 << "Run started: " << asctime(timeinfo) << "\n";
-
-
-      // Output verbosity settings. This is not too interesting, it
-      // goes only to out3.
-      out3 << "Verbosity settings: Agendas:     " << verbosity.get_agenda_verbosity() << "\n"
-           << "                    Screen:      " << verbosity.get_screen_verbosity() << "\n"
-           << "                    Report file: " << verbosity.get_file_verbosity() << "\n";
-
-      out3 << "\nReading control files:\n";
-      for ( Index i=0; i<parameters.controlfiles.nelem(); ++i )
-        {
-          try {
-            out3 << "- " << parameters.controlfiles[i] << "\n";
-            
-            // The list of methods to execute and their keyword data from
-            // the control file. 
-            Agenda tasklist;
-            
-            Workspace workspace;
-            
-            // Call the parser to parse the control text:
-            ArtsParser arts_parser(tasklist, parameters.controlfiles[i], verbosity);
-            
-            arts_parser.parse_tasklist();
-            
-            tasklist.set_name("Arts");
-            
-            tasklist.set_main_agenda();
-            
-            //tasklist.find_unused_variables();
-            
-            workspace.initialize ();
-            
-            // Execute main agenda:
-            Arts2(workspace, tasklist, verbosity);
-          }
-          catch (const std::exception &x)
-          {
-            ostringstream os;
-            os << "Run-time error in controlfile: " << parameters.controlfiles[i] << '\n'
-            << x.what();
-            throw runtime_error(os.str());
-          }
-        }
-    }
-  catch (const std::runtime_error &x)
+#pragma omp parallel default(none) shared(out3)
     {
-#ifdef TIME_SUPPORT
-      struct tms arts_cputime_end;
-      clock_t arts_realtime_end;
-      long clktck = 0;
-      
-      clktck = sysconf (_SC_CLK_TCK);
-      arts_realtime_end = times (&arts_cputime_end);
-      if (clktck > 0
-          && arts_realtime_start != (clock_t)-1
-          && arts_realtime_end != (clock_t)-1)
-      {
-        out1 << "This run took " << fixed << setprecision(2)
-        << (Numeric)
-        (arts_realtime_end - arts_realtime_start)
-        / (Numeric)clktck
-        << "s (" << fixed << setprecision(2) << (Numeric)
-        ((arts_cputime_end.tms_stime - arts_cputime_start.tms_stime)
-         + (arts_cputime_end.tms_utime - arts_cputime_start.tms_utime))
-        / (Numeric)clktck << "s CPU time)\n";
+      ostringstream os;
+      int tn = arts_omp_get_thread_num();
+      os << "   Thread " << tn << ": ready.\n";
+      out3 << os.str();
+    }
+#endif
+    out2 << "\n";
+
+    time_t rawtime;
+    struct tm* timeinfo;
+
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+    out2 << "Run started: " << asctime(timeinfo) << "\n";
+
+    // Output verbosity settings. This is not too interesting, it
+    // goes only to out3.
+    out3 << "Verbosity settings: Agendas:     "
+         << verbosity.get_agenda_verbosity() << "\n"
+         << "                    Screen:      "
+         << verbosity.get_screen_verbosity() << "\n"
+         << "                    Report file: "
+         << verbosity.get_file_verbosity() << "\n";
+
+    out3 << "\nReading control files:\n";
+    for (Index i = 0; i < parameters.controlfiles.nelem(); ++i) {
+      try {
+        out3 << "- " << parameters.controlfiles[i] << "\n";
+
+        // The list of methods to execute and their keyword data from
+        // the control file.
+        Agenda tasklist;
+
+        Workspace workspace;
+
+        // Call the parser to parse the control text:
+        ArtsParser arts_parser(tasklist, parameters.controlfiles[i], verbosity);
+
+        arts_parser.parse_tasklist();
+
+        tasklist.set_name("Arts");
+
+        tasklist.set_main_agenda();
+
+        //tasklist.find_unused_variables();
+
+        workspace.initialize();
+
+        // Execute main agenda:
+        Arts2(workspace, tasklist, verbosity);
+      } catch (const std::exception& x) {
+        ostringstream os;
+        os << "Run-time error in controlfile: " << parameters.controlfiles[i]
+           << '\n'
+           << x.what();
+        throw runtime_error(os.str());
       }
+    }
+  } catch (const std::runtime_error& x) {
+#ifdef TIME_SUPPORT
+    struct tms arts_cputime_end;
+    clock_t arts_realtime_end;
+    long clktck = 0;
+
+    clktck = sysconf(_SC_CLK_TCK);
+    arts_realtime_end = times(&arts_cputime_end);
+    if (clktck > 0 && arts_realtime_start != (clock_t)-1 &&
+        arts_realtime_end != (clock_t)-1) {
+      out1 << "This run took " << fixed << setprecision(2)
+           << (Numeric)(arts_realtime_end - arts_realtime_start) /
+                  (Numeric)clktck
+           << "s (" << fixed << setprecision(2)
+           << (Numeric)(
+                  (arts_cputime_end.tms_stime - arts_cputime_start.tms_stime) +
+                  (arts_cputime_end.tms_utime - arts_cputime_start.tms_utime)) /
+                  (Numeric)clktck
+           << "s CPU time)\n";
+    }
 #endif
 
-      arts_exit_with_error_message(x.what(), out0);
-    }
+    arts_exit_with_error_message(x.what(), out0);
+  }
 
 #ifdef TIME_SUPPORT
   struct tms arts_cputime_end;
   clock_t arts_realtime_end;
   long clktck = 0;
 
-  clktck = sysconf (_SC_CLK_TCK);
-  arts_realtime_end = times (&arts_cputime_end);
-  if (clktck > 0
-      && arts_realtime_start != (clock_t)-1
-      && arts_realtime_end != (clock_t)-1)
-    {
-      out1 << "This run took " << fixed << setprecision(2)
-        << (Numeric)
-         (arts_realtime_end - arts_realtime_start)
-        / (Numeric)clktck
-        << "s (" << fixed << setprecision(2) << (Numeric)
-        ((arts_cputime_end.tms_stime - arts_cputime_start.tms_stime)
-         + (arts_cputime_end.tms_utime - arts_cputime_start.tms_utime))
-        / (Numeric)clktck << "s CPU time)\n";
-    }
+  clktck = sysconf(_SC_CLK_TCK);
+  arts_realtime_end = times(&arts_cputime_end);
+  if (clktck > 0 && arts_realtime_start != (clock_t)-1 &&
+      arts_realtime_end != (clock_t)-1) {
+    out1 << "This run took " << fixed << setprecision(2)
+         << (Numeric)(arts_realtime_end - arts_realtime_start) / (Numeric)clktck
+         << "s (" << fixed << setprecision(2)
+         << (Numeric)(
+                (arts_cputime_end.tms_stime - arts_cputime_start.tms_stime) +
+                (arts_cputime_end.tms_utime - arts_cputime_start.tms_utime)) /
+                (Numeric)clktck
+         << "s CPU time)\n";
+  }
 #endif
 
   out1 << "Everything seems fine. Goodbye.\n";
-  arts_exit (EXIT_SUCCESS);
+  arts_exit(EXIT_SUCCESS);
 }

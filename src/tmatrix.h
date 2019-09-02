@@ -29,7 +29,6 @@
 #include "messages.h"
 #include "optproperties.h"
 
-
 /** Calculate SingleScatteringData properties.
 
  Port of calc_SSP function from PyARTS.
@@ -61,8 +60,7 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
                                         const Numeric precision = 0.001,
                                         const Index ndgs = 2,
                                         const Index robust = 0,
-                                        const Index quiet = 1 );
-
+                                        const Index quiet = 1);
 
 /** T-Matrix validation test.
 
@@ -74,7 +72,6 @@ void calcSingleScatteringDataProperties(SingleScatteringData& ssd,
  */
 void tmatrix_ampld_test(const Verbosity& verbosity);
 
-
 /** T-Matrix validation test.
 
  Executes the standard test included with the double precision T-Matrix code
@@ -84,7 +81,6 @@ void tmatrix_ampld_test(const Verbosity& verbosity);
  \author Oliver Lemke
  */
 void tmatrix_tmd_test(const Verbosity& verbosity);
-
 
 /** Single scattering properties calculation for randomly oriented particles.
 
@@ -180,5 +176,4 @@ s.calc()
  */
 void calc_ssp_fixed_test(const Verbosity& verbosity);
 
-#endif //  tmatrix_h
-
+#endif  //  tmatrix_h

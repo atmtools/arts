@@ -15,7 +15,6 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-
 ////////////////////////////////////////////////////////////////////////////
 //   File description
 ////////////////////////////////////////////////////////////////////////////
@@ -28,29 +27,21 @@
    \date 2000-10-28 
 */
 
-
 #ifndef file_h
 #define file_h
 
 #include <fstream>
 #include "matpackI.h"
-#include "mystring.h"
 #include "messages.h"
-
+#include "mystring.h"
 
 ////////////////////////////////////////////////////////////////////////////
 //   Default file names
 ////////////////////////////////////////////////////////////////////////////
 
-void filename_ascii(
-              String&  filename,
-        const String&  varname );
+void filename_ascii(String& filename, const String& varname);
 
-void filename_bin(
-              String&  filename,
-        const String&  varname );
-
-
+void filename_bin(String& filename, const String& varname);
 
 ////////////////////////////////////////////////////////////////////////////
 //   Functions to open and read ASCII files
@@ -72,7 +63,9 @@ int check_newline(const String& s);
 
 bool file_exists(const String& filename);
 
-bool find_file(ArrayOfString& matches, const String& filename, const ArrayOfString& paths,
+bool find_file(ArrayOfString& matches,
+               const String& filename,
+               const ArrayOfString& paths,
                const ArrayOfString& extensions = {""});
 
 void find_xml_file(String& filename, const Verbosity& verbosity);
@@ -87,7 +80,6 @@ void list_directory(ArrayOfString& files, String dirname);
 
 void make_filename_unique(String& filename, const String& extension = "");
 
-
 ////////////////////////////////////////////////////////////////////////////
 //   IO manipulation classes for parsing nan and inf
 ////////////////////////////////////////////////////////////////////////////
@@ -98,48 +90,44 @@ void make_filename_unique(String& filename, const String& extension = "");
 
 /** Input stream class for doubles that correctly handles nan and inf. */
 class double_istream {
-public:
-    double_istream(std::istream& i) : in(i) {}
+ public:
+  double_istream(std::istream& i) : in(i) {}
 
-    double_istream& parse_on_fail(double& x, bool neg);
+  double_istream& parse_on_fail(double& x, bool neg);
 
-    double_istream& operator>>(double& x) {
-        bool neg = false;
-        char c;
-        if (!in.good()) return *this;
-        while (isspace(c = (char)in.peek())) in.get();
-            if (c == '-') { neg = true; }
-        in >> x;
-        if (!in.fail()) return *this;
-        return parse_on_fail(x, neg);
+  double_istream& operator>>(double& x) {
+    bool neg = false;
+    char c;
+    if (!in.good()) return *this;
+    while (isspace(c = (char)in.peek())) in.get();
+    if (c == '-') {
+      neg = true;
     }
+    in >> x;
+    if (!in.fail()) return *this;
+    return parse_on_fail(x, neg);
+  }
 
-private:
-    std::istream& in;
+ private:
+  std::istream& in;
 };
-
 
 /** Input manipulator class for doubles to enable nan and inf parsing. */
 class double_imanip {
-public:
-    const double_imanip& operator>>(double& x) const {
-        double_istream(*in) >> x;
-        return *this;
-    }
-    std::istream& operator>>(const double_imanip&) const {
-        return *in;
-    }
+ public:
+  const double_imanip& operator>>(double& x) const {
+    double_istream(*in) >> x;
+    return *this;
+  }
+  std::istream& operator>>(const double_imanip&) const { return *in; }
 
-    friend const double_imanip&
-    operator>>(std::istream& in, const double_imanip& dm);
+  friend const double_imanip& operator>>(std::istream& in,
+                                         const double_imanip& dm);
 
-private:
-    mutable std::istream* in;
+ private:
+  mutable std::istream* in;
 };
 
-
-const double_imanip&
-operator>>(std::istream& in, const double_imanip& dm);
-
+const double_imanip& operator>>(std::istream& in, const double_imanip& dm);
 
 #endif

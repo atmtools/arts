@@ -18,59 +18,79 @@
 #ifndef token_h
 #define token_h
 
-#include "matpackI.h"
 #include "array.h"
+#include "matpackI.h"
 #include "mystring.h"
 
 /** The different token value types. These are the types that keyword
     parameters in the controlfile can have. */
-enum TokValType { String_t,    Index_t,    Numeric_t,
-                  Array_String_t, Array_Index_t, Vector_t, Matrix_t,
-                  undefined_t };
+enum TokValType {
+  String_t,
+  Index_t,
+  Numeric_t,
+  Array_String_t,
+  Array_Index_t,
+  Vector_t,
+  Matrix_t,
+  undefined_t
+};
 
 /** This stores arbitrary token values and remembers the type. Only
     the correct type can be extracted again. */
 class TokVal {
-public:
-
+ public:
   /** Default Constructor. (Sets type to undefined_t) */
-  TokVal() : mtype(undefined_t), ms(), mn(-1), mx(0.), msv(), mnv(),
-             mxv(), mm() { }
+  TokVal()
+      : mtype(undefined_t), ms(), mn(-1), mx(0.), msv(), mnv(), mxv(), mm() {}
 
   /** To set TokVal from String (C - style). */
-  TokVal(const char s[]) : mtype(String_t), ms(s), mn(-1), mx(0.),
-                           msv(), mnv(), mxv(), mm() { }
+  TokVal(const char s[])
+      : mtype(String_t), ms(s), mn(-1), mx(0.), msv(), mnv(), mxv(), mm() {}
 
   /** To set TokVal from String (C++ - style). */
-  TokVal(const String& s) : mtype(String_t), ms(s), mn(-1), mx(0.),
-                           msv(), mnv(), mxv(), mm() { }
+  TokVal(const String& s)
+      : mtype(String_t), ms(s), mn(-1), mx(0.), msv(), mnv(), mxv(), mm() {}
 
   /** To set TokVal from an integer. */
-  TokVal(Index n) : mtype(Index_t), ms(), mn(n), mx(0.),
-                           msv(), mnv(), mxv(), mm() { }
+  TokVal(Index n)
+      : mtype(Index_t), ms(), mn(n), mx(0.), msv(), mnv(), mxv(), mm() {}
 
   /** To set TokVal from a Numeric. */
-  TokVal(Numeric x) : mtype(Numeric_t), ms(), mn(-1), mx(x),
-                           msv(), mnv(), mxv(), mm() { }
+  TokVal(Numeric x)
+      : mtype(Numeric_t), ms(), mn(-1), mx(x), msv(), mnv(), mxv(), mm() {}
 
   /** To set TokVal from an array of Strings. */
-  TokVal(ArrayOfString sv) : mtype(Array_String_t), ms(), mn(-1), mx(0.),
-                           msv(sv), mnv(), mxv(), mm() { }
+  TokVal(ArrayOfString sv)
+      : mtype(Array_String_t),
+        ms(),
+        mn(-1),
+        mx(0.),
+        msv(sv),
+        mnv(),
+        mxv(),
+        mm() {}
 
   /** To set TokVal from an array of integers. */
-  TokVal(ArrayOfIndex nv) : mtype(Array_Index_t), ms(), mn(-1), mx(0.),
-                           msv(), mnv(nv), mxv(), mm() { }
+  TokVal(ArrayOfIndex nv)
+      : mtype(Array_Index_t),
+        ms(),
+        mn(-1),
+        mx(0.),
+        msv(),
+        mnv(nv),
+        mxv(),
+        mm() {}
 
   /** To set TokVal from a Vector. */
-  TokVal(Vector xv) : mtype(Vector_t), ms(), mn(-1), mx(0.),
-                           msv(), mnv(), mxv(xv), mm() { }
+  TokVal(Vector xv)
+      : mtype(Vector_t), ms(), mn(-1), mx(0.), msv(), mnv(), mxv(xv), mm() {}
 
   /** To set TokVal from a Matrix. */
-  TokVal(Matrix m) : mtype(Matrix_t), ms(), mn(-1), mx(0.),
-                           msv(), mnv(), mxv(), mm(m) { }
+  TokVal(Matrix m)
+      : mtype(Matrix_t), ms(), mn(-1), mx(0.), msv(), mnv(), mxv(), mm(m) {}
 
-  // Conversion functions to return TokVal for the 6 different types: 
-  
+  // Conversion functions to return TokVal for the 6 different types:
+
   /** Return String. */
   operator String() const;
   /** Return Index. */
@@ -90,21 +110,18 @@ public:
   /** Output operator. */
   friend std::ostream& operator<<(std::ostream& os, const TokVal& a);
 
-private:
-  TokValType    mtype;
-  String        ms;
-  Index         mn;
-  Numeric       mx;   
+ private:
+  TokValType mtype;
+  String ms;
+  Index mn;
+  Numeric mx;
   ArrayOfString msv;
-  ArrayOfIndex  mnv;
-  Vector        mxv;
-  Matrix        mm;
+  ArrayOfIndex mnv;
+  Vector mxv;
+  Matrix mm;
 };
-
 
 // typedef Array<TokValType> TokValTypeVector;
 // typedef Array<TokVal>     TokValVector;
-
-
 
 #endif  // token_h

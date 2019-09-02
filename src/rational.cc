@@ -25,25 +25,22 @@ USA. */
 
 #include "rational.h"
 
-#include <stdexcept>
 #include <ostream>
+#include <stdexcept>
 #include "mystring.h"
 
-
-Rational& Rational::Simplify()
-{
+Rational& Rational::Simplify() {
   fixSign();
   Index ii = mdenom;
 
-  while( ii != 0 ) {
-    if( mnom % ii == 0 and mdenom % ii == 0 ) {
+  while (ii != 0) {
+    if (mnom % ii == 0 and mdenom % ii == 0) {
       mnom /= ii;
       mdenom /= ii;
 
-      if( mnom == 1 or mdenom == 1 or mnom == -1 )
-        break;
+      if (mnom == 1 or mdenom == 1 or mnom == -1) break;
     }
-    if( mdenom < ii )
+    if (mdenom < ii)
       ii = mdenom;
     else
       ii--;
@@ -51,59 +48,51 @@ Rational& Rational::Simplify()
   return *this;
 }
 
-std::ostream& operator<<(std::ostream& os, const Rational& a)
-{
-    Rational r = a;
-    r.Simplify();
-    
-    if(r.Denom() == 1)
-      os << r.Nom();
-    else
-      os << r.Nom() << "/" << r.Denom();
-    return os;
+std::ostream& operator<<(std::ostream& os, const Rational& a) {
+  Rational r = a;
+  r.Simplify();
+
+  if (r.Denom() == 1)
+    os << r.Nom();
+  else
+    os << r.Nom() << "/" << r.Denom();
+  return os;
 }
 
-std::istream& operator>>(std::istream& is, Rational& a)
-{
-    String s;
-    Index nom;
-    Index denom;
-    char* endptr;
+std::istream& operator>>(std::istream& is, Rational& a) {
+  String s;
+  Index nom;
+  Index denom;
+  char* endptr;
 
-    is >> s;
+  is >> s;
 
-    try {
-        ArrayOfString as;
+  try {
+    ArrayOfString as;
 
-        s.split(as, "/");
+    s.split(as, "/");
 
-        if (as.nelem() == 1)
-        {
-            nom=strtol(s.c_str(), &endptr, 10);
-            if (endptr != s.c_str()+s.nelem())
-                throw std::runtime_error("Error parsing rational number");
-            a = Rational(nom, 1);
-        }
-        else if (as.nelem() == 2)
-        {
-            nom=strtol(as[0].c_str(), &endptr, 10);
-            if (endptr != as[0].c_str()+as[0].nelem())
-                throw std::runtime_error("Error parsing rational number nominator");
-            denom=strtol(as[1].c_str(), &endptr, 10);
-            if (endptr != as[1].c_str()+as[1].nelem())
-                throw std::runtime_error("Error parsing rational number denominator");
-            a = Rational(nom, denom);
-        }
-        else
-            throw std::runtime_error("Error parsing rational number");
-    }
-    catch (const std::runtime_error &e)
-    {
-        std::ostringstream os;
-        os << "Error parsing rational number: " << s << std::endl;
-        os << e.what();
-        throw std::runtime_error(os.str());
-    }
+    if (as.nelem() == 1) {
+      nom = strtol(s.c_str(), &endptr, 10);
+      if (endptr != s.c_str() + s.nelem())
+        throw std::runtime_error("Error parsing rational number");
+      a = Rational(nom, 1);
+    } else if (as.nelem() == 2) {
+      nom = strtol(as[0].c_str(), &endptr, 10);
+      if (endptr != as[0].c_str() + as[0].nelem())
+        throw std::runtime_error("Error parsing rational number nominator");
+      denom = strtol(as[1].c_str(), &endptr, 10);
+      if (endptr != as[1].c_str() + as[1].nelem())
+        throw std::runtime_error("Error parsing rational number denominator");
+      a = Rational(nom, denom);
+    } else
+      throw std::runtime_error("Error parsing rational number");
+  } catch (const std::runtime_error& e) {
+    std::ostringstream os;
+    os << "Error parsing rational number: " << s << std::endl;
+    os << e.what();
+    throw std::runtime_error(os.str());
+  }
 
-    return is;
+  return is;
 }

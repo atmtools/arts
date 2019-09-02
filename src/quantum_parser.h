@@ -28,28 +28,28 @@
 #include "quantum.h"
 
 //! Function pointer type for quantum number parsing routines
-typedef void (*QuantumParseFunction)(Rational& qn, String& s, const Index species);
-
+typedef void (*QuantumParseFunction)(Rational& qn,
+                                     String& s,
+                                     const Index species);
 
 //! Class mapping quantum numbers to parsing functions
-class QuantumFieldDescription
-{
-public:
-    QuantumFieldDescription() { }
+class QuantumFieldDescription {
+ public:
+  QuantumFieldDescription() {}
 
-    QuantumFieldDescription(QuantumNumberType quantum_id, QuantumParseFunction qpfunc) :
-    mquantum_id(quantum_id), mqpfunc(qpfunc) {}
+  QuantumFieldDescription(QuantumNumberType quantum_id,
+                          QuantumParseFunction qpfunc)
+      : mquantum_id(quantum_id), mqpfunc(qpfunc) {}
 
-    void Parse(QuantumNumbers& qnr, String& s, const Index species) const {
-        Rational qn;
-        mqpfunc(qn, s, species);
-        if (!qn.isUndefined())
-            qnr.Set(mquantum_id, qn);
-    }
+  void Parse(QuantumNumbers& qnr, String& s, const Index species) const {
+    Rational qn;
+    mqpfunc(qn, s, species);
+    if (!qn.isUndefined()) qnr.Set(mquantum_id, qn);
+  }
 
-private:
-    QuantumNumberType mquantum_id;
-    QuantumParseFunction mqpfunc;
+ private:
+  QuantumNumberType mquantum_id;
+  QuantumParseFunction mqpfunc;
 };
 
 #endif /* quantum_parser_h */

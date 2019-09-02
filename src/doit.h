@@ -15,8 +15,6 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-
-
 /*===========================================================================
   ===  File description 
   ===========================================================================*/
@@ -32,7 +30,6 @@
   cloudbox using the DOIT method.
 */
 
-
 #ifndef doit_h
 #define doit_h
 
@@ -41,30 +38,27 @@
 #include "ppath.h"
 #include "propagationmatrix.h"
 
+void rte_step_doit(  //Output and Input:
+    VectorView stokes_vec,
+    MatrixView trans_mat,
+    //Input
+    ConstMatrixView ext_mat_av,
+    ConstVectorView abs_vec_av,
+    ConstVectorView sca_vec_av,
+    const Numeric& lstep,
+    const Numeric& rtp_planck_value,
+    const bool& trans_is_precalc = false);
 
-void rte_step_doit(//Output and Input:
-              VectorView stokes_vec,
-              MatrixView trans_mat,
-              //Input
-              ConstMatrixView ext_mat_av,
-              ConstVectorView abs_vec_av,
-              ConstVectorView sca_vec_av,
-              const Numeric& lstep,
-              const Numeric& rtp_planck_value,
-              const bool& trans_is_precalc=false );
-
-
-void rte_step_doit_replacement(//Output and Input:
-                               VectorView stokes_vec,
-                               MatrixView trans_mat,
-                               //Input
-                               const PropagationMatrix& ext_mat_av,
-                               const StokesVector& abs_vec_av,
-                               ConstVectorView sca_vec_av,
-                               const Numeric& lstep,
-                               const Numeric& rtp_planck_value,
-                               const bool& trans_is_precalc=false );
-
+void rte_step_doit_replacement(  //Output and Input:
+    VectorView stokes_vec,
+    MatrixView trans_mat,
+    //Input
+    const PropagationMatrix& ext_mat_av,
+    const StokesVector& abs_vec_av,
+    ConstVectorView sca_vec_av,
+    const Numeric& lstep,
+    const Numeric& rtp_planck_value,
+    const bool& trans_is_precalc = false);
 
 void cloud_fieldsCalc(Workspace& ws,
                       // Output:
@@ -72,10 +66,10 @@ void cloud_fieldsCalc(Workspace& ws,
                       Tensor4View abs_vec_field,
                       // Input:
                       const Agenda& spt_calc_agenda,
-                      const Index& scat_za_index, 
+                      const Index& scat_za_index,
                       const Index& scat_aa_index,
                       const ArrayOfIndex& cloudbox_limits,
-                      ConstTensor3View t_field, 
+                      ConstTensor3View t_field,
                       ConstTensor4View pnd_field,
                       const Verbosity& verbosity);
 
@@ -93,8 +87,8 @@ void cloud_ppath_update1D(Workspace& ws,
                           // Gas absorption:
                           // Propagation path calculation:
                           const Agenda& ppath_step_agenda,
-                          const Numeric&   ppath_lmax,
-                          const Numeric&   ppath_lraytrace,
+                          const Numeric& ppath_lmax,
+                          const Numeric& ppath_lraytrace,
                           ConstVectorView p_grid,
                           ConstTensor3View z_field,
                           ConstVectorView refellipsoid,
@@ -125,9 +119,9 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
                                 // Gas absorption:
                                 // Propagation path calculation:
                                 const Agenda& ppath_step_agenda,
-                                const Numeric&   ppath_lmax,
-                                const Numeric&   ppath_lraytrace,
-                                ConstVectorView  p_grid,
+                                const Numeric& ppath_lmax,
+                                const Numeric& ppath_lraytrace,
+                                ConstVectorView p_grid,
                                 ConstTensor3View z_field,
                                 ConstVectorView refellipsoid,
                                 // Calculate thermal emission:
@@ -185,8 +179,8 @@ void cloud_ppath_update3D(Workspace& ws,
                           // Gas absorption:
                           // Propagation path calculation:
                           const Agenda& ppath_step_agenda,
-                          const Numeric&   ppath_lmax,
-                          const Numeric&   ppath_lraytrace,
+                          const Numeric& ppath_lmax,
+                          const Numeric& ppath_lraytrace,
                           ConstVectorView p_grid,
                           ConstVectorView lat_grid,
                           ConstVectorView lon_grid,
@@ -199,16 +193,15 @@ void cloud_ppath_update3D(Workspace& ws,
                           //particle optical properties
                           ConstTensor5View ext_mat_field,
                           ConstTensor4View abs_vec_field,
-                          const Index&, //scat_za_interp
-                          const Verbosity& verbosity
-                          );
+                          const Index&,  //scat_za_interp
+                          const Verbosity& verbosity);
 
 void cloud_RT_no_background(Workspace& ws,
                             //Output
                             Tensor6View doit_i_field_mono,
                             // Input
                             const Agenda& propmat_clearsky_agenda,
-                            const Ppath& ppath_step, 
+                            const Ppath& ppath_step,
                             ConstVectorView t_int,
                             ConstMatrixView vmr_list_int,
                             ConstTensor3View ext_mat_int,
@@ -221,7 +214,7 @@ void cloud_RT_no_background(Workspace& ws,
                             const Index& f_index,
                             const Index& p_index,
                             const Index& lat_index,
-                            const Index& lon_index, 
+                            const Index& lon_index,
                             const Index& scat_za_index,
                             const Index& scat_aa_index,
                             const Verbosity& verbosity);
@@ -235,67 +228,65 @@ void cloud_RT_surface(Workspace& ws,
                       const Index& f_index,
                       const Index& stokes_dim,
                       const Ppath& ppath_step,
-                      const ArrayOfIndex& cloudbox_limits, 
-                      ConstVectorView scat_za_grid, 
-                      const Index& scat_za_index
-                      );
+                      const ArrayOfIndex& cloudbox_limits,
+                      ConstVectorView scat_za_grid,
+                      const Index& scat_za_index);
 
-void doit_i_field_ngAcceleration(//Output
-                                 Tensor6& doit_i_field_mono,
-                                 //Input
-                                 const ArrayOfTensor6& acceleration_input,
-                                 const Index& accelerated,
-                                 const Verbosity& verbosity);
+void doit_i_field_ngAcceleration(  //Output
+    Tensor6& doit_i_field_mono,
+    //Input
+    const ArrayOfTensor6& acceleration_input,
+    const Index& accelerated,
+    const Verbosity& verbosity);
 
+void interp_cloud_coeff1D(  //Output
+    Tensor3View ext_mat_int,
+    MatrixView abs_vec_int,
+    MatrixView sca_vec_int,
+    MatrixView doit_i_field_mono_int,
+    VectorView t_int,
+    MatrixView vmr_list_int,
+    VectorView p_int,
+    //Input
+    ConstTensor5View ext_mat_field,
+    ConstTensor4View abs_vec_field,
+    ConstTensor6View doit_scat_field,
+    ConstTensor6View doit_i_field_mono,
+    ConstTensor3View t_field,
+    ConstTensor4View vmr_field,
+    ConstVectorView p_grid,
+    const Ppath& ppath_step,
+    const ArrayOfIndex& cloudbox_limits,
+    ConstVectorView scat_za_grid,
+    const Index& scat_za_interp,
+    const Verbosity& verbosity);
 
-void interp_cloud_coeff1D(//Output
-                          Tensor3View ext_mat_int,
-                          MatrixView abs_vec_int,
-                          MatrixView sca_vec_int,
-                          MatrixView doit_i_field_mono_int,
-                          VectorView t_int, 
-                          MatrixView vmr_list_int,
-                          VectorView p_int,
-                          //Input
-                          ConstTensor5View ext_mat_field, 
-                          ConstTensor4View abs_vec_field,
-                          ConstTensor6View doit_scat_field,
-                          ConstTensor6View doit_i_field_mono,
-                          ConstTensor3View t_field, 
-                          ConstTensor4View vmr_field, 
-                          ConstVectorView p_grid,
-                          const Ppath& ppath_step,
-                          const ArrayOfIndex& cloudbox_limits,
-                          ConstVectorView scat_za_grid,
-                          const Index& scat_za_interp,
-                          const Verbosity& verbosity);
+void za_gridOpt(  //Output:
+    Vector& za_grid_opt,
+    Matrix& i_field_opt,
+    // Input
+    ConstVectorView za_grid_fine,
+    ConstTensor6View i_field,
+    const Numeric& acc,
+    const Index& scat_za_interp);
 
-void za_gridOpt(//Output:
-                Vector& za_grid_opt,
-                Matrix& i_field_opt,
-                // Input
-                ConstVectorView za_grid_fine,
-                ConstTensor6View i_field,
-                const Numeric& acc,
-                const Index& scat_za_interp);
-
-void iy_interp_cloudbox_field(Matrix&               iy,
-                              const Tensor7&        doit_i_field,
-                              const GridPos&        rte_gp_p,
-                              const GridPos&        rte_gp_lat,
-                              const GridPos&        rte_gp_lon,
-                              const Vector&         rte_los,
-                              const Index&          cloudbox_on,
-                              const ArrayOfIndex&   cloudbox_limits,
-                              const Index&          atmosphere_dim,
-                              const Index&          stokes_dim,
-                              const Vector&         scat_za_grid,
-                              const Vector&         scat_aa_grid,
-                              const Vector&         f_grid,
-                              const String&         interpmeth,
-                              const Index&          rigorous,
-                              const Numeric&        maxratio,
-                              const Verbosity&      verbosity);
+void iy_interp_cloudbox_field(Matrix& iy,
+                              const Tensor7& doit_i_field,
+                              const GridPos& rte_gp_p,
+                              const GridPos& rte_gp_lat,
+                              const GridPos& rte_gp_lon,
+                              const Vector& rte_los,
+                              const Index& cloudbox_on,
+                              const ArrayOfIndex& cloudbox_limits,
+                              const Index& atmosphere_dim,
+                              const Index& stokes_dim,
+                              const Vector& scat_za_grid,
+                              const Vector& scat_aa_grid,
+                              const Vector& f_grid,
+                              const String& interpmeth,
+                              const Index& rigorous,
+                              const Numeric& maxratio,
+                              const Verbosity& verbosity);
 
 void doit_scat_fieldNormalize(Workspace& ws,
                               Tensor6& doit_scat_field,
@@ -311,4 +302,4 @@ void doit_scat_fieldNormalize(Workspace& ws,
                               const Index& norm_debug,
                               const Verbosity& verbosity);
 
-#endif //doit_h
+#endif  //doit_h

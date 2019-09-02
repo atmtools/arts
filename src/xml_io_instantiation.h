@@ -15,7 +15,6 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-
 ////////////////////////////////////////////////////////////////////////////
 //   File description
 ////////////////////////////////////////////////////////////////////////////
@@ -31,15 +30,16 @@
 #ifndef xml_io_instantiation_h
 #define xml_io_instantiation_h
 
-#include <stdexcept>
 #include <cfloat>
+#include <stdexcept>
 #include "xml_io.h"
 #include "xml_io_types.h"
 
-#define TMPL_XML_READ_WRITE(what) \
-  template void xml_read_from_file<what>(const String&, what&, const Verbosity&); \
-  template void xml_write_to_file<what>(const String&, const what&, FileType, const Index, const Verbosity&);
-
+#define TMPL_XML_READ_WRITE(what)              \
+  template void xml_read_from_file<what>(      \
+      const String&, what&, const Verbosity&); \
+  template void xml_write_to_file<what>(       \
+      const String&, const what&, FileType, const Index, const Verbosity&);
 
 ////////////////////////////////////////////////////////////////////////////
 //   Explicit instantiation of template functions we need
@@ -96,8 +96,8 @@ TMPL_XML_READ_WRITE(Verbosity)
 //=== Array Types ==========================================================
 
 TMPL_XML_READ_WRITE(ArrayOfAgenda)
-TMPL_XML_READ_WRITE(Array<IsotopologueRecord> )
-TMPL_XML_READ_WRITE(Array<SpeciesRecord> )
+TMPL_XML_READ_WRITE(Array<IsotopologueRecord>)
+TMPL_XML_READ_WRITE(Array<SpeciesRecord>)
 TMPL_XML_READ_WRITE(ArrayOfArrayOfArrayOfArrayOfGridPos)
 TMPL_XML_READ_WRITE(ArrayOfArrayOfGriddedField1)
 TMPL_XML_READ_WRITE(ArrayOfArrayOfGriddedField2)
@@ -156,4 +156,3 @@ TMPL_XML_READ_WRITE(ArrayOfXsecRecord)
 #undef TMPL_XML_READ_WRITE
 
 #endif /* xml_io_instantiation_h */
-

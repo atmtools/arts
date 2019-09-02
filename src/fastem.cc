@@ -17,7 +17,7 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. 
 */
-  
+
 /*!
   \file   fastem.cc
   \author Sreerekha Ravi <rekha@sat.physik.uni-bremen.de>
@@ -27,18 +27,15 @@
   code which is used to calculate surface emissivity.
 */
 
-
 /*===========================================================================
   === External declarations
   ===========================================================================*/
 
-#include <stdexcept>
 #include <cmath>
-#include "matpackI.h"
-#include "exceptions.h"
+#include <stdexcept>
 #include "complex.h"
-
-
+#include "exceptions.h"
+#include "matpackI.h"
 
 using std::ostringstream;
 using std::runtime_error;
@@ -51,46 +48,39 @@ extern const Numeric RAD2DEG;
 extern "C" {
 #endif
 
-    void rttov_fastem5_(
-                       const Index& fastem_version,
-                       const Numeric& frequency,
-                       const Numeric& za,
-                       const Numeric& temperature,
-                       const Numeric& salinity,
-                       const Numeric& wind_speed,
-                       Numeric *emissivity,
-                       Numeric *reflectivity,
-                       const Numeric& transmittance,
-                       const Numeric& rel_azimuth
-                       );
+void rttov_fastem5_(const Index& fastem_version,
+                    const Numeric& frequency,
+                    const Numeric& za,
+                    const Numeric& temperature,
+                    const Numeric& salinity,
+                    const Numeric& wind_speed,
+                    Numeric* emissivity,
+                    Numeric* reflectivity,
+                    const Numeric& transmittance,
+                    const Numeric& rel_azimuth);
 
 #ifdef ENABLE_FASTEM
 }
 #endif
 
-
 // Define dummy function that throws a runtime error if ARTS is
 // compiled without FASTEM support.
 #ifndef ENABLE_FASTEM
-void rttov_fastem5_(
-                   const Index&,
-                   const Numeric&,
-                   const Numeric&,
-                   const Numeric&,
-                   const Numeric&,
-                   const Numeric&,
-                   Numeric *,
-                   Numeric *,
-                   const Numeric&,
-                   const Numeric&
-                   )
-{
-    throw std::runtime_error("This version of ARTS was compiled without FASTEM support.");
+void rttov_fastem5_(const Index&,
+                    const Numeric&,
+                    const Numeric&,
+                    const Numeric&,
+                    const Numeric&,
+                    const Numeric&,
+                    Numeric*,
+                    Numeric*,
+                    const Numeric&,
+                    const Numeric&) {
+  throw std::runtime_error(
+      "This version of ARTS was compiled without FASTEM support.");
 }
 
 #endif
-
-
 
 //! Calculate the surface emissivity using FASTEM
 /*! 
@@ -114,32 +104,29 @@ void rttov_fastem5_(
   \author Oliver Lemke
   \date 2014-12-09
 */
-void fastem(// Output:
-            Vector &emissivity,
-            Vector &reflectivity,
-            // Input:
-            const Numeric frequency,
-            const Numeric za,
-            const Numeric temperature,
-            const Numeric salinity,
-            const Numeric wind_speed,
-            const Numeric transmittance,
-            const Numeric rel_azimuth,
-            const Index   fastem_version
-            )
-{
-    emissivity.resize(4);
-    reflectivity.resize(4);
+void fastem(  // Output:
+    Vector& emissivity,
+    Vector& reflectivity,
+    // Input:
+    const Numeric frequency,
+    const Numeric za,
+    const Numeric temperature,
+    const Numeric salinity,
+    const Numeric wind_speed,
+    const Numeric transmittance,
+    const Numeric rel_azimuth,
+    const Index fastem_version) {
+  emissivity.resize(4);
+  reflectivity.resize(4);
 
-    rttov_fastem5_(fastem_version,
-                  frequency / 1e9,
-                  180-za,
-                  temperature,
-                  salinity * 1e3,
-                  wind_speed,
-                  emissivity.get_c_array(),
-                  reflectivity.get_c_array(),
-                  transmittance,
-                  rel_azimuth);
-
+  rttov_fastem5_(fastem_version,
+                 frequency / 1e9,
+                 180 - za,
+                 temperature,
+                 salinity * 1e3,
+                 wind_speed,
+                 emissivity.get_c_array(),
+                 reflectivity.get_c_array(),
+                 transmittance,
+                 rel_azimuth);
 }

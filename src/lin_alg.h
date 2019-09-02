@@ -16,7 +16,7 @@
    USA.
 */
 
-   /*!
+/*!
      \file   lin_alg.h
      \author Claudia Emde <claudia.emde@dlr.de>
      \date   Thu May  2 14:34:05 2002
@@ -25,146 +25,113 @@
 
    */
 
-
 #ifndef linalg_h
 #define linalg_h
 
-#include "matpackIII.h"
 #include "complex.h"
+#include "matpackIII.h"
 
 // LU decomposition
-void
-ludcmp( Matrix &LU, 
-        ArrayOfIndex& indx,
-        ConstMatrixView A); 
+void ludcmp(Matrix& LU, ArrayOfIndex& indx, ConstMatrixView A);
 
 // LU backsubstitution
-void
-lubacksub( VectorView x,
-           ConstMatrixView LU,
-           ConstVectorView b,
-           const ArrayOfIndex& indx );
+void lubacksub(VectorView x,
+               ConstMatrixView LU,
+               ConstVectorView b,
+               const ArrayOfIndex& indx);
 
 // Solve linear system
-void solve( VectorView x,
-            ConstMatrixView A,
-            ConstVectorView b );
+void solve(VectorView x, ConstMatrixView A, ConstVectorView b);
 
 // Matrix inverse
-void
-inv( MatrixView Ainv,
-     ConstMatrixView A );
+void inv(MatrixView Ainv, ConstMatrixView A);
 
 // Matrix inverse
-void 
-inv( ComplexMatrixView Ainv,
-     const ConstComplexMatrixView& A);
+void inv(ComplexMatrixView Ainv, const ConstComplexMatrixView& A);
 
 // Matrix diagonalization with lapack
-void diagonalize( MatrixView P,
-                  VectorView WR,
-                  VectorView WI,
-                  ConstMatrixView A);
+void diagonalize(MatrixView P, VectorView WR, VectorView WI, ConstMatrixView A);
 
 // Matrix diagonalization with eigen
-void diagonalize( ComplexMatrixView P,
-                  ComplexVectorView W,
-                  const ConstComplexMatrixView& A);
+void diagonalize(ComplexMatrixView P,
+                 ComplexVectorView W,
+                 const ConstComplexMatrixView& A);
 
 // Matrix diagonalization and derivatives with eigen
-void diagonalize( ComplexMatrixView P,
-                  /*ComplexMatrixView dP,*/
-                  ComplexVectorView W,
-                  ComplexVectorView dW,
-                  const ConstComplexMatrixView& A,
-                  const ConstComplexMatrixView& dA);
+void diagonalize(ComplexMatrixView P,
+                 /*ComplexMatrixView dP,*/
+                 ComplexVectorView W,
+                 ComplexVectorView dW,
+                 const ConstComplexMatrixView& A,
+                 const ConstComplexMatrixView& dA);
 
 // Exponential of a Matrix
-void
-matrix_exp( MatrixView F,
-            ConstMatrixView A,
-            const Index& q=10);
-void
-matrix_exp2( MatrixView F,
-             ConstMatrixView A);
-void
-matrix_exp_4x4( MatrixView F,
-                ConstMatrixView A,
-                const Index& q=10);
-void
-matrix_exp2_4x4( MatrixView F,
-                 ConstMatrixView A);
+void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q = 10);
+void matrix_exp2(MatrixView F, ConstMatrixView A);
+void matrix_exp_4x4(MatrixView F, ConstMatrixView A, const Index& q = 10);
+void matrix_exp2_4x4(MatrixView F, ConstMatrixView A);
 
 // Exponential of a Matrix and its partial derivatives.
 // Includes a specialized function for speedier calculations
-void special_matrix_exp_and_dmatrix_exp_dx_for_rt(MatrixView           F,
-                                                  Tensor3View         dF_upp,
-                                                  Tensor3View         dF_low,
-                                                  ConstMatrixView      A,
-                                                  ConstTensor3View    dA_upp,
-                                                  ConstTensor3View    dA_low,
-                                                  const Index&         q=10 );
+void special_matrix_exp_and_dmatrix_exp_dx_for_rt(MatrixView F,
+                                                  Tensor3View dF_upp,
+                                                  Tensor3View dF_low,
+                                                  ConstMatrixView A,
+                                                  ConstTensor3View dA_upp,
+                                                  ConstTensor3View dA_low,
+                                                  const Index& q = 10);
 
-void cayley_hamilton_fitted_method_4x4_propmat_to_transmat__eigen(MatrixView F,
-                                                                  ConstMatrixView A);
+void cayley_hamilton_fitted_method_4x4_propmat_to_transmat__eigen(
+    MatrixView F, ConstMatrixView A);
 
-void cayley_hamilton_fitted_method_4x4_propmat_to_transmat__eigen(MatrixView F,
-                                                                  Tensor3View dF_upp,
-                                                                  Tensor3View dF_low,
-                                                                  ConstMatrixView A,
-                                                                  ConstTensor3View dA_upp,
-                                                                  ConstTensor3View dA_low);
-
-void cayley_hamilton_fitted_method_4x4_propmat_to_transmat__explicit(MatrixView F,
-                                                                     ConstMatrixView A);
-
-void cayley_hamilton_fitted_method_4x4_propmat_to_transmat__explicit(MatrixView F,
-                                                                     Tensor3View dF_upp,
-                                                                     Tensor3View dF_low,
-                                                                     ConstMatrixView A,
-                                                                     ConstTensor3View dA_upp,
-                                                                     ConstTensor3View dA_low);
-
-void propmat4x4_to_transmat4x4( MatrixView          F,
-                                Tensor3View         dF_upp,
-                                Tensor3View         dF_low,
-                                ConstMatrixView     A,
-                                ConstTensor3View    dA_upp,
-                                ConstTensor3View    dA_low,
-                                const Index&        q=10 );
-
-void
-matrix_exp_dmatrix_exp(MatrixView F,
-                       Tensor3View dF,
-                       ConstMatrixView A,
-                       ConstTensor3View dA,
-                       const Index& q=10);
-void
-matrix_exp_dmatrix_exp(
-    MatrixView      F,
-    MatrixView      dF,
+void cayley_hamilton_fitted_method_4x4_propmat_to_transmat__eigen(
+    MatrixView F,
+    Tensor3View dF_upp,
+    Tensor3View dF_low,
     ConstMatrixView A,
-    ConstMatrixView dA,
-    const Index&    q=10 );
+    ConstTensor3View dA_upp,
+    ConstTensor3View dA_low);
 
+void cayley_hamilton_fitted_method_4x4_propmat_to_transmat__explicit(
+    MatrixView F, ConstMatrixView A);
+
+void cayley_hamilton_fitted_method_4x4_propmat_to_transmat__explicit(
+    MatrixView F,
+    Tensor3View dF_upp,
+    Tensor3View dF_low,
+    ConstMatrixView A,
+    ConstTensor3View dA_upp,
+    ConstTensor3View dA_low);
+
+void propmat4x4_to_transmat4x4(MatrixView F,
+                               Tensor3View dF_upp,
+                               Tensor3View dF_low,
+                               ConstMatrixView A,
+                               ConstTensor3View dA_upp,
+                               ConstTensor3View dA_low,
+                               const Index& q = 10);
+
+void matrix_exp_dmatrix_exp(MatrixView F,
+                            Tensor3View dF,
+                            ConstMatrixView A,
+                            ConstTensor3View dA,
+                            const Index& q = 10);
+void matrix_exp_dmatrix_exp(MatrixView F,
+                            MatrixView dF,
+                            ConstMatrixView A,
+                            ConstMatrixView dA,
+                            const Index& q = 10);
 
 // Maximum absolute row sum norm
-Numeric
-norm_inf(ConstMatrixView A);
-
+Numeric norm_inf(ConstMatrixView A);
 
 // Identity Matrix
-void
-id_mat(MatrixView I);
+void id_mat(MatrixView I);
 
 Numeric det(ConstMatrixView A);
 
-
-void linreg(
-       Vector&    p,
-  ConstVectorView x, 
-  ConstVectorView y );
+void linreg(Vector& p, ConstVectorView x, ConstVectorView y);
 
 Numeric lsf(VectorView x, ConstMatrixView A, ConstVectorView y) noexcept;
 
-#endif    // linalg_h
+#endif  // linalg_h

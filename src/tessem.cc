@@ -28,53 +28,44 @@
   microwave and sub-millimeter frequencies project EUM/CO/14/4600001473/CJA
 */
 
+#include "tessem.h"
+#include "file.h"
 #include "matpackI.h"
 #include "mystring.h"
-#include "file.h"
-#include "tessem.h"
 
 /*! Read TESSEM2 neural network parameters
 
   \param[in,out] is Input file stream
   \param[out] net Neural network parameters
 */
-void tessem_read_ascii(std::ifstream& is, TessemNN& net)
-{
-    is >> net.nb_inputs >> net.nb_cache >> net.nb_outputs;
+void tessem_read_ascii(std::ifstream& is, TessemNN& net) {
+  is >> net.nb_inputs >> net.nb_cache >> net.nb_outputs;
 
-    net.b1.resize(net.nb_cache);
-    for (Index i = 0; i < net.nb_cache; i++)
-        is >> net.b1[i];
+  net.b1.resize(net.nb_cache);
+  for (Index i = 0; i < net.nb_cache; i++) is >> net.b1[i];
 
-    net.b2.resize(net.nb_outputs);
-    for (Index i = 0; i < net.nb_outputs; i++)
-        is >> net.b2[i];
+  net.b2.resize(net.nb_outputs);
+  for (Index i = 0; i < net.nb_outputs; i++) is >> net.b2[i];
 
-    net.w1.resize(net.nb_cache, net.nb_inputs);
-    for (Index i = 0; i < net.nb_cache; i++)
-        for (Index j = 0; j < net.nb_inputs; j++)
-            is >> net.w1(i, j);
+  net.w1.resize(net.nb_cache, net.nb_inputs);
+  for (Index i = 0; i < net.nb_cache; i++)
+    for (Index j = 0; j < net.nb_inputs; j++) is >> net.w1(i, j);
 
-    net.w2.resize(net.nb_outputs, net.nb_cache);
-    for (Index i = 0; i < net.nb_outputs; i++)
-        for (Index j = 0; j < net.nb_cache; j++)
-            is >> net.w2(i, j);
+  net.w2.resize(net.nb_outputs, net.nb_cache);
+  for (Index i = 0; i < net.nb_outputs; i++)
+    for (Index j = 0; j < net.nb_cache; j++) is >> net.w2(i, j);
 
-    net.x_min.resize(net.nb_inputs);
-    for (Index i = 0; i < net.nb_inputs; i++)
-        is >> net.x_min[i];
+  net.x_min.resize(net.nb_inputs);
+  for (Index i = 0; i < net.nb_inputs; i++) is >> net.x_min[i];
 
-    net.x_max.resize(net.nb_inputs);
-    for (Index i = 0; i < net.nb_inputs; i++)
-        is >> net.x_max[i];
+  net.x_max.resize(net.nb_inputs);
+  for (Index i = 0; i < net.nb_inputs; i++) is >> net.x_max[i];
 
-    net.y_min.resize(net.nb_outputs);
-    for (Index i = 0; i < net.nb_outputs; i++)
-        is >> net.y_min[i];
+  net.y_min.resize(net.nb_outputs);
+  for (Index i = 0; i < net.nb_outputs; i++) is >> net.y_min[i];
 
-    net.y_max.resize(net.nb_outputs);
-    for (Index i = 0; i < net.nb_outputs; i++)
-        is >> net.y_max[i];
+  net.y_max.resize(net.nb_outputs);
+  for (Index i = 0; i < net.nb_outputs; i++) is >> net.y_max[i];
 }
 
 /*! Tessem emissivity calculation
@@ -93,52 +84,45 @@ void tessem_read_ascii(std::ifstream& is, TessemNN& net)
   \param[in] net  Neural network parameters.
   \param[in] nx  Input data.
 */
-void tessem_prop_nn(VectorView& ny, const TessemNN& net, ConstVectorView nx)
-{
-    if (nx.nelem() != net.nb_inputs)
-    {
-        ostringstream os;
-        os << "Tessem NN requires " << net.nb_inputs
-           << " values, but input vector has " << nx.nelem() << " element.";
-        throw std::runtime_error(os.str());
-    }
+void tessem_prop_nn(VectorView& ny, const TessemNN& net, ConstVectorView nx) {
+  if (nx.nelem() != net.nb_inputs) {
+    ostringstream os;
+    os << "Tessem NN requires " << net.nb_inputs
+       << " values, but input vector has " << nx.nelem() << " element.";
+    throw std::runtime_error(os.str());
+  }
 
-    if (ny.nelem() != net.nb_outputs)
-    {
-        ostringstream os;
-        os << "Tessem NN generates " << net.nb_outputs
-           << " values, but output vector has " << ny.nelem() << " element.";
-        throw std::runtime_error(os.str());
-    }
+  if (ny.nelem() != net.nb_outputs) {
+    ostringstream os;
+    os << "Tessem NN generates " << net.nb_outputs
+       << " values, but output vector has " << ny.nelem() << " element.";
+    throw std::runtime_error(os.str());
+  }
 
-    // preprocessing
-    Vector new_x(nx);
-    new_x[0] *= 1e-9;
-    new_x[4] *= 1e3;
-    for (Index i = 0; i < net.nb_inputs; i++)
-        new_x[i] = -1. +
-                   (new_x[i] - net.x_min[i]) / (net.x_max[i] - net.x_min[i]) * 2;
+  // preprocessing
+  Vector new_x(nx);
+  new_x[0] *= 1e-9;
+  new_x[4] *= 1e3;
+  for (Index i = 0; i < net.nb_inputs; i++)
+    new_x[i] =
+        -1. + (new_x[i] - net.x_min[i]) / (net.x_max[i] - net.x_min[i]) * 2;
 
-    // propagation
-    Vector trans = net.b1;
-    for (Index i = 0; i < net.nb_cache; i++)
-    {
-        for (Index j = 0; j < net.nb_inputs; j++)
-            trans[i] += net.w1(i, j) * new_x[j];
+  // propagation
+  Vector trans = net.b1;
+  for (Index i = 0; i < net.nb_cache; i++) {
+    for (Index j = 0; j < net.nb_inputs; j++)
+      trans[i] += net.w1(i, j) * new_x[j];
 
-        trans[i] = 2. / (1. + exp(-2. * trans[i])) - 1.;
-    }
+    trans[i] = 2. / (1. + exp(-2. * trans[i])) - 1.;
+  }
 
-    Vector new_y = net.b2;
-    for (Index i = 0; i < net.nb_outputs; i++)
-    {
-        for (Index j = 0; j < net.nb_cache; j++)
-            new_y[i] += net.w2(i, j) * trans[j];
-    }
+  Vector new_y = net.b2;
+  for (Index i = 0; i < net.nb_outputs; i++) {
+    for (Index j = 0; j < net.nb_cache; j++)
+      new_y[i] += net.w2(i, j) * trans[j];
+  }
 
-    // postprocessing
-    for (Index i = 0; i < net.nb_outputs; i++)
-        ny[i] = net.y_min[i] +
-                (new_y[i] + 1.) / 2. * (net.y_max[i] - net.y_min[i]);
+  // postprocessing
+  for (Index i = 0; i < net.nb_outputs; i++)
+    ny[i] = net.y_min[i] + (new_y[i] + 1.) / 2. * (net.y_max[i] - net.y_min[i]);
 }
-

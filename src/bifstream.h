@@ -15,7 +15,6 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-
 ////////////////////////////////////////////////////////////////////////////
 //   File description
 ////////////////////////////////////////////////////////////////////////////
@@ -35,45 +34,38 @@
 
 #include "binio.h"
 
-
 //! Binary output file stream class
 /*!
   Handles writing to an output file stream in binary format. It makes it
   possible to use the operator<< for binary output.
 */
-class bifstream : public binistream, public ifstream
-{
-public:
-  bifstream () : ifstream () { }
+class bifstream : public binistream, public ifstream {
+ public:
+  bifstream() : ifstream() {}
 
-  explicit
-  bifstream (const char* name,
-                          ios::openmode mode = ios::in | ios::binary)
-  : ifstream (name, mode)
-    {
-      // Set Little Endian mode, with IEEE-754 floats.
-      this->setFlag(binio::BigEndian, false);   // remove flag
-      this->setFlag(binio::FloatIEEE);          // set flag
-    }
+  explicit bifstream(const char* name,
+                     ios::openmode mode = ios::in | ios::binary)
+      : ifstream(name, mode) {
+    // Set Little Endian mode, with IEEE-754 floats.
+    this->setFlag(binio::BigEndian, false);  // remove flag
+    this->setFlag(binio::FloatIEEE);         // set flag
+  }
 
-
-  virtual ~bifstream () {}
+  virtual ~bifstream() {}
   void seek(long spos, Offset offs);
   streampos pos();
 
   bifstream::Byte getByte();
-  void getRaw (char *c, streamsize n) { this->read (c, n); }
-
+  void getRaw(char* c, streamsize n) { this->read(c, n); }
 };
 
-
 /* Overloaded input operators */
-bifstream& operator>> (bifstream& bif, double& n);
+bifstream& operator>>(bifstream& bif, double& n);
 
-bifstream& operator>> (bifstream& bif, float& n);
+bifstream& operator>>(bifstream& bif, float& n);
 
-bifstream& operator>> (bifstream& bif, long& n);
+bifstream& operator>>(bifstream& bif, long& n);
 
-bifstream& operator>> (bifstream& bif, int& n);
+bifstream& operator>>(bifstream& bif, int& n);
 
 #endif

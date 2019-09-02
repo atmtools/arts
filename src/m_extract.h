@@ -31,10 +31,10 @@
 #define m_extract_h
 
 #include "array.h"
-#include "quantum.h"
 #include "exceptions.h"
-#include "matpackV.h"
 #include "gridded_fields.h"
+#include "matpackV.h"
+#include "quantum.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 /* This template function covers all implementations of extracting
@@ -42,144 +42,114 @@
  */
 template <typename T>
 void Extract(
-      // WS Generic Output:
-      T&               e,
-      // WS Input:
-      // WS Generic Input:
-      const Array<T>&  arr,
-      const Index&     index,
-      const Verbosity&)
-{
-  if( index >= arr.nelem() )
-    {
-      ostringstream os;
-      os << "The index " << index 
-         << " is outside the range of the array.";
-      throw runtime_error( os.str() );
-
-    }
+    // WS Generic Output:
+    T& e,
+    // WS Input:
+    // WS Generic Input:
+    const Array<T>& arr,
+    const Index& index,
+    const Verbosity&) {
+  if (index >= arr.nelem()) {
+    ostringstream os;
+    os << "The index " << index << " is outside the range of the array.";
+    throw runtime_error(os.str());
+  }
 
   e = arr[index];
 }
 
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ArrayOfIndexExtractFromArrayOfArrayOfIndex(
-      // WS Generic Output:
-      ArrayOfIndex&          aoi,
-      // WS Input:
-      // WS Generic Input:
-      const ArrayOfArrayOfIndex&   aoaoi,
-      const Index&     index,
-      const Verbosity&)
-{
-  if( index >= aoaoi.nelem() )
-    {
-      ostringstream os;
-      os << "The index " << index 
-         << " is outside the range of the Array.";
-      throw runtime_error( os.str() );
+    // WS Generic Output:
+    ArrayOfIndex& aoi,
+    // WS Input:
+    // WS Generic Input:
+    const ArrayOfArrayOfIndex& aoaoi,
+    const Index& index,
+    const Verbosity&) {
+  if (index >= aoaoi.nelem()) {
+    ostringstream os;
+    os << "The index " << index << " is outside the range of the Array.";
+    throw runtime_error(os.str());
+  }
 
-    }
-
-  aoi.resize( aoaoi[index].nelem() );
+  aoi.resize(aoaoi[index].nelem());
   aoi = aoaoi[index];
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void Extract(
+    // WS Generic Output:
+    Numeric& n,
+    // WS Input:
+    // WS Generic Input:
+    const Vector& v,
+    const Index& index,
+    const Verbosity&) {
+  if (index >= v.nelem()) {
+    ostringstream os;
+    os << "The index " << index << " is outside the range of the Vector.";
+    throw runtime_error(os.str());
+  }
+
+  n = v[index];
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Extract(
-      // WS Generic Output:
-      Numeric&         n,
-      // WS Input:
-      // WS Generic Input:
-      const Vector&    v,
-      const Index&     index,
-      const Verbosity&)
-{
-  if( index >= v.nelem() )
-    {
-      ostringstream os;
-      os << "The index " << index 
-         << " is outside the range of the Vector.";
-      throw runtime_error( os.str() );
+    // WS Generic Output:
+    Matrix& m,
+    // WS Input:
+    // WS Generic Input:
+    const Tensor3& t3,
+    const Index& index,
+    const Verbosity&) {
+  if (index >= t3.npages()) {
+    ostringstream os;
+    os << "The index " << index << " is outside the page range of the Tensor3.";
+    throw runtime_error(os.str());
+  }
 
-    }
-
-  n = v[ index ];
+  m = t3(index, joker, joker);
 }
-
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Extract(
-      // WS Generic Output:
-      Matrix&         m,
-      // WS Input:
-      // WS Generic Input:
-      const Tensor3&  t3,
-      const Index&    index,
-      const Verbosity&)
-{
-  if( index >= t3.npages() )
-    {
-      ostringstream os;
-      os << "The index " << index 
-         << " is outside the page range of the Tensor3.";
-      throw runtime_error( os.str() );
+    // WS Generic Output:
+    Tensor3& t3,
+    // WS Input:
+    // WS Generic Input:
+    const Tensor4& t4,
+    const Index& index,
+    const Verbosity&) {
+  if (index >= t4.nbooks()) {
+    ostringstream os;
+    os << "The index " << index << " is outside the book range of the Tensor4.";
+    throw runtime_error(os.str());
+  }
 
-    }
-
-  m = t3( index, joker, joker );
+  t3.resize(t4.npages(), t4.nrows(), t4.ncols());
+  t3 = t4(index, joker, joker, joker);
 }
-
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Extract(
-      // WS Generic Output:
-      Tensor3&         t3,
-      // WS Input:
-      // WS Generic Input:
-      const Tensor4&   t4,
-      const Index&     index,
-      const Verbosity&)
-{
-  if( index >= t4.nbooks() )
-    {
-      ostringstream os;
-      os << "The index " << index 
-         << " is outside the book range of the Tensor4.";
-      throw runtime_error( os.str() );
+    // WS Generic Output:
+    Tensor4& t4,
+    // WS Input:
+    // WS Generic Input:
+    const Tensor5& t5,
+    const Index& index,
+    const Verbosity&) {
+  if (index >= t5.nshelves()) {
+    ostringstream os;
+    os << "The index " << index << "is outside the shelf range of the Tensor5.";
+    throw runtime_error(os.str());
+  }
 
-    }
-
-  t3.resize( t4.npages(), t4.nrows(), t4.ncols() );
-  t3 = t4( index, joker, joker, joker );
+  t4.resize(t5.nbooks(), t5.npages(), t5.nrows(), t5.ncols());
+  t4 = t5(index, joker, joker, joker, joker);
 }
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void Extract(
-      // WS Generic Output:
-      Tensor4&         t4,
-      // WS Input:
-      // WS Generic Input:
-      const Tensor5&   t5,
-      const Index&     index,
-      const Verbosity&)
-{
-  if( index >= t5.nshelves() )
-    {
-      ostringstream os;
-      os << "The index " << index 
-         << "is outside the shelf range of the Tensor5.";
-      throw runtime_error( os.str() );
-
-    }
-
-  t4.resize( t5.nbooks(), t5.npages(), t5.nrows(), t5.ncols() );
-  t4 = t5( index, joker, joker, joker, joker );
-}
-
 
 /* Workspace method: Doxygen documentation will be auto-generated 
 
@@ -187,27 +157,23 @@ void Extract(
 
    2007-10-26 Oliver Lemke */
 void Extract(
-      // WS Generic Output:
-      ArrayOfGriddedField3&          agf,
-      // WS Input:
-      // WS Generic Input:
-      const ArrayOfArrayOfGriddedField3&   aagf,
-      const Index&     index,
-      const Verbosity&)
-{
-  if( index >= aagf.nelem() )
-    {
-      ostringstream os;
-      os << "The index " << index 
-         << " is outside the range of the ArrayOfArrayOfGriddedField3.";
-      throw runtime_error( os.str() );
+    // WS Generic Output:
+    ArrayOfGriddedField3& agf,
+    // WS Input:
+    // WS Generic Input:
+    const ArrayOfArrayOfGriddedField3& aagf,
+    const Index& index,
+    const Verbosity&) {
+  if (index >= aagf.nelem()) {
+    ostringstream os;
+    os << "The index " << index
+       << " is outside the range of the ArrayOfArrayOfGriddedField3.";
+    throw runtime_error(os.str());
+  }
 
-    }
-
-  agf.resize( aagf[index].nelem() );
+  agf.resize(aagf[index].nelem());
   agf = aagf[index];
 }
-
 
 /* Workspace method: Doxygen documentation will be auto-generated 
 
@@ -215,22 +181,19 @@ void Extract(
 
    2007-11-26 Stefan Buehler */
 void Extract(
-      // WS Generic Output:
-      GriddedField4&          m,
-      // WS Input:
-      // WS Generic Input:
-      const ArrayOfGriddedField4&   agf4,
-      const Index&     index,
-      const Verbosity&)
-{
-  if( index >= agf4.nelem() )
-    {
-      ostringstream os;
-      os << "The index " << index 
-         << " is outside the range of The ArrayOfGriddedField4.";
-      throw runtime_error( os.str() );
-
-    }
+    // WS Generic Output:
+    GriddedField4& m,
+    // WS Input:
+    // WS Generic Input:
+    const ArrayOfGriddedField4& agf4,
+    const Index& index,
+    const Verbosity&) {
+  if (index >= agf4.nelem()) {
+    ostringstream os;
+    os << "The index " << index
+       << " is outside the range of The ArrayOfGriddedField4.";
+    throw runtime_error(os.str());
+  }
 
   // I simply use the copy operator here, since I'm too lazy to go
   // through all members of the structure to resize them. That is not
@@ -239,21 +202,15 @@ void Extract(
 }
 
 void Extract(
-  // WS Generic Output:
-  QuantumIdentifier&         qi,
-  // WS Input:
-  // WS Generic Input:
-  const ArrayOfQuantumIdentifier&   aoqi,
-  const Index&     index,
-  const Verbosity&)
-{
-  if(index > aoqi.nelem() or index < 0)
-    throw std::runtime_error("Bad index");
+    // WS Generic Output:
+    QuantumIdentifier& qi,
+    // WS Input:
+    // WS Generic Input:
+    const ArrayOfQuantumIdentifier& aoqi,
+    const Index& index,
+    const Verbosity&) {
+  if (index > aoqi.nelem() or index < 0) throw std::runtime_error("Bad index");
   qi = aoqi[index];
 }
 
-
-
-
 #endif /* m_extract_h */
-

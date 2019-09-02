@@ -26,33 +26,23 @@
 
 #include "m_xml.h"
 
-
 /* Workspace method: Doxygen documentation will be auto-generated */
-void
-output_file_formatSetAscii (// WS Output:
-                            String& file_format,
-                            const Verbosity&)
-{
+void output_file_formatSetAscii(  // WS Output:
+    String& file_format,
+    const Verbosity&) {
   file_format = "ascii";
 }
 
-
 /* Workspace method: Doxygen documentation will be auto-generated */
-void
-output_file_formatSetZippedAscii (// WS Output:
-                                  String& file_format,
-                                  const Verbosity&)
-{
+void output_file_formatSetZippedAscii(  // WS Output:
+    String& file_format,
+    const Verbosity&) {
   file_format = "zascii";
 }
 
-
 /* Workspace method: Doxygen documentation will be auto-generated */
-void
-output_file_formatSetBinary (// WS Output:
-                             String& file_format,
-                             const Verbosity&)
-{
+void output_file_formatSetBinary(  // WS Output:
+    String& file_format,
+    const Verbosity&) {
   file_format = "binary";
 }
-

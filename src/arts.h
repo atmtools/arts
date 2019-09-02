@@ -98,9 +98,9 @@
 
 #include <cstddef>
 #include <cstdlib>
+#include "debug.h"
 #include "matpack.h"
 #include "mystring.h"
-#include "debug.h"
 
 //----------< First of all, include the configuration header >----------
 #include "config.h"
@@ -109,9 +109,9 @@
 #include <cassert>
 
 #ifdef HAVE_NAMESPACES
-  // We need those to support ansi-compliant compilers (gcc-3x)
-  namespace std {}
-  using namespace std;
+// We need those to support ansi-compliant compilers (gcc-3x)
+namespace std {}
+using namespace std;
 #endif
 
 //---------------< Global variable declarations >---------------
@@ -122,17 +122,17 @@
 // FIXME: OLE: These should be moved to a separate header file.
 class ArtsOut;
 
-void define_wsv_group_names();  
+void define_wsv_group_names();
 Index get_wsv_id(const String& name);
-Index get_wsv_id(const char *name);
+Index get_wsv_id(const char* name);
 bool is_valid_keyword_group(const Index name);
 void define_species_data();
 void define_species_map();
 void define_lineshape_data();
 void define_lineshape_norm_data();
 
-void arts_exit (int status = EXIT_FAILURE);
-void arts_exit_with_error_message(const String& m, ArtsOut &os);
+void arts_exit(int status = EXIT_FAILURE);
+void arts_exit_with_error_message(const String& m, ArtsOut& os);
 
 //
 // Physical constants are now in constants.cc
@@ -140,5 +140,4 @@ void arts_exit_with_error_message(const String& m, ArtsOut &os);
 
 //---------------< Global macro definitions: >---------------
 
-#endif // arts_h
-
+#endif  // arts_h

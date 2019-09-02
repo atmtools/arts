@@ -24,37 +24,25 @@
   \brief  Internal functions for microphysics calculations (size distributions etc.)
 */
 
-
 #ifndef microphysics_h
 #define microphysics_h
 
-#include "matpackVII.h"
-#include "interpolation.h"
-#include "optproperties.h"
 #include "array.h"
 #include "gridded_fields.h"
-#include "ppath.h"
+#include "interpolation.h"
+#include "matpackVII.h"
 #include "messages.h"
+#include "optproperties.h"
+#include "ppath.h"
 
-void derive_scat_species_a_and_b(
-          Numeric&   a,
-          Numeric&   b,
-    const Vector&    x,          
-    const Vector&    mass,          
-    const Numeric&   x_fit_start,
-    const Numeric&   x_fit_end );
+void derive_scat_species_a_and_b(Numeric& a,
+                                 Numeric& b,
+                                 const Vector& x,
+                                 const Vector& mass,
+                                 const Numeric& x_fit_start,
+                                 const Numeric& x_fit_end);
 
-void pnd_fieldMH97 (Tensor4View pnd_field,
-                    const Tensor3& IWC_field,
-                    const Tensor3& t_field,
-                    const ArrayOfIndex& limits,
-                    const ArrayOfArrayOfScatteringMetaData& scat_meta,
-                    const Index& scat_species,
-                    const String& part_string,
-                    const String& delim,
-                    const Verbosity& verbosity);
-
-void pnd_fieldH11 (Tensor4View pnd_field,
+void pnd_fieldMH97(Tensor4View pnd_field,
                    const Tensor3& IWC_field,
                    const Tensor3& t_field,
                    const ArrayOfIndex& limits,
@@ -64,69 +52,29 @@ void pnd_fieldH11 (Tensor4View pnd_field,
                    const String& delim,
                    const Verbosity& verbosity);
 
-void pnd_fieldH13 (Tensor4View pnd_field,
-                   const Tensor3& IWC_field,
-                   const Tensor3& t_field,
-                   const ArrayOfIndex& limits,
-                   const ArrayOfArrayOfScatteringMetaData& scat_meta,
-                   const Index& scat_species,
-                   const String& part_string,
-                   const String& delim,
-                   const Verbosity& verbosity);
+void pnd_fieldH11(Tensor4View pnd_field,
+                  const Tensor3& IWC_field,
+                  const Tensor3& t_field,
+                  const ArrayOfIndex& limits,
+                  const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                  const Index& scat_species,
+                  const String& part_string,
+                  const String& delim,
+                  const Verbosity& verbosity);
 
-void pnd_fieldH13Shape (Tensor4View pnd_field,
-                        const Tensor3& IWC_field,
-                        const Tensor3& t_field,
-                        const ArrayOfIndex& limits,
-                        const ArrayOfArrayOfScatteringMetaData& scat_meta,
-                        const Index& scat_species,
-                        const String& part_string,
-                        const String& delim,
-                        const Verbosity& verbosity);
+void pnd_fieldH13(Tensor4View pnd_field,
+                  const Tensor3& IWC_field,
+                  const Tensor3& t_field,
+                  const ArrayOfIndex& limits,
+                  const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                  const Index& scat_species,
+                  const String& part_string,
+                  const String& delim,
+                  const Verbosity& verbosity);
 
-void pnd_fieldF07 (Tensor4View pnd_field,
-                   const Tensor3& SWC_field,
-                   const Tensor3& t_field,
-                   const String& regime,
-                   const ArrayOfIndex& limits,
-                   const ArrayOfArrayOfScatteringMetaData& scat_meta,
-                   const Index& scat_species,
-                   const String& part_string,
-                   const String& delim,
-                   const Verbosity& verbosity);
-
-void pnd_fieldSB06 (Tensor4View pnd_field,
-                   const Tensor3& WC_field,
-                   const Tensor3& N_field,
-                   const ArrayOfIndex& limits,
-                   const ArrayOfArrayOfScatteringMetaData& scat_meta,
-                   const Index& scat_species,
-                   const String& part_string,
-                   const String& delim,
-                   const Verbosity& verbosity);
-
-void pnd_fieldMY05 (Tensor4View pnd_field,
-                   const Tensor3& WC_field,
-                   const Tensor3& N_field,
-                   const ArrayOfIndex& limits,
-                   const ArrayOfArrayOfScatteringMetaData& scat_meta,
-                   const Index& scat_species,
-                   const String& part_string,
-                   const String& delim,
-                   const Verbosity& verbosity);
-
-void pnd_fieldMGD_LWC (Tensor4View pnd_field,
-                       const Tensor3& LWC_field,
-                       const ArrayOfIndex& limits,
-                       const ArrayOfArrayOfScatteringMetaData& scat_meta,
-                       const Index& scat_species,
-                       const String& part_string,
-                       const String& delim,
-                       const Verbosity& verbosity);
-
-
-void pnd_fieldMGD_IWC (Tensor4View pnd_field,
+void pnd_fieldH13Shape(Tensor4View pnd_field,
                        const Tensor3& IWC_field,
+                       const Tensor3& t_field,
                        const ArrayOfIndex& limits,
                        const ArrayOfArrayOfScatteringMetaData& scat_meta,
                        const Index& scat_species,
@@ -134,27 +82,20 @@ void pnd_fieldMGD_IWC (Tensor4View pnd_field,
                        const String& delim,
                        const Verbosity& verbosity);
 
+void pnd_fieldF07(Tensor4View pnd_field,
+                  const Tensor3& SWC_field,
+                  const Tensor3& t_field,
+                  const String& regime,
+                  const ArrayOfIndex& limits,
+                  const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                  const Index& scat_species,
+                  const String& part_string,
+                  const String& delim,
+                  const Verbosity& verbosity);
 
-void pnd_fieldMP48 (Tensor4View pnd_field,
-                    const Tensor3& PR_field,
-                    const ArrayOfIndex& limits,
-                    const ArrayOfArrayOfScatteringMetaData& scat_meta,
-                    const Index& scat_species,
-                    const String& part_string,
-                    const String& delim,
-                    const Verbosity& verbosity);
-
-void pnd_fieldW16 (Tensor4View pnd_field,
-                    const Tensor3& RWC_field,
-                    const ArrayOfIndex& limits,
-                    const ArrayOfArrayOfScatteringMetaData& scat_meta,
-                    const Index& scat_species,
-                    const String& part_string,
-                    const String& delim,
-                    const Verbosity& verbosity);
-
-void pnd_fieldH98 (Tensor4View pnd_field,
-                   const Tensor3& LWC_field,
+void pnd_fieldSB06(Tensor4View pnd_field,
+                   const Tensor3& WC_field,
+                   const Tensor3& N_field,
                    const ArrayOfIndex& limits,
                    const ArrayOfArrayOfScatteringMetaData& scat_meta,
                    const Index& scat_species,
@@ -162,41 +103,90 @@ void pnd_fieldH98 (Tensor4View pnd_field,
                    const String& delim,
                    const Verbosity& verbosity);
 
-void psd_SB06 (Vector& psd,
+void pnd_fieldMY05(Tensor4View pnd_field,
+                   const Tensor3& WC_field,
+                   const Tensor3& N_field,
+                   const ArrayOfIndex& limits,
+                   const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                   const Index& scat_species,
+                   const String& part_string,
+                   const String& delim,
+                   const Verbosity& verbosity);
+
+void pnd_fieldMGD_LWC(Tensor4View pnd_field,
+                      const Tensor3& LWC_field,
+                      const ArrayOfIndex& limits,
+                      const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                      const Index& scat_species,
+                      const String& part_string,
+                      const String& delim,
+                      const Verbosity& verbosity);
+
+void pnd_fieldMGD_IWC(Tensor4View pnd_field,
+                      const Tensor3& IWC_field,
+                      const ArrayOfIndex& limits,
+                      const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                      const Index& scat_species,
+                      const String& part_string,
+                      const String& delim,
+                      const Verbosity& verbosity);
+
+void pnd_fieldMP48(Tensor4View pnd_field,
+                   const Tensor3& PR_field,
+                   const ArrayOfIndex& limits,
+                   const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                   const Index& scat_species,
+                   const String& part_string,
+                   const String& delim,
+                   const Verbosity& verbosity);
+
+void pnd_fieldW16(Tensor4View pnd_field,
+                  const Tensor3& RWC_field,
+                  const ArrayOfIndex& limits,
+                  const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                  const Index& scat_species,
+                  const String& part_string,
+                  const String& delim,
+                  const Verbosity& verbosity);
+
+void pnd_fieldH98(Tensor4View pnd_field,
+                  const Tensor3& LWC_field,
+                  const ArrayOfIndex& limits,
+                  const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                  const Index& scat_species,
+                  const String& part_string,
+                  const String& delim,
+                  const Verbosity& verbosity);
+
+void psd_SB06(Vector& psd,
               Matrix& dpsd,
               const Vector& mass,
               const Numeric& N_tot,
               const Numeric& WC,
               const String& hydrometeor_type);
 
-void psd_MY05 (Vector& psd,
+void psd_MY05(Vector& psd,
               Matrix& dpsd,
               const Vector& diameter_max,
               const Numeric N_tot,
               const Numeric WC,
               const String psd_type);
 
-Numeric IWCtopnd_H11 (const Numeric diameter_mass_equivalent,
-                      const Numeric t);
+Numeric IWCtopnd_H11(const Numeric diameter_mass_equivalent, const Numeric t);
 
-Numeric IWCtopnd_H13 (const Numeric diameter_mass_equivalent,
-                      const Numeric t);
+Numeric IWCtopnd_H13(const Numeric diameter_mass_equivalent, const Numeric t);
 
-Numeric IWCtopnd_H13Shape (const Numeric diameter_mass_equivalent,
-                           const Numeric t);
+Numeric IWCtopnd_H13Shape(const Numeric diameter_mass_equivalent,
+                          const Numeric t);
 
-Numeric area_ratioH13 (const Numeric diameter_mass_equivalent,
-                       const Numeric t);
+Numeric area_ratioH13(const Numeric diameter_mass_equivalent, const Numeric t);
 
-Numeric LWCtopnd_MGD_LWC ( const Numeric d, const Numeric m, const Numeric lwc);
+Numeric LWCtopnd_MGD_LWC(const Numeric d, const Numeric m, const Numeric lwc);
 
-Numeric IWCtopnd_MGD_IWC ( const Numeric d, const Numeric m, const Numeric iwc);
+Numeric IWCtopnd_MGD_IWC(const Numeric d, const Numeric m, const Numeric iwc);
 
-Numeric LWCtopnd (const Numeric lwc,
-                  const Numeric radius);
+Numeric LWCtopnd(const Numeric lwc, const Numeric radius);
 
-Numeric PRtopnd_MP48 (const Numeric R,
-                      const Numeric diameter_melted_equivalent);
+Numeric PRtopnd_MP48(const Numeric R, const Numeric diameter_melted_equivalent);
 
-#endif //microphysics_h
-
+#endif  //microphysics_h

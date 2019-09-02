@@ -16,12 +16,10 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-
+#include "absorption.h"
+#include "gridded_fields.h"
 #include "linerecord.h"
 #include "matpackI.h"
-#include "gridded_fields.h"
-#include "absorption.h"
-
 
 void statistical_equilibrium_equation(MatrixView A,
                                       ConstVectorView Aij,
@@ -33,56 +31,61 @@ void statistical_equilibrium_equation(MatrixView A,
                                       const ArrayOfIndex& upper,
                                       const ArrayOfIndex& lower);
 
+void dampened_statistical_equilibrium_equation(
+    MatrixView A,
+    ConstVectorView x,
+    ConstVectorView Aij,
+    ConstVectorView Bij,
+    ConstVectorView Bji,
+    ConstVectorView Cij,
+    ConstVectorView Cji,
+    ConstVectorView Jij,
+    ConstVectorView Lambda,
+    const ArrayOfIndex& upper,
+    const ArrayOfIndex& lower,
+    const Numeric& total_number_count = 1.0);
 
-void dampened_statistical_equilibrium_equation(MatrixView A,
-                                               ConstVectorView x,
-                                               ConstVectorView Aij,
-                                               ConstVectorView Bij,
-                                               ConstVectorView Bji,
-                                               ConstVectorView Cij,
-                                               ConstVectorView Cji,
-                                               ConstVectorView Jij,
-                                               ConstVectorView Lambda,
-                                               const ArrayOfIndex& upper,
-                                               const ArrayOfIndex& lower,
-                                               const Numeric& total_number_count=1.0);
-
-
-void set_constant_statistical_equilibrium_matrix(MatrixView A, VectorView x, const Numeric& sem_ratio, const Index row);
-
+void set_constant_statistical_equilibrium_matrix(MatrixView A,
+                                                 VectorView x,
+                                                 const Numeric& sem_ratio,
+                                                 const Index row);
 
 Vector createAij(const ArrayOfLineRecord& abs_lines);
 
-
 Vector createBij(const ArrayOfLineRecord& abs_lines);
-
 
 Vector createBji(ConstVectorView Bij, const ArrayOfLineRecord& abs_lines);
 
+Vector createCji(ConstVectorView Cij,
+                 const ArrayOfLineRecord& abs_lines,
+                 const Numeric& T);
 
-Vector createCji(ConstVectorView Cij, const ArrayOfLineRecord& abs_lines, const Numeric& T);
+void setCji(VectorView Cji,
+            ConstVectorView Cij,
+            const ArrayOfLineRecord& abs_lines,
+            const Numeric& T,
+            const Index n);
 
+void nlte_collision_factorsCalcFromCoeffs(
+    Vector& Cij,
+    Vector& Cji,
+    const ArrayOfLineRecord& abs_lines,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfArrayOfGriddedField1& collision_coefficients,
+    const ArrayOfQuantumIdentifier& collision_line_identifiers,
+    const SpeciesAuxData& isotopologue_ratios,
+    const ConstVectorView vmr,
+    const Numeric& T,
+    const Numeric& P);
 
-void setCji(VectorView Cji, ConstVectorView Cij, const ArrayOfLineRecord& abs_lines, const Numeric& T, const Index n);
+void nlte_positions_in_statistical_equilibrium_matrix(
+    ArrayOfIndex& upper,
+    ArrayOfIndex& lower,
+    const ArrayOfLineRecord& abs_lines,
+    const ArrayOfQuantumIdentifier& nlte_quantum_identifiers);
 
+Index find_first_unique_in_lower(const ArrayOfIndex& upper,
+                                 const ArrayOfIndex& lower) noexcept;
 
-void nlte_collision_factorsCalcFromCoeffs(Vector& Cij,
-                                          Vector& Cji,
-                                          const ArrayOfLineRecord& abs_lines,
-                                          const ArrayOfArrayOfSpeciesTag& abs_species,
-                                          const ArrayOfArrayOfGriddedField1& collision_coefficients,
-                                          const ArrayOfQuantumIdentifier& collision_line_identifiers,
-                                          const SpeciesAuxData& isotopologue_ratios,
-                                          const ConstVectorView vmr,
-                                          const Numeric& T,
-                                          const Numeric& P);
-
-
-void nlte_positions_in_statistical_equilibrium_matrix(ArrayOfIndex& upper, ArrayOfIndex& lower, 
-                                                      const ArrayOfLineRecord& abs_lines, 
-                                                      const ArrayOfQuantumIdentifier& nlte_quantum_identifiers);
-
-Index find_first_unique_in_lower(const ArrayOfIndex& upper, const ArrayOfIndex& lower) noexcept;
-
-
-void check_collision_line_identifiers(const ArrayOfQuantumIdentifier& collision_line_identifiers);
+void check_collision_line_identifiers(
+    const ArrayOfQuantumIdentifier& collision_line_identifiers);

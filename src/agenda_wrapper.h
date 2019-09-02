@@ -21,16 +21,14 @@
   inversion_iterate_agendaExecute.
 
  */
-class AgendaWrapper
-{
-public:
+class AgendaWrapper {
+ public:
+  const unsigned int m, n;
+  OEMMatrixReference jacobian;
+  OEMVector yi;
 
-    const unsigned int m, n;
-    OEMMatrixReference jacobian;
-    OEMVector          yi;
-
-//! Create inversion_iterate_agendaExecute wrapper.
-/*!
+  //! Create inversion_iterate_agendaExecute wrapper.
+  /*!
   Initializes the wrapper object for the inversion_iterate_agendaExecute
   method. The object forwards the evaluate() and evaluate_jacobian() calls
   made by the iterative OEM methods to inversion_iterate_agendaExecute using
@@ -42,30 +40,29 @@ public:
   execution function.
 
 */
-    AgendaWrapper( Workspace * ws_,
-                   unsigned int m_,
-                   unsigned int n_,
-                   Matrix & jacobian_,
-                   Vector & yi_,
-                   const Agenda *inversion_iterate_agenda_ ) :
-        m(m_),
+  AgendaWrapper(Workspace *ws_,
+                unsigned int m_,
+                unsigned int n_,
+                Matrix &jacobian_,
+                Vector &yi_,
+                const Agenda *inversion_iterate_agenda_)
+      : m(m_),
         n(n_),
-        jacobian(jacobian_), yi(yi_), ws(ws_),
-        inversion_iterate_agenda( inversion_iterate_agenda_ ),
-        reuse_jacobian((jacobian_.nrows() != 0) &&
-                        (jacobian_.ncols() != 0) &&
+        jacobian(jacobian_),
+        yi(yi_),
+        ws(ws_),
+        inversion_iterate_agenda(inversion_iterate_agenda_),
+        reuse_jacobian((jacobian_.nrows() != 0) && (jacobian_.ncols() != 0) &&
                        (yi_.nelem() != 0)),
-        iteration_counter(0)
-        {}
+        iteration_counter(0) {}
 
-    AgendaWrapper(const AgendaWrapper &) = delete;
-    AgendaWrapper(      AgendaWrapper &&) = delete;
-    AgendaWrapper& operator=(const AgendaWrapper &)  = delete;
-    AgendaWrapper& operator=(      AgendaWrapper &&) = delete;
+  AgendaWrapper(const AgendaWrapper &) = delete;
+  AgendaWrapper(AgendaWrapper &&) = delete;
+  AgendaWrapper &operator=(const AgendaWrapper &) = delete;
+  AgendaWrapper &operator=(AgendaWrapper &&) = delete;
 
-
-//! Evaluate forward model and compute Jacobian.
-/*!
+  //! Evaluate forward model and compute Jacobian.
+  /*!
 
   Forwards the call to evaluate_jacobian() and evaluate() that is made by
   Gauss-Newton and Levenberg-Marquardt OEM methods using the variables pointed
@@ -76,25 +73,21 @@ public:
   \param[out] J The Jacobian Ki=d/dx(K(x)) of the forward model.
   \param[in] x The current state vector x.
 */
-    OEMMatrixReference Jacobian(const OEMVector & xi,
-                                OEMVector & yi_)
-    {
-        if (!reuse_jacobian)
-        {
-            inversion_iterate_agendaExecute(
-                *ws, yi, jacobian, xi, 1, 0,
-                *inversion_iterate_agenda);
-            yi_ = yi;
-            iteration_counter += 1;
-        } else {
-            reuse_jacobian = false;
-            yi_ = yi;
-        }
-        return jacobian;
+  OEMMatrixReference Jacobian(const OEMVector &xi, OEMVector &yi_) {
+    if (!reuse_jacobian) {
+      inversion_iterate_agendaExecute(
+          *ws, yi, jacobian, xi, 1, 0, *inversion_iterate_agenda);
+      yi_ = yi;
+      iteration_counter += 1;
+    } else {
+      reuse_jacobian = false;
+      yi_ = yi;
     }
+    return jacobian;
+  }
 
-//! Evaluate forward model.
-/*!
+  //! Evaluate forward model.
+  /*!
 
   Forwards the call to evaluate that is made by Gauss-Newton and
   Levenberg-Marquardt OEM methods to the function pointers provided.
@@ -102,27 +95,22 @@ public:
   \param[out] y The measurement vector y = K(x) for the current state vector x.
   \param[in] x The current state vector x.
 */
-    OEMVector evaluate(const OEMVector &xi)
-    {
-        if (!reuse_jacobian)
-        {
-            Matrix dummy;
-            inversion_iterate_agendaExecute(
-                *ws, yi, dummy, xi, 0, iteration_counter,
-                *inversion_iterate_agenda );
-        } else {
-            reuse_jacobian = false;
-        }
-        return yi;
+  OEMVector evaluate(const OEMVector &xi) {
+    if (!reuse_jacobian) {
+      Matrix dummy;
+      inversion_iterate_agendaExecute(
+          *ws, yi, dummy, xi, 0, iteration_counter, *inversion_iterate_agenda);
+    } else {
+      reuse_jacobian = false;
     }
+    return yi;
+  }
 
-private:
-
-    Workspace    * ws;
-    const Agenda * inversion_iterate_agenda;
-    bool           reuse_jacobian;
-    unsigned int   iteration_counter;
-
+ private:
+  Workspace *ws;
+  const Agenda *inversion_iterate_agenda;
+  bool reuse_jacobian;
+  unsigned int iteration_counter;
 };
 
-#endif // agenda_wrappers_h
+#endif  // agenda_wrappers_h

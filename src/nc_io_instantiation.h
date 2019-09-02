@@ -15,7 +15,6 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-
 ////////////////////////////////////////////////////////////////////////////
 //   File description
 ////////////////////////////////////////////////////////////////////////////
@@ -32,15 +31,16 @@
 #ifndef nc_io_instantiation_h
 #define nc_io_instantiation_h
 
-#include <stdexcept>
 #include <cfloat>
+#include <stdexcept>
 #include "nc_io.h"
 #include "nc_io_types.h"
 
-#define TMPL_NC_READ_WRITE_FILE(what) \
-  template void nca_write_to_file<what>(const String&, const what&, const Verbosity&); \
-  template void nca_read_from_file<what>(const String&, what&, const Verbosity&);
-
+#define TMPL_NC_READ_WRITE_FILE(what)                \
+  template void nca_write_to_file<what>(             \
+      const String&, const what&, const Verbosity&); \
+  template void nca_read_from_file<what>(            \
+      const String&, what&, const Verbosity&);
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded reading/writing routines for NetCDF streams
@@ -80,4 +80,4 @@ xml_read_from_stream (istream&, ArrayOfLineRecord&,
 void
 xml_parse_from_stream (istream&, ArrayOfString&, bifstream *, ArtsXMLTag&, const Verbosity&);*/
 
-#endif  /* nc_io_instantiation_h */
+#endif /* nc_io_instantiation_h */

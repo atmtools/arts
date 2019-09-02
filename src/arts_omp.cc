@@ -37,16 +37,13 @@ using namespace std;
 
 #include "arts_omp.h"
 
-
 //! Wrapper for omp_get_max_threads.
 /*! 
   This wrapper works with and without OMP support.
 
   \return Maximum number of OMP threads, or 1 without OMP.
 */
-int arts_omp_get_max_threads()
-{
-
+int arts_omp_get_max_threads() {
 #ifdef _OPENMP
   int max_threads = omp_get_max_threads();
 #else
@@ -56,16 +53,13 @@ int arts_omp_get_max_threads()
   return max_threads;
 }
 
-
 //! Wrapper for omp_in_parallel.
 /*! 
   This wrapper works with and without OMP support.
 
   \return Returns true if the current region is running parallelized.
 */
-bool arts_omp_in_parallel()
-{
-
+bool arts_omp_in_parallel() {
 #ifdef _OPENMP
   return omp_in_parallel();
 #else
@@ -73,25 +67,21 @@ bool arts_omp_in_parallel()
 #endif
 }
 
-
 //! Wrapper for omp_get_thread_num.
 /*! 
   This wrapper works with and without OMP support.
 
   \return ID number of the current thread, or 0 without OMP.
 */
-int arts_omp_get_thread_num()
-{
-
+int arts_omp_get_thread_num() {
 #ifdef _OPENMP
   int thread_num = omp_get_thread_num();
 #else
   int thread_num = 0;
 #endif
-  
+
   return thread_num;
 }
-
 
 //! Wrapper for omp_get_nested
 /*! 
@@ -99,9 +89,7 @@ int arts_omp_get_thread_num()
 
   \return 1 or 0, depending on if nested parallel execution is enabled or not. 
 */
-int arts_omp_get_nested()
-{
-
+int arts_omp_get_nested() {
 #ifdef _OPENMP
   int nested = omp_get_nested();
 #else
@@ -110,7 +98,6 @@ int arts_omp_get_nested()
 
   return nested;
 }
-
 
 //! Wrapper for omp_set_nested
 /*! 
@@ -130,9 +117,7 @@ void arts_omp_set_nested(int i _U_)
 #else
   // Nothing to do here.
 #endif
-
 }
-
 
 //! Wrapper for omp_set_dynamic
 /*! 
@@ -152,6 +137,4 @@ void arts_omp_set_dynamic(int i _U_)
 #else
   // Nothing to do here.
 #endif
-
 }
-

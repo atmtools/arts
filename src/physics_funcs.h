@@ -17,8 +17,6 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-
-
 /*===========================================================================
   === File description 
   ===========================================================================*/
@@ -31,7 +29,6 @@
    This file contains declerations of functions of physical character.
 */
 
-
 #ifndef physics_h
 #define physics_h
 
@@ -40,70 +37,45 @@
   ===========================================================================*/
 
 #include "arts.h"
+#include "complex.h"
 #include "matpackI.h"
-#include "complex.h"          
-
-
 
 /*===========================================================================
   === Functions in physics_funcs.h
   ===========================================================================*/
 
-Numeric barometric_heightformula (const Numeric& p,
-                                  const Numeric& dh);
+Numeric barometric_heightformula(const Numeric& p, const Numeric& dh);
 
-Numeric dinvplanckdI(
-        const Numeric&  i,
-        const Numeric&  f );
+Numeric dinvplanckdI(const Numeric& i, const Numeric& f);
 
-void fresnel(
-             Complex&   Rv,
-             Complex&   Rh,
-       const Complex&   n1,
-       const Complex&   n2,
-       const Numeric&   theta );
+void fresnel(Complex& Rv,
+             Complex& Rh,
+             const Complex& n1,
+             const Complex& n2,
+             const Numeric& theta);
 
-Numeric invplanck(
-        const Numeric&  i,
-        const Numeric&  f );
+Numeric invplanck(const Numeric& i, const Numeric& f);
 
-Numeric invrayjean(
-        const Numeric&  i,
-        const Numeric&  f );
+Numeric invrayjean(const Numeric& i, const Numeric& f);
 
-Numeric number_density(  
-        const Numeric&   p,
-        const Numeric&   t );
+Numeric number_density(const Numeric& p, const Numeric& t);
 
-Numeric dnumber_density_dt(  
-        const Numeric&   p,
-        const Numeric&   t );
+Numeric dnumber_density_dt(const Numeric& p, const Numeric& t);
 
-Numeric planck( 
-        const Numeric&   f, 
-        const Numeric&   t );
+Numeric planck(const Numeric& f, const Numeric& t);
 
-void planck( VectorView  b,
-        ConstVectorView  f, 
-        const Numeric&   t );
+void planck(VectorView b, ConstVectorView f, const Numeric& t);
 
-Numeric dplanck_dt( 
-        const Numeric&   f, 
-        const Numeric&   t );
+Numeric dplanck_dt(const Numeric& f, const Numeric& t);
 
+Numeric dplanck_df(const Numeric& f, const Numeric& t);
 
-Numeric dplanck_df( 
-        const Numeric&   f, 
-        const Numeric&   t );
-
-Numeric rayjean(
-        const Numeric&  f,
-        const Numeric&  t );
+Numeric rayjean(const Numeric& f, const Numeric& t);
 
 #ifdef ENABLE_REFICE
 extern "C" {
 #endif
-    /** Calculates complex refractive index of Ice 1H
+/** Calculates complex refractive index of Ice 1H
      
      Valid range for wavelengths is between 45 nm and 8.6 m.
      For wavelengths above 167 microns, temperature dependence is
@@ -133,9 +105,9 @@ extern "C" {
      \param[in] temp   Temperature in Kelvin
      \returns Refractive index as complex number
      */
-    Complex refice_(const Numeric& wavlen, const Numeric& temp);
+Complex refice_(const Numeric& wavlen, const Numeric& temp);
 #ifdef ENABLE_REFICE
 }
 #endif
 
-#endif // physics_h
+#endif  // physics_h

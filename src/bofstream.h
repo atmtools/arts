@@ -15,7 +15,6 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-
 ////////////////////////////////////////////////////////////////////////////
 //   File description
 ////////////////////////////////////////////////////////////////////////////
@@ -35,43 +34,38 @@
 
 #include "binio.h"
 
-
 //! Binary output file stream class
 /*!
   Handles writing to an output file stream in binary format. It makes it
   possible to use the operator<< for binary output.
 */
-class bofstream : public binostream, public ofstream
-{
-public:
-  bofstream () : ofstream () { }
+class bofstream : public binostream, public ofstream {
+ public:
+  bofstream() : ofstream() {}
 
-  explicit
-  bofstream (const char* name,
-             ios::openmode mode = ios::out | ios::trunc | ios::binary)
-  : ofstream (name, mode)
-    {
-      // Set Little Endian mode, with IEEE-754 floats.
-      this->setFlag(binio::BigEndian, false);   // remove flag
-      this->setFlag(binio::FloatIEEE);          // set flag
-    }
+  explicit bofstream(const char* name,
+                     ios::openmode mode = ios::out | ios::trunc | ios::binary)
+      : ofstream(name, mode) {
+    // Set Little Endian mode, with IEEE-754 floats.
+    this->setFlag(binio::BigEndian, false);  // remove flag
+    this->setFlag(binio::FloatIEEE);         // set flag
+  }
 
-  virtual ~bofstream () {}
+  virtual ~bofstream() {}
   void seek(long spos, Offset offs);
   streampos pos();
 
-  void putByte (bofstream::Byte b);
-  void putRaw (const char *c, streamsize n) { this->write (c, n); }
+  void putByte(bofstream::Byte b);
+  void putRaw(const char* c, streamsize n) { this->write(c, n); }
 };
 
-
 /* Overloaded output operators */
-bofstream& operator<< (bofstream& bof, double n);
+bofstream& operator<<(bofstream& bof, double n);
 
-bofstream& operator<< (bofstream& bof, float n);
+bofstream& operator<<(bofstream& bof, float n);
 
-bofstream& operator<< (bofstream& bof, long n);
+bofstream& operator<<(bofstream& bof, long n);
 
-bofstream& operator<< (bofstream& bof, int n);
+bofstream& operator<<(bofstream& bof, int n);
 
 #endif

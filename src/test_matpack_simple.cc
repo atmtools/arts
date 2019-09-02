@@ -15,26 +15,22 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
-#include <algorithm>
 #include <iostream>
 #include "matpackVII.h"
 
-
 // Simple element access operator benchmark
-void test1()
-{
-    Matrix m(500, 500);
-    for (Index k = 0; k < 1000; k++)
-        for (Index i = 0; i < m.nrows(); i++)
-            for (Index j = 0; j < m.ncols(); j++)
-                m(i, j) = 2.;
+void test1() {
+  Matrix m(500, 500);
+  for (Index k = 0; k < 1000; k++)
+    for (Index i = 0; i < m.nrows(); i++)
+      for (Index j = 0; j < m.ncols(); j++) m(i, j) = 2.;
 }
 
-int main()
-{
-    test1();
+int main() {
+  test1();
 
-    return 0;
+  return 0;
 }

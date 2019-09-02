@@ -37,14 +37,12 @@
   
 */
 
-#include <iostream>
+#include "interpolation.h"
 #include <cmath>
+#include <iostream>
 #include "array.h"
 #include "check_input.h"
-#include "interpolation.h"
 #include "logic.h"
-
-
 
 // File-global constants:
 
@@ -62,7 +60,6 @@
 */
 DEBUG_ONLY(const Numeric sum_check_epsilon = 1e-6;)
 
-
 //! Allowed tolerance for fractional distance values
 /*!
     Fractional distances are not allowed to be negative or exceed
@@ -75,9 +72,6 @@ DEBUG_ONLY(const Numeric sum_check_epsilon = 1e-6;)
 */
 const Numeric FD_TOL = 1.5e-3;
 
-
-
-
 //! Macro for interpolation weight loops.
 /*!
   We use the macro LOOPIT to make the notation for the nested for
@@ -88,10 +82,7 @@ const Numeric FD_TOL = 1.5e-3;
 
   for ( const Numeric* p=&tp.fd[1]; p>=&tp.fd[0]; --p )
 */
-#define LOOPIT(x) for ( const Numeric* x=&t##x.fd[1]; x>=&t##x.fd[0]; --x )
-
-
-
+#define LOOPIT(x) for (const Numeric* x = &t##x.fd[1]; x >= &t##x.fd[0]; --x)
 
 //! Output operator for GridPos.
 /*!
@@ -102,14 +93,12 @@ const Numeric FD_TOL = 1.5e-3;
 
   \return The output stream.
 */
-ostream& operator<<(ostream& os, const GridPos& gp)
-{
+ostream& operator<<(ostream& os, const GridPos& gp) {
   os << gp.idx << " " << gp.fd[0] << " " << gp.fd[1] << "\n";
   return os;
 }
 
-
-//! Set up a grid position Array. 
+//! Set up a grid position Array.
 /*! 
  This is the function to find the position in the original grid
  and set the fd for the linear interpolation case.
@@ -164,19 +153,18 @@ ostream& operator<<(ostream& os, const GridPos& gp)
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void gridpos( ArrayOfGridPos& gp,
-              ConstVectorView old_grid,
-              ConstVectorView new_grid,
-              const Numeric&  extpolfac )
-{
+void gridpos(ArrayOfGridPos& gp,
+             ConstVectorView old_grid,
+             ConstVectorView new_grid,
+             const Numeric& extpolfac) {
   const Index n_old = old_grid.nelem();
   const Index n_new = new_grid.nelem();
 
   // Assert that gp has the right size:
-  assert( is_size(gp,n_new) );
+  assert(is_size(gp, n_new));
 
   // Assert, that the old grid has more than one element
-  assert( 1 < n_old );
+  assert(1 < n_old);
 
   // This function hast two parts, depending on whether old_grid is
   // sorted in ascending or descending order. Maybe that's not too
@@ -188,252 +176,228 @@ void gridpos( ArrayOfGridPos& gp,
   // If both values are the same, we still assume the grid is
   // ascending. However, this will lead to an assertion fail later on,
   // because the grid has to be strictly sorted.
-  bool ascending = ( old_grid[0] <= old_grid[1] );
+  bool ascending = (old_grid[0] <= old_grid[1]);
 
-  if (ascending)  
-    {
-      // So, old_grid should always be sorted in strictly ascending order.
-      // (No duplicate values.)
-      // Assert that this is so. This may depend on user input, however,
-      // inside this elementary function is not the place to check for
-      // that. There must be runtime checks on higher levels to insure
-      // that all grids are sorted. The assertion here is just as a last
-      // safety check.
-      assert( is_increasing(old_grid) );
+  if (ascending) {
+    // So, old_grid should always be sorted in strictly ascending order.
+    // (No duplicate values.)
+    // Assert that this is so. This may depend on user input, however,
+    // inside this elementary function is not the place to check for
+    // that. There must be runtime checks on higher levels to insure
+    // that all grids are sorted. The assertion here is just as a last
+    // safety check.
+    assert(is_increasing(old_grid));
 
-      // Limits of extrapolation. 
-      const Numeric og_min = old_grid[0] - 
-                                     extpolfac * ( old_grid[1] - old_grid[0] );
-      const Numeric og_max = old_grid[n_old-1] + 
-                         extpolfac * ( old_grid[n_old-1] - old_grid[n_old-2] );
+    // Limits of extrapolation.
+    const Numeric og_min =
+        old_grid[0] - extpolfac * (old_grid[1] - old_grid[0]);
+    const Numeric og_max =
+        old_grid[n_old - 1] +
+        extpolfac * (old_grid[n_old - 1] - old_grid[n_old - 2]);
 
-      // We will make no firm assumptions about the new grid. But the case
-      // that we have in mind is that it is either also sorted, or at
-      // least partially sorted, for example like this:
-      // 5 4 3 2 2.5 3 4
-      // This kind of sequence should be typical if we interpolate
-      // atmospheric fields along a limb propagation path.
+    // We will make no firm assumptions about the new grid. But the case
+    // that we have in mind is that it is either also sorted, or at
+    // least partially sorted, for example like this:
+    // 5 4 3 2 2.5 3 4
+    // This kind of sequence should be typical if we interpolate
+    // atmospheric fields along a limb propagation path.
 
-      // Let's get some idea where the first point in the new grid is,
-      // relative to the old grid. We use linear interpolation between the
-      // maximum and the minimum of the old grid for this. (Taking
-      // into account the small allowed extrapolation.)
-      Numeric frac = (new_grid[0]-og_min)/(og_max-og_min);
-      
-      // We are not checking if the value of frac is reasonable,
-      // because there is another assertion below to catch the
-      // consequences. 
-      
-      // Initialize current_position: 
-      Index   current_position = (Index) rint(frac*(Numeric)(n_old-2));
+    // Let's get some idea where the first point in the new grid is,
+    // relative to the old grid. We use linear interpolation between the
+    // maximum and the minimum of the old grid for this. (Taking
+    // into account the small allowed extrapolation.)
+    Numeric frac = (new_grid[0] - og_min) / (og_max - og_min);
 
-      // The above statement should satisfy
-      // 0 <= current_position <= n_old-2
-      // Assert that this is indeed the case. 
-//       cout << "frac             = " << frac             << "\n";
-//       cout << "current_position = " << current_position << "\n";
-      assert( 0<= current_position );
-      assert( current_position <= n_old-2 );
+    // We are not checking if the value of frac is reasonable,
+    // because there is another assertion below to catch the
+    // consequences.
 
-      // The variables lower and upper are used to remember the value of
-      // the old grid at current_position and one above current_position:
-      Numeric lower = old_grid[current_position];
-      Numeric upper = old_grid[current_position+1];
+    // Initialize current_position:
+    Index current_position = (Index)rint(frac * (Numeric)(n_old - 2));
 
-      // Loop over all points in the new grid:
-      for ( Index i_new=0; i_new<n_new; ++i_new )
-        {
-          // Get a reference to the current element of gp:
-          GridPos& tgp = gp[i_new];
-          // And on the current value of the new grid:
-          const Numeric tng = new_grid[i_new];
+    // The above statement should satisfy
+    // 0 <= current_position <= n_old-2
+    // Assert that this is indeed the case.
+    //       cout << "frac             = " << frac             << "\n";
+    //       cout << "current_position = " << current_position << "\n";
+    assert(0 <= current_position);
+    assert(current_position <= n_old - 2);
 
-          // Verify that the new grid is within the limits of
-          // extrapolation that we have defined by og_min and og_max:
-          assert( og_min <= tng    );
-          assert( tng    <= og_max );
+    // The variables lower and upper are used to remember the value of
+    // the old grid at current_position and one above current_position:
+    Numeric lower = old_grid[current_position];
+    Numeric upper = old_grid[current_position + 1];
 
-//           cout << "lower / tng / upper = "
-//                << lower << " / "
-//                << tng   << " / "
-//                << upper << "\n";
+    // Loop over all points in the new grid:
+    for (Index i_new = 0; i_new < n_new; ++i_new) {
+      // Get a reference to the current element of gp:
+      GridPos& tgp = gp[i_new];
+      // And on the current value of the new grid:
+      const Numeric tng = new_grid[i_new];
 
-          // Is current_position too high?
-          // (The current_position>0 condition is there so that the position
-          // stays 0 for extrapolation.)
-          if ( tng < lower && current_position > 0 )
-            {
-              do
-                {
-                  --current_position;
-                  lower = old_grid[current_position];
-                }
-              while ( tng < lower && current_position > 0 );
+      // Verify that the new grid is within the limits of
+      // extrapolation that we have defined by og_min and og_max:
+      assert(og_min <= tng);
+      assert(tng <= og_max);
 
-              upper = old_grid[current_position+1];
+      //           cout << "lower / tng / upper = "
+      //                << lower << " / "
+      //                << tng   << " / "
+      //                << upper << "\n";
 
-              tgp.idx = current_position;
-              tgp.fd[0] = (tng-lower)/(upper-lower);
-              tgp.fd[1] = 1.0 - tgp.fd[0];
-            }
-          else
-            {
-              // Is it too low? 
-              // (The current_position<n_old condition is there so
-              // that uppers stays n_old-1 for extrapolation.)
-              if ( tng >= upper && current_position < n_old-2 )
-                {
-                  do
-                    {
-                      ++current_position;
-                      upper = old_grid[current_position+1];
-                    }
-                  while ( tng >= upper && current_position < n_old-2 );
+      // Is current_position too high?
+      // (The current_position>0 condition is there so that the position
+      // stays 0 for extrapolation.)
+      if (tng < lower && current_position > 0) {
+        do {
+          --current_position;
+          lower = old_grid[current_position];
+        } while (tng < lower && current_position > 0);
 
-                  lower = old_grid[current_position];
+        upper = old_grid[current_position + 1];
 
-                  tgp.idx = current_position;
-                  tgp.fd[0] = (tng-lower)/(upper-lower);
-                  tgp.fd[1] = 1.0 - tgp.fd[0];
-                }
-              else
-                {
-                  // None of the other two conditions were true. That means:
-                  // lower <= tng < upper. The current_position is still
-                  // valid.
-                  
-                  // SAB 2010-04-28: Note that if a new grid point is exactly on 
-                  // top of an old grid point, then you are now guaranteed to get
-                  // fd[0] = 0 and fd[1] = 1. (Except at the upper grid end.)
+        tgp.idx = current_position;
+        tgp.fd[0] = (tng - lower) / (upper - lower);
+        tgp.fd[1] = 1.0 - tgp.fd[0];
+      } else {
+        // Is it too low?
+        // (The current_position<n_old condition is there so
+        // that uppers stays n_old-1 for extrapolation.)
+        if (tng >= upper && current_position < n_old - 2) {
+          do {
+            ++current_position;
+            upper = old_grid[current_position + 1];
+          } while (tng >= upper && current_position < n_old - 2);
 
-                  tgp.idx = current_position;
-                  tgp.fd[0] = (tng-lower)/(upper-lower);
-                  tgp.fd[1] = 1.0 - tgp.fd[0];
-                }
-            }      
-        
-//          cout << tgp.idx << " " << tgp.fd[0] << " " << tgp.fd[1] << endl;
-          
-          // Safety check to ensure the above promise:
-          assert(old_grid[tgp.idx]<=tng || tgp.idx==0);
+          lower = old_grid[current_position];
+
+          tgp.idx = current_position;
+          tgp.fd[0] = (tng - lower) / (upper - lower);
+          tgp.fd[1] = 1.0 - tgp.fd[0];
+        } else {
+          // None of the other two conditions were true. That means:
+          // lower <= tng < upper. The current_position is still
+          // valid.
+
+          // SAB 2010-04-28: Note that if a new grid point is exactly on
+          // top of an old grid point, then you are now guaranteed to get
+          // fd[0] = 0 and fd[1] = 1. (Except at the upper grid end.)
+
+          tgp.idx = current_position;
+          tgp.fd[0] = (tng - lower) / (upper - lower);
+          tgp.fd[1] = 1.0 - tgp.fd[0];
         }
+      }
+
+      //          cout << tgp.idx << " " << tgp.fd[0] << " " << tgp.fd[1] << endl;
+
+      // Safety check to ensure the above promise:
+      assert(old_grid[tgp.idx] <= tng || tgp.idx == 0);
     }
-  else                          //   if (ascending)  
-    {
-      // Now we are in the "descending old grid" part. We do exactly
-      // the same as in the other part, just accounting for the
-      // different order of things. Comments here refer only to
-      // interesting differences from the ascending case. See that
-      // case for more general comments.
+  } else  //   if (ascending)
+  {
+    // Now we are in the "descending old grid" part. We do exactly
+    // the same as in the other part, just accounting for the
+    // different order of things. Comments here refer only to
+    // interesting differences from the ascending case. See that
+    // case for more general comments.
 
-      // This time ensure strictly descending order:
-      assert( is_decreasing(old_grid) );
+    // This time ensure strictly descending order:
+    assert(is_decreasing(old_grid));
 
-      // The max is now the first point, the min the last point!
-      // I think the sign is right here...
-      const Numeric og_max = old_grid[0] - 
-                                     extpolfac * ( old_grid[1] - old_grid[0] );
-      const Numeric og_min = old_grid[n_old-1] + 
-                         extpolfac * ( old_grid[n_old-1] - old_grid[n_old-2] );
+    // The max is now the first point, the min the last point!
+    // I think the sign is right here...
+    const Numeric og_max =
+        old_grid[0] - extpolfac * (old_grid[1] - old_grid[0]);
+    const Numeric og_min =
+        old_grid[n_old - 1] +
+        extpolfac * (old_grid[n_old - 1] - old_grid[n_old - 2]);
 
-      // We have to take 1- here, because we are starting from the
-      // high end.
-      Numeric frac = 1 - (new_grid[0]-og_min)/(og_max-og_min);
+    // We have to take 1- here, because we are starting from the
+    // high end.
+    Numeric frac = 1 - (new_grid[0] - og_min) / (og_max - og_min);
 
-      // We are not checking if the value of frac is reasonable,
-      // because there is another assertion below to catch the
-      // consequences. 
+    // We are not checking if the value of frac is reasonable,
+    // because there is another assertion below to catch the
+    // consequences.
 
-      Index   current_position = (Index) rint(frac*(Numeric)(n_old-2));
+    Index current_position = (Index)rint(frac * (Numeric)(n_old - 2));
 
-      // The above statement should satisfy
-      // 0 <= current_position <= n_old-2
-      // Assert that this is indeed the case. 
-//       cout << "frac             = " << frac             << "\n";
-//       cout << "current_position = " << current_position << "\n";
-      assert( 0<= current_position );
-      assert( current_position <= n_old-2 );
+    // The above statement should satisfy
+    // 0 <= current_position <= n_old-2
+    // Assert that this is indeed the case.
+    //       cout << "frac             = " << frac             << "\n";
+    //       cout << "current_position = " << current_position << "\n";
+    assert(0 <= current_position);
+    assert(current_position <= n_old - 2);
 
-      // Note, that old_grid[lower] has a higher numerical value than
-      // old_grid[upper]! 
-      Numeric lower = old_grid[current_position];
-      Numeric upper = old_grid[current_position+1];
+    // Note, that old_grid[lower] has a higher numerical value than
+    // old_grid[upper]!
+    Numeric lower = old_grid[current_position];
+    Numeric upper = old_grid[current_position + 1];
 
-      for ( Index i_new=0; i_new<n_new; ++i_new )
-        {
-          GridPos& tgp = gp[i_new];
-          const Numeric tng = new_grid[i_new];
+    for (Index i_new = 0; i_new < n_new; ++i_new) {
+      GridPos& tgp = gp[i_new];
+      const Numeric tng = new_grid[i_new];
 
-          // Verify that the new grid is within the limits of
-          // extrapolation that we have defined by og_min and og_max:
-          assert( og_min <= tng    );
-          assert( tng    <= og_max );
+      // Verify that the new grid is within the limits of
+      // extrapolation that we have defined by og_min and og_max:
+      assert(og_min <= tng);
+      assert(tng <= og_max);
 
-//           cout << "lower / tng / upper = "
-//                << lower << " / "
-//                << tng   << " / "
-//                << upper << "\n";
+      //           cout << "lower / tng / upper = "
+      //                << lower << " / "
+      //                << tng   << " / "
+      //                << upper << "\n";
 
-          // Is current_position too high? (Sign of comparison changed
-          // compared to ascending case!)
-          if ( tng > lower && current_position > 0 )
-            {
-              do
-                {
-                  --current_position;
-                  lower = old_grid[current_position];
-                }
-              while ( tng > lower && current_position > 0 );
+      // Is current_position too high? (Sign of comparison changed
+      // compared to ascending case!)
+      if (tng > lower && current_position > 0) {
+        do {
+          --current_position;
+          lower = old_grid[current_position];
+        } while (tng > lower && current_position > 0);
 
-              upper = old_grid[current_position+1];
+        upper = old_grid[current_position + 1];
 
-              tgp.idx = current_position;
-              tgp.fd[0] = (tng-lower)/(upper-lower);
-              tgp.fd[1] = 1.0 - tgp.fd[0];
-            }
-          else
-            {
-              // Is it too low? (Sign of comparison changed
-              // compared to ascending case!)
-              if ( tng <= upper && current_position < n_old-2 )
-                {
-                  do
-                    {
-                      ++current_position;
-                      upper = old_grid[current_position+1];
-                    }
-                  while ( tng <= upper && current_position < n_old-2 );
+        tgp.idx = current_position;
+        tgp.fd[0] = (tng - lower) / (upper - lower);
+        tgp.fd[1] = 1.0 - tgp.fd[0];
+      } else {
+        // Is it too low? (Sign of comparison changed
+        // compared to ascending case!)
+        if (tng <= upper && current_position < n_old - 2) {
+          do {
+            ++current_position;
+            upper = old_grid[current_position + 1];
+          } while (tng <= upper && current_position < n_old - 2);
 
-                  lower = old_grid[current_position];
+          lower = old_grid[current_position];
 
-                  tgp.idx = current_position;
-                  tgp.fd[0] = (tng-lower)/(upper-lower);
-                  tgp.fd[1] = 1.0 - tgp.fd[0];
-                }
-              else
-                {
-                  // None of the other two conditions were true. That means:
-                  // lower >= tng > upper. The current_position is still
-                  // valid. (Note that upper and lower have switched
-                  // place compared to the ascending case.)
+          tgp.idx = current_position;
+          tgp.fd[0] = (tng - lower) / (upper - lower);
+          tgp.fd[1] = 1.0 - tgp.fd[0];
+        } else {
+          // None of the other two conditions were true. That means:
+          // lower >= tng > upper. The current_position is still
+          // valid. (Note that upper and lower have switched
+          // place compared to the ascending case.)
 
-                  // SAB 2010-04-28: Note that if a new grid point is exactly on 
-                  // top of an old grid point, then you are now guaranteed to get
-                  // fd[0] = 0 and fd[1] = 1. (Except at the upper grid end.)     
-                  
-                  tgp.idx = current_position;
-                  tgp.fd[0] = (tng-lower)/(upper-lower);
-                  tgp.fd[1] = 1.0 - tgp.fd[0];
-                }
-            }      
-          
-          // Safety check to ensure the above promise:
-          assert(old_grid[tgp.idx]>=tng || tgp.idx==0);
-        }      
+          // SAB 2010-04-28: Note that if a new grid point is exactly on
+          // top of an old grid point, then you are now guaranteed to get
+          // fd[0] = 0 and fd[1] = 1. (Except at the upper grid end.)
+
+          tgp.idx = current_position;
+          tgp.fd[0] = (tng - lower) / (upper - lower);
+          tgp.fd[1] = 1.0 - tgp.fd[0];
+        }
+      }
+
+      // Safety check to ensure the above promise:
+      assert(old_grid[tgp.idx] >= tng || tgp.idx == 0);
     }
+  }
 }
-
-
 
 //! gridpos
 /*!
@@ -457,18 +421,15 @@ void gridpos( ArrayOfGridPos& gp,
    \author Stefan Buehler
    \date   2008-03-03
 */
-void gridpos( GridPos& gp,
-              ConstVectorView old_grid,
-              const Numeric&  new_grid,
-              const Numeric&  extpolfac )
-{
-  ArrayOfGridPos  agp(1);
-  Vector          v( 1, new_grid );
-  gridpos( agp, old_grid, v, extpolfac );
-  gridpos_copy( gp,  agp[0] );  
+void gridpos(GridPos& gp,
+             ConstVectorView old_grid,
+             const Numeric& new_grid,
+             const Numeric& extpolfac) {
+  ArrayOfGridPos agp(1);
+  Vector v(1, new_grid);
+  gridpos(agp, old_grid, v, extpolfac);
+  gridpos_copy(gp, agp[0]);
 }
-
-
 
 //! gridpos_1to1
 /*!
@@ -485,24 +446,19 @@ void gridpos( GridPos& gp,
    \author Patrick Eriksson
    \date   2012-06-22
 */
-void gridpos_1to1( 
-   ArrayOfGridPos& gp,
-   ConstVectorView grid )
-{
+void gridpos_1to1(ArrayOfGridPos& gp, ConstVectorView grid) {
   const Index n = grid.nelem();
-  gp.resize( n );
-  
-  for( Index i=0; i<n-1; i++ )
-    {
-      gp[i].idx   = i;
-      gp[i].fd[0] = 0;
-      gp[i].fd[1] = 1;
-    }
-  gp[n-1].idx   = n-2;
-  gp[n-1].fd[0] = 1;
-  gp[n-1].fd[1] = 0;
-}
+  gp.resize(n);
 
+  for (Index i = 0; i < n - 1; i++) {
+    gp[i].idx = i;
+    gp[i].fd[0] = 0;
+    gp[i].fd[1] = 1;
+  }
+  gp[n - 1].idx = n - 2;
+  gp[n - 1].fd[0] = 1;
+  gp[n - 1].fd[1] = 0;
+}
 
 //! gridpos_copy
 /*!
@@ -514,14 +470,11 @@ void gridpos_1to1(
    \author Patrick Eriksson
    \date   2002-09-17
 */
-void gridpos_copy( GridPos&  gp_new,  const GridPos&  gp_old )
-{
-  gp_new.idx   = gp_old.idx;
+void gridpos_copy(GridPos& gp_new, const GridPos& gp_old) {
+  gp_new.idx = gp_old.idx;
   gp_new.fd[0] = gp_old.fd[0];
   gp_new.fd[1] = gp_old.fd[1];
 }
-
-
 
 //! fractional_gp
 /*!
@@ -536,12 +489,9 @@ void gridpos_copy( GridPos&  gp_new,  const GridPos&  gp_old )
    \author Patrick Eriksson
    \date   2004-09-28
 */
-Numeric fractional_gp( const GridPos&   gp )
-{
-  return ( Numeric(gp.idx) + gp.fd[0] );
+Numeric fractional_gp(const GridPos& gp) {
+  return (Numeric(gp.idx) + gp.fd[0]);
 }
-
-
 
 //! gridpos_check_fd
 /*!
@@ -556,26 +506,29 @@ Numeric fractional_gp( const GridPos&   gp )
    \author Patrick Eriksson
    \date   2002-05-21
 */
-void gridpos_check_fd( GridPos&   gp )
-{
+void gridpos_check_fd(GridPos& gp) {
   // Catch values that "must" be wrong
-  assert( gp.fd[0] > -FD_TOL );
-  assert( gp.fd[0] < 1.0 + FD_TOL );
-  assert( gp.fd[1] > -FD_TOL );
-  assert( gp.fd[1] < 1.0 + FD_TOL );
+  assert(gp.fd[0] > -FD_TOL);
+  assert(gp.fd[0] < 1.0 + FD_TOL);
+  assert(gp.fd[1] > -FD_TOL);
+  assert(gp.fd[1] < 1.0 + FD_TOL);
 
-  if( gp.fd[0] < 0.0 )
-    { gp.fd[0] = 0.0; gp.fd[1] = 1.0; }
-  else if( gp.fd[0] > 1.0 )
-    { gp.fd[0] = 1.0; gp.fd[1] = 0.0; }
+  if (gp.fd[0] < 0.0) {
+    gp.fd[0] = 0.0;
+    gp.fd[1] = 1.0;
+  } else if (gp.fd[0] > 1.0) {
+    gp.fd[0] = 1.0;
+    gp.fd[1] = 0.0;
+  }
 
-  if( gp.fd[1] < 0.0 )
-    { gp.fd[1] = 0.0; gp.fd[0] = 1.0; }
-  else if( gp.fd[1] > 1.0 )
-    { gp.fd[1] = 1.0; gp.fd[0] = 0.0; }
+  if (gp.fd[1] < 0.0) {
+    gp.fd[1] = 0.0;
+    gp.fd[0] = 1.0;
+  } else if (gp.fd[1] > 1.0) {
+    gp.fd[1] = 1.0;
+    gp.fd[0] = 0.0;
+  }
 }
-
-
 
 //! gridpos_force_end_fd
 /*!
@@ -599,32 +552,25 @@ void gridpos_check_fd( GridPos&   gp )
    \author Patrick Eriksson
    \date   2002-05-22
 */
-void gridpos_force_end_fd( 
-        GridPos&   gp,
-  const Index&     n )
-{
-  assert( gp.idx >= 0 );
+void gridpos_force_end_fd(GridPos& gp, const Index& n) {
+  assert(gp.idx >= 0);
 
   // If fd=1, shift to grid index above
-  if( gp.fd[0] > 0.5 )
-    {
-      gp.idx += 1;
-    }
+  if (gp.fd[0] > 0.5) {
+    gp.idx += 1;
+  }
   gp.fd[0] = 0;
   gp.fd[1] = 1;
- 
-  assert( gp.idx < n );
+
+  assert(gp.idx < n);
 
   // End of complete grid range must be handled separately
-  if( gp.idx == n-1 )
-    {
-      gp.idx  -= 1;
-      gp.fd[0] = 1;
-      gp.fd[1] = 0;
-    }
+  if (gp.idx == n - 1) {
+    gp.idx -= 1;
+    gp.fd[0] = 1;
+    gp.fd[1] = 0;
+  }
 }
-
-
 
 //! gridpos_upperend_check
 /*!
@@ -640,19 +586,14 @@ void gridpos_force_end_fd(
    \author Patrick Eriksson
    \date   2010-11-18
 */
-void gridpos_upperend_check( 
-        GridPos&   gp,
-  const Index&     ie )  
-{
-  if( gp.idx == ie )
-    {
-      assert( gp.fd[0] < 0.005 );  // To capture obviously bad cases
-      gp.idx   -= 1; 
-      gp.fd[0] = 1.0; 
-      gp.fd[1] = 0.0; 
-    }
+void gridpos_upperend_check(GridPos& gp, const Index& ie) {
+  if (gp.idx == ie) {
+    assert(gp.fd[0] < 0.005);  // To capture obviously bad cases
+    gp.idx -= 1;
+    gp.fd[0] = 1.0;
+    gp.fd[1] = 0.0;
+  }
 }
-
 
 //! gridpos_upperend_check
 /*!
@@ -668,22 +609,16 @@ void gridpos_upperend_check(
    \author Patrick Eriksson
    \date   2011-02-28
 */
-void gridpos_upperend_check( 
-        ArrayOfGridPos&   gp,
-  const Index&            ie )   
-{
-  for (Index i = 0; i < gp.nelem(); i++ ) 
-    {
-      if( gp[i].idx == ie )
-        {
-          assert( gp[i].fd[0] < 0.005 );  // To capture obviously bad cases
-          gp[i].idx   -= 1; 
-          gp[i].fd[0] = 1.0; 
-          gp[i].fd[1] = 0.0; 
-        }
+void gridpos_upperend_check(ArrayOfGridPos& gp, const Index& ie) {
+  for (Index i = 0; i < gp.nelem(); i++) {
+    if (gp[i].idx == ie) {
+      assert(gp[i].fd[0] < 0.005);  // To capture obviously bad cases
+      gp[i].idx -= 1;
+      gp[i].fd[0] = 1.0;
+      gp[i].fd[1] = 0.0;
     }
+  }
 }
-
 
 //! Grid position matching a grid of length 1
 /*!
@@ -698,16 +633,13 @@ void gridpos_upperend_check(
   \author Patrick Eriksson 
   \date   2015-09-10
 */
-void gp4length1grid( ArrayOfGridPos&   gp )
-{
-  for( Index i=0; i<gp.nelem(); i++ )
-    { 
-      gp[i].idx   = 0;
-      gp[i].fd[0] = 0; 
-      gp[i].fd[1] = 1; 
-    }
+void gp4length1grid(ArrayOfGridPos& gp) {
+  for (Index i = 0; i < gp.nelem(); i++) {
+    gp[i].idx = 0;
+    gp[i].fd[0] = 0;
+    gp[i].fd[1] = 1;
+  }
 }
-
 
 //! is_gridpos_at_index_i
 /*!
@@ -722,31 +654,26 @@ void gp4length1grid( ArrayOfGridPos&   gp )
    \author Patrick Eriksson
    \date   2002-05-22
 */
-bool is_gridpos_at_index_i(  
-       const GridPos&   gp,
-       const Index&     i,
-       const bool&      strict )
-{
-  if( strict )
-    {
-      // Assume that gridpos_force_end_fd has been used. The expression 0==0
-      // should be safer than 1==1. 
-      if( gp.idx == i  &&  gp.fd[0] == 0 )
-        { return true; }
-      else if( gp.idx == i-1  &&  gp.fd[1] == 0 )
-        { return true; }
+bool is_gridpos_at_index_i(const GridPos& gp,
+                           const Index& i,
+                           const bool& strict) {
+  if (strict) {
+    // Assume that gridpos_force_end_fd has been used. The expression 0==0
+    // should be safer than 1==1.
+    if (gp.idx == i && gp.fd[0] == 0) {
+      return true;
+    } else if (gp.idx == i - 1 && gp.fd[1] == 0) {
+      return true;
     }
-  else
-    {
-      if( gp.idx == i  &&  gp.fd[0] < FD_TOL )
-        { return true; }
-      else if( gp.idx == i-1  &&  gp.fd[1] < FD_TOL )
-        { return true; }
-    }  
-  return false; 
+  } else {
+    if (gp.idx == i && gp.fd[0] < FD_TOL) {
+      return true;
+    } else if (gp.idx == i - 1 && gp.fd[1] < FD_TOL) {
+      return true;
+    }
+  }
+  return false;
 }
-
-
 
 //! gridpos2gridrange
 /*!
@@ -767,42 +694,31 @@ bool is_gridpos_at_index_i(
    \author Patrick Eriksson
    \date   2002-05-20
 */
-Index gridpos2gridrange(
-       const GridPos&   gp,
-       const bool&      upwards )
-{
-  assert( gp.fd[0] >= 0 );
-  assert( gp.fd[1] >= 0 );
+Index gridpos2gridrange(const GridPos& gp, const bool& upwards) {
+  assert(gp.fd[0] >= 0);
+  assert(gp.fd[1] >= 0);
 
   // Not at a grid point
-  if( gp.fd[0] > 0   &&  gp.fd[1] > 0 )
-    {
-      return gp.idx;
-    }
+  if (gp.fd[0] > 0 && gp.fd[1] > 0) {
+    return gp.idx;
+  }
 
   // Fractional distance 0
-  else if( gp.fd[0] == 0 )
-    {
-      if( upwards )
-        return gp.idx;
-      else
-        return gp.idx - 1;
-    }
+  else if (gp.fd[0] == 0) {
+    if (upwards)
+      return gp.idx;
+    else
+      return gp.idx - 1;
+  }
 
   // Fractional distance 1
-  else
-    {
-      if( upwards )
-        return gp.idx + 1;
-      else
-        return gp.idx;
-    }
+  else {
+    if (upwards)
+      return gp.idx + 1;
+    else
+      return gp.idx;
+  }
 }
-
-
-
-
-
 
 ////////////////////////////////////////////////////////////////////////////
 //                      Red Interpolation
@@ -822,11 +738,9 @@ Index gridpos2gridrange(
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
 */
-void interpweights( VectorView itw,
-                    const GridPos& tc )
-{
-  assert(is_size(itw,2));       // We must store 2 interpolation
-                                // weights.
+void interpweights(VectorView itw, const GridPos& tc) {
+  assert(is_size(itw, 2));  // We must store 2 interpolation
+                            // weights.
 
   // Interpolation weights are stored in this order (l=lower
   // u=upper, c=column):
@@ -856,13 +770,12 @@ void interpweights( VectorView itw,
   // For higher dimensions we have to nest these loops. To avoid
   // typos and safe typing, I use the LOOPIT macro, which expands
   // to the for loop above. Note: NO SEMICOLON AFTER THE LOOPIT
-  // COMMAND! 
+  // COMMAND!
 
-  LOOPIT(c)
-    {
-      itw.get(iti) = *c;
-      ++iti;
-    }
+  LOOPIT(c) {
+    itw.get(iti) = *c;
+    ++iti;
+  }
 }
 
 //! Red 2D interpolation weights.
@@ -880,20 +793,16 @@ void interpweights( VectorView itw,
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
 */
-void interpweights( VectorView itw,
-                    const GridPos& tr,
-                    const GridPos& tc )
-{
-  assert(is_size(itw,4));       // We must store 4 interpolation
-                                // weights.
+void interpweights(VectorView itw, const GridPos& tr, const GridPos& tc) {
+  assert(is_size(itw, 4));  // We must store 4 interpolation
+                            // weights.
   Index iti = 0;
 
   LOOPIT(r)
-  LOOPIT(c)
-    {
-      itw.get(iti) = (*r) * (*c);
-      ++iti;
-    }
+  LOOPIT(c) {
+    itw.get(iti) = (*r) * (*c);
+    ++iti;
+  }
 }
 
 //! Red 3D interpolation weights.
@@ -912,22 +821,20 @@ void interpweights( VectorView itw,
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
 */
-void interpweights( VectorView itw,
-                    const GridPos& tp,
-                    const GridPos& tr,
-                    const GridPos& tc )
-{
-  assert(is_size(itw,8));       // We must store 8 interpolation
-                                // weights.
+void interpweights(VectorView itw,
+                   const GridPos& tp,
+                   const GridPos& tr,
+                   const GridPos& tc) {
+  assert(is_size(itw, 8));  // We must store 8 interpolation
+                            // weights.
   Index iti = 0;
 
   LOOPIT(p)
   LOOPIT(r)
-  LOOPIT(c)
-    {
-      itw.get(iti) = (*p) * (*r) * (*c);
-      ++iti;
-    }
+  LOOPIT(c) {
+    itw.get(iti) = (*p) * (*r) * (*c);
+    ++iti;
+  }
 }
 
 //! Red 4D interpolation weights.
@@ -947,24 +854,22 @@ void interpweights( VectorView itw,
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
 */
-void interpweights( VectorView itw,
-                    const GridPos& tb,
-                    const GridPos& tp,
-                    const GridPos& tr,
-                    const GridPos& tc )
-{
-  assert(is_size(itw,16));      // We must store 16 interpolation
-                                // weights.
+void interpweights(VectorView itw,
+                   const GridPos& tb,
+                   const GridPos& tp,
+                   const GridPos& tr,
+                   const GridPos& tc) {
+  assert(is_size(itw, 16));  // We must store 16 interpolation
+                             // weights.
   Index iti = 0;
 
   LOOPIT(b)
   LOOPIT(p)
   LOOPIT(r)
-  LOOPIT(c)
-    {
-      itw.get(iti) = (*b) * (*p) * (*r) * (*c);
-      ++iti;
-    }
+  LOOPIT(c) {
+    itw.get(iti) = (*b) * (*p) * (*r) * (*c);
+    ++iti;
+  }
 }
 
 //! Red 5D interpolation weights.
@@ -985,26 +890,24 @@ void interpweights( VectorView itw,
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
 */
-void interpweights( VectorView itw,
-                    const GridPos& ts,
-                    const GridPos& tb,
-                    const GridPos& tp,
-                    const GridPos& tr,
-                    const GridPos& tc )
-{
-  assert(is_size(itw,32));      // We must store 32 interpolation
-                                // weights.
+void interpweights(VectorView itw,
+                   const GridPos& ts,
+                   const GridPos& tb,
+                   const GridPos& tp,
+                   const GridPos& tr,
+                   const GridPos& tc) {
+  assert(is_size(itw, 32));  // We must store 32 interpolation
+                             // weights.
   Index iti = 0;
 
   LOOPIT(s)
   LOOPIT(b)
   LOOPIT(p)
   LOOPIT(r)
-  LOOPIT(c)
-    {
-      itw.get(iti) = (*s) * (*b) * (*p) * (*r) * (*c);
-      ++iti;
-    }
+  LOOPIT(c) {
+    itw.get(iti) = (*s) * (*b) * (*p) * (*r) * (*c);
+    ++iti;
+  }
 }
 
 //! Red 6D interpolation weights.
@@ -1026,16 +929,15 @@ void interpweights( VectorView itw,
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
 */
-void interpweights( VectorView itw,
-                    const GridPos& tv,
-                    const GridPos& ts,
-                    const GridPos& tb,
-                    const GridPos& tp,
-                    const GridPos& tr,
-                    const GridPos& tc )
-{
-  assert(is_size(itw,64));      // We must store 64 interpolation
-                                // weights.
+void interpweights(VectorView itw,
+                   const GridPos& tv,
+                   const GridPos& ts,
+                   const GridPos& tb,
+                   const GridPos& tp,
+                   const GridPos& tr,
+                   const GridPos& tc) {
+  assert(is_size(itw, 64));  // We must store 64 interpolation
+                             // weights.
   Index iti = 0;
 
   LOOPIT(v)
@@ -1043,11 +945,10 @@ void interpweights( VectorView itw,
   LOOPIT(b)
   LOOPIT(p)
   LOOPIT(r)
-  LOOPIT(c)
-    {
-      itw.get(iti) = (*v) * (*s) * (*b) * (*p) * (*r) * (*c);
-      ++iti;
-    }
+  LOOPIT(c) {
+    itw.get(iti) = (*v) * (*s) * (*b) * (*p) * (*r) * (*c);
+    ++iti;
+  }
 }
 
 //! Red 1D Interpolate.
@@ -1066,28 +967,22 @@ void interpweights( VectorView itw,
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
 */
-Numeric interp( ConstVectorView itw,
-                ConstVectorView a,    
-                const GridPos&  tc )
-{
-  assert(is_size(itw,2));       // We need 2 interpolation
-                                // weights.
+Numeric interp(ConstVectorView itw, ConstVectorView a, const GridPos& tc) {
+  assert(is_size(itw, 2));  // We need 2 interpolation
+                            // weights.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  assert( is_same_within_epsilon( itw.sum(),
-                                  1,
-                                  sum_check_epsilon ) );
-  
+  assert(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
+
   // To store interpolated value:
   Numeric tia = 0;
 
   Index iti = 0;
-  for ( Index c=0; c<2; ++c )
-    {
-      tia += a.get(tc.idx+c) * itw.get(iti);
-      ++iti;
-    }
+  for (Index c = 0; c < 2; ++c) {
+    tia += a.get(tc.idx + c) * itw.get(iti);
+    ++iti;
+  }
 
   return tia;
 }
@@ -1109,31 +1004,26 @@ Numeric interp( ConstVectorView itw,
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
 */
-Numeric interp( ConstVectorView  itw,
-                ConstMatrixView  a,    
-                const GridPos&   tr,
-                const GridPos&   tc )
-{
-  assert(is_size(itw,4));       // We need 4 interpolation
-                                // weights.
+Numeric interp(ConstVectorView itw,
+               ConstMatrixView a,
+               const GridPos& tr,
+               const GridPos& tc) {
+  assert(is_size(itw, 4));  // We need 4 interpolation
+                            // weights.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  assert( is_same_within_epsilon( itw.sum(),
-                                  1,
-                                  sum_check_epsilon ) );
+  assert(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
 
   // To store interpolated value:
   Numeric tia = 0;
 
   Index iti = 0;
-  for ( Index r=0; r<2; ++r )
-    for ( Index c=0; c<2; ++c )
-      {
-        tia += a.get(tr.idx+r,
-                     tc.idx+c) * itw.get(iti);
-        ++iti;
-      }
+  for (Index r = 0; r < 2; ++r)
+    for (Index c = 0; c < 2; ++c) {
+      tia += a.get(tr.idx + r, tc.idx + c) * itw.get(iti);
+      ++iti;
+    }
 
   return tia;
 }
@@ -1156,34 +1046,28 @@ Numeric interp( ConstVectorView  itw,
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
 */
-Numeric interp( ConstVectorView  itw,
-                ConstTensor3View a,    
-                const GridPos&   tp,
-                const GridPos&   tr,
-                const GridPos&   tc )
-{
-  assert(is_size(itw,8));       // We need 8 interpolation
-                                // weights.
+Numeric interp(ConstVectorView itw,
+               ConstTensor3View a,
+               const GridPos& tp,
+               const GridPos& tr,
+               const GridPos& tc) {
+  assert(is_size(itw, 8));  // We need 8 interpolation
+                            // weights.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  assert( is_same_within_epsilon( itw.sum(),
-                                  1,
-                                  sum_check_epsilon ) );
-  
+  assert(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
+
   // To store interpolated value:
   Numeric tia = 0;
 
   Index iti = 0;
-  for ( Index p=0; p<2; ++p )
-    for ( Index r=0; r<2; ++r )
-      for ( Index c=0; c<2; ++c )
-        {
-          tia += a.get(tp.idx+p,
-                       tr.idx+r,
-                       tc.idx+c) * itw.get(iti);
-          ++iti;
-        }
+  for (Index p = 0; p < 2; ++p)
+    for (Index r = 0; r < 2; ++r)
+      for (Index c = 0; c < 2; ++c) {
+        tia += a.get(tp.idx + p, tr.idx + r, tc.idx + c) * itw.get(iti);
+        ++iti;
+      }
 
   return tia;
 }
@@ -1207,37 +1091,31 @@ Numeric interp( ConstVectorView  itw,
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
 */
-Numeric interp( ConstVectorView  itw,
-                ConstTensor4View a,    
-                const GridPos&   tb,
-                const GridPos&   tp,
-                const GridPos&   tr,
-                const GridPos&   tc )
-{
-  assert(is_size(itw,16));      // We need 16 interpolation
-                                // weights.
+Numeric interp(ConstVectorView itw,
+               ConstTensor4View a,
+               const GridPos& tb,
+               const GridPos& tp,
+               const GridPos& tr,
+               const GridPos& tc) {
+  assert(is_size(itw, 16));  // We need 16 interpolation
+                             // weights.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  assert( is_same_within_epsilon( itw.sum(),
-                                  1,
-                                  sum_check_epsilon ) );
-  
+  assert(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
+
   // To store interpolated value:
   Numeric tia = 0;
 
   Index iti = 0;
-  for ( Index b=0; b<2; ++b )
-    for ( Index p=0; p<2; ++p )
-      for ( Index r=0; r<2; ++r )
-        for ( Index c=0; c<2; ++c )
-          {
-            tia += a.get(tb.idx+b,
-                         tp.idx+p,
-                         tr.idx+r,
-                         tc.idx+c) * itw.get(iti);
-            ++iti;
-          }
+  for (Index b = 0; b < 2; ++b)
+    for (Index p = 0; p < 2; ++p)
+      for (Index r = 0; r < 2; ++r)
+        for (Index c = 0; c < 2; ++c) {
+          tia += a.get(tb.idx + b, tp.idx + p, tr.idx + r, tc.idx + c) *
+                 itw.get(iti);
+          ++iti;
+        }
 
   return tia;
 }
@@ -1262,40 +1140,37 @@ Numeric interp( ConstVectorView  itw,
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
 */
-Numeric interp( ConstVectorView  itw,
-                ConstTensor5View a,    
-                const GridPos&   ts,
-                const GridPos&   tb,
-                const GridPos&   tp,
-                const GridPos&   tr,
-                const GridPos&   tc )
-{
-  assert(is_size(itw,32));      // We need 32 interpolation
-                                // weights.
+Numeric interp(ConstVectorView itw,
+               ConstTensor5View a,
+               const GridPos& ts,
+               const GridPos& tb,
+               const GridPos& tp,
+               const GridPos& tr,
+               const GridPos& tc) {
+  assert(is_size(itw, 32));  // We need 32 interpolation
+                             // weights.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  assert( is_same_within_epsilon( itw.sum(),
-                                  1,
-                                  sum_check_epsilon ) );
-  
+  assert(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
+
   // To store interpolated value:
   Numeric tia = 0;
 
   Index iti = 0;
-  for ( Index s=0; s<2; ++s )
-    for ( Index b=0; b<2; ++b )
-      for ( Index p=0; p<2; ++p )
-        for ( Index r=0; r<2; ++r )
-          for ( Index c=0; c<2; ++c )
-            {
-              tia += a.get(ts.idx+s,
-                           tb.idx+b,
-                           tp.idx+p,
-                           tr.idx+r,
-                           tc.idx+c) * itw.get(iti);
-              ++iti;
-            }
+  for (Index s = 0; s < 2; ++s)
+    for (Index b = 0; b < 2; ++b)
+      for (Index p = 0; p < 2; ++p)
+        for (Index r = 0; r < 2; ++r)
+          for (Index c = 0; c < 2; ++c) {
+            tia += a.get(ts.idx + s,
+                         tb.idx + b,
+                         tp.idx + p,
+                         tr.idx + r,
+                         tc.idx + c) *
+                   itw.get(iti);
+            ++iti;
+          }
 
   return tia;
 }
@@ -1321,47 +1196,43 @@ Numeric interp( ConstVectorView  itw,
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
 */
-Numeric interp( ConstVectorView  itw,
-                ConstTensor6View a,    
-                const GridPos&   tv,
-                const GridPos&   ts,
-                const GridPos&   tb,
-                const GridPos&   tp,
-                const GridPos&   tr,
-                const GridPos&   tc )
-{
-  assert(is_size(itw,64));      // We need 64 interpolation
-                                // weights.
+Numeric interp(ConstVectorView itw,
+               ConstTensor6View a,
+               const GridPos& tv,
+               const GridPos& ts,
+               const GridPos& tb,
+               const GridPos& tp,
+               const GridPos& tr,
+               const GridPos& tc) {
+  assert(is_size(itw, 64));  // We need 64 interpolation
+                             // weights.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one.
-  assert( is_same_within_epsilon( itw.sum(),
-                                  1,
-                                  sum_check_epsilon ) );
-  
+  assert(is_same_within_epsilon(itw.sum(), 1, sum_check_epsilon));
+
   // To store interpolated value:
   Numeric tia = 0;
 
   Index iti = 0;
-  for ( Index v=0; v<2; ++v )
-    for ( Index s=0; s<2; ++s )
-      for ( Index b=0; b<2; ++b )
-        for ( Index p=0; p<2; ++p )
-          for ( Index r=0; r<2; ++r )
-            for ( Index c=0; c<2; ++c )
-              {
-                tia += a.get(tv.idx+v,
-                             ts.idx+s,
-                             tb.idx+b,
-                             tp.idx+p,
-                             tr.idx+r,
-                             tc.idx+c) * itw.get(iti);
-                ++iti;
-              }
+  for (Index v = 0; v < 2; ++v)
+    for (Index s = 0; s < 2; ++s)
+      for (Index b = 0; b < 2; ++b)
+        for (Index p = 0; p < 2; ++p)
+          for (Index r = 0; r < 2; ++r)
+            for (Index c = 0; c < 2; ++c) {
+              tia += a.get(tv.idx + v,
+                           ts.idx + s,
+                           tb.idx + b,
+                           tp.idx + p,
+                           tr.idx + r,
+                           tc.idx + c) *
+                     itw.get(iti);
+              ++iti;
+            }
 
   return tia;
 }
-
 
 ////////////////////////////////////////////////////////////////////////////
 //                      Blue interpolation
@@ -1383,55 +1254,51 @@ Numeric interp( ConstVectorView  itw,
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri May  3 08:55:51 2002
 */
-void interpweights( MatrixView itw,
-                    const ArrayOfGridPos& cgp )
-{
+void interpweights(MatrixView itw, const ArrayOfGridPos& cgp) {
   Index n = cgp.nelem();
-  assert(is_size(itw,n,2));     // We must store 2 interpolation
-                                // weights for each position.
+  assert(is_size(itw, n, 2));  // We must store 2 interpolation
+                               // weights for each position.
 
   // We have to loop all the points in the sequence:
-  for ( Index i=0; i<n; ++i )
-    {
-      // Current grid positions:
-      const GridPos& tc = cgp[i];
+  for (Index i = 0; i < n; ++i) {
+    // Current grid positions:
+    const GridPos& tc = cgp[i];
 
-      // Interpolation weights are stored in this order (l=lower
-      // u=upper, c=column):
-      // 1. l-c
-      // 2. u-c
+    // Interpolation weights are stored in this order (l=lower
+    // u=upper, c=column):
+    // 1. l-c
+    // 2. u-c
 
-      Index iti = 0;
+    Index iti = 0;
 
-      // We could use a straight-forward for loop here:
-      //
-      //       for ( Index c=1; c>=0; --c )
-      //        {
-      //          ti[iti] = tc.fd[c];
-      //          ++iti;
-      //        }
-      //
-      // However, it is slightly faster to use pointers (I tried it,
-      // the speed gain is about 20%). So we should write something
-      // like:
-      //
-      //       for ( const Numeric* c=&tc.fd[1]; c>=&tc.fd[0]; --c )
-      //        {
-      //          ti[iti] = *c;
-      //          ++iti;
-      //        }
-      //
-      // For higher dimensions we have to nest these loops. To avoid
-      // typos and safe typing, I use the LOOPIT macro, which expands
-      // to the for loop above. Note: NO SEMICOLON AFTER THE LOOPIT
-      // COMMAND! 
+    // We could use a straight-forward for loop here:
+    //
+    //       for ( Index c=1; c>=0; --c )
+    //        {
+    //          ti[iti] = tc.fd[c];
+    //          ++iti;
+    //        }
+    //
+    // However, it is slightly faster to use pointers (I tried it,
+    // the speed gain is about 20%). So we should write something
+    // like:
+    //
+    //       for ( const Numeric* c=&tc.fd[1]; c>=&tc.fd[0]; --c )
+    //        {
+    //          ti[iti] = *c;
+    //          ++iti;
+    //        }
+    //
+    // For higher dimensions we have to nest these loops. To avoid
+    // typos and safe typing, I use the LOOPIT macro, which expands
+    // to the for loop above. Note: NO SEMICOLON AFTER THE LOOPIT
+    // COMMAND!
 
-      LOOPIT(c)
-        {
-          itw.get(i,iti) = *c;
-          ++iti;
-        }
+    LOOPIT(c) {
+      itw.get(i, iti) = *c;
+      ++iti;
     }
+  }
 }
 
 //! Compute 2D interpolation weights for a sequence of positions.
@@ -1456,38 +1323,35 @@ void interpweights( MatrixView itw,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interpweights( MatrixView itw,
-                    const ArrayOfGridPos& rgp,
-                    const ArrayOfGridPos& cgp )
-{
+void interpweights(MatrixView itw,
+                   const ArrayOfGridPos& rgp,
+                   const ArrayOfGridPos& cgp) {
   Index n = cgp.nelem();
-  assert(is_size(rgp,n));       // rgp must have same size as cgp.
-  assert(is_size(itw,n,4));     // We must store 4 interpolation
-                                // weights for each position.
+  assert(is_size(rgp, n));     // rgp must have same size as cgp.
+  assert(is_size(itw, n, 4));  // We must store 4 interpolation
+                               // weights for each position.
 
   // We have to loop all the points in the sequence:
-  for ( Index i=0; i<n; ++i )
-    {
-      // Current grid positions:
-      const GridPos& tr = rgp[i];
-      const GridPos& tc = cgp[i];
+  for (Index i = 0; i < n; ++i) {
+    // Current grid positions:
+    const GridPos& tr = rgp[i];
+    const GridPos& tc = cgp[i];
 
-      // Interpolation weights are stored in this order (l=lower
-      // u=upper, r=row, c=column):
-      // 1. l-r l-c
-      // 2. l-r u-c
-      // 3. u-r l-c
-      // 4. u-r u-c
+    // Interpolation weights are stored in this order (l=lower
+    // u=upper, r=row, c=column):
+    // 1. l-r l-c
+    // 2. l-r u-c
+    // 3. u-r l-c
+    // 4. u-r u-c
 
-      Index iti = 0;
+    Index iti = 0;
 
-      LOOPIT(r)
-      LOOPIT(c)
-          {
-            itw.get(i,iti) = (*r) * (*c);
-            ++iti;
-          }
+    LOOPIT(r)
+    LOOPIT(c) {
+      itw.get(i, iti) = (*r) * (*c);
+      ++iti;
     }
+  }
 }
 
 //! Compute 3D interpolation weights for a sequence of positions.
@@ -1513,34 +1377,31 @@ void interpweights( MatrixView itw,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interpweights( MatrixView itw,
-                    const ArrayOfGridPos& pgp,
-                    const ArrayOfGridPos& rgp,
-                    const ArrayOfGridPos& cgp )
-{
+void interpweights(MatrixView itw,
+                   const ArrayOfGridPos& pgp,
+                   const ArrayOfGridPos& rgp,
+                   const ArrayOfGridPos& cgp) {
   Index n = cgp.nelem();
-  assert(is_size(pgp,n));       // pgp must have same size as cgp.
-  assert(is_size(rgp,n));       // rgp must have same size as cgp.
-  assert(is_size(itw,n,8));     // We must store 8 interpolation
-                                // weights for each position.
+  assert(is_size(pgp, n));     // pgp must have same size as cgp.
+  assert(is_size(rgp, n));     // rgp must have same size as cgp.
+  assert(is_size(itw, n, 8));  // We must store 8 interpolation
+                               // weights for each position.
 
   // We have to loop all the points in the sequence:
-  for ( Index i=0; i<n; ++i )
-    {
-      // Current grid positions:
-      const GridPos& tp = pgp[i];
-      const GridPos& tr = rgp[i];
-      const GridPos& tc = cgp[i];
+  for (Index i = 0; i < n; ++i) {
+    // Current grid positions:
+    const GridPos& tp = pgp[i];
+    const GridPos& tr = rgp[i];
+    const GridPos& tc = cgp[i];
 
-      Index iti = 0;
-      LOOPIT(p)
-      LOOPIT(r)
-      LOOPIT(c)
-        {
-          itw.get(i,iti) = (*p) * (*r) * (*c);
-          ++iti;
-        }
+    Index iti = 0;
+    LOOPIT(p)
+    LOOPIT(r)
+    LOOPIT(c) {
+      itw.get(i, iti) = (*p) * (*r) * (*c);
+      ++iti;
     }
+  }
 }
 
 //! Compute 4D interpolation weights for a sequence of positions.
@@ -1567,38 +1428,35 @@ void interpweights( MatrixView itw,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interpweights( MatrixView itw,
-                    const ArrayOfGridPos& bgp,
-                    const ArrayOfGridPos& pgp,
-                    const ArrayOfGridPos& rgp,
-                    const ArrayOfGridPos& cgp )
-{
+void interpweights(MatrixView itw,
+                   const ArrayOfGridPos& bgp,
+                   const ArrayOfGridPos& pgp,
+                   const ArrayOfGridPos& rgp,
+                   const ArrayOfGridPos& cgp) {
   Index n = cgp.nelem();
-  assert(is_size(bgp,n));       // bgp must have same size as cgp.
-  assert(is_size(pgp,n));       // pgp must have same size as cgp.
-  assert(is_size(rgp,n));       // rgp must have same size as cgp.
-  assert(is_size(itw,n,16));    // We must store 16 interpolation
+  assert(is_size(bgp, n));      // bgp must have same size as cgp.
+  assert(is_size(pgp, n));      // pgp must have same size as cgp.
+  assert(is_size(rgp, n));      // rgp must have same size as cgp.
+  assert(is_size(itw, n, 16));  // We must store 16 interpolation
                                 // weights for each position.
 
   // We have to loop all the points in the sequence:
-  for ( Index i=0; i<n; ++i )
-    {
-      // Current grid positions:
-      const GridPos& tb = bgp[i];
-      const GridPos& tp = pgp[i];
-      const GridPos& tr = rgp[i];
-      const GridPos& tc = cgp[i];
+  for (Index i = 0; i < n; ++i) {
+    // Current grid positions:
+    const GridPos& tb = bgp[i];
+    const GridPos& tp = pgp[i];
+    const GridPos& tr = rgp[i];
+    const GridPos& tc = cgp[i];
 
-      Index iti = 0;
-      LOOPIT(b)
-      LOOPIT(p)
-      LOOPIT(r)
-      LOOPIT(c)
-        {
-          itw.get(i,iti) = (*b) * (*p) * (*r) * (*c);
-          ++iti;
-        }
+    Index iti = 0;
+    LOOPIT(b)
+    LOOPIT(p)
+    LOOPIT(r)
+    LOOPIT(c) {
+      itw.get(i, iti) = (*b) * (*p) * (*r) * (*c);
+      ++iti;
     }
+  }
 }
 
 //! Compute 5D interpolation weights for a sequence of positions.
@@ -1626,42 +1484,39 @@ void interpweights( MatrixView itw,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interpweights( MatrixView itw,
-                    const ArrayOfGridPos& sgp,
-                    const ArrayOfGridPos& bgp,
-                    const ArrayOfGridPos& pgp,
-                    const ArrayOfGridPos& rgp,
-                    const ArrayOfGridPos& cgp )
-{
+void interpweights(MatrixView itw,
+                   const ArrayOfGridPos& sgp,
+                   const ArrayOfGridPos& bgp,
+                   const ArrayOfGridPos& pgp,
+                   const ArrayOfGridPos& rgp,
+                   const ArrayOfGridPos& cgp) {
   Index n = cgp.nelem();
-  assert(is_size(sgp,n));       // sgp must have same size as cgp.
-  assert(is_size(bgp,n));       // bgp must have same size as cgp.
-  assert(is_size(pgp,n));       // pgp must have same size as cgp.
-  assert(is_size(rgp,n));       // rgp must have same size as cgp.
-  assert(is_size(itw,n,32));    // We must store 32 interpolation
+  assert(is_size(sgp, n));      // sgp must have same size as cgp.
+  assert(is_size(bgp, n));      // bgp must have same size as cgp.
+  assert(is_size(pgp, n));      // pgp must have same size as cgp.
+  assert(is_size(rgp, n));      // rgp must have same size as cgp.
+  assert(is_size(itw, n, 32));  // We must store 32 interpolation
                                 // weights for each position.
 
   // We have to loop all the points in the sequence:
-  for ( Index i=0; i<n; ++i )
-    {
-      // Current grid positions:
-      const GridPos& ts = sgp[i];
-      const GridPos& tb = bgp[i];
-      const GridPos& tp = pgp[i];
-      const GridPos& tr = rgp[i];
-      const GridPos& tc = cgp[i];
+  for (Index i = 0; i < n; ++i) {
+    // Current grid positions:
+    const GridPos& ts = sgp[i];
+    const GridPos& tb = bgp[i];
+    const GridPos& tp = pgp[i];
+    const GridPos& tr = rgp[i];
+    const GridPos& tc = cgp[i];
 
-      Index iti = 0;
-      LOOPIT(s)
-      LOOPIT(b)
-      LOOPIT(p)
-      LOOPIT(r)
-      LOOPIT(c)
-        {
-          itw.get(i,iti) = (*s) * (*b) * (*p) * (*r) * (*c);
-          ++iti;
-        }
+    Index iti = 0;
+    LOOPIT(s)
+    LOOPIT(b)
+    LOOPIT(p)
+    LOOPIT(r)
+    LOOPIT(c) {
+      itw.get(i, iti) = (*s) * (*b) * (*p) * (*r) * (*c);
+      ++iti;
     }
+  }
 }
 
 //! Compute 6D interpolation weights for a sequence of positions.
@@ -1690,46 +1545,43 @@ void interpweights( MatrixView itw,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interpweights( MatrixView itw,
-                    const ArrayOfGridPos& vgp,
-                    const ArrayOfGridPos& sgp,
-                    const ArrayOfGridPos& bgp,
-                    const ArrayOfGridPos& pgp,
-                    const ArrayOfGridPos& rgp,
-                    const ArrayOfGridPos& cgp )
-{
+void interpweights(MatrixView itw,
+                   const ArrayOfGridPos& vgp,
+                   const ArrayOfGridPos& sgp,
+                   const ArrayOfGridPos& bgp,
+                   const ArrayOfGridPos& pgp,
+                   const ArrayOfGridPos& rgp,
+                   const ArrayOfGridPos& cgp) {
   Index n = cgp.nelem();
-  assert(is_size(vgp,n));       // vgp must have same size as cgp.
-  assert(is_size(sgp,n));       // sgp must have same size as cgp.
-  assert(is_size(bgp,n));       // bgp must have same size as cgp.
-  assert(is_size(pgp,n));       // pgp must have same size as cgp.
-  assert(is_size(rgp,n));       // rgp must have same size as cgp.
-  assert(is_size(itw,n,64));    // We must store 64 interpolation
+  assert(is_size(vgp, n));      // vgp must have same size as cgp.
+  assert(is_size(sgp, n));      // sgp must have same size as cgp.
+  assert(is_size(bgp, n));      // bgp must have same size as cgp.
+  assert(is_size(pgp, n));      // pgp must have same size as cgp.
+  assert(is_size(rgp, n));      // rgp must have same size as cgp.
+  assert(is_size(itw, n, 64));  // We must store 64 interpolation
                                 // weights for each position.
 
   // We have to loop all the points in the sequence:
-  for ( Index i=0; i<n; ++i )
-    {
-      // Current grid positions:
-      const GridPos& tv = vgp[i];
-      const GridPos& ts = sgp[i];
-      const GridPos& tb = bgp[i];
-      const GridPos& tp = pgp[i];
-      const GridPos& tr = rgp[i];
-      const GridPos& tc = cgp[i];
+  for (Index i = 0; i < n; ++i) {
+    // Current grid positions:
+    const GridPos& tv = vgp[i];
+    const GridPos& ts = sgp[i];
+    const GridPos& tb = bgp[i];
+    const GridPos& tp = pgp[i];
+    const GridPos& tr = rgp[i];
+    const GridPos& tc = cgp[i];
 
-      Index iti = 0;
-      LOOPIT(v)
-      LOOPIT(s)
-      LOOPIT(b)
-      LOOPIT(p)
-      LOOPIT(r)
-      LOOPIT(c)
-        {
-          itw.get(i,iti) = (*v) * (*s) * (*b) * (*p) * (*r) * (*c);
-          ++iti;
-        }
+    Index iti = 0;
+    LOOPIT(v)
+    LOOPIT(s)
+    LOOPIT(b)
+    LOOPIT(p)
+    LOOPIT(r)
+    LOOPIT(c) {
+      itw.get(i, iti) = (*v) * (*s) * (*b) * (*p) * (*r) * (*c);
+      ++iti;
     }
+  }
 }
 
 //! Interpolate 1D field.
@@ -1749,42 +1601,38 @@ void interpweights( MatrixView itw,
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri May  3 08:55:51 2002
 */
-void interp( VectorView            ia,
-             ConstMatrixView       itw,
-             ConstVectorView       a,    
-             const ArrayOfGridPos& cgp)
-{
+void interp(VectorView ia,
+            ConstMatrixView itw,
+            ConstVectorView a,
+            const ArrayOfGridPos& cgp) {
   Index n = cgp.nelem();
-  assert(is_size(ia,n));        //  ia must have same size as cgp.
-  assert(is_size(itw,n,2));     // We need 2 interpolation
-                                // weights for each position.
+  assert(is_size(ia, n));      //  ia must have same size as cgp.
+  assert(is_size(itw, n, 2));  // We need 2 interpolation
+                               // weights for each position.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  assert( is_same_within_epsilon( itw(0,Range(joker)).sum(),
-                                  1,
-                                  sum_check_epsilon ) );
-  
+  assert(
+      is_same_within_epsilon(itw(0, Range(joker)).sum(), 1, sum_check_epsilon));
+
   // We have to loop all the points in the sequence:
-  for ( Index i=0; i<n; ++i )
-    {
-      // Current grid positions:
-      const GridPos& tc = cgp[i];
+  for (Index i = 0; i < n; ++i) {
+    // Current grid positions:
+    const GridPos& tc = cgp[i];
 
-      // Get handle to current element of output vector and initialize
-      // it to zero:
-      Numeric& tia = ia[i];
-      tia = 0;
+    // Get handle to current element of output vector and initialize
+    // it to zero:
+    Numeric& tia = ia[i];
+    tia = 0;
 
-      Index iti = 0;
-      for ( Index c=0; c<2; ++c )
-        {
-          assert( tc.idx+c < a.nelem() );    // Temporary !?
-          tia += a.get(tc.idx+c) * itw.get(i,iti);
-          ++iti;
-        }
+    Index iti = 0;
+    for (Index c = 0; c < 2; ++c) {
+      assert(tc.idx + c < a.nelem());  // Temporary !?
+      tia += a.get(tc.idx + c) * itw.get(i, iti);
+      ++iti;
     }
+  }
 }
 
 //! Interpolate 2D field to a sequence of positions.
@@ -1809,46 +1657,41 @@ void interp( VectorView            ia,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interp( VectorView            ia,
-             ConstMatrixView       itw,
-             ConstMatrixView       a,    
-             const ArrayOfGridPos& rgp,
-             const ArrayOfGridPos& cgp)
-{
+void interp(VectorView ia,
+            ConstMatrixView itw,
+            ConstMatrixView a,
+            const ArrayOfGridPos& rgp,
+            const ArrayOfGridPos& cgp) {
   Index n = cgp.nelem();
-  assert(is_size(ia,n));        //  ia must have same size as cgp.
-  assert(is_size(rgp,n));       // rgp must have same size as cgp.
-  assert(is_size(itw,n,4));     // We need 4 interpolation
-                                // weights for each position.
-  
+  assert(is_size(ia, n));      //  ia must have same size as cgp.
+  assert(is_size(rgp, n));     // rgp must have same size as cgp.
+  assert(is_size(itw, n, 4));  // We need 4 interpolation
+                               // weights for each position.
+
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  assert( is_same_within_epsilon( itw(0,Range(joker)).sum(),
-                                  1,
-                                  sum_check_epsilon ) );
-  
+  assert(
+      is_same_within_epsilon(itw(0, Range(joker)).sum(), 1, sum_check_epsilon));
+
   // We have to loop all the points in the sequence:
-  for ( Index i=0; i<n; ++i )
-    {
-      // Current grid positions:
-      const GridPos& tr = rgp[i];
-      const GridPos& tc = cgp[i];
+  for (Index i = 0; i < n; ++i) {
+    // Current grid positions:
+    const GridPos& tr = rgp[i];
+    const GridPos& tc = cgp[i];
 
-      // Get handle to current element of output vector and initialize
-      // it to zero:
-      Numeric& tia = ia[i];
-      tia = 0;
+    // Get handle to current element of output vector and initialize
+    // it to zero:
+    Numeric& tia = ia[i];
+    tia = 0;
 
-      Index iti = 0;
-      for ( Index r=0; r<2; ++r )
-        for ( Index c=0; c<2; ++c )
-          {
-            tia += a.get(tr.idx+r,
-                         tc.idx+c) * itw.get(i,iti);
-            ++iti;
-          }
-    }
+    Index iti = 0;
+    for (Index r = 0; r < 2; ++r)
+      for (Index c = 0; c < 2; ++c) {
+        tia += a.get(tr.idx + r, tc.idx + c) * itw.get(i, iti);
+        ++iti;
+      }
+  }
 }
 
 //! Interpolate 3D field to a sequence of positions.
@@ -1874,51 +1717,45 @@ void interp( VectorView            ia,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interp( VectorView            ia,
-             ConstMatrixView       itw,
-             ConstTensor3View      a,    
-             const ArrayOfGridPos& pgp,
-             const ArrayOfGridPos& rgp,
-             const ArrayOfGridPos& cgp)
-{
+void interp(VectorView ia,
+            ConstMatrixView itw,
+            ConstTensor3View a,
+            const ArrayOfGridPos& pgp,
+            const ArrayOfGridPos& rgp,
+            const ArrayOfGridPos& cgp) {
   Index n = cgp.nelem();
-  assert(is_size(ia,n));        //  ia must have same size as cgp.
-  assert(is_size(pgp,n));       // pgp must have same size as cgp.
-  assert(is_size(rgp,n));       // rgp must have same size as cgp.
-  assert(is_size(itw,n,8));     // We need 8 interpolation
-                                // weights for each position.
-  
+  assert(is_size(ia, n));      //  ia must have same size as cgp.
+  assert(is_size(pgp, n));     // pgp must have same size as cgp.
+  assert(is_size(rgp, n));     // rgp must have same size as cgp.
+  assert(is_size(itw, n, 8));  // We need 8 interpolation
+                               // weights for each position.
+
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  assert( is_same_within_epsilon( itw(0,Range(joker)).sum(),
-                                  1,
-                                  sum_check_epsilon ) );
+  assert(
+      is_same_within_epsilon(itw(0, Range(joker)).sum(), 1, sum_check_epsilon));
 
   // We have to loop all the points in the sequence:
-  for ( Index i=0; i<n; ++i )
-    {
-      // Current grid positions:
-      const GridPos& tp = pgp[i];
-      const GridPos& tr = rgp[i];
-      const GridPos& tc = cgp[i];
+  for (Index i = 0; i < n; ++i) {
+    // Current grid positions:
+    const GridPos& tp = pgp[i];
+    const GridPos& tr = rgp[i];
+    const GridPos& tc = cgp[i];
 
-      // Get handle to current element of output vector and initialize
-      // it to zero:
-      Numeric& tia = ia[i];
-      tia = 0;
+    // Get handle to current element of output vector and initialize
+    // it to zero:
+    Numeric& tia = ia[i];
+    tia = 0;
 
-      Index iti = 0;
-      for ( Index p=0; p<2; ++p )
-        for ( Index r=0; r<2; ++r )
-          for ( Index c=0; c<2; ++c )
-            {
-              tia += a.get(tp.idx+p,
-                           tr.idx+r,
-                           tc.idx+c) * itw.get(i,iti);
-              ++iti;
-            }
-    }
+    Index iti = 0;
+    for (Index p = 0; p < 2; ++p)
+      for (Index r = 0; r < 2; ++r)
+        for (Index c = 0; c < 2; ++c) {
+          tia += a.get(tp.idx + p, tr.idx + r, tc.idx + c) * itw.get(i, iti);
+          ++iti;
+        }
+  }
 }
 
 //! Interpolate 4D field to a sequence of positions.
@@ -1945,56 +1782,50 @@ void interp( VectorView            ia,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interp( VectorView            ia,
-             ConstMatrixView       itw,
-             ConstTensor4View      a,    
-             const ArrayOfGridPos& bgp,
-             const ArrayOfGridPos& pgp,
-             const ArrayOfGridPos& rgp,
-             const ArrayOfGridPos& cgp)
-{
+void interp(VectorView ia,
+            ConstMatrixView itw,
+            ConstTensor4View a,
+            const ArrayOfGridPos& bgp,
+            const ArrayOfGridPos& pgp,
+            const ArrayOfGridPos& rgp,
+            const ArrayOfGridPos& cgp) {
   Index n = cgp.nelem();
-  assert(is_size(ia,n));        //  ia must have same size as cgp.
-  assert(is_size(bgp,n));       // bgp must have same size as cgp.
-  assert(is_size(pgp,n));       // pgp must have same size as cgp.
-  assert(is_size(rgp,n));       // rgp must have same size as cgp.
-  assert(is_size(itw,n,16));    // We need 16 interpolation
+  assert(is_size(ia, n));       //  ia must have same size as cgp.
+  assert(is_size(bgp, n));      // bgp must have same size as cgp.
+  assert(is_size(pgp, n));      // pgp must have same size as cgp.
+  assert(is_size(rgp, n));      // rgp must have same size as cgp.
+  assert(is_size(itw, n, 16));  // We need 16 interpolation
                                 // weights for each position.
-  
+
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  assert( is_same_within_epsilon( itw(0,Range(joker)).sum(),
-                                  1,
-                                  sum_check_epsilon ) );
-  
+  assert(
+      is_same_within_epsilon(itw(0, Range(joker)).sum(), 1, sum_check_epsilon));
+
   // We have to loop all the points in the sequence:
-  for ( Index i=0; i<n; ++i )
-    {
-      // Current grid positions:
-      const GridPos& tb = bgp[i];
-      const GridPos& tp = pgp[i];
-      const GridPos& tr = rgp[i];
-      const GridPos& tc = cgp[i];
+  for (Index i = 0; i < n; ++i) {
+    // Current grid positions:
+    const GridPos& tb = bgp[i];
+    const GridPos& tp = pgp[i];
+    const GridPos& tr = rgp[i];
+    const GridPos& tc = cgp[i];
 
-      // Get handle to current element of output vector and initialize
-      // it to zero:
-      Numeric& tia = ia[i];
-      tia = 0;
+    // Get handle to current element of output vector and initialize
+    // it to zero:
+    Numeric& tia = ia[i];
+    tia = 0;
 
-      Index iti = 0;
-      for ( Index b=0; b<2; ++b )
-        for ( Index p=0; p<2; ++p )
-          for ( Index r=0; r<2; ++r )
-            for ( Index c=0; c<2; ++c )
-              {
-                tia += a.get(tb.idx+b,
-                             tp.idx+p,
-                             tr.idx+r,
-                             tc.idx+c) * itw.get(i,iti);
-                ++iti;
-              }
-    }
+    Index iti = 0;
+    for (Index b = 0; b < 2; ++b)
+      for (Index p = 0; p < 2; ++p)
+        for (Index r = 0; r < 2; ++r)
+          for (Index c = 0; c < 2; ++c) {
+            tia += a.get(tb.idx + b, tp.idx + p, tr.idx + r, tc.idx + c) *
+                   itw.get(i, iti);
+            ++iti;
+          }
+  }
 }
 
 //! Interpolate 5D field to a sequence of positions.
@@ -2022,61 +1853,58 @@ void interp( VectorView            ia,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interp( VectorView            ia,
-             ConstMatrixView       itw,
-             ConstTensor5View      a,    
-             const ArrayOfGridPos& sgp,
-             const ArrayOfGridPos& bgp,
-             const ArrayOfGridPos& pgp,
-             const ArrayOfGridPos& rgp,
-             const ArrayOfGridPos& cgp)
-{
+void interp(VectorView ia,
+            ConstMatrixView itw,
+            ConstTensor5View a,
+            const ArrayOfGridPos& sgp,
+            const ArrayOfGridPos& bgp,
+            const ArrayOfGridPos& pgp,
+            const ArrayOfGridPos& rgp,
+            const ArrayOfGridPos& cgp) {
   Index n = cgp.nelem();
-  assert(is_size(ia,n));        //  ia must have same size as cgp.
-  assert(is_size(sgp,n));       // sgp must have same size as cgp.
-  assert(is_size(bgp,n));       // bgp must have same size as cgp.
-  assert(is_size(pgp,n));       // pgp must have same size as cgp.
-  assert(is_size(rgp,n));       // rgp must have same size as cgp.
-  assert(is_size(itw,n,32));    // We need 32 interpolation
+  assert(is_size(ia, n));       //  ia must have same size as cgp.
+  assert(is_size(sgp, n));      // sgp must have same size as cgp.
+  assert(is_size(bgp, n));      // bgp must have same size as cgp.
+  assert(is_size(pgp, n));      // pgp must have same size as cgp.
+  assert(is_size(rgp, n));      // rgp must have same size as cgp.
+  assert(is_size(itw, n, 32));  // We need 32 interpolation
                                 // weights for each position.
-  
+
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  assert( is_same_within_epsilon( itw(0,Range(joker)).sum(),
-                                  1,
-                                  sum_check_epsilon ) );
-  
+  assert(
+      is_same_within_epsilon(itw(0, Range(joker)).sum(), 1, sum_check_epsilon));
+
   // We have to loop all the points in the sequence:
-  for ( Index i=0; i<n; ++i )
-    {
-      // Current grid positions:
-      const GridPos& ts = sgp[i];
-      const GridPos& tb = bgp[i];
-      const GridPos& tp = pgp[i];
-      const GridPos& tr = rgp[i];
-      const GridPos& tc = cgp[i];
+  for (Index i = 0; i < n; ++i) {
+    // Current grid positions:
+    const GridPos& ts = sgp[i];
+    const GridPos& tb = bgp[i];
+    const GridPos& tp = pgp[i];
+    const GridPos& tr = rgp[i];
+    const GridPos& tc = cgp[i];
 
-      // Get handle to current element of output vector and initialize
-      // it to zero:
-      Numeric& tia = ia[i];
-      tia = 0;
+    // Get handle to current element of output vector and initialize
+    // it to zero:
+    Numeric& tia = ia[i];
+    tia = 0;
 
-      Index iti = 0;
-      for ( Index s=0; s<2; ++s )
-        for ( Index b=0; b<2; ++b )
-          for ( Index p=0; p<2; ++p )
-            for ( Index r=0; r<2; ++r )
-              for ( Index c=0; c<2; ++c )
-                {
-                  tia += a.get(ts.idx+s,
-                               tb.idx+b,
-                               tp.idx+p,
-                               tr.idx+r,
-                               tc.idx+c) * itw.get(i,iti);
-                  ++iti;
-                }
-    }
+    Index iti = 0;
+    for (Index s = 0; s < 2; ++s)
+      for (Index b = 0; b < 2; ++b)
+        for (Index p = 0; p < 2; ++p)
+          for (Index r = 0; r < 2; ++r)
+            for (Index c = 0; c < 2; ++c) {
+              tia += a.get(ts.idx + s,
+                           tb.idx + b,
+                           tp.idx + p,
+                           tr.idx + r,
+                           tc.idx + c) *
+                     itw.get(i, iti);
+              ++iti;
+            }
+  }
 }
 
 //! Interpolate 6D field to a sequence of positions.
@@ -2105,66 +1933,63 @@ void interp( VectorView            ia,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interp( VectorView            ia,
-             ConstMatrixView       itw,
-             ConstTensor6View      a,    
-             const ArrayOfGridPos& vgp,
-             const ArrayOfGridPos& sgp,
-             const ArrayOfGridPos& bgp,
-             const ArrayOfGridPos& pgp,
-             const ArrayOfGridPos& rgp,
-             const ArrayOfGridPos& cgp)
-{
+void interp(VectorView ia,
+            ConstMatrixView itw,
+            ConstTensor6View a,
+            const ArrayOfGridPos& vgp,
+            const ArrayOfGridPos& sgp,
+            const ArrayOfGridPos& bgp,
+            const ArrayOfGridPos& pgp,
+            const ArrayOfGridPos& rgp,
+            const ArrayOfGridPos& cgp) {
   Index n = cgp.nelem();
-  assert(is_size(ia,n));        //  ia must have same size as cgp.
-  assert(is_size(vgp,n));       // vgp must have same size as cgp.
-  assert(is_size(sgp,n));       // sgp must have same size as cgp.
-  assert(is_size(bgp,n));       // bgp must have same size as cgp.
-  assert(is_size(pgp,n));       // pgp must have same size as cgp.
-  assert(is_size(rgp,n));       // rgp must have same size as cgp.
-  assert(is_size(itw,n,64));    // We need 64 interpolation
+  assert(is_size(ia, n));       //  ia must have same size as cgp.
+  assert(is_size(vgp, n));      // vgp must have same size as cgp.
+  assert(is_size(sgp, n));      // sgp must have same size as cgp.
+  assert(is_size(bgp, n));      // bgp must have same size as cgp.
+  assert(is_size(pgp, n));      // pgp must have same size as cgp.
+  assert(is_size(rgp, n));      // rgp must have same size as cgp.
+  assert(is_size(itw, n, 64));  // We need 64 interpolation
                                 // weights for each position.
-  
+
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  assert( is_same_within_epsilon( itw(0,Range(joker)).sum(),
-                                  1,
-                                  sum_check_epsilon ) );
-  
+  assert(
+      is_same_within_epsilon(itw(0, Range(joker)).sum(), 1, sum_check_epsilon));
+
   // We have to loop all the points in the sequence:
-  for ( Index i=0; i<n; ++i )
-    {
-      // Current grid positions:
-      const GridPos& tv = vgp[i];
-      const GridPos& ts = sgp[i];
-      const GridPos& tb = bgp[i];
-      const GridPos& tp = pgp[i];
-      const GridPos& tr = rgp[i];
-      const GridPos& tc = cgp[i];
+  for (Index i = 0; i < n; ++i) {
+    // Current grid positions:
+    const GridPos& tv = vgp[i];
+    const GridPos& ts = sgp[i];
+    const GridPos& tb = bgp[i];
+    const GridPos& tp = pgp[i];
+    const GridPos& tr = rgp[i];
+    const GridPos& tc = cgp[i];
 
-      // Get handle to current element of output vector and initialize
-      // it to zero:
-      Numeric& tia = ia[i];
-      tia = 0;
+    // Get handle to current element of output vector and initialize
+    // it to zero:
+    Numeric& tia = ia[i];
+    tia = 0;
 
-      Index iti = 0;
-      for ( Index v=0; v<2; ++v )
-        for ( Index s=0; s<2; ++s )
-          for ( Index b=0; b<2; ++b )
-            for ( Index p=0; p<2; ++p )
-              for ( Index r=0; r<2; ++r )
-                for ( Index c=0; c<2; ++c )
-                  {
-                    tia += a.get(tv.idx+v,
-                                 ts.idx+s,
-                                 tb.idx+b,
-                                 tp.idx+p,
-                                 tr.idx+r,
-                                 tc.idx+c) * itw.get(i,iti);
-                    ++iti;
-                  }
-    }
+    Index iti = 0;
+    for (Index v = 0; v < 2; ++v)
+      for (Index s = 0; s < 2; ++s)
+        for (Index b = 0; b < 2; ++b)
+          for (Index p = 0; p < 2; ++p)
+            for (Index r = 0; r < 2; ++r)
+              for (Index c = 0; c < 2; ++c) {
+                tia += a.get(tv.idx + v,
+                             ts.idx + s,
+                             tb.idx + b,
+                             tp.idx + p,
+                             tr.idx + r,
+                             tc.idx + c) *
+                       itw.get(i, iti);
+                ++iti;
+              }
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -2193,43 +2018,39 @@ void interp( VectorView            ia,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interpweights( Tensor3View itw,
-                    const ArrayOfGridPos& rgp,
-                    const ArrayOfGridPos& cgp )
-{
+void interpweights(Tensor3View itw,
+                   const ArrayOfGridPos& rgp,
+                   const ArrayOfGridPos& cgp) {
   Index nr = rgp.nelem();
   Index nc = cgp.nelem();
-  assert(is_size(itw,nr,nc,4)); // We must store 4 interpolation
-                                // weights for each position.
+  assert(is_size(itw, nr, nc, 4));  // We must store 4 interpolation
+                                    // weights for each position.
 
   // We have to loop all the points in the new grid:
-  for ( Index ir=0; ir<nr; ++ir )
-    {
+  for (Index ir = 0; ir < nr; ++ir) {
+    // Current grid position:
+    const GridPos& tr = rgp[ir];
+
+    for (Index ic = 0; ic < nc; ++ic) {
       // Current grid position:
-      const GridPos& tr = rgp[ir];
+      const GridPos& tc = cgp[ic];
 
-      for ( Index ic=0; ic<nc; ++ic )
-        {
-          // Current grid position:
-          const GridPos& tc = cgp[ic];
+      // Interpolation weights are stored in this order (l=lower
+      // u=upper, r=row, c=column):
+      // 1. l-r l-c
+      // 2. l-r u-c
+      // 3. u-r l-c
+      // 4. u-r u-c
 
-          // Interpolation weights are stored in this order (l=lower
-          // u=upper, r=row, c=column):
-          // 1. l-r l-c
-          // 2. l-r u-c
-          // 3. u-r l-c
-          // 4. u-r u-c
+      Index iti = 0;
 
-          Index iti = 0;
-
-          LOOPIT(r)
-            LOOPIT(c)
-            {
-              itw.get(ir,ic,iti) = (*r) * (*c);
-              ++iti;
-            }
-        }
+      LOOPIT(r)
+      LOOPIT(c) {
+        itw.get(ir, ic, iti) = (*r) * (*c);
+        ++iti;
+      }
     }
+  }
 }
 
 //! Compute 3D interpolation weights for an entire field.
@@ -2255,41 +2076,35 @@ void interpweights( Tensor3View itw,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interpweights( Tensor4View itw,
-                    const ArrayOfGridPos& pgp,
-                    const ArrayOfGridPos& rgp,
-                    const ArrayOfGridPos& cgp )
-{
+void interpweights(Tensor4View itw,
+                   const ArrayOfGridPos& pgp,
+                   const ArrayOfGridPos& rgp,
+                   const ArrayOfGridPos& cgp) {
   Index np = pgp.nelem();
   Index nr = rgp.nelem();
   Index nc = cgp.nelem();
   // We must store 8 interpolation weights for each position:
-  assert(is_size(itw,np,nr,nc,8));      
+  assert(is_size(itw, np, nr, nc, 8));
 
   // We have to loop all the points in the new grid:
-  for ( Index ip=0; ip<np; ++ip )
-    {
-      const GridPos& tp = pgp[ip];
-      for ( Index ir=0; ir<nr; ++ir )
-        {
-          const GridPos& tr = rgp[ir];
-          for ( Index ic=0; ic<nc; ++ic )
-            {
-              const GridPos& tc = cgp[ic];
+  for (Index ip = 0; ip < np; ++ip) {
+    const GridPos& tp = pgp[ip];
+    for (Index ir = 0; ir < nr; ++ir) {
+      const GridPos& tr = rgp[ir];
+      for (Index ic = 0; ic < nc; ++ic) {
+        const GridPos& tc = cgp[ic];
 
-              Index iti = 0;
+        Index iti = 0;
 
-              LOOPIT(p)
-                LOOPIT(r)
-                LOOPIT(c)
-                {
-                  itw.get(ip,ir,ic,iti) =
-                    (*p) * (*r) * (*c);
-                  ++iti;
-                }
-            }
+        LOOPIT(p)
+        LOOPIT(r)
+        LOOPIT(c) {
+          itw.get(ip, ir, ic, iti) = (*p) * (*r) * (*c);
+          ++iti;
         }
+      }
     }
+  }
 }
 
 //! Compute 4D interpolation weights for an entire field.
@@ -2316,48 +2131,41 @@ void interpweights( Tensor4View itw,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interpweights( Tensor5View itw,
-                    const ArrayOfGridPos& bgp,
-                    const ArrayOfGridPos& pgp,
-                    const ArrayOfGridPos& rgp,
-                    const ArrayOfGridPos& cgp )
-{
+void interpweights(Tensor5View itw,
+                   const ArrayOfGridPos& bgp,
+                   const ArrayOfGridPos& pgp,
+                   const ArrayOfGridPos& rgp,
+                   const ArrayOfGridPos& cgp) {
   Index nb = bgp.nelem();
   Index np = pgp.nelem();
   Index nr = rgp.nelem();
   Index nc = cgp.nelem();
   // We must store 16 interpolation weights for each position:
-  assert(is_size(itw,nb,np,nr,nc,16));  
+  assert(is_size(itw, nb, np, nr, nc, 16));
 
   // We have to loop all the points in the new grid:
-  for ( Index ib=0; ib<nb; ++ib )
-    {
-      const GridPos& tb = bgp[ib];
-      for ( Index ip=0; ip<np; ++ip )
-        {
-          const GridPos& tp = pgp[ip];
-          for ( Index ir=0; ir<nr; ++ir )
-            {
-              const GridPos& tr = rgp[ir];
-              for ( Index ic=0; ic<nc; ++ic )
-                {
-                  const GridPos& tc = cgp[ic];
+  for (Index ib = 0; ib < nb; ++ib) {
+    const GridPos& tb = bgp[ib];
+    for (Index ip = 0; ip < np; ++ip) {
+      const GridPos& tp = pgp[ip];
+      for (Index ir = 0; ir < nr; ++ir) {
+        const GridPos& tr = rgp[ir];
+        for (Index ic = 0; ic < nc; ++ic) {
+          const GridPos& tc = cgp[ic];
 
-                  Index iti = 0;
+          Index iti = 0;
 
-                  LOOPIT(b)
-                    LOOPIT(p)
-                    LOOPIT(r)
-                    LOOPIT(c)
-                    {
-                      itw.get(ib,ip,ir,ic,iti) =
-                        (*b) * (*p) * (*r) * (*c);
-                      ++iti;
-                    }
-                }
-            }
+          LOOPIT(b)
+          LOOPIT(p)
+          LOOPIT(r)
+          LOOPIT(c) {
+            itw.get(ib, ip, ir, ic, iti) = (*b) * (*p) * (*r) * (*c);
+            ++iti;
+          }
         }
+      }
     }
+  }
 }
 
 //! Compute 5D interpolation weights for an entire field.
@@ -2385,55 +2193,48 @@ void interpweights( Tensor5View itw,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interpweights( Tensor6View itw,
-                    const ArrayOfGridPos& sgp,
-                    const ArrayOfGridPos& bgp,
-                    const ArrayOfGridPos& pgp,
-                    const ArrayOfGridPos& rgp,
-                    const ArrayOfGridPos& cgp )
-{
+void interpweights(Tensor6View itw,
+                   const ArrayOfGridPos& sgp,
+                   const ArrayOfGridPos& bgp,
+                   const ArrayOfGridPos& pgp,
+                   const ArrayOfGridPos& rgp,
+                   const ArrayOfGridPos& cgp) {
   Index ns = sgp.nelem();
   Index nb = bgp.nelem();
   Index np = pgp.nelem();
   Index nr = rgp.nelem();
   Index nc = cgp.nelem();
   // We must store 32 interpolation weights for each position:
-  assert(is_size(itw,ns,nb,np,nr,nc,32));       
+  assert(is_size(itw, ns, nb, np, nr, nc, 32));
 
   // We have to loop all the points in the new grid:
-  for ( Index is=0; is<ns; ++is )
-    {
-      const GridPos& ts = sgp[is];
-      for ( Index ib=0; ib<nb; ++ib )
-        {
-          const GridPos& tb = bgp[ib];
-          for ( Index ip=0; ip<np; ++ip )
-            {
-              const GridPos& tp = pgp[ip];
-              for ( Index ir=0; ir<nr; ++ir )
-                {
-                  const GridPos& tr = rgp[ir];
-                  for ( Index ic=0; ic<nc; ++ic )
-                    {
-                      const GridPos& tc = cgp[ic];
+  for (Index is = 0; is < ns; ++is) {
+    const GridPos& ts = sgp[is];
+    for (Index ib = 0; ib < nb; ++ib) {
+      const GridPos& tb = bgp[ib];
+      for (Index ip = 0; ip < np; ++ip) {
+        const GridPos& tp = pgp[ip];
+        for (Index ir = 0; ir < nr; ++ir) {
+          const GridPos& tr = rgp[ir];
+          for (Index ic = 0; ic < nc; ++ic) {
+            const GridPos& tc = cgp[ic];
 
-                      Index iti = 0;
+            Index iti = 0;
 
-                      LOOPIT(s)
-                        LOOPIT(b)
-                        LOOPIT(p)
-                        LOOPIT(r)
-                        LOOPIT(c)
-                        {
-                          itw.get(is,ib,ip,ir,ic,iti) =
-                            (*s) * (*b) * (*p) * (*r) * (*c);
-                          ++iti;
-                        }
-                    }
-                }
+            LOOPIT(s)
+            LOOPIT(b)
+            LOOPIT(p)
+            LOOPIT(r)
+            LOOPIT(c) {
+              itw.get(is, ib, ip, ir, ic, iti) =
+                  (*s) * (*b) * (*p) * (*r) * (*c);
+              ++iti;
             }
+          }
         }
+      }
     }
+  }
 }
 
 //! Compute 6D interpolation weights for an entire field.
@@ -2462,14 +2263,13 @@ void interpweights( Tensor6View itw,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interpweights( Tensor7View itw,
-                    const ArrayOfGridPos& vgp,
-                    const ArrayOfGridPos& sgp,
-                    const ArrayOfGridPos& bgp,
-                    const ArrayOfGridPos& pgp,
-                    const ArrayOfGridPos& rgp,
-                    const ArrayOfGridPos& cgp )
-{
+void interpweights(Tensor7View itw,
+                   const ArrayOfGridPos& vgp,
+                   const ArrayOfGridPos& sgp,
+                   const ArrayOfGridPos& bgp,
+                   const ArrayOfGridPos& pgp,
+                   const ArrayOfGridPos& rgp,
+                   const ArrayOfGridPos& cgp) {
   Index nv = vgp.nelem();
   Index ns = sgp.nelem();
   Index nb = bgp.nelem();
@@ -2477,47 +2277,40 @@ void interpweights( Tensor7View itw,
   Index nr = rgp.nelem();
   Index nc = cgp.nelem();
   // We must store 64 interpolation weights for each position:
-  assert(is_size(itw,nv,ns,nb,np,nr,nc,64));    
+  assert(is_size(itw, nv, ns, nb, np, nr, nc, 64));
 
   // We have to loop all the points in the new grid:
-  for ( Index iv=0; iv<nv; ++iv )
-    {
-      const GridPos& tv = vgp[iv];
-      for ( Index is=0; is<ns; ++is )
-        {
-          const GridPos& ts = sgp[is];
-          for ( Index ib=0; ib<nb; ++ib )
-            {
-              const GridPos& tb = bgp[ib];
-              for ( Index ip=0; ip<np; ++ip )
-                {
-                  const GridPos& tp = pgp[ip];
-                  for ( Index ir=0; ir<nr; ++ir )
-                    {
-                      const GridPos& tr = rgp[ir];
-                      for ( Index ic=0; ic<nc; ++ic )
-                        {
-                          const GridPos& tc = cgp[ic];
+  for (Index iv = 0; iv < nv; ++iv) {
+    const GridPos& tv = vgp[iv];
+    for (Index is = 0; is < ns; ++is) {
+      const GridPos& ts = sgp[is];
+      for (Index ib = 0; ib < nb; ++ib) {
+        const GridPos& tb = bgp[ib];
+        for (Index ip = 0; ip < np; ++ip) {
+          const GridPos& tp = pgp[ip];
+          for (Index ir = 0; ir < nr; ++ir) {
+            const GridPos& tr = rgp[ir];
+            for (Index ic = 0; ic < nc; ++ic) {
+              const GridPos& tc = cgp[ic];
 
-                          Index iti = 0;
+              Index iti = 0;
 
-                          LOOPIT(v)
-                            LOOPIT(s)
-                            LOOPIT(b)
-                            LOOPIT(p)
-                            LOOPIT(r)
-                            LOOPIT(c)
-                            {
-                              itw.get(iv,is,ib,ip,ir,ic,iti) =
-                                (*v) * (*s) * (*b) * (*p) * (*r) * (*c);
-                              ++iti;
-                            }
-                        }
-                    }
-                }
+              LOOPIT(v)
+              LOOPIT(s)
+              LOOPIT(b)
+              LOOPIT(p)
+              LOOPIT(r)
+              LOOPIT(c) {
+                itw.get(iv, is, ib, ip, ir, ic, iti) =
+                    (*v) * (*s) * (*b) * (*p) * (*r) * (*c);
+                ++iti;
+              }
             }
+          }
         }
+      }
     }
+  }
 }
 
 //! Interpolate 2D field to another 2D field.
@@ -2542,53 +2335,47 @@ void interpweights( Tensor7View itw,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interp( MatrixView            ia,
-             ConstTensor3View      itw,
-             ConstMatrixView       a,   
-             const ArrayOfGridPos& rgp,
-             const ArrayOfGridPos& cgp)
-{
+void interp(MatrixView ia,
+            ConstTensor3View itw,
+            ConstMatrixView a,
+            const ArrayOfGridPos& rgp,
+            const ArrayOfGridPos& cgp) {
   Index nr = rgp.nelem();
   Index nc = cgp.nelem();
-  assert(is_size(ia,nr,nc));    
-  assert(is_size(itw,nr,nc,4)); // We need 4 interpolation
-                                // weights for each position.
+  assert(is_size(ia, nr, nc));
+  assert(is_size(itw, nr, nc, 4));  // We need 4 interpolation
+                                    // weights for each position.
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  assert( is_same_within_epsilon( itw(0,0,Range(joker)).sum(),
-                                  1,
-                                  sum_check_epsilon ) );
-  
+  assert(is_same_within_epsilon(
+      itw(0, 0, Range(joker)).sum(), 1, sum_check_epsilon));
+
   // We have to loop all the points in the new grid:
-  for ( Index ir=0; ir<nr; ++ir )
-    {
+  for (Index ir = 0; ir < nr; ++ir) {
+    // Current grid position:
+    const GridPos& tr = rgp[ir];
+
+    for (Index ic = 0; ic < nc; ++ic) {
       // Current grid position:
-      const GridPos& tr = rgp[ir];
+      const GridPos& tc = cgp[ic];
 
-      for ( Index ic=0; ic<nc; ++ic )
-        {
-          // Current grid position:
-          const GridPos& tc = cgp[ic];
+      // Get handle to current element of output tensor and initialize
+      // it to zero:
+      Numeric& tia = ia(ir, ic);
+      tia = 0;
 
-          // Get handle to current element of output tensor and initialize
-          // it to zero:
-          Numeric& tia = ia(ir,ic);
-          tia = 0;
-
-          Index iti = 0;
-          for ( Index r=0; r<2; ++r )
-            for ( Index c=0; c<2; ++c )
-            {
-              assert( tr.idx+r < a.nrows() );   // Temporary !?
-              assert( tc.idx+c < a.ncols() );   // Temporary !?
-              tia += a.get(tr.idx+r,
-                           tc.idx+c) * itw.get(ir,ic,iti);
-              ++iti;
-            }
+      Index iti = 0;
+      for (Index r = 0; r < 2; ++r)
+        for (Index c = 0; c < 2; ++c) {
+          assert(tr.idx + r < a.nrows());  // Temporary !?
+          assert(tc.idx + c < a.ncols());  // Temporary !?
+          tia += a.get(tr.idx + r, tc.idx + c) * itw.get(ir, ic, iti);
+          ++iti;
         }
     }
+  }
 }
 
 //! Interpolate 3D field to another 3D field.
@@ -2614,63 +2401,52 @@ void interp( MatrixView            ia,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interp( Tensor3View           ia,
-             ConstTensor4View      itw,
-             ConstTensor3View      a,   
-             const ArrayOfGridPos& pgp,
-             const ArrayOfGridPos& rgp,
-             const ArrayOfGridPos& cgp)
-{
+void interp(Tensor3View ia,
+            ConstTensor4View itw,
+            ConstTensor3View a,
+            const ArrayOfGridPos& pgp,
+            const ArrayOfGridPos& rgp,
+            const ArrayOfGridPos& cgp) {
   Index np = pgp.nelem();
   Index nr = rgp.nelem();
   Index nc = cgp.nelem();
-  assert(is_size(ia,
-                 np,nr,nc));    
-  assert(is_size(itw,
-                 np,nr,nc,
-                 8));
+  assert(is_size(ia, np, nr, nc));
+  assert(is_size(itw, np, nr, nc, 8));
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  assert( is_same_within_epsilon( itw(0,0,0,Range(joker)).sum(),
-                                  1,
-                                  sum_check_epsilon ) );
-  
+  assert(is_same_within_epsilon(
+      itw(0, 0, 0, Range(joker)).sum(), 1, sum_check_epsilon));
+
   // We have to loop all the points in the new grid:
-  for ( Index ip=0; ip<np; ++ip )
-    {
-      const GridPos& tp = pgp[ip];
-      for ( Index ir=0; ir<nr; ++ir )
-        {
-          const GridPos& tr = rgp[ir];
-          for ( Index ic=0; ic<nc; ++ic )
-            {
-              // Current grid position:
-              const GridPos& tc = cgp[ic];
+  for (Index ip = 0; ip < np; ++ip) {
+    const GridPos& tp = pgp[ip];
+    for (Index ir = 0; ir < nr; ++ir) {
+      const GridPos& tr = rgp[ir];
+      for (Index ic = 0; ic < nc; ++ic) {
+        // Current grid position:
+        const GridPos& tc = cgp[ic];
 
-              // Get handle to current element of output tensor and
-              // initialize it to zero:
-              Numeric& tia = ia(ip,ir,ic);
-              tia = 0;
+        // Get handle to current element of output tensor and
+        // initialize it to zero:
+        Numeric& tia = ia(ip, ir, ic);
+        tia = 0;
 
-              Index iti = 0;
-              for ( Index p=0; p<2; ++p )
-                for ( Index r=0; r<2; ++r )
-                  for ( Index c=0; c<2; ++c )
-                    {
-                      assert( tp.idx+p < a.npages() );  // Temporary !?
-                      assert( tr.idx+r < a.nrows() );   // Temporary !?
-                      assert( tc.idx+c < a.ncols() );   // Temporary !?
-                      tia += a.get(tp.idx+p,
-                                   tr.idx+r,
-                                   tc.idx+c) * itw.get(ip,ir,ic,
-                                                       iti);
-                      ++iti;
-                    }
+        Index iti = 0;
+        for (Index p = 0; p < 2; ++p)
+          for (Index r = 0; r < 2; ++r)
+            for (Index c = 0; c < 2; ++c) {
+              assert(tp.idx + p < a.npages());  // Temporary !?
+              assert(tr.idx + r < a.nrows());   // Temporary !?
+              assert(tc.idx + c < a.ncols());   // Temporary !?
+              tia += a.get(tp.idx + p, tr.idx + r, tc.idx + c) *
+                     itw.get(ip, ir, ic, iti);
+              ++iti;
             }
-        }
+      }
     }
+  }
 }
 
 //! Interpolate 4D field to another 4D field.
@@ -2697,68 +2473,55 @@ void interp( Tensor3View           ia,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interp( Tensor4View           ia,
-             ConstTensor5View      itw,
-             ConstTensor4View      a,   
-             const ArrayOfGridPos& bgp,
-             const ArrayOfGridPos& pgp,
-             const ArrayOfGridPos& rgp,
-             const ArrayOfGridPos& cgp)
-{
+void interp(Tensor4View ia,
+            ConstTensor5View itw,
+            ConstTensor4View a,
+            const ArrayOfGridPos& bgp,
+            const ArrayOfGridPos& pgp,
+            const ArrayOfGridPos& rgp,
+            const ArrayOfGridPos& cgp) {
   Index nb = bgp.nelem();
   Index np = pgp.nelem();
   Index nr = rgp.nelem();
   Index nc = cgp.nelem();
-  assert(is_size(ia,
-                 nb,np,nr,nc));    
-  assert(is_size(itw,
-                 nb,np,nr,nc,
-                 16));
+  assert(is_size(ia, nb, np, nr, nc));
+  assert(is_size(itw, nb, np, nr, nc, 16));
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  assert( is_same_within_epsilon( itw(0,0,0,0,Range(joker)).sum(),
-                                  1,
-                                  sum_check_epsilon ) );
-  
+  assert(is_same_within_epsilon(
+      itw(0, 0, 0, 0, Range(joker)).sum(), 1, sum_check_epsilon));
+
   // We have to loop all the points in the new grid:
-  for ( Index ib=0; ib<nb; ++ib )
-    {
-      const GridPos& tb = bgp[ib];
-      for ( Index ip=0; ip<np; ++ip )
-        {
-          const GridPos& tp = pgp[ip];
-          for ( Index ir=0; ir<nr; ++ir )
-            {
-              const GridPos& tr = rgp[ir];
-              for ( Index ic=0; ic<nc; ++ic )
-                {
-                  // Current grid position:
-                  const GridPos& tc = cgp[ic];
+  for (Index ib = 0; ib < nb; ++ib) {
+    const GridPos& tb = bgp[ib];
+    for (Index ip = 0; ip < np; ++ip) {
+      const GridPos& tp = pgp[ip];
+      for (Index ir = 0; ir < nr; ++ir) {
+        const GridPos& tr = rgp[ir];
+        for (Index ic = 0; ic < nc; ++ic) {
+          // Current grid position:
+          const GridPos& tc = cgp[ic];
 
-                  // Get handle to current element of output tensor and
-                  // initialize it to zero:
-                  Numeric& tia = ia(ib,ip,ir,ic);
-                  tia = 0;
+          // Get handle to current element of output tensor and
+          // initialize it to zero:
+          Numeric& tia = ia(ib, ip, ir, ic);
+          tia = 0;
 
-                  Index iti = 0;
-                  for ( Index b=0; b<2; ++b )
-                    for ( Index p=0; p<2; ++p )
-                      for ( Index r=0; r<2; ++r )
-                        for ( Index c=0; c<2; ++c )
-                          {
-                            tia += a.get(tb.idx+b,
-                                         tp.idx+p,
-                                         tr.idx+r,
-                                         tc.idx+c) * itw.get(ib,ip,ir,ic,
-                                                             iti);
-                            ++iti;
-                          }
+          Index iti = 0;
+          for (Index b = 0; b < 2; ++b)
+            for (Index p = 0; p < 2; ++p)
+              for (Index r = 0; r < 2; ++r)
+                for (Index c = 0; c < 2; ++c) {
+                  tia += a.get(tb.idx + b, tp.idx + p, tr.idx + r, tc.idx + c) *
+                         itw.get(ib, ip, ir, ic, iti);
+                  ++iti;
                 }
-            }
         }
+      }
     }
+  }
 }
 
 //! Interpolate 5D field to another 5D field.
@@ -2786,76 +2549,65 @@ void interp( Tensor4View           ia,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interp( Tensor5View           ia,
-             ConstTensor6View      itw,
-             ConstTensor5View      a,   
-             const ArrayOfGridPos& sgp,
-             const ArrayOfGridPos& bgp,
-             const ArrayOfGridPos& pgp,
-             const ArrayOfGridPos& rgp,
-             const ArrayOfGridPos& cgp)
-{
+void interp(Tensor5View ia,
+            ConstTensor6View itw,
+            ConstTensor5View a,
+            const ArrayOfGridPos& sgp,
+            const ArrayOfGridPos& bgp,
+            const ArrayOfGridPos& pgp,
+            const ArrayOfGridPos& rgp,
+            const ArrayOfGridPos& cgp) {
   Index ns = sgp.nelem();
   Index nb = bgp.nelem();
   Index np = pgp.nelem();
   Index nr = rgp.nelem();
   Index nc = cgp.nelem();
-  assert(is_size(ia,
-                 ns,nb,np,nr,nc));    
-  assert(is_size(itw,
-                 ns,nb,np,nr,nc,
-                 32));
+  assert(is_size(ia, ns, nb, np, nr, nc));
+  assert(is_size(itw, ns, nb, np, nr, nc, 32));
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  assert( is_same_within_epsilon( itw(0,0,0,0,0,Range(joker)).sum(),
-                                  1,
-                                  sum_check_epsilon ) );
-  
+  assert(is_same_within_epsilon(
+      itw(0, 0, 0, 0, 0, Range(joker)).sum(), 1, sum_check_epsilon));
+
   // We have to loop all the points in the new grid:
-  for ( Index is=0; is<ns; ++is )
-    {
-      const GridPos& ts = sgp[is];
-      for ( Index ib=0; ib<nb; ++ib )
-        {
-          const GridPos& tb = bgp[ib];
-          for ( Index ip=0; ip<np; ++ip )
-            {
-              const GridPos& tp = pgp[ip];
-              for ( Index ir=0; ir<nr; ++ir )
-                {
-                  const GridPos& tr = rgp[ir];
-                  for ( Index ic=0; ic<nc; ++ic )
-                    {
-                      // Current grid position:
-                      const GridPos& tc = cgp[ic];
+  for (Index is = 0; is < ns; ++is) {
+    const GridPos& ts = sgp[is];
+    for (Index ib = 0; ib < nb; ++ib) {
+      const GridPos& tb = bgp[ib];
+      for (Index ip = 0; ip < np; ++ip) {
+        const GridPos& tp = pgp[ip];
+        for (Index ir = 0; ir < nr; ++ir) {
+          const GridPos& tr = rgp[ir];
+          for (Index ic = 0; ic < nc; ++ic) {
+            // Current grid position:
+            const GridPos& tc = cgp[ic];
 
-                      // Get handle to current element of output tensor and
-                      // initialize it to zero:
-                      Numeric& tia = ia(is,ib,ip,ir,ic);
-                      tia = 0;
+            // Get handle to current element of output tensor and
+            // initialize it to zero:
+            Numeric& tia = ia(is, ib, ip, ir, ic);
+            tia = 0;
 
-                      Index iti = 0;
-                      for ( Index s=0; s<2; ++s )
-                        for ( Index b=0; b<2; ++b )
-                          for ( Index p=0; p<2; ++p )
-                            for ( Index r=0; r<2; ++r )
-                              for ( Index c=0; c<2; ++c )
-                                {
-                                  tia += a.get(ts.idx+s,
-                                               tb.idx+b,
-                                               tp.idx+p,
-                                               tr.idx+r,
-                                               tc.idx+c) * itw.get(is,ib,ip,ir,ic,
-                                                                   iti);
-                                  ++iti;
-                                }
+            Index iti = 0;
+            for (Index s = 0; s < 2; ++s)
+              for (Index b = 0; b < 2; ++b)
+                for (Index p = 0; p < 2; ++p)
+                  for (Index r = 0; r < 2; ++r)
+                    for (Index c = 0; c < 2; ++c) {
+                      tia += a.get(ts.idx + s,
+                                   tb.idx + b,
+                                   tp.idx + p,
+                                   tr.idx + r,
+                                   tc.idx + c) *
+                             itw.get(is, ib, ip, ir, ic, iti);
+                      ++iti;
                     }
-                }
-            }
+          }
         }
+      }
     }
+  }
 }
 
 //! Interpolate 6D field to another 6D field.
@@ -2884,86 +2636,73 @@ void interp( Tensor5View           ia,
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void interp( Tensor6View           ia,
-             ConstTensor7View      itw,
-             ConstTensor6View      a,   
-             const ArrayOfGridPos& vgp,
-             const ArrayOfGridPos& sgp,
-             const ArrayOfGridPos& bgp,
-             const ArrayOfGridPos& pgp,
-             const ArrayOfGridPos& rgp,
-             const ArrayOfGridPos& cgp)
-{
+void interp(Tensor6View ia,
+            ConstTensor7View itw,
+            ConstTensor6View a,
+            const ArrayOfGridPos& vgp,
+            const ArrayOfGridPos& sgp,
+            const ArrayOfGridPos& bgp,
+            const ArrayOfGridPos& pgp,
+            const ArrayOfGridPos& rgp,
+            const ArrayOfGridPos& cgp) {
   Index nv = vgp.nelem();
   Index ns = sgp.nelem();
   Index nb = bgp.nelem();
   Index np = pgp.nelem();
   Index nr = rgp.nelem();
   Index nc = cgp.nelem();
-  assert(is_size(ia,
-                 nv,ns,nb,np,nr,nc));    
-  assert(is_size(itw,
-                 nv,ns,nb,np,nr,nc,
-                 64));
+  assert(is_size(ia, nv, ns, nb, np, nr, nc));
+  assert(is_size(itw, nv, ns, nb, np, nr, nc, 64));
 
   // Check that interpolation weights are valid. The sum of all
   // weights (last dimension) must always be approximately one. We
   // only check the first element.
-  assert( is_same_within_epsilon( itw(0,0,0,0,0,0,Range(joker)).sum(),
-                                  1,
-                                  sum_check_epsilon ) );
-  
+  assert(is_same_within_epsilon(
+      itw(0, 0, 0, 0, 0, 0, Range(joker)).sum(), 1, sum_check_epsilon));
+
   // We have to loop all the points in the new grid:
-  for ( Index iv=0; iv<nv; ++iv )
-    {
-      const GridPos& tv = vgp[iv];
-      for ( Index is=0; is<ns; ++is )
-        {
-          const GridPos& ts = sgp[is];
-          for ( Index ib=0; ib<nb; ++ib )
-            {
-              const GridPos& tb = bgp[ib];
-              for ( Index ip=0; ip<np; ++ip )
-                {
-                  const GridPos& tp = pgp[ip];
-                  for ( Index ir=0; ir<nr; ++ir )
-                    {
-                      const GridPos& tr = rgp[ir];
-                      for ( Index ic=0; ic<nc; ++ic )
-                        {
-                          // Current grid position:
-                          const GridPos& tc = cgp[ic];
+  for (Index iv = 0; iv < nv; ++iv) {
+    const GridPos& tv = vgp[iv];
+    for (Index is = 0; is < ns; ++is) {
+      const GridPos& ts = sgp[is];
+      for (Index ib = 0; ib < nb; ++ib) {
+        const GridPos& tb = bgp[ib];
+        for (Index ip = 0; ip < np; ++ip) {
+          const GridPos& tp = pgp[ip];
+          for (Index ir = 0; ir < nr; ++ir) {
+            const GridPos& tr = rgp[ir];
+            for (Index ic = 0; ic < nc; ++ic) {
+              // Current grid position:
+              const GridPos& tc = cgp[ic];
 
-                          // Get handle to current element of output tensor and
-                          // initialize it to zero:
-                          Numeric& tia = ia(iv,is,ib,ip,ir,ic);
-                          tia = 0;
+              // Get handle to current element of output tensor and
+              // initialize it to zero:
+              Numeric& tia = ia(iv, is, ib, ip, ir, ic);
+              tia = 0;
 
-                          Index iti = 0;
-                          for ( Index v=0; v<2; ++v )
-                            for ( Index s=0; s<2; ++s )
-                              for ( Index b=0; b<2; ++b )
-                                for ( Index p=0; p<2; ++p )
-                                  for ( Index r=0; r<2; ++r )
-                                    for ( Index c=0; c<2; ++c )
-                                      {
-                                        tia += a.get(tv.idx+v,
-                                                     ts.idx+s,
-                                                     tb.idx+b,
-                                                     tp.idx+p,
-                                                     tr.idx+r,
-                                                     tc.idx+c) * itw.get(iv,is,ib,ip,ir,ic,
-                                                                         iti);
-                                        ++iti;
-                                      }
+              Index iti = 0;
+              for (Index v = 0; v < 2; ++v)
+                for (Index s = 0; s < 2; ++s)
+                  for (Index b = 0; b < 2; ++b)
+                    for (Index p = 0; p < 2; ++p)
+                      for (Index r = 0; r < 2; ++r)
+                        for (Index c = 0; c < 2; ++c) {
+                          tia += a.get(tv.idx + v,
+                                       ts.idx + s,
+                                       tb.idx + b,
+                                       tp.idx + p,
+                                       tr.idx + r,
+                                       tc.idx + c) *
+                                 itw.get(iv, is, ib, ip, ir, ic, iti);
+                          ++iti;
                         }
-                    }
-                }
             }
+          }
         }
+      }
     }
+  }
 }
-
 
 //! Polynomial interpolation.
 /*! 
@@ -2983,9 +2722,8 @@ void interp( Tensor6View           ia,
 */
 Numeric interp_poly(ConstVectorView x,
                     ConstVectorView y,
-                    const Numeric& x_i, 
-                    const GridPos& gp)
-{
+                    const Numeric& x_i,
+                    const GridPos& gp) {
   Index N_x = x.nelem();
 
   assert(N_x == y.nelem());
@@ -3000,152 +2738,127 @@ Numeric interp_poly(ConstVectorView x,
   // 2 - polynomial interpolation (3 points) without grid position search
   // 3 - polynomial interpolation (4 points)
 
-  Index interp_method = 1; 
+  Index interp_method = 1;
 
-  if (interp_method == 1)
-    { 
-      
-      // Pick out three points for interpolation
-      if((gp.fd[0] <= 0.5 && gp.idx > 0) || gp.idx == N_x-2 )
-        {
-          xa[0] = x[gp.idx - 1];
-          xa[1] = x[gp.idx];
-          xa[2] = x[gp.idx + 1];
-      
-          ya[0] = y[gp.idx - 1];
-          ya[1] = y[gp.idx];
-          ya[2] = y[gp.idx + 1];
-        }
+  if (interp_method == 1) {
+    // Pick out three points for interpolation
+    if ((gp.fd[0] <= 0.5 && gp.idx > 0) || gp.idx == N_x - 2) {
+      xa[0] = x[gp.idx - 1];
+      xa[1] = x[gp.idx];
+      xa[2] = x[gp.idx + 1];
 
-      else if((gp.fd[0] > 0.5 && gp.idx < N_x-2) || gp.idx == 0 )
-        {
-          xa[0] = x[gp.idx];
-          xa[1] = x[gp.idx + 1];
-          xa[2] = x[gp.idx + 2];
-      
-          ya[0] = y[gp.idx];
-          ya[1] = y[gp.idx + 1];
-          ya[2] = y[gp.idx + 2];
-        } 
-  
-      else if(gp.idx == N_x-1)
-        {
-          xa[0] = x[N_x - 2];
-          xa[1] = x[N_x - 1];
-          xa[2] = x[N_x];
-      
-          ya[0] = y[N_x - 2];
-          ya[1] = y[N_x - 1];
-          ya[2] = y[N_x];
-        }  
-      else
-        {
-          assert(false);
-          arts_exit();
-        }
-      
-      polint(y_int, dy_int, xa, ya, 3, x_i); 
-  
+      ya[0] = y[gp.idx - 1];
+      ya[1] = y[gp.idx];
+      ya[2] = y[gp.idx + 1];
     }
-  
-  else if (interp_method == 2) 
-    {
-      if( gp.idx == 0 )
-        {
-          xa[0] = x[gp.idx];
-          xa[1] = x[gp.idx + 1];
-          xa[2] = x[gp.idx + 2];
-      
-          ya[0] = y[gp.idx];
-          ya[1] = y[gp.idx + 1];
-          ya[2] = y[gp.idx + 2];
-        }
-      else if(gp.idx == N_x-1)
-        {
-          xa[0] = x[gp.idx - 2];
-          xa[1] = x[gp.idx - 1];
-          xa[2] = x[gp.idx];
-      
-          ya[0] = y[gp.idx - 2];
-          ya[1] = y[gp.idx - 1];
-          ya[2] = y[gp.idx];
-        }
-      else 
-        {
-          xa[0] = x[gp.idx - 1];
-          xa[1] = x[gp.idx];
-          xa[2] = x[gp.idx + 1];
-      
-          ya[0] = y[gp.idx - 1];
-          ya[1] = y[gp.idx];
-          ya[2] = y[gp.idx + 1]; 
-        }
-      
-      // Polynominal interpolation, n = 3
-      polint(y_int, dy_int, xa, ya, 3, x_i); 
+
+    else if ((gp.fd[0] > 0.5 && gp.idx < N_x - 2) || gp.idx == 0) {
+      xa[0] = x[gp.idx];
+      xa[1] = x[gp.idx + 1];
+      xa[2] = x[gp.idx + 2];
+
+      ya[0] = y[gp.idx];
+      ya[1] = y[gp.idx + 1];
+      ya[2] = y[gp.idx + 2];
     }
-  
-  else if (interp_method == 3)
-    { 
-      // Take 4 points
-      if( gp.idx == 0 )
-        {
-          xa[0] = - x[gp.idx + 1];
-          xa[1] = x[gp.idx + 0];
-          xa[2] = x[gp.idx + 1];
-          xa[3] = x[gp.idx + 2];
-          
-          ya[0] = y[gp.idx + 1];
-          ya[1] = y[gp.idx + 0];
-          ya[2] = y[gp.idx + 1];
-          ya[3] = y[gp.idx + 2]; 
-        }
-      else if(gp.idx == N_x-1)
-        {
-          xa[0] = x[gp.idx - 1];
-          xa[1] = x[gp.idx - 0];
-          xa[2] = 2*x[gp.idx] - x[gp.idx-1];
-          xa[3] = 2*x[gp.idx] - x[gp.idx-2];
-          
-          ya[0] = y[gp.idx - 1];
-          ya[1] = y[gp.idx - 0];
-          ya[2] = y[gp.idx - 1];
-          ya[3] = y[gp.idx - 2];
-        }
-      else if(gp.idx == N_x-2)
-        {
-          xa[0] = x[gp.idx - 2];
-          xa[1] = x[gp.idx - 1];
-          xa[2] = x[gp.idx ];
-          xa[3] = x[gp.idx + 1];
-          
-          ya[0] = y[gp.idx - 2];
-          ya[1] = y[gp.idx - 1];
-          ya[2] = y[gp.idx];
-          ya[3] = y[gp.idx + 1];
-        }
-      else 
-        {
-          xa[0] = x[gp.idx - 1];
-          xa[1] = x[gp.idx];
-          xa[2] = x[gp.idx + 1];
-          xa[3] = x[gp.idx + 2];
-          
-          ya[0] = y[gp.idx - 1];
-          ya[1] = y[gp.idx];
-          ya[2] = y[gp.idx + 1];
-          ya[3] = y[gp.idx + 2];
-        }
-      // Polinominal interpolation, n = 4
-      polint(y_int, dy_int, xa, ya, 4, x_i); 
+
+    else if (gp.idx == N_x - 1) {
+      xa[0] = x[N_x - 2];
+      xa[1] = x[N_x - 1];
+      xa[2] = x[N_x];
+
+      ya[0] = y[N_x - 2];
+      ya[1] = y[N_x - 1];
+      ya[2] = y[N_x];
+    } else {
+      assert(false);
+      arts_exit();
     }
-      
-  
+
+    polint(y_int, dy_int, xa, ya, 3, x_i);
+
+  }
+
+  else if (interp_method == 2) {
+    if (gp.idx == 0) {
+      xa[0] = x[gp.idx];
+      xa[1] = x[gp.idx + 1];
+      xa[2] = x[gp.idx + 2];
+
+      ya[0] = y[gp.idx];
+      ya[1] = y[gp.idx + 1];
+      ya[2] = y[gp.idx + 2];
+    } else if (gp.idx == N_x - 1) {
+      xa[0] = x[gp.idx - 2];
+      xa[1] = x[gp.idx - 1];
+      xa[2] = x[gp.idx];
+
+      ya[0] = y[gp.idx - 2];
+      ya[1] = y[gp.idx - 1];
+      ya[2] = y[gp.idx];
+    } else {
+      xa[0] = x[gp.idx - 1];
+      xa[1] = x[gp.idx];
+      xa[2] = x[gp.idx + 1];
+
+      ya[0] = y[gp.idx - 1];
+      ya[1] = y[gp.idx];
+      ya[2] = y[gp.idx + 1];
+    }
+
+    // Polynominal interpolation, n = 3
+    polint(y_int, dy_int, xa, ya, 3, x_i);
+  }
+
+  else if (interp_method == 3) {
+    // Take 4 points
+    if (gp.idx == 0) {
+      xa[0] = -x[gp.idx + 1];
+      xa[1] = x[gp.idx + 0];
+      xa[2] = x[gp.idx + 1];
+      xa[3] = x[gp.idx + 2];
+
+      ya[0] = y[gp.idx + 1];
+      ya[1] = y[gp.idx + 0];
+      ya[2] = y[gp.idx + 1];
+      ya[3] = y[gp.idx + 2];
+    } else if (gp.idx == N_x - 1) {
+      xa[0] = x[gp.idx - 1];
+      xa[1] = x[gp.idx - 0];
+      xa[2] = 2 * x[gp.idx] - x[gp.idx - 1];
+      xa[3] = 2 * x[gp.idx] - x[gp.idx - 2];
+
+      ya[0] = y[gp.idx - 1];
+      ya[1] = y[gp.idx - 0];
+      ya[2] = y[gp.idx - 1];
+      ya[3] = y[gp.idx - 2];
+    } else if (gp.idx == N_x - 2) {
+      xa[0] = x[gp.idx - 2];
+      xa[1] = x[gp.idx - 1];
+      xa[2] = x[gp.idx];
+      xa[3] = x[gp.idx + 1];
+
+      ya[0] = y[gp.idx - 2];
+      ya[1] = y[gp.idx - 1];
+      ya[2] = y[gp.idx];
+      ya[3] = y[gp.idx + 1];
+    } else {
+      xa[0] = x[gp.idx - 1];
+      xa[1] = x[gp.idx];
+      xa[2] = x[gp.idx + 1];
+      xa[3] = x[gp.idx + 2];
+
+      ya[0] = y[gp.idx - 1];
+      ya[1] = y[gp.idx];
+      ya[2] = y[gp.idx + 1];
+      ya[3] = y[gp.idx + 2];
+    }
+    // Polinominal interpolation, n = 4
+    polint(y_int, dy_int, xa, ya, 4, x_i);
+  }
+
   return y_int;
 }
-
-
-
 
 //! Polynomial interpolation.
 /*! 
@@ -3172,49 +2885,40 @@ void polint(Numeric& y_int,
             ConstVectorView xa,
             ConstVectorView ya,
             const Index& n,
-            const Numeric& x)
-{
+            const Numeric& x) {
   Index ns = 1;
   Numeric den, dif, dift, ho, hp, w;
-  
-  dif = abs(x-xa[0]);
+
+  dif = abs(x - xa[0]);
 
   Vector c(n);
-  Vector d(n); 
-  
+  Vector d(n);
+
   // Find the index of the closest table entry
-  for(Index i=0; i<n; i++)
-    {
-      if( (dift = abs(x-xa[i])) < dif)
-        {
-          ns = i;
-          dif = dift;
-        }
-      // Initialize c and d
-      c[i] = ya[i];
-      d[i] = ya[i];
+  for (Index i = 0; i < n; i++) {
+    if ((dift = abs(x - xa[i])) < dif) {
+      ns = i;
+      dif = dift;
     }
+    // Initialize c and d
+    c[i] = ya[i];
+    d[i] = ya[i];
+  }
   // Initial approximation to y
   y_int = ya[ns--];
-  
-  for(Index m=1; m<n; m++)
-    {
-      for(Index i=0; i < n-m; i++)
-        {
-          ho = xa[i] - x;
-          hp = xa[i+m] - x;
-          w = c[i+1] - d[i];
-          den = ho-hp;
-          // This error occurs when two input xa's are identical. 
-          assert(den != 0.);
-          den = w/den;
-          d[i] = hp * den;
-          c[i] = ho * den;
-        }
-      y_int += (dy_int = (2*(ns+1) < (n-m) ? c[ns+1] : d[ns--] ));
-    }
-}
-          
-  
-  
 
+  for (Index m = 1; m < n; m++) {
+    for (Index i = 0; i < n - m; i++) {
+      ho = xa[i] - x;
+      hp = xa[i + m] - x;
+      w = c[i + 1] - d[i];
+      den = ho - hp;
+      // This error occurs when two input xa's are identical.
+      assert(den != 0.);
+      den = w / den;
+      d[i] = hp * den;
+      c[i] = ho * den;
+    }
+    y_int += (dy_int = (2 * (ns + 1) < (n - m) ? c[ns + 1] : d[ns--]));
+  }
+}

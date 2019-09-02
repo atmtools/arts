@@ -28,12 +28,11 @@
 
 */
 
-
 #ifndef WORKSPACE_NG_INCLUDED
 #define WORKSPACE_NG_INCLUDED
 
-#include <stack>
 #include <map>
+#include <stack>
 
 class Workspace;
 
@@ -45,7 +44,7 @@ class Workspace;
   Manages the workspace variables.
 */
 class Workspace {
-protected:
+ protected:
   struct WsvStruct {
     void *wsv;
     bool initialized;
@@ -53,9 +52,9 @@ protected:
   };
 
   //! Workspace variable container.
-  Array< stack<WsvStruct *> > ws;
+  Array<stack<WsvStruct *> > ws;
 
-public:
+ public:
 #ifndef NDEBUG
   //! Only for debugging
   String context;
@@ -66,43 +65,40 @@ public:
   /*! The map associated with wsv_data. */
   static map<String, Index> WsvMap;
 
-  Workspace ();
-  Workspace (const Workspace& workspace);
-  virtual ~Workspace ();
+  Workspace();
+  Workspace(const Workspace &workspace);
+  virtual ~Workspace();
 
-  static void  define_wsv_data();
-  static void  define_wsv_map();
-  static Index add_wsv (const WsvRecord& wsv);
+  static void define_wsv_data();
+  static void define_wsv_map();
+  static Index add_wsv(const WsvRecord &wsv);
 
-  void del (Index i);
+  void del(Index i);
 
-  void duplicate (Index i);
+  void duplicate(Index i);
 
-  void initialize ();
+  void initialize();
 
   //! Checks existence of the given WSV.
-  bool is_initialized (Index i) {
-    return ((ws[i].size () != 0)
-            && (ws[i].top()->initialized == true)); }
-
-  //! Return scoping level of the given WSV.
-  Index depth (Index i) {
-      return (Index)ws[i].size();
+  bool is_initialized(Index i) {
+    return ((ws[i].size() != 0) && (ws[i].top()->initialized == true));
   }
 
-  void *pop (Index i);
+  //! Return scoping level of the given WSV.
+  Index depth(Index i) { return (Index)ws[i].size(); }
 
-  void pop_free (Index i);
+  void *pop(Index i);
 
-  void push (Index i, void *wsv);
+  void pop_free(Index i);
 
-  void push_uninitialized (Index i, void *wsv);
+  void push(Index i, void *wsv);
 
-  Index nelem () {return ws.nelem ();}
+  void push_uninitialized(Index i, void *wsv);
+
+  Index nelem() { return ws.nelem(); }
 
   void *operator[](Index i);
 };
-
 
 //! Print WSV name to output stream.
 /** Looks up the name of the WSV with index i and
@@ -111,12 +107,10 @@ public:
  \param outstream OutputStream
  \param i Index of WSV
  */
-template <typename OutputStream> void
-PrintWsvName (OutputStream& outstream, Index i)
-{
-  outstream << Workspace::wsv_data[i].Name () << "(" << i << ") ";
+template <typename OutputStream>
+void PrintWsvName(OutputStream &outstream, Index i) {
+  outstream << Workspace::wsv_data[i].Name() << "(" << i << ") ";
 }
-
 
 //! Print list of WSV names to output stream.
 /** Runs through the list of WSV indexes and print all names
@@ -126,17 +120,13 @@ PrintWsvName (OutputStream& outstream, Index i)
  \param outstream OutputStream
  \param container List of WSV indexes
  */
-template <typename OutputStream, typename Container> void
-PrintWsvNames (OutputStream& outstream, const Container& container)
-{
-  for (typename Container::const_iterator it = container.begin ();
-       it != container.end (); it++ )
-  {
-    PrintWsvName (outstream, *it);
+template <typename OutputStream, typename Container>
+void PrintWsvNames(OutputStream &outstream, const Container &container) {
+  for (typename Container::const_iterator it = container.begin();
+       it != container.end();
+       it++) {
+    PrintWsvName(outstream, *it);
   }
-  
 }
 
-
 #endif /* WORKSPACE_NG_INCLUDED */
-

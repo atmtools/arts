@@ -30,7 +30,6 @@
 #include "matpackVII.h"
 #include "mystring.h"
 
-
 //! Structure to store a grid position.
 /*! 
   A grid position specifies, where an interpolation point is, relative
@@ -72,9 +71,9 @@
   (called ArrayOfGridPos). 
 */
 struct GridPos {
-  Index   idx;                 /*!< Original grid index below interpolation point. */
-  Numeric fd[2];               /*!< Fractional distance to next point
-                                    (0<=fd[0]<=1), fd[1] = 1-fd[0]. */ 
+  Index idx;     /*!< Original grid index below interpolation point. */
+  Numeric fd[2]; /*!< Fractional distance to next point
+                                    (0<=fd[0]<=1), fd[1] = 1-fd[0]. */
 };
 
 //! An Array of grid positions.
@@ -83,304 +82,277 @@ struct GridPos {
 */
 
 typedef Array<GridPos> ArrayOfGridPos;
-typedef Array<Array<GridPos> > ArrayOfArrayOfGridPos;  
-typedef Array<Array<Array<GridPos> > > ArrayOfArrayOfArrayOfGridPos;  
-typedef Array<Array<Array<Array<GridPos> > > > ArrayOfArrayOfArrayOfArrayOfGridPos;  
+typedef Array<Array<GridPos> > ArrayOfArrayOfGridPos;
+typedef Array<Array<Array<GridPos> > > ArrayOfArrayOfArrayOfGridPos;
+typedef Array<Array<Array<Array<GridPos> > > >
+    ArrayOfArrayOfArrayOfArrayOfGridPos;
 
 // Function headers (documentation is in .cc file):
 
 ostream& operator<<(ostream& os, const GridPos& gp);
 
-void gridpos( ArrayOfGridPos& gp,
-              ConstVectorView old_grid,
-              ConstVectorView new_grid,
-              const Numeric&  extpolfac=0.5  );
+void gridpos(ArrayOfGridPos& gp,
+             ConstVectorView old_grid,
+             ConstVectorView new_grid,
+             const Numeric& extpolfac = 0.5);
 
-void gridpos( GridPos& gp,
-              ConstVectorView old_grid,
-              const Numeric&  new_grid,
-              const Numeric&  extpolfac=0.5 );
+void gridpos(GridPos& gp,
+             ConstVectorView old_grid,
+             const Numeric& new_grid,
+             const Numeric& extpolfac = 0.5);
 
-void gridpos_1to1( 
-   ArrayOfGridPos& gp,
-   ConstVectorView grid );
+void gridpos_1to1(ArrayOfGridPos& gp, ConstVectorView grid);
 
-void gridpos_copy( GridPos&  gp_new,  const GridPos&  gp_old );
+void gridpos_copy(GridPos& gp_new, const GridPos& gp_old);
 
-Numeric fractional_gp( const GridPos&   gp );
+Numeric fractional_gp(const GridPos& gp);
 
-void gridpos_check_fd( GridPos&   gp );
+void gridpos_check_fd(GridPos& gp);
 
-void gridpos_force_end_fd( 
-        GridPos&   gp,
-  const Index&     n );
+void gridpos_force_end_fd(GridPos& gp, const Index& n);
 
-void gridpos_upperend_check( 
-        GridPos&   gp,
-  const Index&     ie );
+void gridpos_upperend_check(GridPos& gp, const Index& ie);
 
-void gridpos_upperend_check( 
-        ArrayOfGridPos&   gp,
-  const Index&            ie );
+void gridpos_upperend_check(ArrayOfGridPos& gp, const Index& ie);
 
-void gp4length1grid( ArrayOfGridPos&   gp );
+void gp4length1grid(ArrayOfGridPos& gp);
 
-bool is_gridpos_at_index_i(  
-       const GridPos&   gp,
-       const Index&     i,
-       const bool&      strict=true );
+bool is_gridpos_at_index_i(const GridPos& gp,
+                           const Index& i,
+                           const bool& strict = true);
 
-Index gridpos2gridrange(
-       const GridPos&   gp,
-       const bool&      upwards );
-
-
-
+Index gridpos2gridrange(const GridPos& gp, const bool& upwards);
 
 ////////////////////////////////////////////////////////////////////////////
 //                      Red Interpolation
 ////////////////////////////////////////////////////////////////////////////
 
-void interpweights( VectorView itw,
-                    const GridPos& tc );
+void interpweights(VectorView itw, const GridPos& tc);
 
-void interpweights( VectorView itw,
-                    const GridPos& tr,
-                    const GridPos& tc );
+void interpweights(VectorView itw, const GridPos& tr, const GridPos& tc);
 
-void interpweights( VectorView itw,
-                    const GridPos& tp,
-                    const GridPos& tr,
-                    const GridPos& tc );
+void interpweights(VectorView itw,
+                   const GridPos& tp,
+                   const GridPos& tr,
+                   const GridPos& tc);
 
-void interpweights( VectorView itw,
-                    const GridPos& tb,
-                    const GridPos& tp,
-                    const GridPos& tr,
-                    const GridPos& tc );
+void interpweights(VectorView itw,
+                   const GridPos& tb,
+                   const GridPos& tp,
+                   const GridPos& tr,
+                   const GridPos& tc);
 
-void interpweights( VectorView itw,
-                    const GridPos& ts,
-                    const GridPos& tb,
-                    const GridPos& tp,
-                    const GridPos& tr,
-                    const GridPos& tc );
+void interpweights(VectorView itw,
+                   const GridPos& ts,
+                   const GridPos& tb,
+                   const GridPos& tp,
+                   const GridPos& tr,
+                   const GridPos& tc);
 
-void interpweights( VectorView itw,
-                    const GridPos& tv,
-                    const GridPos& ts,
-                    const GridPos& tb,
-                    const GridPos& tp,
-                    const GridPos& tr,
-                    const GridPos& tc );
+void interpweights(VectorView itw,
+                   const GridPos& tv,
+                   const GridPos& ts,
+                   const GridPos& tb,
+                   const GridPos& tp,
+                   const GridPos& tr,
+                   const GridPos& tc);
 
-Numeric interp( ConstVectorView itw,
-                ConstVectorView a,    
-                const GridPos&  tc );
+Numeric interp(ConstVectorView itw, ConstVectorView a, const GridPos& tc);
 
-Numeric interp( ConstVectorView  itw,
-                ConstMatrixView  a,    
-                const GridPos&   tr,
-                const GridPos&   tc );
+Numeric interp(ConstVectorView itw,
+               ConstMatrixView a,
+               const GridPos& tr,
+               const GridPos& tc);
 
-Numeric interp( ConstVectorView  itw,
-                ConstTensor3View a,    
-                const GridPos&   tp,
-                const GridPos&   tr,
-                const GridPos&   tc );
+Numeric interp(ConstVectorView itw,
+               ConstTensor3View a,
+               const GridPos& tp,
+               const GridPos& tr,
+               const GridPos& tc);
 
-Numeric interp( ConstVectorView  itw,
-                ConstTensor4View a,    
-                const GridPos&   tb,
-                const GridPos&   tp,
-                const GridPos&   tr,
-                const GridPos&   tc );
+Numeric interp(ConstVectorView itw,
+               ConstTensor4View a,
+               const GridPos& tb,
+               const GridPos& tp,
+               const GridPos& tr,
+               const GridPos& tc);
 
-Numeric interp( ConstVectorView  itw,
-                ConstTensor5View a,    
-                const GridPos&   ts,
-                const GridPos&   tb,
-                const GridPos&   tp,
-                const GridPos&   tr,
-                const GridPos&   tc );
+Numeric interp(ConstVectorView itw,
+               ConstTensor5View a,
+               const GridPos& ts,
+               const GridPos& tb,
+               const GridPos& tp,
+               const GridPos& tr,
+               const GridPos& tc);
 
-Numeric interp( ConstVectorView  itw,
-                ConstTensor6View a,    
-                const GridPos&   tv,
-                const GridPos&   ts,
-                const GridPos&   tb,
-                const GridPos&   tp,
-                const GridPos&   tr,
-                const GridPos&   tc );
-
-
-
-
+Numeric interp(ConstVectorView itw,
+               ConstTensor6View a,
+               const GridPos& tv,
+               const GridPos& ts,
+               const GridPos& tb,
+               const GridPos& tp,
+               const GridPos& tr,
+               const GridPos& tc);
 
 ////////////////////////////////////////////////////////////////////////////
 //                      Blue interpolation
 ////////////////////////////////////////////////////////////////////////////
 
-void interpweights( MatrixView itw,
-                    const ArrayOfGridPos& cgp );
+void interpweights(MatrixView itw, const ArrayOfGridPos& cgp);
 
-void interpweights( MatrixView itw,
-                    const ArrayOfGridPos& rgp,
-                    const ArrayOfGridPos& cgp );
+void interpweights(MatrixView itw,
+                   const ArrayOfGridPos& rgp,
+                   const ArrayOfGridPos& cgp);
 
-void interpweights( MatrixView itw,
-                    const ArrayOfGridPos& pgp,
-                    const ArrayOfGridPos& rgp,
-                    const ArrayOfGridPos& cgp );
+void interpweights(MatrixView itw,
+                   const ArrayOfGridPos& pgp,
+                   const ArrayOfGridPos& rgp,
+                   const ArrayOfGridPos& cgp);
 
-void interpweights( MatrixView itw,
-                    const ArrayOfGridPos& bgp,
-                    const ArrayOfGridPos& pgp,
-                    const ArrayOfGridPos& rgp,
-                    const ArrayOfGridPos& cgp );
+void interpweights(MatrixView itw,
+                   const ArrayOfGridPos& bgp,
+                   const ArrayOfGridPos& pgp,
+                   const ArrayOfGridPos& rgp,
+                   const ArrayOfGridPos& cgp);
 
-void interpweights( MatrixView itw,
-                    const ArrayOfGridPos& sgp,
-                    const ArrayOfGridPos& bgp,
-                    const ArrayOfGridPos& pgp,
-                    const ArrayOfGridPos& rgp,
-                    const ArrayOfGridPos& cgp );
+void interpweights(MatrixView itw,
+                   const ArrayOfGridPos& sgp,
+                   const ArrayOfGridPos& bgp,
+                   const ArrayOfGridPos& pgp,
+                   const ArrayOfGridPos& rgp,
+                   const ArrayOfGridPos& cgp);
 
-void interpweights( MatrixView itw,
-                    const ArrayOfGridPos& vgp,
-                    const ArrayOfGridPos& sgp,
-                    const ArrayOfGridPos& bgp,
-                    const ArrayOfGridPos& pgp,
-                    const ArrayOfGridPos& rgp,
-                    const ArrayOfGridPos& cgp );
+void interpweights(MatrixView itw,
+                   const ArrayOfGridPos& vgp,
+                   const ArrayOfGridPos& sgp,
+                   const ArrayOfGridPos& bgp,
+                   const ArrayOfGridPos& pgp,
+                   const ArrayOfGridPos& rgp,
+                   const ArrayOfGridPos& cgp);
 
-void interp( VectorView            ia,
-             ConstMatrixView       itw,
-             ConstVectorView       a,    
-             const ArrayOfGridPos& cgp);
+void interp(VectorView ia,
+            ConstMatrixView itw,
+            ConstVectorView a,
+            const ArrayOfGridPos& cgp);
 
-void interp( VectorView            ia,
-             ConstMatrixView       itw,
-             ConstMatrixView       a,    
-             const ArrayOfGridPos& rgp,
-             const ArrayOfGridPos& cgp);
+void interp(VectorView ia,
+            ConstMatrixView itw,
+            ConstMatrixView a,
+            const ArrayOfGridPos& rgp,
+            const ArrayOfGridPos& cgp);
 
-void interp( VectorView            ia,
-             ConstMatrixView       itw,
-             ConstTensor3View      a,    
-             const ArrayOfGridPos& pgp,
-             const ArrayOfGridPos& rgp,
-             const ArrayOfGridPos& cgp);
+void interp(VectorView ia,
+            ConstMatrixView itw,
+            ConstTensor3View a,
+            const ArrayOfGridPos& pgp,
+            const ArrayOfGridPos& rgp,
+            const ArrayOfGridPos& cgp);
 
-void interp( VectorView            ia,
-             ConstMatrixView       itw,
-             ConstTensor4View      a,    
-             const ArrayOfGridPos& bgp,
-             const ArrayOfGridPos& pgp,
-             const ArrayOfGridPos& rgp,
-             const ArrayOfGridPos& cgp);
+void interp(VectorView ia,
+            ConstMatrixView itw,
+            ConstTensor4View a,
+            const ArrayOfGridPos& bgp,
+            const ArrayOfGridPos& pgp,
+            const ArrayOfGridPos& rgp,
+            const ArrayOfGridPos& cgp);
 
-void interp( VectorView            ia,
-             ConstMatrixView       itw,
-             ConstTensor5View      a,    
-             const ArrayOfGridPos& sgp,
-             const ArrayOfGridPos& bgp,
-             const ArrayOfGridPos& pgp,
-             const ArrayOfGridPos& rgp,
-             const ArrayOfGridPos& cgp);
+void interp(VectorView ia,
+            ConstMatrixView itw,
+            ConstTensor5View a,
+            const ArrayOfGridPos& sgp,
+            const ArrayOfGridPos& bgp,
+            const ArrayOfGridPos& pgp,
+            const ArrayOfGridPos& rgp,
+            const ArrayOfGridPos& cgp);
 
-void interp( VectorView            ia,
-             ConstMatrixView       itw,
-             ConstTensor6View      a,    
-             const ArrayOfGridPos& vgp,
-             const ArrayOfGridPos& sgp,
-             const ArrayOfGridPos& bgp,
-             const ArrayOfGridPos& pgp,
-             const ArrayOfGridPos& rgp,
-             const ArrayOfGridPos& cgp);
-
-
-
-
+void interp(VectorView ia,
+            ConstMatrixView itw,
+            ConstTensor6View a,
+            const ArrayOfGridPos& vgp,
+            const ArrayOfGridPos& sgp,
+            const ArrayOfGridPos& bgp,
+            const ArrayOfGridPos& pgp,
+            const ArrayOfGridPos& rgp,
+            const ArrayOfGridPos& cgp);
 
 ////////////////////////////////////////////////////////////////////////////
 //                      Green interpolation
 ////////////////////////////////////////////////////////////////////////////
 
-void interpweights( Tensor3View itw,
-                    const ArrayOfGridPos& rgp,
-                    const ArrayOfGridPos& cgp );
+void interpweights(Tensor3View itw,
+                   const ArrayOfGridPos& rgp,
+                   const ArrayOfGridPos& cgp);
 
-void interpweights( Tensor4View itw,
-                    const ArrayOfGridPos& pgp,
-                    const ArrayOfGridPos& rgp,
-                    const ArrayOfGridPos& cgp );
+void interpweights(Tensor4View itw,
+                   const ArrayOfGridPos& pgp,
+                   const ArrayOfGridPos& rgp,
+                   const ArrayOfGridPos& cgp);
 
-void interpweights( Tensor5View itw,
-                    const ArrayOfGridPos& bgp,
-                    const ArrayOfGridPos& pgp,
-                    const ArrayOfGridPos& rgp,
-                    const ArrayOfGridPos& cgp );
+void interpweights(Tensor5View itw,
+                   const ArrayOfGridPos& bgp,
+                   const ArrayOfGridPos& pgp,
+                   const ArrayOfGridPos& rgp,
+                   const ArrayOfGridPos& cgp);
 
-void interpweights( Tensor6View itw,
-                    const ArrayOfGridPos& sgp,
-                    const ArrayOfGridPos& bgp,
-                    const ArrayOfGridPos& pgp,
-                    const ArrayOfGridPos& rgp,
-                    const ArrayOfGridPos& cgp );
+void interpweights(Tensor6View itw,
+                   const ArrayOfGridPos& sgp,
+                   const ArrayOfGridPos& bgp,
+                   const ArrayOfGridPos& pgp,
+                   const ArrayOfGridPos& rgp,
+                   const ArrayOfGridPos& cgp);
 
-void interpweights( Tensor7View itw,
-                    const ArrayOfGridPos& vgp,
-                    const ArrayOfGridPos& sgp,
-                    const ArrayOfGridPos& bgp,
-                    const ArrayOfGridPos& pgp,
-                    const ArrayOfGridPos& rgp,
-                    const ArrayOfGridPos& cgp );
+void interpweights(Tensor7View itw,
+                   const ArrayOfGridPos& vgp,
+                   const ArrayOfGridPos& sgp,
+                   const ArrayOfGridPos& bgp,
+                   const ArrayOfGridPos& pgp,
+                   const ArrayOfGridPos& rgp,
+                   const ArrayOfGridPos& cgp);
 
-void interp( MatrixView            ia,
-             ConstTensor3View      itw,
-             ConstMatrixView       a,   
-             const ArrayOfGridPos& rgp,
-             const ArrayOfGridPos& cgp);
+void interp(MatrixView ia,
+            ConstTensor3View itw,
+            ConstMatrixView a,
+            const ArrayOfGridPos& rgp,
+            const ArrayOfGridPos& cgp);
 
-void interp( Tensor3View           ia,
-             ConstTensor4View      itw,
-             ConstTensor3View      a,   
-             const ArrayOfGridPos& pgp,
-             const ArrayOfGridPos& rgp,
-             const ArrayOfGridPos& cgp);
+void interp(Tensor3View ia,
+            ConstTensor4View itw,
+            ConstTensor3View a,
+            const ArrayOfGridPos& pgp,
+            const ArrayOfGridPos& rgp,
+            const ArrayOfGridPos& cgp);
 
-void interp( Tensor4View           ia,
-             ConstTensor5View      itw,
-             ConstTensor4View      a,   
-             const ArrayOfGridPos& bgp,
-             const ArrayOfGridPos& pgp,
-             const ArrayOfGridPos& rgp,
-             const ArrayOfGridPos& cgp);
+void interp(Tensor4View ia,
+            ConstTensor5View itw,
+            ConstTensor4View a,
+            const ArrayOfGridPos& bgp,
+            const ArrayOfGridPos& pgp,
+            const ArrayOfGridPos& rgp,
+            const ArrayOfGridPos& cgp);
 
-void interp( Tensor5View           ia,
-             ConstTensor6View      itw,
-             ConstTensor5View      a,   
-             const ArrayOfGridPos& sgp,
-             const ArrayOfGridPos& bgp,
-             const ArrayOfGridPos& pgp,
-             const ArrayOfGridPos& rgp,
-             const ArrayOfGridPos& cgp);
+void interp(Tensor5View ia,
+            ConstTensor6View itw,
+            ConstTensor5View a,
+            const ArrayOfGridPos& sgp,
+            const ArrayOfGridPos& bgp,
+            const ArrayOfGridPos& pgp,
+            const ArrayOfGridPos& rgp,
+            const ArrayOfGridPos& cgp);
 
-void interp( Tensor6View           ia,
-             ConstTensor7View      itw,
-             ConstTensor6View      a,   
-             const ArrayOfGridPos& vgp,
-             const ArrayOfGridPos& sgp,
-             const ArrayOfGridPos& bgp,
-             const ArrayOfGridPos& pgp,
-             const ArrayOfGridPos& rgp,
-             const ArrayOfGridPos& cgp);
+void interp(Tensor6View ia,
+            ConstTensor7View itw,
+            ConstTensor6View a,
+            const ArrayOfGridPos& vgp,
+            const ArrayOfGridPos& sgp,
+            const ArrayOfGridPos& bgp,
+            const ArrayOfGridPos& pgp,
+            const ArrayOfGridPos& rgp,
+            const ArrayOfGridPos& cgp);
 
 Numeric interp_poly(ConstVectorView x,
-                     ConstVectorView y,
-                     const Numeric& x_i, 
-                     const GridPos& gp);
+                    ConstVectorView y,
+                    const Numeric& x_i,
+                    const GridPos& gp);
 
 void polint(Numeric& y_int,
             Numeric& dy_int,
@@ -389,4 +361,4 @@ void polint(Numeric& y_int,
             const Index& i,
             const Numeric& x);
 
-#endif // interpolation_h
+#endif  // interpolation_h

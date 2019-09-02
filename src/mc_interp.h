@@ -15,8 +15,6 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-
-
 /*===========================================================================
   === File description 
   ===========================================================================*/
@@ -36,10 +34,10 @@
 
 #ifndef mc_interp_h
 #define mc_interp_h
-#include "arts.h"
-#include "matpackI.h"
 #include "array.h"
+#include "arts.h"
 #include "interpolation.h"
+#include "matpackI.h"
 #include "optproperties.h"
 #include "ppath.h"
 
@@ -47,16 +45,12 @@ extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 extern const Numeric PI;
 
-
-
-
 //! A 2D sequential linear interpolation (SLI) lookup table
 /*! This class holds the gridded for 2D SLI as well as the
 interpolate member function for retrieving interpolated values. 
  */
-class SLIData2
-{
-public:
+class SLIData2 {
+ public:
   //grid of x1 values where y is known
   Vector x1a;
   //A vector of x2 values for every x1a
@@ -67,33 +61,29 @@ public:
   Numeric interpolate(Numeric x1, Numeric x2) const;
   //checks that it is not empty
   //void check() const;
-  
 };
 
-ostream& operator<< (ostream& os, const SLIData2& sli);
-
+ostream& operator<<(ostream& os, const SLIData2& sli);
 
 void interp(MatrixView tia,
             ConstVectorView itw,
-            const ArrayOfMatrix& a,    
-            const GridPos&  tc );
+            const ArrayOfMatrix& a,
+            const GridPos& tc);
 
 void interp(VectorView tia,
             ConstVectorView itw,
-            const ArrayOfVector& a,    
-            const GridPos&  tc );
+            const ArrayOfVector& a,
+            const GridPos& tc);
 
-
-void interp_scat_angle_temperature(//Output:
-                                   VectorView pha_mat_int,
-                                   Numeric& theta_rad,
-                                   //Input:
-                                   const SingleScatteringData& scat_data_single,
-                                   const Numeric& za_sca,
-                                   const Numeric& aa_sca,
-                                   const Numeric& za_inc,
-                                   const Numeric& aa_inc,
-                                   const Numeric& rtp_temperature
-                                   );
+void interp_scat_angle_temperature(  //Output:
+    VectorView pha_mat_int,
+    Numeric& theta_rad,
+    //Input:
+    const SingleScatteringData& scat_data_single,
+    const Numeric& za_sca,
+    const Numeric& aa_sca,
+    const Numeric& za_inc,
+    const Numeric& aa_inc,
+    const Numeric& rtp_temperature);
 
 #endif  // mc_interp_h

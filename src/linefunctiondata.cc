@@ -26,266 +26,276 @@
  * \date   2018-09-19
  **/
 
-
 #include "linefunctiondata.h"
 
 //! {"X0", "X1", "X2"}
-ArrayOfString all_coefficientsLineFunctionData() {return {"X0", "X1", "X2"};}
+ArrayOfString all_coefficientsLineFunctionData() { return {"X0", "X1", "X2"}; }
 
 //! {"G0", "D0", "G2", "D2", "ETA", "FVC", "Y", "G", "DV"}
-ArrayOfString all_variablesLineFunctionData() {return {"G0", "D0", "G2", "D2", "FVC", "ETA", "Y", "G", "DV"};}
+ArrayOfString all_variablesLineFunctionData() {
+  return {"G0", "D0", "G2", "D2", "FVC", "ETA", "Y", "G", "DV"};
+}
 
-JacPropMatType select_derivativeLineShape(const String& var, const String& coeff)
-{
+JacPropMatType select_derivativeLineShape(const String& var,
+                                          const String& coeff) {
   // Test viability of model variables
   static const ArrayOfString vars = all_variablesLineFunctionData();
   bool var_OK = false;
-  for(auto& v: vars) if(var == v) var_OK = true;
-  
+  for (auto& v : vars)
+    if (var == v) var_OK = true;
+
   // Test viability of model coefficients
   static const ArrayOfString coeffs = all_coefficientsLineFunctionData();
   bool coeff_OK = false;
-  for(auto& c: coeffs) if(coeff == c) coeff_OK = true;
-  
+  for (auto& c : coeffs)
+    if (coeff == c) coeff_OK = true;
+
   // Fails either when the user has bad input or when the developer fails to update all_variablesLineFunctionData or all_coefficientsLineFunctionData
-  if(not var_OK or not coeff_OK) {
+  if (not var_OK or not coeff_OK) {
     std::ostringstream os;
     os << "At least one of your variable and/or your coefficient is not OK\n";
-    os << "Your variable: \"" << var <<  "\".  OK variables include: " << vars << "\n";
-    os << "Your coefficient: \"" << coeff <<  "\".  OK coefficients include: " << coeffs << "\n";
+    os << "Your variable: \"" << var << "\".  OK variables include: " << vars
+       << "\n";
+    os << "Your coefficient: \"" << coeff
+       << "\".  OK coefficients include: " << coeffs << "\n";
     throw std::runtime_error(os.str());
   }
-  
-  // Define a repetitive pattern.  Update if/when there are more coefficients in the future
-  #define ReturnJacPropMatType(ID) \
-  (var == #ID) {      if(coeff == "X0") return JacPropMatType::LineShape ## ID ## X0; \
-                 else if(coeff == "X1") return JacPropMatType::LineShape ## ID ## X1; \
-                 else if(coeff == "X2") return JacPropMatType::LineShape ## ID ## X2; }
 
-  
-  if      ReturnJacPropMatType(G0 )
-  else if ReturnJacPropMatType(D0 )
-  else if ReturnJacPropMatType(G2 )
-  else if ReturnJacPropMatType(D2 )
-  else if ReturnJacPropMatType(FVC)
-  else if ReturnJacPropMatType(ETA)
-  else if ReturnJacPropMatType(Y  )
-  else if ReturnJacPropMatType(G  )
-  else if ReturnJacPropMatType(DV )
-  #undef ReturnJacPropMatType
-  
-  std::terminate();
+// Define a repetitive pattern.  Update if/when there are more coefficients in the future
+#define ReturnJacPropMatType(ID)                \
+  (var == #ID) {                                \
+    if (coeff == "X0")                          \
+      return JacPropMatType::LineShape##ID##X0; \
+    else if (coeff == "X1")                     \
+      return JacPropMatType::LineShape##ID##X1; \
+    else if (coeff == "X2")                     \
+      return JacPropMatType::LineShape##ID##X2; \
+  }
+
+  if
+    ReturnJacPropMatType(G0) else if ReturnJacPropMatType(D0) else if ReturnJacPropMatType(G2) else if ReturnJacPropMatType(D2) else if ReturnJacPropMatType(
+        FVC) else if ReturnJacPropMatType(ETA) else if ReturnJacPropMatType(Y) else if ReturnJacPropMatType(G) else if ReturnJacPropMatType(DV)
+#undef ReturnJacPropMatType
+
+        std::terminate();
 }
 
-
-std::istream& LineShape::from_artscat4(std::istream& is, Model& m, const QuantumIdentifier& qid) {
+std::istream& LineShape::from_artscat4(std::istream& is,
+                                       Model& m,
+                                       const QuantumIdentifier& qid) {
   // Special case when self is part of this
-  auto self_in_list = LegacyPressureBroadeningData::self_listed(qid, LegacyPressureBroadeningData::TypePB::PB_PLANETARY_BROADENING);
+  auto self_in_list = LegacyPressureBroadeningData::self_listed(
+      qid, LegacyPressureBroadeningData::TypePB::PB_PLANETARY_BROADENING);
   auto i = self_in_list ? 1 : 0;
-  
+
   // Set or reset variables
   m.mtype = Type::VP;
   m.mself = bool(i);
   m.mbath = false;
-  m.mdata = std::vector<SingleSpeciesModel>(6+i);
-  m.mspecies = ArrayOfSpeciesTag(6+i);
-  
+  m.mdata = std::vector<SingleSpeciesModel>(6 + i);
+  m.mspecies = ArrayOfSpeciesTag(6 + i);
+
   // Set species
-  m.mspecies[i+1] = SpeciesTag(String("N2"));
-  m.mspecies[i+2] = SpeciesTag(String("O2"));
-  m.mspecies[i+3] = SpeciesTag(String("H2O"));
-  m.mspecies[i+4] = SpeciesTag(String("CO2"));
-  m.mspecies[i+5] = SpeciesTag(String("H2"));
-  m.mspecies[i+6] = SpeciesTag(String("He"));
-  
+  m.mspecies[i + 1] = SpeciesTag(String("N2"));
+  m.mspecies[i + 2] = SpeciesTag(String("O2"));
+  m.mspecies[i + 3] = SpeciesTag(String("H2O"));
+  m.mspecies[i + 4] = SpeciesTag(String("CO2"));
+  m.mspecies[i + 5] = SpeciesTag(String("H2"));
+  m.mspecies[i + 6] = SpeciesTag(String("He"));
+
   // Temperature types
-  for(auto& v: m.mdata) {
+  for (auto& v : m.mdata) {
     v.G0().type = TemperatureModel::T1;
     v.D0().type = TemperatureModel::T5;
   }
-  
+
   // ARTSCAT-4 has self variables that are copied even
   // if you have the same species as part of the list
   // above.  This is thrown away to keep the type and
   // the code simpler in this ARTSCAT-5 formulation iff
   // this species is not a self species
   Numeric throwaways;
-  
+
   // G0 main coefficient
-  if(self_in_list) is >> throwaways;
-  for(auto& v: m.mdata) is >> v.G0().X0;
-  
+  if (self_in_list) is >> throwaways;
+  for (auto& v : m.mdata) is >> v.G0().X0;
+
   // G0 exponent is same as D0 exponent
-  if(self_in_list) is >> throwaways;
-  for(auto& v: m.mdata) {
+  if (self_in_list) is >> throwaways;
+  for (auto& v : m.mdata) {
     is >> v.G0().X1;
     v.D0().X1 = v.G0().X1;
   }
-  
+
   // D0 coefficient
-  for(std::vector<SingleSpeciesModel>::size_type k=i; k<m.mdata.size(); k++)
+  for (std::vector<SingleSpeciesModel>::size_type k = i; k < m.mdata.size();
+       k++)
     is >> m.mdata[i].D0().X0;
-  
+
   return is;
 }
-
 
 std::istream& LineShape::from_linefunctiondata(std::istream& data, Model& m) {
   m.mself = m.mbath = false;
   Index specs;
   String s;
-  
+
   // The first tag should give the line shape scheme
   data >> s;
   m.mtype = LineShape::string2shapetype(s);
-  
+
   // Order of elements for line shape
-  const auto shapeparams = LegacyLineFunctionData::lineshapetag2variablesvector(s);
-  
+  const auto shapeparams =
+      LegacyLineFunctionData::lineshapetag2variablesvector(s);
+
   // The second tag should give the line mixing scheme
   data >> s;
-  
+
   // Order of elements for line mixing
-  const auto mixingparams = LegacyLineFunctionData::linemixingtag2variablesvector(s);
-  
+  const auto mixingparams =
+      LegacyLineFunctionData::linemixingtag2variablesvector(s);
+
   // The third tag should contain the number of species
   data >> specs;
   m.mspecies.resize(specs);
   m.mdata.resize(specs);
-  
-  if(not specs and m.mtype not_eq Type::DP)
-    throw std::runtime_error("Need at least one species for non-Doppler line shapes");
-  
+
+  if (not specs and m.mtype not_eq Type::DP)
+    throw std::runtime_error(
+        "Need at least one species for non-Doppler line shapes");
+
   // For all species, we need to set the methods to compute them
-  for(Index i=0; i<specs; i++) {
-    
+  for (Index i = 0; i < specs; i++) {
     // This should be a species tag or one of the specials, SELF or BATH
     data >> s;
-    if(s == self_broadening) {
+    if (s == self_broadening) {
       // If the species is self, then  we need to flag this
       m.mself = true;
-      if(i not_eq 0)  // but self has to be first for consistent behavior
+      if (i not_eq 0)  // but self has to be first for consistent behavior
         throw std::runtime_error("Self broadening must be first, it is not\n");
     }
-    
-    else if(s == bath_broadening) {
+
+    else if (s == bath_broadening) {
       // If the species is air, then we need to flag this
       m.mbath = true;
-      if(i not_eq specs - 1)  // but air has to be last because it needs the rest's VMR
-        throw std::runtime_error("Air/bath broadening must be last, it is not\n");
-    }
-    else {
+      if (i not_eq
+          specs - 1)  // but air has to be last because it needs the rest's VMR
+        throw std::runtime_error(
+            "Air/bath broadening must be last, it is not\n");
+    } else {
       // Otherwise, we hope we find a species
       try {
         m.mspecies[i] = SpeciesTag(s);
-      }
-      catch(const std::runtime_error& e) {
+      } catch (const std::runtime_error& e) {
         ostringstream os;
-        os << "Encountered " << s << " in a position where a species should have been ";
+        os << "Encountered " << s
+           << " in a position where a species should have been ";
         os << "defined.\nPlease check your pressure broadening data structure and ensure ";
         os << "that it follows the correct conventions.\n";
         os << "SpeciesTag error reads:  " << e.what();
         throw std::runtime_error(os.str());
       }
     }
-    
+
     // For all parameters
-    for(auto& params: {shapeparams, mixingparams}) {
-      for(auto& param: params) {
+    for (auto& params : {shapeparams, mixingparams}) {
+      for (auto& param : params) {
         data >> s;  // Should contain a temperature tag
-        
+
         const auto type = string2temperaturemodel(s);
-        const Index ntemp = LegacyLineFunctionData::temperaturemodel2legacynelem(type);
-        
+        const Index ntemp =
+            LegacyLineFunctionData::temperaturemodel2legacynelem(type);
+
         m.mdata[i].Data()[Index(param)].type = type;
-        if(ntemp <= nmaxTempModelParams) {
-          switch(ntemp) {
+        if (ntemp <= nmaxTempModelParams) {
+          switch (ntemp) {
             case 1:
               data >> m.mdata[i].Data()[Index(param)].X0;
               break;
             case 2:
-              data >> m.mdata[i].Data()[Index(param)].X0
-                   >> m.mdata[i].Data()[Index(param)].X1;
+              data >> m.mdata[i].Data()[Index(param)].X0 >>
+                  m.mdata[i].Data()[Index(param)].X1;
               break;
             case 3:
-              data >> m.mdata[i].Data()[Index(param)].X0
-                   >> m.mdata[i].Data()[Index(param)].X1
-                   >> m.mdata[i].Data()[Index(param)].X2;
+              data >> m.mdata[i].Data()[Index(param)].X0 >>
+                  m.mdata[i].Data()[Index(param)].X1 >>
+                  m.mdata[i].Data()[Index(param)].X2;
               break;
-            case 0: 
+            case 0:
               break;
             default:
-              throw std::runtime_error("Unknown number of input parameters in Legacy mode.");
+              throw std::runtime_error(
+                  "Unknown number of input parameters in Legacy mode.");
           }
-        }
-        else {  // Has to be the only allowed interpolation case
-          if(ntemp > nmaxInterpModels)
-            throw std::runtime_error("Too many input parameters in interpolation results Legacy mode.");
-          for(Index k=0; k<ntemp; k++)
-            data >> m.mdata[i].Interp()[k];
+        } else {  // Has to be the only allowed interpolation case
+          if (ntemp > nmaxInterpModels)
+            throw std::runtime_error(
+                "Too many input parameters in interpolation results Legacy mode.");
+          for (Index k = 0; k < ntemp; k++) data >> m.mdata[i].Interp()[k];
         }
       }
     }
   }
-  
+
   return data;
 }
 
-
-std::istream & LineShape::from_pressurebroadeningdata(std::istream& data, LineShape::Model& lsc, const QuantumIdentifier& qid)
-{
+std::istream& LineShape::from_pressurebroadeningdata(
+    std::istream& data, LineShape::Model& lsc, const QuantumIdentifier& qid) {
   String s;
   data >> s;
-  
+
   const auto type = LegacyPressureBroadeningData::string2typepb(s);
   const auto n = LegacyPressureBroadeningData::typepb2nelem(type);
-  const auto self_in_list = LegacyPressureBroadeningData::self_listed(qid, type);
-  
+  const auto self_in_list =
+      LegacyPressureBroadeningData::self_listed(qid, type);
+
   Vector x(n);
-  for(auto& num: x)
-    data >> num;
-  
+  for (auto& num : x) data >> num;
+
   lsc = LegacyPressureBroadeningData::vector2modelpb(x, type, self_in_list);
-  
+
   return data;
 }
 
-
-std::istream& LineShape::from_linemixingdata(std::istream& data, LineShape::Model& lsc)
-{
+std::istream& LineShape::from_linemixingdata(std::istream& data,
+                                             LineShape::Model& lsc) {
   String s;
   data >> s;
-  
+
   const auto type = LegacyLineMixingData::string2typelm(s);
   const auto n = LegacyLineMixingData::typelm2nelem(type);
-  
-  Vector x(n); for(auto& num: x) data >> num;
-  
+
+  Vector x(n);
+  for (auto& num : x) data >> num;
+
   lsc = LegacyLineMixingData::vector2modellm(x, type);
-  
+
   return data;
 }
 
-
-LineShape::Model LineShape::LegacyPressureBroadeningData::vector2modelpb(Vector x, LineShape::LegacyPressureBroadeningData::TypePB type, bool self_in_list)
-{
-  switch(type) {
+LineShape::Model LineShape::LegacyPressureBroadeningData::vector2modelpb(
+    Vector x,
+    LineShape::LegacyPressureBroadeningData::TypePB type,
+    bool self_in_list) {
+  switch (type) {
     case TypePB::PB_NONE:
       return Model();
     case TypePB::PB_AIR_BROADENING:
       return Model(x[0], x[1], x[2], x[3], x[4]);
     case TypePB::PB_AIR_AND_WATER_BROADENING:
-      if(self_in_list) {
-        ArrayOfSpeciesTag spec(2); spec[0] = SpeciesTag("H2O");
+      if (self_in_list) {
+        ArrayOfSpeciesTag spec(2);
+        spec[0] = SpeciesTag("H2O");
         std::vector<SingleSpeciesModel> ssm(2);
         ssm[0].G0() = {TemperatureModel::T1, x[0], x[1], 0};
         ssm[0].D0() = {TemperatureModel::T5, x[2], x[1], 0};
         ssm[1].G0() = {TemperatureModel::T1, x[3], x[4], 0};
         ssm[1].D0() = {TemperatureModel::T5, x[5], x[4], 0};
         return Model(LineShape::Type::VP, false, true, spec, ssm);
-      }
-      else {
-        ArrayOfSpeciesTag spec(3); spec[1] = SpeciesTag("H2O");
+      } else {
+        ArrayOfSpeciesTag spec(3);
+        spec[1] = SpeciesTag("H2O");
         std::vector<SingleSpeciesModel> ssm(3);
         ssm[0].G0() = {TemperatureModel::T1, x[0], x[1], 0};
         ssm[0].D0() = {TemperatureModel::T5, x[2], x[1], 0};
@@ -296,29 +306,28 @@ LineShape::Model LineShape::LegacyPressureBroadeningData::vector2modelpb(Vector 
         return Model(LineShape::Type::VP, true, true, spec, ssm);
       }
     case TypePB::PB_PLANETARY_BROADENING:
-      if(self_in_list) {
+      if (self_in_list) {
         const ArrayOfSpeciesTag spec = {SpeciesTag(String("N2")),
-          SpeciesTag(String("O2")),
-          SpeciesTag(String("H2O")),
-          SpeciesTag(String("CO2")),
-          SpeciesTag(String("H2")),
-          SpeciesTag(String("He"))};
-          std::vector<SingleSpeciesModel> ssm(6);
-          ssm[0].G0() = {TemperatureModel::T1, x[1 ], x[8 ], 0};
-          ssm[0].D0() = {TemperatureModel::T5, x[14], x[8 ], 0};
-          ssm[1].G0() = {TemperatureModel::T1, x[2 ], x[9 ], 0};
-          ssm[1].D0() = {TemperatureModel::T5, x[15], x[9 ], 0};
-          ssm[2].G0() = {TemperatureModel::T1, x[3 ], x[10], 0};
-          ssm[2].D0() = {TemperatureModel::T5, x[16], x[10], 0};
-          ssm[3].G0() = {TemperatureModel::T1, x[4 ], x[11], 0};
-          ssm[3].D0() = {TemperatureModel::T5, x[17], x[11], 0};
-          ssm[4].G0() = {TemperatureModel::T1, x[5 ], x[12], 0};
-          ssm[4].D0() = {TemperatureModel::T5, x[18], x[12], 0};
-          ssm[5].G0() = {TemperatureModel::T1, x[6 ], x[13], 0};
-          ssm[5].D0() = {TemperatureModel::T5, x[19], x[13], 0};
-          return Model(LineShape::Type::VP, false, false, spec, ssm);
-      }
-      else {
+                                        SpeciesTag(String("O2")),
+                                        SpeciesTag(String("H2O")),
+                                        SpeciesTag(String("CO2")),
+                                        SpeciesTag(String("H2")),
+                                        SpeciesTag(String("He"))};
+        std::vector<SingleSpeciesModel> ssm(6);
+        ssm[0].G0() = {TemperatureModel::T1, x[1], x[8], 0};
+        ssm[0].D0() = {TemperatureModel::T5, x[14], x[8], 0};
+        ssm[1].G0() = {TemperatureModel::T1, x[2], x[9], 0};
+        ssm[1].D0() = {TemperatureModel::T5, x[15], x[9], 0};
+        ssm[2].G0() = {TemperatureModel::T1, x[3], x[10], 0};
+        ssm[2].D0() = {TemperatureModel::T5, x[16], x[10], 0};
+        ssm[3].G0() = {TemperatureModel::T1, x[4], x[11], 0};
+        ssm[3].D0() = {TemperatureModel::T5, x[17], x[11], 0};
+        ssm[4].G0() = {TemperatureModel::T1, x[5], x[12], 0};
+        ssm[4].D0() = {TemperatureModel::T5, x[18], x[12], 0};
+        ssm[5].G0() = {TemperatureModel::T1, x[6], x[13], 0};
+        ssm[5].D0() = {TemperatureModel::T5, x[19], x[13], 0};
+        return Model(LineShape::Type::VP, false, false, spec, ssm);
+      } else {
         ArrayOfSpeciesTag spec(7);
         spec[1] = SpeciesTag(String("N2"));
         spec[2] = SpeciesTag(String("O2"));
@@ -327,19 +336,19 @@ LineShape::Model LineShape::LegacyPressureBroadeningData::vector2modelpb(Vector 
         spec[5] = SpeciesTag(String("H2"));
         spec[6] = SpeciesTag(String("He"));
         std::vector<SingleSpeciesModel> ssm(7);
-        ssm[0].G0() = {TemperatureModel::T1, x[0 ], x[7 ], 0};
+        ssm[0].G0() = {TemperatureModel::T1, x[0], x[7], 0};
         //          ssm[0].D0() = ...
-        ssm[1].G0() = {TemperatureModel::T1, x[1 ], x[8 ], 0};
-        ssm[1].D0() = {TemperatureModel::T5, x[14], x[8 ], 0};
-        ssm[2].G0() = {TemperatureModel::T1, x[2 ], x[9 ], 0};
-        ssm[2].D0() = {TemperatureModel::T5, x[15], x[9 ], 0};
-        ssm[3].G0() = {TemperatureModel::T1, x[3 ], x[10], 0};
+        ssm[1].G0() = {TemperatureModel::T1, x[1], x[8], 0};
+        ssm[1].D0() = {TemperatureModel::T5, x[14], x[8], 0};
+        ssm[2].G0() = {TemperatureModel::T1, x[2], x[9], 0};
+        ssm[2].D0() = {TemperatureModel::T5, x[15], x[9], 0};
+        ssm[3].G0() = {TemperatureModel::T1, x[3], x[10], 0};
         ssm[3].D0() = {TemperatureModel::T5, x[16], x[10], 0};
-        ssm[4].G0() = {TemperatureModel::T1, x[4 ], x[11], 0};
+        ssm[4].G0() = {TemperatureModel::T1, x[4], x[11], 0};
         ssm[4].D0() = {TemperatureModel::T5, x[17], x[11], 0};
-        ssm[5].G0() = {TemperatureModel::T1, x[5 ], x[12], 0};
+        ssm[5].G0() = {TemperatureModel::T1, x[5], x[12], 0};
         ssm[5].D0() = {TemperatureModel::T5, x[18], x[12], 0};
-        ssm[6].G0() = {TemperatureModel::T1, x[6 ], x[13], 0};
+        ssm[6].G0() = {TemperatureModel::T1, x[6], x[13], 0};
         ssm[6].D0() = {TemperatureModel::T5, x[19], x[13], 0};
         return Model(LineShape::Type::VP, true, false, spec, ssm);
       }
@@ -347,12 +356,11 @@ LineShape::Model LineShape::LegacyPressureBroadeningData::vector2modelpb(Vector 
   std::terminate();
 }
 
-
-LineShape::Model LineShape::LegacyLineMixingData::vector2modellm(Vector x, LineShape::LegacyLineMixingData::TypeLM type)
-{
+LineShape::Model LineShape::LegacyLineMixingData::vector2modellm(
+    Vector x, LineShape::LegacyLineMixingData::TypeLM type) {
   auto y = Model();
   y.resize(1);
-  switch(type) {
+  switch (type) {
     case TypeLM::LM_NONE:
       break;
     case TypeLM::LM_LBLRTM:
@@ -389,30 +397,31 @@ LineShape::Model LineShape::LegacyLineMixingData::vector2modellm(Vector x, LineS
   return y;
 }
 
-
-void LineShape::Model::Set(const LineShape::ModelParameters& param, const String& spec, const LineShape::Variable var)
-{
+void LineShape::Model::Set(const LineShape::ModelParameters& param,
+                           const String& spec,
+                           const LineShape::Variable var) {
   bool self = spec == self_broadening;
   bool bath = spec == bath_broadening;
-  if(mself and self)
+  if (mself and self)
     mdata.front().Set(var, param);
-  else if(self)
-    throw std::runtime_error("No self species but trying to set self in line shape model");
-  else if(mbath and bath) {
+  else if (self)
+    throw std::runtime_error(
+        "No self species but trying to set self in line shape model");
+  else if (mbath and bath) {
     mdata.back().Set(var, param);
-  }
-  else if(bath)
-    throw std::runtime_error("No bath species but trying to set bath in line shape model");
+  } else if (bath)
+    throw std::runtime_error(
+        "No bath species but trying to set bath in line shape model");
   else {
     const SpeciesTag sp(spec);
-    bool found=false;
-    for(Index i=Index(mself); i<nelem()-Index(mbath); i++) {
-      if(sp.Species() == mspecies[i].Species()) {
+    bool found = false;
+    for (Index i = Index(mself); i < nelem() - Index(mbath); i++) {
+      if (sp.Species() == mspecies[i].Species()) {
         found = true;
         mdata[i].Set(var, param);
       }
     }
-    if(not found) {
+    if (not found) {
       std::ostringstream os;
       os << "No species of type " << spec << " found in line shape model\n";
       os << "Available species are: " << mspecies << "\n";

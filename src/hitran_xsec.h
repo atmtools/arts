@@ -29,46 +29,44 @@
 #include "arts.h"
 
 #include "array.h"
-#include "mystring.h"
-#include "matpackI.h"
 #include "bifstream.h"
+#include "matpackI.h"
 #include "messages.h"
+#include "mystring.h"
 
-class XsecRecord
-{
-public:
-    /** Return species index */
-    Index Species() const { return mspecies; };
+class XsecRecord {
+ public:
+  /** Return species index */
+  Index Species() const { return mspecies; };
 
-    /** Return species name */
-    String SpeciesName() const;
+  /** Return species name */
+  String SpeciesName() const;
 
-    /** Set species name */
-    void SetSpecies(const Index species) { mspecies = species; };
+  /** Set species name */
+  void SetSpecies(const Index species) { mspecies = species; };
 
-    /** Get coefficients */
-    ConstVectorView Coeffs() const { return mcoeffs; };
+  /** Get coefficients */
+  ConstVectorView Coeffs() const { return mcoeffs; };
 
-    /** Get reference pressures */
-    ConstVectorView RefPressure() const { return mrefpressure; };
+  /** Get reference pressures */
+  ConstVectorView RefPressure() const { return mrefpressure; };
 
-    /** Get reference temperatures */
-    ConstVectorView RefTemperature() const { return mreftemperature; };
+  /** Get reference temperatures */
+  ConstVectorView RefTemperature() const { return mreftemperature; };
 
-    /** Get frequency grids of cross sections */
-    const ArrayOfVector& Fgrids() const { return mfgrids; };
+  /** Get frequency grids of cross sections */
+  const ArrayOfVector& Fgrids() const { return mfgrids; };
 
-    /** Get cross sections */
-    const ArrayOfVector& Xsecs() const { return mxsecs; };
+  /** Get cross sections */
+  const ArrayOfVector& Xsecs() const { return mxsecs; };
 
-    /** Get slope of temperature fit */
-    const ArrayOfVector& TemperatureSlope() const { return mtslope; };
+  /** Get slope of temperature fit */
+  const ArrayOfVector& TemperatureSlope() const { return mtslope; };
 
-    /** Get intersect of temperature fit */
-    const ArrayOfVector& TemperatureIntersect() const { return mtintersect; };
+  /** Get intersect of temperature fit */
+  const ArrayOfVector& TemperatureIntersect() const { return mtintersect; };
 
-
-    /** Interpolate cross section data.
+  /** Interpolate cross section data.
 
      Interpolate Xsec data to given frequency vector and given scalar pressure.
      Uses third order interpolation in both coordinates, if grid length allows,
@@ -81,27 +79,27 @@ public:
      \param[in] apply_tfit  Set to 0 to not apply the temperature fit
      \param[in] verbosity   Standard verbosity object.
      */
-    void Extract(VectorView result,
-                 ConstVectorView f_grid,
-                 const Numeric& pressure,
-                 const Numeric& temperature,
-                 const Index& apply_tfit,
-                 const Verbosity& verbosity) const;
+  void Extract(VectorView result,
+               ConstVectorView f_grid,
+               const Numeric& pressure,
+               const Numeric& temperature,
+               const Index& apply_tfit,
+               const Verbosity& verbosity) const;
 
-    friend void xml_read_from_stream(std::istream& is_xml,
-                                     XsecRecord& cr,
-                                     bifstream *pbifs,
-                                     const Verbosity& verbosity);
+  friend void xml_read_from_stream(std::istream& is_xml,
+                                   XsecRecord& cr,
+                                   bifstream* pbifs,
+                                   const Verbosity& verbosity);
 
-private:
-    Index mspecies;
-    Vector mcoeffs;
-    Vector mrefpressure;
-    Vector mreftemperature;
-    ArrayOfVector mfgrids;
-    ArrayOfVector mxsecs;
-    ArrayOfVector mtslope;
-    ArrayOfVector mtintersect;
+ private:
+  Index mspecies;
+  Vector mcoeffs;
+  Vector mrefpressure;
+  Vector mreftemperature;
+  ArrayOfVector mfgrids;
+  ArrayOfVector mxsecs;
+  ArrayOfVector mtslope;
+  ArrayOfVector mtintersect;
 };
 
 typedef Array<XsecRecord> ArrayOfXsecRecord;
@@ -111,4 +109,4 @@ Index hitran_xsec_get_index(const ArrayOfXsecRecord& xsec_data,
 
 std::ostream& operator<<(std::ostream& os, const XsecRecord& xd);
 
-#endif // HITRAN_XSEC_H
+#endif  // HITRAN_XSEC_H

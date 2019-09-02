@@ -31,22 +31,15 @@
 
 using std::ostringstream;
 
-
 //! Describe Tensor7.
 /*! 
   \param x  What to describe.
   \return   Output stream. */
-String describe( ConstTensor7View x )
-{
+String describe(ConstTensor7View x) {
   ostringstream os;
-  os << "Tensor7 ["
-     << x.nlibraries() << ","
-     << x.nvitrines()  << ","
-     << x.nshelves()   << ","
-     << x.nbooks()     << ","
-     << x.npages()     << ","
-     << x.nrows()      << ","
-     << x.ncols()      << "]";
+  os << "Tensor7 [" << x.nlibraries() << "," << x.nvitrines() << ","
+     << x.nshelves() << "," << x.nbooks() << "," << x.npages() << ","
+     << x.nrows() << "," << x.ncols() << "]";
   return os.str();
 }
 
@@ -54,16 +47,10 @@ String describe( ConstTensor7View x )
 /*! 
   \param x  What to describe.
   \return   Output stream. */
-String describe( ConstTensor6View x )
-{
+String describe(ConstTensor6View x) {
   ostringstream os;
-  os << "Tensor6 ["
-     << x.nvitrines()  << ","
-     << x.nshelves()   << ","
-     << x.nbooks()     << ","
-     << x.npages()     << ","
-     << x.nrows()      << ","
-     << x.ncols()      << "]";
+  os << "Tensor6 [" << x.nvitrines() << "," << x.nshelves() << "," << x.nbooks()
+     << "," << x.npages() << "," << x.nrows() << "," << x.ncols() << "]";
   return os.str();
 }
 
@@ -71,15 +58,10 @@ String describe( ConstTensor6View x )
 /*! 
   \param x  What to describe.
   \return   Output stream. */
-String describe( ConstTensor5View x )
-{
+String describe(ConstTensor5View x) {
   ostringstream os;
-  os << "Tensor5 ["
-     << x.nshelves()   << ","
-     << x.nbooks()     << ","
-     << x.npages()     << ","
-     << x.nrows()      << ","
-     << x.ncols()      << "]";
+  os << "Tensor5 [" << x.nshelves() << "," << x.nbooks() << "," << x.npages()
+     << "," << x.nrows() << "," << x.ncols() << "]";
   return os.str();
 }
 
@@ -87,14 +69,10 @@ String describe( ConstTensor5View x )
 /*! 
   \param x  What to describe.
   \return   Output stream. */
-String describe( ConstTensor4View x )
-{
+String describe(ConstTensor4View x) {
   ostringstream os;
-  os << "Tensor4 ["
-     << x.nbooks()     << ","
-     << x.npages()     << ","
-     << x.nrows()      << ","
-     << x.ncols()      << "]";
+  os << "Tensor4 [" << x.nbooks() << "," << x.npages() << "," << x.nrows()
+     << "," << x.ncols() << "]";
   return os.str();
 }
 
@@ -102,13 +80,10 @@ String describe( ConstTensor4View x )
 /*! 
   \param x  What to describe.
   \return   Output stream. */
-String describe( ConstTensor3View x )
-{
+String describe(ConstTensor3View x) {
   ostringstream os;
-  os << "Tensor3 ["
-     << x.npages()     << ","
-     << x.nrows()      << ","
-     << x.ncols()      << "]";
+  os << "Tensor3 [" << x.npages() << "," << x.nrows() << "," << x.ncols()
+     << "]";
   return os.str();
 }
 
@@ -116,12 +91,9 @@ String describe( ConstTensor3View x )
 /*! 
   \param x  What to describe.
   \return   Output stream. */
-String describe( ConstMatrixView x )
-{
+String describe(ConstMatrixView x) {
   ostringstream os;
-  os << "Matrix ["
-     << x.nrows()      << ","
-     << x.ncols()      << "]";
+  os << "Matrix [" << x.nrows() << "," << x.ncols() << "]";
   return os.str();
 }
 
@@ -129,11 +101,9 @@ String describe( ConstMatrixView x )
 /*! 
   \param x  What to describe.
   \return   Output stream. */
-String describe( ConstVectorView x )
-{
+String describe(ConstVectorView x) {
   ostringstream os;
-  os << "Vector ["
-     << x.nelem()      << "]";
+  os << "Vector [" << x.nelem() << "]";
   return os.str();
 }
 
@@ -141,8 +111,7 @@ String describe( ConstVectorView x )
 /*! 
   \param x  What to describe.
   \return   Output stream. */
-String describe( const Numeric& x )
-{
+String describe(const Numeric& x) {
   ostringstream os;
   os << "Scalar (" << x << ")";
   return os.str();

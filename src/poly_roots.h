@@ -15,8 +15,6 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-
-
 ////////////////////////////////////////////////////////////////////////////
 //   File description
 ////////////////////////////////////////////////////////////////////////////
@@ -35,7 +33,6 @@
 #include "arts.h"
 #include "matpackI.h"
 
-int
-poly_root_solve (Matrix& roots, Vector& coeffs);
+int poly_root_solve(Matrix& roots, Vector& coeffs);
 
-#endif  /* poly_roots_h */
+#endif /* poly_roots_h */

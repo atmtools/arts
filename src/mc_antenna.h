@@ -15,8 +15,6 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-
-
 /*===========================================================================
   === File description 
   ===========================================================================*/
@@ -42,12 +40,12 @@ by Monte Carlo methods.  All of these functions refer to 3D calculations
 #ifndef mc_antenna_h
 #define mc_antenna_h
 
-#include "arts.h"
-#include "rng.h"
-#include "matpackI.h"
-#include "ppath.h"
 #include <cmath>
 #include <stdexcept>
+#include "arts.h"
+#include "matpackI.h"
+#include "ppath.h"
+#include "rng.h"
 
 enum AntennaType {
   ANTENNA_TYPE_PENCIL_BEAM = 1,
@@ -57,31 +55,30 @@ enum AntennaType {
 
 //! An Antenna object used by MCGeneral
 /*! This class provides the means of sampling various types of 2D antenna
-functions.. */ 
+functions.. */
 class MCAntenna {
   AntennaType atype;
   Numeric sigma_aa, sigma_za;
   Vector aa_grid, za_grid;
   Matrix G_lookup;
-      
-public:
-  MCAntenna() : atype(),
-                sigma_aa(0.),
-                sigma_za(0.),
-                aa_grid(),
-                za_grid(),
-                G_lookup()
-  { /* Nothing to do here */ }
 
-  void set_pencil_beam (void);
-  void set_gaussian (const Numeric& za_sigma,
-                     const Numeric& aa_sigma);
-  void set_gaussian_fwhm (const Numeric& za_fwhm,
-                          const Numeric& aa_fwhm);
-  void set_lookup (ConstVectorView za_grid,
-                   ConstVectorView aa_grid,
-                   ConstMatrixView G_lookup);
-  AntennaType get_type(void) const;      
+ public:
+  MCAntenna()
+      : atype(),
+        sigma_aa(0.),
+        sigma_za(0.),
+        aa_grid(),
+        za_grid(),
+        G_lookup() { /* Nothing to do here */
+  }
+
+  void set_pencil_beam(void);
+  void set_gaussian(const Numeric& za_sigma, const Numeric& aa_sigma);
+  void set_gaussian_fwhm(const Numeric& za_fwhm, const Numeric& aa_fwhm);
+  void set_lookup(ConstVectorView za_grid,
+                  ConstVectorView aa_grid,
+                  ConstMatrixView G_lookup);
+  AntennaType get_type(void) const;
   void return_los(Numeric& wgt,
                   ConstMatrixView R_return,
                   ConstMatrixView R_enu2ant) const;
@@ -92,23 +89,19 @@ public:
                 ConstVectorView bore_sight_los) const;
 };
 
-ostream& operator<< (ostream& os, const MCAntenna& mca);
+ostream& operator<<(ostream& os, const MCAntenna& mca);
 
-Numeric ran_gaussian (
-                      Rng& rng, 
-                      const Numeric sigma);
+Numeric ran_gaussian(Rng& rng, const Numeric sigma);
 
-Numeric ran_uniform ( Rng& rng );
+Numeric ran_uniform(Rng& rng);
 
-void rotmat_enu(MatrixView  R_ant2enu,
-                ConstVectorView  prop_los);
+void rotmat_enu(MatrixView R_ant2enu, ConstVectorView prop_los);
 
-void rotmat_stokes(MatrixView       R_pra,
-                   const Index&     stokes_dim,
-                   const Numeric&   bs_dir,
-                   const Numeric&   prop_dir,
-                   ConstMatrixView  R_bs,
-                   ConstMatrixView  R_prop);
+void rotmat_stokes(MatrixView R_pra,
+                   const Index& stokes_dim,
+                   const Numeric& bs_dir,
+                   const Numeric& prop_dir,
+                   ConstMatrixView R_bs,
+                   ConstMatrixView R_prop);
 
 #endif  // mc_antenna_h
-

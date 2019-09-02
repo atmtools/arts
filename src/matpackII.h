@@ -41,11 +41,11 @@
 #ifndef matpackII_h
 #define matpackII_h
 
-#include "array.h"
-#include "matpackI.h"
+#include <iostream>
 #include "Eigen/Core"
 #include "Eigen/SparseCore"
-#include <iostream>
+#include "array.h"
+#include "matpackI.h"
 
 //! The Sparse class.
 /*!
@@ -58,127 +58,108 @@
 */
 
 class Sparse {
-public:
+ public:
+  // Constructors:
+  Sparse();
+  Sparse(Index r, Index c);
 
-    // Constructors:
-    Sparse();
-    Sparse(Index r, Index c);
+  void split(Index offset, Index nrows);
 
-    void split(Index offset, Index nrows);
+  // Insert functions
+  void insert_row(Index r, Vector v);
+  void insert_elements(Index nnz,
+                       const ArrayOfIndex& rowind,
+                       const ArrayOfIndex& colind,
+                       ConstVectorView data);
 
-    // Insert functions
-    void insert_row(Index r, Vector v);
-    void insert_elements(Index nnz,
-                         const ArrayOfIndex &rowind,
-                         const ArrayOfIndex &colind,
-                         ConstVectorView    data);
+  // Resize function:
+  void resize(Index r, Index c);
 
-    // Resize function:
-    void resize(Index r, Index c);
+  // Member functions:
+  bool empty() const;
+  Index nrows() const;
+  Index ncols() const;
+  Index nnz() const;
 
-    // Member functions:
-    bool empty() const;
-    Index nrows() const;
-    Index ncols() const;
-    Index nnz()   const;
-
-    /** Create a sparse matrix from a vector.
+  /** Create a sparse matrix from a vector.
      *
      * @param v vector containing the diagonal elements.
      * @return Sparse matrix with the elements of the given vector
      *     on the diagonal.
      */
-    static Sparse diagonal(ConstVectorView v);
+  static Sparse diagonal(ConstVectorView v);
 
-    /** Diagonal elements as vector
+  /** Diagonal elements as vector
      *
      * Extracts the diagonal elements from the sparse matrix.
      * matrix.
      *
      * @return A vector containing the diagonal elements.
      */
-    Vector diagonal() const;
+  Vector diagonal() const;
 
-    // Index Operators:
-    Numeric& rw(Index r, Index c);
-    Numeric  ro(Index r, Index c) const;
-    Numeric  operator() (Index r, Index c) const;
+  // Index Operators:
+  Numeric& rw(Index r, Index c);
+  Numeric ro(Index r, Index c) const;
+  Numeric operator()(Index r, Index c) const;
 
-    // Arithmetic operators:
-    Sparse& operator+=(const Sparse& x);
-    Sparse& operator-=(const Sparse& x);
+  // Arithmetic operators:
+  Sparse& operator+=(const Sparse& x);
+  Sparse& operator-=(const Sparse& x);
 
-    // Scaling operators:
-    Sparse& operator*=(Numeric x);
-    Sparse& operator/=(Numeric x);
+  // Scaling operators:
+  Sparse& operator*=(Numeric x);
+  Sparse& operator/=(Numeric x);
 
-    // Conversion to Dense Matrix:
-    operator Matrix() const;
+  // Conversion to Dense Matrix:
+  operator Matrix() const;
 
-    // Matrix data access
-    void list_elements( Vector &values,
-                        ArrayOfIndex &row_indices,
-                        ArrayOfIndex &column_indices ) const;
+  // Matrix data access
+  void list_elements(Vector& values,
+                     ArrayOfIndex& row_indices,
+                     ArrayOfIndex& column_indices) const;
 
-    Numeric * get_element_pointer()    {return matrix.valuePtr();}
-    int *   get_column_index_pointer() {return matrix.innerIndexPtr();}
-    int *   get_row_start_pointer()    {return matrix.outerIndexPtr();}
+  Numeric* get_element_pointer() { return matrix.valuePtr(); }
+  int* get_column_index_pointer() { return matrix.innerIndexPtr(); }
+  int* get_row_start_pointer() { return matrix.outerIndexPtr(); }
 
-    // Friends:
-    friend std::ostream& operator<<(std::ostream& os, const Sparse& v);
-    friend void abs (Sparse& A, const Sparse& B );
-    friend void mult (VectorView y, const Sparse& M, ConstVectorView x );
-    friend void transpose_mult (VectorView y, const Sparse &M, ConstVectorView x );
-    friend void mult (MatrixView A, const Sparse& B, const ConstMatrixView& C );
-    friend void mult (MatrixView A, const ConstMatrixView& B, const Sparse& C );
-    friend void mult (Sparse& A, const Sparse& B, const Sparse& C );
-    friend void add (Sparse& A, const Sparse& B, const Sparse& C );
-    friend void sub (Sparse& A, const Sparse& B, const Sparse& C );
-    friend void transpose (Sparse& A, const Sparse& B );
-    friend void id_mat( Sparse& A );
+  // Friends:
+  friend std::ostream& operator<<(std::ostream& os, const Sparse& v);
+  friend void abs(Sparse& A, const Sparse& B);
+  friend void mult(VectorView y, const Sparse& M, ConstVectorView x);
+  friend void transpose_mult(VectorView y, const Sparse& M, ConstVectorView x);
+  friend void mult(MatrixView A, const Sparse& B, const ConstMatrixView& C);
+  friend void mult(MatrixView A, const ConstMatrixView& B, const Sparse& C);
+  friend void mult(Sparse& A, const Sparse& B, const Sparse& C);
+  friend void add(Sparse& A, const Sparse& B, const Sparse& C);
+  friend void sub(Sparse& A, const Sparse& B, const Sparse& C);
+  friend void transpose(Sparse& A, const Sparse& B);
+  friend void id_mat(Sparse& A);
 
-private:
-
-    //! The actual matrix.
-    Eigen::SparseMatrix<Numeric, Eigen::RowMajor> matrix;
-
+ private:
+  //! The actual matrix.
+  Eigen::SparseMatrix<Numeric, Eigen::RowMajor> matrix;
 };
 
 // Functions for general matrix operations
-void abs(       Sparse& A,
-          const Sparse& B );
+void abs(Sparse& A, const Sparse& B);
 
-void mult( VectorView y,
-           const Sparse& M,
-           ConstVectorView x );
+void mult(VectorView y, const Sparse& M, ConstVectorView x);
 
-void transpose_mult(VectorView y,
-                    const Sparse &M,
-                    ConstVectorView x);
+void transpose_mult(VectorView y, const Sparse& M, ConstVectorView x);
 
-void mult( MatrixView A,
-           const Sparse& B,
-           const ConstMatrixView& C );
+void mult(MatrixView A, const Sparse& B, const ConstMatrixView& C);
 
-void mult( MatrixView A,
-           const ConstMatrixView& B,
-           const Sparse& C );
+void mult(MatrixView A, const ConstMatrixView& B, const Sparse& C);
 
-void mult( Sparse& A,
-           const Sparse& B,
-           const Sparse& C );
+void mult(Sparse& A, const Sparse& B, const Sparse& C);
 
-void add( Sparse& A,
-          const Sparse& B,
-          const Sparse& C );
+void add(Sparse& A, const Sparse& B, const Sparse& C);
 
-void sub( Sparse& A,
-          const Sparse& B,
-          const Sparse& C );
+void sub(Sparse& A, const Sparse& B, const Sparse& C);
 
-void transpose( Sparse& A,
-                const Sparse& B );
+void transpose(Sparse& A, const Sparse& B);
 
-void id_mat( Sparse& A );
+void id_mat(Sparse& A);
 
 #endif

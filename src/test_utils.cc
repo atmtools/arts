@@ -21,10 +21,10 @@
   \date   Sun May  3 21:56:19 2015
 */
 
-#include "arts.h"
-#include <cmath>
-#include "lin_alg.h"
 #include "test_utils.h"
+#include <cmath>
+#include "arts.h"
+#include "lin_alg.h"
 #include "matpackII.h"
 
 using std::abs;
@@ -35,16 +35,12 @@ using std::abs;
   \param[in,out] v The vector to add the noise to.
   \param[in] scale Range for the generated noise given by [0,scale].
 */
-void add_noise( VectorView v,
-                Numeric scale )
-{
-    Rand<Numeric> rand( 0, scale );
+void add_noise(VectorView v, Numeric scale) {
+  Rand<Numeric> rand(0, scale);
 
-    for ( Index i = 0; i < v.nelem(); i++ )
-    {
-        v[i]+= rand();
-    }
-
+  for (Index i = 0; i < v.nelem(); i++) {
+    v[i] += rand();
+  }
 }
 
 //! Fill matrix with random values.
@@ -60,43 +56,29 @@ is set to false.
                   [0,range], otherwise the values are taken from the interval
                   [-range, range].
 */
-void random_fill_matrix( MatrixView A,
-                         Numeric range,
-                         bool positive )
-{
-    Index m = A.nrows();
-    Index n = A.ncols();
+void random_fill_matrix(MatrixView A, Numeric range, bool positive) {
+  Index m = A.nrows();
+  Index n = A.ncols();
 
-    Rand<Numeric> rand( positive ? 0 : - range , range );
+  Rand<Numeric> rand(positive ? 0 : -range, range);
 
-    for (Index i = 0; i<m; i++)
-    {
-        for (Index j = 0; j<n; j++)
-        {
-
-            A( i, j ) = (Numeric) rand();
-
-        }
+  for (Index i = 0; i < m; i++) {
+    for (Index j = 0; j < n; j++) {
+      A(i, j) = (Numeric)rand();
     }
+  }
 }
-void random_fill_matrix( ComplexMatrixView A,
-                         Numeric range,
-                         bool positive )
-{
-    Index m = A.nrows();
-    Index n = A.ncols();
-    
-    Rand<Numeric> rand( positive ? 0 : - range , range );
-    
-    for (Index i = 0; i<m; i++)
-    {
-        for (Index j = 0; j<n; j++)
-        {
-            
-            A( i, j ) = Complex( (Numeric) rand(), (Numeric) rand() );
-            
-        }
+void random_fill_matrix(ComplexMatrixView A, Numeric range, bool positive) {
+  Index m = A.nrows();
+  Index n = A.ncols();
+
+  Rand<Numeric> rand(positive ? 0 : -range, range);
+
+  for (Index i = 0; i < m; i++) {
+    for (Index j = 0; j < n; j++) {
+      A(i, j) = Complex((Numeric)rand(), (Numeric)rand());
     }
+  }
 }
 
 //! Generate random sparse matrix
@@ -111,25 +93,21 @@ void random_fill_matrix( ComplexMatrixView A,
   [-range, range]
   \param[in] positive See above.
 */
-void random_fill_matrix( Sparse& A,
-                         Numeric range,
-                         bool positive )
-{
-    Index m = A.nrows();
-    Index n = A.ncols();
+void random_fill_matrix(Sparse& A, Numeric range, bool positive) {
+  Index m = A.nrows();
+  Index n = A.ncols();
 
-    Rand<Numeric> random_number( positive ? 0 : - range , range );
+  Rand<Numeric> random_number(positive ? 0 : -range, range);
 
-    Index nelem = max( m, n );
+  Index nelem = max(m, n);
 
-    for (Index i = 0; i < nelem; i++)
-    {
-        Index m1, n1;
-        m1 = rand() % m;
-        n1 = rand() % n;
+  for (Index i = 0; i < nelem; i++) {
+    Index m1, n1;
+    m1 = rand() % m;
+    n1 = rand() % n;
 
-        A.rw( m1, n1 ) = random_number();
-    }
+    A.rw(m1, n1) = random_number();
+  }
 }
 
 //! Generate identical, random sparse and dense matrices.
@@ -145,30 +123,25 @@ void random_fill_matrix( Sparse& A,
   [-range, range]
   \param[in] positive See above.
 */
-void random_fill_matrix( Matrix& A,
-                         Sparse& B,
-                         Numeric range,
-                         bool positive )
-{
-    Index m = A.nrows();
-    Index n = A.ncols();
+void random_fill_matrix(Matrix& A, Sparse& B, Numeric range, bool positive) {
+  Index m = A.nrows();
+  Index n = A.ncols();
 
-    assert( B.nrows() == m );
-    assert( B.ncols() == n );
+  assert(B.nrows() == m);
+  assert(B.ncols() == n);
 
-    Rand<Numeric> random_number( positive ? 0 : - range , range );
+  Rand<Numeric> random_number(positive ? 0 : -range, range);
 
-    Index nelem = max( m, n );
+  Index nelem = max(m, n);
 
-    for (Index i = 0; i < nelem; i++)
-    {
-        Index m1, n1;
-        m1 = rand() % m;
-        n1 = rand() % n;
+  for (Index i = 0; i < nelem; i++) {
+    Index m1, n1;
+    m1 = rand() % m;
+    n1 = rand() % n;
 
-        A( m1, n1 ) = random_number();
-        B.rw( m1, n1 ) = A( m1, n1 );
-    }
+    A(m1, n1) = random_number();
+    B.rw(m1, n1) = A(m1, n1);
+  }
 }
 
 //! Generate random, symmetric matrix.
@@ -180,21 +153,17 @@ void random_fill_matrix( Matrix& A,
   [-range, range]
   \param[in] positive See above.
 */
-void random_fill_matrix_symmetric( MatrixView A,
-                                   Numeric range,
-                                   bool positive )
-{
-    random_fill_matrix( A, range, positive);
-    Matrix M( A );
-    A += transpose( M );
+void random_fill_matrix_symmetric(MatrixView A, Numeric range, bool positive) {
+  random_fill_matrix(A, range, positive);
+  Matrix M(A);
+  A += transpose(M);
 }
-void random_fill_matrix_symmetric( ComplexMatrixView A,
-                                   Numeric range,
-                                   bool positive )
-{
-    random_fill_matrix( A, range, positive);
-    ComplexMatrix M( A );
-    A += transpose( M );
+void random_fill_matrix_symmetric(ComplexMatrixView A,
+                                  Numeric range,
+                                  bool positive) {
+  random_fill_matrix(A, range, positive);
+  ComplexMatrix M(A);
+  A += transpose(M);
 }
 
 //! Generate random, positive definite matrix.
@@ -209,25 +178,21 @@ void random_fill_matrix_symmetric( ComplexMatrixView A,
   the are taken from the range [-range, range].
   \param[in] positive See above.
 */
-void random_fill_matrix_pos_def( MatrixView A,
-                                 Numeric range,
-                                 bool positive )
-{
-    Index n = A.ncols();
+void random_fill_matrix_pos_def(MatrixView A, Numeric range, bool positive) {
+  Index n = A.ncols();
 
-    // Ensure that A is square.
-    assert( A.ncols() == A.nrows() );
+  // Ensure that A is square.
+  assert(A.ncols() == A.nrows());
 
-    // Generate random, pos. semi-def. Matrix
-    random_fill_matrix( A, range, positive);
-    Matrix M( A );
-    mult( A, M, transpose(M) );
+  // Generate random, pos. semi-def. Matrix
+  random_fill_matrix(A, range, positive);
+  Matrix M(A);
+  mult(A, M, transpose(M));
 
-    // Add identity matrix.
-    for (Index i = 0; i < n; i++)
-    {
-        A(i,i) += 1.0;
-    }
+  // Add identity matrix.
+  for (Index i = 0; i < n; i++) {
+    A(i, i) += 1.0;
+  }
 }
 
 //! Generate random, positive semi-definite matrix.
@@ -242,13 +207,12 @@ void random_fill_matrix_pos_def( MatrixView A,
   the are taken from the range [-range, range].
   \param[in] positive See above.
 */
-void random_fill_matrix_pos_semi_def( MatrixView A,
-                                      Numeric range,
-                                      bool positive )
-{
-    random_fill_matrix( A, range, positive);
-    Matrix M( A );
-    mult( A, M, transpose(M) );
+void random_fill_matrix_pos_semi_def(MatrixView A,
+                                     Numeric range,
+                                     bool positive) {
+  random_fill_matrix(A, range, positive);
+  Matrix M(A);
+  mult(A, M, transpose(M));
 }
 
 //! Fill vector with random values.
@@ -263,19 +227,14 @@ void random_fill_matrix_pos_semi_def( MatrixView A,
   \param[in] positive If true, the values are taken from the interval [0, range],
                       otherwise from the range [-range, range].
 */
-void random_fill_vector( VectorView v,
-                         Numeric range,
-                         bool positive )
-{
+void random_fill_vector(VectorView v, Numeric range, bool positive) {
+  Index n = v.nelem();
 
-    Index n = v.nelem();
+  Rand<Numeric> rand(positive ? 0 : -range, range);
 
-    Rand<Numeric> rand( positive ? 0 : - range , range );
-
-    for (Index i = 0; i < n; i++)
-    {
-        v[i] = rand();
-    }
+  for (Index i = 0; i < n; i++) {
+    v[i] = rand();
+  }
 }
 
 //! Pick random random submatrix of size m times n.
@@ -289,21 +248,18 @@ void random_fill_vector( VectorView v,
 
   \return ConstMatrixView corresponding to a randomly chosen m-by-n submatrix.
 */
-MatrixView random_submatrix( MatrixView A,
-                             int m,
-                             int n )
-{
-    Index m0( A.nrows() ), n0( A.ncols() );
-    assert( (0 <= m) && (m <= m0) );
-    assert( (0 <= n) && (m <= n0) );
+MatrixView random_submatrix(MatrixView A, int m, int n) {
+  Index m0(A.nrows()), n0(A.ncols());
+  assert((0 <= m) && (m <= m0));
+  assert((0 <= n) && (m <= n0));
 
-    Rand<Index> rand_m( 0, (m0 - m - 1) ), rand_n( 0, (n0 - n - 1) );
-    Index m1, n1;
-    m1 = rand_m();
-    n1 = rand_n();
+  Rand<Index> rand_m(0, (m0 - m - 1)), rand_n(0, (n0 - n - 1));
+  Index m1, n1;
+  m1 = rand_m();
+  n1 = rand_n();
 
-    Range r1( m1, m ), r2( n1, n );
-    return A( r1, r2 );
+  Range r1(m1, m), r2(n1, n);
+  return A(r1, r2);
 }
 
 //! Generate random sub-range of the range [0, n-1].
@@ -314,18 +270,16 @@ MatrixView random_submatrix( MatrixView A,
   \param n The range [0, n-1] to pick the sub-range from.
   \return Random sub-range.
 */
-Range random_range( Index n )
-{
-    Rand<Index> extent( 1, n );
-    Index e = extent();
+Range random_range(Index n) {
+  Rand<Index> extent(1, n);
+  Index e = extent();
 
-    Index s = 0;
-    if ( 0 <= (n - e - 1) )
-    {
-        Rand<Index> start( 0, n - e - 1 );
-        s = start();
-    }
-    return Range( s, e );
+  Index s = 0;
+  if (0 <= (n - e - 1)) {
+    Rand<Index> start(0, n - e - 1);
+    s = start();
+  }
+  return Range(s, e);
 }
 
 //! Maximum element-wise error of two vectors.
@@ -340,40 +294,30 @@ Range random_range( Index n )
 
   \return The maximum relative or absolute element-wise error.
 */
-Numeric get_maximum_error( ConstVectorView v1,
-                           ConstVectorView v2,
-                           bool relative )
-{
+Numeric get_maximum_error(ConstVectorView v1,
+                          ConstVectorView v2,
+                          bool relative) {
+  Index n = min(v1.nelem(), v2.nelem());
 
-    Index n = min( v1.nelem(), v2.nelem() );
+  Numeric max = 0.0, err = 0.0;
 
-    Numeric max = 0.0, err = 0.0;
+  for (Index i = 0; i < n; i++) {
+    err = 0.0;
 
-    for ( Index i = 0; i < n; i++ )
-    {
+    if (relative) {
+      if (v2[i] != 0.0) {
+        err = abs((v2[i] - v1[i]) / v2[i]);
+      }
 
-        err = 0.0;
-
-        if ( relative )
-        {
-
-            if ( v2[i] != 0.0 )
-            {
-                err = abs( ( v2[i] - v1[i] ) / v2[i] );
-            }
-
-        } else {
-
-            err = abs( v2[i] - v2[i] );
-
-        }
-
-        if (err > max)
-        {
-            max = err;
-        }
+    } else {
+      err = abs(v2[i] - v2[i]);
     }
-    return err;
+
+    if (err > max) {
+      max = err;
+    }
+  }
+  return err;
 }
 
 //! Maximum element-wise error of two matrices.
@@ -388,81 +332,61 @@ Numeric get_maximum_error( ConstVectorView v1,
 
   \return The maximum relative or absolute element-wise error.
 */
-Numeric get_maximum_error( ConstMatrixView A1,
-                           ConstMatrixView A2,
-                           bool relative )
-{
+Numeric get_maximum_error(ConstMatrixView A1,
+                          ConstMatrixView A2,
+                          bool relative) {
+  Index m = min(A1.nrows(), A2.nrows());
+  Index n = min(A1.ncols(), A2.ncols());
 
-    Index m = min( A1.nrows(), A2.nrows() );
-    Index n = min( A1.ncols(), A2.ncols() );
+  Numeric max = 0.0, err = 0.0;
 
-    Numeric max = 0.0, err = 0.0;
+  for (Index i = 0; i < m; i++) {
+    for (Index j = 0; j < n; j++) {
+      err = 0.0;
 
-    for ( Index i = 0; i < m; i++ )
-    {
-
-        for ( Index j = 0; j < n; j++ )
-        {
-
-            err = 0.0;
-
-            if ( relative )
-            {
-
-                if ( A2(i,j) != 0.0 )
-                {
-                    err = abs( ( A2(i,j) - A1(i,j) ) / A2(i,j) );
-                }
-
-            } else {
-                err = A2(i, j) - A1(i, j);
-            }
-
-            if (err > max)
-            {
-                max = err;
-            }
+      if (relative) {
+        if (A2(i, j) != 0.0) {
+          err = abs((A2(i, j) - A1(i, j)) / A2(i, j));
         }
-    }
 
-    return max;
+      } else {
+        err = A2(i, j) - A1(i, j);
+      }
+
+      if (err > max) {
+        max = err;
+      }
+    }
+  }
+
+  return max;
 }
-Numeric get_maximum_error( ConstComplexMatrixView A1,
-                           ConstComplexMatrixView A2,
-                           bool relative )
-{
-    
-    Index m = min( A1.nrows(), A2.nrows() );
-    Index n = min( A1.ncols(), A2.ncols() );
-    
-    Numeric max = 0.0, err = 0.0;
-    
-    for ( Index i = 0; i < m; i++ )
-    {
-        
-        for ( Index j = 0; j < n; j++ )
-        {
-            
-            err = 0.0;
-            
-            if ( relative )
-            {
-                
-                if ( A2(i,j).real() != 0.0 && A2(i,j).imag() != 0.0 )
-                {
-                    err = abs( ( A2(i,j) - A1(i,j) ) / A2(i,j) );
-                }
-                
-            } else {
-                err = abs(A2(i, j) - A1(i, j));
-            }
-            
-            if (err > max)
-            {
-                max = err;
-            }
+Numeric get_maximum_error(ConstComplexMatrixView A1,
+                          ConstComplexMatrixView A2,
+                          bool relative) {
+  Index m = min(A1.nrows(), A2.nrows());
+  Index n = min(A1.ncols(), A2.ncols());
+
+  Numeric max = 0.0, err = 0.0;
+
+  for (Index i = 0; i < m; i++) {
+    for (Index j = 0; j < n; j++) {
+      err = 0.0;
+
+      if (relative) {
+        if (A2(i, j).real() != 0.0 && A2(i, j).imag() != 0.0) {
+          err = abs((A2(i, j) - A1(i, j)) / A2(i, j));
         }
+
+      } else {
+        err = abs(A2(i, j) - A1(i, j));
+      }
+
+      if (err > max) {
+        max = err;
+      }
     }
-    
-    return max;
+  }
+
+  return max;
 }

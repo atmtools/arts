@@ -27,7 +27,6 @@
 
 using std::runtime_error;
 
-
 // Functions for ConstTensor3View:
 // ------------------------------
 
@@ -36,146 +35,126 @@ using std::runtime_error;
  \param[in]  x The variable to check.
  \return True if the size of any dimension of x is 0.
  */
-bool ConstTensor3View::empty() const
-{
-    return (npages() == 0 || nrows() == 0 || ncols() == 0);
+bool ConstTensor3View::empty() const {
+  return (npages() == 0 || nrows() == 0 || ncols() == 0);
 }
 
 /** Const index operator for subrange. We have to also account for the
     case, that *this is already a subrange of a Tensor3. This allows
     correct recursive behavior.  */
 ConstTensor3View ConstTensor3View::operator()(const Range& p,
-                                                     const Range& r,
-                                                     const Range& c) const
-{
+                                              const Range& r,
+                                              const Range& c) const {
   return ConstTensor3View(mdata, mpr, mrr, mcr, p, r, c);
 }
 
 /** Const index operator returning an object of type
     ConstMatrixView. (Reducing the dimension by one.) */
 ConstMatrixView ConstTensor3View::operator()(const Range& p,
-                                                    const Range& r,
-                                                    Index c) const
-{
+                                             const Range& r,
+                                             Index c) const {
   // Check that c is valid:
-  assert( 0 <= c );
-  assert( c < mcr.mextent );
+  assert(0 <= c);
+  assert(c < mcr.mextent);
 
-  return ConstMatrixView(mdata + mcr.mstart + c*mcr.mstride,
-                         mpr, mrr, 
-                         p,   r);
+  return ConstMatrixView(mdata + mcr.mstart + c * mcr.mstride, mpr, mrr, p, r);
 }
 
 /** Const index operator returning an object of type
     ConstMatrixView. (Reducing the dimension by one.) */
 ConstMatrixView ConstTensor3View::operator()(const Range& p,
-                                                    Index        r,
-                                                    const Range& c) const
-{
+                                             Index r,
+                                             const Range& c) const {
   // Check that r is valid:
-  assert( 0 <= r );
-  assert( r < mrr.mextent );
+  assert(0 <= r);
+  assert(r < mrr.mextent);
 
-  return ConstMatrixView(mdata + mrr.mstart + r*mrr.mstride,
-                         mpr, mcr, 
-                         p,   c);
+  return ConstMatrixView(mdata + mrr.mstart + r * mrr.mstride, mpr, mcr, p, c);
 }
 
 /** Const index operator returning an object of type
     ConstMatrixView. (Reducing the dimension by one.) */
 ConstMatrixView ConstTensor3View::operator()(Index p,
-                                                    const Range& r,
-                                                    const Range& c) const
-{
+                                             const Range& r,
+                                             const Range& c) const {
   // Check that p is valid:
-  assert( 0 <= p );
-  assert( p < mpr.mextent );
+  assert(0 <= p);
+  assert(p < mpr.mextent);
 
-  return ConstMatrixView(mdata + mpr.mstart + p*mpr.mstride,
-                         mrr, mcr, 
-                         r,   c);
+  return ConstMatrixView(mdata + mpr.mstart + p * mpr.mstride, mrr, mcr, r, c);
 }
 
 /** Const index operator returning an object of type
     ConstVectorView. (Reducing the dimension by two.) */
 ConstVectorView ConstTensor3View::operator()(Index p,
-                                                    Index r,
-                                                    const Range& c) const
-{
+                                             Index r,
+                                             const Range& c) const {
   // Check that p and r are valid:
-  assert( 0 <= p );
-  assert( 0 <= r );
-  assert( p < mpr.mextent );
-  assert( r < mrr.mextent );
+  assert(0 <= p);
+  assert(0 <= r);
+  assert(p < mpr.mextent);
+  assert(r < mrr.mextent);
 
-  return ConstVectorView(mdata +
-                         mpr.mstart + p*mpr.mstride +
-                         mrr.mstart + r*mrr.mstride,
-                         mcr, c);
+  return ConstVectorView(
+      mdata + mpr.mstart + p * mpr.mstride + mrr.mstart + r * mrr.mstride,
+      mcr,
+      c);
 }
 
 /** Const index operator returning an object of type
     ConstVectorView. (Reducing the dimension by two.) */
 ConstVectorView ConstTensor3View::operator()(Index p,
-                                                    const Range& r,
-                                                    Index c) const
-{
+                                             const Range& r,
+                                             Index c) const {
   // Check that p and c are valid:
-  assert( 0 <= p );
-  assert( 0 <= c );
-  assert( p < mpr.mextent );
-  assert( c < mcr.mextent );
+  assert(0 <= p);
+  assert(0 <= c);
+  assert(p < mpr.mextent);
+  assert(c < mcr.mextent);
 
-  return ConstVectorView(mdata +
-                         mpr.mstart + p*mpr.mstride +
-                         mcr.mstart + c*mcr.mstride,
-                         mrr, r);
+  return ConstVectorView(
+      mdata + mpr.mstart + p * mpr.mstride + mcr.mstart + c * mcr.mstride,
+      mrr,
+      r);
 }
 
 /** Const index operator returning an object of type
     ConstVectorView. (Reducing the dimension by two.) */
 ConstVectorView ConstTensor3View::operator()(const Range& p,
-                                                    Index r,
-                                                    Index c) const
-{
+                                             Index r,
+                                             Index c) const {
   // Check that r and c are valid:
-  assert( 0 <= r );
-  assert( 0 <= c );
-  assert( r < mrr.mextent );
-  assert( c < mcr.mextent );
+  assert(0 <= r);
+  assert(0 <= c);
+  assert(r < mrr.mextent);
+  assert(c < mcr.mextent);
 
-  return ConstVectorView(mdata +
-                         mrr.mstart + r*mrr.mstride +
-                         mcr.mstart + c*mcr.mstride,
-                         mpr, p);
+  return ConstVectorView(
+      mdata + mrr.mstart + r * mrr.mstride + mcr.mstart + c * mcr.mstride,
+      mpr,
+      p);
 }
 
 /** Return const iterator to first page. */
-ConstIterator3D ConstTensor3View::begin() const
-{
-  return ConstIterator3D(ConstMatrixView(mdata+mpr.mstart,
-                                         mrr,
-                                         mcr),
+ConstIterator3D ConstTensor3View::begin() const {
+  return ConstIterator3D(ConstMatrixView(mdata + mpr.mstart, mrr, mcr),
                          mpr.mstride);
 }
 
 /** Return const iterator behind last page. */
-ConstIterator3D ConstTensor3View::end() const
-{
-  return ConstIterator3D( ConstMatrixView(mdata + mpr.mstart +
-                                          (mpr.mextent)*mpr.mstride,
-                                          mrr,
-                                          mcr),
-                          mpr.mstride );
+ConstIterator3D ConstTensor3View::end() const {
+  return ConstIterator3D(
+      ConstMatrixView(
+          mdata + mpr.mstart + (mpr.mextent) * mpr.mstride, mrr, mcr),
+      mpr.mstride);
 }
 
 /** Special constructor to make a Tensor3 view of a matrix. */
-ConstTensor3View::ConstTensor3View(const ConstMatrixView& a) :
-  mpr(0,1,a.mrr.mextent*a.mcr.mextent),
-  mrr(a.mrr),
-  mcr(a.mcr),
-  mdata(a.mdata) 
-{
+ConstTensor3View::ConstTensor3View(const ConstMatrixView& a)
+    : mpr(0, 1, a.mrr.mextent * a.mcr.mextent),
+      mrr(a.mrr),
+      mcr(a.mcr),
+      mdata(a.mdata) {
   // Nothing to do here.
 }
 
@@ -183,15 +162,11 @@ ConstTensor3View::ConstTensor3View(const ConstMatrixView& a) :
     its own Tensor3View part. The row range rr must have a stride to
     account for the length of one row. The page range pr must have a
     stride to account for the length of one page. */
-ConstTensor3View::ConstTensor3View(Numeric *data,
-                                          const Range& pr,
-                                          const Range& rr,
-                                          const Range& cr) :
-  mpr(pr),
-  mrr(rr),
-  mcr(cr),
-  mdata(data)
-{
+ConstTensor3View::ConstTensor3View(Numeric* data,
+                                   const Range& pr,
+                                   const Range& rr,
+                                   const Range& cr)
+    : mpr(pr), mrr(rr), mcr(cr), mdata(data) {
   // Nothing to do here.
 }
 
@@ -202,45 +177,37 @@ ConstTensor3View::ConstTensor3View(Numeric *data,
     The new ranges may contain -1 for the extent which acts as a
     joker. However, the used Range constructor converts this to an
     explicit range, consistent with the original Range. */
-ConstTensor3View::ConstTensor3View(Numeric *data,
-                                          const Range& pp,
-                                          const Range& pr,
-                                          const Range& pc,
-                                          const Range& np,
-                                          const Range& nr,
-                                          const Range& nc) :
-  mpr(pp,np),
-  mrr(pr,nr),
-  mcr(pc,nc),
-  mdata(data)
-{
+ConstTensor3View::ConstTensor3View(Numeric* data,
+                                   const Range& pp,
+                                   const Range& pr,
+                                   const Range& pc,
+                                   const Range& np,
+                                   const Range& nr,
+                                   const Range& nc)
+    : mpr(pp, np), mrr(pr, nr), mcr(pc, nc), mdata(data) {
   // Nothing to do here.
 }
 
 /** Output operator. This demonstrates how iterators can be used to
     traverse the tensor. We use the standard output operator for
     Matrix to print each page in turn. */
-std::ostream& operator<<(std::ostream& os, const ConstTensor3View& v)
-{
+std::ostream& operator<<(std::ostream& os, const ConstTensor3View& v) {
   // Page iterators:
-  ConstIterator3D ip=v.begin();
-  const ConstIterator3D end_page=v.end();
+  ConstIterator3D ip = v.begin();
+  const ConstIterator3D end_page = v.end();
 
-  if ( ip!=end_page )
-    {
-      os << *ip;
-      ++ip;
-    }
+  if (ip != end_page) {
+    os << *ip;
+    ++ip;
+  }
 
-  for ( ; ip!=end_page; ++ip )
-    {
-      os << "\n\n";
-      os << *ip;
-    }
+  for (; ip != end_page; ++ip) {
+    os << "\n\n";
+    os << *ip;
+  }
 
   return os;
 }
-
 
 // Functions for Tensor3View:
 // -------------------------
@@ -249,109 +216,84 @@ std::ostream& operator<<(std::ostream& os, const ConstTensor3View& v)
     case, that *this is already a subrange of a Tensor3. This allows
     correct recursive behavior.  */
 Tensor3View Tensor3View::operator()(const Range& p,
-                                           const Range& r,
-                                           const Range& c) 
-{
+                                    const Range& r,
+                                    const Range& c) {
   return Tensor3View(mdata, mpr, mrr, mcr, p, r, c);
 }
 
 /** Index operator returning an object of type
     MatrixView. (Reducing the dimension by one.) */
-MatrixView Tensor3View::operator()(const Range& p,
-                                          const Range& r,
-                                          Index c)
-{
+MatrixView Tensor3View::operator()(const Range& p, const Range& r, Index c) {
   // Check that c is valid:
-  assert( 0 <= c );
-  assert( c < mcr.mextent );
+  assert(0 <= c);
+  assert(c < mcr.mextent);
 
-  return MatrixView(mdata + mcr.mstart + c*mcr.mstride,
-                    mpr, mrr, 
-                    p,   r);
+  return MatrixView(mdata + mcr.mstart + c * mcr.mstride, mpr, mrr, p, r);
 }
 
 /** Index operator returning an object of type
     MatrixView. (Reducing the dimension by one.) */
-MatrixView Tensor3View::operator()(const Range& p,
-                                          Index        r,
-                                          const Range& c) 
-{
+MatrixView Tensor3View::operator()(const Range& p, Index r, const Range& c) {
   // Check that r is valid:
-  assert( 0 <= r );
-  assert( r < mrr.mextent );
+  assert(0 <= r);
+  assert(r < mrr.mextent);
 
-  return MatrixView(mdata + mrr.mstart + r*mrr.mstride,
-                    mpr, mcr, 
-                    p,   c);
+  return MatrixView(mdata + mrr.mstart + r * mrr.mstride, mpr, mcr, p, c);
 }
 
 /** Index operator returning an object of type
     MatrixView. (Reducing the dimension by one.) */
-MatrixView Tensor3View::operator()(Index p,
-                                          const Range& r,
-                                          const Range& c) 
-{
+MatrixView Tensor3View::operator()(Index p, const Range& r, const Range& c) {
   // Check that p is valid:
-  assert( 0 <= p );
-  assert( p < mpr.mextent );
+  assert(0 <= p);
+  assert(p < mpr.mextent);
 
-  return MatrixView(mdata + mpr.mstart + p*mpr.mstride,
-                    mrr, mcr, 
-                    r,   c);
+  return MatrixView(mdata + mpr.mstart + p * mpr.mstride, mrr, mcr, r, c);
 }
 
 /** Index operator returning an object of type
     VectorView. (Reducing the dimension by two.) */
-VectorView Tensor3View::operator()(Index p,
-                                          Index r,
-                                          const Range& c) 
-{
+VectorView Tensor3View::operator()(Index p, Index r, const Range& c) {
   // Check that p and r are valid:
-  assert( 0 <= p );
-  assert( 0 <= r );
-  assert( p < mpr.mextent );
-  assert( r < mrr.mextent );
+  assert(0 <= p);
+  assert(0 <= r);
+  assert(p < mpr.mextent);
+  assert(r < mrr.mextent);
 
-  return VectorView(mdata +
-                    mpr.mstart + p*mpr.mstride +
-                    mrr.mstart + r*mrr.mstride,
-                    mcr, c);
+  return VectorView(
+      mdata + mpr.mstart + p * mpr.mstride + mrr.mstart + r * mrr.mstride,
+      mcr,
+      c);
 }
 
 /** Index operator returning an object of type
     VectorView. (Reducing the dimension by two.) */
-VectorView Tensor3View::operator()(Index p,
-                                          const Range& r,
-                                          Index c) 
-{
+VectorView Tensor3View::operator()(Index p, const Range& r, Index c) {
   // Check that p and c are valid:
-  assert( 0 <= p );
-  assert( 0 <= c );
-  assert( p < mpr.mextent );
-  assert( c < mcr.mextent );
+  assert(0 <= p);
+  assert(0 <= c);
+  assert(p < mpr.mextent);
+  assert(c < mcr.mextent);
 
-  return VectorView(mdata +
-                    mpr.mstart + p*mpr.mstride +
-                    mcr.mstart + c*mcr.mstride,
-                    mrr, r);
+  return VectorView(
+      mdata + mpr.mstart + p * mpr.mstride + mcr.mstart + c * mcr.mstride,
+      mrr,
+      r);
 }
 
 /** Index operator returning an object of type
     VectorView. (Reducing the dimension by two.) */
-VectorView Tensor3View::operator()(const Range& p,
-                                          Index r,
-                                          Index c)
-{
+VectorView Tensor3View::operator()(const Range& p, Index r, Index c) {
   // Check that r and r are valid:
-  assert( 0 <= r );
-  assert( 0 <= c );
-  assert( r < mrr.mextent );
-  assert( c < mcr.mextent );
+  assert(0 <= r);
+  assert(0 <= c);
+  assert(r < mrr.mextent);
+  assert(c < mcr.mextent);
 
-  return VectorView(mdata +
-                    mrr.mstart + r*mrr.mstride +
-                    mcr.mstart + c*mcr.mstride,
-                    mpr, p);
+  return VectorView(
+      mdata + mrr.mstart + r * mrr.mstride + mcr.mstart + c * mcr.mstride,
+      mpr,
+      p);
 }
 
 /** Conversion to plain C-array.
@@ -360,12 +302,12 @@ VectorView Tensor3View::operator()(const Range& p,
   Tensor3View is not pointing to the beginning of a Tensor3 or the stride
   is not 1 because the caller expects to get a C array with continuous data.
 */
-Numeric *Tensor3View::get_c_array()
-{
-  if (mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent
-      || mrr.mstart != 0 || mrr.mstride != mcr.mextent
-      || mcr.mstart != 0 || mcr.mstride != 1)
-      throw std::runtime_error("A Tensor3View can only be converted to a plain C-array if it's pointing to a continuous block of data");
+Numeric* Tensor3View::get_c_array() {
+  if (mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent ||
+      mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
+      mcr.mstride != 1)
+    throw std::runtime_error(
+        "A Tensor3View can only be converted to a plain C-array if it's pointing to a continuous block of data");
 
   return mdata;
 }
@@ -376,47 +318,39 @@ Numeric *Tensor3View::get_c_array()
   Tensor3View is not pointing to the beginning of a Tensor3 or the stride
   is not 1 because the caller expects to get a C array with continuous data.
 */
-const Numeric *Tensor3View::get_c_array() const
-{
-  if (mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent
-      || mrr.mstart != 0 || mrr.mstride != mcr.mextent
-      || mcr.mstart != 0 || mcr.mstride != 1)
-      throw std::runtime_error("A Tensor3View can only be converted to a plain C-array if it's pointing to a continuous block of data");
+const Numeric* Tensor3View::get_c_array() const {
+  if (mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent ||
+      mrr.mstart != 0 || mrr.mstride != mcr.mextent || mcr.mstart != 0 ||
+      mcr.mstride != 1)
+    throw std::runtime_error(
+        "A Tensor3View can only be converted to a plain C-array if it's pointing to a continuous block of data");
 
   return mdata;
 }
 
 /** Return iterator to first page. */
-Iterator3D Tensor3View::begin()
-{
-  return Iterator3D(MatrixView(mdata+mpr.mstart,
-                               mrr,
-                               mcr),
-                    mpr.mstride);
+Iterator3D Tensor3View::begin() {
+  return Iterator3D(MatrixView(mdata + mpr.mstart, mrr, mcr), mpr.mstride);
 }
 
 /** Return iterator behind last page. */
-Iterator3D Tensor3View::end()
-{
-  return Iterator3D( MatrixView(mdata + mpr.mstart +
-                                (mpr.mextent)*mpr.mstride,
-                                mrr,
-                                mcr),
-                     mpr.mstride );
+Iterator3D Tensor3View::end() {
+  return Iterator3D(
+      MatrixView(mdata + mpr.mstart + (mpr.mextent) * mpr.mstride, mrr, mcr),
+      mpr.mstride);
 }
 
 /** Assignment operator. This copies the data from another Tensor3View
     to this Tensor3View. Dimensions must agree! Resizing would destroy
     the selection that we might have done in this Tensor3View by
     setting its range. */
-Tensor3View& Tensor3View::operator=(const ConstTensor3View& m)
-{
+Tensor3View& Tensor3View::operator=(const ConstTensor3View& m) {
   // Check that sizes are compatible:
-  assert(mpr.mextent==m.mpr.mextent);
-  assert(mrr.mextent==m.mrr.mextent);
-  assert(mcr.mextent==m.mcr.mextent);
+  assert(mpr.mextent == m.mpr.mextent);
+  assert(mrr.mextent == m.mrr.mextent);
+  assert(mcr.mextent == m.mcr.mextent);
 
-  copy( m.begin(), m.end(), begin() );
+  copy(m.begin(), m.end(), begin());
   return *this;
 }
 
@@ -425,174 +359,148 @@ Tensor3View& Tensor3View::operator=(const ConstTensor3View& m)
     ConstTensor3View, a default = operator is generated by the
     compiler, which does not do what we want. So we need this one to
     override the default. */
-Tensor3View& Tensor3View::operator=(const Tensor3View& m)
-{
+Tensor3View& Tensor3View::operator=(const Tensor3View& m) {
   // Check that sizes are compatible:
-  assert(mpr.mextent==m.mpr.mextent);
-  assert(mrr.mextent==m.mrr.mextent);
-  assert(mcr.mextent==m.mcr.mextent);
+  assert(mpr.mextent == m.mpr.mextent);
+  assert(mrr.mextent == m.mrr.mextent);
+  assert(mcr.mextent == m.mcr.mextent);
 
-  copy( m.begin(), m.end(), begin() );
+  copy(m.begin(), m.end(), begin());
   return *this;
 }
 
 /** Assignment from a Tensor3. This must exist to overide the
     automatically generated assignment operators, which don't copy the
     contents! */
-Tensor3View& Tensor3View::operator=(const Tensor3& m)
-{
+Tensor3View& Tensor3View::operator=(const Tensor3& m) {
   // Check that sizes are compatible:
-  assert(mpr.mextent==m.mpr.mextent);
-  assert(mrr.mextent==m.mrr.mextent);
-  assert(mcr.mextent==m.mcr.mextent);
+  assert(mpr.mextent == m.mpr.mextent);
+  assert(mrr.mextent == m.mrr.mextent);
+  assert(mcr.mextent == m.mcr.mextent);
 
-  copy( m.begin(), m.end(), begin() );
+  copy(m.begin(), m.end(), begin());
   return *this;
 }
 
 /** Assigning a scalar to a Tensor3View will set all elements to this
     value. */
-Tensor3View& Tensor3View::operator=(Numeric x)
-{
-  copy( x, begin(), end() );
+Tensor3View& Tensor3View::operator=(Numeric x) {
+  copy(x, begin(), end());
   return *this;
 }
 
 // Some little helper functions:
 //------------------------------
 
-Numeric add(Numeric x, Numeric y)
-{
-  return x+y;
-}
+Numeric add(Numeric x, Numeric y) { return x + y; }
 
 /** Multiplication by scalar. */
-Tensor3View& Tensor3View::operator*=(Numeric x)
-{
-  const Iterator3D ep=end();  
-  for ( Iterator3D p=begin(); p!=ep ; ++p )
-  {
+Tensor3View& Tensor3View::operator*=(Numeric x) {
+  const Iterator3D ep = end();
+  for (Iterator3D p = begin(); p != ep; ++p) {
     *p *= x;
   }
   return *this;
 }
 
 /** Division by scalar. */
-Tensor3View& Tensor3View::operator/=(Numeric x)
-{
-  const Iterator3D ep=end();  
-  for ( Iterator3D p=begin(); p!=ep ; ++p )
-  {
+Tensor3View& Tensor3View::operator/=(Numeric x) {
+  const Iterator3D ep = end();
+  for (Iterator3D p = begin(); p != ep; ++p) {
     *p /= x;
   }
   return *this;
 }
 
 /** Addition of scalar. */
-Tensor3View& Tensor3View::operator+=(Numeric x)
-{
-  const Iterator3D ep=end();  
-  for ( Iterator3D p=begin(); p!=ep ; ++p )
-  {
+Tensor3View& Tensor3View::operator+=(Numeric x) {
+  const Iterator3D ep = end();
+  for (Iterator3D p = begin(); p != ep; ++p) {
     *p += x;
   }
   return *this;
 }
 
 /** Subtraction of scalar. */
-Tensor3View& Tensor3View::operator-=(Numeric x)
-{
-  const Iterator3D ep=end();  
-  for ( Iterator3D p=begin(); p!=ep ; ++p )
-  {
+Tensor3View& Tensor3View::operator-=(Numeric x) {
+  const Iterator3D ep = end();
+  for (Iterator3D p = begin(); p != ep; ++p) {
     *p -= x;
   }
   return *this;
 }
 
 /** Element-vise multiplication by another Tensor3. */
-Tensor3View& Tensor3View::operator*=(const ConstTensor3View& x)
-{
-  assert( npages() == x.npages() );
-  assert( nrows()  == x.nrows()  );
-  assert( ncols()  == x.ncols()  );
-  ConstIterator3D  xp = x.begin();
-  Iterator3D        p = begin();
+Tensor3View& Tensor3View::operator*=(const ConstTensor3View& x) {
+  assert(npages() == x.npages());
+  assert(nrows() == x.nrows());
+  assert(ncols() == x.ncols());
+  ConstIterator3D xp = x.begin();
+  Iterator3D p = begin();
   const Iterator3D ep = end();
-  for ( ; p!=ep ; ++p,++xp )
-    {
-      *p *= *xp;
-    }
+  for (; p != ep; ++p, ++xp) {
+    *p *= *xp;
+  }
   return *this;
 }
 
 /** Element-vise division by another Tensor3. */
-Tensor3View& Tensor3View::operator/=(const ConstTensor3View& x)
-{
-  assert( npages() == x.npages() );
-  assert( nrows()  == x.nrows()  );
-  assert( ncols()  == x.ncols()  );
-  ConstIterator3D  xp = x.begin();
-  Iterator3D        p = begin();
+Tensor3View& Tensor3View::operator/=(const ConstTensor3View& x) {
+  assert(npages() == x.npages());
+  assert(nrows() == x.nrows());
+  assert(ncols() == x.ncols());
+  ConstIterator3D xp = x.begin();
+  Iterator3D p = begin();
   const Iterator3D ep = end();
-  for ( ; p!=ep ; ++p,++xp )
-    {
-      *p /= *xp;
-    }
+  for (; p != ep; ++p, ++xp) {
+    *p /= *xp;
+  }
   return *this;
 }
 
 /** Element-vise addition of another Tensor3. */
-Tensor3View& Tensor3View::operator+=(const ConstTensor3View& x)
-{
-  assert( npages() == x.npages() );
-  assert( nrows()  == x.nrows()  );
-  assert( ncols()  == x.ncols()  );
-  ConstIterator3D  xp = x.begin();
-  Iterator3D        p = begin();
+Tensor3View& Tensor3View::operator+=(const ConstTensor3View& x) {
+  assert(npages() == x.npages());
+  assert(nrows() == x.nrows());
+  assert(ncols() == x.ncols());
+  ConstIterator3D xp = x.begin();
+  Iterator3D p = begin();
   const Iterator3D ep = end();
-  for ( ; p!=ep ; ++p,++xp )
-    {
-      *p += *xp;
-    }
+  for (; p != ep; ++p, ++xp) {
+    *p += *xp;
+  }
   return *this;
 }
 
 /** Element-vise subtraction of another Tensor3. */
-Tensor3View& Tensor3View::operator-=(const ConstTensor3View& x)
-{
-  assert( npages() == x.npages() );
-  assert( nrows()  == x.nrows()  );
-  assert( ncols()  == x.ncols()  );
-  ConstIterator3D  xp = x.begin();
-  Iterator3D        p = begin();
+Tensor3View& Tensor3View::operator-=(const ConstTensor3View& x) {
+  assert(npages() == x.npages());
+  assert(nrows() == x.nrows());
+  assert(ncols() == x.ncols());
+  ConstIterator3D xp = x.begin();
+  Iterator3D p = begin();
   const Iterator3D ep = end();
-  for ( ; p!=ep ; ++p,++xp )
-    {
-      *p -= *xp;
-    }
+  for (; p != ep; ++p, ++xp) {
+    *p -= *xp;
+  }
   return *this;
 }
 
 /** Special constructor to make a Tensor3 view of a matrix. */
-Tensor3View::Tensor3View(const MatrixView& a) :
-  ConstTensor3View( a.mdata,
-                    Range(0,1,a.mrr.mextent*a.mcr.mextent),
-                    a.mrr,
-                    a.mcr )
-{
+Tensor3View::Tensor3View(const MatrixView& a)
+    : ConstTensor3View(
+          a.mdata, Range(0, 1, a.mrr.mextent * a.mcr.mextent), a.mrr, a.mcr) {
   // Nothing to do here.
 }
 
 /** Explicit constructor. This one is used by Tensor3 to initialize its
     own Tensor3View part. The row range rr must have a
     stride to account for the length of one row. */
-Tensor3View::Tensor3View(Numeric *data,
-                                const Range& pr,
-                                const Range& rr,
-                                const Range& cr) :
-  ConstTensor3View(data, pr, rr, cr)
-{
+Tensor3View::Tensor3View(Numeric* data,
+                         const Range& pr,
+                         const Range& rr,
+                         const Range& cr)
+    : ConstTensor3View(data, pr, rr, cr) {
   // Nothing to do here.
 }
 
@@ -612,15 +520,14 @@ Tensor3View::Tensor3View(Numeric *data,
     \param nr New Range.
     \param nc New Range.
   */
-Tensor3View::Tensor3View(Numeric *data,
-                                const Range& pp,
-                                const Range& pr,
-                                const Range& pc,
-                                const Range& np,
-                                const Range& nr,
-                                const Range& nc) :
-  ConstTensor3View(data,pp,pr,pc,np,nr,nc)
-{
+Tensor3View::Tensor3View(Numeric* data,
+                         const Range& pp,
+                         const Range& pr,
+                         const Range& pc,
+                         const Range& np,
+                         const Range& nr,
+                         const Range& nc)
+    : ConstTensor3View(data, pp, pr, pc, np, nr, nc) {
   // Nothing to do here.
 }
 
@@ -629,84 +536,71 @@ Tensor3View::Tensor3View(Numeric *data,
     different, so that we can copy data between different
     kinds of subtensors. */
 void copy(ConstIterator3D origin,
-                 const ConstIterator3D& end,
-                 Iterator3D target)
-{
-  for ( ; origin!=end ; ++origin,++target )
-    {
-      // We use the copy function for the next smaller rank of tensor
-      // recursively:
-      copy(origin->begin(),
-           origin->end(),
-           target->begin());
-    }
+          const ConstIterator3D& end,
+          Iterator3D target) {
+  for (; origin != end; ++origin, ++target) {
+    // We use the copy function for the next smaller rank of tensor
+    // recursively:
+    copy(origin->begin(), origin->end(), target->begin());
+  }
 }
 
 /** Copy a scalar to all elements. */
-void copy(Numeric x,
-                 Iterator3D target,
-                 const Iterator3D& end)
-{
-  for ( ; target!=end ; ++target )
-    {
-      // We use the copy function for the next smaller rank of tensor
-      // recursively:
-      copy(x,target->begin(),target->end());
-    }
+void copy(Numeric x, Iterator3D target, const Iterator3D& end) {
+  for (; target != end; ++target) {
+    // We use the copy function for the next smaller rank of tensor
+    // recursively:
+    copy(x, target->begin(), target->end());
+  }
 }
-
 
 // Functions for Tensor3:
 // ---------------------
 
 /** Constructor setting size. This constructor has to set the strides
     in the page and row ranges correctly! */
-Tensor3::Tensor3(Index p, Index r, Index c) :
-  Tensor3View( new Numeric[p*r*c],
-             Range(0,p,r*c),
-             Range(0,r,c),
-             Range(0,c))
-{
+Tensor3::Tensor3(Index p, Index r, Index c)
+    : Tensor3View(new Numeric[p * r * c],
+                  Range(0, p, r * c),
+                  Range(0, r, c),
+                  Range(0, c)) {
   // Nothing to do here.
 }
 
 /** Constructor setting size and filling with constant value. */
-Tensor3::Tensor3(Index p, Index r, Index c, Numeric fill) :
-  Tensor3View( new Numeric[p*r*c],
-              Range(0,p,r*c),
-              Range(0,r,c),
-              Range(0,c))
-{
+Tensor3::Tensor3(Index p, Index r, Index c, Numeric fill)
+    : Tensor3View(new Numeric[p * r * c],
+                  Range(0, p, r * c),
+                  Range(0, r, c),
+                  Range(0, c)) {
   // Here we can access the raw memory directly, for slightly
   // increased efficiency:
-  std::fill_n(mdata, p*r*c, fill);
+  std::fill_n(mdata, p * r * c, fill);
 }
 
 /** Copy constructor from Tensor3View. This automatically sets the size
     and copies the data. */
-Tensor3::Tensor3(const ConstTensor3View& m) :
-  Tensor3View( new Numeric[m.npages()*m.nrows()*m.ncols()],
-             Range( 0, m.npages(), m.nrows()*m.ncols() ),
-             Range( 0, m.nrows(), m.ncols() ),
-             Range( 0, m.ncols() ) )
-{
-  copy(m.begin(),m.end(),begin());
+Tensor3::Tensor3(const ConstTensor3View& m)
+    : Tensor3View(new Numeric[m.npages() * m.nrows() * m.ncols()],
+                  Range(0, m.npages(), m.nrows() * m.ncols()),
+                  Range(0, m.nrows(), m.ncols()),
+                  Range(0, m.ncols())) {
+  copy(m.begin(), m.end(), begin());
 }
 
 /** Copy constructor from Tensor3. This automatically sets the size
     and copies the data. */
-Tensor3::Tensor3(const Tensor3& m) :
-  Tensor3View( new Numeric[m.npages()*m.nrows()*m.ncols()],
-             Range( 0, m.npages(), m.nrows()*m.ncols() ),
-             Range( 0, m.nrows(), m.ncols() ),
-             Range( 0, m.ncols() ) )
-{
+Tensor3::Tensor3(const Tensor3& m)
+    : Tensor3View(new Numeric[m.npages() * m.nrows() * m.ncols()],
+                  Range(0, m.npages(), m.nrows() * m.ncols()),
+                  Range(0, m.nrows(), m.ncols()),
+                  Range(0, m.ncols())) {
   // There is a catch here: If m is an empty tensor, then it will have
   // dimensions of size 0. But these are used to initialize the stride
   // for higher dimensions! Thus, this method has to be consistent
   // with the behaviour of Range::Range. For now, Range::Range allows
   // also stride 0.
-  std::memcpy(mdata, m.mdata, npages()*nrows()*ncols()*sizeof(Numeric));
+  std::memcpy(mdata, m.mdata, npages() * nrows() * ncols() * sizeof(Numeric));
 }
 
 //! Assignment operator from another tensor.
@@ -733,29 +627,25 @@ Tensor3::Tensor3(const Tensor3& m) :
   \author Stefan Buehler
   \date   2002-12-19
 */
-Tensor3& Tensor3::operator=(const Tensor3& x)
-{
-  if (this != &x)
-  {
+Tensor3& Tensor3::operator=(const Tensor3& x) {
+  if (this != &x) {
     resize(x.npages(), x.nrows(), x.ncols());
-    std::memcpy(mdata, x.mdata, npages()*nrows()*ncols()*sizeof(Numeric));
+    std::memcpy(mdata, x.mdata, npages() * nrows() * ncols() * sizeof(Numeric));
   }
   return *this;
 }
 
 //! Move assignment operator from another tensor.
-Tensor3& Tensor3::operator=(Tensor3&& x) noexcept
-{
-  if (this != &x)
-  {
+Tensor3& Tensor3::operator=(Tensor3&& x) noexcept {
+  if (this != &x) {
     delete[] mdata;
     mdata = x.mdata;
     mpr = x.mpr;
     mrr = x.mrr;
     mcr = x.mcr;
-    x.mpr = Range(0,0);
-    x.mrr = Range(0,0);
-    x.mcr = Range(0,0);
+    x.mpr = Range(0, 0);
+    x.mrr = Range(0, 0);
+    x.mcr = Range(0, 0);
     x.mdata = nullptr;
   }
   return *this;
@@ -763,62 +653,52 @@ Tensor3& Tensor3::operator=(Tensor3&& x) noexcept
 
 /** Assignment operator from scalar. Assignment operators are not
     inherited. */
-Tensor3& Tensor3::operator=(Numeric x)
-{
-  std::fill_n(mdata, npages()*nrows()*ncols(), x);
+Tensor3& Tensor3::operator=(Numeric x) {
+  std::fill_n(mdata, npages() * nrows() * ncols(), x);
   return *this;
 }
 
 /** Resize function. If the size is already correct this function does
     nothing. All data is lost after resizing! The new tensor is not
     initialized, so it will contain random values.*/
-void Tensor3::resize(Index p, Index r, Index c)
-{
-  assert( 0<=p );
-  assert( 0<=r );
-  assert( 0<=c );
+void Tensor3::resize(Index p, Index r, Index c) {
+  assert(0 <= p);
+  assert(0 <= r);
+  assert(0 <= c);
 
-  if ( mpr.mextent!=p ||
-       mrr.mextent!=r ||
-       mcr.mextent!=c )
-    {
-      delete[] mdata;
-      mdata = new Numeric[p*r*c];
+  if (mpr.mextent != p || mrr.mextent != r || mcr.mextent != c) {
+    delete[] mdata;
+    mdata = new Numeric[p * r * c];
 
-      mpr.mstart = 0;
-      mpr.mextent = p;
-      mpr.mstride = r*c;
+    mpr.mstart = 0;
+    mpr.mextent = p;
+    mpr.mstride = r * c;
 
-      mrr.mstart = 0;
-      mrr.mextent = r;
-      mrr.mstride = c;
+    mrr.mstart = 0;
+    mrr.mextent = r;
+    mrr.mstride = c;
 
-      mcr.mstart = 0;
-      mcr.mextent = c;
-      mcr.mstride = 1;
-    }
+    mcr.mstart = 0;
+    mcr.mextent = c;
+    mcr.mstride = 1;
+  }
 }
 
-
 /** Swaps two objects. */
-void swap(Tensor3& t1, Tensor3& t2)
-{
+void swap(Tensor3& t1, Tensor3& t2) {
   std::swap(t1.mpr, t2.mpr);
   std::swap(t1.mrr, t2.mrr);
   std::swap(t1.mcr, t2.mcr);
   std::swap(t1.mdata, t2.mdata);
 }
 
-
 /** Destructor for Tensor3. This is important, since Tensor3 uses new to
     allocate storage. */
-Tensor3::~Tensor3()
-{
-//   cout << "Destroying a Tensor3:\n"
-//        << *this << "\n........................................\n";
+Tensor3::~Tensor3() {
+  //   cout << "Destroying a Tensor3:\n"
+  //        << *this << "\n........................................\n";
   delete[] mdata;
 }
-
 
 /** A generic transform function for tensors, which can be used to
     implement mathematical functions operating on all
@@ -835,70 +715,59 @@ Tensor3::~Tensor3()
     \param   y Output:   The results of the function acting on each element of x.
     \param    my_func A function (e.g., sqrt).
     \param    x   A tensor. */
-void transform( Tensor3View y,
-                       double (&my_func)(double),
-                       ConstTensor3View x )
-{
+void transform(Tensor3View y, double (&my_func)(double), ConstTensor3View x) {
   // Check dimensions:
-  assert( y.npages() == x.npages() );
-  assert( y.nrows()  == x.nrows()  );
-  assert( y.ncols()  == x.ncols()  );
+  assert(y.npages() == x.npages());
+  assert(y.nrows() == x.nrows());
+  assert(y.ncols() == x.ncols());
 
   const ConstIterator3D xe = x.end();
-  ConstIterator3D       xi = x.begin();
-  Iterator3D            yi = y.begin();
-  for ( ; xi!=xe; ++xi, ++yi )
-    {
-      // Use the transform function of lower dimensional tensors
-      // recursively:
-      transform(*yi,my_func,*xi);
-    }
+  ConstIterator3D xi = x.begin();
+  Iterator3D yi = y.begin();
+  for (; xi != xe; ++xi, ++yi) {
+    // Use the transform function of lower dimensional tensors
+    // recursively:
+    transform(*yi, my_func, *xi);
+  }
 }
 
 /** Max function, tensor version. */
-Numeric max(const ConstTensor3View& x)
-{
+Numeric max(const ConstTensor3View& x) {
   const ConstIterator3D xe = x.end();
-  ConstIterator3D       xi = x.begin();
+  ConstIterator3D xi = x.begin();
 
   // Initial value for max:
   Numeric themax = max(*xi);
   ++xi;
 
-  for ( ; xi!=xe ; ++xi )
-    {
-      // Use the max function of lower dimensional tensors
-      // recursively:
-      Numeric maxi = max(*xi);
-      if ( maxi > themax )
-        themax = maxi;
-    }
+  for (; xi != xe; ++xi) {
+    // Use the max function of lower dimensional tensors
+    // recursively:
+    Numeric maxi = max(*xi);
+    if (maxi > themax) themax = maxi;
+  }
 
   return themax;
 }
 
 /** Min function, tensor version. */
-Numeric min(const ConstTensor3View& x)
-{
+Numeric min(const ConstTensor3View& x) {
   const ConstIterator3D xe = x.end();
-  ConstIterator3D       xi = x.begin();
+  ConstIterator3D xi = x.begin();
 
   // Initial value for min:
   Numeric themin = min(*xi);
   ++xi;
 
-  for ( ; xi!=xe ; ++xi )
-    {
-      // Use the min function of lower dimensional tensors
-      // recursively:
-      Numeric mini = min(*xi);
-      if ( mini < themin )
-        themin = mini;
-    }
+  for (; xi != xe; ++xi) {
+    // Use the min function of lower dimensional tensors
+    // recursively:
+    Numeric mini = min(*xi);
+    if (mini < themin) themin = mini;
+  }
 
   return themin;
 }
-
 
 ////////////////////////////////
 // Helper function for debugging
@@ -918,9 +787,7 @@ Numeric min(const ConstTensor3View& x)
     \author Oliver Lemke
     \date   2004-05-10
 */
-Numeric debug_tensor3view_get_elem (Tensor3View& tv,
-                                    Index p, Index r, Index c)
-{
+Numeric debug_tensor3view_get_elem(Tensor3View& tv, Index p, Index r, Index c) {
   return tv(p, r, c);
 }
 
@@ -943,14 +810,13 @@ Numeric debug_tensor3view_get_elem (Tensor3View& tv,
     \author Richard Larsson
     \date   2012-07-17
 */
-void mult(Tensor3View A,
-          const ConstVectorView B, const ConstMatrixView C){
-    assert(A.npages() == B.nelem());
-    assert(A.nrows()  == C.nrows());
-    assert(A.ncols()  == C.ncols());
+void mult(Tensor3View A, const ConstVectorView B, const ConstMatrixView C) {
+  assert(A.npages() == B.nelem());
+  assert(A.nrows() == C.nrows());
+  assert(A.ncols() == C.ncols());
 
-    for(Index ii = 0; ii < B.nelem(); ii++){
-        A(ii,joker,joker)  = C;
-        A(ii,joker,joker) *= B[ii];
-    }
+  for (Index ii = 0; ii < B.nelem(); ii++) {
+    A(ii, joker, joker) = C;
+    A(ii, joker, joker) *= B[ii];
+  }
 }

@@ -60,15 +60,14 @@ using IndexPair = std::pair<Index, Index>;
  * columns of elements, respectively.
 */
 class Block {
-public:
-
-    /*
+ public:
+  /*
     * Enum class representing the type of the matrix representing the block, i.e.
     * whether its of type Matrix (dense) or of type Sparse(sparse).
     */
-    enum class MatrixType {dense, sparse};
+  enum class MatrixType { dense, sparse };
 
-    /*
+  /*
      * Create a correlation block from given row_range, column_range and shared_ptr
      * to a dense matrix.
      *
@@ -78,15 +77,20 @@ public:
      *        covariance matrix.
      * @param dense A shared pointer to a den matrix of type Matrix
      */
-    Block(Range row_range, Range column_range, IndexPair indices,
-                std::shared_ptr<Matrix> dense)
-        : row_range_(row_range), column_range_(column_range), indices_(indices),
-        matrix_type_(MatrixType::dense), dense_(dense), sparse_(nullptr)
-    {
-        // Nothing to do here.
-    }
+  Block(Range row_range,
+        Range column_range,
+        IndexPair indices,
+        std::shared_ptr<Matrix> dense)
+      : row_range_(row_range),
+        column_range_(column_range),
+        indices_(indices),
+        matrix_type_(MatrixType::dense),
+        dense_(dense),
+        sparse_(nullptr) {
+    // Nothing to do here.
+  }
 
-    /*
+  /*
      * Create a correlation block from given row_range, column_range and shared_ptr
      * to a sparse matrix.
      *
@@ -96,96 +100,95 @@ public:
      *        covariance matrix.
      * @param dense A shared pointer to a den matrix of type Sparse
      */
-    Block(Range row_range, Range column_range, IndexPair indices,
-                std::shared_ptr<Sparse> sparse)
-        : row_range_(row_range), column_range_(column_range), indices_(indices),
-          matrix_type_(MatrixType::sparse), dense_(nullptr), sparse_(sparse)
-    {
-        // Nothing to do here.
+  Block(Range row_range,
+        Range column_range,
+        IndexPair indices,
+        std::shared_ptr<Sparse> sparse)
+      : row_range_(row_range),
+        column_range_(column_range),
+        indices_(indices),
+        matrix_type_(MatrixType::sparse),
+        dense_(nullptr),
+        sparse_(sparse) {
+    // Nothing to do here.
+  }
+
+  Block(const Block &) = default;
+  Block(Block &&) = default;
+  Block &operator=(const Block &) = default;
+  Block &operator=(Block &&) = default;
+
+  ~Block() = default;
+
+  /*! Number of rows of this block */
+  Index nrows() const { return row_range_.get_extent(); }
+  /*! Number of columns of this block */
+  Index ncols() const { return column_range_.get_extent(); }
+
+  /*! The row range of this block*/
+  Range get_row_range() const { return row_range_; }
+  /*! The column range of this block*/
+  Range get_column_range() const { return column_range_; }
+
+  void set_matrix(std::shared_ptr<Sparse> sparse) { sparse_ = sparse; }
+  void set_matrix(std::shared_ptr<Matrix> dense) { dense_ = dense; }
+
+  /*! Return the diagonal as a vector.*/
+  Vector diagonal() const {
+    if (dense_) {
+      return dense_->diagonal();
+    } else {
+      return sparse_->diagonal();
     }
+  }
 
-    Block(const Block &)  = default;
-    Block(      Block &&) = default;
-    Block & operator=(const Block &)  = default;
-    Block & operator=(      Block &&) = default;
+  /*! Return the indices of the retrieval quantities correlated by this block as std::pair. */
+  IndexPair get_indices() const { return indices_; }
+  /*! Return the type of the matrix holding the correlation coefficients. */
+  MatrixType get_matrix_type() const { return matrix_type_; }
 
-    ~Block() = default;
+  const Matrix &get_dense() const {
+    assert(dense_);
+    return *dense_;
+  }
 
-    /*! Number of rows of this block */
-    Index nrows() const {return row_range_.get_extent();}
-    /*! Number of columns of this block */
-    Index ncols() const {return column_range_.get_extent();}
+  Matrix &get_dense() {
+    assert(dense_);
+    return *dense_;
+  }
 
-    /*! The row range of this block*/
-    Range get_row_range() const {return row_range_;}
-    /*! The column range of this block*/
-    Range get_column_range() const {return column_range_;}
+  const Sparse &get_sparse() const {
+    assert(sparse_);
+    return *sparse_;
+  }
 
-    void set_matrix(std::shared_ptr<Sparse> sparse)     {sparse_ = sparse;}
-    void set_matrix(std::shared_ptr<Matrix> dense)      {dense_  = dense;}
+  Sparse &get_sparse() {
+    assert(sparse_);
+    return *sparse_;
+  }
 
-    /*! Return the diagonal as a vector.*/
-    Vector diagonal() const
-    {
-        if (dense_) {
-            return dense_->diagonal();
-        } else {
-            return sparse_->diagonal();
-        }
-    }
+  // Friend declarations.
+  friend void mult(MatrixView, ConstMatrixView, const Block &);
+  friend void mult(MatrixView, const Block &, ConstMatrixView);
+  friend void mult(VectorView, const Block &, ConstVectorView);
 
-    /*! Return the indices of the retrieval quantities correlated by this block as std::pair. */
-    IndexPair  get_indices()         const {return indices_;}
-    /*! Return the type of the matrix holding the correlation coefficients. */
-    MatrixType get_matrix_type()     const {return matrix_type_;}
+  friend MatrixView &operator+=(MatrixView &, const Block &);
 
-    const Matrix & get_dense()  const
-    {
-        assert(dense_);
-        return *dense_;
-    }
+ private:
+  Range row_range_, column_range_;
+  IndexPair indices_;
 
-    Matrix & get_dense()
-    {
-        assert(dense_);
-        return *dense_;
-    }
+  MatrixType matrix_type_;
 
-    const Sparse & get_sparse() const
-    {
-        assert(sparse_);
-        return *sparse_;
-    }
-
-    Sparse & get_sparse()
-    {
-        assert(sparse_);
-        return *sparse_;
-    }
-
-    // Friend declarations.
-    friend void mult(MatrixView, ConstMatrixView, const Block &);
-    friend void mult(MatrixView, const Block &, ConstMatrixView);
-    friend void mult(VectorView, const Block &, ConstVectorView);
-
-    friend MatrixView & operator+=(MatrixView &, const Block &);
-
-private:
-
-    Range     row_range_, column_range_;
-    IndexPair indices_;
-
-    MatrixType matrix_type_;
-
-    std::shared_ptr<Matrix> dense_;
-    std::shared_ptr<Sparse> sparse_;
+  std::shared_ptr<Matrix> dense_;
+  std::shared_ptr<Sparse> sparse_;
 };
 
 void mult(MatrixView, ConstMatrixView, const Block &);
 void mult(MatrixView, const Block &, ConstMatrixView);
 void mult(VectorView, const Block &, ConstVectorView);
 
-MatrixView & operator+=(MatrixView &, const Block &);
+MatrixView &operator+=(MatrixView &, const Block &);
 void add_inv(MatrixView A, const Block &);
 
 //------------------------------------------------------------------------------
@@ -212,39 +215,37 @@ void add_inv(MatrixView A, const Block &);
  * of the matrix using the compute_inverse method.
  */
 class CovarianceMatrix {
+ public:
+  CovarianceMatrix() = default;
+  CovarianceMatrix(const CovarianceMatrix &) = default;
+  CovarianceMatrix(CovarianceMatrix &&) = default;
+  CovarianceMatrix &operator=(const CovarianceMatrix &) = default;
+  CovarianceMatrix &operator=(CovarianceMatrix &&) = default;
 
-public:
+  ~CovarianceMatrix() = default;
 
-    CovarianceMatrix() = default;
-    CovarianceMatrix(const CovarianceMatrix &)  = default;
-    CovarianceMatrix(      CovarianceMatrix &&) = default;
-    CovarianceMatrix & operator=(const CovarianceMatrix &)  = default;
-    CovarianceMatrix & operator=(      CovarianceMatrix &&) = default;
+  operator Matrix() const;
+  Matrix get_inverse() const;
 
-    ~CovarianceMatrix() = default;
+  Index nrows() const;
+  Index ncols() const;
 
-    operator Matrix() const;
-    Matrix get_inverse() const;
+  /**! The number of diagonal blocks in the matrix excluding inverses.*/
+  Index ndiagblocks() const;
 
-    Index nrows() const;
-    Index ncols() const;
+  /**! The number of blocks in the matrix excluding inverses.*/
+  Index nblocks() const;
 
-    /**! The number of diagonal blocks in the matrix excluding inverses.*/
-    Index ndiagblocks() const;
-
-    /**! The number of blocks in the matrix excluding inverses.*/
-    Index nblocks() const;
-
-    /**
+  /**
      * Check if the block with indices (i, j) is contained in the
      * covariance matrix.
      *
      * @param i the block-row index
      * @param j the block-column index
      */
-    bool has_block(Index i, Index j);
+  bool has_block(Index i, Index j);
 
-    /**
+  /**
      * Return a pointer to the block with indices (i,j). If any
      * of i or j is less than zero, than the first block found in this
      * row or column is returned. This is useful for obtaining the element range
@@ -256,27 +257,23 @@ public:
      * @return A pointer to the block at (i,j) or nullptr if
      *         this block doesn't exist.
      */
-    const Block* get_block(Index i = -1, Index j = -1);
+  const Block *get_block(Index i = -1, Index j = -1);
 
-    /** Block in the covariance matrix.
+  /** Block in the covariance matrix.
      *
      * @return Reference to the std::vector holding the block
      * objects of this covariance matrix.
      */
-    std::vector<Block>& get_blocks() {
-        return correlations_;
-    };
+  std::vector<Block> &get_blocks() { return correlations_; };
 
-    /** Blocks of the inverse covariance matrix.
+  /** Blocks of the inverse covariance matrix.
      *
      * @return Reference to the std::vector holding the blocks
      * objects of the inverse of the covariance matrix.
      */
-    std::vector<Block>& get_inverse_blocks() {
-        return inverses_;
-    };
+  std::vector<Block> &get_inverse_blocks() { return inverses_; };
 
-    /**
+  /**
      * Checks that the covariance matrix contains one diagonal block per retrieval
      * quantity.
      *
@@ -287,9 +284,9 @@ public:
      * @return true if the covariance matrix contains a diagonal block for each
      *         retrieval quantity
      */
-    bool has_diagonal_blocks(const ArrayOfArrayOfIndex &jis) const;
+  bool has_diagonal_blocks(const ArrayOfArrayOfIndex &jis) const;
 
-    /**
+  /**
      * Checks that the dimensions of the blocks in the covariance matrix are
      * consistent with ranges occupied by the different retrieval quantities
      * in the state vector.
@@ -301,9 +298,9 @@ public:
      * @return true if the covariance matrix contains a diagonal block for each
      *         retrieval quantity
      */
-    bool is_consistent(const ArrayOfArrayOfIndex &jis) const;
+  bool is_consistent(const ArrayOfArrayOfIndex &jis) const;
 
-    /**
+  /**
      * This method checks whether a block is consistent with existing blocks
      * in the covariance matrix, i.e. that there is no other block in the
      * given row i (colum j) that has a different number of rows (columns)
@@ -313,16 +310,16 @@ public:
      * @return true if the block is consistent with the other block
      *         contained in the matrix
      */
-    bool is_consistent(const Block &block) const;
+  bool is_consistent(const Block &block) const;
 
-    /**
+  /**
      * Compute the inverse of this correlation matrix. This function must be executed
      * after all block have been added to the covariance matrix and before any of the
      * mult_inv or add_inv methods is used.
      */
-    void compute_inverse() const;
+  void compute_inverse() const;
 
-    /** Add block to covariance matrix.
+  /** Add block to covariance matrix.
      *
      * This function add a given block to the covariance matrix.
      * If this block is not consistent with other blocks in the matrix
@@ -330,9 +327,9 @@ public:
      *
      * @param c The block to add to the covariance matrix
      */
-    void add_correlation(Block c);
+  void add_correlation(Block c);
 
-    /** Add block inverse to covariance matrix.
+  /** Add block inverse to covariance matrix.
      *
      * This function adds the inverse of a given block to a covariance
      * matrix. An error will be thrown if the corresponding non-inverse
@@ -340,18 +337,18 @@ public:
      *
      * @param c The inverse of a block already in the matrix.
      */
-    void add_correlation_inverse(Block c);
+  void add_correlation_inverse(Block c);
 
-    /** Diagonal elements as vector
+  /** Diagonal elements as vector
      *
      * Extracts the diagonal elements from the covariance matrix.
      * matrix.
      *
      * @return A vector containing the diagonal elements.
      */
-    Vector diagonal() const;
+  Vector diagonal() const;
 
-    /** Diagonal of the inverse of the covariance matrix as vector
+  /** Diagonal of the inverse of the covariance matrix as vector
      *
      * Extracts the diagonal elements from the inverse of the covariance matrix.
      * This can trigger the computation of the inverse of the matrix, if it has
@@ -359,35 +356,39 @@ public:
      *
      * @return A vector containing the diagonal elements.
      */
-    Vector inverse_diagonal() const;
+  Vector inverse_diagonal() const;
 
-    // Friend declarations.
-    friend void mult(MatrixView, ConstMatrixView, const CovarianceMatrix &);
-    friend void mult(MatrixView, const CovarianceMatrix &, ConstMatrixView);
-    friend void mult(VectorView, const CovarianceMatrix &, ConstVectorView);
+  // Friend declarations.
+  friend void mult(MatrixView, ConstMatrixView, const CovarianceMatrix &);
+  friend void mult(MatrixView, const CovarianceMatrix &, ConstMatrixView);
+  friend void mult(VectorView, const CovarianceMatrix &, ConstVectorView);
 
-    friend void mult_inv(MatrixView, ConstMatrixView, const CovarianceMatrix &);
-    friend void mult_inv(MatrixView, const CovarianceMatrix &, ConstMatrixView);
-    friend void solve(VectorView, const CovarianceMatrix &, ConstVectorView);
+  friend void mult_inv(MatrixView, ConstMatrixView, const CovarianceMatrix &);
+  friend void mult_inv(MatrixView, const CovarianceMatrix &, ConstMatrixView);
+  friend void solve(VectorView, const CovarianceMatrix &, ConstVectorView);
 
-    friend MatrixView & operator+=(MatrixView &, const CovarianceMatrix &);
-    friend void add_inv(MatrixView, const CovarianceMatrix &);
+  friend MatrixView &operator+=(MatrixView &, const CovarianceMatrix &);
+  friend void add_inv(MatrixView, const CovarianceMatrix &);
 
-    friend void xml_read_from_stream(istream &, CovarianceMatrix &, bifstream *,
-                                     const Verbosity &);
-    friend void xml_write_to_stream(ostream &, const CovarianceMatrix &, bofstream *,
-                                    const String&, const Verbosity &);
-    friend std::ostream& operator<<(std::ostream& os, const CovarianceMatrix& v);
-private:
+  friend void xml_read_from_stream(istream &,
+                                   CovarianceMatrix &,
+                                   bifstream *,
+                                   const Verbosity &);
+  friend void xml_write_to_stream(ostream &,
+                                  const CovarianceMatrix &,
+                                  bofstream *,
+                                  const String &,
+                                  const Verbosity &);
+  friend std::ostream &operator<<(std::ostream &os, const CovarianceMatrix &v);
 
-    void generate_blocks(std::vector<std::vector<const Block *>> &) const;
-    void invert_correlation_block(std::vector<Block> &inverses,
-                                  std::vector<const Block *> &blocks) const;
-    bool has_inverse(IndexPair indices) const;
+ private:
+  void generate_blocks(std::vector<std::vector<const Block *>> &) const;
+  void invert_correlation_block(std::vector<Block> &inverses,
+                                std::vector<const Block *> &blocks) const;
+  bool has_inverse(IndexPair indices) const;
 
-    std::vector<Block> correlations_;
-    mutable std::vector<Block> inverses_;
-
+  std::vector<Block> correlations_;
+  mutable std::vector<Block> inverses_;
 };
 
 void mult(MatrixView, ConstMatrixView, const CovarianceMatrix &);
@@ -398,9 +399,9 @@ void mult_inv(MatrixView, ConstMatrixView, const CovarianceMatrix &);
 void mult_inv(MatrixView, const CovarianceMatrix &, ConstMatrixView);
 void solve(VectorView, const CovarianceMatrix &, ConstVectorView);
 
-MatrixView & operator+=(MatrixView &, const CovarianceMatrix &);
+MatrixView &operator+=(MatrixView &, const CovarianceMatrix &);
 void add_inv(MatrixView, const CovarianceMatrix &);
 
-std::ostream& operator<<(std::ostream& os, const ConstVectorView& v);
+std::ostream &operator<<(std::ostream &os, const ConstVectorView &v);
 
-#endif // covariance_matrix_h
+#endif  // covariance_matrix_h

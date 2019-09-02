@@ -16,8 +16,6 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-
-
 /*===========================================================================
   === File description 
   ===========================================================================*/
@@ -33,9 +31,6 @@
   file auto_md.h.
 */
 
-
-
-
 /*===========================================================================
   === External declarations
   ===========================================================================*/
@@ -48,72 +43,57 @@
 #include "matpackI.h"
 #include "messages.h"
 
-
 extern const Numeric DEG2RAD;
-
 
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void refellipsoidForAzimuth( 
-         Vector&     refellipsoid,
-   const Numeric&    latitude,
-   const Numeric&    azimuth,
-   const Verbosity& )
-{
-  if( refellipsoid.nelem() != 2 )
-    throw runtime_error( "Input *refellispoid must be a vector of length 2*." );
+void refellipsoidForAzimuth(Vector& refellipsoid,
+                            const Numeric& latitude,
+                            const Numeric& azimuth,
+                            const Verbosity&) {
+  if (refellipsoid.nelem() != 2)
+    throw runtime_error("Input *refellispoid must be a vector of length 2*.");
 
-  if( refellipsoid[1] > 0 )
-    {
-      const Numeric e2  = refellipsoid[1] * refellipsoid[1];
-      const Numeric a   = 1 - e2 * pow( sin( DEG2RAD*latitude ), 2.0 );
+  if (refellipsoid[1] > 0) {
+    const Numeric e2 = refellipsoid[1] * refellipsoid[1];
+    const Numeric a = 1 - e2 * pow(sin(DEG2RAD * latitude), 2.0);
 
-      const Numeric rn = 1 / sqrt( a );
-      const Numeric rm = ( 1 - e2 ) * ( rn / a );
+    const Numeric rn = 1 / sqrt(a);
+    const Numeric rm = (1 - e2) * (rn / a);
 
-      const Numeric v = DEG2RAD * azimuth;
+    const Numeric v = DEG2RAD * azimuth;
 
-      refellipsoid[0] = refellipsoid[0] / ( pow(cos(v),2.0)/rm +
-                                            pow(sin(v),2.0)/rn ); 
-      refellipsoid[1] = 0;
-    }
+    refellipsoid[0] =
+        refellipsoid[0] / (pow(cos(v), 2.0) / rm + pow(sin(v), 2.0) / rn);
+    refellipsoid[1] = 0;
+  }
 }
 
-
-
 /* Workspace method: Doxygen documentation will be auto-generated */
-void refellipsoidOrbitPlane( 
-         Vector&     refellipsoid,
-   const Numeric&    orbitinc,
-   const Verbosity& )
-{
-  if( refellipsoid.nelem() != 2 )
-    throw runtime_error( "Input *refellispoid must be a vector of length 2*." );
-  chk_if_in_range( "orbitinc", orbitinc,  0, 180 );    
+void refellipsoidOrbitPlane(Vector& refellipsoid,
+                            const Numeric& orbitinc,
+                            const Verbosity&) {
+  if (refellipsoid.nelem() != 2)
+    throw runtime_error("Input *refellispoid must be a vector of length 2*.");
+  chk_if_in_range("orbitinc", orbitinc, 0, 180);
 
   // Radius at maximum latitude
-  const Numeric rp = refell2r( refellipsoid, orbitinc );
+  const Numeric rp = refell2r(refellipsoid, orbitinc);
 
   // New eccentricity
-  refellipsoid[1] = sqrt( 1 - pow( rp/refellipsoid[0], 2.0 ) );
+  refellipsoid[1] = sqrt(1 - pow(rp / refellipsoid[0], 2.0));
 }
 
-
-
 /* Workspace method: Doxygen documentation will be auto-generated */
-void refellipsoidSet(            
-         Vector&    refellipsoid,
-   const Numeric&   re,
-   const Numeric&   e,
-   const Verbosity& )
-{
+void refellipsoidSet(Vector& refellipsoid,
+                     const Numeric& re,
+                     const Numeric& e,
+                     const Verbosity&) {
   refellipsoid.resize(2);
 
   refellipsoid[0] = re;
   refellipsoid[1] = e;
 }
-
-

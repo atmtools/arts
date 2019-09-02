@@ -32,17 +32,16 @@
 #define cia_h
 
 #include "arts.h"
+#include "check_input.h"
+#include "gridded_fields.h"
 #include "matpackI.h"
 #include "mystring.h"
-#include "gridded_fields.h"
-#include "check_input.h"
 
 // Declare existance of some classes:
 class bifstream;
 class CIARecord;
 
 typedef Array<CIARecord> ArrayOfCIARecord;
-
 
 /* Header with implementation. */
 void cia_interpolation(VectorView result,
@@ -54,8 +53,8 @@ void cia_interpolation(VectorView result,
                        const Verbosity& verbosity);
 
 Index cia_get_index(const ArrayOfCIARecord& cia_data,
-                    const Index sp1, const Index sp2);
-
+                    const Index sp1,
+                    const Index sp2);
 
 /** CIA data for a single pair of molecules.
  
@@ -66,9 +65,8 @@ Index cia_get_index(const ArrayOfCIARecord& cia_data,
  \author Stefan Buehler
  \date   2000-08-21  */
 class CIARecord {
-    
-public:
-    /** Return each molecule name (as a string) that is associated with this CIARecord.
+ public:
+  /** Return each molecule name (as a string) that is associated with this CIARecord.
      
      The CIARecord is defined for a pair of molecules!
      
@@ -76,10 +74,9 @@ public:
                   is returned.
      
      */
-    String MoleculeName(const Index i) const;
-    
-    
-    /** Set each molecule name (from a string) that is associated with this CIARecord.
+  String MoleculeName(const Index i) const;
+
+  /** Set each molecule name (from a string) that is associated with this CIARecord.
      
      The CIARecord is defined for a pair of molecules. The molecule names are 
      internally stored as species indices.
@@ -89,83 +86,66 @@ public:
      \param[in] name The molecule name as a string, e.g., "H2O".
      
      */
-    void SetMoleculeName(const Index i,
-                         const String& name);
+  void SetMoleculeName(const Index i, const String& name);
 
-     
-    /** Return CIA species index.
+  /** Return CIA species index.
      
      \param[in] i Must be either 0 or 1. Then the first or second species index
      is returned.
      */
-    Index Species(const Index i) const
-    {
-      // Assert that i is 0 or 1:
-      assert(i>=0);
-      assert(i<=1);
-      
-      return mspecies[i];
-    }
+  Index Species(const Index i) const {
+    // Assert that i is 0 or 1:
+    assert(i >= 0);
+    assert(i <= 1);
 
-    
-    /** Return number of datasets in this record.
+    return mspecies[i];
+  }
+
+  /** Return number of datasets in this record.
      */
-    Index DatasetCount() const { return mdata.nelem(); }
+  Index DatasetCount() const { return mdata.nelem(); }
 
-    
-    /** Return frequency grid for given dataset.
+  /** Return frequency grid for given dataset.
      */
-    ConstVectorView FrequencyGrid(Index dataset) const
-    {
-        assert(dataset >= 0);
-        assert(dataset < mdata.nelem());
+  ConstVectorView FrequencyGrid(Index dataset) const {
+    assert(dataset >= 0);
+    assert(dataset < mdata.nelem());
 
-        return mdata[dataset].get_numeric_grid(0);
-    }
-    
-    
-    /** Return temperatur grid for given dataset.
+    return mdata[dataset].get_numeric_grid(0);
+  }
+
+  /** Return temperatur grid for given dataset.
      */
-    ConstVectorView TemperatureGrid(Index dataset) const
-    {
-        assert(dataset >= 0);
-        assert(dataset < mdata.nelem());
+  ConstVectorView TemperatureGrid(Index dataset) const {
+    assert(dataset >= 0);
+    assert(dataset < mdata.nelem());
 
-        return mdata[dataset].get_numeric_grid(1);
-    }
+    return mdata[dataset].get_numeric_grid(1);
+  }
 
-
-    /** Return CIA dataset.
+  /** Return CIA dataset.
      */
-    const GriddedField2& Dataset(Index dataset) const
-    {
-        assert(dataset >= 0);
-        assert(dataset < mdata.nelem());
+  const GriddedField2& Dataset(Index dataset) const {
+    assert(dataset >= 0);
+    assert(dataset < mdata.nelem());
 
-        return mdata[dataset];
-    }
+    return mdata[dataset];
+  }
 
-
-    /** Return CIA data.
+  /** Return CIA data.
      */
-    const ArrayOfGriddedField2& Data() const
-    {
-        return mdata;
-    }
+  const ArrayOfGriddedField2& Data() const { return mdata; }
 
-
-    /** Set CIA species.
+  /** Set CIA species.
      \param[in] first CIA Species.
      \param[in] second CIA Species.
      */
-    void SetSpecies(const Index first, const Index second)
-    {
-        mspecies[0] = first;
-        mspecies[1] = second;
-    }
+  void SetSpecies(const Index first, const Index second) {
+    mspecies[0] = first;
+    mspecies[1] = second;
+  }
 
-
-    /** Vector version of extract.
+  /** Vector version of extract.
 
      Check whether there is a suitable dataset in the CIARecord and do the 
      interpolation.
@@ -177,16 +157,15 @@ public:
      \param[in] robust      Set to 1 to suppress runtime errors (and return NAN values instead).
      \param[in] verbosity   Standard verbosity object.
      */
-    void Extract(VectorView      result,
-                 ConstVectorView f_grid,
-                 const Numeric&  temperature,
-                 const Index&    dataset,
-                 const Numeric&  T_extrapolfac,
-                 const Index&    robust,
-                 const Verbosity& verbosity) const;
+  void Extract(VectorView result,
+               ConstVectorView f_grid,
+               const Numeric& temperature,
+               const Index& dataset,
+               const Numeric& T_extrapolfac,
+               const Index& robust,
+               const Verbosity& verbosity) const;
 
-
-    /** Scalar version of extract.
+  /** Scalar version of extract.
      
      Use the vector version, if you can, it is more efficient. This is just a 
      convenience wrapper for it.
@@ -198,45 +177,44 @@ public:
      \param[in] robust      Set to 1 to suppress runtime errors (and return NAN values instead).
      \param[in] verbosity   Standard verbosity object.
      */
-    Numeric Extract(const Numeric& frequency,
-                    const Numeric& temperature,
-                    const Index& dataset,
-                    const Numeric&  T_extrapolfac,
-                    const Index& robust,
-                    const Verbosity& verbosity) const
-    {
-      Vector result(1);
-      const Vector freqvec(1, frequency);
-      
-      Extract(result, freqvec, temperature, dataset, T_extrapolfac, robust,
-              verbosity);
-      
-      return result[0];
-    }
+  Numeric Extract(const Numeric& frequency,
+                  const Numeric& temperature,
+                  const Index& dataset,
+                  const Numeric& T_extrapolfac,
+                  const Index& robust,
+                  const Verbosity& verbosity) const {
+    Vector result(1);
+    const Vector freqvec(1, frequency);
 
+    Extract(result,
+            freqvec,
+            temperature,
+            dataset,
+            T_extrapolfac,
+            robust,
+            verbosity);
 
-    /** Read CIA catalog file. */
-    void ReadFromCIA(const String& filename,
-                     const Verbosity& verbosity);
-    
-    friend void xml_read_from_stream( istream& is_xml,
-                                     CIARecord& cr,
-                                     bifstream *pbifs,
-                                     const Verbosity& verbosity);
-    
-    
-    /** Append other CIARecord to this. */
-    void AppendDataset(const CIARecord& c2);
+    return result[0];
+  }
 
-private:
+  /** Read CIA catalog file. */
+  void ReadFromCIA(const String& filename, const Verbosity& verbosity);
 
-    /** Append dataset to mdata. */
-    void AppendDataset(const Vector& freq,
-                       const ArrayOfNumeric& temp,
-                       const ArrayOfVector& cia);
+  friend void xml_read_from_stream(istream& is_xml,
+                                   CIARecord& cr,
+                                   bifstream* pbifs,
+                                   const Verbosity& verbosity);
 
+  /** Append other CIARecord to this. */
+  void AppendDataset(const CIARecord& c2);
 
-    /** The data itself, directly from the HITRAN file. 
+ private:
+  /** Append dataset to mdata. */
+  void AppendDataset(const Vector& freq,
+                     const ArrayOfNumeric& temp,
+                     const ArrayOfVector& cia);
+
+  /** The data itself, directly from the HITRAN file. 
      
      Dimensions:
      Array dimension: Dataset. One file (one molecule pair) can have
@@ -247,9 +225,9 @@ private:
      Data: Binary absorption cross-sections in m^5 molec^(-2) 
      
      */
-    ArrayOfGriddedField2 mdata;
+  ArrayOfGriddedField2 mdata;
 
-    /** The pair of molecules associated with these CIA data.
+  /** The pair of molecules associated with these CIA data.
      
      Molecules are specified by their ARTS internal mspecies index! (This has
      to be determined upon reading from a file. Should it ever be written out, it
@@ -257,10 +235,9 @@ private:
      
      We use a plain C array here, since the length of this is always 2.
      */
-    Index mspecies[2];
+  Index mspecies[2];
 };
-
 
 ostream& operator<<(ostream& os, const CIARecord& cr);
 
-#endif // cia_h
+#endif  // cia_h
