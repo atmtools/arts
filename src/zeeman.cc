@@ -15,6 +15,18 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
+/**
+ * @file   zeeman.cc
+ * @author Richard Larsson <larsson (at) mps.mpg.de>
+ * @date   2014-10-14
+ * 
+ * @brief Implementations of Zeeman propagation matrix calculations
+ * 
+ * This file implements Zeeman propagation matrix calculations while
+ * also computing the derivatives that might be interesting for 
+ * later Jacobian deductions.  Also implements the middle man for
+ * creating a LineRecord that you can compute the Zeeman effect from
+ */
 
 #include "zeeman.h"
 #include "constants.h"
@@ -22,70 +34,7 @@
 #include "linescaling.h"
 #include "species_info.h"
 
-typedef struct {
-  Numeric H, theta, eta, dH_du, dH_dv, dH_dw, dtheta_du, dtheta_dv, dtheta_dw,
-      deta_du, deta_dv, deta_dw;
-} ZeemanDerived;
-
-ZeemanDerived zeeman_internal_variables(
-    Numeric u, Numeric v, Numeric w, Numeric z, Numeric a) noexcept {
-  // Constants evaluated once for both eta and theta
-  auto cz = std::cos(z), ca = std::cos(a), sz = std::sin(z), sa = std::sin(a);
-
-  /*
-   *   H = ||{u, v, w}||
-   */
-  auto H = std::hypot(std::hypot(u, v), w);
-  auto dH_du = H > 0 ? u / H : 0;
-  auto dH_dv = H > 0 ? v / H : 0;
-  auto dH_dw = H > 0 ? w / H : 0;
-
-  /*
-   *              ( / cos(a) sin(z) \   / u \   // || / u \ || )
-   *  theta = acos( | sin(a) sin(z) | o | v |  //  || | v | || )
-   *              ( \        cos(z) /   \ w / //   || \ w / || )
-   */
-  auto x = u * sz * ca + v * sa * sz + w * cz,
-       d = std::sqrt(1 - std::pow(x / H, 2)) * H * H * H;
-
-  auto theta = H > 0 ? std::acos(x / H) : std::acos(0);
-  auto dtheta_du = d not_eq 0 ? (u * x - H * H * sz * ca) / d : 0;
-  auto dtheta_dv = d not_eq 0 ? (v * x - H * H * sa * sz) / d : 0;
-  auto dtheta_dw = d not_eq 0 ? (w * x - H * H * cz) / d : 0;
-
-  /*
-   *              ( / -sin(a) \   [ / u \   / cos(a) sin(z) \   / u \   / u \ ]   / cos(a) sin(z) \   // / -sin(a) \   [ / u \   / cos(a) sin(z) \   / u \   / u \ ] )
-   *    eta = atan( |  cos(a) | x [ | v | - | sin(a) sin(z) | o | v | * | v | ] o | sin(a) sin(z) |  //  |  cos(a) | o [ | v | - | sin(a) sin(z) | o | v | * | v | ] )
-   *              ( \    0    /   [ \ w /   \        cos(z) /   \ w /   \ w / ]   \        cos(z) / //   \    0    /   [ \ w /   \        cos(z) /   \ w /   \ w / ] )
-   */
-  auto p = std::pow(u * sa - v * ca, 2) +
-           std::pow(u * ca * cz + v * sa * cz - w * sz, 2);
-
-  auto eta = std::atan2(u * ca * cz + v * sa * cz - w * sz, u * sa - v * ca);
-  auto deta_du = p not_eq 0 ? (-v * cz + w * sa * sz) / p : 0;
-  auto deta_dv = p not_eq 0 ? (u * cz - w * sz * ca) / p : 0;
-  auto deta_dw = p not_eq 0 ? -(u * sa - v * ca) * sz / p : 0;
-
-  return {H,
-          theta,
-          eta,
-          dH_du,
-          dH_dv,
-          dH_dw,
-          dtheta_du,
-          dtheta_dv,
-          dtheta_dw,
-          deta_du,
-          deta_dv,
-          deta_dw};
-}
-
-ZeemanDerived zeeman_internal_variables_manual(Numeric H,
-                                               Numeric theta,
-                                               Numeric eta) noexcept {
-  return {H, theta, eta, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-}
-
+/** Checks if a Propagation Matrix or something similar has good grids */
 template <class T>
 bool bad_propmat(const Array<T>& main,
                  const Vector& f_grid,
@@ -99,6 +48,7 @@ bool bad_propmat(const Array<T>& main,
   return false;
 }
 
+/** Checks if abs_species is acceptable */
 bool bad_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species) {
   for (auto& species : abs_species) {
     if (species.nelem()) {
@@ -113,6 +63,7 @@ bool bad_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species) {
   return false;
 }
 
+/** Checks for negative values */
 bool any_negative(const Vector& var) {
   for (auto& v : var)
     if (v < 0) return true;
@@ -204,13 +155,13 @@ void zeeman_on_the_fly(
   // Magnetic field internals and derivatives...
   const auto X =
       manual_tag
-          ? zeeman_internal_variables_manual(
+          ? Zeeman::FromPreDerived(
                 H0, Conversion::deg2rad(theta0), Conversion::deg2rad(eta0))
-          : zeeman_internal_variables(rtp_mag[0],
-                                      rtp_mag[1],
-                                      rtp_mag[2],
-                                      Conversion::deg2rad(rtp_los[0]),
-                                      Conversion::deg2rad(rtp_los[1]));
+          : Zeeman::FromGrids(rtp_mag[0],
+                              rtp_mag[1],
+                              rtp_mag[2],
+                              Conversion::deg2rad(rtp_los[0]),
+                              Conversion::deg2rad(rtp_los[1]));
 
   // Polarization
   const auto polarization_scale_data = Zeeman::AllPolarization(X.theta, X.eta);
@@ -496,10 +447,7 @@ void create_Zeeman_linerecordarrays(
     ArrayOfArrayOfLineRecord& aoaol,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-    const bool zero_values,
-    const Verbosity& verbosity) {
-  CREATE_OUT3;
-
+    const bool zero_values) {
   constexpr static Numeric margin = 1e-4;
 
   // For all species

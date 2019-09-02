@@ -20,10 +20,18 @@
  USA. */
 
 /** Contains the line function data class
- * \file   linefunctiondata.cc
+ * @file   linefunctiondata.cc
+ * @author Richard Larsson
+ * @date   2018-09-19
  * 
- * \author Richard Larsson
- * \date   2018-09-19
+ * @brief Implementations of linefunctiondata.h
+ * 
+ * This mostly contains functions that either did not
+ * compile while placed in the header or for other 
+ * reasons are not there.  This means most of the 
+ * real work happens in the header file and not here
+ * 
+ * FIXME:  Rename this and its header to match newer content, lineshapemodel.cc/h
  **/
 
 #include "linefunctiondata.h"

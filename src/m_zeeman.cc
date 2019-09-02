@@ -16,7 +16,17 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-#include "auto_md.h"
+/**
+ * @file   zeeman.cc
+ * @author Richard Larsson <larsson (at) mps.mpg.de>
+ * @date   2012-08-14
+ * 
+ * @brief Public methods of ARTS to compute Zeeman effects
+ * 
+ * Several methods to change and alter and in other way set up
+ * Zeeman effect calculations are implemented in this file
+ */
+
 #include "global_data.h"
 #include "propagationmatrix.h"
 #include "zeeman.h"
@@ -27,7 +37,7 @@ void zeeman_linerecord_precalcCreateFromLines(
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfArrayOfLineRecord& abs_lines_per_species,
     const Index& wigner_initialized,
-    const Verbosity& verbosity) {
+    const Verbosity&) {
   if (not wigner_initialized)
     throw std::runtime_error(
         "Must initialize wigner calculations to compute Zeeman effect");
@@ -41,8 +51,7 @@ void zeeman_linerecord_precalcCreateFromLines(
   create_Zeeman_linerecordarrays(zeeman_linerecord_precalc,
                                  abs_species,
                                  abs_lines_per_species,
-                                 false,
-                                 verbosity);
+                                 false);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -51,7 +60,7 @@ void zeeman_linerecord_precalcCreateWithZeroSplitting(
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfArrayOfLineRecord& abs_lines_per_species,
     const Index& wigner_initialized,
-    const Verbosity& verbosity) {
+    const Verbosity&) {
   if (not wigner_initialized)
     throw std::runtime_error(
         "Must initialize wigner calculations to compute Zeeman effect");
@@ -65,10 +74,10 @@ void zeeman_linerecord_precalcCreateWithZeroSplitting(
   create_Zeeman_linerecordarrays(zeeman_linerecord_precalc,
                                  abs_species,
                                  abs_lines_per_species,
-                                 true,
-                                 verbosity);
+                                 true);
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void zeeman_linerecord_precalcModifyFromData(
     ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
     const ArrayOfQuantumIdentifier& keys,
@@ -102,6 +111,7 @@ void zeeman_linerecord_precalcModifyFromData(
   }
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void zeeman_linerecord_precalcPrintMissing(
     const ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
     const ArrayOfQuantumIdentifier& keys,
