@@ -15,22 +15,18 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*===========================================================================
-  === File description
-  ===========================================================================*/
-
-/*!
-  \file   ppath.cc
-  \author Patrick Eriksson <patrick.eriksson@chalmers.se>
-  \date   2002-05-02
-  
-  \brief  Functions releated to calculation of propagation paths.
-  
-  Functions to determine propagation paths for different atmospheric
-  dimensionalities, with and without refraction.
-
-  The term propagation path is here shortened to ppath.
-*/
+/**
+ * @file   ppath.cc
+ * @author Patrick Eriksson <patrick.eriksson@chalmers.se>
+ * @date   2002-05-02
+ * 
+ * @brief  Functions releated to calculation of propagation paths.
+ * 
+ * Functions to determine propagation paths for different atmospheric
+ * dimensionalities, with and without refraction.
+ *
+ * The term propagation path is here shortened to ppath.
+ */
 
 /*===========================================================================
   === External declarations
@@ -85,19 +81,18 @@ const Numeric LON_NOT_FOUND = 99e99;
   === Functions related to geometrical propagation paths
   ===========================================================================*/
 
-//! geometrical_ppc
-/*! 
-   Calculates the propagation path constant for pure geometrical calculations.
+/** Calculates the propagation path constant for pure geometrical calculations.
 
    Both positive and negative zenith angles are handled.
 
-   \return         Path constant.
-   \param   r      Radius of the sensor position.
-   \param   za     Zenith angle of the sensor line-of-sight.
+   @param[in]   r      Radius of the sensor position.
+   @param[in]   za     Zenith angle of the sensor line-of-sight.
 
-   \author Patrick Eriksson
-   \date   2002-05-17
-*/
+   @return  Path constant.
+
+   @author Patrick Eriksson
+   @date   2002-05-17
+  */
 Numeric geometrical_ppc(const Numeric& r, const Numeric& za) {
   assert(r > 0);
   assert(abs(za) <= 180);
@@ -105,25 +100,6 @@ Numeric geometrical_ppc(const Numeric& r, const Numeric& za) {
   return r * sin(DEG2RAD * abs(za));
 }
 
-//! geompath_za_at_r
-/*! 
-   Calculates the zenith angle for a given radius along a geometrical 
-   propagation path.
-
-   For downlooking cases, the two points must be on the same side of 
-   the tangent point.
-
-   Both positive and negative zenith angles are handled.
-
-   \return         Zenith angle at the point of interest.
-   \param   ppc    Propagation path constant.
-   \param   a_za   A zenith angle along the path on the same side of the 
-                   tangent point as the point of interest.  
-   \param   r      Radius of the point of interest.
-
-   \author Patrick Eriksson
-   \date   2002-05-17
-*/
 Numeric geompath_za_at_r(const Numeric& ppc,
                          const Numeric& a_za,
                          const Numeric& r) {
@@ -149,20 +125,19 @@ Numeric geompath_za_at_r(const Numeric& ppc,
   }
 }
 
-//! geompath_r_at_za
-/*! 
-   Calculates the zenith angle for a given radius along a geometrical 
+/** Calculates the zenith angle for a given radius along a geometrical 
    propagation path.
 
    Both positive and negative zenith angles are handled.
 
-   \return         Radius at the point of interest.
-   \param   ppc    Propagation path constant.
-   \param   za     Zenith angle at the point of interest.
+   @param[in]   ppc    Propagation path constant.
+   @param[in]   za     Zenith angle at the point of interest.
 
-   \author Patrick Eriksson
-   \date   2002-06-05
-*/
+   @return   Radius at the point of interest.
+
+   @author Patrick Eriksson
+   @date   2002-06-05
+  */
 Numeric geompath_r_at_za(const Numeric& ppc, const Numeric& za) {
   assert(ppc >= 0);
   assert(abs(za) <= 180);
@@ -170,22 +145,6 @@ Numeric geompath_r_at_za(const Numeric& ppc, const Numeric& za) {
   return ppc / sin(DEG2RAD * abs(za));
 }
 
-//! geompath_lat_at_za
-/*!
-   Calculates the latitude for a given zenith angle along a geometrical 
-   propagation path.
-
-   Positive and negative zenith angles are handled. A positive zenith angle
-   means a movement towards higher latitudes.
-
-   \return         The latitude of the second point.
-   \param   za0    The zenith angle of the starting point.
-   \param   lat0   The latitude of the starting point.
-   \param   za     The zenith angle of the second point.
-
-   \author Patrick Eriksson
-   \date   2002-05-17
-*/
 Numeric geompath_lat_at_za(const Numeric& za0,
                            const Numeric& lat0,
                            const Numeric& za) {
@@ -196,20 +155,6 @@ Numeric geompath_lat_at_za(const Numeric& za0,
   return lat0 + za0 - za;
 }
 
-//! geompath_l_at_r
-/*!
-   Calculates the length from the tangent point for the given radius.
-
-   The tangent point is either real or imaginary depending on the zenith
-   angle of the sensor. See geometrical_tangent_radius.
-
-   \return         Length along the path from the tangent point. Always >= 0.
-   \param   ppc    Propagation path constant.
-   \param   r      Radius of the point of concern.
-
-   \author Patrick Eriksson
-   \date   2002-05-20
-*/
 Numeric geompath_l_at_r(const Numeric& ppc, const Numeric& r) {
   assert(ppc >= 0);
   assert(r >= ppc - RTOL);
@@ -221,39 +166,37 @@ Numeric geompath_l_at_r(const Numeric& ppc, const Numeric& r) {
   }
 }
 
-//! geompath_r_at_l
-/*!
-   Calculates the radius for a distance from the tangent point.
+/** Calculates the radius for a distance from the tangent point.
 
    The tangent point is either real or imaginary depending on the zenith
    angle of the sensor. See geometrical_tangent_radius.
 
-   \return         Radius. 
-   \param   ppc    Propagation path constant.
-   \param   l      Length from the tangent point (positive or negative).
+   @param[in]   ppc    Propagation path constant.
+   @param[in]   l      Length from the tangent point (positive or negative).
 
-   \author Patrick Eriksson
-   \date   2002-05-20
-*/
+   @return         Radius. 
+
+   @author Patrick Eriksson
+   @date   2002-05-20
+ */
 Numeric geompath_r_at_l(const Numeric& ppc, const Numeric& l) {
   assert(ppc >= 0);
 
   return sqrt(l * l + ppc * ppc);
 }
 
-//! geompath_r_at_lat
-/*!
-   Calculates the radius for a given latitude.
+/** Calculates the radius for a given latitude.
 
-   \return         Radius at the point of interest.
-   \param   ppc    Propagation path constant.
-   \param   lat0   Latitude at some other point of the path.
-   \param   za0    Zenith angle for the point with latitude lat0.
-   \param   lat    Latitude of the point of interest.
+   @param[in]   ppc    Propagation path constant.
+   @param[in]   lat0   Latitude at some other point of the path.
+   @param[in]   za0    Zenith angle for the point with latitude lat0.
+   @param[in]   lat    Latitude of the point of interest.
 
-   \author Patrick Eriksson
-   \date   2002-06-05
-*/
+   @return   Radius at the point of interest.
+
+   @author Patrick Eriksson
+   @date   2002-06-05
+ */
 Numeric geompath_r_at_lat(const Numeric& ppc,
                           const Numeric& lat0,
                           const Numeric& za0,
@@ -268,30 +211,28 @@ Numeric geompath_r_at_lat(const Numeric& ppc,
   return geompath_r_at_za(ppc, za);
 }
 
-//! geompath_from_r1_to_r2
-/*!
-   Determines radii, latitudes and zenith angles between two points of a 
-   propagation path.
+/** Determines radii, latitudes and zenith angles between two points of a 
+    propagation path.
 
    Both start and end point are included in the returned vectors.
 
-   \param   r          Output: Radius of propagation path points.
-   \param   lat        Output: Latitude of propagation path points.
-   \param   za         Output: Zenith angle of propagation path points.
-   \param   lstep      Output: Distance along the path between the points. 
-   \param   ppc        Propagation path constant.
-   \param   r1         Radius for first point.
-   \param   lat1       Latitude for first point.
-   \param   za1        Zenith angle for first point.
-   \param   r2         Radius for second point.
-   \param   tanpoint   True if there is a tangent point (r-based) between 
-                       r1 and r2. Otherwise false.
-   \param   lmax       Length criterion for distance between path points.
-                       A negative value means no length criterion.
+   @param[out]  r          Radius of propagation path points.
+   @param[out]  lat        Latitude of propagation path points.
+   @param[out]  za         Zenith angle of propagation path points.
+   @param[out]  lstep      Distance along the path between the points. 
+   @param[in]   ppc        Propagation path constant.
+   @param[in]   r1         Radius for first point.
+   @param[in]   lat1       Latitude for first point.
+   @param[in]   za1        Zenith angle for first point.
+   @param[in]   r2         Radius for second point.
+   @param[in]   tanpoint   True if there is a tangent point (r-based) between 
+                           r1 and r2. Otherwise false.
+   @param[in]   lmax       Length criterion for distance between path points.
+                           A negative value means no length criterion.
 
-   \author Patrick Eriksson
-   \date   2002-07-03
-*/
+   @author Patrick Eriksson
+   @date   2002-07-03
+ */
 void geompath_from_r1_to_r2(Vector& r,
                             Vector& lat,
                             Vector& za,
@@ -368,30 +309,6 @@ void geompath_from_r1_to_r2(Vector& r,
   === Functions focusing on zenith and azimuth angles
   ===========================================================================*/
 
-//! cart2zaaa
-/*! 
-   Converts a cartesian directional vector to zenith and azimuth
-
-   This function and the sister function cart2zaaa handles
-   transformation of line-of-sights. This in contrast to the sph/poslos
-   functions that handles positions, or combinations of positions and
-   line-of-sight.
-
-   The cartesian coordinate system used for these two functions can 
-   be defined as
-    z : za = 0
-    x : za=90, aa=0
-    y : za=90, aa=90
-
-   \param   za    Out: LOS zenith angle at observation position.
-   \param   aa    Out: LOS azimuth angle at observation position.
-   \param   dx    x-part of LOS unit vector.
-   \param   dy    y-part of LOS unit vector.
-   \param   dz    z-part of LOS unit vector.
-
-   \author Patrick Eriksson
-   \date   2009-10-02
-*/
 void cart2zaaa(Numeric& za,
                Numeric& aa,
                const Numeric& dx,
@@ -405,9 +322,7 @@ void cart2zaaa(Numeric& za,
   aa = RAD2DEG * atan2(dy, dx);
 }
 
-//! zaaa2cart
-/*! 
-   Converts zenith and azimuth angles to a cartesian unit vector.
+/** Converts zenith and azimuth angles to a cartesian unit vector.
 
    This function and the sister function cart2zaaa handles
    transformation of line-of-sights. This in contrast to the sph/poslos
@@ -420,15 +335,15 @@ void cart2zaaa(Numeric& za,
     x : za=90, aa=0
     y : za=90, aa=90
 
-   \param   dx    Out: x-part of LOS unit vector.
-   \param   dy    Out: y-part of LOS unit vector.
-   \param   dz    Out: z-part of LOS unit vector.
-   \param   za    LOS zenith angle at observation position.
-   \param   aa    LOS azimuth angle at observation position.
+   @param[out]   dx    x-part of LOS unit vector.
+   @param[out]   dy    y-part of LOS unit vector.
+   @param[out]   dz    z-part of LOS unit vector.
+   @param[in]    za    LOS zenith angle at observation position.
+   @param[in]    aa    LOS azimuth angle at observation position.
 
-   \author Patrick Eriksson
-   \date   2009-10-02
-*/
+   @author Patrick Eriksson
+   @date   2009-10-02
+ */
 void zaaa2cart(Numeric& dx,
                Numeric& dy,
                Numeric& dz,
@@ -443,9 +358,7 @@ void zaaa2cart(Numeric& dx,
   dx = cos(aarad) * dx;
 }
 
-//! rotationmat3D
-/*! 
-   Creates a 3D rotation matrix
+/** Creates a 3D rotation matrix
 
    Creates a rotation matrix such that R * x, operates on x by rotating 
    x around the origin a radians around line connecting the origin to the 
@@ -454,13 +367,13 @@ void zaaa2cart(Numeric& dx,
    The function is based on rotationmat3D.m, by Belechi (the function 
    is found in atmlab).
 
-   \param   R     Out: Rotation matrix
-   \param   vrot  Rotation axis
-   \param   a     Rotation angle
+   @param[out]   R     Rotation matrix
+   @param[in]    vrot  Rotation axis
+   @param[in]    a     Rotation angle
 
-   \author Bileschi and Patrick Eriksson
-   \date   2009-10-02
-*/
+   @author Bileschi and Patrick Eriksson
+   @date   2009-10-02
+ */
 void rotationmat3D(Matrix& R, ConstVectorView vrot, const Numeric& a) {
   assert(R.ncols() == 3);
   assert(R.nrows() == 3);
@@ -490,21 +403,6 @@ void rotationmat3D(Matrix& R, ConstVectorView vrot, const Numeric& a) {
   R(2, 2) = w2 + (u2 + v2) * c;
 }
 
-/*! Adds zenith and azimuth angles
-
-   Adds (dza,daa) to (za0,aa0), assuming that a unit changes in za and aa are
-   equal where (dza,daa)=(0,0).
-
-   \param   za         Out: End zenith angle
-   \param   aa         Out: End azimuth angle
-   \param   za0        Start zenith angle
-   \param   aa0        Start azimuth angle
-   \param   dza        Change in zenith angle
-   \param   daa        Change in azimuth angle
-
-   \author Patrick Eriksson
-   \date   2018-12-19
-*/
 void add_za_aa(Numeric& za,
                Numeric& aa,
                const Numeric& za0,
@@ -543,21 +441,6 @@ void add_za_aa(Numeric& za,
   cart2zaaa(za, aa, u[0], u[1], u[2]);
 }
 
-/*! Takes the difference of zenith and azimuth angles
-
-   Takes the difference between a set of angles (za,aa) and a reference
-   direction (za0,aa0). That is, this function is the "inverse" of *add_za_aa*.
-
-   \param   za         Out: End zenith angle
-   \param   aa         Out: End azimuth angle
-   \param   za0        Start zenith angle
-   \param   aa0        Start azimuth angle
-   \param   dza        Change in zenith angle
-   \param   daa        Change in azimuth angle
-
-   \author Patrick Eriksson
-   \date   2018-12-19
-*/
 void diff_za_aa(Numeric& dza,
                 Numeric& daa,
                 const Numeric& za0,
@@ -607,20 +490,19 @@ void diff_za_aa(Numeric& dza,
   === Various functions
   ===========================================================================*/
 
-//! refraction_ppc
-/*! 
-   Calculates the propagation path constant for cases with refraction.
+/** Calculates the propagation path constant for cases with refraction.
 
    Both positive and negative zenith angles are handled.
 
-   \return                   Path constant.
-   \param   r                Radius.
-   \param   za               LOS Zenith angle.
-   \param   refr_index_air   Refractive index.
+   @param[in]   r                Radius.
+   @param[in]   za               LOS Zenith angle.
+   @param[in]   refr_index_air   Refractive index.
 
-   \author Patrick Eriksson
-   \date   2002-05-17
-*/
+   @return   Path constant.
+
+   @author Patrick Eriksson
+   @date   2002-05-17
+ */
 Numeric refraction_ppc(const Numeric& r,
                        const Numeric& za,
                        const Numeric& refr_index_air) {
@@ -630,29 +512,6 @@ Numeric refraction_ppc(const Numeric& r,
   return r * refr_index_air * sin(DEG2RAD * abs(za));
 }
 
-//! resolve_lon
-/*! 
-   Resolves which longitude angle that shall be used.
-
-   Longitudes are allowed to vary between -360 and 360 degress, while the
-   inverse trigonomtric functions returns values between -180 and 180.
-   This function determines if the longitude shall be shifted -360 or
-   +360 to fit the longitudes set by the user.
-   
-   The argument *lon* as input is a value calculated by some inverse
-   trigonometric function. The arguments *lon5* and *lon6* are the
-   lower and upper limit for the probable range for *lon*. The longitude
-   *lon* will be shifted with -360 or +360 degrees if lon is significantly
-   outside *lon5* and *lon6*. No error is given if it is not possible to
-   obtain a value between *lon5* and *lon6*. 
-
-   \param   lon    In/Out: Longitude, possible shifted when returned.
-   \param   lon5   Lower limit of probable range for lon.
-   \param   lon6   Upper limit of probable range for lon
-
-   \author Patrick Eriksson
-   \date   2003-01-05
-*/
 void resolve_lon(Numeric& lon, const Numeric& lon5, const Numeric& lon6) {
   assert(lon6 >= lon5);
 
@@ -663,21 +522,6 @@ void resolve_lon(Numeric& lon, const Numeric& lon5, const Numeric& lon6) {
   }
 }
 
-//! find_tanpoint
-/*! 
-   Identifies the tangent point of a propagation path
-
-   The tangent points is defined as the point with the lowest altitude. 
-
-   The index of the tangent point is determined. If no tangent point is found,
-   the index is set to -1. 
-
-   \param   it      Out: Index of tangent point
-   \param   ppath   Propagation path structure.
-
-   \author Patrick Eriksson
-   \date   2012-04-07
-*/
 void find_tanpoint(Index& it, const Ppath ppath) {
   Numeric zmin = 99e99;
   it = -1;
@@ -690,15 +534,24 @@ void find_tanpoint(Index& it, const Ppath ppath) {
   }
 }
 
-//! error_if_limb_ppath
-/*! 
-   Throws an error if ppath altitudes not are strictly increasing or decreasing.
+Index first_pos_before_altitude(const Ppath& p, const Numeric& alt) {
+  // Checker flags
+  bool below = false, above = false;
 
-   \param   ppath   Propagation path structure.
+  // Check first pos before altitude
+  for (Index i = 0; i < p.np; i++) {
+    if (p.pos(i, 0) < alt) {
+      if (above) return i - 1;
+      below = true;
+    } else {
+      if (below) return i - 1;
+      above = true;
+    }
+  }
 
-   \author Patrick Eriksson
-   \date   2018-03-07
-*/
+  return -1;
+}
+
 void error_if_limb_ppath(const Ppath ppath) {
   if (ppath.np > 2) {
     Numeric signfac = sign(ppath.pos(1, 0) - ppath.pos(0, 0));
@@ -717,21 +570,20 @@ void error_if_limb_ppath(const Ppath ppath) {
   = 2D functions for surface and pressure level slope and tilt
   ===========================================================================*/
 
-//! rsurf_at_lat
-/*!
-   Determines the radius of a pressure level or the surface given the
+/** Determines the radius of a pressure level or the surface given the
    radius at the corners of a 2D grid cell.
 
-   \return         Radius at the given latitude.
-   \param   lat1   Lower latitude of grid cell.
-   \param   lat3   Upper latitude of grid cell.
-   \param   r1     Radius at *lat1*
-   \param   r3     Radius at *lat3*
-   \param   lat    Latitude for which radius shall be determined.
+   @param[in]   lat1   Lower latitude of grid cell.
+   @param[in]   lat3   Upper latitude of grid cell.
+   @param[in]   r1     Radius at *lat1*
+   @param[in]   r3     Radius at *lat3*
+   @param[in]   lat    Latitude for which radius shall be determined.
 
-   \author Patrick Eriksson
-   \date   2010-03-12
-*/
+   @return         Radius at the given latitude.
+
+   @author Patrick Eriksson
+   @date   2010-03-12
+ */
 Numeric rsurf_at_lat(const Numeric& lat1,
                      const Numeric& lat3,
                      const Numeric& r1,
@@ -740,33 +592,6 @@ Numeric rsurf_at_lat(const Numeric& lat1,
   return r1 + (lat - lat1) * (r3 - r1) / (lat3 - lat1);
 }
 
-//! plevel_slope_2d
-/*!
-   Calculates the radial slope of the surface or a pressure level for 2D.
-
-   The radial slope is here the derivative of the radius with respect to the
-   latitude. The unit is accordingly m/degree. 
-
-   Note that the radius is defined to change linearly between grid points, and
-   the slope is constant between to points of the latitude grid. The radius can
-   inside the grid range be expressed as r = r0(lat0) + c1*(lat-lat0) .
-
-   Note also that the slope is always calculated with respect to increasing
-   latitudes, independently of the zenith angle. The zenith angle is
-   only used to determine which grid range that is of interest when the
-   position is exactly on top of a grid point. 
-
-   \param   c1             Out: The radial slope [m/degree]
-   \param   lat_grid       The latitude grid.
-   \param   refellipsoid   As the WSV with the same name.
-   \param   z_surf         Geometrical altitude of the surface, or the pressure
-                           level of interest, for the latitide dimension
-   \param   gp             Latitude grid position for the position of interest
-   \param   za             LOS zenith angle.
-
-   \author Patrick Eriksson
-   \date   2002-06-03
-*/
 void plevel_slope_2d(Numeric& c1,
                      ConstVectorView lat_grid,
                      ConstVectorView refellipsoid,
@@ -780,24 +605,22 @@ void plevel_slope_2d(Numeric& c1,
   c1 = (r2 - r1) / (lat_grid[i1 + 1] - lat_grid[i1]);
 }
 
-//! plevel_slope_2d
-/*!
-   Calculates the radial slope of the surface or a pressure level for 2D.
+/** Calculates the radial slope of the surface or a pressure level for 2D.
 
    This function returns the same quantity as the function above, but takes
    the radius and latitude at two points of the pressure level, instead
    of vector input. That is, for this function the interesting latitude range
    is known when calling the function.
 
-   \param   c1             Out: The radial slope [m/degree]
-   \param   lat1   A latitude.
-   \param   lat2   Another latitude.
-   \param   r1     Radius at *lat1*.
-   \param   r2     Radius at *lat2*.
+   @param[out]  c1     The radial slope [m/degree]
+   @param[in]   lat1   A latitude.
+   @param[in]   lat2   Another latitude.
+   @param[in]   r1     Radius at *lat1*.
+   @param[in]   r2     Radius at *lat2*.
 
-   \author Patrick Eriksson
-   \date   2002-12-21
-*/
+   @author Patrick Eriksson
+   @date   2002-12-21
+ */
 void plevel_slope_2d(Numeric& c1,
                      const Numeric& lat1,
                      const Numeric& lat2,
@@ -806,46 +629,12 @@ void plevel_slope_2d(Numeric& c1,
   c1 = (r2 - r1) / (lat2 - lat1);
 }
 
-//! plevel_angletilt
-/*!
-   Calculates the angular tilt of the surface or a pressure level.
-
-   Note that the tilt value is a local value. The tilt for a constant
-   slope value, is different for different radii.
-
-   \return        The angular tilt.
-   \param    r    The radius for the level at the point of interest.
-   \param    c1   The radial slope, as returned by e.g. plevel_slope_2d.
-
-   \author Patrick Eriksson
-   \date   2002-06-03
-*/
 Numeric plevel_angletilt(const Numeric& r, const Numeric& c1) {
   // The tilt (in radians) is c1/r if c1 is converted to m/radian. So we get
   // conversion RAD2DEG twice
   return RAD2DEG * RAD2DEG * c1 / r;
 }
 
-//! is_los_downwards
-/*!
-   Determines if a line-of-sight is downwards compared to the angular tilt
-   of the surface or a pressure level.
-
-   For example, this function can be used to determine if the line-of-sight
-   goes into the surface for a starting point exactly on the surface radius.
-  
-   As the radius of the surface and pressure levels varies as a function of
-   latitude, it is not clear if a zenith angle of 90 is above or below e.g.
-   the surface.
- 
-   \return         Boolean that is true if LOS is downwards.
-   \param   za     Zenith angle of line-of-sight.
-   \param   tilt   Angular tilt of the surface or the pressure level (as
-                   returned by plevel_angletilt)
-
-   \author Patrick Eriksson
-   \date   2002-06-03
-*/
 bool is_los_downwards(const Numeric& za, const Numeric& tilt) {
   assert(abs(za) <= 180);
 
@@ -857,9 +646,7 @@ bool is_los_downwards(const Numeric& za, const Numeric& tilt) {
   }
 }
 
-//! r_crossing_2d
-/*!
-   Calculates where a 2D LOS crosses the specified radius.
+/** Calculates where a 2D LOS crosses the specified radius.
 
    The function only looks for crossings in the forward direction of
    the given zenith angle (neglecting all solutions giving *l* <= 0).
@@ -869,18 +656,18 @@ bool is_los_downwards(const Numeric& za, const Numeric& tilt) {
  
    LAT_NOT_FOUND and L_NOT_FOUND are returned if no solution is found.
 
-   \param   r         Out: Radius of found crossing.
-   \param   lat       Out: Latitude of found crossing.
-   \param   l         Out: Length along the path to the crossing.
-   \param   r_hit     Radius of the level
-   \param   r_start   Radius of start point.
-   \param   lat_start Latitude of start point.
-   \param   za_start  Zenith angle at start point.
-   \param   ppc       Propagation path constant
+   @param[out]  r         Radius of found crossing.
+   @param[out]  lat       Latitude of found crossing.
+   @param[out]  l         Length along the path to the crossing.
+   @param[in]   r_hit     Radius of the level
+   @param[in]   r_start   Radius of start point.
+   @param[in]   lat_start Latitude of start point.
+   @param[in]   za_start  Zenith angle at start point.
+   @param[in]   ppc       Propagation path constant
 
-   \author Patrick Eriksson
-   \date   2012-02-18
-*/
+   @author Patrick Eriksson
+   @date   2012-02-18
+ */
 void r_crossing_2d(Numeric& lat,
                    Numeric& l,
                    const Numeric& r_hit,
@@ -917,9 +704,7 @@ void r_crossing_2d(Numeric& lat,
   }
 }
 
-//! rslope_crossing2d
-/*!
-   Calculates the angular distance to a crossing with a level having a 
+/** Calculates the angular distance to a crossing with a level having a 
    radial slope.
 
    The function solves the problem for a pressure level, or the planet's
@@ -943,16 +728,17 @@ void r_crossing_2d(Numeric& lat,
 
    The cases c=0, za=0 and za=180 are not allowed.
 
-   \return         The angular distance to the crossing.
-   \param   rp     Radius of a point of the path inside the grid cell
-   \param   za     Zenith angle of the path at rp.
-   \param   r0     Radius of the pressure level or the surface at the
-                   latitude of rp.
-   \param   c1     Linear slope term, as returned by plevel_slope_2d.
+   @param[in]   rp     Radius of a point of the path inside the grid cell
+   @param[in]   za     Zenith angle of the path at rp.
+   @param[in]   r0     Radius of the pressure level or the surface at the
+                       latitude of rp.
+   @param[in]   c1     Linear slope term, as returned by plevel_slope_2d.
 
-   \author Patrick Eriksson
-   \date   2002-06-07
-*/
+   @return  The angular distance to the crossing.
+
+   @author Patrick Eriksson
+   @date   2002-06-07
+ */
 Numeric rslope_crossing2d(const Numeric& rp,
                           const Numeric& za,
                           const Numeric& r0,
@@ -1052,9 +838,7 @@ Numeric rslope_crossing2d(const Numeric& rp,
   return dlat;
 }
 
-//! plevel_crossing_2d
-/*!
-   Handles the crossing with a geometric ppaths step and a atmospheric 
+/** Handles the crossing with a geometric ppaths step and a atmospheric 
    grid box level for 2D.
 
    That is, we have a part of a pressure level or the planet's surface,
@@ -1067,23 +851,23 @@ Numeric rslope_crossing2d(const Numeric& rp,
    solution of zero length is rejected.
  
 
-   \param   r           Out: Radius at crossing.
-   \param   lat         Out: Latitude at crossing.
-   \param   l           Out: Length between start and crossing points.
-   \param   r_start0    In: Radius of start point.
-   \param   lat_start   In: Latitude of start point.
-   \param   za_start    In: LOS zenith angle at start point.
-   \param   ppc         In: Propagation path constant.
-   \param   lat1        In: Latitude of lower end.
-   \param   lat3        In: Latitude of upper end.
-   \param   r1          In: Radius at lat1.
-   \param   r3          In: Radius at lat3.
-   \param   above       In: True if ppath start point is above level. 
-                        In: Otherwise false.
+   @param[out]  r           Radius at crossing.
+   @param[out]  lat         Latitude at crossing.
+   @param[out]  l           Length between start and crossing points.
+   @param[in]   r_start0    Radius of start point.
+   @param[in]   lat_start   Latitude of start point.
+   @param[in]   za_start    LOS zenith angle at start point.
+   @param[in]   ppc         Propagation path constant.
+   @param[in]   lat1        Latitude of lower end.
+   @param[in]   lat3        Latitude of upper end.
+   @param[in]   r1          Radius at lat1.
+   @param[in]   r3          Radius at lat3.
+   @param[in]   above       True if ppath start point is above level. 
+                            Otherwise false.
 
-   \author Patrick Eriksson
-   \date   2012-02-19
-*/
+   @author Patrick Eriksson
+   @date   2012-02-19
+ */
 void plevel_crossing_2d(Numeric& r,
                         Numeric& lat,
                         Numeric& l,
@@ -1249,26 +1033,25 @@ void plevel_crossing_2d(Numeric& r,
   = 3D functions for level slope and tilt, and lat/lon crossings
   ===========================================================================*/
 
-//! rsurf_at_latlon
-/*!
-   Determines the radius of a pressure level or the surface given the
+/** Determines the radius of a pressure level or the surface given the
    radius at the corners of a 3D grid cell.
 
-   \return         Radius at the given latitude and longitude.
-   \param   lat1   Lower latitude of grid cell.
-   \param   lat3   Upper latitude of grid cell.
-   \param   lon5   Lower longitude of grid cell.
-   \param   lon6   Upper longitude of grid cell.
-   \param   r15    Radius at crossing of *lat1* and *lon5*.
-   \param   r35    Radius at crossing of *lat3* and *lon5*.
-   \param   r36    Radius at crossing of *lat3* and *lon6*.
-   \param   r16    Radius at crossing of *lat1* and *lon6*.
-   \param   lat    Latitude for which radius shall be determined.
-   \param   lon    Longitude for which radius shall be determined.
+   @param[in]   lat1   Lower latitude of grid cell.
+   @param[in]   lat3   Upper latitude of grid cell.
+   @param[in]   lon5   Lower longitude of grid cell.
+   @param[in]   lon6   Upper longitude of grid cell.
+   @param[in]   r15    Radius at crossing of *lat1* and *lon5*.
+   @param[in]   r35    Radius at crossing of *lat3* and *lon5*.
+   @param[in]   r36    Radius at crossing of *lat3* and *lon6*.
+   @param[in]   r16    Radius at crossing of *lat1* and *lon6*.
+   @param[in]   lat    Latitude for which radius shall be determined.
+   @param[in]   lon    Longitude for which radius shall be determined.
 
-   \author Patrick Eriksson
-   \date   2002-12-30
-*/
+   @return    Radius at the given latitude and longitude.
+
+   @author Patrick Eriksson
+   @date   2002-12-30
+ */
 Numeric rsurf_at_latlon(const Numeric& lat1,
                         const Numeric& lat3,
                         const Numeric& lon5,
@@ -1298,32 +1081,6 @@ Numeric rsurf_at_latlon(const Numeric& lat1,
   }
 }
 
-//! plevel_slope_3d
-/*!
-   Calculates the radial slope of the surface or a pressure level for 3D.
-
-   For 2D the radius can be expressed as r = r0 + c1*dalpha, where alpha
-   is the latitude. The radius is here for 3D expressed as a second order
-   polynomial: r = r0 + c1*dalpha + c2*dalpha^2, where alpha is the angular
-   change (in degrees) along the great circle along the given azimuth angle.
-
-   \param   c1     Out: See above. Unit is m/degree.
-   \param   c2     Out: See above. Unit is m/degree^2.
-   \param   lat1   Lower latitude of grid cell.
-   \param   lat3   Upper latitude of grid cell.
-   \param   lon5   Lower longitude of grid cell.
-   \param   lon6   Upper longitude of grid cell.
-   \param   r15    Radius at crossing of *lat1* and *lon5*.
-   \param   r35    Radius at crossing of *lat3* and *lon5*.
-   \param   r36    Radius at crossing of *lat3* and *lon6*.
-   \param   r16    Radius at crossing of *lat1* and *lon6*.
-   \param   lat    Latitude for which slope shall be determined.
-   \param   lon    Longitude for which slope shall be determined.
-   \param   aa     Azimuth angle for which slope shall be determined.
-
-   \author Patrick Eriksson
-   \date   2002-12-30
-*/
 void plevel_slope_3d(Numeric& c1,
                      Numeric& c2,
                      const Numeric& lat1,
@@ -1377,9 +1134,7 @@ void plevel_slope_3d(Numeric& c1,
   }
 }
 
-//! plevel_slope_3d
-/*!
-   Calculates the radial slope of the surface or a pressure level for 3D.
+/** Calculates the radial slope of the surface or a pressure level for 3D.
 
    For 2D where the radius can be expressed as r = r0 + c1*dalpha, where alpha
    is the latitude. The radius is here for 3D expressed as a second order
@@ -1390,20 +1145,20 @@ void plevel_slope_3d(Numeric& c1,
    range below or above that is of interest. The azimuth angle is used
    to resolve such cases.
 
-   \param   c1             Out: See above. Unit is m/degree.
-   \param   c2             Out: See above. Unit is m/degree^2.
-   \param   lat_grid       The latitude grid.
-   \param   lon_grid       The longitude grid.
-   \param   refellipsoid   As the WSV with the same name.
-   \param   z_surf         Geometrical altitude of the surface, or the pressure
+   @param[out]  c1             See above. Unit is m/degree.
+   @param[out]  c2             See above. Unit is m/degree^2.
+   @param[in]   lat_grid       The latitude grid.
+   @param[in]   lon_grid       The longitude grid.
+   @param[in]   refellipsoid   As the WSV with the same name.
+   @param[in]   z_surf         Geometrical altitude of the surface, or the pressure
                            level of interest.
-   \param   gp_lat         Latitude grid position for the position of interest.
-   \param   gp_lon         Longitude grid position for the position of interest.
-   \param   aa             Azimuth angle.
+   @param[in]   gp_lat         Latitude grid position for the position of interest.
+   @param[in]   gp_lon         Longitude grid position for the position of interest.
+   @param[in]   aa             Azimuth angle.
 
-   \author Patrick Eriksson
-   \date   2002-06-03
-*/
+   @author Patrick Eriksson
+   @date   2002-06-03
+ */
 void plevel_slope_3d(Numeric& c1,
                      Numeric& c2,
                      ConstVectorView lat_grid,
@@ -1463,21 +1218,21 @@ void plevel_slope_3d(Numeric& c1,
       c1, c2, lat1, lat3, lon5, lon6, r15, r35, r36, r16, lat, lon, aa);
 }
 
-//! rslope_crossing3d
-/*!
+/**
    3D version of rslope_crossing2d.
 
-   \return         The angular distance to the crossing.
-   \param   rp     Radius of a point of the path inside the grid cell
-   \param   za     Zenith angle of the path at rp.
-   \param   r0     Radius of the pressure level or the surface at the
+   @param[in]   rp     Radius of a point of the path inside the grid cell
+   @param[in]   za     Zenith angle of the path at rp.
+   @param[in]   r0     Radius of the pressure level or the surface at the
                    latitude of rp.
-   \param   c1     Linear slope term, as returned by plevel_slope_3d.
-   \param   c2     Quadratic slope term, as returned by plevel_slope_3d.
+   @param[in]   c1     Linear slope term, as returned by plevel_slope_3d.
+   @param[in]   c2     Quadratic slope term, as returned by plevel_slope_3d.
 
-   \author Patrick Eriksson
-   \date   2012-04-24
-*/
+   @return   The angular distance to the crossing.
+
+   @author Patrick Eriksson
+   @date   2012-04-24
+ */
 Numeric rslope_crossing3d(const Numeric& rp,
                           const Numeric& za,
                           const Numeric& r0,
@@ -1571,9 +1326,7 @@ Numeric rslope_crossing3d(const Numeric& rp,
   return dlat;
 }
 
-//! r_crossing_3d
-/*!
-   Calculates where a 3D LOS crosses the specified radius
+/** Calculates where a 3D LOS crosses the specified radius
 
    The solution algorithm is described in ATD. See the
    chapter on propagation paths.
@@ -1585,25 +1338,25 @@ Numeric rslope_crossing3d(const Numeric& rp,
    LAT_NOT_FOUND, LON_NOT_FOUND and L_NOT_FOUND are returned if no solution 
    is found.
 
-   \param   lat       Out: Latitude of found crossing.
-   \param   lon       Out: Longitude of found crossing.
-   \param   l         Out: Length along the path to the crossing.
-   \param   r_hit     Target radius.
-   \param   r_start   Radius of start point.
-   \param   lat_start Latitude of start point.
-   \param   lon_start Longitude of start point.
-   \param   za_start  Zenith angle at start point.
-   \param   ppc       Propagation path constant
-   \param   x         x-coordinate of start position.
-   \param   y         y-coordinate of start position.
-   \param   z         z-coordinate of start position.
-   \param   dx        x-part of LOS unit vector.
-   \param   dy        y-part of LOS unit vector.
-   \param   dz        z-part of LOS unit vector.
+   @param[out]  lat       Latitude of found crossing.
+   @param[out]  lon       Longitude of found crossing.
+   @param[out]  l         Length along the path to the crossing.
+   @param[in]   r_hit     Target radius.
+   @param[in]   r_start   Radius of start point.
+   @param[in]   lat_start Latitude of start point.
+   @param[in]   lon_start Longitude of start point.
+   @param[in]   za_start  Zenith angle at start point.
+   @param[in]   ppc       Propagation path constant
+   @param[in]   x         x-coordinate of start position.
+   @param[in]   y         y-coordinate of start position.
+   @param[in]   z         z-coordinate of start position.
+   @param[in]   dx        x-part of LOS unit vector.
+   @param[in]   dy        y-part of LOS unit vector.
+   @param[in]   dz        z-part of LOS unit vector.
 
-   \author Patrick Eriksson
-   \date   2002-12-30
-*/
+   @author Patrick Eriksson
+   @date   2002-12-30
+ */
 void r_crossing_3d(Numeric& lat,
                    Numeric& lon,
                    Numeric& l,
@@ -1670,22 +1423,6 @@ void r_crossing_3d(Numeric& lat,
   === Basic functions for the Ppath structure
   ===========================================================================*/
 
-//! ppath_init_structure
-/*!
-   Initiates a Ppath structure to hold the given number of points.
-
-   The background field is set to background case 0. The constant field is set
-   to -1. The refraction field is set to 0.
-
-   The length of the lstep field is set to np-1.
-
-   \param   ppath            Output: A Ppath structure.
-   \param   atmosphere_dim   The atmospheric dimensionality.
-   \param   np               Number of points of the path.
-
-   \author Patrick Eriksson
-   \date   2002-05-17
-*/
 void ppath_init_structure(Ppath& ppath,
                           const Index& atmosphere_dim,
                           const Index& np) {
@@ -1727,26 +1464,6 @@ void ppath_init_structure(Ppath& ppath,
   ppath.ngroup.resize(np);
 }
 
-//! ppath_set_background
-/*!
-   Sets the background field of a Ppath structure.
-
-   The different background cases have a number coding to simplify a possible
-   change of the strings and checking of the what case that is valid.
-
-   The case numbers are:                    <br>
-      0. Unvalid.                           <br>
-      1. Space.                             <br>
-      2. The surface.                       <br>
-      3. The cloud box boundary.            <br>
-      4. The interior of the cloud box.       
-
-   \param   ppath            Output: A Ppath structure.
-   \param   case_nr          Case number (see above)
-
-   \author Patrick Eriksson
-   \date   2002-05-17
-*/
 void ppath_set_background(Ppath& ppath, const Index& case_nr) {
   switch (case_nr) {
     case 0:
@@ -1774,18 +1491,6 @@ void ppath_set_background(Ppath& ppath, const Index& case_nr) {
   }
 }
 
-//! ppath_what_background
-/*!
-   Returns the case number for the radiative background.
-
-   See further the function *ppath_set_background*.
-
-   \return                   The case number.
-   \param   ppath            A Ppath structure.
-
-   \author Patrick Eriksson
-   \date   2002-05-17
-*/
 Index ppath_what_background(const Ppath& ppath) {
   if (ppath.background == "unvalid") {
     return 0;
@@ -1807,22 +1512,6 @@ Index ppath_what_background(const Ppath& ppath) {
   }
 }
 
-//! ppath_copy
-/*!
-   Copy the content in ppath2 to ppath1.
-
-   The ppath1 structure must be allocated before calling the function. The
-   structure can be allocated to hold more points than found in ppath2.
-   The data of ppath2 is placed in the first positions of ppath1.
-
-   \param   ppath1    Output: Ppath structure.
-   \param   ppath2    The ppath structure to be copied.
-   \param   ncopy     Number of points in ppath2 to copy. If set to negative,
-                      the number is set to ppath2.np. 
-
-   \author Patrick Eriksson
-   \date   2002-07-03
-*/
 void ppath_copy(Ppath& ppath1, const Ppath& ppath2, const Index& ncopy) {
   Index n;
   if (ncopy < 0) {
@@ -1873,9 +1562,7 @@ void ppath_copy(Ppath& ppath1, const Ppath& ppath2, const Index& ncopy) {
   }
 }
 
-//! ppath_append
-/*!
-   Combines two Ppath structures.
+/** Combines two Ppath structures.
 
    The function appends a Ppath structure to another structure. 
  
@@ -1885,12 +1572,12 @@ void ppath_copy(Ppath& ppath1, const Ppath& ppath2, const Index& ncopy) {
    Only ppath2 fields start_pos, start_los, start_lstep, pos, los, r, lstep,
    nreal, ngroup, gp_XXX and background are considered.
 
-   \param   ppath1    Output: Ppath structure to be expanded.
-   \param   ppath2    The Ppath structure to include in ppath.
+   @param[in,out]   ppath1    Ppath structure to be expanded.
+   @param[in]       ppath2    The Ppath structure to include in ppath.
 
-   \author Patrick Eriksson
-   \date   2002-07-03
-*/
+   @author Patrick Eriksson
+   @date   2002-07-03
+ */
 void ppath_append(Ppath& ppath1, const Ppath& ppath2) {
   const Index n1 = ppath1.np;
   const Index n2 = ppath2.np;
@@ -1941,18 +1628,16 @@ void ppath_append(Ppath& ppath1, const Ppath& ppath2) {
   === 1D/2D/3D start and end ppath functions
   ===========================================================================*/
 
-//! ppath_start_1d
-/*! 
-   Internal help function for 1D path calculations.
+/** Internal help function for 1D path calculations.
 
    The function does the asserts and determined some variables that are common
    for geometrical and refraction calculations.
 
    See the code for details.
 
-   \author Patrick Eriksson
-   \date   2002-11-13
-*/
+   @author Patrick Eriksson
+   @date   2002-11-13
+ */
 void ppath_start_1d(Numeric& r_start,
                     Numeric& lat_start,
                     Numeric& za_start,
@@ -1972,18 +1657,16 @@ void ppath_start_1d(Numeric& r_start,
   ip = gridpos2gridrange(ppath.gp_p[imax], za_start <= 90);
 }
 
-//! ppath_end_1d
-/*! 
-   Internal help function for 1D path calculations.
+/** Internal help function for 1D path calculations.
 
    The function performs the end part of the calculations, that are common
    for geometrical and refraction calculations.
 
    See the code for details.
 
-   \author Patrick Eriksson
-   \date   2002-11-27
-*/
+   @author Patrick Eriksson
+   @date   2002-11-27
+ */
 void ppath_end_1d(Ppath& ppath,
                   ConstVectorView r_v,
                   ConstVectorView lat_v,
@@ -2038,18 +1721,16 @@ void ppath_end_1d(Ppath& ppath,
   }
 }
 
-//! ppath_start_2d
-/*! 
-   Internal help function for 2D path calculations.
+/** Internal help function for 2D path calculations.
 
    The function does the asserts and determined some variables that are common
    for geometrical and refraction calculations.
 
    See the code for details.
 
-   \author Patrick Eriksson
-   \date   2002-11-18
-*/
+   @author Patrick Eriksson
+   @date   2002-11-18
+ */
 void ppath_start_2d(Numeric& r_start,
                     Numeric& lat_start,
                     Numeric& za_start,
@@ -2150,18 +1831,16 @@ void ppath_start_2d(Numeric& r_start,
   rsurface3 = re3 + z_surface[ilat + 1];
 }
 
-//! ppath_end_2d
-/*! 
-   Internal help function for 2D path calculations.
+/** Internal help function for 2D path calculations.
 
    The function performs the end part of the calculations, that are common
    for geometrical and refraction calculations.
 
    See the code for details.
 
-   \author Patrick Eriksson
-   \date   2002-11-29
-*/
+   @author Patrick Eriksson
+   @date   2002-11-29
+ */
 void ppath_end_2d(Ppath& ppath,
                   ConstVectorView r_v,
                   ConstVectorView lat_v,
@@ -2259,18 +1938,16 @@ void ppath_end_2d(Ppath& ppath,
   }
 }
 
-//! ppath_start_3d
-/*! 
-   Internal help function for 3D path calculations.
+/** Internal help function for 3D path calculations.
 
    The function does the asserts and determined some variables that are common
    for geometrical and refraction calculations.
 
    See the code for details.
 
-   \author Patrick Eriksson
-   \date   2002-12-30
-*/
+   @author Patrick Eriksson
+   @date   2002-12-30
+ */
 void ppath_start_3d(Numeric& r_start,
                     Numeric& lat_start,
                     Numeric& lon_start,
@@ -2451,18 +2128,16 @@ void ppath_start_3d(Numeric& r_start,
   rsurface16 = re1 + z_surface(ilat, ilon + 1);
 }
 
-//! ppath_end_3d
-/*! 
-   Internal help function for 3D path calculations.
+/** Internal help function for 3D path calculations.
 
    The function performs the end part of the calculations, that are common
    for geometrical and refraction calculations.
 
    See the code for details.
 
-   \author Patrick Eriksson
-   \date   2002-12-30
-*/
+   @author Patrick Eriksson
+   @date   2002-12-30
+ */
 void ppath_end_3d(Ppath& ppath,
                   ConstVectorView r_v,
                   ConstVectorView lat_v,
@@ -2598,32 +2273,30 @@ void ppath_end_3d(Ppath& ppath,
   === Core functions for geometrical ppath_step calculations
   ===========================================================================*/
 
-//! do_gridrange_1d
-/*!
-   Calculates the geometrical path through a 1D grid range.
+/** Calculates the geometrical path through a 1D grid range.
 
    This function works as *do_gridcell_2d*, but is valid for 1D cases.
 
    The coding of variables and end face is as for *do_gridcell_2d*, with
    the exception that end faces 2 and 4 do not exist here.
 
-   \param   r_v         Out: Vector with radius of found path points.
-   \param   lat_v       Out: Vector with latitude of found path points.
-   \param   za_v        Out: Vector with LOS zenith angle at found path points.
-   \param   lstep       Out: Vector with length along the path between points.
-   \param   endface     Out: Number coding for exit face.
-   \param   r_start0    Radius of start point.
-   \param   lat_start   Latitude of start point.
-   \param   za_start    LOS zenith angle at start point.
-   \param   ppc         Propagation path constant.
-   \param   lmax        Maximum allowed length along the path. -1 = no limit.
-   \param   ra          Radius of lower pressure level.
-   \param   rb          Radius of upper pressure level (rb > ra);
-   \param   rsurface    Radius for the surface.
+   @param[out]  r_v         Vector with radius of found path points.
+   @param[out]  lat_v       Vector with latitude of found path points.
+   @param[out]  za_v        Vector with LOS zenith angle at found path points.
+   @param[out]  lstep       Vector with length along the path between points.
+   @param[out]  endface     Number coding for exit face.
+   @param[in]   r_start0    Radius of start point.
+   @param[in]   lat_start   Latitude of start point.
+   @param[in]   za_start    LOS zenith angle at start point.
+   @param[in]   ppc         Propagation path constant.
+   @param[in]   lmax        Maximum allowed length along the path. -1 = no limit.
+   @param[in]   ra          Radius of lower pressure level.
+   @param[in]   rb          Radius of upper pressure level (rb > ra);
+   @param[in]   rsurface    Radius for the surface.
 
-   \author Patrick Eriksson
-   \date   2002-12-02
-*/
+   @author Patrick Eriksson
+   @date   2002-12-02
+ */
 void do_gridrange_1d(Vector& r_v,
                      Vector& lat_v,
                      Vector& za_v,
@@ -2696,32 +2369,6 @@ void do_gridrange_1d(Vector& r_v,
                          lmax);
 }
 
-//! ppath_step_geom_1d
-/*! 
-   Calculates 1D geometrical propagation path steps.
-
-   This is the core function to determine 1D propagation path steps by pure
-   geometrical calculations. Path points are included for crossings with the
-   grids, tangent points and points of intersection with the surface. In
-   addition, points are included in the propgation path to ensure that the
-   distance along the path between the points does not exceed the selected
-   maximum length (lmax). If lmax is <= 0, this means that no length criterion
-   shall be applied.
-
-   Note that the input variables are here compressed to only hold data for
-   a 1D atmosphere. For example, z_field is z_field(:,0,0).
-
-   For more information read the chapter on propagation paths in AUG.
-
-   \param   ppath             Output: A Ppath structure.
-   \param   z_field           Geometrical altitudes corresponding to p_grid.
-   \param   refellipsoid      As the WSV with the same name.
-   \param   z_surface         Surface altitude.
-   \param   lmax              Maximum allowed length between the path points.
-
-   \author Patrick Eriksson
-   \date   2002-05-20
-*/
 void ppath_step_geom_1d(Ppath& ppath,
                         ConstVectorView z_field,
                         ConstVectorView refellipsoid,
@@ -2784,13 +2431,11 @@ void ppath_step_geom_1d(Ppath& ppath,
                ppc);
 }
 
-//! do_gridcell_2d_byltest
-/*!
-    Works as do_gridcell_3d_byltest, but downscaled to 2D
+/** Works as do_gridcell_3d_byltest, but downscaled to 2D
 
-    \author Patrick Eriksson
-    \date   2013-08-16
-*/
+    @author Patrick Eriksson
+    @date   2013-08-16
+ */
 void do_gridcell_2d_byltest(Vector& r_v,
                             Vector& lat_v,
                             Vector& za_v,
@@ -3088,23 +2733,6 @@ void do_gridcell_2d_byltest(Vector& r_v,
   }
 }
 
-//! ppath_step_geom_2d
-/*! 
-   Calculates 2D geometrical propagation path steps.
-
-   Works as the same function for 1D, despite that some input arguments are
-   of different type.
-
-   \param   ppath             Output: A Ppath structure.
-   \param   lat_grid          Latitude grid.
-   \param   z_field           Geometrical altitudes
-   \param   refellipsoid      As the WSV with the same name.
-   \param   z_surface         Surface altitudes.
-   \param   lmax              Maximum allowed length between the path points.
-
-   \author Patrick Eriksson
-   \date   2002-07-03
-*/
 void ppath_step_geom_2d(Ppath& ppath,
                         ConstVectorView lat_grid,
                         ConstMatrixView z_field,
@@ -3192,13 +2820,11 @@ void ppath_step_geom_2d(Ppath& ppath,
                ppc);
 }
 
-//! do_gridcell_3d_byltest
-/*!
-    See ATD for a description of the algorithm.
+/** See ATD for a description of the algorithm.
 
-    \author Patrick Eriksson
-    \date   2002-11-28
-*/
+    @author Patrick Eriksson
+    @date   2002-11-28
+ */
 void do_gridcell_3d_byltest(Vector& r_v,
                             Vector& lat_v,
                             Vector& lon_v,
@@ -3641,24 +3267,6 @@ void do_gridcell_3d_byltest(Vector& r_v,
   }
 }
 
-//! ppath_step_geom_3d
-/*! 
-   Calculates 3D geometrical propagation path steps.
-
-   Works as the same function for 1D despite that some input arguments are
-   of different type.
-
-   \param   ppath             Output: A Ppath structure.
-   \param   lat_grid          Latitude grid.
-   \param   lon_grid          Longitude grid.
-   \param   z_field           Geometrical altitudes
-   \param   refellipsoid      As the WSV with the same name.
-   \param   z_surface         Surface altitudes.
-   \param   lmax              Maximum allowed length between the path points.
-
-   \author Patrick Eriksson
-   \date   2002-12-30
-*/
 void ppath_step_geom_3d(Ppath& ppath,
                         ConstVectorView lat_grid,
                         ConstVectorView lon_grid,
@@ -3783,9 +3391,7 @@ void ppath_step_geom_3d(Ppath& ppath,
   === Core functions for refraction *ppath_step* functions
   ===========================================================================*/
 
-//! raytrace_1d_linear_basic
-/*! 
-   Performs ray tracing for 1D with linear steps.
+/** Performs ray tracing for 1D with linear steps.
 
    A geometrical step with length of *lraytrace* is taken from each
    point. The zenith angle for the end point of that step is
@@ -3796,34 +3402,33 @@ void ppath_step_geom_3d(Ppath& ppath,
    For more information read the chapter on propagation paths in AUG.
    The algorithm used is described in that part of ATD.
 
-   \param   ws              Current Workspace
-   \param   r_array         Out: Radius of ray tracing points.
-   \param   lat_array       Out: Latitude of ray tracing points.
-   \param   za_array        Out: LOS zenith angle at ray tracing points.
-   \param   l_array         Out: Distance along the path between ray tracing 
-                            points.
-   \param   n_array         Out: Refractive index at ray tracing points.
-   \param   endface         Out: Number coding of exit face.
-   \param   p_grid          The WSV with the same name.
-   \param   refellipsoid    The WSV with the same name.
-   \param   lat_grid        The WSV with the same name.
-   \param   z_field         The WSV with the same name.
-   \param   t_field         The WSV with the same name.
-   \param   vmr_field       The WSV with the same name.
-   \param   f_grid          As the WSV with the same name.
-   \param   lmax            As the WSV ppath_lmax
-   \param   refr_index_air_agenda   The WSV with the same name.
-   \param   lraytrace       Maximum allowed length for ray tracing steps.
-   \param   r_surface       Radius of the surface.
-   \param   r1              Radius of lower pressure level.
-   \param   r3              Radius of upper pressure level (r3 > r1).
-   \param   r               Start radius for ray tracing.
-   \param   lat             Start latitude for ray tracing.
-   \param   za              Start zenith angle for ray tracing.
+   @param[in,out]   ws          Current Workspace
+   @param[out]  r_array         Radius of ray tracing points.
+   @param[out]  lat_array       Latitude of ray tracing points.
+   @param[out]  za_array        LOS zenith angle at ray tracing points.
+   @param[out]  l_array         Distance along the path between ray tracing point
+   @param[out]  n_array        Refractive index at ray tracing points.
+   @param[out]  endface        Number coding of exit face.
+   @param[in]   p_grid          The WSV with the same name.
+   @param[in]   refellipsoid    The WSV with the same name.
+   @param[in]   lat_grid        The WSV with the same name.
+   @param[in]   z_field         The WSV with the same name.
+   @param[in]   t_field         The WSV with the same name.
+   @param[in]   vmr_field       The WSV with the same name.
+   @param[in]   f_grid          As the WSV with the same name.
+   @param[in]   lmax            As the WSV ppath_lmax
+   @param[in]   refr_index_air_agenda   The WSV with the same name.
+   @param[in]   lraytrace       Maximum allowed length for ray tracing steps.
+   @param[in]   r_surface       Radius of the surface.
+   @param[in]   r1              Radius of lower pressure level.
+   @param[in]   r3              Radius of upper pressure level (r3 > r1).
+   @param[in]   r               Start radius for ray tracing.
+   @param[in]   lat             Start latitude for ray tracing.
+   @param[in]   za              Start zenith angle for ray tracing.
 
-   \author Patrick Eriksson
-   \date   2002-12-02
-*/
+   @author Patrick Eriksson
+   @date   2002-12-02
+ */
 void raytrace_1d_linear_basic(Workspace& ws,
                               Array<Numeric>& r_array,
                               Array<Numeric>& lat_array,
@@ -3968,34 +3573,6 @@ void raytrace_1d_linear_basic(Workspace& ws,
   }
 }
 
-//! ppath_step_refr_1d
-/*! 
-   Calculates 1D propagation path steps including effects of refraction.
-
-   This function works as the function *ppath_step_geom_1d* but considers
-   also refraction. The upper length of the ray tracing steps is set by
-   the argument *lraytrace*. This argument controls only the internal
-   calculations. The maximum distance between the path points is still
-   determined by *lmax*.
-
-   \param   ws                Current Workspace
-   \param   ppath             Out: A Ppath structure.
-   \param   p_grid            Pressure grid.
-   \param   z_field           As the WSV with the same name.
-   \param   t_field           As the WSV with the same name.
-   \param   vmr_field         As the WSV with the same name.
-   \param   f_grid            As the WSV with the same name.
-   \param   refellipsoid      As the WSV with the same name.
-   \param   z_surface         Surface altitude (1D).
-   \param   lmax              Maximum allowed length between the path points.
-   \param   refr_index_air_agenda The WSV with the same name.
-   \param   rtrace_method     String giving which ray tracing method to use.
-                              See the function for options.
-   \param   lraytrace         Maximum allowed length for ray tracing steps.
-
-   \author Patrick Eriksson
-   \date   2002-11-26
-*/
 void ppath_step_refr_1d(Workspace& ws,
                         Ppath& ppath,
                         ConstVectorView p_grid,
@@ -4115,9 +3692,7 @@ void ppath_step_refr_1d(Workspace& ws,
                ppc);
 }
 
-//! raytrace_2d_linear_basic
-/*! 
-   Performs ray tracing for 2D with linear steps.
+/** Performs ray tracing for 2D with linear steps.
 
    A geometrical step with length of *lraytrace* is taken from each
    point. The zenith angle for the end point of that step is
@@ -4128,39 +3703,38 @@ void ppath_step_refr_1d(Workspace& ws,
    For more information read the chapter on propagation paths in AUG.
    The algorithm used is described in that part of ATD.
 
-   \param   ws              Current Workspace
-   \param   r_array         Out: Radius of ray tracing points.
-   \param   lat_array       Out: Latitude of ray tracing points.
-   \param   za_array        Out: LOS zenith angle at ray tracing points.
-   \param   l_array         Out: Distance along the path between ray tracing 
-                            points.
-   \param   n_array         Out: Refractive index at ray tracing points.
-   \param   endface         Out: Number coding of exit face.
-   \param   p_grid          The WSV with the same name.
-   \param   lat_grid        The WSV with the same name.
-   \param   refellipsoid    The WSV with the same name.
-   \param   z_field         The WSV with the same name.
-   \param   t_field         The WSV with the same name.
-   \param   vmr_field       The WSV with the same name.
-   \param   f_grid          As the WSV with the same name.
-   \param   lmax            As the WSV ppath_lmax
-   \param   refr_index_air_agenda   The WSV with the same name.
-   \param   lraytrace       Maximum allowed length for ray tracing steps.
-   \param   lat1            Latitude of left end face of the grid cell.
-   \param   lat3            Latitude of right end face  of the grid cell.
-   \param   rsurface1       Radius for the surface at *lat1*.
-   \param   rsurface3       Radius for the surface at *lat3*.
-   \param   r1a             Radius of lower-left corner of the grid cell.
-   \param   r3a             Radius of lower-right corner of the grid cell.
-   \param   r3b             Radius of upper-right corner of the grid cell.
-   \param   r1b             Radius of upper-left corner of the grid cell.
-   \param   r               Start radius for ray tracing.
-   \param   lat             Start latitude for ray tracing.
-   \param   za              Start zenith angle for ray tracing.
+   @param[in,out]   ws          Current Workspace
+   @param[out]  r_array         Radius of ray tracing points.
+   @param[out]  lat_array       Latitude of ray tracing points.
+   @param[out]  za_array        LOS zenith angle at ray tracing points.
+   @param[out]  l_array         Distance along the path between ray tracing points
+   @param[out]  n_array         Refractive index at ray tracing points.
+   @param[out]  endface         Number coding of exit face.
+   @param[in]   p_grid          The WSV with the same name.
+   @param[in]   lat_grid        The WSV with the same name.
+   @param[in]   refellipsoid    The WSV with the same name.
+   @param[in]   z_field         The WSV with the same name.
+   @param[in]   t_field         The WSV with the same name.
+   @param[in]   vmr_field       The WSV with the same name.
+   @param[in]   f_grid          As the WSV with the same name.
+   @param[in]   lmax            As the WSV ppath_lmax
+   @param[in]   refr_index_air_agenda   The WSV with the same name.
+   @param[in]   lraytrace       Maximum allowed length for ray tracing steps.
+   @param[in]   lat1            Latitude of left end face of the grid cell.
+   @param[in]   lat3            Latitude of right end face  of the grid cell.
+   @param[in]   rsurface1       Radius for the surface at *lat1*.
+   @param[in]   rsurface3       Radius for the surface at *lat3*.
+   @param[in]   r1a             Radius of lower-left corner of the grid cell.
+   @param[in]   r3a             Radius of lower-right corner of the grid cell.
+   @param[in]   r3b             Radius of upper-right corner of the grid cell.
+   @param[in]   r1b             Radius of upper-left corner of the grid cell.
+   @param[in]   r               Start radius for ray tracing.
+   @param[in]   lat             Start latitude for ray tracing.
+   @param[in]   za              Start zenith angle for ray tracing.
 
-   \author Patrick Eriksson
-   \date   2002-12-02
-*/
+   @author Patrick Eriksson
+   @date   2002-12-02
+ */
 void raytrace_2d_linear_basic(Workspace& ws,
                               Array<Numeric>& r_array,
                               Array<Numeric>& lat_array,
@@ -4343,33 +3917,6 @@ void raytrace_2d_linear_basic(Workspace& ws,
   }
 }
 
-//! ppath_step_refr_2d
-/*! 
-   Calculates 2D propagation path steps, with refraction, using a simple
-   and fast ray tracing scheme.
-
-   Works as the same function for 1D despite that some input arguments are
-   of different type.
-
-   \param   ws                Current Workspace
-   \param   ppath             Out: A Ppath structure.
-   \param   p_grid            Pressure grid.
-   \param   lat_grid          Latitude grid.
-   \param   z_field           As the WSV with the same name.
-   \param   t_field           As the WSV with the same name.
-   \param   vmr_field         As the WSV with the same name.
-   \param   f_grid            As the WSV with the same name.
-   \param   refellipsoid      As the WSV with the same name.
-   \param   z_surface         Surface altitudes.
-   \param   lmax              Maximum allowed length between the path points.
-   \param   refr_index_air_agenda The WSV with the same name.
-   \param   rtrace_method     String giving which ray tracing method to use.
-                              See the function for options.
-   \param   lraytrace         Maximum allowed length for ray tracing steps.
-
-   \author Patrick Eriksson
-   \date   2002-12-02
-*/
 void ppath_step_refr_2d(Workspace& ws,
                         Ppath& ppath,
                         ConstVectorView p_grid,
@@ -4488,9 +4035,7 @@ void ppath_step_refr_2d(Workspace& ws,
                -1);
 }
 
-//! raytrace_3d_linear_basic
-/*! 
-   Performs ray tracing for 3D with linear steps.
+/** Performs ray tracing for 3D with linear steps.
 
    A geometrical step with length of *lraytrace* is taken from each
    point. The zenith angle for the end point of that step is
@@ -4501,53 +4046,52 @@ void ppath_step_refr_2d(Workspace& ws,
    For more information read the chapter on propagation paths in AUG.
    The algorithm used is described in that part of ATD.
 
-   \param   ws             Current Workspace
-   \param   r_array        Out: Radius of ray tracing points.
-   \param   lat_array      Out: Latitude of ray tracing points.
-   \param   lon_array      Out: Longitude of ray tracing points.
-   \param   za_array       Out: LOS zenith angle at ray tracing points.
-   \param   aa_array       Out: LOS azimuth angle at ray tracing points.
-   \param   l_array        Out: Distance along the path between ray tracing 
-                           points.
-   \param   endface        Out: Number coding of exit face.
-   \param   n_array        Out: Refractive index at ray tracing points.
+   @param[in,out]   ws         Current Workspace
+   @param[out]  r_array        Radius of ray tracing points.
+   @param[out]  lat_array      Latitude of ray tracing points.
+   @param[out]  lon_array      Longitude of ray tracing points.
+   @param[out]  za_array       LOS zenith angle at ray tracing points.
+   @param[out]  aa_array       LOS azimuth angle at ray tracing points.
+   @param[out]  l_array        Distance along the path between ray tracing points.
+   @param[out]  endface        Number coding of exit face.
+   @param[out]  n_array        Refractive index at ray tracing points.
 
-   \param   lmax         As the WSV ppath_lmax
-   \param   refr_index_air_agenda    The WSV with the same name.
-   \param   lraytrace      Maximum allowed length for ray tracing steps.
-   \param   refellipsoid   The WSV with the same name.
-   \param   p_grid         The WSV with the same name.
-   \param   lat_grid       The WSV with the same name.
-   \param   lon_grid       The WSV with the same name.
-   \param   z_field        The WSV with the same name.
-   \param   t_field        The WSV with the same name.
-   \param   vmr_field      The WSV with the same name.
-   \param   f_grid         As the WSV with the same name.
-   \param   lat1           Latitude of left end face of the grid cell.
-   \param   lat3           Latitude of right end face of the grid cell.
-   \param   lon5           Lower longitude of the grid cell.
-   \param   lon6           Upper longitude of the grid cell.
-   \param   rsurface15     Radius for the surface at *lat1* and *lon5*.
-   \param   rsurface35     Radius for the surface at *lat3* and *lon5*.
-   \param   rsurface36     Radius for the surface at *lat3* and *lon6*.
-   \param   rsurface16     Radius for the surface at *lat1* and *lon6*.   
-   \param   r15a           Radius of corner: lower p-level,*lat1* and *lon5*.
-   \param   r35a           Radius of corner: lower p-level,*lat3* and *lon5*.
-   \param   r36a           Radius of corner: lower p-level,*lat3* and *lon6*.
-   \param   r16a           Radius of corner: lower p-level,*lat1* and *lon6*.
-   \param   r15b           Radius of corner: upper p-level,*lat1* and *lon5*.
-   \param   r35b           Radius of corner: upper p-level,*lat3* and *lon5*.
-   \param   r36b           Radius of corner: upper p-level,*lat3* and *lon6*.
-   \param   r16b           Radius of corner: upper p-level,*lat1* and *lon6*.
-   \param   r              Out: Start radius for ray tracing.
-   \param   lat            Out: Start latitude for ray tracing.
-   \param   lon            Out: Start longitude for ray tracing.
-   \param   za             Out: Start zenith angle for ray tracing.
-   \param   aa             Out: Start azimuth angle for ray tracing.
+   @param[in]   lmax         As the WSV ppath_lmax
+   @param[in]   refr_index_air_agenda    The WSV with the same name.
+   @param[in]   lraytrace      Maximum allowed length for ray tracing steps.
+   @param[in]   refellipsoid   The WSV with the same name.
+   @param[in]   p_grid         The WSV with the same name.
+   @param[in]   lat_grid       The WSV with the same name.
+   @param[in]   lon_grid       The WSV with the same name.
+   @param[in]   z_field        The WSV with the same name.
+   @param[in]   t_field        The WSV with the same name.
+   @param[in]   vmr_field      The WSV with the same name.
+   @param[in]   f_grid         As the WSV with the same name.
+   @param[in]   lat1           Latitude of left end face of the grid cell.
+   @param[in]   lat3           Latitude of right end face of the grid cell.
+   @param[in]   lon5           Lower longitude of the grid cell.
+   @param[in]   lon6           Upper longitude of the grid cell.
+   @param[in]   rsurface15     Radius for the surface at *lat1* and *lon5*.
+   @param[in]   rsurface35     Radius for the surface at *lat3* and *lon5*.
+   @param[in]   rsurface36     Radius for the surface at *lat3* and *lon6*.
+   @param[in]   rsurface16     Radius for the surface at *lat1* and *lon6*.   
+   @param[in]   r15a           Radius of corner: lower p-level,*lat1* and *lon5*.
+   @param[in]   r35a           Radius of corner: lower p-level,*lat3* and *lon5*.
+   @param[in]   r36a           Radius of corner: lower p-level,*lat3* and *lon6*.
+   @param[in]   r16a           Radius of corner: lower p-level,*lat1* and *lon6*.
+   @param[in]   r15b           Radius of corner: upper p-level,*lat1* and *lon5*.
+   @param[in]   r35b           Radius of corner: upper p-level,*lat3* and *lon5*.
+   @param[in]   r36b           Radius of corner: upper p-level,*lat3* and *lon6*.
+   @param[in]   r16b           Radius of corner: upper p-level,*lat1* and *lon6*.
+   @param[in]   r              Out: Start radius for ray tracing.
+   @param[in]   lat            Out: Start latitude for ray tracing.
+   @param[in]   lon            Out: Start longitude for ray tracing.
+   @param[in]   za             Out: Start zenith angle for ray tracing.
+   @param[in]   aa             Out: Start azimuth angle for ray tracing.
 
-   \author Patrick Eriksson
-   \date   2003-01-18
-*/
+   @author Patrick Eriksson
+   @date   2003-01-18
+ */
 void raytrace_3d_linear_basic(Workspace& ws,
                               Array<Numeric>& r_array,
                               Array<Numeric>& lat_array,
@@ -4788,34 +4332,6 @@ void raytrace_3d_linear_basic(Workspace& ws,
   }
 }
 
-//! ppath_step_refr_3d
-/*! 
-   Calculates 3D propagation path steps, with refraction, using a simple
-   and fast ray tracing scheme.
-
-   Works as the same function for 1D despite that some input arguments are
-   of different type.
-
-   \param   ws                Current Workspace
-   \param   ppath             Out: A Ppath structure.
-   \param   p_grid            Pressure grid.
-   \param   lat_grid          Latitude grid.
-   \param   lon_grid          Longitude grid.
-   \param   z_field           Geometrical altitudes.
-   \param   t_field           Atmospheric temperatures.
-   \param   vmr_field         VMR values.
-   \param   f_grid            As the WSV with the same name.
-   \param   refellipsoid      As the WSV with the same name.
-   \param   z_surface         Surface altitudes.
-   \param   lmax              Maximum allowed length between the path points.
-   \param   refr_index_air_agenda The WSV with the same name.
-   \param   rtrace_method     String giving which ray tracing method to use.
-                              See the function for options.
-   \param   lraytrace         Maximum allowed length for ray tracing steps.
-
-   \author Patrick Eriksson
-   \date   2003-01-08
-*/
 void ppath_step_refr_3d(Workspace& ws,
                         Ppath& ppath,
                         ConstVectorView p_grid,
@@ -4976,51 +4492,6 @@ void ppath_step_refr_3d(Workspace& ws,
   === Main functions
   ===========================================================================*/
 
-//! ppath_start_stepping
-/*!
-   Initiates a Ppath structure for calculation of a path with *ppath_step*.
-
-   The function performs two main tasks. As mentioned above, it initiates
-   a Ppath structure (a), but it also checks that the end point of the path is
-   at an allowed location (b).
-
-   (a): The Ppath structure is set to hold the position and LOS of the last
-   point of the path inside the atmosphere. This point is either the
-   sensor position, or the point where the path leaves the model atmosphere.
-   If the path is totally outside the atmosphere, no point is put into the
-   structure. If the (practical) end and start points are identical, such
-   as when the sensor is inside the cloud box, the background field is set.
-
-   (b): If it is found that the end point of the path is at an illegal position
-   a detailed error message is given. Not allowed cases are: <br>  
-      1. The sensor is placed below surface level. <br> 
-      2. For 2D and 3D, the path leaves the model atmosphere at a latitude or
-         longitude end face. <br> 
-      3. For 2D and 3D, the path is totally outside the atmosphere and the 
-         latitude and longitude of the tangent point is outside the range of
-         the corresponding grids. 
-
-   All input variables are identical with the WSV with the same name.
-   The output variable is here called ppath for simplicity, but is in
-   fact *ppath_step*.
-
-   \param   ppath             Output: A Ppath structure.
-   \param   atmosphere_dim    The atmospheric dimensionality.
-   \param   p_grid            The pressure grid.
-   \param   lat_grid          The latitude grid.
-   \param   lon_grid          The longitude grid.
-   \param   z_field           The field of geometrical altitudes.
-   \param   refellipsoid      As the WSV with the same name.
-   \param   z_surface         Surface altitude.
-   \param   cloudbox_on       Flag to activate the cloud box.
-   \param   cloudbox_limits   Index limits of the cloud box.
-   \param   ppath_inside_cloudbox_do   As the WSV with the same name.
-   \param   rte_pos           The position of the sensor.
-   \param   rte_los           The line-of-sight of the sensor.
-
-   \author Patrick Eriksson
-   \date   2002-05-17
-*/
 void ppath_start_stepping(Ppath& ppath,
                           const Index& atmosphere_dim,
                           ConstVectorView p_grid,
@@ -5529,31 +5000,6 @@ void ppath_start_stepping(Ppath& ppath,
 
     // Sensor is outside the model atmosphere:
     else {
-      /* These checks can fail for simulations close to the poles:
-          // Handle cases when the sensor appears to look the wrong way in
-          // the north-south direction
-          if( ( rte_pos[1] <= lat_grid[0]     &&  abs( rte_los[1] ) >= 90 )  || 
-              ( rte_pos[1] >= lat_grid[llat]  &&  abs( rte_los[1] ) <= 90 ) )
-            {
-              ostringstream os;
-              os << "The sensor is north or south (or at the limit) of the "
-                 << "model atmosphere\nbut looks in the wrong direction.";
-              throw runtime_error( os.str() );
-            }
-
-          // Handle cases when the sensor appears to look the wrong way in
-          // the west-east direction. We demand that the sensor is inside the
-          // range of lon_grid even if all longitudes are covered.
-          if( ( lon2use <= lon_grid[0]     &&  rte_los[1] < 0 )  || 
-              ( lon2use >= lon_grid[llon]  &&  rte_los[1] > 0 ) )
-            {
-              ostringstream os;
-              os << "The sensor is east or west (or at the limit) of the "
-                 << "model atmosphere\nbut looks in the wrong direction.";
-              throw runtime_error( os.str() );
-            }
-          */
-
       // We can here set ppc and n as we are outside the atmosphere
       ppath.nreal = 1.0;
       ppath.ngroup = 1.0;
@@ -5757,37 +5203,6 @@ void ppath_start_stepping(Ppath& ppath,
   }      // End 3D
 }
 
-//! ppath_calc
-/*! 
-   This is the core for the WSM ppathStepByStep.
-
-   This function takes mainly the same input as ppathStepByStep (that 
-   is, those input arguments are the WSV with the same name).
-
-   \param ws                 Current Workspace
-   \param ppath              Output: A Ppath structure
-   \param ppath_step_agenda  As the WSM with the same name.
-   \param atmosphere_dim     The atmospheric dimensionality.
-   \param p_grid             The pressure grid.
-   \param lat_grid           The latitude grid.
-   \param lon_grid           The longitude grid.
-   \param t_field            As the WSM with the same name.
-   \param z_field            As the WSM with the same name.
-   \param vmr_field          As the WSM with the same name.
-   \param f_grid             As the WSM with the same name.
-   \param refellipsoid       As the WSM with the same name.
-   \param z_surface          Surface altitude.
-   \param cloudbox_on        Flag to activate the cloud box.
-   \param cloudbox_limits    Index limits of the cloud box.
-   \param rte_pos            The position of the sensor.
-   \param rte_los            The line-of-sight of the sensor.
-   \param ppath_lmax         As the WSM with the same name.
-   \param ppath_lraytrace    As the WSM with the same name.
-   \param ppath_inside_cloudbox_do  As the WSM with the same name.
-
-   \author Patrick Eriksson
-   \date   2003-01-08
-*/
 void ppath_calc(Workspace& ws,
                 Ppath& ppath,
                 const Agenda& ppath_step_agenda,
@@ -6172,3 +5587,5 @@ void ppath_calc(Workspace& ws,
     ppath.start_lstep = ppath_step.start_lstep;
   }
 }
+
+
