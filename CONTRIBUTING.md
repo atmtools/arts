@@ -10,15 +10,20 @@ This checklist is closely based on a
 [blog post](http://blog.davidecoppola.com/2016/11/howto-contribute-to-open-source-project-on-github/)
 by Davide Coppola. It also serves as a table of contents.
 
-1. [Create a branch](#create-a-branch)
-2. [Work on your contribution](#work-on-your-contribution)
-3. [Pull request](#pull-request)
-4. [Code review](#code-review)
-5. [Clean up](#clean-up)
+1. [Preparations](#preparations)
+2. [Create a branch](#create-a-branch)
+3. [Work on your contribution](#work-on-your-contribution)
+4. [Pull request](#pull-request)
+5. [Code review](#code-review)
+6. [Clean up](#clean-up)
+
+## Preparations
+
+Before your first contribution, make sure to follow the steps described in
+[GITHUB-INTRO](GITHUB-INTRO.md) on how to create a fork, configure your git
+client and clone a working copy.
 
 ## Create a branch
-Before your first contribution, make sure to
-[fork the project](GITHUB-INTRO.md#configure-a-new-project).
 
 Create a local branch to collect changes related to a new feature or bug fix. 
 Branches help to organize different developments within the project and 
