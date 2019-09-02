@@ -52,7 +52,7 @@ extern const Numeric COSMIC_BG_TEMP;
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void MatrixCBR(  // WS Output:
     Matrix& m,
     // WS Input:
@@ -70,7 +70,7 @@ void MatrixCBR(  // WS Output:
   planck(m(joker, 0), f, COSMIC_BG_TEMP);
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void MatrixPlanck(  // WS Output:
     Matrix& m,
     // WS Input:
@@ -93,7 +93,7 @@ void MatrixPlanck(  // WS Output:
   planck(m(joker, 0), f, t);
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void MatrixUnitIntensity(  // WS Output:
     Matrix& m,
     // WS Input:
@@ -117,7 +117,7 @@ void MatrixUnitIntensity(  // WS Output:
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void water_p_eq_fieldMK05(Tensor3& water_p_eq_field,
                           const Tensor3& t_field,
                           const Verbosity&) {
