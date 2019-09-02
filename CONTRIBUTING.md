@@ -20,7 +20,7 @@ by Davide Coppola. It also serves as a table of contents.
 ## Preparations
 
 Before your first contribution, make sure to follow the steps described in
-[GITHUB-INTRO](GITHUB-INTRO.md) on how to create a fork, configure your git
+[GITHUB-INTRO.md](GITHUB-INTRO.md) on how to create a fork, configure your git
 client and clone a working copy.
 
 ## Create a branch
