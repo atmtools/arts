@@ -15,6 +15,17 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
+/**
+ * @file   zeemandata.cc
+ * @author Richard Larsson <larsson (at) mps.mpg.de>
+ * @date   2018-04-06
+ * 
+ * @brief Implementations of Zeeman modeling
+ * 
+ * This file serves to implement Zeeman splitting
+ * using various up-to-speed methods
+ */
+
 #include "zeemandata.h"
 #include "species_info.h"
 
@@ -80,7 +91,7 @@ Numeric case_b_g_coefficient_o2(Rational j,
            2 * GLE * cos(2 * phi) / (2 * J + 1) - GR;
 }
 
-Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) {
+Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) noexcept {
   if (qid.SpeciesName() == "O2") {
     if (qid.Isotopologue() == SpeciesTag("O2-66").Isotopologue()) {
       if (qid.LowerQuantumNumber(QuantumNumberType::v1) == 0 and
@@ -126,18 +137,12 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) {
 
         auto JU = qid.UpperQuantumNumber(QuantumNumberType::J);
         auto NU = qid.UpperQuantumNumber(QuantumNumberType::N);
-        Numeric gu =
-            (JU == 0)
-                ? 0
-                : case_b_g_coefficient_o2(
-                      JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
+        Numeric gu = case_b_g_coefficient_o2(
+            JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
         auto JL = qid.LowerQuantumNumber(QuantumNumberType::J);
         auto NL = qid.LowerQuantumNumber(QuantumNumberType::N);
-        Numeric gl =
-            (JL == 0)
-                ? 0
-                : case_b_g_coefficient_o2(
-                      JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
+        Numeric gl = case_b_g_coefficient_o2(
+            JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
         return Model({gu, gl});
       }
     }
