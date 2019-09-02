@@ -16,6 +16,17 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
+/**
+ * @file   zeeman.cc
+ * @author Richard Larsson <larsson (at) mps.mpg.de>
+ * @date   2012-08-14
+ * 
+ * @brief Public methods of ARTS to compute Zeeman effects
+ * 
+ * Several methods to change and alter and in other way set up
+ * Zeeman effect calculations are implemented in this file
+ */
+
 #include "global_data.h"
 #include "propagationmatrix.h"
 #include "zeeman.h"

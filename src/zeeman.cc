@@ -15,6 +15,18 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
+/**
+ * @file   zeeman.cc
+ * @author Richard Larsson <larsson (at) mps.mpg.de>
+ * @date   2014-10-14
+ * 
+ * @brief Implementations of Zeeman propagation matrix calculations
+ * 
+ * This file implements Zeeman propagation matrix calculations while
+ * also computing the derivatives that might be interesting for 
+ * later Jacobian deductions.  Also implements the middle man for
+ * creating a LineRecord that you can compute the Zeeman effect from
+ */
 
 #include "zeeman.h"
 #include "constants.h"

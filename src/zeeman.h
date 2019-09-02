@@ -16,6 +16,14 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
+/**
+ * @file   zeeman.cc
+ * @author Richard Larsson <larsson (at) mps.mpg.de>
+ * @date   2014-10-14
+ * 
+ * @brief Header of Zeeman propagation matrix calculations
+ */
+
 #include "abs_species_tags.h"
 #include "global_data.h"
 #include "linerecord.h"
@@ -47,7 +55,10 @@ void create_Zeeman_linerecordarrays(
 
 /** Main and only way to compute Zeeman effect
  * 
+ * Computes the effect and the derivatives.
  * 
+ * Should work in NLTE settings but this is
+ * not well-tested
  * 
  * @param[in,out] propmat_clearsky as WSV
  * @param[in,out] nlte_source as WSV

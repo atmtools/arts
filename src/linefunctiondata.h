@@ -20,10 +20,15 @@
  USA. */
 
 /** Contains the line function data class
- * \file   linefunctiondata.h
+ * @file   linefunctiondata.h
+ * @author Richard Larsson
+ * @date   2018-09-19
  * 
- * \author Richard Larsson
- * \date   2018-09-19
+ * @brief  Contains the LineShape namespace
+ * 
+ * This namespace computes all line shape parameters
+ * for any set of line shape we can use in ARTS.  Should
+ * be extended for more use as seen fit.
  **/
 
 #ifndef linefunctiondata_h
