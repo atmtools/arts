@@ -13015,7 +13015,8 @@ void define_md_data_raw() {
   md_data_raw.push_back(MdRecord(
       NAME("propmat_clearskyAddZeeman"),
       DESCRIPTION(
-          "Calculates Zeeman-affected polarized propagation matrix.\n"
+          "Calculates Zeeman-affected polarized propagation matrix and its\n"
+          "derivatives.\n"
           "\n"
           "Otherwise as *propmat_clearskyAddFromLookup* except line cutoff,\n"
           "shape, and, normalization factors have to be set in the LineRecord\n"),
@@ -20735,8 +20736,9 @@ void define_md_data_raw() {
       NAME("zeeman_linerecord_precalcModifyFromData"),
       DESCRIPTION(
           "Modifies *zeeman_linerecord_precalc* by setting its g value directly.\n"
+          "\n"
           "This will set all unmatched energy levels to g=0 for all lines that\n"
-          "have atleast a single level match\n"),
+          "have at least a single level match\n"),
       AUTHORS("Richard Larsson"),
       OUT("zeeman_linerecord_precalc"),
       GOUT(),

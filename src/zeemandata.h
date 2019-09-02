@@ -313,7 +313,6 @@ inline Numeric SimpleGCaseB(Rational N,
   }
 }
 
-
 /** Computes the Zeeman splitting coefficient
  * 
  * The level should be Hund case a type and all
@@ -503,7 +502,6 @@ class Model {
  */
 Model GetSimpleModel(const QuantumIdentifier& qid);
 
-
 /** Returns an advanced Zeeman model 
  * 
  * Will look at available Quantum numbers
@@ -681,6 +679,96 @@ inline const PolarizationVector& SelectPolarization(
       return data.sp;
   }
   std::terminate();
+}
+
+/** Contains derived values useful for Zeeman calculations
+ * 
+ * These are called derived since ARTS operates on a 3D grid
+ * and uses the Zenith and Azimuth angles to describe LOS,
+ * whereas the Zeeman effect becomes a lot clearer to work
+ * with when in a defined LOS-plane.  In short, these are
+ * derived 'coordinates'.
+ */
+struct Derived {
+  Numeric H, theta, eta, dH_du, dH_dv, dH_dw, dtheta_du, dtheta_dv, dtheta_dw,
+      deta_du, deta_dv, deta_dw;
+};
+
+/** Computes the derived plane from ARTS grids
+ * 
+ * @param[in] u Magnetic field u-parameter
+ * @param[in] v Magnetic field b-parameter
+ * @param[in] w Magnetic field w-parameter
+ * @param[in] z Zenith angle
+ * @param[in] a Azimuth angle
+ * 
+ * @return The derived plane
+ */
+inline Derived FromGrids(
+    Numeric u, Numeric v, Numeric w, Numeric z, Numeric a) noexcept {
+  // Constants evaluated once for both eta and theta
+  auto cz = std::cos(z), ca = std::cos(a), sz = std::sin(z), sa = std::sin(a);
+
+  /*
+   *   H = ||{u, v, w}||
+   */
+  auto H = std::hypot(std::hypot(u, v), w);
+  auto dH_du = H > 0 ? u / H : 0;
+  auto dH_dv = H > 0 ? v / H : 0;
+  auto dH_dw = H > 0 ? w / H : 0;
+
+  /*
+   *              ( / cos(a) sin(z) \   / u \   // || / u \ || )
+   *  theta = acos( | sin(a) sin(z) | o | v |  //  || | v | || )
+   *              ( \        cos(z) /   \ w / //   || \ w / || )
+   */
+  auto x = u * sz * ca + v * sa * sz + w * cz,
+       d = std::sqrt(1 - std::pow(x / H, 2)) * H * H * H;
+
+  auto theta = H > 0 ? std::acos(x / H) : std::acos(0);
+  auto dtheta_du = d not_eq 0 ? (u * x - H * H * sz * ca) / d : 0;
+  auto dtheta_dv = d not_eq 0 ? (v * x - H * H * sa * sz) / d : 0;
+  auto dtheta_dw = d not_eq 0 ? (w * x - H * H * cz) / d : 0;
+
+  /*
+   *              ( / -sin(a) \   [ / u \   / cos(a) sin(z) \   / u \   / u \ ]   / cos(a) sin(z) \   // / -sin(a) \   [ / u \   / cos(a) sin(z) \   / u \   / u \ ] )
+   *    eta = atan( |  cos(a) | x [ | v | - | sin(a) sin(z) | o | v | * | v | ] o | sin(a) sin(z) |  //  |  cos(a) | o [ | v | - | sin(a) sin(z) | o | v | * | v | ] )
+   *              ( \    0    /   [ \ w /   \        cos(z) /   \ w /   \ w / ]   \        cos(z) / //   \    0    /   [ \ w /   \        cos(z) /   \ w /   \ w / ] )
+   */
+  auto p = std::pow(u * sa - v * ca, 2) +
+           std::pow(u * ca * cz + v * sa * cz - w * sz, 2);
+
+  auto eta = std::atan2(u * ca * cz + v * sa * cz - w * sz, u * sa - v * ca);
+  auto deta_du = p not_eq 0 ? (-v * cz + w * sa * sz) / p : 0;
+  auto deta_dv = p not_eq 0 ? (u * cz - w * sz * ca) / p : 0;
+  auto deta_dw = p not_eq 0 ? -(u * sa - v * ca) * sz / p : 0;
+
+  return {H,
+          theta,
+          eta,
+          dH_du,
+          dH_dv,
+          dH_dw,
+          dtheta_du,
+          dtheta_dv,
+          dtheta_dw,
+          deta_du,
+          deta_dv,
+          deta_dw};
+}
+
+/** Sets Derived from predefined Derived parameters
+ * 
+ * @param[in] H Derived magnetic field strength
+ * @param[in] theta Derived magnetic field theta angle
+ * @param[in] eta Derived magnetic field eta angle
+ * 
+ * @return The pre-derived plane
+ */
+inline Derived FromPreDerived(Numeric H,
+                              Numeric theta,
+                              Numeric eta) noexcept {
+  return {H, theta, eta, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 }
 };  // namespace Zeeman
 
