@@ -44,7 +44,7 @@ extern const Numeric PI;
 extern const Numeric SPEED_OF_LIGHT;
 extern const String SCATSPECIES_MAINTAG;
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iyActiveSingleScat(Workspace& ws,
                         Matrix& iy,
                         ArrayOfMatrix& iy_aux,
@@ -675,7 +675,7 @@ void iyActiveSingleScat(Workspace& ws,
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iyActiveSingleScat2(Workspace& ws,
                          Matrix& iy,
                          ArrayOfMatrix& iy_aux,
@@ -1180,7 +1180,7 @@ void iyActiveSingleScat2(Workspace& ws,
                                     jac_is_t);
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void yActive(Workspace& ws,
              Vector& y,
              Vector& y_f,

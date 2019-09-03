@@ -53,8 +53,8 @@ extern const Numeric PI;
 extern const Numeric RAD2DEG;
 extern const Numeric SPEED_OF_LIGHT;
 
-/** Workspace method: Doxygen documentation will be auto-generated */
-/* Nas not been updated since v2.2
+/* Workspace method: Doxygen documentation will be auto-generated */
+/* Has not been updated since v2.2
 void iyRadioLink(
          Workspace&                   ws,
          Matrix&                      iy,
@@ -651,7 +651,7 @@ void iyRadioLink(
 }
 */
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iyTransmissionStandardOld(
     Workspace& ws,
     Matrix& iy,
@@ -1411,7 +1411,7 @@ void iyTransmissionStandard(Workspace& ws,
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iy_transmitterMultiplePol(Matrix& iy,
                                const Index& stokes_dim,
                                const Vector& f_grid,
@@ -1431,7 +1431,7 @@ void iy_transmitterMultiplePol(Matrix& iy,
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iy_transmitterSinglePol(Matrix& iy,
                              const Index& stokes_dim,
                              const Vector& f_grid,

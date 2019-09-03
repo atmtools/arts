@@ -46,7 +46,7 @@
   === PSDs of Mono type
   ===========================================================================*/
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void psdMono(Matrix& psd_data,
              Tensor3& dpsd_data_dx,
              const Vector& pnd_agenda_input_t,
@@ -74,7 +74,7 @@ void psdMono(Matrix& psd_data,
                   verbosity);
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void psdMonoMass(Matrix& psd_data,
                  Tensor3& dpsd_data_dx,
                  const Vector& pnd_agenda_input_t,
@@ -106,7 +106,7 @@ void psdMonoMass(Matrix& psd_data,
   === PSDs of MGD type
   ===========================================================================*/
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void psdMgd(Matrix& psd_data,
             Tensor3& dpsd_data_dx,
             const Vector& psd_size_grid,
@@ -249,7 +249,7 @@ void psdMgd(Matrix& psd_data,
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void psdMgdMass(Matrix& psd_data,
                 Tensor3& dpsd_data_dx,
                 const Vector& psd_size_grid,
@@ -466,7 +466,7 @@ void psdMgdMass(Matrix& psd_data,
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void psdMgdMassNtot(Matrix& psd_data,
                     Tensor3& dpsd_data_dx,
                     const Vector& psd_size_grid,
@@ -504,7 +504,7 @@ void psdMgdMassNtot(Matrix& psd_data,
                              verbosity);
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void psdMgdMassMeanParticleMass(Matrix& psd_data,
                                 Tensor3& dpsd_data_dx,
                                 const Vector& psd_size_grid,
@@ -542,7 +542,7 @@ void psdMgdMassMeanParticleMass(Matrix& psd_data,
                              verbosity);
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void psdMgdMassXmean(Matrix& psd_data,
                      Tensor3& dpsd_data_dx,
                      const Vector& psd_size_grid,
@@ -580,7 +580,7 @@ void psdMgdMassXmean(Matrix& psd_data,
                              verbosity);
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void psdMgdMassXmedian(Matrix& psd_data,
                        Tensor3& dpsd_data_dx,
                        const Vector& psd_size_grid,
@@ -618,7 +618,7 @@ void psdMgdMassXmedian(Matrix& psd_data,
                              verbosity);
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void psdD14(Matrix& psd_data,
             Tensor3& dpsd_data_dx,
             const Vector& psd_size_grid,
@@ -828,7 +828,7 @@ void psdD14(Matrix& psd_data,
   === Input: IWC and T
   ===========================================================================*/
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void psdF07(Matrix& psd_data,
             Tensor3& dpsd_data_dx,
             const Vector& psd_size_grid,
@@ -943,7 +943,7 @@ void psdF07(Matrix& psd_data,
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void psdMH97(Matrix& psd_data,
              Tensor3& dpsd_data_dx,
              const Vector& psd_size_grid,
@@ -1050,7 +1050,7 @@ void psdMH97(Matrix& psd_data,
   === Input: RWC
   ===========================================================================*/
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void psdA12(Matrix& psd_data,
             Tensor3& dpsd_data_dx,
             const Vector& psd_size_grid,
@@ -1080,7 +1080,7 @@ void psdA12(Matrix& psd_data,
                  verbosity);
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void psdW16(Matrix& psd_data,
             Tensor3& dpsd_data_dx,
             const Vector& psd_size_grid,

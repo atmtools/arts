@@ -63,7 +63,7 @@ extern const Index GFIELD4_LON_GRID;
   === Workspace methods 
   ===========================================================================*/
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iyApplyUnit(Matrix& iy,
                  ArrayOfMatrix& iy_aux,
                  const Index& stokes_dim,
@@ -98,7 +98,7 @@ void iyApplyUnit(Matrix& iy,
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iyCalc(Workspace& ws,
             Matrix& iy,
             ArrayOfMatrix& iy_aux,
@@ -174,7 +174,7 @@ void iyCalc(Workspace& ws,
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iyEmissionStandard(Workspace& ws,
                         Matrix& iy,
                         ArrayOfMatrix& iy_aux,
@@ -570,7 +570,7 @@ void iyEmissionStandard(Workspace& ws,
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iyEmissionStandardParallel(
     Workspace& ws,
     Matrix& iy,
@@ -972,7 +972,7 @@ void iyEmissionStandardParallel(
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iyIndependentBeamApproximation(Workspace& ws,
                                     Matrix& iy,
                                     ArrayOfMatrix& iy_aux,
@@ -1415,7 +1415,7 @@ void iyIndependentBeamApproximation(Workspace& ws,
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iyLoopFrequencies(Workspace& ws,
                        Matrix& iy,
                        ArrayOfMatrix& iy_aux,
@@ -1521,7 +1521,7 @@ void iyLoopFrequencies(Workspace& ws,
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iyMC(Workspace& ws,
           Matrix& iy,
           ArrayOfMatrix& iy_aux,
@@ -1716,7 +1716,7 @@ void iyMC(Workspace& ws,
   if (failed) throw runtime_error(fail_msg);
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iyReplaceFromAux(Matrix& iy,
                       const ArrayOfMatrix& iy_aux,
                       const ArrayOfString& iy_aux_vars,
@@ -1748,7 +1748,7 @@ void iyReplaceFromAux(Matrix& iy,
         "is either not defined at all or is not set.");
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ppvar_optical_depthFromPpvar_trans_cumulat(
     Matrix& ppvar_optical_depth,
     const Tensor4& ppvar_trans_cumulat,
@@ -1758,7 +1758,7 @@ void ppvar_optical_depthFromPpvar_trans_cumulat(
   ppvar_optical_depth *= -1;
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void yCalc(Workspace& ws,
            Vector& y,
            Vector& y_f,
@@ -2024,7 +2024,7 @@ void yCalc(Workspace& ws,
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void yCalcAppend(Workspace& ws,
                  Vector& y,
                  Vector& y_f,
@@ -2369,7 +2369,7 @@ void yCalcAppend(Workspace& ws,
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void yApplyUnit(Vector& y,
                 Matrix& jacobian,
                 const Vector& y_f,

@@ -52,7 +52,7 @@ extern const Numeric DEG2RAD;
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void AddZaAa(Matrix& new_los,
              const Vector& ref_los,
              const Matrix& dlos,
@@ -75,7 +75,7 @@ void AddZaAa(Matrix& new_los,
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void DiffZaAa(Matrix& dlos,
               const Vector& ref_los,
               const Matrix& other_los,
@@ -99,7 +99,7 @@ void DiffZaAa(Matrix& dlos,
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void geo_posEndOfPpath(Vector& geo_pos,
                        const Ppath& ppath,
                        const Verbosity& verbosity) {
@@ -115,7 +115,7 @@ void geo_posEndOfPpath(Vector& geo_pos,
   out2 << "  Sets geo-position to:\n" << geo_pos;
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void geo_posLowestAltitudeOfPpath(Vector& geo_pos,
                                   const Ppath& ppath,
                                   const Verbosity& verbosity) {
@@ -141,7 +141,7 @@ void geo_posLowestAltitudeOfPpath(Vector& geo_pos,
   out2 << "  Sets geo-position to:\n" << geo_pos;
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void geo_posWherePpathPassesZref(Vector& geo_pos,
                                  const Ppath& ppath,
                                  const Numeric& z_ref,
@@ -189,7 +189,7 @@ void geo_posWherePpathPassesZref(Vector& geo_pos,
   out2 << "  Sets geo-position to:\n" << geo_pos;
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ppathCalc(Workspace& ws,
                Ppath& ppath,
                const Agenda& ppath_agenda,
@@ -234,7 +234,7 @@ void ppathCalc(Workspace& ws,
                       ppath_agenda);
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ppathCalcFromAltitude(Workspace& ws,
                            Ppath& ppath,
                            const Agenda& ppath_agenda,
@@ -320,7 +320,7 @@ void ppathCalcFromAltitude(Workspace& ws,
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ppathFromRtePos2(Workspace& ws,
                       Ppath& ppath,
                       Vector& rte_los,
@@ -781,7 +781,7 @@ void ppathFromRtePos2(Workspace& ws,
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ppathPlaneParallel(Ppath& ppath,
                         const Index& atmosphere_dim,
                         const Tensor3& z_field,
@@ -1070,7 +1070,7 @@ void ppathPlaneParallel(Ppath& ppath,
   ppath.ngroup = 1;
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ppathStepByStep(Workspace& ws,
                      Ppath& ppath,
                      const Agenda& ppath_step_agenda,
@@ -1115,7 +1115,7 @@ void ppathStepByStep(Workspace& ws,
              verbosity);
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ppathWriteXMLPartial(  //WS Input:
     const String& file_format,
     const Ppath& ppath,
@@ -1144,7 +1144,7 @@ void ppathWriteXMLPartial(  //WS Input:
 
 // FIXMEDOC@Richard  TRy to describe the meaning of ppath_field 
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ppath_fieldFromDownUpLimbGeoms(Workspace& ws,
                                     ArrayOfPpath& ppath_field,
                                     const Agenda& ppath_agenda,
@@ -1276,7 +1276,7 @@ void ppath_fieldFromDownUpLimbGeoms(Workspace& ws,
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ppath_fieldCalc(Workspace& ws,
                      ArrayOfPpath& ppath_field,
                      const Agenda& ppath_agenda,
@@ -1321,7 +1321,7 @@ void ppath_fieldCalc(Workspace& ws,
               verbosity);
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ppath_stepGeometric(  // WS Output:
     Ppath& ppath_step,
     // WS Input:
@@ -1379,7 +1379,7 @@ void ppath_stepGeometric(  // WS Output:
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ppath_stepRefractionBasic(Workspace& ws,
                                Ppath& ppath_step,
                                const Agenda& refr_index_air_agenda,
@@ -1501,7 +1501,7 @@ void ppath_stepRefractionBasic(Workspace& ws,
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void rte_losSet(Vector& rte_los,
                 const Index& atmosphere_dim,
                 const Numeric& za,
@@ -1519,7 +1519,7 @@ void rte_losSet(Vector& rte_los,
   rte_los[0] = za;
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void rte_losGeometricFromRtePosToRtePos2(Vector& rte_los,
                                          const Index& atmosphere_dim,
                                          const Vector& lat_grid,
@@ -1580,7 +1580,7 @@ void rte_losGeometricFromRtePosToRtePos2(Vector& rte_los,
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void rte_posSet(Vector& rte_pos,
                 const Index& atmosphere_dim,
                 const Numeric& z,
@@ -1600,7 +1600,7 @@ void rte_posSet(Vector& rte_pos,
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void rte_pos_losMoveToStartOfPpath(Vector& rte_pos,
                                    Vector& rte_los,
                                    const Index& atmosphere_dim,
@@ -1624,7 +1624,7 @@ void rte_pos_losMoveToStartOfPpath(Vector& rte_pos,
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_losGeometricFromSensorPosToOtherPositions(
     Matrix& sensor_los,
     const Index& atmosphere_dim,
@@ -1666,7 +1666,7 @@ void sensor_losGeometricFromSensorPosToOtherPositions(
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void TangentPointExtract(Vector& tan_pos,
                          const Ppath& ppath,
                          const Verbosity&) {
@@ -1686,7 +1686,7 @@ void TangentPointExtract(Vector& tan_pos,
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void TangentPointPrint(const Ppath& ppath,
                        const Index& level,
                        const Verbosity& verbosity) {
@@ -1711,7 +1711,7 @@ void TangentPointPrint(const Ppath& ppath,
   SWITCH_OUTPUT(level, os.str());
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void VectorZtanToZaRefr1D(Workspace& ws,
                           Vector& za_vector,
                           const Agenda& refr_index_air_agenda,
@@ -1771,7 +1771,7 @@ void VectorZtanToZaRefr1D(Workspace& ws,
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void VectorZtanToZa1D(Vector& za_vector,
                       const Matrix& sensor_pos,
                       const Vector& refellipsoid,

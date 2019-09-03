@@ -851,7 +851,7 @@ void iyFOS(
 }
 */
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iyHybrid(Workspace& ws,
               Matrix& iy,
               ArrayOfMatrix& iy_aux,
@@ -1418,7 +1418,7 @@ void iyHybrid(Workspace& ws,
   }
 }
 
-/** Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iyHybrid2(Workspace& ws,
                Matrix& iy,
                ArrayOfMatrix& iy_aux,

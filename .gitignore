@@ -14,4 +14,4 @@
 heaptrack.*.gz
 3rdparty/wigner/fastwigxj/gen/
 3rdparty/wigner/fastwigxj/obj/
-
+cmake-build-debug
