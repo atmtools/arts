@@ -104,12 +104,12 @@ std::istream& LineShape::from_artscat4(std::istream& is,
   m.mspecies = ArrayOfSpeciesTag(6 + i);
 
   // Set species
-  m.mspecies[i + 1] = SpeciesTag(String("N2"));
-  m.mspecies[i + 2] = SpeciesTag(String("O2"));
-  m.mspecies[i + 3] = SpeciesTag(String("H2O"));
-  m.mspecies[i + 4] = SpeciesTag(String("CO2"));
-  m.mspecies[i + 5] = SpeciesTag(String("H2"));
-  m.mspecies[i + 6] = SpeciesTag(String("He"));
+  m.mspecies[i] = SpeciesTag(String("N2"));
+  m.mspecies[i + 1] = SpeciesTag(String("O2"));
+  m.mspecies[i + 2] = SpeciesTag(String("H2O"));
+  m.mspecies[i + 3] = SpeciesTag(String("CO2"));
+  m.mspecies[i + 4] = SpeciesTag(String("H2"));
+  m.mspecies[i + 5] = SpeciesTag(String("He"));
 
   // Temperature types
   for (auto& v : m.mdata) {
