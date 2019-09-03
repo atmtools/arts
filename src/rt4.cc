@@ -52,26 +52,7 @@ extern const Numeric RAD2DEG;
 extern const Numeric SPEED_OF_LIGHT;
 extern const Numeric COSMIC_BG_TEMP;
 
-//! check_rt4_input
-/*!
-  Checks that input of RT4Calc* is sane.
 
-  \param nhstreams             Number of single hemisphere streams (quadrature angles).
-  \param nhza                  Number of single hemisphere additional angles with RT output.
-  \param nummu                 Total number of single hemisphere angles with RT output.
-  \param cloudbox_on           as the WSV 
-  \param rt4_is_initialized    as the WSV 
-  \param atmfields_checked     as the WSV 
-  \param atmgeom_checked       as the WSV 
-  \param cloudbox_checked      as the WSV 
-  \param nstreams              Total number of quadrature angles (both hemispheres).
-  \param quad_type             Quadrature method.
-  \param pnd_ncols             Number of columns (latitude points) in *pnd_field*.
-  \param ifield_npages         Number of pages (polar angle points) in *doit_i_field*.
-  
-  \author Jana Mendrok
-  \date   2017-02-22
-*/
 void check_rt4_input(  // Output
     Index& nhstreams,
     Index& nhza,
@@ -214,22 +195,7 @@ void check_rt4_input(  // Output
   //------------- end of checks ---------------------------------------
 }
 
-//! get_quad_angles
-/*!
-  Derive the quadrature angles related to selected RT4 quadrature type and set
-  scat_za_grid accordingly.
 
-  \param mu_values             Quadrature angle cosines.
-  \param quad_weights          Quadrature weights associated with mu_values.
-  \param scat_za_grid          as the WSV
-  \param scat_aa_grid          as the WSV
-  \param quad_type             Quadrature method.
-  \param nhstreams             Number of single hemisphere streams (quadrature angles). 
-  \param nhza                  Number of single hemisphere additional angles with RT output.
-
-  \author Jana Mendrok
-  \date   2017-02-22
-*/
 void get_quad_angles(  // Output
     VectorView mu_values,
     VectorView quad_weights,
@@ -272,25 +238,7 @@ void get_quad_angles(  // Output
   scat_aa_grid[0] = 0.;
 }
 
-//! get_rt4surf_props
-/*!
-  Derive surface property input for RT4's proprietary surface handling depending
-  on surface reflection type.
 
-  \param ground_albedo         Scalar surface albedo (for ground_type=L).
-  \param ground_reflec         Vector surface relfectivity (for ground_type=S).
-  \param ground_index          Surface complex refractive index (for ground_type=F).
-  \param f_grid                as the WSV
-  \param ground_type           Surface reflection type flag.
-  \param surface_skin_t        as the WSV
-  \param surface_scalar_reflectivity  as the WSV (used with ground_type=L).
-  \param surface_reflectivity  as the WSV (used with ground_type=S).
-  \param surface_complex_refr_index   as the WSV (used with ground_type=F).
-  \param stokes_dim            as the WSV
-
-  \author Jana Mendrok
-  \date   2017-02-22
-*/
 void get_rt4surf_props(  // Output
     Vector& ground_albedo,
     Tensor3& ground_reflec,
@@ -406,45 +354,7 @@ void get_rt4surf_props(  // Output
   }
 }
 
-//! run_rt4
-/*!
-  Prepares actual input variables for RT4, runs it, and sorts the output into
-  doit_i_field.
 
-  \param ws                    Current workspace
-  \param doit_i_field          as the WSV
-  \param f_grid                as the WSV
-  \param p_grid                as the WSV
-  \param z_field               as the WSV
-  \param t_field               as the WSV
-  \param vmr_field             as the WSV
-  \param pnd_field             as the WSV
-  \param scat_data             as the WSV
-  \param propmat_clearsky_agenda  as the WSA
-  \param cloudbox_limits       as the WSV 
-  \param stokes_dim            as the WSV
-  \param nummu                 Total number of single hemisphere angles with RT output. 
-  \param nhza                  Number of single hemisphere additional angles with RT output.
-  \param ground_type           Surface reflection type flag.
-  \param surface_skin_t        as the WSV
-  \param ground_albedo         Scalar surface albedo (for ground_type=L).
-  \param ground_reflec         Vector surface relfectivity (for ground_type=S).
-  \param ground_index          Surface complex refractive index (for ground_type=F).
-  \param surf_refl_mat         Surface reflection matrix (for ground_type=A).
-  \param surf_emis_vec         Surface emission vector (for ground_type=A).
-  \param quad_type             Quadrature method.
-  \param scat_za_grid          as the WSV
-  \param mu_values             Quadrature angle cosines.
-  \param quad_weights          Quadrature weights associated with mu_values.
-  \param auto_inc_nstreams     as the WSV
-  \param pfct_method           see RT4Calc doc.
-  \param pfct_aa_grid_size     see RT4Calc doc. 
-  \param pfct_threshold        Requested scatter_matrix norm accuracy (in terms of single scat albedo).
-  \param max_delta_tau         see RT4Calc doc.
-
-  \author Jana Mendrok
-  \date   2017-02-22
-*/
 void run_rt4(Workspace& ws,
              // Output
              Tensor7& doit_i_field,
@@ -1030,45 +940,7 @@ void run_rt4(Workspace& ws,
   }
 }
 
-//! run_rt4_new
-/*!
-  Prepares actual input variables for RT4, runs it, and sorts the output into
-  doit_i_field.
 
-  \param ws                    Current workspace
-  \param doit_i_field          as the WSV
-  \param f_grid                as the WSV
-  \param p_grid                as the WSV
-  \param z_field               as the WSV
-  \param t_field               as the WSV
-  \param vmr_field             as the WSV
-  \param pnd_field             as the WSV
-  \param scat_data             as the WSV
-  \param propmat_clearsky_agenda  as the WSA
-  \param cloudbox_limits       as the WSV 
-  \param stokes_dim            as the WSV
-  \param nummu                 Total number of single hemisphere angles with RT output. 
-  \param nhza                  Number of single hemisphere additional angles with RT output.
-  \param ground_type           Surface reflection type flag.
-  \param surface_skin_t        as the WSV
-  \param ground_albedo         Scalar surface albedo (for ground_type=L).
-  \param ground_reflec         Vector surface relfectivity (for ground_type=S).
-  \param ground_index          Surface complex refractive index (for ground_type=F).
-  \param surf_refl_mat         Surface reflection matrix (for ground_type=A).
-  \param surf_emis_vec         Surface emission vector (for ground_type=A).
-  \param quad_type             Quadrature method.
-  \param scat_za_grid          as the WSV
-  \param mu_values             Quadrature angle cosines.
-  \param quad_weights          Quadrature weights associated with mu_values.
-  \param auto_inc_nstreams     as the WSV
-  \param pfct_method           see RT4Calc doc.
-  \param pfct_aa_grid_size     see RT4Calc doc. 
-  \param pfct_threshold        Requested scatter_matrix norm accuracy (in terms of single scat albedo).
-  \param max_delta_tau         see RT4Calc doc.
-
-  \author Jana Mendrok
-  \date   2017-02-22
-*/
 void run_rt4_new(Workspace& ws,
                  // Output
                  Tensor7& doit_i_field,
@@ -1577,18 +1449,7 @@ void run_rt4_new(Workspace& ws,
   }
 }
 
-//! scat_za_grid_adjust
-/*!
-  Reset scat_za_grid such that it is consistent with ARTS' scat_za_grid
-  requirements (instead of with RT4 as in input state).
 
-  \param scat_za_grid          as the WSV
-  \param mu_values             Quadrature angle cosines.
-  \param nummu                 Number of single hemisphere polar angles.
-
-  \author Jana Mendrok
-  \date   2017-02-22
-*/
 void scat_za_grid_adjust(  // Output
     Vector& scat_za_grid,
     // Input
@@ -1603,22 +1464,7 @@ void scat_za_grid_adjust(  // Output
   }
 }
 
-//! gas_optpropCalc
-/*!
-  Calculates layer averaged gaseous extinction (gas_extinct). This variable is
-  required as input for the RT4 subroutine.
 
-  \param ws                    Current workspace
-  \param gas_extinct           Layer averaged gas extinction for all layers
-  \param propmat_clearsky_agenda as the WSA
-  \param t_field               as the WSV
-  \param vmr_field             as the WSV
-  \param p_grid                as the WSV
-  \param f_mono                frequency (single entry vector)
-  
-  \author Jana Mendrok
-  \date   2016-08-08
-*/
 void gas_optpropCalc(Workspace& ws,
                      VectorView gas_extinct,
                      const Agenda& propmat_clearsky_agenda,
@@ -1685,25 +1531,7 @@ void gas_optpropCalc(Workspace& ws,
   }
 }
 
-//! par_optpropCalc
-/*!
-  Calculates layer averaged particle extinction and absorption (extinct_matrix
-  and emis_vector)). These variables are required as input for the RT4 subroutine.
 
-  \param emis_vector           Layer averaged particle absorption for all particle layers
-  \param extinct_matrix        Layer averaged particle extinction for all particle layers
-  \param scat_data             as the WSV
-  \param scat_za_grid          as the WSV
-  \param f_index               index of frequency grid point handeled
-  \param pnd_field             as the WSV
-  \param t_field               as the WSV
-  \param cloudbox_limits       as the WSV 
-  \param stokes_dim            as the WSV
-  \param nummu                 Number of single hemisphere polar angles.
-  
-  \author Jana Mendrok
-  \date   2016-08-08
-*/
 void par_optpropCalc(Tensor4View emis_vector,
                      Tensor5View extinct_matrix,
                      //VectorView scatlayers,
@@ -1826,25 +1654,7 @@ void par_optpropCalc(Tensor4View emis_vector,
   }
 }
 
-//! par_optpropCalc
-/*!
-  Calculates layer averaged particle extinction and absorption (extinct_matrix
-  and emis_vector)). These variables are required as input for the RT4 subroutine.
 
-  \param emis_vector           Layer averaged particle absorption for all particle layers
-  \param extinct_matrix        Layer averaged particle extinction for all particle layers
-  \param scat_data             as the WSV
-  \param scat_za_grid          as the WSV
-  \param f_index               index of frequency grid point handeled
-  \param pnd_field             as the WSV
-  \param t_field               as the WSV
-  \param cloudbox_limits       as the WSV 
-  \param stokes_dim            as the WSV
-  \param nummu                 Number of single hemisphere polar angles.
-  
-  \author Jana Mendrok
-  \date   2016-08-08
-*/
 void par_optpropCalc2(Tensor5View emis_vector,
                       Tensor6View extinct_matrix,
                       //VectorView scatlayers,
@@ -1937,29 +1747,7 @@ void par_optpropCalc2(Tensor5View emis_vector,
   }
 }
 
-//! sca_optpropCalc
-/*!
-  Calculates layer (and azimuthal) averaged phase matrix (scatter_matrix). This
-  variable is required as input for the RT4 subroutine.
 
-  \param scatter_matrix        Layer averaged scattering matrix (azimuth mode 0) for all particle layers
-  \param pfct_failed           Flag whether norm of scatter_matrix is sufficiently accurate
-  \param emis_vector           Layer averaged particle absorption for all particle layers
-  \param extinct_matrix        Layer averaged particle extinction for all particle layers
-  \param f_index               as the WSV
-  \param scat_data             as the (new-type, f_grid prepared) WSV
-  \param pnd_field             as the WSV
-  \param stokes_dim            as the WSV
-  \param scat_za_grid          as the WSV
-  \param quad_weights          Quadrature weights associated with scat_za_grid 
-  \param pfct_method           Method for scattering matrix temperature dependance handling
-  \param pfct_aa_grid_size     Number of azimuthal grid points in Fourier series decomposition of randomly oriented particles
-  \param pfct_threshold        Requested scatter_matrix norm accuracy (in terms of single scat albedo)
-  \param auto_inc_nstreams     as the WSV
-  
-  \author Jana Mendrok
-  \date   2016-08-08
-*/
 void sca_optpropCalc(  //Output
     Tensor6View scatter_matrix,
     Index& pfct_failed,
@@ -2320,25 +2108,7 @@ void sca_optpropCalc(  //Output
   }
 }
 
-//! surf_optpropCalc
-/*!
-  Calculates bidirectional surface reflection matrices and emission direction
-  dependent surface emission terms as required as input for the RT4 subroutine.
 
-  \param ws                    Current workspace
-  \param surf_refl_mat         Bidirectional surface reflection matrices on RT4 stream directions.
-  \param surf_emis_vec         Directional surface emission vector on RT4 stream directions.
-  \param surface_rtprop_agenda as the WSA
-  \param f_grid                as the WSV
-  \param scat_za_grid          as the WSV
-  \param mu_values             Cosines of scat_za_grid angles.
-  \param quad_weights          Quadrature weights associated with mu_values.
-  \param stokes_dim            as the WSV
-  \param surf_alt              Surface altitude.
-  
-  \author Jana Mendrok
-  \date   2017-02-09
-*/
 void surf_optpropCalc(Workspace& ws,
                       //Output
                       Tensor5View surf_refl_mat,
@@ -2558,20 +2328,7 @@ void surf_optpropCalc(Workspace& ws,
   }
 }
 
-//! Calculate radiation field using RT4
-/*! 
-  Calculate radiation field using Evans' RT4 model (part of PolRadTran).
 
-  This is a direct interface to the (almost orignal) RT4 FORTRAN code. No checks
-  of input are made. Function is only to be called through other
-  functions/methods, which have to ensure input consistency.
-
-  \param[out] name            descript
-  \param[in]  name            descript [unit]
-
-  \author Jana Mendrok
-  \date 2016-05-24
-*/
 void rt4_test(Tensor4& out_rad,
               const String& datapath,
               const Verbosity& verbosity) {
