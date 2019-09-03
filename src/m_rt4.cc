@@ -79,7 +79,6 @@ void RT4Calc(Workspace& ws,
              const Index& za_interp_order,
              const Index& cos_za_interp,
              const Numeric& max_delta_tau,
-             const Index& new_optprop,
              const Verbosity& verbosity) {
   if (!cloudbox_on) {
     CREATE_OUT1;
@@ -198,7 +197,6 @@ void RT4Calc(Workspace& ws,
           pfct_aa_grid_size,
           pfct_threshold,
           max_delta_tau,
-          new_optprop,
           verbosity);
 
   scat_za_grid_adjust(scat_za_grid, mu_values, nummu);
@@ -323,6 +321,7 @@ void RT4CalcWithRT4Surface(Workspace& ws,
                     stokes_dim);
 
   Agenda dummy_agenda;
+
   run_rt4(ws,
           doit_i_field,
           scat_za_grid,
@@ -358,7 +357,6 @@ void RT4CalcWithRT4Surface(Workspace& ws,
           pfct_aa_grid_size,
           pfct_threshold,
           max_delta_tau,
-          0,
           verbosity);
 
   scat_za_grid_adjust(scat_za_grid, mu_values, nummu);
