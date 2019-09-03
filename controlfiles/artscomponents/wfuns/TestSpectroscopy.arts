@@ -134,7 +134,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-G0-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G0", coefficient="X0", species="AIR", change=20, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="G0", coefficient="X0", species="AIR", change=20, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   yCalc
@@ -144,7 +144,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-G0-X1 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G0", coefficient="X1", species="AIR", change=0.8e-3, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="G0", coefficient="X1", species="AIR", change=0.8e-3, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   yCalc
@@ -154,7 +154,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-D0-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="D0", coefficient="X0", species="AIR", change=1, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="D0", coefficient="X0", species="AIR", change=1, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   yCalc
@@ -164,7 +164,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-D0-X1 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="D0", coefficient="X1", species="AIR", change=0.8e-3, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="D0", coefficient="X1", species="AIR", change=0.8e-3, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   yCalc
@@ -174,7 +174,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-G2-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G2", coefficient="X0", species="AIR", change=4, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="G2", coefficient="X0", species="AIR", change=4, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   yCalc
@@ -184,7 +184,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-G2-X1 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G2", coefficient="X1", species="AIR", change=1e-2, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="G2", coefficient="X1", species="AIR", change=1e-2, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   yCalc
@@ -194,7 +194,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-D2-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="D2", coefficient="X0", species="AIR", change=5e-1, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="D2", coefficient="X0", species="AIR", change=5e-1, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   yCalc
@@ -204,7 +204,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-D2-X1 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="D2", coefficient="X1", species="AIR", change=1e-2, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="D2", coefficient="X1", species="AIR", change=1e-2, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   yCalc
@@ -214,7 +214,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-FVC-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="FVC", coefficient="X0", species="AIR", change=20, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="FVC", coefficient="X0", species="AIR", change=20, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   yCalc
@@ -224,7 +224,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-FVC-X1 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="FVC", coefficient="X1", species="AIR", change=2, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="FVC", coefficient="X1", species="AIR", change=2, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   yCalc
@@ -234,7 +234,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-ETA-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="ETA", coefficient="X0", species="AIR", change=1e-4, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="ETA", coefficient="X0", species="AIR", change=1e-4, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   yCalc
@@ -244,7 +244,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-ETA-X1 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="ETA", coefficient="X1", species="AIR", change=1e-4, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="ETA", coefficient="X1", species="AIR", change=1e-4, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   yCalc
@@ -254,7 +254,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-ETA-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X0", species="AIR", change=1e-11, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X0", species="AIR", change=1e-11, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   yCalc
@@ -264,7 +264,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-ETA-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X1", species="AIR", change=1e-13, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X1", species="AIR", change=1e-13, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   yCalc
@@ -274,7 +274,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-ETA-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X2", species="AIR", change=1e-2, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X2", species="AIR", change=1e-2, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   yCalc
@@ -284,7 +284,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-ETA-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G", coefficient="X0", species="AIR", change=1e-15, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="G", coefficient="X0", species="AIR", change=1e-15, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   yCalc
@@ -294,7 +294,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-ETA-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G", coefficient="X1", species="AIR", change=1e-17, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="G", coefficient="X1", species="AIR", change=1e-17, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   yCalc
@@ -304,7 +304,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-ETA-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G", coefficient="X2", species="AIR", change=1e-2, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="G", coefficient="X2", species="AIR", change=1e-2, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   yCalc
@@ -315,7 +315,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-ETA-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X0", species="AIR", change=1e-7, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X0", species="AIR", change=1e-7, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   yCalc
@@ -325,7 +325,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-ETA-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X1", species="AIR", change=1e-9, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X1", species="AIR", change=1e-9, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   yCalc
@@ -335,7 +335,7 @@ Arts2{
   CompareRelative(testy, y, 1e-6)
   
   # Perform calculations for perturbed AIR-ETA-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X2", species="AIR", change=1e-2, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X2", species="AIR", change=1e-2, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   yCalc

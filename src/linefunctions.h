@@ -34,9 +34,26 @@
 #include "jacobian.h"
 #include "linerecord.h"
 
+/** Line functions related to line shapes and line strength */
 namespace Linefunctions {
+
+/** Size required for data buffer */
 constexpr Index ExpectedDataSize() { return 2; }
 
+/** Sets the lineshape normalized to unity.
+ * 
+ * No line mixing or linestrength is computed.
+ * 
+ * @param[in,out] F Lineshape.  Must be right size
+ * @param[in]     f_grid Frequency grid of computations
+ * @param[in]     line The absortion line
+ * @param[in]     vmrs Atmospheric absorption species VMRs
+ * @param[in]     temperature Atmospheric temperature
+ * @param[in]     pressure Atmospheric pressure
+ * @param[in]     zeeman_df Zeeman splitting coefficient
+ * @param[in]     magnetic_magnitude Strength of local magnetic field
+ * @param[in]     abs_species Atmospheric absorption species
+ */
 void set_lineshape(Eigen::Ref<Eigen::VectorXcd> F,
                    const Eigen::Ref<const Eigen::VectorXd> f_grid,
                    const LineRecord& line,
@@ -47,6 +64,22 @@ void set_lineshape(Eigen::Ref<Eigen::VectorXcd> F,
                    const Numeric& magnetic_magnitude,
                    const ArrayOfArrayOfSpeciesTag& abs_species);
 
+/** Sets the Lorentz line shape. Normalization is unity.
+ * 
+ * @param[in,out] F Lineshape.  Must be right size
+ * @param[in,out] dF Lineshape derivative.  Must be right size
+ * @param[in,out] data Block of allocated memory.  Output nonsensical
+ * @param[in]     f_grid Frequency grid of computations
+ * @param[in]     zeeman_df Zeeman shift parameter for the line
+ * @param[in]     magnetic_magnitude Absolute strength of the magnetic field
+ * @param[in]     F0_noshift Central frequency without any shifts
+ * @param[in]     X Line shape parameters
+ * @param[in]     derivatives_data The derivatives in dF
+ * @param[in]     derivatives_data_position The derivatives positions in dF
+ * @param[in]     quantum_identity ID of the absorption line
+ * @param[in]     dT Temperature derivatives of line shape parameters
+ * @param[in]     dVMR VMR derivatives of line shape parameters
+ */
 void set_lorentz(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -63,6 +96,27 @@ void set_lorentz(
     const LineShape::Output& dT = {0, 0, 0, 0, 0, 0, 0, 0, 0},
     const LineShape::Output& dxdVMR = {0, 0, 0, 0, 0, 0, 0, 0, 0});
 
+/** Sets the HTP line shape. Normalization is unity.
+ * 
+ * Note:  We are not experienced with this line shape and cannot tell what
+ * parameters depends on what input.  It is therefore likely that this function
+ * will have to be adapted in the future
+ * 
+ * @param[in,out] F Lineshape.  Must be right size
+ * @param[in,out] dF Lineshape derivative.  Must be right size
+ * @param[in]     f_grid Frequency grid of computations
+ * @param[in]     zeeman_df Zeeman shift parameter for the line
+ * @param[in]     magnetic_magnitude Absolute strength of the magnetic field
+ * @param[in]     F0_noshift Central frequency without any shifts
+ * @param[in]     GD_div_F0 Frequency-independent part of the Doppler broadening
+ * @param[in]     X Line shape parameters
+ * @param[in]     derivatives_data The derivatives in dF
+ * @param[in]     derivatives_data_position The derivatives positions in dF
+ * @param[in]     quantum_identity ID of the absorption line
+ * @param[in]     dGD_div_F0_dT Temperature derivative of GD_div_F0
+ * @param[in]     dT Temperature derivatives of line shape parameters
+ * @param[in]     dVMR VMR derivatives of line shape parameters
+ */
 void set_htp(Eigen::Ref<Eigen::VectorXcd> F,
              Eigen::Ref<Eigen::MatrixXcd> dF,
              const Eigen::Ref<const Eigen::VectorXd> f_grid,
@@ -79,6 +133,24 @@ void set_htp(Eigen::Ref<Eigen::VectorXcd> F,
              const LineShape::Output& dT = {0, 0, 0, 0, 0, 0, 0, 0, 0},
              const LineShape::Output& dVMR = {0, 0, 0, 0, 0, 0, 0, 0, 0});
 
+/** Sets the Voigt line shape. Normalization is unity.
+ * 
+ * @param[in,out] F Lineshape.  Must be right size
+ * @param[in,out] dF Lineshape derivative.  Must be right size
+ * @param[in,out] data Block of allocated memory.  Output nonsensical
+ * @param[in]     f_grid Frequency grid of computations
+ * @param[in]     zeeman_df Zeeman shift parameter for the line
+ * @param[in]     magnetic_magnitude Absolute strength of the magnetic field
+ * @param[in]     F0_noshift Central frequency without any shifts
+ * @param[in]     GD_div_F0 Frequency-independent part of the Doppler broadening
+ * @param[in]     X Line shape parameters
+ * @param[in]     derivatives_data The derivatives in dF
+ * @param[in]     derivatives_data_position The derivatives positions in dF
+ * @param[in]     quantum_identity ID of the absorption line
+ * @param[in]     dGD_div_F0_dT Temperature derivative of GD_div_F0
+ * @param[in]     dT Temperature derivatives of line shape parameters
+ * @param[in]     dVMR VMR derivatives of line shape parameters
+ */
 void set_voigt(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -97,6 +169,21 @@ void set_voigt(
     const LineShape::Output& dT = {0, 0, 0, 0, 0, 0, 0, 0, 0},
     const LineShape::Output& dVMR = {0, 0, 0, 0, 0, 0, 0, 0, 0});
 
+/** Sets the Doppler line shape. Normalization is unity.
+ * 
+ * @param[in,out] F Lineshape.  Must be right size
+ * @param[in,out] dF Lineshape derivative.  Must be right size
+ * @param[in,out] data Block of allocated memory.  Output nonsensical
+ * @param[in]     f_grid Frequency grid of computations
+ * @param[in]     zeeman_df Zeeman shift parameter for the line
+ * @param[in]     magnetic_magnitude Absolute strength of the magnetic field
+ * @param[in]     F0_noshift Central frequency without any shifts
+ * @param[in]     GD_div_F0 Frequency-independent part of the Doppler broadening
+ * @param[in]     derivatives_data The derivatives in dF
+ * @param[in]     derivatives_data_position The derivatives positions in dF
+ * @param[in]     quantum_identity ID of the absorption line
+ * @param[in]     dGD_div_F0_dT Temperature derivative of GD_div_F0
+ */
 void set_doppler(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -112,21 +199,28 @@ void set_doppler(
     const QuantumIdentifier& quantum_identity = QuantumIdentifier(),
     const Numeric& dGD_div_F0_dT = 0.0);
 
-void set_voigt_from_full_linemixing(
-    Eigen::Ref<Eigen::VectorXcd> F,
-    Eigen::Ref<Eigen::MatrixXcd> dF,
-    const Eigen::Ref<const Eigen::VectorXd> f_grid,
-    const Complex& eigenvalue_no_shift,
-    const Numeric& GD_div_F0,
-    const Numeric& L0,
-    const ArrayOfRetrievalQuantity& derivatives_data =
-        ArrayOfRetrievalQuantity(),
-    const ArrayOfIndex& derivatives_data_position = ArrayOfIndex(),
-    const QuantumIdentifier& quantum_identity = QuantumIdentifier(),
-    const Numeric& dGD_div_F0_dT = 0.0,
-    const Complex& deigenvalue_dT = 0.0,
-    const Numeric& dL0_dT = 0.0);
-
+/** Applies line mixing scaling to already set lineshape and line mirror
+ * 
+ * Equation: 
+ *   with_mirroring:
+ *     F := (1+G-iY) * F + (1+G+iY) * Fm
+ *   else:
+ *     F := (1+G-iY) * F
+ * 
+ * and appropriate derivatives
+ * 
+ * @param[in,out] F Lineshape.  Must be right size
+ * @param[in,out] dF Lineshape derivative.  Must be right size
+ * @param[in]     Fm Mirrored lineshape.  Must be right size
+ * @param[in]     dFm Mirrored lineshape derivative.  Must be right size
+ * @param[in]     X Line shape parameters
+ * @param[in]     with_mirroring Mirror lineshape check
+ * @param[in]     derivatives_data The derivatives in dF
+ * @param[in]     derivatives_data_position The derivatives positions in dF
+ * @param[in]     quantum_identity ID of the absorption line
+ * @param[in]     dT Temperature derivatives of line shape parameters
+ * @param[in]     dVMR VMR derivatives of line shape parameters
+ */
 void apply_linemixing_scaling_and_mirroring(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -141,6 +235,17 @@ void apply_linemixing_scaling_and_mirroring(
     const LineShape::Output& dT = {0, 0, 0, 0, 0, 0, 0, 0, 0},
     const LineShape::Output& dVMR = {0, 0, 0, 0, 0, 0, 0, 0, 0});
 
+/** Applies Rosenkranz quadratic normalization to already set line shape
+ * 
+ * @param[in,out] F Lineshape.  Must be right size
+ * @param[in,out] dF Lineshape derivative.  Must be right size
+ * @param[in]     f_grid Frequency grid of computations
+ * @param[in]     F0 Central frequency without any shifts
+ * @param[in]     T Atmospheric temperature at level
+ * @param[in]     derivatives_data The derivatives in dF
+ * @param[in]     derivatives_data_position The derivatives positions in dF
+ * @param[in]     quantum_identity ID of the absorption line
+ */
 void apply_rosenkranz_quadratic_scaling(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -152,6 +257,18 @@ void apply_rosenkranz_quadratic_scaling(
     const ArrayOfIndex& derivatives_data_position = ArrayOfIndex(),
     const QuantumIdentifier& quantum_identity = QuantumIdentifier());
 
+/** Applies Van Vleck and Huber normalization to already set line shape
+ * 
+ * @param[in,out] F Lineshape.  Must be right size
+ * @param[in,out] dF Lineshape derivative.  Must be right size
+ * @param[in,out] data Block of allocated memory.  Output nonsensical
+ * @param[in]     f_grid Frequency grid of computations
+ * @param[in]     F0 Central frequency without any shifts
+ * @param[in]     T Atmospheric temperature at level
+ * @param[in]     derivatives_data The derivatives in dF
+ * @param[in]     derivatives_data_position The derivatives positions in dF
+ * @param[in]     quantum_identity ID of the absorption line
+ */
 void apply_VVH_scaling(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -164,6 +281,16 @@ void apply_VVH_scaling(
     const ArrayOfIndex& derivatives_data_position = ArrayOfIndex(),
     const QuantumIdentifier& quantum_identity = QuantumIdentifier());
 
+/** Applies Van Vleck and Weiskopf normalization to already set line shape
+ * 
+ * @param[in,out] F Lineshape.  Must be right size
+ * @param[in,out] dF Lineshape derivative.  Must be right size
+ * @param[in]     f_grid Frequency grid of computations
+ * @param[in]     F0 Central frequency without any shifts
+ * @param[in]     derivatives_data The derivatives in dF
+ * @param[in]     derivatives_data_position The derivatives positions in dF
+ * @param[in]     quantum_identity ID of the absorption line
+ */
 void apply_VVW_scaling(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -174,6 +301,18 @@ void apply_VVW_scaling(
     const ArrayOfIndex& derivatives_data_position = ArrayOfIndex(),
     const QuantumIdentifier& quantum_identity = QuantumIdentifier());
 
+/** Gets the local thermodynamic equilibrium line strength
+ * 
+ * @param[in] S0 Reference linestrength
+ * @param[in] E0 Reference line lower energy
+ * @param[in] F0 Central frequency without any shifts
+ * @param[in] QT0 Partition function at reference temperature
+ * @param[in] T0 Reference temperature
+ * @param[in] QT Partition function at atmospheric temperature
+ * @param[in] T Atmospheric temperature at level
+ * 
+ * @return The local thermodynamic equilibrium line strength
+ */
 Numeric lte_linestrength(Numeric S0,
                          Numeric E0,
                          Numeric F0,
@@ -182,6 +321,22 @@ Numeric lte_linestrength(Numeric S0,
                          Numeric QT,
                          Numeric T);
 
+/** Applies linestrength to already set line shape by LTE population type
+ * 
+ * @param[in,out] F Lineshape.  Must be right size
+ * @param[in,out] dF Lineshape derivative.  Must be right size
+ * @param[in,out] N Source lineshape
+ * @param[in,out] dN Source lineshape derivative
+ * @param[in]     line The absortion line
+ * @param[in]     T The atmospheric temperature
+ * @param[in]     isotopic_ratio The ratio of the isotopologue in the atmosphere
+ * @param[in]     QT Partition function at atmospheric temperature of level
+ * @param[in]     QT0 Partition function at reference temperature
+ * @param[in]     derivatives_data The derivatives in dF
+ * @param[in]     derivatives_data_position The derivatives positions in dF
+ * @param[in]     quantum_identity ID of the absorption line
+ * @param[in]     dQT_dT Temperature derivative of QT
+ */
 void apply_linestrength_scaling_by_lte(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -198,6 +353,26 @@ void apply_linestrength_scaling_by_lte(
     const QuantumIdentifier& quantum_identity = QuantumIdentifier(),
     const Numeric& dQT_dT = 0.0);
 
+/** Applies linestrength to already set line shape by vibrational level temperatures
+ * 
+ * @param[in,out] F Lineshape.  Must be right size
+ * @param[in,out] dF Lineshape derivative.  Must be right size
+ * @param[in,out] N Source lineshape
+ * @param[in,out] dN Source lineshape derivative
+ * @param[in]     line The absortion line
+ * @param[in]     T The atmospheric temperature
+ * @param[in]     Tu The upper state vibrational temperature; must be T if level is LTE
+ * @param[in]     Tl The lower state vibrational temperature; must be T if level is LTE
+ * @param[in]     Evu The upper state vibrational energy; if set funny, yields funny results
+ * @param[in]     Evl The lower state vibrational energy; if set funny, yields funny results
+ * @param[in]     isotopic_ratio The ratio of the isotopologue in the atmosphere
+ * @param[in]     QT Partition function at atmospheric temperature of level
+ * @param[in]     QT0 Partition function at reference temperature
+ * @param[in]     derivatives_data The derivatives in dF
+ * @param[in]     derivatives_data_position The derivatives positions in dF
+ * @param[in]     quantum_identity ID of the absorption line
+ * @param[in]     dQT_dT Temperature derivative of QT
+ */
 void apply_linestrength_scaling_by_vibrational_nlte(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -218,6 +393,22 @@ void apply_linestrength_scaling_by_vibrational_nlte(
     const QuantumIdentifier& quantum_identity = QuantumIdentifier(),
     const Numeric& dQT_dT = 0.0);
 
+/** Applies the line strength to the line shape using the complex line strength of line mixing.
+ * Lineshape is already set.
+ * 
+ * Note:  This is still under construction (until there is a publication, then this comment should be changed)
+ * 
+ * @param[in,out] F Lineshape.  Must be right size
+ * @param[in,out] dF Lineshape derivative.  Must be right size
+ * @param[in]     F0 Central frequency without any shifts
+ * @param[in]     T Atmospheric temperature at level
+ * @param[in]     S_LM Complex linestrength
+ * @param[in]     isotopic_ratio The ratio of the isotopologue in the atmosphere
+ * @param[in]     derivatives_data The derivatives in dF
+ * @param[in]     derivatives_data_position The derivatives positions in dF
+ * @param[in]     quantum_identity ID of the absorption line
+ * @param[in]     dS_LM_dT Temperature derivative of S_LM
+ */
 void apply_linestrength_from_full_linemixing(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -231,6 +422,20 @@ void apply_linestrength_from_full_linemixing(
     const QuantumIdentifier& quantum_identity = QuantumIdentifier(),
     const Complex& dS_LM_dT = 0.0);
 
+/** Applies the line strength to the line shape using the dipole information
+ * 
+ * @param[in,out] F Lineshape.  Must be right size
+ * @param[in,out] dF Lineshape derivative.  Must be right size
+ * @param[in]     F0 Central frequency without any shifts
+ * @param[in]     T Atmospheric temperature at level
+ * @param[in]     d0 Dipole of the absorption line
+ * @param[in]     rho Density (of molecules at level
+ * @param[in]     isotopic_ratio The ratio of the isotopologue in the atmosphere
+ * @param[in]     derivatives_data The derivatives in dF
+ * @param[in]     derivatives_data_position The derivatives positions in dF
+ * @param[in]     quantum_identity ID of the absorption line
+ * @param[in]     drho_dT Temperature derivative of rho
+ */
 void apply_dipole(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -245,6 +450,17 @@ void apply_dipole(
     const QuantumIdentifier& quantum_identity = QuantumIdentifier(),
     const Numeric& drho_dT = 0.0);
 
+/** Applies the line-by-line pressure broadening jacobian for the matching lines
+ * 
+ * @param[in,out] dF Lineshape derivative.  Must be right size
+ * @param[in]     derivatives_data The derivatives in dF
+ * @param[in]     derivatives_data_position The derivatives positions in dF
+ * @param[in]     quantum_identity ID of the absorption line
+ * @param[in]     line The absortion line
+ * @param[in]     T Atmospheric temperature
+ * @param[in]     P Atmospheric pressure
+ * @param[in]     vmrs VMRs for line shape broadeners
+ */
 void apply_linefunctiondata_jacobian_scaling(
     Eigen::Ref<Eigen::MatrixXcd> dF,
     const ArrayOfRetrievalQuantity& derivatives_data,
@@ -255,10 +471,57 @@ void apply_linefunctiondata_jacobian_scaling(
     const Numeric& P,
     const Vector& vmrs);
 
+/** Returns the frequency-independent part of the Doppler broadening
+ * 
+ * @param[in] T Atmospheric temperature at level
+ * @param[in] mass Mass of molecule under consideration
+ * 
+ * @return Doppler broadening constant
+ */
 Numeric DopplerConstant(Numeric T, Numeric mass);
 
+/** Returns the temperature derivative of the frequency-independent part of the Doppler broadening
+ * 
+ * @param[in] T Atmospheric temperature at level
+ * @param[in] dc Output of Linefunctions::DopplerConstant(T, mass)
+ * 
+ * @return Doppler broadening constant temperature derivative
+ */
 Numeric dDopplerConstant_dT(const Numeric& T, const Numeric& dc);
 
+/** Cross section and derivatives
+ * 
+ * Combination function using standard setup to compute
+ * line strength and lineshape of a single line.
+ * Computes in order the lineshape, the linemirroring,
+ * the linenormalization, the linemixing, the 
+ * linestrength, the non-lte, and the cutoff frequency.
+ * 
+ * @param[in,out] F Lineshape.  Must be right size
+ * @param[in,out] dF Lineshape derivative.  Must be right size
+ * @param[in,out] N Source lineshape
+ * @param[in,out] dN Source lineshape derivative
+ * @param[in,out] data Block of allocated memory.  Output nonsensical
+ * @param[out]    start_cutoff Start pos of cutoff frequency
+ * @param[out]    end_cutoff End pos of cutoff frequency
+ * @param[in]     f_grid Frequency grid of computations
+ * @param[in]     line The absortion line
+ * @param[in]     derivatives_data The derivatives in dF
+ * @param[in]     derivatives_data_position The derivatives positions in dF
+ * @param[in]     volume_mixing_ratio_of_lineshape As name suggests
+ * @param[in]     nlte_distribution As name suggests
+ * @param[in]     pressure As name suggests
+ * @param[in]     temperature As name suggests
+ * @param[in]     doppler_constant Frequency-independent part of the Doppler broadening
+ * @param[in]     isotopologue_ratio The ratio of the isotopologue in the atmosphere at this level
+ * @param[in]     zeeman_df Zeeman shift parameter for the line
+ * @param[in]     magnetic_magnitude Absolute strength of the magnetic field
+ * @param[in]     ddoppler_constant_dT Temperature derivative of doppler_constant
+ * @param[in]     partition_function_at_temperature As name suggests
+ * @param[in]     dpartition_function_at_temperature_dT Temeperature derivative of partition_function_at_temperature
+ * @param[in]     partition_function_at_line_temperature As name suggests
+ * @param[in]     cutoff_call Flag to ignore some functions inside if this call is from the cutoff-computations
+ */
 void set_cross_section_for_single_line(
     Eigen::Ref<Eigen::VectorXcd> F_full,
     Eigen::Ref<Eigen::MatrixXcd> dF_full,
@@ -285,6 +548,32 @@ void set_cross_section_for_single_line(
     const Numeric& partition_function_at_line_temperature,
     const bool cutoff_call = false);
 
+/** Perform cutoff calculations
+ * 
+ * Combination function using standard setup to compute line strength and lineshape of a single line.
+ * Computes in order the lineshape, the linemirroring, the linenormalization, the linemixing, the 
+ * linestrength, the non-lte, and the cutoff frequency.
+ * 
+ * @param[in,out] F Lineshape.  Must be right size
+ * @param[in,out] dF Lineshape derivative.  Must be right size
+ * @param[in,out] N Source lineshape
+ * @param[in,out] dN Source lineshape derivative
+ * @param[in]     derivatives_data The derivatives in dF
+ * @param[in]     derivatives_data_position The derivatives positions in dF
+ * @param[in]     line The absortion line
+ * @param[in]     volume_mixing_ratio_of_lineshape As name suggests
+ * @param[in]     nlte_distribution As name suggests
+ * @param[in]     pressure As name suggests
+ * @param[in]     temperature As name suggests
+ * @param[in]     doppler_constant Frequency-independent part of the Doppler broadening
+ * @param[in]     isotopologue_ratio The ratio of the isotopologue in the atmosphere at this level
+ * @param[in]     zeeman_df Zeeman shift parameter for the line
+ * @param[in]     magnetic_magnitude Absolute strength of the magnetic field
+ * @param[in]     ddoppler_constant_dT Temperature derivative of doppler_constant
+ * @param[in]     partition_function_at_temperature As name suggests
+ * @param[in]     dpartition_function_at_temperature_dT Temeperature derivative of partition_function_at_temperature
+ * @param[in]     partition_function_at_line_temperature As name suggests
+ */
 void apply_cutoff(Eigen::Ref<Eigen::VectorXcd> F,
                   Eigen::Ref<Eigen::MatrixXcd> dF,
                   Eigen::Ref<Eigen::VectorXcd> N,
@@ -305,12 +594,42 @@ void apply_cutoff(Eigen::Ref<Eigen::VectorXcd> F,
                   const Numeric& dpartition_function_at_temperature_dT,
                   const Numeric& partition_function_at_line_temperature);
 
+/** Sets cutoff frequency indices
+ * 
+ * @param[out]    start_cutoff Start pos of cutoff frequency
+ * @param[out]    end_cutoff End pos of cutoff frequency
+ * @param[in]     f_grid Frequency grid of computations
+ * @param[in]     F0 Central frequency without any shifts
+ * @param[in]     cutoff Cutoff frequency
+ */
 void find_cutoff_ranges(Index& start_cutoff,
                         Index& nelem_cutoff,
                         const Eigen::Ref<const Eigen::VectorXd> f_grid,
                         const Numeric& F0,
                         const Numeric& cutoff);
 
+/** Applies non-lte linestrength to already set line shape
+ * 
+ * Works on ratio-inputs, meaning that the total distribution does not have to be known
+ * 
+ * Cannot support partial derivatives at this point due to ARTS not possessing its own
+ * NLTE ratio calculation agenda
+ * 
+ * @param[in,out] F Lineshape.  Must be right size
+ * @param[in,out] dF Lineshape derivative.  Must be right size
+ * @param[in,out] N Source lineshape
+ * @param[in,out] dN Source lineshape derivative
+ * @param[in]     r1 Ratio of molecules at energy level 1
+ * @param[in]     r2 Ratio of molecules at energy level 2 
+ * @param[in]     g1 Statistical weight of energy level 1
+ * @param[in]     g2 Statistical weight of energy level 2
+ * @param[in]     A21 Einstein coefficient for the transition from energy level 2 to energy level 1
+ * @param[in]     F0 Central frequency without any shifts
+ * @param[in]     T Atmospheric temperature
+ * @param[in]     derivatives_data The derivatives in dF
+ * @param[in]     derivatives_data_position The derivatives positions in dF
+ * @param[in]     quantum_identity ID of the absorption line
+ */
 void apply_linestrength_from_nlte_level_distributions(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,

@@ -652,10 +652,10 @@ void define_md_data_raw() {
   md_data_raw.push_back(MdRecord(
       NAME("abs_linesRelativeLineStrengthShift"),
       DESCRIPTION(
-          "Simple function to shift line strength of all lines in *abs_lines*.\n"
+          "Shift line strength of all lines in *abs_lines*.\n"
           "\n"
-          "The new line strengths are the old line strengths times (one plus relative\n"
-          "line strength shift).\n"),
+          "The new line strengths are the old line strengths times (1 +\n"
+          "relative_line_strength_shift).\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -672,13 +672,9 @@ void define_md_data_raw() {
       DESCRIPTION(
           "Replace all lines in *abs_lines* that match with lines in replacement_lines.\n"
           "\n"
-          "All lines in replacement_lines must match to a single line in *abs_lines*.\n"
+          "Each replacement_lines must match at most a single line in *abs_lines*.\n"
           "\n"
-          "NB: The matching is done on basis of quantum numbers.  This means that if the ARTS\n"
-          "catalog format or ARTS reading routine do not support the quantum numbers required\n"
-          "for the matching to be unique, then this function fails.  We try to accomodate all\n"
-          "species and all catalogs, but formats and definitions are plentiful, so species are\n"
-          "added as they are needed.\n"),
+          "The matching required identical quantum number signatures to work\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -697,17 +693,12 @@ void define_md_data_raw() {
           "Only works for:\n"
           "parameter_name = \"Central Frequency\"\n"
           "parameter_name = \"Line Strength\"\n"
-          "parameter_name = \"Pressure Broadening\"\n"
-          "parameter_name = \"Line Mixing\"\n"
+          "parameter_name = \"Line Shape Model\"\n"
           "parameter_name = \"Lower State Energy\"\n"
           "\n"
-          "All lines in replacement_lines must match to a single line in *abs_lines*.\n"
+          "Each replacement_lines must match at most a single line in *abs_lines*.\n"
           "\n"
-          "NB: The matching is done on basis of quantum numbers.  This means that if the ARTS\n"
-          "catalog format or ARTS reading routine do not support the quantum numbers required\n"
-          "for the matching to be unique, then this function fails.  We try to accomodate all\n"
-          "species and all catalogs, but formats and definitions are plentiful, so species are\n"
-          "added as they are needed.\n"),
+          "The matching required identical quantum number signatures to work\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -872,7 +863,8 @@ void define_md_data_raw() {
           "parameter_name = \"Line Strength\"\n"
           "parameter_name = \"Lower State Energy\"\n"
           "\n"
-          "Note that loose_matching:=0 means only full matches are allowed\n"),
+          "Note that loose_matching:=0 means only identical quantum identifiers are accepted,\n"
+          "otherwise the numbers in QI must just be contained in the line identifier\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -908,10 +900,10 @@ void define_md_data_raw() {
                "Flag for loose match (0 means only complete matches)")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("abs_linesSetLineFunctionDataParameterForMatchingLines"),
+      NAME("abs_linesSetLineShapeModelParameterForMatchingLines"),
       DESCRIPTION(
-          "Same as *abs_linesChangeLineFunctionDataParameterForMatchingLines* but sets the parameter\n"
-          "instead of changing it.  See the other function for inputs.\n"),
+        "Same as *abs_linesChangeLineShapeModelParameterForMatchingLines* but\n"
+        "sets the line paramater to the provided new_value\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -928,8 +920,38 @@ void define_md_data_raw() {
                "New value of parameter for matching line(s)")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("abs_linesChangeLineFunctionDataParameterForMatchingLines"),
-      DESCRIPTION("TEMP-data.\n"),
+    NAME("abs_linesChangeLineShapeModelParameterForMatchingLines"),
+      DESCRIPTION("Change line shape model data parameter in matching lines.\n"
+        "\n"
+        "The matching is done so that QI must be in the line identifier\n"
+        "\n"
+        "Acceptable parameter(s) are:\n"
+        "\t\"G0\"\n"
+        "\t\"D0\"\n"
+        "\t\"G2\"\n"
+        "\t\"D2\"\n"
+        "\t\"FVC\"\n"
+        "\t\"ETA\"\n"
+        "\t\"Y\"\n"
+        "\t\"G\"\n"
+        "\t\"DV\"\n"
+        "\n"
+        "Acceptable coefficient(s) are:\n"
+        "\t\"X0\"\n"
+        "\t\"X1\"\n"
+        "\t\"X2\"\n"
+        "\n"
+        "Acceptable species are:\n"
+        "\tAIR (so long as it is the broadening species list)\n"
+        "\tSELF (so long as it is the broadening species list)\n"
+        "\tAny species in the line broadening species\n"
+        "\n"
+        "The line parameter will have its old value plus the change if\n"
+        "relative is false, else it will have its old value times\n"
+        "(1+change).\n"
+        "\n"
+        "Throws an error if it cannot find any targets to change\n"
+      ),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
@@ -948,7 +970,7 @@ void define_md_data_raw() {
                "Name of parameter to be replaced",
                "Coefficient of the parameter to be changed",
                "Species of parameter to be changed",
-               "New value of parameter for matching line(s)",
+               "Change in the value found",
                "Flag for relative change (0 is absolute change)")));
 
   md_data_raw.push_back(MdRecord(
@@ -977,7 +999,7 @@ void define_md_data_raw() {
   md_data_raw.push_back(MdRecord(
       NAME("abs_linesShiftFrequency"),
       DESCRIPTION(
-          "Simple function to shift line center of all lines in *abs_lines*.\n"
+          "Shift line center of all lines in *abs_lines*.\n"
           "\n"
           "The new frequencies are the old frequencies plus the input frequency shift.\n"),
       AUTHORS("Richard Larsson"),
@@ -1136,10 +1158,7 @@ void define_md_data_raw() {
   md_data_raw.push_back(MdRecord(
       NAME("abs_lines_per_speciesRelativeLineStrengthShift"),
       DESCRIPTION(
-          "Simple function to shift line strength of all lines in *abs_lines_per_species*.\n"
-          "\n"
-          "The new line strengths are the old line strengths times (one plus relative\n"
-          "line strength shift).\n"),
+        "As *abs_linesRelativeLineStrengthShift* but for all lines in *abs_lines_per_species*\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -1173,9 +1192,7 @@ void define_md_data_raw() {
   md_data_raw.push_back(MdRecord(
       NAME("abs_lines_per_speciesShiftFrequency"),
       DESCRIPTION(
-          "Simple function to shift line center of all lines in *abs_lines_per_species*.\n"
-          "\n"
-          "The new frequencies are the old frequencies plus the input frequency shift.\n"),
+        "As *abs_linesShiftFrequency* but for all lines in *abs_lines_per_species*\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -10710,9 +10727,12 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(MdRecord(
       NAME("nlte_fieldForSingleSpeciesNonOverlappingLines"),
-      DESCRIPTION("Test function to solve NLTE\n"
-                  "Use at own risk... will be changed continously and\n"
-                  "expect its user to debug it...\n"),
+      DESCRIPTION("NLTE field for a simple setup.\n"
+        "\n"
+        "This will solve for *nlte_field* in the input atmosphere.\n"
+        "The solver depends on the lines not overlapping and that there\n"
+        "is only a single species in the atmosphere.\n"
+      ),
       AUTHORS("Richard Larsson"),
       OUT("nlte_field"),
       GOUT(),

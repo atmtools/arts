@@ -197,7 +197,6 @@ add_library (artscore STATIC
   fastem.cc
   file.cc
   gas_abs_lookup.cc
-  geomag_calc.cc
   geodetic.cc
   gridded_fields.cc
   gzstream.cc

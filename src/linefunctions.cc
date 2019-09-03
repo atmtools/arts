@@ -17,18 +17,19 @@
  * USA. */
 
 /*!
- * \file   lineshapesdata.h
- * \brief  Stuff related to lineshape functions.
+ * @file   linefunctions.h
+ * @author Richard Larsson
+ * @date   2017-05-16
+ * 
+ * @brief  Stuff related to lineshape functions.
  * 
  * This file should contain complete handling of individual lines.
  * The reason is that the old methods are cumbersome to adapt and need redesigning
  * 
- * Example usage for simple Lorentz line shape with line strength scaled to the correct integration
+ * Example usage for simple Lorentz line shape with line
+ * strength scaled to the correct integration
  * set_lorentz(...)
  * apply_linestrength_scaling(...)
- * 
- * \author Richard Larsson
- * \date   2017-05-16
  */
 
 #include "linefunctions.h"
@@ -37,8 +38,51 @@
 #include "constants.h"
 #include "linescaling.h"
 
-// The Faddeeva function
+/** The Faddeeva function */
 inline Complex w(Complex z) noexcept { return Faddeeva::w(z); }
+
+/** The Faddeeva function partial derivative */
+constexpr Complex dw(Complex z, Complex w) noexcept {
+  return Complex(0, 2) * (Constant::inv_sqrt_pi - z * w);
+}
+
+/** Conversion from CGS-style lineshape to ARTS */
+constexpr Complex pCqSDHC_to_arts(Complex x) noexcept {
+  using Constant::c;
+  using Constant::pow2;
+  using Conversion::hitran2arts_linestrength;
+  
+  return conj(hitran2arts_linestrength(x) / pow2(c));
+}
+
+/** Conversion from CGS-style lineshape to ARTS for frequncy derivatives */
+constexpr Complex pCqSDHC_to_arts_freq_deriv(Complex x) noexcept {
+  using Constant::c;
+  using Constant::pow4;
+  using Conversion::hitran2arts_linestrength;
+  
+  return hitran2arts_linestrength(hitran2arts_linestrength(x)) / pow4(c);
+}
+
+/** Conversion from CGS-style lineshape to ARTS G2 derivative */
+constexpr Complex pCqSDHC_to_arts_G2_deriv(Complex x) noexcept {
+  using Constant::c;
+  using Constant::pow4;
+  using Conversion::hitran2arts_linestrength;
+  
+  return Complex(0, -1) *
+  hitran2arts_linestrength(hitran2arts_linestrength(x)) / pow4(c);
+}
+
+/** Conversion from CGS-style lineshape to ARTS D2 derivative */
+constexpr Complex pCqSDHC_to_arts_D2_deriv(Complex x) noexcept {
+  using Constant::c;
+  using Constant::pow4;
+  using Conversion::hitran2arts_linestrength;
+  
+  return Complex(0, 1) * hitran2arts_linestrength(hitran2arts_linestrength(x)) /
+  pow4(c);
+}
 
 void Linefunctions::set_lineshape(
     Eigen::Ref<Eigen::VectorXcd> F,
@@ -189,25 +233,6 @@ void Linefunctions::set_lineshape(
   }
 }
 
-/*!
- * Sets the line shape to Lorentz line shape. Normalization is unity.
- * 
- * \retval F Lineshape
- * \retval dF Lineshape derivative
- * 
- * \param data Block of allocated memory
- * \param f_grid Frequency grid of computations
- * \param zeeman_df Zeeman shift parameter for the line
- * \param magnetic_magnitude Absolute strength of the magnetic field
- * \param F0_noshift Central frequency without any shifts
- * \param x Line shape parameters
- * \param derivatives_data Information about the derivatives in dF
- * \param derivatives_data_position Information about the derivatives positions in dF
- * \param quantum_identity ID of the absorption line
- * \param dxdT Temperature derivatives of line shape parameters
- * \param dxdVMR VMR derivatives of line shape parameters
- * 
- */
 void Linefunctions::set_lorentz(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -220,8 +245,8 @@ void Linefunctions::set_lorentz(
     const ArrayOfRetrievalQuantity& derivatives_data,
     const ArrayOfIndex& derivatives_data_position,
     const QuantumIdentifier& quantum_identity,
-    const LineShape::Output& dxdT,
-    const LineShape::Output& dxdVMR) {
+    const LineShape::Output& dT,
+    const LineShape::Output& dVMR) {
   constexpr Complex cpi(0, Constant::pi);
   constexpr Complex iz(0.0, 1.0);
 
@@ -246,7 +271,7 @@ void Linefunctions::set_lorentz(
       const auto& deriv = derivatives_data[derivatives_data_position[iq]];
 
       if (deriv == JacPropMatType::Temperature)
-        dF.col(iq).noalias() = Complex(dxdT.G0, dxdT.D0 + dxdT.DV) * dw;
+        dF.col(iq).noalias() = Complex(dT.G0, dT.D0 + dT.DV) * dw;
       else if (is_frequency_parameter(deriv))
         dF.col(iq).noalias() = -iz * dw;
       else if ((deriv == JacPropMatType::LineCenter or
@@ -263,7 +288,7 @@ void Linefunctions::set_lorentz(
         dF.col(iq).noalias() = iz * zeeman_df * dw;
       else if (deriv == JacPropMatType::VMR) {
         if (deriv.QuantumIdentity().In(quantum_identity))
-          dF.col(iq).noalias() = Complex(dxdVMR.G0, dxdVMR.D0 + dxdVMR.DV) * dw;
+          dF.col(iq).noalias() = Complex(dVMR.G0, dVMR.D0 + dVMR.DV) * dw;
         else
           dF.col(iq).setZero();
       }
@@ -271,27 +296,6 @@ void Linefunctions::set_lorentz(
   }
 }
 
-/*!
- * Sets the line shape to Voigt line shape. Normalization is unity.
- * 
- * \retval F Lineshape
- * \retval dF Lineshape derivative
- * 
- * \param data Block of allocated memory
- * \param f_grid Frequency grid of computations
- * \param zeeman_df Zeeman shift parameter for the line
- * \param magnetic_magnitude Absolute strength of the magnetic field
- * \param F0_noshift Central frequency without any shifts
- * \param GD_div_F0 Frequency-independent part of the Doppler broadening
- * \param x Line shape parameters
- * \param derivatives_data Information about the derivatives in dF
- * \param derivatives_data_position Information about the derivatives positions in dF
- * \param quantum_identity ID of the absorption line
- * \param dGD_div_F0_dT Temperature derivative of GD_div_F0
- * \param dxdT Temperature derivatives of line shape parameters
- * \param dxdVMR VMR derivatives of line shape parameters
- * 
- */
 void Linefunctions::set_voigt(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -368,26 +372,6 @@ void Linefunctions::set_voigt(
   }
 }
 
-/*!
- * Sets the line shape to Doppler line shape. Normalization is unity.
- * 
- * Note:  Uses the Voigt function with special parameters to get imaginary
- * part of spectra.  This should be fixed to gain speed...
- * 
- * \retval F Lineshape
- * \retval dF Lineshape derivative
- * 
- * \param data Block of allocated memory
- * \param f_grid Frequency grid of computations
- * \param zeeman_df Zeeman shift parameter for the line
- * \param magnetic_magnitude Absolute strength of the magnetic field
- * \param F0_noshift Central frequency without any shifts
- * \param GD_div_F0 Frequency-independent part of the Doppler broadening
- * \param derivatives_data Information about the derivatives in dF
- * \param derivatives_data_position Information about the derivatives positions in dF
- * \param quantum_identity ID of the absorption line
- * \param dGD_div_F0_dT Temperature derivative of GD_div_F0
- */
 void Linefunctions::set_doppler(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -432,65 +416,6 @@ void Linefunctions::set_doppler(
   }
 }
 
-/*!
- * Sets the line shape using eigenvalue decomposition for line mixing. Normalization is unity.
- * 
- * Note:  This is still under construction (until there is a publication, then this comment should be changed)
- * 
- * \retval F Lineshape
- * \retval dF Lineshape derivative
- * 
- * \param f_grid Frequency grid of computations
- * \param eigenvalue_no_shift Output from eigenvalue decomposition of band relaxation at some frequency
- * \param GD_div_F0 Frequency-independent part of the Doppler broadening
- * \param L0 Speed-independent pressure shift term
- * \param derivatives_data Information about the derivatives in dF
- * \param derivatives_data_position Information about the derivatives positions in dF
- * \param quantum_identity ID of the absorption line
- * \param dGD_div_F0_dT Temperature derivative of GD_div_F0
- * \param dL0_dT Temperature derivative of L0
- * 
- */
-void Linefunctions::set_voigt_from_full_linemixing(
-    Eigen::Ref<Eigen::VectorXcd>,
-    Eigen::Ref<Eigen::MatrixXcd>,
-    const Eigen::Ref<const Eigen::VectorXd>,
-    const Complex&,
-    const Numeric&,
-    const Numeric&,
-    const ArrayOfRetrievalQuantity&,
-    const ArrayOfIndex&,
-    const QuantumIdentifier&,
-    const Numeric&,
-    const Complex&,
-    const Numeric&) {
-  throw std::runtime_error("Deprecated, never really worked...");
-}
-
-/*!
- * Applies line mixing scaling to already set lineshape and line mirror
- * 
- * Equation: 
- *   with_mirroring:
- *     F := (1+G-iY) * F + (1+G+iY) * Fm
- *   else:
- *     F := (1+G-iY) * F
- * 
- * and appropriate derivatives
- * 
- * \retval F Lineshape
- * \retval dF Lineshape derivative
- * 
- * \param Fm Mirrored lineshape
- * \param dFm Mirrored lineshape derivative
- * \param X Variable with line mixing information
- * \param derivatives_data Information about the derivatives in dF
- * \param derivatives_data_position Information about the derivatives positions in dF
- * \param quantum_identity ID of the absorption line
- * \param dT Variable with line mixing temperature derivative information
- * \param dVMR Variable with line mixing VMR derivative information
- * 
- */
 void Linefunctions::apply_linemixing_scaling_and_mirroring(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -551,21 +476,6 @@ void Linefunctions::apply_linemixing_scaling_and_mirroring(
   if (with_mirroring) F.noalias() += Fm * std::conj(LM);
 }
 
-/*!
- * Applies Rosenkranz quadratic normalization to already set line shape
- * 
- * \retval F Lineshape
- * \retval dF Lineshape derivative
- * 
- * \param f_grid Frequency grid of computations
- * \param F0 Central frequency without any shifts
- * \param T Atmospheric temperature at level
- * \param derivatives_data Information about the derivatives in dF
- * \param derivatives_data_position Information about the derivatives positions in dF
- * \param quantum_identity ID of the absorption line
- * \param df_range Frequency range to use inside dF
- * 
- */
 void Linefunctions::apply_rosenkranz_quadratic_scaling(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -615,21 +525,6 @@ void Linefunctions::apply_rosenkranz_quadratic_scaling(
   }
 }
 
-/*!
- * Applies Van Vleck and Huber normalization to already set line shape
- * 
- * \retval F Lineshape
- * \retval dF Lineshape derivative
- * 
- * \param f_grid Frequency grid of computations
- * \param F0 Central frequency without any shifts
- * \param T Atmospheric temperature at level
- * \param derivatives_data Information about the derivatives in dF
- * \param derivatives_data_position Information about the derivatives positions in dF
- * \param quantum_identity ID of the absorption line
- * \param df_range Frequency range to use inside dF
- * 
- */
 void Linefunctions::apply_VVH_scaling(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -678,20 +573,6 @@ void Linefunctions::apply_VVH_scaling(
   }
 }
 
-/*!
- * Applies Van Vleck and Weiskopf normalization to already set line shape
- * 
- * \retval F Lineshape
- * \retval dF Lineshape derivative
- * 
- * \param f_grid Frequency grid of computations
- * \param F0 Central frequency without any shifts
- * \param derivatives_data Information about the derivatives in dF
- * \param derivatives_data_position Information about the derivatives positions in dF
- * \param quantum_identity ID of the absorption line
- * \param df_range Frequency range to use inside dF
- * 
- */
 void Linefunctions::apply_VVW_scaling(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -743,25 +624,6 @@ Numeric Linefunctions::lte_linestrength(Numeric S0,
   return S0 * K1 * K2 * QT0 / QT;
 }
 
-/*!
- * Applies linestrength to already set line shape by LTE population type
- * 
- * \retval F Lineshape
- * \retval dF Lineshape derivative
- * \retval N Source lineshape
- * \retval dN Source lineshape derivative
- * 
- * \param line The line data
- * \param T The atmospheric temperature
- * \param isotopic_ratio The ratio of the isotopologue in the atmosphere at this level
- * \param QT Partition function at atmospheric temperature of level
- * \param QT0 Partition function at reference temperature
- * \param derivatives_data Information about the derivatives in dF
- * \param derivatives_data_position Information about the derivatives positions in dF
- * \param quantum_identity ID of the absorption line
- * \param dQT_dT Temperature derivative of QT
- * 
- */
 void Linefunctions::apply_linestrength_scaling_by_lte(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -812,29 +674,6 @@ void Linefunctions::apply_linestrength_scaling_by_lte(
   dN.setZero();
 }
 
-/*!
- * Applies linestrength to already set line shape by vibrational level temperatures
- * 
- * \retval F Lineshape
- * \retval dF Lineshape derivative
- * \retval N Source lineshape
- * \retval dN Source Lineshape derivative
- * 
- * \param line The absorption line
- * \param T The atmospheric temperature
- * \param Tu The upper state vibrational temperature; must be T if level is LTE
- * \param Tl The lower state vibrational temperature; must be T if level is LTE
- * \param Evu The upper state vibrational energy; if set funny, yields funny results
- * \param Evl The lower state vibrational energy; if set funny, yields funny results
- * \param isotopic_ratio The ratio of the isotopologue in the atmosphere at this level
- * \param QT Partition function at atmospheric temperature of level
- * \param QT0 Partition function at reference temperature
- * \param derivatives_data Information about the derivatives in dF
- * \param derivatives_data_position Information about the derivatives positions in dF
- * \param quantum_identity ID of the absorption line
- * \param dQT_dT Temperature derivative of QT
- * 
- */
 void Linefunctions::apply_linestrength_scaling_by_vibrational_nlte(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -936,24 +775,6 @@ void Linefunctions::apply_linestrength_scaling_by_vibrational_nlte(
   F *= S_abs;
 }
 
-/*! Applies the line strength to the line shape using the complex line strength of line mixing.
- * Lineshape is already set.
- * 
- * Note:  This is still under construction (until there is a publication, then this comment should be changed)
- * 
- * \retval F Lineshape
- * \retval dF Lineshape derivative
- * 
- * \param F0 Central frequency without any shifts
- * \param T Atmospheric temperature at level
- * \param S_LM Complex linestrength
- * \param isotopic_ratio The ratio of the isotopologue in the atmosphere at this level
- * \param derivatives_data Information about the derivatives in dF
- * \param derivatives_data_position Information about the derivatives positions in dF
- * \param quantum_identity ID of the absorption line
- * \param dS_LM_dT Temperature derivative of S_LM
- * 
- */
 void Linefunctions::apply_linestrength_from_full_linemixing(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -999,22 +820,6 @@ void Linefunctions::apply_linestrength_from_full_linemixing(
   F *= S;
 }
 
-/*! Applies the line strength to the line shape using the dipole information
- * 
- * \retval F Lineshape
- * \retval dF Lineshape derivative
- * 
- * \param F0 Central frequency without any shifts
- * \param T Atmospheric temperature at level
- * \param d0 Dipole of the absorption line
- * \param rho Density (of molecules at level
- * \param isotopic_ratio The ratio of the isotopologue in the atmosphere at this level
- * \param derivatives_data Information about the derivatives in dF
- * \param derivatives_data_position Information about the derivatives positions in dF
- * \param quantum_identity ID of the absorption line
- * \param drho_dT Temperature derivative of rho
- * 
- */
 void Linefunctions::apply_dipole(Eigen::Ref<Eigen::VectorXcd> F,
                                  Eigen::Ref<Eigen::MatrixXcd> /*dF*/,
                                  const Numeric& F0,
@@ -1043,17 +848,6 @@ void Linefunctions::apply_dipole(Eigen::Ref<Eigen::VectorXcd> F,
   F *= S * f0_factor;
 }
 
-/*! Applies the line-by-line pressure broadening jacobian for the matching lines
- * 
- * \retval dF Lineshape derivative
- * 
- * \param derivatives_data Information about the derivatives in dF
- * \param derivatives_data_position Information about the derivatives positions in dF
- * \param quantum_identity ID of the absorption line
- * \param dlfd Derivatives in order as they appear that are related to internal line parameters
- * \param df_range Frequency range to use inside dF
- * 
- */
 void Linefunctions::apply_linefunctiondata_jacobian_scaling(
     Eigen::Ref<Eigen::MatrixXcd> dF,
     const ArrayOfRetrievalQuantity& derivatives_data,
@@ -1074,60 +868,15 @@ void Linefunctions::apply_linefunctiondata_jacobian_scaling(
   }
 }
 
-/*! Returns the frequency-independent part of the Doppler broadening
- * 
- * \param T Atmospheric temperature at level
- * \param mass Mass of molecule under consideration
- * 
- */
 Numeric Linefunctions::DopplerConstant(Numeric T, Numeric mass) {
   return std::sqrt(Constant::doppler_broadening_const_squared * T / mass);
 }
 
-/*! Returns the temperature derivative of the frequency-independent part of the Doppler broadening
- * 
- * \param T Atmospheric temperature at level
- * \param dc Output of Linefunctions::DopplerConstant(T, mass)
- * 
- */
 Numeric Linefunctions::dDopplerConstant_dT(const Numeric& T,
                                            const Numeric& dc) {
   return dc / (2 * T);
 }
 
-/*!
- * Combination function using standard setup to compute line strength and lineshape of a single line.
- * Computes in order the lineshape, the linemirroring, the linenormalization, the linemixing, the 
- * linestrength, the non-lte, and the cutoff frequency.
- * 
- * \retval F Lineshape
- * \retval dF Lineshape derivative
- * \retval N Non-lte lineshape
- * \retval dN Non-lte lineshape derivative
- * \retval this_xsec_range Range indicating which frequency grids have been altered in F, dF, N, and dN
- * 
- * \param derivatives_data Information about the derivatives in dF
- * \param derivatives_data_position Information about the derivatives positions in dF
- * \param line line-record containing most line parameters
- * \param volume_mixing_ratio_of_all_species As name suggests
- * \param nlte_distribution As name suggests
- * \param pressure As name suggests
- * \param temperature As name suggests
- * \param doppler_constant Frequency-independent part of the Doppler broadening
- * \param partial_pressure Pressure of species that line belongs to at this level
- * \param isotopologue_ratio The ratio of the isotopologue in the atmosphere at this level
- * \param zeeman_df Zeeman shift parameter for the line
- * \param magnetic_magnitude Absolute strength of the magnetic field
- * \param ddoppler_constant_dT Temperature derivative of doppler_constant
- * \param partition_function_at_temperature As name suggests
- * \param dpartition_function_at_temperature_dT Temeperature derivative of partition_function_at_temperature
- * \param partition_function_at_line_temperature As name suggests
- * \param broad_spec_locations Locations of broadening species using all-planetary broadening inside volume_mixing_ratio_of_all_species
- * \param this_species_location_in_tags Location of species of line in volume_mixing_ratio_of_all_species
- * \param water_index_location_in_tags Location of water in volume_mixing_ratio_of_all_species
- * \param verbosity Verbosity level
- * \param cutoff_call Flag to ignore some functions inside if this call is from the cutoff-computations
- */
 void Linefunctions::set_cross_section_for_single_line(
     Eigen::Ref<Eigen::VectorXcd> F_full,
     Eigen::Ref<Eigen::MatrixXcd> dF_full,
@@ -1576,38 +1325,6 @@ void Linefunctions::set_cross_section_for_single_line(
                  partition_function_at_line_temperature);
 }
 
-/*!
- * Combination function using standard setup to compute line strength and lineshape of a single line.
- * Computes in order the lineshape, the linemirroring, the linenormalization, the linemixing, the 
- * linestrength, the non-lte, and the cutoff frequency.
- * 
- * \retval F Lineshape
- * \retval dF Lineshape derivative
- * \retval N Non-lte lineshape
- * \retval dN Non-lte lineshape derivative
- * 
- * \param derivatives_data Information about the derivatives in dF
- * \param derivatives_data_position Information about the derivatives positions in dF
- * \param line line-record containing most line parameters
- * \param volume_mixing_ratio_of_all_species As name suggests
- * \param nlte_distribution As name suggests
- * \param pressure As name suggests
- * \param temperature As name suggests
- * \param doppler_constant Frequency-independent part of the Doppler broadening
- * \param partial_pressure Pressure of species that line belongs to at this level
- * \param isotopologue_ratio The ratio of the isotopologue in the atmosphere at this level
- * \param magnetic_magnitude Absolute strength of the magnetic field
- * \param ddoppler_constant_dT Temperature derivative of doppler_constant
- * \param partition_function_at_temperature As name suggests
- * \param dpartition_function_at_temperature_dT Temeperature derivative of partition_function_at_temperature
- * \param partition_function_at_line_temperature As name suggests
- * \param broad_spec_locations Locations of broadening species using all-planetary broadening inside volume_mixing_ratio_of_all_species
- * \param this_species_location_in_tags Location of species of line in volume_mixing_ratio_of_all_species
- * \param water_index_location_in_tags Location of water in volume_mixing_ratio_of_all_species
- * \param df_range Frequency range to use inside dF and dN
- * \param verbosity Verbosity level
- * 
- */
 void Linefunctions::apply_cutoff(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -1701,30 +1418,6 @@ void Linefunctions::find_cutoff_ranges(
   }
 }
 
-/*!
- * Applies non-lte linestrength to already set line shape
- * 
- * Works on ratio-inputs, meaning that the total distribution does not have to be known
- * 
- * Cannot support partial derivatives at this point due to ARTS not possessing its own
- * NLTE ratio calculation agenda
- * 
- * \retval F Lineshape (absorption)
- * \retval N Non-lte lineshape (source)
- * 
- * \param r1 Ratio of molecules at energy level 1
- * \param r2 Ratio of molecules at energy level 2 
- * \param g1 Statistical weight of energy level 1
- * \param g2 Statistical weight of energy level 2
- * \param A21 Einstein coefficient for the transition from energy level 2 to energy level 1
- * \param F0 Central frequency without any shifts
- * \param T Atmospheric temperature at level
- * \param derivatives_data Information about the derivatives in dF
- * \param derivatives_data_position Information about the derivatives positions in dF
- * \param quantum_identity ID of the absorption line
- * \param df_range Frequency range to use inside dF and dN
- * 
- */
 void Linefunctions::apply_linestrength_from_nlte_level_distributions(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -1811,671 +1504,6 @@ void Linefunctions::apply_linestrength_from_nlte_level_distributions(
   F *= k;
 }
 
-Complex qSDV(Numeric sg0,
-             Numeric GamD,
-             Numeric Gam0,
-             Numeric Gam2,
-             Numeric Shift0,
-             Numeric Shift2,
-             Numeric sg) {
-  using Constant::inv_pi;
-  using Constant::inv_sqrt_pi;
-  using Constant::pow2;
-  using Constant::sqrt_ln_2;
-  using Constant::sqrt_pi;
-  using std::abs;
-  using std::imag;
-  using std::real;
-  using std::sqrt;
-
-  const Numeric cte = sqrt_ln_2 / GamD;
-  constexpr Complex iz(0, 1);
-
-  // Calculating the different parameters
-  const Complex c0(Gam0, -Shift0);
-  const Complex c2(Gam2, -Shift2);
-  const Complex c0t = (c0 - 1.5 * c2);
-  const Complex c2t = c2;
-
-  const Complex Y = pow2(1 / (2 * cte * c2t));
-  const Complex X = (iz * (sg - sg0) + c0t) / c2t;
-
-  Complex Aterm;
-  if (abs(c2t) == 0) {
-    const Complex Z1 = (iz * (sg - sg0) + c0t) * cte;
-    const Numeric xZ1 = -imag(Z1);
-    const Numeric yZ1 = +real(Z1);
-    const Complex W1 = w(Complex(xZ1, yZ1));
-    Aterm = sqrt_pi * cte * W1;
-  } else if (abs(X) <= 3e-8 * abs(Y)) {
-    const Complex Z1 = (iz * (sg - sg0) + c0t) * cte;
-    const Complex Z2 = sqrt(X + Y) + sqrt(Y);
-    const Numeric xZ1 = -imag(Z1);
-    const Numeric yZ1 = +real(Z1);
-    const Numeric xZ2 = -imag(Z2);
-    const Numeric yZ2 = +real(Z2);
-    const Complex W1 = w(Complex(xZ1, yZ1));
-    const Complex W2 = w(Complex(xZ2, yZ2));
-    Aterm = sqrt_pi * cte * (W1 - W2);
-  } else if (abs(Y) <= 1e-15 * abs(X)) {
-    if (abs(sqrt(X)) <= 4e3) {
-      const Numeric xXb = -imag(sqrt(X));
-      const Numeric yXb = +real(sqrt(X));
-      const Complex Wb = w(Complex(xXb, yXb));
-      Aterm = (2 * sqrt_pi / c2t) * (inv_sqrt_pi - sqrt(X) * Wb);
-    } else
-      Aterm = (1 / c2t) * (1 / X - 1 / pow2(X));
-  } else {
-    // calculating Z1 and Z2
-    const Complex Z1 = sqrt(X + Y) - sqrt(Y);
-    const Complex Z2 = Z1 + 2 * sqrt(Y);
-
-    // calculating the real and imaginary parts of Z1 and Z2
-    const Numeric xZ1 = -imag(Z1);
-    const Numeric yZ1 = +real(Z1);
-    const Numeric xZ2 = -imag(Z2);
-    const Numeric yZ2 = +real(Z2);
-
-    // NOTE: the region of w might matter according to original code!  So this might need changing...
-    const Complex W1 = w(Complex(xZ1, yZ1));
-    const Complex W2 = w(Complex(xZ2, yZ2));
-
-    Aterm = sqrt_pi * cte * (W1 - W2);
-  }
-
-  return inv_pi * Aterm;
-}
-
-Complex qSDHC(Numeric sg0,
-              Numeric GamD,
-              Numeric Gam0,
-              Numeric Gam2,
-              Numeric Shift0,
-              Numeric Shift2,
-              Numeric anuVC,
-              Numeric sg) {
-  using Constant::inv_pi;
-  using Constant::inv_sqrt_pi;
-  using Constant::pow2;
-  using Constant::sqrt_ln_2;
-  using Constant::sqrt_pi;
-  using std::abs;
-  using std::imag;
-  using std::real;
-  using std::sqrt;
-
-  const Numeric cte = sqrt_ln_2 / GamD;
-  constexpr Complex iz(0, 1);
-
-  // Calculating the different parameters
-  const Complex c0(Gam0, -Shift0);
-  const Complex c2(Gam2, -Shift2);
-  const Complex c0t = (c0 - 1.5 * c2) + anuVC;
-  const Complex c2t = c2;
-  const Complex Y = pow2(1 / (2 * cte * c2t));
-  const Complex X = (iz * (sg - sg0) + c0t) / c2t;
-
-  Complex Aterm;
-  if (abs(c2t) == 0.0) {
-    const Complex Z1 = (iz * (sg - sg0) + c0t) * cte;
-    const Numeric xZ1 = -imag(Z1);
-    const Numeric yZ1 = +real(Z1);
-
-    const Complex W1 = w(Complex(xZ1, yZ1));
-
-    Aterm = sqrt_pi * cte * W1;
-  } else if (abs(X) <= 3e-8 * abs(Y)) {
-    const Complex Z1 = (iz * (sg - sg0) + c0t) * cte;
-    const Complex Z2 = sqrt(X + Y) + sqrt(Y);
-
-    const Numeric xZ1 = -imag(Z1);
-    const Numeric yZ1 = +real(Z1);
-    const Numeric xZ2 = -imag(Z2);
-    const Numeric yZ2 = +real(Z2);
-
-    const Complex W1 = w(Complex(xZ1, yZ1));
-    const Complex W2 = w(Complex(xZ2, yZ2));
-
-    Aterm = sqrt_pi * cte * (W1 - W2);
-  } else if (abs(Y) <= 1e-15 * abs(X)) {
-    if (abs(sqrt(X)) <= 4e3) {
-      const Numeric xXb = -imag(sqrt(X));
-      const Numeric yXb = +real(sqrt(X));
-
-      const Complex Wb = w(Complex(xXb, yXb));
-
-      Aterm = (2 * sqrt_pi / c2t) * (inv_sqrt_pi - sqrt(X) * Wb);
-    } else
-      Aterm = (1 / c2t) * (1 / X - 1.5 / pow2(X));
-  } else {
-    //calculating Z1 and Z2
-    const Complex Z1 = sqrt(X + Y) - sqrt(Y);
-    const Complex Z2 = Z1 + 2 * sqrt(Y);
-
-    //calculating the real and imaginary parts of Z1 and Z2
-    const Numeric xZ1 = -imag(Z1);
-    const Numeric yZ1 = +real(Z1);
-    const Numeric xZ2 = -imag(Z2);
-    const Numeric yZ2 = +real(Z2);
-
-    // NOTE: the region of w might matter according to original code!  So this might need changing...
-    const Complex W1 = w(Complex(xZ1, yZ1));
-    const Complex W2 = w(Complex(xZ2, yZ2));
-
-    Aterm = sqrt_pi * cte * (W1 - W2);
-  }
-
-  return inv_pi * Aterm / (1 - anuVC * Aterm);
-}
-
-Complex pCqSDHC(Numeric sg0,
-                Numeric GamD,
-                Numeric Gam0,
-                Numeric Gam2,
-                Numeric Shift0,
-                Numeric Shift2,
-                Numeric anuVC,
-                Numeric eta,
-                Numeric sg) {
-  using Constant::inv_pi;
-  using Constant::inv_sqrt_pi;
-  using Constant::pow2;
-  using Constant::pow3;
-  using Constant::sqrt_ln_2;
-  using Constant::sqrt_pi;
-  using std::abs;
-  using std::imag;
-  using std::real;
-  using std::sqrt;
-
-  const Numeric cte = sqrt_ln_2 / GamD;
-  constexpr Complex iz(0, 1);
-
-  // Calculating the different parameters
-  const Complex c0(Gam0, -Shift0);
-  const Complex c2(Gam2, -Shift2);
-  const Complex c0t = (1 - eta) * (c0 - 1.5 * c2) + anuVC;
-  const Complex c2t = (1 - eta) * c2;
-  const Complex Y = pow2(1 / (2 * cte * c2t));
-  const Complex X = (iz * (sg - sg0) + c0t) / c2t;
-
-  Complex Aterm, Bterm;
-  if (abs(c2t) == 0) {
-    const Complex Z1 = (iz * (sg - sg0) + c0t) * cte;
-    const Numeric xZ1 = -imag(Z1);
-    const Numeric yZ1 = +real(Z1);
-    const Complex W1 = w(Complex(xZ1, yZ1));
-
-    Aterm = sqrt_pi * cte * W1;
-    if (abs(Z1) <= 4e3)
-      Bterm = sqrt_pi * cte * ((1 - pow2(Z1)) * W1 + Z1 * inv_sqrt_pi);
-    else
-      Bterm = cte * (sqrt_pi * W1 + 0.5 / Z1 - 0.75 / pow3(Z1));
-  } else if (abs(X) <= 3e-8 * abs(Y)) {
-    const Complex Z1 = (iz * (sg - sg0) + c0t) * cte;
-    const Complex Z2 = sqrt(X + Y) + sqrt(Y);
-    const Numeric xZ1 = -imag(Z1);
-    const Numeric yZ1 = +real(Z1);
-    const Numeric xZ2 = -imag(Z2);
-    const Numeric yZ2 = +real(Z2);
-
-    const Complex W1 = w(Complex(xZ1, yZ1));
-    const Complex W2 = w(Complex(xZ2, yZ2));
-
-    Aterm = sqrt_pi * cte * (W1 - W2);
-    Bterm = (-1 + sqrt_pi / (2 * sqrt(Y)) * (1 - pow2(Z1)) * W1 -
-             sqrt_pi / (2 * sqrt(Y)) * (1 - pow2(Z2)) * W2) /
-            c2t;
-  } else if (abs(Y) <= 1e-15 * abs(X)) {
-    const Numeric xZ1 = -imag(sqrt(X + Y));
-    const Numeric yZ1 = +real(sqrt(X + Y));
-    const Complex W1 = w(Complex(xZ1, yZ1));
-    if (abs(sqrt(X)) <= 4e3) {
-      const Numeric xXb = -imag(sqrt(X));
-      const Numeric yXb = +real(sqrt(X));
-      const Complex Wb = w(Complex(xXb, yXb));
-
-      Aterm = (2 * sqrt_pi / c2t) * (inv_sqrt_pi - sqrt(X) * Wb);
-      Bterm =
-          (1 / c2t) *
-          (-1 + 2 * sqrt_pi * (1 - X - 2 * Y) * (inv_sqrt_pi - sqrt(X) * Wb) +
-           2 * sqrt_pi * sqrt(X + Y) * W1);
-    } else {
-      Aterm = (1 / c2t) * (1 / X - 1.5 / pow2(X));
-      Bterm = (1 / c2t) * (-1 + (1 - X - 2 * Y) * (1 / X - 1.5 / pow2(X)) +
-                           2 * sqrt_pi * sqrt(X + Y) * W1);
-    }
-  } else {
-    // calculating Z1 and Z2
-    const Complex Z1 = sqrt(X + Y) - sqrt(Y);
-    const Complex Z2 = Z1 + 2 * sqrt(Y);
-
-    // calculating the real and imaginary parts of Z1 and Z2
-    const Numeric xZ1 = -imag(Z1);
-    const Numeric yZ1 = +real(Z1);
-    const Numeric xZ2 = -imag(Z2);
-    const Numeric yZ2 = +real(Z2);
-
-    // NOTE: the region of w might matter according to original code!  So this might need changing...
-    const Complex W1 = w(Complex(xZ1, yZ1));
-    const Complex W2 = w(Complex(xZ2, yZ2));
-
-    // calculating the A and B terms of the profile
-    Aterm = sqrt_pi * cte * (W1 - W2);
-    Bterm = (-1 + sqrt_pi / (2 * sqrt(Y)) * (1 - pow2(Z1)) * W1 -
-             sqrt_pi / (2 * sqrt(Y)) * (1 - pow2(Z2)) * W2) /
-            c2t;
-  }
-
-  return inv_pi * Aterm /
-         (1 - (anuVC - eta * (c0 - 1.5 * c2)) * Aterm + eta * c2 * Bterm);
-}
-
-constexpr Complex dw(Complex z, Complex w) noexcept {
-  return Complex(0, 2) * (Constant::inv_sqrt_pi - z * w);
-}
-
-void pCqSDHC(Eigen::Ref<Eigen::VectorXcd> F,
-             Eigen::Ref<Eigen::MatrixXcd> dF,
-             size_t iv,
-             Numeric sg0,
-             Numeric GamD,
-             Numeric Gam0,
-             Numeric Gam2,
-             Numeric Shift0,
-             Numeric Shift2,
-             Numeric anuVC,
-             Numeric eta,
-             Numeric sg,
-             ArrayOfRetrievalQuantity derivatives_data,
-             ArrayOfIndex derivatives_data_position,
-             QuantumIdentifier quantum_identity,
-             Numeric sg0_dH,
-             Numeric GamD_dT,
-             Numeric Gam0_dT,
-             Numeric Gam2_dT,
-             Numeric Shift0_dT,
-             Numeric Shift2_dT,
-             Numeric anuVC_dT,
-             Numeric eta_dT,
-             Numeric Gam0_dVMR,
-             Numeric Gam2_dVMR,
-             Numeric Shift0_dVMR,
-             Numeric Shift2_dVMR,
-             Numeric anuVC_dVMR,
-             Numeric eta_dVMR) {
-  using Constant::inv_pi;
-  using Constant::inv_sqrt_pi;
-  using Constant::pi;
-  using Constant::pow2;
-  using Constant::pow3;
-  using Constant::pow4;
-  using Constant::sqrt_ln_2;
-  using Constant::sqrt_pi;
-  using std::abs;
-  using std::imag;
-  using std::real;
-  using std::sqrt;
-
-  const Numeric cte = sqrt_ln_2 / GamD;
-  constexpr Complex iz(0, 1);
-
-  // Calculating the different parameters
-  const Complex c0(Gam0, -Shift0);
-  const Complex c2(Gam2, -Shift2);
-  const Complex c0t = (1 - eta) * (c0 - 1.5 * c2) + anuVC;
-  const Complex c2t = (1 - eta) * c2;
-  const Complex Y = pow2(1 / (2 * cte * c2t));
-
-  {
-    const Complex X = (iz * (sg - sg0) + c0t) / c2t;
-
-    Complex Z1, Z2, Zb, W1, W2, Wb;
-    Complex Aterm, Bterm;
-    if (abs(c2t) == 0) {
-      Z1 = (iz * (sg - sg0) + c0t) * cte;
-      W1 = w(iz * Z1);
-
-      Aterm = sqrt_pi * cte * W1;
-      if (abs(Z1) <= 4e3)
-        Bterm = sqrt_pi * cte * ((1 - pow2(Z1)) * W1 + Z1 * inv_sqrt_pi);
-      else
-        Bterm = cte * (sqrt_pi * W1 + 0.5 / Z1 - 0.75 / pow3(Z1));
-    } else if (abs(X) <= 3e-8 * abs(Y)) {
-      Z1 = (iz * (sg - sg0) + c0t) * cte;
-      Z2 = sqrt(X + Y) + sqrt(Y);
-
-      W1 = w(iz * Z1);
-      W2 = w(iz * Z2);
-
-      Aterm = sqrt_pi * cte * (W1 - W2);
-      Bterm = (-1 + sqrt_pi / (2 * sqrt(Y)) * (1 - pow2(Z1)) * W1 -
-               sqrt_pi / (2 * sqrt(Y)) * (1 - pow2(Z2)) * W2) /
-              c2t;
-    } else if (abs(Y) <= 1e-15 * abs(X)) {
-      Z1 = sqrt(X + Y);
-
-      W1 = w(iz * Z1);
-
-      if (abs(sqrt(X)) <= 4e3) {
-        Zb = sqrt(X);
-        Wb = w(iz * Zb);
-
-        Aterm = (2 * sqrt_pi / c2t) * (inv_sqrt_pi - sqrt(X) * Wb);
-        Bterm =
-            (1 / c2t) *
-            (-1 + 2 * sqrt_pi * (1 - X - 2 * Y) * (inv_sqrt_pi - sqrt(X) * Wb) +
-             2 * sqrt_pi * sqrt(X + Y) * W1);
-      } else {
-        Aterm = (1 / c2t) * (1 / X - 1.5 / pow2(X));
-        Bterm = (1 / c2t) * (-1 + (1 - X - 2 * Y) * (1 / X - 1.5 / pow2(X)) +
-                             2 * sqrt_pi * sqrt(X + Y) * W1);
-      }
-    } else {
-      Z1 = sqrt(X + Y) - sqrt(Y);
-      Z2 = Z1 + 2 * sqrt(Y);
-
-      // NOTE: the region of w might matter according to original code!  So this might need changing...
-      W1 = w(iz * Z1);
-      W2 = w(iz * Z2);
-
-      Aterm = sqrt_pi * cte * (W1 - W2);
-      Bterm = (-1 + sqrt_pi / (2 * sqrt(Y)) * (1 - pow2(Z1)) * W1 -
-               sqrt_pi / (2 * sqrt(Y)) * (1 - pow2(Z2)) * W2) /
-              c2t;
-    }
-
-    F(iv) =
-        Aterm /
-        (pi * (((c0 - 1.5 * c2) * eta - anuVC) * Aterm + Bterm * c2 * eta + 1));
-
-    for (auto iq = 0; iq < derivatives_data_position.nelem(); iq++) {
-      const RetrievalQuantity& rt =
-          derivatives_data[derivatives_data_position[iq]];
-
-      Numeric dcte = 0;
-      Complex dc0 = 0, dc2 = 0, dc0t = 0, dc2t = 0;
-      if (rt == JacPropMatType::Temperature) {
-        dcte = (-GamD_dT / GamD) * cte;      // for T
-        dc0 = Complex(Gam0_dT, -Shift0_dT);  // for T
-        dc2 = Complex(Gam2_dT, -Shift2_dT);  // for T
-        dc0t = (-(c0 - 1.5 * c2) * eta_dT + anuVC_dT) +
-               ((1 - eta) * (dc0 - 1.5 * dc2));     // for T
-        dc2t = (-c2 * eta_dT) + ((1 - eta) * dc2);  // for T
-      }
-      //     else if(is_frequency_parameter(rt)) {
-      //       /* all zeroes already */
-      //     }
-      //     else if(is_magnetic_parameter(rt)) {
-      //       /* all zeroes already */
-      //     }
-      else if (rt == JacPropMatType::VMR and
-               rt.QuantumIdentity().In(quantum_identity)) {
-        dc0 = Complex(Gam0_dVMR, -Shift0_dVMR);  // for VMR
-        dc2 = Complex(Gam2_dVMR, -Shift2_dVMR);  // for VMR
-        dc0t = (-(c0 - 1.5 * c2) * eta_dVMR + anuVC_dVMR) +
-               ((1 - eta) * (dc0 - 1.5 * dc2));       // for VMR
-        dc2t = (-c2 * eta_dVMR) + ((1 - eta) * dc2);  // for VMR
-      }
-      //     else if(rt == JacPropMatType::LineCenter and rt.QuantumIdentity().In(quantum_identity)) {
-      //       /* all zeroes already */
-      //     }
-      else if (is_pressure_broadening_G2(rt) and
-               rt.QuantumIdentity().In(quantum_identity)) {
-        dc2 =
-            1;  // for Gam2(T, VMR) and for Shift2(T, VMR), the derivative is wrt c2 for later computations
-        dc0t = ((1 - eta) * (dc0 - 1.5 * dc2));
-        dc2t = ((1 - eta) * dc2);
-      } else if (is_pressure_broadening_D2(rt) and
-                 rt.QuantumIdentity().In(quantum_identity)) {
-        dc2 =
-            -iz;  // for Gam2(T, VMR) and for Shift2(T, VMR), the derivative is wrt c2 for later computations
-        dc0t = ((1 - eta) * (dc0 - 1.5 * dc2));
-        dc2t = ((1 - eta) * dc2);
-      } else if (is_pressure_broadening_G0(rt) and
-                 rt.QuantumIdentity().In(quantum_identity)) {
-        dc0 =
-            1;  // for Gam0(T, VMR) and for Shift0(T, VMR), the derivative is wrt c0 for later computations
-        dc0t = ((1 - eta) * (dc0 - 1.5 * dc2));
-      } else if (is_pressure_broadening_D0(rt) and
-                 rt.QuantumIdentity().In(quantum_identity)) {
-        dc0 =
-            -iz;  // for Gam0(T, VMR) and for Shift0(T, VMR), the derivative is wrt c0 for later computations
-        dc0t = ((1 - eta) * (dc0 - 1.5 * dc2));
-      } else if (is_pressure_broadening_FVC(rt) and
-                 rt.QuantumIdentity().In(quantum_identity)) {
-        dc0t = (1);  // for anuVC(T, VMR)
-      } else if (is_pressure_broadening_ETA(rt) and
-                 rt.QuantumIdentity().In(quantum_identity)) {
-        dc0t = (-c0 + 1.5 * c2);  // for eta(T, VMR)
-        dc2t = (-c2);             // for eta(T, VMR)
-      }
-
-      const Complex dY = (-2 * dcte / cte - 2 * dc2t / c2t) * Y;  // for all
-
-      Complex dX;
-      if (is_magnetic_parameter(rt))
-        dX = -iz * sg0_dH / c2t;  // for H
-      else if (rt == JacPropMatType::LineCenter and
-               rt.QuantumIdentity().In(quantum_identity))
-        dX = -iz / c2t;  // for sg0
-      else if (is_frequency_parameter(rt))
-        dX = iz / c2t;  // for sg
-      else
-        dX = (-(iz * (sg - sg0) + c0t) * dc2t + c2t * dc0t) /
-             pow2(c2t);  // for c0t and c2t
-
-      Complex dAterm, dBterm;
-      if (abs(c2t) == 0) {
-        Complex dZ1;
-        if (is_magnetic_parameter(rt))
-          dZ1 = -iz * cte * sg0_dH;  // for H
-        else if (rt == JacPropMatType::LineCenter and
-                 rt.QuantumIdentity().In(quantum_identity))
-          dZ1 = -iz * cte;  // for sg0
-        else if (is_frequency_parameter(rt))
-          dZ1 = iz * cte;  // for sg
-        else
-          dZ1 = (iz * (sg - sg0) + c0t) * dcte + cte * dc0t;  // for c0t
-
-        const Complex dW1 = iz * dZ1 * dw(Z1, W1);  // NEED TO CHECK DW!
-
-        dAterm = sqrt_pi * (W1 * dcte + cte * dW1);  // for all
-
-        if (abs(Z1) <= 4e3)
-          dBterm =
-              -(sqrt_pi * ((pow2(Z1) - 1) * dW1 + 2 * W1 * Z1 * dZ1) - dZ1) *
-                  cte -
-              (sqrt_pi * (pow2(Z1) - 1) * W1 - Z1) * dcte;  // for all
-        else
-          dBterm =
-              ((sqrt_pi * W1 * pow3(Z1) + 0.5 * pow2(Z1) - 0.75) * Z1 * dcte +
-               (sqrt_pi * pow4(Z1) * dW1 - 0.5 * pow2(Z1) * dZ1 + 2.25 * dZ1) *
-                   cte) /
-              pow4(Z1);  // for all
-      } else if (abs(X) <= 3e-8 * abs(Y)) {
-        Complex dZ1;
-        if (is_magnetic_parameter(rt))
-          dZ1 = -iz * cte * sg0_dH;  // for H
-        else if (rt == JacPropMatType::LineCenter and
-                 rt.QuantumIdentity().In(quantum_identity))
-          dZ1 = -iz * cte;  // for sg0
-        else if (is_frequency_parameter(rt))
-          dZ1 = iz * cte;  // for sg
-        else
-          dZ1 = (iz * (sg - sg0) + c0t) * dcte + cte * dc0t;  // for c0t
-
-        const Complex dZ2 = dY / (2 * sqrt(Y)) + dX / (2 * sqrt(X + Y)) +
-                            dY / (2 * sqrt(X + Y));  // for all
-
-        const Complex dW1 = iz * dZ1 * dw(Z1, W1);  // NEED TO CHECK DW!
-        const Complex dW2 = iz * dZ2 * dw(Z2, W2);  // NEED TO CHECK DW!
-
-        dAterm = sqrt_pi * ((W1 - W2) * dcte + (dW1 - dW2) * cte);  // for all
-
-        dBterm = (sqrt_pi *
-                      (((pow2(Z1) - 1) * W1 - (pow2(Z2) - 1) * W2) * dY +
-                       2 *
-                           (-(pow2(Z1) - 1) * dW1 + (pow2(Z2) - 1) * dW2 -
-                            2 * W1 * Z1 * dZ1 + 2 * W2 * Z2 * dZ2) *
-                           Y) *
-                      c2t +
-                  2 *
-                      (sqrt_pi * (pow2(Z1) - 1) * W1 -
-                       sqrt_pi * (pow2(Z2) - 1) * W2 + 2 * sqrt(Y)) *
-                      Y * dc2t) /
-                 (4 * Y * sqrt(Y) * pow2(c2t));  // for all
-      } else if (abs(Y) <= 1e-15 * abs(X)) {
-        const Complex dZ1 = (dX + dY) / (2 * sqrt(X + Y));  // for all
-        const Complex dW1 = iz * dZ1 * dw(Z1, W1);          // NEED TO CHECK DW!
-        if (abs(sqrt(X)) <= 4e3) {
-          const Complex dZb = dX / (2 * sqrt(X));     // for all
-          const Complex dWb = iz * dZb * dw(Zb, Wb);  // NEED TO CHECK DW!
-
-          dAterm = (-sqrt_pi * (Wb * dX + 2 * X * dWb) * c2t +
-                    2 * (sqrt_pi * Wb * sqrt(X) - 1) * sqrt(X) * dc2t) /
-                   (sqrt(X) * pow2(c2t));  // for all
-
-          dBterm = (-sqrt(X + Y) *
-                        (2 * (sqrt_pi * Wb * sqrt(X) - 1) * (X + 2 * Y - 1) +
-                         2 * sqrt_pi * sqrt(X + Y) * W1 - 1) *
-                        sqrt(X) * dc2t +
-                    (2 *
-                         ((sqrt_pi * Wb * sqrt(X) - 1) * (dX + 2 * dY) +
-                          sqrt_pi * sqrt(X + Y) * dW1) *
-                         sqrt(X + Y) * sqrt(X) +
-                     sqrt_pi * (Wb * dX + 2 * X * dWb) * sqrt(X + Y) *
-                         (X + 2 * Y - 1) +
-                     sqrt_pi * (dX + dY) * W1 * sqrt(X)) *
-                        c2t) /
-                   (sqrt(X + Y) * sqrt(X) * pow2(c2t));  // for all
-        } else {
-          dAterm = ((-X + 3.0) * c2t * dX - (X - 1.5) * X * dc2t) /
-                   (pow3(X) * pow2(c2t));  // for all
-
-          dBterm = (((-2 * sqrt_pi * sqrt(X + Y) * W1 + 1) * pow2(X) +
-                     (X - 1.5) * (X + 2 * Y - 1)) *
-                        sqrt(X + Y) * X * dc2t +
-                    ((X - 3.0) * sqrt(X + Y) * (X + 2 * Y - 1) * dX -
-                     (X - 1.5) * sqrt(X + Y) * (dX + 2 * dY) * X +
-                     2 * sqrt_pi * (X + Y) * pow3(X) * dW1 +
-                     sqrt_pi * (dX + dY) * W1 * pow3(X)) *
-                        c2t) /
-                   (sqrt(X + Y) * pow3(X) * pow2(c2t));  // for all
-        }
-      } else {
-        const Complex dZ1 = -dY / (2 * sqrt(Y)) + dX / (2 * sqrt(X + Y)) +
-                            dY / (2 * sqrt(X + Y));  // for all
-        const Complex dZ2 = dY / (2 * sqrt(Y)) + dX / (2 * sqrt(X + Y)) +
-                            dY / (2 * sqrt(X + Y));  // for all
-
-        const Complex dW1 = iz * dZ1 * dw(Z1, W1);  // NEED TO CHECK DW!
-        const Complex dW2 = iz * dZ2 * dw(Z2, W2);  // NEED TO CHECK DW!
-
-        dAterm = sqrt_pi * ((W1 - W2) * dcte + (dW1 - dW2) * cte);  // for all
-
-        dBterm = (sqrt_pi *
-                      (((pow2(Z1) - 1) * W1 - (pow2(Z2) - 1) * W2) * dY +
-                       2 *
-                           (-(pow2(Z1) - 1) * dW1 + (pow2(Z2) - 1) * dW2 -
-                            2 * W1 * Z1 * dZ1 + 2 * W2 * Z2 * dZ2) *
-                           Y) *
-                      c2t +
-                  2 *
-                      (sqrt_pi * (pow2(Z1) - 1) * W1 -
-                       sqrt_pi * (pow2(Z2) - 1) * W2 + 2 * sqrt(Y)) *
-                      Y * dc2t) /
-                 (4 * Y * sqrt(Y) * pow2(c2t));  // for all
-      }
-
-      Numeric danuVC = 0, deta = 0;
-      if (rt == JacPropMatType::Temperature) {
-        deta = eta_dT;
-        danuVC = anuVC_dT;
-      } else if (rt == JacPropMatType::VMR) {
-        deta = eta_dVMR;
-        danuVC = anuVC_dVMR;
-      } else if (is_pressure_broadening_ETA(rt) and
-                 rt.QuantumIdentity().In(quantum_identity))
-        deta = 1;
-      else if (is_pressure_broadening_FVC(rt) and
-               rt.QuantumIdentity().In(quantum_identity))
-        danuVC = 1;
-
-      dF.col(iq)(iv) =
-          ((((c0 - 1.5 * c2) * eta - anuVC) * Aterm + Bterm * c2 * eta + 1) *
-               dAterm -
-           (((c0 - 1.5 * c2) * eta - anuVC) * dAterm +
-            ((c0 - 1.5 * c2) * deta + (dc0 - 1.5 * dc2) * eta - danuVC) *
-                Aterm +
-            Bterm * c2 * deta + Bterm * eta * dc2 + c2 * eta * dBterm) *
-               Aterm) /
-          (pi * pow2(((c0 - 1.5 * c2) * eta - anuVC) * Aterm +
-                     Bterm * c2 * eta + 1));  // for all
-    }
-  }
-}
-
-constexpr Complex pCqSDHC_to_arts(Complex x) noexcept {
-  using Constant::c;
-  using Constant::pow2;
-  using Conversion::hitran2arts_linestrength;
-
-  return conj(hitran2arts_linestrength(x) / pow2(c));
-}
-
-constexpr Complex pCqSDHC_to_arts_freq_deriv(Complex x) noexcept {
-  using Constant::c;
-  using Constant::pow4;
-  using Conversion::hitran2arts_linestrength;
-
-  return hitran2arts_linestrength(hitran2arts_linestrength(x)) / pow4(c);
-}
-
-constexpr Complex pCqSDHC_to_arts_G2_deriv(Complex x) noexcept {
-  using Constant::c;
-  using Constant::pow4;
-  using Conversion::hitran2arts_linestrength;
-
-  return Complex(0, -1) *
-         hitran2arts_linestrength(hitran2arts_linestrength(x)) / pow4(c);
-}
-
-constexpr Complex pCqSDHC_to_arts_D2_deriv(Complex x) noexcept {
-  using Constant::c;
-  using Constant::pow4;
-  using Conversion::hitran2arts_linestrength;
-
-  return Complex(0, 1) * hitran2arts_linestrength(hitran2arts_linestrength(x)) /
-         pow4(c);
-}
-
-/*!
- * Sets the line shape to Hartmann-Tran line shape. Normalization is unity.
- * 
- * Note:  We are not experienced with this line shape and cannot tell what
- * parameters depends on what input.  It is therefore likely that this function
- * will have to be adapted in the future
- * 
- * Takes only one asymptotic limit into account...
- * 
- * \retval F Lineshape
- * \retval dF Lineshape derivative
- * 
- * \param f_grid Frequency grid of computations
- * \param zeeman_df Zeeman shift parameter for the line
- * \param magnetic_magnitude Absolute strength of the magnetic field
- * \param F0_noshift Central frequency without any shifts
- * \param GD_div_F0 Frequency-independent part of the Doppler broadening
- * \param x Line shape parameters
- * \param derivatives_data Information about the derivatives in dF
- * \param derivatives_data_position Information about the derivatives positions in dF
- * \param quantum_identity ID of the absorption line
- * \param dGD_div_F0_dT Temperature derivative of GD_div_F0
- * \param dxdT Temperature derivatives of line shape parameters
- * \param dxdVMR VMR derivatives of line shape parameters
- * 
- */
 void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
                             Eigen::Ref<Eigen::MatrixXcd> dF,
                             const Eigen::Ref<const Eigen::VectorXd> f_grid,
@@ -2490,7 +1518,6 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
                             const Numeric& dGD_div_F0_dT_si,
                             const LineShape::Output& dxdT_si,
                             const LineShape::Output& dxdVMR_si) {
-  using Constant::inv_pi;
   using Constant::inv_sqrt_pi;
   using Constant::pi;
   using Constant::pow2;

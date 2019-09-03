@@ -16,19 +16,19 @@
    USA. */
 
 /**
-    \file   field.h
-
-   This file contains the definition of Field3D.
-
-   \author Richard Larsson
-   \date   2019-02-26
-*/
+ * @file   field.h
+ * @author Richard Larsson
+ * @date   2019-02-26
+ * 
+ * @brief This file contains the definition of Field3D.
+ */
 
 #ifndef FIELD_HEADER
 #define FIELD_HEADER
 #include <vector>
 #include "interpolation.h"
 
+/** Creates a 3D field of a base unit */
 template <class base>
 class Field3D {
  private:
@@ -36,18 +36,48 @@ class Field3D {
   std::vector<base> data;
 
  public:
+  /**
+   * @brief Construct a new Field3D object
+   * 
+   * @param[in] g Another field
+   */
   Field3D(const Field3D& g) = default;
 
+  /**
+   * @brief Default assignment operator
+   * 
+   * @param[in] g Another field
+   * @return Field3D<base>& *this
+   */
   Field3D<base>& operator=(const Field3D& g) = default;
 
+  /**
+   * @brief Default move operator
+   * 
+   * @param[in] g Another field
+   * @return Field3D<base>& *this
+   */
   Field3D<base>& operator=(Field3D&& g) = default;
 
+  /**
+   * @brief Construct a new Field3D object
+   * 
+   * @param[in] g Another field
+   */
   Field3D(Field3D&& g)
       : mpages(std::move(g.mpages)),
         mrows(std::move(g.mrows)),
         mcols(std::move(g.mcols)),
         data(std::move(g.data)) {}
 
+  /**
+   * @brief Construct a new Field 3 D object
+   * 
+   * @param[in] pages Number of pages
+   * @param[in] rows Number of rows
+   * @param[in] cols Numeber of columns
+   * @param[in] init Const value
+   */
   Field3D(size_t pages = 0,
           size_t rows = 0,
           size_t cols = 0,
@@ -57,16 +87,49 @@ class Field3D {
         mcols(cols),
         data(cols * rows * pages, init) {}
 
+  /**
+   * @brief Access operator
+   * 
+   * Returns a ref to the object that can be changed in place
+   * 
+   * @param[in] page Outer dim
+   * @param[in] row Middle dim
+   * @param[in] col Inner dim
+   * @return base& 
+   */
   base& operator()(size_t page = 0, size_t row = 0, size_t col = 0) {
     return data[col + row * mcols + page * mrows * mcols];
   }
 
+  /**
+   * @brief Access operator
+   * 
+   * Returns a ref to the object that cannot be changed
+   * 
+   * @param[in] page Outer dim
+   * @param[in] row Middle dim
+   * @param[in] col Inner dim
+   * @return base& 
+   */
   const base& operator()(size_t col = 0,
                          size_t row = 0,
                          size_t page = 0) const {
     return data[col + row * mcols + page * mrows * mcols];
   }
 
+
+  /**
+   * @brief Weighted access operator by GridPos
+   * 
+   * Returns a weighted new object.  The object
+   * must support multiplication with a Numeric
+   * and the addition of (object) * (Numeric).
+   * 
+   * @param[in] page Outer dim
+   * @param[in] row Middle dim
+   * @param[in] col Inner dim
+   * @return base& 
+   */
   base operator()(const GridPos& page = {0, {0, 1}},
                   const GridPos& row = {0, {0, 1}},
                   const GridPos& col = {0, {0, 1}}) const {
@@ -103,12 +166,17 @@ class Field3D {
     return out;
   }
 
+  /** Number of pages */
   size_t npages() const { return mpages; }
+
+  /** Number of rows */
   size_t nrows() const { return mrows; }
+
+  /** Number of columns */
   size_t ncols() const { return mcols; }
 };
 
-/** Output operator. */
+/** Output operator.  The object must have its own output operator. */
 template <class base>
 inline std::ostream& operator<<(std::ostream& os, const Field3D<base>& v) {
   for (size_t i = 0; i < v.npages(); i++)
