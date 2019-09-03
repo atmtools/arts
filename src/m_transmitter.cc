@@ -21,17 +21,14 @@
   ===  File description
   ===========================================================================*/
 
-/*!
-  \file   m_transmitter.cc
-  \author Patrick Eriksson <patrick.eriksson@chalmers.se>
-  \date   2012-10-31
+/**
+  @file   m_transmitter.cc
+  @author Patrick Eriksson <patrick.eriksson@chalmers.se>
+  @date   2012-10-31
 
-  \brief  Workspace functions related to transmitters and radiative transfer
+  @brief  Workspace functions related to transmitters and radiative transfer
   for transmitted signals.
-
-  These functions are listed in the doxygen documentation as entries of the
-  file auto_md.h.
-*/
+ */
 
 /*===========================================================================
   === External declarations
@@ -56,8 +53,8 @@ extern const Numeric PI;
 extern const Numeric RAD2DEG;
 extern const Numeric SPEED_OF_LIGHT;
 
-/* Workspace method: Doxygen documentation will be auto-generated */
-/*
+/** Workspace method: Doxygen documentation will be auto-generated */
+/* Nas not been updated since v2.2
 void iyRadioLink(
          Workspace&                   ws,
          Matrix&                      iy,
@@ -654,7 +651,7 @@ void iyRadioLink(
 }
 */
 
-/* Workspace method: Doxygen documentation will be auto-generated */
+/** Workspace method: Doxygen documentation will be auto-generated */
 void iyTransmissionStandardOld(
     Workspace& ws,
     Matrix& iy,
@@ -1414,7 +1411,7 @@ void iyTransmissionStandard(Workspace& ws,
   }
 }
 
-/* Workspace method: Doxygen documentation will be auto-generated */
+/** Workspace method: Doxygen documentation will be auto-generated */
 void iy_transmitterMultiplePol(Matrix& iy,
                                const Index& stokes_dim,
                                const Vector& f_grid,
@@ -1434,7 +1431,7 @@ void iy_transmitterMultiplePol(Matrix& iy,
   }
 }
 
-/* Workspace method: Doxygen documentation will be auto-generated */
+/** Workspace method: Doxygen documentation will be auto-generated */
 void iy_transmitterSinglePol(Matrix& iy,
                              const Index& stokes_dim,
                              const Vector& f_grid,

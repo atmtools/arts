@@ -17,20 +17,13 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*===========================================================================
-  ===  File description
-  ===========================================================================*/
+/**
+  @file   m_cloudradar.cc
+  @author Patrick Eriksson <patrick.eriksson@chalmers.se>
+  @date   2010-10-31
 
-/*!
-  \file   m_cloudradar.cc
-  \author Patrick Eriksson <patrick.eriksson@chalmers.se>
-  \date   2010-10-31
-
-  \brief  Workspace functions related to simulation of cloud radars.
-
-  These functions are listed in the doxygen documentation as entries of the
-  file auto_md.h.
-*/
+  @brief  Workspace functions related to simulation of cloud radars.
+ */
 
 /*===========================================================================
   === External declarations
@@ -51,7 +44,7 @@ extern const Numeric PI;
 extern const Numeric SPEED_OF_LIGHT;
 extern const String SCATSPECIES_MAINTAG;
 
-/* Workspace method: Doxygen documentation will be auto-generated */
+/** Workspace method: Doxygen documentation will be auto-generated */
 void iyActiveSingleScat(Workspace& ws,
                         Matrix& iy,
                         ArrayOfMatrix& iy_aux,
@@ -682,7 +675,7 @@ void iyActiveSingleScat(Workspace& ws,
   }
 }
 
-/* Workspace method: Doxygen documentation will be auto-generated */
+/** Workspace method: Doxygen documentation will be auto-generated */
 void iyActiveSingleScat2(Workspace& ws,
                          Matrix& iy,
                          ArrayOfMatrix& iy_aux,
@@ -1187,7 +1180,7 @@ void iyActiveSingleScat2(Workspace& ws,
                                     jac_is_t);
 }
 
-/* Workspace method: Doxygen documentation will be auto-generated */
+/** Workspace method: Doxygen documentation will be auto-generated */
 void yActive(Workspace& ws,
              Vector& y,
              Vector& y_f,

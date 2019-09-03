@@ -1142,7 +1142,7 @@ void ppathWriteXMLPartial(  //WS Input:
   WriteXML(file_format, ppath_partial, filename, 0, "ppath", "", "", verbosity);
 }
 
-// FIXMEdoc/Richard  TRy to describe the meaning of ppath_field 
+// FIXMEDOC@Richard  TRy to describe the meaning of ppath_field 
 
 /** Workspace method: Doxygen documentation will be auto-generated */
 void ppath_fieldFromDownUpLimbGeoms(Workspace& ws,

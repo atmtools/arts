@@ -17,17 +17,13 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*===========================================================================
-  === File description 
-  ===========================================================================*/
-
-/*!
-  \file   rte.cc
-  \author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
-  \date   2002-05-29
+/**
+  @file   rte.cc
+  @author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
+  @date   2002-05-29
 
   \brief  Functions to solve radiative transfer tasks.
-*/
+ */
 
 /*===========================================================================
   === External declarations
@@ -60,24 +56,87 @@ extern const Numeric TEMP_0_C;
   === The functions in alphabetical order
   ===========================================================================*/
 
-//! adjust_los
-/*!
-    Ensures that the zenith and azimuth angles of a line-of-sight vector are
-    inside defined ranges.
+void adapt_stepwise_partial_derivatives(
+    ArrayOfPropagationMatrix& dK_dx,
+    ArrayOfStokesVector& dS_dx,
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    ConstVectorView ppath_f_grid,
+    ConstVectorView ppath_line_of_sight,
+    ConstVectorView ppath_vmrs,
+    const Numeric& ppath_temperature,
+    const Numeric& ppath_pressure,
+    const ArrayOfIndex& jacobian_species,
+    const ArrayOfIndex& jacobian_wind,
+    const Index& lte,
+    const Index& atmosphere_dim,
+    const bool& jacobian_do) {
+  if (not jacobian_do) return;
 
-    This function should not be used blindly, just when you know that the
-    out-of-bounds values are obtained by an OK operation. As when making a
-    disturbance calculation where e.g. the zenith angle is shifted with a small
-    value. This function then handles the case when the original zenith angle
-    is 0 or 180 and the disturbance then moves the angle outside the defined
-    range. 
+  // All relevant quantities are extracted first
+  const Index nq = jacobian_quantities.nelem();
 
-    \param   los              In/Out: LOS vector, defined as e.g. rte_los.
-    \param   atmosphere_dim   As the WSV.
+  // Computational temporary vector
+  Vector a;
 
-    \author Patrick Eriksson 
-    \date   2012-04-11
-*/
+  for (Index i = 0; i < nq; i++) {
+    if (not jacobian_quantities[i].Analytical()) continue;
+
+    Index component;
+
+    switch (jacobian_wind[i]) {
+      case Index(JacobianType::AbsWind):
+        component = 0;
+        break;
+      case Index(JacobianType::WindFieldU):
+        component = 1;
+        break;
+      case Index(JacobianType::WindFieldV):
+        component = 2;
+        break;
+      case Index(JacobianType::WindFieldW):
+        component = 3;
+        break;
+      default:
+        component = -1;  // This could be frequency derivative...
+    }
+    if (component not_eq -1) {
+      get_stepwise_f_partials(
+          a, component, ppath_line_of_sight, ppath_f_grid, atmosphere_dim);
+
+      // Apply conversion to K-matrix partial derivative
+      dK_dx[i] *= a;
+
+      // Apply conversion to source vector partial derivative
+      if (not lte) dS_dx[i] *= a;
+    } else if (jacobian_species[i] > -1) {
+      const bool from_propmat =
+          jacobian_quantities[i].SubSubtag() == PROPMAT_SUBSUBTAG;
+      const Index& isp = jacobian_species[i];
+
+      // Computational factor
+      Numeric factor;
+
+      // Scaling factors to handle retrieval unit
+      if (not from_propmat) {
+        //vmrunitscf(factor, jacobian_quantities[i].Mode(),
+        vmrunitscf(
+            factor, "vmr", ppath_vmrs[isp], ppath_pressure, ppath_temperature);
+      } else {
+        //dxdvmrscf(factor, jacobian_quantities[i].Mode(),
+        dxdvmrscf(
+            factor, "vmr", ppath_vmrs[isp], ppath_pressure, ppath_temperature);
+      }
+      // Apply conversion to K-matrix partial derivative
+      dK_dx[i] *= factor;
+
+      // Apply conversion to source vector partial derivative
+      if (not lte) dS_dx[i] *= factor;
+    } else {
+      // All other partial derivatives should already be adapted...
+    }
+  }
+}
+
 void adjust_los(VectorView los, const Index& atmosphere_dim) {
   if (atmosphere_dim == 1) {
     if (los[0] < 0) {
@@ -101,24 +160,6 @@ void adjust_los(VectorView los, const Index& atmosphere_dim) {
   }
 }
 
-//! apply_iy_unit
-/*!
-    Performs conversion from radiance to other units, as well as applies
-    refractive index to fulfill the n2-law of radiance.
-
-    Use *apply_iy_unit2* for conversion of jacobian data.
-
-    \param   iy       In/Out: Tensor3 with data to be converted, where 
-                      column dimension corresponds to Stokes dimensionality
-                      and row dimension corresponds to frequency.
-    \param   iy_unit  As the WSV.
-    \param   f_grid   As the WSV.
-    \param   n        Refractive index at the observation position.
-    \param   i_pol    Polarisation indexes. See documentation of y_pol.
-
-    \author Patrick Eriksson 
-    \date   2010-04-07
-*/
 void apply_iy_unit(MatrixView iy,
                    const String& iy_unit,
                    ConstVectorView f_grid,
@@ -194,25 +235,6 @@ void apply_iy_unit(MatrixView iy,
   }
 }
 
-//! apply_iy_unit2
-/*!
-    Largely as *apply_iy_unit* but operates on jacobian data.
-
-    The associated spectrum data *iy* must be in radiance. That is, the
-    spectrum can only be converted to Tb after the jacobian data. 
-
-    \param   J        In/Out: Tensor3 with data to be converted, where 
-                      column dimension corresponds to Stokes dimensionality
-                      and row dimension corresponds to frequency.
-    \param   iy       Associated radiance data.
-    \param   iy_unit  As the WSV.
-    \param   f_grid   As the WSV.
-    \param   n        Refractive index at the observation position.
-    \param   i_pol    Polarisation indexes. See documentation of y_pol.
-
-    \author Patrick Eriksson 
-    \date   2010-04-10
-*/
 void apply_iy_unit2(Tensor3View J,
                     ConstMatrixView iy,
                     const String& iy_unit,
@@ -302,79 +324,6 @@ void apply_iy_unit2(Tensor3View J,
   }
 }
 
-//! ze_cfac
-/*!
-   Calculates factor to convert back-scattering to Ze
-
-   The vector *fac* shall be sized to match f_grid, before calling the
-   function.
-
-   If k2 <= 0, the K" factor is calculated. Otherwise the input k2 is applied
-   as "hard-coded".
-
-   \param   fac      Vector with factors.
-   \param   f_grid   As the WSV.
-   \param   z_tref   Reference temperature for conversion to Ze.
-   \param   k2       Reference dielectric factor.
-
-   \author Patrick Eriksson
-   \date   2002-05-20
-*/
-void ze_cfac(Vector& fac,
-             const Vector& f_grid,
-             const Numeric& ze_tref,
-             const Numeric& k2) {
-  const Index nf = f_grid.nelem();
-
-  assert(fac.nelem() == nf);
-
-  // Refractive index for water (if needed)
-  Matrix complex_n(0, 0);
-  if (k2 <= 0) {
-    complex_n_water_liebe93(complex_n, f_grid, ze_tref);
-  }
-
-  // Common conversion factor
-  const Numeric a = 4e18 / (PI * PI * PI * PI);
-
-  for (Index iv = 0; iv < nf; iv++) {
-    // Reference dielectric factor.
-    Numeric K2;
-    if (k2 >= 0) {
-      K2 = k2;
-    } else {
-      Complex n(complex_n(iv, 0), complex_n(iv, 1));
-      Complex n2 = n * n;
-      Complex K = (n2 - Numeric(1.0)) / (n2 + Numeric(2.0));
-      Numeric absK = abs(K);
-      K2 = absK * absK;
-    }
-
-    // Wavelength
-    Numeric la = SPEED_OF_LIGHT / f_grid[iv];
-
-    fac[iv] = a * la * la * la * la / K2;
-  }
-}
-
-//! bending_angle1d
-/*!
-    Calculates the bending angle for a 1D atmosphere.
-
-    The expression used assumes a 1D atmosphere, that allows the bending angle
-    to be calculated by start and end LOS. This is an approximation for 2D and
-    3D, but a very small one and the function should in general be OK also for
-    2D and 3D.
-
-    The expression is taken from Kursinski et al., The GPS radio occultation
-    technique, TAO, 2000.
-
-    \return   alpha   Bending angle
-    \param    ppath   Propagation path.
-
-    \author Patrick Eriksson 
-    \date   2012-04-05
-*/
 void bending_angle1d(Numeric& alpha, const Ppath& ppath) {
   Numeric theta;
   if (ppath.dim < 3) {
@@ -394,36 +343,34 @@ void bending_angle1d(Numeric& alpha, const Ppath& ppath) {
   // phi_t = ppath.start_los[0]
 }
 
-//! defocusing_general_sub
-/*!
-    Just to avoid duplicatuion of code in *defocusing_general*.
+/** Just to avoid duplicatuion of code in *defocusing_general*.
    
     rte_los is mainly an input, but is also returned "adjusted" (with zenith
     and azimuth angles inside defined ranges) 
  
-    \param    pos                 Out: Position of ppath at optical distance lo0
-    \param    rte_los             In/out: Direction for transmitted signal 
-                                  (disturbed from nominal value)
-    \param    rte_pos             Out: Position of transmitter.
-    \param    background          Out: Raditaive background of ppath.
-    \param    lo0                 Optical path length between transmitter 
-                                  and receiver.
-    \param    ppath_step_agenda   As the WSV with the same name.
-    \param    atmosphere_dim      As the WSV with the same name.
-    \param    p_grid              As the WSV with the same name.
-    \param    lat_grid            As the WSV with the same name.
-    \param    lon_grid            As the WSV with the same name.
-    \param    t_field             As the WSV with the same name.
-    \param    z_field             As the WSV with the same name.
-    \param    vmr_field           As the WSV with the same name.
-    \param    f_grid              As the WSV with the same name.
-    \param    refellipsoid        As the WSV with the same name.
-    \param    z_surface           As the WSV with the same name.
-    \param    verbosity           As the WSV with the same name.
+    @param[out]   pos                 Position of ppath at optical distance lo0
+    @param[in,out]   rte_los          Direction for transmitted signal 
+                                      (disturbed from nominal value)
+    @param[out]   rte_pos             Position of transmitter.
+    @param[out]   background          Raditaive background of ppath.
+    @param[in]    lo0                 Optical path length between transmitter 
+                                      and receiver.
+    @param[in]    ppath_step_agenda   As the WSV with the same name.
+    @param[in]    atmosphere_dim      As the WSV with the same name.
+    @param[in]    p_grid              As the WSV with the same name.
+    @param[in]    lat_grid            As the WSV with the same name.
+    @param[in]    lon_grid            As the WSV with the same name.
+    @param[in]    t_field             As the WSV with the same name.
+    @param[in]    z_field             As the WSV with the same name.
+    @param[in]    vmr_field           As the WSV with the same name.
+    @param[in]    f_grid              As the WSV with the same name.
+    @param[in]    refellipsoid        As the WSV with the same name.
+    @param[in]    z_surface           As the WSV with the same name.
+    @param[in]    verbosity           As the WSV with the same name.
 
-    \author Patrick Eriksson 
-    \date   2012-04-11
-*/
+    @author Patrick Eriksson 
+    @date   2012-04-11
+ */
 void defocusing_general_sub(Workspace& ws,
                             Vector& pos,
                             Vector& rte_los,
@@ -550,41 +497,6 @@ void defocusing_general_sub(Workspace& ws,
   }
 }
 
-//! defocusing_general
-/*!
-    Defocusing for arbitrary geometry (zenith angle part only)
-
-    Estimates the defocusing loss factor by calculating two paths with zenith
-    angle off-sets. The distance between the two path at the optical path
-    length between the transmitter and the receiver, divided with the
-    corresponding distance for free space propagation, gives the defocusing
-    loss. 
-
-    The azimuth (gain) factor is not calculated. The path calculations are here
-    done starting from the transmitter, which is the reversed direction
-    compared to the ordinary path calculations starting at the receiver.
-    
-    \return   dlf                 Defocusing loss factor (1 for no loss)
-    \param    ppath_step_agenda   As the WSV with the same name.
-    \param    atmosphere_dim      As the WSV with the same name.
-    \param    p_grid              As the WSV with the same name.
-    \param    lat_grid            As the WSV with the same name.
-    \param    lon_grid            As the WSV with the same name.
-    \param    t_field             As the WSV with the same name.
-    \param    z_field             As the WSV with the same name.
-    \param    vmr_field           As the WSV with the same name.
-    \param    f_grid              As the WSV with the same name.
-    \param    refellipsoid        As the WSV with the same name.
-    \param    z_surface           As the WSV with the same name.
-    \param    ppath               As the WSV with the same name.
-    \param    ppath_lmax          As the WSV with the same name.
-    \param    ppath_lraytrace     As the WSV with the same name.
-    \param    dza                 Size of angular shift to apply.
-    \param    verbosity           As the WSV with the same name.
-
-    \author Patrick Eriksson 
-    \date   2012-04-11
-*/
 void defocusing_general(Workspace& ws,
                         Numeric& dlf,
                         const Agenda& ppath_step_agenda,
@@ -710,39 +622,6 @@ void defocusing_general(Workspace& ws,
   }
 }
 
-//! defocusing_sat2sat
-/*!
-    Calculates defocusing for limb measurements between two satellites.
-
-    The expressions used assume a 1D atmosphere, and can only be applied on
-    limb sounding geometry. The function works for 2D and 3D and should give 
-    OK estimates. Both the zenith angle (loss) and azimuth angle (gain) terms
-    are considered.
-
-    The expressions is taken from Kursinski et al., The GPS radio occultation
-    technique, TAO, 2000.
-
-    \return   dlf                 Defocusing loss factor (1 for no loss)
-    \param    ppath_step_agenda   As the WSV with the same name.
-    \param    atmosphere_dim      As the WSV with the same name.
-    \param    p_grid              As the WSV with the same name.
-    \param    lat_grid            As the WSV with the same name.
-    \param    lon_grid            As the WSV with the same name.
-    \param    t_field             As the WSV with the same name.
-    \param    z_field             As the WSV with the same name.
-    \param    vmr_field           As the WSV with the same name.
-    \param    f_grid              As the WSV with the same name.
-    \param    refellipsoid        As the WSV with the same name.
-    \param    z_surface           As the WSV with the same name.
-    \param    ppath               As the WSV with the same name.
-    \param    ppath_lmax          As the WSV with the same name.
-    \param    ppath_lraytrace     As the WSV with the same name.
-    \param    dza                 Size of angular shift to apply.
-    \param    verbosity           As the WSV with the same name.
-
-    \author Patrick Eriksson 
-    \date   2012-04-11
-*/
 void defocusing_sat2sat(Workspace& ws,
                         Numeric& dlf,
                         const Agenda& ppath_step_agenda,
@@ -866,28 +745,6 @@ void defocusing_sat2sat(Workspace& ws,
   dlf = zlt * alt;
 }
 
-//! dotprod_with_los
-/*!
-    Calculates the dot product between a field and a LOS
-    The latter three gives the derivatives with respect to the LOS
-
-    The line-of-sight shall be given as in the ppath structure (i.e. the
-    viewing direction), but the dot product is calculated for the photon
-    direction. The field is specified by its three components.
-
-    The returned value can be written as |f|*cos(theta), where |f| is the field
-    strength, and theta the angle between the field and photon vectors.
-
-    \return                    The result of the dot product
-    \param   los               Pppath line-of-sight.
-    \param   u                 U-component of field.
-    \param   v                 V-component of field.
-    \param   w                 W-component of field.
-    \param   atmosphere_dim    As the WSV.
-
-    \author Patrick Eriksson 
-    \date   2012-12-12
-*/
 Numeric dotprod_with_los(ConstVectorView los,
                          const Numeric& u,
                          const Numeric& v,
@@ -958,33 +815,6 @@ void ext_mat_case(Index& icase,
   }
 }
 
-//!
-/*!
-    Converts an extinction matrix to a transmission matrix
-
-    The function performs the calculations differently depending on the
-    conditions, to improve the speed. There are three cases: <br>
-       1. Scalar RT and/or the matrix ext_mat_av is diagonal. <br>
-       2. Special expression for "azimuthally_random" case. <br>
-       3. The total general case.
-
-    If the structure of *ext_mat* is known, *icase* can be set to "case index"
-    (1, 2 or 3) and some time is saved. This includes that no asserts are
-    performed on *ext_mat*.
-
-    Otherwise, *icase* must be set to 0. *ext_mat* is then analysed and *icase*
-    is set by the function and is returned.
-
-    trans_mat must be sized before calling the function.
-
-    \param   trans_mat          Input/Output: Transmission matrix of slab.
-    \param   icase              Input/Output: Index giving ext_mat case.
-    \param   ext_mat            Input: Averaged extinction matrix.
-    \param   lstep              Input: The length of the RTE step.
-
-    \author Patrick Eriksson (based on earlier version started by Claudia)
-    \date   2013-05-17 
-*/
 void ext2trans(MatrixView trans_mat,
                Index& icase,
                ConstMatrixView ext_mat,
@@ -1062,28 +892,6 @@ void ext2trans(MatrixView trans_mat,
   }
 }
 
-//! get_iy
-/*!
-    Basic call of *iy_main_agenda*.
-
-    This function is an interface to *iy_main_agenda* that can be used when
-    only *iy* is of interest. That is, jacobian and auxilary parts are
-    deactivated/ignored.
-
-    \param   ws                    Out: The workspace
-    \param   iy                    Out: As the WSV.
-    \param   t_field               As the WSV.
-    \param   z_field               As the WSV.
-    \param   vmr_field             As the WSV.
-    \param   cloudbox_on           As the WSV.
-    \param   rte_pos               As the WSV.
-    \param   rte_los               As the WSV.
-    \param   iy_unit               As the WSV.
-    \param   iy_main_agenda        As the WSV.
-
-    \author Patrick Eriksson 
-    \date   2012-08-08
-*/
 void get_iy(Workspace& ws,
             Matrix& iy,
             ConstTensor3View t_field,
@@ -1129,41 +937,6 @@ void get_iy(Workspace& ws,
                         iy_main_agenda);
 }
 
-//! get_iy_of_background
-/*!
-    Determines iy of the "background" of a propgation path.
-
-    The task is to determine *iy* and related variables for the
-    background, or to continue the raditiave calculations
-    "backwards". The details here depends on the method selected for
-    the agendas.
-
-    Each background is handled by an agenda. Several of these agandes
-    can involve recursive calls of *iy_main_agenda*. 
-
-    \param   ws                    Out: The workspace
-    \param   iy                    Out: As the WSV.
-    \param   diy_dx                Out: As the WSV.
-    \param   iy_transmission       As the WSV.
-    \param   jacobian_do           As the WSV.
-    \param   ppath                 As the WSV.
-    \param   atmosphere_dim        As the WSV.
-    \param   t_field               As the WSV.
-    \param   z_field               As the WSV.
-    \param   vmr_field             As the WSV.
-    \param   cloudbox_on           As the WSV.
-    \param   stokes_dim            As the WSV.
-    \param   f_grid                As the WSV.
-    \param   iy_unit               As the WSV.    
-    \param   surface_props_data    As the WSV.    
-    \param   iy_main_agenda        As the WSV.
-    \param   iy_space_agenda       As the WSV.
-    \param   iy_surface_agenda     As the WSV.
-    \param   iy_cloudbox_agenda    As the WSV.
-
-    \author Patrick Eriksson 
-    \date   2009-10-08
-*/
 void get_iy_of_background(Workspace& ws,
                           Matrix& iy,
                           ArrayOfTensor3& diy_dx,
@@ -1286,36 +1059,6 @@ void get_iy_of_background(Workspace& ws,
   }
 }
 
-//! get_ppath_atmvars
-/*!
-    Determines pressure, temperature, VMR, winds and magnetic field for each
-    propgataion path point.
-
-    The output variables are sized inside the function. For VMR the
-    dimensions are [ species, propagation path point ].
-
-    \param   ppath_p           Out: Pressure for each ppath point.
-    \param   ppath_t           Out: Temperature for each ppath point.
-    \param   ppath_vmr         Out: VMR values for each ppath point.
-    \param   ppath_wind        Out: Wind vector for each ppath point.
-    \param   ppath_mag         Out: Mag. field vector for each ppath point.
-    \param   ppath             As the WSV.
-    \param   atmosphere_dim    As the WSV.
-    \param   p_grid            As the WSV.
-    \param   lat_grid          As the WSV.
-    \param   lon_grid          As the WSV.
-    \param   t_field           As the WSV.
-    \param   vmr_field         As the WSV.
-    \param   wind_u_field      As the WSV.
-    \param   wind_v_field      As the WSV.
-    \param   wind_w_field      As the WSV.
-    \param   mag_u_field       As the WSV.
-    \param   mag_v_field       As the WSV.
-    \param   mag_w_field       As the WSV.
-
-    \author Patrick Eriksson 
-    \date   2009-10-05
-*/
 void get_ppath_atmvars(Vector& ppath_p,
                        Vector& ppath_t,
                        Matrix& ppath_nlte,
@@ -1445,23 +1188,6 @@ void get_ppath_atmvars(Vector& ppath_p,
   }
 }
 
-//! get_ppath_cloudvars
-/*!
-    Determines the particle fields along a propagation path.
-
-    \param   clear2cloudy        Out: Mapping of index. See code for details. 
-    \param   ppath_pnd           Out: The particle number density for each
-                                      path point (also outside cloudbox).
-    \param   ppath_dpnd_dx       Out: dpnd_field_dx for each path point
-                                      (also outside cloudbox).
-    \param   ppath               As the WSV.    
-    \param   cloubox_limits      As the WSV.    
-    \param   pnd_field           As the WSV.    
-    \param   dpnd_field_dx       As the WSV.    
-
-    \author Jana Mendrok, Patrick Eriksson 
-    \date   2017-09-18
-*/
 void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
                          Matrix& ppath_pnd,
                          ArrayOfMatrix& ppath_dpnd_dx,
@@ -1566,22 +1292,6 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
   }
 }
 
-//! get_ppath_f
-/*!
-    Determines the Doppler shifted frequencies along the propagation path.
-
-    ppath_doppler [ nf + np ]
-
-    \param   ppath_f          Out: Doppler shifted f_grid
-    \param   ppath            Propagation path.
-    \param   f_grid           Original f_grid.
-    \param   atmosphere_dim   As the WSV.
-    \param   rte_alonglos_v   As the WSV.
-    \param   ppath_wind       See get_ppath_atmvars.
-
-    \author Patrick Eriksson 
-    \date   2013-02-21
-*/
 void get_ppath_f(Matrix& ppath_f,
                  const Ppath& ppath,
                  ConstVectorView f_grid,
@@ -1626,21 +1336,644 @@ void get_ppath_f(Matrix& ppath_f,
   }
 }
 
-//! get_rowindex_for_mblock
-/*!
-    Returns the "range" of *y* corresponding to a measurement block
-
-    \return  The range.
-    \param   sensor_response    As the WSV.
-    \param   mblock_index            Index of the measurement block.
-
-    \author Patrick Eriksson 
-    \date   2009-10-16
-*/
 Range get_rowindex_for_mblock(const Sparse& sensor_response,
                               const Index& mblock_index) {
   const Index n1y = sensor_response.nrows();
   return Range(n1y * mblock_index, n1y);
+}
+
+void get_stepwise_blackbody_radiation(VectorView B,
+                                      VectorView dB_dT,
+                                      ConstVectorView ppath_f_grid,
+                                      const Numeric& ppath_temperature,
+                                      const bool& do_temperature_derivative) {
+  const Index nf = ppath_f_grid.nelem();
+
+  for (Index i = 0; i < nf; i++)
+    B[i] = planck(ppath_f_grid[i], ppath_temperature);
+
+  if (do_temperature_derivative)
+    for (Index i = 0; i < nf; i++)
+      dB_dT[i] = dplanck_dt(ppath_f_grid[i], ppath_temperature);
+}
+
+void get_stepwise_clearsky_propmat(
+    Workspace& ws,
+    PropagationMatrix& K,
+    StokesVector& S,
+    Index& lte,
+    ArrayOfPropagationMatrix& dK_dx,
+    ArrayOfStokesVector& dS_dx,
+    const Agenda& propmat_clearsky_agenda,
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    ConstVectorView ppath_f_grid,
+    ConstVectorView ppath_magnetic_field,
+    ConstVectorView ppath_line_of_sight,
+    ConstVectorView ppath_nlte_temperatures,
+    ConstVectorView ppath_vmrs,
+    const Numeric& ppath_temperature,
+    const Numeric& ppath_pressure,
+    const ArrayOfIndex& jacobian_species,
+    const bool& jacobian_do) {
+  // All relevant quantities are extracted first
+  const Index nq = jacobian_quantities.nelem();
+
+  // Local variables inside Agenda
+  ArrayOfPropagationMatrix propmat_clearsky, dpropmat_clearsky_dx;
+  ArrayOfStokesVector nlte_source, dnlte_dx_source, nlte_dx_dsource_dx;
+
+  // Perform the propagation matrix computations
+  propmat_clearsky_agendaExecute(ws,
+                                 propmat_clearsky,
+                                 nlte_source,
+                                 dpropmat_clearsky_dx,
+                                 dnlte_dx_source,
+                                 nlte_dx_dsource_dx,
+                                 jacobian_quantities,
+                                 ppath_f_grid,
+                                 ppath_magnetic_field,
+                                 ppath_line_of_sight,
+                                 ppath_pressure,
+                                 ppath_temperature,
+                                 ppath_nlte_temperatures,
+                                 ppath_vmrs,
+                                 propmat_clearsky_agenda);
+
+  // We only now know how large the propagation matrix will be!
+  const Index npmat = propmat_clearsky.nelem();
+
+  // If therea re no NLTE elements, then set the LTE flag
+  lte = nlte_source.nelem() ? 0 : 1;
+
+  // Sum the propagation matrix
+  K = propmat_clearsky[0];
+  for (Index i = 1; i < npmat; i++) K += propmat_clearsky[i];
+
+  // Set NLTE source term if applicable
+  if (not lte) {
+    // Add all source terms up
+    S = nlte_source[0];
+    for (Index i = 1; i < npmat; i++) S += nlte_source[i];
+  } else {
+    S.SetZero();
+  }
+
+  // Set the partial derivatives
+  if (jacobian_do) {
+    for (Index i = 0; i < nq; i++) {
+      if (jacobian_quantities[i].MainTag() == SCATSPECIES_MAINTAG) {
+        dK_dx[i].SetZero();
+        dS_dx[i].SetZero();
+      } else if (jacobian_quantities[i].SubSubtag() == PROPMAT_SUBSUBTAG) {
+        // Find position of index in ppd
+        const Index j = equivlent_propmattype_index(jacobian_quantities, i);
+
+        dK_dx[i] = dpropmat_clearsky_dx[j];
+        if (lte) {
+          dS_dx[i].SetZero();
+        } else {
+          dS_dx[i] = dnlte_dx_source[j];
+          dS_dx[i] += nlte_dx_dsource_dx[j];
+
+          // TEST:  Old routine applied unit conversion on only the last
+          // part of the equation. Was this correct or wrong?  If correct,
+          // this is an issue.  Otherwise, the old version was incorrect.
+          // Have to setup perturbation test-case to study which is most
+          // reasonable...
+        }
+      } else if (jacobian_species[i] > -1)  // Did not compute values in Agenda
+      {
+        dK_dx[i] = propmat_clearsky[jacobian_species[i]];
+
+        // We cannot know the NLTE jacobian if this method was used
+        // because that information is thrown away. It is still faster
+        // to retain this method since it requires less computations
+        // when we do not need NLTE, which is most of the time...
+        if (not lte) {
+          ostringstream os;
+
+          os << "We do not yet support species"
+             << " tag and NLTE Jacobians.\n";
+          throw std::runtime_error(os.str());
+        }
+        dS_dx[i].SetZero();
+      }
+    }
+  }
+}
+
+void get_stepwise_effective_source(
+    MatrixView J,
+    Tensor3View dJ_dx,
+    const PropagationMatrix& K,
+    const StokesVector& a,
+    const StokesVector& S,
+    const ArrayOfPropagationMatrix& dK_dx,
+    const ArrayOfStokesVector& da_dx,
+    const ArrayOfStokesVector& dS_dx,
+    ConstVectorView B,
+    ConstVectorView dB_dT,
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const bool& jacobian_do) {
+  const Index nq = jacobian_quantities.nelem();
+  const Index nf = K.NumberOfFrequencies();
+  const Index ns = K.StokesDimensions();
+
+  dJ_dx = 0;
+  for (Index i1 = 0; i1 < nf; i1++) {
+    Matrix invK(ns, ns);
+    Vector j(ns);
+
+    if (K.IsRotational(i1)) {
+      dJ_dx(joker, i1, joker) = 0;
+      J(i1, joker) = 0;
+      continue;
+    }
+
+    K.MatrixInverseAtPosition(invK, i1);
+
+    // Set a B to j
+    j = a.VectorAtPosition(i1);
+    ;
+    j *= B[i1];
+
+    // Add S to j
+    if (not S.IsEmpty()) j += S.VectorAtPosition(i1);
+    ;
+
+    // Compute J = K^-1 (a B + S)
+    mult(J(i1, joker), invK, j);
+
+    // Compute dJ = K^-1((da B + a dB + dS) - dK K^-1(a B + S))
+    if (jacobian_do)
+      //FOR_ANALYTICAL_JACOBIANS_DO
+      //(
+      for (Index iq = 0; iq < nq; iq++) {
+        if (jacobian_quantities[iq].Analytical()) {
+          Matrix dk(ns, ns), tmp_matrix(ns, ns);
+          Vector dj(ns, 0), tmp(ns);
+
+          // Control parameters for special jacobians that are computed elsewhere
+          //const bool has_dk = (not dK_dx[iq].IsEmpty());   // currently always
+          //const bool has_ds = (not dS_dx[iq].IsEmpty());   // evaluate as true
+          const bool has_dt =
+              (jacobian_quantities[iq].MainTag() == TEMPERATURE_MAINTAG);
+
+          // Sets the -K^-1 dK/dx K^-1 (a B + S) term
+          //if(has_dk)
+          //{
+          dK_dx[iq].MatrixAtPosition(dk, i1);
+          mult(tmp, dk, J(i1, joker));
+
+          dj = da_dx[iq].VectorAtPosition(i1);
+          dj *= B[i1];
+
+          dj -= tmp;
+
+          // Adds a dB to dj
+          if (has_dt) {
+            tmp = a.VectorAtPosition(i1);
+            tmp *= dB_dT[i1];
+            dj += tmp;
+          }
+
+          // Adds dS to dj
+          //if(has_ds)
+          dj += dS_dx[iq].VectorAtPosition(i1);
+
+          mult(dJ_dx(iq, i1, joker), invK, dj);
+          //}
+        }
+        // don't need that anymore now that we zero dJ_dx at the very beginning
+        //else
+        //{
+        //  dJ_dx(iq, i1, joker) = 0;
+        //}
+      }
+    //)
+  }
+
+  if (nq) dJ_dx *= 0.5;
+}
+
+void get_stepwise_frequency_grid(VectorView ppath_f_grid,
+                                 ConstVectorView f_grid,
+                                 ConstVectorView ppath_wind,
+                                 ConstVectorView ppath_line_of_sight,
+                                 const Numeric& rte_alonglos_v,
+                                 const Index& atmosphere_dim) {
+  Numeric v_doppler = rte_alonglos_v;
+
+  if (ppath_wind[0] not_eq 0 or ppath_wind[1] not_eq 0 or
+      ppath_wind[2] not_eq 0)
+    v_doppler += dotprod_with_los(ppath_line_of_sight,
+                                  ppath_wind[0],
+                                  ppath_wind[1],
+                                  ppath_wind[2],
+                                  atmosphere_dim);
+  ppath_f_grid = f_grid;
+
+  if (v_doppler not_eq 0) ppath_f_grid *= 1 - v_doppler / SPEED_OF_LIGHT;
+}
+
+void get_stepwise_f_partials(Vector& f_partials,
+                             const Index& component,
+                             ConstVectorView& line_of_sight,
+                             ConstVectorView f_grid,
+                             const Index& atmosphere_dim) {
+  // component 0 means total speed
+  // component 1 means u speed
+  // component 2 means v speed
+  // component 3 means w speed
+
+  // Sizes
+  const Index nf = f_grid.nelem();
+
+  // Doppler relevant velocity
+  //
+  // initialize
+  Numeric dv_doppler_dx = 0.0;
+
+  switch (component) {
+    case 0:  // this is total and is already initialized to avoid compiler warnings
+      dv_doppler_dx = 1.0;
+      break;
+    case 1:  // this is the u-component
+      dv_doppler_dx =
+          (dotprod_with_los(line_of_sight, 1, 0, 0, atmosphere_dim));
+      break;
+    case 2:  // this is v-component
+      dv_doppler_dx =
+          (dotprod_with_los(line_of_sight, 0, 1, 0, atmosphere_dim));
+      break;
+    case 3:  // this is w-component
+      dv_doppler_dx =
+          (dotprod_with_los(line_of_sight, 0, 0, 1, atmosphere_dim));
+      break;
+    default:
+      throw std::runtime_error(
+          "This being seen means that there is a development bug in interactions with get_ppath_df_dW.\n");
+      break;
+  }
+
+  // Determine frequency grid
+  if (dv_doppler_dx == 0.0) {
+    f_partials.resize(nf);
+    f_partials = 0.0;
+  } else {
+    f_partials = f_grid;
+    f_partials *= -dv_doppler_dx / SPEED_OF_LIGHT;
+  }
+}
+
+void get_stepwise_scattersky_propmat(
+    StokesVector& ap,
+    PropagationMatrix& Kp,
+    ArrayOfStokesVector& dap_dx,
+    ArrayOfPropagationMatrix& dKp_dx,
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    ConstMatrixView ppath_1p_pnd,  // the ppath_pnd at this ppath point
+    const ArrayOfMatrix&
+        ppath_dpnd_dx,  // the full ppath_dpnd_dx, ie all ppath points
+    const Index ppath_1p_id,
+    const ArrayOfArrayOfSingleScatteringData& scat_data,
+    ConstVectorView ppath_line_of_sight,
+    ConstVectorView ppath_temperature,
+    const Index& atmosphere_dim,
+    const bool& jacobian_do) {
+  const Index nf = Kp.NumberOfFrequencies(), stokes_dim = Kp.StokesDimensions();
+
+  //StokesVector da_aux(nf, stokes_dim);
+  //PropagationMatrix dK_aux(nf, stokes_dim);
+
+  ArrayOfArrayOfSingleScatteringData scat_data_mono;
+
+  // Direction of outgoing scattered radiation (which is reversed to
+  // LOS). Only used for extracting scattering properties.
+  Vector dir;
+  mirror_los(dir, ppath_line_of_sight, atmosphere_dim);
+  Matrix dir_array(1, 2, 0.);
+  dir_array(0, joker) = dir;
+
+  ArrayOfArrayOfTensor5 ext_mat_Nse;
+  ArrayOfArrayOfTensor4 abs_vec_Nse;
+  ArrayOfArrayOfIndex ptypes_Nse;
+  Matrix t_ok;
+  ArrayOfTensor5 ext_mat_ssbulk;
+  ArrayOfTensor4 abs_vec_ssbulk;
+  ArrayOfIndex ptype_ssbulk;
+  Tensor5 ext_mat_bulk;
+  Tensor4 abs_vec_bulk;
+  Index ptype_bulk;
+
+  // get per-scat-elem data here. and fold with pnd.
+  // keep per-scat-elem data to fold with dpnd_dx further down in
+  // analyt-jac-loop.
+  opt_prop_NScatElems(ext_mat_Nse,
+                      abs_vec_Nse,
+                      ptypes_Nse,
+                      t_ok,
+                      scat_data,
+                      stokes_dim,
+                      ppath_temperature,
+                      dir_array,
+                      -1);
+
+  opt_prop_ScatSpecBulk(ext_mat_ssbulk,
+                        abs_vec_ssbulk,
+                        ptype_ssbulk,
+                        ext_mat_Nse,
+                        abs_vec_Nse,
+                        ptypes_Nse,
+                        ppath_1p_pnd,
+                        t_ok);
+  opt_prop_Bulk(ext_mat_bulk,
+                abs_vec_bulk,
+                ptype_bulk,
+                ext_mat_ssbulk,
+                abs_vec_ssbulk,
+                ptype_ssbulk);
+
+  const Index nf_ssd = abs_vec_bulk.nbooks();  // number of freqs in extracted
+                                               // optprops. if 1, we need to
+                                               // duplicate the ext/abs output.
+
+  for (Index iv = 0; iv < nf; iv++) {
+    if (nf_ssd > 1) {
+      ap.SetAtPosition(abs_vec_bulk(iv, 0, 0, joker), iv);
+      Kp.SetAtPosition(ext_mat_bulk(iv, 0, 0, joker, joker), iv);
+    } else {
+      ap.SetAtPosition(abs_vec_bulk(0, 0, 0, joker), iv);
+      Kp.SetAtPosition(ext_mat_bulk(0, 0, 0, joker, joker), iv);
+    }
+  }
+
+  if (jacobian_do)
+    FOR_ANALYTICAL_JACOBIANS_DO(
+        if (ppath_dpnd_dx[iq].empty()) {
+          dap_dx[iq].SetZero();
+          dKp_dx[iq].SetZero();
+        } else {
+          // check, whether we have any non-zero ppath_dpnd_dx in this
+          // pnd-affecting x? might speed up things a little bit.
+          opt_prop_ScatSpecBulk(ext_mat_ssbulk,
+                                abs_vec_ssbulk,
+                                ptype_ssbulk,
+                                ext_mat_Nse,
+                                abs_vec_Nse,
+                                ptypes_Nse,
+                                ppath_dpnd_dx[iq](joker, Range(ppath_1p_id, 1)),
+                                t_ok);
+          opt_prop_Bulk(ext_mat_bulk,
+                        abs_vec_bulk,
+                        ptype_bulk,
+                        ext_mat_ssbulk,
+                        abs_vec_ssbulk,
+                        ptype_ssbulk);
+          for (Index iv = 0; iv < nf; iv++) {
+            if (nf_ssd > 1) {
+              dap_dx[iq].SetAtPosition(abs_vec_bulk(iv, 0, 0, joker), iv);
+              dKp_dx[iq].SetAtPosition(ext_mat_bulk(iv, 0, 0, joker, joker),
+                                       iv);
+            } else {
+              dap_dx[iq].SetAtPosition(abs_vec_bulk(0, 0, 0, joker), iv);
+              dKp_dx[iq].SetAtPosition(ext_mat_bulk(0, 0, 0, joker, joker), iv);
+            }
+          }
+        })
+}
+
+void get_stepwise_scattersky_source(
+    StokesVector& Sp,
+    ArrayOfStokesVector& dSp_dx,
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    ConstVectorView ppath_1p_pnd,  // the ppath_pnd at this ppath point
+    const ArrayOfMatrix&
+        ppath_dpnd_dx,  // the full ppath_dpnd_dx, ie all ppath points
+    const Index ppath_1p_id,
+    const ArrayOfArrayOfSingleScatteringData& scat_data,
+    ConstTensor7View doit_i_field,
+    ConstVectorView scat_za_grid,
+    ConstVectorView scat_aa_grid,
+    ConstMatrixView ppath_line_of_sight,
+    const GridPos& ppath_pressure,
+    const Vector& temperature,
+    const Index& atmosphere_dim,
+    const bool& jacobian_do,
+    const Index& t_interp_order) {
+  if (atmosphere_dim != 1)
+    throw runtime_error("This function handles so far only 1D atmospheres.");
+
+  const Index nf = Sp.NumberOfFrequencies();
+  const Index stokes_dim = Sp.StokesDimensions();
+  const Index ne = ppath_1p_pnd.nelem();
+  assert(TotalNumberOfElements(scat_data) == ne);
+  const Index nza = scat_za_grid.nelem();
+  const Index naa = scat_aa_grid.nelem();
+  const Index nq = jacobian_do ? jacobian_quantities.nelem() : 0;
+
+  // interpolate incident field to this ppath point (no need to do this
+  // separately per scatelem)
+  GridPos gp_p;
+  gridpos_copy(gp_p, ppath_pressure);
+  Vector itw_p(2);
+  interpweights(itw_p, gp_p);
+  Tensor3 inc_field(nf, nza, stokes_dim, 0.);
+  for (Index iv = 0; iv < nf; iv++) {
+    for (Index iza = 0; iza < nza; iza++) {
+      for (Index i = 0; i < stokes_dim; i++) {
+        inc_field(iv, iza, i) =
+            interp(itw_p, doit_i_field(iv, joker, 0, 0, iza, 0, i), gp_p);
+      }
+    }
+  }
+
+  // create matrix of incident directions (flat representation of the
+  // scat_za_grid * scat_aa_grid matrix)
+  Matrix idir(nza * naa, 2);
+  Index ia = 0;
+  for (Index iza = 0; iza < nza; iza++) {
+    for (Index iaa = 0; iaa < naa; iaa++) {
+      idir(ia, 0) = scat_za_grid[iza];
+      idir(ia, 1) = scat_aa_grid[iaa];
+      ia++;
+    }
+  }
+
+  // setting prop (aka scattered) direction
+  Matrix pdir(1, 2);
+  //if( ppath_line_of_sight.ncols()==2 )
+  //  pdir(0,joker) = ppath_line_of_sight;
+  //else // 1D case only (currently the only handled case). azimuth not defined.
+  {
+    pdir(0, 0) = ppath_line_of_sight(0, 0);
+    pdir(0, 1) = 0.;
+  }
+
+  // some further variables needed for pha_mat extraction
+  Index nf_ssd = scat_data[0][0].pha_mat_data.nlibraries();
+  Index duplicate_freqs = ((nf == nf_ssd) ? 0 : 1);
+  Tensor6 pha_mat_1se(nf_ssd, 1, 1, nza * naa, stokes_dim, stokes_dim);
+  Vector t_ok(1);
+  Index ptype;
+  Tensor3 scat_source_1se(ne, nf, stokes_dim, 0.);
+
+  Index ise_flat = 0;
+  for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++) {
+    for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++) {
+      // determine whether we have some valid pnd for this
+      // scatelem (in pnd or dpnd)
+      Index val_pnd = 0;
+      if (ppath_1p_pnd[ise_flat] != 0) {
+        val_pnd = 1;
+      } else if (jacobian_do) {
+        for (Index iq = 0; (!val_pnd) && (iq < nq); iq++) {
+          if (jacobian_quantities[iq].Analytical() &&
+              !ppath_dpnd_dx[iq].empty() &&
+              ppath_dpnd_dx[iq](ise_flat, ppath_1p_id) != 0) {
+            val_pnd = 1;
+          }
+        }
+      }
+
+      if (val_pnd) {
+        pha_mat_1ScatElem(pha_mat_1se,
+                          ptype,
+                          t_ok,
+                          scat_data[i_ss][i_se],
+                          temperature,
+                          pdir,
+                          idir,
+                          0,
+                          t_interp_order);
+        if (t_ok[0] == 0) {
+          ostringstream os;
+          os << "Interpolation error for (flat-array) scattering "
+             << "element #" << ise_flat << "\n"
+             << "at location/temperature point #" << ppath_1p_id << "\n";
+          throw runtime_error(os.str());
+        }
+
+        Index this_iv = 0;
+        for (Index iv = 0; iv < nf; iv++) {
+          if (!duplicate_freqs) {
+            this_iv = iv;
+          }
+          Tensor3 product_fields(nza, naa, stokes_dim, 0.);
+
+          ia = 0;
+          for (Index iza = 0; iza < nza; iza++) {
+            for (Index iaa = 0; iaa < naa; iaa++) {
+              for (Index i = 0; i < stokes_dim; i++) {
+                for (Index j = 0; j < stokes_dim; j++) {
+                  product_fields(iza, iaa, i) +=
+                      pha_mat_1se(this_iv, 0, 0, ia, i, j) *
+                      inc_field(iv, iza, j);
+                }
+              }
+              ia++;
+            }
+          }
+
+          for (Index i = 0; i < stokes_dim; i++) {
+            scat_source_1se(ise_flat, iv, i) = AngIntegrate_trapezoid(
+                product_fields(joker, joker, i), scat_za_grid, scat_aa_grid);
+          }
+        }  // for iv
+      }    // if val_pnd
+
+      ise_flat++;
+
+    }  // for i_se
+  }    // for i_ss
+
+  for (Index iv = 0; iv < nf; iv++) {
+    Vector scat_source(stokes_dim, 0.);
+    for (ise_flat = 0; ise_flat < ne; ise_flat++) {
+      for (Index i = 0; i < stokes_dim; i++) {
+        scat_source[i] +=
+            scat_source_1se(ise_flat, iv, i) * ppath_1p_pnd[ise_flat];
+      }
+    }
+
+    Sp.SetAtPosition(scat_source, iv);
+
+    if (jacobian_do) {
+      FOR_ANALYTICAL_JACOBIANS_DO(
+          if (ppath_dpnd_dx[iq].empty()) { dSp_dx[iq].SetZero(); } else {
+            scat_source = 0.;
+            for (ise_flat = 0; ise_flat < ne; ise_flat++) {
+              for (Index i = 0; i < stokes_dim; i++) {
+                scat_source[i] += scat_source_1se(ise_flat, iv, i) *
+                                  ppath_dpnd_dx[iq](ise_flat, ppath_1p_id);
+                dSp_dx[iq].SetAtPosition(scat_source, iv);
+              }
+            }
+          })
+    }
+  }  // for iv
+}
+
+void get_stepwise_transmission_matrix(
+    Tensor3View cumulative_transmission,
+    Tensor3View T,
+    Tensor4View dT_close_dx,
+    Tensor4View dT_far_dx,
+    ConstTensor3View cumulative_transmission_close,
+    const PropagationMatrix& K_close,
+    const PropagationMatrix& K_far,
+    const ArrayOfPropagationMatrix& dK_close_dx,
+    const ArrayOfPropagationMatrix& dK_far_dx,
+    const Numeric& ppath_distance,
+    const bool& first_level,
+    const Numeric& dppath_distance_dT_HSE_guesswork_close,
+    const Numeric& dppath_distance_dT_HSE_guesswork_far,
+    const Index& temperature_derivative_position_if_hse_is_active) {
+  // Frequency counter
+  const Index nf = K_close.NumberOfFrequencies();
+  const Index stokes_dim = T.ncols();
+
+  if (first_level) {
+    if (stokes_dim > 1)
+      for (Index iv = 0; iv < nf; iv++)
+        id_mat(cumulative_transmission(iv, joker, joker));
+    else
+      cumulative_transmission = 1;
+  } else {
+    // Compute the transmission of the layer between close and far
+    if (not dK_close_dx.nelem())
+      compute_transmission_matrix(T, ppath_distance, K_close, K_far);
+    else
+      compute_transmission_matrix_and_derivative(
+          T,
+          dT_close_dx,
+          dT_far_dx,
+          ppath_distance,
+          K_close,
+          K_far,
+          dK_close_dx,
+          dK_far_dx,
+          dppath_distance_dT_HSE_guesswork_close,
+          dppath_distance_dT_HSE_guesswork_far,
+          temperature_derivative_position_if_hse_is_active);
+
+    // Cumulate transmission
+    if (stokes_dim > 1)
+      for (Index iv = 0; iv < nf; iv++)
+        mult(cumulative_transmission(iv, joker, joker),
+             cumulative_transmission_close(iv, joker, joker),
+             T(iv, joker, joker));
+    else {
+      cumulative_transmission = cumulative_transmission_close;
+      cumulative_transmission *= T;
+    }
+  }
+}
+
+Numeric guesswork_HSE_derivative(Numeric h, Numeric r, Numeric T) {
+  // FIXME: Fix or validate so this stops being guesswork
+  return 2 * h * std::abs(h / r) /
+         T; /*std::abs to keep sign since one level should be negative and the other positive*/
 }
 
 void iyb_calc_body(bool& failed,
@@ -1765,15 +2098,6 @@ void iyb_calc_body(bool& failed,
   }
 }
 
-//! iyb_calc
-/*!
-    Calculation of pencil beam monochromatic spectra for 1 measurement block.
-
-    All in- and output variables as the WSV with the same name.
-
-    \author Patrick Eriksson 
-    \date   2009-10-16
-*/
 void iyb_calc(Workspace& ws,
               Vector& iyb,
               ArrayOfVector& iyb_aux,
@@ -1985,31 +2309,6 @@ void iyb_calc(Workspace& ws,
   }
 }
 
-//! iy_transmission_mult
-/*!
-    Multiplicates iy_transmission with (vector) transmissions.
-
-    That is, a multiplication of *iy_transmission* with another
-    variable having same structure and holding transmission values.
-
-    The "new path" is assumed to be further away from the sensor than 
-    the propagtion path already included in iy_transmission. That is,
-    the operation can be written as:
-    
-       Ttotal = Told * Tnew
-
-    where Told is the transmission corresponding to *iy_transmission*
-    and Tnew corresponds to *tau*.
-
-    *iy_trans_new* is sized by the function.
-
-    \param   iy_trans_total    Out: Updated version of *iy_transmission*
-    \param   iy_trans_old      A variable matching *iy_transmission*.
-    \param   iy_trans_new      A variable matching *iy_transmission*.
-
-    \author Patrick Eriksson 
-    \date   2009-10-06
-*/
 void iy_transmission_mult(Tensor3& iy_trans_total,
                           ConstTensor3View iy_trans_old,
                           ConstTensor3View iy_trans_new) {
@@ -2030,26 +2329,6 @@ void iy_transmission_mult(Tensor3& iy_trans_total,
   }
 }
 
-//! iy_transmission_mult
-/*!
-    Multiplicates iy_transmission with iy-variable.
-
-    the operation can be written as:
-    
-       iy_new = T * iy_old
-
-    where T is the transmission corresponding to *iy_transmission*
-    and iy_old is a variable matching iy.
-
-    *iy_new* is sized by the function.
-
-    \param   iy_new        Out: Updated version of iy 
-    \param   iy_trans      A variable matching *iy_transmission*.
-    \param   iy_old        A variable matching *iy*.
-
-    \author Patrick Eriksson 
-    \date   2018-04-10
-*/
 void iy_transmission_mult(Matrix& iy_new,
                           ConstTensor3View iy_trans,
                           ConstMatrixView iy_old) {
@@ -2067,23 +2346,6 @@ void iy_transmission_mult(Matrix& iy_new,
   }
 }
 
-//! mirror_los
-/*!
-    Determines the backward direction for a given line-of-sight.
-
-    This function can be used to get the LOS to apply for extracting single
-    scattering properties, if the propagation path LOS is given.
-
-    A viewing direction of aa=0 is assumed for 1D. This corresponds to 
-    positive za for 2D.
-
-    \param   los_mirrored      Out: The line-of-sight for reversed direction.
-    \param   los               A line-of-sight
-    \param   atmosphere_dim    As the WSV.
-
-    \author Patrick Eriksson 
-    \date   2011-07-15
-*/
 void mirror_los(Vector& los_mirrored,
                 ConstVectorView los,
                 const Index& atmosphere_dim) {
@@ -2108,24 +2370,6 @@ void mirror_los(Vector& los_mirrored,
   }
 }
 
-//! pos2true_latlon
-/*!
-    Determines the true alt and lon for an "ARTS position"
-
-    The function disentangles if the geographical position shall be taken from
-    lat_grid and lon_grid, or lat_true and lon_true.
-
-    \param   lat              Out: True latitude.
-    \param   lon              Out: True longitude.
-    \param   atmosphere_dim   As the WSV.
-    \param   lat_grid         As the WSV.
-    \param   lat_true         As the WSV.
-    \param   lon_true         As the WSV.
-    \param   pos              A position, as defined for rt calculations.
-
-    \author Patrick Eriksson 
-    \date   2011-07-15
-*/
 void pos2true_latlon(Numeric& lat,
                      Numeric& lon,
                      const Index& atmosphere_dim,
@@ -2160,892 +2404,6 @@ void pos2true_latlon(Numeric& lat,
   }
 }
 
-//! get_stepwise_clearsky_propmat
-/*!
- *  Gets the clearsky propgation matrix and NLTE contributions
- * 
- *  \param K                Out: Level propagation matrix
- *  \param S                Out: NLTE source vector for level
- *  \param lte              Out: Index indicating if there is any NLTE source term
- *  \param dK_dx            Out: Unadopted propagation matrix derivatives of level
- *  \param dS_dx            Out: Unadopted NLTE source derivatives of level
-...
- * 
- *  \author Richard Larsson 
- *  \adapted from non-stepwise function
- *  \date   2017-09-21
- */
-void get_stepwise_clearsky_propmat(
-    Workspace& ws,
-    PropagationMatrix& K,
-    StokesVector& S,
-    Index& lte,
-    ArrayOfPropagationMatrix& dK_dx,
-    ArrayOfStokesVector& dS_dx,
-    const Agenda& propmat_clearsky_agenda,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    ConstVectorView ppath_f_grid,
-    ConstVectorView ppath_magnetic_field,
-    ConstVectorView ppath_line_of_sight,
-    ConstVectorView ppath_nlte_temperatures,
-    ConstVectorView ppath_vmrs,
-    const Numeric& ppath_temperature,
-    const Numeric& ppath_pressure,
-    const ArrayOfIndex& jacobian_species,
-    const bool& jacobian_do) {
-  // All relevant quantities are extracted first
-  const Index nq = jacobian_quantities.nelem();
-
-  // Local variables inside Agenda
-  ArrayOfPropagationMatrix propmat_clearsky, dpropmat_clearsky_dx;
-  ArrayOfStokesVector nlte_source, dnlte_dx_source, nlte_dx_dsource_dx;
-
-  // Perform the propagation matrix computations
-  propmat_clearsky_agendaExecute(ws,
-                                 propmat_clearsky,
-                                 nlte_source,
-                                 dpropmat_clearsky_dx,
-                                 dnlte_dx_source,
-                                 nlte_dx_dsource_dx,
-                                 jacobian_quantities,
-                                 ppath_f_grid,
-                                 ppath_magnetic_field,
-                                 ppath_line_of_sight,
-                                 ppath_pressure,
-                                 ppath_temperature,
-                                 ppath_nlte_temperatures,
-                                 ppath_vmrs,
-                                 propmat_clearsky_agenda);
-
-  // We only now know how large the propagation matrix will be!
-  const Index npmat = propmat_clearsky.nelem();
-
-  // If therea re no NLTE elements, then set the LTE flag
-  lte = nlte_source.nelem() ? 0 : 1;
-
-  // Sum the propagation matrix
-  K = propmat_clearsky[0];
-  for (Index i = 1; i < npmat; i++) K += propmat_clearsky[i];
-
-  // Set NLTE source term if applicable
-  if (not lte) {
-    // Add all source terms up
-    S = nlte_source[0];
-    for (Index i = 1; i < npmat; i++) S += nlte_source[i];
-  } else {
-    S.SetZero();
-  }
-
-  // Set the partial derivatives
-  if (jacobian_do) {
-    for (Index i = 0; i < nq; i++) {
-      if (jacobian_quantities[i].MainTag() == SCATSPECIES_MAINTAG) {
-        dK_dx[i].SetZero();
-        dS_dx[i].SetZero();
-      } else if (jacobian_quantities[i].SubSubtag() == PROPMAT_SUBSUBTAG) {
-        // Find position of index in ppd
-        const Index j = equivlent_propmattype_index(jacobian_quantities, i);
-
-        dK_dx[i] = dpropmat_clearsky_dx[j];
-        if (lte) {
-          dS_dx[i].SetZero();
-        } else {
-          dS_dx[i] = dnlte_dx_source[j];
-          dS_dx[i] += nlte_dx_dsource_dx[j];
-
-          // TEST:  Old routine applied unit conversion on only the last
-          // part of the equation. Was this correct or wrong?  If correct,
-          // this is an issue.  Otherwise, the old version was incorrect.
-          // Have to setup perturbation test-case to study which is most
-          // reasonable...
-        }
-      } else if (jacobian_species[i] > -1)  // Did not compute values in Agenda
-      {
-        dK_dx[i] = propmat_clearsky[jacobian_species[i]];
-
-        // We cannot know the NLTE jacobian if this method was used
-        // because that information is thrown away. It is still faster
-        // to retain this method since it requires less computations
-        // when we do not need NLTE, which is most of the time...
-        if (not lte) {
-          ostringstream os;
-
-          os << "We do not yet support species"
-             << " tag and NLTE Jacobians.\n";
-          throw std::runtime_error(os.str());
-        }
-        dS_dx[i].SetZero();
-      }
-    }
-  }
-}
-
-//! adapt_stepwise_partial_derivatives
-/*!
- *  Adapts clearsky partial derivatives for the following fields:
- * 
- *   Wind
- *   VMR
- * 
- *  Adaptation means changing unit by user input
- * 
- *  \param dK_dx            In/Out: In is unadopted out is adopted propagation matrix derivatives
- *  \param dS_dx            In/Out: In is unadopted extra source and out is adopted extra source derivatives
-...
- * 
- *  \author Richard Larsson 
- *  \adapted from non-stepwise function
- *  \date   2017-09-21
- */
-void adapt_stepwise_partial_derivatives(
-    ArrayOfPropagationMatrix& dK_dx,
-    ArrayOfStokesVector& dS_dx,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    ConstVectorView ppath_f_grid,
-    ConstVectorView ppath_line_of_sight,
-    ConstVectorView ppath_vmrs,
-    const Numeric& ppath_temperature,
-    const Numeric& ppath_pressure,
-    const ArrayOfIndex& jacobian_species,
-    const ArrayOfIndex& jacobian_wind,
-    const Index& lte,
-    const Index& atmosphere_dim,
-    const bool& jacobian_do) {
-  if (not jacobian_do) return;
-
-  // All relevant quantities are extracted first
-  const Index nq = jacobian_quantities.nelem();
-
-  // Computational temporary vector
-  Vector a;
-
-  for (Index i = 0; i < nq; i++) {
-    if (not jacobian_quantities[i].Analytical()) continue;
-
-    Index component;
-
-    switch (jacobian_wind[i]) {
-      case Index(JacobianType::AbsWind):
-        component = 0;
-        break;
-      case Index(JacobianType::WindFieldU):
-        component = 1;
-        break;
-      case Index(JacobianType::WindFieldV):
-        component = 2;
-        break;
-      case Index(JacobianType::WindFieldW):
-        component = 3;
-        break;
-      default:
-        component = -1;  // This could be frequency derivative...
-    }
-    if (component not_eq -1) {
-      get_stepwise_f_partials(
-          a, component, ppath_line_of_sight, ppath_f_grid, atmosphere_dim);
-
-      // Apply conversion to K-matrix partial derivative
-      dK_dx[i] *= a;
-
-      // Apply conversion to source vector partial derivative
-      if (not lte) dS_dx[i] *= a;
-    } else if (jacobian_species[i] > -1) {
-      const bool from_propmat =
-          jacobian_quantities[i].SubSubtag() == PROPMAT_SUBSUBTAG;
-      const Index& isp = jacobian_species[i];
-
-      // Computational factor
-      Numeric factor;
-
-      // Scaling factors to handle retrieval unit
-      if (not from_propmat) {
-        //vmrunitscf(factor, jacobian_quantities[i].Mode(),
-        vmrunitscf(
-            factor, "vmr", ppath_vmrs[isp], ppath_pressure, ppath_temperature);
-      } else {
-        //dxdvmrscf(factor, jacobian_quantities[i].Mode(),
-        dxdvmrscf(
-            factor, "vmr", ppath_vmrs[isp], ppath_pressure, ppath_temperature);
-      }
-      // Apply conversion to K-matrix partial derivative
-      dK_dx[i] *= factor;
-
-      // Apply conversion to source vector partial derivative
-      if (not lte) dS_dx[i] *= factor;
-    } else {
-      // All other partial derivatives should already be adapted...
-    }
-  }
-}
-
-Numeric guesswork_HSE_derivative(Numeric h, Numeric r, Numeric T) {
-  return 2 * h * std::abs(h / r) /
-         T; /*std::abs to keep sign since one level should be negative and the other positive*/
-}
-
-//! get_stepwise_transmission_matrix
-/*!
- *  Computes layer transmission matrix and cumulative transmission
- * 
- *  \param cumulative_transmission Out: cumulation of transmission for jacobian computations
- *  \param T                       Out: Layer transmission
- *  \param dT_close_dx             Out: Layer transmission derivative due to closest level
- *  \param dT_far_dx               Out: Layer transmission derivative due to furthest level
-...
- * 
- *  \author Richard Larsson 
- *  \adapted from non-stepwise function
- *  \date   2017-09-21
- */
-void get_stepwise_transmission_matrix(
-    Tensor3View cumulative_transmission,
-    Tensor3View T,
-    Tensor4View dT_close_dx,
-    Tensor4View dT_far_dx,
-    ConstTensor3View cumulative_transmission_close,
-    const PropagationMatrix& K_close,
-    const PropagationMatrix& K_far,
-    const ArrayOfPropagationMatrix& dK_close_dx,
-    const ArrayOfPropagationMatrix& dK_far_dx,
-    const Numeric& ppath_distance,
-    const bool& first_level,
-    const Numeric& dppath_distance_dT_HSE_guesswork_close,
-    const Numeric& dppath_distance_dT_HSE_guesswork_far,
-    const Index& temperature_derivative_position_if_hse_is_active) {
-  // Frequency counter
-  const Index nf = K_close.NumberOfFrequencies();
-  const Index stokes_dim = T.ncols();
-
-  if (first_level) {
-    if (stokes_dim > 1)
-      for (Index iv = 0; iv < nf; iv++)
-        id_mat(cumulative_transmission(iv, joker, joker));
-    else
-      cumulative_transmission = 1;
-  } else {
-    // Compute the transmission of the layer between close and far
-    if (not dK_close_dx.nelem())
-      compute_transmission_matrix(T, ppath_distance, K_close, K_far);
-    else
-      compute_transmission_matrix_and_derivative(
-          T,
-          dT_close_dx,
-          dT_far_dx,
-          ppath_distance,
-          K_close,
-          K_far,
-          dK_close_dx,
-          dK_far_dx,
-          dppath_distance_dT_HSE_guesswork_close,
-          dppath_distance_dT_HSE_guesswork_far,
-          temperature_derivative_position_if_hse_is_active);
-
-    // Cumulate transmission
-    if (stokes_dim > 1)
-      for (Index iv = 0; iv < nf; iv++)
-        mult(cumulative_transmission(iv, joker, joker),
-             cumulative_transmission_close(iv, joker, joker),
-             T(iv, joker, joker));
-    else {
-      cumulative_transmission = cumulative_transmission_close;
-      cumulative_transmission *= T;
-    }
-  }
-}
-
-void get_stepwise_blackbody_radiation(VectorView B,
-                                      VectorView dB_dT,
-                                      ConstVectorView ppath_f_grid,
-                                      const Numeric& ppath_temperature,
-                                      const bool& do_temperature_derivative) {
-  const Index nf = ppath_f_grid.nelem();
-
-  for (Index i = 0; i < nf; i++)
-    B[i] = planck(ppath_f_grid[i], ppath_temperature);
-
-  if (do_temperature_derivative)
-    for (Index i = 0; i < nf; i++)
-      dB_dT[i] = dplanck_dt(ppath_f_grid[i], ppath_temperature);
-}
-
-//! get_stepwise_effective_source
-/*!
- *  Computes
- * 
- *  J = K^-1 (a B + S)
- * 
- *  and
- * 
- *  dJ = - K^-1 dK/dx K^-1 (a B + S) + K^-1 (da B + a dB + dS)
- * 
- *  Assumes zeroes for the a and K if nothing is happening but checks all other variables
- * 
- *  \param J                   Out: Source term, frequency times stokes dimension
- *  \param dJ_dx               Out: Source term derivative, quantities times frequency times stokes dimension
- *  \param K                   In: Propagation matrix of level --- all contributions
- *  \param a                   In: Absorption vector of level --- all contributions
- *  \param S                   In: Source terms other than absorption times planck --- all contributions
- *  \param dK_dx               In: Propagation matrix derivatives of level --- all contributions
- *  \param da_dx               In: Absorption vector derivatives of level --- all contributions
- *  \param dS_dx               In: Source terms derivatives other than absorption times planck --- all contributions
- *  \param B                   In: Planck function in Stokes vector form
- *  \param dB_dT               In: Planck function derivative wrt temperatures in Stokes vector form
- *  \param jacobian_quantities In: As wsv
- * 
- *  \author Richard Larsson 
- *  \adapted from non-stepwise function
- *  \date   2017-09-21
- */
-void get_stepwise_effective_source(
-    MatrixView J,
-    Tensor3View dJ_dx,
-    const PropagationMatrix& K,
-    const StokesVector& a,
-    const StokesVector& S,
-    const ArrayOfPropagationMatrix& dK_dx,
-    const ArrayOfStokesVector& da_dx,
-    const ArrayOfStokesVector& dS_dx,
-    ConstVectorView B,
-    ConstVectorView dB_dT,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const bool& jacobian_do) {
-  const Index nq = jacobian_quantities.nelem();
-  const Index nf = K.NumberOfFrequencies();
-  const Index ns = K.StokesDimensions();
-
-  dJ_dx = 0;
-  for (Index i1 = 0; i1 < nf; i1++) {
-    Matrix invK(ns, ns);
-    Vector j(ns);
-
-    if (K.IsRotational(i1)) {
-      dJ_dx(joker, i1, joker) = 0;
-      J(i1, joker) = 0;
-      continue;
-    }
-
-    K.MatrixInverseAtPosition(invK, i1);
-
-    // Set a B to j
-    j = a.VectorAtPosition(i1);
-    ;
-    j *= B[i1];
-
-    // Add S to j
-    if (not S.IsEmpty()) j += S.VectorAtPosition(i1);
-    ;
-
-    // Compute J = K^-1 (a B + S)
-    mult(J(i1, joker), invK, j);
-
-    // Compute dJ = K^-1((da B + a dB + dS) - dK K^-1(a B + S))
-    if (jacobian_do)
-      //FOR_ANALYTICAL_JACOBIANS_DO
-      //(
-      for (Index iq = 0; iq < nq; iq++) {
-        if (jacobian_quantities[iq].Analytical()) {
-          Matrix dk(ns, ns), tmp_matrix(ns, ns);
-          Vector dj(ns, 0), tmp(ns);
-
-          // Control parameters for special jacobians that are computed elsewhere
-          //const bool has_dk = (not dK_dx[iq].IsEmpty());   // currently always
-          //const bool has_ds = (not dS_dx[iq].IsEmpty());   // evaluate as true
-          const bool has_dt =
-              (jacobian_quantities[iq].MainTag() == TEMPERATURE_MAINTAG);
-
-          // Sets the -K^-1 dK/dx K^-1 (a B + S) term
-          //if(has_dk)
-          //{
-          dK_dx[iq].MatrixAtPosition(dk, i1);
-          mult(tmp, dk, J(i1, joker));
-
-          dj = da_dx[iq].VectorAtPosition(i1);
-          dj *= B[i1];
-
-          dj -= tmp;
-
-          // Adds a dB to dj
-          if (has_dt) {
-            tmp = a.VectorAtPosition(i1);
-            tmp *= dB_dT[i1];
-            dj += tmp;
-          }
-
-          // Adds dS to dj
-          //if(has_ds)
-          dj += dS_dx[iq].VectorAtPosition(i1);
-
-          mult(dJ_dx(iq, i1, joker), invK, dj);
-          //}
-        }
-        // don't need that anymore now that we zero dJ_dx at the very beginning
-        //else
-        //{
-        //  dJ_dx(iq, i1, joker) = 0;
-        //}
-      }
-    //)
-  }
-
-  if (nq) dJ_dx *= 0.5;
-}
-
-//! sum_stepwise_scalar_tau_and_extmat_case
-/*!
- *  Sums the scala tau for iy_aux...
- * 
- *  \param scalar_tau                  Out: as in iy_aux
-...
- * 
- *  \author Richard Larsson 
- *  \adapted from non-stepwise function
- *  \date   2017-09-21
- */
-void sum_stepwise_scalar_tau_and_extmat_case(
-    VectorView scalar_tau,
-    ArrayOfIndex& extmat_case,
-    const PropagationMatrix& upper_level,
-    const PropagationMatrix& lower_level,
-    const Numeric& distance) {
-  Index nf = scalar_tau.nelem();
-
-  for (Index i = 0; i < nf; i++) {
-    scalar_tau[i] +=
-        0.5 * (upper_level.Kjj()[i] + lower_level.Kjj()[i]) * distance;
-
-    if (upper_level.StokesDimensions() > 1 or
-        lower_level.StokesDimensions() > 1)
-      extmat_case[i] = 3;
-    else
-      extmat_case[i] = 1;
-  }
-}
-
-//! get_stepwise_frequency_grid
-/*!
- *  Inverse of get_stepwise_f_partials
- * 
- *  Computes practical frequency grid due to wind for propmat_clearsky_agenda
- * 
-...
- * 
- *  \author Richard Larsson 
- *  \adapted from non-stepwise function
- *  \date   2017-09-21
- */
-void get_stepwise_frequency_grid(VectorView ppath_f_grid,
-                                 ConstVectorView f_grid,
-                                 ConstVectorView ppath_wind,
-                                 ConstVectorView ppath_line_of_sight,
-                                 const Numeric& rte_alonglos_v,
-                                 const Index& atmosphere_dim) {
-  Numeric v_doppler = rte_alonglos_v;
-
-  if (ppath_wind[0] not_eq 0 or ppath_wind[1] not_eq 0 or
-      ppath_wind[2] not_eq 0)
-    v_doppler += dotprod_with_los(ppath_line_of_sight,
-                                  ppath_wind[0],
-                                  ppath_wind[1],
-                                  ppath_wind[2],
-                                  atmosphere_dim);
-  ppath_f_grid = f_grid;
-
-  if (v_doppler not_eq 0) ppath_f_grid *= 1 - v_doppler / SPEED_OF_LIGHT;
-}
-
-//! get_stepwise_f_partials
-/*!
- *  Computes the ratio that a partial derivative with regards to frequency
- *  relates to the wind of come component
- * 
- *  \param   f_partial             Out: The frequency vector to multiply each frequency 
- *                                      grid point in clearsky propmat derivatives
- *  \param   component             In: The wind component
- *  \param   line_of_sight         In: The line of sight vector as in workspace rtp_los
- *  \param   f_grid                In: The computational frequency grid
- *  \param   atmosphere_dim        In: atmospheric diemension as wsv
- ...
- * 
- *  \author Richard Larsson 
- *  \adapted from non-stepwise function
- *  \date   2017-09-21
- */
-void get_stepwise_f_partials(Vector& f_partials,
-                             const Index& component,
-                             ConstVectorView& line_of_sight,
-                             ConstVectorView f_grid,
-                             const Index& atmosphere_dim) {
-  // component 0 means total speed
-  // component 1 means u speed
-  // component 2 means v speed
-  // component 3 means w speed
-
-  // Sizes
-  const Index nf = f_grid.nelem();
-
-  // Doppler relevant velocity
-  //
-  // initialize
-  Numeric dv_doppler_dx = 0.0;
-
-  switch (component) {
-    case 0:  // this is total and is already initialized to avoid compiler warnings
-      dv_doppler_dx = 1.0;
-      break;
-    case 1:  // this is the u-component
-      dv_doppler_dx =
-          (dotprod_with_los(line_of_sight, 1, 0, 0, atmosphere_dim));
-      break;
-    case 2:  // this is v-component
-      dv_doppler_dx =
-          (dotprod_with_los(line_of_sight, 0, 1, 0, atmosphere_dim));
-      break;
-    case 3:  // this is w-component
-      dv_doppler_dx =
-          (dotprod_with_los(line_of_sight, 0, 0, 1, atmosphere_dim));
-      break;
-    default:
-      throw std::runtime_error(
-          "This being seen means that there is a development bug in interactions with get_ppath_df_dW.\n");
-      break;
-  }
-
-  // Determine frequency grid
-  if (dv_doppler_dx == 0.0) {
-    f_partials.resize(nf);
-    f_partials = 0.0;
-  } else {
-    f_partials = f_grid;
-    f_partials *= -dv_doppler_dx / SPEED_OF_LIGHT;
-  }
-}
-
-//! get_stepwise_scattersky_propmat
-/*!
- *  Computes the contribution by scattering elements towards the absorption 
- *  and emission from a level.
- * 
- *  \param   ap                    Out: The scattering absorption term
- *  \param   Kp                    Out: The scattering propagation matrix term
- *  \param   dap_dx                Out: The scattering absorption term deriative
- *  \param   dKp_dx                Out: The scattering propagation matrix term deriative
- ...
- * 
- *  \author Jana Mendrok, Richard Larsson 
- *  \adapted from non-stepwise function
- *  \date   2017-09-21
- */
-void get_stepwise_scattersky_propmat(
-    StokesVector& ap,
-    PropagationMatrix& Kp,
-    ArrayOfStokesVector& dap_dx,
-    ArrayOfPropagationMatrix& dKp_dx,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    ConstMatrixView ppath_1p_pnd,  // the ppath_pnd at this ppath point
-    const ArrayOfMatrix&
-        ppath_dpnd_dx,  // the full ppath_dpnd_dx, ie all ppath points
-    const Index ppath_1p_id,
-    const ArrayOfArrayOfSingleScatteringData& scat_data,
-    ConstVectorView ppath_line_of_sight,
-    ConstVectorView ppath_temperature,
-    const Index& atmosphere_dim,
-    const bool& jacobian_do) {
-  const Index nf = Kp.NumberOfFrequencies(), stokes_dim = Kp.StokesDimensions();
-
-  //StokesVector da_aux(nf, stokes_dim);
-  //PropagationMatrix dK_aux(nf, stokes_dim);
-
-  ArrayOfArrayOfSingleScatteringData scat_data_mono;
-
-  // Direction of outgoing scattered radiation (which is reversed to
-  // LOS). Only used for extracting scattering properties.
-  Vector dir;
-  mirror_los(dir, ppath_line_of_sight, atmosphere_dim);
-  Matrix dir_array(1, 2, 0.);
-  dir_array(0, joker) = dir;
-
-  ArrayOfArrayOfTensor5 ext_mat_Nse;
-  ArrayOfArrayOfTensor4 abs_vec_Nse;
-  ArrayOfArrayOfIndex ptypes_Nse;
-  Matrix t_ok;
-  ArrayOfTensor5 ext_mat_ssbulk;
-  ArrayOfTensor4 abs_vec_ssbulk;
-  ArrayOfIndex ptype_ssbulk;
-  Tensor5 ext_mat_bulk;
-  Tensor4 abs_vec_bulk;
-  Index ptype_bulk;
-
-  // get per-scat-elem data here. and fold with pnd.
-  // keep per-scat-elem data to fold with dpnd_dx further down in
-  // analyt-jac-loop.
-  opt_prop_NScatElems(ext_mat_Nse,
-                      abs_vec_Nse,
-                      ptypes_Nse,
-                      t_ok,
-                      scat_data,
-                      stokes_dim,
-                      ppath_temperature,
-                      dir_array,
-                      -1);
-
-  opt_prop_ScatSpecBulk(ext_mat_ssbulk,
-                        abs_vec_ssbulk,
-                        ptype_ssbulk,
-                        ext_mat_Nse,
-                        abs_vec_Nse,
-                        ptypes_Nse,
-                        ppath_1p_pnd,
-                        t_ok);
-  opt_prop_Bulk(ext_mat_bulk,
-                abs_vec_bulk,
-                ptype_bulk,
-                ext_mat_ssbulk,
-                abs_vec_ssbulk,
-                ptype_ssbulk);
-
-  const Index nf_ssd = abs_vec_bulk.nbooks();  // number of freqs in extracted
-                                               // optprops. if 1, we need to
-                                               // duplicate the ext/abs output.
-
-  for (Index iv = 0; iv < nf; iv++) {
-    if (nf_ssd > 1) {
-      ap.SetAtPosition(abs_vec_bulk(iv, 0, 0, joker), iv);
-      Kp.SetAtPosition(ext_mat_bulk(iv, 0, 0, joker, joker), iv);
-    } else {
-      ap.SetAtPosition(abs_vec_bulk(0, 0, 0, joker), iv);
-      Kp.SetAtPosition(ext_mat_bulk(0, 0, 0, joker, joker), iv);
-    }
-  }
-
-  if (jacobian_do)
-    FOR_ANALYTICAL_JACOBIANS_DO(
-        if (ppath_dpnd_dx[iq].empty()) {
-          dap_dx[iq].SetZero();
-          dKp_dx[iq].SetZero();
-        } else {
-          // check, whether we have any non-zero ppath_dpnd_dx in this
-          // pnd-affecting x? might speed up things a little bit.
-          opt_prop_ScatSpecBulk(ext_mat_ssbulk,
-                                abs_vec_ssbulk,
-                                ptype_ssbulk,
-                                ext_mat_Nse,
-                                abs_vec_Nse,
-                                ptypes_Nse,
-                                ppath_dpnd_dx[iq](joker, Range(ppath_1p_id, 1)),
-                                t_ok);
-          opt_prop_Bulk(ext_mat_bulk,
-                        abs_vec_bulk,
-                        ptype_bulk,
-                        ext_mat_ssbulk,
-                        abs_vec_ssbulk,
-                        ptype_ssbulk);
-          for (Index iv = 0; iv < nf; iv++) {
-            if (nf_ssd > 1) {
-              dap_dx[iq].SetAtPosition(abs_vec_bulk(iv, 0, 0, joker), iv);
-              dKp_dx[iq].SetAtPosition(ext_mat_bulk(iv, 0, 0, joker, joker),
-                                       iv);
-            } else {
-              dap_dx[iq].SetAtPosition(abs_vec_bulk(0, 0, 0, joker), iv);
-              dKp_dx[iq].SetAtPosition(ext_mat_bulk(0, 0, 0, joker, joker), iv);
-            }
-          }
-        })
-}
-
-//! get_stepwise_scattersky_source
-/*!
- *  Calculates the stepwise scattering source terms.
- *  Uses new, unified phase matrix extraction scheme.
- * 
- *  \param   Sp                    Out: The scattering source term
- *  \param   dSp_dx                Out: The derivative of the scattering source term
- ...
- * 
- *  \author Jana Mendrok 
- *  \adapted from non-stepwise function
- *  \date   2018-03-29
- */
-void get_stepwise_scattersky_source(
-    StokesVector& Sp,
-    ArrayOfStokesVector& dSp_dx,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    ConstVectorView ppath_1p_pnd,  // the ppath_pnd at this ppath point
-    const ArrayOfMatrix&
-        ppath_dpnd_dx,  // the full ppath_dpnd_dx, ie all ppath points
-    const Index ppath_1p_id,
-    const ArrayOfArrayOfSingleScatteringData& scat_data,
-    ConstTensor7View doit_i_field,
-    ConstVectorView scat_za_grid,
-    ConstVectorView scat_aa_grid,
-    ConstMatrixView ppath_line_of_sight,
-    const GridPos& ppath_pressure,
-    const Vector& temperature,
-    const Index& atmosphere_dim,
-    const bool& jacobian_do,
-    const Index& t_interp_order) {
-  if (atmosphere_dim != 1)
-    throw runtime_error("This function handles so far only 1D atmospheres.");
-
-  const Index nf = Sp.NumberOfFrequencies();
-  const Index stokes_dim = Sp.StokesDimensions();
-  const Index ne = ppath_1p_pnd.nelem();
-  assert(TotalNumberOfElements(scat_data) == ne);
-  const Index nza = scat_za_grid.nelem();
-  const Index naa = scat_aa_grid.nelem();
-  const Index nq = jacobian_do ? jacobian_quantities.nelem() : 0;
-
-  // interpolate incident field to this ppath point (no need to do this
-  // separately per scatelem)
-  GridPos gp_p;
-  gridpos_copy(gp_p, ppath_pressure);
-  Vector itw_p(2);
-  interpweights(itw_p, gp_p);
-  Tensor3 inc_field(nf, nza, stokes_dim, 0.);
-  for (Index iv = 0; iv < nf; iv++) {
-    for (Index iza = 0; iza < nza; iza++) {
-      for (Index i = 0; i < stokes_dim; i++) {
-        inc_field(iv, iza, i) =
-            interp(itw_p, doit_i_field(iv, joker, 0, 0, iza, 0, i), gp_p);
-      }
-    }
-  }
-
-  // create matrix of incident directions (flat representation of the
-  // scat_za_grid * scat_aa_grid matrix)
-  Matrix idir(nza * naa, 2);
-  Index ia = 0;
-  for (Index iza = 0; iza < nza; iza++) {
-    for (Index iaa = 0; iaa < naa; iaa++) {
-      idir(ia, 0) = scat_za_grid[iza];
-      idir(ia, 1) = scat_aa_grid[iaa];
-      ia++;
-    }
-  }
-
-  // setting prop (aka scattered) direction
-  Matrix pdir(1, 2);
-  //if( ppath_line_of_sight.ncols()==2 )
-  //  pdir(0,joker) = ppath_line_of_sight;
-  //else // 1D case only (currently the only handled case). azimuth not defined.
-  {
-    pdir(0, 0) = ppath_line_of_sight(0, 0);
-    pdir(0, 1) = 0.;
-  }
-
-  // some further variables needed for pha_mat extraction
-  Index nf_ssd = scat_data[0][0].pha_mat_data.nlibraries();
-  Index duplicate_freqs = ((nf == nf_ssd) ? 0 : 1);
-  Tensor6 pha_mat_1se(nf_ssd, 1, 1, nza * naa, stokes_dim, stokes_dim);
-  Vector t_ok(1);
-  Index ptype;
-  Tensor3 scat_source_1se(ne, nf, stokes_dim, 0.);
-
-  Index ise_flat = 0;
-  for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++) {
-    for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++) {
-      // determine whether we have some valid pnd for this
-      // scatelem (in pnd or dpnd)
-      Index val_pnd = 0;
-      if (ppath_1p_pnd[ise_flat] != 0) {
-        val_pnd = 1;
-      } else if (jacobian_do) {
-        for (Index iq = 0; (!val_pnd) && (iq < nq); iq++) {
-          if (jacobian_quantities[iq].Analytical() &&
-              !ppath_dpnd_dx[iq].empty() &&
-              ppath_dpnd_dx[iq](ise_flat, ppath_1p_id) != 0) {
-            val_pnd = 1;
-          }
-        }
-      }
-
-      if (val_pnd) {
-        pha_mat_1ScatElem(pha_mat_1se,
-                          ptype,
-                          t_ok,
-                          scat_data[i_ss][i_se],
-                          temperature,
-                          pdir,
-                          idir,
-                          0,
-                          t_interp_order);
-        if (t_ok[0] == 0) {
-          ostringstream os;
-          os << "Interpolation error for (flat-array) scattering "
-             << "element #" << ise_flat << "\n"
-             << "at location/temperature point #" << ppath_1p_id << "\n";
-          throw runtime_error(os.str());
-        }
-
-        Index this_iv = 0;
-        for (Index iv = 0; iv < nf; iv++) {
-          if (!duplicate_freqs) {
-            this_iv = iv;
-          }
-          Tensor3 product_fields(nza, naa, stokes_dim, 0.);
-
-          ia = 0;
-          for (Index iza = 0; iza < nza; iza++) {
-            for (Index iaa = 0; iaa < naa; iaa++) {
-              for (Index i = 0; i < stokes_dim; i++) {
-                for (Index j = 0; j < stokes_dim; j++) {
-                  product_fields(iza, iaa, i) +=
-                      pha_mat_1se(this_iv, 0, 0, ia, i, j) *
-                      inc_field(iv, iza, j);
-                }
-              }
-              ia++;
-            }
-          }
-
-          for (Index i = 0; i < stokes_dim; i++) {
-            scat_source_1se(ise_flat, iv, i) = AngIntegrate_trapezoid(
-                product_fields(joker, joker, i), scat_za_grid, scat_aa_grid);
-          }
-        }  // for iv
-      }    // if val_pnd
-
-      ise_flat++;
-
-    }  // for i_se
-  }    // for i_ss
-
-  for (Index iv = 0; iv < nf; iv++) {
-    Vector scat_source(stokes_dim, 0.);
-    for (ise_flat = 0; ise_flat < ne; ise_flat++) {
-      for (Index i = 0; i < stokes_dim; i++) {
-        scat_source[i] +=
-            scat_source_1se(ise_flat, iv, i) * ppath_1p_pnd[ise_flat];
-      }
-    }
-
-    Sp.SetAtPosition(scat_source, iv);
-
-    if (jacobian_do) {
-      FOR_ANALYTICAL_JACOBIANS_DO(
-          if (ppath_dpnd_dx[iq].empty()) { dSp_dx[iq].SetZero(); } else {
-            scat_source = 0.;
-            for (ise_flat = 0; ise_flat < ne; ise_flat++) {
-              for (Index i = 0; i < stokes_dim; i++) {
-                scat_source[i] += scat_source_1se(ise_flat, iv, i) *
-                                  ppath_dpnd_dx[iq](ise_flat, ppath_1p_id);
-                dSp_dx[iq].SetAtPosition(scat_source, iv);
-              }
-            }
-          })
-    }
-  }  // for iv
-}
-
-//! rtmethods_jacobian_init
-/*!
-    This function fixes the initial steps around Jacobian calculations, to be
-    done inside radiative transfer WSMs.
-
-    See iyEmissonStandard for usage example.
-
-    \author Patrick Eriksson 
-    \date   2017-11-20
-*/
 void rtmethods_jacobian_init(
     ArrayOfIndex& jac_species_i,
     ArrayOfIndex& jac_scat_i,
@@ -3114,17 +2472,6 @@ void rtmethods_jacobian_init(
   }
 }
 
-//! rtmethods_jacobian_finalisation
-/*!
-    This function fixes the last steps to made on the Jacobian in some
-    radiative transfer WSMs. The method applies iy_transmission, maps from
-    ppath to the retrieval grids and applies non-standard Jacobian units.
-
-    See iyEmissonStandard for usage example.
-
-    \author Patrick Eriksson 
-    \date   2017-11-19
-*/
 void rtmethods_jacobian_finalisation(
     Workspace& ws,
     ArrayOfTensor3& diy_dx,
@@ -3262,17 +2609,6 @@ void rtmethods_jacobian_finalisation(
                                                       ppvar_p);)
 }
 
-//! rtmethods_unit_conversion
-/*!
-    This function handles the unit conversion to be done at the end of some
-    radiative transfer WSMs. The method hanldes both *iy* and analytical parts
-    of the Jacobian.
-
-    See iyEmissonStandard for usage example.
-
-    \author Patrick Eriksson 
-    \date   2017-11-19
-*/
 void rtmethods_unit_conversion(
     Matrix& iy,
     ArrayOfTensor3& diy_dx,
@@ -3314,3 +2650,189 @@ void rtmethods_unit_conversion(
         ppvar_iy(joker, joker, ip), iy_unit, f_grid, ppath.nreal[ip], i_pol);
   }
 }
+
+
+void yCalc_mblock_loop_body(bool& failed,
+                            String& fail_msg,
+                            ArrayOfArrayOfVector& iyb_aux_array,
+                            Workspace& ws,
+                            Vector& y,
+                            Vector& y_f,
+                            ArrayOfIndex& y_pol,
+                            Matrix& y_pos,
+                            Matrix& y_los,
+                            Matrix& y_geo,
+                            Matrix& jacobian,
+                            const Index& atmosphere_dim,
+                            const Tensor3& t_field,
+                            const Tensor3& z_field,
+                            const Tensor4& vmr_field,
+                            const Tensor4& nlte_field,
+                            const Index& cloudbox_on,
+                            const Index& stokes_dim,
+                            const Vector& f_grid,
+                            const Matrix& sensor_pos,
+                            const Matrix& sensor_los,
+                            const Matrix& transmitter_pos,
+                            const Matrix& mblock_dlos_grid,
+                            const Sparse& sensor_response,
+                            const Vector& sensor_response_f,
+                            const ArrayOfIndex& sensor_response_pol,
+                            const Matrix& sensor_response_dlos,
+                            const String& iy_unit,
+                            const Agenda& iy_main_agenda,
+                            const Agenda& geo_pos_agenda,
+                            const Agenda& jacobian_agenda,
+                            const Index& jacobian_do,
+                            const ArrayOfRetrievalQuantity& jacobian_quantities,
+                            const ArrayOfArrayOfIndex& jacobian_indices,
+                            const ArrayOfString& iy_aux_vars,
+                            const Verbosity& verbosity,
+                            const Index& mblock_index,
+                            const Index& n1y,
+                            const Index& j_analytical_do) {
+  try {
+    // Calculate monochromatic pencil beam data for 1 measurement block
+    //
+    Vector iyb, iyb_error, yb(n1y);
+    ArrayOfMatrix diyb_dx;
+    Matrix geo_pos_matrix;
+    //
+    iyb_calc(ws,
+             iyb,
+             iyb_aux_array[mblock_index],
+             diyb_dx,
+             geo_pos_matrix,
+             mblock_index,
+             atmosphere_dim,
+             t_field,
+             z_field,
+             vmr_field,
+             nlte_field,
+             cloudbox_on,
+             stokes_dim,
+             f_grid,
+             sensor_pos,
+             sensor_los,
+             transmitter_pos,
+             mblock_dlos_grid,
+             iy_unit,
+             iy_main_agenda,
+             geo_pos_agenda,
+             j_analytical_do,
+             jacobian_quantities,
+             jacobian_indices,
+             iy_aux_vars,
+             verbosity);
+
+    // Apply sensor response matrix on iyb, and put into y
+    //
+    const Range rowind = get_rowindex_for_mblock(sensor_response, mblock_index);
+    const Index row0 = rowind.get_start();
+    //
+    mult(yb, sensor_response, iyb);
+    //
+    y[rowind] = yb;  // *yb* also used below, as input to jacobian_agenda
+
+    // Fill information variables. And search for NaNs in *y*.
+    //
+    for (Index i = 0; i < n1y; i++) {
+      const Index ii = row0 + i;
+      if (std::isnan(y[ii]))
+        throw runtime_error("One or several NaNs found in *y*.");
+      y_f[ii] = sensor_response_f[i];
+      y_pol[ii] = sensor_response_pol[i];
+      y_pos(ii, joker) = sensor_pos(mblock_index, joker);
+      y_los(ii, joker) = sensor_los(mblock_index, joker);
+      y_los(ii, 0) += sensor_response_dlos(i, 0);
+      if (sensor_response_dlos.ncols() > 1) {
+        y_los(ii, 1) += sensor_response_dlos(i, 1);
+      }
+    }
+
+    // Apply sensor response matrix on diyb_dx, and put into jacobian
+    // (that is, analytical jacobian part)
+    //
+    if (j_analytical_do) {
+      FOR_ANALYTICAL_JACOBIANS_DO2(
+          mult(jacobian(rowind,
+                        Range(jacobian_indices[iq][0],
+                              jacobian_indices[iq][1] -
+                                  jacobian_indices[iq][0] + 1)),
+               sensor_response,
+               diyb_dx[iq]);)
+    }
+
+    // Calculate remaining parts of *jacobian*
+    //
+    if (jacobian_do) {
+      jacobian_agendaExecute(
+          ws, jacobian, mblock_index, iyb, yb, jacobian_agenda);
+    }
+
+    // Handle geo-positioning
+    if (!std::isnan(geo_pos_matrix(0, 0)))  // No data are flagged as NaN
+    {
+      // We set geo_pos based on the max value in sensor_response
+      const Index nfs = f_grid.nelem() * stokes_dim;
+      for (Index i = 0; i < n1y; i++) {
+        Index jmax = -1;
+        Numeric rmax = -99e99;
+        for (Index j = 0; j < sensor_response.ncols(); j++) {
+          if (sensor_response(i, j) > rmax) {
+            rmax = sensor_response(i, j);
+            jmax = j;
+          }
+        }
+        const Index jhit = Index(floor(jmax / nfs));
+        y_geo(row0 + i, joker) = geo_pos_matrix(jhit, joker);
+      }
+    }
+  }
+
+  catch (const std::exception& e) {
+#pragma omp critical(yCalc_fail)
+    {
+      fail_msg = e.what();
+      failed = true;
+    }
+  }
+}
+
+void ze_cfac(Vector& fac,
+             const Vector& f_grid,
+             const Numeric& ze_tref,
+             const Numeric& k2) {
+  const Index nf = f_grid.nelem();
+
+  assert(fac.nelem() == nf);
+
+  // Refractive index for water (if needed)
+  Matrix complex_n(0, 0);
+  if (k2 <= 0) {
+    complex_n_water_liebe93(complex_n, f_grid, ze_tref);
+  }
+
+  // Common conversion factor
+  const Numeric a = 4e18 / (PI * PI * PI * PI);
+
+  for (Index iv = 0; iv < nf; iv++) {
+    // Reference dielectric factor.
+    Numeric K2;
+    if (k2 >= 0) {
+      K2 = k2;
+    } else {
+      Complex n(complex_n(iv, 0), complex_n(iv, 1));
+      Complex n2 = n * n;
+      Complex K = (n2 - Numeric(1.0)) / (n2 + Numeric(2.0));
+      Numeric absK = abs(K);
+      K2 = absK * absK;
+    }
+
+    // Wavelength
+    Numeric la = SPEED_OF_LIGHT / f_grid[iv];
+
+    fac[iv] = a * la * la * la * la / K2;
+  }
+}
+
