@@ -15,8 +15,16 @@
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-// NOTE: This file contains only experimental code to test the F90-routines.
-// It might evolve to replace it at some point but that is beyond present intent
+/**
+ * @file linemixing.cc 
+ * @author Richard Larsson
+ * @date 2018-08-06
+ * 
+ * @brief Line mixing calculation implementation
+ * 
+ * This file contains only experimental code to test the F90-routines.
+ * It might evolve to replace it at some point but that is beyond present ability
+ */
 
 #include "linemixing.h"
 #include "abs_species_tags.h"
@@ -27,11 +35,6 @@
 #include "sorting.h"
 #include "wigner_functions.h"
 
-//! Rotational constants of supported scenarios
-/*!
- \param main: species of interest
- \return The rotational constant in Hertz
- */
 inline Numeric getB0(const SpeciesTag& main) {
   if (main.IsSpecies("CO2"))
     return Conversion::kaycm2freq(0.39021);  // Herzberg 1966
@@ -53,12 +56,6 @@ inline Numeric getB0(const SpeciesTag& main) {
       "Error in getB0: Unsupported main species/isotopologue.  Check your broadening data");
 }
 
-//! Adiabatic function format for supported scenarios
-/*!
- \param main: species of interest
- \param collider: species broadening main
- \return An adiabatic factor function
- */
 inline AdiabaticFactor adiabatic_factor(const SpeciesTag& main,
                                         const SpeciesTag& collider) {
   if (main.IsSpecies("CO2") and collider.IsSpecies("N2"))
@@ -73,14 +70,6 @@ inline AdiabaticFactor adiabatic_factor(const SpeciesTag& main,
       "Error in adiabatic_factor: Unsupported species pairs, main-collider.  Check your broadening data");
 }
 
-//! BasisRate function format for supported scenarios
-/*!
- \param main: species of interest
- \param collider: species broadening main
- \param T: Atmospheric temperature
- \param T0: Reference temperature
- \return An BasisRate function
- */
 inline BasisRate basis_rate(const SpeciesTag& main,
                             const SpeciesTag& collider,
                             const Numeric& T,
@@ -104,18 +93,8 @@ inline BasisRate basis_rate(const SpeciesTag& main,
       "Error in basis_rate: Unsupported species pairs, main-collider.  Check your broadening data");
 }
 
-// A helper for insider relaxation_matrix_calculations
 enum class Species { CO2, O2_66 };
 
-/*! Computes an individual W
- \param lines: all absorption lines
- \param population: population distribution of the absorption lines
- \param main: species of interest
- \param collider: species broadening main
- \param collider_vmr: vmr of species broadening main
- \param T: Atmospheric temperature
- \return An individual W
-*/
 Matrix relaxation_matrix_calculations(const ArrayOfLineRecord& lines,
                                       const Vector& population,
                                       const SpeciesTag& main,
@@ -202,11 +181,6 @@ Matrix relaxation_matrix_calculations(const ArrayOfLineRecord& lines,
   throw std::runtime_error(os.str());
 }
 
-/*! Renormalize W
- \param W:  A full relaxation matrix for all absorption lines to be modified
- \param population: population distribution of the absorption lines
- \param d0: reduced dipole moment of the absorption lines
- */
 void normalize_relaxation_matrix(Matrix& W,
                                  const Vector& population,
                                  const Vector& /* d0 */,
@@ -293,16 +267,6 @@ void normalize_relaxation_matrix(Matrix& W,
   throw std::runtime_error(os.str());
 }
 
-/*! Computes an individual W
- \param abs_lines: all absorption lines
- \param main_species: species of interest
- \param population: population distribution of the absorption lines
- \param d0: reduced dipole moment of the absorption lines
- \param colliders: species broadening main
- \param colliders_vmr: vmr of species broadening main
- \param T: Atmospheric temperature
- \return A normalized relaxation matrix
-*/
 inline Matrix hartmann_relaxation_matrix(
     const ArrayOfLineRecord& abs_lines,
     const SpeciesTag& main_species,
@@ -361,12 +325,6 @@ inline Numeric dpopulation_densitydT(
              (-dQTdT) / pow2(QT);
 }
 
-/*! Computes the population distribution
- \param abs_lines: all absorption lines
- \param partition_functions: the partition functions
- \param T: Atmospheric temperature
- \return population distribution of the absorption lines
-*/
 Vector population_density_vector(const ArrayOfLineRecord& abs_lines,
                                  const SpeciesAuxData& partition_functions,
                                  const Numeric& T) try {
@@ -399,10 +357,6 @@ Vector population_density_vector(const ArrayOfLineRecord& abs_lines,
   throw std::runtime_error(os.str());
 }
 
-/*! Computes the dipole moment
- \param abs_lines: all absorption lines of the band
- \return dipole moment of the absorption lines
-*/
 Vector dipole_vector(const ArrayOfLineRecord& abs_lines,
                      const SpeciesAuxData& partition_functions) try {
   const Index n = abs_lines.nelem();
@@ -625,6 +579,7 @@ OffDiagonalElementOutput OffDiagonalElement::CO2_IR(
 }
 
 constexpr auto params = 10;
+
 void linearized_relaxation_matrix(Tensor3& M,
                                   const ArrayOfRational& Ji,
                                   const ArrayOfRational& Jf,
@@ -838,38 +793,28 @@ OffDiagonalElementOutput OffDiagonalElement::O2_66_MW(
   return {onebig ? sum : sum * rho2 / rho1, onebig ? sum * rho1 / rho2 : sum};
 }
 
-/*! Computes adiabatic factor by
- * 
- * AF = (1 + 1/24 * (w(J) dc / v(T) )^2)^-2
- * 
- */
 Numeric AdiabaticFactor::mol_X(const Numeric& L,
                                const Numeric& B0,
                                const Numeric& T,
                                const Numeric& main_mass,
                                const Numeric& collider_mass) const {
   using namespace Constant;
+
   using namespace Conversion;
 
   if (L < 1) return 0.;
 
   static constexpr Numeric constant = 2000 * R * inv_pi * pow2(inv_ln_2);
 
-  // Mean speed of collisions
   const Numeric invmu = (1 / main_mass + 1 / collider_mass);
+
   const Numeric vm2 = constant * T * invmu;
 
-  // FIXME: With or without freq2angfreq???
   return 1 / pow2(1.0 + pow2(freq2angfreq(B0) * (4 * L - 2) *
                              mdata[Index(HartmannPos::dc)]) /
                             vm2 / 24.0);
 }
 
-/*! Computes adiabatic factor by
- * 
- * BR = a1 (L*(L+1))^-a2 * exp(- a3 B0 L*(L+1) hc/kT)
- * 
- */
 Numeric BasisRate::mol_X(const Numeric& L,
                          const Numeric& B0,
                          const Numeric& T) const {
