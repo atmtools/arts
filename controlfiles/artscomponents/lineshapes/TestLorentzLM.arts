@@ -133,7 +133,7 @@ Arts2{
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed AIR-G0-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G0", coefficient="X0", species="AIR", change=20, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="G0", coefficient="X0", species="AIR", change=20, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
@@ -144,7 +144,7 @@ Arts2{
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed AIR-G0-X1 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G0", coefficient="X1", species="AIR", change=0.8e-3, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="G0", coefficient="X1", species="AIR", change=0.8e-3, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
@@ -155,7 +155,7 @@ Arts2{
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed AIR-D0-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="D0", coefficient="X0", species="AIR", change=1, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="D0", coefficient="X0", species="AIR", change=1, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
@@ -166,7 +166,7 @@ Arts2{
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed AIR-D0-X1 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="D0", coefficient="X1", species="AIR", change=0.8e-3, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="D0", coefficient="X1", species="AIR", change=0.8e-3, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
@@ -177,7 +177,7 @@ Arts2{
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed AIR-Y-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X0", species="AIR", change=1e-10, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X0", species="AIR", change=1e-10, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
@@ -188,7 +188,7 @@ Arts2{
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed AIR-Y-X1 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X1", species="AIR", change=1e-12, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X1", species="AIR", change=1e-12, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
@@ -199,7 +199,7 @@ Arts2{
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed AIR-Y-X2 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X2", species="AIR", change=0.8e-3, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X2", species="AIR", change=0.8e-3, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
@@ -210,7 +210,7 @@ Arts2{
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed AIR-G-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G", coefficient="X0", species="AIR", change=1e-14, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="G", coefficient="X0", species="AIR", change=1e-14, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
@@ -221,7 +221,7 @@ Arts2{
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed AIR-G-X1 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G", coefficient="X1", species="AIR", change=1e-16, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="G", coefficient="X1", species="AIR", change=1e-16, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
@@ -232,7 +232,7 @@ Arts2{
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed AIR-G-X2 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G", coefficient="X2", species="AIR", change=0.8e-3, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="G", coefficient="X2", species="AIR", change=0.8e-3, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
@@ -243,7 +243,7 @@ Arts2{
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed AIR-DV-X0 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X0", species="AIR", change=1e-2, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X0", species="AIR", change=1e-2, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
@@ -254,7 +254,7 @@ Arts2{
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed AIR-DV-X1 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X1", species="AIR", change=1e-4, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X1", species="AIR", change=1e-4, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
@@ -265,7 +265,7 @@ Arts2{
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
   # Perform calculations for perturbed AIR-DV-X2 derivative
-  abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X2", species="AIR", change=0.8e-3, relative=0)
+  abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X2", species="AIR", change=0.8e-3, relative=0)
   abs_lines_per_speciesCreateFromLines
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit

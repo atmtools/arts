@@ -19,9 +19,13 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
  USA. */
 
-//======================================================================
-//         Functions for altering the line catalog
-//======================================================================
+/**
+ * @file m_linerecord.cc
+ * @author Richard Larsson (larsson (at) mps.mpg.de)
+ * @date 2015-03-20
+ * 
+ * @brief Functions for altering the line catalogs
+ */
 
 #include "absorption.h"
 #include "auto_md.h"
@@ -31,15 +35,17 @@
 void abs_linesShiftFrequency(ArrayOfLineRecord& abs_lines,
                              const Numeric& freqeuncy_shift,
                              const Verbosity&) {
-  // Catch use case that is not a use case
-  if (abs_lines.nelem() == 0)
-    throw std::runtime_error(
-        "*abs_lines* is empty.  Is shifting frequency really intended?");
+  for (auto& line: abs_lines)
+    line.setF(line.F() + freqeuncy_shift);
+}
 
-  // Shift all line center frequencies
-  for (Index jj = 0; jj < abs_lines.nelem(); jj++) {
-    abs_lines[jj].setF(abs_lines[jj].F() + freqeuncy_shift);
-  }
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesShiftFrequency(
+    ArrayOfArrayOfLineRecord& abs_lines_per_species,
+    const Numeric& freqeuncy_shift,
+    const Verbosity& verbosity) {
+  for (auto& abs_lines: abs_lines_per_species)
+    abs_linesShiftFrequency(abs_lines, freqeuncy_shift, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -47,56 +53,18 @@ void abs_linesRelativeLineStrengthShift(
     ArrayOfLineRecord& abs_lines,
     const Numeric& relative_line_strength_shift,
     const Verbosity&) {
-  // Catch use case that is not a use case
-  if (abs_lines.nelem() == 0)
-    throw std::runtime_error(
-        "*abs_lines* is empty.  Is shifting line strength really intended?");
-
-  // Rescale all line strengths
-  for (Index jj = 0; jj < abs_lines.nelem(); jj++) {
-    abs_lines[jj].setI0(abs_lines[jj].I0() *
-                        (1.0 + relative_line_strength_shift));
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesShiftFrequency(
-    ArrayOfArrayOfLineRecord& abs_lines_per_species,
-    const Numeric& freqeuncy_shift,
-    const Verbosity&) {
-  // Catch use case that is not a use case
-  if (abs_lines_per_species.nelem() == 0)
-    throw std::runtime_error(
-        "*abs_lines_per_species* is empty.  Is shifting frequency really intended?");
-
-  // Simply shift all lines from their original frequency by input *freqeuncy_shift*.
-  for (Index ii = 0; ii < abs_lines_per_species.nelem(); ii++) {
-    // Get a reference to the current list of lines to save typing:
-    ArrayOfLineRecord& ll = abs_lines_per_species[ii];
-    for (Index jj = 0; jj < ll.nelem(); jj++) {
-      ll[jj].setF(ll[jj].F() + freqeuncy_shift);
-    }
-  }
+  const auto r = 1.0 + relative_line_strength_shift;
+  for (auto& line: abs_lines)
+    line.setI0(line.I0() * r);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesRelativeLineStrengthShift(
     ArrayOfArrayOfLineRecord& abs_lines_per_species,
     const Numeric& relative_line_strength_shift,
-    const Verbosity&) {
-  // Catch use case that is not a use case
-  if (abs_lines_per_species.nelem() == 0)
-    throw std::runtime_error(
-        "*abs_lines_per_species* is empty.  Is shifting line strength really intended?");
-
-  // Simply rescale all lines from their original line strength by input *relative_line_strength_shift*.
-  for (Index ii = 0; ii < abs_lines_per_species.nelem(); ii++) {
-    // Get a reference to the current list of lines to save typing:
-    ArrayOfLineRecord& ll = abs_lines_per_species[ii];
-    for (Index jj = 0; jj < ll.nelem(); jj++) {
-      ll[jj].setI0(ll[jj].I0() * (1.0 + relative_line_strength_shift));
-    }
-  }
+    const Verbosity& verbosity) {
+  for(auto& abs_lines: abs_lines_per_species)
+    abs_linesRelativeLineStrengthShift(abs_lines, relative_line_strength_shift, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -132,13 +100,15 @@ void abs_linesReplaceParameterWithLinesParameter(
 
   if (parameter_name.nelem() == 0)
     throw std::runtime_error("parameter_name is empty.\n");
+  
   if (replacement_lines.nelem() == 0)
     throw std::runtime_error("replacement_lines is empty.\n");
-  else if (parameter_name == "Central Frequency")
+  
+  if (parameter_name == "Central Frequency")
     parameter_switch = 0;
   else if (parameter_name == "Line Strength")
     parameter_switch = 1;
-  else if (parameter_name == "Line Function Data")
+  else if (parameter_name == "Line Shape Model")
     parameter_switch = 2;
   else if (parameter_name == "Lower State Energy")
     parameter_switch = 4;
@@ -278,7 +248,7 @@ void abs_linesSetBaseParameterForMatchingLines(ArrayOfLineRecord& abs_lines,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesSetLineFunctionDataParameterForMatchingLines(
+void abs_linesSetLineShapeModelParameterForMatchingLines(
     ArrayOfLineRecord& abs_lines,
     const QuantumIdentifier& QI,
     const String& parameter,
@@ -300,7 +270,7 @@ void abs_linesSetLineFunctionDataParameterForMatchingLines(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesChangeLineFunctionDataParameterForMatchingLines(
+void abs_linesChangeLineShapeModelParameterForMatchingLines(
     ArrayOfLineRecord& abs_lines,
     const QuantumIdentifier& QI,
     const String& parameter,
@@ -622,30 +592,6 @@ void abs_lines_per_speciesCutOffForAll(
     const Verbosity& verbosity) {
   for (auto& abs_lines : abs_lines_per_species)
     abs_linesCutOffForAll(abs_lines, option, verbosity);
-}
-
-void abs_linesRemoveSelfFromLineFunctionData(ArrayOfLineRecord& abs_lines,
-                                             const Verbosity&) {
-  for (auto& line : abs_lines) line.LineShapeModelRemoveSelf();
-}
-
-void abs_lines_per_speciesRemoveSelfFromLineFunctionData(
-    ArrayOfArrayOfLineRecord& abs_lines_per_species,
-    const Verbosity& verbosity) {
-  for (auto& lines : abs_lines_per_species)
-    abs_linesRemoveSelfFromLineFunctionData(lines, verbosity);
-}
-
-void abs_linesRemoveAllButAirBroadening(ArrayOfLineRecord& abs_lines,
-                                        const Verbosity&) {
-  for (auto& line : abs_lines) line.LineShapeModelOnlyAir();
-}
-
-void abs_lines_per_speciesRemoveAllButAirBroadening(
-    ArrayOfArrayOfLineRecord& abs_lines_per_species,
-    const Verbosity& verbosity) {
-  for (auto& lines : abs_lines_per_species)
-    abs_linesRemoveAllButAirBroadening(lines, verbosity);
 }
 
 void abs_linesFromSplitLines(

@@ -125,7 +125,7 @@ Arts2 {
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   
 # Perform calculations for perturbed AIR-G0-X0 derivative
-abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G0", coefficient="X0", species="AIR", change=10, relative=0)
+abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="G0", coefficient="X0", species="AIR", change=10, relative=0)
 abs_lines_per_speciesCreateFromLines
 nlteSetByQuantumIdentifiers(population_type="ND")
 abs_xsec_agenda_checkedCalc
@@ -137,7 +137,7 @@ ReadXML(testdata, "testdata/test-nlte/propmat-dlf-AIR-G0-X0.xml")
 CompareRelative(testdata, propmat_clearsky, 1e-6)
 
 # Perform calculations for perturbed AIR-G0-X1 derivative
-abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G0", coefficient="X1", species="AIR", change=1e-05, relative=0)
+abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="G0", coefficient="X1", species="AIR", change=1e-05, relative=0)
 abs_lines_per_speciesCreateFromLines
 nlteSetByQuantumIdentifiers(population_type="ND")
 abs_xsec_agenda_checkedCalc
@@ -149,7 +149,7 @@ ReadXML(testdata, "testdata/test-nlte/propmat-dlf-AIR-G0-X1.xml")
 CompareRelative(testdata, propmat_clearsky, 1e-6)
 
 # Perform calculations for perturbed AIR-D0-X0 derivative
-abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="D0", coefficient="X0", species="AIR", change=10, relative=0)
+abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="D0", coefficient="X0", species="AIR", change=10, relative=0)
 abs_lines_per_speciesCreateFromLines
 nlteSetByQuantumIdentifiers(population_type="ND")
 abs_xsec_agenda_checkedCalc
@@ -161,7 +161,7 @@ ReadXML(testdata, "testdata/test-nlte/propmat-dlf-AIR-D0-X0.xml")
 CompareRelative(testdata, propmat_clearsky, 1e-6)
 
 # Perform calculations for perturbed AIR-D0-X1 derivative
-abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="D0", coefficient="X1", species="AIR", change=1e-05, relative=0)
+abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="D0", coefficient="X1", species="AIR", change=1e-05, relative=0)
 abs_lines_per_speciesCreateFromLines
 nlteSetByQuantumIdentifiers(population_type="ND")
 abs_xsec_agenda_checkedCalc
@@ -173,7 +173,7 @@ ReadXML(testdata, "testdata/test-nlte/propmat-dlf-AIR-D0-X1.xml")
 CompareRelative(testdata, propmat_clearsky, 1e-6)
 
 # Perform calculations for perturbed AIR-Y-X0 derivative
-abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X0", species="AIR", change=1e-10, relative=0)
+abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X0", species="AIR", change=1e-10, relative=0)
 abs_lines_per_speciesCreateFromLines
 nlteSetByQuantumIdentifiers(population_type="ND")
 abs_xsec_agenda_checkedCalc
@@ -185,7 +185,7 @@ ReadXML(testdata, "testdata/test-nlte/propmat-dlf-AIR-Y-X0.xml")
 CompareRelative(testdata, propmat_clearsky, 1e-6)
 
 # Perform calculations for perturbed AIR-Y-X1 derivative
-abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X1", species="AIR", change=1e-12, relative=0)
+abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X1", species="AIR", change=1e-12, relative=0)
 abs_lines_per_speciesCreateFromLines
 nlteSetByQuantumIdentifiers(population_type="ND")
 abs_xsec_agenda_checkedCalc
@@ -197,7 +197,7 @@ ReadXML(testdata, "testdata/test-nlte/propmat-dlf-AIR-Y-X1.xml")
 CompareRelative(testdata, propmat_clearsky, 1e-6)
 
 # Perform calculations for perturbed AIR-Y-X2 derivative
-abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X2", species="AIR", change=1e-05, relative=0)
+abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X2", species="AIR", change=1e-05, relative=0)
 abs_lines_per_speciesCreateFromLines
 nlteSetByQuantumIdentifiers(population_type="ND")
 abs_xsec_agenda_checkedCalc
@@ -209,7 +209,7 @@ ReadXML(testdata, "testdata/test-nlte/propmat-dlf-AIR-Y-X2.xml")
 CompareRelative(testdata, propmat_clearsky, 1e-6)
 
 # Perform calculations for perturbed AIR-G-X0 derivative
-abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G", coefficient="X0", species="AIR", change=1e-14, relative=0)
+abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="G", coefficient="X0", species="AIR", change=1e-14, relative=0)
 abs_lines_per_speciesCreateFromLines
 nlteSetByQuantumIdentifiers(population_type="ND")
 abs_xsec_agenda_checkedCalc
@@ -221,7 +221,7 @@ ReadXML(testdata, "testdata/test-nlte/propmat-dlf-AIR-G-X0.xml")
 CompareRelative(testdata, propmat_clearsky, 1e-6)
 
 # Perform calculations for perturbed AIR-G-X1 derivative
-abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G", coefficient="X1", species="AIR", change=1e-16, relative=0)
+abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="G", coefficient="X1", species="AIR", change=1e-16, relative=0)
 abs_lines_per_speciesCreateFromLines
 nlteSetByQuantumIdentifiers(population_type="ND")
 abs_xsec_agenda_checkedCalc
@@ -233,7 +233,7 @@ ReadXML(testdata, "testdata/test-nlte/propmat-dlf-AIR-G-X1.xml")
 CompareRelative(testdata, propmat_clearsky, 1e-6)
 
 # Perform calculations for perturbed AIR-G-X2 derivative
-abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="G", coefficient="X2", species="AIR", change=1e-05, relative=0)
+abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="G", coefficient="X2", species="AIR", change=1e-05, relative=0)
 abs_lines_per_speciesCreateFromLines
 nlteSetByQuantumIdentifiers(population_type="ND")
 abs_xsec_agenda_checkedCalc
@@ -245,7 +245,7 @@ ReadXML(testdata, "testdata/test-nlte/propmat-dlf-AIR-G-X2.xml")
 CompareRelative(testdata, propmat_clearsky, 1e-6)
 
 # Perform calculations for perturbed AIR-DV-X0 derivative
-abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X0", species="AIR", change=0.1, relative=0)
+abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X0", species="AIR", change=0.1, relative=0)
 abs_lines_per_speciesCreateFromLines
 nlteSetByQuantumIdentifiers(population_type="ND")
 abs_xsec_agenda_checkedCalc
@@ -257,7 +257,7 @@ ReadXML(testdata, "testdata/test-nlte/propmat-dlf-AIR-DV-X0.xml")
 CompareRelative(testdata, propmat_clearsky, 1e-6)
 
 # Perform calculations for perturbed AIR-DV-X1 derivative
-abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X1", species="AIR", change=0.01, relative=0)
+abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X1", species="AIR", change=0.01, relative=0)
 abs_lines_per_speciesCreateFromLines
 nlteSetByQuantumIdentifiers(population_type="ND")
 abs_xsec_agenda_checkedCalc
@@ -269,7 +269,7 @@ ReadXML(testdata, "testdata/test-nlte/propmat-dlf-AIR-DV-X1.xml")
 CompareRelative(testdata, propmat_clearsky, 1e-6)
 
 # Perform calculations for perturbed AIR-DV-X2 derivative
-abs_linesChangeLineFunctionDataParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X2", species="AIR", change=1e-05, relative=0)
+abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X2", species="AIR", change=1e-05, relative=0)
 abs_lines_per_speciesCreateFromLines
 nlteSetByQuantumIdentifiers(population_type="ND")
 abs_xsec_agenda_checkedCalc
