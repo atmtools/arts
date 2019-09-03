@@ -113,7 +113,7 @@ abs_speciesSet( species=[ "H2O-PWR98",
 
 # Creation of abs_lookup table
 #-----------------------------
-abs_linesReadFromSplitArtscat(abs_lines, abs_species, "spectroscopy/Perrin_artscat34/", 0, 3e12)
+abs_linesReadFromSplitArtscat(abs_lines, abs_species, "spectroscopy/Perrin/", 0, 3e12)
 abs_lines_per_speciesCreateFromLines
 
 abs_lookupSetupBatch   	
