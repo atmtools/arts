@@ -1926,8 +1926,8 @@ void get_stepwise_transmission_matrix(
     const ArrayOfPropagationMatrix& dK_far_dx,
     const Numeric& ppath_distance,
     const bool& first_level,
-    const Numeric& dppath_distance_dT_HSE_guesswork_close,
-    const Numeric& dppath_distance_dT_HSE_guesswork_far,
+    const Numeric& dppath_distance_dT_HSE_close,
+    const Numeric& dppath_distance_dT_HSE_far,
     const Index& temperature_derivative_position_if_hse_is_active) {
   // Frequency counter
   const Index nf = K_close.NumberOfFrequencies();
@@ -1953,8 +1953,8 @@ void get_stepwise_transmission_matrix(
           K_far,
           dK_close_dx,
           dK_far_dx,
-          dppath_distance_dT_HSE_guesswork_close,
-          dppath_distance_dT_HSE_guesswork_far,
+          dppath_distance_dT_HSE_close,
+          dppath_distance_dT_HSE_far,
           temperature_derivative_position_if_hse_is_active);
 
     // Cumulate transmission
@@ -1968,12 +1968,6 @@ void get_stepwise_transmission_matrix(
       cumulative_transmission *= T;
     }
   }
-}
-
-Numeric guesswork_HSE_derivative(Numeric h, Numeric r, Numeric T) {
-  // FIXME: Fix or validate so this stops being guesswork
-  return 2 * h * std::abs(h / r) /
-         T; /*std::abs to keep sign since one level should be negative and the other positive*/
 }
 
 void iyb_calc_body(bool& failed,

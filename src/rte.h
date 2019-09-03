@@ -422,16 +422,14 @@ void get_iy_of_background(Workspace& ws,
 /** Determines pressure, temperature, VMR, winds and magnetic field for each
     propgataion path point.
 
-    FIXMEDOC Header not polished as function shall be removed
-
     The output variables are sized inside the function. For VMR the
     dimensions are [ species, propagation path point ].
 
-    @param[in]   ppath_p           Out: Pressure for each ppath point.
-    @param[in]   ppath_t           Out: Temperature for each ppath point.
-    @param[in]   ppath_vmr         Out: VMR values for each ppath point.
-    @param[in]   ppath_wind        Out: Wind vector for each ppath point.
-    @param[in]   ppath_mag         Out: Mag. field vector for each ppath point.
+    @param[out]  ppath_p           Pressure for each ppath point.
+    @param[out]  ppath_t           Temperature for each ppath point.
+    @param[out]  ppath_vmr         VMR values for each ppath point.
+    @param[out]  ppath_wind        Wind vector for each ppath point.
+    @param[out]  ppath_mag         Mag. field vector for each ppath point.
     @param[in]   ppath             As the WSV.
     @param[in]   atmosphere_dim    As the WSV.
     @param[in]   p_grid            As the WSV.
@@ -470,13 +468,11 @@ void get_ppath_atmvars(Vector& ppath_p,
 
 /** Determines the particle fields along a propagation path.
 
-    FIXMEDOC Header not polished as function shall be removed
-
-    @param[in]   clear2cloudy        Out: Mapping of index. See code for details. 
-    @param[in]   ppath_pnd           Out: The particle number density for each
-                                      path point (also outside cloudbox).
-    @param[in]   ppath_dpnd_dx       Out: dpnd_field_dx for each path point
-                                      (also outside cloudbox).
+    @param[out]  clear2cloudy        Mapping of index. See code for details. 
+    @param[out]  ppath_pnd           The particle number density for each
+                                     path point (also outside cloudbox).
+    @param[out]  ppath_dpnd_dx       dpnd_field_dx for each path point
+                                     (also outside cloudbox).
     @param[in]   ppath               As the WSV.    
     @param[in]   cloubox_limits      As the WSV.    
     @param[in]   pnd_field           As the WSV.    
@@ -494,14 +490,11 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
                          const Tensor4& pnd_field,
                          const ArrayOfTensor4& dpnd_field_dx);
 
-/**
-    Determines the Doppler shifted frequencies along the propagation path.
+/** Determines the Doppler shifted frequencies along the propagation path.
 
-    ppath_doppler [ nf + np ]
+    ppath_doppler[ nf,np]
 
-    FIXMEDOC Header not polished as function shall be removed
-
-    @param[in]   ppath_f          Out: Doppler shifted f_grid
+    @param[out]  ppath_f          Doppler shifted f_grid
     @param[in]   ppath            Propagation path.
     @param[in]   f_grid           Original f_grid.
     @param[in]   atmosphere_dim   As the WSV.
@@ -531,7 +524,9 @@ void get_ppath_f(Matrix& ppath_f,
 Range get_rowindex_for_mblock(const Sparse& sensor_response,
                               const Index& imblock);
 
-/** FIXMEDOC@Richard: Finish/check the documentation of all get_stepwise
+/** FIXMEDOC@Richard: Finish/check the documentation of all get_stepwise.
+ *                    You use different variable names in rte.h and rte.cc in
+ *                    some cases. Should be corrected?
  * 
  *  @author Richard Larsson 
  *  @date   2017-09-21
@@ -738,13 +733,6 @@ void get_stepwise_transmission_matrix(
     const Numeric& dr_dT_close = 0,
     const Numeric& dr_dT_far = 0,
     const Index& it = -1);
-
-/** FIXMEDOC@Richard: Finish documentation of this one
- * 
- *  @author Richard Larsson 
- *  @date   2017-09-21
- */
-Numeric guesswork_HSE_derivative(Numeric h, Numeric r, Numeric T);
 
 /** Performs calculations for one measurement block, on iy-level
  *
