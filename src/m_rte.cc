@@ -17,19 +17,12 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*===========================================================================
-  === File description 
-  ===========================================================================*/
+/**
+  @file   m_rte.cc
+  @author Patrick Eriksson <patrick.eriksson@chalmers.se>
+  @date   2002-05-11 
 
-/*!
-  \file   m_rte.cc
-  \author Patrick Eriksson <patrick.eriksson@chalmers.se>
-  \date   2002-05-11 
-
-  \brief  Workspace functions for solving clear sky radiative transfer.
-
-  These functions are listed in the doxygen documentation as entries of the
-  file auto_md.h.
+  @brief  Workspace methods for solving clear sky radiative transfer.
 */
 
 /*===========================================================================
@@ -70,7 +63,7 @@ extern const Index GFIELD4_LON_GRID;
   === Workspace methods 
   ===========================================================================*/
 
-/* Workspace method: Doxygen documentation will be auto-generated */
+/** Workspace method: Doxygen documentation will be auto-generated */
 void iyApplyUnit(Matrix& iy,
                  ArrayOfMatrix& iy_aux,
                  const Index& stokes_dim,
@@ -105,7 +98,7 @@ void iyApplyUnit(Matrix& iy,
   }
 }
 
-/* Workspace method: Doxygen documentation will be auto-generated */
+/** Workspace method: Doxygen documentation will be auto-generated */
 void iyCalc(Workspace& ws,
             Matrix& iy,
             ArrayOfMatrix& iy_aux,
@@ -181,7 +174,7 @@ void iyCalc(Workspace& ws,
   }
 }
 
-/* Workspace method: Doxygen documentation will be auto-generated */
+/** Workspace method: Doxygen documentation will be auto-generated */
 void iyEmissionStandard(Workspace& ws,
                         Matrix& iy,
                         ArrayOfMatrix& iy_aux,
@@ -577,7 +570,7 @@ void iyEmissionStandard(Workspace& ws,
   }
 }
 
-/* Workspace method: Doxygen documentation will be auto-generated */
+/** Workspace method: Doxygen documentation will be auto-generated */
 void iyEmissionStandardParallel(
     Workspace& ws,
     Matrix& iy,
@@ -979,7 +972,7 @@ void iyEmissionStandardParallel(
   }
 }
 
-/* Workspace method: Doxygen documentation will be auto-generated */
+/** Workspace method: Doxygen documentation will be auto-generated */
 void iyIndependentBeamApproximation(Workspace& ws,
                                     Matrix& iy,
                                     ArrayOfMatrix& iy_aux,
@@ -1422,7 +1415,7 @@ void iyIndependentBeamApproximation(Workspace& ws,
   }
 }
 
-/* Workspace method: Doxygen documentation will be auto-generated */
+/** Workspace method: Doxygen documentation will be auto-generated */
 void iyLoopFrequencies(Workspace& ws,
                        Matrix& iy,
                        ArrayOfMatrix& iy_aux,
@@ -1528,7 +1521,7 @@ void iyLoopFrequencies(Workspace& ws,
   }
 }
 
-/* Workspace method: Doxygen documentation will be auto-generated */
+/** Workspace method: Doxygen documentation will be auto-generated */
 void iyMC(Workspace& ws,
           Matrix& iy,
           ArrayOfMatrix& iy_aux,
@@ -1723,7 +1716,7 @@ void iyMC(Workspace& ws,
   if (failed) throw runtime_error(fail_msg);
 }
 
-/* Workspace method: Doxygen documentation will be auto-generated */
+/** Workspace method: Doxygen documentation will be auto-generated */
 void iyReplaceFromAux(Matrix& iy,
                       const ArrayOfMatrix& iy_aux,
                       const ArrayOfString& iy_aux_vars,
@@ -1755,7 +1748,7 @@ void iyReplaceFromAux(Matrix& iy,
         "is either not defined at all or is not set.");
 }
 
-/* Workspace method: Doxygen documentation will be auto-generated */
+/** Workspace method: Doxygen documentation will be auto-generated */
 void ppvar_optical_depthFromPpvar_trans_cumulat(
     Matrix& ppvar_optical_depth,
     const Tensor4& ppvar_trans_cumulat,
@@ -1765,154 +1758,7 @@ void ppvar_optical_depthFromPpvar_trans_cumulat(
   ppvar_optical_depth *= -1;
 }
 
-void yCalc_mblock_loop_body(bool& failed,
-                            String& fail_msg,
-                            ArrayOfArrayOfVector& iyb_aux_array,
-                            Workspace& ws,
-                            Vector& y,
-                            Vector& y_f,
-                            ArrayOfIndex& y_pol,
-                            Matrix& y_pos,
-                            Matrix& y_los,
-                            Matrix& y_geo,
-                            Matrix& jacobian,
-                            const Index& atmosphere_dim,
-                            const Tensor3& t_field,
-                            const Tensor3& z_field,
-                            const Tensor4& vmr_field,
-                            const Tensor4& nlte_field,
-                            const Index& cloudbox_on,
-                            const Index& stokes_dim,
-                            const Vector& f_grid,
-                            const Matrix& sensor_pos,
-                            const Matrix& sensor_los,
-                            const Matrix& transmitter_pos,
-                            const Matrix& mblock_dlos_grid,
-                            const Sparse& sensor_response,
-                            const Vector& sensor_response_f,
-                            const ArrayOfIndex& sensor_response_pol,
-                            const Matrix& sensor_response_dlos,
-                            const String& iy_unit,
-                            const Agenda& iy_main_agenda,
-                            const Agenda& geo_pos_agenda,
-                            const Agenda& jacobian_agenda,
-                            const Index& jacobian_do,
-                            const ArrayOfRetrievalQuantity& jacobian_quantities,
-                            const ArrayOfArrayOfIndex& jacobian_indices,
-                            const ArrayOfString& iy_aux_vars,
-                            const Verbosity& verbosity,
-                            const Index& mblock_index,
-                            const Index& n1y,
-                            const Index& j_analytical_do) {
-  try {
-    // Calculate monochromatic pencil beam data for 1 measurement block
-    //
-    Vector iyb, iyb_error, yb(n1y);
-    ArrayOfMatrix diyb_dx;
-    Matrix geo_pos_matrix;
-    //
-    iyb_calc(ws,
-             iyb,
-             iyb_aux_array[mblock_index],
-             diyb_dx,
-             geo_pos_matrix,
-             mblock_index,
-             atmosphere_dim,
-             t_field,
-             z_field,
-             vmr_field,
-             nlte_field,
-             cloudbox_on,
-             stokes_dim,
-             f_grid,
-             sensor_pos,
-             sensor_los,
-             transmitter_pos,
-             mblock_dlos_grid,
-             iy_unit,
-             iy_main_agenda,
-             geo_pos_agenda,
-             j_analytical_do,
-             jacobian_quantities,
-             jacobian_indices,
-             iy_aux_vars,
-             verbosity);
-
-    // Apply sensor response matrix on iyb, and put into y
-    //
-    const Range rowind = get_rowindex_for_mblock(sensor_response, mblock_index);
-    const Index row0 = rowind.get_start();
-    //
-    mult(yb, sensor_response, iyb);
-    //
-    y[rowind] = yb;  // *yb* also used below, as input to jacobian_agenda
-
-    // Fill information variables. And search for NaNs in *y*.
-    //
-    for (Index i = 0; i < n1y; i++) {
-      const Index ii = row0 + i;
-      if (std::isnan(y[ii]))
-        throw runtime_error("One or several NaNs found in *y*.");
-      y_f[ii] = sensor_response_f[i];
-      y_pol[ii] = sensor_response_pol[i];
-      y_pos(ii, joker) = sensor_pos(mblock_index, joker);
-      y_los(ii, joker) = sensor_los(mblock_index, joker);
-      y_los(ii, 0) += sensor_response_dlos(i, 0);
-      if (sensor_response_dlos.ncols() > 1) {
-        y_los(ii, 1) += sensor_response_dlos(i, 1);
-      }
-    }
-
-    // Apply sensor response matrix on diyb_dx, and put into jacobian
-    // (that is, analytical jacobian part)
-    //
-    if (j_analytical_do) {
-      FOR_ANALYTICAL_JACOBIANS_DO2(
-          mult(jacobian(rowind,
-                        Range(jacobian_indices[iq][0],
-                              jacobian_indices[iq][1] -
-                                  jacobian_indices[iq][0] + 1)),
-               sensor_response,
-               diyb_dx[iq]);)
-    }
-
-    // Calculate remaining parts of *jacobian*
-    //
-    if (jacobian_do) {
-      jacobian_agendaExecute(
-          ws, jacobian, mblock_index, iyb, yb, jacobian_agenda);
-    }
-
-    // Handle geo-positioning
-    if (!std::isnan(geo_pos_matrix(0, 0)))  // No data are flagged as NaN
-    {
-      // We set geo_pos based on the max value in sensor_response
-      const Index nfs = f_grid.nelem() * stokes_dim;
-      for (Index i = 0; i < n1y; i++) {
-        Index jmax = -1;
-        Numeric rmax = -99e99;
-        for (Index j = 0; j < sensor_response.ncols(); j++) {
-          if (sensor_response(i, j) > rmax) {
-            rmax = sensor_response(i, j);
-            jmax = j;
-          }
-        }
-        const Index jhit = Index(floor(jmax / nfs));
-        y_geo(row0 + i, joker) = geo_pos_matrix(jhit, joker);
-      }
-    }
-  }
-
-  catch (const std::exception& e) {
-#pragma omp critical(yCalc_fail)
-    {
-      fail_msg = e.what();
-      failed = true;
-    }
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
+/** Workspace method: Doxygen documentation will be auto-generated */
 void yCalc(Workspace& ws,
            Vector& y,
            Vector& y_f,
@@ -2178,7 +2024,7 @@ void yCalc(Workspace& ws,
   }
 }
 
-/* Workspace method: Doxygen documentation will be auto-generated */
+/** Workspace method: Doxygen documentation will be auto-generated */
 void yCalcAppend(Workspace& ws,
                  Vector& y,
                  Vector& y_f,
@@ -2523,7 +2369,7 @@ void yCalcAppend(Workspace& ws,
   }
 }
 
-/* Workspace method: Doxygen documentation will be auto-generated */
+/** Workspace method: Doxygen documentation will be auto-generated */
 void yApplyUnit(Vector& y,
                 Matrix& jacobian,
                 const Vector& y_f,
