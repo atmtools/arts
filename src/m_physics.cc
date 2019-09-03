@@ -1,7 +1,7 @@
 /* Copyright (C) 2002-2012
    Patrick Eriksson <Patrick.Eriksson@chalmers.se>
    Stefan Buehler   <sbuehler@ltu.se>
-                            
+
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
    Free Software Foundation; either version 2, or (at your option) any
@@ -17,25 +17,21 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*===========================================================================
-  ===  File description
-  ===========================================================================*/
-
-/*!
-  \file   m_physics.cc
-  \author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
-  \date   2002-08-20 
-
-  \brief  Workspace methods of physical character.
-
-  This file includes workspace methods for operations that have some
-  connection to basic physics. Example of methods are:  <br>
-  1. Setting WSV to hold blackbody radiation. <br>
-  2. Conversion to brightness temperature.
-
-  These functions are listed in the doxygen documentation as entries of the
-  file auto_md.h.
-*/
+/**
+ * @file   m_physics.cc
+ * @author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
+ * @date   2002-08-20
+ *
+ * @brief  Workspace methods of physical character.
+ *
+ * This file includes workspace methods for operations that have some
+ * connection to basic physics. Example of methods are:  <br>
+ * 1. Setting WSV to hold blackbody radiation. <br>
+ * 2. Conversion to brightness temperature.
+ *
+ * These functions are listed in the doxygen documentation as entries of the
+ * file auto_md.h.
+ */
 
 /*===========================================================================
   === External declarations

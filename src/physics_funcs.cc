@@ -17,18 +17,15 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*===========================================================================
-  === File description 
-  ===========================================================================*/
-
-/*!
-   \file   physics_funcs.cc
-   \author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
-   \date   2002-05-08 
-
-   This file contains the code of functions of physical character.
-   Modified by Claudia Emde (2002-05-28).
-*/
+/**
+ * @file   physics_funcs.cc
+ * @author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
+ * @date   2002-05-08
+ *
+ * @brief  This file contains the code of functions of physical character.
+ *
+ *  Modified by Claudia Emde (2002-05-28).
+ */
 
 /*===========================================================================
   === External declarations
@@ -50,26 +47,28 @@ extern const Numeric SPEED_OF_LIGHT;
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-/*! barometric heightformula for isothermal earth atmosphere 
-    \return p1 pressure in displacement level [Pa]
-          
-    \param p atmospheric pressure at starting level [Pa]
-    \param dh vertical displacement to starting pressure level [m]
-    
-  
-  \author Daniel Kreyling
-  \date 2011-01-20
-*/
+/** barometric_heightformula
+ *
+ *  Barometric heightformula for isothermal earth atmosphere.
+ *
+ * @param[in] p  Atmospheric pressure at starting level [Pa].
+ * @param[in] dh Vertical displacement to starting pressure level [m].
+ *
+ * @return p1 Pressure in displacement level [Pa].
+ *
+ * @author Daniel Kreyling
+ * @date 2011-01-20
+ */
 Numeric barometric_heightformula(  //output is p1
     //input
     const Numeric& p,
     const Numeric& dh)
 
 {
-  /* taken from: Seite „Barometrische Höhenformel“. In: Wikipedia, 
+  /* taken from: Seite „Barometrische Höhenformel“. In: Wikipedia,
  * Die freie Enzyklopädie. Bearbeitungsstand: 3. April 2011, 20:28 UTC.
- * URL: http://de.wikipedia.org/w/index.php?title=Barometrische_H%C3%B6henformel&oldid=87257486 
- * (Abgerufen: 15. April 2011, 15:41 UTC) 
+ * URL: http://de.wikipedia.org/w/index.php?title=Barometrische_H%C3%B6henformel&oldid=87257486
+ * (Abgerufen: 15. April 2011, 15:41 UTC)
  */
 
   //barometric height formula
@@ -84,17 +83,18 @@ Numeric barometric_heightformula(  //output is p1
   return p1;
 }
 
-//! dinvplanckdI
-/*!
-   Calculates the derivative of inverse-Planck with respect to intensity.
-
-    \return     The derivative
-    \param  i   radiance
-    \param  f   frequency
-
-    \author Patrick Eriksson 
-    \date   2010-10-26
-*/
+/** dinvplanckdI
+ *
+ * Calculates the derivative of inverse-Planck with respect to intensity.
+ *
+ * @param[in]  i  Radiance.
+ * @param[in]  f  Frequency.
+ *
+ * @return     The derivative.
+ *
+ * @author Patrick Eriksson
+ * @date   2010-10-26
+ */
 Numeric dinvplanckdI(const Numeric& i, const Numeric& f) try {
   if (i <= 0) throw "Non-positive radiance";
   if (f <= 0) throw "Non-positive frequency";
@@ -112,26 +112,26 @@ Numeric dinvplanckdI(const Numeric& i, const Numeric& f) try {
   throw std::runtime_error(os.str());
 }
 
-//! fresnel
-/*!
-    Calculates complex AMPLITUDE reflection coeffcients for a specular
-    reflection
-
-    The properties of the two involved media are given as the complex
-    refractive index, n. A dielectric constant, eps, is converted as 
-    n = sqrt( eps ). The power reflection coefficient, r, for one 
-    polarisation is r = abs(R)^2.
-
-    \param  Rv    Out: Reflection coefficient for vertical polarisation
-    \param  Rh    Out: Reflection coefficient for vertical polarisation
-    \param  n1    In: Refractive index of medium where radiation propagates
-    \param  n2    In: Refractive index of reflecting medium 
-    \param  theta In: Propagation angle from normal of radiation to be 
-                      reflected
-
-    \author Patrick Eriksson 
-    \date   2004-09-21
-*/
+/** fresnel
+ *
+ * Calculates complex AMPLITUDE reflection coeffcients for a specular
+ *   reflection.
+ *
+ *  The properties of the two involved media are given as the complex
+ *  refractive index, n. A dielectric constant, eps, is converted as
+ *  n = sqrt( eps ). The power reflection coefficient, r, for one
+ *  polarisation is r = abs(R)^2.
+ *
+ *  @param[out]  Rv    Reflection coefficient for vertical polarisation.
+ *  @param[out]  Rh    Reflection coefficient for vertical polarisation.
+ *  @param[in]   n1    Refractive index of medium where radiation propagates.
+ *  @param[in]   n2    Refractive index of reflecting medium.
+ *  @param[in]   theta Propagation angle from normal of radiation to be.
+ *                     reflected
+ *
+ *  @author Patrick Eriksson
+ *  @date   2004-09-21
+ */
 void fresnel(Complex& Rv,
              Complex& Rh,
              const Complex& n1,
@@ -150,16 +150,17 @@ void fresnel(Complex& Rv,
   Rh = (a - b) / (a + b);
 }
 
-//! invplanck
-/*!
-   Converts a radiance to Planck brightness temperature.
-
-    \return     Planck brightness temperature
-    \param  i   radiance
-    \param  f   frequency
-
-    \author Patrick Eriksson 
-    \date   2002-08-11
+/** invplanck
+ *
+ * Converts a radiance to Planck brightness temperature.
+ *
+ * @param[in]  i   Radiance.
+ * @param[in]  f  Frequency.
+ *
+ * @return     Planck brightness temperature.
+ *
+ * @author Patrick Eriksson
+ * @date   2002-08-11
 */
 Numeric invplanck(const Numeric& i, const Numeric& f) try {
   if (i <= 0) throw "Non-positive radiance";
@@ -176,17 +177,18 @@ Numeric invplanck(const Numeric& i, const Numeric& f) try {
   throw std::runtime_error(os.str());
 }
 
-//! invrayjean
-/*! 
-   Converts a radiance to Rayleigh-Jean brightness temperature.
-
-    \return     RJ brightness temperature
-    \param  i   radiance
-    \param  f   frequency
-
-    \author Patrick Eriksson 
-    \date   2000-09-28 
-*/
+/** invrayjean
+ *
+ * Converts a radiance to Rayleigh-Jean brightness temperature.
+ *
+ * @param[in]  i  Radiance.
+ * @param[in]  f  Frequency.
+ *
+ * @return     RJ brightness temperature.
+ *
+ * @author Patrick Eriksson
+ * @date   2000-09-28
+ */
 Numeric invrayjean(const Numeric& i, const Numeric& f) try {
   //   if(i <  0) throw "Negative radiance";
   if (f <= 0) throw "Non-positive frequency";
@@ -202,16 +204,17 @@ Numeric invrayjean(const Numeric& i, const Numeric& f) try {
   throw std::runtime_error(os.str());
 }
 
-//! number_density
-/*! 
-   Calculates the atmospheric number density.
-   
-   \return     number density
-   \param  p   pressure
-   \param  t   temperature
-   
-   \author Patrick Eriksson 
-   \date   2000-04-08 
+/** number_density
+ *
+ * Calculates the atmospheric number density.
+ *
+ * @param[in]  p  Pressure.
+ * @param[in]  t  Temperature.
+ *
+ * @return     Number density.
+ *
+ * @author Patrick Eriksson
+ * @date   2000-04-08
 */
 Numeric number_density(const Numeric& p, const Numeric& t) try {
   if (p < 0) throw "Negative pressure";
@@ -225,16 +228,17 @@ Numeric number_density(const Numeric& p, const Numeric& t) try {
   throw std::runtime_error(os.str());
 }
 
-//! dnumber_density_dT
-/*! 
- *  Calculates the atmospheric number density derivative with temperature.
- *  
- *  \return     number density
- *  \param  p   pressure
- *  \param  t   temperature
- *  
- *  \author Richard Larsson 
- *  \date   2015-09-22 
+/** dnumber_density_dT
+ *
+ * Calculates the atmospheric number density derivative with temperature.
+ *
+ * @param[in]  p  Pressure.
+ * @param[in]  t  Temperature.
+ *
+ * @return     Number density.
+ *
+ * @author Richard Larsson
+ * @date   2015-09-22
  */
 Numeric dnumber_density_dt(const Numeric& p, const Numeric& t) try {
   if (p < 0) throw "Negative pressure";
@@ -248,19 +252,20 @@ Numeric dnumber_density_dt(const Numeric& p, const Numeric& t) try {
   throw std::runtime_error(os.str());
 }
 
-//! planck
-/*! 
-  Calculates the Planck function for a single temperature.
+/** planck
+ *
+ * Calculates the Planck function for a single temperature.
 
-  Note that this expression gives the intensity for both polarisations.
-  
-  \return     blackbody radiation
-  \param  f   frequency
-  \param  t   temperature
-  
-  \author Patrick Eriksson 
-  \date   2000-04-08 
-*/
+ * Note that this expression gives the intensity for both polarisations.
+ *
+ *  @param[in]  f  Frequency.
+ *  @param[in]  t  Temperature.
+ *
+ *  @return     Blackbody radiation.
+ *
+ *  @author Patrick Eriksson
+ *  @date   2000-04-08
+ */
 Numeric planck(const Numeric& f, const Numeric& t) try {
   if (t <= 0) throw "Non-positive temperature";
   if (f <= 0) throw "Non-positive frequency";
@@ -276,20 +281,21 @@ Numeric planck(const Numeric& f, const Numeric& t) try {
   throw std::runtime_error(os.str());
 }
 
-//! planck
-/*! 
-  Calculates the Planck function for a single temperature and a vector of
-  frequencies. 
-
-  Note that this expression gives the intensity for both polarisations.
-  
-  \return     blackbody radiation
-  \param  f   frequency
-  \param  t   temperature
-  
-  \author Patrick Eriksson 
-  \date   2015-12-15 
-*/
+/** planck
+ *
+ * Calculates the Planck function for a single temperature and a vector of
+ * frequencies.
+ *
+ * Note that this expression gives the intensity for both polarisations.
+ *
+ * @param[in]  f  Frequency.
+ * @param[in]  t  Temperature.
+ *
+ * @return     Blackbody radiation.
+ *
+ * @author Patrick Eriksson
+ * @date   2015-12-15
+ */
 void planck(VectorView b, ConstVectorView f, const Numeric& t) try {
   if (b.nelem() not_eq f.nelem())
     throw "Vector size mismatch: frequency dim is bad";
@@ -315,17 +321,18 @@ void planck(VectorView b, ConstVectorView f, const Numeric& t) try {
   throw std::runtime_error(os.str());
 }
 
-//! dplanck_dt
-/*! 
- * Calculates the temperature derivative of the Planck function 
+/** dplanck_dt
+ *
+ * Calculates the temperature derivative of the Planck function
  * for a single temperature and frequency.
- * 
- * \return     blackbody radiation
- * \param  f   frequency
- * \param  t   temperature
- * 
- * \author Richard Larsson
- * \date   2015-09-15 
+ *
+ * @param[in]  f  Frequency.
+ * @param[in]  t  Temperature.
+ *
+ * @return     Blackbody radiation.
+ *
+ * @author Richard Larsson
+ * @date   2015-09-15
  */
 Numeric dplanck_dt(const Numeric& f, const Numeric& t) try {
   if (t <= 0) throw "Non-positive temperature";
@@ -346,17 +353,18 @@ Numeric dplanck_dt(const Numeric& f, const Numeric& t) try {
   throw std::runtime_error(os.str());
 }
 
-//! dplanck_df
-/*! 
- * Calculates the frequency derivative of the Planck function 
+/** dplanck_df
+ *
+ * Calculates the frequency derivative of the Planck function
  * for a single temperature and frequency.
- * 
- * \return     blackbody radiation
- * \param  f   frequency
- * \param  t   temperature
- * 
- * \author Richard Larsson
- * \date   2015-09-15 
+ *
+ * @param[in]  f  Frequency.
+ * @param[in]  t  Temperature.
+ *
+ * @return     Blackbody radiation.
+ *
+ * @author Richard Larsson
+ * @date   2015-09-15
  */
 Numeric dplanck_df(const Numeric& f, const Numeric& t) try {
   if (t <= 0) throw "Non-positive temperature";
@@ -377,25 +385,26 @@ Numeric dplanck_df(const Numeric& f, const Numeric& t) try {
   throw std::runtime_error(os.str());
 }
 
-//! rayjean
-/*! 
-    Converts a Rayleigh-Jean brightness temperature to radiance
-
-    \return     radiance
-    \param  tb  RJ brightness temperature
-    \param  f   frequency
-
-    \author Patrick Eriksson 
-    \date   2011-07-13 
-*/
-Numeric rayjean(const Numeric& f, const Numeric& t) try {
-  if (t <= 0) throw "Non-positive temperature";
+/** rayjean
+ *
+ * Converts a Rayleigh-Jean brightness temperature to radiance
+ *
+ * @param[in]  tb  RJ brightness temperature.
+ * @param[in]  f   Frequency.
+ *
+ * @return     Radiance.
+ *
+ * @author Patrick Eriksson
+ * @date   2011-07-13
+ */
+Numeric rayjean(const Numeric& f, const Numeric& tb) try {
+  if (tb <= 0) throw "Non-positive temperature";
   if (f < 0) throw "Negative frequency";
 
   static const Numeric a =
       SPEED_OF_LIGHT * SPEED_OF_LIGHT / (2 * BOLTZMAN_CONST);
 
-  return (f * f) / (a * t);
+  return (f * f) / (a * tb);
 } catch (const char* e) {
   std::ostringstream os;
   os << "Errors raised by *rayjean* internal function:\n";
