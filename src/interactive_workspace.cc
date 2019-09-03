@@ -251,8 +251,8 @@ void InteractiveWorkspace::set_sparse_variable(Index id,
                                                Index n,
                                                Index nnz,
                                                const Numeric *src,
-                                               const int *inner_ptr,
-                                               const int *outer_ptr) {
+                                               const int *row_inds,
+                                               const int *col_inds) {
   Sparse *dst = reinterpret_cast<Sparse *>(this->operator[](id));
   *dst = Sparse(m, n);
 
@@ -261,8 +261,8 @@ void InteractiveWorkspace::set_sparse_variable(Index id,
 
   for (size_t i = 0; i < (size_t)nnz; ++i) {
     elements[i] = src[i];
-    row_indices[i] = inner_ptr[i];
-    column_indices[i] = outer_ptr[i];
+    row_indices[i] = row_inds[i];
+    column_indices[i] = col_inds[i];
   }
 
   dst->insert_elements(nnz, row_indices, column_indices, elements);
