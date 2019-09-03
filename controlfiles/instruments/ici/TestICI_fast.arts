@@ -103,7 +103,6 @@ INCLUDE "instruments/ici/ici_fast.arts"
 # Atmospheric profiles are stored in an ArrayOfGriddedField4.
 # It contains one GriddedField4 for each atmospheric state.
 #
-#ReadXML( batch_atm_fields_compact, "./chevallierl91_clear_q_extract.xml" )
 ReadXML( batch_atm_fields_compact, "../../testdata/chevallierl91_all_extract.xml" )
 
 # add constant profiles for O2 and N2
