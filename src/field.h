@@ -39,14 +39,14 @@ class Field3D {
   /**
    * @brief Construct a new Field3D object
    * 
-   * @param g Another field
+   * @param[in] g Another field
    */
   Field3D(const Field3D& g) = default;
 
   /**
    * @brief Default assignment operator
    * 
-   * @param g Another field
+   * @param[in] g Another field
    * @return Field3D<base>& *this
    */
   Field3D<base>& operator=(const Field3D& g) = default;
@@ -54,7 +54,7 @@ class Field3D {
   /**
    * @brief Default move operator
    * 
-   * @param g Another field
+   * @param[in] g Another field
    * @return Field3D<base>& *this
    */
   Field3D<base>& operator=(Field3D&& g) = default;
@@ -62,7 +62,7 @@ class Field3D {
   /**
    * @brief Construct a new Field3D object
    * 
-   * @param g Another field
+   * @param[in] g Another field
    */
   Field3D(Field3D&& g)
       : mpages(std::move(g.mpages)),
@@ -73,10 +73,10 @@ class Field3D {
   /**
    * @brief Construct a new Field 3 D object
    * 
-   * @param pages Number of pages
-   * @param rows Number of rows
-   * @param cols Numeber of columns
-   * @param init Const value
+   * @param[in] pages Number of pages
+   * @param[in] rows Number of rows
+   * @param[in] cols Numeber of columns
+   * @param[in] init Const value
    */
   Field3D(size_t pages = 0,
           size_t rows = 0,
@@ -92,9 +92,9 @@ class Field3D {
    * 
    * Returns a ref to the object that can be changed in place
    * 
-   * @param page Outer dim
-   * @param row Middle dim
-   * @param col Inner dim
+   * @param[in] page Outer dim
+   * @param[in] row Middle dim
+   * @param[in] col Inner dim
    * @return base& 
    */
   base& operator()(size_t page = 0, size_t row = 0, size_t col = 0) {
@@ -106,9 +106,9 @@ class Field3D {
    * 
    * Returns a ref to the object that cannot be changed
    * 
-   * @param page Outer dim
-   * @param row Middle dim
-   * @param col Inner dim
+   * @param[in] page Outer dim
+   * @param[in] row Middle dim
+   * @param[in] col Inner dim
    * @return base& 
    */
   const base& operator()(size_t col = 0,
@@ -125,9 +125,9 @@ class Field3D {
    * must support multiplication with a Numeric
    * and the addition of (object) * (Numeric).
    * 
-   * @param page Outer dim
-   * @param row Middle dim
-   * @param col Inner dim
+   * @param[in] page Outer dim
+   * @param[in] row Middle dim
+   * @param[in] col Inner dim
    * @return base& 
    */
   base operator()(const GridPos& page = {0, {0, 1}},

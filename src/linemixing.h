@@ -37,18 +37,18 @@
 
 /** Compute the rotational energy of a Hund b case molecule
  * 
- * @param J Rotational angular momentum w/ spin
- * @param N Rotational angular momentum w/0 spin
- * @param J2 Rotational angular momentum w/ spin for other level
- * @param B Main rotation constant
- * @param D Main rotation constant squared
- * @param H Main rotation constant cubic
- * @param gamma Second rotation constant offset
- * @param gamma_D Second rotation constant
- * @param gamma_H Second rotation constant squared
- * @param lambda Third energy constant offset
- * @param lambda_D Third energy constant 
- * @param lambda_H Third energy constant squared
+ * @param[in] J Rotational angular momentum w/ spin
+ * @param[in] N Rotational angular momentum w/0 spin
+ * @param[in] J2 Rotational angular momentum w/ spin for other level
+ * @param[in] B Main rotation constant
+ * @param[in] D Main rotation constant squared
+ * @param[in] H Main rotation constant cubic
+ * @param[in] gamma Second rotation constant offset
+ * @param[in] gamma_D Second rotation constant
+ * @param[in] gamma_H Second rotation constant squared
+ * @param[in] lambda Third energy constant offset
+ * @param[in] lambda_D Third energy constant 
+ * @param[in] lambda_H Third energy constant squared
  * @return Numeric Energy of level
  */
 template <class T>
@@ -127,9 +127,9 @@ constexpr Numeric mass = 31.989830;
 
 /** Hamiltonian frequency
  * 
- * @param J Rotational constant
- * @param dcol +1, 0, -1
- * @param drow +1, 0, -1
+ * @param[in] J Rotational constant
+ * @param[in] dcol +1, 0, -1
+ * @param[in] drow +1, 0, -1
  * @return Numeric Frequency
  */
 template <class T>
@@ -162,7 +162,7 @@ template <class T>
 
 /** Hamiltonian frequency
  * 
- * @param J Rotational constant
+ * @param[in] J Rotational constant
  * @return constexpr Numeric Frequency
  */
 constexpr Numeric hamiltonian_freq(T J) {
@@ -185,8 +185,8 @@ class AdiabaticFactor {
    * 
    * Checks that the type and the input agrees
    * 
-   * @param v data of how to compute the adiabatic factor
-   * @param t type of adiabatic factor
+   * @param[in] v data of how to compute the adiabatic factor
+   * @param[in] t type of adiabatic factor
    */
   AdiabaticFactor(const Vector& v, Type t) : mtype(t), mdata(v) {
     bool error = false;
@@ -203,11 +203,11 @@ class AdiabaticFactor {
 
   /** Hartmann AF
    * 
-   * @param L Rotational angular momentum
-   * @param B0 Rotational constant
-   * @param T Temperature
-   * @param main_mass Mass of main molecule
-   * @param collider_mass Mass of colliding molecule
+   * @param[in] L Rotational angular momentum
+   * @param[in] B0 Rotational constant
+   * @param[in] T Temperature
+   * @param[in] main_mass Mass of main molecule
+   * @param[in] collider_mass Mass of colliding molecule
    * @return Numeric Adiabatic factor
    */
   Numeric mol_X(const Numeric& L,
@@ -218,11 +218,11 @@ class AdiabaticFactor {
 
   /** Get AF
    * 
-   * @param L Rotational angular momentum
-   * @param B0 Rotational constant
-   * @param T Temperature
-   * @param main_mass Mass of main molecule
-   * @param collider_mass Mass of colliding molecule
+   * @param[in] L Rotational angular momentum
+   * @param[in] B0 Rotational constant
+   * @param[in] T Temperature
+   * @param[in] main_mass Mass of main molecule
+   * @param[in] collider_mass Mass of colliding molecule
    * @return Numeric Adiabatic factor
    */
   Numeric get(const Numeric& L,
@@ -256,8 +256,8 @@ class BasisRate {
    * 
    * Checks that the type and the input agrees
    * 
-   * @param v data for the basis rate
-   * @param t type describing position of data
+   * @param[in] v data for the basis rate
+   * @param[in] t type describing position of data
    */
   BasisRate(const Vector& v, Type t) : mtype(t), mdata(v) {
     bool error = false;
@@ -274,18 +274,18 @@ class BasisRate {
 
   /** Computes the basis rate using Hartman method
    * 
-   * @param L Rotational angular momentum
-   * @param B0 Rotational angular momentum constant
-   * @param T Temperautre
+   * @param[in] L Rotational angular momentum
+   * @param[in] B0 Rotational angular momentum constant
+   * @param[in] T Temperautre
    * @return Numeric Basis rate
    */
   Numeric mol_X(const Numeric& L, const Numeric& B0, const Numeric& T) const;
 
   /** Get the basis rate
    * 
-   * @param L Rotational angular momentum
-   * @param B0 Rotational angular momentum constant
-   * @param T Temperautre
+   * @param[in] L Rotational angular momentum
+   * @param[in] B0 Rotational angular momentum constant
+   * @param[in] T Temperautre
    * @return Numeric Basis rate
    */
   Numeric get(const Numeric& L, const Numeric& B0, const Numeric& T) const {
@@ -314,16 +314,16 @@ enum class Type { CO2_IR, O2_66_MW };
 
 /** CO2 IR off diagonal element computer
  * 
- * @param j_line Line at pos j
- * @param k_line Line at pos k
- * @param j_rho Population density at pos j
- * @param k_rho Population density at pos k
- * @param br Basis rate computer
- * @param af Adiabatic factor computer
- * @param T Temperature
- * @param B0 Rotational constant
- * @param main_mass Mass of main molecule
- * @param collider_mass Mass of collider molecule
+ * @param[in] j_line Line at pos j
+ * @param[in] k_line Line at pos k
+ * @param[in] j_rho Population density at pos j
+ * @param[in] k_rho Population density at pos k
+ * @param[in] br Basis rate computer
+ * @param[in] af Adiabatic factor computer
+ * @param[in] T Temperature
+ * @param[in] B0 Rotational constant
+ * @param[in] main_mass Mass of main molecule
+ * @param[in] collider_mass Mass of collider molecule
  * @return OffDiagonalElementOutput for j and k
  */
 OffDiagonalElementOutput CO2_IR(const LineRecord& j_line,
@@ -339,12 +339,12 @@ OffDiagonalElementOutput CO2_IR(const LineRecord& j_line,
 
 /** O2-66 MW off diagonal element computer 
  * 
- * @param line1 Line at pos 1
- * @param line2 Line at pos 2
- * @param rho1 Population density at pos 1
- * @param rho2 Population density at pos 2
- * @param T Temperature
- * @param collider_mass Mass of collider
+ * @param[in] line1 Line at pos 1
+ * @param[in] line2 Line at pos 2
+ * @param[in] rho1 Population density at pos 1
+ * @param[in] rho2 Population density at pos 2
+ * @param[in] T Temperature
+ * @param[in] collider_mass Mass of collider
  * @return OffDiagonalElementOutput for 1 and 2
  */
 OffDiagonalElementOutput O2_66_MW(const LineRecord& line1,
@@ -357,13 +357,13 @@ OffDiagonalElementOutput O2_66_MW(const LineRecord& line1,
 
 /** Energy corrected sudden relaxation matrix using Hartmann's method
  * 
- * @param abs_lines One band of lines
- * @param main_species Species tag of these lines
- * @param collider_species Species tag of collider
- * @param collider_species_vmr VMR of collider
- * @param partition_functions Method to compute the partition function
- * @param T Temperature
- * @param size Number of elements
+ * @param[in] abs_lines One band of lines
+ * @param[in] main_species Species tag of these lines
+ * @param[in] collider_species Species tag of collider
+ * @param[in] collider_species_vmr VMR of collider
+ * @param[in] partition_functions Method to compute the partition function
+ * @param[in] T Temperature
+ * @param[in] size Number of elements
  * @return Relaxation Matrix
  */
 Matrix hartmann_ecs_interface(const ArrayOfLineRecord& abs_lines,
@@ -376,9 +376,9 @@ Matrix hartmann_ecs_interface(const ArrayOfLineRecord& abs_lines,
 
 /** Compute the population density
  * 
- * @param abs_lines One band of lines
- * @param partition_functions Method to compute the partition function
- * @param T Temperature
+ * @param[in] abs_lines One band of lines
+ * @param[in] partition_functions Method to compute the partition function
+ * @param[in] T Temperature
  * @return Vector The population density for each line
  */
 Vector population_density_vector(const ArrayOfLineRecord& abs_lines,
@@ -387,8 +387,8 @@ Vector population_density_vector(const ArrayOfLineRecord& abs_lines,
 
 /** Dipole vector
  * 
- * @param abs_lines One band of lines
- * @param partition_functions Method to compute the partition function
+ * @param[in] abs_lines One band of lines
+ * @param[in] partition_functions Method to compute the partition function
  * @return Vector Dipole for each line
  */
 Vector dipole_vector(const ArrayOfLineRecord& abs_lines,
@@ -399,8 +399,8 @@ enum class RedPoleType { ElectricRoVibDipole, MagneticQuadrapole };
 
 /** Reduced dipole vector
  * 
- * @param abs_lines One band of lines
- * @param type Type of reduced dipole
+ * @param[in] abs_lines One band of lines
+ * @param[in] type Type of reduced dipole
  * @return Vector Reduced dipole for each line
  */
 Vector reduced_dipole_vector(const ArrayOfLineRecord& abs_lines,
@@ -408,9 +408,9 @@ Vector reduced_dipole_vector(const ArrayOfLineRecord& abs_lines,
 
 /** Computes G for Rosenkranz's line mixing coefficients
  * 
- * @param abs_lines One band of lines
- * @param W Relaxation Matrix
- * @param d0 Dipole vector
+ * @param[in] abs_lines One band of lines
+ * @param[in] W Relaxation Matrix
+ * @param[in] d0 Dipole vector
  * @return Vector G for each line
  */
 Vector rosenkranz_scaling_second_order(const ArrayOfLineRecord& abs_lines,
@@ -419,8 +419,8 @@ Vector rosenkranz_scaling_second_order(const ArrayOfLineRecord& abs_lines,
 
 /** Computes DV for Rosenkranz's line mixing coefficients
  * 
- * @param abs_lines One band of lines
- * @param W Relaxation Matrix
+ * @param[in] abs_lines One band of lines
+ * @param[in] W Relaxation Matrix
  * @return Vector DV for each line
  */
 Vector rosenkranz_shifting_second_order(const ArrayOfLineRecord& abs_lines,
@@ -428,9 +428,9 @@ Vector rosenkranz_shifting_second_order(const ArrayOfLineRecord& abs_lines,
 
 /** Computes Y for Rosenkranz's line mixing coefficients
  * 
- * @param abs_lines One band of lines
- * @param W Relaxation Matrix
- * @param d0 Dipole vector
+ * @param[in] abs_lines One band of lines
+ * @param[in] W Relaxation Matrix
+ * @param[in] d0 Dipole vector
  * @return Vector Y for each line
  */
 Vector rosenkranz_first_order(const ArrayOfLineRecord& abs_lines,
@@ -447,10 +447,10 @@ struct SecondOrderLineMixingCoeffs {
  * Finds best fit [c0, c1] of
  * y(x) = (c0 + c1 * (x0 / x - 1.)) * pow(x0 / x, exp)
  * 
- * @param y Y-axis
- * @param x X-axis
- * @param exp Exponent
- * @param x0 Zero-value of x0
+ * @param[in] y Y-axis
+ * @param[in] x X-axis
+ * @param[in] exp Exponent
+ * @param[in] x0 Zero-value of x0
  * @return SecondOrderLineMixingCoeffs 
  */
 SecondOrderLineMixingCoeffs compute_2nd_order_lm_coeff(ConstVectorView y,
@@ -460,9 +460,9 @@ SecondOrderLineMixingCoeffs compute_2nd_order_lm_coeff(ConstVectorView y,
 
 /** Equivalent line strengths
  * 
- * @param population The population density for each line
- * @param dipole Dipole for each line
- * @param M Solver
+ * @param[in] population The population density for each line
+ * @param[in] dipole Dipole for each line
+ * @param[in] M Solver
  * @return ComplexVector Equivalent line strengths of each line
  */
 ComplexVector equivalent_linestrengths(
@@ -472,23 +472,23 @@ ComplexVector equivalent_linestrengths(
 
 /** Sum of line strengths
  * 
- * @param population The population density for each line
- * @param dipole Dipole for each line
+ * @param[in] population The population density for each line
+ * @param[in] dipole Dipole for each line
  * @return Numeric The sum
  */
 Numeric total_linestrengths(const Vector& population, const Vector& dipole);
 
 /** CO2 IR training algorithm for linearization
  * 
- * @param Ji J init for all lines
- * @param Jf J final for all lines
- * @param l2i l2 init for all lines
- * @param l2f l2 final for all lines
- * @param F0 Central frequency
- * @param d Dipole for each line
- * @param rho The population density for each line
- * @param gamma Pressure broadening for each line
- * @param T Temperature
+ * @param[in] Ji J init for all lines
+ * @param[in] Jf J final for all lines
+ * @param[in] l2i l2 init for all lines
+ * @param[in] l2f l2 final for all lines
+ * @param[in] F0 Central frequency
+ * @param[in] d Dipole for each line
+ * @param[in] rho The population density for each line
+ * @param[in] gamma Pressure broadening for each line
+ * @param[in] T Temperature
  * @return Matrix Relaxation Matrix
  */
 Matrix CO2_ir_training(const ArrayOfRational& Ji,
