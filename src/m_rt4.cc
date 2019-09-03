@@ -365,7 +365,7 @@ void RT4CalcWithRT4Surface(Workspace& ws,
 }
 
 #else /* ENABLE_RT4 */
-
+/* Workspace method: Doxygen documentation will be auto-generated */
 void RT4Calc(Workspace&,
              // WS Output:
              Tensor7&,
@@ -404,7 +404,7 @@ void RT4Calc(Workspace&,
              const Verbosity&) {
   throw runtime_error("This version of ARTS was compiled without RT4 support.");
 }
-
+/* Workspace method: Doxygen documentation will be auto-generated */
 void RT4CalcWithRT4Surface(Workspace&,
                            // WS Output:
                            Tensor7&,
