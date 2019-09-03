@@ -1,4 +1,4 @@
-/* Copyright (C) 2001-2012 Stefan Buehler <sbuehler@ltu.se>
+/* Copyright (C) 2001-2019 Stefan Buehler <sbuehler@ltu.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -16,7 +16,11 @@
    USA. */
 
 /**
-  Implementation of Matrix, Vector, and such stuff.
+  \file   matpackI.h
+  \author Stefan Buehler
+  \date   2001-06-12
+
+  \brief Implementation of Matrix, Vector, and such stuff.
 
   A VectorView consists of the data, which is stored in a continuous piece
   of memory, and a selection, specified by start, extend, and
@@ -86,9 +90,6 @@
 
   See the section about Matrices and Vectors in the ARTS user guide
   for more details.
-
-  \author Stefan Buehler
-  \date   2001-06-12
  */
 
 #ifndef matpackI_h
@@ -158,11 +159,42 @@ class ConstMatrixView;
 */
 class Range {
  public:
+
   // Constructors:
+
+  /** Explicit constructor.
+
+  \param[in] start Start must be >= 0.
+
+  \param[in] extent Extent also. Although internally negative extent means "to the end",
+  this can not be created this way, only with the joker. Zero
+  extent is allowed, though, which corresponds to an empty range.
+
+  \param[in] stride Stride can be anything. It can be omitted, in which case the
+  default value is 1. */
   Range(Index start, Index extent, Index stride = 1);
+
+  /** Constructor with joker extent. Depending on the sign of stride,
+    this means "to the end", or "to the beginning". */
   Range(Index start, Joker j, Index stride = 1);
+
+  /** Constructor with just a joker. This means, take everything. You
+    can still optionally give a stride, though. This constructor is
+    just shorter notation for Range(0,joker) */
   Range(Joker j, Index stride = 1);
+
+  /** Constructor which converts a range with joker to an explicit
+    range.
+
+    \param[in] max_size The maximum allowed size of the vector.
+    \param[in] r The new range, with joker. */
   Range(Index max_size, const Range& r);
+
+  /** Constructor of a new range relative to an old range. The new range
+    may contain -1 for the stride, which acts as a joker.
+
+    \param[in] p Previous range.
+    \param[in] n New range. */
   Range(const Range& p, const Range& n);
 
   // Friends:
@@ -212,6 +244,8 @@ class Range {
   friend void mult_general(VectorView,
                            const ConstMatrixView&,
                            const ConstVectorView&);
+
+  // Member functions:
 
   /** Returns the start index of the range. */
   Index get_start() const { return mstart; }
@@ -290,6 +324,10 @@ class Iterator1D {
   }
 #endif
 
+  /** Copy data between begin and end to target. Target must be a valid
+    area of memory. Note that the strides in the iterators can be
+    different, so that we can for example copy data between different
+    kinds of subvectors. */
   friend void copy(ConstIterator1D origin,
                    const ConstIterator1D& end,
                    Iterator1D target);
@@ -370,8 +408,22 @@ class ConstVectorView {
   typedef ConstIterator1D const_iterator;
 
   // Member functions:
+
+  //! Returns true if variable size is zero.
   bool empty() const;
+
+  /** Returns the number of elements.  The names `size' and `length'
+    are already used by STL functions returning size_t. To avoid
+    confusion we choose the name `nelem'. This is also more
+    consistent with `nrow' and `ncol' for matrices.
+
+    The value range of long, which is used to store the index is on a
+    PC from -2147483648 to 2147483647. This means that a 15GB large
+    array of float can be addressed with this index. So the extra bit
+    that size_t has compared to long is not needed. */
   Index nelem() const;
+
+  /** The sum of all elements of a Vector. */
   Numeric sum() const;
 
   // Const index operators:
@@ -387,14 +439,22 @@ class ConstVectorView {
     return *(mdata + mrange.mstart + n * mrange.mstride);
   }
 
+  /** Const index operator for subrange. We have to also account for the
+    case, that *this is already a subrange of a Vector. This allows
+    correct recursive behavior.  */
   ConstVectorView operator[](const Range& r) const;
+
   friend Numeric operator*(const ConstVectorView& a, const ConstVectorView& b);
 
   // Functions returning iterators:
+
+  /** Return const iterator to first element. */
   ConstIterator1D begin() const;
+
+  /** Return const iterator behind last element. */
   ConstIterator1D end() const;
 
-  // Conversion to 1 column matrix:
+  /** Conversion to const 1 column matrix. */
   operator ConstMatrixView() const;
 
   //! Destructor
@@ -427,13 +487,28 @@ class ConstVectorView {
   friend MatrixViewMap MapToEigen(VectorView&);
   friend MatrixViewMap MapToEigenCol(VectorView&);
 
-  // A special constructor, that allows to make a ConstVectorView of a scalar.
+  /** A special constructor, which allows to make a ConstVectorView from
+    a scalar. */
   ConstVectorView(const Numeric& a);
 
  protected:
   // Constructors:
   ConstVectorView() = default;
+
+  /** Explicit constructor. This one is used by Vector to initialize its
+    own VectorView part. */
   ConstVectorView(Numeric* data, const Range& range);
+
+  /** Recursive constructor. This is used to construct sub ranges from
+    sub ranges. That means that the new range has to be interpreted
+    relative to the original range. The new range may contain -1 for
+    the extent which acts as a joker. However, the used Range
+    constructor converts this to an explicit range, consistent with
+    the original Range.
+
+    \param *data The actual data.
+    \param p Previous range.
+    \param n New Range.  */
   ConstVectorView(Numeric* data, const Range& p, const Range& n);
 
   // Data members:
@@ -465,7 +540,11 @@ class VectorView : public ConstVectorView {
 
   constexpr VectorView(const VectorView&) = default;
 
+  /** Bail out immediately if somebody tries to create a VectorView from
+      a const Vector. */
   VectorView(const Vector&);
+
+  /** Create VectorView from a Vector. */
   VectorView(Vector& v);
 
   // Typedef for compatibility with STL
@@ -483,34 +562,85 @@ class VectorView : public ConstVectorView {
     return *(mdata + mrange.mstart + n * mrange.mstride);
   }
 
+  /** Index operator for subrange. We have to also account for the case,
+    that *this is already a subrange of a Vector. This allows correct
+    recursive behavior.  */
   VectorView operator[](const Range& r);
 
   // Iterators:
+
+  /** Return iterator to first element. */
   Iterator1D begin();
+
+  /** Return iterator behind last element. */
   Iterator1D end();
 
   // Assignment operators:
+
+  /** Assignment operator. This copies the data from another VectorView
+    to this VectorView. Dimensions must agree! Resizing would destroy
+    the selection that we might have done in this VectorView by
+    setting its range. */
   VectorView& operator=(const ConstVectorView& v);
+
+  /** Assignment from VectorView to VectorView. This is a tricky
+    one. The problem is that since VectorView is derived from
+    ConstVectorView, a default = operator is generated by the
+    compiler, which does not do what we want. So we need this one to
+    override the default. */
   VectorView& operator=(const VectorView& v);
+
+  /** Assignment from Vector. This is important to avoid a bug when
+    assigning a Vector to a VectorView. */
   VectorView& operator=(const Vector& v);
+
   VectorView& operator=(const Array<Numeric>& v);
+
+  /** Assigning a scalar to a VectorView will set all elements to this
+    value. */
   VectorView& operator=(Numeric x);
 
   // Other operators:
+
+  /** Multiplication by scalar. */
   VectorView operator*=(Numeric x);
+
+  /** Division by scalar. */
   VectorView operator/=(Numeric x);
+
+  /** Addition of scalar. */
   VectorView operator+=(Numeric x);
+
+  /** Subtraction of scalar. */
   VectorView operator-=(Numeric x);
 
+  /** Element-vise multiplication by another vector. */
   VectorView operator*=(const ConstVectorView& x);
+
+  /** Element-vise division by another vector. */
   VectorView operator/=(const ConstVectorView& x);
+
+  /** Element-vise addition of another vector. */
   VectorView operator+=(const ConstVectorView& x);
+
+  /** Element-vise subtraction of another vector. */
   VectorView operator-=(const ConstVectorView& x);
 
-  // Conversion to 1 column matrix:
+  /** Conversion to 1 column matrix. */
   operator MatrixView();
-  // Conversion to a plain C-array
+
+  /** Conversion to plain C-array, const-version.
+
+  This function returns a pointer to the raw data. It fails if the
+  VectorView is not pointing to the beginning of a Vector or the stride
+  is not 1 because the caller expects to get a C array with continuous data. */
   const Numeric* get_c_array() const;
+
+  /** Conversion to plain C-array, non-const version.
+
+  This function returns a pointer to the raw data. It fails if the
+  VectorView is not pointing to the beginning of a Vector or the stride
+  is not 1 because the caller expects to get a C array with continuous data. */
   Numeric* get_c_array();
 
   //! Destructor
@@ -526,13 +656,28 @@ class VectorView : public ConstVectorView {
   friend class Tensor6View;
   friend class Tensor7View;
 
-  // A special constructor, that allows to make a VectorView of a scalar.
+  /** A special constructor, which allows to make a VectorView from
+    a scalar. */
   VectorView(Numeric& a);
 
  protected:
   // Constructors:
   VectorView() = default;
+
+  /** Explicit constructor. This one is used by Vector to initialize its
+    own VectorView part. */
   VectorView(Numeric* data, const Range& range);
+
+  /** Recursive constructor. This is used to construct sub ranges from
+    sub ranges. That means that the new range has to be interpreted
+    relative to the original range. The new range may contain -1 for
+    the extent which acts as a joker. However, the used Range
+    constructor converts this to an explicit range, consistent with
+    the original Range.
+
+    \param[in] *data The actual data.
+    \param[in] p Previous range.
+    \param[in] n New Range.  */
   VectorView(Numeric* data, const Range& p, const Range& n);
 };
 
@@ -638,31 +783,108 @@ class Vector : public VectorView {
  public:
   // Constructors:
   Vector() = default;
+
+  /** Initialization list constructor. */
   Vector(std::initializer_list<Numeric> init);
+
+  /** Constructor setting size. */
   explicit Vector(Index n);
+
+  /** Constructor setting size and filling with constant value. */
   Vector(Index n, Numeric fill);
+
+  /** Constructor filling with values.
+
+    Examples:
+
+    Vector v(1,5,1);  // 1, 2, 3, 4, 5
+    Vector v(1,5,.5); // 1, 1.5, 2, 2.5, 3
+    Vector v(5,5,-1); // 5, 4, 3, 2, 1              */
   Vector(Numeric start, Index extent, Numeric stride);
+
+  /** Copy constructor from VectorView. This automatically sets the size
+    and copies the data. The vector created will have start zero and
+    stride 1, independent on how these parameters are set for the
+    original. So, what is copied is the data, not the shape
+    of the selection. */
   Vector(const ConstVectorView& v);
+
+  /** Copy constructor from Vector. This is important to override the
+    automatically generated shallow constructor. We want deep copies!  */
   Vector(const Vector& v);
   Vector(Vector&& v) noexcept : VectorView(std::forward<VectorView>(v)) {
     v.mdata = nullptr;
   }
+
+  /** Converting constructor from std::vector<Numeric>. */
   Vector(const std::vector<Numeric>&);
 
   // Assignment operators:
+
+  /** Assignment from another Vector.
+
+  While dimensions of VectorViews can not be adjusted, dimensions of
+  Vectors *can* be adjusted. Hence, the behavior of the assignment
+  operator is different.
+
+  In this case the size of the target is automatically adjusted. This
+  is important, so that structures containing Vectors are copied
+  correctly.
+
+  This is a deviation from the old ARTS paradigm that sizes must match
+  exactly before copying!
+
+  Note: It is sufficient to have only this one version of the
+  assignment (Vector = Vector). It implicitly covers the cases
+  Vector=VectorView, etc, because there is a default constructor for
+  Vector from VectorView. (See C++ Primer Plus, page 571ff.)
+
+  \param[in] v The other vector to copy to this one.
+
+  \return This vector, by tradition.
+
+  \author Stefan Buehler
+  \date   2002-12-19            */
   Vector& operator=(const Vector& v);
+
+  //! Move assignment from another Vector.
   Vector& operator=(Vector&& v) noexcept;
+
+  //! Assignment from an initializatoin list.
   Vector& operator=(std::initializer_list<Numeric> v);
+
+  /** Assignment operator from Array<Numeric>.
+
+  This copies the data from an Array<Numeric> to this VectorView. The
+  size is adjusted automatically.
+
+  Array<Numeric> can be useful to collect things in, because there
+  is a .push_back method for it. Then, after collecting we usually
+  have to transfer the content to a Vector. With this assignment
+  operator that's easy.
+
+  \param[in] v The array to assign to this.
+
+  \return This vector, by tradition.
+
+  \author Stefan Buehler
+  \date   2002-12-19                                    */
   Vector& operator=(const Array<Numeric>& v);
+
+  /** Assignment operator from scalar. Assignment operators are not
+    inherited. */
   Vector& operator=(Numeric x);
 
-  // Resize function:
+  /** Resize function. If the size is already correct this function does
+    nothing. All data is lost after resizing! The new Vector is not
+    initialized, so it will contain random values.  */
   void resize(Index n);
 
-  // Swap function:
+  /** Swaps two objects. */
   friend void swap(Vector& v1, Vector& v2);
 
-  // Destructor:
+  /** Destructor for Vector. This is important, since Vector uses new to
+    allocate storage. */
   virtual ~Vector();
 };
 
@@ -925,6 +1147,7 @@ void copy(ConstIterator1D origin,
           const ConstIterator1D& end,
           Iterator1D target);
 
+/** Copy a scalar to all elements. */
 void copy(Numeric x, Iterator1D target, const Iterator1D& end);
 
 void copy(ConstIterator2D origin,

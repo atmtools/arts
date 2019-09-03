@@ -1,4 +1,4 @@
-/* Copyright (C) 2001-2012 Stefan Buehler <sbuehler@ltu.se>
+/* Copyright (C) 2001-2019 Stefan Buehler <sbuehler@ltu.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -17,7 +17,6 @@
 
 /**
    \file   matpackI.cc
-
    \author Stefan Buehler
    \date   2001-09-15
 */
@@ -41,16 +40,6 @@ static const Numeric RAD2DEG = 57.295779513082323;
 // Functions for Range:
 // --------------------
 
-/* Explicit constructor. 
-
-  \param Start must be >= 0.
-
-  \param Extent also. Although internally negative extent means "to the end",
-  this can not be created this way, only with the joker. Zero
-  extent is allowed, though, which corresponds to an empty range.
-
-  \param Stride can be anything. It can be omitted, in which case the
-  default value is 1. */
 Range::Range(Index start, Index extent, Index stride)
     : mstart(start), mextent(extent), mstride(stride) {
   // Start must be >= 0:
@@ -64,26 +53,16 @@ Range::Range(Index start, Index extent, Index stride)
   //  assert( 0!=mstride);
 }
 
-/** Constructor with joker extent. Depending on the sign of stride,
-    this means "to the end", or "to the beginning". */
 Range::Range(Index start, Joker, Index stride)
     : mstart(start), mextent(-1), mstride(stride) {
   // Start must be >= 0:
   assert(0 <= mstart);
 }
 
-/** Constructor with just a joker. This means, take everything. You
-    can still optionally give a stride, though. This constructor is
-    just shorter notation for Range(0,joker) */
 Range::Range(Joker, Index stride) : mstart(0), mextent(-1), mstride(stride) {
   // Nothing to do here.
 }
 
-/** Constructor which converts a range with joker to an explicit
-    range.
-
-    \param max_size The maximum allowed size of the vector. 
-    \param r The new range, with joker. */
 Range::Range(Index max_size, const Range& r)
     : mstart(r.mstart), mextent(r.mextent), mstride(r.mstride) {
   // Start must be >= 0:
@@ -110,11 +89,6 @@ Range::Range(Index max_size, const Range& r)
   }
 }
 
-/** Constructor of a new range relative to an old range. The new range
-    may contain -1 for the stride, which acts as a joker.
-
-    \param p Previous range.
-    \param n New range. */
 Range::Range(const Range& p, const Range& n)
     : mstart(p.mstart + n.mstart * p.mstride),
       mextent(n.mextent),
@@ -161,21 +135,10 @@ std::ostream& operator<<(std::ostream& os, const Range& r) {
 // Functions for ConstVectorView:
 // ------------------------------
 
-//! Returns true if variable size is zero.
 bool ConstVectorView::empty() const { return (nelem() == 0); }
 
-/** Returns the number of elements.  The names `size' and `length'
-    are already used by STL functions returning size_t. To avoid
-    confusion we choose the name `nelem'. This is also more
-    consistent with `nrow' and `ncol' for matrices.
-    
-    The value range of long, which is used to store the index is on a
-    PC from -2147483648 to 2147483647. This means that a 15GB large
-    array of float can be addressed with this index. So the extra bit
-    that size_t has compared to long is not needed. */
 Index ConstVectorView::nelem() const { return mrange.mextent; }
 
-/** The sum of all elements of a Vector. */
 Numeric ConstVectorView::sum() const {
   Numeric s = 0;
   ConstIterator1D i = begin();
@@ -186,26 +149,20 @@ Numeric ConstVectorView::sum() const {
   return s;
 }
 
-/** Const index operator for subrange. We have to also account for the
-    case, that *this is already a subrange of a Vector. This allows
-    correct recursive behavior.  */
 ConstVectorView ConstVectorView::operator[](const Range& r) const {
   return ConstVectorView(mdata, mrange, r);
 }
 
-/** Return const iterator to first element. */
 ConstIterator1D ConstVectorView::begin() const {
   return ConstIterator1D(mdata + mrange.mstart, mrange.mstride);
 }
 
-/** Return const iterator behind last element. */
 ConstIterator1D ConstVectorView::end() const {
   return ConstIterator1D(
       mdata + mrange.mstart + (mrange.mextent) * mrange.mstride,
       mrange.mstride);
 }
 
-/** Conversion to const 1 column matrix. */
 ConstVectorView::operator ConstMatrixView() const {
   // The old version (before 2013-01-18) of this was:
   //    return ConstMatrixView(mdata,mrange,Range(mrange.mstart,1));
@@ -215,43 +172,27 @@ ConstVectorView::operator ConstMatrixView() const {
   return ConstMatrixView(mdata, mrange, Range(0, 1));
 }
 
-/** A special constructor, which allows to make a ConstVectorView from
-    a scalar.
-
-    This one is a bit tricky: We have to cast away the arguments const
-    qualifier, because mdata is not const. This should be safe, since
-    there are no non-const methods for ConstVectorView.
-*/
+/* This one is a bit tricky: We have to cast away the arguments const
+   qualifier, because mdata is not const. This should be safe, since
+   there are no non-const methods for ConstVectorView. */
 ConstVectorView::ConstVectorView(const Numeric& a)
     : mrange(0, 1), mdata(&const_cast<Numeric&>(a)) {
   // Nothing to do here.
 }
 
-/** Explicit constructor. This one is used by Vector to initialize its
-    own VectorView part. */
 ConstVectorView::ConstVectorView(Numeric* data, const Range& range)
     : mrange(range), mdata(data) {
   // Nothing to do here.
 }
 
-/** Recursive constructor. This is used to construct sub ranges from
-    sub ranges. That means that the new range has to be interpreted
-    relative to the original range. The new range may contain -1 for
-    the extent which acts as a joker. However, the used Range
-    constructor converts this to an explicit range, consistent with
-    the original Range.
-
-    \param *data The actual data.
-    \param p Previous range.
-    \param n New Range.  */
 ConstVectorView::ConstVectorView(Numeric* data, const Range& p, const Range& n)
     : mrange(p, n), mdata(data) {
   // Nothing to do here.
 }
 
-/** Output operator. This demonstrates how iterators can be used to
-    traverse the vector. The iterators know which part of the vector
-    is `active', and also the stride. */
+/* Output operator. This demonstrates how iterators can be used to
+   traverse the vector. The iterators know which part of the vector
+   is `active', and also the stride. */
 std::ostream& operator<<(std::ostream& os, const ConstVectorView& v) {
   ConstIterator1D i = v.begin();
   const ConstIterator1D end = v.end();
@@ -270,8 +211,6 @@ std::ostream& operator<<(std::ostream& os, const ConstVectorView& v) {
 // Functions for VectorView:
 // ------------------------
 
-/** Bail out immediately if somebody tries to create a VectorView from
-    a const Vector. */
 VectorView::VectorView(const Vector&) {
   throw runtime_error(
       "Creating a VectorView from a const Vector is not allowed.");
@@ -282,34 +221,24 @@ VectorView::VectorView(const Vector&) {
   // ARTS input.
 }
 
-/** Create VectorView from a Vector. */
 VectorView::VectorView(Vector& v) {
   mdata = v.mdata;
   mrange = v.mrange;
 }
 
-/** Index operator for subrange. We have to also account for the case,
-    that *this is already a subrange of a Vector. This allows correct
-    recursive behavior.  */
 VectorView VectorView::operator[](const Range& r) {
   return VectorView(mdata, mrange, r);
 }
 
-/** Return iterator to first element. */
 Iterator1D VectorView::begin() {
   return Iterator1D(mdata + mrange.mstart, mrange.mstride);
 }
 
-/** Return iterator behind last element. */
 Iterator1D VectorView::end() {
   return Iterator1D(mdata + mrange.mstart + (mrange.mextent) * mrange.mstride,
                     mrange.mstride);
 }
 
-/** Assignment operator. This copies the data from another VectorView
-    to this VectorView. Dimensions must agree! Resizing would destroy
-    the selection that we might have done in this VectorView by
-    setting its range. */
 VectorView& VectorView::operator=(const ConstVectorView& v) {
   //  cout << "Assigning VectorView from ConstVectorView.\n";
 
@@ -321,11 +250,6 @@ VectorView& VectorView::operator=(const ConstVectorView& v) {
   return *this;
 }
 
-/** Assignment from VectorView to VectorView. This is a tricky
-    one. The problem is that since VectorView is derived from
-    ConstVectorView, a default = operator is generated by the
-    compiler, which does not do what we want. So we need this one to
-    override the default. */
 VectorView& VectorView::operator=(const VectorView& v) {
   //  cout << "Assigning VectorView from VectorView.\n";
 
@@ -337,8 +261,6 @@ VectorView& VectorView::operator=(const VectorView& v) {
   return *this;
 }
 
-/** Assignment from Vector. This is important to avoid a bug when
-    assigning a Vector to a VectorView. */
 VectorView& VectorView::operator=(const Vector& v) {
   //  cout << "Assigning VectorView from Vector.\n";
 
@@ -350,42 +272,35 @@ VectorView& VectorView::operator=(const Vector& v) {
   return *this;
 }
 
-/** Assigning a scalar to a VectorView will set all elements to this
-    value. */
 VectorView& VectorView::operator=(Numeric x) {
   copy(x, begin(), end());
   return *this;
 }
 
-/** Multiplication by scalar. */
 VectorView VectorView::operator*=(Numeric x) {
   const Iterator1D e = end();
   for (Iterator1D i = begin(); i != e; ++i) *i *= x;
   return *this;
 }
 
-/** Division by scalar. */
 VectorView VectorView::operator/=(Numeric x) {
   const Iterator1D e = end();
   for (Iterator1D i = begin(); i != e; ++i) *i /= x;
   return *this;
 }
 
-/** Addition of scalar. */
 VectorView VectorView::operator+=(Numeric x) {
   const Iterator1D e = end();
   for (Iterator1D i = begin(); i != e; ++i) *i += x;
   return *this;
 }
 
-/** Subtraction of scalar. */
 VectorView VectorView::operator-=(Numeric x) {
   const Iterator1D e = end();
   for (Iterator1D i = begin(); i != e; ++i) *i -= x;
   return *this;
 }
 
-/** Element-vise multiplication by another vector. */
 VectorView VectorView::operator*=(const ConstVectorView& x) {
   assert(nelem() == x.nelem());
 
@@ -398,7 +313,6 @@ VectorView VectorView::operator*=(const ConstVectorView& x) {
   return *this;
 }
 
-/** Element-vise division by another vector. */
 VectorView VectorView::operator/=(const ConstVectorView& x) {
   assert(nelem() == x.nelem());
 
@@ -411,7 +325,6 @@ VectorView VectorView::operator/=(const ConstVectorView& x) {
   return *this;
 }
 
-/** Element-vise addition of another vector. */
 VectorView VectorView::operator+=(const ConstVectorView& x) {
   assert(nelem() == x.nelem());
 
@@ -424,7 +337,6 @@ VectorView VectorView::operator+=(const ConstVectorView& x) {
   return *this;
 }
 
-/** Element-vise subtraction of another vector. */
 VectorView VectorView::operator-=(const ConstVectorView& x) {
   assert(nelem() == x.nelem());
 
@@ -437,7 +349,6 @@ VectorView VectorView::operator-=(const ConstVectorView& x) {
   return *this;
 }
 
-/** Conversion to 1 column matrix. */
 VectorView::operator MatrixView() {
   // The old version (before 2013-01-18) of this was:
   //    return ConstMatrixView(mdata,mrange,Range(mrange.mstart,1));
@@ -447,12 +358,6 @@ VectorView::operator MatrixView() {
   return MatrixView(mdata, mrange, Range(0, 1));
 }
 
-/** Conversion to plain C-array.
-
-  This function returns a pointer to the raw data. It fails if the
-  VectorView is not pointing to the beginning of a Vector or the stride
-  is not 1 because the caller expects to get a C array with continuous data.
-*/
 const Numeric* VectorView::get_c_array() const {
   if (mrange.mstart != 0 || mrange.mstride != 1)
     throw std::runtime_error(
@@ -461,12 +366,6 @@ const Numeric* VectorView::get_c_array() const {
   return mdata;
 }
 
-/** Conversion to plain C-array.
-
-  This function returns a pointer to the raw data. It fails if the
-  VectorView is not pointing to the beginning of a Vector or the stride
-  is not 1 because the caller expects to get a C array with continuous data.
-*/
 Numeric* VectorView::get_c_array() {
   if (mrange.mstart != 0 || mrange.mstride != 1)
     throw std::runtime_error(
@@ -475,39 +374,20 @@ Numeric* VectorView::get_c_array() {
   return mdata;
 }
 
-/** A special constructor, which allows to make a VectorView from
-    a scalar.
-*/
 VectorView::VectorView(Numeric& a) : ConstVectorView(a) {
   // Nothing to do here.
 }
 
-/** Explicit constructor. This one is used by Vector to initialize its
-    own VectorView part. */
 VectorView::VectorView(Numeric* data, const Range& range)
     : ConstVectorView(data, range) {
   // Nothing to do here.
 }
 
-/** Recursive constructor. This is used to construct sub ranges from
-    sub ranges. That means that the new range has to be interpreted
-    relative to the original range. The new range may contain -1 for
-    the extent which acts as a joker. However, the used Range
-    constructor converts this to an explicit range, consistent with
-    the original Range.
-
-    \param *data The actual data.
-    \param p Previous range.
-    \param n New Range.  */
 VectorView::VectorView(Numeric* data, const Range& p, const Range& n)
     : ConstVectorView(data, p, n) {
   // Nothing to do here.
 }
 
-/** Copy data between begin and end to target. Target must be a valid
-    area of memory. Note that the strides in the iterators can be
-    different, so that we can for example copy data between different
-    kinds of subvectors. */
 void copy(ConstIterator1D origin,
           const ConstIterator1D& end,
           Iterator1D target) {
@@ -519,7 +399,6 @@ void copy(ConstIterator1D origin,
     for (; origin != end; ++origin, ++target) *target = *origin;
 }
 
-/** Copy a scalar to all elements. */
 void copy(Numeric x, Iterator1D target, const Iterator1D& end) {
   for (; target != end; ++target) *target = x;
 }
@@ -527,18 +406,15 @@ void copy(Numeric x, Iterator1D target, const Iterator1D& end) {
 // Functions for Vector:
 // ---------------------
 
-/** Initialization list constructor. */
 Vector::Vector(std::initializer_list<Numeric> init)
     : VectorView(new Numeric[init.size()], Range(0, init.size())) {
   std::copy(init.begin(), init.end(), begin());
 }
 
-/** Constructor setting size. */
 Vector::Vector(Index n) : VectorView(new Numeric[n], Range(0, n)) {
   // Nothing to do here.
 }
 
-/** Constructor setting size and filling with constant value. */
 Vector::Vector(Index n, Numeric fill)
     : VectorView(new Numeric[n], Range(0, n)) {
   // Here we can access the raw memory directly, for slightly
@@ -546,14 +422,6 @@ Vector::Vector(Index n, Numeric fill)
   std::fill_n(mdata, n, fill);
 }
 
-/** Constructor filling with values. 
-
-    Examples:
-
-    Vector v(1,5,1);  // 1, 2, 3, 4, 5
-    Vector v(1,5,.5); // 1, 1.5, 2, 2.5, 3
-    Vector v(5,5,-1); // 5, 4, 3, 2, 1
-*/
 Vector::Vector(Numeric start, Index extent, Numeric stride)
     : VectorView(new Numeric[extent], Range(0, extent)) {
   // Fill with values:
@@ -566,24 +434,16 @@ Vector::Vector(Numeric start, Index extent, Numeric stride)
   }
 }
 
-/** Copy constructor from VectorView. This automatically sets the size
-    and copies the data. The vector created will have start zero and
-    stride 1, independent on how these parameters are set for the
-    original. So, what is copied is the data, not the shape
-    of the selection. */
 Vector::Vector(const ConstVectorView& v)
     : VectorView(new Numeric[v.nelem()], Range(0, v.nelem())) {
   copy(v.begin(), v.end(), begin());
 }
 
-/** Copy constructor from Vector. This is important to override the
-    automatically generated shallow constructor. We want deep copies!  */
 Vector::Vector(const Vector& v)
     : VectorView(new Numeric[v.nelem()], Range(0, v.nelem())) {
   std::memcpy(mdata, v.mdata, nelem() * sizeof(Numeric));
 }
 
-/** Converting constructor from std::vector<Numeric>. */
 Vector::Vector(const std::vector<Numeric>& v)
     : VectorView(new Numeric[v.size()], Range(0, v.size())) {
   std::vector<Numeric>::const_iterator vec_it_end = v.end();
@@ -594,38 +454,12 @@ Vector::Vector(const std::vector<Numeric>& v)
     *this_it = *vec_it;
 }
 
-//! Assignment from an initializatoin list.
 Vector& Vector::operator=(std::initializer_list<Numeric> v) {
   resize(v.size());
   std::copy(v.begin(), v.end(), begin());
   return *this;
 }
 
-//! Assignment from another Vector.
-/*! 
-  While dimensions of VectorViews can not be adjusted, dimensions of
-  Vectors *can* be adjusted. Hence, the behavior of the assignment
-  operator is different.
-
-  In this case the size of the target is automatically adjusted. This
-  is important, so that structures containing Vectors are copied
-  correctly. 
-
-  This is a deviation from the old ARTS paradigm that sizes must match
-  exactly before copying!
-
-  Note: It is sufficient to have only this one version of the
-  assignment (Vector = Vector). It implicitly covers the cases
-  Vector=VectorView, etc, because there is a default constructor for
-  Vector from VectorView. (See C++ Primer Plus, page 571ff.)
-
-  \param v The other vector to copy to this one.
-
-  \return This vector, by tradition.
-
-  \author Stefan Buehler
-  \date   2002-12-19
-*/
 Vector& Vector::operator=(const Vector& v) {
   if (this != &v) {
     resize(v.nelem());
@@ -634,7 +468,6 @@ Vector& Vector::operator=(const Vector& v) {
   return *this;
 }
 
-//! Move assignment from another Vector.
 Vector& Vector::operator=(Vector&& v) noexcept {
   if (this != &v) {
     delete[] mdata;
@@ -646,50 +479,17 @@ Vector& Vector::operator=(Vector&& v) noexcept {
   return *this;
 }
 
-//! Assignment operator from Array<Numeric>.
-/*!
-  This copies the data from a Array<Numeric> to this VectorView. The
-  size is adjusted automatically.
-
-  Array<Numeric> can be useful to collect things in, because there
-  is a .push_back method for it. Then, after collecting we usually
-  have to transfer the content to a Vector. With this assignment
-  operator that's easy.
-
-  \param x The array to assign to this.
-
-  \return This vector, by tradition.
-
-  \author Stefan Buehler
-  \date   2002-12-19
-*/
 Vector& Vector::operator=(const Array<Numeric>& x) {
   resize(x.nelem());
   VectorView::operator=(x);
   return *this;
 }
 
-/** Assignment operator from scalar. Assignment operators are not
-    inherited. */
 Vector& Vector::operator=(Numeric x) {
   std::fill_n(mdata, nelem(), x);
   return *this;
 }
 
-// /** Assignment operator from VectorView. Assignment operators are not
-//     inherited. */
-// inline Vector& Vector::operator=(const VectorView v)
-// {
-//   cout << "Assigning Vector from Vector View.\n";
-//  // Check that sizes are compatible:
-//   assert(mrange.mextent==v.mrange.mextent);
-//   VectorView::operator=(v);
-//   return *this;
-// }
-
-/** Resize function. If the size is already correct this function does
-    nothing. All data is lost after resizing! The new Vector is not
-    initialized, so it will contain random values.  */
 void Vector::resize(Index n) {
   assert(0 <= n);
   if (mrange.mextent != n) {
@@ -701,14 +501,11 @@ void Vector::resize(Index n) {
   }
 }
 
-/** Swaps two objects. */
 void swap(Vector& v1, Vector& v2) {
   std::swap(v1.mrange, v2.mrange);
   std::swap(v1.mdata, v2.mdata);
 }
 
-/** Destructor for Vector. This is important, since Vector uses new to
-    allocate storage. */
 Vector::~Vector() { delete[] mdata; }
 
 // Functions for ConstMatrixView:
