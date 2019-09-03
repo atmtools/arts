@@ -15,18 +15,12 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
    USA. */
 
-////////////////////////////////////////////////////////////////////////////
-//   File description
-////////////////////////////////////////////////////////////////////////////
-/*!
-  \file   workspace_ng.h
-  \author Oliver Lemke <olemke@core-dump.info>
-  \date   2004-11-05
-
-  \brief This file contains the declaration and partly the implementation
-         of the workspace class.
-
-*/
+/** This file contains the Workspace class.
+ *
+ * @file   workspace_ng.h
+ * @author Oliver Lemke <olemke@core-dump.info>
+ * @date   2004-11-05
+ */
 
 #ifndef WORKSPACE_NG_INCLUDED
 #define WORKSPACE_NG_INCLUDED
@@ -39,10 +33,10 @@ class Workspace;
 #include "array.h"
 #include "wsv_aux.h"
 
-//! Workspace class
-/*!
-  Manages the workspace variables.
-*/
+/** Workspace class.
+ *
+ * Manages the workspace variables.
+ */
 class Workspace {
  protected:
   struct WsvStruct {
@@ -51,75 +45,147 @@ class Workspace {
     bool auto_allocated;
   };
 
-  //! Workspace variable container.
+  /** Workspace variable container. */
   Array<stack<WsvStruct *> > ws;
 
  public:
 #ifndef NDEBUG
-  //! Only for debugging
+  /** Debugging context. */
   String context;
 #endif
 
+  /** Global WSV data. */
   static Array<WsvRecord> wsv_data;
 
-  /*! The map associated with wsv_data. */
+  /** Global map associated with wsv_data. */
   static map<String, Index> WsvMap;
 
+  /** Construct a new workspace
+   *
+   * Create the stacks for the WSVs.
+   */
   Workspace();
+
+  /** Workspace copy constructor.
+   *
+   * Make a copy of a workspace. The copy constructor will only copy the topmost
+   * layer of the workspace variable stacks.
+   *
+   * @param[in] workspace The workspace to be copied
+   */
   Workspace(const Workspace &workspace);
+
+  /** Destruct the workspace and free all WSVs. */
   virtual ~Workspace();
 
+  /** Define workspace variables. */
   static void define_wsv_data();
+
+  /** Map WSV names to indices. */
   static void define_wsv_map();
+
+  /** Append a new WSV to the workspace. */
   static Index add_wsv(const WsvRecord &wsv);
 
+  /** Delete WSV.
+   *
+   * Frees the memory of the topmost WSV on the stack.
+   *
+   * @param[in] i WSV index.
+   */
   void del(Index i);
 
+  /** Duplicate WSV.
+   *
+   * Create another level of scope by duplicating the top element on the WSV
+   * stack.
+   *
+   * @param[in] i
+   */
   void duplicate(Index i);
 
-  void initialize();
+  /** Reset the size of the workspace.
+   *
+   * Resize the workspace to match the number of WSVs in wsv_data.
+   */
+  void initialize() { ws.resize(wsv_data.nelem()); }
 
-  //! Checks existence of the given WSV.
+  /** Checks existence of the given WSV.
+   *
+   * @param[in] i WSV index.
+   * @return true if the WSV exists, otherwise false.
+   */
   bool is_initialized(Index i) {
     return ((ws[i].size() != 0) && (ws[i].top()->initialized == true));
   }
 
-  //! Return scoping level of the given WSV.
+  /** Return scoping level of the given WSV. */
   Index depth(Index i) { return (Index)ws[i].size(); }
 
+  /** Remove the topmost WSV from its stack.
+   *
+   * Memory is not freed.
+   *
+   * @see pop_free
+   *
+   * @param[in] i WSV index.
+   */
   void *pop(Index i);
 
+  /** Remove the topmost WSV from its stack and free its memory.
+   *
+   * @see pop
+   *
+   *  @param[in] i WSV index.
+   */
   void pop_free(Index i);
 
+  /** Push a new WSV onto its stack.
+   *
+   * @see push_uninitialized
+   *
+   * @param[in] i WSV index.
+   * @param[in] Pointer to variable that should be put on the stack.
+   */
   void push(Index i, void *wsv);
 
+  /** Put a new WSV onto its stack.
+   *
+   * @see push
+   *
+   * @param[in] i WSV index.
+   * @param[in] Pointer to the WSV to put on the stack.
+   */
   void push_uninitialized(Index i, void *wsv);
 
+  /** Get the number of workspace variables. */
   Index nelem() { return ws.nelem(); }
 
+  /** Retrieve a pointer to the given WSV. */
   void *operator[](Index i);
 };
 
-//! Print WSV name to output stream.
-/** Looks up the name of the WSV with index i and
- prints it to the given output stream.
- 
- \param outstream OutputStream
- \param i Index of WSV
+/** Print WSV name to output stream.
+ *
+ * Looks up the name of the WSV with index i and
+ * prints it to the given output stream.
+ *
+ * @param[in,out] outstream OutputStream
+ * @param[in] i Index of WSV
  */
 template <typename OutputStream>
 void PrintWsvName(OutputStream &outstream, Index i) {
   outstream << Workspace::wsv_data[i].Name() << "(" << i << ") ";
 }
 
-//! Print list of WSV names to output stream.
-/** Runs through the list of WSV indexes and print all names
- to the given output stream. The list of indexes can be any
- STL container such as Array, vector...
- 
- \param outstream OutputStream
- \param container List of WSV indexes
- */
+/** Print list of WSV names to output stream.
+  *
+  * Runs through the list of WSV indexes and print all names to the given output
+  * stream. The list of indexes can be any STL container such as Array,
+  * vector...
+  * @param outstream OutputStream
+  * @param container List of WSV indexes
+  */
 template <typename OutputStream, typename Container>
 void PrintWsvNames(OutputStream &outstream, const Container &container) {
   for (typename Container::const_iterator it = container.begin();
