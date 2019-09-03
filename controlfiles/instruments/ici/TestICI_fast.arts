@@ -103,7 +103,7 @@ INCLUDE "instruments/ici/ici_fast.arts"
 # Atmospheric profiles are stored in an ArrayOfGriddedField4.
 # It contains one GriddedField4 for each atmospheric state.
 #
-ReadXML( batch_atm_fields_compact, "../amsu/chevallierl91_clear_q_extract.xml" )
+ReadXML( batch_atm_fields_compact, "../../testdata/chevallierl91_all_extract.xml" )
 
 # add constant profiles for O2 and N2
 batch_atm_fields_compactAddConstant( name="abs_species-O2", value=0.2095 )
@@ -181,7 +181,7 @@ AgendaSet( ybatch_calc_agenda ){
 
   # Perform RT calculations
   # ---
-  atmfields_checkedCalc
+  atmfields_checkedCalc(bad_partition_functions_ok=1)
   atmgeom_checkedCalc
   cloudbox_checkedCalc
   sensor_checkedCalc
