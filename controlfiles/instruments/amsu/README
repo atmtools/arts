@@ -1,8 +1,0 @@
-Notes:
-
-1. The antenna pattern (amsub.antenna.xml) is not used by the standard setup.
-
-2. The matlab script (setup_input.m) can be used to produce the
-antenna pattern. It can produce also other sensor description files,
-but these are no longer necessary for the simplified sensor setup with
-the ARTS method sensor_responseSimpleAMSU.
