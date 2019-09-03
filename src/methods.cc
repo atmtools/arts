@@ -10727,9 +10727,12 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(MdRecord(
       NAME("nlte_fieldForSingleSpeciesNonOverlappingLines"),
-      DESCRIPTION("Test function to solve NLTE\n"
-                  "Use at own risk... will be changed continously and\n"
-                  "expect its user to debug it...\n"),
+      DESCRIPTION("NLTE field for a simple setup.\n"
+        "\n"
+        "This will solve for *nlte_field* in the input atmosphere.\n"
+        "The solver depends on the lines not overlapping and that there\n"
+        "is only a single species in the atmosphere.\n"
+      ),
       AUTHORS("Richard Larsson"),
       OUT("nlte_field"),
       GOUT(),

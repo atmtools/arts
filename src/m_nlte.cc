@@ -16,12 +16,21 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
+/**
+ * @file m_nlte.cc
+ * @author Richard Larsson
+ * @date 2018-03-07
+ * 
+ * @brief User interface to NLTE variables and functions
+ */
+
 #include "absorption.h"
 #include "arts.h"
 #include "auto_md.h"
 #include "lin_alg.h"
 #include "nlte.h"
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ArrayOfQuantumIdentifierFromLines(
     ArrayOfQuantumIdentifier& qid,
     const ArrayOfArrayOfLineRecord& abs_lines_per_species,
@@ -55,12 +64,14 @@ void ArrayOfQuantumIdentifierFromLines(
   }
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void nlte_fieldRescalePopulationLevels(Tensor4& nlte_field,
                                        const Numeric& scale,
                                        const Verbosity&) {
   nlte_field *= scale;
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void nlte_fieldForSingleSpeciesNonOverlappingLines(
     Workspace& ws,
     Tensor4& nlte_field,
@@ -228,6 +239,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(
         << iteration_limit << " iterations\n";
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void collision_coefficientsFromSplitFiles(
     ArrayOfArrayOfGriddedField1& collision_coefficients,
     ArrayOfQuantumIdentifier& collision_line_identifiers,
