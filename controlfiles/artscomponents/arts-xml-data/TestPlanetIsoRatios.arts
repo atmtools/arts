@@ -73,7 +73,7 @@ AtmFieldsCalc
 Extract( z_surface, z_field, 0 )
 
 # use planetary catalogue
-abs_linesReadFromSplitArtscat(abs_lines, abs_species, "spectroscopy/Perrin_artscat34/", 0, 3e12)
+abs_linesReadFromSplitArtscat(abs_lines, abs_species, "spectroscopy/Perrin/", 0, 3e12)
 abs_lines_per_speciesCreateFromLines
 
 
