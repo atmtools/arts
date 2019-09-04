@@ -15,16 +15,12 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*===========================================================================
-  === File description 
-  ===========================================================================*/
-
-/*!
-  \file   montecarlo.cc
-  \author Cory Davis <cory@met.ed.ac.uk>
-  \date   2003-06-19 
-
-  \brief  functions used by MCGeneral
+/**
+ * @file   montecarlo.cc
+ * @author Cory Davis <cory@met.ed.ac.uk>
+ * @date   2003-06-19
+ *
+ * @brief  functions used by MCGeneral
 */
 
 /*===========================================================================
@@ -46,13 +42,19 @@ extern const Numeric SPEED_OF_LIGHT;
 //
 //
 
-//! ext_I
-/*!
-  Calculate the extinction of I for a propagating "photon"
-
-\author Ian Adams
-\date 2016-06-15
-*/
+/** ext_I.
+ *
+ * Calculate the extinction of I for a propagating "photon"
+ *
+ * @param[in] I  1st Stokes element *** FIXMEDOC ***
+ * @param[in] Q  2nd Stokes element *** FIXMEDOC ***
+ * @param[in] KI  Extinction matrix element 0,0 *** FIXMEDOC ***
+ * @param[in] KQ  Extinction matrix element 0,1 *** FIXMEDOC ***
+ * @param[in] s   Pathlength *** FIXMEDOC ***
+ *
+ * @author Ian Adams
+ * @date  2016-06-15
+ */
 Numeric ext_I(const Numeric& I,
               const Numeric& Q,
               const Numeric& kI,
@@ -65,65 +67,68 @@ Numeric ext_I(const Numeric& I,
   return fs;
 }
 
-//! brent_zero
-/*! 
-  
-    Purpose:
-  
-      brent_zero seeks the root of a function F(X) in an interval [A,B].
-  
-    Discussion:
-  
-      The interval [A,B] must be a change of sign interval for F.
-      That is, F(A) and F(B) must be of opposite signs.  Then
-      assuming that F is continuous implies the existence of at least
-      one value C between A and B for which F(C) = 0.
-  
-      The location of the zero is determined to within an accuracy
-      of 6 * MACHEPS * abs ( C ) + 2 * T.
-  
-      Thanks to Thomas Secretin for pointing out a transcription error in the
-      setting of the value of P, 11 February 2013.
-  
-      Modifications by Ian S. Adams, U.S. Naval Research Laboratory to conform 
-      to ARTS and to hardcode function for root finding while passing in
-      mulitple args for function
-      
-  
-    Licensing:
-  
-      This code is distributed under the GNU LGPL license.
-  
-    Modified:
-  
-      11 February 2013, J. Burkardt
-  
-      15 July 2016, I. Adams
-  
-    Author:
-  
-      Original FORTRAN77 version by Richard Brent.
-      C++ version by John Burkardt.
-  
-    Reference:
-  
-      Richard Brent,
-      Algorithms for Minimization Without Derivatives,
-      Dover, 2002,
-      ISBN: 0-486-41998-3,
-      LC: QA402.5.B74.
-  
-    Parameters:
-  
-      Input, double A, B, the endpoints of the change of sign interval.
-  
-      Input, double T, a positive error tolerance.
-  
-      Output, double ZERO, the estimated value of a zero of
-      the function F.
-\author J. Burkhardt
-\date 20??-??-??
-*/
+/** brent_zero.
+ *
+ *
+ * This function seeks the root of a function F(X) in an interval [A,B].
+ *
+ * Discussion:
+ * The interval [A,B] must be a change of sign interval for F. That is,
+ * F(A) and F(B) must be of opposite signs. Then assuming that F is
+ * continuous implies the existence of at least one value C between A and
+ * B for which F(C) = 0.
+ *
+ * The location of the zero is determined to within an accuracy of
+ * 6 * MACHEPS * abs ( C ) + 2 * T.
+ *
+ * Thanks to Thomas Secretin for pointing out a transcription error in the
+ * setting of the value of P, 11 February 2013.
+ *
+ * Modifications by Ian S. Adams, U.S. Naval Research Laboratory to conform
+ * to ARTS and to hardcode function for root finding while passing in
+ * mulitple args for function.
+ *
+ * Licensing:
+ *
+ * This code is distributed under the GNU LGPL license.
+ *
+ * Modified:
+ *
+ * 11 February 2013, J. Burkardt
+ * 15 July 2016    , I. Adams
+ *
+ * Author:
+ *
+ * Original FORTRAN77 version by Richard Brent.
+ * C++ version by John Burkardt.
+ *
+ * Reference:
+ *
+ * Richard Brent,
+ * Algorithms for Minimization Without Derivatives,
+ * Dover, 2002,
+ * ISBN: 0-486-41998-3,
+ * LC: QA402.5.B74.
+ *
+ * Parameters:
+ *
+ * Input, double A, B, the endpoints of the change of sign interval.
+ * Input, double T, a positive error tolerance.
+ * Output, double ZERO, the estimated value of a zero of the function F.
+ *
+ * @param[out] sb  The estimated value of a zero of the function F.
+ * @param[in]  a   The lower endpoint of the change of sign interval
+ * @param[in]  b   The upper endpoint of the change of sign interval
+ * @param[in]  t   A positive error tolerance.
+ * @param[in]  rn  A Random number.
+ * @param[in]  I   1st Stokes element *** FIXMEDOC ***
+ * @param[in]  Q   2nd Stokes element *** FIXMEDOC ***
+ * @param[in]  KI  Extinction matrix element 0,0 *** FIXMEDOC ***
+ * @param[in]  KQ  Extinction matrix element 0,1 *** FIXMEDOC ***
+ *
+ * @author J. Burkhardt
+ * @date 20??-??-??
+ */
 void brent_zero(Numeric& sb,
                 const Numeric& a,
                 const Numeric& b,
@@ -236,14 +241,6 @@ void brent_zero(Numeric& sb,
   }
 }
 
-//! clear_rt_vars_at_gp
-/*! 
-
-  Calculates a bunch of atmospheric variables at the end of a ppath.
-   
-\author Cory Davis
-\date 2005-02-19?
-*/
 void clear_rt_vars_at_gp(Workspace& ws,
                          MatrixView ext_mat_mono,
                          VectorView abs_vec_mono,
@@ -325,15 +322,6 @@ void clear_rt_vars_at_gp(Workspace& ws,
   local_ext_mat.MatrixAtPosition(ext_mat_mono);
   local_abs_vec.VectorAtPosition(abs_vec_mono);
 }
-
-//! cloudy_rt_vars_at_gp
-/*! 
-
-  Calculates a bunch of atmospheric variables at the end of a ppath.
-   
-\author Cory Davis
-\date 2005-02-19?
-*/
 
 void cloudy_rt_vars_at_gp(Workspace& ws,
                           MatrixView ext_mat_mono,
@@ -468,29 +456,6 @@ void cloudy_rt_vars_at_gp(Workspace& ws,
   abs_vec_mono += abs_vec_bulk(0, 0, 0, joker);
 }
 
-//! cloud_atm_vars_by_gp
-/*! 
-
-  Returns pressure, temperature, VMRs and PNDs, at points corresponding
-  to arrays of gridpositions gp_p, gp_lat, and gp_lon.  The field and grid 
-  input variables all span only the cloudbox
-
-  \param pressure  Output: a vector of pressures
-  \param temperature  Output: a vector of temperatures
-  \param vmr          Output: a n_species by n_p matrix of VMRs
-  \param pnd          Output: a n_scatelem by n_p matrix of PNDs
-  \param gp_p         an array of pressure gridpoints
-  \param gp_lat       an array of latitude gridpoints
-  \param gp_lon       an array of longitude gridpoints
-  \param cloudbox_limits  the WSV
-  \param p_grid_cloud the subset of the p_grid corresponding to the cloudbox
-  \param t_field_cloud  the t_field within the cloudbox
-  \param vmr_field_cloud the t_field within the cloudbox
-  \param pnd_field             The WSV
-\author Cory Davis
-\date 2005-06-07
-*/
-
 void cloud_atm_vars_by_gp(VectorView pressure,
                           VectorView temperature,
                           MatrixView vmr,
@@ -576,34 +541,6 @@ void cloud_atm_vars_by_gp(VectorView pressure,
   }
 }
 
-//! get_ppath_transmat
-/*!
-  
-   Routine to get the transmission matrix along a pre-defined propagation path.
-   This is based on mcPathTraceGeneral using the routines from this source file.
-   Routines from rte.cc require wind and magnetic field data that has not been
-   typically passed to the Monte Carlo routines.
-
-   \param[in,out] ws              workspace
-   \param[out]    trans_mat       matrix defining transmission over the ppath
-                                  direction multiplied by sin(za)
-   \param[in]     ppath           propagation path over which transmission matrix is desired
-   \param[in]     propmat_clearsky_agenda 
-   \param[in]     stokes_dim
-   \param[in]     f_index
-   \param[in]     f_grid
-   \param[in]     p_grid
-   \param[in]     t_field
-   \param[in]     vmr_field
-   \param[in]     cloudbox_limits
-   \param[in]     pnd_field
-   \param[in]     scat_data
-   \param[in]     verbosity
-
-   \author Ian S. Adams
-   \date   2015-09-15
-
-*/
 void get_ppath_transmat(Workspace& ws,
                         MatrixView& trans_mat,
                         const Ppath& ppath,
@@ -754,16 +691,6 @@ void get_ppath_transmat(Workspace& ws,
   }    // if( np > 1 )
 }
 
-//! is_anyptype_nonTotRan
-/*!
-Some operations in Monte Carlo simulations are different depending on the 
-ptype of the scattering elements. This function searches scat_data
-to determine if any of the scattering elements have ptype=30.
-
-\author Cory Davis
-\date 2004-1-31
-
-*/
 bool is_anyptype_nonTotRan(
     const ArrayOfArrayOfSingleScatteringData& scat_data) {
   bool is_anyptype_nonTotRan = false;
@@ -781,29 +708,6 @@ bool is_anyptype_nonTotRan(
   return is_anyptype_nonTotRan;
 }
 
-//! mcPathTraceGeneral
-/*!
-    Performs the tasks of pathlength sampling.
-
-    Ray tracing done (but now only as far as determined by pathlength 
-    sampling) and calculation of the evolution operator and several 
-    atmospheric variables at the new point.
-
-    The end point of the ray tracing is returned by ppath_step, where the 
-    point of concern has index ppath_step.np-1. However, a somehwat dirty trick
-    is used here to avoid copying of data. Only ppath.np is adjusted, and
-    ppath_step can contain additional points (that should not be used).
-
-    2012-11-15  Patrick Eriksson
-    Revised.  Added handling of ppath_step_agenda. Correct handling of ppath
-    steps having more than two points.
-
-    2016-10-12  Patrick Eriksson
-    Added taustep_limit feature.
-
-    \author Cory Davis
-    \date 2005-2-21
-*/
 void mcPathTraceGeneral(Workspace& ws,
                         MatrixView evol_op,
                         Vector& abs_vec_mono,
@@ -1150,24 +1054,6 @@ void mcPathTraceGeneral(Workspace& ws,
   ppath_step.np = np;
 }
 
-//! mcPathTraceRadar
-/*!
-    Performs the tasks of pathlength sampling.
-
-    Ray tracing done (but now only as far as determined by pathlength 
-    sampling) and calculation of the evolution operator and several 
-    atmospheric variables at the new point.
-
-    The end point of the ray tracing is returned by ppath_step, where the 
-    point of concern has index ppath_step.np-1. However, a somehwat dirty trick
-    is used here to avoid copying of data. Only ppath.np is adjusted, and
-    ppath_step can contain additional points (that should not be used).
-
-    Copied and modified from mcPathTraceGeneral
-
-    \author Cory Davis (mcPathTraceGeneral), Ian S. Adams
-    \date 2015-09-08
-*/
 void mcPathTraceRadar(Workspace& ws,
                       MatrixView evol_op,
                       Vector& abs_vec_mono,
@@ -1508,24 +1394,6 @@ void mcPathTraceRadar(Workspace& ws,
   ppath_step.np = np;
 }
 
-//! opt_propCalc
-/*!
-Returns the total monochromatic extinction matrix and absorption vector over all
-scattering elements at a specific atmospheric location.
-
-   \return ext_mat_mono   Output: total monochromatic extinction matrix
-   \return abs_vec_mono   Output: total monochromatic absorption vector
-   \param za              zenith angle of propagation direction
-   \param aa              azimuthal angle of propagation
-   \param scat_data_mono  as the WSV
-   \param stokes_dim      as the WSV
-   \param pnd_vec         vector of particle number densities (one element per
-                          scattering element)
-   \param rtp_temperature as the WSV
-
-   \author Cory Davis
-   \date   2004-7-16
-*/
 void opt_propCalc(MatrixView ext_mat_mono,
                   VectorView abs_vec_mono,
                   const Numeric za,
@@ -1775,24 +1643,6 @@ void opt_propExtract(MatrixView ext_mat_mono_spt,
   }
 }
 
-//! pha_mat_singleCalc
-/*!
- Returns the total phase matrix for given incident and scattered directions. 
- It requires a vector of particle number densities to be precalculated.
-
- \param[out] Z               Output: phase matrix
- \param[in]  za_sca          scattered 
- \param[in]  aa_sca          and
- \param[in]  za_inc          incident
- \param[in]  aa_inc          directions
- \param[in]  scat_data_mono  as the WSV
- \param[in]  stokes_dim      as the WSV
- \param[in]  pnd_vec         vector of particle number densities at the point 
-                             in question
- \param[in]  rtp_temperature as the WSV
- \author Cory Davis
- \date   2003-11-27
-*/
 void pha_mat_singleCalc(
     MatrixView Z,
     const Numeric za_sca,
@@ -1825,25 +1675,6 @@ void pha_mat_singleCalc(
   }
 }
 
-//! pha_mat_singleCalcScatElement
-/*!
- Returns the phase matrix for each scattering element, given incident and 
- scattered directions. 
- It requires a vector of particle number densities to be precalculated.
-
- \param[out] Z               Output: phase matrix
- \param[in]  za_sca          scattered 
- \param[in]  aa_sca          and
- \param[in]  za_inc          incident
- \param[in]  aa_inc          directions
- \param[in]  scat_data_mono  as the WSV
- \param[in]  stokes_dim      as the WSV
- \param[in]  pnd_vec         vector of particle number densities at the point 
-                             in question
- \param[in]  rtp_temperature as the WSV
- \author Cory Davis
- \date   2003-11-27
-*/
 void pha_mat_singleCalcScatElement(
     Tensor3View Z,
     const Numeric za_sca,
@@ -1887,24 +1718,6 @@ void pha_mat_singleCalcScatElement(
   }
 }
 
-//! Extract the phase matrix from a monochromatic SingleScatteringData object
-/*!
-  Given a monochromatic SingleScatteringData object, incident and 
-  scattered directions, and the temperature, this function returns the phase
-  matrix in the laboratory frame
-  \param[out] Z_spt the phase matrix
-  \param[in]  scat_data_single a monochromatic SingleScatteringData object
-  \param[in]  za_sca 
-  \param[in]  aa_sca
-  \param[in]  za_inc
-  \param[in]  aa_inc
-  \param[in]  rtp_temperature
-  \param[in]  stokes_dim
-
-  \author Cory Davis
-  \date 2004-07-16
-
-*/
 void pha_mat_singleExtract(MatrixView Z_spt,
                            const SingleScatteringData& scat_data_single,
                            const Numeric za_sca,
@@ -2342,28 +2155,6 @@ void pha_mat_singleExtract(MatrixView Z_spt,
       out0 << "Not all ptype cases are implemented\n";
   }
 }
-
-//! Sample_los
-/*!
-  FIXME: 2011-06-17 Documentation removed by Gerrit (severely out of date)
-
-   \param[out]    new_rte_los     incident line of sight for subsequent 
-   \param[out]    g_los_csc_theta probability density for the chosen
-                                  direction multiplied by sin(za)
-   \param[out]    Z               Bulk phase matrix in Stokes notation.
-   \param[in,out] rng             Rng random number generator instance
-   \param[in]     rte_los         incident line of sight for subsequent 
-                                  ray-tracing.                     
-   \param[in]     scat_data       as the WSV.
-   \param[in]     stokes_dim      as the WSV.
-   \param[in]     pnd_vec
-   \param[in]     Z11maxvector
-   \param[in]     Csca
-   \param[in]     rtp_temperature
-
-   \author Cory Davis
-   \date   2003-06-19
-*/
 
 void Sample_los(VectorView new_rte_los,
                 Numeric& g_los_csc_theta,
