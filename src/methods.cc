@@ -15381,8 +15381,7 @@ void define_md_data_raw() {
           "robust",
           "za_interp_order",
           "cos_za_interp",
-          "max_delta_tau",
-          "new_optprop"),
+          "max_delta_tau"),
       GIN_TYPE("Index",
                "String",
                "String",
@@ -15392,10 +15391,9 @@ void define_md_data_raw() {
                "Index",
                "Index",
                "Index",
-               "Numeric",
-               "Index"),
+               "Numeric"),
       GIN_DEFAULT(
-          "16", "median", "D", "1", "19", "0", "0", "1", "0", "1e-6", "0"),
+          "16", "median", "D", "1", "19", "0", "0", "1", "0", "1e-6"),
       GIN_DESC("Number of polar angle directions (streams) in RT4"
                " solution (must be an even number).",
                "Flag which method to apply to derive phase function (for"
@@ -15425,9 +15423,7 @@ void define_md_data_raw() {
                "For *auto_inc_nstreams*>0, flag whether to do polar angle"
                " interpolation in cosine (='mu') space.",
                "Maximum optical depth of infinitesimal layer (where single"
-               " scattering approximation is assumed to apply).",
-               "Flag whether to use old (0) or new(1) optical property"
-               " extraction scheme.")));
+               " scattering approximation is assumed to apply).")));
 
   md_data_raw.push_back(MdRecord(
       NAME("RT4CalcWithRT4Surface"),

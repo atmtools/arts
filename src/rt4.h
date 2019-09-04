@@ -161,14 +161,12 @@ void get_rt4surf_props(  // Output
   \param[in]     cloudbox_limits Cloudbox limits
   \param[in]     stokes_dim Dimension of Stokes vector
   \param[in]     nummu Total number of single hemisphere angles with RT output.
-  \param[in]     nhza Number of single hemisphere additional angles with RT
-                 output.
+  \param[in]     nhza Number of single hemisphere additional angles with RT output.
   \param[in]     ground_type Surface reflection type flag.
-  \param[in]     surface_skin_t Surface skin temperature
+  \param[in]     surface_skin_t Surface scalar temperature
   \param[in]     ground_albedo Scalar surface albedo (for ground_type=L).
   \param[in]     ground_reflec Vector surface relfectivity (for ground_type=S).
-  \param[in]     ground_index Surface complex refractive index
-                 (for ground_type=F).
+  \param[in]     ground_index Surface complex refractive index (for ground_type=F).
   \param[in]     surf_refl_mat Surface reflection matrix (for ground_type=A).
   \param[in]     surf_emis_vec Surface emission vector (for ground_type=A).
   \param[in]     surface_rtprop_agenda Provides radiative properties of the
@@ -191,8 +189,6 @@ void get_rt4surf_props(  // Output
   \param[in]     pfct_threshold Requested scatter_matrix norm accuracy
                  (in terms of single scat albedo).
   \param[in]     max_delta_tau Maximum optical depth of infinitesimal layer
-  \param[in]     new_optprop Flag whether to use old (0) or new(1) optical
-                 property extraction scheme
   \param[in]     verbosity Verbosity setting
 
   \author Jana Mendrok
@@ -235,100 +231,7 @@ void run_rt4(Workspace& ws,
              const Index& pfct_aa_grid_size,
              const Numeric& pfct_threshold,
              const Numeric& max_delta_tau,
-             const Index& new_optprop,
              const Verbosity& verbosity);
-
-//! Runs RT4
-/*!
-  Prepares actual input variables for RT4, runs it, and sorts the output into
-  doit_i_field.
-
-  \param[in,out] ws Current workspace
-  \param[out]    doit_i_field Radiation field
-  \param[out]    scat_za_grid Zenith angle grid
-  \param[in]     f_grid Frequency grid
-  \param[in]     p_grid Pressure
-  \param[in]     z_field Field of geometrical altitudes
-  \param[in]     t_field Atmospheric temperature field
-  \param[in]     vmr_field VMR field
-  \param[in]     pnd_field PND field
-  \param[in]     scat_data Array of single scattering data
-  \param[in]     propmat_clearsky_agenda calculates the absorption coefficient
-                 matrix
-  \param[in]     cloudbox_limits Cloudbox limits
-  \param[in]     stokes_dim Dimension of Stokes vector
-  \param[in]     nummu Total number of single hemisphere angles with RT output.
-  \param[in]     nhza Number of single hemisphere additional angles with RT output.
-  \param[in]     ground_type Surface reflection type flag.
-  \param[in]     surface_skin_t Surface scalar temperature
-  \param[in]     ground_albedo Scalar surface albedo (for ground_type=L).
-  \param[in]     ground_reflec Vector surface relfectivity (for ground_type=S).
-  \param[in]     ground_index Surface complex refractive index (for ground_type=F).
-  \param[in]     surf_refl_mat Surface reflection matrix (for ground_type=A).
-  \param[in]     surf_emis_vec Surface emission vector (for ground_type=A).
-  \param[in]     surface_rtprop_agenda Provides radiative properties of the
-                 surface
-  \param[in]     surf_altitude Surface altitude (lowest level of z_field)
-  \param[in]     quad_type Quadrature method.
-  \param[in]     mu_values Quadrature angle cosines.
-  \param[in]     quad_weights Quadrature weights associated with mu_values.
-  \param[in]     auto_inc_nstreams Flag whether to internally increase nstreams
-  \param[in]     robust if auto_inc_nstreams>0,flag whether to not fail even if
-                 scattering matrix norm is not preserved when maximum stream
-                 number is reached
-  \param[in]     za_interp_order if auto_inc_nstreams>0, polar angle
-                 interpolation order
-  \param[in]     cos_za_interp if auto_inc_nstreams>0, flag whether to do polar
-                 angle interpolation in cosine (='mu') space
-  \param[in]     pfct_method Flag which method to apply to derive phase function
-  \param[in]     pfct_aa_grid_size Number of azimuthal angle grid points to
-                 consider in Fourier series decomposition of scattering matrix
-  \param[in]     pfct_threshold Requested scatter_matrix norm accuracy
-                 (in terms of single scat albedo).
-  \param[in]     max_delta_tau Maximum optical depth of infinitesimal layer
-  \param[in]     verbosity Verbosity setting
-
-  \author Jana Mendrok
-  \date   2017-02-22
-*/
-void run_rt4_new(Workspace& ws,
-    // Output
-                 Tensor7& doit_i_field,
-                 Vector& scat_za_grid,
-    // Input
-                 ConstVectorView f_grid,
-                 ConstVectorView p_grid,
-                 ConstTensor3View z_field,
-                 ConstTensor3View t_field,
-                 ConstTensor4View vmr_field,
-                 ConstTensor4View pnd_field,
-                 const ArrayOfArrayOfSingleScatteringData& scat_data,
-                 const Agenda& propmat_clearsky_agenda,
-                 const ArrayOfIndex& cloudbox_limits,
-                 const Index& stokes_dim,
-                 const Index& nummu,
-                 const Index& nhza,
-                 const String& ground_type,
-                 const Numeric& surface_skin_t,
-                 ConstVectorView ground_albedo,
-                 ConstTensor3View ground_reflec,
-                 ConstComplexVectorView ground_index,
-                 ConstTensor5View surf_refl_mat,
-                 ConstTensor3View surf_emis_vec,
-                 const Agenda& surface_rtprop_agenda,
-                 const Numeric& surf_altitude,
-                 const String& quad_type,
-                 Vector& mu_values,
-                 ConstVectorView quad_weights,
-                 const Index& auto_inc_nstreams,
-                 const Index& robust,
-                 const Index& za_interp_order,
-                 const Index& cos_za_interp,
-                 const String& pfct_method,
-                 const Index& pfct_aa_grid_size,
-                 const Numeric& pfct_threshold,
-                 const Numeric& max_delta_tau,
-                 const Verbosity& verbosity);
 
 //! Reset scat_za_grid such that it is consistent with ARTS
 /*!
@@ -375,6 +278,7 @@ void gas_optpropCalc(Workspace& ws,
                      ConstVectorView p_grid,
                      ConstVectorView f_mono);
 
+
 //! Calculates layer averaged particle extinction and absorption
 /*!
   Calculates layer averaged particle extinction and absorption (extinct_matrix
@@ -391,48 +295,11 @@ void gas_optpropCalc(Workspace& ws,
   \param[in]  t_field Atmospheric temperature field
   \param[in]  cloudbox_limits Cloudbox limits
   \param[in]  stokes_dim Dimension of Stokes vector
-  \param[in]  nummu Number of single hemisphere polar angles.
-  \param[in]  verbosity Verbosity setting
 
   \author Jana Mendrok
   \date   2016-08-08
 */
 void par_optpropCalc(  //Output
-    Tensor4View emis_vector,
-    Tensor5View extinct_matrix,
-    //VectorView scatlayers,
-    //Input
-    const ArrayOfArrayOfSingleScatteringData& scat_data,
-    const Vector& scat_za_grid,
-    const Index& f_index,
-    ConstTensor4View pnd_field,
-    ConstTensor3View t_field,
-    const ArrayOfIndex& cloudbox_limits,
-    const Index& stokes_dim,
-    const Index& nummu,
-    const Verbosity& verbosity);
-
-//! Calculates layer averaged particle extinction and absorption
-/*!
-  Calculates layer averaged particle extinction and absorption (extinct_matrix
-  and emis_vector)). These variables are required as input for the RT4 subroutine.
-
-  \param[out] emis_vector Layer averaged particle absorption for all particle
-              layers
-  \param[out] extinct_matrix  Layer averaged particle extinction for all
-              particle layers
-  \param[in]  scat_data Array of single scattering data
-  \param[in]  scat_za_grid Zenith angle grid
-  \param[in]  f_index Index of frequency grid point handeled
-  \param[in]  pnd_field PND field
-  \param[in]  t_field Atmospheric temperature field
-  \param[in]  cloudbox_limits Cloudbox limits
-  \param[in]  stokes_dim Dimension of Stokes vector
-
-  \author Jana Mendrok
-  \date   2016-08-08
-*/
-void par_optpropCalc2(  //Output
     Tensor5View emis_vector,
     Tensor6View extinct_matrix,
     //VectorView scatlayers,
