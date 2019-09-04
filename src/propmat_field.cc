@@ -15,6 +15,18 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
  USA. */
 
+/**
+  * @file   propmat_field.c
+  * @author Richard Larsson
+  * @date   2019-02-26
+  * 
+  * @brief Implements a propagation matrix field
+  *
+  * This file contains internal code to speed up propagation field
+  * calculations by sacrificing memory and by interpolating from
+  * potentially coarser resolution.
+*/
+
 #include "propmat_field.h"
 #include "rte.h"
 #include "special_interp.h"
