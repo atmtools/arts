@@ -15,21 +15,15 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*===========================================================================
-  === File description 
-  ===========================================================================*/
-
-/*!
-  \file   m_montecarlo.cc
-  \author Cory Davis <cory@met.ed.ac.uk>
-  \date   2003-06-19 
-
-  \brief  Workspace functions for the solution of cloud-box radiative transfer 
-by Monte Carlo methods.  All of these functions refer to 3D calculations
-
-  These functions are listed in the doxygen documentation as entries of the
-  file auto_md.h.
-*/
+/**
+ * @file   m_montecarlo.cc
+ * @author Cory Davis <cory@met.ed.ac.uk>
+ * @date   2003-06-19
+ *
+ * @brief  Workspace functions for the solution of cloud-box radiative transfer
+ * by Monte Carlo methods.  All of these functions refer to 3D calculations
+ *
+ */
 /*===========================================================================
   === External declarations
   ===========================================================================*/
@@ -800,17 +794,6 @@ void MCRadar(  // Workspace reference:
     while (keepgoing) {
       Numeric s_path, t_path;
 
-      //          mcPathTraceRadar( ws, evol_op, abs_vec_mono, temperature,
-      //                            ext_mat_mono, rng, local_rte_pos, local_rte_los,
-      //                            pnd_vec, s_path, t_path, ppath_step,
-      //                            termination_flag, inside_cloud, ppath_step_agenda,
-      //                            ppath_lmax, ppath_lraytrace,
-      //                            propmat_clearsky_agenda, anyptype_nonTotRan, stokes_dim,
-      //                            f_index, f_grid, Ihold,
-      //                            p_grid, lat_grid, lon_grid, z_field,
-      //                            refellipsoid,z_surface, t_field, vmr_field,
-      //                            cloudbox_limits, pnd_field, scat_data,
-      //                            verbosity );
       mcPathTraceRadar(ws,
                        evol_op,
                        abs_vec_mono,
@@ -978,10 +961,6 @@ void MCRadar(  // Workspace reference:
 
           // Obtain scattering matrix given incident and scattered angles
           Matrix P(stokes_dim, stokes_dim);
-          //pha_mat_singleCalc( P, rte_los_geom[0], rte_los_geom[1],
-          //                    local_rte_los[0], local_rte_los[1],
-          //                    this_scat_data_mono, stokes_dim,
-          //                    pnd_vec, temperature, verbosity );
 
           pdir_array(0, joker) = rte_los_geom;
           idir_array(0, joker) = local_rte_los;
@@ -1050,13 +1029,7 @@ void MCRadar(  // Workspace reference:
           }
 
           scat_order++;
-
-          //Sample_los_uniform(  new_rte_los, rng );
-          //pha_mat_singleCalc( Z, new_rte_los[0], new_rte_los[1],
-          //                    local_rte_los[0], local_rte_los[1],
-          //                    this_scat_data_mono, stokes_dim,
-          //                    pnd_vec, temperature, verbosity );
-
+            
           Sample_los_uniform(new_rte_los, rng);
           pdir_array(0, joker) = new_rte_los;
           // alt:

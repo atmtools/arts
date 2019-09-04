@@ -15,36 +15,20 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*===========================================================================
-  === File description 
-  ===========================================================================*/
-
-/*!
-  \file   mc_interp.cc
-  \author Cory Davis <cory@met.ed.ac.uk>
-  \date   2005-02-28 
-
-  \brief  Interpolation classes and functions created for use within Monte 
-  Carlo scattering simulations 
-
-*/
+/**
+ * @file   mc_interp.h
+ * @author Cory Davis <cory@met.ed.ac.uk>
+ * @date   2005-02-28
+ *
+ * @brief  Interpolation classes and functions created for use within Monte
+ *         Carlo scattering simulations
+ */
 /*===========================================================================
   === External declarations
   ===========================================================================*/
 #include "mc_interp.h"
 #include "logic.h"
 #include "montecarlo.h"
-
-//! Perform sequential interpolation
-/*!
-  \param x1 desired x1 value
-  \param x2 desired x2 value
-
-  \return interpolated y value at x1,x2
-
-  \author Cory Davis <cdavis@staffmail.ed.ac.uk>
-  \date 2005-02-28
-*/
 
 Numeric SLIData2::interpolate(Numeric x1, Numeric x2) const {
   GridPos gp1, gpl, gpr;
@@ -75,24 +59,6 @@ ostream& operator<<(ostream& os, const SLIData2& /* sli */) {
   return os;
 }
 
-//! Red 1D Interpolate.
-/*! 
-  This is a slight modifiaction of Stefan's code to do 1_D interpolation
-  to get a Matrix from an array of Matrices
-
-  The dimension of itw must be consistent with the dimension of the
-  interpolation (2^n).
-
-  \param[out] tia  Interpolated value.
-  \param[in]  itw  Interpolation weights.
-  \param[in]  a    The field to interpolate.(ArrayOfMatrix)
-  \param[in]  tc   The grid position for the column dimension.
-
-
-  \author Cory Davis (modified original code by Stefan Buehler)
-  \date   2003-06-19
-*/
-
 void interp(MatrixView tia,
             ConstVectorView itw,
             const ArrayOfMatrix& a,
@@ -119,23 +85,6 @@ void interp(MatrixView tia,
     }
 }
 
-//! Red 1D Interpolate.
-/*! 
-  This is a slight modifiaction of Stefan's code to do 1_D interpolation
-  to get a Vector from an array of Vectors
-
-  The dimension of itw must be consistent with the dimension of the
-  interpolation (2^n).
-
-  \param[out] tia  Interpolated value.
-  \param[in]  itw  Interpolation weights.
-  \param[in]  a    The field to interpolate. (ArrayOfVector)
-  \param[in]  tc   The grid position for the column dimension.
-
-  \author Cory Davis (modified original code by Stefan Buehler)
-  \date   2003-06-19
-
-*/
 void interp(VectorView tia,
             ConstVectorView itw,
             const ArrayOfVector& a,

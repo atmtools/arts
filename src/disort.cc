@@ -17,13 +17,12 @@
 */
 
 /**
- * \file   disort.cc
- * \author Claudia Emde <claudia.emde@dlr.de>
- * \date   Tue Feb  7 10:08:28 2006
+ * @file   disort.cc
+ * @author Claudia Emde <claudia.emde@dlr.de>
+ * @date   Tue Feb  7 10:08:28 2006
  * 
- * \brief  This file contains functions related to the DISORT interface.   
- 
-**/
+ * @brief  This file contains functions related to the DISORT interface.
+ */
 
 #include "disort.h"
 #include <cmath>
@@ -48,25 +47,6 @@ extern const Numeric PLANCK_CONST;
 extern const Numeric SPEED_OF_LIGHT;
 extern const Numeric COSMIC_BG_TEMP;
 
-//! check_disort_input
-/*!
-  Checks that input of DisortCalc* is sane.
-
-  \param cloudbox_on           as the WSV 
-  \param disort_is_initialized  as the WSV 
-  \param atmfields_checked     as the WSV 
-  \param atmgeom_checked       as the WSV 
-  \param cloudbox_checked      as the WSV 
-  \param scat_data             as the WSV
-  \param scat_za_grid          as the WSV
-  \param nstreams              Number of quadrature angles (both hemispheres).
-  \param pfct_method           see DisortCalc doc.
-  \param pnd_ncols             Number of columns (latitude points) in *pnd_field*.
-  \param ifield_npages         Number of pages (polar angle points) in *doit_i_field*.
-  
-  \author Jana Mendrok
-  \date   2017-02-23
-*/
 void check_disort_input(  // Input
     const Index& cloudbox_on,
     const Index& atmfields_checked,
@@ -245,19 +225,6 @@ void check_disort_input(  // Input
   }
 }
 
-//! init_ifield
-/*!
-  Initialize doit_i_field with the right size and NaN values.
-
-  \param doit_i_field          as the WSV
-  \param f_grid                as the WSV
-  \param cloudbox_limits       as the WSV
-  \param nang                  Total number of angles with RT output.
-  \param stokes_dim            as the WSV
-
-  \author Jana Mendrok
-  \date   2017-03-06
-*/
 void init_ifield(  // Output
     Tensor7& doit_i_field,
     // Input
@@ -270,30 +237,10 @@ void init_ifield(  // Output
   //const Index Nza = scat_za_grid.nelem();
 
   // Resize and initialize radiation field in the cloudbox
-  //doit_i_field.resize( Nf, Np_cloud, 1, 1, Nza, 1, 1 );
   doit_i_field.resize(Nf, Np_cloud, 1, 1, nang, 1, stokes_dim);
   doit_i_field = NAN;
 }
 
-//! get_disortsurf_props
-/*!
-  Derive surface property input for RT4's proprietary surface handling depending
-  on surface reflection type.
-
-  \param ground_albedo         Scalar surface albedo (for ground_type=L).
-  \param ground_reflec         Vector surface relfectivity (for ground_type=S).
-  \param ground_index          Surface complex refractive index (for ground_type=F).
-  \param f_grid                as the WSV
-  \param ground_type           Surface reflection type flag.
-  \param surface_skin_t        as the WSV
-  \param surface_scalar_reflectivity  as the WSV (used with ground_type=L).
-  \param surface_reflectivity  as the WSV (used with ground_type=S).
-  \param surface_complex_refr_index   as the WSV (used with ground_type=F).
-  \param stokes_dim            as the WSV
-
-  \author Jana Mendrok
-  \date   2017-02-23
-*/
 void get_disortsurf_props(  // Output
     Vector& albedo,
     Numeric& btemp,
@@ -312,7 +259,7 @@ void get_disortsurf_props(  // Output
   }
   btemp = surface_skin_t;
 
-  // surface albodo
+  // surface albedo
   if (surface_scalar_reflectivity.nelem() != f_grid.nelem() &&
       surface_scalar_reflectivity.nelem() != 1) {
     ostringstream os;
@@ -339,29 +286,6 @@ void get_disortsurf_props(  // Output
       albedo[f_index] = surface_scalar_reflectivity[0];
 }
 
-//! dtauc_ssalbCalc
-/*!
-  Calculates layer averaged cloud optical depth (dtauc) and 
-  single scattering albedo (ssalb). These variables are required as
-  input for the DISORT subroutine
-
-  \param ws                    Current workspace
-  \param dtauc                 optical depths for all layers
-  \param ssalb                 single scattering albedos for all layers
-  \param scat_data             as the WSV
-  \param f_index               index of frequency grid point handeled
-  \param propmat_clearsky_agenda as the WSA
-  \param pnd_field             as the WSV 
-  \param t_field               as the WSV 
-  \param z_field               as the WSV 
-  \param vmr_field             as the WSV 
-  \param p_grid                as the WSV 
-  \param cloudbox_limits       as the WSV 
-  \param f_mono                frequency (single entry vector)
-  
-  \author Claudia Emde, Jana Mendrok
-  \date   2006-02-10
-*/
 void dtauc_ssalbCalc(Workspace& ws,
                      VectorView dtauc,
                      VectorView ssalb,
@@ -547,20 +471,6 @@ void dtauc_ssalbCalc(Workspace& ws,
   }
 }
 
-//! get_gasoptprop
-/*!
-  Derives level-based gas bulk optical properties (extinction).
-
-  \param[out] ext_bulk_gas     gas bulk extinction (all levels & freqs).
-  \param propmat_clearsky_agenda as the WSA.
-  \param t_field               as the WSV.
-  \param vmr_field             as the WSV.
-  \param p_grid                as the WSV.
-  \param f_grid                as the WSV.
-  
-  \author Jana Mendrok
-  \date   2018-04-04
-*/
 void get_gasoptprop(Workspace& ws,
                     MatrixView ext_bulk_gas,
                     const Agenda& propmat_clearsky_agenda,
@@ -614,23 +524,6 @@ void get_gasoptprop(Workspace& ws,
   }
 }
 
-//! get_paroptprop
-/*!
-  Derives level-based particle bulk optical properties (extinction and
-  absorption).
-
-  \param[out] ext_bulk_par     particle bulk extinction (all levels & freqs).
-  \param[out] abs_bulk_par     particle bulk absorption (all levels & freqs).
-  \param scat_data             as the WSV.
-  \param pnd_field             as the WSV.
-  \param t_field               as the WSV.
-  \param p_grid                as the WSV.
-  \param cloudbox_limits       as the WSV.
-  \param f_grid                as the WSV.
-  
-  \author Jana Mendrok
-  \date   2018-04-04
-*/
 void get_paroptprop(MatrixView ext_bulk_par,
                     MatrixView abs_bulk_par,
                     const ArrayOfArrayOfSingleScatteringData& scat_data,
@@ -706,22 +599,6 @@ void get_paroptprop(MatrixView ext_bulk_par,
     }
 }
 
-//! get_dtauc_ssalb
-/*!
-  Calculates layer averaged cloud optical depth (dtauc) and 
-  single scattering albedo (ssalb) as required as DISORT subroutine input from
-  level-based gas extinction and particle extinction and absorption.
-
-  \param[out] dtauc            optical depths for all layers.
-  \param[out] ssalb            single scattering albedos for all layers.
-  \param ext_bulk_gas          see get_gasoptprop.
-  \param ext_bulk_par          see get_paroptprop.
-  \param abs_bulk_par          see get_paroptprop.
-  \param z_field               as the WSV.
-  
-  \author Jana Mendrok
-  \date   2018-04-04
-*/
 void get_dtauc_ssalb(MatrixView dtauc,
                      MatrixView ssalb,
                      ConstMatrixView ext_bulk_gas,
@@ -758,21 +635,6 @@ void get_dtauc_ssalb(MatrixView dtauc,
     }
 }
 
-//! get_angs
-/*!
-  Derives angular grid to derive bulk phase matrix/function data on for further
-  Legendre decomposition.
-
-  \param[out] pfct_angs        angular grid of pfct_bulk_par.
-  \param scat_data             as the WSV.
-  \param nang                  number of angular grid points in pfct_angs. If<0,
-                               pfct_angs is taken from scat_data (the finest
-                               za_grid used over the scat elems), else an
-                               equidistant grid with nang grid points is used.
-  
-  \author Jana Mendrok
-  \date   2018-04-04
-*/
 void get_angs(Vector& pfct_angs,
               const ArrayOfArrayOfSingleScatteringData& scat_data,
               const Index& Npfct) {
@@ -805,30 +667,6 @@ void get_angs(Vector& pfct_angs,
   }
 }
 
-//! get_parZ
-/*!
-  Derives level-based particle bulk phase matrix Z (Csca scaled).
-  NOTE: Provided on ssd's freq grid (i.e. for nf=1 only of ssd.f_grid.nelem==1)
-  in order to avoid duplicate calculations in get_pmom (instead we duplicate the
-  results there to the RT calc's f_grid).
-
-  \param[out] pha_bulk_par     particle bulk phase function (all levels & ssd freqs).
-  \param[out] pfct_angs        angular grid of pfct_bulk_par.
-  \param scat_data             as the WSV.
-  \param pnd_field             as the WSV.
-  \param t_field               as the WSV.
-  \param p_grid                as the WSV.
-  \param cloudbox_limits       as the WSV.
-  \param ext_bulk_par          see get_paroptprop.
-  \param abs_bulk_par          see get_paroptprop.
-  \param nang                  number of angular grid points in pfct_angs. If<0,
-                               pfct_angs is taken from scat_data (the finest
-                               za_grid used over the scat elems), else an
-                               equidistant grid with nang grid points is used.
-  
-  \author Jana Mendrok
-  \date   2018-04-04
-*/
 void get_parZ(Tensor3& pha_bulk_par,
               const ArrayOfArrayOfSingleScatteringData& scat_data,
               ConstMatrixView pnd_field,
@@ -877,21 +715,6 @@ void get_parZ(Tensor3& pha_bulk_par,
       pha_mat_bulk(joker, joker, joker, 0, 0, 0);
 }
 
-//! get_pfct
-/*!
-  Derives layer averaged particle bulk phase function P (4Pi scaled)
-  NOTE: Provided on ssd's freq grid (i.e. for nf=1 only if ssd.f_grid.nelem==1)
-  in order to avoid duplicate calculations in get_pmom (instead we duplicate the
-  results there to the RT calc's f_grid).
-
-  \param[out] pfct_bulk_par    particle bulk phase function (all levels & ssd freqs).
-  \param pha_bulk_par          see get_parZ.
-  \param ext_bulk_par          see get_paroptprop.
-  \param abs_bulk_par          see get_paroptprop.
-  
-  \author Jana Mendrok
-  \date   2018-04-04
-*/
 void get_pfct(Tensor3& pfct_bulk_par,
               ConstTensor3View& pha_bulk_par,
               ConstMatrixView ext_bulk_par,
@@ -927,20 +750,6 @@ void get_pfct(Tensor3& pfct_bulk_par,
     }
 }
 
-//! get_pmom
-/*!
-  Calculates Legendre moments of the layer averaged phase functionss (pmom) as
-  required as DISORT subroutine input from level-based bulk particle phase
-  function (4-Pi normalized scalar phase matrix).
-
-  \param[out] pmom             Legendre moments for all layers.
-  \param pfct_bulk_par         see get_pfct.
-  \param pfct_angs             see get_parZ.
-  \param Nlegendre             number of Legendre moments to derive.
-  
-  \author Jana Mendrok
-  \date   2018-04-04
-*/
 void get_pmom(Tensor3View pmom,
               ConstTensor3View pfct_bulk_par,
               ConstVectorView pfct_angs,
@@ -1016,27 +825,6 @@ void get_pmom(Tensor3View pmom,
       }
 }
 
-//! dtauc_ssalbCalc2
-/*!
-  Calculates layer averaged cloud optical depth (dtauc) and 
-  single scattering albedo (ssalb). These variables are required as
-  input for the DISORT subroutine
-
-  \param dtauc                 optical depths for all layers
-  \param ssalb                 single scattering albedos for all layers
-  \param scat_data             as the WSV
-  \param propmat_clearsky_agenda as the WSA
-  \param pnd_field             as the WSV 
-  \param t_field               as the WSV 
-  \param z_field               as the WSV 
-  \param vmr_field             as the WSV 
-  \param p_grid                as the WSV 
-  \param cloudbox_limits       as the WSV 
-  \param f_grid                as the WSV
-  
-  \author Jana Mendrok
-  \date   2018-02-18
-*/
 void dtauc_ssalbCalc2(Workspace& ws,
                       MatrixView dtauc,
                       MatrixView ssalb,
@@ -1096,23 +884,6 @@ void dtauc_ssalbCalc2(Workspace& ws,
     }
 }
 
-//! phase_functionCalc2
-/*!
-  Calculates layer averaged normalized phase functions from 
-  the phase matrix in SingleScatteringData.
-  Temperature and angle grid interpolations are applied.
-
-  \param phase_function  normalized layer-averaged bulk phase function
-  \param scat_data         as the WSV
-  \param f_index           index of frequency grid point handeled
-  \param pnd_field         as the WSV
-  \param t_field           as the WSV 
-  \param cloudbox_limits   as the WSV
-  \param pfct_za_grid_size number of equidistant scatt. angles in 0-180deg
-
-  \author Claudia Emde, Jana Mendrok
-  \date   2006-02-10
-*/
 void phase_functionCalc2(  //Output
     MatrixView phase_function,
     //Input
@@ -1376,23 +1147,6 @@ void phase_functionCalc2(  //Output
   }
 }
 
-//! phase_functionCalc
-/*!
-  Calculates layer averaged normalized phase functions from 
-  the phase matrix in SingleScatteringData. The scattering angle 
-  grid is taken from the data. 
-  It is required that all scattering elements are given on the same 
-  scattering angle grid. No temperature interpolation done.
-
-  \param phase_function normalized phase function
-  \param scat_data       as the WSV
-  \param f_index         index of frequency grid point handeled
-  \param pnd_field       as the WSV
-  \param cloudbox_limits as the WSV
-  
-  \author Claudia Emde, Jana Mendrok
-  \date   2006-02-10
-*/
 void phase_functionCalc(  //Output
     MatrixView phase_function,
     //Input
@@ -1540,20 +1294,6 @@ void phase_functionCalc(  //Output
   }
 }
 
-//! pmomCalc2
-/*!
-  Calculates Legendre polynomials of phase functions for each layer. 
-  The Legendre polynomial are required as input for DISORT. 
-
-  \param pmom Legendre polynomial of phase functions
-  \param phase_function Normalized phase function
-  \param scat_angle_grid Scattering angle grid corresponding to phase 
-  functions
-  \param Nlegendre Number of Legendre polynomials to be calculated
-  
-  \author Claudia Emde, Jana Mendrok
-  \date   2006-02-10
-*/
 void pmomCalc2(  //Output
     MatrixView pmom,
     //Input
@@ -1652,20 +1392,6 @@ void pmomCalc2(  //Output
   }
 }
 
-//! pmomCalc
-/*!
-  Calculates Legendre polynomials of phase functions for each layer. 
-  The Legendre polynomial are required as input for DISORT. 
-
-  \param pmom Legendre polynomial of phase functions
-  \param phase_function Normalized phase function
-  \param scat_angle_grid Scattering angle grid corresponding to phase 
-  functions
-  \param Nlegendre Number of Legendre polynomials to be calculated
-  
-  \author Claudia Emde, Jana Mendrok
-  \date   2006-02-10
-*/
 void pmomCalc(  //Output
     MatrixView pmom,
     //Input
@@ -1766,23 +1492,6 @@ void pmomCalc(  //Output
   }
 }
 
-//! surf_albedoCalc
-/*!
-  Calculates the diffuse power reflection coefficient (an estimate of the total
-  surface albedo, equivalent to ARTS' surface_scalar_reflectivity) from
-  reflection matrices according to *surface_rt_prop_agenda* settings for use as
-  input parameter albedo to a Disort calculation (internally applying a
-  Lambertian surface).
-
-  \param albedo                Diffuse power reflection coefficient.
-  \param surface_rtprop_agenda as the WSA
-  \param f_grid                as the WSV
-  \param scat_za_grid          as the WSV
-  \param surf_alt              Surface altitude.
-  
-  \author Jana Mendrok
-  \date   2017-02-16
-*/
 void surf_albedoCalc(Workspace& ws,
                      //Output
                      VectorView albedo,
@@ -1963,33 +1672,7 @@ void surf_albedoCalc(Workspace& ws,
 }
 
 #ifdef ENABLE_DISORT
-//! run_disort
-/*!
-  Prepares actual input variables for Disort, runs it, and sorts the output into
-  doit_i_field.
 
-  \param ws                    Current workspace
-  \param doit_i_field          as the WSV
-  \param f_grid                as the WSV
-  \param p_grid                as the WSV
-  \param z_field               as the WSV
-  \param t_field               as the WSV
-  \param vmr_field             as the WSV
-  \param pnd_field             as the WSV
-  \param scat_data             as the WSV
-  \param propmat_clearsky_agenda  as the WSA
-  \param cloudbox_limits       as the WSV 
-  \param surface_skin_t        as the WSV
-  \param surface_scalar_reflectivity  as the WSM
-  \param scat_za_grid          as the WSV
-  \param nstreams              Number of quadrature angles (both hemispheres).
-  \param do_deltam             see DisortCalc doc.
-  \param non_iso_inc           see DisortCalc doc.
-  \param pfct_method           see DisortCalc doc.
-
-  \author Jana Mendrok
-  \date   2017-02-23
-*/
 void run_disort(Workspace& ws,
                 // Output
                 Tensor7& doit_i_field,
@@ -2271,34 +1954,6 @@ void run_disort(Workspace& ws,
   delete[] prnt;
 }
 
-//! run_disort2
-/*!
-  Prepares actual input variables for Disort, runs it, and sorts the output into
-  doit_i_field.
-  This version using unified optprop extraction scheme. supposed to replace
-  run_disort
-
-  \param ws                    Current workspace
-  \param doit_i_field          as the WSV
-  \param f_grid                as the WSV
-  \param p_grid                as the WSV
-  \param z_field               as the WSV
-  \param t_field               as the WSV
-  \param vmr_field             as the WSV
-  \param pnd_field             as the WSV
-  \param scat_data             as the WSV
-  \param propmat_clearsky_agenda  as the WSA
-  \param cloudbox_limits       as the WSV 
-  \param surface_skin_t        as the WSV
-  \param surface_scalar_reflectivity  as the WSM
-  \param scat_za_grid          as the WSV
-  \param nstreams              Number of quadrature angles (both hemispheres).
-  \param do_deltam             see DisortCalc doc.
-  \param non_iso_inc           see DisortCalc doc.
-
-  \author Jana Mendrok
-  \date   2017-02-23
-*/
 void run_disort2(Workspace& ws,
                  // Output
                  Tensor7& doit_i_field,
