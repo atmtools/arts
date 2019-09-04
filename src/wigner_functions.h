@@ -131,6 +131,9 @@ Numeric co2_ecs_wigner_symbol(
  *
  * Note: The wigner library takes two times the physical values
  *       so, e.g., the 1 must be 2.  This hold true for all user inputs as well!
+ *
+ * Warning:  Must have called wig_temp_init(j) with appropriate j before 
+ *           using this function.  Failure to do so will cause segfault.
  * 
  * Reference:
  * D.S. Makarov, M.Yu. Tretyakov, C. Boulet,
@@ -146,6 +149,9 @@ Numeric co2_ecs_wigner_symbol(
  * Keywords: Molecular oxygen; Microwave spectroscopy; Profile shape modeling; Collisional coupling
  * 
  * Note:  The ARTS implementation has not been tested in detail
+ *
+ * Warning:  Must have called wig_temp_init(j) with appropriate j before 
+ *           using this function.  Failure to do so will cause segfault.
  * 
  * @param[in] Nl as above times 2
  * @param[in] Nk as above times 2
