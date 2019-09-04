@@ -16,14 +16,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
  * USA. */
 
-/*!
- * \file   propagationmatrix.h
- * \brief  Stuff related to the propagation matrix.
+/**
+ * @file   propagationmatrix.cc
+ * @author Richard Larsson
+ * @date   2017-06-23
+ * 
+ * @brief  Stuff related to the propagation matrix.
  * 
  * The reason is that the naive approach to keep the full propagation matrix is memory intensive and slow
- * 
- * \author Richard Larsson
- * \date   2017-06-23
  */
 
 #include "propagationmatrix.h"
@@ -1770,31 +1770,6 @@ void PropagationMatrix::GetTensor3(Tensor3View tensor3, Index iz, Index ia) {
           "Stokes dimension does not agree with accepted values");
       break;
   }
-}
-
-void PropagationMatrix::CalculationCase(
-    ArrayOfCaseOfPropagationMatrix& cases) const {
-  assert(mfreqs == cases.nelem());
-  for (Index i = 0; i < maa; i++)
-    for (Index j = 0; j < mza; j++)
-      for (Index k = 0; k < mfreqs; k++) {
-        if (mdata(i, j, k, joker).sum() == mdata(i, j, k, 0))
-          cases[k] = CaseOfPropagationMatrix::Diagonal;
-        else
-          cases[k] = CaseOfPropagationMatrix::FullDimensional;
-      }
-}
-
-void PropagationMatrix::CalculationCaseMaximize(
-    ArrayOfCaseOfPropagationMatrix& cases) const {
-  assert(mfreqs == cases.nelem());
-  for (Index i = 0; i < maa; i++)
-    for (Index j = 0; j < mza; j++)
-      for (Index k = 0; k < mfreqs; k++) {
-        if (mdata(i, j, k, joker).sum() not_eq mdata(i, j, k, 0) and
-            cases[k] == CaseOfPropagationMatrix::Diagonal)
-          cases[k] = CaseOfPropagationMatrix::FullDimensional;
-      }
 }
 
 void PropagationMatrix::LeftMultiplyAtPosition(MatrixView out,

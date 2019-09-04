@@ -17,13 +17,13 @@
  * USA. */
 
 /*!
- * \file   transmissionmatrix.c
- * \brief  Stuff related to the transmission matrix.
+ * @file   transmissionmatrix.c
+ * @author Richard Larsson
+ * @date   2018-01-30
+ * 
+ * @brief  Stuff related to the transmission matrix.
  * 
  * Using Eigen library to try and speed up computations.
- * 
- * \author Richard Larsson
- * \date   2018-01-30
  */
 
 #include "transmissionmatrix.h"
