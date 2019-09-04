@@ -15,23 +15,16 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*===========================================================================
-  ===  File description 
-  ===========================================================================*/
-
-/*!
-  \file   m_ppath.cc
-  \author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
-  \date   2002-05-08 
-
-  \brief  Workspace functions releated to propagation paths variables.
-
-  The file includes special functions to set the sensor position and LOS,
-  and functions for calculation of propagation paths.
-
-  These functions are listed in the doxygen documentation as entries of the
-  file auto_md.h.
-*/
+/**
+ * @file   m_ppath.cc
+ * @author Patrick Eriksson <patrick.eriksson@chalmers.se>
+ * @date   2002-05-08 
+ *
+ * @brief  Workspace functions releated to propagation paths variables.
+ *
+ * The file includes special functions to set the sensor position and LOS,
+ * and functions for calculation of propagation paths.
+ */
 
 /*===========================================================================
   === External declarations
@@ -242,68 +235,6 @@ void ppathCalc(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ppath_fieldCalc(Workspace& ws,
-                     ArrayOfPpath& ppath_field,
-                     const Agenda& ppath_agenda,
-                     const Numeric& ppath_lmax,
-                     const Numeric& ppath_lraytrace,
-                     const Index& atmgeom_checked,
-                     const Tensor3& t_field,
-                     const Tensor3& z_field,
-                     const Tensor4& vmr_field,
-                     const Vector& f_grid,
-                     const Index& cloudbox_on,
-                     const Index& cloudbox_checked,
-                     const Index& ppath_inside_cloudbox_do,
-                     const Matrix& sensor_pos,
-                     const Matrix& sensor_los,
-                     const Vector& rte_pos2,
-                     const Verbosity& verbosity) {
-  auto n = sensor_pos.nrows();
-  ppath_field.resize(n);
-
-  if (sensor_los.nrows() not_eq n)
-    throw std::runtime_error(
-        "Your sensor position matrix and sensor line of sight matrix do not match in size.\n");
-
-  for (auto i = 0; i < n; i++)
-    ppathCalc(ws,
-              ppath_field[i],
-              ppath_agenda,
-              ppath_lmax,
-              ppath_lraytrace,
-              atmgeom_checked,
-              t_field,
-              z_field,
-              vmr_field,
-              f_grid,
-              cloudbox_on,
-              cloudbox_checked,
-              ppath_inside_cloudbox_do,
-              sensor_pos(i, joker),
-              sensor_los(i, joker),
-              rte_pos2,
-              verbosity);
-}
-
-Index first_pos_before_altitude(const Ppath& p, const Numeric& alt) {
-  // Checker flags
-  bool below = false, above = false;
-
-  // Check first pos before altitude
-  for (Index i = 0; i < p.np; i++) {
-    if (p.pos(i, 0) < alt) {
-      if (above) return i - 1;
-      below = true;
-    } else {
-      if (below) return i - 1;
-      above = true;
-    }
-  }
-
-  return -1;
-}
-
 void ppathCalcFromAltitude(Workspace& ws,
                            Ppath& ppath,
                            const Agenda& ppath_agenda,
@@ -1185,6 +1116,212 @@ void ppathStepByStep(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void ppathWriteXMLPartial(  //WS Input:
+    const String& file_format,
+    const Ppath& ppath,
+    // WS Generic Input:
+    const String& f,
+    const Index& file_index,
+    const Verbosity& verbosity) {
+  String filename = f;
+  Ppath ppath_partial = ppath;
+  ArrayOfGridPos empty_gp;
+  //Vector empty_v;
+
+  ppath_partial.gp_p = empty_gp;
+  ppath_partial.gp_lat = empty_gp;
+  ppath_partial.gp_lon = empty_gp;
+  //ppath_partial.nreal = empty_v;
+  //ppath_partial.ngroup = empty_v;
+
+  if (file_index >= 0) {
+    // Create default filename if empty
+    filename_xml_with_index(filename, file_index, "ppath");
+  }
+
+  WriteXML(file_format, ppath_partial, filename, 0, "ppath", "", "", verbosity);
+}
+
+// FIXMEDOC@Richard  TRy to describe the meaning of ppath_field 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ppath_fieldFromDownUpLimbGeoms(Workspace& ws,
+                                    ArrayOfPpath& ppath_field,
+                                    const Agenda& ppath_agenda,
+                                    const Numeric& ppath_lmax,
+                                    const Numeric& ppath_lraytrace,
+                                    const Index& atmgeom_checked,
+                                    const Tensor3& t_field,
+                                    const Tensor3& z_field,
+                                    const Tensor4& vmr_field,
+                                    const Vector& f_grid,
+                                    const Index& cloudbox_on,
+                                    const Index& cloudbox_checked,
+                                    const Index& ppath_inside_cloudbox_do,
+                                    const Vector& rte_pos,
+                                    const Vector& rte_los,
+                                    const Vector& rte_pos2,
+                                    const Vector& refellipsoid,
+                                    const Index& atmosphere_dim,
+                                    const Index& zenith_angles_per_position,
+                                    const Verbosity& verbosity) {
+  extern const Numeric RAD2DEG;
+
+  if (atmosphere_dim not_eq 1)
+    throw std::runtime_error("Only for 1D atmospheres");
+  if (refellipsoid[1] not_eq 0.0)
+    throw std::runtime_error("Not allowed for non-spherical planets");
+  if (ppath_lmax >= 0)
+    throw std::runtime_error("Only allowed for long paths (ppath_lmax < 0)");
+
+  // Positions and angles of interest
+  const Numeric zmin = z_field(0, 0, 0);
+  const Numeric zmax = z_field(z_field.npages() - 1, 0, 0);
+  const Numeric r = refellipsoid[0];
+  const Numeric above_surface_tangent =
+      90 - RAD2DEG * std::acos((r) / (r + zmax)) + 1e-4;
+  const Numeric below_surface_tangent =
+      90 - RAD2DEG * std::acos((r) / (r + zmax)) - 1e-4;
+  const Numeric top_tangent = 90 - 1e-4;
+
+  ppath_field.resize(3 * zenith_angles_per_position);
+  Index ppath_field_pos = 0;
+
+  Vector zenith_angles(zenith_angles_per_position);
+
+  // Upwards:
+  nlinspace(zenith_angles, 0, 90, zenith_angles_per_position);
+  Vector rte_pos_true = rte_pos;
+  rte_pos_true[0] = zmin;
+  Vector rte_los_true = rte_los;
+  for (Index iz = 0; iz < zenith_angles_per_position; iz++) {
+    rte_los_true[0] = zenith_angles[iz];
+
+    ppathCalc(ws,
+              ppath_field[ppath_field_pos],
+              ppath_agenda,
+              ppath_lmax,
+              ppath_lraytrace,
+              atmgeom_checked,
+              t_field,
+              z_field,
+              vmr_field,
+              f_grid,
+              cloudbox_on,
+              cloudbox_checked,
+              ppath_inside_cloudbox_do,
+              rte_pos_true,
+              rte_los_true,
+              rte_pos2,
+              verbosity);
+
+    ppath_field_pos++;
+  }
+
+  // Limb:
+  nlinspace(zenith_angles,
+            above_surface_tangent,
+            top_tangent,
+            zenith_angles_per_position);
+  rte_pos_true[0] = zmax;
+  for (Index iz = 0; iz < zenith_angles_per_position; iz++) {
+    rte_los_true[0] = 180 - zenith_angles[iz];
+
+    ppathCalc(ws,
+              ppath_field[ppath_field_pos],
+              ppath_agenda,
+              ppath_lmax,
+              ppath_lraytrace,
+              atmgeom_checked,
+              t_field,
+              z_field,
+              vmr_field,
+              f_grid,
+              cloudbox_on,
+              cloudbox_checked,
+              ppath_inside_cloudbox_do,
+              rte_pos_true,
+              rte_los_true,
+              rte_pos2,
+              verbosity);
+
+    ppath_field_pos++;
+  }
+
+  // Downwards:
+  nlinspace(
+      zenith_angles, 0, below_surface_tangent, zenith_angles_per_position);
+  for (Index iz = 0; iz < zenith_angles_per_position; iz++) {
+    rte_los_true[0] = 180 - zenith_angles[iz];
+
+    ppathCalc(ws,
+              ppath_field[ppath_field_pos],
+              ppath_agenda,
+              ppath_lmax,
+              ppath_lraytrace,
+              atmgeom_checked,
+              t_field,
+              z_field,
+              vmr_field,
+              f_grid,
+              cloudbox_on,
+              cloudbox_checked,
+              ppath_inside_cloudbox_do,
+              rte_pos_true,
+              rte_los_true,
+              rte_pos2,
+              verbosity);
+
+    ppath_field_pos++;
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ppath_fieldCalc(Workspace& ws,
+                     ArrayOfPpath& ppath_field,
+                     const Agenda& ppath_agenda,
+                     const Numeric& ppath_lmax,
+                     const Numeric& ppath_lraytrace,
+                     const Index& atmgeom_checked,
+                     const Tensor3& t_field,
+                     const Tensor3& z_field,
+                     const Tensor4& vmr_field,
+                     const Vector& f_grid,
+                     const Index& cloudbox_on,
+                     const Index& cloudbox_checked,
+                     const Index& ppath_inside_cloudbox_do,
+                     const Matrix& sensor_pos,
+                     const Matrix& sensor_los,
+                     const Vector& rte_pos2,
+                     const Verbosity& verbosity) {
+  auto n = sensor_pos.nrows();
+  ppath_field.resize(n);
+
+  if (sensor_los.nrows() not_eq n)
+    throw std::runtime_error(
+        "Your sensor position matrix and sensor line of sight matrix do not match in size.\n");
+
+  for (auto i = 0; i < n; i++)
+    ppathCalc(ws,
+              ppath_field[i],
+              ppath_agenda,
+              ppath_lmax,
+              ppath_lraytrace,
+              atmgeom_checked,
+              t_field,
+              z_field,
+              vmr_field,
+              f_grid,
+              cloudbox_on,
+              cloudbox_checked,
+              ppath_inside_cloudbox_do,
+              sensor_pos(i, joker),
+              sensor_los(i, joker),
+              rte_pos2,
+              verbosity);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ppath_stepGeometric(  // WS Output:
     Ppath& ppath_step,
     // WS Input:
@@ -1362,33 +1499,6 @@ void ppath_stepRefractionBasic(Workspace& ws,
                         ppath_step.pos(0, 2));
     }
   }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void ppathWriteXMLPartial(  //WS Input:
-    const String& file_format,
-    const Ppath& ppath,
-    // WS Generic Input:
-    const String& f,
-    const Index& file_index,
-    const Verbosity& verbosity) {
-  String filename = f;
-  Ppath ppath_partial = ppath;
-  ArrayOfGridPos empty_gp;
-  //Vector empty_v;
-
-  ppath_partial.gp_p = empty_gp;
-  ppath_partial.gp_lat = empty_gp;
-  ppath_partial.gp_lon = empty_gp;
-  //ppath_partial.nreal = empty_v;
-  //ppath_partial.ngroup = empty_v;
-
-  if (file_index >= 0) {
-    // Create default filename if empty
-    filename_xml_with_index(filename, file_index, "ppath");
-  }
-
-  WriteXML(file_format, ppath_partial, filename, 0, "ppath", "", "", verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1698,133 +1808,3 @@ void VectorZtanToZa1D(Vector& za_vector,
   }
 }
 
-void ppath_fieldFromDownUpLimbGeoms(Workspace& ws,
-                                    ArrayOfPpath& ppath_field,
-                                    const Agenda& ppath_agenda,
-                                    const Numeric& ppath_lmax,
-                                    const Numeric& ppath_lraytrace,
-                                    const Index& atmgeom_checked,
-                                    const Tensor3& t_field,
-                                    const Tensor3& z_field,
-                                    const Tensor4& vmr_field,
-                                    const Vector& f_grid,
-                                    const Index& cloudbox_on,
-                                    const Index& cloudbox_checked,
-                                    const Index& ppath_inside_cloudbox_do,
-                                    const Vector& rte_pos,
-                                    const Vector& rte_los,
-                                    const Vector& rte_pos2,
-                                    const Vector& refellipsoid,
-                                    const Index& atmosphere_dim,
-                                    const Index& zenith_angles_per_position,
-                                    const Verbosity& verbosity) {
-  extern const Numeric RAD2DEG;
-
-  if (atmosphere_dim not_eq 1)
-    throw std::runtime_error("Only for 1D atmospheres");
-  if (refellipsoid[1] not_eq 0.0)
-    throw std::runtime_error("Not allowed for non-spherical planets");
-  if (ppath_lmax >= 0)
-    throw std::runtime_error("Only allowed for long paths (ppath_lmax < 0)");
-
-  // Positions and angles of interest
-  const Numeric zmin = z_field(0, 0, 0);
-  const Numeric zmax = z_field(z_field.npages() - 1, 0, 0);
-  const Numeric r = refellipsoid[0];
-  const Numeric above_surface_tangent =
-      90 - RAD2DEG * std::acos((r) / (r + zmax)) + 1e-4;
-  const Numeric below_surface_tangent =
-      90 - RAD2DEG * std::acos((r) / (r + zmax)) - 1e-4;
-  const Numeric top_tangent = 90 - 1e-4;
-
-  ppath_field.resize(3 * zenith_angles_per_position);
-  Index ppath_field_pos = 0;
-
-  Vector zenith_angles(zenith_angles_per_position);
-
-  // Upwards:
-  nlinspace(zenith_angles, 0, 90, zenith_angles_per_position);
-  Vector rte_pos_true = rte_pos;
-  rte_pos_true[0] = zmin;
-  Vector rte_los_true = rte_los;
-  for (Index iz = 0; iz < zenith_angles_per_position; iz++) {
-    rte_los_true[0] = zenith_angles[iz];
-
-    ppathCalc(ws,
-              ppath_field[ppath_field_pos],
-              ppath_agenda,
-              ppath_lmax,
-              ppath_lraytrace,
-              atmgeom_checked,
-              t_field,
-              z_field,
-              vmr_field,
-              f_grid,
-              cloudbox_on,
-              cloudbox_checked,
-              ppath_inside_cloudbox_do,
-              rte_pos_true,
-              rte_los_true,
-              rte_pos2,
-              verbosity);
-
-    ppath_field_pos++;
-  }
-
-  // Limb:
-  nlinspace(zenith_angles,
-            above_surface_tangent,
-            top_tangent,
-            zenith_angles_per_position);
-  rte_pos_true[0] = zmax;
-  for (Index iz = 0; iz < zenith_angles_per_position; iz++) {
-    rte_los_true[0] = 180 - zenith_angles[iz];
-
-    ppathCalc(ws,
-              ppath_field[ppath_field_pos],
-              ppath_agenda,
-              ppath_lmax,
-              ppath_lraytrace,
-              atmgeom_checked,
-              t_field,
-              z_field,
-              vmr_field,
-              f_grid,
-              cloudbox_on,
-              cloudbox_checked,
-              ppath_inside_cloudbox_do,
-              rte_pos_true,
-              rte_los_true,
-              rte_pos2,
-              verbosity);
-
-    ppath_field_pos++;
-  }
-
-  // Downwards:
-  nlinspace(
-      zenith_angles, 0, below_surface_tangent, zenith_angles_per_position);
-  for (Index iz = 0; iz < zenith_angles_per_position; iz++) {
-    rte_los_true[0] = 180 - zenith_angles[iz];
-
-    ppathCalc(ws,
-              ppath_field[ppath_field_pos],
-              ppath_agenda,
-              ppath_lmax,
-              ppath_lraytrace,
-              atmgeom_checked,
-              t_field,
-              z_field,
-              vmr_field,
-              f_grid,
-              cloudbox_on,
-              cloudbox_checked,
-              ppath_inside_cloudbox_do,
-              rte_pos_true,
-              rte_los_true,
-              rte_pos2,
-              verbosity);
-
-    ppath_field_pos++;
-  }
-}

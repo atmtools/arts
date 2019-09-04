@@ -21,13 +21,13 @@
   === File description 
   ===========================================================================*/
 
-/*!
+/**
   \file   rte.h
   \author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
   \date   2002-05-29
 
   \brief  Declaration of functions in rte.cc.
-*/
+ */
 
 #ifndef rte_h
 #define rte_h
@@ -51,14 +51,96 @@
   === Functions in rte.cc
   ===========================================================================*/
 
+/** Adapts clearsky partial derivatives.
+ *
+ * The following fields:
+ * 
+ *   Wind
+ *   VMR
+ * 
+ *  Adaptation means changing unit by user input
+ * 
+ *  @param[in,out]   dK_dx   In is unadopted out is adopted propagation matrix 
+ *                           derivatives
+ *  @param[in,out]   dS_dx   In is unadopted extra source and out is adopted
+ *                           extra source derivatives
+ *  FIXMEDOC@Richard: Finish header
+ * 
+ *  @author Richard Larsson 
+ *  @date   2017-09-21
+ */
+void adapt_stepwise_partial_derivatives(
+    ArrayOfPropagationMatrix& dK_dx,
+    ArrayOfStokesVector& dS_dx,
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    ConstVectorView ppath_f_grid,
+    ConstVectorView ppath_line_of_sight,
+    ConstVectorView ppath_vmrs,
+    const Numeric& ppath_temperature,
+    const Numeric& ppath_pressure,
+    const ArrayOfIndex& jacobian_species,
+    const ArrayOfIndex& jacobian_wind,
+    const Index& lte,
+    const Index& atmosphere_dim,
+    const bool& jacobian_do);
+
+/** Ensures that the zenith and azimuth angles of a line-of-sight vector are
+    inside defined ranges.
+
+    This function should not be used blindly, just when you know that the
+    out-of-bounds values are obtained by an OK operation. As when making a
+    disturbance calculation where e.g. the zenith angle is shifted with a small
+    value. This function then handles the case when the original zenith angle
+    is 0 or 180 and the disturbance then moves the angle outside the defined
+    range. 
+
+    @param[in,out]   los              LOS vector, defined as e.g. rte_los.
+    @param[in]       atmosphere_dim   As the WSV.
+
+    @author Patrick Eriksson 
+    @date   2012-04-11
+ */
 void adjust_los(VectorView los, const Index& atmosphere_dim);
 
+/** Performs conversion from radiance to other units, as well as applies
+    refractive index to fulfill the n2-law of radiance.
+
+    Use *apply_iy_unit2* for conversion of jacobian data.
+
+    @param[in,out]   iy   Tensor3 with data to be converted, where 
+                          column dimension corresponds to Stokes dimensionality
+                          and row dimension corresponds to frequency.
+    @param[in]   iy_unit  As the WSV.
+    @param[in]   f_grid   As the WSV.
+    @param[in]   n        Refractive index at the observation position.
+    @param[in]   i_pol    Polarisation indexes. See documentation of y_pol.
+
+    @author Patrick Eriksson 
+    @date   2010-04-07
+ */
 void apply_iy_unit(MatrixView iy,
                    const String& iy_unit,
                    ConstVectorView f_grid,
                    const Numeric& n,
                    const ArrayOfIndex& i_pol);
 
+/** Largely as *apply_iy_unit* but operates on jacobian data.
+
+    The associated spectrum data *iy* must be in radiance. That is, the
+    spectrum can only be converted to Tb after the jacobian data. 
+
+    @param[in,out]   J    Tensor3 with data to be converted, where 
+                          column dimension corresponds to Stokes dimensionality
+                          and row dimension corresponds to frequency.
+    @param[in]   iy       Associated radiance data.
+    @param[in]   iy_unit  As the WSV.
+    @param[in]   f_grid   As the WSV.
+    @param[in]   n        Refractive index at the observation position.
+    @param[in]   i_pol    Polarisation indexes. See documentation of y_pol.
+
+    @author Patrick Eriksson 
+    @date   2010-04-10
+ */
 void apply_iy_unit2(Tensor3View J,
                     ConstMatrixView iy,
                     const String& iy_unit,
@@ -66,13 +148,59 @@ void apply_iy_unit2(Tensor3View J,
                     const Numeric& n,
                     const ArrayOfIndex& i_pol);
 
-void ze_cfac(Vector& fac,
-             const Vector& f_grid,
-             const Numeric& ze_tref,
-             const Numeric& k2);
+/** Calculates the bending angle for a 1D atmosphere.
 
+    The expression used assumes a 1D atmosphere, that allows the bending angle
+    to be calculated by start and end LOS. This is an approximation for 2D and
+    3D, but a very small one and the function should in general be OK also for
+    2D and 3D.
+
+    The expression is taken from Kursinski et al., The GPS radio occultation
+    technique, TAO, 2000.
+
+    @param[in]   ppath   Propagation path.
+
+    @return     alpha   Bending angle
+
+    @author Patrick Eriksson 
+    @date   2012-04-05
+ */
 void bending_angle1d(Numeric& alpha, const Ppath& ppath);
 
+/** Defocusing for arbitrary geometry (zenith angle part only)
+
+    Estimates the defocusing loss factor by calculating two paths with zenith
+    angle off-sets. The distance between the two path at the optical path
+    length between the transmitter and the receiver, divided with the
+    corresponding distance for free space propagation, gives the defocusing
+    loss. 
+
+    The azimuth (gain) factor is not calculated. The path calculations are here
+    done starting from the transmitter, which is the reversed direction
+    compared to the ordinary path calculations starting at the receiver.
+    
+    @param[in,out]  ws                The workspace.
+    @param[out]   dlf                 Defocusing loss factor (1 for no loss)
+    @param[in]    ppath_step_agenda   As the WSV with the same name.
+    @param[in]    atmosphere_dim      As the WSV with the same name.
+    @param[in]    p_grid              As the WSV with the same name.
+    @param[in]    lat_grid            As the WSV with the same name.
+    @param[in]    lon_grid            As the WSV with the same name.
+    @param[in]    t_field             As the WSV with the same name.
+    @param[in]    z_field             As the WSV with the same name.
+    @param[in]    vmr_field           As the WSV with the same name.
+    @param[in]    f_grid              As the WSV with the same name.
+    @param[in]    refellipsoid        As the WSV with the same name.
+    @param[in]    z_surface           As the WSV with the same name.
+    @param[in]    ppath               As the WSV with the same name.
+    @param[in]    ppath_lmax          As the WSV with the same name.
+    @param[in]    ppath_lraytrace     As the WSV with the same name.
+    @param[in]    dza                 Size of angular shift to apply.
+    @param[in]    verbosity           As the WSV with the same name.
+
+    @author Patrick Eriksson 
+    @date   2012-04-11
+ */
 void defocusing_general(Workspace& ws,
                         Numeric& dlf,
                         const Agenda& ppath_step_agenda,
@@ -92,6 +220,38 @@ void defocusing_general(Workspace& ws,
                         const Numeric& dza,
                         const Verbosity& verbosity);
 
+/** Calculates defocusing for limb measurements between two satellites.
+
+    The expressions used assume a 1D atmosphere, and can only be applied on
+    limb sounding geometry. The function works for 2D and 3D and should give 
+    OK estimates. Both the zenith angle (loss) and azimuth angle (gain) terms
+    are considered.
+
+    The expressions is taken from Kursinski et al., The GPS radio occultation
+    technique, TAO, 2000.
+
+    @param[in,out]  ws                The workspace.
+    @param[out]   dlf                 Defocusing loss factor (1 for no loss)
+    @param[in]    ppath_step_agenda   As the WSV with the same name.
+    @param[in]    atmosphere_dim      As the WSV with the same name.
+    @param[in]    p_grid              As the WSV with the same name.
+    @param[in]    lat_grid            As the WSV with the same name.
+    @param[in]    lon_grid            As the WSV with the same name.
+    @param[in]    t_field             As the WSV with the same name.
+    @param[in]    z_field             As the WSV with the same name.
+    @param[in]    vmr_field           As the WSV with the same name.
+    @param[in]    f_grid              As the WSV with the same name.
+    @param[in]    refellipsoid        As the WSV with the same name.
+    @param[in]    z_surface           As the WSV with the same name.
+    @param[in]    ppath               As the WSV with the same name.
+    @param[in]    ppath_lmax          As the WSV with the same name.
+    @param[in]    ppath_lraytrace     As the WSV with the same name.
+    @param[in]    dza                 Size of angular shift to apply.
+    @param[in]    verbosity           As the WSV with the same name.
+
+    @author Patrick Eriksson 
+    @date   2012-04-11
+ */
 void defocusing_sat2sat(Workspace& ws,
                         Numeric& dlf,
                         const Agenda& ppath_step_agenda,
@@ -111,17 +271,82 @@ void defocusing_sat2sat(Workspace& ws,
                         const Numeric& dza,
                         const Verbosity& verbosity);
 
+/** Calculates the dot product between a field and a LOS
+
+    The line-of-sight shall be given as in the ppath structure (i.e. the
+    viewing direction), but the dot product is calculated for the photon
+    direction. The field is specified by its three components.
+
+    The returned value can be written as |f|*cos(theta), where |f| is the field
+    strength, and theta the angle between the field and photon vectors.
+
+    @param[in]   los               Pppath line-of-sight.
+    @param[in]   u                 U-component of field.
+    @param[in]   v                 V-component of field.
+    @param[in]   w                 W-component of field.
+    @param[in]   atmosphere_dim    As the WSV.
+
+    @return   The result of the dot product
+
+    @author Patrick Eriksson 
+    @date   2012-12-12
+*/
 Numeric dotprod_with_los(ConstVectorView los,
                          const Numeric& u,
                          const Numeric& v,
                          const Numeric& w,
                          const Index& atmosphere_dim);
 
+/** Converts an extinction matrix to a transmission matrix
+
+    The function performs the calculations differently depending on the
+    conditions, to improve the speed. There are three cases: <br>
+       1. Scalar RT and/or the matrix ext_mat_av is diagonal. <br>
+       2. Special expression for "azimuthally_random" case. <br>
+       3. The total general case.
+
+    If the structure of *ext_mat* is known, *icase* can be set to "case index"
+    (1, 2 or 3) and some time is saved. This includes that no asserts are
+    performed on *ext_mat*.
+
+    Otherwise, *icase* must be set to 0. *ext_mat* is then analysed and *icase*
+    is set by the function and is returned.
+
+    trans_mat must be sized before calling the function.
+
+    @param[out]   trans_mat      Transmission matrix of slab.
+    @param[out]   icase          Index giving ext_mat case.
+    @param[in]    ext_mat        Averaged extinction matrix.
+    @param[in]    lstep          The length of the RTE step.
+
+    @author Patrick Eriksson (based on earlier version started by Claudia)
+    @date   2013-05-17 
+ */
 void ext2trans(MatrixView trans_mat,
                Index& icase,
                ConstMatrixView ext_mat_av,
                const Numeric& l_step);
 
+/** Basic call of *iy_main_agenda*.
+
+    This function is an interface to *iy_main_agenda* that can be used when
+    only *iy* is of interest. That is, jacobian and auxilary parts are
+    deactivated/ignored.
+
+    @param[in,out]   ws                The workspace
+    @param[out]   iy                   As the WSV.
+    @param[in]   t_field               As the WSV.
+    @param[in]   z_field               As the WSV.
+    @param[in]   vmr_field             As the WSV.
+    @param[in]   cloudbox_on           As the WSV.
+    @param[in]   rte_pos               As the WSV.
+    @param[in]   rte_los               As the WSV.
+    @param[in]   iy_unit               As the WSV.
+    @param[in]   iy_main_agenda        As the WSV.
+
+    @author Patrick Eriksson 
+    @date   2012-08-08
+ */
 void get_iy(Workspace& ws,
             Matrix& iy,
             ConstTensor3View t_field,
@@ -136,6 +361,39 @@ void get_iy(Workspace& ws,
             const String& iy_unit,
             const Agenda& iy_main_agenda);
 
+/** Determines iy of the "background" of a propgation path.
+
+    The task is to determine *iy* and related variables for the
+    background, or to continue the raditiave calculations
+    "backwards". The details here depends on the method selected for
+    the agendas.
+
+    Each background is handled by an agenda. Several of these agandes
+    can involve recursive calls of *iy_main_agenda*. 
+
+    @param[in,out] ws                  The workspace
+    @param[out]  iy                    As the WSV.
+    @param[out]  diy_dx                As the WSV.
+    @param[in]   iy_transmission       As the WSV.
+    @param[in]   jacobian_do           As the WSV.
+    @param[in]   ppath                 As the WSV.
+    @param[in]   atmosphere_dim        As the WSV.
+    @param[in]   t_field               As the WSV.
+    @param[in]   z_field               As the WSV.
+    @param[in]   vmr_field             As the WSV.
+    @param[in]   cloudbox_on           As the WSV.
+    @param[in]   stokes_dim            As the WSV.
+    @param[in]   f_grid                As the WSV.
+    @param[in]   iy_unit               As the WSV.    
+    @param[in]   surface_props_data    As the WSV.    
+    @param[in]   iy_main_agenda        As the WSV.
+    @param[in]   iy_space_agenda       As the WSV.
+    @param[in]   iy_surface_agenda     As the WSV.
+    @param[in]   iy_cloudbox_agenda    As the WSV.
+
+    @author Patrick Eriksson 
+    @date   2009-10-08
+ */
 void get_iy_of_background(Workspace& ws,
                           Matrix& iy,
                           ArrayOfTensor3& diy_dx,
@@ -161,6 +419,34 @@ void get_iy_of_background(Workspace& ws,
                           const Index& iy_agenda_call1,
                           const Verbosity& verbosity);
 
+/** Determines pressure, temperature, VMR, winds and magnetic field for each
+    propgataion path point.
+
+    The output variables are sized inside the function. For VMR the
+    dimensions are [ species, propagation path point ].
+
+    @param[out]  ppath_p           Pressure for each ppath point.
+    @param[out]  ppath_t           Temperature for each ppath point.
+    @param[out]  ppath_vmr         VMR values for each ppath point.
+    @param[out]  ppath_wind        Wind vector for each ppath point.
+    @param[out]  ppath_mag         Mag. field vector for each ppath point.
+    @param[in]   ppath             As the WSV.
+    @param[in]   atmosphere_dim    As the WSV.
+    @param[in]   p_grid            As the WSV.
+    @param[in]   lat_grid          As the WSV.
+    @param[in]   lon_grid          As the WSV.
+    @param[in]   t_field           As the WSV.
+    @param[in]   vmr_field         As the WSV.
+    @param[in]   wind_u_field      As the WSV.
+    @param[in]   wind_v_field      As the WSV.
+    @param[in]   wind_w_field      As the WSV.
+    @param[in]   mag_u_field       As the WSV.
+    @param[in]   mag_v_field       As the WSV.
+    @param[in]   mag_w_field       As the WSV.
+
+    @author Patrick Eriksson 
+    @date   2009-10-05
+ */
 void get_ppath_atmvars(Vector& ppath_p,
                        Vector& ppath_t,
                        Matrix& ppath_nlte,
@@ -180,6 +466,21 @@ void get_ppath_atmvars(Vector& ppath_p,
                        ConstTensor3View mag_v_field,
                        ConstTensor3View mag_w_field);
 
+/** Determines the particle fields along a propagation path.
+
+    @param[out]  clear2cloudy        Mapping of index. See code for details. 
+    @param[out]  ppath_pnd           The particle number density for each
+                                     path point (also outside cloudbox).
+    @param[out]  ppath_dpnd_dx       dpnd_field_dx for each path point
+                                     (also outside cloudbox).
+    @param[in]   ppath               As the WSV.    
+    @param[in]   cloubox_limits      As the WSV.    
+    @param[in]   pnd_field           As the WSV.    
+    @param[in]   dpnd_field_dx       As the WSV.    
+
+    @author Jana Mendrok, Patrick Eriksson 
+    @date   2017-09-18
+ */
 void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
                          Matrix& ppath_pnd,
                          ArrayOfMatrix& ppath_dpnd_dx,
@@ -189,6 +490,20 @@ void get_ppath_cloudvars(ArrayOfIndex& clear2cloudy,
                          const Tensor4& pnd_field,
                          const ArrayOfTensor4& dpnd_field_dx);
 
+/** Determines the Doppler shifted frequencies along the propagation path.
+
+    ppath_doppler[ nf,np]
+
+    @param[out]  ppath_f          Doppler shifted f_grid
+    @param[in]   ppath            Propagation path.
+    @param[in]   f_grid           Original f_grid.
+    @param[in]   atmosphere_dim   As the WSV.
+    @param[in]   rte_alonglos_v   As the WSV.
+    @param[in]   ppath_wind       See get_ppath_atmvars.
+
+    @author Patrick Eriksson 
+    @date   2013-02-21
+ */
 void get_ppath_f(Matrix& ppath_f,
                  const Ppath& ppath,
                  ConstVectorView f_grid,
@@ -196,17 +511,233 @@ void get_ppath_f(Matrix& ppath_f,
                  const Numeric& rte_alonglos_v,
                  ConstMatrixView ppath_wind);
 
+/** Returns the "range" of *y* corresponding to a measurement block
+
+    @param[in]   sensor_response    As the WSV.
+    @param[in]   mblock_index       Index of the measurement block.
+
+    @return  The range.
+
+    @author Patrick Eriksson 
+    @date   2009-10-16
+ */
 Range get_rowindex_for_mblock(const Sparse& sensor_response,
                               const Index& imblock);
 
-void iy_transmission_mult(Tensor3& iy_trans_total,
-                          ConstTensor3View iy_trans_old,
-                          ConstTensor3View iy_trans_new);
+/** FIXMEDOC@Richard: Finish/check the documentation of all get_stepwise.
+ *                    You use different variable names in rte.h and rte.cc in
+ *                    some cases. Should be corrected?
+ * 
+ *  @author Richard Larsson 
+ *  @date   2017-09-21
+ */
+void get_stepwise_blackbody_radiation(VectorView B,
+                                      VectorView dB_dT,
+                                      ConstVectorView ppath_f_grid,
+                                      const Numeric& ppath_temperature,
+                                      const bool& do_temperature_derivative);
 
-void iy_transmission_mult(Matrix& iy_new,
-                          ConstTensor3View iy_trans,
-                          ConstMatrixView iy_old);
+/** Gets the clearsky propgation matrix and NLTE contributions
+ * 
+ *  @param[in] K                Out: Level propagation matrix
+ *  @param[in] S                Out: NLTE source vector for level
+ *  @param[in] lte              Out: Index indicating if there is any NLTE source term
+ *  @param[in] dK_dx            Out: Unadopted propagation matrix derivatives of level
+ *  @param[in] dS_dx            Out: Unadopted NLTE source derivatives of level
+...
+ * 
+ *  @author Richard Larsson 
+ *  @date   2017-09-21
+ */
+void get_stepwise_clearsky_propmat(
+    Workspace& ws,
+    PropagationMatrix& K,
+    StokesVector& S,
+    Index& lte,
+    ArrayOfPropagationMatrix& dK_dx,
+    ArrayOfStokesVector& dS_dx,
+    const Agenda& propmat_clearsky_agenda,
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    ConstVectorView ppath_f_grid,
+    ConstVectorView ppath_magnetic_field,
+    ConstVectorView ppath_line_of_sight,
+    ConstVectorView ppath_nlte_temperatures,
+    ConstVectorView ppath_vmrs,
+    const Numeric& ppath_temperature,
+    const Numeric& ppath_pressure,
+    const ArrayOfIndex& jacobian_species,
+    const bool& jacobian_do);
 
+//! get_stepwise_effective_source
+/**
+ *  Computes
+ * 
+ *  J = K^-1 (a B + S)
+ * 
+ *  and
+ * 
+ *  dJ = - K^-1 dK/dx K^-1 (a B + S) + K^-1 (da B + a dB + dS)
+ * 
+ *  Assumes zeroes for the a and K if nothing is happening but checks all other variables
+ * 
+ *  @param[in] J                   Out: Source term, frequency times stokes dimension
+ *  @param[in] dJ_dx               Out: Source term derivative, quantities times frequency times stokes dimension
+ *  @param[in] K                   In: Propagation matrix of level --- all contributions
+ *  @param[in] a                   In: Absorption vector of level --- all contributions
+ *  @param[in] S                   In: Source terms other than absorption times planck --- all contributions
+ *  @param[in] dK_dx               In: Propagation matrix derivatives of level --- all contributions
+ *  @param[in] da_dx               In: Absorption vector derivatives of level --- all contributions
+ *  @param[in] dS_dx               In: Source terms derivatives other than absorption times planck --- all contributions
+ *  @param[in] B                   In: Planck function in Stokes vector form
+ *  @param[in] dB_dT               In: Planck function derivative wrt temperatures in Stokes vector form
+ *  @param[in] jacobian_quantities In: As wsv
+ * 
+ *  @author Richard Larsson 
+ *  @date   2017-09-21
+ */
+void get_stepwise_effective_source(
+    MatrixView J,
+    Tensor3View dJ_dx,
+    const PropagationMatrix& K,
+    const StokesVector& a,
+    const StokesVector& S,
+    const ArrayOfPropagationMatrix& dK_dx,
+    const ArrayOfStokesVector& da_dx,
+    const ArrayOfStokesVector& dS_dx,
+    ConstVectorView B,
+    ConstVectorView dB_dT,
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const bool& jacobian_do);
+
+/**
+ *  Inverse of get_stepwise_f_partials
+ * 
+ *  Computes practical frequency grid due to wind for propmat_clearsky_agenda
+ * 
+...
+ * 
+ *  @author Richard Larsson 
+ *  \adapted from non-stepwise function
+ *  @date   2017-09-21
+ */
+void get_stepwise_frequency_grid(VectorView ppath_f_grid,
+                                 ConstVectorView f_grid,
+                                 ConstVectorView ppath_wind,
+                                 ConstVectorView ppath_line_of_sight,
+                                 const Numeric& rte_alonglos_v,
+                                 const Index& atmosphere_dim);
+
+/** Computes the ratio that a partial derivative with regards to frequency
+ *  relates to the wind of come component
+ * 
+ *  @param[in]   f_partial             Out: The frequency vector to multiply each frequency 
+ *                                      grid point in clearsky propmat derivatives
+ *  @param[in]   component             In: The wind component
+ *  @param[in]   line_of_sight         In: The line of sight vector as in workspace rtp_los
+ *  @param[in]   f_grid                In: The computational frequency grid
+ *  @param[in]   atmosphere_dim        In: atmospheric diemension as wsv
+ ...
+ * 
+ *  @author Richard Larsson 
+ *  \adapted from non-stepwise function
+ *  @date   2017-09-21
+ */
+void get_stepwise_f_partials(Vector& f_partials,
+                             const Index& component,
+                             ConstVectorView& line_of_sight,
+                             ConstVectorView f_grid,
+                             const Index& atmosphere_dim);
+
+/** Computes the contribution by scattering elements towards the absorption 
+ *  and emission from a level.
+ * 
+ *  @param[in]   ap                    Out: The scattering absorption term
+ *  @param[in]   Kp                    Out: The scattering propagation matrix term
+ *  @param[in]   dap_dx                Out: The scattering absorption term deriative
+ *  @param[in]   dKp_dx                Out: The scattering propagation matrix term deriative
+ ...
+ * 
+ *  @author Jana Mendrok, Richard Larsson 
+ *  @date   2017-09-21
+ */
+void get_stepwise_scattersky_propmat(
+    StokesVector& ap,
+    PropagationMatrix& Kp,
+    ArrayOfStokesVector& dap_dx,
+    ArrayOfPropagationMatrix& dKp_dx,
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    ConstMatrixView ppath_1p_pnd,  // the ppath_pnd at this ppath point
+    const ArrayOfMatrix&
+        ppath_dpnd_dx,  // the full ppath_dpnd_dx, ie all ppath points
+    const Index ppath_1p_id,
+    const ArrayOfArrayOfSingleScatteringData& scat_data,
+    ConstVectorView ppath_line_of_sight,
+    ConstVectorView ppath_temperature,
+    const Index& atmosphere_dim,
+    const bool& jacobian_do);
+
+/**
+ *  Calculates the stepwise scattering source terms.
+ *  Uses new, unified phase matrix extraction scheme.
+ * 
+ *  @param[in]   Sp                    Out: The scattering source term
+ *  @param[in]   dSp_dx                Out: The derivative of the scattering source term
+ ...
+ * 
+ *  @author Jana Mendrok 
+ *  \adapted from non-stepwise function
+ *  @date   2018-03-29
+ */
+void get_stepwise_scattersky_source(
+    StokesVector& Sp,
+    ArrayOfStokesVector& dSp_dx,
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    ConstVectorView ppath_1p_pnd,
+    const ArrayOfMatrix& ppath_dpnd_dx,
+    const Index ppath_1p_id,
+    const ArrayOfArrayOfSingleScatteringData& scat_data,
+    ConstTensor7View doit_i_field,
+    ConstVectorView scat_za_grid,
+    ConstVectorView scat_aa_grid,
+    ConstMatrixView ppath_line_of_sight,
+    const GridPos& ppath_pressure,
+    const Vector& temperature,
+    const Index& atmosphere_dim,
+    const bool& jacobian_do,
+    const Index& t_interp_order = 1);
+
+/** Computes layer transmission matrix and cumulative transmission
+ * 
+ *  @param[in] cumulative_transmission Out: cumulation of transmission for jacobian computations
+ *  @param[in] T                       Out: Layer transmission
+ *  @param[in] dT_close_dx             Out: Layer transmission derivative due to closest level
+ *  @param[in] dT_far_dx               Out: Layer transmission derivative due to furthest level
+...
+ * 
+ *  @author Richard Larsson 
+ *  \adapted from non-stepwise function
+ *  @date   2017-09-21
+ */
+void get_stepwise_transmission_matrix(
+    Tensor3View cumulative_transmission,
+    Tensor3View T,
+    Tensor4View dT_dx_close,
+    Tensor4View dT_dx_far,
+    ConstTensor3View cumulative_transmission_close,
+    const PropagationMatrix& K_close,
+    const PropagationMatrix& K_far,
+    const ArrayOfPropagationMatrix& dK_close_dx,
+    const ArrayOfPropagationMatrix& dK_far_dx,
+    const Numeric& ppath_distance,
+    const bool& first_level,
+    const Numeric& dr_dT_close = 0,
+    const Numeric& dr_dT_far = 0,
+    const Index& it = -1);
+
+/** Performs calculations for one measurement block, on iy-level
+ *
+ * The parameters mainly matches WSVs.
+ */
 void iyb_calc(Workspace& ws,
               Vector& iyb,
               ArrayOfVector& iyb_aux,
@@ -234,10 +765,90 @@ void iyb_calc(Workspace& ws,
               const ArrayOfString& iy_aux_vars,
               const Verbosity& verbosity);
 
+/** Multiplicates iy_transmission with transmissions.
+
+    That is, a multiplication of *iy_transmission* with another
+    variable having same structure and holding transmission values.
+
+    The "new path" is assumed to be further away from the sensor than 
+    the propagtion path already included in iy_transmission. That is,
+    the operation can be written as:
+    
+       Ttotal = Told * Tnew
+
+    where Told is the transmission corresponding to *iy_transmission*
+    and Tnew corresponds to *tau*.
+
+    *iy_trans_new* is sized by the function.
+
+    @param[out]   iy_trans_total    Updated version of *iy_transmission*
+    @param[in]   iy_trans_old      A variable matching *iy_transmission*.
+    @param[in]   iy_trans_new      A variable matching *iy_transmission*.
+
+    @author Patrick Eriksson 
+    @date   2009-10-06
+*/
+void iy_transmission_mult(Tensor3& iy_trans_total,
+                          ConstTensor3View iy_trans_old,
+                          ConstTensor3View iy_trans_new);
+
+/** Multiplicates iy_transmission with iy-variable.
+
+    The operation can be written as:
+    
+       iy_new = T * iy_old
+
+    where T is the transmission corresponding to *iy_transmission*
+    and iy_old is a variable matching iy.
+
+    *iy_new* is sized by the function.
+
+    @param[out]   iy_new        Updated version of iy 
+    @param[in]   iy_trans      A variable matching *iy_transmission*.
+    @param[in]   iy_old        A variable matching *iy*.
+
+    @author Patrick Eriksson 
+    @date   2018-04-10
+*/
+void iy_transmission_mult(Matrix& iy_new,
+                          ConstTensor3View iy_trans,
+                          ConstMatrixView iy_old);
+
+/** Determines the backward direction for a given line-of-sight.
+
+    This function can be used to get the LOS to apply for extracting single
+    scattering properties, if the propagation path LOS is given.
+
+    A viewing direction of aa=0 is assumed for 1D. This corresponds to 
+    positive za for 2D.
+
+    @param[out]  los_mirrored      The line-of-sight for reversed direction.
+    @param[in]   los               A line-of-sight
+    @param[in]   atmosphere_dim    As the WSV.
+
+    @author Patrick Eriksson 
+    @date   2011-07-15
+*/
 void mirror_los(Vector& los_mirrored,
                 ConstVectorView los,
                 const Index& atmosphere_dim);
 
+/** Determines the true alt and lon for an "ARTS position"
+
+    The function disentangles if the geographical position shall be taken from
+    lat_grid and lon_grid, or lat_true and lon_true.
+
+    @param[out]   lat             True latitude.
+    @param[out]   lon             True longitude.
+    @param[in]   atmosphere_dim   As the WSV.
+    @param[in]   lat_grid         As the WSV.
+    @param[in]   lat_true         As the WSV.
+    @param[in]   lon_true         As the WSV.
+    @param[in]   pos              A position, as defined for rt calculations.
+
+    @author Patrick Eriksson 
+    @date   2011-07-15
+*/
 void pos2true_latlon(Numeric& lat,
                      Numeric& lon,
                      const Index& atmosphere_dim,
@@ -246,136 +857,14 @@ void pos2true_latlon(Numeric& lat,
                      ConstVectorView lon_true,
                      ConstVectorView pos);
 
-void ext_mat_case(Index& icase,
-                  ConstMatrixView ext_mat,
-                  const Index stokes_dim);
+/** This function fixes the initial steps around Jacobian calculations, to be
+    done inside radiative transfer WSMs.
 
-void get_stepwise_frequency_grid(VectorView ppath_f_grid,
-                                 ConstVectorView f_grid,
-                                 ConstVectorView ppath_wind,
-                                 ConstVectorView ppath_line_of_sight,
-                                 const Numeric& rte_alonglos_v,
-                                 const Index& atmosphere_dim);
+    See iyEmissonStandard for usage example.
 
-void get_stepwise_f_partials(Vector& f_partials,
-                             const Index& component,
-                             ConstVectorView& line_of_sight,
-                             ConstVectorView f_grid,
-                             const Index& atmosphere_dim);
-
-void get_stepwise_blackbody_radiation(VectorView B,
-                                      VectorView dB_dT,
-                                      ConstVectorView ppath_f_grid,
-                                      const Numeric& ppath_temperature,
-                                      const bool& do_temperature_derivative);
-
-void get_stepwise_clearsky_propmat(
-    Workspace& ws,
-    PropagationMatrix& K,
-    StokesVector& S,
-    Index& lte,
-    ArrayOfPropagationMatrix& dK_dx,
-    ArrayOfStokesVector& dS_dx,
-    const Agenda& propmat_clearsky_agenda,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    ConstVectorView ppath_f_grid,
-    ConstVectorView ppath_magnetic_field,
-    ConstVectorView ppath_line_of_sight,
-    ConstVectorView ppath_nlte_temperatures,
-    ConstVectorView ppath_vmrs,
-    const Numeric& ppath_temperature,
-    const Numeric& ppath_pressure,
-    const ArrayOfIndex& jacobian_species,
-    const bool& jacobian_do);
-
-void adapt_stepwise_partial_derivatives(
-    ArrayOfPropagationMatrix& dK_dx,
-    ArrayOfStokesVector& dS_dx,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    ConstVectorView ppath_f_grid,
-    ConstVectorView ppath_line_of_sight,
-    ConstVectorView ppath_vmrs,
-    const Numeric& ppath_temperature,
-    const Numeric& ppath_pressure,
-    const ArrayOfIndex& jacobian_species,
-    const ArrayOfIndex& jacobian_wind,
-    const Index& lte,
-    const Index& atmosphere_dim,
-    const bool& jacobian_do);
-
-Numeric guesswork_HSE_derivative(Numeric h, Numeric r, Numeric T);
-
-void get_stepwise_transmission_matrix(
-    Tensor3View cumulative_transmission,
-    Tensor3View T,
-    Tensor4View dT_dx_close,
-    Tensor4View dT_dx_far,
-    ConstTensor3View cumulative_transmission_close,
-    const PropagationMatrix& K_close,
-    const PropagationMatrix& K_far,
-    const ArrayOfPropagationMatrix& dK_close_dx,
-    const ArrayOfPropagationMatrix& dK_far_dx,
-    const Numeric& ppath_distance,
-    const bool& first_level,
-    const Numeric& dr_dT_close = 0,
-    const Numeric& dr_dT_far = 0,
-    const Index& it = -1);
-
-void sum_stepwise_scalar_tau_and_extmat_case(
-    VectorView scalar_tau,
-    ArrayOfIndex& extmat_case,
-    const PropagationMatrix& upper_level,
-    const PropagationMatrix& lower_level,
-    const Numeric& distance);
-
-void get_stepwise_scattersky_propmat(
-    StokesVector& ap,
-    PropagationMatrix& Kp,
-    ArrayOfStokesVector& dap_dx,
-    ArrayOfPropagationMatrix& dKp_dx,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    ConstMatrixView ppath_1p_pnd,  // the ppath_pnd at this ppath point
-    const ArrayOfMatrix&
-        ppath_dpnd_dx,  // the full ppath_dpnd_dx, ie all ppath points
-    const Index ppath_1p_id,
-    const ArrayOfArrayOfSingleScatteringData& scat_data,
-    ConstVectorView ppath_line_of_sight,
-    ConstVectorView ppath_temperature,
-    const Index& atmosphere_dim,
-    const bool& jacobian_do);
-
-void get_stepwise_scattersky_source(
-    StokesVector& Sp,
-    ArrayOfStokesVector& dSp_dx,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    ConstVectorView ppath_1p_pnd,
-    const ArrayOfMatrix& ppath_dpnd_dx,
-    const Index ppath_1p_id,
-    const ArrayOfArrayOfSingleScatteringData& scat_data,
-    ConstTensor7View doit_i_field,
-    ConstVectorView scat_za_grid,
-    ConstVectorView scat_aa_grid,
-    ConstMatrixView ppath_line_of_sight,
-    const GridPos& ppath_pressure,
-    const Vector& temperature,
-    const Index& atmosphere_dim,
-    const bool& jacobian_do,
-    const Index& t_interp_order = 1);
-
-void get_stepwise_effective_source(
-    MatrixView J,
-    Tensor3View dJ_dx,
-    const PropagationMatrix& K,
-    const StokesVector& a,
-    const StokesVector& S,
-    const ArrayOfPropagationMatrix& dK_dx,
-    const ArrayOfStokesVector& da_dx,
-    const ArrayOfStokesVector& dS_dx,
-    ConstVectorView B,
-    ConstVectorView dB_dT,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const bool& jacobian_do);
-
+    @author Patrick Eriksson 
+    @date   2017-11-20
+*/
 void rtmethods_jacobian_init(
     ArrayOfIndex& jac_species_i,
     ArrayOfIndex& jac_scat_i,
@@ -397,6 +886,15 @@ void rtmethods_jacobian_init(
     const Index& iy_agenda_call1,
     const bool is_active = false);
 
+/** This function fixes the last steps to made on the Jacobian in some
+    radiative transfer WSMs. The method applies iy_transmission, maps from
+    ppath to the retrieval grids and applies non-standard Jacobian units.
+
+    See iyEmissonStandard for usage example.
+
+    @author Patrick Eriksson 
+    @date   2017-11-19
+*/
 void rtmethods_jacobian_finalisation(
     Workspace& ws,
     ArrayOfTensor3& diy_dx,
@@ -416,6 +914,16 @@ void rtmethods_jacobian_finalisation(
     const ArrayOfIndex jac_species_i,
     const ArrayOfIndex jac_is_t);
 
+/** This function handles the unit conversion to be done at the end of some
+    radiative transfer WSMs. 
+
+    The method hanldes both *iy* and analytical parts of the Jacobian.
+
+    See iyEmissonStandard for usage example.
+
+    @author Patrick Eriksson 
+    @date   2017-11-19
+ */
 void rtmethods_unit_conversion(
     Matrix& iy,
     ArrayOfTensor3& diy_dx,
@@ -427,5 +935,71 @@ void rtmethods_unit_conversion(
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const Index& j_analytical_do,
     const String& iy_unit);
+
+/** Performs calculations for one measurement block, on y-level
+ *
+ * The parameters mainly matches WSVs.
+ */
+void yCalc_mblock_loop_body(bool& failed,
+                            String& fail_msg,
+                            ArrayOfArrayOfVector& iyb_aux_array,
+                            Workspace& ws,
+                            Vector& y,
+                            Vector& y_f,
+                            ArrayOfIndex& y_pol,
+                            Matrix& y_pos,
+                            Matrix& y_los,
+                            Matrix& y_geo,
+                            Matrix& jacobian,
+                            const Index& atmosphere_dim,
+                            const Tensor3& t_field,
+                            const Tensor3& z_field,
+                            const Tensor4& vmr_field,
+                            const Tensor4& nlte_field,
+                            const Index& cloudbox_on,
+                            const Index& stokes_dim,
+                            const Vector& f_grid,
+                            const Matrix& sensor_pos,
+                            const Matrix& sensor_los,
+                            const Matrix& transmitter_pos,
+                            const Matrix& mblock_dlos_grid,
+                            const Sparse& sensor_response,
+                            const Vector& sensor_response_f,
+                            const ArrayOfIndex& sensor_response_pol,
+                            const Matrix& sensor_response_dlos,
+                            const String& iy_unit,
+                            const Agenda& iy_main_agenda,
+                            const Agenda& geo_pos_agenda,
+                            const Agenda& jacobian_agenda,
+                            const Index& jacobian_do,
+                            const ArrayOfRetrievalQuantity& jacobian_quantities,
+                            const ArrayOfArrayOfIndex& jacobian_indices,
+                            const ArrayOfString& iy_aux_vars,
+                            const Verbosity& verbosity,
+                            const Index& mblock_index,
+                            const Index& n1y,
+                            const Index& j_analytical_do);
+
+/** Calculates factor to convert back-scattering to Ze
+
+   The vector *fac* shall be sized to match f_grid, before calling the
+   function.
+
+   If k2 <= 0, the K" factor is calculated. Otherwise the input k2 is applied
+   as "hard-coded".
+
+   @param[out]   fac     Vector with factors.
+   @param[in]   f_grid   As the WSV.
+   @param[in]   z_tref   Reference temperature for conversion to Ze.
+   @param[in]   k2       Reference dielectric factor.
+
+   @author Patrick Eriksson
+   @date   2002-05-20
+*/
+void ze_cfac(Vector& fac,
+             const Vector& f_grid,
+             const Numeric& ze_tref,
+             const Numeric& k2);
+
 
 #endif  // rte_h

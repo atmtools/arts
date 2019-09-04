@@ -17,20 +17,13 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*===========================================================================
-  ===  File description
-  ===========================================================================*/
+/**
+  @file   m_cloudradar.cc
+  @author Patrick Eriksson <patrick.eriksson@chalmers.se>
+  @date   2010-10-31
 
-/*!
-  \file   m_cloudradar.cc
-  \author Patrick Eriksson <patrick.eriksson@chalmers.se>
-  \date   2010-10-31
-
-  \brief  Workspace functions related to simulation of cloud radars.
-
-  These functions are listed in the doxygen documentation as entries of the
-  file auto_md.h.
-*/
+  @brief  Workspace functions related to simulation of cloud radars.
+ */
 
 /*===========================================================================
   === External declarations
