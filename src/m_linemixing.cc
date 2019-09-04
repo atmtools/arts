@@ -2964,7 +2964,7 @@ void abs_lines_per_bandSetLineMixingFromRelmat(
 }
 
 #include <Eigen/Eigenvalues>
-#include "Faddeeva.hh"
+#include "../3rdparty/Faddeeva/Faddeeva.hh"
 #include "physics_funcs.h"
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesAddLineMixedLines(  // WS Output:

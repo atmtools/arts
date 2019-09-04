@@ -52,6 +52,8 @@ if (ENABLE_RELMAT)
   list (APPEND ALL_ARTS_LIBRARIES relmat)
 endif (ENABLE_RELMAT)
 
+list (APPEND ALL_ARTS_LIBRARIES Faddeeva)
+
 ########### target to extract version number from ChangeLog ###############
 
 add_custom_target (auto_version_h DEPENDS auto_version.h)
@@ -193,7 +195,6 @@ add_library (artscore STATIC
   disort.cc
   docserver.cc
   doit.cc
-  Faddeeva.cc
   fastem.cc
   file.cc
   gas_abs_lookup.cc
