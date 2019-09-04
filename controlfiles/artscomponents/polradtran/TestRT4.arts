@@ -93,7 +93,7 @@ RT4Calc #( nstreams=64 )
 
 Tensor7Create( ifield_old_optprop )
 Copy( ifield_old_optprop, doit_i_field )
-RT4Calc( new_optprop=1 ) #, nstreams=64 )
+RT4Calc #( nstreams=64 )
 CompareRelative( ifield_old_optprop, doit_i_field, 1e-6 )
 Compare( ifield_old_optprop, doit_i_field, 1e-30 )
 
