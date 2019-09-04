@@ -16,9 +16,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
  * USA. */
 
+/**
+ * @file m_wigner.cc
+ * @author Richard Larsson
+ * @date 2018-04-03
+ * 
+ * @brief Wigner symbol interactions
+ */
+
 #include "messages.h"
 #include "wigner_functions.h"
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Wigner6Init(Index& wigner_initialized,
 #if DO_FAST_WIGNER
                  const Index& fast_wigner_stored_symbols,
@@ -43,6 +52,7 @@ void Wigner6Init(Index& wigner_initialized,
   wig_table_init(int(largest_wigner_symbol_parameter * 2), 6);
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Wigner3Init(Index& wigner_initialized,
 #if DO_FAST_WIGNER
                  const Index& fast_wigner_stored_symbols,
@@ -64,6 +74,7 @@ void Wigner3Init(Index& wigner_initialized,
   wig_table_init(int(largest_wigner_symbol_parameter * 2), 3);
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void WignerFastInfoPrint(const Index& wigner_initialized, const Verbosity&) {
   if (not wigner_initialized)
     throw std::runtime_error("Must first initialize wigner...");
@@ -76,6 +87,7 @@ void WignerFastInfoPrint(const Index& wigner_initialized, const Verbosity&) {
 #endif
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Wigner6Unload(Index& wigner_initialized, const Verbosity&) {
   if (not wigner_initialized)
     throw std::runtime_error("Must first initialize wigner...");
@@ -88,6 +100,7 @@ void Wigner6Unload(Index& wigner_initialized, const Verbosity&) {
   wig_table_free();
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Wigner3Unload(Index& wigner_initialized, const Verbosity&) {
   if (not wigner_initialized)
     throw std::runtime_error("Must first initialize wigner...");
