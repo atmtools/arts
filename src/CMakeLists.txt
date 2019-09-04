@@ -276,6 +276,7 @@ add_library (artscore STATIC
   psd.cc
   quantum.cc
   quantum_parser_hitran.cc
+  radiation_field.cc
   rational.cc
   refraction.cc
   rng.cc
