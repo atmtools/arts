@@ -106,7 +106,10 @@ Numeric wigner6j(const Rational j1,
  * JQSRT 88 (2004) 483 – 498. Equation 4 page 488.
  *
  * Note: Ignore typos, the above is tested in relmat
-
+ *
+ * Warning:  Must have called wig_temp_init(j) with appropriate j before 
+ *           using this function.  Failure to do so will cause segfault.
+ *
  * @param[in] Ji as above times 2
  * @param[in] Jf as above times 2
  * @param[in] Ji_p as above times 2
@@ -131,9 +134,6 @@ Numeric co2_ecs_wigner_symbol(
  *
  * Note: The wigner library takes two times the physical values
  *       so, e.g., the 1 must be 2.  This hold true for all user inputs as well!
- *
- * Warning:  Must have called wig_temp_init(j) with appropriate j before 
- *           using this function.  Failure to do so will cause segfault.
  * 
  * Reference:
  * D.S. Makarov, M.Yu. Tretyakov, C. Boulet,
