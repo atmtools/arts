@@ -20724,29 +20724,4 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Keys for energy levels in the line array")));
 
-  md_data_raw.push_back(MdRecord(NAME("PrivateTesting1"),
-                                 DESCRIPTION("PE 180419: Testing ....\n"),
-                                 AUTHORS("Patrick Eriksson"),
-                                 OUT("cloudbox_on", "x"),
-                                 GOUT("jacobian_zero_indices"),
-                                 GOUT_TYPE("ArrayOfIndex"),
-                                 GOUT_DESC("..."),
-                                 IN("x", "jacobian_quantities"),
-                                 GIN(),
-                                 GIN_TYPE(),
-                                 GIN_DEFAULT(),
-                                 GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(NAME("PrivateTesting2"),
-                                 DESCRIPTION("PE 180419: Testing ....\n"),
-                                 AUTHORS("Patrick Eriksson"),
-                                 OUT("jacobian"),
-                                 GOUT(),
-                                 GOUT_TYPE(),
-                                 GOUT_DESC(),
-                                 IN("jacobian", "jacobian_do"),
-                                 GIN("jacobian_zero_indices"),
-                                 GIN_TYPE("ArrayOfIndex"),
-                                 GIN_DEFAULT(NODEF),
-                                 GIN_DESC("...")));
 }

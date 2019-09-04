@@ -16,20 +16,13 @@
    USA. 
 */
 
-/*===========================================================================
-  ===  File description
-  ===========================================================================*/
+/**
+  @file   m_jacobian.cc
+  @author Mattias Ekstrom <ekstrom@rss.chalmers.se>
+  @date   2004-09-14
 
-/*!
-  \file   m_jacobian.cc
-  \author Mattias Ekstrom <ekstrom@rss.chalmers.se>
-  \date   2004-09-14
-
-  \brief  Workspace functions related to the jacobian.
-
-  These functions are listed in the doxygen documentation as entries of the
-  file auto_md.h.
-*/
+  @brief  Workspace functions related to the jacobian.
+ */
 
 /*===========================================================================
   === External declarations
@@ -4241,128 +4234,3 @@ void jacobianSetFuncTransformation(ArrayOfRetrievalQuantity& jqs,
   jqs.back().SetTFuncParameters(pars);
 }
 
-//----------------------------------------------------------------------------
-// Patrick's sandbox
-//----------------------------------------------------------------------------
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void PrivateTesting1(Index& cloudbox_on,
-                     Vector& x,
-                     ArrayOfIndex& jacobian_zero_indices,
-                     const ArrayOfRetrievalQuantity& jacobian_quantities,
-                     const Verbosity&) {
-  // Settings, so far hard-coded
-  const Numeric rh_limit = 1;
-  const Numeric rh_in_cloud = 1;
-  const Numeric lwc_zero = 1e-12;
-  const Numeric rwc_zero = 0;
-  const Numeric iwc_zero = 0;
-  const Numeric twc_limit = 0.1e-3;
-  ;
-
-  // First guess for cloudbox_on
-  cloudbox_on = 0;
-
-  // Do nothing for first iteration(s)
-  if (0) {
-    jacobian_zero_indices.resize(0);
-    return;
-  }
-
-  // Some basic checks
-  assert(jacobian_quantities.nelem() == 5);
-  assert(jacobian_quantities[0].MainTag() == ABSSPECIES_MAINTAG);
-  assert(jacobian_quantities[1].MainTag() == ABSSPECIES_MAINTAG);
-  assert(jacobian_quantities[2].MainTag() == SCATSPECIES_MAINTAG);
-  assert(jacobian_quantities[3].MainTag() == SCATSPECIES_MAINTAG);
-  assert(jacobian_quantities[4].MainTag() == SURFACE_MAINTAG);
-
-  // Determine rh-values in unit used in x
-  const String tfun = jacobian_quantities[0].TransformationFunc();
-  Numeric xrh_limit = -999;
-  Numeric xrh_in_cloud = -999;
-  if (tfun == "") {
-    xrh_limit = rh_limit;
-    xrh_in_cloud = rh_in_cloud;
-  } else if (tfun == "atanh") {
-    const Vector pars = jacobian_quantities[0].TFuncParameters();
-    xrh_limit = atanh(2 * (rh_limit - pars[0]) / (pars[1] - pars[0]) - 1);
-    xrh_in_cloud = atanh(2 * (rh_in_cloud - pars[0]) / (pars[1] - pars[0]) - 1);
-  } else {
-    assert(0);
-  }
-
-  // Jacobian indices and set some variables
-  ArrayOfArrayOfIndex jacobian_indices;
-  {
-    bool any_affine;
-    jac_ranges_indices(jacobian_indices, any_affine, jacobian_quantities, true);
-  }
-  ArrayOfIndex np(4);    // Number of retrieval altitudes of each quantity
-  Vector zero_value(3);  // Effective zero value for hydrometeors
-  for (Index i = 0; i < 4; i++) {
-    np[i] = jacobian_indices[i][1] - jacobian_indices[i][0] + 1;
-    if (i == 0) {
-    } else if (i == 1) {
-      zero_value[i - 1] = lwc_zero;
-    } else if (i == 2) {
-      zero_value[i - 1] = rwc_zero;
-    } else if (i == 3) {
-      zero_value[i - 1] = iwc_zero;
-    }
-  }
-
-  // Init jacobian_zero_indices
-  jacobian_zero_indices.resize(x.nelem());
-  for (Index i = 0; i < jacobian_zero_indices.nelem(); i++) {
-    jacobian_zero_indices[i] = 0;
-  }
-
-  // Loop rh-values and take actions
-  for (Index ip = 0; ip <= np[0]; ip++) {
-    // Low rh case
-    if (x[ip] < xrh_limit) {
-      for (Index iq = 1; iq <= 3; iq++) {
-        if (ip < np[iq]) {
-          const Index ix = jacobian_indices[iq][0] + ip;
-          jacobian_zero_indices[ix] = 1;
-          x[ix] = zero_value[iq - 1];
-        }
-      }
-    }
-    // High rh case
-    else {
-      // Activate cloudbox
-      cloudbox_on = 1;
-      // calculate total water content
-      Numeric twc = 0;
-      for (Index iq = 1; iq <= 3; iq++) {
-        if (ip < np[iq]) {
-          const Index ix = jacobian_indices[iq][0] + ip;
-          twc += x[ix];
-        }
-      }
-      // Special actions if high TWC
-      if (twc >= twc_limit) {
-        x[ip] = xrh_in_cloud;
-        jacobian_zero_indices[ip] = 1;
-      }
-    }
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void PrivateTesting2(Matrix& jacobian,
-                     const Index& jacobian_do,
-                     const ArrayOfIndex& jacobian_zero_indices,
-                     const Verbosity&) {
-  if (jacobian_do) {
-    assert(jacobian.ncols() == jacobian_zero_indices.nelem());
-
-    for (Index ix = 0; ix < jacobian.ncols(); ix++) {
-      if (jacobian_zero_indices[ix]) {
-        jacobian(joker, ix) = 0;
-      }
-    }
-  }
-}
