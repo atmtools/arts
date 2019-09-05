@@ -120,7 +120,6 @@ z_fieldFromHSE
 # Run RT calcs
 #
 StringSet( iy_unit, "RJBT" )
-#NumericSet( ppath_lmax, 250 )
 #
 yCalc
 
@@ -129,7 +128,7 @@ yCalc
 #
 VectorCreate( yref )
 ReadXML( yref, "yREF1.xml" )
-Compare( y, yref, 1e-6,
+Compare( y, yref, 1e-4,
          "Calculated *y* does not agree with saved reference values." )
 
 
@@ -142,7 +141,7 @@ Copy( jcopy, jacobian )
 # Save
 #
 #output_file_formatSetAscii
-#WriteXML( output_file_format, y, "y.xml" )
+#WriteXML( output_file_format, y, "yREF1.xml" )
 #WriteXML( output_file_format, f_grid, "f.xml" )
 #WriteXML( output_file_format, z_field, "z.xml" )
 #WriteXML( output_file_format, jacobian, "Ja_off.xml" )
@@ -150,12 +149,22 @@ Copy( jcopy, jacobian )
 
 # Re-do, HSE off, perturbation
 #
-jacobianInit
-jacobianAddTemperature( g1=p_grid, g2=lat_grid, g3=lon_grid, hse="off",
-                        method="perturbation", dt=0.1 )
-jacobianClose
+NumericCreate( dt )
+NumericSet( dt, 0.1 )
+IndexNumberOfAtmosphericPoints( n = ybatch_n )
 #
-yCalc
+jacobianOff
+#
+AgendaSet(ybatch_calc_agenda){
+  AtmFieldPerturbAtmGrids( perturbed_field = t_field,
+                           original_field = t_field,
+                           pert_index = ybatch_index,
+                           pert_size = dt )
+  yCalc
+}
+#
+ybatchCalc( ybatch_start=0 )
+jacobianFromYbatch( pert_size = dt )
 #
 #WriteXML( output_file_format, jacobian, "Jp_off.xml" )
 #
@@ -178,16 +187,23 @@ Copy( jcopy, jacobian )
 
 # Re-do, HSE on, perturbation
 #
-jacobianInit
-jacobianAddTemperature( g1=p_grid, g2=lat_grid, g3=lon_grid, hse="on",
-                        method="perturbation", dt=0.1 )
-jacobianClose
+jacobianOff
 #
-yCalc
+AgendaSet(ybatch_calc_agenda){
+  AtmFieldPerturbAtmGrids( perturbed_field = t_field,
+                           original_field = t_field,
+                           pert_index = ybatch_index,
+                           pert_size = dt )
+  z_fieldFromHSE
+  yCalc
+}
+#
+ybatchCalc( ybatch_start=0 )
+jacobianFromYbatch( pert_size = dt )
 #
 #WriteXML( output_file_format, jacobian, "Jp_on.xml" )
 #
-Compare( jacobian, jcopy, 1e-4,
+Compare( jcopy, jacobian, 1e-4,
                  "Analytical and perturbation Jacobian disagree with HSE=on" )
 
 

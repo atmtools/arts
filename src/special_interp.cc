@@ -426,7 +426,7 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_p,
   const Numeric inf_proxy = 1.0e99;
 
   gp_p.resize(p_grid.nelem());
-  n_p = ret_grids.nelem();
+  n_p = ret_grids[0].nelem();
   if (n_p > 1) {
     p2gridpos(gp_p, ret_grids[0], p_grid, inf_proxy);
     jacobian_type_extrapol(gp_p);

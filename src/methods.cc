@@ -2683,27 +2683,63 @@ void define_md_data_raw() {
   md_data_raw.push_back(MdRecord(
       NAME("AtmFieldPerturb"),
       DESCRIPTION(
-          "Adds a perturbation to *t_field*.\n"
+          "Adds a perturbation to an atmospheric field.\n"
           "\n"
-          "The method performs the operations\n"
-          "  perturbed_field = original_field\n"
-          "  perturbed_field(p_index,lat_index,lon_index) += perturbation\n"),
+          "The shape and position of the perturbation follow the retrieval grids.\n"
+          "That is, the shape of the perturbation has a traingular shape, \n"
+          "with breake points at the retrieval grid points. The position is\n"
+          "given as an index. This index matches the column in the Jacobian\n"
+          "for the selected grid position.\n"
+          "\n"
+          "If the retrieval grids fully match the atmospheric grids, you can\n"
+          "use *AtmFieldPerturbAtmGrids*, that is faster. The description of\n"
+          "that method can help to understand this method.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT(),
       GOUT("perturbed_field"),
       GOUT_TYPE("Tensor3"),
-      GOUT_DESC("Copy of *original_field*, but with one element perturbed."),
+      GOUT_DESC("Perturbed/modified field."),
       IN("atmosphere_dim","p_grid","lat_grid","lon_grid"),
-      GIN("original_field","p_index","lat_index","lon_index","perturbation"),
-      GIN_TYPE("Tensor3","Index","Index","Index","Numeric"),
-      GIN_DEFAULT(NODEF,NODEF,"0","0",NODEF),
+      GIN("original_field","p_ret_grid","lat_ret_grid","lon_ret_grid",
+          "pert_index","pert_size","pert_mode"),
+      GIN_TYPE("Tensor3","Vector","Vector","Vector",
+               "Index","Numeric","String"),
+      GIN_DEFAULT(NODEF,NODEF,NODEF,NODEF,NODEF,NODEF,"absolute"),
       GIN_DESC("Original field, e.g. *t_field*.",
-               "Pressure index of perturbation.",
-               "Latitude index of perturbation.",
-               "Longitude index of perturbation.",
-               "Size of perturbation.")));
+               "Pressure retrieval grid.",
+               "Latitude retrieval grid.",
+               "Longitude retrieval grid.",
+               "Index of position where the perturbation shall be performed.",
+               "Size of perturbation.",
+               "Type of perturbation, ""ansolute"" or ""relative"".")));
 
   md_data_raw.push_back(MdRecord(
+      NAME("AtmFieldPerturbAtmGrids"),
+      DESCRIPTION(
+          "As *AtmFieldPerturb*, but perturbation follows the atmospheric grids.\n"
+          "\n"
+          "The method effectively performs this\n"
+          "  perturbed_field = original_field\n"
+          "  perturbed_field(p_index,lat_index,lon_index) += pert_size\n"
+          "if not *pert_mode* is set to ""relative"" when this is done\n"
+          "  perturbed_field = original_field\n"
+          "  perturbed_field(p_index,lat_index,lon_index) *= 1*pert_size\n"
+          "where p_index etc. are derived from *pert_index*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("perturbed_field"),
+      GOUT_TYPE("Tensor3"),
+      GOUT_DESC("Perturbed/modified field."),
+      IN("atmosphere_dim","p_grid","lat_grid","lon_grid"),
+      GIN("original_field","pert_index","pert_size","pert_mode"),
+      GIN_TYPE("Tensor3","Index","Numeric","String"),
+      GIN_DEFAULT(NODEF,NODEF,NODEF,"absolute"),
+      GIN_DESC("Original field, e.g. *t_field*.",
+               "Index of position where the perturbation shall be performed.",
+               "Size of perturbation.",
+               "Type of perturbation, ""ansolute"" or ""relative"".")));
+
+    md_data_raw.push_back(MdRecord(
       NAME("AtmFieldPRegrid"),
       DESCRIPTION(
           "Interpolates the input field along the pressure dimension from\n"
@@ -6952,6 +6988,26 @@ void define_md_data_raw() {
       GIN_DESC("Input Index.", "Value to add.")));
 
   md_data_raw.push_back(MdRecord(
+      NAME("IndexNumberOfAtmosphericPoints"),
+      DESCRIPTION(
+        "Counts number of points in the atmosphere.\n"
+        "\n"
+        "For a 3D atmosphere the method sets *n* to:\n"
+        "  p_grid.nelem()*lat_grid.nelem()*lon_grid.nelem()\n"
+        "For 1D and 2D the same calculation is done, but ignoring dimensions\n"
+        "not active.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("n"),
+      GOUT_TYPE("Index"),
+      GOUT_DESC("Variable to set with number of points."),
+      IN("atmosphere_dim", "p_grid", "lat_grid", "lon_grid"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
       NAME("IndexSet"),
       DESCRIPTION("Sets an index workspace variable to the given value.\n"),
       AUTHORS("Patrick Eriksson"),
@@ -9807,23 +9863,47 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
+      NAME("jacobianFromTwoY"),
+      DESCRIPTION(
+          "Sets *jacobian* based on the difference vetween two measurement vectors.\n"
+          "\n"
+          "This function assumes that *y_pert* contains a measurement calculated\n"
+          "with some variable perturbed, in comparison to the calculation\n"
+          "behind *y*. The function takes the differences between *y_pert*\n"
+          "and *y* to form a numerical derived estimate of *jacobian*.\n"
+          "This gives a Jacobian wit a single column.\n"
+          "\n"
+          "*jacobian* equals here: (y_pert-y)/pert_size.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("jacobian"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("y"),
+      GIN("y_pert","pert_size"),
+      GIN_TYPE("Vector","Numeric"),
+      GIN_DEFAULT(NODEF,NODEF),
+      GIN_DESC("Perturbed measurement vector",
+               "Size of perturbation behind spectra in *ybatch*.")));
+
+  md_data_raw.push_back(MdRecord(
       NAME("jacobianFromYbatch"),
       DESCRIPTION(
           "Sets *jacobian* based on perturbation calcuations.\n"
           "\n"
           "This function assumes that *ybatch* contains spectra calculated\n"
-          "with some varaible perturbed, in comparison to the calculation\n"
+          "with some variable perturbed, in comparison to the calculation\n"
           "behind *y*. The function takes the differences between *ybatch*\n"
           "and *y* to form a numerical derived estimate of *jacobian*.\n"
           "\n"
-          "Column i of *jacobian equals (ybatch[i]-y)/perturbation.\n"),
+          "Column i of *jacobian* equals: (ybatch[i]-y)/pert_size.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("jacobian"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("ybatch","y"),
-      GIN("perturbation"),
+      GIN("pert_size"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Size of perturbation behind spectra in *ybatch*.")));
@@ -11633,6 +11713,53 @@ void define_md_data_raw() {
       GIN_DESC("Name of bulk property to consider, or \"ALL\".",
                "Lower limit for clipping.",
                "Upper limit for clipping.")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("particle_bulkprop_fieldPerturb"),
+      DESCRIPTION(
+          "Adds a perturbation to *particle_bulkprop_field*.\n"
+          "\n"
+          "Works as *AtmFieldPerturb* but acts on *particle_bulkprop_field*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("particle_bulkprop_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("particle_bulkprop_field","atmosphere_dim",
+         "p_grid","lat_grid","lon_grid","particle_bulkprop_names"),
+      GIN("particle_type","p_ret_grid","lat_ret_grid","lon_ret_grid",
+          "pert_index","pert_size","pert_mode"),
+      GIN_TYPE("String","Vector","Vector","Vector",
+               "Index","Numeric","String"),
+      GIN_DEFAULT(NODEF,NODEF,NODEF,NODEF,NODEF,NODEF,"absolute"),
+      GIN_DESC("Name of field to perturb, such as ""IWC"".",
+               "Pressure retrieval grid.",
+               "Latitude retrieval grid.",
+               "Longitude retrieval grid.",
+               "Index of position where the perturbation shall be performed.",
+               "Size of perturbation.",
+               "Type of perturbation, ""ansolute"" or ""relative"".")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("particle_bulkprop_fieldPerturbAtmGrids"),
+      DESCRIPTION(
+          "Adds a perturbation to *particle_bulkprop_field*.\n"
+          "\n"
+          "Works as *AtmFieldPerturbAtmGrids* but acts on *particle_bulkprop_field*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("particle_bulkprop_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("particle_bulkprop_field","atmosphere_dim",
+         "p_grid","lat_grid","lon_grid","particle_bulkprop_names"),
+      GIN("particle_type","pert_index","pert_size","pert_mode"),
+      GIN_TYPE("String","Index","Numeric","String"),
+      GIN_DEFAULT(NODEF,NODEF,NODEF,"absolute"),
+      GIN_DESC("Name of field to perturb, such as ""IWC"".",
+               "Index of position where the perturbation shall be performed.",
+               "Size of perturbation.",
+               "Type of perturbation, ""ansolute"" or ""relative"".")));
 
   md_data_raw.push_back(MdRecord(
       NAME("particle_massesFromMetaDataSingleCategory"),
@@ -19537,23 +19664,45 @@ void define_md_data_raw() {
       DESCRIPTION(
           "Adds a perturbation to *vmr_field*.\n"
           "\n"
-          "The method performs the operation\n"
-          "  vmr_field(i_species,p_index,lat_index,lon_index) += perturbation\n"
-          "where *i_species* of the selected absorption species.\n"),
+          "Works as *AtmFieldPerturb* but acts on *vmr_field*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("vmr_field"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("vmr_field","atmosphere_dim","p_grid","lat_grid","lon_grid","abs_species"),
-      GIN("species","p_index","lat_index","lon_index","perturbation"),
-      GIN_TYPE("String","Index","Index","Index","Numeric"),
-      GIN_DEFAULT(NODEF,NODEF,"0","0",NODEF),
+      GIN("species","p_ret_grid","lat_ret_grid","lon_ret_grid",
+          "pert_index","pert_size","pert_mode"),
+      GIN_TYPE("String","Vector","Vector","Vector",
+               "Index","Numeric","String"),
+      GIN_DEFAULT(NODEF,NODEF,NODEF,NODEF,NODEF,NODEF,"absolute"),
       GIN_DESC("Name of species to perturb.",
-               "Pressure index of perturbation.",
-               "Latitude index of perturbation.",
-               "Longitude index of perturbation.",
-               "Size of perturbation.")));
+               "Pressure retrieval grid.",
+               "Latitude retrieval grid.",
+               "Longitude retrieval grid.",
+               "Index of position where the perturbation shall be performed.",
+               "Size of perturbation.",
+               "Type of perturbation, ""ansolute"" or ""relative"".")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("vmr_fieldPerturbAtmGrids"),
+      DESCRIPTION(
+          "Adds a perturbation to *vmr_field*.\n"
+          "\n"
+          "Works as *AtmFieldPerturbAtmGrids* but acts on *vmr_field*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("vmr_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("vmr_field","atmosphere_dim","p_grid","lat_grid","lon_grid","abs_species"),
+      GIN("species","pert_index","pert_size","pert_mode"),
+      GIN_TYPE("String","Index","Numeric","String"),
+      GIN_DEFAULT(NODEF,NODEF,NODEF,"absolute"),
+      GIN_DESC("Name of species to perturb.",
+               "Index of position where the perturbation shall be performed.",
+               "Size of perturbation.",
+               "Type of perturbation, ""ansolute"" or ""relative"".")));
 
   md_data_raw.push_back(MdRecord(
       NAME("vmr_fieldSetAllConstant"),

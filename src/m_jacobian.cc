@@ -3784,18 +3784,21 @@ void jacobianSetFuncTransformation(ArrayOfRetrievalQuantity& jqs,
 // Methods for doing perturbations
 //----------------------------------------------------------------------------
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void AtmFieldPerturb(Tensor3& perturbed_field,
                     const Index& atmosphere_dim,
                     const Vector& p_grid,
                     const Vector& lat_grid,
                     const Vector& lon_grid,
                     const Tensor3& original_field,
-                    const Index& p_index,
-                    const Index& lat_index,
-                    const Index& lon_index,
-                    const Numeric& perturbation,
+                    const Vector& p_ret_grid,
+                    const Vector& lat_ret_grid,
+                    const Vector& lon_ret_grid,
+                    const Index& pert_index,
+                    const Numeric& pert_size,
+                    const String& pert_mode,
                     const Verbosity&) {
-  // Check main input
+  // Input checks (more below)
   chk_atm_field("original_field",
                 original_field,
                 atmosphere_dim,
@@ -3803,69 +3806,172 @@ void AtmFieldPerturb(Tensor3& perturbed_field,
                 lat_grid,
                 lon_grid,
                 false );
-  // Check selected indexes
-  chk_if_in_range("p_index", p_index, 0, p_grid.nelem()-1);
-  if( atmosphere_dim>=2) {
-    chk_if_in_range("lat_index", lat_index, 0, lat_grid.nelem()-1);
-    if( atmosphere_dim>=3) {
-      chk_if_in_range("lon_index", lon_index, 0, lon_grid.nelem()-1);
+
+  // Pack retrieval grids into an ArrayOfVector
+  ArrayOfVector ret_grids(atmosphere_dim);
+  ret_grids[0] = p_ret_grid;
+  if (atmosphere_dim>1){
+    ret_grids[1] = lat_ret_grid;
+    if (atmosphere_dim>2){
+      ret_grids[2] = lon_ret_grid;
     }
   }
+
+  // Find mapping from retrieval grids to atmospheric grids
+  ArrayOfGridPos gp_p, gp_lat, gp_lon;
+  Index n_p, n_lat, n_lon;
+  get_gp_rq_to_atmgrids(gp_p,
+                        gp_lat,
+                        gp_lon,
+                        n_p,
+                        n_lat,
+                        n_lon,
+                        ret_grids,
+                        atmosphere_dim,
+                        p_grid,
+                        lat_grid,
+                        lon_grid);
+
+  // Now we can chec *pert_index*
+  if (pert_index<0){
+    throw runtime_error("Bad *pert_index*. It is negative.");
+  }
+  const Index n_tot = n_p * n_lat * n_lon;
+  if (pert_index >= n_tot){
+    throw runtime_error("Bad *pert_index*. It is too high with respect "
+                        "to length of retrieval grids.");
+  }    
+  
+  // Create x-vector that matches perturbation
+  Vector x(n_tot);
+  if (pert_mode == "absolute" ){
+    x = 0;
+    x[pert_index] = pert_size;
+  }
+  else if (pert_mode == "relative" ){
+    x = 1;
+    x[pert_index] += pert_size;
+  }
+  else{
+    throw runtime_error("Bad *pert_mode*. Allowed choices are: "
+                        """absolute"" and ""relative"".");
+  }
+  
+  // Map x to a perturbation defined at atmospheric grids
+  Tensor3 x3d(n_p, n_lat, n_lon), pert(n_p, n_lat, n_lon);
+  reshape(x3d, x);
+  regrid_atmfield_by_gp_oem(pert, atmosphere_dim, x3d, gp_p, gp_lat, gp_lon);
+  
   // Init perturbed_field, if not equal to original_field
   if (&perturbed_field != &original_field) {
     perturbed_field = original_field;
   }
-  // Perturb
-  perturbed_field(p_index,
-                  atmosphere_dim>1 ? lat_index : 0,
-                  atmosphere_dim>2 ? lon_index : 0) += perturbation;
+
+  // Apply perturbation
+  if (pert_mode == "absolute" ){
+    perturbed_field += pert;
+  }
+  else{
+    perturbed_field *= pert;
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void vmr_fieldPerturb(Tensor4& vmr_field,
-                      const Index& atmosphere_dim,
-                      const Vector& p_grid,
-                      const Vector& lat_grid,
-                      const Vector& lon_grid,
-                      const ArrayOfArrayOfSpeciesTag& abs_species,
-                      const String& species,
-                      const Index& p_index,
-                      const Index& lat_index,
-                      const Index& lon_index,
-                      const Numeric& perturbation,
-                      const Verbosity&) {
-  // Locate vmr_species among abs_species
-  Index iq = -1;
-  for (Index i = 0; i < abs_species.nelem(); i++) {
-    if (abs_species[i][0].Species() == SpeciesTag(species).Species()) {
-      iq = i;
-      break;
-    }
+void AtmFieldPerturbAtmGrids(Tensor3& perturbed_field,
+                             const Index& atmosphere_dim,
+                             const Vector& p_grid,
+                             const Vector& lat_grid,
+                             const Vector& lon_grid,
+                             const Tensor3& original_field,
+                             const Index& pert_index,
+                             const Numeric& pert_size,
+                             const String& pert_mode,
+                             const Verbosity&) {
+  // Some sizes
+  const Index n_p = p_grid.nelem();
+  const Index n_lat = atmosphere_dim<2 ? 1 : lat_grid.nelem();
+  const Index n_lon = atmosphere_dim<3 ? 1 : lon_grid.nelem();
+  
+  // Check input
+  chk_atm_field("original_field",
+                original_field,
+                atmosphere_dim,
+                p_grid,
+                lat_grid,
+                lon_grid,
+                false );
+  if (pert_index<0){
+    throw runtime_error("Bad *pert_index*. It is negative.");
   }
-  if (iq < 0) {
-    ostringstream os;
-    os << "Could not find " << species << " in abs_species.\n";
-    throw std::runtime_error(os.str());
+  if (pert_index >= n_p * n_lat * n_lon){
+    throw runtime_error("Bad *pert_index*. It is too high with respect "
+                        "to length of atmospheric grids.");
+  }    
+
+  // Determine indexes with respect to atmospheric grids
+  Index tot_index = pert_index;
+  const Index lon_index = atmosphere_dim<3 ? 0 : tot_index / (n_lat * n_p);
+  tot_index -= lon_index * n_lat * n_p;
+  const Index lat_index = atmosphere_dim<2 ? 0 : tot_index / n_p;
+  tot_index -= lat_index * n_p;
+  const Index p_index = tot_index;
+  
+  // Init perturbed_field, if not equal to original_field
+  if (&perturbed_field != &original_field) {
+    perturbed_field = original_field;
   }
 
-  // Check selected indexes
-  chk_if_in_range("p_index", p_index, 0, p_grid.nelem()-1);
-  if( atmosphere_dim>=2) {
-    chk_if_in_range("lat_index", lat_index, 0, lat_grid.nelem()-1);
-    if( atmosphere_dim>=3) {
-      chk_if_in_range("lon_index", lon_index, 0, lon_grid.nelem()-1);
-    }
-  }
   // Perturb
-  vmr_field(iq, p_index,
-            atmosphere_dim>1 ? lat_index : 0,
-            atmosphere_dim>2 ? lon_index : 0) += perturbation;
+  if (pert_mode == "absolute" ){
+    perturbed_field(p_index,
+                    atmosphere_dim>1 ? lat_index : 0,
+                    atmosphere_dim>2 ? lon_index : 0) += pert_size;
+  }
+  else if (pert_mode == "relative"){
+    perturbed_field(p_index,
+                    atmosphere_dim>1 ? lat_index : 0,
+                    atmosphere_dim>2 ? lon_index : 0) *= 1 + pert_size;
+  }
+  else{
+    throw runtime_error("Bad *pert_mode*. Allowed choices are: "
+                        """absolute"" and ""relative"".");
+  }
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void IndexNumberOfAtmosphericPoints(Index& n,
+                                    const Index& atmosphere_dim,
+                                    const Vector& p_grid,
+                                    const Vector& lat_grid,
+                                    const Vector& lon_grid,
+                                    const Verbosity&) {
+  const Index n_p = p_grid.nelem();
+  const Index n_lat = atmosphere_dim<2 ? 1 : lat_grid.nelem();
+  const Index n_lon = atmosphere_dim<3 ? 1 : lon_grid.nelem();
+
+  n = n_p * n_lat * n_lon;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianFromTwoY(Matrix& jacobian,
+                    const Vector& y_pert,
+                    const Vector& y,
+                    const Numeric& pert_size,
+                    const Verbosity&) {
+  const Index n = y.nelem();
+  if( y_pert.nelem() != n ){
+    throw runtime_error("Inconsistency in length of *y_pert* and *y*.");
+  }
+  jacobian = y_pert;
+  jacobian -= y;
+  jacobian /= pert_size;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianFromYbatch(Matrix& jacobian,
                     const ArrayOfVector& ybatch,
                     const Vector& y,
-                    const Numeric& perturbation,
+                    const Numeric& pert_size,
                     const Verbosity&) {
   const Index n = y.nelem();
   const Index l = ybatch.nelem();
@@ -3878,64 +3984,171 @@ void jacobianFromYbatch(Matrix& jacobian,
     jacobian(joker,i) = ybatch[i];
     jacobian(joker,i) -= y;
   }
-  jacobian /= perturbation;
+  jacobian /= pert_size;
 }
 
-/*
-void AtmFieldPerturb2(Tensor3& perturbed_field,
-                    const Index& atmosphere_dim,
-                    const Vector& p_grid,
-                    const Vector& lat_grid,
-                    const Vector& lon_grid,
-                    const Tensor3& original_field,
-                    const Index& p_index,
-                    const Index& lat_index,
-                    const Index& lon_index,
-                    const Vector& p_ret_grid,
-                    const Vector& lat_ret_grid,
-                    const Vector& lon_ret_grid,
-                    const Numeric& perturbation,
-                    const Verbosity&) {
-  // Check main input
-  chk_atm_field("original_field",
-                original_field,
-                atmosphere_dim,
-                p_grid,
-                lat_grid,
-                lon_grid,
-                false );
-  // Check selected indexes
-  chk_if_in_range("p_index", p_index, 0, p_ret_grid.nelem()-1);
-  if( atmosphere_dim>=2) {
-    chk_if_in_range("lat_index", lat_index, 0, lat_ret_grid.nelem()-1);
-    if( atmosphere_dim>=3) {
-      chk_if_in_range("lon_index", lon_index, 0, lon_ret_grid.nelem()-1);
+/* Workspace method: Doxygen documentation will be auto-generated */
+void particle_bulkprop_fieldPerturb(Tensor4& particle_bulkprop_field,
+                                    const Index& atmosphere_dim,
+                                    const Vector& p_grid,
+                                    const Vector& lat_grid,
+                                    const Vector& lon_grid,
+                                    const ArrayOfString& particle_bulkprop_names,
+                                    const String& particle_type,
+                                    const Vector& p_ret_grid,
+                                    const Vector& lat_ret_grid,
+                                    const Vector& lon_ret_grid,
+                                    const Index& pert_index,
+                                    const Numeric& pert_size,
+                                    const String& pert_mode,
+                                    const Verbosity& verbosity) {
+  // Locate particle_type among particle_bulkprop_names
+  Index iq = find_first(particle_bulkprop_names, particle_type);
+  if (iq < 0) {
+    ostringstream os;
+    os << "Could not find " << particle_type << " in *particle_bulkprop_names*.\n";
+    throw std::runtime_error(os.str());
+  }
+
+  Tensor3 original_field, perturbed_field;
+  original_field = particle_bulkprop_field(iq,joker,joker,joker);
+  AtmFieldPerturb(perturbed_field,
+                  atmosphere_dim,
+                  p_grid,
+                  lat_grid,
+                  lon_grid,
+                  original_field,
+                  p_ret_grid,
+                  lat_ret_grid,
+                  lon_ret_grid,
+                  pert_index,
+                  pert_size,
+                  pert_mode,
+                  verbosity);
+  particle_bulkprop_field(iq,joker,joker,joker) = perturbed_field;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void particle_bulkprop_fieldPerturbAtmGrids(Tensor4& particle_bulkprop_field,
+                                            const Index& atmosphere_dim,
+                                            const Vector& p_grid,
+                                            const Vector& lat_grid,
+                                            const Vector& lon_grid,
+                                            const ArrayOfString& particle_bulkprop_names,
+                                            const String& particle_type,
+                                            const Index& pert_index,
+                                            const Numeric& pert_size,
+                                            const String& pert_mode,
+                                            const Verbosity& verbosity) {
+  // Locate particle_type among particle_bulkprop_names
+  Index iq = find_first(particle_bulkprop_names, particle_type);
+  if (iq < 0) {
+    ostringstream os;
+    os << "Could not find " << particle_type << " in *particle_bulkprop_names*.\n";
+    throw std::runtime_error(os.str());
+  }
+
+  Tensor3 original_field, perturbed_field;
+  original_field = particle_bulkprop_field(iq,joker,joker,joker);
+  AtmFieldPerturbAtmGrids(perturbed_field,
+                          atmosphere_dim,
+                          p_grid,
+                          lat_grid,
+                          lon_grid,
+                          original_field,
+                          pert_index,
+                          pert_size,
+                          pert_mode,
+                          verbosity);
+  particle_bulkprop_field(iq,joker,joker,joker) = perturbed_field;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void vmr_fieldPerturb(Tensor4& vmr_field,
+                      const Index& atmosphere_dim,
+                      const Vector& p_grid,
+                      const Vector& lat_grid,
+                      const Vector& lon_grid,
+                      const ArrayOfArrayOfSpeciesTag& abs_species,
+                      const String& species,
+                      const Vector& p_ret_grid,
+                      const Vector& lat_ret_grid,
+                      const Vector& lon_ret_grid,
+                      const Index& pert_index,
+                      const Numeric& pert_size,
+                      const String& pert_mode,
+                      const Verbosity& verbosity) {
+  // Locate vmr_species among abs_species
+  Index iq = -1;
+  for (Index i = 0; i < abs_species.nelem(); i++) {
+    if (abs_species[i][0].Species() == SpeciesTag(species).Species()) {
+      iq = i;
+      break;
     }
   }
-  // Init perturbed_field, if not equal to original_field
-  if (&perturbed_field != &original_field) {
-    perturbed_field = original_field;
+  if (iq < 0) {
+    ostringstream os;
+    os << "Could not find " << species << " in *abs_species*.\n";
+    throw std::runtime_error(os.str());
   }
 
-  // "Perturbation mode". 1 means absolute perturbations
-  const Index pertmode = 1;
-
-  // Fix that length 1 ret grids are handled
-  
-  switch (atmosphere_dim) {
-  case 1: {
-    ArrayOfGridPos p_gp;
-    Index n_p = p_ret_grid.nelem();
-    Range p_range = Range(0, 0);
-    get_perturbation_range(p_range, p_index, n_p);
-    perturbation_field_1d(perturbed_field(joker, 0, 0),
-                          p_gp,
-                          n_p+2,
-                          p_range,
-                          perturbation,
-                          pertmode);
-    break;
-  }
-  }
+  Tensor3 original_field, perturbed_field;
+  original_field = vmr_field(iq,joker,joker,joker);
+  AtmFieldPerturb(perturbed_field,
+                  atmosphere_dim,
+                  p_grid,
+                  lat_grid,
+                  lon_grid,
+                  original_field,
+                  p_ret_grid,
+                  lat_ret_grid,
+                  lon_ret_grid,
+                  pert_index,
+                  pert_size,
+                  pert_mode,
+                  verbosity);
+  vmr_field(iq,joker,joker,joker) = perturbed_field;
 }
-*/
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void vmr_fieldPerturbAtmGrids(Tensor4& vmr_field,
+                              const Index& atmosphere_dim,
+                              const Vector& p_grid,
+                              const Vector& lat_grid,
+                              const Vector& lon_grid,
+                              const ArrayOfArrayOfSpeciesTag& abs_species,
+                              const String& species,
+                              const Index& pert_index,
+                              const Numeric& pert_size,
+                              const String& pert_mode,
+                              const Verbosity& verbosity) {
+  // Locate vmr_species among abs_species
+  Index iq = -1;
+  for (Index i = 0; i < abs_species.nelem(); i++) {
+    if (abs_species[i][0].Species() == SpeciesTag(species).Species()) {
+      iq = i;
+      break;
+    }
+  }
+  if (iq < 0) {
+    ostringstream os;
+    os << "Could not find " << species << " in *abs_species*.\n";
+    throw std::runtime_error(os.str());
+  }
+
+  Tensor3 original_field, perturbed_field;
+  original_field = vmr_field(iq,joker,joker,joker);
+  AtmFieldPerturbAtmGrids(perturbed_field,
+                          atmosphere_dim,
+                          p_grid,
+                          lat_grid,
+                          lon_grid,
+                          original_field,
+                          pert_index,
+                          pert_size,
+                          pert_mode,
+                          verbosity);
+  vmr_field(iq,joker,joker,joker) = perturbed_field;
+}
+
+
