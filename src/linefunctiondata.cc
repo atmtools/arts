@@ -91,25 +91,20 @@ JacPropMatType select_derivativeLineShape(const String& var,
 std::istream& LineShape::from_artscat4(std::istream& is,
                                        Model& m,
                                        const QuantumIdentifier& qid) {
-  // Special case when self is part of this
-  auto self_in_list = LegacyPressureBroadeningData::self_listed(
-      qid, LegacyPressureBroadeningData::TypePB::PB_PLANETARY_BROADENING);
-  auto i = self_in_list ? 1 : 0;
-
   // Set or reset variables
   m.mtype = Type::VP;
-  m.mself = bool(i);
+  m.mself = true;
   m.mbath = false;
-  m.mdata = std::vector<SingleSpeciesModel>(6 + i);
-  m.mspecies = ArrayOfSpeciesTag(6 + i);
+  m.mdata = std::vector<SingleSpeciesModel>(7);
+  m.mspecies = ArrayOfSpeciesTag(7);
 
   // Set species
-  m.mspecies[i] = SpeciesTag(String("N2"));
-  m.mspecies[i + 1] = SpeciesTag(String("O2"));
-  m.mspecies[i + 2] = SpeciesTag(String("H2O"));
-  m.mspecies[i + 3] = SpeciesTag(String("CO2"));
-  m.mspecies[i + 4] = SpeciesTag(String("H2"));
-  m.mspecies[i + 5] = SpeciesTag(String("He"));
+  m.mspecies[1] = SpeciesTag("N2");
+  m.mspecies[2] = SpeciesTag("O2");
+  m.mspecies[3] = SpeciesTag("H2O");
+  m.mspecies[4] = SpeciesTag("CO2");
+  m.mspecies[5] = SpeciesTag("H2");
+  m.mspecies[6] = SpeciesTag("He");
 
   // Temperature types
   for (auto& v : m.mdata) {
@@ -117,29 +112,38 @@ std::istream& LineShape::from_artscat4(std::istream& is,
     v.D0().type = TemperatureModel::T5;
   }
 
-  // ARTSCAT-4 has self variables that are copied even
-  // if you have the same species as part of the list
-  // above.  This is thrown away to keep the type and
-  // the code simpler in this ARTSCAT-5 formulation iff
-  // this species is not a self species
-  Numeric throwaways;
-
   // G0 main coefficient
-  if (self_in_list) is >> throwaways;
   for (auto& v : m.mdata) is >> v.G0().X0;
 
   // G0 exponent is same as D0 exponent
-  if (self_in_list) is >> throwaways;
   for (auto& v : m.mdata) {
     is >> v.G0().X1;
     v.D0().X1 = v.G0().X1;
   }
 
   // D0 coefficient
-  for (std::vector<SingleSpeciesModel>::size_type k = i; k < m.mdata.size();
-       k++)
-    is >> m.mdata[i].D0().X0;
+  m.mdata[0].D0().X0 = 0;
+  for (int k = 1; k < 7; k++)
+    is >> m.mdata[k].D0().X0;
 
+  // Special case when self is part of this list, it needs to be removed
+  for (int k = 1; k < 7; k++) {
+    if (qid.Species() == m.mspecies[k].Species()) {
+      if(m.mdata[0].G0().X0 not_eq m.mdata[k].G0().X0 or
+         m.mdata[0].G0().X1 not_eq m.mdata[k].G0().X1 or
+         m.mdata[0].D0().X1 not_eq m.mdata[k].D0().X1) {
+        std::ostringstream os;
+        os << "Species is " << qid.SpeciesName() << " and this is a broadening species in ARTSCAT-4.\n"
+           << "Despite this, values representing self and " << qid.SpeciesName() << " does not match "
+           << "in input string\n";
+        throw std::runtime_error(os.str());
+      }
+      m.mdata[0].D0().X0 = m.mdata[k].D0().X0;
+      m.Remove(k);
+      break;
+    }
+  }
+  
   return is;
 }
 
@@ -436,4 +440,52 @@ void LineShape::Model::Set(const LineShape::ModelParameters& param,
       throw std::runtime_error(os.str());
     }
   }
+}
+
+Vector LineShape::Model::vmrs(const ConstVectorView& atmospheric_vmrs,
+                              const ArrayOfArrayOfSpeciesTag& atmospheric_species,
+                              const QuantumIdentifier& self) const {
+  if (atmospheric_species.nelem() != atmospheric_vmrs.nelem())
+    throw std::runtime_error("Bad atmospheric inputs");
+  
+  // Initialize list of VMRS to 0
+  Vector line_vmrs(mspecies.nelem(), 0);
+  const Index back = mspecies.nelem() - 1;  // Last index
+  
+  if (mtype == Type::DP) return line_vmrs;
+  
+  // Loop species ignoring self and bath
+  for (Index i = 0; i < mspecies.nelem(); i++) {
+    if (mbath and i == back) {
+    } else {
+      // Select target in-case this is self-broadening
+      const auto target =
+      (mself and i == 0) ? self.Species() : mspecies[i].Species();
+      
+      // Find species in list or do nothing at all
+      Index this_species_index = -1;
+      for (Index j = 0; j < atmospheric_species.nelem(); j++)
+        if (atmospheric_species[j][0].Species() == target)
+          this_species_index = j;
+        
+      // Set to non-zero in-case species exists
+      if (this_species_index not_eq -1)
+        line_vmrs[i] = atmospheric_vmrs[this_species_index];
+    }
+  }
+  
+  // Renormalize, if bath-species exist this is automatic.
+  if (mbath)
+    line_vmrs[back] = 1.0 - line_vmrs.sum();
+  else if(line_vmrs.sum() == 0)  // Special case, there should be no atmosphere if this happens???
+    return line_vmrs;
+  else
+    line_vmrs /= line_vmrs.sum();
+  
+  // The result must be non-zero, a real number, and finite
+  if (not std::isnormal(line_vmrs.sum()))
+    throw std::runtime_error(
+      "Bad VMRs, your atmosphere does not support the line of interest");
+    
+  return line_vmrs;
 }
