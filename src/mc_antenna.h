@@ -148,7 +148,7 @@ class MCAntenna {
    * Draws a line of sight by sampling the antenna response function.
    *
    * @param[out]  sampled_rte_los  The sampled line of sight.
-   * @param[out]  k_enu            Line-of-sight propagation vector in ENU frame.
+   * @param[out]  R_los            Line-of-sight propagation vector in ENU frame.
    * @param[in]   rng              A random number generator.
    * @param[in]   R_ant2enu        Rotation matrix from antenna frame to ENU frame.
    * @param[in]   bore_sight_los   The bore sight LOS.
@@ -201,7 +201,7 @@ void rotmat_enu(MatrixView R_ant2enu, ConstVectorView prop_los);
 /** rotmat_stokes.
  *
  * Calculates the PRA matrix for the stokes vector
- * to account for polarzation rotation from ENU
+ * to account for polarization rotation from ENU
  * frame to antenna frame. Designed to handle sign
  * properly for radiometer and radar (both tx and rx)
  * using the bs_dir argument which (1 = away from sensor,
@@ -223,9 +223,9 @@ void rotmat_enu(MatrixView R_ant2enu, ConstVectorView prop_los);
  */
 void rotmat_stokes(MatrixView R_pra,
                    const Index& stokes_dim,
-                   const Numeric& bs_dir,
-                   const Numeric& prop_dir,
-                   ConstMatrixView R_bs,
-                   ConstMatrixView R_prop);
+                   const Numeric& f1_dir,
+                   const Numeric& f2_dir,
+                   ConstMatrixView R_f1,
+                   ConstMatrixView R_f2);
 
 #endif  // mc_antenna_h

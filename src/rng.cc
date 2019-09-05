@@ -15,22 +15,18 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*===========================================================================
-  === File description 
-  ===========================================================================*/
-
-/*!
-  \file   rng.cc
-  \author Cory Davis <cory@met.ed.ac.uk>
-  \date   2003-06-26 
-
-  \brief  member functions of the Rng class and gsl_rng code
-
-  The Rng class is a simple class that uses the gsl_rng_mt_19937 random number 
-generator from the GNU Scientific Library <http://www.gnu.org/software/gsl/>.
-  
-  The period of this generator is 2^{19937} - 1.
-*/
+/**
+ * @file   rng.h
+ * @author Cory Davis <cory@met.ed.ac.uk>
+ * @date   2003-06-26
+ *
+ * @brief  member functions of the Rng class and gsl_rng code
+ *
+ * The Rng class is a simple class that uses the gsl_rng_mt_19937 random number
+ * generator from the GNU Scientific Library <http://www.gnu.org/software/gsl/>.
+ *
+ * The period of this generator is 2^{19937} - 1.
+ */
 
 #include "rng.h"
 #include <algorithm>
@@ -45,22 +41,16 @@ generator from the GNU Scientific Library <http://www.gnu.org/software/gsl/>.
 #include "arts.h"
 #include "messages.h"
 
-/*!
+/**
 Constructor creates instance of gsl_rng of type gsl_rng_mt19937
 */
 Rng::Rng() { r = gsl_rng_alloc(gsl_rng_mt19937); }
 
-/*!
+/**
 Destructor frees memory allocated to gsl_rng 
 */
 Rng::~Rng() { gsl_rng_free(r); }
 
-/*!
- Seeds the Rng with the integer argument. 
-
- Every seed is only used once. The provided seed is increased by 1 until an
- unused seed is found.
-*/
 void Rng::seed(unsigned long int n, const Verbosity &verbosity) {
   // Static pool of previously used seeds.
   static vector<unsigned long int> seeds;
@@ -93,7 +83,7 @@ void Rng::seed(unsigned long int n, const Verbosity &verbosity) {
   gsl_rng_set(r, seed_no);
 }
 
-/*!
+/**
  Seeds the Rng with the integer argument. 
  */
 void Rng::force_seed(unsigned long int n) {
@@ -101,71 +91,71 @@ void Rng::force_seed(unsigned long int n) {
   gsl_rng_set(r, seed_no);
 }
 
-/*!
+/**
 Draws a double from the uniform distribution [0,1)
 */
 double Rng::draw() { return gsl_rng_uniform(r); }
 
-/*!
+/**
 Returns the seed number
 */
 unsigned long int Rng::showseed() const { return seed_no; }
 
 /* 
-   rng/mt.c
-   
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of the
-   License, or (at your option) any later version.
-
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   General Public License for more details.  You should have received
-   a copy of the GNU General Public License along with this program;
-   if not, write to the Free Foundation, Inc., 59 Temple Place, Suite
-   330, Boston, MA 02111-1307 USA
-
-   Original implementation was copyright (C) 1997 Makoto Matsumoto and
-   Takuji Nishimura. Coded by Takuji Nishimura, considering the
-   suggestions by Topher Cooper and Marc Rieffel in July-Aug. 1997, "A
-   C-program for MT19937: Integer version (1998/4/6)"
-
-   This implementation copyright (C) 1998 Brian Gough. I reorganized
-   the code to use the module framework of GSL.  The license on this
-   implementation was changed from LGPL to GPL, following paragraph 3
-   of the LGPL, version 2.
-
-   Update:
-
-   The seeding procedure has been updated to match the 10/99 release
-   of MT19937.
-
-   Update:
-
-   The seeding procedure has been updated again to match the 2002
-   release of MT19937
-
-   The original code included the comment: "When you use this, send an
-   email to: matumoto@math.keio.ac.jp with an appropriate reference to
-   your work".
-
-   Makoto Matsumoto has a web page with more information about the
-   generator, http://www.math.keio.ac.jp/~matumoto/emt.html. 
-
-   The paper below has details of the algorithm.
-
-   From: Makoto Matsumoto and Takuji Nishimura, "Mersenne Twister: A
-   623-dimensionally equidistributerd uniform pseudorandom number
-   generator". ACM Transactions on Modeling and Computer Simulation,
-   Vol. 8, No. 1 (Jan. 1998), Pages 3-30
-
-   You can obtain the paper directly from Makoto Matsumoto's web page.
-
-   The period of this generator is 2^{19937} - 1.
-
-*/
+ * rng/mt.c
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.  You should have received
+ * a copy of the GNU General Public License along with this program;
+ * if not, write to the Free Foundation, Inc., 59 Temple Place, Suite
+ * 330, Boston, MA 02111-1307 USA.
+ *
+ * Original implementation was copyright (C) 1997 Makoto Matsumoto and
+ * Takuji Nishimura. Coded by Takuji Nishimura, considering the
+ * suggestions by Topher Cooper and Marc Rieffel in July-Aug. 1997, "A
+ * C-program for MT19937: Integer version (1998/4/6)".
+ *
+ * This implementation copyright (C) 1998 Brian Gough. I reorganized
+ * the code to use the module framework of GSL.  The license on this
+ * implementation was changed from LGPL to GPL, following paragraph 3
+ * of the LGPL, version 2.
+ *
+ * Update:
+ *
+ * The seeding procedure has been updated to match the 10/99 release
+ * of MT19937.
+ *
+ * Update:
+ *
+ * The seeding procedure has been updated again to match the 2002
+ * release of MT19937.
+ *
+ * The original code included the comment: "When you use this, send an
+ * email to: matumoto@math.keio.ac.jp with an appropriate reference to
+ * your work".
+ *
+ * Makoto Matsumoto has a web page with more information about the
+ * generator, http://www.math.keio.ac.jp/~matumoto/emt.html.
+ *
+ * The paper below has details of the algorithm.
+ *
+ * From: Makoto Matsumoto and Takuji Nishimura, "Mersenne Twister: A
+ * 623-dimensionally equidistributerd uniform pseudorandom number
+ *generator". ACM Transactions on Modeling and Computer Simulation,
+ * Vol. 8, No. 1 (Jan. 1998), Pages 3-30.
+ *
+ * You can obtain the paper directly from Makoto Matsumoto's web page.
+ *
+ * The period of this generator is 2^{19937} - 1.
+ *
+ */
 
 static inline unsigned long int mt_get(void *vstate);
 static double mt_get_double(void *vstate);
@@ -294,67 +284,7 @@ const gsl_rng_type *gsl_rng_generator_types[N1];
 const gsl_rng_type **gsl_rng_types_setup(void) {
   int i = 0;
 
-  /*  ADD(gsl_rng_borosh13);
-  ADD(gsl_rng_cmrg);
-  ADD(gsl_rng_coveyou);
-  ADD(gsl_rng_fishman18);
-  ADD(gsl_rng_fishman20);
-  ADD(gsl_rng_fishman2x);
-  ADD(gsl_rng_gfsr4);
-  ADD(gsl_rng_knuthran);
-  ADD(gsl_rng_knuthran2);
-  ADD(gsl_rng_lecuyer21);
-  ADD(gsl_rng_minstd);
-  ADD(gsl_rng_mrg);*/
   ADD(gsl_rng_mt19937);
-  /*  ADD(gsl_rng_mt19937_1999);
-  ADD(gsl_rng_mt19937_1998);
-  ADD(gsl_rng_r250);
-  ADD(gsl_rng_ran0);
-  ADD(gsl_rng_ran1);
-  ADD(gsl_rng_ran2);
-  ADD(gsl_rng_ran3);
-  ADD(gsl_rng_rand);
-  ADD(gsl_rng_rand48);
-  ADD(gsl_rng_random128_bsd);
-  ADD(gsl_rng_random128_glibc2);
-  ADD(gsl_rng_random128_libc5);
-  ADD(gsl_rng_random256_bsd);
-  ADD(gsl_rng_random256_glibc2);
-  ADD(gsl_rng_random256_libc5);
-  ADD(gsl_rng_random32_bsd);
-  ADD(gsl_rng_random32_glibc2);
-  ADD(gsl_rng_random32_libc5);
-  ADD(gsl_rng_random64_bsd);
-  ADD(gsl_rng_random64_glibc2);
-  ADD(gsl_rng_random64_libc5);
-  ADD(gsl_rng_random8_bsd);
-  ADD(gsl_rng_random8_glibc2);
-  ADD(gsl_rng_random8_libc5);
-  ADD(gsl_rng_random_bsd);
-  ADD(gsl_rng_random_glibc2);
-  ADD(gsl_rng_random_libc5);
-  ADD(gsl_rng_randu);
-  ADD(gsl_rng_ranf);
-  ADD(gsl_rng_ranlux);
-  ADD(gsl_rng_ranlux389);
-  ADD(gsl_rng_ranlxd1);
-  ADD(gsl_rng_ranlxd2);
-  ADD(gsl_rng_ranlxs0);
-  ADD(gsl_rng_ranlxs1);
-  ADD(gsl_rng_ranlxs2);
-  ADD(gsl_rng_ranmar);
-  ADD(gsl_rng_slatec);
-  ADD(gsl_rng_taus);
-  ADD(gsl_rng_taus2);
-  ADD(gsl_rng_taus113);
-  ADD(gsl_rng_transputer);
-  ADD(gsl_rng_tt800);
-  ADD(gsl_rng_uni);
-  ADD(gsl_rng_uni32);
-  ADD(gsl_rng_vax);
-  ADD(gsl_rng_waterman14);
-  ADD(gsl_rng_zuf);*/
   ADD(0);
 
   return gsl_rng_generator_types;

@@ -25,7 +25,7 @@
  *
  * @brief  functions used by MCGeneral
  *
- *** FIXMEDOC ***: mcPathTraceRadar, opt_propExtract, Sample_los, Sample_los_uniform
+ *** FIXMEDOC ***: mcPathTraceRadar, opt_propExtract, Sample_los_uniform (JUST author)
  *                 cloudy_rt_vars_at_gp (JUST DATE CHECK), clear_rt_vars_at_gp(JUST
  *                 DATE CHECK).
  *** FIXMEDOC ***: In .cc some root-finding helper functions (for MCRadar) that don't
@@ -559,9 +559,8 @@ void pha_mat_singleExtract(MatrixView Z_spt,
 
 /** Sample_los.
  *
- * *** FIXMEDOC ***: 2011-06-17 Documentation removed by Gerrit (severely out of date)
- * *** FIXMEDOC ***: Sampling the new direction???
- *
+ *  Sampling the new incident direction according to a rejection method.
+ *  Calculation of the bulk scattering phase matrix.
  *
  * @param[out]    new_rte_los      Incident line of sight for subsequent.
  * @param[out]    g_los_csc_theta  Probability density for the chosen
@@ -573,8 +572,8 @@ void pha_mat_singleExtract(MatrixView Z_spt,
  * @param[in]     scat_data        As the WSV.
  * @param[in]     stokes_dim       As the WSV.
  * @param[out]    pnd_vec          Vector of particle number densities (one element per scattering element).
- * @param[in]     Z11maxvector     *** FIXMEDOC *** Strong Forward peak???
- * @param[in]     Csca             *** FIXMEDOC *** Scattering cross section???
+ * @param[in]     Z11maxvector     Vector holding the maximum phase function for each scattering element.
+ * @param[in]     Csca             Scattering cross section
  * @param[in]     rtp_temperature  As the WSV.
  *
  * @author Cory Davis
@@ -596,8 +595,7 @@ void Sample_los(VectorView new_rte_los,
 
 /** Sample_los_uniform.
  *
- * *** FIXMEDOC ***
- * *** FIXMEDOC ***: Sampling the new direction uniformly???
+ * Sampling the new direction uniformly
  *
  * @param[out] new_rte_los Incident line of sight for subsequent.
  * @param[out] rng         Rng random number generator instance.

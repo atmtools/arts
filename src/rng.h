@@ -15,30 +15,26 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*===========================================================================
-  === File description 
-  ===========================================================================*/
+/**
+ * @file   rng.h
+ * @author Cory Davis <cory@met.ed.ac.uk>
+ * @date   2003-06-26
+ *
+ * @brief  Defines the Rng random number generator class
+ *
+ * The Rng class is described at the very end of this file.  The rest of the file,
+ * which describes the code that actually does the work, was obtained from the
+ * GNU Scientific Library <http://www.gnu.org/software/gsl/>.
+ *
+ * The Rng class uses the gsl_rng_mt_19937 random number generator whose original
+ * implementation was copyright (C) 1997 Makoto Matsumoto and Takuji Nishimura.
+ * Coded by Takuji Nishimura, considering the suggestions by Topher Cooper and
+ * Marc Rieffel in July-Aug. 1997, "A C-program for MT19937: Integer version
+ * (1998/4/6)".
+ *
+ * The period of this generator is 2^{19937} - 1.
+ */
 
-/*!
-  \file   rng.h
-  \author Cory Davis <cory@met.ed.ac.uk>
-  \date   2003-06-26 
-
-  \brief  Defines the Rng random number generator class
-
-  The Rng class is described at the very end of this file.  The rest of the file, 
-  which describes the code that actually does the work, was obtained from the 
-  GNU Scientific Library <http://www.gnu.org/software/gsl/>.
-  
-  The Rng class uses the gsl_rng_mt_19937 random number generator whose original
-  implementation was copyright (C) 1997 Makoto Matsumoto and Takuji Nishimura. 
-  Coded by Takuji Nishimura, considering the suggestions by Topher Cooper and 
-  Marc Rieffel in July-Aug. 1997, "A C-program for MT19937: Integer version 
-  (1998/4/6)"
-  
-  The period of this generator is 2^{19937} - 1.
-
-*/
 /* gsl_types.h
  * 
  * Copyright (C) 2001 Brian Gough
@@ -565,8 +561,14 @@ class Rng {
 
   ~Rng();  //destructor
 
-  //The default is to seed the Rng using the seconds elapsed since
-  //1970.
+ /**
+  * Seeds the Rng with the integer argument.
+  *
+  * Every seed is only used once. The provided seed is increased by 1 until an
+  * unused seed is found.
+  *
+  * The default is to seed the Rng using the seconds elapsed since 1970.
+  */
   void seed(unsigned long int n, const Verbosity &verbosity);
 
   void force_seed(unsigned long int n);
