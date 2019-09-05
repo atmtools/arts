@@ -2471,7 +2471,7 @@ void propmat_clearskyAddFaraday(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void propmat_clearskyAddParticles2(
+void propmat_clearskyAddParticles(
     // WS Output:
     ArrayOfPropagationMatrix& propmat_clearsky,
     ArrayOfPropagationMatrix& dpropmat_clearsky_dx,

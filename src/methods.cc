@@ -13028,7 +13028,7 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
-      NAME("propmat_clearskyAddParticles2"),
+      NAME("propmat_clearskyAddParticles"),
       DESCRIPTION(
               "Calculates absorption coefficients of particles to be used in\n"
               "clearsky (non-cloudbox) calculations.\n"
