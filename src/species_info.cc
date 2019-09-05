@@ -15,25 +15,17 @@
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+/**
+ * @file species_info.cc
+ * @author Richard Larsson
+ * @date 2018-03-29
+ * 
+ * @brief Some molecular constants
+ */
+
 #include "species_info.h"
 #include "absorption.h"
 #include "wigner_functions.h"
-
-/*! Returns the lande spin constant
- *  
- *  Data is from these
- *  
- *  H. Christensen, and L. Veseth, On the High-Precision Zeeman Effect in 02 and SO.
- *  Journal of Molecular Spectroscopy 72, 438-444, 1978.
- *  
- *  L. Veseth, Relativistic Corrections to the Zeeman Effect in Diatomic Molecules.
- *  Journal of Molecular Spectroscopy 66, 259-271, 1977.
- *  
- *  The final return is an averaged number that you get from 2*(1 + 0.5*alpha/PI + 
- *  X*(alpha/PI)**2 + ...), where alpha approx 1/137 is the fine-structure constant.
- *  
- *  The default return of this function is from the NIST database
- */
 Numeric get_lande_spin_constant(const Index species) noexcept {
   if (species_index_from_species_name("O2") == species)
     return 2.002064;
