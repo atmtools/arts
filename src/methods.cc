@@ -4568,15 +4568,13 @@ void define_md_data_raw() {
          "stokes_dim",
          "surface_skin_t",
          "surface_scalar_reflectivity"),
-      GIN("nstreams", "do_deltam", "pfct_method", "new_optprop", "Npfct"),
-      GIN_TYPE("Index", "Index", "String", "Index", "Index"),
-      GIN_DEFAULT("8", "0", "median", "1", "181"),
+      GIN("nstreams", "do_deltam", "pfct_method", "Npfct"),
+      GIN_TYPE("Index", "Index", "String", "Index"),
+      GIN_DEFAULT("8", "0", "median", "181"),
       GIN_DESC("Number of polar angle directions (streams) in DISORT "
                "solution (must be an even number).",
                "Boolean to activate DISORT's delta-m scaling or not.",
                "Flag which method to apply to derive phase function.",
-               "Flag whether to use old (0) or new(1) optical property"
-               " extraction scheme.",
                "Number of angular grid points to calculate bulk phase"
                " function on (and derive Legendre polnomials from). If <0,"
                " the finest za_grid from scat_data will be used.")));
@@ -4625,15 +4623,13 @@ void define_md_data_raw() {
          "f_grid",
          "scat_za_grid",
          "stokes_dim"),
-      GIN("nstreams", "do_deltam", "pfct_method", "new_optprop", "Npfct"),
-      GIN_TYPE("Index", "Index", "String", "Index", "Index"),
-      GIN_DEFAULT("8", "0", "median", "1", "181"),
+      GIN("nstreams", "do_deltam", "pfct_method", "Npfct"),
+      GIN_TYPE("Index", "Index", "String", "Index"),
+      GIN_DEFAULT("8", "0", "median", "181"),
       GIN_DESC("Number of polar angle directions (streams) in DISORT "
                "solution (must be an even number).",
                "Boolean to activate DISORT's delta-m scaling or not.",
                "Flag which method to apply to derive phase function.",
-               "Flag whether to use old (0) or new(1) optical property"
-               " extraction scheme.",
                "Number of angular grid points to calculate bulk phase"
                " function on (and derive Legendre polnomials from). If <0,"
                " the finest za_grid from scat_data will be used.")));

@@ -118,78 +118,33 @@ void get_disortsurf_props(  // Output
     const Numeric& surface_skin_t,
     ConstVectorView surface_scalar_reflectivity);
 
-/** run_disort.
- *
- * Prepares actual input variables for Disort, runs it, and sorts the output into
- * doit_i_field.
- *
- * @param[in,out] ws                          Current workspace.
- * @param[out]    doit_i_field                As the WSV.
- * @param[in]     f_grid                      As the WSV.
- * @param[in]     p_grid                      As the WSV.
- * @param[in]     z_field                     As the WSV.
- * @param[in]     t_field                     As the WSV.
- * @param[in]     vmr_field                   As the WSV.
- * @param[in]     pnd_field                   As the WSV.
- * @param[in]     scat_data                   As the WSV.
- * @param[in]     propmat_clearsky_agenda     As the WSA.
- * @param[in]     cloudbox_limits             As the WSV.
- * @param[in]     surface_skin_t              As the WSV.
- * @param[in]     surface_scalar_reflectivity As the WSM.
- * @param[in]     scat_za_grid                As the WSV.
- * @param[in]     nstreams                    Number of quadrature angles (both hemispheres).
- * @param[in]     do_deltam                   See DisortCalc doc.
- * @param[in]     non_iso_inc                 See DisortCalc doc.
- * @param[in]     pfct_method                 See DisortCalc doc.
- *
- * @author        Jana Mendrok
- * @date          2017-02-23
- */
-void run_disort(Workspace& ws,
-                // Output
-                Tensor7& doit_i_field,
-                // Input
-                ConstVectorView f_grid,
-                ConstVectorView p_grid,
-                ConstTensor3View z_field,
-                ConstTensor3View t_field,
-                ConstTensor4View vmr_field,
-                ConstTensor4View pnd_field,
-                const ArrayOfArrayOfSingleScatteringData& scat_data,
-                const Agenda& propmat_clearsky_agenda,
-                const ArrayOfIndex& cloudbox_limits,
-                Numeric& surface_skin_t,
-                Vector& surface_scalar_reflectivity,
-                ConstVectorView scat_za_grid,
-                const Index& nstreams,
-                const Index& do_deltam,
-                const String& pfct_method,
-                const Verbosity& verbosity);
-
-/** run_disort2 *** FIXMEDOC ***
+/** run_disort2
  *
  * Prepares actual input variables for Disort, runs it, and sorts the output into
  * doit_i_field.
  * This version using unified optprop extraction scheme. supposed to replace
  * run_disort
  *
- * @param[in,out] ws                          Current workspace.
- * @param[out]    doit_i_field                As the WSV.
- * @param[in]     f_grid                      As the WSV.
- * @param[in]     p_grid                      As the WSV.
- * @param[in]     z_field                     As the WSV.
- * @param[in]     t_field                     As the WSV.
- * @param[in]     vmr_field                   As the WSV.
- * @param[in]     pnd_field                   As the WSV.
- * @param[in]     scat_data                   As the WSV.
- * @param[in]     propmat_clearsky_agenda     As the WSA.
- * @param[in]     cloudbox_limits             As the WSV.
- * @param[in]     surface_skin_t              As the WSV.
- * @param[in]     surface_scalar_reflectivity As the WSM.
- * @param[in]     scat_za_grid                As the WSV.
- * @param[in]     nstreams                    Number of quadrature angles (both hemispheres).
- * @param[in]     do_deltam                   See DisortCalc doc.
- * @param[in]     non_iso_inc                 See DisortCalc doc.
+ * @param[in,out] ws Current workspace
+ * @param[out]    doit_i_field Radiation field
+ * @param[in]     f_grid Frequency grid
+ * @param[in]     p_grid Pressure grid
+ * @param[in]     z_field field of geometrical altitudes
+ * @param[in]     t_field field of atmospheric temperatures
+ * @param[in]     vmr_field VMR field
+ * @param[in]     pnd_field PND field
+ * @param[in]     scat_data Array of single scattering data
+ * @param[in]     propmat_clearsky_agenda calculates the absorption coefficient
+                  matrix
+ * @param[in]     cloudbox_limits Cloudbox limits
+ * @param[in]     surface_skin_t Surface skin temperature
+ * @param[in]     surface_scalar_reflectivity Surface scalar reflectivity
+ * @param[in]     scat_za_grid Zenith angle grid
+ * @param[in]     nstreams Number of quadrature angles (both hemispheres).
+ * @param[in]     do_deltam Boolean to activate DISORT's delta-m scaling
+ * @param[in]     Npfct Number of angular grid points to calculate bulk phase
+ *                function
+ * @param[in]     verbosity Verbosity setting
  *
  * @author        Jana Mendrok
  * @date          2017-02-23
