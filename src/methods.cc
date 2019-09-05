@@ -13028,83 +13028,49 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
-      NAME("propmat_clearskyAddParticles"),
-      DESCRIPTION(
-          "Calculates absorption coefficients of particles to be used in\n"
-          "clearsky (non-cloudbox) calculations.\n"
-          "\n"
-          "This is a method to include particles (neglecting possible\n"
-          "scattering components) in a clearsky calculation, i.e. without\n"
-          "applying the cloudbox and scattering solvers. Particles are handled\n"
-          "as absorbing species with one instance of 'particles' per scattering\n"
-          "element considered added to *abs_species*. Particle absorption cross-\n"
-          "sections at current atmospheric conditions are extracted from the\n"
-          "single scattering data stored in *scat_data*, i.e., one array\n"
-          "element per 'particles' instance in *abs_species* is required. Number\n"
-          "densities are stored in *vmr_field_raw* or *vmr_field* as for all\n"
-          "*abs_species*, but can be taken from (raw) pnd_field type data.\n"
-          "\n"
-          "Note that the absorption coefficient is applied both in the\n"
-          "extinction term (neglecting scattering out of the line of sight)\n"
-          "and the emission term (neglecting the scattering source term, i.e.\n"
-          "scattering into the line of sight).\n"
-          "\n"
-          "Optionally, particle extinction (sum of absorption and scattering\n"
-          "coefficient) can be used instead of absorption only. To choose this\n"
-          "case, set the *use_abs_as_ext* flag to 0. However, be aware that\n"
-          "this creates some unphysical emission term, hence is only suitable,\n"
-          "where the source term is negligible anyways, e.g. for occultation\n"
-          "simulations.\n"
-          "\n"
-          "A line-of-sight direction *rtp_los* is required as particles can\n"
-          "exhibit directional dependent absorption properties, which is taken\n"
-          "into account by this method."
-          "\n"
-          "*ScatElementsToabs_speciesAdd* can be used to add all required\n"
-          "settings/data for individual scattering elements at once, i.e. a\n"
-          " 'particles' tag to *abs_species*, a set of single scattering data to\n"
-          "*scat_data* and a number density field to *vmr_field_raw*\n"
-          "(*vmr_field* is derived applying AtmFieldsCalc once VMRs for all\n"
-          "*abs_species* have been added) is appended for each scattering\n"
-          "element.\n"
-          "\n"
-          "Like all 'propmat_clearskyAdd*' methods, the method is additive,\n"
-          "i.e., does not overwrite the propagation matrix *propmat_clearsky*,\n"
-          "but adds further contributions.\n"),
-      AUTHORS("Jana Mendrok"),
-      OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("propmat_clearsky",
-         "dpropmat_clearsky_dx",
-         "stokes_dim",
-         "atmosphere_dim",
-         "f_grid",
-         "abs_species",
-         "jacobian_quantities",
-         "rtp_vmr",
-         "rtp_los",
-         "rtp_temperature",
-         "scat_data",
-         "scat_data_checked"),
-      GIN("use_abs_as_ext"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT("1"),
-      GIN_DESC("A flag with value 1 or 0. If set to one, particle absorption\n"
-               "is used in extinction and emission parts of the RT equation,\n"
-               "and scattering out of LOS as well as into LOS is neglected.\n"
-               "Otherwise, particle extinction (absorption+scattering) is\n"
-               "applied in both the extinction as well as the emission part\n"
-               "of the RT equation. That is, true extinction is applied, but\n"
-               "emission also includes a pseudo-emission contribution from\n"
-               "the scattering coefficient.\n")));
-
-  md_data_raw.push_back(MdRecord(
       NAME("propmat_clearskyAddParticles2"),
       DESCRIPTION(
-          "As *propmat_clearskyAddParticles*, but using new unified particle\n"
-          "optical properties extraction scheme.\n"),
+              "Calculates absorption coefficients of particles to be used in\n"
+              "clearsky (non-cloudbox) calculations.\n"
+              "\n"
+              "This is a method to include particles (neglecting possible\n"
+              "scattering components) in a clearsky calculation, i.e. without\n"
+              "applying the cloudbox and scattering solvers. Particles are handled\n"
+              "as absorbing species with one instance of 'particles' per scattering\n"
+              "element considered added to *abs_species*. Particle absorption cross-\n"
+              "sections at current atmospheric conditions are extracted from the\n"
+              "single scattering data stored in *scat_data*, i.e., one array\n"
+              "element per 'particles' instance in *abs_species* is required. Number\n"
+              "densities are stored in *vmr_field_raw* or *vmr_field* as for all\n"
+              "*abs_species*, but can be taken from (raw) pnd_field type data.\n"
+              "\n"
+              "Note that the absorption coefficient is applied both in the\n"
+              "extinction term (neglecting scattering out of the line of sight)\n"
+              "and the emission term (neglecting the scattering source term, i.e.\n"
+              "scattering into the line of sight).\n"
+              "\n"
+              "Optionally, particle extinction (sum of absorption and scattering\n"
+              "coefficient) can be used instead of absorption only. To choose this\n"
+              "case, set the *use_abs_as_ext* flag to 0. However, be aware that\n"
+              "this creates some unphysical emission term, hence is only suitable,\n"
+              "where the source term is negligible anyways, e.g. for occultation\n"
+              "simulations.\n"
+              "\n"
+              "A line-of-sight direction *rtp_los* is required as particles can\n"
+              "exhibit directional dependent absorption properties, which is taken\n"
+              "into account by this method."
+              "\n"
+              "*ScatElementsToabs_speciesAdd* can be used to add all required\n"
+              "settings/data for individual scattering elements at once, i.e. a\n"
+              " 'particles' tag to *abs_species*, a set of single scattering data to\n"
+              "*scat_data* and a number density field to *vmr_field_raw*\n"
+              "(*vmr_field* is derived applying AtmFieldsCalc once VMRs for all\n"
+              "*abs_species* have been added) is appended for each scattering\n"
+              "element.\n"
+              "\n"
+              "Like all 'propmat_clearskyAdd*' methods, the method is additive,\n"
+              "i.e., does not overwrite the propagation matrix *propmat_clearsky*,\n"
+              "but adds further contributions.\n"),
       AUTHORS("Jana Mendrok"),
       OUT("propmat_clearsky", "dpropmat_clearsky_dx"),
       GOUT(),
@@ -18990,45 +18956,6 @@ void define_md_data_raw() {
         GIN_DESC("")
         ));
   */
-
-  md_data_raw.push_back(MdRecord(
-      NAME("TestScatDataInterp"),
-      DESCRIPTION(
-          "Tests single scattering data extraction.\n"
-          "\n"
-          "ARTS' different scattering solvers apply different methods for\n"
-          "extraction/final preparation of single scattering data. These are\n"
-          "tested here against each other.\n"
-          "\n"
-          "Method so far is solely for internal testing.\n"),
-      AUTHORS("Patrick Eriksson, Jana Mendrok"),
-      OUT(),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("scat_data", "stokes_dim", "f_grid", "rtp_los", "rtp_temperature"),
-      GIN("scat_elem_index",
-          "compare",
-          "tolerance",
-          "za_printout_index",
-          "aa_printout_index",
-          "mirror"),
-      GIN_TYPE("Index", "ArrayOfIndex", "Numeric", "Index", "Index", "Index"),
-      GIN_DEFAULT(NODEF, "[]", "1e-6", "-1", "-1", "1"),
-      GIN_DESC("(Flat) Index of scattering element to test.",
-               "Flags to perform *Compare* on which of the extracted single"
-               " scattering data. Compare can be run between unified system"
-               " and MC (1) or RT4 (2) or between MC and RT4 (3)."
-               " No *Compare* is done if *compare* is empty (default).",
-               "Maximum allowed (relative) deviation in Compare.",
-               "Index of (incidence) zenith angle for which to print out"
-               " specific info (none if index<0). Grid is internally"
-               " hardcoded (0 to 180deg in 5deg steps).",
-               "As *za_printout_index*, but for (incidence) azimuth"
-               " (hardcoded grid (-180 to +180deg in 10deg steps).",
-               "Flag whether to apply direction mirroring in MC part. This"
-               " should generally be 1, but might be set to 0 for assumption"
-               " testing purposes.")));
 
   md_data_raw.push_back(
       MdRecord(NAME("timerStart"),
