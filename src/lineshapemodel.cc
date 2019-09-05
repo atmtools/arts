@@ -19,46 +19,42 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
  USA. */
 
-/** Contains the line function data class
- * @file   linefunctiondata.cc
+/** Contains the line shape namespace
+ * @file   lineshapemodel.cc
  * @author Richard Larsson
  * @date   2018-09-19
  * 
- * @brief Implementations of linefunctiondata.h
+ * @brief Implementations of lineshapemodel.h
  * 
  * This mostly contains functions that either did not
  * compile while placed in the header or for other 
  * reasons are not there.  This means most of the 
  * real work happens in the header file and not here
- * 
- * FIXME:  Rename this and its header to match newer content, lineshapemodel.cc/h
  **/
 
-#include "linefunctiondata.h"
+#include "lineshapemodel.h"
 
-//! {"X0", "X1", "X2"}
-ArrayOfString all_coefficientsLineFunctionData() { return {"X0", "X1", "X2"}; }
+ArrayOfString AllLineShapeCoeffs() { return {"X0", "X1", "X2"}; }
 
-//! {"G0", "D0", "G2", "D2", "ETA", "FVC", "Y", "G", "DV"}
-ArrayOfString all_variablesLineFunctionData() {
+ArrayOfString AllLineShapeVars() {
   return {"G0", "D0", "G2", "D2", "FVC", "ETA", "Y", "G", "DV"};
 }
 
 JacPropMatType select_derivativeLineShape(const String& var,
                                           const String& coeff) {
   // Test viability of model variables
-  static const ArrayOfString vars = all_variablesLineFunctionData();
+  static const ArrayOfString vars = AllLineShapeVars();
   bool var_OK = false;
   for (auto& v : vars)
     if (var == v) var_OK = true;
 
   // Test viability of model coefficients
-  static const ArrayOfString coeffs = all_coefficientsLineFunctionData();
+  static const ArrayOfString coeffs = AllLineShapeCoeffs();
   bool coeff_OK = false;
   for (auto& c : coeffs)
     if (coeff == c) coeff_OK = true;
 
-  // Fails either when the user has bad input or when the developer fails to update all_variablesLineFunctionData or all_coefficientsLineFunctionData
+  // Fails either when the user has bad input or when the developer fails to update AllLineShapeVars or AllLineShapeCoeffs
   if (not var_OK or not coeff_OK) {
     std::ostringstream os;
     os << "At least one of your variable and/or your coefficient is not OK\n";

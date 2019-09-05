@@ -30,7 +30,7 @@
 #include <stdexcept>
 #include "array.h"
 #include "constants.h"
-#include "linefunctiondata.h"
+#include "lineshapemodel.h"
 #include "matpackI.h"
 #include "messages.h"
 #include "mystring.h"

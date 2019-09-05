@@ -461,7 +461,7 @@ void apply_dipole(
  * @param[in]     P Atmospheric pressure
  * @param[in]     vmrs VMRs for line shape broadeners
  */
-void apply_linefunctiondata_jacobian_scaling(
+void apply_lineshapemodel_jacobian_scaling(
     Eigen::Ref<Eigen::MatrixXcd> dF,
     const ArrayOfRetrievalQuantity& derivatives_data,
     const ArrayOfIndex& derivatives_data_position,

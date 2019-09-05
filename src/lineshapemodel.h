@@ -19,20 +19,20 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
  USA. */
 
-/** Contains the line function data class
- * @file   linefunctiondata.h
+/** Contains the line shape namespace
+ * @file   lineshapemodel.h
  * @author Richard Larsson
  * @date   2018-09-19
  * 
- * @brief  Contains the LineShape namespace
+ * @brief  Contains the line shape namespace
  * 
  * This namespace computes all line shape parameters
  * for any set of line shape we can use in ARTS.  Should
  * be extended for more use as seen fit.
  **/
 
-#ifndef linefunctiondata_h
-#define linefunctiondata_h
+#ifndef lineshapemodel_h
+#define lineshapemodel_h
 
 // Actually needed
 #include "abs_species_tags.h"
@@ -52,13 +52,11 @@
 JacPropMatType select_derivativeLineShape(const String& var,
                                           const String& coeff);
 
-// FIXME: Update the two next names to reflect that LineFunctionData no longer exist
-
 /** All available line shape coefficients */
-ArrayOfString all_coefficientsLineFunctionData();
+ArrayOfString AllLineShapeCoeffs();
 
 /** All available line shape variables */
-ArrayOfString all_variablesLineFunctionData();
+ArrayOfString AllLineShapeVars();
 
 /** Computations of line shape derived parameters
  * 
@@ -1631,4 +1629,4 @@ Model vector2modelpb(Vector x,
 };  // namespace LegacyPressureBroadeningData
 };  // namespace LineShape
 
-#endif  // linefunctiondata_h
+#endif  // lineshapemodel_h
