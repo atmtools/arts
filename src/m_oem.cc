@@ -49,6 +49,7 @@
 #include "math_funcs.h"
 #include "physics_funcs.h"
 #include "rte.h"
+#include "special_interp.h"
 #include "surface.h"
 
 #ifdef OEM_SUPPORT

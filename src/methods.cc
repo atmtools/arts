@@ -2681,6 +2681,29 @@ void define_md_data_raw() {
       AGENDAMETHOD(true)));
 
   md_data_raw.push_back(MdRecord(
+      NAME("AtmFieldPerturb"),
+      DESCRIPTION(
+          "Adds a perturbation to *t_field*.\n"
+          "\n"
+          "The method performs the operations\n"
+          "  perturbed_field = original_field\n"
+          "  perturbed_field(p_index,lat_index,lon_index) += perturbation\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT(),
+      GOUT("perturbed_field"),
+      GOUT_TYPE("Tensor3"),
+      GOUT_DESC("Copy of *original_field*, but with one element perturbed."),
+      IN("atmosphere_dim","p_grid","lat_grid","lon_grid"),
+      GIN("original_field","p_index","lat_index","lon_index","perturbation"),
+      GIN_TYPE("Tensor3","Index","Index","Index","Numeric"),
+      GIN_DEFAULT(NODEF,NODEF,"0","0",NODEF),
+      GIN_DESC("Original field, e.g. *t_field*.",
+               "Pressure index of perturbation.",
+               "Latitude index of perturbation.",
+               "Longitude index of perturbation.",
+               "Size of perturbation.")));
+
+  md_data_raw.push_back(MdRecord(
       NAME("AtmFieldPRegrid"),
       DESCRIPTION(
           "Interpolates the input field along the pressure dimension from\n"
@@ -9782,6 +9805,28 @@ void define_md_data_raw() {
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("jacobianFromYbatch"),
+      DESCRIPTION(
+          "Sets *jacobian* based on perturbation calcuations.\n"
+          "\n"
+          "This function assumes that *ybatch* contains spectra calculated\n"
+          "with some varaible perturbed, in comparison to the calculation\n"
+          "behind *y*. The function takes the differences between *ybatch*\n"
+          "and *y* to form a numerical derived estimate of *jacobian*.\n"
+          "\n"
+          "Column i of *jacobian equals (ybatch[i]-y)/perturbation.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("jacobian"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("ybatch","y"),
+      GIN("perturbation"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Size of perturbation behind spectra in *ybatch*.")));
 
   md_data_raw.push_back(MdRecord(
       NAME("jacobianInit"),
@@ -19486,6 +19531,29 @@ void define_md_data_raw() {
       GIN_DESC("Name of species to consider, or \"ALL\".",
                "Lower limit for clipping.",
                "Upper limit for clipping.")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("vmr_fieldPerturb"),
+      DESCRIPTION(
+          "Adds a perturbation to *vmr_field*.\n"
+          "\n"
+          "The method performs the operation\n"
+          "  vmr_field(i_species,p_index,lat_index,lon_index) += perturbation\n"
+          "where *i_species* of the selected absorption species.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("vmr_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("vmr_field","atmosphere_dim","p_grid","lat_grid","lon_grid","abs_species"),
+      GIN("species","p_index","lat_index","lon_index","perturbation"),
+      GIN_TYPE("String","Index","Index","Index","Numeric"),
+      GIN_DEFAULT(NODEF,NODEF,"0","0",NODEF),
+      GIN_DESC("Name of species to perturb.",
+               "Pressure index of perturbation.",
+               "Latitude index of perturbation.",
+               "Longitude index of perturbation.",
+               "Size of perturbation.")));
 
   md_data_raw.push_back(MdRecord(
       NAME("vmr_fieldSetAllConstant"),

@@ -697,222 +697,6 @@ void jacobianCalcFreqShift(Matrix& jacobian,
   jacobian(rowind, ji[0]) = dy;
 }
 
-/* Old version that handles variation with sensor_time:
-void jacobianAddFreqShift(
-        Workspace&                 ws _U_,
-        ArrayOfRetrievalQuantity&  jacobian_quantities,
-        Agenda&                    jacobian_agenda,
-  const Vector&                    f_grid,
-  const Matrix&                    sensor_pos,
-  const Vector&                    sensor_time,
-  const Index&                     poly_order,
-  const Numeric&                   df,
-  const Verbosity& )
-{
-  // Check that poly_order is -1 or positive
-  if( poly_order < -1 )
-    throw runtime_error(
-                  "The polynomial order has to be positive or -1 for gitter." );
- 
-  // Check that this jacobian type is not already included.
-  for( Index it=0; it<jacobian_quantities.nelem(); it++ )
-    {
-      if (jacobian_quantities[it].MainTag()== FREQUENCY_MAINTAG  &&  
-          jacobian_quantities[it].Subtag() == FREQUENCY_SUBTAG_0 )
-        {
-          ostringstream os;
-          os << "Fit of frequency shift is already included in\n"
-             << "*jacobian_quantities*.";
-          throw runtime_error(os.str());
-        }
-    }
-
-  // Checks of frequencies
-  if( df <= 0 )
-    throw runtime_error( "The argument *df* must be > 0." );
-  if( df > 1e6 )
-    throw runtime_error( "The argument *df* is not allowed to exceed 1 MHz." );
-  const Index nf    = f_grid.nelem();
-  if( nf < 2 )
-    throw runtime_error( "Frequency shifts and *f_grid* of length 1 can "
-                         "not be combined."  );
-  const Numeric maxdf = f_grid[nf-1] - f_grid[nf-2]; 
-  if( df > maxdf )
-    {
-      ostringstream os;
-      os << "The value of *df* is too big with respect to spacing of "
-         << "*f_grid*. The maximum\nallowed value of *df* is the spacing "
-         << "between the two last elements of *f_grid*.\n"
-         << "This spacing is   : " <<maxdf/1e3 << " kHz\n"
-         << "The value of df is: " << df/1e3   << " kHz";
-      throw runtime_error(os.str());
-    }
-
-  // Check that sensor_time is consistent with sensor_pos
-  if( sensor_time.nelem() != sensor_pos.nrows() )
-    {
-      ostringstream os;
-      os << "The WSV *sensor_time* must be defined for every "
-         << "measurement block.\n";
-      throw runtime_error(os.str());
-    }
-
-  // Do not allow that *poly_order* is not too large compared to *sensor_time*
-  if( poly_order > sensor_time.nelem()-1 )
-    { throw runtime_error( 
-             "The polynomial order can not be >= length of *sensor_time*." ); }
-
-  // Create the new retrieval quantity
-  RetrievalQuantity rq;
-  rq.MainTag( FREQUENCY_MAINTAG );
-  rq.Subtag( FREQUENCY_SUBTAG_0 );
-  rq.Mode( "" );
-  rq.Analytical( 0 );
-  rq.Perturbation( df );
-
-  // To store the value or the polynomial order, create a vector with length
-  // poly_order+1, in case of gitter set the size of the grid vector to be the
-  // number of measurement blocks, all elements set to -1.
-  Vector grid(0,poly_order+1,1);
-  if( poly_order == -1 )
-    {
-      grid.resize(sensor_pos.nrows());
-      grid = -1.0;
-    }
-  ArrayOfVector grids(1,grid);
-  rq.Grids(grids);
-
-  // Add it to the *jacobian_quantities*
-  jacobian_quantities.push_back( rq );
-
-  // Add corresponding calculation method to the jacobian agenda
-  jacobian_agenda.append( "jacobianCalcFreqShift", "" );
-}
-
-void jacobianCalcFreqShift(
-        Matrix&                    jacobian,
-  const Index&                     mblock_index,
-  const Vector&                    iyb,
-  const Vector&                    yb,
-  const Index&                     stokes_dim,
-  const Vector&                    f_grid,
-  const Matrix&                    DEBUG_ONLY(sensor_los),
-  const Matrix&                    mblock_dlos_grid,
-  const Sparse&                    sensor_response,
-  const Vector&                    sensor_time,
-  const ArrayOfRetrievalQuantity&  jacobian_quantities,
-  const Verbosity& )
-{
-  // Set some useful (and needed) variables.  
-  RetrievalQuantity rq;
-  ArrayOfIndex ji;
-
-  // Find the retrieval quantity related to this method.
-  // This works since the combined MainTag and Subtag is individual.
-  bool found = false;
-  for( Index n=0; n<jacobian_quantities.nelem() && !found; n++ )
-    {
-      if( jacobian_quantities[n].MainTag() == FREQUENCY_MAINTAG   && 
-          jacobian_quantities[n].Subtag()  == FREQUENCY_SUBTAG_0 )
-        {
-          bool any_affine;
-          ArrayOfArrayOfIndex jacobian_indices;
-          jac_ranges_indices( jacobian_indices, any_affine,
-                              jacobian_quantities, true );
-          //
-          found = true;
-          rq = jacobian_quantities[n];
-          ji = jacobian_indices[n];
-        }
-    }
-  if( !found )
-    {
-      throw runtime_error(
-                   "There is no such frequency retrieval quantity defined.\n" );
-    }
-
-  // Check that sensor_response is consistent with yb and iyb
-  //
-  if( sensor_response.nrows() != yb.nelem() )
-    throw runtime_error( 
-                       "Mismatch in size between *sensor_response* and *yb*." );
-  if( sensor_response.ncols() != iyb.nelem() )
-    throw runtime_error( 
-                      "Mismatch in size between *sensor_response* and *iyb*." );
-
-  // Get disturbed (part of) y
-  //
-  const Index    n1y = sensor_response.nrows(); 
-        Vector   dy( n1y );
-  {
-    const Index   nf2   = f_grid.nelem();
-    const Index   nlos2 = mblock_dlos_grid.nrows();
-    const Index   niyb  = nf2 * nlos2 * stokes_dim;
-
-    // Interpolation weights
-    //
-    const Index   porder = 3;
-    //
-    ArrayOfGridPosPoly   gp( nf2 );
-                Matrix   itw( nf2, porder+1) ;
-                Vector   fg_new = f_grid, iyb2(niyb);
-    //
-    fg_new += rq.Perturbation();
-    gridpos_poly( gp, f_grid, fg_new, porder, 1.0 );
-    interpweights( itw, gp );
-
-    // Do interpolation
-    for( Index ilos=0; ilos<nlos2; ilos++ )
-      {
-        const Index row0 = ilos * nf2 * stokes_dim;
-            
-        for( Index is=0; is<stokes_dim; is++ )
-          { 
-            interp( iyb2[Range(row0+is,nf2,stokes_dim)], itw, 
-                    iyb[Range(row0+is,nf2,stokes_dim)], gp );
-          }
-      }
-
-    // Determine difference
-    //
-    mult( dy, sensor_response, iyb2 );
-    //
-    for( Index i=0; i<n1y; i++ )
-      { dy[i] = ( dy[i]- yb[i] ) / rq.Perturbation(); }
-  }
-
- //--- Create jacobians ---
-
-  const Index lg = rq.Grids()[0].nelem();
-  const Index it = ji[0];
-  const Range rowind = get_rowindex_for_mblock( sensor_response, mblock_index );
-  const Index row0 = rowind.get_start();
-
-  // Handle gitter seperately
-  if( rq.Grids()[0][0] == -1 )                  // Not all values are set here,
-    {                                           // but should already have been 
-      assert( lg == sensor_los.nrows() );       // set to 0
-      assert( rq.Grids()[0][mblock_index] == -1 );
-      jacobian(rowind,it+mblock_index) = dy;     
-    }                                
-
-  // Polynomial representation
-  else
-    {
-      Vector w;
-      for( Index c=0; c<lg; c++ )
-        {
-          assert( Numeric(c) == rq.Grids()[0][c] );
-          //
-          polynomial_basis_func( w, sensor_time, c );
-          //
-          for( Index i=0; i<n1y; i++ )
-            { jacobian(row0+i,it+c) = w[mblock_index] * dy[i]; }
-        }
-    }
-}
-*/
-
 //----------------------------------------------------------------------------
 // Frequency stretch
 //----------------------------------------------------------------------------
@@ -1087,244 +871,6 @@ void jacobianCalcFreqStretch(
   const Range rowind = get_rowindex_for_mblock(sensor_response, mblock_index);
   jacobian(rowind, ji[0]) = dy;
 }
-
-/* Old version that handles variation with sensor_time:
-void jacobianAddFreqStretch(
-        Workspace&                 ws _U_,
-        ArrayOfRetrievalQuantity&  jacobian_quantities,
-        Agenda&                    jacobian_agenda,
-  const Vector&                    f_grid,
-  const Matrix&                    sensor_pos,
-  const Vector&                    sensor_time,
-  const Index&                     poly_order,
-  const Numeric&                   df,
-  const Verbosity& )
-{
-  // Check that poly_order is -1 or positive
-  if( poly_order < -1 )
-    throw runtime_error(
-                  "The polynomial order has to be positive or -1 for gitter." );
- 
-  // Check that this jacobian type is not already included.
-  for( Index it=0; it<jacobian_quantities.nelem(); it++ )
-    {
-      if (jacobian_quantities[it].MainTag()== FREQUENCY_MAINTAG  &&  
-          jacobian_quantities[it].Subtag() == FREQUENCY_SUBTAG_1 )
-        {
-          ostringstream os;
-          os << "Fit of frequency stretch is already included in\n"
-             << "*jacobian_quantities*.";
-          throw runtime_error(os.str());
-        }
-    }
-
-  // Checks of df
-  if( df <= 0 )
-    throw runtime_error( "The argument *df* must be > 0." );
-  if( df > 1e6 )
-    throw runtime_error( "The argument *df* is not allowed to exceed 1 MHz." );
-  const Index   nf    = f_grid.nelem();
-  const Numeric maxdf = f_grid[nf-1] - f_grid[nf-2]; 
-  if( df > maxdf )
-    {
-      ostringstream os;
-      os << "The value of *df* is too big with respect to spacing of "
-         << "*f_grid*. The maximum\nallowed value of *df* is the spacing "
-         << "between the two last elements of *f_grid*.\n"
-         << "This spacing is   : " <<maxdf/1e3 << " kHz\n"
-         << "The value of df is: " << df/1e3   << " kHz";
-      throw runtime_error(os.str());
-    }
-
-  // Check that sensor_time is consistent with sensor_pos
-  if( sensor_time.nelem() != sensor_pos.nrows() )
-    {
-      ostringstream os;
-      os << "The WSV *sensor_time* must be defined for every "
-         << "measurement block.\n";
-      throw runtime_error(os.str());
-    }
-
-  // Do not allow that *poly_order* is not too large compared to *sensor_time*
-  if( poly_order > sensor_time.nelem()-1 )
-    { throw runtime_error( 
-             "The polynomial order can not be >= length of *sensor_time*." ); }
-
-  // Create the new retrieval quantity
-  RetrievalQuantity rq;
-  rq.MainTag( FREQUENCY_MAINTAG );
-  rq.Subtag( FREQUENCY_SUBTAG_1 );
-  rq.Mode( "" );
-  rq.Analytical( 0 );
-  rq.Perturbation( df );
-
-  // To store the value or the polynomial order, create a vector with length
-  // poly_order+1, in case of gitter set the size of the grid vector to be the
-  // number of measurement blocks, all elements set to -1.
-  Vector grid(0,poly_order+1,1);
-  if( poly_order == -1 )
-    {
-      grid.resize(sensor_pos.nrows());
-      grid = -1.0;
-    }
-  ArrayOfVector grids(1,grid);
-  rq.Grids(grids);
-
-  // Add it to the *jacobian_quantities*
-  jacobian_quantities.push_back( rq );
-
-  // Add corresponding calculation method to the jacobian agenda
-  jacobian_agenda.append( "jacobianCalcFreqStretch", "" );
-}
-
-void jacobianCalcFreqStretch(
-        Matrix&                    jacobian,
-  const Index&                     mblock_index,
-  const Vector&                    iyb,
-  const Vector&                    yb,
-  const Index&                     stokes_dim,
-  const Vector&                    f_grid,
-  const Matrix&                    DEBUG_ONLY(sensor_los),
-  const Matrix&                    mblock_dlos_grid,
-  const Sparse&                    sensor_response,
-  const ArrayOfIndex&              sensor_response_pol_grid,
-  const Vector&                    sensor_response_f_grid,
-  const Matrix&                    sensor_response_dlos_grid,
-  const Vector&                    sensor_time,
-  const ArrayOfRetrievalQuantity&  jacobian_quantities,
-  const Verbosity& )
-{
-  // The code here is close to identical to the one for Shift. The main
-  // difference is that dy is weighted with poly_order 1 basis function.
-
-  // Set some useful (and needed) variables.  
-  RetrievalQuantity rq;
-  ArrayOfIndex ji;
-
-  // Find the retrieval quantity related to this method.
-  // This works since the combined MainTag and Subtag is individual.
-  bool found = false;
-  for( Index n=0; n<jacobian_quantities.nelem() && !found; n++ )
-    {
-      if( jacobian_quantities[n].MainTag() == FREQUENCY_MAINTAG   && 
-          jacobian_quantities[n].Subtag()  == FREQUENCY_SUBTAG_1 )
-        {
-          bool any_affine;
-          ArrayOfArrayOfIndex jacobian_indices;
-          jac_ranges_indices( jacobian_indices, any_affine,
-                              jacobian_quantities, true );
-          //
-          found = true;
-          rq = jacobian_quantities[n];
-          ji = jacobian_indices[n];
-        }
-    }
-  if( !found )
-    {
-      throw runtime_error(
-                   "There is no such frequency retrieval quantity defined.\n" );
-    }
-
-  // Check that sensor_response is consistent with yb and iyb
-  //
-  if( sensor_response.nrows() != yb.nelem() )
-    throw runtime_error( 
-                       "Mismatch in size between *sensor_response* and *yb*." );
-  if( sensor_response.ncols() != iyb.nelem() )
-    throw runtime_error( 
-                      "Mismatch in size between *sensor_response* and *iyb*." );
-
-  // Get disturbed (part of) y
-  //
-  const Index    n1y = sensor_response.nrows(); 
-        Vector   dy( n1y );
-  {
-    const Index   nf2   = f_grid.nelem();
-    const Index   nlos2 = mblock_dlos_grid.nrows();
-    const Index   niyb  = nf2 * nlos2 * stokes_dim;
-
-    // Interpolation weights
-    //
-    const Index   porder = 3;
-    //
-    ArrayOfGridPosPoly   gp( nf2 );
-                Matrix   itw( nf2, porder+1) ;
-                Vector   fg_new = f_grid, iyb2(niyb);
-    //
-    fg_new += rq.Perturbation();
-    gridpos_poly( gp, f_grid, fg_new, porder, 1.0 );
-    interpweights( itw, gp );
-
-    // Do interpolation
-    for( Index ilos=0; ilos<nlos2; ilos++ )
-      {
-        const Index row0 = ilos * nf2 * stokes_dim;
-            
-        for( Index is=0; is<stokes_dim; is++ )
-          { 
-            interp( iyb2[Range(row0+is,nf2,stokes_dim)], itw, 
-                    iyb[Range(row0+is,nf2,stokes_dim)], gp );
-          }
-      }
-
-    // Determine difference
-    //
-    mult( dy, sensor_response, iyb2 );
-    //
-    for( Index i=0; i<n1y; i++ )
-      { dy[i] = ( dy[i]- yb[i] ) / rq.Perturbation(); }
-
-    // dy above corresponds now to shift. Convert to stretch:
-    //
-    Vector w;
-    polynomial_basis_func( w, sensor_response_f_grid, 1 );
-    //
-    const Index nf     = sensor_response_f_grid.nelem();
-    const Index npol   = sensor_response_pol_grid.nelem();
-    const Index nlos   = sensor_response_dlos_grid.nrows();
-    //
-    for( Index l=0; l<nlos; l++ )
-      {    
-        for( Index f=0; f<nf; f++ )
-          {
-            const Index row1 = (l*nf + f)*npol;
-            for( Index p=0; p<npol; p++ )
-              { dy[row1+p] *= w[f]; }
-          }
-      }
-  }
-
- //--- Create jacobians ---
-
-  const Index lg = rq.Grids()[0].nelem();
-  const Index it = ji[0];
-  const Range rowind = get_rowindex_for_mblock( sensor_response, mblock_index );
-  const Index row0 = rowind.get_start();
-
-  // Handle gitter seperately
-  if( rq.Grids()[0][0] == -1 )                  // Not all values are set here,
-    {                                           // but should already have been 
-      assert( lg == sensor_los.nrows() );       // set to 0
-      assert( rq.Grids()[0][mblock_index] == -1 );
-      jacobian(rowind,it+mblock_index) = dy;     
-    }                                
-
-  // Polynomial representation
-  else
-    {
-      Vector w;
-      for( Index c=0; c<lg; c++ )
-        {
-          assert( Numeric(c) == rq.Grids()[0][c] );
-          //
-          polynomial_basis_func( w, sensor_time, c );
-          //
-          for( Index i=0; i<n1y; i++ )
-            { jacobian(row0+i,it+c) = w[mblock_index] * dy[i]; }
-        }
-    }
-}
-*/
 
 //----------------------------------------------------------------------------
 // Pointing:
@@ -4234,3 +3780,162 @@ void jacobianSetFuncTransformation(ArrayOfRetrievalQuantity& jqs,
   jqs.back().SetTFuncParameters(pars);
 }
 
+//----------------------------------------------------------------------------
+// Methods for doing perturbations
+//----------------------------------------------------------------------------
+
+void AtmFieldPerturb(Tensor3& perturbed_field,
+                    const Index& atmosphere_dim,
+                    const Vector& p_grid,
+                    const Vector& lat_grid,
+                    const Vector& lon_grid,
+                    const Tensor3& original_field,
+                    const Index& p_index,
+                    const Index& lat_index,
+                    const Index& lon_index,
+                    const Numeric& perturbation,
+                    const Verbosity&) {
+  // Check main input
+  chk_atm_field("original_field",
+                original_field,
+                atmosphere_dim,
+                p_grid,
+                lat_grid,
+                lon_grid,
+                false );
+  // Check selected indexes
+  chk_if_in_range("p_index", p_index, 0, p_grid.nelem()-1);
+  if( atmosphere_dim>=2) {
+    chk_if_in_range("lat_index", lat_index, 0, lat_grid.nelem()-1);
+    if( atmosphere_dim>=3) {
+      chk_if_in_range("lon_index", lon_index, 0, lon_grid.nelem()-1);
+    }
+  }
+  // Init perturbed_field, if not equal to original_field
+  if (&perturbed_field != &original_field) {
+    perturbed_field = original_field;
+  }
+  // Perturb
+  perturbed_field(p_index,
+                  atmosphere_dim>1 ? lat_index : 0,
+                  atmosphere_dim>2 ? lon_index : 0) += perturbation;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void vmr_fieldPerturb(Tensor4& vmr_field,
+                      const Index& atmosphere_dim,
+                      const Vector& p_grid,
+                      const Vector& lat_grid,
+                      const Vector& lon_grid,
+                      const ArrayOfArrayOfSpeciesTag& abs_species,
+                      const String& species,
+                      const Index& p_index,
+                      const Index& lat_index,
+                      const Index& lon_index,
+                      const Numeric& perturbation,
+                      const Verbosity&) {
+  // Locate vmr_species among abs_species
+  Index iq = -1;
+  for (Index i = 0; i < abs_species.nelem(); i++) {
+    if (abs_species[i][0].Species() == SpeciesTag(species).Species()) {
+      iq = i;
+      break;
+    }
+  }
+  if (iq < 0) {
+    ostringstream os;
+    os << "Could not find " << species << " in abs_species.\n";
+    throw std::runtime_error(os.str());
+  }
+
+  // Check selected indexes
+  chk_if_in_range("p_index", p_index, 0, p_grid.nelem()-1);
+  if( atmosphere_dim>=2) {
+    chk_if_in_range("lat_index", lat_index, 0, lat_grid.nelem()-1);
+    if( atmosphere_dim>=3) {
+      chk_if_in_range("lon_index", lon_index, 0, lon_grid.nelem()-1);
+    }
+  }
+  // Perturb
+  vmr_field(iq, p_index,
+            atmosphere_dim>1 ? lat_index : 0,
+            atmosphere_dim>2 ? lon_index : 0) += perturbation;
+}
+
+void jacobianFromYbatch(Matrix& jacobian,
+                    const ArrayOfVector& ybatch,
+                    const Vector& y,
+                    const Numeric& perturbation,
+                    const Verbosity&) {
+  const Index n = y.nelem();
+  const Index l = ybatch.nelem();
+  if (l>0){
+      if( ybatch[0].nelem() != n )
+        throw runtime_error("Inconsistency in length of y and ybatch[0].");
+    }
+  jacobian.resize(n,l);
+  for (Index i=0; i<l; i++) {
+    jacobian(joker,i) = ybatch[i];
+    jacobian(joker,i) -= y;
+  }
+  jacobian /= perturbation;
+}
+
+/*
+void AtmFieldPerturb2(Tensor3& perturbed_field,
+                    const Index& atmosphere_dim,
+                    const Vector& p_grid,
+                    const Vector& lat_grid,
+                    const Vector& lon_grid,
+                    const Tensor3& original_field,
+                    const Index& p_index,
+                    const Index& lat_index,
+                    const Index& lon_index,
+                    const Vector& p_ret_grid,
+                    const Vector& lat_ret_grid,
+                    const Vector& lon_ret_grid,
+                    const Numeric& perturbation,
+                    const Verbosity&) {
+  // Check main input
+  chk_atm_field("original_field",
+                original_field,
+                atmosphere_dim,
+                p_grid,
+                lat_grid,
+                lon_grid,
+                false );
+  // Check selected indexes
+  chk_if_in_range("p_index", p_index, 0, p_ret_grid.nelem()-1);
+  if( atmosphere_dim>=2) {
+    chk_if_in_range("lat_index", lat_index, 0, lat_ret_grid.nelem()-1);
+    if( atmosphere_dim>=3) {
+      chk_if_in_range("lon_index", lon_index, 0, lon_ret_grid.nelem()-1);
+    }
+  }
+  // Init perturbed_field, if not equal to original_field
+  if (&perturbed_field != &original_field) {
+    perturbed_field = original_field;
+  }
+
+  // "Perturbation mode". 1 means absolute perturbations
+  const Index pertmode = 1;
+
+  // Fix that length 1 ret grids are handled
+  
+  switch (atmosphere_dim) {
+  case 1: {
+    ArrayOfGridPos p_gp;
+    Index n_p = p_ret_grid.nelem();
+    Range p_range = Range(0, 0);
+    get_perturbation_range(p_range, p_index, n_p);
+    perturbation_field_1d(perturbed_field(joker, 0, 0),
+                          p_gp,
+                          n_p+2,
+                          p_range,
+                          perturbation,
+                          pertmode);
+    break;
+  }
+  }
+}
+*/

@@ -15,12 +15,12 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*!
-  \file   special_interp.cc
-  \author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
-  \date   2002-11-14   
+/**
+  @file   special_interp.cc
+  @author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
+  @date   2002-11-14   
   
-  \brief  Interpolation routines for special purposes.
+  @brief  Interpolation routines for special purposes.
   
   This file contains functions connected to interpolation of
   non-general character. The total general interpolation routines are
@@ -44,12 +44,10 @@
   Possible surface-type variables are *z_surface* and one page
   of *z_field*.
 
-
   - Regridding of atmospheric/surface fields: 
 
   These functions interpolate from one set of atmospheric grids to a new 
   set of grids.
-
 
   - Conversion of geometric altitudes to pressure values: 
 
@@ -58,11 +56,9 @@
   *p_grid*. Such functions are placed in this file for that reason.
   These functions have names ending with "2p", for example itw2p.
 
-
   - Interpolation of Gridded fields of special types:
-*/
+ */
 
-#include "special_interp.h"
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
@@ -70,33 +66,12 @@
 #include "check_input.h"
 #include "math_funcs.h"
 #include "messages.h"
+#include "special_interp.h"
 
 /*===========================================================================
   === Point interpolation functions for atmospheric grids and fields
   ===========================================================================*/
 
-//! interp_atmfield_gp2itw
-/*!
-    Converts atmospheric grid positions to weights for interpolation of an
-    atmospheric field.
-
-    The function is intended for "blue" interpolation, that is, interpolation
-    for a set of positions. 
-
-    The output matrix for interpolation weights are resized inside the
-    function.
-
-    The input atmospheric grids are checked to be consistent.
-
-    \param   itw                Output: Interpolation weights.
-    \param   atmosphere_dim     As the WSV with the same name.
-    \param   gp_p               Pressure grid positions.
-    \param   gp_lat             Latitude grid positions.
-    \param   gp_lon             Longitude grid positions.
-
-    \author Patrick Eriksson 
-    \date   2002-11-13
-*/
 void interp_atmfield_gp2itw(Matrix& itw,
                             const Index& atmosphere_dim,
                             const ArrayOfGridPos& gp_p,
@@ -123,33 +98,6 @@ void interp_atmfield_gp2itw(Matrix& itw,
   }
 }
 
-//! interp_atmfield_by_itw
-/*!
-    Interpolates an atmospheric field with pre-calculated weights by
-    interp_atmfield_gp2itw.
-
-    The function performs the interpolation for a number of positions. The
-    return variable (x) is accordingly a vector. The vector must be set to
-    have the same length as the grid position arrays before calling the
-    function. 
-
-    The input atmospheric field is checked to be consistent with the 
-    *atmosphere_dim*, *p_grid*, *lat_grid* and *lon_grid*. The length of
-    the grid position arrays are asserted to be the identical, or for 
-    dimensions not used, that the length is zero.
-
-    \param   x                  Output: Values obtained by the interpolation.
-    \param   atmosphere_dim     As the WSV with the same name.
-    \param   x_field            The atmospheric field to be interpolated.
-    \param   gp_p               Pressure grid positions.
-    \param   gp_lat             Latitude grid positions.
-    \param   gp_lon             Longitude grid positions.
-    \param   itw                Interpolation weights from 
-                                interp_atmfield_gp2itw.
-
-    \author Patrick Eriksson 
-    \date   2002-11-13
-*/
 void interp_atmfield_by_itw(VectorView x,
                             const Index& atmosphere_dim,
                             ConstTensor3View x_field,
@@ -175,30 +123,6 @@ void interp_atmfield_by_itw(VectorView x,
   }
 }
 
-//! interp_atmfield_by_gp
-/*!
-    Interpolates an atmospheric field given the grid positions.
-
-    The function performs the interpolation for a number of positions. The
-    return variable (x) is accordingly a vector. The vector must be set to
-    have the same length as the grid position arrays before calling the
-    function. 
-
-    The input atmospheric field is checked to be consistent with the 
-    *atmosphere_dim*, *p_grid*, *lat_grid* and *lon_grid*. The length of
-    the grid position arrays are asserted to be the identical, or for 
-    dimensions not used, that the length is zero.
-
-    \param   x                  Output: Values obtained by the interpolation.
-    \param   atmosphere_dim     As the WSV with the same name.
-    \param   x_field            The atmospheric field to be interpolated.
-    \param   gp_p               Pressure grid positions.
-    \param   gp_lat             Latitude grid positions.
-    \param   gp_lon             Longitude grid positions.
-
-    \author Patrick Eriksson 
-    \date   2002-11-13
-*/
 void interp_atmfield_by_gp(VectorView x,
                            const Index& atmosphere_dim,
                            ConstTensor3View x_field,
@@ -212,13 +136,6 @@ void interp_atmfield_by_gp(VectorView x,
   interp_atmfield_by_itw(x, atmosphere_dim, x_field, gp_p, gp_lat, gp_lon, itw);
 }
 
-//! interp_atmfield_by_gp
-/*!
-    As the function above but return-numeric version.
-
-    \author Patrick Eriksson 
-    \date   2002-11-13
-*/
 Numeric interp_atmfield_by_gp(const Index& atmosphere_dim,
                               ConstTensor3View x_field,
                               const GridPos& gp_p,
@@ -245,35 +162,6 @@ Numeric interp_atmfield_by_gp(const Index& atmosphere_dim,
   return x[0];
 }
 
-//! interp_cloudfield_gp2itw
-/*!
-    Converts atmospheric a grid position to weights for interpolation of a
-    field defined ONLY inside the cloudbox.
-
-    That is, as interp_atmfield_gp2itw, but for cloudbox only variables.
-
-    The input grid position shall be with respect to total grids. If grid
-    positions already refer to grid parts inside the cloudbox, you can use 
-    interp_atmfield_gp2itw.
-
-    The output grid positions are created by the function, to match the
-    cloudbox field, and can be used for later calls of e.g.
-    interp_atmfield_by_itw
-
-    \param   itw                Output: Interpolation weights. Vector must be 
-                                given correct size before call of function.
-    \param   gp_p_out           Output: Pressure cloudbox grid position.
-    \param   gp_lat_out         Output: Latitude cloudbox grid position.
-    \param   gp_lon_out         Output: Longitude cloudbox grid position.
-    \param   gp_p_in            Pressure grid position.
-    \param   gp_lat_in          Latitude grid position.
-    \param   gp_lon_in          Longitude grid position.
-    \param   atmosphere_dim     As the WSV with the same name.
-    \param   cloudbox_limits    As the WSV with the same name.
-
-    \author Patrick Eriksson 
-    \date   2010-02-12
-*/
 void interp_cloudfield_gp2itw(VectorView itw,
                               GridPos& gp_p_out,
                               GridPos& gp_lat_out,
@@ -314,9 +202,7 @@ void interp_cloudfield_gp2itw(VectorView itw,
   }
 }
 
-//! interp_atmsurface_gp2itw
-/*!
-    Converts atmospheric grid positions to weights for interpolation of a
+/** Converts atmospheric grid positions to weights for interpolation of a
     surface-type variable.
 
     The function is intended for "blue" interpolation, that is, interpolation
@@ -327,14 +213,14 @@ void interp_cloudfield_gp2itw(VectorView itw,
 
     The input atmospheric grids are checked to be consistent.
 
-    \param   itw                Output: Interpolation weights.
-    \param   atmosphere_dim     As the WSV with the same name.
-    \param   gp_lat             Latitude grid positions.
-    \param   gp_lon             Longitude grid positions.
+    \param[out]  itw                Interpolation weights.
+    \param[in]   atmosphere_dim     As the WSV with the same name.
+    \param[in]   gp_lat             Latitude grid positions.
+    \param[in]   gp_lon             Longitude grid positions.
 
-    \author Patrick Eriksson 
-    \date   2002-11-13
-*/
+    @author Patrick Eriksson 
+    @date   2002-11-13
+ */
 void interp_atmsurface_gp2itw(Matrix& itw,
                               const Index& atmosphere_dim,
                               const ArrayOfGridPos& gp_lat,
@@ -358,32 +244,6 @@ void interp_atmsurface_gp2itw(Matrix& itw,
   }
 }
 
-//! interp_atmsurface_by_itw
-/*!
-    Interpolates a surface-type variable with pre-calculated weights by
-    interp_atmsurface_gp2itw.
-
-    The function performs the interpolation for a number of positions. The
-    return variable (x) is accordingly a vector. The vector must be set to
-    have the same length as the grid position arrays before calling the
-    function. 
-
-    The input surface-type variable is checked to be consistent with the 
-    *atmosphere_dim*, *lat_grid* and *lon_grid*. The length of
-    the grid position arrays are asserted to be the identical, or for 
-    dimensions not used, that the length is zero.
-
-    \param   x                  Output: Values obtained by the interpolation.
-    \param   atmosphere_dim     As the WSV with the same name.
-    \param   x_surface          The atmospheric field to be interpolated.
-    \param   gp_lat             Latitude grid positions.
-    \param   gp_lon             Longitude grid positions.
-    \param   itw                Interpolation weights from 
-                                interp_atmsurface_gp2itw.
-
-    \author Patrick Eriksson 
-    \date   2002-11-13
-*/
 void interp_atmsurface_by_itw(VectorView x,
                               const Index& atmosphere_dim,
                               ConstMatrixView x_surface,
@@ -408,29 +268,6 @@ void interp_atmsurface_by_itw(VectorView x,
   }
 }
 
-//! interp_atmsurface_by_gp
-/*!
-    Interpolates a surface-type variable given the grid positions.
-
-    The function performs the interpolation for a number of positions. The
-    return variable (x) is accordingly a vector. The vector must be set to
-    have the same length as the grid position arrays before calling the
-    function. 
-
-    The input surface-type variable is checked to be consistent with the 
-    *atmosphere_dim*, *lat_grid* and *lon_grid*. The length of
-    the grid position arrays are asserted to be the identical, or for 
-    dimensions not used, that the length is zero.
-
-    \param   x                  Output: Values obtained by the interpolation.
-    \param   atmosphere_dim     As the WSV with the same name.
-    \param   x_surface          The atmospheric field to be interpolated.
-    \param   gp_lat             Latitude grid positions.
-    \param   gp_lon             Longitude grid positions.
-
-    \author Patrick Eriksson 
-    \date   2002-11-13
-*/
 void interp_atmsurface_by_gp(VectorView x,
                              const Index& atmosphere_dim,
                              ConstMatrixView x_surface,
@@ -443,13 +280,6 @@ void interp_atmsurface_by_gp(VectorView x,
   interp_atmsurface_by_itw(x, atmosphere_dim, x_surface, gp_lat, gp_lon, itw);
 }
 
-//! interp_atmsurface_by_gp
-/*!
-    As the function above, but return-numeric version.
-
-    \author Patrick Eriksson 
-    \date   2002-11-13
-*/
 Numeric interp_atmsurface_by_gp(const Index& atmosphere_dim,
                                 ConstMatrixView x_surface,
                                 const GridPos& gp_lat,
@@ -477,21 +307,6 @@ Numeric interp_atmsurface_by_gp(const Index& atmosphere_dim,
   === Regridding
   ===========================================================================*/
 
-//! Regrids an atmospheric field, for precalculated grid positions
-/*!
-  The function adopts automatically to *atmosphere_dim*. Grid positions not
-  used are ignored, i.e. gp_lat is ignored for atmosphere_dim=1 etc.
-
-  \param[out] field_new        Field after interpolation.
-  \param[in]  atmosphere_dim   As the WSV with same name.
-  \param[in]  field_old        Field to be interpolated.
-  \param[in]  gp_p             Pressure grid positions.
-  \param[in]  gp_lat           Latitude grid positions.
-  \param[in]  gp_lon           Longitude grid positions.
-
-  \author Patrick Eriksson 
-  \date   2015-09-09
-*/
 void regrid_atmfield_by_gp(Tensor3& field_new,
                            const Index& atmosphere_dim,
                            ConstTensor3View field_old,
@@ -525,20 +340,6 @@ void regrid_atmfield_by_gp(Tensor3& field_new,
   }
 }
 
-//! Regrids an atmospheric surface, for precalculated grid positions
-/*!
-  The function adopts automatically to *atmosphere_dim*. Grid positions not
-  used are ignored, i.e. gp_lat is ignored for atmosphere_dim=1 etc.
-
-  \param[out] field_new        Field after interpolation.
-  \param[in]  atmosphere_dim   As the WSV with same name.
-  \param[in]  field_old        Field to be interpolated.
-  \param[in]  gp_lat           Latitude grid positions.
-  \param[in]  gp_lon           Longitude grid positions.
-
-  \author Patrick Eriksson 
-  \date   2018-04-12
-*/
 void regrid_atmsurf_by_gp(Matrix& field_new,
                           const Index& atmosphere_dim,
                           ConstMatrixView field_old,
@@ -562,32 +363,358 @@ void regrid_atmsurf_by_gp(Matrix& field_new,
   }
 }
 
+void get_gp_atmgrids_to_rq(ArrayOfGridPos& gp_p,
+                           ArrayOfGridPos& gp_lat,
+                           ArrayOfGridPos& gp_lon,
+                           const RetrievalQuantity& rq,
+                           const Index& atmosphere_dim,
+                           const Vector& p_grid,
+                           const Vector& lat_grid,
+                           const Vector& lon_grid) {
+  gp_p.resize(rq.Grids()[0].nelem());
+  p2gridpos(gp_p, p_grid, rq.Grids()[0], 0);
+  //
+  if (atmosphere_dim >= 2) {
+    gp_lat.resize(rq.Grids()[1].nelem());
+    gridpos(gp_lat, lat_grid, rq.Grids()[1], 0);
+  } else {
+    gp_lat.resize(0);
+  }
+  //
+  if (atmosphere_dim >= 3) {
+    gp_lon.resize(rq.Grids()[2].nelem());
+    gridpos(gp_lon, lon_grid, rq.Grids()[2], 0);
+  } else {
+    gp_lon.resize(0);
+  }
+}
+
+void get_gp_atmsurf_to_rq(ArrayOfGridPos& gp_lat,
+                          ArrayOfGridPos& gp_lon,
+                          const RetrievalQuantity& rq,
+                          const Index& atmosphere_dim,
+                          const Vector& lat_grid,
+                          const Vector& lon_grid) {
+  if (atmosphere_dim >= 2) {
+    gp_lat.resize(rq.Grids()[0].nelem());
+    gridpos(gp_lat, lat_grid, rq.Grids()[0], 0);
+  } else {
+    gp_lat.resize(0);
+  }
+  //
+  if (atmosphere_dim >= 3) {
+    gp_lon.resize(rq.Grids()[1].nelem());
+    gridpos(gp_lon, lon_grid, rq.Grids()[1], 0);
+  } else {
+    gp_lon.resize(0);
+  }
+}
+
+void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_p,
+                           ArrayOfGridPos& gp_lat,
+                           ArrayOfGridPos& gp_lon,
+                           Index& n_p,
+                           Index& n_lat,
+                           Index& n_lon,
+                           const RetrievalQuantity& rq,
+                           const Index& atmosphere_dim,
+                           const Vector& p_grid,
+                           const Vector& lat_grid,
+                           const Vector& lon_grid) {
+  // We want here an extrapolation to infinity ->
+  //                                        extremly high extrapolation factor
+  const Numeric inf_proxy = 1.0e99;
+
+  gp_p.resize(p_grid.nelem());
+  n_p = rq.Grids()[0].nelem();
+  if (n_p > 1) {
+    p2gridpos(gp_p, rq.Grids()[0], p_grid, inf_proxy);
+    jacobian_type_extrapol(gp_p);
+  } else {
+    gp4length1grid(gp_p);
+  }
+
+  if (atmosphere_dim >= 2) {
+    gp_lat.resize(lat_grid.nelem());
+    n_lat = rq.Grids()[1].nelem();
+    if (n_lat > 1) {
+      gridpos(gp_lat, rq.Grids()[1], lat_grid, inf_proxy);
+      jacobian_type_extrapol(gp_lat);
+    } else {
+      gp4length1grid(gp_lat);
+    }
+  } else {
+    gp_lat.resize(0);
+    n_lat = 1;
+  }
+  //
+  if (atmosphere_dim >= 3) {
+    gp_lon.resize(lon_grid.nelem());
+    n_lon = rq.Grids()[2].nelem();
+    if (n_lon > 1) {
+      gridpos(gp_lon, rq.Grids()[2], lon_grid, inf_proxy);
+      jacobian_type_extrapol(gp_lon);
+    } else {
+      gp4length1grid(gp_lon);
+    }
+  } else {
+    gp_lon.resize(0);
+    n_lon = 1;
+  }
+}
+
+void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_lat,
+                           ArrayOfGridPos& gp_lon,
+                           Index& n_lat,
+                           Index& n_lon,
+                           const RetrievalQuantity& rq,
+                           const Index& atmosphere_dim,
+                           const Vector& lat_grid,
+                           const Vector& lon_grid) {
+  // We want here an extrapolation to infinity ->
+  //                                        extremly high extrapolation factor
+  const Numeric inf_proxy = 1.0e99;
+
+  if (atmosphere_dim >= 2) {
+    gp_lat.resize(lat_grid.nelem());
+    n_lat = rq.Grids()[0].nelem();
+    if (n_lat > 1) {
+      gridpos(gp_lat, rq.Grids()[0], lat_grid, inf_proxy);
+      jacobian_type_extrapol(gp_lat);
+    } else {
+      gp4length1grid(gp_lat);
+    }
+  } else {
+    gp_lat.resize(0);
+    n_lat = 1;
+  }
+  //
+  if (atmosphere_dim >= 3) {
+    gp_lon.resize(lon_grid.nelem());
+    n_lon = rq.Grids()[1].nelem();
+    if (n_lon > 1) {
+      gridpos(gp_lon, rq.Grids()[1], lon_grid, inf_proxy);
+      jacobian_type_extrapol(gp_lon);
+    } else {
+      gp4length1grid(gp_lon);
+    }
+  } else {
+    gp_lon.resize(0);
+    n_lon = 1;
+  }
+}
+
+void regrid_atmfield_by_gp_oem(Tensor3& field_new,
+                               const Index& atmosphere_dim,
+                               ConstTensor3View field_old,
+                               const ArrayOfGridPos& gp_p,
+                               const ArrayOfGridPos& gp_lat,
+                               const ArrayOfGridPos& gp_lon) {
+  const Index n1 = gp_p.nelem();
+
+  const bool np_is1 = field_old.npages() == 1 ? true : false;
+  const bool nlat_is1 =
+      atmosphere_dim > 1 && field_old.nrows() == 1 ? true : false;
+  const bool nlon_is1 =
+      atmosphere_dim > 2 && field_old.ncols() == 1 ? true : false;
+
+  // If no length 1, we can use standard function
+  if (!np_is1 && !nlat_is1 && !nlon_is1) {
+    regrid_atmfield_by_gp(
+        field_new, atmosphere_dim, field_old, gp_p, gp_lat, gp_lon);
+  } else {
+    //--- 1D (1 possibilities left) -------------------------------------------
+    if (atmosphere_dim == 1) {  // 1: No interpolation at all
+      field_new.resize(n1, 1, 1);
+      field_new(joker, 0, 0) = field_old(0, 0, 0);
+    }
+
+    //--- 2D (3 possibilities left) -------------------------------------------
+    else if (atmosphere_dim == 2) {
+      const Index n2 = gp_lat.nelem();
+      field_new.resize(n1, n2, 1);
+      //
+      if (np_is1 && nlat_is1)  // 1: No interpolation at all
+      {
+        // Here we need no interpolation at all
+        field_new(joker, joker, 0) = field_old(0, 0, 0);
+      } else if (np_is1)  // 2: Latitude interpolation
+      {
+        Matrix itw(n2, 2);
+        interpweights(itw, gp_lat);
+        Vector tmp(n2);
+        interp(tmp, itw, field_old(0, joker, 0), gp_lat);
+        for (Index p = 0; p < n1; p++) {
+          assert(gp_p[p].fd[0] < 1e-6);
+          field_new(p, joker, 0) = tmp;
+        }
+      } else  // 3: Pressure interpolation
+      {
+        Matrix itw(n1, 2);
+        interpweights(itw, gp_p);
+        Vector tmp(n1);
+        interp(tmp, itw, field_old(joker, 0, 0), gp_p);
+        for (Index lat = 0; lat < n2; lat++) {
+          assert(gp_lat[lat].fd[0] < 1e-6);
+          field_new(joker, lat, 0) = tmp;
+        }
+      }
+    }
+
+    //--- 3D (7 possibilities left) -------------------------------------------
+    else if (atmosphere_dim == 3) {
+      const Index n2 = gp_lat.nelem();
+      const Index n3 = gp_lon.nelem();
+      field_new.resize(n1, n2, n3);
+      //
+      if (np_is1 && nlat_is1 && nlon_is1)  // 1: No interpolation at all
+      {
+        field_new(joker, joker, joker) = field_old(0, 0, 0);
+      }
+
+      else if (np_is1)  // No pressure interpolation --------------
+      {
+        if (nlat_is1)  // 2: Just longitude interpolation
+        {
+          Matrix itw(n3, 2);
+          interpweights(itw, gp_lon);
+          Vector tmp(n3);
+          interp(tmp, itw, field_old(0, 0, joker), gp_lon);
+          for (Index p = 0; p < n1; p++) {
+            assert(gp_p[p].fd[0] < 1e-6);
+            for (Index lat = 0; lat < n2; lat++) {
+              assert(gp_lat[lat].fd[0] < 1e-6);
+              field_new(p, lat, joker) = tmp;
+            }
+          }
+        } else if (nlon_is1)  // 3: Just latitude interpolation
+        {
+          Matrix itw(n2, 2);
+          interpweights(itw, gp_lat);
+          Vector tmp(n2);
+          interp(tmp, itw, field_old(0, joker, 0), gp_lat);
+          for (Index p = 0; p < n1; p++) {
+            assert(gp_p[p].fd[0] < 1e-6);
+            for (Index lon = 0; lon < n3; lon++) {
+              assert(gp_lon[lon].fd[0] < 1e-6);
+              field_new(p, joker, lon) = tmp;
+            }
+          }
+        } else  // 4: Both lat and lon interpolation
+        {
+          Tensor3 itw(n2, n3, 4);
+          interpweights(itw, gp_lat, gp_lon);
+          Matrix tmp(n2, n3);
+          interp(tmp, itw, field_old(0, joker, joker), gp_lat, gp_lon);
+          for (Index p = 0; p < n1; p++) {
+            assert(gp_p[p].fd[0] < 1e-6);
+            field_new(p, joker, joker) = tmp;
+          }
+        }
+      }
+
+      else  // Pressure interpolation --------------
+      {
+        if (nlat_is1 && nlon_is1)  // 5: Just pressure interpolatiom
+        {
+          Matrix itw(n1, 2);
+          interpweights(itw, gp_p);
+          Vector tmp(n1);
+          interp(tmp, itw, field_old(joker, 0, 0), gp_p);
+          for (Index lat = 0; lat < n2; lat++) {
+            assert(gp_lat[lat].fd[0] < 1e-6);
+            for (Index lon = 0; lon < n3; lon++) {
+              assert(gp_lon[lon].fd[0] < 1e-6);
+              field_new(joker, lat, lon) = tmp;
+            }
+          }
+        } else if (nlat_is1)  // 6: Both p and lon interpolation
+        {
+          Tensor3 itw(n1, n3, 4);
+          interpweights(itw, gp_p, gp_lon);
+          Matrix tmp(n1, n3);
+          interp(tmp, itw, field_old(joker, 0, joker), gp_p, gp_lon);
+          for (Index lat = 0; lat < n2; lat++) {
+            assert(gp_lat[lat].fd[0] < 1e-6);
+            field_new(joker, lat, joker) = tmp;
+          }
+        } else  // 7: Both p and lat interpolation
+        {
+          Tensor3 itw(n1, n2, 4);
+          interpweights(itw, gp_p, gp_lat);
+          Matrix tmp(n1, n2);
+          interp(tmp, itw, field_old(joker, joker, 0), gp_p, gp_lat);
+          for (Index lon = 0; lon < n3; lon++) {
+            assert(gp_lon[lon].fd[0] < 1e-6);
+            field_new(joker, joker, lon) = tmp;
+          }
+        }
+      }
+    }
+  }
+}
+
+/* So far just a temporary test */
+void regrid_atmsurf_by_gp_oem(Matrix& field_new,
+                              const Index& atmosphere_dim,
+                              ConstMatrixView field_old,
+                              const ArrayOfGridPos& gp_lat,
+                              const ArrayOfGridPos& gp_lon) {
+  // As 1D is so simple, let's do it here and not go to standard function
+  if (atmosphere_dim == 1) {
+    field_new = field_old;
+  } else {
+    const bool nlat_is1 = field_old.nrows() == 1 ? true : false;
+    const bool nlon_is1 =
+        atmosphere_dim > 2 && field_old.ncols() == 1 ? true : false;
+
+    // If no length 1, we can use standard function
+    if (!nlat_is1 && !nlon_is1) {
+      regrid_atmsurf_by_gp(
+          field_new, atmosphere_dim, field_old, gp_lat, gp_lon);
+    } else {
+      if (atmosphere_dim == 2) {  // 1: No interpolation at all
+        const Index n1 = gp_lat.nelem();
+        field_new.resize(n1, 1);
+        field_new(joker, 0) = field_old(0, 0);
+      } else {
+        const Index n1 = gp_lat.nelem();
+        const Index n2 = gp_lon.nelem();
+        field_new.resize(n1, n2);
+        //
+        if (nlat_is1 && nlon_is1)  // 1: No interpolation at all
+        {
+          field_new(joker, joker) = field_old(0, 0);
+        } else if (nlon_is1)  // 2: Just latitude interpolation
+        {
+          Matrix itw(n1, 2);
+          interpweights(itw, gp_lat);
+          Vector tmp(n1);
+          interp(tmp, itw, field_old(joker, 0), gp_lat);
+          for (Index lon = 0; lon < n2; lon++) {
+            assert(gp_lon[lon].fd[0] < 1e-6);
+            field_new(joker, lon) = tmp;
+          }
+        } else  // 2: Just longitude interpolation
+        {
+          Matrix itw(n2, 2);
+          interpweights(itw, gp_lon);
+          Vector tmp(n2);
+          interp(tmp, itw, field_old(0, joker), gp_lon);
+          for (Index lat = 0; lat < n1; lat++) {
+            assert(gp_lat[lat].fd[0] < 1e-6);
+            field_new(lat, joker) = tmp;
+          }
+        }
+      }
+    }
+  }
+}
+
 /*===========================================================================
   === Conversion altitudes / pressure
   ===========================================================================*/
 
-//! itw2p
-/*!
-    Converts interpolation weights to pressures.
-
-    The function takes interpolation weights calculated with respect to the 
-    vertical dimension, and determines the corresponding pressures. This 
-    function can be used when a geometrical altitude is known and the
-    pressure for that altitude shall be determined. The interpolation weights
-    are then calculated using the geometrical altitudes for the pressure
-    levels for the position of concern.
-
-    This can be seen as a 1D "blue" interpolation. That means that the number
-    of columns of itw shall be 2.
-
-    \param   p_values   Output: Found pressure values.
-    \param   p_grid     As the WSV with the same name.
-    \param   gp         Altitude grid positions.
-    \param   itw        Interpolation weights
-
-    \author Patrick Eriksson 
-    \date   2002-11-13
-*/
 void itw2p(VectorView p_values,
            ConstVectorView p_grid,
            const ArrayOfGridPos& gp,
@@ -605,9 +732,7 @@ void itw2p(VectorView p_values,
   transform(p_values, exp, p_values);
 }
 
-//! p2gridpos
-/*!
-   Calculates grid positions for pressure values.
+/** Calculates grid positions for pressure values.
 
    This function works as *gridpos*, but is adapted to handle
    pressure grids. The ARTS defintions result in that pressures shall
@@ -617,7 +742,7 @@ void itw2p(VectorView p_values,
    calculated with this function. The interpolation can then be
    performed as usual.
 
-   \param[out]  gp          Output: Grid position Array.
+   \param[out]  gp          Grid position Array.
    \param[in]   old_pgrid   The original pressure grid.
    \param[in]   new_pgrid   The new pressure grid.
    \param[in]   extpolfac   Extrapolation factor. Default value is 0.5,
@@ -625,11 +750,11 @@ void itw2p(VectorView p_values,
                             last grid distance is allowed.
                             You don't have to specify this.
 
-   \author Patrick Eriksson
-   \date   2003-01-20
+   @author Patrick Eriksson
+   @date   2003-01-20
 
-   \author Stefan Buehler
-   \date   2008-03-03
+   @author Stefan Buehler
+   @date   2008-03-03
 */
 void p2gridpos(ArrayOfGridPos& gp,
                ConstVectorView old_pgrid,
@@ -645,24 +770,6 @@ void p2gridpos(ArrayOfGridPos& gp,
   gridpos(gp, logold, lognew, extpolfac);
 }
 
-//! p2gridpos_poly
-/*!
- Calculates grid positions for pressure values - higher order interpolation.
- 
- This function is similar to p2gridpos, but for higher order interpolation.
- 
- \param[out]  gp          Output: Grid position Array.
- \param[in]   old_pgrid   The original pressure grid.
- \param[in]   new_pgrid   The new pressure grid.
- \param[in]   order       Interpolation order (1=linear, 2=quadratic, etc.)
- \param[in]   extpolfac   Extrapolation factor. Default value is 0.5,
-                          which means that extrapolation of half of the
-                          last grid distance is allowed.
-                          You don't have to specify this.
- 
- \author Stefan Buehler
- \date   2010-05-03
- */
 void p2gridpos_poly(ArrayOfGridPosPoly& gp,
                     ConstVectorView old_pgrid,
                     ConstVectorView new_pgrid,
@@ -678,33 +785,6 @@ void p2gridpos_poly(ArrayOfGridPosPoly& gp,
   gridpos_poly(gp, logold, lognew, order, extpolfac);
 }
 
-//! rte_pos2gridpos   (field version)
-/*!
-   Converts a geographical position (rte_pos) to grid positions for p, 
-   lat and lon. 
-
-   The function converts the altitude, latitude and longitude in *rte_pos* to
-   matching grid positions. The conversion is straightforwatd for latitude and
-   longitude. The altitude shall be converted pressure grid position which
-   requires an interpolation of z_field.
-
-   Handles 1D, 2D and 3D (gp_lat and gp_lon untouched if not used).
-
-   Note that the function performs several checks of runtime error type.
-
-   \param   gp_p        Output: Pressure grid position.
-   \param   gp_lat      Output: Latitude grid position.
-   \param   gp_lon      Output: Longitude grid position.
-   \param   atmosphere_dim  As the WSV with the same name.
-   \param   p_grid      As the WSV with the same name.
-   \param   lat_grid    As the WSV with the same name.
-   \param   lon_grid    As the WSV with the same name.
-   \param   z_field     As the WSV with the same name.
-   \param   rte_pos     As the WSV with the same name.
-
-   \author Patrick Eriksson
-   \date   2012-06-22
-*/
 void rte_pos2gridpos(GridPos& gp_p,
                      GridPos& gp_lat,
                      GridPos& gp_lon,
@@ -757,25 +837,6 @@ void rte_pos2gridpos(GridPos& gp_p,
   }
 }
 
-//! rte_pos2gridpos (surface version)
-/*!
-   Converts a geographical position (rte_pos) to grid positions for lat and lon. 
-
-   The function converts latitude and longitude in *rte_pos* to matching grid
-   positions. Handles 1D, 2D and 3D (gp_lat and gp_lon untouched if not used).
-
-   Note that the function performs several checks of runtime error type.
-
-   \param   gp_lat      Output: Latitude grid position.
-   \param   gp_lon      Output: Longitude grid position.
-   \param   atmosphere_dim  As the WSV with the same name.
-   \param   lat_grid    As the WSV with the same name.
-   \param   lon_grid    As the WSV with the same name.
-   \param   rte_pos     As the WSV with the same name.
-
-   \author Patrick Eriksson
-   \date   2018-04-01
-*/
 void rte_pos2gridpos(GridPos& gp_lat,
                      GridPos& gp_lon,
                      const Index& atmosphere_dim,
@@ -796,24 +857,6 @@ void rte_pos2gridpos(GridPos& gp_lat,
   }
 }
 
-//! z_at_lat_2d
-/*!
-    Returns the geomtrical altitudes of *p_grid* for one latitude.
-
-    The latitude is specified by its grid position, in an
-    ArrayOfGridPos of length 1. The altitude field (*z_field*) is then
-    interpolated to that latitude.
-
-    \param   z          Out: Found altitudes.
-    \param   p_grid     As the WSV with the same name.
-    \param   lat_grid   As the WSV with the same name.
-    \param   z_field    The pressure and latitude part of the WSV with 
-                        the same name (that is, the first column).
-    \param   gp_lat     Latitude grid position.
-
-    \author Patrick Eriksson 
-    \date   2002-11-18
-*/
 void z_at_lat_2d(VectorView z,
                  ConstVectorView p_grid,
 // FIXME only used in assertion
@@ -842,26 +885,6 @@ void z_at_lat_2d(VectorView z,
   z = z_matrix(Range(joker), 0);
 }
 
-//! z_at_latlon
-/*!
-    Returns the geomtrical altitudes of *p_grid* for one latitude and
-    one longitude.
-
-    The latitude and longitude are specified by their grid position,
-    in an ArrayOfGridPos of length 1. The altitude field (*z_field*)
-    is then interpolated to that latitude and longitude.
-
-    \param   z          Out: Found altitudes.
-    \param   p_grid     As the WSV with the same name.
-    \param   lat_grid   As the WSV with the same name.
-    \param   lon_grid   As the WSV with the same name.
-    \param   z_field    As the WSV with the same name.
-    \param   gp_lat     Latitude grid positions.
-    \param   gp_lon     Longitude grid positions.
-
-    \author Patrick Eriksson 
-    \date   2002-12-31
-*/
 void z_at_latlon(VectorView z,
                  ConstVectorView p_grid,
 //FIXME only used in assertion
@@ -900,22 +923,6 @@ void z_at_latlon(VectorView z,
   === Interpolation of GriddedFields
   ===========================================================================*/
 
-//! complex_n_interp
-/*!
-    General function for interpolating data of complex n type.
-
-    See documentation of comples_refr_index for format of complex_n-.
-
-    \param   n_real      Out: Real part [nf,nt]
-    \param   n_imag      Out: Imaginary part [nf,nt]
-    \param   complex_n   Complex refracton index data.
-    \param   varname     The name of complex_n to use in error message.
-    \param   f_grid      Output frequency grid [nf]
-    \param   t_grid      Output temperature grid [nt]
-
-    \author Patrick Eriksson 
-    \date   2013-08-16
-*/
 void complex_n_interp(MatrixView n_real,
                       MatrixView n_imag,
                       const GriddedField3& complex_n,
