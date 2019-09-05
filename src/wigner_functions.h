@@ -24,12 +24,12 @@
  * @brief Wigner symbol interactions
  */
 
-#include "../3rdparty/wigner/wigxjpf/inc/wigxjpf.h"
+#include <wigner/wigxjpf/inc/wigxjpf.h>
 #include "rational.h"
 
 #ifdef FAST_WIGNER_PATH_3J
 #define DO_FAST_WIGNER 1
-#include "../3rdparty/wigner/fastwigxj/inc/fastwigxj.h"
+#include <wigner/fastwigxj/inc/fastwigxj.h>
 #else
 #define DO_FAST_WIGNER 0
 #endif

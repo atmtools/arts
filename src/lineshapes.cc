@@ -32,7 +32,7 @@
 */
 
 #include <cmath>
-#include "../3rdparty/Faddeeva/Faddeeva.hh"
+#include <Faddeeva/Faddeeva.hh>
 #include "absorption.h"
 #include "array.h"
 #include "arts.h"
