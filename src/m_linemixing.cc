@@ -26,9 +26,9 @@
 #include "linemixing.h"
 #include "linescaling.h"
 #include "physics_funcs.h"
-#include "species_info.h"
 #include "wigner_functions.h"
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void SetBandIdentifiersAuto(ArrayOfQuantumIdentifier& band_identifiers,
                             const ArrayOfArrayOfSpeciesTag& abs_species,
                             const Verbosity& verbosity) {
@@ -1219,6 +1219,7 @@ void SetBandIdentifiersAuto(ArrayOfQuantumIdentifier& band_identifiers,
   }
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void SetBandIdentifiersFromLines(ArrayOfQuantumIdentifier& band_identifiers,
                                  const ArrayOfLineRecord& abs_lines,
                                  const QuantumIdentifier& band_quantums,
@@ -1285,305 +1286,10 @@ void abs_lines_per_bandFromband_identifiers(
   }
 }
 
-inline void calculate_Y_from_relmat(Vector& Y,
-                                    const ArrayOfLineRecord& lines,
-                                    const ConstMatrixView W) {
-  const Index nl = lines.nelem();
+static constexpr Index hartman_tran_type = 0;
+static constexpr Index linear_type = 1;
 
-  Vector d0(nl);
-  for (Index il = 0; il < nl; il++) d0[il] = reduced_dipole(lines[il]);
-
-  Y = Vector(nl, 0);
-  for (Index k = 0; k < nl; k++)
-    for (Index j = 0; j < nl; j++)
-      if (k not_eq j)
-        Y[k] += 2.0 * d0[j] * W(j, k) / (d0[k] * (lines[k].F() - lines[j].F()));
-}
-
-inline void calculate_DF_from_relmat(Vector& DF,
-                                     const ArrayOfLineRecord& lines,
-                                     const ConstMatrixView W) {
-  const Index nl = lines.nelem();
-
-  DF = Vector(nl, 0);
-  for (Index il1 = 0; il1 < nl; il1++)
-    for (Index il2 = 0; il2 < nl; il2++)
-      if (il1 not_eq il2)
-        DF[il1] +=
-            W(il1, il2) * W(il2, il1) / (lines[il1].F() - lines[il2].F());
-}
-
-inline void calculate_G_from_relmat(Vector& G,
-                                    const ArrayOfLineRecord& lines,
-                                    const ConstMatrixView W) {
-  const Index nl = lines.nelem();
-
-  Vector d0(nl);
-  for (Index il = 0; il < nl; il++) d0[il] = reduced_dipole(lines[il]);
-
-  G = Vector(nl, 0);
-  for (Index il1 = 0; il1 < nl; il1++) {
-    Numeric a = 0, b = 0, c = 0, d = 0;
-    Numeric df, r;
-    for (Index il2 = 0; il2 < nl; il2++) {
-      df = lines[il1].F() - lines[il2].F();
-      r = d0[il2] / d0[il1];
-      if (il1 not_eq il2) {
-        a += W(il1, il2) * W(il2, il1) / (df * df);
-        b += r * W(il2, il1) / df;
-        c += r * W(il1, il2) * W(il1, il1) / (df * df);
-        for (Index il3 = 0; il3 < nl; il3++) {
-          if (il3 not_eq il2) {
-            d += r * W(il2, il3) * W(il3, il1) /
-                 (-df * (lines[il3].F() - lines[il1].F()));
-          }
-        }
-      }
-    }
-    G[il1] = a - b * b + 2 * c - 2 * d;
-  }
-}
-
-inline void calculate_xsec_from_full_relmat(
-    ArrayOfMatrix& xsec,
-    ArrayOfArrayOfMatrix& dxsec_dx,
-    const ArrayOfLineRecord& lines,
-    const ArrayOfRetrievalQuantity& derivatives_data,
-    const ArrayOfIndex& derivatives_data_position,
-    const ConstMatrixView Wmat,
-    const ConstMatrixView Wmat_perturbedT,
-    const ConstVectorView f0,
-    const ConstVectorView f_grid,
-    const ConstVectorView d0,
-    const ConstVectorView rhoT,
-    const ConstVectorView rhoT_perturbedT,
-    const ConstVectorView psf,
-    const ConstVectorView psf_perturbedT,
-    const Numeric& T,
-    const Numeric& isotopologue_ratio,
-    const Index& this_species,
-    const Index& this_level,
-    const Index& n) {
-  extern const Numeric BOLTZMAN_CONST;
-  extern const Numeric PLANCK_CONST;
-  extern const Numeric PI;
-
-  const static Numeric c1 = 1 / PI;
-
-  const Index nf = f_grid.nelem(), nd = derivatives_data_position.nelem();
-  const bool do_temperature = do_temperature_jacobian(derivatives_data);
-  const Numeric dT = temperature_perturbation(derivatives_data);
-
-  Vector x0(f0.nelem()), d0_signs(f0.nelem());
-  for (Index if0 = 0; if0 < f0.nelem(); if0++) {
-    d0_signs[if0] = sign_reduced_dipole(lines[if0]);
-  }
-
-  ComplexMatrix F(n, n), invF(n, n), F_perturbedT(n, n), invF_perturbedT(n, n);
-  for (Index iv = 0; iv < nf; iv++) {
-    for (Index il1 = 0; il1 < n; il1++) {
-      for (Index il2 = 0; il2 < n; il2++) {
-        if (il1 == il2) {
-          F(il1, il2) =
-              Complex(f_grid[iv] - f0[il1] - psf[il1], -Wmat(il1, il2));
-          if (do_temperature) {
-            F_perturbedT(il1, il2) =
-                Complex(f_grid[iv] - f0[il1] - psf_perturbedT[il1],
-                        -Wmat_perturbedT(il1, il2));
-          }
-        } else {
-          F(il1, il2) = Complex(0.0, -Wmat(il1, il2));
-          if (do_temperature) {
-            F_perturbedT(il1, il2) = Complex(0.0, -Wmat_perturbedT(il1, il2));
-          }
-        }
-      }
-    }
-
-    inv(invF, F);
-    if (do_temperature) {
-      inv(invF_perturbedT, F_perturbedT);
-    }
-
-    // To hold absorption (real part is refraction)
-    Numeric sum = 0.0, sum_perturbedT = 0.0;
-    for (Index il1 = 0; il1 < n; il1++) {
-      for (Index il2 = 0; il2 < n; il2++) {
-        sum += d0_signs[il1] * d0[il1] * invF(il1, il2).imag() * d0_signs[il2] *
-               d0[il2] * rhoT[il2];
-        if (do_temperature) {
-          sum_perturbedT += d0_signs[il1] * d0[il1] *
-                            invF_perturbedT(il1, il2).imag() * d0_signs[il2] *
-                            d0[il2] * rhoT_perturbedT[il2];
-        }
-      }
-    }
-
-    const Numeric x =
-        c1 * isotopologue_ratio * f_grid[iv] *
-        (1 - exp(-PLANCK_CONST * f_grid[iv] / BOLTZMAN_CONST / T));
-    xsec[this_species](iv, this_level) += x * sum;
-    for (Index id = 0; id < nd; id++) {
-      if (derivatives_data[derivatives_data_position[id]] ==
-          JacPropMatType::Temperature) {
-        dxsec_dx[this_species][id](iv, this_level) +=
-            x * (sum_perturbedT - sum) / dT;
-      }
-    }
-  }
-}
-
-inline void calculate_xsec_from_relmat_coefficients(
-    ArrayOfMatrix& xsec,
-    ArrayOfArrayOfMatrix& dxsec_dx,
-    const ArrayOfRetrievalQuantity& derivatives_data,
-    const ArrayOfIndex& derivatives_data_position,
-    const ConstVectorView pressure_broadening,
-    const ConstVectorView dpressure_broadening_dT,
-    const ConstVectorView f0,
-    const ConstVectorView f_grid,
-    const ConstVectorView d0,
-    const ConstVectorView rhoT,
-    const ConstVectorView drhoT_dT,
-    const ConstVectorView psf,
-    const ConstVectorView dpsf_dT,
-    const ConstVectorView Y,
-    const ConstVectorView dY_dT,
-    const ConstVectorView G,
-    const ConstVectorView dG_dT,
-    const ConstVectorView DV,
-    const ConstVectorView dDV_dT,
-    const Numeric& T,
-    const Numeric& isotopologue_mass,
-    const Numeric& isotopologue_ratio,
-    const Index& this_species,
-    const Index& this_level,
-    const Index& n) {
-  // internal constant
-  const Index nf = f_grid.nelem(), nppd = derivatives_data_position.nelem();
-  const Numeric doppler_const =
-                    Linefunctions::DopplerConstant(T, isotopologue_mass),
-                ddoppler_const_dT = doppler_const / T;
-  const QuantumIdentifier QI;
-
-  Eigen::VectorXcd F(nf);
-  Eigen::Matrix<Complex, Eigen::Dynamic, Linefunctions::ExpectedDataSize()>
-      data(nf, Linefunctions::ExpectedDataSize());
-  Eigen::MatrixXcd dF(nf, derivatives_data_position.nelem());
-
-  for (Index iline = 0; iline < n; iline++) {
-    const LineShape::Output X({pressure_broadening[iline],
-                               psf[iline],
-                               0.,
-                               0.,
-                               0.,
-                               0.,
-                               Y[iline],
-                               G[iline],
-                               DV[iline]});
-
-    if (do_temperature_jacobian(derivatives_data)) {
-      const LineShape::Output dT({dpressure_broadening_dT[iline],
-                                  dpsf_dT[iline],
-                                  0.,
-                                  0.,
-                                  0.,
-                                  0.,
-                                  dY_dT[iline],
-                                  dG_dT[iline],
-                                  dDV_dT[iline]});
-      Linefunctions::set_voigt(F,
-                               dF,
-                               data,
-                               MapToEigen(f_grid),
-                               0.0,
-                               0.0,
-                               f0[iline],
-                               doppler_const,
-                               X,
-                               derivatives_data,
-                               derivatives_data_position,
-                               QI,
-                               ddoppler_const_dT,
-                               dT);
-
-      Linefunctions::apply_linemixing_scaling_and_mirroring(
-          F,
-          dF,
-          F,
-          dF,
-          X,
-          false,
-          derivatives_data,
-          derivatives_data_position,
-          QI,
-          dT);
-
-      Linefunctions::apply_dipole(F,
-                                  dF,
-                                  f0[iline],
-                                  T,
-                                  d0[iline],
-                                  rhoT[iline],
-                                  isotopologue_ratio,
-                                  derivatives_data,
-                                  derivatives_data_position,
-                                  QI,
-                                  drhoT_dT[iline]);
-    } else {
-      Linefunctions::set_voigt(F,
-                               dF,
-                               data,
-                               MapToEigen(f_grid),
-                               0.0,
-                               0.0,
-                               f0[iline],
-                               doppler_const,
-                               X,
-                               derivatives_data,
-                               derivatives_data_position,
-                               QI);
-
-      Linefunctions::apply_linemixing_scaling_and_mirroring(
-          F,
-          dF,
-          F,
-          dF,
-          X,
-          false,
-          derivatives_data,
-          derivatives_data_position,
-          QI);
-
-      Linefunctions::apply_dipole(F,
-                                  dF,
-                                  f0[iline],
-                                  T,
-                                  d0[iline],
-                                  rhoT[iline],
-                                  isotopologue_ratio,
-                                  derivatives_data,
-                                  derivatives_data_position,
-                                  QI);
-    }
-
-    for (Index ii = 0; ii < nf; ii++) {
-      const Numeric& y = F[ii].real();
-#pragma omp atomic
-      xsec[this_species](ii, this_level) += y;
-
-      for (Index jj = 0; jj < nppd; jj++) {
-        const Numeric& dy_dx = dF(jj, ii).real();
-#pragma omp atomic
-        dxsec_dx[this_species][jj](ii, this_level) += dy_dx;
-      }
-    }
-  }
-}
-
-static const Index hartman_tran_type = 0;
-static const Index linear_type = 1;
-
+/* Workspace method: Doxygen documentation will be auto-generated */
 void SetRelaxationMatrixCalcType(
     ArrayOfIndex& relmat_type_per_band,
     const ArrayOfArrayOfLineRecord& abs_lines_per_band,
@@ -1608,6 +1314,7 @@ void SetRelaxationMatrixCalcType(
         << "Unknown type line mixing selected  for all lines (please fix by adding type)\n";
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void SetRelaxationMatrixCalcType(
     ArrayOfIndex& relmat_type_per_band,
     const ArrayOfArrayOfLineRecord& abs_lines_per_band,
@@ -1636,89 +1343,6 @@ void SetRelaxationMatrixCalcType(
   }
 }
 
-#ifdef ENABLE_RELMAT
-extern "C" {
-// This is the interfaces between the Fortran code that calculates W and ARTS
-extern void arts_relmat_interface__hartmann_and_niro_type(
-    long* nlines,
-    double* fmin,
-    double* fmax,
-    long* M,
-    long* I,
-    double* v,
-    double* S,
-    double* gamma_air,
-    double* E_double_prime,
-    double* n_air,
-    long* upper,
-    long* lower,
-    long* g_prime,
-    long* g_double_prime,
-    double* temperature,
-    double* pressure,
-    double* partition_function_t,
-    double* partition_function_t0,
-    double* isotopologue_mass,
-    long* number_of_perturbers,
-    long* molecule_code_perturber,
-    long* iso_code_perturber,
-    double* perturber_mass,
-    double* vmr,
-    //output+input
-    long* debug_in__error_out,
-    long* ordered,
-    double* tolerance_in_rule_nr2,
-    bool* use_adiabatic_factor,
-    //outputs
-    double* W,
-    double* dipole,
-    double* rhoT,
-    double* Y,
-    double* G,
-    double* DV);
-
-extern void arts_relmat_interface__linear_type(long* nlines,
-                                               double* fmin,
-                                               double* fmax,
-                                               long* M,
-                                               long* I,
-                                               double* v,
-                                               double* S,
-                                               double* gamma_air,
-                                               double* E_double_prime,
-                                               double* n_air,
-                                               long* upper,
-                                               long* lower,
-                                               long* g_prime,
-                                               long* g_double_prime,
-                                               double* temperature,
-                                               double* pressure,
-                                               double* partition_function_t,
-                                               double* partition_function_t0,
-                                               double* isotopologue_mass,
-                                               long* number_of_perturbers,
-                                               long* molecule_code_perturber,
-                                               long* iso_code_perturber,
-                                               double* perturber_mass,
-                                               double* vmr,
-                                               //output+input
-                                               long* debug_in__error_out,
-                                               long* ordered,
-                                               double* tolerance_in_rule_nr2,
-                                               bool* use_adiabatic_factor,
-                                               //outputs
-                                               double* W,
-                                               double* dipole,
-                                               double* rhoT,
-                                               double* Y,
-                                               double* G,
-                                               double* DV);
-
-extern double* wigner3j_(double*, double*, double*, double*, double*, double*);
-extern double* wigner6j_(double*, double*, double*, double*, double*, double*);
-}
-#endif  //ENABLE_RELMAT
-
 // Ignore function arguments if compiled without RELMAT support
 #ifdef ENABLE_RELMAT
 #define _UU_
@@ -1726,6 +1350,7 @@ extern double* wigner6j_(double*, double*, double*, double*, double*, double*);
 #define _UU_ _U_
 #endif
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesAddLineMixedBands(  // WS Output:
     ArrayOfMatrix& abs_xsec_per_species _UU_,
     ArrayOfArrayOfMatrix& dabs_xsec_per_species_dx _UU_,
@@ -2557,6 +2182,7 @@ void abs_xsec_per_speciesAddLineMixedBands(  // WS Output:
 #endif  //ENABLE_RELMAT
 #undef _UU_
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void SetLineMixingCoefficinetsFromRelmat(  // WS Input And Output:
     ArrayOfArrayOfLineRecord& abs_lines_per_band,
     ArrayOfArrayOfMatrix& relmat_per_band,
@@ -2742,84 +2368,41 @@ void SetLineMixingCoefficinetsFromRelmat(  // WS Input And Output:
   }
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void PrintSelfLineMixingStatus(
     const ArrayOfArrayOfLineRecord& abs_lines_per_band,
     const ArrayOfArrayOfSpeciesTag& abs_species_per_band,
     const Numeric& T,
-    const Verbosity&) {
+    const Verbosity& verbosity) {
+  CREATE_OUT0;
+  
   constexpr QuantumNumberType J = QuantumNumberType::J;
   const Vector vmrs(abs_lines_per_band.nelem(), 1.0);
   Numeric Y, G, DV;
 
   for (Index i = 0; i < abs_lines_per_band.nelem(); i++) {
-    std::cout.precision(5);
-    std::cout << std::scientific << "BAND " << i + 1 << "\n";
-    std::cout << "JF\tJI\tY(" << T << ")\tG(" << T << ")\tDV(" << T
-              << ")\tF0\tE0\n";
+    out0 << std::scientific << "BAND " << i + 1 << "\n"
+         << "JF\tJI\tY(" << T << ")\tG(" << T << ")\tDV(" << T
+         << ")\tF0\tE0\n";
     for (const auto& line : abs_lines_per_band[i]) {
-      std::cout << line.LowerQuantumNumber(J) << '\t'
-                << line.UpperQuantumNumber(J) << '\t';
+      out0 << line.LowerQuantumNumber(J) << '\t'
+           << line.UpperQuantumNumber(J) << '\t';
       line.SetLineMixingParameters(
           Y, G, DV, T, 101325, vmrs, abs_species_per_band);
-      std::cout << Y << '\t' << G << '\t' << DV << '\t' << line.F() << '\t'
-                << line.Elow() << '\n';
+      out0 << Y << '\t' << G << '\t' << DV << '\t' << line.F() << '\t'
+           << line.Elow() << '\n';
     }
   }
 }
 
-void relmatInAir(Matrix& relmat,
-                 const ArrayOfLineRecord& abs_lines,
-                 const ArrayOfArrayOfSpeciesTag& abs_species,
-                 const SpeciesAuxData& partition_functions,
-                 const Index& wigner_initialized,
-                 const Numeric& temperature,
-                 const Index& species,
-                 const Verbosity&) try {
-  checkPartitionFunctions(abs_species, partition_functions);
-
-  // Only for Earth's atmosphere
-  const ArrayOfSpeciesTag collider_species = {SpeciesTag("O2-66"),
-                                              SpeciesTag("N2-44")};
-  const Vector collider_species_vmr = {0.21, 0.79};
-
-  // Ensure the species are consistent
-  const auto& st = abs_species[species][0];
-
-  if (st.IsSpecies("CO2") and st.IsIsotopologue("626")) {
-  } else if (st.IsSpecies("O2") and st.IsIsotopologue("66")) {
-  } else
-    throw "Limit in functionality encountered.  We only support CO2-626 and O2-66 for now.";
-
-  for (auto& line : abs_lines)
-    if (line.Species() not_eq st.Species() or
-        line.Isotopologue() not_eq st.Isotopologue())
-      throw "Must be same Isotopologue and Species in all lines.";
-  relmat = hartmann_ecs_interface(abs_lines,
-                                  abs_species[species],
-                                  collider_species,
-                                  collider_species_vmr,
-                                  partition_functions,
-                                  temperature,
-                                  wigner_initialized);
-} catch (const char* e) {
-  std::ostringstream os;
-  os << "Errors raised by *relmatInAir*:\n";
-  os << "\tError: " << e << '\n';
-  throw std::runtime_error(os.str());
-} catch (const std::exception& e) {
-  std::ostringstream os;
-  os << "Errors in calls by *relmatInAir*:\n";
-  os << e.what();
-  throw std::runtime_error(os.str());
-}
-
+/* Workspace method: Doxygen documentation will be auto-generated */
 void relmat_per_bandInAir(ArrayOfArrayOfMatrix& relmat_per_band,
                           const ArrayOfArrayOfLineRecord& abs_lines_per_band,
                           const ArrayOfArrayOfSpeciesTag& abs_species_per_band,
                           const SpeciesAuxData& partition_functions,
                           const Index& wigner_initialized,
                           const Vector& temperatures,
-                          const Verbosity& verbosity) try {
+                          const Verbosity&) try {
   auto lsize = abs_lines_per_band.nelem();
   auto tsize = temperatures.nelem();
 
@@ -2840,8 +2423,7 @@ void relmat_per_bandInAir(ArrayOfArrayOfMatrix& relmat_per_band,
                   partition_functions,
                   wigner_initialized,
                   temperatures[i],
-                  j,
-                  verbosity);
+                  j);
     }
   }
 } catch (const char* e) {
@@ -2856,6 +2438,7 @@ void relmat_per_bandInAir(ArrayOfArrayOfMatrix& relmat_per_band,
   throw std::runtime_error(os.str());
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_bandSetLineMixingFromRelmat(
     ArrayOfArrayOfLineRecord& abs_lines_per_band,
     const ArrayOfArrayOfMatrix& relmat_per_band,
@@ -3090,8 +2673,7 @@ void abs_xsec_per_speciesAddLineMixedLinesInAir(  // WS Output:
                     partition_functions,
                     wigner_initialized,
                     abs_t[ip],
-                    ib,
-                    verbosity);
+                    ib);
         for (auto i1 = 0; i1 < N; i1++) {
           auto x = abs_lines_per_band[ib][i1].GetShapeParams(
               abs_t[ip],

@@ -33,6 +33,7 @@
 #include "linefunctions.h"
 #include "linescaling.h"
 #include "sorting.h"
+#include "species_info.h"
 #include "wigner_functions.h"
 
 inline Numeric getB0(const SpeciesTag& main) {
@@ -906,4 +907,286 @@ Numeric total_linestrengths(const Vector& population, const Vector& dipole) {
   Numeric I0 = 0;
   for (auto i = 0; i < n; i++) I0 += pi * population[i] * pow2(dipole[i]);
   return I0;
+}
+
+void relmatInAir(Matrix& relmat,
+                 const ArrayOfLineRecord& abs_lines,
+                 const ArrayOfArrayOfSpeciesTag& abs_species,
+                 const SpeciesAuxData& partition_functions,
+                 const Index& wigner_initialized,
+                 const Numeric& temperature,
+                 const Index& species) try {
+  checkPartitionFunctions(abs_species, partition_functions);
+
+  // Only for Earth's atmosphere
+  const ArrayOfSpeciesTag collider_species = {SpeciesTag("O2-66"),
+                                              SpeciesTag("N2-44")};
+  const Vector collider_species_vmr = {0.21, 0.79};
+
+  // Ensure the species are consistent
+  const auto& st = abs_species[species][0];
+
+  if (st.IsSpecies("CO2") and st.IsIsotopologue("626")) {
+  } else if (st.IsSpecies("O2") and st.IsIsotopologue("66")) {
+  } else
+    throw "Limit in functionality encountered.  We only support CO2-626 and O2-66 for now.";
+
+  for (auto& line : abs_lines)
+    if (line.Species() not_eq st.Species() or
+        line.Isotopologue() not_eq st.Isotopologue())
+      throw "Must be same Isotopologue and Species in all lines.";
+  relmat = hartmann_ecs_interface(abs_lines,
+                                  abs_species[species],
+                                  collider_species,
+                                  collider_species_vmr,
+                                  partition_functions,
+                                  temperature,
+                                  wigner_initialized);
+} catch (const char* e) {
+  std::ostringstream os;
+  os << "Errors raised by *relmatInAir*:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
+} catch (const std::exception& e) {
+  std::ostringstream os;
+  os << "Errors in calls by *relmatInAir*:\n";
+  os << e.what();
+  throw std::runtime_error(os.str());
+}
+
+void calculate_xsec_from_full_relmat(
+    ArrayOfMatrix& xsec,
+    ArrayOfArrayOfMatrix& dxsec_dx,
+    const ArrayOfLineRecord& lines,
+    const ArrayOfRetrievalQuantity& derivatives_data,
+    const ArrayOfIndex& derivatives_data_position,
+    const ConstMatrixView Wmat,
+    const ConstMatrixView Wmat_perturbedT,
+    const ConstVectorView f0,
+    const ConstVectorView f_grid,
+    const ConstVectorView d0,
+    const ConstVectorView rhoT,
+    const ConstVectorView rhoT_perturbedT,
+    const ConstVectorView psf,
+    const ConstVectorView psf_perturbedT,
+    const Numeric& T,
+    const Numeric& isotopologue_ratio,
+    const Index& this_species,
+    const Index& this_level,
+    const Index& n) {
+  extern const Numeric BOLTZMAN_CONST;
+  extern const Numeric PLANCK_CONST;
+  extern const Numeric PI;
+
+  const static Numeric c1 = 1 / PI;
+
+  const Index nf = f_grid.nelem(), nd = derivatives_data_position.nelem();
+  const bool do_temperature = do_temperature_jacobian(derivatives_data);
+  const Numeric dT = temperature_perturbation(derivatives_data);
+
+  Vector x0(f0.nelem()), d0_signs(f0.nelem());
+  for (Index if0 = 0; if0 < f0.nelem(); if0++) {
+    d0_signs[if0] = sign_reduced_dipole(lines[if0]);
+  }
+
+  ComplexMatrix F(n, n), invF(n, n), F_perturbedT(n, n), invF_perturbedT(n, n);
+  for (Index iv = 0; iv < nf; iv++) {
+    for (Index il1 = 0; il1 < n; il1++) {
+      for (Index il2 = 0; il2 < n; il2++) {
+        if (il1 == il2) {
+          F(il1, il2) =
+              Complex(f_grid[iv] - f0[il1] - psf[il1], -Wmat(il1, il2));
+          if (do_temperature) {
+            F_perturbedT(il1, il2) =
+                Complex(f_grid[iv] - f0[il1] - psf_perturbedT[il1],
+                        -Wmat_perturbedT(il1, il2));
+          }
+        } else {
+          F(il1, il2) = Complex(0.0, -Wmat(il1, il2));
+          if (do_temperature) {
+            F_perturbedT(il1, il2) = Complex(0.0, -Wmat_perturbedT(il1, il2));
+          }
+        }
+      }
+    }
+
+    inv(invF, F);
+    if (do_temperature) {
+      inv(invF_perturbedT, F_perturbedT);
+    }
+
+    // To hold absorption (real part is refraction)
+    Numeric sum = 0.0, sum_perturbedT = 0.0;
+    for (Index il1 = 0; il1 < n; il1++) {
+      for (Index il2 = 0; il2 < n; il2++) {
+        sum += d0_signs[il1] * d0[il1] * invF(il1, il2).imag() * d0_signs[il2] *
+               d0[il2] * rhoT[il2];
+        if (do_temperature) {
+          sum_perturbedT += d0_signs[il1] * d0[il1] *
+                            invF_perturbedT(il1, il2).imag() * d0_signs[il2] *
+                            d0[il2] * rhoT_perturbedT[il2];
+        }
+      }
+    }
+
+    const Numeric x =
+        c1 * isotopologue_ratio * f_grid[iv] *
+        (1 - exp(-PLANCK_CONST * f_grid[iv] / BOLTZMAN_CONST / T));
+    xsec[this_species](iv, this_level) += x * sum;
+    for (Index id = 0; id < nd; id++) {
+      if (derivatives_data[derivatives_data_position[id]] ==
+          JacPropMatType::Temperature) {
+        dxsec_dx[this_species][id](iv, this_level) +=
+            x * (sum_perturbedT - sum) / dT;
+      }
+    }
+  }
+}
+
+void calculate_xsec_from_relmat_coefficients(
+    ArrayOfMatrix& xsec,
+    ArrayOfArrayOfMatrix& dxsec_dx,
+    const ArrayOfRetrievalQuantity& derivatives_data,
+    const ArrayOfIndex& derivatives_data_position,
+    const ConstVectorView pressure_broadening,
+    const ConstVectorView dpressure_broadening_dT,
+    const ConstVectorView f0,
+    const ConstVectorView f_grid,
+    const ConstVectorView d0,
+    const ConstVectorView rhoT,
+    const ConstVectorView drhoT_dT,
+    const ConstVectorView psf,
+    const ConstVectorView dpsf_dT,
+    const ConstVectorView Y,
+    const ConstVectorView dY_dT,
+    const ConstVectorView G,
+    const ConstVectorView dG_dT,
+    const ConstVectorView DV,
+    const ConstVectorView dDV_dT,
+    const Numeric& T,
+    const Numeric& isotopologue_mass,
+    const Numeric& isotopologue_ratio,
+    const Index& this_species,
+    const Index& this_level,
+    const Index& n) {
+  // internal constant
+  const Index nf = f_grid.nelem(), nppd = derivatives_data_position.nelem();
+  const Numeric doppler_const =
+                    Linefunctions::DopplerConstant(T, isotopologue_mass),
+                ddoppler_const_dT = doppler_const / T;
+  const QuantumIdentifier QI;
+
+  Eigen::VectorXcd F(nf);
+  Eigen::Matrix<Complex, Eigen::Dynamic, Linefunctions::ExpectedDataSize()>
+      data(nf, Linefunctions::ExpectedDataSize());
+  Eigen::MatrixXcd dF(nf, derivatives_data_position.nelem());
+
+  for (Index iline = 0; iline < n; iline++) {
+    const LineShape::Output X({pressure_broadening[iline],
+                               psf[iline],
+                               0.,
+                               0.,
+                               0.,
+                               0.,
+                               Y[iline],
+                               G[iline],
+                               DV[iline]});
+
+    if (do_temperature_jacobian(derivatives_data)) {
+      const LineShape::Output dT({dpressure_broadening_dT[iline],
+                                  dpsf_dT[iline],
+                                  0.,
+                                  0.,
+                                  0.,
+                                  0.,
+                                  dY_dT[iline],
+                                  dG_dT[iline],
+                                  dDV_dT[iline]});
+      Linefunctions::set_voigt(F,
+                               dF,
+                               data,
+                               MapToEigen(f_grid),
+                               0.0,
+                               0.0,
+                               f0[iline],
+                               doppler_const,
+                               X,
+                               derivatives_data,
+                               derivatives_data_position,
+                               QI,
+                               ddoppler_const_dT,
+                               dT);
+
+      Linefunctions::apply_linemixing_scaling_and_mirroring(
+          F,
+          dF,
+          F,
+          dF,
+          X,
+          false,
+          derivatives_data,
+          derivatives_data_position,
+          QI,
+          dT);
+
+      Linefunctions::apply_dipole(F,
+                                  dF,
+                                  f0[iline],
+                                  T,
+                                  d0[iline],
+                                  rhoT[iline],
+                                  isotopologue_ratio,
+                                  derivatives_data,
+                                  derivatives_data_position,
+                                  QI,
+                                  drhoT_dT[iline]);
+    } else {
+      Linefunctions::set_voigt(F,
+                               dF,
+                               data,
+                               MapToEigen(f_grid),
+                               0.0,
+                               0.0,
+                               f0[iline],
+                               doppler_const,
+                               X,
+                               derivatives_data,
+                               derivatives_data_position,
+                               QI);
+
+      Linefunctions::apply_linemixing_scaling_and_mirroring(
+          F,
+          dF,
+          F,
+          dF,
+          X,
+          false,
+          derivatives_data,
+          derivatives_data_position,
+          QI);
+
+      Linefunctions::apply_dipole(F,
+                                  dF,
+                                  f0[iline],
+                                  T,
+                                  d0[iline],
+                                  rhoT[iline],
+                                  isotopologue_ratio,
+                                  derivatives_data,
+                                  derivatives_data_position,
+                                  QI);
+    }
+
+    for (Index ii = 0; ii < nf; ii++) {
+      const Numeric& y = F[ii].real();
+#pragma omp atomic
+      xsec[this_species](ii, this_level) += y;
+
+      for (Index jj = 0; jj < nppd; jj++) {
+        const Numeric& dy_dx = dF(jj, ii).real();
+#pragma omp atomic
+        dxsec_dx[this_species][jj](ii, this_level) += dy_dx;
+      }
+    }
+  }
 }
