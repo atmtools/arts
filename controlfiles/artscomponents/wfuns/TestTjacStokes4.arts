@@ -109,7 +109,7 @@ MatrixSet( sensor_los, [140,45] )
 # Define analytical Jacobian
 #
 jacobianInit
-jacobianAddTemperature( g1=p_grid, g2=lat_grid, g3=lon_grid, hse="on" )
+jacobianAddTemperature( g1=p_grid, g2=lat_grid, g3=lon_grid, hse="off" )
 jacobianClose
 
 
@@ -150,7 +150,7 @@ yCalc
 #
 VectorCreate( yref )
 ReadXML( yref, "yREF4.xml" )
-Compare( y, yref, 1e-5,
+Compare( y, yref, 1e-4,
          "Calculated *y* does not agree with saved reference values." )
 
 
@@ -165,18 +165,29 @@ Copy( jcopy, jacobian )
 #output_file_formatSetAscii
 #WriteXML( output_file_format, f_grid, "f.xml" )
 #WriteXML( output_file_format, z_field, "z.xml" )
-#WriteXML( output_file_format, y, "y.xml" )
+#WriteXML( output_file_format, y, "yREF4.xml" )
 #WriteXML( output_file_format, jacobian, "Ja.xml" )
 
 
-# Re-do by perturbations
+# Re-do by external perturbations
 #
-jacobianInit
-jacobianAddTemperature( g1=p_grid, g2=lat_grid, g3=lon_grid, hse="on",
-                        method="perturbation", dt=0.1 )
-jacobianClose
+NumericCreate( dt )
+NumericSet( dt, 0.1 )
 #
-yCalc
+IndexNumberOfAtmosphericPoints( n = ybatch_n )
+#
+jacobianOff
+#
+AgendaSet(ybatch_calc_agenda){
+  AtmFieldPerturbAtmGrids( perturbed_field = t_field,
+                           original_field = t_field,
+                           pert_index = ybatch_index,
+                           pert_size = dt )
+  yCalc
+}
+#
+ybatchCalc( ybatch_start=0 )
+jacobianFromYbatch( pert_size = dt )
 #
 #WriteXML( output_file_format, jacobian, "Jp.xml" )
 
@@ -192,27 +203,27 @@ VectorCreate( v2 )
 VectorExtractFromMatrix( v1, jcopy, 0, "row" )
 VectorExtractFromMatrix( v2, jacobian, 0, "row" )
 Compare( v1, v2, 1e-4,
-         "Disagreement for first frequncy and first Stokes element" )
+         "Disagreement for first frequency and first Stokes element" )
 
 # Compare frequency 1, Stokes element 2
 #
 VectorExtractFromMatrix( v1, jcopy, 1, "row" )
 VectorExtractFromMatrix( v2, jacobian, 1, "row" )
 Compare( v1, v2, 1e-5,
-         "Disagreement for first frequncy and second Stokes element" )
+         "Disagreement for first frequency and second Stokes element" )
 
 # Compare frequency 1, Stokes element 3
 #
 VectorExtractFromMatrix( v1, jcopy, 2, "row" )
 VectorExtractFromMatrix( v2, jacobian, 2, "row" )
 Compare( v1, v2, 1e-5,
-         "Disagreement for first frequncy and third Stokes element" )
+         "Disagreement for first frequency and third Stokes element" )
 
 # Compare frequency 1, Stokes element 4
 #
 VectorExtractFromMatrix( v1, jcopy, 3, "row" )
 VectorExtractFromMatrix( v2, jacobian, 3, "row" )
 Compare( v1, v2, 1e-5,
-         "Disagreement for first frequncy and fourth Stokes element" )
+         "Disagreement for first frequency and fourth Stokes element" )
 }
  
