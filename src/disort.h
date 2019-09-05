@@ -170,44 +170,6 @@ void run_disort(Workspace& ws,
                  const Index& Npfct,
                  const Verbosity& verbosity);
 
-/** dtauc_ssalbCalc.
- *
- * Calculates layer averaged cloud optical depth (dtauc) and single
- * scattering albedo (ssalb). These variables are required as input
- * for the DISORT subroutine.
- *
- * @param[in,out] ws                  Current workspace.
- * @param[out] dtauc                  Optical depths for all layers.
- * @param[out] ssalb                  Single scattering albedos for all layers.
- * @param[in] scat_data               As the WSV.
- * @param[in] f_index                 Index of frequency grid point handeled.
- * @param[in] propmat_clearsky_agenda As the WSA.
- * @param[in] pnd_field               As the WSV.
- * @param[in] t_field                 As the WSV.
- * @param[in] z_field                 As the WSV.
- * @param[in] vmr_field               As the WSV.
- * @param[in] p_grid                  As the WSV.
- * @param[in] cloudbox_limits         As the WSV.
- * @param[in] f_mono                  Frequency (single entry vector).
- *
- * @author Claudia Emde, Jana Mendrok
- * @date   2006-02-10
- */
-void dtauc_ssalbCalc(Workspace& ws,
-                     VectorView dtauc,
-                     VectorView ssalb,
-                     const ArrayOfArrayOfSingleScatteringData& scat_data,
-                     const Index& f_index,
-                     const Agenda& propmat_clearsky_agenda,
-                     ConstTensor4View pnd_field,
-                     ConstTensor3View t_field,
-                     ConstTensor3View z_field,
-                     ConstTensor4View vmr_field,
-                     ConstVectorView p_grid,
-                     const ArrayOfIndex& cloudbox_limits,
-                     ConstVectorView f_mono,
-                     const Verbosity& verbosity);
-
 /** get_gasoptprop.
  *
  * Derives level-based gas bulk optical properties (extinction).
