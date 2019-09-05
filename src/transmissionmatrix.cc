@@ -1674,31 +1674,33 @@ ArrayOfArrayOfTransmissionMatrix cumulative_backscatter_derivative(
     for (Index iq = 0; iq < nq; iq++) {
       aoaotm[ip][iq].setZero();
 
-      switch (ns) {
-        case 4:
-          for (Index iv = 0; iv < nv; iv++)
-            for (Index id = 0; id < nd; id++)
-              aoaotm[ip][iq].Mat4(iv).noalias() +=
-                  aom[iq](id, ip) * matrix4(t(id, ip, iv, joker, joker));
-          break;
-        case 3:
-          for (Index iv = 0; iv < nv; iv++)
-            for (Index id = 0; id < nd; id++)
-              aoaotm[ip][iq].Mat3(iv).noalias() +=
-                  aom[iq](id, ip) * matrix3(t(id, ip, iv, joker, joker));
-          break;
-        case 2:
-          for (Index iv = 0; iv < nv; iv++)
-            for (Index id = 0; id < nd; id++)
-              aoaotm[ip][iq].Mat2(iv).noalias() +=
-                  aom[iq](id, ip) * matrix2(t(id, ip, iv, joker, joker));
-          break;
-        case 1:
-          for (Index iv = 0; iv < nv; iv++)
-            for (Index id = 0; id < nd; id++)
-              aoaotm[ip][iq].Mat1(iv).noalias() +=
-                  aom[iq](id, ip) * matrix1(t(id, ip, iv, joker, joker));
-          break;
+      if(not aom[iq].empty()) {
+        switch (ns) {
+          case 4:
+            for (Index iv = 0; iv < nv; iv++)
+              for (Index id = 0; id < nd; id++)
+                aoaotm[ip][iq].Mat4(iv).noalias() +=
+                    aom[iq](id, ip) * matrix4(t(id, ip, iv, joker, joker));
+            break;
+          case 3:
+            for (Index iv = 0; iv < nv; iv++)
+              for (Index id = 0; id < nd; id++)
+                aoaotm[ip][iq].Mat3(iv).noalias() +=
+                    aom[iq](id, ip) * matrix3(t(id, ip, iv, joker, joker));
+            break;
+          case 2:
+            for (Index iv = 0; iv < nv; iv++)
+              for (Index id = 0; id < nd; id++)
+                aoaotm[ip][iq].Mat2(iv).noalias() +=
+                    aom[iq](id, ip) * matrix2(t(id, ip, iv, joker, joker));
+            break;
+          case 1:
+            for (Index iv = 0; iv < nv; iv++)
+              for (Index id = 0; id < nd; id++)
+                aoaotm[ip][iq].Mat1(iv).noalias() +=
+                    aom[iq](id, ip) * matrix1(t(id, ip, iv, joker, joker));
+            break;
+        }
       }
     }
   }
