@@ -4558,7 +4558,7 @@ void define_md_data_raw() {
           "accuracy, we require a (hardcoded) minimum size of 38.\n"
           "\n"
           "ARTS-DISORT can be run with different levels of (pseudo-)sphericity,\n"
-          "determined by the cloudbox settings and the *non_iso_inc* keyword.\n"
+          "determined by the cloudbox settings.\n"
           "The higher the sphericity level is, the more accurate are the\n"
           "results, but the longer the calculation takes (typically, for\n"
           "downlooking cases - even 50deg off-nadir ones - the differences\n"
@@ -4575,19 +4575,13 @@ void define_md_data_raw() {
           "  *cloudboxSetManually*). Internally, DISORT is run over the whole\n"
           "  atmosphere, but only the radiation field within the cloudbox is\n"
           "  passed on and used further in ARTS (e.g. by *yCalc*).\n"
-          "- Cloudbox extends over a limited part of the atmosphere only and\n"
-          "  *non_iso_inc* is set to 1. In this case, DISORT is run over the\n"
-          "  cloudbox only and initialized by a non-isotropic incoming\n"
-          "  radiation field on the top of the cloudbox. This incoming field\n"
-          "  is internally calculated by ARTS clearsky methods that take\n"
-          "  atmospheric sphericity and refractivity fully into account.\n"
+          "  This incoming field is internally calculated by ARTS clearsky \n"
+          "  methods that take atmospheric sphericity and refractivity fully\n"
+          "  into account.\n"
           "\n"
           "Known issues of ARTS implementation:\n"
           "- Surface altitude is not an interface parameter. Surface is\n"
           "  implicitly assumed to be at the lowest atmospheric level.\n"
-          "- Except for *non_iso_inc*=1, where *iy_space_agenda* is applied,\n"
-          "  TOA incoming radiation is so far assumed as blackbody cosmic\n"
-          "  background (temperature taken from the ARTS-internal constant).\n"
           "- Scattering angle grids of all scattering elements have to be\n"
           "  identical (except if *pfct_method* is 'interpolate').\n"
           "\n"
@@ -4627,15 +4621,13 @@ void define_md_data_raw() {
          "stokes_dim",
          "surface_skin_t",
          "surface_scalar_reflectivity"),
-      GIN("nstreams", "do_deltam", "pfct_method", "new_optprop", "Npfct"),
-      GIN_TYPE("Index", "Index", "String", "Index", "Index"),
-      GIN_DEFAULT("8", "0", "median", "1", "181"),
+      GIN("nstreams", "do_deltam", "pfct_method", "Npfct"),
+      GIN_TYPE("Index", "Index", "String", "Index"),
+      GIN_DEFAULT("8", "0", "median", "181"),
       GIN_DESC("Number of polar angle directions (streams) in DISORT "
                "solution (must be an even number).",
                "Boolean to activate DISORT's delta-m scaling or not.",
                "Flag which method to apply to derive phase function.",
-               "Flag whether to use old (0) or new(1) optical property"
-               " extraction scheme.",
                "Number of angular grid points to calculate bulk phase"
                " function on (and derive Legendre polnomials from). If <0,"
                " the finest za_grid from scat_data will be used.")));
@@ -4684,15 +4676,13 @@ void define_md_data_raw() {
          "f_grid",
          "scat_za_grid",
          "stokes_dim"),
-      GIN("nstreams", "do_deltam", "pfct_method", "new_optprop", "Npfct"),
-      GIN_TYPE("Index", "Index", "String", "Index", "Index"),
-      GIN_DEFAULT("8", "0", "median", "1", "181"),
+      GIN("nstreams", "do_deltam", "pfct_method", "Npfct"),
+      GIN_TYPE("Index", "Index", "String", "Index"),
+      GIN_DEFAULT("8", "0", "median", "181"),
       GIN_DESC("Number of polar angle directions (streams) in DISORT "
                "solution (must be an even number).",
                "Boolean to activate DISORT's delta-m scaling or not.",
                "Flag which method to apply to derive phase function.",
-               "Flag whether to use old (0) or new(1) optical property"
-               " extraction scheme.",
                "Number of angular grid points to calculate bulk phase"
                " function on (and derive Legendre polnomials from). If <0,"
                " the finest za_grid from scat_data will be used.")));
