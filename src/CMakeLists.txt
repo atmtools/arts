@@ -211,7 +211,7 @@ add_library (artscore STATIC
   linerecord.cc
   linescaling.cc
   lineshapes.cc
-  linefunctiondata.cc
+  lineshapemodel.cc
   linefunctions.cc
   m_abs.cc
   m_abs_lookup.cc

@@ -1528,7 +1528,7 @@ Numeric magnetic_field_perturbation(
 }
 
 String propmattype_string(const RetrievalQuantity& rq) {
-#define linefunctiondatavariable(X1, X2) \
+#define lineshapevariable(X1, X2) \
   JacPropMatType::LineShape##X1##X2 : return "Line-Shape: " #X1 " " #X2
   switch (rq.PropMatType()) {
     case JacPropMatType::VMR:
@@ -1563,37 +1563,37 @@ String propmattype_string(const RetrievalQuantity& rq) {
       return "Line-Center";
     case JacPropMatType::NLTE:
       return "NLTE-Level";
-    case linefunctiondatavariable(G0, X0);
-        case linefunctiondatavariable(G0, X1);
-        case linefunctiondatavariable(G0, X2);
-        case linefunctiondatavariable(D0, X0);
-        case linefunctiondatavariable(D0, X1);
-        case linefunctiondatavariable(D0, X2);
-        case linefunctiondatavariable(G2, X0);
-        case linefunctiondatavariable(G2, X1);
-        case linefunctiondatavariable(G2, X2);
-        case linefunctiondatavariable(D2, X0);
-        case linefunctiondatavariable(D2, X1);
-        case linefunctiondatavariable(D2, X2);
-        case linefunctiondatavariable(ETA, X0);
-        case linefunctiondatavariable(ETA, X1);
-        case linefunctiondatavariable(ETA, X2);
-        case linefunctiondatavariable(FVC, X0);
-        case linefunctiondatavariable(FVC, X1);
-        case linefunctiondatavariable(FVC, X2);
-        case linefunctiondatavariable(Y, X0);
-        case linefunctiondatavariable(Y, X1);
-        case linefunctiondatavariable(Y, X2);
-        case linefunctiondatavariable(G, X0);
-        case linefunctiondatavariable(G, X1);
-        case linefunctiondatavariable(G, X2);
-        case linefunctiondatavariable(DV, X0);
-        case linefunctiondatavariable(DV, X1);
-        case linefunctiondatavariable(DV, X2);
+    case lineshapevariable(G0, X0);
+        case lineshapevariable(G0, X1);
+        case lineshapevariable(G0, X2);
+        case lineshapevariable(D0, X0);
+        case lineshapevariable(D0, X1);
+        case lineshapevariable(D0, X2);
+        case lineshapevariable(G2, X0);
+        case lineshapevariable(G2, X1);
+        case lineshapevariable(G2, X2);
+        case lineshapevariable(D2, X0);
+        case lineshapevariable(D2, X1);
+        case lineshapevariable(D2, X2);
+        case lineshapevariable(ETA, X0);
+        case lineshapevariable(ETA, X1);
+        case lineshapevariable(ETA, X2);
+        case lineshapevariable(FVC, X0);
+        case lineshapevariable(FVC, X1);
+        case lineshapevariable(FVC, X2);
+        case lineshapevariable(Y, X0);
+        case lineshapevariable(Y, X1);
+        case lineshapevariable(Y, X2);
+        case lineshapevariable(G, X0);
+        case lineshapevariable(G, X1);
+        case lineshapevariable(G, X2);
+        case lineshapevariable(DV, X0);
+        case lineshapevariable(DV, X1);
+        case lineshapevariable(DV, X2);
         case JacPropMatType::NotPropagationMatrixType:
       return "Not-A-Prop-Mat-Variable";
   }
-#undef linefunctiondatavariable
+#undef lineshapevariable
 
   return "UNDEFINED-CHECK-IF-CASE-LIST-IS-COMPLETE";
 }

@@ -848,7 +848,7 @@ void Linefunctions::apply_dipole(Eigen::Ref<Eigen::VectorXcd> F,
   F *= S * f0_factor;
 }
 
-void Linefunctions::apply_linefunctiondata_jacobian_scaling(
+void Linefunctions::apply_lineshapemodel_jacobian_scaling(
     Eigen::Ref<Eigen::MatrixXcd> dF,
     const ArrayOfRetrievalQuantity& derivatives_data,
     const ArrayOfIndex& derivatives_data_position,
@@ -1163,14 +1163,14 @@ void Linefunctions::set_cross_section_for_single_line(
                                            dXdVMR);
 
     // Apply line mixing and pressure broadening partial derivatives
-    apply_linefunctiondata_jacobian_scaling(dF,
-                                            derivatives_data,
-                                            derivatives_data_position,
-                                            QI,
-                                            line,
-                                            temperature,
-                                            pressure,
-                                            volume_mixing_ratio_of_lineshape);
+    apply_lineshapemodel_jacobian_scaling(dF,
+                                          derivatives_data,
+                                          derivatives_data_position,
+                                          QI,
+                                          line,
+                                          temperature,
+                                          pressure,
+                                          volume_mixing_ratio_of_lineshape);
   }
 
   // Line normalization if necessary

@@ -3400,13 +3400,13 @@ void jacobianAddShapeCatalogParameters(
 
   ArrayOfString vars;
   if (variables[0] == "ALL")
-    vars = all_variablesLineFunctionData();
+    vars = AllLineShapeVars();
   else
     vars = variables;
 
   ArrayOfString coeffs;
   if (coefficients[0] == "ALL")
-    coeffs = all_coefficientsLineFunctionData();
+    coeffs = AllLineShapeCoeffs();
   else
     coeffs = coefficients;
 

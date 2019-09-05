@@ -27,7 +27,7 @@
 #include "absorption.h"
 #include "arts.h"
 #include "global_data.h"
-#include "linefunctiondata.h"
+#include "lineshapemodel.h"
 #include "linefunctions.h"
 #include "linescaling.h"
 #include "transmissionmatrix.h"
@@ -540,8 +540,7 @@ void test_zeeman() {
 }
 
 int main() {
-  /*test_linefunctionsdata();
-    test_speed_of_pressurebroadening();
+  /*test_speed_of_pressurebroadening();
     test_transmissionmatrix();
     test_r_deriv_propagationmatrix();
     test_transmat_from_propmat();
