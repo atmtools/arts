@@ -492,7 +492,7 @@ class AgendaWrapper {
         iteration_counter_(0),
         jacobian_(arts_jacobian),
         reuse_jacobian_((arts_jacobian.nrows() != 0) &&
-                        (arts_jacobian.ncols() != 0) && (yi_.nelem() != 0)),
+                        (arts_jacobian.ncols() != 0) && (arts_y.nelem() != 0)),
         ws_(ws),
         yi_(arts_y) {}
 
