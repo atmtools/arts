@@ -501,4 +501,205 @@ Matrix CO2_ir_training(const ArrayOfRational& Ji,
                        const Vector& gamma,
                        const Numeric& T);
 
+/** Compute the relaxation matrix in air mixture
+ * 
+ * @param[out] relmat Relaxation matrix
+ * @param[in] abs_lines Absorption band
+ * @param[in] abs_species Atmospheric species
+ * @param[in] partition_functions Partition functions
+ * @param[in] wigner_initialized Indication of the Wigner state
+ * @param[in] temperature Atmospheric temperature
+ * @param[in] species This species index
+ */
+void relmatInAir(Matrix& relmat,
+                 const ArrayOfLineRecord& abs_lines,
+                 const ArrayOfArrayOfSpeciesTag& abs_species,
+                 const SpeciesAuxData& partition_functions,
+                 const Index& wigner_initialized,
+                 const Numeric& temperature,
+                 const Index& species);
+
+/** Xsec from full relaxation matrix
+ * 
+ * @param[in,out] xsec Cross-section per level
+ * @param[in,out] dxsec_dx Cross-section per species derivatives
+ * @param[in] lines Absorption band
+ * @param[in] derivatives_data The derivatives in dF
+ * @param[in] derivatives_data_position The derivatives positions in dF
+ * @param[in] Wmat Relaxation matrix
+ * @param[in] Wmat_perturbedT Relaxation matrix perturbed by temperature
+ * @param[in] f0 Line frequencies
+ * @param[in] f_grid As WSV
+ * @param[in] d0 Dipole moments
+ * @param[in] rhoT Population density at temperature
+ * @param[in] rhoT_perturbedT Population density at temperature perturbed by temperature
+ * @param[in] psf Line shifting
+ * @param[in] psf_perturbedT Line shifting perturbed by temperature
+ * @param[in] T Atmospheric temperature
+ * @param[in] isotopologue_ratio Ratio of isotopologue in atmosphere
+ * @param[in] this_species Index pointing at this species
+ * @param[in] this_level Index pointing at this species
+ * @param[in] n Number of lines
+ */
+void calculate_xsec_from_full_relmat(
+  ArrayOfMatrix& xsec,
+  ArrayOfArrayOfMatrix& dxsec_dx,
+  const ArrayOfLineRecord& lines,
+  const ArrayOfRetrievalQuantity& derivatives_data,
+  const ArrayOfIndex& derivatives_data_position,
+  const ConstMatrixView Wmat,
+  const ConstMatrixView Wmat_perturbedT,
+  const ConstVectorView f0,
+  const ConstVectorView f_grid,
+  const ConstVectorView d0,
+  const ConstVectorView rhoT,
+  const ConstVectorView rhoT_perturbedT,
+  const ConstVectorView psf,
+  const ConstVectorView psf_perturbedT,
+  const Numeric& T,
+  const Numeric& isotopologue_ratio,
+  const Index& this_species,
+  const Index& this_level,
+  const Index& n);
+
+
+/** Xsec from full relaxation matrix
+ * 
+ * @param[in,out] xsec Cross-section per level
+ * @param[in,out] dxsec_dx Cross-section per species derivatives
+ * @param[in] lines Absorption band
+ * @param[in] derivatives_data The derivatives in dF
+ * @param[in] derivatives_data_position The derivatives positions in dF
+ * @param[in] Line broadening
+ * @param[in] Line broadening temperature derivative
+ * @param[in] f0 Line frequencies
+ * @param[in] f_grid As WSV
+ * @param[in] d0 Dipole moments
+ * @param[in] rhoT Population density at temperature
+ * @param[in] rhoT_perturbedT Population density at temperature temperature derivative
+ * @param[in] psf Line shifting
+ * @param[in] psf_perturbedT Line shifting temperature derivative
+ * @param[in] Y First order line mixing coefficient
+ * @param[in] dY_dT First order line mixing coefficient temperature derivative
+ * @param[in] G Second order line mixing coefficient
+ * @param[in] dG_dT Second order line mixing coefficient temperature derivative
+ * @param[in] DV Second order line mixing shifting coefficient
+ * @param[in] dDV_dT Second order line mixing shifting coefficient temperature derivative
+ * @param[in] T Atmospheric temperature
+ * @param[in] isotopologue_mass Mass of isotopologue
+ * @param[in] isotopologue_ratio Ratio of isotopologue in atmosphere
+ * @param[in] this_species Index pointing at this species
+ * @param[in] this_level Index pointing at this species
+ * @param[in] n Number of lines
+ */
+void calculate_xsec_from_relmat_coefficients(
+  ArrayOfMatrix& xsec,
+  ArrayOfArrayOfMatrix& dxsec_dx,
+  const ArrayOfRetrievalQuantity& derivatives_data,
+  const ArrayOfIndex& derivatives_data_position,
+  const ConstVectorView pressure_broadening,
+  const ConstVectorView dpressure_broadening_dT,
+  const ConstVectorView f0,
+  const ConstVectorView f_grid,
+  const ConstVectorView d0,
+  const ConstVectorView rhoT,
+  const ConstVectorView drhoT_dT,
+  const ConstVectorView psf,
+  const ConstVectorView dpsf_dT,
+  const ConstVectorView Y,
+  const ConstVectorView dY_dT,
+  const ConstVectorView G,
+  const ConstVectorView dG_dT,
+  const ConstVectorView DV,
+  const ConstVectorView dDV_dT,
+  const Numeric& T,
+  const Numeric& isotopologue_mass,
+  const Numeric& isotopologue_ratio,
+  const Index& this_species,
+  const Index& this_level,
+  const Index& n);
+
+#ifdef ENABLE_RELMAT
+extern "C" {
+// This is the interfaces between the Fortran code that calculates W and ARTS
+extern void arts_relmat_interface__hartmann_and_niro_type(
+    long* nlines,
+    double* fmin,
+    double* fmax,
+    long* M,
+    long* I,
+    double* v,
+    double* S,
+    double* gamma_air,
+    double* E_double_prime,
+    double* n_air,
+    long* upper,
+    long* lower,
+    long* g_prime,
+    long* g_double_prime,
+    double* temperature,
+    double* pressure,
+    double* partition_function_t,
+    double* partition_function_t0,
+    double* isotopologue_mass,
+    long* number_of_perturbers,
+    long* molecule_code_perturber,
+    long* iso_code_perturber,
+    double* perturber_mass,
+    double* vmr,
+    //output+input
+    long* debug_in__error_out,
+    long* ordered,
+    double* tolerance_in_rule_nr2,
+    bool* use_adiabatic_factor,
+    //outputs
+    double* W,
+    double* dipole,
+    double* rhoT,
+    double* Y,
+    double* G,
+    double* DV);
+
+extern void arts_relmat_interface__linear_type(long* nlines,
+                                               double* fmin,
+                                               double* fmax,
+                                               long* M,
+                                               long* I,
+                                               double* v,
+                                               double* S,
+                                               double* gamma_air,
+                                               double* E_double_prime,
+                                               double* n_air,
+                                               long* upper,
+                                               long* lower,
+                                               long* g_prime,
+                                               long* g_double_prime,
+                                               double* temperature,
+                                               double* pressure,
+                                               double* partition_function_t,
+                                               double* partition_function_t0,
+                                               double* isotopologue_mass,
+                                               long* number_of_perturbers,
+                                               long* molecule_code_perturber,
+                                               long* iso_code_perturber,
+                                               double* perturber_mass,
+                                               double* vmr,
+                                               //output+input
+                                               long* debug_in__error_out,
+                                               long* ordered,
+                                               double* tolerance_in_rule_nr2,
+                                               bool* use_adiabatic_factor,
+                                               //outputs
+                                               double* W,
+                                               double* dipole,
+                                               double* rhoT,
+                                               double* Y,
+                                               double* G,
+                                               double* DV);
+
+extern double* wigner3j_(double*, double*, double*, double*, double*, double*);
+extern double* wigner6j_(double*, double*, double*, double*, double*, double*);
+}
+#endif  //ENABLE_RELMAT
+
 #endif  // linemixing_h
