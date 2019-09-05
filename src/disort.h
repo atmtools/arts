@@ -118,7 +118,7 @@ void get_disortsurf_props(  // Output
     const Numeric& surface_skin_t,
     ConstVectorView surface_scalar_reflectivity);
 
-/** run_disort2
+/** run_disort
  *
  * Prepares actual input variables for Disort, runs it, and sorts the output into
  * doit_i_field.
