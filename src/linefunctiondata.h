@@ -34,13 +34,10 @@
 #ifndef linefunctiondata_h
 #define linefunctiondata_h
 
-// Actually needed
-#include "abs_species_tags.h"
-#include "jacobian.h"
-
-// Using some algorithms
 #include <numeric>
+#include "abs_species_tags.h"
 #include "constants.h"
+#include "jacobian.h"
 
 /** Return the deriveative type based on string input 
  * 
@@ -940,49 +937,7 @@ class Model {
    */
   Vector vmrs(const ConstVectorView& atmospheric_vmrs,
               const ArrayOfArrayOfSpeciesTag& atmospheric_species,
-              const QuantumIdentifier& self) const {
-    if (atmospheric_species.nelem() != atmospheric_vmrs.nelem())
-      throw std::runtime_error("Bad atmospheric inputs");
-
-    // Initialize list of VMRS to 0
-    Vector line_vmrs(mspecies.nelem(), 0);
-    const Index back = mspecies.nelem() - 1;  // Last index
-
-    if (mtype == Type::DP) return line_vmrs;
-
-    // Loop species ignoring self and bath
-    for (Index i = 0; i < mspecies.nelem(); i++) {
-      if (mbath and i == back) {
-      } else {
-        // Select target in-case this is self-broadening
-        const auto target =
-            (mself and i == 0) ? self.Species() : mspecies[i].Species();
-
-        // Find species in list or do nothing at all
-        Index this_species_index = -1;
-        for (Index j = 0; j < atmospheric_species.nelem(); j++)
-          if (atmospheric_species[j][0].Species() == target)
-            this_species_index = j;
-
-        // Set to non-zero in-case species exists
-        if (this_species_index not_eq -1)
-          line_vmrs[i] = atmospheric_vmrs[this_species_index];
-      }
-    }
-
-    // Renormalize, if bath-species exist this is automatic.
-    if (mbath)
-      line_vmrs[back] = 1.0 - line_vmrs.sum();
-    else
-      line_vmrs /= line_vmrs.sum();
-
-    // The result must be non-zero, a real number, and finite
-    if (not std::isnormal(line_vmrs.sum()))
-      throw std::runtime_error(
-          "Bad VMRs, your atmosphere does not support the line of interest");
-
-    return line_vmrs;
-  }
+              const QuantumIdentifier& self) const;
 
   /** Find the position of self in the list of species
    * 
@@ -1592,8 +1547,8 @@ inline LegacyPressureBroadeningData::TypePB string2typepb(String type) {
 }
 
 /** Pressure broadening if self exist */
-inline bool self_listed(const QuantumIdentifier& qid,
-                        LegacyPressureBroadeningData::TypePB t) {
+inline Index self_listed(const QuantumIdentifier& qid,
+                         LegacyPressureBroadeningData::TypePB t) {
   if (t == TypePB::PB_PLANETARY_BROADENING and
       (qid.Species() == SpeciesTag(String("N2")).Species() or
        qid.Species() == SpeciesTag(String("O2")).Species() or
