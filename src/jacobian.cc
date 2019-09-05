@@ -15,13 +15,13 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*!
-  \file   jacobian.cc
-  \author Mattias Ekstrom <ekstrom@rss.chalmers.se>
-  \date   2004-09-14
+/**
+  @file   jacobian.cc
+  @author Mattias Ekstrom <ekstrom@rss.chalmers.se>
+  @date   2004-09-14
 
-  \brief  Routines for setting up the jacobian.
-*/
+  @brief  Routines for setting up the jacobian.
+ */
 
 #include "jacobian.h"
 #include "arts.h"
@@ -52,25 +52,6 @@ ostream& operator<<(ostream& os, const RetrievalQuantity& ot) {
             << "\n     Analytical = " << ot.Analytical();
 }
 
-//! jac_ranges_indices
-/*!
-    Determines the index range inside x and the Jacobian for each retrieval quantity
-
-    The ranges are given as an ArrayOfArrayOfIndex, where outermost dimension
-    corresponds to retrieval quantity. The inner dimension has throughout size
-    2, where element 0 is the first index and element 1 is the last index of
-    the range.
-
-    \param   jis             Out: Indices, as described above
-    \param   any_affine      Out: True if at least one  quantity has affine
-                             transformation. 
-    \param   jqs             The WSV jacobian_quantities
-    \param   before_affine   Set to true to get indices without any affine
-                             transformation. Default is false.
-
-    \author Simon Pfreundschuh and Patrick Eriksson 
-    \date   2017-12-30
-*/
 void jac_ranges_indices(ArrayOfArrayOfIndex& jis,
                         bool& any_affine,
                         const ArrayOfRetrievalQuantity& jqs,
@@ -116,16 +97,6 @@ void jac_ranges_indices(ArrayOfArrayOfIndex& jis,
   }
 }
 
-//! Handles transformations of the Jacobian
-/**
- * Applies both functional and affine transformations.
- *
- *  \param jacobian As the WSV jacobian
- *  \param jqs As the WSV jacobian_quantities
- *
- *  \author Simon Pfreundschuh and Patrick Eriksson 
- *  \date   2017-12-30
- */
 void transform_jacobian(Matrix& jacobian,
                         const Vector x,
                         const ArrayOfRetrievalQuantity& jqs) {
@@ -191,16 +162,6 @@ void transform_jacobian(Matrix& jacobian,
   }
 }
 
-//! Handles transformations of the state vector
-/**
- * Applies both functional and affine transformations.
- *
- *  \param x As the WSV x
- *  \param jqs As the WSV jacobian_quantities
- *
- *  \author Simon Pfreundschuh and Patrick Eriksson 
- *  \date   2017-12-30
- */
 void transform_x(Vector& x, const ArrayOfRetrievalQuantity& jqs) {
   // Range indices without affine trans
   ArrayOfArrayOfIndex jis;
@@ -290,16 +251,6 @@ void transform_x(Vector& x, const ArrayOfRetrievalQuantity& jqs) {
   }
 }
 
-//! Handles back-transformations of the state vector
-/**
- * Applies both functional and affine transformations.
- *
- *  \param x As the WSV x
- *  \param jqs As the WSV jacobian_quantities
- *
- *  \author Simon Pfreundschuh and Patrick Eriksson 
- *  \date   2017-12-30
- */
 void transform_x_back(Vector& x_t,
                       const ArrayOfRetrievalQuantity& jqs,
                       bool revert_functional_transforms) {
@@ -380,21 +331,6 @@ void from_dpath_to_dx(MatrixView diy_dx,
   }
 }
 
-//! diy_from_path_to_rgrids
-/*!
-    Maps jacobian data for points along the propagation path, to
-    jacobian retrieval grid data.
-
-    \param   diy_dx              Out: One lement of the WSV *diy_dx*.
-    \param   jacobian_quantity   One element of of the WSV *jacobian_quantities*.
-    \param   diy_dpath           Jacobians along the propagation path.
-    \param   atmosphere_dim      As the WSV.
-    \param   ppath               As the WSV.
-    \param   ppath_p             The pressure at each ppath point.
-
-    \author Patrick Eriksson 
-    \date   2009-10-08
-*/
 void diy_from_path_to_rgrids(Tensor3View diy_dx,
                              const RetrievalQuantity& jacobian_quantity,
                              ConstTensor3View diy_dpath,
@@ -564,19 +500,6 @@ void diy_from_path_to_rgrids(Tensor3View diy_dx,
   }
 }
 
-//! diy_from_pos_to_rgrids
-/*!
-    Maps jacobian data for a surface position, to jacobian retrieval grid data.
-
-    \param   diy_dx              Out: One lement of the WSV *diy_dx*.
-    \param   jacobian_quantity   One element of of the WSV *jacobian_quantities*.
-    \param   diy_dpos            Jacobian for the position itself.
-    \param   atmosphere_dim      As the WSV.
-    \param   rtp_pos             As the WSV.
-
-    \author Patrick Eriksson 
-    \date   2018-04-10
-*/
 void diy_from_pos_to_rgrids(Tensor3View diy_dx,
                             const RetrievalQuantity& jacobian_quantity,
                             ConstMatrixView diy_dpos,
@@ -667,27 +590,6 @@ void diy_from_pos_to_rgrids(Tensor3View diy_dx,
   }
 }
 
-//! Help function for analytical jacobian calculations
-/*!
-    The function determines which terms in jacobian_quantities that are 
-    analytical absorption species and temperature jacobians. 
-
-    *abs_species_i* and *is_t* shall be sized to have the same length
-    as *jacobian_quantities*. For analytical absorption species
-    jacobians, *abs_species_i* is set to the matching index in
-    *abs_species*. Otherwise, to -1. For analytical temperature
-    jacobians, *is_t* is set to 1. Otherwise to 0.
-
-    \param   abs_species_i         Out: Matching index in abs_species 
-    \param   scat_species_i        Out: Matching index among scattering species 
-    \param   is_t                  Out: Flag for: Is a temperature jacobian?
-    \param   jacobian_quantities   As the WSV.
-    \param   abs_species           As the WSV.
-
-
-    \author Patrick Eriksson 
-    \date   2009-10-07
-*/
 void get_pointers_for_analytical_jacobians(
     ArrayOfIndex& abs_species_i,
     ArrayOfIndex& scat_species_i,
@@ -782,18 +684,6 @@ void get_pointers_for_analytical_jacobians(
   === Other functions, in alphabetical order
   ===========================================================================*/
 
-//! Calculate the number density field
-/*! 
-   This function returns the number density for each grid point in the 
-   Tensor3View.
-   
-   \param nd  The number density field
-   \param p   The pressure grid
-   \param t   The temperature field
-   
-   \author Mattias Ekstrom
-   \date   2005-06-03
-*/
 void calc_nd_field(Tensor3View& nd, const VectorView& p, const Tensor3View& t) {
   assert(nd.npages() == t.npages());
   assert(nd.nrows() == t.nrows());
@@ -810,34 +700,6 @@ void calc_nd_field(Tensor3View& nd, const VectorView& p, const Tensor3View& t) {
   }
 }
 
-//! Check that the retrieval grids are defined for each atmosphere dim
-/*!
-   Use this version for atmospheric fields.
-
-   This function checks for the given atmosphere dimension that 
-     I)  the retrieval grids are defined 
-     II) and that they are covered by the corresponding atmospheric grid. 
-   If not the return is false and an output string is created to print 
-   the error to the user. If the grids are ok they are stored in an array 
-   and true is  returned.
-   
-   \param grids         The array of retrieval grids.
-   \param os            The output string stream.
-   \param p_grid        The atmospheric pressure grid
-   \param lat_grid      The atmospheric latitude grid
-   \param lon_grid      The atmospheric longitude grid
-   \param p_retr        The pressure retrieval grid.
-   \param lat_retr      The latitude retrieval grid.
-   \param lon_retr      The longitude retrieval grid.
-   \param p_retr_name   The control file name used for the pressure retrieval grid.
-   \param lat_retr_name The control file name for the latitude retrieval grid.
-   \param lon_retr_name The control file name for the longitude retrieval grid.
-   \param dim           The atmosphere dimension
-   \return              Boolean for check.
-   
-   \author Mattias Ekstrom
-   \date   2005-05-11
-*/
 bool check_retrieval_grids(ArrayOfVector& grids,
                            ostringstream& os,
                            const Vector& p_grid,
@@ -948,31 +810,6 @@ bool check_retrieval_grids(ArrayOfVector& grids,
   return true;
 }
 
-//! Check that the retrieval grids are defined for each atmosphere dim
-/*!
-   Use this version for surface variables
-
-   This function checks for the given atmosphere dimension that 
-     I)  the retrieval grids are defined 
-     II) and that they are covered by the corresponding atmospheric grid. 
-   If not the return is false and an output string is created to print 
-   the error to the user. If the grids are ok they are stored in an array 
-   and true is  returned.
-   
-   \param grids         The array of retrieval grids.
-   \param os            The output string stream.
-   \param lat_grid      The atmospheric latitude grid
-   \param lon_grid      The atmospheric longitude grid
-   \param lat_retr      The latitude retrieval grid.
-   \param lon_retr      The longitude retrieval grid.
-   \param lat_retr_name The control file name for the latitude retrieval grid.
-   \param lon_retr_name The control file name for the longitude retrieval grid.
-   \param dim           The atmosphere dimension
-   \return              Boolean for check.
-   
-   \author Mattias Ekstrom
-   \date   2005-05-11
-*/
 bool check_retrieval_grids(ArrayOfVector& grids,
                            ostringstream& os,
                            const Vector& lat_grid,
@@ -1058,26 +895,6 @@ bool check_retrieval_grids(ArrayOfVector& grids,
   return true;
 }
 
-//! Calculate array of GridPos for perturbation interpolation
-/*!
-   This function constructs a perturbation grid which consists of the
-   given retrieval grid with an extra endpoint added at each end.
-   These endpoints lies outside the atmospheric grid. This enables the
-   interpolation of an perturbation on the perturbation grid to be
-   interpolated to the atmospheric grid. For this reason the function
-   returns an ArrayOfGridPos. 
-   
-   If the atmospheric grid is a pressure grid, interpolation is made
-   in logarithm of the atmospheric grid.
-   
-   \param gp          Array of GridPos for interpolation.
-   \param atm_grid    Atmospheric grid.
-   \param jac_grid    Retrieval grid.
-   \param is_pressure True for pressure grid 
-   
-   \author Mattias Ekstrom
-   \date   2005-05-12
-*/
 void get_perturbation_gridpos(ArrayOfGridPos& gp,
                               const Vector& atm_grid,
                               const Vector& jac_grid,
@@ -1105,30 +922,6 @@ void get_perturbation_gridpos(ArrayOfGridPos& gp,
   }
 }
 
-//! Get limits for perturbation of a box
-/*!
-   This is a helper function that calculates the limits where the 
-   perturbation should be added to the perturbation grid. 
-   This is needed for example by the particle perturbation that only
-   should be applied for the cloudbox. The limits are defined as the 
-   outermost points lying within or just outside the box limits.
-   
-   The atmospheric limits should be given in the same unit as the
-   perturbation grid. And only the first and last element will be 
-   considered as limits. 
-   
-   Assertions are used to perform checks. The input grids are 
-   checked so that the atmospheric limits are containg within 
-   the perturbation grid. The limit indices are checked so 
-   that they are ordered in increasing order before return.
-   
-   \param limit     The limit indices in the perturbation grid
-   \param pert_grid The perturbation grid
-   \param atm_limit The atmospheric limits of the box.
-
-   \author Mattias Ekstrom
-   \date   2005-02-25
-*/
 void get_perturbation_limit(ArrayOfIndex& limit,
                             const Vector& pert_grid,
                             const Vector& atm_limit) {
@@ -1160,20 +953,6 @@ void get_perturbation_limit(ArrayOfIndex& limit,
   assert(limit[1] > limit[0]);
 }
 
-//! Get range for perturbation
-/*!
-   This is a helper function that calculates the range in which the 
-   perturbation should be added to the perturbation grid. This is needed
-   to handle the edge effects. At the edges we want the perturbation to 
-   continue outwards. 
-   
-   \param range     The range in the perturbation grid.
-   \param index     The index of the perturbation in the retrieval grid.
-   \param length    The length of retrieval grid
-   
-   \author Mattias Ekstrom
-   \date   2004-10-14
-*/
 void get_perturbation_range(Range& range,
                             const Index& index,
                             const Index& length) {
@@ -1185,22 +964,6 @@ void get_perturbation_range(Range& range,
     range = Range(index + 1, 1);
 }
 
-//! Adopts grid postions to extrapolation used for jacobians
-/*!
-  The standard interpolation scheme applies a linear extrapolation, while for
-  the jacobians the extrapolation can be seen as a "closest" interpolation.
-  That is, for points outisde the covered grid, the value at closest end point
-  is taken. And here extrapolation to +-Inf is allowed.
-
-  This function modifies grid positions to jacobaina extrapolation approach.
-  For efficiency, the input grid positions are not asserted at all, and
-  "extrapolation points" are identified simply  by a fd outside [0,1].
-
-  \param[in/out] gp   Array of grid positions.
-
-  \author Patrick Eriksson 
-  \date   2015-09-10
-*/
 void jacobian_type_extrapol(ArrayOfGridPos& gp) {
   for (Index i = 0; i < gp.nelem(); i++) {
     if (gp[i].fd[0] < 0) {
@@ -1213,21 +976,6 @@ void jacobian_type_extrapol(ArrayOfGridPos& gp) {
   }
 }
 
-//! Calculate the 1D perturbation for a relative perturbation.
-/*!
-   This is a helper function that interpolated the perturbation field for
-   a 1D relative perturbation onto the atmospheric field. 
-   
-   \param field     The interpolated perturbation field.
-   \param p_gp      The GridPos for interpolation.
-   \param p_pert_n  The number of perturbations.
-   \param p_range   The perturbation range in the perturbation grid.
-   \param size      The size of the perturbation.
-   \param method    Relative perturbation==0, absolute==1
-   
-   \author Mattias Ekstrom
-   \date   2005-05-11
-*/
 void perturbation_field_1d(VectorView field,
                            const ArrayOfGridPos& p_gp,
                            const Index& p_pert_n,
@@ -1249,24 +997,6 @@ void perturbation_field_1d(VectorView field,
   }
 }
 
-//! Calculate the 2D perturbation for a relative perturbation.
-/*!
-   This is a helper function that interpolated the perturbation field for
-   a 2D relative perturbation onto the atmospheric field. 
-   
-   \param field       The interpolated perturbation field.
-   \param p_gp        The GridPos for interpolation in the 1st dim.
-   \param lat_gp      The GridPos for interpolation in the 2nd dim.
-   \param p_pert_n    The number of perturbations in the 1st dim.
-   \param lat_pert_n  The number of perturbations in the 2nd dim.
-   \param p_range     The perturbation range in the 1st dim.
-   \param lat_range   The perturbation range in the 2nd dim.
-   \param size        The size of the perturbation.
-   \param method      Relative perturbation==0, absolute==1
-   
-   \author Mattias Ekstrom
-   \date   2005-05-11
-*/
 void perturbation_field_2d(MatrixView field,
                            const ArrayOfGridPos& p_gp,
                            const ArrayOfGridPos& lat_gp,
@@ -1291,27 +1021,6 @@ void perturbation_field_2d(MatrixView field,
   }
 }
 
-//! Calculate the 3D perturbation for a relative perturbation.
-/*!
-   This is a helper function that interpolated the perturbation field for
-   a 3D relative perturbation onto the atmospheric field. 
-   
-   \param field       The interpolated perturbation field.
-   \param p_gp        The GridPos for interpolation in the 1st dim.
-   \param lat_gp      The GridPos for interpolation in the 2nd dim.
-   \param lon_gp      The GridPos for interpolation in the 3rd dim.
-   \param p_pert_n    The number of perturbations in the 1st dim.
-   \param lat_pert_n  The number of perturbations in the 2nd dim.
-   \param lon_pert_n  The number of perturbations in the 3rd dim.
-   \param p_range     The perturbation range in the 1st dim.
-   \param lat_range   The perturbation range in the 2nd dim.
-   \param lon_range   The perturbation range in the 3rd dim.
-   \param size        The size of the perturbation.
-   \param method      Set to 0 for relative, and 1 for absolute.
-   
-   \author Mattias Ekstrom
-   \date   2005-05-11
-*/
 void perturbation_field_3d(Tensor3View field,
                            const ArrayOfGridPos& p_gp,
                            const ArrayOfGridPos& lat_gp,
@@ -1339,20 +1048,6 @@ void perturbation_field_3d(Tensor3View field,
   }
 }
 
-//! Calculates polynomial basis functions
-/*!
-   The basis function is b(x) = 1 for poly_coeff = 0. For higher
-   coefficients, x^poly_coeff - m, where first the range covered by
-   *x* is normalised to [-1,1] and m is selected in such way that
-   sum(b) = 0.
-   
-   \param b            Calculated basis function.
-   \param x            The grid over which the fit shall be performed.
-   \param poly_coeff   Polynomial coefficient.
-   
-   \author Patrick Eriksson
-   \date   2008-11-07
-*/
 void polynomial_basis_func(Vector& b,
                            const Vector& x,
                            const Index& poly_coeff) {
@@ -1461,23 +1156,6 @@ void calcBaselineFit(Vector& y_baseline,
   }
 }
 
-//! vmrunitscf
-/*!
-    Scale factor for conversion between gas species units.
-
-    The function finds the factor with which the total absorption of a
-    gas species shall be multiplicated to match the selected
-    (jacobian) unit. 
-
-    \param   x      Out: scale factor
-    \param   unit   Unit selected.
-    \param   vmr    VMR value.
-    \param   p      Pressure
-    \param   t      Temperature.
-
-    \author Patrick Eriksson 
-    \date   2009-10-08
-*/
 void vmrunitscf(Numeric& x,
                 const String& unit,
                 const Numeric& vmr,
@@ -1506,24 +1184,6 @@ void vmrunitscf(Numeric& x,
   }
 }
 
-//! dxdvmrscf
-/*!
-    Scale factor for conversion of derivatives with respect to VMR.
-
-    The function finds the factor with which a partial derivative with respect
-    to gas species VMR shall be multiplicated to match the selected (jacobian)
-    unit. The function was implemented for scaling of *dpropmat_clearsky_dx*
-    but it could also be of use in other contexts.
-
-    \param   x      Out: scale factor
-    \param   unit   Unit selected.
-    \param   vmr    VMR value.
-    \param   p      Pressure
-    \param   t      Temperature.
-
-    \author Patrick Eriksson 
-    \date   2015-12-11
-*/
 void dxdvmrscf(Numeric& x,
                const String& unit,
                const Numeric& vmr,
@@ -1544,30 +1204,6 @@ void dxdvmrscf(Numeric& x,
   }
 }
 
-/*!
- *   The function helps to calculate the partial derivative of iy with respect
- *   to one input at one pressure.  The formalism here assumes that the radiation
- *   terms are averaged rather than the absorption parameters, thus this can be 
- *   solved per layer rather than for two layers at a time.  Still, the absorption
- *   parameters for the transmission needs to be considered by the two layer derivatives
- * 
- *   FIXME:  Add HSE support
- * 
- *   \param   diy1                      Out: diy for a level encountered the first time
- *   \param   diy2                      Out: diy for a level encountered the second time
- *   \param   ImT                       In: identity matrix minus tranmsission matrix
- *   \param   cumulative_transmission   In: cumulative transmission from level to sensor
- *   \param   dT1                       In: transmission matrix derivative for the first time
- *   \param   dT2                       In: transmission matrix derivative for the second time
- *   \param   iYmJ                      In: incoming radiation to layer minus source of layer
- *   \param   dJ1                       In: derivative of source term emitted for the first time
- *   \param   dJ2                       In: derivative of source term emitted for the second time
- *   \param   stokes_dim                In: essentially the size of the problem
- *   \param   transmission_only         In: remove all computations on source terms, making iYmJ pure incoming radiation
- * 
- *   \author Richard Larsson
- *   \date   2017-09-20
- */
 void get_diydx(VectorView diy1,
                VectorView diy2,
                ConstMatrixView ImT,
@@ -1617,13 +1253,6 @@ void get_diydx(VectorView diy1,
 //======================================================================
 //             Propmat partials descriptions
 //======================================================================
-
-Index number_of_propmattypes(const ArrayOfRetrievalQuantity& js) noexcept {
-  Index n = 0;
-  for (const auto& j : js)
-    if (j not_eq JacPropMatType::NotPropagationMatrixType) n++;
-  return n;
-}
 
 ArrayOfIndex equivlent_propmattype_indexes(const ArrayOfRetrievalQuantity& js) {
   ArrayOfIndex pos;

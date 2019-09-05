@@ -164,14 +164,26 @@ Copy( jcopy, jacobian )
 #WriteXML( output_file_format, jacobian, "Ja.xml" )
 
 
-# Re-do by perturbations
+# Re-do by external perturbations
 #
-jacobianInit
-jacobianAddTemperature( g1=p_grid, g2=lat_grid, g3=lon_grid, hse="on",
-                        method="perturbation", dt=0.1 )
-jacobianClose
+NumericCreate( dt )
+NumericSet( dt, 0.1 )
 #
-yCalc
+IndexNumberOfAtmosphericPoints( n = ybatch_n )
+#
+jacobianOff
+#
+AgendaSet(ybatch_calc_agenda){
+  AtmFieldPerturbAtmGrids( perturbed_field = t_field,
+                           original_field = t_field,
+                           pert_index = ybatch_index,
+                           pert_size = dt )
+  z_fieldFromHSE
+  yCalc
+}
+#
+ybatchCalc( ybatch_start=0 )
+jacobianFromYbatch( pert_size = dt )
 #
 #WriteXML( output_file_format, jacobian, "Jp.xml" )
 

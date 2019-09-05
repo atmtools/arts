@@ -15,11 +15,13 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/** \file
-    Declarations required for the calculation of jacobians.
+/** 
+  @file   jacobian.h
+  @author Mattias Ekstrom <ekstrom@rss.chalmers.se>
+  @date   2004-09-14
 
-    \author Mattias Ekstrom
-*/
+  @brief  Routines for setting up the jacobian.
+ */
 
 #ifndef jacobian_h
 #define jacobian_h
@@ -40,6 +42,7 @@
 
 #include "quantum.h"
 
+// FIXMEDOC@Richard: Add doc for class
 enum class JacPropMatType : Index {
   VMR,
   Electrons,
@@ -101,8 +104,9 @@ enum class JacPropMatType : Index {
   NotPropagationMatrixType
 };
 
-/** Contains the data for one retrieval quantity.
-    \author Mattias Ekstrom */
+
+// FIXMEDOC/Richard: Best if you take this one as well, as I can not make it
+// complete anyhow
 class RetrievalQuantity {
  public:
   /** Default constructor. Needed by make_array. */
@@ -226,9 +230,7 @@ class RetrievalQuantity {
   Vector offset_vector;
 };
 
-/** Output operator for RetrievalQuantity.
-
-    \author Mattias Ekstrom */
+/** Output operator for RetrievalQuantity */
 ostream& operator<<(ostream& os, const RetrievalQuantity& ot);
 
 typedef Array<RetrievalQuantity> ArrayOfRetrievalQuantity;
@@ -240,6 +242,7 @@ typedef Array<RetrievalQuantity> ArrayOfRetrievalQuantity;
       what_to_do                                               \
     }                                                          \
   }
+// A macro to loop analytical jacobian quantities
 #define FOR_ANALYTICAL_JACOBIANS_DO2(what_to_do)                \
   for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {  \
     if (jacobian_quantities[iq].Analytical() ||                 \
@@ -252,17 +255,62 @@ typedef Array<RetrievalQuantity> ArrayOfRetrievalQuantity;
 //             Index ranges and transformation functions
 //======================================================================
 
+/** Determines the index range inside x and the Jacobian for each retrieval quantity
+
+    The ranges are given as an ArrayOfArrayOfIndex, where outermost dimension
+    corresponds to retrieval quantity. The inner dimension has throughout size
+    2, where element 0 is the first index and element 1 is the last index of
+    the range.
+
+    @param[out]   jis            Indices, as described above
+    @param[in]    any_affine     True if at least one  quantity has affine
+                                 transformation. 
+    @param[in]   jqs             The WSV jacobian_quantities
+    @param[in]   before_affine   Set to true to get indices without any affine
+                                 transformation. Default is false.
+
+    @author Simon Pfreundschuh and Patrick Eriksson 
+    @date   2017-12-30
+ */
 void jac_ranges_indices(ArrayOfArrayOfIndex& jis,
                         bool& any_affine,
                         const ArrayOfRetrievalQuantity& jqs,
                         const bool& before_affine = false);
 
+/** Applies both functional and affine transformations.
+ *
+ *  @param[in] jacobian As the WSV jacobian
+ *  @param[in] jqs As the WSV jacobian_quantities
+ *
+ *  @author Simon Pfreundschuh and Patrick Eriksson 
+ *  @date   2017-12-30
+ */
 void transform_jacobian(Matrix& jacobian,
                         const Vector x,
                         const ArrayOfRetrievalQuantity& jqs);
-
+ 
+/** Handles transformations of the state vector
+ *
+ * Applies both functional and affine transformations.
+ *
+ *  @param[in,out] x    As the WSV x
+ *  @param[in]     jqs  As the WSV jacobian_quantities
+ *
+ *  @author Simon Pfreundschuh and Patrick Eriksson 
+ *  @date   2017-12-30
+ */
 void transform_x(Vector& x, const ArrayOfRetrievalQuantity& jqs);
-
+ 
+/** Handles back-transformations of the state vector
+ *
+ * Applies both functional and affine transformations.
+ *
+ *  @param[in] x As the WSV x
+ *  @param[in] jqs As the WSV jacobian_quantities
+ *
+ *  @author Simon Pfreundschuh and Patrick Eriksson 
+ *  @date   2017-12-30
+ */
 void transform_x_back(Vector& x_t,
                       const ArrayOfRetrievalQuantity& jqs,
                       bool revert_functional_transforms = true);
@@ -271,8 +319,49 @@ void transform_x_back(Vector& x_t,
 //             Functions related to calculation of Jacobian
 //======================================================================
 
+/* Calculate the number density field
+
+   This function returns the number density for each grid point in the 
+   Tensor3View.
+   
+   @param[out] nd  The number density field
+   @param[in]  p   The pressure grid
+   @param[in]  t   The temperature field
+   
+   @author Mattias Ekstrom
+   @date   2005-06-03
+ */
 void calc_nd_field(Tensor3View& nd, const VectorView& p, const Tensor3View& t);
 
+/** Check that the retrieval grids are defined for each atmosphere dim
+
+   Use this version for atmospheric fields.
+
+   This function checks for the given atmosphere dimension that 
+     I)  the retrieval grids are defined 
+     II) and that they are covered by the corresponding atmospheric grid. 
+   If not the return is false and an output string is created to print 
+   the error to the user. If the grids are ok they are stored in an array 
+   and true is  returned.
+   
+   @param[out] grids        The array of retrieval grids.
+   @param[in,out] os        The output string stream.
+   @param[in] p_grid        The atmospheric pressure grid
+   @param[in] lat_grid      The atmospheric latitude grid
+   @param[in] lon_grid      The atmospheric longitude grid
+   @param[in] p_retr        The pressure retrieval grid.
+   @param[in] lat_retr      The latitude retrieval grid.
+   @param[in] lon_retr      The longitude retrieval grid.
+   @param[in] p_retr_name   The control file name used for the pressure retrieval grid.
+   @param[in] lat_retr_name The control file name for the latitude retrieval grid.
+   @param[in] lon_retr_name The control file name for the longitude retrieval grid.
+   @param[in] dim           The atmosphere dimension
+
+   @return              Boolean for check.
+   
+   @author Mattias Ekstrom
+   @date   2005-05-11
+ */
 bool check_retrieval_grids(ArrayOfVector& grids,
                            ostringstream& os,
                            const Vector& p_grid,
@@ -286,6 +375,32 @@ bool check_retrieval_grids(ArrayOfVector& grids,
                            const String& lon_retr_name,
                            const Index& dim);
 
+
+/** Check that the retrieval grids are defined for each atmosphere dim
+
+   Use this version for surface variables
+
+   This function checks for the given atmosphere dimension that 
+     I)  the retrieval grids are defined 
+     II) and that they are covered by the corresponding atmospheric grid. 
+   If not the return is false and an output string is created to print 
+   the error to the user. If the grids are ok they are stored in an array 
+   and true is  returned.
+   
+   @param[out] grids        The array of retrieval grids.
+   @param[in,out] os        The output string stream.
+   @param[in] lat_grid      The atmospheric latitude grid
+   @param[in] lon_grid      The atmospheric longitude grid
+   @param[in] lat_retr      The latitude retrieval grid.
+   @param[in] lon_retr      The longitude retrieval grid.
+   @param[in] lat_retr_name The control file name for the latitude retrieval grid.
+   @param[in] lon_retr_name The control file name for the longitude retrieval grid.
+   @param[in] dim           The atmosphere dimension
+   @return              Boolean for check.
+   
+   @author Mattias Ekstrom
+   @date   2005-05-11
+ */
 bool check_retrieval_grids(ArrayOfVector& grids,
                            ostringstream& os,
                            const Vector& lat_grid,
@@ -296,6 +411,19 @@ bool check_retrieval_grids(ArrayOfVector& grids,
                            const String& lon_retr_name,
                            const Index& dim);
 
+/** Maps jacobian data for points along the propagation path, to
+    jacobian retrieval grid data.
+
+    @param[out]  diy_dx              One element of the WSV *diy_dx*.
+    @param[in]   jacobian_quantity   One element of of the WSV *jacobian_quantities*.
+    @param[in]   diy_dpath           Jacobians along the propagation path.
+    @param[in]   atmosphere_dim      As the WSV.
+    @param[in]   ppath               As the WSV.
+    @param[in]   ppath_p             The pressure at each ppath point.
+
+    @author Patrick Eriksson 
+    @date   2009-10-08
+ */
 void diy_from_path_to_rgrids(Tensor3View diy_dx,
                              const RetrievalQuantity& jacobian_quantity,
                              ConstTensor3View diy_dpath,
@@ -303,25 +431,118 @@ void diy_from_path_to_rgrids(Tensor3View diy_dx,
                              const Ppath& ppath,
                              ConstVectorView ppath_p);
 
+/** diy_from_pos_to_rgrids
+
+    Maps jacobian data for a surface position, to jacobian retrieval grid data.
+
+    @param[out]   diy_dx             One element of the WSV *diy_dx*.
+    @param[in]   jacobian_quantity   One element of of the WSV *jacobian_quantities*.
+    @param[in]   diy_dpos            Jacobian for the position itself.
+    @param[in]   atmosphere_dim      As the WSV.
+    @param[in]   rtp_pos             As the WSV.
+
+    @author Patrick Eriksson 
+    @date   2018-04-10
+ */
 void diy_from_pos_to_rgrids(Tensor3View diy_dx,
                             const RetrievalQuantity& jacobian_quantity,
                             ConstMatrixView diy_dpos,
                             const Index& atmosphere_dim,
                             ConstVectorView rtp_pos);
+ 
+/** Calculate array of GridPos for perturbation interpolation
 
+   This function constructs a perturbation grid which consists of the
+   given retrieval grid with an extra endpoint added at each end.
+   These endpoints lies outside the atmospheric grid. This enables the
+   interpolation of an perturbation on the perturbation grid to be
+   interpolated to the atmospheric grid. For this reason the function
+   returns an ArrayOfGridPos. 
+   
+   If the atmospheric grid is a pressure grid, interpolation is made
+   in logarithm of the atmospheric grid.
+   
+   @param[out] gp         Array of GridPos for interpolation.
+   @param[in] atm_grid    Atmospheric grid.
+   @param[in] jac_grid    Retrieval grid.
+   @param[in] is_pressure True for pressure grid 
+   
+   @author Mattias Ekstrom
+   @date   2005-05-12
+ */
 void get_perturbation_gridpos(ArrayOfGridPos& gp,
                               const Vector& atm_grid,
                               const Vector& jac_grid,
                               const bool& is_pressure);
 
+/** Get limits for perturbation of a box
+
+   This is a helper function that calculates the limits where the 
+   perturbation should be added to the perturbation grid. 
+   This is needed for example by the particle perturbation that only
+   should be applied for the cloudbox. The limits are defined as the 
+   outermost points lying within or just outside the box limits.
+   
+   The atmospheric limits should be given in the same unit as the
+   perturbation grid. And only the first and last element will be 
+   considered as limits. 
+   
+   Assertions are used to perform checks. The input grids are 
+   checked so that the atmospheric limits are containg within 
+   the perturbation grid. The limit indices are checked so 
+   that they are ordered in increasing order before return.
+   
+   @param[out] limit     The limit indices in the perturbation grid
+   @param[in] pert_grid The perturbation grid
+   @param[in] atm_limit The atmospheric limits of the box.
+
+   @author Mattias Ekstrom
+   @date   2005-02-25
+ */
 void get_perturbation_limit(ArrayOfIndex& limit,
                             const Vector& pert_grid,
                             const Vector& atm_limit);
 
+/** Get range for perturbation
+
+   This is a helper function that calculates the range in which the 
+   perturbation should be added to the perturbation grid. This is needed
+   to handle the edge effects. At the edges we want the perturbation to 
+   continue outwards. 
+   
+   @param[out] range     The range in the perturbation grid.
+   @param[in] index     The index of the perturbation in the retrieval grid.
+   @param[in] length    The length of retrieval grid
+   
+   @author Mattias Ekstrom
+   @date   2004-10-14
+ */
 void get_perturbation_range(Range& range,
                             const Index& index,
                             const Index& length);
 
+/** Help function for analytical jacobian calculations
+
+    The function determines which terms in jacobian_quantities that are 
+    analytical absorption species and temperature jacobians. 
+
+    *abs_species_i* and *is_t* shall be sized to have the same length
+    as *jacobian_quantities*. For analytical absorption species
+    jacobians, *abs_species_i* is set to the matching index in
+    *abs_species*. Otherwise, to -1. For analytical temperature
+    jacobians, *is_t* is set to 1. Otherwise to 0.
+
+    @param[out]   abs_species_i         Matching index in abs_species 
+    @param[out]   scat_species_i        Matching index among scattering species 
+    @param[out]   is_t                  Flag for: Is a temperature jacobian?
+    @param[in]    jacobian_quantities   As the WSV.
+    @param[in]    abs_species           As the WSV.
+    @param[in]    cloudbox_on           As the WSV.
+    @param[in]    scat_species          As the WSV.
+
+    @author Patrick Eriksson 
+    @date   2009-10-07
+ */
 void get_pointers_for_analytical_jacobians(
     ArrayOfIndex& abs_species_i,
     ArrayOfIndex& scat_species_i,
@@ -333,8 +554,39 @@ void get_pointers_for_analytical_jacobians(
     const Index& cloudbox_on,
     const ArrayOfString& scat_species);
 
+/** Adopts grid positions to extrapolation used for jacobians
+
+  The standard interpolation scheme applies a linear extrapolation, while for
+  the jacobians the extrapolation can be seen as a "closest" interpolation.
+  That is, for points outisde the covered grid, the value at closest end point
+  is taken. And here extrapolation to +-Inf is allowed.
+
+  This function modifies grid positions to jacobaina extrapolation approach.
+  For efficiency, the input grid positions are not asserted at all, and
+  "extrapolation points" are identified simply  by a fd outside [0,1].
+
+  @param[in/out] gp   Array of grid positions.
+
+  @author Patrick Eriksson 
+  @date   2015-09-10
+ */
 void jacobian_type_extrapol(ArrayOfGridPos& gp);
 
+/** Calculate the 1D perturbation for a relative perturbation.
+
+   This is a helper function that interpolate the perturbation field for
+   a 1D relative perturbation onto the atmospheric field. 
+   
+   @param[out] field     The interpolated perturbation field.
+   @param[in] p_gp      The GridPos for interpolation.
+   @param[in] p_pert_n  The number of perturbations.
+   @param[in] p_range   The perturbation range in the perturbation grid.
+   @param[in] size      The size of the perturbation.
+   @param[in] method    Relative perturbation==0, absolute==1
+   
+   @author Mattias Ekstrom
+   @date   2005-05-11
+ */
 void perturbation_field_1d(VectorView field,
                            const ArrayOfGridPos& p_gp,
                            const Index& p_pert_n,
@@ -342,6 +594,24 @@ void perturbation_field_1d(VectorView field,
                            const Numeric& size,
                            const Index& method);
 
+/** Calculate the 2D perturbation for a relative perturbation.
+
+   This is a helper function that interpolate the perturbation field for
+   a 2D relative perturbation onto the atmospheric field. 
+   
+   @param[out] field       The interpolated perturbation field.
+   @param[in] p_gp        The GridPos for interpolation in the 1st dim.
+   @param[in] lat_gp      The GridPos for interpolation in the 2nd dim.
+   @param[in] p_pert_n    The number of perturbations in the 1st dim.
+   @param[in] lat_pert_n  The number of perturbations in the 2nd dim.
+   @param[in] p_range     The perturbation range in the 1st dim.
+   @param[in] lat_range   The perturbation range in the 2nd dim.
+   @param[in] size        The size of the perturbation.
+   @param[in] method      Relative perturbation==0, absolute==1
+   
+   @author Mattias Ekstrom
+   @date   2005-05-11
+ */
 void perturbation_field_2d(MatrixView field,
                            const ArrayOfGridPos& p_gp,
                            const ArrayOfGridPos& lat_gp,
@@ -352,6 +622,27 @@ void perturbation_field_2d(MatrixView field,
                            const Numeric& size,
                            const Index& method);
 
+/** Calculate the 3D perturbation for a relative perturbation.
+
+   This is a helper function that interpolatee the perturbation field for
+   a 3D relative perturbation onto the atmospheric field. 
+   
+   @param[out] field       The interpolated perturbation field.
+   @param[in] p_gp        The GridPos for interpolation in the 1st dim.
+   @param[in] lat_gp      The GridPos for interpolation in the 2nd dim.
+   @param[in] lon_gp      The GridPos for interpolation in the 3rd dim.
+   @param[in] p_pert_n    The number of perturbations in the 1st dim.
+   @param[in] lat_pert_n  The number of perturbations in the 2nd dim.
+   @param[in] lon_pert_n  The number of perturbations in the 3rd dim.
+   @param[in] p_range     The perturbation range in the 1st dim.
+   @param[in] lat_range   The perturbation range in the 2nd dim.
+   @param[in] lon_range   The perturbation range in the 3rd dim.
+   @param[in] size        The size of the perturbation.
+   @param[in] method      Set to 0 for relative, and 1 for absolute.
+   
+   @author Mattias Ekstrom
+   @date   2005-05-11
+ */
 void perturbation_field_3d(Tensor3View field,
                            const ArrayOfGridPos& p_gp,
                            const ArrayOfGridPos& lat_gp,
@@ -365,26 +656,41 @@ void perturbation_field_3d(Tensor3View field,
                            const Numeric& size,
                            const Index& method);
 
+/** Calculates polynomial basis functions
+
+   The basis function is b(x) = 1 for poly_coeff = 0. For higher
+   coefficients, x^poly_coeff - m, where first the range covered by
+   *x* is normalised to [-1,1] and m is selected in such way that
+   sum(b) = 0.
+   
+   @param[out] b            Calculated basis function.
+   @param[in] x            The grid over which the fit shall be performed.
+   @param[in] poly_coeff   Polynomial coefficient.
+   
+   @author Patrick Eriksson
+   @date   2008-11-07
+ */
 void polynomial_basis_func(Vector& b, const Vector& x, const Index& poly_coeff);
 
-//! Calculate baseline fit
-/**
+/** Calculate baseline fit
+ *
  * Computes the baseline fit from a given state vector.
  *
  * Given a retrieval quantitiy which is either a polynomial or a sine baseline fit
  * this function computes the baseline offset in y_baseline.
  *
- *  \param y_baseline (output) The computed baseline offset. Computed baseline offset are
- *  accumulated into this vector, so it must be initialized externally!
- *  \param x State vector consisten with given retrieval quantity
- *  \param mblock_index The index of the measurement block.
- *  \param sensor_response Must be consistent with size of y_baseline.
- *  \param sensor_response_pol_grid Must be consistent with size of y_baseline.
- *  \param sensor_response_f_grid Must be consistent with size of y_baseline.
- *  \param sensor_dlos_grid Must be consistent with size of y_baseline.
- *  \param rq The poly- or sinefit retrieval quantity
- *  \param rq_index The index of the retrieval quantity
- *  \param jacobian_indices
+ *  @param[out] y_baseline The computed baseline offset. Computed baseline offset are
+ *                         accumulated into this vector, so it must be
+ *                         initialized externally!
+ *  @param[in] x State vector consisten with given retrieval quantity
+ *  @param[in] mblock_index The index of the measurement block.
+ *  @param[in] sensor_response Must be consistent with size of y_baseline.
+ *  @param[in] sensor_response_pol_grid Must be consistent with size of y_baseline.
+ *  @param[in] sensor_response_f_grid Must be consistent with size of y_baseline.
+ *  @param[in] sensor_dlos_grid Must be consistent with size of y_baseline.
+ *  @param[in] rq The poly- or sinefit retrieval quantity
+ *  @param[in] rq_index The index of the retrieval quantity
+ *  @param[in] jacobian_indices
  */
 void calcBaselineFit(Vector& y_baseline,
                      const Vector& x,
@@ -397,12 +703,43 @@ void calcBaselineFit(Vector& y_baseline,
                      const Index rq_index,
                      const ArrayOfArrayOfIndex& jacobian_indices);
 
+/** Scale factor for conversion between gas species units.
+
+    The function finds the factor with which the total absorption of a
+    gas species shall be multiplicated to match the selected
+    (jacobian) unit. 
+
+    @param[out]   x     Scale factor
+    @param[in]   unit   Unit selected.
+    @param[in]   vmr    VMR value.
+    @param[in]   p      Pressure
+    @param[in]   t      Temperature.
+
+    @author Patrick Eriksson 
+    @date   2009-10-08
+ */
 void vmrunitscf(Numeric& x,
                 const String& unit,
                 const Numeric& vmr,
                 const Numeric& p,
                 const Numeric& t);
 
+/** Scale factor for conversion of derivatives with respect to VMR.
+
+    The function finds the factor with which a partial derivative with respect
+    to gas species VMR shall be multiplicated to match the selected (jacobian)
+    unit. The function was implemented for scaling of *dpropmat_clearsky_dx*
+    but it could also be of use in other contexts.
+
+    @param[out]   x      Scale factor
+    @param[in]   unit   Unit selected.
+    @param[in]   vmr    VMR value.
+    @param[in]   p      Pressure
+    @param[in]   t      Temperature.
+
+    @author Patrick Eriksson 
+    @date   2015-12-11
+ */
 void dxdvmrscf(Numeric& x,
                const String& unit,
                const Numeric& vmr,
@@ -424,6 +761,30 @@ enum class JacobianType : Index {
   Other
 };
 
+/*! FIXMEDOC: Remove this function when iyHybrid2 has become new iyHybrid
+ *   The function helps to calculate the partial derivative of iy with respect
+ *   to one input at one pressure.  The formalism here assumes that the radiation
+ *   terms are averaged rather than the absorption parameters, thus this can be 
+ *   solved per layer rather than for two layers at a time.  Still, the absorption
+ *   parameters for the transmission needs to be considered by the two layer derivatives
+ * 
+ *   FIXME:  Add HSE support
+ * 
+ *   @param[in]   diy1                      Out: diy for a level encountered the first time
+ *   @param[in]   diy2                      Out: diy for a level encountered the second time
+ *   @param[in]   ImT                       In: identity matrix minus tranmsission matrix
+ *   @param[in]   cumulative_transmission   In: cumulative transmission from level to sensor
+ *   @param[in]   dT1                       In: transmission matrix derivative for the first time
+ *   @param[in]   dT2                       In: transmission matrix derivative for the second time
+ *   @param[in]   iYmJ                      In: incoming radiation to layer minus source of layer
+ *   @param[in]   dJ1                       In: derivative of source term emitted for the first time
+ *   @param[in]   dJ2                       In: derivative of source term emitted for the second time
+ *   @param[in]   stokes_dim                In: essentially the size of the problem
+ *   @param[in]   transmission_only         In: remove all computations on source terms, making iYmJ pure incoming radiation
+ * 
+ *   @author Richard Larsson
+ *   @date   2017-09-20
+ */
 void get_diydx(VectorView diy1,
                VectorView diy2,
                ConstMatrixView ImT,
@@ -440,8 +801,7 @@ void get_diydx(VectorView diy1,
 //             Propmat partials descriptions
 //======================================================================
 
-Index number_of_propmattypes(const ArrayOfRetrievalQuantity& js) noexcept;
-
+// FIXMEDOC@Richard: There was no header for these ones (all still used?):
 ArrayOfIndex equivlent_propmattype_indexes(const ArrayOfRetrievalQuantity& js);
 
 Index equivlent_propmattype_index(const ArrayOfRetrievalQuantity& js,
