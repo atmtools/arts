@@ -115,7 +115,7 @@ void DisortCalc(Workspace& ws,
       albedo, btemp, f_grid, surface_skin_t, surface_scalar_reflectivity);
 
 
-  run_disort2(ws,
+  run_disort(ws,
               doit_i_field,
               f_grid,
               p_grid,
@@ -214,7 +214,7 @@ void DisortCalcWithARTSSurface(
                   verbosity);
 
 
-  run_disort2(ws,
+  run_disort(ws,
               doit_i_field,
               f_grid,
               p_grid,

@@ -149,7 +149,7 @@ void get_disortsurf_props(  // Output
  * @author        Jana Mendrok
  * @date          2017-02-23
  */
-void run_disort2(Workspace& ws,
+void run_disort(Workspace& ws,
                  // Output
                  Tensor7& doit_i_field,
                  // Input

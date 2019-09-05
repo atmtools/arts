@@ -1673,7 +1673,7 @@ void surf_albedoCalc(Workspace& ws,
 
 #ifdef ENABLE_DISORT
 
-void run_disort2(Workspace& ws,
+void run_disort(Workspace& ws,
                  // Output
                  Tensor7& doit_i_field,
                  // Input
