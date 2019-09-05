@@ -416,7 +416,7 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_p,
                            Index& n_p,
                            Index& n_lat,
                            Index& n_lon,
-                           const RetrievalQuantity& rq,
+                           const ArrayOfVector& ret_grids,
                            const Index& atmosphere_dim,
                            const Vector& p_grid,
                            const Vector& lat_grid,
@@ -426,9 +426,9 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_p,
   const Numeric inf_proxy = 1.0e99;
 
   gp_p.resize(p_grid.nelem());
-  n_p = rq.Grids()[0].nelem();
+  n_p = ret_grids.nelem();
   if (n_p > 1) {
-    p2gridpos(gp_p, rq.Grids()[0], p_grid, inf_proxy);
+    p2gridpos(gp_p, ret_grids[0], p_grid, inf_proxy);
     jacobian_type_extrapol(gp_p);
   } else {
     gp4length1grid(gp_p);
@@ -436,9 +436,9 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_p,
 
   if (atmosphere_dim >= 2) {
     gp_lat.resize(lat_grid.nelem());
-    n_lat = rq.Grids()[1].nelem();
+    n_lat = ret_grids[1].nelem();
     if (n_lat > 1) {
-      gridpos(gp_lat, rq.Grids()[1], lat_grid, inf_proxy);
+      gridpos(gp_lat, ret_grids[1], lat_grid, inf_proxy);
       jacobian_type_extrapol(gp_lat);
     } else {
       gp4length1grid(gp_lat);
@@ -450,9 +450,9 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_p,
   //
   if (atmosphere_dim >= 3) {
     gp_lon.resize(lon_grid.nelem());
-    n_lon = rq.Grids()[2].nelem();
+    n_lon = ret_grids[2].nelem();
     if (n_lon > 1) {
-      gridpos(gp_lon, rq.Grids()[2], lon_grid, inf_proxy);
+      gridpos(gp_lon, ret_grids[2], lon_grid, inf_proxy);
       jacobian_type_extrapol(gp_lon);
     } else {
       gp4length1grid(gp_lon);
@@ -467,7 +467,7 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_lat,
                            ArrayOfGridPos& gp_lon,
                            Index& n_lat,
                            Index& n_lon,
-                           const RetrievalQuantity& rq,
+                           const ArrayOfVector& ret_grids,
                            const Index& atmosphere_dim,
                            const Vector& lat_grid,
                            const Vector& lon_grid) {
@@ -477,9 +477,9 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_lat,
 
   if (atmosphere_dim >= 2) {
     gp_lat.resize(lat_grid.nelem());
-    n_lat = rq.Grids()[0].nelem();
+    n_lat = ret_grids[0].nelem();
     if (n_lat > 1) {
-      gridpos(gp_lat, rq.Grids()[0], lat_grid, inf_proxy);
+      gridpos(gp_lat, ret_grids[0], lat_grid, inf_proxy);
       jacobian_type_extrapol(gp_lat);
     } else {
       gp4length1grid(gp_lat);
@@ -491,9 +491,9 @@ void get_gp_rq_to_atmgrids(ArrayOfGridPos& gp_lat,
   //
   if (atmosphere_dim >= 3) {
     gp_lon.resize(lon_grid.nelem());
-    n_lon = rq.Grids()[1].nelem();
+    n_lon = ret_grids[1].nelem();
     if (n_lon > 1) {
-      gridpos(gp_lon, rq.Grids()[1], lon_grid, inf_proxy);
+      gridpos(gp_lon, ret_grids[1], lon_grid, inf_proxy);
       jacobian_type_extrapol(gp_lon);
     } else {
       gp4length1grid(gp_lon);
