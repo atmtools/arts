@@ -39,9 +39,11 @@
 void error_in_integrate(const String& error_msg,
                         const Numeric& value_that_should_be_unity);
 
-/** Convolved integration over the line
+/** Integrate the line shape
  * 
  * f must be sorted and in same order as F
+ * 
+ * Return should be 1.0 for a full line shape
  * 
  * @param[in] F Line shape
  * @param[in] f Frequency grod
@@ -50,7 +52,11 @@ void error_in_integrate(const String& error_msg,
 Numeric test_integrate_convolved(const Eigen::Ref<Eigen::VectorXcd> F,
                                  const Vector& f);
 
-/** Integrate cos(za)
+/** Integrate cos(za) over the angles
+ * 
+ * sorted_index must be in same order as cosza
+ * 
+ * Return should be 1.0 for a full set of zenith angles
  * 
  * @param[in] cosza cos of zenith angle
  * @param[in] sorted_index Order of zenith angles
@@ -59,7 +65,7 @@ Numeric test_integrate_convolved(const Eigen::Ref<Eigen::VectorXcd> F,
 Numeric test_integrate_zenith(const Vector& cosza,
                               const Array<Index>& sorted_index);
 
-/** Integrate the convolved strength of the absorption of the line
+/** Convolve intensity and line shape and integrate
  * 
  * f must be sorted and in same order as F and I
  * 
@@ -74,7 +80,7 @@ Numeric integrate_convolved(const RadiationVector& I,
                             const Eigen::VectorXcd& F,
                             const Vector& f);
 
-/** Integrate the convolved strength ofthe transmission of the line
+/** Convolve transmission and line shape and integrate
  * 
  * f must be sorted and in same order as F and T
  * 
@@ -91,18 +97,18 @@ Numeric integrate_convolved(const TransmissionMatrix& T,
                             const Eigen::VectorXcd& F,
                             const Vector& f);
 
-/** Integrate the convolved source function over zenith angles
+/** Convolve source function with 1D sphere and integrate
  * 
  * @param[in] j Source vector
  * @param[in] cosza cos of zenith angle
  * @param[in] sorted_index Order of zenith angles
- * @return Numeric Integrade source function
+ * @return Numeric Integrated source function
  */
 Numeric integrate_zenith(const VectorView j,
                          const Vector& cosza,
                          const Array<Index>& sorted_index);
 
-/** Get a position from grid pos
+/** Get a discrete position from grid pos
  * 
  * Assumes the grid pos has been set to 
  * extend over the path
@@ -114,8 +120,8 @@ Index grid_index_from_gp(const GridPos& gp);
 
 /** Get sorting of zenith angles in field of ppath
  * 
- * @param[in] sorted_index Order of zenith angles
- * @param[in] cosza cos of zenith angle
+ * @param[out] sorted_index Order of zenith angles
+ * @param[out] cosza cos of zenith angle
  * @param[in] ppath_field As WSV
  */
 void sorted_index_of_ppath_field(ArrayOfArrayOfIndex& sorted_index,

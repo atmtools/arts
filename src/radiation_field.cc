@@ -105,7 +105,7 @@ Index grid_index_from_gp(const GridPos& gp) {
 }
 
 void sorted_index_of_ppath_field(ArrayOfArrayOfIndex& sorted_index,
-                                 ArrayOfVector& cos_zenith_angles,
+                                 ArrayOfVector& cosza,
                                  const ArrayOfPpath& ppath_field) {
   extern const Numeric DEG2RAD;
 
@@ -125,9 +125,9 @@ void sorted_index_of_ppath_field(ArrayOfArrayOfIndex& sorted_index,
 
   // Finalize sorting
   sorted_index.resize(nalt);
-  cos_zenith_angles.resize(nalt);
+  cosza.resize(nalt);
   for (Index i = 0; i < nalt; i++) {
-    Vector& data = cos_zenith_angles[i];
+    Vector& data = cosza[i];
     data.resize(zeniths_array[i].nelem());
 
     for (Index j = 0; j < data.nelem(); j++) data[j] = zeniths_array[i][j];
