@@ -1881,18 +1881,7 @@ void xsec_species_line_mixing_wrapper(
               abs_lines[ii].NLTEUpperIndex(),
               t_nlte);
         }
-
-        // These needs to be calculated when pressure broadening partial derivatives are needed
-        // Note that this gives plenty of wasted calculations for all lines that are not specifically
-        // requesting their individual partial derivatives...
-        const Numeric gamma_dSelf = 0.0, gamma_dForeign = 0.0,
-                      gamma_dWater = 0.0, psf_dSelf = 0.0, psf_dForeign = 0.0,
-                      psf_dWater = 0.0, gamma_dSelfExponent = 0.0,
-                      gamma_dForeignExponent = 0.0, gamma_dWaterExponent = 0.0,
-                      psf_dSelfExponent = 0.0, psf_dForeignExponent = 0.0,
-                      psf_dWaterExponent = 0.0;
-        const Numeric dY0 = 0., dY1 = 0., dYexp = 0., dG0 = 0., dG1 = 0.,
-                      dGexp = 0., dDV0 = 0., dDV1 = 0., dDVexp = 0.;
+        
         for (Index iq = 0; iq < flag_partials_position.nelem(); iq++) {
           if (is_line_parameter(flag_partials[flag_partials_position[iq]]))
             throw std::runtime_error(
@@ -1938,19 +1927,10 @@ void xsec_species_line_mixing_wrapper(
                 : -1.0,
             Y,
             dYdT,
-            dY0,
-            dY1,
-            dYexp,
             G,
             dGdT,
-            dG0,
-            dG1,
-            dGexp,
             DV,
             dDVdT,
-            dDV0,
-            dDV1,
-            dDVexp,
             abs_lines[ii].QuantumIdentity(),
             // LINE SHAPE
             ind_ls,
@@ -1959,18 +1939,6 @@ void xsec_species_line_mixing_wrapper(
             dD0dT,
             G0,
             dG0dT,
-            gamma_dSelf,
-            gamma_dForeign,
-            gamma_dWater,
-            psf_dSelf,
-            psf_dForeign,
-            psf_dWater,
-            gamma_dSelfExponent,
-            gamma_dForeignExponent,
-            gamma_dWaterExponent,
-            psf_dSelfExponent,
-            psf_dForeignExponent,
-            psf_dWaterExponent,
             // Partition data parameters
             dQ_dT,
             // Magnetic variables

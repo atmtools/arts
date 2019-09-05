@@ -34,7 +34,7 @@
 
 #include "linefunctions.h"
 #include <Eigen/Core>
-#include "Faddeeva.hh"
+#include <Faddeeva/Faddeeva.hh>
 #include "constants.h"
 #include "linescaling.h"
 

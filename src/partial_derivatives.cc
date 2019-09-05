@@ -16,6 +16,14 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
  USA. */
 
+ /**
+ * @file partial_derivatives.cc
+ * @author Richard Larsson
+ * @date 2015-10-07
+ * 
+ * @brief Computes partial derivatives
+ */
+
 #include "partial_derivatives.h"
 #include "absorption.h"
 #include "arts.h"
@@ -136,19 +144,10 @@ void partial_derivatives_lineshape_dependency(
     const Numeric& line_T_v_upp,
     const Numeric& Y_LM,
     const Numeric& dY_LM_dT,
-    const Numeric& /*dY_LM0*/,
-    const Numeric& /*dY_LM1*/,
-    const Numeric& /*dY_LMexp*/,
     const Numeric& G_LM,
     const Numeric& dG_LM_dT,
-    const Numeric& /*dG_LM0*/,
-    const Numeric& /*dG_LM1*/,
-    const Numeric& /*dG_LMexp*/,
     const Numeric& DF_LM,
     const Numeric& dDF_LM_dT,
-    const Numeric& /*dDF_LM0*/,
-    const Numeric& /*dDF_LM1*/,
-    const Numeric& /*dDF_LMexp*/,
     const QuantumIdentifier& qi,
     // LINE SHAPE
     const Index& ind_ls,
@@ -157,18 +156,6 @@ void partial_derivatives_lineshape_dependency(
     const Numeric& ddf_dT,
     const Numeric& gamma,
     const Numeric& dgamma_dT,
-    const Numeric& /*dgamma_dSelf*/,
-    const Numeric& /*dgamma_dForeign*/,
-    const Numeric& /*dgamma_dWater*/,
-    const Numeric& /*dpsf_dSelf*/,
-    const Numeric& /*dpsf_dForeign*/,
-    const Numeric& /*dpsf_dWater*/,
-    const Numeric& /*dgamma_dSelfExponent*/,
-    const Numeric& /*dgamma_dForeignExponent*/,
-    const Numeric& /*dgamma_dWaterExponent*/,
-    const Numeric& /*dpsf_dSelfExponent*/,
-    const Numeric& /*dpsf_dForeignExponent*/,
-    const Numeric& /*dpsf_dWaterExponent*/,
     // Partition data parameters
     const Numeric& dQ_dT,
     // Magnetic variables

@@ -149,9 +149,9 @@
    (with various "HAVE_*" #defines to indicate features)
    if HAVE_CONFIG_H is #defined (in GNU autotools style). */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+// #ifdef HAVE_CONFIG_H
+// #include "config.h"
+// #endif
 
 /////////////////////////////////////////////////////////////////////////
 // macros to allow us to use either C++ or C (with C99 features)

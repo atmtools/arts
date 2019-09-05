@@ -16,6 +16,7 @@
  */
 
 #include <Eigen/Eigenvalues>
+#include <Faddeeva/Faddeeva.hh>
 #include "arts.h"
 #include "auto_md.h"
 #include "file.h"
@@ -24,6 +25,7 @@
 #include "linefunctions.h"
 #include "linemixing.h"
 #include "linescaling.h"
+#include "physics_funcs.h"
 #include "species_info.h"
 #include "wigner_functions.h"
 
@@ -2963,9 +2965,6 @@ void abs_lines_per_bandSetLineMixingFromRelmat(
   throw std::runtime_error(os.str());
 }
 
-#include <Eigen/Eigenvalues>
-#include "Faddeeva.hh"
-#include "physics_funcs.h"
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesAddLineMixedLines(  // WS Output:
     ArrayOfMatrix& abs_xsec_per_species,

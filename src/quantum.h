@@ -16,11 +16,13 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/** \file
-    Classes to handle quantum numbers.
-
-    \author Oliver Lemke
-*/
+/**
+ * @file quantum.cc
+ * @author Oliver Lemke
+ * @date 2013-04-12
+ * 
+ * @brief Classes to handle quantum numbers
+ */
 
 #ifndef quantum_h
 #define quantum_h
@@ -35,12 +37,12 @@
 #include "mystring.h"
 #include "rational.h"
 
-//! Enum for Quantum Numbers used for indexing
-/*
- If you add anything here, remember to also adapt
- operator<<(ostream&, const QuantumNumbers&) and
- operator>>(istream&, QuantumNumbers&)
- to handle the added numbers.
+/** Enum for Quantum Numbers used for indexing
+ *
+ * If you add anything here, remember to also adapt
+ * operator<<(ostream&, const QuantumNumbers&) and
+ * operator>>(istream&, QuantumNumbers&)
+ * to handle the added numbers.
  */
 enum class QuantumNumberType : Index {
   J = 0,   // Total angular momentum
@@ -77,14 +79,16 @@ enum class QuantumNumberType : Index {
   FINAL_ENTRY  // We need this to determine the number of elements in this enum
 };
 
+/** Enum for Hund cases */
 enum class Hund : Index { CaseA = 0, CaseB = 1 };
 
-//! Container class for Quantum Numbers
+/** Container class for Quantum Numbers */
 class QuantumNumbers {
  public:
   typedef std::array<Rational, Index(QuantumNumberType::FINAL_ENTRY)>
       QuantumContainer;
 
+  /** Initializer with undefined values */
   constexpr QuantumNumbers() noexcept
       : mqnumbers({RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,
                    RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,
@@ -98,29 +102,49 @@ class QuantumNumbers {
                    RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,
                    RATIONAL_UNDEFINED}) {}
 
-  //! Return copy of quantum number
+  /** Access operator
+   * 
+   * @param[in] qn Index Pos to access
+   * @return constexpr Rational Copy of value at pos
+   */
   constexpr Rational operator[](const Index qn) const noexcept {
     return mqnumbers[qn];
   }
 
-  //! Return copy of quantum number
+  /** Access operator
+   * 
+   * @param qn[in] Index Pos to access
+   * @return constexpr Rational Copy of value at pos
+   */
   constexpr Rational operator[](const QuantumNumberType qn) const noexcept {
     return mqnumbers[Index(qn)];
   }
 
-  //! Set quantum number
+  /** Set quantum number at position
+   * 
+   * @param[in] qn Index Pos to set at
+   * @param[in] r Rational to set
+   */
   void Set(Index qn, Rational r) {
     assert(qn < Index(QuantumNumberType::FINAL_ENTRY));
     mqnumbers[qn] = r;
   }
 
-  //! Set quantum number
+  /** Set quantum number at position
+   * 
+   * @param[in] qn Index Pos to set at
+   * @param[in] r Rational to set
+   */
   void Set(QuantumNumberType qn, Rational r) {
     assert(qn != QuantumNumberType::FINAL_ENTRY);
     mqnumbers[Index(qn)] = r;
   }
 
-  //! Set quantum number
+  /** Set quantum number at position
+   * 
+   * @param[in] qn String Pos to set at by name
+   * @param[in] r Rational to set
+   */
   void Set(String name, Rational r) {
     // Define a helper macro to save some typing.
 #define INPUT_QUANTUM(ID) \
@@ -166,8 +190,16 @@ class QuantumNumbers {
 #undef INPUT_QUANTUM
   }
 
+  /** Get the numbers
+   * 
+   * @return const QuantumContainer& All the numbers
+   */
   const QuantumContainer& GetNumbers() const { return mqnumbers; }
 
+  /** The number of defined quantum numbers
+   * 
+   * @return Index Count of defined numbers
+   */
   Index nNumbers() const {
     return std::accumulate(
         mqnumbers.cbegin(), mqnumbers.cend(), 0, [](Index i, Rational r) {
@@ -175,14 +207,14 @@ class QuantumNumbers {
         });
   }
 
-  //! Compare Quantum Numbers
-  /**
-     Ignores any undefined numbers in the comparison
-
-     \param[in] qn  Quantum Numbers to compare to
-
-     \returns True for match
-     */
+  /** Compare Quantum Numbers
+   * Ignores any undefined numbers in the comparison
+   *
+   * @param[in] qn  Quantum Numbers to compare to
+   *
+   * @return true For a match
+   * @return false Otherwise
+   */
   bool Compare(const QuantumNumbers& qn) const;
 
  private:
@@ -191,44 +223,56 @@ class QuantumNumbers {
 
 typedef Array<QuantumNumbers> ArrayOfQuantumNumbers;
 
-//! Class to identify and match lines by their quantum numbers
-/*!
- Describes either a transition or an energy level and can be used
- to find matching lines.
-
- 
- For transitions, the QI contains upper and lower quantum numbers.
- For energy levels, it only holds one set of quantum numbers which
- are then matched against the upper and lower qns of the lines.
-
- 
- File format:
-
- 
- Transition:   SPECIES_NAME-ISOTOPE TR UP QUANTUMNUMBERS LO QUANTUMNUMBERS
- Energy level: SPECIES_NAME-ISOTOPE EN QUANTUMNUMBERS
- All lines:    SPECIES_NAME-ISOTOPE ALL
-
- 
- H2O-161 TR UP J 0/1 v1 2/3 LO J 1/1 v2 1/2
- H2O-161 EN J 0/1 v1 2/3
- H2O-161 ALL
-
+/** Class to identify and match lines by their quantum numbers
+ * 
+ * Describes a transition, an energy level, all numbers or none
+ * as matchable.  Useful to match to line energy levels and
+ * to identify lines themselves.
+ * 
+ * For transitions, the QI contains upper and lower quantum numbers.
+ * For energy levels, it only holds one set of quantum numbers which
+ * are then matched against the upper and lower qns of the lines. For
+ * all and none no quantum numbers are considered
+ * 
+ * File format:
+ *   Transition:   SPECIES_NAME-ISOTOPE TR UP QUANTUMNUMBERS LO QUANTUMNUMBERS
+ *   Energy level: SPECIES_NAME-ISOTOPE EN QUANTUMNUMBERS
+ *   All lines:    SPECIES_NAME-ISOTOPE ALL
+ *   No lines:    SPECIES_NAME-ISOTOPE NONE
+ * 
+ * Example written out:
+ *   H2O-161 TR UP J 0/1 v1 2/3 LO J 1/1 v2 1/2
+ *   H2O-161 EN J 0/1 v1 2/3
+ *   H2O-161 ALL
+ *   H2O-161 NONE
 */
-
 class QuantumIdentifier {
  public:
-  //! Identify lines by transition or energy level
+  /** Ways to identify quantum numbers */
   typedef enum { TRANSITION, ENERGY_LEVEL, ALL, NONE } QType;
 
+  /** Initialize with no matches */
   constexpr QuantumIdentifier() noexcept
       : mqtype(QuantumIdentifier::NONE), mspecies(-1), miso(-1) {}
 
+  /** Initialize with no quantum numbers defined but known species and matching type
+   * 
+   * @param[in] qt Way to identify quantum numbers
+   * @param[in] species Species index-mapped
+   * @param[in] iso Isotopologue index-mapped
+   */
   constexpr QuantumIdentifier(const QuantumIdentifier::QType qt,
                               const Index species,
                               const Index iso) noexcept
       : mqtype(qt), mspecies(species), miso(iso) {}
 
+  /** Initialize with transition identifier type
+   * 
+   * @param[in] species Species index-mapped
+   * @param[in] iso Isotopologue index-mapped
+   * @param[in] upper Upper state quantum numbers
+   * @param[in] lower Lower state quantum numbers
+   */
   constexpr QuantumIdentifier(const Index spec,
                               const Index isot,
                               const QuantumNumbers& upper,
@@ -238,6 +282,12 @@ class QuantumIdentifier {
         miso(isot),
         mqm({upper, lower}) {}
 
+  /** Initialize with energy level identifier type
+   * 
+   * @param[in] species Species index-mapped
+   * @param[in] iso Isotopologue index-mapped
+   * @param[in] qnr Quantum numbers
+   */
   constexpr QuantumIdentifier(const Index spec,
                               const Index isot,
                               const QuantumNumbers& qnr) noexcept
@@ -246,79 +296,194 @@ class QuantumIdentifier {
         miso(isot),
         mqm({qnr}) {}
 
+  /** Construct a new Quantum Identifier object from text
+   * 
+   * @param[in] x Text
+   */
   QuantumIdentifier(String x) { SetFromString(x); }
 
+  /** Upper level index */
   static constexpr Index TRANSITION_UPPER_INDEX = 0;
+
+  /** Lower level index */
   static constexpr Index TRANSITION_LOWER_INDEX = 1;
+
+  /** Energy level index */
   static constexpr Index ENERGY_LEVEL_INDEX = 0;
 
+  /** Set the Species
+   * 
+   * @param[in] sp Species index-mapped
+   */
   void SetSpecies(const Index& sp) { mspecies = sp; }
+
+  /** Set the Isotopologue
+   * 
+   * @param[in] is Isotopologue index-mapped
+   */
   void SetIsotopologue(const Index& iso) { miso = iso; }
+
+  /** Set to transition type identifier
+   * 
+   * @param[in] upper Upper state quantum numbers
+   * @param[in] lower Lower state quantum numbers
+   */
   void SetTransition(const QuantumNumbers& upper, const QuantumNumbers& lower);
+
+  /** Set tp energy level identifier
+   * 
+   * @param[in] q Quantum numbers
+   */
   void SetEnergyLevel(const QuantumNumbers& q);
+
+  /** Set to All identifier */
   void SetAll();
+
+  /** Set key to transition type */
   void SetTransition() { mqtype = QuantumIdentifier::TRANSITION; };
+
+  /** Set from a String object
+   * 
+   * @param[in] str The string to set this from
+   */
   void SetFromString(String str);
+
+  /** Set CO2 transition from String objects
+   * 
+   * @param[in] upper Upper state quantum numbers
+   * @param[in] lower Lower state quantum numbers
+   * @param[in] iso Isotopologue by string
+   */
   void SetFromStringForCO2Band(String upper, String lower, String iso);
 
+  /** @return constexpr QType Type of identifier */
   constexpr QType Type() const { return mqtype; }
+
+  /** @return QType as String */
   String TypeStr() const;
+
+  /** Return the Species by name */
   String SpeciesName() const;
+
+  /** Return the Species by index */
   constexpr Index Species() const { return mspecies; }
+
+  /** Return the Species by index reference */
   Index& Species() { return mspecies; }
+
+  /** Return the Isotopologue by index */
   constexpr Index Isotopologue() const { return miso; }
+
+  /** Return the Isotopologue by index reference */
   Index& Isotopologue() { return miso; }
+
+  /** Return the quantum numbers array const reference */
   const std::array<QuantumNumbers, 2>& QuantumMatch() const { return mqm; }
+
+  /** Return the quantum numbers array reference */
   std::array<QuantumNumbers, 2>& QuantumMatch() { return mqm; }
 
+  /** Return a quantum identifer as if it wants to match to upper energy level */
   constexpr QuantumIdentifier UpperQuantumId() const noexcept {
     return QuantumIdentifier(mspecies, miso, mqm[TRANSITION_UPPER_INDEX]);
   };
+
+  /** Return a quantum identifer as if it wants to match to lower energy level */
   constexpr QuantumIdentifier LowerQuantumId() const noexcept {
     return QuantumIdentifier(mspecies, miso, mqm[TRANSITION_LOWER_INDEX]);
   };
 
+  /** Return the upper quantum numbers by const reference */
   const QuantumNumbers& UpperQuantumNumbers() const {
     assert(mqtype == TRANSITION);
     return mqm[TRANSITION_UPPER_INDEX];
   };
+
+  /** Return the lower quantum numbers by const reference */
   const QuantumNumbers& LowerQuantumNumbers() const {
     assert(mqtype == TRANSITION);
     return mqm[TRANSITION_LOWER_INDEX];
   };
+
+  /** Return a upper quantum number by copy */
   Rational UpperQuantumNumber(QuantumNumberType X) const {
     assert(mqtype == TRANSITION);
     return mqm[TRANSITION_UPPER_INDEX][X];
   };
+
+  /** Return a lower quantum number by copy */
   Rational LowerQuantumNumber(QuantumNumberType X) const {
     assert(mqtype == TRANSITION);
     return mqm[TRANSITION_LOWER_INDEX][X];
   };
+
+  /** Return the energy level quantum numbers by const reference */
   const QuantumNumbers& EnergyLevelQuantumNumbers() const {
     assert(mqtype == ENERGY_LEVEL);
     return mqm[ENERGY_LEVEL_INDEX];
   }
+
+  /** Return the upper quantum numbers by reference */
   QuantumNumbers& UpperQuantumNumbers() {
     assert(mqtype == TRANSITION);
     return mqm[TRANSITION_UPPER_INDEX];
   };
+
+  /** Return the lower quantum numbers by reference */
   QuantumNumbers& LowerQuantumNumbers() {
     assert(mqtype == TRANSITION);
     return mqm[TRANSITION_LOWER_INDEX];
   };
+
+  /** Return the energy level quantum numbers by reference */
   QuantumNumbers& EnergyLevelQuantumNumbers() {
     assert(mqtype == ENERGY_LEVEL);
     return mqm[ENERGY_LEVEL_INDEX];
   }
 
-  //! Tests if RHS contains LHS some how
+  /** Return if this is in other
+   * 
+   * All quantum numbers defined in *this must be the
+   * same as the quantum numbers in other for a call
+   * to In() to return true.  The numbers in other
+   * must not all be defined in *this.
+   * 
+   * @param[in] other Another quantum identifier
+   * @return true If the above description holds
+   * @return false Otherwise
+   */
   bool In(const QuantumIdentifier& other) const;
+
+  /** Return if this is in other's lower energy state
+   * 
+   * All quantum numbers defined in *this must be the
+   * same as the quantum numbers in other for a call
+   * to In() to return true.  The numbers in other
+   * must not all be defined in *this.
+   * 
+   * @param[in] other Another quantum identifier
+   * @return true If the above description holds
+   * @return false Otherwise
+   */
   bool InLower(const QuantumIdentifier& other) const;
+
+  /** Return if this is in other's upper energy state
+   * 
+   * All quantum numbers defined in *this must be the
+   * same as the quantum numbers in other for a call
+   * to In() to return true.  The numbers in other
+   * must not all be defined in *this.
+   * 
+   * @param[in] other Another quantum identifier
+   * @return true If the above description holds
+   * @return false Otherwise
+   */
   bool InUpper(const QuantumIdentifier& other) const;
 
-  //! Tests if there are any defined quantum numbers
+  /** Check if there are any quantum numbers defined */
   bool any_quantumnumbers() const;
 
+  /** Check if *this is a energy level type of identifier */
   bool IsEnergyLevelType() const { return mqtype == ENERGY_LEVEL; }
 
  private:
@@ -328,6 +493,15 @@ class QuantumIdentifier {
   std::array<QuantumNumbers, 2> mqm;
 };
 
+/** Is everything the same between the identifiers
+ * 
+ * May throw if different Qtypes are compared.
+ * 
+ * @param[in] a One identifier
+ * @param[in] b Another identifier
+ * @return true If all quantum numbers match
+ * @return false Otherwise
+ */
 inline bool operator==(const QuantumIdentifier& a, const QuantumIdentifier& b) {
   if (!(a.Isotopologue() == b.Isotopologue() && a.Species() == b.Species() &&
         a.Type() == b.Type()))
@@ -349,22 +523,43 @@ inline bool operator==(const QuantumIdentifier& a, const QuantumIdentifier& b) {
     throw std::runtime_error("Programmer error --- added type is missing");
 }
 
+/** Check if all quantum numbers are the same between a and b
+ * 
+ * @param[in] a One set of quantum numbers
+ * @param[in] b Another set of quantum numbers
+ * @return true If all quantum numbers match
+ * @return false Otherwise
+ */
 inline bool operator==(const QuantumNumbers& a, const QuantumNumbers& b) {
   return a.Compare(b) and b.Compare(a);
 }
 
 typedef Array<QuantumIdentifier> ArrayOfQuantumIdentifier;
 
-//! Check for valid quantum number name
+/** Check for valid quantum number name
+ * 
+ * @param[in] name Parameter
+ * @return true If the parameter exist
+ * @return false Otherwise
+ */
 bool IsValidQuantumNumberName(String name);
 
-//! Throws runtime error if quantum number name is invalid
+/** Check for valid quantum number name and throws if it is invalid
+ * 
+ * @param[in] name Parameter
+ */
 void ThrowIfQuantumNumberNameInvalid(String name);
 
+/** Input operator */
 std::istream& operator>>(std::istream& is, QuantumNumbers& qn);
+
+/** Output operator */
 std::ostream& operator<<(std::ostream& os, const QuantumNumbers& qn);
 
+/** Input operator */
 std::istream& operator>>(std::istream& is, QuantumIdentifier& qi);
+
+/** Output operator */
 std::ostream& operator<<(std::ostream& os, const QuantumIdentifier& qi);
 
 #endif

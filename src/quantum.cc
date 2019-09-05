@@ -16,11 +16,13 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/** \file
-    Classes to handle quantum numbers.
-
-    \author Oliver Lemke
-*/
+/**
+ * @file quantum.cc
+ * @author Oliver Lemke
+ * @date 2013-04-12
+ * 
+ * @brief Classes to handle quantum numbers
+ */
 
 #include "quantum.h"
 #include <stdexcept>

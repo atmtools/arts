@@ -16,12 +16,13 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
 USA. */
 
-/** Contains some additional functionality of the rational class
-   \file   rational.cc
-   
-   \author Richard Larsson
-   \date   2012-10-31
-**/
+/**
+ * @file   rational.cc
+ * @author Richard Larsson
+ * @date   2012-10-31
+ * 
+ * @brief  Contains the rational class implmentations
+ **/
 
 #include "rational.h"
 

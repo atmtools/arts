@@ -969,6 +969,9 @@ void set_backscatter_radiation_vector(
 
 /** Accumulated backscatter (???)
  * 
+ * FIXMEDOC Patrick, these are translated from other functions that accumulate
+ * the back-scattering.  I do not remember how this worked.
+ * 
  * @param t Tensor5 of backscattering
  * @param m (???)
  * @return ArrayOfTransmissionMatrix cumulative backscattering
@@ -976,7 +979,10 @@ void set_backscatter_radiation_vector(
 ArrayOfTransmissionMatrix cumulative_backscatter(ConstTensor5View t,
                                                  ConstMatrixView m);
 
-/** Accumulated backscatter (???)
+/** Accumulated backscatter derivative (???)
+ * 
+ * FIXMEDOC Patrick, these are translated from other functions that accumulate
+ * the back-scattering.  I do not remember how this worked.
  * 
  * @param t Tensor5 of backscattering
  * @param m (???)
