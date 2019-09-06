@@ -1,0 +1,371 @@
+\graphicspath{{Figs/retrievals/}}
+
+\chapter{Optimal estimation method}
+ \label{sec:oem}
+
+\starthistory
+ 190903 & Created and written by Simon Pfreundschuh\\ 
+\stophistory
+
+ARTS provides functionality to perform retrievals of remote sensing
+observations using the optimal estimation method (OEM). This section 
+describes the basic usage of the OEM implementation available inside ARTS
+and aims to complement the example controlfiles distributed with the
+ARTS source code. For a more detailed presentation of the method itself,
+the reader may refer to the book by \citet{rodgers:00}.
+
+\section{Formulation}
+
+The optimal estimation method solves the retrieval problem of finding an
+atmospheric state $\vec{x} \in \mathrm{R}^n$ that best explains a given observation
+vector $\vec{y} \in \mathrm{R}^m$. This is done by fitting a forward model
+$\mathbf{F}: \vec{x} \mapsto \vec{y}_f$ to the observations $\vec{y}$ in a way
+consistent with a-priori-assumed properties of the retrieval quantities
+within $\vec{x}$.
+
+\subsection{Fundamental assumptions}
+
+The OEM is based on a Bayesian formulation of the retrieval problem.
+The three fundamental assumptions of this formulation are:
+\begin{enumerate}
+\item That the a priori assumed properties of all quantities in $\vec{x}$ can be described by
+ a multivariate Gaussian distribution with mean vector $\vec{x}_a$ and covariance
+ matrix $\mathbf{S}_x$.
+\item That the forward model $\mathbf{F}$ is exact up to a zero-mean, Gaussian measurement
+      error with covariance matrix $\mathbf{S}_e$.
+\item That the forward model is linear or at most moderately non-linear.
+\end{enumerate}
+
+\subsection{The retrieval as optimization problem}
+
+Under the assumptions listed above, the a posteriori distribution $p(\vec{x} | \vec{y})$
+of the atmospheric state $\vec{x}$ given the observations in $\vec{y}$
+is Gaussian as well. The negative log-likelihood of the a posteriori distribution
+is found to be
+
+\begin{eqnarray}\label{eq:oem_cost}
+ \mathcal{L}(\vec{x}) &= \frac{1}{2} \left (
+	(\vec{x} - \vec{x}_a)^T \mathbf{S}^{-1}_x (\vec{x} - \vec{x}_a) +
+        (\vec{y} - \mathbf{F}(\vec{x}))^T \mathbf{S}^{-1}_e (\vec{y} - \mathbf{F}(\vec{x}))
+       	\right ).
+\end{eqnarray}
+
+The most likely vector $\vec{x}$ given the observations $\vec{y}$, also referred to
+as \textit{the maximum a posteriori estimator} of $\vec{x}$, can then be
+ found by minimizing $\mathcal{L}(\vec{x})$. The ARTS OEM implementation provides
+serveral methods to minimize this cost function using ARTS itself as the forward model
+$\mathbf{F}$.
+
+\section{Overview}
+
+The main OEM functionality within ARTS is implemented by the OEM workspace method.
+A diagram of the data flow of the OEM WSM is given in Fig.~\ref{fig:oem_flow}.
+
+The main input arguments to the WSM call are the workspace variables 
+\shortcode{xa, covmat\_sx, y} and \shortcode{covmat\_se} together with the agenda
+\shortcode{inversion\_iterate\_agenda}. As their names imply, the variables
+ \shortcode{xa} and {covmat\_sx} descripbe the a priori distribution given
+by mean vector $\vec{x}_a$ (\shortcode{xa}) and covariance matrix $\mathbf{S}_x$
+(\shortcode{covmat\_sx}). Similarly, the variables \shortcode{y} and
+\shortcode{covmat\_se} represent the observation vector $\vec{y}$ and the
+ covariance matrix $\mathbf{S}_e$
+(\shortcode{covmat\_se}). Finally, the \shortcode{jacobian\_quantities} input
+ variable contains a list of the quantities that should be retrieved from the
+given observations.
+
+In addition to the variables described above, OEM takes as additional input argument
+the \shortcode{inversion\_iterate\_agenda} agenda. The role of this agenda is to define
+the foward model used by the OEM method. This agenda is executed repeatedly during the
+optimization procedure to simulate the measurement vector and its Jacobian corresponding to
+the current atmospheric state.
+
+\begin{figure}[!h]
+  \begin{center}
+   \includegraphics*[width=0.75\hsize, angle=0]{oem_flow}
+  \end{center}
+  \caption[OEM]{Data flow related to the OEM WSM.}
+ \label{fig:oem_flow}
+\end{figure}
+
+\section{Usage}
+
+There are three main steps involved in running the OEM within ARTS:
+\begin{enumerate}
+ \item Setup: Defining the measurement space and forward model
+ \item Running the OEM WSM
+ \item Calculating relevant diagnostic quantities
+\end{enumerate}
+
+Arguably the most complex of these is the setting up of the input variables.
+Running the OEM requires only a single call to the OEM WSM. Also the calculation
+of diagnistic quantities then can be performed with a small number of WSM calls.
+
+\subsection{Setup}
+
+Setting up an OEM calculation in ARTS involves three main steps:
+\begin{enumerate}
+  \item Defining the state space and a priori distribution (\shortcode{jacobian\_quantities, xa, covmat\_sx})
+  \item Defining the observations and measurement errors (\shortcode{y, covmat\_se})
+  \item Defining the forward model (\shortcode{inversion\_iterate\_agenda})
+\end{enumerate}
+
+\subsubsection{Defining the state space}
+
+In the OEM formulation, the state vector $\vec{x}$ holds the values of all variables
+that are retrieved.  ARTS therefore somehow needs to know which variables from
+the workspace should be included in  $\vec{x}$. This information is contained in the
+\shortcode{jacobian\_quantities} WSV. Each entry in \shortcode{jacobian\_quantities}
+representes a potentially multi-dimensional retrieval variable that is retrieved
+using the OEM. The state vector $\vec{x}$ is formed from these variables by concatenation
+of the flattened values of each retrieval variable.
+
+The setup of \shortcode{jacobian\_quantities} follows the principle of the setup for
+regular Jacobian calculations. Before retrieval quantities can be added to
+\shortcode{jacobian\_quantities}, the \shortcode{retrievalDefInit} WSM must be called.
+This enusers that \shortcode{jacobian\_quantities} is empty and initializes required
+internal variables. After the call to \shortcode{retrievalDefInit} retrieval
+quantities can be registered by calling any of the \shortcode{retrievalAdd...}
+ methods.
+
+After the retrieval definition block can be finalized by calling 
+\shortcode{retrievalDefClose}, also the a priori covariance matrix
+ \shortcode{covmat\_sx} must be set. This is done using the
+\shortcode{covmat\_sxAddBlock} WSMs. More details on the handling of
+covariance matrix and the special requirements on \shortcode{covmat\_sx}
+can be found in the group documentation for covariance matrices and
+the WVS documentation for \shortcode{covmat\_sx}.
+
+An example of how to add ozone as a retrieval quantity for a simple ozone
+retrieval is given below:
+
+\begin{code}
+retrievalDefInit
+
+# Add retrieval species
+retrievalAddAbsSpecies(species = "O3", unit = "vmr")
+
+# Create diagonal block and add to covariance matrix
+nelemGet(nelem, p_ret_grid)
+VectorSetConstant(vars, nelem, 0.5)
+DiagonalMatrix(sparse_block, vars)
+covmat_sxAddBlock(block = sparse_block )
+
+retrievalDefClose
+\end{code}
+
+Instead of retrieving a quantity directly, it is not uncommon
+to instead perform the retrieval in a transformed state space. ARTS
+provides support for arbitrary affine and linear transforms, such
+as for example retrieving principal components, as well as functional
+transforms, such as retrieving the logarithm of a quantity. More
+information on the usage of this functionality can be found in the
+WSM documentation of the \shortcode{jacobianSetAffineTransformation}
+and \shortcode{jacobianSetFuncTrasformation} WSMs.
+
+An important point for the user to keep in mind is that for the OEM to
+work the units of the vectors \shortcode{x} and \shortcode{xa} and
+ the covariance matrix \shortcode{covmat\_sx} must be the same. To be
+able to keep track of how the different retrieval variables are mapped
+to the \shortcode{x} vector the user should refer to corresponding
+\shortcode{retrievalAdd...} WSM.
+
+\subsubsection{Defining observations and measurement error}
+
+The observations to fit should be copied into the \shortcode{y} workspace
+variable and the observation error covariance $\mathbf{S}_e$ into \shortcode{covmat\_se}.
+The most important point to keep in mind here is that the dimensions of
+\shortcode{y}  and \shortcode{covmat\_se} must match.
+
+\subsubsection{Inversion iteration agenda}
+
+The \shortcode{inversion\_iterate\_agenda} constitutes the forward model used by
+the OEM WSM. This agenda is executed every time Jacobians and observations need
+to be computed from the forward model during the OEM iterations.
+
+Within  \shortcode{inversion\_iterate\_agenda} the following steps must be
+performed:
+
+\begin{enumerate}
+\item Transform values in \shortcode{x} to the corresponding
+ARTS WSVs using one of the \shortcode{x2Arts...} WSMs.
+\item Perform the radiative transfer simulation (for example using
+\shortcode{yCalc})
+\item  Store resulting $\mathbf{y}$ vector in \shortcode{yf}
+\item If any transformation are applied or one of the retrieval quantities
+is retrieved in relative units, call
+ \shortcode{jacobianAdjustAndTransform} for the computed Jacobian
+to be transformed accordingly
+\end{enumerate}
+
+As an example, the definition of the \shortcode{inversion\_iterate\_agenda}
+for the ozone retrieval is given below.
+
+\begin{code}
+AgendaSet( inversion_iterate_agenda ){
+
+  Ignore(inversion_iteration_counter)
+    
+  # Map x to ARTS' variables
+  x2artsAtmAndSurf
+  x2artsSensor   # No need to call this WSM if no sensor variables retrieved
+
+  # Calculate yf and Jacobian matching x.
+  yCalc( y=yf )
+
+  #Not needed in this simple case.
+  #jacobianAdjustAndTransform
+}
+\end{code}
+
+\subsection{Running OEM}
+
+If the ARTS workspace has been setup properly, running an OEM calculation
+simply requires calling the OEM WSM. 
+
+The ARTS OEM calculation can be run in linear or non-linear mode. In linear
+mode, only a single optimization step is performed, because in this case 
+the Gauss-Newton iteration yields an exact solution already after the
+first step. If the forward model is non-linear, however,
+ multiple minimization steps are performed. The most important available
+configuration options relating to the optimization procedure are described
+below.
+
+\subsubsection{Gauss-Newton optimization}
+\label{ref:oem:gn}
+
+In the standard formulation, the Gauss-Newton iteration for the OEM problem
+takes the following form:
+
+\begin{eqnarray}\label{eq:oem:gn}
+\vec{x}_{i + 1} &= \vec{x}_i - 
+\left ( \underbrace{\mathbf{K}_i^T \mathbf{S}_e^{-1} \mathbf{K} + \mathbf{S}^{-1}_x)^{-1} }_{ \mathbf{H}}\right )
+\left(\underbrace{\mathbf{K}^T\mathbf{S}^{-1}_e (\mathbf{F}(\vec{x}_i) - \vec{y}) + \mathbf{S}_x^{-1}(\vec{x}_i - \vec{x}_a)}_{\vec{g}} \right)
+\end{eqnarray}
+This means that each optimization step involves solving a linear system of equations
+ of size $n \times n$, where $n$ is the dimensionality of the measurement space.
+The linear system is defined by the matrix $\mathbf{H}$ which approximates the
+the Hessian of the cost function $\mathcal{L}$. The ARTS OEM method provides two methods
+to solve these linear systems: By default, a QR solver is used which requires to
+explicitly compute $\mathbf{H}$. If $n$ is very large, however, calculating
+ $\mathbf{H}$ can become computationally very expensive. In this cases it may be
+ advantageous to use a conjugate gradient (CG) solver, which does not require explicitly
+computing $\mathbf{H}$. More information on how to use the CG solver is given in
+ Sec.\ref{sec:oem:cg} below.
+
+Additionally, two further forms of the GN iteration can be derived, the so called
+\textit{m- and n-form}:
+
+\begin{eqnarray}
+\vec{x}_{i + 1} &= \vec{x}_a - 
+\left (\mathbf{K}_i^T \mathbf{S}_e^{-1} \mathbf{K}_i + \mathbf{S}_x^{-1} \right )^{-1} \mathbf{K}_i^T\mathbf{S}_e^{-1}
+\left(\vec{y} - \mathbf{F}(\vec{x}) - K(\vec{x} - \vec{x}_a) \right ) \\
+&= \vec{x}_a  + \mathbf{S}_x \mathbf{K}_i ^ T
+ \left (\mathbf{K}_i \mathbf{S}_x \mathbf{K}_i^T + \mathbf{S}_e) \right )^{-1}
+\left ( \mathbf{F}(\vec{X}_i) - \vec{y} - \mathbf{K}_i(\vec{x}_i - \vec{x}_a) \right)
+\end{eqnarray}
+The names of these two forms derive from the size of the linear system of equations
+that must be solved in each iteration step, which is $n \times n$ for the first
+form and $m \times m$ for the seconds form. Moreover, the forms differ in whether
+or not they involve the covariance only as its inverse or only directly.
+
+\subsubsection{Levenberg-Marquardt}
+In the Levenberg-Marquardt method, an additional damping term is added to the
+matrix $\mathbf{H}$ in Eq. (\ref{eq:oem:gn}):
+
+
+\begin{eqnarray}
+\mathbf{H} = \mathbf{K}^T\mathbf{S}_e^{-1}\mathbf{K} + \mathbf{S}_x^{-1} +\gamma\mathbf{D}
+\end{eqnarray}
+
+The additional term $\gamma \mathbf{D}$ may be viewed as an adaptive regularization that
+can help the optimization convergence in non-linear problems. The ARTS implementation
+uses the diagonal of the inverse of the covariance matrix $\mathbf{S}_x^{-1}$.
+
+The value of $\gamma$ is decreased when the decrease in $\mathcal{L}$ from an iteration
+step matches that expected from a quadratic fit to the loss function. If that is not
+the case but the value of $\mathcal{L}$ at $\vec{x}_{i + 1}$ is still lower than at
+$\vec{x}_i$ the step is accepted and $\gamma$ is kept constant. If, contrarily, 
+$\mathcal{L}(\vec{x}_{i+1})$ is higher than  $\mathcal{L}(\vec{x}_i)$
+ $\gamma$ is increased and $\vec{x}_{i+1}$  recomputed with the new $\gamma$.
+
+
+\subsubsection{Conjugate gradient solver}
+\label{sec:oem:cg}
+As mentioned above, the ARTS OEM implementation also allows using a CG solver
+to solve the linear systems occuring in each iteration step of the OEM. Using
+a CG solver is advantageous for retrieval problems with very high-dimensional
+state and measurement spaces. The CG solver can be used for any of the optimization
+methods described above and is enable simply by appending the \shortcode{\_cg} suffix
+to the \shortcode{method} GIN of the OEM WSM.
+
+\subsubsection{Convergence}
+
+In the non-linear case the optimization iterations are continued until 
+a convergence criterion is met. This implementation uses the approximation
+of the $\chi^2$ value from  Eq. (5.28) in \citet{rodgers:00}, which is
+ described in Eq. (5.31) on the same page:
+
+\begin{eqnarray}
+\chi^2 \approx (\vec{x}_{i + 1} - \vec{x}_i)^T 
+(\mathbf{K}_i^T \mathbf{S}_e^{-1} (\vec{y} - \mathbf{F}(\vec{x}_i))
+ - \mathbf{S}_x^{-1}(\vec{x} - \vec{x}_a)
+\end{eqnarray}
+.
+
+\subsection{Diagnostic quantities}
+
+One of the advantages of the OEM is that it provides several diagnostic
+quantities that allow a thorough characterization of the retrieval. After
+a successful iteration the OEM returns the Jacobian in
+\shortcode{jacobian} as well as the  gain matrix 
+%
+\begin{eqnarray}
+\mathbf{G} = (\mathbf{K}^T \mathbf{S}_e\mathbf{K} + \mathbf{S}_a^{-1})^{-1}
+\mathbf{K}^T\mathbf{S}_e^{-1}
+\end{eqnarray}
+%
+in \shortcode{dxdy}. A successful OEM calculation is a precondition for
+the calculation of any of the diagnostic quantities described below.
+
+\subsubsection{Averaging kernel matrix}
+The averaging kernel matrix is defined as
+%
+\begin{eqnarray}
+\mathbf{A} &= \mathbf{G}\mathbf{K}.
+\end{eqnarray}
+%
+and provides information on the contribution of the measurement and 
+a priori information on the retrieved state.  In arts the averaging
+kernel matrix can be computed using the \shortcode{avkCalc}.
+
+\subsubsection{Smoothing error}
+
+The covariance matrix of the smoothing error, i.e. the contribution
+ to the overall error caused by the finite resolution of the observation
+ system is given by
+%
+\begin{eqnarray}
+\mathbf{S}_s &= (\mathbf{A} - \mathbf{I})\mathbf{S}_a(\mathbf{A} -\mathbf{I})
+\end{eqnarray}
+%
+In ARTS, the smoothin error can be computed using the \shortcode{covmat\_ssCalc}
+workspace method.
+
+\subsubsection{Retrieval noise}
+
+The second component that contributes to the overall retrieval error is
+the error caused by the random errors in the measurement vector $\vec{y}$.
+  The covariance of this retrieval noise is given by
+%
+\begin{eqnarray}
+\mathbf{S}_o &= \mathbf{G}\mathbf{S}_e\mathbf{G}^T.
+\end{eqnarray}
+%
+In ARTS, the retrieval error covariance matrix can be computed using the
+ \shortcode{covmat\_soCalc} workspace method. For this, the user should keep
+in mind that for $\mathbf{S}_o$ to provide a realistic description of the
+error caused by measurement errors $\mathbf{S}_e$ must take into account all
+forward model errors that cause deviations between the simulated and true
+observations.  The covariance of the total retrieval error can be obtained
+ by adding the covariance matrices of the smoothing error and the retrieval
+ noise covariance matrix.
