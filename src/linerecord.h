@@ -1180,8 +1180,13 @@ class LineRecord {
   // Lower state stat. weight:
   Numeric mglower;
 
-  /** Line function data (pressure broadening and line mixing) */
+  /** Line function data (pressure broadening and line mixing)
+   *
+   *  FIXME Richard, please explain.
+   * */
   LineShape::Model mlineshapemodel;
+
+  /** FIXME Richard, please explain.   */
   bool mstandard;
 
   /** Zeeman effect model class */

@@ -529,21 +529,23 @@ ostream& operator<<(ostream& os, const SpeciesAuxData& sad) {
     Continua are not handled by this function, you have to call
     xsec_continuum_tag for those.
 
-    \retval xsec_attenuation   Cross section of one tag group. This is now the
-                               true absorption cross section in units of m^2.
-    \retval xsec_phase         Cross section of one tag group. This is now the
-                               true dispersion cross section in units of m^2.
-    \param f_grid       Frequency grid.
-    \param abs_p        Pressure grid.
-    \param abs_t        Temperatures associated with abs_p.
-    \param all_vmrs     Gas volume mixing ratios [nspecies, np].
-    \param abs_species  Species tags for all species.
-    \param this_species Index of the current species in abs_species.
-    \param abs_lines    The spectroscopic line list.
-    \param ind_ls       Index to lineshape function.
-    \param ind_lsn      Index to lineshape norm.
-    \param cutoff       Lineshape cutoff.
-    \param isotopologue_ratios  Isotopologue ratios.
+    \param[in,out] xsec_attenuation   Cross section of one tag group. This is now the
+                                      true absorption cross section in units of m^2.
+    \param[in,out] xsec_source        Cross section of one tag group. This is now the
+                                      true source cross section in units of m^2.
+    \param[in,out] xsec_phase         Cross section of one tag group. This is now the
+                                      true dispersion cross section in units of m^2.
+    \param[in] f_grid       Frequency grid.
+    \param[in] abs_p        Pressure grid.
+    \param[in] abs_t        Temperatures associated with abs_p.
+    \param[in] all_vmrs     Gas volume mixing ratios [nspecies, np].
+    \param[in] abs_species  Species tags for all species.
+    \param[in] this_species Index of the current species in abs_species.
+    \param[in] abs_lines    The spectroscopic line list.
+    \param[in] ind_ls       Index to lineshape function.
+    \param[in] ind_lsn      Index to lineshape norm.
+    \param[in] cutoff       Lineshape cutoff.
+    \param[in] isotopologue_ratios  Isotopologue ratios.
 
     \author Stefan Buehler and Axel von Engeln
     \date   2001-01-11 
@@ -951,44 +953,44 @@ void xsec_species(MatrixView xsec_attenuation,
    
    No dependency on LineRecord to increase speed for wrapper applications.
    
-   \retval xsec_accum_attenuation   Cross section of one tag group. This is now the
+   \param[out] xsec_accum_attenuation   Cross section of one tag group. This is now the
                                     true absorption cross section in units of m^2.
                                     It has inputs of all previously calculated lines.
-   \retval xsec_accum_source        Deviation of line cross section from LTE cross-section
-   \retval xsec_accum_phase         Cross section of one tag group. This is now the
+   \param[out] xsec_accum_source        Deviation of line cross section from LTE cross-section
+   \param[out] xsec_accum_phase         Cross section of one tag group. This is now the
                                     true dispersion cross section in units of m^2.
                                     It has inputs of all previously calculated lines.
-   \retval attenuation              Input only to increase speed.  Holds attenuation internally.
-   \retval phase                    Input only to increase speed.  Holds phase internally.
-   \retval fac                      Input only to increase speed.  Holds lineshape factor internally.
-   \retval aux                      Input only to increase speed.  Holds f_grid factor internally.
-   \retval f_local                  Input only to increase speed.  Holds f_grid internally.
-   \param f_grid,                   Frequency grid
-   \param nf,                       Number of frequencies to calculate
-   \param cutoff,                   Lineshape cutoff.
-   \param F0,                       Line center
-   \param intensity,                Line intensity
-   \param part_fct_ratio            Ratio of partition sums to atmospheric temperature
-   \param boltzmann_ratio           Ratio of Boltzmann statistics to atmospheric temperature
-   \param abs_nlte_ratio            Ratio of absorption intensity to LTE
-   \param src_nlte_ratio            Ratio of emission intesity to LTE
-   \param Isotopologue_Ratio,       Ratio of the isotopologue in the atmosphere
-   \param temperature,              Atmospheric temperature
-   \param ind_ls,                   Index to lineshape function.
-   \param ind_lsn,                  Index to lineshape norm.
-   \param gamma_0,                  Line pressure broadening
-   \param gamma_2,                  Speed-dependent line pressure broadening
-   \param eta,                      Correlation of pressure broadening parameters
-   \param df_0,                     Line pressure shift
-   \param df_2,                     Speed-dependent line pressure shift
-   \param sigma,                    Doppler broadening
-   \param f_VC,                     Collisional frequency limit
-   \param LM_DF,                    Line mixing frequency shift
-   \param LM_Y,                     Line mixing dispersion dependency
-   \param LM_G,                     Line mixing added attenuation
-   \param cut,                      Is cutoff applied?
-   \param calc_phase,               Is dispersion calculated?
-   \param calc_src,                 Is source calculated?
+   \param[out] attenuation              Input only to increase speed.  Holds attenuation internally.
+   \param[out] phase                    Input only to increase speed.  Holds phase internally.
+   \param[out] fac                      Input only to increase speed.  Holds lineshape factor internally.
+   \param[out] aux                      Input only to increase speed.  Holds f_grid factor internally.
+   \param[out] f_local                  Input only to increase speed.  Holds f_grid internally.
+   \param[in] f_grid,                   Frequency grid
+   \param[in] nf,                       Number of frequencies to calculate
+   \param[in] cutoff,                   Lineshape cutoff.
+   \param[in] F0,                       Line center
+   \param[in] intensity,                Line intensity
+   \param[in] part_fct_ratio            Ratio of partition sums to atmospheric temperature
+   \param[in] boltzmann_ratio           Ratio of Boltzmann statistics to atmospheric temperature
+   \param[in] abs_nlte_ratio            Ratio of absorption intensity to LTE
+   \param[in] src_nlte_ratio            Ratio of emission intesity to LTE
+   \param[in] Isotopologue_Ratio,       Ratio of the isotopologue in the atmosphere
+   \param[in] temperature,              Atmospheric temperature
+   \param[in] ind_ls,                   Index to lineshape function.
+   \param[in] ind_lsn,                  Index to lineshape norm.
+   \param[in] gamma_0,                  Line pressure broadening
+   \param[in] gamma_2,                  Speed-dependent line pressure broadening
+   \param[in] eta,                      Correlation of pressure broadening parameters
+   \param[in] df_0,                     Line pressure shift
+   \param[in] df_2,                     Speed-dependent line pressure shift
+   \param[in] sigma,                    Doppler broadening
+   \param[in] f_VC,                     Collisional frequency limit
+   \param[in] LM_DF,                    Line mixing frequency shift
+   \param[in] LM_Y,                     Line mixing dispersion dependency
+   \param[in] LM_G,                     Line mixing added attenuation
+   \param[in] cut,                      Is cutoff applied?
+   \param[in] calc_phase,               Is dispersion calculated?
+   \param[in] calc_src,                 Is source calculated?
  
    \author Stefan Buehler and Axel von Engeln
    \date   2001-01-11 
@@ -1284,7 +1286,7 @@ void xsec_single_line(  // Output:
     have the lower state energy in cm^-1.
 
     \return Energy in J.
-    \param  e Energy in cm^-1.
+    \param[in]  e Energy in cm^-1.
 
     \author Stefan Buehler
     \date   2001-06-26 */
@@ -1312,7 +1314,7 @@ Numeric wavenumber_to_joule(Numeric e) {
 
   \see find_first_species_tg.
 
-  \param name Species name.
+  \param[in] name Species name.
 
   \return Species index, -1 means not found.
 
@@ -1350,7 +1352,7 @@ Index species_index_from_species_name(String name) {
  
  Does an assertion that the index really corresponds to a species.
  
- \param spec_ind Species index.
+ \param[in] spec_ind Species index.
  
  \return Species name
  
@@ -1520,23 +1522,23 @@ ostream& operator<<(ostream& os, const LineshapeSpec& lsspec) {
  *  This will work as a wrapper for linemixing when abs_species contain relevant data.
  *  The funciton will only pass on arguments to xsec_species if there is no linemixing.
  *  
- *  \retval xsec_attenuation    Cross section of one tag group. This is now the
+ *  \param[out] xsec_attenuation    Cross section of one tag group. This is now the
  *                              true attenuation cross section in units of m^2.
- *  \retval xsec_source         Cross section of one tag group. This is now the
+ *  \param[out] xsec_source         Cross section of one tag group. This is now the
  *                              true source cross section in units of m^2.
- *  \retval xsec_phase          Cross section of one tag group. This is now the
+ *  \param[out] xsec_phase          Cross section of one tag group. This is now the
  *                              true phase cross section in units of m^2.
- *  \param f_grid               Frequency grid.
- *  \param abs_p                Pressure grid.
- *  \param abs_t                Temperatures associated with abs_p.
- *  \param all_vmrs             Gas volume mixing ratios [nspecies, np].
- *  \param abs_species          Species tags for all species.
- *  \param this_species         Index of the current species in abs_species.
- *  \param abs_lines            The spectroscopic line list.
- *  \param ind_ls               Index to lineshape function.
- *  \param ind_lsn              Index to lineshape norm.
- *  \param cutoff               Lineshape cutoff.
- *  \param isotopologue_ratios  Isotopologue ratios.
+ *  \param[in] f_grid               Frequency grid.
+ *  \param[in] abs_p                Pressure grid.
+ *  \param[in] abs_t                Temperatures associated with abs_p.
+ *  \param[in] all_vmrs             Gas volume mixing ratios [nspecies, np].
+ *  \param[in] abs_species          Species tags for all species.
+ *  \param[in] this_species         Index of the current species in abs_species.
+ *  \param[in] abs_lines            The spectroscopic line list.
+ *  \param[in] ind_ls               Index to lineshape function.
+ *  \param[in] ind_lsn              Index to lineshape norm.
+ *  \param[in] cutoff               Lineshape cutoff.
+ *  \param[in] isotopologue_ratios  Isotopologue ratios.
  * 
  *  \author Richard Larsson
  *  \date   2013-04-24
@@ -1959,31 +1961,31 @@ void xsec_species_line_mixing_wrapper(
  * This will work as the interface for all line-by-line computations 
  * lacking special demands
  *  
- *  \retval xsec                Cross section of one tag group. This is now the
+ *  \param[in,out] xsec         Cross section of one tag group. This is now the
  *                              true attenuation cross section in units of m^2.
- *  \retval source              Cross section of one tag group. This is now the
+ *  \param[in,out] source       Cross section of one tag group. This is now the
  *                              true source cross section in units of m^2.
- *  \retval phase               Cross section of one tag group. This is now the
+ *  \param[in,out] phase        Cross section of one tag group. This is now the
  *                              true phase cross section in units of m^2.
- *  \retval dxsec               Partial derivatives of xsec.
- *  \retval dsource             Partial derivatives of source.
- *  \retval dphase              Partial derivatives of phase.
+ *  \param[in,out] dxsec        Partial derivatives of xsec.
+ *  \param[in,out] dsource      Partial derivatives of source.
+ *  \param[in,out] dphase       Partial derivatives of phase.
  * 
- *  \param flag_partials        Partial derivatives flags.
- *  \param f_grid               Frequency grid.
- *  \param abs_p                Pressure grid.
- *  \param abs_t                Temperatures associated with abs_p.
- *  \param abs_t_nlte           Non-lte temperatures for various energy levels.
- *  \param all_vmrs             Gas volume mixing ratios [nspecies, np].
- *  \param abs_species          Species tags for all species.
- *  \param this_species         Index of the current species in abs_species.
- *  \param abs_lines            The spectroscopic line list.
- *  \param Z_DF                 The Zeeman line center shift over the magnitude of the magnetic field.
- *  \param H_magntitude_Zeeman  The magnitude of the magnetic field required by Zeeman effect.
- *  \param lm_p_lim             Line mixing pressure limit
- *  \param isotopologue_ratios  Isotopologue ratios.
- *  \param partition_functions  Partition functions.
- *  \param verbosity            Verbosity level.
+ *  \param[in] flag_partials        Partial derivatives flags.
+ *  \param[in] f_grid               Frequency grid.
+ *  \param[in] abs_p                Pressure grid.
+ *  \param[in] abs_t                Temperatures associated with abs_p.
+ *  \param[in] abs_t_nlte           Non-lte temperatures for various energy levels.
+ *  \param[in] all_vmrs             Gas volume mixing ratios [nspecies, np].
+ *  \param[in] abs_species          Species tags for all species.
+ *  \param[in] this_species         Index of the current species in abs_species.
+ *  \param[in] abs_lines            The spectroscopic line list.
+ *  \param[in] Z_DF                 The Zeeman line center shift over the magnitude of the magnetic field.
+ *  \param[in] H_magntitude_Zeeman  The magnitude of the magnetic field required by Zeeman effect.
+ *  \param[in] lm_p_lim             Line mixing pressure limit
+ *  \param[in] isotopologue_ratios  Isotopologue ratios.
+ *  \param[in] partition_functions  Partition functions.
+ *  \param[in] verbosity            Verbosity level.
  * 
  *  \author Richard Larsson
  *  \date   2013-04-24
