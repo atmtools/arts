@@ -23,7 +23,7 @@
  * @brief  Workspace functions for the solution of cloud-box radiative transfer
  * by Monte Carlo methods.  All of these functions refer to 3D calculations.
  *
- *** FIXMEDOC *** : set_lookup; return_los; ran_uniform
+ *** FIXMEDOC *** : set_lookup; ran_uniform
  */
 /*===========================================================================
   === External declarations
@@ -122,7 +122,7 @@ class MCAntenna {
    */
   AntennaType get_type() const;
     
-  /** return_los  *** FIXMEDOC ***
+  /** return_los
    *
    * Returns the normalized Gaussian weight for a photon line of sight
    * relative to the boresight.
@@ -130,14 +130,14 @@ class MCAntenna {
    * Modified 2016-09-07 by ISA to take a rotation matrix instead of
    * boresight los for reasons of computational efficiency.
    *
-   *** @param[out] k_enu Output: line-of-sight propagation vector in ENU frame.
-   *** @param[in]  rte_los The line-of-sight of incoming photon.
-   *** @param[in]  bore_sight_los the bore sight LOS.
+   * @param[out] wgt            Line-of-sight propagation vector in ENU frame.
+   * @param[in]  rte_los        The line-of-sight of incoming photon.
+   * @param[in]  bore_sight_los the bore sight LOS.
    *
-   * ??? @param[in]  R_enu2ant Rotation matrix from ENU frame to antenna frame.
+   * @param[in]  R_enu2ant      Rotation matrix from ENU frame to antenna frame.
    *
-   * @author       Ian S. Adams.
-   * @date         2015-09-09.
+   * @author     Ian S. Adams.
+   * @date       2015-09-09.
    */
   void return_los(Numeric& wgt,
                   ConstMatrixView R_return,
@@ -148,7 +148,7 @@ class MCAntenna {
    * Draws a line of sight by sampling the antenna response function.
    *
    * @param[out]  sampled_rte_los  The sampled line of sight.
-   * @param[out]  k_enu            Line-of-sight propagation vector in ENU frame.
+   * @param[out]  R_los            Line-of-sight propagation vector in ENU frame.
    * @param[in]   rng              A random number generator.
    * @param[in]   R_ant2enu        Rotation matrix from antenna frame to ENU frame.
    * @param[in]   bore_sight_los   The bore sight LOS.
@@ -201,7 +201,7 @@ void rotmat_enu(MatrixView R_ant2enu, ConstVectorView prop_los);
 /** rotmat_stokes.
  *
  * Calculates the PRA matrix for the stokes vector
- * to account for polarzation rotation from ENU
+ * to account for polarization rotation from ENU
  * frame to antenna frame. Designed to handle sign
  * properly for radiometer and radar (both tx and rx)
  * using the bs_dir argument which (1 = away from sensor,
@@ -223,9 +223,9 @@ void rotmat_enu(MatrixView R_ant2enu, ConstVectorView prop_los);
  */
 void rotmat_stokes(MatrixView R_pra,
                    const Index& stokes_dim,
-                   const Numeric& bs_dir,
-                   const Numeric& prop_dir,
-                   ConstMatrixView R_bs,
-                   ConstMatrixView R_prop);
+                   const Numeric& f1_dir,
+                   const Numeric& f2_dir,
+                   ConstMatrixView R_f1,
+                   ConstMatrixView R_f2);
 
 #endif  // mc_antenna_h
