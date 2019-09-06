@@ -23,7 +23,7 @@
  * @brief  Workspace functions for the solution of cloud-box radiative transfer
  * by Monte Carlo methods.  All of these functions refer to 3D calculations.
  *
- *** FIXMEDOC *** : set_lookup; return_los; ran_uniform
+ *** FIXMEDOC *** : set_lookup; ran_uniform
  */
 /*===========================================================================
   === External declarations
@@ -122,7 +122,7 @@ class MCAntenna {
    */
   AntennaType get_type() const;
     
-  /** return_los  *** FIXMEDOC ***
+  /** return_los
    *
    * Returns the normalized Gaussian weight for a photon line of sight
    * relative to the boresight.
@@ -130,14 +130,14 @@ class MCAntenna {
    * Modified 2016-09-07 by ISA to take a rotation matrix instead of
    * boresight los for reasons of computational efficiency.
    *
-   *** @param[out] k_enu Output: line-of-sight propagation vector in ENU frame.
-   *** @param[in]  rte_los The line-of-sight of incoming photon.
-   *** @param[in]  bore_sight_los the bore sight LOS.
+   * @param[out] wgt            Line-of-sight propagation vector in ENU frame.
+   * @param[in]  rte_los        The line-of-sight of incoming photon.
+   * @param[in]  bore_sight_los the bore sight LOS.
    *
-   * ??? @param[in]  R_enu2ant Rotation matrix from ENU frame to antenna frame.
+   * @param[in]  R_enu2ant      Rotation matrix from ENU frame to antenna frame.
    *
-   * @author       Ian S. Adams.
-   * @date         2015-09-09.
+   * @author     Ian S. Adams.
+   * @date       2015-09-09.
    */
   void return_los(Numeric& wgt,
                   ConstMatrixView R_return,

@@ -30,7 +30,7 @@
 #include "arts.h"
 #include "mystring.h"
 
-// The global message verbosity settings:
+/** The global message verbosity settings: */
 Verbosity verbosity_at_launch;
 
 /** The output path. For example for the report file. */
