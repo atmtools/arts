@@ -15,6 +15,26 @@ matrix:
             - clang-8
       env:
         - MATRIX_EVAL="CC=clang-8 && CXX=clang++-8 && WITH_FORTRAN=0"
+    - name: GCC 7 w/o Fortran
+      os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && WITH_FORTRAN=0"
+    - name: GCC 8 w/o Fortran
+      os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-8
+      env:
+        - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8 && WITH_FORTRAN=0"
     - name: GCC 9 w/ Fortran
       os: linux
       addons:
