@@ -94,7 +94,7 @@ void zeeman_on_the_fly(
     const Numeric& eta0) try {
   // Find relevant derivatives in retrieval quantities positions
   const ArrayOfIndex jacobian_quantities_positions =
-      equivlent_propmattype_indexes(jacobian_quantities);
+      equivalent_propmattype_indexes(jacobian_quantities);
 
   // Size of problem
   const Index nf = f_grid.nelem();

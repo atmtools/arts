@@ -1426,7 +1426,7 @@ void get_stepwise_clearsky_propmat(
         dS_dx[i].SetZero();
       } else if (jacobian_quantities[i].SubSubtag() == PROPMAT_SUBSUBTAG) {
         // Find position of index in ppd
-        const Index j = equivlent_propmattype_index(jacobian_quantities, i);
+        const Index j = equivalent_propmattype_index(jacobian_quantities, i);
 
         dK_dx[i] = dpropmat_clearsky_dx[j];
         if (lte) {
