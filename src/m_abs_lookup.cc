@@ -2064,7 +2064,7 @@ void propmat_clearskyAddFromLookup(
   const Numeric df = frequency_perturbation(jacobian_quantities);
   const Numeric dt = temperature_perturbation(jacobian_quantities);
   const ArrayOfIndex jacobian_quantities_position =
-      equivlent_propmattype_indexes(jacobian_quantities);
+      equivalent_propmattype_indexes(jacobian_quantities);
 
   // The function we are going to call here is one of the few helper
   // functions that adjust the size of their output argument

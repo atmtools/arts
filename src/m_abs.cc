@@ -1323,7 +1323,7 @@ void abs_coefCalcFromXsec(  // WS Output:
   src_coef = 0;
 
   const ArrayOfIndex jacobian_quantities_position =
-      equivlent_propmattype_indexes(jacobian_quantities);
+      equivalent_propmattype_indexes(jacobian_quantities);
   dabs_coef_dx.resize(jacobian_quantities_position.nelem());
   dsrc_coef_dx.resize(do_src ? jacobian_quantities_position.nelem() : 0);
 
@@ -1485,7 +1485,7 @@ void abs_xsec_per_speciesInit(  // WS Output:
   const bool do_jac = supports_propmat_clearsky(
       jacobian_quantities);  //minus one is a flag for a non-species...
   const ArrayOfIndex jacobian_quantities_position =
-      equivlent_propmattype_indexes(jacobian_quantities);
+      equivalent_propmattype_indexes(jacobian_quantities);
 
   dabs_xsec_per_species_dx.resize(do_jac ? tgs.nelem() : 0);
   dsrc_xsec_per_species_dx.resize(do_jac ? tgs.nelem() : 0);
@@ -1668,7 +1668,7 @@ void abs_xsec_per_speciesAddLines(  // WS Output:
       using global_data::species_data;
       String species_name = species_data[ll[0].Species()].Name();
       ArrayOfIndex jacobian_quantities_position =
-          equivlent_propmattype_indexes(jacobian_quantities);
+          equivalent_propmattype_indexes(jacobian_quantities);
       const bool do_jac = jacobian_quantities_position.nelem();
 
       // Get the name of the lineshape. For that we use the member
@@ -1853,7 +1853,7 @@ void abs_xsec_per_speciesAddConts(  // WS Output:
   const Numeric df = frequency_perturbation(jacobian_quantities);
   const Numeric dt = temperature_perturbation(jacobian_quantities);
   const ArrayOfIndex jacobian_quantities_position =
-      equivlent_propmattype_indexes(jacobian_quantities);
+      equivalent_propmattype_indexes(jacobian_quantities);
 
   if (do_freq_jac) {
     dfreq.resize(f_grid.nelem());
@@ -2181,7 +2181,7 @@ void nlte_sourceFromTemperatureAndSrcCoefPerSpecies(  // WS Output:
   }
 
   const ArrayOfIndex jacobian_quantities_position =
-      equivlent_propmattype_indexes(jacobian_quantities);
+      equivalent_propmattype_indexes(jacobian_quantities);
   Vector B(n_f);
 
   for (Index iv = 0; iv < n_f; iv++)
@@ -2324,7 +2324,7 @@ void propmat_clearskyInit(  //WS Output
 
   if (not stokes_dim) throw runtime_error("stokes_dim = 0");
 
-  const Index nq = equivlent_propmattype_indexes(jacobian_quantities).nelem();
+  const Index nq = equivalent_propmattype_indexes(jacobian_quantities).nelem();
 
   propmat_clearsky = ArrayOfPropagationMatrix(
       abs_species.nelem(), PropagationMatrix(nf, stokes_dim));
@@ -2384,7 +2384,7 @@ void propmat_clearskyAddFaraday(
   const bool do_magn_jac = do_magnetic_jacobian(jacobian_quantities);
   const Numeric dmag = magnetic_field_perturbation(jacobian_quantities);
   const ArrayOfIndex jacobian_quantities_position =
-      equivlent_propmattype_indexes(jacobian_quantities);
+      equivalent_propmattype_indexes(jacobian_quantities);
 
   Index ife = -1;
   for (Index sp = 0; sp < abs_species.nelem() && ife < 0; sp++) {
@@ -2549,7 +2549,7 @@ void propmat_clearskyAddParticles(
   const bool do_jac_temperature = do_temperature_jacobian(jacobian_quantities);
   const bool do_jac_frequencies = do_frequency_jacobian(jacobian_quantities);
   const ArrayOfIndex jacobian_quantities_position =
-      equivlent_propmattype_indexes(jacobian_quantities);
+      equivalent_propmattype_indexes(jacobian_quantities);
   const Numeric dT = temperature_perturbation(jacobian_quantities);
 
   const Index na = abs_species.nelem();
@@ -3142,7 +3142,7 @@ void abs_xsec_per_speciesAddLines2(  // WS Output:
   const bool do_jac = supports_propmat_clearsky(jacobian_quantities);
   const bool do_lte = abs_nlte.empty();
   const ArrayOfIndex jac_pos =
-      equivlent_propmattype_indexes(jacobian_quantities);
+      equivalent_propmattype_indexes(jacobian_quantities);
 
   // Skipping uninteresting data
   static ArrayOfMatrix dummy(0);

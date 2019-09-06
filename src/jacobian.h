@@ -42,7 +42,7 @@
 
 #include "quantum.h"
 
-// FIXMEDOC@Richard: Add doc for class
+/** List of Jacobian properties for analytical line shape related derivatives */
 enum class JacPropMatType : Index {
   VMR,
   Electrons,
@@ -105,8 +105,7 @@ enum class JacPropMatType : Index {
 };
 
 
-// FIXMEDOC/Richard: Best if you take this one as well, as I can not make it
-// complete anyhow
+/** Deals with internal derivatives, Jacobian definition, and OEM calculations */
 class RetrievalQuantity {
  public:
   /** Default constructor. Needed by make_array. */
@@ -123,7 +122,16 @@ class RetrievalQuantity {
         mintegration_flag(false) { /* Nothing to do here. */
   }
 
-  /** Constructor that sets the values. */
+  /** Constructor that sets the values
+   * 
+   * @param[in] maintag The main derivative
+   * @param[in] subtag The sub-derivative
+   * @param[in] subsubtag The sub-sub-derivative
+   * @param[in] mode The mode of the derivative
+   * @param[in] analytical Boolean analytical tag
+   * @param[in] perturbation The size of the perturbation required
+   * @param[in] grids The retrieval grid
+   */
   RetrievalQuantity(const String& maintag,
                     const String& subtag,
                     const String& subsubtag,
@@ -144,33 +152,137 @@ class RetrievalQuantity {
     // With Matpack, initialization of mgrids from grids should work correctly.
   }
 
-  /** Main tag. */
+  /** Returns the main tag
+   *
+   * @return A representation of the main tag
+   */
   const String& MainTag() const { return mmaintag; }
+  
+  /** Sets the main tag
+   *
+   * @param[in] mt A main tag
+   */
   void MainTag(const String& mt) { mmaintag = mt; }
-  /** Subtag. Eg. for gas species: O3, ClO. */
+  
+  /** Returns the sub-tag
+   * 
+   * Subtag. Eg. for gas species: O3, ClO
+   * 
+   * @return A representation of the sub-tag
+   */
   const String& Subtag() const { return msubtag; }
+  
+  /** Sets the sub-tag
+   * 
+   * @param[in] st A sub-tag
+   */
   void Subtag(const String& st) { msubtag = st; }
-  /** SubSubtag. Eg. for scat species fields: mass_density, mass_flux, ... */
+  
+  /** Returns the sub-sub-tag
+   * 
+   * SubSubtag. Eg. for scat species fields: mass_density, mass_flux, ...
+   * 
+   * @return A representation of the sub-sub-tag
+   */
   const String& SubSubtag() const { return msubsubtag; }
+  
+  /** Sets the sub-sub-tag
+   * 
+   * @param[in] sst A sub-sub-tag
+   */
   void SubSubtag(const String& sst) { msubsubtag = sst; }
-  /** Calculation mode. Eg. "abs", "rel", "vmr", "nd", "From propagation matrix". 
-       Note that the latter of these only supports "vmr" for abs species. */
+  
+  /** Returns the mode
+   * 
+   * Calculation mode. Eg. "abs", "rel", "vmr", "nd", "From propagation matrix". 
+   * Note that the latter of these only supports "vmr" for abs species.
+   * 
+   * @return A representation of the mode
+   */
   const String& Mode() const { return mmode; }
+  
+  /** Sets the mode
+   * 
+   * @param[in] m A mode
+   */
   void Mode(const String& m) { mmode = m; }
-  /** Boolean to make analytical calculations (if possible). */
+  
+  /** Returns the analytical tag
+   * 
+   * Boolean to make analytical calculations (if possible).
+   * 
+   * @return A representation of analytical tag
+   */
   const Index& Analytical() const { return manalytical; }
+  
+  /** Sets the analytical tag
+   * 
+   * @param[in] m An analytical tag
+   */
   void Analytical(const Index& m) { manalytical = m; }
-  /** Size of perturbation used for perturbation calculations. */
+  
+  /** Returns the size of perturbation
+   * 
+   * Size of perturbation used for perturbation calculations
+   * 
+   * @return The size of perturbation
+   */
   const Numeric& Perturbation() const { return mperturbation; }
+  
+  /** Sets the size of perturbation
+   * 
+   * @param[in] p The size of perturbation
+   */
   void Perturbation(const Numeric& p) { mperturbation = p; }
-  /** Grids. Definition grids for the jacobian, eg. p, lat and lon. */
+  
+  /** Returns the grids of the retrieval
+   * 
+   * Grids. Definition grids for the jacobian, eg. p, lat and lon.
+   * 
+   * @return The grids of the retrieval
+   */
   const ArrayOfVector& Grids() const { return mgrids; }
+  
+  /** Sets the grids of the retrieval
+   * 
+   * @param[in] g The grids of the retrieval
+   */
   void Grids(const ArrayOfVector& g) { mgrids = g; }
-  void PropType(const JacPropMatType t) { mproptype = t; }
-  bool operator==(const JacPropMatType t) const { return t == mproptype; }
-  bool operator!=(const JacPropMatType t) const { return t != mproptype; }
+  
+  /** Returns the propagation matrix derivative type
+   * 
+   * @return The propagation matrix derivative type
+   */
   JacPropMatType PropMatType() const { return mproptype; }
+  
+  /** Sets the propagation matrix derivative type
+   * 
+   * @param[in] t The propagation matrix derivative type
+   */
+  void PropType(const JacPropMatType t) { mproptype = t; }
+  
+  /** Checks if this represents the propagation matrix derivative type
+   * 
+   * @param[in] t A propagation matrix derivative type
+   * @return true if the input propagation matrix derivative type matches PropMatType()
+   * @return false otherwise
+   */
+  bool operator==(const JacPropMatType t) const { return t == mproptype; }
+  
+  /** Returns "not operator==(t)"
+   * 
+   * @param[in] t A propagation matrix derivative type
+   * @return false if the input propagation matrix derivative type matches PropMatType()
+   * @return true otherwise
+   */
+  bool operator!=(const JacPropMatType t) const { return not operator==(t); }
 
+  /** Number of elements in the grids 
+   * 
+   * The multiplicative accumulation of grid elements
+   * 
+   * @return The number of elements if each grid represents a dimension
+   */
   Index nelem() const {
     Index i = 1;
     for (Index j = 0; j < mgrids.nelem(); ++j) {
@@ -178,19 +290,41 @@ class RetrievalQuantity {
     }
     return i;
   }
-
-  /** QuantumIdentifier as necessary for matching line specific parameters to jacobian grid */
+  
+  /** Returns the identity of this Jacobian
+   * 
+   * QuantumIdentifier as necessary for matching line specific parameters to Jacobian grid
+   * 
+   * @return The identity of this Jacobian
+   */
   const QuantumIdentifier& QuantumIdentity() const {
     return mquantumidentifier;
   }
+  
+  /** Sets the identity of this Jacobian
+   * 
+   * @param[in] qi The identity of this Jacobian
+   */
   void QuantumIdentity(const QuantumIdentifier& qi) { mquantumidentifier = qi; }
 
-  /** Do integrations? */
+  /** Do integration?
+   * 
+   * @return true if the values should be integrated over all the grids
+   * @return false otherwise
+   */
+  bool Integration() const { return mintegration_flag; }
+  
+  /** Sets the integration flag to true */
   void IntegrationOn() { mintegration_flag = true; }
+  
+  /** Sets the integration flag to false */
   void IntegrationOff() { mintegration_flag = false; }
-  const bool& Integration() const { return mintegration_flag; }
 
-  /** Transformation **/
+  /** Transformation
+   * 
+   * FIXMEDOC@Simon The transformations are yours to fix and document
+   * FIXMEDOC@Patrick The transformations are yours to fix and document
+   */
   void SetTransformationFunc(const String& s) { transformation_func = s; }
   void SetTFuncParameters(const Vector& p) { tfunc_parameters = p; }
   void SetTransformationMatrix(const Matrix& A) { transformation_matrix = A; }
@@ -201,6 +335,12 @@ class RetrievalQuantity {
   const Matrix& TransformationMatrix() const { return transformation_matrix; }
   const Vector& OffsetVector() const { return offset_vector; }
 
+  /** Checks that all the internal variables of *this match with those of the input
+   * 
+   * @param[in] a Another retrieval quantity object
+   * @return true if the input performs the exact same Jacobian calculations
+   * @return false otherwise
+   */
   bool HasSameInternalsAs(const RetrievalQuantity& a) const {
     return a.mmaintag == mmaintag and a.msubtag == msubtag and
            a.msubsubtag == msubsubtag and a.mmode == mmode and
@@ -208,8 +348,6 @@ class RetrievalQuantity {
            a.mquantumidentifier == mquantumidentifier and
            a.mproptype == mproptype;
   }
-
-  bool IsTemperature() const { return operator==(JacPropMatType::Temperature); }
 
  private:
   String mmaintag;
@@ -746,7 +884,7 @@ void dxdvmrscf(Numeric& x,
                const Numeric& p,
                const Numeric& t);
 
-// Enum for knowing what Jacobian scheme is in-play in the m_rte.cc methods.
+/** Enum for knowing what Jacobian scheme is in-play in the m_rte.cc methods */
 enum class JacobianType : Index {
   None = 0,  // Setting to nil means that (bool)0 and (bool)N still works.
   Temperature,
@@ -770,20 +908,20 @@ enum class JacobianType : Index {
  * 
  *   FIXME:  Add HSE support
  * 
- *   @param[in]   diy1                      Out: diy for a level encountered the first time
- *   @param[in]   diy2                      Out: diy for a level encountered the second time
- *   @param[in]   ImT                       In: identity matrix minus tranmsission matrix
- *   @param[in]   cumulative_transmission   In: cumulative transmission from level to sensor
- *   @param[in]   dT1                       In: transmission matrix derivative for the first time
- *   @param[in]   dT2                       In: transmission matrix derivative for the second time
- *   @param[in]   iYmJ                      In: incoming radiation to layer minus source of layer
- *   @param[in]   dJ1                       In: derivative of source term emitted for the first time
- *   @param[in]   dJ2                       In: derivative of source term emitted for the second time
- *   @param[in]   stokes_dim                In: essentially the size of the problem
- *   @param[in]   transmission_only         In: remove all computations on source terms, making iYmJ pure incoming radiation
+ * @param[in,out] diy1 Derivative if iy for level 1
+ * @param[in,out] diy2 Derivative if iy for level 2
+ * @param[in] ImT Identity matrix minus the transmission matrix
+ * @param[in] cumulative_transmission Accumulative transmission from level to sensor
+ * @param[in] dT1 Transmission matrix derivative for level 1
+ * @param[in] dT2 Transmission matrix derivative for level 2
+ * @param[in] iYmJ iy minus the source
+ * @param[in] dJ1 Source vector derivative for level 1
+ * @param[in] dJ2 Source vector derivative for level 2
+ * @param[in] stokes_dim As WSV
+ * @param[in] transmission_only Bool for not doing emission calculations
  * 
- *   @author Richard Larsson
- *   @date   2017-09-20
+ * @author Richard Larsson
+ * @date   2017-09-20
  */
 void get_diydx(VectorView diy1,
                VectorView diy2,
@@ -801,94 +939,402 @@ void get_diydx(VectorView diy1,
 //             Propmat partials descriptions
 //======================================================================
 
-// FIXMEDOC@Richard: There was no header for these ones (all still used?):
-ArrayOfIndex equivlent_propmattype_indexes(const ArrayOfRetrievalQuantity& js);
+/** Returns a list of positions for the derivatives in Propagation Matrix calculations
+ * 
+ * @param[in] js As jacobian_quantities WSV
+ * @return List of positions
+ */
+ArrayOfIndex equivalent_propmattype_indexes(const ArrayOfRetrievalQuantity& js);
 
-Index equivlent_propmattype_index(const ArrayOfRetrievalQuantity& js,
+/** Returns a list of positions for the derivatives in Propagation Matrix calculations
+ * 
+ * @param[in] js As jacobian_quantities WSV
+ * @param[in] i A position in jacobian_quantities
+ * @return List of position
+ */
+Index equivalent_propmattype_index(const ArrayOfRetrievalQuantity& js,
                                   const Index i) noexcept;
 
+/** Returns the temperature perturbation if it exists
+ * 
+ * @param[in] js As jacobian_quantities WSV
+ * @return Temperature perturbation
+ */
 Numeric temperature_perturbation(const ArrayOfRetrievalQuantity& js) noexcept;
 
+/** Returns the frequency perturbation if it exists
+ * 
+ * @param[in] js As jacobian_quantities WSV
+ * @return Frequency perturbation
+ */
 Numeric frequency_perturbation(const ArrayOfRetrievalQuantity& js) noexcept;
 
+/** Returns the magnetic field perturbation if it exists
+ * 
+ * @param[in] js As jacobian_quantities WSV
+ * @return Magnetic field perturbation
+ */
 Numeric magnetic_field_perturbation(
     const ArrayOfRetrievalQuantity& js) noexcept;
 
+/** Returns a string of the retrieval quantity propagation matrix type
+ * 
+ * Only use for debugging purpose
+ * 
+ * @param[in] rq A retrieval quantity
+ * @return Text representation
+ */
 String propmattype_string(const RetrievalQuantity& rq);
 
 //======================================================================
 //             Propmat partials boolean functions
 //======================================================================
 
-/** Checks if the quantity is a wind parameter  */
+/** Returns if the Retrieval quantity is a wind parameter
+ * 
+ * @param[in] t A retrieval quantity
+ * @return true if it is
+ * @return false if it is not
+ */
 bool is_wind_parameter(const RetrievalQuantity& t) noexcept;
 
-/** Checks if you need the measurement frequency for the quantity  */
+/** Returns if the Retrieval quantity is a frequency parameter in propagation matrix calculations
+ * 
+ * @param[in] t A retrieval quantity
+ * @return true if it is
+ * @return false if it is not
+ */
 bool is_frequency_parameter(const RetrievalQuantity& t) noexcept;
 
+/** Returns if the Retrieval quantity is a derived magnetic parameter
+ * 
+ * @param[in] t A retrieval quantity
+ * @return true if it is
+ * @return false if it is not
+ */
 bool is_derived_magnetic_parameter(const RetrievalQuantity& t) noexcept;
 
+/** Returns if the Retrieval quantity is a magnetic parameter
+ * 
+ * @param[in] t A retrieval quantity
+ * @return true if it is
+ * @return false if it is not
+ */
 bool is_magnetic_parameter(const RetrievalQuantity& t) noexcept;
 
+/** Returns if the Retrieval quantity is a NLTE parameter
+ * 
+ * @param[in] t A retrieval quantity
+ * @return true if it is
+ * @return false if it is not
+ */
 bool is_nlte_parameter(const RetrievalQuantity& t) noexcept;
 
+/** Returns if the Retrieval quantity is a G0 derivative
+ * 
+ * @param[in] t A retrieval quantity
+ * @return true if it is
+ * @return false if it is not
+ */
 bool is_pressure_broadening_G0(const RetrievalQuantity& t) noexcept;
+
+/** Returns if the Retrieval quantity is a D0 derivative
+ * 
+ * See LineShape::Model for details on parameter
+ * 
+ * @param[in] t A retrieval quantity
+ * @return true if it is
+ * @return false if it is not
+ */
 bool is_pressure_broadening_D0(const RetrievalQuantity& t) noexcept;
+
+/** Returns if the Retrieval quantity is a G0 derivative
+ * 
+ * @param[in] t A retrieval quantity
+ * @return true if it is
+ * @return false if it is not
+ */
 bool is_pressure_broadening_G2(const RetrievalQuantity& t) noexcept;
+
+/** Returns if the Retrieval quantity is a D2 derivative
+ * 
+ * See LineShape::Model for details on parameter
+ * 
+ * @param[in] t A retrieval quantity
+ * @return true if it is
+ * @return false if it is not
+ */
 bool is_pressure_broadening_D2(const RetrievalQuantity& t) noexcept;
+
+/** Returns if the Retrieval quantity is a FVC derivative
+ * 
+ * See LineShape::Model for details on parameter
+ * 
+ * @param[in] t A retrieval quantity
+ * @return true if it is
+ * @return false if it is not
+ */
 bool is_pressure_broadening_FVC(const RetrievalQuantity& t) noexcept;
+
+/** Returns if the Retrieval quantity is a ETA derivative
+ * 
+ * See LineShape::Model for details on parameter
+ * 
+ * @param[in] t A retrieval quantity
+ * @return true if it is
+ * @return false if it is not
+ */
 bool is_pressure_broadening_ETA(const RetrievalQuantity& t) noexcept;
+
+/** Returns if the Retrieval quantity is a Y derivative
+ * 
+ * See LineShape::Model for details on parameter
+ * 
+ * @param[in] t A retrieval quantity
+ * @return true if it is
+ * @return false if it is not
+ */
 bool is_pressure_broadening_Y(const RetrievalQuantity& t) noexcept;
+
+/** Returns if the Retrieval quantity is a G derivative
+ * 
+ * See LineShape::Model for details on parameter
+ * 
+ * @param[in] t A retrieval quantity
+ * @return true if it is
+ * @return false if it is not
+ */
 bool is_pressure_broadening_G(const RetrievalQuantity& t) noexcept;
+
+/** Returns if the Retrieval quantity is a DV derivative
+ * 
+ * See LineShape::Model for details on parameter
+ * 
+ * @param[in] t A retrieval quantity
+ * @return true if it is
+ * @return false if it is not
+ */
 bool is_pressure_broadening_DV(const RetrievalQuantity& t) noexcept;
+
+/** Returns if the Retrieval quantity is a X0 derivative
+ * 
+ * See LineShape::Model for details on parameter
+ * 
+ * @param[in] t A retrieval quantity
+ * @return true if it is
+ * @return false if it is not
+ */
 bool is_lineshape_parameter_X0(const RetrievalQuantity& t) noexcept;
+
+/** Returns if the Retrieval quantity is a X1 derivative
+ * 
+ * See LineShape::Model for details on parameter
+ * 
+ * @param[in] t A retrieval quantity
+ * @return true if it is
+ * @return false if it is not
+ */
 bool is_lineshape_parameter_X1(const RetrievalQuantity& t) noexcept;
+
+/** Returns if the Retrieval quantity is a X2 derivative
+ * 
+ * See LineShape::Model for details on parameter
+ * 
+ * @param[in] t A retrieval quantity
+ * @return true if it is
+ * @return false if it is not
+ */
 bool is_lineshape_parameter_X2(const RetrievalQuantity& t) noexcept;
+
+/** Returns if the Retrieval quantity is a G0, D0, G2, D2, ETA, FVC derivative
+ * 
+ * See LineShape::Model for details on parameter
+ * 
+ * @param[in] t A retrieval quantity
+ * @return true if it is
+ * @return false if it is not
+ */
 bool is_lineshape_parameter_bar_linemixing(const RetrievalQuantity& t) noexcept;
+
+/** Returns if the Retrieval quantity is a G0, D0, G2, D2, ETA, FVC, Y, G, DV derivative
+ * 
+ * See LineShape::Model for details on parameter
+ * 
+ * @param[in] t A retrieval quantity
+ * @return true if it is
+ * @return false if it is not
+ */
 bool is_lineshape_parameter(const RetrievalQuantity& t) noexcept;
 
+/** Returns if the Retrieval quantity is related to the absorption line
+ * 
+ * @param[in] t A retrieval quantity
+ * @return true if it is
+ * @return false if it is not
+ */
 bool is_line_parameter(const RetrievalQuantity& t) noexcept;
 
+/** Returns if the array supports CIA derivatives
+ * 
+ * @param[in] js As jacobian_quantities WSV
+ * @return true if it does
+ * @return false if it does not
+ */
 bool supports_CIA(const ArrayOfRetrievalQuantity& js);
 
+/** Returns if the array supports HITRAN cross-section derivatives
+ * 
+ * @param[in] js As jacobian_quantities WSV
+ * @return true if it does
+ * @return false if it does not
+ */
 bool supports_hitran_xsec(const ArrayOfRetrievalQuantity& js);
 
+
+/** Returns if the array supports continuum derivatives
+ * 
+ * @param[in] js As jacobian_quantities WSV
+ * @return true if it does
+ * @return false if it does not
+ */
 bool supports_continuum(const ArrayOfRetrievalQuantity& js);
 
+/** Returns if the array supports line-by-line derivatives without requiring the phase
+ * 
+ * FIXME: This should be removed when updating away from the old XSEC routine
+ * 
+ * @param[in] js As jacobian_quantities WSV
+ * @return true if it does
+ * @return false if it does not
+ */
 bool supports_LBL_without_phase(const ArrayOfRetrievalQuantity& js);
 
+/** Returns if the array supports relaxation matrix derivatives
+ * 
+ * @param[in] js As jacobian_quantities WSV
+ * @return true if it does
+ * @return false if it does not
+ */
 bool supports_relaxation_matrix(const ArrayOfRetrievalQuantity& js);
 
+/** Returns if the array supports lookup table derivatives
+ * 
+ * @param[in] js As jacobian_quantities WSV
+ * @return true if it does
+ * @return false if it does not
+ */
 bool supports_lookup(const ArrayOfRetrievalQuantity& js);
 
+/** Returns if the array supports Zeeman derivatives
+ * 
+ * @param[in] js As jacobian_quantities WSV
+ * @return true if it does
+ * @return false if it does not
+ */
 bool supports_zeeman(const ArrayOfRetrievalQuantity& js);
 
+/** Returns if the array supports Faraday derivatives
+ * 
+ * @param[in] js As jacobian_quantities WSV
+ * @return true if it does
+ * @return false if it does not
+ */
 bool supports_faraday(const ArrayOfRetrievalQuantity& js);
 
+/** Returns if the array supports particulate derivatives
+ * 
+ * @param[in] js As jacobian_quantities WSV
+ * @return true if it does
+ * @return false if it does not
+ */
 bool supports_particles(const ArrayOfRetrievalQuantity& js);
 
+/** Returns if the array supports propagation matrix derivatives
+ * 
+ * @param[in] js As jacobian_quantities WSV
+ * @return true if it does
+ * @return false if it does not
+ */
 bool supports_propmat_clearsky(const ArrayOfRetrievalQuantity& js);
 
+/** Returns if the Retrieval quantity is VMR derivative for all the species in the species tags
+ * 
+ * Very slow compared to index input
+ * 
+ * @param[in] rq A retrieval quantity
+ * @param[in] st A list of species tags
+ * @return true if all species in the tags list matches the species in the retrieval quantity
+ * @return false otherwise
+ */
 bool species_match(const RetrievalQuantity& rq, const ArrayOfSpeciesTag& st);
+
+/** Returns if the Retrieval quantity is VMR derivative for all the species in the species tags
+ * 
+ * @param[in] rq A retrieval quantity
+ * @param[in] species An index-mapped species
+ * @return true the species match the species in the retrieval quantity
+ * @return false otherwise
+ */
 bool species_match(const RetrievalQuantity& rq, const Index species);
+
+/** Returns if the Retrieval quantity is VMR derivative for all the species in the species tags
+ * 
+ * @param[in] rq A retrieval quantity
+ * @param[in] species An index-mapped species
+ * @param[in] iso An index-mapped isotopologue
+ * @return true the species and isotopologue match the species and isotopologue in the retrieval quantity
+ * @return false otherwise
+ */
 bool species_iso_match(const RetrievalQuantity& rq,
                        const Index species,
                        const Index iso);
 
+/** Returns if the array wants the temperature derivative
+ * 
+ * @param[in] js As jacobian_quantities WSV
+ * @return true if it does
+ * @return false if it does not
+ */
 bool do_temperature_jacobian(const ArrayOfRetrievalQuantity& js) noexcept;
 
+/** Deals with whether or not we should do a VMR derivative */
 struct jacobianVMRcheck {
   bool test;
   const QuantumIdentifier& qid;
 };
 
+/** Returns the required info for VMR Jacobian
+ * 
+ * @param[in] js As jacobian_quantities WSV
+ * @param[in] line_qid A line identifier
+ * @return true and retrieval quantity quantum identity pointer if available
+ * @return false and line_qid pointer if not available
+ */
 jacobianVMRcheck do_vmr_jacobian(const ArrayOfRetrievalQuantity& js,
                                  const QuantumIdentifier& line_qid) noexcept;
 
+/** Returns if the array wants a line center derivative
+ * 
+ * @param[in] js As jacobian_quantities WSV
+ * @return true if it does
+ * @return false if it does not
+ */
 bool do_line_center_jacobian(const ArrayOfRetrievalQuantity& js) noexcept;
 
+/** Returns if the array wants a frequency derivative
+ * 
+ * @param[in] js As jacobian_quantities WSV
+ * @return true if it does
+ * @return false if it does not
+ */
 bool do_frequency_jacobian(const ArrayOfRetrievalQuantity& js) noexcept;
 
+/** Returns if the array wants a magnetic derivative
+ * 
+ * @param[in] js As jacobian_quantities WSV
+ * @return true if it does
+ * @return false if it does not
+ */
 bool do_magnetic_jacobian(const ArrayOfRetrievalQuantity& js) noexcept;
 
 #endif  // jacobian_h

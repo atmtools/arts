@@ -1254,7 +1254,7 @@ void get_diydx(VectorView diy1,
 //             Propmat partials descriptions
 //======================================================================
 
-ArrayOfIndex equivlent_propmattype_indexes(const ArrayOfRetrievalQuantity& js) {
+ArrayOfIndex equivalent_propmattype_indexes(const ArrayOfRetrievalQuantity& js) {
   ArrayOfIndex pos;
   pos.reserve(js.nelem());
   for (Index i = 0; i < js.nelem(); i++)
@@ -1262,7 +1262,7 @@ ArrayOfIndex equivlent_propmattype_indexes(const ArrayOfRetrievalQuantity& js) {
   return pos;
 }
 
-Index equivlent_propmattype_index(const ArrayOfRetrievalQuantity& js,
+Index equivalent_propmattype_index(const ArrayOfRetrievalQuantity& js,
                                   const Index i) noexcept {
   Index j = -1;
   for (Index k = 0; k <= i; k++)

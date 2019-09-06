@@ -60,14 +60,22 @@
  * 
  *  Adaptation means changing unit by user input
  * 
- *  @param[in,out]   dK_dx   In is unadopted out is adopted propagation matrix 
- *                           derivatives
- *  @param[in,out]   dS_dx   In is unadopted extra source and out is adopted
- *                           extra source derivatives
- *  FIXMEDOC@Richard: Finish header
+ * @param[in,out] dK_dx Propagation matrix derivatives at propagation path point, adapted for wind and VMR units
+ * @param[in,out] dS_dx NLTE source adjustment derivatives at propagation path point, adapted for wind and VMR units
+ * @param[in] jacobian_quantities as WSV
+ * @param[in] ppath_f_grid Wind-adjusted frequency grid at propagation path point
+ * @param[in] ppath_line_of_sight Line of sight at propagation path point
+ * @param[in] ppath_vmrs Volume mixing ratio of atmospheric species at propagation path point
+ * @param[in] ppath_temperature Temperature of atmosphere at propagation path point
+ * @param[in] ppath_pressure Pressure of atmosphere at propagation path point
+ * @param[in] jacobian_species Index list showing where and how the Jacobian needs to compute VMRs
+ * @param[in] jacobian_wind Index list showing where and how the Jacobian needs to compute Wind
+ * @param[in] lte Boolean index for whether or not the atmosphere is in LTE at propagation path point
+ * @param[in] atmosphere_dim As WSV
+ * @param[in] jacobian_do As WSV
  * 
- *  @author Richard Larsson 
- *  @date   2017-09-21
+ * @author Richard Larsson 
+ * @date   2017-09-21
  */
 void adapt_stepwise_partial_derivatives(
     ArrayOfPropagationMatrix& dK_dx,
@@ -157,6 +165,8 @@ void apply_iy_unit2(Tensor3View J,
 
     The expression is taken from Kursinski et al., The GPS radio occultation
     technique, TAO, 2000.
+    
+    FIXMEDOC@Patrick, if this function only returns a numeric, have it defined as "Numeric bending_angle1d(ppath)" since this is better code.
 
     @param[in]   ppath   Propagation path.
 
@@ -524,12 +534,16 @@ void get_ppath_f(Matrix& ppath_f,
 Range get_rowindex_for_mblock(const Sparse& sensor_response,
                               const Index& imblock);
 
-/** FIXMEDOC@Richard: Finish/check the documentation of all get_stepwise.
- *                    You use different variable names in rte.h and rte.cc in
- *                    some cases. Should be corrected?
+/** Get the blackbody radiation at propagation path point
  * 
- *  @author Richard Larsson 
- *  @date   2017-09-21
+ * @param[in,out] B Blackbody radiation at propagation path point
+ * @param[in,out] dB_dT Blackbody radiation temperature derivative at propagation path point
+ * @param[in] ppath_f_grid Wind-adjusted frequency grid at propagation path point
+ * @param[in] ppath_temperature Temperature of atmosphere at propagation path point
+ * @param[in] do_temperature_derivative Fill dB_dT?
+ * 
+ * @author Richard Larsson 
+ * @date   2017-09-21
  */
 void get_stepwise_blackbody_radiation(VectorView B,
                                       VectorView dB_dT,
@@ -539,15 +553,28 @@ void get_stepwise_blackbody_radiation(VectorView B,
 
 /** Gets the clearsky propgation matrix and NLTE contributions
  * 
- *  @param[in] K                Out: Level propagation matrix
- *  @param[in] S                Out: NLTE source vector for level
- *  @param[in] lte              Out: Index indicating if there is any NLTE source term
- *  @param[in] dK_dx            Out: Unadopted propagation matrix derivatives of level
- *  @param[in] dS_dx            Out: Unadopted NLTE source derivatives of level
-...
+ * Basically a wrapper for calls to the propagation clearsky agenda
  * 
- *  @author Richard Larsson 
- *  @date   2017-09-21
+ * @param[in] ws The workspace
+ * @param[in,out] K Propagation matrix at propagation path point
+ * @param[in,out] S NLTE source adjustment at propagation path point
+ * @param[in,out] lte Boolean index for whether or not the atmosphere is in LTE at propagation path point
+ * @param[in,out] dK_dx Propagation matrix derivatives at propagation path point
+ * @param[in,out] dS_dx NLTE source adjustment derivatives at propagation path point
+ * @param[in] propmat_clearsky_agenda As WSA
+ * @param[in] jacobian_quantities As WSV
+ * @param[in] ppath_f_grid Wind-adjusted frequency grid at propagation path point
+ * @param[in] ppath_mag_field Magnetic field at propagation path point
+ * @param[in] ppath_line_of_sight Line of sight at propagation path point
+ * @param[in] ppath_nlte NLTE distribution at propagation path point
+ * @param[in] ppath_vmrs Volume mixing ratio of atmospheric species at propagation path point
+ * @param[in] ppath_temperature Temperature of atmosphere at propagation path point
+ * @param[in] ppath_pressure Pressure of atmosphere at propagation path point
+ * @param[in] jacobian_species Index list showing where and how the Jacobian needs to compute VMRs
+ * @param[in] jacobian_do As WSV
+ * 
+ * @author Richard Larsson 
+ * @date   2017-09-21
  */
 void get_stepwise_clearsky_propmat(
     Workspace& ws,
@@ -561,15 +588,15 @@ void get_stepwise_clearsky_propmat(
     ConstVectorView ppath_f_grid,
     ConstVectorView ppath_magnetic_field,
     ConstVectorView ppath_line_of_sight,
-    ConstVectorView ppath_nlte_temperatures,
+    ConstVectorView ppath_nlte,
     ConstVectorView ppath_vmrs,
     const Numeric& ppath_temperature,
     const Numeric& ppath_pressure,
     const ArrayOfIndex& jacobian_species,
     const bool& jacobian_do);
 
-//! get_stepwise_effective_source
-/**
+/** Gets the effective source at propagation path point
+ * 
  *  Computes
  * 
  *  J = K^-1 (a B + S)
@@ -580,20 +607,23 @@ void get_stepwise_clearsky_propmat(
  * 
  *  Assumes zeroes for the a and K if nothing is happening but checks all other variables
  * 
- *  @param[in] J                   Out: Source term, frequency times stokes dimension
- *  @param[in] dJ_dx               Out: Source term derivative, quantities times frequency times stokes dimension
- *  @param[in] K                   In: Propagation matrix of level --- all contributions
- *  @param[in] a                   In: Absorption vector of level --- all contributions
- *  @param[in] S                   In: Source terms other than absorption times planck --- all contributions
- *  @param[in] dK_dx               In: Propagation matrix derivatives of level --- all contributions
- *  @param[in] da_dx               In: Absorption vector derivatives of level --- all contributions
- *  @param[in] dS_dx               In: Source terms derivatives other than absorption times planck --- all contributions
- *  @param[in] B                   In: Planck function in Stokes vector form
- *  @param[in] dB_dT               In: Planck function derivative wrt temperatures in Stokes vector form
- *  @param[in] jacobian_quantities In: As wsv
+ * FIXME: This function should be removed
  * 
- *  @author Richard Larsson 
- *  @date   2017-09-21
+ * @param[in,out] J Source term for RTE at propagation path point
+ * @param[in,out] dJ_dx Source term derivative for RTE at propagation path point
+ * @param[in] K Propagation matrix, clearsky+scattersky, at propagation path point
+ * @param[in] a Absorption vector, clearsky+scattersky, at propagation path point
+ * @param[in] S NLTE source adjustment, clearsky+scattersky, at propagation path point
+ * @param[in] dK_dx Propagation matrix derivatives, clearsky+scattersky, at propagation path point
+ * @param[in] da_dx Absorption vector derivatives, clearsky+scattersky, at propagation path point
+ * @param[in] dS_dx NLTE source adjustment derivatives, clearsky+scattersky, at propagation path point
+ * @param[in] B Blackbody radiation at propagation path point
+ * @param[in] dB_dT Blackbody radiation temperature derivative at propagation path point
+ * @param[in] jacobian_quantities As WSV
+ * @param[in] jacobian_do As WSV
+ * 
+ * @author Richard Larsson 
+ * @date   2017-09-21
  */
 void get_stepwise_effective_source(
     MatrixView J,
@@ -609,16 +639,19 @@ void get_stepwise_effective_source(
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const bool& jacobian_do);
 
-/**
- *  Inverse of get_stepwise_f_partials
+/** Inverse of get_stepwise_f_partials
  * 
- *  Computes practical frequency grid due to wind for propmat_clearsky_agenda
+ * Computes practical frequency grid due to wind for propmat_clearsky_agenda
  * 
-...
+ * @param[in,out] ppath_f_grid Wind-adjusted frequency grid at propagation path point
+ * @param[in] f_grid As WSV
+ * @param[in] ppath_wind Wind vector at propagation path point
+ * @param[in] ppath_line_of_sight Line of sight at propagation path point
+ * @param[in] rte_alonglos_v As WSV
+ * @param[in] atmosphere_dim As WSV
  * 
- *  @author Richard Larsson 
- *  \adapted from non-stepwise function
- *  @date   2017-09-21
+ * @author Richard Larsson 
+ * @date   2017-09-21
  */
 void get_stepwise_frequency_grid(VectorView ppath_f_grid,
                                  ConstVectorView f_grid,
@@ -630,32 +663,34 @@ void get_stepwise_frequency_grid(VectorView ppath_f_grid,
 /** Computes the ratio that a partial derivative with regards to frequency
  *  relates to the wind of come component
  * 
- *  @param[in]   f_partial             Out: The frequency vector to multiply each frequency 
- *                                      grid point in clearsky propmat derivatives
- *  @param[in]   component             In: The wind component
- *  @param[in]   line_of_sight         In: The line of sight vector as in workspace rtp_los
- *  @param[in]   f_grid                In: The computational frequency grid
- *  @param[in]   atmosphere_dim        In: atmospheric diemension as wsv
- ...
+ * @param[in,out] ppath_f_grid Wind-adjusted frequency grid wind derivative at propagation path point
+ * @param[in] component The wind component [0 is full, 1 is u, 2 is v, 3 is w, rest are undefined]
+ * @param[in] ppath_line_of_sight Line of sight at propagation path point
+ * @param[in] f_grid As WSV
+ * @param[in] atmosphere_dim As WSV
  * 
- *  @author Richard Larsson 
- *  \adapted from non-stepwise function
- *  @date   2017-09-21
+ * @author Richard Larsson 
+ * @date   2017-09-21
  */
 void get_stepwise_f_partials(Vector& f_partials,
                              const Index& component,
-                             ConstVectorView& line_of_sight,
+                             ConstVectorView& ppath_line_of_sight,
                              ConstVectorView f_grid,
                              const Index& atmosphere_dim);
 
-/** Computes the contribution by scattering elements towards the absorption 
- *  and emission from a level.
+/** Computes the contribution by scattering at propagation path point
  * 
- *  @param[in]   ap                    Out: The scattering absorption term
- *  @param[in]   Kp                    Out: The scattering propagation matrix term
- *  @param[in]   dap_dx                Out: The scattering absorption term deriative
- *  @param[in]   dKp_dx                Out: The scattering propagation matrix term deriative
- ...
+ * @param[in,out] ap Absorption vector scattersky at propagation path point
+ * @param[in,out] Kp Propagation matrix scattersky at propagation path point
+ * @param[in,out] dap_dx Absorption vector scattersky derivatives at propagation path point
+ * @param[in,out] dKp_dx Propagation matrix scattersky derivatives at propagation path point
+ * @param[in] jacobian_quantities As WSV
+ * @param[in] ppath_1p_pnd Particulate number density at propagation path point
+ * @param[in] scat_data As WSV
+ * @param[in] ppath_line_of_sight Line of sight at propagation path point
+ * @param[in] ppath_temperature Temperature at propagation path point
+ * @param[in] atmosphere_dim As WSV
+ * @param[in] jacobian_do As WSV
  * 
  *  @author Jana Mendrok, Richard Larsson 
  *  @date   2017-09-21
@@ -708,15 +743,25 @@ void get_stepwise_scattersky_source(
 
 /** Computes layer transmission matrix and cumulative transmission
  * 
- *  @param[in] cumulative_transmission Out: cumulation of transmission for jacobian computations
- *  @param[in] T                       Out: Layer transmission
- *  @param[in] dT_close_dx             Out: Layer transmission derivative due to closest level
- *  @param[in] dT_far_dx               Out: Layer transmission derivative due to furthest level
-...
+ * FIXME: This function should be removed
  * 
- *  @author Richard Larsson 
- *  \adapted from non-stepwise function
- *  @date   2017-09-21
+ * @param[in,out] cumulative_transmission Present accumulation of transmission for Jacobian computations
+ * @param[in,out] T Layer transmission
+ * @param[in,out] dT_close_dx Layer transmission derivative due to the close propagation path point
+ * @param[in,out] dT_far_dx Layer transmission derivative due to the far propagation path point
+ * @param[in] cumulative_transmission_close Past accumulation of transmission for Jacobian computations
+ * @param[in] K_close Level propagation matrix due to the close propagation path point
+ * @param[in] K_far Level propagation matrix due to the far propagation path point
+ * @param[in] dK_close_dx Level propagation matrix derivatives due to the close propagation path point
+ * @param[in] dK_far_dx Level propagation matrix derivatives due to the far propagation path point
+ * @param[in] ppath_distance Thickness of the layer
+ * @param[in] first_level Boolean for if this is the first level, i.e., there is no cumulative_transmission_close
+ * @param[in] dr_dT_close Thickness of the layer derivative due to temperature of the close propagation path point
+ * @param[in] dr_dT_far Thickness of the layer derivative due to temperature of the far propagation path point
+ * @param[in] it Index to temperature derivatives
+ * 
+ * @author Richard Larsson 
+ * @date   2017-09-21
  */
 void get_stepwise_transmission_matrix(
     Tensor3View cumulative_transmission,
@@ -735,7 +780,9 @@ void get_stepwise_transmission_matrix(
     const Index& it = -1);
 
 /** Performs calculations for one measurement block, on iy-level
- *
+ * 
+ * FIXMEDOC@Patrick This function lacks all documentation
+ * 
  * The parameters mainly matches WSVs.
  */
 void iyb_calc(Workspace& ws,

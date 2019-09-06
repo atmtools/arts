@@ -1358,23 +1358,23 @@ void get_stepwise_blackbody_radiation(VectorView B,
 }
 
 void get_stepwise_clearsky_propmat(
-    Workspace& ws,
-    PropagationMatrix& K,
-    StokesVector& S,
-    Index& lte,
-    ArrayOfPropagationMatrix& dK_dx,
-    ArrayOfStokesVector& dS_dx,
-    const Agenda& propmat_clearsky_agenda,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    ConstVectorView ppath_f_grid,
-    ConstVectorView ppath_magnetic_field,
-    ConstVectorView ppath_line_of_sight,
-    ConstVectorView ppath_nlte_temperatures,
-    ConstVectorView ppath_vmrs,
-    const Numeric& ppath_temperature,
-    const Numeric& ppath_pressure,
-    const ArrayOfIndex& jacobian_species,
-    const bool& jacobian_do) {
+  Workspace& ws,
+  PropagationMatrix& K,
+  StokesVector& S,
+  Index& lte,
+  ArrayOfPropagationMatrix& dK_dx,
+  ArrayOfStokesVector& dS_dx,
+  const Agenda& propmat_clearsky_agenda,
+  const ArrayOfRetrievalQuantity& jacobian_quantities,
+  ConstVectorView ppath_f_grid,
+  ConstVectorView ppath_magnetic_field,
+  ConstVectorView ppath_line_of_sight,
+  ConstVectorView ppath_nlte,
+  ConstVectorView ppath_vmrs,
+  const Numeric& ppath_temperature,
+  const Numeric& ppath_pressure,
+  const ArrayOfIndex& jacobian_species,
+  const bool& jacobian_do) {
   // All relevant quantities are extracted first
   const Index nq = jacobian_quantities.nelem();
 
@@ -1395,7 +1395,7 @@ void get_stepwise_clearsky_propmat(
                                  ppath_line_of_sight,
                                  ppath_pressure,
                                  ppath_temperature,
-                                 ppath_nlte_temperatures,
+                                 ppath_nlte,
                                  ppath_vmrs,
                                  propmat_clearsky_agenda);
 
@@ -1426,7 +1426,7 @@ void get_stepwise_clearsky_propmat(
         dS_dx[i].SetZero();
       } else if (jacobian_quantities[i].SubSubtag() == PROPMAT_SUBSUBTAG) {
         // Find position of index in ppd
-        const Index j = equivlent_propmattype_index(jacobian_quantities, i);
+        const Index j = equivalent_propmattype_index(jacobian_quantities, i);
 
         dK_dx[i] = dpropmat_clearsky_dx[j];
         if (lte) {

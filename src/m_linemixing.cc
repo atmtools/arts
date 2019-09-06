@@ -1404,7 +1404,7 @@ void abs_xsec_per_speciesAddLineMixedBands(  // WS Output:
 
   // Jacobian constants
   const ArrayOfIndex jacobian_quantities_position =
-      equivlent_propmattype_indexes(jacobian_quantities);
+      equivalent_propmattype_indexes(jacobian_quantities);
 
   // Test that wigner is wigner is initialized
   if (not wigner_initialized)

@@ -89,7 +89,7 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
   const Numeric df = frequency_perturbation(jacobian_quantities);
   const Numeric dt = temperature_perturbation(jacobian_quantities);
   const ArrayOfIndex jacobian_quantities_position =
-      equivlent_propmattype_indexes(jacobian_quantities);
+      equivalent_propmattype_indexes(jacobian_quantities);
 
   if (do_freq_jac) {
     dfreq = f_grid;

@@ -58,7 +58,7 @@ enum class QuantumNumberType : Index {
   Omega,   // This is an absolute projection of J and S
   i,       //(Is related to Omega)
   Lambda,  // This is Sigma or Pi or Lambda states (as seen in literature)
-  alpha,   // Alpha from HITRAN // FIXME richard
+  alpha,   // Alpha from HITRAN
   Sym,     // Symmetry expression
   parity,  // parity value (+/-)
   v1,      // Vibrational mode 1

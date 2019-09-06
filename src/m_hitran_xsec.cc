@@ -80,7 +80,7 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
   const Numeric df = frequency_perturbation(jacobian_quantities);
   //    const Numeric dt = ppd.Temperature_Perturbation();
   const ArrayOfIndex jac_pos =
-      equivlent_propmattype_indexes(jacobian_quantities);
+      equivalent_propmattype_indexes(jacobian_quantities);
   if (do_freq_jac) {
     dfreq.resize(f_grid.nelem());
     dfreq = f_grid;
