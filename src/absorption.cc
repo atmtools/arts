@@ -529,10 +529,12 @@ ostream& operator<<(ostream& os, const SpeciesAuxData& sad) {
     Continua are not handled by this function, you have to call
     xsec_continuum_tag for those.
 
-    \param[out] xsec_attenuation   Cross section of one tag group. This is now the
-                               true absorption cross section in units of m^2.
-    \param[out] xsec_phase         Cross section of one tag group. This is now the
-                               true dispersion cross section in units of m^2.
+    \param[in,out] xsec_attenuation   Cross section of one tag group. This is now the
+                                      true absorption cross section in units of m^2.
+    \param[in,out] xsec_source        Cross section of one tag group. This is now the
+                                      true source cross section in units of m^2.
+    \param[in,out] xsec_phase         Cross section of one tag group. This is now the
+                                      true dispersion cross section in units of m^2.
     \param[in] f_grid       Frequency grid.
     \param[in] abs_p        Pressure grid.
     \param[in] abs_t        Temperatures associated with abs_p.
@@ -1959,15 +1961,15 @@ void xsec_species_line_mixing_wrapper(
  * This will work as the interface for all line-by-line computations 
  * lacking special demands
  *  
- *  \param[out] xsec                Cross section of one tag group. This is now the
+ *  \param[in,out] xsec         Cross section of one tag group. This is now the
  *                              true attenuation cross section in units of m^2.
- *  \param[out] source              Cross section of one tag group. This is now the
+ *  \param[in,out] source       Cross section of one tag group. This is now the
  *                              true source cross section in units of m^2.
- *  \param[out] phase               Cross section of one tag group. This is now the
+ *  \param[in,out] phase        Cross section of one tag group. This is now the
  *                              true phase cross section in units of m^2.
- *  \param[out] dxsec               Partial derivatives of xsec.
- *  \param[out] dsource             Partial derivatives of source.
- *  \param[out] dphase              Partial derivatives of phase.
+ *  \param[in,out] dxsec        Partial derivatives of xsec.
+ *  \param[in,out] dsource      Partial derivatives of source.
+ *  \param[in,out] dphase       Partial derivatives of phase.
  * 
  *  \param[in] flag_partials        Partial derivatives flags.
  *  \param[in] f_grid               Frequency grid.
