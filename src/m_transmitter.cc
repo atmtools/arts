@@ -888,7 +888,7 @@ void iyTransmissionStandard(Workspace& ws,
                                   da_dx[iq] = StokesVector(nf, ns);
                                   dS_dx[iq] = StokesVector(nf, ns);
                                   dSp_dx[iq] = StokesVector(nf, ns);
-                                  if (jacobian_quantities[iq].IsTemperature()) {
+                                  if (jacobian_quantities[iq] == JacPropMatType::Temperature) {
                                     temperature_derivative_position = iq;
                                     do_hse = jacobian_quantities[iq].Subtag() ==
                                              "HSE on";

@@ -105,8 +105,7 @@ enum class JacPropMatType : Index {
 };
 
 
-// FIXMEDOC/Richard: Best if you take this one as well, as I can not make it
-// complete anyhow
+/** Deals with internal derivatives, Jacobian definition, and OEM calculations */
 class RetrievalQuantity {
  public:
   /** Default constructor. Needed by make_array. */
@@ -123,7 +122,16 @@ class RetrievalQuantity {
         mintegration_flag(false) { /* Nothing to do here. */
   }
 
-  /** Constructor that sets the values. */
+  /** Constructor that sets the values
+   * 
+   * @param[in] maintag The main derivative
+   * @param[in] subtag The sub-derivative
+   * @param[in] subsubtag The sub-sub-derivative
+   * @param[in] mode The mode of the derivative
+   * @param[in] analytical Boolean analytical tag
+   * @param[in] perturbation The size of the perturbation required
+   * @param[in] grids The retrieval grid
+   */
   RetrievalQuantity(const String& maintag,
                     const String& subtag,
                     const String& subsubtag,
@@ -144,33 +152,137 @@ class RetrievalQuantity {
     // With Matpack, initialization of mgrids from grids should work correctly.
   }
 
-  /** Main tag. */
+  /** Returns the main tag
+   *
+   * @return A representation of the main tag
+   */
   const String& MainTag() const { return mmaintag; }
+  
+  /** Sets the main tag
+   *
+   * @param[in] mt A main tag
+   */
   void MainTag(const String& mt) { mmaintag = mt; }
-  /** Subtag. Eg. for gas species: O3, ClO. */
+  
+  /** Returns the sub-tag
+   * 
+   * Subtag. Eg. for gas species: O3, ClO
+   * 
+   * @return A representation of the sub-tag
+   */
   const String& Subtag() const { return msubtag; }
+  
+  /** Sets the sub-tag
+   * 
+   * @param[in] st A sub-tag
+   */
   void Subtag(const String& st) { msubtag = st; }
-  /** SubSubtag. Eg. for scat species fields: mass_density, mass_flux, ... */
+  
+  /** Returns the sub-sub-tag
+   * 
+   * SubSubtag. Eg. for scat species fields: mass_density, mass_flux, ...
+   * 
+   * @return A representation of the sub-sub-tag
+   */
   const String& SubSubtag() const { return msubsubtag; }
+  
+  /** Sets the sub-sub-tag
+   * 
+   * @param[in] sst A sub-sub-tag
+   */
   void SubSubtag(const String& sst) { msubsubtag = sst; }
-  /** Calculation mode. Eg. "abs", "rel", "vmr", "nd", "From propagation matrix". 
-       Note that the latter of these only supports "vmr" for abs species. */
+  
+  /** Returns the mode
+   * 
+   * Calculation mode. Eg. "abs", "rel", "vmr", "nd", "From propagation matrix". 
+   * Note that the latter of these only supports "vmr" for abs species.
+   * 
+   * @return A representation of the mode
+   */
   const String& Mode() const { return mmode; }
+  
+  /** Sets the mode
+   * 
+   * @param[in] m A mode
+   */
   void Mode(const String& m) { mmode = m; }
-  /** Boolean to make analytical calculations (if possible). */
+  
+  /** Returns the analytical tag
+   * 
+   * Boolean to make analytical calculations (if possible).
+   * 
+   * @return A representation of analytical tag
+   */
   const Index& Analytical() const { return manalytical; }
+  
+  /** Sets the analytical tag
+   * 
+   * @param[in] m An analytical tag
+   */
   void Analytical(const Index& m) { manalytical = m; }
-  /** Size of perturbation used for perturbation calculations. */
+  
+  /** Returns the size of perturbation
+   * 
+   * Size of perturbation used for perturbation calculations
+   * 
+   * @return The size of perturbation
+   */
   const Numeric& Perturbation() const { return mperturbation; }
+  
+  /** Sets the size of perturbation
+   * 
+   * @param[in] p The size of perturbation
+   */
   void Perturbation(const Numeric& p) { mperturbation = p; }
-  /** Grids. Definition grids for the jacobian, eg. p, lat and lon. */
+  
+  /** Returns the grids of the retrieval
+   * 
+   * Grids. Definition grids for the jacobian, eg. p, lat and lon.
+   * 
+   * @return The grids of the retrieval
+   */
   const ArrayOfVector& Grids() const { return mgrids; }
+  
+  /** Sets the grids of the retrieval
+   * 
+   * @param[in] g The grids of the retrieval
+   */
   void Grids(const ArrayOfVector& g) { mgrids = g; }
-  void PropType(const JacPropMatType t) { mproptype = t; }
-  bool operator==(const JacPropMatType t) const { return t == mproptype; }
-  bool operator!=(const JacPropMatType t) const { return t != mproptype; }
+  
+  /** Returns the propagation matrix derivative type
+   * 
+   * @return The propagation matrix derivative type
+   */
   JacPropMatType PropMatType() const { return mproptype; }
+  
+  /** Sets the propagation matrix derivative type
+   * 
+   * @param[in] t The propagation matrix derivative type
+   */
+  void PropType(const JacPropMatType t) { mproptype = t; }
+  
+  /** Checks if this represents the propagation matrix derivative type
+   * 
+   * @param[in] t A propagation matrix derivative type
+   * @return true if the input propagation matrix derivative type matches PropMatType()
+   * @return false otherwise
+   */
+  bool operator==(const JacPropMatType t) const { return t == mproptype; }
+  
+  /** Returns "not operator==(t)"
+   * 
+   * @param[in] t A propagation matrix derivative type
+   * @return false if the input propagation matrix derivative type matches PropMatType()
+   * @return true otherwise
+   */
+  bool operator!=(const JacPropMatType t) const { return not operator==(t); }
 
+  /** Number of elements in the grids 
+   * 
+   * The multiplicative accumulation of grid elements
+   * 
+   * @return The number of elements if each grid represents a dimension
+   */
   Index nelem() const {
     Index i = 1;
     for (Index j = 0; j < mgrids.nelem(); ++j) {
@@ -178,19 +290,41 @@ class RetrievalQuantity {
     }
     return i;
   }
-
-  /** QuantumIdentifier as necessary for matching line specific parameters to jacobian grid */
+  
+  /** Returns the identity of this Jacobian
+   * 
+   * QuantumIdentifier as necessary for matching line specific parameters to Jacobian grid
+   * 
+   * @return The identity of this Jacobian
+   */
   const QuantumIdentifier& QuantumIdentity() const {
     return mquantumidentifier;
   }
+  
+  /** Sets the identity of this Jacobian
+   * 
+   * @param[in] qi The identity of this Jacobian
+   */
   void QuantumIdentity(const QuantumIdentifier& qi) { mquantumidentifier = qi; }
 
-  /** Do integrations? */
+  /** Do integration?
+   * 
+   * @return true if the values should be integrated over all the grids
+   * @return false otherwise
+   */
+  bool Integration() const { return mintegration_flag; }
+  
+  /** Sets the integration flag to true */
   void IntegrationOn() { mintegration_flag = true; }
+  
+  /** Sets the integration flag to false */
   void IntegrationOff() { mintegration_flag = false; }
-  const bool& Integration() const { return mintegration_flag; }
 
-  /** Transformation **/
+  /** Transformation
+   * 
+   * FIXMEDOC@Simon The transformations are yours to fix and document
+   * FIXMEDOC@Patrick The transformations are yours to fix and document
+   */
   void SetTransformationFunc(const String& s) { transformation_func = s; }
   void SetTFuncParameters(const Vector& p) { tfunc_parameters = p; }
   void SetTransformationMatrix(const Matrix& A) { transformation_matrix = A; }
@@ -201,6 +335,12 @@ class RetrievalQuantity {
   const Matrix& TransformationMatrix() const { return transformation_matrix; }
   const Vector& OffsetVector() const { return offset_vector; }
 
+  /** Checks that all the internal variables of *this match with those of the input
+   * 
+   * @param[in] a Another retrieval quantity object
+   * @return true if the input performs the exact same Jacobian calculations
+   * @return false otherwise
+   */
   bool HasSameInternalsAs(const RetrievalQuantity& a) const {
     return a.mmaintag == mmaintag and a.msubtag == msubtag and
            a.msubsubtag == msubsubtag and a.mmode == mmode and
@@ -208,8 +348,6 @@ class RetrievalQuantity {
            a.mquantumidentifier == mquantumidentifier and
            a.mproptype == mproptype;
   }
-
-  bool IsTemperature() const { return operator==(JacPropMatType::Temperature); }
 
  private:
   String mmaintag;
@@ -746,7 +884,7 @@ void dxdvmrscf(Numeric& x,
                const Numeric& p,
                const Numeric& t);
 
-// Enum for knowing what Jacobian scheme is in-play in the m_rte.cc methods.
+/** Enum for knowing what Jacobian scheme is in-play in the m_rte.cc methods */
 enum class JacobianType : Index {
   None = 0,  // Setting to nil means that (bool)0 and (bool)N still works.
   Temperature,
