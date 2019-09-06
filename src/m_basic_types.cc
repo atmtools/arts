@@ -2180,7 +2180,10 @@ inline void _cr_internal_(const Numeric& var1,
       if (error_message.length()) os << error_message << "\n";
       os << "Max allowed deviation set to: " << maxabsreldiff * 100.0 << "%"
          << endl
-         << "but the input deviate with: " << absreldiff * 100.0 << "%" << endl;
+         << "but the input deviate with: " << absreldiff * 100.0 << "%\n" << 
+         << "If you compare non-scalar variables, the reported deviation is\n"
+         << "the first one found violating the criterion. The maximum\n"
+         << "difference can be higher.\n";
       throw runtime_error(os.str());
     }
   }

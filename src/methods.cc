@@ -3878,55 +3878,6 @@ void define_md_data_raw() {
       GIN_DESC("Flag whether to accept pnd_field < 0.")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("CompareRelative"),
-      DESCRIPTION(
-          "Checks the consistency between two variables by their relative values.\n"
-          "\n"
-          "The two variables are checked to not deviate outside the specified\n"
-          "relative value (*maxabsreldiff*). An error is issued if this is not\n"
-          "fulfilled.\n"
-          "\n"
-          "The main application of this method is to be part of the test\n"
-          "control files, and then used to check that a calculated value\n"
-          "is consistent with an old, reference, value.\n"
-          "\n"
-          "If either value is 0.0, the relative error is considered as 0\n"
-          "for easier use.  This really means infinite differences, though\n"
-          "allowing zero-crossings is useful for plenty of tests. So Be Aware!\n"),
-      AUTHORS("Oliver Lemke", "Richard Larsson"),
-      OUT(),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("var1", "var2", "maxabsreldiff", "error_message"),
-      GIN_TYPE(
-          "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7,"
-          "ArrayOfVector, ArrayOfMatrix, ArrayOfTensor3, ArrayOfTensor4,"
-          "ArrayOfTensor6, ArrayOfTensor7, ArrayOfArrayOfVector,"
-          "ArrayOfArrayOfMatrix, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6,"
-          "ArrayOfPropagationMatrix, ArrayOfArrayOfPropagationMatrix,"
-          "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,",
-          "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7,"
-          "ArrayOfVector, ArrayOfMatrix, ArrayOfTensor3, ArrayOfTensor4,"
-          "ArrayOfTensor6, ArrayOfTensor7, ArrayOfArrayOfVector,"
-          "ArrayOfArrayOfMatrix, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6,"
-          "ArrayOfPropagationMatrix, ArrayOfArrayOfPropagationMatrix,"
-          "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,",
-          "Numeric",
-          "String"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, ""),
-      GIN_DESC("A first variable",
-               "A second variable",
-               "Threshold for maximum relative difference.",
-               "Additional error message."),
-      SETMETHOD(false),
-      AGENDAMETHOD(false),
-      USES_TEMPLATES(false),
-      PASSWORKSPACE(false),
-      PASSWSVNAMES(true)));
-
-  md_data_raw.push_back(MdRecord(
       NAME("Compare"),
       DESCRIPTION(
           "Checks the consistency between two variables.\n"
@@ -3959,6 +3910,59 @@ void define_md_data_raw() {
       GIN_DESC("A first variable",
                "A second variable",
                "Threshold for maximum absolute difference.",
+               "Additional error message."),
+      SETMETHOD(false),
+      AGENDAMETHOD(false),
+      USES_TEMPLATES(false),
+      PASSWORKSPACE(false),
+      PASSWSVNAMES(true)));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("CompareRelative"),
+      DESCRIPTION(
+          "Checks the consistency between two variables by their relative values.\n"
+          "\n"
+          "The two variables are checked to not deviate outside the specified\n"
+          "relative value (*maxabsreldiff*). An error is issued if this is not\n"
+          "fulfilled.\n"
+          "\n"
+          "The main application of this method is to be part of the test\n"
+          "control files, and then used to check that a calculated value\n"
+          "is consistent with an old, reference, value.\n"
+          "\n"
+          "If either value is 0.0, the relative error is considered as 0\n"
+          "for easier use.  This really means infinite differences, though\n"
+          "allowing zero-crossings is useful for plenty of tests. So Be Aware!\n"
+          "\n"
+          "If both *var1* and *var2* are non-zero, the difference is evaluated\n"
+          "as: abs(var1/var2-1)\n"
+          "That is, *var2* is taken as the reference value.\n"),
+      AUTHORS("Oliver Lemke", "Richard Larsson"),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("var1", "var2", "maxabsreldiff", "error_message"),
+      GIN_TYPE(
+          "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7,"
+          "ArrayOfVector, ArrayOfMatrix, ArrayOfTensor3, ArrayOfTensor4,"
+          "ArrayOfTensor6, ArrayOfTensor7, ArrayOfArrayOfVector,"
+          "ArrayOfArrayOfMatrix, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6,"
+          "ArrayOfPropagationMatrix, ArrayOfArrayOfPropagationMatrix,"
+          "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,",
+          "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7,"
+          "ArrayOfVector, ArrayOfMatrix, ArrayOfTensor3, ArrayOfTensor4,"
+          "ArrayOfTensor6, ArrayOfTensor7, ArrayOfArrayOfVector,"
+          "ArrayOfArrayOfMatrix, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6,"
+          "ArrayOfPropagationMatrix, ArrayOfArrayOfPropagationMatrix,"
+          "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,",
+          "Numeric",
+          "String"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, ""),
+      GIN_DESC("A first variable",
+               "A second variable",
+               "Threshold for maximum relative difference.",
                "Additional error message."),
       SETMETHOD(false),
       AGENDAMETHOD(false),
