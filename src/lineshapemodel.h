@@ -1582,6 +1582,322 @@ Model vector2modelpb(Vector x,
                      LegacyPressureBroadeningData::TypePB type,
                      bool self_in_list);
 };  // namespace LegacyPressureBroadeningData
+
+
+
+/** Main line shape model class
+ * 
+ * Computes the line shape parameters for a given atmosphere
+ */
+class Model2 {
+ private:
+  std::vector<SingleSpeciesModel> mdata;
+
+ public:
+  /** Default init just sets the size */
+  Model2(Index n=0) noexcept : mdata(n) {}
+  
+  /** Init from copying a vector */
+  Model2(const std::vector<SingleSpeciesModel>& assm) noexcept : mdata(assm) {}
+  
+  /** Init from copying itself */
+  Model2(const Model2& m) noexcept : mdata(m.mdata) {}
+  
+  /** Init from moving a vector */
+  Model2(std::vector<SingleSpeciesModel>&& assm) noexcept : mdata(std::move(assm)) {}
+  
+  /** Init from moving a itself */
+  Model2(Model2&& m) noexcept : mdata(std::move(m.mdata)) {}
+  
+  /** The Model is good to use
+   * 
+   * @return true/false
+   */
+  bool OK(Type type, bool self, bool bath, const std::vector<SpeciesTag>& species) const noexcept {
+    Index n = mdata.size();
+    Index k = species.size();
+    Index m = Index(self) + Index(bath);
+    bool needs_any = type not_eq Type::DP;
+    if (n not_eq k or m > n or (needs_any and not n))
+      return false;
+    else
+      return true;
+  }
+
+#define LSPC(XVAR, PVAR)                                                     \
+  Numeric XVAR(                                                              \
+      Numeric T, Numeric T0, Numeric P [[maybe_unused]], const Vector& vmrs) \
+      const noexcept {                                                       \
+    return PVAR *                                                            \
+           std::inner_product(                                               \
+               mdata.cbegin(),                                               \
+               mdata.cend(),                                                 \
+               vmrs.begin(),                                                 \
+               0.0,                                                          \
+               std::plus<Numeric>(),                                         \
+               [=](const SingleSpeciesModel& x, Numeric vmr) -> Numeric {    \
+                 return vmr * x.compute(T, T0, Variable::XVAR);              \
+               });                                                           \
+  }
+  LSPC(G0, P)
+  LSPC(D0, P)
+  LSPC(G2, P)
+  LSPC(D2, P)
+  LSPC(FVC, P)
+  LSPC(ETA, 1)
+  LSPC(Y, P)
+  LSPC(G, P* P)
+  LSPC(DV, P* P)
+#undef LSPC
+
+#define LSPCV(XVAR, PVAR)                                            \
+  Numeric d##XVAR##_dVMR(Numeric T,                                  \
+                         Numeric T0,                                 \
+                         Numeric P [[maybe_unused]],                 \
+                         const Index deriv_pos) const noexcept {     \
+    if (deriv_pos not_eq -1)                                         \
+      return PVAR * mdata[deriv_pos].compute(T, T0, Variable::XVAR); \
+    else                                                             \
+      return 0;                                                      \
+  }
+  LSPCV(G0, P)
+  LSPCV(D0, P)
+  LSPCV(G2, P)
+  LSPCV(D2, P)
+  LSPCV(FVC, P)
+  LSPCV(ETA, 1)
+  LSPCV(Y, P)
+  LSPCV(G, P* P)
+  LSPCV(DV, P* P)
+#undef LSPCV
+
+#define LSPCT(XVAR, PVAR)                                                    \
+  Numeric d##XVAR##_dT(                                                      \
+      Numeric T, Numeric T0, Numeric P [[maybe_unused]], const Vector& vmrs) \
+      const noexcept {                                                       \
+    return PVAR *                                                            \
+           std::inner_product(                                               \
+               mdata.cbegin(),                                               \
+               mdata.cend(),                                                 \
+               vmrs.begin(),                                                 \
+               0.0,                                                          \
+               std::plus<Numeric>(),                                         \
+               [=](const SingleSpeciesModel& x, Numeric vmr) -> Numeric {    \
+                 return vmr * x.compute_dT(T, T0, Variable::XVAR);           \
+               });                                                           \
+  }
+  LSPCT(G0, P)
+  LSPCT(D0, P)
+  LSPCT(G2, P)
+  LSPCT(D2, P)
+  LSPCT(FVC, P)
+  LSPCT(ETA, 1)
+  LSPCT(Y, P)
+  LSPCT(G, P* P)
+  LSPCT(DV, P* P)
+#undef LSPCT
+
+// All shape model derivatives
+#define LSPDC(XVAR, DERIV, PVAR)                                     \
+  Numeric d##XVAR##DERIV(Numeric T,                                  \
+                         Numeric T0,                                 \
+                         Numeric P [[maybe_unused]],                 \
+                         Index deriv_pos,                            \
+                         const Vector& vmrs) const noexcept {        \
+    if (deriv_pos not_eq -1)                                         \
+      return vmrs[deriv_pos] * PVAR *                                \
+             mdata[deriv_pos].compute##DERIV(T, T0, Variable::XVAR); \
+    else                                                             \
+      return 0;                                                      \
+  }
+  LSPDC(G0, _dT0, P)
+  LSPDC(G0, _dX0, P) LSPDC(G0, _dX1, P) LSPDC(G0, _dX2, P) LSPDC(D0, _dT0, P)
+      LSPDC(D0, _dX0, P) LSPDC(D0, _dX1, P) LSPDC(D0, _dX2, P) LSPDC(
+          G2, _dT0, P) LSPDC(G2, _dX0, P) LSPDC(G2, _dX1, P) LSPDC(G2, _dX2, P)
+          LSPDC(D2, _dT0, P) LSPDC(D2, _dX0, P) LSPDC(D2, _dX1, P)
+              LSPDC(D2, _dX2, P) LSPDC(FVC, _dT0, P) LSPDC(FVC, _dX0, P)
+                  LSPDC(FVC, _dX1, P) LSPDC(FVC, _dX2, P) LSPDC(ETA, _dT0, 1)
+                      LSPDC(ETA, _dX0, 1) LSPDC(ETA, _dX1, 1)
+                          LSPDC(ETA, _dX2, 1) LSPDC(Y, _dT0, P)
+                              LSPDC(Y, _dX0, P) LSPDC(Y, _dX1, P)
+                                  LSPDC(Y, _dX2, P) LSPDC(G, _dT0, P* P)
+                                      LSPDC(G, _dX0, P* P) LSPDC(G, _dX1, P* P)
+                                          LSPDC(G, _dX2, P* P)
+                                              LSPDC(DV, _dT0, P* P)
+                                                  LSPDC(DV, _dX0, P* P)
+                                                      LSPDC(DV, _dX1, P* P)
+                                                          LSPDC(DV, _dX2, P* P)
+#undef LSPDC
+
+  /** Compute all shape parameters
+   * 
+   * @param[in] T The temperature
+   * @param[in] T0 The temperature used to derive the coefficients
+   * @param[in] P The pressure
+   * @param[in] vmrs The VMR vector as derived by this.vmrs()
+   * 
+   * @return Shape parameters
+   */
+                                                              Output
+      GetParams(Numeric T, Numeric T0, Numeric P, const Vector& vmrs) const
+      noexcept {
+    return {G0(T, T0, P, vmrs),
+            D0(T, T0, P, vmrs),
+            G2(T, T0, P, vmrs),
+            D2(T, T0, P, vmrs),
+            FVC(T, T0, P, vmrs),
+            ETA(T, T0, P, vmrs),
+            Y(T, T0, P, vmrs),
+            G(T, T0, P, vmrs),
+            DV(T, T0, P, vmrs)};
+  }
+
+  /** Derivative of GetParams(...) wrt T
+   * 
+   * @param[in] T The temperature
+   * @param[in] T0 The temperature used to derive the coefficients
+   * @param[in] P The pressure
+   * @param[in] vmrs The VMR vector as derived by this.vmrs()
+   * 
+   * @return Derivative of GetParams(...) wrt T
+   */
+  Output GetTemperatureDerivs(Numeric T,
+                              Numeric T0,
+                              Numeric P,
+                              const Vector& vmrs) const noexcept {
+    return {dG0_dT(T, T0, P, vmrs),
+            dD0_dT(T, T0, P, vmrs),
+            dG2_dT(T, T0, P, vmrs),
+            dD2_dT(T, T0, P, vmrs),
+            dFVC_dT(T, T0, P, vmrs),
+            dETA_dT(T, T0, P, vmrs),
+            dY_dT(T, T0, P, vmrs),
+            dG_dT(T, T0, P, vmrs),
+            dDV_dT(T, T0, P, vmrs)};
+  }
+
+  /** Derivative of GetParams(...) wrt VMR
+   * 
+   * @param[in] T The temperature
+   * @param[in] T0 The temperature used to derive the coefficients
+   * @param[in] P The pressure
+   * @param[in] pos Position of species in mspecies
+   * 
+   * @return Derivative of GetParams(...) wrt VMR
+   */
+  Output GetVMRDerivs(Numeric T, Numeric T0, Numeric P, const Index pos) const
+      noexcept {
+    return {dG0_dVMR(T, T0, P, pos),
+            dD0_dVMR(T, T0, P, pos),
+            dG2_dVMR(T, T0, P, pos),
+            dD2_dVMR(T, T0, P, pos),
+            dFVC_dVMR(T, T0, P, pos),
+            dETA_dVMR(T, T0, P, pos),
+            dY_dVMR(T, T0, P, pos),
+            dG_dVMR(T, T0, P, pos),
+            dDV_dVMR(T, T0, P, pos)};
+  }
+  
+  /** Derivative of GetParams(...) wrt Coefficient
+   * 
+   * @param[in] T The temperature
+   * @param[in] T0 The temperature used to derive the coefficients
+   * @param[in] P The pressure
+   * @param[in] pos Position of species in mspecies
+   * @param[in] vmrs The VMR vector as derived by this.vmrs()
+   * @param[in] deriv The derivative
+   * 
+   * @return Derivative of GetParams(...) wrt Coefficient
+   */
+  Numeric GetInternalDeriv(Numeric T,
+                           Numeric T0,
+                           Numeric P,
+                           Index pos,
+                           const Vector& vmrs,
+                           JacPropMatType deriv) const noexcept {
+    if (pos < 0) return 0;
+
+#define RETURNINTERNALDERIVATIVE(TYPE)         \
+  case JacPropMatType::LineShape##TYPE##X0:    \
+    return d##TYPE##_dX0(T, T0, P, pos, vmrs); \
+  case JacPropMatType::LineShape##TYPE##X1:    \
+    return d##TYPE##_dX1(T, T0, P, pos, vmrs); \
+  case JacPropMatType::LineShape##TYPE##X2:    \
+    return d##TYPE##_dX2(T, T0, P, pos, vmrs)
+    switch (deriv) {
+      RETURNINTERNALDERIVATIVE(G0);
+      RETURNINTERNALDERIVATIVE(D0);
+      RETURNINTERNALDERIVATIVE(G2);
+      RETURNINTERNALDERIVATIVE(D2);
+      RETURNINTERNALDERIVATIVE(FVC);
+      RETURNINTERNALDERIVATIVE(ETA);
+      RETURNINTERNALDERIVATIVE(Y);
+      RETURNINTERNALDERIVATIVE(G);
+      RETURNINTERNALDERIVATIVE(DV);
+      default:
+        return 0;
+    }
+#undef RETURNINTERNALDERIVATIVE
+  }
+
+  /** Number of species in Model */
+  Index nelem() const { return Index(mdata.size()); }
+  
+  /** Resize function for Model 
+   * 
+   * Just resizes, does nothing with the new data
+   * 
+   * @param[in] n New size of mspecies and mdata
+   */
+  void resize(Index n) {mdata.resize(n);}
+  
+  /** Reserve function for Model 
+   * 
+   * Just reserves, does nothing with the new data
+   * 
+   * @param[in] n New reserves of mspecies and mdata
+   */
+  void reserve(Index n) {mdata.reserve(n);}
+  
+  
+  /** The line shape model data */
+  const std::vector<SingleSpeciesModel>& Data() const noexcept { return mdata; }
+  
+  /** The line shape model data reference */
+  std::vector<SingleSpeciesModel>& Data() noexcept { return mdata; }
+
+  /** Remove species and data at position
+   * 
+   * Uses standard algorithm "erase" to remove,
+   * see it for behavior when an error occurs
+   * 
+   * @param[in] i Index of position to remove
+   */
+  void Remove(Index i) {
+    mdata.erase(mdata.begin() + i);
+  }
+
+  /** Sets the same line mixing model to all species
+   * 
+   * Looks at x and sets it Y, G and DV values to all the
+   * Y, G, and DV values in this
+   * 
+   * If LM_AER is used, Interp data is written over as well
+   * otherwise it remains untouched
+   * 
+   * @param[in] x Model containing new line mixing data
+   */
+  void SetLineMixingModel(SingleSpeciesModel x) {
+    for (auto& ssm : mdata) {
+      ssm.Y() = x.Y();
+      ssm.G() = x.G();
+      ssm.DV() = x.DV();
+      if (x.Y().type == TemperatureModel::LM_AER or
+          x.G().type == TemperatureModel::LM_AER)
+        ssm.Interp() = x.Interp();
+    }
+  }
+};
 };  // namespace LineShape
 
 #endif  // lineshapemodel_h

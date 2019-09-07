@@ -177,6 +177,7 @@ add_library (artscore STATIC
   ${ARTSCORE_EXTRA_SOURCES}
   abs_species_tags.cc
   absorption.cc
+  absorptionlines.cc
   agenda_class.cc
   agenda_record.cc
   arts.cc
