@@ -1142,6 +1142,7 @@ void iyActiveSingleScat2(Workspace& ws,
                                    dlyr_tra_above,
                                    dlyr_tra_below,
                                    dreflect_matrix,
+                                   //                                   BackscatterSolver::Commutative_PureReflectionJacobian);
                                    BackscatterSolver::Full);
 
   // Size iy and set to zero
