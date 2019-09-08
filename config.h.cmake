@@ -57,9 +57,6 @@
 /* define if the compiler supports ISO C++ standard library */
 #cmakedefine HAVE_STD 
 
-/* define if the compiler supports C++11 */
-#cmakedefine CXX11_SUPPORT
-
 /* define if OEM is enabled */
 #cmakedefine OEM_SUPPORT
 
