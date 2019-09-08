@@ -3,11 +3,11 @@ git:
 
 language: cpp
 
+dist: xenial
+
 matrix:
   include:
     - name: User guide
-      os: linux
-      dist: xenial
       addons:
         apt:
           sources:
@@ -22,7 +22,6 @@ matrix:
         - TARGETS="-C doc/uguide"
         - NOCHECK=1
     - name: LLVM 8 w/o Fortran
-      os: linux
       dist: xenial
       addons:
         apt:
@@ -37,7 +36,6 @@ matrix:
         - WITH_FORTRAN=0
         - TARGETS="arts arts_api"
     - name: GCC 7 w/o Fortran
-      os: linux
       addons:
         apt:
           sources:
@@ -50,7 +48,6 @@ matrix:
         - WITH_FORTRAN=0
         - TARGETS="arts arts_api"
     - name: GCC 8 w/o Fortran
-      os: linux
       addons:
         apt:
           sources:
@@ -63,7 +60,6 @@ matrix:
         - WITH_FORTRAN=0
         - TARGETS="arts arts_api"
     - name: GCC 9 w/ Fortran
-      os: linux
       addons:
         apt:
           sources:
