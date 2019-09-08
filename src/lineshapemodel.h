@@ -1601,13 +1601,13 @@ class Model2 {
   Model2(const std::vector<SingleSpeciesModel>& assm) noexcept : mdata(assm) {}
   
   /** Init from copying itself */
-  Model2(const Model2& m) noexcept : mdata(m.mdata) {}
+  Model2(const Model2& m) noexcept : Model2(m.mdata) {}
   
   /** Init from moving a vector */
   Model2(std::vector<SingleSpeciesModel>&& assm) noexcept : mdata(std::move(assm)) {}
   
   /** Init from moving a itself */
-  Model2(Model2&& m) noexcept : mdata(std::move(m.mdata)) {}
+  Model2(Model2&& m) noexcept : Model2(std::move(m.mdata)) {}
   
   /** The Model is good to use
    * 

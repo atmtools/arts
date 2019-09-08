@@ -98,7 +98,7 @@ private:
   Numeric mgupp;
   
   /** Einstein spontaneous emission coefficient */
-  Numeric ma;
+  Numeric mA;
   
   /** Zeeman model */
   Zeeman::Model mzeeman;
@@ -113,6 +113,32 @@ private:
   std::vector<Rational> mupperquanta;
 
 public:
+  /** Default initialization */
+  SingleLine(Numeric F0=0,
+             Numeric I0=0,
+             Numeric E0=0,
+             Numeric glow=0,
+             Numeric gupp=0,
+             Numeric A=0,
+             Zeeman::Model zeeman=Zeeman::Model(),
+             LineShape::Model2 lineshape=LineShape::Model2(),
+             std::vector<Rational> lowerquanta={},
+             std::vector<Rational> upperquanta={}) :
+             mF0(F0),
+             mI0(I0),
+             mE0(E0),
+             mglow(glow),
+             mgupp(gupp),
+             mA(A),
+             mzeeman(zeeman),
+             mlineshape(lineshape),
+             mlowerquanta(lowerquanta),
+             mupperquanta(upperquanta) {}
+  
+  /** Initialization for constant sizes */
+  SingleLine(size_t nbroadeners, size_t nquanta) noexcept :
+  mlineshape(nbroadeners), mlowerquanta(nquanta), mupperquanta(nquanta) {}
+  
   /** Number of lineshape elements */
   Index LineShapeElems() const noexcept {return mlineshape.nelem();}
   
@@ -135,10 +161,11 @@ public:
   Numeric E0() const noexcept {return mE0;}
   
   /** Reference line strength */
+  LineShape::Type mlineshapetype;
   Numeric I0() const noexcept {return mI0;}
   
   /** Einstein spontaneous emission */
-  Numeric A() const noexcept {return ma;}
+  Numeric A() const noexcept {return mA;}
   
   /** Lower level statistical weight */
   Numeric g_low() const noexcept {return mglow;}
@@ -155,17 +182,11 @@ public:
 
 class Lines {
 private:
-  /** Catalog ID */
-  QuantumIdentifier mquantumidentity;
+  /** Does the line broadening have self broadening */
+  bool mselfbroadening;
   
-  /** Reference temperature for all parameters of the lines */
-  Numeric mT0;
-  
-  /** cutoff frequency */
-  Numeric mcutofffreq;
-  
-  /** linemixing limit */
-  Numeric mlinemixinglimit;
+  /** Does the line broadening have bath broadening */
+  bool mbathbroadening;
   
   /** cutoff type, by band or by line */
   CutoffType mcutoff;
@@ -178,18 +199,24 @@ private:
   
   /** Line normalization type */
   NormalizationType mnormalization;
-  
-  /** List of local quantum numbers, these must be defined */
-  std::vector<QuantumNumberType> mlocalquanta;
 
   /** Type of line shape */
   LineShape::Type mlineshapetype;
   
-  /** Does the line broadening have self broadening */
-  bool mselfbroadening;
+  /** Reference temperature for all parameters of the lines */
+  Numeric mT0;
   
-  /** Does the line broadening have bath broadening */
-  bool mbathbroadening;
+  /** cutoff frequency */
+  Numeric mcutofffreq;
+  
+  /** linemixing limit */
+  Numeric mlinemixinglimit;
+  
+  /** Catalog ID */
+  QuantumIdentifier mquantumidentity;
+  
+  /** List of local quantum numbers, these must be defined */
+  std::vector<QuantumNumberType> mlocalquanta;
   
   /** A list of broadening species */
   std::vector<SpeciesTag> mbroadeningspecies;
@@ -198,76 +225,98 @@ private:
   std::vector<SingleLine> mlines;
   
 public:
+  /** Default initialization */
+  Lines(bool selfbroadening=false,
+        bool bathbroadening=false,
+        CutoffType cutoff=CutoffType::None,
+        MirroringType mirroring=MirroringType::None,
+        PopulationType population=PopulationType::ByLTE,
+        NormalizationType normalization=NormalizationType::None,
+        LineShape::Type lineshapetype=LineShape::Type::DP,
+        Numeric T0=296,
+        Numeric cutofffreq=-1,
+        Numeric linemixinglimit=-1,
+        QuantumIdentifier quantumidentity=QuantumIdentifier(),
+        std::vector<QuantumNumberType> localquanta={},
+        std::vector<SpeciesTag> broadeningspecies={},
+        std::vector<SingleLine> lines={}) :
+        mselfbroadening(selfbroadening),
+        mbathbroadening(bathbroadening),
+        mcutoff(cutoff),
+        mmirroring(mirroring),
+        mpopulation(population),
+        mnormalization(normalization),
+        mlineshapetype(lineshapetype),
+        mT0(T0),
+        mcutofffreq(cutofffreq),
+        mlinemixinglimit(linemixinglimit),
+        mquantumidentity(quantumidentity),
+        mlocalquanta(localquanta),
+        mbroadeningspecies(broadeningspecies),
+        mlines(lines) {};
+  
+  /** XML-tag initialization */
+  Lines(bool selfbroadening,
+        bool bathbroadening,
+        size_t nlines,
+        CutoffType cutoff,
+        MirroringType mirroring,
+        PopulationType population,
+        NormalizationType normalization,
+        LineShape::Type lineshapetype,
+        Numeric T0,
+        Numeric cutofffreq,
+        Numeric linemixinglimit,
+        QuantumIdentifier quantumidentity,
+        std::vector<SpeciesTag> broadeningspecies,
+        std::vector<QuantumNumberType> localquanta) :
+        mselfbroadening(selfbroadening),
+        mbathbroadening(bathbroadening),
+        mcutoff(cutoff),
+        mmirroring(mirroring),
+        mpopulation(population),
+        mnormalization(normalization),
+        mlineshapetype(lineshapetype),
+        mT0(T0),
+        mcutofffreq(cutofffreq),
+        mlinemixinglimit(linemixinglimit),
+        mquantumidentity(quantumidentity),
+        mlocalquanta(localquanta),
+        mbroadeningspecies(broadeningspecies),
+        mlines(nlines,
+               SingleLine(broadeningspecies.size(),
+               localquanta.size())) {};
+  
   /** Species Index */
   Index Species() const noexcept {return mquantumidentity.Species();}
   
   /** Isotopologue Index */
   Index Isotopologue() const noexcept {return mquantumidentity.Isotopologue();}
   
-  /** Quantum number lower level */
-  Rational LowerQuantumNumber(size_t k, QuantumNumberType qnt) const noexcept {
-    for(size_t i=0; i<mlocalquanta.size(); i++)
-      if(mlocalquanta[i] == qnt)
-        return mlines[k].LowerQuantumNumber(i);
-    return mquantumidentity.LowerQuantumNumber(qnt);
-  }
+  /** Number of lines */
+  Index NumLines() const noexcept {return Index(mlines.size());}
   
-  /** Quantum number upper level */
-  Rational UpperQuantumNumber(size_t k, QuantumNumberType qnt) const noexcept {
-    for(size_t i=0; i<mlocalquanta.size(); i++)
-      if(mlocalquanta[i] == qnt)
-        return mlines[k].UpperQuantumNumber(i);
-    return mquantumidentity.UpperQuantumNumber(qnt);
-  }
+  /** Quantum number lower level
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @param[in] qnt Quantum number type
+   * @return Quantum number
+   */
+  Rational LowerQuantumNumber(size_t k, QuantumNumberType qnt) const noexcept;
   
-  /** Checks if all defined quantum numbers in qid are equal to the lower levels of specified line */
-  bool InLowerLevel(size_t k, const QuantumIdentifier& qid) const noexcept {
-    if(mquantumidentity.Species() not_eq qid.Species())
-      return false;
-    if(mquantumidentity.Isotopologue() not_eq qid.Isotopologue())
-      return false;
-    if(qid.Type() == QuantumIdentifier::ALL)
-      return true;
-    else if(qid.Type() == QuantumIdentifier::NONE)
-      return false;
-    else if(qid.Type() == QuantumIdentifier::ENERGY_LEVEL) {
-      for(size_t i=0; i<mlocalquanta.size(); i++) {
-        const auto qn = qid.EnergyLevelQuantumNumbers()[mlocalquanta[i]];
-        if(qn.isDefined() and qn not_eq mlines[k].LowerQuantumNumber(i)) {
-          return false;
-        }
-      }
-    }
-    else if(qid.Type() == QuantumIdentifier::TRANSITION)
-      return false;
-    
-    return qid.InLower(mquantumidentity.LowerQuantumId());
-  }
+  /** Quantum number upper level
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @param[in] qnt Quantum number type
+   * @return Quantum number
+   */
+  Rational UpperQuantumNumber(size_t k, QuantumNumberType qnt) const noexcept;
   
-  /** Checks if all defined quantum numbers in qid are equal to the upper levels of specified line */
-  bool InUpperLevel(size_t k, const QuantumIdentifier& qid) const noexcept {
-    if(mquantumidentity.Species() not_eq qid.Species())
-      return false;
-    if(mquantumidentity.Isotopologue() not_eq qid.Isotopologue())
-      return false;
-    
-    if(qid.Type() == QuantumIdentifier::ALL)
-      return true;
-    else if(qid.Type() == QuantumIdentifier::NONE)
-      return false;
-    else if(qid.Type() == QuantumIdentifier::ENERGY_LEVEL) {
-      for(size_t i=0; i<mlocalquanta.size(); i++) {
-        const auto qn = qid.EnergyLevelQuantumNumbers()[mlocalquanta[i]];
-        if(qn.isDefined() and qn not_eq mlines[k].UpperQuantumNumber(i)) {
-          return false;
-        }
-      }
-    }
-    else if(qid.Type() == QuantumIdentifier::TRANSITION)
-      return false;
-    
-    return qid.InUpper(mquantumidentity.UpperQuantumId());
-  }
+  /** Checks if all defined quantum numbers in qid are equal to the lower levels */
+  bool InLowerLevel(size_t k, const QuantumIdentifier& qid) const noexcept;
+  
+  /** Checks if all defined quantum numbers in qid are equal to the upper levels */
+  bool InUpperLevel(size_t k, const QuantumIdentifier& qid) const noexcept;
   
   /** Returns the number of Zeeman split lines */
   Index ZeemanCount(size_t k, Zeeman::Polarization type) const noexcept {
@@ -315,88 +364,32 @@ public:
   NormalizationType Normalization() const noexcept {return mnormalization;}
   
   /** Returns if the pressure should do line mixing */
-  bool DoLineMixing(Numeric P) const noexcept {return mlinemixinglimit > P;}
-  
-  /** Returns line shape parameters */
-  LineShape::Output ShapeParameters(size_t k, Numeric T, Numeric P, const Vector& vmrs) const noexcept {
-    auto x = mlines[k].LineShape().GetParams(T, mT0, P, vmrs);
-    if (not DoLineMixing(P)) x.Y = x.G = x.DV = 0;
-    return x;
+  bool DoLineMixing(Numeric P) const noexcept {
+    return mlinemixinglimit < 0 ? true : mlinemixinglimit < P;
   }
   
   /** Returns line shape parameters */
-  LineShape::Output ShapeParameters_dT(size_t k, Numeric T, Numeric P, const Vector& vmrs) const noexcept {
-    auto x = mlines[k].LineShape().GetTemperatureDerivs(T, mT0, P, vmrs);
-    if (not DoLineMixing(P)) x.Y = x.G = x.DV = 0;
-    return x;
-  }
+  LineShape::Output ShapeParameters(size_t k, Numeric T, Numeric P, const Vector& vmrs) const noexcept;
   
-  Index LineShapePos(const Index& spec) const noexcept {
-    for(size_t i=size_t(mselfbroadening); i<mbroadeningspecies.size()-size_t(mbathbroadening); i++)
-      if(spec == mbroadeningspecies[i].Species())
-        return Index(i);
-    return -1;
-  }
+  /** Returns line shape parameters temperature derivatives */
+  LineShape::Output ShapeParameters_dT(size_t k, Numeric T, Numeric P, const Vector& vmrs) const noexcept;
   
+  /** Returns position in Shape parameters of this species */
+  Index LineShapePos(const Index& spec) const noexcept;
+  
+  /** Returns position of broadening species */
   Index LineShapePos(const QuantumIdentifier& qi) const noexcept {
-    LineShapePos(qi.Species());
+    return LineShapePos(qi.Species());
   }
   
-  /** Returns line shape parameters */
-  LineShape::Output ShapeParameters_dVMR(size_t k, Numeric T, Numeric P, 
-                                         const QuantumIdentifier& vmr_qi) const noexcept {
-    const bool self = vmr_qi.Species() == mquantumidentity.Species();
-    const auto& ls = mlines[k].LineShape();
-    if (mselfbroadening and self) {
-      auto x = ls.GetVMRDerivs(T, mT0, P, 0);
-      
-      if (mbathbroadening)
-        x = LineShape::differenceOutput(x, ls.GetVMRDerivs(
-            T, mT0, P, ls.nelem() - 1));
-      
-      if (not DoLineMixing(P)) x.Y = x.G = x.DV = 0;
-      return x;
-    } else if (mbathbroadening and self)
-      return {0, 0, 0, 0, 0, 0, 0, 0, 0};
-    else {
-      auto x = ls.GetVMRDerivs(T, mT0, P, LineShapePos(vmr_qi));
-      
-      if (mbathbroadening)
-        x = LineShape::differenceOutput(x, ls.GetVMRDerivs(
-            T, mT0, P, ls.nelem() - 1));
-      
-      if (not DoLineMixing(P)) x.Y = x.G = x.DV = 0;
-      return x;
-    }
-  }
+  /** Returns line shape parameters vmr derivative */
+  LineShape::Output ShapeParameters_dVMR(size_t k, Numeric T, Numeric P,
+                                         const QuantumIdentifier& vmr_qi) const noexcept;
   
-  /***/
-  Numeric ShapeParameterDerivative(size_t k, Numeric T, Numeric P, 
+  /** Returns line shape parameters internal derivative */
+  Numeric ShapeParameter_dInternal(size_t k, Numeric T, Numeric P,
                                    const Vector& vmrs,
-                                   const RetrievalQuantity& derivative) const noexcept {
-
-    const auto self = derivative.Mode() == LineShape::self_broadening;
-    const auto bath = derivative.Mode() == LineShape::bath_broadening;
-    const auto& ls = mlines[k].LineShape();
-    
-    if(derivative.QuantumIdentity().Species() != Species() or
-       derivative.QuantumIdentity().Isotopologue() != Isotopologue()))
-      return 0;
-    else if(self and mselfbroadening)
-      return ls.GetInternalDeriv(
-        T, mT0, P, 0, vmrs, derivative.PropMatType());
-    else if(self)
-      return ls.GetInternalDeriv(
-        T, mT0, P, LineShapePos(SpeciesTag(derivative.Mode()).Species()), vmrs, derivative.PropMatType());
-    else if(bath and mbathbroadening)
-      return ls.GetInternalDeriv(
-        T, mT0, P, ls.nelem() - 1, vmrs, derivative.PropMatType());
-    else if(bath)
-      return 0;
-    else
-      return ls.GetInternalDeriv(
-        T, mT0, P, LineShapePos(SpeciesTag(derivative.Mode()).Species()), vmrs, derivative.PropMatType());
-  }
+                                   const RetrievalQuantity& derivative) const noexcept;
   
   /** Returns cutoff frequency */
   Numeric Cutoff(size_t k) const noexcept {
@@ -408,7 +401,7 @@ public:
       case CutoffType::None:
         return -1;
     }
-    return -1;
+    std::terminate();
   }
 };  // Lines
 };  // Absorption

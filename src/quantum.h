@@ -394,50 +394,47 @@ class QuantumIdentifier {
   };
 
   /** Return the upper quantum numbers by const reference */
-  const QuantumNumbers& UpperQuantumNumbers() const {
-    assert(mqtype == TRANSITION);
+  const QuantumNumbers& UpperQuantumNumbers() const noexcept {
     return mqm[TRANSITION_UPPER_INDEX];
   };
 
   /** Return the lower quantum numbers by const reference */
-  const QuantumNumbers& LowerQuantumNumbers() const {
-    assert(mqtype == TRANSITION);
+  const QuantumNumbers& LowerQuantumNumbers() const noexcept {
     return mqm[TRANSITION_LOWER_INDEX];
   };
 
   /** Return a upper quantum number by copy */
-  Rational UpperQuantumNumber(QuantumNumberType X) const {
-    assert(mqtype == TRANSITION);
+  constexpr Rational UpperQuantumNumber(QuantumNumberType X) const noexcept {
     return mqm[TRANSITION_UPPER_INDEX][X];
   };
 
   /** Return a lower quantum number by copy */
-  Rational LowerQuantumNumber(QuantumNumberType X) const {
-    assert(mqtype == TRANSITION);
+  constexpr Rational LowerQuantumNumber(QuantumNumberType X) const noexcept {
     return mqm[TRANSITION_LOWER_INDEX][X];
   };
 
   /** Return the energy level quantum numbers by const reference */
-  const QuantumNumbers& EnergyLevelQuantumNumbers() const {
-    assert(mqtype == ENERGY_LEVEL);
+  const QuantumNumbers& EnergyLevelQuantumNumbers() const noexcept {
     return mqm[ENERGY_LEVEL_INDEX];
   }
+  
+  /** Return a energy level quantum number by copy */
+  constexpr Rational EnergyLevelQuantumNumber(QuantumNumberType X) const noexcept {
+    return mqm[ENERGY_LEVEL_INDEX][X];
+  };
 
   /** Return the upper quantum numbers by reference */
   QuantumNumbers& UpperQuantumNumbers() {
-    assert(mqtype == TRANSITION);
     return mqm[TRANSITION_UPPER_INDEX];
   };
 
   /** Return the lower quantum numbers by reference */
   QuantumNumbers& LowerQuantumNumbers() {
-    assert(mqtype == TRANSITION);
     return mqm[TRANSITION_LOWER_INDEX];
   };
 
   /** Return the energy level quantum numbers by reference */
   QuantumNumbers& EnergyLevelQuantumNumbers() {
-    assert(mqtype == ENERGY_LEVEL);
     return mqm[ENERGY_LEVEL_INDEX];
   }
 
