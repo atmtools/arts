@@ -1,6 +1,8 @@
 git:
   depth: 3
+
 language: cpp
+
 matrix:
   include:
     - name: LLVM 8 w/o Fortran
@@ -14,7 +16,9 @@ matrix:
           packages:
             - clang-8
       env:
-        - MATRIX_EVAL="CC=clang-8 && CXX=clang++-8 && WITH_FORTRAN=0"
+        - CC=clang-8
+        - CXX=clang++-8
+        - WITH_FORTRAN=0
     - name: GCC 7 w/o Fortran
       os: linux
       addons:
@@ -24,7 +28,9 @@ matrix:
           packages:
             - g++-7
       env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && WITH_FORTRAN=0"
+        - CC=gcc-7
+        - CXX=g++-7
+        - WITH_FORTRAN=0
     - name: GCC 8 w/o Fortran
       os: linux
       addons:
@@ -34,7 +40,9 @@ matrix:
           packages:
             - g++-8
       env:
-        - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8 && WITH_FORTRAN=0"
+        - CC=gcc-8
+        - CXX=g++-8
+        - WITH_FORTRAN=0
     - name: GCC 9 w/ Fortran
       os: linux
       addons:
@@ -45,11 +53,12 @@ matrix:
             - g++-9
             - gfortran-9
       env:
-        - MATRIX_EVAL="CC=gcc-9 && CXX=g++-9 && FC=gfortran-9 && WITH_FORTRAN=1"
+        - CC=gcc-9
+        - CXX=g++-9
+        - FC=gfortran-9
+        - WITH_FORTRAN=1
 
 before_install:
-  - eval "${MATRIX_EVAL}"
-  - export FC
   - sudo apt-get install -y zlib1g-dev libblas-dev liblapack-dev libfftw3-dev
 
 script:
