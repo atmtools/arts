@@ -17,6 +17,7 @@ Arts2{
   NumericSet(rtp_pressure, 25000)
   NumericSet(lm_p_lim, 0)
   IndexSet(stokes_dim, 1)
+  IndexSet(abs_f_interp_order, 3)
   
   # Calculate w/o NLTE
   nlteOff

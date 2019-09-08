@@ -9292,7 +9292,8 @@ void define_md_data_raw() {
           "The method follows the pattern of other Jacobian methods. The\n"
           "calculations can only be performed by analytic expressions.\n"
           "Some lower level function depends on frequency perturbations,\n"
-          "however, so therefore a frequency perturbation *df* is required.\n"
+          "however, so therefore a frequency perturbation *df* is required\n"
+          "and as a consequence *abs_f_interp_order* > 0.\n"
           "\n"
           "The wind field components are retrieved separately, and,\n"
           "hence, the argument *component* can be \"u\", \"v\" or \"w\" \n"
@@ -9314,7 +9315,8 @@ void define_md_data_raw() {
          "atmosphere_dim",
          "p_grid",
          "lat_grid",
-         "lon_grid"),
+         "lon_grid",
+         "abs_f_interp_order"),
       GIN("g1", "g2", "g3", "component", "dfrequency"),
       GIN_TYPE("Vector", "Vector", "Vector", "String", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "v", "0.1"),
@@ -15372,7 +15374,8 @@ void define_md_data_raw() {
          "covmat_inv_block",
          "p_grid",
          "lat_grid",
-         "lon_grid"),
+         "lon_grid",
+         "abs_f_interp_order"),
       GIN("g1", "g2", "g3", "component", "dfrequency"),
       GIN_TYPE("Vector", "Vector", "Vector", "String", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "v", "0.1"),

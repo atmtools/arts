@@ -291,9 +291,13 @@ Compare( Ja, Jp, 10 )
 
 StringSet( info, "Wind/v, analytical" )
 Print( info, 0 )
+#
+IndexSet( abs_f_interp_order, 3 )
+#
 jacobianInit
 jacobianAddWind( jacobian_quantities, jacobian_agenda, atmosphere_dim, 
-    p_grid, lat_grid, lon_grid, retrieval_grid, lat_grid, lon_grid, "v" )
+                 p_grid, lat_grid, lon_grid, abs_f_interp_order,
+                 retrieval_grid, lat_grid, lon_grid, "v" )
 jacobianClose
 #WriteXML( in=jacobian_quantities, filename="Jq_wind.xml" )
 yCalc
@@ -310,10 +314,8 @@ Tensor3Scale( wind_v_field,  wind_v_field, 0 )
 StringSet( info, "Wind/v, perturbation" )
 Print( info, 0 )
 #
-NumericSet( perturbation, 1e3 )
+NumericSet( perturbation, 0.1 )
 jacobianOff
-#
-IndexSet( abs_f_interp_order, 1 )
 #
 AgendaSet(ybatch_calc_agenda){
   AtmFieldPerturb( perturbed_field = wind_v_field,
@@ -334,7 +336,7 @@ jacobianFromYbatch( pert_size = perturbation )
 Copy( Jp, jacobian )
 
 # Compare
-Compare( Ja, Jp, 0.001 )
+Compare( Ja, Jp, 1e-6 )
 
 
 
