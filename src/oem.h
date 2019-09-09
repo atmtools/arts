@@ -1090,8 +1090,6 @@ void Tensor4Clip(Tensor4& x,
  * @param[in] y The observation vector to fit.
  * @param[in] covmat_se The observation error covariance matrix. Checked to
  * by square and consistent with y.
- * @param[in] jacobian_do The jacobian_do flag of the workspace. Checked to
- * be 1
  * @param[in] jacobian_quantities: The Jacobian quantities array checked to
  * be consistent with jacobian_indices
  * @param[in] method The method string. Checked to be a valid OEM method
@@ -1117,7 +1115,6 @@ void OEM_checks(Workspace& ws,
                 const CovarianceMatrix& covmat_sx,
                 const Vector& y,
                 const CovarianceMatrix& covmat_se,
-                const Index& jacobian_do,
                 const ArrayOfRetrievalQuantity& jacobian_quantities,
                 const String& method,
                 const Vector& x_norm,
@@ -1144,9 +1141,6 @@ void OEM_checks(Workspace& ws,
     throw runtime_error("*covmat_se* must be a square matrix.");
   if (covmat_se.ncols() != m)
     throw runtime_error("Inconsistency in size between *y* and *covmat_se*.");
-  if (!jacobian_do)
-    throw runtime_error(
-        "Jacobian calculations must be turned on (but jacobian_do=0).");
   if ((jacobian.nrows() != m) && (!jacobian.empty()))
     throw runtime_error(
         "The number of rows of the jacobian must be either the number of elements in *y* or 0.");
