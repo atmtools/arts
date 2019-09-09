@@ -390,37 +390,6 @@ VectorNLinSpace( sensor_time, nrows, 0, 1 )
 #
 ##############################################################################
 
-StringSet( info, "Others: Winds" )
-Print( info, 0 )
-jacobianInit
-
-jacobianAddWind( jacobian_quantities, jacobian_agenda, atmosphere_dim, 
-    p_grid, lat_grid, lon_grid, retrieval_grid, lat_grid, lon_grid, "v" )
-
-jacobianAddWind( jacobian_quantities, jacobian_agenda, atmosphere_dim, 
-    p_grid, lat_grid, lon_grid, retrieval_grid, lat_grid, lon_grid, "w", 0.1 )
-    
-jacobianClose
-#WriteXML( in=jacobian_quantities, filename="JqHyb_Winds.xml" )
-
-pnd_fieldZero
-atmfields_checkedCalc
-atmgeom_checkedCalc
-cloudbox_checkedCalc
-scat_data_checkedCalc
-
-IndexSet( abs_f_interp_order, 1 )
-yCalc
-#WriteXML( in=y, filename="yHyb_Winds.xml" )
-
-#ReadXML( yr, "y_Winds.xml" )
-#Compare( y, yr, 1e-6 )
-#WriteXML( in=jacobian, filename="JHyb_WindsREFERENCE.xml" )
-ReadXML( Jr, "JHyb_WindsREFERENCE.xml" )
-Compare( jacobian, Jr, 1e-6 )
-
-
-
 StringSet( info, "Others: Freqs, Baseline" )
 Print( info, 0 )
 jacobianInit

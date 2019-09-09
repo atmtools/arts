@@ -17,6 +17,7 @@ Arts2 {
   AtmosphereSet3D
   IndexSet(stokes_dim, 4)
   IndexSet(nlte_do, 0)
+  IndexSet(abs_f_interp_order, 3)
   
   # Set atmospheric variables
   NumericSet(rtp_pressure, 10)

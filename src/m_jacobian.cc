@@ -2043,6 +2043,7 @@ void jacobianAddWind(Workspace&,
                      const Vector& p_grid,
                      const Vector& lat_grid,
                      const Vector& lon_grid,
+                     const Index& abs_f_interp_order,
                      const Vector& rq_p_grid,
                      const Vector& rq_lat_grid,
                      const Vector& rq_lon_grid,
@@ -2083,6 +2084,12 @@ void jacobianAddWind(Workspace&,
       throw runtime_error(os.str());
   }
 
+  // Calculation of this Jacobian requires abs_f_interp_order > 0
+  if (abs_f_interp_order <= 0) {
+    throw runtime_error("Calculation of a wind Jacobian requires that "
+                        "*abs_f_interp_order* > 0.");
+  }
+  
   // Create the new retrieval quantity
   RetrievalQuantity rq;
 

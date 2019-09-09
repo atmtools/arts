@@ -47,9 +47,10 @@ end
 % Approx 0 to 16km, in steps of 250 m
 p = logspace(5,4,65)';
 
-% IWC profile is a "spike" at position 41
+% IWC constant inside some region
 iwc     = zeros(size(p));
-iwc(41) = 1e-3;
+iwc(:)  = 1e-7;
+iwc(35:41) = 1e-4;
 
 
 % Store to files

@@ -91,7 +91,7 @@ abs_lookupCalc
 
 # Number of tangent altitudes
 IndexCreate( n_tan )
-IndexSet( n_tan, 3 )
+IndexSet( n_tan, 2 )
 
 # Sensor position, with platform altitude set to 600 km
 MatrixSetConstant( sensor_pos, n_tan, 1, 600e3 )
@@ -148,44 +148,39 @@ cloudbox_checkedCalc
 
 
 yCalc
-WriteXML( in=y, filename="y_O3_analytical.xml" )
-WriteXML( in=jacobian, filename="J_O3_analytical.xml" )
+#WriteXML( in=y, filename="y_O3_analytical.xml" )
+#WriteXML( in=jacobian, filename="J_O3_analytical.xml" )
 Copy( Ja, jacobian )
 
-
 # Same with perturbations
+#
 StringSet( info, "O3 rel perturbation" )
 Print( info, 0 )
-jacobianInit
-jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
-    atmosphere_dim, p_grid, lat_grid, lon_grid, 
-    retrieval_grid, lat_grid, lon_grid, 
-    "O3", "perturbation", "rel", 1, 0.01 )
-jacobianClose
-#WriteXML( in=jacobian_quantities, filename="Jq_O3_perturbation.xml" )
-yCalc
+#
+IndexNumberOfAtmosphericPoints( n = ybatch_n, p_grid=retrieval_grid )
+NumericCreate( perturbation )
+NumericSet( perturbation, 0.01 )
+jacobianOff
+#
+AgendaSet(ybatch_calc_agenda){
+  vmr_fieldPerturb( p_ret_grid = retrieval_grid,
+                    lat_ret_grid = lat_grid,
+                    lon_ret_grid = lon_grid,
+                    species = "O3",
+                    pert_index = ybatch_index,
+                    pert_size = perturbation,
+                    pert_mode = "relative" )
+  yCalc
+}
+#
+ybatchCalc( ybatch_start=0 )
+jacobianFromYbatch( pert_size = perturbation )
 #WriteXML( in=y, filename="y_O3_perturbation.xml" )
 #WriteXML( in=jacobian, filename="J_O3_perturbation.xml" )
 Copy( Jp, jacobian )
-
-# Compare
+# 
 Compare( Ja, Jp, 0.005 )
 
-
-# Analytical but now using VMR, though for all "O2" species
-StringSet( info, "O2 vmr analytical" )
-Print( info, 0 )
-jacobianInit
-jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
-    atmosphere_dim, p_grid, lat_grid, lon_grid, 
-    retrieval_grid, lat_grid, lon_grid, 
-    "O2", "analytical", "vmr", 0, 0.01 )
-jacobianClose
-#WriteXML( in=jacobian_quantities, filename="Jq_O2_analytical.xml" )
-yCalc
-#WriteXML( in=y, filename="y_O2_analytical.xml" )
-WriteXML( in=jacobian, filename="J_O2_analytical.xml" )
-#Copy( Ja, jacobian )
 
 
 
@@ -204,33 +199,44 @@ NumericSet( p_hse, 1000e2 )
 NumericSet( z_hse_accuracy, 1 )
 VectorSet( lat_true, [15] )
 VectorSet( lon_true, [123] )
-
+#
 StringSet( info, "T analytical" )
 Print( info, 0 )
 jacobianInit
 jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
     atmosphere_dim, p_grid, lat_grid, lon_grid, 
     retrieval_grid, lat_grid, lon_grid, 
-    "off", "analytical", 0.1 )
+    "off", "analytical" )
 jacobianClose
 #WriteXML( in=jacobian_quantities, filename="Jq_T_analytical.xml" )
 yCalc
 #WriteXML( in=y, filename="y_T_analytical.xml" )
-WriteXML( in=jacobian, filename="J_T_analytical.xml" )
+#WriteXML( in=jacobian, filename="J_T_analytical.xml" )
 Copy( Ja, jacobian )
 
 
 # Same with perturbations
+#
 StringSet( info, "T perturbation" )
 Print( info, 0 )
-jacobianInit
-jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
-    atmosphere_dim, p_grid, lat_grid, lon_grid, 
-    retrieval_grid, lat_grid, lon_grid, 
-    "off", "perturbation", 0.1 )
-jacobianClose
-#WriteXML( in=jacobian_quantities, filename="Jq_T_perturbation.xml" )
-yCalc
+#
+NumericSet( perturbation, 0.1 )
+jacobianOff
+#
+AgendaSet(ybatch_calc_agenda){
+  AtmFieldPerturb( perturbed_field = t_field,
+                   original_field = t_field,
+                   p_ret_grid = retrieval_grid,
+                   lat_ret_grid = lat_grid,
+                   lon_ret_grid = lon_grid,                   
+                   pert_index = ybatch_index,
+                   pert_size = perturbation )
+  yCalc
+}
+#
+ybatchCalc( ybatch_start=0 )
+jacobianFromYbatch( pert_size = perturbation )
+#
 #WriteXML( in=y, filename="y_T_perturbation.xml" )
 #WriteXML( in=jacobian, filename="J_T_perturbation.xml" )
 Copy( Jp, jacobian )
@@ -277,6 +283,61 @@ Compare( Ja, Jp, 10 )
 
 
 
+##############################################################################
+#
+# Winds
+#
+##############################################################################
+
+StringSet( info, "Wind/v, analytical" )
+Print( info, 0 )
+#
+IndexSet( abs_f_interp_order, 3 )
+#
+jacobianInit
+jacobianAddWind( jacobian_quantities, jacobian_agenda, atmosphere_dim, 
+                 p_grid, lat_grid, lon_grid, abs_f_interp_order,
+                 retrieval_grid, lat_grid, lon_grid, "v" )
+jacobianClose
+#WriteXML( in=jacobian_quantities, filename="Jq_wind.xml" )
+yCalc
+Copy( Ja, jacobian )
+#WriteXML( in=y, filename="y_wind_analytical.xml" )
+#WriteXML( in=jacobian, filename="J_wind_analytical.xml" )
+
+# Same with perturbations
+#
+# wind_u_field is [], so we need to reset it to zeros of correct size
+Copy( wind_v_field, t_field )
+Tensor3Scale( wind_v_field,  wind_v_field, 0 )
+#
+StringSet( info, "Wind/v, perturbation" )
+Print( info, 0 )
+#
+NumericSet( perturbation, 0.1 )
+jacobianOff
+#
+AgendaSet(ybatch_calc_agenda){
+  AtmFieldPerturb( perturbed_field = wind_v_field,
+                   original_field = wind_v_field,
+                   p_ret_grid = retrieval_grid,
+                   lat_ret_grid = lat_grid,
+                   lon_ret_grid = lon_grid,                   
+                   pert_index = ybatch_index,
+                   pert_size = perturbation )
+  yCalc
+}
+#
+ybatchCalc( ybatch_start=0 )
+jacobianFromYbatch( pert_size = perturbation )
+#
+#WriteXML( in=y, filename="y_wind_perturbation.xml" )
+#WriteXML( in=jacobian, filename="J_wind_perturbation.xml" )
+Copy( Jp, jacobian )
+
+# Compare
+Compare( Ja, Jp, 1e-6 )
+
 
 
 ##############################################################################
@@ -285,27 +346,7 @@ Compare( Ja, Jp, 10 )
 #
 ##############################################################################
 
-StringSet( info, "Others: Winds" )
-Print( info, 0 )
-jacobianInit
-
-jacobianAddWind( jacobian_quantities, jacobian_agenda, atmosphere_dim, 
-    p_grid, lat_grid, lon_grid, retrieval_grid, lat_grid, lon_grid, "v" )
-
-jacobianAddWind( jacobian_quantities, jacobian_agenda, atmosphere_dim, 
-    p_grid, lat_grid, lon_grid, retrieval_grid, lat_grid, lon_grid, "w", 0.1 )
-    
-jacobianClose
-#WriteXML( in=jacobian_quantities, filename="Jq_Winds.xml" )
-
-IndexSet( abs_f_interp_order, 1 )
-yCalc
-#WriteXML( in=y, filename="y_Winds.xml" )
-WriteXML( in=jacobian, filename="J_Winds.xml" )
-
-
-
-StringSet( info, "Others: Freqs, Baseline" )
+StringSet( info, "Others: frequency and baseline" )
 Print( info, 0 )
 jacobianInit
 
@@ -323,15 +364,14 @@ jacobianAddSinefit( jacobian_quantities, jacobian_agenda,
 jacobianClose
 #WriteXML( in=jacobian_quantities, filename="Jq_Other.xml" )
 
-IndexSet( abs_f_interp_order, 1 )
 yCalc
 #WriteXML( in=y, filename="y_Other.xml" )
-WriteXML( in=jacobian, filename="J_Other.xml" )
+#WriteXML( in=jacobian, filename="J_Other.xml" )
 
 
 ##############################################################################
 #
-# Just check that transmission weighting functions don't cause any error
+# Transmission weighting functions
 #
 ##############################################################################
 
@@ -352,18 +392,30 @@ yCalc
 Copy( Ja, jacobian )
 
 # Same with perturbations
-StringSet( info, "Transmission perturbation" )
+#
+StringSet( info, "T perturbation" )
 Print( info, 0 )
-jacobianInit
-jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
-    atmosphere_dim, p_grid, lat_grid, lon_grid, 
-    retrieval_grid, lat_grid, lon_grid, 
-    "off", "perturbation", 0.1 )
-jacobianClose
-
-yCalc
+#
+NumericSet( perturbation, 0.1 )
+jacobianOff
+#
+AgendaSet(ybatch_calc_agenda){
+  AtmFieldPerturb( perturbed_field = t_field,
+                   original_field = t_field,
+                   p_ret_grid = retrieval_grid,
+                   lat_ret_grid = lat_grid,
+                   lon_ret_grid = lon_grid,                   
+                   pert_index = ybatch_index,
+                   pert_size = perturbation )
+  yCalc
+}
+#
+ybatchCalc( ybatch_start=0 )
+jacobianFromYbatch( pert_size = perturbation )
+#
 Copy( Jp, jacobian )
 
 # Compare
 Compare( Ja, Jp, 0.001 )
+
 }

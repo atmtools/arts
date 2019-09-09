@@ -281,15 +281,6 @@ AgendaSet( ybatch_calc_agenda ){
   jacobianAddScatSpecies( g1=p_grid, g2=lat_grid, g3=lon_grid,
                           species="IWC-MH97",
                           quantity="IWC" )
-  #jacobianAddWind( g1=p_grid, g2=lat_grid, g3=lon_grid,
-  #                 component="v" )
-  #jacobianAddTemperature( g1=p_grid, g2=lat_grid, g3=lon_grid,
-  #                        hse="off", method="analytical", dt=0.1 )
-  ### not working simultaneously with analytical jacs so far (assert fail)
-  #jacobianAddTemperature( g1=p_grid, g2=lat_grid, g3=lon_grid,
-  #                        hse="off", method="perturbation", dt=0.1 )
-  #jacobianAddWind( g1=p_grid, g2=lat_grid, g3=lon_grid,
-  #                 component="w" )
   jacobianAddAbsSpecies( g1=p_grid, g2=lat_grid, g3=lon_grid,
                          species="H2O-PWR98",
                          unit="vmr" )

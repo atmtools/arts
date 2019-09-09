@@ -67,40 +67,7 @@ Append( pnd_agenda_array_input_names, pnd_agenda_input_names )
 #
 scat_dataCalc
 scat_data_checkedCalc
-
-# Set Jacobian quantities
-#
-VectorCreate( rgrid )
-Copy( rgrid, p_grid )
-#
-jacobianInit
-#
-jacobianAddScatSpecies( 
-    species  = "IWC",
-    quantity = "IWC",
-    g1 = rgrid,
-    g2 = lat_grid,
-    g3 = lon_grid
-)
-jacobianAddAbsSpecies( 
-    species  = "H2O-PWR98",
-    unit     = "vmr",
-    g1       = rgrid,
-    g2       = lat_grid,
-    g3       = lon_grid
-)
-jacobianAddTemperature( 
-    hse = "off",
-    g1  = rgrid,
-    g2  = lat_grid,
-    g3  = lon_grid
-)
-#
-jacobianClose
-
-# pnd and cloudbox
 cloudboxSetFullAtm
-pnd_fieldCalcFromParticleBulkProps
 
 # Define radar
 #
@@ -127,19 +94,202 @@ AgendaSet( iy_main_agenda ){
   iyActiveSingleScat( trans_in_jacobian = 1 )
 }
 #
-StringSet( iy_unit, "dBZe" )
+StringSet( iy_unit, "Ze" )
 #
 VectorLinSpace(range_bins, 0, 15e3, 500 )
 
-# Perform other checks
+
+# Perform some checks
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
-cloudbox_checkedCalc
 sensor_checkedCalc
 
-# Perform calcuations
+
+# IWC, analytical Jacobian
+#
+MatrixCreate( Ja )
+VectorCreate( rgrid )
+Copy( rgrid, p_grid )
+#
+jacobianInit
+#
+jacobianAddScatSpecies( 
+    species  = "IWC",
+    quantity = "IWC",
+    g1 = rgrid,
+    g2 = lat_grid,
+    g3 = lon_grid
+)
+#jacobianAddAbsSpecies( 
+#    species  = "H2O-PWR98",
+#    unit     = "vmr",
+#    g1       = rgrid,
+#    g2       = lat_grid,
+#    g3       = lon_grid
+#)
+#jacobianAddTemperature( 
+#    hse = "off",
+#    g1  = rgrid,
+#    g2  = lat_grid,
+#    g3  = lon_grid
+#)
+#
+jacobianClose
+#
+pnd_fieldCalcFromParticleBulkProps
+#
+cloudbox_checkedCalc
 yActive
+#
+Copy( Ja, jacobian )
+WriteXML( in=y, filename="y0.xml" )
+WriteXML( in=jacobian, filename="J_iwc_analytical.xml" )
+
+
+# IWC, perturbation Jacobian
+#
+MatrixCreate( Jp )
+IndexNumberOfAtmosphericPoints( n = ybatch_n, p_grid=rgrid )
+NumericCreate( perturbation )
+NumericSet( perturbation, 1e-9 )
+jacobianOff
+pnd_fieldCalcFromParticleBulkProps
+cloudbox_checkedCalc
+#
+AgendaSet(ybatch_calc_agenda){
+  particle_bulkprop_fieldPerturb( p_ret_grid = rgrid,
+                                  lat_ret_grid = lat_grid,
+                                  lon_ret_grid =  lon_grid,
+                                  particle_type = "IWC",
+                                  pert_index = ybatch_index,
+                                  pert_size = perturbation,
+                                  pert_mode = "absolute" )
+  pnd_fieldCalcFromParticleBulkProps
+  yActive
+}
+#
+ybatchCalc( ybatch_start=0 )
+jacobianFromYbatch( pert_size = perturbation )
+Copy( Jp, jacobian )
+WriteXML( in=jacobian, filename="J_iwc_perturbation.xml" )
+# 
+CompareRelative( Jp, Ja, 1 )
+
+
+# H2O, analytical Jacobian
+#
+Copy( rgrid, p_grid )
+#
+jacobianInit
+#
+jacobianAddAbsSpecies( 
+    species  = "H2O-PWR98",
+    unit     = "rel",
+    g1       = rgrid,
+    g2       = lat_grid,
+    g3       = lon_grid
+)
+#jacobianAddTemperature( 
+#    hse = "off",
+#    g1  = rgrid,
+#    g2  = lat_grid,
+#    g3  = lon_grid
+#)
+#
+jacobianClose
+#
+pnd_fieldCalcFromParticleBulkProps
+#
+cloudbox_checkedCalc
+yActive
+#
+Copy( Ja, jacobian )
+WriteXML( in=jacobian, filename="J_h2o_analytical.xml" )
+
+
+# H2O, perturbation Jacobian
+#
+IndexNumberOfAtmosphericPoints( n = ybatch_n, p_grid=rgrid )
+NumericSet( perturbation, 1e-3 )
+jacobianOff
+pnd_fieldCalcFromParticleBulkProps
+cloudbox_checkedCalc
+#
+AgendaSet(ybatch_calc_agenda){
+  vmr_fieldPerturb( p_ret_grid = rgrid,
+                    lat_ret_grid = lat_grid,
+                    lon_ret_grid =  lon_grid,
+                    species = "H2O-PWR98",
+                    pert_index = ybatch_index,
+                    pert_size = perturbation,
+                    pert_mode = "relative" )
+  yActive
+}
+#
+ybatchCalc( ybatch_start=0 )
+jacobianFromYbatch( pert_size = perturbation )
+Copy( Jp, jacobian )
+WriteXML( in=jacobian, filename="J_h2o_perturbation.xml" )
+# 
+CompareRelative( Ja, Jp, 0.2 )
+
+
+Exit
+#
+# Code below looks at the temperature Jacobian. For temperature we expect
+# significant differences as the analytical version assumes that dPSD/dT is
+# zero, while this term is non-zero in the perturbation calculations. 
+#
+
+# Temperature, analytical Jacobian
+#
+Copy( rgrid, p_grid )
+#
+jacobianInit
+#
+jacobianAddTemperature( 
+    hse = "off",
+    g1  = rgrid,
+    g2  = lat_grid,
+    g3  = lon_grid
+)
+#
+jacobianClose
+#
+pnd_fieldCalcFromParticleBulkProps
+#
+cloudbox_checkedCalc
+yActive
+#
+Copy( Ja, jacobian )
+WriteXML( in=jacobian, filename="J_t_analytical.xml" )
+
+
+# Temparature, perturbation Jacobian
+#
+IndexNumberOfAtmosphericPoints( n = ybatch_n, p_grid=rgrid )
+NumericSet( perturbation, 0.1 )
+jacobianOff
+pnd_fieldCalcFromParticleBulkProps
+cloudbox_checkedCalc
+#
+AgendaSet(ybatch_calc_agenda){
+  AtmFieldPerturb( perturbed_field = t_field,
+                   original_field = t_field,
+                   p_ret_grid = rgrid,
+                   lat_ret_grid = lat_grid,
+                   lon_ret_grid =  lon_grid,
+                   pert_index = ybatch_index,
+                   pert_size = perturbation,
+                   pert_mode = "absolute" )
+  yActive
+}
+#
+ybatchCalc( ybatch_start=0 )
+jacobianFromYbatch( pert_size = perturbation )
+Copy( Jp, jacobian )
+WriteXML( in=jacobian, filename="J_t_perturbation.xml" )
 
 }
