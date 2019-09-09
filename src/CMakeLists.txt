@@ -93,7 +93,7 @@ set_source_files_properties (m_oem.cc PROPERTIES
 
 if (C_API)
 add_library (arts_api SHARED arts_api.cc interactive_workspace.cc)
-add_dependencies (arts_api arts)
+add_dependencies (arts arts_api)
 set_target_properties(arts_api PROPERTIES SUFFIX .so)
 target_link_libraries (arts_api ${ALL_ARTS_LIBRARIES})
 endif (C_API)
