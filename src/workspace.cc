@@ -1132,9 +1132,21 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("covmat_sx"),
       DESCRIPTION(
-          "Covariance matrix for a priori uncertainty.\n"
+          "Covariance matrix of a priori distribution\n"
           "\n"
-          "This matrix describes the uncertainty of the elements in *x*.\n"
+          "This covariance matrix describes the Gaussian a priori distribution\n"
+          "for an OEM retrieval. It is represented using a symmetric block matrix.\n"
+	  "covmat_sx can be used in two ways: Either with a block for each retrieval\n"
+	  "quantity or with a single block containing the full covariance matrix.\n"
+	  "\n"
+	  "Using a single block for each retrieval quantity has is advantageous for\n"
+	  "if the retrieval quantities are assumed to be independent. In this case,\n"
+	  "the covariance blocks can be added separately for each quantity and will\n"
+	  "allow optimizing matrix multiplications and inverses required for the OEM\n"
+	  "calculation.\n"
+	  "\n"
+	  "The other case of using a single-block covariance matrix is supported\n"
+	  "for convenience as well.\n"
           "\n"
           "Usage:   Used by inversion methods.\n"
           "\n"
