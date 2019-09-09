@@ -1609,6 +1609,12 @@ class Model2 {
   /** Init from moving a itself */
   Model2(Model2&& m) noexcept : Model2(std::move(m.mdata)) {}
   
+  /** Copy and equals */
+  Model2& operator=(const Model2& m) {mdata=m.mdata; return *this;}
+  
+  /** Move and equals */
+  Model2& operator=(Model2&& m) {mdata=std::move(m.mdata); return *this;}
+  
   /** Standard HITRAN init
    * 
    * @param[in] sgam Self pressure broadening coefficient

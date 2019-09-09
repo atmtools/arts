@@ -155,20 +155,22 @@ public:
   SingleLine(size_t nbroadeners, size_t nquanta) noexcept :
   mlineshape(nbroadeners), mlowerquanta(nquanta), mupperquanta(nquanta) {}
   
+  //////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////// Counts
+  //////////////////////////////////////////////////////////////////
+  
   /** Number of lineshape elements */
   Index LineShapeElems() const noexcept {return mlineshape.nelem();}
   
   /** Number of lower quantum numbers */
-  Index LowerQuantumCount() const noexcept {return mlowerquanta.size();}
-  
-  /** Lower quantum number */
-  Rational LowerQuantumNumber(size_t i) const noexcept {return mlowerquanta[i];}
+  Index LowerQuantumElems() const noexcept {return mlowerquanta.size();}
   
   /** Number of upper quantum numbers */
-  Index UpperQuantumCount() const noexcept {return mupperquanta.size();}
+  Index UpperQuantumElems() const noexcept {return mupperquanta.size();}
   
-  /** Upper quantum number */
-  Rational UpperQuantumNumber(size_t i) const noexcept {return mupperquanta[i];}
+  //////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////// Constant access
+  //////////////////////////////////////////////////////////////////
   
   /** Central frequency */
   Numeric F0() const noexcept {return mF0;}
@@ -177,7 +179,6 @@ public:
   Numeric E0() const noexcept {return mE0;}
   
   /** Reference line strength */
-  LineShape::Type mlineshapetype;
   Numeric I0() const noexcept {return mI0;}
   
   /** Einstein spontaneous emission */
@@ -194,6 +195,62 @@ public:
   
   /** Line shape model */
   const LineShape::Model2& LineShape() const noexcept {return mlineshape;}
+  
+  /** Lower level quantum numbers */
+  const std::vector<Rational>& LowerQuantumNumbers() const noexcept {return mlowerquanta;}
+  
+  /** Upper level quantum numbers */
+  const std::vector<Rational>& UpperQuantumNumbers() const noexcept {return mupperquanta;}
+  
+  //////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////// Reference access
+  //////////////////////////////////////////////////////////////////
+  
+  /** Central frequency */
+  Numeric& F0() noexcept {return mF0;}
+  
+  /** Lower level energy */
+  Numeric& E0() noexcept {return mE0;}
+  
+  /** Reference line strength */
+  Numeric& I0() noexcept {return mI0;}
+  
+  /** Einstein spontaneous emission */
+  Numeric& A() noexcept {return mA;}
+  
+  /** Lower level statistical weight */
+  Numeric& g_low() noexcept {return mglow;}
+  
+  /** Upper level statistical weight */
+  Numeric& g_upp() noexcept {return mgupp;}
+  
+  /** Zeeman model */
+  Zeeman::Model& Zeeman() noexcept {return mzeeman;}
+  
+  /** Line shape model */
+  LineShape::Model2& LineShape() noexcept {return mlineshape;}
+  
+  /** Lower level quantum numbers */
+  std::vector<Rational>& LowerQuantumNumbers() noexcept {return mlowerquanta;}
+  
+  /** Upper level quantum numbers */
+  std::vector<Rational>& UpperQuantumNumbers() noexcept {return mupperquanta;}
+  
+  //////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////// Special access
+  //////////////////////////////////////////////////////////////////
+  
+  /** Lower quantum number */
+  Rational LowerQuantumNumber(size_t i) const noexcept {return mlowerquanta[i];}
+  
+  /** Upper quantum number */
+  Rational UpperQuantumNumber(size_t i) const noexcept {return mupperquanta[i];}
+  
+  /** Lower quantum number */
+  Rational& LowerQuantumNumber(size_t i) noexcept {return mlowerquanta[i];}
+  
+  /** Upper quantum number */
+  Rational& UpperQuantumNumber(size_t i) noexcept {return mupperquanta[i];}
 };  // SingleLine
 
 class Lines {
@@ -348,8 +405,8 @@ public:
    * @param[in] sl A single line
    */
   void AppendSingleLine(SingleLine&& sl) {
-    if(NumBroadeners() not_eq sl.LowerQuantumCount() or
-       NumBroadeners() not_eq sl.UpperQuantumCount())
+    if(NumBroadeners() not_eq sl.LowerQuantumElems() or
+       NumBroadeners() not_eq sl.UpperQuantumElems())
       throw std::runtime_error("Error calling appending function, bad size of quantum numbers");
     
     if(NumLines() not_eq 0 and 
@@ -402,6 +459,20 @@ public:
    * @return If qid is in upper level
    */
   bool InUpperLevel(size_t k, const QuantumIdentifier& qid) const noexcept;
+  
+  /** Checks if all defined quantum numbers in qid are equal to the lower levels
+   * 
+   * @param[in] qid Energy level quantum identifier
+   * @return If qid is in lower global level
+   */
+  bool InLowerGlobalLevel(const QuantumIdentifier& qid) const noexcept;
+  
+  /** Checks if all defined quantum numbers in qid are equal to the upper levels 
+   * 
+   * @param[in] qid Energy level quantum identifier
+   * @return If qid is in upper global level
+   */
+  bool InUpperGlobalLevel(const QuantumIdentifier& qid) const noexcept;
   
   /** Returns the number of Zeeman split lines
    * 
@@ -573,18 +644,58 @@ public:
   }
 };  // Lines
 
-struct SingleLineInternalRead {SingleLine line; bool OK;};
+/** Single line reading output */
+struct SingleLineExternalRead {
+  bool bad=true;
+  bool selfbroadening=false;
+  bool bathbroadening=false;
+  CutoffType cutoff=CutoffType::None;
+  MirroringType mirroring=MirroringType::None;
+  PopulationType population=PopulationType::ByLTE;
+  NormalizationType normalization=NormalizationType::None;
+  LineShape::Type lineshapetype=LineShape::Type::DP;
+  Numeric T0=0;
+  Numeric cutofffreq=0;
+  Numeric linemixinglimit=-1;
+  QuantumIdentifier quantumidentity=QuantumIdentifier(QuantumIdentifier::TRANSITION, -1, -1);
+  SingleLine line=SingleLine();
+};
 
-SingleLineInternalRead ReadFromArtscat3Stream(istream& is);
+/** Read from ARTSCAT-3
+ * 
+ * @param[in] is Input stream
+ * @return SingleLineExternalRead 
+ */
+SingleLineExternalRead ReadFromArtscat3Stream(istream& is);
 
-SingleLineInternalRead ReadFromArtscat4Stream(istream& is, const std::vector<QuantumNumberType>& localquantums={});
+/** Read from ARTSCAT-4
+ * 
+ * @param[in] is Input stream
+ * @return SingleLineExternalRead 
+ */
+SingleLineExternalRead ReadFromArtscat4Stream(istream& is);
 
-SingleLineInternalRead ReadFromArtscat5Stream(istream& is, const std::vector<QuantumNumberType>& localquantums={});
+/** Read from ARTSCAT-5
+ * 
+ * @param[in] is Input stream
+ * @return SingleLineExternalRead 
+ */
+SingleLineExternalRead ReadFromArtscat5Stream(istream& is);
 
-SingleLineInternalRead ReadFromLBLRTMStream(istream& is, const std::vector<QuantumNumberType>& localquantums={});
+/** Read from LBLRTM
+ * 
+ * @param[in] is Input stream
+ * @return SingleLineExternalRead 
+ */
+SingleLineExternalRead ReadFromLBLRTMStream(istream& is);
 
-SingleLineInternalRead ReadFromHitran2004Stream(istream& is, const std::vector<QuantumNumberType>& localquantums={}, Numeric fmin=-1);
-
+/** Read from newer HITRAN
+ * 
+ * @param[in] is Input stream
+ * @param[in] fmin Lowest frequency to continue reading
+ * @return SingleLineExternalRead 
+ */
+SingleLineExternalRead ReadFromHitran2004Stream(istream& is);
 };  // Absorption
 
 typedef Absorption::Lines AbsorptionLines;
