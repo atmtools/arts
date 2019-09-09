@@ -11069,7 +11069,6 @@ void define_md_data_raw() {
          "y",
          "covmat_se",
          "jacobian",
-         "jacobian_do",
          "jacobian_quantities",
          "inversion_iterate_agenda"),
       GIN("method",
