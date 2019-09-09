@@ -1609,6 +1609,31 @@ class Model2 {
   /** Init from moving a itself */
   Model2(Model2&& m) noexcept : Model2(std::move(m.mdata)) {}
   
+  /** Standard HITRAN init
+   * 
+   * @param[in] sgam Self pressure broadening coefficient
+   * @param[in] nself Self pressure broadening exponent
+   * @param[in] agam Air pressure broadening coefficient
+   * @param[in] nair Air pressure broadening exponent
+   * @param[in] psf All pressure shifting coefficient
+   * @param[in] interp The interpolation variable for AER type line mixing
+   */
+  Model2(Numeric sgam,
+         Numeric nself,
+         Numeric agam,
+         Numeric nair,
+         Numeric psf,
+         std::array<Numeric, nmaxInterpModels> interp =
+             {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}) noexcept : mdata(2) {
+    mdata.front().G0() = {TemperatureModel::T1, sgam, nself, 0};
+    mdata.front().D0() = {TemperatureModel::T5, psf, nair, 0};
+    mdata.front().Interp() = interp;
+
+    mdata.back().G0() = {TemperatureModel::T1, agam, nair, 0};
+    mdata.back().D0() = {TemperatureModel::T5, psf, nair, 0};
+    mdata.back().Interp() = interp;
+  }
+  
   /** The Model is good to use
    * 
    * @return true/false

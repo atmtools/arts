@@ -113,7 +113,19 @@ private:
   std::vector<Rational> mupperquanta;
 
 public:
-  /** Default initialization */
+  /** Default initialization 
+   * 
+   * @param[in] F0 Central frequency
+   * @param[in] I0 Reference line strength at external T0
+   * @param[in] E0 Lower energy level
+   * @param[in] glow Lower level statistical weight
+   * @param[in] gupp Upper level statistical weight
+   * @param[in] A Einstein spontaneous emission coefficient
+   * @param[in] zeeman Zeeman model
+   * @param[in] lineshape Line shape model
+   * @param[in] lowerquanta Lower quantum numbers
+   * @param[in] upperquanta Upper quantum numbers
+   */
   SingleLine(Numeric F0=0,
              Numeric I0=0,
              Numeric E0=0,
@@ -121,9 +133,9 @@ public:
              Numeric gupp=0,
              Numeric A=0,
              Zeeman::Model zeeman=Zeeman::Model(),
-             LineShape::Model2 lineshape=LineShape::Model2(),
-             std::vector<Rational> lowerquanta={},
-             std::vector<Rational> upperquanta={}) :
+             const LineShape::Model2& lineshape=LineShape::Model2(),
+             const std::vector<Rational>& lowerquanta={},
+             const std::vector<Rational>& upperquanta={}) :
              mF0(F0),
              mI0(I0),
              mE0(E0),
@@ -135,7 +147,11 @@ public:
              mlowerquanta(lowerquanta),
              mupperquanta(upperquanta) {}
   
-  /** Initialization for constant sizes */
+  /** Initialization for constant sizes
+   * 
+   * @param[in] nbroadeners Number of broadening species
+   * @param[in] nquanta Number of local quantum numbers
+   */
   SingleLine(size_t nbroadeners, size_t nquanta) noexcept :
   mlineshape(nbroadeners), mlowerquanta(nquanta), mupperquanta(nquanta) {}
   
@@ -225,7 +241,23 @@ private:
   std::vector<SingleLine> mlines;
   
 public:
-  /** Default initialization */
+  /** Default initialization
+   * 
+   * @param[in] selfbroadening Do self broadening
+   * @param[in] bathbroadening Do bath broadening
+   * @param[in] cutoff Type of cutoff frequency
+   * @param[in] mirroring Type of mirroring
+   * @param[in] population Type of line strengths distributions
+   * @param[in] normalization Type of normalization
+   * @param[in] lineshapetype Type of line shape
+   * @param[in] T0 Reference temperature
+   * @param[in] cutofffreq Cutoff frequency
+   * @param[in] linemixinglimit Line mixing limit
+   * @param[in] quantumidentity Identity of global lines
+   * @param[in] localquanta List of local quantum number(s)
+   * @param[in] broadeningspecies List of broadening species
+   * @param[in] lines List of SingleLine(s)
+   */
   Lines(bool selfbroadening=false,
         bool bathbroadening=false,
         CutoffType cutoff=CutoffType::None,
@@ -236,10 +268,10 @@ public:
         Numeric T0=296,
         Numeric cutofffreq=-1,
         Numeric linemixinglimit=-1,
-        QuantumIdentifier quantumidentity=QuantumIdentifier(),
-        std::vector<QuantumNumberType> localquanta={},
-        std::vector<SpeciesTag> broadeningspecies={},
-        std::vector<SingleLine> lines={}) :
+        const QuantumIdentifier& quantumidentity=QuantumIdentifier(),
+        const std::vector<QuantumNumberType>& localquanta={},
+        const std::vector<SpeciesTag>& broadeningspecies={},
+        const std::vector<SingleLine>& lines={}) :
         mselfbroadening(selfbroadening),
         mbathbroadening(bathbroadening),
         mcutoff(cutoff),
@@ -255,7 +287,23 @@ public:
         mbroadeningspecies(broadeningspecies),
         mlines(lines) {};
   
-  /** XML-tag initialization */
+  /** XML-tag initialization
+   * 
+   * @param[in] selfbroadening Do self broadening
+   * @param[in] bathbroadening Do bath broadening
+   * @param[in] nlines Number of SingleLine(s) to initiate as empty
+   * @param[in] cutoff Type of cutoff frequency
+   * @param[in] mirroring Type of mirroring
+   * @param[in] population Type of line strengths distributions
+   * @param[in] normalization Type of normalization
+   * @param[in] lineshapetype Type of line shape
+   * @param[in] T0 Reference temperature
+   * @param[in] cutofffreq Cutoff frequency
+   * @param[in] linemixinglimit Line mixing limit
+   * @param[in] quantumidentity Identity of global lines
+   * @param[in] localquanta List of local quantum number(s)
+   * @param[in] broadeningspecies List of broadening species
+   */
   Lines(bool selfbroadening,
         bool bathbroadening,
         size_t nlines,
@@ -267,9 +315,9 @@ public:
         Numeric T0,
         Numeric cutofffreq,
         Numeric linemixinglimit,
-        QuantumIdentifier quantumidentity,
-        std::vector<SpeciesTag> broadeningspecies,
-        std::vector<QuantumNumberType> localquanta) :
+        const QuantumIdentifier& quantumidentity,
+        const std::vector<QuantumNumberType>& localquanta,
+        const std::vector<SpeciesTag>& broadeningspecies) :
         mselfbroadening(selfbroadening),
         mbathbroadening(bathbroadening),
         mcutoff(cutoff),
@@ -287,6 +335,30 @@ public:
                SingleLine(broadeningspecies.size(),
                localquanta.size())) {};
   
+  /** Appends a single line to the absorption lines
+   * 
+   * Useful for reading undefined number of lines and setting
+   * their structures
+   * 
+   * Warning: caller must guarantee that the broadening species
+   * and the quantum numbers of both levels have the correct
+   * order and the correct size.  Only the sizes can be and are
+   * tested.
+   * 
+   * @param[in] sl A single line
+   */
+  void AppendSingleLine(SingleLine&& sl) {
+    if(NumBroadeners() not_eq sl.LowerQuantumCount() or
+       NumBroadeners() not_eq sl.UpperQuantumCount())
+      throw std::runtime_error("Error calling appending function, bad size of quantum numbers");
+    
+    if(NumLines() not_eq 0 and 
+       sl.LineShapeElems() not_eq mlines[0].LineShapeElems())
+      throw std::runtime_error("Error calling appending function, bad size of broadening species");
+    
+    mlines.push_back(std::move(sl));
+  }
+  
   /** Species Index */
   Index Species() const noexcept {return mquantumidentity.Species();}
   
@@ -295,6 +367,9 @@ public:
   
   /** Number of lines */
   Index NumLines() const noexcept {return Index(mlines.size());}
+  
+  /** Number of broadening species */
+  Index NumBroadeners() const noexcept {return Index(mlocalquanta.size());}
   
   /** Quantum number lower level
    * 
@@ -312,49 +387,97 @@ public:
    */
   Rational UpperQuantumNumber(size_t k, QuantumNumberType qnt) const noexcept;
   
-  /** Checks if all defined quantum numbers in qid are equal to the lower levels */
+  /** Checks if all defined quantum numbers in qid are equal to the lower levels
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @param[in] qid Energy level quantum identifier
+   * @return If qid is in lower level
+   */
   bool InLowerLevel(size_t k, const QuantumIdentifier& qid) const noexcept;
   
-  /** Checks if all defined quantum numbers in qid are equal to the upper levels */
+  /** Checks if all defined quantum numbers in qid are equal to the upper levels 
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @param[in] qid Energy level quantum identifier
+   * @return If qid is in upper level
+   */
   bool InUpperLevel(size_t k, const QuantumIdentifier& qid) const noexcept;
   
-  /** Returns the number of Zeeman split lines */
+  /** Returns the number of Zeeman split lines
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @param[in] type Type of Zeeman polarization
+   */
   Index ZeemanCount(size_t k, Zeeman::Polarization type) const noexcept {
     return Zeeman::nelem(UpperQuantumNumber(k, QuantumNumberType::J),
                          LowerQuantumNumber(k, QuantumNumberType::J),
                          type);
   }
   
-  /** Returns the strength of a Zeeman split line */
+  /** Returns the strength of a Zeeman split line
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @param[in] type Type of Zeeman polarization
+   * @param[in] i Zeeman line count
+   */
   Numeric ZeemanStrength(size_t k, Zeeman::Polarization type, Index i) const noexcept {
     return mlines[k].Zeeman().Strength(UpperQuantumNumber(k, QuantumNumberType::J),
                                        LowerQuantumNumber(k, QuantumNumberType::J),
                                        type, i);
   }
   
-  /** Returns the splitting of a Zeeman split line */
+  /** Returns the splitting of a Zeeman split line
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @param[in] type Type of Zeeman polarization
+   * @param[in] i Zeeman line count
+   */
   Numeric ZeemanSplitting(size_t k, Zeeman::Polarization type, Index i) const noexcept {
     return mlines[k].Zeeman().Splitting(UpperQuantumNumber(k, QuantumNumberType::J),
                                         LowerQuantumNumber(k, QuantumNumberType::J),
                                         type, i);
   }
   
-  /** Central frequency */
+  /** Central frequency
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @return Central frequency
+   */
   Numeric F0(size_t k) const noexcept {return mlines[k].F0();}
   
-  /** Lower level energy */
+  /** Lower level energy
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @return Lower level energy
+   */
   Numeric E0(size_t k) const noexcept {return mlines[k].E0();}
   
-  /** Reference line strength */
+  /** Reference line strength
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @return Reference line strength
+   */
   Numeric I0(size_t k) const noexcept {return mlines[k].I0();}
   
-  /** Einstein spontaneous emission */
+  /** Einstein spontaneous emission
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @return Einstein spontaneous emission
+   */
   Numeric A(size_t k) const noexcept {return mlines[k].A();}
   
-  /** Lower level statistical weight */
+  /** Lower level statistical weight
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @return Lower level statistical weight
+   */
   Numeric g_low(size_t k) const noexcept {return mlines[k].g_low();}
   
-  /** Upper level statistical weight */
+  /** Upper level statistical weight
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @return Upper level statistical weight
+   */
   Numeric g_upp(size_t k) const noexcept {return mlines[k].g_upp();}
   
   /** Returns mirroring style */
@@ -363,35 +486,80 @@ public:
   /** Returns normalization style */
   NormalizationType Normalization() const noexcept {return mnormalization;}
   
-  /** Returns if the pressure should do line mixing */
+  /** Returns if the pressure should do line mixing
+   * 
+   * @param[in] P Atmospheric pressure
+   * @return true if no limit or P less than limit
+   */
   bool DoLineMixing(Numeric P) const noexcept {
-    return mlinemixinglimit < 0 ? true : mlinemixinglimit < P;
+    return mlinemixinglimit < 0 ? true : mlinemixinglimit > P;
   }
   
-  /** Returns line shape parameters */
+  /** Line shape parameters
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @param[in] T Atmospheric temperature
+   * @param[in] P Atmospheric pressure
+   * @param[in] vmrs Line broadener species's volume mixing ratio
+   * @return Line shape parameters
+   */
   LineShape::Output ShapeParameters(size_t k, Numeric T, Numeric P, const Vector& vmrs) const noexcept;
   
-  /** Returns line shape parameters temperature derivatives */
+  /** Line shape parameters temperature derivatives
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @param[in] T Atmospheric temperature
+   * @param[in] P Atmospheric pressure
+   * @param[in] vmrs Line broadener's volume mixing ratio
+   * @return Line shape parameters temperature derivatives
+   */
   LineShape::Output ShapeParameters_dT(size_t k, Numeric T, Numeric P, const Vector& vmrs) const noexcept;
   
-  /** Returns position in Shape parameters of this species */
+  /** Position among broadening species or -1
+   * 
+   * @param[in] A species index that might be among the broadener species
+   * @return Position among broadening species or -1
+   */
   Index LineShapePos(const Index& spec) const noexcept;
   
-  /** Returns position of broadening species */
-  Index LineShapePos(const QuantumIdentifier& qi) const noexcept {
-    return LineShapePos(qi.Species());
+  /** Position among broadening species or -1
+   * 
+   * @param[in] An identity that might be among the broadener species
+   * @return Position among broadening species or -1
+   */
+  Index LineShapePos(const QuantumIdentifier& qid) const noexcept {
+    return LineShapePos(qid.Species());
   }
   
-  /** Returns line shape parameters vmr derivative */
+  /** Line shape parameters vmr derivative
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @param[in] T Atmospheric temperature
+   * @param[in] P Atmospheric pressure
+   * @param[in] vmr_qid Identity of species whose VMR derivative is requested
+   * @return Line shape parameters vmr derivative
+   */
   LineShape::Output ShapeParameters_dVMR(size_t k, Numeric T, Numeric P,
-                                         const QuantumIdentifier& vmr_qi) const noexcept;
+                                         const QuantumIdentifier& vmr_qid) const noexcept;
   
-  /** Returns line shape parameters internal derivative */
+  /** Line shape parameter internal derivative
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @param[in] T Atmospheric temperature
+   * @param[in] P Atmospheric pressure
+   * @param[in] vmrs Line broadener's volume mixing ratio
+   * @param[in] derivative Type of line shape derivative
+   * @return Line shape parameter internal derivative
+   */
   Numeric ShapeParameter_dInternal(size_t k, Numeric T, Numeric P,
                                    const Vector& vmrs,
                                    const RetrievalQuantity& derivative) const noexcept;
   
-  /** Returns cutoff frequency */
+  /** Returns cutoff frequency or 0
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @returns Cutoff frequency or 0
+   */
   Numeric Cutoff(size_t k) const noexcept {
     switch(mcutoff) {
       case CutoffType::LineByLineOffset:
@@ -399,11 +567,24 @@ public:
       case CutoffType::BandFixedFrequency:
         return mcutofffreq;
       case CutoffType::None:
-        return -1;
+        return 0;
     }
     std::terminate();
   }
 };  // Lines
+
+struct SingleLineInternalRead {SingleLine line; bool OK;};
+
+SingleLineInternalRead ReadFromArtscat3Stream(istream& is);
+
+SingleLineInternalRead ReadFromArtscat4Stream(istream& is, const std::vector<QuantumNumberType>& localquantums={});
+
+SingleLineInternalRead ReadFromArtscat5Stream(istream& is, const std::vector<QuantumNumberType>& localquantums={});
+
+SingleLineInternalRead ReadFromLBLRTMStream(istream& is, const std::vector<QuantumNumberType>& localquantums={});
+
+SingleLineInternalRead ReadFromHitran2004Stream(istream& is, const std::vector<QuantumNumberType>& localquantums={}, Numeric fmin=-1);
+
 };  // Absorption
 
 typedef Absorption::Lines AbsorptionLines;
