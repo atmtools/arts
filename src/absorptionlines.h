@@ -51,6 +51,19 @@ enum class MirroringType {
   Manual,           // Mirror by having a line in the array of line record with negative F0
 };  // MirroringType
 
+inline MirroringType string2mirroringtype(const String& in) {
+  if (in == "NONE")
+    return MirroringType::None;
+  else if (in == "LP")
+    return MirroringType::Lorentz;
+  else if (in == "SAME")
+    return MirroringType::SameAsLineShape;
+  else if (in == "MAN")
+    return MirroringType::Manual;
+  else
+    throw std::runtime_error("Cannot recognize the mirroring type");
+}
+
 /** Describes the type of normalization line effects
  *
  * Each type but None has to have an implemented effect
@@ -61,6 +74,19 @@ enum class NormalizationType {
   VVW,   // Renormalize with Van Vleck and Weiskopf specifications
   RosenkranzQuadratic,  // Renormalize using Rosenkranz's quadratic specifications
 };  // LineNormalizationType
+
+inline NormalizationType string2normalizationtype(const String& in) {
+  if (in == "NONE")
+    return NormalizationType::None;
+  else if (in == "VVH")
+    return NormalizationType::VVH;
+  else if (in == "VVW")
+    return NormalizationType::VVW;
+  else if (in == "RQ")
+    return NormalizationType::RosenkranzQuadratic;
+  else
+    throw std::runtime_error("Cannot recognize the normalization type");
+}
 
 /** Describes the type of population level counter
  *
@@ -645,7 +671,7 @@ public:
 };  // Lines
 
 /** Single line reading output */
-struct SingleLineExternalRead {
+struct SingleLineExternal {
   bool bad=true;
   bool selfbroadening=false;
   bool bathbroadening=false;
@@ -658,44 +684,45 @@ struct SingleLineExternalRead {
   Numeric cutofffreq=0;
   Numeric linemixinglimit=-1;
   QuantumIdentifier quantumidentity=QuantumIdentifier(QuantumIdentifier::TRANSITION, -1, -1);
+  std::vector<SpeciesTag> species;
   SingleLine line=SingleLine();
 };
 
 /** Read from ARTSCAT-3
  * 
  * @param[in] is Input stream
- * @return SingleLineExternalRead 
+ * @return SingleLineExternal 
  */
-SingleLineExternalRead ReadFromArtscat3Stream(istream& is);
+SingleLineExternal ReadFromArtscat3Stream(istream& is);
 
 /** Read from ARTSCAT-4
  * 
  * @param[in] is Input stream
- * @return SingleLineExternalRead 
+ * @return SingleLineExternal 
  */
-SingleLineExternalRead ReadFromArtscat4Stream(istream& is);
+SingleLineExternal ReadFromArtscat4Stream(istream& is);
 
 /** Read from ARTSCAT-5
  * 
  * @param[in] is Input stream
- * @return SingleLineExternalRead 
+ * @return SingleLineExternal 
  */
-SingleLineExternalRead ReadFromArtscat5Stream(istream& is);
+SingleLineExternal ReadFromArtscat5Stream(istream& is);
 
 /** Read from LBLRTM
  * 
  * @param[in] is Input stream
- * @return SingleLineExternalRead 
+ * @return SingleLineExternal 
  */
-SingleLineExternalRead ReadFromLBLRTMStream(istream& is);
+SingleLineExternal ReadFromLBLRTMStream(istream& is);
 
 /** Read from newer HITRAN
  * 
  * @param[in] is Input stream
  * @param[in] fmin Lowest frequency to continue reading
- * @return SingleLineExternalRead 
+ * @return SingleLineExternal 
  */
-SingleLineExternalRead ReadFromHitran2004Stream(istream& is);
+SingleLineExternal ReadFromHitran2004Stream(istream& is);
 };  // Absorption
 
 typedef Absorption::Lines AbsorptionLines;
