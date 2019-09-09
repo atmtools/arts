@@ -168,7 +168,7 @@ endif ()
 
 ########### C API ##########
 
-if (ENABLE_C_API)
+if (NOT NO_C_API)
   set (C_API true)
   add_definitions(-fPIC)
 endif ()
@@ -473,9 +473,9 @@ else()
 endif()
 
 if (C_API)
-  message (STATUS "C API enabled")
+  message (STATUS "C API enabled (use -DNO_C_API=1 to disable)")
 else()
-  message (STATUS "C API disabled (use -DENABLE_C_API=1 to enable)")
+  message (STATUS "C API disabled")
 endif()
 
 add_subdirectory (src)
