@@ -249,7 +249,7 @@ public:
         if (is_inverse_) {
             return covmat_.get_inverse();
         } else {
-            return static_cast<ArtsMatrix>(covmat_);
+            return static_cast<ArtsMatrix>(static_cast<const Matrix>(covmat_));
         }
     }
 

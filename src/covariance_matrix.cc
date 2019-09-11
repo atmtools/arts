@@ -123,7 +123,7 @@ MatrixView &operator+=(MatrixView &A, const Block &B) {
   if (B.get_matrix_type() == Block::MatrixType::dense) {
     Aview += B.get_dense();
   } else {
-    Aview += static_cast<Matrix>(B.get_sparse());
+    Aview += static_cast<const Matrix>(B.get_sparse());
   }
 
   Index i, j;
@@ -133,7 +133,7 @@ MatrixView &operator+=(MatrixView &A, const Block &B) {
     if (B.get_matrix_type() == Block::MatrixType::dense) {
       ATview += transpose(B.get_dense());
     } else {
-      ATview += transpose(static_cast<Matrix>(B.get_sparse()));
+      ATview += transpose(static_cast<const Matrix>(B.get_sparse()));
     }
   }
   return A;
@@ -152,7 +152,7 @@ CovarianceMatrix::operator Matrix() const {
     if (c.get_matrix_type() == Block::MatrixType::dense) {
       Aview = c.get_dense();
     } else {
-      Aview = c.get_sparse();
+      Aview = static_cast<const Matrix>(c.get_sparse());
     }
 
     Index ci, cj;
@@ -162,7 +162,7 @@ CovarianceMatrix::operator Matrix() const {
       if (c.get_matrix_type() == Block::MatrixType::dense) {
         ATview = transpose(c.get_dense());
       } else {
-        ATview = transpose(static_cast<Matrix>(c.get_sparse()));
+        ATview = transpose(static_cast<const Matrix>(c.get_sparse()));
       }
     }
   }
@@ -179,7 +179,7 @@ Matrix CovarianceMatrix::get_inverse() const {
     if (c.get_matrix_type() == Block::MatrixType::dense) {
       Aview = c.get_dense();
     } else {
-      Aview = c.get_sparse();
+      Aview = static_cast<const Matrix>(c.get_sparse());
     }
 
     Index ci, cj;
@@ -189,7 +189,7 @@ Matrix CovarianceMatrix::get_inverse() const {
       if (c.get_matrix_type() == Block::MatrixType::dense) {
         ATview = transpose(c.get_dense());
       } else {
-        ATview = transpose(static_cast<Matrix>(c.get_sparse()));
+        ATview = transpose(static_cast<const Matrix>(c.get_sparse()));
       }
     }
   }
@@ -463,7 +463,7 @@ void CovarianceMatrix::invert_correlation_block(
     if (blocks[i]->get_matrix_type() == Block::MatrixType::dense) {
       A_view = blocks[i]->get_dense();
     } else {
-      A_view = blocks[i]->get_sparse();
+      A_view = static_cast<const Matrix>(blocks[i]->get_sparse());
     }
   }
 
