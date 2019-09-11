@@ -69,6 +69,7 @@ int main() {
         << "#include \"telsem.h\"\n"
         << "#include \"tessem.h\"\n"
         << "#include \"hitran_xsec.h\"\n"
+        << "#include \"absorptionlines.h\"\n"
         << "\n";
 
     ////////////////////////////////////////////////////////////////////

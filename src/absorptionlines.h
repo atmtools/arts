@@ -20,7 +20,7 @@
  USA. */
 
 /** Contains the absorption namespace
- * @file   lineshapemodel.h
+ * @file   absorptionlines.h
  * @author Richard Larsson
  * @date   2019-09-07
  * 
@@ -64,6 +64,18 @@ inline MirroringType string2mirroringtype(const String& in) {
     throw std::runtime_error("Cannot recognize the mirroring type");
 }
 
+inline String mirroringtype2string(MirroringType in) {
+  if (in == MirroringType::None)
+    return "NONE";
+  else if (in == MirroringType::Lorentz)
+    return "LP";
+  else if (in == MirroringType::SameAsLineShape)
+    return "SAME";
+  else if (in == MirroringType::Manual)
+    return "MAN";
+  std::terminate();
+}
+
 /** Describes the type of normalization line effects
  *
  * Each type but None has to have an implemented effect
@@ -88,6 +100,18 @@ inline NormalizationType string2normalizationtype(const String& in) {
     throw std::runtime_error("Cannot recognize the normalization type");
 }
 
+inline String normalizationtype2string(NormalizationType in) {
+  if (in == NormalizationType::None)
+    return "NONE";
+  else if (in == NormalizationType::VVH)
+    return "VVH";
+  else if (in == NormalizationType::VVW)
+    return "VVW";
+  else if (in == NormalizationType::RosenkranzQuadratic)
+    return "RQ";
+  std::terminate();
+}
+
 /** Describes the type of population level counter
  *
  * The types here might require that different data is available at runtime absorption calculations
@@ -96,7 +120,28 @@ enum class PopulationType {
   ByLTE,                      // Assume line is in LTE
   ByVibrationalTemperatures,  // Assume line is in NLTE described by vibrational temperatures
   ByPopulationDistribution,   // Assume line is in NLTE and the upper-to-lower ratio is known
-};  // LinePopulationType
+};  // PopulationType
+
+inline PopulationType string2populationtype(const String& in) {
+  if (in == "LTE")
+    return PopulationType::ByLTE;
+  else if (in == "VibrationalTemperatures")
+    return PopulationType::ByVibrationalTemperatures;
+  else if (in == "PopulationDistribution")
+    return PopulationType::ByPopulationDistribution;
+  else
+    throw std::runtime_error("Cannot recognize the population type");
+}
+
+inline String populationtype2string(PopulationType in) {
+  if (in == PopulationType::ByLTE)
+    return "LTE";
+  else if (in == PopulationType::ByVibrationalTemperatures)
+    return "VibrationalTemperatures";
+  else if (in == PopulationType::ByPopulationDistribution)
+    return "PopulationDistribution";
+  std::terminate();
+}
 
 /** Describes the type of cutoff calculations */
 enum class CutoffType {
@@ -104,6 +149,27 @@ enum class CutoffType {
   LineByLineOffset,    // The cutoff frequency is at SingleLine::F0 plus the cutoff frequency
   BandFixedFrequency,  // The curoff frequency is the cutoff frequency for all SingleLine(s)
 };  // LineCutoffType
+
+inline CutoffType string2cutofftype(const String& in) {
+  if (in == "None")
+    return CutoffType::None;
+  else if (in == "ByLine")
+    return CutoffType::LineByLineOffset;
+  else if (in == "ByBand")
+    return CutoffType::BandFixedFrequency;
+  else
+    throw std::runtime_error("Cannot recognize the cutoff type");
+}
+
+inline String cutofftype2string(CutoffType in) {
+  if (in == CutoffType::None)
+    return "None";
+  else if (in == CutoffType::LineByLineOffset)
+    return "ByLine";
+  else if (in == CutoffType::BandFixedFrequency)
+    return "ByBand";
+  std::terminate();
+}
 
 /** Computations and data for a single absorption line */
 class SingleLine {
@@ -217,16 +283,16 @@ public:
   Numeric g_upp() const noexcept {return mgupp;}
   
   /** Zeeman model */
-  Zeeman::Model Zeeman() const noexcept {return mzeeman;}
+  auto Zeeman() const noexcept {return mzeeman;}
   
   /** Line shape model */
-  const LineShape::Model2& LineShape() const noexcept {return mlineshape;}
+  auto& LineShape() const noexcept {return mlineshape;}
   
   /** Lower level quantum numbers */
-  const std::vector<Rational>& LowerQuantumNumbers() const noexcept {return mlowerquanta;}
+  auto& LowerQuantumNumbers() const noexcept {return mlowerquanta;}
   
   /** Upper level quantum numbers */
-  const std::vector<Rational>& UpperQuantumNumbers() const noexcept {return mupperquanta;}
+  auto& UpperQuantumNumbers() const noexcept {return mupperquanta;}
   
   //////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////// Reference access
@@ -251,16 +317,16 @@ public:
   Numeric& g_upp() noexcept {return mgupp;}
   
   /** Zeeman model */
-  Zeeman::Model& Zeeman() noexcept {return mzeeman;}
+  auto& Zeeman() noexcept {return mzeeman;}
   
   /** Line shape model */
-  LineShape::Model2& LineShape() noexcept {return mlineshape;}
+  auto& LineShape() noexcept {return mlineshape;}
   
   /** Lower level quantum numbers */
-  std::vector<Rational>& LowerQuantumNumbers() noexcept {return mlowerquanta;}
+  auto& LowerQuantumNumbers() noexcept {return mlowerquanta;}
   
   /** Upper level quantum numbers */
-  std::vector<Rational>& UpperQuantumNumbers() noexcept {return mupperquanta;}
+  auto& UpperQuantumNumbers() noexcept {return mupperquanta;}
   
   //////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////// Special access
@@ -278,6 +344,28 @@ public:
   /** Upper quantum number */
   Rational& UpperQuantumNumber(size_t i) noexcept {return mupperquanta[i];}
 };  // SingleLine
+
+std::ostream& operator<<(std::ostream&, const SingleLine&);
+
+std::istream& operator>>(std::istream&, SingleLine&);
+
+/** Single line reading output */
+struct SingleLineExternal {
+  bool bad=true;
+  bool selfbroadening=false;
+  bool bathbroadening=false;
+  CutoffType cutoff=CutoffType::None;
+  MirroringType mirroring=MirroringType::None;
+  PopulationType population=PopulationType::ByLTE;
+  NormalizationType normalization=NormalizationType::None;
+  LineShape::Type lineshapetype=LineShape::Type::DP;
+  Numeric T0=0;
+  Numeric cutofffreq=0;
+  Numeric linemixinglimit=-1;
+  QuantumIdentifier quantumidentity=QuantumIdentifier(QuantumIdentifier::TRANSITION, -1, -1);
+  ArrayOfSpeciesTag species={};
+  SingleLine line=SingleLine();
+};
 
 class Lines {
 private:
@@ -318,7 +406,7 @@ private:
   std::vector<QuantumNumberType> mlocalquanta;
   
   /** A list of broadening species */
-  std::vector<SpeciesTag> mbroadeningspecies;
+  ArrayOfSpeciesTag mbroadeningspecies;
   
   /** A list of individual lines */
   std::vector<SingleLine> mlines;
@@ -353,7 +441,7 @@ public:
         Numeric linemixinglimit=-1,
         const QuantumIdentifier& quantumidentity=QuantumIdentifier(),
         const std::vector<QuantumNumberType>& localquanta={},
-        const std::vector<SpeciesTag>& broadeningspecies={},
+        const ArrayOfSpeciesTag& broadeningspecies={},
         const std::vector<SingleLine>& lines={}) :
         mselfbroadening(selfbroadening),
         mbathbroadening(bathbroadening),
@@ -400,7 +488,7 @@ public:
         Numeric linemixinglimit,
         const QuantumIdentifier& quantumidentity,
         const std::vector<QuantumNumberType>& localquanta,
-        const std::vector<SpeciesTag>& broadeningspecies) :
+        const ArrayOfSpeciesTag& broadeningspecies) :
         mselfbroadening(selfbroadening),
         mbathbroadening(bathbroadening),
         mcutoff(cutoff),
@@ -417,6 +505,27 @@ public:
         mlines(nlines,
                SingleLine(broadeningspecies.size(),
                localquanta.size())) {};
+  
+  /** XML-tag initialization
+   * 
+   * @param[in] sle Single external line
+   */
+  Lines(const SingleLineExternal& sle,
+        const std::vector<QuantumNumberType>& localquanta) :
+        mselfbroadening(sle.selfbroadening),
+        mbathbroadening(sle.bathbroadening),
+        mcutoff(sle.cutoff),
+        mmirroring(sle.mirroring),
+        mpopulation(sle.population),
+        mnormalization(sle.normalization),
+        mlineshapetype(sle.lineshapetype),
+        mT0(sle.T0),
+        mcutofffreq(sle.cutofffreq),
+        mlinemixinglimit(sle.linemixinglimit),
+        mquantumidentity(sle.quantumidentity),
+        mlocalquanta(localquanta),
+        mbroadeningspecies(sle.species),
+        mlines(1, sle.line) {};
   
   /** Appends a single line to the absorption lines
    * 
@@ -442,6 +551,70 @@ public:
     mlines.push_back(std::move(sl));
   }
   
+  /** Appends a single line to the absorption lines
+   * 
+   * Useful for reading undefined number of lines and setting
+   * their structures
+   * 
+   * Warning: caller must guarantee that the broadening species
+   * and the quantum numbers of both levels have the correct
+   * order and the correct size.  Only the sizes can be and are
+   * tested.
+   * 
+   * @param[in] sl A single line
+   */
+  void AppendSingleLine(const SingleLine& sl) {
+    if(NumBroadeners() not_eq sl.LowerQuantumElems() or
+       NumBroadeners() not_eq sl.UpperQuantumElems())
+      throw std::runtime_error("Error calling appending function, bad size of quantum numbers");
+    
+    if(NumLines() not_eq 0 and 
+       sl.LineShapeElems() not_eq mlines[0].LineShapeElems())
+      throw std::runtime_error("Error calling appending function, bad size of broadening species");
+    
+    mlines.push_back(sl);
+  }
+  
+  /**  */
+  bool MatchWithExternal(const SingleLineExternal& sle) const noexcept {
+    if(sle.bad)
+      return false;
+    else if(sle.selfbroadening not_eq mselfbroadening)
+      return false;
+    else if(sle.bathbroadening not_eq mbathbroadening)
+      return false;
+    else if(sle.cutoff not_eq mcutoff)
+      return false;
+    else if(sle.mirroring not_eq mmirroring)
+      return false;
+    else if(sle.population not_eq mpopulation)
+      return false;
+    else if(sle.normalization not_eq mnormalization)
+      return false;
+    else if(sle.lineshapetype not_eq mlineshapetype)
+      return false;
+    else if(sle.T0 not_eq mT0)
+      return false;
+    else if(sle.cutofffreq not_eq mcutofffreq)
+      return false;
+    else if(sle.linemixinglimit not_eq mlinemixinglimit)
+      return false;
+    else if(sle.quantumidentity not_eq mquantumidentity)
+      return false;
+    else if(sle.species not_eq mbroadeningspecies)
+      return false;
+    else if(NumLines() not_eq 0 and sle.line.LineShapeElems() not_eq mlines[0].LineShapeElems())
+      return false;
+    else
+      return true;
+  }
+  
+  /** Species Name */
+  String SpeciesName() const noexcept;
+  
+  /** Quantum numbers string */
+  String QuantumNumberName() const noexcept;
+  
   /** Species Index */
   Index Species() const noexcept {return mquantumidentity.Species();}
   
@@ -450,6 +623,12 @@ public:
   
   /** Number of lines */
   Index NumLines() const noexcept {return Index(mlines.size());}
+  
+  /** Lines */
+  auto& AllLines() const noexcept {return mlines;}
+  
+  /** Lines */
+  auto& AllLines() noexcept {return mlines;}
   
   /** Number of broadening species */
   Index NumBroadeners() const noexcept {return Index(mlocalquanta.size());}
@@ -583,6 +762,15 @@ public:
   /** Returns normalization style */
   NormalizationType Normalization() const noexcept {return mnormalization;}
   
+  /** Returns cutoff style */
+  CutoffType Cutoff() const noexcept {return mcutoff;}
+  
+  /** Returns population style */
+  PopulationType Population() const noexcept {return mpopulation;}
+  
+  /** Returns population style */
+  LineShape::Type LineShapeType() const noexcept {return mlineshapetype;}
+  
   /** Returns if the pressure should do line mixing
    * 
    * @param[in] P Atmospheric pressure
@@ -657,7 +845,7 @@ public:
    * @param[in] k Line number (less than NumLines())
    * @returns Cutoff frequency or 0
    */
-  Numeric Cutoff(size_t k) const noexcept {
+  Numeric CutoffFreq(size_t k) const noexcept {
     switch(mcutoff) {
       case CutoffType::LineByLineOffset:
         return F0(k) + mcutofffreq;
@@ -668,25 +856,50 @@ public:
     }
     std::terminate();
   }
+  
+  /** Returns reference temperature */
+  Numeric T0() const noexcept {
+    return mT0;
+  }
+  
+  /** Returns internal cutoff frequency value */
+  Numeric CutoffFreqValue() const noexcept {
+    return mcutofffreq;
+  }
+  
+  /** Returns line mixing limit */
+  Numeric LinemixingLimit() const noexcept {
+    return mlinemixinglimit;
+  }
+  
+  /** Returns local quantum numbers */
+  auto LocalQuanta() const noexcept {
+    return mlocalquanta;
+  }
+  
+  /** Returns the broadening species */
+  auto& BroadeningSpecies() const noexcept {
+    return mbroadeningspecies;
+  }
+  
+  /** Returns self broadening status */
+  bool Self() const noexcept {
+    return mselfbroadening;
+  }
+  
+  /** Returns bath broadening status */
+  bool Bath() const noexcept {
+    return mbathbroadening;
+  }
+  
+  /** Returns identity status */
+  auto QuantumIdentity() const noexcept {
+    return mquantumidentity;
+  }
 };  // Lines
 
-/** Single line reading output */
-struct SingleLineExternal {
-  bool bad=true;
-  bool selfbroadening=false;
-  bool bathbroadening=false;
-  CutoffType cutoff=CutoffType::None;
-  MirroringType mirroring=MirroringType::None;
-  PopulationType population=PopulationType::ByLTE;
-  NormalizationType normalization=NormalizationType::None;
-  LineShape::Type lineshapetype=LineShape::Type::DP;
-  Numeric T0=0;
-  Numeric cutofffreq=0;
-  Numeric linemixinglimit=-1;
-  QuantumIdentifier quantumidentity=QuantumIdentifier(QuantumIdentifier::TRANSITION, -1, -1);
-  std::vector<SpeciesTag> species;
-  SingleLine line=SingleLine();
-};
+std::ostream& operator<<(std::ostream&, const Lines&);
+std::istream& operator>>(std::istream&, Lines&);
 
 /** Read from ARTSCAT-3
  * 
@@ -723,10 +936,26 @@ SingleLineExternal ReadFromLBLRTMStream(istream& is);
  * @return SingleLineExternal 
  */
 SingleLineExternal ReadFromHitran2004Stream(istream& is);
+
+/** Splits a list of lines into proper Lines
+ * 
+ * Ensures that all but SingleLine list in Lines is the same in a full
+ * Lines
+ * 
+ * @param[in] lines A list of lines
+ * @param[in] localquantas List of quantum numbers to be presumed local
+ * @param[in] truncate_globalquantum Whether or not to truncate global quanta before matching
+ * @return A list of properly ordered Lines
+ */
+std::vector<Lines> split_list_of_external_lines(const std::vector<SingleLineExternal>& lines,
+                                                const std::vector<QuantumNumberType>& localquantas,
+                                                bool truncate_globalquantum);
 };  // Absorption
 
 typedef Absorption::Lines AbsorptionLines;
 typedef Array<AbsorptionLines> ArrayOfAbsorptionLines;
 typedef Array<ArrayOfAbsorptionLines> ArrayOfArrayOfAbsorptionLines;
+
+std::ostream& operator<<(std::ostream&, const ArrayOfAbsorptionLines&);
 
 #endif  // absorptionlines_h

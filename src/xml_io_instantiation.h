@@ -65,6 +65,7 @@ TMPL_XML_READ_WRITE(RadiationVector)
 
 //=== Compound Types =======================================================
 
+TMPL_XML_READ_WRITE(AbsorptionLines)
 TMPL_XML_READ_WRITE(Agenda)
 TMPL_XML_READ_WRITE(CIARecord)
 TMPL_XML_READ_WRITE(CovarianceMatrix)
@@ -95,6 +96,7 @@ TMPL_XML_READ_WRITE(Verbosity)
 
 //=== Array Types ==========================================================
 
+TMPL_XML_READ_WRITE(ArrayOfAbsorptionLines)
 TMPL_XML_READ_WRITE(ArrayOfAgenda)
 TMPL_XML_READ_WRITE(Array<IsotopologueRecord>)
 TMPL_XML_READ_WRITE(Array<SpeciesRecord>)

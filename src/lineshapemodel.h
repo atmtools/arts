@@ -1928,7 +1928,11 @@ class Model2 {
         ssm.Interp() = x.Interp();
     }
   }
-};
+};  // Model2;
+
+std::ostream& operator<<(std::ostream&, const Model2&);
+std::istream& operator>>(std::istream&, Model2&);
+
 };  // namespace LineShape
 
 #endif  // lineshapemodel_h

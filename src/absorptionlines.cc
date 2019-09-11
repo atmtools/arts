@@ -20,7 +20,7 @@
  USA. */
 
 /** Contains the absorption namespace
- * @file   lineshapemodel.cc
+ * @file   absorptionlines.cc
  * @author Richard Larsson
  * @date   2019-09-07
  * 
@@ -32,6 +32,7 @@
 #include "absorptionlines.h"
 
 #include "absorption.h"
+#include "constants.h"
 #include "global_data.h"
 #include "quantum_parser_hitran.h"
 
@@ -581,7 +582,6 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat4Stream(istream& is) {
   return data;
 }
 
-
 Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
   // Default data and values for this type
   SingleLineExternal data;
@@ -822,7 +822,6 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
   return data;
 }
 
-
 Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is) {
   // Default data and values for this type
   SingleLineExternal data;
@@ -1006,12 +1005,10 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
   {
     // HITRAN position in wavenumbers (cm^-1):
     Numeric v;
-    // External constant from constants.cc:
-    extern const Numeric SPEED_OF_LIGHT;
     // Conversion from wavenumber to Hz. If you multiply a line
     // position in wavenumber (cm^-1) by this constant, you get the
     // frequency in Hz.
-    const Numeric w2Hz = SPEED_OF_LIGHT * 100.;
+    const Numeric w2Hz = Constant::c * 100.;
 
     // Extract HITRAN postion:
     extract(v, line, 12);
@@ -1022,8 +1019,6 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
 
   // Intensity.
   {
-    extern const Numeric SPEED_OF_LIGHT;  // in [m/s]
-
     // HITRAN intensity is in cm-1/(molec * cm-2) at 296 Kelvin.
     // It already includes the isotpic ratio.
     // The first cm-1 is the frequency unit (it cancels with the
@@ -1034,7 +1029,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
     // 2. Convert [molec * cm-2] to [molec * m-2] (factor 1e-4).
     // 3. Take out the isotopologue ratio.
 
-    const Numeric hi2arts = 1e-2 * SPEED_OF_LIGHT;
+    const Numeric hi2arts = 1e-2 * Constant::c;
 
     Numeric s;
 
@@ -1061,16 +1056,11 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
     // HITRAN parameter is in cm-1/atm at 296 Kelvin
     // All parameters are HWHM (I hope this is true!)
     Numeric gam;
-    // External constant from constants.cc: Converts atm to
-    // Pa. Multiply value in atm by this number to get value in Pa.
-    extern const Numeric ATM2PA;
-    // External constant from constants.cc:
-    extern const Numeric SPEED_OF_LIGHT;
     // Conversion from wavenumber to Hz. If you multiply a value in
     // wavenumber (cm^-1) by this constant, you get the value in Hz.
-    const Numeric w2Hz = SPEED_OF_LIGHT * 1e2;
+    const Numeric w2Hz = Constant::c * 1e2;
     // Ok, put together the end-to-end conversion that we need:
-    const Numeric hi2arts = w2Hz / ATM2PA;
+    const Numeric hi2arts = w2Hz / Conversion::ATM2PA;
 
     // Extract HITRAN AGAM value:
     extract(gam, line, 5);
@@ -1119,16 +1109,11 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
     // HITRAN value in cm^-1 / atm. So the conversion goes exactly as
     // for the broadening parameters.
     Numeric d;
-    // External constant from constants.cc: Converts atm to
-    // Pa. Multiply value in atm by this number to get value in Pa.
-    extern const Numeric ATM2PA;
-    // External constant from constants.cc:
-    extern const Numeric SPEED_OF_LIGHT;
     // Conversion from wavenumber to Hz. If you multiply a value in
     // wavenumber (cm^-1) by this constant, you get the value in Hz.
-    const Numeric w2Hz = SPEED_OF_LIGHT * 1e2;
+    const Numeric w2Hz = Constant::c * 1e2;
     // Ok, put together the end-to-end conversion that we need:
-    const Numeric hi2arts = w2Hz / ATM2PA;
+    const Numeric hi2arts = w2Hz / Conversion::ATM2PA;
 
     // Extract HITRAN value:
     extract(d, line, 8);
@@ -1415,12 +1400,10 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
   {
     // HITRAN position in wavenumbers (cm^-1):
     Numeric v;
-    // External constant from constants.cc:
-    extern const Numeric SPEED_OF_LIGHT;
     // Conversion from wavenumber to Hz. If you multiply a line
     // position in wavenumber (cm^-1) by this constant, you get the
     // frequency in Hz.
-    const Numeric w2Hz = SPEED_OF_LIGHT * 100.;
+    const Numeric w2Hz = Constant::c * 100.;
 
     // Extract HITRAN postion:
     extract(v, line, 12);
@@ -1432,8 +1415,6 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
 
   // Intensity.
   {
-    extern const Numeric SPEED_OF_LIGHT;  // in [m/s]
-
     // HITRAN intensity is in cm-1/(molec * cm-2) at 296 Kelvin.
     // It already includes the isotpic ratio.
     // The first cm-1 is the frequency unit (it cancels with the
@@ -1444,7 +1425,7 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
     // 2. Convert [molec * cm-2] to [molec * m-2] (factor 1e-4).
     // 3. Take out the isotopologue ratio.
 
-    const Numeric hi2arts = 1e-2 * SPEED_OF_LIGHT;
+    const Numeric hi2arts = 1e-2 * Constant::c;
 
     Numeric s;
     if (line[6] == 'D') line[6] = 'E';
@@ -1472,16 +1453,11 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
     // HITRAN parameter is in cm-1/atm at 296 Kelvin
     // All parameters are HWHM (I hope this is true!)
     Numeric gam;
-    // External constant from constants.cc: Converts atm to
-    // Pa. Multiply value in atm by this number to get value in Pa.
-    extern const Numeric ATM2PA;
-    // External constant from constants.cc:
-    extern const Numeric SPEED_OF_LIGHT;
     // Conversion from wavenumber to Hz. If you multiply a value in
     // wavenumber (cm^-1) by this constant, you get the value in Hz.
-    const Numeric w2Hz = SPEED_OF_LIGHT * 1e2;
+    const Numeric w2Hz = Constant::c * 1e2;
     // Ok, put together the end-to-end conversion that we need:
-    const Numeric hi2arts = w2Hz / ATM2PA;
+    const Numeric hi2arts = w2Hz / Conversion::ATM2PA;
 
     // Extract HITRAN AGAM value:
     extract(gam, line, 5);
@@ -1530,16 +1506,11 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
     // HITRAN value in cm^-1 / atm. So the conversion goes exactly as
     // for the broadening parameters.
     Numeric d;
-    // External constant from constants.cc: Converts atm to
-    // Pa. Multiply value in atm by this number to get value in Pa.
-    extern const Numeric ATM2PA;
-    // External constant from constants.cc:
-    extern const Numeric SPEED_OF_LIGHT;
     // Conversion from wavenumber to Hz. If you multiply a value in
     // wavenumber (cm^-1) by this constant, you get the value in Hz.
-    const Numeric w2Hz = SPEED_OF_LIGHT * 1e2;
+    const Numeric w2Hz = Constant::c * 1e2;
     // Ok, put together the end-to-end conversion that we need:
-    const Numeric hi2arts = w2Hz / ATM2PA;
+    const Numeric hi2arts = w2Hz / Conversion::ATM2PA;
 
     // Extract HITRAN value:
     extract(d, line, 8);
@@ -1705,10 +1676,8 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
     G[3] = G_340K;
   }
 
-  extern const Numeric ATM2PA;
-
-  Y /= ATM2PA;
-  G /= ATM2PA / ATM2PA;
+  Y /= Conversion::ATM2PA;
+  G /= Conversion::ATM2PA / Conversion::ATM2PA;
   Y *=
       -1;  // ARTS uses (1-iY) as line-mixing factor, LBLRTM CO2 uses (1+iY), so we must change sign
 
@@ -1761,4 +1730,132 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
     } else
       return data;
   }
+}
+
+std::vector<Absorption::Lines> Absorption::split_list_of_external_lines(const std::vector<SingleLineExternal>& external_lines,
+                                                                        const std::vector<QuantumNumberType>& localquantas,
+                                                                        bool truncate_globalquantum)
+{
+  std::vector<Lines> lines;
+  lines.resize(0);
+  std::vector<Rational> lowerquanta(localquantas.size());
+  std::vector<Rational> upperquanta(localquantas.size());
+  
+  // Loop but make copies because we will need to modify some of the data
+  for(SingleLineExternal sle: external_lines) {
+    // Set the requested local quantum numbers and undefine them from the global numbers
+    for(size_t i=0; i<localquantas.size(); i++) {
+      lowerquanta[i] = sle.quantumidentity.LowerQuantumNumber(localquantas[i]);
+      upperquanta[i] = sle.quantumidentity.UpperQuantumNumber(localquantas[i]);
+      sle.quantumidentity.LowerQuantumNumber(localquantas[i]) = RATIONAL_UNDEFINED;
+      sle.quantumidentity.UpperQuantumNumber(localquantas[i]) = RATIONAL_UNDEFINED;
+    }
+    
+    // Write local data
+    sle.line.LowerQuantumNumbers() = lowerquanta;
+    sle.line.UpperQuantumNumbers() = upperquanta;
+    
+    // Should we ignore the global quantum numbers in this split?
+    if(truncate_globalquantum) {
+      for(Index i=0; i<Index(QuantumNumberType::FINAL_ENTRY); i++) {
+        sle.quantumidentity.LowerQuantumNumber(QuantumNumberType(i)) = RATIONAL_UNDEFINED;
+        sle.quantumidentity.UpperQuantumNumber(QuantumNumberType(i)) = RATIONAL_UNDEFINED;
+      }
+    }
+    
+    // Either find a line like this in the list of lines or start a new Lines
+    bool found_match=false;
+    for(auto& li: lines) {
+      if(li.MatchWithExternal(sle)) {
+        li.AppendSingleLine(sle.line);
+        found_match=true;
+        break;
+      }
+    }
+    if(not found_match)
+      lines.push_back(Lines(sle, localquantas));
+  }
+  
+  return lines;
+}
+
+std::ostream& Absorption::operator<<(std::ostream& os, const Absorption::Lines& lines)
+{
+  for(auto& line: lines.AllLines())
+    os << line << '\n';
+  return os;
+}
+
+std::istream& Absorption::operator>>(std::istream& is, Lines& lines) {
+  for(auto& line: lines.AllLines())
+    is >> line;
+  return is;
+}
+
+std::ostream & Absorption::operator<<(std::ostream& os, const Absorption::SingleLine& line)
+{
+  os << line.F0() << ' '
+     << line.I0() << ' '
+     << line.E0() << ' '
+     << line.g_low() << ' '
+     << line.g_upp() << ' '
+     << line.A() << ' '
+     << line.Zeeman() << ' '
+     << line.LineShape();
+  for(auto& r: line.LowerQuantumNumbers())
+    os << ' ' << r;
+  for(auto& r: line.UpperQuantumNumbers())
+    os << ' ' << r;
+  return os;
+}
+
+std::istream& Absorption::operator>>(std::istream& is, Absorption::SingleLine& line)
+{
+  is >> line.F0()
+     >> line.I0()
+     >> line.E0()
+     >> line.g_low()
+     >> line.g_upp()
+     >> line.A()
+     >> line.Zeeman()
+     >> line.LineShape();
+  for(auto& r: line.LowerQuantumNumbers())
+    is >> r;
+  for(auto& r: line.UpperQuantumNumbers())
+    is >> r;
+  return is;
+}
+
+std::ostream& operator<<(std::ostream& os, const ArrayOfAbsorptionLines& aol)
+{
+  for(auto& l: aol)
+    os << l << '\n';
+  return os;
+}
+
+String Absorption::Lines::SpeciesName() const noexcept
+{
+  // Species lookup data:
+  using global_data::species_data;
+  
+  // A reference to the relevant record of the species data:
+  const SpeciesRecord& spr = species_data[Species()];
+  
+  // First the species name:
+  return spr.Name() + "-" +
+  spr.Isotopologue()[Isotopologue()].Name();;
+}
+
+String Absorption::Lines::QuantumNumberName() const noexcept
+{
+  std::ostringstream out;
+  out << "UP ";
+  if(mquantumidentity.UpperQuantumNumbers().nNumbers())
+    out << mquantumidentity.UpperQuantumNumbers();
+  if(mquantumidentity.LowerQuantumNumbers().nNumbers())
+    out << "LO " << mquantumidentity.LowerQuantumNumbers();
+  else
+    out << "LO";
+  
+  return out.str();
 }

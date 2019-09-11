@@ -84,6 +84,41 @@ void ArtsXMLTag::add_attribute(const String& aname, const Index& value) {
   add_attribute(aname, v.str());
 }
 
+void ArtsXMLTag::add_attribute(const String& aname, const Numeric& value) {
+  ostringstream v;
+  
+  v << value;
+  add_attribute(aname, v.str());
+}
+
+void ArtsXMLTag::add_attribute(const String& aname, const std::vector<QuantumNumberType>& value) {
+  ostringstream v;
+  
+  if(value.size() == 0)
+    v << "";
+  else {
+    for(size_t i=0; i<value.size()-1; i++)
+      v << quantumnumbertype2string(value[i]) << " ";
+    v << quantumnumbertype2string(value.back());
+  }
+  
+  add_attribute(aname, v.str());
+}
+
+void ArtsXMLTag::add_attribute(const String& aname, const ArrayOfSpeciesTag& value, const bool self, const bool bath) {
+  ostringstream v;
+  
+  if(self)
+    v << LineShape::self_broadening;
+  for(Index i=Index(self); i<value.nelem()-Index(bath); i++)
+    v << ' ' << value[i];
+  if(bath) {
+    v << ' ' << LineShape::bath_broadening;
+  }
+  
+  add_attribute(aname, v.str());
+}
+
 //! Checks whether attribute has the expected value
 /*!
 
@@ -149,6 +184,135 @@ void ArtsXMLTag::get_attribute_value(const String& aname, Index& value) {
     xml_parse_error("Error while parsing value of " + aname + " from <" + name +
                     ">");
   }
+}
+
+void ArtsXMLTag::get_attribute_value(const String& aname, Numeric& value) {
+  String attribute_value;
+  istringstream strstr("");
+  
+  get_attribute_value(aname, attribute_value);
+  strstr.str(attribute_value);
+  strstr >> value;
+  if (strstr.fail()) {
+    xml_parse_error("Error while parsing value of " + aname + " from <" + name +
+    ">");
+  }
+}
+
+void ArtsXMLTag::get_attribute_value(const String& aname, SpeciesTag& value) {
+  String attribute_value;
+  
+  get_attribute_value(aname, attribute_value);
+  value = SpeciesTag(attribute_value);
+}
+
+void ArtsXMLTag::get_attribute_value(const String& aname, ArrayOfSpeciesTag& value, bool& self, bool& bath) {
+  value.resize(0);
+  self=false;
+  bath=false;
+  
+  String attribute_value;
+  istringstream strstr("");
+  
+  get_attribute_value(aname, attribute_value);
+  strstr.str(attribute_value);
+  String val;
+  
+  while(not strstr.eof()) {
+    strstr >> val;
+    if (strstr.fail()) {
+      xml_parse_error("Error while parsing value of " + aname + " from <" + name +
+      ">");
+    }
+    
+    if(val == LineShape::self_broadening) {
+      value.push_back(SpeciesTag());
+      self = true;
+    }
+    else if(val == LineShape::bath_broadening) {
+      value.push_back(SpeciesTag());
+      bath = true;
+    }
+    else
+      value.push_back(SpeciesTag(val));
+  }
+}
+
+void ArtsXMLTag::get_attribute_value(const String& aname, std::vector<QuantumNumberType>& value) {
+  value.resize(0);
+  
+  String attribute_value;
+  istringstream strstr("");
+  
+  get_attribute_value(aname, attribute_value);
+  strstr.str(attribute_value);
+  String val;
+  
+  while(not strstr.eof()) {
+    strstr >> val;
+    if (strstr.fail()) {
+      xml_parse_error("Error while parsing value of " + aname + " from <" + name +
+      ">");
+    }
+    value.push_back(string2quantumnumbertype(val));
+  }
+}
+
+void ArtsXMLTag::get_attribute_value(const String& aname, QuantumIdentifier& value) {
+  String attribute_value;
+  istringstream strstr("");
+  
+  get_attribute_value(aname, attribute_value);
+  strstr.str(attribute_value);
+  QuantumNumberType pos;
+  Rational val;
+  String key;
+  
+  bool OK = true;
+  
+  strstr >> key;
+  
+  if(key not_eq "UP" or not OK)
+    OK = false;
+  
+  // Upper numbers
+  while(not strstr.eof() and OK) {
+    strstr >> key;
+    
+    if(key == "LO")
+      break;
+    
+    pos = string2quantumnumbertype(key);
+    
+    if(pos == QuantumNumberType::FINAL_ENTRY) {
+      OK = false;
+      break;
+    }
+    
+    strstr >> val;
+    value.UpperQuantumNumber(pos) = val;
+  }
+  
+  if(strstr.eof() or not OK)
+    OK = false;
+  
+  // Lower numbers
+  while(not strstr.eof() and OK) {
+    strstr >> key;
+    
+    pos = string2quantumnumbertype(key);
+    
+    if(pos == QuantumNumberType::FINAL_ENTRY) {
+      OK = false;
+      break;
+    }
+    
+    strstr >> val;
+    value.LowerQuantumNumber(pos) = val;
+  }
+  
+  if(not OK)
+    throw std::runtime_error("Bad key-ordering");
 }
 
 //! Reads next XML tag

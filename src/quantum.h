@@ -79,6 +79,82 @@ enum class QuantumNumberType : Index {
   FINAL_ENTRY  // We need this to determine the number of elements in this enum
 };
 
+inline QuantumNumberType string2quantumnumbertype(const String& s) {
+  #define INPUT_QUANTUM(ID) \
+  if (s == #ID) return QuantumNumberType::ID
+  INPUT_QUANTUM(J);
+  else INPUT_QUANTUM(dJ);
+  else INPUT_QUANTUM(M);
+  else INPUT_QUANTUM(N);
+  else INPUT_QUANTUM(dN);
+  else INPUT_QUANTUM(S);
+  else INPUT_QUANTUM(F);
+  else INPUT_QUANTUM(K);
+  else INPUT_QUANTUM(Ka);
+  else INPUT_QUANTUM(Kc);
+  else INPUT_QUANTUM(Omega);
+  else INPUT_QUANTUM(i);
+  else INPUT_QUANTUM(Lambda);
+  else INPUT_QUANTUM(alpha);
+  else INPUT_QUANTUM(Sym);
+  else INPUT_QUANTUM(parity);
+  else INPUT_QUANTUM(v1);
+  else INPUT_QUANTUM(v2);
+  else INPUT_QUANTUM(l2);
+  else INPUT_QUANTUM(v3);
+  else INPUT_QUANTUM(v4);
+  else INPUT_QUANTUM(v5);
+  else INPUT_QUANTUM(v6);
+  else INPUT_QUANTUM(l);
+  else INPUT_QUANTUM(pm);
+  else INPUT_QUANTUM(r);
+  else INPUT_QUANTUM(S_global);
+  else INPUT_QUANTUM(X);
+  else INPUT_QUANTUM(n_global);
+  else INPUT_QUANTUM(C);
+  else INPUT_QUANTUM(Hund);
+  else return QuantumNumberType::FINAL_ENTRY;
+  #undef INPUT_QUANTUM
+}
+
+inline String quantumnumbertype2string(QuantumNumberType s) {
+  #define INPUT_QUANTUM(ID) \
+  if (s == QuantumNumberType::ID) return #ID
+  INPUT_QUANTUM(J);
+  else INPUT_QUANTUM(dJ);
+  else INPUT_QUANTUM(M);
+  else INPUT_QUANTUM(N);
+  else INPUT_QUANTUM(dN);
+  else INPUT_QUANTUM(S);
+  else INPUT_QUANTUM(F);
+  else INPUT_QUANTUM(K);
+  else INPUT_QUANTUM(Ka);
+  else INPUT_QUANTUM(Kc);
+  else INPUT_QUANTUM(Omega);
+  else INPUT_QUANTUM(i);
+  else INPUT_QUANTUM(Lambda);
+  else INPUT_QUANTUM(alpha);
+  else INPUT_QUANTUM(Sym);
+  else INPUT_QUANTUM(parity);
+  else INPUT_QUANTUM(v1);
+  else INPUT_QUANTUM(v2);
+  else INPUT_QUANTUM(l2);
+  else INPUT_QUANTUM(v3);
+  else INPUT_QUANTUM(v4);
+  else INPUT_QUANTUM(v5);
+  else INPUT_QUANTUM(v6);
+  else INPUT_QUANTUM(l);
+  else INPUT_QUANTUM(pm);
+  else INPUT_QUANTUM(r);
+  else INPUT_QUANTUM(S_global);
+  else INPUT_QUANTUM(X);
+  else INPUT_QUANTUM(n_global);
+  else INPUT_QUANTUM(C);
+  else INPUT_QUANTUM(Hund);
+  throw std::runtime_error("Bad quantum number type");
+  #undef INPUT_QUANTUM
+}
+
 /** Enum for Hund cases */
 enum class Hund : Index { CaseA = 0, CaseB = 1 };
 
@@ -117,6 +193,24 @@ class QuantumNumbers {
    * @return constexpr Rational Copy of value at pos
    */
   constexpr Rational operator[](const QuantumNumberType qn) const noexcept {
+    return mqnumbers[Index(qn)];
+  }
+  
+  /** Access operator
+   * 
+   * @param[in] qn Index Pos to access
+   * @return constexpr Rational Copy of value at pos
+   */
+  Rational& operator[](const Index qn) noexcept {
+    return mqnumbers[qn];
+  }
+  
+  /** Access operator
+   * 
+   * @param qn[in] Index Pos to access
+   * @return constexpr Rational Copy of value at pos
+   */
+  Rational& operator[](const QuantumNumberType qn) noexcept {
     return mqnumbers[Index(qn)];
   }
 
@@ -296,6 +390,16 @@ class QuantumIdentifier {
         miso(isot),
         mqm({qnr}) {}
 
+  /** Initialize with energy level identifier type
+   * 
+   * @param[in] other QuantumIdentifier
+   */
+  constexpr QuantumIdentifier(const QuantumIdentifier& other) noexcept
+      : mqtype(other.mqtype),
+        mspecies(other.mspecies),
+        miso(other.miso),
+        mqm(other.mqm) {}
+
   /** Construct a new Quantum Identifier object from text
    * 
    * @param[in] x Text
@@ -412,6 +516,16 @@ class QuantumIdentifier {
   constexpr Rational LowerQuantumNumber(QuantumNumberType X) const noexcept {
     return mqm[TRANSITION_LOWER_INDEX][X];
   };
+  
+  /** Return a upper quantum number by copy */
+  Rational& UpperQuantumNumber(QuantumNumberType X) noexcept {
+    return mqm[TRANSITION_UPPER_INDEX][X];
+  };
+  
+  /** Return a lower quantum number by copy */
+  Rational& LowerQuantumNumber(QuantumNumberType X) noexcept {
+    return mqm[TRANSITION_LOWER_INDEX][X];
+  };
 
   /** Return the energy level quantum numbers by const reference */
   const QuantumNumbers& EnergyLevelQuantumNumbers() const noexcept {
@@ -482,6 +596,15 @@ class QuantumIdentifier {
 
   /** Check if *this is a energy level type of identifier */
   bool IsEnergyLevelType() const { return mqtype == ENERGY_LEVEL; }
+  
+  /** Equals to operator */
+  QuantumIdentifier& operator=(const QuantumIdentifier& o) {
+    mqtype = o.mqtype;
+    mspecies = o.mspecies;
+    miso = o.miso;
+    mqm = o.mqm;
+    return *this;
+  }
 
  private:
   QType mqtype;
@@ -518,6 +641,19 @@ inline bool operator==(const QuantumIdentifier& a, const QuantumIdentifier& b) {
     return false;
   else
     throw std::runtime_error("Programmer error --- added type is missing");
+}
+
+/** Is anything different between the identifiers
+ * 
+ * May throw if different Qtypes are compared.
+ * 
+ * @param[in] a One identifier
+ * @param[in] b Another identifier
+ * @return true If some quantum numbers mismatch
+ * @return false Otherwise
+ */
+inline bool operator!=(const QuantumIdentifier& a, const QuantumIdentifier& b) {
+  return not operator==(a, b);
 }
 
 /** Check if all quantum numbers are the same between a and b

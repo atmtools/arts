@@ -80,9 +80,11 @@ void define_wsv_group_names() {
   //--------------------< Build the group names array >--------------------
   // Initialize to empty, just in case.
   wsv_group_names.resize(0);
-
+  
+  wsv_group_names.push_back("AbsorptionLines");
   wsv_group_names.push_back("Agenda");
   wsv_group_names.push_back("Any");
+  wsv_group_names.push_back("ArrayOfAbsorptionLines");
   wsv_group_names.push_back("ArrayOfAgenda");
   wsv_group_names.push_back("ArrayOfArrayOfGriddedField1");
   wsv_group_names.push_back("ArrayOfArrayOfGriddedField2");

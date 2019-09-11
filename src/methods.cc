@@ -13425,6 +13425,20 @@ void define_md_data_raw() {
       GIN_DESC("The numerator.", "The denominator.")));
 
   md_data_raw.push_back(MdRecord(
+      NAME("ReadHITRAN"),
+      DESCRIPTION("Reads a HITRAN .par file.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("hitran_file", "fmax"),
+      GIN_TYPE("String", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Name of the HITRAN file", "Max frequency")));
+
+  md_data_raw.push_back(MdRecord(
       NAME("ReadNetCDF"),
       DESCRIPTION("Reads a workspace variable from a NetCDF file.\n"
                   "\n"

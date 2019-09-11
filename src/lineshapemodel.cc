@@ -485,3 +485,17 @@ Vector LineShape::Model::vmrs(const ConstVectorView& atmospheric_vmrs,
     
   return line_vmrs;
 }
+
+std::ostream& LineShape::operator<<(std::ostream& os, const LineShape::Model2& m)
+{
+  for(auto& data: m.Data())
+    os << data;
+  return os;
+}
+
+std::istream& LineShape::operator>>(std::istream& is, Model2& m)
+{
+  for(auto& data: m.Data())
+    is >> data;
+  return is;
+}

@@ -386,6 +386,11 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(NAME("abs_lines"),
                                DESCRIPTION("A list of spectral line data.\n"),
                                GROUP("ArrayOfLineRecord")));
+  
+  
+  wsv_data.push_back(WsvRecord(NAME("abs_lines2"),
+                               DESCRIPTION("A list of spectral line data.\n"),
+                               GROUP("ArrayOfAbsorptionLines")));
 
   wsv_data.push_back(WsvRecord(
       NAME("abs_lineshape"),

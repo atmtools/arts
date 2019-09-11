@@ -87,12 +87,86 @@ class ArtsXMLTag {
   void add_attribute(const String& aname, const String& value);
 
   void add_attribute(const String& aname, const Index& value);
+  
+  /** Adds value of attribute as type Numeric to tag
+   * 
+   * @param[in] aname Attribute name
+   * @param[in] value Set value
+   */
+  void add_attribute(const String& aname, const Numeric& value);
+  
+  /** Adds value of attribute as type std::vector<QuantumNumberType> to tag
+   * 
+   * @param[in] aname Attribute name
+   * @param[in] value Set value
+   */
+  void add_attribute(const String& aname, const std::vector<QuantumNumberType>& value);
+  
+  /** Adds value of attribute
+   * 
+   * @param[in] aname Attribute name
+   * @param[in] value SpeciesTag(s) for all lines.  Basic initialization at self and bath
+   * @param[in] self True if LineShape::self_broadening in list
+   * @param[in] bath True if LineShape::bath_broadening in list
+   */
+  void add_attribute(const String& aname, const ArrayOfSpeciesTag& value, const bool self, const bool bath);
 
   void check_attribute(const String& aname, const String& value);
 
   void get_attribute_value(const String& aname, String& value);
-
+  
   void get_attribute_value(const String& aname, Index& value);
+  
+  /** Returns value of attribute as type Numeric
+   * 
+   * Searches for the matching attribute and returns it value. If no
+   * attribute with the given name exists, return value is set to
+   * -1e99.
+   * 
+   * @param[in] aname Attribute name
+   * @param[out] value Return value
+   */
+  void get_attribute_value(const String& aname, Numeric& value);
+  
+  /** Returns value of attribute as type SpeciesTag
+   * 
+   * Searches for the matching attribute and returns it value. If no
+   * attribute with the given name exists, it fails exceptionally.
+   * 
+   * @param[in] aname Attribute name
+   * @param[out] value Return value
+   */
+  void get_attribute_value(const String& aname, SpeciesTag& value);
+  
+  /** Returns value of attribute as type ArrayOfSpeciesTag
+   * 
+   * Searches for the matching attribute and returns it value. If no
+   * attribute with the given name exists, it fails exceptionally.
+   * 
+   * @param[in] aname Attribute name
+   * @param[out] value SpeciesTag(s) for all lines.  Basic initialization at self and bath
+   * @param[out] self True if LineShape::self_broadening in list
+   * @param[out] bath True if LineShape::bath_broadening in list
+   */
+  void get_attribute_value(const String& aname, ArrayOfSpeciesTag& value, bool& self, bool& bath);
+  
+  /** Returns value of attribute as type ArrayOfSpeciesTag
+   * 
+   * Searches for the matching attribute and returns it value
+   * 
+   * @param[in] aname Attribute name
+   * @param[out] value Return value
+   */
+  void get_attribute_value(const String& aname, std::vector<QuantumNumberType>& value);
+  
+  /** Returns value of attribute as type ArrayOfSpeciesTag
+   * 
+   * Searches for the matching attribute and returns it value
+   * 
+   * @param[in] aname Attribute name
+   * @param[in,out] value Return value
+   */
+  void get_attribute_value(const String& aname, QuantumIdentifier& value);
 
   void read_from_stream(istream& is);
 

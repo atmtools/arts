@@ -57,6 +57,7 @@
 #include "tessem.h"
 #include "transmissionmatrix.h"
 #include "xml_io_private.h"
+#include "absorptionlines.h"
 
 #define TMPL_XML_READ_WRITE_STREAM(what)                  \
   void xml_read_from_stream(                              \
@@ -89,6 +90,7 @@ TMPL_XML_READ_WRITE_STREAM(Vector)
 
 //=== Compound Types =======================================================
 
+TMPL_XML_READ_WRITE_STREAM(AbsorptionLines)
 TMPL_XML_READ_WRITE_STREAM(Agenda)
 TMPL_XML_READ_WRITE_STREAM(CIARecord)
 TMPL_XML_READ_WRITE_STREAM(CovarianceMatrix)
@@ -119,6 +121,7 @@ TMPL_XML_READ_WRITE_STREAM(Verbosity)
 
 //=== Array Types ==========================================================
 
+TMPL_XML_READ_WRITE_STREAM(ArrayOfAbsorptionLines)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfAgenda)
 TMPL_XML_READ_WRITE_STREAM(Array<IsotopologueRecord>)
 TMPL_XML_READ_WRITE_STREAM(Array<SpeciesRecord>)
