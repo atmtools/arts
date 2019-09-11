@@ -28,6 +28,7 @@
  **/
 
 #include "absorptionlines.h"
+#include "auto_md.h"
 #include "file.h"
 
 void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines2,
@@ -67,4 +68,38 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines2,
   for(auto& lines: x)
     abs_lines2.push_back(lines);
   
+}
+
+void WriteSplitXML(const ArrayOfAbsorptionLines& abs_lines2,
+                   const String& basename,
+                   const Verbosity& verbosity)
+{
+  std::vector<int> count(0);
+  std::vector<String> names(0);
+  
+  String true_basename = basename;
+  if(not (true_basename.back() == '.' or true_basename.back() == '/'))
+    true_basename += '.';
+  
+  for(auto& lines: abs_lines2) {
+    auto name = lines.SpeciesName();
+    const String fname = true_basename + name;
+    
+    bool found=false;
+    int num=0;
+    for(size_t i=0; i<names.size(); i++) {
+      if(names[i] == name) {
+        num = count[i];
+        count[i]++;
+        found=true;
+        break;
+      }
+    }
+    if(not found) {
+      names.push_back(name);
+      count.push_back(1);
+    }
+    
+    WriteXML("ascii", lines, fname+'.'+std::to_string(num)+".xml", 0, "", "", "", verbosity);
+  }
 }

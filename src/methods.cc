@@ -13433,10 +13433,24 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("hitran_file", "fmax"),
+      GIN("filename", "fmax"),
       GIN_TYPE("String", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Name of the HITRAN file", "Max frequency")));
+
+  md_data_raw.push_back(MdRecord(
+    NAME("WriteSplitXML"),
+      DESCRIPTION("Writes a split file.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines2"),
+      GIN("basename"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Name of the HITRAN file")));
 
   md_data_raw.push_back(MdRecord(
       NAME("ReadNetCDF"),
