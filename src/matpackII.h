@@ -112,7 +112,7 @@ class Sparse {
   Sparse& operator/=(Numeric x);
 
   // Conversion to Dense Matrix:
-  operator Matrix() const;
+  explicit operator Matrix() const;
 
   // Matrix data access
   void list_elements(Vector& values,

@@ -224,7 +224,7 @@ class CovarianceMatrix {
 
   ~CovarianceMatrix() = default;
 
-  operator Matrix() const;
+  explicit operator Matrix() const;
   Matrix get_inverse() const;
 
   Index nrows() const;
