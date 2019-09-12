@@ -2066,6 +2066,16 @@ void propmat_clearskyAddFromLookup(
   const ArrayOfIndex jacobian_quantities_position =
       equivalent_propmattype_indexes(jacobian_quantities);
 
+  // The combination of doing frequency jacobian together with an
+  // absorption lookup table is quite dangerous. If the frequency
+  // interpolation order for the table is zero, the Jacobian will be
+  // zero, and the cause for this may be difficult for a user to
+  // find. So we do not allow this combination.
+  if (do_freq_jac and (1 > abs_f_interp_order))
+    throw std::runtime_error("Wind/frequency Jacobian is not possible without at least first\n"
+			     "order frequency interpolation in the lookup table.  Please use\n"
+			     "abs_f_interp_order>0 or remove wind/frequency Jacobian.");
+  
   // The function we are going to call here is one of the few helper
   // functions that adjust the size of their output argument
   // automatically.

@@ -673,17 +673,21 @@ void GasAbsLookup::Extract(Matrix& sga,
   // do no frequency interpolation at all. (We set the frequency grid positions
   // to the predefined ones that come with the lookup table.)
   if (f_interp_order == 0) {
+
+    // We do some superficial checks below, to make sure that the
+    // frequency grid is the same as in the lookup table (only first
+    // and last element of f_grid are tested). As margin for
+    // agreement, we pick a value that is just slightly smaller than
+    // the perturbation that is used by the wind jacobian, which is 0.1.
+    const Numeric allowed_f_margin = 0.09;
+    
     if (n_new_f_grid == n_f_grid) {
       // Use the default fgp that is stored in the lookup table itself
       // (which effectively means no frequency interpolation)
       fgp = &fgp_default;
 
-      // Check identitiy of first and last element for safety's sake (only
-      // till 1Hz identity; checking float for total identity is sometimes
-      // problematic)
-
-      if (abs(f_grid[0] - new_f_grid[0]) > 1)
-      //if (f_grid[0]!=new_f_grid[0])
+      // Check first f_grid element:
+      if (abs(f_grid[0] - new_f_grid[0]) > allowed_f_margin)
       {
         ostringstream os;
         os << "First frequency in f_grid inconsistent with lookup table.\n"
@@ -692,8 +696,8 @@ void GasAbsLookup::Extract(Matrix& sga,
         throw runtime_error(os.str());
       }
 
-      if (abs(f_grid[n_f_grid - 1] - new_f_grid[n_new_f_grid - 1]) > 1)
-      //if (f_grid[n_f_grid-1]!=new_f_grid[n_new_f_grid-1])
+      // Check last f_grid element:
+      if (abs(f_grid[n_f_grid - 1] - new_f_grid[n_new_f_grid - 1]) > allowed_f_margin)
       {
         ostringstream os;
         os << "Last frequency in f_grid inconsistent with lookup table.\n"
@@ -709,11 +713,14 @@ void GasAbsLookup::Extract(Matrix& sga,
       gridpos_poly(fgp_local, f_grid, new_f_grid, 0);
 
       // Check that we really are on a frequency grid point, for safety's sake.
-      if (fgp_local[0].w[0] != 1) {
-        ostringstream os;
-        os << "Cannot find a matching lookup table frequency for frequency\n"
-           << new_f_grid[0] << ".";
-        throw runtime_error(os.str());
+      if (abs(f_grid[fgp_local[0].idx[0]] - new_f_grid[0]) > allowed_f_margin)
+      {
+	ostringstream os;
+	os << "Cannot find a matching lookup table frequency for frequency "
+	   << new_f_grid[0] << ".\n"
+	   << "(This check has not been properly tested, so perhaps this is\n"
+	   << "a false alarm. Check for this in file gas_abs_lookup.cc.)";
+	throw runtime_error(os.str());
       }
     } else {
       ostringstream os;
