@@ -13439,7 +13439,7 @@ void define_md_data_raw() {
       GIN_DESC("Name of the HITRAN file", "Max frequency")));
 
   md_data_raw.push_back(MdRecord(
-    NAME("WriteSplitXML"),
+    NAME("abs_linesWriteSplitXML"),
       DESCRIPTION("Writes a split file.\n"),
       AUTHORS("Richard Larsson"),
       OUT(),
