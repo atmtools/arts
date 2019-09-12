@@ -363,8 +363,8 @@ struct SingleLineExternal {
   Numeric cutofffreq=0;
   Numeric linemixinglimit=-1;
   QuantumIdentifier quantumidentity=QuantumIdentifier(QuantumIdentifier::TRANSITION, -1, -1);
-  ArrayOfSpeciesTag species={};
-  SingleLine line=SingleLine();
+  ArrayOfSpeciesTag species;
+  SingleLine line;
 };
 
 class Lines {
