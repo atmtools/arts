@@ -426,7 +426,8 @@ Numeric test_xml_io(Index ntests, bool verbose) {
     xml_read_from_file(a, B, Verbosity());
     xml_write_to_file("B.xml", B, FILE_TYPE_ASCII, 0, Verbosity());
 
-    Numeric err = get_maximum_error(B, A, true);
+    Numeric err =
+        get_maximum_error(static_cast<Matrix>(B), static_cast<Matrix>(A), true);
     if (err > err_max) err_max = err;
 
     if (verbose)
@@ -484,7 +485,7 @@ Numeric test_insert_row(Index ntests, bool verbose) {
 
     A_sparse.insert_row(r, v);
 
-    A = A_sparse;
+    A = static_cast<Matrix>(A_sparse);
 
     Numeric err = get_maximum_error(A(r, joker), v, true);
     if (err > err_max) err_max = err;
@@ -539,7 +540,7 @@ Numeric test_identity(Index ntests, bool verbose) {
     id_mat(A);
     id_mat(A_sparse);
 
-    Numeric err = get_maximum_error(A_sparse, A, true);
+    Numeric err = get_maximum_error(static_cast<Matrix>(A_sparse), A, true);
     if (err > err_max) err_max = err;
 
     if (verbose) {
@@ -579,9 +580,9 @@ Numeric test_sparse_construction(Index m, Index n, Index ntests, bool verbose) {
     Sparse A_sparse(m, n);
 
     random_fill_matrix(A_sparse, 10, false);
-    A = A_sparse;
+    A = static_cast<Matrix>(A_sparse);
 
-    Numeric err = get_maximum_error(A_sparse, A, true);
+    Numeric err = get_maximum_error(static_cast<Matrix>(A_sparse), A, true);
     if (err > err_max) err_max = err;
 
     if (verbose) {
@@ -632,7 +633,7 @@ Numeric test_sparse_unary_operations(Index m,
 
     // Construction
 
-    Numeric err = get_maximum_error(A_sparse, A, true);
+    Numeric err = get_maximum_error(static_cast<Matrix>(A_sparse), A, true);
     if (err > err_max) err_max = err;
 
     if (verbose) cout << setw(5) << i << setw(15) << err;
@@ -647,7 +648,7 @@ Numeric test_sparse_unary_operations(Index m,
 
     abs(B_sparse, A_sparse);
 
-    err = get_maximum_error(B_sparse, B, true);
+    err = get_maximum_error(static_cast<Matrix>(B_sparse), B, true);
     if (err > err_max) err_max = err;
 
     if (verbose) cout << setw(15) << err;
@@ -656,7 +657,7 @@ Numeric test_sparse_unary_operations(Index m,
 
     transpose(C_sparse, A_sparse);
 
-    err = get_maximum_error(C_sparse, transpose(A), true);
+    err = get_maximum_error(static_cast<Matrix>(C_sparse), transpose(A), true);
     if (err > err_max) err_max = err;
 
     if (verbose) cout << setw(15) << err << endl;
@@ -738,7 +739,7 @@ Numeric test_dense_sparse_multiplication(Index m,
     //
 
     random_fill_matrix(C_sparse, 10, false);
-    C = C_sparse;
+    C = static_cast<Matrix>(C_sparse);
 
     mult(A_ref_view, B_mul, C);
     mult(A_view, B_mul, C_sparse);
@@ -764,7 +765,7 @@ Numeric test_dense_sparse_multiplication(Index m,
     C.resize(n, dn);
     random_fill_matrix(C_sparse, 10, false);
     transpose(C_sparse_transpose, C_sparse);
-    C = C_sparse;
+    C = static_cast<Matrix>(C_sparse);
 
     MatrixView B_mul_transp =
         B(Range(n1, dn, c_stride), Range(m1, dm, r_stride));
@@ -857,8 +858,8 @@ Numeric test_sparse_dense_multiplication(Index m,
     // Test standard multiplication.
     //
 
-    random_fill_matrix(B_sparse, 10, false);
-    B = B_sparse;
+    random_fill_matrix(static_cast<Matrix>(B_sparse), 10, false);
+    B = static_cast<Matrix>(B_sparse);
 
     // Sparse-sparse multiplication
     mult(A_ref_view, B, C_mul);
@@ -885,7 +886,7 @@ Numeric test_sparse_dense_multiplication(Index m,
     B.resize(dm, m);
     random_fill_matrix(B_sparse, 10, false);
     transpose(B_sparse_transpose, B_sparse);
-    B = B_sparse;
+    B = static_cast<Matrix>(B_sparse);
 
     MatrixView C_mul2 = C(Range(n1, dn, c_stride), Range(m1, dm, r_stride));
 
@@ -956,14 +957,14 @@ Numeric test_sparse_multiplication(Index m,
     random_fill_matrix(C_sparse, 10, false);
     random_fill_vector(x, 10, false);
     random_fill_vector(xt, 10, false);
-    B = B_sparse;
-    C = C_sparse;
+    B = static_cast<Matrix>(B_sparse);
+    C = static_cast<Matrix>(C_sparse);
 
     // Sparse-sparse
     mult(A, B, C);
     mult(A_sparse, B_sparse, C_sparse);
 
-    Numeric err = get_maximum_error(A_sparse, A, true);
+    Numeric err = get_maximum_error(static_cast<Matrix>(A_sparse), A, true);
     if (err > err_max) err_max = err;
 
     if (verbose) {
@@ -1043,16 +1044,16 @@ Numeric test_sparse_arithmetic(Index m, Index n, Index ntests, bool verbose) {
     random_fill_matrix(A_sparse, 10, false);
     random_fill_matrix(B_sparse, 10, false);
     random_fill_matrix(D_sparse, 10, false);
-    A = A_sparse;
-    B = B_sparse;
-    D = D_sparse;
+    A = static_cast<Matrix>(A_sparse);
+    B = static_cast<Matrix>(B_sparse);
+    D = static_cast<Matrix>(D_sparse);
 
     // Multiplication
 
     mult(C, A, B);
     mult(C_sparse, A_sparse, B_sparse);
 
-    Numeric err = get_maximum_error(C_sparse, C, true);
+    Numeric err = get_maximum_error(static_cast<Matrix>(C_sparse), C, true);
     if (err > err_max) err_max = err;
 
     if (verbose) cout << setw(5) << i << setw(15) << err;
@@ -1062,28 +1063,28 @@ Numeric test_sparse_arithmetic(Index m, Index n, Index ntests, bool verbose) {
     C += D;
     add(B_sparse, C_sparse, D_sparse);
 
-    err = get_maximum_error(B_sparse, C, true);
+    err = get_maximum_error(static_cast<Matrix>(B_sparse), C, true);
     if (err > err_max) err_max = err;
 
     C_sparse += D_sparse;
 
-    err = get_maximum_error(C_sparse, C, true);
+    err = get_maximum_error(static_cast<Matrix>(C_sparse), C, true);
     if (err > err_max) err_max = err;
 
     if (verbose) cout << setw(15) << err;
 
     // Subtraction
 
-    C = C_sparse;
+    C = static_cast<Matrix>(C_sparse);
     C -= D;
     sub(B_sparse, C_sparse, D_sparse);
 
-    err = get_maximum_error(B_sparse, C, true);
+    err = get_maximum_error(static_cast<Matrix>(B_sparse), C, true);
     if (err > err_max) err_max = err;
 
     C_sparse -= D_sparse;
 
-    err = get_maximum_error(C_sparse, C, true);
+    err = get_maximum_error(static_cast<Matrix>(C_sparse), C, true);
     if (err > err_max) err_max = err;
 
     if (verbose) cout << setw(15) << err;
@@ -1093,13 +1094,13 @@ Numeric test_sparse_arithmetic(Index m, Index n, Index ntests, bool verbose) {
     C_sparse *= 1.2;
     C *= 1.2;
 
-    err = get_maximum_error(C_sparse, C, true);
+    err = get_maximum_error(static_cast<Matrix>(C_sparse), C, true);
     if (err > err_max) err_max = err;
 
     C_sparse /= 1.2;
     C /= 1.2;
 
-    err = get_maximum_error(C_sparse, C, true);
+    err = get_maximum_error(static_cast<Matrix>(C_sparse), C, true);
     if (err > err_max) err_max = err;
 
     if (verbose) cout << setw(15) << err << endl;
