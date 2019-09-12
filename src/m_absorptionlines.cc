@@ -70,9 +70,9 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines2,
   
 }
 
-void WriteSplitXML(const ArrayOfAbsorptionLines& abs_lines2,
-                   const String& basename,
-                   const Verbosity& verbosity)
+void abs_linesWriteSplitXML(const ArrayOfAbsorptionLines& abs_lines2,
+                            const String& basename,
+                            const Verbosity& verbosity)
 {
   std::vector<int> count(0);
   std::vector<String> names(0);
