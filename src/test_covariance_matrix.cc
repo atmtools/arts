@@ -561,7 +561,8 @@ Numeric test_invlib_wrapper(Index n_tests) {
     w_ref = inv(inv(wrapper)) * v;
 
     // Multiplication by Matrix
-    invlib::Matrix<ArtsMatrix> A(covmat), B{}, C{}, C_ref{};
+    invlib::Matrix<ArtsMatrix> A{static_cast<Matrix>(covmat)}, B{}, C{},
+    C_ref{};
     B.resize(n, n);
     C.resize(n, n);
     C_ref.resize(n, n);
