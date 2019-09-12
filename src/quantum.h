@@ -390,16 +390,6 @@ class QuantumIdentifier {
         miso(isot),
         mqm({qnr}) {}
 
-  /** Initialize with energy level identifier type
-   * 
-   * @param[in] other QuantumIdentifier
-   */
-  constexpr QuantumIdentifier(const QuantumIdentifier& other) noexcept
-      : mqtype(other.mqtype),
-        mspecies(other.mspecies),
-        miso(other.miso),
-        mqm(other.mqm) {}
-
   /** Construct a new Quantum Identifier object from text
    * 
    * @param[in] x Text
@@ -596,15 +586,6 @@ class QuantumIdentifier {
 
   /** Check if *this is a energy level type of identifier */
   bool IsEnergyLevelType() const { return mqtype == ENERGY_LEVEL; }
-  
-  /** Equals to operator */
-  QuantumIdentifier& operator=(const QuantumIdentifier& o) {
-    mqtype = o.mqtype;
-    mspecies = o.mspecies;
-    miso = o.miso;
-    mqm = o.mqm;
-    return *this;
-  }
 
  private:
   QType mqtype;
