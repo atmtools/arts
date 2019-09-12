@@ -265,22 +265,22 @@ public:
   //////////////////////////////////////////////////////////////////
   
   /** Central frequency */
-  Numeric F0() const noexcept {return mF0;}
+  auto F0() const noexcept {return mF0;}
   
   /** Lower level energy */
-  Numeric E0() const noexcept {return mE0;}
+  auto E0() const noexcept {return mE0;}
   
   /** Reference line strength */
-  Numeric I0() const noexcept {return mI0;}
+  auto I0() const noexcept {return mI0;}
   
   /** Einstein spontaneous emission */
-  Numeric A() const noexcept {return mA;}
+  auto A() const noexcept {return mA;}
   
   /** Lower level statistical weight */
-  Numeric g_low() const noexcept {return mglow;}
+  auto g_low() const noexcept {return mglow;}
   
   /** Upper level statistical weight */
-  Numeric g_upp() const noexcept {return mgupp;}
+  auto g_upp() const noexcept {return mgupp;}
   
   /** Zeeman model */
   auto Zeeman() const noexcept {return mzeeman;}
@@ -299,22 +299,22 @@ public:
   //////////////////////////////////////////////////////////////////
   
   /** Central frequency */
-  Numeric& F0() noexcept {return mF0;}
+  auto& F0() noexcept {return mF0;}
   
   /** Lower level energy */
-  Numeric& E0() noexcept {return mE0;}
+  auto& E0() noexcept {return mE0;}
   
   /** Reference line strength */
-  Numeric& I0() noexcept {return mI0;}
+  auto& I0() noexcept {return mI0;}
   
   /** Einstein spontaneous emission */
-  Numeric& A() noexcept {return mA;}
+  auto& A() noexcept {return mA;}
   
   /** Lower level statistical weight */
-  Numeric& g_low() noexcept {return mglow;}
+  auto& g_low() noexcept {return mglow;}
   
   /** Upper level statistical weight */
-  Numeric& g_upp() noexcept {return mgupp;}
+  auto& g_upp() noexcept {return mgupp;}
   
   /** Zeeman model */
   auto& Zeeman() noexcept {return mzeeman;}
@@ -343,6 +343,26 @@ public:
   
   /** Upper quantum number */
   Rational& UpperQuantumNumber(size_t i) noexcept {return mupperquanta[i];}
+  
+  //////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////// Special settings
+  //////////////////////////////////////////////////////////////////
+  
+  /** Set Zeeman effect by automatic detection
+   * 
+   * Will fail if the available and provided quantum numbers are bad
+   * 
+   * @param[in] qid Copy of the global identifier to fill by local numbers
+   * @param[in] keys List of quantum number keys in this line's local quantum number lists
+   */
+  void SetAutomaticZeeman(QuantumIdentifier qid, const std::vector<QuantumNumberType>& keys) {
+    for(size_t i=0; i<keys.size(); i++) {
+      qid.LowerQuantumNumber(keys[i]) = mlowerquanta[i];
+      qid.UpperQuantumNumber(keys[i]) = mupperquanta[i];
+    }
+    
+    mzeeman = Zeeman::Model(qid);
+  }
 };  // SingleLine
 
 std::ostream& operator<<(std::ostream&, const SingleLine&);
@@ -506,27 +526,6 @@ public:
                SingleLine(broadeningspecies.size(),
                localquanta.size())) {};
   
-  /** XML-tag initialization
-   * 
-   * @param[in] sle Single external line
-   */
-  Lines(const SingleLineExternal& sle,
-        const std::vector<QuantumNumberType>& localquanta) :
-        mselfbroadening(sle.selfbroadening),
-        mbathbroadening(sle.bathbroadening),
-        mcutoff(sle.cutoff),
-        mmirroring(sle.mirroring),
-        mpopulation(sle.population),
-        mnormalization(sle.normalization),
-        mlineshapetype(sle.lineshapetype),
-        mT0(sle.T0),
-        mcutofffreq(sle.cutofffreq),
-        mlinemixinglimit(sle.linemixinglimit),
-        mquantumidentity(sle.quantumidentity),
-        mlocalquanta(localquanta),
-        mbroadeningspecies(sle.species),
-        mlines(1, sle.line) {};
-  
   /** Appends a single line to the absorption lines
    * 
    * Useful for reading undefined number of lines and setting
@@ -576,7 +575,7 @@ public:
   }
   
   /**  */
-  bool MatchWithExternal(const SingleLineExternal& sle) const noexcept {
+  bool MatchWithExternal(const SingleLineExternal& sle, const QuantumIdentifier& quantumidentity) const noexcept {
     if(sle.bad)
       return false;
     else if(sle.selfbroadening not_eq mselfbroadening)
@@ -599,7 +598,7 @@ public:
       return false;
     else if(sle.linemixinglimit not_eq mlinemixinglimit)
       return false;
-    else if(sle.quantumidentity not_eq mquantumidentity)
+    else if(quantumidentity not_eq mquantumidentity)
       return false;
     else if(sle.species not_eq mbroadeningspecies)
       return false;
@@ -712,6 +711,12 @@ public:
     return mlines[k].Zeeman().Splitting(UpperQuantumNumber(k, QuantumNumberType::J),
                                         LowerQuantumNumber(k, QuantumNumberType::J),
                                         type, i);
+  }
+  
+  /** Set Zeeman effect */
+  void SetAutomaticZeeman() noexcept {
+    for(auto& line: mlines)
+      line.SetAutomaticZeeman(mquantumidentity, mlocalquanta);
   }
   
   /** Central frequency
@@ -944,12 +949,12 @@ SingleLineExternal ReadFromHitran2004Stream(istream& is);
  * 
  * @param[in] lines A list of lines
  * @param[in] localquantas List of quantum numbers to be presumed local
- * @param[in] truncate_globalquantum Whether or not to truncate global quanta before matching
+ * @param[in] globalquantas List of quantum numbers to be presumed global
  * @return A list of properly ordered Lines
  */
-std::vector<Lines> split_list_of_external_lines(const std::vector<SingleLineExternal>& lines,
-                                                const std::vector<QuantumNumberType>& localquantas,
-                                                bool truncate_globalquantum);
+std::vector<Lines> split_list_of_external_lines(const std::vector<SingleLineExternal>& external_lines,
+                                                const std::vector<QuantumNumberType>& localquantas={},
+                                                const std::vector<QuantumNumberType>& globalquantas={});
 };  // Absorption
 
 typedef Absorption::Lines AbsorptionLines;

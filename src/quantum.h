@@ -376,6 +376,28 @@ class QuantumIdentifier {
         miso(isot),
         mqm({upper, lower}) {}
 
+  /** Initialize with transition identifier type
+   * 
+   * @param[in] species Species index-mapped
+   * @param[in] iso Isotopologue index-mapped
+   * @param[in] ids List of quantum number keys
+   * @param[in] upper Upper state quantum numbers
+   * @param[in] lower Lower state quantum numbers
+   */
+  QuantumIdentifier(const Index spec,
+                    const Index isot,
+                    const std::vector<QuantumNumberType>& keys,
+                    const std::vector<Rational>& upper,
+                    const std::vector<Rational>& lower)
+      : mqtype(QuantumIdentifier::TRANSITION),
+        mspecies(spec),
+        miso(isot) {
+          for(size_t i=0; i<keys.size(); i++) {
+            mqm[TRANSITION_UPPER_INDEX][keys[i]] = upper[i];
+            mqm[TRANSITION_LOWER_INDEX][keys[i]] = lower[i];
+          }
+        }
+
   /** Initialize with energy level identifier type
    * 
    * @param[in] species Species index-mapped

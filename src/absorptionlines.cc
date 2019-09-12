@@ -1734,46 +1734,49 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
 
 std::vector<Absorption::Lines> Absorption::split_list_of_external_lines(const std::vector<SingleLineExternal>& external_lines,
                                                                         const std::vector<QuantumNumberType>& localquantas,
-                                                                        bool truncate_globalquantum)
+                                                                        const std::vector<QuantumNumberType>& globalquantas)
 {
-  std::vector<Lines> lines;
-  lines.resize(0);
-  std::vector<Rational> lowerquanta(localquantas.size());
-  std::vector<Rational> upperquanta(localquantas.size());
+  std::vector<Lines> lines(0);
+  std::vector<Rational> lowerquanta_local(localquantas.size());
+  std::vector<Rational> upperquanta_local(localquantas.size());
+  std::vector<Rational> lowerquanta_global(globalquantas.size());
+  std::vector<Rational> upperquanta_global(globalquantas.size());
   
   // Loop but make copies because we will need to modify some of the data
   for(SingleLineExternal sle: external_lines) {
-    // Set the requested local quantum numbers and undefine them from the global numbers
-    for(size_t i=0; i<localquantas.size(); i++) {
-      lowerquanta[i] = sle.quantumidentity.LowerQuantumNumber(localquantas[i]);
-      upperquanta[i] = sle.quantumidentity.UpperQuantumNumber(localquantas[i]);
-      sle.quantumidentity.LowerQuantumNumber(localquantas[i]) = RATIONAL_UNDEFINED;
-      sle.quantumidentity.UpperQuantumNumber(localquantas[i]) = RATIONAL_UNDEFINED;
-    }
+    // Set the quantum numbers
+    std::transform(localquantas.cbegin(), localquantas.cend(), lowerquanta_local.begin(),
+                   [&](auto qn){return sle.quantumidentity.LowerQuantumNumber(qn);});
+    std::transform(localquantas.cbegin(), localquantas.cend(), upperquanta_local.begin(),
+                   [&](auto qn){return sle.quantumidentity.UpperQuantumNumber(qn);});
+    std::transform(globalquantas.cbegin(), globalquantas.cend(), lowerquanta_global.begin(),
+                   [&](auto qn){return sle.quantumidentity.LowerQuantumNumber(qn);});
+    std::transform(globalquantas.cbegin(), globalquantas.cend(), upperquanta_global.begin(),
+                   [&](auto qn){return sle.quantumidentity.UpperQuantumNumber(qn);});
     
-    // Write local data
-    sle.line.LowerQuantumNumbers() = lowerquanta;
-    sle.line.UpperQuantumNumbers() = upperquanta;
+    // Set the line
+    auto line = sle.line;
+    line.LowerQuantumNumbers() = lowerquanta_local;
+    line.UpperQuantumNumbers() = upperquanta_local;
     
-    // Should we ignore the global quantum numbers in this split?
-    if(truncate_globalquantum) {
-      for(Index i=0; i<Index(QuantumNumberType::FINAL_ENTRY); i++) {
-        sle.quantumidentity.LowerQuantumNumber(QuantumNumberType(i)) = RATIONAL_UNDEFINED;
-        sle.quantumidentity.UpperQuantumNumber(QuantumNumberType(i)) = RATIONAL_UNDEFINED;
-      }
-    }
+    // Set the global quantum numbers
+    const QuantumIdentifier qid(sle.quantumidentity.Species(), sle.quantumidentity.Isotopologue(),
+                                globalquantas, lowerquanta_global, upperquanta_global);
     
     // Either find a line like this in the list of lines or start a new Lines
     bool found_match=false;
     for(auto& li: lines) {
-      if(li.MatchWithExternal(sle)) {
-        li.AppendSingleLine(sle.line);
+      if(li.MatchWithExternal(sle, qid)) {
+        li.AppendSingleLine(line);
         found_match=true;
         break;
       }
     }
     if(not found_match)
-      lines.push_back(Lines(sle, localquantas));
+      lines.push_back(Lines(sle.selfbroadening, sle.bathbroadening, sle.cutoff,
+                            sle.mirroring, sle.population, sle.normalization,
+                            sle.lineshapetype, sle.T0, sle.cutofffreq,
+                            sle.linemixinglimit, qid, localquantas, sle.species, {line}));
   }
   
   return lines;
@@ -1851,7 +1854,7 @@ String Absorption::Lines::QuantumNumberName() const noexcept
   std::ostringstream out;
   out << "UP ";
   if(mquantumidentity.UpperQuantumNumbers().nNumbers())
-    out << mquantumidentity.UpperQuantumNumbers();
+    out << mquantumidentity.UpperQuantumNumbers() << ' ';
   if(mquantumidentity.LowerQuantumNumbers().nNumbers())
     out << "LO " << mquantumidentity.LowerQuantumNumbers();
   else
