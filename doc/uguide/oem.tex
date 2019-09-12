@@ -136,13 +136,16 @@ internal variables are properly initialized. After the call to
 \wsmindex{retrievalAddSurfaceQuantity}, \wsmindex{retrievalAddTemperature},
 \wsmindex{retrievalAddWind}).
 
-After the retrieval definition block can be finalized by calling 
-\wsmindex{retrievalDefClose}, also the a priori covariance matrix
+Also within this retrieval definition block, the a priori covariance matrix
  \wsvindex{covmat\_sx} must be set. This is done using the
 \wsvindex{covmat\_sxAddBlock} WSM. More details on the handling of
 covariance matrix and the special requirements on \wsvindex{covmat\_sx}
 can be found in the group documentation for covariance matrices and
 the WVS documentation for \wsvindex{covmat\_sx}.
+
+Finally, the retrieval definition is finalized by calling the
+ \wsmindex{retrievalDefClose} WSM. This method checks that the defined
+retrieval quantities are consistent with \wsvindex{covmat\_sx}.
 
 An example of how to add ozone as a retrieval quantity for a simple ozone
 retrieval is given below:
@@ -255,7 +258,7 @@ takes the following form:
 Here, $\vec{x}_i$ is the state vector of the current iteration step
 and $\mathbf{K}_i$ the corresponding Jacobian of the forward model $\mathbf{F}$.
 Each optimization step involves solving a linear system of equations
- of size $n \times n$, where $n$ is the dimensionality of the measurement space.
+ of size $n \times n$, where $n$ is the dimensionality of the state space.
 The linear system is defined by the matrix $\mathbf{H}$, which approximates 
 the Hessian of the cost function $\mathcal{L}$. The ARTS OEM method provides two methods
 to solve these linear systems: By default, a QR solver is used which requires to
@@ -271,15 +274,17 @@ Additionally, two further forms of the GN iteration can be derived, the so calle
 \begin{eqnarray}
 \vec{x}_{i + 1} &= \vec{x}_a - 
 \left (\mathbf{K}_i^T \mathbf{S}_e^{-1} \mathbf{K}_i + \mathbf{S}_x^{-1} \right )^{-1} \mathbf{K}_i^T\mathbf{S}_e^{-1}
-\left(\vec{y} - \mathbf{F}(\vec{x}) - K(\vec{x} - \vec{x}_a) \right ) \\
+\left(\mathbf{F}(\vec{x}) - \vec{y} - \mathbf{K}_i(\vec{x} - \vec{x}_a) \right ) \\
 &= \vec{x}_a  + \mathbf{S}_x \mathbf{K}_i ^ T
  \left (\mathbf{K}_i \mathbf{S}_x \mathbf{K}_i^T + \mathbf{S}_e) \right )^{-1}
-\left ( \mathbf{F}(\vec{X}_i) - \vec{y} - \mathbf{K}_i(\vec{x}_i - \vec{x}_a) \right)
+\left ( \mathbf{F}(\vec{x}_i) - \vec{y} - \mathbf{K}_i(\vec{x}_i - \vec{x}_a) \right)
 \end{eqnarray}
 The names of these two forms derive from the size of the linear system of equations
 that must be solved in each iteration step, which is $n \times n$ for the first
 form and $m \times m$ for the second form. Moreover, the forms differ in whether
-or not they involve the covariance only as its inverse or only directly.
+or not they involve the covariance only as its inverse or only directly. In ARTS
+both the standard and $m$-form are implemented. More details on the available
+OEM configurations are provided in the documetation of the \wsmindex{OEM} WSM.
 
 \subsubsection{Levenberg-Marquardt}
 In the Levenberg-Marquardt method, an additional damping term is added to the
