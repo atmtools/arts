@@ -74,32 +74,18 @@ void abs_linesWriteSplitXML(const ArrayOfAbsorptionLines& abs_lines2,
                             const String& basename,
                             const Verbosity& verbosity)
 {
-  std::vector<int> count(0);
-  std::vector<String> names(0);
-  
+  std::map<String, int> names;
+
   String true_basename = basename;
-  if(not (true_basename.back() == '.' or true_basename.back() == '/'))
+  if (not(true_basename.back() == '.' or true_basename.back() == '/'))
     true_basename += '.';
-  
-  for(auto& lines: abs_lines2) {
+
+  for (auto& lines : abs_lines2) {
     auto name = lines.SpeciesName();
     const String fname = true_basename + name;
-    
-    bool found=false;
-    int num=0;
-    for(size_t i=0; i<names.size(); i++) {
-      if(names[i] == name) {
-        num = count[i];
-        count[i]++;
-        found=true;
-        break;
-      }
-    }
-    if(not found) {
-      names.push_back(name);
-      count.push_back(1);
-    }
-    
-    WriteXML("ascii", lines, fname+'.'+std::to_string(num)+".xml", 0, "", "", "", verbosity);
+
+    WriteXML("ascii", lines,
+             fname + '.' + std::to_string(names[name]++) + ".xml",
+             0, "", "", "", verbosity);
   }
 }
