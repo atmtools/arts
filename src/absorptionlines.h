@@ -52,13 +52,13 @@ enum class MirroringType {
 };  // MirroringType
 
 inline MirroringType string2mirroringtype(const String& in) {
-  if (in == "NONE")
+  if (in == "None")
     return MirroringType::None;
-  else if (in == "LP")
+  else if (in == "Lorentz")
     return MirroringType::Lorentz;
-  else if (in == "SAME")
+  else if (in == "Same")
     return MirroringType::SameAsLineShape;
-  else if (in == "MAN")
+  else if (in == "Manual")
     return MirroringType::Manual;
   else
     throw std::runtime_error("Cannot recognize the mirroring type");
@@ -66,13 +66,13 @@ inline MirroringType string2mirroringtype(const String& in) {
 
 inline String mirroringtype2string(MirroringType in) {
   if (in == MirroringType::None)
-    return "NONE";
+    return "None";
   else if (in == MirroringType::Lorentz)
-    return "LP";
+    return "Lorentz";
   else if (in == MirroringType::SameAsLineShape)
-    return "SAME";
+    return "Same";
   else if (in == MirroringType::Manual)
-    return "MAN";
+    return "Manual";
   std::terminate();
 }
 
@@ -88,7 +88,7 @@ enum class NormalizationType {
 };  // LineNormalizationType
 
 inline NormalizationType string2normalizationtype(const String& in) {
-  if (in == "NONE")
+  if (in == "None")
     return NormalizationType::None;
   else if (in == "VVH")
     return NormalizationType::VVH;
@@ -102,7 +102,7 @@ inline NormalizationType string2normalizationtype(const String& in) {
 
 inline String normalizationtype2string(NormalizationType in) {
   if (in == NormalizationType::None)
-    return "NONE";
+    return "None";
   else if (in == NormalizationType::VVH)
     return "VVH";
   else if (in == NormalizationType::VVW)
@@ -118,17 +118,17 @@ inline String normalizationtype2string(NormalizationType in) {
  */
 enum class PopulationType {
   ByLTE,                      // Assume line is in LTE
-  ByVibrationalTemperatures,  // Assume line is in NLTE described by vibrational temperatures
-  ByPopulationDistribution,   // Assume line is in NLTE and the upper-to-lower ratio is known
+  ByNLTEVibrationalTemperatures,  // Assume line is in NLTE described by vibrational temperatures
+  ByNLTEPopulationDistribution,   // Assume line is in NLTE and the upper-to-lower ratio is known
 };  // PopulationType
 
 inline PopulationType string2populationtype(const String& in) {
   if (in == "LTE")
     return PopulationType::ByLTE;
-  else if (in == "VibrationalTemperatures")
-    return PopulationType::ByVibrationalTemperatures;
-  else if (in == "PopulationDistribution")
-    return PopulationType::ByPopulationDistribution;
+  else if (in == "NLTE-VibrationalTemperatures")
+    return PopulationType::ByNLTEVibrationalTemperatures;
+  else if (in == "NLTE")
+    return PopulationType::ByNLTEPopulationDistribution;
   else
     throw std::runtime_error("Cannot recognize the population type");
 }
@@ -136,10 +136,10 @@ inline PopulationType string2populationtype(const String& in) {
 inline String populationtype2string(PopulationType in) {
   if (in == PopulationType::ByLTE)
     return "LTE";
-  else if (in == PopulationType::ByVibrationalTemperatures)
-    return "VibrationalTemperatures";
-  else if (in == PopulationType::ByPopulationDistribution)
-    return "PopulationDistribution";
+  else if (in == PopulationType::ByNLTEVibrationalTemperatures)
+    return "NLTE-VibrationalTemperatures";
+  else if (in == PopulationType::ByNLTEPopulationDistribution)
+    return "NLTE";
   std::terminate();
 }
 
