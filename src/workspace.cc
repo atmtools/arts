@@ -2141,16 +2141,6 @@ void Workspace::define_wsv_data() {
       GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("jacobianDoit_do"),
-      DESCRIPTION(
-          "Flag to activate cloudy-sky (Doit) Jacobian calculations.\n"
-          "\n"
-          "If set to 0, no cloudy-sky Jacobian calculations will be performed\n"
-          "(even if jacobian species have been set through\n"
-          "*jacobianDoitAddSpecies*)\n"),
-      GROUP("Index")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("jacobian_quantities"),
       DESCRIPTION(
           "The retrieval quantities in the Jacobian matrix.\n"
