@@ -17,7 +17,6 @@ Arts2 {
   NumericSet(rtp_pressure, 1e-5)
   NumericSet(lm_p_lim, 0)
   IndexSet(stokes_dim, 1)
-  IndexSet(abs_f_interp_order, 3)
   
   # Comparative parameter
   ArrayOfPropagationMatrixCreate(testdata)
@@ -49,7 +48,7 @@ Arts2 {
   
   # Set up partial derivatives
   jacobianInit
-  jacobianAddTemperature(g1=p_grid, g2=[0], g3=[0], dt=0.1)
+  jacobianAddTemperature(g1=p_grid, g2=[0], g3=[0])
   jacobianAddWind(g1=p_grid, g2=[0], g3=[0], dfrequency=0.1)
   jacobianAddAbsSpecies(g1=p_grid, g2=[0], g3=[0], species="O2-66", for_species_tag=0)
   jacobianAddBasicCatalogParameters(catalog_identities=qi_lines, catalog_parameters=["Line Strength", "Line Center"])

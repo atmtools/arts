@@ -167,10 +167,8 @@ void jacobianAddAbsSpecies(Workspace&,
                            const Vector& rq_lat_grid,
                            const Vector& rq_lon_grid,
                            const String& species,
-                           const String& method,
                            const String& mode,
                            const Index& for_species_tag,
-                           const Numeric& dx,
                            const Verbosity& verbosity) {
   CREATE_OUT2;
   CREATE_OUT3;
@@ -230,19 +228,6 @@ void jacobianAddAbsSpecies(Workspace&,
       throw runtime_error(os.str());
   }
 
-  // Check that method is either "analytical" or "perturbation"
-  Index analytical;
-  if (method == "perturbation") {
-    analytical = 0;
-  } else if (method == "analytical") {
-    analytical = 1;
-  } else {
-    ostringstream os;
-    os << "The method for absorption species retrieval can only be "
-       << "\"analytical\"\n or \"perturbation\".";
-    throw runtime_error(os.str());
-  }
-
   // Check that mode is correct
   if (mode != "vmr" && mode != "nd" && mode != "rel" && mode != "rh" &&
       mode != "q") {
@@ -261,16 +246,13 @@ void jacobianAddAbsSpecies(Workspace&,
   rq.MainTag(ABSSPECIES_MAINTAG);
   rq.Subtag(species);
   rq.Mode(mode);
-  rq.Analytical(analytical);
-  rq.Perturbation(dx);
+  rq.Analytical(1);
+  rq.Perturbation(0.001);
   rq.Grids(grids);
-  if (analytical and not for_species_tag) {
+  if (not for_species_tag) {
     rq.SubSubtag(PROPMAT_SUBSUBTAG);
     rq.PropType(JacPropMatType::VMR);
-  } else if ((not analytical) and (not for_species_tag))
-    throw std::runtime_error(
-        "perturbation only support for_species_tag true/\n ");
-  else
+  } else
     rq.PropType(JacPropMatType::NotPropagationMatrixType);
 
   rq.QuantumIdentity(qi);
@@ -278,267 +260,7 @@ void jacobianAddAbsSpecies(Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  // Add gas species method to the jacobian agenda
-  if (analytical) {
-    out3 << "  Calculations done by semi-analytical expressions.\n";
-    jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
-  } else {
-    out2 << "  Adding absorption species: " << species
-         << " to *jacobian_quantities*\n"
-         << "  and *jacobian_agenda*\n";
-    out3 << "  Calculations done by perturbation, size " << dx << " " << mode
-         << ".\n";
-
-    jacobian_agenda.append("jacobianCalcAbsSpeciesPerturbations", species);
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianCalcAbsSpeciesPerturbations(
-    Workspace& ws,
-    Matrix& jacobian,
-    const Index& mblock_index,
-    const Vector& iyb _U_,
-    const Vector& yb,
-    const Index& atmosphere_dim,
-    const Vector& p_grid,
-    const Vector& lat_grid,
-    const Vector& lon_grid,
-    const Tensor3& t_field,
-    const Tensor3& z_field,
-    const Tensor4& vmr_field,
-    const Tensor4& nlte_field,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const Index& cloudbox_on,
-    const Index& stokes_dim,
-    const Vector& f_grid,
-    const Matrix& sensor_pos,
-    const Matrix& sensor_los,
-    const Matrix& transmitter_pos,
-    const Matrix& mblock_dlos_grid,
-    const Sparse& sensor_response,
-    const String& iy_unit,
-    const Agenda& iy_main_agenda,
-    const Agenda& geo_pos_agenda,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const String& species,
-    const Verbosity& verbosity) {
-  // Some useful variables.
-  RetrievalQuantity rq;
-  ArrayOfIndex ji;
-  Index it, pertmode;
-
-  // Find the retrieval quantity related to this method, i.e. Abs. species -
-  // species. This works since the combined MainTag and Subtag is individual.
-  bool found = false;
-  for (Index n = 0; n < jacobian_quantities.nelem() && !found; n++) {
-    if (jacobian_quantities[n].MainTag() == ABSSPECIES_MAINTAG &&
-        jacobian_quantities[n].Subtag() == species) {
-      bool any_affine;
-      ArrayOfArrayOfIndex jacobian_indices;
-      jac_ranges_indices(
-          jacobian_indices, any_affine, jacobian_quantities, true);
-      //
-      found = true;
-      rq = jacobian_quantities[n];
-      ji = jacobian_indices[n];
-    }
-  }
-  if (!found) {
-    ostringstream os;
-    os << "There is no gas species retrieval quantities defined for:\n"
-       << species;
-    throw runtime_error(os.str());
-  }
-
-  if (rq.Analytical()) {
-    ostringstream os;
-    os << "This WSM handles only perturbation calculations.\n"
-       << "Are you using the method manually?";
-    throw runtime_error(os.str());
-  }
-
-  // Store the start JacobianIndices and the Grids for this quantity
-  it = ji[0];
-  ArrayOfVector jg = rq.Grids();
-
-  // Check if a relative perturbation is used or not, this information is needed
-  // by the methods 'perturbation_field_?d'.
-  // Note: both 'vmr' and 'nd' are absolute perturbations
-  if (rq.Mode() == "rel")
-    pertmode = 0;
-  else
-    pertmode = 1;
-
-  // For each atmospheric dimension option calculate a ArrayOfGridPos, these
-  // are the base functions for interpolating the perturbations into the
-  // atmospheric grids.
-  ArrayOfGridPos p_gp, lat_gp, lon_gp;
-  Index j_p = jg[0].nelem();
-  Index j_lat = 1;
-  Index j_lon = 1;
-  //
-  if (jg[0].nelem() == 1)
-    throw runtime_error(
-        "Perturbation calculations do not handle length 1 retrieval grids");
-  get_perturbation_gridpos(p_gp, p_grid, jg[0], true);
-  //
-  if (atmosphere_dim >= 2) {
-    if (jg[1].nelem() == 1)
-      throw runtime_error(
-          "Perturbation calculations do not handle length 1 retrieval grids");
-    j_lat = jg[1].nelem();
-    get_perturbation_gridpos(lat_gp, lat_grid, jg[1], false);
-    if (atmosphere_dim == 3) {
-      if (jg[2].nelem() == 1)
-        throw runtime_error(
-            "Perturbation calculations do not handle length 1 retrieval grids");
-      j_lon = jg[2].nelem();
-      get_perturbation_gridpos(lon_gp, lon_grid, jg[2], false);
-    }
-  }
-
-  // Find VMR field for this species.
-  ArrayOfSpeciesTag tags;
-  array_species_tag_from_string(tags, species);
-  Index si = chk_contains("species", abs_species, tags);
-
-  // Variables for vmr field perturbation unit conversion
-  Tensor3 nd_field(0, 0, 0);
-  if (rq.Mode() == "nd") {
-    nd_field.resize(t_field.npages(), t_field.nrows(), t_field.ncols());
-    calc_nd_field(nd_field, p_grid, t_field);
-  }
-
-  // Loop through the retrieval grid and calculate perturbation effect
-  //
-  const Index n1y = sensor_response.nrows();
-  Vector dy(n1y);
-  const Range rowind = get_rowindex_for_mblock(sensor_response, mblock_index);
-  //
-  for (Index lon_it = 0; lon_it < j_lon; lon_it++) {
-    for (Index lat_it = 0; lat_it < j_lat; lat_it++) {
-      for (Index p_it = 0; p_it < j_p; p_it++) {
-        // Here we calculate the ranges of the perturbation. We want the
-        // perturbation to continue outside the atmospheric grids for the
-        // edge values.
-        Range p_range = Range(0, 0);
-        Range lat_range = Range(0, 0);
-        Range lon_range = Range(0, 0);
-
-        get_perturbation_range(p_range, p_it, j_p);
-
-        if (atmosphere_dim >= 2) {
-          get_perturbation_range(lat_range, lat_it, j_lat);
-          if (atmosphere_dim == 3) {
-            get_perturbation_range(lon_range, lon_it, j_lon);
-          }
-        }
-
-        // Create VMR field to perturb
-        Tensor4 vmr_p = vmr_field;
-
-        // If perturbation given in ND convert the vmr-field to ND before
-        // the perturbation is added
-        if (rq.Mode() == "nd") vmr_p(si, joker, joker, joker) *= nd_field;
-
-        // Calculate the perturbed field according to atmosphere_dim,
-        // the number of perturbations is the length of the retrieval
-        // grid +2 (for the end points)
-        switch (atmosphere_dim) {
-          case 1: {
-            // Here we perturb a vector
-            perturbation_field_1d(vmr_p(si, joker, lat_it, lon_it),
-                                  p_gp,
-                                  jg[0].nelem() + 2,
-                                  p_range,
-                                  rq.Perturbation(),
-                                  pertmode);
-            break;
-          }
-          case 2: {
-            // Here we perturb a matrix
-            perturbation_field_2d(vmr_p(si, joker, joker, lon_it),
-                                  p_gp,
-                                  lat_gp,
-                                  jg[0].nelem() + 2,
-                                  jg[1].nelem() + 2,
-                                  p_range,
-                                  lat_range,
-                                  rq.Perturbation(),
-                                  pertmode);
-            break;
-          }
-          case 3: {
-            // Here we need to perturb a tensor3
-            perturbation_field_3d(vmr_p(si, joker, joker, joker),
-                                  p_gp,
-                                  lat_gp,
-                                  lon_gp,
-                                  jg[0].nelem() + 2,
-                                  jg[1].nelem() + 2,
-                                  jg[2].nelem() + 2,
-                                  p_range,
-                                  lat_range,
-                                  lon_range,
-                                  rq.Perturbation(),
-                                  pertmode);
-            break;
-          }
-        }
-
-        // If perturbation given in ND convert back to VMR
-        if (rq.Mode() == "nd") vmr_p(si, joker, joker, joker) /= nd_field;
-
-        // Calculate the perturbed spectrum
-        //
-        Vector iybp;
-        ArrayOfVector dummy3;
-        ArrayOfMatrix dummy4;
-        Matrix dummy5;
-        //
-        iyb_calc(ws,
-                 iybp,
-                 dummy3,
-                 dummy4,
-                 dummy5,
-                 mblock_index,
-                 atmosphere_dim,
-                 t_field,
-                 z_field,
-                 vmr_p,
-                 nlte_field,
-                 cloudbox_on,
-                 stokes_dim,
-                 f_grid,
-                 sensor_pos,
-                 sensor_los,
-                 transmitter_pos,
-                 mblock_dlos_grid,
-                 iy_unit,
-                 iy_main_agenda,
-                 geo_pos_agenda,
-                 0,
-                 ArrayOfRetrievalQuantity(),
-                 ArrayOfArrayOfIndex(),
-                 ArrayOfString(),
-                 verbosity);
-        //
-        mult(dy, sensor_response, iybp);
-
-        // Difference spectrum
-        for (Index i = 0; i < n1y; i++) {
-          dy[i] = (dy[i] - yb[i]) / rq.Perturbation();
-        }
-
-        // Put into jacobian
-        jacobian(rowind, it) = dy;
-
-        // Result from next loop shall go into next column of J
-        it++;
-      }
-    }
-  }
+  jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
 }
 
 //----------------------------------------------------------------------------
@@ -1440,7 +1162,6 @@ void jacobianAddScatSpecies(Workspace&,
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  // Add gas species method to the jacobian agenda
   jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
 }
 
@@ -1690,8 +1411,6 @@ void jacobianAddTemperature(Workspace&,
                             const Vector& rq_lat_grid,
                             const Vector& rq_lon_grid,
                             const String& hse,
-                            const String& method,
-                            const Numeric& dx,
                             const Verbosity& verbosity) {
   CREATE_OUT3;
 
@@ -1725,19 +1444,6 @@ void jacobianAddTemperature(Workspace&,
       throw runtime_error(os.str());
   }
 
-  // Check that method is either "analytic" or "perturbation"
-  Index analytical;
-  if (method == "perturbation") {
-    analytical = 0;
-  } else if (method == "analytical") {
-    analytical = 1;
-  } else {
-    ostringstream os;
-    os << "The method for atmospheric temperature retrieval can only be "
-       << "\"analytical\"\n or \"perturbation\"\n.";
-    throw runtime_error(os.str());
-  }
-
   // Set subtag
   String subtag;
   if (hse == "on") {
@@ -1756,277 +1462,16 @@ void jacobianAddTemperature(Workspace&,
   rq.MainTag(TEMPERATURE_MAINTAG);
   rq.Subtag(subtag);
   rq.Mode("abs");
-  rq.Analytical(analytical);
-  rq.Perturbation(dx);
+  rq.Analytical(1);
+  rq.Perturbation(0.1);
   rq.Grids(grids);
-  if (analytical) {
-    rq.SubSubtag(PROPMAT_SUBSUBTAG);
-    rq.PropType(JacPropMatType::Temperature);
-  }
+  rq.SubSubtag(PROPMAT_SUBSUBTAG);
+  rq.PropType(JacPropMatType::Temperature);
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
-  if (analytical) {
-    out3 << "  Calculations done by semi-analytical expression.\n";
-    jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
-  } else {
-    out3 << "  Calculations done by perturbations, of size " << dx << ".\n";
-
-    jacobian_agenda.append("jacobianCalcTemperaturePerturbations", "");
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianCalcTemperaturePerturbations(
-    Workspace& ws,
-    Matrix& jacobian,
-    const Index& mblock_index,
-    const Vector& iyb _U_,
-    const Vector& yb,
-    const Index& atmosphere_dim,
-    const Vector& p_grid,
-    const Vector& lat_grid,
-    const Vector& lon_grid,
-    const Vector& lat_true,
-    const Vector& lon_true,
-    const Tensor3& t_field,
-    const Tensor3& z_field,
-    const Tensor4& vmr_field,
-    const Tensor4& nlte_field,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const Vector& refellipsoid,
-    const Matrix& z_surface,
-    const Index& cloudbox_on,
-    const Index& stokes_dim,
-    const Vector& f_grid,
-    const Matrix& sensor_pos,
-    const Matrix& sensor_los,
-    const Matrix& transmitter_pos,
-    const Matrix& mblock_dlos_grid,
-    const Sparse& sensor_response,
-    const String& iy_unit,
-    const Agenda& iy_main_agenda,
-    const Agenda& geo_pos_agenda,
-    const Agenda& g0_agenda,
-    const Numeric& molarmass_dry_air,
-    const Numeric& p_hse,
-    const Numeric& z_hse_accuracy,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const Verbosity& verbosity) {
-  // Set some useful variables.
-  RetrievalQuantity rq;
-  ArrayOfIndex ji;
-  Index it;
-
-  // Find the retrieval quantity related to this method, i.e. Temperature.
-  // For temperature only the main tag is checked.
-  bool found = false;
-  for (Index n = 0; n < jacobian_quantities.nelem() && !found; n++) {
-    if (jacobian_quantities[n].MainTag() == TEMPERATURE_MAINTAG) {
-      bool any_affine;
-      ArrayOfArrayOfIndex jacobian_indices;
-      jac_ranges_indices(
-          jacobian_indices, any_affine, jacobian_quantities, true);
-      //
-      found = true;
-      rq = jacobian_quantities[n];
-      ji = jacobian_indices[n];
-    }
-  }
-  if (!found) {
-    ostringstream os;
-    os << "There is no temperature retrieval quantities defined.\n";
-    throw runtime_error(os.str());
-  }
-
-  if (rq.Analytical()) {
-    ostringstream os;
-    os << "This WSM handles only perturbation calculations.\n"
-       << "Are you using the method manually?";
-    throw runtime_error(os.str());
-  }
-
-  // Store the start JacobianIndices and the Grids for this quantity
-  it = ji[0];
-  ArrayOfVector jg = rq.Grids();
-
-  // "Perturbation mode". 1 means absolute perturbations
-  const Index pertmode = 1;
-
-  // For each atmospheric dimension option calculate a ArrayOfGridPos,
-  // these will be used to interpolate a perturbation into the atmospheric
-  // grids.
-  ArrayOfGridPos p_gp, lat_gp, lon_gp;
-  Index j_p = jg[0].nelem();
-  Index j_lat = 1;
-  Index j_lon = 1;
-  //
-  if (jg[0].nelem() == 1)
-    throw runtime_error(
-        "Perturbation calculations do not handle length 1 retrieval grids");
-  get_perturbation_gridpos(p_gp, p_grid, jg[0], true);
-  //
-  if (atmosphere_dim >= 2) {
-    if (jg[1].nelem() == 1)
-      throw runtime_error(
-          "Perturbation calculations do not handle length 1 retrieval grids");
-    j_lat = jg[1].nelem();
-    get_perturbation_gridpos(lat_gp, lat_grid, jg[1], false);
-    if (atmosphere_dim == 3) {
-      if (jg[2].nelem() == 1)
-        throw runtime_error(
-            "Perturbation calculations do not handle length 1 retrieval grids");
-      j_lon = jg[2].nelem();
-      get_perturbation_gridpos(lon_gp, lon_grid, jg[2], false);
-    }
-  }
-
-  // Local copy of z_field.
-  Tensor3 z = z_field;
-
-  // Loop through the retrieval grid and calculate perturbation effect
-  //
-  const Index n1y = sensor_response.nrows();
-  Vector dy(n1y);
-  const Range rowind = get_rowindex_for_mblock(sensor_response, mblock_index);
-  //
-  for (Index lon_it = 0; lon_it < j_lon; lon_it++) {
-    for (Index lat_it = 0; lat_it < j_lat; lat_it++) {
-      for (Index p_it = 0; p_it < j_p; p_it++) {
-        // Perturbed temperature field
-        Tensor3 t_p = t_field;
-
-        // Here we calculate the ranges of the perturbation. We want the
-        // perturbation to continue outside the atmospheric grids for the
-        // edge values.
-        Range p_range = Range(0, 0);
-        Range lat_range = Range(0, 0);
-        Range lon_range = Range(0, 0);
-        get_perturbation_range(p_range, p_it, j_p);
-        if (atmosphere_dim >= 2) {
-          get_perturbation_range(lat_range, lat_it, j_lat);
-          if (atmosphere_dim == 3) {
-            get_perturbation_range(lon_range, lon_it, j_lon);
-          }
-        }
-
-        // Calculate the perturbed field according to atmosphere_dim,
-        // the number of perturbations is the length of the retrieval
-        // grid +2 (for the end points)
-        switch (atmosphere_dim) {
-          case 1: {
-            // Here we perturb a vector
-            perturbation_field_1d(t_p(joker, lat_it, lon_it),
-                                  p_gp,
-                                  jg[0].nelem() + 2,
-                                  p_range,
-                                  rq.Perturbation(),
-                                  pertmode);
-            break;
-          }
-          case 2: {
-            // Here we perturb a matrix
-            perturbation_field_2d(t_p(joker, joker, lon_it),
-                                  p_gp,
-                                  lat_gp,
-                                  jg[0].nelem() + 2,
-                                  jg[1].nelem() + 2,
-                                  p_range,
-                                  lat_range,
-                                  rq.Perturbation(),
-                                  pertmode);
-            break;
-          }
-          case 3: {
-            // Here we need to perturb a tensor3
-            perturbation_field_3d(t_p(joker, joker, joker),
-                                  p_gp,
-                                  lat_gp,
-                                  lon_gp,
-                                  jg[0].nelem() + 2,
-                                  jg[1].nelem() + 2,
-                                  jg[2].nelem() + 2,
-                                  p_range,
-                                  lat_range,
-                                  lon_range,
-                                  rq.Perturbation(),
-                                  pertmode);
-            break;
-          }
-        }
-
-        // Apply HSE, if selected
-        if (rq.Subtag() == "HSE on") {
-          z_fieldFromHSE(ws,
-                         z,
-                         atmosphere_dim,
-                         p_grid,
-                         lat_grid,
-                         lon_grid,
-                         lat_true,
-                         lon_true,
-                         abs_species,
-                         t_p,
-                         vmr_field,
-                         refellipsoid,
-                         z_surface,
-                         1,
-                         g0_agenda,
-                         molarmass_dry_air,
-                         p_hse,
-                         z_hse_accuracy,
-                         verbosity);
-        }
-
-        // Calculate the perturbed spectrum
-        Vector iybp;
-        ArrayOfVector dummy3;
-        ArrayOfMatrix dummy4;
-        Matrix dummy5;
-        //
-        iyb_calc(ws,
-                 iybp,
-                 dummy3,
-                 dummy4,
-                 dummy5,
-                 mblock_index,
-                 atmosphere_dim,
-                 t_p,
-                 z,
-                 vmr_field,
-                 nlte_field,
-                 cloudbox_on,
-                 stokes_dim,
-                 f_grid,
-                 sensor_pos,
-                 sensor_los,
-                 transmitter_pos,
-                 mblock_dlos_grid,
-                 iy_unit,
-                 iy_main_agenda,
-                 geo_pos_agenda,
-                 0,
-                 ArrayOfRetrievalQuantity(),
-                 ArrayOfArrayOfIndex(),
-                 ArrayOfString(),
-                 verbosity);
-        //
-        mult(dy, sensor_response, iybp);
-
-        // Difference spectrum
-        for (Index i = 0; i < n1y; i++) {
-          dy[i] = (dy[i] - yb[i]) / rq.Perturbation();
-        }
-
-        // Put into jacobian
-        jacobian(rowind, it) = dy;
-
-        // Result from next loop shall go into next column of J
-        it++;
-      }
-    }
-  }
+  jacobian_agenda.append("jacobianCalcDoNothing", TokVal());
 }
 
 //----------------------------------------------------------------------------
@@ -2041,7 +1486,6 @@ void jacobianAddWind(Workspace&,
                      const Vector& p_grid,
                      const Vector& lat_grid,
                      const Vector& lon_grid,
-                     const Index& abs_f_interp_order,
                      const Vector& rq_p_grid,
                      const Vector& rq_lat_grid,
                      const Vector& rq_lon_grid,
@@ -2082,12 +1526,6 @@ void jacobianAddWind(Workspace&,
       throw runtime_error(os.str());
   }
 
-  // Calculation of this Jacobian requires abs_f_interp_order > 0
-  if (abs_f_interp_order <= 0) {
-    throw runtime_error("Calculation of a wind Jacobian requires that "
-                        "*abs_f_interp_order* > 0.");
-  }
-  
   // Create the new retrieval quantity
   RetrievalQuantity rq;
 

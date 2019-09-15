@@ -457,20 +457,6 @@ void transform_x_back(Vector& x_t,
 //             Functions related to calculation of Jacobian
 //======================================================================
 
-/* Calculate the number density field
-
-   This function returns the number density for each grid point in the 
-   Tensor3View.
-   
-   @param[out] nd  The number density field
-   @param[in]  p   The pressure grid
-   @param[in]  t   The temperature field
-   
-   @author Mattias Ekstrom
-   @date   2005-06-03
- */
-void calc_nd_field(Tensor3View& nd, const VectorView& p, const Tensor3View& t);
-
 /** Check that the retrieval grids are defined for each atmosphere dim
 
    Use this version for atmospheric fields.
@@ -588,77 +574,6 @@ void diy_from_pos_to_rgrids(Tensor3View diy_dx,
                             const Index& atmosphere_dim,
                             ConstVectorView rtp_pos);
  
-/** Calculate array of GridPos for perturbation interpolation
-
-   This function constructs a perturbation grid which consists of the
-   given retrieval grid with an extra endpoint added at each end.
-   These endpoints lies outside the atmospheric grid. This enables the
-   interpolation of an perturbation on the perturbation grid to be
-   interpolated to the atmospheric grid. For this reason the function
-   returns an ArrayOfGridPos. 
-   
-   If the atmospheric grid is a pressure grid, interpolation is made
-   in logarithm of the atmospheric grid.
-   
-   @param[out] gp         Array of GridPos for interpolation.
-   @param[in] atm_grid    Atmospheric grid.
-   @param[in] jac_grid    Retrieval grid.
-   @param[in] is_pressure True for pressure grid 
-   
-   @author Mattias Ekstrom
-   @date   2005-05-12
- */
-void get_perturbation_gridpos(ArrayOfGridPos& gp,
-                              const Vector& atm_grid,
-                              const Vector& jac_grid,
-                              const bool& is_pressure);
-
-/** Get limits for perturbation of a box
-
-   This is a helper function that calculates the limits where the 
-   perturbation should be added to the perturbation grid. 
-   This is needed for example by the particle perturbation that only
-   should be applied for the cloudbox. The limits are defined as the 
-   outermost points lying within or just outside the box limits.
-   
-   The atmospheric limits should be given in the same unit as the
-   perturbation grid. And only the first and last element will be 
-   considered as limits. 
-   
-   Assertions are used to perform checks. The input grids are 
-   checked so that the atmospheric limits are containg within 
-   the perturbation grid. The limit indices are checked so 
-   that they are ordered in increasing order before return.
-   
-   @param[out] limit     The limit indices in the perturbation grid
-   @param[in] pert_grid The perturbation grid
-   @param[in] atm_limit The atmospheric limits of the box.
-
-   @author Mattias Ekstrom
-   @date   2005-02-25
- */
-void get_perturbation_limit(ArrayOfIndex& limit,
-                            const Vector& pert_grid,
-                            const Vector& atm_limit);
-
-/** Get range for perturbation
-
-   This is a helper function that calculates the range in which the 
-   perturbation should be added to the perturbation grid. This is needed
-   to handle the edge effects. At the edges we want the perturbation to 
-   continue outwards. 
-   
-   @param[out] range     The range in the perturbation grid.
-   @param[in] index     The index of the perturbation in the retrieval grid.
-   @param[in] length    The length of retrieval grid
-   
-   @author Mattias Ekstrom
-   @date   2004-10-14
- */
-void get_perturbation_range(Range& range,
-                            const Index& index,
-                            const Index& length);
-
 /** Help function for analytical jacobian calculations
 
     The function determines which terms in jacobian_quantities that are 
@@ -709,90 +624,6 @@ void get_pointers_for_analytical_jacobians(
   @date   2015-09-10
  */
 void jacobian_type_extrapol(ArrayOfGridPos& gp);
-
-/** Calculate the 1D perturbation for a relative perturbation.
-
-   This is a helper function that interpolate the perturbation field for
-   a 1D relative perturbation onto the atmospheric field. 
-   
-   @param[out] field     The interpolated perturbation field.
-   @param[in] p_gp      The GridPos for interpolation.
-   @param[in] p_pert_n  The number of perturbations.
-   @param[in] p_range   The perturbation range in the perturbation grid.
-   @param[in] size      The size of the perturbation.
-   @param[in] method    Relative perturbation==0, absolute==1
-   
-   @author Mattias Ekstrom
-   @date   2005-05-11
- */
-void perturbation_field_1d(VectorView field,
-                           const ArrayOfGridPos& p_gp,
-                           const Index& p_pert_n,
-                           const Range& p_range,
-                           const Numeric& size,
-                           const Index& method);
-
-/** Calculate the 2D perturbation for a relative perturbation.
-
-   This is a helper function that interpolate the perturbation field for
-   a 2D relative perturbation onto the atmospheric field. 
-   
-   @param[out] field       The interpolated perturbation field.
-   @param[in] p_gp        The GridPos for interpolation in the 1st dim.
-   @param[in] lat_gp      The GridPos for interpolation in the 2nd dim.
-   @param[in] p_pert_n    The number of perturbations in the 1st dim.
-   @param[in] lat_pert_n  The number of perturbations in the 2nd dim.
-   @param[in] p_range     The perturbation range in the 1st dim.
-   @param[in] lat_range   The perturbation range in the 2nd dim.
-   @param[in] size        The size of the perturbation.
-   @param[in] method      Relative perturbation==0, absolute==1
-   
-   @author Mattias Ekstrom
-   @date   2005-05-11
- */
-void perturbation_field_2d(MatrixView field,
-                           const ArrayOfGridPos& p_gp,
-                           const ArrayOfGridPos& lat_gp,
-                           const Index& p_pert_n,
-                           const Index& lat_pert_n,
-                           const Range& p_range,
-                           const Range& lat_range,
-                           const Numeric& size,
-                           const Index& method);
-
-/** Calculate the 3D perturbation for a relative perturbation.
-
-   This is a helper function that interpolatee the perturbation field for
-   a 3D relative perturbation onto the atmospheric field. 
-   
-   @param[out] field       The interpolated perturbation field.
-   @param[in] p_gp        The GridPos for interpolation in the 1st dim.
-   @param[in] lat_gp      The GridPos for interpolation in the 2nd dim.
-   @param[in] lon_gp      The GridPos for interpolation in the 3rd dim.
-   @param[in] p_pert_n    The number of perturbations in the 1st dim.
-   @param[in] lat_pert_n  The number of perturbations in the 2nd dim.
-   @param[in] lon_pert_n  The number of perturbations in the 3rd dim.
-   @param[in] p_range     The perturbation range in the 1st dim.
-   @param[in] lat_range   The perturbation range in the 2nd dim.
-   @param[in] lon_range   The perturbation range in the 3rd dim.
-   @param[in] size        The size of the perturbation.
-   @param[in] method      Set to 0 for relative, and 1 for absolute.
-   
-   @author Mattias Ekstrom
-   @date   2005-05-11
- */
-void perturbation_field_3d(Tensor3View field,
-                           const ArrayOfGridPos& p_gp,
-                           const ArrayOfGridPos& lat_gp,
-                           const ArrayOfGridPos& lon_gp,
-                           const Index& p_pert_n,
-                           const Index& lat_pert_n,
-                           const Index& lon_pert_n,
-                           const Range& p_range,
-                           const Range& lat_range,
-                           const Range& lon_range,
-                           const Numeric& size,
-                           const Index& method);
 
 /** Calculates polynomial basis functions
 

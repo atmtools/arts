@@ -34,6 +34,7 @@
 #include "special_interp.h"
 
 extern const Numeric NAT_LOG_TEN;
+extern const Numeric PI;
 
 extern const String ABSSPECIES_MAINTAG;
 extern const String SCATSPECIES_MAINTAG;
@@ -44,6 +45,8 @@ extern const String FLUX_MAINTAG;
 extern const String PROPMAT_SUBSUBTAG;
 extern const String ELECTRONS_MAINTAG;
 extern const String PARTICULATES_MAINTAG;
+extern const String POLYFIT_MAINTAG;
+extern const String SINEFIT_MAINTAG;
 
 ostream& operator<<(ostream& os, const RetrievalQuantity& ot) {
   return os << "\n       Main tag = " << ot.MainTag()
@@ -684,22 +687,6 @@ void get_pointers_for_analytical_jacobians(
   === Other functions, in alphabetical order
   ===========================================================================*/
 
-void calc_nd_field(Tensor3View& nd, const VectorView& p, const Tensor3View& t) {
-  assert(nd.npages() == t.npages());
-  assert(nd.nrows() == t.nrows());
-  assert(nd.ncols() == t.ncols());
-  assert(nd.npages() == p.nelem());
-
-  for (Index p_it = 0; p_it < nd.npages(); p_it++) {
-    for (Index lat_it = 0; lat_it < nd.nrows(); lat_it++) {
-      for (Index lon_it = 0; lon_it < nd.ncols(); lon_it++) {
-        nd(p_it, lat_it, lon_it) =
-            number_density(p[p_it], t(p_it, lat_it, lon_it));
-      }
-    }
-  }
-}
-
 bool check_retrieval_grids(ArrayOfVector& grids,
                            ostringstream& os,
                            const Vector& p_grid,
@@ -895,75 +882,6 @@ bool check_retrieval_grids(ArrayOfVector& grids,
   return true;
 }
 
-void get_perturbation_gridpos(ArrayOfGridPos& gp,
-                              const Vector& atm_grid,
-                              const Vector& jac_grid,
-                              const bool& is_pressure) {
-  Index nj = jac_grid.nelem();
-  Index na = atm_grid.nelem();
-  Vector pert(nj + 2);
-
-  // Create perturbation grid, with extension outside the atmospheric grid
-  if (is_pressure) {
-    pert[0] = atm_grid[0] * 10.0;
-    pert[nj + 1] = atm_grid[na - 1] * 0.1;
-  } else {
-    pert[0] = atm_grid[0] - 1.0;
-    pert[nj + 1] = atm_grid[na - 1] + 1.0;
-  }
-  pert[Range(1, nj)] = jac_grid;
-
-  // Calculate the gridpos
-  gp.resize(na);
-  if (is_pressure) {
-    p2gridpos(gp, pert, atm_grid);
-  } else {
-    gridpos(gp, pert, atm_grid);
-  }
-}
-
-void get_perturbation_limit(ArrayOfIndex& limit,
-                            const Vector& pert_grid,
-                            const Vector& atm_limit) {
-  limit.resize(2);
-  //   Index np = pert_grid.nelem()-1;
-  Index na = atm_limit.nelem() - 1;
-
-  // If the field is ordered in decreasing order set the
-  // increment factor to -1
-  Numeric inc = 1;
-  if (is_decreasing(pert_grid)) inc = -1;
-
-  // Check that the pert_grid is encompassing atm_limit
-  //   assert( inc*pert_grid[0] < inc*atm_limit[0] &&
-  //           inc*pert_grid[np] > inc*atm_limit[na]);
-
-  // Find first limit, check if following value is above lower limit
-  limit[0] = 0;
-  while (inc * pert_grid[limit[0] + 1] < inc * atm_limit[0]) {
-    limit[0]++;
-  }
-
-  // Find last limit, check if previous value is below upper limit
-  limit[1] = pert_grid.nelem();
-  while (inc * pert_grid[limit[1] - 1] > inc * atm_limit[na]) {
-    limit[1]--;
-  }
-  // Check that the limits are ok
-  assert(limit[1] > limit[0]);
-}
-
-void get_perturbation_range(Range& range,
-                            const Index& index,
-                            const Index& length) {
-  if (index == 0)
-    range = Range(index, 2);
-  else if (index == length - 1)
-    range = Range(index + 1, 2);
-  else
-    range = Range(index + 1, 1);
-}
-
 void jacobian_type_extrapol(ArrayOfGridPos& gp) {
   for (Index i = 0; i < gp.nelem(); i++) {
     if (gp[i].fd[0] < 0) {
@@ -973,78 +891,6 @@ void jacobian_type_extrapol(ArrayOfGridPos& gp) {
       gp[i].fd[0] = 1;
       gp[i].fd[1] = 0;
     }
-  }
-}
-
-void perturbation_field_1d(VectorView field,
-                           const ArrayOfGridPos& p_gp,
-                           const Index& p_pert_n,
-                           const Range& p_range,
-                           const Numeric& size,
-                           const Index& method) {
-  // Here we only perturb a vector
-  Vector pert(field.nelem());
-  Matrix itw(p_gp.nelem(), 2);
-  interpweights(itw, p_gp);
-  // For relative pert_field should be 1.0 and for absolute 0.0
-  Vector pert_field(p_pert_n, 1.0 - (Numeric)method);
-  pert_field[p_range] += size;
-  interp(pert, itw, pert_field, p_gp);
-  if (method == 0) {
-    field *= pert;
-  } else {
-    field += pert;
-  }
-}
-
-void perturbation_field_2d(MatrixView field,
-                           const ArrayOfGridPos& p_gp,
-                           const ArrayOfGridPos& lat_gp,
-                           const Index& p_pert_n,
-                           const Index& lat_pert_n,
-                           const Range& p_range,
-                           const Range& lat_range,
-                           const Numeric& size,
-                           const Index& method) {
-  // Here we perturb a matrix
-  Matrix pert(field.nrows(), field.ncols());
-  Tensor3 itw(p_gp.nelem(), lat_gp.nelem(), 4);
-  interpweights(itw, p_gp, lat_gp);
-  // Init pert_field to 1.0 for relative and 0.0 for absolute
-  Matrix pert_field(p_pert_n, lat_pert_n, 1.0 - (Numeric)method);
-  pert_field(p_range, lat_range) += size;
-  interp(pert, itw, pert_field, p_gp, lat_gp);
-  if (method == 0) {
-    field *= pert;
-  } else {
-    field += pert;
-  }
-}
-
-void perturbation_field_3d(Tensor3View field,
-                           const ArrayOfGridPos& p_gp,
-                           const ArrayOfGridPos& lat_gp,
-                           const ArrayOfGridPos& lon_gp,
-                           const Index& p_pert_n,
-                           const Index& lat_pert_n,
-                           const Index& lon_pert_n,
-                           const Range& p_range,
-                           const Range& lat_range,
-                           const Range& lon_range,
-                           const Numeric& size,
-                           const Index& method) {
-  // Here we need to perturb a tensor3
-  Tensor3 pert(field.npages(), field.nrows(), field.ncols());
-  Tensor4 itw(p_gp.nelem(), lat_gp.nelem(), lon_gp.nelem(), 8);
-  interpweights(itw, p_gp, lat_gp, lon_gp);
-  // Init pert_field to 1.0 for relative and 0.0 for absolute
-  Tensor3 pert_field(p_pert_n, lat_pert_n, lon_pert_n, 1.0 - (Numeric)method);
-  pert_field(p_range, lat_range, lon_range) += size;
-  interp(pert, itw, pert_field, p_gp, lat_gp, lon_gp);
-  if (method == 0) {
-    field *= pert;
-  } else {
-    field += pert;
   }
 }
 
@@ -1071,10 +917,6 @@ void polynomial_basis_func(Vector& b,
     b -= mean(b);
   }
 }
-
-extern const String POLYFIT_MAINTAG;
-extern const String SINEFIT_MAINTAG;
-extern const Numeric PI;
 
 void calcBaselineFit(Vector& y_baseline,
                      const Vector& x,

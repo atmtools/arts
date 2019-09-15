@@ -175,8 +175,7 @@ Print( info, 0 )
 jacobianInit
 jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
     atmosphere_dim, p_grid, lat_grid, lon_grid, 
-    retrieval_grid, lat_grid, lon_grid, 
-    "O3", "analytical", "rel", 1, 0.01 )
+    retrieval_grid, lat_grid, lon_grid, "O3", "rel", 1 )
 jacobianClose
 #WriteXML( in=jacobian_quantities, filename="JqHyb_O3_analytical.xml" )
 
@@ -196,34 +195,6 @@ ReadXML( Jr, "JHyb_O3_analyticalREFERENCE.xml" )
 Compare( jacobian, Jr, 1e-6 )
 #Copy( Ja, jacobian )
 
-## Same with perturbations
-#StringSet( info, "O3 rel perturbation" )
-#Print( info, 0 )
-#jacobianInit
-#jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
-#    atmosphere_dim, p_grid, lat_grid, lon_grid, 
-#    retrieval_grid, lat_grid, lon_grid, 
-#    "O3", "perturbation", "rel", 1, 0.01 )
-#jacobianClose
-##WriteXML( in=jacobian_quantities, filename="JqHyb_O3_perturbation.xml" )
-#
-#pnd_fieldZero
-#atmfields_checkedCalc
-#atmgeom_checkedCalc
-#cloudbox_checkedCalc
-#scat_data_checkedCalc
-#
-#yCalc
-##WriteXML( in=y, filename="yHyb_O3_perturbation.xml" )
-##WriteXML( in=jacobian, filename="JHyb_O3_perturbation.xml" )
-#
-#ReadXML( Jr, "J_O3_perturbation.xml" )
-#Compare( jacobian, Jr, 0.005 )
-#Copy( Jp, jacobian )
-
-## Compare
-#Compare( Ja, Jp, 0.005 )
-
 
 # Analytical but now using VMR, though for all "O2" species
 StringSet( info, "O2 vmr analytical" )
@@ -231,8 +202,7 @@ Print( info, 0 )
 jacobianInit
 jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
     atmosphere_dim, p_grid, lat_grid, lon_grid, 
-    retrieval_grid, lat_grid, lon_grid, 
-    "O2", "analytical", "vmr", 0, 0.01 )
+    retrieval_grid, lat_grid, lon_grid, "O2", "vmr", 0 )
 jacobianClose
 #WriteXML( in=jacobian_quantities, filename="JqHyb_O2_analytical.xml" )
 
@@ -275,8 +245,7 @@ Print( info, 0 )
 jacobianInit
 jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
     atmosphere_dim, p_grid, lat_grid, lon_grid, 
-    retrieval_grid, lat_grid, lon_grid, 
-    "off", "analytical", 0.1 )
+    retrieval_grid, lat_grid, lon_grid, "off")
 jacobianClose
 #WriteXML( in=jacobian_quantities, filename="JqHyb_T_analytical.xml" )
 
@@ -295,92 +264,6 @@ yCalc
 ReadXML( Jr, "JHyb_T_analyticalREFERENCE.xml" )
 Compare( jacobian, Jr, 1e-6 )
 #Copy( Ja, jacobian )
-
-
-## Same with perturbations
-#StringSet( info, "T perturbation" )
-#Print( info, 0 )
-#jacobianInit
-#jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
-#    atmosphere_dim, p_grid, lat_grid, lon_grid, 
-#    retrieval_grid, lat_grid, lon_grid, 
-#    "off", "perturbation", 0.1 )
-#jacobianClose
-##WriteXML( in=jacobian_quantities, filename="JqHyb_T_perturbation.xml" )
-#
-#pnd_fieldZero
-#atmfields_checkedCalc
-#atmgeom_checkedCalc
-#cloudbox_checkedCalc
-#scat_data_checkedCalc
-#
-#yCalc
-##WriteXML( in=y, filename="yHyb_T_perturbation.xml" )
-##WriteXML( in=jacobian, filename="JHyb_T_perturbation.xml" )
-#
-#ReadXML( Jr, "J_T_perturbation.xml" )
-#Compare( jacobian, Jr, 0.005 )
-#Copy( Jp, jacobian )
-
-## Compare
-#Compare( Ja, Jp, 0.001 )
-
-
-
-##############################################################################
-#
-# Pointing
-#
-##############################################################################
-
-# Sensor time must be specified here
-nrowsGet( nrows, sensor_pos )
-VectorNLinSpace( sensor_time, nrows, 0, 1 )
-
-#StringSet( info, "Pointing recalc" )
-#Print( info, 0 )
-#jacobianInit
-#jacobianAddPointingZa( jacobian_quantities, jacobian_agenda, 
-#                       sensor_pos, sensor_time, 0, "recalc", 0.001 )
-#jacobianClose
-#
-#pnd_fieldZero
-#atmfields_checkedCalc
-#atmgeom_checkedCalc
-#cloudbox_checkedCalc
-#scat_data_checkedCalc
-#
-#yCalc
-#Copy( Ja, jacobian )
-#ReadXML( Jr, "J_pointing_recalc.xml" )
-#Compare( Ja, Jr, 1e-6 )
-#
-#StringSet( info, "Pointing interp" )
-#Print( info, 0 )
-#jacobianInit
-#jacobianAddPointingZa( jacobian_quantities, jacobian_agenda, 
-#                       sensor_pos, sensor_time, 0, "interp", 0.001 )
-#jacobianClose
-#
-#pnd_fieldZero
-#atmfields_checkedCalc
-#atmgeom_checkedCalc
-#cloudbox_checkedCalc
-#scat_data_checkedCalc
-#
-#yCalc
-#Copy( Jp, jacobian )
-#ReadXML( Jr, "J_pointing_interp.xml" )
-#Compare( Jp, Jr, 1e-6 )
-#
-##WriteXML( "ascii", Ja, "JHyb_pointing_recalc.xml" )
-##WriteXML( "ascii", Jp, "JHyb_pointing_interp.xml" )
-#
-## Compare (Note that the WF is for 1 deg change, corresponding to about
-## 60 km change in tangent altitude, and 10 K/deg accuracy is OK)
-#Compare( Ja, Jp, 10 )
-
-
 
 
 

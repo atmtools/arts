@@ -1933,9 +1933,7 @@ void abs_speciesAdd2(  // WS Output:
     const Vector& rq_lon_grid,
     // Control Parameters:
     const String& species,
-    const String& method,
     const String& mode,
-    const Numeric& dx,
     const Verbosity& verbosity) {
   CREATE_OUT3;
 
@@ -1970,10 +1968,8 @@ void abs_speciesAdd2(  // WS Output:
                         rq_lat_grid,
                         rq_lon_grid,
                         species,
-                        method,
                         mode,
                         1,
-                        dx,
                         verbosity);
 }
 

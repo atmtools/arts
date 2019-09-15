@@ -1600,7 +1600,7 @@ void define_md_data_raw() {
           "\n"
           "Arguments exactly as for *jacobianAddAbsSpecies*. Note that this\n"
           "method only handles a single tag group, in contrast to\n"
-          "*abs_speciesAdd*\n"),
+          "*abs_speciesAdd*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("abs_species",
           "jacobian_quantities",
@@ -1611,22 +1611,18 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_species", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid"),
-      GIN("gin1", "gin2", "gin3", "species", "method", "unit", "dx"),
+      GIN("gin1", "gin2", "gin3", "species", "unit"),
       GIN_TYPE("Vector",
                "Vector",
                "Vector",
                "String",
-               "String",
-               "String",
-               "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF, "vmr", NODEF),
+               "String"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, "vmr"),
       GIN_DESC("Pressure retrieval grid.",
                "Latitude retrieval grid.",
                "Longitude retreival grid.",
                "The species tag of the retrieval quantity.",
-               "Calculation method. See above.",
-               "Retrieval unit. See above.",
-               "Size of perturbation."),
+               "Retrieval unit. See above."),
       SETMETHOD(false),
       AGENDAMETHOD(false),
       USES_TEMPLATES(false),
@@ -8579,10 +8575,6 @@ void define_md_data_raw() {
           "For 1D or 2D calculations the latitude and/or longitude grid of\n"
           "the retrieval field should set to have zero length.\n"
           "\n"
-          "There are two possible calculation methods:\n"
-          "   \"analytical\"   : (semi-)analytical expressions are used\n"
-          "   \"perturbation\" : pure numerical perturbations are used\n"
-          "\n"
           "These retrieval units are at hand for all gas species:\n"
           "   \"vmr\"    : Volume mixing ratio.\n"
           "   \"nd\"     : Number density.\n"
@@ -8591,10 +8583,6 @@ void define_md_data_raw() {
           "For water vapour, also these units are at hand:\n"
           "   \"rh\"     : Relative humidity.\n"
           "   \"q\"      : Specific humidity.\n"
-          "\n"
-          "For perturbation calculations the size of the perturbation is set\n"
-          "by the user. The unit for the perturbation is the same as for the\n"
-          "retrieval unit.\n"
           "\n"
           "Note that *for_species_tag* is used to indicate if species tag VMR,\n"
           "rather than atmospheric gas VMR is calculated. Set it to 0 and we\n"
@@ -8623,28 +8611,22 @@ void define_md_data_raw() {
           "g2",
           "g3",
           "species",
-          "method",
           "unit",
-          "for_species_tag",
-          "dx"),
+          "for_species_tag"),
       GIN_TYPE("Vector",
                "Vector",
                "Vector",
                "String",
                "String",
-               "String",
-               "Index",
-               "Numeric"),
+               "Index"),
       GIN_DEFAULT(
-          NODEF, NODEF, NODEF, NODEF, "analytical", "vmr", "1", "0.001"),
+          NODEF, NODEF, NODEF, NODEF, "vmr", "1"),
       GIN_DESC("Pressure retrieval grid.",
                "Latitude retrieval grid.",
                "Longitude retreival grid.",
                "The species tag of the retrieval quantity.",
-               "Calculation method. See above.",
                "Retrieval unit. See above.",
-               "Index-bool for acting on species tags or species.",
-               "Size of perturbation."),
+               "Index-bool for acting on species tags or species."),
       SETMETHOD(false),
       AGENDAMETHOD(false),
       USES_TEMPLATES(false),
@@ -9236,11 +9218,11 @@ void define_md_data_raw() {
       DESCRIPTION(
           "Includes atmospheric temperatures in the Jacobian.\n"
           "\n"
-          "The calculations can be performed by (semi-)analytical expressions\n"
-          "or by perturbations. Hydrostatic equilibrium (HSE) can be included.\n"
-          "For perturbation calculations, all possible effects are included\n"
-          "(but is a costly option). The analytical calculation approach\n"
-          "neglects refraction totally, but considers the local effect of HSE.\n"
+          "The calculations are performed by (semi-)analytical expressions.\n"
+          "Hydrostatic equilibrium (HSE) can be included.\n"
+          "\n"
+          "The analytical calculation approach neglects so far refraction\n"
+          "totally, but considers the local effect of HSE.\n"
           "The later should be accaptable for observations around zenith and\n"
           "nadir. There is no warning if the method is applied incorrectly, \n"
           "with respect to these issues. Note that the argument *hse* of this\n"
@@ -9252,10 +9234,6 @@ void define_md_data_raw() {
           "in VMR (a change in temperature then changes the number density). \n"
           "This has the consequence that retrieval of temperatures and number\n"
           "density can not be mixed. Neither any warning here!\n"
-          "\n"
-          "The choices for *method* are:\n"
-          "   \"analytical\"   : (semi-)analytical expressions are used\n"
-          "   \"perturbation\" : pure numerical perturbations are used\n"
           "\n"
           "The number of elements added to the state vector (*x*) is:\n"
           "   n_g1 * n_g2 * n_g3\n"
@@ -9274,15 +9252,13 @@ void define_md_data_raw() {
          "p_grid",
          "lat_grid",
          "lon_grid"),
-      GIN("g1", "g2", "g3", "hse", "method", "dt"),
-      GIN_TYPE("Vector", "Vector", "Vector", "String", "String", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "on", "analytical", "0.1"),
+      GIN("g1", "g2", "g3", "hse"),
+      GIN_TYPE("Vector", "Vector", "Vector", "String"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "on"),
       GIN_DESC("Pressure retrieval grid.",
                "Latitude retrieval grid.",
                "Longitude retreival grid.",
-               "Flag to assume HSE or not (\"on\" or \"off\").",
-               "Calculation method. See above.",
-               "Size of perturbation [K].")));
+               "Flag to assume HSE or not (\"on\" or \"off\").")));
 
   md_data_raw.push_back(MdRecord(
       NAME("jacobianAddWind"),
@@ -9293,7 +9269,7 @@ void define_md_data_raw() {
           "calculations can only be performed by analytic expressions.\n"
           "Some lower level function depends on frequency perturbations,\n"
           "however, so therefore a frequency perturbation *df* is required\n"
-          "and as a consequence *abs_f_interp_order* > 0.\n"
+          "and as a consequence *abs_f_interp_order* must be > 0.\n"
           "\n"
           "The wind field components are retrieved separately, and,\n"
           "hence, the argument *component* can be \"u\", \"v\" or \"w\" \n"
@@ -9315,8 +9291,7 @@ void define_md_data_raw() {
          "atmosphere_dim",
          "p_grid",
          "lat_grid",
-         "lon_grid",
-         "abs_f_interp_order"),
+         "lon_grid"),
       GIN("g1", "g2", "g3", "component", "dfrequency"),
       GIN_TYPE("Vector", "Vector", "Vector", "String", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "v", "0.1"),
@@ -9356,49 +9331,6 @@ void define_md_data_raw() {
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("jacobianCalcAbsSpeciesPerturbations"),
-      DESCRIPTION("Calculates absorption species jacobians by perturbations.\n"
-                  "\n"
-                  "This function is added to *jacobian_agenda* by\n"
-                  "jacobianAddAbsSpecies and should normally not be called\n"
-                  "by the user.\n"),
-      AUTHORS("Mattias Ekstrom", "Patrick Eriksson"),
-      OUT("jacobian"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("jacobian",
-         "mblock_index",
-         "iyb",
-         "yb",
-         "atmosphere_dim",
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "t_field",
-         "z_field",
-         "vmr_field",
-         "nlte_field",
-         "abs_species",
-         "cloudbox_on",
-         "stokes_dim",
-         "f_grid",
-         "sensor_pos",
-         "sensor_los",
-         "transmitter_pos",
-         "mblock_dlos_grid",
-         "sensor_response",
-         "iy_unit",
-         "iy_main_agenda",
-         "geo_pos_agenda",
-         "jacobian_quantities"),
-      GIN("species"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Species of interest."),
-      SETMETHOD(true)));
 
   md_data_raw.push_back(MdRecord(
       NAME("jacobianCalcDoNothing"),
@@ -9599,57 +9531,6 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Index among the period length specified for add-method."),
       SETMETHOD(true)));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("jacobianCalcTemperaturePerturbations"),
-      DESCRIPTION(
-          "Calculates atmospheric temperature jacobians by perturbations.\n"
-          "\n"
-          "This function is added to *jacobian_agenda* by\n"
-          "jacobianAddTemperature and should normally not be called\n"
-          "by the user.\n"),
-      AUTHORS("Mattias Ekstrom", "Patrick Eriksson"),
-      OUT("jacobian"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("jacobian",
-         "mblock_index",
-         "iyb",
-         "yb",
-         "atmosphere_dim",
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "lat_true",
-         "lon_true",
-         "t_field",
-         "z_field",
-         "vmr_field",
-         "nlte_field",
-         "abs_species",
-         "refellipsoid",
-         "z_surface",
-         "cloudbox_on",
-         "stokes_dim",
-         "f_grid",
-         "sensor_pos",
-         "sensor_los",
-         "transmitter_pos",
-         "mblock_dlos_grid",
-         "sensor_response",
-         "iy_unit",
-         "iy_main_agenda",
-         "geo_pos_agenda",
-         "g0_agenda",
-         "molarmass_dry_air",
-         "p_hse",
-         "z_hse_accuracy",
-         "jacobian_quantities"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
       NAME("jacobianClose"),
@@ -14744,28 +14625,22 @@ void define_md_data_raw() {
           "g2",
           "g3",
           "species",
-          "method",
           "unit",
-          "for_species_tag",
-          "dx"),
+          "for_species_tag"),
       GIN_TYPE("Vector",
                "Vector",
                "Vector",
                "String",
                "String",
-               "String",
-               "Index",
-               "Numeric"),
+               "Index"),
       GIN_DEFAULT(
-          NODEF, NODEF, NODEF, NODEF, "analytical", "rel", "1", "0.001"),
+          NODEF, NODEF, NODEF, NODEF, "rel", "1"),
       GIN_DESC("Pressure retrieval grid.",
                "Latitude retrieval grid.",
                "Longitude retreival grid.",
                "The species tag of the retrieval quantity.",
-               "Calculation method. See above.",
                "Retrieval unit. See above.",
-               "Index-bool for acting on species tags or species.",
-               "Size of perturbation."),
+               "Index-bool for acting on species tags or species."),
       SETMETHOD(false),
       AGENDAMETHOD(false),
       USES_TEMPLATES(false),
@@ -15155,15 +15030,13 @@ void define_md_data_raw() {
          "p_grid",
          "lat_grid",
          "lon_grid"),
-      GIN("g1", "g2", "g3", "hse", "method", "dt"),
-      GIN_TYPE("Vector", "Vector", "Vector", "String", "String", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "on", "analytical", "0.1"),
+      GIN("g1", "g2", "g3", "hse"),
+      GIN_TYPE("Vector", "Vector", "Vector", "String"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "on"),
       GIN_DESC("Pressure retrieval grid.",
                "Latitude retrieval grid.",
                "Longitude retreival grid.",
-               "Flag to assume HSE or not (\"on\" or \"off\").",
-               "Calculation method. See above.",
-               "Size of perturbation [K].")));
+               "Flag to assume HSE or not (\"on\" or \"off\").")));
 
   md_data_raw.push_back(MdRecord(
       NAME("retrievalAddWind"),
@@ -15188,8 +15061,7 @@ void define_md_data_raw() {
          "covmat_inv_block",
          "p_grid",
          "lat_grid",
-         "lon_grid",
-         "abs_f_interp_order"),
+         "lon_grid"),
       GIN("g1", "g2", "g3", "component", "dfrequency"),
       GIN_TYPE("Vector", "Vector", "Vector", "String", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "v", "0.1"),
