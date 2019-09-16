@@ -265,68 +265,68 @@ public:
   //////////////////////////////////////////////////////////////////
   
   /** Central frequency */
-  auto F0() const noexcept {return mF0;}
+  Numeric F0() const noexcept {return mF0;}
   
   /** Lower level energy */
-  auto E0() const noexcept {return mE0;}
+  Numeric E0() const noexcept {return mE0;}
   
   /** Reference line strength */
-  auto I0() const noexcept {return mI0;}
+  Numeric I0() const noexcept {return mI0;}
   
   /** Einstein spontaneous emission */
-  auto A() const noexcept {return mA;}
+  Numeric A() const noexcept {return mA;}
   
   /** Lower level statistical weight */
-  auto g_low() const noexcept {return mglow;}
+  Numeric g_low() const noexcept {return mglow;}
   
   /** Upper level statistical weight */
-  auto g_upp() const noexcept {return mgupp;}
+  Numeric g_upp() const noexcept {return mgupp;}
   
   /** Zeeman model */
-  auto Zeeman() const noexcept {return mzeeman;}
+  Zeeman::Model Zeeman() const noexcept {return mzeeman;}
   
   /** Line shape model */
-  auto& LineShape() const noexcept {return mlineshape;}
+  const LineShape::Model2& LineShape() const noexcept {return mlineshape;}
   
   /** Lower level quantum numbers */
-  auto& LowerQuantumNumbers() const noexcept {return mlowerquanta;}
+  const std::vector<Rational>& LowerQuantumNumbers() const noexcept {return mlowerquanta;}
   
   /** Upper level quantum numbers */
-  auto& UpperQuantumNumbers() const noexcept {return mupperquanta;}
+  const std::vector<Rational>& UpperQuantumNumbers() const noexcept {return mupperquanta;}
   
   //////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////// Reference access
   //////////////////////////////////////////////////////////////////
   
   /** Central frequency */
-  auto& F0() noexcept {return mF0;}
+  Numeric& F0() noexcept {return mF0;}
   
   /** Lower level energy */
-  auto& E0() noexcept {return mE0;}
+  Numeric& E0() noexcept {return mE0;}
   
   /** Reference line strength */
-  auto& I0() noexcept {return mI0;}
+  Numeric& I0() noexcept {return mI0;}
   
   /** Einstein spontaneous emission */
-  auto& A() noexcept {return mA;}
+  Numeric& A() noexcept {return mA;}
   
   /** Lower level statistical weight */
-  auto& g_low() noexcept {return mglow;}
+  Numeric& g_low() noexcept {return mglow;}
   
   /** Upper level statistical weight */
-  auto& g_upp() noexcept {return mgupp;}
+  Numeric& g_upp() noexcept {return mgupp;}
   
   /** Zeeman model */
-  auto& Zeeman() noexcept {return mzeeman;}
+  Zeeman::Model& Zeeman() noexcept {return mzeeman;}
   
   /** Line shape model */
-  auto& LineShape() noexcept {return mlineshape;}
+  LineShape::Model2& LineShape() noexcept {return mlineshape;}
   
   /** Lower level quantum numbers */
-  auto& LowerQuantumNumbers() noexcept {return mlowerquanta;}
+  std::vector<Rational>& LowerQuantumNumbers() noexcept {return mlowerquanta;}
   
   /** Upper level quantum numbers */
-  auto& UpperQuantumNumbers() noexcept {return mupperquanta;}
+  std::vector<Rational>& UpperQuantumNumbers() noexcept {return mupperquanta;}
   
   //////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////// Special access
@@ -624,10 +624,10 @@ public:
   Index NumLines() const noexcept {return Index(mlines.size());}
   
   /** Lines */
-  auto& AllLines() const noexcept {return mlines;}
+  const std::vector<SingleLine>& AllLines() const noexcept {return mlines;}
   
   /** Lines */
-  auto& AllLines() noexcept {return mlines;}
+  std::vector<SingleLine>& AllLines() noexcept {return mlines;}
   
   /** Number of broadening species */
   Index NumBroadeners() const noexcept {return Index(mlocalquanta.size());}
@@ -878,12 +878,12 @@ public:
   }
   
   /** Returns local quantum numbers */
-  auto LocalQuanta() const noexcept {
+  const std::vector<QuantumNumberType>& LocalQuanta() const noexcept {
     return mlocalquanta;
   }
   
   /** Returns the broadening species */
-  auto& BroadeningSpecies() const noexcept {
+  const ArrayOfSpeciesTag& BroadeningSpecies() const noexcept {
     return mbroadeningspecies;
   }
   
@@ -898,7 +898,7 @@ public:
   }
   
   /** Returns identity status */
-  auto QuantumIdentity() const noexcept {
+  const QuantumIdentifier& QuantumIdentity() const noexcept {
     return mquantumidentity;
   }
 };  // Lines
