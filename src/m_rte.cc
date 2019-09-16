@@ -1067,9 +1067,6 @@ void iyIndependentBeamApproximation(Workspace& ws,
                       rte_pos2,
                       0,
                       0,
-                      t_field,
-                      z_field,
-                      vmr_field,
                       f_grid,
                       ppath_agenda);
   //
@@ -1098,9 +1095,6 @@ void iyIndependentBeamApproximation(Workspace& ws,
                         rte_pos2,
                         0,
                         0,
-                        t_field,
-                        z_field,
-                        vmr_field,
                         f_grid,
                         ppath_agenda);
   } else {

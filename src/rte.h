@@ -196,9 +196,7 @@ void bending_angle1d(Numeric& alpha, const Ppath& ppath);
     @param[in]    p_grid              As the WSV with the same name.
     @param[in]    lat_grid            As the WSV with the same name.
     @param[in]    lon_grid            As the WSV with the same name.
-    @param[in]    t_field             As the WSV with the same name.
     @param[in]    z_field             As the WSV with the same name.
-    @param[in]    vmr_field           As the WSV with the same name.
     @param[in]    f_grid              As the WSV with the same name.
     @param[in]    refellipsoid        As the WSV with the same name.
     @param[in]    z_surface           As the WSV with the same name.
@@ -218,9 +216,7 @@ void defocusing_general(Workspace& ws,
                         ConstVectorView p_grid,
                         ConstVectorView lat_grid,
                         ConstVectorView lon_grid,
-                        ConstTensor3View t_field,
                         ConstTensor3View z_field,
-                        ConstTensor4View vmr_field,
                         ConstVectorView f_grid,
                         ConstVectorView refellipsoid,
                         ConstMatrixView z_surface,
@@ -247,9 +243,7 @@ void defocusing_general(Workspace& ws,
     @param[in]    p_grid              As the WSV with the same name.
     @param[in]    lat_grid            As the WSV with the same name.
     @param[in]    lon_grid            As the WSV with the same name.
-    @param[in]    t_field             As the WSV with the same name.
     @param[in]    z_field             As the WSV with the same name.
-    @param[in]    vmr_field           As the WSV with the same name.
     @param[in]    f_grid              As the WSV with the same name.
     @param[in]    refellipsoid        As the WSV with the same name.
     @param[in]    z_surface           As the WSV with the same name.
@@ -269,9 +263,7 @@ void defocusing_sat2sat(Workspace& ws,
                         ConstVectorView p_grid,
                         ConstVectorView lat_grid,
                         ConstVectorView lon_grid,
-                        ConstTensor3View t_field,
                         ConstTensor3View z_field,
-                        ConstTensor4View vmr_field,
                         ConstVectorView f_grid,
                         ConstVectorView refellipsoid,
                         ConstMatrixView z_surface,

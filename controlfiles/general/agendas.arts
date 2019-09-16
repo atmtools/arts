@@ -34,6 +34,7 @@ AgendaCreate( iy_main_agenda__Transmission )
 AgendaSet( iy_main_agenda__Transmission ){
   Ignore( iy_unit )
   Ignore( iy_id )
+  Ignore( z_field )
   ppathCalc( cloudbox_on=0 )
   iyTransmissionStandard
 }
@@ -107,6 +108,7 @@ AgendaSet( iy_sub_agenda__Transmission ){
   Ignore( lon_true )
   Ignore( z_surface )
   Ignore( iy_unit )
+  Ignore( z_field )
   Ignore( nlte_field )
   Ignore( iy_id )
   ppathCalc

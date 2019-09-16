@@ -354,9 +354,6 @@ void cloud_ppath_update1D(Workspace& ws,
                            ppath_step,
                            ppath_lmax,
                            ppath_lraytrace,
-                           t_field,
-                           z_field,
-                           vmr_field,
                            Vector(1, f_grid[f_index]),
                            ppath_step_agenda);
 
@@ -514,9 +511,6 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
                            ppath_step,
                            ppath_lmax,
                            ppath_lraytrace,
-                           t_field,
-                           z_field,
-                           vmr_field,
                            Vector(1, f_grid[f_index]),
                            ppath_step_agenda);
 
@@ -1193,9 +1187,6 @@ void cloud_ppath_update3D(Workspace& ws,
                            ppath_step,
                            ppath_lmax,
                            ppath_lraytrace,
-                           t_field,
-                           z_field,
-                           vmr_field,
                            Vector(1, f_grid[f_index]),
                            ppath_step_agenda);
 

@@ -623,9 +623,6 @@ void define_agenda_data() {
             "rte_pos2",
             "cloudbox_on",
             "ppath_inside_cloudbox_do",
-            "t_field",
-            "z_field",
-            "vmr_field",
             "f_grid")));
 
   agenda_data.push_back(AgRecord(
@@ -674,9 +671,6 @@ void define_agenda_data() {
       INPUT("ppath_step",
             "ppath_lmax",
             "ppath_lraytrace",
-            "t_field",
-            "z_field",
-            "vmr_field",
             "f_grid")));
 
   agenda_data.push_back(AgRecord(
