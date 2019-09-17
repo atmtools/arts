@@ -1012,7 +1012,7 @@ void iyIndependentBeamApproximation(Workspace& ws,
                                     const Vector& rte_pos2,
                                     const Index& jacobian_do,
                                     const ArrayOfString& iy_aux_vars,
-                                    const Agenda& iy_sub_agenda,
+                                    const Agenda& iy_iba_agenda,
                                     const Index& return_atm1d,
                                     const Index& skip_vmr,
                                     const Index& skip_pnd,
@@ -1051,7 +1051,11 @@ void iyIndependentBeamApproximation(Workspace& ws,
           "Sizes of *pnd_field* and *particle_masses* "
           "are inconsistent.");
   }
-
+  chk_latlon_true(atmosphere_dim,
+                  lat_grid,
+                  lat_true,
+                  lon_true);
+  
   // Note that input 1D atmospheres are handled exactly as 2D and 3D, to make
   // the function totally general. And 1D must be handled for iterative calls.
 
@@ -1299,7 +1303,7 @@ void iyIndependentBeamApproximation(Workspace& ws,
     const Numeric lmax1 = -1;
     Ppath ppath1d;
     //
-    iy_sub_agendaExecute(ws,
+    iy_iba_agendaExecute(ws,
                          iy,
                          iy_aux,
                          ppath1d,
@@ -1309,7 +1313,6 @@ void iyIndependentBeamApproximation(Workspace& ws,
                          iy_transmission,
                          iy_aux_vars,
                          iy_id,
-                         f_grid,
                          adim1,
                          p1,
                          lat1,
@@ -1329,7 +1332,7 @@ void iyIndependentBeamApproximation(Workspace& ws,
                          pos1,
                          los1,
                          pos2,
-                         iy_sub_agenda);
+                         iy_iba_agenda);
   }
 
   // Fill *atm_fields_compact*?
@@ -1416,31 +1419,14 @@ void iyLoopFrequencies(Workspace& ws,
                        Ppath& ppath,
                        ArrayOfTensor3& diy_dx,
                        const ArrayOfString& iy_aux_vars,
-                       const Index& stokes_dim,
-                       const Vector& f_grid,
-                       const Index& atmosphere_dim,
-                       const Vector& p_grid,
-                       const Vector& lat_grid,
-                       const Vector& lon_grid,
-                       const Vector& lat_true,
-                       const Vector& lon_true,
-                       const Tensor3& t_field,
-                       const Tensor3& z_field,
-                       const Tensor4& vmr_field,
-                       const Matrix& z_surface,
-                       const Numeric& ppath_lmax,
-                       const Numeric& ppath_lraytrace,
-                       const Index& cloudbox_on,
-                       const ArrayOfIndex& cloudbox_limits,
-                       const Tensor4& pnd_field,
                        const Index& iy_agenda_call1,
-                       const String& iy_unit,
                        const Tensor3& iy_transmission,
                        const Vector& rte_pos,
                        const Vector& rte_los,
                        const Vector& rte_pos2,
-                       const Index& jacobian_do,
-                       const Agenda& iy_sub_agenda,
+                       const Index& stokes_dim,
+                       const Vector& f_grid,
+                       const Agenda& iy_loop_freqs_agenda,
                        const Verbosity&) {
   // Throw error if unsupported features are requested
   if (!iy_agenda_call1)
@@ -1457,37 +1443,20 @@ void iyLoopFrequencies(Workspace& ws,
     ArrayOfMatrix iy_aux1;
     ArrayOfTensor3 diy_dx1;
 
-    iy_sub_agendaExecute(ws,
-                         iy1,
-                         iy_aux1,
-                         ppath,
-                         diy_dx1,
-                         iy_agenda_call1,
-                         iy_unit,
-                         iy_transmission,
-                         iy_aux_vars,
-                         0,
-                         Vector(1, f_grid[i]),
-                         atmosphere_dim,
-                         p_grid,
-                         lat_grid,
-                         lon_grid,
-                         lat_true,
-                         lon_true,
-                         t_field,
-                         z_field,
-                         vmr_field,
-                         z_surface,
-                         ppath_lmax,
-                         ppath_lraytrace,
-                         cloudbox_on,
-                         cloudbox_limits,
-                         pnd_field,
-                         jacobian_do,
-                         rte_pos,
-                         rte_los,
-                         rte_pos2,
-                         iy_sub_agenda);
+    iy_loop_freqs_agendaExecute(ws,
+                                iy1,
+                                iy_aux1,
+                                ppath,
+                                diy_dx1,
+                                iy_agenda_call1,
+                                iy_transmission,
+                                iy_aux_vars,
+                                0,
+                                Vector(1, f_grid[i]),
+                                rte_pos,
+                                rte_los,
+                                rte_pos2,
+                                iy_loop_freqs_agenda);
 
     // After first frequency, give output its size
     if (i == 0) {

@@ -154,7 +154,7 @@ Copy( iy0, iy )
 
 
 Copy( iy_main_agenda, iy_main_agenda__Freqloop )
-Copy( iy_sub_agenda, iy_sub_agenda__Transmission )
+Copy( iy_loop_freqs_agenda, iy_loop_freqs_agenda__Transmission )
 
 
 # No along-the-path-variables can here be included

@@ -7814,9 +7814,10 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(MdRecord(
       NAME("iyIndependentBeamApproximation"),
-      DESCRIPTION("In development ....\n"
-                  "\n"
-                  "Describe how *atm_fields_compact* is filled.\n"),
+      DESCRIPTION(
+         "In development ....\n"
+         "\n"
+         "Describe how *atm_fields_compact* is filled.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("iy", "iy_aux", "ppath", "diy_dx", "atm_fields_compact"),
       GOUT(),
@@ -7856,7 +7857,7 @@ void define_md_data_raw() {
          "rte_pos2",
          "jacobian_do",
          "iy_aux_vars",
-         "iy_sub_agenda"),
+         "iy_iba_agenda"),
       GIN("return_atm1d", "skip_vmr", "skip_pnd", "return_masses"),
       GIN_TYPE("Index", "Index", "Index", "Index"),
       GIN_DEFAULT("0", "0", "0", "0"),
@@ -7865,7 +7866,7 @@ void define_md_data_raw() {
           "Flag to not include vmr data in *atm_fields_compact*.",
           "Flag to not include pnd data in *atm_fields_compact*.",
           "Flag to include particle category masses in *atm_fields_compact*."
-          " Conversion is done by *particle_masses*.")));
+          "Conversion is done by *particle_masses*.")));
 
   md_data_raw.push_back(MdRecord(
       NAME("iyInterpCloudboxField"),
@@ -7992,48 +7993,27 @@ void define_md_data_raw() {
           "Radiative transfer calculations one frequency at the time.\n"
           "\n"
           "The method loops the frequencies in *f_grid* and calls\n"
-          "*iy_sub_agenda* for each individual value. This method is placed\n"
-          "in *iy_main_agenda*, and the actual radiative ransfer method is\n"
-          "put in *iy_sub_agenda*.\n"
+          "*iy_loop_freqs_agenda* for each individual value. This method is\n"
+          "placed in *iy_main_agenda*, and the actual radiative transfer\n"
+          " method is put in *iy_loop_freqs_agenda*.\n"
           "\n"
           "A common justification for using the method should be to consider\n"
           "dispersion. By using this method it is ensured that the propagation\n"
-          "path for each individual frequency is calculated.\n"
-          "\n"
-          "Auxiliary data (defined by *iy_aux_vars*) can not contain along-\n"
-          "the-path quantities (a common ppath is not ensured). The returned\n"
-          "*ppath* is valid for the last frequency.\n"),
+          "path for each individual frequency is calculated.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("iy", "iy_aux", "ppath", "diy_dx"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("iy_aux_vars",
-         "stokes_dim",
-         "f_grid",
-         "atmosphere_dim",
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "lat_true",
-         "lon_true",
-         "t_field",
-         "z_field",
-         "vmr_field",
-         "z_surface",
-         "ppath_lmax",
-         "ppath_lraytrace",
-         "cloudbox_on",
-         "cloudbox_limits",
-         "pnd_field",
          "iy_agenda_call1",
-         "iy_unit",
          "iy_transmission",
          "rte_pos",
          "rte_los",
          "rte_pos2",
-         "jacobian_do",
-         "iy_sub_agenda"),
+         "stokes_dim",
+         "f_grid",
+         "iy_loop_freqs_agenda"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),

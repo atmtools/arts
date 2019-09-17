@@ -116,6 +116,8 @@ arts_test_run_ctlfile(fast artscomponents/radar/TestIyActive_wfuns.arts)
 
 arts_test_run_ctlfile(fast artscomponents/ycalcappend/TestYCalcAppend.arts)
 
+arts_test_run_ctlfile(fast artscomponents/iba/TestIBA.arts)
+
 arts_test_run_ctlfile(fast artscomponents/heatingrates/TestHeatingRates.arts)
 
 arts_test_run_ctlfile(fast artscomponents/dobatch/TestDOBatch.arts)
