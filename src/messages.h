@@ -48,7 +48,7 @@
 
 class Verbosity {
  public:
-  Verbosity() : va(0), vs(1), vf(1), in_main_agenda(false) {}
+  Verbosity() : va(0), vs(0), vf(0), in_main_agenda(false) {}
 
   Verbosity(Index vagenda, Index vscreen, Index vfile)
       : va(vagenda), vs(vscreen), vf(vfile), in_main_agenda(false) {}
