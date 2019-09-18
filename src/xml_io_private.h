@@ -166,7 +166,7 @@ class ArtsXMLTag {
    * @param[in] aname Attribute name
    * @param[in,out] value Return value
    */
-  void get_attribute_value(const String& aname, QuantumIdentifier& value);
+  void get_attribute_value(const String& aname, QuantumNumbers& value);
 
   void read_from_stream(istream& is);
 

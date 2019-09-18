@@ -239,49 +239,8 @@ class QuantumNumbers {
    * @param[in] qn String Pos to set at by name
    * @param[in] r Rational to set
    */
-  void Set(String name, Rational r) {
-    // Define a helper macro to save some typing.
-#define INPUT_QUANTUM(ID) \
-  if (name == #ID) this->Set(QuantumNumberType::ID, r)
-
-    INPUT_QUANTUM(J);
-    else INPUT_QUANTUM(dJ);
-    else INPUT_QUANTUM(M);
-    else INPUT_QUANTUM(N);
-    else INPUT_QUANTUM(dN);
-    else INPUT_QUANTUM(S);
-    else INPUT_QUANTUM(F);
-    else INPUT_QUANTUM(K);
-    else INPUT_QUANTUM(Ka);
-    else INPUT_QUANTUM(Kc);
-    else INPUT_QUANTUM(Omega);
-    else INPUT_QUANTUM(i);
-    else INPUT_QUANTUM(Lambda);
-    else INPUT_QUANTUM(alpha);
-    else INPUT_QUANTUM(Sym);
-    else INPUT_QUANTUM(parity);
-    else INPUT_QUANTUM(v1);
-    else INPUT_QUANTUM(v2);
-    else INPUT_QUANTUM(l2);
-    else INPUT_QUANTUM(v3);
-    else INPUT_QUANTUM(v4);
-    else INPUT_QUANTUM(v5);
-    else INPUT_QUANTUM(v6);
-    else INPUT_QUANTUM(l);
-    else INPUT_QUANTUM(pm);
-    else INPUT_QUANTUM(r);
-    else INPUT_QUANTUM(S_global);
-    else INPUT_QUANTUM(X);
-    else INPUT_QUANTUM(n_global);
-    else INPUT_QUANTUM(C);
-    else INPUT_QUANTUM(Hund);
-    else {
-      std::ostringstream os;
-      os << "Unknown quantum number: " << name << " (" << r << ").";
-      throw std::runtime_error(os.str());
-    }
-
-#undef INPUT_QUANTUM
+  void Set(String qn, Rational r) {
+    mqnumbers[Index(string2quantumnumbertype(qn))] = r;
   }
 
   /** Get the numbers
@@ -691,9 +650,6 @@ std::istream& operator>>(std::istream& is, QuantumNumbers& qn);
 
 /** Output operator */
 std::ostream& operator<<(std::ostream& os, const QuantumNumbers& qn);
-
-/** Input operator */
-std::istream& operator>>(std::istream& is, QuantumIdentifier& qi);
 
 /** Output operator */
 std::ostream& operator<<(std::ostream& os, const QuantumIdentifier& qi);

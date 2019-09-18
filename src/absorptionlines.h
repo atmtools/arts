@@ -244,8 +244,11 @@ public:
    * @param[in] nbroadeners Number of broadening species
    * @param[in] nquanta Number of local quantum numbers
    */
-  SingleLine(size_t nbroadeners, size_t nquanta) noexcept :
-  mlineshape(nbroadeners), mlowerquanta(nquanta), mupperquanta(nquanta) {}
+  SingleLine(size_t nbroadeners, size_t nquanta, const LineShape::Model2& metamodel) :
+  mlineshape(metamodel), mlowerquanta(nquanta), mupperquanta(nquanta) {
+    if(Index(nbroadeners) not_eq mlineshape.nelem())
+      throw std::runtime_error("Mismatch between broadeners and model");
+  }
   
   //////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////// Counts
@@ -494,6 +497,7 @@ public:
    * @param[in] quantumidentity Identity of global lines
    * @param[in] localquanta List of local quantum number(s)
    * @param[in] broadeningspecies List of broadening species
+   * @param[in] metamodel A line shape model with defined shapes
    */
   Lines(bool selfbroadening,
         bool bathbroadening,
@@ -508,7 +512,8 @@ public:
         Numeric linemixinglimit,
         const QuantumIdentifier& quantumidentity,
         const std::vector<QuantumNumberType>& localquanta,
-        const ArrayOfSpeciesTag& broadeningspecies) :
+        const ArrayOfSpeciesTag& broadeningspecies,
+        const LineShape::Model2& metamodel) :
         mselfbroadening(selfbroadening),
         mbathbroadening(bathbroadening),
         mcutoff(cutoff),
@@ -524,7 +529,7 @@ public:
         mbroadeningspecies(broadeningspecies),
         mlines(nlines,
                SingleLine(broadeningspecies.size(),
-               localquanta.size())) {};
+               localquanta.size(), metamodel)) {};
   
   /** Appends a single line to the absorption lines
    * 
@@ -611,8 +616,18 @@ public:
   /** Species Name */
   String SpeciesName() const noexcept;
   
-  /** Quantum numbers string */
-  String QuantumNumberName() const noexcept;
+  /** Upper quantum numbers string */
+  String UpperQuantumNumbers() const noexcept;
+  
+  /** Lower quantum numbers string */
+  String LowerQuantumNumbers() const noexcept;
+  
+  /** Meta data for the line shape if it exists */
+  String LineShapeMetaData() const noexcept {
+    return NumLines() ?
+      LineShape::ModelShape2MetaData(mlines[0].LineShape()) :
+      "";
+  }
   
   /** Species Index */
   Index Species() const noexcept {return mquantumidentity.Species();}

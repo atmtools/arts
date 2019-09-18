@@ -62,7 +62,7 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines2,
     }
   }
   
-  auto x = Absorption::split_list_of_external_lines(v, {}, {});
+  auto x = Absorption::split_list_of_external_lines(v, {QuantumNumberType::J}, {QuantumNumberType::v1});
   abs_lines2.resize(0);
   abs_lines2.reserve(x.size());
   for(auto& lines: x)

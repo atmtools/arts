@@ -499,3 +499,67 @@ std::istream& LineShape::operator>>(std::istream& is, Model2& m)
     is >> data;
   return is;
 }
+
+
+String LineShape::ModelShape2MetaData(const Model2& m)
+{
+  String out = "";
+  
+  const auto names = AllLineShapeVars();
+  std::vector<Variable> vars(0);
+  for( auto& n: names)
+    vars.push_back(string2variable(n));
+  
+  for (auto& var: vars) {
+    if (std::any_of(m.Data().cbegin(), m.Data().cend(),
+      [var](auto& x){return x.Get(var).type not_eq TemperatureModel::None;})) {
+      out += variable2string(var) + ' ';
+      for(auto& ssm: m.Data())
+        out += temperaturemodel2string(ssm.Get(var).type) + ' ';
+    }
+  }
+  
+  if(out.size())
+    out.pop_back();
+  
+  return out;
+}
+
+LineShape::Model2 LineShape::MetaData2ModelShape(const String& s)
+{
+  const auto names = AllLineShapeVars();
+  
+  std::istringstream str(s);
+  String part;
+  Variable var=Variable::ETA;
+  TemperatureModel tm=TemperatureModel::None;
+  Index i=-100000;
+  
+  std::vector<SingleSpeciesModel2> ssms(0);
+  while (not str.eof()) {
+    str >> part;
+    if(std::any_of(names.cbegin(), names.cend(),
+      [part](auto x){return part == x;})) {
+      i=-1;
+      var = string2variable(part);
+    }
+    else {
+      i++;
+      tm = string2temperaturemodel(part);
+    }
+    
+    if(i < 0)
+      continue;
+    else if (i < Index(ssms.size()))
+      goto add_var;
+    else {
+      ssms.push_back(SingleSpeciesModel2());
+      add_var:
+      auto mp = ssms[i].Get(var);
+      mp.type = tm;
+      ssms[i].Set(var, mp);
+    }
+  }
+  
+  return Model2(ssms);
+}

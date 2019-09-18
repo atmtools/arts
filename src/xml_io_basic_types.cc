@@ -1512,25 +1512,29 @@ void xml_read_from_stream(istream& is_xml,
   std::vector<QuantumNumberType> localquanta;
   tag.get_attribute_value("localquanta", localquanta);
   
-  /** Catalog ID */
-  QuantumIdentifier quantumidentity;
-  quantumidentity.SetTransition();
-  quantumidentity.SetSpecies(spec.Species());
-  quantumidentity.SetIsotopologue(spec.Isotopologue());
-  tag.get_attribute_value("globalquanta", quantumidentity);
+  /** Catalog ID */  
+  QuantumNumbers upperglobalquanta;
+  tag.get_attribute_value("upperglobalquanta", upperglobalquanta);
+  QuantumNumbers lowerglobalquanta;
+  tag.get_attribute_value("lowerglobalquanta", lowerglobalquanta);
   
   /** A list of broadening species */
   ArrayOfSpeciesTag broadeningspecies;
   bool selfbroadening;
   bool bathbroadening;
   tag.get_attribute_value("broadeningspecies", broadeningspecies, selfbroadening, bathbroadening);
+  
+  String temperaturemodes;
+  tag.get_attribute_value("temperaturemodes", temperaturemodes);
+  auto metamodel = LineShape::MetaData2ModelShape(temperaturemodes);
 
   al = AbsorptionLines(selfbroadening, bathbroadening,
                        nlines, cutoff, mirroring,
                        population, normalization,
                        lineshapetype, T0, cutofffreq,
-                       linemixinglimit, quantumidentity,
-                       localquanta, broadeningspecies);
+                       linemixinglimit, QuantumIdentifier(spec.Species(),
+                       spec.Isotopologue(), upperglobalquanta, lowerglobalquanta),
+                       localquanta, broadeningspecies, metamodel);
   
   if (pbifs) {
 //     *pbifs >> al;
@@ -1579,8 +1583,10 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.add_attribute("cutofffreq", al.CutoffFreqValue());
   open_tag.add_attribute("linemixinglimit", al.LinemixingLimit());
   open_tag.add_attribute("localquanta", al.LocalQuanta());
-  open_tag.add_attribute("globalquanta", al.QuantumNumberName());
+  open_tag.add_attribute("upperglobalquanta", al.UpperQuantumNumbers());
+  open_tag.add_attribute("lowerglobalquanta", al.LowerQuantumNumbers());
   open_tag.add_attribute("broadeningspecies", al.BroadeningSpecies(), al.Self(), al.Bath());
+  open_tag.add_attribute("temperaturemodes", al.LineShapeMetaData());
 
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';

@@ -1204,7 +1204,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
   data.T0 = 296.0;
 
   // Set line shape computer
-  data.line.LineShape() = LineShape::Model(sgam, nself, agam, nair, psf).Data();
+  data.line.LineShape() = LineShape::Model2(sgam, nself, agam, nair, psf).Data();
   {
     Index garbage;
     extract(garbage, line, 13);
@@ -1607,7 +1607,7 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
       getline(is, line);
     else  // the line is done and we are happy to leave
     {
-      data.line.LineShape() = LineShape::Model2(LineShape::Model(sgam, nself, agam, nair, psf).Data());
+      data.line.LineShape() = LineShape::Model2(sgam, nself, agam, nair, psf);
       
       data.bad = false;
       return data;
@@ -1806,9 +1806,9 @@ std::ostream & Absorption::operator<<(std::ostream& os, const Absorption::Single
      << line.Zeeman() << ' '
      << line.LineShape();
   for(auto& r: line.LowerQuantumNumbers())
-    os << ' ' << r;
+    os << r << ' ';
   for(auto& r: line.UpperQuantumNumbers())
-    os << ' ' << r;
+    os << r << ' ';
   return os;
 }
 
@@ -1849,16 +1849,22 @@ String Absorption::Lines::SpeciesName() const noexcept
   spr.Isotopologue()[Isotopologue()].Name();;
 }
 
-String Absorption::Lines::QuantumNumberName() const noexcept
+String Absorption::Lines::UpperQuantumNumbers() const noexcept
 {
   std::ostringstream out;
-  out << "UP ";
-  if(mquantumidentity.UpperQuantumNumbers().nNumbers())
-    out << mquantumidentity.UpperQuantumNumbers() << ' ';
-  if(mquantumidentity.LowerQuantumNumbers().nNumbers())
-    out << "LO " << mquantumidentity.LowerQuantumNumbers();
-  else
-    out << "LO";
-  
-  return out.str();
+  out << mquantumidentity.UpperQuantumNumbers() << ' ';
+  String s=out.str();
+  if(s.back() == ' ')
+    s.pop_back();
+  return s;
+}
+
+String Absorption::Lines::LowerQuantumNumbers() const noexcept
+{
+  std::ostringstream out;
+  out << mquantumidentity.LowerQuantumNumbers() << ' ';
+  String s=out.str();
+  if(s.back() == ' ')
+    s.pop_back();
+  return s;
 }

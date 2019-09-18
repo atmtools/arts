@@ -258,61 +258,22 @@ void ArtsXMLTag::get_attribute_value(const String& aname, std::vector<QuantumNum
   }
 }
 
-void ArtsXMLTag::get_attribute_value(const String& aname, QuantumIdentifier& value) {
+void ArtsXMLTag::get_attribute_value(const String& aname, QuantumNumbers& value) {
   String attribute_value;
   istringstream strstr("");
   
   get_attribute_value(aname, attribute_value);
-  strstr.str(attribute_value);
-  QuantumNumberType pos;
-  Rational val;
-  String key;
   
-  bool OK = true;
+  strstr.str(attribute_value);
+  String key;
+  Rational r;
   
   strstr >> key;
-  
-  if(key not_eq "UP" or not OK)
-    OK = false;
-  
-  // Upper numbers
-  while(not strstr.eof() and OK) {
+  while (strstr) {
+    strstr >> r;
+    value.Set(key, r);
     strstr >> key;
-    
-    if(key == "LO")
-      break;
-    
-    pos = string2quantumnumbertype(key);
-    
-    if(pos == QuantumNumberType::FINAL_ENTRY) {
-      OK = false;
-      break;
-    }
-    
-    strstr >> val;
-    value.UpperQuantumNumber(pos) = val;
   }
-  
-  if(strstr.eof() or not OK)
-    OK = false;
-  
-  // Lower numbers
-  while(not strstr.eof() and OK) {
-    strstr >> key;
-    
-    pos = string2quantumnumbertype(key);
-    
-    if(pos == QuantumNumberType::FINAL_ENTRY) {
-      OK = false;
-      break;
-    }
-    
-    strstr >> val;
-    value.LowerQuantumNumber(pos) = val;
-  }
-  
-  if(not OK)
-    throw std::runtime_error("Bad key-ordering");
 }
 
 //! Reads next XML tag
