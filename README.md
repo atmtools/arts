@@ -376,43 +376,39 @@ after some time when you think you have gathered enough statistics.
 [1] https://kcachegrind.github.io/
 
 
-gprof profiling
----------------
+Linux perf profiling
+--------------------
 
-To utilize gprof to obtain profiling information, you can configure ARTS
-in the following way:
+The [Performance Counters for Linux](https://perf.wiki.kernel.org/) offer a convenient way to profile
+any program with basically no runtime overhead. Profiling works for all
+configurations (Debug, RelWithDebInfo and Release). To ensure that the
+calltree can be analyzed correctly, compile ARTS without frame pointers. This
+has minimal impact on performance:
 
-1. Create an new build directory:
-```bash
-cd arts
-mkdir build_profile
-cd build_profile
+```
+cmake -DCMAKE_C_FLAGS="-fno-omit-frame-pointer" \
+      -DCMAKE_CXX_FLAGS="-fno-omit-frame-pointer" ..
 ```
 
-2. Compile ARTS with profiling information:
-```bash
-CFLAGS="-pg" CXXFLAGS="-pg" FFLAGS="-pg" cmake ..
-make arts
+Prepend the perf command to your arts call to record callgraph information:
+
+```
+perf record -g src/arts MYCONTROLFILE.arts
 ```
 
-If your gprof version does not support GCC's latest dwarf format, you have
-to force a compatible format:
-```bash
-CFLAGS="-pg -gdwarf-3" CXXFLAGS="-pg -gdwarf-3" FFLAGS="-pg -gdwarf-3" cmake ..
+This can also be applied to any test case:
+
+```
+perf record -g ctest -R TestDOIT$
 ```
 
-3. Run ARTS in the configuration you want to analyze:
-```bash
-src/arts MYCONTROLFILE.arts
+After recording, use the report command to display an interactive view of the
+profiling information:
+
+```
+perf report -g graph,0.5,callees
 ```
 
-4. Step 3 created a file gmon.out with timing information. Use gprof to
-analyze it:
-```bash
-gprof src/arts
-```
-
-As gprof adds code overhead into the produced binary, using a sampling profiler
-such as 'Instruments' on Mac OS X or callgrind on Linux is recommended to obtain
-more realistic timing results.
+This will show a reverse call tree with the percentage of time spent in each
+function. The function tree can be expanded to expose the calling functions.
 
