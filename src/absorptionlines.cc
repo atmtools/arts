@@ -1882,6 +1882,7 @@ String Absorption::Lines::MetaData() const noexcept
   os << '\t' << populationtype2metadatastring(mpopulation);
   os << '\t' << normalizationtype2metadatastring(mnormalization);
   os << '\t' << LineShape::shapetype2metadatastring(mlineshapetype);
+  os << '\t' << mirroringtype2metadatastring(mmirroring);
   os << '\t' << "The reference temperature for all line parameters is "
      << mT0 << " K.\n";
   if(mlinemixinglimit < 0)
@@ -1896,22 +1897,22 @@ String Absorption::Lines::MetaData() const noexcept
   else {
     os << "\tThere are " << NumLines() << " lines available.\n";
     
-    auto& line = mlines.front();
+    auto& line = mlines.back();
     os << "\tThe front line has:\n";
     os << "\t\t" << "f0: " << line.F0() << " Hz\n";
     os << "\t\t" << "i0: " << line.I0() << " m^2/Hz\n";
     os << "\t\t" << "e0: " << line.E0() << " J\n";
     os << "\t\t" << "Lower stat. weight: " << line.g_low() << " [-]\n";
-    os << "\t\t" << "Lower stat. weight: " << line.g_upp() << " [-]\n";
+    os << "\t\t" << "Upper stat. weight: " << line.g_upp() << " [-]\n";
     os << "\t\t" << "A: " << line.A() << " 1/s\n";
     os << "\t\t" << "Zeeman splitting of lower state: " << line.Zeeman().gl() << " [-]\n";
     os << "\t\t" << "Zeeman splitting of upper state: " << line.Zeeman().gu() << " [-]\n";
-    os << "\t\t" << "Lower state local quantum numbers :";
+    os << "\t\t" << "Lower state local quantum numbers:";
     for(size_t i=0; i<mlocalquanta.size(); i++)
       os << " " << quantumnumbertype2string(mlocalquanta[i])
       << "=" << line.LowerQuantumNumber(i) << ";";
     os << "\n";
-    os << "\t\t" << "Upper state local quantum numbers :";
+    os << "\t\t" << "Upper state local quantum numbers:";
     for(size_t i=0; i<mlocalquanta.size(); i++)
       os << " " << quantumnumbertype2string(mlocalquanta[i])
       << "=" << line.UpperQuantumNumber(i) << ";";

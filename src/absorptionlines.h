@@ -78,7 +78,7 @@ inline String mirroringtype2string(MirroringType in) {
 
 inline String mirroringtype2metadatastring(MirroringType in) {
   if (in == MirroringType::None)
-    return "These lines are not mirrored at 0 Hz\n";
+    return "These lines are not mirrored at 0 Hz.\n";
   else if (in == MirroringType::Lorentz)
     return "These lines are mirrored around 0 Hz using the Lorentz line shape for the f0<0 mirrors.\n";
   else if (in == MirroringType::SameAsLineShape)

@@ -1770,13 +1770,13 @@ std::istream& from_pressurebroadeningdata(std::istream& data,
 inline std::ostream& operator<<(std::ostream& os, const Model& m) {
   os << shapetype2string(m.mtype) << ' ' << m.nelem() << ' ' << m.mself << ' '
      << m.mbath;
-  for (Index i = 0; i < m.nelem(); i++) {
-    if (m.mself and i == 0)
+  for (auto& spec: m.mspecies) {
+    if (m.mself and &spec == &m.mspecies.front())
       os << ' ' << self_broadening;
-    else if (m.mbath and i == m.nelem() - 1)
+    else if (m.mbath and &spec == &m.mspecies.back())
       os << ' ' << bath_broadening;
     else
-      os << ' ' << m.mspecies[i].SpeciesNameMain();
+      os << ' ' << spec.SpeciesNameMain();
   }
   for (auto& d : m.mdata) os << ' ' << d;
   return os;
@@ -1790,12 +1790,12 @@ inline std::istream& operator>>(std::istream& is, Model& m) {
   m.mtype = string2shapetype(tmp);
   m.mspecies.resize(nelem);
   m.mdata.resize(nelem);
-  for (Index i = 0; i < m.nelem(); i++) {
+  for (auto& spec: m.mspecies) {
     is >> tmp;
-    if (m.mself and i == 0) {
-    } else if (m.mbath and i == m.nelem() - 1) {
+    if (m.mself and &spec == &m.mspecies.front()) {
+    } else if (m.mbath and &spec == &m.mspecies.back()) {
     } else
-      m.mspecies[i] = SpeciesTag(tmp);
+      spec = SpeciesTag(tmp);
   }
   for (auto& d : m.mdata) is >> d;
   return is;

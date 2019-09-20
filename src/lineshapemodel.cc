@@ -452,11 +452,11 @@ Vector LineShape::Model::vmrs(const ConstVectorView& atmospheric_vmrs,
   
   // Loop species ignoring self and bath
   for (Index i = 0; i < mspecies.nelem(); i++) {
-    if (mbath and i == back) {
+    if (mbath and &mspecies[i] == &mspecies.back()) {
     } else {
       // Select target in-case this is self-broadening
       const auto target =
-      (mself and i == 0) ? self.Species() : mspecies[i].Species();
+      (mself and  &mspecies[i] == &mspecies.front()) ? self.Species() : mspecies[i].Species();
       
       // Find species in list or do nothing at all
       Index this_species_index = -1;
@@ -619,17 +619,17 @@ ArrayOfString LineShape::ModelMetaDataArray(const LineShape::Model2& m,
       std::ostringstream os;
       os << names[i] << " ~ ";
       for (Index j=0; j<sts.nelem(); j++) {
-        if (j == 0 and self)
+        if (&sts[j] == &sts.front() and self)
           os << "VMR(" << self_broadening << ") * "
-             << modelparameters2metadata(m.Data()[i].Get(var));
-        else if (j == sts.nelem() - 1 and bath)
+             << modelparameters2metadata(m.Data().front().Get(var));
+        else if (&sts[j] == &sts.back() and bath)
           os << "VMR(" << bath_broadening << ") * "
-             << modelparameters2metadata(m.Data()[i].Get(var));
+             << modelparameters2metadata(m.Data().back().Get(var));
         else 
           os << "VMR(" << sts[j].SpeciesNameMain() << ") * "
-             << modelparameters2metadata(m.Data()[i].Get(var));
+             << modelparameters2metadata(m.Data()[j].Get(var));
              
-        if (j != sts.nelem() - 1)
+        if (&sts[j] not_eq &sts.back())
           os << " + ";
       }
       as.push_back(os.str());
