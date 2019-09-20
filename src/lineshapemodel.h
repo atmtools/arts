@@ -267,6 +267,8 @@ struct ModelParameters {
   Numeric X2;
 };
 
+String modelparameters2metadata(ModelParameters mp);
+
 /** Get a coefficient from ModelParameters by name
  * 
  * Will throw a runtime_error if type is bad
@@ -1116,6 +1118,31 @@ inline String shapetype2string(Type type) noexcept {
       return "SDVP";
     case Type::HTP:
       return "HTP";
+  }
+  std::terminate();  // Not allowed to reach, fix higher level code
+}
+
+/** Turns selected Type into a human readable string
+ * 
+ * This function takes the input Type
+ * and returns it as a string
+ *  
+ * @param[in] type The Type
+ * 
+ * @return String of Type
+ */
+inline String shapetype2metadatastring(Type type) noexcept {
+  switch (type) {
+    case Type::DP:
+      return "The line shape type is the Doppler profile\n";
+    case Type::LP:
+      return "The line shape type is the Lorentz profile.\n";
+    case Type::VP:
+      return "The line shape type is the Voigt profile.\n";
+    case Type::SDVP:
+      return "The line shape type is the speed-dependent Voigt profile.\n";
+    case Type::HTP:
+      return "The line shape type is the Hartmann-Tran profile.\n";
   }
   std::terminate();  // Not allowed to reach, fix higher level code
 }
@@ -2349,6 +2376,8 @@ std::istream& operator>>(std::istream&, Model2&);
 
 String ModelShape2MetaData(const Model2& m);
 Model2 MetaData2ModelShape(const String& s);
+
+ArrayOfString ModelMetaDataArray(const Model2& m, const bool self, const bool bath, const ArrayOfSpeciesTag& sts);
 
 };  // namespace LineShape
 

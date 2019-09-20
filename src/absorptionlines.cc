@@ -1868,3 +1868,63 @@ String Absorption::Lines::LowerQuantumNumbers() const noexcept
     s.pop_back();
   return s;
 }
+
+String Absorption::Lines::MetaData() const noexcept
+{
+  std::ostringstream os;
+  
+  os << "Lines meta-data:\n";
+  os << '\t' << "Species identity:\n";
+  os << "\t\tSpecies: "<< SpeciesName() << '\n';
+  os << "\t\tLower Quantum Numbers: "<< LowerQuantumNumbers() << '\n';
+  os << "\t\tUpper Quantum Numbers: "<< UpperQuantumNumbers() << '\n';
+  os << '\t' << cutofftype2metadatastring(mcutoff, mcutofffreq);
+  os << '\t' << populationtype2metadatastring(mpopulation);
+  os << '\t' << normalizationtype2metadatastring(mnormalization);
+  os << '\t' << LineShape::shapetype2metadatastring(mlineshapetype);
+  os << '\t' << "The reference temperature for all line parameters is "
+     << mT0 << " K.\n";
+  if(mlinemixinglimit < 0)
+    os << '\t' << "If applicable, there is no line mixing limit.\n";
+  else
+    os << '\t' << "If applicable, there is a line mixing limit at "
+       << mlinemixinglimit << " Pa.\n";
+  
+  if (not NumLines()) {
+    os << "\tNo line data is available.\n";
+  }
+  else {
+    os << "\tThere are " << NumLines() << " lines available.\n";
+    
+    auto& line = mlines.front();
+    os << "\tThe front line has:\n";
+    os << "\t\t" << "f0: " << line.F0() << " Hz\n";
+    os << "\t\t" << "i0: " << line.I0() << " m^2/Hz\n";
+    os << "\t\t" << "e0: " << line.E0() << " J\n";
+    os << "\t\t" << "Lower stat. weight: " << line.g_low() << " [-]\n";
+    os << "\t\t" << "Lower stat. weight: " << line.g_upp() << " [-]\n";
+    os << "\t\t" << "A: " << line.A() << " 1/s\n";
+    os << "\t\t" << "Zeeman splitting of lower state: " << line.Zeeman().gl() << " [-]\n";
+    os << "\t\t" << "Zeeman splitting of upper state: " << line.Zeeman().gu() << " [-]\n";
+    os << "\t\t" << "Lower state local quantum numbers :";
+    for(size_t i=0; i<mlocalquanta.size(); i++)
+      os << " " << quantumnumbertype2string(mlocalquanta[i])
+      << "=" << line.LowerQuantumNumber(i) << ";";
+    os << "\n";
+    os << "\t\t" << "Upper state local quantum numbers :";
+    for(size_t i=0; i<mlocalquanta.size(); i++)
+      os << " " << quantumnumbertype2string(mlocalquanta[i])
+      << "=" << line.UpperQuantumNumber(i) << ";";
+    os << "\n";
+    ArrayOfString ls_meta = LineShape::ModelMetaDataArray(line.LineShape(),
+                                                          mselfbroadening,
+                                                          mbathbroadening, 
+                                                          mbroadeningspecies);
+    os << "\t\t" << "Line shape parameters (are normalized by sum(VMR)):\n";
+    for(auto& ls_form: ls_meta)
+      os << "\t\t\t" << ls_form << "\n";
+  }
+  
+  
+  return os.str();
+}

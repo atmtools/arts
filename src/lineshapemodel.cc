@@ -507,14 +507,14 @@ String LineShape::ModelShape2MetaData(const Model2& m)
   
   const auto names = AllLineShapeVars();
   std::vector<Variable> vars(0);
-  for( auto& n: names)
+  for (auto& n: names)
     vars.push_back(string2variable(n));
   
   for (auto& var: vars) {
     if (std::any_of(m.Data().cbegin(), m.Data().cend(),
       [var](auto& x){return x.Get(var).type not_eq TemperatureModel::None;})) {
       out += variable2string(var) + ' ';
-      for(auto& ssm: m.Data())
+      for (auto& ssm: m.Data())
         out += temperaturemodel2string(ssm.Get(var).type) + ' ';
     }
   }
@@ -524,6 +524,7 @@ String LineShape::ModelShape2MetaData(const Model2& m)
   
   return out;
 }
+
 
 LineShape::Model2 LineShape::MetaData2ModelShape(const String& s)
 {
@@ -548,7 +549,7 @@ LineShape::Model2 LineShape::MetaData2ModelShape(const String& s)
       tm = string2temperaturemodel(part);
     }
     
-    if(i < 0)
+    if (i < 0)
       continue;
     else if (i < Index(ssms.size()))
       goto add_var;
@@ -561,5 +562,79 @@ LineShape::Model2 LineShape::MetaData2ModelShape(const String& s)
     }
   }
   
-  return Model2(ssms);
+  return Model2(std::move(ssms));
+}
+
+String LineShape::modelparameters2metadata(LineShape::ModelParameters mp)
+{
+  std::ostringstream os;
+  switch (mp.type) {
+    case TemperatureModel::None:
+      os << 0;
+      break;
+    case TemperatureModel::T0:
+      os << mp.X0;
+      break;
+    case TemperatureModel::T1:
+      os << mp.X0 << " * (T0/T)^" << mp.X1;
+      break;
+    case TemperatureModel::T2:
+      os << mp.X0 << " * (T0/T)^" << mp.X1 << " / (1 + " << mp.X2 << " * log(T/T0))";
+      break;
+    case TemperatureModel::T3:
+      os << mp.X0 << " + " << mp.X1 << " * (T0 - T)";
+      break;
+    case TemperatureModel::T4:
+      os << "(" << mp.X0 << " + " << mp.X1 << " * (T0/T - 1)) * (T0/T)^" << mp.X2;
+      break;
+    case TemperatureModel::T5:
+      os << mp.X0 << " * (T0/T)^(0.25 + 1.5 * " << mp.X1 << ")";
+      break;
+    case TemperatureModel::LM_AER:
+      os << "INTERPOLATED_VALUE";
+      break;
+  }
+  
+  return os.str();
+}
+
+ArrayOfString LineShape::ModelMetaDataArray(const LineShape::Model2& m,
+                                const bool self,
+                                const bool bath,
+                                const ArrayOfSpeciesTag& sts)
+{
+  const auto names = AllLineShapeVars();
+  std::vector<Variable> vars(0);
+  for (auto& n: names)
+    vars.push_back(string2variable(n));
+  
+  ArrayOfString as(0);
+  
+  for (Index i=0; i<names.nelem(); i++) {
+    Variable var = vars[i];
+    
+    if (std::any_of(m.Data().cbegin(), m.Data().cend(),
+      [var](auto& x){return x.Get(var).type not_eq TemperatureModel::None;})) {
+      
+      std::ostringstream os;
+      os << names[i] << " ~ ";
+      for (Index j=0; j<sts.nelem(); j++) {
+        if (j == 0 and self)
+          os << "VMR(" << self_broadening << ") * "
+             << modelparameters2metadata(m.Data()[i].Get(var));
+        else if (j == sts.nelem() - 1 and bath)
+          os << "VMR(" << bath_broadening << ") * "
+             << modelparameters2metadata(m.Data()[i].Get(var));
+        else 
+          os << "VMR(" << sts[j].SpeciesNameMain() << ") * "
+             << modelparameters2metadata(m.Data()[i].Get(var));
+             
+        if (j != sts.nelem() - 1)
+          os << " + ";
+      }
+      as.push_back(os.str());
+    }
+  }
+  
+  return as;
 }

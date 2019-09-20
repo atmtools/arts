@@ -87,5 +87,7 @@ void abs_linesWriteSplitXML(const ArrayOfAbsorptionLines& abs_lines2,
     WriteXML("ascii", lines,
              fname + '.' + std::to_string(names[name]++) + ".xml",
              0, "", "", "", verbosity);
+    
+    std::cout << lines.MetaData() << '\n';
   }
 }

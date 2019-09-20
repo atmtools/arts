@@ -76,6 +76,18 @@ inline String mirroringtype2string(MirroringType in) {
   std::terminate();
 }
 
+inline String mirroringtype2metadatastring(MirroringType in) {
+  if (in == MirroringType::None)
+    return "These lines are not mirrored at 0 Hz\n";
+  else if (in == MirroringType::Lorentz)
+    return "These lines are mirrored around 0 Hz using the Lorentz line shape for the f0<0 mirrors.\n";
+  else if (in == MirroringType::SameAsLineShape)
+    return "These line are mirrored around 0 Hz using the original line shape for the f0<0 mirrors.\n";
+  else if (in == MirroringType::Manual)
+    return "There are manual line entires in the catalog at -f0 to mirror this line.\n";
+  std::terminate();
+}
+
 /** Describes the type of normalization line effects
  *
  * Each type but None has to have an implemented effect
@@ -112,6 +124,21 @@ inline String normalizationtype2string(NormalizationType in) {
   std::terminate();
 }
 
+inline String normalizationtype2metadatastring(NormalizationType in) {
+  if (in == NormalizationType::None)
+    return "No re-normalization in the far wing will be applied.\n";
+  else if (in == NormalizationType::VVH)
+    return "van Vleck and Huber far-wing renormalization will be applied, "
+      "i.e. F ~ (f tanh(hf/2kT))/(f0 tanh(hf0/2kT))\n";
+  else if (in == NormalizationType::VVW)
+    return "van Vleck and Weisskopf far-wing renormalization will be applied, "
+      "i.e. F ~ (f/f0)^2\n";
+  else if (in == NormalizationType::RosenkranzQuadratic)
+    return "Rosenkranz quadratic far-wing renormalization will be applied, "
+      "i.e. F ~ hf0/2kT sinh(hf0/2kT) (f/f0)^2\n";
+  std::terminate();
+}
+
 /** Describes the type of population level counter
  *
  * The types here might require that different data is available at runtime absorption calculations
@@ -143,6 +170,16 @@ inline String populationtype2string(PopulationType in) {
   std::terminate();
 }
 
+inline String populationtype2metadatastring(PopulationType in) {
+  if (in == PopulationType::ByLTE)
+    return "The lines are considered as in pure LTE.\n";
+  else if (in == PopulationType::ByNLTEVibrationalTemperatures)
+    return "The lines are considered as in NLTE by vibrational temperatures.\n";
+  else if (in == PopulationType::ByNLTEPopulationDistribution)
+    return "The lines are considered as in pure NLTE.\n";
+  std::terminate();
+}
+
 /** Describes the type of cutoff calculations */
 enum class CutoffType {
   None,                // No cutoff frequency at all
@@ -169,6 +206,17 @@ inline String cutofftype2string(CutoffType in) {
   else if (in == CutoffType::BandFixedFrequency)
     return "ByBand";
   std::terminate();
+}
+
+inline String cutofftype2metadatastring(CutoffType in, Numeric cutoff) {
+  std::ostringstream os;
+  if (in == CutoffType::None)
+    os << "No cut-off will be applied.\n";
+  else if (in == CutoffType::LineByLineOffset)
+    os << "The lines will be cut-off " << cutoff << " Hz from the line center.\n";
+  else if (in == CutoffType::BandFixedFrequency)
+    os << "All lines are cut-off at " << cutoff << " Hz.\n";
+  return os.str();
 }
 
 /** Computations and data for a single absorption line */
@@ -916,6 +964,9 @@ public:
   const QuantumIdentifier& QuantumIdentity() const noexcept {
     return mquantumidentity;
   }
+  
+  /** Returns a printable statement about the lines */
+  String MetaData() const noexcept;
 };  // Lines
 
 std::ostream& operator<<(std::ostream&, const Lines&);
