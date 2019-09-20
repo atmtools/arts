@@ -337,10 +337,8 @@ void ext2trans(MatrixView trans_mat,
 
     @param[in,out]   ws                The workspace
     @param[out]   iy                   As the WSV.
-    @param[in]   t_field               As the WSV.
-    @param[in]   z_field               As the WSV.
-    @param[in]   vmr_field             As the WSV.
     @param[in]   cloudbox_on           As the WSV.
+    @param[in]   f_grid                As the WSV.
     @param[in]   rte_pos               As the WSV.
     @param[in]   rte_los               As the WSV.
     @param[in]   iy_unit               As the WSV.
@@ -351,10 +349,6 @@ void ext2trans(MatrixView trans_mat,
  */
 void get_iy(Workspace& ws,
             Matrix& iy,
-            ConstTensor3View t_field,
-            ConstTensor3View z_field,
-            ConstTensor4View vmr_field,
-            ConstTensor4View nlte_field,
             const Index& cloudbox_on,
             ConstVectorView f_grid,
             ConstVectorView rte_pos,
@@ -380,9 +374,6 @@ void get_iy(Workspace& ws,
     @param[in]   jacobian_do           As the WSV.
     @param[in]   ppath                 As the WSV.
     @param[in]   atmosphere_dim        As the WSV.
-    @param[in]   t_field               As the WSV.
-    @param[in]   z_field               As the WSV.
-    @param[in]   vmr_field             As the WSV.
     @param[in]   cloudbox_on           As the WSV.
     @param[in]   stokes_dim            As the WSV.
     @param[in]   f_grid                As the WSV.
@@ -406,9 +397,6 @@ void get_iy_of_background(Workspace& ws,
                           const Ppath& ppath,
                           ConstVectorView rte_pos2,
                           const Index& atmosphere_dim,
-                          ConstTensor3View t_field,
-                          ConstTensor3View z_field,
-                          ConstTensor4View vmr_field,
                           const Index& cloudbox_on,
                           const Index& stokes_dim,
                           ConstVectorView f_grid,
@@ -784,10 +772,6 @@ void iyb_calc(Workspace& ws,
               Matrix& geo_pos_matrix,
               const Index& imblock,
               const Index& atmosphere_dim,
-              ConstTensor3View t_field,
-              ConstTensor3View z_field,
-              ConstTensor4View vmr_field,
-              ConstTensor4View nlte_field,
               const Index& cloudbox_on,
               const Index& stokes_dim,
               ConstVectorView f_grid,
@@ -991,10 +975,6 @@ void yCalc_mblock_loop_body(bool& failed,
                             Matrix& y_geo,
                             Matrix& jacobian,
                             const Index& atmosphere_dim,
-                            const Tensor3& t_field,
-                            const Tensor3& z_field,
-                            const Tensor4& vmr_field,
-                            const Tensor4& nlte_field,
                             const Index& cloudbox_on,
                             const Index& stokes_dim,
                             const Vector& f_grid,

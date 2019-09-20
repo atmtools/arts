@@ -97,10 +97,13 @@ cloudbox_checkedCalc
 sensor_checkedCalc
 #
 yCalc
-Print(y,0)
+#
+VectorCreate( y1d )
+Copy( y1d, y )
 
 
-# 2D
+
+# Expand to 2D and run IBA
 #
 AtmosphereSet2D
 IndexCreate( nlat )
@@ -130,6 +133,7 @@ AgendaSet( iy_iba_agenda ){
   Ignore( lat_true )
   Ignore( lon_true )
   Ignore( z_surface )
+  Ignore( z_field )
   Ignore( cloudbox_limits )
   Ignore( pnd_field )
   #
@@ -138,5 +142,9 @@ AgendaSet( iy_iba_agenda ){
 }
 #
 yCalc
-Print(y,0)
+
+
+# Comapre
+Compare( y, y1d, 1e-3 )
+
 }

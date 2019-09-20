@@ -34,7 +34,6 @@ AgendaCreate( iy_main_agenda__Transmission )
 AgendaSet( iy_main_agenda__Transmission ){
   Ignore( iy_unit )
   Ignore( iy_id )
-  Ignore( z_field )
   ppathCalc( cloudbox_on=0 )
   iyTransmissionStandard
 }
@@ -42,15 +41,11 @@ AgendaSet( iy_main_agenda__Transmission ){
 ###
 AgendaCreate( iy_main_agenda__Freqloop )
 AgendaSet( iy_main_agenda__Freqloop ){
-  Ignore( nlte_field )
   Ignore( diy_dx )
   Ignore( iy_id )
   Ignore( iy_unit )
   Ignore( cloudbox_on )
   Ignore( jacobian_do )  
-  Ignore( t_field )  
-  Ignore( z_field )  
-  Ignore( vmr_field )  
   iyLoopFrequencies
   Touch( ppath )
 }
@@ -59,7 +54,6 @@ AgendaSet( iy_main_agenda__Freqloop ){
 AgendaCreate( iy_main_agenda__ScattMC )
 AgendaSet( iy_main_agenda__ScattMC ){
   Ignore( rte_pos2 )
-  Ignore( nlte_field )
   Ignore( diy_dx )
   Ignore( iy_id )
   iyMC
@@ -231,8 +225,6 @@ AgendaSet( ppath_agenda__TransmitterReceiverPath ){
 #
 AgendaCreate( ppath_step_agenda__GeometricPath )
 AgendaSet( ppath_step_agenda__GeometricPath ){
-  Ignore( t_field )
-  Ignore( vmr_field )
   Ignore( f_grid )
   Ignore( ppath_lraytrace )
   ppath_stepGeometric

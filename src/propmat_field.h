@@ -94,9 +94,7 @@ FieldOfTransmissionMatrix transmat_field_calc_from_propmat_field(
  * @param[in] absorption_field A 3D field of absorption vectors
  * @param[in] additional_source_field A 3D field of source vectors
  * @param[in] f_grid As WSV
- * @param[in] z_field As WSV
  * @param[in] t_field As WSV
- * @param[in] vmr_field As WSV
  * @param[in] ppath As WSV
  * @param[in] iy_main_agenda As WSA
  * @param[in] iy_space_agenda As WSA
@@ -115,9 +113,7 @@ void emission_from_propmat_field(
     const FieldOfStokesVector& absorption_field,
     const FieldOfStokesVector& additional_source_field,
     const Vector& f_grid,
-    const Tensor3& z_field,
     const Tensor3& t_field,
-    const Tensor4& vmr_field,
     const Ppath& ppath,
     const Agenda& iy_main_agenda,
     const Agenda& iy_space_agenda,
