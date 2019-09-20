@@ -143,6 +143,7 @@ void get_disortsurf_props(  // Output
  * @param[in]     nstreams Number of quadrature angles (both hemispheres).
  * @param[in]     Npfct Number of angular grid points to calculate bulk phase
  *                function
+ * @param[in]     quiet Silence warnings
  * @param[in]     verbosity Verbosity setting
  *
  * @author        Oliver Lemke
@@ -166,6 +167,7 @@ void run_cdisort(Workspace& ws,
                  ConstVectorView scat_za_grid,
                  const Index& nstreams,
                  const Index& Npfct,
+                 const Index& quiet,
                  const Verbosity& verbosity);
 
 /** Calculate doit_i_feild with Disort.

@@ -84,6 +84,8 @@ arts_test_run_ctlfile(fast artscomponents/lineshapes/TestHTPLM.arts)
 #arts_test_run_ctlfile(fast artscomponents/radiolink/TestRadioLink2.arts)
 #arts_test_run_ctlfile(slow artscomponents/radiolink/TestRadioOccultation.arts)
 
+arts_test_run_ctlfile(fast artscomponents/disort/TestDISORT.arts)
+
 arts_test_run_ctlfile(fast artscomponents/doit/TestDOIT.arts)
 arts_test_run_ctlfile(slow artscomponents/doit/TestDOITaccelerated.arts)
 arts_test_run_ctlfile(fast artscomponents/doit/TestDOITprecalcInit.arts)
@@ -123,10 +125,6 @@ arts_test_run_ctlfile(fast artscomponents/dobatch/TestDOBatch.arts)
 
 if (ENABLE_FFTW)
   arts_test_run_ctlfile(fast artscomponents/hitran-xsec/TestHitranXsec.arts)
-endif ()
-
-if (ENABLE_DISORT)
-  arts_test_run_ctlfile(fast artscomponents/disort/TestDISORT.arts)
 endif ()
 
 if (ENABLE_RT4)

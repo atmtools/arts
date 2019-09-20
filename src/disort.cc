@@ -1815,25 +1815,77 @@ void run_disort(Workspace&,
                 const String&,
                 const Verbosity&) {
   throw runtime_error(
-      "This version of ARTS was compiled without DISORT support.");
-}
-
-void get_cb_inc_field(Workspace&,
-                      Matrix&,
-                      const Agenda&,
-                      const Tensor3&,
-                      const Tensor3&,
-                      const Tensor4&,
-                      const Index&,
-                      const ArrayOfIndex&,
-                      const Vector&,
-                      const Vector&,
-                      const Index&) {
-  throw runtime_error(
-      "This version of ARTS was compiled without DISORT support.");
+      "This version of ARTS was compiled without legacy Fortran DISORT support.");
 }
 
 #endif /* ENABLE_DISORT */
+
+// Use a thread_local variable to communicate the Verbosity to the
+// Disort error and warning functions. Ugly workaround, to avoid
+// passing a Verbosity argument throughout the whole cdisort code.
+// We want to avoid changes to the original code to keep it maintainable
+// in respect to upstream updates.
+thread_local Verbosity disort_verbosity;
+
+#define MAX_WARNINGS 100
+
+/** Verbosity enabled replacement for the original cdisort function. */
+void c_errmsg(const char* messag, int type) {
+  Verbosity verbosity = disort_verbosity;
+  static int warning_limit = FALSE, num_warnings = 0;
+
+  if (type == DS_ERROR) {
+    CREATE_OUT0;
+    out0 << "  ******* ERROR >>>>>>  " << messag << "\n";
+    arts_exit(1);
+  }
+
+  if (warning_limit) return;
+
+  if (++num_warnings <= MAX_WARNINGS) {
+    CREATE_OUT1;
+    out1 << "  ******* WARNING >>>>>>  " << messag << "\n";
+  } else {
+    CREATE_OUT0;
+    out0 << "  >>>>>>  TOO MANY WARNING MESSAGES --  They will no longer be "
+            "printed  <<<<<<<\n\n";
+    warning_limit = TRUE;
+  }
+
+  return;
+}
+
+#undef MAX_WARNINGS
+
+/** Verbosity enabled replacement for the original cdisort function. */
+int c_write_bad_var(int quiet, const char* varnam) {
+  const int maxmsg = 50;
+  static int nummsg = 0;
+
+  nummsg++;
+  if (quiet != QUIET) {
+    Verbosity verbosity = disort_verbosity;
+    CREATE_OUT1;
+    out1 << "  ****  Input variable " << varnam << " in error  ****\n";
+    if (nummsg == maxmsg) {
+      c_errmsg("Too many input errors.  Aborting...", DS_ERROR);
+    }
+  }
+
+  return TRUE;
+}
+
+/** Verbosity enabled replacement for the original cdisort function. */
+int c_write_too_small_dim(int quiet, const char* dimnam, int minval) {
+  if (quiet != QUIET) {
+    Verbosity verbosity = disort_verbosity;
+    CREATE_OUT1;
+    out1 << "  ****  Symbolic dimension " << dimnam
+         << " should be increased to at least " << minval << "  ****\n";
+  }
+
+  return TRUE;
+}
 
 void run_cdisort(Workspace& ws,
                  Tensor7& doit_i_field,
@@ -1851,13 +1903,19 @@ void run_cdisort(Workspace& ws,
                  ConstVectorView scat_za_grid,
                  const Index& nstreams,
                  const Index& Npfct,
-                 const Verbosity&) {
+                 const Index& quiet,
+                 const Verbosity& verbosity) {
   disort_state ds;
   disort_output out;
 
+  if (quiet == 0)
+    disort_verbosity = verbosity;
+  else
+    disort_verbosity = Verbosity(0, 0, 0);
+
   const Index nf = f_grid.nelem();
 
-  ds.accur = 0.005;  // ok
+  ds.accur = 0.005;
   ds.flag.prnt[0] = FALSE;
   ds.flag.prnt[1] = FALSE;
   ds.flag.prnt[2] = FALSE;
@@ -1867,15 +1925,15 @@ void run_cdisort(Workspace& ws,
   ds.flag.usrtau = FALSE;
   ds.flag.usrang = TRUE;
   ds.flag.spher = FALSE;
-  ds.flag.general_source = FALSE;  //ok
+  ds.flag.general_source = FALSE;
   ds.flag.output_uum = FALSE;
 
-  ds.nlyr = static_cast<int>(p_grid.nelem() - 1);  //ok
+  ds.nlyr = static_cast<int>(p_grid.nelem() - 1);
 
   ds.flag.brdf_type = BRDF_NONE;
 
-  ds.flag.ibcnd = GENERAL_BC;  //ok
-  ds.flag.usrang = TRUE;       //ok
+  ds.flag.ibcnd = GENERAL_BC;
+  ds.flag.usrang = TRUE;
   ds.flag.planck = TRUE;
   ds.flag.onlyfl = FALSE;
   ds.flag.lamber = TRUE;
@@ -1883,11 +1941,11 @@ void run_cdisort(Workspace& ws,
   ds.flag.intensity_correction = TRUE;
   ds.flag.old_intensity_correction = TRUE;
 
-  ds.nstr = static_cast<int>(nstreams);  //ok
+  ds.nstr = static_cast<int>(nstreams);
   ds.nphase = ds.nstr;
   ds.nmom = ds.nstr;
-  ds.ntau = ds.nlyr + 1;                //ok
-  ds.numu = static_cast<int>(scat_za_grid.nelem());  //ok
+  ds.ntau = ds.nlyr + 1;
+  ds.numu = static_cast<int>(scat_za_grid.nelem());
   ds.nphi = 1;
   Index Nlegendre = nstreams + 1;
 
@@ -1896,16 +1954,16 @@ void run_cdisort(Workspace& ws,
   c_disort_out_alloc(&ds, &out);
 
   // Properties of solar beam, set to zero as they are not needed
-  ds.bc.fbeam = 0.;  //ok
-  ds.bc.umu0 = 0.;   //ok
-  ds.bc.phi0 = 0.;   //ok
-  ds.bc.fluor = 0.;  //ok
+  ds.bc.fbeam = 0.;
+  ds.bc.umu0 = 0.;
+  ds.bc.phi0 = 0.;
+  ds.bc.fluor = 0.;
 
   // Since we have no solar source there is no angular dependance
   ds.phi[0] = 0.;
 
   for (Index i = 0; i <= ds.nlyr; i++)
-    ds.temper[i] = t_field(ds.nlyr - i, 0, 0);  //ok
+    ds.temper[i] = t_field(ds.nlyr - i, 0, 0);
 
   Matrix ext_bulk_gas(nf, ds.nlyr + 1);
   get_gasoptprop(ws,
@@ -1938,7 +1996,7 @@ void run_cdisort(Workspace& ws,
 
   // Transform to mu, starting with negative values
   for (Index i = 0; i < ds.numu; i++)
-    ds.umu[i] = -cos(scat_za_grid[i] * PI / 180);  //ok
+    ds.umu[i] = -cos(scat_za_grid[i] * PI / 180);
 
   //upper boundary conditions:
   // DISORT offers isotropic incoming radiance or emissivity-scaled planck
@@ -1958,8 +2016,8 @@ void run_cdisort(Workspace& ws,
   // Top of the atmosphere temperature and emissivity
   //Numeric ttemp = t_field(cloudbox_limits[1], 0, 0);
   //Numeric temis = 0.;
-  ds.bc.ttemp = COSMIC_BG_TEMP;  // ok
-  ds.bc.btemp = surface_skin_t;  // ok
+  ds.bc.ttemp = COSMIC_BG_TEMP;
+  ds.bc.btemp = surface_skin_t;
   ds.bc.temis = 1.;
 
   Vector pfct_angs;
@@ -1982,23 +2040,22 @@ void run_cdisort(Workspace& ws,
   Tensor3 pmom(nf_ssd, ds.nlyr, Nlegendre, 0.);
   get_pmom(pmom, pfct_bulk_par, pfct_angs, Nlegendre);
 
-  for (Index f_index = 0; f_index < f_grid.nelem(); f_index++)
-  {
+  for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
     sprintf(ds.header, "ARTS Calc f_index = %ld", f_index);
 
     std::memcpy(ds.dtauc,
                 dtauc(f_index, joker).get_c_array(),
-                sizeof(Numeric) * ds.nlyr);  //ok
+                sizeof(Numeric) * ds.nlyr);
     std::memcpy(ds.ssalb,
                 ssalb(f_index, joker).get_c_array(),
-                sizeof(Numeric) * ds.nlyr);  //ok
+                sizeof(Numeric) * ds.nlyr);
 
     // Wavenumber in [1/cm]
     ds.wvnmhi = ds.wvnmlo = (f_grid[f_index]) / (100. * SPEED_OF_LIGHT);
     ds.wvnmhi += ds.wvnmhi * 1e-7;
     ds.wvnmlo -= ds.wvnmlo * 1e-7;
 
-    ds.bc.albedo = surface_scalar_reflectivity[f_index];  //ok
+    ds.bc.albedo = surface_scalar_reflectivity[f_index];
 
     std::memcpy(ds.pmom,
                 pmom(f_index, joker, joker).get_c_array(),

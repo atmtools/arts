@@ -7942,34 +7942,34 @@ void c_albtrans_spherical(disort_state *ds,
  * Print out a warning or error message;  abort if type == DS_ERROR
  */
 
-#define MAX_WARNINGS 100
-
-void c_errmsg(char *messag,
-              int   type)
-{
-  static int
-    warning_limit = FALSE,
-    num_warnings  = 0;
-
-  if (type == DS_ERROR) {
-    fprintf(stderr,"\n ******* ERROR >>>>>>  %s\n",messag);
-    exit(1);
-  }
-
-  if (warning_limit) return;
-
-  if (++num_warnings <= MAX_WARNINGS) {
-    fprintf(stderr,"\n ******* WARNING >>>>>>  %s\n",messag);
-  }
-  else {
-    fprintf(stderr,"\n\n >>>>>>  TOO MANY WARNING MESSAGES --  ','They will no longer be printed  <<<<<<<\n\n");
-    warning_limit = TRUE;
-  }
-
-  return;
-}
-
-#undef MAX_WARNINGS
+//#define MAX_WARNINGS 100
+//
+//void c_errmsg(char *messag,
+//              int   type)
+//{
+//  static int
+//    warning_limit = FALSE,
+//    num_warnings  = 0;
+//
+//  if (type == DS_ERROR) {
+//    fprintf(stderr,"\n ******* ERROR >>>>>>  %s\n",messag);
+//    exit(1);
+//  }
+//
+//  if (warning_limit) return;
+//
+//  if (++num_warnings <= MAX_WARNINGS) {
+//    fprintf(stderr,"\n ******* WARNING >>>>>>  %s\n",messag);
+//  }
+//  else {
+//    fprintf(stderr,"\n\n >>>>>>  TOO MANY WARNING MESSAGES --  ','They will no longer be printed  <<<<<<<\n\n");
+//    warning_limit = TRUE;
+//  }
+//
+//  return;
+//}
+//
+//#undef MAX_WARNINGS
 
 /*============================= end of c_errmsg() ========================*/
 
@@ -7983,24 +7983,24 @@ void c_errmsg(char *messag,
            varnam = name of erroneous variable to be written
  ----------------------------------------------------------------------*/
 
-int c_write_bad_var(int   quiet,
-                    char *varnam)
-{
-  const int
-    maxmsg = 50;
-  static int
-    nummsg = 0;
-
-  nummsg++;
-  if (quiet != QUIET) {
-    fprintf(stderr,"\n ****  Input variable %s in error  ****\n",varnam);
-    if (nummsg == maxmsg) {
-      c_errmsg("Too many input errors.  Aborting...",DS_ERROR);
-    }
-  }
-
-  return TRUE;
-}
+//int c_write_bad_var(int   quiet,
+//                    char *varnam)
+//{
+//  const int
+//    maxmsg = 50;
+//  static int
+//    nummsg = 0;
+//
+//  nummsg++;
+//  if (quiet != QUIET) {
+//    fprintf(stderr,"\n ****  Input variable %s in error  ****\n",varnam);
+//    if (nummsg == maxmsg) {
+//      c_errmsg("Too many input errors.  Aborting...",DS_ERROR);
+//    }
+//  }
+//
+//  return TRUE;
+//}
 
 /*============================= end of c_write_bad_var() =================*/
 
@@ -8015,17 +8015,17 @@ int c_write_bad_var(int   quiet,
              minval = value to which that dimension should be increased
  ----------------------------------------------------------------------*/
 
-int c_write_too_small_dim(int   quiet,
-                          char *dimnam,
-                          int   minval)
-{
-  if (quiet != QUIET) {
-    fprintf(stderr," ****  Symbolic dimension %s should be increased to at least %d  ****\n",
-            dimnam,minval);
-  }
-
-  return TRUE;
-}
+//int c_write_too_small_dim(int   quiet,
+//                          char *dimnam,
+//                          int   minval)
+//{
+//  if (quiet != QUIET) {
+//    fprintf(stderr," ****  Symbolic dimension %s should be increased to at least %d  ****\n",
+//            dimnam,minval);
+//  }
+//
+//  return TRUE;
+//}
 
 /*============================= end of c_write_too_small_dim =============*/
 

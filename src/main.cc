@@ -675,7 +675,7 @@ int main(int argc, char** argv) {
 #else
                << "disabled" << endl
 #endif
-               << "   Disort support:       "
+               << "   Legacy Fortran Disort:"
 #ifdef ENABLE_DISORT
                << "enabled" << endl
 #else

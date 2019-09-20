@@ -47,7 +47,6 @@
 #include "wsv_aux.h"
 #include "xml_io.h"
 
-#ifdef ENABLE_DISORT
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DisortCalc(Workspace& ws,
                 // WS Output:
@@ -76,7 +75,8 @@ void DisortCalc(Workspace& ws,
                 const Index& do_deltam,
                 const String& pfct_method,
                 const Index& Npfct,
-                const Index& cdisort,
+                const Index& cdisort_quiet,
+                const Index& fdisort,
                 const Verbosity& verbosity) {
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) {
@@ -115,7 +115,7 @@ void DisortCalc(Workspace& ws,
   get_disortsurf_props(
       albedo, btemp, f_grid, surface_skin_t, surface_scalar_reflectivity);
 
-  if (cdisort) {
+  if (fdisort == 0) {
     run_cdisort(ws,
                 doit_i_field,
                 f_grid,
@@ -132,6 +132,7 @@ void DisortCalc(Workspace& ws,
                 scat_za_grid,
                 nstreams,
                 Npfct,
+                cdisort_quiet,
                 verbosity);
   } else {
     run_disort(ws,
@@ -154,39 +155,3 @@ void DisortCalc(Workspace& ws,
                verbosity);
   }
 }
-
-#else /* ENABLE_DISORT */
-
-void DisortCalc(Workspace&,
-                // WS Output:
-                Tensor7&,
-                // WS Input
-                const Index&,
-                const Index&,
-                const Index&,
-                const Index&,
-                const Index&,
-                const ArrayOfIndex&,
-                const Agenda&,
-                const Index&,
-                const Tensor4&,
-                const Tensor3&,
-                const Tensor3&,
-                const Tensor4&,
-                const Vector&,
-                const ArrayOfArrayOfSingleScatteringData&,
-                const Vector&,
-                const Vector&,
-                const Index&,
-                const Numeric&,
-                const Vector&,
-                const Index&,
-                const Index&,
-                const String&,
-                const Index&,
-                const Verbosity&) {
-  throw runtime_error(
-      "This version of ARTS was compiled without DISORT support.");
-}
-
-#endif /* ENABLE_DISORT */

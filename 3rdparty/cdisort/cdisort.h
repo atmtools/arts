@@ -1035,14 +1035,14 @@ void c_albtrans_spherical(disort_state *ds,
                           double       *sflup,
                           double       *sfldn);
 
-void c_errmsg(char *messag,
+void c_errmsg(const char *messag,
               int   type);
 
 int c_write_bad_var(int   quiet,
-                    char *varnam);
+                    const char *varnam);
 
 int c_write_too_small_dim(int   quiet,
-                          char *dimnam,
+                          const char *dimnam,
                           int   minval);
 
 void c_sgbco(double *abd,
