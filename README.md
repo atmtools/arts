@@ -40,6 +40,7 @@ Using cmake
 Here are the steps to use cmake to build ARTS:
 
 ```bash
+cd arts
 mkdir build
 cd build
 cmake ..
