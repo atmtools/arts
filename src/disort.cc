@@ -1983,7 +1983,6 @@ void run_cdisort(Workspace& ws,
   get_pmom(pmom, pfct_bulk_par, pfct_angs, Nlegendre);
 
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index++)
-  //  for (Index f_index = 0; f_index < 1; f_index++)
   {
     sprintf(ds.header, "ARTS Calc f_index = %ld", f_index);
 
@@ -1995,14 +1994,9 @@ void run_cdisort(Workspace& ws,
                 sizeof(Numeric) * ds.nlyr);  //ok
 
     // Wavenumber in [1/cm]
-    Numeric df;
-    if (f_index == f_grid.nelem() - 1) {
-      df = f_grid[f_index] - f_grid[f_index - 1];
-    } else {
-      df = f_grid[f_index + 1] - f_grid[f_index];
-    }
-    ds.wvnmlo = (f_grid[f_index] - df / 2.) / (100 * SPEED_OF_LIGHT);
-    ds.wvnmhi = (f_grid[f_index] + df / 2.) / (100 * SPEED_OF_LIGHT);
+    ds.wvnmhi = ds.wvnmlo = (f_grid[f_index]) / (100. * SPEED_OF_LIGHT);
+    ds.wvnmhi += ds.wvnmhi * 1e-7;
+    ds.wvnmlo -= ds.wvnmlo * 1e-7;
 
     ds.bc.albedo = surface_scalar_reflectivity[f_index];  //ok
 
