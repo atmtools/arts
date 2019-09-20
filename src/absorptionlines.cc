@@ -1897,7 +1897,7 @@ String Absorption::Lines::MetaData() const noexcept
   else {
     os << "\tThere are " << NumLines() << " lines available.\n";
     
-    auto& line = mlines.back();
+    auto& line = mlines.front();
     os << "\tThe front line has:\n";
     os << "\t\t" << "f0: " << line.F0() << " Hz\n";
     os << "\t\t" << "i0: " << line.I0() << " m^2/Hz\n";
