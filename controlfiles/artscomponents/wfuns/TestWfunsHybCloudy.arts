@@ -28,7 +28,6 @@ Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
 
 AgendaCreate( iy_main_agenda__Hybrid )
 AgendaSet( iy_main_agenda__Hybrid ){
-  Ignore( nlte_field )
   Ignore( iy_id )
   ppathCalc( cloudbox_on = 0 ) 
   iyHybrid

@@ -55,7 +55,6 @@ Copy( yref_RT4, y )
 # Hybrid calculations
 
 AgendaSet( iy_main_agenda ){
-  Ignore( nlte_field )
   Ignore( iy_id )
   ppathCalc( cloudbox_on = 0 ) 
   iyHybrid

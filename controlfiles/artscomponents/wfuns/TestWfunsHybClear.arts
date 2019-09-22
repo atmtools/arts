@@ -43,7 +43,6 @@ Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
 #Copy( iy_main_agenda, iy_main_agenda__Emission )
 # Nope, hybrid RTE solver instead.
 AgendaSet( iy_main_agenda ){
-  Ignore( nlte_field )
   Ignore( iy_id )
   ppathCalc( cloudbox_on = 0 ) 
   iyHybrid

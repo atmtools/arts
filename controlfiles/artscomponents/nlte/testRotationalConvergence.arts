@@ -10,7 +10,7 @@ Arts2{
 
     AgendaSet(ppath_agenda) { Ignore(rte_pos2) ppathStepByStep }
 
-    AgendaSet(ppath_step_agenda) { Ignore(t_field) Ignore(vmr_field) Ignore(f_grid) Ignore(ppath_lraytrace) ppath_stepGeometric }
+    AgendaSet(ppath_step_agenda) { Ignore(f_grid) Ignore(ppath_lraytrace) ppath_stepGeometric }
 
     AgendaSet(propmat_clearsky_agenda) { Ignore(rtp_mag) Ignore(rtp_los) propmat_clearskyInit propmat_clearskyAddOnTheFly }
 
