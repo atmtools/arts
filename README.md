@@ -1,3 +1,5 @@
+[![Travis](https://img.shields.io/travis/atmtools/arts/master.svg?label=Travis%20CI)](https://travis-ci.org/atmtools/arts)
+
 Welcome to ARTS
 ===============
 
