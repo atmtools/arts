@@ -124,7 +124,7 @@ ReadXML( yREFERENCE, "yREFERENCEfromDOIT.y.xml" )
 Compare( y, yREFERENCE, 1. )
 
 ReadXML( yREFERENCE, "yREFERENCE.y.xml" )
-Compare( y, yREFERENCE, 1e-6 )
+Compare( y, yREFERENCE, 5e-4 )
 
 } # End of Main
  
