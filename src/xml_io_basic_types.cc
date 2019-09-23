@@ -1587,6 +1587,7 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.add_attribute("lowerglobalquanta", al.LowerQuantumNumbers());
   open_tag.add_attribute("broadeningspecies", al.BroadeningSpecies(), al.Self(), al.Bath());
   open_tag.add_attribute("temperaturemodes", al.LineShapeMetaData());
+  open_tag.add_attribute("comment", al.MetaData());
 
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';

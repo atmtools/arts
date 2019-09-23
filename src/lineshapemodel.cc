@@ -565,7 +565,7 @@ LineShape::Model2 LineShape::MetaData2ModelShape(const String& s)
   return Model2(std::move(ssms));
 }
 
-String LineShape::modelparameters2metadata(LineShape::ModelParameters mp)
+String LineShape::modelparameters2metadata(const LineShape::ModelParameters mp, const Numeric T0)
 {
   std::ostringstream os;
   switch (mp.type) {
@@ -576,19 +576,19 @@ String LineShape::modelparameters2metadata(LineShape::ModelParameters mp)
       os << mp.X0;
       break;
     case TemperatureModel::T1:
-      os << mp.X0 << " * (T0/T)^" << mp.X1;
+      os << mp.X0 << " * (" << T0 << "/T)^" << mp.X1;
       break;
     case TemperatureModel::T2:
-      os << mp.X0 << " * (T0/T)^" << mp.X1 << " / (1 + " << mp.X2 << " * log(T/T0))";
+      os << mp.X0 << " * (" << T0 << "/T)^" << mp.X1 << " / (1 + " << mp.X2 << " * log(T/" << T0 << "))";
       break;
     case TemperatureModel::T3:
-      os << mp.X0 << " + " << mp.X1 << " * (T0 - T)";
+      os << mp.X0 << " + " << mp.X1 << " * (" << T0 << " - T)";
       break;
     case TemperatureModel::T4:
-      os << "(" << mp.X0 << " + " << mp.X1 << " * (T0/T - 1)) * (T0/T)^" << mp.X2;
+      os << "(" << mp.X0 << " + " << mp.X1 << " * (" << T0 << "/T - 1)) * (" << T0 << "/T)^" << mp.X2;
       break;
     case TemperatureModel::T5:
-      os << mp.X0 << " * (T0/T)^(0.25 + 1.5 * " << mp.X1 << ")";
+      os << mp.X0 << " * (" << T0 << "/T)^(0.25 + 1.5 * " << mp.X1 << ")";
       break;
     case TemperatureModel::LM_AER:
       os << "INTERPOLATED_VALUE";
@@ -601,7 +601,8 @@ String LineShape::modelparameters2metadata(LineShape::ModelParameters mp)
 ArrayOfString LineShape::ModelMetaDataArray(const LineShape::Model2& m,
                                 const bool self,
                                 const bool bath,
-                                const ArrayOfSpeciesTag& sts)
+                                const ArrayOfSpeciesTag& sts,
+                                const Numeric T0)
 {
   const auto names = AllLineShapeVars();
   std::vector<Variable> vars(0);
@@ -621,13 +622,13 @@ ArrayOfString LineShape::ModelMetaDataArray(const LineShape::Model2& m,
       for (Index j=0; j<sts.nelem(); j++) {
         if (&sts[j] == &sts.front() and self)
           os << "VMR(" << self_broadening << ") * "
-             << modelparameters2metadata(m.Data().front().Get(var));
+             << modelparameters2metadata(m.Data().front().Get(var), T0);
         else if (&sts[j] == &sts.back() and bath)
           os << "VMR(" << bath_broadening << ") * "
-             << modelparameters2metadata(m.Data().back().Get(var));
+             << modelparameters2metadata(m.Data().back().Get(var), T0);
         else 
           os << "VMR(" << sts[j].SpeciesNameMain() << ") * "
-             << modelparameters2metadata(m.Data()[j].Get(var));
+             << modelparameters2metadata(m.Data()[j].Get(var), T0);
              
         if (&sts[j] not_eq &sts.back())
           os << " + ";

@@ -1873,7 +1873,7 @@ String Absorption::Lines::MetaData() const noexcept
 {
   std::ostringstream os;
   
-  os << "Lines meta-data:\n";
+  os << "\nLines meta-data:\n";
   os << '\t' << "Species identity:\n";
   os << "\t\tSpecies: "<< SpeciesName() << '\n';
   os << "\t\tLower Quantum Numbers: "<< LowerQuantumNumbers() << '\n';
@@ -1920,7 +1920,8 @@ String Absorption::Lines::MetaData() const noexcept
     ArrayOfString ls_meta = LineShape::ModelMetaDataArray(line.LineShape(),
                                                           mselfbroadening,
                                                           mbathbroadening, 
-                                                          mbroadeningspecies);
+                                                          mbroadeningspecies,
+                                                          mT0);
     os << "\t\t" << "Line shape parameters (are normalized by sum(VMR)):\n";
     for(auto& ls_form: ls_meta)
       os << "\t\t\t" << ls_form << "\n";

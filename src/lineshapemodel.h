@@ -267,7 +267,7 @@ struct ModelParameters {
   Numeric X2;
 };
 
-String modelparameters2metadata(ModelParameters mp);
+String modelparameters2metadata(const ModelParameters mp, const Numeric T0);
 
 /** Get a coefficient from ModelParameters by name
  * 
@@ -2377,7 +2377,7 @@ std::istream& operator>>(std::istream&, Model2&);
 String ModelShape2MetaData(const Model2& m);
 Model2 MetaData2ModelShape(const String& s);
 
-ArrayOfString ModelMetaDataArray(const Model2& m, const bool self, const bool bath, const ArrayOfSpeciesTag& sts);
+ArrayOfString ModelMetaDataArray(const Model2& m, const bool self, const bool bath, const ArrayOfSpeciesTag& sts, const Numeric T0);
 
 };  // namespace LineShape
 
