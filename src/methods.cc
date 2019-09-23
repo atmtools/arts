@@ -4631,8 +4631,8 @@ void define_md_data_raw() {
                "Number of angular grid points to calculate bulk phase"
                " function on (and derive Legendre polnomials from). If <0,"
                " the finest za_grid from scat_data will be used.",
-               "Use legacy Fortran Disort instead of C Disort.",
-               "Silence C Disort warnings." )));
+               "Silence C Disort warnings.",
+               "Use legacy Fortran Disort instead of C Disort.")));
 
   md_data_raw.push_back(MdRecord(
       NAME("dNdD_F07"),
