@@ -47,27 +47,26 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines2,
   while (go_on) {
     v.push_back(Absorption::ReadFromHitran2004Stream(is));
     
-    if(v.back().bad) {
+    if (v.back().bad) {
       v.pop_back();
       go_on = false;
     }
-    else if(v.back().line.F0() > fmax) {
+    else if (v.back().line.F0() > fmax) {
       v.pop_back();
       go_on = false;
     }
-    else if(v.back().quantumidentity.Species() < 0 or v.back().quantumidentity.Isotopologue() < 0) {
+    else if (v.back().quantumidentity.Species() < 0 or v.back().quantumidentity.Isotopologue() < 0) {
       v.pop_back();
       go_on = true;
       n++;
     }
   }
   
-  auto x = Absorption::split_list_of_external_lines(v, {QuantumNumberType::J}, {QuantumNumberType::v1});
+  auto x = Absorption::split_list_of_external_lines(v, {QuantumNumberType::J}, {QuantumNumberType::v1, QuantumNumberType::v2});
   abs_lines2.resize(0);
   abs_lines2.reserve(x.size());
-  for(auto& lines: x)
+  for (auto& lines: x)
     abs_lines2.push_back(lines);
-  
 }
 
 void abs_linesWriteSplitXML(const ArrayOfAbsorptionLines& abs_lines2,
@@ -90,4 +89,33 @@ void abs_linesWriteSplitXML(const ArrayOfAbsorptionLines& abs_lines2,
     
     std::cout << lines.MetaData() << '\n';
   }
+}
+
+void abs_linesTruncateGlobalQuantumNumbers(ArrayOfAbsorptionLines& abs_lines2,
+                                           const Verbosity&)
+{
+  ArrayOfAbsorptionLines x(0);
+  
+  for (auto& lines: abs_lines2) {
+    lines.truncate_global_quantum_numbers();
+    
+    Index match = -1;
+    for (Index ind=0; ind<x.nelem(); ind++) {
+      if (x[ind].Match(lines)) {
+        match = ind;
+        break;
+      }
+    }
+    
+    if (match < 0)
+      x.push_back(lines);
+    else {
+      for(auto& line: lines.AllLines())
+        x[match].AppendSingleLine(line);
+    }
+  }
+  
+  abs_lines2 = std::move(x);
+  for (auto& lines: abs_lines2)
+    lines.sort_by_frequency();
 }

@@ -653,12 +653,61 @@ public:
       return false;
     else if(quantumidentity not_eq mquantumidentity)
       return false;
-    else if(sle.species not_eq mbroadeningspecies)
+    else if(not std::equal(sle.species.cbegin(), sle.species.cend(), mbroadeningspecies.cbegin(), mbroadeningspecies.cend()))
       return false;
     else if(NumLines() not_eq 0 and sle.line.LineShapeElems() not_eq mlines[0].LineShapeElems())
       return false;
     else
       return true;
+  }
+  
+  /**  */
+  bool Match(const Lines& l) const noexcept {
+    if(l.mselfbroadening not_eq mselfbroadening)
+      return false;
+    else if(l.mbathbroadening not_eq mbathbroadening)
+      return false;
+    else if(l.mcutoff not_eq mcutoff)
+      return false;
+    else if(l.mmirroring not_eq mmirroring)
+      return false;
+    else if(l.mpopulation not_eq mpopulation)
+      return false;
+    else if(l.mnormalization not_eq mnormalization)
+      return false;
+    else if(l.mlineshapetype not_eq mlineshapetype)
+      return false;
+    else if(l.mT0 not_eq mT0)
+      return false;
+    else if(l.mcutofffreq not_eq mcutofffreq)
+      return false;
+    else if(l.mlinemixinglimit not_eq mlinemixinglimit)
+      return false;
+    else if(l.mquantumidentity not_eq mquantumidentity)
+      return false;
+    else if(not std::equal(l.mbroadeningspecies.cbegin(), l.mbroadeningspecies.cend(), mbroadeningspecies.cbegin(), mbroadeningspecies.cend()))
+      return false;
+    else if(not std::equal(l.mlocalquanta.cbegin(), l.mlocalquanta.cend(), mlocalquanta.cbegin(), mlocalquanta.cend()))
+      return false;
+    else if(NumLines() not_eq 0 and l.NumLines() not_eq 0 and
+            l.mlines[0].LineShapeElems() not_eq mlines[0].LineShapeElems())
+      return false;
+    else
+      return true;
+  }
+  
+  void sort_by_frequency() {
+    std::sort(mlines.begin(), mlines.end(),
+              [](const SingleLine& a, const SingleLine& b){return a.F0() < b.F0();});
+  }
+  
+  void sort_by_einstein() {
+    std::sort(mlines.begin(), mlines.end(),
+              [](const SingleLine& a, const SingleLine& b){return a.A() < b.A();});
+  }
+  
+  void truncate_global_quantum_numbers() {
+    mquantumidentity.SetTransition(QuantumNumbers(), QuantumNumbers());
   }
   
   /** Species Name */

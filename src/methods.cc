@@ -13439,6 +13439,21 @@ void define_md_data_raw() {
       GIN_DESC("Name of the HITRAN file", "Max frequency")));
 
   md_data_raw.push_back(MdRecord(
+    NAME("abs_linesTruncateGlobalQuantumNumbers"),
+      DESCRIPTION("Truncates all global quantum numbers\n"
+      "and then recombine the line list.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines2"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
     NAME("abs_linesWriteSplitXML"),
       DESCRIPTION("Writes a split file.\n"),
       AUTHORS("Richard Larsson"),
