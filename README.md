@@ -329,12 +329,6 @@ open ARTS.xcodeproj
 Experimental features (ONLY USE IF YOU KNOW WHAT YOU'RE DOING)
 --------------------------------------------------------------
 
-Use C++11 and the new libc++ (currently only supported in Xcode builds):
-
-```
-cmake -G Xcode -DWITH_XCODE_LIBCPP=1 ..
-```
-
 Enable C++17 (only for compatibility testing, do not use C++17 features in your
 code):
 
