@@ -116,7 +116,6 @@ arts_test_run_ctlfile(fast artscomponents/radar/TestIyActive_wfuns.arts)
 
 arts_test_run_ctlfile(fast artscomponents/ycalcappend/TestYCalcAppend.arts)
 
-arts_test_run_ctlfile(fast artscomponents/iba/TestIBA.arts)
 
 arts_test_run_ctlfile(fast artscomponents/heatingrates/TestHeatingRates.arts)
 
@@ -143,6 +142,7 @@ endif ()
 if (ENABLE_FASTEM)
   arts_test_run_ctlfile(fast artscomponents/fastem/TestFastem.arts)
   arts_test_run_ctlfile(fast artscomponents/antenna/TestAntenna2D.arts)
+  arts_test_run_ctlfile(fast artscomponents/iba/TestIBA.arts)
   arts_test_run_ctlfile(fast artscomponents/wfuns/TestTjacStokes1to4.arts)
   arts_test_run_ctlfile(slow artscomponents/wfuns/TestTjacStokes4.arts)
 endif ()
