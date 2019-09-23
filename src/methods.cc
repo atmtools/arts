@@ -4634,61 +4634,6 @@ void define_md_data_raw() {
                "Use cdisort instead of disort." )));
 
   md_data_raw.push_back(MdRecord(
-      NAME("DisortCalcWithARTSSurface"),
-      DESCRIPTION(
-          "As *DisortCalc*, but deriving surface properties from\n"
-          "*surface_rtprop_agenda*.\n"
-          "\n"
-          "The *surface_rtprop_agenda* is executed calculating reflection\n"
-          "matrices, from which then the diffuse power reflection coefficient\n"
-          "(an estimate of the total surface albedo) is derived and used in\n"
-          "the Disort solution.\n"
-          "The Disort solutions remains applying a Lambertian surface!\n"
-          "\n"
-          "NOTE: Use this WSM with extreme care (or rather use another\n"
-          "solver for non-Lambertian surfaces). The mode is an attempt to run\n"
-          "Disort more consistently with other ARTS scattering solvers, but\n"
-          "the user should be aware that it remains a (rough) approximation\n"
-          "of the original ARTS setup, specifically for specular/Fresnel\n"
-          "surfaces. Tests showed that for weakly reflecting surfaces (r=0.1)\n"
-          "below an optically thin atmosphere, differences to the true\n"
-          "solution can be a few Kelvin at nadir, increasing easily to above\n"
-          "10K for stronger reflecting surfaces (r~0.4).\n"),
-      AUTHORS("Jana Mendrok"),
-      OUT("doit_i_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("atmfields_checked",
-         "atmgeom_checked",
-         "scat_data_checked",
-         "cloudbox_checked",
-         "cloudbox_on",
-         "cloudbox_limits",
-         "propmat_clearsky_agenda",
-         "surface_rtprop_agenda",
-         "atmosphere_dim",
-         "pnd_field",
-         "t_field",
-         "z_field",
-         "vmr_field",
-         "p_grid",
-         "scat_data",
-         "f_grid",
-         "scat_za_grid",
-         "stokes_dim"),
-      GIN("nstreams", "do_deltam", "pfct_method", "Npfct"),
-      GIN_TYPE("Index", "Index", "String", "Index"),
-      GIN_DEFAULT("8", "0", "median", "181"),
-      GIN_DESC("Number of polar angle directions (streams) in DISORT "
-               "solution (must be an even number).",
-               "Boolean to activate DISORT's delta-m scaling or not.",
-               "Flag which method to apply to derive phase function.",
-               "Number of angular grid points to calculate bulk phase"
-               " function on (and derive Legendre polnomials from). If <0,"
-               " the finest za_grid from scat_data will be used.")));
-
-  md_data_raw.push_back(MdRecord(
       NAME("dNdD_F07"),
       DESCRIPTION(
           "Calculation of particle size distribution (dN/dD) following\n"
