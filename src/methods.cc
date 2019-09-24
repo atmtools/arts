@@ -7843,7 +7843,7 @@ void define_md_data_raw() {
          "rte_pos2",
          "jacobian_do",
          "iy_aux_vars",
-         "iy_iba_agenda"),
+         "iy_independent_beam_approx_agenda"),
       GIN("return_atm1d", "skip_vmr", "skip_pnd", "return_masses"),
       GIN_TYPE("Index", "Index", "Index", "Index"),
       GIN_DEFAULT("0", "0", "0", "0"),

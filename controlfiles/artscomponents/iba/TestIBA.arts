@@ -127,7 +127,7 @@ sensor_checkedCalc
 AgendaSet( iy_main_agenda ){
   iyIndependentBeamApproximation
 }
-AgendaSet( iy_iba_agenda ){
+AgendaSet( iy_independent_beam_approx_agenda ){
   Ignore( lat_grid )
   Ignore( lon_grid )
   Ignore( lat_true )

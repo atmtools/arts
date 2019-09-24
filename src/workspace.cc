@@ -2008,7 +2008,7 @@ void Workspace::define_wsv_data() {
       GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("iy_iba_agenda"),
+      NAME("iy_independent_beam_approx_agenda"),
       DESCRIPTION("Agenda dedicated to *iyIndependentBeamApproximation*."),
       GROUP("Agenda")));
 

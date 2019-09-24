@@ -344,12 +344,12 @@ void define_agenda_data() {
       INPUT("f_grid", "rtp_pos", "rtp_los")));
 
   agenda_data.push_back(AgRecord(
-      NAME("iy_iba_agenda"),
+      NAME("iy_independent_beam_approx_agenda"),
       DESCRIPTION(
           "Agenda dedicated to *iyIndependentBeamApproximation*.\n"
           "\n"
           "If *iyIndependentBeamApproximation* is used, this agenda basically\n"
-          "replaces *iy_main_agenda*.Accordingly, this agenda has exactly the\n"
+          "replaces *iy_main_agenda*. Accordingly, this agenda has exactly the\n"
           "same output as *iy_main_agenda*.\n"),
       OUTPUT("iy", "iy_aux", "ppath", "diy_dx"),
       INPUT("diy_dx",
