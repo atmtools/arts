@@ -13433,10 +13433,12 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("filename", "fmax"),
-      GIN_TYPE("String", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Name of the HITRAN file", "Max frequency")));
+      GIN("filename", "fmax", "globalquantumnumbers", "localquantumnumbers"),
+      GIN_TYPE("String", "Numeric", "String", "String"),
+      GIN_DEFAULT(NODEF, NODEF, "", ""),
+      GIN_DESC("Name of the HITRAN file", "Max frequency",
+               "Global quantum number list (space-separated)",
+               "Local quantum number list (space-separated)")));
 
   md_data_raw.push_back(MdRecord(
     NAME("abs_linesTruncateGlobalQuantumNumbers"),

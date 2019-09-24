@@ -31,16 +31,37 @@
 #include "auto_md.h"
 #include "file.h"
 
-void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines2,
+void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
                 const String& hitran_file,
                 const Numeric& fmax,
+                const String& globalquantumnumbers,
+                const String& localquantumnumbers,
                 const Verbosity&)
 {
+  // Take care of quantum numbers
+  String tmp_string;
+  
+  // Global numbers
+  std::vector<QuantumNumberType> global_nums(0);
+  std::istringstream global_str(globalquantumnumbers);
+  while (not global_str.eof()) {
+    global_str >> tmp_string; 
+    global_nums.push_back(string2quantumnumbertype(tmp_string));
+  }
+  
+  // Local numbers
+  std::vector<QuantumNumberType> local_nums(0);
+  std::istringstream local_str(localquantumnumbers);
+  while (not local_str.eof()) {
+    local_str >> tmp_string;
+    local_nums.push_back(string2quantumnumbertype(tmp_string));
+  }
+  
+  // Hitran data
   ifstream is;
   open_input_file(is, hitran_file);
   
-  std::vector<Absorption::SingleLineExternal> v;
-  v.resize(0);
+  std::vector<Absorption::SingleLineExternal> v(0);
   
   bool go_on = true;
   Index n = 0;
@@ -62,14 +83,17 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines2,
     }
   }
   
-  auto x = Absorption::split_list_of_external_lines(v, {QuantumNumberType::J}, {QuantumNumberType::v1, QuantumNumberType::v2});
-  abs_lines2.resize(0);
-  abs_lines2.reserve(x.size());
+  for (auto& x: v)
+    x.line.Zeeman() = Zeeman::GetAdvancedModel(x.quantumidentity);
+  
+  auto x = Absorption::split_list_of_external_lines(v, local_nums, global_nums);
+  abs_lines.resize(0);
+  abs_lines.reserve(x.size());
   for (auto& lines: x)
-    abs_lines2.push_back(lines);
+    abs_lines.push_back(lines);
 }
 
-void abs_linesWriteSplitXML(const ArrayOfAbsorptionLines& abs_lines2,
+void abs_linesWriteSplitXML(const ArrayOfAbsorptionLines& abs_lines,
                             const String& basename,
                             const Verbosity& verbosity)
 {
@@ -79,7 +103,7 @@ void abs_linesWriteSplitXML(const ArrayOfAbsorptionLines& abs_lines2,
   if (not(true_basename.back() == '.' or true_basename.back() == '/'))
     true_basename += '.';
 
-  for (auto& lines : abs_lines2) {
+  for (auto& lines : abs_lines) {
     auto name = lines.SpeciesName();
     const String fname = true_basename + name;
 
@@ -89,12 +113,12 @@ void abs_linesWriteSplitXML(const ArrayOfAbsorptionLines& abs_lines2,
   }
 }
 
-void abs_linesTruncateGlobalQuantumNumbers(ArrayOfAbsorptionLines& abs_lines2,
+void abs_linesTruncateGlobalQuantumNumbers(ArrayOfAbsorptionLines& abs_lines,
                                            const Verbosity&)
 {
   ArrayOfAbsorptionLines x(0);
   
-  for (auto& lines: abs_lines2) {
+  for (auto& lines: abs_lines) {
     lines.truncate_global_quantum_numbers();
     
     Index match = -1;
@@ -113,7 +137,7 @@ void abs_linesTruncateGlobalQuantumNumbers(ArrayOfAbsorptionLines& abs_lines2,
     }
   }
   
-  abs_lines2 = std::move(x);
-  for (auto& lines: abs_lines2)
+  abs_lines = std::move(x);
+  for (auto& lines: abs_lines)
     lines.sort_by_frequency();
 }

@@ -29,6 +29,7 @@
 #ifndef zeemandata_h
 #define zeemandata_h
 
+#include <limits>
 #include "constants.h"
 #include "mystring.h"
 #include "quantum.h"
@@ -40,58 +41,13 @@ namespace Zeeman {
 /** Zeeman polarization selection */
 enum class Polarization { SigmaMinus, Pi, SigmaPlus };
 
-/** Turns selected polarization type into a string
- * 
- * This function takes the input Zeeman polarization
- * and returns it as a 2-char string
- *  
- * @param[in] type The polarization type
- * 
- * @return 2-char String of polarization type
- */
-inline String polarization2string(Polarization type) noexcept {
-  switch (type) {
-    case Polarization::SigmaMinus:
-      return "SM";
-    case Polarization::Pi:
-      return "PI";
-    case Polarization::SigmaPlus:
-      return "SP";
-  };
-  std::terminate();
-}
-
-/** Turns predefined strings into a Zeeman polarization type
- * 
- * This function either acts as the inverse of polarization2string
- * or it throws a runtime error
- * 
- * @param[in] type The polarization type string
- * 
- * @return The actual Zeeman polarization type
- */
-inline Polarization string2polarization(const String& type) {
-  if (type == "SM")
-    return Polarization::SigmaMinus;
-  else if (type == "PI")
-    return Polarization::Pi;
-  else if (type == "SP")
-    return Polarization::SigmaPlus;
-  else {
-    std::ostringstream os;
-    os << "Type: " << type << ", is not accepted.  "
-       << "See documentation for accepted types\n";
-    throw std::runtime_error(os.str());
-  }
-}
-
 /** Gives the change of M given a polarization type
  * 
  * @param[in] type The polarization type
  * 
  * @return The change in M
  */
-inline Index dM(Polarization type) noexcept {
+constexpr Index dM(Polarization type) noexcept {
   switch (type) {
     case Polarization::SigmaMinus:
       return -1;
@@ -100,7 +56,7 @@ inline Index dM(Polarization type) noexcept {
     case Polarization::SigmaPlus:
       return 1;
   }
-  std::terminate();
+  return std::numeric_limits<Index>::max();
 }
 
 /** Gives the lowest M for a polarization type of this transition
@@ -117,7 +73,7 @@ inline Index dM(Polarization type) noexcept {
  * 
  * @return The lowest M value
  */
-inline Rational start(Rational Ju, Rational Jl, Polarization type) noexcept {
+constexpr Rational start(Rational Ju, Rational Jl, Polarization type) noexcept {
   switch (type) {
     case Polarization::SigmaMinus:
       if (Ju < Jl)
@@ -131,7 +87,7 @@ inline Rational start(Rational Ju, Rational Jl, Polarization type) noexcept {
     case Polarization::SigmaPlus:
       return -Ju;
   }
-  std::terminate();
+  return Rational(std::numeric_limits<Index>::max());
 }
 
 /** Gives the largest M for a polarization type of this transition
@@ -148,7 +104,7 @@ inline Rational start(Rational Ju, Rational Jl, Polarization type) noexcept {
  * 
  * @return The largest M value
  */
-inline Rational end(Rational Ju, Rational Jl, Polarization type) noexcept {
+constexpr Rational end(Rational Ju, Rational Jl, Polarization type) noexcept {
   switch (type) {
     case Polarization::SigmaMinus:
       return Ju + 1;
@@ -161,9 +117,8 @@ inline Rational end(Rational Ju, Rational Jl, Polarization type) noexcept {
         return Ju;
       else
         return Jl;
-    default:
-      return 0;
   }
+  return Rational(std::numeric_limits<Index>::max());
 }
 
 /** Gives the number of elements of the polarization type of this transition
@@ -176,7 +131,7 @@ inline Rational end(Rational Ju, Rational Jl, Polarization type) noexcept {
  * 
  * @return The number of elements
  */
-inline Index nelem(Rational Ju, Rational Jl, Polarization type) noexcept {
+constexpr Index nelem(Rational Ju, Rational Jl, Polarization type) noexcept {
   return (end(Ju, Jl, type) - start(Ju, Jl, type)).toIndex() + 1;
 }
 
@@ -193,10 +148,10 @@ inline Index nelem(Rational Ju, Rational Jl, Polarization type) noexcept {
  * 
  * @return The upper state M
  */
-inline Rational Mu(Rational Ju,
-                   Rational Jl,
-                   Polarization type,
-                   Index n) noexcept {
+constexpr Rational Mu(Rational Ju,
+                      Rational Jl,
+                      Polarization type,
+                      Index n) noexcept {
   return start(Ju, Jl, type) + n;
 }
 
@@ -214,10 +169,10 @@ inline Rational Mu(Rational Ju,
  * 
  * @return The lower state M
  */
-inline Rational Ml(Rational Ju,
-                   Rational Jl,
-                   Polarization type,
-                   Index n) noexcept {
+constexpr Rational Ml(Rational Ju,
+                      Rational Jl,
+                      Polarization type,
+                      Index n) noexcept {
   return Mu(Ju, Jl, type, n) + dM(type);
 }
 
@@ -232,7 +187,7 @@ inline Rational Ml(Rational Ju,
  * 
  * @return Rescale factor
  */
-inline Numeric PolarizationFactor(Polarization type) noexcept {
+constexpr Numeric PolarizationFactor(Polarization type) noexcept {
   switch (type) {
     case Polarization::SigmaMinus:
       return .75;
@@ -241,7 +196,7 @@ inline Numeric PolarizationFactor(Polarization type) noexcept {
     case Polarization::SigmaPlus:
       return .75;
   }
-  std::terminate();
+  return std::numeric_limits<Numeric>::max();
 }
 
 /** Checks if the quantum numbers are good for this transition
@@ -253,7 +208,7 @@ inline Numeric PolarizationFactor(Polarization type) noexcept {
  * 
  * @return If the numbers can be used to compute simple Zeeman effect
  */
-inline bool GoodHundData(const QuantumNumbers& qns) noexcept {
+constexpr bool GoodHundData(const QuantumNumbers& qns) noexcept {
   if (qns[QuantumNumberType::Hund].isUndefined()) return false;
   switch (Hund(qns[QuantumNumberType::Hund].toIndex())) {
     case Hund::CaseA:
@@ -290,12 +245,12 @@ inline bool GoodHundData(const QuantumNumbers& qns) noexcept {
  * 
  * @return Zeeman splitting coefficient of the level
  */
-inline Numeric SimpleGCaseB(Rational N,
-                            Rational J,
-                            Rational Lambda,
-                            Rational S,
-                            Numeric GS,
-                            Numeric GL) noexcept {
+constexpr Numeric SimpleGCaseB(Rational N,
+                               Rational J,
+                               Rational Lambda,
+                               Rational S,
+                               Numeric GS,
+                               Numeric GL) noexcept {
   auto JJ = J * (J + 1);
   auto NN = N * (N + 1);
   auto SS = S * (S + 1);
@@ -327,12 +282,12 @@ inline Numeric SimpleGCaseB(Rational N,
  * 
  * @return Zeeman splitting coefficient of the level
  */
-inline Numeric SimpleGCaseA(Rational Omega,
-                            Rational J,
-                            Rational Lambda,
-                            Rational Sigma,
-                            Numeric GS,
-                            Numeric GL) noexcept {
+constexpr Numeric SimpleGCaseA(Rational Omega,
+                               Rational J,
+                               Rational Lambda,
+                               Rational Sigma,
+                               Numeric GS,
+                               Numeric GL) noexcept {
   auto JJ = J * (J + 1);
 
   if (JJ == 0)
@@ -356,14 +311,11 @@ inline Numeric SimpleGCaseA(Rational Omega,
  * 
  * @return If the numbers can be used to compute simple Zeeman effect
  */
-inline Numeric SimpleG(const QuantumNumbers& qns,
-                        const Numeric& GS,
-                        const Numeric& GL) {
-  if (not GoodHundData(qns)) {
-    std::ostringstream os;
-    os << "Bad quantum numbers for Zeeman via Hund approximation:\n" << qns;
-    throw std::runtime_error(os.str());
-  }
+constexpr Numeric SimpleG(const QuantumNumbers& qns,
+                          const Numeric& GS,
+                          const Numeric& GL) noexcept{
+  if (not GoodHundData(qns))
+    return 0;
 
   switch (Hund(qns[QuantumNumberType::Hund].toIndex())) {
     case Hund::CaseA:
@@ -380,9 +332,9 @@ inline Numeric SimpleG(const QuantumNumbers& qns,
                           qns[QuantumNumberType::S],
                           GS,
                           GL);
-    default:
-      throw std::runtime_error("cannot understand Hund case");
   }
+
+  return 0;
 }
 
 /** Main storage for Zeeman splitting coefficients
@@ -420,7 +372,7 @@ class Model {
    * 
    * @param[in] qid Transition type quantum id
    */
-  Model(const QuantumIdentifier& qid);
+  Model(const QuantumIdentifier& qid) noexcept;
 
   /** Returns true if the Model represents no Zeeman effect */
   constexpr bool empty() const noexcept {
@@ -474,7 +426,7 @@ class Model {
    * 
    * @return The splitting of the Zeeman subline
    */
-  Numeric Splitting(Rational Ju, Rational Jl, Polarization type, Index n) const
+  constexpr Numeric Splitting(Rational Ju, Rational Jl, Polarization type, Index n) const
       noexcept {
     using Constant::bohr_magneton;
     using Constant::h;
@@ -500,7 +452,7 @@ class Model {
  * 
  * @return Zeeman model
  */
-Model GetSimpleModel(const QuantumIdentifier& qid);
+Model GetSimpleModel(const QuantumIdentifier& qid) noexcept;
 
 /** Returns an advanced Zeeman model 
  * 
