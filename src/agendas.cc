@@ -423,6 +423,7 @@ void define_agenda_data() {
             "cloudbox_on",
             "jacobian_do",
             "f_grid",
+            "nlte_field",
             "rte_pos",
             "rte_los",
             "rte_pos2")));
@@ -473,6 +474,7 @@ void define_agenda_data() {
             "jacobian_do",
             "iy_main_agenda",
             "f_grid",
+            "nlte_field",
             "rtp_pos",
             "rtp_los",
             "rte_pos2",

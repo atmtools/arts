@@ -114,6 +114,7 @@ void emission_from_propmat_field(
     const FieldOfStokesVector& additional_source_field,
     const Vector& f_grid,
     const Tensor3& t_field,
+    const Tensor4& nlte_field,
     const Ppath& ppath,
     const Agenda& iy_main_agenda,
     const Agenda& iy_space_agenda,

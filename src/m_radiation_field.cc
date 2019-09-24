@@ -192,6 +192,7 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
                                 additional_source_field,
                                 f_grid,
                                 t_field,
+                                nlte_field,
                                 path,
                                 l_iy_main_agenda,
                                 l_iy_space_agenda,
