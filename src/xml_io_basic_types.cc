@@ -1568,6 +1568,15 @@ void xml_write_to_stream(ostream& os_xml,
                          bofstream* pbofs,
                          const String&,
                          const Verbosity& verbosity) {
+  ArtsXMLTag open_comment_tag(verbosity);
+  ArtsXMLTag close_comment_tag(verbosity);
+  open_comment_tag.set_name("comment");
+  open_comment_tag.write_to_stream(os_xml);
+  os_xml << al.MetaData();
+  close_comment_tag.set_name("/comment");
+  close_comment_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
   ArtsXMLTag open_tag(verbosity);
   ArtsXMLTag close_tag(verbosity);
 
@@ -1587,7 +1596,6 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.add_attribute("lowerglobalquanta", al.LowerQuantumNumbers());
   open_tag.add_attribute("broadeningspecies", al.BroadeningSpecies(), al.Self(), al.Bath());
   open_tag.add_attribute("temperaturemodes", al.LineShapeMetaData());
-  open_tag.add_attribute("comment", al.MetaData());
 
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
