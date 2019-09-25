@@ -1791,6 +1791,8 @@ void run_disort(Workspace& ws,
   delete[] prnt;
 }
 
+#else /* ENABLE_DISORT */
+
 void run_disort(Workspace&,
                 Tensor7&,
                 ConstVectorView,
@@ -1831,21 +1833,6 @@ void run_disort2(Workspace&,
                  const Index&,
                  const Index&,
                  const Verbosity&) {
-  throw runtime_error(
-      "This version of ARTS was compiled without DISORT support.");
-}
-
-void get_cb_inc_field(Workspace&,
-                      Matrix&,
-                      const Agenda&,
-                      const Tensor3&,
-                      const Tensor3&,
-                      const Tensor4&,
-                      const Index&,
-                      const ArrayOfIndex&,
-                      const Vector&,
-                      const Vector&,
-                      const Index&) {
   throw runtime_error(
       "This version of ARTS was compiled without DISORT support.");
 }
