@@ -2008,6 +2008,11 @@ void Workspace::define_wsv_data() {
       GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("iy_independent_beam_approx_agenda"),
+      DESCRIPTION("Agenda dedicated to *iyIndependentBeamApproximation*."),
+      GROUP("Agenda")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("iy_id"),
       DESCRIPTION(
           "Identification number of *iy*.\n"
@@ -2040,6 +2045,11 @@ void Workspace::define_wsv_data() {
       GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("iy_loop_freqs_agenda"),
+      DESCRIPTION("Agenda dedicated to *iyLoopFrequencies*."),
+      GROUP("Agenda")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("iy_main_agenda"),
       DESCRIPTION(
           "Agenda calculating the single monochromatic pencil beam spectrum.\n"),
@@ -2050,10 +2060,6 @@ void Workspace::define_wsv_data() {
       DESCRIPTION(
           "Agenda providing the downwelling radiation at the top of the atmosphere.\n"),
       GROUP("Agenda")));
-
-  wsv_data.push_back(WsvRecord(NAME("iy_sub_agenda"),
-                               DESCRIPTION("Sub-agenda to *iy_main_agenda*.\n"),
-                               GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
       NAME("iy_surface_agenda"),
@@ -2138,16 +2144,6 @@ void Workspace::define_wsv_data() {
           "jacobianAddXxx methods).\n"
           "\n"
           "Needs to be 0 if cloudy-sky (Doit) Jacobians shall be calculated.\n"),
-      GROUP("Index")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("jacobianDoit_do"),
-      DESCRIPTION(
-          "Flag to activate cloudy-sky (Doit) Jacobian calculations.\n"
-          "\n"
-          "If set to 0, no cloudy-sky Jacobian calculations will be performed\n"
-          "(even if jacobian species have been set through\n"
-          "*jacobianDoitAddSpecies*)\n"),
       GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(

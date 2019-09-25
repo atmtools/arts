@@ -1600,7 +1600,7 @@ void define_md_data_raw() {
           "\n"
           "Arguments exactly as for *jacobianAddAbsSpecies*. Note that this\n"
           "method only handles a single tag group, in contrast to\n"
-          "*abs_speciesAdd*\n"),
+          "*abs_speciesAdd*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("abs_species",
           "jacobian_quantities",
@@ -1611,22 +1611,18 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_species", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid"),
-      GIN("gin1", "gin2", "gin3", "species", "method", "unit", "dx"),
+      GIN("gin1", "gin2", "gin3", "species", "unit"),
       GIN_TYPE("Vector",
                "Vector",
                "Vector",
                "String",
-               "String",
-               "String",
-               "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF, "vmr", NODEF),
+               "String"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, "vmr"),
       GIN_DESC("Pressure retrieval grid.",
                "Latitude retrieval grid.",
                "Longitude retreival grid.",
                "The species tag of the retrieval quantity.",
-               "Calculation method. See above.",
-               "Retrieval unit. See above.",
-               "Size of perturbation."),
+               "Retrieval unit. See above."),
       SETMETHOD(false),
       AGENDAMETHOD(false),
       USES_TEMPLATES(false),
@@ -5244,8 +5240,6 @@ void define_md_data_raw() {
          "lat_grid",
          "lon_grid",
          "z_field",
-         "t_field",
-         "vmr_field",
          "nlte_field",
          "cloudbox_on",
          "cloudbox_limits",
@@ -5286,8 +5280,6 @@ void define_md_data_raw() {
          "lat_grid",
          "lon_grid",
          "z_field",
-         "t_field",
-         "vmr_field",
          "nlte_field",
          "cloudbox_on",
          "cloudbox_limits",
@@ -7420,14 +7412,11 @@ void define_md_data_raw() {
           "atmfields_checked",
           "iy_aux_vars",
           "iy_id",
-          "f_grid",
-          "t_field",
-          "z_field",
-          "vmr_field",
-          "nlte_field",
           "cloudbox_on",
           "cloudbox_checked",
           "scat_data_checked",
+          "f_grid",
+          "nlte_field",
           "rte_pos",
           "rte_los",
           "rte_pos2",
@@ -7498,7 +7487,6 @@ void define_md_data_raw() {
          "f_grid",
          "atmosphere_dim",
          "p_grid",
-         "z_field",
          "t_field",
          "nlte_field",
          "vmr_field",
@@ -7561,7 +7549,6 @@ void define_md_data_raw() {
          "f_grid",
          "atmosphere_dim",
          "p_grid",
-         "z_field",
          "t_field",
          "nlte_field",
          "vmr_field",
@@ -7702,7 +7689,6 @@ void define_md_data_raw() {
          "f_grid",
          "atmosphere_dim",
          "p_grid",
-         "z_field",
          "t_field",
          "nlte_field",
          "vmr_field",
@@ -7772,7 +7758,6 @@ void define_md_data_raw() {
          "f_grid",
          "atmosphere_dim",
          "p_grid",
-         "z_field",
          "t_field",
          "nlte_field",
          "vmr_field",
@@ -7818,9 +7803,10 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(MdRecord(
       NAME("iyIndependentBeamApproximation"),
-      DESCRIPTION("In development ....\n"
-                  "\n"
-                  "Describe how *atm_fields_compact* is filled.\n"),
+      DESCRIPTION(
+         "In development ....\n"
+         "\n"
+         "Describe how *atm_fields_compact* is filled.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("iy", "iy_aux", "ppath", "diy_dx", "atm_fields_compact"),
       GOUT(),
@@ -7860,7 +7846,7 @@ void define_md_data_raw() {
          "rte_pos2",
          "jacobian_do",
          "iy_aux_vars",
-         "iy_sub_agenda"),
+         "iy_independent_beam_approx_agenda"),
       GIN("return_atm1d", "skip_vmr", "skip_pnd", "return_masses"),
       GIN_TYPE("Index", "Index", "Index", "Index"),
       GIN_DEFAULT("0", "0", "0", "0"),
@@ -7869,7 +7855,7 @@ void define_md_data_raw() {
           "Flag to not include vmr data in *atm_fields_compact*.",
           "Flag to not include pnd data in *atm_fields_compact*.",
           "Flag to include particle category masses in *atm_fields_compact*."
-          " Conversion is done by *particle_masses*.")));
+          "Conversion is done by *particle_masses*.")));
 
   md_data_raw.push_back(MdRecord(
       NAME("iyInterpCloudboxField"),
@@ -7996,48 +7982,27 @@ void define_md_data_raw() {
           "Radiative transfer calculations one frequency at the time.\n"
           "\n"
           "The method loops the frequencies in *f_grid* and calls\n"
-          "*iy_sub_agenda* for each individual value. This method is placed\n"
-          "in *iy_main_agenda*, and the actual radiative ransfer method is\n"
-          "put in *iy_sub_agenda*.\n"
+          "*iy_loop_freqs_agenda* for each individual value. This method is\n"
+          "placed in *iy_main_agenda*, and the actual radiative transfer\n"
+          " method is put in *iy_loop_freqs_agenda*.\n"
           "\n"
           "A common justification for using the method should be to consider\n"
           "dispersion. By using this method it is ensured that the propagation\n"
-          "path for each individual frequency is calculated.\n"
-          "\n"
-          "Auxiliary data (defined by *iy_aux_vars*) can not contain along-\n"
-          "the-path quantities (a common ppath is not ensured). The returned\n"
-          "*ppath* is valid for the last frequency.\n"),
+          "path for each individual frequency is calculated.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("iy", "iy_aux", "ppath", "diy_dx"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("iy_aux_vars",
-         "stokes_dim",
-         "f_grid",
-         "atmosphere_dim",
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "lat_true",
-         "lon_true",
-         "t_field",
-         "z_field",
-         "vmr_field",
-         "z_surface",
-         "ppath_lmax",
-         "ppath_lraytrace",
-         "cloudbox_on",
-         "cloudbox_limits",
-         "pnd_field",
          "iy_agenda_call1",
-         "iy_unit",
          "iy_transmission",
          "rte_pos",
          "rte_los",
          "rte_pos2",
-         "jacobian_do",
-         "iy_sub_agenda"),
+         "stokes_dim",
+         "f_grid",
+         "iy_loop_freqs_agenda"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -8285,9 +8250,6 @@ void define_md_data_raw() {
          "iy_id",
          "cloudbox_on",
          "jacobian_do",
-         "t_field",
-         "z_field",
-         "vmr_field",
          "f_grid",
          "iy_main_agenda",
          "rtp_pos",
@@ -8333,9 +8295,6 @@ void define_md_data_raw() {
          "iy_id",
          "jacobian_do",
          "atmosphere_dim",
-         "t_field",
-         "z_field",
-         "vmr_field",
          "nlte_field",
          "cloudbox_on",
          "stokes_dim",
@@ -8375,9 +8334,6 @@ void define_md_data_raw() {
          "iy_id",
          "jacobian_do",
          "atmosphere_dim",
-         "t_field",
-         "z_field",
-         "vmr_field",
          "nlte_field",
          "cloudbox_on",
          "stokes_dim",
@@ -8423,9 +8379,6 @@ void define_md_data_raw() {
          "jacobian_do",
          "jacobian_quantities",
          "atmosphere_dim",
-         "t_field",
-         "z_field",
-         "vmr_field",
          "nlte_field",
          "cloudbox_on",
          "stokes_dim",
@@ -8579,10 +8532,6 @@ void define_md_data_raw() {
           "For 1D or 2D calculations the latitude and/or longitude grid of\n"
           "the retrieval field should set to have zero length.\n"
           "\n"
-          "There are two possible calculation methods:\n"
-          "   \"analytical\"   : (semi-)analytical expressions are used\n"
-          "   \"perturbation\" : pure numerical perturbations are used\n"
-          "\n"
           "These retrieval units are at hand for all gas species:\n"
           "   \"vmr\"    : Volume mixing ratio.\n"
           "   \"nd\"     : Number density.\n"
@@ -8591,10 +8540,6 @@ void define_md_data_raw() {
           "For water vapour, also these units are at hand:\n"
           "   \"rh\"     : Relative humidity.\n"
           "   \"q\"      : Specific humidity.\n"
-          "\n"
-          "For perturbation calculations the size of the perturbation is set\n"
-          "by the user. The unit for the perturbation is the same as for the\n"
-          "retrieval unit.\n"
           "\n"
           "Note that *for_species_tag* is used to indicate if species tag VMR,\n"
           "rather than atmospheric gas VMR is calculated. Set it to 0 and we\n"
@@ -8623,28 +8568,22 @@ void define_md_data_raw() {
           "g2",
           "g3",
           "species",
-          "method",
           "unit",
-          "for_species_tag",
-          "dx"),
+          "for_species_tag"),
       GIN_TYPE("Vector",
                "Vector",
                "Vector",
                "String",
                "String",
-               "String",
-               "Index",
-               "Numeric"),
+               "Index"),
       GIN_DEFAULT(
-          NODEF, NODEF, NODEF, NODEF, "analytical", "vmr", "1", "0.001"),
+          NODEF, NODEF, NODEF, NODEF, "vmr", "1"),
       GIN_DESC("Pressure retrieval grid.",
                "Latitude retrieval grid.",
                "Longitude retreival grid.",
                "The species tag of the retrieval quantity.",
-               "Calculation method. See above.",
                "Retrieval unit. See above.",
-               "Index-bool for acting on species tags or species.",
-               "Size of perturbation."),
+               "Index-bool for acting on species tags or species."),
       SETMETHOD(false),
       AGENDAMETHOD(false),
       USES_TEMPLATES(false),
@@ -9236,11 +9175,11 @@ void define_md_data_raw() {
       DESCRIPTION(
           "Includes atmospheric temperatures in the Jacobian.\n"
           "\n"
-          "The calculations can be performed by (semi-)analytical expressions\n"
-          "or by perturbations. Hydrostatic equilibrium (HSE) can be included.\n"
-          "For perturbation calculations, all possible effects are included\n"
-          "(but is a costly option). The analytical calculation approach\n"
-          "neglects refraction totally, but considers the local effect of HSE.\n"
+          "The calculations are performed by (semi-)analytical expressions.\n"
+          "Hydrostatic equilibrium (HSE) can be included.\n"
+          "\n"
+          "The analytical calculation approach neglects so far refraction\n"
+          "totally, but considers the local effect of HSE.\n"
           "The later should be accaptable for observations around zenith and\n"
           "nadir. There is no warning if the method is applied incorrectly, \n"
           "with respect to these issues. Note that the argument *hse* of this\n"
@@ -9252,10 +9191,6 @@ void define_md_data_raw() {
           "in VMR (a change in temperature then changes the number density). \n"
           "This has the consequence that retrieval of temperatures and number\n"
           "density can not be mixed. Neither any warning here!\n"
-          "\n"
-          "The choices for *method* are:\n"
-          "   \"analytical\"   : (semi-)analytical expressions are used\n"
-          "   \"perturbation\" : pure numerical perturbations are used\n"
           "\n"
           "The number of elements added to the state vector (*x*) is:\n"
           "   n_g1 * n_g2 * n_g3\n"
@@ -9274,15 +9209,13 @@ void define_md_data_raw() {
          "p_grid",
          "lat_grid",
          "lon_grid"),
-      GIN("g1", "g2", "g3", "hse", "method", "dt"),
-      GIN_TYPE("Vector", "Vector", "Vector", "String", "String", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "on", "analytical", "0.1"),
+      GIN("g1", "g2", "g3", "hse"),
+      GIN_TYPE("Vector", "Vector", "Vector", "String"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "on"),
       GIN_DESC("Pressure retrieval grid.",
                "Latitude retrieval grid.",
                "Longitude retreival grid.",
-               "Flag to assume HSE or not (\"on\" or \"off\").",
-               "Calculation method. See above.",
-               "Size of perturbation [K].")));
+               "Flag to assume HSE or not (\"on\" or \"off\").")));
 
   md_data_raw.push_back(MdRecord(
       NAME("jacobianAddWind"),
@@ -9293,7 +9226,7 @@ void define_md_data_raw() {
           "calculations can only be performed by analytic expressions.\n"
           "Some lower level function depends on frequency perturbations,\n"
           "however, so therefore a frequency perturbation *df* is required\n"
-          "and as a consequence *abs_f_interp_order* > 0.\n"
+          "and as a consequence *abs_f_interp_order* must be > 0.\n"
           "\n"
           "The wind field components are retrieved separately, and,\n"
           "hence, the argument *component* can be \"u\", \"v\" or \"w\" \n"
@@ -9315,8 +9248,7 @@ void define_md_data_raw() {
          "atmosphere_dim",
          "p_grid",
          "lat_grid",
-         "lon_grid",
-         "abs_f_interp_order"),
+         "lon_grid"),
       GIN("g1", "g2", "g3", "component", "dfrequency"),
       GIN_TYPE("Vector", "Vector", "Vector", "String", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "v", "0.1"),
@@ -9356,49 +9288,6 @@ void define_md_data_raw() {
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("jacobianCalcAbsSpeciesPerturbations"),
-      DESCRIPTION("Calculates absorption species jacobians by perturbations.\n"
-                  "\n"
-                  "This function is added to *jacobian_agenda* by\n"
-                  "jacobianAddAbsSpecies and should normally not be called\n"
-                  "by the user.\n"),
-      AUTHORS("Mattias Ekstrom", "Patrick Eriksson"),
-      OUT("jacobian"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("jacobian",
-         "mblock_index",
-         "iyb",
-         "yb",
-         "atmosphere_dim",
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "t_field",
-         "z_field",
-         "vmr_field",
-         "nlte_field",
-         "abs_species",
-         "cloudbox_on",
-         "stokes_dim",
-         "f_grid",
-         "sensor_pos",
-         "sensor_los",
-         "transmitter_pos",
-         "mblock_dlos_grid",
-         "sensor_response",
-         "iy_unit",
-         "iy_main_agenda",
-         "geo_pos_agenda",
-         "jacobian_quantities"),
-      GIN("species"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Species of interest."),
-      SETMETHOD(true)));
 
   md_data_raw.push_back(MdRecord(
       NAME("jacobianCalcDoNothing"),
@@ -9524,9 +9413,6 @@ void define_md_data_raw() {
          "iyb",
          "yb",
          "atmosphere_dim",
-         "t_field",
-         "z_field",
-         "vmr_field",
          "nlte_field",
          "cloudbox_on",
          "stokes_dim",
@@ -9601,57 +9487,6 @@ void define_md_data_raw() {
       SETMETHOD(true)));
 
   md_data_raw.push_back(MdRecord(
-      NAME("jacobianCalcTemperaturePerturbations"),
-      DESCRIPTION(
-          "Calculates atmospheric temperature jacobians by perturbations.\n"
-          "\n"
-          "This function is added to *jacobian_agenda* by\n"
-          "jacobianAddTemperature and should normally not be called\n"
-          "by the user.\n"),
-      AUTHORS("Mattias Ekstrom", "Patrick Eriksson"),
-      OUT("jacobian"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("jacobian",
-         "mblock_index",
-         "iyb",
-         "yb",
-         "atmosphere_dim",
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "lat_true",
-         "lon_true",
-         "t_field",
-         "z_field",
-         "vmr_field",
-         "nlte_field",
-         "abs_species",
-         "refellipsoid",
-         "z_surface",
-         "cloudbox_on",
-         "stokes_dim",
-         "f_grid",
-         "sensor_pos",
-         "sensor_los",
-         "transmitter_pos",
-         "mblock_dlos_grid",
-         "sensor_response",
-         "iy_unit",
-         "iy_main_agenda",
-         "geo_pos_agenda",
-         "g0_agenda",
-         "molarmass_dry_air",
-         "p_hse",
-         "z_hse_accuracy",
-         "jacobian_quantities"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
       NAME("jacobianClose"),
       DESCRIPTION(
           "Closes the array of retrieval quantities and prepares for\n"
@@ -9668,191 +9503,6 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("jacobian_agenda", "jacobian_quantities"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("jacobianDoit"),
-      DESCRIPTION(
-          "Performs Jacobian calculations in cloudy-sky conditions using DOIT.\n"
-          "\n"
-          "It calculates Jacobians using perturbation method for species and\n"
-          "perturbations defined by *jacobianDoitAddSpecies*. Allowed species\n"
-          "are temperature, all absorption species, and scattering species\n"
-          "fields (so far: mass and number density, mass flux). Perturbations\n"
-          "are so far done on all levels within the cloudbox (i.e. no\n"
-          "selection of perturbation pressure grid or range).\n"
-          "\n"
-          "The method requires a first guess *doit_i_field* as input. which\n"
-          "should have been derived from the unperturbed atmosphere case.\n"
-          "Internally, the DOIT calculation of the unperturbed case and\n"
-          "calculations for each perturbation are performed starting from the\n"
-          "first guess field. For consistency of the calculations, it is\n"
-          "suggested to perform the same, fixed number of iterations for the\n"
-          "unperturbed and perturbation calculations. To achieve this, the\n"
-          "user has to reset the *doit_conv_test_agenda* before calling\n"
-          "*jacobianDoit* setting the desired number of *max_iterations* and a\n"
-          "high-accuracy convergence limit *epsilon*.\n"
-          "\n"
-          "Only 1D calculations using perturbation method are possible.\n"
-          "Clearsky and cloudysky Jacobians can currently not be calculated\n"
-          "simulatneously.\n"
-          "\n"
-          "Attention: If *ScatSpeciesMerge* is used (in the calculation\n"
-          "of the first guess field outside this WSM or by\n"
-          "*ScatSpeciesMerge_do*=1 inside this WSM), the original,\n"
-          "unmerged *scat_data* and *pnd_field* need to be copied back into\n"
-          "the respective WSV and passed into this WSM (It is not sufficient\n"
-          "to pass a copied version! Data needs to reside in the WSVs\n"
-          "*scat_data* and *pnd_field*!)."
-          "\n"
-          "Developer note: All output WSV except *y* and *jacobian* are no\n"
-          "real output, but had to be defined as such in order to allow\n"
-          "internal modification of the data.\n"),
-      AUTHORS("Jana Mendrok"),
-      OUT("y",
-          "jacobian",
-          "doit_i_field",
-          "scat_species_mass_density_field",
-          "scat_species_mass_flux_field",
-          "scat_species_number_density_field",
-          "scat_species_mean_mass_field",
-          "pnd_field",
-          "vmr_field",
-          "t_field",
-          "scat_data",
-          "scat_meta",
-          "scat_species"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("doit_i_field",
-         "scat_species_mass_density_field",
-         "scat_species_mass_flux_field",
-         "scat_species_number_density_field",
-         "scat_species_mean_mass_field",
-         "pnd_field",
-         "vmr_field",
-         "t_field",
-         "scat_data",
-         "scat_meta",
-         "scat_species",
-         "jacobian_quantities",
-         "abs_species",
-         "atmosphere_dim",
-         "cloudbox_limits",
-         "z_surface",
-         "p_grid",
-         "atmfields_checked",
-         "atmgeom_checked",
-         "cloudbox_checked",
-         "scat_data_checked",
-         "cloudbox_on",
-         "f_grid",
-         "doit_mono_agenda",
-         "doit_is_initialized",
-         "z_field",
-         "sensor_checked",
-         "stokes_dim",
-         "sensor_pos",
-         "sensor_los",
-         "transmitter_pos",
-         "mblock_dlos_grid",
-         "sensor_response",
-         "sensor_response_f",
-         "sensor_response_pol",
-         "sensor_response_dlos",
-         "iy_unit",
-         "iy_main_agenda",
-         "geo_pos_agenda",
-         "jacobian_agenda",
-         "jacobianDoit_do",
-         "iy_aux_vars"),
-      GIN("robust", "ScatSpeciesMerge_do", "debug", "scat_species_delim"),
-      GIN_TYPE("Index", "Index", "Index", "String"),
-      GIN_DEFAULT("1", "0", "0", "-"),
-      GIN_DESC("Flag (0=no,1=yes) whether to continue perturbation"
-               " calculations, even if individual calculations fail. When"
-               " set robust, respective entries in *jacobian* are set to"
-               " NaN.",
-               "Flag (0=no,1=yes) whether to execute *ScatSpeciesMerge* on"
-               " perturbed *pnd_field*",
-               "Debug flag (dumps some additional output to files)",
-               "*scat_species* delimiter string")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("jacobianDoitAddSpecies"),
-      DESCRIPTION(
-          "Includes a jacobian species for *jacobianDoit* calculations.\n"
-          "\n"
-          "Allowed species categories are temperature, absorption species, and\n"
-          "scattering species. Depending on the species category, species tags\n"
-          "consist of up to three parts, separated by a '.':\n"
-          "Part 1 is the category identifier:\n"
-          "  - 'T' for temperature,\n"
-          "  - 'abs_species' for an absorption species,\n"
-          "  - 'scat_species' for a scattering species.\n"
-          "Part 2 is the species identifier (not used for category temperature):\n"
-          "  - for an absorption species: the *abs_species* tag of the species\n"
-          "    (including the absmodel or isotopologue part of the\n"
-          "    *abs_species* tag!)\n"
-          "  - for a scattering species: the scattering species name as\n"
-          "    occuring in *scat_species*\n"
-          "Part 3 is only required for scattering species perturbations:\n"
-          "  - the field identifier for the scat_species_XX_field to be\n"
-          "    perturbed (i.e., mass_density, mass_flux, number_density, or\n"
-          "    mean_mass)\n"
-          "  Note: Currently there is no check, whether the perturbed\n"
-          "  scattering species field is used at all by the microphysics\n"
-          "  parametrization of the respective scattering species.\n"
-          "\n"
-          "Only pure numerical perturbations are available. The perturbation\n"
-          "size is specified by the user. The perturbation unit can be \"abs\"\n"
-          "or \"rel\" (the latter one not allowed if category is temperature).\n"
-          "Note that \"rel\" perturbations can also be used for log scale\n"
-          "retrievals.\n"
-          "\n"
-          "Units of absolute perturbations are identical to units of the field\n"
-          "(i.e., VMR for *vmr_field*, kg/m3 for mass densities, kg/s/m2 for\n"
-          "mass fluxes, 1/m3 for number densities etc.), \"rel\" perturbations\n"
-          "are unitless.\n"),
-      AUTHORS("Jana Mendrok"),
-      OUT("jacobian_quantities"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("jacobian_quantities",
-         "jacobian_do",
-         "atmosphere_dim",
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "cloudbox_limits"),
-      GIN("species", "unit", "dx"),
-      GIN_TYPE("String", "String", "Numeric"),
-      GIN_DEFAULT(NODEF, "abs", "1e-6"),
-      GIN_DESC("The species tag of the retrieval quantity. See above.",
-               "Perturbation unit. See above.",
-               "Size of perturbation.")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("jacobianDoitClose"),
-      DESCRIPTION(
-          "Cloudy-sky (Doit) Jacobian equivalent to *jacobianClose*.\n"
-          "\n"
-          "Sets *jacobianDoit_do* to 1 and checks\n"
-          "that clearsky Jacobians are off (*jacobian_do*=0).\n"
-          "\n"
-          "Retrieval quantities should not be added after a call to this WSM.\n"
-          "No calculations are performed here.\n"),
-      AUTHORS("Mattias Ekstrom, Jana Mendrok"),
-      OUT("jacobianDoit_do"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("jacobian_do", "jacobian_quantities"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -9936,10 +9586,9 @@ void define_md_data_raw() {
           "That is, this method must be called when no clear-sky jacobians\n"
           "will be calculated (even if cloudy-sky jacobians are calculated!).\n"
           "\n"
-          "Sets *jacobian_do* and *jacobianDoit_do* to 0.\n"),
+          "Sets *jacobian_do* to 0.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("jacobian_do",
-          "jacobianDoit_do",
           "jacobian_agenda",
           "jacobian_quantities"),
       GOUT(),
@@ -12379,9 +12028,7 @@ void define_md_data_raw() {
          "ppath_lmax",
          "ppath_lraytrace",
          "atmgeom_checked",
-         "t_field",
          "z_field",
-         "vmr_field",
          "f_grid",
          "cloudbox_on",
          "cloudbox_checked",
@@ -12418,9 +12065,6 @@ void define_md_data_raw() {
          "ppath_lmax",
          "ppath_lraytrace",
          "atmgeom_checked",
-         "t_field",
-         "z_field",
-         "vmr_field",
          "f_grid",
          "cloudbox_on",
          "cloudbox_checked",
@@ -12448,9 +12092,6 @@ void define_md_data_raw() {
          "ppath_lmax",
          "ppath_lraytrace",
          "atmgeom_checked",
-         "t_field",
-         "z_field",
-         "vmr_field",
          "f_grid",
          "cloudbox_on",
          "cloudbox_checked",
@@ -12489,9 +12130,6 @@ void define_md_data_raw() {
          "ppath_lmax",
          "ppath_lraytrace",
          "atmgeom_checked",
-         "t_field",
-         "z_field",
-         "vmr_field",
          "f_grid",
          "cloudbox_on",
          "cloudbox_checked",
@@ -12534,9 +12172,7 @@ void define_md_data_raw() {
          "p_grid",
          "lat_grid",
          "lon_grid",
-         "t_field",
          "z_field",
-         "vmr_field",
          "f_grid",
          "refellipsoid",
          "z_surface",
@@ -12617,9 +12253,7 @@ void define_md_data_raw() {
          "p_grid",
          "lat_grid",
          "lon_grid",
-         "t_field",
          "z_field",
-         "vmr_field",
          "f_grid",
          "refellipsoid",
          "z_surface",
@@ -14930,28 +14564,22 @@ void define_md_data_raw() {
           "g2",
           "g3",
           "species",
-          "method",
           "unit",
-          "for_species_tag",
-          "dx"),
+          "for_species_tag"),
       GIN_TYPE("Vector",
                "Vector",
                "Vector",
                "String",
                "String",
-               "String",
-               "Index",
-               "Numeric"),
+               "Index"),
       GIN_DEFAULT(
-          NODEF, NODEF, NODEF, NODEF, "analytical", "rel", "1", "0.001"),
+          NODEF, NODEF, NODEF, NODEF, "rel", "1"),
       GIN_DESC("Pressure retrieval grid.",
                "Latitude retrieval grid.",
                "Longitude retreival grid.",
                "The species tag of the retrieval quantity.",
-               "Calculation method. See above.",
                "Retrieval unit. See above.",
-               "Index-bool for acting on species tags or species.",
-               "Size of perturbation."),
+               "Index-bool for acting on species tags or species."),
       SETMETHOD(false),
       AGENDAMETHOD(false),
       USES_TEMPLATES(false),
@@ -15341,15 +14969,13 @@ void define_md_data_raw() {
          "p_grid",
          "lat_grid",
          "lon_grid"),
-      GIN("g1", "g2", "g3", "hse", "method", "dt"),
-      GIN_TYPE("Vector", "Vector", "Vector", "String", "String", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "on", "analytical", "0.1"),
+      GIN("g1", "g2", "g3", "hse"),
+      GIN_TYPE("Vector", "Vector", "Vector", "String"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "on"),
       GIN_DESC("Pressure retrieval grid.",
                "Latitude retrieval grid.",
                "Longitude retreival grid.",
-               "Flag to assume HSE or not (\"on\" or \"off\").",
-               "Calculation method. See above.",
-               "Size of perturbation [K].")));
+               "Flag to assume HSE or not (\"on\" or \"off\").")));
 
   md_data_raw.push_back(MdRecord(
       NAME("retrievalAddWind"),
@@ -15374,8 +15000,7 @@ void define_md_data_raw() {
          "covmat_inv_block",
          "p_grid",
          "lat_grid",
-         "lon_grid",
-         "abs_f_interp_order"),
+         "lon_grid"),
       GIN("g1", "g2", "g3", "component", "dfrequency"),
       GIN_TYPE("Vector", "Vector", "Vector", "String", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "v", "0.1"),
@@ -20507,9 +20132,6 @@ void define_md_data_raw() {
       IN("atmgeom_checked",
          "atmfields_checked",
          "atmosphere_dim",
-         "t_field",
-         "z_field",
-         "vmr_field",
          "nlte_field",
          "cloudbox_on",
          "cloudbox_checked",
@@ -20603,9 +20225,6 @@ void define_md_data_raw() {
          "atmgeom_checked",
          "atmfields_checked",
          "atmosphere_dim",
-         "t_field",
-         "z_field",
-         "vmr_field",
          "nlte_field",
          "cloudbox_on",
          "cloudbox_checked",
@@ -20695,9 +20314,6 @@ void define_md_data_raw() {
          "stokes_dim",
          "f_grid",
          "atmosphere_dim",
-         "t_field",
-         "z_field",
-         "vmr_field",
          "nlte_field",
          "cloudbox_on",
          "cloudbox_checked",

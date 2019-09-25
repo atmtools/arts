@@ -39,22 +39,14 @@ AgendaSet( iy_main_agenda__Transmission ){
 }
 
 ###
-#AgendaCreate( iy_main_agenda__Radiolink )
-#AgendaSet( iy_main_agenda__Radiolink ){
-#  Ignore( iy_unit )
-#  Ignore( rte_los )
-#  Ignore( nlte_field )
-#  Ignore( diy_dx )
-#  Ignore( iy_id )
-#  iyRadioLink
-#}
-
-###
 AgendaCreate( iy_main_agenda__Freqloop )
 AgendaSet( iy_main_agenda__Freqloop ){
-  Ignore( nlte_field )
   Ignore( diy_dx )
   Ignore( iy_id )
+  Ignore( iy_unit )
+  Ignore( nlte_field )
+  Ignore( cloudbox_on )
+  Ignore( jacobian_do )  
   iyLoopFrequencies
   Touch( ppath )
 }
@@ -63,69 +55,32 @@ AgendaSet( iy_main_agenda__Freqloop ){
 AgendaCreate( iy_main_agenda__ScattMC )
 AgendaSet( iy_main_agenda__ScattMC ){
   Ignore( rte_pos2 )
-  Ignore( nlte_field )
   Ignore( diy_dx )
   Ignore( iy_id )
+  Ignore( nlte_field )
   iyMC
   Touch( ppath )
 }
 
-###
-#AgendaCreate( iy_main_agenda__FOSN0 )
-#AgendaSet( iy_main_agenda__FOSN0 ){
-#    Ignore(nlte_field)
-#    Ignore(iy_id)
-#    iyFOS(fos_n=0)
-#}
-
-
 
 ##################################
-#    iy_sub_agenda
+#    iy_loop_freqs_agenda
 ##################################
 
 ###
-AgendaCreate( iy_sub_agenda__Emission )
-AgendaSet( iy_sub_agenda__Emission ){
-  Ignore( lat_grid )
-  Ignore( lon_grid )
-  Ignore( lat_true )
-  Ignore( lon_true )
-  Ignore( z_surface )
-  Ignore( cloudbox_limits )
-  Ignore( pnd_field )
+AgendaCreate( iy_loop_freqs_agenda__Emission )
+AgendaSet( iy_loop_freqs_agenda__Emission ){
   ppathCalc
   iyEmissionStandard
 }
 
 ###
-AgendaCreate( iy_sub_agenda__Transmission )
-AgendaSet( iy_sub_agenda__Transmission ){
-  Ignore( lat_grid )
-  Ignore( lon_grid )
-  Ignore( lat_true )
-  Ignore( lon_true )
-  Ignore( z_surface )
-  Ignore( iy_unit )
-  Ignore( nlte_field )
-  Ignore( iy_id )
+AgendaCreate( iy_loop_freqs_agenda__Transmission )
+AgendaSet( iy_loop_freqs_agenda__Transmission ){
+  Ignore( iy_id )  
   ppathCalc
   iyTransmissionStandard
 }
-
-###
-#AgendaCreate( iy_sub_agenda__Radiolink )
-#AgendaSet( iy_sub_agenda__Radiolink ){
-#  Ignore( lat_true )
-#  Ignore( lon_true )
-#  Ignore( iy_unit )
-#  Ignore( rte_los )
-#  Ignore( nlte_field )
-#  Ignore( diy_dx )
-#  Ignore( iy_id )
-#  iyRadioLink
-#}
-
 
 
 ##################################
@@ -272,8 +227,6 @@ AgendaSet( ppath_agenda__TransmitterReceiverPath ){
 #
 AgendaCreate( ppath_step_agenda__GeometricPath )
 AgendaSet( ppath_step_agenda__GeometricPath ){
-  Ignore( t_field )
-  Ignore( vmr_field )
   Ignore( f_grid )
   Ignore( ppath_lraytrace )
   ppath_stepGeometric

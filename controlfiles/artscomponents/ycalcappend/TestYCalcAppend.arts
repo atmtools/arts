@@ -91,7 +91,7 @@ ArrayOfStringSet( iy_aux_vars, ["Optical depth","Radiative background"] )
 
 jacobianInit
 jacobianAddAbsSpecies( g1=p_grid, g2=lat_grid, g3=lon_grid,
-                       species="O3", method="analytical", unit="rel" )
+                       species="O3", unit="rel" )
 jacobianAddPolyfit( poly_order=1 )
 jacobianClose
 
@@ -121,13 +121,13 @@ Copy( jacobian_quantities_copy, jacobian_quantities )
 
 jacobianInit
 jacobianAddAbsSpecies( g1=p_grid, g2=lat_grid, g3=lon_grid,
-                       species="H2O-PWR98", method="analytical", unit="rel" )
+                       species="H2O-PWR98", unit="rel" )
 
 VectorCreate( rgrid ) # Here just to test check of consistency between grids
 #VectorNLogSpace( rgrid, 159, 1.013e5, 1 )
 Copy( rgrid, p_grid )
 jacobianAddAbsSpecies( g1=rgrid, g2=lat_grid, g3=lon_grid,
-                       species="O3", method="analytical", unit="rel" )
+                       species="O3", unit="rel" )
 jacobianAddPolyfit( poly_order=0 )
 jacobianClose
 
@@ -158,7 +158,7 @@ Copy( jacobian_quantities_copy, jacobian_quantities )
 
 jacobianInit
 jacobianAddAbsSpecies( g1=p_grid, g2=lat_grid, g3=lon_grid,
-                       species="H2O-PWR98", method="analytical", unit="rel" )
+                       species="H2O-PWR98", unit="rel" )
 jacobianClose
 
 # No cloudbox

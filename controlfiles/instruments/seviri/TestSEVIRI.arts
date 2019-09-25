@@ -193,9 +193,7 @@ AgendaSet( ybatch_calc_agenda ){
 #                          p_grid, lat_grid, lon_grid, 
 #                          p_grid, lat_grid, lon_grid,
 #                          "H2O, H2O-SelfContCKDMT100, H2O-ForeignContCKDMT100",
-#                          "analytical",
-#                          "rel",
-#                          0.01 )
+#                          "rel")
 #   jacobianClose
 
   # No scattering

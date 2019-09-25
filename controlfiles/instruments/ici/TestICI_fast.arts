@@ -167,9 +167,7 @@ AgendaSet( ybatch_calc_agenda ){
 #                         p_grid, lat_grid, lon_grid, 
 #                         p_grid, lat_grid, lon_grid,
 #                         "H2O-PWR98",
-#                         "analytical",
-#                         "rel",
-#                         0.01 )
+#                         "rel")
 #  jacobianClose
 
   # No scattering

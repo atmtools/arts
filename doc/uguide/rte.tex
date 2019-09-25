@@ -510,19 +510,19 @@ AgendaSet( iy_main_agenda ){
 }
 \end{code}
 The radiative transfer method you put in \builtindoc{iy\_main\_agenda} for
-non-dispersive calculations are now moved to \wsaindex{iy\_sub\_agenda}. For
+non-dispersive calculations are now moved to \wsaindex{iy\_loop\_freqs\_agenda}. For
 example, if \builtindoc{iyEmissionStandard} is the method of your choice:
 \begin{code}
-AgendaSet( iy_sub_agenda ){
+AgendaSet( iy_loop_freqs_agenda ){
   iyEmissionStandard
 }
 \end{code}
 The approach is simple, \wsmindex{iyLoopFrequencies} calls
-\builtindoc{iy\_sub\_agenda} for each single frequency in \builtindoc{f\_grid}
+\builtindoc{iy\_loop\_freqs\_agenda} for each single frequency in \builtindoc{f\_grid}
 and appends the output. With some details, \builtindoc{iyLoopFrequencies}
 performs a loop over the \builtindoc{f\_grid}, creates an internal
 \builtindoc{f\_grid} of length 1 holding the frequency of concern and calls
-\builtindoc{iy\_sub\_agenda} with this length-1 frequency grid. This has the
+\builtindoc{iy\_loop\_freqs\_agenda} with this length-1 frequency grid. This has the
 result that a propagation path is calculated for each frequency component.
 
 Some more steps are required to correctly include dispersion. A basic demand is

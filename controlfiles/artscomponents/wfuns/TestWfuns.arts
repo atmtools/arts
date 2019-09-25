@@ -132,8 +132,7 @@ Print( info, 0 )
 jacobianInit
 jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
     atmosphere_dim, p_grid, lat_grid, lon_grid, 
-    retrieval_grid, lat_grid, lon_grid, 
-    "O3", "analytical", "rel", 1, 0.01 )
+    retrieval_grid, lat_grid, lon_grid, "O3", "rel", 1 )
 jacobianClose
 #WriteXML( in=jacobian_quantities, filename="Jq_O3_analytical.xml" )
 
@@ -205,8 +204,7 @@ Print( info, 0 )
 jacobianInit
 jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
     atmosphere_dim, p_grid, lat_grid, lon_grid, 
-    retrieval_grid, lat_grid, lon_grid, 
-    "off", "analytical" )
+    retrieval_grid, lat_grid, lon_grid, "off" )
 jacobianClose
 #WriteXML( in=jacobian_quantities, filename="Jq_T_analytical.xml" )
 yCalc
@@ -296,7 +294,7 @@ IndexSet( abs_f_interp_order, 3 )
 #
 jacobianInit
 jacobianAddWind( jacobian_quantities, jacobian_agenda, atmosphere_dim, 
-                 p_grid, lat_grid, lon_grid, abs_f_interp_order,
+                 p_grid, lat_grid, lon_grid, 
                  retrieval_grid, lat_grid, lon_grid, "v" )
 jacobianClose
 #WriteXML( in=jacobian_quantities, filename="Jq_wind.xml" )
@@ -385,8 +383,7 @@ Copy( iy_transmitter_agenda , iy_transmitter_agenda__UnitUnpolIntensity )
 jacobianInit
 jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
     atmosphere_dim, p_grid, lat_grid, lon_grid, 
-    retrieval_grid, lat_grid, lon_grid, 
-    "off", "analytical", 0.1 )
+    retrieval_grid, lat_grid, lon_grid, "off")
 jacobianClose
 yCalc
 Copy( Ja, jacobian )

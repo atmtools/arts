@@ -344,6 +344,61 @@ void define_agenda_data() {
       INPUT("f_grid", "rtp_pos", "rtp_los")));
 
   agenda_data.push_back(AgRecord(
+      NAME("iy_independent_beam_approx_agenda"),
+      DESCRIPTION(
+          "Agenda dedicated to *iyIndependentBeamApproximation*.\n"
+          "\n"
+          "If *iyIndependentBeamApproximation* is used, this agenda basically\n"
+          "replaces *iy_main_agenda*. Accordingly, this agenda has exactly the\n"
+          "same output as *iy_main_agenda*.\n"),
+      OUTPUT("iy", "iy_aux", "ppath", "diy_dx"),
+      INPUT("diy_dx",
+            "iy_agenda_call1",
+            "iy_unit",
+            "iy_transmission",
+            "iy_aux_vars",
+            "iy_id",
+            "atmosphere_dim",
+            "p_grid",
+            "lat_grid",
+            "lon_grid",
+            "lat_true",
+            "lon_true",
+            "t_field",
+            "z_field",
+            "vmr_field",
+            "z_surface",
+            "ppath_lmax",
+            "ppath_lraytrace",
+            "cloudbox_on",
+            "cloudbox_limits",
+            "pnd_field",
+            "jacobian_do",
+            "f_grid",
+            "rte_pos",
+            "rte_los",
+            "rte_pos2")));
+
+  agenda_data.push_back(AgRecord(
+      NAME("iy_loop_freqs_agenda"),
+      DESCRIPTION(
+          "Agenda dedicated to *iyLoopFrequencies*.\n"
+          "\n"
+          "If *iyLoopFrequencies* is used, this agenda basically replaces\n"
+          "*iy_main_agenda*.Accordingly, this agenda has exactly the same\n"
+          "output as *iy_main_agenda*.\n"),
+      OUTPUT("iy", "iy_aux", "ppath", "diy_dx"),
+      INPUT("diy_dx",
+            "iy_agenda_call1",
+            "iy_transmission",
+            "iy_aux_vars",
+            "iy_id",
+            "f_grid",
+            "rte_pos",
+            "rte_los",
+            "rte_pos2")));
+
+  agenda_data.push_back(AgRecord(
       NAME("iy_main_agenda"),
       DESCRIPTION(
           "Calculation of a single monochromatic pencil beam spectrum.\n"
@@ -361,17 +416,14 @@ void define_agenda_data() {
       OUTPUT("iy", "iy_aux", "ppath", "diy_dx"),
       INPUT("diy_dx",
             "iy_agenda_call1",
-            "iy_unit",
             "iy_transmission",
             "iy_aux_vars",
             "iy_id",
+            "iy_unit",
             "cloudbox_on",
             "jacobian_do",
-            "t_field",
-            "z_field",
-            "vmr_field",
-            "nlte_field",
             "f_grid",
+            "nlte_field",
             "rte_pos",
             "rte_los",
             "rte_pos2")));
@@ -393,45 +445,6 @@ void define_agenda_data() {
           "applied directly for most users.\n"),
       OUTPUT("iy"),
       INPUT("f_grid", "rtp_pos", "rtp_los")));
-
-  agenda_data.push_back(AgRecord(
-      NAME("iy_sub_agenda"),
-      DESCRIPTION(
-          "Sub-agenda to *iy_main_agenda*. \n"
-          "\n"
-          "The purpose of this agenda is to make it possible to introduce a\n"
-          "second layer inside *iy_main_agenda*. That is, *iy_main_agenda*\n"
-          "calls this agenda to obtain *iy* and associated variables. See\n"
-          "*iyLoopFrequencies* for example usage.\n"
-          "\n"
-          "This agenda has exactly the same in- and output as *iy_main_agenda*.\n"),
-      OUTPUT("iy", "iy_aux", "ppath", "diy_dx"),
-      INPUT("diy_dx",
-            "iy_agenda_call1",
-            "iy_unit",
-            "iy_transmission",
-            "iy_aux_vars",
-            "iy_id",
-            "f_grid",
-            "atmosphere_dim",
-            "p_grid",
-            "lat_grid",
-            "lon_grid",
-            "lat_true",
-            "lon_true",
-            "t_field",
-            "z_field",
-            "vmr_field",
-            "z_surface",
-            "ppath_lmax",
-            "ppath_lraytrace",
-            "cloudbox_on",
-            "cloudbox_limits",
-            "pnd_field",
-            "jacobian_do",
-            "rte_pos",
-            "rte_los",
-            "rte_pos2")));
 
   agenda_data.push_back(AgRecord(
       NAME("iy_surface_agenda"),
@@ -459,11 +472,9 @@ void define_agenda_data() {
             "iy_id",
             "cloudbox_on",
             "jacobian_do",
-            "t_field",
-            "z_field",
-            "vmr_field",
-            "f_grid",
             "iy_main_agenda",
+            "f_grid",
+            "nlte_field",
             "rtp_pos",
             "rtp_los",
             "rte_pos2",
@@ -490,11 +501,8 @@ void define_agenda_data() {
             "iy_id",
             "cloudbox_on",
             "jacobian_do",
-            "t_field",
-            "z_field",
-            "vmr_field",
-            "f_grid",
             "iy_main_agenda",
+            "f_grid",
             "rtp_pos",
             "rtp_los",
             "rte_pos2",
@@ -623,9 +631,6 @@ void define_agenda_data() {
             "rte_pos2",
             "cloudbox_on",
             "ppath_inside_cloudbox_do",
-            "t_field",
-            "z_field",
-            "vmr_field",
             "f_grid")));
 
   agenda_data.push_back(AgRecord(
@@ -674,9 +679,6 @@ void define_agenda_data() {
       INPUT("ppath_step",
             "ppath_lmax",
             "ppath_lraytrace",
-            "t_field",
-            "z_field",
-            "vmr_field",
             "f_grid")));
 
   agenda_data.push_back(AgRecord(

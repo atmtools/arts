@@ -1,0 +1,150 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# A simple demonstration and test of iyIndependentBeamApproximation
+#
+# 2019-09-17, Patrick Eriksson
+
+Arts2{
+
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_earth.arts"
+
+# Agenda for scalar gas absorption calculation
+Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA )
+
+# (standard) emission calculation
+Copy( iy_main_agenda, iy_main_agenda__Emission )
+Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+
+# cosmic background radiation
+Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+
+# on-the-fly absorption
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
+
+# sensor-only path
+Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+
+# no refraction
+Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+
+
+# Basic settings
+#
+IndexSet( stokes_dim, 1 )
+VectorSet( f_grid, [31e9,89e9,160e9,184e9] )
+StringSet( iy_unit, "PlanckBT" )
+
+# no jacobian calculation
+jacobianOff
+
+# no scattering
+cloudboxOff
+
+# no sensor
+sensorOff
+
+# Definition of species
+# 
+abs_speciesSet( species = [ 
+   "N2-SelfContStandardType",
+   "O2-PWR98",
+   "H2O-PWR98" 
+] )
+
+# No transitions needed
+# 
+abs_lines_per_speciesSetEmpty
+
+# some checks
+#
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
+
+# Surface = Ocean by FASTEM
+#
+VectorCreate( trv )
+nelemGet( v=f_grid )
+VectorSetConstant( trv, nelem, 0.9 )
+AgendaSet( surface_rtprop_agenda ){
+  specular_losCalc
+  InterpAtmFieldToPosition( out=surface_skin_t, field=t_field )
+  surfaceFastem( wind_speed=5, wind_direction=45, fastem_version=5,
+                 transmittance=trv )
+}
+
+# Read a 1D atmospheric case
+#
+AtmRawRead( basename = "testdata/tropical" )
+
+
+# 1D
+#
+AtmosphereSet1D
+VectorNLogSpace( p_grid, 81, 1050e2, 100e2 )
+MatrixSetConstant( z_surface, 1, 1, 0 )
+#
+AtmFieldsCalc
+#
+MatrixSet( sensor_pos, [ 800e3] )
+MatrixSet( sensor_los, [ 130] )
+# 
+atmfields_checkedCalc( bad_partition_functions_ok = 1 )
+atmgeom_checkedCalc
+cloudbox_checkedCalc
+sensor_checkedCalc
+#
+yCalc
+#
+VectorCreate( y1d )
+Copy( y1d, y )
+
+
+
+# Expand to 2D and run IBA
+#
+AtmosphereSet2D
+IndexCreate( nlat )
+IndexSet( nlat, 3 )
+VectorNLinSpace( lat_grid, nlat, -5, 45 )
+MatrixSetConstant( z_surface, nlat, 1, 0 )
+#
+Copy( lat_true, lat_grid )
+VectorSetConstant( lon_true, nlat, 0 )
+#
+AtmFieldsCalcExpand1D
+#
+MatrixSet( sensor_pos, [ 800e3,0] )
+MatrixSet( sensor_los, [ 130] )
+# 
+atmfields_checkedCalc( bad_partition_functions_ok = 1 )
+atmgeom_checkedCalc
+cloudbox_checkedCalc
+sensor_checkedCalc
+#
+AgendaSet( iy_main_agenda ){
+  iyIndependentBeamApproximation
+}
+AgendaSet( iy_independent_beam_approx_agenda ){
+  Ignore( lat_grid )
+  Ignore( lon_grid )
+  Ignore( lat_true )
+  Ignore( lon_true )
+  Ignore( z_surface )
+  Ignore( z_field )
+  Ignore( cloudbox_limits )
+  Ignore( pnd_field )
+  #
+  ppathCalc
+  iyEmissionStandard
+}
+#
+yCalc
+
+
+# Comapre
+Compare( y, y1d, 1e-3 )
+
+}

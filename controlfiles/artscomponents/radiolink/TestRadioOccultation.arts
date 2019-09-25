@@ -108,7 +108,6 @@ Copy( iy_transmitter_agenda, iy_transmitter_agenda__UnitUnpolIntensity )
 AgendaSet( iy_main_agenda ){
   Ignore( iy_unit )
   Ignore( rte_los )
-  Ignore( nlte_field )
   Ignore( diy_dx )
   Ignore( iy_id )
   iyRadioLink( defocus_method = 2 ) 

@@ -87,7 +87,6 @@ Append( instrument_pol_array, instrument_pol )
 AgendaSet( iy_main_agenda ){
   Ignore( iy_id )
   Ignore( rte_pos2 )
-  Ignore( nlte_field )
   Ignore( iy_unit )
   ppathPlaneParallel( cloudbox_on = 0 )
   iyActiveSingleScat( pext_scaling = weight_ext )

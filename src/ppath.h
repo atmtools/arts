@@ -405,9 +405,7 @@ void plevel_slope_3d(Numeric& c1,
    @param[in] p_grid             The pressure grid.
    @param[in] lat_grid           The latitude grid.
    @param[in] lon_grid           The longitude grid.
-   @param[in] t_field            As the WSM with the same name.
    @param[in] z_field            As the WSM with the same name.
-   @param[in] vmr_field          As the WSM with the same name.
    @param[in] f_grid             As the WSM with the same name.
    @param[in] refellipsoid       As the WSM with the same name.
    @param[in] z_surface          Surface altitude.
@@ -429,9 +427,7 @@ void ppath_calc(Workspace& ws,
                 const Vector& p_grid,
                 const Vector& lat_grid,
                 const Vector& lon_grid,
-                const Tensor3& t_field,
                 const Tensor3& z_field,
-                const Tensor4& vmr_field,
                 const Vector& f_grid,
                 const Vector& refellipsoid,
                 const Matrix& z_surface,

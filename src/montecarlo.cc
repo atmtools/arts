@@ -897,9 +897,6 @@ void mcPathTraceGeneral(Workspace& ws,
                                  ppath_step,
                                  lmax,
                                  ppath_lraytrace,
-                                 t_field,
-                                 z_field,
-                                 vmr_field,
                                  f_grid[Range(f_index, 1)],
                                  ppath_step_agenda);
         ip = 1;
@@ -1229,9 +1226,6 @@ void mcPathTraceRadar(Workspace& ws,
                                ppath_step,
                                ppath_lmax,
                                ppath_lraytrace,
-                               t_field,
-                               z_field,
-                               vmr_field,
                                f_grid[Range(f_index, 1)],
                                ppath_step_agenda);
 
