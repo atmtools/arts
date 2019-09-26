@@ -191,7 +191,7 @@ class TransmissionMatrix {
     for (auto& T : T4) T = Eigen::Matrix4d::Zero();
     for (auto& T : T3) T = Eigen::Matrix3d::Zero();
     for (auto& T : T2) T = Eigen::Matrix2d::Zero();
-    for (auto& T : T1) T(0, 0) = 1;
+    for (auto& T : T1) T(0, 0) = 0;
   }
 
   /** Set this to a multiple of A by B
