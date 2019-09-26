@@ -1,5 +1,3 @@
-set (ENABLE_CDISORT true)
-
 add_library (cdisort STATIC
   cdisort.c
   locate.c

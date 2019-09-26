@@ -24,14 +24,11 @@ set (ALL_ARTS_LIBRARIES
   artscore
   methods
   matpack
+  cdisort
   )
 
 file (GLOB HEADERFILES "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
 add_custom_target(UtilityHeadersArts SOURCES ${HEADERFILES})
-
-if (ENABLE_CDISORT)
-  list (APPEND ALL_ARTS_LIBRARIES cdisort)
-endif (ENABLE_CDISORT)
 
 if (ENABLE_RT4)
   list (APPEND ALL_ARTS_LIBRARIES rt4)
