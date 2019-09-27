@@ -29,7 +29,7 @@ void check_and_add_block(CovarianceMatrix& covmat,
           Block(range, range, std::make_pair(rq_index, rq_index), mat));
     } else {
       ostringstream os;
-      os << "The matrix in covmat_block is was expected to have dimensions ["
+      os << "The matrix in covmat_block was expected to have dimensions ["
          << n_gps << ", " << n_gps << "] but found  to have dimensions ["
          << covmat_block.nrows() << ", " << covmat_block.ncols() << "].";
       throw runtime_error(os.str());
@@ -43,7 +43,7 @@ void check_and_add_block(CovarianceMatrix& covmat,
           Block(range, range, std::make_pair(rq_index, rq_index), mat));
     } else {
       ostringstream os;
-      os << "The matrix in covmat_inv_block is was expected to have dimensions ["
+      os << "The matrix in covmat_inv_block was expected to have dimensions ["
          << n_gps << ", " << n_gps << "] but found  to have dimensions ["
          << covmat_block.nrows() << ", " << covmat_block.ncols() << "].";
       throw runtime_error(os.str());
@@ -820,7 +820,7 @@ void retrievalAddFreqShift(Workspace& ws,
       ws, jacobian_quantities, jacobian_agenda, f_grid, df, verbosity);
   check_and_add_block(covmat_sx,
                       jacobian_quantities.back(),
-                      jacobian_quantities.nelem() + 1,
+                      jacobian_quantities.nelem() - 1,
                       1,
                       covmat_block,
                       covmat_inv_block);
