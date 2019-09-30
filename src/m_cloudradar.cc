@@ -654,7 +654,7 @@ void iyActiveSingleScat(Workspace& ws,
         }
       })
     }
-
+    
     rtmethods_jacobian_finalisation(ws,
                                     diy_dx,
                                     diy_dpath,
@@ -1159,7 +1159,7 @@ void iyActiveSingleScat2(Workspace& ws,
     }
   }
   // FIXME: Add the aux-variables back
-
+  
   // Finalize analytical Jacobian
   if (j_analytical_do)
     rtmethods_jacobian_finalisation(ws,
