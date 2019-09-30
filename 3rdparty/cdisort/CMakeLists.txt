@@ -8,6 +8,8 @@ add_executable(disotest
   locate.c
   disotest.c)
 
+target_link_libraries(disotest m)
+
 set_target_properties (disotest PROPERTIES
   COMPILE_FLAGS "-Wno-all -Wno-unused-parameter -Wno-conversion -Wno-shadow -Wno-float-conversion -DENABLE_ORIGINAL_OUTPUT_HANDLING=1")
 
