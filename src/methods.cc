@@ -13440,6 +13440,22 @@ void define_md_data_raw() {
       GIN_DESC("The numerator.", "The denominator.")));
 
   md_data_raw.push_back(MdRecord(
+      NAME("ReadARTSCAT"),
+      DESCRIPTION("Reads a ARTSCAT file.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("filename", "globalquantumnumbers", "localquantumnumbers"),
+      GIN_TYPE("String", "String", "String"),
+      GIN_DEFAULT(NODEF, "", ""),
+      GIN_DESC("Name of the ARTSCAT4 file",
+               "Global quantum number list (space-separated)",
+               "Local quantum number list (space-separated)")));
+
+  md_data_raw.push_back(MdRecord(
       NAME("ReadHITRAN"),
       DESCRIPTION("Reads a HITRAN .par file.\n"),
       AUTHORS("Richard Larsson"),

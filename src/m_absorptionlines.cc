@@ -28,8 +28,120 @@
  **/
 
 #include "absorptionlines.h"
+#include "xml_io_private.h"
 #include "auto_md.h"
 #include "file.h"
+
+
+void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
+                 const String& artscat_file,
+                 const String& globalquantumnumbers,
+                 const String& localquantumnumbers,
+                 const Verbosity& verbosity)
+{
+  // Take care of quantum numbers
+  String tmp_string;
+  
+  // Global numbers
+  std::vector<QuantumNumberType> global_nums(0);
+  std::istringstream global_str(globalquantumnumbers);
+  while (not global_str.eof()) {
+    global_str >> tmp_string; 
+    global_nums.push_back(string2quantumnumbertype(tmp_string));
+  }
+  
+  // Local numbers
+  std::vector<QuantumNumberType> local_nums(0);
+  std::istringstream local_str(localquantumnumbers);
+  while (not local_str.eof()) {
+    local_str >> tmp_string;
+    local_nums.push_back(string2quantumnumbertype(tmp_string));
+  }
+  CREATE_OUT2;
+  
+  ArtsXMLTag tag(verbosity);
+  Index nelem;
+  
+  // ARTSCAT data
+  ifstream is_xml;
+  xml_open_input_file(is_xml, artscat_file, verbosity);
+  auto a = FILE_TYPE_ASCII;
+  auto b = NUMERIC_TYPE_DOUBLE;
+  auto c = ENDIAN_TYPE_LITTLE;
+  xml_read_header_from_stream(is_xml, a,b,c,
+                              verbosity);
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("ArrayOfLineRecord");
+  
+  tag.get_attribute_value("nelem", nelem);
+  
+  LineRecord dummy_line_record;
+  String version;
+  tag.get_attribute_value("version", version);
+  
+  Index artscat_version;
+  
+  if (version == "3") {
+    artscat_version = 3;
+  } else if (version.substr(0, 8) != "ARTSCAT-") {
+    ostringstream os;
+    os << "The ARTS line file you are trying to read does not contain a valid version tag.\n"
+    << "Probably it was created with an older version of ARTS that used different units.";
+    throw runtime_error(os.str());
+  } else {
+    istringstream is(version.substr(8));
+    is >> artscat_version;
+  }
+  
+  if (artscat_version < 3 or artscat_version > 5) {
+    ostringstream os;
+    os << "Unknown ARTS line file version: " << version;
+    throw runtime_error(os.str());
+  }
+  
+  std::vector<Absorption::SingleLineExternal> v(0);
+  
+  bool go_on = true;
+  Index n = 0;
+  while (go_on and n<nelem) {
+    switch(artscat_version) {
+      case 3:
+        v.push_back(Absorption::ReadFromArtscat3Stream(is_xml));
+        break;
+      case 4:
+        v.push_back(Absorption::ReadFromArtscat4Stream(is_xml));
+        break;
+      case 5:
+        v.push_back(Absorption::ReadFromArtscat5Stream(is_xml));
+        break;
+      default:
+        throw std::runtime_error("Bad version!");
+    }
+    
+    if (v.back().bad) {
+      v.pop_back();
+      go_on = false;
+    }
+    
+    n++;
+  }
+  
+  if (not go_on)
+    throw std::runtime_error("Bad file?  Cannot continue reading!  Reached end of file or encountered bad line");
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("/ArrayOfLineRecord");
+  
+  for (auto& x: v)
+    x.line.Zeeman() = Zeeman::GetAdvancedModel(x.quantumidentity);
+  
+  auto x = Absorption::split_list_of_external_lines(v, local_nums, global_nums);
+  abs_lines.resize(0);
+  abs_lines.reserve(x.size());
+  for (auto& lines: x)
+    abs_lines.push_back(lines);
+}
 
 void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
                 const String& hitran_file,
@@ -64,7 +176,6 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
   std::vector<Absorption::SingleLineExternal> v(0);
   
   bool go_on = true;
-  Index n = 0;
   while (go_on) {
     v.push_back(Absorption::ReadFromHitran2004Stream(is));
     
@@ -75,11 +186,6 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
     else if (v.back().line.F0() > fmax) {
       v.pop_back();
       go_on = false;
-    }
-    else if (v.back().quantumidentity.Species() < 0 or v.back().quantumidentity.Isotopologue() < 0) {
-      v.pop_back();
-      go_on = true;
-      n++;
     }
   }
   

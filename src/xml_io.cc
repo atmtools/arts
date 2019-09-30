@@ -111,7 +111,7 @@ void ArtsXMLTag::add_attribute(const String& aname, const ArrayOfSpeciesTag& val
   if(self)
     v << LineShape::self_broadening;
   for(Index i=Index(self); i<value.nelem()-Index(bath); i++)
-    v << ' ' << value[i];
+    v << ' ' << value[i].SpeciesNameMain();
   if(bath) {
     v << ' ' << LineShape::bath_broadening;
   }
