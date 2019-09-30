@@ -395,6 +395,9 @@ public:
   /** Upper quantum number */
   Rational& UpperQuantumNumber(size_t i) noexcept {return mupperquanta[i];}
   
+  /** Checks if the quantum numbers are the same of the two lines */
+  bool SameQuantumNumbers(const SingleLine& sl) const noexcept;
+  
   //////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////// Special settings
   //////////////////////////////////////////////////////////////////
@@ -1024,6 +1027,9 @@ public:
   
   /** Returns a printable statement about the lines */
   String MetaData() const noexcept;
+  
+  /** Returns a printable statement about the lines */
+  void RemoveLine(Index) noexcept;
 };  // Lines
 
 std::ostream& operator<<(std::ostream&, const Lines&);

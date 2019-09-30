@@ -238,7 +238,7 @@ void abs_linesTruncateGlobalQuantumNumbers(ArrayOfAbsorptionLines& abs_lines,
     if (match < 0)
       x.push_back(lines);
     else {
-      for(auto& line: lines.AllLines())
+      for (auto& line: lines.AllLines())
         x[match].AppendSingleLine(line);
     }
   }
@@ -251,7 +251,103 @@ void abs_linesTruncateGlobalQuantumNumbers(ArrayOfAbsorptionLines& abs_lines,
 void abs_linesRemoveUnusedLocalQuantumNumbers(ArrayOfAbsorptionLines& abs_lines,
                                               const Verbosity&)
 {
-  for(auto& lines: abs_lines) {
+  for (auto& lines: abs_lines) {
     lines.RemoveUnusedLocalQuantums();
   }
 }
+
+
+void abs_linesReplaceWithLines2(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& replacement_lines, const Verbosity&)
+{
+  for (auto& rlines: replacement_lines) {
+    Index number_of_matching_bands = 0;
+    for (auto& tlines: abs_lines) {
+      if (tlines.Match(rlines)) {
+        number_of_matching_bands++;
+        for (auto& rline: rlines.AllLines()) {
+          Index number_of_matching_single_lines = 0;
+          for (auto& tline: tlines.AllLines()) {
+            if (tline.SameQuantumNumbers(rline)) {
+              number_of_matching_single_lines++;
+              tline = rline;
+            }
+          }
+          
+          if (number_of_matching_single_lines not_eq 1) {
+            throw std::runtime_error("Error: Did not match to a single single line.  This means the input data has not been understood.  This function needs exactly one match.");
+          }
+        }
+      }
+    }
+    
+    if (number_of_matching_bands not_eq 1) {
+      throw std::runtime_error("Error: Did not match to a single set of absorption lines.  This means the input data has not been understood.  This function needs exactly one match.");
+    }
+  }
+}
+
+
+void abs_linesAppendLines2(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& appending_lines, const Verbosity&)
+{
+  std::vector<AbsorptionLines> addedlines(0);
+  
+  for (auto& alines: appending_lines) {
+    Index number_of_matching_bands = 0;
+    for (auto& tlines: abs_lines) {
+      if (tlines.Match(alines)) {
+        number_of_matching_bands++;
+        for (auto& aline: alines.AllLines()) {
+          Index number_of_matching_single_lines = 0;
+          for (auto& tline: tlines.AllLines()) {
+            if (tline.SameQuantumNumbers(aline)) {
+              number_of_matching_single_lines++;
+            }
+          }
+          
+          if (number_of_matching_single_lines not_eq 0) {
+            throw std::runtime_error("Error: Did match to a single single line.  This means the input data has not been understood.  This function needs exactly zero matches.");
+          }
+          
+          tlines.AppendSingleLine(aline);
+        }
+      }
+    }
+    
+    if (number_of_matching_bands == 0)
+      addedlines.push_back(alines);
+    else if (number_of_matching_bands not_eq 1) {
+      throw std::runtime_error("Error: Did not match to a single set of absorption lines.  This means the input data has not been understood.  This function needs exactly one or zero matches.");
+    }
+  }
+  
+  for (auto& lines: addedlines) {
+    abs_lines.push_back(std::move(lines));
+  }
+}
+
+
+void abs_linesRemoveLines2(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& deleting_lines, const Verbosity&)
+{
+  for (auto& dlines: deleting_lines) {
+    for (auto& tlines: abs_lines) {
+      std::vector<Index> hits(0);
+      
+      if (tlines.Match(dlines)) {
+        for (auto& dline: dlines.AllLines()) {
+          for (Index i=0; i<tlines.NumLines(); i++) {
+            if (tlines.AllLines()[i].SameQuantumNumbers(dline)) {
+              hits.push_back(i);
+            }
+          }
+          
+          while(not hits.empty()) {
+            tlines.RemoveLine(hits.back());
+            hits.pop_back();
+          }
+        }
+      }
+    }
+  }
+}
+
+

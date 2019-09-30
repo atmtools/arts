@@ -1967,3 +1967,16 @@ void Absorption::Lines::RemoveLocalQuantum(size_t x)
   }
 }
 
+
+bool Absorption::SingleLine::SameQuantumNumbers(const Absorption::SingleLine& sl) const noexcept
+{
+  return 
+  std::equal(mlowerquanta.cbegin(), mlowerquanta.cend(), sl.mlowerquanta.cbegin(), sl.mlowerquanta.cend()) and 
+  std::equal(mupperquanta.cbegin(), mupperquanta.cend(), sl.mupperquanta.cbegin(), sl.mupperquanta.cend()) ;
+}
+
+
+void Absorption::Lines::RemoveLine(Index i) noexcept
+{
+  mlines.erase(mlines.begin() + i);
+}

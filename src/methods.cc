@@ -702,6 +702,25 @@ void define_md_data_raw() {
       GIN_DESC("Line-array that replace lines in *abs_lines*.")));
 
   md_data_raw.push_back(MdRecord(
+      NAME("abs_linesReplaceWithLines2"),
+      DESCRIPTION(
+          "Replace all lines in *abs_lines* that match with lines in replacement_lines.\n"
+          "\n"
+          "Each replacement_lines must match at most a single line in *abs_lines*.\n"
+          "\n"
+          "The matching required identical quantum number signatures to work\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines2"),
+      GIN("replacement_lines"),
+      GIN_TYPE("ArrayOfAbsorptionLines"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Line-array that replace lines in *abs_lines*.")));
+
+  md_data_raw.push_back(MdRecord(
       NAME("abs_linesReplaceParameterWithLinesParameter"),
       DESCRIPTION(
           "Replace parameter of all lines in *abs_lines* that match with lines in replacement_lines.\n"
