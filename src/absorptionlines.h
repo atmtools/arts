@@ -744,6 +744,14 @@ public:
   /** Number of broadening species */
   Index NumBroadeners() const noexcept {return Index(mlocalquanta.size());}
   
+  /** Remove quantum numbers that are not used by even a single line
+   */
+  void RemoveUnusedLocalQuantums();
+  
+  /** Remove quantum numbers at the given position from all lines 
+   */
+  void RemoveLocalQuantum(size_t);
+  
   /** Quantum number lower level
    * 
    * @param[in] k Line number (less than NumLines())

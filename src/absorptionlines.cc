@@ -1930,3 +1930,40 @@ String Absorption::Lines::MetaData() const noexcept
   
   return os.str();
 }
+
+
+void Absorption::Lines::RemoveUnusedLocalQuantums()
+{
+  // Find all hits
+  std::vector<size_t> hits(0);
+  
+  //
+  for (size_t i=0; i<mlocalquanta.size(); i++) {
+    bool found=false;
+    for (auto& line: mlines) {
+      if (line.LowerQuantumNumber(i).isDefined() or line.UpperQuantumNumber(i).isDefined()) {
+        found = true;
+      }
+    }
+    
+    if (not found) {
+      hits.push_back(i);
+    }
+  }
+  
+  // Remove from behind to not mess up
+  while (not hits.empty()) {
+    RemoveLocalQuantum(hits.back());
+    hits.pop_back();
+  }
+}
+
+void Absorption::Lines::RemoveLocalQuantum(size_t x)
+{
+  mlocalquanta.erase(mlocalquanta.begin() + x);
+  for (auto& line: mlines) {
+    line.LowerQuantumNumbers().erase(line.LowerQuantumNumbers().begin() + x);
+    line.UpperQuantumNumbers().erase(line.UpperQuantumNumbers().begin() + x);
+  }
+}
+

@@ -141,3 +141,11 @@ void abs_linesTruncateGlobalQuantumNumbers(ArrayOfAbsorptionLines& abs_lines,
   for (auto& lines: abs_lines)
     lines.sort_by_frequency();
 }
+
+void abs_linesRemoveUnusedLocalQuantumNumbers(ArrayOfAbsorptionLines& abs_lines,
+                                              const Verbosity&)
+{
+  for(auto& lines: abs_lines) {
+    lines.RemoveUnusedLocalQuantums();
+  }
+}

@@ -668,6 +668,21 @@ void define_md_data_raw() {
       GIN_DESC("Relative change in line strengths.")));
 
   md_data_raw.push_back(MdRecord(
+    NAME("abs_linesRemoveUnusedLocalQuantumNumbers"),
+      DESCRIPTION(
+          "Removes unused quantums from local values in the line lists\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines2"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
       NAME("abs_linesReplaceWithLines"),
       DESCRIPTION(
           "Replace all lines in *abs_lines* that match with lines in replacement_lines.\n"
