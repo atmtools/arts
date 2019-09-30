@@ -1570,10 +1570,16 @@ void set_backscatter_radiation_vector(
             for (Index j = ip; j < np; j++) {
               for (Index iq = 0; iq < nq; iq++) {
                 for (Index iv = 0; iv < nv; iv++) {
-                  dI[ip][j][iq].Vec1(iv).noalias() += 2 * 
+                  dI[ip][j][iq].Vec1(iv).noalias() +=
                     T[ip].Mat1(iv).inverse() *
                     (dT1[ip][iq].Mat1(iv) + dT2[ip][iq].Mat1(iv)) *
                     I[j].Vec1(iv);
+                  
+                  if (j < np - 1 and j > ip)
+                    dI[ip][j][iq].Vec1(iv).noalias() +=
+                      T[ip+1].Mat1(iv).inverse() *
+                      (dT1[ip][iq].Mat1(iv) + dT2[ip][iq].Mat1(iv)) *
+                      I[j].Vec1(iv);
                 }
               }
             }
@@ -1604,10 +1610,16 @@ void set_backscatter_radiation_vector(
             for (Index j = ip; j < np; j++) {
               for (Index iq = 0; iq < nq; iq++) {
                 for (Index iv = 0; iv < nv; iv++) {
-                  dI[ip][j][iq].Vec3(iv).noalias() += 2 *
+                  dI[ip][j][iq].Vec3(iv).noalias() +=
                     T[ip].Mat3(iv).inverse() *
                     (dT1[ip][iq].Mat3(iv) + dT2[ip][iq].Mat3(iv)) *
                     I[j].Vec3(iv);
+                    
+                  if (j < np - 1 and j > ip)
+                    dI[ip][j][iq].Vec3(iv).noalias() +=
+                      T[ip+1].Mat3(iv).inverse() *
+                      (dT1[ip][iq].Mat3(iv) + dT2[ip][iq].Mat3(iv)) *
+                      I[j].Vec3(iv);
                 }
               }
             }
@@ -1618,10 +1630,16 @@ void set_backscatter_radiation_vector(
             for (Index j = ip; j < np; j++) {
               for (Index iq = 0; iq < nq; iq++) {
                 for (Index iv = 0; iv < nv; iv++) {
-                  dI[ip][j][iq].Vec4(iv).noalias() += 2 *
+                  dI[ip][j][iq].Vec4(iv).noalias() +=
                     T[ip].Mat4(iv).inverse() *
                     (dT1[ip][iq].Mat4(iv) + dT2[ip][iq].Mat4(iv)) *
                     I[j].Vec4(iv);
+                    
+                  if (j < np - 1 and j > ip)
+                    dI[ip][j][iq].Vec4(iv).noalias() +=
+                      T[ip+1].Mat4(iv).inverse() *
+                      (dT1[ip][iq].Mat4(iv) + dT2[ip][iq].Mat4(iv)) *
+                      I[j].Vec4(iv);
                 }
               }
             }
