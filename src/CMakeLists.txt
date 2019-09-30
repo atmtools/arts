@@ -2,6 +2,7 @@ include_directories ( ${CMAKE_CURRENT_BINARY_DIR}
                       ${CMAKE_CURRENT_SOURCE_DIR}
                       ${ZLIB_INCLUDE_DIR}
                       ${CMAKE_SOURCE_DIR}/3rdparty/invlib/src
+                      ${CMAKE_SOURCE_DIR}/3rdparty/cdisort
                     )
 
 if (NETCDF_FOUND)
@@ -23,14 +24,11 @@ set (ALL_ARTS_LIBRARIES
   artscore
   methods
   matpack
+  cdisort
   )
 
 file (GLOB HEADERFILES "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
 add_custom_target(UtilityHeadersArts SOURCES ${HEADERFILES})
-
-if (ENABLE_DISORT)
-  list (APPEND ALL_ARTS_LIBRARIES disort)
-endif (ENABLE_DISORT)
 
 if (ENABLE_RT4)
   list (APPEND ALL_ARTS_LIBRARIES rt4)

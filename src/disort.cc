@@ -33,7 +33,10 @@
 #include "array.h"
 #include "auto_md.h"
 #include "check_input.h"
-#include "disort_DISORT.h"
+extern "C" {
+#include "cdisort.h"
+}
+#include "disort.h"
 #include "interpolation.h"
 #include "logic.h"
 #include "math_funcs.h"
@@ -285,7 +288,6 @@ void get_disortsurf_props(  // Output
     for (Index f_index = 0; f_index < f_grid.nelem(); f_index++)
       albedo[f_index] = surface_scalar_reflectivity[0];
 }
-
 
 void get_gasoptprop(Workspace& ws,
                     MatrixView ext_bulk_gas,
@@ -641,858 +643,75 @@ void get_pmom(Tensor3View pmom,
       }
 }
 
-void dtauc_ssalbCalc2(Workspace& ws,
-                      MatrixView dtauc,
-                      MatrixView ssalb,
-                      const Agenda& propmat_clearsky_agenda,
-                      const ArrayOfArrayOfSingleScatteringData& scat_data,
-                      ConstMatrixView pnd_field,
-                      ConstVectorView t_field,
-                      ConstVectorView z_field,
-                      ConstMatrixView vmr_field,
-                      ConstVectorView p_grid,
-                      const ArrayOfIndex& cloudbox_limits,
-                      ConstVectorView f_grid) {
-  // Initialization
-  dtauc = 0.;
-  ssalb = 0.;
+// Use a thread_local variable to communicate the Verbosity to the
+// Disort error and warning functions. Ugly workaround, to avoid
+// passing a Verbosity argument throughout the whole cdisort code.
+// We want to avoid changes to the original code to keep it maintainable
+// in respect to upstream updates.
+thread_local Verbosity disort_verbosity;
 
-  const Index Np = p_grid.nelem();
-  const Index nf = f_grid.nelem();
+#define MAX_WARNINGS 100
 
-  assert(dtauc.nrows() == nf);
-  assert(ssalb.nrows() == nf);
-  assert(dtauc.ncols() == Np - 1);
-  assert(ssalb.ncols() == Np - 1);
+/** Verbosity enabled replacement for the original cdisort function. */
+void c_errmsg(const char* messag, int type) {
+  Verbosity verbosity = disort_verbosity;
+  static int warning_limit = FALSE, num_warnings = 0;
 
-  Matrix ext_bulk_gas(nf, Np), ext_bulk_par(nf, Np), abs_bulk_par(nf, Np);
-  get_paroptprop(ext_bulk_par,
-                 abs_bulk_par,
-                 scat_data,
-                 pnd_field,
-                 t_field,
-                 p_grid,
-                 cloudbox_limits,
-                 f_grid);
-  get_gasoptprop(ws,
-                 ext_bulk_gas,
-                 propmat_clearsky_agenda,
-                 t_field,
-                 vmr_field,
-                 p_grid,
-                 f_grid);
+  if (type == DS_ERROR) {
+    CREATE_OUT0;
+    out0 << "  ******* ERROR >>>>>>  " << messag << "\n";
+    arts_exit(1);
+  }
 
-  for (Index ip = 0; ip < Np - 1; ip++)
-    // Do layer averaging and derive single scattering albedo & optical depth
-    for (Index f_index = 0; f_index < nf; f_index++) {
-      Numeric ext =
-          0.5 * (ext_bulk_gas(f_index, ip) + ext_bulk_par(f_index, ip) +
-                 ext_bulk_gas(f_index, ip + 1) + ext_bulk_par(f_index, ip + 1));
-      if (ext != 0) {
-        Numeric abs =
-            0.5 *
-            (ext_bulk_gas(f_index, ip) + abs_bulk_par(f_index, ip) +
-             ext_bulk_gas(f_index, ip + 1) + abs_bulk_par(f_index, ip + 1));
-        ssalb(f_index, Np - 2 - ip) = (ext - abs) / ext;
-      }
+  if (warning_limit) return;
 
-      dtauc(f_index, Np - 2 - ip) = ext * (z_field[ip + 1] - z_field[ip]);
-    }
+  if (++num_warnings <= MAX_WARNINGS) {
+    CREATE_OUT1;
+    out1 << "  ******* WARNING >>>>>>  " << messag << "\n";
+  } else {
+    CREATE_OUT0;
+    out0 << "  >>>>>>  TOO MANY WARNING MESSAGES --  They will no longer be "
+            "printed  <<<<<<<\n\n";
+    warning_limit = TRUE;
+  }
+
+  return;
 }
 
-void phase_functionCalc2(  //Output
-    MatrixView phase_function,
-    //Input
-    const ArrayOfArrayOfSingleScatteringData& scat_data,
-    const Index& f_index,
-    ConstTensor4View pnd_field,
-    ConstTensor3View t_field,
-    const ArrayOfIndex& cloudbox_limits,
-    const Index& pfct_za_grid_size,
-    const Verbosity& verbosity) {
-  // Initialization
-  phase_function = 0.;
+#undef MAX_WARNINGS
 
-  const Index nlyr = phase_function.nrows();
-  const Index Np_cloud = pnd_field.npages();
-  const Index N_se = pnd_field.nbooks();
-  const Index stokes_dim = 1;
+/** Verbosity enabled replacement for the original cdisort function. */
+int c_write_bad_var(int quiet, const char* varnam) {
+  const int maxmsg = 50;
+  static int nummsg = 0;
 
-  Matrix phase_function_level(Np_cloud, pfct_za_grid_size, 0.);
-  Vector sca_coeff_level(Np_cloud, 0.);
-
-  // Local variables to be used in agendas
-  Numeric rtp_temperature_local;
-  ArrayOfStokesVector abs_vec_spt_local(N_se);
-  for (auto& av : abs_vec_spt_local) {
-    av = StokesVector(1, stokes_dim);
-    av.SetZero();
-  }
-
-  StokesVector abs_vec_local;
-  ArrayOfPropagationMatrix ext_mat_spt_local(N_se);
-  for (auto& pm : ext_mat_spt_local) pm = PropagationMatrix(1, stokes_dim);
-
-  PropagationMatrix ext_mat_local;
-  Tensor5 pha_mat_spt_local(
-      N_se, pfct_za_grid_size, 1, stokes_dim, stokes_dim, 0.);
-  Tensor4 pha_mat_local;
-
-  Vector za_grid;
-  nlinspace(za_grid, 0, 180, pfct_za_grid_size);
-  Vector aa_grid(1, 0.);
-
-  for (Index scat_p_index_local = 0; scat_p_index_local < Np_cloud;
-       scat_p_index_local++) {
-    /*
-      if( scat_p_index_local < 1 )
-      {
-      cout << "at cloud-lev #" << scat_p_index_local << "\n";
-      Index i_se_flat=0;
-      Numeric sca_coeff;
-      for( Index i_ss=0; i_ss<scat_data.nelem(); i_ss++ )
-      {
-        cout << " scat species #" << i_ss << "\n";
-        for( Index i_se=0; i_se<scat_data[i_ss].nelem(); i_se++ )
-        {
-          if( i_se_flat==65 )
-          {
-          cout << "  scat element #" << i_se << " (flat element #" << i_se_flat
-               << ")\n";
-          for( Index i_t=0; i_t<scat_data[i_ss][i_se].T_grid.nelem(); i_t++ )
-          {
-            sca_coeff = scat_data[i_ss][i_se].ext_mat_data(0,i_t,0,0,0) -
-                        scat_data[i_ss][i_se].abs_vec_data(0,i_t,0,0,0);
-            cout << "   T[" << i_t << "]=" << scat_data[i_ss][i_se].T_grid[i_t]
-                 << "K with sca_coeff=" << sca_coeff << "\n";
-            if( sca_coeff!=0. )
-            {
-              Numeric intP=0.;
-              for (Index i_a = 0; i_a <
-                   scat_data[i_ss][i_se].za_grid.nelem(); i_a++)
-              {
-                //cout << "    processing ang grid point #" << i_a << "\n";
-                if( i_a>0 )
-                {
-                  intP += PI *
-                        (scat_data[i_ss][i_se].pha_mat_data(0,i_t,i_a,0,0,0,0)+
-                         scat_data[i_ss][i_se].pha_mat_data(0,i_t,i_a,0,0,0,0)) *
-                        (abs(cos(scat_data[i_ss][i_se].za_grid[i_a]*PI/180.)-
-                             cos(scat_data[i_ss][i_se].za_grid[i_a-1]*PI/180.)));
-                }
-              }
-              cout << "  at T[" << i_t << "]=" << scat_data[i_ss][i_se].T_grid[i_t]
-                   << "K: int PFCT / scatcoef="
-                     << intP / sca_coeff << "\n";
-            }
-          }
-          }
-          i_se_flat++;
-        }
-      }
-      }
-*/
-
-    // Calculate scat_coef from ext_mat and abs_vec for all pressure points in
-    // cloudbox
-    // FIXME: This is a copy of what is done in dtauc_ssalbCalc. Might be more
-    // clever to merge these two methods (or to output scat_coef profile from
-    // dtauc_ssalbCalc & input here) to avoid redundant calculations.
-    rtp_temperature_local =
-        t_field(scat_p_index_local + cloudbox_limits[0], 0, 0);
-
-    //Calculate optical properties for all individual scattering elements:
-    opt_prop_sptFromScat_data(ext_mat_spt_local,
-                              abs_vec_spt_local,
-                              scat_data,
-                              1,
-                              za_grid,
-                              aa_grid,
-                              0,
-                              0,
-                              f_index,
-                              rtp_temperature_local,
-                              pnd_field,
-                              scat_p_index_local,
-                              0,
-                              0,
-                              verbosity);
-
-    opt_prop_bulkCalc(ext_mat_local,
-                      abs_vec_local,
-                      ext_mat_spt_local,
-                      abs_vec_spt_local,
-                      pnd_field,
-                      scat_p_index_local,
-                      0,
-                      0,
-                      verbosity);
-
-    //cout << "  extmat_total=" << ext_mat_local(0,0,0) << "\n";
-    //cout << "  absvec_total=" << abs_vec_local(0,0) << "\n";
-    sca_coeff_level[scat_p_index_local] =
-        ext_mat_local(0, 0, 0) - abs_vec_local(0, 0);
-    //cout << "  => scatcoef_total=" << sca_coeff_level[scat_p_index_local] << "\n";
-
-    if (sca_coeff_level[scat_p_index_local] != 0) {
-      // Calculate the phase matrix of individual scattering elements
-      pha_mat_sptFromScat_data(pha_mat_spt_local,
-                               scat_data,
-                               1,
-                               za_grid,
-                               aa_grid,
-                               0,
-                               0,  // angles, only needed for za=0
-                               f_index,
-                               rtp_temperature_local,
-                               pnd_field,
-                               scat_p_index_local,
-                               0,
-                               0,
-                               verbosity);
-
-      // Sum over all scattering elements
-      pha_matCalc(pha_mat_local,
-                  pha_mat_spt_local,
-                  pnd_field,
-                  1,
-                  scat_p_index_local,
-                  0,
-                  0,
-                  verbosity);
-
-      // Bulk scattering function
-      // (conversion to phase function only done when doing layer averaging.
-      // this because averaging needs to be on scat coeff weighted phase
-      // function aka bulk scattering function)
-      phase_function_level(scat_p_index_local, joker) =
-          pha_mat_local(joker, 0, 0, 0);
-
-      /*
-          Numeric intP=0.;
-          Vector intP_se(N_se,0.);
-
-          for (Index i_t = 0; i_t < phase_function_level.ncols(); i_t++)
-            {
-              if( i_t>0 )
-              {
-                  intP += PI *
-                    (phase_function_level(scat_p_index_local, i_t) +
-                     phase_function_level(scat_p_index_local, i_t-1)) *
-                    abs(cos(za_grid[i_t]*PI/180.)-
-                        cos(za_grid[i_t-1]*PI/180.));
-                  for( Index i_se=0; i_se<N_se; i_se++ )
-                    intP_se[i_se] += PI *
-                      (pha_mat_spt_local(i_se,i_t,0,0,0) +
-                       pha_mat_spt_local(i_se,i_t-1,0,0,0) ) *
-                      abs(cos(za_grid[i_t]*PI/180.)-
-                         cos(za_grid[i_t-1]*PI/180.));
-              }
-            }
-
-          if( scat_p_index_local < 1 )
-          {
-            cout << "at lev_cloud #" << scat_p_index_local << " (T="
-                 << rtp_temperature_local << "K): "
-                 << "  integ PFCT=" << intP << ", total scatcoef="
-                 << sca_coeff_level[scat_p_index_local]
-                 << " => integ PFCT/total scatcoef="
-                 << intP/sca_coeff_level[scat_p_index_local] << "\n";
-            Index i_se=65;
-            cout << "  at scatelem #" << i_se << ": int PFCT="
-                 << intP_se[i_se] << ", scatcoeff="
-                 << ext_mat_spt_local(i_se,0,0)-abs_vec_spt_local(i_se,0)
-                 << " => int PFCT/scatcoef="
-                 << intP_se[i_se] / (ext_mat_spt_local(i_se,0,0)-abs_vec_spt_local(i_se,0))
-                 << "\n";
-*/
-      /*
-              for( Index i_se=0; i_se<N_se; i_se++ )
-              if( ext_mat_spt_local(i_se,0,0)-abs_vec_spt_local(i_se,0)!=0. &&
-                intP_se[i_se]!=0. )
-                {
-                  cout << "  at scatelem #" << i_se << ": int PFCT / scatcoef="
-                       << intP_se[i_se] /
-                          (ext_mat_spt_local(i_se,0,0)-abs_vec_spt_local(i_se,0))
-                       << "\n";
-                }
-              else
-                {
-                  cout << "  at scatelem #" << i_se << ": int PFCT="
-                       << intP_se[i_se] << ", scatcoeff="
-                       << ext_mat_spt_local(i_se,0,0)-abs_vec_spt_local(i_se,0)
-                       << "\n";
-                }
-
-            }
-*/
+  nummsg++;
+  if (quiet != QUIET) {
+    Verbosity verbosity = disort_verbosity;
+    CREATE_OUT1;
+    out1 << "  ****  Input variable " << varnam << " in error  ****\n";
+    if (nummsg == maxmsg) {
+      c_errmsg("Too many input errors.  Aborting...", DS_ERROR);
     }
   }
 
-  // Calculate average phase function for the layers:
-  // Average bulk scattering function and rescale (normalize) to phase function
-  // with layer averaged scat coeff
-  for (Index i_l = 0; i_l < Np_cloud - 1; i_l++) {
-    Index lyr_id = nlyr - 1 - i_l - cloudbox_limits[0];
-    if (phase_function_level(i_l, 0) != 0)
-      if (phase_function_level(i_l + 1, 0) != 0) {
-        //Numeric intP=0.;
-        for (Index i_t = 0; i_t < phase_function_level.ncols(); i_t++) {
-          phase_function(lyr_id, i_t) =
-              4 * PI *
-              (phase_function_level(i_l, i_t) +
-               phase_function_level(i_l + 1, i_t)) /
-              (sca_coeff_level[i_l] + sca_coeff_level[i_l + 1]);
-          //if( i_t>0 )
-          //    intP += 0.5 *
-          //      (phase_function(lyr_id, i_t) + phase_function(lyr_id, i_t-1)) *
-          //      abs(cos(za_grid[i_t]*PI/180.)-cos(za_grid[i_t-1]*PI/180.));
-        }
-        //cout << "at lyr #" << lyr_id << " (from cloud levs #" << i_l
-        //     << " and " << i_l+1 << "): intP=" << intP << "\n";
-      } else {
-        for (Index i_t = 0; i_t < phase_function_level.ncols(); i_t++)
-          phase_function(lyr_id, i_t) =
-              phase_function_level(i_l, i_t) * 4 * PI / sca_coeff_level[i_l];
-      }
-    else if (phase_function_level(i_l + 1, 0) != 0) {
-      for (Index i_t = 0; i_t < phase_function_level.ncols(); i_t++)
-        phase_function(lyr_id, i_t) = phase_function_level(i_l + 1, i_t) * 4 *
-                                      PI / sca_coeff_level[i_l + 1];
-    }
-  }
+  return TRUE;
 }
 
-void phase_functionCalc(  //Output
-    MatrixView phase_function,
-    //Input
-    const ArrayOfArrayOfSingleScatteringData& scat_data,
-    const Index& f_index,
-    ConstTensor4View pnd_field,
-    const ArrayOfIndex& cloudbox_limits,
-    const String pfct_method) {
-  // Turned out we get some numerical issues in converting scattering matrix to
-  // phase function (sca.coef vs. 4Pi normalized) if pnd's are too low. Hence,
-  // set a threshold below which pnd is assumed as zero.
-  // 1e-99 means less than one particle in our galaxy.
-  Numeric pnd_threshold = 1e-99;
-
-  // Initialization
-  phase_function = 0.;
-  const Index nlyr = phase_function.nrows();
-
-  const Index Np_cloud = pnd_field.npages();
-  Matrix phase_function_level(Np_cloud, scat_data[0][0].za_grid.nelem(), 0.);
-
-  Vector sca_coeff_level(Np_cloud, 0.);
-  Index this_f_index;
-
-  //Loop over pressure levels
-  for (Index i_p = 0; i_p < Np_cloud; i_p++) {
-    // Calculate ensemble averaged scattering coefficient
-    Numeric sca_coeff = 0.;
-    Index i_se_flat = 0;
-    //Numeric intP=0.;
-
-    for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++) {
-      for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++) {
-        if (pnd_field(i_se_flat, i_p, 0, 0) > pnd_threshold) {
-          // FIXME: In case we allow K,a,Z to have different
-          // f-dimensions, we need to derive this_f_index individually
-          // for K, a, and Z!
-          if (scat_data[i_ss][i_se].ext_mat_data.nshelves() == 1)
-            this_f_index = 0;
-          else
-            this_f_index = f_index;
-
-          // For T, we assume that K and a have the same T dimensions
-          // (but Z can have a different one). That is as checked by
-          // scat_data_checkedCalc.
-          Index this_T_index = -1;
-          if (scat_data[i_ss][i_se].ext_mat_data.nbooks() == 1) {
-            this_T_index = 0;
-          } else {
-            if (pfct_method == "low")
-              this_T_index = 0;
-            else if (pfct_method == "high")
-              this_T_index = scat_data[i_ss][i_se].ext_mat_data.nbooks() - 1;
-            else  //if( pfct_method=="median" )
-              this_T_index = scat_data[i_ss][i_se].ext_mat_data.nbooks() / 2;
-          }
-
-          sca_coeff += pnd_field(i_se_flat, i_p, 0, 0) *
-                       (scat_data[i_ss][i_se].ext_mat_data(
-                            this_f_index, this_T_index, 0, 0, 0) -
-                        scat_data[i_ss][i_se].abs_vec_data(
-                            this_f_index, this_T_index, 0, 0, 0));
-        }
-        i_se_flat++;
-      }
-    }
-    sca_coeff_level[i_p] = sca_coeff;
-
-    // Bulk scattering function
-    // (conversion to phase function only done when doing layer averaging.
-    // this because averaging needs to be on scat coeff weighted phase
-    // function aka bulk scattering function)
-    if (sca_coeff != 0) {
-      // Loop over scattering angles
-      for (Index i_t = 0; i_t < scat_data[0][0].za_grid.nelem(); i_t++) {
-        i_se_flat = 0;
-        for (Index i_ss = 0; i_ss < scat_data.nelem(); i_ss++) {
-          for (Index i_se = 0; i_se < scat_data[i_ss].nelem(); i_se++) {
-            if (scat_data[i_ss][i_se].pha_mat_data.nlibraries() == 1)
-              this_f_index = 0;
-            else
-              this_f_index = f_index;
-
-            Index this_T_index = -1;
-            if (scat_data[i_ss][i_se].pha_mat_data.nvitrines() == 1) {
-              this_T_index = 0;
-            } else {
-              if (pfct_method == "low")
-                this_T_index = 0;
-              else if (pfct_method == "high")
-                this_T_index =
-                    scat_data[i_ss][i_se].pha_mat_data.nvitrines() - 1;
-              else  //if( pfct_method=="median" )
-                this_T_index =
-                    scat_data[i_ss][i_se].pha_mat_data.nvitrines() / 2;
-            }
-
-            phase_function_level(i_p, i_t) +=
-                pnd_field(i_se_flat, i_p, 0, 0) *
-                scat_data[i_ss][i_se].pha_mat_data(
-                    this_f_index, this_T_index, i_t, 0, 0, 0, 0);
-            i_se_flat++;
-          }
-        }
-      }
-      /*
-              if( i_t>0 )
-                  intP += PI *
-                    (phase_function_level(i_p, i_t) +
-                     phase_function_level(i_p, i_t-1)) *
-                    abs(cos(scat_data[0][0].za_grid[i_t]*PI/180.)-
-                        cos(scat_data[0][0].za_grid[i_t-1]*PI/180.));
-            }
-
-          cout << "at lev_cloud #" << i_p << ": "
-               << "  total scatcoef=" << sca_coeff
-               << ", integrated PFCT=" << intP << "\n";
-*/
-    }
+/** Verbosity enabled replacement for the original cdisort function. */
+int c_write_too_small_dim(int quiet, const char* dimnam, int minval) {
+  if (quiet != QUIET) {
+    Verbosity verbosity = disort_verbosity;
+    CREATE_OUT1;
+    out1 << "  ****  Symbolic dimension " << dimnam
+         << " should be increased to at least " << minval << "  ****\n";
   }
 
-  // Calculate average phase function for the layers:
-  // Average bulk scattering function and rescale (normalize) to phase function
-  // with layer averaged scat coeff
-  for (Index i_l = 0; i_l < Np_cloud - 1; i_l++) {
-    Index lyr_id = nlyr - 1 - i_l - cloudbox_limits[0];
-    if (phase_function_level(i_l, 0) != 0)
-      if (phase_function_level(i_l + 1, 0) != 0) {
-        for (Index i_t = 0; i_t < phase_function_level.ncols(); i_t++)
-          phase_function(lyr_id, i_t) =
-              4 * PI *
-              (phase_function_level(i_l, i_t) +
-               phase_function_level(i_l + 1, i_t)) /
-              (sca_coeff_level[i_l] + sca_coeff_level[i_l + 1]);
-      } else {
-        for (Index i_t = 0; i_t < phase_function_level.ncols(); i_t++)
-          phase_function(lyr_id, i_t) =
-              phase_function_level(i_l, i_t) * 4 * PI / sca_coeff_level[i_l];
-      }
-    else if (phase_function_level(i_l + 1, 0) != 0) {
-      for (Index i_t = 0; i_t < phase_function_level.ncols(); i_t++)
-        phase_function(lyr_id, i_t) = phase_function_level(i_l + 1, i_t) * 4 *
-                                      PI / sca_coeff_level[i_l + 1];
-    }
-  }
+  return TRUE;
 }
 
-void pmomCalc2(  //Output
-    MatrixView pmom,
-    //Input
-    ConstMatrixView phase_function,
-    ConstVectorView scat_angle_grid,
-    const Index Nlegendre,
-    const Verbosity& verbosity) {
-  assert(phase_function.ncols() == scat_angle_grid.nelem());
-
-  // Initialization
-  pmom = 0.;
-
-  Numeric pint;  //integrated phase function
-  Numeric p0_1, p0_2, p1_1, p1_2, p2_1, p2_2;
-
-  Vector za_grid(181);
-  Vector u(181);
-
-  for (Index i = 0; i < 181; i++) za_grid[i] = double(i);
-
-  ArrayOfGridPos gp(181);
-  gridpos(gp, scat_angle_grid, za_grid);
-
-  Matrix itw(gp.nelem(), 2);
-  interpweights(itw, gp);
-
-  Matrix phase_int(phase_function.nrows(), 181);
-  for (Index i_l = 0; i_l < phase_function.nrows(); i_l++)
-    interp(phase_int(i_l, joker), itw, phase_function(i_l, joker), gp);
-
-  for (Index i = 0; i < za_grid.nelem(); i++)
-    u[i] = cos(za_grid[i] * PI / 180.);
-
-  for (Index i_l = 0; i_l < phase_function.nrows(); i_l++) {
-    pint = 0.;
-    // Check if phase function is normalized
-    for (Index i = 0; i < za_grid.nelem() - 1; i++)
-      pint += 0.5 * (phase_int(i_l, i) + phase_int(i_l, i + 1)) *
-              abs(u[i + 1] - u[i]);
-
-    if (pint != 0) {
-      if (abs(2. - pint) > 0.2) {
-        ostringstream os;
-        os << "Phase function normalization deviates from expected value by\n"
-           << "more than 10%. Happens for cloudbox layer #" << i_l << ".\n"
-           << "Something is wrong with your scattering data. Check!\n";
-        throw runtime_error(os.str());
-      }
-      if (abs(2. - pint) > 2e-2) {
-        CREATE_OUT2;
-        out2 << "Warning: The phase function is not normalized to 2\n"
-             << "The value is:" << pint << "\n";
-      }
-
-      //anyway, rescale phase_int to norm 2
-      phase_int(i_l, joker) *= 2. / pint;
-
-      pmom(i_l, joker) = 0.;
-
-      for (Index i = 0; i < za_grid.nelem() - 1; i++) {
-        p0_1 = 1.;
-        p0_2 = 1.;
-
-        pmom(i_l, 0) = 1.;
-
-        //pmom(i_l,0)+=0.5*0.5*(phase_int(i_l, i)+phase_int(i_l, i+1))
-        //*abs(u[i+1]-u[i]);
-
-        p1_1 = u[i];
-        p1_2 = u[i + 1];
-
-        pmom(i_l, 1) +=
-            0.5 * 0.5 *
-            (p1_1 * phase_int(i_l, i) + p1_2 * phase_int(i_l, i + 1)) *
-            abs(u[i + 1] - u[i]);
-
-        for (Index l = 2; l < Nlegendre; l++) {
-          p2_1 = (2 * (double)l - 1) / (double)l * u[i] * p1_1 -
-                 ((double)l - 1) / (double)l * p0_1;
-          p2_2 = (2 * (double)l - 1) / (double)l * u[i + 1] * p1_2 -
-                 ((double)l - 1) / (double)l * p0_2;
-
-          pmom(i_l, l) +=
-              0.5 * 0.5 *
-              (p2_1 * phase_int(i_l, i) + p2_2 * phase_int(i_l, i + 1)) *
-              abs(u[i + 1] - u[i]);
-
-          p0_1 = p1_1;
-          p0_2 = p1_2;
-          p1_1 = p2_1;
-          p1_2 = p2_2;
-        }
-      }
-      // cout << "pmom : " << pmom(i_l, joker) << endl;
-    }
-  }
-}
-
-void pmomCalc(  //Output
-    MatrixView pmom,
-    //Input
-    ConstMatrixView phase_function,
-    ConstVectorView scat_angle_grid,
-    const Index Nlegendre,
-    const Verbosity& verbosity) {
-  assert(phase_function.ncols() == scat_angle_grid.nelem());
-
-  // Initialization
-  pmom = 0.;
-
-  Numeric pint;  //integrated phase function
-  Numeric p0_1, p0_2, p1_1, p1_2, p2_1, p2_2;
-
-  Vector za_grid(181);
-  Vector u(181);
-
-  for (Index i = 0; i < 181; i++) za_grid[i] = double(i);
-
-  ArrayOfGridPos gp(181);
-  gridpos(gp, scat_angle_grid, za_grid);
-
-  Matrix itw(gp.nelem(), 2);
-  interpweights(itw, gp);
-
-  Matrix phase_int(phase_function.nrows(), 181);
-  for (Index i_l = 0; i_l < phase_function.nrows(); i_l++)
-    interp(phase_int(i_l, joker), itw, phase_function(i_l, joker), gp);
-
-  for (Index i = 0; i < za_grid.nelem(); i++)
-    u[i] = cos(za_grid[i] * PI / 180.);
-
-  for (Index i_l = 0; i_l < phase_function.nrows(); i_l++) {
-    pint = 0.;
-    // Check if phase function is normalized
-    for (Index i = 0; i < za_grid.nelem() - 1; i++)
-      pint += 0.5 * (phase_int(i_l, i) + phase_int(i_l, i + 1)) *
-              abs(u[i + 1] - u[i]);
-    //cout << "at layer #" << i_l << " P_int=" << pint << "\n";
-
-    if (pint != 0) {
-      if (abs(2. - pint) > 0.2) {
-        ostringstream os;
-        os << "Phase function norm in layer " << i_l << " is " << pint
-           << ", i.e. deviates\n"
-           << "from expected value (2.0) by " << abs(2. - pint) * 50. << "%.\n"
-           << "Something is wrong with your scattering data. Check!\n";
-        throw runtime_error(os.str());
-      }
-      if (abs(2. - pint) > 2e-2) {
-        CREATE_OUT2;
-        out2 << "Warning: The phase function is not normalized to 2\n"
-             << "The value is:" << pint << "\n";
-      }
-
-      //anyway, rescale phase_int to norm 2
-      phase_int(i_l, joker) *= 2. / pint;
-
-      pmom(i_l, joker) = 0.;
-
-      for (Index i = 0; i < za_grid.nelem() - 1; i++) {
-        p0_1 = 1.;
-        p0_2 = 1.;
-
-        pmom(i_l, 0) = 1.;
-
-        //pmom(i_l,0)+=0.5*0.5*(phase_int(i_l, i)+phase_int(i_l, i+1))
-        //*abs(u[i+1]-u[i]);
-
-        p1_1 = u[i];
-        p1_2 = u[i + 1];
-
-        pmom(i_l, 1) +=
-            0.5 * 0.5 *
-            (p1_1 * phase_int(i_l, i) + p1_2 * phase_int(i_l, i + 1)) *
-            abs(u[i + 1] - u[i]);
-
-        for (Index l = 2; l < Nlegendre; l++) {
-          p2_1 = (2 * (double)l - 1) / (double)l * u[i] * p1_1 -
-                 ((double)l - 1) / (double)l * p0_1;
-          p2_2 = (2 * (double)l - 1) / (double)l * u[i + 1] * p1_2 -
-                 ((double)l - 1) / (double)l * p0_2;
-
-          pmom(i_l, l) +=
-              0.5 * 0.5 *
-              (p2_1 * phase_int(i_l, i) + p2_2 * phase_int(i_l, i + 1)) *
-              abs(u[i + 1] - u[i]);
-
-          p0_1 = p1_1;
-          p0_2 = p1_2;
-          p1_1 = p2_1;
-          p1_2 = p2_2;
-        }
-      }
-      // cout << "pmom : " << pmom(i_l, joker) << endl;
-    }
-  }
-}
-
-void surf_albedoCalc(Workspace& ws,
-                     //Output
-                     VectorView albedo,
-                     Numeric& btemp,
-                     //Input
-                     const Agenda& surface_rtprop_agenda,
-                     ConstVectorView f_grid,
-                     ConstVectorView scat_za_grid,
-                     const Numeric& surf_alt,
-                     const Verbosity& verbosity) {
-  // Here, we derive an average surface albedo of the setup as given by ARTS'
-  // surface_rtprop_agenda to use with Disorts's proprietary Lambertian surface.
-  // In this way, ARTS-Disort can approximately mimick all surface reflection
-  // types that ARTS itself can handle.
-  // Surface temperature as derived from surface_rtprop_agenda is also returned.
-  //
-  // We derive the reflection matrices over all incident and reflected polar
-  // angle directions and derive their integrated value (or weighted average).
-  // The surface_rtprop_agenda handles one reflected direction at a time
-  // (rtp_los) and for the reflected directions we loop over all (upwelling)
-  // angles as given by scat_za_grid. The derived reflection matrices already
-  // represent the reflectivity (or power reflection coefficient) for the given
-  // reflected direction including proper angle weighting. For integrating/
-  // averaging over the reflected directions, we use the same approach, i.e.
-  // weight each angle by its associated range as given by the half distances to
-  // the neighboring grid angles (using ARTS' scat_za_grid means 0/180deg are
-  // grid points, 90deg shouldn't be among them (resulting from even number
-  // requirement for Disort and the (implicitly assumed?) requirement of a
-  // horizon-symmetric za_grid)).
-  //
-  // We do all frequencies here at once (assuming this is the faster variant as
-  // the agenda anyway (can) provide output for full f_grid at once and as we
-  // have to apply the same inter/extrapolation to all the frequencies).
-  //
-  // FIXME: Allow surface to be elsewhere than at lowest atm level (this
-  // requires changes in the surface setting part and more extensive ones in the
-  // atmospheric optical property prep part within the frequency loop further
-  // below).
-
-  CREATE_OUT2;
-
-  chk_not_empty("surface_rtprop_agenda", surface_rtprop_agenda);
-
-  const Index nf = f_grid.nelem();
-  Index frza = 0;
-  while (frza < scat_za_grid.nelem() && scat_za_grid[frza] < 90.) frza++;
-  if (frza == scat_za_grid.nelem()) {
-    ostringstream os;
-    os << "No upwelling direction found in scat_za_grid.\n";
-    throw runtime_error(os.str());
-  }
-  const Index nrza = scat_za_grid.nelem() - frza;
-  //cout << nrza << " upwelling directions found, starting from element #"
-  //     << frza << " of scat_za_grid.\n";
-  Matrix dir_refl_coeff(nrza, nf, 0.);
-
-  // Local input of surface_rtprop_agenda.
-  Vector rtp_pos(1, surf_alt);  //atmosphere_dim is 1
-
-  // first derive the (reflected-)direction dependent power reflection
-  // coefficient
-  for (Index rza = 0; rza < nrza; rza++) {
-    // Local output of surface_rtprop_agenda.
-    Numeric surface_skin_t;
-    Matrix surface_los;
-    Tensor4 surface_rmatrix;
-    Matrix surface_emission;
-
-    Vector rtp_los(1, scat_za_grid[rza + frza]);
-    out2 << "Doing reflected dir #" << rza << " at " << rtp_los[0] << " degs\n";
-
-    surface_rtprop_agendaExecute(ws,
-                                 surface_skin_t,
-                                 surface_emission,
-                                 surface_los,
-                                 surface_rmatrix,
-                                 f_grid,
-                                 rtp_pos,
-                                 rtp_los,
-                                 surface_rtprop_agenda);
-    //cout << "surf_los has " << surface_los.ncols() << " columns and "
-    //     << surface_los.nrows() << " rows.\n";
-    assert(surface_los.ncols() == 1 || surface_los.nrows() == 0);
-    if (rza == 0)
-      btemp = surface_skin_t;
-    else if (surface_skin_t != btemp) {
-      ostringstream os;
-      os << "Something went wrong.\n"
-         << "  *surface_rtprop_agenda* returned different surface_skin_t\n"
-         << "  for different LOS.\n";
-      throw runtime_error(os.str());
-    }
-    if (surface_los.nrows() > 0) {
-      for (Index f_index = 0; f_index < nf; f_index++)
-        dir_refl_coeff(rza, f_index) =
-            surface_rmatrix(joker, f_index, 0, 0).sum();
-    }
-    out2 << "  directional albedos[f_grid] = " << dir_refl_coeff(rza, joker)
-         << "\n";
-  }
-
-  if (btemp < 0. || btemp > 1000.) {
-    ostringstream os;
-    os << "Surface temperature has been derived as " << btemp << " K,\n"
-       << "which is not considered a meaningful value.\n";
-    throw runtime_error(os.str());
-  }
-
-  // now integrate/average the (reflected-)direction dependent power reflection
-  // coefficients
-  //
-  // starting with deriving the angles defining the angle ranges
-  Vector surf_int_grid(nrza + 1);
-  // the first angle grid point should be around (but above) 90deg and should
-  // cover the angle range between the 90deg and half-way point towards the next
-  // angle grid point. we probably also want to check, that we don't
-  // 'extrapolate' too much.
-  if (is_same_within_epsilon(scat_za_grid[frza], 90., 1e-6)) {
-    ostringstream os;
-    os << "Looks like scat_za_grid contains the 90deg direction,\n"
-       << "which it shouldn't for running Disort.\n";
-    throw runtime_error(os.str());
-  }
-  Numeric za_extrapol = (scat_za_grid[frza] - 90.) /
-                        (scat_za_grid[frza + 1] - scat_za_grid[frza]);
-  const Numeric ok_extrapol = 0.5;
-  if ((za_extrapol - ok_extrapol) > 1e-6) {
-    ostringstream os;
-    os << "Extrapolation range from shallowest scat_za_grid point\n"
-       << "to horizon is too big.\n"
-       << "  Allowed extrapolation factor is 0.5.\n  Yours is " << za_extrapol
-       << ", which is " << za_extrapol - 0.5 << " too big.\n";
-    throw runtime_error(os.str());
-  }
-  if (!is_same_within_epsilon(
-          scat_za_grid[scat_za_grid.nelem() - 1], 180., 1e-6)) {
-    ostringstream os;
-    os << "Looks like last point in scat_za_grid is not 180deg.\n";
-    throw runtime_error(os.str());
-  }
-
-  surf_int_grid[0] = 90.;
-  surf_int_grid[nrza] = 180.;
-  for (Index rza = 1; rza < nrza; rza++)
-    surf_int_grid[rza] =
-        0.5 * (scat_za_grid[frza + rza - 1] + scat_za_grid[frza + rza]);
-  surf_int_grid *= DEG2RAD;
-
-  // now calculating the actual weights and apply them
-  for (Index rza = 0; rza < nrza; rza++) {
-    //Numeric coslow = cos(2.*surf_int_grid[rza]);
-    //Numeric coshigh = cos(2.*surf_int_grid[rza+1]);
-    //Numeric w = 0.5*(coshigh-coslow);
-    Numeric w =
-        0.5 * (cos(2. * surf_int_grid[rza + 1]) - cos(2. * surf_int_grid[rza]));
-    //cout << "at reflLOS[" << rza << "]=" << scat_za_grid[frza+rza] << ":\n";
-    //cout << "  angle weight derives as w = 0.5*(" << coshigh << "-"
-    //     << coslow << ") = " << w << "\n";
-    //cout << "  weighting directional reflection coefficient from "
-    //     <<  dir_refl_coeff(rza,joker);
-    dir_refl_coeff(rza, joker) *= w;
-    //cout << " to " <<  dir_refl_coeff(rza,joker) << "\n";
-  }
-
-  // eventually sum up the weighted directional power reflection coefficients
-  for (Index f_index = 0; f_index < nf; f_index++) {
-    albedo[f_index] = dir_refl_coeff(joker, f_index).sum();
-    out2 << "at f=" << f_grid[f_index] * 1e-9
-         << " GHz, ending up with albedo=" << albedo[f_index] << "\n";
-    if (albedo[f_index] < 0 || albedo[f_index] > 1.) {
-      ostringstream os;
-      os << "Something went wrong: Albedo must be inside [0,1],\n"
-         << "  but is not at freq #" << f_index << " , where it is "
-         << albedo[f_index] << ".\n";
-      throw runtime_error(os.str());
-    }
-  }
-}
-
-#ifdef ENABLE_DISORT
-
-void run_disort(Workspace& ws,
-                 // Output
+void run_cdisort(Workspace& ws,
                  Tensor7& doit_i_field,
-                 // Input
                  ConstVectorView f_grid,
                  ConstVectorView p_grid,
                  ConstTensor3View z_field,
@@ -1502,42 +721,105 @@ void run_disort(Workspace& ws,
                  const ArrayOfArrayOfSingleScatteringData& scat_data,
                  const Agenda& propmat_clearsky_agenda,
                  const ArrayOfIndex& cloudbox_limits,
-                 Numeric& surface_skin_t,
-                 Vector& surface_scalar_reflectivity,
+                 const Numeric& surface_skin_t,
+                 const Vector& surface_scalar_reflectivity,
                  ConstVectorView scat_za_grid,
                  const Index& nstreams,
-                 const Index& do_deltam,
                  const Index& Npfct,
-                 const Verbosity&) {
-  const Index nf = f_grid.nelem();
-  Index nlyr =
-      p_grid.nelem() - 1;  // don't make this const, else disort_ complains
+                 const Index& quiet,
+                 const Verbosity& verbosity) {
+  disort_state ds;
+  disort_output out;
 
-  Index nstr = nstreams;
+  if (quiet == 0)
+    disort_verbosity = verbosity;
+  else
+    disort_verbosity = Verbosity(0, 0, 0);
+
+  const Index nf = f_grid.nelem();
+
+  ds.accur = 0.005;
+  ds.flag.prnt[0] = FALSE;
+  ds.flag.prnt[1] = FALSE;
+  ds.flag.prnt[2] = FALSE;
+  ds.flag.prnt[3] = FALSE;
+  ds.flag.prnt[4] = TRUE;
+
+  ds.flag.usrtau = FALSE;
+  ds.flag.usrang = TRUE;
+  ds.flag.spher = FALSE;
+  ds.flag.general_source = FALSE;
+  ds.flag.output_uum = FALSE;
+
+  ds.nlyr = static_cast<int>(p_grid.nelem() - 1);
+
+  ds.flag.brdf_type = BRDF_NONE;
+
+  ds.flag.ibcnd = GENERAL_BC;
+  ds.flag.usrang = TRUE;
+  ds.flag.planck = TRUE;
+  ds.flag.onlyfl = FALSE;
+  ds.flag.lamber = TRUE;
+  ds.flag.quiet = FALSE;
+  ds.flag.intensity_correction = TRUE;
+  ds.flag.old_intensity_correction = TRUE;
+
+  ds.nstr = static_cast<int>(nstreams);
+  ds.nphase = ds.nstr;
+  ds.nmom = ds.nstr;
+  ds.ntau = ds.nlyr + 1;
+  ds.numu = static_cast<int>(scat_za_grid.nelem());
+  ds.nphi = 1;
   Index Nlegendre = nstreams + 1;
 
-  // Intensities to be computed for user defined polar (zenith angles)
-  Index usrang = TRUE_;
-  Index numu = scat_za_grid.nelem();
-  Vector umu(numu);
-  // Transform to mu, starting with negative values
-  for (Index i = 0; i < numu; i++) umu[i] = -cos(scat_za_grid[i] * PI / 180);
-
-  // Since we have no solar source there is no angular dependance
-  Index nphi = 1;
-  Vector phi(nphi, 0.);
-
-  Index ibcnd = 0;
+  /* Allocate memory */
+  c_disort_state_alloc(&ds);
+  c_disort_out_alloc(&ds, &out);
 
   // Properties of solar beam, set to zero as they are not needed
-  Numeric fbeam = 0.;
-  Numeric umu0 = 0.;
-  Numeric phi0 = 0.;
+  ds.bc.fbeam = 0.;
+  ds.bc.umu0 = 0.;
+  ds.bc.phi0 = 0.;
+  ds.bc.fluor = 0.;
 
-  // surface, Lambertian if set to TRUE_
-  Index lamber = TRUE_;
-  // only needed for bidirectional reflecting surface
-  Vector hl(1, 0.);
+  // Since we have no solar source there is no angular dependance
+  ds.phi[0] = 0.;
+
+  for (Index i = 0; i <= ds.nlyr; i++)
+    ds.temper[i] = t_field(ds.nlyr - i, 0, 0);
+
+  Matrix ext_bulk_gas(nf, ds.nlyr + 1);
+  get_gasoptprop(ws,
+                 ext_bulk_gas,
+                 propmat_clearsky_agenda,
+                 t_field(joker, 0, 0),
+                 vmr_field(joker, joker, 0, 0),
+                 p_grid,
+                 f_grid);
+  Matrix ext_bulk_par(nf, ds.nlyr + 1), abs_bulk_par(nf, ds.nlyr + 1);
+  get_paroptprop(ext_bulk_par,
+                 abs_bulk_par,
+                 scat_data,
+                 pnd_field(joker, joker, 0, 0),
+                 t_field(joker, 0, 0),
+                 p_grid,
+                 cloudbox_limits,
+                 f_grid);
+
+  // Optical depth of layers
+  Matrix dtauc(nf, ds.nlyr);
+  // Single scattering albedo of layers
+  Matrix ssalb(nf, ds.nlyr);
+  get_dtauc_ssalb(dtauc,
+                  ssalb,
+                  ext_bulk_gas,
+                  ext_bulk_par,
+                  abs_bulk_par,
+                  z_field(joker, 0, 0));
+
+  // Transform to mu, starting with negative values
+  for (Index i = 0; i < ds.numu; i++)
+    ds.umu[i] = -cos(scat_za_grid[i] * PI / 180);
 
   //upper boundary conditions:
   // DISORT offers isotropic incoming radiance or emissivity-scaled planck
@@ -1552,289 +834,66 @@ void run_disort(Workspace& ws,
 
   // Cosmic background
   // we use temis*ttemp as upper boundary specification, hence CBR set to 0.
-  Numeric fisot = 0;
+  ds.bc.fisot = 0;
 
   // Top of the atmosphere temperature and emissivity
   //Numeric ttemp = t_field(cloudbox_limits[1], 0, 0);
   //Numeric temis = 0.;
-  Numeric ttemp = COSMIC_BG_TEMP;
-  Numeric temis = 1.;
+  ds.bc.ttemp = COSMIC_BG_TEMP;
+  ds.bc.btemp = surface_skin_t;
+  ds.bc.temis = 1.;
 
-  Vector intang(scat_za_grid.nelem() + nstr / 2, 0.);
-
-  // we don't need delta-scaling in microwave region
-  Index deltam = do_deltam ? TRUE_ : FALSE_;
-
-  // include thermal emission (very important)
-  Index plank = TRUE_;
-
-  // calculate also intensities, not only fluxes
-  Index onlyfl = FALSE_;
-
-  // Convergence criterium
-  Numeric accur = 0.005;
-
-  // Specify what to be printed --> normally nothing
-  Index* prnt = new Index[7];
-  prnt[0] = FALSE_;  // Input variables
-  prnt[1] = FALSE_;  // fluxes
-  prnt[2] = FALSE_;  // azimuthally averaged intensities at user
-  //and comp. angles
-  prnt[3] = FALSE_;  // azimuthally averaged intensities at user levels
-  //and angles
-  prnt[4] = FALSE_;  // intensities at user levels and angles
-  prnt[5] = FALSE_;  // planar transmissivity and albedo
-  prnt[6] = FALSE_;  // phase function moments
-
-  char header[127];
-  memset(header, 0, 127);
-
-  Index maxcly = nlyr;                  // Maximum number of layers
-  Index maxulv = nlyr + 1;              // Maximum number of user defined tau
-  Index maxumu = scat_za_grid.nelem();  // maximum number of zenith angles
-  Index maxcmu = Nlegendre - 1;  // maximum number of Legendre polynomials
-  if (nstr < 4)
-    maxcmu = 4;      // reset for low nstr since DISORT selftest uses 4 streams,
-                     // hence requires at least 4 Legendre polynomials
-  Index maxphi = 1;  //no azimuthal dependance
-
-  // Declaration of Output variables
-  Vector rfldir(maxulv);
-  Vector rfldn(maxulv);
-  Vector flup(maxulv);
-  Vector dfdt(maxulv);
-  Vector uavg(maxulv);
-  Tensor3 uu(maxphi, maxulv, scat_za_grid.nelem(), 0.);  // Intensity
-  Matrix u0u(maxulv, scat_za_grid.nelem());  // Azimuthally averaged intensity
-  Vector albmed(scat_za_grid.nelem());       // Albedo of cloudbox
-  Vector trnmed(scat_za_grid.nelem());       // Transmissivity
-
-  Vector t(nlyr + 1);
-
-  for (Index i = 0; i < t.nelem(); i++) t[i] = t_field(nlyr - i, 0, 0);
-
-  //dummies
-  Index ntau = 0;
-  Vector utau(maxulv, 0.);
-
-  // FIXME: this can be optimized a little more by outputting *bulk_par in the
-  // original particle freq extent and only duplicating the freq data in
-  // get_dtauc_ssalb.
-  Index nf_ssd = scat_data[0][0].f_grid.nelem();
-
-  Matrix ext_bulk_gas(nf, nlyr + 1);
-  get_gasoptprop(ws,
-                 ext_bulk_gas,
-                 propmat_clearsky_agenda,
-                 t_field(joker, 0, 0),
-                 vmr_field(joker, joker, 0, 0),
-                 p_grid,
-                 f_grid);
-  Matrix ext_bulk_par(nf, nlyr + 1), abs_bulk_par(nf, nlyr + 1);
-  get_paroptprop(ext_bulk_par,
-                 abs_bulk_par,
-                 scat_data,
-                 pnd_field(joker, joker, 0, 0),
-                 t_field(joker, 0, 0),
-                 p_grid,
-                 cloudbox_limits,
-                 f_grid);
-
-  // Optical depth of layers
-  Matrix dtauc(nf, nlyr);
-  // Single scattering albedo of layers
-  Matrix ssalb(nf, nlyr);
-  get_dtauc_ssalb(dtauc,
-                  ssalb,
-                  ext_bulk_gas,
-                  ext_bulk_par,
-                  abs_bulk_par,
-                  z_field(joker, 0, 0));
   Vector pfct_angs;
   get_angs(pfct_angs, scat_data, Npfct);
   Index nang = pfct_angs.nelem();
 
-  Tensor3 pha_bulk_par(nf_ssd, nlyr + 1, nang);
+  Index nf_ssd = scat_data[0][0].f_grid.nelem();
+  Tensor3 pha_bulk_par(nf_ssd, ds.nlyr + 1, nang);
   get_parZ(pha_bulk_par,
            scat_data,
            pnd_field(joker, joker, 0, 0),
            t_field(joker, 0, 0),
            pfct_angs,
            cloudbox_limits);
-  Tensor3 pfct_bulk_par(nf_ssd, nlyr, nang);
+  Tensor3 pfct_bulk_par(nf_ssd, ds.nlyr, nang);
   get_pfct(
       pfct_bulk_par, pha_bulk_par, ext_bulk_par, abs_bulk_par, cloudbox_limits);
 
   // Legendre polynomials of phase function
-  Tensor3 pmom(nf_ssd, nlyr, Nlegendre, 0.);
+  Tensor3 pmom(nf_ssd, ds.nlyr, Nlegendre, 0.);
   get_pmom(pmom, pfct_bulk_par, pfct_angs, Nlegendre);
 
-  // Loop over frequencies
-  bool pf = (nf_ssd != 1);
-  Index this_f_index = 0;
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
-    if (pf) this_f_index = f_index;
+    sprintf(ds.header, "ARTS Calc f_index = %ld", f_index);
 
-    ttemp = COSMIC_BG_TEMP;
-
-    /*
-      if( pfct_method=="interpolate" )
-      {
-        phase_functionCalc2(phase_function,
-                            scat_data, f_index,
-                            pnd_field, t_field, cloudbox_limits,
-                            pfct_za_grid_size, verbosity);
-        for( Index l=0; l<nlyr; l++ )
-          if( phase_function(l,0)==0. )
-            assert( ssalb(f_index,l)==0. );
-
-        //cout << "entering pmomCalc for f_index=" << f_index << " (f="
-        //     << f_grid[f_index]*1e-9 << "GHz).\n";
-        pmomCalc2(pmom(f_index,joker,joker),
-                  phase_function, scat_angle_grid, Nlegendre, verbosity);
-      }
-      else
-      {
-        phase_functionCalc(phase_function, scat_data, f_index, pnd_field,
-                           cloudbox_limits, pfct_method );
-        for( Index l=0; l<nlyr; l++ )
-          if( phase_function(l,0)==0. )
-            assert( ssalb(f_index,l)==0. );
-
-        //cout << "entering pmomCalc for f_index=" << f_index << " (f="
-        //     << f_grid[f_index]*1e-9 << "GHz).\n";
-        pmomCalc(pmom(f_index,joker,joker),
-                 phase_function, scat_angle_grid, Nlegendre, verbosity);
-      }
-      */
+    std::memcpy(ds.dtauc,
+                dtauc(f_index, joker).get_c_array(),
+                sizeof(Numeric) * ds.nlyr);
+    std::memcpy(ds.ssalb,
+                ssalb(f_index, joker).get_c_array(),
+                sizeof(Numeric) * ds.nlyr);
 
     // Wavenumber in [1/cm]
-    Numeric wvnmlo = f_grid[f_index] / (100 * SPEED_OF_LIGHT);
-    Numeric wvnmhi = wvnmlo;
+    ds.wvnmhi = ds.wvnmlo = (f_grid[f_index]) / (100. * SPEED_OF_LIGHT);
+    ds.wvnmhi += ds.wvnmhi * 1e-7;
+    ds.wvnmlo -= ds.wvnmlo * 1e-7;
 
-    // calculate radiant quantities at boundary of computational layers.
-    Index usrtau = FALSE_;
+    ds.bc.albedo = surface_scalar_reflectivity[f_index];
 
-    //DEBUG_VAR(dtauc)
+    std::memcpy(ds.pmom,
+                pmom(f_index, joker, joker).get_c_array(),
+                sizeof(Numeric) * pmom.nrows() * pmom.ncols());
 
-    //cout << "entering Disort calc at freq[" << f_index << "]="
-    //     << f_grid[f_index]*1e-9 << " GHz\n"
-    //     << "  with surftemp=" << surface_skin_t
-    //     << " K and albedo=" << surface_scalar_reflectivity[f_index]
-    //     << "\n";
+    c_disort(&ds, &out);
 
-// JM: once (2-3-454), I extended the critical region due to
-// modified-variable-issues inside Disort. However, later on I couldn't
-// reproduce the problems anymore. Since the extension created problems in catching
-// errors thrown inside methods called within the critical region, the region is
-// reduced to its original extend (2-3-486), covering only the Disort call
-// itself. If any kind of fishy behaviour is observed, we have to reconsider
-// extending (and proper error handling) again.
-#pragma omp critical(fortran_disort)
-    {
-      // Call disort
-      disort_(&nlyr,
-              dtauc(f_index, joker).get_c_array(),
-              ssalb(f_index, joker).get_c_array(),
-              pmom(this_f_index, joker, joker).get_c_array(),
-              t.get_c_array(),
-              &wvnmlo,
-              &wvnmhi,
-              &usrtau,
-              &ntau,
-              utau.get_c_array(),
-              &nstr,
-              &usrang,
-              &numu,
-              umu.get_c_array(),
-              &nphi,
-              phi.get_c_array(),
-              &ibcnd,
-              &fbeam,
-              &umu0,
-              &phi0,
-              &fisot,
-              intang.get_c_array(),
-              &lamber,
-              &surface_scalar_reflectivity[f_index],
-              hl.get_c_array(),
-              &surface_skin_t,
-              &ttemp,
-              &temis,
-              &deltam,
-              &plank,
-              &onlyfl,
-              &accur,
-              prnt,
-              header,
-              &maxcly,
-              &maxulv,
-              &maxumu,
-              &maxcmu,
-              &maxphi,
-              rfldir.get_c_array(),
-              rfldn.get_c_array(),
-              flup.get_c_array(),
-              dfdt.get_c_array(),
-              uavg.get_c_array(),
-              uu.get_c_array(),
-              u0u.get_c_array(),
-              albmed.get_c_array(),
-              trnmed.get_c_array());
-    }
-
-    for (Index j = 0; j < numu; j++)
+    for (Index j = 0; j < ds.numu; j++)
       for (Index k = 0; k < (cloudbox_limits[1] - cloudbox_limits[0] + 1); k++)
         doit_i_field(f_index, k, 0, 0, j, 0, 0) =
-            uu(0, nlyr - k - cloudbox_limits[0], j) / (100 * SPEED_OF_LIGHT);
+            out.uu[ds.numu * (ds.nlyr - k - cloudbox_limits[0]) + j] /
+            (ds.wvnmhi - ds.wvnmlo) / (100 * SPEED_OF_LIGHT);
   }
-  delete[] prnt;
+
+  /* Free allocated memory */
+  c_disort_out_free(&ds, &out);
+  c_disort_state_free(&ds);
 }
-
-#else /* ENABLE_DISORT */
-
-void run_disort(Workspace&,
-                Tensor7&,
-                ConstVectorView,
-                ConstVectorView,
-                ConstTensor3View,
-                ConstTensor3View,
-                ConstTensor4View,
-                ConstTensor4View,
-                const ArrayOfArrayOfSingleScatteringData&,
-                const Agenda&,
-                const ArrayOfIndex&,
-                Numeric&,
-                Vector&,
-                ConstVectorView,
-                const Index&,
-                const Index&,
-                const String&,
-                const Verbosity&) {
-  throw runtime_error(
-      "This version of ARTS was compiled without DISORT support.");
-}
-
-void run_disort2(Workspace&,
-                 Tensor7&,
-                 ConstVectorView,
-                 ConstVectorView,
-                 ConstTensor3View,
-                 ConstTensor3View,
-                 ConstTensor4View,
-                 ConstTensor4View,
-                 const ArrayOfArrayOfSingleScatteringData&,
-                 const Agenda&,
-                 const ArrayOfIndex&,
-                 Numeric&,
-                 Vector&,
-                 ConstVectorView,
-                 const Index&,
-                 const Index&,
-                 const Index&,
-                 const Verbosity&) {
-  throw runtime_error(
-      "This version of ARTS was compiled without DISORT support.");
-}
-
-#endif /* ENABLE_DISORT */

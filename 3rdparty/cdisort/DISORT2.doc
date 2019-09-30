@@ -1,9 +1,9 @@
 ***********************************************************************
 
    Documentation File for 'DISORT', A Discrete Ordinates Radiative
- Transfer Fortran-77 Program for a Multi-Layered Plane-Parallel Medium
-                        (VERSION 1.2)
-                        
+ Transfer Fortran-90 Program for a Multi-Layered Plane-Parallel Medium
+                        (VERSION 2.0)
+
 ***********************************************************************
 
 NOTE:  If you have not received DISORT directly from its main
@@ -13,9 +13,21 @@ anonymous ftp site
   
 you should check there for the latest version, and any updates.
 
-FORTRAN-90:  We highly urge that you run this program using a Fortran-90 
-compiler since Fortran-77 is a proper subset of Fortran-90.  DISORT
-will gradually migrate to Fortran-90, starting with version 1.3.
+FORTRAN-90:  This version and v1.3 of DISORT require a Fortran-90 
+compiler.  So far, the only Fortran-90 actually used is in RDI1MACH.f, 
+since these routines in their f77 form were by far the most unpopular 
+among DISORT users; their f90 implementation, by contrast, is clean and 
+simple.  The rest of DISORT will gradually migrate to Fortran-90, for 
+reasons given in RDI1MACH.readme and in the DISORT Report, Appendix B.
+Note that any f77 code can be compiled by an f90 compiler, as long as
+the filename has a .f extension indicating fixed source form.
+
+Those without access to an f90 compiler can either
+(a) use version 1.2; or
+(b) use this version but substitute R1MACH.f and D1MACH.f from version 1.2.
+Send us e-mail if you find that, after a reasonable effort, you cannot 
+gain access to an f90 compiler; this will help us understand the extent 
+to which f90 compilers are available (or not) among our user base.
 
 ----------------------------------------------------------------------
 
@@ -36,6 +48,41 @@ printed in test problems, in order to reduce trivial differences
 when comparing two outputs; in test problems, SIGNIFICANTLY NON-UNIT
 RATIOS only counted when flux or intensity above noise level; 
 SQT calculation moved up to DISORT;
+
+version 1.3, 2000 (Mar): LAPACK used instead of LINPACK to do linear
+algebra (but not for eigenvalue problem yet); first Fortran-90 version;
+R1MACH, D1MACH use Fortran-90 intrinsic functions; 
+(Many thanks to Robert Pincus for the conversion to LAPACK)
+
+version 2.0, 2000 (Mar):  Introduced Nakajima-Tanaka TMS/IMS intensity 
+correction algorithm;  a real surface BRDF is implemented.
+
+The new features introduced in version 2 resulted in the following 
+major changes to the input/output arguments of DISORT: 
+
+(a) the full phase function Legendre expansion (all the significant
+    Legendre coefficients) must be provided, not just the Legendre 
+    coefficients from 0 to 2N as in v1.x; 
+    
+(b) the DELTAM option is no longer visible to the user and is always
+    turned on. It can still be turned off internally for testing;
+    however, inexperienced users are advised against turning it
+    off, because that will almost always result in worse results;
+    DELTAM is not needed in cases of weakly varying phase function,
+    e.g. Rayleigh scattering, but it does no harm in such cases either;
+
+(c) azimuthally-averaged intensity is no longer returned as an output;
+
+(d) the mean intensities are not intensity-corrected; they are already 
+    very accurate for small N using the usual delta-M approximation 
+    and benefit little from the corrections; however, it is a technical
+    inconsistency since they are derived from the uncorrected 
+    azimuthally-averaged intensity not the corrected intensities;
+    
+(e) bidirectional reflectance as a function of polar (zenith) and 
+    relative azimuth angles must be supplied in function BDREF
+    instead of coefficients in Legendre-polynomial expansion as in v1.x.
+
 
 NOTE:  Even though there have been many small changes to DISORT,
 there have been no significant bug reports for many years.  The
@@ -62,11 +109,16 @@ DISORTsp.f
    change all instances of 'R1MACH' to 'D1MACH').  This is also the 
    version to use on Cray and other high-accuracy machines.
 
+BDREF.f
+   A default FUNCTION subprogram to supply surface bidirectional 
+   reflectivity.  The user must replace this with their own version 
+   when if a non-Lambertian lower boundary reflectivity is desired.
+
 DISOTEST.f
 
    A program for checking DISORT on a comprehensive set of test problems.
    Be sure to run this before using DISORT.
-                    
+
 DISOTEST.doc
 
    Documentation for DISOTEST.f
@@ -77,30 +129,44 @@ DISOTEST.out
    on an IEEE-arithmetic Unix workstation.  Filename may have a 
    version number included.
 
-R1MACH.f, D1MACH.f
+RDI1MACH.f
 
-  Routines for returning machine constants.  Must be user-customized by
-  activating appropriate DATA statements.
+  Fortran-90 Routines for returning machine constants, from netlib author
+  Eric Grosse; also see file RDI1MACH.readme.
 
-DISORTlinpack.f
+LINPAK.f  :  Routines used by DISORT from the linear-equation-solving
+             public-domain packages LINPACK and BLAS (available
+             at most computer sites). Included only to make package
+             self-contained.  Slightly modified from originals
+             by upgrading to FORTRAN77. (The user is encouraged
+             to employ the local LINPACK in place of LINPAK.f,
+             because many computers have optimized their LINPACKs,
+             as for example CRAY computers with their
+             super-vector-speed LINPACK in 'libsci'.)
+             The entire LINPACK can be obtained from NetLib,
+             http://www.netlib.org/.
 
-   Routines used by DISORT from the linear-equation-solving public-domain
-   package LINPACK and BLAS . Included only to make DISORT self-contained. 
-   The user is encouraged to employ the local compiled LINPACK library 
-   (if one exists) rather than this file, because it will be optimized 
-   for the local environment.  Slightly modified from originals by 
-   upgrading to Fortran-77. More information about LINPACK is given below.
-   
 ErrPack.f
 
    Error-handling routines.  Standard across almost all programs on
    the wiscombe anonymous ftp site.
 
-rundis1.2
+rundis
 
    Example C-shell script to run DISORT.  Shows how to put the various
    pieces together, and how to handle single, double, and mixed single-
    double precision runs in an automated way.
+
+---------------------------------------------------------------------
+It is HIGHLY recommended that you use the code in DISOTEST.f as a 
+template for creating your own CALLs to DISORT, rather than starting
+from scratch. Then to compile DISORT, replace DISOTEST.f with your
+calling program and add BDREF.f in the statements above.  For problems
+with Lambertian lower boundary you can use the stub-file BDREF.f 
+supplied with the code; in this case BDREF.f is not used, but it is
+needed for compiling. For problems with bidirectionally reflecting
+surfaces you must supply your own BDREF.f instead of the one 
+distributed with the code.  
 ---------------------------------------------------------------------
 
    All the DISORT code has passed tests by 'flint', 'ftnchek', and
@@ -118,33 +184,33 @@ Remarks on Computer Precision
    DISORT has certain intrinsic limitations because of computer
 precision.  These limitations are related to ordinary computer
 "roundoff error" and have nothing to do with user-controllable
-(through the number of streams NSTR) "truncation error".  DISORT 
-is free of the *catastropic* growth of roundoff error that 
+(through the number of streams NSTR) "truncation error".  DISORT
+is free of the *catastrophic* growth of roundoff error that
 plagued pre-1980 discrete ordinate programs, but certain parts
-of the calculation (the eigenvalue/vector and Gauss quadrature 
-rule computations, and to a much lesser extent the linear 
-equation solving computations) are just inherently more sensitive 
+of the calculation (the eigenvalue/vector and Gauss quadrature
+rule computations, and to a much lesser extent the linear
+equation solving computations) are just inherently more sensitive
 to roundoff than the rest of DISORT, because they involve so many
 arithmetic operations.
 
-   The reason DISORT.f does the eigenvalue/vector and Gauss 
-quadrature rule computations in double precision is that DISORT 
-was originally developed on 32-bit-single-precision computers 
-(VAXen and IBMs) which were too inaccurate for those computations. 
-Running DISORT.f on a typical 32-bit-single-precision computer 
-usually gives results precise to at least 2-3 significant digits, 
-although for certain special situations the precision can fall to 
-one significant digit. Results can even have NO significant digits 
-when they fall below about 10**(-8) times the driving radiation, 
+   The reason DISORT.f does the eigenvalue/vector and Gauss
+quadrature rule computations in double precision is that DISORT
+was originally developed on 32-bit-single-precision computers
+(VAXen and IBMs) which were too inaccurate for those computations.
+Running DISORT.f on a typical 32-bit-single-precision computer
+usually gives results precise to at least 2-3 significant digits,
+although for certain special situations the precision can fall to
+one significant digit. Results can even have NO significant digits
+when they fall below about 10**(-8) times the driving radiation,
 as one can see in the fluxes in some of the test problems.
 
    IEEE Underflow:  On some Unix workstations (notably an HP9000),
 turning on certain compiler options can also cause IEEE underflows
-to trigger an error condition and abort the test run.  On the 
+to trigger an error condition and abort the test run.  On the
 HP9000, this option was +T, which ostensibly produces a traceback
 but as a side effect bombs the run.  DISORT will never pass underflow
 tests because it has potential underflows all over the place, esp.
-in the computations of exponentials.  
+in the computations of exponentials.
 
 
 LINPACK
@@ -152,11 +218,12 @@ LINPACK
 
    There are two versions of LINPACK, one in single precision
 (routines begin with 'S') and one in double precision
-(routines begin with 'D').  DISORT calls the 'S' versions. 
+(routines begin with 'D').  DISORT calls the 'S' versions.
 These can still be used with an autodoubling compiler.  But
-if a local LINPACK rather than our file LINPAK.f is used in 
+if a local LINPACK rather than our file LINPAK.f is used in
 running DISORT in double precision, change the first
-letters of SGBCO, SGBFA, SGBSL, SGEFA, SGECO, SGESL to 'D'.
+letters of SGBCO, SGBFA, SGBSL, SGEFA, SGECO, SGESL to 'D'
+(e.g. using a 'sed' command like that above).
 
 
 Memory Usage
@@ -168,6 +235,9 @@ of these arrays can be reduced by the user simply by altering the
 PARAMETER statements (for MX...) just following the internal
 variable documentation in subroutine DISORT.  This can give a
 dramatic reduction in memory usage for typical applications.
+
+  Elimination of this annoyance through use of dynamically dimensioned
+arrays is one of the first goals of the f90 conversion of DISORT.
 
 ---------------------------------------------------------------------
 
@@ -193,9 +263,14 @@ Princeton, NJ 08540
 
 Istvan Laszlo (laszlo@atmos.umd.edu)
 University of Maryland
-Dept. of Meterology
+Dept. of Meteorology
 College Park, MD 20742
 
+Robert Pincus (Robert.Pincus@gsfc.nasa.gov)
+Ran Song
+NASA Goddard Space Flight Center
+Code 913
+Greenbelt, MD 20771
 
 Collaborators: cf. REFERENCES
 
@@ -211,13 +286,18 @@ REFERENCES (cited in the programs using the acronyms shown) :
                 Results in Radiative Transfer, Transport Theory
                 and Statistical Physics 14, 437-483
 
+    KS: Kylling, A. and K. Stamnes, 1992: Efficient yet accurate
+                solution of the linear transport equation in the
+                presence of internal sources: The exponential-linear-
+                in-depth approximation, J. Comp. Phys., 102, 265-276.
+
      L: Lenoble, J., ed., 1985:  Radiative Transfer in Absorbing
                 and Scattering Atmospheres: Standard Computational
                 Procedures, Deepak Publishing, Hampton, Virginia
 
     NT: Nakajima, T. and M. Tanaka, 1988:  Algorithms for Radiative
                 Intensity Calculations in Moderately Thick Atmospheres
-                Using a Truncation Approximation, J.Q.S.R.T. 40, 51-69
+                Using a Truncation Approximation, J.Q.S.R.T. 40, 51-69.
 
     OS: Ozisik, M. and S. Shouman, 1980:  Source Function
                 Expansion Method for Radiative Transfer in a Two-Layer
@@ -262,7 +342,7 @@ REFERENCES (cited in the programs using the acronyms shown) :
                 A General-Purpose Numerically Stable Computer
                 Code for Discrete-Ordinate-Method Radiative
                 Transfer in Scattering and Emitting Layered Media,
-                to appear as NASA report (1995)
+                DISORT Report v1.1 (2000)
 
 VH1,VH2: Van de Hulst, H.C., 1980: Multiple Light Scattering,
                 Tables, Formulas and Applications, Volumes 1 and 2,
@@ -295,7 +375,7 @@ in the sense that each computational layer must be reasonably
 homogeneous and not have a temperature variation of more than
 about 5-10 K across it (if thermal sources are important).
 For example, a dusty boundary layer topped by a cloud topped by
-clear sky would suggest three computational layers, in the 
+clear sky would suggest three computational layers, in the
 absence of thermal sources.
 
    Computational polar angles ('streams') are constrained by the
@@ -308,6 +388,12 @@ level and ANY angle.  For example, the user may have picked 3
 computational layers and 16 streams, but he can then request
 intensities from only the middle of the 2nd layer, and only
 in the nadir direction.
+
+   The delta-M transformation of Wiscombe (1977) is used in DISORT to 
+achieve optimum computational efficiency and accuracy for strongly
+forward-peaked phase functions. The "delta-M-scaled" intensities are
+"unscaled" by applying the TMS and IMS intensity corrections of
+Nakajima and Tanaka (1988).
 
 +---------------------------------------------------------------------+
 
@@ -331,7 +417,7 @@ eigenvalue/vector computations)
 specially developed test drivers (for example, the Gauss and
 Planck routines)
 
-We are confident that the remaining errors are subtle and unlikely 
+We are confident that the remaining errors are subtle and unlikely
 to be encountered by the average user.  If you do find any errors,
 please report them to the authors, and we will do our best,
 time permitting, to find a solution.
@@ -396,7 +482,7 @@ UNITS CONVENTION:
  radiant output units are the same as the units of the beam
  source FBEAM and the isotropic source FISOT.  The whole problem
  could then be non-dimensionalized by setting these to unity.
- 
+
     If thermal emission of any kind is included, subprogram PLKAVG
  determines the units.  The default PLKAVG has MKS units (W/sq m).
  Several users have rewritten PLKAVG to return just the temperature
@@ -405,7 +491,7 @@ UNITS CONVENTION:
  in this case, all radiant quantities are in degrees Kelvin.  If you
  rewrite PLKAVG, however, you must also put in new self-test
  'correct answers' in subroutine SLFTST (or bypass it).
- 
+
     NOTE: make sure FBEAM and FISOT have the same units as PLKAVG
  when thermal emission is present.
 
@@ -414,16 +500,16 @@ CAVEATS:
 
  (1)  The case single-scatter-albedo=1 causes removable 0/0-type
       singularities in our general-case formulae.  These can be
-      eliminated by applying L'Hospital's Rule.  However, this 
-      creates large amounts of special-case code whose IF-statements 
+      eliminated by applying L'Hospital's Rule.  However, this
+      creates large amounts of special-case code whose IF-statements
       in some cases ruined the possibility of loop vectorization.
       It also led to quantum jumps in results as one crossed from
       s.s.-albedo near unity to s.s.-albedo exactly unity.
       Thus, we chose instead to use a "dithering method" in which
-      a very small quantity (about 10x machine precision) is 
-      subtracted from the single-scatter albedo.  This works 
-      surprisingly well, but also causes some loss of accuracy, 
-      which can be seen in the test problems for which 
+      a very small quantity (about 10x machine precision) is
+      subtracted from the single-scatter albedo.  This works
+      surprisingly well, but also causes some loss of accuracy,
+      which can be seen in the test problems for which
       single-scatter-albedo=1.  A better method would be to
       work out some kind of Laurent expansion near s.s.-albedo=1
       that merged smoothly with the general-case formulae.
@@ -432,20 +518,20 @@ CAVEATS:
       when the Sun (beam) angle coincides with one of the angles
       at which output intensities are desired.  In this
       case, the user would be advised to slightly change their
-      sun angle or their output angle so that they no longer 
+      sun angle or their output angle so that they no longer
       coincide.  The program handles this case using L'Hospital's
       Rule to get the correct limit, but it is not sophisticated
       and may amplify the error by not expanding to a higher
       level of approximation.
 
-      This singularity also occurs when the beam angle coincides 
-      with one of the quadrature angles, but the latter are not 
-      under user control, and they take such unusual values that 
-      the odds of such a coincidence are practically zero.  The 
-      problem is most likely to occur when NSTR/2 is odd and 
-      UMU0 = 0.5, and it can easily be corrected by changing NSTR. 
+      This singularity also occurs when the beam angle coincides
+      with one of the quadrature angles, but the latter are not
+      under user control, and they take such unusual values that
+      the odds of such a coincidence are practically zero.  The
+      problem is most likely to occur when NSTR/2 is odd and
+      UMU0 = 0.5, and it can easily be corrected by changing NSTR.
 
-      In general, it may be better to avoid requiring intensities
+       In general, it may be better to avoid requiring intensities
       exactly at the beam angle.  In the direct backscattering
       region, real phase functions are most poorly known, especially 
       in the low order of Legendre approximation in which they are 
@@ -459,8 +545,8 @@ CAVEATS:
       direction;  thus its exact forward intensity may be less 
       accurate than at other angles.
 
- (3)  If you flip between ONLYFL = TRUE and ONLYFL = FALSE in the 
-      same run, your input UMU values in USRANG = TRUE cases will 
+(3)  If you flip between ONLYFL = TRUE and ONLYFL = FALSE in the
+      same run, your input UMU values in USRANG = TRUE cases will
       be destroyed.  Since such flip-flopping is an extremely
       unlikely usage scenario, no guards against this disaster
       have been implemented.  If you reset UMU before each call
@@ -480,11 +566,22 @@ CAVEATS:
  SSALB(LC)     LC = 1 to NLYR,
                Single-scatter albedos of computational layers
 
- PMOM(K,LC)    K = 0 to NSTR, LC = 1 to NLYR,
+ NMOM          Number of phase function moments (all the significant
+               Legendre coefficients) not including the zeroth moment.
+               Should be greater than or equal to NSTR in problems
+               with scattering.  In problems without scattering,
+               NMOM is not used.
+
+               In a multi-layer problem, NMOM number of moments
+               should be supplied for every layer, even when the
+               individual layers are characterized by different phase
+               functions.
+
+ PMOM(K,LC)    K = 0 to NMOM, LC = 1 to NLYR,
                Coefficients in Legendre polynomial expansions of
                phase functions for computational layers :
 
-                  P(mu) = sum,K=0 to NSTR( (2K+1) PMOM(K) PK(mu) )
+                  P(mu) = sum,K=0 to NMOM( (2K+1) PMOM(K) PK(mu) )
 
                 WHERE    P = phase function
                         mu = cos(scattering angle)
@@ -494,7 +591,6 @@ CAVEATS:
                 reset to unity in any case).  Subroutine GETMOM,
                 supplied in the test problem file, may be used to
                 set coefficients in special cases.
-
 
  TEMPER(LEV)   LEV = 0 to NLYR, Temperatures (K) of levels.
                (Note that temperature is specified at LEVELS
@@ -527,9 +623,9 @@ CAVEATS:
 
  NSTR       Number of computational polar angles to be used
             (= number of 'streams')  ( should be even and .GE. 2 ).
-            NOte that these are Gaussian angles and hence the user
+            Note that these are Gaussian angles and hence the user
             has no control over what values are used.
-            
+
             In general, the more streams used, the more accurate
             the calculated fluxes and intensities will be.  However,
             there is no rigorous proof that increasing NSTR
@@ -565,8 +661,7 @@ CAVEATS:
                      UMU(IU) IU=1 to NUMU, cosines of output polar
                              angles in increasing order -- starting
                              with negative (downward) values (if any)
-                             and on through positive (upward) 
-                             values;
+                             and on through positive (upward) values;
                              *** MUST NOT HAVE ANY ZERO VALUES ***
 
  ** NOTE **   If only fluxes are desired (ONLYFL = TRUE), then
@@ -599,7 +694,7 @@ CAVEATS:
              * isotropic illumination from the top ( see FISOT )
              * thermal emission from the top ( see TEMIS, TTEMP )
              * internal thermal emission sources ( see TEMPER )
-             * reflection at the bottom ( see LAMBER, ALBEDO, HL )
+             * reflection at the bottom ( see LAMBER, ALBEDO, BDREF )
              * thermal emission from the bottom ( see BTEMP )
 
        = 1 : Return only albedo and transmissivity of the entire
@@ -607,20 +702,20 @@ CAVEATS:
              (There can be no Planck sources in this case.)
              Technically, this is accomplished by assuming an
              isotropically-incident source of radiation at the
-             top boundary, but this is of no real concern to the 
+             top boundary, but this is of no real concern to the
              user.
-                
+
                 Many users overlook this option even though it
              turns out to be exactly what they need.
 
                 The only input variables considered in this case
              are NLYR, DTAUC, SSALB, PMOM, NSTR, USRANG, NUMU, UMU,
-             ALBEDO, DELTAM, PRNT, HEADER and the array dimensions 
-             (see below).  PLANK is assumed FALSE, LAMBER is assumed
-             TRUE, and the bottom boundary can have any ALBEDO.  The
-             sole output is ALBMED, TRNMED; since these are just
-             ratios, this option does not use source strength
-             information in FBEAM or FISOT.
+             ALBEDO, PRNT, HEADER and the array dimensions (see below).
+             PLANK is assumed FALSE, LAMBER is assumed TRUE, and the
+             bottom boundary can have any ALBEDO.  The sole output is
+             ALBMED, TRNMED; since these are just ratios, this option
+             does not use source strength information in FBEAM or
+             FISOT.
 
                 UMU is interpreted as the array of beam
              angles in this case.  If USRANG = TRUE they must be
@@ -630,6 +725,9 @@ CAVEATS:
              If USRANG = FALSE, UMU is returned as the NSTR/2
              positive quadrature angle cosines, in increasing
              order.
+             
+             NOTE: The intensities involved here are not corrected for
+                   delta-M scaling effects.
 
 
  FBEAM     : Intensity of incident parallel beam at top boundary.
@@ -648,10 +746,10 @@ CAVEATS:
              computational polar angle cosines, a singularity
              occurs;  hence this is treated as a fatal
              error. The problem is most likely to
-             occur when NSTR/2 is odd and UMU0 = 0.5;  
-             otherwise, it is almost impossible to hit a 
-             computational angle by chance.  The problem can 
-             easily be corrected by changing NSTR. 
+             occur when NSTR/2 is odd and UMU0 = 0.5;
+             otherwise, it is almost impossible to hit a
+             computational angle by chance.  The problem can
+             easily be corrected by changing NSTR.
 
  PHI0      : Azimuth angle of incident beam (0 to 360 degrees)
 
@@ -662,41 +760,81 @@ CAVEATS:
              times FISOT.
 
  LAMBER    : TRUE, isotropically reflecting bottom boundary.
-             In this case must also specify :
+                   In this case must also specify :
 
-                ALBEDO :  bottom-boundary albedo
+                 ALBEDO :  bottom-boundary albedo
 
              FALSE, bidirectionally reflecting bottom boundary.
-             ** NOTE ** This option is NOT RECOMMENDED as it
-             does not correspond to observed BDRF functions,
-             which do not just depend on the angle between the
-             incident and reflected beams (if they did, grazing
-             incidence would produce the same radiance straight
-             upward as straight downward incidence would produce
-             at grazing angles).  A more general BDRF formulation
-             has been added to DISORT version 2.
+                   In this case, the bottom bidirectional reflectivity
+                   -regarded as a function of the cosine of angle of
+                   reflection MU, the cosine of angle of incidence
+                   MUP, and the difference of azimuth angles of
+                   incidence and reflection DPHI (in radians)-, must
+                   be supplied in the function subprogram:
 
-             In FALSE case must also specify :
+                 REAL FUNCTION  BDREF( WVNMLO, WVNMHI, MU, MUP, DPHI )
 
-             HL(K) : K = 0 to NSTR.  Coefficients in Legendre-
-                     polynomial expansion of bottom bidirectional
-                     reflectivity, regarded as a function of the
-                     cosine of the angle between incident and
-                     reflected beams (as for P(mu), cf. PMOM).
-                     (NOTE:  if  HL(1) = HL(2) = ... = 0,
-                     then  HL(0)  becomes the albedo and
-                     the reflection becomes Lambertian.)
+                   In DISORT, the bidirectional reflectivity is defined
+                   as (see STWL Eq. 39):
+                   
+                      UU( MU, PHI ) = 1 / PI * 
+		             Integral over PHI from 0 to 2PI [ 
+		             Integral over MUP from 0 to   1 [ 
+		               BDREF( WVNMLO, WVNMHI, MU, MUP, DPHI ) * 
+                               UU( MUP, PHIP ) * MUP  d MUP ] d PHIP ],
+                               
+                   where all the variables are as defined above, UU and
+                   PHIP are the incident intensity and the azimuth angle
+                   of incidence, respectively.
 
-                     ** NOTE **  Flux albedos calculated from HL
-                     will be checked to be sure they lie between
-                     zero and one for all possible incidence
-                     angles.  (These flux albedos are exact and
-                     will only agree with the DISORT flux albedos
-                     in the limit as NSTR goes to infinity.)
+                   Note that in BDREF the cosine of the incident angle 
+                   (MUP) is positive. (Another inconsistency: according
+                   to the convention used in DISORT it should be 
+                   negative.)
+
+                   The values of MU and MUP are determined by UMU and
+                   the Gaussian angles corresponding to NSTR and to
+                   those used for calculating the flux albedo. In BDREF,
+                   the bidirectional reflectivities should be specified
+                   for these angles.  Because the user has no control 
+                   over the Gaussian angles, the simplest way is to 
+                   supply an analytical function of the bidirectional
+                   reflectance.  In case the reflectivities are only 
+                   available at discrete angles the user should include
+                   an interpolation routine in BDREF which would
+                   calculate the reflectivities at arbitrary angles.
+                     
+                   In its default form, DISORT only includes a "stub"
+                   version of BDREF in file BDREF.f which only prints a
+                   message telling the user to include his/her own
+                   function BDREF. The function BDREF supplied in file
+                   DISOTEST.f, that is set to give bidirectional
+                   reflectivity in a special case, can be used as an
+                   example.
+
+                   ** NOTE 1 **  Flux albedos calculated from function
+                   BDREF will be checked to be sure they lie between
+                   zero and one for all possible incidence angles.
+
+                   ** NOTE 2 **  The lower and upper boundaries of the
+                   spectral interval WVNMLO and WVNMHI may be used to
+                   specify a spectral dependent lower boundary in
+                   multiple DISORT runs.
+
+             In principle, the function BDREF could also be used to
+             specify an isotropically reflecting lower boundary.
+             However, this is NOT recommended since calculation of
+             the Fourier expansion coefficients increases execution 
+             time; which can be avoided using the LAMBER=TRUE option.
+
+             ** NOTE **  For DISORT to successfully compile, the
+             function BDREF must always be present, even though it is
+             not used when LAMBER is TRUE.
+
 
  BTEMP     : Temperature of bottom boundary (K)  (bottom emissivity
-             is calculated from ALBEDO or HL, so it need not
-             be specified).
+             is calculated from ALBEDO or function BDREF, so it need
+             not be specified).
              Needed only if PLANK is TRUE.
 
  TTEMP     : Temperature of top boundary (K).
@@ -708,18 +846,6 @@ CAVEATS:
 
  **********  CONTROL FLAGS  **************
 
-DELTAM  TRUE,  use delta-M method ( see Wiscombe, 1977 )
-
-        FALSE, do not use delta-M method.
-
-        In general, for a given number of streams, intensities and
-        fluxes will be more accurate for phase functions with a
-        large forward peak if DELTAM is set true.  Intensities
-        close to the forward scattering direction will often
-        be less accurate, however, so when primary interest
-        centers in this so-called 'aureole region', DELTAM
-        should be set FALSE.
-
 PLANK   TRUE,  include thermal emission
 
         FALSE, ignore all thermal emission (saves computer time)
@@ -729,18 +855,14 @@ PLANK   TRUE,  include thermal emission
 
 WVNMLO,    Wavenumbers (inv cm) of spectral interval of interest
  WVNMHI    ( used only for calculating Planck function ).
-           Needed only if PLANK is TRUE.
+           Needed only if PLANK is TRUE, or in multiple runs, if
+           LAMBER is FALSE and BDREF depends on spectral interval.
 
 ONLYFL  TRUE, return fluxes, flux divergences, and mean
-              intensities.  If U0U is big enough,
-              i.e. if  MAXUMU.GE.NSTR, azimuthally-averaged
-              intensities at the computational angles will
-              also be returned, allowing the computation of
-              higher moments of the intensity distribution.
+              intensities.
 
-       FALSE, return fluxes, flux divergences, mean
-              intensities, azimuthally averaged intensities
-              (at the user angles) AND intensities.
+        FALSE, return fluxes, flux divergences, mean
+              intensities, AND intensities.
 
 ACCUR   Convergence criterion for azimuthal (Fourier cosine)
         series.  Will stop when the following occurs twice:
@@ -758,14 +880,10 @@ PRNT(L) Array of LOGICAL print flags causing the following prints:
           --        ------------------
            1        input variables (except PMOM)
            2        fluxes
-           3        azimuthally-averaged intensities at user
-                    levels and computational polar angles
-           4        azimuthally-averaged intensities at user
-                    levels and user polar angles
-           5        intensities at user levels and angles
-           6        planar transmissivity and planar albedo
+           3        intensities at user levels and angles
+           4        planar transmissivity and planar albedo
                     as a function solar zenith angle ( IBCND = 1 )
-           7        phase function moments PMOM for each layer
+           5        phase function moments PMOM for each layer
                     ( only if PRNT(1) = TRUE, and only for layers
                     with scattering )
 
@@ -785,6 +903,9 @@ HEADER  A 127- (or less) character header for prints, embedded in
             PMOM.  Should be .GE. NLYR.
             Max. number of computational layers
 
+ MAXMOM   : First dimension of  PMOM.  Should be .GE. NMOM.
+            Max. number of Legendre coefficients.
+
  MAXULV   : Dimension of UTAU, RFLDIR, RFLDN, FLUP, DFDT.
             2nd dimension of U0U, UU.
             Should be .GE. NTAU if USRTAU=TRUE,
@@ -795,10 +916,6 @@ HEADER  A 127- (or less) character header for prints, embedded in
             Should be .GE. NUMU if USRANG=TRUE,
             .GE. NSTR if USRANG=FALSE.
             Max. number of user polar angles
-
- MAXCMU   : First dimension of  PMOM, HL.  Should be .GE. NSTR.
-            Max. number of Legendre coefficients.
-            Also max. number of computational polar angles
 
  MAXPHI   : Dimension of PHI. 3rd dimension of UU.
             Should be .GE. NPHI.
@@ -817,11 +934,11 @@ HEADER  A 127- (or less) character header for prints, embedded in
  FBEAM and FISOT.
 
 
- == NOTE ON ZEROING == 
+ == NOTE ON ZEROING ==
 
     All output arrays are completely zeroed on each call to DISORT
  before being partially refilled with results.  This keeps garbage
- from accumulating in unused parts of the output arrays, and 
+ from accumulating in unused parts of the output arrays, and
  keeps indefinites and Not-a-Numbers out of unset parts of the
  output arrays.  With the modern emphasis on array-processing,
  it is wise to keep entire arrays 'clean' even if only parts
@@ -859,40 +976,23 @@ HEADER  A 127- (or less) character header for prints, embedded in
                (an exact result;  not from differencing fluxes)
 
  UAVG(LU)      Mean intensity (including the direct beam)
+               (Not corrected for delta-M-scaling effects)
 
  UU(IU,LU,J)   Intensity ( if ONLYFL = FALSE;  zero otherwise )
 
- U0U(IU,LU)    If ONLYFL = FALSE, azimuthally-averaged intensity
-               at user angles and user levels
-
-               If ONLYFL = TRUE and MAXUMU.GE.NSTR,
-               azimuthally-averaged intensity at computational
-               (Gaussian quadrature) angles and user levels;
-               the corresponding quadrature angle cosines are
-               returned in UMU.  If MAXUMU.LT.NSTR, U0U will be
-               zeroed, and UMU, NUMU will not be set.
-
-  ALBMED(IU)   Albedo of the medium as a function of incident
+ ALBMED(IU)    Albedo of the medium as a function of incident
                beam angle cosine UMU(IU)  (IBCND = 1 case only)
 
-  TRNMED(IU)   Transmissivity of the medium as a function of incident
+ TRNMED(IU)    Transmissivity of the medium as a function of incident
                beam angle cosine UMU(IU)  (IBCND = 1 case only)
 
-** REMEMBER **  AZIMUTHALLY-AVERAGED INTENSITY = INTENSITY if :
-                * there is no beam source, or
-                * the beam is at polar angle zero, or
-                * the viewing polar angle is zero, or
-                * scattering is isotropic.
-                Only a beam can establish a preferred azimuth since
-                we explicitly exclude a preferred azimuth in the
-                surface reflectivity.
 
 +---------------------------------------------------------------------+
 
           >>>>>>>>>>  ROUTINES AND PURPOSES  <<<<<<<<<<<<<
 
-file DISORT.f (or DISORTsp.f):
-------------------------------
+file DISORT.f :
+---------------
 
      ALBTRN: manages the IBCND = 1 SPECIAL CASE
 
@@ -908,11 +1008,14 @@ file DISORT.f (or DISORTsp.f):
      CMPINT: computes intensities at user levels and computational
              angles
 
-     DREF  : exact flux albedo as a function of incident angle when a
+     DREF  : flux albedo as a function of incident angle when a
              bottom-boundary bidirectional reflectivity is
              specified (LAMBER = FALSE)
 
      FLUXES: computes upward and downward fluxes
+
+     INTCOR: corrects intensity field by using Nakajima-Tanaka
+             algorithm
 
      LEPOLY: evaluates normalized associated Legendre polynomials
 
@@ -932,10 +1035,20 @@ file DISORT.f (or DISORTsp.f):
 
      RATIO : computes ratio of two numbers in failsafe way
 
-     SLFTST: sets input for self-test and checks for failure
+     SECSCA: calculates secondary scattered intensity for intensity
+             correction
+
+     SETDIS: performs miscellaneous setting-up operations
 
      SETMTX: calculates coefficient matrix for linear equations
              embodying boundary and layer interface conditions
+
+     SINSCA: calculates single-scattered intensity for intensity
+             correction
+
+     SLFTST: sets input for self-test and checks for failure
+
+     SOLEIG: solves eigenfunction problem for a single layer
 
      SOLVE0: solves linear equations embodying boundary and layer
              interface conditions (general boundary conditions)
@@ -943,22 +1056,22 @@ file DISORT.f (or DISORTsp.f):
      SOLVE1: solves linear equations embodying boundary and layer
              interface conditions (IBCND = 1 case)
 
-     SOLEIG: solves eigenfunction problem for a single layer
-
      SPALTR: calculates spherical albedo, transmissivity
              (IBCND = 1 special case)
 
      SURFAC: calculates surface bidirectional reflectivity/emissivity
 
-     TERPSO: interpolates particular solutions to user angles
-
      TERPEV: interpolates eigenvectors to user angles
+
+     TERPSO: interpolates particular solutions to user angles
 
      UPBEAM: finds particular solution for beam source
 
      UPISOT: finds particular solution for thermal emission source
 
      USRINT: computes intensities at user levels and user angles
+
+     XIFUNC: calculates Xi function used in SECSCA
 
      ZEROAL: zeros a group of matrices
 
@@ -976,6 +1089,7 @@ file DISORT.f (or DISORTsp.f):
      WRTBAD: writes out names of erroneous input variables
 
      WRTDIM: writes out names of too-small symbolic dimensions
+
 
  file LINPAK.f :
  ---------------
@@ -1008,6 +1122,14 @@ file DISORT.f (or DISORTsp.f):
  D1MACH.f : returns machine-specific constants (double-precision)
 
 
+ In addition to the routines above, the user also must supply the
+ function:
+
+ BDREF : sets bidirectional bottom boundary; only used when
+         LAMBER = FALSE, but must be supplied at all times
+         for DISORT to compile
+
+
 Full Call Tree (nx means called n times):
 
 DISORT-+-(R1MACH)
@@ -1018,9 +1140,15 @@ DISORT-+-(R1MACH)
       |
       +-ZEROIT
       |
-      +-CHEKIN-+-(WRTBAD) (31x)
+      +-CHEKIN-+-(WRTBAD)
       |        |
-      |        +-DREF-+-(ERRMSG) (3x)
+      |        +-(ERRMSG)
+      |        |
+      |        +-(WRTBAD) (31x)
+      |        |
+      |        +-DREF-+-(ERRMSG) (2x)
+      |        |
+      |        +-(WRTBAD) (7x)
       |        |
       |        +-(WRTDIM) (9x)
       |        |
@@ -1036,7 +1164,9 @@ DISORT-+-(R1MACH)
       |
       +-PRTINP
       |
-      +-ALBTRN-+-LEPOLY (4)--(ERRMSG)
+      +-ALBTRN-+-LEPOLY (3)--(ERRMSG)
+      |        |
+      |        +-LEPOLY see 3
       |        |
       |        +-ZEROIT
       |        |
@@ -1050,9 +1180,9 @@ DISORT-+-(R1MACH)
       |        |
       |        +-SETMTX (5)--ZEROIT
       |        |
-      |        +-( SGBCO)
-      |        |
       |        +-SOLVE1-+-ZEROIT
+      |        |        |
+      |        |        +-(SGBCO)
       |        |        |
       |        |        +-(ERRMSG)
       |        |        |
@@ -1070,15 +1200,19 @@ DISORT-+-(R1MACH)
       |            |
       |            +-(ERRMSG) (3x)
       |
+      +-PLKAVG see 6 (2x)
+      |
       +-LEPOLY see 3 (3x)
       |
       +-SURFAC-+-QGAUSN see 2
       |        |
-      |        +-LEPOLY see 3
+      |        +-ZEROIT (2x)
       |        |
-      |        +-ZEROIT (4x)
+      |        +-BDREF (3x)
       |        |
-      |        +-(ERRMSG)
+      |        +-ZEROIT (2x)
+      |        |
+      |        +-BDREF (3x)
       |
       +-SOLEIG see 4
       |
@@ -1123,6 +1257,10 @@ DISORT-+-(R1MACH)
       +-ZEROIT
       |
       +-RATIO-+-(R1MACH) (2x)
+      |
+      +-INTCOR-+-SINSCA (2x)
+      |        |
+      |        +-SECSCA-+-XIFUNC
       |
       +-PRTINT
       |
