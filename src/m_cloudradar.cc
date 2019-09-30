@@ -655,7 +655,6 @@ void iyActiveSingleScat(Workspace& ws,
       })
     }
     
-    std::cout<<"LVL: \n"<<iy<<"\n\nDLVL: \n"<<diy_dpath<<'\n';
     rtmethods_jacobian_finalisation(ws,
                                     diy_dx,
                                     diy_dpath,
@@ -1160,8 +1159,6 @@ void iyActiveSingleScat2(Workspace& ws,
     }
   }
   // FIXME: Add the aux-variables back
-
-  std::cout<<"LVL: \n"<<iy<<"\n\nDLVL: \n"<<diy_dpath<<'\n';
   
   // Finalize analytical Jacobian
   if (j_analytical_do)
