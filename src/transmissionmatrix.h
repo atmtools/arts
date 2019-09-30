@@ -191,7 +191,7 @@ class TransmissionMatrix {
     for (auto& T : T4) T = Eigen::Matrix4d::Zero();
     for (auto& T : T3) T = Eigen::Matrix3d::Zero();
     for (auto& T : T2) T = Eigen::Matrix2d::Zero();
-    for (auto& T : T1) T(0, 0) = 1;
+    for (auto& T : T1) T(0, 0) = 0;
   }
 
   /** Set this to a multiple of A by B
@@ -565,6 +565,28 @@ class RadiationVector {
       R1[i].noalias() += PiT.Mat1(i) * dT.Mat1(i) * I.R1[i];
   }
 
+
+  /** Add multiply
+   * 
+   * Performs essentially this += A * x
+   * 
+   * Assumes this and x are not aliases
+   * 
+   * @param[in] A Derivative of transmission matrix
+   * @param[in] x Intensity vector
+   */
+  void addMultiplied(const TransmissionMatrix& A,
+                     const RadiationVector& x) {
+    for (size_t i = 0; i < R4.size(); i++)
+      R4[i].noalias() += A.Mat4(i) * x.R4[i];
+    for (size_t i = 0; i < R3.size(); i++)
+      R3[i].noalias() += A.Mat3(i) * x.R3[i];
+    for (size_t i = 0; i < R2.size(); i++)
+      R2[i].noalias() += A.Mat2(i) * x.R2[i];
+    for (size_t i = 0; i < R1.size(); i++)
+      R1[i].noalias() += A.Mat1(i) * x.R1[i];
+  }
+
   /** Sets *this to the reflection derivative
    * 
    * @param[in] I Intensity vector
@@ -587,17 +609,17 @@ class RadiationVector {
                  (Z.Mat1(i)[0] * R1[i][0] + dZ.Mat1(i)[0] * I.R1[i][0]);
   }
 
-  /** Set this to backscatter radiation
+  /** Set this to backscatter transmission
    * 
    * @param[in] I0 Incoming intensity vector
    * @param[in] Tr Reflection transmission
    * @param[in] Tf Forward transmission
    * @param[in] Z Reflection matrix
    */
-  void setBackscatter(const RadiationVector& I0,
-                      const TransmissionMatrix& Tr,
-                      const TransmissionMatrix& Tf,
-                      const TransmissionMatrix& Z) {
+  void setBackscatterTransmission(const RadiationVector& I0,
+                                  const TransmissionMatrix& Tr,
+                                  const TransmissionMatrix& Tf,
+                                  const TransmissionMatrix& Z) {
     for (size_t i = 0; i < R4.size(); i++)
       R4[i].noalias() = Tr.Mat4(i) * Z.Mat4(i) * Tf.Mat4(i) * I0.R4[i];
     for (size_t i = 0; i < R3.size(); i++)
@@ -608,57 +630,25 @@ class RadiationVector {
       R1[i].noalias() = Tr.Mat1(i) * Z.Mat1(i) * Tf.Mat1(i) * I0.R1[i];
   }
 
-  /** Set this to backscatter radiation derivative
+  /** Set this to backscatter transmission scatter derivative
    * 
    * @param[in] I0 Incoming intensity vector
-   * @param[in] T Transmission matrix
    * @param[in] Tr Reflection transmission
    * @param[in] Tf Forward transmission
-   * @param[in] Z Reflection matrix
-   * @param[in] dT2 Transmission matrix derivative from level 1
-   * @param[in] dT2 Transmission matrix derivative from level 2
-   * @param[in] dZ Derivative of reflection matrix
+   * @param[in] dZ Reflection matrix derivative
    */
-  void setBackscatterDerivative(const RadiationVector& I0,
-                                const TransmissionMatrix& T,
-                                const TransmissionMatrix& Tr_past,
-                                const TransmissionMatrix& Tf_past,
-                                const TransmissionMatrix& Z,
-                                const TransmissionMatrix& dT1,
-                                const TransmissionMatrix& dT2,
-                                const TransmissionMatrix& dZ) {
+  void setBackscatterTransmissionDerivative(const RadiationVector& I0,
+                                            const TransmissionMatrix& Tr,
+                                            const TransmissionMatrix& Tf,
+                                            const TransmissionMatrix& dZ) {
     for (size_t i = 0; i < R4.size(); i++)
-      R4[i].noalias() = Tr_past.Mat4(i) * T.Mat4(i) * Z.Mat4(i) *
-                            (dT1.Mat4(i) + dT2.Mat4(i)) * Tf_past.Mat4(i) *
-                            I0.R4[i] +
-                        Tr_past.Mat4(i) * T.Mat4(i) * dZ.Mat4(i) * T.Mat4(i) *
-                            Tf_past.Mat4(i) * I0.R4[i] +
-                        Tr_past.Mat4(i) * (dT1.Mat4(i) + dT2.Mat4(i)) *
-                            Z.Mat4(i) * T.Mat4(i) * Tf_past.Mat4(i) * I0.R4[i];
+      R4[i].noalias() = Tr.Mat4(i) * dZ.Mat4(i) * Tf.Mat4(i) * I0.R4[i];
     for (size_t i = 0; i < R3.size(); i++)
-      R3[i].noalias() = Tr_past.Mat3(i) * T.Mat3(i) * Z.Mat3(i) *
-                            (dT1.Mat3(i) + dT2.Mat3(i)) * Tf_past.Mat3(i) *
-                            I0.R3[i] +
-                        Tr_past.Mat3(i) * T.Mat3(i) * dZ.Mat3(i) * T.Mat3(i) *
-                            Tf_past.Mat3(i) * I0.R3[i] +
-                        Tr_past.Mat3(i) * (dT1.Mat3(i) + dT2.Mat3(i)) *
-                            Z.Mat3(i) * T.Mat3(i) * Tf_past.Mat3(i) * I0.R3[i];
+      R3[i].noalias() = Tr.Mat3(i) * dZ.Mat3(i) * Tf.Mat3(i) * I0.R3[i];
     for (size_t i = 0; i < R2.size(); i++)
-      R2[i].noalias() = Tr_past.Mat2(i) * T.Mat2(i) * Z.Mat2(i) *
-                            (dT1.Mat2(i) + dT2.Mat2(i)) * Tf_past.Mat2(i) *
-                            I0.R2[i] +
-                        Tr_past.Mat2(i) * T.Mat2(i) * dZ.Mat2(i) * T.Mat2(i) *
-                            Tf_past.Mat2(i) * I0.R2[i] +
-                        Tr_past.Mat2(i) * (dT1.Mat2(i) + dT2.Mat2(i)) *
-                            Z.Mat2(i) * T.Mat2(i) * Tf_past.Mat2(i) * I0.R2[i];
+      R2[i].noalias() = Tr.Mat2(i) * dZ.Mat2(i) * Tf.Mat2(i) * I0.R2[i];
     for (size_t i = 0; i < R1.size(); i++)
-      R1[i].noalias() = Tr_past.Mat1(i) * T.Mat1(i) * Z.Mat1(i) *
-                            (dT1.Mat1(i) + dT2.Mat1(i)) * Tf_past.Mat1(i) *
-                            I0.R1[i] +
-                        Tr_past.Mat1(i) * T.Mat1(i) * dZ.Mat1(i) * T.Mat1(i) *
-                            Tf_past.Mat1(i) * I0.R1[i] +
-                        Tr_past.Mat1(i) * (dT1.Mat1(i) + dT2.Mat1(i)) *
-                            Z.Mat1(i) * T.Mat1(i) * Tf_past.Mat1(i) * I0.R1[i];
+      R1[i].noalias() = Tr.Mat1(i) * dZ.Mat1(i) * Tf.Mat1(i) * I0.R1[i];
   }
 
   /** Set *this from matrix
@@ -801,8 +791,10 @@ class RadiationVector {
 
 typedef Array<TransmissionMatrix> ArrayOfTransmissionMatrix;
 typedef Array<ArrayOfTransmissionMatrix> ArrayOfArrayOfTransmissionMatrix;
+typedef Array<ArrayOfArrayOfTransmissionMatrix> ArrayOfArrayOfArrayOfTransmissionMatrix;
 typedef Array<RadiationVector> ArrayOfRadiationVector;
 typedef Array<ArrayOfRadiationVector> ArrayOfArrayOfRadiationVector;
+typedef Array<ArrayOfArrayOfRadiationVector> ArrayOfArrayOfArrayOfRadiationVector;
 
   /** Output operator */
 std::ostream& operator<<(std::ostream& os, const TransmissionMatrix& tm);
@@ -833,15 +825,14 @@ std::istream& operator>>(std::istream& is, RadiationVector& rv);
 
 /** Intended to hold various backscatter solvers */
 enum class BackscatterSolver {
-  Commutative_PureReflectionJacobian,
-  Full,
+  CommutativeTransmission,
+  FullTransmission,
 };
 
 /** Intended to hold various ways to accumulate the transmission matrix */
 enum class CumulativeTransmission {
   Forward,
-  ForwardReverse,
-  Reflect,
+  Reverse,
 };
 
 /** Intended to hold various forward solvers */
@@ -957,7 +948,7 @@ ArrayOfTransmissionMatrix cumulative_transmission(
  */
 void set_backscatter_radiation_vector(
     ArrayOfRadiationVector& I,
-    ArrayOfArrayOfRadiationVector& dI,
+    ArrayOfArrayOfArrayOfRadiationVector& dI,
     const ArrayOfTransmissionMatrix& T,
     const ArrayOfTransmissionMatrix& PiTf,
     const ArrayOfTransmissionMatrix& PiTr,

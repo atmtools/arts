@@ -406,7 +406,7 @@ void test_transmat_to_cumulativetransmat() {
   ArrayOfTransmissionMatrix cumulative_forward =
       cumulative_transmission(layers, CumulativeTransmission::Forward);
   ArrayOfTransmissionMatrix cumulative_reflect =
-      cumulative_transmission(layers, CumulativeTransmission::Reflect);
+      cumulative_transmission(layers, CumulativeTransmission::Reverse);
 
   std::cout << "Forward accumulation:\n" << cumulative_forward << "\n\n";
   std::cout << "Reflect accumulation:\n" << cumulative_reflect << "\n\n";

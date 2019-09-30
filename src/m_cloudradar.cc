@@ -865,8 +865,10 @@ void iyActiveSingleScat2(Workspace& ws,
   ppvar_trans_cumulat.resize(np, nf, ns, ns);
 
   ArrayOfRadiationVector lvl_rad(np, RadiationVector(nf, ns));
-  ArrayOfArrayOfRadiationVector dlvl_rad(
-      np, ArrayOfRadiationVector(nq, RadiationVector(nf, ns)));
+  ArrayOfArrayOfArrayOfRadiationVector dlvl_rad(np,
+    ArrayOfArrayOfRadiationVector(np,
+    ArrayOfRadiationVector(nq,
+    RadiationVector(nf, ns))));
 
   ArrayOfTransmissionMatrix lyr_tra(np, TransmissionMatrix(nf, ns));
   ArrayOfArrayOfTransmissionMatrix dlyr_tra_above(
@@ -1124,9 +1126,9 @@ void iyActiveSingleScat2(Workspace& ws,
   }
 
   const ArrayOfTransmissionMatrix tot_tra_forward =
-      cumulative_transmission(lyr_tra, CumulativeTransmission::ForwardReverse);
+      cumulative_transmission(lyr_tra, CumulativeTransmission::Reverse);
   const ArrayOfTransmissionMatrix tot_tra_reflect =
-      cumulative_transmission(lyr_tra, CumulativeTransmission::Reflect);
+      cumulative_transmission(lyr_tra, CumulativeTransmission::Forward);
   const ArrayOfTransmissionMatrix reflect_matrix =
       cumulative_backscatter(Pe, ppvar_pnd);
   const ArrayOfArrayOfTransmissionMatrix dreflect_matrix =
@@ -1142,8 +1144,7 @@ void iyActiveSingleScat2(Workspace& ws,
                                    dlyr_tra_above,
                                    dlyr_tra_below,
                                    dreflect_matrix,
-                                   //                                   BackscatterSolver::Commutative_PureReflectionJacobian);
-                                   BackscatterSolver::Full);
+                                   BackscatterSolver::CommutativeTransmission);
 
   // Size iy and set to zero
   iy.resize(nf * np, ns);  // iv*np + ip is the desired output order...
@@ -1151,8 +1152,9 @@ void iyActiveSingleScat2(Workspace& ws,
     for (Index iv = 0; iv < nf; iv++) {
       for (Index is = 0; is < stokes_dim; is++) {
         iy(iv * np + ip, is) = lvl_rad[ip](iv, is);
-        FOR_ANALYTICAL_JACOBIANS_DO(diy_dpath[iq](ip, iv * np + ip, is) =
-                                        dlvl_rad[ip][iq](iv, is););
+        FOR_ANALYTICAL_JACOBIANS_DO(
+          for(Index ip2=0; ip2<np; ip2++)
+            diy_dpath[iq](ip, iv * np + ip2, is) = dlvl_rad[ip][ip2][iq](iv, is););
       }
     }
   }

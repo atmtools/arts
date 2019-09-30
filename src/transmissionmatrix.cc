@@ -1492,7 +1492,7 @@ void update_radiation_vector(RadiationVector& I,
                              const ArrayOfTransmissionMatrix& dT2,
                              const RadiativeTransferSolver solver) {
   switch (solver) {
-    case RadiativeTransferSolver::Emission:
+    case RadiativeTransferSolver::Emission: {
       I.rem_avg(J1, J2);
       for (size_t i = 0; i < dI1.size(); i++) {
         dI1[i].addDerivEmission(PiT, dT1[i], T, I, dJ1[i]);
@@ -1500,15 +1500,15 @@ void update_radiation_vector(RadiationVector& I,
       }
       I.leftMul(T);
       I.add_avg(J1, J2);
-      break;
+    } break;
 
-    case RadiativeTransferSolver::Transmission:
+    case RadiativeTransferSolver::Transmission: {
       for (size_t i = 0; i < dI1.size(); i++) {
         dI1[i].addDerivTransmission(PiT, dT1[i], I);
         dI2[i].addDerivTransmission(PiT, dT2[i], I);
       }
       I.leftMul(T);
-      break;
+    } break;
   }
 }
 
@@ -1517,24 +1517,16 @@ ArrayOfTransmissionMatrix cumulative_transmission(
     const CumulativeTransmission type) /*[[expects: T.nelem()>0]]*/
 {
   const Index n = T.nelem();
-  ArrayOfTransmissionMatrix PiT(
-      n,
-      TransmissionMatrix(
-          n ? T[0].Frequencies() : 0,
-          n ? T[0].StokesDim() : 1));  // Initialize as identity matrix
+  const Index nf = n ? T[0].Frequencies() : 1;
+  const Index ns = n ? T[0].StokesDim() : 1;
+  ArrayOfTransmissionMatrix PiT(n, TransmissionMatrix(nf, ns));
   switch (type) {
-    case CumulativeTransmission::Forward:
+    case CumulativeTransmission::Forward: {
       for (Index i = 1; i < n; i++) PiT[i].mul(PiT[i - 1], T[i]);
-      break;
-    case CumulativeTransmission::ForwardReverse:
+    } break;
+    case CumulativeTransmission::Reverse: {
       for (Index i = 1; i < n; i++) PiT[i].mul(T[i], PiT[i - 1]);
-      break;
-    case CumulativeTransmission::Reflect:
-      for (Index i = 0; i < n; i++)
-        for (Index j = i; j > 0; j--)
-          PiT[i].mul_aliased(
-              T[j], PiT[i]);  // Fixme:  Should be possible to speed up...
-      break;
+    } break;
   }
   return PiT;  // Note how the output is such that forward transmission is from -1 to 0
 }
@@ -1543,7 +1535,7 @@ ArrayOfTransmissionMatrix cumulative_transmission(
 
 void set_backscatter_radiation_vector(
     ArrayOfRadiationVector& I,
-    ArrayOfArrayOfRadiationVector& dI,
+    ArrayOfArrayOfArrayOfRadiationVector& dI,
     const ArrayOfTransmissionMatrix& T,
     const ArrayOfTransmissionMatrix& PiTf,
     const ArrayOfTransmissionMatrix& PiTr,
@@ -1553,67 +1545,128 @@ void set_backscatter_radiation_vector(
     const ArrayOfArrayOfTransmissionMatrix& dZ,
     const BackscatterSolver solver) {
   const Index np = I.nelem();
-  const Index nv = I[0].Frequencies();
-  const Index ns = I[0].StokesDim();
-  const Index nq = dI[0].nelem();
-
-  switch (solver) {
-    case BackscatterSolver::Commutative_PureReflectionJacobian: {
-      for (Index ip = 1; ip < np; ip++) {
-        for (Index iv = 0; iv < nv; iv++) {
-          switch (ns) {
-            case 4:
-              I[ip].Vec4(iv).noalias() = PiTf[ip].Mat4(iv) * Z[ip].Mat4(iv) *
-                                         PiTf[ip].Mat4(iv) * I[0].Vec4(iv);
+  const Index nv = np ? I[0].Frequencies() : 0;
+  const Index ns = np ? I[0].StokesDim() : 1;
+  const Index nq = np ? dI[0][0].nelem() : 0;
+  
+  // For all transmission, the I-vector is the same
+  for (Index ip = 1; ip < np; ip++)
+    I[ip].setBackscatterTransmission(I[0], PiTr[ip], PiTf[ip], Z[ip]);
+  
+  for (Index ip = 1; ip < np; ip++) {
+    for (Index iq = 0; iq < nq; iq++) {
+      dI[ip][ip][iq].setBackscatterTransmissionDerivative(
+        I[0], PiTr[ip], PiTf[ip], dZ[ip][iq]);
+    }
+  }
+  
+  switch(solver) {
+    case BackscatterSolver::CommutativeTransmission: {
+      // Forward and backwards transmission derivatives
+      switch(ns) { 
+        case 1: {
+          BackscatterSolverCommutativeTransmissionStokesDimOne:
+          for (Index ip = 1; ip < np; ip++) {
+            for (Index j = ip; j < np; j++) {
               for (Index iq = 0; iq < nq; iq++) {
-                dI[ip][iq].Vec4(iv).noalias() =
-                    PiTf[ip].Mat4(iv) * dZ[ip][iq].Mat4(iv) *
-                    PiTf[ip].Mat4(iv) * I[0].Vec4(iv);
+                for (Index iv = 0; iv < nv; iv++) {
+                      dI[ip][j][iq].Vec1(iv).noalias() += 2 * 
+                        T[ip].Mat1(iv).inverse() *
+                        (dT1[ip][iq].Mat1(iv) + dT2[ip][iq].Mat1(iv)) *
+                        I[j].Vec1(iv);
+                }
               }
-              break;
-            case 3:
-              I[ip].Vec3(iv).noalias() = PiTf[ip].Mat3(iv) * Z[ip].Mat3(iv) *
-                                         PiTf[ip].Mat3(iv) * I[0].Vec3(iv);
-              for (Index iq = 0; iq < nq; iq++) {
-                dI[ip][iq].Vec3(iv).noalias() =
-                    PiTf[ip].Mat3(iv) * dZ[ip][iq].Mat3(iv) *
-                    PiTf[ip].Mat3(iv) * I[0].Vec3(iv);
-              }
-              break;
-            case 2:
-              I[ip].Vec2(iv).noalias() = PiTf[ip].Mat2(iv) * Z[ip].Mat2(iv) *
-                                         PiTf[ip].Mat2(iv) * I[0].Vec2(iv);
-              for (Index iq = 0; iq < nq; iq++) {
-                dI[ip][iq].Vec2(iv).noalias() =
-                    PiTf[ip].Mat2(iv) * dZ[ip][iq].Mat2(iv) *
-                    PiTf[ip].Mat2(iv) * I[0].Vec2(iv);
-              }
-              break;
-            case 1:
-              I[ip].Vec1(iv).noalias() = PiTf[ip].Mat1(iv) * Z[ip].Mat1(iv) *
-                                         PiTf[ip].Mat1(iv) * I[0].Vec1(iv);
-              for (Index iq = 0; iq < nq; iq++) {
-                dI[ip][iq].Vec1(iv).noalias() =
-                    PiTf[ip].Mat1(iv) * dZ[ip][iq].Mat1(iv) *
-                    PiTf[ip].Mat1(iv) * I[0].Vec1(iv);
-              }
-              break;
+            }
           }
-        }
+        } break;
+        case 2: {
+          for (Index ip = 1; ip < np; ip++) {
+            for (Index j = ip; j < np; j++) {
+              for (Index iq = 0; iq < nq; iq++) {
+                for (Index iv = 0; iv < nv; iv++) {
+                  dI[ip][j][iq].Vec2(iv).noalias() += 2 *
+                    T[ip].Mat2(iv).inverse() *
+                    (dT1[ip][iq].Mat2(iv) + dT2[ip][iq].Mat2(iv)) *
+                    I[j].Vec2(iv);
+                }
+              }
+            }
+          }
+        } break;
+        case 3: {
+          for (Index ip = 1; ip < np; ip++) {
+            for (Index j = ip; j < np; j++) {
+              for (Index iq = 0; iq < nq; iq++) {
+                for (Index iv = 0; iv < nv; iv++) {
+                  dI[ip][j][iq].Vec3(iv).noalias() += 2 *
+                    T[ip].Mat3(iv).inverse() *
+                    (dT1[ip][iq].Mat3(iv) + dT2[ip][iq].Mat3(iv)) *
+                    I[j].Vec3(iv);
+                }
+              }
+            }
+          }
+        } break;
+        case 4: {
+          for (Index ip = 1; ip < np; ip++) {
+            for (Index j = ip; j < np; j++) {
+              for (Index iq = 0; iq < nq; iq++) {
+                for (Index iv = 0; iv < nv; iv++) {
+                  dI[ip][j][iq].Vec4(iv).noalias() += 2 *
+                    T[ip].Mat4(iv).inverse() *
+                    (dT1[ip][iq].Mat4(iv) + dT2[ip][iq].Mat4(iv)) *
+                    I[j].Vec4(iv);
+                }
+              }
+            }
+          }
+        } break;
       }
     } break;
-    case BackscatterSolver::Full: {
-      for (Index ip = 1; ip < np; ip++) {
-        for (Index iq = 0; iq < dI[ip].nelem(); iq++)
-          dI[ip][iq].setBackscatterDerivative(I[0],
-                                              T[ip],
-                                              PiTr[ip - 1],
-                                              PiTf[ip - 1],
-                                              Z[ip],
-                                              dT1[ip][iq],
-                                              dT2[ip][iq],
-                                              dZ[ip][iq]);
-        I[ip].setBackscatter(I[0], PiTr[ip], PiTf[ip], Z[ip]);
+    case BackscatterSolver::FullTransmission: {
+      std::runtime_error("Do not activate this code.  It is not ready yet");
+      switch(ns) {
+        case 1: {
+          // This is the same as CommutativeTransmission, so use that code
+          goto BackscatterSolverCommutativeTransmissionStokesDimOne;
+        } break;
+        case 2: {
+          for (Index ip = 1; ip < np; ip++) {
+            for (Index j = ip; j < np; j++) {
+              for (Index iq = 0; iq < nq; iq++) {
+                for (Index iv = 0; iv < nv; iv++) {
+                  if(ip > 1) {
+                    dI[ip][j][iq].Vec2(iv).noalias() +=
+                      PiTr[ip-2].Mat2(iv) * 
+                      (dT1[ip][iq].Mat2(iv) + dT2[ip][iq].Mat2(iv)) * 
+                      PiTr[ip-1].Mat2(iv).inverse() * I[j].Vec2(iv);
+                      
+//                     dI[ip][j][iq].Vec2(iv).noalias() +=
+//                       PiTr[ip].Mat2(iv) * Z[ip].Mat2(iv) * PiTf[ip-2].Mat2(iv) *
+//                       (dT1[ip][iq].Mat2(iv) + dT2[ip][iq].Mat2(iv)) * 
+//                       PiTf[ip-1].Mat2(iv).inverse() * PiTf[ip].Mat2(iv) *
+//                       I[j].Vec2(iv);
+                  }
+                  else {
+                    dI[ip][j][iq].Vec2(iv).noalias() +=
+                      (dT1[ip][iq].Mat2(iv) + dT2[ip][iq].Mat2(iv)) * 
+                      PiTr[ip-1].Mat2(iv).inverse() * I[j].Vec2(iv);
+                      
+//                     dI[ip][j][iq].Vec2(iv).noalias() +=
+//                       PiTr[ip].Mat2(iv) * Z[ip].Mat2(iv) *
+//                       (dT1[ip][iq].Mat2(iv) + dT2[ip][iq].Mat2(iv)) * 
+//                       PiTf[ip-1].Mat2(iv).inverse() * PiTf[ip].Mat2(iv) *
+//                       I[j].Vec2(iv);
+                  }
+                }
+              }
+            }
+          }
+        } break;
+        case 3: {
+        } break;
+        case 4: {
+        } break;
       }
     } break;
   }
