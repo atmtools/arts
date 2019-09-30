@@ -642,13 +642,13 @@ class RadiationVector {
                                             const TransmissionMatrix& Tf,
                                             const TransmissionMatrix& dZ) {
     for (size_t i = 0; i < R4.size(); i++)
-      R4[i].noalias() = Tr.Mat4(i) * dZ.Mat4(i) * Tf.Mat4(i) * I0.R4[i];
+      R4[i].noalias() += Tr.Mat4(i) * dZ.Mat4(i) * Tf.Mat4(i) * I0.R4[i];
     for (size_t i = 0; i < R3.size(); i++)
-      R3[i].noalias() = Tr.Mat3(i) * dZ.Mat3(i) * Tf.Mat3(i) * I0.R3[i];
+      R3[i].noalias() += Tr.Mat3(i) * dZ.Mat3(i) * Tf.Mat3(i) * I0.R3[i];
     for (size_t i = 0; i < R2.size(); i++)
-      R2[i].noalias() = Tr.Mat2(i) * dZ.Mat2(i) * Tf.Mat2(i) * I0.R2[i];
+      R2[i].noalias() += Tr.Mat2(i) * dZ.Mat2(i) * Tf.Mat2(i) * I0.R2[i];
     for (size_t i = 0; i < R1.size(); i++)
-      R1[i].noalias() = Tr.Mat1(i) * dZ.Mat1(i) * Tf.Mat1(i) * I0.R1[i];
+      R1[i].noalias() += Tr.Mat1(i) * dZ.Mat1(i) * Tf.Mat1(i) * I0.R1[i];
   }
 
   /** Set *this from matrix
