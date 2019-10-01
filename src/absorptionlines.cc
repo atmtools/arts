@@ -1680,7 +1680,7 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
   G /= Conversion::ATM2PA / Conversion::ATM2PA;
   Y *=
       -1;  // ARTS uses (1-iY) as line-mixing factor, LBLRTM CO2 uses (1+iY), so we must change sign
-
+  
   // Test that this is the end
   {
     Index test;

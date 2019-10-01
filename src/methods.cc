@@ -706,19 +706,66 @@ void define_md_data_raw() {
       DESCRIPTION(
           "Replace all lines in *abs_lines* that match with lines in replacement_lines.\n"
           "\n"
-          "Each replacement_lines must match at most a single line in *abs_lines*.\n"
+          "Each replacement_lines must match excatly a single line in *abs_lines*.\n"
           "\n"
-          "The matching required identical quantum number signatures to work\n"),
+          "The matching required identical quantum number signatures to work\n"
+          "\n"
+          "Note that lines are identified by their AbsorptionLines tags and by their quantum numbers.\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines2"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines2"),
-      GIN("replacement_lines"),
+      GIN("replacing_lines"),
       GIN_TYPE("ArrayOfAbsorptionLines"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Line-array that replace lines in *abs_lines*.")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_linesAppendWithLines2"),
+      DESCRIPTION(
+          "Appends all lines in *abs_lines* that match with lines in replacement_lines.\n"
+          "\n"
+          "No appended line is allowed to match any line in *abs_lines*\n"
+          "\n"
+          "Conditional behavior:\n"
+          "\tIf the AbosorptionLines to be appended match no AbsorptionLines\n"
+          "\tin *abs_lines*, then the entire AbsorptionLines is appended.\n"
+          "\tOtherwise, only a single AbsorptionLines can be matched and is not\n"
+          "\tallowed to have any internal matches\n"
+          "\n"
+          "Note that lines are identified by their AbsorptionLines tags and by their quantum numbers.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines2"),
+      GIN("appending_lines"),
+      GIN_TYPE("ArrayOfAbsorptionLines"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Line-array that appends lines in *abs_lines*.")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_linesDeleteWithLines2"),
+      DESCRIPTION(
+          "Deletes all lines in *abs_lines* that match with lines in replacement_lines.\n"
+          "\n"
+          "If a deleted line has no match, then nothing happens.\n"
+          "\n"
+          "Note that lines are identified by their AbsorptionLines tags and by their quantum numbers.\n"
+          "There is no need to have all values correct.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines2"),
+      GIN("deleting_lines"),
+      GIN_TYPE("ArrayOfAbsorptionLines"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Line-array that removes lines from *abs_lines*.")));
 
   md_data_raw.push_back(MdRecord(
       NAME("abs_linesReplaceParameterWithLinesParameter"),
@@ -13477,6 +13524,22 @@ void define_md_data_raw() {
   md_data_raw.push_back(MdRecord(
       NAME("ReadHITRAN"),
       DESCRIPTION("Reads a HITRAN .par file.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("filename", "fmax", "globalquantumnumbers", "localquantumnumbers"),
+      GIN_TYPE("String", "Numeric", "String", "String"),
+      GIN_DEFAULT(NODEF, NODEF, "", ""),
+      GIN_DESC("Name of the HITRAN file", "Max frequency",
+               "Global quantum number list (space-separated)",
+               "Local quantum number list (space-separated)")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("ReadLBLRTM"),
+      DESCRIPTION("Reads a LBLRTM file.\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines2"),
       GOUT(),

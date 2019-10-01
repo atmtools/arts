@@ -35,6 +35,7 @@
 #define lineshapemodel_h
 
 #include <numeric>
+#include <algorithm>
 #include "abs_species_tags.h"
 #include "constants.h"
 #include "jacobian.h"
@@ -1059,6 +1060,10 @@ class SingleSpeciesModel2 {
     os.write(reinterpret_cast<const char*>(this), sizeof(SingleSpeciesModel2));
     return os;
   }
+  
+  bool MatchTypes(const SingleSpeciesModel2& other) const noexcept {
+    return std::equal (X.cbegin(), X.cend(), other.X.cbegin(), other.X.cend(), [](auto& a, auto& b){return a.type == b.type;});
+  }
 };
 
 /** Output operator for SingleSpeciesModel */
@@ -1289,11 +1294,18 @@ class Model {
       : mtype(Type::VP), mself(true), mbath(true), mspecies(2), mdata(2) {
     mdata.front().G0() = {TemperatureModel::T1, sgam, nself, 0};
     mdata.front().D0() = {TemperatureModel::T5, psf, nair, 0};
-    mdata.front().Interp() = interp;
 
     mdata.back().G0() = {TemperatureModel::T1, agam, nair, 0};
     mdata.back().D0() = {TemperatureModel::T5, psf, nair, 0};
-    mdata.back().Interp() = interp;
+    
+    if (std::any_of(interp.cbegin(), interp.cend(), [](auto x){return x not_eq 0;})) {
+      mdata.front().Y().type = TemperatureModel::LM_AER;
+      mdata.front().G().type = TemperatureModel::LM_AER;
+      mdata.front().Interp() = interp;
+      mdata.back().Y().type = TemperatureModel::LM_AER;
+      mdata.back().G().type = TemperatureModel::LM_AER;
+      mdata.back().Interp() = interp;
+    }
   }
 
   /** Simple air broadening when only a single SingleSpeciesModel is input
@@ -2064,11 +2076,19 @@ class Model2 {
              {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}) noexcept : mdata(2) {
     mdata.front().G0() = {TemperatureModel::T1, sgam, nself, 0};
     mdata.front().D0() = {TemperatureModel::T5, psf, nair, 0};
-    mdata.front().Interp() = interp;
 
     mdata.back().G0() = {TemperatureModel::T1, agam, nair, 0};
     mdata.back().D0() = {TemperatureModel::T5, psf, nair, 0};
-    mdata.back().Interp() = interp;
+    
+    if (std::any_of(interp.cbegin(), interp.cend(), [](auto x){return x not_eq 0;})) {
+      mdata.front().Y().type = TemperatureModel::LM_AER;
+      mdata.front().G().type = TemperatureModel::LM_AER;
+      mdata.front().Interp() = interp;
+      
+      mdata.back().Y().type = TemperatureModel::LM_AER;
+      mdata.back().G().type = TemperatureModel::LM_AER;
+      mdata.back().Interp() = interp;
+    }
   }
   
   /** The Model is good to use
@@ -2368,6 +2388,10 @@ class Model2 {
         x.G().type == TemperatureModel::LM_AER)
         ssm.Interp() = x.Interp();
     }
+  }
+  
+  bool Match(const Model2& other) const noexcept {
+    return std::equal (mdata.cbegin(), mdata.cend(), other.mdata.cbegin(), other.mdata.cend(), [](auto& a, auto& b) {return a.MatchTypes(b);});
   }
 };  // Model2;
 

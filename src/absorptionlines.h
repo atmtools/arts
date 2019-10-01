@@ -658,7 +658,7 @@ public:
       return false;
     else if(not std::equal(sle.species.cbegin(), sle.species.cend(), mbroadeningspecies.cbegin(), mbroadeningspecies.cend()))
       return false;
-    else if(NumLines() not_eq 0 and sle.line.LineShapeElems() not_eq mlines[0].LineShapeElems())
+    else if(NumLines() not_eq 0 and not sle.line.LineShape().Match(mlines[0].LineShape()))
       return false;
     else
       return true;
@@ -692,8 +692,7 @@ public:
       return false;
     else if(not std::equal(l.mlocalquanta.cbegin(), l.mlocalquanta.cend(), mlocalquanta.cbegin(), mlocalquanta.cend()))
       return false;
-    else if(NumLines() not_eq 0 and l.NumLines() not_eq 0 and
-            l.mlines[0].LineShapeElems() not_eq mlines[0].LineShapeElems())
+    else if(NumLines() not_eq 0 and l.NumLines() not_eq 0 and not l.mlines[0].LineShape().Match(mlines[0].LineShape()))
       return false;
     else
       return true;

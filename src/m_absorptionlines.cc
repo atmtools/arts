@@ -199,6 +199,62 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
     abs_lines.push_back(lines);
 }
 
+void ReadLBLRTM(ArrayOfAbsorptionLines& abs_lines,
+                const String& lblrtm_file,
+                const Numeric& fmax,
+                const String& globalquantumnumbers,
+                const String& localquantumnumbers,
+                const Verbosity&)
+{
+  // Take care of quantum numbers
+  String tmp_string;
+  
+  // Global numbers
+  std::vector<QuantumNumberType> global_nums(0);
+  std::istringstream global_str(globalquantumnumbers);
+  while (not global_str.eof()) {
+    global_str >> tmp_string; 
+    global_nums.push_back(string2quantumnumbertype(tmp_string));
+  }
+  
+  // Local numbers
+  std::vector<QuantumNumberType> local_nums(0);
+  std::istringstream local_str(localquantumnumbers);
+  while (not local_str.eof()) {
+    local_str >> tmp_string;
+    local_nums.push_back(string2quantumnumbertype(tmp_string));
+  }
+  
+  // LBLRTM data
+  ifstream is;
+  open_input_file(is, lblrtm_file);
+  
+  std::vector<Absorption::SingleLineExternal> v(0);
+  
+  bool go_on = true;
+  while (go_on) {
+    v.push_back(Absorption::ReadFromLBLRTMStream(is));
+    
+    if (v.back().bad) {
+      v.pop_back();
+      go_on = false;
+    }
+    else if (v.back().line.F0() > fmax) {
+      v.pop_back();
+      go_on = false;
+    }
+  }
+  
+  for (auto& x: v)
+    x.line.Zeeman() = Zeeman::GetAdvancedModel(x.quantumidentity);
+  
+  auto x = Absorption::split_list_of_external_lines(v, local_nums, global_nums);
+  abs_lines.resize(0);
+  abs_lines.reserve(x.size());
+  for (auto& lines: x)
+    abs_lines.push_back(lines);
+}
+
 void abs_linesWriteSplitXML(const ArrayOfAbsorptionLines& abs_lines,
                             const String& basename,
                             const Verbosity& verbosity)
@@ -257,9 +313,9 @@ void abs_linesRemoveUnusedLocalQuantumNumbers(ArrayOfAbsorptionLines& abs_lines,
 }
 
 
-void abs_linesReplaceWithLines2(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& replacement_lines, const Verbosity&)
+void abs_linesReplaceWithLines2(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& replacing_lines, const Verbosity&)
 {
-  for (auto& rlines: replacement_lines) {
+  for (auto& rlines: replacing_lines) {
     Index number_of_matching_bands = 0;
     for (auto& tlines: abs_lines) {
       if (tlines.Match(rlines)) {
@@ -277,6 +333,7 @@ void abs_linesReplaceWithLines2(ArrayOfAbsorptionLines& abs_lines, const ArrayOf
             throw std::runtime_error("Error: Did not match to a single single line.  This means the input data has not been understood.  This function needs exactly one match.");
           }
         }
+        tlines.sort_by_frequency();
       }
     }
     
@@ -287,7 +344,7 @@ void abs_linesReplaceWithLines2(ArrayOfAbsorptionLines& abs_lines, const ArrayOf
 }
 
 
-void abs_linesAppendLines2(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& appending_lines, const Verbosity&)
+void abs_linesAppendWithLines2(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& appending_lines, const Verbosity&)
 {
   std::vector<AbsorptionLines> addedlines(0);
   
@@ -303,13 +360,12 @@ void abs_linesAppendLines2(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsor
               number_of_matching_single_lines++;
             }
           }
-          
           if (number_of_matching_single_lines not_eq 0) {
             throw std::runtime_error("Error: Did match to a single single line.  This means the input data has not been understood.  This function needs exactly zero matches.");
           }
-          
           tlines.AppendSingleLine(aline);
         }
+        tlines.sort_by_frequency();
       }
     }
     
@@ -326,7 +382,7 @@ void abs_linesAppendLines2(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsor
 }
 
 
-void abs_linesRemoveLines2(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& deleting_lines, const Verbosity&)
+void abs_linesDeleteWithLines2(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& deleting_lines, const Verbosity&)
 {
   for (auto& dlines: deleting_lines) {
     for (auto& tlines: abs_lines) {
@@ -339,11 +395,20 @@ void abs_linesRemoveLines2(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsor
               hits.push_back(i);
             }
           }
-          
-          while(not hits.empty()) {
-            tlines.RemoveLine(hits.back());
-            hits.pop_back();
-          }
+        }
+        
+        // Sort and test the input
+        std::sort(hits.begin(), hits.end());
+        auto n = hits.size();
+        std::unique(hits.begin(), hits.end());
+        if(n not_eq hits.size()) {
+          throw std::runtime_error("Removing the same line more than once is not accepted");
+        }
+        
+        // Remove the bad values
+        while(not hits.empty()) {
+          tlines.RemoveLine(hits.back());
+          hits.pop_back();
         }
       }
     }
