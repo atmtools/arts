@@ -80,7 +80,7 @@ before_install:
 script:
   - mkdir -p build
   - cd build
-  - cmake -DENABLE_FORTRAN=${WITH_FORTRAN} -DENABLE_C_API=1 -DTEST_JOBS=2 ..
+  - cmake -DENABLE_FORTRAN=${WITH_FORTRAN} -DTEST_JOBS=2 ..
   - for TARGETDIR in ${TARGETDIRS}; do make -j2 -C ${TARGETDIR}; done
   - if [[ -z ${NOCHECK} ]]; then make check; fi
 
