@@ -4690,8 +4690,7 @@ void define_md_data_raw() {
           "scattering elements).\n"
           "\n"
           "Provides only the shape of the number density distribution\n"
-          "function. When used by *pnd_fieldCalcFromscat_speciesFields*, it is\n"
-          "rescaled to the given ice water content [kg/m3].\n"),
+          "function.\n"),
       AUTHORS("Jana Mendrok"),
       OUT(),
       GOUT("dNdD"),
@@ -4716,8 +4715,7 @@ void define_md_data_raw() {
           "temperature over particle size in terms of maximum dimension.\n"
           "\n"
           "Provides only the shape of the distribution function of both number\n"
-          "density and area ratio. When used by *pnd_fieldCalcFromscat_speciesFields*,\n"
-          "number density is rescaled to the given ice water content [kg/m3].\n"),
+          "density and area ratio.\n"),
       AUTHORS("Jana Mendrok"),
       OUT(),
       GOUT("dNdD", "Ar"),
@@ -11380,6 +11378,7 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
+//TODO: Remove function
       NAME("particle_massesFromMetaData"),
       DESCRIPTION(
           "Derives *particle_masses* from *scat_meta*.\n"
@@ -11587,6 +11586,7 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
+//TODO: Check  if function can be removed.
       NAME("pndAdjustFromScatMeta"),
       DESCRIPTION("Rescales *pnd_data* to match expected material content.\n"
                   "\n"
@@ -11615,9 +11615,7 @@ void define_md_data_raw() {
       DESCRIPTION(
           "Calculates pnds from given dNdD.\n"
           "\n"
-          "The method mimics what happens inside\n"
-          "*pnd_fieldCalcFromscat_speciesFields*, but for a single size\n"
-          "distribution. It is supposed to be used with the *dNdD* methods.\n"),
+          "It is supposed to be used with the *dNdD* methods.\n"),
       AUTHORS("Jana Mendrok"),
       OUT(),
       GOUT("pnd"),
@@ -11790,90 +11788,6 @@ void define_md_data_raw() {
       GIN_TYPE("Index"),
       GIN_DEFAULT("0"),
       GIN_DESC("Allow zeropadding of pnd_field.")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("pnd_fieldCalcFromscat_speciesFields"),
-      DESCRIPTION(
-          "Calculation of *pnd_field* from *scat_meta* and\n"
-          "the scattering species fields.\n"
-          "\n"
-          "The method calculates the number densities (pnd_field values) of\n"
-          "all individual scattering elements covered by the considered\n"
-          "scattering species for all grid points in the cloudbox. The pnds\n"
-          "represent the mass density, mass flux, an/or number density fields\n"
-          "of the scattering species according to the particle size\n"
-          "distribution (PSD) chosen for the respective scattering species.\n"
-          "\n"
-          "The following PSDs are available (for further information,\n"
-          "including parametrization limits and internal assumptions, see\n"
-          "their corresponding PSD WSM):\n"
-          "\n"
-          "Tag        PSD WSM          fields(s) used           Target         Notes\n"
-          "MH97       *dNdD_MH97*      mass density             cloud ice\n"
-          "H11        *dNdD_H11*       mass density             cloud ice\n"
-          "H13        *dNdD_H13_Ar*    mass density             cloud ice      neglects shape information\n"
-          "H13Shape   *dNdD_H13_Ar*    mass density             cloud ice\n"
-          "MGD_IWC    *dNdD_MGD_IWC*   mass density             cloud ice      fixed modified gamma psd\n"
-          "SB06_IWC   *dNdD_SB06*      number & mass density    cloud ice      two moment scheme psd\n"
-          "SB06_IWC_M *dNdD_SB06_M*    mean mass & mass density cloud ice      two moment scheme psd\n"
-          "MY05_IWC   *dNdD_MY05*      number & mass density    cloud ice      two moment scheme psd\n"
-          "MY05_IWC_M *dNdD_MY05_M*    mean mass & mass density cloud ice      two moment scheme psd\n"
-          "F07TR      *dNdD_F07*       mass density             snow           for tropics\n"
-          "F07ML      *dNdD_F07*       mass density             snow           for midlatitudes\n"
-          "SB06_SWC   *dNdD_SB06*      number & mass density    snow           two moment scheme psd\n"
-          "SB06_SWC_M *dNdD_SB06_M*    mean mass & mass density snow           two moment scheme psd\n"
-          "MY05_SWC   *dNdD_MY05*      number & mass density    snow           two moment scheme psd\n"
-          "MY05_SWC_M *dNdD_MY05_M*    mean mass & mass density snow           two moment scheme psd\n"
-          "MP48       *dNdD_MP48*      mass flux                precipitation  rain in particular\n"
-          "W16        *dNdD_W16*       mass density             rain\n"
-          "SB06_RWC   *dNdD_SB06*      number & mass density    rain           two moment scheme psd\n"
-          "SB06_RWC_M *dNdD_SB06_M*    mean mass & mass density rain           two moment scheme psd\n"
-          "MY05_RWC   *dNdD_MY05*      number & mass density    rain           two moment scheme psd\n"
-          "MY05_RWC_M *dNdD_MY05_M*    mean mass & mass density rain           two moment scheme psd\n"
-          "H98_STCO   *dNdD_H98*       mass density             cloud liquid   specifically continental stratus\n"
-          "MGD_LWC    *dNdD_MGD_LWC*   mass density             cloud liquid   fixed modified gamma psd\n"
-          "SB06_LWC   *dNdD_SB06*      number & mass density    cloud liquid   two moment scheme psd\n"
-          "SB06_LWC_M *dNdD_SB06_M*    mean mass & mass density cloud liquid   two moment scheme psd\n"
-          "MY05_LWC   *dNdD_MY05*      number & mass density    cloud liquid   two moment scheme psd\n"
-          "MY05_LWC_M *dNdD_MY05_M*    mean mass & mass density cloud liquid   two moment scheme psd\n"
-          "SB06_GWC   *dNdD_SB06*      number & mass density    graupel        two moment scheme psd\n"
-          "SB06_GWC_M *dNdD_SB06_M*    mean mass & mass density graupel        two moment scheme psd\n"
-          "MY05_GWC   *dNdD_MY05*      number & mass density    graupel        two moment scheme psd\n"
-          "MY05_GWC_M *dNdD_MY05_M*    mean mass & mass density graupel        two moment scheme psd\n"
-          "SB06_HWC   *dNdD_SB06*      number & mass density    hail           two moment scheme psd\n"
-          "SB06_HWC_M *dNdD_SB06_M*    mean mass & mass density hail           two moment scheme psd\n"
-          "MY05_HWC   *dNdD_MY05*      number & mass density    hail           two moment scheme psd\n"
-          "MY05_HWC_M *dNdD_MY05_M*    mean mass & mass density hail           two moment scheme psd\n"
-          "\n"
-          "NOTE: The number and order of the scattering species in the\n"
-          "scattering species fields (*scat_species_mass_density_field*,\n"
-          "*scat_species_mass_flux_field*, *scat_species_number_density_field*,\n"
-          "*scat_species_mean_mass_field*) has to fit number and order of the\n"
-          "*scat_species* tags.\n"
-          "Moreover, the order of *scat_species* tags has to fit the order of\n"
-          "scattering species in the *scat_meta* array, i.e.,\n"
-          "*ScatSpeciesScatAndMetaRead* with the respective scattering\n"
-          "data and meta data files has to be applied in the right order!\n"),
-      AUTHORS("Daniel Kreyling, Jana Mendrok, Manfred Brath"),
-      OUT("pnd_field", "dpnd_field_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("atmosphere_dim",
-         "cloudbox_on",
-         "cloudbox_limits",
-         "scat_species_mass_density_field",
-         "scat_species_mass_flux_field",
-         "scat_species_number_density_field",
-         "scat_species_mean_mass_field",
-         "t_field",
-         "scat_meta",
-         "scat_species",
-         "jacobian_quantities"),
-      GIN("delim"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT("-"),
-      GIN_DESC("Delimiter string of *scat_species* elements.")));
 
   md_data_raw.push_back(MdRecord(
       NAME("pnd_fieldExpand1D"),
@@ -15531,8 +15445,7 @@ void define_md_data_raw() {
           "applied on the current last existing scattering species in\n"
           "*scat_data*. Through the latter the method can be applied for cases\n"
           "when *scat_species* is not defined (e.g. when *pnd_field* data is\n"
-          "created externally instead of from hydrometeor fields using\n"
-          "*pnd_fieldCalcFromscat_speciesFields*).\n"),
+          "created externally instead of from hydrometeor fields \n"),
       AUTHORS("Jana Mendrok"),
       OUT("scat_data_raw"),
       GOUT(),
@@ -15579,6 +15492,7 @@ void define_md_data_raw() {
   md_data_raw.push_back(MdRecord(
       NAME("ScatSpeciesMerge"),
       DESCRIPTION(
+//TODO: Remove ScatSpeciesMerge
           "Merges single scattering data of all scattering elements into one\n"
           "element of bulk properties.\n"
           "\n"
@@ -15689,8 +15603,7 @@ void define_md_data_raw() {
           "calls (i.e., first method call reads data for first *scat_species*\n"
           "entry, second call for second scat_species entry and so on).\n"
           "Note that no two scattering elements of the same scattering species\n"
-          "are allowed to be equal in size; this will result in an error in\n"
-          "*pnd_fieldCalcFromscat_speciesFields*\n"
+          "are allowed to be equal in size*\n"
           "\n"
           "Important note:\n"
           "The order of the filenames for the single scattering data files has to\n"
@@ -16051,6 +15964,7 @@ void define_md_data_raw() {
 */
 
   md_data_raw.push_back(MdRecord(
+//TODO: Check if this method can be deleted
       NAME("scat_speciesSet"),
       DESCRIPTION(
           "Sets the WSV *scat_species*."

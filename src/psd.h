@@ -277,16 +277,14 @@ void psd_snow_F07(Vector& psd,
  *  One call of this function calculates one particle number density.
  
  \return dN particle number density per diameter interval [#/m3/m]
- 
+
  \param mass   Mass of scattering particle [kg]
  \param N_tot  Total number of particles (0th moment) [#/m3/m/kg^mu]
  \param M      Total mass concentration of Particles (1st moment) [kg/m^3]
  \param psd_type string with a tag defining the (hydrometeor) scheme
- 
- 
+
  \author Manfred Brath
  \date 2015-01-19
- 
  */
 void psd_SB06(Vector& psd,
               Matrix& dpsd,
@@ -299,19 +297,16 @@ void psd_SB06(Vector& psd,
  *  to the Milbrandt and Yau two moment scheme, which is used in the GEM model.
  *  See also milbrandt and yau, 2005.
  *  One call of this function calculates one particle number density.
- 
- 
+
  \return dN particle number density per diameter interval [#/m3/m]
- 
+
  \param mass   Mass of scattering particle [kg]
  \param N_tot  Total number of particles (0th moment) [#/m3/m/kg^mu]
  \param M      Total mass concentration of Particles (1st moment) [kg/m^3]
  \param psd_type string with a tag defining the (hydrometeor) scheme
- 
- 
+
  \author Manfred Brath
  \date 2017-08-01
- 
  */
 void psd_MY05(Vector& psd,
               Matrix& dpsd,
