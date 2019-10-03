@@ -1,8 +1,8 @@
-/* Copyright (C) 2017 
+/* Copyright (C) 2017
 
    Jana Mendrok <jana.mendrok@gmail.com>
    Patrick Eriksson <patrick.eriksson@chalmers.se>
-                    
+
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
    Free Software Foundation; either version 2, or (at your option) any
@@ -16,14 +16,14 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
-   USA. 
+   USA.
 */
 
 /**
   @file   microphysics.cc>
   @author Jana Mendrok, Patrick Eriksson
   @date   2017-11-05
-  
+
   @brief  Internal functions associated with size distributions
 */
 
@@ -769,7 +769,7 @@ void psd_gd_smm_common(Matrix& psd_data,
     }
   }
   // Extra checks for graupel/hail PSDs which assume constant effective density
-  // 
+  //
   if (psd_name == "F19"){
     if (scat_species_b < 2.8 || scat_species_b > 3.2) {
       ostringstream os;
@@ -840,7 +840,7 @@ void psd_gd_smm_common(Matrix& psd_data,
     else {
       assert(0);
     }
-      
+
     // Calculate PSD
     // Calculate lambda for gamma distribution from mass density
     Numeric expo = 1.0 / (n_b - scat_species_b - mu - 1);
@@ -850,6 +850,7 @@ void psd_gd_smm_common(Matrix& psd_data,
     Vector psd_1p(nsi);
     Matrix jac_data(4, nsi);
 
+    psd_1p = 0.0;
     if (wc != 0) {
       mgd_with_derivatives(psd_1p, jac_data, psd_size_grid, n_0, mu, lam, gamma,
 			   true, // n_0 jacobian
