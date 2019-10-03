@@ -725,19 +725,22 @@ void psd_rain_W16(Vector& psd, const Vector& diameter, const Numeric& rwc) {
 }
 
 void psd_gd_smm_common(Matrix& psd_data,
-                    Tensor3& dpsd_data_dx,
-                    const String& psd_name,
-                    const Vector& psd_size_grid,
-                    const Vector& pnd_agenda_input_t,
-                    const Matrix& pnd_agenda_input,
-                    const ArrayOfString& pnd_agenda_input_names,
-                    const ArrayOfString& dpnd_data_dx_names,
-                    const Numeric& scat_species_a,
-                    const Numeric& scat_species_b,
-                    const Numeric& t_min,
-                    const Numeric& t_max,
-                    const Index& picky,
-                    const Verbosity&) {
+		       Tensor3& dpsd_data_dx,
+		       const String& psd_name,
+		       const Vector& psd_size_grid,
+		       const Vector& pnd_agenda_input_t,
+		       const Matrix& pnd_agenda_input,
+		       const ArrayOfString& pnd_agenda_input_names,
+		       const ArrayOfString& dpnd_data_dx_names,
+		       const Numeric& scat_species_a,
+		       const Numeric& scat_species_b,
+		       const Numeric& n_alpha_in,
+		       const Numeric& n_b_in,
+		       const Numeric& mu_in,
+		       const Numeric& t_min,
+		       const Numeric& t_max,
+		       const Index& picky,
+		       const Verbosity&) {
   // Standard checks
   START_OF_PSD_METHODS();
 
@@ -767,7 +770,7 @@ void psd_gd_smm_common(Matrix& psd_data,
   }
   // Extra checks for graupel/hail PSDs which assume constant effective density
   // 
-  if (psd_name == "Fe94" || psd_name == "F19"){
+  if (psd_name == "F19"){
     if (scat_species_b < 2.8 || scat_species_b > 3.2) {
       ostringstream os;
       os << "This PSD treats graupel, assuming a constant effective density.\n"
@@ -824,15 +827,15 @@ void psd_gd_smm_common(Matrix& psd_data,
       n_b = 1.49;
       mu = 0.0;
     }
-    else if (psd_name == "Fe94"){
-      n_alpha = 5.0e25;
-      n_b = -4;
-      mu = 2.5;
-    }
     else if (psd_name == "F19"){
       n_alpha = 7.9e9;
       n_b = -2.58;
       mu = 0.0;
+    }
+    else if (psd_name == "generic"){
+      n_alpha = n_alpha_in;
+      n_b = n_b_in;
+      mu = mu_in;
     }
     else {
       assert(0);

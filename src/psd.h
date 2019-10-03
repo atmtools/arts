@@ -213,6 +213,9 @@ void psd_rain_W16(Vector& psd, const Vector& diameter, const Numeric& rwc);
  * @param[in]  scat_species_b           As the WSV wih same name
  * @param[in]  t_min                    PSD set to zero below this temperature
  * @param[in]  t_max                    PSD set to zero above this temperature
+ * @param[in]  n_alpha_in               Value of n_alpha for psd_name "generic"
+ * @param[in]  n_b_in                   Value of n_b for psd_name "generic"
+ * @param[in]  mu_in                    Value of mu for psd_name "generic"
  * @param[in]  picky                    Triggers more check of input
  *
  * @author Stuart Fox
@@ -228,6 +231,9 @@ void psd_gd_smm_common(Matrix& psd_data,
 		       const ArrayOfString& dpnd_data_dx_names,
 		       const Numeric& scat_species_a,
 		       const Numeric& scat_species_b,
+		       const Numeric& n_alpha_in,
+		       const Numeric& n_b_in,
+		       const Numeric& mu_in,
 		       const Numeric& t_min,
 		       const Numeric& t_max,
 		       const Index& picky,
