@@ -111,14 +111,14 @@ ArrayOfAgendaAppend( pnd_agenda_array ){
   ScatSpeciesSizeMassInfo( species_index=agenda_array_index, x_unit="dveq" )
   Copy( psd_size_grid, scat_species_x )
   Copy( pnd_size_grid, scat_species_x )
-  psdW16( t_min=258 ) # t-limits modified for consistency with
-                      # pnd_fieldCalcFromscat_speciesFields interface
-                      # to W16, which has no t-limits at all (but scat_data
-                      # allow T down to 210K at most. hence, t_min=0 doesn't
-                      # work either.)
-                      # semi-sensible setting that is still consistent with
-                      # pnd_fieldCalcFromscat_speciesFields:
-                      # allowing supercooled rain drops down to -15C
+  psdWang16( t_min=258 ) # t-limits modified for consistency with
+                         # pnd_fieldCalcFromscat_speciesFields interface
+                         # to W16, which has no t-limits at all (but scat_data
+                         # allow T down to 210K at most. hence, t_min=0 doesn't
+                         # work either.)
+                         # semi-sensible setting that is still consistent with
+                         # pnd_fieldCalcFromscat_speciesFields:
+                         # allowing supercooled rain drops down to -15C
   pndFromPsd( scat_index=agenda_array_index )
   #pndAdjustFromScatMeta( scat_index=agenda_array_index, pnd_agenda_input_tag="RWC" )
 }
