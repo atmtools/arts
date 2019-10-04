@@ -13065,7 +13065,7 @@ void define_md_data_raw() {
           "n_alpha",
           "n_b",
           "mu",
-          "gamma"
+          "gamma",
           "Low temperature limit to calculate a psd.",
           "High temperature limit to calculate a psd.",
           "Flag whether to be strict with parametrization value checks.")));
