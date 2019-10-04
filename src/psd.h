@@ -177,7 +177,7 @@ void psd_mono_common(Matrix& psd_data,
                      const Index& picky,
                      const Verbosity&);
 
-/** The Wang16 rain DSD DEPRECATED BY NEW GD_SMM_COMMON
+/** The Wang16 rain DSD DEPRECATED BY NEW MGD_SMM_COMMON
  *  Only included for compatibility with "old" pnd_fieldCalcFromscat_speciesField
  *  
  *  Uses rain water water content. PSD follows an exponential distribution.
@@ -198,8 +198,8 @@ void psd_mono_common(Matrix& psd_data,
  */
 void psd_rain_W16(Vector& psd, const Vector& diameter, const Numeric& rwc);
 
-/** Code common to a number of gamma PSDs used with single-moment
- *  mass schemes. All PSDs take the form n(D) = n_alpha lam^n_b D^mu exp(-lam*D).
+/** Code common to a number of modified gamma PSDs used with single-moment
+ *  mass schemes. All PSDs take the form n(D) = n_alpha lam^n_b D^mu exp(-lam*D^gamma).
  *
  * @param[out] psd_data                 As the WSV wih same name
  * @param[out] dpsd_data_dx             As the WSV wih same name
@@ -216,28 +216,30 @@ void psd_rain_W16(Vector& psd, const Vector& diameter, const Numeric& rwc);
  * @param[in]  n_alpha_in               Value of n_alpha for psd_name "generic"
  * @param[in]  n_b_in                   Value of n_b for psd_name "generic"
  * @param[in]  mu_in                    Value of mu for psd_name "generic"
+ * @param[in]  gamma_in                 Value of gamma for psd_name "generic"
  * @param[in]  picky                    Triggers more check of input
  *
  * @author Stuart Fox
  * @date 2019-10-02
  */
-void psd_gd_smm_common(Matrix& psd_data,
-		       Tensor3& dpsd_data_dx,
-		       const String& psd_name,
-		       const Vector& psd_size_grid,
-		       const Vector& pnd_agenda_input_t,
-		       const Matrix& pnd_agenda_input,
-		       const ArrayOfString& pnd_agenda_input_names,
-		       const ArrayOfString& dpnd_data_dx_names,
-		       const Numeric& scat_species_a,
-		       const Numeric& scat_species_b,
-		       const Numeric& n_alpha_in,
-		       const Numeric& n_b_in,
-		       const Numeric& mu_in,
-		       const Numeric& t_min,
-		       const Numeric& t_max,
-		       const Index& picky,
-		       const Verbosity&);
+void psd_mgd_smm_common(Matrix& psd_data,
+                        Tensor3& dpsd_data_dx,
+                        const String& psd_name,
+                        const Vector& psd_size_grid,
+                        const Vector& pnd_agenda_input_t,
+                        const Matrix& pnd_agenda_input,
+                        const ArrayOfString& pnd_agenda_input_names,
+                        const ArrayOfString& dpnd_data_dx_names,
+                        const Numeric& scat_species_a,
+                        const Numeric& scat_species_b,
+                        const Numeric& n_alpha_in,
+                        const Numeric& n_b_in,
+                        const Numeric& mu_in,
+                        const Numeric& gamma_in,
+                        const Numeric& t_min,
+                        const Numeric& t_max,
+                        const Index& picky,
+                        const Verbosity&);
 
 /** The F07 snow PSD
  *

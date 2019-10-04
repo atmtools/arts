@@ -12858,7 +12858,7 @@ void define_md_data_raw() {
                "Line of sight")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("psdA12"),
+      NAME("psdAbel12"),
       DESCRIPTION(
           "Abel and Boutle [2012] (A12) particle size distribution for rain.\n"
           "\n"
@@ -12986,7 +12986,7 @@ void define_md_data_raw() {
           "Flag whether to be strict with parametrization value checks.")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("psdF19"),
+      NAME("psdField19"),
       DESCRIPTION(
           "The Field [2019] (F19) particle size distribution for hail.\n"
           "\n"
@@ -12994,7 +12994,7 @@ void define_md_data_raw() {
           "storm-penetrating aircraft, JAMC, 2019\n"
           "\n"
           "This is a 1-parmater PSD i.e. *pnd_agenda_input* shall have one column and\n"
-	  "*pnd_agenda_input_names* shall contain a single string.\n"
+          "*pnd_agenda_input_names* shall contain a single string.\n"
           "The input data in *pnd_agenda_input* shall be hail mass content in\n"
           "unit of [kg/m3]. The naming used is *pnd_agenda_input_names* is free\n"
           "but the same name must be used in *particle_bulkprop_names* and\n"
@@ -13030,17 +13030,16 @@ void define_md_data_raw() {
           "Flag whether to be strict with parametrization value checks.")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("psdGdMassSM"),
+      NAME("psdModifiedGammaMassSingleMoment"),
       DESCRIPTION(
-          "Gamma distribution PSD, with mass content as input.\n"
+          "Modified gamma distribution PSD, with mass content as input.\n"
           "\n"
-	  "The intercept parameter N0 is assumed dependent on the slope parameter lambda, such that\n"
+          "The intercept parameter N0 is assumed dependent on the slope parameter lambda, such that\n"
           "N0=N_alpha*lambda^n_b with fixed N_alpha and n_b. This is a common form for many\n"
-	  "PSD parametrizations for use with single-moment mass-based schemes.\n"
+          "PSD parametrizations for use with single-moment mass-based schemes.\n"
           "This version of MGD PSD takes mass content as first input argument.\n"
           "This means that the first column of *pnd_agenda_input* shall hold\n"
-          "mass content data. The dependent parameter is assumed to be lambda."
-          "\n"),
+          "mass content data. The dependent parameter is assumed to be lambda.\n"),
       AUTHORS("Stuart Fox"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -13053,18 +13052,20 @@ void define_md_data_raw() {
          "dpnd_data_dx_names",
          "scat_species_a",
          "scat_species_b"),
-      GIN("n_alpha", "n_b", "mu", "t_min", "t_max", "picky"),
+      GIN("n_alpha", "n_b", "mu", "gamma", "t_min", "t_max", "picky"),
       GIN_TYPE("Numeric",
                "Numeric",
                "Numeric",
                "Numeric",
                "Numeric",
+               "Numeric",
                "Index"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF, "0"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, "0"),
       GIN_DESC(
           "n_alpha",
           "n_b",
           "mu",
+          "gamma"
           "Low temperature limit to calculate a psd.",
           "High temperature limit to calculate a psd.",
           "Flag whether to be strict with parametrization value checks.")));
@@ -13727,7 +13728,7 @@ void define_md_data_raw() {
           "Flag whether to be strict with parametrization value checks.")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("psdW16"),
+      NAME("psdWang16"),
       DESCRIPTION(
           "Wang et al. [2016] (W16) particle size distribution for rain.\n"
           "\n"

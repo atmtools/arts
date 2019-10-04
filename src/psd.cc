@@ -724,23 +724,24 @@ void psd_rain_W16(Vector& psd, const Vector& diameter, const Numeric& rwc) {
   }
 }
 
-void psd_gd_smm_common(Matrix& psd_data,
-		       Tensor3& dpsd_data_dx,
-		       const String& psd_name,
-		       const Vector& psd_size_grid,
-		       const Vector& pnd_agenda_input_t,
-		       const Matrix& pnd_agenda_input,
-		       const ArrayOfString& pnd_agenda_input_names,
-		       const ArrayOfString& dpnd_data_dx_names,
-		       const Numeric& scat_species_a,
-		       const Numeric& scat_species_b,
-		       const Numeric& n_alpha_in,
-		       const Numeric& n_b_in,
-		       const Numeric& mu_in,
-		       const Numeric& t_min,
-		       const Numeric& t_max,
-		       const Index& picky,
-		       const Verbosity&) {
+void psd_mgd_smm_common(Matrix& psd_data,
+                        Tensor3& dpsd_data_dx,
+                        const String& psd_name,
+                        const Vector& psd_size_grid,
+                        const Vector& pnd_agenda_input_t,
+                        const Matrix& pnd_agenda_input,
+                        const ArrayOfString& pnd_agenda_input_names,
+                        const ArrayOfString& dpnd_data_dx_names,
+                        const Numeric& scat_species_a,
+                        const Numeric& scat_species_b,
+                        const Numeric& n_alpha_in,
+                        const Numeric& n_b_in,
+                        const Numeric& mu_in,
+                        const Numeric& gamma_in,
+                        const Numeric& t_min,
+                        const Numeric& t_max,
+                        const Index& picky,
+                        const Verbosity&) {
   // Standard checks
   START_OF_PSD_METHODS();
 
@@ -750,7 +751,7 @@ void psd_gd_smm_common(Matrix& psd_data,
 
   // Extra checks for rain PSDs which should be consistent with
   // spherical liquid drops
-  if (psd_name == "A12" || psd_name == "W16"){
+  if (psd_name == "Abel12" || psd_name == "Wang16"){
     if (scat_species_b < 2.9 || scat_species_b > 3.1) {
       ostringstream os;
       os << "This PSD treats rain, using Dveq as size grid.\n"
@@ -770,7 +771,7 @@ void psd_gd_smm_common(Matrix& psd_data,
   }
   // Extra checks for graupel/hail PSDs which assume constant effective density
   //
-  if (psd_name == "F19"){
+  if (psd_name == "Field19"){
     if (scat_species_b < 2.8 || scat_species_b > 3.2) {
       ostringstream os;
       os << "This PSD treats graupel, assuming a constant effective density.\n"
@@ -783,11 +784,11 @@ void psd_gd_smm_common(Matrix& psd_data,
 
   for (Index ip = 0; ip < np; ip++) {
     // Extract the input variables
-    Numeric wc = pnd_agenda_input(ip, 0);
+    Numeric water_content = pnd_agenda_input(ip, 0);
     Numeric t = pnd_agenda_input_t[ip];
 
-    // No calc needed if wc==0 and no jacobians requested.
-    if ((wc == 0.) && (!ndx)) {
+    // No calc needed if water_content==0 and no jacobians requested.
+    if ((water_content == 0.) && (!ndx)) {
       continue;
     }  // If here, we are ready with this point!
 
@@ -806,52 +807,57 @@ void psd_gd_smm_common(Matrix& psd_data,
 
     // Negative wc?
     Numeric psd_weight = 1.0;
-    if (wc < 0) {
+    if (water_content < 0) {
       psd_weight = -1.0;
-      wc *= -1.0;
+      water_content *= -1.0;
     }
 
     // PSD settings for different parametrizations
-    const Numeric gamma = 1.0; // Modified gamma distributions not allowed
+    Numeric gamma = 0.0;
     Numeric n_alpha = 0.0;
     Numeric n_b = 0.0;
     Numeric mu = 0.0;
-    if (psd_name == "A12"){
+    if (psd_name == "Abel12"){
       n_alpha = 0.22;
       n_b = 2.2;
       mu = 0.0;
+      gamma = 1.0;
     }
-    else if (psd_name == "W16"){
+    else if (psd_name == "Wang16"){
       // Wang 16 parameters converted to SI units
       n_alpha = 14.764;
       n_b = 1.49;
       mu = 0.0;
+      gamma = 1.0;
     }
-    else if (psd_name == "F19"){
+    else if (psd_name == "Field19"){
       n_alpha = 7.9e9;
       n_b = -2.58;
       mu = 0.0;
+      gamma = 1.0;
     }
     else if (psd_name == "generic"){
       n_alpha = n_alpha_in;
       n_b = n_b_in;
       mu = mu_in;
+      gamma = gamma_in;
     }
     else {
       assert(0);
     }
 
     // Calculate PSD
-    // Calculate lambda for gamma distribution from mass density
-    Numeric expo = 1.0 / (n_b - scat_species_b - mu - 1);
-    Numeric denom = scat_species_a * n_alpha * tgamma(scat_species_b + mu + 1);
-    Numeric lam = pow(wc/denom, expo);
+    // Calculate lambda for modified gamma distribution from mass density
+    Numeric k = (scat_species_b + mu + 1 - gamma)/gamma;
+    Numeric expo = 1.0 / (n_b - k - 1);
+    Numeric denom = scat_species_a * n_alpha * tgamma(k + 1);
+    Numeric lam = pow(water_content*gamma/denom, expo);
     Numeric n_0 = n_alpha * pow(lam, n_b);
     Vector psd_1p(nsi);
     Matrix jac_data(4, nsi);
 
     psd_1p = 0.0;
-    if (wc != 0) {
+    if (water_content != 0) {
       mgd_with_derivatives(psd_1p, jac_data, psd_size_grid, n_0, mu, lam, gamma,
 			   true, // n_0 jacobian
 			   false,// mu jacobian
@@ -867,7 +873,7 @@ void psd_gd_smm_common(Matrix& psd_data,
 
     // Calculate derivative with respect to water content
     if (ndx) {
-      const Numeric dlam_dwc = pow(1/denom, expo) * expo * pow(wc, expo-1);
+      const Numeric dlam_dwc = pow(gamma/denom, expo) * expo * pow(water_content, expo-1);
       const Numeric dn_0_dwc = n_alpha * n_b * pow(lam, n_b-1) * dlam_dwc;
       for (Index i = 0; i < nsi; i++) {
         dpsd_data_dx(0, ip, i) = psd_weight * (jac_data(0,i)*dn_0_dwc +
