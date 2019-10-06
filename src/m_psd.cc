@@ -47,18 +47,18 @@
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void psdMono(Matrix& psd_data,
-             Tensor3& dpsd_data_dx,
-             const Vector& pnd_agenda_input_t,
-             const Matrix& pnd_agenda_input,
-             const ArrayOfString& pnd_agenda_input_names,
-             const ArrayOfString& dpnd_data_dx_names,
-             const ArrayOfArrayOfScatteringMetaData& scat_meta,
-             const Index& species_index,
-             const Numeric& t_min,
-             const Numeric& t_max,
-             const Index& picky,
-             const Verbosity& verbosity) {
+void psdMonoDispersive(Matrix& psd_data,
+                       Tensor3& dpsd_data_dx,
+                       const Vector& pnd_agenda_input_t,
+                       const Matrix& pnd_agenda_input,
+                       const ArrayOfString& pnd_agenda_input_names,
+                       const ArrayOfString& dpnd_data_dx_names,
+                       const ArrayOfArrayOfScatteringMetaData& scat_meta,
+                       const Index& species_index,
+                       const Numeric& t_min,
+                       const Numeric& t_max,
+                       const Index& picky,
+                       const Verbosity& verbosity) {
   psd_mono_common(psd_data,
                   dpsd_data_dx,
                   "ntot",
@@ -107,21 +107,21 @@ void psdMonoMass(Matrix& psd_data,
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void psdMgd(Matrix& psd_data,
-            Tensor3& dpsd_data_dx,
-            const Vector& psd_size_grid,
-            const Vector& pnd_agenda_input_t,
-            const Matrix& pnd_agenda_input,
-            const ArrayOfString& pnd_agenda_input_names,
-            const ArrayOfString& dpnd_data_dx_names,
-            const Numeric& n0,
-            const Numeric& mu,
-            const Numeric& la,
-            const Numeric& ga,
-            const Numeric& t_min,
-            const Numeric& t_max,
-            const Index& picky,
-            const Verbosity&) {
+void psdModifiedGamma(Matrix& psd_data,
+                      Tensor3& dpsd_data_dx,
+                      const Vector& psd_size_grid,
+                      const Vector& pnd_agenda_input_t,
+                      const Matrix& pnd_agenda_input,
+                      const ArrayOfString& pnd_agenda_input_names,
+                      const ArrayOfString& dpnd_data_dx_names,
+                      const Numeric& n0,
+                      const Numeric& mu,
+                      const Numeric& la,
+                      const Numeric& ga,
+                      const Numeric& t_min,
+                      const Numeric& t_max,
+                      const Index& picky,
+                      const Verbosity&) {
   // Standard checks
   START_OF_PSD_METHODS();
 
@@ -250,23 +250,23 @@ void psdMgd(Matrix& psd_data,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void psdMgdMass(Matrix& psd_data,
-                Tensor3& dpsd_data_dx,
-                const Vector& psd_size_grid,
-                const Vector& pnd_agenda_input_t,
-                const Matrix& pnd_agenda_input,
-                const ArrayOfString& pnd_agenda_input_names,
-                const ArrayOfString& dpnd_data_dx_names,
-                const Numeric& scat_species_a,
-                const Numeric& scat_species_b,
-                const Numeric& n0,
-                const Numeric& mu,
-                const Numeric& la,
-                const Numeric& ga,
-                const Numeric& t_min,
-                const Numeric& t_max,
-                const Index& picky,
-                const Verbosity&) {
+void psdModifiedGammaMass(Matrix& psd_data,
+                          Tensor3& dpsd_data_dx,
+                          const Vector& psd_size_grid,
+                          const Vector& pnd_agenda_input_t,
+                          const Matrix& pnd_agenda_input,
+                          const ArrayOfString& pnd_agenda_input_names,
+                          const ArrayOfString& dpnd_data_dx_names,
+                          const Numeric& scat_species_a,
+                          const Numeric& scat_species_b,
+                          const Numeric& n0,
+                          const Numeric& mu,
+                          const Numeric& la,
+                          const Numeric& ga,
+                          const Numeric& t_min,
+                          const Numeric& t_max,
+                          const Index& picky,
+                          const Verbosity&) {
   // Standard checks
   START_OF_PSD_METHODS();
 
@@ -467,23 +467,23 @@ void psdMgdMass(Matrix& psd_data,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void psdMgdMassNtot(Matrix& psd_data,
-                    Tensor3& dpsd_data_dx,
-                    const Vector& psd_size_grid,
-                    const Vector& pnd_agenda_input_t,
-                    const Matrix& pnd_agenda_input,
-                    const ArrayOfString& pnd_agenda_input_names,
-                    const ArrayOfString& dpnd_data_dx_names,
-                    const Numeric& scat_species_a,
-                    const Numeric& scat_species_b,
-                    const Numeric& n0,
-                    const Numeric& mu,
-                    const Numeric& la,
-                    const Numeric& ga,
-                    const Numeric& t_min,
-                    const Numeric& t_max,
-                    const Index& picky,
-                    const Verbosity& verbosity) {
+void psdModifiedGammaMassNtot(Matrix& psd_data,
+                              Tensor3& dpsd_data_dx,
+                              const Vector& psd_size_grid,
+                              const Vector& pnd_agenda_input_t,
+                              const Matrix& pnd_agenda_input,
+                              const ArrayOfString& pnd_agenda_input_names,
+                              const ArrayOfString& dpnd_data_dx_names,
+                              const Numeric& scat_species_a,
+                              const Numeric& scat_species_b,
+                              const Numeric& n0,
+                              const Numeric& mu,
+                              const Numeric& la,
+                              const Numeric& ga,
+                              const Numeric& t_min,
+                              const Numeric& t_max,
+                              const Index& picky,
+                              const Verbosity& verbosity) {
   psd_mgd_mass_and_something(psd_data,
                              dpsd_data_dx,
                              "Ntot",
@@ -505,23 +505,23 @@ void psdMgdMassNtot(Matrix& psd_data,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void psdMgdMassMeanParticleMass(Matrix& psd_data,
-                                Tensor3& dpsd_data_dx,
-                                const Vector& psd_size_grid,
-                                const Vector& pnd_agenda_input_t,
-                                const Matrix& pnd_agenda_input,
-                                const ArrayOfString& pnd_agenda_input_names,
-                                const ArrayOfString& dpnd_data_dx_names,
-                                const Numeric& scat_species_a,
-                                const Numeric& scat_species_b,
-                                const Numeric& n0,
-                                const Numeric& mu,
-                                const Numeric& la,
-                                const Numeric& ga,
-                                const Numeric& t_min,
-                                const Numeric& t_max,
-                                const Index& picky,
-                                const Verbosity& verbosity) {
+void psdModifiedGammaMassMeanParticleMass(Matrix& psd_data,
+                                          Tensor3& dpsd_data_dx,
+                                          const Vector& psd_size_grid,
+                                          const Vector& pnd_agenda_input_t,
+                                          const Matrix& pnd_agenda_input,
+                                          const ArrayOfString& pnd_agenda_input_names,
+                                          const ArrayOfString& dpnd_data_dx_names,
+                                          const Numeric& scat_species_a,
+                                          const Numeric& scat_species_b,
+                                          const Numeric& n0,
+                                          const Numeric& mu,
+                                          const Numeric& la,
+                                          const Numeric& ga,
+                                          const Numeric& t_min,
+                                          const Numeric& t_max,
+                                          const Index& picky,
+                                          const Verbosity& verbosity) {
   psd_mgd_mass_and_something(psd_data,
                              dpsd_data_dx,
                              "mean particle mass",
@@ -543,23 +543,23 @@ void psdMgdMassMeanParticleMass(Matrix& psd_data,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void psdMgdMassXmean(Matrix& psd_data,
-                     Tensor3& dpsd_data_dx,
-                     const Vector& psd_size_grid,
-                     const Vector& pnd_agenda_input_t,
-                     const Matrix& pnd_agenda_input,
-                     const ArrayOfString& pnd_agenda_input_names,
-                     const ArrayOfString& dpnd_data_dx_names,
-                     const Numeric& scat_species_a,
-                     const Numeric& scat_species_b,
-                     const Numeric& n0,
-                     const Numeric& mu,
-                     const Numeric& la,
-                     const Numeric& ga,
-                     const Numeric& t_min,
-                     const Numeric& t_max,
-                     const Index& picky,
-                     const Verbosity& verbosity) {
+void psdModifiedGammaMassXmean(Matrix& psd_data,
+                               Tensor3& dpsd_data_dx,
+                               const Vector& psd_size_grid,
+                               const Vector& pnd_agenda_input_t,
+                               const Matrix& pnd_agenda_input,
+                               const ArrayOfString& pnd_agenda_input_names,
+                               const ArrayOfString& dpnd_data_dx_names,
+                               const Numeric& scat_species_a,
+                               const Numeric& scat_species_b,
+                               const Numeric& n0,
+                               const Numeric& mu,
+                               const Numeric& la,
+                               const Numeric& ga,
+                               const Numeric& t_min,
+                               const Numeric& t_max,
+                               const Index& picky,
+                               const Verbosity& verbosity) {
   psd_mgd_mass_and_something(psd_data,
                              dpsd_data_dx,
                              "mean size",
@@ -581,23 +581,23 @@ void psdMgdMassXmean(Matrix& psd_data,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void psdMgdMassXmedian(Matrix& psd_data,
-                       Tensor3& dpsd_data_dx,
-                       const Vector& psd_size_grid,
-                       const Vector& pnd_agenda_input_t,
-                       const Matrix& pnd_agenda_input,
-                       const ArrayOfString& pnd_agenda_input_names,
-                       const ArrayOfString& dpnd_data_dx_names,
-                       const Numeric& scat_species_a,
-                       const Numeric& scat_species_b,
-                       const Numeric& n0,
-                       const Numeric& mu,
-                       const Numeric& la,
-                       const Numeric& ga,
-                       const Numeric& t_min,
-                       const Numeric& t_max,
-                       const Index& picky,
-                       const Verbosity& verbosity) {
+void psdModifiedGammaMassXmedian(Matrix& psd_data,
+                                 Tensor3& dpsd_data_dx,
+                                 const Vector& psd_size_grid,
+                                 const Vector& pnd_agenda_input_t,
+                                 const Matrix& pnd_agenda_input,
+                                 const ArrayOfString& pnd_agenda_input_names,
+                                 const ArrayOfString& dpnd_data_dx_names,
+                                 const Numeric& scat_species_a,
+                                 const Numeric& scat_species_b,
+                                 const Numeric& n0,
+                                 const Numeric& mu,
+                                 const Numeric& la,
+                                 const Numeric& ga,
+                                 const Numeric& t_min,
+                                 const Numeric& t_max,
+                                 const Index& picky,
+                                 const Verbosity& verbosity) {
   psd_mgd_mass_and_something(psd_data,
                              dpsd_data_dx,
                              "median size",
@@ -619,24 +619,67 @@ void psdMgdMassXmedian(Matrix& psd_data,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void psdD14(Matrix& psd_data,
-            Tensor3& dpsd_data_dx,
-            const Vector& psd_size_grid,
-            const Vector& pnd_agenda_input_t,
-            const Matrix& pnd_agenda_input,
-            const ArrayOfString& pnd_agenda_input_names,
-            const ArrayOfString& dpnd_data_dx_names,
-            const Numeric& iwc,
-            const Numeric& n0,
-            const Numeric& dm,
-            const Numeric& rho,
-            const Numeric& alpha,
-            const Numeric& beta,
-            const Numeric& t_min,
-            const Numeric& t_max,
-            const Numeric& dm_min,
-            const Index& picky,
-            const Verbosity&) {
+void psdModifiedGammaMassSingleMoment(
+    Matrix& psd_data,
+    Tensor3& dpsd_data_dx,
+    const Vector& psd_size_grid,
+    const Vector& pnd_agenda_input_t,
+    const Matrix& pnd_agenda_input,
+    const ArrayOfString& pnd_agenda_input_names,
+    const ArrayOfString& dpnd_data_dx_names,
+    const Numeric& scat_species_a,
+    const Numeric& scat_species_b,
+    const Numeric& n_alpha,
+    const Numeric& n_b,
+    const Numeric& mu,
+    const Numeric& gamma,
+    const Numeric& t_min,
+    const Numeric& t_max,
+    const Index& picky,
+    const Verbosity& verbosity) {
+  psd_mgd_smm_common(psd_data,
+                     dpsd_data_dx,
+                     "generic",
+                     psd_size_grid,
+                     pnd_agenda_input_t,
+                     pnd_agenda_input,
+                     pnd_agenda_input_names,
+                     dpnd_data_dx_names,
+                     scat_species_a,
+                     scat_species_b,
+                     n_alpha,
+                     n_b,
+                     mu,
+                     gamma,
+                     t_min,
+                     t_max,
+                     picky,
+                     verbosity);
+}
+
+/*===========================================================================
+  === Input: IWC and T
+  ===========================================================================*/
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void psdDelanoeEtAl14(Matrix& psd_data,
+                         Tensor3& dpsd_data_dx,
+                         const Vector& psd_size_grid,
+                         const Vector& pnd_agenda_input_t,
+                         const Matrix& pnd_agenda_input,
+                         const ArrayOfString& pnd_agenda_input_names,
+                         const ArrayOfString& dpnd_data_dx_names,
+                         const Numeric& iwc,
+                         const Numeric& n0,
+                         const Numeric& dm,
+                         const Numeric& rho,
+                         const Numeric& alpha,
+                         const Numeric& beta,
+                         const Numeric& t_min,
+                         const Numeric& t_max,
+                         const Numeric& dm_min,
+                         const Index& picky,
+                         const Verbosity&) {
   // Standard checks
   START_OF_PSD_METHODS();
 
@@ -825,67 +868,24 @@ void psdD14(Matrix& psd_data,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void psdModifiedGammaMassSingleMoment(
-    Matrix& psd_data,
-    Tensor3& dpsd_data_dx,
-    const Vector& psd_size_grid,
-    const Vector& pnd_agenda_input_t,
-    const Matrix& pnd_agenda_input,
-    const ArrayOfString& pnd_agenda_input_names,
-    const ArrayOfString& dpnd_data_dx_names,
-    const Numeric& scat_species_a,
-    const Numeric& scat_species_b,
-    const Numeric& n_alpha,
-    const Numeric& n_b,
-    const Numeric& mu,
-    const Numeric& gamma,
-    const Numeric& t_min,
-    const Numeric& t_max,
-    const Index& picky,
-    const Verbosity& verbosity) {
-  psd_mgd_smm_common(psd_data,
-                     dpsd_data_dx,
-                     "generic",
-                     psd_size_grid,
-                     pnd_agenda_input_t,
-                     pnd_agenda_input,
-                     pnd_agenda_input_names,
-                     dpnd_data_dx_names,
-                     scat_species_a,
-                     scat_species_b,
-                     n_alpha,
-                     n_b,
-                     mu,
-                     gamma,
-                     t_min,
-                     t_max,
-                     picky,
-                     verbosity);
-}
-
-/*===========================================================================
-  === Input: IWC and T
-  ===========================================================================*/
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void psdF07(Matrix& psd_data,
-            Tensor3& dpsd_data_dx,
-            const Vector& psd_size_grid,
-            const Vector& pnd_agenda_input_t,
-            const Matrix& pnd_agenda_input,
-            const ArrayOfString& pnd_agenda_input_names,
-            const ArrayOfString& dpnd_data_dx_names,
-            const Numeric& scat_species_a,
-            const Numeric& scat_species_b,
-            const String& regime,
-            const Numeric& t_min,
-            const Numeric& t_max,
-            const Numeric& t_min_psd,
-            const Numeric& t_max_psd,
-            const Numeric& b_min,
-            const Numeric& b_max,
-            const Index& picky,
-            const Verbosity&) {
+void psdFieldEtAl07(Matrix& psd_data,
+                    Tensor3& dpsd_data_dx,
+                    const Vector& psd_size_grid,
+                    const Vector& pnd_agenda_input_t,
+                    const Matrix& pnd_agenda_input,
+                    const ArrayOfString& pnd_agenda_input_names,
+                    const ArrayOfString& dpnd_data_dx_names,
+                    const Numeric& scat_species_a,
+                    const Numeric& scat_species_b,
+                    const String& regime,
+                    const Numeric& t_min,
+                    const Numeric& t_max,
+                    const Numeric& t_min_psd,
+                    const Numeric& t_max_psd,
+                    const Numeric& b_min,
+                    const Numeric& b_max,
+                    const Index& picky,
+                    const Verbosity&) {
   // Standard checcks
   START_OF_PSD_METHODS();
 
@@ -983,22 +983,22 @@ void psdF07(Matrix& psd_data,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void psdMH97(Matrix& psd_data,
-             Tensor3& dpsd_data_dx,
-             const Vector& psd_size_grid,
-             const Vector& pnd_agenda_input_t,
-             const Matrix& pnd_agenda_input,
-             const ArrayOfString& pnd_agenda_input_names,
-             const ArrayOfString& dpnd_data_dx_names,
-             const Numeric& scat_species_a,
-             const Numeric& scat_species_b,
-             const Numeric& t_min,
-             const Numeric& t_max,
-             const Numeric& t_min_psd,
-             const Numeric& t_max_psd,
-             const Index& picky,
-             const Index& noisy,
-             const Verbosity&) {
+void psdMcFarquaharHeymsfield97(Matrix& psd_data,
+                                Tensor3& dpsd_data_dx,
+                                const Vector& psd_size_grid,
+                                const Vector& pnd_agenda_input_t,
+                                const Matrix& pnd_agenda_input,
+                                const ArrayOfString& pnd_agenda_input_names,
+                                const ArrayOfString& dpnd_data_dx_names,
+                                const Numeric& scat_species_a,
+                                const Numeric& scat_species_b,
+                                const Numeric& t_min,
+                                const Numeric& t_max,
+                                const Numeric& t_min_psd,
+                                const Numeric& t_max_psd,
+                                const Index& picky,
+                                const Index& noisy,
+                                const Verbosity&) {
   // Standard checcks
   START_OF_PSD_METHODS();
 
@@ -1090,19 +1090,19 @@ void psdMH97(Matrix& psd_data,
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void psdAbel12(Matrix& psd_data,
-               Tensor3& dpsd_data_dx,
-               const Vector& psd_size_grid,
-               const Vector& pnd_agenda_input_t,
-               const Matrix& pnd_agenda_input,
-               const ArrayOfString& pnd_agenda_input_names,
-               const ArrayOfString& dpnd_data_dx_names,
-               const Numeric& scat_species_a,
-               const Numeric& scat_species_b,
-               const Numeric& t_min,
-               const Numeric& t_max,
-               const Index& picky,
-               const Verbosity& verbosity) {
+void psdAbelBoutle12(Matrix& psd_data,
+                     Tensor3& dpsd_data_dx,
+                     const Vector& psd_size_grid,
+                     const Vector& pnd_agenda_input_t,
+                     const Matrix& pnd_agenda_input,
+                     const ArrayOfString& pnd_agenda_input_names,
+                     const ArrayOfString& dpnd_data_dx_names,
+                     const Numeric& scat_species_a,
+                     const Numeric& scat_species_b,
+                     const Numeric& t_min,
+                     const Numeric& t_max,
+                     const Index& picky,
+                     const Verbosity& verbosity) {
   psd_mgd_smm_common(psd_data,
                      dpsd_data_dx,
                      "Abel12",
@@ -1124,19 +1124,19 @@ void psdAbel12(Matrix& psd_data,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void psdWang16(Matrix& psd_data,
-               Tensor3& dpsd_data_dx,
-               const Vector& psd_size_grid,
-               const Vector& pnd_agenda_input_t,
-               const Matrix& pnd_agenda_input,
-               const ArrayOfString& pnd_agenda_input_names,
-               const ArrayOfString& dpnd_data_dx_names,
-               const Numeric& scat_species_a,
-               const Numeric& scat_species_b,
-               const Numeric& t_min,
-               const Numeric& t_max,
-               const Index& picky,
-               const Verbosity& verbosity) {
+void psdWangEtAl16(Matrix& psd_data,
+                   Tensor3& dpsd_data_dx,
+                   const Vector& psd_size_grid,
+                   const Vector& pnd_agenda_input_t,
+                   const Matrix& pnd_agenda_input,
+                   const ArrayOfString& pnd_agenda_input_names,
+                   const ArrayOfString& dpnd_data_dx_names,
+                   const Numeric& scat_species_a,
+                   const Numeric& scat_species_b,
+                   const Numeric& t_min,
+                   const Numeric& t_max,
+                   const Index& picky,
+                   const Verbosity& verbosity) {
   psd_mgd_smm_common(psd_data,
                      dpsd_data_dx,
                      "Wang16",
@@ -1162,19 +1162,19 @@ void psdWang16(Matrix& psd_data,
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void psdField19(Matrix& psd_data,
-                Tensor3& dpsd_data_dx,
-                const Vector& psd_size_grid,
-                const Vector& pnd_agenda_input_t,
-                const Matrix& pnd_agenda_input,
-                const ArrayOfString& pnd_agenda_input_names,
-                const ArrayOfString& dpnd_data_dx_names,
-                const Numeric& scat_species_a,
-                const Numeric& scat_species_b,
-                const Numeric& t_min,
-                const Numeric& t_max,
-                const Index& picky,
-                const Verbosity& verbosity) {
+void psdFieldEtAl19(Matrix& psd_data,
+                    Tensor3& dpsd_data_dx,
+                    const Vector& psd_size_grid,
+                    const Vector& pnd_agenda_input_t,
+                    const Matrix& pnd_agenda_input,
+                    const ArrayOfString& pnd_agenda_input_names,
+                    const ArrayOfString& dpnd_data_dx_names,
+                    const Numeric& scat_species_a,
+                    const Numeric& scat_species_b,
+                    const Numeric& t_min,
+                    const Numeric& t_max,
+                    const Index& picky,
+                    const Verbosity& verbosity) {
   psd_mgd_smm_common(psd_data,
                      dpsd_data_dx,
                      "Field19",
@@ -1193,4 +1193,276 @@ void psdField19(Matrix& psd_data,
                      t_max,
                      picky,
                      verbosity);
+}
+
+/*===========================================================================
+  === Input: Atmospheric model PSDs
+  ===========================================================================*/
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void psdSeifertBeheng06(Matrix& psd_data,
+                        Tensor3& dpsd_data_dx,
+                        const Vector& psd_size_grid,
+                        const Vector& pnd_agenda_input_t,
+                        const Matrix& pnd_agenda_input,
+                        const ArrayOfString& pnd_agenda_input_names,
+                        const ArrayOfString& dpnd_data_dx_names,
+                        const String& hydrometeor_type,
+                        const Numeric& t_min,
+                        const Numeric& t_max,
+                        const Index& picky,
+                        const Verbosity&) {
+  // Some sizes
+  const Index nin = pnd_agenda_input_names.nelem();
+  const Index ndx = dpnd_data_dx_names.nelem();
+  const Index np = pnd_agenda_input.nrows();
+  const Index nsi = psd_size_grid.nelem();
+
+  // Checks
+  if (pnd_agenda_input.ncols() != nin) {
+    throw runtime_error(
+        "Length of *pnd_agenda_input_names* and number of "
+        "columns in *pnd_agenda_input* must be equal.");
+  }
+  if (pnd_agenda_input.ncols() != 2) {
+    throw runtime_error(
+        "*pnd_agenda_input* must have two columns"
+        "(mass density and number density).");
+  }
+
+  if (ndx > 2) {
+    throw runtime_error("*dpnd_data_dx_names* must have length <=2.");
+  }
+
+  // check name tags
+  ArrayOfIndex input_idx = {-1, -1};
+
+  for (Index i = 0; i < nin; i++) {
+    if ((Index)pnd_agenda_input_names[i].find("mass_density") != String::npos) {
+      input_idx[0] = i;  //mass density index
+    } else if ((Index)pnd_agenda_input_names[i].find("number_density") !=
+               String::npos) {
+      input_idx[1] = i;  //number density index
+    }
+  }
+
+  if (input_idx[0] == -1) {
+    throw runtime_error("mass_density-tag not found ");
+  }
+  if (input_idx[1] == -1) {
+    throw runtime_error("number_density-tag not found ");
+  }
+
+  // look after jacobian tags
+  ArrayOfIndex dpnd_data_dx_idx = {-1, -1};
+
+  for (Index i = 0; i < ndx; i++) {
+    if ((Index)dpnd_data_dx_names[i].find("mass_density") != String::npos) {
+      dpnd_data_dx_idx[0] = i;  //mass density index
+    } else if ((Index)dpnd_data_dx_names[i].find("number_density") !=
+               String::npos) {
+      dpnd_data_dx_idx[1] = i;  //number density index
+    }
+  }
+
+  //        if( dpnd_data_dx_names[0] != "SWC" )
+  //            throw runtime_error( "With F07, the only valid option for "
+  //                                "*dpnd_data_dx_names* is: \"SWC\"." );
+  //    }
+
+  // Init psd_data and dpsd_data_dx with zeros
+  psd_data.resize(np, nsi);
+  psd_data = 0.0;
+  if (ndx != 0) {
+    dpsd_data_dx.resize(ndx, np, nsi);
+    dpsd_data_dx = 0.0;
+  } else {
+    dpsd_data_dx.resize(0, 0, 0);
+  }
+
+  for (Index ip = 0; ip < np; ip++) {
+    // Extract the input variables
+    Numeric WC = pnd_agenda_input(ip, input_idx[0]);
+    Numeric N_tot = pnd_agenda_input(ip, input_idx[1]);
+    Numeric t = pnd_agenda_input_t[ip];
+
+    // No calc needed if swc==0 and no jacobians requested.
+    if ((WC == 0.) && (!ndx)) {
+      continue;
+    }  // If here, we are ready with this point!
+
+    // Outside of [t_min,tmax]?
+    if (t < t_min || t > t_max) {
+      if (picky) {
+        ostringstream os;
+        os << "Method called with a temperature of " << t << " K.\n"
+           << "This is outside the specified allowed range: [ max(0.," << t_min
+           << "), " << t_max << " ]";
+        throw runtime_error(os.str());
+      } else {
+        continue;
+      }  // If here, we are ready with this point!
+    }
+
+    // Negative swc?
+    Numeric psd_weight = 1.0;
+    if (WC < 0) {
+      psd_weight = -1.0;
+      WC *= -1.0;
+    }
+
+    // Calculate PSD and derivatives
+    Vector psd_1p(nsi);
+    Matrix dpsd_1p(nsi, 2);
+    if (WC > 0) {
+      psd_SB06(psd_1p, dpsd_1p, psd_size_grid, N_tot, WC, hydrometeor_type);
+
+      for (Index i = 0; i < nsi; i++) {
+        psd_data(ip, i) = psd_weight * psd_1p[i];
+
+        for (Index idx = 0; idx < dpnd_data_dx_idx.nelem(); idx++) {
+          // with respect to WC
+
+          if (dpnd_data_dx_idx[idx] != -1) {
+            dpsd_data_dx(dpnd_data_dx_idx[idx], ip, i) =
+                psd_weight * dpsd_1p(i, idx);
+          }
+        }
+      }
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void psdMilbrandtYau05(Matrix& psd_data,
+                       Tensor3& dpsd_data_dx,
+                       const Vector& psd_size_grid,
+                       const Vector& pnd_agenda_input_t,
+                       const Matrix& pnd_agenda_input,
+                       const ArrayOfString& pnd_agenda_input_names,
+                       const ArrayOfString& dpnd_data_dx_names,
+                       const String& hydrometeor_type,
+                       const Numeric& t_min,
+                       const Numeric& t_max,
+                       const Index& picky,
+                       const Verbosity&) {
+  // Some sizes
+  const Index nin = pnd_agenda_input_names.nelem();
+  const Index ndx = dpnd_data_dx_names.nelem();
+  const Index np = pnd_agenda_input.nrows();
+  const Index nsi = psd_size_grid.nelem();
+
+  // Checks
+  if (pnd_agenda_input.ncols() != nin) {
+    throw runtime_error(
+        "Length of *pnd_agenda_input_names* and number of "
+        "columns in *pnd_agenda_input* must be equal.");
+  }
+  if (pnd_agenda_input.ncols() != 2) {
+    throw runtime_error(
+        "*pnd_agenda_input* must have two columns"
+        "(mass density and number density).");
+  }
+
+  if (ndx > 2) {
+    throw runtime_error("*dpnd_data_dx_names* must have length <=2.");
+  }
+
+  // check name tags
+  ArrayOfIndex input_idx = {-1, -1};
+
+  for (Index i = 0; i < nin; i++) {
+    if ((Index)pnd_agenda_input_names[i].find("mass_density") != String::npos) {
+      input_idx[0] = i;  //mass density index
+    } else if ((Index)pnd_agenda_input_names[i].find("number_density") !=
+               String::npos) {
+      input_idx[1] = i;  //number density index
+    }
+  }
+
+  if (input_idx[0] == -1) {
+    throw runtime_error("mass_density-tag not found ");
+  }
+  if (input_idx[1] == -1) {
+    throw runtime_error("number_density-tag not found ");
+  }
+
+  // look after jacobian tags
+  ArrayOfIndex dpnd_data_dx_idx = {-1, -1};
+
+  for (Index i = 0; i < ndx; i++) {
+    if ((Index)dpnd_data_dx_names[i].find("mass_density") != String::npos) {
+      dpnd_data_dx_idx[0] = i;  //mass density index
+    } else if ((Index)dpnd_data_dx_names[i].find("number_density") !=
+               String::npos) {
+      dpnd_data_dx_idx[1] = i;  //number density index
+    }
+  }
+
+  //        if( dpnd_data_dx_names[0] != "SWC" )
+  //            throw runtime_error( "With F07, the only valid option for "
+  //                                "*dpnd_data_dx_names* is: \"SWC\"." );
+  //    }
+
+  // Init psd_data and dpsd_data_dx with zeros
+  psd_data.resize(np, nsi);
+  psd_data = 0.0;
+  if (ndx != 0) {
+    dpsd_data_dx.resize(ndx, np, nsi);
+    dpsd_data_dx = 0.0;
+  } else {
+    dpsd_data_dx.resize(0, 0, 0);
+  }
+
+  for (Index ip = 0; ip < np; ip++) {
+    // Extract the input variables
+    Numeric WC = pnd_agenda_input(ip, input_idx[0]);
+    Numeric N_tot = pnd_agenda_input(ip, input_idx[1]);
+    Numeric t = pnd_agenda_input_t[ip];
+
+    // No calc needed if wc==0 and no jacobians requested.
+    if ((WC == 0.) && (!ndx)) {
+      continue;
+    }  // If here, we are ready with this point!
+
+    // Outside of [t_min,tmax]?
+    if (t < t_min || t > t_max) {
+      if (picky) {
+        ostringstream os;
+        os << "Method called with a temperature of " << t << " K.\n"
+           << "This is outside the specified allowed range: [ max(0.," << t_min
+           << "), " << t_max << " ]";
+        throw runtime_error(os.str());
+      } else {
+        continue;
+      }  // If here, we are ready with this point!
+    }
+
+    // Negative wc?
+    Numeric psd_weight = 1.0;
+    if (WC < 0) {
+      psd_weight = -1.0;
+      WC *= -1.0;
+    }
+
+    // Calculate PSD and derivatives
+    Vector psd_1p(nsi);
+    Matrix dpsd_1p(nsi, 2);
+    if (WC > 0) {
+      psd_MY05(psd_1p, dpsd_1p, psd_size_grid, N_tot, WC, hydrometeor_type);
+
+      for (Index i = 0; i < nsi; i++) {
+        psd_data(ip, i) = psd_weight * psd_1p[i];
+
+        for (Index idx = 0; idx < dpnd_data_dx_idx.nelem(); idx++) {
+          // with respect to WC
+
+          if (dpnd_data_dx_idx[idx] != -1) {
+            dpsd_data_dx(dpnd_data_dx_idx[idx], ip, i) =
+                psd_weight * dpsd_1p(i, idx);
+          }
+        }
+      }
+    }
+  }
 }

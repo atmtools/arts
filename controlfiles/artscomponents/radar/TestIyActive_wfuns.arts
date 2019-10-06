@@ -59,7 +59,7 @@ ArrayOfAgendaAppend( pnd_agenda_array ){
                            x_fit_start=100e-6 )
   Copy( psd_size_grid, scat_species_x )
   Copy( pnd_size_grid, scat_species_x )
-  psdMH97( t_min = 10, t_max = 273, t_min_psd = 210 )
+  psdMcFarquaharHeymsfield97( t_min = 10, t_max = 273, t_min_psd = 210 )
   pndFromPsdBasic
 }
 Append( scat_species, species_id_string )
