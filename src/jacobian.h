@@ -66,38 +66,47 @@ enum class JacPropMatType : Index {
   LineShapeG0X0,
   LineShapeG0X1,
   LineShapeG0X2,
+  LineShapeG0X3,
 
   LineShapeD0X0,
   LineShapeD0X1,
   LineShapeD0X2,
+  LineShapeD0X3,
 
   LineShapeG2X0,
   LineShapeG2X1,
   LineShapeG2X2,
+  LineShapeG2X3,
 
   LineShapeD2X0,
   LineShapeD2X1,
   LineShapeD2X2,
+  LineShapeD2X3,
 
   LineShapeFVCX0,
   LineShapeFVCX1,
   LineShapeFVCX2,
+  LineShapeFVCX3,
 
   LineShapeETAX0,
   LineShapeETAX1,
   LineShapeETAX2,
+  LineShapeETAX3,
 
   LineShapeYX0,
   LineShapeYX1,
   LineShapeYX2,
+  LineShapeYX3,
 
   LineShapeGX0,
   LineShapeGX1,
   LineShapeGX2,
+  LineShapeGX3,
 
   LineShapeDVX0,
   LineShapeDVX1,
   LineShapeDVX2,
+  LineShapeDVX3,
 
   NLTE,
 

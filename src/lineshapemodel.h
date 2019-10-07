@@ -80,7 +80,8 @@ enum class TemperatureModel : Index {
   T3,     // X0 + X1 * (T - T0)
   T4,     // (X0 + X1 * (T0/T - 1)) * (T0/T)^X2;
   T5,     // X0 * (T0/T)^(0.25 + 1.5*X1)
-  LM_AER  // Interpolation AER-style
+  LM_AER, // X(200) = X0; X(250) = X1; X(298) = X2; X(340) = X3;  Linear interpolation in between
+  DPL     // X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3
   // ALWAYS ADD NEW AT THE END
 };
 
@@ -111,6 +112,8 @@ inline String temperaturemodel2string(TemperatureModel type) noexcept {
       return "T5";
     case TemperatureModel::LM_AER:
       return "LM_AER";
+    case TemperatureModel::DPL:
+      return "DPL";
   }
   std::terminate();  // Not allowed to reach, fix higher level code
 }
@@ -141,6 +144,8 @@ inline TemperatureModel string2temperaturemodel(const String& type) {
     return TemperatureModel::T5;
   else if (type == String("LM_AER"))
     return TemperatureModel::LM_AER;
+  else if (type == String("DPL"))
+    return TemperatureModel::DPL;
   else {
     std::ostringstream os;
     os << "Type: " << type << ", is not accepted.  "
@@ -266,6 +271,7 @@ struct ModelParameters {
   Numeric X0;
   Numeric X1;
   Numeric X2;
+  Numeric X3;
 };
 
 String modelparameters2metadata(const ModelParameters mp, const Numeric T0);
@@ -286,6 +292,8 @@ inline Numeric& SingleModelParameter(ModelParameters& mp, const String& type) {
     return mp.X1;
   else if (type == "X2")
     return mp.X2;
+  else if (type == "X3")
+    return mp.X3;
   else {
     std::ostringstream os;
     os << "Type: " << type << ", is not accepted.  "
@@ -298,32 +306,28 @@ inline Numeric& SingleModelParameter(ModelParameters& mp, const String& type) {
 /** Output operator for ModelParameters */
 inline std::ostream& operator<<(std::ostream& os, const ModelParameters& mp) {
   os << temperaturemodel2string(mp.type) << ' ' << mp.X0 << ' ' << mp.X1 << ' '
-  << mp.X2 << ' ';
+  << mp.X2 << ' ' << mp.X3 << ' ';
   return os;
 }
 
 /** Input operator for ModelParameters */
 inline std::istream& operator>>(std::istream& is, ModelParameters& mp) {
   String tmp;
-  is >> tmp >> mp.X0 >> mp.X1 >> mp.X2;
+  is >> tmp >> mp.X0 >> mp.X1 >> mp.X2 >> mp.X3;
   mp.type = string2temperaturemodel(tmp);
   return is;
 }
 
 /** Current max number of coefficients */
-constexpr Index nmaxTempModelParams = 3;
+constexpr Index nmaxTempModelParams = 4;
 
 /** Current max number of line shape variables */
 constexpr Index nVars = 9;
-
-/** Current max number of line shape interpolation variables */
-constexpr Index nmaxInterpModels = 12;
 
 /** Compute the line shape parameters for a single broadening species */
 class SingleSpeciesModel {
  private:
   std::array<ModelParameters, nVars> X;
-  std::array<Numeric, nmaxInterpModels> V;
 
   /** Line mixing as done by AER data in ARTS
    * 
@@ -336,16 +340,13 @@ class SingleSpeciesModel {
    * 
    * @return The broadening parameter at temperature
    */
-  Numeric special_linemixing_aer(Numeric T, Variable var) const noexcept {
-    // Data starts at 4 for Y and 8 for G, and must be either
-    const Index i = (var == Variable::Y) ? 4 : 8;
-
-    if (T < V[1])
-      return V[i + 0] + (T - V[0]) * (V[i + 1] - V[i + 0]) / (V[1] - V[0]);
-    else if (T > V[2])
-      return V[i + 2] + (T - V[2]) * (V[i + 3] - V[i + 2]) / (V[3] - V[2]);
+  Numeric special_linemixing_aer(Numeric T, ModelParameters mp) const noexcept {
+    if (T < 250)
+      return mp.X0 + (T - 200) * (mp.X1 - mp.X0) / (250 - 200);
+    else if (T > 296)
+      return mp.X2 + (T - 296) * (mp.X3 - mp.X2) / (340 - 296);
     else
-      return V[i + 1] + (T - V[1]) * (V[i + 2] - V[i + 1]) / (V[2] - V[1]);
+      return mp.X1 + (T - 250) * (mp.X2 - mp.X1) / (296 - 250);
   }
   
   /** The temperature derivative of special_linemixing_aer
@@ -355,37 +356,33 @@ class SingleSpeciesModel {
    * 
    * @return The temperature derivative of the broadening parameter at temperature
    */
-  Numeric special_linemixing_aer_dT(Numeric T, Variable var) const noexcept {
-    // Data starts at 4 for Y and 8 for G, and must be either
-    const Index i = (var == Variable::Y) ? 4 : 8;
-
-    if (T < V[1])
-      return (V[i + 1] - V[i + 0]) / (V[1] - V[0]);
-    else if (T > V[2])
-      return (V[i + 3] - V[i + 2]) / (V[3] - V[2]);
+  Numeric special_linemixing_aer_dT(Numeric T, ModelParameters mp) const noexcept {
+    if (T < 250)
+      return (mp.X1 - mp.X0) / (250 - 200);
+    else if (T > 296)
+      return (mp.X3 - mp.X2) / (340 - 296);
     else
-      return (V[i + 2] - V[i + 1]) / (V[2] - V[1]);
+      return (mp.X2 - mp.X1) / (296 - 250);
   }
 
  public:
   /** Default initialization */
   constexpr SingleSpeciesModel(
-      ModelParameters G0 = {TemperatureModel::None, 0, 0, 0},
-      ModelParameters D0 = {TemperatureModel::None, 0, 0, 0},
-      ModelParameters G2 = {TemperatureModel::None, 0, 0, 0},
-      ModelParameters D2 = {TemperatureModel::None, 0, 0, 0},
-      ModelParameters FVC = {TemperatureModel::None, 0, 0, 0},
-      ModelParameters ETA = {TemperatureModel::None, 0, 0, 0},
-      ModelParameters Y = {TemperatureModel::None, 0, 0, 0},
-      ModelParameters G = {TemperatureModel::None, 0, 0, 0},
-      ModelParameters DV = {TemperatureModel::None, 0, 0, 0},
-      std::array<Numeric, nmaxInterpModels> interp =
-          {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
-      : X({G0, D0, G2, D2, FVC, ETA, Y, G, DV}), V(interp) {}
+      ModelParameters G0 = {TemperatureModel::None, 0, 0, 0, 0},
+      ModelParameters D0 = {TemperatureModel::None, 0, 0, 0, 0},
+      ModelParameters G2 = {TemperatureModel::None, 0, 0, 0, 0},
+      ModelParameters D2 = {TemperatureModel::None, 0, 0, 0, 0},
+      ModelParameters FVC = {TemperatureModel::None, 0, 0, 0, 0},
+      ModelParameters ETA = {TemperatureModel::None, 0, 0, 0, 0},
+      ModelParameters Y = {TemperatureModel::None, 0, 0, 0, 0},
+      ModelParameters G = {TemperatureModel::None, 0, 0, 0, 0},
+      ModelParameters DV = {TemperatureModel::None, 0, 0, 0, 0})
+      : X({G0, D0, G2, D2, FVC, ETA, Y, G, DV}) {}
 
 #define x0 X[Index(var)].X0
 #define x1 X[Index(var)].X1
 #define x2 X[Index(var)].X2
+#define x3 X[Index(var)].X3
 
   /** Compute the broadening parameter at the input
    * 
@@ -415,7 +412,9 @@ class SingleSpeciesModel {
       case TemperatureModel::T5:
         return x0 * pow(T0 / T, 0.25 + 1.5 * x1);
       case TemperatureModel::LM_AER:
-        return special_linemixing_aer(T, var);
+        return special_linemixing_aer(T, X[Index(var)]);
+      case TemperatureModel::DPL:
+        return x0 * pow(T0 / T, x1) + x2 * pow(T0 / T, x3);
     }
     std::terminate();
   }
@@ -449,6 +448,8 @@ class SingleSpeciesModel {
         return pow(T0 / T, 1.5 * x1 + 0.25);
       case TemperatureModel::LM_AER:
         return 0;
+      case TemperatureModel::DPL:
+        return pow(T0 / T, x1);
     }
     std::terminate();
   }
@@ -482,6 +483,8 @@ class SingleSpeciesModel {
         return 1.5 * x0 * pow(T0 / T, 1.5 * x1 + 0.25) * log(T0 / T);
       case TemperatureModel::LM_AER:
         return 0;
+      case TemperatureModel::DPL:
+        return x0 * pow(T0 / T, x1) * log(T0 / T);
     }
     std::terminate();
   }
@@ -515,6 +518,43 @@ class SingleSpeciesModel {
         return 0;
       case TemperatureModel::LM_AER:
         return 0;
+      case TemperatureModel::DPL:
+        return pow(T0 / T, x3);
+    }
+    std::terminate();
+  }
+  
+  /** Derivative of compute(...) wrt x3
+   * 
+   * @param[in] T The temperature
+   * @param[in] T0 The temperature used to derive the coefficients
+   * @param[in] var The variable
+   * 
+   * @return Derivative of compute(...) wrt x3
+   */
+  Numeric compute_dX3(Numeric T, Numeric T0, Variable var) const noexcept {
+    using std::log;
+    using std::pow;
+    
+    switch (X[Index(var)].type) {
+      case TemperatureModel::None:
+        return 0;
+      case TemperatureModel::T0:
+        return 0;
+      case TemperatureModel::T1:
+        return 0;
+      case TemperatureModel::T2:
+        return 0;
+      case TemperatureModel::T3:
+        return 0;
+      case TemperatureModel::T4:
+        return 0;
+      case TemperatureModel::T5:
+        return 0;
+      case TemperatureModel::LM_AER:
+        return 0;
+      case TemperatureModel::DPL:
+        return x2 * pow(T0 / T, x3) * log(T0 / T);
     }
     std::terminate();
   }
@@ -549,7 +589,9 @@ class SingleSpeciesModel {
       case TemperatureModel::T5:
         return -x0 * pow(T0 / T, 1.5 * x1 + 0.25) * (1.5 * x1 + 0.25) / T;
       case TemperatureModel::LM_AER:
-        return special_linemixing_aer_dT(T, var);
+        return special_linemixing_aer_dT(T, X[Index(var)]);
+      case TemperatureModel::DPL:
+        return -x0 * x1 * pow(T0 / T, x1) / T + -x2 * x3 * pow(T0 / T, x3) / T;
     }
     std::terminate();
   }
@@ -585,6 +627,8 @@ class SingleSpeciesModel {
         return x0 * pow(T0 / T, 1.5 * x1 + 0.25) * (1.5 * x1 + 0.25) / T0;
       case TemperatureModel::LM_AER:
         return 0;
+      case TemperatureModel::DPL:
+        return x0 * x1 * pow(T0 / T, x1) / T0 + x2 * x3 * pow(T0 / T, x3) / T0;
     }
     std::terminate();
   }
@@ -592,6 +636,7 @@ class SingleSpeciesModel {
 #undef x0
 #undef x1
 #undef x2
+#undef x3
 
 #define ACCESS_INTERNAL(VARPOS)                                             \
   ModelParameters& VARPOS() noexcept { return X[Index(Variable::VARPOS)]; } \
@@ -612,14 +657,6 @@ class SingleSpeciesModel {
   
   /** Get const internal Data reference */
   const std::array<ModelParameters, nVars>& Data() const noexcept { return X; }
-  
-  /** Get internal Interp reference */
-  std::array<Numeric, nmaxInterpModels>& Interp() noexcept { return V; }
-  
-  /** Get const internal Interp reference */
-  const std::array<Numeric, nmaxInterpModels>& Interp() const noexcept {
-    return V;
-  }
 
   /** Set variable to a different ModelParameters
    * 
@@ -687,14 +724,12 @@ class SingleSpeciesModel {
 inline std::ostream& operator<<(std::ostream& os,
                                 const SingleSpeciesModel& ssm) {
   for (const auto& mp : ssm.Data()) os << mp << ' ';
-  for (const auto& num : ssm.Interp()) os << num << ' ';
   return os;
 }
 
 /** Input operator for SingleSpeciesModel */
 inline std::istream& operator>>(std::istream& is, SingleSpeciesModel& ssm) {
   for (auto& mp : ssm.Data()) is >> mp;
-  for (auto& num : ssm.Interp()) is >> num;
   return is;
 }
 
@@ -702,7 +737,6 @@ inline std::istream& operator>>(std::istream& is, SingleSpeciesModel& ssm) {
 class SingleSpeciesModel2 {
  private:
   std::array<ModelParameters, nVars> X;
-  std::array<Numeric, nmaxInterpModels> V;
 
   /** Line mixing as done by AER data in ARTS
    * 
@@ -715,16 +749,13 @@ class SingleSpeciesModel2 {
    * 
    * @return The broadening parameter at temperature
    */
-  constexpr Numeric special_linemixing_aer(Numeric T, Variable var) const noexcept {
-    // Data starts at 4 for Y and 8 for G, and must be either
-    const Index i = (var == Variable::Y) ? 4 : 8;
-
-    if (T < V[1])
-      return V[i + 0] + (T - V[0]) * (V[i + 1] - V[i + 0]) / (V[1] - V[0]);
-    else if (T > V[2])
-      return V[i + 2] + (T - V[2]) * (V[i + 3] - V[i + 2]) / (V[3] - V[2]);
+  Numeric special_linemixing_aer(Numeric T, ModelParameters mp) const noexcept {
+    if (T < 250)
+      return mp.X0 + (T - 200) * (mp.X1 - mp.X0) / (250 - 200);
+    else if (T > 296)
+      return mp.X2 + (T - 296) * (mp.X3 - mp.X2) / (340 - 296);
     else
-      return V[i + 1] + (T - V[1]) * (V[i + 2] - V[i + 1]) / (V[2] - V[1]);
+      return mp.X1 + (T - 250) * (mp.X2 - mp.X1) / (296 - 250);
   }
   
   /** The temperature derivative of special_linemixing_aer
@@ -734,243 +765,287 @@ class SingleSpeciesModel2 {
    * 
    * @return The temperature derivative of the broadening parameter at temperature
    */
-  constexpr Numeric special_linemixing_aer_dT(Numeric T, Variable var) const noexcept {
-    // Data starts at 4 for Y and 8 for G, and must be either
-    const Index i = (var == Variable::Y) ? 4 : 8;
-
-    if (T < V[1])
-      return (V[i + 1] - V[i + 0]) / (V[1] - V[0]);
-    else if (T > V[2])
-      return (V[i + 3] - V[i + 2]) / (V[3] - V[2]);
+  Numeric special_linemixing_aer_dT(Numeric T, ModelParameters mp) const noexcept {
+    if (T < 250)
+      return (mp.X1 - mp.X0) / (250 - 200);
+    else if (T > 296)
+      return (mp.X3 - mp.X2) / (340 - 296);
     else
-      return (V[i + 2] - V[i + 1]) / (V[2] - V[1]);
+      return (mp.X2 - mp.X1) / (296 - 250);
   }
 
  public:
   /** Default initialization */
   constexpr SingleSpeciesModel2(
-      ModelParameters G0 = {TemperatureModel::None, 0, 0, 0},
-      ModelParameters D0 = {TemperatureModel::None, 0, 0, 0},
-      ModelParameters G2 = {TemperatureModel::None, 0, 0, 0},
-      ModelParameters D2 = {TemperatureModel::None, 0, 0, 0},
-      ModelParameters FVC = {TemperatureModel::None, 0, 0, 0},
-      ModelParameters ETA = {TemperatureModel::None, 0, 0, 0},
-      ModelParameters Y = {TemperatureModel::None, 0, 0, 0},
-      ModelParameters G = {TemperatureModel::None, 0, 0, 0},
-      ModelParameters DV = {TemperatureModel::None, 0, 0, 0},
-      std::array<Numeric, nmaxInterpModels> interp =
-          {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
-      : X({G0, D0, G2, D2, FVC, ETA, Y, G, DV}), V(interp) {}
+      ModelParameters G0 = {TemperatureModel::None, 0, 0, 0, 0},
+      ModelParameters D0 = {TemperatureModel::None, 0, 0, 0, 0},
+      ModelParameters G2 = {TemperatureModel::None, 0, 0, 0, 0},
+      ModelParameters D2 = {TemperatureModel::None, 0, 0, 0, 0},
+      ModelParameters FVC = {TemperatureModel::None, 0, 0, 0, 0},
+      ModelParameters ETA = {TemperatureModel::None, 0, 0, 0, 0},
+      ModelParameters Y = {TemperatureModel::None, 0, 0, 0, 0},
+      ModelParameters G = {TemperatureModel::None, 0, 0, 0, 0},
+      ModelParameters DV = {TemperatureModel::None, 0, 0, 0, 0})
+      : X({G0, D0, G2, D2, FVC, ETA, Y, G, DV}) {}
 
 #define x0 X[Index(var)].X0
 #define x1 X[Index(var)].X1
 #define x2 X[Index(var)].X2
+#define x3 X[Index(var)].X3
 
-  /** Compute the broadening parameter at the input
-   * 
-   * @param[in] T The temperature
-   * @param[in] T0 The temperature used to derive the coefficients
-   * @param[in] var The variable
-   * 
-   * @return The broadening parameter at temperature
-   */
-  Numeric compute(Numeric T, Numeric T0, Variable var) const noexcept {
-    using std::log;
-    using std::pow;
-
-    switch (X[Index(var)].type) {
-      case TemperatureModel::None:
-        return 0;
-      case TemperatureModel::T0:
-        return x0;
-      case TemperatureModel::T1:
-        return x0 * pow(T0 / T, x1);
-      case TemperatureModel::T2:
-        return x0 * pow(T0 / T, x1) * (1 + x2 * log(T / T0));
-      case TemperatureModel::T3:
-        return x0 + x1 * (T - T0);
-      case TemperatureModel::T4:
-        return (x0 + x1 * (T0 / T - 1.)) * pow(T0 / T, x2);
-      case TemperatureModel::T5:
-        return x0 * pow(T0 / T, 0.25 + 1.5 * x1);
-      case TemperatureModel::LM_AER:
-        return special_linemixing_aer(T, var);
-    }
-    std::terminate();
-  }
+/** Compute the broadening parameter at the input
+ * 
+ * @param[in] T The temperature
+ * @param[in] T0 The temperature used to derive the coefficients
+ * @param[in] var The variable
+ * 
+ * @return The broadening parameter at temperature
+ */
+Numeric compute(Numeric T, Numeric T0, Variable var) const noexcept {
+  using std::log;
+  using std::pow;
   
-  /** Derivative of compute(...) wrt x0
-   * 
-   * @param[in] T The temperature
-   * @param[in] T0 The temperature used to derive the coefficients
-   * @param[in] var The variable
-   * 
-   * @return Derivative of compute(...) wrt x0
-   */
-  Numeric compute_dX0(Numeric T, Numeric T0, Variable var) const noexcept {
-    using std::log;
-    using std::pow;
-
-    switch (X[Index(var)].type) {
-      case TemperatureModel::None:
-        return 0;
-      case TemperatureModel::T0:
-        return 1;
-      case TemperatureModel::T1:
-        return pow(T0 / T, x1);
-      case TemperatureModel::T2:
-        return pow(T0 / T, x1) * (1 + x2 * log(T / T0));
-      case TemperatureModel::T3:
-        return 1;
-      case TemperatureModel::T4:
-        return pow(T0 / T, x2);
-      case TemperatureModel::T5:
-        return pow(T0 / T, 1.5 * x1 + 0.25);
-      case TemperatureModel::LM_AER:
-        return 0;
-    }
-    std::terminate();
+  switch (X[Index(var)].type) {
+    case TemperatureModel::None:
+      return 0;
+    case TemperatureModel::T0:
+      return x0;
+    case TemperatureModel::T1:
+      return x0 * pow(T0 / T, x1);
+    case TemperatureModel::T2:
+      return x0 * pow(T0 / T, x1) * (1 + x2 * log(T / T0));
+    case TemperatureModel::T3:
+      return x0 + x1 * (T - T0);
+    case TemperatureModel::T4:
+      return (x0 + x1 * (T0 / T - 1.)) * pow(T0 / T, x2);
+    case TemperatureModel::T5:
+      return x0 * pow(T0 / T, 0.25 + 1.5 * x1);
+    case TemperatureModel::LM_AER:
+      return special_linemixing_aer(T, X[Index(var)]);
+    case TemperatureModel::DPL:
+      return x0 * pow(T0 / T, x1) + x2 * pow(T0 / T, x3);
   }
+  std::terminate();
+}
 
-  /** Derivative of compute(...) wrt x1
-   * 
-   * @param[in] T The temperature
-   * @param[in] T0 The temperature used to derive the coefficients
-   * @param[in] var The variable
-   * 
-   * @return Derivative of compute(...) wrt x1
-   */
-  Numeric compute_dX1(Numeric T, Numeric T0, Variable var) const noexcept {
-    using std::log;
-    using std::pow;
-
-    switch (X[Index(var)].type) {
-      case TemperatureModel::None:
-        return 0;
-      case TemperatureModel::T0:
-        return 0;
-      case TemperatureModel::T1:
-        return x0 * pow(T0 / T, x1) * log(T0 / T);
-      case TemperatureModel::T2:
-        return x0 * pow(T0 / T, x1) * (x2 * log(T / T0) + 1.) * log(T0 / T);
-      case TemperatureModel::T3:
-        return (T - T0);
-      case TemperatureModel::T4:
-        return pow(T0 / T, x2) * (T0 / T - 1.);
-      case TemperatureModel::T5:
-        return 1.5 * x0 * pow(T0 / T, 1.5 * x1 + 0.25) * log(T0 / T);
-      case TemperatureModel::LM_AER:
-        return 0;
-    }
-    std::terminate();
+/** Derivative of compute(...) wrt x0
+ * 
+ * @param[in] T The temperature
+ * @param[in] T0 The temperature used to derive the coefficients
+ * @param[in] var The variable
+ * 
+ * @return Derivative of compute(...) wrt x0
+ */
+Numeric compute_dX0(Numeric T, Numeric T0, Variable var) const noexcept {
+  using std::log;
+  using std::pow;
+  
+  switch (X[Index(var)].type) {
+    case TemperatureModel::None:
+      return 0;
+    case TemperatureModel::T0:
+      return 1;
+    case TemperatureModel::T1:
+      return pow(T0 / T, x1);
+    case TemperatureModel::T2:
+      return pow(T0 / T, x1) * (1 + x2 * log(T / T0));
+    case TemperatureModel::T3:
+      return 1;
+    case TemperatureModel::T4:
+      return pow(T0 / T, x2);
+    case TemperatureModel::T5:
+      return pow(T0 / T, 1.5 * x1 + 0.25);
+    case TemperatureModel::LM_AER:
+      return 0;
+    case TemperatureModel::DPL:
+      return pow(T0 / T, x1);
   }
+  std::terminate();
+}
 
-  /** Derivative of compute(...) wrt x2
-   * 
-   * @param[in] T The temperature
-   * @param[in] T0 The temperature used to derive the coefficients
-   * @param[in] var The variable
-   * 
-   * @return Derivative of compute(...) wrt x2
-   */
-  Numeric compute_dX2(Numeric T, Numeric T0, Variable var) const noexcept {
-    using std::log;
-    using std::pow;
-
-    switch (X[Index(var)].type) {
-      case TemperatureModel::None:
-        return 0;
-      case TemperatureModel::T0:
-        return 0;
-      case TemperatureModel::T1:
-        return 0;
-      case TemperatureModel::T2:
-        return x0 * pow(T0 / T, x1) * log(T / T0);
-      case TemperatureModel::T3:
-        return 0;
-      case TemperatureModel::T4:
-        return pow(T0 / T, x2) * (x0 + x1 * (T0 / T - 1)) * log(T0 / T);
-      case TemperatureModel::T5:
-        return 0;
-      case TemperatureModel::LM_AER:
-        return 0;
-    }
-    std::terminate();
+/** Derivative of compute(...) wrt x1
+ * 
+ * @param[in] T The temperature
+ * @param[in] T0 The temperature used to derive the coefficients
+ * @param[in] var The variable
+ * 
+ * @return Derivative of compute(...) wrt x1
+ */
+Numeric compute_dX1(Numeric T, Numeric T0, Variable var) const noexcept {
+  using std::log;
+  using std::pow;
+  
+  switch (X[Index(var)].type) {
+    case TemperatureModel::None:
+      return 0;
+    case TemperatureModel::T0:
+      return 0;
+    case TemperatureModel::T1:
+      return x0 * pow(T0 / T, x1) * log(T0 / T);
+    case TemperatureModel::T2:
+      return x0 * pow(T0 / T, x1) * (x2 * log(T / T0) + 1.) * log(T0 / T);
+    case TemperatureModel::T3:
+      return (T - T0);
+    case TemperatureModel::T4:
+      return pow(T0 / T, x2) * (T0 / T - 1.);
+    case TemperatureModel::T5:
+      return 1.5 * x0 * pow(T0 / T, 1.5 * x1 + 0.25) * log(T0 / T);
+    case TemperatureModel::LM_AER:
+      return 0;
+    case TemperatureModel::DPL:
+      return x0 * pow(T0 / T, x1) * log(T0 / T);
   }
+  std::terminate();
+}
 
-  /** Derivative of compute(...) wrt T
-   * 
-   * @param[in] T The temperature
-   * @param[in] T0 The temperature used to derive the coefficients
-   * @param[in] var The variable
-   * 
-   * @return Derivative of compute(...) wrt T
-   */
-  Numeric compute_dT(Numeric T, Numeric T0, Variable var) const noexcept {
-    using std::log;
-    using std::pow;
-
-    switch (X[Index(var)].type) {
-      case TemperatureModel::None:
-        return 0;
-      case TemperatureModel::T0:
-        return 0;
-      case TemperatureModel::T1:
-        return -x0 * x1 * pow(T0 / T, x1) / T;
-      case TemperatureModel::T2:
-        return -x0 * x1 * pow(T0 / T, x1) * (x2 * log(T / T0) + 1.) / T +
-               x0 * x2 * pow(T0 / T, x1) / T;
-      case TemperatureModel::T3:
-        return x1;
-      case TemperatureModel::T4:
-        return -x2 * pow(T0 / T, x2) * (x0 + x1 * (T0 / T - 1.)) / T -
-               T0 * x1 * pow(T0 / T, x2) / pow(T, 2);
-      case TemperatureModel::T5:
-        return -x0 * pow(T0 / T, 1.5 * x1 + 0.25) * (1.5 * x1 + 0.25) / T;
-      case TemperatureModel::LM_AER:
-        return special_linemixing_aer_dT(T, var);
-    }
-    std::terminate();
+/** Derivative of compute(...) wrt x2
+ * 
+ * @param[in] T The temperature
+ * @param[in] T0 The temperature used to derive the coefficients
+ * @param[in] var The variable
+ * 
+ * @return Derivative of compute(...) wrt x2
+ */
+Numeric compute_dX2(Numeric T, Numeric T0, Variable var) const noexcept {
+  using std::log;
+  using std::pow;
+  
+  switch (X[Index(var)].type) {
+    case TemperatureModel::None:
+      return 0;
+    case TemperatureModel::T0:
+      return 0;
+    case TemperatureModel::T1:
+      return 0;
+    case TemperatureModel::T2:
+      return x0 * pow(T0 / T, x1) * log(T / T0);
+    case TemperatureModel::T3:
+      return 0;
+    case TemperatureModel::T4:
+      return pow(T0 / T, x2) * (x0 + x1 * (T0 / T - 1)) * log(T0 / T);
+    case TemperatureModel::T5:
+      return 0;
+    case TemperatureModel::LM_AER:
+      return 0;
+    case TemperatureModel::DPL:
+      return pow(T0 / T, x3);
   }
+  std::terminate();
+}
 
-  /** Derivative of compute(...) wrt T0
-   * 
-   * @param[in] T The temperature
-   * @param[in] T0 The temperature used to derive the coefficients
-   * @param[in] var The variable
-   * 
-   * @return Derivative of compute(...) wrt T0
-   */
-  Numeric compute_dT0(Numeric T, Numeric T0, Variable var) const noexcept {
-    using std::log;
-    using std::pow;
-
-    switch (X[Index(var)].type) {
-      case TemperatureModel::None:
-        return 0;
-      case TemperatureModel::T0:
-        return 0;
-      case TemperatureModel::T1:
-        return x0 * x1 * pow(T0 / T, x1) / T0;
-      case TemperatureModel::T2:
-        return x0 * x1 * pow(T0 / T, x1) * (x2 * log(T / T0) + 1.) / T0 -
-               x0 * x2 * pow(T0 / T, x1) / T0;
-      case TemperatureModel::T3:
-        return -x1;
-      case TemperatureModel::T4:
-        return x2 * pow(T0 / T, x2) * (x0 + x1 * (T0 / T - 1.)) / T0 +
-               x1 * pow(T0 / T, x2) / T;
-      case TemperatureModel::T5:
-        return x0 * pow(T0 / T, 1.5 * x1 + 0.25) * (1.5 * x1 + 0.25) / T0;
-      case TemperatureModel::LM_AER:
-        return 0;
-    }
-    std::terminate();
+/** Derivative of compute(...) wrt x3
+ * 
+ * @param[in] T The temperature
+ * @param[in] T0 The temperature used to derive the coefficients
+ * @param[in] var The variable
+ * 
+ * @return Derivative of compute(...) wrt x3
+ */
+Numeric compute_dX3(Numeric T, Numeric T0, Variable var) const noexcept {
+  using std::log;
+  using std::pow;
+  
+  switch (X[Index(var)].type) {
+    case TemperatureModel::None:
+      return 0;
+    case TemperatureModel::T0:
+      return 0;
+    case TemperatureModel::T1:
+      return 0;
+    case TemperatureModel::T2:
+      return 0;
+    case TemperatureModel::T3:
+      return 0;
+    case TemperatureModel::T4:
+      return 0;
+    case TemperatureModel::T5:
+      return 0;
+    case TemperatureModel::LM_AER:
+      return 0;
+    case TemperatureModel::DPL:
+      return x2 * pow(T0 / T, x3) * log(T0 / T);
   }
+  std::terminate();
+}
+
+/** Derivative of compute(...) wrt T
+ * 
+ * @param[in] T The temperature
+ * @param[in] T0 The temperature used to derive the coefficients
+ * @param[in] var The variable
+ * 
+ * @return Derivative of compute(...) wrt T
+ */
+Numeric compute_dT(Numeric T, Numeric T0, Variable var) const noexcept {
+  using std::log;
+  using std::pow;
+  
+  switch (X[Index(var)].type) {
+    case TemperatureModel::None:
+      return 0;
+    case TemperatureModel::T0:
+      return 0;
+    case TemperatureModel::T1:
+      return -x0 * x1 * pow(T0 / T, x1) / T;
+    case TemperatureModel::T2:
+      return -x0 * x1 * pow(T0 / T, x1) * (x2 * log(T / T0) + 1.) / T +
+      x0 * x2 * pow(T0 / T, x1) / T;
+    case TemperatureModel::T3:
+      return x1;
+    case TemperatureModel::T4:
+      return -x2 * pow(T0 / T, x2) * (x0 + x1 * (T0 / T - 1.)) / T -
+      T0 * x1 * pow(T0 / T, x2) / pow(T, 2);
+    case TemperatureModel::T5:
+      return -x0 * pow(T0 / T, 1.5 * x1 + 0.25) * (1.5 * x1 + 0.25) / T;
+    case TemperatureModel::LM_AER:
+      return special_linemixing_aer_dT(T, X[Index(var)]);
+    case TemperatureModel::DPL:
+      return -x0 * x1 * pow(T0 / T, x1) / T + -x2 * x3 * pow(T0 / T, x3) / T;
+  }
+  std::terminate();
+}
+
+/** Derivative of compute(...) wrt T0
+ * 
+ * @param[in] T The temperature
+ * @param[in] T0 The temperature used to derive the coefficients
+ * @param[in] var The variable
+ * 
+ * @return Derivative of compute(...) wrt T0
+ */
+Numeric compute_dT0(Numeric T, Numeric T0, Variable var) const noexcept {
+  using std::log;
+  using std::pow;
+  
+  switch (X[Index(var)].type) {
+    case TemperatureModel::None:
+      return 0;
+    case TemperatureModel::T0:
+      return 0;
+    case TemperatureModel::T1:
+      return x0 * x1 * pow(T0 / T, x1) / T0;
+    case TemperatureModel::T2:
+      return x0 * x1 * pow(T0 / T, x1) * (x2 * log(T / T0) + 1.) / T0 -
+      x0 * x2 * pow(T0 / T, x1) / T0;
+    case TemperatureModel::T3:
+      return -x1;
+    case TemperatureModel::T4:
+      return x2 * pow(T0 / T, x2) * (x0 + x1 * (T0 / T - 1.)) / T0 +
+      x1 * pow(T0 / T, x2) / T;
+    case TemperatureModel::T5:
+      return x0 * pow(T0 / T, 1.5 * x1 + 0.25) * (1.5 * x1 + 0.25) / T0;
+    case TemperatureModel::LM_AER:
+      return 0;
+    case TemperatureModel::DPL:
+      return x0 * x1 * pow(T0 / T, x1) / T0 + x2 * x3 * pow(T0 / T, x3) / T0;
+  }
+  std::terminate();
+}
 
 #undef x0
 #undef x1
 #undef x2
+#undef x3
 
 #define ACCESS_INTERNAL(VARPOS)                                             \
   ModelParameters& VARPOS() noexcept { return X[Index(Variable::VARPOS)]; } \
@@ -991,14 +1066,6 @@ class SingleSpeciesModel2 {
   
   /** Get const internal Data reference */
   const std::array<ModelParameters, nVars>& Data() const noexcept { return X; }
-  
-  /** Get internal Interp reference */
-  std::array<Numeric, nmaxInterpModels>& Interp() noexcept { return V; }
-  
-  /** Get const internal Interp reference */
-  const std::array<Numeric, nmaxInterpModels>& Interp() const noexcept {
-    return V;
-  }
 
   /** Set variable to a different ModelParameters
    * 
@@ -1071,12 +1138,7 @@ inline std::ostream& operator<<(std::ostream& os,
                                 const SingleSpeciesModel2& ssm) {
   for (const auto& mp : ssm.Data())
     if (mp.type not_eq TemperatureModel::None)
-      os << mp.X0 << ' ' << mp.X1 << ' ' << mp.X2 << ' ';;
-
-  if (std::any_of(ssm.Data().cbegin(), ssm.Data().cend(),
-    [](auto& x){return x.type == TemperatureModel::LM_AER;}))
-    for (const auto& num : ssm.Interp())
-      os << num << ' ';
+      os << mp.X0 << ' ' << mp.X1 << ' ' << mp.X2 << ' ' << mp.X3 << ' ';
   return os;
 }
 
@@ -1084,12 +1146,7 @@ inline std::ostream& operator<<(std::ostream& os,
 inline std::istream& operator>>(std::istream& is, SingleSpeciesModel2& ssm) {
   for (auto& mp : ssm.Data())
     if(mp.type not_eq TemperatureModel::None)
-      is >> mp.X0 >> mp.X1 >> mp.X2;
-  
-  if (std::any_of(ssm.Data().cbegin(), ssm.Data().cend(),
-    [](auto& x){return x.type == TemperatureModel::LM_AER;}))
-    for (auto& num : ssm.Interp())
-      is >> num;
+      is >> mp.X0 >> mp.X1 >> mp.X2 >> mp.X3;
   return is;
 }
 
@@ -1289,22 +1346,37 @@ class Model {
         Numeric agam,
         Numeric nair,
         Numeric psf,
-        std::array<Numeric, nmaxInterpModels> interp =
+        std::array<Numeric, 12> aer_interp =
             {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}) noexcept
       : mtype(Type::VP), mself(true), mbath(true), mspecies(2), mdata(2) {
-    mdata.front().G0() = {TemperatureModel::T1, sgam, nself, 0};
-    mdata.front().D0() = {TemperatureModel::T5, psf, nair, 0};
+    mdata.front().G0() = {TemperatureModel::T1, sgam, nself, 0, 0};
+    mdata.front().D0() = {TemperatureModel::T5, psf, nair, 0, 0};
 
-    mdata.back().G0() = {TemperatureModel::T1, agam, nair, 0};
-    mdata.back().D0() = {TemperatureModel::T5, psf, nair, 0};
+    mdata.back().G0() = {TemperatureModel::T1, agam, nair, 0, 0};
+    mdata.back().D0() = {TemperatureModel::T5, psf, nair, 0, 0};
     
-    if (std::any_of(interp.cbegin(), interp.cend(), [](auto x){return x not_eq 0;})) {
+    if (std::any_of(aer_interp.cbegin(), aer_interp.cend(), [](auto x){return x not_eq 0;})) {
       mdata.front().Y().type = TemperatureModel::LM_AER;
       mdata.front().G().type = TemperatureModel::LM_AER;
-      mdata.front().Interp() = interp;
+      mdata.front().Y().X0 = aer_interp[4];
+      mdata.front().Y().X1 = aer_interp[5];
+      mdata.front().Y().X2 = aer_interp[6];
+      mdata.front().Y().X3 = aer_interp[7];
+      mdata.front().G().X0 = aer_interp[8];
+      mdata.front().G().X1 = aer_interp[9];
+      mdata.front().G().X2 = aer_interp[10];
+      mdata.front().G().X3 = aer_interp[11];
+      
       mdata.back().Y().type = TemperatureModel::LM_AER;
       mdata.back().G().type = TemperatureModel::LM_AER;
-      mdata.back().Interp() = interp;
+      mdata.back().Y().X0 = aer_interp[4];
+      mdata.back().Y().X1 = aer_interp[5];
+      mdata.back().Y().X2 = aer_interp[6];
+      mdata.back().Y().X3 = aer_interp[7];
+      mdata.back().G().X0 = aer_interp[8];
+      mdata.back().G().X1 = aer_interp[9];
+      mdata.back().G().X2 = aer_interp[10];
+      mdata.back().G().X3 = aer_interp[11];
     }
   }
 
@@ -1477,22 +1549,50 @@ class Model {
       return 0;                                                      \
   }
   LSPDC(G0, _dT0, P)
-  LSPDC(G0, _dX0, P) LSPDC(G0, _dX1, P) LSPDC(G0, _dX2, P) LSPDC(D0, _dT0, P)
-      LSPDC(D0, _dX0, P) LSPDC(D0, _dX1, P) LSPDC(D0, _dX2, P) LSPDC(
-          G2, _dT0, P) LSPDC(G2, _dX0, P) LSPDC(G2, _dX1, P) LSPDC(G2, _dX2, P)
-          LSPDC(D2, _dT0, P) LSPDC(D2, _dX0, P) LSPDC(D2, _dX1, P)
-              LSPDC(D2, _dX2, P) LSPDC(FVC, _dT0, P) LSPDC(FVC, _dX0, P)
-                  LSPDC(FVC, _dX1, P) LSPDC(FVC, _dX2, P) LSPDC(ETA, _dT0, 1)
-                      LSPDC(ETA, _dX0, 1) LSPDC(ETA, _dX1, 1)
-                          LSPDC(ETA, _dX2, 1) LSPDC(Y, _dT0, P)
-                              LSPDC(Y, _dX0, P) LSPDC(Y, _dX1, P)
-                                  LSPDC(Y, _dX2, P) LSPDC(G, _dT0, P* P)
-                                      LSPDC(G, _dX0, P* P) LSPDC(G, _dX1, P* P)
-                                          LSPDC(G, _dX2, P* P)
-                                              LSPDC(DV, _dT0, P* P)
-                                                  LSPDC(DV, _dX0, P* P)
-                                                      LSPDC(DV, _dX1, P* P)
-                                                          LSPDC(DV, _dX2, P* P)
+  LSPDC(G0, _dX0, P)
+  LSPDC(G0, _dX1, P)
+  LSPDC(G0, _dX2, P)
+  LSPDC(G0, _dX3, P)
+  LSPDC(D0, _dT0, P)
+  LSPDC(D0, _dX0, P)
+  LSPDC(D0, _dX1, P)
+  LSPDC(D0, _dX2, P)
+  LSPDC(D0, _dX3, P)
+  LSPDC(G2, _dT0, P)
+  LSPDC(G2, _dX0, P)
+  LSPDC(G2, _dX1, P)
+  LSPDC(G2, _dX2, P)
+  LSPDC(G2, _dX3, P)
+  LSPDC(D2, _dT0, P)
+  LSPDC(D2, _dX0, P)
+  LSPDC(D2, _dX1, P)
+  LSPDC(D2, _dX2, P)
+  LSPDC(D2, _dX3, P)
+  LSPDC(FVC, _dT0, P)
+  LSPDC(FVC, _dX0, P)
+  LSPDC(FVC, _dX1, P)
+  LSPDC(FVC, _dX2, P)
+  LSPDC(FVC, _dX3, P)
+  LSPDC(ETA, _dT0, 1)
+  LSPDC(ETA, _dX0, 1)
+  LSPDC(ETA, _dX1, 1)
+  LSPDC(ETA, _dX2, 1)
+  LSPDC(ETA, _dX3, 1)
+  LSPDC(Y, _dT0, P)
+  LSPDC(Y, _dX0, P)
+  LSPDC(Y, _dX1, P)
+  LSPDC(Y, _dX2, P)
+  LSPDC(Y, _dX3, P)
+  LSPDC(G, _dT0, P* P)
+  LSPDC(G, _dX0, P* P)
+  LSPDC(G, _dX1, P* P)
+  LSPDC(G, _dX2, P* P)
+  LSPDC(G, _dX3, P* P)
+  LSPDC(DV, _dT0, P* P)
+  LSPDC(DV, _dX0, P* P)
+  LSPDC(DV, _dX1, P* P)
+  LSPDC(DV, _dX2, P* P)
+  LSPDC(DV, _dX3, P* P)
 #undef LSPDC
 
   /** Compute all shape parameters
@@ -1589,20 +1689,23 @@ class Model {
   case JacPropMatType::LineShape##TYPE##X1:    \
     return d##TYPE##_dX1(T, T0, P, pos, vmrs); \
   case JacPropMatType::LineShape##TYPE##X2:    \
-    return d##TYPE##_dX2(T, T0, P, pos, vmrs)
-    switch (deriv) {
-      RETURNINTERNALDERIVATIVE(G0);
-      RETURNINTERNALDERIVATIVE(D0);
-      RETURNINTERNALDERIVATIVE(G2);
-      RETURNINTERNALDERIVATIVE(D2);
-      RETURNINTERNALDERIVATIVE(FVC);
-      RETURNINTERNALDERIVATIVE(ETA);
-      RETURNINTERNALDERIVATIVE(Y);
-      RETURNINTERNALDERIVATIVE(G);
-      RETURNINTERNALDERIVATIVE(DV);
-      default:
-        return 0;
-    }
+    return d##TYPE##_dX2(T, T0, P, pos, vmrs); \
+  case JacPropMatType::LineShape##TYPE##X3:    \
+    return d##TYPE##_dX3(T, T0, P, pos, vmrs)
+  
+  switch (deriv) {
+    RETURNINTERNALDERIVATIVE(G0);
+    RETURNINTERNALDERIVATIVE(D0);
+    RETURNINTERNALDERIVATIVE(G2);
+    RETURNINTERNALDERIVATIVE(D2);
+    RETURNINTERNALDERIVATIVE(FVC);
+    RETURNINTERNALDERIVATIVE(ETA);
+    RETURNINTERNALDERIVATIVE(Y);
+    RETURNINTERNALDERIVATIVE(G);
+    RETURNINTERNALDERIVATIVE(DV);
+    default:
+      return 0;
+  }
 #undef RETURNINTERNALDERIVATIVE
   }
 
@@ -1757,9 +1860,6 @@ class Model {
       ssm.Y() = x.Y();
       ssm.G() = x.G();
       ssm.DV() = x.DV();
-      if (x.Y().type == TemperatureModel::LM_AER or
-          x.G().type == TemperatureModel::LM_AER)
-        ssm.Interp() = x.Interp();
     }
   }
 };
@@ -1834,6 +1934,8 @@ inline Index temperaturemodel2legacynelem(TemperatureModel type) noexcept {
       return 2;
     case TemperatureModel::LM_AER:
       return 12;
+    case TemperatureModel::DPL:
+      return 4;
   }
   std::terminate();  // Not allowed to reach, fix higher level code
 }
@@ -2039,7 +2141,6 @@ class Model2 {
       mdata[i].G() = assm[i].G();
       mdata[i].Y() = assm[i].Y();
       mdata[i].DV() = assm[i].DV();
-      mdata[i].Interp() = assm[i].Interp();
     }
   }
   
@@ -2072,22 +2173,36 @@ class Model2 {
          Numeric agam,
          Numeric nair,
          Numeric psf,
-         std::array<Numeric, nmaxInterpModels> interp =
+         std::array<Numeric, 12> aer_interp =
              {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}) noexcept : mdata(2) {
-    mdata.front().G0() = {TemperatureModel::T1, sgam, nself, 0};
-    mdata.front().D0() = {TemperatureModel::T5, psf, nair, 0};
+    mdata.front().G0() = {TemperatureModel::T1, sgam, nself, 0, 0};
+    mdata.front().D0() = {TemperatureModel::T5, psf, nair, 0, 0};
 
-    mdata.back().G0() = {TemperatureModel::T1, agam, nair, 0};
-    mdata.back().D0() = {TemperatureModel::T5, psf, nair, 0};
+    mdata.back().G0() = {TemperatureModel::T1, agam, nair, 0, 0};
+    mdata.back().D0() = {TemperatureModel::T5, psf, nair, 0, 0};
     
-    if (std::any_of(interp.cbegin(), interp.cend(), [](auto x){return x not_eq 0;})) {
+    if (std::any_of(aer_interp.cbegin(), aer_interp.cend(), [](auto x){return x not_eq 0;})) {
       mdata.front().Y().type = TemperatureModel::LM_AER;
+      mdata.front().Y().X0 = aer_interp[4];
+      mdata.front().Y().X1 = aer_interp[5];
+      mdata.front().Y().X2 = aer_interp[6];
+      mdata.front().Y().X3 = aer_interp[7];
       mdata.front().G().type = TemperatureModel::LM_AER;
-      mdata.front().Interp() = interp;
+      mdata.front().G().X0 = aer_interp[8];
+      mdata.front().G().X1 = aer_interp[9];
+      mdata.front().G().X2 = aer_interp[10];
+      mdata.front().G().X3 = aer_interp[11];
       
       mdata.back().Y().type = TemperatureModel::LM_AER;
+      mdata.back().Y().X0 = aer_interp[4];
+      mdata.back().Y().X1 = aer_interp[5];
+      mdata.back().Y().X2 = aer_interp[6];
+      mdata.back().Y().X3 = aer_interp[7];
       mdata.back().G().type = TemperatureModel::LM_AER;
-      mdata.back().Interp() = interp;
+      mdata.back().G().X0 = aer_interp[8];
+      mdata.back().G().X1 = aer_interp[9];
+      mdata.back().G().X2 = aer_interp[10];
+      mdata.back().G().X3 = aer_interp[11];
     }
   }
   
@@ -2164,7 +2279,7 @@ class Model2 {
                vmrs.begin(),                                                 \
                0.0,                                                          \
                std::plus<Numeric>(),                                         \
-               [=](auto& x, auto vmr) -> Numeric {    \
+               [=](auto& x, auto vmr) -> Numeric {                           \
                  return vmr * x.compute_dT(T, T0, Variable::XVAR);           \
                });                                                           \
   }
@@ -2193,22 +2308,50 @@ class Model2 {
       return 0;                                                      \
   }
   LSPDC(G0, _dT0, P)
-  LSPDC(G0, _dX0, P) LSPDC(G0, _dX1, P) LSPDC(G0, _dX2, P) LSPDC(D0, _dT0, P)
-      LSPDC(D0, _dX0, P) LSPDC(D0, _dX1, P) LSPDC(D0, _dX2, P) LSPDC(
-          G2, _dT0, P) LSPDC(G2, _dX0, P) LSPDC(G2, _dX1, P) LSPDC(G2, _dX2, P)
-          LSPDC(D2, _dT0, P) LSPDC(D2, _dX0, P) LSPDC(D2, _dX1, P)
-              LSPDC(D2, _dX2, P) LSPDC(FVC, _dT0, P) LSPDC(FVC, _dX0, P)
-                  LSPDC(FVC, _dX1, P) LSPDC(FVC, _dX2, P) LSPDC(ETA, _dT0, 1)
-                      LSPDC(ETA, _dX0, 1) LSPDC(ETA, _dX1, 1)
-                          LSPDC(ETA, _dX2, 1) LSPDC(Y, _dT0, P)
-                              LSPDC(Y, _dX0, P) LSPDC(Y, _dX1, P)
-                                  LSPDC(Y, _dX2, P) LSPDC(G, _dT0, P* P)
-                                      LSPDC(G, _dX0, P* P) LSPDC(G, _dX1, P* P)
-                                          LSPDC(G, _dX2, P* P)
-                                              LSPDC(DV, _dT0, P* P)
-                                                  LSPDC(DV, _dX0, P* P)
-                                                      LSPDC(DV, _dX1, P* P)
-                                                          LSPDC(DV, _dX2, P* P)
+  LSPDC(G0, _dX0, P)
+  LSPDC(G0, _dX1, P)
+  LSPDC(G0, _dX2, P)
+  LSPDC(G0, _dX3, P)
+  LSPDC(D0, _dT0, P)
+  LSPDC(D0, _dX0, P)
+  LSPDC(D0, _dX1, P)
+  LSPDC(D0, _dX2, P)
+  LSPDC(D0, _dX3, P)
+  LSPDC(G2, _dT0, P)
+  LSPDC(G2, _dX0, P)
+  LSPDC(G2, _dX1, P)
+  LSPDC(G2, _dX2, P)
+  LSPDC(G2, _dX3, P)
+  LSPDC(D2, _dT0, P)
+  LSPDC(D2, _dX0, P)
+  LSPDC(D2, _dX1, P)
+  LSPDC(D2, _dX2, P)
+  LSPDC(D2, _dX3, P)
+  LSPDC(FVC, _dT0, P)
+  LSPDC(FVC, _dX0, P)
+  LSPDC(FVC, _dX1, P)
+  LSPDC(FVC, _dX2, P)
+  LSPDC(FVC, _dX3, P)
+  LSPDC(ETA, _dT0, 1)
+  LSPDC(ETA, _dX0, 1)
+  LSPDC(ETA, _dX1, 1)
+  LSPDC(ETA, _dX2, 1)
+  LSPDC(ETA, _dX3, 1)
+  LSPDC(Y, _dT0, P)
+  LSPDC(Y, _dX0, P)
+  LSPDC(Y, _dX1, P)
+  LSPDC(Y, _dX2, P)
+  LSPDC(Y, _dX3, P)
+  LSPDC(G, _dT0, P* P)
+  LSPDC(G, _dX0, P* P)
+  LSPDC(G, _dX1, P* P)
+  LSPDC(G, _dX2, P* P)
+  LSPDC(G, _dX3, P* P)
+  LSPDC(DV, _dT0, P* P)
+  LSPDC(DV, _dX0, P* P)
+  LSPDC(DV, _dX1, P* P)
+  LSPDC(DV, _dX2, P* P)
+  LSPDC(DV, _dX3, P* P)
 #undef LSPDC
 
   /** Compute all shape parameters
@@ -2305,7 +2448,9 @@ class Model2 {
   case JacPropMatType::LineShape##TYPE##X1:    \
     return d##TYPE##_dX1(T, T0, P, pos, vmrs); \
   case JacPropMatType::LineShape##TYPE##X2:    \
-    return d##TYPE##_dX2(T, T0, P, pos, vmrs)
+    return d##TYPE##_dX2(T, T0, P, pos, vmrs); \
+  case JacPropMatType::LineShape##TYPE##X3:    \
+    return d##TYPE##_dX3(T, T0, P, pos, vmrs)
     switch (deriv) {
       RETURNINTERNALDERIVATIVE(G0);
       RETURNINTERNALDERIVATIVE(D0);
@@ -2374,9 +2519,6 @@ class Model2 {
       ssm.Y() = x.Y();
       ssm.G() = x.G();
       ssm.DV() = x.DV();
-      if (x.Y().type == TemperatureModel::LM_AER or
-          x.G().type == TemperatureModel::LM_AER)
-        ssm.Interp() = x.Interp();
     }
   }
   void SetLineMixingModel(SingleSpeciesModel2 x) {
@@ -2384,9 +2526,6 @@ class Model2 {
       ssm.Y() = x.Y();
       ssm.G() = x.G();
       ssm.DV() = x.DV();
-      if (x.Y().type == TemperatureModel::LM_AER or
-        x.G().type == TemperatureModel::LM_AER)
-        ssm.Interp() = x.Interp();
     }
   }
   

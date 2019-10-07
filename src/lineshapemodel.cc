@@ -34,7 +34,7 @@
 
 #include "lineshapemodel.h"
 
-ArrayOfString AllLineShapeCoeffs() { return {"X0", "X1", "X2"}; }
+ArrayOfString AllLineShapeCoeffs() { return {"X0", "X1", "X2", "X3"}; }
 
 ArrayOfString AllLineShapeVars() {
   return {"G0", "D0", "G2", "D2", "FVC", "ETA", "Y", "G", "DV"};
@@ -74,11 +74,19 @@ JacPropMatType select_derivativeLineShape(const String& var,
       return JacPropMatType::LineShape##ID##X1; \
     else if (coeff == "X2")                     \
       return JacPropMatType::LineShape##ID##X2; \
+    else if (coeff == "X3")                     \
+      return JacPropMatType::LineShape##ID##X3; \
   }
 
-  if
-    ReturnJacPropMatType(G0) else if ReturnJacPropMatType(D0) else if ReturnJacPropMatType(G2) else if ReturnJacPropMatType(D2) else if ReturnJacPropMatType(
-        FVC) else if ReturnJacPropMatType(ETA) else if ReturnJacPropMatType(Y) else if ReturnJacPropMatType(G) else if ReturnJacPropMatType(DV)
+  if ReturnJacPropMatType(G0)
+  else if ReturnJacPropMatType(D0)
+  else if ReturnJacPropMatType(G2)
+  else if ReturnJacPropMatType(D2)
+  else if ReturnJacPropMatType(FVC)
+  else if ReturnJacPropMatType(ETA)
+  else if ReturnJacPropMatType(Y)
+  else if ReturnJacPropMatType(G)
+  else if ReturnJacPropMatType(DV)
 #undef ReturnJacPropMatType
 
         std::terminate();
@@ -236,10 +244,17 @@ std::istream& LineShape::from_linefunctiondata(std::istream& data, Model& m) {
                   "Unknown number of input parameters in Legacy mode.");
           }
         } else {  // Has to be the only allowed interpolation case
-          if (ntemp > nmaxInterpModels)
+          if (ntemp > 12) {
             throw std::runtime_error(
                 "Too many input parameters in interpolation results Legacy mode.");
-          for (Index k = 0; k < ntemp; k++) data >> m.mdata[i].Interp()[k];
+          }
+          Numeric temp;
+          data >> temp;  // should be 200
+          data >> temp;  // should be 250
+          data >> temp;  // should be 296
+          data >> temp;  // should be 340
+          data >> m.mdata[i].Y().X0 >> m.mdata[i].Y().X1 >> m.mdata[i].Y().X2 >> m.mdata[i].Y().X3 
+               >> m.mdata[i].G().X0 >> m.mdata[i].G().X1 >> m.mdata[i].G().X2 >> m.mdata[i].G().X3;
         }
       }
     }
@@ -296,21 +311,21 @@ LineShape::Model LineShape::LegacyPressureBroadeningData::vector2modelpb(
         ArrayOfSpeciesTag spec(2);
         spec[0] = SpeciesTag("H2O");
         std::vector<SingleSpeciesModel> ssm(2);
-        ssm[0].G0() = {TemperatureModel::T1, x[0], x[1], 0};
-        ssm[0].D0() = {TemperatureModel::T5, x[2], x[1], 0};
-        ssm[1].G0() = {TemperatureModel::T1, x[3], x[4], 0};
-        ssm[1].D0() = {TemperatureModel::T5, x[5], x[4], 0};
+        ssm[0].G0() = {TemperatureModel::T1, x[0], x[1], 0, 0};
+        ssm[0].D0() = {TemperatureModel::T5, x[2], x[1], 0, 0};
+        ssm[1].G0() = {TemperatureModel::T1, x[3], x[4], 0, 0};
+        ssm[1].D0() = {TemperatureModel::T5, x[5], x[4], 0, 0};
         return Model(LineShape::Type::VP, false, true, spec, ssm);
       } else {
         ArrayOfSpeciesTag spec(3);
         spec[1] = SpeciesTag("H2O");
         std::vector<SingleSpeciesModel> ssm(3);
-        ssm[0].G0() = {TemperatureModel::T1, x[0], x[1], 0};
-        ssm[0].D0() = {TemperatureModel::T5, x[2], x[1], 0};
-        ssm[2].G0() = {TemperatureModel::T1, x[3], x[4], 0};
-        ssm[2].D0() = {TemperatureModel::T5, x[5], x[4], 0};
-        ssm[1].G0() = {TemperatureModel::T1, x[6], x[7], 0};
-        ssm[1].D0() = {TemperatureModel::T5, x[8], x[7], 0};
+        ssm[0].G0() = {TemperatureModel::T1, x[0], x[1], 0, 0};
+        ssm[0].D0() = {TemperatureModel::T5, x[2], x[1], 0, 0};
+        ssm[2].G0() = {TemperatureModel::T1, x[3], x[4], 0, 0};
+        ssm[2].D0() = {TemperatureModel::T5, x[5], x[4], 0, 0};
+        ssm[1].G0() = {TemperatureModel::T1, x[6], x[7], 0, 0};
+        ssm[1].D0() = {TemperatureModel::T5, x[8], x[7], 0, 0};
         return Model(LineShape::Type::VP, true, true, spec, ssm);
       }
     case TypePB::PB_PLANETARY_BROADENING:
@@ -322,18 +337,18 @@ LineShape::Model LineShape::LegacyPressureBroadeningData::vector2modelpb(
                                         SpeciesTag(String("H2")),
                                         SpeciesTag(String("He"))};
         std::vector<SingleSpeciesModel> ssm(6);
-        ssm[0].G0() = {TemperatureModel::T1, x[1], x[8], 0};
-        ssm[0].D0() = {TemperatureModel::T5, x[14], x[8], 0};
-        ssm[1].G0() = {TemperatureModel::T1, x[2], x[9], 0};
-        ssm[1].D0() = {TemperatureModel::T5, x[15], x[9], 0};
-        ssm[2].G0() = {TemperatureModel::T1, x[3], x[10], 0};
-        ssm[2].D0() = {TemperatureModel::T5, x[16], x[10], 0};
-        ssm[3].G0() = {TemperatureModel::T1, x[4], x[11], 0};
-        ssm[3].D0() = {TemperatureModel::T5, x[17], x[11], 0};
-        ssm[4].G0() = {TemperatureModel::T1, x[5], x[12], 0};
-        ssm[4].D0() = {TemperatureModel::T5, x[18], x[12], 0};
-        ssm[5].G0() = {TemperatureModel::T1, x[6], x[13], 0};
-        ssm[5].D0() = {TemperatureModel::T5, x[19], x[13], 0};
+        ssm[0].G0() = {TemperatureModel::T1, x[1], x[8], 0, 0};
+        ssm[0].D0() = {TemperatureModel::T5, x[14], x[8], 0, 0};
+        ssm[1].G0() = {TemperatureModel::T1, x[2], x[9], 0, 0};
+        ssm[1].D0() = {TemperatureModel::T5, x[15], x[9], 0, 0};
+        ssm[2].G0() = {TemperatureModel::T1, x[3], x[10], 0, 0};
+        ssm[2].D0() = {TemperatureModel::T5, x[16], x[10], 0, 0};
+        ssm[3].G0() = {TemperatureModel::T1, x[4], x[11], 0, 0};
+        ssm[3].D0() = {TemperatureModel::T5, x[17], x[11], 0, 0};
+        ssm[4].G0() = {TemperatureModel::T1, x[5], x[12], 0, 0};
+        ssm[4].D0() = {TemperatureModel::T5, x[18], x[12], 0, 0};
+        ssm[5].G0() = {TemperatureModel::T1, x[6], x[13], 0, 0};
+        ssm[5].D0() = {TemperatureModel::T5, x[19], x[13], 0, 0};
         return Model(LineShape::Type::VP, false, false, spec, ssm);
       } else {
         ArrayOfSpeciesTag spec(7);
@@ -344,20 +359,20 @@ LineShape::Model LineShape::LegacyPressureBroadeningData::vector2modelpb(
         spec[5] = SpeciesTag(String("H2"));
         spec[6] = SpeciesTag(String("He"));
         std::vector<SingleSpeciesModel> ssm(7);
-        ssm[0].G0() = {TemperatureModel::T1, x[0], x[7], 0};
+        ssm[0].G0() = {TemperatureModel::T1, x[0], x[7], 0, 0};
         //          ssm[0].D0() = ...
-        ssm[1].G0() = {TemperatureModel::T1, x[1], x[8], 0};
-        ssm[1].D0() = {TemperatureModel::T5, x[14], x[8], 0};
-        ssm[2].G0() = {TemperatureModel::T1, x[2], x[9], 0};
-        ssm[2].D0() = {TemperatureModel::T5, x[15], x[9], 0};
-        ssm[3].G0() = {TemperatureModel::T1, x[3], x[10], 0};
-        ssm[3].D0() = {TemperatureModel::T5, x[16], x[10], 0};
-        ssm[4].G0() = {TemperatureModel::T1, x[4], x[11], 0};
-        ssm[4].D0() = {TemperatureModel::T5, x[17], x[11], 0};
-        ssm[5].G0() = {TemperatureModel::T1, x[5], x[12], 0};
-        ssm[5].D0() = {TemperatureModel::T5, x[18], x[12], 0};
-        ssm[6].G0() = {TemperatureModel::T1, x[6], x[13], 0};
-        ssm[6].D0() = {TemperatureModel::T5, x[19], x[13], 0};
+        ssm[1].G0() = {TemperatureModel::T1, x[1], x[8], 0, 0};
+        ssm[1].D0() = {TemperatureModel::T5, x[14], x[8], 0, 0};
+        ssm[2].G0() = {TemperatureModel::T1, x[2], x[9], 0, 0};
+        ssm[2].D0() = {TemperatureModel::T5, x[15], x[9], 0, 0};
+        ssm[3].G0() = {TemperatureModel::T1, x[3], x[10], 0, 0};
+        ssm[3].D0() = {TemperatureModel::T5, x[16], x[10], 0, 0};
+        ssm[4].G0() = {TemperatureModel::T1, x[4], x[11], 0, 0};
+        ssm[4].D0() = {TemperatureModel::T5, x[17], x[11], 0, 0};
+        ssm[5].G0() = {TemperatureModel::T1, x[5], x[12], 0, 0};
+        ssm[5].D0() = {TemperatureModel::T5, x[18], x[12], 0, 0};
+        ssm[6].G0() = {TemperatureModel::T1, x[6], x[13], 0, 0};
+        ssm[6].D0() = {TemperatureModel::T5, x[19], x[13], 0, 0};
         return Model(LineShape::Type::VP, true, false, spec, ssm);
       }
   }
@@ -374,7 +389,14 @@ LineShape::Model LineShape::LegacyLineMixingData::vector2modellm(
     case TypeLM::LM_LBLRTM:
       y.Data()[0].Y().type = LineShape::TemperatureModel::LM_AER;
       y.Data()[0].G().type = LineShape::TemperatureModel::LM_AER;
-      std::copy(x.begin(), x.end(), y.Data()[0].Interp().begin());
+      y.Data()[0].Y().X0 = x[4];
+      y.Data()[0].Y().X1 = x[5];
+      y.Data()[0].Y().X2 = x[6];
+      y.Data()[0].Y().X3 = x[7];
+      y.Data()[0].G().X0 = x[8];
+      y.Data()[0].G().X1 = x[9];
+      y.Data()[0].G().X2 = x[10];
+      y.Data()[0].G().X3 = x[11];
       break;
     case TypeLM::LM_LBLRTM_O2NonResonant:
       y.Data()[0].G().type = LineShape::TemperatureModel::T0;
@@ -591,7 +613,10 @@ String LineShape::modelparameters2metadata(const LineShape::ModelParameters mp, 
       os << mp.X0 << " * (" << T0 << "/T)^(0.25 + 1.5 * " << mp.X1 << ")";
       break;
     case TemperatureModel::LM_AER:
-      os << "INTERPOLATED_VALUE";
+      os << '(' << "Linear interpolation to y(x) from x-ref = [200, 250, 296, 340] and y-ref = [" << mp.X0 << ", " << mp.X1 << ", " << mp.X2 << ", " << mp.X3 << ']' << ')';
+      break;
+    case TemperatureModel::DPL:
+      os << '(' << mp.X0 << " * (" << T0 << "/T)^" << mp.X1 << " + "  << mp.X2 << " * (" << T0 << "/T)^" << mp.X3 << ')';
       break;
   }
   

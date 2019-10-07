@@ -566,8 +566,13 @@ class LineRecord {
   }
 
   void SetLineMixing2AER(ConstVectorView d) {
+    const LineShape::ModelParameters Y = {LineShape::TemperatureModel::LM_AER, d[4], d[5], d[6], d[7]};
+    const LineShape::ModelParameters G = {LineShape::TemperatureModel::LM_AER, d[8], d[9], d[10], d[11]};
     for (auto& sm : mlineshapemodel.Data())
-      for (Index i = 0; i < d.nelem(); i++) sm.Interp()[i] = d[i];
+      for (Index i = 0; i < d.nelem(); i++) {
+        sm.Y() = Y;
+        sm.G() = G;
+      }
   }
 
   LineShape::Model& GetLineShapeModel() { return mlineshapemodel; }
