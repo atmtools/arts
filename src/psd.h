@@ -177,26 +177,8 @@ void psd_mono_common(Matrix& psd_data,
                      const Index& picky,
                      const Verbosity&);
 
-/** The Abel12 rain DSD
- *  
- *  Uses rain water water content. PSD follows an exponential distribution.
- *  Handles a vector of sizes at a time.
- *  
- *  Reference: Abel and Boutle, 2012, "An improved representation of the 
- *  raindrop size distribution for single-moment microphysics schemes".
- *  Ported from CloudArts matlab implementation.
- *
- *  @param[out] psd       particle number density per size interval [#/m3*m]
- *  @param[in]  diameter  size of the scattering elements (volume equivalent
- *                        diameter) [m]
- *  @param[in]  rwc       atmospheric rain water content [kg/m3]
- * 
- * @author Bengt Rydberg and Patrick Eriksson
- * @date 2017-11-05
- */
-void psd_rain_A12(Vector& psd, const Vector& diameter, const Numeric& rwc);
-
-/** The Wang16 rain DSD
+/** The Wang16 rain DSD DEPRECATED BY NEW MGD_SMM_COMMON
+ *  Only included for compatibility with "old" pnd_fieldCalcFromscat_speciesField
  *  
  *  Uses rain water water content. PSD follows an exponential distribution.
  *  Handles a vector of sizes at a time.
@@ -216,7 +198,8 @@ void psd_rain_A12(Vector& psd, const Vector& diameter, const Numeric& rwc);
  */
 void psd_rain_W16(Vector& psd, const Vector& diameter, const Numeric& rwc);
 
-/** Code common to some RWC PSDs
+/** Code common to a number of modified gamma PSDs used with single-moment
+ *  mass schemes. All PSDs take the form n(D) = n_alpha lam^n_b D^mu exp(-lam*D^gamma).
  *
  * @param[out] psd_data                 As the WSV wih same name
  * @param[out] dpsd_data_dx             As the WSV wih same name
@@ -228,31 +211,35 @@ void psd_rain_W16(Vector& psd, const Vector& diameter, const Numeric& rwc);
  * @param[in]  dpnd_data_dx_names       As the WSV wih same name
  * @param[in]  scat_species_a           As the WSV wih same name
  * @param[in]  scat_species_b           As the WSV wih same name
- * @param[in]  n0                       Selection for N0 parameter
- * @param[in]  mu                       Selection for mu parameter
- * @param[in]  la                       Selection for lambda parameter
- * @param[in]  ga                       Selection for gamma parameter
  * @param[in]  t_min                    PSD set to zero below this temperature
  * @param[in]  t_max                    PSD set to zero above this temperature
+ * @param[in]  n_alpha_in               Value of n_alpha for psd_name "generic"
+ * @param[in]  n_b_in                   Value of n_b for psd_name "generic"
+ * @param[in]  mu_in                    Value of mu for psd_name "generic"
+ * @param[in]  gamma_in                 Value of gamma for psd_name "generic"
  * @param[in]  picky                    Triggers more check of input
  *
- * @author Patrick Eriksson
- * @date 2017-11-05
+ * @author Stuart Fox
+ * @date 2019-10-02
  */
-void psd_rwc_common(Matrix& psd_data,
-                    Tensor3& dpsd_data_dx,
-                    const String& psd_name,
-                    const Vector& psd_size_grid,
-                    const Vector& pnd_agenda_input_t,
-                    const Matrix& pnd_agenda_input,
-                    const ArrayOfString& pnd_agenda_input_names,
-                    const ArrayOfString& dpnd_data_dx_names,
-                    const Numeric& scat_species_a,
-                    const Numeric& scat_species_b,
-                    const Numeric& t_min,
-                    const Numeric& t_max,
-                    const Index& picky,
-                    const Verbosity&);
+void psd_mgd_smm_common(Matrix& psd_data,
+                        Tensor3& dpsd_data_dx,
+                        const String& psd_name,
+                        const Vector& psd_size_grid,
+                        const Vector& pnd_agenda_input_t,
+                        const Matrix& pnd_agenda_input,
+                        const ArrayOfString& pnd_agenda_input_names,
+                        const ArrayOfString& dpnd_data_dx_names,
+                        const Numeric& scat_species_a,
+                        const Numeric& scat_species_b,
+                        const Numeric& n_alpha_in,
+                        const Numeric& n_b_in,
+                        const Numeric& mu_in,
+                        const Numeric& gamma_in,
+                        const Numeric& t_min,
+                        const Numeric& t_max,
+                        const Index& picky,
+                        const Verbosity&);
 
 /** The F07 snow PSD
  *

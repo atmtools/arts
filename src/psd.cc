@@ -1,8 +1,8 @@
-/* Copyright (C) 2017 
+/* Copyright (C) 2017
 
    Jana Mendrok <jana.mendrok@gmail.com>
    Patrick Eriksson <patrick.eriksson@chalmers.se>
-                    
+
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
    Free Software Foundation; either version 2, or (at your option) any
@@ -16,14 +16,14 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
-   USA. 
+   USA.
 */
 
 /**
   @file   microphysics.cc>
   @author Jana Mendrok, Patrick Eriksson
   @date   2017-11-05
-  
+
   @brief  Internal functions associated with size distributions
 */
 
@@ -696,26 +696,6 @@ void psd_mono_common(Matrix& psd_data,
   }
 }
 
-void psd_rain_A12(Vector& psd, const Vector& diameter, const Numeric& rwc) {
-  Index nD = diameter.nelem();
-  psd.resize(nD);
-  psd = 0.;
-
-  // skip calculation if RWC is 0.0
-  if (rwc == 0.0) {
-    return;
-  }
-  assert(rwc > 0.);
-
-  const Numeric x1 = 0.22;
-  const Numeric x2 = 2.20;
-  const Numeric c1 = DENSITY_OF_WATER * PI / 6;
-  const Numeric lambda = pow(c1 / rwc * x1 * tgamma(4), 1 / (4 - x2));
-  const Numeric N0 = x1 * pow(lambda, x2);
-
-  mgd(psd, diameter, N0, 0, lambda, 1);
-}
-
 void psd_rain_W16(Vector& psd, const Vector& diameter, const Numeric& rwc) {
   Index nD = diameter.nelem();
   psd.resize(nD);
@@ -744,50 +724,71 @@ void psd_rain_W16(Vector& psd, const Vector& diameter, const Numeric& rwc) {
   }
 }
 
-void psd_rwc_common(Matrix& psd_data,
-                    Tensor3& dpsd_data_dx,
-                    const String& psd_name,
-                    const Vector& psd_size_grid,
-                    const Vector& pnd_agenda_input_t,
-                    const Matrix& pnd_agenda_input,
-                    const ArrayOfString& pnd_agenda_input_names,
-                    const ArrayOfString& dpnd_data_dx_names,
-                    const Numeric& scat_species_a,
-                    const Numeric& scat_species_b,
-                    const Numeric& t_min,
-                    const Numeric& t_max,
-                    const Index& picky,
-                    const Verbosity&) {
+void psd_mgd_smm_common(Matrix& psd_data,
+                        Tensor3& dpsd_data_dx,
+                        const String& psd_name,
+                        const Vector& psd_size_grid,
+                        const Vector& pnd_agenda_input_t,
+                        const Matrix& pnd_agenda_input,
+                        const ArrayOfString& pnd_agenda_input_names,
+                        const ArrayOfString& dpnd_data_dx_names,
+                        const Numeric& scat_species_a,
+                        const Numeric& scat_species_b,
+                        const Numeric& n_alpha_in,
+                        const Numeric& n_b_in,
+                        const Numeric& mu_in,
+                        const Numeric& gamma_in,
+                        const Numeric& t_min,
+                        const Numeric& t_max,
+                        const Index& picky,
+                        const Verbosity&) {
   // Standard checks
   START_OF_PSD_METHODS();
 
-  // Extra checks for this PSD
+  // All PSDs are defined in terms of hydrometeor mass content
   if (pnd_agenda_input.ncols() != 1)
     throw runtime_error("*pnd_agenda_input* must have one column.");
-  if (scat_species_b < 2.9 || scat_species_b > 3.1) {
-    ostringstream os;
-    os << "This PSD treats rain, using Dveq as size grid.\n"
-       << "This means that *scat_species_b* should be close to 3,\n"
-       << "but it is outside of the tolerated range of [2.9,3.1].\n"
-       << "Your value of *scat_species_b* is: " << scat_species_b;
-    throw runtime_error(os.str());
+
+  // Extra checks for rain PSDs which should be consistent with
+  // spherical liquid drops
+  if (psd_name == "Abel12" || psd_name == "Wang16"){
+    if (scat_species_b < 2.9 || scat_species_b > 3.1) {
+      ostringstream os;
+      os << "This PSD treats rain, using Dveq as size grid.\n"
+	 << "This means that *scat_species_b* should be close to 3,\n"
+	 << "but it is outside of the tolerated range of [2.9,3.1].\n"
+	 << "Your value of *scat_species_b* is: " << scat_species_b;
+      throw runtime_error(os.str());
+    }
+    if (scat_species_a < 500 || scat_species_a > 540) {
+      ostringstream os;
+      os << "This PSD treats rain, using Dveq as size grid.\n"
+	 << "This means that *scat_species_a* should be close to 520,\n"
+	 << "but it is outside of the tolerated range of [500,540].\n"
+	 << "Your value of *scat_species_a* is: " << scat_species_a;
+      throw runtime_error(os.str());
+    }
   }
-  if (scat_species_a < 500 || scat_species_a > 540) {
-    ostringstream os;
-    os << "This PSD treats rain, using Dveq as size grid.\n"
-       << "This means that *scat_species_a* should be close to 520,\n"
-       << "but it is outside of the tolerated range of [500,540].\n"
-       << "Your value of *scat_species_a* is: " << scat_species_a;
-    throw runtime_error(os.str());
+  // Extra checks for graupel/hail PSDs which assume constant effective density
+  //
+  if (psd_name == "Field19"){
+    if (scat_species_b < 2.8 || scat_species_b > 3.2) {
+      ostringstream os;
+      os << "This PSD treats graupel, assuming a constant effective density.\n"
+	 << "This means that *scat_species_b* should be close to 3,\n"
+	 << "but it is outside of the tolerated range of [2.8,3.2].\n"
+	 << "Your value of *scat_species_b* is: " << scat_species_b;
+      throw runtime_error(os.str());
+    }
   }
 
   for (Index ip = 0; ip < np; ip++) {
     // Extract the input variables
-    Numeric rwc = pnd_agenda_input(ip, 0);
+    Numeric water_content = pnd_agenda_input(ip, 0);
     Numeric t = pnd_agenda_input_t[ip];
 
-    // No calc needed if swc==0 and no jacobians requested.
-    if ((rwc == 0.) && (!ndx)) {
+    // No calc needed if water_content==0 and no jacobians requested.
+    if ((water_content == 0.) && (!ndx)) {
       continue;
     }  // If here, we are ready with this point!
 
@@ -804,43 +805,79 @@ void psd_rwc_common(Matrix& psd_data,
       }  // If here, we are ready with this point!
     }
 
-    // Negative rwc?
+    // Negative wc?
     Numeric psd_weight = 1.0;
-    if (rwc < 0) {
+    if (water_content < 0) {
       psd_weight = -1.0;
-      rwc *= -1.0;
+      water_content *= -1.0;
+    }
+
+    // PSD settings for different parametrizations
+    Numeric gamma = 0.0;
+    Numeric n_alpha = 0.0;
+    Numeric n_b = 0.0;
+    Numeric mu = 0.0;
+    if (psd_name == "Abel12"){
+      n_alpha = 0.22;
+      n_b = 2.2;
+      mu = 0.0;
+      gamma = 1.0;
+    }
+    else if (psd_name == "Wang16"){
+      // Wang 16 parameters converted to SI units
+      n_alpha = 14.764;
+      n_b = 1.49;
+      mu = 0.0;
+      gamma = 1.0;
+    }
+    else if (psd_name == "Field19"){
+      n_alpha = 7.9e9;
+      n_b = -2.58;
+      mu = 0.0;
+      gamma = 1.0;
+    }
+    else if (psd_name == "generic"){
+      n_alpha = n_alpha_in;
+      n_b = n_b_in;
+      mu = mu_in;
+      gamma = gamma_in;
+    }
+    else {
+      assert(0);
     }
 
     // Calculate PSD
+    // Calculate lambda for modified gamma distribution from mass density
+    Numeric k = (scat_species_b + mu + 1 - gamma)/gamma;
+    Numeric expo = 1.0 / (n_b - k - 1);
+    Numeric denom = scat_species_a * n_alpha * tgamma(k + 1);
+    Numeric lam = pow(water_content*gamma/denom, expo);
+    Numeric n_0 = n_alpha * pow(lam, n_b);
     Vector psd_1p(nsi);
-    if (rwc != 0) {
-      if (psd_name == "A12") {
-        psd_rain_A12(psd_1p, psd_size_grid, rwc);
-      } else if (psd_name == "W16") {
-        psd_rain_W16(psd_1p, psd_size_grid, rwc);
-      } else {
-        assert(0);
-      }
-      //
-      for (Index i = 0; i < nsi; i++) {
-        psd_data(ip, i) = psd_weight * psd_1p[i];
-      }
+    Matrix jac_data(4, nsi);
+
+    psd_1p = 0.0;
+    if (water_content != 0) {
+      mgd_with_derivatives(psd_1p, jac_data, psd_size_grid, n_0, mu, lam, gamma,
+			   true, // n_0 jacobian
+			   false,// mu jacobian
+			   true, // lambda jacobian
+			   false); // gamma jacobian
+    } else {
+      assert(0);
+    }
+    //
+    for (Index i = 0; i < nsi; i++) {
+      psd_data(ip, i) = psd_weight * psd_1p[i];
     }
 
-    // Calculate derivative with respect to RWC
+    // Calculate derivative with respect to water content
     if (ndx) {
-      const Numeric drwc = 1e-9;
-      const Numeric rwcp = rwc + drwc;
-      if (psd_name == "A12") {
-        psd_rain_A12(psd_1p, psd_size_grid, rwcp);
-      } else if (psd_name == "W16") {
-        psd_rain_W16(psd_1p, psd_size_grid, rwcp);
-      } else {
-        assert(0);
-      }
-      //
+      const Numeric dlam_dwc = pow(gamma/denom, expo) * expo * pow(water_content, expo-1);
+      const Numeric dn_0_dwc = n_alpha * n_b * pow(lam, n_b-1) * dlam_dwc;
       for (Index i = 0; i < nsi; i++) {
-        dpsd_data_dx(0, ip, i) = (psd_1p[i] - psd_data(ip, i)) / drwc;
+        dpsd_data_dx(0, ip, i) = psd_weight * (jac_data(0,i)*dn_0_dwc +
+					       jac_data(2,i)*dlam_dwc);
       }
     }
   }

@@ -12858,7 +12858,7 @@ void define_md_data_raw() {
                "Line of sight")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("psdA12"),
+      NAME("psdAbel12"),
       DESCRIPTION(
           "Abel and Boutle [2012] (A12) particle size distribution for rain.\n"
           "\n"
@@ -12877,8 +12877,7 @@ void define_md_data_raw() {
           "either be in terms of volume (or mass) equivalent diameter or\n"
           "maximum diameter.\n"
           "\n"
-          "Derivatives are obtained by perturbation of 0.1%, but not less than\n"
-          "1e-9 kg/m3.\n"
+          "Derivatives are obtained analytically.\n"
           "\n"
           "The validity range of mass content is not limited. Negative mass\n"
           "contents wil produce negative psd values following a distribution\n"
@@ -12984,6 +12983,91 @@ void define_md_data_raw() {
           "High temperature limit to use as paramtrization temperature.",
           "Low *b* limit (only if picky).",
           "High *b* limit (only if picky).",
+          "Flag whether to be strict with parametrization value checks.")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("psdField19"),
+      DESCRIPTION(
+          "The Field [2019] (F19) particle size distribution for hail.\n"
+          "\n"
+          "Reference: Field, Normalized hail particle size distributions from the T-28\n"
+          "storm-penetrating aircraft, JAMC, 2019\n"
+          "\n"
+          "This is a 1-parmater PSD i.e. *pnd_agenda_input* shall have one column and\n"
+          "*pnd_agenda_input_names* shall contain a single string.\n"
+          "The input data in *pnd_agenda_input* shall be hail mass content in\n"
+          "unit of [kg/m3]. The naming used is *pnd_agenda_input_names* is free\n"
+          "but the same name must be used in *particle_bulkprop_names* and\n"
+          "*dpnd_data_dx_names*.\n"
+          "The parameters assume a constant effective density, i.e. scat_species_b \approx 3\n"
+          "\n"
+          "Derivatives are obtained analytically.\n"
+          "\n"
+          "The validity range of mass content is not limited. Negative mass\n"
+          "contents will produce negative psd values following a distribution\n"
+          "given by abs(HWC), ie. abs(psd)=f(abs(HWC)).\n"
+          "\n"
+          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
+          "picky=0, or an error is thrown if picky=1.\n"),
+      AUTHORS("Stuart Fox"),
+      OUT("psd_data", "dpsd_data_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("psd_size_grid",
+         "pnd_agenda_input_t",
+         "pnd_agenda_input",
+         "pnd_agenda_input_names",
+         "dpnd_data_dx_names",
+         "scat_species_a",
+         "scat_species_b"),
+      GIN("t_min", "t_max", "picky"),
+      GIN_TYPE("Numeric", "Numeric", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, "0"),
+      GIN_DESC(
+          "Low temperature limit to calculate a psd.",
+          "High temperature limit to calculate a psd.",
+          "Flag whether to be strict with parametrization value checks.")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("psdModifiedGammaMassSingleMoment"),
+      DESCRIPTION(
+          "Modified gamma distribution PSD, with mass content as input.\n"
+          "\n"
+          "The intercept parameter N0 is assumed dependent on the slope parameter lambda, such that\n"
+          "N0=N_alpha*lambda^n_b with fixed N_alpha and n_b. This is a common form for many\n"
+          "PSD parametrizations for use with single-moment mass-based schemes.\n"
+          "This version of MGD PSD takes mass content as first input argument.\n"
+          "This means that the first column of *pnd_agenda_input* shall hold\n"
+          "mass content data. The dependent parameter is assumed to be lambda.\n"),
+      AUTHORS("Stuart Fox"),
+      OUT("psd_data", "dpsd_data_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("psd_size_grid",
+         "pnd_agenda_input_t",
+         "pnd_agenda_input",
+         "pnd_agenda_input_names",
+         "dpnd_data_dx_names",
+         "scat_species_a",
+         "scat_species_b"),
+      GIN("n_alpha", "n_b", "mu", "gamma", "t_min", "t_max", "picky"),
+      GIN_TYPE("Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, "0"),
+      GIN_DESC(
+          "n_alpha",
+          "n_b",
+          "mu",
+          "gamma",
+          "Low temperature limit to calculate a psd.",
+          "High temperature limit to calculate a psd.",
           "Flag whether to be strict with parametrization value checks.")));
 
   md_data_raw.push_back(MdRecord(
@@ -13644,7 +13728,7 @@ void define_md_data_raw() {
           "Flag whether to be strict with parametrization value checks.")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("psdW16"),
+      NAME("psdWang16"),
       DESCRIPTION(
           "Wang et al. [2016] (W16) particle size distribution for rain.\n"
           "\n"
@@ -13663,8 +13747,7 @@ void define_md_data_raw() {
           "either be in terms of volume (or mass) equivalent diameter or\n"
           "maximum diameter.\n"
           "\n"
-          "Derivatives are obtained by perturbation of 0.1%, but not less than\n"
-          "1e-9 kg/m3.\n"
+          "Derivatives are obtained analytically.\n"
           "\n"
           "The validity range of mass content is not limited. Negative mass\n"
           "contents wil produce negative psd values following a distribution\n"
