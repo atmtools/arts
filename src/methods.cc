@@ -11378,7 +11378,6 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
-//TODO: Remove function
       NAME("particle_massesFromMetaData"),
       DESCRIPTION(
           "Derives *particle_masses* from *scat_meta*.\n"
@@ -11585,8 +11584,8 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
+  //TODO: Check  if function can be removed.
   md_data_raw.push_back(MdRecord(
-//TODO: Check  if function can be removed.
       NAME("pndAdjustFromScatMeta"),
       DESCRIPTION("Rescales *pnd_data* to match expected material content.\n"
                   "\n"
@@ -15489,10 +15488,10 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
+  //TODO: Check if ScatSpeciesMerge can be removed
   md_data_raw.push_back(MdRecord(
       NAME("ScatSpeciesMerge"),
       DESCRIPTION(
-//TODO: Remove ScatSpeciesMerge
           "Merges single scattering data of all scattering elements into one\n"
           "element of bulk properties.\n"
           "\n"
@@ -15962,9 +15961,8 @@ void define_md_data_raw() {
                  )
         ));
 */
-
+  //TODO: Check  if function can be removed.
   md_data_raw.push_back(MdRecord(
-//TODO: Check if this method can be deleted
       NAME("scat_speciesSet"),
       DESCRIPTION(
           "Sets the WSV *scat_species*."
