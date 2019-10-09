@@ -111,7 +111,6 @@ function [S] = crop_s(S)
     end
     %
     S(i).f_grid       = S(i).f_grid(iv);
-    S(i).f_grid/1e9
     S(i).T_grid       = S(i).T_grid(it); 
     S(i).za_grid      = S(i).za_grid(iz); 
     S(i).pha_mat_data = S(i).pha_mat_data(iv,it,iz,:,:,:,:); 

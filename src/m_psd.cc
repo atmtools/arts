@@ -1265,11 +1265,6 @@ void psdSeifertBeheng06(Matrix& psd_data,
     }
   }
 
-  //        if( dpnd_data_dx_names[0] != "SWC" )
-  //            throw runtime_error( "With F07, the only valid option for "
-  //                                "*dpnd_data_dx_names* is: \"SWC\"." );
-  //    }
-
   // Init psd_data and dpsd_data_dx with zeros
   psd_data.resize(np, nsi);
   psd_data = 0.0;
@@ -1398,11 +1393,6 @@ void psdMilbrandtYau05(Matrix& psd_data,
       dpnd_data_dx_idx[1] = i;  //number density index
     }
   }
-
-  //        if( dpnd_data_dx_names[0] != "SWC" )
-  //            throw runtime_error( "With F07, the only valid option for "
-  //                                "*dpnd_data_dx_names* is: \"SWC\"." );
-  //    }
 
   // Init psd_data and dpsd_data_dx with zeros
   psd_data.resize(np, nsi);
