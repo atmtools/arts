@@ -2189,3 +2189,9 @@ void xsec_species2(Matrix& xsec,
     }
   }
 }
+
+
+const SpeciesRecord& SpeciesDataOfLines(const AbsorptionLines& lines)
+{
+  return global_data::species_data[lines.Species()];
+}

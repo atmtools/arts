@@ -820,6 +820,67 @@ void abs_lines_per_speciesCreateFromLines(  // WS Output:
   }
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesCreateFromLines2(  // WS Output:
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    // WS Input:
+    const ArrayOfAbsorptionLines& abs_lines,
+    const ArrayOfArrayOfSpeciesTag& tgs,
+    const Verbosity&) {
+  // The species lookup data:
+  using global_data::species_data;
+  
+  // Size is set but inner size will now change from the original definition of species tags...
+  abs_lines_per_species.resize(tgs.nelem());
+  
+  // Take copies because we have to support frequency ranges, so might have to delete
+  for (AbsorptionLines lines: abs_lines) {
+    
+    // Skip empty lines
+    if (lines.NumLines() == 0) continue;
+    
+    // Loop all the tags
+    for (Index i=0; i<tgs.nelem() and lines.NumLines(); i++) {
+      for (auto& this_tag: tgs[i]) {
+        // Test species first, we might leave as we leave
+        if (this_tag.Species() not_eq lines.Species()) break;
+        
+        // Test isotopologue, we have to hit the end of the list for no isotopologue or the exact value
+        if (this_tag.Isotopologue() not_eq SpeciesDataOfLines(lines).Isotopologue().nelem() and
+            this_tag.Isotopologue() not_eq lines.Isotopologue())
+          continue;
+        
+        // If there is a frequency range, we have to check so that only selected lines are included
+        if (this_tag.Lf() >= 0 or this_tag.Uf() >= 0) {
+          const Numeric low = (this_tag.Lf() >= 0) ? this_tag.Lf() : std::numeric_limits<Numeric>::lowest();
+          const Numeric upp = (this_tag.Uf() >= 0) ? this_tag.Uf() : std::numeric_limits<Numeric>::max();
+          
+          // Fill up a copy of the line record to match with the wished frequency criteria
+          AbsorptionLines these_lines = createEmptyCopy(lines);
+          for (Index k=lines.NumLines()-1; k>=0; k--)
+            if (low <= lines.F0(k) and upp >= lines.F0(k))
+              these_lines.AppendSingleLine(lines.PopLine(k));
+          
+          // Append these lines after sorting them if there are any of them
+          if (these_lines.NumLines()) {
+            these_lines.ReverseLines();
+            abs_lines_per_species[i].push_back(these_lines);
+          }
+          
+          // If this means we have deleted all lines, then we leave
+          if (lines.NumLines() == 0)
+            goto leave_inner_loop;
+        }
+        else {
+          abs_lines_per_species[i].push_back(lines);
+          goto leave_inner_loop;
+        }
+      }
+    }
+    leave_inner_loop: {}
+  }
+}
+
 void abs_lines_per_speciesAddMirrorLines(
     ArrayOfArrayOfLineRecord& abs_lines_per_species,
     const Numeric& max_f,

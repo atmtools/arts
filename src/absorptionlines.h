@@ -1027,8 +1027,20 @@ public:
   /** Returns a printable statement about the lines */
   String MetaData() const noexcept;
   
-  /** Returns a printable statement about the lines */
+  /** Removes a single line */
   void RemoveLine(Index) noexcept;
+  
+  /** Pops a single line */
+  SingleLine PopLine(Index) noexcept;
+  
+  /** Returns a single line */
+  SingleLine& Line(Index) noexcept;
+  
+  /** Returns a single line */
+  const SingleLine& Line(Index) const noexcept;
+  
+  /** Reverses the order of the internal lines */
+  void ReverseLines() noexcept;
 };  // Lines
 
 std::ostream& operator<<(std::ostream&, const Lines&);
@@ -1083,6 +1095,14 @@ SingleLineExternal ReadFromHitran2004Stream(istream& is);
 std::vector<Lines> split_list_of_external_lines(const std::vector<SingleLineExternal>& external_lines,
                                                 const std::vector<QuantumNumberType>& localquantas={},
                                                 const std::vector<QuantumNumberType>& globalquantas={});
+
+/** Creates a copy of the input lines structure
+ * 
+ * The output will have zero lines but be otherwise a copy of the input
+ * 
+ * @param[in] al Lines which structure is copied
+ */
+Lines createEmptyCopy(const Lines& al) noexcept;
 };  // Absorption
 
 typedef Absorption::Lines AbsorptionLines;

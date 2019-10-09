@@ -411,6 +411,14 @@ void Workspace::define_wsv_data() {
           "Dimensions: (tag_groups.nelem()) (# of lines for this tag)\n"),
       GROUP("ArrayOfArrayOfLineRecord")));
 
+  wsv_data.push_back(WsvRecord(
+      NAME("abs_lines_per_species2"),
+      DESCRIPTION(
+          "A list of spectral line data for each tag.\n"
+          "\n"
+          "Dimensions: [*abs_species*.nelem()][Depends on how many bands there are in *abs_lines*]\n"),
+      GROUP("ArrayOfArrayOfAbsorptionLines")));
+
   wsv_data.push_back(
       WsvRecord(NAME("abs_lines_per_band"),
                 DESCRIPTION("A list of spectral line data for each band.\n"

@@ -85,6 +85,7 @@ void define_wsv_group_names() {
   wsv_group_names.push_back("Agenda");
   wsv_group_names.push_back("Any");
   wsv_group_names.push_back("ArrayOfAbsorptionLines");
+  wsv_group_names.push_back("ArrayOfArrayOfAbsorptionLines");
   wsv_group_names.push_back("ArrayOfAgenda");
   wsv_group_names.push_back("ArrayOfArrayOfGriddedField1");
   wsv_group_names.push_back("ArrayOfArrayOfGriddedField2");

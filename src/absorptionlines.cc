@@ -1980,3 +1980,37 @@ void Absorption::Lines::RemoveLine(Index i) noexcept
 {
   mlines.erase(mlines.begin() + i);
 }
+
+
+Absorption::SingleLine Absorption::Lines::PopLine(Index i) noexcept
+{
+  auto line = mlines[i];
+  RemoveLine(i);
+  return line;
+}
+
+
+Absorption::Lines Absorption::createEmptyCopy(const Absorption::Lines& al) noexcept {
+  return Absorption::Lines(al.Self(), al.Bath(), al.Cutoff(), al.Mirroring(),
+                           al.Population(), al.Normalization(), al.LineShapeType(),
+                           al.T0(), al.CutoffFreqValue(), al.LinemixingLimit(),
+                           al.QuantumIdentity(), al.LocalQuanta(), al.BroadeningSpecies());
+}
+
+
+Absorption::SingleLine& Absorption::Lines::Line(Index i) noexcept
+{
+  return mlines[i];
+}
+
+
+const Absorption::SingleLine& Absorption::Lines::Line(Index i) const noexcept
+{
+  return mlines[i];
+}
+
+void Absorption::Lines::ReverseLines() noexcept
+{
+  std::reverse(mlines.begin(), mlines.end());
+}
+

@@ -1179,6 +1179,24 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
+      NAME("abs_lines_per_speciesCreateFromLines2"),
+      DESCRIPTION(
+          "Split lines up into the different species.\n"
+          "\n"
+          "The order of the splitting will match the outer layer of *abs_species*\n"
+          "There will be no respect for the internal layer of *abs_species*\n"),
+      AUTHORS("Stefan Buehler"),
+      OUT("abs_lines_per_species2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines2", "abs_species"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
       NAME("abs_lines_per_speciesReadFromCatalogues"),
       DESCRIPTION(
           "Read spectral line data from different line catalogues.\n"

@@ -3635,6 +3635,77 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 }
 
+//=== ArrayOfArrayOfAbsorptionLines ======================================================
+
+//! Reads ArrayOfArrayOfAbsorptionLines from XML input stream
+/*!
+ * \param is_xml     XML Input stream
+ * \param aal        ArrayOfArrayOfAbsorptionLines return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream& is_xml,
+                          ArrayOfArrayOfAbsorptionLines& aal,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity) {
+  ArtsXMLTag tag(verbosity);
+  Index nelem;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("Array");
+  tag.check_attribute("type", "ArrayOfAbsorptionLines");
+
+  tag.get_attribute_value("nelem", nelem);
+  aal.resize(nelem);
+
+  Index n;
+  try {
+    for (n = 0; n < nelem; n++)
+      xml_read_from_stream(is_xml, aal[n], pbifs, verbosity);
+  } catch (const std::runtime_error& e) {
+    ostringstream os;
+    os << "Error reading ArrayOfArrayOfAbsorptionLines: "
+       << "\n Element: " << n << "\n"
+       << e.what();
+    throw runtime_error(os.str());
+  }
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Array");
+}
+
+//! Writes ArrayOfArrayOfAbsorptionLines to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param aal     ArrayOfArrayOfAbsorptionLines
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute
+ */
+void xml_write_to_stream(ostream& os_xml,
+                         const ArrayOfArrayOfAbsorptionLines& aal,
+                         bofstream* pbofs,
+                         const String& name,
+                         const Verbosity& verbosity) {
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("Array");
+  if (name.length()) open_tag.add_attribute("name", name);
+
+  open_tag.add_attribute("type", "ArrayOfAbsorptionLines");
+  open_tag.add_attribute("nelem", aal.nelem());
+
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  for (Index n = 0; n < aal.nelem(); n++)
+    xml_write_to_stream(os_xml, aal[n], pbofs, "", verbosity);
+
+  close_tag.set_name("/Array");
+  close_tag.write_to_stream(os_xml);
+
+  os_xml << '\n';
+}
+
 //=== ArrayOfArrayOfPropagationMatrix ======================================================
 
 //! Reads ArrayOfArrayOfPropagationMatrix from XML input stream

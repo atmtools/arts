@@ -38,6 +38,7 @@
 #include "matpackI.h"
 #include "messages.h"
 #include "mystring.h"
+#include "absorptionlines.h"
 
 /** The type that is used to store pointers to lineshape
     functions.  */
@@ -828,5 +829,8 @@ void xsec_species2(Matrix& xsec,
                    const ArrayOfLineRecord& abs_lines,
                    const SpeciesAuxData& isotopologue_ratios,
                    const SpeciesAuxData& partition_functions);
+
+/** Returns the species data */
+const SpeciesRecord& SpeciesDataOfLines(const AbsorptionLines& lines);
 
 #endif  // absorption_h
