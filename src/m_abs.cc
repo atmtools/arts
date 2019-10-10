@@ -827,9 +827,6 @@ void abs_lines_per_speciesCreateFromLines2(  // WS Output:
     const ArrayOfAbsorptionLines& abs_lines,
     const ArrayOfArrayOfSpeciesTag& tgs,
     const Verbosity&) {
-  // The species lookup data:
-  using global_data::species_data;
-  
   // Size is set but inner size will now change from the original definition of species tags...
   abs_lines_per_species.resize(tgs.nelem());
   

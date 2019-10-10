@@ -630,7 +630,11 @@ public:
     mlines.push_back(sl);
   }
   
-  /**  */
+  /** Checks if an external line matches this structure
+   * 
+   * @param[in] sle Full external lines
+   * @param[in] quantumidentity Expected global quantum id of the line
+   */
   bool MatchWithExternal(const SingleLineExternal& sle, const QuantumIdentifier& quantumidentity) const noexcept {
     if(sle.bad)
       return false;
@@ -664,7 +668,11 @@ public:
       return true;
   }
   
-  /**  */
+  /** Checks if another line list matches this structure
+   * 
+   * @param[in] sle Full external lines
+   * @param[in] quantumidentity Expected global quantum id of the line
+   */
   bool Match(const Lines& l) const noexcept {
     if(l.mselfbroadening not_eq mselfbroadening)
       return false;
@@ -698,16 +706,19 @@ public:
       return true;
   }
   
+  /** Sort inner line list by frequency */
   void sort_by_frequency() {
     std::sort(mlines.begin(), mlines.end(),
               [](const SingleLine& a, const SingleLine& b){return a.F0() < b.F0();});
   }
   
+  /** Sort inner line list by Einstein coefficient */
   void sort_by_einstein() {
     std::sort(mlines.begin(), mlines.end(),
               [](const SingleLine& a, const SingleLine& b){return a.A() < b.A();});
   }
   
+  /** Removes all global quantum numbers */
   void truncate_global_quantum_numbers() {
     mquantumidentity.SetTransition(QuantumNumbers(), QuantumNumbers());
   }
@@ -835,7 +846,7 @@ public:
                                         type, i);
   }
   
-  /** Set Zeeman effect */
+  /** Set Zeeman effect for all lines that have the correct quantum numbers */
   void SetAutomaticZeeman() noexcept {
     for(auto& line: mlines)
       line.SetAutomaticZeeman(mquantumidentity, mlocalquanta);
