@@ -460,25 +460,29 @@ void LineShape::Model::Set(const LineShape::ModelParameters& param,
   }
 }
 
-Vector LineShape::Model::vmrs(const ConstVectorView& atmospheric_vmrs,
-                              const ArrayOfArrayOfSpeciesTag& atmospheric_species,
-                              const QuantumIdentifier& self) const {
+Vector LineShape::vmrs(const ConstVectorView& atmospheric_vmrs,
+                       const ArrayOfArrayOfSpeciesTag& atmospheric_species,
+                       const QuantumIdentifier& self,
+                       const ArrayOfSpeciesTag& lineshape_species,
+                       bool self_in_list,
+                       bool bath_in_list,
+                       Type type) {
   if (atmospheric_species.nelem() != atmospheric_vmrs.nelem())
     throw std::runtime_error("Bad atmospheric inputs");
   
   // Initialize list of VMRS to 0
-  Vector line_vmrs(mspecies.nelem(), 0);
-  const Index back = mspecies.nelem() - 1;  // Last index
+  Vector line_vmrs(lineshape_species.nelem(), 0);
+  const Index back = lineshape_species.nelem() - 1;  // Last index
   
-  if (mtype == Type::DP) return line_vmrs;
+  if (type == Type::DP) return line_vmrs;
   
   // Loop species ignoring self and bath
-  for (Index i = 0; i < mspecies.nelem(); i++) {
-    if (mbath and &mspecies[i] == &mspecies.back()) {
+  for (Index i = 0; i < lineshape_species.nelem(); i++) {
+    if (bath_in_list and &lineshape_species[i] == &lineshape_species.back()) {
     } else {
       // Select target in-case this is self-broadening
       const auto target =
-      (mself and  &mspecies[i] == &mspecies.front()) ? self.Species() : mspecies[i].Species();
+      (self_in_list and  &lineshape_species[i] == &lineshape_species.front()) ? self.Species() : lineshape_species[i].Species();
       
       // Find species in list or do nothing at all
       Index this_species_index = -1;
@@ -493,7 +497,7 @@ Vector LineShape::Model::vmrs(const ConstVectorView& atmospheric_vmrs,
   }
   
   // Renormalize, if bath-species exist this is automatic.
-  if (mbath)
+  if (bath_in_list)
     line_vmrs[back] = 1.0 - line_vmrs.sum();
   else if(line_vmrs.sum() == 0)  // Special case, there should be no atmosphere if this happens???
     return line_vmrs;

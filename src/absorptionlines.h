@@ -978,7 +978,7 @@ public:
                                    const Vector& vmrs,
                                    const RetrievalQuantity& derivative) const noexcept;
   
-  /** Returns cutoff frequency or 0
+  /** Returns cutoff frequency or maximum value
    * 
    * @param[in] k Line number (less than NumLines())
    * @returns Cutoff frequency or 0
@@ -990,7 +990,7 @@ public:
       case CutoffType::BandFixedFrequency:
         return mcutofffreq;
       case CutoffType::None:
-        return 0;
+        return std::numeric_limits<Numeric>::max();
     }
     std::terminate();
   }
@@ -1035,6 +1035,16 @@ public:
     return mquantumidentity;
   }
   
+  /** Returns identity status */
+  QuantumIdentifier QuantumIdentityOfLine(Index k) const noexcept {
+    QuantumIdentifier copy = mquantumidentity;
+    for (size_t i=0; i<mlocalquanta.size(); i++) {
+      copy.UpperQuantumNumber(mlocalquanta[i]) = mlines[k].UpperQuantumNumber(i);
+      copy.LowerQuantumNumber(mlocalquanta[i]) = mlines[k].LowerQuantumNumber(i);
+    }
+    return copy;
+  }
+  
   /** Returns a printable statement about the lines */
   String MetaData() const noexcept;
   
@@ -1052,6 +1062,25 @@ public:
   
   /** Reverses the order of the internal lines */
   void ReverseLines() noexcept;
+  
+  /** Mass of the molecule */
+  Numeric SpeciesMass() const noexcept;
+  
+  /** Returns the VMRs of the broadening species
+   * 
+   * @param[in] atm_vmrs Atmospheric VMRs
+   * @param[in] atm_spec Atmospheric Species
+   * @return VMR list of the species
+   */
+  Vector BroadeningSpeciesVMR(const ConstVectorView, const ArrayOfArrayOfSpeciesTag&) const;
+  
+  /** Returns the VMR of the species
+   * 
+   * @param[in] atm_vmrs Atmospheric VMRs
+   * @param[in] atm_spec Atmospheric Species
+   * @return VMR of the species
+   */
+  Numeric SelfVMR(const ConstVectorView, const ArrayOfArrayOfSpeciesTag&) const;
 };  // Lines
 
 std::ostream& operator<<(std::ostream&, const Lines&);
@@ -1121,5 +1150,7 @@ typedef Array<AbsorptionLines> ArrayOfAbsorptionLines;
 typedef Array<ArrayOfAbsorptionLines> ArrayOfArrayOfAbsorptionLines;
 
 std::ostream& operator<<(std::ostream&, const ArrayOfAbsorptionLines&);
+
+std::ostream& operator<<(std::ostream&, const ArrayOfArrayOfAbsorptionLines&);
 
 #endif  // absorptionlines_h

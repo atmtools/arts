@@ -3265,3 +3265,95 @@ void abs_xsec_per_speciesAddLines2(  // WS Output:
 
   }  // End of species for loop.
 }
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_xsec_per_speciesAddLines3(
+    // WS Output:
+    ArrayOfMatrix& abs_xsec_per_species,
+    ArrayOfMatrix& src_xsec_per_species,
+    ArrayOfArrayOfMatrix& dabs_xsec_per_species_dx,
+    ArrayOfArrayOfMatrix& dsrc_xsec_per_species_dx,
+    // WS Input:
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const ArrayOfIndex& abs_species_active,
+    const Vector& f_grid,
+    const Vector& abs_p,
+    const Vector& abs_t,
+    const Matrix& abs_nlte,
+    const Matrix& abs_vmrs,
+    const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const SpeciesAuxData& isotopologue_ratios,
+    const SpeciesAuxData& partition_functions,
+    const Verbosity&) {
+  if (not abs_lines_per_species.nelem()) return;
+  
+  // Check that correct isotopologue ratios are defined
+  checkIsotopologueRatios(abs_species, isotopologue_ratios);
+
+  // Check that all temperatures are above 0 K
+  if (min(abs_t) < 0) {
+    std::ostringstream os;
+    os << "Temperature must be at least 0 K. But you request an absorption\n"
+       << "calculation at " << min(abs_t) << " K!";
+    throw std::runtime_error(os.str());
+  }
+
+  // Check that all parameters that should have the number of tag
+  // groups as a dimension are consistent.
+  {
+    const Index n_tgs = abs_species.nelem();
+    const Index n_xsec = abs_xsec_per_species.nelem();
+    const Index n_vmrs = abs_vmrs.nrows();
+    const Index n_lines = abs_lines_per_species.nelem();
+
+    if (n_tgs not_eq n_xsec or n_tgs not_eq n_vmrs or n_tgs not_eq n_lines) {
+      std::ostringstream os;
+      os << "The following variables must all have the same dimension:\n"
+         << "abs_species:           " << abs_species.nelem() << '\n'
+         << "abs_xsec_per_species:  " << abs_xsec_per_species.nelem() << '\n'
+         << "abs_vmrs:              " << abs_vmrs.nrows() << '\n'
+         << "abs_lines_per_species: " << abs_lines_per_species.nelem() << '\n';
+      throw std::runtime_error(os.str());
+    }
+  }
+
+  // Meta variables that explain the calculations required
+  const bool do_jac = supports_propmat_clearsky(jacobian_quantities);
+  const bool do_lte = abs_nlte.empty();
+  const ArrayOfIndex jac_pos = equivalent_propmattype_indexes(jacobian_quantities);
+
+  // Skipping uninteresting data
+  static Matrix dummy1(0, 0);
+  static ArrayOfMatrix dummy2(0);
+
+  // Call xsec_species for each tag group.
+  for (Index ii = 0; ii < abs_species_active.nelem(); ++ii) {
+    const Index i = abs_species_active[ii];
+    
+    if (not abs_species[i].nelem() or is_zeeman(abs_species[i]))
+      continue;
+    
+    for (auto& lines: abs_lines_per_species[i]) {
+      xsec_species3(
+          abs_xsec_per_species[i],
+          src_xsec_per_species[i],
+          dummy1,
+          do_jac ? dabs_xsec_per_species_dx[i] : dummy2,
+          (do_jac and not do_lte) ? dsrc_xsec_per_species_dx[i] : dummy2,
+          dummy2,
+          jacobian_quantities,
+          jac_pos,
+          f_grid,
+          abs_p,
+          abs_t,
+          abs_nlte,
+          abs_vmrs,
+          abs_species,
+          lines,
+          isotopologue_ratios.getIsotopologueRatio(lines.QuantumIdentity()),
+          partition_functions.getParamType(lines.QuantumIdentity()),
+          partition_functions.getParam(lines.QuantumIdentity()));
+    }
+  }  // End of species for loop.
+}

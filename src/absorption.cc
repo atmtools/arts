@@ -187,6 +187,10 @@ Numeric SpeciesAuxData::getIsotopologueRatio(const SpeciesTag& st) const {
   return val;
 }
 
+Numeric SpeciesAuxData::getIsotopologueRatio(const QuantumIdentifier& qid) const {
+  return getParam(qid.Species(), qid.Isotopologue())[0].data[0];
+}
+
 String SpeciesAuxData::getTypeString(const Index species,
                                      const Index isotopologue) const {
   assert(mparam_type[species][isotopologue] < AT_FINAL_ENTRY);
@@ -2194,4 +2198,66 @@ void xsec_species2(Matrix& xsec,
 const SpeciesRecord& SpeciesDataOfLines(const AbsorptionLines& lines)
 {
   return global_data::species_data[lines.Species()];
+}
+
+
+/** Cross-section algorithm
+ * 
+ *  \author Richard Larsson
+ *  \date   2019-10-10
+ * 
+ */
+void xsec_species3(Matrix& xsec,
+                   Matrix& source,
+                   Matrix& phase,
+                   ArrayOfMatrix& dxsec_dx,
+                   ArrayOfMatrix& dsource_dx,
+                   ArrayOfMatrix& dphase_dx,
+                   const ArrayOfRetrievalQuantity& jacobian_quantities,
+                   const ArrayOfIndex& jacobian_propmat_positions,
+                   const Vector& f_grid,
+                   const Vector& abs_p,
+                   const Vector& abs_t,
+                   const Matrix& abs_nlte,
+                   const Matrix& all_vmrs,
+                   const ArrayOfArrayOfSpeciesTag& abs_species,
+                   const AbsorptionLines& lines,
+                   const Numeric& isot_ratio,
+                   const SpeciesAuxData::AuxType& partfun_type,
+                   const ArrayOfGriddedField1& partfun_data) {
+  // Size of problem
+  const Index np = abs_p.nelem();      // number of pressure levels
+  const Index nf = f_grid.nelem();     // number of Dirac frequencies
+  const Index nl = lines.NumLines();  // number of lines in the catalog
+  const Index nj =
+      jacobian_propmat_positions.nelem();  // number of partial derivatives
+  const Index nt = source.nrows();         // number of energy levels in NLTE
+
+  // Type of problem
+  const bool do_nonlte = nt;
+  const bool do_jacobi = nj;
+  const bool do_temperature = do_temperature_jacobian(jacobian_quantities);
+
+  // Test if the size of the problem is 0
+  if (not np or not nf or not nl) return;
+
+  // Parallelization data holder (skip if in parallel or there are too few threads)
+  const bool threading = (not arts_omp_in_parallel() and arts_omp_get_max_threads() < nl);
+  const Index nthread = threading ? arts_omp_get_max_threads() : 1;
+  
+  // Constant for all lines
+  const Numeric QT0 = single_partition_function(lines.T0(), partfun_type, partfun_data);
+  
+  for (Index ip = 0; ip < np; ip++) {
+    // Constants for this level
+    const Numeric& temperature = abs_t[ip];
+    const Numeric& pressure = abs_p[ip];
+    
+    // Constants for this level
+    const Numeric QT = single_partition_function(temperature, partfun_type, partfun_data);
+    const Numeric dQTdT = dsingle_partition_function_dT(QT, temperature, temperature_perturbation(jacobian_quantities), partfun_type, partfun_data);
+    const Numeric DC = Linefunctions::DopplerConstant(temperature, lines.SpeciesMass());
+    const Numeric dDCdT = Linefunctions::dDopplerConstant_dT(temperature, DC);
+    const Vector line_shape_vmr = lines.BroadeningSpeciesVMR(all_vmrs(joker, ip), abs_species);
+  }
 }

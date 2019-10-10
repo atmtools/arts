@@ -33,6 +33,7 @@
 #include "complex.h"
 #include "jacobian.h"
 #include "linerecord.h"
+#include "absorptionlines.h"
 
 /** Line functions related to line shapes and line strength */
 namespace Linefunctions {
@@ -353,6 +354,40 @@ void apply_linestrength_scaling_by_lte(
     const QuantumIdentifier& quantum_identity = QuantumIdentifier(),
     const Numeric& dQT_dT = 0.0);
 
+/** Applies linestrength to already set line shape by LTE population type
+ * 
+ * @param[in,out] F Lineshape.  Must be right size
+ * @param[in,out] dF Lineshape derivative.  Must be right size
+ * @param[in,out] N Source lineshape
+ * @param[in,out] dN Source lineshape derivative
+ * @param[in]     band The absorption lines
+ * @param[in]     T The atmospheric temperature
+ * @param[in]     isotopic_ratio The ratio of the isotopologue in the atmosphere
+ * @param[in]     QT Partition function at atmospheric temperature of level
+ * @param[in]     QT0 Partition function at reference temperature
+ * @param[in]     derivatives_data The derivatives in dF
+ * @param[in]     derivatives_data_position The derivatives positions in dF
+ * @param[in]     quantum_identity ID of the absorption line
+ * @param[in]     dQT_dT Temperature derivative of QT
+ * @param[in]     line_ind The current line's ID
+ */
+void apply_linestrength_scaling_by_lte(
+    Eigen::Ref<Eigen::VectorXcd> F,
+    Eigen::Ref<Eigen::MatrixXcd> dF,
+    Eigen::Ref<Eigen::VectorXcd> N,
+    Eigen::Ref<Eigen::MatrixXcd> dN,
+    const AbsorptionLines& band,
+    const Numeric& T,
+    const Numeric& isotopic_ratio,
+    const Numeric& QT,
+    const Numeric& QT0,
+    const ArrayOfRetrievalQuantity& derivatives_data =
+        ArrayOfRetrievalQuantity(),
+    const ArrayOfIndex& derivatives_data_position = ArrayOfIndex(),
+    const QuantumIdentifier& quantum_identity = QuantumIdentifier(),
+    const Numeric& dQT_dT = 0.0,
+    size_t line_ind = 0);
+
 /** Applies linestrength to already set line shape by vibrational level temperatures
  * 
  * @param[in,out] F Lineshape.  Must be right size
@@ -392,6 +427,48 @@ void apply_linestrength_scaling_by_vibrational_nlte(
     const ArrayOfIndex& derivatives_data_position = ArrayOfIndex(),
     const QuantumIdentifier& quantum_identity = QuantumIdentifier(),
     const Numeric& dQT_dT = 0.0);
+
+/** Applies linestrength to already set line shape by vibrational level temperatures
+ * 
+ * @param[in,out] F Lineshape.  Must be right size
+ * @param[in,out] dF Lineshape derivative.  Must be right size
+ * @param[in,out] N Source lineshape
+ * @param[in,out] dN Source lineshape derivative
+ * @param[in]     band The absorption lines
+ * @param[in]     T The atmospheric temperature
+ * @param[in]     Tu The upper state vibrational temperature; must be T if level is LTE
+ * @param[in]     Tl The lower state vibrational temperature; must be T if level is LTE
+ * @param[in]     Evu The upper state vibrational energy; if set funny, yields funny results
+ * @param[in]     Evl The lower state vibrational energy; if set funny, yields funny results
+ * @param[in]     isotopic_ratio The ratio of the isotopologue in the atmosphere
+ * @param[in]     QT Partition function at atmospheric temperature of level
+ * @param[in]     QT0 Partition function at reference temperature
+ * @param[in]     derivatives_data The derivatives in dF
+ * @param[in]     derivatives_data_position The derivatives positions in dF
+ * @param[in]     quantum_identity ID of the absorption line
+ * @param[in]     dQT_dT Temperature derivative of QT
+ * @param[in]     line_ind The current line's ID
+ */
+void apply_linestrength_scaling_by_vibrational_nlte(
+    Eigen::Ref<Eigen::VectorXcd> F,
+    Eigen::Ref<Eigen::MatrixXcd> dF,
+    Eigen::Ref<Eigen::VectorXcd> N,
+    Eigen::Ref<Eigen::MatrixXcd> dN,
+    const AbsorptionLines& band,
+    const Numeric& T,
+    const Numeric& Tu,
+    const Numeric& Tl,
+    const Numeric& Evu,
+    const Numeric& Evl,
+    const Numeric& isotopic_ratio,
+    const Numeric& QT,
+    const Numeric& QT0,
+    const ArrayOfRetrievalQuantity& derivatives_data =
+        ArrayOfRetrievalQuantity(),
+    const ArrayOfIndex& derivatives_data_position = ArrayOfIndex(),
+    const QuantumIdentifier& quantum_identity = QuantumIdentifier(),
+    const Numeric& dQT_dT = 0.0,
+    size_t line_ind = 0);
 
 /** Applies the line strength to the line shape using the complex line strength of line mixing.
  * Lineshape is already set.
@@ -456,7 +533,7 @@ void apply_dipole(
  * @param[in]     derivatives_data The derivatives in dF
  * @param[in]     derivatives_data_position The derivatives positions in dF
  * @param[in]     quantum_identity ID of the absorption line
- * @param[in]     line The absortion line
+ * @param[in]     line The absorption line
  * @param[in]     T Atmospheric temperature
  * @param[in]     P Atmospheric pressure
  * @param[in]     vmrs VMRs for line shape broadeners
@@ -470,6 +547,29 @@ void apply_lineshapemodel_jacobian_scaling(
     const Numeric& T,
     const Numeric& P,
     const Vector& vmrs);
+
+/** Applies the line-by-line pressure broadening jacobian for the matching lines
+ * 
+ * @param[in,out] dF Lineshape derivative.  Must be right size
+ * @param[in]     derivatives_data The derivatives in dF
+ * @param[in]     derivatives_data_position The derivatives positions in dF
+ * @param[in]     quantum_identity ID of the absorption line
+ * @param[in]     band The absorption lines
+ * @param[in]     T Atmospheric temperature
+ * @param[in]     P Atmospheric pressure
+ * @param[in]     vmrs VMRs for line shape broadeners
+ * @param[in]     line_ind The current line's ID
+ */
+void apply_lineshapemodel_jacobian_scaling(
+  Eigen::Ref<Eigen::MatrixXcd> dF,
+  const ArrayOfRetrievalQuantity& derivatives_data,
+  const ArrayOfIndex& derivatives_data_position,
+  const QuantumIdentifier& quantum_identity,
+  const AbsorptionLines& band,
+  const Numeric& T,
+  const Numeric& P,
+  const Vector& vmrs,
+  size_t line_ind);
 
 /** Returns the frequency-independent part of the Doppler broadening
  * 
@@ -645,7 +745,70 @@ void apply_linestrength_from_nlte_level_distributions(
     const ArrayOfRetrievalQuantity& derivatives_data =
         ArrayOfRetrievalQuantity(),
     const ArrayOfIndex& derivatives_data_position = ArrayOfIndex(),
-    const QuantumIdentifier& quantum_identity = QuantumIdentifier());
+                                                      const QuantumIdentifier& quantum_identity = QuantumIdentifier());
+
+class InternalData {
+public:
+  Eigen::VectorXcd F;
+  Eigen::VectorXcd N;
+  Eigen::MatrixXcd dF;
+  Eigen::MatrixXcd dN;
+  
+  Eigen::Matrix<Complex, 1, 1> Fc;
+  Eigen::Matrix<Complex, 1, 1> Nc;
+  Eigen::Matrix<Complex, 1, Eigen::Dynamic> dFc;
+  Eigen::Matrix<Complex, 1, Eigen::Dynamic> dNc;
+  
+  Eigen::Matrix<Complex, Eigen::Dynamic, Linefunctions::ExpectedDataSize()>
+  data;
+  
+  InternalData(Index nf, Index nj) noexcept :
+  F(nf), N(nf),
+  dF(nf, nj), dN(nf, nj),
+  dFc(1, nj), dNc(1, nj),
+  data(nf, Linefunctions::ExpectedDataSize()) {}
+  
+  void SetZero() {
+    F.setZero();
+    N.setZero();
+    dF.setZero();
+    dN.setZero();
+  }
+  
+  InternalData& operator+=(const InternalData& other) {
+    F.noalias() += other.F;
+    N.noalias() += other.N;
+    dF.noalias() += other.dF;
+    dN.noalias() += other.dN;
+    return *this;
+  }
+};  // InternalData
+
+void set_cross_section_of_band(
+  VectorView xsec,
+  VectorView src,
+  VectorView phase,
+  InternalData& scratch,
+  InternalData& sum,
+  const ConstVectorView f_grid,
+  const AbsorptionLines& band,
+  const ArrayOfRetrievalQuantity& derivatives_data,
+  const ArrayOfIndex& derivatives_data_active,
+  const Vector& vmrs,
+  const ConstVectorView nlte,  // This must be turned into a map of some kind...
+  const Numeric& P,
+  const Numeric& T,
+  const Numeric& isot_ratio,
+  const Numeric& dfdH,
+  const Numeric& H,
+  const Numeric& DC,
+  const Numeric& dDCdT,
+  const Numeric& QT,
+  const Numeric& dQTdT,
+  const Numeric& QT0,
+  const bool no_negatives);
 };  // namespace Linefunctions
 
 #endif  //linefunctions_h
+
+

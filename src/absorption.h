@@ -570,10 +570,18 @@ class SpeciesAuxData {
 
   /** Returns mparams[st.Species()][st.Isotopologue()][0].data[0] if st.Isotopologue() > 0, else 1 */
   Numeric getIsotopologueRatio(const SpeciesTag& st) const;
+  
+  /** Returns mparams[qid.Species()][qid.Isotopologue()][0].data[0] */
+  Numeric getIsotopologueRatio(const QuantumIdentifier& qid) const;
 
   /** Return a constant reference to the parameters. */
   const ArrayOfGriddedField1& getParam(const LineRecord& lr) const {
     return getParam(lr.Species(), lr.Isotopologue());
+  }
+  
+  /** Return a constant reference to the parameters. */
+  const ArrayOfGriddedField1& getParam(const QuantumIdentifier& qid) const {
+    return getParam(qid.Species(), qid.Isotopologue());
   }
 
   /** Return a parameter type as string. */
@@ -596,6 +604,11 @@ class SpeciesAuxData {
     return mparam_type[species][isotopologue];
   }
 
+  /** Return a constant reference to the parameter types. */
+  const AuxType& getParamType(const QuantumIdentifier& qid) const {
+    return getParamType(qid.Species(), qid.Isotopologue());
+  }
+  
   /** Return a constant reference to the parameter types. */
   const AuxType& getParamType(const LineRecord& lr) const {
     return getParamType(lr.Species(), lr.Isotopologue());
@@ -823,12 +836,31 @@ void xsec_species2(Matrix& xsec,
                    const Vector& f_grid,
                    const Vector& abs_p,
                    const Vector& abs_t,
-                   const Matrix& abs_t_nlte,
+                   const Matrix& abs_nlte,
                    const Matrix& all_vmrs,
                    const ArrayOfArrayOfSpeciesTag& abs_species,
                    const ArrayOfLineRecord& abs_lines,
                    const SpeciesAuxData& isotopologue_ratios,
                    const SpeciesAuxData& partition_functions);
+
+void xsec_species3(Matrix& xsec,
+                   Matrix& source,
+                   Matrix& phase,
+                   ArrayOfMatrix& dxsec_dx,
+                   ArrayOfMatrix& dsource_dx,
+                   ArrayOfMatrix& dphase_dx,
+                   const ArrayOfRetrievalQuantity& jacobian_quantities,
+                   const ArrayOfIndex& jacobian_propmat_positions,
+                   const Vector& f_grid,
+                   const Vector& abs_p,
+                   const Vector& abs_t,
+                   const Matrix& abs_nlte,
+                   const Matrix& all_vmrs,
+                   const ArrayOfArrayOfSpeciesTag& abs_species,
+                   const AbsorptionLines& lines,
+                   const Numeric& isot_ratio,
+                   const SpeciesAuxData::AuxType& partfun_type,
+                   const ArrayOfGriddedField1& partfun_data);
 
 /** Returns the species data */
 const SpeciesRecord& SpeciesDataOfLines(const AbsorptionLines& lines);

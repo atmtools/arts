@@ -1836,6 +1836,13 @@ std::ostream& operator<<(std::ostream& os, const ArrayOfAbsorptionLines& aol)
   return os;
 }
 
+std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfAbsorptionLines& aol)
+{
+  for(auto& l: aol)
+    os << l << '\n';
+  return os;
+}
+
 String Absorption::Lines::SpeciesName() const noexcept
 {
   // Species lookup data:
@@ -2014,3 +2021,26 @@ void Absorption::Lines::ReverseLines() noexcept
   std::reverse(mlines.begin(), mlines.end());
 }
 
+Numeric Absorption::Lines::SpeciesMass() const noexcept
+{
+  return global_data::species_data[Species()].Isotopologue()[Isotopologue()].Mass();
+}
+
+Vector Absorption::Lines::BroadeningSpeciesVMR(const ConstVectorView atm_vmrs,
+                                               const ArrayOfArrayOfSpeciesTag& atm_spec) const
+{
+  return LineShape::vmrs(atm_vmrs, atm_spec, QuantumIdentity(),
+                         BroadeningSpecies(), Self(), Bath(), LineShapeType());
+}
+
+Numeric Absorption::Lines::SelfVMR(const ConstVectorView atm_vmrs,
+                                   const ArrayOfArrayOfSpeciesTag& atm_spec) const
+{
+  if (atm_vmrs.nelem() not_eq atm_spec.nelem())
+    throw std::runtime_error("Bad species and vmr lists");
+    
+  for (Index i=0; i<atm_spec.nelem(); i++)
+    if (atm_spec[i].nelem() and atm_spec[i][0].Species() == Species())
+      return atm_vmrs[i];
+  return 0;
+}

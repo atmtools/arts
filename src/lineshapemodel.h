@@ -1294,6 +1294,36 @@ constexpr Output differenceOutput(Output y, Output x) noexcept {
           y.DV - x.DV};
 }
 
+
+
+/** Returns a VMR vector for this model's main calculations
+ * 
+ * Sets a vector that matches the mdata size of VMRs based
+ * on atmospheric species and VMRs
+ * 
+ * Only checks the first species in inner atmosphere
+ * 
+ * Renormalizes the values to unity.  If this renormalization
+ * is impossible then it throws an error
+ * 
+ * Returns 0s if type is Doppler line shape
+ * 
+ * @param[in] atmospheric_vmrs VMRS in atmosphere
+ * @param[in] atmospheric_species Species in atmosphere
+ * @param[in] self An ID of whichever species is self
+ * @param[in] lineshape_species Species affecting lineshape
+ * @param[in] self_in_list Affects lineshape by itself?
+ * @param[in] bath_in_list Affected lineshape by environment?
+ * @param[in] type The type of line shape
+ */
+Vector vmrs(const ConstVectorView& atmospheric_vmrs,
+            const ArrayOfArrayOfSpeciesTag& atmospheric_species,
+            const QuantumIdentifier& self,
+            const ArrayOfSpeciesTag& lineshape_species,
+            bool self_in_list,
+            bool bath_in_list,
+            Type type);
+
 /** Name for bath broadening in printing and reading user input */
 static constexpr const char* const bath_broadening = "AIR";
 
@@ -1437,7 +1467,9 @@ class Model {
    */
   Vector vmrs(const ConstVectorView& atmospheric_vmrs,
               const ArrayOfArrayOfSpeciesTag& atmospheric_species,
-              const QuantumIdentifier& self) const;
+              const QuantumIdentifier& self) const {
+    return LineShape::vmrs(atmospheric_vmrs, atmospheric_species, self, mspecies, mself, mbath, mtype);
+  }
 
   /** Find the position of self in the list of species
    * 
