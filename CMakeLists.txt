@@ -48,6 +48,10 @@ enable_language(CXX)
 
 enable_testing ()
 
+########### Find Python ##########
+set(Python_ADDITIONAL_VERSIONS 3)
+find_package (PythonInterp REQUIRED)
+
 if (ENABLE_FORTRAN)
   enable_language (Fortran)
 
