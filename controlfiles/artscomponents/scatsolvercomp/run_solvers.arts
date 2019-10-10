@@ -1,0 +1,42 @@
+Arts2{
+
+# DOIT
+DoitInit
+DoitGetIncoming( rigorous=0 )
+doit_i_fieldSetClearsky
+DoitCalc
+yCalc( y = y_doit )
+VectorSubtractVector( y_doit, y_doit, y_clearsky )
+VectorScale( y_doit, y_doit, -1 )
+Print( y_doit, 0 )
+
+# RT4
+Copy( scat_za_grid_copy, scat_za_grid )
+Copy( scat_aa_grid_copy, scat_aa_grid )
+RT4Calc( nstreams = 16, auto_inc_nstreams=32, robust=1, quad_type = "l", 
+         pfct_aa_grid_size=37, pfct_method = "interpolate" )
+yCalc( y = y_rt4 )
+VectorSubtractVector( y_rt4, y_rt4, y_clearsky )
+VectorScale( y_rt4, y_rt4, -1 )
+Print( y_rt4, 0 )
+Copy( scat_za_grid, scat_za_grid_copy )
+Copy( scat_aa_grid, scat_aa_grid_copy )
+
+# DISORT
+nelemGet( nelem, scat_za_grid )
+DisortCalc( pfct_method = "interpolate" )
+yCalc( y = y_disort )
+VectorSubtractVector( y_disort, y_disort, y_clearsky )
+VectorScale( y_disort, y_disort, -1 )
+Print( y_disort, 0 )
+
+# Hybrid (here we must switch to another iy_main_agenda)
+# Note that we are using DISORT's i_field when running Hybrid
+Copy( iy_main_agenda, iy_hybrid_agenda )
+yCalc( y = y_hybrid )
+VectorSubtractVector( y_hybrid, y_hybrid, y_clearsky )
+VectorScale( y_hybrid, y_hybrid, -1 )
+Print( y_hybrid, 0 )
+Copy( iy_main_agenda, iy_main_agenda__Emission )
+
+}

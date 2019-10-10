@@ -12858,9 +12858,9 @@ void define_md_data_raw() {
                "Line of sight")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("psdAbel12"),
+      NAME("psdAbelBoutle12"),
       DESCRIPTION(
-          "Abel and Boutle [2012] (A12) particle size distribution for rain.\n"
+          "Abel and Boutle [2012] particle size distribution for rain.\n"
           "\n"
           "Reference: Abel and Boutle, An improved representation of the \n"
           "raindrop size distribution for single-moment microphysics schemes,\n"
@@ -12906,9 +12906,84 @@ void define_md_data_raw() {
           "Flag whether to be strict with parametrization value checks.")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("psdF07"),
+      NAME("psdDelanoeEtAl14"),
       DESCRIPTION(
-          "The Field et al. [2007] (F07) particle size distribution for snow and\n"
+          "Normalized PSD as proposed in Delanoë et al. ((2014)),\n"
+          "\n"
+          "Title and journal:\n"
+          "'Normalized particle size distribution for remote sensing\n"
+          "application', J. Geophys. Res. Atmos., 119, 4204–422.\n"
+          "\n"
+          "The PSD has two independent parameters *N0star*, the intercept\n"
+          "parameter, and *Dm*, the volume-weighted diameter.\n"
+          "This implementation expects as input two out of the following\n"
+          "three quantities: *iwc*, *n0Star*, *Dm*. In this case one of\n"
+          "the input parameters *iwc*, *N0start*, *Dm* must be set to -999.\n*"
+          "It is also possible to provide only *iwc*, in which case an a\n"
+          "priori assumption will be used to deduce *N0star* from *temperature*.\n"
+          "In this case both *N0star* and *Dm* must be set to -999.0.\n"
+          "\n"
+          "This PSD is not defined for vanishing concentrations of\n"
+          "scatterers as it requires normalization by *Dm*. It is up\n"
+          "to the user to ensure that the value of *Dm* is sufficiently\n"
+          "large. An error is thrown if *Dm* is zero or below the value\n"
+          "provided by *Dm_min*.\n"),
+      AUTHORS("Simon Pfreundschuh"),
+      OUT("psd_data", "dpsd_data_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("psd_size_grid",
+         "pnd_agenda_input_t",
+         "pnd_agenda_input",
+         "pnd_agenda_input_names",
+         "dpnd_data_dx_names"),
+      GIN("iwc",
+          "n0Star",
+          "Dm",
+          "rho",
+          "alpha",
+          "beta",
+          "t_min",
+          "t_max",
+          "dm_min",
+          "picky"),
+      GIN_TYPE("Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Index"),
+      GIN_DEFAULT("NaN",
+                  "NaN",
+                  "NaN",
+                  "917.6",
+                  "-0.237",
+                  "1.839",
+                  NODEF,
+                  NODEF,
+                  "-1.0",
+                  "0"),
+      GIN_DESC(
+          "Ice water content",
+          "Intercept parameter",
+          "Volume weighted diameter",
+          "Density of ice",
+          "*alpha* parameter of the shape function",
+          "*beta* paramter of the shape function",
+          "Low temperature limit to calculate a psd.",
+          "High temperature limit to calculate a psd.",
+          "Lower threshold for *Dm* below which an error is thrown.",
+          "Flag whether to be strict with parametrization value checks.")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("psdFieldEtAl07"),
+      DESCRIPTION(
+          "The Field et al. [2007] particle size distribution for snow and\n"
           "cloud ice.\n"
           "\n"
           "This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one\n"
@@ -12986,9 +13061,9 @@ void define_md_data_raw() {
           "Flag whether to be strict with parametrization value checks.")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("psdField19"),
+      NAME("psdFieldEtAl19"),
       DESCRIPTION(
-          "The Field [2019] (F19) particle size distribution for hail.\n"
+          "The Field [2019] particle size distribution for hail.\n"
           "\n"
           "Reference: Field, Normalized hail particle size distributions from the T-28\n"
           "storm-penetrating aircraft, JAMC, 2019\n"
@@ -13030,447 +13105,9 @@ void define_md_data_raw() {
           "Flag whether to be strict with parametrization value checks.")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("psdModifiedGammaMassSingleMoment"),
+      NAME("psdMcFarquaharHeymsfield97"),
       DESCRIPTION(
-          "Modified gamma distribution PSD, with mass content as input.\n"
-          "\n"
-          "The intercept parameter N0 is assumed dependent on the slope parameter lambda, such that\n"
-          "N0=N_alpha*lambda^n_b with fixed N_alpha and n_b. This is a common form for many\n"
-          "PSD parametrizations for use with single-moment mass-based schemes.\n"
-          "This version of MGD PSD takes mass content as first input argument.\n"
-          "This means that the first column of *pnd_agenda_input* shall hold\n"
-          "mass content data. The dependent parameter is assumed to be lambda.\n"),
-      AUTHORS("Stuart Fox"),
-      OUT("psd_data", "dpsd_data_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("psd_size_grid",
-         "pnd_agenda_input_t",
-         "pnd_agenda_input",
-         "pnd_agenda_input_names",
-         "dpnd_data_dx_names",
-         "scat_species_a",
-         "scat_species_b"),
-      GIN("n_alpha", "n_b", "mu", "gamma", "t_min", "t_max", "picky"),
-      GIN_TYPE("Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Index"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, "0"),
-      GIN_DESC(
-          "n_alpha",
-          "n_b",
-          "mu",
-          "gamma",
-          "Low temperature limit to calculate a psd.",
-          "High temperature limit to calculate a psd.",
-          "Flag whether to be strict with parametrization value checks.")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("psdMgd"),
-      DESCRIPTION(
-          "Modified gamma distribution PSD using n0, mu, la and ga as parameters.\n"
-          "\n"
-          "The modified gamma distribution is a 4-parameter (n0, mu, la and ga)\n"
-          "distribution [Petty & Huang, JAS, 2011)]:\n"
-          "   n(x) = n0 * x^mu * exp( -la*x^ga )\n"
-          "where x is particle size or mass.\n"
-          "\n"
-          "The parameters can be given in two ways, either by *pnd_agenda_input* or\n"
-          "as GIN arguments. The first option allows the parameter to vary, while\n"
-          "in the second case the parameter gets a constant value. If a parameter is\n"
-          "part of *pnd_agenda_input*, the corresponding GIN argument must be set\n"
-          "to NaN (which is default). This means that the number of columns in\n"
-          "*pnd_agenda_input* and the number of non-Inf choices for n0, mu, la and\n"
-          "ga must add up to four.\n"
-          "\n"
-          "Data in *pnd_agenda_input* are linked to the MGD parameters in term of\n"
-          "order, the naming in *pnd_agenda_input_names* is free. If all four\n"
-          "parameteras are specified by *pnd_agenda_input*, the data in the first\n"
-          "column are taken as n0, the second column as mu etc. If a parameter\n"
-          "is given as a GIN argument, the columns are just shifted with one position.\n"
-          "For example, if mu and ga are specified as GIN arguments, *pnd_agenda_input*\n"
-          "shall have two columns, with n0-values in the first one and la-values in\n"
-          "the second one.\n"
-          "\n"
-          "The GIN route is especially suitable for selecting special cases of MGD.\n"
-          "For example, by setting mu=0 and ga=1, an exponential PSD is obtained:\n"
-          "   n(x) = n0 * exp( -la*x )\n"
-          "With mu=1 and ga=1, the gamma PSD is obtained:\n"
-          "   n(x) = n0 * x^mu *exp( -la*x )\n"
-          "There should be little overhead in using the method for exponential\n"
-          "and gamma PSD, there is an internal switch to dedicated expressions for\n"
-          "those PSDs.\n"
-          "\n"
-          "Derivatives can only be obtained for parameters that are specified by\n"
-          "*pnd_agenda_input*. That is, parameters that are set to a value beside\n"
-          "Inf are treated as fixed, and can not be subject to a rterieval.\n"
-          "\n"
-          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
-          "picky=0, or an error is thrown if picky=1.\n"
-          "\n"
-          "These requirements apply to the MGD parameters:\n"
-          "  la > 0\n"
-          "  ga > 0\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("psd_data", "dpsd_data_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("psd_size_grid",
-         "pnd_agenda_input_t",
-         "pnd_agenda_input",
-         "pnd_agenda_input_names",
-         "dpnd_data_dx_names"),
-      GIN("n0", "mu", "la", "ga", "t_min", "t_max", "picky"),
-      GIN_TYPE("Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Index"),
-      GIN_DEFAULT("NaN", "NaN", "NaN", "NaN", NODEF, NODEF, "0"),
-      GIN_DESC(
-          "n0",
-          "mu",
-          "la",
-          "ga",
-          "Low temperature limit to calculate a psd.",
-          "High temperature limit to calculate a psd.",
-          "Flag whether to be strict with parametrization value checks.")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("psdMgdMass"),
-      DESCRIPTION(
-          "Modified gamma distribution PSD, with mass content as input.\n"
-          "\n"
-          "See *psdMgd* for a defintion of MGD parameters and how this PSD is\n"
-          "handled in ARTS. Only deviations with respect to *psdMgd* are\n"
-          "described here.\n"
-          "\n"
-          "This version of MGD PSD takes mass content as first input argument.\n"
-          "This means that the first column of *pnd_agenda_input* shall hold\n"
-          "mass content data.\n"
-          "\n"
-          "The mass content basically replaces one of the standard parameters\n"
-          "(n0, mu, la and ga). This parameter is denoted as the dependent one.\n"
-          "The dependent parameter is selected by setting the corresponding GIN\n"
-          "to -999. So far only n0 and la are allowed to be dependent.\n"
-          "\n"
-          "Regarding remaining columns in *pnd_agenda_input* and constant\n"
-          "parameter values (by GIN) follows the same principle as for *psdMgd*,\n"
-          "except that mass is always on column (as mentioned) and that there is\n"
-          "no position in *pnd_agenda_input* for the dependent parameter.\n"
-          "\n"
-          "These requirements apply to the MGD parameters:\n"
-          "  mu + scat_species_b + 1 > 0\n"
-          "  la > 0\n"
-          "  ga > 0\n"
-          "  If la is the dependent parameter, mass content must be > 0.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("psd_data", "dpsd_data_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("psd_size_grid",
-         "pnd_agenda_input_t",
-         "pnd_agenda_input",
-         "pnd_agenda_input_names",
-         "dpnd_data_dx_names",
-         "scat_species_a",
-         "scat_species_b"),
-      GIN("n0", "mu", "la", "ga", "t_min", "t_max", "picky"),
-      GIN_TYPE("Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Index"),
-      GIN_DEFAULT("NaN", "NaN", "NaN", "NaN", NODEF, NODEF, "0"),
-      GIN_DESC(
-          "n0",
-          "mu",
-          "la",
-          "ga",
-          "Low temperature limit to calculate a psd.",
-          "High temperature limit to calculate a psd.",
-          "Flag whether to be strict with parametrization value checks.")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("psdMgdMassNtot"),
-      DESCRIPTION(
-          "Modified gamma distribution PSD, with mass content and total number\n"
-          "density (Ntot) as inputs.\n"
-          "\n"
-          "This version of MGD PSD works as *psdMgdMass*, but takes mass content\n"
-          "and total number density as first two arguments. This means that the first\n"
-          "and second column of *pnd_agenda_input* shall hold mass content and Ntot,\n"
-          "respectively. Accordingly, the number of dependent parameters is two.\n"
-          "\n"
-          "These requirements apply:\n"
-          "  mu + 1 > 0\n"
-          "  la > 0\n"
-          "  ga > 0\n"
-          "  Ntot must be > 0.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("psd_data", "dpsd_data_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("psd_size_grid",
-         "pnd_agenda_input_t",
-         "pnd_agenda_input",
-         "pnd_agenda_input_names",
-         "dpnd_data_dx_names",
-         "scat_species_a",
-         "scat_species_b"),
-      GIN("n0", "mu", "la", "ga", "t_min", "t_max", "picky"),
-      GIN_TYPE("Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Index"),
-      GIN_DEFAULT("NaN", "NaN", "NaN", "NaN", NODEF, NODEF, "0"),
-      GIN_DESC(
-          "n0",
-          "mu",
-          "la",
-          "ga",
-          "Low temperature limit to calculate a psd.",
-          "High temperature limit to calculate a psd.",
-          "Flag whether to be strict with parametrization value checks.")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("psdMgdMassMeanParticleMass"),
-      DESCRIPTION(
-          "Modified gamma distribution PSD, with mass content and mean particle\n"
-          "mass (Mmean) as inputs.\n"
-          "\n"
-          "This version of MGD PSD works as *psdMgdMass*, but takes mass content\n"
-          "and mean particle mass as first two arguments. This means that the first\n"
-          "and second column of *pnd_agenda_input* shall hold mass content and\n"
-          "Mmean, respectively. Accordingly, the number of dependent parameters\n"
-          "is two.\n"
-          "\n"
-          "\"Mean particle mass\" is here defined as the mass content divided with\n"
-          "the total number density.\n"
-          "\n"
-          "These requirements apply to the MGD parameters:\n"
-          "  mu + 1 > 0\n"
-          "  la > 0\n"
-          "  ga > 0\n"
-          "  Mmean must be > 0.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("psd_data", "dpsd_data_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("psd_size_grid",
-         "pnd_agenda_input_t",
-         "pnd_agenda_input",
-         "pnd_agenda_input_names",
-         "dpnd_data_dx_names",
-         "scat_species_a",
-         "scat_species_b"),
-      GIN("n0", "mu", "la", "ga", "t_min", "t_max", "picky"),
-      GIN_TYPE("Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Index"),
-      GIN_DEFAULT("NaN", "NaN", "NaN", "NaN", NODEF, NODEF, "0"),
-      GIN_DESC(
-          "n0",
-          "mu",
-          "la",
-          "ga",
-          "Low temperature limit to calculate a psd.",
-          "High temperature limit to calculate a psd.",
-          "Flag whether to be strict with parametrization value checks.")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("psdMgdMassXmean"),
-      DESCRIPTION(
-          "Modified gamma distribution PSD, with mass content and mean size\n"
-          "(Xmean) as inputs.\n"
-          "\n"
-          "This version of MGD PSD works as *psdMgdMass*, but takes mass content\n"
-          "and mass size as first two arguments. This means that the first and\n"
-          "second column of *pnd_agenda_input* shall hold mass content and Xmean,\n"
-          "respectively. Accordingly, the number of dependent parameters is two.\n"
-          "\n"
-          "\"Mean size\" is here defined as mass weighted size. Remembering that\n"
-          "mass is a*x^b, this mean size can be expressed as M_b+1/M_b where M_b\n"
-          "is b:th moment of the PSD (see e.g. Eq. 17 in Petty&Huang, JAS, 2011).\n"
-          "\n"
-          "These requirements apply to the MGD parameters:\n"
-          "  mu + scat_species_b + 1 > 0\n"
-          "  la > 0\n"
-          "  ga > 0\n"
-          "  Xmean must be > 0.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("psd_data", "dpsd_data_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("psd_size_grid",
-         "pnd_agenda_input_t",
-         "pnd_agenda_input",
-         "pnd_agenda_input_names",
-         "dpnd_data_dx_names",
-         "scat_species_a",
-         "scat_species_b"),
-      GIN("n0", "mu", "la", "ga", "t_min", "t_max", "picky"),
-      GIN_TYPE("Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Index"),
-      GIN_DEFAULT("NaN", "NaN", "NaN", "NaN", NODEF, NODEF, "0"),
-      GIN_DESC(
-          "n0",
-          "mu",
-          "la",
-          "ga",
-          "Low temperature limit to calculate a psd.",
-          "High temperature limit to calculate a psd.",
-          "Flag whether to be strict with parametrization value checks.")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("psdMgdMassXmedian"),
-      DESCRIPTION(
-          "Modified gamma distribution PSD, with mass content and median size\n"
-          "(Xmedian) as inputs.\n"
-          "\n"
-          "This version of MGD PSD works as *psdMgdMass*, but takes mass content\n"
-          "and median size as first two arguments. This means that the first and\n"
-          "second column of *pnd_agenda_input* shall hold mass content and Xmedian,\n"
-          "respectively. Accordingly, the number of dependent parameters is two.\n"
-          "\n"
-          "These requirements apply to the MGD parameters:\n"
-          "  mu + scat_species_b + 1 > 0\n"
-          "  la > 0\n"
-          "  ga > 0\n"
-          "  Xmedian must be > 0.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("psd_data", "dpsd_data_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("psd_size_grid",
-         "pnd_agenda_input_t",
-         "pnd_agenda_input",
-         "pnd_agenda_input_names",
-         "dpnd_data_dx_names",
-         "scat_species_a",
-         "scat_species_b"),
-      GIN("n0", "mu", "la", "ga", "t_min", "t_max", "picky"),
-      GIN_TYPE("Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Index"),
-      GIN_DEFAULT("NaN", "NaN", "NaN", "NaN", NODEF, NODEF, "0"),
-      GIN_DESC(
-          "n0",
-          "mu",
-          "la",
-          "ga",
-          "Low temperature limit to calculate a psd.",
-          "High temperature limit to calculate a psd.",
-          "Flag whether to be strict with parametrization value checks.")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("psdD14"),
-      DESCRIPTION(
-          "Normalized PSD as proposed in Delanoë et al. ((2014)),\n"
-          "'Normalized particle size distribution for remote sensing\n"
-          "application', J. Geophys. Res. Atmos., 119, 4204–422.\n"
-          "\n"
-          "The PSD has two independent parameters *N0star*, the intercept\n"
-          " parameter, and *Dm*, the volume-weighted diameter.\n"
-          "This implementation expects as input two out of the following\n"
-          "three quantities: *iwc*, *n0Star*, *Dm*. In this case one of\n"
-          "the input parameters *iwc*, *N0start*, *Dm* must be set to -999.\n*"
-          "It is also possible to provide only *iwc*, in which case an a\n"
-          "priori assumption will be used to deduce *N0star* from *temperature*.\n"
-          "In this case both *N0star* and *Dm* must be set to -999.0.\n"
-          "\n"
-          "This PSD is not defined for vanishing concentrations of\n"
-          "scatterers as it requires normalization by *Dm*. It is up\n"
-          "to the user to ensure that the value of *Dm* is sufficiently\n"
-          "large. An error is thrown if *Dm* is zero or below the value\n"
-          "provided by *Dm_min*.\n"),
-      AUTHORS("Simon Pfreundschuh"),
-      OUT("psd_data", "dpsd_data_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("psd_size_grid",
-         "pnd_agenda_input_t",
-         "pnd_agenda_input",
-         "pnd_agenda_input_names",
-         "dpnd_data_dx_names"),
-      GIN("iwc",
-          "n0Star",
-          "Dm",
-          "rho",
-          "alpha",
-          "beta",
-          "t_min",
-          "t_max",
-          "dm_min",
-          "picky"),
-      GIN_TYPE("Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Numeric",
-               "Index"),
-      GIN_DEFAULT("NaN",
-                  "NaN",
-                  "NaN",
-                  "917.6",
-                  "-0.237",
-                  "1.839",
-                  NODEF,
-                  NODEF,
-                  "-1.0",
-                  "0"),
-      GIN_DESC(
-          "Ice water content",
-          "Intercept parameter",
-          "Volume weighted diameter",
-          "Density of ice",
-          "*alpha* parameter of the shape function",
-          "*beta* paramter of the shape function",
-          "Low temperature limit to calculate a psd.",
-          "High temperature limit to calculate a psd.",
-          "Lower threshold for *Dm* below which an error is thrown.",
-          "Flag whether to be strict with parametrization value checks.")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("psdMH97"),
-      DESCRIPTION(
-          "McFarquahar and Heymsfield [1997] (MH97) particle size distribution\n"
+          "McFarquahar and Heymsfield [1997] particle size distribution\n"
           "for cloud ice.\n"
           "\n"
           "This is a 1-parameter PSD, i.e. *pnd_agenda_input* shall have one\n"
@@ -13525,7 +13162,442 @@ void define_md_data_raw() {
                "Distribution parameter perturbance flag")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("psdMono"),
+      NAME("psdMilbrandtYau05"),
+      DESCRIPTION(
+          "Calculates *psd_data* and  *dpsd_data_dx* following Milbrandt and Yau (2005)\n"
+          "two moment particle size distribution for cloud water, cloud ice,\n"
+          "rain, snow, graupel and hail, which is used in the GEM model.\n"
+          "\n"
+          "WSM for use in *pnd_agenda_array* for mapping *particle_bulkprop_field*\n"
+          "to *pnd_field* using *pnd_fieldCalcFromParticleBulkProps*.\n"
+          "Produces the particle size distribution values (dN/dD) and their\n"
+          "derivates with respect to independent variables x by *dpnd_data_dx_names*\n"
+          "over multiple particle sizes and atmospheric levels (or SWC/T\n"
+          "combinations).\n"
+          "\n"
+          "*psd_size_grid* is considered to be in terms of maximum diameter.\n"
+          "WC is considered to be in terms of mass content (or mass density),\n"
+          "ie. units of [kg/m3]. N_tot in terms of number density, ie. units of [1/m3] ."
+          "\n"
+          "Derivatives with respect to WC and N_tot are obtained analytically.\n"
+          "\n"
+          "Six particle size distributions for the different hydrometeors are handled,\n"
+          "governed by setting of *hydrometeor_type*, where \n"
+          "    \"cloud_water\" selects cloud liquid water , \n"
+          "    \"cloud_ice\" selects cloud ice, \n"
+          "    \"snow\" selects snow, \n"
+          "    \"rain\" selects rain, \n"
+          "    \"graupel\" selects graupel, and \n"
+          "    \"hail\" selects hail, \n"
+          "\n"
+          "Requirements:\n"
+          "\n"
+          "*pnd_agenda_input_names* must include :\n"
+          "    [\"X-mass_density\", \"X-number_density\" ]. \"X\" is an arbitrary name\n"
+          "The entries in  *dpnd_data_dx_names* (ie. the allowed\n"
+          "independent variablea ) can be \"X-mass_density\" and\\or \n"
+          "\"X-number_density\".\n"
+          "\n"
+          "The validity range of WC is not limited. Negative WC will produce\n"
+          "negative psd values following a distribution given by abs(WC), ie.\n"
+          "abs(psd)=f(abs(WC)).\n"
+          "\n"
+          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
+          "picky=0, or an error is thrown if picky=1.\n"
+
+          ),
+      AUTHORS("Manfred Brath"),
+      OUT("psd_data", "dpsd_data_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("psd_size_grid",
+         "pnd_agenda_input_t",
+         "pnd_agenda_input",
+         "pnd_agenda_input_names",
+         "dpnd_data_dx_names"),
+      GIN("hydrometeor_type", "t_min", "t_max", "picky"),
+      GIN_TYPE("String", "Numeric", "Numeric", "Index"),
+      GIN_DEFAULT(NODEF, "0", "999", "0"),
+      GIN_DESC(
+          "Hydrometeor type (see above description).",
+          "Low temperature limit to calculate a psd.",
+          "High temperature limit to calculate a psd.",
+          "Flag whether to be strict with parametrization value checks.")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("psdModifiedGamma"),
+      DESCRIPTION(
+          "Modified gamma distribution PSD using n0, mu, la and ga as parameters.\n"
+          "\n"
+          "The modified gamma distribution is a 4-parameter (n0, mu, la and ga)\n"
+          "distribution [Petty & Huang, JAS, 2011)]:\n"
+          "   n(x) = n0 * x^mu * exp( -la*x^ga )\n"
+          "where x is particle size or mass.\n"
+          "\n"
+          "The parameters can be given in two ways, either by *pnd_agenda_input* or\n"
+          "as GIN arguments. The first option allows the parameter to vary, while\n"
+          "in the second case the parameter gets a constant value. If a parameter is\n"
+          "part of *pnd_agenda_input*, the corresponding GIN argument must be set\n"
+          "to NaN (which is default). This means that the number of columns in\n"
+          "*pnd_agenda_input* and the number of non-NaN choices for n0, mu, la and\n"
+          "ga must add up to four.\n"
+          "\n"
+          "Data in *pnd_agenda_input* are linked to the MGD parameters in term of\n"
+          "order, the naming in *pnd_agenda_input_names* is free. If all four\n"
+          "parameteras are specified by *pnd_agenda_input*, the data in the first\n"
+          "column are taken as n0, the second column as mu etc. If a parameter is\n"
+          "given as a GIN argument, the columns are just shifted with one position.\n"
+          "For example, if mu and ga are specified as GIN arguments, *pnd_agenda_input*\n"
+          "shall have two columns, with n0-values in the first one and la-values in\n"
+          "the second one.\n"
+          "\n"
+          "The GIN route is especially suitable for selecting special cases of MGD.\n"
+          "For example, by setting mu=0 and ga=1, an exponential PSD is obtained:\n"
+          "   n(x) = n0 * exp( -la*x )\n"
+          "With mu=1 and ga=1, the gamma PSD is obtained:\n"
+          "   n(x) = n0 * x^mu *exp( -la*x )\n"
+          "There should be little overhead in using the method for exponential\n"
+          "and gamma PSDs, there is an internal switch to dedicated expressions\n"
+          "for those PSDs.\n"
+          "\n"
+          "Derivatives can only be obtained for parameters that are specified by\n"
+          "*pnd_agenda_input*.\n"
+          "\n"
+          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
+          "picky=0, or an error is thrown if picky=1.\n"
+          "\n"
+          "These requirements apply to the MGD parameters:\n"
+          "  la > 0\n"
+          "  ga > 0\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("psd_data", "dpsd_data_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("psd_size_grid",
+         "pnd_agenda_input_t",
+         "pnd_agenda_input",
+         "pnd_agenda_input_names",
+         "dpnd_data_dx_names"),
+      GIN("n0", "mu", "la", "ga", "t_min", "t_max", "picky"),
+      GIN_TYPE("Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Index"),
+      GIN_DEFAULT("NaN", "NaN", "NaN", "NaN", NODEF, NODEF, "0"),
+      GIN_DESC(
+          "n0",
+          "mu",
+          "la",
+          "ga",
+          "Low temperature limit to calculate a psd.",
+          "High temperature limit to calculate a psd.",
+          "Flag whether to be strict with parametrization value checks.")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("psdModifiedGammaMass"),
+      DESCRIPTION(
+          "Modified gamma distribution (MGD) PSD, with mass content as input.\n"
+          "\n"
+          "See *psdModifiedGamma* for a defintion of MGD parameters and how\n"
+          "this PSD is handled in ARTS. Only deviations with respect to\n"
+          "*psdModifiedGamma* are described here.\n"
+          "\n"
+          "This version of MGD PSD takes mass content as first input argument.\n"
+          "This means that the first column of *pnd_agenda_input* shall hold\n"
+          "mass content data.\n"
+          "\n"
+          "The mass content basically replaces one of the standard parameters\n"
+          "(n0, mu, la and ga). This parameter is denoted as the dependent one.\n"
+          "The dependent parameter is selected by setting the corresponding GIN\n"
+          "to -999. So far only n0 and la are allowed to be dependent.\n"
+          "\n"
+          "Regarding remaining columns in *pnd_agenda_input* and constant\n"
+          "parameter values (by GIN) follows the same principle as for\n"
+          "*psdModifiedGamma* except that mass is always in column one (as\n"
+          "mentioned) and that there is no position in *pnd_agenda_input*\n"
+          "for the dependent parameter.\n"
+          "\n"
+          "These requirements apply to the MGD parameters:\n"
+          "  mu + scat_species_b + 1 > 0\n"
+          "  la > 0\n"
+          "  ga > 0\n"
+          "  If la is the dependent parameter, mass content must be > 0.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("psd_data", "dpsd_data_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("psd_size_grid",
+         "pnd_agenda_input_t",
+         "pnd_agenda_input",
+         "pnd_agenda_input_names",
+         "dpnd_data_dx_names",
+         "scat_species_a",
+         "scat_species_b"),
+      GIN("n0", "mu", "la", "ga", "t_min", "t_max", "picky"),
+      GIN_TYPE("Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Index"),
+      GIN_DEFAULT("NaN", "NaN", "NaN", "NaN", NODEF, NODEF, "0"),
+      GIN_DESC(
+          "n0",
+          "mu",
+          "la",
+          "ga",
+          "Low temperature limit to calculate a psd.",
+          "High temperature limit to calculate a psd.",
+          "Flag whether to be strict with parametrization value checks.")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("psdModifiedGammaMassNtot"),
+      DESCRIPTION(
+          "Modified gamma distribution PSD, with mass content and total number\n"
+          "density (Ntot) as inputs.\n"
+          "\n"
+          "This version of MGD PSD works as *psdModifiedGammaMass*, but takes\n"
+          "mass content and total number density as first two arguments. This\n"
+          "means that the first and second column of *pnd_agenda_input* shall\n"
+          "hold mass content and Ntot, respectively. Accordingly, the number\n"
+          "of dependent parameters is two.\n"
+          "\n"
+          "These requirements apply:\n"
+          "  mu + 1 > 0\n"
+          "  la > 0\n"
+          "  ga > 0\n"
+          "  Ntot must be > 0.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("psd_data", "dpsd_data_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("psd_size_grid",
+         "pnd_agenda_input_t",
+         "pnd_agenda_input",
+         "pnd_agenda_input_names",
+         "dpnd_data_dx_names",
+         "scat_species_a",
+         "scat_species_b"),
+      GIN("n0", "mu", "la", "ga", "t_min", "t_max", "picky"),
+      GIN_TYPE("Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Index"),
+      GIN_DEFAULT("NaN", "NaN", "NaN", "NaN", NODEF, NODEF, "0"),
+      GIN_DESC(
+          "n0",
+          "mu",
+          "la",
+          "ga",
+          "Low temperature limit to calculate a psd.",
+          "High temperature limit to calculate a psd.",
+          "Flag whether to be strict with parametrization value checks.")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("psdModifiedGammaMassMeanParticleMass"),
+      DESCRIPTION(
+          "Modified gamma distribution PSD, with mass content and mean particle\n"
+          "mass (Mmean) as inputs.\n"
+          "\n"
+          "\"Mean particle mass\" is here defined as the mass content divided with\n"
+          "the total number density.\n"
+          "\n"
+          "This version of MGD PSD works as *psdModifiedGammaMass*, but takes\n"
+          "mass content and mean particle mass as first two arguments. This\n"
+          "means that the first and second column of *pnd_agenda_input* shall\n"
+          "hold mass content and Mmean, respectively. Accordingly, the number\n"
+          "of dependent parameters is two.\n"
+          "\n"
+          "These requirements apply to the MGD parameters:\n"
+          "  mu + 1 > 0\n"
+          "  la > 0\n"
+          "  ga > 0\n"
+          "  Mmean must be > 0.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("psd_data", "dpsd_data_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("psd_size_grid",
+         "pnd_agenda_input_t",
+         "pnd_agenda_input",
+         "pnd_agenda_input_names",
+         "dpnd_data_dx_names",
+         "scat_species_a",
+         "scat_species_b"),
+      GIN("n0", "mu", "la", "ga", "t_min", "t_max", "picky"),
+      GIN_TYPE("Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Index"),
+      GIN_DEFAULT("NaN", "NaN", "NaN", "NaN", NODEF, NODEF, "0"),
+      GIN_DESC(
+          "n0",
+          "mu",
+          "la",
+          "ga",
+          "Low temperature limit to calculate a psd.",
+          "High temperature limit to calculate a psd.",
+          "Flag whether to be strict with parametrization value checks.")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("psdModifiedGammaMassSingleMoment"),
+      DESCRIPTION(
+          "Modified gamma distribution PSD, with mass content as input.\n"
+          "\n"
+          "The intercept parameter N0 is assumed dependent on the slope parameter\n"
+          "lambda, such that N0=N_alpha*lambda^n_b with fixed N_alpha and n_b.\n"
+          "This is a common form for many PSD parametrizations for use with\n"
+          "single-moment mass-based schemes.\n"
+          "\n"
+          "This version of MGD PSD takes mass content as first input argument.\n"
+          "This means that the first column of *pnd_agenda_input* shall hold\n"
+          "mass content data. The dependent parameter is assumed to be lambda.\n"),
+      AUTHORS("Stuart Fox"),
+      OUT("psd_data", "dpsd_data_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("psd_size_grid",
+         "pnd_agenda_input_t",
+         "pnd_agenda_input",
+         "pnd_agenda_input_names",
+         "dpnd_data_dx_names",
+         "scat_species_a",
+         "scat_species_b"),
+      GIN("n_alpha", "n_b", "mu", "gamma", "t_min", "t_max", "picky"),
+      GIN_TYPE("Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF, NODEF, "0"),
+      GIN_DESC(
+          "n_alpha",
+          "n_b",
+          "mu",
+          "gamma",
+          "Low temperature limit to calculate a psd.",
+          "High temperature limit to calculate a psd.",
+          "Flag whether to be strict with parametrization value checks.")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("psdModifiedGammaMassXmean"),
+      DESCRIPTION(
+          "Modified gamma distribution PSD, with mass content and mean size\n"
+          "(Xmean) as inputs.\n"
+          "\n"
+          "\"Mean size\" is here defined as mass weighted size. Remembering that\n"
+          "mass is a*x^b, this mean size can be expressed as M_b+1/M_b where M_b\n"
+          "is b:th moment of the PSD (see e.g. Eq. 17 in Petty&Huang, JAS, 2011).\n"
+          "\n"
+          "This version of MGD PSD works as *psdModifiedGammaMass*, but takes\n"
+          "mass content and mass size as first two arguments. This means that\n"
+          "the first and second column of *pnd_agenda_input* shall hold mass\n"
+          "content and Xmean, respectively. Accordingly, the number of dependent\n"
+          "parameters is two.\n"
+          "\n"
+          "These requirements apply to the MGD parameters:\n"
+          "  mu + scat_species_b + 1 > 0\n"
+          "  la > 0\n"
+          "  ga > 0\n"
+          "  Xmean must be > 0.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("psd_data", "dpsd_data_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("psd_size_grid",
+         "pnd_agenda_input_t",
+         "pnd_agenda_input",
+         "pnd_agenda_input_names",
+         "dpnd_data_dx_names",
+         "scat_species_a",
+         "scat_species_b"),
+      GIN("n0", "mu", "la", "ga", "t_min", "t_max", "picky"),
+      GIN_TYPE("Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Index"),
+      GIN_DEFAULT("NaN", "NaN", "NaN", "NaN", NODEF, NODEF, "0"),
+      GIN_DESC(
+          "n0",
+          "mu",
+          "la",
+          "ga",
+          "Low temperature limit to calculate a psd.",
+          "High temperature limit to calculate a psd.",
+          "Flag whether to be strict with parametrization value checks.")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("psdModifiedGammaMassXmedian"),
+      DESCRIPTION(
+          "Modified gamma distribution PSD, with mass content and median size\n"
+          "(Xmedian) as inputs.\n"
+          "\n"
+          "\n"
+          "This version of MGD PSD works as *psdModifiedGammaMass*, but takes\n"
+          "mass content and median size as first two arguments. This means that\n"
+          "the first and second column of *pnd_agenda_input* shall hold mass\n"
+          "content and Xmedian, respectively. Accordingly, the number of\n"
+          "dependent parameters is two.\n"
+          "\n"
+          "These requirements apply to the MGD parameters:\n"
+          "  mu + scat_species_b + 1 > 0\n"
+          "  la > 0\n"
+          "  ga > 0\n"
+          "  Xmedian must be > 0.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("psd_data", "dpsd_data_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("psd_size_grid",
+         "pnd_agenda_input_t",
+         "pnd_agenda_input",
+         "pnd_agenda_input_names",
+         "dpnd_data_dx_names",
+         "scat_species_a",
+         "scat_species_b"),
+      GIN("n0", "mu", "la", "ga", "t_min", "t_max", "picky"),
+      GIN_TYPE("Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Numeric",
+               "Index"),
+      GIN_DEFAULT("NaN", "NaN", "NaN", "NaN", NODEF, NODEF, "0"),
+      GIN_DESC(
+          "n0",
+          "mu",
+          "la",
+          "ga",
+          "Low temperature limit to calculate a psd.",
+          "High temperature limit to calculate a psd.",
+          "Flag whether to be strict with parametrization value checks.")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("psdMonoDispersive"),
       DESCRIPTION(
           "Mono-dispersive PSD, with number density given.\n"
           "\n"
@@ -13600,74 +13672,10 @@ void define_md_data_raw() {
           "Flag whether to be strict with parametrization value checks.")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("psdMY05"),
+      NAME("psdSeifertBeheng06"),
       DESCRIPTION(
-          "Calculates *psd_data* and  *dpsd_data_dx* following Milbrandt and Yau (2005)\n"
-          "two moment particle size distribution (MY05) for cloud water, cloud ice,\n"
-          "rain, snow, graupel and hail, which is used in the GEM model.\n"
-          "\n"
-          "WSM for use in *pnd_agenda_array* for mapping *particle_bulkprop_field*\n"
-          "to *pnd_field* using *pnd_fieldCalcFromParticleBulkProps*.\n"
-          "Produces the particle size distribution values (dN/dD) and their\n"
-          "derivates with respect to independent variables x by *dpnd_data_dx_names*\n"
-          "over multiple particle sizes and atmospheric levels (or SWC/T\n"
-          "combinations).\n"
-          "\n"
-          "*psd_size_grid* is considered to be in terms of maximum diameter.\n"
-          "WC is considered to be in terms of mass content (or mass density),\n"
-          "ie. units of [kg/m3]. N_tot in terms of number density, ie. units of [1/m3] ."
-          "\n"
-          "Derivatives with respect to WC and N_tot are obtained analytically.\n"
-          "\n"
-          "Six particle size distributions for the different hydrometeors are handled,\n"
-          "governed by setting of *hydrometeor_type*, where \n"
-          "    \"cloud_water\" selects cloud liquid water , \n"
-          "    \"cloud_ice\" selects cloud ice, \n"
-          "    \"snow\" selects snow, \n"
-          "    \"rain\" selects rain, \n"
-          "    \"graupel\" selects graupel, and \n"
-          "    \"hail\" selects hail, \n"
-          "\n"
-          "Requirements:\n"
-          "\n"
-          "*pnd_agenda_input_names* must include :\n"
-          "    [\"X-mass_density\", \"X-number_density\" ]. \"X\" is an arbitrary name\n"
-          "The entries in  *dpnd_data_dx_names* (ie. the allowed\n"
-          "independent variablea ) can be \"X-mass_density\" and\\or \n"
-          "\"X-number_density\".\n"
-          "\n"
-          "The validity range of WC is not limited. Negative WC will produce\n"
-          "negative psd values following a distribution given by abs(WC), ie.\n"
-          "abs(psd)=f(abs(WC)).\n"
-          "\n"
-          "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
-          "picky=0, or an error is thrown if picky=1.\n"
-
-          ),
-      AUTHORS("Manfred Brath"),
-      OUT("psd_data", "dpsd_data_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("psd_size_grid",
-         "pnd_agenda_input_t",
-         "pnd_agenda_input",
-         "pnd_agenda_input_names",
-         "dpnd_data_dx_names"),
-      GIN("hydrometeor_type", "t_min", "t_max", "picky"),
-      GIN_TYPE("String", "Numeric", "Numeric", "Index"),
-      GIN_DEFAULT(NODEF, "0", "999", "0"),
-      GIN_DESC(
-          "Hydrometeor type (see above description).",
-          "Low temperature limit to calculate a psd.",
-          "High temperature limit to calculate a psd.",
-          "Flag whether to be strict with parametrization value checks.")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("psdSB06"),
-      DESCRIPTION(
-          "Calculates *psd_data* and  *dpsd_data_dx* following Seifert and Beheng (2006)\n"
-          "two moment particle size distribution (SB06) for cloud water, cloud ice,\n"
+          "Calculates *psd_data* and *dpsd_data_dx* following Seifert and Beheng (2006)\n"
+          "two moment particle size distribution for cloud water, cloud ice,\n"
           "rain, snow, graupel and hail, which is used in the ICON model.\n"
           "\n"
           "WSM for use in *pnd_agenda_array* for mapping *particle_bulkprop_field*\n"
@@ -13728,9 +13736,9 @@ void define_md_data_raw() {
           "Flag whether to be strict with parametrization value checks.")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("psdWang16"),
+      NAME("psdWangEtAl16"),
       DESCRIPTION(
-          "Wang et al. [2016] (W16) particle size distribution for rain.\n"
+          "Wang et al. [2016] particle size distribution for rain.\n"
           "\n"
           "Reference: Wang et al., Investigation of liquid cloud microphysical\n"
           "properties of deep convective systems: 1. Parameterization raindrop\n"

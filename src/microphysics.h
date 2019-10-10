@@ -158,20 +158,6 @@ void pnd_fieldH98(Tensor4View pnd_field,
                   const String& delim,
                   const Verbosity& verbosity);
 
-void psd_SB06(Vector& psd,
-              Matrix& dpsd,
-              const Vector& mass,
-              const Numeric& N_tot,
-              const Numeric& WC,
-              const String& hydrometeor_type);
-
-void psd_MY05(Vector& psd,
-              Matrix& dpsd,
-              const Vector& diameter_max,
-              const Numeric N_tot,
-              const Numeric WC,
-              const String psd_type);
-
 Numeric IWCtopnd_H11(const Numeric diameter_mass_equivalent, const Numeric t);
 
 Numeric IWCtopnd_H13(const Numeric diameter_mass_equivalent, const Numeric t);

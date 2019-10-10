@@ -84,16 +84,12 @@ arts_test_run_ctlfile(fast artscomponents/lineshapes/TestHTPLM.arts)
 #arts_test_run_ctlfile(fast artscomponents/radiolink/TestRadioLink2.arts)
 #arts_test_run_ctlfile(slow artscomponents/radiolink/TestRadioOccultation.arts)
 
-arts_test_run_ctlfile(fast artscomponents/disort/TestDISORT.arts)
-
 arts_test_run_ctlfile(fast artscomponents/doit/TestDOIT.arts)
 arts_test_run_ctlfile(slow artscomponents/doit/TestDOITaccelerated.arts)
 arts_test_run_ctlfile(fast artscomponents/doit/TestDOITprecalcInit.arts)
 arts_test_ctlfile_depends(fast.artscomponents.doit.TestDOITprecalcInit
                           fast.artscomponents.doit.TestDOIT)
 arts_test_run_ctlfile(fast artscomponents/doit/TestDOITsensorInsideCloudbox.arts)
-arts_test_run_ctlfile(slow artscomponents/doitbatch/TestDOITBatch.arts)
-arts_test_run_ctlfile(slow artscomponents/doit/TestDOITFromIndividualFields.arts)
 
 arts_test_run_ctlfile(fast artscomponents/montecarlo/TestMonteCarloDataPrepare.arts)
 arts_test_run_ctlfile(slow artscomponents/montecarlo/TestMonteCarloGeneral.arts)
@@ -109,9 +105,6 @@ arts_test_ctlfile_depends(fast.artscomponents.montecarlo.TestRteCalcMC
 arts_test_run_ctlfile(fast artscomponents/wfuns/TestTjacStokes1.arts)
 arts_test_run_ctlfile(slow artscomponents/wfuns/TestTjacStokes4_transmission.arts)
 arts_test_run_ctlfile(slow artscomponents/wfuns/TestWfuns.arts)
-arts_test_run_ctlfile(slow artscomponents/wfuns/TestWfunsHybClear.arts)
-arts_test_ctlfile_depends(slow.artscomponents.wfuns.TestWfunsHybClear
-                          slow.artscomponents.wfuns.TestWfuns)
 
 arts_test_run_ctlfile(fast artscomponents/radar/TestIyActive.arts)
 arts_test_run_ctlfile(fast artscomponents/radar/TestIyActive_wfuns.arts)
@@ -128,9 +121,8 @@ if (ENABLE_FFTW)
 endif ()
 
 if (ENABLE_RT4)
-  arts_test_run_ctlfile(fast artscomponents/polradtran/TestRT4.arts)
-  arts_test_run_ctlfile(fast artscomponents/hybridscat/TestHybrid.arts)
-  arts_test_run_ctlfile(slow artscomponents/wfuns/TestWfunsHybCloudy.arts)
+  arts_test_run_ctlfile(fast artscomponents/scatsolvercomp/TestScatSolvers_fast.arts)
+  arts_test_run_ctlfile(slow artscomponents/scatsolvercomp/TestScatSolvers.arts)
 endif ()
 
 if (ENABLE_TMATRIX)
