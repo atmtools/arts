@@ -36,21 +36,6 @@
 #include "optproperties.h"
 #include "ppath.h"
 
-void chk_if_pnd_zero_p(const Index& i_p,
-                       const GriddedField3& pnd_field_raw,
-                       const String& pnd_field_file,
-                       const Verbosity& verbosity);
-
-void chk_if_pnd_zero_lat(const Index& i_lat,
-                         const GriddedField3& pnd_field_raw,
-                         const String& pnd_field_file,
-                         const Verbosity& verbosity);
-
-void chk_if_pnd_zero_lon(const Index& i_lon,
-                         const GriddedField3& pnd_field_raw,
-                         const String& pnd_field_file,
-                         const Verbosity& verbosity);
-
 void chk_pnd_data(const GriddedField3& pnd_field_raw,
                   const String& pnd_field_file,
                   const Index& atmosphere_dim,
@@ -95,17 +80,6 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
 
 void bin_quadweights(Vector& w, const Vector& x, const Index& order = 1);
 
-void bin_integral(Vector& w, const Vector& x, const Vector& y);
-
-void chk_pndsum(Vector& pnd,
-                const Numeric xwc,
-                const Vector& mass,
-                const Index& p,
-                const Index& lat,
-                const Index& lon,
-                const String& part_type,
-                const Verbosity& verbosity);
-
 void chk_scat_species_field(bool& empty_flag,
                             const Tensor3& scat_species_field,
                             const String& fieldname,
@@ -135,13 +109,5 @@ void parse_atmcompact_scattype(String& scat_type,
 void parse_partfield_name(String& partfield_name,
                           const String& part_string,
                           const String& delim);
-
-void parse_psd_param(String& psd_param,
-                     const String& part_string,
-                     const String& delim);
-
-void parse_psd_options(ArrayOfString& psd_options,
-                       const String& part_string,
-                       const String& delim);
 
 #endif  //cloudbox_h

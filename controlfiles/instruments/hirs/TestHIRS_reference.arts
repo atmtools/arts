@@ -256,7 +256,7 @@ AgendaSet( ybatch_calc_agenda ){
 
   # Split up *atm_fields_compact* to
   # generate p_grid, t_field, z_field, vmr_field:
-  AtmFieldsFromCompact
+  AtmFieldsAndParticleBulkPropFieldFromCompact
 
   # Optionally set Jacobian parameters.
   # uncomment this for NO jacobian calculations

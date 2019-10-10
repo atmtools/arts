@@ -42,19 +42,4 @@ void derive_scat_species_a_and_b(Numeric& a,
                                  const Numeric& x_fit_start,
                                  const Numeric& x_fit_end);
 
-Numeric IWCtopnd_H11(const Numeric diameter_mass_equivalent, const Numeric t);
-
-Numeric IWCtopnd_H13Shape(const Numeric diameter_mass_equivalent,
-                          const Numeric t);
-
-Numeric area_ratioH13(const Numeric diameter_mass_equivalent, const Numeric t);
-
-Numeric LWCtopnd_MGD_LWC(const Numeric d, const Numeric m, const Numeric lwc);
-
-Numeric IWCtopnd_MGD_IWC(const Numeric d, const Numeric m, const Numeric iwc);
-
-Numeric LWCtopnd(const Numeric lwc, const Numeric radius);
-
-Numeric PRtopnd_MP48(const Numeric R, const Numeric diameter_melted_equivalent);
-
 #endif  //microphysics_h

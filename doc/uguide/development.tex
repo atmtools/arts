@@ -580,23 +580,12 @@ method can be added.
 
 \subsection{How to add a particle size distribution}
 %---------------------------------------
-\begin{enumerate}
-\item In \shortcode{cloudbox.cc}, add a non-WS method
-  \shortcode{pnd\_fieldPSDNAME}, where \shortcode{PSDNAME} stands for the short
-  name or name tag of the new particle size distribution (PSD) parametrization.
-  This will be the method called by
-  \builtindoc{pnd\_fieldCalcFromscat\_speciesFields}, the WSM that converts the
-  particle-related atmospheric fields (typically hydrometeor fields like cloud ice
-  mass content, rain rate, etc.) to the internally used \builtindoc{pnd\_field}.
-\item Update the built-in documentation of
-  \builtindoc{pnd\_fieldCalcFromscat\_speciesFields} in \shortcode{methods.cc}.
-  Particularly, add an entry in the table summarizing the implemented PSDs.
-\item In \shortcode{m\_cloudbox.cc}, add a WSM \shortcode{dNdD\_PSDNAME} as a
-  wrapper to the low-level calculation of the number density size distribution
-  function $\mathrm{d}N/\mathrm{d}D$. Also add definition and documentation of
-  the WSM to \shortcode{methods.cc} (see
-  Section~\ref{sec:development:extending:wsm} for details).
-\end{enumerate}
+In \shortcode{m\_psd.cc}, add a workspace method \shortcode{psdPsdName}, where
+\shortcode{PsdName} stands for the name or name tag of the new particle size
+distribution (PSD) parametrization. (see Section~\ref{sec:development:extending:wsm}
+for details). If several \shortcode{psdPsdName} methods are based on the same 
+algorithm, add the algorithm as an internal function to \shortcode{psd.cc}.
+
 
 \section{Version control}
 %======================

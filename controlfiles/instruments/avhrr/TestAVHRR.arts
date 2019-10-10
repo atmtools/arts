@@ -113,7 +113,7 @@ AgendaSet( ybatch_calc_agenda ){
     ybatch_index
   )
 
-  AtmFieldsFromCompact
+  AtmFieldsAndParticleBulkPropFieldFromCompact
 
   # get some surface properties from corresponding atmospheric fields
   Extract( z_surface, z_field, 0 )
