@@ -15933,34 +15933,6 @@ void define_md_data_raw() {
                " data only (1) or on all single scattering properties (0).",
                "Threshold for allowed albedo deviation.")));
 
-  /*
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "scat_dataFromMeta" ),
-        DESCRIPTION
-        (
-         "This workspace method calculates scattering data and adds it to\n"
-         "*scat_data* using the *scat_meta* data.\n"
-         "The scattering data is calculated with the T-matrix method.\n"
-         "\n"
-         "One set of scattering data is calculated for each scattering element\n"
-         "in *scat_meta*.\n"
-         ),
-        AUTHORS( "Johan Strandgren, Oliver Lemke" ),
-        OUT("scat_data"),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN("scat_meta"),
-        GIN( "za_grid", "aa_grid", "precision" ),
-        GIN_TYPE("Vector", "Vector", "Numeric" ),
-        GIN_DEFAULT(NODEF, NODEF, NODEF ),
-        GIN_DESC("Zenith angle grid",
-                 "Azimuth angle grid",
-                 "Precision"
-                 )
-        ));
-*/
   //TODO: Check  if function can be removed.
   md_data_raw.push_back(MdRecord(
       NAME("scat_speciesSet"),
