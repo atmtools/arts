@@ -146,7 +146,7 @@ Arts2 {
     Extract(atm_fields_compact,batch_atm_fields_compact,0)
 
     # Split up *atm_fields_compact* to generate p_grid, t_field, z_field, vmr_field:
-    AtmFieldsFromCompact
+    AtmFieldsAndParticleBulkPropFieldFromCompact
 
     
     #Set surface altitude

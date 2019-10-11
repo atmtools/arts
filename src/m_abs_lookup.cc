@@ -1246,11 +1246,8 @@ void abs_lookupSetupBatch(  // WS Output:
     Tensor3 t_field;
     Tensor3 z_field;
     Tensor4 vmr_field;
-    Tensor4 scat_species_mass_density_field;
-    Tensor4 scat_species_mass_flux_field;
-    Tensor4 scat_species_number_density_field;
-    Tensor4 scat_species_mean_mass_field;
-    ArrayOfString scat_species;
+    Tensor4 particle_bulkprop_field;
+    ArrayOfString particle_bulkprop_names;
     GriddedField4 atm_fields_compact;
     SpeciesAuxData partition_functions;
     Index abs_f_interp_order;
@@ -1259,24 +1256,21 @@ void abs_lookupSetupBatch(  // WS Output:
     // This closes the loophole when only calculating lookup tables.
     atm_fields_compact = batch_fields[i];
 
-    AtmFieldsFromCompact(p_grid,
-                         lat_grid,
-                         lon_grid,
-                         t_field,
-                         z_field,
-                         vmr_field,
-                         scat_species_mass_density_field,
-                         scat_species_mass_flux_field,
-                         scat_species_number_density_field,
-                         scat_species_mean_mass_field,
-                         abs_species,
-                         scat_species,
-                         atm_fields_compact,
-                         atmosphere_dim,
-                         "-",
-                         0,
-                         check_gridnames,
-                         verbosity);
+    AtmFieldsAndParticleBulkPropFieldFromCompact(p_grid,
+                                                 lat_grid,
+                                                 lon_grid,
+                                                 t_field,
+                                                 z_field,
+                                                 vmr_field,
+                                                 particle_bulkprop_field,
+                                                 particle_bulkprop_names,
+                                                 abs_species,
+                                                 atm_fields_compact,
+                                                 atmosphere_dim,
+                                                 "-",
+                                                 0,
+                                                 check_gridnames,
+                                                 verbosity);
 
     try {
       atmfields_checkedCalc(atmfields_checked,

@@ -605,29 +605,6 @@ void particle_fieldCleanup(  //WS Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void scat_speciesSet(  // WS Generic Output:
-    ArrayOfString& scat_species,
-    // Control Parameters:
-    const ArrayOfString& scatspecies_tags,
-    const String& delim,
-    const Verbosity& verbosity) {
-  CREATE_OUT3;
-
-  scat_species.resize(scatspecies_tags.nelem());
-  //assign input strings to scat_species
-  scat_species = scatspecies_tags;
-
-  chk_scat_species(scat_species, delim);
-
-  // Print list of scattering species settings to the most verbose output stream:
-  out3 << "  Defined scattering species settings: ";
-  for (Index i = 0; i < scat_species.nelem(); ++i) {
-    out3 << "\n  " << i << ": " << scat_species[i];
-  }
-  out3 << '\n';
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void ScatSpeciesInit(  //WS Output:
     ArrayOfString& scat_species,
     ArrayOfArrayOfSingleScatteringData& scat_data_raw,

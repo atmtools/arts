@@ -33,7 +33,7 @@ verbosityInit
 #
 # Semi-mandatory variables associated with scattering calculations
 #
-scat_speciesSet( scat_species, [] )
+ArrayOfStringSet( scat_species, [] )
 MatrixSet( particle_masses, [] )
 Tensor4SetConstant( particle_bulkprop_field, 0, 0, 0, 0, 0.0 )
 ArrayOfStringSet( particle_bulkprop_names, [] )
