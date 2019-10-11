@@ -785,9 +785,6 @@ public:
 };  // InternalData
 
 void set_cross_section_of_band(
-  VectorView xsec,
-  VectorView src,
-  VectorView phase,
   InternalData& scratch,
   InternalData& sum,
   const ConstVectorView f_grid,
@@ -799,14 +796,15 @@ void set_cross_section_of_band(
   const Numeric& P,
   const Numeric& T,
   const Numeric& isot_ratio,
-  const Numeric& dfdH,
   const Numeric& H,
   const Numeric& DC,
   const Numeric& dDCdT,
   const Numeric& QT,
   const Numeric& dQTdT,
   const Numeric& QT0,
-  const bool no_negatives);
+  const bool no_negatives=false,
+  const bool zeeman=false,
+  const Zeeman::Polarization zeeman_polarization=Zeeman::Polarization::Pi);
 };  // namespace Linefunctions
 
 #endif  //linefunctions_h

@@ -2235,15 +2235,11 @@ void xsec_species3(Matrix& xsec,
 
   // Type of problem
   const bool do_nonlte = nt;
-  const bool do_jacobi = nj;
-  const bool do_temperature = do_temperature_jacobian(jacobian_quantities);
 
+  Linefunctions::InternalData scratch(nf, nj), sum(nf, nj);
+  
   // Test if the size of the problem is 0
   if (not np or not nf or not nl) return;
-
-  // Parallelization data holder (skip if in parallel or there are too few threads)
-  const bool threading = (not arts_omp_in_parallel() and arts_omp_get_max_threads() < nl);
-  const Index nthread = threading ? arts_omp_get_max_threads() : 1;
   
   // Constant for all lines
   const Numeric QT0 = single_partition_function(lines.T0(), partfun_type, partfun_data);
@@ -2259,5 +2255,47 @@ void xsec_species3(Matrix& xsec,
     const Numeric DC = Linefunctions::DopplerConstant(temperature, lines.SpeciesMass());
     const Numeric dDCdT = Linefunctions::dDopplerConstant_dT(temperature, DC);
     const Vector line_shape_vmr = lines.BroadeningSpeciesVMR(all_vmrs(joker, ip), abs_species);
+    
+    Linefunctions::set_cross_section_of_band(
+      scratch,
+      sum,
+      f_grid,
+      lines,
+      jacobian_quantities,
+      jacobian_propmat_positions,
+      line_shape_vmr,
+      nt ? abs_nlte(joker, ip) : Vector(0),  // This must be turned into a map of some kind...
+      pressure,
+      temperature,
+      isot_ratio,
+      0,
+      DC,
+      dDCdT,
+      QT,
+      dQTdT,
+      QT0,
+      false);
+    
+    // absorption cross-section
+    MapToEigen(xsec).col(ip).noalias() += sum.F.real();
+    for (Index j = 0; j < nj; j++)
+      MapToEigen(dxsec_dx[j]).col(ip).noalias() +=
+      sum.dF.col(j).real();
+    
+    // phase cross-section
+    if (not phase.empty()) {
+      MapToEigen(phase).col(ip).noalias() += sum.F.imag();
+      for (Index j = 0; j < nj; j++)
+        MapToEigen(dphase_dx[j]).col(ip).noalias() +=
+        sum.dF.col(j).imag();
+    }
+    
+    // source ratio cross-section
+    if (do_nonlte) {
+      MapToEigen(source).col(ip).noalias() += sum.N.real();
+      for (Index j = 0; j < nj; j++)
+        MapToEigen(dsource_dx[j]).col(ip).noalias() +=
+        sum.dN.col(j).real();
+    }
   }
 }

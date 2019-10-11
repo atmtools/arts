@@ -2039,6 +2039,39 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
+      NAME("abs_xsec_per_speciesAddLines3"),
+      DESCRIPTION(
+          "Calculates the line spectrum for both attenuation and phase\n"
+          "for each tag group and adds it to abs_xsec_per_species.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_xsec_per_species",
+          "src_xsec_per_species",
+          "dabs_xsec_per_species_dx",
+          "dsrc_xsec_per_species_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_xsec_per_species",
+         "src_xsec_per_species",
+         "dabs_xsec_per_species_dx",
+         "dsrc_xsec_per_species_dx",
+         "abs_species",
+         "jacobian_quantities",
+         "abs_species_active",
+         "f_grid",
+         "abs_p",
+         "abs_t",
+         "abs_nlte",
+         "abs_vmrs",
+         "abs_lines_per_species2",
+         "isotopologue_ratios",
+         "partition_functions"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
       NAME("abs_xsec_per_speciesAddLineMixedLines"),
       DESCRIPTION("Calculates the band-wise cross-section TEST FUNCTION\n"),
       AUTHORS("Richard Larsson"),

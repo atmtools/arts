@@ -2038,9 +2038,6 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
 }
 
 void Linefunctions::set_cross_section_of_band(
-    VectorView xsec,
-    VectorView src,
-    VectorView phase,
     InternalData& scratch,
     InternalData& sum,
     const ConstVectorView f_grid,
@@ -2052,14 +2049,15 @@ void Linefunctions::set_cross_section_of_band(
     const Numeric& P,
     const Numeric& T,
     const Numeric& isot_ratio,
-    const Numeric& dfdH,
     const Numeric& H,
     const Numeric& DC,
     const Numeric& dDCdT,
     const Numeric& QT,
     const Numeric& dQTdT,
     const Numeric& QT0,
-    const bool no_negatives)
+    const bool no_negatives,
+    const bool zeeman,
+    const Zeeman::Polarization zeeman_polarization)
 {
   const Index nj = derivatives_data_active.nelem();
   
@@ -2084,6 +2082,7 @@ void Linefunctions::set_cross_section_of_band(
 
   for (Index i=0; i<band.NumLines(); i++) {
     
+    // Cutoff frequencies
     fc[0] = band.CutoffFreq(i);
     
     const auto QI = band.QuantumIdentityOfLine(i);
@@ -2091,6 +2090,7 @@ void Linefunctions::set_cross_section_of_band(
     // Pressure broadening and line mixing terms
     const auto X = band.ShapeParameters(i, T, P, vmrs);
     
+    // Placeholder nothingness
     constexpr LineShape::Output empty_output = {0, 0, 0, 0, 0, 0, 0, 0, 0};
     
     // Partial derivatives for temperature
@@ -2098,29 +2098,27 @@ void Linefunctions::set_cross_section_of_band(
     
     // Partial derivatives for VMR... the first function
     auto do_vmr = do_vmr_jacobian(derivatives_data, QI);  // At all, Species
-    const auto dXdVMR =
-    do_vmr.test ? band.ShapeParameters_dVMR(i, T, P, do_vmr.qid)
-    : empty_output;
+    const auto dXdVMR = do_vmr.test ?
+    band.ShapeParameters_dVMR(i, T, P, do_vmr.qid) : empty_output;
     
-    switch (band.LineShapeType()) {
-      case LineShape::Type::DP:
-        set_doppler(F,
-                    dF,
-                    data,
-                    f,
-                    dfdH,
-                    H,
-                    band.F0(i),
-                    DC,
-                    derivatives_data,
-                    derivatives_data_active,
-                    QI,
-                    dDCdT);
-        if (band.Cutoff() not_eq Absorption::CutoffType::None)
-          set_doppler(Fc,
-                      dFc,
+    // Zeeman lines if necessary
+    const Index nz = zeeman ?
+      band.ZeemanCount(i, zeeman_polarization) : 1;
+    
+    for (Index iz=0; iz<nz; iz++) {
+      
+      // Zeeman values for this sub-line
+      const Numeric Sz = zeeman ?
+        band.ZeemanStrength(i, zeeman_polarization, iz) : 1;
+      const Numeric dfdH = zeeman ?
+        band.ZeemanSplitting(i, zeeman_polarization, iz) : 1;
+      
+      switch (band.LineShapeType()) {
+        case LineShape::Type::DP:
+          set_doppler(F,
+                      dF,
                       data,
-                      fc,
+                      f,
                       dfdH,
                       H,
                       band.F0(i),
@@ -2129,72 +2127,24 @@ void Linefunctions::set_cross_section_of_band(
                       derivatives_data_active,
                       QI,
                       dDCdT);
-        break;
-      case LineShape::Type::HTP:
-      case LineShape::Type::SDVP:
-        set_htp(F,
-                dF,
-                f,
-                dfdH,
-                H,
-                band.F0(i),
-                DC,
-                X,
-                derivatives_data,
-                derivatives_data_active,
-                QI,
-                dDCdT,
-                dXdT,
-                dXdVMR);
-        if (band.Cutoff() not_eq Absorption::CutoffType::None)
-          set_htp(Fc,
-                  dFc,
-                  fc,
-                  dfdH,
-                  H,
-                  band.F0(i),
-                  DC,
-                  X,
-                  derivatives_data,
-                  derivatives_data_active,
-                  QI,
-                  dDCdT,
-                  dXdT,
-                  dXdVMR);
-        break;
-      case LineShape::Type::LP:
-        set_lorentz(F,
-                    dF,
-                    data,
-                    f,
-                    dfdH,
-                    H,
-                    band.F0(i),
-                    X,
-                    derivatives_data,
-                    derivatives_data_active,
-                    QI,
-                    dXdT,
-                    dXdVMR);
-        if (band.Cutoff() not_eq Absorption::CutoffType::None)
-          set_lorentz(Fc,
-                      dFc,
-                      data,
-                      fc,
-                      dfdH,
-                      H,
-                      band.F0(i),
-                      X,
-                      derivatives_data,
-                      derivatives_data_active,
-                      QI,
-                      dXdT,
-                      dXdVMR);
-        break;
-      case LineShape::Type::VP:
-        set_voigt(F,
+          if (band.Cutoff() not_eq Absorption::CutoffType::None)
+            set_doppler(Fc,
+                        dFc,
+                        data,
+                        fc,
+                        dfdH,
+                        H,
+                        band.F0(i),
+                        DC,
+                        derivatives_data,
+                        derivatives_data_active,
+                        QI,
+                        dDCdT);
+          break;
+        case LineShape::Type::HTP:
+        case LineShape::Type::SDVP:
+          set_htp(F,
                   dF,
-                  data,
                   f,
                   dfdH,
                   H,
@@ -2207,10 +2157,9 @@ void Linefunctions::set_cross_section_of_band(
                   dDCdT,
                   dXdT,
                   dXdVMR);
-        if (band.Cutoff() not_eq Absorption::CutoffType::None)
-          set_voigt(Fc,
+          if (band.Cutoff() not_eq Absorption::CutoffType::None)
+            set_htp(Fc,
                     dFc,
-                    data,
                     fc,
                     dfdH,
                     H,
@@ -2223,45 +2172,93 @@ void Linefunctions::set_cross_section_of_band(
                     dDCdT,
                     dXdT,
                     dXdVMR);
-        break;
-    }
-    
-    if (band.Cutoff() not_eq Absorption::CutoffType::None) {
-      F.array() -= Fc[0];
-      for (Index ij = 0; ij < nj; ij++) dF.col(ij).array() -= dFc[ij];
-    }
-
-    // Set the mirroring by repeating computations above using
-    // negative numbers for frequency of line related terms
-    // The user sets if they want mirroring by LSM MTM followed by an index
-    // that is interpreted as either mirroring by the same line shape or as
-    // mirroring by Lorentz lineshape
-    const bool with_mirroring =
-    band.Mirroring() not_eq Absorption::MirroringType::None and
-    band.Mirroring() not_eq Absorption::MirroringType::Manual;
-    switch (band.Mirroring()) {
-      case Absorption::MirroringType::None:
-      case Absorption::MirroringType::Manual:
-        break;
-      case Absorption::MirroringType::Lorentz:
-        set_lorentz(N,
-                    dN,
+          break;
+        case LineShape::Type::LP:
+          set_lorentz(F,
+                      dF,
+                      data,
+                      f,
+                      dfdH,
+                      H,
+                      band.F0(i),
+                      X,
+                      derivatives_data,
+                      derivatives_data_active,
+                      QI,
+                      dXdT,
+                      dXdVMR);
+          if (band.Cutoff() not_eq Absorption::CutoffType::None)
+            set_lorentz(Fc,
+                        dFc,
+                        data,
+                        fc,
+                        dfdH,
+                        H,
+                        band.F0(i),
+                        X,
+                        derivatives_data,
+                        derivatives_data_active,
+                        QI,
+                        dXdT,
+                        dXdVMR);
+          break;
+        case LineShape::Type::VP:
+          set_voigt(F,
+                    dF,
                     data,
                     f,
-                    -dfdH,
+                    dfdH,
                     H,
-                    -band.F0(i),
-                    LineShape::mirroredOutput(X),
+                    band.F0(i),
+                    DC,
+                    X,
                     derivatives_data,
                     derivatives_data_active,
                     QI,
-                    LineShape::mirroredOutput(dXdT),
-                    LineShape::mirroredOutput(dXdVMR));
-        if (band.Cutoff() not_eq Absorption::CutoffType::None)
-          set_lorentz(Nc,
-                      dNc,
+                    dDCdT,
+                    dXdT,
+                    dXdVMR);
+          if (band.Cutoff() not_eq Absorption::CutoffType::None)
+            set_voigt(Fc,
+                      dFc,
                       data,
                       fc,
+                      dfdH,
+                      H,
+                      band.F0(i),
+                      DC,
+                      X,
+                      derivatives_data,
+                      derivatives_data_active,
+                      QI,
+                      dDCdT,
+                      dXdT,
+                      dXdVMR);
+          break;
+      }
+      
+      if (band.Cutoff() not_eq Absorption::CutoffType::None) {
+        F.array() -= Fc[0];
+        for (Index ij = 0; ij < nj; ij++) dF.col(ij).array() -= dFc[ij];
+      }
+
+      // Set the mirroring by repeating computations above using
+      // negative numbers for frequency of line related terms
+      // The user sets if they want mirroring by LSM MTM followed by an index
+      // that is interpreted as either mirroring by the same line shape or as
+      // mirroring by Lorentz lineshape
+      const bool with_mirroring =
+      band.Mirroring() not_eq Absorption::MirroringType::None and
+      band.Mirroring() not_eq Absorption::MirroringType::Manual;
+      switch (band.Mirroring()) {
+        case Absorption::MirroringType::None:
+        case Absorption::MirroringType::Manual:
+          break;
+        case Absorption::MirroringType::Lorentz:
+          set_lorentz(N,
+                      dN,
+                      data,
+                      f,
                       -dfdH,
                       H,
                       -band.F0(i),
@@ -2271,41 +2268,11 @@ void Linefunctions::set_cross_section_of_band(
                       QI,
                       LineShape::mirroredOutput(dXdT),
                       LineShape::mirroredOutput(dXdVMR));
-        break;
-      case Absorption::MirroringType::SameAsLineShape:
-        switch (band.LineShapeType()) {
-          case LineShape::Type::DP:
-            set_doppler(N,
-                        dN,
+          if (band.Cutoff() not_eq Absorption::CutoffType::None)
+            set_lorentz(Nc,
+                        dNc,
                         data,
-                        f,
-                        -dfdH,
-                        H,
-                        -band.F0(i),
-                        -DC,
-                        derivatives_data,
-                        derivatives_data_active,
-                        QI,
-                        -dDCdT);
-            if (band.Cutoff() not_eq Absorption::CutoffType::None)
-              set_doppler(Nc,
-                          dNc,
-                          data,
-                          fc,
-                          -dfdH,
-                          H,
-                          -band.F0(i),
-                          -DC,
-                          derivatives_data,
-                          derivatives_data_active,
-                          QI,
-                          -dDCdT);
-            break;
-          case LineShape::Type::LP:
-            set_lorentz(N,
-                        dN,
-                        data,
-                        f,
+                        fc,
                         -dfdH,
                         H,
                         -band.F0(i),
@@ -2315,11 +2282,41 @@ void Linefunctions::set_cross_section_of_band(
                         QI,
                         LineShape::mirroredOutput(dXdT),
                         LineShape::mirroredOutput(dXdVMR));
-            if (band.Cutoff() not_eq Absorption::CutoffType::None)
-              set_lorentz(Nc,
-                          dNc,
+          break;
+        case Absorption::MirroringType::SameAsLineShape:
+          switch (band.LineShapeType()) {
+            case LineShape::Type::DP:
+              set_doppler(N,
+                          dN,
                           data,
-                          fc,
+                          f,
+                          -dfdH,
+                          H,
+                          -band.F0(i),
+                          -DC,
+                          derivatives_data,
+                          derivatives_data_active,
+                          QI,
+                          -dDCdT);
+              if (band.Cutoff() not_eq Absorption::CutoffType::None)
+                set_doppler(Nc,
+                            dNc,
+                            data,
+                            fc,
+                            -dfdH,
+                            H,
+                            -band.F0(i),
+                            -DC,
+                            derivatives_data,
+                            derivatives_data_active,
+                            QI,
+                            -dDCdT);
+              break;
+            case LineShape::Type::LP:
+              set_lorentz(N,
+                          dN,
+                          data,
+                          f,
                           -dfdH,
                           H,
                           -band.F0(i),
@@ -2329,11 +2326,59 @@ void Linefunctions::set_cross_section_of_band(
                           QI,
                           LineShape::mirroredOutput(dXdT),
                           LineShape::mirroredOutput(dXdVMR));
-            break;
-          case LineShape::Type::VP:
-            set_voigt(N,
+              if (band.Cutoff() not_eq Absorption::CutoffType::None)
+                set_lorentz(Nc,
+                            dNc,
+                            data,
+                            fc,
+                            -dfdH,
+                            H,
+                            -band.F0(i),
+                            LineShape::mirroredOutput(X),
+                            derivatives_data,
+                            derivatives_data_active,
+                            QI,
+                            LineShape::mirroredOutput(dXdT),
+                            LineShape::mirroredOutput(dXdVMR));
+              break;
+            case LineShape::Type::VP:
+              set_voigt(N,
+                        dN,
+                        data,
+                        f,
+                        -dfdH,
+                        H,
+                        -band.F0(i),
+                        -DC,
+                        LineShape::mirroredOutput(X),
+                        derivatives_data,
+                        derivatives_data_active,
+                        QI,
+                        -dDCdT,
+                        LineShape::mirroredOutput(dXdT),
+                        LineShape::mirroredOutput(dXdVMR));
+              if (band.Cutoff() not_eq Absorption::CutoffType::None)
+                set_voigt(Nc,
+                          dNc,
+                          data,
+                          fc,
+                          -dfdH,
+                          H,
+                          -band.F0(i),
+                          -DC,
+                          LineShape::mirroredOutput(X),
+                          derivatives_data,
+                          derivatives_data_active,
+                          QI,
+                          -dDCdT,
+                          LineShape::mirroredOutput(dXdT),
+                          LineShape::mirroredOutput(dXdVMR));
+              break;
+            case LineShape::Type::HTP:
+            case LineShape::Type::SDVP:
+              // WARNING: This mirroring is not tested and it might require, e.g., FVC to be treated differently
+              set_htp(N,
                       dN,
-                      data,
                       f,
                       -dfdH,
                       H,
@@ -2346,10 +2391,9 @@ void Linefunctions::set_cross_section_of_band(
                       -dDCdT,
                       LineShape::mirroredOutput(dXdT),
                       LineShape::mirroredOutput(dXdVMR));
-            if (band.Cutoff() not_eq Absorption::CutoffType::None)
-              set_voigt(Nc,
+              if (band.Cutoff() not_eq Absorption::CutoffType::None)
+                set_htp(Nc,
                         dNc,
-                        data,
                         fc,
                         -dfdH,
                         H,
@@ -2362,181 +2406,161 @@ void Linefunctions::set_cross_section_of_band(
                         -dDCdT,
                         LineShape::mirroredOutput(dXdT),
                         LineShape::mirroredOutput(dXdVMR));
-            break;
-          case LineShape::Type::HTP:
-          case LineShape::Type::SDVP:
-            // WARNING: This mirroring is not tested and it might require, e.g., FVC to be treated differently
-            set_htp(N,
-                    dN,
-                    f,
-                    -dfdH,
-                    H,
-                    -band.F0(i),
-                    -DC,
-                    LineShape::mirroredOutput(X),
-                    derivatives_data,
-                    derivatives_data_active,
-                    QI,
-                    -dDCdT,
-                    LineShape::mirroredOutput(dXdT),
-                    LineShape::mirroredOutput(dXdVMR));
-            if (band.Cutoff() not_eq Absorption::CutoffType::None)
-              set_htp(Nc,
-                      dNc,
-                      fc,
-                      -dfdH,
-                      H,
-                      -band.F0(i),
-                      -DC,
-                      LineShape::mirroredOutput(X),
-                      derivatives_data,
-                      derivatives_data_active,
-                      QI,
-                      -dDCdT,
-                      LineShape::mirroredOutput(dXdT),
-                      LineShape::mirroredOutput(dXdVMR));
-            break;
-        }
-        break;
-    }
-    
-    if (band.Cutoff() not_eq Absorption::CutoffType::None and with_mirroring) {
-      N.array() -= Nc[0];
-      for (Index ij = 0; ij < nj; ij++) dN.col(ij).array() -= dNc[ij];
-    }
+              break;
+          }
+          break;
+      }
+      
+      if (band.Cutoff() not_eq Absorption::CutoffType::None and with_mirroring) {
+        N.array() -= Nc[0];
+        for (Index ij = 0; ij < nj; ij++) dN.col(ij).array() -= dNc[ij];
+      }
 
-    // Mixing and mirroring can only apply to non-Doppler shapes
-    if (band.LineShapeType() not_eq LineShape::Type::DP) {
-      apply_linemixing_scaling_and_mirroring(F,
+      // Mixing and mirroring can only apply to non-Doppler shapes
+      if (band.LineShapeType() not_eq LineShape::Type::DP) {
+        apply_linemixing_scaling_and_mirroring(F,
+                                              dF,
+                                              N,
+                                              dN,
+                                              X,
+                                              with_mirroring,
+                                              derivatives_data,
+                                              derivatives_data_active,
+                                              QI,
+                                              dXdT,
+                                              dXdVMR);
+
+        // Apply line mixing and pressure broadening partial derivatives
+        apply_lineshapemodel_jacobian_scaling(dF,
+                                              derivatives_data,
+                                              derivatives_data_active,
+                                              QI,
+                                              band,
+                                              T,
+                                              P,
+                                              vmrs,
+                                              i);
+      }
+
+      // Line normalization if necessary
+      // The user sets this by setting LSM LNT followed by an index
+      // that is internally interpreted to mean some kind of lineshape normalization
+      switch (band.Normalization()) {
+        case Absorption::NormalizationType::None:
+          break;
+        case Absorption::NormalizationType::VVH:
+          apply_VVH_scaling(F,
+                            dF,
+                            data,
+                            f,
+                            band.F0(i),
+                            T,
+                            derivatives_data,
+                            derivatives_data_active,
+                            QI);
+          break;
+        case Absorption::NormalizationType::VVW:
+          apply_VVW_scaling(F,
+                            dF,
+                            f,
+                            band.F0(i),
+                            derivatives_data,
+                            derivatives_data_active,
+                            QI);
+          break;
+        case Absorption::NormalizationType::RosenkranzQuadratic:
+          apply_rosenkranz_quadratic_scaling(F,
+                                            dF,
+                                            f,
+                                            band.F0(i),
+                                            T,
+                                            derivatives_data,
+                                            derivatives_data_active,
+                                            QI);
+          break;
+      }
+
+      // Apply line strength by whatever method is necessary
+      switch (band.Population()) {
+        case Absorption::PopulationType::ByLTE:
+          apply_linestrength_scaling_by_lte(F,
                                             dF,
                                             N,
                                             dN,
-                                            X,
-                                            with_mirroring,
-                                            derivatives_data,
-                                            derivatives_data_active,
-                                            QI,
-                                            dXdT,
-                                            dXdVMR);
-
-      // Apply line mixing and pressure broadening partial derivatives
-      apply_lineshapemodel_jacobian_scaling(dF,
-                                            derivatives_data,
-                                            derivatives_data_active,
-                                            QI,
                                             band,
                                             T,
-                                            P,
-                                            vmrs,
+                                            isot_ratio,
+                                            QT,
+                                            QT0,
+                                            derivatives_data,
+                                            derivatives_data_active,
+                                            QI,
+                                            dQTdT,
                                             i);
+          break;
+        case Absorption::PopulationType::ByNLTEVibrationalTemperatures:
+          assert(false);
+          apply_linestrength_scaling_by_vibrational_nlte(
+              F,
+              dF,
+              N,
+              dN,
+              band,
+              T,
+              nlte[2],  // TEMP LEVEL 2
+              nlte[1],  // TEMP LEVEL 1
+              nlte[2],  // EV LEVEL 2
+              nlte[1],  // EV LEVEL 1
+              isot_ratio,
+              QT,
+              QT0,
+              derivatives_data,
+              derivatives_data_active,
+              QI,
+              dQTdT);
+          break;
+        case Absorption::PopulationType::ByNLTEPopulationDistribution:
+          assert(false);
+          apply_linestrength_from_nlte_level_distributions(
+              F,
+              dF,
+              N,
+              dN,
+              nlte[1],  // TEMP LEVEL 1
+              nlte[2],  // TEMP LEVEL 2
+              band.g_low(i),
+              band.g_upp(i),
+              band.A(i),
+              band.F0(i),
+              T,
+              derivatives_data,
+              derivatives_data_active,
+              QI);
+          break;
+      }
+      
+      // Zeeman-adjusted strength
+      if (Sz not_eq 1) {
+        F *= Sz;
+        N *= Sz;
+        dF *= Sz;
+        dN *= Sz;
+      }
+      
+      // Sum up the contributions
+      sum += scratch;
     }
-
-    // Line normalization if necessary
-    // The user sets this by setting LSM LNT followed by an index
-    // that is internally interpreted to mean some kind of lineshape normalization
-    switch (band.Normalization()) {
-      case Absorption::NormalizationType::None:
-        break;
-      case Absorption::NormalizationType::VVH:
-        apply_VVH_scaling(F,
-                          dF,
-                          data,
-                          f,
-                          band.F0(i),
-                          T,
-                          derivatives_data,
-                          derivatives_data_active,
-                          QI);
-        break;
-      case Absorption::NormalizationType::VVW:
-        apply_VVW_scaling(F,
-                          dF,
-                          f,
-                          band.F0(i),
-                          derivatives_data,
-                          derivatives_data_active,
-                          QI);
-        break;
-      case Absorption::NormalizationType::RosenkranzQuadratic:
-        apply_rosenkranz_quadratic_scaling(F,
-                                          dF,
-                                          f,
-                                          band.F0(i),
-                                          T,
-                                          derivatives_data,
-                                          derivatives_data_active,
-                                          QI);
-        break;
-    }
-
-    // Apply line strength by whatever method is necessary
-    switch (band.Population()) {
-      case Absorption::PopulationType::ByLTE:
-        apply_linestrength_scaling_by_lte(F,
-                                          dF,
-                                          N,
-                                          dN,
-                                          band,
-                                          T,
-                                          isot_ratio,
-                                          QT,
-                                          QT0,
-                                          derivatives_data,
-                                          derivatives_data_active,
-                                          QI,
-                                          dQTdT,
-                                          i);
-        break;
-      case Absorption::PopulationType::ByNLTEVibrationalTemperatures:
-        assert(false);
-        apply_linestrength_scaling_by_vibrational_nlte(
-            F,
-            dF,
-            N,
-            dN,
-            band,
-            T,
-            nlte[2],  // TEMP LEVEL 2
-            nlte[1],  // TEMP LEVEL 1
-            nlte[2],  // EV LEVEL 2
-            nlte[1],  // EV LEVEL 1
-            isot_ratio,
-            QT,
-            QT0,
-            derivatives_data,
-            derivatives_data_active,
-            QI,
-            dQTdT);
-        break;
-      case Absorption::PopulationType::ByNLTEPopulationDistribution:
-        assert(false);
-        apply_linestrength_from_nlte_level_distributions(
-            F,
-            dF,
-            N,
-            dN,
-            nlte[1],  // TEMP LEVEL 1
-            nlte[2],  // TEMP LEVEL 2
-            band.g_low(i),
-            band.g_upp(i),
-            band.A(i),
-            band.F0(i),
-            T,
-            derivatives_data,
-            derivatives_data_active,
-            QI);
-        break;
-    }
-    
-    // Sum up the contributions
-    sum += scratch;
   }
 
   // Set negative values to zero incase this is requested
   if (no_negatives) {
-    sum.F = (sum.F.array().real() < 0).select(Complex(0, 0), sum.F);
-    sum.N = (sum.N.array().real() < 0).select(Complex(0, 0), sum.N);
-    sum.dF = (sum.dF.array().real() < 0).select(Complex(0, 0), sum.dF);
-    sum.dN = (sum.dN.array().real() < 0).select(Complex(0, 0), sum.dN);
+    auto reset_zeroes = (sum.F.array().real() < 0);
+    
+    sum.N = reset_zeroes.select(Complex(0, 0), sum.N);
+    for (Index ij=0; ij<nj; ij++)
+      sum.dF.col(ij) = reset_zeroes.select(Complex(0, 0), sum.dF.col(ij));
+    for (Index ij=0; ij<nj; ij++)
+      sum.dN.col(ij) = reset_zeroes.select(Complex(0, 0), sum.dN.col(ij));
+    sum.F = reset_zeroes.select(Complex(0, 0), sum.F);
   }
 }

@@ -437,3 +437,68 @@ bool QuantumIdentifier::any_quantumnumbers() const {
   }
   return false;
 }
+
+
+Output2 EnergyLevelMap::get_ratio_params(
+  const QuantumIdentifier& transition,
+  Index pressure_level) const
+{
+  Output2 x{0, 0};
+  
+  bool found1=false;
+  bool found2=false;
+  for (size_t i=0; i<mspec.size(); i++) {
+    if (mspec[i] not_eq transition.Species())
+      continue;
+    if (misot[i] not_eq transition.Species())
+      continue;
+    
+    if (not found1 and transition.LowerQuantumNumbers().Compare(mlevel[i])) {
+      found1 = true;
+      x.r_low = pressure_level < mvalue[i].nelem() ? mvalue[i][pressure_level] : -1;
+    }
+    
+    if (not found2 and transition.UpperQuantumNumbers().Compare(mlevel[i])) {
+      found2 = true;
+      x.r_upp = pressure_level < mvalue[i].nelem() ? mvalue[i][pressure_level] : -1;
+    }
+    
+    if (found1 and found2)
+      break;
+  }
+  return x;
+}
+
+
+
+Output4 EnergyLevelMap::get_vibtemp_params(
+  const QuantumIdentifier& transition,
+  Index pressure_level) const
+{
+  Output4 x{0, 0};
+  
+  bool found1=false;
+  bool found2=false;
+  for (size_t i=0; i<mspec.size(); i++) {
+    if (mspec[i] not_eq transition.Species())
+      continue;
+    if (misot[i] not_eq transition.Species())
+      continue;
+    
+    if (not found1 and transition.LowerQuantumNumbers().Compare(mlevel[i])) {
+      found1 = true;
+      x.T_low = pressure_level < mvalue[i].nelem() ? mvalue[i][pressure_level] : -1;
+      x.E_low = mvib_energy[i];
+    }
+    
+    if (not found2 and transition.UpperQuantumNumbers().Compare(mlevel[i])) {
+      found2 = true;
+      x.T_upp = pressure_level < mvalue[i].nelem() ? mvalue[i][pressure_level] : -1;
+      x.E_upp = mvib_energy[i];
+    }
+    
+    if (found1 and found2)
+      break;
+  }
+  return x;
+}

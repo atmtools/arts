@@ -655,28 +655,27 @@ std::ostream& operator<<(std::ostream& os, const QuantumNumbers& qn);
 std::ostream& operator<<(std::ostream& os, const QuantumIdentifier& qi);
 
 struct Output2{
-  Numeric lower;
-  Numeric upper;
+  Numeric r_low;
+  Numeric r_upp;
 };
 struct Output4{
-  Numeric Elower;
-  Numeric Eupper;
-  Numeric Tlower;
-  Numeric Tupper;
+  Numeric E_low;
+  Numeric E_upp;
+  Numeric T_low;
+  Numeric T_upp;
 };
 
-template <class T>
 class EnergyLevelMap {
 private:
-  std::vector<Index> spec;
-  std::vector<Index> isot;
-  std::vector<QuantumNumbers> level;
-  std::vector<Numeric> vib_energy;
-  std::vector<T> value;
+  std::vector<Index> mspec;
+  std::vector<Index> misot;
+  std::vector<QuantumNumbers> mlevel;
+  std::vector<Numeric> mvib_energy;
+  std::vector<Vector> mvalue;
   
 public:
-  Output2 get_ratio_params(QuantumIdentifier transition, Index pressure_level) const;
-  Output4 get_vibtemp_params(QuantumIdentifier transition, Index pressure_level) const;
+  Output2 get_ratio_params(const QuantumIdentifier& transition, Index pressure_level) const;
+  Output4 get_vibtemp_params(const QuantumIdentifier& transition, Index pressure_level) const;
 };
 
 #endif
