@@ -64,6 +64,8 @@ void planck(VectorView b, ConstVectorView f, const Numeric& t);
 
 Numeric dplanck_dt(const Numeric& f, const Numeric& t);
 
+void dplanck_dt(VectorView b, ConstVectorView f, const Numeric& t);
+
 Numeric dplanck_df(const Numeric& f, const Numeric& t);
 
 Numeric rayjean(const Numeric& f, const Numeric& t);

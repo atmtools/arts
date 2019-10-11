@@ -12259,6 +12259,51 @@ void define_md_data_raw() {
                "Manual eta given positive tag")));
 
   md_data_raw.push_back(MdRecord(
+      NAME("propmat_clearskyAddZeeman2"),
+      DESCRIPTION(
+          "Calculates Zeeman-affected polarized propagation matrix and its\n"
+          "derivatives.\n"
+          "\n"
+          "Otherwise as *propmat_clearskyAddFromLookup*\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("propmat_clearsky",
+          "nlte_source",
+          "dpropmat_clearsky_dx",
+          "dnlte_dx_source",
+          "nlte_dsource_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("propmat_clearsky",
+         "nlte_source",
+         "dpropmat_clearsky_dx",
+         "dnlte_dx_source",
+         "nlte_dsource_dx",
+         "abs_lines_per_species2",
+         "f_grid",
+         "abs_species",
+         "jacobian_quantities",
+         "isotopologue_ratios",
+         "partition_functions",
+         "rtp_pressure",
+         "rtp_temperature",
+         "rtp_nlte",
+         "rtp_vmr",
+         "rtp_mag",
+         "rtp_los",
+         "atmosphere_dim"),
+      GIN("manual_zeeman_tag",
+          "manual_zeeman_magnetic_field_strength",
+          "manual_zeeman_theta",
+          "manual_zeeman_eta"),
+      GIN_TYPE("Index", "Numeric", "Numeric", "Numeric"),
+      GIN_DEFAULT("0", "1.0", "0.0", "0.0"),
+      GIN_DESC("Manual angles tag",
+               "Manual Magnetic Field Strength",
+               "Manual theta given positive tag",
+               "Manual eta given positive tag")));
+
+  md_data_raw.push_back(MdRecord(
       NAME("propmat_clearskyInit"),
       DESCRIPTION(
           "Initialize *propmat_clearsky* and *nlte_source*.\n"

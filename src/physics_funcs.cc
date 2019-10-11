@@ -353,6 +353,44 @@ Numeric dplanck_dt(const Numeric& f, const Numeric& t) try {
   throw std::runtime_error(os.str());
 }
 
+/** dplanck_dt
+ * 
+ * Calculates the Planck function temperature derivative for a single
+ * temperature and a vector of frequencies.
+ *
+ * @param[in]  f  Frequency.
+ * @param[in]  t  Temperature.
+ *
+ * @return     Blackbody radiation.
+ *
+ * @author Richard Larsson
+ * @date   2019-10-11
+ */
+void dplanck_dt(VectorView dbdt, ConstVectorView f, const Numeric& t) try {
+  if (dbdt.nelem() not_eq f.nelem())
+    throw "Vector size mismatch: frequency dim is bad";
+  
+  for (Index i = 0; i < f.nelem(); i++) dbdt[i] = dplanck_dt(f[i], t);
+} catch (const char* e) {
+  std::ostringstream os;
+  os << "Errors raised by *planck* internal function:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
+} catch (const std::exception& e) {
+  std::ostringstream os;
+  os << "Errors in calls by *planck* internal function:\n";
+  os << e.what();
+  
+  Index n = 0;
+  for (auto& F : f)
+    if (F <= 0) n++;
+    if (n)
+      os << '\t' << "You have " << n
+      << " frequency grid points that reports a negative frequency!\n";
+    
+    throw std::runtime_error(os.str());
+}
+
 /** dplanck_df
  *
  * Calculates the frequency derivative of the Planck function
