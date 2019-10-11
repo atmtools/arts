@@ -1240,37 +1240,37 @@ void abs_lookupSetupBatch(  // WS Output:
     Tensor4 t4_dummy;
     Tensor3 t3_dummy;
 
-      Vector p_grid;
-      Vector lat_grid;
-      Vector lon_grid;
-      Tensor3 t_field;
-      Tensor3 z_field;
-      Tensor4 vmr_field;
-      Tensor4 particle_bulkprop_field;
-      ArrayOfString particle_bulkprop_names;
-      GriddedField4 atm_fields_compact;
-      SpeciesAuxData partition_functions;
-      Index abs_f_interp_order;
+    Vector p_grid;
+    Vector lat_grid;
+    Vector lon_grid;
+    Tensor3 t_field;
+    Tensor3 z_field;
+    Tensor4 vmr_field;
+    Tensor4 particle_bulkprop_field;
+    ArrayOfString particle_bulkprop_names;
+    GriddedField4 atm_fields_compact;
+    SpeciesAuxData partition_functions;
+    Index abs_f_interp_order;
 
-      // Extract fields from atmfield and check their validity.
-      // This closes the loophole when only calculating lookup tables.
-      atm_fields_compact = batch_fields[i];
+    // Extract fields from atmfield and check their validity.
+    // This closes the loophole when only calculating lookup tables.
+    atm_fields_compact = batch_fields[i];
 
-      AtmFieldsAndParticleBulkPropFieldFromCompact(p_grid,
-                           lat_grid,
-                           lon_grid,
-                           t_field,
-                           z_field,
-                           vmr_field,
-                           particle_bulkprop_field,
-                           particle_bulkprop_names,
-                           abs_species,
-                           atm_fields_compact,
-                           atmosphere_dim,
-                           "-",
-                           0,
-                           check_gridnames,
-                           verbosity);
+    AtmFieldsAndParticleBulkPropFieldFromCompact(p_grid,
+                                                 lat_grid,
+                                                 lon_grid,
+                                                 t_field,
+                                                 z_field,
+                                                 vmr_field,
+                                                 particle_bulkprop_field,
+                                                 particle_bulkprop_names,
+                                                 abs_species,
+                                                 atm_fields_compact,
+                                                 atmosphere_dim,
+                                                 "-",
+                                                 0,
+                                                 check_gridnames,
+                                                 verbosity);
 
     try {
       atmfields_checkedCalc(atmfields_checked,
