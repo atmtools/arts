@@ -2438,6 +2438,403 @@ void AtmFieldsCalc(  //WS Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void AtmFieldsCalc2(  //WS Output:
+    Tensor3& t_field,
+    Tensor3& z_field,
+    Tensor4& vmr_field,
+    EnergyLevelMap& nlte_field,
+    //WS Input
+    const Vector& p_grid,
+    const Vector& lat_grid,
+    const Vector& lon_grid,
+    const GriddedField3& t_field_raw,
+    const GriddedField3& z_field_raw,
+    const ArrayOfGriddedField3& vmr_field_raw,
+    const ArrayOfGriddedField3& nlte_field_raw,
+    const ArrayOfQuantumIdentifier& nlte_ids,
+    const Vector& nlte_energies,
+    const Index& atmosphere_dim,
+    // WS Generic Input:
+    const Index& interp_order,
+    const Index& vmr_zeropadding,
+    const Index& vmr_nonegative,
+    const Index& nlte_when_negative,
+    const Verbosity& verbosity) {
+  CREATE_OUT2;
+
+  const ConstVectorView tfr_p_grid =
+      t_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+  const ConstVectorView tfr_lat_grid =
+      t_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+  const ConstVectorView tfr_lon_grid =
+      t_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
+  const ConstVectorView zfr_p_grid =
+      z_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+  const ConstVectorView zfr_lat_grid =
+      z_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+  const ConstVectorView zfr_lon_grid =
+      z_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
+
+  out2 << "  Interpolation order: " << interp_order << "\n";
+
+  // Basic checks of input variables
+  //
+  // Atmosphere
+  chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
+  chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
+
+  //==========================================================================
+  if (atmosphere_dim == 1) {
+    if (!(tfr_lat_grid.nelem() == 1 && tfr_lon_grid.nelem() == 1))
+      throw runtime_error(
+          "Temperature data (T_field) has wrong dimension "
+          "(2D or 3D).\n");
+
+    if (!(zfr_lat_grid.nelem() == 1 && zfr_lon_grid.nelem() == 1))
+      throw runtime_error(
+          "Altitude data (z_field) has wrong dimension "
+          "(2D or 3D).\n");
+
+    GriddedField3 temp_gfield3;
+
+    GriddedFieldPRegrid(
+        temp_gfield3, p_grid, t_field_raw, interp_order, 0, verbosity);
+    t_field = temp_gfield3.data;
+
+    GriddedFieldPRegrid(
+        temp_gfield3, p_grid, z_field_raw, interp_order, 0, verbosity);
+    z_field = temp_gfield3.data;
+
+    ArrayOfGriddedField3 temp_agfield3;
+    try {
+      GriddedFieldPRegrid(temp_agfield3,
+                          p_grid,
+                          vmr_field_raw,
+                          interp_order,
+                          vmr_zeropadding,
+                          verbosity);
+    } catch (const std::runtime_error& e) {
+      ostringstream os;
+      os << e.what() << "\n"
+         << "Note that you can explicitly set vmr_zeropadding "
+         << "to 1 in the method call.";
+      throw runtime_error(os.str());
+    }
+    FieldFromGriddedField(
+        vmr_field, p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
+
+    // Non-LTE interpolation
+    if (nlte_field_raw.nelem()) {
+      GriddedFieldPRegrid(
+          temp_agfield3, p_grid, nlte_field_raw, interp_order, 0, verbosity);
+      FieldFromGriddedField(
+        nlte_field.Data(), p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
+      nlte_field.Type() = EnergyLevelMapType::Tensor3_t;
+      nlte_field.Levels() = nlte_ids;
+      nlte_field.Energies() = nlte_energies;
+    }
+
+  }
+
+  //=========================================================================
+  else if (atmosphere_dim == 2) {
+    if (tfr_lat_grid.nelem() == 1 && tfr_lon_grid.nelem() == 1)
+      throw runtime_error(
+          "Raw data has wrong dimension (1D). "
+          "You have to use \n"
+          "AtmFieldsCalcExpand1D instead of AtmFieldsCalc.");
+
+    //Resize variables
+    t_field.resize(p_grid.nelem(), lat_grid.nelem(), 1);
+    z_field.resize(p_grid.nelem(), lat_grid.nelem(), 1);
+    vmr_field.resize(
+        vmr_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(), 1);
+    if (nlte_field_raw.nelem()) {
+      nlte_field.Data().resize(
+        nlte_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(), 1);
+      nlte_field.Type() = EnergyLevelMapType::Tensor3_t;
+      nlte_field.Levels() = nlte_ids;
+      nlte_field.Energies() = nlte_energies;
+    }
+    else
+      nlte_field = EnergyLevelMap();
+
+    // Gridpositions:
+    ArrayOfGridPosPoly gp_p(p_grid.nelem());
+    ArrayOfGridPosPoly gp_lat(lat_grid.nelem());
+
+    // Interpolate t_field:
+
+    // Check that interpolation grids are ok (and throw a detailed
+    // error message if not):
+    chk_interpolation_pgrids(
+        "Raw temperature to p_grid, 2D case", tfr_p_grid, p_grid, interp_order);
+    chk_interpolation_grids("Raw temperature to lat_grid, 2D case",
+                            tfr_lat_grid,
+                            lat_grid,
+                            interp_order);
+
+    // Calculate grid positions:
+    p2gridpos_poly(gp_p, tfr_p_grid, p_grid, interp_order);
+    gridpos_poly(gp_lat, tfr_lat_grid, lat_grid, interp_order);
+
+    // Interpolation weights:
+    Tensor3 itw(p_grid.nelem(),
+                lat_grid.nelem(),
+                (interp_order + 1) * (interp_order + 1));
+    // (4 interpolation weights are required for example for linear 2D
+    // interpolation)
+    interpweights(itw, gp_p, gp_lat);
+
+    // Interpolate:
+    interp(t_field(joker, joker, 0),
+           itw,
+           t_field_raw.data(joker, joker, 0),
+           gp_p,
+           gp_lat);
+
+    // Interpolate z_field:
+
+    // Check that interpolation grids are ok (and throw a detailed
+    // error message if not):
+    chk_interpolation_pgrids(
+        "Raw z to p_grid, 2D case", zfr_p_grid, p_grid, interp_order);
+    chk_interpolation_grids(
+        "Raw z to lat_grid, 2D case", zfr_lat_grid, lat_grid, interp_order);
+
+    // Calculate grid positions:
+    p2gridpos_poly(gp_p, zfr_p_grid, p_grid, interp_order);
+    gridpos_poly(gp_lat, zfr_lat_grid, lat_grid, interp_order);
+
+    // Interpolation weights:
+    interpweights(itw, gp_p, gp_lat);
+
+    // Interpolate:
+    interp(z_field(joker, joker, 0),
+           itw,
+           z_field_raw.data(joker, joker, 0),
+           gp_p,
+           gp_lat);
+
+    // Interpolate vmr_field.
+    // Loop over the gaseous species:
+    for (Index gas_i = 0; gas_i < vmr_field_raw.nelem(); gas_i++) {
+      ostringstream os;
+
+      if (!(vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID).nelem() !=
+                1 &&
+            vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LON_GRID).nelem() ==
+                1)) {
+        os << "VMR data of the " << gas_i << " the species has "
+           << "wrong dimension (1D or 3D). \n";
+        throw runtime_error(os.str());
+      }
+
+      // Check that interpolation grids are ok (and throw a detailed
+      // error message if not):
+      os << "Raw VMR[" << gas_i << "] to p_grid, 2D case";
+      chk_interpolation_pgrids(
+          os.str(),
+          vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID),
+          p_grid,
+          interp_order);
+      os.str("");
+      os << "Raw VMR[" << gas_i << "] to lat_grid, 2D case";
+      chk_interpolation_grids(
+          os.str(),
+          vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID),
+          lat_grid,
+          interp_order);
+
+      // Calculate grid positions:
+      p2gridpos_poly(gp_p,
+                     vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID),
+                     p_grid,
+                     interp_order);
+      gridpos_poly(gp_lat,
+                   vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID),
+                   lat_grid,
+                   interp_order);
+
+      // Interpolation weights:
+      interpweights(itw, gp_p, gp_lat);
+
+      // Interpolate:
+      interp(vmr_field(gas_i, joker, joker, 0),
+             itw,
+             vmr_field_raw[gas_i].data(joker, joker, 0),
+             gp_p,
+             gp_lat);
+    }
+
+    // Interpolat Non-LTE
+    for (Index qi_i = 0; qi_i < nlte_field_raw.nelem(); qi_i++) {
+      ostringstream os;
+
+      if (!(nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LAT_GRID).nelem() !=
+                1 &&
+            nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LON_GRID).nelem() ==
+                1)) {
+        os << "NLTE data of the " << qi_i << " temperature field has "
+           << "wrong dimension (1D or 3D). \n";
+        throw std::runtime_error(os.str());
+      }
+
+      // Check that interpolation grids are ok (and throw a detailed
+      // error message if not):
+      os << "Raw NLTE[" << qi_i << "] to p_grid, 2D case";
+      chk_interpolation_pgrids(
+          os.str(),
+          nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_P_GRID),
+          p_grid,
+          interp_order);
+      os.str("");
+      os << "Raw NLTE[" << qi_i << "] to lat_grid, 2D case";
+      chk_interpolation_grids(
+          os.str(),
+          nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LAT_GRID),
+          lat_grid,
+          interp_order);
+
+      // Calculate grid positions:
+      p2gridpos_poly(gp_p,
+                     nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_P_GRID),
+                     p_grid,
+                     interp_order);
+      gridpos_poly(gp_lat,
+                   nlte_field_raw[qi_i].get_numeric_grid(GFIELD3_LAT_GRID),
+                   lat_grid,
+                   interp_order);
+
+      // Interpolation weights:
+      interpweights(itw, gp_p, gp_lat);
+
+      // Interpolate:
+      interp(nlte_field.Data()(qi_i, joker, joker, 0),
+             itw,
+             nlte_field_raw[qi_i].data(joker, joker, 0),
+             gp_p,
+             gp_lat);
+      nlte_field.Type() = EnergyLevelMapType::Tensor3_t;
+      nlte_field.Levels() = nlte_ids;
+      nlte_field.Energies() = nlte_energies;
+    }
+  }
+
+  //================================================================
+  // atmosphere_dim = 3
+  else if (atmosphere_dim == 3) {
+    if (tfr_lat_grid.nelem() == 1 && tfr_lon_grid.nelem() == 1)
+      throw runtime_error(
+          "Raw data has wrong dimension. You have to use \n"
+          "AtmFieldsCalcExpand1D instead of AtmFieldsCalc.");
+
+    GriddedField3 temp_gfield3;
+
+    GriddedFieldLatLonRegrid(
+        temp_gfield3, lat_grid, lon_grid, t_field_raw, interp_order, verbosity);
+    GriddedFieldPRegrid(
+        temp_gfield3, p_grid, temp_gfield3, interp_order, 0, verbosity);
+    t_field = temp_gfield3.data;
+
+    GriddedFieldLatLonRegrid(
+        temp_gfield3, lat_grid, lon_grid, z_field_raw, interp_order, verbosity);
+    GriddedFieldPRegrid(
+        temp_gfield3, p_grid, temp_gfield3, interp_order, 0, verbosity);
+    z_field = temp_gfield3.data;
+
+    ArrayOfGriddedField3 temp_agfield3;
+    GriddedFieldLatLonRegrid(temp_agfield3,
+                             lat_grid,
+                             lon_grid,
+                             vmr_field_raw,
+                             interp_order,
+                             verbosity);
+    try {
+      GriddedFieldPRegrid(temp_agfield3,
+                          p_grid,
+                          temp_agfield3,
+                          interp_order,
+                          vmr_zeropadding,
+                          verbosity);
+    } catch (const std::runtime_error& e) {
+      ostringstream os;
+      os << e.what() << "\n"
+         << "Note that you can explicitly set vmr_zeropadding "
+         << "to 1 in the method call.";
+      throw runtime_error(os.str());
+    }
+    FieldFromGriddedField(
+        vmr_field, p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
+
+    if (nlte_field_raw.nelem()) {
+      GriddedFieldLatLonRegrid(temp_agfield3,
+                               lat_grid,
+                               lon_grid,
+                               nlte_field_raw,
+                               interp_order,
+                               verbosity);
+      
+      try {
+        GriddedFieldPRegrid(
+          temp_agfield3, p_grid, temp_agfield3, interp_order, 0, verbosity);
+      } catch (const std::runtime_error& e) {
+        ostringstream os;
+        os << e.what() << "\n"
+        << "Note that you can explicitly set vmr_zeropadding "
+        << "to 1 in the method call.";
+        throw runtime_error(os.str());
+      }
+      FieldFromGriddedField(
+        nlte_field.Data(), p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
+    }
+  } else {
+    // We can never get here, since there was a runtime
+    // error check for atmosphere_dim at the beginning.
+    assert(false);
+  }
+
+  // remove negatives?
+  if (vmr_nonegative) {
+    for (Index ib = 0; ib < vmr_field.nbooks(); ib++) {
+      for (Index ip = 0; ip < vmr_field.npages(); ip++) {
+        for (Index ir = 0; ir < vmr_field.nrows(); ir++) {
+          for (Index ic = 0; ic < vmr_field.ncols(); ic++) {
+            if (vmr_field(ib, ip, ir, ic) < 0) {
+              vmr_field(ib, ip, ir, ic) = 0;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // what to do with negative nlte temperatures?
+  if (nlte_when_negative != -1) {
+    if (nlte_field_raw.nelem()) {
+      for (Index ib = 0; ib < nlte_field.Data().nbooks(); ib++) {
+        for (Index ip = 0; ip < nlte_field.Data().npages(); ip++) {
+          for (Index ir = 0; ir < nlte_field.Data().nrows(); ir++) {
+            for (Index ic = 0; ic < nlte_field.Data().ncols(); ic++) {
+              if (nlte_field.Data()(ib, ip, ir, ic) < 0) {
+                // Set to atmospheric temperature or to nil.
+                nlte_field.Data()(ib, ip, ir, ic) =
+                    nlte_when_negative == 1 ? t_field(ip, ir, ic) : 0;
+                // NOTE: This only makes sense for vibrational NLTE and is bad elsewise
+                //       but since elsewise is bad anyways with negative values, it is 
+                //       and acceptable compromise...
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  nlte_field.ThrowIfNotOK();
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void MagFieldsCalc(  //WS Output:
     Tensor3& mag_u_field,
     Tensor3& mag_v_field,
@@ -3110,6 +3507,99 @@ void AtmFieldsCalcExpand1D(Tensor3& t_field,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void AtmFieldsCalcExpand1D2(Tensor3& t_field,
+                           Tensor3& z_field,
+                           Tensor4& vmr_field,
+                           EnergyLevelMap& nlte_field,
+                           const Vector& p_grid,
+                           const Vector& lat_grid,
+                           const Vector& lon_grid,
+                           const GriddedField3& t_field_raw,
+                           const GriddedField3& z_field_raw,
+                           const ArrayOfGriddedField3& vmr_field_raw,
+                           const ArrayOfGriddedField3& nlte_field_raw,
+                           const ArrayOfQuantumIdentifier& nlte_ids,
+                           const Vector& nlte_energies,
+                           const Index& atmosphere_dim,
+                           const Index& interp_order,
+                           const Index& vmr_zeropadding,
+                           const Index& vmr_nonegative,
+                           const Index& nlte_when_negative,
+                           const Verbosity& verbosity) {
+  chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
+  chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
+
+  if (atmosphere_dim == 1) {
+    throw runtime_error(
+        "This function is intended for 2D and 3D. For 1D, use *AtmFieldsCalc*.");
+  }
+
+  // Make 1D interpolation using some dummy variables
+  Vector vempty(0);
+  Tensor3 t_temp, z_temp;
+  Tensor4 vmr_temp;
+  EnergyLevelMap nlte_temp;
+  AtmFieldsCalc2(t_temp,
+                z_temp,
+                vmr_temp,
+                nlte_temp,
+                p_grid,
+                vempty,
+                vempty,
+                t_field_raw,
+                z_field_raw,
+                vmr_field_raw,
+                nlte_field_raw,
+                nlte_ids,
+                nlte_energies,
+                1,
+                interp_order,
+                vmr_zeropadding,
+                vmr_nonegative,
+                nlte_when_negative,
+                verbosity);
+
+  // Move values from the temporary tensors to the return arguments
+  const Index np = p_grid.nelem();
+  const Index nlat = lat_grid.nelem();
+  Index nlon = lon_grid.nelem();
+  if (atmosphere_dim == 2) {
+    nlon = 1;
+  }
+  const Index nspecies = vmr_temp.nbooks();
+  //
+  assert(t_temp.npages() == np);
+  //
+  t_field.resize(np, nlat, nlon);
+  z_field.resize(np, nlat, nlon);
+  vmr_field.resize(nspecies, np, nlat, nlon);
+  if (nlte_field_raw.nelem()) {
+    nlte_field.Type() = EnergyLevelMapType::Tensor3_t;
+    nlte_field.Data().resize(nlte_field_raw.nelem(), np, nlat, nlon);
+    nlte_field.Levels() = nlte_ids;
+    nlte_field.Energies() = nlte_energies;
+  }
+  else
+    nlte_field = EnergyLevelMap();
+  //
+  for (Index ilon = 0; ilon < nlon; ilon++) {
+    for (Index ilat = 0; ilat < nlat; ilat++) {
+      for (Index ip = 0; ip < np; ip++) {
+        t_field(ip, ilat, ilon) = t_temp(ip, 0, 0);
+        z_field(ip, ilat, ilon) = z_temp(ip, 0, 0);
+        for (Index is = 0; is < nspecies; is++) {
+          vmr_field(is, ip, ilat, ilon) = vmr_temp(is, ip, 0, 0);
+        }
+        for (Index is = 0; is < nlte_field_raw.nelem(); is++) {
+          nlte_field.Data()(is, ip, ilat, ilon) = nlte_temp.Data()(is, ip, 0, 0);
+        }
+      }
+    }
+  }
+  nlte_field.ThrowIfNotOK();
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void MagFieldsCalcExpand1D(Tensor3& mag_u_field,
                            Tensor3& mag_v_field,
                            Tensor3& mag_w_field,
@@ -3413,7 +3903,7 @@ void AtmRawRead(  //WS Output:
     GriddedField3& t_field_raw,
     GriddedField3& z_field_raw,
     ArrayOfGriddedField3& vmr_field_raw,
-    ArrayOfGriddedField3& t_nlte_field_raw,
+    ArrayOfGriddedField3& nlte_field_raw,
     ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
     //WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -3464,7 +3954,7 @@ void AtmRawRead(  //WS Output:
   }
 
   // NLTE is ignored by doing this
-  t_nlte_field_raw.resize(0);
+  nlte_field_raw.resize(0);
   nlte_quantum_identifiers.resize(0);
 }
 

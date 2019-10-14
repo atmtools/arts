@@ -533,13 +533,13 @@ EnergyLevelMap EnergyLevelMap::InterpToGridPos(Index atmosphere_dim, const Array
 
 EnergyLevelMap EnergyLevelMap::operator[](Index ip)
 {
-  if (mtype not_eq EnergyLevelMapType::Tensor3_t)
+  if (mtype not_eq EnergyLevelMapType::Vector_t)
     throw std::runtime_error("Must have Vector_t, input type is bad");
   
-  if (ip < mvalue.ncols()) {
+  if (ip >= mvalue.ncols() or ip < 0) {
     std::ostringstream os;
     os << "Bad dims for data:\n\tThe pressure dim of data contains: "
-    << mvalue.ncols() << " values and you are requesting element number " << ip << "\n";
+    << mvalue.ncols() << " values and you are requesting element index " << ip << "\n";
     throw std::runtime_error(os.str());
   }
   
@@ -548,3 +548,41 @@ EnergyLevelMap EnergyLevelMap::operator[](Index ip)
   return elm;
 }
 
+EnergyLevelMapType string2energylevelmaptype(const String& s) {
+  if (s == "Tensor3")
+    return EnergyLevelMapType::Tensor3_t;
+  else if (s == "Vector")
+    return EnergyLevelMapType::Vector_t;
+  else if (s == "Numeric")
+    return EnergyLevelMapType::Numeric_t;
+  else if (s == "None")
+    return EnergyLevelMapType::None_t;
+  else {
+    std::ostringstream os;
+    os << "Only \"None\", \"Numeric\", \"Vector\", and \"Tensor3\" types accepted\n"
+       << "You request to have an EnergyLevelMap of type: " << s << '\n';
+    throw std::runtime_error(os.str());
+  }
+}
+
+String energylevelmaptype2string(EnergyLevelMapType type)
+{
+  switch(type) {
+    case EnergyLevelMapType::Tensor3_t:
+      return "Tensor3";
+    case EnergyLevelMapType::Vector_t:
+      return "Vector";
+    case EnergyLevelMapType::Numeric_t:
+      return "Numeric";
+    case EnergyLevelMapType::None_t:
+      return "None";
+  }
+  return "";
+}
+
+std::ostream& operator<<(std::ostream& os, const EnergyLevelMap& elm) {
+  return os << energylevelmaptype2string(elm.Type()) << '\n'
+            << elm.Levels() << '\n'
+            << elm.Data() << '\n'
+            << elm.Energies() << '\n';
+}

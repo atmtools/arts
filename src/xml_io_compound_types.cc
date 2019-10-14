@@ -284,6 +284,66 @@ void xml_write_to_stream(ostream& os_xml,
   close_tag.write_to_stream(os_xml);
 }
 
+//=== EnergyLevelMap ===========================================================
+
+//! Reads EnergyLevelMap from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param gal     EnergyLevelMap return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(istream& is_xml,
+                          EnergyLevelMap& elm,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity) {
+  ArtsXMLTag tag(verbosity);
+
+  tag.read_from_stream(is_xml);
+  
+  tag.check_name("EnergyLevelMap");
+  String type;
+  tag.get_attribute_value("type", type);
+  elm.Type() = string2energylevelmaptype(type);
+
+  xml_read_from_stream(is_xml, elm.Levels(), pbifs, verbosity);
+  xml_read_from_stream(is_xml, elm.Data(), pbifs, verbosity);
+  xml_read_from_stream(is_xml, elm.Energies(), pbifs, verbosity);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/EnergyLevelMap");
+  
+  elm.ThrowIfNotOK();
+}
+
+//! Writes EnergyLevelMap to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param gal     EnergyLevelMap
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void xml_write_to_stream(ostream& os_xml,
+                         const EnergyLevelMap& elm,
+                         bofstream* pbofs,
+                         const String& name,
+                         const Verbosity& verbosity) {
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("EnergyLevelMap");
+  if (name.length()) open_tag.add_attribute("name", name);
+  open_tag.add_attribute("type", energylevelmaptype2string(elm.Type()));
+  open_tag.write_to_stream(os_xml);
+
+  xml_write_to_stream(os_xml, elm.Levels(), pbofs, "Energy Levels", verbosity);
+  xml_write_to_stream(os_xml, elm.Data(), pbofs, "Level Data", verbosity);
+  xml_write_to_stream(os_xml, elm.Energies(), pbofs, "Level Energy", verbosity);
+
+  close_tag.set_name("/EnergyLevelMap");
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+}
+
 //=== GasAbsLookup ===========================================================
 
 //! Reads GasAbsLookup from XML input stream

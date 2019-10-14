@@ -673,7 +673,12 @@ enum class EnergyLevelMapType {
   Tensor3_t,
   Vector_t,
   Numeric_t,
+  None_t,
 };
+
+EnergyLevelMapType string2energylevelmaptype(const String& s);
+
+String energylevelmaptype2string(EnergyLevelMapType type);
 
 class EnergyLevelMap {
 private:
@@ -682,9 +687,10 @@ private:
   Vector mvib_energy;
   Tensor4 mvalue;
   
+public:
   void ThrowIfNotOK() const {
     if (not (mvalue.nbooks() == mlevels.nelem() and 
-            (mvib_energy.nelem() == mlevels.nelem() or mvib_energy.nelem() == 0)))
+      (mvib_energy.nelem() == mlevels.nelem() or mvib_energy.nelem() == 0)))
       throw std::runtime_error("Bad dimensions");
     if (mtype == EnergyLevelMapType::Tensor3_t) {}
     else if (mtype == EnergyLevelMapType::Vector_t) {
@@ -695,9 +701,15 @@ private:
       if (mvalue.npages() not_eq 1 or mvalue.nrows() not_eq 1 or mvalue.ncols() not_eq 1)
         throw std::runtime_error("Bad dimensions for numeric type");
     }
+    else if (mtype == EnergyLevelMapType::None_t) {
+      if (mvalue.npages() not_eq 0 or mvalue.nrows() not_eq 0 or mvalue.ncols() not_eq 0)
+        throw std::runtime_error("Bad dimensions for none type");
+    }
   }
   
-public:
+  EnergyLevelMap() : mtype(EnergyLevelMapType::None_t), mlevels(0),
+  mvib_energy(0), mvalue(0, 0, 0, 0) {ThrowIfNotOK();}
+  
   EnergyLevelMap(EnergyLevelMapType new_type, Index pages, Index rows,
                  Index cols, const EnergyLevelMap& old) : 
   mtype(new_type), mlevels(old.mlevels), mvib_energy(old.mvib_energy),
@@ -711,6 +723,30 @@ public:
   
   // Create Numeric_t from Vector_t
   EnergyLevelMap operator[](Index ip);
+  
+  /** Energy level type */
+  EnergyLevelMapType Type() const noexcept {return mtype;}
+  
+  /** Energy level type */
+  const ArrayOfQuantumIdentifier& Levels() const noexcept {return mlevels;}
+  
+  /** Energy level type */
+  const Vector& Energies() const noexcept {return mvib_energy;}
+  
+  /** Energy level type */
+  const Tensor4& Data() const noexcept {return mvalue;}
+  
+  /** Energy level type */
+  EnergyLevelMapType& Type() noexcept {return mtype;}
+  
+  /** Energy level type */
+  ArrayOfQuantumIdentifier& Levels() noexcept {return mlevels;}
+  
+  /** Energy level type */
+  Vector& Energies() noexcept {return mvib_energy;}
+  
+  /** Energy level type */
+  Tensor4& Data() noexcept {return mvalue;}
   
   //////////////////////
   // Numeric_t access //
@@ -730,5 +766,7 @@ public:
    */
   Output4 get_vibtemp_params(const QuantumIdentifier& transition) const;
 };
+
+std::ostream& operator<<(std::ostream& os, const EnergyLevelMap& elm);
 
 #endif
