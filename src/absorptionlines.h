@@ -864,8 +864,10 @@ public:
    * @return Mean frequency
    */
   Numeric F_mean() const noexcept {
-    return std::accumulate(mlines.cbegin(), mlines.cend(), 0,
-      [](const Numeric& a, const SingleLine& b){return a + b.F0();})/Numeric(NumLines());
+    Numeric x = 0, div = 1 / Numeric(NumLines());
+    for (auto& line: mlines)
+      x = std::fma(div, line.F0(), x);
+    return x;
   }
   
   /** Lower level energy

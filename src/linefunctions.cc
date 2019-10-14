@@ -1116,7 +1116,7 @@ void Linefunctions::set_cross_section_for_single_line(
   const Numeric& cutoff = line.CutOff();
   if (not cutoff_call)
     find_cutoff_ranges(
-        start_cutoff, nelem_cutoff, f_grid_full, line.F(), cutoff);
+        start_cutoff, nelem_cutoff, f_grid_full, line.F()-cutoff, line.F()+cutoff);
   else {
     start_cutoff = 0;
     nelem_cutoff = 1;
@@ -1568,20 +1568,20 @@ void Linefunctions::find_cutoff_ranges(
     Index& start_cutoff,
     Index& nelem_cutoff,
     const Eigen::Ref<const Eigen::VectorXd> f_grid,
-    const Numeric& F0,
-    const Numeric& cutoff) {
+    const Numeric& fmin,
+    const Numeric& fmax) {
   auto nf = f_grid.size();
 
-  const bool need_cutoff = (cutoff > 0);
+  const bool need_cutoff = (fmax > fmin);
   if (need_cutoff) {
     // Find range of simulations
     start_cutoff = 0;
     Index i_f_max = nf - 1;
 
     // Loop over positions to compute the line shape cutoff point
-    while (start_cutoff < nf and (F0 - cutoff) > f_grid[start_cutoff])
+    while (start_cutoff < nf and fmin > f_grid[start_cutoff])
       ++start_cutoff;
-    while (i_f_max >= start_cutoff and (F0 + cutoff) < f_grid[i_f_max])
+    while (i_f_max >= start_cutoff and fmax < f_grid[i_f_max])
       --i_f_max;
 
     //  The extent is one more than the difference between the indices of interest
@@ -2064,38 +2064,53 @@ void Linefunctions::set_cross_section_of_band(
   // Sum up variable reset
   sum.SetZero();
   
-  // Move the problem to Eigen-library types
-  const auto f = MapToEigen(f_grid);
+  if (band.NumLines() == 0) return;
+  
+  // Cutoff for Eigen-library types
   Eigen::Matrix<Numeric, 1, 1> fc;
-  
-  auto& F = scratch.F;
-  auto& dF = scratch.dF;
-  auto& N = scratch.N;
-  auto& dN = scratch.dN;
-  
   auto& Fc = scratch.Fc;
-  auto& dFc = scratch.dFc;
   auto& Nc = scratch.Nc;
+  auto& dFc = scratch.dFc;
   auto& dNc = scratch.dNc;
-  
-  auto& data = scratch.data;
   auto& datac = scratch.datac;
   
- const Numeric fmean = band.F_mean(); 
- std::cout<<"test "<<fmean<<"\n";
+  // Mean frequency if necessary
+  const Numeric fmean = (band.Cutoff() == Absorption::CutoffType::BandFixedFrequency) ? band.F_mean() : 0;
+  
+  // Cut off ranges
+  const auto f_full = MapToEigen(f_grid);
+  Numeric fcut_upp = band.CutoffFreq(0), fcut_low = band.CutoffFreqMinus(0, fmean);
+  fc[0] = fcut_upp;
+  Index start, nelem;
+  find_cutoff_ranges(start, nelem, f_full, fcut_low, fcut_upp);
+  
+  // Relevant range
+  auto F = scratch.F.segment(start, nelem);
+  auto N = scratch.N.segment(start, nelem);
+  auto dF = scratch.dF.middleRows(start, nelem);
+  auto dN = scratch.dN.middleRows(start, nelem);
+  auto data = scratch.data.middleRows(start, nelem);
   
   for (Index i=0; i<band.NumLines(); i++) {
     
-    // Set cutoff frequency 
-    const Numeric fcut_upp = band.CutoffFreq(i);
-    const Numeric fcut_low = band.CutoffFreqMinus(i, fmean);
-    fc[0] = fcut_upp;
-    
     // Select the range of cutoff
+    if (band.Cutoff() == Absorption::CutoffType::LineByLineOffset and i>0) {
+      fcut_upp = band.CutoffFreq(i);
+      fcut_low = band.CutoffFreqMinus(i, fmean);
+      find_cutoff_ranges(start, nelem, f_full, fcut_low, fcut_upp);
+      fc[0] = fcut_upp;
+      
+      F = scratch.F.segment(start, nelem);
+      N = scratch.N.segment(start, nelem);
+      dF = scratch.dF.middleRows(start, nelem);
+      dN = scratch.dN.middleRows(start, nelem);
+      data = scratch.data.middleRows(start, nelem);
+    }
     
-    auto test = f.array() <= fcut_upp and f.array() >= fcut_low;
+    // FIXME: Has to be reset because Eigen started complaining...
+    const auto f = f_full.middleRows(start, nelem);
     
-    
+    // Local line quantum information
     const auto QI = band.QuantumIdentityOfLine(i);
     
     // Pressure broadening and line mixing terms
@@ -2107,8 +2122,8 @@ void Linefunctions::set_cross_section_of_band(
     // Partial derivatives for temperature
     const auto dXdT = band.ShapeParameters_dT(i, T, P, vmrs);
     
-    // Partial derivatives for VMR... the first function
-    auto do_vmr = do_vmr_jacobian(derivatives_data, QI);  // At all, Species
+    // Partial derivatives for VMR of self (function works for any species but only do self for now)
+    auto do_vmr = do_vmr_jacobian(derivatives_data, QI);
     const auto dXdVMR = do_vmr.test ?
     band.ShapeParameters_dVMR(i, T, P, do_vmr.qid) : empty_output;
     
@@ -2558,20 +2573,23 @@ void Linefunctions::set_cross_section_of_band(
         dN *= Sz;
       }
       
-      // Set negative values to zero incase this is requested
-      if (no_negatives) {
-        auto reset_zeroes = (scratch.F.array().real() < 0);
-        
-        scratch.N = reset_zeroes.select(Complex(0, 0), scratch.N);
-        for (Index ij=0; ij<nj; ij++)
-          scratch.dF.col(ij) = reset_zeroes.select(Complex(0, 0), scratch.dF.col(ij));
-        for (Index ij=0; ij<nj; ij++)
-          scratch.dN.col(ij) = reset_zeroes.select(Complex(0, 0), scratch.dN.col(ij));
-        scratch.F = reset_zeroes.select(Complex(0, 0), scratch.F);
-      }
-      
       // Sum up the contributions
-      sum += scratch;
+      sum.F.segment(start, nelem) += F;
+      sum.N.segment(start, nelem) += N;
+      sum.dF.middleRows(start, nelem) += dF;
+      sum.dN.middleRows(start, nelem) += dN;
     }
+  }
+  
+  // Set negative values to zero incase this is requested
+  if (no_negatives) {
+    auto reset_zeroes = (sum.F.array().real() < 0);
+    
+    sum.N = reset_zeroes.select(Complex(0, 0), sum.N);
+    for (Index ij=0; ij<nj; ij++)
+      sum.dF.col(ij) = reset_zeroes.select(Complex(0, 0), sum.dF.col(ij));
+    for (Index ij=0; ij<nj; ij++)
+      sum.dN.col(ij) = reset_zeroes.select(Complex(0, 0), sum.dN.col(ij));
+    sum.F = reset_zeroes.select(Complex(0, 0), sum.F);
   }
 }

@@ -699,14 +699,14 @@ void apply_cutoff(Eigen::Ref<Eigen::VectorXcd> F,
  * @param[out]    start_cutoff Start pos of cutoff frequency
  * @param[out]    end_cutoff End pos of cutoff frequency
  * @param[in]     f_grid Frequency grid of computations
- * @param[in]     F0 Central frequency without any shifts
- * @param[in]     cutoff Cutoff frequency
+ * @param[in]     fmin Minimum frequency
+ * @param[in]     fmax Maximum frequency
  */
 void find_cutoff_ranges(Index& start_cutoff,
                         Index& nelem_cutoff,
                         const Eigen::Ref<const Eigen::VectorXd> f_grid,
-                        const Numeric& F0,
-                        const Numeric& cutoff);
+                        const Numeric& fmin,
+                        const Numeric& fmax);
 
 /** Applies non-lte linestrength to already set line shape
  * 
@@ -773,14 +773,6 @@ public:
     N.setZero();
     dF.setZero();
     dN.setZero();
-  }
-  
-  InternalData& operator+=(const InternalData& other) {
-    F.noalias() += other.F;
-    N.noalias() += other.N;
-    dF.noalias() += other.dF;
-    dN.noalias() += other.dN;
-    return *this;
   }
 };  // InternalData
 
