@@ -696,6 +696,12 @@ void Workspace::define_wsv_data() {
                 GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("abs_xsec_agenda2"),
+      DESCRIPTION(
+          "Agenda to calculate scalar gas absorption cross sections.\n"),
+      GROUP("Agenda")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("abs_xsec_per_species"),
       DESCRIPTION(
           "Absorption cross sections for the attenuation.\n"
@@ -2099,6 +2105,12 @@ void Workspace::define_wsv_data() {
       GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("iy_main_agenda2"),
+      DESCRIPTION(
+          "Agenda calculating the single monochromatic pencil beam spectrum.\n"),
+      GROUP("Agenda")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("iy_space_agenda"),
       DESCRIPTION(
           "Agenda providing the downwelling radiation at the top of the atmosphere.\n"),
@@ -2106,6 +2118,12 @@ void Workspace::define_wsv_data() {
 
   wsv_data.push_back(WsvRecord(
       NAME("iy_surface_agenda"),
+      DESCRIPTION(
+          "Agenda providing the upwelling radiation from the surface.\n"),
+      GROUP("Agenda")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("iy_surface_agenda2"),
       DESCRIPTION(
           "Agenda providing the upwelling radiation from the surface.\n"),
       GROUP("Agenda")));
@@ -3481,6 +3499,11 @@ void Workspace::define_wsv_data() {
                             "\n"
                             "Set by *propmat_clearsky_agenda_checkedCalc*.\n"),
                 GROUP("Index")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("propmat_clearsky_agenda2"),
+      DESCRIPTION("Agenda calculating the absorption coefficient matrices.\n"),
+      GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
       NAME("propmat_clearsky_field"),

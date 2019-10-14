@@ -784,7 +784,7 @@ void set_cross_section_of_band(
   const ArrayOfRetrievalQuantity& derivatives_data,
   const ArrayOfIndex& derivatives_data_active,
   const Vector& vmrs,
-  const ConstVectorView nlte,  // This must be turned into a map of some kind...
+  const EnergyLevelMap& nlte,  // This must be turned into a map of some kind...
   const Numeric& P,
   const Numeric& T,
   const Numeric& isot_ratio,

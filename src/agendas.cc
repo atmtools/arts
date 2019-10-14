@@ -84,6 +84,36 @@ void define_agenda_data() {
             "rtp_vmr")));
 
   agenda_data.push_back(AgRecord(
+      NAME("propmat_clearsky_agenda2"),
+      DESCRIPTION(
+          "Calculate the absorption coefficient matrix.\n"
+          "\n"
+          "This agenda calculates the absorption coefficient matrix for all\n"
+          "absorption species as a function of the given atmospheric state for\n"
+          "one point in the atmosphere. The result is returned in\n"
+          "*propmat_clearsky*. The atmospheric state has to be specified by\n"
+          "*rtp_pressure*, *rtp_temperature*, *rtp_mag*, and *rtp_vmr*.\n"
+          "\n"
+          "The methods inside this agenda may require a lot of additional\n"
+          "input variables, such as *abs_species*, etc.\n"
+          "\n"
+          "The include file 'agendas.arts' predefines some possible agendas\n"
+          "that can be used here.\n"),
+      OUTPUT("propmat_clearsky",
+             "nlte_source",
+             "dpropmat_clearsky_dx",
+             "dnlte_dx_source",
+             "nlte_dsource_dx"),
+      INPUT("jacobian_quantities",
+            "f_grid",
+            "rtp_mag",
+            "rtp_los",
+            "rtp_pressure",
+            "rtp_temperature",
+            "rtp_nlte2",
+            "rtp_vmr")));
+
+  agenda_data.push_back(AgRecord(
       NAME("abs_xsec_agenda"),
       DESCRIPTION(
           "Calculate scalar gas absorption cross sections.\n"
@@ -116,6 +146,41 @@ void define_agenda_data() {
             "abs_p",
             "abs_t",
             "abs_nlte",
+            "abs_vmrs")));
+
+  agenda_data.push_back(AgRecord(
+      NAME("abs_xsec_agenda2"),
+      DESCRIPTION(
+          "Calculate scalar gas absorption cross sections.\n"
+          "\n"
+          "Basically, this agenda calculates absorption for all the tags defined\n"
+          "in abs_species. It is used both in the calculation of an absorption\n"
+          "lookup table, and in on-the-fly calculations. Typical effects to\n"
+          "include here are:\n"
+          "\n"
+          "Explicit line-by-line calculation (*abs_xsec_per_speciesAddLines*),\n"
+          "\n"
+          "Continua and complete absorption models (*abs_xsec_per_speciesAddConts*), and\n"
+          "\n"
+          "HITRAN style CIA continua (*abs_xsec_per_speciesAddCIA*)\n"
+          "\n"
+          "The only kind of absorption tag not handled here are Zeeman tags\n"
+          "and free electron density tags, because they need additional input\n"
+          "and because they return an absorption matrix, rather than a scalar.\n"
+          "\n"
+          "The include file 'agendas.arts' predefines a number of agendas that\n"
+          "should be useful for most users.\n"),
+      OUTPUT("abs_xsec_per_species",
+             "src_xsec_per_species",
+             "dabs_xsec_per_species_dx",
+             "dsrc_xsec_per_species_dx"),
+      INPUT("abs_species",
+            "jacobian_quantities",
+            "abs_species_active",
+            "f_grid",
+            "abs_p",
+            "abs_t",
+            "abs_nlte2",
             "abs_vmrs")));
 
   agenda_data.push_back(
@@ -419,6 +484,36 @@ void define_agenda_data() {
             "rte_pos2")));
 
   agenda_data.push_back(AgRecord(
+      NAME("iy_main_agenda2"),
+      DESCRIPTION(
+          "Calculation of a single monochromatic pencil beam spectrum.\n"
+          "\n"
+          "The task of the agenda is to calculate the monochromatic pencil beam\n"
+          "spectrum for the position specified by *rte_pos* and the viewing\n"
+          "direction specified by *rte_los*.\n"
+          "\n"
+          "Methods for this agenda can either handle the complete calculation,\n"
+          "make use of e.g. *iy_cloudbox_agenda* or be restricted to special\n"
+          "cases. See the documentation for the different methods.\n"
+          "\n"
+          "The include-file 'agendas.arts' predefines some typical alternatives\n"
+          "that can be used directly, or adapted for specific applications.\n"),
+      OUTPUT("iy", "iy_aux", "ppath", "diy_dx"),
+      INPUT("diy_dx",
+            "iy_agenda_call1",
+            "iy_transmission",
+            "iy_aux_vars",
+            "iy_id",
+            "iy_unit",
+            "cloudbox_on",
+            "jacobian_do",
+            "f_grid",
+            "nlte_field2",
+            "rte_pos",
+            "rte_los",
+            "rte_pos2")));
+
+  agenda_data.push_back(AgRecord(
       NAME("iy_space_agenda"),
       DESCRIPTION(
           "Downwelling radiation at the top of the atmosphere.\n"
@@ -465,6 +560,41 @@ void define_agenda_data() {
             "iy_main_agenda",
             "f_grid",
             "nlte_field",
+            "rtp_pos",
+            "rtp_los",
+            "rte_pos2",
+            "surface_props_data",
+            "dsurface_names")));
+
+  agenda_data.push_back(AgRecord(
+      NAME("iy_surface_agenda2"),
+      DESCRIPTION(
+          "Upwelling radiation from the surface.\n"
+          "\n"
+          "The task of the agenda is to determine the upwelling intensity from\n"
+          "the surface, for given point and direction.\n"
+          "\n"
+          "The standard choice should be to make use of *surface_rtprop_agenda*\n"
+          "through the WSM *iySurfaceRtpropAgenda*.\n"
+          "\n"
+          "A function calling this agenda shall set *rtp_pos* and *rtp_los* to\n"
+          "the position and line-of-sight for which the upwelling radiation\n"
+          "shall be determined.\n"
+          "\n"
+          "See also the include-file 'agendas.arts' for a predefined agenda\n"
+          "suitable to be used in most applications.\n"),
+      OUTPUT("iy", "diy_dx", "dsurface_rmatrix_dx", "dsurface_emission_dx"),
+      INPUT("diy_dx",
+            "dsurface_rmatrix_dx",
+            "dsurface_emission_dx",
+            "iy_unit",
+            "iy_transmission",
+            "iy_id",
+            "cloudbox_on",
+            "jacobian_do",
+            "iy_main_agenda",
+            "f_grid",
+            "nlte_field2",
             "rtp_pos",
             "rtp_los",
             "rte_pos2",

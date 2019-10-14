@@ -148,7 +148,7 @@ void zeeman_on_the_fly2(
   const SpeciesAuxData& partition_functions,
   const Vector& f_grid,
   const Vector& rtp_vmr,
-  const Vector& rtp_nlte,
+  const EnergyLevelMap& rtp_nlte,
   const Vector& rtp_mag,
   const Vector& rtp_los,
   const Numeric& rtp_pressure,

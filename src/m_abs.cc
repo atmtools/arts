@@ -3280,7 +3280,7 @@ void abs_xsec_per_speciesAddLines3(
     const Vector& f_grid,
     const Vector& abs_p,
     const Vector& abs_t,
-    const Matrix& abs_nlte,
+    const EnergyLevelMap& abs_nlte,
     const Matrix& abs_vmrs,
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const SpeciesAuxData& isotopologue_ratios,
@@ -3320,7 +3320,7 @@ void abs_xsec_per_speciesAddLines3(
 
   // Meta variables that explain the calculations required
   const bool do_jac = supports_propmat_clearsky(jacobian_quantities);
-  const bool do_lte = abs_nlte.empty();
+  const bool do_lte = abs_nlte.Data().empty();
   const ArrayOfIndex jac_pos = equivalent_propmattype_indexes(jacobian_quantities);
 
   // Skipping uninteresting data

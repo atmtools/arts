@@ -504,9 +504,11 @@ EnergyLevelMap::EnergyLevelMap(const Tensor4& data, const ArrayOfQuantumIdentifi
   ThrowIfNotOK();
 }
 
-EnergyLevelMap EnergyLevelMap::InterpToGridPos(Index atmosphere_dim, const ArrayOfGridPos& p, const ArrayOfGridPos& lat, const ArrayOfGridPos& lon)
+EnergyLevelMap EnergyLevelMap::InterpToGridPos(Index atmosphere_dim, const ArrayOfGridPos& p, const ArrayOfGridPos& lat, const ArrayOfGridPos& lon) const
 {
-  if (mtype not_eq EnergyLevelMapType::Tensor3_t)
+  if (mtype not_eq EnergyLevelMapType::None_t)
+    return EnergyLevelMap();
+  else if (mtype not_eq EnergyLevelMapType::Tensor3_t)
     throw std::runtime_error("Must have Tensor3_t, input type is bad");
   
   if (p.nelem() not_eq mvalue.npages() or lat.nelem() not_eq mvalue.nrows() or lon.nelem() not_eq mvalue.ncols()) {
@@ -531,9 +533,11 @@ EnergyLevelMap EnergyLevelMap::InterpToGridPos(Index atmosphere_dim, const Array
   return elm;
 }
 
-EnergyLevelMap EnergyLevelMap::operator[](Index ip)
+EnergyLevelMap EnergyLevelMap::operator[](Index ip) const
 {
-  if (mtype not_eq EnergyLevelMapType::Vector_t)
+  if (mtype not_eq EnergyLevelMapType::None_t)
+    return EnergyLevelMap();
+  else if (mtype not_eq EnergyLevelMapType::Vector_t)
     throw std::runtime_error("Must have Vector_t, input type is bad");
   
   if (ip >= mvalue.ncols() or ip < 0) {

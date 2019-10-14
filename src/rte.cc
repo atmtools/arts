@@ -1031,6 +1031,124 @@ void get_iy_of_background(Workspace& ws,
   }
 }
 
+void get_iy_of_background(Workspace& ws,
+                          Matrix& iy,
+                          ArrayOfTensor3& diy_dx,
+                          ConstTensor3View iy_transmission,
+                          const Index& iy_id,
+                          const Index& jacobian_do,
+                          const ArrayOfRetrievalQuantity& jacobian_quantities,
+                          const Ppath& ppath,
+                          ConstVectorView rte_pos2,
+                          const Index& atmosphere_dim,
+                          const EnergyLevelMap& nlte_field,
+                          const Index& cloudbox_on,
+                          const Index& stokes_dim,
+                          ConstVectorView f_grid,
+                          const String& iy_unit,
+                          ConstTensor3View surface_props_data,
+                          const Agenda& iy_main_agenda,
+                          const Agenda& iy_space_agenda,
+                          const Agenda& iy_surface_agenda,
+                          const Agenda& iy_cloudbox_agenda,
+                          const Index& iy_agenda_call1,
+                          const Verbosity& verbosity) {
+  CREATE_OUT3;
+
+  // Some sizes
+  const Index nf = f_grid.nelem();
+  const Index np = ppath.np;
+
+  // Set rtp_pos and rtp_los to match the last point in ppath.
+  //
+  // Note that the Ppath positions (ppath.pos) for 1D have one column more
+  // than expected by most functions. Only the first atmosphere_dim values
+  // shall be copied.
+  //
+  Vector rtp_pos, rtp_los;
+  rtp_pos.resize(atmosphere_dim);
+  rtp_pos = ppath.pos(np - 1, Range(0, atmosphere_dim));
+  rtp_los.resize(ppath.los.ncols());
+  rtp_los = ppath.los(np - 1, joker);
+
+  out3 << "Radiative background: " << ppath.background << "\n";
+
+  // Handle the different background cases
+  //
+  String agenda_name;
+  //
+  switch (ppath_what_background(ppath)) {
+    case 1:  //--- Space ----------------------------------------------------
+    {
+      agenda_name = "iy_space_agenda";
+      chk_not_empty(agenda_name, iy_space_agenda);
+      iy_space_agendaExecute(ws, iy, f_grid, rtp_pos, rtp_los, iy_space_agenda);
+    } break;
+
+    case 2:  //--- The surface -----------------------------------------------
+    {
+      agenda_name = "iy_surface_agenda";
+      chk_not_empty(agenda_name, iy_surface_agenda);
+      //
+      const Index los_id = iy_id % (Index)1000;
+      Index iy_id_new = iy_id + (Index)9 * los_id;
+      //
+      // Surface jacobian stuff:
+      ArrayOfString dsurface_names(0);
+      if (jacobian_do && iy_agenda_call1) {
+        for (Index i = 0; i < jacobian_quantities.nelem(); i++) {
+          if (jacobian_quantities[i].MainTag() == SURFACE_MAINTAG) {
+            dsurface_names.push_back(jacobian_quantities[i].Subtag());
+          }
+        }
+      }
+      ArrayOfTensor4 dsurface_rmatrix_dx(dsurface_names.nelem());
+      ArrayOfMatrix dsurface_emission_dx(dsurface_names.nelem());
+      //
+      iy_surface_agenda2Execute(ws,
+                               iy,
+                               diy_dx,
+                               dsurface_rmatrix_dx,
+                               dsurface_emission_dx,
+                               iy_unit,
+                               iy_transmission,
+                               iy_id_new,
+                               cloudbox_on,
+                               jacobian_do,
+                               iy_main_agenda,
+                               f_grid,
+                               nlte_field,
+                               rtp_pos,
+                               rtp_los,
+                               rte_pos2,
+                               surface_props_data,
+                               dsurface_names,
+                               iy_surface_agenda);
+    } break;
+
+    case 3:  //--- Cloudbox boundary or interior ------------------------------
+    case 4: {
+      agenda_name = "iy_cloudbox_agenda";
+      chk_not_empty(agenda_name, iy_cloudbox_agenda);
+      iy_cloudbox_agendaExecute(
+          ws, iy, f_grid, rtp_pos, rtp_los, iy_cloudbox_agenda);
+    } break;
+
+    default:  //--- ????? ----------------------------------------------------
+      // Are we here, the coding is wrong somewhere
+      assert(false);
+  }
+
+  if (iy.ncols() != stokes_dim || iy.nrows() != nf) {
+    ostringstream os;
+    os << "The size of *iy* returned from *" << agenda_name << "* is\n"
+       << "not correct:\n"
+       << "  expected size = [" << nf << "," << stokes_dim << "]\n"
+       << "  size of iy    = [" << iy.nrows() << "," << iy.ncols() << "]\n";
+    throw runtime_error(os.str());
+  }
+}
+
 void get_ppath_atmvars(Vector& ppath_p,
                        Vector& ppath_t,
                        Matrix& ppath_nlte,
@@ -1094,6 +1212,125 @@ void get_ppath_atmvars(Vector& ppath_p,
                            ppath.gp_lon,
                            itw_field);
   }
+
+  // Winds:
+  ppath_wind.resize(3, np);
+  ppath_wind = 0;
+  //
+  if (wind_u_field.npages() > 0) {
+    interp_atmfield_by_itw(ppath_wind(0, joker),
+                           atmosphere_dim,
+                           wind_u_field,
+                           ppath.gp_p,
+                           ppath.gp_lat,
+                           ppath.gp_lon,
+                           itw_field);
+  }
+  if (wind_v_field.npages() > 0) {
+    interp_atmfield_by_itw(ppath_wind(1, joker),
+                           atmosphere_dim,
+                           wind_v_field,
+                           ppath.gp_p,
+                           ppath.gp_lat,
+                           ppath.gp_lon,
+                           itw_field);
+  }
+  if (wind_w_field.npages() > 0) {
+    interp_atmfield_by_itw(ppath_wind(2, joker),
+                           atmosphere_dim,
+                           wind_w_field,
+                           ppath.gp_p,
+                           ppath.gp_lat,
+                           ppath.gp_lon,
+                           itw_field);
+  }
+
+  // Magnetic field:
+  ppath_mag.resize(3, np);
+  ppath_mag = 0;
+  //
+  if (mag_u_field.npages() > 0) {
+    interp_atmfield_by_itw(ppath_mag(0, joker),
+                           atmosphere_dim,
+                           mag_u_field,
+                           ppath.gp_p,
+                           ppath.gp_lat,
+                           ppath.gp_lon,
+                           itw_field);
+  }
+  if (mag_v_field.npages() > 0) {
+    interp_atmfield_by_itw(ppath_mag(1, joker),
+                           atmosphere_dim,
+                           mag_v_field,
+                           ppath.gp_p,
+                           ppath.gp_lat,
+                           ppath.gp_lon,
+                           itw_field);
+  }
+  if (mag_w_field.npages() > 0) {
+    interp_atmfield_by_itw(ppath_mag(2, joker),
+                           atmosphere_dim,
+                           mag_w_field,
+                           ppath.gp_p,
+                           ppath.gp_lat,
+                           ppath.gp_lon,
+                           itw_field);
+  }
+}
+
+void get_ppath_atmvars(Vector& ppath_p,
+                       Vector& ppath_t,
+                       EnergyLevelMap& ppath_nlte,
+                       Matrix& ppath_vmr,
+                       Matrix& ppath_wind,
+                       Matrix& ppath_mag,
+                       const Ppath& ppath,
+                       const Index& atmosphere_dim,
+                       ConstVectorView p_grid,
+                       ConstTensor3View t_field,
+                       const EnergyLevelMap& nlte_field,
+                       ConstTensor4View vmr_field,
+                       ConstTensor3View wind_u_field,
+                       ConstTensor3View wind_v_field,
+                       ConstTensor3View wind_w_field,
+                       ConstTensor3View mag_u_field,
+                       ConstTensor3View mag_v_field,
+                       ConstTensor3View mag_w_field) {
+  const Index np = ppath.np;
+  // Pressure:
+  ppath_p.resize(np);
+  Matrix itw_p(np, 2);
+  interpweights(itw_p, ppath.gp_p);
+  itw2p(ppath_p, p_grid, ppath.gp_p, itw_p);
+
+  // Temperature:
+  ppath_t.resize(np);
+  Matrix itw_field;
+  interp_atmfield_gp2itw(
+      itw_field, atmosphere_dim, ppath.gp_p, ppath.gp_lat, ppath.gp_lon);
+  interp_atmfield_by_itw(ppath_t,
+                         atmosphere_dim,
+                         t_field,
+                         ppath.gp_p,
+                         ppath.gp_lat,
+                         ppath.gp_lon,
+                         itw_field);
+
+  // VMR fields:
+  const Index ns = vmr_field.nbooks();
+  ppath_vmr.resize(ns, np);
+  for (Index is = 0; is < ns; is++) {
+    interp_atmfield_by_itw(ppath_vmr(is, joker),
+                           atmosphere_dim,
+                           vmr_field(is, joker, joker, joker),
+                           ppath.gp_p,
+                           ppath.gp_lat,
+                           ppath.gp_lon,
+                           itw_field);
+  }
+
+  // NLTE temperatures
+  ppath_nlte = nlte_field.InterpToGridPos(atmosphere_dim, ppath.gp_p, ppath.gp_lat, ppath.gp_lon);
 
   // Winds:
   ppath_wind.resize(3, np);
@@ -1356,6 +1593,111 @@ void get_stepwise_clearsky_propmat(
 
   // Perform the propagation matrix computations
   propmat_clearsky_agendaExecute(ws,
+                                 propmat_clearsky,
+                                 nlte_source,
+                                 dpropmat_clearsky_dx,
+                                 dnlte_dx_source,
+                                 nlte_dx_dsource_dx,
+                                 jacobian_quantities,
+                                 ppath_f_grid,
+                                 ppath_magnetic_field,
+                                 ppath_line_of_sight,
+                                 ppath_pressure,
+                                 ppath_temperature,
+                                 ppath_nlte,
+                                 ppath_vmrs,
+                                 propmat_clearsky_agenda);
+
+  // We only now know how large the propagation matrix will be!
+  const Index npmat = propmat_clearsky.nelem();
+
+  // If therea re no NLTE elements, then set the LTE flag
+  lte = nlte_source.nelem() ? 0 : 1;
+
+  // Sum the propagation matrix
+  K = propmat_clearsky[0];
+  for (Index i = 1; i < npmat; i++) K += propmat_clearsky[i];
+
+  // Set NLTE source term if applicable
+  if (not lte) {
+    // Add all source terms up
+    S = nlte_source[0];
+    for (Index i = 1; i < npmat; i++) S += nlte_source[i];
+  } else {
+    S.SetZero();
+  }
+
+  // Set the partial derivatives
+  if (jacobian_do) {
+    for (Index i = 0; i < nq; i++) {
+      if (jacobian_quantities[i].MainTag() == SCATSPECIES_MAINTAG) {
+        dK_dx[i].SetZero();
+        dS_dx[i].SetZero();
+      } else if (jacobian_quantities[i].SubSubtag() == PROPMAT_SUBSUBTAG) {
+        // Find position of index in ppd
+        const Index j = equivalent_propmattype_index(jacobian_quantities, i);
+
+        dK_dx[i] = dpropmat_clearsky_dx[j];
+        if (lte) {
+          dS_dx[i].SetZero();
+        } else {
+          dS_dx[i] = dnlte_dx_source[j];
+          dS_dx[i] += nlte_dx_dsource_dx[j];
+
+          // TEST:  Old routine applied unit conversion on only the last
+          // part of the equation. Was this correct or wrong?  If correct,
+          // this is an issue.  Otherwise, the old version was incorrect.
+          // Have to setup perturbation test-case to study which is most
+          // reasonable...
+        }
+      } else if (jacobian_species[i] > -1)  // Did not compute values in Agenda
+      {
+        dK_dx[i] = propmat_clearsky[jacobian_species[i]];
+
+        // We cannot know the NLTE jacobian if this method was used
+        // because that information is thrown away. It is still faster
+        // to retain this method since it requires less computations
+        // when we do not need NLTE, which is most of the time...
+        if (not lte) {
+          ostringstream os;
+
+          os << "We do not yet support species"
+             << " tag and NLTE Jacobians.\n";
+          throw std::runtime_error(os.str());
+        }
+        dS_dx[i].SetZero();
+      }
+    }
+  }
+}
+
+void get_stepwise_clearsky_propmat(
+  Workspace& ws,
+  PropagationMatrix& K,
+  StokesVector& S,
+  Index& lte,
+  ArrayOfPropagationMatrix& dK_dx,
+  ArrayOfStokesVector& dS_dx,
+  const Agenda& propmat_clearsky_agenda,
+  const ArrayOfRetrievalQuantity& jacobian_quantities,
+  ConstVectorView ppath_f_grid,
+  ConstVectorView ppath_magnetic_field,
+  ConstVectorView ppath_line_of_sight,
+  const EnergyLevelMap& ppath_nlte,
+  ConstVectorView ppath_vmrs,
+  const Numeric& ppath_temperature,
+  const Numeric& ppath_pressure,
+  const ArrayOfIndex& jacobian_species,
+  const bool& jacobian_do) {
+  // All relevant quantities are extracted first
+  const Index nq = jacobian_quantities.nelem();
+
+  // Local variables inside Agenda
+  ArrayOfPropagationMatrix propmat_clearsky, dpropmat_clearsky_dx;
+  ArrayOfStokesVector nlte_source, dnlte_dx_source, nlte_dx_dsource_dx;
+
+  // Perform the propagation matrix computations
+  propmat_clearsky_agenda2Execute(ws,
                                  propmat_clearsky,
                                  nlte_source,
                                  dpropmat_clearsky_dx,

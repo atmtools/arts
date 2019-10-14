@@ -2045,7 +2045,7 @@ void Linefunctions::set_cross_section_of_band(
     const ArrayOfRetrievalQuantity& derivatives_data,
     const ArrayOfIndex& derivatives_data_active,
     const Vector& vmrs,
-    const ConstVectorView nlte,  // This must be turned into a map of some kind...
+    const EnergyLevelMap& nlte,  // This must be turned into a map of some kind...
     const Numeric& P,
     const Numeric& T,
     const Numeric& isot_ratio,
@@ -2524,8 +2524,8 @@ void Linefunctions::set_cross_section_of_band(
                                             dQTdT,
                                             i);
           break;
-        case Absorption::PopulationType::ByNLTEVibrationalTemperatures:
-          assert(false);
+        case Absorption::PopulationType::ByNLTEVibrationalTemperatures: {
+          auto nlte_data = nlte.get_vibtemp_params(QI);
           apply_linestrength_scaling_by_vibrational_nlte(
               F,
               dF,
@@ -2533,10 +2533,10 @@ void Linefunctions::set_cross_section_of_band(
               dN,
               band,
               T,
-              nlte[2],  // TEMP LEVEL 2
-              nlte[1],  // TEMP LEVEL 1
-              nlte[2],  // EV LEVEL 2
-              nlte[1],  // EV LEVEL 1
+              nlte_data.T_upp,
+              nlte_data.T_low,
+              nlte_data.E_upp,
+              nlte_data.T_low,
               isot_ratio,
               QT,
               QT0,
@@ -2544,16 +2544,16 @@ void Linefunctions::set_cross_section_of_band(
               derivatives_data_active,
               QI,
               dQTdT);
-          break;
-        case Absorption::PopulationType::ByNLTEPopulationDistribution:
-          assert(false);
+        } break;
+        case Absorption::PopulationType::ByNLTEPopulationDistribution: {
+          auto nlte_data = nlte.get_ratio_params(QI);
           apply_linestrength_from_nlte_level_distributions(
               F,
               dF,
               N,
               dN,
-              nlte[1],  // TEMP LEVEL 1
-              nlte[2],  // TEMP LEVEL 2
+              nlte_data.r_low,
+              nlte_data.r_upp,
               band.g_low(i),
               band.g_upp(i),
               band.A(i),
@@ -2562,7 +2562,7 @@ void Linefunctions::set_cross_section_of_band(
               derivatives_data,
               derivatives_data_active,
               QI);
-          break;
+        } break;
       }
       
       // Zeeman-adjusted strength

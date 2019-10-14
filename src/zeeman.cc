@@ -65,9 +65,18 @@ bool bad_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species) {
 
 /** Checks for negative values */
 bool any_negative(const Vector& var) {
-  for (auto& v : var)
-    if (v < 0) return true;
-  return false;
+  if (min(var) < 0)
+    return true;
+  else
+    return false;
+}
+
+/** Checks for negative values */
+bool any_negative(const Tensor4& var) {
+  if (min(var) < 0)
+    return true;
+  else
+    return false;
 }
 
 void zeeman_on_the_fly(
@@ -456,7 +465,7 @@ void zeeman_on_the_fly2(
     const SpeciesAuxData& partition_functions,
     const Vector& f_grid,
     const Vector& rtp_vmr,
-    const Vector& rtp_nlte,
+    const EnergyLevelMap& rtp_nlte,
     const Vector& rtp_mag,
     const Vector& rtp_los,
     const Numeric& rtp_pressure,
@@ -473,7 +482,7 @@ void zeeman_on_the_fly2(
   const Index nf = f_grid.nelem();
   const Index nq = jacobian_quantities_positions.nelem();
   const Index ns = abs_species.nelem();
-  const Index nn = rtp_nlte.nelem();
+  const Index nn = rtp_nlte.Levels().nelem();
 
   // Possible things that can go wrong in this code (excluding line parameters)
   const bool do_src = not nlte_source.empty();
@@ -506,7 +515,7 @@ void zeeman_on_the_fly2(
     throw "*nlte_dsource_dx* must have Stokes dim 4 and frequency dim same as *f_grid* when non-LTE is on";
   if (any_negative(f_grid)) throw "Negative frequency (at least one value).";
   if (any_negative(rtp_vmr)) throw "Negative VMR (at least one value).";
-  if (any_negative(rtp_nlte)) throw "Negative NLTE (at least one value).";
+  if (any_negative(rtp_nlte.Data())) throw "Negative NLTE (at least one value).";
   if (rtp_temperature <= 0) throw "Non-positive temperature";
   if (rtp_pressure <= 0) throw "Non-positive pressure";
   if (manual_tag and H0 < 0) throw "Negative manual magnetic field strength";

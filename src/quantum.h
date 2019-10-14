@@ -719,10 +719,10 @@ public:
   EnergyLevelMap(const Tensor4& data, const ArrayOfQuantumIdentifier& levels, const Vector& energies=Vector(0));
   
   // Create Vector_t from Tensor3_t
-  EnergyLevelMap InterpToGridPos(Index atmosphere_dim, const ArrayOfGridPos& p, const ArrayOfGridPos& lat, const ArrayOfGridPos& lon);
+  EnergyLevelMap InterpToGridPos(Index atmosphere_dim, const ArrayOfGridPos& p, const ArrayOfGridPos& lat, const ArrayOfGridPos& lon) const;
   
   // Create Numeric_t from Vector_t
-  EnergyLevelMap operator[](Index ip);
+  EnergyLevelMap operator[](Index ip) const;
   
   /** Energy level type */
   EnergyLevelMapType Type() const noexcept {return mtype;}

@@ -231,7 +231,7 @@ void propmat_clearskyAddZeeman2(
     const SpeciesAuxData& partition_functions,
     const Numeric& rtp_pressure,
     const Numeric& rtp_temperature,
-    const Vector& rtp_nlte,
+    const EnergyLevelMap& rtp_nlte,
     const Vector& rtp_vmr,
     const Vector& rtp_mag,
     const Vector& ppath_los,
