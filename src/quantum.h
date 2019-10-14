@@ -33,6 +33,7 @@
 #include <numeric>
 #include <stdexcept>
 #include "array.h"
+#include "interpolation.h"
 #include "matpack.h"
 #include "mystring.h"
 #include "rational.h"
@@ -654,10 +655,13 @@ std::ostream& operator<<(std::ostream& os, const QuantumNumbers& qn);
 /** Output operator */
 std::ostream& operator<<(std::ostream& os, const QuantumIdentifier& qi);
 
+// Output from EnergyLevelMap
 struct Output2{
   Numeric r_low;
   Numeric r_upp;
 };
+
+// Output from EnergyLevelMap
 struct Output4{
   Numeric E_low;
   Numeric E_upp;
@@ -665,17 +669,66 @@ struct Output4{
   Numeric T_upp;
 };
 
+enum class EnergyLevelMapType {
+  Tensor3_t,
+  Vector_t,
+  Numeric_t,
+};
+
 class EnergyLevelMap {
 private:
-  std::vector<Index> mspec;
-  std::vector<Index> misot;
-  std::vector<QuantumNumbers> mlevel;
-  std::vector<Numeric> mvib_energy;
-  std::vector<Vector> mvalue;
+  EnergyLevelMapType mtype;
+  ArrayOfQuantumIdentifier mlevels;
+  Vector mvib_energy;
+  Tensor4 mvalue;
+  
+  void ThrowIfNotOK() const {
+    if (not (mvalue.nbooks() == mlevels.nelem() and 
+            (mvib_energy.nelem() == mlevels.nelem() or mvib_energy.nelem() == 0)))
+      throw std::runtime_error("Bad dimensions");
+    if (mtype == EnergyLevelMapType::Tensor3_t) {}
+    else if (mtype == EnergyLevelMapType::Vector_t) {
+      if (mvalue.npages() not_eq 1 or mvalue.nrows() not_eq 1)
+        throw std::runtime_error("Bad dimensions for vector type");
+    }
+    else if (mtype == EnergyLevelMapType::Numeric_t) {
+      if (mvalue.npages() not_eq 1 or mvalue.nrows() not_eq 1 or mvalue.ncols() not_eq 1)
+        throw std::runtime_error("Bad dimensions for numeric type");
+    }
+  }
   
 public:
-  Output2 get_ratio_params(const QuantumIdentifier& transition, Index pressure_level) const;
-  Output4 get_vibtemp_params(const QuantumIdentifier& transition, Index pressure_level) const;
+  EnergyLevelMap(EnergyLevelMapType new_type, Index pages, Index rows,
+                 Index cols, const EnergyLevelMap& old) : 
+  mtype(new_type), mlevels(old.mlevels), mvib_energy(old.mvib_energy),
+  mvalue(old.mlevels.nelem(), pages, rows, cols) {ThrowIfNotOK();};
+  
+  // Create Tensor3_t from the raw inputs
+  EnergyLevelMap(const Tensor4& data, const ArrayOfQuantumIdentifier& levels, const Vector& energies=Vector(0));
+  
+  // Create Vector_t from Tensor3_t
+  EnergyLevelMap InterpToGridPos(Index atmosphere_dim, const ArrayOfGridPos& p, const ArrayOfGridPos& lat, const ArrayOfGridPos& lon);
+  
+  // Create Numeric_t from Vector_t
+  EnergyLevelMap operator[](Index ip);
+  
+  //////////////////////
+  // Numeric_t access //
+  //////////////////////
+  
+  /** Get the output required for Population::NLTE
+   * 
+   * @param[in] transition A line-by-line transition
+   * @return Upper and lower level distributions
+   */
+  Output2 get_ratio_params(const QuantumIdentifier& transition) const;
+  
+  /** Get the output required for Population::NLTE-VibrationalTemperatures
+   * 
+   * @param[in] transition A line-by-line transition
+   * @return Upper and lower level distributions and energies
+   */
+  Output4 get_vibtemp_params(const QuantumIdentifier& transition) const;
 };
 
 #endif

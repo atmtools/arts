@@ -28,6 +28,7 @@
 #include <stdexcept>
 #include "absorption.h"
 #include "global_data.h"
+#include "special_interp.h"
 
 bool QuantumNumbers::Compare(const QuantumNumbers& qn) const {
   const QuantumContainer& qnumbers2 = qn.GetNumbers();
@@ -438,29 +439,25 @@ bool QuantumIdentifier::any_quantumnumbers() const {
   return false;
 }
 
-
 Output2 EnergyLevelMap::get_ratio_params(
-  const QuantumIdentifier& transition,
-  Index pressure_level) const
+  const QuantumIdentifier& transition) const
 {
+  if (mtype not_eq EnergyLevelMapType::Numeric_t)
+    throw std::runtime_error("Must have Numeric_t, input type is bad");
+    
   Output2 x{0, 0};
   
   bool found1=false;
   bool found2=false;
-  for (size_t i=0; i<mspec.size(); i++) {
-    if (mspec[i] not_eq transition.Species())
-      continue;
-    if (misot[i] not_eq transition.Species())
-      continue;
-    
-    if (not found1 and transition.LowerQuantumNumbers().Compare(mlevel[i])) {
+  for (size_t i=0; i<mlevels.size(); i++) {
+    if (mlevels[i].InLower(transition)) {
       found1 = true;
-      x.r_low = pressure_level < mvalue[i].nelem() ? mvalue[i][pressure_level] : -1;
+      x.r_low = mvalue(i, 0, 0, 0);
     }
     
-    if (not found2 and transition.UpperQuantumNumbers().Compare(mlevel[i])) {
+    if (mlevels[i].InUpper(transition)) {
       found2 = true;
-      x.r_upp = pressure_level < mvalue[i].nelem() ? mvalue[i][pressure_level] : -1;
+      x.r_upp = mvalue(i, 0, 0, 0);
     }
     
     if (found1 and found2)
@@ -469,31 +466,26 @@ Output2 EnergyLevelMap::get_ratio_params(
   return x;
 }
 
-
-
 Output4 EnergyLevelMap::get_vibtemp_params(
-  const QuantumIdentifier& transition,
-  Index pressure_level) const
+  const QuantumIdentifier& transition) const
 {
+  if (mtype not_eq EnergyLevelMapType::Numeric_t)
+    throw std::runtime_error("Must have Numeric_t, input type is bad");
+  
   Output4 x{0, 0, 0, 0};
   
   bool found1=false;
   bool found2=false;
-  for (size_t i=0; i<mspec.size(); i++) {
-    if (mspec[i] not_eq transition.Species())
-      continue;
-    if (misot[i] not_eq transition.Species())
-      continue;
-    
-    if (not found1 and transition.LowerQuantumNumbers().Compare(mlevel[i])) {
+  for (Index i=0; i<mlevels.nelem(); i++) {
+    if (mlevels[i].InLower(transition)) {
       found1 = true;
-      x.T_low = pressure_level < mvalue[i].nelem() ? mvalue[i][pressure_level] : -1;
+      x.T_low = mvalue(i, 0, 0, 0);
       x.E_low = mvib_energy[i];
     }
     
-    if (not found2 and transition.UpperQuantumNumbers().Compare(mlevel[i])) {
+    if (mlevels[i].InUpper(transition)) {
       found2 = true;
-      x.T_upp = pressure_level < mvalue[i].nelem() ? mvalue[i][pressure_level] : -1;
+      x.T_upp = mvalue(i, 0, 0, 0);
       x.E_upp = mvib_energy[i];
     }
     
@@ -502,3 +494,57 @@ Output4 EnergyLevelMap::get_vibtemp_params(
   }
   return x;
 }
+
+EnergyLevelMap::EnergyLevelMap(const Tensor4& data, const ArrayOfQuantumIdentifier& levels, const Vector& energies)
+{
+  mtype = EnergyLevelMapType::Tensor3_t;
+  mlevels = levels;
+  mvib_energy = energies;
+  mvalue = data;
+  ThrowIfNotOK();
+}
+
+EnergyLevelMap EnergyLevelMap::InterpToGridPos(Index atmosphere_dim, const ArrayOfGridPos& p, const ArrayOfGridPos& lat, const ArrayOfGridPos& lon)
+{
+  if (mtype not_eq EnergyLevelMapType::Tensor3_t)
+    throw std::runtime_error("Must have Tensor3_t, input type is bad");
+  
+  if (p.nelem() not_eq mvalue.npages() or lat.nelem() not_eq mvalue.nrows() or lon.nelem() not_eq mvalue.ncols()) {
+    std::ostringstream os;
+    os << "Bad dims for data (dim not_eq data.dim):\n\tPressure: "
+       << p.nelem()   << " not_eq " << mvalue.npages() << " or\n\tLatitude: "
+       << lat.nelem() << " not_eq " << mvalue.nrows()  << " or\n\tLongitude: "
+       << lon.nelem() << " not_eq " << mvalue.ncols()  << '\n';
+    throw std::runtime_error(os.str());
+  }
+  
+  EnergyLevelMap elm(EnergyLevelMapType::Vector_t, 1, 1, p.nelem(), *this);
+  
+  Matrix itw_field;
+  interp_atmfield_gp2itw(itw_field, atmosphere_dim, p, lat, lon);
+  
+  const Index nnlte = mlevels.nelem();
+  for (Index itnlte = 0; itnlte < nnlte; itnlte++)
+    interp_atmfield_by_itw(elm.mvalue(itnlte, 0, 0, joker), atmosphere_dim,
+                           mvalue(itnlte, joker, joker, joker),
+                           p, lat, lon, itw_field);
+  return elm;
+}
+
+EnergyLevelMap EnergyLevelMap::operator[](Index ip)
+{
+  if (mtype not_eq EnergyLevelMapType::Tensor3_t)
+    throw std::runtime_error("Must have Vector_t, input type is bad");
+  
+  if (ip < mvalue.ncols()) {
+    std::ostringstream os;
+    os << "Bad dims for data:\n\tThe pressure dim of data contains: "
+    << mvalue.ncols() << " values and you are requesting element number " << ip << "\n";
+    throw std::runtime_error(os.str());
+  }
+  
+  EnergyLevelMap elm(EnergyLevelMapType::Numeric_t, 1, 1, 1, *this);
+  elm.mvalue(joker, 0, 0, 0) = mvalue(joker, 0, 0, ip);
+  return elm;
+}
+

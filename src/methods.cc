@@ -815,10 +815,12 @@ void define_md_data_raw() {
                DESCRIPTION("Sets normalization type for all lines.\n"
                            "\n"
                            "Available options:\n"
-                           "   VVH\n"
-                           "   VVW\n"
-                           "   RQ\n"
-                           "   None\n"),
+                           "\t\"VVH\" \t-\tVan Vleck and Huber\n"
+                           "\t\"VVW\" \t-\tVan Vleck and Weisskopf\n"
+                           "\t\"RQ\"  \t-\tRosenkranz quadratic\n"
+                           "\t\"None\"\t-\tNo extra normalization\n"
+                           "\n"
+                           "See the theory guide for more details.\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines2"),
                GOUT(),
@@ -849,10 +851,15 @@ void define_md_data_raw() {
                DESCRIPTION("Sets mirroring type for all lines.\n"
                            "\n"
                            "Available options:\n"
-                           "   Manual\n"
-                           "   Lorentz\n"
-                           "   Same\n"
-                           "   None\n"),
+                           "\t\"None\"\t-   \tNo mirrored line\n"
+                           "\t\"Same\"\t-   \tMirrored line broadened by line shape\n"
+                           "\t\"Manual\"\t- \tManually mirrored line (be careful)\n"
+                           "\t\"Lorentz\"\t-\tMirrored line broadened by Lorentz\n"
+                           "\n"
+                           "Note that mirroring is never applied for DP line shape\n"
+                           "Also note that Lorentz profile is approached by most line shapes at high frequency offset.\n"
+                           "Also note that Manual settings are potentially dangerous as other frequency\n"
+                           "offsets Might not work as hoped\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines2"),
                GOUT(),
@@ -883,9 +890,11 @@ void define_md_data_raw() {
                DESCRIPTION("Sets population type for all lines.\n"
                            "\n"
                            "Available options:\n"
-                           "   LTE\n"
-                           "   NLTE-VibrationalTemperatures\n"
-                           "   NLTE\n"),
+                           "\t\"LTE\"                         \t-\tStandard distribution by temperature\n"
+                           "\t\"NLTE-VibrationalTemperatures\"\t-\tLTE but with vibrational temperatures\n"
+                           "\t\"NLTE\"                        \t-\tDistribution is given as input\n"
+                           "\n"
+                           "You must have set *nlte_field* and/or its ilk to use the NLTE methods.\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines2"),
                GOUT(),
@@ -916,11 +925,13 @@ void define_md_data_raw() {
                DESCRIPTION("Sets shape calculations type for all lines.\n"
                            "\n"
                            "Available options:\n"
-                           "   DP\n"
-                           "   LP\n"
-                           "   VP\n"
-                           "   SDVP\n"
-                           "   HTP\n"),
+                           "\t\"DP\"  \t-\tDoppler profile\n"
+                           "\t\"LP\"  \t-\tLorentz profile\n"
+                           "\t\"VP\"  \t-\tVoigt profile\n"
+                           "\t\"SDVP\"\t-\tSpeed-dependent Voigt profile\n"
+                           "\t\"HTP\" \t-\tHartman-Tran profile\n"
+                           "\n"
+                           "See the theory guide for more details.\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines2"),
                GOUT(),
@@ -950,10 +961,16 @@ void define_md_data_raw() {
       MdRecord(NAME("abs_linesSetCutoff"),
                DESCRIPTION("Sets cutoff type and magnitude for all lines.\n"
                            "\n"
+                           "The line is cut off when this is active at the given frequency.\n"
+                           "The only non-zero range is from this range to its negative equivalent\n"
+                           "\n"
                            "Available options:\n"
-                           "   None\n"
-                           "   ByLine\n"
-                           "   ByBand\n"),
+                           "\t\"None\"  \t-\tNo cutoff\n"
+                           "\t\"ByLine\"\t-\tCutoff relative line center, highest frequency: F0+cutoff\n"
+                           "\t\"ByBand\"\t-\tAbsolute frequency, highest frequency: cutoff\n"
+                           "\n"
+                           "For \"ByLine\", the negative frequency is at F0-cutoff\n"
+                           "For \"ByBand\", the negative frequency is at cutoff minus twice the average band frequency\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines2"),
                GOUT(),
@@ -985,7 +1002,8 @@ void define_md_data_raw() {
       MdRecord(NAME("abs_linesSetLinemixingLimit"),
                DESCRIPTION("Sets line mixing limit for all lines.\n"
                            "\n"
-                           "If value is less than 0, no limit is applied\n"),
+                           "If value is less than 0, no limit is applied and line mixing is active.\n"
+                           "Otherwise, line mixing is inactive if the pressure is below the limit.\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines2"),
                GOUT(),
