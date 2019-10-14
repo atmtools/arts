@@ -415,4 +415,107 @@ void abs_linesDeleteWithLines2(ArrayOfAbsorptionLines& abs_lines, const ArrayOfA
   }
 }
 
+void abs_linesSetCutoff(ArrayOfAbsorptionLines& abs_lines,
+                        const String& type,
+                        const Numeric& x,
+                        const Verbosity&) 
+{
+  auto t = Absorption::string2cutofftype(type);
+  for (auto& lines: abs_lines) {
+    lines.Cutoff(t);
+    lines.CutoffFreqValue(x);
+  }
+}
 
+void abs_linesSetMirroring(ArrayOfAbsorptionLines& abs_lines,
+                           const String& type,
+                           const Verbosity&) 
+{
+  auto t = Absorption::string2mirroringtype(type);
+  for (auto& lines: abs_lines)
+    lines.Mirroring(t);
+}
+
+void abs_linesSetPopulation(ArrayOfAbsorptionLines& abs_lines,
+                            const String& type,
+                            const Verbosity&) 
+{
+  auto t = Absorption::string2populationtype(type);
+  for (auto& lines: abs_lines)
+    lines.Population(t);
+}
+
+void abs_linesSetNormalization(ArrayOfAbsorptionLines& abs_lines,
+                           const String& type,
+                           const Verbosity&) 
+{
+  auto t = Absorption::string2normalizationtype(type);
+  for (auto& lines: abs_lines)
+    lines.Normalization(t);
+}
+
+void abs_linesSetLineShapeType(ArrayOfAbsorptionLines& abs_lines,
+                               const String& type,
+                               const Verbosity&) 
+{
+  auto t = LineShape::string2shapetype(type);
+  for (auto& lines: abs_lines)
+    lines.LineShapeType(t);
+}
+
+void abs_linesSetLinemixingLimit(ArrayOfAbsorptionLines& abs_lines,
+                                 const Numeric& x,
+                                 const Verbosity&) 
+{
+  for (auto& lines: abs_lines)
+    lines.LinemixingLimit(x);
+}
+
+void abs_lines_per_speciesSetCutoff(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                    const String& type,
+                                    const Numeric& x,
+                                    const Verbosity& v) 
+{
+  for (auto& abs_lines: abs_lines_per_species)
+    abs_linesSetCutoff(abs_lines, type, x, v);
+}
+
+void abs_lines_per_speciesSetMirroring(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                       const String& type,
+                                       const Verbosity& v) 
+{
+  for (auto& abs_lines: abs_lines_per_species)
+    abs_linesSetMirroring(abs_lines, type, v);
+}
+
+void abs_lines_per_speciesSetPopulation(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                        const String& type,
+                                        const Verbosity& v) 
+{
+  for (auto& abs_lines: abs_lines_per_species)
+    abs_linesSetPopulation(abs_lines, type, v);
+}
+
+void abs_lines_per_speciesSetNormalization(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                           const String& type,
+                                           const Verbosity& v) 
+{
+  for (auto& abs_lines: abs_lines_per_species)
+    abs_linesSetNormalization(abs_lines, type, v);
+}
+
+void abs_lines_per_speciesSetLineShapeType(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                           const String& type,
+                                           const Verbosity& v) 
+{
+  for (auto& abs_lines: abs_lines_per_species)
+    abs_linesSetLineShapeType(abs_lines, type, v);
+}
+
+void abs_lines_per_speciesSetLinemixingLimit(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                             const Numeric& x,
+                                             const Verbosity& v) 
+{
+  for (auto& abs_lines: abs_lines_per_species)
+    abs_linesSetLinemixingLimit(abs_lines, x, v);
+}

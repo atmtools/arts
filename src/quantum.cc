@@ -475,7 +475,7 @@ Output4 EnergyLevelMap::get_vibtemp_params(
   const QuantumIdentifier& transition,
   Index pressure_level) const
 {
-  Output4 x{0, 0};
+  Output4 x{0, 0, 0, 0};
   
   bool found1=false;
   bool found2=false;

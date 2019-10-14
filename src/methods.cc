@@ -811,6 +811,207 @@ void define_md_data_raw() {
           "Index to indicate if dv is to be left as zero")));
 
   md_data_raw.push_back(
+      MdRecord(NAME("abs_linesSetNormalization"),
+               DESCRIPTION("Sets normalization type for all lines.\n"
+                           "\n"
+                           "Available options:\n"
+                           "   VVH\n"
+                           "   VVW\n"
+                           "   RQ\n"
+                           "   None\n"),
+               AUTHORS("Richard Larsson"),
+               OUT("abs_lines2"),
+               GOUT(),
+               GOUT_TYPE(),
+               GOUT_DESC(),
+               IN("abs_lines2"),
+               GIN("option"),
+               GIN_TYPE("String"),
+               GIN_DEFAULT(NODEF),
+               GIN_DESC("Method of line normalizations")));
+
+  md_data_raw.push_back(
+      MdRecord(NAME("abs_lines_per_speciesSetNormalization"),
+               DESCRIPTION("See *abs_linesSetNormalization*\n"),
+               AUTHORS("Richard Larsson"),
+               OUT("abs_lines_per_species2"),
+               GOUT(),
+               GOUT_TYPE(),
+               GOUT_DESC(),
+               IN("abs_lines_per_species2"),
+               GIN("option"),
+               GIN_TYPE("String"),
+               GIN_DEFAULT(NODEF),
+               GIN_DESC("Method of line normalizations")));
+
+  md_data_raw.push_back(
+      MdRecord(NAME("abs_linesSetMirroring"),
+               DESCRIPTION("Sets mirroring type for all lines.\n"
+                           "\n"
+                           "Available options:\n"
+                           "   Manual\n"
+                           "   Lorentz\n"
+                           "   Same\n"
+                           "   None\n"),
+               AUTHORS("Richard Larsson"),
+               OUT("abs_lines2"),
+               GOUT(),
+               GOUT_TYPE(),
+               GOUT_DESC(),
+               IN("abs_lines2"),
+               GIN("option"),
+               GIN_TYPE("String"),
+               GIN_DEFAULT(NODEF),
+               GIN_DESC("Method of line mirroring")));
+
+  md_data_raw.push_back(
+      MdRecord(NAME("abs_lines_per_speciesSetMirroring"),
+               DESCRIPTION("See *abs_linesSetMirroring*\n"),
+               AUTHORS("Richard Larsson"),
+               OUT("abs_lines_per_species2"),
+               GOUT(),
+               GOUT_TYPE(),
+               GOUT_DESC(),
+               IN("abs_lines_per_species2"),
+               GIN("option"),
+               GIN_TYPE("String"),
+               GIN_DEFAULT(NODEF),
+               GIN_DESC("Method of line mirroring")));
+
+  md_data_raw.push_back(
+      MdRecord(NAME("abs_linesSetPopulation"),
+               DESCRIPTION("Sets population type for all lines.\n"
+                           "\n"
+                           "Available options:\n"
+                           "   LTE\n"
+                           "   NLTE-VibrationalTemperatures\n"
+                           "   NLTE\n"),
+               AUTHORS("Richard Larsson"),
+               OUT("abs_lines2"),
+               GOUT(),
+               GOUT_TYPE(),
+               GOUT_DESC(),
+               IN("abs_lines2"),
+               GIN("option"),
+               GIN_TYPE("String"),
+               GIN_DEFAULT(NODEF),
+               GIN_DESC("Method of line population")));
+
+  md_data_raw.push_back(
+      MdRecord(NAME("abs_lines_per_speciesSetPopulation"),
+               DESCRIPTION("See *abs_linesSetPopulation*\n"),
+               AUTHORS("Richard Larsson"),
+               OUT("abs_lines_per_species2"),
+               GOUT(),
+               GOUT_TYPE(),
+               GOUT_DESC(),
+               IN("abs_lines_per_species2"),
+               GIN("option"),
+               GIN_TYPE("String"),
+               GIN_DEFAULT(NODEF),
+               GIN_DESC("Method of line population")));
+
+  md_data_raw.push_back(
+      MdRecord(NAME("abs_linesSetLineShapeType"),
+               DESCRIPTION("Sets shape calculations type for all lines.\n"
+                           "\n"
+                           "Available options:\n"
+                           "   DP\n"
+                           "   LP\n"
+                           "   VP\n"
+                           "   SDVP\n"
+                           "   HTP\n"),
+               AUTHORS("Richard Larsson"),
+               OUT("abs_lines2"),
+               GOUT(),
+               GOUT_TYPE(),
+               GOUT_DESC(),
+               IN("abs_lines2"),
+               GIN("option"),
+               GIN_TYPE("String"),
+               GIN_DEFAULT(NODEF),
+               GIN_DESC("Method of line shape calculations")));
+
+  md_data_raw.push_back(
+      MdRecord(NAME("abs_lines_per_speciesSetLineShapeType"),
+               DESCRIPTION("See *abs_linesSetLineShapeType*\n"),
+               AUTHORS("Richard Larsson"),
+               OUT("abs_lines_per_species2"),
+               GOUT(),
+               GOUT_TYPE(),
+               GOUT_DESC(),
+               IN("abs_lines_per_species2"),
+               GIN("option"),
+               GIN_TYPE("String"),
+               GIN_DEFAULT(NODEF),
+               GIN_DESC("Method of line shape calculations")));
+
+  md_data_raw.push_back(
+      MdRecord(NAME("abs_linesSetCutoff"),
+               DESCRIPTION("Sets cutoff type and magnitude for all lines.\n"
+                           "\n"
+                           "Available options:\n"
+                           "   None\n"
+                           "   ByLine\n"
+                           "   ByBand\n"),
+               AUTHORS("Richard Larsson"),
+               OUT("abs_lines2"),
+               GOUT(),
+               GOUT_TYPE(),
+               GOUT_DESC(),
+               IN("abs_lines2"),
+               GIN("option", "value"),
+               GIN_TYPE("String", "Numeric"),
+               GIN_DEFAULT(NODEF, NODEF),
+               GIN_DESC("Method of line shape calculations",
+                        "Value of cutoff")));
+
+  md_data_raw.push_back(
+      MdRecord(NAME("abs_lines_per_speciesSetCutoff"),
+               DESCRIPTION("See *abs_linesSetCutoff*\n"),
+               AUTHORS("Richard Larsson"),
+               OUT("abs_lines_per_species2"),
+               GOUT(),
+               GOUT_TYPE(),
+               GOUT_DESC(),
+               IN("abs_lines_per_species2"),
+               GIN("option", "value"),
+               GIN_TYPE("String", "Numeric"),
+               GIN_DEFAULT(NODEF, NODEF),
+               GIN_DESC("Method of line shape calculations",
+                        "Value of cutoff")));
+
+  md_data_raw.push_back(
+      MdRecord(NAME("abs_linesSetLinemixingLimit"),
+               DESCRIPTION("Sets line mixing limit for all lines.\n"
+                           "\n"
+                           "If value is less than 0, no limit is applied\n"),
+               AUTHORS("Richard Larsson"),
+               OUT("abs_lines2"),
+               GOUT(),
+               GOUT_TYPE(),
+               GOUT_DESC(),
+               IN("abs_lines2"),
+               GIN("value"),
+               GIN_TYPE("Numeric"),
+               GIN_DEFAULT(NODEF),
+               GIN_DESC("Value of limit")));
+
+  md_data_raw.push_back(
+      MdRecord(NAME("abs_lines_per_speciesSetLinemixingLimit"),
+               DESCRIPTION("See *abs_linesSetLinemixingLimit*\n"),
+               AUTHORS("Richard Larsson"),
+               OUT("abs_lines_per_species2"),
+               GOUT(),
+               GOUT_TYPE(),
+               GOUT_DESC(),
+               IN("abs_lines_per_species2"),
+               GIN("value"),
+               GIN_TYPE("Numeric"),
+               GIN_DEFAULT(NODEF),
+               GIN_DESC("Value of limit")));
+
+  md_data_raw.push_back(
       MdRecord(NAME("abs_linesSetNormalizationForAll"),
                DESCRIPTION("Sets normalization type for all lines.\n"
                            "\n"

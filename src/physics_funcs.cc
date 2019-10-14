@@ -384,11 +384,11 @@ void dplanck_dt(VectorView dbdt, ConstVectorView f, const Numeric& t) try {
   Index n = 0;
   for (auto& F : f)
     if (F <= 0) n++;
-    if (n)
-      os << '\t' << "You have " << n
-      << " frequency grid points that reports a negative frequency!\n";
+  if (n)
+    os << '\t' << "You have " << n
+    << " frequency grid points that reports a negative frequency!\n";
     
-    throw std::runtime_error(os.str());
+  throw std::runtime_error(os.str());
 }
 
 /** dplanck_df

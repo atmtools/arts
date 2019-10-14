@@ -859,6 +859,15 @@ public:
    */
   Numeric F0(size_t k) const noexcept {return mlines[k].F0();}
   
+  /** Mean frequency
+   * 
+   * @return Mean frequency
+   */
+  Numeric F_mean() const noexcept {
+    return std::accumulate(mlines.cbegin(), mlines.cend(), 0,
+      [](const Numeric& a, const SingleLine& b){return a + b.F0();})/Numeric(NumLines());
+  }
+  
   /** Lower level energy
    * 
    * @param[in] k Line number (less than NumLines())
@@ -908,6 +917,21 @@ public:
   
   /** Returns population style */
   LineShape::Type LineShapeType() const noexcept {return mlineshapetype;}
+  
+  /** Returns mirroring style */
+  void Mirroring(MirroringType x) noexcept {mmirroring = x;}
+  
+  /** Returns normalization style */
+  void Normalization(NormalizationType x) noexcept {mnormalization = x;}
+  
+  /** Returns cutoff style */
+  void Cutoff(CutoffType x) noexcept {mcutoff = x;}
+  
+  /** Returns population style */
+  void Population(PopulationType x) noexcept {mpopulation = x;}
+  
+  /** Returns population style */
+  void LineShapeType(LineShape::Type x) noexcept {mlineshapetype = x;}
   
   /** Returns if the pressure should do line mixing
    * 
@@ -995,6 +1019,23 @@ public:
     std::terminate();
   }
   
+  /** Returns negative cutoff frequency or lowest value
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @returns Negative cutoff frequency or the lowest value
+   */
+  Numeric CutoffFreqMinus(size_t k, Numeric fmean) const noexcept {
+    switch(mcutoff) {
+      case CutoffType::LineByLineOffset:
+        return F0(k) - mcutofffreq;
+      case CutoffType::BandFixedFrequency:
+        return mcutofffreq - 2*fmean;
+      case CutoffType::None:
+        return std::numeric_limits<Numeric>::lowest();
+    }
+    std::terminate();
+  }
+  
   /** Returns reference temperature */
   Numeric T0() const noexcept {
     return mT0;
@@ -1005,9 +1046,19 @@ public:
     return mcutofffreq;
   }
   
+  /** Sets internal cutoff frequency value */
+  void CutoffFreqValue(Numeric x) noexcept {
+    mcutofffreq = x;
+  }
+  
   /** Returns line mixing limit */
   Numeric LinemixingLimit() const noexcept {
     return mlinemixinglimit;
+  }
+  
+  /** Sets line mixing limit */
+  void LinemixingLimit(Numeric x) noexcept {
+    mlinemixinglimit = x;
   }
   
   /** Returns local quantum numbers */

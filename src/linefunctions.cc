@@ -2079,11 +2079,22 @@ void Linefunctions::set_cross_section_of_band(
   auto& dNc = scratch.dNc;
   
   auto& data = scratch.data;
-
+  auto& datac = scratch.datac;
+  
+ const Numeric fmean = band.F_mean(); 
+ std::cout<<"test "<<fmean<<"\n";
+  
   for (Index i=0; i<band.NumLines(); i++) {
     
-    // Cutoff frequencies
-    fc[0] = band.CutoffFreq(i);
+    // Set cutoff frequency 
+    const Numeric fcut_upp = band.CutoffFreq(i);
+    const Numeric fcut_low = band.CutoffFreqMinus(i, fmean);
+    fc[0] = fcut_upp;
+    
+    // Select the range of cutoff
+    
+    auto test = f.array() <= fcut_upp and f.array() >= fcut_low;
+    
     
     const auto QI = band.QuantumIdentityOfLine(i);
     
@@ -2130,7 +2141,7 @@ void Linefunctions::set_cross_section_of_band(
           if (band.Cutoff() not_eq Absorption::CutoffType::None)
             set_doppler(Fc,
                         dFc,
-                        data,
+                        datac,
                         fc,
                         dfdH,
                         H,
@@ -2190,7 +2201,7 @@ void Linefunctions::set_cross_section_of_band(
           if (band.Cutoff() not_eq Absorption::CutoffType::None)
             set_lorentz(Fc,
                         dFc,
-                        data,
+                        datac,
                         fc,
                         dfdH,
                         H,
@@ -2221,7 +2232,7 @@ void Linefunctions::set_cross_section_of_band(
           if (band.Cutoff() not_eq Absorption::CutoffType::None)
             set_voigt(Fc,
                       dFc,
-                      data,
+                      datac,
                       fc,
                       dfdH,
                       H,
@@ -2271,7 +2282,7 @@ void Linefunctions::set_cross_section_of_band(
           if (band.Cutoff() not_eq Absorption::CutoffType::None)
             set_lorentz(Nc,
                         dNc,
-                        data,
+                        datac,
                         fc,
                         -dfdH,
                         H,
@@ -2301,7 +2312,7 @@ void Linefunctions::set_cross_section_of_band(
               if (band.Cutoff() not_eq Absorption::CutoffType::None)
                 set_doppler(Nc,
                             dNc,
-                            data,
+                            datac,
                             fc,
                             -dfdH,
                             H,
@@ -2329,7 +2340,7 @@ void Linefunctions::set_cross_section_of_band(
               if (band.Cutoff() not_eq Absorption::CutoffType::None)
                 set_lorentz(Nc,
                             dNc,
-                            data,
+                            datac,
                             fc,
                             -dfdH,
                             H,
@@ -2360,7 +2371,7 @@ void Linefunctions::set_cross_section_of_band(
               if (band.Cutoff() not_eq Absorption::CutoffType::None)
                 set_voigt(Nc,
                           dNc,
-                          data,
+                          datac,
                           fc,
                           -dfdH,
                           H,
@@ -2547,20 +2558,20 @@ void Linefunctions::set_cross_section_of_band(
         dN *= Sz;
       }
       
+      // Set negative values to zero incase this is requested
+      if (no_negatives) {
+        auto reset_zeroes = (scratch.F.array().real() < 0);
+        
+        scratch.N = reset_zeroes.select(Complex(0, 0), scratch.N);
+        for (Index ij=0; ij<nj; ij++)
+          scratch.dF.col(ij) = reset_zeroes.select(Complex(0, 0), scratch.dF.col(ij));
+        for (Index ij=0; ij<nj; ij++)
+          scratch.dN.col(ij) = reset_zeroes.select(Complex(0, 0), scratch.dN.col(ij));
+        scratch.F = reset_zeroes.select(Complex(0, 0), scratch.F);
+      }
+      
       // Sum up the contributions
       sum += scratch;
     }
-  }
-
-  // Set negative values to zero incase this is requested
-  if (no_negatives) {
-    auto reset_zeroes = (sum.F.array().real() < 0);
-    
-    sum.N = reset_zeroes.select(Complex(0, 0), sum.N);
-    for (Index ij=0; ij<nj; ij++)
-      sum.dF.col(ij) = reset_zeroes.select(Complex(0, 0), sum.dF.col(ij));
-    for (Index ij=0; ij<nj; ij++)
-      sum.dN.col(ij) = reset_zeroes.select(Complex(0, 0), sum.dN.col(ij));
-    sum.F = reset_zeroes.select(Complex(0, 0), sum.F);
   }
 }

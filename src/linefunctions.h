@@ -759,8 +759,8 @@ public:
   Eigen::Matrix<Complex, 1, Eigen::Dynamic> dFc;
   Eigen::Matrix<Complex, 1, Eigen::Dynamic> dNc;
   
-  Eigen::Matrix<Complex, Eigen::Dynamic, Linefunctions::ExpectedDataSize()>
-  data;
+  Eigen::Matrix<Complex, Eigen::Dynamic, Linefunctions::ExpectedDataSize()> data;
+  Eigen::Matrix<Complex, 1, Linefunctions::ExpectedDataSize()> datac;
   
   InternalData(Index nf, Index nj) noexcept :
   F(nf), N(nf),

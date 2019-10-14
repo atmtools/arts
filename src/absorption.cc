@@ -2274,7 +2274,7 @@ void xsec_species3(Matrix& xsec,
       QT,
       dQTdT,
       QT0,
-      false);
+      true);
     
     // absorption cross-section
     MapToEigen(xsec).col(ip).noalias() += sum.F.real();
