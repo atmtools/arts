@@ -53,82 +53,6 @@ Rational Absorption::Lines::UpperQuantumNumber(size_t k, QuantumNumberType qnt) 
   return mquantumidentity.UpperQuantumNumber(qnt);
 }
 
-bool Absorption::Lines::InLowerLevel(size_t k,
-                                     const QuantumIdentifier& qid) const noexcept {
-  if(mquantumidentity.Species() not_eq qid.Species())
-    return false;
-  else if(mquantumidentity.Isotopologue() not_eq qid.Isotopologue())
-    return false;
-  else if(qid.Type() == QuantumIdentifier::ALL)
-    return true;
-  else if(qid.Type() == QuantumIdentifier::NONE)
-    return false;
-  else if(qid.Type() == QuantumIdentifier::TRANSITION)
-    return false;
-  else if(qid.Type() == QuantumIdentifier::ENERGY_LEVEL)
-    for(size_t i=0; i<mlocalquanta.size(); i++)
-      if(qid.EnergyLevelQuantumNumber(mlocalquanta[i]).isDefined() and
-         qid.EnergyLevelQuantumNumber(mlocalquanta[i]) not_eq mlines[k].LowerQuantumNumber(i))
-        return false;
-  
-  return qid.InLower(mquantumidentity.LowerQuantumId());
-}
-
-bool Absorption::Lines::InUpperLevel(size_t k,
-                                     const QuantumIdentifier& qid) const noexcept {
-  if(mquantumidentity.Species() not_eq qid.Species())
-    return false;
-  else if(mquantumidentity.Isotopologue() not_eq qid.Isotopologue())
-    return false;
-  else if(qid.Type() == QuantumIdentifier::ALL)
-    return true;
-  else if(qid.Type() == QuantumIdentifier::NONE)
-    return false;
-  else if(qid.Type() == QuantumIdentifier::TRANSITION)
-    return false;
-  else if(qid.Type() == QuantumIdentifier::ENERGY_LEVEL)
-    for(size_t i=0; i<mlocalquanta.size(); i++)
-      if(qid.EnergyLevelQuantumNumber(mlocalquanta[i]).isDefined() and
-         qid.EnergyLevelQuantumNumber(mlocalquanta[i]) not_eq mlines[k].UpperQuantumNumber(i))
-        return false;
-  
-  return qid.InUpper(mquantumidentity.UpperQuantumId());
-}
-
-bool Absorption::Lines::InLowerGlobalLevel(const QuantumIdentifier& qid) const noexcept {
-  if(mquantumidentity.Species() not_eq qid.Species())
-    return false;
-  else if(mquantumidentity.Isotopologue() not_eq qid.Isotopologue())
-    return false;
-  else if(qid.Type() == QuantumIdentifier::ALL)
-    return true;
-  else if(qid.Type() == QuantumIdentifier::NONE)
-    return false;
-  else if(qid.Type() == QuantumIdentifier::TRANSITION)
-    return false;
-  else if(qid.Type() == QuantumIdentifier::ENERGY_LEVEL)
-    return qid.InLower(mquantumidentity.LowerQuantumId());
-  else
-    return false;
-}
-
-bool Absorption::Lines::InUpperGlobalLevel(const QuantumIdentifier& qid) const noexcept {
-  if(mquantumidentity.Species() not_eq qid.Species())
-    return false;
-  else if(mquantumidentity.Isotopologue() not_eq qid.Isotopologue())
-    return false;
-  else if(qid.Type() == QuantumIdentifier::ALL)
-    return true;
-  else if(qid.Type() == QuantumIdentifier::NONE)
-    return false;
-  else if(qid.Type() == QuantumIdentifier::TRANSITION)
-    return false;
-  else if(qid.Type() == QuantumIdentifier::ENERGY_LEVEL)
-    return qid.InLower(mquantumidentity.LowerQuantumId());
-  else
-    return false;
-}
-
 LineShape::Output Absorption::Lines::ShapeParameters(size_t k, Numeric T, Numeric P, const Vector& vmrs) const noexcept {
   auto x = mlines[k].LineShape().GetParams(T, mT0, P, vmrs);
   
@@ -2045,3 +1969,186 @@ Numeric Absorption::Lines::SelfVMR(const ConstVectorView atm_vmrs,
       return atm_vmrs[i];
   return 0;
 }
+
+bool Absorption::line_in_id(const Absorption::Lines& band, const QuantumIdentifier& id, size_t line_index)
+{
+  if (not band.QuantumIdentity().In(id))
+    return false;
+  else if (not band.InLocal(id, line_index))
+    return false;
+  else
+    return true;
+}
+
+bool Absorption::line_upper_in_id(const Absorption::Lines& band, const QuantumIdentifier& id, size_t line_index)
+{
+  if (not band.QuantumIdentity().InUpper(id))
+    return false;
+  else if (not band.InLocalUpper(id, line_index))
+    return false;
+  else
+    return true;
+}
+
+bool Absorption::line_lower_in_id(const Absorption::Lines& band, const QuantumIdentifier& id, size_t line_index)
+{
+  if (not band.QuantumIdentity().InLower(id))
+    return false;
+  else if (not band.InLocalLower(id, line_index))
+    return false;
+  else
+    return true;
+}
+
+bool Absorption::id_in_line(const Absorption::Lines& band, const QuantumIdentifier& id, size_t line_index)
+{
+  if (not id.In(band.QuantumIdentity()))
+    return false;
+  else if (not band.LocalIn(id, line_index))
+    return false;
+  else
+    return true;
+}
+
+bool Absorption::id_in_line_upper(const Absorption::Lines& band, const QuantumIdentifier& id, size_t line_index)
+{
+  if (not id.InUpper(band.QuantumIdentity()))
+    return false;
+  else if (not band.LocalUpperIn(id, line_index))
+    return false;
+  else
+    return true;
+}
+
+bool Absorption::id_in_line_lower(const Absorption::Lines& band, const QuantumIdentifier& id, size_t line_index)
+{
+  if (not id.InLower(band.QuantumIdentity()))
+    return false;
+  else if (not band.LocalLowerIn(id, line_index))
+    return false;
+  else
+    return true;
+}
+
+bool Absorption::Lines::InLocalUpper(const QuantumIdentifier& qid, size_t k) const noexcept {
+  if (qid.Type() == QuantumIdentifier::ALL)
+    return true;
+  else if (qid.Type() == QuantumIdentifier::NONE)
+    return false;
+  else if (qid.Type() == QuantumIdentifier::ENERGY_LEVEL) {
+    for (size_t i=0; i<mlocalquanta.size(); i++) { 
+      if (qid.EnergyLevelQuantumNumber(mlocalquanta[i]).isUndefined()) {
+      } else if (mlines[k].UpperQuantumNumber(i).isUndefined())
+        return false;
+      else if (mlines[k].UpperQuantumNumber(i) not_eq qid.EnergyLevelQuantumNumber(mlocalquanta[i]))
+        return false;
+    }
+  }
+  else if (qid.Type() == QuantumIdentifier::TRANSITION) {
+    for (size_t i=0; i<mlocalquanta.size(); i++) { 
+      if (qid.UpperQuantumNumber(mlocalquanta[i]).isUndefined()) {
+      } else if (mlines[k].UpperQuantumNumber(i).isUndefined())
+        return false;
+      else if (mlines[k].UpperQuantumNumber(i) not_eq qid.UpperQuantumNumber(mlocalquanta[i]))
+        return false;
+    }
+  }
+  return true;
+}
+
+bool Absorption::Lines::LocalUpperIn(const QuantumIdentifier& qid, size_t k) const noexcept {
+  if (qid.Type() == QuantumIdentifier::ALL)
+    return true;
+  else if (qid.Type() == QuantumIdentifier::NONE)
+    return false;
+  else if (qid.Type() == QuantumIdentifier::ENERGY_LEVEL) {
+    for (size_t i=0; i<mlocalquanta.size(); i++) { 
+      if (mlines[k].UpperQuantumNumber(i).isUndefined()) {
+      } else if (qid.EnergyLevelQuantumNumber(mlocalquanta[i]).isUndefined())
+        return false;
+      else if (mlines[k].UpperQuantumNumber(i) not_eq qid.EnergyLevelQuantumNumber(mlocalquanta[i]))
+        return false;
+    }
+  }
+  else if (qid.Type() == QuantumIdentifier::TRANSITION) {
+    for (size_t i=0; i<mlocalquanta.size(); i++) { 
+      if (mlines[k].UpperQuantumNumber(i).isUndefined()) {
+      } else if (qid.UpperQuantumNumber(mlocalquanta[i]).isUndefined())
+        return false;
+      else if (mlines[k].UpperQuantumNumber(i) not_eq qid.UpperQuantumNumber(mlocalquanta[i]))
+        return false;
+    }
+  }
+  return true;
+}
+
+bool Absorption::Lines::InLocalLower(const QuantumIdentifier& qid, size_t k) const noexcept {
+  if (qid.Type() == QuantumIdentifier::ALL)
+    return true;
+  else if (qid.Type() == QuantumIdentifier::NONE)
+    return false;
+  else if (qid.Type() == QuantumIdentifier::ENERGY_LEVEL) {
+    for (size_t i=0; i<mlocalquanta.size(); i++) { 
+      if (qid.EnergyLevelQuantumNumber(mlocalquanta[i]).isUndefined()) {
+      } else if (mlines[k].LowerQuantumNumber(i).isUndefined())
+        return false;
+      else if (mlines[k].LowerQuantumNumber(i) not_eq qid.EnergyLevelQuantumNumber(mlocalquanta[i]))
+        return false;
+    }
+  }
+  else if (qid.Type() == QuantumIdentifier::TRANSITION) {
+    for (size_t i=0; i<mlocalquanta.size(); i++) { 
+      if (qid.LowerQuantumNumber(mlocalquanta[i]).isUndefined()) {
+      } else if (mlines[k].LowerQuantumNumber(i).isUndefined())
+        return false;
+      else if (mlines[k].LowerQuantumNumber(i) not_eq qid.LowerQuantumNumber(mlocalquanta[i]))
+        return false;
+    }
+  }
+  return true;
+}
+
+bool Absorption::Lines::LocalLowerIn(const QuantumIdentifier& qid, size_t k) const noexcept {
+  if (qid.Type() == QuantumIdentifier::ALL)
+    return true;
+  else if (qid.Type() == QuantumIdentifier::NONE)
+    return false;
+  else if (qid.Type() == QuantumIdentifier::ENERGY_LEVEL) {
+    for (size_t i=0; i<mlocalquanta.size(); i++) { 
+      if (mlines[k].LowerQuantumNumber(i).isUndefined()) {
+      } else if (qid.EnergyLevelQuantumNumber(mlocalquanta[i]).isUndefined())
+        return false;
+      else if (mlines[k].LowerQuantumNumber(i) not_eq qid.EnergyLevelQuantumNumber(mlocalquanta[i]))
+        return false;
+    }
+  }
+  else if (qid.Type() == QuantumIdentifier::TRANSITION) {
+    for (size_t i=0; i<mlocalquanta.size(); i++) { 
+      if (mlines[k].LowerQuantumNumber(i).isUndefined()) {
+      } else if (qid.LowerQuantumNumber(mlocalquanta[i]).isUndefined())
+        return false;
+      else if (mlines[k].LowerQuantumNumber(i) not_eq qid.LowerQuantumNumber(mlocalquanta[i]))
+        return false;
+    }
+  }
+  return true;
+}
+
+bool Absorption::Lines::LocalIn(const QuantumIdentifier& qid, size_t k) const noexcept {
+  if (qid.Type() == QuantumIdentifier::ALL)
+    return true;
+  else if (qid.Type() == QuantumIdentifier::TRANSITION)
+    return LocalUpperIn(qid, k) and LocalLowerIn(qid, k);
+  else
+    return false;
+}
+
+bool Absorption::Lines::InLocal(const QuantumIdentifier& qid, size_t k) const noexcept {
+  if (qid.Type() == QuantumIdentifier::ALL)
+    return true;
+  else if (qid.Type() == QuantumIdentifier::TRANSITION)
+    return InLocalUpper(qid, k) and InLocalLower(qid, k);
+  else
+    return false;
+}
+

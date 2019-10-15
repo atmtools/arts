@@ -781,35 +781,71 @@ public:
    */
   Rational UpperQuantumNumber(size_t k, QuantumNumberType qnt) const noexcept;
   
-  /** Checks if all defined quantum numbers in qid are equal to the lower levels
+  /** Checks if all defined quantum numbers in qid are defined and equal to 
+   * the k:th line's local quantum numbers
    * 
+   * qid must be a transition or allow for all matches
+   * 
+   * @param[in] qid Energy level quantum identifier
    * @param[in] k Line number (less than NumLines())
-   * @param[in] qid Energy level quantum identifier
-   * @return If qid is in lower level
+   * @return true if they are
    */
-  bool InLowerLevel(size_t k, const QuantumIdentifier& qid) const noexcept;
+  bool LocalIn(const QuantumIdentifier& qid, size_t k) const noexcept;
   
-  /** Checks if all defined quantum numbers in qid are equal to the upper levels 
+  /** Checks if all defined quantum numbers in qid are defined and equal to 
+   * the k:th line's local quantum numbers
    * 
+   * qid must be a transition or all-allowing type to return true
+   * 
+   * @param[in] qid Energy level quantum identifier
    * @param[in] k Line number (less than NumLines())
-   * @param[in] qid Energy level quantum identifier
-   * @return If qid is in upper level
+   * @return true if they are
    */
-  bool InUpperLevel(size_t k, const QuantumIdentifier& qid) const noexcept;
+  bool InLocal(const QuantumIdentifier& qid, size_t k) const noexcept;
   
-  /** Checks if all defined quantum numbers in qid are equal to the lower levels
+  /** Checks if all defined local quantum numbers of the k:th line are equal to 
+   * qid's quantum numbers
+   * 
+   * qid must be a transition or all-allowing type to return true
    * 
    * @param[in] qid Energy level quantum identifier
-   * @return If qid is in lower global level
+   * @param[in] k Line number (less than NumLines())
+   * @return true if they are
    */
-  bool InLowerGlobalLevel(const QuantumIdentifier& qid) const noexcept;
+  bool InLocalUpper(const QuantumIdentifier& qid, size_t k) const noexcept;
   
-  /** Checks if all defined quantum numbers in qid are equal to the upper levels 
+  /** Checks if all defined upper local quantum numbers of the k:th line are equal to 
+   * qid's quantum numbers
+   * 
+   * qid is either checked for its upper level or as an energy level
    * 
    * @param[in] qid Energy level quantum identifier
-   * @return If qid is in upper global level
+   * @param[in] k Line number (less than NumLines())
+   * @return true if they are
    */
-  bool InUpperGlobalLevel(const QuantumIdentifier& qid) const noexcept;
+  bool LocalUpperIn(const QuantumIdentifier& qid, size_t k) const noexcept;
+  
+  /** Checks if all defined lower local quantum numbers of the k:th line are equal to 
+   * qid's quantum numbers
+   * 
+   * qid is either checked for its lower level or as an energy level
+   * 
+   * @param[in] qid Energy level quantum identifier
+   * @param[in] k Line number (less than NumLines())
+   * @return true if they are
+   */
+  bool LocalLowerIn(const QuantumIdentifier& qid, size_t k) const noexcept;
+  
+  /** Checks if all defined quantum numbers in qid are defined and equal to 
+   * the k:th line's local lower quantum numbers
+   * 
+   * qid is either checked for its lower level or as an energy level
+   * 
+   * @param[in] qid Energy level quantum identifier
+   * @param[in] k Line number (less than NumLines())
+   * @return true if they are
+   */
+  bool InLocalLower(const QuantumIdentifier& qid, size_t k) const noexcept;
   
   /** Returns the number of Zeeman split lines
    * 
@@ -1196,6 +1232,72 @@ std::vector<Lines> split_list_of_external_lines(const std::vector<SingleLineExte
  * @param[in] al Lines which structure is copied
  */
 Lines createEmptyCopy(const Lines& al) noexcept;
+
+/** Checks if the external quantum identifier match a line's ID
+ * 
+ * The check demands that all defined quantum numbers for the line
+ * are the same as for the id
+ * 
+ * @param[in] band The band of lines
+ * @param[in] id An identifier
+ * @param[in] line_index The local line
+ */
+bool line_in_id(const Lines& band, const QuantumIdentifier& id, size_t line_index);
+
+/** Checks if the external quantum identifier match a line's ID
+ * 
+ * The check demands that all defined quantum numbers for the id
+ * are the same as for the line
+ * 
+ * @param[in] band The band of lines
+ * @param[in] id An identifier
+ * @param[in] line_index The local line
+ */
+bool id_in_line(const Lines& band, const QuantumIdentifier& id, size_t line_index);
+
+/** Checks if the external quantum identifier match a line's ID
+ * 
+ * The check demands that all defined upper quantum numbers for the line
+ * are the same as for the id
+ * 
+ * @param[in] band The band of lines
+ * @param[in] id An identifier
+ * @param[in] line_index The local line
+ */
+bool line_upper_in_id(const Lines& band, const QuantumIdentifier& id, size_t line_index);
+
+/** Checks if the external quantum identifier match a line's ID
+ * 
+ * The check demands that all defined lower quantum numbers for the line
+ * are the same as for the id
+ * 
+ * @param[in] band The band of lines
+ * @param[in] id An identifier
+ * @param[in] line_index The local line
+ */
+bool line_lower_in_id(const Lines& band, const QuantumIdentifier& id, size_t line_index);
+
+/** Checks if the external quantum identifier match a line's ID
+ * 
+ * The check demands that all defined quantum numbers for the id
+ * are the same as for the line's upper numbers
+ * 
+ * @param[in] band The band of lines
+ * @param[in] id An identifier
+ * @param[in] line_index The local line
+ */
+bool id_in_line_upper(const Lines& band, const QuantumIdentifier& id, size_t line_index);
+
+/** Checks if the external quantum identifier match a line's ID
+ * 
+ * The check demands that all defined quantum numbers for the id
+ * are the same as for the line's lower numbers
+ * 
+ * @param[in] band The band of lines
+ * @param[in] id An identifier
+ * @param[in] line_index The local line
+ */
+bool id_in_line_lower(const Lines& band, const QuantumIdentifier& id, size_t line_index);
 };  // Absorption
 
 typedef Absorption::Lines AbsorptionLines;
