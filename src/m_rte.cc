@@ -2360,6 +2360,263 @@ void yCalc(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void yCalc2(Workspace& ws,
+           Vector& y,
+           Vector& y_f,
+           ArrayOfIndex& y_pol,
+           Matrix& y_pos,
+           Matrix& y_los,
+           ArrayOfVector& y_aux,
+           Matrix& y_geo,
+           Matrix& jacobian,
+           const Index& atmgeom_checked,
+           const Index& atmfields_checked,
+           const Index& atmosphere_dim,
+           const EnergyLevelMap& nlte_field,
+           const Index& cloudbox_on,
+           const Index& cloudbox_checked,
+           const Index& scat_data_checked,
+           const Index& sensor_checked,
+           const Index& stokes_dim,
+           const Vector& f_grid,
+           const Matrix& sensor_pos,
+           const Matrix& sensor_los,
+           const Matrix& transmitter_pos,
+           const Matrix& mblock_dlos_grid,
+           const Sparse& sensor_response,
+           const Vector& sensor_response_f,
+           const ArrayOfIndex& sensor_response_pol,
+           const Matrix& sensor_response_dlos,
+           const String& iy_unit,
+           const Agenda& iy_main_agenda,
+           const Agenda& geo_pos_agenda,
+           const Agenda& jacobian_agenda,
+           const Index& jacobian_do,
+           const ArrayOfRetrievalQuantity& jacobian_quantities,
+           const ArrayOfString& iy_aux_vars,
+           const Verbosity& verbosity) {
+  CREATE_OUT3;
+
+  // Basics
+  //
+  chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
+  //
+  if (f_grid.empty()) {
+    throw runtime_error("The frequency grid is empty.");
+  }
+  chk_if_increasing("f_grid", f_grid);
+  if (f_grid[0] <= 0) {
+    throw runtime_error("All frequencies in *f_grid* must be > 0.");
+  }
+  //
+  if (atmfields_checked != 1)
+    throw runtime_error(
+        "The atmospheric fields must be flagged to have\n"
+        "passed a consistency check (atmfields_checked=1).");
+  if (atmgeom_checked != 1)
+    throw runtime_error(
+        "The atmospheric geometry must be flagged to have\n"
+        "passed a consistency check (atmgeom_checked=1).");
+  if (cloudbox_checked != 1)
+    throw runtime_error(
+        "The cloudbox must be flagged to have\n"
+        "passed a consistency check (cloudbox_checked=1).");
+  if (cloudbox_on)
+    if (scat_data_checked != 1)
+      throw runtime_error(
+          "The scattering data must be flagged to have\n"
+          "passed a consistency check (scat_data_checked=1).");
+  if (sensor_checked != 1)
+    throw runtime_error(
+        "The sensor variables must be flagged to have\n"
+        "passed a consistency check (sensor_checked=1).");
+
+  // Some sizes
+  const Index nf = f_grid.nelem();
+  const Index nlos = mblock_dlos_grid.nrows();
+  const Index n1y = sensor_response.nrows();
+  const Index nmblock = sensor_pos.nrows();
+  const Index niyb = nf * nlos * stokes_dim;
+
+  //---------------------------------------------------------------------------
+  // Allocations and resizing
+  //---------------------------------------------------------------------------
+
+  // Resize *y* and *y_XXX*
+  //
+  y.resize(nmblock * n1y);
+  y_f.resize(nmblock * n1y);
+  y_pol.resize(nmblock * n1y);
+  y_pos.resize(nmblock * n1y, sensor_pos.ncols());
+  y_los.resize(nmblock * n1y, sensor_los.ncols());
+  y_geo.resize(nmblock * n1y, 5);
+  y_geo = NAN;  // Will be replaced if relavant data are provided (*geo_pos*)
+
+  // For y_aux we don't know the number of quantities, and we need to
+  // store all output
+  ArrayOfArrayOfVector iyb_aux_array(nmblock);
+
+  // Jacobian variables
+  //
+  Index j_analytical_do = 0;
+  ArrayOfArrayOfIndex jacobian_indices;
+  //
+  if (jacobian_do) {
+    bool any_affine;
+    jac_ranges_indices(jacobian_indices, any_affine, jacobian_quantities, true);
+    jacobian.resize(nmblock * n1y,
+                    jacobian_indices[jacobian_indices.nelem() - 1][1] + 1);
+    jacobian = 0;
+    //
+    FOR_ANALYTICAL_JACOBIANS_DO2(j_analytical_do = 1;)
+  } else {
+    jacobian.resize(0, 0);
+  }
+
+  //---------------------------------------------------------------------------
+  // The calculations
+  //---------------------------------------------------------------------------
+
+  String fail_msg;
+  bool failed = false;
+
+  if (nmblock >= arts_omp_get_max_threads() ||
+      (nf <= nmblock && nmblock >= nlos)) {
+    out3 << "  Parallelizing mblock loop (" << nmblock << " iterations)\n";
+
+    // We have to make a local copy of the Workspace and the agendas because
+    // only non-reference types can be declared firstprivate in OpenMP
+    Workspace l_ws(ws);
+    Agenda l_jacobian_agenda(jacobian_agenda);
+    Agenda l_iy_main_agenda(iy_main_agenda);
+    Agenda l_geo_pos_agenda(geo_pos_agenda);
+
+#pragma omp parallel for firstprivate( \
+    l_ws, l_jacobian_agenda, l_iy_main_agenda, l_geo_pos_agenda)
+    for (Index mblock_index = 0; mblock_index < nmblock; mblock_index++) {
+      // Skip remaining iterations if an error occurred
+      if (failed) continue;
+
+      yCalc_mblock_loop_body(failed,
+                             fail_msg,
+                             iyb_aux_array,
+                             l_ws,
+                             y,
+                             y_f,
+                             y_pol,
+                             y_pos,
+                             y_los,
+                             y_geo,
+                             jacobian,
+                             atmosphere_dim,
+                             nlte_field,
+                             cloudbox_on,
+                             stokes_dim,
+                             f_grid,
+                             sensor_pos,
+                             sensor_los,
+                             transmitter_pos,
+                             mblock_dlos_grid,
+                             sensor_response,
+                             sensor_response_f,
+                             sensor_response_pol,
+                             sensor_response_dlos,
+                             iy_unit,
+                             l_iy_main_agenda,
+                             l_geo_pos_agenda,
+                             l_jacobian_agenda,
+                             jacobian_do,
+                             jacobian_quantities,
+                             jacobian_indices,
+                             iy_aux_vars,
+                             verbosity,
+                             mblock_index,
+                             n1y,
+                             j_analytical_do);
+    }  // End mblock loop
+  } else {
+    out3 << "  Not parallelizing mblock loop (" << nmblock << " iterations)\n";
+
+    for (Index mblock_index = 0; mblock_index < nmblock; mblock_index++) {
+      // Skip remaining iterations if an error occurred
+      if (failed) continue;
+
+      yCalc_mblock_loop_body(failed,
+                             fail_msg,
+                             iyb_aux_array,
+                             ws,
+                             y,
+                             y_f,
+                             y_pol,
+                             y_pos,
+                             y_los,
+                             y_geo,
+                             jacobian,
+                             atmosphere_dim,
+                             nlte_field,
+                             cloudbox_on,
+                             stokes_dim,
+                             f_grid,
+                             sensor_pos,
+                             sensor_los,
+                             transmitter_pos,
+                             mblock_dlos_grid,
+                             sensor_response,
+                             sensor_response_f,
+                             sensor_response_pol,
+                             sensor_response_dlos,
+                             iy_unit,
+                             iy_main_agenda,
+                             geo_pos_agenda,
+                             jacobian_agenda,
+                             jacobian_do,
+                             jacobian_quantities,
+                             jacobian_indices,
+                             iy_aux_vars,
+                             verbosity,
+                             mblock_index,
+                             n1y,
+                             j_analytical_do);
+    }  // End mblock loop
+  }
+
+  // Rethrow exception if a runtime error occurred in the mblock loop
+  if (failed) throw runtime_error(fail_msg);
+
+  // Compile y_aux
+  //
+  const Index nq = iyb_aux_array[0].nelem();
+  y_aux.resize(nq);
+  //
+  for (Index q = 0; q < nq; q++) {
+    y_aux[q].resize(nmblock * n1y);
+    //
+    for (Index mblock_index = 0; mblock_index < nmblock; mblock_index++) {
+      const Range rowind =
+          get_rowindex_for_mblock(sensor_response, mblock_index);
+      const Index row0 = rowind.get_start();
+
+      // The sensor response must be applied in a special way for
+      // uncorrelated errors. Schematically: sqrt( H.^2 * y.^2 )
+      if (iy_aux_vars[q] == "Error (uncorrelated)") {
+        for (Index i = 0; i < n1y; i++) {
+          const Index row = row0 + i;
+          y_aux[q][row] = 0;
+          for (Index j = 0; j < niyb; j++) {
+            y_aux[q][row] +=
+                pow(sensor_response(i, j) * iyb_aux_array[mblock_index][q][j],
+                    (Numeric)2.0);
+          }
+          y_aux[q][row] = sqrt(y_aux[q][row]);
+        }
+      } else {
+        mult(y_aux[q][rowind], sensor_response, iyb_aux_array[mblock_index][q]);
+      }
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void yCalcAppend(Workspace& ws,
                  Vector& y,
                  Vector& y_f,

@@ -65,7 +65,9 @@ bool bad_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species) {
 
 /** Checks for negative values */
 bool any_negative(const Vector& var) {
-  if (min(var) < 0)
+  if (var.empty())
+    return false;
+  else if (min(var) < 0)
     return true;
   else
     return false;
@@ -73,7 +75,9 @@ bool any_negative(const Vector& var) {
 
 /** Checks for negative values */
 bool any_negative(const Tensor4& var) {
-  if (min(var) < 0)
+  if (var.empty())
+    return false;
+  else if (min(var) < 0)
     return true;
   else
     return false;

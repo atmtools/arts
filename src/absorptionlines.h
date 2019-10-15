@@ -1090,7 +1090,7 @@ public:
   
   /** Returns identity status */
   QuantumIdentifier QuantumIdentityOfLine(Index k) const noexcept {
-    QuantumIdentifier copy = mquantumidentity;
+    QuantumIdentifier copy(mquantumidentity);
     for (size_t i=0; i<mlocalquanta.size(); i++) {
       copy.UpperQuantumNumber(mlocalquanta[i]) = mlines[k].UpperQuantumNumber(i);
       copy.LowerQuantumNumber(mlocalquanta[i]) = mlines[k].LowerQuantumNumber(i);

@@ -33,6 +33,7 @@
 
 #include "absorption.h"
 #include "constants.h"
+#include "file.h"
 #include "global_data.h"
 #include "quantum_parser_hitran.h"
 
@@ -306,34 +307,34 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(istream& is) {
     data.quantumidentity.SetIsotopologue(id.Isotopologueindex());
 
     // Extract center frequency:
-    icecream >> data.line.F0();
+    icecream >> double_imanip() >> data.line.F0();
 
     Numeric psf;
     // Extract pressure shift:
-    icecream >> psf;
+    icecream >> double_imanip() >> psf;
 
     // Extract intensity:
-    icecream >> data.line.I0();
+    icecream >> double_imanip() >> data.line.I0();
 
     // Extract reference temperature for Intensity in K:
-    icecream >> data.T0;
+    icecream >> double_imanip() >> data.T0;
 
     // Extract lower state energy:
     icecream >> data.line.E0();
 
     // Extract air broadening parameters:
     Numeric agam, sgam;
-    icecream >> agam;
-    icecream >> sgam;
+    icecream >> double_imanip() >> agam;
+    icecream >> double_imanip() >> sgam;
 
     // Extract temperature coefficient of broadening parameters:
     Numeric nair, nself;
-    icecream >> nair;
-    icecream >> nself;
+    icecream >> double_imanip() >> nair;
+    icecream >> double_imanip() >> nself;
 
     // Extract reference temperature for broadening parameter in K:
     Numeric tgam;
-    icecream >> tgam;
+    icecream >> double_imanip() >> tgam;
 
     // Extract the aux parameters:
     Index naux;
@@ -352,13 +353,13 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(istream& is) {
     Numeric dagam, dsgam, dnair, dnself, dpsf;
     try {
       Numeric mdf, mdi0;
-      icecream >> mdf;
-      icecream >> mdi0;
-      icecream >> dagam;
-      icecream >> dsgam;
-      icecream >> dnair;
-      icecream >> dnself;
-      icecream >> dpsf;
+      icecream >> double_imanip() >> mdf;
+      icecream >> double_imanip() >> mdi0;
+      icecream >> double_imanip() >> dagam;
+      icecream >> double_imanip() >> dsgam;
+      icecream >> double_imanip() >> dnair;
+      icecream >> double_imanip() >> dnself;
+      icecream >> double_imanip() >> dpsf;
     } catch (const std::runtime_error&) {
       // Nothing to do here, the accuracies are optional, so we
       // just set them to -1 and continue reading the next line of
@@ -476,25 +477,25 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat4Stream(istream& is) {
     data.quantumidentity.SetIsotopologue(id.Isotopologueindex());
 
     // Extract center frequency:
-    icecream >> data.line.F0();
+    icecream >> double_imanip() >> data.line.F0();
 
     // Extract intensity:
-    icecream >> data.line.I0();
+    icecream >> double_imanip() >> data.line.I0();
 
     // Extract reference temperature for Intensity in K:
-    icecream >> data.T0;
+    icecream >> double_imanip() >> data.T0;
 
     // Extract lower state energy:
-    icecream >> data.line.E0();
+    icecream >> double_imanip() >> data.line.E0();
 
     // Extract Einstein A-coefficient:
-    icecream >> data.line.A();
+    icecream >> double_imanip() >> data.line.A();
 
     // Extract upper state stat. weight:
-    icecream >> data.line.g_upp();
+    icecream >> double_imanip() >> data.line.g_upp();
 
     // Extract lower state stat. weight:
-    icecream >> data.line.g_low();
+    icecream >> double_imanip() >> data.line.g_low();
 
     LineShape::Model x;
     LineShape::from_artscat4(icecream, x, data.quantumidentity);
@@ -672,25 +673,25 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
       data.quantumidentity.SetIsotopologue(id.Isotopologueindex());
 
       // Extract center frequency:
-      icecream >> data.line.F0();
+      icecream >> double_imanip() >> data.line.F0();
 
       // Extract intensity:
-      icecream >> data.line.I0();
+      icecream >> double_imanip() >> data.line.I0();
 
       // Extract reference temperature for Intensity in K:
-      icecream >> data.T0;
+      icecream >> double_imanip() >> data.T0;
 
       // Extract lower state energy:
-      icecream >> data.line.E0();
+      icecream >> double_imanip() >> data.line.E0();
 
       // Extract Einstein A-coefficient:
-      icecream >> data.line.A();
+      icecream >> double_imanip() >> data.line.A();
 
       // Extract upper state stat. weight:
-      icecream >> data.line.g_upp();
+      icecream >> double_imanip() >> data.line.g_upp();
 
       // Extract lower state stat. weight:
-      icecream >> data.line.g_low();
+      icecream >> double_imanip() >> data.line.g_low();
 
       String token;
       Index nelem;

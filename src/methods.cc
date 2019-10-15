@@ -218,6 +218,27 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
+      NAME("AbsInputFromRteScalars2"),
+      DESCRIPTION(
+          "Initialize absorption input WSVs from local atmospheric conditions.\n"
+          "\n"
+          "The purpose of this method is to allow an explicit line-by-line\n"
+          "calculation, e.g., by *abs_coefCalc*, to be put inside the\n"
+          "*propmat_clearsky_agenda*. What the method does is to prepare absorption\n"
+          "input parameters (pressure, temperature, VMRs), from the input\n"
+          "parameters to *propmat_clearsky_agenda*.\n"),
+      AUTHORS("Stefan Buehler"),
+      OUT("abs_p", "abs_t", "abs_vmrs"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("rtp_pressure", "rtp_temperature", "rtp_vmr"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
       NAME("abs_cia_dataAddCIARecord"),
       DESCRIPTION(
           "Takes CIARecord as input and appends the results in the appropriate place.\n"
@@ -3177,6 +3198,60 @@ void define_md_data_raw() {
                "-1: Skip step. 0: Negative is 0. Else: Negative is t.")));
 
   md_data_raw.push_back(MdRecord(
+      NAME("AtmFieldsCalc2"),
+      DESCRIPTION(
+          "Interpolation of raw atmospheric T, z, VMR, and NLTE T/r fields to\n"
+          "calculation grids.\n"
+          "\n"
+          "An atmospheric scenario includes the following data for each\n"
+          "position (pressure, latitude, longitude) in the atmosphere:\n"
+          "   1. temperature field\n"
+          "   2. the corresponding altitude field\n"
+          "   3. vmr fields for the gaseous species\n"
+          "This method interpolates the fields of raw data (*t_field_raw*,\n"
+          "*z_field_raw*, *vmr_field_raw*) which can be stored on arbitrary\n"
+          "grids to the calculation grids (*p_grid*, *lat_grid*, *lon_grid*).\n"
+          "If *nlte_field_raw* is empty, it is assumed to be so because LTE is\n"
+          "assumed by the user and *nlte_field* will be empty.\n"
+          "\n"
+          "Internally, *AtmFieldsCalc* applies *GriddedFieldPRegrid* and\n"
+          "*GriddedFieldLatLonRegrid*. Generally, 'half-grid-step' extrapolation\n"
+          "is allowed and applied. However, if *vmr_zeropadding*=1 then VMRs at\n"
+          "*p_grid* levels exceeding the raw VMRs' pressure grid are set to 0\n"
+          "(applying the *vmr_zeropadding* option of *GriddedFieldPRegrid*).\n"
+          "\n"
+          "Default is to just accept obtained VMRs. If you want to enforce\n"
+          "that all VMR created are >= 0, set *vmr_nonegative* to 1. Negative\n"
+          "values are then set 0. Beside being present in input data, negative\n"
+          "VMR can be generated from the interpolation if *interp_order* is\n"
+          "above 1.\n"),
+      AUTHORS("Claudia Emde", "Stefan Buehler"),
+      OUT("t_field", "z_field", "vmr_field", "nlte_field2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("p_grid",
+         "lat_grid",
+         "lon_grid",
+         "t_field_raw",
+         "z_field_raw",
+         "vmr_field_raw",
+         "nlte_field_raw",
+         "nlte_level_identifiers",
+         "nlte_vibrational_energies",
+         "atmosphere_dim"),
+      GIN("interp_order",
+          "vmr_zeropadding",
+          "vmr_nonegative",
+          "nlte_when_negative"),
+      GIN_TYPE("Index", "Index", "Index", "Index"),
+      GIN_DEFAULT("1", "0", "0", "0"),
+      GIN_DESC("Interpolation order (1=linear interpolation).",
+               "Pad VMRs with zeroes to fit the pressure grid if necessary.",
+               "If set to 1, negative VMRs are set to 0.",
+               "-1: Skip step. 0: Negative is 0. Else: Negative is t.")));
+
+  md_data_raw.push_back(MdRecord(
       NAME("AtmFieldsCalcExpand1D"),
       DESCRIPTION(
           "Interpolation of 1D raw atmospheric fields to create 2D or 3D\n"
@@ -3202,6 +3277,46 @@ void define_md_data_raw() {
          "z_field_raw",
          "vmr_field_raw",
          "nlte_field_raw",
+         "atmosphere_dim"),
+      GIN("interp_order",
+          "vmr_zeropadding",
+          "vmr_nonegative",
+          "nlte_when_negative"),
+      GIN_TYPE("Index", "Index", "Index", "Index"),
+      GIN_DEFAULT("1", "0", "0", "0"),
+      GIN_DESC("Interpolation order (1=linear interpolation).",
+               "Pad VMRs with zeroes to fit the pressure grid if necessary.",
+               "If set to 1, negative VMRs are set to 0.",
+               "-1: Skip step. 0: Negative is 0. Else: Negative is t.")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("AtmFieldsCalcExpand1D2"),
+      DESCRIPTION(
+          "Interpolation of 1D raw atmospheric fields to create 2D or 3D\n"
+          "homogeneous atmospheric fields.\n"
+          "\n"
+          "The method works as *AtmFieldsCalc*, but accepts only raw 1D\n"
+          "atmospheres. The raw atmosphere is interpolated to *p_grid* and\n"
+          "the obtained values are applied for all latitudes, and also\n"
+          "longitudes for 3D, to create a homogeneous atmosphere.\n"
+          "\n"
+          "The method deals only with the atmospheric fields, and to create\n"
+          "a true 2D or 3D version of a 1D case, a demand is also that the\n"
+          "ellipsoid is set to be a sphere.\n"),
+      AUTHORS("Patrick Eriksson", "Claudia Emde", "Stefan Buehler"),
+      OUT("t_field", "z_field", "vmr_field", "nlte_field2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("p_grid",
+         "lat_grid",
+         "lon_grid",
+         "t_field_raw",
+         "z_field_raw",
+         "vmr_field_raw",
+         "nlte_field_raw",
+         "nlte_level_identifiers",
+         "nlte_vibrational_energies",
          "atmosphere_dim"),
       GIN("interp_order",
           "vmr_zeropadding",
@@ -3571,7 +3686,8 @@ void define_md_data_raw() {
           "z_field_raw",
           "vmr_field_raw",
           "nlte_field_raw",
-          "nlte_level_identifiers"),
+          "nlte_level_identifiers",
+          "nlte_vibrational_energies"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -3610,17 +3726,19 @@ void define_md_data_raw() {
           "z_field_raw",
           "vmr_field_raw",
           "nlte_field_raw",
-          "nlte_level_identifiers"),
+          "nlte_level_identifiers",
+          "nlte_vibrational_energies"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_species"),
-      GIN("basename"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT(NODEF),
+      GIN("basename", "expect_vibrational_energies"),
+      GIN_TYPE("String", "Index"),
+      GIN_DEFAULT(NODEF, "0"),
       GIN_DESC("Name of scenario, probably including the full path. For "
                "example: \"/smiles_local/arts-data/atmosphere/fascod/"
-               "tropical\"")));
+               "tropical\"",
+               "Should ev.xml be read?")));
 
   md_data_raw.push_back(MdRecord(
       NAME("atm_fields_compactAddConstant"),
@@ -7397,6 +7515,98 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
+      NAME("iyEmissionStandard2"),
+      DESCRIPTION(
+          "Standard method for radiative transfer calculations with emission.\n"
+          "\n"
+          "Designed to be part of *iy_main_agenda*. That is, only valid\n"
+          "outside the cloudbox (no scattering). For details se the user guide.\n"
+          "\n"
+          "The possible choices for *iy_unit* are\n"
+          " \"1\"             : No conversion, i.e. [W/(m^2 Hz sr)] (radiance per\n"
+          "                     frequency unit).\n"
+          " \"RJBT\"          : Conversion to Rayleigh-Jean brightness\n"
+          "                     temperature.\n"
+          " \"PlanckBT\"      : Conversion to Planck brightness temperature.\n"
+          " \"W/(m^2 m sr)\"  : Conversion to [W/(m^2 m sr)] (radiance per\n"
+          "                     wavelength unit).\n"
+          " \"W/(m^2 m-1 sr)\": Conversion to [W/(m^2 m-1 sr)] (radiance per\n"
+          "                     wavenumber unit).\n"
+          "Expressions applied and considerations for the unit conversion of\n"
+          "radiances are discussed in Sec. 5.7 of the ARTS-2.0 article.\n"
+          "\n"
+          "*iy_unit* is only applied if *iy_agenda_call1* is 1. This means that\n"
+          "no unit ocnversion is applied for internal iterative calls.\n"
+          "\n"
+          "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
+          "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
+          "Valid choices for auxiliary data are:\n"
+          " \"Radiative background\": Index value flagging the radiative\n"
+          "    background. The following coding is used: 0=space, 1=surface\n"
+          "    and 2=cloudbox.\n"
+          " \"Optical depth\": Scalar optical depth between the observation point\n"
+          "    and the end of the present propagation path. Calculated based on\n"
+          "    the (1,1)-element of the transmission matrix (1-based indexing),\n"
+          "    i.e. only fully valid for scalar RT.\n"
+          "If nothing else is stated, only the first column of *iy_aux* is filled,\n"
+          "i.e. the column matching Stokes element I, while remaing columns are\n"
+          "are filled with zeros.\n"),
+      AUTHORS("Patrick Eriksson", "Richard Larsson"),
+      OUT("iy",
+          "iy_aux",
+          "diy_dx",
+          "ppvar_p",
+          "ppvar_t",
+          "ppvar_nlte2",
+          "ppvar_vmr",
+          "ppvar_wind",
+          "ppvar_mag",
+          "ppvar_f",
+          "ppvar_iy",
+          "ppvar_trans_cumulat",
+          "ppvar_trans_partial"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("diy_dx",
+         "iy_id",
+         "stokes_dim",
+         "f_grid",
+         "atmosphere_dim",
+         "p_grid",
+         "t_field",
+         "nlte_field2",
+         "vmr_field",
+         "abs_species",
+         "wind_u_field",
+         "wind_v_field",
+         "wind_w_field",
+         "mag_u_field",
+         "mag_v_field",
+         "mag_w_field",
+         "cloudbox_on",
+         "iy_unit",
+         "iy_aux_vars",
+         "jacobian_do",
+         "jacobian_quantities",
+         "ppath",
+         "rte_pos2",
+         "propmat_clearsky_agenda2",
+         "water_p_eq_agenda",
+         "iy_main_agenda2",
+         "iy_space_agenda",
+         "iy_surface_agenda2",
+         "iy_cloudbox_agenda",
+         "iy_agenda_call1",
+         "iy_transmission",
+         "rte_alonglos_v",
+         "surface_props_data"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
       NAME("iyEmissionStandardParallel"),
       DESCRIPTION(
           "Parallelized version of *iyEmissionStandard* at the expense of\n"
@@ -8158,6 +8368,42 @@ void define_md_data_raw() {
          "rte_pos2",
          "iy_unit",
          "iy_main_agenda",
+         "surface_rtprop_agenda"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("iySurfaceRtpropAgenda2"),
+      DESCRIPTION(
+          "Interface to *surface_rtprop_agenda* for *iy_surface_agenda*.\n"
+          "\n"
+          "This method is designed to be part of *iy_surface_agenda*. It\n"
+          "determines the radiative properties of the surface by\n"
+          "*surface_rtprop_agenda* and calculates the downwelling radiation\n"
+          "by *iy_main_agenda*, and sums up the terms as described in AUG.\n"
+          "That is, this WSM uses the output from *surface_rtprop_agenda*\n"
+          "in a straightforward fashion.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("iy", "diy_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("diy_dx",
+         "iy_transmission",
+         "iy_id",
+         "jacobian_do",
+         "atmosphere_dim",
+         "nlte_field2",
+         "cloudbox_on",
+         "stokes_dim",
+         "f_grid",
+         "rtp_pos",
+         "rtp_los",
+         "rte_pos2",
+         "iy_unit",
+         "iy_main_agenda2",
          "surface_rtprop_agenda"),
       GIN(),
       GIN_TYPE(),
@@ -10719,6 +10965,48 @@ void define_md_data_raw() {
           "String for setting the type of population.")));
 
   md_data_raw.push_back(MdRecord(
+      NAME("nlteSetByQuantumIdentifiers2"),
+      DESCRIPTION(
+          "Turns on NTLE calculations.\n"
+          "\n"
+          "Takes the quantum identifers for NLTE temperatures and matches it to\n"
+          "lines in *abs_lines_per_species*.  *abs_species* must be set and is used\n"
+          "to speed up calculations.  After the function is done,  all affected\n"
+          "lines in *abs_lines_per_species* will have an internal tag to the relevant\n"
+          "quantum identifier, which is a requirement for deeper code.\n"
+          "\n"
+          "If vibrational_energies is input it must match *nlte_level_identifiers*\n"
+          "in length.  The vibrational energies of the affected lines will then be\n"
+          "set by the function.  Otherwise, it is assumed the vibrational energies\n"
+          "are set by another method.  If they are not set, calculations will complain\n"
+          "later on while running deeper code.\n"
+          "\n"
+          "For now only vibrational energy states are assumed to be able to be in\n"
+          "non-LTE conditions.  The *QuantumIdentifier* for an energy state in ARTS\n"
+          "can look like:\n"
+          "\t\"CO2-626 EN v1 0/1 v2 1/1 l2 1/1 v3 0/1 r 1/1\"\n"
+          "and the matching will match ALL lines with the above.  Note then that if, e.g.,\n"
+          "the \"v1 0/1\" term was removed from the above, then ARTS will assume that\n"
+          "\"v1\" is not part of the level of energy state of interest, so lines\n"
+          "of different \"v1\" will be matched as the same state.  If a line is matched\n"
+          "to more than one energy state, errors should be thrown, but be careful.\n"
+          "\n"
+          "Set type of population to change computations and expected input as:\n"
+          "\tLTE: Compute population by ratios found from LTE temperatures\n"
+          "\tTV:  Compute population by ratios found from NLTE vibrational temperatures\n"
+          "\tND:  Compute population by ratios found from NLTE number densities\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species2", "nlte_field2"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
       NAME("nlte_fieldSetLteExternalPartitionFunction"),
       DESCRIPTION("Turns on NTLE calculations.\n"
                   "\n"
@@ -12353,6 +12641,49 @@ void define_md_data_raw() {
          "rtp_nlte",
          "rtp_vmr",
          "abs_xsec_agenda"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("propmat_clearskyAddOnTheFly2"),
+      DESCRIPTION(
+          "Calculates gas absorption coefficients line-by-line.\n"
+          "\n"
+          "This method can be used inside *propmat_clearsky_agenda* just like\n"
+          "*propmat_clearskyAddFromLookup*. It is a shortcut for putting in some\n"
+          "other methods explicitly, namely:\n"
+          "\n"
+          "  1. *AbsInputFromRteScalars*\n"
+          "  2. Execute *abs_xsec_agenda*\n"
+          "  3. *abs_coefCalcFromXsec*\n"
+          "  4. *propmat_clearskyAddFromAbsCoefPerSpecies*\n"
+          "\n"
+          "The calculation is for one specific atmospheric condition, i.e., a set\n"
+          "of pressure, temperature, and VMR values.\n"),
+      AUTHORS("Stefan Buehler, Richard Larsson"),
+      OUT("propmat_clearsky",
+          "nlte_source",
+          "dpropmat_clearsky_dx",
+          "dnlte_dx_source",
+          "nlte_dsource_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("propmat_clearsky",
+         "nlte_source",
+         "dpropmat_clearsky_dx",
+         "dnlte_dx_source",
+         "nlte_dsource_dx",
+         "f_grid",
+         "abs_species",
+         "jacobian_quantities",
+         "rtp_pressure",
+         "rtp_temperature",
+         "rtp_nlte2",
+         "rtp_vmr",
+         "abs_xsec_agenda2"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -20123,6 +20454,73 @@ void define_md_data_raw() {
          "sensor_response_dlos",
          "iy_unit",
          "iy_main_agenda",
+         "geo_pos_agenda",
+         "jacobian_agenda",
+         "jacobian_do",
+         "jacobian_quantities",
+         "iy_aux_vars"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("yCalc2"),
+      DESCRIPTION(
+          "Calculation of complete measurement vectors (y).\n"
+          "\n"
+          "The method performs radiative transfer calculations from a sensor\n"
+          "perspective. Radiative transfer calculations are performed for\n"
+          "monochromatic pencil beams, following *iy_main_agenda* and\n"
+          "associated agendas. Obtained radiances are weighted together by\n"
+          "*sensor_response*, to include the characteristics of the sensor.\n"
+          "The measurement vector obtained can contain anything from a single\n"
+          "frequency value to a series of measurement scans (each consisting\n"
+          "of a series of spectra), all depending on the settings. Spectra\n"
+          "and jacobians are calculated in parallel.\n"
+          "\n"
+          "The frequency, polarisation etc. for each measurement value is\n"
+          "given by *y_f*, *y_pol*, *y_pos* and *y_los*.\n"
+          "\n"
+          "The content of *y_aux* follows *iy_aux_vars. See the method selected\n"
+          "for *iy_main_agenda* for allowed choices.\n"
+          "\n"
+          "The geo-positions (*y_geo*) are set based on *sensor_reponse*. When\n"
+          "an antenna pattern is considered, there are several pencil beams,\n"
+          "and thus also several goe-positions, associated with each value of *y*.\n"
+          "The geo-position assigned to a value in *y* is the *geo_pos* of the pencil\n"
+          "beam related to the highest value in *sensor_response*. This means that\n"
+          "*mblock_dlos_grid* must contain the bore-sight direction (0,0), if you\n"
+          "want *y_geo* to exactly match the bore-sight direction.\n"
+          "\n"
+          "The Jacobian provided (*jacobian*) is adopted to selected retrieval\n"
+          "units, but no transformations are applied. Transformations are\n"
+          "included by calling *jacobianAdjustAndTranform*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "y_geo", "jacobian"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atmgeom_checked",
+         "atmfields_checked",
+         "atmosphere_dim",
+         "nlte_field2",
+         "cloudbox_on",
+         "cloudbox_checked",
+         "scat_data_checked",
+         "sensor_checked",
+         "stokes_dim",
+         "f_grid",
+         "sensor_pos",
+         "sensor_los",
+         "transmitter_pos",
+         "mblock_dlos_grid",
+         "sensor_response",
+         "sensor_response_f",
+         "sensor_response_pol",
+         "sensor_response_dlos",
+         "iy_unit",
+         "iy_main_agenda2",
          "geo_pos_agenda",
          "jacobian_agenda",
          "jacobian_do",

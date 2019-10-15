@@ -592,7 +592,7 @@ void define_agenda_data() {
             "iy_id",
             "cloudbox_on",
             "jacobian_do",
-            "iy_main_agenda",
+            "iy_main_agenda2",
             "f_grid",
             "nlte_field2",
             "rtp_pos",

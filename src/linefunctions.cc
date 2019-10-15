@@ -679,25 +679,25 @@ void Linefunctions::apply_linestrength_scaling_by_lte(
     Eigen::Ref<Eigen::MatrixXcd> dF,
     Eigen::Ref<Eigen::VectorXcd> N,
     Eigen::Ref<Eigen::MatrixXcd> dN,
-    const AbsorptionLines& band,
+    const Absorption::SingleLine& line,
     const Numeric& T,
+    const Numeric& T0,
     const Numeric& isotopic_ratio,
     const Numeric& QT,
     const Numeric& QT0,
     const ArrayOfRetrievalQuantity& derivatives_data,
     const ArrayOfIndex& derivatives_data_position,
     const QuantumIdentifier& quantum_identity,
-    const Numeric& dQT_dT,
-    size_t line_ind) {
+    const Numeric& dQT_dT) {
   auto nppd = derivatives_data_position.nelem();
 
-  const Numeric gamma = stimulated_emission(T, band.F0(line_ind));
-  const Numeric gamma_ref = stimulated_emission(band.T0(), band.F0(line_ind));
-  const Numeric K1 = boltzman_ratio(T, band.T0(), band.E0(line_ind));
+  const Numeric gamma = stimulated_emission(T, line.F0());
+  const Numeric gamma_ref = stimulated_emission(T0, line.F0());
+  const Numeric K1 = boltzman_ratio(T, T0, line.E0());
   const Numeric K2 = stimulated_relative_emission(gamma, gamma_ref);
 
   const Numeric invQT = 1.0 / QT;
-  const Numeric S = band.I0(line_ind) * isotopic_ratio * QT0 * invQT * K1 * K2;
+  const Numeric S = line.I0() * isotopic_ratio * QT0 * invQT * K1 * K2;
 
   F *= S;
   dF *= S;
@@ -706,17 +706,17 @@ void Linefunctions::apply_linestrength_scaling_by_lte(
 
     if (deriv == JacPropMatType::Temperature)
       dF.col(iq).noalias() +=
-      F * (dstimulated_relative_emission_dT(gamma, gamma_ref, band.F0(line_ind), T) /
+      F * (dstimulated_relative_emission_dT(gamma, gamma_ref, line.F0(), T) /
                    K2 +
-                   dboltzman_ratio_dT(K1, T, band.E0(line_ind)) / K1 - invQT * dQT_dT);
+                   dboltzman_ratio_dT(K1, T, line.E0()) / K1 - invQT * dQT_dT);
     else if (deriv == JacPropMatType::LineStrength and
              deriv.QuantumIdentity().In(quantum_identity))
-      dF.col(iq).noalias() = F / band.I0(line_ind);  //nb. overwrite
+      dF.col(iq).noalias() = F / line.I0();  //nb. overwrite
     else if (deriv == JacPropMatType::LineCenter and
              deriv.QuantumIdentity().In(quantum_identity))
       dF.col(iq).noalias() +=
           F *
-          dstimulated_relative_emission_dF0(gamma, gamma_ref, T, band.T0()) /
+          dstimulated_relative_emission_dF0(gamma, gamma_ref, T, T0) /
           K2;
   }
 
@@ -822,6 +822,7 @@ void Linefunctions::apply_linestrength_scaling_by_vibrational_nlte(
     }
   }
 
+  // FIXME: Figure out if S_src and S_abs should be swapped!  There is a difference here to how old code behaves but I cannot find a theoretical error anywhere...
   N.noalias() = F * (S_src - S_abs);
   F *= S_abs;
 }
@@ -831,8 +832,9 @@ void Linefunctions::apply_linestrength_scaling_by_vibrational_nlte(
     Eigen::Ref<Eigen::MatrixXcd> dF,
     Eigen::Ref<Eigen::VectorXcd> N,
     Eigen::Ref<Eigen::MatrixXcd> dN,
-    const AbsorptionLines& band,
+    const Absorption::SingleLine& line,
     const Numeric& T,
+    const Numeric& T0,
     const Numeric& Tu,
     const Numeric& Tl,
     const Numeric& Evu,
@@ -843,27 +845,26 @@ void Linefunctions::apply_linestrength_scaling_by_vibrational_nlte(
     const ArrayOfRetrievalQuantity& derivatives_data,
     const ArrayOfIndex& derivatives_data_position,
     const QuantumIdentifier& quantum_identity,
-    const Numeric& dQT_dT,
-    size_t line_ind) {
+    const Numeric& dQT_dT) {
   auto nppd = derivatives_data_position.nelem();
 
-  const Numeric gamma = stimulated_emission(T, band.F0(line_ind));
-  const Numeric gamma_ref = stimulated_emission(band.T0(), band.F0(line_ind));
-  const Numeric r_low = boltzman_ratio(Tl, T, Evl);
-  const Numeric r_upp = boltzman_ratio(Tu, T, Evu);
+  const Numeric gamma = stimulated_emission(T,line.F0());
+  const Numeric gamma_ref = stimulated_emission(T0,line.F0());
+  const Numeric r_low = boltzman_ratio(Tl,T,Evl);
+  const Numeric r_upp = boltzman_ratio(Tu,T,Evu);
 
-  const Numeric K1 = boltzman_ratio(T, band.T0(), band.E0(line_ind));
-  const Numeric K2 = stimulated_relative_emission(gamma, gamma_ref);
-  const Numeric K3 = absorption_nlte_ratio(gamma, r_upp, r_low);
+  const Numeric K1 = boltzman_ratio(T,T0,line.E0());
+  const Numeric K2 = stimulated_relative_emission(gamma,gamma_ref);
+  const Numeric K3 = absorption_nlte_ratio(gamma,r_upp,r_low);
   const Numeric K4 = r_upp;
 
   const Numeric invQT = 1.0 / QT;
   const Numeric QT_ratio = QT0 * invQT;
 
   const Numeric dS_dS0_abs = isotopic_ratio * QT_ratio * K1 * K2 * K3;
-  const Numeric S_abs = band.I0(line_ind) * dS_dS0_abs;
+  const Numeric S_abs = line.I0() * dS_dS0_abs;
   const Numeric dS_dS0_src = isotopic_ratio * QT_ratio * K1 * K2 * K4;
-  const Numeric S_src = band.I0(line_ind) * dS_dS0_src;
+  const Numeric S_src = line.I0() * dS_dS0_src;
 
   dN.noalias() = dF * (S_src - S_abs);
   dF *= S_abs;
@@ -873,17 +874,17 @@ void Linefunctions::apply_linestrength_scaling_by_vibrational_nlte(
     if (deriv == JacPropMatType::Temperature) {
       const Numeric dS_dT_abs =
           S_abs *
-          (dstimulated_relative_emission_dT(gamma, gamma_ref, band.F0(line_ind), T) /
+          (dstimulated_relative_emission_dT(gamma, gamma_ref, line.F0(), T) /
                K2 +
-               dboltzman_ratio_dT(K1, T, band.E0(line_ind)) / K1 +
-               dabsorption_nlte_rate_dT(gamma, T, band.F0(line_ind), Evl, Evu, K4, r_low) /
+               dboltzman_ratio_dT(K1, T, line.E0()) / K1 +
+               dabsorption_nlte_rate_dT(gamma, T, line.F0(), Evl, Evu, K4, r_low) /
                K3 -
            invQT * dQT_dT);
       const Numeric dS_dT_src =
           S_src *
-          (dstimulated_relative_emission_dT(gamma, gamma_ref, band.F0(line_ind), T) /
+          (dstimulated_relative_emission_dT(gamma, gamma_ref, line.F0(), T) /
                K2 +
-               dboltzman_ratio_dT(K1, T, band.E0(line_ind)) / K1 -
+               dboltzman_ratio_dT(K1, T, line.E0()) / K1 -
            dboltzman_ratio_dT(K4, T, Evu) / K4 - invQT * dQT_dT);
 
       dN.col(iq).noalias() += F * (dS_dT_src - dS_dT_abs);
@@ -896,12 +897,12 @@ void Linefunctions::apply_linestrength_scaling_by_vibrational_nlte(
                deriv.QuantumIdentity().In(quantum_identity)) {
       const Numeric dS_dF0_abs =
           S_abs *
-          (dstimulated_relative_emission_dF0(gamma, gamma_ref, T, band.T0()) /
+          (dstimulated_relative_emission_dF0(gamma, gamma_ref, T, T0) /
                K2 +
            dabsorption_nlte_rate_dF0(gamma, T, K4, r_low) / K3);
       const Numeric dS_dF0_src =
           S_src *
-          dstimulated_relative_emission_dF0(gamma, gamma_ref, T, band.T0()) /
+          dstimulated_relative_emission_dF0(gamma, gamma_ref, T, T0) /
           K2;
 
       dN.col(iq).noalias() += F * (dS_dF0_src - dS_dF0_abs);
@@ -923,7 +924,7 @@ void Linefunctions::apply_linestrength_scaling_by_vibrational_nlte(
       }
     }
   }
-
+  
   N.noalias() = F * (S_src - S_abs);
   F *= S_abs;
 }
@@ -1412,7 +1413,6 @@ void Linefunctions::set_cross_section_for_single_line(
           nlte_distribution.nelem() <= line.NLTEUpperIndex())
         throw std::runtime_error(
             "Bad upper vibrational temperature record.  It contains fewer temperatures than LineRecord require");
-
       apply_linestrength_scaling_by_vibrational_nlte(
           F,
           dF,
@@ -2084,13 +2084,6 @@ void Linefunctions::set_cross_section_of_band(
   Index start, nelem;
   find_cutoff_ranges(start, nelem, f_full, fcut_low, fcut_upp);
   
-  // Relevant range
-  auto F = scratch.F.segment(start, nelem);
-  auto N = scratch.N.segment(start, nelem);
-  auto dF = scratch.dF.middleRows(start, nelem);
-  auto dN = scratch.dN.middleRows(start, nelem);
-  auto data = scratch.data.middleRows(start, nelem);
-  
   for (Index i=0; i<band.NumLines(); i++) {
     
     // Select the range of cutoff
@@ -2099,15 +2092,14 @@ void Linefunctions::set_cross_section_of_band(
       fcut_low = band.CutoffFreqMinus(i, fmean);
       find_cutoff_ranges(start, nelem, f_full, fcut_low, fcut_upp);
       fc[0] = fcut_upp;
-      
-      F = scratch.F.segment(start, nelem);
-      N = scratch.N.segment(start, nelem);
-      dF = scratch.dF.middleRows(start, nelem);
-      dN = scratch.dN.middleRows(start, nelem);
-      data = scratch.data.middleRows(start, nelem);
     }
     
-    // FIXME: Has to be reset because Eigen started complaining...
+    // Relevant range FIXME: By Band and no-cutoff does not need this...
+    auto F = scratch.F.segment(start, nelem);
+    auto N = scratch.N.segment(start, nelem);
+    auto dF = scratch.dF.middleRows(start, nelem);
+    auto dN = scratch.dN.middleRows(start, nelem);
+    auto data = scratch.data.middleRows(start, nelem);
     const auto f = f_full.middleRows(start, nelem);
     
     // Local line quantum information
@@ -2513,30 +2505,31 @@ void Linefunctions::set_cross_section_of_band(
                                             dF,
                                             N,
                                             dN,
-                                            band,
+                                            band.Line(i),
                                             T,
+                                            band.T0(),
                                             isot_ratio,
                                             QT,
                                             QT0,
                                             derivatives_data,
                                             derivatives_data_active,
                                             QI,
-                                            dQTdT,
-                                            i);
+                                            dQTdT);
           break;
         case Absorption::PopulationType::ByNLTEVibrationalTemperatures: {
-          auto nlte_data = nlte.get_vibtemp_params(QI);
+          auto nlte_data = nlte.get_vibtemp_params(QI, T);
           apply_linestrength_scaling_by_vibrational_nlte(
               F,
               dF,
               N,
               dN,
-              band,
+              band.Line(i),
               T,
+              band.T0(),
               nlte_data.T_upp,
               nlte_data.T_low,
               nlte_data.E_upp,
-              nlte_data.T_low,
+              nlte_data.E_low,
               isot_ratio,
               QT,
               QT0,
@@ -2574,10 +2567,10 @@ void Linefunctions::set_cross_section_of_band(
       }
       
       // Sum up the contributions
-      sum.F.segment(start, nelem) += F;
-      sum.N.segment(start, nelem) += N;
-      sum.dF.middleRows(start, nelem) += dF;
-      sum.dN.middleRows(start, nelem) += dN;
+      sum.F.segment(start, nelem).noalias() += F;
+      sum.N.segment(start, nelem).noalias() += N;
+      sum.dF.middleRows(start, nelem).noalias() += dF;
+      sum.dN.middleRows(start, nelem).noalias() += dN;
     }
   }
   

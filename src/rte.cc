@@ -2400,6 +2400,122 @@ void iyb_calc_body(bool& failed,
   }
 }
 
+void iyb_calc_body(bool& failed,
+                   String& fail_msg,
+                   ArrayOfArrayOfMatrix& iy_aux_array,
+                   Workspace& ws,
+                   Ppath& ppath,
+                   Vector& iyb,
+                   ArrayOfMatrix& diyb_dx,
+                   const Index& mblock_index,
+                   const Index& atmosphere_dim,
+                   const EnergyLevelMap& nlte_field,                   
+                   const Index& cloudbox_on,
+                   const Index& stokes_dim,
+                   ConstMatrixView sensor_pos,
+                   ConstMatrixView sensor_los,
+                   ConstMatrixView transmitter_pos,
+                   ConstMatrixView mblock_dlos_grid,
+                   const String& iy_unit,
+                   const Agenda& iy_main_agenda,
+                   const Index& j_analytical_do,
+                   const ArrayOfRetrievalQuantity& jacobian_quantities,
+                   const ArrayOfArrayOfIndex& jacobian_indices,
+                   ConstVectorView f_grid,
+                   const ArrayOfString& iy_aux_vars,
+                   const Index& ilos,
+                   const Index& nf) {
+  // The try block here is necessary to correctly handle
+  // exceptions inside the parallel region.
+  try {
+    //--- LOS of interest
+    //
+    Vector los(sensor_los.ncols());
+    //
+    los = sensor_los(mblock_index, joker);
+    if (mblock_dlos_grid.ncols() == 1) {
+      los[0] += mblock_dlos_grid(ilos, 0);
+      adjust_los(los, atmosphere_dim);
+    } else {
+      add_za_aa(los[0],
+                los[1],
+                los[0],
+                los[1],
+                mblock_dlos_grid(ilos, 0),
+                mblock_dlos_grid(ilos, 1));
+    }
+
+    //--- rtp_pos 1 and 2
+    //
+    Vector rtp_pos, rtp_pos2(0);
+    //
+    rtp_pos = sensor_pos(mblock_index, joker);
+    if (transmitter_pos.nrows()) {
+      rtp_pos2 = transmitter_pos(mblock_index, joker);
+    }
+
+    // Calculate iy and associated variables
+    //
+    Matrix iy;
+    ArrayOfTensor3 diy_dx;
+    Tensor3 iy_transmission(0, 0, 0);
+    const Index iy_agenda_call1 = 1;
+    const Index iy_id =
+        (Index)1e6 * (mblock_index + 1) + (Index)1e3 * (ilos + 1);
+    //
+    iy_main_agenda2Execute(ws,
+                          iy,
+                          iy_aux_array[ilos],
+                          ppath,
+                          diy_dx,
+                          iy_agenda_call1,
+                          iy_transmission,
+                          iy_aux_vars,
+                          iy_id,
+                          iy_unit,
+                          cloudbox_on,
+                          j_analytical_do,
+                          f_grid,
+                          nlte_field,
+                          rtp_pos,
+                          los,
+                          rtp_pos2,
+                          iy_main_agenda);
+
+    // Start row in iyb etc. for present LOS
+    //
+    const Index row0 = ilos * nf * stokes_dim;
+
+    // Jacobian part
+    //
+    if (j_analytical_do) {
+      FOR_ANALYTICAL_JACOBIANS_DO2(
+          for (Index ip = 0;
+               ip < jacobian_indices[iq][1] - jacobian_indices[iq][0] + 1;
+               ip++) {
+            for (Index is = 0; is < stokes_dim; is++) {
+              diyb_dx[iq](Range(row0 + is, nf, stokes_dim), ip) =
+                  diy_dx[iq](ip, joker, is);
+            }
+          })
+    }
+
+    // iy : copy to iyb
+    for (Index is = 0; is < stokes_dim; is++) {
+      iyb[Range(row0 + is, nf, stokes_dim)] = iy(joker, is);
+    }
+
+  }  // End try
+
+  catch (const std::exception& e) {
+#pragma omp critical(iyb_calc_fail)
+    {
+      fail_msg = e.what();
+      failed = true;
+    }
+  }
+}
+
 void iyb_calc(Workspace& ws,
               Vector& iyb,
               ArrayOfVector& iyb_aux,
@@ -2408,6 +2524,208 @@ void iyb_calc(Workspace& ws,
               const Index& mblock_index,
               const Index& atmosphere_dim,
               ConstTensor4View nlte_field,
+              const Index& cloudbox_on,
+              const Index& stokes_dim,
+              ConstVectorView f_grid,
+              ConstMatrixView sensor_pos,
+              ConstMatrixView sensor_los,
+              ConstMatrixView transmitter_pos,
+              ConstMatrixView mblock_dlos_grid,
+              const String& iy_unit,
+              const Agenda& iy_main_agenda,
+              const Agenda& geo_pos_agenda,
+              const Index& j_analytical_do,
+              const ArrayOfRetrievalQuantity& jacobian_quantities,
+              const ArrayOfArrayOfIndex& jacobian_indices,
+              const ArrayOfString& iy_aux_vars,
+              const Verbosity& verbosity) {
+  CREATE_OUT3;
+
+  // Sizes
+  const Index nf = f_grid.nelem();
+  const Index nlos = mblock_dlos_grid.nrows();
+  const Index niyb = nf * nlos * stokes_dim;
+  // Set up size of containers for data of 1 measurement block.
+  // (can not be made below due to parallalisation)
+  iyb.resize(niyb);
+  //
+  if (j_analytical_do) {
+    diyb_dx.resize(jacobian_indices.nelem());
+    FOR_ANALYTICAL_JACOBIANS_DO2(diyb_dx[iq].resize(
+        niyb, jacobian_indices[iq][1] - jacobian_indices[iq][0] + 1);)
+  } else {
+    diyb_dx.resize(0);
+  }
+  // Assume that geo_pos_agenda returns empty geo_pos.
+  geo_pos_matrix.resize(nlos, 5);
+  geo_pos_matrix = NAN;
+
+  // For iy_aux we don't know the number of quantities, and we have to store
+  // all outout
+  ArrayOfArrayOfMatrix iy_aux_array(nlos);
+
+  // We have to make a local copy of the Workspace and the agendas because
+  // only non-reference types can be declared firstprivate in OpenMP
+  Workspace l_ws(ws);
+  Agenda l_iy_main_agenda(iy_main_agenda);
+  Agenda l_geo_pos_agenda(geo_pos_agenda);
+
+  String fail_msg;
+  bool failed = false;
+  if (nlos >= arts_omp_get_max_threads() || nlos * 10 >= nf) {
+    out3 << "  Parallelizing los loop (" << nlos << " iterations, " << nf
+         << " frequencies)\n";
+
+    // Start of actual calculations
+#pragma omp parallel for if (!arts_omp_in_parallel()) \
+    firstprivate(l_ws, l_iy_main_agenda, l_geo_pos_agenda)
+    for (Index ilos = 0; ilos < nlos; ilos++) {
+      // Skip remaining iterations if an error occurred
+      if (failed) continue;
+
+      Ppath ppath;
+      iyb_calc_body(failed,
+                    fail_msg,
+                    iy_aux_array,
+                    l_ws,
+                    ppath,
+                    iyb,
+                    diyb_dx,
+                    mblock_index,
+                    atmosphere_dim,
+                    nlte_field,
+                    cloudbox_on,
+                    stokes_dim,
+                    sensor_pos,
+                    sensor_los,
+                    transmitter_pos,
+                    mblock_dlos_grid,
+                    iy_unit,
+                    l_iy_main_agenda,
+                    j_analytical_do,
+                    jacobian_quantities,
+                    jacobian_indices,
+                    f_grid,
+                    iy_aux_vars,
+                    ilos,
+                    nf);
+
+      // Skip remaining iterations if an error occurred
+      if (failed) continue;
+
+      // Note that this code is found in two places inside the function
+      Vector geo_pos;
+      try {
+        geo_pos_agendaExecute(l_ws, geo_pos, ppath, l_geo_pos_agenda);
+        if (geo_pos.nelem()) {
+          if (geo_pos.nelem() != 5)
+            throw runtime_error(
+                "Wrong size of *geo_pos* obtained from *geo_pos_agenda*.\n"
+                "The length of *geo_pos* must be zero or five.");
+
+          geo_pos_matrix(ilos, joker) = geo_pos;
+        }
+      } catch (const std::exception& e) {
+#pragma omp critical(iyb_calc_fail)
+        {
+          fail_msg = e.what();
+          failed = true;
+        }
+      }
+    }
+  } else {
+    out3 << "  Not parallelizing los loop (" << nlos << " iterations, " << nf
+         << " frequencies)\n";
+
+    for (Index ilos = 0; ilos < nlos; ilos++) {
+      // Skip remaining iterations if an error occurred
+      if (failed) continue;
+
+      Ppath ppath;
+      iyb_calc_body(failed,
+                    fail_msg,
+                    iy_aux_array,
+                    l_ws,
+                    ppath,
+                    iyb,
+                    diyb_dx,
+                    mblock_index,
+                    atmosphere_dim,
+                    nlte_field,
+                    cloudbox_on,
+                    stokes_dim,
+                    sensor_pos,
+                    sensor_los,
+                    transmitter_pos,
+                    mblock_dlos_grid,
+                    iy_unit,
+                    l_iy_main_agenda,
+                    j_analytical_do,
+                    jacobian_quantities,
+                    jacobian_indices,
+                    f_grid,
+                    iy_aux_vars,
+                    ilos,
+                    nf);
+
+      // Skip remaining iterations if an error occurred
+      if (failed) continue;
+
+      // Note that this code is found in two places inside the function
+      Vector geo_pos;
+      try {
+        geo_pos_agendaExecute(l_ws, geo_pos, ppath, l_geo_pos_agenda);
+        if (geo_pos.nelem()) {
+          if (geo_pos.nelem() != 5)
+            throw runtime_error(
+                "Wrong size of *geo_pos* obtained from *geo_pos_agenda*.\n"
+                "The length of *geo_pos* must be zero or five.");
+
+          geo_pos_matrix(ilos, joker) = geo_pos;
+        }
+      } catch (const std::exception& e) {
+#pragma omp critical(iyb_calc_fail)
+        {
+          fail_msg = e.what();
+          failed = true;
+        }
+      }
+    }
+  }
+
+  if (failed)
+    throw runtime_error("Run-time error in function: iyb_calc\n" + fail_msg);
+
+  // Compile iyb_aux
+  //
+  const Index nq = iy_aux_array[0].nelem();
+  iyb_aux.resize(nq);
+  //
+  for (Index q = 0; q < nq; q++) {
+    iyb_aux[q].resize(niyb);
+    //
+    for (Index ilos = 0; ilos < nlos; ilos++) {
+      const Index row0 = ilos * nf * stokes_dim;
+      for (Index iv = 0; iv < nf; iv++) {
+        const Index row1 = row0 + iv * stokes_dim;
+        const Index i1 = min(iv, iy_aux_array[ilos][q].nrows() - 1);
+        for (Index is = 0; is < stokes_dim; is++) {
+          Index i2 = min(is, iy_aux_array[ilos][q].ncols() - 1);
+          iyb_aux[q][row1 + is] = iy_aux_array[ilos][q](i1, i2);
+        }
+      }
+    }
+  }
+}
+
+void iyb_calc(Workspace& ws,
+              Vector& iyb,
+              ArrayOfVector& iyb_aux,
+              ArrayOfMatrix& diyb_dx,
+              Matrix& geo_pos_matrix,
+              const Index& mblock_index,
+              const Index& atmosphere_dim,
+              const EnergyLevelMap& nlte_field,
               const Index& cloudbox_on,
               const Index& stokes_dim,
               ConstVectorView f_grid,
@@ -2957,6 +3275,148 @@ void yCalc_mblock_loop_body(bool& failed,
                             Matrix& jacobian,
                             const Index& atmosphere_dim,
                             ConstTensor4View nlte_field,
+                            const Index& cloudbox_on,
+                            const Index& stokes_dim,
+                            const Vector& f_grid,
+                            const Matrix& sensor_pos,
+                            const Matrix& sensor_los,
+                            const Matrix& transmitter_pos,
+                            const Matrix& mblock_dlos_grid,
+                            const Sparse& sensor_response,
+                            const Vector& sensor_response_f,
+                            const ArrayOfIndex& sensor_response_pol,
+                            const Matrix& sensor_response_dlos,
+                            const String& iy_unit,
+                            const Agenda& iy_main_agenda,
+                            const Agenda& geo_pos_agenda,
+                            const Agenda& jacobian_agenda,
+                            const Index& jacobian_do,
+                            const ArrayOfRetrievalQuantity& jacobian_quantities,
+                            const ArrayOfArrayOfIndex& jacobian_indices,
+                            const ArrayOfString& iy_aux_vars,
+                            const Verbosity& verbosity,
+                            const Index& mblock_index,
+                            const Index& n1y,
+                            const Index& j_analytical_do) {
+  try {
+    // Calculate monochromatic pencil beam data for 1 measurement block
+    //
+    Vector iyb, iyb_error, yb(n1y);
+    ArrayOfMatrix diyb_dx;
+    Matrix geo_pos_matrix;
+    //
+    iyb_calc(ws,
+             iyb,
+             iyb_aux_array[mblock_index],
+             diyb_dx,
+             geo_pos_matrix,
+             mblock_index,
+             atmosphere_dim,
+             nlte_field,
+             cloudbox_on,
+             stokes_dim,
+             f_grid,
+             sensor_pos,
+             sensor_los,
+             transmitter_pos,
+             mblock_dlos_grid,
+             iy_unit,
+             iy_main_agenda,
+             geo_pos_agenda,
+             j_analytical_do,
+             jacobian_quantities,
+             jacobian_indices,
+             iy_aux_vars,
+             verbosity);
+
+    // Apply sensor response matrix on iyb, and put into y
+    //
+    const Range rowind = get_rowindex_for_mblock(sensor_response, mblock_index);
+    const Index row0 = rowind.get_start();
+    //
+    mult(yb, sensor_response, iyb);
+    //
+    y[rowind] = yb;  // *yb* also used below, as input to jacobian_agenda
+
+    // Fill information variables. And search for NaNs in *y*.
+    //
+    for (Index i = 0; i < n1y; i++) {
+      const Index ii = row0 + i;
+      if (std::isnan(y[ii]))
+        throw runtime_error("One or several NaNs found in *y*.");
+      y_f[ii] = sensor_response_f[i];
+      y_pol[ii] = sensor_response_pol[i];
+      y_pos(ii, joker) = sensor_pos(mblock_index, joker);
+      y_los(ii, joker) = sensor_los(mblock_index, joker);
+      y_los(ii, 0) += sensor_response_dlos(i, 0);
+      if (sensor_response_dlos.ncols() > 1) {
+        y_los(ii, 1) += sensor_response_dlos(i, 1);
+      }
+    }
+
+    // Apply sensor response matrix on diyb_dx, and put into jacobian
+    // (that is, analytical jacobian part)
+    //
+    if (j_analytical_do) {
+      FOR_ANALYTICAL_JACOBIANS_DO2(
+          mult(jacobian(rowind,
+                        Range(jacobian_indices[iq][0],
+                              jacobian_indices[iq][1] -
+                                  jacobian_indices[iq][0] + 1)),
+               sensor_response,
+               diyb_dx[iq]);)
+    }
+
+    // Calculate remaining parts of *jacobian*
+    //
+    if (jacobian_do) {
+      jacobian_agendaExecute(
+          ws, jacobian, mblock_index, iyb, yb, jacobian_agenda);
+    }
+
+    // Handle geo-positioning
+    if (!std::isnan(geo_pos_matrix(0, 0)))  // No data are flagged as NaN
+    {
+      // We set geo_pos based on the max value in sensor_response
+      const Index nfs = f_grid.nelem() * stokes_dim;
+      for (Index i = 0; i < n1y; i++) {
+        Index jmax = -1;
+        Numeric rmax = -99e99;
+        for (Index j = 0; j < sensor_response.ncols(); j++) {
+          if (sensor_response(i, j) > rmax) {
+            rmax = sensor_response(i, j);
+            jmax = j;
+          }
+        }
+        const Index jhit = Index(floor(jmax / nfs));
+        y_geo(row0 + i, joker) = geo_pos_matrix(jhit, joker);
+      }
+    }
+  }
+
+  catch (const std::exception& e) {
+#pragma omp critical(yCalc_fail)
+    {
+      fail_msg = e.what();
+      failed = true;
+    }
+  }
+}
+
+
+void yCalc_mblock_loop_body(bool& failed,
+                            String& fail_msg,
+                            ArrayOfArrayOfVector& iyb_aux_array,
+                            Workspace& ws,
+                            Vector& y,
+                            Vector& y_f,
+                            ArrayOfIndex& y_pol,
+                            Matrix& y_pos,
+                            Matrix& y_los,
+                            Matrix& y_geo,
+                            Matrix& jacobian,
+                            const Index& atmosphere_dim,
+                            const EnergyLevelMap& nlte_field,              
                             const Index& cloudbox_on,
                             const Index& stokes_dim,
                             const Vector& f_grid,

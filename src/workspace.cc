@@ -2788,11 +2788,15 @@ void Workspace::define_wsv_data() {
 
   wsv_data.push_back(WsvRecord(
       NAME("nlte_level_identifiers"),
-      DESCRIPTION("An array of non-lte quantum identifiers for levels.\n"
-                  "\n"
-                  "Used to match *abs_lines_per_species* to NLTE\n"
-                  "temperatures/ratios.\n"),
+      DESCRIPTION("An array of non-lte quantum identifiers for levels matching\n"
+                  "*nlte_field_raw* and on request *nlte_vibrational_energies*.\n"),
       GROUP("ArrayOfQuantumIdentifier")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("nlte_vibrational_energies"),
+      DESCRIPTION("An list of vibrational energies matching\n"
+                  "*nlte_level_identifiers* and *nlte_field_raw* or being 0.\n"),
+      GROUP("Vector"))); 
 
   wsv_data.push_back(WsvRecord(
       NAME("collision_line_identifiers"),

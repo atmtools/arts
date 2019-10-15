@@ -705,6 +705,8 @@ public:
       if (mvalue.npages() not_eq 0 or mvalue.nrows() not_eq 0 or mvalue.ncols() not_eq 0)
         throw std::runtime_error("Bad dimensions for none type");
     }
+    
+    for (auto& e: mvib_energy) if (e < 0) throw std::runtime_error("Bad energies");
   }
   
   EnergyLevelMap() : mtype(EnergyLevelMapType::None_t), mlevels(0),
@@ -764,7 +766,7 @@ public:
    * @param[in] transition A line-by-line transition
    * @return Upper and lower level distributions and energies
    */
-  Output4 get_vibtemp_params(const QuantumIdentifier& transition) const;
+  Output4 get_vibtemp_params(const QuantumIdentifier& transition, const Numeric T) const;
 };
 
 std::ostream& operator<<(std::ostream& os, const EnergyLevelMap& elm);

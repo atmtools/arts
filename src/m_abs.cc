@@ -93,6 +93,29 @@ void AbsInputFromRteScalars(  // WS Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void AbsInputFromRteScalars2(  // WS Output:
+    Vector& abs_p,
+    Vector& abs_t,
+    Matrix& abs_vmrs,
+    // WS Input:
+    const Numeric& rtp_pressure,
+    const Numeric& rtp_temperature,
+    const Vector& rtp_vmr,
+    const Verbosity&) {
+  // Prepare abs_p:
+  abs_p.resize(1);
+  abs_p = rtp_pressure;
+
+  // Prepare abs_t:
+  abs_t.resize(1);
+  abs_t = rtp_temperature;
+
+  // Prepare abs_vmrs:
+  abs_vmrs.resize(rtp_vmr.nelem(), 1);
+  abs_vmrs = rtp_vmr;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesSetEmpty(  // WS Output:
     ArrayOfArrayOfLineRecord& abs_lines_per_species,
     // WS Input:
@@ -2884,7 +2907,7 @@ void propmat_clearskyAddOnTheFly(  // Workspace reference:
   // Make all species active:
   ArrayOfIndex abs_species_active(abs_species.nelem());
   for (Index i = 0; i < abs_species.nelem(); ++i) abs_species_active[i] = i;
-
+  
   // Call agenda to calculate absorption:
   abs_xsec_agendaExecute(ws,
                          abs_xsec_per_species,
@@ -2901,6 +2924,112 @@ void propmat_clearskyAddOnTheFly(  // Workspace reference:
                          abs_vmrs,
                          abs_xsec_agenda);
 
+  // Calculate absorption coefficients from cross sections:
+  abs_coefCalcFromXsec(abs_coef,
+                       src_coef,
+                       dabs_coef_dx,
+                       dsrc_coef_dx,
+                       abs_coef_per_species,
+                       src_coef_per_species,
+                       abs_xsec_per_species,
+                       src_xsec_per_species,
+                       dabs_xsec_per_species_dx,
+                       dsrc_xsec_per_species_dx,
+                       abs_species,
+                       jacobian_quantities,
+                       abs_vmrs,
+                       abs_p,
+                       abs_t,
+                       verbosity);
+
+  // Now add abs_coef_per_species to propmat_clearsky:
+  propmat_clearskyAddFromAbsCoefPerSpecies(propmat_clearsky,
+                                           dpropmat_clearsky_dx,
+                                           abs_coef_per_species,
+                                           dabs_coef_dx,
+                                           verbosity);
+
+  // Now turn nlte_source from absorption into a proper source function
+  if (not nlte_source.empty())
+    nlte_sourceFromTemperatureAndSrcCoefPerSpecies(nlte_source,
+                                                   dnlte_dx_source,
+                                                   nlte_dsource_dx,
+                                                   src_coef_per_species,
+                                                   dsrc_coef_dx,
+                                                   jacobian_quantities,
+                                                   f_grid,
+                                                   rtp_temperature,
+                                                   verbosity);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void propmat_clearskyAddOnTheFly2(  // Workspace reference:
+    Workspace& ws,
+    // WS Output:
+    ArrayOfPropagationMatrix& propmat_clearsky,
+    ArrayOfStokesVector& nlte_source,
+    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+    ArrayOfStokesVector& dnlte_dx_source,
+    ArrayOfStokesVector& nlte_dsource_dx,
+    // WS Input:
+    const Vector& f_grid,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    const Numeric& rtp_pressure,
+    const Numeric& rtp_temperature,
+    const EnergyLevelMap& rtp_nlte,
+    const Vector& rtp_vmr,
+    const Agenda& abs_xsec_agenda,
+    // Verbosity object:
+    const Verbosity& verbosity) {
+  CREATE_OUT3;
+
+  // Define communication variables for the actual absorption calculation:
+
+  // Output of AbsInputFromRteScalars:
+  Vector abs_p;
+  Vector abs_t;
+  Matrix abs_vmrs;
+  // Output of abs_h2oSet:
+  Vector abs_h2o;
+  // Output of abs_coefCalc:
+  Matrix abs_coef, src_coef;
+  ArrayOfMatrix abs_coef_per_species, src_coef_per_species, dabs_coef_dx,
+      dsrc_coef_dx;
+      
+  AbsInputFromRteScalars2(abs_p,
+                         abs_t,
+                         abs_vmrs,
+                         rtp_pressure,
+                         rtp_temperature,
+                         rtp_vmr,
+                         verbosity);
+
+  // Absorption cross sections per tag group.
+  ArrayOfMatrix abs_xsec_per_species;
+  ArrayOfMatrix src_xsec_per_species;
+  ArrayOfArrayOfMatrix dabs_xsec_per_species_dx, dsrc_xsec_per_species_dx;
+
+  // Make all species active:
+  ArrayOfIndex abs_species_active(abs_species.nelem());
+  for (Index i = 0; i < abs_species.nelem(); ++i) abs_species_active[i] = i;
+
+  // Call agenda to calculate absorption:
+  abs_xsec_agenda2Execute(ws,
+                         abs_xsec_per_species,
+                         src_xsec_per_species,
+                         dabs_xsec_per_species_dx,
+                         dsrc_xsec_per_species_dx,
+                         abs_species,
+                         jacobian_quantities,
+                         abs_species_active,
+                         f_grid,
+                         abs_p,
+                         abs_t,
+                         rtp_nlte,
+                         abs_vmrs,
+                         abs_xsec_agenda);
+  
   // Calculate absorption coefficients from cross sections:
   abs_coefCalcFromXsec(abs_coef,
                        src_coef,

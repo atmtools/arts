@@ -30,6 +30,13 @@ AgendaSet( iy_main_agenda__Emission ){
 }
 
 ###
+AgendaCreate( iy_main_agenda__Emission2 )
+AgendaSet( iy_main_agenda__Emission2 ){
+  ppathCalc
+  iyEmissionStandard2
+}
+
+###
 AgendaCreate( iy_main_agenda__Transmission )
 AgendaSet( iy_main_agenda__Transmission ){
   Ignore( iy_unit )
@@ -134,6 +141,15 @@ AgendaCreate( iy_surface_agenda__UseSurfaceRtprop )
 AgendaSet( iy_surface_agenda__UseSurfaceRtprop ){
   SurfaceDummy
   iySurfaceRtpropAgenda
+} 
+
+###
+# use surface_rtprop_agenda through WSM iySurfaceRtpropAgenda (standard)
+#
+AgendaCreate( iy_surface_agenda__UseSurfaceRtprop2 )
+AgendaSet( iy_surface_agenda__UseSurfaceRtprop2 ){
+  SurfaceDummy
+  iySurfaceRtpropAgenda2
 } 
 
 

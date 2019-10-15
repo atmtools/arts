@@ -2236,7 +2236,8 @@ void xsec_species3(Matrix& xsec,
   // Type of problem
   const bool do_nonlte = nt;
 
-  Linefunctions::InternalData scratch(nf, nj), sum(nf, nj);
+  Linefunctions::InternalData scratch(nf, nj);
+  Linefunctions::InternalData sum(nf, nj);
   
   // Test if the size of the problem is 0
   if (not np or not nf or not nl) return;
@@ -2274,7 +2275,7 @@ void xsec_species3(Matrix& xsec,
       QT,
       dQTdT,
       QT0,
-      true);
+      false);
     
     // absorption cross-section
     MapToEigen(xsec).col(ip).noalias() += sum.F.real();

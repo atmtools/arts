@@ -445,7 +445,7 @@ Output2 EnergyLevelMap::get_ratio_params(
   if (mtype not_eq EnergyLevelMapType::Numeric_t)
     throw std::runtime_error("Must have Numeric_t, input type is bad");
     
-  Output2 x{0, 0};
+  Output2 x{/*.r_low=*/0, /*.r_upp=*/0};
   
   bool found1=false;
   bool found2=false;
@@ -467,30 +467,32 @@ Output2 EnergyLevelMap::get_ratio_params(
 }
 
 Output4 EnergyLevelMap::get_vibtemp_params(
-  const QuantumIdentifier& transition) const
+  const QuantumIdentifier& transition,
+  const Numeric T) const
 {
   if (mtype not_eq EnergyLevelMapType::Numeric_t)
     throw std::runtime_error("Must have Numeric_t, input type is bad");
   
-  Output4 x{0, 0, 0, 0};
+  Output4 x{/*.E_low=*/0, /*.E_upp=*/0, /*.T_low=*/T, /*.T_upp=*/T};
   
   bool found1=false;
   bool found2=false;
   for (Index i=0; i<mlevels.nelem(); i++) {
-    if (mlevels[i].InLower(transition)) {
+    if (transition.LowerQuantumId().In(mlevels[i])) {
       found1 = true;
       x.T_low = mvalue(i, 0, 0, 0);
       x.E_low = mvib_energy[i];
     }
     
-    if (mlevels[i].InUpper(transition)) {
+    if (transition.UpperQuantumId().In(mlevels[i])) {
       found2 = true;
       x.T_upp = mvalue(i, 0, 0, 0);
       x.E_upp = mvib_energy[i];
     }
     
-    if (found1 and found2)
+    if (found1 and found2) {
       break;
+    }
   }
   return x;
 }
@@ -506,19 +508,10 @@ EnergyLevelMap::EnergyLevelMap(const Tensor4& data, const ArrayOfQuantumIdentifi
 
 EnergyLevelMap EnergyLevelMap::InterpToGridPos(Index atmosphere_dim, const ArrayOfGridPos& p, const ArrayOfGridPos& lat, const ArrayOfGridPos& lon) const
 {
-  if (mtype not_eq EnergyLevelMapType::None_t)
+  if (mtype == EnergyLevelMapType::None_t)
     return EnergyLevelMap();
   else if (mtype not_eq EnergyLevelMapType::Tensor3_t)
     throw std::runtime_error("Must have Tensor3_t, input type is bad");
-  
-  if (p.nelem() not_eq mvalue.npages() or lat.nelem() not_eq mvalue.nrows() or lon.nelem() not_eq mvalue.ncols()) {
-    std::ostringstream os;
-    os << "Bad dims for data (dim not_eq data.dim):\n\tPressure: "
-       << p.nelem()   << " not_eq " << mvalue.npages() << " or\n\tLatitude: "
-       << lat.nelem() << " not_eq " << mvalue.nrows()  << " or\n\tLongitude: "
-       << lon.nelem() << " not_eq " << mvalue.ncols()  << '\n';
-    throw std::runtime_error(os.str());
-  }
   
   EnergyLevelMap elm(EnergyLevelMapType::Vector_t, 1, 1, p.nelem(), *this);
   
@@ -535,8 +528,10 @@ EnergyLevelMap EnergyLevelMap::InterpToGridPos(Index atmosphere_dim, const Array
 
 EnergyLevelMap EnergyLevelMap::operator[](Index ip) const
 {
-  if (mtype not_eq EnergyLevelMapType::None_t)
+  if (mtype == EnergyLevelMapType::None_t)
     return EnergyLevelMap();
+  if (mtype == EnergyLevelMapType::Numeric_t)
+    return *this;
   else if (mtype not_eq EnergyLevelMapType::Vector_t)
     throw std::runtime_error("Must have Vector_t, input type is bad");
   

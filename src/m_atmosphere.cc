@@ -2482,6 +2482,11 @@ void AtmFieldsCalc2(  //WS Output:
   // Atmosphere
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
   chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
+  
+  // NLTE basics
+  nlte_field.Type() = nlte_ids.nelem() ? EnergyLevelMapType::Tensor3_t : EnergyLevelMapType::None_t;
+  nlte_field.Levels() = nlte_ids;
+  nlte_field.Energies() = nlte_energies;
 
   //==========================================================================
   if (atmosphere_dim == 1) {
@@ -2529,10 +2534,9 @@ void AtmFieldsCalc2(  //WS Output:
           temp_agfield3, p_grid, nlte_field_raw, interp_order, 0, verbosity);
       FieldFromGriddedField(
         nlte_field.Data(), p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
-      nlte_field.Type() = EnergyLevelMapType::Tensor3_t;
-      nlte_field.Levels() = nlte_ids;
-      nlte_field.Energies() = nlte_energies;
     }
+    else
+      nlte_field.Data().resize(0, 0, 0, 0);
 
   }
 
@@ -2549,15 +2553,11 @@ void AtmFieldsCalc2(  //WS Output:
     z_field.resize(p_grid.nelem(), lat_grid.nelem(), 1);
     vmr_field.resize(
         vmr_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(), 1);
-    if (nlte_field_raw.nelem()) {
+    if (nlte_field_raw.nelem())
       nlte_field.Data().resize(
         nlte_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(), 1);
-      nlte_field.Type() = EnergyLevelMapType::Tensor3_t;
-      nlte_field.Levels() = nlte_ids;
-      nlte_field.Energies() = nlte_energies;
-    }
     else
-      nlte_field = EnergyLevelMap();
+      nlte_field.Data().resize(0, 0, 0, 0);
 
     // Gridpositions:
     ArrayOfGridPosPoly gp_p(p_grid.nelem());
@@ -2667,7 +2667,7 @@ void AtmFieldsCalc2(  //WS Output:
              gp_lat);
     }
 
-    // Interpolat Non-LTE
+    // Interpolate Non-LTE
     for (Index qi_i = 0; qi_i < nlte_field_raw.nelem(); qi_i++) {
       ostringstream os;
 
@@ -2715,9 +2715,6 @@ void AtmFieldsCalc2(  //WS Output:
              nlte_field_raw[qi_i].data(joker, joker, 0),
              gp_p,
              gp_lat);
-      nlte_field.Type() = EnergyLevelMapType::Tensor3_t;
-      nlte_field.Levels() = nlte_ids;
-      nlte_field.Energies() = nlte_energies;
     }
   }
 
@@ -3905,6 +3902,7 @@ void AtmRawRead(  //WS Output:
     ArrayOfGriddedField3& vmr_field_raw,
     ArrayOfGriddedField3& nlte_field_raw,
     ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
+    Vector& nlte_vibrational_energies,
     //WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     //Keyword:
@@ -3956,6 +3954,7 @@ void AtmRawRead(  //WS Output:
   // NLTE is ignored by doing this
   nlte_field_raw.resize(0);
   nlte_quantum_identifiers.resize(0);
+  nlte_vibrational_energies.resize(0);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -4031,10 +4030,12 @@ void AtmWithNLTERawRead(  //WS Output:
     ArrayOfGriddedField3& vmr_field_raw,
     ArrayOfGriddedField3& nlte_field_raw,
     ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
+    Vector& nlte_vibrational_energies,
     //WS Input:
     const ArrayOfArrayOfSpeciesTag& abs_species,
     //Keyword:
     const String& basename,
+    const Index& expect_vibrational_energies,
     const Verbosity& verbosity) {
   CREATE_OUT3;
 
@@ -4079,19 +4080,32 @@ void AtmWithNLTERawRead(  //WS Output:
          << " profile read from file: " << file_name << "\n";
   }
 
-  // Read each nlte temperature field:
+  // Read each nlte field:
   file_name = tmp_basename + "nlte.xml";
   xml_read_from_file(file_name, nlte_field_raw, verbosity);
 
-  out3 << "NLTE temperature fieldarray read from file: " << file_name << "\n";
+  out3 << "NLTE field array read from file: " << file_name << "\n";
 
   // Read each nlte identifier field:
   file_name = tmp_basename + "qi.xml";
   xml_read_from_file(file_name, nlte_quantum_identifiers, verbosity);
 
   out3 << "NLTE identifier array read from file: " << file_name << "\n";
+  
+  if (expect_vibrational_energies) {
+    // Read each energy level field:
+    file_name = tmp_basename + "ev.xml";
+    xml_read_from_file(file_name, nlte_vibrational_energies, verbosity);
+    
+    out3 << "NLTE energy levels array read from file: " << file_name << "\n";
+  }
+  else {
+    nlte_vibrational_energies.resize(0);
+  }
 
-  if (nlte_field_raw.nelem() != nlte_quantum_identifiers.nelem()) {
+  if (nlte_field_raw.nelem() != nlte_quantum_identifiers.nelem() or
+     (nlte_field_raw.nelem() != nlte_vibrational_energies.nelem() and
+      0 != nlte_vibrational_energies.nelem())) {
     ostringstream os;
     os << "The quantum identifers and the NLTE temperature fields\n"
        << "are of different lengths.  This should not be the case.\n"
