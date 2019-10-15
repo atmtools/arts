@@ -82,6 +82,13 @@ you push your branch to your own fork again:
 $ git push -f origin BRANCH_NAME
 ```
 
+If you are using different computers and pushed changes to your fork on one, you
+can update your local branch on the other computer with:
+
+```
+$ git pull --rebase origin
+```
+
 ## Pull request
 After pushing your changes to your fork navigate to the GitHub page of your
 fork and [create a Pull request][github-pr]. Add the needed information to the
