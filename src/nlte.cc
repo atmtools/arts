@@ -219,6 +219,27 @@ void setCji(VectorView Cji,
              abs_lines[i].G_upper() / abs_lines[i].G_lower();
 }
 
+void setCji(Vector& Cji,
+            const Vector& Cij,
+            const ArrayOfArrayOfAbsorptionLines& abs_lines,
+            const Numeric& T,
+            const Index n) {
+  extern const Numeric PLANCK_CONST, BOLTZMAN_CONST;
+  const static Numeric c0 = -PLANCK_CONST / BOLTZMAN_CONST;
+  const Numeric constant = c0 / T;
+
+  // Base equation for single state:  C12 = C21 exp(-hf / kT) g2 / g1
+  Index i=0;
+  for (auto& lines: abs_lines) {
+    for (auto& band: lines) {
+      for (Index k=0; k<band.NumLines(); k++) {
+        Cji[i] = Cij[i] * exp(constant * band.F0(i)) * band.g_upp(i) / band.g_low(i);
+        i++;
+      }
+    }
+  }
+}
+
 void nlte_collision_factorsCalcFromCoeffs(
     Vector& Cij,
     Vector& Cji,
@@ -277,6 +298,71 @@ void nlte_collision_factorsCalcFromCoeffs(
   setCji(Cji, Cij, abs_lines, T, Cij.nelem());
 }
 
+void nlte_collision_factorsCalcFromCoeffs(
+    Vector& Cij,
+    Vector& Cji,
+    const ArrayOfArrayOfAbsorptionLines& abs_lines,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfArrayOfGriddedField1& collision_coefficients,
+    const ArrayOfQuantumIdentifier& collision_line_identifiers,
+    const SpeciesAuxData& isotopologue_ratios,
+    const ConstVectorView vmr,
+    const Numeric& T,
+    const Numeric& P) {
+  extern const Numeric BOLTZMAN_CONST;
+
+  // size of problem
+  const Index nspec = abs_species.nelem();
+  const Index ntrans = collision_line_identifiers.nelem();
+  const Index nlines = nelem(abs_lines);
+
+  // reset Cij for summing later
+  Cij = 0;
+
+  // For all species
+  for (Index i = 0; i < nspec; i++) {
+    // Compute the number density noting that free_electrons will behave differently
+    const Numeric numden =
+        vmr[i] * (abs_species[i][0].SpeciesNameMain() == "free_electrons"
+                      ? 1.0
+                      : P / (BOLTZMAN_CONST * T));
+        
+    Index iline=0;
+    for (auto& lines: abs_lines) {
+      for (auto& band: lines) {
+        const Numeric isot_ratio =
+            isotopologue_ratios.getParam(band.Species(), band.Isotopologue())[0]
+                .data[0];
+        for (Index k=0; k<band.NumLines(); k++) {
+
+          Index found=0;
+          for (Index j = 0; j < ntrans; j++) {
+            const auto& transition = collision_line_identifiers[j];
+            const auto& gf1 = collision_coefficients[i][j];
+
+            if (Absorption::id_in_line(band, transition, k)) {
+              // Standard linear ARTS interpolation
+              GridPosPoly gp;
+              gridpos_poly(gp, gf1.get_numeric_grid(0), T, 1, 0.5);
+              Vector itw(gp.idx.nelem());
+              interpweights(itw, gp);
+
+              Cij[iline] += interp(itw, gf1.data, gp) * numden * isot_ratio;
+              found++;
+            }
+            iline++;
+          }
+          if (found > 1)
+            throw std::runtime_error("Bad collisions data.  Multiple hits.");
+        }
+      }
+    }
+  }
+
+  // Compute the reverse
+  setCji(Cji, Cij, abs_lines, T, Cij.nelem());
+}
+
 void nlte_positions_in_statistical_equilibrium_matrix(
     ArrayOfIndex& upper,
     ArrayOfIndex& lower,
@@ -298,6 +384,39 @@ void nlte_positions_in_statistical_equilibrium_matrix(
   }
 
   Index i = 0;
+  for (Index il = 0; il < nl; il++)
+    if (upper[il] < 0 or lower[il] < 0) i++;
+  if (i > 1)
+    throw std::runtime_error(
+        "Must set upper and lower levels completely for all but one level");
+}
+
+void nlte_positions_in_statistical_equilibrium_matrix(
+    ArrayOfIndex& upper,
+    ArrayOfIndex& lower,
+    const ArrayOfArrayOfAbsorptionLines& abs_lines,
+    const EnergyLevelMap& nlte_field) {
+  const Index nl = nelem(abs_lines), nq = nlte_field.Levels().nelem();
+
+  upper = ArrayOfIndex(nl, -1);
+  lower = ArrayOfIndex(nl, -1);
+
+  Index i=0;
+  for (auto& lines: abs_lines) {
+    for (const AbsorptionLines& band: lines) {
+      for (Index k=0; k<band.NumLines(); k++) {
+        for (Index iq = 0; iq < nq; iq++) {
+          if (Absorption::id_in_line_lower(band, nlte_field.Levels()[iq], i))
+            lower[i] = iq;
+          if (Absorption::id_in_line_upper(band, nlte_field.Levels()[iq], i))
+            upper[i] = iq;
+        }
+        i++;
+      }
+    }
+  }
+
+  i = 0;
   for (Index il = 0; il < nl; il++)
     if (upper[il] < 0 or lower[il] < 0) i++;
   if (i > 1)

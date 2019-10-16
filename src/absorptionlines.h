@@ -1353,6 +1353,15 @@ bool id_in_line_upper(const Lines& band, const QuantumIdentifier& id, size_t lin
  * @param[in] line_index The local line
  */
 bool id_in_line_lower(const Lines& band, const QuantumIdentifier& id, size_t line_index);
+
+/** Number of lines */
+inline Index nelem(const Lines& l) {return l.NumLines();}
+
+/** Number of lines in list */
+inline Index nelem(const Array<Lines>& l) {Index n=0; for (auto& x:l) n+=nelem(x); return n;}
+
+/** Number of lines in lists */
+inline Index nelem(const Array<Array<Lines>>& l) {Index n=0; for (auto& x:l) n+=nelem(x); return n;}
 };  // Absorption
 
 typedef Absorption::Lines AbsorptionLines;
