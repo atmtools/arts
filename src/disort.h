@@ -140,6 +140,8 @@ void get_disortsurf_props(  // Output
  * @param[in]     nstreams Number of quadrature angles (both hemispheres).
  * @param[in]     Npfct Number of angular grid points to calculate bulk phase
  *                function
+ * @param[in]     pseudo_spherical Flag to activate DISORT's pseudo-spherical
+ *                option
  * @param[in]     quiet Silence warnings
  * @param[in]     verbosity Verbosity setting
  *
@@ -164,6 +166,7 @@ void run_cdisort(Workspace& ws,
                  ConstVectorView scat_za_grid,
                  const Index& nstreams,
                  const Index& Npfct,
+                 const Index& pseudo_spherical,
                  const Index& quiet,
                  const Verbosity& verbosity);
 

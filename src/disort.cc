@@ -64,12 +64,7 @@ void check_disort_input(  // Input
     const Index& nstreams,
     const String& pfct_method,
     const Index& pnd_ncols) {
-  // Don't do anything if there's no cloudbox defined.
-  //if (!cloudbox_on) return;
-  // Seems to loopholy to just skip the scattering, so rather throw an error
-  // (assuming if RT4 is called than it's expected that a scattering calc is
-  // performed. semi-quietly skipping can easily be missed and lead to wrong
-  // conclusions.).
+
   if (!cloudbox_on) {
     throw runtime_error(
         "Cloudbox is off, no scattering calculations to be"
@@ -726,6 +721,7 @@ void run_cdisort(Workspace& ws,
                  ConstVectorView scat_za_grid,
                  const Index& nstreams,
                  const Index& Npfct,
+                 const Index& pseudo_spherical,
                  const Index& quiet,
                  const Verbosity& verbosity) {
   disort_state ds;
@@ -747,7 +743,7 @@ void run_cdisort(Workspace& ws,
 
   ds.flag.usrtau = FALSE;
   ds.flag.usrang = TRUE;
-  ds.flag.spher = FALSE;
+  ds.flag.spher = pseudo_spherical ? TRUE : FALSE;
   ds.flag.general_source = FALSE;
   ds.flag.output_uum = FALSE;
 
@@ -767,7 +763,7 @@ void run_cdisort(Workspace& ws,
   ds.nstr = static_cast<int>(nstreams);
   ds.nphase = ds.nstr;
   ds.nmom = ds.nstr;
-  ds.ntau = ds.nlyr + 1;
+  //ds.ntau = ds.nlyr + 1;   // With ds.flag.usrtau = FALSE; set by cdisort
   ds.numu = static_cast<int>(scat_za_grid.nelem());
   ds.nphi = 1;
   Index Nlegendre = nstreams + 1;
