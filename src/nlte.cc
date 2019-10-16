@@ -102,6 +102,23 @@ Vector createAij(const ArrayOfLineRecord& abs_lines) {
   return Aij;
 }
 
+Vector createAij(const ArrayOfArrayOfAbsorptionLines& abs_lines) {
+  // Size of problem
+  const Index n = nelem(abs_lines);
+  Vector Aij(n);
+  
+  Index i=0;
+  for (auto& lines: abs_lines) {
+    for (auto& band: lines) {
+      for (Index k=0; k<band.NumLines(); k++) {
+        Aij[i] = band.A(k); 
+        i++;
+      }
+    }
+  }
+  return Aij;
+}
+
 Vector createBij(const ArrayOfLineRecord& abs_lines) {
   extern const Numeric PLANCK_CONST, SPEED_OF_LIGHT;
   const static Numeric c0 =
@@ -118,6 +135,28 @@ Vector createBij(const ArrayOfLineRecord& abs_lines) {
   return Bij;
 }
 
+Vector createBij(const ArrayOfArrayOfAbsorptionLines& abs_lines) {
+  extern const Numeric PLANCK_CONST, SPEED_OF_LIGHT;
+  const static Numeric c0 =
+  2.0 * PLANCK_CONST / SPEED_OF_LIGHT / SPEED_OF_LIGHT;
+  
+  // Size of problem
+  const Index n = nelem(abs_lines);
+  Vector Bij(n);
+  
+  // Base equation for single state:  B21 = A21 c^2 / 2 h f^3  (nb. SI, don't use this without checking your need)
+  Index i=0;
+  for (auto& lines: abs_lines) {
+    for (auto& band: lines) {
+      for (Index k=0; k<band.NumLines(); k++) {
+        Bij[i] = band.A(k) / (c0 * band.F0(k) * band.F0(k) * band.F0(k));
+        i++;
+      }
+    }
+  }
+  return Bij;
+}
+
 Vector createBji(ConstVectorView Bij, const ArrayOfLineRecord& abs_lines) {
   // Size of problem
   const Index n = Bij.nelem();
@@ -129,10 +168,37 @@ Vector createBji(ConstVectorView Bij, const ArrayOfLineRecord& abs_lines) {
   return Bji;
 }
 
+Vector createBji(const Vector& Bij, const ArrayOfArrayOfAbsorptionLines& abs_lines) {
+  // Size of problem
+  const Index n = Bij.nelem();
+  Vector Bji(n);
+
+  // Base equation for single state:  B12 = B21 g2 / g1
+  Index i=0;
+  for (auto& lines: abs_lines) {
+    for (auto& band: lines) {
+      for (Index k=0; k<band.NumLines();k++) {
+        Bji[i] = Bij[i] * band.g_upp(k) / band.g_low(k);
+        i++;
+      }
+    }
+  }
+  return Bji;
+}
+
 Vector createCji(ConstVectorView Cij,
                  const ArrayOfLineRecord& abs_lines,
                  const Numeric& T) {
   const Index n = abs_lines.nelem();
+  Vector Cji(n);
+  setCji(Cji, Cij, abs_lines, T, n);
+  return Cji;
+}
+
+Vector createCji(const Vector& Cij,
+                 const ArrayOfArrayOfAbsorptionLines& abs_lines,
+                 const Numeric& T) {
+  const Index n = nelem(abs_lines);
   Vector Cji(n);
   setCji(Cji, Cij, abs_lines, T, n);
   return Cji;
