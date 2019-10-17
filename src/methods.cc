@@ -1051,6 +1051,34 @@ void define_md_data_raw() {
                GIN_DESC("Value of limit")));
 
   md_data_raw.push_back(
+      MdRecord(NAME("abs_linesSetT0"),
+               DESCRIPTION("Sets reference temperature for all lines.\n"),
+               AUTHORS("Richard Larsson"),
+               OUT("abs_lines2"),
+               GOUT(),
+               GOUT_TYPE(),
+               GOUT_DESC(),
+               IN("abs_lines2"),
+               GIN("value"),
+               GIN_TYPE("Numeric"),
+               GIN_DEFAULT(NODEF),
+               GIN_DESC("Value of T0")));
+
+  md_data_raw.push_back(
+      MdRecord(NAME("abs_lines_per_speciesSetT0"),
+               DESCRIPTION("See *abs_linesSetT0*\n"),
+               AUTHORS("Richard Larsson"),
+               OUT("abs_lines_per_species2"),
+               GOUT(),
+               GOUT_TYPE(),
+               GOUT_DESC(),
+               IN("abs_lines_per_species2"),
+               GIN("value"),
+               GIN_TYPE("Numeric"),
+               GIN_DEFAULT(NODEF),
+               GIN_DESC("Value of T0")));
+
+  md_data_raw.push_back(
       MdRecord(NAME("abs_linesSetNormalizationForAll"),
                DESCRIPTION("Sets normalization type for all lines.\n"
                            "\n"
@@ -1202,6 +1230,98 @@ void define_md_data_raw() {
                "Flag for loose match (0 means only complete matches)")));
 
   md_data_raw.push_back(MdRecord(
+      NAME("abs_linesChangeBaseParameterForMatchingLines2"),
+      DESCRIPTION(
+          "Change parameter of all lines in *abs_lines* that match with *QuantumIdentifier*.\n"
+          "Only works for these parameters:\n"
+          "parameter_name = \"Central Frequency\"\n"
+          "parameter_name = \"Line Strength\"\n"
+          "parameter_name = \"Lower State Energy\"\n"
+          "parameter_name = \"Einstein\"\n"
+          "parameter_name = \"Lower Statistical Weight\"\n"
+          "parameter_name = \"Upper Statistical Weight\"\n"
+          "\n"
+          "Note that loose_matching:=0 means only identical quantum identifiers are accepted,\n"
+          "otherwise the numbers in QI must just be contained in the line identifier\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines2"),
+      GIN("QI", "parameter_name", "change", "relative", "loose_matching"),
+      GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "0", "0"),
+      GIN_DESC("Information to match the line.",
+               "Name of parameter to be replaced",
+               "Value with which to change matching line{'s,s'}",
+               "Flag for relative change (0 is absolute change)",
+               "Flag for loose match (0 means only complete matches)")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_lines_per_speciesChangeBaseParameterForMatchingLines"),
+      DESCRIPTION("See *abs_linesChangeBaseParameterForMatchingLines*\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species2"),
+      GIN("QI", "parameter_name", "change", "relative", "loose_matching"),
+      GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "0", "0"),
+      GIN_DESC("Information to match the line.",
+               "Name of parameter to be replaced",
+               "Value with which to change matching line{'s,s'}",
+               "Flag for relative change (0 is absolute change)",
+               "Flag for loose match (0 means only complete matches)")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_linesSetBaseParameterForMatchingLines2"),
+      DESCRIPTION(
+          "Set parameter of all lines in *abs_lines* that match with *QuantumIdentifier*.\n"
+          "Only works for these parameters:\n"
+          "parameter_name = \"Central Frequency\"\n"
+          "parameter_name = \"Line Strength\"\n"
+          "parameter_name = \"Lower State Energy\"\n"
+          "parameter_name = \"Einstein\"\n"
+          "parameter_name = \"Lower Statistical Weight\"\n"
+          "parameter_name = \"Upper Statistical Weight\"\n"
+          "\n"
+          "Note that loose_matching:=0 means only identical quantum identifiers are accepted,\n"
+          "otherwise the numbers in QI must just be contained in the line identifier\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines2"),
+      GIN("QI", "parameter_name", "change", "loose_matching"),
+      GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "0"),
+      GIN_DESC("Information to match the line.",
+               "Name of parameter to be replaced",
+               "Value with which to change matching line{'s,s'}",
+               "Flag for loose match (0 means only complete matches)")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_lines_per_speciesSetBaseParameterForMatchingLines"),
+      DESCRIPTION("See *abs_linesSetBaseParameterForMatchingLines*\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species2"),
+      GIN("QI", "parameter_name", "change", "loose_matching"),
+      GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "0"),
+      GIN_DESC("Information to match the line.",
+               "Name of parameter to be replaced",
+               "Value with which to change matching line{'s,s'}",
+               "Flag for loose match (0 means only complete matches)")));
+
+  md_data_raw.push_back(MdRecord(
       NAME("abs_linesSetBaseParameterForMatchingLines"),
       DESCRIPTION(
           "Same as *abs_linesChangeBaseParameterForMatchingLines* but sets the parameter\n"
@@ -1279,6 +1399,158 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines"),
+      GIN("QI", "parameter", "coefficient", "species", "change", "relative"),
+      GIN_TYPE("QuantumIdentifier",
+               "String",
+               "String",
+               "String",
+               "Numeric",
+               "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF, "0"),
+      GIN_DESC("Information to match the line.",
+               "Name of parameter to be replaced",
+               "Coefficient of the parameter to be changed",
+               "Species of parameter to be changed",
+               "Change in the value found",
+               "Flag for relative change (0 is absolute change)")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_linesSetLineShapeModelParameterForMatchingLines2"),
+      DESCRIPTION("Sets line shape model data parameter in matching lines.\n"
+        "\n"
+        "The matching is done so that QI must be in the line identifier\n"
+        "\n"
+        "Acceptable parameter(s) are:\n"
+        "\t\"G0\"\n"
+        "\t\"D0\"\n"
+        "\t\"G2\"\n"
+        "\t\"D2\"\n"
+        "\t\"FVC\"\n"
+        "\t\"ETA\"\n"
+        "\t\"Y\"\n"
+        "\t\"G\"\n"
+        "\t\"DV\"\n"
+        "\n"
+        "Acceptable coefficient(s) are:\n"
+        "\t\"X0\"\n"
+        "\t\"X1\"\n"
+        "\t\"X2\"\n"
+        "\t\"X3\"\n"
+        "\n"
+        "Acceptable species are:\n"
+        "\t\"AIR\" (so long as it is the broadening species list)\n"
+        "\t\"SELF\" (so long as it is the broadening species list)\n"
+        "\tAny species in the line broadening species\n"
+        "\n"
+        "Throws an error if it cannot find any targets to change\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines2"),
+      GIN("QI", "parameter", "coefficient", "species", "change"),
+      GIN_TYPE("QuantumIdentifier",
+               "String",
+               "String",
+               "String",
+               "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF),
+      GIN_DESC("Information to match the line.",
+               "Name of parameter to be replaced",
+               "Coefficient of the parameter to be changed",
+               "Species of parameter to be changed",
+               "Sets the value found")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_lines_per_speciesSetLineShapeModelParameterForMatchingLines"),
+      DESCRIPTION("See *abs_linesSetLineShapeModelParameterForMatchingLines*\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species2"),
+      GIN("QI", "parameter", "coefficient", "species", "change"),
+      GIN_TYPE("QuantumIdentifier",
+               "String",
+               "String",
+               "String",
+               "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF),
+      GIN_DESC("Information to match the line.",
+               "Name of parameter to be replaced",
+               "Coefficient of the parameter to be changed",
+               "Species of parameter to be changed",
+               "Sets the value found")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_linesChangeLineShapeModelParameterForMatchingLines2"),
+      DESCRIPTION("Change line shape model data parameter in matching lines.\n"
+        "\n"
+        "The matching is done so that QI must be in the line identifier\n"
+        "\n"
+        "Acceptable parameter(s) are:\n"
+        "\t\"G0\"\n"
+        "\t\"D0\"\n"
+        "\t\"G2\"\n"
+        "\t\"D2\"\n"
+        "\t\"FVC\"\n"
+        "\t\"ETA\"\n"
+        "\t\"Y\"\n"
+        "\t\"G\"\n"
+        "\t\"DV\"\n"
+        "\n"
+        "Acceptable coefficient(s) are:\n"
+        "\t\"X0\"\n"
+        "\t\"X1\"\n"
+        "\t\"X2\"\n"
+        "\t\"X3\"\n"
+        "\n"
+        "Acceptable species are:\n"
+        "\t\"AIR\" (so long as it is the broadening species list)\n"
+        "\t\"SELF\" (so long as it is the broadening species list)\n"
+        "\tAny species in the line broadening species\n"
+        "\n"
+        "The line parameter will have its old value plus the change if\n"
+        "relative is false, else it will have its old value times\n"
+        "(1+change).\n"
+        "\n"
+        "Throws an error if it cannot find any targets to change\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines2"),
+      GIN("QI", "parameter", "coefficient", "species", "change", "relative"),
+      GIN_TYPE("QuantumIdentifier",
+               "String",
+               "String",
+               "String",
+               "Numeric",
+               "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF, "0"),
+      GIN_DESC("Information to match the line.",
+               "Name of parameter to be replaced",
+               "Coefficient of the parameter to be changed",
+               "Species of parameter to be changed",
+               "Change in the value found",
+               "Flag for relative change (0 is absolute change)")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_lines_per_speciesChangeLineShapeModelParameterForMatchingLines"),
+      DESCRIPTION("See *abs_linesChangeLineShapeModelParameterForMatchingLines*\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species2"),
       GIN("QI", "parameter", "coefficient", "species", "change", "relative"),
       GIN_TYPE("QuantumIdentifier",
                "String",

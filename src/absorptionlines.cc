@@ -2152,3 +2152,10 @@ bool Absorption::Lines::InLocal(const QuantumIdentifier& qid, size_t k) const no
     return false;
 }
 
+bool Absorption::line_is_id(const Absorption::Lines& band, const QuantumIdentifier& id, size_t line_index)
+{
+  if (line_in_id(band, id, line_index) and id_in_line(band, id, line_index))
+    return true;
+  else
+    return false;
+}

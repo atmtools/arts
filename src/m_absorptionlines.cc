@@ -519,3 +519,327 @@ void abs_lines_per_speciesSetLinemixingLimit(ArrayOfArrayOfAbsorptionLines& abs_
   for (auto& abs_lines: abs_lines_per_species)
     abs_linesSetLinemixingLimit(abs_lines, x, v);
 }
+
+void abs_linesSetT0(ArrayOfAbsorptionLines& abs_lines,
+                    const Numeric& x,
+                    const Verbosity&) 
+{
+  for (auto& lines: abs_lines)
+    lines.T0(x);
+}
+
+void abs_lines_per_speciesSetT0(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                const Numeric& x,
+                                const Verbosity& v) 
+{
+  for (auto& abs_lines: abs_lines_per_species)
+    abs_linesSetT0(abs_lines, x, v);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesChangeBaseParameterForMatchingLines2(ArrayOfAbsorptionLines& abs_lines,
+                                                  const QuantumIdentifier& QI,
+                                                  const String& parameter_name,
+                                                  const Numeric& change,
+                                                  const Index& relative,
+                                                  const Index& loose_matching,
+                                                  const Verbosity&)
+{
+  Index parameter_switch = -1;
+
+  if (parameter_name.nelem() == 0)
+    throw std::runtime_error("parameter_name is empty.\n");
+  else if (parameter_name == "Central Frequency" or
+           parameter_name == "Line Center")
+    parameter_switch = 0;
+  else if (parameter_name == "Line Strength")
+    parameter_switch = 1;
+  else if (parameter_name == "Lower State Energy")
+    parameter_switch = 4;
+  else if (parameter_name == "Einstein")
+    parameter_switch = 5;
+  else if (parameter_name == "Lower Statistical Weight")
+    parameter_switch = 6;
+  else if (parameter_name == "Upper Statistical Weight")
+    parameter_switch = 7;
+
+  for (auto& band: abs_lines) {
+    for (Index k=0; k<band.NumLines(); k++) {
+      if (loose_matching ? Absorption::id_in_line(band, QI, k)
+                         : Absorption::line_is_id(band, QI, k)) {
+        switch (parameter_switch) {
+          case 0:  // "Central Frequency":
+            if (relative == 0)
+              band.F0(k) += change;
+            else
+              band.F0(k) *= 1.0e0 + change;
+            break;
+          case 1:  // "Line Strength":
+            if (relative == 0)
+              band.I0(k) += change;
+            else
+              band.I0(k) *= 1.0e0 + change;
+            break;
+          case 4:  // "Lower State Energy":
+            if (relative == 0)
+              band.E0(k) += change;
+            else
+              band.E0(k) *= 1.0e0 + change;
+            break;
+          case 5:  // "Einstein":
+            if (relative == 0)
+              band.A(k) += change;
+            else
+              band.A(k) *= 1.0e0 + change;
+            break;
+          case 6:  // "Lower Statistical Weight":
+            if (relative == 0)
+              band.g_low(k) += change;
+            else
+              band.g_low(k) *= 1.0e0 + change;
+            break;
+          case 7:  // "Upper Statistical Weight":
+            if (relative == 0)
+              band.g_upp(k) += change;
+            else
+              band.g_upp(k) *= 1.0e0 + change;
+            break;
+          default: {
+            ostringstream os;
+            os << "Usupported paramter_name\n"
+              << parameter_name
+              << "\nSee method description for supported parameter names.\n";
+            throw std::runtime_error(os.str());
+            break;
+          }
+        }
+      }
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesChangeBaseParameterForMatchingLines(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                                              const QuantumIdentifier& QI,
+                                                              const String& parameter_name,
+                                                              const Numeric& change,
+                                                              const Index& relative,
+                                                              const Index& loose_matching,
+                                                              const Verbosity& verbosity)
+{
+  for (auto& lines: abs_lines_per_species)
+    abs_linesChangeBaseParameterForMatchingLines2(lines, QI, parameter_name, change, relative, loose_matching, verbosity);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesSetBaseParameterForMatchingLines2(ArrayOfAbsorptionLines& abs_lines,
+                                                const QuantumIdentifier& QI,
+                                                const String& parameter_name,
+                                                const Numeric& x,
+                                                const Index& loose_matching,
+                                                const Verbosity&)
+{
+  Index parameter_switch = -1;
+  
+  if (parameter_name.nelem() == 0)
+    throw std::runtime_error("parameter_name is empty.\n");
+  else if (parameter_name == "Central Frequency" or
+    parameter_name == "Line Center")
+    parameter_switch = 0;
+  else if (parameter_name == "Line Strength")
+    parameter_switch = 1;
+  else if (parameter_name == "Lower State Energy")
+    parameter_switch = 4;
+  else if (parameter_name == "Einstein")
+    parameter_switch = 5;
+  else if (parameter_name == "Lower Statistical Weight")
+    parameter_switch = 6;
+  else if (parameter_name == "Upper Statistical Weight")
+    parameter_switch = 7;
+  
+  for (auto& band: abs_lines) {
+    for (Index k=0; k<band.NumLines(); k++) {
+      if (loose_matching ? Absorption::id_in_line(band, QI, k)
+        : Absorption::line_is_id(band, QI, k)) {
+        switch (parameter_switch) {
+          case 0:  // "Central Frequency":
+            band.F0(k) = x;
+            break;
+          case 1:  // "Line Strength":
+            band.I0(k) = x;
+            break;
+          case 4:  // "Lower State Energy":
+            band.E0(k) = x;
+            break;
+          case 5:  // "Einstein":
+            band.A(k) = x;
+            break;
+          case 6:  // "Lower Statistical Weight":
+            band.g_low(k) = x;
+            break;
+          case 7:  // "Upper Statistical Weight":
+            band.g_upp(k) = x;
+            break;
+          default: {
+            ostringstream os;
+            os << "Usupported paramter_name\n"
+            << parameter_name
+            << "\nSee method description for supported parameter names.\n";
+            throw std::runtime_error(os.str());
+            break;
+          }
+        }
+        }
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesSetBaseParameterForMatchingLines(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                                           const QuantumIdentifier& QI,
+                                                           const String& parameter_name,
+                                                           const Numeric& change,
+                                                           const Index& loose_matching,
+                                                           const Verbosity& verbosity)
+{
+  for (auto& lines: abs_lines_per_species)
+    abs_linesSetBaseParameterForMatchingLines2(lines, QI, parameter_name, change, loose_matching, verbosity);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesChangeLineShapeModelParameterForMatchingLines2(
+    ArrayOfAbsorptionLines& abs_lines,
+    const QuantumIdentifier& QI,
+    const String& parameter,
+    const String& coefficient,
+    const String& species,
+    const Numeric& x,
+    const Index& relative,
+    const Verbosity&)
+{
+  // Set the spec index to negative 101 if species is self and negative 102 if species is bath and to the species otherwise
+  const Index spec = species == LineShape::self_broadening ? -101 :
+                     species == LineShape::bath_broadening ? -102 :
+                     SpeciesTag(species).Species();
+
+  const LineShape::Variable var = LineShape::string2variable(parameter);
+  
+  for (auto& band: abs_lines) {
+    for (Index k=0; k<band.NumLines(); k++) {
+      if (Absorption::id_in_line(band, QI, k)) {
+        if (spec == -101 and band.Self()) {
+          if (relative) {
+            SingleModelParameter(band.Line(k).LineShape().Data().front().Data()[Index(var)], coefficient) *= 1 + x;
+          } else {
+            SingleModelParameter(band.Line(k).LineShape().Data().front().Data()[Index(var)], coefficient) += x;
+          }
+        } else if (spec == -102 and band.Bath()) {
+          if (relative) {
+            SingleModelParameter(band.Line(k).LineShape().Data().back().Data()[Index(var)], coefficient) *= 1 + x;
+          } else {
+            SingleModelParameter(band.Line(k).LineShape().Data().back().Data()[Index(var)], coefficient) += x;
+          }
+        } else {
+          for (Index i=0; i<band.BroadeningSpecies().nelem(); i++) {
+            if (spec == band.BroadeningSpecies()[i].Species()) {
+              if (relative) {
+                SingleModelParameter(band.Line(k).LineShape().Data()[i].Data()[Index(var)], coefficient) *= 1 + x;
+              } else {
+                SingleModelParameter(band.Line(k).LineShape().Data()[i].Data()[Index(var)], coefficient) += x;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesChangeLineShapeModelParameterForMatchingLines(
+  ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+  const QuantumIdentifier& QI,
+  const String& parameter,
+  const String& coefficient,
+  const String& species,
+  const Numeric& x,
+  const Index& relative,
+  const Verbosity& verbosity)
+{
+  for (auto& lines: abs_lines_per_species)
+    abs_linesChangeLineShapeModelParameterForMatchingLines2(
+      lines, QI, parameter, coefficient, species, x, relative, verbosity);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesSetLineShapeModelParameterForMatchingLines2(
+    ArrayOfAbsorptionLines& abs_lines,
+    const QuantumIdentifier& QI,
+    const String& parameter,
+    const String& coefficient,
+    const String& species,
+    const Numeric& new_value,
+    const Verbosity&)
+{
+  // Set the spec index to negative 101 if species is self and negative 102 if species is bath and to the species otherwise
+  const Index spec = species == LineShape::self_broadening ? -101 :
+                     species == LineShape::bath_broadening ? -102 :
+                     SpeciesTag(species).Species();
+
+  const LineShape::Variable var = LineShape::string2variable(parameter);
+  
+  for (auto& band: abs_lines) {
+    for (Index k=0; k<band.NumLines(); k++) {
+      if (Absorption::id_in_line(band, QI, k)) {
+        if (spec == -101 and band.Self()) {
+          SingleModelParameter(band.Line(k).LineShape().Data().front().Data()[Index(var)], coefficient) = new_value;
+        } else if (spec == -102 and band.Bath()) {
+          SingleModelParameter(band.Line(k).LineShape().Data().back().Data()[Index(var)], coefficient) = new_value;
+        } else {
+          for (Index i=0; i<band.BroadeningSpecies().nelem(); i++) {
+            if (spec == band.BroadeningSpecies()[i].Species()) {
+              SingleModelParameter(band.Line(k).LineShape().Data()[i].Data()[Index(var)], coefficient) = new_value;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesSetLineShapeModelParameterForMatchingLines(
+  ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+  const QuantumIdentifier& QI,
+  const String& parameter,
+  const String& coefficient,
+  const String& species,
+  const Numeric& new_value,
+  const Verbosity& verbosity)
+{
+  for (auto& lines: abs_lines_per_species)
+    abs_linesSetLineShapeModelParameterForMatchingLines2(
+      lines, QI, parameter, coefficient, species, new_value, verbosity);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void nlteSetByQuantumIdentifiers2(
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const EnergyLevelMap& nlte_field,
+    const Verbosity&) {
+  nlte_field.ThrowIfNotOK();
+  
+  const Absorption::PopulationType poptyp = nlte_field.Energies().nelem() == 0 ? 
+        Absorption::PopulationType::ByNLTEPopulationDistribution :
+        Absorption::PopulationType::ByNLTEVibrationalTemperatures;
+
+  for (auto& id: nlte_field.Levels()) {
+    for (auto& spec_lines: abs_lines_per_species) {
+      for (auto& band: spec_lines) {
+        if (band.QuantumIdentity().UpperQuantumId().In(id) or
+            band.QuantumIdentity().LowerQuantumId().In(id))
+          band.Population(poptyp);
+      }
+    }
+  }
+}

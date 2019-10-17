@@ -895,6 +895,13 @@ public:
    */
   Numeric F0(size_t k) const noexcept {return mlines[k].F0();}
   
+  /** Central frequency
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @return Central frequency
+   */
+  Numeric& F0(size_t k) noexcept {return mlines[k].F0();}
+  
   /** Mean frequency
    * 
    * @return Mean frequency
@@ -913,12 +920,26 @@ public:
    */
   Numeric E0(size_t k) const noexcept {return mlines[k].E0();}
   
+  /** Lower level energy
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @return Lower level energy
+   */
+  Numeric& E0(size_t k) noexcept {return mlines[k].E0();}
+  
   /** Reference line strength
    * 
    * @param[in] k Line number (less than NumLines())
    * @return Reference line strength
    */
   Numeric I0(size_t k) const noexcept {return mlines[k].I0();}
+  
+  /** Reference line strength
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @return Reference line strength
+   */
+  Numeric& I0(size_t k) noexcept {return mlines[k].I0();}
   
   /** Einstein spontaneous emission
    * 
@@ -927,6 +948,13 @@ public:
    */
   Numeric A(size_t k) const noexcept {return mlines[k].A();}
   
+  /** Einstein spontaneous emission
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @return Einstein spontaneous emission
+   */
+  Numeric& A(size_t k) noexcept {return mlines[k].A();}
+  
   /** Lower level statistical weight
    * 
    * @param[in] k Line number (less than NumLines())
@@ -934,12 +962,26 @@ public:
    */
   Numeric g_low(size_t k) const noexcept {return mlines[k].g_low();}
   
+  /** Lower level statistical weight
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @return Lower level statistical weight
+   */
+  Numeric& g_low(size_t k) noexcept {return mlines[k].g_low();}
+  
   /** Upper level statistical weight
    * 
    * @param[in] k Line number (less than NumLines())
    * @return Upper level statistical weight
    */
   Numeric g_upp(size_t k) const noexcept {return mlines[k].g_upp();}
+  
+  /** Upper level statistical weight
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @return Upper level statistical weight
+   */
+  Numeric& g_upp(size_t k) noexcept {return mlines[k].g_upp();}
   
   /** Returns mirroring style */
   MirroringType Mirroring() const noexcept {return mmirroring;}
@@ -1077,6 +1119,11 @@ public:
   /** Returns reference temperature */
   Numeric T0() const noexcept {
     return mT0;
+  }
+  
+  /** Sets reference temperature */
+  void T0(Numeric x) noexcept {
+    mT0 = x;
   }
   
   /** Returns internal cutoff frequency value */
@@ -1243,6 +1290,14 @@ Lines createEmptyCopy(const Lines& al) noexcept;
  * @param[in] line_index The local line
  */
 bool line_in_id(const Lines& band, const QuantumIdentifier& id, size_t line_index);
+
+/** Checks if the external quantum identifier is equal to a line's identifier
+ * 
+ * @param[in] band The band of lines
+ * @param[in] id An identifier
+ * @param[in] line_index The local line
+ */
+bool line_is_id(const Lines& band, const QuantumIdentifier& id, size_t line_index);
 
 /** Checks if the external quantum identifier match a line's ID
  * 

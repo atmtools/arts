@@ -389,28 +389,6 @@ void nlteSetByQuantumIdentifiers(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void nlteSetByQuantumIdentifiers2(
-    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-    const EnergyLevelMap& nlte_field,
-    const Verbosity&) {
-  nlte_field.ThrowIfNotOK();
-  
-  const Absorption::PopulationType poptyp = nlte_field.Energies().nelem() == 0 ? 
-        Absorption::PopulationType::ByNLTEPopulationDistribution :
-        Absorption::PopulationType::ByNLTEVibrationalTemperatures;
-
-  for (auto& id: nlte_field.Levels()) {
-    for (auto& spec_lines: abs_lines_per_species) {
-      for (auto& band: spec_lines) {
-        if (band.QuantumIdentity().UpperQuantumId().In(id) or
-            band.QuantumIdentity().LowerQuantumId().In(id))
-          band.Population(poptyp);
-      }
-    }
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void f_gridFromabs_linesSet(Vector& f_grid,
                             const ArrayOfLineRecord& abs_lines,
                             const Numeric& half_width,
