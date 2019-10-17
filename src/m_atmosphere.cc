@@ -4873,3 +4873,193 @@ void nlte_fieldSetLteInternalPartitionFunction(
     }
   }
 }
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void nlte_fieldSetLteExternalPartitionFunction2(
+    Index& nlte_do,
+    EnergyLevelMap& nlte_field,
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
+    const SpeciesAuxData& partition_functions,
+    const Tensor3& t_field,
+    const Verbosity& verbosity) {
+  using Constant::h;
+
+  CREATE_OUT2;
+  const Index nn = nlte_quantum_identifiers.nelem(), np = t_field.npages(),
+              nlat = t_field.nrows(), nlon = t_field.ncols();
+  if (nn == 0) return;
+
+  Tensor4 nlte_tensor4(nn, np, nlat, nlon);
+  nlte_do = 1;
+  ArrayOfIndex checked(nn, 0);
+
+  for (Index in = 0; in < nn; in++) {
+    const QuantumIdentifier& qi = nlte_quantum_identifiers[in];
+    Tensor3View lte = nlte_tensor4(in, joker, joker, joker);
+
+    for (auto& abs_lines : abs_lines_per_species) {
+      for (auto& band : abs_lines) {
+        for (Index k=0; k<band.NumLines(); k++) {
+          if (Absorption::id_in_line_lower(band, qi, k)) {
+            band.Population(Absorption::PopulationType::ByNLTEPopulationDistribution);
+            
+            bool compute_level = false;
+            
+            if (not checked[in]) {
+              checked[in] = 1;
+              compute_level = true;
+              
+              if (compute_level) {
+                for (Index ip = 0; ip < np; ip++) {
+                  for (Index ilat = 0; ilat < nlat; ilat++) {
+                    for (Index ilon = 0; ilon < nlon; ilon++) {
+                      lte(ip, ilat, ilon) =
+                      boltzman_factor(t_field(ip, ilat, ilon), band.E0(k)) *
+                      band.g_low(k) / single_partition_function(
+                        t_field(ip, ilat, ilon), partition_functions.getParamType(band.Species(),
+                                                                                  band.Isotopologue()),
+                                                 partition_functions.getParam(band.Species(),
+                                                                              band.Isotopologue()));
+                    }
+                  }
+                }
+              }
+            }
+          }
+          
+          if (Absorption::id_in_line_upper(band, qi, k)) {
+            band.Population(Absorption::PopulationType::ByNLTEPopulationDistribution);
+            
+            bool compute_level = false;
+            
+            if (not checked[in]) {
+              checked[in] = 1;
+              compute_level = true;
+              
+              if (compute_level) {
+                for (Index ip = 0; ip < np; ip++) {
+                  for (Index ilat = 0; ilat < nlat; ilat++) {
+                    for (Index ilon = 0; ilon < nlon; ilon++) {
+                      lte(ip, ilat, ilon) =
+                      boltzman_factor(t_field(ip, ilat, ilon), band.E0(k) + h*band.F0(k)) *
+                      band.g_low(k) / single_partition_function(
+                        t_field(ip, ilat, ilon), partition_functions.getParamType(band.Species(),
+                                                                                  band.Isotopologue()),
+                                                 partition_functions.getParam(band.Species(),
+                                                                              band.Isotopologue()));
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  for (Index in = 0; in < nn; in++) {
+    if (not checked[in]) {
+      out2 << "Did not find match among lines for: "
+           << nlte_quantum_identifiers[in] << "\n";
+    }
+  }
+  
+  nlte_field = EnergyLevelMap(nlte_tensor4, nlte_quantum_identifiers);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void nlte_fieldSetLteInternalPartitionFunction2(
+    Index& nlte_do,
+    EnergyLevelMap& nlte_field,
+    ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
+    const Tensor3& t_field,
+    const Verbosity& verbosity) {
+  using Constant::h;
+
+  CREATE_OUT2;
+  const Index nn = nlte_quantum_identifiers.nelem(), np = t_field.npages(),
+              nlat = t_field.nrows(), nlon = t_field.ncols();
+  if (nn == 0) return;
+
+  Tensor4 nlte_tensor4(nn, np, nlat, nlon);
+  nlte_do = 1;
+  ArrayOfIndex checked(nn, 0);
+  
+  SpeciesAuxData partition_functions;
+  partition_functionsInitFromBuiltin(partition_functions, verbosity);
+
+  for (Index in = 0; in < nn; in++) {
+    const QuantumIdentifier& qi = nlte_quantum_identifiers[in];
+    Tensor3View lte = nlte_tensor4(in, joker, joker, joker);
+
+    for (auto& abs_lines : abs_lines_per_species) {
+      for (auto& band : abs_lines) {
+        for (Index k=0; k<band.NumLines(); k++) {
+          if (Absorption::id_in_line_lower(band, qi, k)) {
+            band.Population(Absorption::PopulationType::ByNLTEPopulationDistribution);
+            
+            bool compute_level = false;
+            
+            if (not checked[in]) {
+              checked[in] = 1;
+              compute_level = true;
+              
+              if (compute_level) {
+                for (Index ip = 0; ip < np; ip++) {
+                  for (Index ilat = 0; ilat < nlat; ilat++) {
+                    for (Index ilon = 0; ilon < nlon; ilon++) {
+                      lte(ip, ilat, ilon) =
+                      boltzman_factor(t_field(ip, ilat, ilon), band.E0(k)) *
+                      band.g_low(k) / single_partition_function(
+                        t_field(ip, ilat, ilon), partition_functions.getParamType(band.Species(),
+                                                                                  band.Isotopologue()),
+                                                 partition_functions.getParam(band.Species(),
+                                                                              band.Isotopologue()));
+                    }
+                  }
+                }
+              }
+            }
+          }
+          
+          if (Absorption::id_in_line_upper(band, qi, k)) {
+            band.Population(Absorption::PopulationType::ByNLTEPopulationDistribution);
+            
+            bool compute_level = false;
+            
+            if (not checked[in]) {
+              checked[in] = 1;
+              compute_level = true;
+              
+              if (compute_level) {
+                for (Index ip = 0; ip < np; ip++) {
+                  for (Index ilat = 0; ilat < nlat; ilat++) {
+                    for (Index ilon = 0; ilon < nlon; ilon++) {
+                      lte(ip, ilat, ilon) =
+                      boltzman_factor(t_field(ip, ilat, ilon), band.E0(k) + h*band.F0(k)) *
+                      band.g_low(k) / single_partition_function(
+                        t_field(ip, ilat, ilon), partition_functions.getParamType(band.Species(),
+                                                                                  band.Isotopologue()),
+                                                 partition_functions.getParam(band.Species(),
+                                                                              band.Isotopologue()));
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  for (Index in = 0; in < nn; in++) {
+    if (not checked[in]) {
+      out2 << "Did not find match among lines for: "
+           << nlte_quantum_identifiers[in] << "\n";
+    }
+  }
+  
+  nlte_field = EnergyLevelMap(nlte_tensor4, nlte_quantum_identifiers);
+}

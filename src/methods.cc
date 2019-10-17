@@ -11343,6 +11343,26 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
+      NAME("nlte_fieldSetLteExternalPartitionFunction2"),
+      DESCRIPTION("Turns on NTLE calculations.\n"
+                  "\n"
+                  "Sets NLTE ratios to those expected for LTE calculations\n"
+                  "with a known partition function\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("nlte_do", "nlte_field2", "abs_lines_per_species2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species2",
+         "nlte_level_identifiers",
+         "partition_functions",
+         "t_field"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
       NAME("ArrayOfQuantumIdentifierFromLines"),
       DESCRIPTION(
           "Sets an ArrayOfQuantumIdentifier to all levels in *abs_lines_per_species*\n"
@@ -11374,6 +11394,25 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines_per_species", "nlte_level_identifiers", "t_field"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("nlte_fieldSetLteInternalPartitionFunction2"),
+      DESCRIPTION(
+          "Turns on NTLE calculations.\n"
+          "\n"
+          "Sets NLTE ratios to those expected for LTE calculations\n"
+          "with estimation of the partition function as the sum of all\n"
+          "states of a species\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("nlte_do", "nlte_field2", "abs_lines_per_species2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species2", "nlte_level_identifiers", "t_field"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
