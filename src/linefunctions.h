@@ -64,6 +64,17 @@ void set_lineshape(Eigen::Ref<Eigen::VectorXcd> F,
                    const Numeric& zeeman_df,
                    const Numeric& magnetic_magnitude,
                    const ArrayOfArrayOfSpeciesTag& abs_species);
+void set_lineshape(Eigen::Ref<Eigen::VectorXcd> F,
+                   const Eigen::Ref<const Eigen::VectorXd> f_grid,
+                   const Absorption::SingleLine& line,
+                   const Numeric& temperature,
+                   const Numeric& zeeman_df,
+                   const Numeric& magnetic_magnitude,
+                   const Numeric& doppler_constant,
+                   const LineShape::Output& X,
+                   const LineShape::Type lineshape_type,
+                   const Absorption::MirroringType mirroring_type,
+                   const Absorption::NormalizationType norm_type);
 
 /** Sets the Lorentz line shape. Normalization is unity.
  * 

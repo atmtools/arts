@@ -10861,6 +10861,50 @@ void define_md_data_raw() {
                "max number of iterations before defaul break of iterations")));
 
   md_data_raw.push_back(MdRecord(
+      NAME("nlte_fieldForSingleSpeciesNonOverlappingLines2"),
+      DESCRIPTION("NLTE field for a simple setup.\n"
+        "\n"
+        "This will solve for *nlte_field* in the input atmosphere.\n"
+        "The solver depends on the lines not overlapping and that there\n"
+        "is only a single species in the atmosphere.\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT("nlte_field2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("nlte_field2",
+         "abs_species",
+         "abs_lines_per_species2",
+         "collision_coefficients",
+         "collision_line_identifiers",
+         "isotopologue_ratios",
+         "iy_main_agenda2",
+         "ppath_agenda",
+         "iy_space_agenda",
+         "iy_surface_agenda2",
+         "iy_cloudbox_agenda",
+         "propmat_clearsky_agenda2",
+         "water_p_eq_agenda",
+         "vmr_field",
+         "t_field",
+         "z_field",
+         "p_grid",
+         "atmosphere_dim",
+         "refellipsoid",
+         "surface_props_data",
+         "nlte_do"),
+      GIN("df", "convergence_limit", "nz", "nf", "dampened", "iteration_limit"),
+      GIN_TYPE("Numeric", "Numeric", "Index", "Index", "Index", "Index"),
+      GIN_DEFAULT(NODEF, "1e-6", NODEF, NODEF, NODEF, "20"),
+      GIN_DESC("relative frequency to line center",
+               "max relative change in ratio of level to stop iterations",
+               "number of zenith angles",
+               "number of frequency grid-points per line",
+               "use transmission dampening or not",
+               "max number of iterations before defaul break of iterations")));
+
+  md_data_raw.push_back(MdRecord(
       NAME("collision_coefficientsFromSplitFiles"),
       DESCRIPTION(
           "Reads *collision_coefficients* and *collision_line_identifiers* from location on filesystem\n"
@@ -14347,6 +14391,39 @@ void define_md_data_raw() {
          "iy_surface_agenda",
          "iy_cloudbox_agenda",
          "propmat_clearsky_agenda"),
+      GIN("df", "nz", "nf", "r"),
+      GIN_TYPE("Numeric", "Index", "Index", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "1.0"),
+      GIN_DESC("relative frequency to line center",
+               "number of zeniths",
+               "number of frequencies per line",
+               "Distance assumed when computing local (1-T)")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D2"),
+      DESCRIPTION("Computes the line irradiance and line transmission\n"
+                  "\n"
+                  "Presently only works for 1D atmospheres\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("line_irradiance", "line_transmission"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_species",
+         "abs_lines_per_species2",
+         "nlte_field2",
+         "vmr_field",
+         "t_field",
+         "z_field",
+         "p_grid",
+         "refellipsoid",
+         "surface_props_data",
+         "iy_main_agenda2",
+         "ppath_agenda",
+         "iy_space_agenda",
+         "iy_surface_agenda2",
+         "iy_cloudbox_agenda",
+         "propmat_clearsky_agenda2"),
       GIN("df", "nz", "nf", "r"),
       GIN_TYPE("Numeric", "Index", "Index", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "1.0"),

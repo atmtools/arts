@@ -233,6 +233,153 @@ void Linefunctions::set_lineshape(
   }
 }
 
+void Linefunctions::set_lineshape(
+    Eigen::Ref<Eigen::VectorXcd> F,
+    const Eigen::Ref<const Eigen::VectorXd> f_grid,
+    const Absorption::SingleLine& line,
+    const Numeric& temperature,
+    const Numeric& zeeman_df,
+    const Numeric& magnetic_magnitude,
+    const Numeric& doppler_constant,
+    const LineShape::Output& X,
+    const LineShape::Type lineshape_type,
+    const Absorption::MirroringType mirroring_type,
+    const Absorption::NormalizationType norm_type)
+{
+  Eigen::MatrixXcd dF(0, 0), data(F.size(), Linefunctions::ExpectedDataSize());
+
+  switch (lineshape_type) {
+    case LineShape::Type::HTP:
+    case LineShape::Type::SDVP:
+      set_htp(F,
+              dF,
+              f_grid,
+              zeeman_df,
+              magnetic_magnitude,
+              line.F0(),
+              doppler_constant,
+              X);
+      break;
+    case LineShape::Type::VP:
+      set_voigt(F,
+                dF,
+                data,
+                f_grid,
+                zeeman_df,
+                magnetic_magnitude,
+                line.F0(),
+                doppler_constant,
+                X);
+      break;
+    case LineShape::Type::DP:
+      set_doppler(F,
+                  dF,
+                  data,
+                  f_grid,
+                  zeeman_df,
+                  magnetic_magnitude,
+                  line.F0(),
+                  doppler_constant);
+      break;
+    case LineShape::Type::LP:
+      set_lorentz(
+          F, dF, data, f_grid, zeeman_df, magnetic_magnitude, line.F0(), X);
+      break;
+  }
+
+  switch (mirroring_type) {
+    case Absorption::MirroringType::None:
+    case Absorption::MirroringType::Manual:
+      break;
+    case Absorption::MirroringType::Lorentz: {
+      // Set the mirroring computational vectors and size them as needed
+      Eigen::VectorXcd Fm(F.size());
+
+      set_lorentz(Fm,
+                  dF,
+                  data,
+                  f_grid,
+                  -zeeman_df,
+                  magnetic_magnitude,
+                  -line.F0(),
+                  LineShape::mirroredOutput(X));
+
+      // Apply mirroring;  FIXME: Add conjugate?
+      F.noalias() += Fm;
+    } break;
+    case Absorption::MirroringType::SameAsLineShape: {
+      // Set the mirroring computational vectors and size them as needed
+      Eigen::VectorXcd Fm(F.size());
+
+      switch (lineshape_type) {
+        case LineShape::Type::DP:
+          set_doppler(Fm,
+                      dF,
+                      data,
+                      f_grid,
+                      -zeeman_df,
+                      magnetic_magnitude,
+                      -line.F0(),
+                      -doppler_constant);
+          break;
+        case LineShape::Type::LP:
+          set_lorentz(Fm,
+                      dF,
+                      data,
+                      f_grid,
+                      -zeeman_df,
+                      magnetic_magnitude,
+                      -line.F0(),
+                      LineShape::mirroredOutput(X));
+          break;
+        case LineShape::Type::VP:
+          set_voigt(Fm,
+                    dF,
+                    data,
+                    f_grid,
+                    -zeeman_df,
+                    magnetic_magnitude,
+                    -line.F0(),
+                    -doppler_constant,
+                    LineShape::mirroredOutput(X));
+          break;
+        case LineShape::Type::HTP:
+        case LineShape::Type::SDVP:
+          // WARNING: This mirroring is not tested and it might require, e.g., FVC to be treated differently
+          set_htp(Fm,
+                  dF,
+                  f_grid,
+                  -zeeman_df,
+                  magnetic_magnitude,
+                  -line.F0(),
+                  -doppler_constant,
+                  LineShape::mirroredOutput(X));
+          break;
+      }
+
+      F.noalias() += Fm;
+      break;
+    }
+  }
+
+  // Line normalization if necessary
+  // The user sets this by setting LSM LNT followed by a type
+  // that is internally interpreted to mean some kind of lineshape normalization
+  switch (norm_type) {
+    case Absorption::NormalizationType::None:
+      break;
+    case Absorption::NormalizationType::VVH:
+      apply_VVH_scaling(F, dF, data, f_grid, line.F0(), temperature);
+      break;
+    case Absorption::NormalizationType::VVW:
+      apply_VVW_scaling(F, dF, f_grid, line.F0());
+      break;
+    case Absorption::NormalizationType::RosenkranzQuadratic:
+      apply_rosenkranz_quadratic_scaling(F, dF, f_grid, line.F0(), temperature);
+      break;
+  }
+}
+
 void Linefunctions::set_lorentz(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,

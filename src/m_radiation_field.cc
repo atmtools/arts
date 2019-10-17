@@ -226,6 +226,206 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
   }
 }
 
+void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D2(
+    Workspace& ws,
+    Matrix& line_irradiance,
+    Tensor3& line_transmission,
+    const ArrayOfArrayOfSpeciesTag& abs_species,
+    const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const EnergyLevelMap& nlte_field,
+    const Tensor4& vmr_field,
+    const Tensor3& t_field,
+    const Tensor3& z_field,
+    const Vector& p_grid,
+    const Vector& refellipsoid,
+    const Tensor3& surface_props_data,
+    const Agenda& ppath_agenda,
+    const Agenda& iy_main_agenda,
+    const Agenda& iy_space_agenda,
+    const Agenda& iy_surface_agenda,
+    const Agenda& iy_cloudbox_agenda,
+    const Agenda& propmat_clearsky_agenda,
+    const Numeric& df,
+    const Index& nz,
+    const Index& nf,
+    const Numeric& r,
+    const Verbosity& verbosity)
+{
+  if (abs_lines_per_species.nelem() not_eq 1)
+    throw std::runtime_error("Only for one species...");
+  if (nf % 2 not_eq 1)
+    throw std::runtime_error("Must hit line center, nf % 2 must be 1.");
+  const Index nl = nelem(abs_lines_per_species);
+  const Index np = p_grid.nelem();
+
+  // Compute variables
+  ArrayOfTensor3 diy_dx;
+  FieldOfPropagationMatrix propmat_field;
+  FieldOfStokesVector absorption_field, additional_source_field;
+  ArrayOfPpath ppath_field;
+
+  // Check that the lines and nf is correct
+  Vector f_grid(nf * nl);
+  Index il=0;
+  for (auto& lines: abs_lines_per_species) {
+    for (auto& band: lines) {
+      for (Index k=0; k<band.NumLines(); k++) {
+        nlinspace(f_grid[Range(il * nf, nf)], band.F0(k) * (1 - df), band.F0(k) * (1 + df), nf);
+        il++;
+      }
+    }
+  }
+
+  ppath_fieldFromDownUpLimbGeoms(ws,
+                                 ppath_field,
+                                 ppath_agenda,
+                                 -1,
+                                 1e99,
+                                 1,
+                                 z_field,
+                                 f_grid,
+                                 0,
+                                 1,
+                                 0,
+                                 Vector(1, 0),
+                                 Vector(1, 0),
+                                 Vector(0),
+                                 refellipsoid,
+                                 1,
+                                 nz,
+                                 verbosity);
+
+  ArrayOfArrayOfIndex sorted_index;
+  ArrayOfVector cos_zenith_angles;
+  sorted_index_of_ppath_field(sorted_index, cos_zenith_angles, ppath_field);
+
+  for (Index ip = 0; ip < np; ip++)
+    error_in_integrate(
+        "Your lineshape integration does normalize.  Increase nf and decrease df until it does.",
+        test_integrate_zenith(cos_zenith_angles[ip], sorted_index[ip]));
+
+  field_of_propagation(ws,
+                       propmat_field,
+                       absorption_field,
+                       additional_source_field,
+                       1,
+                       f_grid,
+                       p_grid,
+                       z_field,
+                       t_field,
+                       nlte_field,
+                       vmr_field,
+                       ArrayOfRetrievalQuantity(0),
+                       propmat_clearsky_agenda);
+
+  Array<Array<Eigen::VectorXcd>> lineshapes(
+      nl, Array<Eigen::VectorXcd>(np, Eigen::VectorXcd(nf * nl)));
+  il=0;
+  for (auto& lines: abs_lines_per_species) {
+    for (auto& band: lines) {
+      for (Index ip=0; ip<np; ip++) {
+        const Numeric doppler_constant = Linefunctions::DopplerConstant(t_field(ip, 0, 0), band.SpeciesMass());
+        const Vector vmrs = band.BroadeningSpeciesVMR(vmr_field(joker, ip, 0, 0), abs_species);
+        for (Index k=0; k<band.NumLines(); k++) {
+          const auto X = band.ShapeParameters(k, t_field(ip, 0, 0), p_grid[ip], vmrs);
+          Linefunctions::set_lineshape(lineshapes[il][ip], MapToEigen(f_grid),
+                                       band.Line(k), t_field(ip, 0, 0), 0, 0, doppler_constant, X,
+                                       band.LineShapeType(), band.Mirroring(), band.Normalization());
+          il++;
+        }
+      }
+    }
+  }
+  for (auto& aols : lineshapes)
+    for (auto& ls : aols)
+      error_in_integrate(
+          "Your lineshape integration does not normalize.  Increase nf and decrease df until it does.",
+          test_integrate_convolved(ls, f_grid));
+
+  // Counting the path index so we can make the big loop parallel
+  ArrayOfArrayOfIndex counted_path_index(ppath_field.nelem());
+  ArrayOfIndex counter(np, 0);
+  for (Index i = 0; i < ppath_field.nelem(); i++) {
+    const Ppath& path = ppath_field[i];
+    counted_path_index[i].resize(path.np);
+    for (Index ip_path = 0; ip_path < path.np; ip_path++) {
+      const Index ip_grid = grid_index_from_gp(path.gp_p[ip_path]);
+      counted_path_index[i][ip_path] = counter[ip_grid];
+      counter[ip_grid]++;
+    }
+  }
+
+  line_irradiance = Matrix(nl, np, 0.0);
+  line_transmission = Tensor3(1, nl, np, 0.0);
+
+  ArrayOfMatrix line_radiance(np);
+  for (Index i = 0; i < np; i++)
+    line_radiance[i].resize(sorted_index[i].nelem(), nl);
+
+  Workspace l_ws(ws);
+  Agenda l_iy_main_agenda(iy_main_agenda);
+  Agenda l_iy_space_agenda(iy_space_agenda);
+  Agenda l_iy_surface_agenda(iy_surface_agenda);
+  Agenda l_iy_cloudbox_agenda(iy_cloudbox_agenda);
+
+#pragma omp parallel for if (not arts_omp_in_parallel())               \
+    schedule(guided) default(shared) firstprivate(l_ws,                \
+                                                  l_iy_main_agenda,    \
+                                                  l_iy_space_agenda,   \
+                                                  l_iy_surface_agenda, \
+                                                  l_iy_cloudbox_agenda)
+  for (Index i = 0; i < ppath_field.nelem(); i++) {
+    const Ppath& path = ppath_field[i];
+
+    thread_local ArrayOfRadiationVector lvl_rad;
+    thread_local ArrayOfRadiationVector src_rad;
+    thread_local ArrayOfTransmissionMatrix lyr_tra;
+    thread_local ArrayOfTransmissionMatrix tot_tra;
+
+    emission_from_propmat_field(l_ws,
+                                lvl_rad,
+                                src_rad,
+                                lyr_tra,
+                                tot_tra,
+                                propmat_field,
+                                absorption_field,
+                                additional_source_field,
+                                f_grid,
+                                t_field,
+                                nlte_field,
+                                path,
+                                l_iy_main_agenda,
+                                l_iy_space_agenda,
+                                l_iy_surface_agenda,
+                                l_iy_cloudbox_agenda,
+                                surface_props_data,
+                                verbosity);
+
+    for (Index ip_path = 0; ip_path < path.np; ip_path++) {
+      const Index ip_grid = grid_index_from_gp(path.gp_p[ip_path]);
+      for (il = 0; il < nl; il++)
+        line_radiance[ip_grid](counted_path_index[i][ip_path], il) =
+            integrate_convolved(
+                lvl_rad[ip_path], lineshapes[il][ip_grid], f_grid);
+    }
+  }
+
+  for (Index ip = 0; ip < np; ip++)
+    for (il = 0; il < nl; il++)
+      line_irradiance(il, ip) = integrate_zenith(line_radiance[ip](joker, il),
+                                                 cos_zenith_angles[ip],
+                                                 sorted_index[ip]);
+
+  if (r > 0) {
+    const FieldOfTransmissionMatrix transmat_field =
+        transmat_field_calc_from_propmat_field(propmat_field, r);
+    for (Index ip = 0; ip < np; ip++)
+      for (il = 0; il < nl; il++)
+        line_transmission(0, il, ip) = integrate_convolved(
+            transmat_field(ip, 0, 0), lineshapes[il][ip], f_grid);
+  }
+}
+
 void line_irradianceCalcForSingleSpeciesNonOverlappingLines(
     Workspace& ws,
     Matrix& line_irradiance,

@@ -726,6 +726,9 @@ public:
   // Create Numeric_t from Vector_t
   EnergyLevelMap operator[](Index ip) const;
   
+  // Create Numeric_t from Tensor3_t
+  EnergyLevelMap operator()(Index ip, Index ilat, Index ilon) const;
+  
   /** Energy level type */
   EnergyLevelMapType Type() const noexcept {return mtype;}
   
