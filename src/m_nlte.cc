@@ -404,6 +404,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines2(
                                            vmr_field(joker, ip, 0, 0),
                                            t_field(ip, 0, 0),
                                            p_grid[ip]);
+      
 
       if (dampened)
         dampened_statistical_equilibrium_equation(

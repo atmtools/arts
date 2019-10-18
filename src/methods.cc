@@ -10816,6 +10816,21 @@ void define_md_data_raw() {
       GIN_DESC("Scaling (e.g., 0.75 for only orth-water on Earth)")));
 
   md_data_raw.push_back(MdRecord(
+      NAME("nlte_fieldRescalePopulationLevels2"),
+      DESCRIPTION(
+          "Rescale NLTE field to expected total distribution amongst levels\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("nlte_field2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("nlte_field2"),
+      GIN("s"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Scaling (e.g., 0.75 for only orth-water on Earth)")));
+
+  md_data_raw.push_back(MdRecord(
       NAME("nlte_fieldForSingleSpeciesNonOverlappingLines"),
       DESCRIPTION(
           "NLTE field for a simple setup.\n"

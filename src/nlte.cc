@@ -233,7 +233,7 @@ void setCji(Vector& Cji,
   for (auto& lines: abs_lines) {
     for (auto& band: lines) {
       for (Index k=0; k<band.NumLines(); k++) {
-        Cji[i] = Cij[i] * exp(constant * band.F0(i)) * band.g_upp(i) / band.g_low(i);
+        Cji[i] = Cij[i] * exp(constant * band.F0(k)) * band.g_upp(k) / band.g_low(k);
         i++;
       }
     }
@@ -326,34 +326,32 @@ void nlte_collision_factorsCalcFromCoeffs(
         vmr[i] * (abs_species[i][0].SpeciesNameMain() == "free_electrons"
                       ? 1.0
                       : P / (BOLTZMAN_CONST * T));
-        
-    Index iline=0;
-    for (auto& lines: abs_lines) {
-      for (auto& band: lines) {
-        const Numeric isot_ratio =
-            isotopologue_ratios.getParam(band.Species(), band.Isotopologue())[0]
-                .data[0];
-        for (Index k=0; k<band.NumLines(); k++) {
-
-          Index found=0;
-          for (Index j = 0; j < ntrans; j++) {
+    
+    for (Index j = 0; j < ntrans; j++) {
+      Index iline=0;
+      for (auto& lines: abs_lines) {
+        for (auto& band: lines) {
+          const Numeric isot_ratio =
+          isotopologue_ratios.getParam(band.Species(), band.Isotopologue())[0]
+          .data[0];
+          for (Index k=0; k<band.NumLines(); k++) {
+            
             const auto& transition = collision_line_identifiers[j];
             const auto& gf1 = collision_coefficients[i][j];
-
+            
             if (Absorption::id_in_line(band, transition, k)) {
               // Standard linear ARTS interpolation
               GridPosPoly gp;
               gridpos_poly(gp, gf1.get_numeric_grid(0), T, 1, 0.5);
               Vector itw(gp.idx.nelem());
               interpweights(itw, gp);
-
+              
               Cij[iline] += interp(itw, gf1.data, gp) * numden * isot_ratio;
-              found++;
+              iline++;
+              break;
             }
             iline++;
           }
-          if (found > 1)
-            throw std::runtime_error("Bad collisions data.  Multiple hits.");
         }
       }
     }
@@ -372,7 +370,6 @@ void nlte_positions_in_statistical_equilibrium_matrix(
 
   upper = ArrayOfIndex(nl, -1);
   lower = ArrayOfIndex(nl, -1);
-
   for (Index il = 0; il < nl; il++) {
     for (Index iq = 0; iq < nq; iq++) {
       if (nlte_level_identifiers[iq].InLower(abs_lines[il].QuantumIdentity()))
@@ -382,7 +379,7 @@ void nlte_positions_in_statistical_equilibrium_matrix(
         upper[il] = iq;
     }
   }
-
+  
   Index i = 0;
   for (Index il = 0; il < nl; il++)
     if (upper[il] < 0 or lower[il] < 0) i++;
@@ -415,7 +412,7 @@ void nlte_positions_in_statistical_equilibrium_matrix(
       }
     }
   }
-
+  
   i = 0;
   for (Index il = 0; il < nl; il++)
     if (upper[il] < 0 or lower[il] < 0) i++;

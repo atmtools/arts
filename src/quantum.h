@@ -347,8 +347,8 @@ class QuantumIdentifier {
   QuantumIdentifier(const Index spec,
                     const Index isot,
                     const std::vector<QuantumNumberType>& keys,
-                    const std::vector<Rational>& upper,
-                    const std::vector<Rational>& lower)
+                    const std::vector<Rational>& lower,
+                    const std::vector<Rational>& upper)
       : mqtype(QuantumIdentifier::TRANSITION),
         mspecies(spec),
         miso(isot) {
@@ -773,5 +773,7 @@ public:
 };
 
 std::ostream& operator<<(std::ostream& os, const EnergyLevelMap& elm);
+
+std::ostream& operator<<(std::ostream& os, QuantumNumberType t);
 
 #endif

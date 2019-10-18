@@ -595,3 +595,8 @@ EnergyLevelMap EnergyLevelMap::operator()(Index i, Index j, Index k) const
   elm.mvalue(joker, 0, 0, 0) = mvalue(joker, i, j, k);
   return elm;
 }
+
+std::ostream& operator<<(std::ostream& os, QuantumNumberType t)
+{
+  return os << quantumnumbertype2string(t);
+}

@@ -2484,9 +2484,9 @@ void AtmFieldsCalc2(  //WS Output:
   chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
   
   // NLTE basics
-  nlte_field.Type() = nlte_ids.nelem() ? EnergyLevelMapType::Tensor3_t : EnergyLevelMapType::None_t;
-  nlte_field.Levels() = nlte_ids;
-  nlte_field.Energies() = nlte_energies;
+  nlte_field.Type() = nlte_ids.nelem() == nlte_field_raw.nelem() ? EnergyLevelMapType::Tensor3_t : EnergyLevelMapType::None_t;
+  nlte_field.Levels() = nlte_ids.nelem() == nlte_field_raw.nelem() ? nlte_ids : ArrayOfQuantumIdentifier(0);
+  nlte_field.Energies() = nlte_ids.nelem() == nlte_field_raw.nelem() ? nlte_energies : Vector(0);
 
   //==========================================================================
   if (atmosphere_dim == 1) {
@@ -2529,7 +2529,7 @@ void AtmFieldsCalc2(  //WS Output:
         vmr_field, p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
 
     // Non-LTE interpolation
-    if (nlte_field_raw.nelem()) {
+    if (nlte_ids.nelem() == nlte_field_raw.nelem()) {
       GriddedFieldPRegrid(
           temp_agfield3, p_grid, nlte_field_raw, interp_order, 0, verbosity);
       FieldFromGriddedField(
@@ -2553,7 +2553,7 @@ void AtmFieldsCalc2(  //WS Output:
     z_field.resize(p_grid.nelem(), lat_grid.nelem(), 1);
     vmr_field.resize(
         vmr_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(), 1);
-    if (nlte_field_raw.nelem())
+    if (nlte_ids.nelem() == nlte_field_raw.nelem())
       nlte_field.Data().resize(
         nlte_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(), 1);
     else
@@ -2710,11 +2710,14 @@ void AtmFieldsCalc2(  //WS Output:
       interpweights(itw, gp_p, gp_lat);
 
       // Interpolate:
-      interp(nlte_field.Data()(qi_i, joker, joker, 0),
-             itw,
-             nlte_field_raw[qi_i].data(joker, joker, 0),
-             gp_p,
-             gp_lat);
+      if (nlte_ids.nelem() == nlte_field_raw.nelem())
+        interp(nlte_field.Data()(qi_i, joker, joker, 0),
+              itw,
+              nlte_field_raw[qi_i].data(joker, joker, 0),
+              gp_p,
+              gp_lat);
+      else
+        nlte_field.Data().resize(0, 0, 0, 0);
     }
   }
 
@@ -2782,8 +2785,12 @@ void AtmFieldsCalc2(  //WS Output:
         << "to 1 in the method call.";
         throw runtime_error(os.str());
       }
-      FieldFromGriddedField(
-        nlte_field.Data(), p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
+      
+      if (nlte_ids.nelem() == nlte_field_raw.nelem())
+        FieldFromGriddedField(
+          nlte_field.Data(), p_grid, lat_grid, lon_grid, temp_agfield3, verbosity);
+      else
+        nlte_field.Data().resize(0, 0, 0, 0);
     }
   } else {
     // We can never get here, since there was a runtime
@@ -4943,7 +4950,7 @@ void nlte_fieldSetLteExternalPartitionFunction2(
                     for (Index ilon = 0; ilon < nlon; ilon++) {
                       lte(ip, ilat, ilon) =
                       boltzman_factor(t_field(ip, ilat, ilon), band.E0(k) + h*band.F0(k)) *
-                      band.g_low(k) / single_partition_function(
+                      band.g_upp(k) / single_partition_function(
                         t_field(ip, ilat, ilon), partition_functions.getParamType(band.Species(),
                                                                                   band.Isotopologue()),
                                                  partition_functions.getParam(band.Species(),
@@ -4958,6 +4965,7 @@ void nlte_fieldSetLteExternalPartitionFunction2(
       }
     }
   }
+  
   for (Index in = 0; in < nn; in++) {
     if (not checked[in]) {
       out2 << "Did not find match among lines for: "
@@ -4983,12 +4991,31 @@ void nlte_fieldSetLteInternalPartitionFunction2(
               nlat = t_field.nrows(), nlon = t_field.ncols();
   if (nn == 0) return;
 
-  Tensor4 nlte_tensor4(nn, np, nlat, nlon);
+  // Find where they are positioned and how many different molecules there are for the NLTE fields
+  ArrayOfIndex part_fun_pos(nn, 0);
+  Index x = 1;
+  for (Index in = 1; in < nn; in++) {
+    bool found = false;
+    for (Index ix = 0; ix < in; ix++) {
+      if (nlte_quantum_identifiers[in].Species() ==
+              nlte_quantum_identifiers[ix].Species() and
+          nlte_quantum_identifiers[in].Isotopologue() ==
+              nlte_quantum_identifiers[ix].Isotopologue()) {
+        part_fun_pos[in] = part_fun_pos[ix];
+        found = true;
+        break;
+      }
+    }
+    if (not found) {
+      part_fun_pos[in] = x;
+      x++;
+    }
+  }
+  
+  Tensor4 part_fun(x, np, nlat, nlon, 0.0);
+  Tensor4 nlte_tensor4(nn, np, nlat, nlon, 0);
   nlte_do = 1;
   ArrayOfIndex checked(nn, 0);
-  
-  SpeciesAuxData partition_functions;
-  partition_functionsInitFromBuiltin(partition_functions, verbosity);
 
   for (Index in = 0; in < nn; in++) {
     const QuantumIdentifier& qi = nlte_quantum_identifiers[in];
@@ -5011,12 +5038,10 @@ void nlte_fieldSetLteInternalPartitionFunction2(
                   for (Index ilat = 0; ilat < nlat; ilat++) {
                     for (Index ilon = 0; ilon < nlon; ilon++) {
                       lte(ip, ilat, ilon) =
-                      boltzman_factor(t_field(ip, ilat, ilon), band.E0(k)) *
-                      band.g_low(k) / single_partition_function(
-                        t_field(ip, ilat, ilon), partition_functions.getParamType(band.Species(),
-                                                                                  band.Isotopologue()),
-                                                 partition_functions.getParam(band.Species(),
-                                                                              band.Isotopologue()));
+                        boltzman_factor(t_field(ip, ilat, ilon), band.E0(k)) *
+                                        band.g_low(k);
+                      part_fun(part_fun_pos[in], ip, ilat, ilon) +=
+                        lte(ip, ilat, ilon);
                     }
                   }
                 }
@@ -5038,12 +5063,11 @@ void nlte_fieldSetLteInternalPartitionFunction2(
                   for (Index ilat = 0; ilat < nlat; ilat++) {
                     for (Index ilon = 0; ilon < nlon; ilon++) {
                       lte(ip, ilat, ilon) =
-                      boltzman_factor(t_field(ip, ilat, ilon), band.E0(k) + h*band.F0(k)) *
-                      band.g_low(k) / single_partition_function(
-                        t_field(ip, ilat, ilon), partition_functions.getParamType(band.Species(),
-                                                                                  band.Isotopologue()),
-                                                 partition_functions.getParam(band.Species(),
-                                                                              band.Isotopologue()));
+                        boltzman_factor(t_field(ip, ilat, ilon),
+                                        band.E0(k) + h * band.F0(k)) *
+                                        band.g_upp(k);
+                      part_fun(part_fun_pos[in], ip, ilat, ilon) +=
+                        lte(ip, ilat, ilon);
                     }
                   }
                 }
@@ -5054,10 +5078,18 @@ void nlte_fieldSetLteInternalPartitionFunction2(
       }
     }
   }
+  
   for (Index in = 0; in < nn; in++) {
     if (not checked[in]) {
       out2 << "Did not find match among lines for: "
            << nlte_quantum_identifiers[in] << "\n";
+    }
+  }
+  
+  for (Index in = 0; in < nn; in++) {
+    if (checked[in]) {
+      nlte_tensor4(in, joker, joker, joker) /=
+        part_fun(part_fun_pos[in], joker, joker, joker);
     }
   }
   

@@ -1,0 +1,77 @@
+Arts2{
+    
+    AgendaSet(iy_space_agenda) { Ignore(rtp_pos) Ignore(rtp_los) MatrixCBR(iy, stokes_dim, f_grid) }
+
+    AgendaSet(iy_main_agenda2) { ppathCalc iyEmissionStandard2 }
+
+    AgendaSet(water_p_eq_agenda) { water_p_eq_fieldMK05 }
+
+    AgendaSet(iy_surface_agenda2) { SurfaceDummy iySurfaceRtpropAgenda2 }
+
+    AgendaSet(ppath_agenda) { Ignore(rte_pos2) ppathStepByStep }
+
+    AgendaSet(ppath_step_agenda) { Ignore(f_grid) Ignore(ppath_lraytrace) ppath_stepGeometric }
+
+    AgendaSet(propmat_clearsky_agenda2) { Ignore(rtp_mag) Ignore(rtp_los) propmat_clearskyInit propmat_clearskyAddOnTheFly2 }
+
+    AgendaSet(abs_xsec_agenda2) { abs_xsec_per_speciesInit abs_xsec_per_speciesAddLines3 }
+
+    AgendaSet(surface_rtprop_agenda) { InterpAtmFieldToPosition(out=surface_skin_t, field=t_field) surfaceBlackbody }
+    
+    # Names that are uninitialized but needs to be initialized empty for the code to work
+    Touch(surface_props_names)
+    Touch(surface_props_data)
+    Touch(wind_u_field)
+    Touch(wind_v_field)
+    Touch(wind_w_field)
+    Touch(mag_u_field)
+    Touch(mag_v_field)
+    Touch(mag_w_field)
+    
+    # Set constants
+    IndexSet(stokes_dim, 1)
+    NumericSet(rte_alonglos_v, 0.0)
+    NumericSet(ppath_lmax, -1)
+    NumericSet(lm_p_lim, 0.0)
+    MatrixSetConstant(z_surface, 1, 1, 0.0)
+    abs_speciesSet(species=["H2O-161"])
+    
+    # Data reading
+    AtmRawRead(basename="testdata/")
+    ReadARTSCAT(filename="testdata/lines.xml", globalquantumnumbers="J Ka Kc")
+    
+    collision_coefficientsFromSplitFiles(basename="spectroscopy/nlte/H2O/")
+    ReadXML(nlte_level_identifiers, "testdata/qi.xml")
+    
+    # Interpretation of data
+    isotopologue_ratiosInitFromBuiltin
+    partition_functionsInitFromBuiltin
+    p_gridFromZRaw
+    AtmosphereSet1D
+    refellipsoidGanymede(model="Sphere")
+    AtmFieldsCalc2
+    abs_lines_per_speciesCreateFromLines2
+    
+    # No fancy computations by turning all of these off
+    jacobianOff
+    cloudboxOff
+    
+    # Initialize the ratio-field
+    nlte_fieldSetLteInternalPartitionFunction2
+    nlte_fieldRescalePopulationLevels2(s=0.75)
+
+    # Check that we are performing sane computations
+#    propmat_clearsky_agenda_checkedCalc
+#    abs_xsec_agenda_checkedCalc
+IndexSet(propmat_clearsky_agenda_checked, 1)
+IndexSet(abs_xsec_agenda_checked, 1)
+
+    # Compute the new nlte_field
+    nlte_fieldForSingleSpeciesNonOverlappingLines2(df=1e-4, nz=10, nf=401, dampened=0, iteration_limit=100, convergence_limit=1e-4)
+    WriteXML("ascii", nlte_field2, "testdata/nlte_testdata2.xml")
+    
+    # Compare with stored data to make sure it is OK
+    #EnergyLevelMapCreate(nlte_testdata)
+    #ReadXML(nlte_testdata, "testdata/nlte_testdata2.xml")
+    #CompareRelative(nlte_testdata, nlte_field2, 1e-6)
+}

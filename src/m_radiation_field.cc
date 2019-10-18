@@ -136,6 +136,7 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
                                    0.0,
                                    0.0,
                                    abs_species);
+  
   for (auto& aols : lineshapes)
     for (auto& ls : aols)
       error_in_integrate(
@@ -211,10 +212,11 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
   }
 
   for (Index ip = 0; ip < np; ip++)
-    for (Index il = 0; il < nl; il++)
+    for (Index il = 0; il < nl; il++) {
       line_irradiance(il, ip) = integrate_zenith(line_radiance[ip](joker, il),
                                                  cos_zenith_angles[ip],
                                                  sorted_index[ip]);
+    }
 
   if (r > 0) {
     const FieldOfTransmissionMatrix transmat_field =
@@ -320,10 +322,10 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D2(
 
   Array<Array<Eigen::VectorXcd>> lineshapes(
       nl, Array<Eigen::VectorXcd>(np, Eigen::VectorXcd(nf * nl)));
-  il=0;
-  for (auto& lines: abs_lines_per_species) {
-    for (auto& band: lines) {
-      for (Index ip=0; ip<np; ip++) {
+  for (Index ip=0; ip<np; ip++) {
+    il=0;
+    for (auto& lines: abs_lines_per_species) {
+      for (auto& band: lines) {
         const Numeric doppler_constant = Linefunctions::DopplerConstant(t_field(ip, 0, 0), band.SpeciesMass());
         const Vector vmrs = band.BroadeningSpeciesVMR(vmr_field(joker, ip, 0, 0), abs_species);
         for (Index k=0; k<band.NumLines(); k++) {
@@ -368,12 +370,12 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D2(
   Agenda l_iy_surface_agenda(iy_surface_agenda);
   Agenda l_iy_cloudbox_agenda(iy_cloudbox_agenda);
 
-#pragma omp parallel for if (not arts_omp_in_parallel())               \
-    schedule(guided) default(shared) firstprivate(l_ws,                \
-                                                  l_iy_main_agenda,    \
-                                                  l_iy_space_agenda,   \
-                                                  l_iy_surface_agenda, \
-                                                  l_iy_cloudbox_agenda)
+// #pragma omp parallel for if (not arts_omp_in_parallel())               \
+//     schedule(guided) default(shared) firstprivate(l_ws,                \
+//                                                   l_iy_main_agenda,    \
+//                                                   l_iy_space_agenda,   \
+//                                                   l_iy_surface_agenda, \
+//                                                   l_iy_cloudbox_agenda)
   for (Index i = 0; i < ppath_field.nelem(); i++) {
     const Ppath& path = ppath_field[i];
 
@@ -400,7 +402,7 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D2(
                                 l_iy_cloudbox_agenda,
                                 surface_props_data,
                                 verbosity);
-
+    
     for (Index ip_path = 0; ip_path < path.np; ip_path++) {
       const Index ip_grid = grid_index_from_gp(path.gp_p[ip_path]);
       for (il = 0; il < nl; il++)
@@ -410,11 +412,13 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D2(
     }
   }
 
-  for (Index ip = 0; ip < np; ip++)
-    for (il = 0; il < nl; il++)
+  for (Index ip = 0; ip < np; ip++) {
+    for (il = 0; il < nl; il++) {
       line_irradiance(il, ip) = integrate_zenith(line_radiance[ip](joker, il),
                                                  cos_zenith_angles[ip],
                                                  sorted_index[ip]);
+    }
+  }
 
   if (r > 0) {
     const FieldOfTransmissionMatrix transmat_field =
