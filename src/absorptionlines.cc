@@ -1686,7 +1686,7 @@ std::vector<Absorption::Lines> Absorption::split_list_of_external_lines(const st
     
     // Set the global quantum numbers
     const QuantumIdentifier qid(sle.quantumidentity.Species(), sle.quantumidentity.Isotopologue(),
-                                globalquantas, lowerquanta_global, upperquanta_global);
+                                globalquantas, upperquanta_global, lowerquanta_global);
     
     // Either find a line like this in the list of lines or start a new Lines
     bool found_match=false;
