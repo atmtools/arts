@@ -44,19 +44,24 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   
   // Global numbers
   std::vector<QuantumNumberType> global_nums(0);
-  std::istringstream global_str(globalquantumnumbers);
-  while (not global_str.eof()) {
-    global_str >> tmp_string; 
-    global_nums.push_back(string2quantumnumbertype(tmp_string));
+  if (globalquantumnumbers not_eq "") {
+    std::istringstream global_str(globalquantumnumbers);
+    while (not global_str.eof()) {
+      global_str >> tmp_string; 
+      global_nums.push_back(string2quantumnumbertype(tmp_string));
+    }
   }
   
   // Local numbers
   std::vector<QuantumNumberType> local_nums(0);
-  std::istringstream local_str(localquantumnumbers);
-  while (not local_str.eof()) {
-    local_str >> tmp_string;
-    local_nums.push_back(string2quantumnumbertype(tmp_string));
+  if (localquantumnumbers not_eq "") {
+    std::istringstream local_str(localquantumnumbers);
+    while (not local_str.eof()) {
+      local_str >> tmp_string;
+      local_nums.push_back(string2quantumnumbertype(tmp_string));
+    }
   }
+  
   CREATE_OUT2;
   
   ArtsXMLTag tag(verbosity);
@@ -155,18 +160,22 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
   
   // Global numbers
   std::vector<QuantumNumberType> global_nums(0);
-  std::istringstream global_str(globalquantumnumbers);
-  while (not global_str.eof()) {
-    global_str >> tmp_string; 
-    global_nums.push_back(string2quantumnumbertype(tmp_string));
+  if (globalquantumnumbers not_eq "") {
+    std::istringstream global_str(globalquantumnumbers);
+    while (not global_str.eof()) {
+      global_str >> tmp_string; 
+      global_nums.push_back(string2quantumnumbertype(tmp_string));
+    }
   }
   
   // Local numbers
   std::vector<QuantumNumberType> local_nums(0);
-  std::istringstream local_str(localquantumnumbers);
-  while (not local_str.eof()) {
-    local_str >> tmp_string;
-    local_nums.push_back(string2quantumnumbertype(tmp_string));
+  if (localquantumnumbers not_eq "") {
+    std::istringstream local_str(localquantumnumbers);
+    while (not local_str.eof()) {
+      local_str >> tmp_string;
+      local_nums.push_back(string2quantumnumbertype(tmp_string));
+    }
   }
   
   // Hitran data
@@ -211,18 +220,22 @@ void ReadLBLRTM(ArrayOfAbsorptionLines& abs_lines,
   
   // Global numbers
   std::vector<QuantumNumberType> global_nums(0);
-  std::istringstream global_str(globalquantumnumbers);
-  while (not global_str.eof()) {
-    global_str >> tmp_string; 
-    global_nums.push_back(string2quantumnumbertype(tmp_string));
+  if (globalquantumnumbers not_eq "") {
+    std::istringstream global_str(globalquantumnumbers);
+    while (not global_str.eof()) {
+      global_str >> tmp_string; 
+      global_nums.push_back(string2quantumnumbertype(tmp_string));
+    }
   }
   
   // Local numbers
   std::vector<QuantumNumberType> local_nums(0);
-  std::istringstream local_str(localquantumnumbers);
-  while (not local_str.eof()) {
-    local_str >> tmp_string;
-    local_nums.push_back(string2quantumnumbertype(tmp_string));
+  if (localquantumnumbers not_eq "") {
+    std::istringstream local_str(localquantumnumbers);
+    while (not local_str.eof()) {
+      local_str >> tmp_string;
+      local_nums.push_back(string2quantumnumbertype(tmp_string));
+    }
   }
   
   // LBLRTM data
