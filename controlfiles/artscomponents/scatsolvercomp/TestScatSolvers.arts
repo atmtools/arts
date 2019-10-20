@@ -172,7 +172,6 @@ Print( y_clearsky, 0 )
 
 
 # Set some stuff that must be placed after cloudboxOff
-Copy( iy_cloudbox_agenda,  iy_cloudbox_agenda__LinInterpField )
 Copy( iy_cloudbox_agenda,  iy_cloudbox_agenda__QuadInterpField1D )
 ReadXML( scat_data_raw,           "testdata/scat_data.xml" )
 ReadXML( scat_meta,               "testdata/scat_meta.xml" )

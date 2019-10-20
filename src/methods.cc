@@ -7344,14 +7344,25 @@ void define_md_data_raw() {
       DESCRIPTION(
           "Interpolates the intensity field of the cloud box.\n"
           "\n"
-          "Revised method using polynomials of user-defined order for polar\n"
-          "angle interpolation. It can be (and should be) restricted to one\n"
-          "hemisphere (default is currently 'not restricted' in order to\n"
-          "reflect previous behaviour of the WSM, which is now\n"
-          "*iyInterpLinCloudboxField*).\n"
+          "Determines the intensity field at the position and direction\n"
+          "specified by *rte_pos* and *rte_los*. The position can be both\n"
+          "inside the cloud box or at its edge.\n"
           "\n"
-          "Spatial interpolation so far hardcoded as linear.\n"),
-      AUTHORS("Jana Mendrok"),
+          "The interpolation in the spatial dimensions is linear.\n"
+          "\n"
+          "For the zenith angle dimensions several options for controlling\n"
+          "the interpolation are at hand. Default is linear interpolation.\n"
+          "Higher order polynomial interpolation is activated by setting\n"
+          "*za_interp_order* to a value > 1. Default is to perform the\n"
+          "interpolation separately for [0,90[ and ]90,180]. To handle\n"
+          "90 degree or use the full range ([0,180]) as basis for the\n"
+          "interpolation, set *za_restrict* to 0. You can select to use\n"
+          "cos(za) as the independent variable (instead of za) by setting\n"
+          "*cos_za_interp* to 1.\n"
+          "\n"
+          "For the azimuth dimension the interpolation order can be\n"
+          "selected, in the same manner as for zenith.\n"),
+      AUTHORS("Claudia Emde", "Patrick Eriksson", "Jana Mendrok"),
       OUT("iy"),
       GOUT(),
       GOUT_TYPE(),
@@ -7367,6 +7378,7 @@ void define_md_data_raw() {
          "lat_grid",
          "lon_grid",
          "z_field",
+         "z_surface",
          "stokes_dim",
          "scat_za_grid",
          "scat_aa_grid",
@@ -7377,86 +7389,13 @@ void define_md_data_raw() {
           "za_extpolfac",
           "aa_interp_order"),
       GIN_TYPE("Index", "Index", "Index", "Numeric", "Index"),
-      GIN_DEFAULT("1", "0", "0", "1.0", "1"),
+      GIN_DEFAULT("1", "1", "0", "0.5", "1"),
       GIN_DESC("Zenith angle interpolation order.",
                "Flag whether to restric zenith angle interpolation to one"
                " hemisphere.",
                "Flag whether to do zenith angle interpolation in cosine space.",
                "Maximum allowed extrapolation range in zenith angle.",
                "Azimuth angle interpolation order.")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("iyInterpLinCloudboxField"),
-      DESCRIPTION(
-          "Interpolates the intensity field of the cloud box.\n"
-          "\n"
-          "This is the standard method to put in *iy_cloudbox_agenda* if the\n"
-          "the scattering inside the cloud box is handled by the DOIT method.\n"
-          "\n"
-          "The intensity field is interpolated to the position (specified by\n"
-          "*rtp_pos*) and direction (specified by *rtp_los*) given. Linear\n"
-          "interpolation is used for all dimensions.\n"
-          "\n"
-          "The intensity field on the cloux box boundaries is provided by\n"
-          "*doit_i_field* and interpolated if the given position is at any boundary.\n"),
-      AUTHORS("Claudia Emde"),
-      OUT("iy"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("doit_i_field",
-         "rtp_pos",
-         "rtp_los",
-         "jacobian_do",
-         "cloudbox_on",
-         "cloudbox_limits",
-         "atmosphere_dim",
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "z_field",
-         "stokes_dim",
-         "scat_za_grid",
-         "scat_aa_grid",
-         "f_grid"),
-      GIN("rigorous", "maxratio"),
-      GIN_TYPE("Index", "Numeric"),
-      GIN_DEFAULT("1", "3"),
-      GIN_DESC(
-          "Fail if cloudbox field is not safely interpolable.",
-          "Maximum allowed ratio of two radiances regarded as interpolable.")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("iyInterpPolyCloudboxField"),
-      DESCRIPTION(
-          "As *iyInterpCloudboxField* but performs quadratic interpolation.\n"
-          "\n"
-          "Works so far only for 1D cases, and accordingly a quadratic\n"
-          "interpolation along *scat_za_grid* is performed.\n"),
-      AUTHORS("Claudia Emde"),
-      OUT("iy"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("doit_i_field",
-         "rtp_pos",
-         "rtp_los",
-         "jacobian_do",
-         "cloudbox_on",
-         "cloudbox_limits",
-         "atmosphere_dim",
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "z_field",
-         "stokes_dim",
-         "scat_za_grid",
-         "scat_aa_grid",
-         "f_grid"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
       NAME("iyLoopFrequencies"),

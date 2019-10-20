@@ -150,33 +150,18 @@ AgendaSet( iy_surface_agenda__UseSurfaceRtprop ){
 #  be set.
 ###
 # linear interpolation of the intensity field of the cloud box,
-#  standard method in connection with DOIT scattering calculations.
 #
 AgendaCreate( iy_cloudbox_agenda__LinInterpField )
 AgendaSet( iy_cloudbox_agenda__LinInterpField ){
-  iyInterpLinCloudboxField
+  iyInterpCloudboxField
 }
 
 ###
 # quadratic interpolation of the intensity field of the cloud box
-#  functional only for 1D
 #
 AgendaCreate( iy_cloudbox_agenda__QuadInterpField1D )
 AgendaSet( iy_cloudbox_agenda__QuadInterpField1D ){
-  iyInterpPolyCloudboxField
-}
-
-###
-# polynomial interpolation of user defined order of the cloudbox intensity
-#  field (in angle space; position is linearly interpolated). default setup
-#  gives same as iyInterpLinCloudboxField (for other orders/methods redefine
-#  agenda with za/aa_interp_order, za_restrict, cosza_interp set accordingly).
-# 
-AgendaCreate( iy_cloudbox_agenda__NthOrderInterpField )
-AgendaSet( iy_cloudbox_agenda__NthOrderInterpField ){
-  iyInterpCloudboxField
-  #e.g. for for cubic, hemisphere-restricted za_grid interpolation
-  #iyInterpCloudboxField( za_inter_order=3, za_restrict=1 )
+  iyInterpCloudboxField( za_interp_order = 4 )
 }
 
 
