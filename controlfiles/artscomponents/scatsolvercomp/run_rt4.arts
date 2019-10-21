@@ -8,16 +8,7 @@ RT4Calc( nstreams = 16, auto_inc_nstreams=32, robust=1, quad_type = "l",
 yCalc( y = y_rt4 )
 VectorSubtractVector( y_rt4, y_rt4, y_clearsky )
 VectorScale( y_rt4, y_rt4, -1 )
-Print( y_rt4, 0 )
 Copy( scat_za_grid, scat_za_grid_copy )
 Copy( scat_aa_grid, scat_aa_grid_copy )
-
-# DISORT
-nelemGet( nelem, scat_za_grid )
-DisortCalc( pfct_method = "interpolate" )
-yCalc( y = y_disort )
-VectorSubtractVector( y_disort, y_disort, y_clearsky )
-VectorScale( y_disort, y_disort, -1 )
-Print( y_disort, 0 )
 
 }

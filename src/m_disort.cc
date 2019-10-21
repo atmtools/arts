@@ -69,12 +69,12 @@ void DisortCalc(Workspace& ws,
                 const Vector& f_grid,
                 const Vector& scat_za_grid,
                 const Index& stokes_dim,
+                const Matrix& z_surface,
                 const Numeric& surface_skin_t,
                 const Vector& surface_scalar_reflectivity,
                 const Index& nstreams,
                 const String& pfct_method,
                 const Index& Npfct,
-                const Index& pseudo_spherical,
                 const Index& cdisort_quiet,
                 const Verbosity& verbosity) {
   // Don't do anything if there's no cloudbox defined.
@@ -83,10 +83,6 @@ void DisortCalc(Workspace& ws,
     out0 << "  Cloudbox is off, DISORT calculation will be skipped.\n";
     return;
   }
-
-  // FIXME: so far surface is implictly assumed at lowest atmospheric level.
-  // That should be fixed (using z_surface and allowing other altitudes) at some
-  // point.
 
   // FIXME: At the moment, combining scattering elements stored on different
   //  scattering angle grids is only possible for pfct_method 'interpolate'.
@@ -102,8 +98,7 @@ void DisortCalc(Workspace& ws,
                      scat_data,
                      scat_za_grid,
                      nstreams,
-                     pfct_method,
-                     pnd_field.ncols());
+                     pfct_method);
 
   init_ifield(
       doit_i_field, f_grid, cloudbox_limits, scat_za_grid.nelem(), stokes_dim);
@@ -119,10 +114,11 @@ void DisortCalc(Workspace& ws,
       doit_i_field,
       f_grid,
       p_grid,
-      z_field,
-      t_field,
-      vmr_field,
-      pnd_field,
+      z_field(joker,0,0),
+      z_surface(0,0),
+      t_field(joker,0,0),
+      vmr_field(joker,joker,0,0),
+      pnd_field(joker,joker,0,0),
       scat_data,
       propmat_clearsky_agenda,
       cloudbox_limits,
@@ -131,7 +127,6 @@ void DisortCalc(Workspace& ws,
       scat_za_grid,
       nstreams,
       Npfct,
-      pseudo_spherical,
       cdisort_quiet,
       verbosity);
 }

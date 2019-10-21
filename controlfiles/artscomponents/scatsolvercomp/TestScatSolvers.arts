@@ -158,7 +158,7 @@ VectorExtractFromMatrix( rtp_pos, z_surface, 0, "row" )
 InterpAtmFieldToPosition( out=surface_skin_t, field=t_field )
 
 
-# Calculare reference for no cloudbox at all
+# Calculare reference values for no cloudbox at all
 # ---------------------------------------------------------------------
 ArrayOfStringCreate( scat_species_dummy )
 ArrayOfArrayOfSingleScatteringDataCreate( scat_data_dummy )
@@ -172,6 +172,7 @@ Print( y_clearsky, 0 )
 
 
 # Set some stuff that must be placed after cloudboxOff
+Copy( iy_cloudbox_agenda,  iy_cloudbox_agenda__LinInterpField )
 Copy( iy_cloudbox_agenda,  iy_cloudbox_agenda__QuadInterpField1D )
 ReadXML( scat_data_raw,           "testdata/scat_data.xml" )
 ReadXML( scat_meta,               "testdata/scat_meta.xml" )
@@ -189,7 +190,15 @@ cloudbox_checkedCalc
 #
 StringSet( message, "No scattering" )
 Print( message, 0 )
-INCLUDE "run_solvers.arts"
+#
+INCLUDE "run_doit.arts"
+Print( y_doit, 0 )
+INCLUDE "run_rt4.arts"
+Print( y_rt4, 0 )
+INCLUDE "run_disort.arts"
+Print( y_disort, 0 )
+INCLUDE "run_hybrid.arts"
+Print( y_hybrid, 0 )
 #
 Compare( y_doit, y0, 0.05, "Zero particles, DOIT" )
 Compare( y_rt4, y0, 0.1, "Zero particles, RT4" )
@@ -204,38 +213,59 @@ cloudbox_checkedCalc
 #
 StringSet( message, "Nominal case" )
 Print( message, 0 )
-INCLUDE "run_solvers.arts"
+#
+INCLUDE "run_doit.arts"
+Print( y_doit, 0 )
+INCLUDE "run_rt4.arts"
+Print( y_rt4, 0 )
+INCLUDE "run_disort.arts"
+Print( y_disort, 0 )
+INCLUDE "run_hybrid.arts"
+Print( y_hybrid, 0 )
 #
 CompareRelative( y_doit, y_disort, 0.02, "Test2, DOIT vs. DISORT" )
 CompareRelative( y_rt4, y_disort, 0.03, "Test2, RT4 vs. DISORT" )
 CompareRelative( y_hybrid, y_disort, 0.02, "Test2, Hybrid vs. DISORT" )
 
 
-# Test 3: With surface moved upwards (not yet working)
+# Test 3: As 2 but with RWC/IWC increased with a factor of 3
 # ---------------------------------------------------------------------
-#MatrixAddScalar( z_surface, z_surface, 1.5e3 )
-##
-#StringSet( message, "Surface moved upwards" )
-#Print( message, 0 )
-#INCLUDE "run_solvers.arts"
-##
-#CompareRelative( y_doit, y_disort, 0.05, "Test3, DOIT vs. DISORT" )
-#CompareRelative( y_rt4, y_disort, 0.05, "Test3, RT4 vs. DISORT" )
-#CompareRelative( y_hybrid, y_disort, 0.2, "Test3, Hybrid vs. DISORT" )
-
-
-# Test 4: As 2 but with RWC/IWC increased with a factor of 3
-# ---------------------------------------------------------------------
-Extract( z_surface, z_field, 0 )
 Tensor4Scale( particle_bulkprop_field, particle_bulkprop_field, 3 )
 pnd_fieldCalcFromParticleBulkProps
 #
 StringSet( message, "Increased RWC/IWC" )
 Print( message, 0 )
-INCLUDE "run_solvers.arts"
+#
+INCLUDE "run_doit.arts"
+Print( y_doit, 0 )
+INCLUDE "run_rt4.arts"
+Print( y_rt4, 0 )
+INCLUDE "run_disort.arts"
+Print( y_disort, 0 )
+INCLUDE "run_hybrid.arts"
+Print( y_hybrid, 0 )
 #
 CompareRelative( y_doit, y_disort, 0.02, "Test4, DOIT vs. DISORT" )
 CompareRelative( y_rt4, y_disort, 0.02, "Test4, RT4 vs. DISORT" )
+CompareRelative( y_hybrid, y_disort, 0.02, "Test4, Hybrid vs. DISORT" )
+
+
+# Test 4: As 2 but with surface moved upwards
+# ---------------------------------------------------------------------
+Tensor4Scale( particle_bulkprop_field, particle_bulkprop_field, 0.3333333 )
+pnd_fieldCalcFromParticleBulkProps
+MatrixAddScalar( z_surface, z_surface, 3000 )
+VectorExtractFromMatrix( rtp_pos, z_surface, 0, "row" )
+InterpAtmFieldToPosition( out=surface_skin_t, field=t_field )
+##
+StringSet( message, "Surface moved upwards" )
+Print( message, 0 )
+#
+INCLUDE "run_disort.arts"
+Print( y_disort, 0 )
+INCLUDE "run_hybrid.arts"
+Print( y_hybrid, 0 )
+#
 CompareRelative( y_hybrid, y_disort, 0.02, "Test4, Hybrid vs. DISORT" )
 
 }

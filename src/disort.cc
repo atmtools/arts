@@ -62,8 +62,7 @@ void check_disort_input(  // Input
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     ConstVectorView scat_za_grid,
     const Index& nstreams,
-    const String& pfct_method,
-    const Index& pnd_ncols) {
+    const String& pfct_method) {
 
   if (!cloudbox_on) {
     throw runtime_error(
@@ -97,11 +96,6 @@ void check_disort_input(  // Input
     throw runtime_error(
         "For running DISORT, the dimension of stokes vector "
         "must be 1.\n");
-
-  if (pnd_ncols != 1)
-    throw runtime_error(
-        "*pnd_field* is not 1D! \n"
-        "DISORT can only be used for 1D!\n");
 
   if (cloudbox_limits.nelem() != 2 * atmosphere_dim)
     throw runtime_error(
@@ -287,8 +281,8 @@ void get_disortsurf_props(  // Output
 void get_gasoptprop(Workspace& ws,
                     MatrixView ext_bulk_gas,
                     const Agenda& propmat_clearsky_agenda,
-                    ConstVectorView t_field,
-                    ConstMatrixView vmr_field,
+                    ConstVectorView t_profile,
+                    ConstMatrixView vmr_profiles,
                     ConstVectorView p_grid,
                     ConstVectorView f_grid) {
   const Index Np = p_grid.nelem();
@@ -325,9 +319,9 @@ void get_gasoptprop(Workspace& ws,
                                    rtp_mag_dummy,
                                    ppath_los_dummy,
                                    p_grid[ip],
-                                   t_field[ip],
+                                   t_profile[ip],
                                    rtp_temperature_nlte_dummy,
-                                   vmr_field(joker, ip),
+                                   vmr_profiles(joker, ip),
                                    propmat_clearsky_agenda);
 
     PropagationMatrix propmat_bulk = propmat_clearsky_local[0];
@@ -340,12 +334,12 @@ void get_gasoptprop(Workspace& ws,
 void get_paroptprop(MatrixView ext_bulk_par,
                     MatrixView abs_bulk_par,
                     const ArrayOfArrayOfSingleScatteringData& scat_data,
-                    ConstMatrixView pnd_field,
-                    ConstVectorView t_field,
+                    ConstMatrixView pnd_profiles,
+                    ConstVectorView t_profile,
                     ConstVectorView DEBUG_ONLY(p_grid),
                     const ArrayOfIndex& cloudbox_limits,
                     ConstVectorView f_grid) {
-  const Index Np_cloud = pnd_field.ncols();
+  const Index Np_cloud = pnd_profiles.ncols();
   DEBUG_ONLY(const Index Np = p_grid.nelem());
   const Index nf = f_grid.nelem();
 
@@ -359,7 +353,7 @@ void get_paroptprop(MatrixView ext_bulk_par,
   abs_bulk_par = 0.;
 
   // preparing input data
-  Vector T_array = t_field[Range(cloudbox_limits[0], Np_cloud)];
+  Vector T_array = t_profile[Range(cloudbox_limits[0], Np_cloud)];
   Matrix dir_array(1, 2, 0.);  // just a dummy. only tot_random allowed, ie.
                                // optprop are independent of direction.
 
@@ -391,7 +385,7 @@ void get_paroptprop(MatrixView ext_bulk_par,
                         ext_mat_Nse,
                         abs_vec_Nse,
                         ptypes_Nse,
-                        pnd_field,
+                        pnd_profiles,
                         t_ok);
   opt_prop_Bulk(ext_mat_bulk,
                 abs_vec_bulk,
@@ -417,7 +411,7 @@ void get_dtauc_ssalb(MatrixView dtauc,
                      ConstMatrixView ext_bulk_gas,
                      ConstMatrixView ext_bulk_par,
                      ConstMatrixView abs_bulk_par,
-                     ConstVectorView z_field) {
+                     ConstVectorView z_profile) {
   const Index nf = ext_bulk_gas.nrows();
   const Index Np = ext_bulk_gas.ncols();
 
@@ -444,7 +438,7 @@ void get_dtauc_ssalb(MatrixView dtauc,
         ssalb(f_index, Np - 2 - ip) = (ext - abs) / ext;
       }
 
-      dtauc(f_index, Np - 2 - ip) = ext * (z_field[ip + 1] - z_field[ip]);
+      dtauc(f_index, Np - 2 - ip) = ext * (z_profile[ip + 1] - z_profile[ip]);
     }
 }
 
@@ -482,18 +476,18 @@ void get_angs(Vector& pfct_angs,
 
 void get_parZ(Tensor3& pha_bulk_par,
               const ArrayOfArrayOfSingleScatteringData& scat_data,
-              ConstMatrixView pnd_field,
-              ConstVectorView t_field,
+              ConstMatrixView pnd_profiles,
+              ConstVectorView t_profile,
               ConstVectorView pfct_angs,
               const ArrayOfIndex& cloudbox_limits) {
-  const Index Np_cloud = pnd_field.ncols();
+  const Index Np_cloud = pnd_profiles.ncols();
   const Index nang = pfct_angs.nelem();
 
   // Initialization
   pha_bulk_par = 0.;
 
   // preparing input data
-  Vector T_array = t_field[Range(cloudbox_limits[0], Np_cloud)];
+  Vector T_array = t_profile[Range(cloudbox_limits[0], Np_cloud)];
   Matrix idir_array(1, 2, 0.);  // we want pfct on sca ang grid, hence set
                                 // pdir(*,0) to sca ang, all other to 0.
   Matrix pdir_array(nang, 2, 0.);
@@ -521,7 +515,7 @@ void get_parZ(Tensor3& pha_bulk_par,
                      idir_array,
                      -1);
   pha_mat_ScatSpecBulk(
-      pha_mat_ssbulk, ptype_ssbulk, pha_mat_Nse, ptypes_Nse, pnd_field, t_ok);
+      pha_mat_ssbulk, ptype_ssbulk, pha_mat_Nse, ptypes_Nse, pnd_profiles, t_ok);
   pha_mat_Bulk(pha_mat_bulk, ptype_bulk, pha_mat_ssbulk, ptype_ssbulk);
 
   pha_bulk_par(joker, Range(cloudbox_limits[0], Np_cloud), joker) =
@@ -709,10 +703,11 @@ void run_cdisort(Workspace& ws,
                  Tensor7& doit_i_field,
                  ConstVectorView f_grid,
                  ConstVectorView p_grid,
-                 ConstTensor3View z_field,
-                 ConstTensor3View t_field,
-                 ConstTensor4View vmr_field,
-                 ConstTensor4View pnd_field,
+                 ConstVectorView z_profile,
+                 const Numeric& z_surface,
+                 ConstVectorView t_profile,
+                 ConstMatrixView vmr_profiles,
+                 ConstMatrixView pnd_profiles,
                  const ArrayOfArrayOfSingleScatteringData& scat_data,
                  const Agenda& propmat_clearsky_agenda,
                  const ArrayOfIndex& cloudbox_limits,
@@ -721,9 +716,66 @@ void run_cdisort(Workspace& ws,
                  ConstVectorView scat_za_grid,
                  const Index& nstreams,
                  const Index& Npfct,
-                 const Index& pseudo_spherical,
                  const Index& quiet,
                  const Verbosity& verbosity) {
+
+  // Create variables describing an atmosphere starting at z_surface
+  Index np = p_grid.nelem(), ifirst = 0, ncboxbelow = 0;
+  Vector p, z, t;
+  Matrix vmr, pnd;
+  ArrayOfIndex cboxlims = cloudbox_limits;
+  if (abs(z_surface - z_profile[0]) < 1e-3) {  
+    p = p_grid;            // Surface at p_grid[0], here we just
+    z = z_profile;         // need to copy original variables
+    t = t_profile;         
+    vmr = vmr_profiles;
+    pnd = pnd_profiles;
+  }
+  else {
+    // Determine where to start with respect to z_profile
+    for (; z_surface >= z_profile[ifirst+1]; ifirst++) {}
+    np -= ifirst;
+    // Start by copying from ifirst to end
+    Range ind(ifirst, np);
+    p = p_grid[ind];
+    z = z_profile[ind];
+    t = t_profile[ind];    
+    vmr = vmr_profiles(joker, ind);
+    // Insert surface altitude
+    z[0] = z_surface;
+    // Interpolate to get other values at z_surface
+    ArrayOfGridPos gp(1);
+    gridpos(gp[0], z_profile, z_surface);
+    Vector itw(2);
+    interpweights(itw, gp[0]);
+    t[0] = interp(itw, t, gp[0]);
+    for (int i=0; i<vmr.nrows(); i++) {
+      vmr(i,0) = interp(itw, vmr(i,joker), gp[0]);
+    }
+    // We need a matrix version of iwt to use the function *itw2p*
+    Matrix itw2(1,2);
+    itw2(0,0) = itw[0];
+    itw2(0,1) = itw[1];
+    itw2p(p[0], p, gp, itw2);
+    // pnd_field needs special treatment
+    if (ifirst < cloudbox_limits[0]) {  // Surface below cloudbox 
+      cboxlims[0] -= ifirst;            
+      cboxlims[1] -= ifirst;
+      pnd = pnd_profiles;      
+    } else {                            // Surface inside cloudbox
+      ncboxbelow = ifirst - cboxlims[0];
+      cboxlims[0] = 0;
+      cboxlims[1] = cloudbox_limits[1] - cloudbox_limits[0] - ncboxbelow;
+      ind = Range(ncboxbelow, cboxlims[1]+1);
+      pnd = pnd_profiles(joker, ind);
+      gp[0].idx -= cloudbox_limits[0] + ncboxbelow;
+      for (int i=0; i<pnd.nrows(); i++) {
+        pnd(i,0) = interp(itw, pnd(i,joker), gp[0]);
+      }
+    }
+  }
+
+
   disort_state ds;
   disort_output out;
 
@@ -743,11 +795,11 @@ void run_cdisort(Workspace& ws,
 
   ds.flag.usrtau = FALSE;
   ds.flag.usrang = TRUE;
-  ds.flag.spher = pseudo_spherical ? TRUE : FALSE;
+  ds.flag.spher = FALSE;
   ds.flag.general_source = FALSE;
   ds.flag.output_uum = FALSE;
 
-  ds.nlyr = static_cast<int>(p_grid.nelem() - 1);
+  ds.nlyr = static_cast<int>(np - 1);
 
   ds.flag.brdf_type = BRDF_NONE;
 
@@ -782,24 +834,24 @@ void run_cdisort(Workspace& ws,
   ds.phi[0] = 0.;
 
   for (Index i = 0; i <= ds.nlyr; i++)
-    ds.temper[i] = t_field(ds.nlyr - i, 0, 0);
+    ds.temper[i] = t[ds.nlyr - i];
 
   Matrix ext_bulk_gas(nf, ds.nlyr + 1);
   get_gasoptprop(ws,
                  ext_bulk_gas,
                  propmat_clearsky_agenda,
-                 t_field(joker, 0, 0),
-                 vmr_field(joker, joker, 0, 0),
-                 p_grid,
+                 t,
+                 vmr,
+                 p,
                  f_grid);
   Matrix ext_bulk_par(nf, ds.nlyr + 1), abs_bulk_par(nf, ds.nlyr + 1);
   get_paroptprop(ext_bulk_par,
                  abs_bulk_par,
                  scat_data,
-                 pnd_field(joker, joker, 0, 0),
-                 t_field(joker, 0, 0),
-                 p_grid,
-                 cloudbox_limits,
+                 pnd,
+                 t,
+                 p,
+                 cboxlims,
                  f_grid);
 
   // Optical depth of layers
@@ -811,7 +863,7 @@ void run_cdisort(Workspace& ws,
                   ext_bulk_gas,
                   ext_bulk_par,
                   abs_bulk_par,
-                  z_field(joker, 0, 0));
+                  z);
 
   // Transform to mu, starting with negative values
   for (Index i = 0; i < ds.numu; i++)
@@ -833,8 +885,6 @@ void run_cdisort(Workspace& ws,
   ds.bc.fisot = 0;
 
   // Top of the atmosphere temperature and emissivity
-  //Numeric ttemp = t_field(cloudbox_limits[1], 0, 0);
-  //Numeric temis = 0.;
   ds.bc.ttemp = COSMIC_BG_TEMP;
   ds.bc.btemp = surface_skin_t;
   ds.bc.temis = 1.;
@@ -847,13 +897,13 @@ void run_cdisort(Workspace& ws,
   Tensor3 pha_bulk_par(nf_ssd, ds.nlyr + 1, nang);
   get_parZ(pha_bulk_par,
            scat_data,
-           pnd_field(joker, joker, 0, 0),
-           t_field(joker, 0, 0),
+           pnd,
+           t,
            pfct_angs,
-           cloudbox_limits);
+           cboxlims);
   Tensor3 pfct_bulk_par(nf_ssd, ds.nlyr, nang);
   get_pfct(
-      pfct_bulk_par, pha_bulk_par, ext_bulk_par, abs_bulk_par, cloudbox_limits);
+      pfct_bulk_par, pha_bulk_par, ext_bulk_par, abs_bulk_par, cboxlims);
 
   // Legendre polynomials of phase function
   Tensor3 pmom(nf_ssd, ds.nlyr, Nlegendre, 0.);
@@ -882,11 +932,19 @@ void run_cdisort(Workspace& ws,
 
     c_disort(&ds, &out);
 
-    for (Index j = 0; j < ds.numu; j++)
-      for (Index k = 0; k < (cloudbox_limits[1] - cloudbox_limits[0] + 1); k++)
+    for (Index j = 0; j < ds.numu; j++) {
+      for (Index k = cboxlims[1] - cboxlims[0]; k >= 0; k--) {
+        doit_i_field(f_index, k+ncboxbelow, 0, 0, j, 0, 0) =
+          out.uu[ds.numu * (ds.nlyr - k - cboxlims[0]) + j] /
+          (ds.wvnmhi - ds.wvnmlo) / (100 * SPEED_OF_LIGHT);
+      }
+      // To avoid potentail numerical problems at interpolation of the field,
+      // we copy the surface field to underground altitudes
+      for (Index k = ncboxbelow-1; k>=0; k--) {
         doit_i_field(f_index, k, 0, 0, j, 0, 0) =
-            out.uu[ds.numu * (ds.nlyr - k - cloudbox_limits[0]) + j] /
-            (ds.wvnmhi - ds.wvnmlo) / (100 * SPEED_OF_LIGHT);
+          doit_i_field(f_index, k+1, 0, 0, j, 0, 0);
+      }
+    }
   }
 
   /* Free allocated memory */

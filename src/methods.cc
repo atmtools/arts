@@ -4514,9 +4514,6 @@ void define_md_data_raw() {
           "  *cloudboxSetManually*). Internally, DISORT is run over the whole\n"
           "  atmosphere, but only the radiation field within the cloudbox is\n"
           "  passed on and used further in ARTS (e.g. by *yCalc*).\n"
-          "Beside this, you can active DISORT's pseudo-spherical geometry\n"
-          "option by the GIN *pseudo_spherical*. So far we have no experience\n"
-          "of the impact of this option.\n"
           "\n"
           "Known issues of ARTS implementation:\n"
           "- Surface altitude is not an interface parameter. Surface is\n"
@@ -4558,18 +4555,18 @@ void define_md_data_raw() {
          "f_grid",
          "scat_za_grid",
          "stokes_dim",
+         "z_surface",
          "surface_skin_t",
          "surface_scalar_reflectivity"),
-      GIN("nstreams", "pfct_method", "Npfct", "pseudo_spherical", "quiet"),
-      GIN_TYPE("Index", "String", "Index", "Index", "Index"),
-      GIN_DEFAULT("8", "median", "181", "0=", "0"),
+      GIN("nstreams", "pfct_method", "Npfct", "quiet"),
+      GIN_TYPE("Index", "String", "Index", "Index"),
+      GIN_DEFAULT("8", "median", "181", "0"),
       GIN_DESC("Number of polar angle directions (streams) in DISORT "
                "solution (must be an even number).",
                "Flag which method to apply to derive phase function.",
                "Number of angular grid points to calculate bulk phase"
                " function on (and derive Legendre polnomials from). If <0,"
                " the finest za_grid from scat_data will be used.",
-               "Set to 1 to activate DISORT's pseudo-spherical option.",
                "Silence C Disort warnings.")));
 
   md_data_raw.push_back(MdRecord(

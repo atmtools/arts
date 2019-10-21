@@ -1,0 +1,11 @@
+Arts2{
+
+# DOIT
+DoitInit
+DoitGetIncoming( rigorous=0 )
+doit_i_fieldSetClearsky
+DoitCalc
+yCalc( y = y_doit )
+VectorSubtractVector( y_doit, y_doit, y_clearsky )
+VectorScale( y_doit, y_doit, -1 )
+}
