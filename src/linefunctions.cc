@@ -2211,7 +2211,8 @@ void Linefunctions::set_cross_section_of_band(
   // Sum up variable reset
   sum.SetZero();
   
-  if (band.NumLines() == 0) return;
+  if (band.NumLines() == 0) return;  // No lines so no computations
+  if (Absorption::relaxationtype_relmat(band.Population())) return;  // Wants to be dealt with elsewhere entirely
   
   // Cutoff for Eigen-library types
   Eigen::Matrix<Numeric, 1, 1> fc;
@@ -2703,6 +2704,9 @@ void Linefunctions::set_cross_section_of_band(
               derivatives_data_active,
               QI);
         } break;
+        case Absorption::PopulationType::ByRelmatMendazaLTE:
+        case Absorption::PopulationType::ByRelmatHartmannLTE:
+          std::terminate();
       }
       
       // Zeeman-adjusted strength

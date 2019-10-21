@@ -182,6 +182,107 @@ Matrix relaxation_matrix_calculations(const ArrayOfLineRecord& lines,
   throw std::runtime_error(os.str());
 }
 
+Matrix relaxation_matrix_calculations(const AbsorptionLines& band,
+                                      const Vector& population,
+                                      const SpeciesTag& collider,
+                                      const Numeric& collider_vmr,
+                                      const Numeric& T,
+                                      const Index& size) try {
+  const Index n = band.NumLines();
+  Matrix W(n, n);
+
+  auto main = SpeciesTag(band.SpeciesName());
+  
+  const BasisRate br = basis_rate(main, collider, T, band.T0());
+  const AdiabaticFactor af = adiabatic_factor(main, collider);
+  const Numeric B0 = getB0(main);
+  const ArrayOfArrayOfSpeciesTag pseudo_species(
+      {ArrayOfSpeciesTag(1, collider), ArrayOfSpeciesTag(1, main)});
+  const Vector pseudo_vmrs({1, 0});
+  
+  Vector vmrs = LineShape::vmrs(pseudo_vmrs, pseudo_species, band.QuantumIdentity(), band.BroadeningSpecies(), band.Self(), band.Bath(), band.LineShapeType());
+
+  Species spec;
+  if (main.IsSpecies("CO2"))
+    spec = Species::CO2;
+  else if (main.IsSpecies("O2") and main.IsIsotopologue("66"))
+    spec = Species::O2_66;
+  else
+    throw "Unsupported species";
+
+#pragma omp parallel for schedule( \
+    guided, 1) if (DO_FAST_WIGNER && !arts_omp_in_parallel())
+  for (Index i = 0; i < n; i++) {
+    // Create a temporary table to allow openmp
+    wig_temp_init(2 * int(size));
+
+    auto shape_parameters = band.ShapeParameters(i, T, 1, vmrs);
+    W(i, i) = shape_parameters.G0;
+
+    const Numeric& popi = population[i];
+    for (Index j = 0; j < n; j++) {
+      const Numeric& popj = population[j];
+
+      if (i not_eq j) {
+        OffDiagonalElementOutput X;
+        switch (spec) {
+          case Species::CO2:
+            X = OffDiagonalElement::CO2_IR(band.UpperQuantumNumber(i, QuantumNumberType::J),
+                                           band.UpperQuantumNumber(j, QuantumNumberType::J),
+                                           band.LowerQuantumNumber(i, QuantumNumberType::J),
+                                           band.LowerQuantumNumber(j, QuantumNumberType::J),
+                                           band.UpperQuantumNumber(i, QuantumNumberType::l2),
+                                           band.UpperQuantumNumber(j, QuantumNumberType::l2),
+                                           band.LowerQuantumNumber(i, QuantumNumberType::l2),
+                                           band.LowerQuantumNumber(j, QuantumNumberType::l2),
+                                           popi,
+                                           popj,
+                                           br,
+                                           af,
+                                           T,
+                                           B0,
+                                           main.SpeciesMass(),
+                                           collider.SpeciesMass());
+            break;
+          case Species::O2_66:
+            X = OffDiagonalElement::O2_66_MW(band.UpperQuantumNumber(i, QuantumNumberType::J),
+                                             band.UpperQuantumNumber(i, QuantumNumberType::N),
+                                             band.LowerQuantumNumber(i, QuantumNumberType::J),
+                                             band.LowerQuantumNumber(i, QuantumNumberType::N),
+                                             band.UpperQuantumNumber(j, QuantumNumberType::J),
+                                             band.UpperQuantumNumber(j, QuantumNumberType::N),
+                                             band.LowerQuantumNumber(j, QuantumNumberType::J),
+                                             band.LowerQuantumNumber(j, QuantumNumberType::N),
+                                             popi, popj, T, collider.SpeciesMass());
+            break;
+          default:
+            throw "DEVELOPER BUG:  Add species here as well, the other one is to check if the computations are valid at all...";
+        }
+
+        W(i, j) = X.ij;
+        W(j, i) = X.ji;
+      }
+    }
+
+    // Remove the temporary table
+    wig_temp_free();
+  }
+
+  // rescale by the VMR
+  W *= collider_vmr;
+  return W;
+} catch (const char* e) {
+  std::ostringstream os;
+  os << "Errors raised by *relaxation_matrix_calculations*:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
+} catch (const std::exception& e) {
+  std::ostringstream os;
+  os << "Errors in calls by *relaxation_matrix_calculations*:\n";
+  os << e.what();
+  throw std::runtime_error(os.str());
+}
+
 void normalize_relaxation_matrix(Matrix& W,
                                  const Vector& population,
                                  const Vector& /* d0 */,
@@ -210,6 +311,92 @@ void normalize_relaxation_matrix(Matrix& W,
                                                 lines[i].F(),
                                                 QT0,
                                                 lines[i].Ti0(),
+                                                QT,
+                                                T);
+    }
+  }
+
+  get_sorted_indexes(sorted, test);
+  for (Index i = 0; i < n - i - 1; i++) std::swap(sorted[i], sorted[n - i - 1]);
+
+  // Sorted matrix
+  Matrix Wr(n, n);
+  for (Index i = 0; i < n; i++) {
+    Wr(i, i) = W(sorted[i], sorted[i]);
+    for (Index j = 0; j < n; j++) {
+      if (i not_eq j) {
+        Wr(i, j) = -std::abs(W(sorted[i], sorted[j]));
+      }
+    }
+  }
+
+  // Renormalization procedure
+  for (Index i = 0; i < n; i++) {
+    // Sum up upper and lower contributions
+    Numeric Sup = 0, Slo = 0;
+    for (Index j = 0; j < n; j++) {
+      if (j <= i)
+        Sup += std::abs(d[sorted[j]]) * Wr(i, j);
+      else
+        Slo += std::abs(d[sorted[j]]) * Wr(i, j);
+    }
+
+    Numeric UL = Sup / Slo;
+    if (not std::isnormal(UL)) UL = 1.0;
+
+    // Rescale to fulfill sum-rule, note how the loop for the upper triangle so the last row cannot be renormalized properly
+    for (Index j = i; j < n; j++) {
+      const Numeric r = population[sorted[i]] / population[sorted[j]];
+      Wr(j, i) = r * Wr(i, j);
+      if (j not_eq i) Wr(i, j) *= -UL;
+    }
+  }
+
+  for (Index i = 0; i < n - 1; i++) Wr(n - 1, i) = 0;  // TEST!
+
+  // Backsort matrix before returning
+  for (Index i = 0; i < n; i++)
+    for (Index j = 0; j < n; j++) W(sorted[i], sorted[j]) = Wr(i, j);
+} catch (const char* e) {
+  std::ostringstream os;
+  os << "Errors raised by *normalize_relaxation_matrix*:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
+} catch (const std::exception& e) {
+  std::ostringstream os;
+  os << "Errors in calls by *normalize_relaxation_matrix*:\n";
+  os << e.what();
+  throw std::runtime_error(os.str());
+}
+
+void normalize_relaxation_matrix(Matrix& W,
+                                 const Vector& population,
+                                 const Vector& /* d0 */,
+                                 const AbsorptionLines& band,
+                                 const SpeciesAuxData& partition_functions,
+                                 const Numeric& T) try {
+  const Index n = band.NumLines();
+
+  Vector d = reduced_dipole_vector(band, RedPoleType::ElectricRoVibDipole);
+
+  // Index list showing sorting of W
+  ArrayOfIndex sorted(n, 0);
+  Vector test(n);
+  if (n) {
+    const Numeric QT =
+        single_partition_function(T,
+                                  partition_functions.getParamType(band.QuantumIdentity()),
+                                  partition_functions.getParam(band.QuantumIdentity()));
+    for (Index i = 0; i < n; i++) {
+      const Numeric QT0 =
+          single_partition_function(band.T0(),
+                                    partition_functions.getParamType(band.QuantumIdentity()),
+                                    partition_functions.getParam(band.QuantumIdentity()));
+      test[i] = Linefunctions::lte_linestrength(band.I0(i),
+                                                band.E0(i),
+                                                band.F0(i),
+                                                QT0,
+                                                band.T0(),
                                                 QT,
                                                 T);
     }
@@ -310,6 +497,46 @@ inline Matrix hartmann_relaxation_matrix(
   throw std::runtime_error(os.str());
 }
 
+inline Matrix hartmann_relaxation_matrix(
+    const AbsorptionLines& band,
+    const Vector& population,
+    const Vector& d0,
+    const ArrayOfSpeciesTag& colliders,
+    const Vector& colliders_vmr,
+    const SpeciesAuxData& partition_functions,
+    const Numeric& T,
+    const Index& size) try {
+  // Size of problem
+  const Index n = band.NumLines();
+  const Index c = colliders.nelem();
+
+  // Create and normalize the matrix
+  Matrix W(n, n, 0);
+  if (n) {
+    for (Index ic = 0; ic < c; ic++)
+      W += relaxation_matrix_calculations(band,
+                                          population,
+                                          colliders[ic],
+                                          colliders_vmr[ic],
+                                          T,
+                                          size);
+    normalize_relaxation_matrix(
+        W, population, d0, band, partition_functions, T);
+  }
+
+  return W;
+} catch (const char* e) {
+  std::ostringstream os;
+  os << "Errors raised by *hartmann_relaxation_matrix*:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
+} catch (const std::exception& e) {
+  std::ostringstream os;
+  os << "Errors in calls by *hartmann_relaxation_matrix*:\n";
+  os << e.what();
+  throw std::runtime_error(os.str());
+}
+
 inline Numeric population_density(Numeric T,
                                   Numeric E0,
                                   Numeric F0,
@@ -358,6 +585,35 @@ Vector population_density_vector(const ArrayOfLineRecord& abs_lines,
   throw std::runtime_error(os.str());
 }
 
+Vector population_density_vector(const AbsorptionLines& band,
+                                 const SpeciesAuxData& partition_functions,
+                                 const Numeric& T) try {
+  auto n = band.NumLines();
+  Vector p(n);
+
+  if (n) {
+    const Numeric QT = single_partition_function(T,
+        partition_functions.getParamType(band.QuantumIdentity()),
+        partition_functions.getParam(band.QuantumIdentity()));
+
+    for (auto k = 0; k < n; k++) {
+      p[k] = population_density(T, band.E0(k), band.F0(k), QT);
+    }
+  }
+
+  return p;
+} catch (const char* e) {
+  std::ostringstream os;
+  os << "Errors raised by *population_density_vector*:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
+} catch (const std::exception& e) {
+  std::ostringstream os;
+  os << "Errors in calls by *population_density_vector*:\n";
+  os << e.what();
+  throw std::runtime_error(os.str());
+}
+
 Vector dipole_vector(const ArrayOfLineRecord& abs_lines,
                      const SpeciesAuxData& partition_functions) try {
   const Index n = abs_lines.nelem();
@@ -371,6 +627,32 @@ Vector dipole_vector(const ArrayOfLineRecord& abs_lines,
     if (T0 not_eq abs_lines[i].Ti0()) throw "Bad T0";
     d[i] = std::sqrt(abs_lines[i].I0() / p0[i]);
   }
+  return d;
+} catch (const char* e) {
+  std::ostringstream os;
+  os << "Errors raised by *dipole_vector*:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
+} catch (const std::exception& e) {
+  std::ostringstream os;
+  os << "Errors in calls by *dipole_vector*:\n";
+  os << e.what();
+  throw std::runtime_error(os.str());
+}
+
+Vector dipole_vector(const AbsorptionLines& band,
+                     const SpeciesAuxData& partition_functions) try {
+  const Index n = band.NumLines();
+  Vector d(n, 0);
+  if (not n) return d;
+
+  const Numeric T0 = band.T0();
+  const Vector p0 =
+  population_density_vector(band, partition_functions, T0);
+  for (Index k = 0; k < n; k++) {
+    d[k] = std::sqrt(band.I0(k) / p0[k]);
+  }
+  
   return d;
 } catch (const char* e) {
   std::ostringstream os;
@@ -417,6 +699,40 @@ Vector reduced_dipole_vector(const ArrayOfLineRecord& abs_lines,
   throw std::runtime_error(os.str());
 }
 
+/*! Computes the dipole moment
+ * \param abs_lines: all absorption lines of the band
+ * \return dipole moment of the absorption lines
+ */
+Vector reduced_dipole_vector(const AbsorptionLines& band,
+                             const RedPoleType type) try {
+  const Index n = band.NumLines();
+  Vector d(n, 0);
+  if (not n) return d;
+
+  switch (type) {
+    case RedPoleType::ElectricRoVibDipole:
+      for (Index i = 0; i < n; i++)
+        d[i] = Absorption::reduced_rovibrational_dipole(band.LowerQuantumNumber(i, QuantumNumberType::J),
+ band.UpperQuantumNumber(i, QuantumNumberType::J), band.LowerQuantumNumber(i, QuantumNumberType::l2), band.UpperQuantumNumber(i, QuantumNumberType::l2));
+      break;
+    case RedPoleType::MagneticQuadrapole:
+      for (Index i = 0; i < n; i++)
+        d[i] = Absorption::reduced_magnetic_quadrapole(band.LowerQuantumNumber(i, QuantumNumberType::J), band.UpperQuantumNumber(i, QuantumNumberType::J), band.UpperQuantumNumber(i, QuantumNumberType::N));
+      break;
+  }
+  return d;
+} catch (const char* e) {
+  std::ostringstream os;
+  os << "Errors raised by *reduced_dipole_vector*:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
+} catch (const std::exception& e) {
+  std::ostringstream os;
+  os << "Errors in calls by *reduced_dipole_vector*:\n";
+  os << e.what();
+  throw std::runtime_error(os.str());
+}
+
 Vector rosenkranz_first_order(const ArrayOfLineRecord& abs_lines,
                               const Matrix& W,
                               const Vector& d0) {
@@ -435,6 +751,24 @@ Vector rosenkranz_first_order(const ArrayOfLineRecord& abs_lines,
   return Y;
 }
 
+Vector rosenkranz_first_order(const AbsorptionLines& band,
+                              const Matrix& W,
+                              const Vector& d0) {
+  const Index n = band.NumLines();
+  Vector Y(n, 0);
+
+  for (Index i = 0; i < n; i++) {
+    Numeric sum = 0;
+    for (Index j = 0; j < n; j++) {
+      const Numeric df = band.F0(i) - band.F0(j);
+      if (std::isnormal(df)) sum += d0[j] / d0[i] * W(i, j) / df;
+    }
+    Y[i] = -2 * sum;  // Sign change because ARTS uses (1-iY)
+  }
+
+  return Y;
+}
+
 Vector rosenkranz_shifting_second_order(const ArrayOfLineRecord& abs_lines,
                                         const Matrix& W) {
   const Index n = abs_lines.nelem();
@@ -444,6 +778,23 @@ Vector rosenkranz_shifting_second_order(const ArrayOfLineRecord& abs_lines,
     Numeric sum = 0;
     for (Index j = 0; j < n; j++) {
       const Numeric df = abs_lines[j].F() - abs_lines[i].F();
+      if (std::isnormal(df)) sum += W(i, j) * W(j, i) / df;
+    }
+    DV[i] = sum;  // Does this require a sign change????
+  }
+
+  return DV;
+}
+
+Vector rosenkranz_shifting_second_order(const AbsorptionLines& band,
+                                        const Matrix& W) {
+  const Index n = band.NumLines();
+  Vector DV(n, 0);
+
+  for (Index i = 0; i < n; i++) {
+    Numeric sum = 0;
+    for (Index j = 0; j < n; j++) {
+      const Numeric df = band.F0(j) - band.F0(i);
       if (std::isnormal(df)) sum += W(i, j) * W(j, i) / df;
     }
     DV[i] = sum;  // Does this require a sign change????
@@ -487,6 +838,41 @@ Vector rosenkranz_scaling_second_order(const ArrayOfLineRecord& abs_lines,
   return G;
 }
 
+Vector rosenkranz_scaling_second_order(const AbsorptionLines& band,
+                                       const Matrix& W,
+                                       const Vector& d0) {
+  const Index n = band.NumLines();
+  Vector G(n, 0);
+
+  for (Index i = 0; i < n; i++) {
+    const Numeric& di = d0[i];
+    Numeric sum1 = 0;
+    Numeric sum2 = 0;
+    Numeric sum3 = 0;
+    Numeric sum4 = 0;
+    for (Index j = 0; j < n; j++) {
+      const Numeric df = band.F0(j) - band.F0(i);
+      if (std::isnormal(df)) {
+        const Numeric& dj = d0[j];
+        const Numeric r = dj / di;
+
+        sum1 += W(i, j) * W(j, i) / Constant::pow2(df);
+        sum2 += r * W(i, j) / df;
+        sum3 += r * W(i, j) * W(i, i) / Constant::pow2(df);
+
+        Numeric sum_tmp = 0;
+        for (Index k = 0; k < n; k++) {
+          const Numeric dfk = band.F0(k) - band.F0(i);
+          if (std::isnormal(dfk)) sum_tmp += W(k, j) * W(i, k) / (dfk * df);
+        }
+        sum4 += r * sum_tmp;
+      }
+    }
+    G[i] = sum1 - Constant::pow2(sum2) + 2 * sum3 - 2 * sum4;
+  }
+  return G;
+}
+
 Matrix hartmann_ecs_interface(const ArrayOfLineRecord& abs_lines,
                               const ArrayOfSpeciesTag& main_species,
                               const ArrayOfSpeciesTag& collider_species,
@@ -499,6 +885,31 @@ Matrix hartmann_ecs_interface(const ArrayOfLineRecord& abs_lines,
   const Vector dipole = dipole_vector(abs_lines, partition_functions);
   const Matrix W = hartmann_relaxation_matrix(abs_lines,
                                               main_species[0],
+                                              population,
+                                              dipole,
+                                              collider_species,
+                                              collider_species_vmr,
+                                              partition_functions,
+                                              T,
+                                              size);
+  return W;
+} catch (const std::exception& e) {
+  std::ostringstream os;
+  os << "Errors in calls by *hartmann_ecs_interface*:\n";
+  os << e.what();
+  throw std::runtime_error(os.str());
+}
+
+Matrix hartmann_ecs_interface(const AbsorptionLines& band,
+                              const ArrayOfSpeciesTag& collider_species,
+                              const Vector& collider_species_vmr,
+                              const SpeciesAuxData& partition_functions,
+                              const Numeric& T,
+                              const Index& size) try {
+  const Vector population =
+  population_density_vector(band, partition_functions, T);
+  const Vector dipole = dipole_vector(band, partition_functions);
+  const Matrix W = hartmann_relaxation_matrix(band,
                                               population,
                                               dipole,
                                               collider_species,
@@ -535,6 +946,67 @@ OffDiagonalElementOutput OffDiagonalElement::CO2_IR(
   const Rational l2kl = k_line.LowerQuantumNumber(QuantumNumberType::l2);
   const Rational l2jl = j_line.LowerQuantumNumber(QuantumNumberType::l2);
 
+  const bool jbig = Jjl >= Jkl;
+
+  // Prepare for the wigner calculations --- NOTE: twice the values of J and l2 required for fast Wigner-solver
+  // Also, prepare for initial and final phase to go from j to k if Jj >= Jk and vice verse
+  const int Ji = (2 * (jbig ? Jju : Jku)).toInt();
+  const int Jf = (2 * (jbig ? Jjl : Jkl)).toInt();
+  const int Ji_p = (2 * (jbig ? Jku : Jju)).toInt();
+  const int Jf_p = (2 * (jbig ? Jkl : Jjl)).toInt();
+  const int li = (2 * (jbig ? l2ju : l2ku)).toInt();
+  const int lf = (2 * (jbig ? l2jl : l2kl)).toInt();
+
+  // Find best start and end-point of the summing loop
+  //   const int st = std::max(Ji - Ji_p, Jf - Jf_p);
+  const int en = std::min(Ji + Ji_p, Jf + Jf_p);
+
+  // Adiabatic factor for Ji
+  const Numeric AF1 = af.get(Ji / 2, B0, T, main_mass, collider_mass);
+
+  // Scale constant for final state NOTE: "%4" and lack of 2*J because Fast library already doubles these numbers
+  const Numeric K1 = ((li + lf) % 4 ? 1.0 : -1.0) * Numeric(Ji_p + 1) *
+                     sqrt(Numeric((Jf + 1) * (Jf_p + 1))) * AF1;
+
+  Numeric sum = 0;
+  for (int L = 4; L <= en; L += 4) {
+    //   for(int L = st>4?st:4; L <= en; L+=4) {
+    // Basis rate for L
+    const Numeric QL = br.get(L / 2, B0, T);
+
+    // Adiabatic factor for L
+    const Numeric AF2 = af.get(L / 2, B0, T, main_mass, collider_mass);
+
+    // The wigner-symbol following Niro etal 2004
+    const Numeric y = co2_ecs_wigner_symbol(Ji, Jf, Ji_p, Jf_p, L, li, lf);
+
+    // Sum to the total
+    sum += QL * y / AF2;
+  }
+
+  sum *= K1;
+
+  const Numeric r = k_rho / j_rho;
+  return {jbig ? sum : sum * r, jbig ? sum / r : sum};
+}
+
+OffDiagonalElementOutput OffDiagonalElement::CO2_IR(
+    const Rational& Jku,
+    const Rational& Jju,
+    const Rational& Jkl,
+    const Rational& Jjl,
+    const Rational& l2ku,
+    const Rational& l2ju,
+    const Rational& l2kl,
+    const Rational& l2jl,
+    const Numeric& j_rho,
+    const Numeric& k_rho,
+    const BasisRate& br,
+    const AdiabaticFactor& af,
+    const Numeric& T,
+    const Numeric& B0,
+    const Numeric& main_mass,
+    const Numeric& collider_mass) {
   const bool jbig = Jjl >= Jkl;
 
   // Prepare for the wigner calculations --- NOTE: twice the values of J and l2 required for fast Wigner-solver
@@ -794,6 +1266,65 @@ OffDiagonalElementOutput OffDiagonalElement::O2_66_MW(
   return {onebig ? sum : sum * rho2 / rho1, onebig ? sum * rho1 / rho2 : sum};
 }
 
+OffDiagonalElementOutput OffDiagonalElement::O2_66_MW(
+    const Rational& J1u,
+    const Rational& N1u,
+    const Rational& J1l,
+    const Rational& N1l,
+    const Rational& J2u,
+    const Rational& N2u,
+    const Rational& J2l,
+    const Rational& N2l,
+    const Numeric& rho1,
+    const Numeric& rho2,
+    const Numeric& T,
+    const Numeric& collider_mass) {
+
+  // Find which is the 'upper' transition
+  const bool onebig =
+      Molecule::O2_66::hamiltonian_freq(
+          J1u.toNumeric(), (J1u - N1u).toInt(), (J1u - N1u).toInt()) >
+      Molecule::O2_66::hamiltonian_freq(
+          J2u.toNumeric(), (J2u - N2u).toInt(), (J2u - N2u).toInt());
+
+  // Define the transitions as in Makarov etal 2013, double the value for wiglib
+  const int Nk = (2 * (onebig ? N1u : N2u).toInt());
+  const int Nkp = (2 * (onebig ? N1l : N2l).toInt());
+  const int Jk = (2 * (onebig ? J1u : J2u).toInt());
+  const int Jkp = (2 * (onebig ? J1l : J2l).toInt());
+  const int Nl = (2 * (onebig ? N2u : N1u).toInt());
+  const int Nlp = (2 * (onebig ? N2l : N1l).toInt());
+  const int Jl = (2 * (onebig ? J2u : J1u).toInt());
+  const int Jlp = (2 * (onebig ? J2l : J1l).toInt());
+
+  if (Nl not_eq Nlp or Nk not_eq Nkp) throw "ERRROR, bad N-values";
+
+  // 'length' of numbers
+  const Numeric lNk = std::sqrt(Nk + 1.0);
+  const Numeric lNl = std::sqrt(Nl + 1.0);
+  const Numeric lJk = std::sqrt(Jk + 1.0);
+  const Numeric lJl = std::sqrt(Jl + 1.0);
+  const Numeric lJkp = std::sqrt(Jkp + 1.0);
+  const Numeric lJlp = std::sqrt(Jlp + 1.0);
+
+  // Constant independenf of L
+  const Numeric const1 = lNk * lNl * std::sqrt(lJk * lJl * lJkp * lJlp) *
+                         o2_66_inelastic_cross_section_makarov(Nk / 2, T);
+
+  Numeric sum = 0;
+  for (int L = 4; L < 400; L += 4) {
+    const int sgn = ((Jk + Jl + L + 2) % 4) ? 1 : -1;
+
+    const Numeric const2 =
+        sgn * const1 * o2_66_adiabatic_factor_makarov(L / 2, T, collider_mass) /
+        o2_66_inelastic_cross_section_makarov(L / 2, T);
+
+    sum += o2_ecs_wigner_symbol(Nl, Nk, Jl, Jk, Jlp, Jkp, L) * const2;
+  }
+
+  return {onebig ? sum : sum * rho2 / rho1, onebig ? sum * rho1 / rho2 : sum};
+}
+
 Numeric AdiabaticFactor::mol_X(const Numeric& L,
                                const Numeric& B0,
                                const Numeric& T,
@@ -942,6 +1473,48 @@ void relmatInAir(Matrix& relmat,
                                   partition_functions,
                                   temperature,
                                   wigner_initialized);
+} catch (const char* e) {
+  std::ostringstream os;
+  os << "Errors raised by *relmatInAir*:\n";
+  os << "\tError: " << e << '\n';
+  throw std::runtime_error(os.str());
+} catch (const std::exception& e) {
+  std::ostringstream os;
+  os << "Errors in calls by *relmatInAir*:\n";
+  os << e.what();
+  throw std::runtime_error(os.str());
+}
+
+void relmatInAir(Matrix& relmat,
+                 const AbsorptionLines& band,
+                 const SpeciesAuxData& partition_functions,
+                 const Index& wigner_initialized,
+                 const Numeric& temperature) try {
+  // Only for Earth's atmosphere
+  const ArrayOfSpeciesTag collider_species = {SpeciesTag("O2-66"),
+                                              SpeciesTag("N2-44")};
+  const Vector collider_species_vmr = {0.21, 0.79};
+
+  
+  if (band.Species() == SpeciesTag("CO2-626").Species() and
+      band.Isotopologue() == SpeciesTag("CO2-626").Isotopologue()) {
+  } else if (band.Species() == SpeciesTag("O2-66").Species() and
+             band.Isotopologue() == SpeciesTag("O2-66").Isotopologue()) {
+  } else
+    throw "Limit in functionality encountered.  We only support CO2-626 and O2-66 for now.";
+  
+  if (band.BroadeningSpecies().nelem() not_eq 2)
+    throw "Bad species length, only works for self+air broadening for now";
+  
+  if (band.Population() == Absorption::PopulationType::ByRelmatHartmannLTE)
+    relmat = hartmann_ecs_interface(band,
+                                    collider_species,
+                                    collider_species_vmr,
+                                    partition_functions,
+                                    temperature,
+                                    wigner_initialized);
+  else
+    throw "Population type has not been implemented";
 } catch (const char* e) {
   std::ostringstream os;
   os << "Errors raised by *relmatInAir*:\n";

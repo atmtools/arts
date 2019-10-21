@@ -831,6 +831,24 @@ void define_md_data_raw() {
           "Index to indicate if g is to be left as zero",
           "Index to indicate if dv is to be left as zero")));
 
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_lines_per_bandSetLineMixingFromRelmat2"),
+      DESCRIPTION("A dummy method to test line mixing.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species2", "relmat_per_band", "partition_functions"),
+      GIN("temperatures", "linemixing_type", "do_g", "do_dv"),
+      GIN_TYPE("Vector", "String", "Index", "Index"),
+      GIN_DEFAULT(NODEF, "LM2", "1", "1", ),
+      GIN_DESC(
+          "Vector of temperatures to compute the relaxation matrix at",
+          "String describing type of line mixing adaptation in linerecord after computations",
+          "Index to indicate if g is to be left as zero",
+          "Index to indicate if dv is to be left as zero")));
+
   md_data_raw.push_back(
       MdRecord(NAME("abs_linesSetNormalization"),
                DESCRIPTION("Sets normalization type for all lines.\n"
@@ -1629,6 +1647,32 @@ void define_md_data_raw() {
       GIN_DEFAULT("1"),
       GIN_DESC(
           "(Boolean) Set linemixing to need *abs_xsec_per_speciesAddLineMixedBands* for these lines?")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_lines_per_speciesSetRelamtLineMixingToMatches"),
+      DESCRIPTION("Sets abs_lines_per_band and related variables from\n"
+                  "*band_identifiers* to be computed by relaxation matrix\n"
+                  "calcuations mode.\n"
+                  "\n"
+                  "*relaxation_type* must be one of:\n"
+                  "\t\"MendazaRelmat\"\n"
+                  "\t\"HartmannRelmat\"\n"
+                  "\n"
+                  "If *band_identifiers* identifies bands that are not in\n"
+                  "the line data, this method remains silent.  This allows\n"
+                  "the user to use automated identification methods such as:\n"
+                  "*SetBandIdentifiersAuto* to identify more bands than will\n"
+                  "be used in subsequent relaxation matrix calculations.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species2", "band_identifiers"),
+      GIN("relaxation_type"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Relaxation matrix type")));
 
   md_data_raw.push_back(MdRecord(
       NAME("abs_lines_per_speciesAddMirrorLines"),
@@ -2607,6 +2651,27 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
+      NAME("abs_xsec_per_speciesAddLineMixedLines2"),
+      DESCRIPTION("Calculates the band-wise cross-section TEST FUNCTION\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_xsec_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_xsec_per_species",
+         "f_grid",
+         "abs_p",
+         "abs_t",
+         "relmat_per_band",
+         "abs_lines_per_species2",
+         "isotopologue_ratios",
+         "partition_functions"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
       NAME("abs_xsec_per_speciesAddLineMixedLinesInAir"),
       DESCRIPTION("Calculates the band-wise cross-section TEST FUNCTION\n"),
       AUTHORS("Richard Larsson"),
@@ -2621,6 +2686,28 @@ void define_md_data_raw() {
          "abs_p",
          "abs_t",
          "abs_lines_per_band",
+         "isotopologue_ratios",
+         "partition_functions",
+         "wigner_initialized"),
+      GIN("minimum_line_count"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("10"),
+      GIN_DESC("If less than this number of lines in a \"band\", "
+               "relaxation matrix is set diagonal")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_xsec_per_speciesAddLineMixedLinesInAir2"),
+      DESCRIPTION("Calculates the band-wise cross-section TEST FUNCTION\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_xsec_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_xsec_per_species",
+         "f_grid",
+         "abs_p",
+         "abs_t",
+         "abs_lines_per_species2",
          "isotopologue_ratios",
          "partition_functions",
          "wigner_initialized"),
@@ -12786,6 +12873,20 @@ void define_md_data_raw() {
       GIN_DEFAULT("296"),
       GIN_DESC("Temperature to evaluate at")));
 
+  md_data_raw.push_back(MdRecord(
+      NAME("PrintSelfLineMixingStatus2"),
+      DESCRIPTION("Test function for printing status of linemixing.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species2",),
+      GIN("temperature"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT("296"),
+      GIN_DESC("Temperature to evaluate at")));
+
   md_data_raw.push_back(
       MdRecord(NAME("PrintWorkspace"),
                DESCRIPTION("Prints a list of the workspace variables.\n"),
@@ -17600,6 +17701,34 @@ void define_md_data_raw() {
       GIN_DESC("Quantum numbers that are defined for the band")));
 
   md_data_raw.push_back(MdRecord(
+      NAME("SetBandIdentifiersFromLines2"),
+      DESCRIPTION(
+          "Sets (not adds to) *band_identifiers* to all uniques in *abs_lines*\n"
+          "\n"
+          "Will set all Quantum Numbers that are in the line as undefined\n"
+          "if they do not exist in *band_quantums* before comparing the resulting\n"
+          "QuantumIdentifier to the ones already in *band_identifiers*.  If new, push_back\n"
+          "is called adding the ID.  The functions does not check the species or isotopologue,\n"
+          "but you might have to define one anyways for the *band_quantums* input to work.\n"
+          "\n"
+          "Only looks at global quantum numbers if *global* evaluates as true.\n"
+          "\n"
+          "Example *band_quantums*=\"O2-66 EN v1 0\" means all quantum numbers that\n"
+          "are not v1 will be removed, and *band_identifiers* will consist of all the\n"
+          "identifiers of combinations of v1, e.g., v1 0 to v1 1, v1 0 to v1 0, and so on.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("band_identifiers"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines2"),
+      GIN("band_quantums", "global"),
+      GIN_TYPE("QuantumIdentifier", "Index"),
+      GIN_DEFAULT(NODEF, "1"),
+      GIN_DESC("Quantum numbers that are defined for the band",
+               "Flag to check if only global quantum numbers should be used")));
+
+  md_data_raw.push_back(MdRecord(
       NAME("SparseSparseMultiply"),
       DESCRIPTION(
           "Multiplies a Sparse with another Sparse, result stored in Sparse.\n"
@@ -19231,6 +19360,22 @@ void define_md_data_raw() {
       GIN_DESC("Vector of temperatures to compute the relaxation matrix at")));
 
   md_data_raw.push_back(MdRecord(
+      NAME("relmat_per_bandInAir2"),
+      DESCRIPTION("A dummy method to test line mixing.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("relmat_per_band"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species2",
+         "partition_functions",
+         "wigner_initialized"),
+      GIN("temperatures"),
+      GIN_TYPE("Vector"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Vector of temperatures to compute the relaxation matrix at")));
+
+  md_data_raw.push_back(MdRecord(
       NAME("Test"),
       DESCRIPTION(
           "A dummy method that can be used for test purposes.\n"
@@ -19249,31 +19394,6 @@ void define_md_data_raw() {
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-  /*
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "Test" ),
-        DESCRIPTION
-        (
-         "A dummy method that can be used for test purposes.\n"
-         "\n"
-         "This method can be used by ARTS developers to quickly test stuff.\n"
-         "The implementation is in file m_general.cc. This just saves you the\n"
-         "trouble of adding a dummy method everytime you want to try\n"
-         "something out quickly.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN("abs_lines_per_species"),
-        GIN("aqi"),
-        GIN_TYPE("ArrayOfQuantumIdentifier"),
-        GIN_DEFAULT(NODEF),
-        GIN_DESC("")
-        ));
-  */
 
   md_data_raw.push_back(
       MdRecord(NAME("timerStart"),

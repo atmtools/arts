@@ -144,7 +144,9 @@ inline String normalizationtype2metadatastring(NormalizationType in) {
  * The types here might require that different data is available at runtime absorption calculations
  */
 enum class PopulationType {
-  ByLTE,                      // Assume line is in LTE
+  ByLTE,                          // Assume line is in LTE
+  ByRelmatMendazaLTE,             // Assume line is in LTE but requires Relaxation matrix calculations - follows Mendaza method
+  ByRelmatHartmannLTE,            // Assume line is in LTE but requires Relaxation matrix calculations - follows Hartmann method
   ByNLTEVibrationalTemperatures,  // Assume line is in NLTE described by vibrational temperatures
   ByNLTEPopulationDistribution,   // Assume line is in NLTE and the upper-to-lower ratio is known
 };  // PopulationType
@@ -152,6 +154,10 @@ enum class PopulationType {
 inline PopulationType string2populationtype(const String& in) {
   if (in == "LTE")
     return PopulationType::ByLTE;
+  if (in == "MendazaRelmat")
+    return PopulationType::ByRelmatMendazaLTE;
+  if (in == "HartmannRelmat")
+    return PopulationType::ByRelmatHartmannLTE;
   else if (in == "NLTE-VibrationalTemperatures")
     return PopulationType::ByNLTEVibrationalTemperatures;
   else if (in == "NLTE")
@@ -161,23 +167,38 @@ inline PopulationType string2populationtype(const String& in) {
 }
 
 inline String populationtype2string(PopulationType in) {
-  if (in == PopulationType::ByLTE)
-    return "LTE";
-  else if (in == PopulationType::ByNLTEVibrationalTemperatures)
-    return "NLTE-VibrationalTemperatures";
-  else if (in == PopulationType::ByNLTEPopulationDistribution)
-    return "NLTE";
-  std::terminate();
+  switch (in) {
+    case PopulationType::ByLTE:
+      return "LTE";
+    case PopulationType::ByRelmatMendazaLTE:
+      return "MendazaRelmat";
+    case PopulationType::ByRelmatHartmannLTE:
+      return "HartmannRelmat";
+    case PopulationType::ByNLTEVibrationalTemperatures:
+      return "NLTE-VibrationalTemperatures";
+    case PopulationType::ByNLTEPopulationDistribution:
+      return "NLTE";
+  } std::terminate();
 }
 
 inline String populationtype2metadatastring(PopulationType in) {
-  if (in == PopulationType::ByLTE)
-    return "The lines are considered as in pure LTE.\n";
-  else if (in == PopulationType::ByNLTEVibrationalTemperatures)
-    return "The lines are considered as in NLTE by vibrational temperatures.\n";
-  else if (in == PopulationType::ByNLTEPopulationDistribution)
-    return "The lines are considered as in pure NLTE.\n";
-  std::terminate();
+  switch (in) {
+    case PopulationType::ByLTE:
+      return "The lines are considered as in pure LTE.\n";
+    case PopulationType::ByRelmatMendazaLTE:
+      return "The lines requires Relaxation matrix calculations in LTE - Mendaza method.\n";
+    case PopulationType::ByRelmatHartmannLTE:
+      return "The lines requires Relaxation matrix calculations in LTE - Hartmann method.\n";
+    case PopulationType::ByNLTEVibrationalTemperatures:
+      return "The lines are considered as in NLTE by vibrational temperatures.\n";
+    case PopulationType::ByNLTEPopulationDistribution:
+      return "The lines are considered as in pure NLTE.\n";
+  } std::terminate();
+}
+
+inline bool relaxationtype_relmat(PopulationType in) {
+  return in == PopulationType::ByRelmatMendazaLTE or
+         in == PopulationType::ByRelmatHartmannLTE;
 }
 
 /** Describes the type of cutoff calculations */
@@ -416,6 +437,30 @@ public:
     }
     
     mzeeman = Zeeman::Model(qid);
+  }
+  
+  /** Set the line mixing model to 2nd order
+   * 
+   * @param[in] d Data in 2nd order format
+   */
+  void SetLineMixing2SecondOrderData(const Vector& d) {
+    mlineshape.SetLineMixingModel(
+      LineShape::LegacyLineMixingData::vector2modellm(
+        d, LineShape::LegacyLineMixingData::TypeLM::LM_2NDORDER)
+      .Data()[0]);
+  }
+  
+  /** Set the line mixing model to AER kind
+   * 
+   * @param[in] d Data in AER format
+   */
+  void SetLineMixing2AER(const Vector& d) {
+    const LineShape::ModelParameters Y = {LineShape::TemperatureModel::LM_AER, d[4], d[5], d[6], d[7]};
+    const LineShape::ModelParameters G = {LineShape::TemperatureModel::LM_AER, d[8], d[9], d[10], d[11]};
+    for (auto& sm : mlineshape.Data()) {
+      sm.Y() = Y;
+      sm.G() = G;
+    }
   }
 };  // SingleLine
 
@@ -1362,6 +1407,26 @@ inline Index nelem(const Array<Lines>& l) {Index n=0; for (auto& x:l) n+=nelem(x
 
 /** Number of lines in lists */
 inline Index nelem(const Array<Array<Lines>>& l) {Index n=0; for (auto& x:l) n+=nelem(x); return n;}
+
+/** Compute the reduced rovibrational dipole moment
+ * 
+ * @param[in] Jf Final J
+ * @param[in] Ji Initial J
+ * @param[in] lf Final l2
+ * @param[in] li Initial l2
+ * @param[in] k Type of transition
+ * @return As titled
+ */
+Numeric reduced_rovibrational_dipole(Rational Jf, Rational Ji, Rational lf, Rational li, Rational k = 1);
+
+/** Compute the reduced magnetic quadrapole moment
+ * 
+ * @param[in] Jf Final J
+ * @param[in] Ji Initial J
+ * @param[in] N The quantum number (upper should be equal to lower)
+ * @return As titled
+ */
+Numeric reduced_magnetic_quadrapole(Rational Jf, Rational Ji, Rational N);
 };  // Absorption
 
 typedef Absorption::Lines AbsorptionLines;

@@ -336,6 +336,22 @@ OffDiagonalElementOutput CO2_IR(const LineRecord& j_line,
                                 const Numeric& B0,
                                 const Numeric& main_mass,
                                 const Numeric& collider_mass);
+OffDiagonalElementOutput CO2_IR(const Rational& Jku,
+                                const Rational& Jju,
+                                const Rational& Jkl,
+                                const Rational& Jjl,
+                                const Rational& l2ku,
+                                const Rational& l2ju,
+                                const Rational& l2kl,
+                                const Rational& l2jl,
+                                const Numeric& j_rho,
+                                const Numeric& k_rho,
+                                const BasisRate& br,
+                                const AdiabaticFactor& af,
+                                const Numeric& T,
+                                const Numeric& B0,
+                                const Numeric& main_mass,
+                                const Numeric& collider_mass);
 
 /** O2-66 MW off diagonal element computer 
  * 
@@ -349,6 +365,18 @@ OffDiagonalElementOutput CO2_IR(const LineRecord& j_line,
  */
 OffDiagonalElementOutput O2_66_MW(const LineRecord& line1,
                                   const LineRecord& line2,
+                                  const Numeric& rho1,
+                                  const Numeric& rho2,
+                                  const Numeric& T,
+                                  const Numeric& collider_mass);
+OffDiagonalElementOutput O2_66_MW(const Rational& J1u,
+                                  const Rational& N1u,
+                                  const Rational& J1l,
+                                  const Rational& N1l,
+                                  const Rational& J2u,
+                                  const Rational& N2u,
+                                  const Rational& J2l,
+                                  const Rational& N2l,
                                   const Numeric& rho1,
                                   const Numeric& rho2,
                                   const Numeric& T,
@@ -373,6 +401,12 @@ Matrix hartmann_ecs_interface(const ArrayOfLineRecord& abs_lines,
                               const SpeciesAuxData& partition_functions,
                               const Numeric& T,
                               const Index& size);
+Matrix hartmann_ecs_interface(const AbsorptionLines& abs_lines,
+                              const ArrayOfSpeciesTag& collider_species,
+                              const Vector& collider_species_vmr,
+                              const SpeciesAuxData& partition_functions,
+                              const Numeric& T,
+                              const Index& size);
 
 /** Compute the population density
  * 
@@ -384,6 +418,9 @@ Matrix hartmann_ecs_interface(const ArrayOfLineRecord& abs_lines,
 Vector population_density_vector(const ArrayOfLineRecord& abs_lines,
                                  const SpeciesAuxData& partition_functions,
                                  const Numeric& T);
+Vector population_density_vector(const AbsorptionLines& abs_lines,
+                                 const SpeciesAuxData& partition_functions,
+                                 const Numeric& T);
 
 /** Dipole vector
  * 
@@ -392,6 +429,8 @@ Vector population_density_vector(const ArrayOfLineRecord& abs_lines,
  * @return Vector Dipole for each line
  */
 Vector dipole_vector(const ArrayOfLineRecord& abs_lines,
+                     const SpeciesAuxData& partition_functions);
+Vector dipole_vector(const AbsorptionLines& abs_lines,
                      const SpeciesAuxData& partition_functions);
 
 /** Type of reduced dipole */
@@ -405,6 +444,8 @@ enum class RedPoleType { ElectricRoVibDipole, MagneticQuadrapole };
  */
 Vector reduced_dipole_vector(const ArrayOfLineRecord& abs_lines,
                              const RedPoleType type);
+Vector reduced_dipole_vector(const AbsorptionLines& abs_lines,
+                             const RedPoleType type);
 
 /** Computes G for Rosenkranz's line mixing coefficients
  * 
@@ -416,6 +457,9 @@ Vector reduced_dipole_vector(const ArrayOfLineRecord& abs_lines,
 Vector rosenkranz_scaling_second_order(const ArrayOfLineRecord& abs_lines,
                                        const Matrix& W,
                                        const Vector& d0);
+Vector rosenkranz_scaling_second_order(const AbsorptionLines& abs_lines,
+                                       const Matrix& W,
+                                       const Vector& d0);
 
 /** Computes DV for Rosenkranz's line mixing coefficients
  * 
@@ -424,6 +468,8 @@ Vector rosenkranz_scaling_second_order(const ArrayOfLineRecord& abs_lines,
  * @return Vector DV for each line
  */
 Vector rosenkranz_shifting_second_order(const ArrayOfLineRecord& abs_lines,
+                                        const Matrix& W);
+Vector rosenkranz_shifting_second_order(const AbsorptionLines& abs_lines,
                                         const Matrix& W);
 
 /** Computes Y for Rosenkranz's line mixing coefficients
@@ -434,6 +480,9 @@ Vector rosenkranz_shifting_second_order(const ArrayOfLineRecord& abs_lines,
  * @return Vector Y for each line
  */
 Vector rosenkranz_first_order(const ArrayOfLineRecord& abs_lines,
+                              const Matrix& W,
+                              const Vector& d0);
+Vector rosenkranz_first_order(const AbsorptionLines& abs_lines,
                               const Matrix& W,
                               const Vector& d0);
 
@@ -518,6 +567,11 @@ void relmatInAir(Matrix& relmat,
                  const Index& wigner_initialized,
                  const Numeric& temperature,
                  const Index& species);
+void relmatInAir(Matrix& relmat,
+                 const AbsorptionLines& abs_lines,
+                 const SpeciesAuxData& partition_functions,
+                 const Index& wigner_initialized,
+                 const Numeric& temperature);
 
 /** Xsec from full relaxation matrix
  * 

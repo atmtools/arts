@@ -200,7 +200,7 @@ Vector createCji(const Vector& Cij,
                  const Numeric& T) {
   const Index n = nelem(abs_lines);
   Vector Cji(n);
-  setCji(Cji, Cij, abs_lines, T, n);
+  setCji(Cji, Cij, abs_lines, T);
   return Cji;
 }
 
@@ -222,8 +222,7 @@ void setCji(VectorView Cji,
 void setCji(Vector& Cji,
             const Vector& Cij,
             const ArrayOfArrayOfAbsorptionLines& abs_lines,
-            const Numeric& T,
-            const Index n) {
+            const Numeric& T) {
   extern const Numeric PLANCK_CONST, BOLTZMAN_CONST;
   const static Numeric c0 = -PLANCK_CONST / BOLTZMAN_CONST;
   const Numeric constant = c0 / T;
@@ -314,7 +313,6 @@ void nlte_collision_factorsCalcFromCoeffs(
   // size of problem
   const Index nspec = abs_species.nelem();
   const Index ntrans = collision_line_identifiers.nelem();
-  const Index nlines = nelem(abs_lines);
 
   // reset Cij for summing later
   Cij = 0;
@@ -358,7 +356,7 @@ void nlte_collision_factorsCalcFromCoeffs(
   }
 
   // Compute the reverse
-  setCji(Cji, Cij, abs_lines, T, Cij.nelem());
+  setCji(Cji, Cij, abs_lines, T);
 }
 
 void nlte_positions_in_statistical_equilibrium_matrix(

@@ -181,8 +181,7 @@ void setCji(VectorView Cji,
 void setCji(Vector& Cji,
             const Vector& Cij,
             const ArrayOfArrayOfAbsorptionLines& abs_lines,
-            const Numeric& T,
-            const Index n);
+            const Numeric& T);
 
 /** Gets collisional factors from coefficients
  * 
