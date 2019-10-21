@@ -14683,7 +14683,39 @@ void define_md_data_raw() {
       GIN("filename", "fmax", "globalquantumnumbers", "localquantumnumbers"),
       GIN_TYPE("String", "Numeric", "String", "String"),
       GIN_DEFAULT(NODEF, NODEF, "", ""),
-      GIN_DESC("Name of the HITRAN file", "Max frequency",
+      GIN_DESC("Name of the LBLRTM file", "Max frequency",
+               "Global quantum number list (space-separated)",
+               "Local quantum number list (space-separated)")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("ReadMytran2"),
+      DESCRIPTION("Reads a Mytran2 file.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("filename", "fmax", "globalquantumnumbers", "localquantumnumbers"),
+      GIN_TYPE("String", "Numeric", "String", "String"),
+      GIN_DEFAULT(NODEF, NODEF, "", ""),
+      GIN_DESC("Name of the Mytran2 file", "Max frequency",
+               "Global quantum number list (space-separated)",
+               "Local quantum number list (space-separated)")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("ReadJPL"),
+      DESCRIPTION("Reads a JPL file.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines2"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("filename", "fmax", "globalquantumnumbers", "localquantumnumbers"),
+      GIN_TYPE("String", "Numeric", "String", "String"),
+      GIN_DEFAULT(NODEF, NODEF, "", ""),
+      GIN_DESC("Name of the JPL file", "Max frequency",
                "Global quantum number list (space-separated)",
                "Local quantum number list (space-separated)")));
 

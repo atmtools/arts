@@ -1303,6 +1303,20 @@ SingleLineExternal ReadFromLBLRTMStream(istream& is);
  */
 SingleLineExternal ReadFromHitran2004Stream(istream& is);
 
+/** Read from Mytran2
+ * 
+ * @param[in] is Input stream
+ * @return SingleLineExternal 
+ */
+SingleLineExternal ReadFromMytran2Stream(istream& is);
+
+/** Read from JPL
+ * 
+ * @param[in] is Input stream
+ * @return SingleLineExternal 
+ */
+SingleLineExternal ReadFromJplStream(istream& is);
+
 /** Splits a list of lines into proper Lines
  * 
  * Ensures that all but SingleLine list in Lines is the same in a full

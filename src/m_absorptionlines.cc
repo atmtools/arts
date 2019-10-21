@@ -268,6 +268,126 @@ void ReadLBLRTM(ArrayOfAbsorptionLines& abs_lines,
     abs_lines.push_back(lines);
 }
 
+void ReadMytran2(ArrayOfAbsorptionLines& abs_lines,
+                 const String& mytran2_file,
+                 const Numeric& fmax,
+                 const String& globalquantumnumbers,
+                 const String& localquantumnumbers,
+                 const Verbosity&)
+{
+  // Take care of quantum numbers
+  String tmp_string;
+  
+  // Global numbers
+  std::vector<QuantumNumberType> global_nums(0);
+  if (globalquantumnumbers not_eq "") {
+    std::istringstream global_str(globalquantumnumbers);
+    while (not global_str.eof()) {
+      global_str >> tmp_string; 
+      global_nums.push_back(string2quantumnumbertype(tmp_string));
+    }
+  }
+  
+  // Local numbers
+  std::vector<QuantumNumberType> local_nums(0);
+  if (localquantumnumbers not_eq "") {
+    std::istringstream local_str(localquantumnumbers);
+    while (not local_str.eof()) {
+      local_str >> tmp_string;
+      local_nums.push_back(string2quantumnumbertype(tmp_string));
+    }
+  }
+  
+  // LBLRTM data
+  ifstream is;
+  open_input_file(is, mytran2_file);
+  
+  std::vector<Absorption::SingleLineExternal> v(0);
+  
+  bool go_on = true;
+  while (go_on) {
+    v.push_back(Absorption::ReadFromMytran2Stream(is));
+    
+    if (v.back().bad) {
+      v.pop_back();
+      go_on = false;
+    }
+    else if (v.back().line.F0() > fmax) {
+      v.pop_back();
+      go_on = false;
+    }
+  }
+  
+  for (auto& x: v)
+    x.line.Zeeman() = Zeeman::GetAdvancedModel(x.quantumidentity);
+  
+  auto x = Absorption::split_list_of_external_lines(v, local_nums, global_nums);
+  abs_lines.resize(0);
+  abs_lines.reserve(x.size());
+  for (auto& lines: x)
+    abs_lines.push_back(lines);
+}
+
+void ReadJPL(ArrayOfAbsorptionLines& abs_lines,
+             const String& jpl_file,
+             const Numeric& fmax,
+             const String& globalquantumnumbers,
+             const String& localquantumnumbers,
+             const Verbosity&)
+{
+  // Take care of quantum numbers
+  String tmp_string;
+  
+  // Global numbers
+  std::vector<QuantumNumberType> global_nums(0);
+  if (globalquantumnumbers not_eq "") {
+    std::istringstream global_str(globalquantumnumbers);
+    while (not global_str.eof()) {
+      global_str >> tmp_string; 
+      global_nums.push_back(string2quantumnumbertype(tmp_string));
+    }
+  }
+  
+  // Local numbers
+  std::vector<QuantumNumberType> local_nums(0);
+  if (localquantumnumbers not_eq "") {
+    std::istringstream local_str(localquantumnumbers);
+    while (not local_str.eof()) {
+      local_str >> tmp_string;
+      local_nums.push_back(string2quantumnumbertype(tmp_string));
+    }
+  }
+  
+  // LBLRTM data
+  ifstream is;
+  open_input_file(is, jpl_file);
+  
+  std::vector<Absorption::SingleLineExternal> v(0);
+  
+  bool go_on = true;
+  while (go_on) {
+    v.push_back(Absorption::ReadFromJplStream(is));
+    
+    if (v.back().bad) {
+      v.pop_back();
+      go_on = false;
+    }
+    else if (v.back().line.F0() > fmax) {
+      v.pop_back();
+      go_on = false;
+    }
+  }
+  
+  for (auto& x: v)
+    x.line.Zeeman() = Zeeman::GetAdvancedModel(x.quantumidentity);
+  
+  auto x = Absorption::split_list_of_external_lines(v, local_nums, global_nums);
+  abs_lines.resize(0);
+  abs_lines.reserve(x.size());
+  for (auto& lines: x)
+    abs_lines.push_back(lines);
+}
+
 void abs_linesWriteSplitXML(const ArrayOfAbsorptionLines& abs_lines,
                             const String& basename,
                             const Verbosity& verbosity)
