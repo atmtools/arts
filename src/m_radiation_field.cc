@@ -370,12 +370,13 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D2(
   Agenda l_iy_surface_agenda(iy_surface_agenda);
   Agenda l_iy_cloudbox_agenda(iy_cloudbox_agenda);
 
-// #pragma omp parallel for if (not arts_omp_in_parallel())               \
-//     schedule(guided) default(shared) firstprivate(l_ws,                \
-//                                                   l_iy_main_agenda,    \
-//                                                   l_iy_space_agenda,   \
-//                                                   l_iy_surface_agenda, \
-//                                                   l_iy_cloudbox_agenda)
+#pragma omp parallel for if (not arts_omp_in_parallel())               \
+    schedule(guided) default(shared) firstprivate(l_ws,                \
+                                                  l_iy_main_agenda,    \
+                                                  l_iy_space_agenda,   \
+                                                  l_iy_surface_agenda, \
+                                                  l_iy_cloudbox_agenda,\
+                                                  il)
   for (Index i = 0; i < ppath_field.nelem(); i++) {
     const Ppath& path = ppath_field[i];
 
