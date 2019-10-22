@@ -588,7 +588,9 @@ std::ostream& operator<<(std::ostream& os, const EnergyLevelMap& elm) {
 
 EnergyLevelMap EnergyLevelMap::operator()(Index i, Index j, Index k) const
 {
-  if (mtype not_eq EnergyLevelMapType::Tensor3_t)
+  if (mtype == EnergyLevelMapType::None_t or mtype == EnergyLevelMapType::Numeric_t)
+    return *this;
+  else if (mtype not_eq EnergyLevelMapType::Tensor3_t)
     throw std::runtime_error("Must have Tensor3_t, input type is bad");
   
   auto elm = EnergyLevelMap(EnergyLevelMapType::Numeric_t, 1, 1, 1, *this);

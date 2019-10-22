@@ -1221,37 +1221,6 @@ void SetBandIdentifiersAuto(ArrayOfQuantumIdentifier& band_identifiers,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void SetBandIdentifiersFromLines(ArrayOfQuantumIdentifier& band_identifiers,
-                                 const ArrayOfLineRecord& abs_lines,
-                                 const QuantumIdentifier& band_quantums,
-                                 const Verbosity&) {
-  if (not band_quantums.IsEnergyLevelType())
-    throw std::runtime_error("band_quantums must be energy type");
-
-  auto& qns = band_quantums.EnergyLevelQuantumNumbers();
-
-  band_identifiers.resize(0);
-
-  for (auto& line : abs_lines) {
-    QuantumIdentifier qid = line.QuantumIdentity();  // Copy
-    auto& upper = qid.UpperQuantumNumbers();
-    auto& lower = qid.LowerQuantumNumbers();
-
-    for (Index i = 0; i < Index(QuantumNumberType::FINAL_ENTRY); i++) {
-      if (qns[i].isUndefined()) {
-        upper.Set(i, RATIONAL_UNDEFINED);  // Make undefined unwanted numbers
-        lower.Set(i, RATIONAL_UNDEFINED);  // Make undefined unwanted numbers
-      }
-    }
-
-    bool copy = false;
-    for (auto& bid : band_identifiers)
-      if (bid.In(qid)) copy = true;
-    if (not copy) band_identifiers.push_back(qid);
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void SetBandIdentifiersFromLines2(ArrayOfQuantumIdentifier& band_identifiers,
                                  const ArrayOfAbsorptionLines& abs_lines,
                                  const QuantumIdentifier& band_quantums,
                                  const Index& global,
@@ -1287,42 +1256,6 @@ void SetBandIdentifiersFromLines2(ArrayOfQuantumIdentifier& band_identifiers,
             copy = true;
         if (not copy)
           band_identifiers.push_back(qid);
-      }
-    }
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_bandFromband_identifiers(
-    ArrayOfArrayOfLineRecord& abs_lines_per_band,
-    ArrayOfArrayOfSpeciesTag& abs_species_per_band,
-    ArrayOfArrayOfLineRecord& abs_lines_per_species,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const ArrayOfQuantumIdentifier& band_identifiers,
-    const Index& change_linemixing_to_bandwise,
-    const Verbosity&) {
-  if (abs_lines_per_species.nelem() not_eq abs_species.nelem())
-    throw std::runtime_error(
-        "Mismatching abs_species and abs_lines_per_species");
-
-  abs_lines_per_band.resize(band_identifiers.nelem());
-  abs_species_per_band.resize(band_identifiers.nelem());
-
-  for (Index qi = 0; qi < band_identifiers.nelem(); qi++) {
-    const QuantumIdentifier& band_id = band_identifiers[qi];
-
-    for (Index s = 0; s < abs_lines_per_species.nelem(); s++) {
-      ArrayOfLineRecord& species_lines = abs_lines_per_species[s];
-
-      abs_species_per_band[qi] = abs_species[s];
-
-      for (auto& line : species_lines) {
-        if (line.InQuantumID(band_id)) {
-          if (not line.LineMixingByBand()) {
-            if (change_linemixing_to_bandwise) line.SetSpecial();
-            abs_lines_per_band[qi].push_back(line);
-          }
-        }
       }
     }
   }
@@ -2442,33 +2375,6 @@ void SetLineMixingCoefficinetsFromRelmat(  // WS Input And Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void PrintSelfLineMixingStatus(
-    const ArrayOfArrayOfLineRecord& abs_lines_per_band,
-    const ArrayOfArrayOfSpeciesTag& abs_species_per_band,
-    const Numeric& T,
-    const Verbosity& verbosity) {
-  CREATE_OUT0;
-  
-  constexpr QuantumNumberType J = QuantumNumberType::J;
-  const Vector vmrs(abs_lines_per_band.nelem(), 1.0);
-  Numeric Y, G, DV;
-
-  for (Index i = 0; i < abs_lines_per_band.nelem(); i++) {
-    out0 << std::scientific << "BAND " << i + 1 << "\n"
-         << "JF\tJI\tY(" << T << ")\tG(" << T << ")\tDV(" << T
-         << ")\tF0\tE0\n";
-    for (const auto& line : abs_lines_per_band[i]) {
-      out0 << line.LowerQuantumNumber(J) << '\t'
-           << line.UpperQuantumNumber(J) << '\t';
-      line.SetLineMixingParameters(
-          Y, G, DV, T, 101325, vmrs, abs_species_per_band);
-      out0 << Y << '\t' << G << '\t' << DV << '\t' << line.F() << '\t'
-           << line.Elow() << '\n';
-    }
-  }
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void PrintSelfLineMixingStatus2(
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const Numeric& T,
     const Verbosity& verbosity) {
@@ -2495,49 +2401,6 @@ void PrintSelfLineMixingStatus2(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void relmat_per_bandInAir(ArrayOfArrayOfMatrix& relmat_per_band,
-                          const ArrayOfArrayOfLineRecord& abs_lines_per_band,
-                          const ArrayOfArrayOfSpeciesTag& abs_species_per_band,
-                          const SpeciesAuxData& partition_functions,
-                          const Index& wigner_initialized,
-                          const Vector& temperatures,
-                          const Verbosity&) try {
-  auto lsize = abs_lines_per_band.nelem();
-  auto tsize = temperatures.nelem();
-
-  // Ensure increasing temperatures
-  for (auto i = 1; i < tsize; i++)
-    if (temperatures[i] <= temperatures[i - 1])
-      throw "Must have strictly increasing GIN temperatures";
-
-  // Size of relaxation matrix
-  relmat_per_band.resize(lsize);
-  for (auto& r : relmat_per_band) r.resize(tsize);
-
-  for (auto j = 0; j < lsize; j++) {
-    for (auto i = 0; i < tsize; i++) {
-      relmatInAir(relmat_per_band[j][i],
-                  abs_lines_per_band[j],
-                  abs_species_per_band,
-                  partition_functions,
-                  wigner_initialized,
-                  temperatures[i],
-                  j);
-    }
-  }
-} catch (const char* e) {
-  std::ostringstream os;
-  os << "Errors raised by *relmat_per_bandInAir*:\n";
-  os << "\tError: " << e << '\n';
-  throw std::runtime_error(os.str());
-} catch (const std::exception& e) {
-  std::ostringstream os;
-  os << "Errors in calls by *relmat_per_bandInAir*:\n";
-  os << e.what();
-  throw std::runtime_error(os.str());
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void relmat_per_bandInAir2(ArrayOfArrayOfMatrix& relmat_per_band,
                           const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
                           const SpeciesAuxData& partition_functions,
                           const Index& wigner_initialized,
@@ -2692,7 +2555,7 @@ void abs_lines_per_bandSetLineMixingFromRelmat(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_bandSetLineMixingFromRelmat2(
+void abs_lines_per_speciesSetLineMixingFromRelmat(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const ArrayOfArrayOfMatrix& relmat_per_band,
     const SpeciesAuxData& partition_functions,
@@ -2806,88 +2669,6 @@ void abs_lines_per_bandSetLineMixingFromRelmat2(
 void abs_xsec_per_speciesAddLineMixedLines(  // WS Output:
     ArrayOfMatrix& abs_xsec_per_species,
     // WS Input:
-    const ArrayOfArrayOfSpeciesTag& abs_species_per_band,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const Vector& f_grid,
-    const Vector& abs_p,
-    const Vector& abs_t,
-    const ArrayOfArrayOfMatrix& relmat_per_band,
-    const ArrayOfArrayOfLineRecord& abs_lines_per_band,
-    const SpeciesAuxData& isotopologue_ratios,
-    const SpeciesAuxData& partition_functions,
-    const Verbosity&) try {
-  const auto nb = abs_lines_per_band.nelem();
-  const auto nf = f_grid.nelem();
-  const auto np = abs_t.nelem();
-
-  ComplexVector F(nf);
-  for (auto ip = 0; ip < np; ip++) {
-    for (auto ib = 0; ib < nb; ib++) {
-      const Index pos = find_first(abs_species, abs_species_per_band[ib]);
-      if (pos < 0) throw "Bad input, band species is not in absorption species";
-
-      const auto& species = abs_species_per_band[pos][0];
-      const auto& band = abs_lines_per_band[ib];
-
-      const auto N = abs_lines_per_band[ib].nelem();
-      const auto& W = relmat_per_band
-          [ib][ip];  // nb. should be complex but is only real for now
-      Eigen::MatrixXcd M(N, N);
-      for (auto i1 = 0; i1 < N; i1++) {
-        for (auto i2 = 0; i2 < N; i2++) {
-          if (i1 not_eq i2)
-            M(i1, i2) = +Complex(0, abs_p[ip]) * W(i1, i2);
-          else
-            M(i1, i2) = band[i1].F() + Complex(0, abs_p[ip]) * W(i1, i2);
-        }
-      }
-
-      const Vector population =
-          population_density_vector(band, partition_functions, abs_t[ip]);
-      const Vector dipole = dipole_vector(band, partition_functions);
-      const Eigen::ComplexEigenSolver<Eigen::MatrixXcd> decM(M, true);
-      const auto& D = decM.eigenvalues();
-      const ComplexVector B =
-          equivalent_linestrengths(population, dipole, decM);
-
-      F = 0;
-      for (Index il = 0; il < N; il++) {
-        const Numeric gammaD =
-            Linefunctions::DopplerConstant(abs_t[ip], species.SpeciesMass()) *
-            D[il].real();
-        for (auto iv = 0; iv < nf; iv++) {
-          const Complex z = (f_grid[iv] - conj(D[il])) / gammaD;
-          const Complex w = Faddeeva::w(z);
-          const Complex zm = (f_grid[iv] + D[il]) / gammaD;
-          const Complex wm = Faddeeva::w(zm);
-
-          F[iv] +=
-              (Constant::inv_sqrt_pi / gammaD) * (w * conj(B[il]) + wm * B[il]);
-        }
-      }
-
-      for (Index iv = 0; iv < nf; iv++) {
-        abs_xsec_per_species[pos](iv, ip) +=
-            isotopologue_ratios.getIsotopologueRatio(species) * F[iv].real();
-      }
-    }
-  }
-} catch (const char* e) {
-  std::ostringstream os;
-  os << "Errors raised by *abs_xsec_per_speciesAddLineMixedLines*:\n";
-  os << "\tError: " << e << '\n';
-  throw std::runtime_error(os.str());
-} catch (const std::exception& e) {
-  std::ostringstream os;
-  os << "Errors in calls by *abs_xsec_per_speciesAddLineMixedLines*:\n";
-  os << e.what();
-  throw std::runtime_error(os.str());
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_xsec_per_speciesAddLineMixedLines2(  // WS Output:
-    ArrayOfMatrix& abs_xsec_per_species,
-    // WS Input:
     const Vector& f_grid,
     const Vector& abs_p,
     const Vector& abs_t,
@@ -2970,128 +2751,6 @@ void abs_xsec_per_speciesAddLineMixedLines2(  // WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_xsec_per_speciesAddLineMixedLinesInAir(  // WS Output:
-    ArrayOfMatrix& abs_xsec_per_species,
-    // WS Input:
-    const ArrayOfArrayOfSpeciesTag& abs_species_per_band,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const Vector& f_grid,
-    const Vector& abs_p,
-    const Vector& abs_t,
-    const ArrayOfArrayOfLineRecord& abs_lines_per_band,
-    const SpeciesAuxData& isotopologue_ratios,
-    const SpeciesAuxData& partition_functions,
-    const Index& wigner_initialized,
-    const Index& minimum_line_count,
-    const Verbosity& verbosity) try {
-  CREATE_OUT2;
-
-  const auto nb = abs_lines_per_band.nelem();
-  const auto nf = f_grid.nelem();
-  const auto np = abs_t.nelem();
-
-  ComplexVector F(nf);
-  for (auto ib = 0; ib < nb; ib++) {
-    const auto N = abs_lines_per_band[ib].nelem();
-    for (auto ip = 0; ip < np; ip++) {
-      out2 << "Computing band " << ib + 1 << "/" << nb << " on level " << ip + 1
-           << "/" << np << " with " << N << " lines\n";
-
-      const Index pos = find_first(abs_species, abs_species_per_band[ib]);
-      if (pos < 0) throw "Bad input, band species is not in absorption species";
-      const auto& species = abs_species_per_band[pos][0];
-      const auto& band = abs_lines_per_band[ib];
-
-      // nb. Make this agenda once more possibilities are available...
-      Eigen::MatrixXcd M(N, N);
-      if (minimum_line_count > N) {
-        Matrix W;
-        relmatInAir(W,
-                    abs_lines_per_band[ib],
-                    abs_species_per_band,
-                    partition_functions,
-                    wigner_initialized,
-                    abs_t[ip],
-                    ib);
-        for (auto i1 = 0; i1 < N; i1++) {
-          auto x = abs_lines_per_band[ib][i1].GetShapeParams(
-              abs_t[ip],
-              abs_p[ip],
-              Vector({0.21, 0.79, 0}),
-              ArrayOfArrayOfSpeciesTag(
-                  {ArrayOfSpeciesTag(1, SpeciesTag("O2")),
-                   ArrayOfSpeciesTag(1, SpeciesTag("N2")),
-                   ArrayOfSpeciesTag(1,
-                                     SpeciesTag(species.SpeciesNameMain()))}));
-          for (auto i2 = 0; i2 < N; i2++) {
-            if (i1 not_eq i2)
-              M(i1, i2) = +Complex(0, abs_p[ip]) * W(i1, i2);
-            else
-              M(i1, i2) =
-                  band[i1].F() + x.D0 + Complex(0, abs_p[ip]) * W(i1, i2);
-          }
-        }
-      } else {
-        M.setZero();
-        for (auto il = 0; il < N; il++) {
-          // "AIR"
-          auto x = abs_lines_per_band[ib][il].GetShapeParams(
-              abs_t[ip],
-              abs_p[ip],
-              Vector({0.21, 0.79, 0}),
-              ArrayOfArrayOfSpeciesTag(
-                  {ArrayOfSpeciesTag(1, SpeciesTag("O2")),
-                   ArrayOfSpeciesTag(1, SpeciesTag("N2")),
-                   ArrayOfSpeciesTag(1,
-                                     SpeciesTag(species.SpeciesNameMain()))}));
-          M(il, il) = Complex(0, x.G0);
-        }
-      }
-
-      const Vector population =
-          population_density_vector(band, partition_functions, abs_t[ip]);
-      const Vector dipole = dipole_vector(band, partition_functions);
-      const Eigen::ComplexEigenSolver<Eigen::MatrixXcd> decM(M, true);
-      const auto& D = decM.eigenvalues();
-      const ComplexVector B =
-          equivalent_linestrengths(population, dipole, decM);
-
-      F = 0;
-      for (Index il = 0; il < N; il++) {
-        const Numeric gammaD =
-            Linefunctions::DopplerConstant(abs_t[ip], species.SpeciesMass()) *
-            D[il].real();
-        for (auto iv = 0; iv < nf; iv++) {
-          const Complex z = (f_grid[iv] - conj(D[il])) / gammaD;
-          const Complex w = Faddeeva::w(z);
-          const Complex zm = (f_grid[iv] + D[il]) / gammaD;
-          const Complex wm = Faddeeva::w(zm);
-
-          F[iv] +=
-              (Constant::inv_sqrt_pi / gammaD) * (w * conj(B[il]) + wm * B[il]);
-        }
-      }
-
-      for (Index iv = 0; iv < nf; iv++) {
-        abs_xsec_per_species[pos](iv, ip) +=
-            isotopologue_ratios.getIsotopologueRatio(species) * F[iv].real();
-      }
-    }
-  }
-} catch (const char* e) {
-  std::ostringstream os;
-  os << "Errors raised by *abs_xsec_per_speciesAddLineMixedLinesInAir*:\n";
-  os << "\tError: " << e << '\n';
-  throw std::runtime_error(os.str());
-} catch (const std::exception& e) {
-  std::ostringstream os;
-  os << "Errors in calls by *abs_xsec_per_speciesAddLineMixedLinesInAir*:\n";
-  os << e.what();
-  throw std::runtime_error(os.str());
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_xsec_per_speciesAddLineMixedLinesInAir2(  // WS Output:
     ArrayOfMatrix& abs_xsec_per_species,
     // WS Input:
     const Vector& f_grid,

@@ -858,7 +858,7 @@ void iyHybrid(Workspace& ws,
               ArrayOfTensor3& diy_dx,
               Vector& ppvar_p,
               Vector& ppvar_t,
-              Matrix& ppvar_nlte,
+              EnergyLevelMap& ppvar_nlte,
               Matrix& ppvar_vmr,
               Matrix& ppvar_wind,
               Matrix& ppvar_mag,
@@ -872,7 +872,7 @@ void iyHybrid(Workspace& ws,
               const Index& atmosphere_dim,
               const Vector& p_grid,
               const Tensor3& t_field,
-              const Tensor4& nlte_field,
+              const EnergyLevelMap& nlte_field,
               const Tensor4& vmr_field,
               const ArrayOfArrayOfSpeciesTag& abs_species,
               const Tensor3& wind_u_field,
@@ -1087,7 +1087,6 @@ void iyHybrid(Workspace& ws,
     ppvar_p.resize(0);
     ppvar_t.resize(0);
     ppvar_vmr.resize(0, 0);
-    ppvar_nlte.resize(0, 0);
     ppvar_wind.resize(0, 0);
     ppvar_mag.resize(0, 0);
     ppvar_pnd.resize(0, 0);
@@ -1173,7 +1172,7 @@ void iyHybrid(Workspace& ws,
                                     ppvar_f(joker, ip),
                                     ppvar_mag(joker, ip),
                                     ppath.los(ip, joker),
-                                    ppvar_nlte(joker, ip),
+                                    ppvar_nlte[ip],
                                     ppvar_vmr(joker, ip),
                                     ppvar_t[ip],
                                     ppvar_p[ip],
@@ -1421,7 +1420,7 @@ void iyHybrid2(Workspace& ws,
                ArrayOfTensor3& diy_dx,
                Vector& ppvar_p,
                Vector& ppvar_t,
-               Matrix& ppvar_nlte,
+               EnergyLevelMap& ppvar_nlte,
                Matrix& ppvar_vmr,
                Matrix& ppvar_wind,
                Matrix& ppvar_mag,
@@ -1435,7 +1434,7 @@ void iyHybrid2(Workspace& ws,
                const Index& atmosphere_dim,
                const Vector& p_grid,
                const Tensor3& t_field,
-               const Tensor4& nlte_field,
+               const EnergyLevelMap& nlte_field,
                const Tensor4& vmr_field,
                const ArrayOfArrayOfSpeciesTag& abs_species,
                const Tensor3& wind_u_field,
@@ -1654,7 +1653,6 @@ void iyHybrid2(Workspace& ws,
     ppvar_p.resize(0);
     ppvar_t.resize(0);
     ppvar_vmr.resize(0, 0);
-    //     ppvar_nlte.resize(0,0);
     ppvar_wind.resize(0, 0);
     ppvar_mag.resize(0, 0);
     ppvar_f.resize(0, 0);
@@ -1744,7 +1742,7 @@ void iyHybrid2(Workspace& ws,
                                     ppvar_f(joker, ip),
                                     ppvar_mag(joker, ip),
                                     ppath.los(ip, joker),
-                                    ppvar_nlte(joker, ip),
+                                    ppvar_nlte[ip],
                                     ppvar_vmr(joker, ip),
                                     ppvar_t[ip],
                                     ppvar_p[ip],

@@ -446,7 +446,7 @@ void abs_linesRemoveUnusedLocalQuantumNumbers(ArrayOfAbsorptionLines& abs_lines,
 }
 
 
-void abs_linesReplaceWithLines2(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& replacing_lines, const Verbosity&)
+void abs_linesReplaceWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& replacing_lines, const Verbosity&)
 {
   for (auto& rlines: replacing_lines) {
     Index number_of_matching_bands = 0;
@@ -477,7 +477,7 @@ void abs_linesReplaceWithLines2(ArrayOfAbsorptionLines& abs_lines, const ArrayOf
 }
 
 
-void abs_linesAppendWithLines2(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& appending_lines, const Verbosity&)
+void abs_linesAppendWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& appending_lines, const Verbosity&)
 {
   std::vector<AbsorptionLines> addedlines(0);
   
@@ -515,7 +515,7 @@ void abs_linesAppendWithLines2(ArrayOfAbsorptionLines& abs_lines, const ArrayOfA
 }
 
 
-void abs_linesDeleteWithLines2(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& deleting_lines, const Verbosity&)
+void abs_linesDeleteWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& deleting_lines, const Verbosity&)
 {
   for (auto& dlines: deleting_lines) {
     for (auto& tlines: abs_lines) {
@@ -670,7 +670,7 @@ void abs_lines_per_speciesSetT0(ArrayOfArrayOfAbsorptionLines& abs_lines_per_spe
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesChangeBaseParameterForMatchingLines2(ArrayOfAbsorptionLines& abs_lines,
+void abs_linesChangeBaseParameterForMatchingLines(ArrayOfAbsorptionLines& abs_lines,
                                                   const QuantumIdentifier& QI,
                                                   const String& parameter_name,
                                                   const Numeric& change,
@@ -761,16 +761,16 @@ void abs_lines_per_speciesChangeBaseParameterForMatchingLines(ArrayOfArrayOfAbso
                                                               const Verbosity& verbosity)
 {
   for (auto& lines: abs_lines_per_species)
-    abs_linesChangeBaseParameterForMatchingLines2(lines, QI, parameter_name, change, relative, loose_matching, verbosity);
+    abs_linesChangeBaseParameterForMatchingLines(lines, QI, parameter_name, change, relative, loose_matching, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesSetBaseParameterForMatchingLines2(ArrayOfAbsorptionLines& abs_lines,
-                                                const QuantumIdentifier& QI,
-                                                const String& parameter_name,
-                                                const Numeric& x,
-                                                const Index& loose_matching,
-                                                const Verbosity&)
+void abs_linesSetBaseParameterForMatchingLines(ArrayOfAbsorptionLines& abs_lines,
+                                               const QuantumIdentifier& QI,
+                                               const String& parameter_name,
+                                               const Numeric& x,
+                                               const Index& loose_matching,
+                                               const Verbosity&)
 {
   Index parameter_switch = -1;
   
@@ -836,11 +836,11 @@ void abs_lines_per_speciesSetBaseParameterForMatchingLines(ArrayOfArrayOfAbsorpt
                                                            const Verbosity& verbosity)
 {
   for (auto& lines: abs_lines_per_species)
-    abs_linesSetBaseParameterForMatchingLines2(lines, QI, parameter_name, change, loose_matching, verbosity);
+    abs_linesSetBaseParameterForMatchingLines(lines, QI, parameter_name, change, loose_matching, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesChangeLineShapeModelParameterForMatchingLines2(
+void abs_linesChangeLineShapeModelParameterForMatchingLines(
     ArrayOfAbsorptionLines& abs_lines,
     const QuantumIdentifier& QI,
     const String& parameter,
@@ -900,12 +900,12 @@ void abs_lines_per_speciesChangeLineShapeModelParameterForMatchingLines(
   const Verbosity& verbosity)
 {
   for (auto& lines: abs_lines_per_species)
-    abs_linesChangeLineShapeModelParameterForMatchingLines2(
+    abs_linesChangeLineShapeModelParameterForMatchingLines(
       lines, QI, parameter, coefficient, species, x, relative, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesSetLineShapeModelParameterForMatchingLines2(
+void abs_linesSetLineShapeModelParameterForMatchingLines(
     ArrayOfAbsorptionLines& abs_lines,
     const QuantumIdentifier& QI,
     const String& parameter,
@@ -951,12 +951,12 @@ void abs_lines_per_speciesSetLineShapeModelParameterForMatchingLines(
   const Verbosity& verbosity)
 {
   for (auto& lines: abs_lines_per_species)
-    abs_linesSetLineShapeModelParameterForMatchingLines2(
+    abs_linesSetLineShapeModelParameterForMatchingLines(
       lines, QI, parameter, coefficient, species, new_value, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void nlteSetByQuantumIdentifiers2(
+void nlteSetByQuantumIdentifiers(
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const EnergyLevelMap& nlte_field,
     const Verbosity&) {

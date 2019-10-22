@@ -495,7 +495,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
     const Vector& p_grid,
     const Tensor3& z_field,
     const Tensor3& t_field,
-    const Tensor4& nlte_field,
+    const EnergyLevelMap& nlte_field,
     const Tensor4& vmr_field,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const Tensor3& wind_u_field,
@@ -566,7 +566,8 @@ void spectral_radiance_fieldClearskyPlaneParallel(
         // Define output variables
         Ppath ppath;
         Vector ppvar_p, ppvar_t;
-        Matrix iy, ppvar_nlte, ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f;
+        Matrix iy, ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f;
+        EnergyLevelMap ppvar_nlte;
         Tensor3 ppvar_iy;
         Tensor4 ppvar_trans_cumulat, ppvar_trans_partial;
         ArrayOfMatrix iy_aux;
@@ -784,7 +785,7 @@ void spectral_radiance_fieldExpandCloudboxField(
     const Vector& p_grid,
     const Tensor3& z_field,
     const Tensor3& t_field,
-    const Tensor4& nlte_field,
+    const EnergyLevelMap& nlte_field,
     const Tensor4& vmr_field,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const Tensor3& wind_u_field,
@@ -869,7 +870,8 @@ void spectral_radiance_fieldExpandCloudboxField(
         // Define output variables
         Ppath ppath;
         Vector ppvar_p, ppvar_t;
-        Matrix iy, ppvar_nlte, ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f;
+        Matrix iy, ppvar_vmr, ppvar_wind, ppvar_mag, ppvar_f;
+        EnergyLevelMap ppvar_nlte;
         Tensor3 ppvar_iy;
         Tensor4 ppvar_trans_cumulat, ppvar_trans_partial;
         ArrayOfMatrix iy_aux;

@@ -60,20 +60,20 @@ int main(int /*argc*/, char * /*argv*/[]) {
     ArrayOfLineRecord abs_lines;
     Timer timer;
 
-    timerStart(timer, v);
-    abs_linesReadFromHitran(
-        abs_lines,
-        "/Users/olemke/Dropbox/Hacking/sat/catalogue/HITRAN2008/HITRAN08.par",
-        1,
-        1.1876e+11,
-        v);
-    //    1, 3e12, v);
-    //    118e9, 119e9, v);
-    timerStop(timer, v);
-
-    Print(timer, 1, v);
-
-    SpeciesTag stag("O2-66");
+//     timerStart(timer, v);
+//     abs_linesReadFromHitran(
+//         abs_lines,
+//         "/Users/olemke/Dropbox/Hacking/sat/catalogue/HITRAN2008/HITRAN08.par",
+//         1,
+//         1.1876e+11,
+//         v);
+//     //    1, 3e12, v);
+//     //    118e9, 119e9, v);
+//     timerStop(timer, v);
+// 
+//     Print(timer, 1, v);
+// 
+//     SpeciesTag stag("O2-66");
 
   } catch (const std::runtime_error &e) {
     cout << e.what() << endl;

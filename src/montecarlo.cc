@@ -297,7 +297,7 @@ void clear_rt_vars_at_gp(Workspace& ws,
 
   const Vector rtp_mag_dummy(3, 0);
   const Vector ppath_los_dummy;
-  const Vector temperature_nlte_dummy(0);
+  const EnergyLevelMap nlte_dummy;
 
   //calcualte absorption coefficient
   propmat_clearsky_agendaExecute(ws,
@@ -312,7 +312,7 @@ void clear_rt_vars_at_gp(Workspace& ws,
                                  ppath_los_dummy,
                                  p_vec[0],
                                  temperature,
-                                 temperature_nlte_dummy,
+                                 nlte_dummy,
                                  vmr_mat(joker, 0),
                                  propmat_clearsky_agenda);
 
@@ -349,7 +349,7 @@ void cloudy_rt_vars_at_gp(Workspace& ws,
   Matrix pnd_ppath(N_se, 1);
   Vector t_ppath(1);
   Vector p_ppath(1);  //may not be efficient with unecessary vectors
-  Vector temperature_nlte_dummy(0);
+  EnergyLevelMap nlte_dummy;
   Matrix itw_p(1, 2);
   ArrayOfGridPos ao_gp_p(1), ao_gp_lat(1), ao_gp_lon(1);
   Matrix vmr_ppath(ns, 1), itw_field;
@@ -401,7 +401,7 @@ void cloudy_rt_vars_at_gp(Workspace& ws,
                                  ppath_los_dummy,
                                  p_ppath[0],
                                  temperature,
-                                 temperature_nlte_dummy,
+                                 nlte_dummy,
                                  vmr_ppath(joker, 0),
                                  propmat_clearsky_agenda);
 

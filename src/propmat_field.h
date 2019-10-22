@@ -62,19 +62,6 @@ void field_of_propagation(Workspace& ws,
                           const Vector& p_grid,
                           const Tensor3& z_field,
                           const Tensor3& t_field,
-                          const Tensor4& nlte_field,
-                          const Tensor4& vmr_field,
-                          const ArrayOfRetrievalQuantity& jacobian_quantities,
-                          const Agenda& propmat_clearsky_agenda);
-void field_of_propagation(Workspace& ws,
-                          FieldOfPropagationMatrix& propmat_field,
-                          FieldOfStokesVector& absorption_field,
-                          FieldOfStokesVector& additional_source_field,
-                          const Index& stokes_dim,
-                          const Vector& f_grid,
-                          const Vector& p_grid,
-                          const Tensor3& z_field,
-                          const Tensor3& t_field,
                           const EnergyLevelMap& nlte_field,
                           const Tensor4& vmr_field,
                           const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -108,6 +95,7 @@ FieldOfTransmissionMatrix transmat_field_calc_from_propmat_field(
  * @param[in] additional_source_field A 3D field of source vectors
  * @param[in] f_grid As WSV
  * @param[in] t_field As WSV
+ * @param[in] nlte_field As WSV
  * @param[in] ppath As WSV
  * @param[in] iy_main_agenda As WSA
  * @param[in] iy_space_agenda As WSA
@@ -127,7 +115,7 @@ void emission_from_propmat_field(
     const FieldOfStokesVector& additional_source_field,
     const Vector& f_grid,
     const Tensor3& t_field,
-    const Tensor4& nlte_field,
+    const EnergyLevelMap& nlte_field,
     const Ppath& ppath,
     const Agenda& iy_main_agenda,
     const Agenda& iy_space_agenda,

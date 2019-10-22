@@ -207,27 +207,6 @@ void define_md_data_raw() {
           "input parameters (pressure, temperature, VMRs), from the input\n"
           "parameters to *propmat_clearsky_agenda*.\n"),
       AUTHORS("Stefan Buehler"),
-      OUT("abs_p", "abs_t", "abs_nlte", "abs_vmrs"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("rtp_pressure", "rtp_temperature", "rtp_nlte", "rtp_vmr"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("AbsInputFromRteScalars2"),
-      DESCRIPTION(
-          "Initialize absorption input WSVs from local atmospheric conditions.\n"
-          "\n"
-          "The purpose of this method is to allow an explicit line-by-line\n"
-          "calculation, e.g., by *abs_coefCalc*, to be put inside the\n"
-          "*propmat_clearsky_agenda*. What the method does is to prepare absorption\n"
-          "input parameters (pressure, temperature, VMRs), from the input\n"
-          "parameters to *propmat_clearsky_agenda*.\n"),
-      AUTHORS("Stefan Buehler"),
       OUT("abs_p", "abs_t", "abs_vmrs"),
       GOUT(),
       GOUT_TYPE(),
@@ -385,319 +364,15 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
-      NAME("abs_lineshapeDefine"),
-      DESCRIPTION(
-          "Set the lineshape for all calculated lines.\n"
-          "\n"
-          "Sets the lineshape function. Beside the lineshape function itself, you\n"
-          "also have so select a forefactor and a frequency cutoff. The\n"
-          "forefactor is later multiplied with the lineshape function.\n"
-          "\n"
-          "The cutoff frequency is used to make lineshapes finite in frequency,\n"
-          "the response outside the cutoff is set to zero, and the lineshape\n"
-          "value at the cutoff frequency is subtracted from the overall lineshape\n"
-          "as a constant offset. This ensures that the lineshape goes to zero at\n"
-          "the cutoff frequency without a discontinuity.\n"
-          "\n"
-          "We generate only one copy of the lineshape settings. Absorption\n"
-          "routines check for this case and use it for all species.\n"
-          "\n"
-          "The allowed values for the input parameters are:\n"
-          "\n"
-          "shape:\n"
-          "   no_shape:                 no specified shape\n"
-          "   Doppler:                  Doppler lineshape\n"
-          "   Lorentz:                  Lorentz lineshape\n"
-          "   Voigt_Kuntz6:             Kuntz approximation to the Voigt lineshape,\n"
-          "                             accuracy > 2x10^(-6)\n"
-          "   Voigt_Drayson:            Drayson approximation to the Voigt lineshape\n"
-          "   Rosenkranz_Voigt_Drayson: Rosenkrantz oxygen absortion with overlap correction\n"
-          "                             on the basis of Drayson routine\n"
-          "   Rosenkranz_Voigt_Kuntz6:  Rosenkrantz oxygen absortion with overlap correction\n"
-          "                             on the basis of Kuntz routine, accuracy > 2x10^(-6)\n"
-          "   CO2_Lorentz:              Lorentz multiplied with Cousin's chi factors\n"
-          "   CO2_Drayson:              Drayson multiplied with Cousin's chi factors\n"
-          "   Faddeeva_Algorithm_916:   Faddeeva function based on Zaghloul, M.R. and\n"
-          "                             A.N. Ali (2011).  Implementation by Steven G. Johnson\n"
-          "                             under the MIT License (attainable through\n"
-          "                             http://ab-initio.mit.edu/Faddeeva)\n"
-          "   Hartmann-Tran:            Line shape is considered as described by the\n"
-          "                             Hartmann-Tran profile.\n"
-          "\n"
-          "forefactor:\n"
-          "   no_norm:                  1\n"
-          "   Rosenkranz_quadratic:     (f/f0)^2 * h*f/(2k*T)/sinh(h*f/(2k*T))\n"
-          "   VVH:                      (f*tanh(h*f/(2k*T))) / (f0*tanh(h*f0/(2k*T)))\n"
-          "   VVW:                      (f*f) / (f0*f0)\n"
-          "\n"
-          "cutoff:\n"
-          "    -1:                      no cutoff\n"
-          "   <Number>:                 positive cutoff frequency in Hz\n"),
-      AUTHORS("Axel von Engeln", "Stefan Buehler"),
-      OUT("abs_lineshape"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("shape", "forefactor", "cutoff"),
-      GIN_TYPE("String", "String", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF),
-      GIN_DESC("Line shape function.",
-               "Normalization factor.",
-               "Cutoff frequency [Hz].")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_lineshape_per_tgDefine"),
-      DESCRIPTION(
-          "Set the lineshape, separately for each absorption species.\n"
-          "\n"
-          "This method is similar to *abs_lineshapeDefine*, except that a\n"
-          "different lineshape can be set for each absorption species (see\n"
-          "*abs_species*). For example, you might want to use different values of\n"
-          "the cutoff frequency for different species.\n"
-          "\n"
-          "For detailed documentation on the available options for the input\n"
-          "parameters see documentation of method *abs_lineshapeDefine*.\n"),
-      AUTHORS("Axel von Engeln", "Stefan Buehler"),
-      OUT("abs_lineshape"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_species"),
-      GIN("shape", "normalizationfactor", "cutoff"),
-      GIN_TYPE("ArrayOfString", "ArrayOfString", "Vector"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF),
-      GIN_DESC("Line shape function for each species.",
-               "Normalization factor for each species.",
-               "Cutoff frequency [Hz] for each species.")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_linesFromSplitLines"),
-      DESCRIPTION(
-          "Combines *abs_lines_per_species* in to *abs_lines* without sorting\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_species"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_linesNewestArtscatFromLegacyCatalog"),
-      DESCRIPTION("Sets the version of the catalog to the latest version\n"
-                  "Internally, nothing should change.  Writing of catalog\n"
-                  "will change\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_linesReadFromArts"),
-      DESCRIPTION("Read all the lines from an Arts catalogue file in the\n"
-                  "given frequency range. Otherwise a runtime error will be\n"
-                  "thrown\n"
-                  "\n"
-                  "Please note that all lines must correspond\n"
-                  "to legal species / isotopologue combinations\n"),
-      AUTHORS("Stefan Buehler"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("filename", "fmin", "fmax"),
-      GIN_TYPE("String", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF),
-      GIN_DESC("Name (and path) of the catalogue file.",
-               "Minimum frequency for lines to read [Hz].",
-               "Maximum frequency for lines to read [Hz].")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_linesReadFromHitran"),
-      DESCRIPTION(
-          "Read all the lines from HITRAN 2004 and later catalogue file in\n"
-          "the given frequency range. Otherwise a runtime error is thrown.\n"
-          "\n"
-          "Records of molecules unknown to ARTS are ignored but a\n"
-          "warning is issued. In particular this happens for CH3OH\n"
-          "(HITRAN molecule number 39) because there is no total internal\n"
-          "partition sum available.\n"
-          "\n"
-          "The database must be sorted by increasing frequency!\n"
-          "\n"
-          "WWW access of the HITRAN catalogue: http://www.hitran.com/\n"
-          "\n"
-          "For data in the Hitran 1986-2001 format use the workspace\n"
-          "method *abs_linesReadFromHitranPre2004*\n"),
-      AUTHORS("Hermann Berg", "Thomas Kuhn"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("filename", "fmin", "fmax"),
-      GIN_TYPE("String", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF),
-      GIN_DESC("Name (and path) of the catalogue file.",
-               "Minimum frequency for lines to read [Hz].",
-               "Maximum frequency for lines to read [Hz].")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_linesReadFromHitranPre2004"),
-      DESCRIPTION(
-          "Read all the lines from a HITRAN 1986-2001 catalogue file in\n"
-          "the given frequency range. Otherwise a runtime error will be\n"
-          "thrown. For HITRAN 2004 and later line data use the workspace\n"
-          "method *abs_linesReadFromHitran*.\n"
-          "\n"
-          "Please note that all lines must correspond to legal\n"
-          "species / isotopologue combinations and that the line data\n"
-          "file must be sorted by increasing frequency\n"
-          "\n"
-          "WWW access of the HITRAN catalogue: http://www.hitran.com/\n"),
-      AUTHORS("Thomas Kuhn"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("filename", "fmin", "fmax"),
-      GIN_TYPE("String", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF),
-      GIN_DESC("Name (and path) of the catalogue file.",
-               "Minimum frequency for lines to read [Hz].",
-               "Maximum frequency for lines to read [Hz].")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_linesReadFromLBLRTM"),
-      DESCRIPTION(
-          "Read all the lines from a LBLRTM catalogue file in\n"
-          "the given frequency range. Otherwise a runtime error will be\n"
-          "thrown.  \n"
-          "\n"
-          "Note that this method will automatically set line mixing format\n"
-          "to LBLRTM for the lines affected, but the abs_species tag must\n"
-          "be set to activate line mixing for the species.\n"
-          "\n"
-          "Access data via: http://rtweb.aer.com/\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("filename", "fmin", "fmax"),
-      GIN_TYPE("String", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF),
-      GIN_DESC("Name (and path) of the catalogue file.",
-               "Minimum frequency for lines to read [Hz].",
-               "Maximum frequency for lines to read [Hz].")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_linesReadFromJpl"),
-      DESCRIPTION(
-          "Read all the lines from a JPL catalogue file in the\n"
-          "given frequency range. Otherwise a runtime error will be\n"
-          "thrown\n"
-          "\n"
-          "Please note that all lines must correspond\n"
-          "to legal species / isotopologue combinations.\n"
-          "\n"
-          "WWW access of the JPL catalogue: http://spec.jpl.nasa.gov/\n"),
-      AUTHORS("Thomas Kuhn"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("filename", "fmin", "fmax"),
-      GIN_TYPE("String", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF),
-      GIN_DESC("Name (and path) of the catalogue file.",
-               "Minimum frequency for lines to read [Hz].",
-               "Maximum frequency for lines to read [Hz].")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_linesReadFromMytran2"),
-      DESCRIPTION("Read all the lines from a MYTRAN2 catalogue file in the\n"
-                  "given frequency range. Otherwise a runtime error will be\n"
-                  "thrown\n"
-                  "\n"
-                  "Please note that all lines must correspond\n"
-                  "to legal species / isotopologue combinations\n"),
-      AUTHORS("Axel von Engeln", "Stefan Buehler"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("filename", "fmin", "fmax"),
-      GIN_TYPE("String", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF),
-      GIN_DESC("Name (and path) of the catalogue file.",
-               "Minimum frequency for lines to read [Hz].",
-               "Maximum frequency for lines to read [Hz].")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_linesReadFromSplitArtscat"),
-      DESCRIPTION(
-          "Read all the lines in the given frequency range from a split\n"
-          "Arts catalogue file.\n"
-          "\n"
-          "Please note that all lines must correspond\n"
-          "to legal species / isotopologue combinations\n"),
-      AUTHORS("Oliver Lemke"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_species"),
-      GIN("basename", "fmin", "fmax"),
-      GIN_TYPE("String", "Numeric", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF),
-      GIN_DESC("Basename of the catalogue.",
-               "Minimum frequency for lines to read [Hz].",
-               "Maximum frequency for lines to read [Hz].")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_linesRelativeLineStrengthShift"),
-      DESCRIPTION(
-          "Shift line strength of all lines in *abs_lines*.\n"
-          "\n"
-          "The new line strengths are the old line strengths times (1 +\n"
-          "relative_line_strength_shift).\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines"),
-      GIN("relative_line_strength_shift"),
-      GIN_TYPE("Numeric"),
-      GIN_DEFAULT("0"),
-      GIN_DESC("Relative change in line strengths.")));
-
-  md_data_raw.push_back(MdRecord(
     NAME("abs_linesRemoveUnusedLocalQuantumNumbers"),
       DESCRIPTION(
           "Removes unused quantums from local values in the line lists\n"),
       AUTHORS("Richard Larsson"),
-      OUT("abs_lines2"),
+      OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines2"),
+      IN("abs_lines"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -708,43 +383,24 @@ void define_md_data_raw() {
       DESCRIPTION(
           "Replace all lines in *abs_lines* that match with lines in replacement_lines.\n"
           "\n"
-          "Each replacement_lines must match at most a single line in *abs_lines*.\n"
-          "\n"
-          "The matching required identical quantum number signatures to work\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines"),
-      GIN("replacement_lines"),
-      GIN_TYPE("ArrayOfLineRecord"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Line-array that replace lines in *abs_lines*.")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_linesReplaceWithLines2"),
-      DESCRIPTION(
-          "Replace all lines in *abs_lines* that match with lines in replacement_lines.\n"
-          "\n"
           "Each replacement_lines must match excatly a single line in *abs_lines*.\n"
           "\n"
           "The matching required identical quantum number signatures to work\n"
           "\n"
           "Note that lines are identified by their AbsorptionLines tags and by their quantum numbers.\n"),
       AUTHORS("Richard Larsson"),
-      OUT("abs_lines2"),
+      OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines2"),
+      IN("abs_lines"),
       GIN("replacing_lines"),
       GIN_TYPE("ArrayOfAbsorptionLines"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Line-array that replace lines in *abs_lines*.")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("abs_linesAppendWithLines2"),
+      NAME("abs_linesAppendWithLines"),
       DESCRIPTION(
           "Appends all lines in *abs_lines* that match with lines in replacement_lines.\n"
           "\n"
@@ -758,18 +414,18 @@ void define_md_data_raw() {
           "\n"
           "Note that lines are identified by their AbsorptionLines tags and by their quantum numbers.\n"),
       AUTHORS("Richard Larsson"),
-      OUT("abs_lines2"),
+      OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines2"),
+      IN("abs_lines"),
       GIN("appending_lines"),
       GIN_TYPE("ArrayOfAbsorptionLines"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Line-array that appends lines in *abs_lines*.")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("abs_linesDeleteWithLines2"),
+      NAME("abs_linesDeleteWithLines"),
       DESCRIPTION(
           "Deletes all lines in *abs_lines* that match with lines in replacement_lines.\n"
           "\n"
@@ -778,40 +434,15 @@ void define_md_data_raw() {
           "Note that lines are identified by their AbsorptionLines tags and by their quantum numbers.\n"
           "There is no need to have all values correct.\n"),
       AUTHORS("Richard Larsson"),
-      OUT("abs_lines2"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines2"),
-      GIN("deleting_lines"),
-      GIN_TYPE("ArrayOfAbsorptionLines"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Line-array that removes lines from *abs_lines*.")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_linesReplaceParameterWithLinesParameter"),
-      DESCRIPTION(
-          "Replace parameter of all lines in *abs_lines* that match with lines in replacement_lines.\n"
-          "Only works for:\n"
-          "parameter_name = \"Central Frequency\"\n"
-          "parameter_name = \"Line Strength\"\n"
-          "parameter_name = \"Line Shape Model\"\n"
-          "parameter_name = \"Lower State Energy\"\n"
-          "\n"
-          "Each replacement_lines must match at most a single line in *abs_lines*.\n"
-          "\n"
-          "The matching required identical quantum number signatures to work\n"),
-      AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines"),
-      GIN("replacement_lines", "parameter_name"),
-      GIN_TYPE("ArrayOfLineRecord", "String"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Line-array that replace lines in *abs_lines*.",
-               "Name of parameter to be replaced")));
+      GIN("deleting_lines"),
+      GIN_TYPE("ArrayOfAbsorptionLines"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Line-array that removes lines from *abs_lines*.")));
 
   md_data_raw.push_back(MdRecord(
       NAME("abs_lines_per_bandSetLineMixingFromRelmat"),
@@ -832,14 +463,14 @@ void define_md_data_raw() {
           "Index to indicate if dv is to be left as zero")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("abs_lines_per_bandSetLineMixingFromRelmat2"),
+      NAME("abs_lines_per_speciesSetLineMixingFromRelmat"),
       DESCRIPTION("A dummy method to test line mixing.\n"),
       AUTHORS("Richard Larsson"),
-      OUT("abs_lines_per_species2"),
+      OUT("abs_lines_per_species"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines_per_species2", "relmat_per_band", "partition_functions"),
+      IN("abs_lines_per_species", "relmat_per_band", "partition_functions"),
       GIN("temperatures", "linemixing_type", "do_g", "do_dv"),
       GIN_TYPE("Vector", "String", "Index", "Index"),
       GIN_DEFAULT(NODEF, "LM2", "1", "1", ),
@@ -861,11 +492,11 @@ void define_md_data_raw() {
                            "\n"
                            "See the theory guide for more details.\n"),
                AUTHORS("Richard Larsson"),
-               OUT("abs_lines2"),
+               OUT("abs_lines"),
                GOUT(),
                GOUT_TYPE(),
                GOUT_DESC(),
-               IN("abs_lines2"),
+               IN("abs_lines"),
                GIN("option"),
                GIN_TYPE("String"),
                GIN_DEFAULT(NODEF),
@@ -875,11 +506,11 @@ void define_md_data_raw() {
       MdRecord(NAME("abs_lines_per_speciesSetNormalization"),
                DESCRIPTION("See *abs_linesSetNormalization*\n"),
                AUTHORS("Richard Larsson"),
-               OUT("abs_lines_per_species2"),
+               OUT("abs_lines_per_species"),
                GOUT(),
                GOUT_TYPE(),
                GOUT_DESC(),
-               IN("abs_lines_per_species2"),
+               IN("abs_lines_per_species"),
                GIN("option"),
                GIN_TYPE("String"),
                GIN_DEFAULT(NODEF),
@@ -900,11 +531,11 @@ void define_md_data_raw() {
                            "Also note that Manual settings are potentially dangerous as other frequency\n"
                            "offsets Might not work as hoped\n"),
                AUTHORS("Richard Larsson"),
-               OUT("abs_lines2"),
+               OUT("abs_lines"),
                GOUT(),
                GOUT_TYPE(),
                GOUT_DESC(),
-               IN("abs_lines2"),
+               IN("abs_lines"),
                GIN("option"),
                GIN_TYPE("String"),
                GIN_DEFAULT(NODEF),
@@ -914,11 +545,11 @@ void define_md_data_raw() {
       MdRecord(NAME("abs_lines_per_speciesSetMirroring"),
                DESCRIPTION("See *abs_linesSetMirroring*\n"),
                AUTHORS("Richard Larsson"),
-               OUT("abs_lines_per_species2"),
+               OUT("abs_lines_per_species"),
                GOUT(),
                GOUT_TYPE(),
                GOUT_DESC(),
-               IN("abs_lines_per_species2"),
+               IN("abs_lines_per_species"),
                GIN("option"),
                GIN_TYPE("String"),
                GIN_DEFAULT(NODEF),
@@ -935,11 +566,11 @@ void define_md_data_raw() {
                            "\n"
                            "You must have set *nlte_field* and/or its ilk to use the NLTE methods.\n"),
                AUTHORS("Richard Larsson"),
-               OUT("abs_lines2"),
+               OUT("abs_lines"),
                GOUT(),
                GOUT_TYPE(),
                GOUT_DESC(),
-               IN("abs_lines2"),
+               IN("abs_lines"),
                GIN("option"),
                GIN_TYPE("String"),
                GIN_DEFAULT(NODEF),
@@ -949,11 +580,11 @@ void define_md_data_raw() {
       MdRecord(NAME("abs_lines_per_speciesSetPopulation"),
                DESCRIPTION("See *abs_linesSetPopulation*\n"),
                AUTHORS("Richard Larsson"),
-               OUT("abs_lines_per_species2"),
+               OUT("abs_lines_per_species"),
                GOUT(),
                GOUT_TYPE(),
                GOUT_DESC(),
-               IN("abs_lines_per_species2"),
+               IN("abs_lines_per_species"),
                GIN("option"),
                GIN_TYPE("String"),
                GIN_DEFAULT(NODEF),
@@ -972,11 +603,11 @@ void define_md_data_raw() {
                            "\n"
                            "See the theory guide for more details.\n"),
                AUTHORS("Richard Larsson"),
-               OUT("abs_lines2"),
+               OUT("abs_lines"),
                GOUT(),
                GOUT_TYPE(),
                GOUT_DESC(),
-               IN("abs_lines2"),
+               IN("abs_lines"),
                GIN("option"),
                GIN_TYPE("String"),
                GIN_DEFAULT(NODEF),
@@ -986,11 +617,11 @@ void define_md_data_raw() {
       MdRecord(NAME("abs_lines_per_speciesSetLineShapeType"),
                DESCRIPTION("See *abs_linesSetLineShapeType*\n"),
                AUTHORS("Richard Larsson"),
-               OUT("abs_lines_per_species2"),
+               OUT("abs_lines_per_species"),
                GOUT(),
                GOUT_TYPE(),
                GOUT_DESC(),
-               IN("abs_lines_per_species2"),
+               IN("abs_lines_per_species"),
                GIN("option"),
                GIN_TYPE("String"),
                GIN_DEFAULT(NODEF),
@@ -1011,11 +642,11 @@ void define_md_data_raw() {
                            "For \"ByLine\", the negative frequency is at F0-cutoff\n"
                            "For \"ByBand\", the negative frequency is at cutoff minus twice the average band frequency\n"),
                AUTHORS("Richard Larsson"),
-               OUT("abs_lines2"),
+               OUT("abs_lines"),
                GOUT(),
                GOUT_TYPE(),
                GOUT_DESC(),
-               IN("abs_lines2"),
+               IN("abs_lines"),
                GIN("option", "value"),
                GIN_TYPE("String", "Numeric"),
                GIN_DEFAULT(NODEF, NODEF),
@@ -1026,11 +657,11 @@ void define_md_data_raw() {
       MdRecord(NAME("abs_lines_per_speciesSetCutoff"),
                DESCRIPTION("See *abs_linesSetCutoff*\n"),
                AUTHORS("Richard Larsson"),
-               OUT("abs_lines_per_species2"),
+               OUT("abs_lines_per_species"),
                GOUT(),
                GOUT_TYPE(),
                GOUT_DESC(),
-               IN("abs_lines_per_species2"),
+               IN("abs_lines_per_species"),
                GIN("option", "value"),
                GIN_TYPE("String", "Numeric"),
                GIN_DEFAULT(NODEF, NODEF),
@@ -1044,11 +675,11 @@ void define_md_data_raw() {
                            "If value is less than 0, no limit is applied and line mixing is active.\n"
                            "Otherwise, line mixing is inactive if the pressure is below the limit.\n"),
                AUTHORS("Richard Larsson"),
-               OUT("abs_lines2"),
+               OUT("abs_lines"),
                GOUT(),
                GOUT_TYPE(),
                GOUT_DESC(),
-               IN("abs_lines2"),
+               IN("abs_lines"),
                GIN("value"),
                GIN_TYPE("Numeric"),
                GIN_DEFAULT(NODEF),
@@ -1058,11 +689,11 @@ void define_md_data_raw() {
       MdRecord(NAME("abs_lines_per_speciesSetLinemixingLimit"),
                DESCRIPTION("See *abs_linesSetLinemixingLimit*\n"),
                AUTHORS("Richard Larsson"),
-               OUT("abs_lines_per_species2"),
+               OUT("abs_lines_per_species"),
                GOUT(),
                GOUT_TYPE(),
                GOUT_DESC(),
-               IN("abs_lines_per_species2"),
+               IN("abs_lines_per_species"),
                GIN("value"),
                GIN_TYPE("Numeric"),
                GIN_DEFAULT(NODEF),
@@ -1072,11 +703,11 @@ void define_md_data_raw() {
       MdRecord(NAME("abs_linesSetT0"),
                DESCRIPTION("Sets reference temperature for all lines.\n"),
                AUTHORS("Richard Larsson"),
-               OUT("abs_lines2"),
+               OUT("abs_lines"),
                GOUT(),
                GOUT_TYPE(),
                GOUT_DESC(),
-               IN("abs_lines2"),
+               IN("abs_lines"),
                GIN("value"),
                GIN_TYPE("Numeric"),
                GIN_DEFAULT(NODEF),
@@ -1086,169 +717,18 @@ void define_md_data_raw() {
       MdRecord(NAME("abs_lines_per_speciesSetT0"),
                DESCRIPTION("See *abs_linesSetT0*\n"),
                AUTHORS("Richard Larsson"),
-               OUT("abs_lines_per_species2"),
+               OUT("abs_lines_per_species"),
                GOUT(),
                GOUT_TYPE(),
                GOUT_DESC(),
-               IN("abs_lines_per_species2"),
+               IN("abs_lines_per_species"),
                GIN("value"),
                GIN_TYPE("Numeric"),
                GIN_DEFAULT(NODEF),
                GIN_DESC("Value of T0")));
 
-  md_data_raw.push_back(
-      MdRecord(NAME("abs_linesSetNormalizationForAll"),
-               DESCRIPTION("Sets normalization type for all lines.\n"
-                           "\n"
-                           "Available options:\n"
-                           "   VVH\n"
-                           "   VVW\n"
-                           "   RosenkranzQuadratic\n"
-                           "   None\n"),
-               AUTHORS("Richard Larsson"),
-               OUT("abs_lines"),
-               GOUT(),
-               GOUT_TYPE(),
-               GOUT_DESC(),
-               IN("abs_lines"),
-               GIN("option"),
-               GIN_TYPE("String"),
-               GIN_DEFAULT(NODEF),
-               GIN_DESC("Method of line normalizations")));
-
-  md_data_raw.push_back(
-      MdRecord(NAME("abs_lines_per_speciesSetNormalizationForAll"),
-               DESCRIPTION("See *abs_linesSetNormalizationForAll*\n"),
-               AUTHORS("Richard Larsson"),
-               OUT("abs_lines_per_species"),
-               GOUT(),
-               GOUT_TYPE(),
-               GOUT_DESC(),
-               IN("abs_lines_per_species"),
-               GIN("option"),
-               GIN_TYPE("String"),
-               GIN_DEFAULT(NODEF),
-               GIN_DESC("Method of line normalizations")));
-
-  md_data_raw.push_back(MdRecord(NAME("abs_linesSetNlteOffForAll"),
-                                 DESCRIPTION("Sets no NLTE for all lines\n"),
-                                 AUTHORS("Richard Larsson"),
-                                 OUT("abs_lines"),
-                                 GOUT(),
-                                 GOUT_TYPE(),
-                                 GOUT_DESC(),
-                                 IN("abs_lines"),
-                                 GIN(),
-                                 GIN_TYPE(),
-                                 GIN_DEFAULT(),
-                                 GIN_DESC()));
-
-  md_data_raw.push_back(
-      MdRecord(NAME("abs_lines_per_speciesSetNlteOffForAll"),
-               DESCRIPTION("See *abs_linesSetNlteOffForAll*\n"),
-               AUTHORS("Richard Larsson"),
-               OUT("abs_lines_per_species"),
-               GOUT(),
-               GOUT_TYPE(),
-               GOUT_DESC(),
-               IN("abs_lines_per_species"),
-               GIN(),
-               GIN_TYPE(),
-               GIN_DEFAULT(),
-               GIN_DESC()));
-
-  md_data_raw.push_back(
-      MdRecord(NAME("abs_linesSetMirroringForAll"),
-               DESCRIPTION("Sets mirroring type for all lines.\n"
-                           "\n"
-                           "Available options:\n"
-                           "   Lorentz\n"
-                           "   SameAsLineShape\n"
-                           "   None\n"),
-               AUTHORS("Richard Larsson"),
-               OUT("abs_lines"),
-               GOUT(),
-               GOUT_TYPE(),
-               GOUT_DESC(),
-               IN("abs_lines"),
-               GIN("option"),
-               GIN_TYPE("String"),
-               GIN_DEFAULT(NODEF),
-               GIN_DESC("Method of line mirroring")));
-
-  md_data_raw.push_back(
-      MdRecord(NAME("abs_lines_per_speciesSetMirroringForAll"),
-               DESCRIPTION("See *abs_linesSetMirroringForAll*\n"),
-               AUTHORS("Richard Larsson"),
-               OUT("abs_lines_per_species"),
-               GOUT(),
-               GOUT_TYPE(),
-               GOUT_DESC(),
-               IN("abs_lines_per_species"),
-               GIN("option"),
-               GIN_TYPE("String"),
-               GIN_DEFAULT(NODEF),
-               GIN_DESC("Method of line mirroring")));
-
-  md_data_raw.push_back(
-      MdRecord(NAME("abs_linesCutOffForAll"),
-               DESCRIPTION("Sets cutoff frequency for all lines.\n"
-                           "\n"
-                           "Available options:\n"
-                           "   above 0: cutoff frequency\n"
-                           "   -1: no cutoff frequency\n"),
-               AUTHORS("Richard Larsson"),
-               OUT("abs_lines"),
-               GOUT(),
-               GOUT_TYPE(),
-               GOUT_DESC(),
-               IN("abs_lines"),
-               GIN("option"),
-               GIN_TYPE("Numeric"),
-               GIN_DEFAULT(NODEF),
-               GIN_DESC("Method of line mirroring")));
-
-  md_data_raw.push_back(MdRecord(NAME("abs_lines_per_speciesCutOffForAll"),
-                                 DESCRIPTION("See *abs_linesCutOffForAll*\n"),
-                                 AUTHORS("Richard Larsson"),
-                                 OUT("abs_lines_per_species"),
-                                 GOUT(),
-                                 GOUT_TYPE(),
-                                 GOUT_DESC(),
-                                 IN("abs_lines_per_species"),
-                                 GIN("option"),
-                                 GIN_TYPE("Numeric"),
-                                 GIN_DEFAULT(NODEF),
-                                 GIN_DESC("Method of line mirroring")));
-
   md_data_raw.push_back(MdRecord(
       NAME("abs_linesChangeBaseParameterForMatchingLines"),
-      DESCRIPTION(
-          "Change parameter of all lines in *abs_lines* that match with *QuantumIdentifier*.\n"
-          "Only works for these parameters:\n"
-          "parameter_name = \"Central Frequency\"\n"
-          "parameter_name = \"Line Strength\"\n"
-          "parameter_name = \"Lower State Energy\"\n"
-          "\n"
-          "Note that loose_matching:=0 means only identical quantum identifiers are accepted,\n"
-          "otherwise the numbers in QI must just be contained in the line identifier\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines"),
-      GIN("QI", "parameter_name", "change", "relative", "loose_matching"),
-      GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index", "Index"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "0", "0"),
-      GIN_DESC("Information to match the line.",
-               "Name of parameter to be replaced",
-               "Value with which to change matching line{'s,s'}",
-               "Flag for relative change (0 is absolute change)",
-               "Flag for loose match (0 means only complete matches)")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_linesChangeBaseParameterForMatchingLines2"),
       DESCRIPTION(
           "Change parameter of all lines in *abs_lines* that match with *QuantumIdentifier*.\n"
           "Only works for these parameters:\n"
@@ -1262,11 +742,11 @@ void define_md_data_raw() {
           "Note that loose_matching:=0 means only identical quantum identifiers are accepted,\n"
           "otherwise the numbers in QI must just be contained in the line identifier\n"),
       AUTHORS("Richard Larsson"),
-      OUT("abs_lines2"),
+      OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines2"),
+      IN("abs_lines"),
       GIN("QI", "parameter_name", "change", "relative", "loose_matching"),
       GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index", "Index"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "0", "0"),
@@ -1280,11 +760,11 @@ void define_md_data_raw() {
       NAME("abs_lines_per_speciesChangeBaseParameterForMatchingLines"),
       DESCRIPTION("See *abs_linesChangeBaseParameterForMatchingLines*\n"),
       AUTHORS("Richard Larsson"),
-      OUT("abs_lines_per_species2"),
+      OUT("abs_lines_per_species"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines_per_species2"),
+      IN("abs_lines_per_species"),
       GIN("QI", "parameter_name", "change", "relative", "loose_matching"),
       GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index", "Index"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "0", "0"),
@@ -1295,7 +775,7 @@ void define_md_data_raw() {
                "Flag for loose match (0 means only complete matches)")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("abs_linesSetBaseParameterForMatchingLines2"),
+      NAME("abs_linesSetBaseParameterForMatchingLines"),
       DESCRIPTION(
           "Set parameter of all lines in *abs_lines* that match with *QuantumIdentifier*.\n"
           "Only works for these parameters:\n"
@@ -1309,11 +789,11 @@ void define_md_data_raw() {
           "Note that loose_matching:=0 means only identical quantum identifiers are accepted,\n"
           "otherwise the numbers in QI must just be contained in the line identifier\n"),
       AUTHORS("Richard Larsson"),
-      OUT("abs_lines2"),
+      OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines2"),
+      IN("abs_lines"),
       GIN("QI", "parameter_name", "change", "loose_matching"),
       GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "0"),
@@ -1326,11 +806,11 @@ void define_md_data_raw() {
       NAME("abs_lines_per_speciesSetBaseParameterForMatchingLines"),
       DESCRIPTION("See *abs_linesSetBaseParameterForMatchingLines*\n"),
       AUTHORS("Richard Larsson"),
-      OUT("abs_lines_per_species2"),
+      OUT("abs_lines_per_species"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines_per_species2"),
+      IN("abs_lines_per_species"),
       GIN("QI", "parameter_name", "change", "loose_matching"),
       GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "0"),
@@ -1340,100 +820,7 @@ void define_md_data_raw() {
                "Flag for loose match (0 means only complete matches)")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("abs_linesSetBaseParameterForMatchingLines"),
-      DESCRIPTION(
-          "Same as *abs_linesChangeBaseParameterForMatchingLines* but sets the parameter\n"
-          "instead of changing it.  See the other function for inputs.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines"),
-      GIN("QI", "parameter_name", "new_value", "loose_matching"),
-      GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "0"),
-      GIN_DESC("Information to match the line.",
-               "Name of parameter to be replaced",
-               "New value of parameter for matching line(s)",
-               "Flag for loose match (0 means only complete matches)")));
-
-  md_data_raw.push_back(MdRecord(
       NAME("abs_linesSetLineShapeModelParameterForMatchingLines"),
-      DESCRIPTION(
-          "Same as *abs_linesChangeLineShapeModelParameterForMatchingLines* but\n"
-          "sets the line paramater to the provided new_value\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines"),
-      GIN("QI", "parameter", "coefficient", "species", "new_value"),
-      GIN_TYPE("QuantumIdentifier", "String", "String", "String", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, "0"),
-      GIN_DESC("Information to match the line.",
-               "Name of parameter to be replaced",
-               "Coefficient of the parameter to be changed",
-               "Species of parameter to be changed",
-               "New value of parameter for matching line(s)")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_linesChangeLineShapeModelParameterForMatchingLines"),
-      DESCRIPTION(
-          "Change line shape model data parameter in matching lines.\n"
-          "\n"
-          "The matching is done so that QI must be in the line identifier\n"
-          "\n"
-          "Acceptable parameter(s) are:\n"
-          "\t\"G0\"\n"
-          "\t\"D0\"\n"
-          "\t\"G2\"\n"
-          "\t\"D2\"\n"
-          "\t\"FVC\"\n"
-          "\t\"ETA\"\n"
-          "\t\"Y\"\n"
-          "\t\"G\"\n"
-          "\t\"DV\"\n"
-          "\n"
-          "Acceptable coefficient(s) are:\n"
-          "\t\"X0\"\n"
-          "\t\"X1\"\n"
-          "\t\"X2\"\n"
-          "\n"
-          "Acceptable species are:\n"
-          "\tAIR (so long as it is the broadening species list)\n"
-          "\tSELF (so long as it is the broadening species list)\n"
-          "\tAny species in the line broadening species\n"
-          "\n"
-          "The line parameter will have its old value plus the change if\n"
-          "relative is false, else it will have its old value times\n"
-          "(1+change).\n"
-          "\n"
-          "Throws an error if it cannot find any targets to change\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines"),
-      GIN("QI", "parameter", "coefficient", "species", "change", "relative"),
-      GIN_TYPE("QuantumIdentifier",
-               "String",
-               "String",
-               "String",
-               "Numeric",
-               "Index"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF, "0"),
-      GIN_DESC("Information to match the line.",
-               "Name of parameter to be replaced",
-               "Coefficient of the parameter to be changed",
-               "Species of parameter to be changed",
-               "Change in the value found",
-               "Flag for relative change (0 is absolute change)")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_linesSetLineShapeModelParameterForMatchingLines2"),
       DESCRIPTION("Sets line shape model data parameter in matching lines.\n"
         "\n"
         "The matching is done so that QI must be in the line identifier\n"
@@ -1463,11 +850,11 @@ void define_md_data_raw() {
         "Throws an error if it cannot find any targets to change\n"
       ),
       AUTHORS("Richard Larsson"),
-      OUT("abs_lines2"),
+      OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines2"),
+      IN("abs_lines"),
       GIN("QI", "parameter", "coefficient", "species", "change"),
       GIN_TYPE("QuantumIdentifier",
                "String",
@@ -1486,11 +873,11 @@ void define_md_data_raw() {
       DESCRIPTION("See *abs_linesSetLineShapeModelParameterForMatchingLines*\n"
       ),
       AUTHORS("Richard Larsson"),
-      OUT("abs_lines_per_species2"),
+      OUT("abs_lines_per_species"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines_per_species2"),
+      IN("abs_lines_per_species"),
       GIN("QI", "parameter", "coefficient", "species", "change"),
       GIN_TYPE("QuantumIdentifier",
                "String",
@@ -1505,7 +892,7 @@ void define_md_data_raw() {
                "Sets the value found")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("abs_linesChangeLineShapeModelParameterForMatchingLines2"),
+      NAME("abs_linesChangeLineShapeModelParameterForMatchingLines"),
       DESCRIPTION("Change line shape model data parameter in matching lines.\n"
         "\n"
         "The matching is done so that QI must be in the line identifier\n"
@@ -1539,11 +926,11 @@ void define_md_data_raw() {
         "Throws an error if it cannot find any targets to change\n"
       ),
       AUTHORS("Richard Larsson"),
-      OUT("abs_lines2"),
+      OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines2"),
+      IN("abs_lines"),
       GIN("QI", "parameter", "coefficient", "species", "change", "relative"),
       GIN_TYPE("QuantumIdentifier",
                "String",
@@ -1564,11 +951,11 @@ void define_md_data_raw() {
       DESCRIPTION("See *abs_linesChangeLineShapeModelParameterForMatchingLines*\n"
       ),
       AUTHORS("Richard Larsson"),
-      OUT("abs_lines_per_species2"),
+      OUT("abs_lines_per_species"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines_per_species2"),
+      IN("abs_lines_per_species"),
       GIN("QI", "parameter", "coefficient", "species", "change", "relative"),
       GIN_TYPE("QuantumIdentifier",
                "String",
@@ -1583,70 +970,6 @@ void define_md_data_raw() {
                "Species of parameter to be changed",
                "Change in the value found",
                "Flag for relative change (0 is absolute change)")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_linesSetQuantumNumberForAll"),
-      DESCRIPTION(
-          "Sets a quantum number of all lines in abs_lines\n"
-          "Useful when a catalog misses a number that is required in ARTS\n"
-          "\n"
-          "Warning: the only test performed inside is if the name of the\n"
-          "provided quantum number is valid.  It is up to the user to provide\n"
-          "a valid quantum number.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines"),
-      GIN("where", "quantum_number_name", "quantum_number_value"),
-      GIN_TYPE("Index", "String", "Rational"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF),
-      GIN_DESC(
-          "Set to zero for both, negative for only lower, or positive for only upper levels.",
-          "Name of the quantum number",
-          "Value of the quantum number")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_linesShiftFrequency"),
-      DESCRIPTION(
-          "Shift line center of all lines in *abs_lines*.\n"
-          "\n"
-          "The new frequencies are the old frequencies plus the input frequency shift.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines"),
-      GIN("frequency_shift"),
-      GIN_TYPE("Numeric"),
-      GIN_DEFAULT("0"),
-      GIN_DESC("Frequency to shift line centers [Hz].")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_lines_per_bandFromband_identifiers"),
-      DESCRIPTION("Sets abs_lines_per_band and related variables from\n"
-                  "*band_identifiers*.\n"
-                  "\n"
-                  "If *band_identifiers* identifies bands that are not in\n"
-                  "the line data, this method remains silent.  This allows\n"
-                  "the user to use autmated identification methods such as:\n"
-                  "*SetBandIdentifiersAuto* to identify more bands than will\n"
-                  "be used in subsequent calculations.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines_per_band",
-          "abs_species_per_band",
-          "abs_lines_per_species"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_species", "abs_species", "band_identifiers"),
-      GIN("change_linemixing_to_bandwise"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT("1"),
-      GIN_DESC(
-          "(Boolean) Set linemixing to need *abs_xsec_per_speciesAddLineMixedBands* for these lines?")));
 
   md_data_raw.push_back(MdRecord(
       NAME("abs_lines_per_speciesSetRelamtLineMixingToMatches"),
@@ -1664,65 +987,23 @@ void define_md_data_raw() {
                   "*SetBandIdentifiersAuto* to identify more bands than will\n"
                   "be used in subsequent relaxation matrix calculations.\n"),
       AUTHORS("Richard Larsson"),
-      OUT("abs_lines_per_species2"),
+      OUT("abs_lines_per_species"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines_per_species2", "band_identifiers"),
+      IN("abs_lines_per_species", "band_identifiers"),
       GIN("relaxation_type"),
       GIN_TYPE("String"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Relaxation matrix type")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("abs_lines_per_speciesAddMirrorLines"),
-      DESCRIPTION(
-          "Adds mirror lines at negative frequencies to *abs_lines_per_species*.\n"
-          "\n"
-          "For each line at frequency +f in *abs_lines_per_species* a corresponding\n"
-          "entry at frequency -f is added to *abs_lines_per_species*. The mirror\n"
-          "lines are appended to the line list after the original lines.\n"),
-      AUTHORS("Axel von Engeln", "Stefan Buehler", "Patrick Eriksson"),
-      OUT("abs_lines_per_species"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_species"),
-      GIN("max_f"),
-      GIN_TYPE("Numeric"),
-      GIN_DEFAULT("-1"),
-      GIN_DESC("Limit for mirroring, ie. lines above this frequency do "
-               "not generate a mirror line. All lines mirrored if *max_f* "
-               "is < 0, that is the default setting.")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_lines_per_speciesCompact"),
-      DESCRIPTION(
-          "Removes all lines outside the defined lineshape cutoff frequencies\n"
-          "from *abs_lines_per_species*. This can save computation time.\n"
-          "It should be particularly useful to call this method after\n"
-          "*abs_lines_per_speciesAddMirrorLines*.\n"),
-      AUTHORS("Axel von Engeln", "Stefan Buehler"),
-      OUT("abs_lines_per_species"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_species", "abs_lineshape", "f_grid"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
       NAME("abs_lines_per_speciesCreateFromLines"),
       DESCRIPTION(
           "Split lines up into the different species.\n"
           "\n"
-          "The species are tested in the order in which they are specified in the\n"
-          "controlfile. Lines are assigned to the first species that\n"
-          "matches. That means if the list of species is [\"O3-666\",\"O3\"], then\n"
-          "the last group O3 gets assigned all the O3 lines that do not fit in\n"
-          "the first group (all other isotopologues than the main isotopologue).\n"),
+          "The order of the splitting will match the outer layer of *abs_species*\n"
+          "There will be no respect for the internal layer of *abs_species*\n"),
       AUTHORS("Stefan Buehler"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -1733,145 +1014,6 @@ void define_md_data_raw() {
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_lines_per_speciesCreateFromLines2"),
-      DESCRIPTION(
-          "Split lines up into the different species.\n"
-          "\n"
-          "The order of the splitting will match the outer layer of *abs_species*\n"
-          "There will be no respect for the internal layer of *abs_species*\n"),
-      AUTHORS("Stefan Buehler"),
-      OUT("abs_lines_per_species2"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines2", "abs_species"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_lines_per_speciesReadFromCatalogues"),
-      DESCRIPTION(
-          "Read spectral line data from different line catalogues.\n"
-          "\n"
-          "For each absorption species, you can specify which catalogue to\n"
-          "use. Because the method creates *abs_lines_per_species* directly, it\n"
-          "replaces for example the following two method calls:\n"
-          "\n"
-          "  - abs_linesReadFromHitran\n"
-          "  - abs_lines_per_speciesCreateFromLines\n"
-          "\n"
-          "This method needs as input WSVs the list of species\n"
-          "*abs_species*. Generic input parameters must specify the names of the\n"
-          "catalogue files to use and the matching formats.  Names can be\n"
-          "anything, formats can currently be HITRAN96 (for HITRAN 1986-2001\n"
-          "databases), HITRAN04 (for HITRAN 2004 database), MYTRAN2, JPL, or\n"
-          "ARTS.  Furthermore, you have to specify minimum and maximum frequency\n"
-          "for each species. To safe typing, if there are less elements in the\n"
-          "keyword parameters than there are species, the last parameters are\n"
-          "applied to all following species.\n"
-          "\n"
-          "Example usage:\n"
-          "\n"
-          "abs_lines_per_speciesReadFromCatalogues(\n"
-          "   [ \"../data/cat1.dat\", \"../data/cat2.dat\" ]\n"
-          "   [ \"MYTRAN2\",          \"HITRAN96\"         ]\n"
-          "   [ 0,                  0                  ]\n"
-          "   [ 2000e9,             100e9              ]\n"
-          ")\n"
-          "\n"
-          "In this example, lines for the first species will be taken from cat1,\n"
-          "lines for all other species will be taken from cat2. This allows you\n"
-          "for example to use a special line file just for water vapor lines.\n"
-          "\n"
-          "Catalogues are only read once, even if several tag groups have the\n"
-          "same catalogue. However, in that case the frequency ranges MUST be the\n"
-          "same. (If you want to do fine-tuning of the frequency ranges, you can\n"
-          "do this inside the tag definitions, e.g., \"H2O-*-0-2000e9\".)\n"
-          "\n"
-          "This function uses the various reading routines\n"
-          "(*abs_linesReadFromHitran*, etc.), as well as\n"
-          "*abs_lines_per_speciesCreateFromLines*.\n"),
-      AUTHORS("Stefan Buehler"),
-      OUT("abs_lines_per_species"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_species"),
-      GIN("filenames", "formats", "fmin", "fmax"),
-      GIN_TYPE("ArrayOfString", "ArrayOfString", "Vector", "Vector"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF),
-      GIN_DESC("Name (and path) of the catalogue files.",
-               "Format of each file. (Allowed formats are\n"
-               "HITRAN96, HITRAN04, MYTRAN2, JPL, ARTS.",
-               "Minimum frequency for lines to read [Hz].",
-               "Maximum frequency for lines to read [Hz].")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_lines_per_speciesRelativeLineStrengthShift"),
-      DESCRIPTION(
-          "As *abs_linesRelativeLineStrengthShift* but for all lines in *abs_lines_per_species*\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines_per_species"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_species"),
-      GIN("relative_line_strength_shift"),
-      GIN_TYPE("Numeric"),
-      GIN_DEFAULT("0"),
-      GIN_DESC("Relative change in line strengths.")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_lines_per_speciesSetEmpty"),
-      DESCRIPTION(
-          "Sets abs_lines_per_species to empty line lists.\n"
-          "\n"
-          "You can use this method to set *abs_lines_per_species* if you do not\n"
-          "really want to compute line spectra. Formally, abs_coefCalc will still\n"
-          "require *abs_lines_per_species* to be set.\n"),
-      AUTHORS("Stefan Buehler"),
-      OUT("abs_lines_per_species"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_species"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_lines_per_speciesShiftFrequency"),
-      DESCRIPTION(
-          "As *abs_linesShiftFrequency* but for all lines in *abs_lines_per_species*\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines_per_species"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_species"),
-      GIN("frequency_shift"),
-      GIN_TYPE("Numeric"),
-      GIN_DEFAULT("0"),
-      GIN_DESC("Frequency to shift line centers [Hz].")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_lines_per_speciesWriteToSplitArtscat"),
-      DESCRIPTION("Write each species to a separate catalogue file.\n"),
-      AUTHORS("Oliver Lemke"),
-      OUT(),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("output_file_format", "abs_lines_per_species"),
-      GIN("basename"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT(""),
-      GIN_DESC("Basename of the catalogue.")));
 
   md_data_raw.push_back(MdRecord(
       NAME("abs_lookupAdapt"),
@@ -2532,40 +1674,6 @@ void define_md_data_raw() {
       DESCRIPTION(
           "Calculates the line spectrum for both attenuation and phase\n"
           "for each tag group and adds it to abs_xsec_per_species.\n"),
-      AUTHORS("Stefan Buehler", "Axel von Engeln"),
-      OUT("abs_xsec_per_species",
-          "src_xsec_per_species",
-          "dabs_xsec_per_species_dx",
-          "dsrc_xsec_per_species_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_xsec_per_species",
-         "src_xsec_per_species",
-         "dabs_xsec_per_species_dx",
-         "dsrc_xsec_per_species_dx",
-         "abs_species",
-         "jacobian_quantities",
-         "abs_species_active",
-         "f_grid",
-         "abs_p",
-         "abs_t",
-         "abs_nlte",
-         "abs_vmrs",
-         "abs_lines_per_species",
-         "abs_lineshape",
-         "isotopologue_ratios",
-         "partition_functions"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_xsec_per_speciesAddLines2"),
-      DESCRIPTION(
-          "Calculates the line spectrum for both attenuation and phase\n"
-          "for each tag group and adds it to abs_xsec_per_species.\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_xsec_per_species",
           "src_xsec_per_species",
@@ -2587,39 +1695,6 @@ void define_md_data_raw() {
          "abs_nlte",
          "abs_vmrs",
          "abs_lines_per_species",
-         "isotopologue_ratios",
-         "partition_functions"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_xsec_per_speciesAddLines3"),
-      DESCRIPTION(
-          "Calculates the line spectrum for both attenuation and phase\n"
-          "for each tag group and adds it to abs_xsec_per_species.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_xsec_per_species",
-          "src_xsec_per_species",
-          "dabs_xsec_per_species_dx",
-          "dsrc_xsec_per_species_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_xsec_per_species",
-         "src_xsec_per_species",
-         "dabs_xsec_per_species_dx",
-         "dsrc_xsec_per_species_dx",
-         "abs_species",
-         "jacobian_quantities",
-         "abs_species_active",
-         "f_grid",
-         "abs_p",
-         "abs_t",
-         "abs_nlte2",
-         "abs_vmrs",
-         "abs_lines_per_species2",
          "isotopologue_ratios",
          "partition_functions"),
       GIN(),
@@ -2636,34 +1711,11 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_xsec_per_species",
-         "abs_species_per_band",
-         "abs_species",
          "f_grid",
          "abs_p",
          "abs_t",
          "relmat_per_band",
-         "abs_lines_per_band",
-         "isotopologue_ratios",
-         "partition_functions"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_xsec_per_speciesAddLineMixedLines2"),
-      DESCRIPTION("Calculates the band-wise cross-section TEST FUNCTION\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_xsec_per_species"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_xsec_per_species",
-         "f_grid",
-         "abs_p",
-         "abs_t",
-         "relmat_per_band",
-         "abs_lines_per_species2",
+         "abs_lines_per_species",
          "isotopologue_ratios",
          "partition_functions"),
       GIN(),
@@ -2680,34 +1732,10 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_xsec_per_species",
-         "abs_species_per_band",
-         "abs_species",
          "f_grid",
          "abs_p",
          "abs_t",
-         "abs_lines_per_band",
-         "isotopologue_ratios",
-         "partition_functions",
-         "wigner_initialized"),
-      GIN("minimum_line_count"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT("10"),
-      GIN_DESC("If less than this number of lines in a \"band\", "
-               "relaxation matrix is set diagonal")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_xsec_per_speciesAddLineMixedLinesInAir2"),
-      DESCRIPTION("Calculates the band-wise cross-section TEST FUNCTION\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_xsec_per_species"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_xsec_per_species",
-         "f_grid",
-         "abs_p",
-         "abs_t",
-         "abs_lines_per_species2",
+         "abs_lines_per_species",
          "isotopologue_ratios",
          "partition_functions",
          "wigner_initialized"),
@@ -3544,58 +2572,6 @@ void define_md_data_raw() {
          "z_field_raw",
          "vmr_field_raw",
          "nlte_field_raw",
-         "atmosphere_dim"),
-      GIN("interp_order",
-          "vmr_zeropadding",
-          "vmr_nonegative",
-          "nlte_when_negative"),
-      GIN_TYPE("Index", "Index", "Index", "Index"),
-      GIN_DEFAULT("1", "0", "0", "0"),
-      GIN_DESC("Interpolation order (1=linear interpolation).",
-               "Pad VMRs with zeroes to fit the pressure grid if necessary.",
-               "If set to 1, negative VMRs are set to 0.",
-               "-1: Skip step. 0: Negative is 0. Else: Negative is t.")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("AtmFieldsCalc2"),
-      DESCRIPTION(
-          "Interpolation of raw atmospheric T, z, VMR, and NLTE T/r fields to\n"
-          "calculation grids.\n"
-          "\n"
-          "An atmospheric scenario includes the following data for each\n"
-          "position (pressure, latitude, longitude) in the atmosphere:\n"
-          "   1. temperature field\n"
-          "   2. the corresponding altitude field\n"
-          "   3. vmr fields for the gaseous species\n"
-          "This method interpolates the fields of raw data (*t_field_raw*,\n"
-          "*z_field_raw*, *vmr_field_raw*) which can be stored on arbitrary\n"
-          "grids to the calculation grids (*p_grid*, *lat_grid*, *lon_grid*).\n"
-          "If *nlte_field_raw* is empty, it is assumed to be so because LTE is\n"
-          "assumed by the user and *nlte_field* will be empty.\n"
-          "\n"
-          "Internally, *AtmFieldsCalc* applies *GriddedFieldPRegrid* and\n"
-          "*GriddedFieldLatLonRegrid*. Generally, 'half-grid-step' extrapolation\n"
-          "is allowed and applied. However, if *vmr_zeropadding*=1 then VMRs at\n"
-          "*p_grid* levels exceeding the raw VMRs' pressure grid are set to 0\n"
-          "(applying the *vmr_zeropadding* option of *GriddedFieldPRegrid*).\n"
-          "\n"
-          "Default is to just accept obtained VMRs. If you want to enforce\n"
-          "that all VMR created are >= 0, set *vmr_nonegative* to 1. Negative\n"
-          "values are then set 0. Beside being present in input data, negative\n"
-          "VMR can be generated from the interpolation if *interp_order* is\n"
-          "above 1.\n"),
-      AUTHORS("Claudia Emde", "Stefan Buehler"),
-      OUT("t_field", "z_field", "vmr_field", "nlte_field2"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("p_grid",
-         "lat_grid",
-         "lon_grid",
-         "t_field_raw",
-         "z_field_raw",
-         "vmr_field_raw",
-         "nlte_field_raw",
          "nlte_level_identifiers",
          "nlte_vibrational_energies",
          "atmosphere_dim"),
@@ -3626,44 +2602,6 @@ void define_md_data_raw() {
           "ellipsoid is set to be a sphere.\n"),
       AUTHORS("Patrick Eriksson", "Claudia Emde", "Stefan Buehler"),
       OUT("t_field", "z_field", "vmr_field", "nlte_field"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("p_grid",
-         "lat_grid",
-         "lon_grid",
-         "t_field_raw",
-         "z_field_raw",
-         "vmr_field_raw",
-         "nlte_field_raw",
-         "atmosphere_dim"),
-      GIN("interp_order",
-          "vmr_zeropadding",
-          "vmr_nonegative",
-          "nlte_when_negative"),
-      GIN_TYPE("Index", "Index", "Index", "Index"),
-      GIN_DEFAULT("1", "0", "0", "0"),
-      GIN_DESC("Interpolation order (1=linear interpolation).",
-               "Pad VMRs with zeroes to fit the pressure grid if necessary.",
-               "If set to 1, negative VMRs are set to 0.",
-               "-1: Skip step. 0: Negative is 0. Else: Negative is t.")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("AtmFieldsCalcExpand1D2"),
-      DESCRIPTION(
-          "Interpolation of 1D raw atmospheric fields to create 2D or 3D\n"
-          "homogeneous atmospheric fields.\n"
-          "\n"
-          "The method works as *AtmFieldsCalc*, but accepts only raw 1D\n"
-          "atmospheres. The raw atmosphere is interpolated to *p_grid* and\n"
-          "the obtained values are applied for all latitudes, and also\n"
-          "longitudes for 3D, to create a homogeneous atmosphere.\n"
-          "\n"
-          "The method deals only with the atmospheric fields, and to create\n"
-          "a true 2D or 3D version of a 1D case, a demand is also that the\n"
-          "ellipsoid is set to be a sphere.\n"),
-      AUTHORS("Patrick Eriksson", "Claudia Emde", "Stefan Buehler"),
-      OUT("t_field", "z_field", "vmr_field", "nlte_field2"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -6721,58 +5659,6 @@ void define_md_data_raw() {
       GIN_DESC("Kayser wavenumber [cm^-1]")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("f_gridFromabs_linesSet"),
-      DESCRIPTION(
-          "Sets *f_grid* to a frequency grid determined by the available lines.\n"
-          "Can set either from full catalog or from single line entry.\n"
-          "\n"
-          "If line_nr is below zero, then all lines are used.  If above, then the line"
-          "in order of appearance in *abs_lines* is used.  Warning: there can be a lot\n"
-          "of lines in *abs_lines*.\n"
-          "\n"
-          "The frequency grid is decided from the line's frequency plus/minus half_width,\n"
-          "and the number of frequency bins between these limits is determined by nr_f_per_line.\n"
-          "\n"
-          "Note that frequencies below 0 Hz are not allowed by test, and that overlaps of\n"
-          "half widths (when all lines are selected) is also not allowed.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("f_grid"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines"),
-      GIN("half_width", "nr_f_per_line", "line_nr"),
-      GIN_TYPE("Numeric", "Index", "Index"),
-      GIN_DEFAULT("1", "0", "-1"),
-      GIN_DESC(
-          "Half width in Hz",
-          "Number of frequency bins from F0-half_width to F0+half_width",
-          "Index of line (0 is first; if negative then all lines are used)")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("f_gridFromabs_lines_per_speciesSetFromSpeciesTag"),
-      DESCRIPTION(
-          "Sets *f_grid* to a frequency grid determined by the lines in a SpeciesTag.\n"
-          "\n"
-          "The frequency grid is decided from the line's frequency plus/minus half_width,\n"
-          "and the number of frequency bins between these limits is determined by nr_f_per_line.\n"
-          "\n"
-          "Note that frequencies below 0 Hz are not allowed by test, and that overlaps of\n"
-          "half widths is also not allowed.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("f_grid"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_species", "abs_species"),
-      GIN("half_width", "nr_f_per_line", "species_tag"),
-      GIN_TYPE("Numeric", "Index", "String"),
-      GIN_DEFAULT("1", "0", ""),
-      GIN_DESC("Half width in Hz",
-               "Number of frequency bins from F0-half_width to F0+half_width",
-               "Species tag as found in *abs_species*")));
-
-  md_data_raw.push_back(MdRecord(
       NAME("f_gridFromGasAbsLookup"),
       DESCRIPTION(
           "Sets *f_grid* to the frequency grid of *abs_lookup*.\n"
@@ -7874,98 +6760,6 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
-      NAME("iyEmissionStandard2"),
-      DESCRIPTION(
-          "Standard method for radiative transfer calculations with emission.\n"
-          "\n"
-          "Designed to be part of *iy_main_agenda*. That is, only valid\n"
-          "outside the cloudbox (no scattering). For details se the user guide.\n"
-          "\n"
-          "The possible choices for *iy_unit* are\n"
-          " \"1\"             : No conversion, i.e. [W/(m^2 Hz sr)] (radiance per\n"
-          "                     frequency unit).\n"
-          " \"RJBT\"          : Conversion to Rayleigh-Jean brightness\n"
-          "                     temperature.\n"
-          " \"PlanckBT\"      : Conversion to Planck brightness temperature.\n"
-          " \"W/(m^2 m sr)\"  : Conversion to [W/(m^2 m sr)] (radiance per\n"
-          "                     wavelength unit).\n"
-          " \"W/(m^2 m-1 sr)\": Conversion to [W/(m^2 m-1 sr)] (radiance per\n"
-          "                     wavenumber unit).\n"
-          "Expressions applied and considerations for the unit conversion of\n"
-          "radiances are discussed in Sec. 5.7 of the ARTS-2.0 article.\n"
-          "\n"
-          "*iy_unit* is only applied if *iy_agenda_call1* is 1. This means that\n"
-          "no unit ocnversion is applied for internal iterative calls.\n"
-          "\n"
-          "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
-          "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
-          "Valid choices for auxiliary data are:\n"
-          " \"Radiative background\": Index value flagging the radiative\n"
-          "    background. The following coding is used: 0=space, 1=surface\n"
-          "    and 2=cloudbox.\n"
-          " \"Optical depth\": Scalar optical depth between the observation point\n"
-          "    and the end of the present propagation path. Calculated based on\n"
-          "    the (1,1)-element of the transmission matrix (1-based indexing),\n"
-          "    i.e. only fully valid for scalar RT.\n"
-          "If nothing else is stated, only the first column of *iy_aux* is filled,\n"
-          "i.e. the column matching Stokes element I, while remaing columns are\n"
-          "are filled with zeros.\n"),
-      AUTHORS("Patrick Eriksson", "Richard Larsson"),
-      OUT("iy",
-          "iy_aux",
-          "diy_dx",
-          "ppvar_p",
-          "ppvar_t",
-          "ppvar_nlte2",
-          "ppvar_vmr",
-          "ppvar_wind",
-          "ppvar_mag",
-          "ppvar_f",
-          "ppvar_iy",
-          "ppvar_trans_cumulat",
-          "ppvar_trans_partial"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("diy_dx",
-         "iy_id",
-         "stokes_dim",
-         "f_grid",
-         "atmosphere_dim",
-         "p_grid",
-         "t_field",
-         "nlte_field2",
-         "vmr_field",
-         "abs_species",
-         "wind_u_field",
-         "wind_v_field",
-         "wind_w_field",
-         "mag_u_field",
-         "mag_v_field",
-         "mag_w_field",
-         "cloudbox_on",
-         "iy_unit",
-         "iy_aux_vars",
-         "jacobian_do",
-         "jacobian_quantities",
-         "ppath",
-         "rte_pos2",
-         "propmat_clearsky_agenda2",
-         "water_p_eq_agenda",
-         "iy_main_agenda2",
-         "iy_space_agenda",
-         "iy_surface_agenda2",
-         "iy_cloudbox_agenda",
-         "iy_agenda_call1",
-         "iy_transmission",
-         "rte_alonglos_v",
-         "surface_props_data"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
       NAME("iyEmissionStandardParallel"),
       DESCRIPTION(
           "Parallelized version of *iyEmissionStandard* at the expense of\n"
@@ -8727,42 +7521,6 @@ void define_md_data_raw() {
          "rte_pos2",
          "iy_unit",
          "iy_main_agenda",
-         "surface_rtprop_agenda"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("iySurfaceRtpropAgenda2"),
-      DESCRIPTION(
-          "Interface to *surface_rtprop_agenda* for *iy_surface_agenda*.\n"
-          "\n"
-          "This method is designed to be part of *iy_surface_agenda*. It\n"
-          "determines the radiative properties of the surface by\n"
-          "*surface_rtprop_agenda* and calculates the downwelling radiation\n"
-          "by *iy_main_agenda*, and sums up the terms as described in AUG.\n"
-          "That is, this WSM uses the output from *surface_rtprop_agenda*\n"
-          "in a straightforward fashion.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("iy", "diy_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("diy_dx",
-         "iy_transmission",
-         "iy_id",
-         "jacobian_do",
-         "atmosphere_dim",
-         "nlte_field2",
-         "cloudbox_on",
-         "stokes_dim",
-         "f_grid",
-         "rtp_pos",
-         "rtp_los",
-         "rte_pos2",
-         "iy_unit",
-         "iy_main_agenda2",
          "surface_rtprop_agenda"),
       GIN(),
       GIN_TYPE(),
@@ -10903,21 +9661,6 @@ void define_md_data_raw() {
       GIN_DESC("Scaling (e.g., 0.75 for only orth-water on Earth)")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("nlte_fieldRescalePopulationLevels2"),
-      DESCRIPTION(
-          "Rescale NLTE field to expected total distribution amongst levels\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("nlte_field2"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("nlte_field2"),
-      GIN("s"),
-      GIN_TYPE("Numeric"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Scaling (e.g., 0.75 for only orth-water on Earth)")));
-
-  md_data_raw.push_back(MdRecord(
       NAME("nlte_fieldForSingleSpeciesNonOverlappingLines"),
       DESCRIPTION(
           "NLTE field for a simple setup.\n"
@@ -10933,7 +9676,6 @@ void define_md_data_raw() {
       IN("nlte_field",
          "abs_species",
          "abs_lines_per_species",
-         "nlte_level_identifiers",
          "collision_coefficients",
          "collision_line_identifiers",
          "isotopologue_ratios",
@@ -10943,50 +9685,6 @@ void define_md_data_raw() {
          "iy_surface_agenda",
          "iy_cloudbox_agenda",
          "propmat_clearsky_agenda",
-         "water_p_eq_agenda",
-         "vmr_field",
-         "t_field",
-         "z_field",
-         "p_grid",
-         "atmosphere_dim",
-         "refellipsoid",
-         "surface_props_data",
-         "nlte_do"),
-      GIN("df", "convergence_limit", "nz", "nf", "dampened", "iteration_limit"),
-      GIN_TYPE("Numeric", "Numeric", "Index", "Index", "Index", "Index"),
-      GIN_DEFAULT(NODEF, "1e-6", NODEF, NODEF, NODEF, "20"),
-      GIN_DESC("relative frequency to line center",
-               "max relative change in ratio of level to stop iterations",
-               "number of zenith angles",
-               "number of frequency grid-points per line",
-               "use transmission dampening or not",
-               "max number of iterations before defaul break of iterations")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("nlte_fieldForSingleSpeciesNonOverlappingLines2"),
-      DESCRIPTION("NLTE field for a simple setup.\n"
-        "\n"
-        "This will solve for *nlte_field* in the input atmosphere.\n"
-        "The solver depends on the lines not overlapping and that there\n"
-        "is only a single species in the atmosphere.\n"
-      ),
-      AUTHORS("Richard Larsson"),
-      OUT("nlte_field2"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("nlte_field2",
-         "abs_species",
-         "abs_lines_per_species2",
-         "collision_coefficients",
-         "collision_line_identifiers",
-         "isotopologue_ratios",
-         "iy_main_agenda2",
-         "ppath_agenda",
-         "iy_space_agenda",
-         "iy_surface_agenda2",
-         "iy_cloudbox_agenda",
-         "propmat_clearsky_agenda2",
          "water_p_eq_agenda",
          "vmr_field",
          "t_field",
@@ -11370,55 +10068,11 @@ void define_md_data_raw() {
           "\tTV:  Compute population by ratios found from NLTE vibrational temperatures\n"
           "\tND:  Compute population by ratios found from NLTE number densities\n"),
       AUTHORS("Richard Larsson"),
-      OUT("nlte_do", "abs_lines_per_species"),
+      OUT("abs_lines_per_species"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines_per_species", "nlte_level_identifiers", "abs_species"),
-      GIN("vibrational_energies", "population_type"),
-      GIN_TYPE("Vector", "String"),
-      GIN_DEFAULT("[]", "TV"),
-      GIN_DESC(
-          "Vector of vibrational energies.  If empty, assume known or unimportant vibrational energies.",
-          "String for setting the type of population.")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("nlteSetByQuantumIdentifiers2"),
-      DESCRIPTION(
-          "Turns on NTLE calculations.\n"
-          "\n"
-          "Takes the quantum identifers for NLTE temperatures and matches it to\n"
-          "lines in *abs_lines_per_species*.  *abs_species* must be set and is used\n"
-          "to speed up calculations.  After the function is done,  all affected\n"
-          "lines in *abs_lines_per_species* will have an internal tag to the relevant\n"
-          "quantum identifier, which is a requirement for deeper code.\n"
-          "\n"
-          "If vibrational_energies is input it must match *nlte_level_identifiers*\n"
-          "in length.  The vibrational energies of the affected lines will then be\n"
-          "set by the function.  Otherwise, it is assumed the vibrational energies\n"
-          "are set by another method.  If they are not set, calculations will complain\n"
-          "later on while running deeper code.\n"
-          "\n"
-          "For now only vibrational energy states are assumed to be able to be in\n"
-          "non-LTE conditions.  The *QuantumIdentifier* for an energy state in ARTS\n"
-          "can look like:\n"
-          "\t\"CO2-626 EN v1 0/1 v2 1/1 l2 1/1 v3 0/1 r 1/1\"\n"
-          "and the matching will match ALL lines with the above.  Note then that if, e.g.,\n"
-          "the \"v1 0/1\" term was removed from the above, then ARTS will assume that\n"
-          "\"v1\" is not part of the level of energy state of interest, so lines\n"
-          "of different \"v1\" will be matched as the same state.  If a line is matched\n"
-          "to more than one energy state, errors should be thrown, but be careful.\n"
-          "\n"
-          "Set type of population to change computations and expected input as:\n"
-          "\tLTE: Compute population by ratios found from LTE temperatures\n"
-          "\tTV:  Compute population by ratios found from NLTE vibrational temperatures\n"
-          "\tND:  Compute population by ratios found from NLTE number densities\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines_per_species2"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_species2", "nlte_field2"),
+      IN("abs_lines_per_species", "nlte_field"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -11445,26 +10099,6 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
-      NAME("nlte_fieldSetLteExternalPartitionFunction2"),
-      DESCRIPTION("Turns on NTLE calculations.\n"
-                  "\n"
-                  "Sets NLTE ratios to those expected for LTE calculations\n"
-                  "with a known partition function\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("nlte_do", "nlte_field2", "abs_lines_per_species2"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_species2",
-         "nlte_level_identifiers",
-         "partition_functions",
-         "t_field"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
       NAME("ArrayOfQuantumIdentifierFromLines"),
       DESCRIPTION(
           "Sets an ArrayOfQuantumIdentifier to all levels in *abs_lines_per_species*\n"
@@ -11477,10 +10111,10 @@ void define_md_data_raw() {
       GOUT_TYPE("ArrayOfQuantumIdentifier"),
       GOUT_DESC("Identifiers to all levels in *abs_lines_per_species*"),
       IN("abs_lines_per_species"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
+      GIN("global"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("1"),
+      GIN_DESC("Only look at global quantum numbers")));
 
   md_data_raw.push_back(MdRecord(
       NAME("nlte_fieldSetLteInternalPartitionFunction"),
@@ -11496,25 +10130,6 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines_per_species", "nlte_level_identifiers", "t_field"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("nlte_fieldSetLteInternalPartitionFunction2"),
-      DESCRIPTION(
-          "Turns on NTLE calculations.\n"
-          "\n"
-          "Sets NLTE ratios to those expected for LTE calculations\n"
-          "with estimation of the partition function as the sum of all\n"
-          "states of a species\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("nlte_do", "nlte_field2", "abs_lines_per_species2"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_species2", "nlte_level_identifiers", "t_field"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -12867,21 +11482,7 @@ void define_md_data_raw() {
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines_per_band", "abs_species_per_band"),
-      GIN("temperature"),
-      GIN_TYPE("Numeric"),
-      GIN_DEFAULT("296"),
-      GIN_DESC("Temperature to evaluate at")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("PrintSelfLineMixingStatus2"),
-      DESCRIPTION("Test function for printing status of linemixing.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT(),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_species2",),
+      IN("abs_lines_per_species",),
       GIN("temperature"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT("296"),
@@ -13118,49 +11719,6 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
-      NAME("propmat_clearskyAddOnTheFly2"),
-      DESCRIPTION(
-          "Calculates gas absorption coefficients line-by-line.\n"
-          "\n"
-          "This method can be used inside *propmat_clearsky_agenda* just like\n"
-          "*propmat_clearskyAddFromLookup*. It is a shortcut for putting in some\n"
-          "other methods explicitly, namely:\n"
-          "\n"
-          "  1. *AbsInputFromRteScalars*\n"
-          "  2. Execute *abs_xsec_agenda*\n"
-          "  3. *abs_coefCalcFromXsec*\n"
-          "  4. *propmat_clearskyAddFromAbsCoefPerSpecies*\n"
-          "\n"
-          "The calculation is for one specific atmospheric condition, i.e., a set\n"
-          "of pressure, temperature, and VMR values.\n"),
-      AUTHORS("Stefan Buehler, Richard Larsson"),
-      OUT("propmat_clearsky",
-          "nlte_source",
-          "dpropmat_clearsky_dx",
-          "dnlte_dx_source",
-          "nlte_dsource_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("propmat_clearsky",
-         "nlte_source",
-         "dpropmat_clearsky_dx",
-         "dnlte_dx_source",
-         "nlte_dsource_dx",
-         "f_grid",
-         "abs_species",
-         "jacobian_quantities",
-         "rtp_pressure",
-         "rtp_temperature",
-         "rtp_nlte2",
-         "rtp_vmr",
-         "abs_xsec_agenda2"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
       NAME("propmat_clearskyAddParticles"),
       DESCRIPTION(
           "Calculates absorption coefficients of particles to be used in\n"
@@ -13239,52 +11797,6 @@ void define_md_data_raw() {
           "Calculates Zeeman-affected polarized propagation matrix and its\n"
           "derivatives.\n"
           "\n"
-          "Otherwise as *propmat_clearskyAddFromLookup* except line cutoff,\n"
-          "shape, and, normalization factors have to be set in the LineRecord\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("propmat_clearsky",
-          "nlte_source",
-          "dpropmat_clearsky_dx",
-          "dnlte_dx_source",
-          "nlte_dsource_dx"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("propmat_clearsky",
-         "nlte_source",
-         "dpropmat_clearsky_dx",
-         "dnlte_dx_source",
-         "nlte_dsource_dx",
-         "zeeman_linerecord_precalc",
-         "f_grid",
-         "abs_species",
-         "jacobian_quantities",
-         "isotopologue_ratios",
-         "partition_functions",
-         "rtp_pressure",
-         "rtp_temperature",
-         "rtp_nlte",
-         "rtp_vmr",
-         "rtp_mag",
-         "rtp_los",
-         "atmosphere_dim"),
-      GIN("manual_zeeman_tag",
-          "manual_zeeman_magnetic_field_strength",
-          "manual_zeeman_theta",
-          "manual_zeeman_eta"),
-      GIN_TYPE("Index", "Numeric", "Numeric", "Numeric"),
-      GIN_DEFAULT("0", "1.0", "0.0", "0.0"),
-      GIN_DESC("Manual angles tag",
-               "Manual Magnetic Field Strength",
-               "Manual theta given positive tag",
-               "Manual eta given positive tag")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("propmat_clearskyAddZeeman2"),
-      DESCRIPTION(
-          "Calculates Zeeman-affected polarized propagation matrix and its\n"
-          "derivatives.\n"
-          "\n"
           "Otherwise as *propmat_clearskyAddFromLookup*\n"),
       AUTHORS("Richard Larsson"),
       OUT("propmat_clearsky",
@@ -13300,7 +11812,7 @@ void define_md_data_raw() {
          "dpropmat_clearsky_dx",
          "dnlte_dx_source",
          "nlte_dsource_dx",
-         "abs_lines_per_species2",
+         "abs_lines_per_species",
          "f_grid",
          "abs_species",
          "jacobian_quantities",
@@ -13308,7 +11820,7 @@ void define_md_data_raw() {
          "partition_functions",
          "rtp_pressure",
          "rtp_temperature",
-         "rtp_nlte2",
+         "rtp_nlte",
          "rtp_vmr",
          "rtp_mag",
          "rtp_los",
@@ -14491,37 +13003,6 @@ void define_md_data_raw() {
       GIN_DESC("TBD")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("line_irradianceCalcForSingleSpeciesNonOverlappingLines"),
-      DESCRIPTION("Computes the line irradiance and line transmission\n"
-                  "\n"
-                  "Presently only works for 1D atmospheres\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("line_irradiance", "line_transmission"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_species",
-         "abs_lines_per_species",
-         "nlte_field",
-         "vmr_field",
-         "t_field",
-         "z_field",
-         "p_grid",
-         "atmosphere_dim",
-         "surface_props_data",
-         "iy_space_agenda",
-         "iy_surface_agenda",
-         "iy_cloudbox_agenda",
-         "propmat_clearsky_agenda",
-         "water_p_eq_agenda"),
-      GIN("df", "nz", "nf"),
-      GIN_TYPE("Numeric", "Index", "Index"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF),
-      GIN_DESC("relative frequency to line center",
-               "number of zeniths",
-               "number of frequencies per line")));
-
-  md_data_raw.push_back(MdRecord(
       NAME("line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D"),
       DESCRIPTION("Computes the line irradiance and line transmission\n"
                   "\n"
@@ -14546,39 +13027,6 @@ void define_md_data_raw() {
          "iy_surface_agenda",
          "iy_cloudbox_agenda",
          "propmat_clearsky_agenda"),
-      GIN("df", "nz", "nf", "r"),
-      GIN_TYPE("Numeric", "Index", "Index", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "1.0"),
-      GIN_DESC("relative frequency to line center",
-               "number of zeniths",
-               "number of frequencies per line",
-               "Distance assumed when computing local (1-T)")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D2"),
-      DESCRIPTION("Computes the line irradiance and line transmission\n"
-                  "\n"
-                  "Presently only works for 1D atmospheres\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("line_irradiance", "line_transmission"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_species",
-         "abs_lines_per_species2",
-         "nlte_field2",
-         "vmr_field",
-         "t_field",
-         "z_field",
-         "p_grid",
-         "refellipsoid",
-         "surface_props_data",
-         "iy_main_agenda2",
-         "ppath_agenda",
-         "iy_space_agenda",
-         "iy_surface_agenda2",
-         "iy_cloudbox_agenda",
-         "propmat_clearsky_agenda2"),
       GIN("df", "nz", "nf", "r"),
       GIN_TYPE("Numeric", "Index", "Index", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "1.0"),
@@ -14658,8 +13106,8 @@ void define_md_data_raw() {
   md_data_raw.push_back(MdRecord(
       NAME("ReadARTSCAT"),
       DESCRIPTION("Reads a ARTSCAT file.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines2"),
+      AUTHORS("Stefan Buehler", "Richard Larsson"),
+      OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -14674,8 +13122,24 @@ void define_md_data_raw() {
   md_data_raw.push_back(MdRecord(
       NAME("ReadHITRAN"),
       DESCRIPTION("Reads a HITRAN .par file.\n"),
+      AUTHORS("Hermann Berg", "Thomas Kuhn", "Richard Larsson"),
+      OUT("abs_lines"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("filename", "fmax", "globalquantumnumbers", "localquantumnumbers"),
+      GIN_TYPE("String", "Numeric", "String", "String"),
+      GIN_DEFAULT(NODEF, NODEF, "", ""),
+      GIN_DESC("Name of the HITRAN file", "Max frequency",
+               "Global quantum number list (space-separated)",
+               "Local quantum number list (space-separated)")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("ReadLBLRTM"),
+      DESCRIPTION("Reads a LBLRTM file.\n"),
       AUTHORS("Richard Larsson"),
-      OUT("abs_lines2"),
+      OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -14690,8 +13154,8 @@ void define_md_data_raw() {
   md_data_raw.push_back(MdRecord(
       NAME("ReadMytran2"),
       DESCRIPTION("Reads a Mytran2 file.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines2"),
+      AUTHORS("Axel von Engeln", "Stefan Buehler", "Richard Larsson"),
+      OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -14706,8 +13170,8 @@ void define_md_data_raw() {
   md_data_raw.push_back(MdRecord(
       NAME("ReadJPL"),
       DESCRIPTION("Reads a JPL file.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines2"),
+      AUTHORS("Thomas Kuhn", "Richard Larsson"),
+      OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -14720,45 +13184,29 @@ void define_md_data_raw() {
                "Local quantum number list (space-separated)")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("ReadLBLRTM"),
-      DESCRIPTION("Reads a LBLRTM file.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines2"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN(),
-      GIN("filename", "fmax", "globalquantumnumbers", "localquantumnumbers"),
-      GIN_TYPE("String", "Numeric", "String", "String"),
-      GIN_DEFAULT(NODEF, NODEF, "", ""),
-      GIN_DESC("Name of the HITRAN file", "Max frequency",
-               "Global quantum number list (space-separated)",
-               "Local quantum number list (space-separated)")));
-
-  md_data_raw.push_back(MdRecord(
-    NAME("abs_linesTruncateGlobalQuantumNumbers"),
+      NAME("abs_linesTruncateGlobalQuantumNumbers"),
       DESCRIPTION("Truncates all global quantum numbers\n"
-      "and then recombine the line list.\n"),
+                  "and then recombine the line list.\n"),
       AUTHORS("Richard Larsson"),
-      OUT("abs_lines2"),
+      OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines2"),
+      IN("abs_lines"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
-    NAME("abs_linesWriteSplitXML"),
+      NAME("abs_linesWriteSplitXML"),
       DESCRIPTION("Writes a split file.\n"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines2"),
+      IN("abs_lines"),
       GIN("basename"),
       GIN_TYPE("String"),
       GIN_DEFAULT(NODEF),
@@ -17718,31 +16166,6 @@ void define_md_data_raw() {
           "is called adding the ID.  The functions does not check the species or isotopologue,\n"
           "but you might have to define one anyways for the *band_quantums* input to work.\n"
           "\n"
-          "Example *band_quantums*=\"O2-66 EN v1 0\" means all quantum numbers that\n"
-          "are not v1 will be removed, and *band_identifiers* will consist of all the\n"
-          "identifiers of combinations of v1, e.g., v1 0 to v1 1, v1 0 to v1 0, and so on.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("band_identifiers"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines"),
-      GIN("band_quantums"),
-      GIN_TYPE("QuantumIdentifier"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Quantum numbers that are defined for the band")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("SetBandIdentifiersFromLines2"),
-      DESCRIPTION(
-          "Sets (not adds to) *band_identifiers* to all uniques in *abs_lines*\n"
-          "\n"
-          "Will set all Quantum Numbers that are in the line as undefined\n"
-          "if they do not exist in *band_quantums* before comparing the resulting\n"
-          "QuantumIdentifier to the ones already in *band_identifiers*.  If new, push_back\n"
-          "is called adding the ID.  The functions does not check the species or isotopologue,\n"
-          "but you might have to define one anyways for the *band_quantums* input to work.\n"
-          "\n"
           "Only looks at global quantum numbers if *global* evaluates as true.\n"
           "\n"
           "Example *band_quantums*=\"O2-66 EN v1 0\" means all quantum numbers that\n"
@@ -17753,7 +16176,7 @@ void define_md_data_raw() {
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines2"),
+      IN("abs_lines"),
       GIN("band_quantums", "global"),
       GIN_TYPE("QuantumIdentifier", "Index"),
       GIN_DEFAULT(NODEF, "1"),
@@ -19382,24 +17805,7 @@ void define_md_data_raw() {
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines_per_band",
-         "abs_species_per_band",
-         "partition_functions",
-         "wigner_initialized"),
-      GIN("temperatures"),
-      GIN_TYPE("Vector"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Vector of temperatures to compute the relaxation matrix at")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("relmat_per_bandInAir2"),
-      DESCRIPTION("A dummy method to test line mixing.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("relmat_per_band"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_species2",
+      IN("abs_lines_per_species",
          "partition_functions",
          "wigner_initialized"),
       GIN("temperatures"),
@@ -21020,73 +19426,6 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
-      NAME("yCalc2"),
-      DESCRIPTION(
-          "Calculation of complete measurement vectors (y).\n"
-          "\n"
-          "The method performs radiative transfer calculations from a sensor\n"
-          "perspective. Radiative transfer calculations are performed for\n"
-          "monochromatic pencil beams, following *iy_main_agenda* and\n"
-          "associated agendas. Obtained radiances are weighted together by\n"
-          "*sensor_response*, to include the characteristics of the sensor.\n"
-          "The measurement vector obtained can contain anything from a single\n"
-          "frequency value to a series of measurement scans (each consisting\n"
-          "of a series of spectra), all depending on the settings. Spectra\n"
-          "and jacobians are calculated in parallel.\n"
-          "\n"
-          "The frequency, polarisation etc. for each measurement value is\n"
-          "given by *y_f*, *y_pol*, *y_pos* and *y_los*.\n"
-          "\n"
-          "The content of *y_aux* follows *iy_aux_vars. See the method selected\n"
-          "for *iy_main_agenda* for allowed choices.\n"
-          "\n"
-          "The geo-positions (*y_geo*) are set based on *sensor_reponse*. When\n"
-          "an antenna pattern is considered, there are several pencil beams,\n"
-          "and thus also several goe-positions, associated with each value of *y*.\n"
-          "The geo-position assigned to a value in *y* is the *geo_pos* of the pencil\n"
-          "beam related to the highest value in *sensor_response*. This means that\n"
-          "*mblock_dlos_grid* must contain the bore-sight direction (0,0), if you\n"
-          "want *y_geo* to exactly match the bore-sight direction.\n"
-          "\n"
-          "The Jacobian provided (*jacobian*) is adopted to selected retrieval\n"
-          "units, but no transformations are applied. Transformations are\n"
-          "included by calling *jacobianAdjustAndTranform*.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "y_geo", "jacobian"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("atmgeom_checked",
-         "atmfields_checked",
-         "atmosphere_dim",
-         "nlte_field2",
-         "cloudbox_on",
-         "cloudbox_checked",
-         "scat_data_checked",
-         "sensor_checked",
-         "stokes_dim",
-         "f_grid",
-         "sensor_pos",
-         "sensor_los",
-         "transmitter_pos",
-         "mblock_dlos_grid",
-         "sensor_response",
-         "sensor_response_f",
-         "sensor_response_pol",
-         "sensor_response_dlos",
-         "iy_unit",
-         "iy_main_agenda2",
-         "geo_pos_agenda",
-         "jacobian_agenda",
-         "jacobian_do",
-         "jacobian_quantities",
-         "iy_aux_vars"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
       NAME("yCalcAppend"),
       DESCRIPTION(
           "Replaces *yCalc* if a measurement shall be appended to an\n"
@@ -21334,77 +19673,4 @@ void define_md_data_raw() {
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("zeeman_linerecord_precalcCreateFromLines"),
-      DESCRIPTION(
-          "Creates a Zeeman ArrayOfArrayOfLineRecord prior to atmospheric looping.\n"
-          "\n"
-          "Will reset the *zeeman_linerecord_precalc* at every call.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("zeeman_linerecord_precalc"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_species", "abs_lines_per_species", "wigner_initialized"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("zeeman_linerecord_precalcCreateWithZeroSplitting"),
-      DESCRIPTION(
-          "Creates a Zeeman ArrayOfArrayOfLineRecord prior to atmospheric looping.\n"
-          "\n"
-          "Will reset the *zeeman_linerecord_precalc* at every call.\n"
-          "\n"
-          "The splitting coefficients are set to zero.  Use a modify-function to adjust these\n"
-          "for proper calculations\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("zeeman_linerecord_precalc"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_species", "abs_lines_per_species", "wigner_initialized"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("zeeman_linerecord_precalcModifyFromData"),
-      DESCRIPTION(
-          "Modifies *zeeman_linerecord_precalc* by setting its g value directly.\n"
-          "\n"
-          "This will set all unmatched energy levels to g=0 for all lines that\n"
-          "have at least a single level match\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("zeeman_linerecord_precalc"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("zeeman_linerecord_precalc"),
-      GIN("keys", "data"),
-      GIN_TYPE("ArrayOfQuantumIdentifier", "Vector"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("Keys for energy levels in the line array",
-               "Matching g-values to set for levels")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("zeeman_linerecord_precalcPrintMissing"),
-      DESCRIPTION("Support for *zeeman_linerecord_precalcModifyFromData*\n"
-                  "\n"
-                  "Prints all lines not having any partial match for *keys*\n"
-                  "in *zeeman_linerecord_precalcModifyFromData*\n"),
-      AUTHORS("Richard Larsson"),
-      OUT(),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("zeeman_linerecord_precalc"),
-      GIN("keys"),
-      GIN_TYPE("ArrayOfQuantumIdentifier"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Keys for energy levels in the line array")));
 }

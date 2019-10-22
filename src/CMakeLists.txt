@@ -232,7 +232,6 @@ add_library (artscore STATIC
   m_hitran_xsec.cc
   m_jacobian.cc
   m_linemixing.cc
-  m_linerecord.cc
   m_microphysics.cc
   m_montecarlo.cc
   m_nlte.cc

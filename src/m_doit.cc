@@ -1785,7 +1785,7 @@ void OptimizeDoitPressureGrid(
   ArrayOfStokesVector nlte_dummy;
   ArrayOfPropagationMatrix partial_dummy;
   ArrayOfStokesVector partial_source_dummy, partial_nlte_dummy;
-  Vector rtp_temperature_nlte_dummy(0);
+  EnergyLevelMap rtp_nlte_dummy;
   ArrayOfPropagationMatrix cur_propmat_clearsky;
 
   Index scat_data_insert_offset = 0;
@@ -1814,7 +1814,7 @@ void OptimizeDoitPressureGrid(
                                    ppath_los_dummy,
                                    p_grid[k],
                                    t_field(k, 0, 0),
-                                   rtp_temperature_nlte_dummy,
+                                   rtp_nlte_dummy,
                                    vmr_field(joker, k, 0, 0),
                                    propmat_clearsky_agenda);
     for (auto& pm : cur_propmat_clearsky) {
@@ -2920,7 +2920,7 @@ void DoitGetIncoming(Workspace& ws,
                      const Vector& lat_grid,
                      const Vector& lon_grid,
                      const Tensor3& z_field,
-                     const Tensor4& nlte_field,
+                     const EnergyLevelMap& nlte_field,
                      const Index& cloudbox_on,
                      const ArrayOfIndex& cloudbox_limits,
                      const Vector& f_grid,
@@ -3217,7 +3217,7 @@ void DoitGetIncoming1DAtm(Workspace& ws,
                           const Vector& lat_grid,
                           const Vector& lon_grid,
                           const Tensor3& z_field,
-                          const Tensor4& nlte_field,
+                          const EnergyLevelMap& nlte_field,
                           const ArrayOfIndex& cloudbox_limits,
                           const Vector& f_grid,
                           const Index& stokes_dim,

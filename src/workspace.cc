@@ -382,37 +382,14 @@ void Workspace::define_wsv_data() {
           "the lookup table. This is the global default value, set in\n"
           "general.arts.\n"),
       GROUP("Index")));
-
+  
+  
   wsv_data.push_back(WsvRecord(NAME("abs_lines"),
-                               DESCRIPTION("A list of spectral line data.\n"),
-                               GROUP("ArrayOfLineRecord")));
-  
-  
-  wsv_data.push_back(WsvRecord(NAME("abs_lines2"),
                                DESCRIPTION("A list of spectral line data.\n"),
                                GROUP("ArrayOfAbsorptionLines")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("abs_lineshape"),
-      DESCRIPTION(
-          "Lineshape specification: function, norm, cutoff.\n"
-          "\n"
-          "There is one entry for each abs_tag, not for each species.\n"
-          "This means if you have several abs_tags for different\n"
-          "isotopologues or transitions of a species, you\n"
-          "may use different lineshapes.  See *abs_lineshapeDefine* for more details.\n"),
-      GROUP("ArrayOfLineshapeSpec")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("abs_lines_per_species"),
-      DESCRIPTION(
-          "A list of spectral line data for each tag.\n"
-          "\n"
-          "Dimensions: (tag_groups.nelem()) (# of lines for this tag)\n"),
-      GROUP("ArrayOfArrayOfLineRecord")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("abs_lines_per_species2"),
       DESCRIPTION(
           "A list of spectral line data for each tag.\n"
           "\n"
@@ -607,21 +584,6 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("abs_nlte"),
       DESCRIPTION(
-          "List of NLTE temperatures or ratios to be used for the calculation of\n"
-          "absorption coefficients.\n"
-          "\n"
-          "In contrast to the global *nlte_field*, this is just a matrix. Any\n"
-          "absorption method should check that the columns of this vector is the\n"
-          "same as that of *abs_p*\n"
-          "\n"
-          "Dimension: [nltes, p_grid] or [ 0, 0 ]\n"
-          "\n"
-          "Unit: K\n"),
-      GROUP("Matrix")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("abs_nlte2"),
-      DESCRIPTION(
           "NLTE temperatures or ratios to be used for the calculation of\n"
           "absorption coefficients.\n"
           "\n"
@@ -682,12 +644,6 @@ void Workspace::define_wsv_data() {
                   "Dimensions: [tag_groups.nelem(), abs_p.nelem()]\n"),
       GROUP("Matrix")));
 
-  wsv_data.push_back(WsvRecord(
-      NAME("abs_xsec_agenda"),
-      DESCRIPTION(
-          "Agenda to calculate scalar gas absorption cross sections.\n"),
-      GROUP("Agenda")));
-
   wsv_data.push_back(
       WsvRecord(NAME("abs_xsec_agenda_checked"),
                 DESCRIPTION("OK-flag for *abs_xsec_agenda*.\n"
@@ -696,7 +652,7 @@ void Workspace::define_wsv_data() {
                 GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("abs_xsec_agenda2"),
+      NAME("abs_xsec_agenda"),
       DESCRIPTION(
           "Agenda to calculate scalar gas absorption cross sections.\n"),
       GROUP("Agenda")));
@@ -2105,12 +2061,6 @@ void Workspace::define_wsv_data() {
       GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("iy_main_agenda2"),
-      DESCRIPTION(
-          "Agenda calculating the single monochromatic pencil beam spectrum.\n"),
-      GROUP("Agenda")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("iy_space_agenda"),
       DESCRIPTION(
           "Agenda providing the downwelling radiation at the top of the atmosphere.\n"),
@@ -2118,12 +2068,6 @@ void Workspace::define_wsv_data() {
 
   wsv_data.push_back(WsvRecord(
       NAME("iy_surface_agenda"),
-      DESCRIPTION(
-          "Agenda providing the upwelling radiation from the surface.\n"),
-      GROUP("Agenda")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("iy_surface_agenda2"),
       DESCRIPTION(
           "Agenda providing the upwelling radiation from the surface.\n"),
       GROUP("Agenda")));
@@ -3358,18 +3302,6 @@ void Workspace::define_wsv_data() {
           "\n"
           "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
           "\n"
-          "Dimension: [ number of non-lte temperatures, ppath.np ]\n"
-          "\n"
-          "Usage: Output of radiative transfer methods.\n"),
-      GROUP("Matrix")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("ppvar_nlte2"),
-      DESCRIPTION(
-          "Non-LTE temperatures/ratios along the propagation path.\n"
-          "\n"
-          "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
-          "\n"
           "Dimension: [ number of non-lte temperatures, 1, 1, ppath.np ]\n"
           "\n"
           "Usage: Output of radiative transfer methods.\n"),
@@ -3492,11 +3424,6 @@ void Workspace::define_wsv_data() {
           "Unit: 1/m\n"),
       GROUP("ArrayOfPropagationMatrix")));
 
-  wsv_data.push_back(WsvRecord(
-      NAME("propmat_clearsky_agenda"),
-      DESCRIPTION("Agenda calculating the absorption coefficient matrices.\n"),
-      GROUP("Agenda")));
-
   wsv_data.push_back(
       WsvRecord(NAME("propmat_clearsky_agenda_checked"),
                 DESCRIPTION("OK-flag for *propmat_clearsky_agenda*.\n"
@@ -3505,7 +3432,7 @@ void Workspace::define_wsv_data() {
                 GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("propmat_clearsky_agenda2"),
+      NAME("propmat_clearsky_agenda"),
       DESCRIPTION("Agenda calculating the absorption coefficient matrices.\n"),
       GROUP("Agenda")));
 
@@ -3914,23 +3841,6 @@ void Workspace::define_wsv_data() {
 
   wsv_data.push_back(WsvRecord(
       NAME("rtp_nlte"),
-      DESCRIPTION(
-          "NLTE temperature/ratio at a radiative transfer point.\n"
-          "\n"
-          "This vector variable can hold the NLTE temperature/ratio. It is intended\n"
-          "mainly for communication with various methods and agendas, such as\n"
-          "methods and agendas calculating absorption coefficients.\n"
-          "The WSV is used as input to methods and agendas calculating radiative\n"
-          "properties for a given conditions.\n"
-          "\n"
-          "Usage: Communication variable.\n"
-          "\n"
-          "Units: [ K ]\n"
-          "Size:  [ n of NLTE levels ] or [ 0 ]\n"),
-      GROUP("Vector")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("rtp_nlte2"),
       DESCRIPTION(
           "NLTE temperature/ratio at a radiative transfer point.\n"
           "\n"
@@ -5115,29 +5025,6 @@ void Workspace::define_wsv_data() {
           "Units:       [ K or \% ]]\n"
           "\n"
           "Dimensions: [ NLTE levels, p_grid, lat_grid, lon_grid ] or [ 0, 0, 0, 0 ]\n"),
-      GROUP("Tensor4")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("nlte_field2"),
-      DESCRIPTION(
-          "The field of NLTE temperatures and/or ratios.\n"
-          "\n"
-          "This variable gives the NLTE temperature/ratio at each crossing of\n"
-          "the pressure, latitude and longitude grids.  The size of the\n"
-          "array is the number of NLTE levels in all molecules.\n"
-          "\n"
-          "The temperature/ratio for a point between the grid crossings is obtained \n"
-          "by (multi-)linear interpolation of the *nlte_field*.\n"
-          "\n"
-          "There are two types of NLTE computations available in ARTS.  One from\n"
-          "giving excitiation temperatures that makes the absorption/emission diverge\n"
-          "from LTE.  The other is to use the absolute ratios of upper-to-lower states at\n"
-          "the levels of interest.\n"
-          ""
-          "\n"
-          "Units:       [ K or \% ]]\n"
-          "\n"
-          "Dimensions: [ NLTE levels, p_grid, lat_grid, lon_grid ] or [ 0, 0, 0, 0 ]\n"),
       GROUP("EnergyLevelMap")));
 
   wsv_data.push_back(WsvRecord(
@@ -5851,14 +5738,6 @@ void Workspace::define_wsv_data() {
           "\n"
           "Dimensions: [ lat_grid, lon_grid ]\n"),
       GROUP("Matrix")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("zeeman_linerecord_precalc"),
-      DESCRIPTION(
-          "LineRecord holder for speedy Zeeman effect calculaions.\n"
-          "\n"
-          "Dimensions: none or three times the Zeeman species in *abs_species*\n"),
-      GROUP("ArrayOfArrayOfLineRecord")));
 }
 
 //! Get index of WSV
