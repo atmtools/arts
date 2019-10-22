@@ -1,10 +1,7 @@
 Arts2{
 
 # DISORT
-nelemGet( nelem, scat_za_grid )
 DisortCalc( pfct_method = "interpolate" )
 yCalc( y = y_disort )
-VectorSubtractVector( y_disort, y_disort, y_clearsky )
-VectorScale( y_disort, y_disort, -1 )
 
 }

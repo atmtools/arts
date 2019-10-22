@@ -983,22 +983,6 @@ void Workspace::define_wsv_data() {
       GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("cloudbox_incoming_field"),
-      DESCRIPTION(
-          "Incoming radiation field at cloudbox boundary.\n"
-          "\n"
-          "So far this is only used by DISORT scattering solver methods and is\n"
-          "only implemented as upper cloudbox incoming (i.e. downwelling) field,\n"
-          "i.e. neglecting latitude and longitude dimensions as well as lower\n"
-          "boundary. Extend dimensions if required.\n"
-          "\n"
-          "Note that for DISORT is has hold both the incoming field of the\n"
-          "internal DISORT calculation directions (streams) as well as for the\n"
-          "*doit_i_field* directions as given by *scat_za_grid*. For more see\n"
-          "*DisortGetIncoming*.\n"),
-      GROUP("Matrix")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("cloudbox_limits"),
       DESCRIPTION(
           "The limits of the cloud box.\n"

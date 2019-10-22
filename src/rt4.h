@@ -150,11 +150,11 @@ void get_rt4surf_props(  // Output
   \param[out]    doit_i_field Radiation field
   \param[out]    scat_za_grid Zenith angle grid
   \param[in]     f_grid Frequency grid
-  \param[in]     p_grid Pressure
-  \param[in]     z_field Field of geometrical altitudes
-  \param[in]     t_field Atmospheric temperature field
-  \param[in]     vmr_field VMR field
-  \param[in]     pnd_field PND field
+  \param[in]     p_grid Pressure rid
+  \param[in]     z_profile Profile of geometrical altitudes
+  \param[in]     t_profile Temperature profile
+  \param[in]     vmr_profiles VMR profiles
+  \param[in]     pnd_profiles PND profiles
   \param[in]     scat_data Array of single scattering data
   \param[in]     propmat_clearsky_agenda calculates the absorption coefficient
                  matrix
@@ -201,10 +201,10 @@ void run_rt4(Workspace& ws,
              // Input
              ConstVectorView f_grid,
              ConstVectorView p_grid,
-             ConstTensor3View z_field,
-             ConstTensor3View t_field,
-             ConstTensor4View vmr_field,
-             ConstTensor4View pnd_field,
+             ConstVectorView z_profile,
+             ConstVectorView t_profile,
+             ConstMatrixView vmr_profiles,
+             ConstMatrixView pnd_profiles,
              const ArrayOfArrayOfSingleScatteringData& scat_data,
              const Agenda& propmat_clearsky_agenda,
              const ArrayOfIndex& cloudbox_limits,
@@ -260,8 +260,8 @@ void scat_za_grid_adjust(  // Output
   \param[out]     gas_extinct Layer averaged gas extinction for all layers
   \param[in]      propmat_clearsky_agenda propmat_clearsky_agenda calculates
                   the absorption coefficient matrix
-  \param[in]      t_field Atmospheric temperature field
-  \param[in]      vmr_field VMR field
+  \param[in]      t_profile Temperature profile
+  \param[in]      vmr_profiles VMR profiles
   \param[in]      p_grid Pressure grid
   \param[in]      f_mono Frequency (single entry vector)
 
@@ -273,8 +273,8 @@ void gas_optpropCalc(Workspace& ws,
                      VectorView gas_extinct,
                      //Input
                      const Agenda& propmat_clearsky_agenda,
-                     ConstTensor3View t_field,
-                     ConstTensor4View vmr_field,
+                     ConstVectorView t_field,
+                     ConstMatrixView vmr_field,
                      ConstVectorView p_grid,
                      ConstVectorView f_mono);
 
@@ -291,8 +291,8 @@ void gas_optpropCalc(Workspace& ws,
   \param[in]  scat_data Array of single scattering data
   \param[in]  scat_za_grid Zenith angle grid
   \param[in]  f_index Index of frequency grid point handeled
-  \param[in]  pnd_field PND field
-  \param[in]  t_field Atmospheric temperature field
+  \param[in]  pnd_profiles PND profiles
+  \param[in]  t_profile Temperature profile
   \param[in]  cloudbox_limits Cloudbox limits
   \param[in]  stokes_dim Dimension of Stokes vector
 
@@ -300,17 +300,17 @@ void gas_optpropCalc(Workspace& ws,
   \date   2016-08-08
 */
 void par_optpropCalc(  //Output
-    Tensor5View emis_vector,
-    Tensor6View extinct_matrix,
-    //VectorView scatlayers,
-    //Input
-    const ArrayOfArrayOfSingleScatteringData& scat_data,
-    const Vector& scat_za_grid,
-    const Index& f_index,
-    ConstTensor4View pnd_field,
-    ConstTensor3View t_field,
-    const ArrayOfIndex& cloudbox_limits,
-    const Index& stokes_dim);
+                     Tensor5View emis_vector,
+                     Tensor6View extinct_matrix,
+                     //VectorView scatlayers,
+                     //Input
+                     const ArrayOfArrayOfSingleScatteringData& scat_data,
+                     const Vector& scat_za_grid,
+                     const Index& f_index,
+                     ConstMatrixView pnd_profiles,
+                     ConstVectorView t_profile,
+                     const ArrayOfIndex& cloudbox_limits,
+                     const Index& stokes_dim);
 
 //! Calculates layer (and azimuthal) averaged phase matrix
 /*!
@@ -328,7 +328,7 @@ void par_optpropCalc(  //Output
   \param[in]  f_index Frequency index
   \param[in]  scat_data Array of single scattering data
               (new-type, f_grid prepared)
-  \param[in]  pnd_field PND field
+  \param[in]  pnd_profiles PND profiles
   \param[in]  stokes_dim Dimension of Stokes vector
   \param[in]  scat_za_grid Zenith angle grid
   \param[in]  quad_weights Quadrature weights associated with scat_za_grid
@@ -345,22 +345,22 @@ void par_optpropCalc(  //Output
   \date   2016-08-08
 */
 void sca_optpropCalc(  //Output
-    Tensor6View scatter_matrix,
-    Index& pfct_failed,
-    //Input
-    ConstTensor4View emis_vector,
-    ConstTensor5View extinct_matrix,
-    const Index& f_index,
-    const ArrayOfArrayOfSingleScatteringData& scat_data,
-    ConstTensor4View pnd_field,
-    const Index& stokes_dim,
-    const Vector& scat_za_grid,
-    ConstVectorView quad_weights,
-    const String& pfct_method,
-    const Index& pfct_aa_grid_size,
-    const Numeric& pfct_threshold,
-    const Index& auto_inc_nstreams,
-    const Verbosity& verbosity);
+                     Tensor6View scatter_matrix,
+                     Index& pfct_failed,
+                     //Input
+                     ConstTensor4View emis_vector,
+                     ConstTensor5View extinct_matrix,
+                     const Index& f_index,
+                     const ArrayOfArrayOfSingleScatteringData& scat_data,
+                     ConstMatrixView pnd_profiles,
+                     const Index& stokes_dim,
+                     const Vector& scat_za_grid,
+                     ConstVectorView quad_weights,
+                     const String& pfct_method,
+                     const Index& pfct_aa_grid_size,
+                     const Numeric& pfct_threshold,
+                     const Index& auto_inc_nstreams,
+                     const Verbosity& verbosity);
 
 //! Calculates bidirectional surface reflection matrices and emission direction
 /*!

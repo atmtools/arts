@@ -331,4 +331,42 @@ void get_pmom(Tensor3View pmom,
               ConstVectorView pfct_angs,
               const Index& Nlegendre);
 
+/** reduced_1datm
+ *
+ * Crops a 1D atmosphere, to create an atmosphere where the surface is placed
+ * at p_grid[0]. Developed to work with DISORT and RT4.
+ *
+ * @param[out] p               New pressure grid,
+ * @param[out] z               New profile of geometrical altitudes.
+ * @param[out] t               New temperature profile,
+ * @param[out] vmr             New VMR profiles.
+ * @param[out] pnd             New PND profiles.
+ * @param[out] cboxlims        Adjusted version of cloudbox_limits.
+ * @param[out] ncboxremoved    Number of levels inside cloudbox removed
+ * @param[in]  p_grid          Original pressure grid 
+ * @param[in]  z_profile       Original profile of geometric altitudes.
+ * @param[in]  z_surface       Surface altitude.
+ * @param[in]  t_profile       Original temperature profile.
+ * @param[in]  vmr_profiles    Original VMR profiles.
+ * @param[in]  pnd_profiles    Original PND profiles.
+ * @param[in]  cloudbox_limits Original cloudbox limits
+ *
+ * @author     Patrick Eriksson
+ * @date       2019-10-22
+ */
+void reduced_1datm(Vector& p,
+                   Vector& z,
+                   Vector& t, 
+                   Matrix& vmr,
+                   Matrix& pnd,
+                   ArrayOfIndex& cboxlims,
+                   Index& ncboxremoved,
+                   ConstVectorView p_grid,
+                   ConstVectorView z_profile,
+                   const Numeric& z_surface,
+                   ConstVectorView t_profile,
+                   ConstMatrixView vmr_profiles,
+                   ConstMatrixView pnd_profiles,
+                   const ArrayOfIndex& cloudbox_limits);
+
 #endif /* disort_h */

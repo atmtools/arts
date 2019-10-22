@@ -646,9 +646,7 @@ void iyInterpCloudboxField(Matrix& iy,
   for (Index ilat=0; ilat < z_surface.nrows(); ilat++) {
     for (Index ilon=0; ilon < z_surface.ncols(); ilon++) {
       Index ip = 0;
-      for (; z_surface(ilat,ilon) >= z_field(ip+1,ilat,ilon); ip++) {
-      }
-      //      cout << "Surface inserted at " << ip << endl;
+      for (; z_surface(ilat,ilon) >= z_field(ip+1,ilat,ilon); ip++) {}
       z_with_surface(ip,ilat,ilon) = z_surface(ilat,ilon);
     }    
   }
@@ -887,6 +885,7 @@ void iyInterpCloudboxField(Matrix& iy,
   //      separately.
   //   b) interpolation in plain zenith angles vs. in cosines of zenith angle.
 
+
   // find range of scat_za_grid that we will do interpolation over.
   Index za_start = 0;
   Index za_extend = scat_za_grid.nelem();
@@ -903,8 +902,9 @@ void iyInterpCloudboxField(Matrix& iy,
       // upwelling, i.e. second part of scat_za_grid. that is, we need to find
       // the first point in scat_za_grid where za>90. and update za_start
       // accordingly.
-      while (za_start < scat_za_grid.nelem() && scat_za_grid[za_start] < 90.)
+      while (za_start < scat_za_grid.nelem() && scat_za_grid[za_start] < 90.) {
         za_start++;
+      }
       if (za_start == scat_za_grid.nelem())
         throw runtime_error(
             "No scat_za_grid grid point found in 90-180deg hemisphere.\n"
@@ -914,7 +914,9 @@ void iyInterpCloudboxField(Matrix& iy,
       // downwelling, i.e. first part of scat_za_grid. that is, we need to
       // find the last point in scat_za_grid where za<90. and update za_extend
       // accordingly.
-      while (za_extend > 0 && scat_za_grid[za_extend - 1] > 90.) za_start--;
+      while (za_extend > 0 && scat_za_grid[za_extend - 1] > 90.) {
+        za_extend--;
+      }
       if (za_extend == 0)
         throw runtime_error(
             "No scat_za_grid grid point found in 0-90deg hemisphere.\n"
@@ -1012,13 +1014,15 @@ void iyInterpCloudboxField(Matrix& iy,
   Vector itw_angs(gp_za.idx.nelem() * gp_aa.idx.nelem());
   interpweights(itw_angs, gp_za, gp_aa);
 
-  for (Index is = 0; is < stokes_dim; is++)
-    for (Index iv = 0; iv < nf; iv++)
+  for (Index is = 0; is < stokes_dim; is++) {
+    for (Index iv = 0; iv < nf; iv++) {
       iy(iv, is) =
           interp(itw_angs,
                  i_field_local(iv, Range(za_start, za_extend), joker, is),
                  gp_za,
                  gp_aa);
+    }
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

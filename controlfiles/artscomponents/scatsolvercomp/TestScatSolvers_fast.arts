@@ -28,6 +28,7 @@ Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
 Copy( iy_main_agenda, iy_main_agenda__Emission )
 Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
 Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+Copy( iy_cloudbox_agenda,  iy_cloudbox_agenda__QuadInterpField1D )
 
 # Absorption species
 abs_speciesSet( species=[ "N2-SelfContStandardType",
@@ -55,6 +56,8 @@ ReadXML( z_field,                 "testdata/z_field.xml" )
 ReadXML( vmr_field,               "testdata/vmr_field.xml" )
 ReadXML( particle_bulkprop_field, "testdata/particle_bulkprop_field" )
 ReadXML( particle_bulkprop_names, "testdata/particle_bulkprop_names" )
+ReadXML( scat_data_raw,           "testdata/scat_data.xml" )
+ReadXML( scat_meta,               "testdata/scat_meta.xml" )
 
 # Define hydrometeors
 #
@@ -109,10 +112,9 @@ AgendaSet( iy_hybrid_agenda ){
 }
 
 # Versions of y for various calculations
-VectorCreate( y_clearsky )
-VectorCreate( y0 )
 VectorCreate( y_disort )
 VectorCreate( y_rt4 )
+VectorCreate( y_hybrid )
 #
 StringCreate( message )
 
@@ -127,41 +129,18 @@ IndexSet( stokes_dim, 1 )
 # See non-fast cfile for possible frequencies to select
 VectorSet( f_grid, [165e9] )
 Extract( z_surface, z_field, 0 )
-MatrixSet( sensor_pos, [20e3;20e3;20e3] )
+MatrixSet( sensor_pos, [20e3;8e3;20e3] )
 MatrixSet( sensor_los, [180;160;130] )
 
 # Some stuff that depends on the settings above
 sensorOff
 atmgeom_checkedCalc
 sensor_checkedCalc
+scat_dataCalc
+scat_data_checkedCalc
 #
 VectorExtractFromMatrix( rtp_pos, z_surface, 0, "row" )
 InterpAtmFieldToPosition( out=surface_skin_t, field=t_field )
-
-
-# Calculare reference for no cloudbox at all
-# ---------------------------------------------------------------------
-ArrayOfStringCreate( scat_species_dummy )
-ArrayOfArrayOfSingleScatteringDataCreate( scat_data_dummy )
-cloudboxOff( scat_species=scat_species_dummy, scat_data=scat_data_dummy )
-cloudbox_checkedCalc( scat_species=scat_species_dummy, scat_data=scat_data_dummy )
-yCalc( y = y_clearsky )
-VectorScale( y0, y_clearsky, 0 )
-StringSet( message, "Clear-sky" )
-Print( message, 0 )
-Print( y_clearsky, 0 )
-
-
-# Set some stuff that must be placed after cloudboxOff
-Copy( iy_cloudbox_agenda,  iy_cloudbox_agenda__LinInterpField )
-Copy( iy_cloudbox_agenda,  iy_cloudbox_agenda__QuadInterpField1D )
-AgendaSet( iy_cloudbox_agenda ){
-  iyInterpCloudboxField( za_interp_order = 4 )
-}
-ReadXML( scat_data_raw,           "testdata/scat_data.xml" )
-ReadXML( scat_meta,               "testdata/scat_meta.xml" )
-scat_dataCalc
-scat_data_checkedCalc
 
 
 # Test 1: Cloubox with no scattering
@@ -177,9 +156,11 @@ INCLUDE "run_rt4.arts"
 Print( y_rt4, 0 )
 INCLUDE "run_disort.arts"
 Print( y_disort, 0 )
+INCLUDE "run_hybrid.arts"
+Print( y_hybrid, 0 )
 #
-Compare( y_rt4, y0, 0.1, "Zero particles, RT4" )
-Compare( y_disort, y0, 0.05, "Zero particles, DISORT" )
+Compare( y_rt4, y_hybrid, 0.02, "Zero particles, RT4" )
+Compare( y_disort, y_hybrid, 0.02, "Zero particles, DISORT" )
 
 
 # Test 2: With nominal RWC/IWC and surface at p_grid[0]
@@ -195,7 +176,7 @@ Print( y_rt4, 0 )
 INCLUDE "run_disort.arts"
 Print( y_disort, 0 )
 #
-CompareRelative( y_rt4, y_disort, 0.03, "Test2, RT4 vs. DISORT" )
+Compare( y_rt4, y_disort, 0.2, "Test2, RT4 vs. DISORT" )
 
 
 # Test 3: As 2 but with RWC/IWC increased with a factor of 3
@@ -211,7 +192,7 @@ Print( y_rt4, 0 )
 INCLUDE "run_disort.arts"
 Print( y_disort, 0 )
 #
-CompareRelative( y_rt4, y_disort, 0.02, "Test3, RT4 vs. DISORT" )
+Compare( y_rt4, y_disort, 0.2, "Test3, RT4 vs. DISORT" )
 
 
 # Test 4: As 2 but with surface moved upwards
@@ -225,12 +206,12 @@ InterpAtmFieldToPosition( out=surface_skin_t, field=t_field )
 StringSet( message, "Surface moved upwards" )
 Print( message, 0 )
 #
+INCLUDE "run_rt4.arts"
+Print( y_rt4, 0 )
 INCLUDE "run_disort.arts"
 Print( y_disort, 0 )
-INCLUDE "run_hybrid.arts"
-Print( y_hybrid, 0 )
 #
-CompareRelative( y_hybrid, y_disort, 0.02, "Test4, Hybrid vs. DISORT" )
+Compare( y_rt4, y_disort, 0.2, "Test4, RT4 vs. DISORT" )
 
 }
  

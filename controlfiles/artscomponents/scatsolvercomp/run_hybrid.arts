@@ -4,8 +4,6 @@ Arts2{
 # Note that i_field comes fro last other called method
 Copy( iy_main_agenda, iy_hybrid_agenda )
 yCalc( y = y_hybrid )
-VectorSubtractVector( y_hybrid, y_hybrid, y_clearsky )
-VectorScale( y_hybrid, y_hybrid, -1 )
 Copy( iy_main_agenda, iy_main_agenda__Emission )
 
 }

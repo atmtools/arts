@@ -7386,7 +7386,7 @@ void define_md_data_raw() {
           "za_extpolfac",
           "aa_interp_order"),
       GIN_TYPE("Index", "Index", "Index", "Numeric", "Index"),
-      GIN_DEFAULT("1", "1", "0", "0.5", "1"),
+      GIN_DEFAULT("1", "0", "0", "0.5", "1"),
       GIN_DESC("Zenith angle interpolation order.",
                "Flag whether to restric zenith angle interpolation to one"
                " hemisphere.",
@@ -14411,12 +14411,7 @@ void define_md_data_raw() {
   md_data_raw.push_back(MdRecord(
       NAME("RT4Calc"),
       DESCRIPTION(
-          "Interface to the PolRadTran RT4 scattering solver (Evans).\n"
-          "\n"
-          "DISCLAIMER: There is a number of known issues with the current\n"
-          "implementation (see below). Use this WSM with care and only if\n"
-          "these limitations/requirements are fulfilled. Results might be\n"
-          "erroneous otherwise.\n"
+          "Interface to the PolRadTran RT4 scattering solver (by F. Evans).\n"
           "\n"
           "RT4 provides the radiation field (*doit_i_field*) from a vector\n"
           "1D scattering solution assuming a plane-parallel atmosphere (flat\n"
@@ -14466,11 +14461,8 @@ void define_md_data_raw() {
           "used by *RT4CalcWithRT4Surface*).\n"
           "\n"
           "Known issues of ARTS implementation:\n"
-          "- Surface altitude is not an interface parameter. Surface is\n"
-          "  implicitly assumed to be at the lowest atmospheric level.\n"
           "- TOA incoming radiation is so far assumed as blackbody cosmic\n"
           "  background (temperature taken from the ARTS-internal constant).\n"
-          "- *pfct_method* 'interpolate' currently not implemented here.\n"
           "\n"
           "The keyword *pfct_method* allows to choose the method to extract the\n"
           "scattering matrix. 'interpolate' considers temperature dependence,\n"
@@ -14504,7 +14496,8 @@ void define_md_data_raw() {
          "p_grid",
          "scat_data",
          "f_grid",
-         "stokes_dim"),
+         "stokes_dim",
+         "z_surface"),
       GIN("nstreams",
           "pfct_method",
           "quad_type",
@@ -14594,6 +14587,7 @@ void define_md_data_raw() {
          "scat_data",
          "f_grid",
          "stokes_dim",
+         "z_surface",
          "surface_skin_t",
          "surface_scalar_reflectivity",
          "surface_reflectivity",
