@@ -1,6 +1,6 @@
 Arts2{
   
-  AgendaSet(abs_xsec_agenda) {abs_xsec_per_speciesInit abs_xsec_per_speciesAddLines2}
+  AgendaSet(abs_xsec_agenda) {abs_xsec_per_speciesInit abs_xsec_per_speciesAddLines}
   AgendaSet(propmat_clearsky_agenda) {Ignore(rtp_mag) Ignore(rtp_los) propmat_clearskyInit propmat_clearskyAddOnTheFly}
   AgendaSet(iy_main_agenda){ppathCalc  iyEmissionStandard}
   AgendaSet(geo_pos_agenda){Ignore(ppath) VectorSet(geo_pos, [])}
@@ -51,8 +51,8 @@ Arts2{
   MatrixCreate(testjac)
   
   ## Absorption lines (Doppler, no Zeeman, no NLTE, no mirroring, no normalization)
-  ReadXML(abs_lines, "../lineshapes/testdata/lm-htp-line.xml")
-  ArrayOfLineRecordCreate(aolr)
+  ReadARTSCAT(filename="../lineshapes/testdata/lm-htp-line.xml", globalquantumnumbers="J")
+  ArrayOfAbsorptionLinesCreate(aolr)
   Copy(aolr, abs_lines)
   abs_lines_per_speciesCreateFromLines
   

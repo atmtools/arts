@@ -1784,7 +1784,7 @@ void Linefunctions::apply_linestrength_from_nlte_level_distributions(
 
   // Ratio between emission and absorption constant
   const Numeric ratio = e / b - k;
-
+  
   // Constants ALMOST everywhere inside these loops
   dN.noalias() = dF * ratio;
   dF *= k;

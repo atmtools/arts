@@ -3,7 +3,7 @@ Arts2{
   AgendaSet(abs_xsec_agenda) {
     abs_xsec_per_speciesInit 
     abs_xsec_per_speciesAddCIA
-    abs_xsec_per_speciesAddLines2
+    abs_xsec_per_speciesAddLines
   }
 
 #   Can run with abs_xsec_per_speciesAddLines by uncommenting:
@@ -16,7 +16,7 @@ Arts2{
   abs_speciesSet(species=["H2-CIA-H2-0,H2-CIA-He-0", "He"]) # BUG:  Must have lines (though good for this test)
   VectorNLinSpace(f_grid, 11, 3e9, 30e12)
   VectorSet(rtp_vmr, [0.1, 0.2])
-  VectorSet(rtp_nlte, [0.6, 0.4])
+  Touch(rtp_nlte)
   NumericSet(rtp_temperature, 250)
   NumericSet(rtp_pressure, 25000)
   NumericSet(lm_p_lim, 0)
@@ -34,7 +34,7 @@ Arts2{
   ReadXML(abs_cia_data, "spectroscopy/cia/borysow/Borysow_CIA_JUICE_SWI.xml")
   
   # Absorption lines (VP)
-  ReadXML(abs_lines, "tests/test-he-line.xml")
+  ReadARTSCAT(abs_lines, "tests/test-he-line.xml")
   abs_lines_per_speciesCreateFromLines
   
   # Silly parameters that have to be set by agendas and ARTS in general but are completely useless for these calculations

@@ -82,6 +82,17 @@ bool any_negative(const Tensor4& var) {
     return false;
 }
 
+bool good_J(const AbsorptionLines& band) {
+  for (Index i=0; i<band.NumLines(); i++) {
+    auto Jl = band.LowerQuantumNumber(i, QuantumNumberType::J);
+    auto Ju = band.UpperQuantumNumber(i, QuantumNumberType::J);
+    if (Jl.isUndefined() or Ju.isUndefined() or 1 < abs(Jl - Ju)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 void zeeman_on_the_fly(
     ArrayOfPropagationMatrix& propmat_clearsky,
     ArrayOfStokesVector& nlte_source,
@@ -149,6 +160,10 @@ void zeeman_on_the_fly(
   if (rtp_temperature <= 0) throw "Non-positive temperature";
   if (rtp_pressure <= 0) throw "Non-positive pressure";
   if (manual_tag and H0 < 0) throw "Negative manual magnetic field strength";
+  for (auto& lines: abs_lines_per_species)
+    for (auto& band: lines) 
+      if (not good_J(band))
+        throw "Bad or undefined J quantum numbers";
 
   // Pressure information
   const Numeric dnumdens_dmvr = number_density(rtp_pressure, rtp_temperature);
@@ -201,30 +216,29 @@ void zeeman_on_the_fly(
       if (not abs_species[ispecies].nelem() or not is_zeeman(abs_species[ispecies]) or not abs_lines_per_species[ispecies].nelem())
         continue;
       
-    for (auto& lines : abs_lines_per_species[ispecies]) {
-        
+      for (auto& band : abs_lines_per_species[ispecies]) {
         // Constants for these lines
-        const Numeric QT0 = single_partition_function(lines.T0(),
-                                                      partition_functions.getParamType(lines.QuantumIdentity()),
-                                                      partition_functions.getParam(lines.QuantumIdentity()));
+        const Numeric QT0 = single_partition_function(band.T0(),
+                                                      partition_functions.getParamType(band.QuantumIdentity()),
+                                                    partition_functions.getParam(band.QuantumIdentity()));
         const Numeric QT = single_partition_function(rtp_temperature,
-                                                      partition_functions.getParamType(lines.QuantumIdentity()),
-                                                      partition_functions.getParam(lines.QuantumIdentity()));
+                                                      partition_functions.getParamType(band.QuantumIdentity()),
+                                                      partition_functions.getParam(band.QuantumIdentity()));
         const Numeric dQTdT = dsingle_partition_function_dT(QT, rtp_temperature, temperature_perturbation(jacobian_quantities),
-                                                            partition_functions.getParamType(lines.QuantumIdentity()),
-                                                            partition_functions.getParam(lines.QuantumIdentity()));
-        const Numeric DC = Linefunctions::DopplerConstant(rtp_temperature, lines.SpeciesMass());
+                                                            partition_functions.getParamType(band.QuantumIdentity()),
+                                                            partition_functions.getParam(band.QuantumIdentity()));
+        const Numeric DC = Linefunctions::DopplerConstant(rtp_temperature, band.SpeciesMass());
         const Numeric dDCdT = Linefunctions::dDopplerConstant_dT(rtp_temperature, DC);
-        const Vector line_shape_vmr = lines.BroadeningSpeciesVMR(rtp_vmr, abs_species);
+        const Vector line_shape_vmr = band.BroadeningSpeciesVMR(rtp_vmr, abs_species);
         const Numeric numdens = rtp_vmr[ispecies] * dnumdens_dmvr;
         const Numeric dnumdens_dT = rtp_vmr[ispecies] * dnumdens_dt_dmvr;
-        const Numeric isotop_ratio = isotopologue_ratios.getIsotopologueRatio(lines.QuantumIdentity());
-        
+        const Numeric isotop_ratio = isotopologue_ratios.getIsotopologueRatio(band.QuantumIdentity());
+          
         Linefunctions::set_cross_section_of_band(
           scratch,
           sum,
           f_grid,
-          lines,
+          band,
           jacobian_quantities,
           jacobian_quantities_positions,
           line_shape_vmr,
@@ -305,7 +319,7 @@ void zeeman_on_the_fly(
                   numdens * X.dtheta_dw * sum.F.imag() *
                       dpol_dtheta.dispersion();
             } else if (deriv == JacPropMatType::VMR and
-                      deriv.QuantumIdentity().In(lines.QuantumIdentity())) {
+                      deriv.QuantumIdentity().In(band.QuantumIdentity())) {
               dabs.leftCols<4>().noalias() +=
                   numdens * sum.dF.col(j).real() * pol_real +
                   dnumdens_dmvr * sum.F.real() * pol_real;
@@ -321,7 +335,7 @@ void zeeman_on_the_fly(
           }
         }
 
-        // Source vector calculations
+          // Source vector calculations
         if (nn) {
           auto nlte_src =
               nlte_source[ispecies].GetData()(0, 0, joker, joker);
@@ -370,7 +384,7 @@ void zeeman_on_the_fly(
                   numdens * X.dtheta_dw * eB.cwiseProduct(sum.N.real()) *
                       dpol_dtheta.attenuation();
             else if (deriv == JacPropMatType::VMR and
-                    deriv.QuantumIdentity().In(lines.QuantumIdentity()))
+                    deriv.QuantumIdentity().In(band.QuantumIdentity()))
               dnlte_dx_src.noalias() +=
                   dnumdens_dmvr * eB.cwiseProduct(sum.N.real()) * pol_real +
                   numdens * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real;

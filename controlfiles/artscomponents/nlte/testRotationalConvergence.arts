@@ -14,7 +14,7 @@ Arts2{
 
     AgendaSet(propmat_clearsky_agenda) { Ignore(rtp_mag) Ignore(rtp_los) propmat_clearskyInit propmat_clearskyAddOnTheFly }
 
-    AgendaSet(abs_xsec_agenda) { abs_xsec_per_speciesInit abs_xsec_per_speciesAddLines2 }
+    AgendaSet(abs_xsec_agenda) { abs_xsec_per_speciesInit abs_xsec_per_speciesAddLines }
 
     AgendaSet(surface_rtprop_agenda) { InterpAtmFieldToPosition(out=surface_skin_t, field=t_field) surfaceBlackbody }
     
@@ -38,7 +38,7 @@ Arts2{
     
     # Data reading
     AtmRawRead(basename="testdata/")
-    ReadXML(abs_lines, "testdata/lines.xml")
+    ReadARTSCAT(abs_lines=abs_lines, filename="testdata/lines.xml", globalquantumnumbers="Ka Kc J")
     
     collision_coefficientsFromSplitFiles(basename="spectroscopy/nlte/H2O/")
     ReadXML(nlte_level_identifiers, "testdata/qi.xml")
@@ -69,7 +69,7 @@ Arts2{
     #WriteXML("ascii", nlte_field, "testdata/nlte_testdata.xml")
     
     # Compare with stored data to make sure it is OK
-    Tensor4Create(nlte_testdata)
+    EnergyLevelMapCreate(nlte_testdata)
     ReadXML(nlte_testdata, "testdata/nlte_testdata.xml")
     CompareRelative(nlte_testdata, nlte_field, 1e-6)
 }

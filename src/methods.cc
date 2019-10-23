@@ -463,6 +463,20 @@ void define_md_data_raw() {
           "Index to indicate if dv is to be left as zero")));
 
   md_data_raw.push_back(MdRecord(
+      NAME("abs_lines_per_speciesSetEmpty"),
+      DESCRIPTION("Empties *abs_lines_per_species* at the correct size.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_species"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
       NAME("abs_lines_per_speciesSetLineMixingFromRelmat"),
       DESCRIPTION("A dummy method to test line mixing.\n"),
       AUTHORS("Richard Larsson"),
@@ -515,6 +529,21 @@ void define_md_data_raw() {
                GIN_TYPE("String"),
                GIN_DEFAULT(NODEF),
                GIN_DESC("Method of line normalizations")));
+  
+  md_data_raw.push_back(
+    MdRecord(NAME("abs_lines_per_speciesSetNormalizationForSpecies"),
+             DESCRIPTION("See *abs_linesSetNormalization* but for single species\n"),
+             AUTHORS("Richard Larsson"),
+             OUT("abs_lines_per_species"),
+             GOUT(),
+             GOUT_TYPE(),
+             GOUT_DESC(),
+             IN("abs_lines_per_species", "abs_species"),
+             GIN("option", "species_tag"),
+             GIN_TYPE("String", "String"),
+             GIN_DEFAULT(NODEF, NODEF),
+             GIN_DESC("Method of line normalizations",
+                      "The species tag from *abs_species* to change")));
 
   md_data_raw.push_back(
       MdRecord(NAME("abs_linesSetMirroring"),
@@ -554,6 +583,21 @@ void define_md_data_raw() {
                GIN_TYPE("String"),
                GIN_DEFAULT(NODEF),
                GIN_DESC("Method of line mirroring")));
+  
+  md_data_raw.push_back(
+    MdRecord(NAME("abs_lines_per_speciesSetMirroringForSpecies"),
+             DESCRIPTION("See *abs_linesSetMirroring* but for single species\n"),
+             AUTHORS("Richard Larsson"),
+             OUT("abs_lines_per_species"),
+             GOUT(),
+             GOUT_TYPE(),
+             GOUT_DESC(),
+             IN("abs_lines_per_species", "abs_species"),
+             GIN("option", "species_tag"),
+             GIN_TYPE("String", "String"),
+             GIN_DEFAULT(NODEF, NODEF),
+             GIN_DESC("Method of line mirroring",
+                      "The species tag from *abs_species* to change")));
 
   md_data_raw.push_back(
       MdRecord(NAME("abs_linesSetPopulation"),
@@ -591,6 +635,21 @@ void define_md_data_raw() {
                GIN_DESC("Method of line population")));
 
   md_data_raw.push_back(
+      MdRecord(NAME("abs_lines_per_speciesSetPopulationForSpecies"),
+               DESCRIPTION("See *abs_linesSetPopulation* but for single species\n"),
+               AUTHORS("Richard Larsson"),
+               OUT("abs_lines_per_species"),
+               GOUT(),
+               GOUT_TYPE(),
+               GOUT_DESC(),
+               IN("abs_lines_per_species", "abs_species"),
+               GIN("option", "species_tag"),
+               GIN_TYPE("String", "String"),
+               GIN_DEFAULT(NODEF, NODEF),
+               GIN_DESC("Method of line population",
+                        "The species tag from *abs_species* to change")));
+
+  md_data_raw.push_back(
       MdRecord(NAME("abs_linesSetLineShapeType"),
                DESCRIPTION("Sets shape calculations type for all lines.\n"
                            "\n"
@@ -626,6 +685,21 @@ void define_md_data_raw() {
                GIN_TYPE("String"),
                GIN_DEFAULT(NODEF),
                GIN_DESC("Method of line shape calculations")));
+  
+  md_data_raw.push_back(
+    MdRecord(NAME("abs_lines_per_speciesSetLineShapeTypeForSpecies"),
+             DESCRIPTION("See *abs_linesSetLineShapeType* but for single species\n"),
+             AUTHORS("Richard Larsson"),
+             OUT("abs_lines_per_species"),
+             GOUT(),
+             GOUT_TYPE(),
+             GOUT_DESC(),
+             IN("abs_lines_per_species", "abs_species"),
+             GIN("option", "species_tag"),
+             GIN_TYPE("String", "String"),
+             GIN_DEFAULT(NODEF, NODEF),
+             GIN_DESC("Method of line shape calculations",
+                      "The species tag from *abs_species* to change")));
 
   md_data_raw.push_back(
       MdRecord(NAME("abs_linesSetCutoff"),
@@ -669,6 +743,22 @@ void define_md_data_raw() {
                         "Value of cutoff")));
 
   md_data_raw.push_back(
+      MdRecord(NAME("abs_lines_per_speciesSetCutoffForSpecies"),
+               DESCRIPTION("See *abs_linesSetCutoff* but for single species\n"),
+               AUTHORS("Richard Larsson"),
+               OUT("abs_lines_per_species"),
+               GOUT(),
+               GOUT_TYPE(),
+               GOUT_DESC(),
+               IN("abs_lines_per_species", "abs_species"),
+               GIN("option", "value", "species_tag"),
+               GIN_TYPE("String", "Numeric", "String"),
+               GIN_DEFAULT(NODEF, NODEF, NODEF),
+               GIN_DESC("Method of line shape calculations",
+                        "Value of cutoff",
+                        "The species tag from *abs_species* to change")));
+
+  md_data_raw.push_back(
       MdRecord(NAME("abs_linesSetLinemixingLimit"),
                DESCRIPTION("Sets line mixing limit for all lines.\n"
                            "\n"
@@ -700,6 +790,21 @@ void define_md_data_raw() {
                GIN_DESC("Value of limit")));
 
   md_data_raw.push_back(
+      MdRecord(NAME("abs_lines_per_speciesSetLinemixingLimitForSpecies"),
+               DESCRIPTION("See *abs_linesSetLinemixingLimit* but for single species\n"),
+               AUTHORS("Richard Larsson"),
+               OUT("abs_lines_per_species"),
+               GOUT(),
+               GOUT_TYPE(),
+               GOUT_DESC(),
+               IN("abs_lines_per_species", "abs_species"),
+               GIN("value", "species_tag"),
+               GIN_TYPE("Numeric", "String"),
+               GIN_DEFAULT(NODEF, NODEF),
+               GIN_DESC("Value of limit",
+                        "The species tag from *abs_species* to change")));
+
+  md_data_raw.push_back(
       MdRecord(NAME("abs_linesSetT0"),
                DESCRIPTION("Sets reference temperature for all lines.\n"),
                AUTHORS("Richard Larsson"),
@@ -726,6 +831,21 @@ void define_md_data_raw() {
                GIN_TYPE("Numeric"),
                GIN_DEFAULT(NODEF),
                GIN_DESC("Value of T0")));
+  
+  md_data_raw.push_back(
+    MdRecord(NAME("abs_lines_per_speciesSetT0ForSpecies"),
+             DESCRIPTION("See *abs_linesSetT0* but for single species\n"),
+             AUTHORS("Richard Larsson"),
+             OUT("abs_lines_per_species"),
+             GOUT(),
+             GOUT_TYPE(),
+             GOUT_DESC(),
+             IN("abs_lines_per_species", "abs_species"),
+             GIN("value", "species_tag"),
+             GIN_TYPE("Numeric", "String"),
+             GIN_DEFAULT(NODEF, NODEF),
+             GIN_DESC("Value of T0",
+                      "The species tag from *abs_species* to change")));
 
   md_data_raw.push_back(MdRecord(
       NAME("abs_linesChangeBaseParameterForMatchingLines"),
@@ -775,6 +895,25 @@ void define_md_data_raw() {
                "Flag for loose match (0 means only complete matches)")));
 
   md_data_raw.push_back(MdRecord(
+      NAME("abs_lines_per_speciesChangeBaseParameterForSpecies"),
+      DESCRIPTION("See *abs_linesChangeBaseParameterForMatchingLines* but for single species\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species", "abs_species"),
+      GIN("QI", "parameter_name", "change", "relative", "loose_matching", "species_tag"),
+      GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index", "Index", "String"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "0", "0", NODEF),
+      GIN_DESC("Information to match the line.",
+               "Name of parameter to be replaced",
+               "Value with which to change matching line{'s,s'}",
+               "Flag for relative change (0 is absolute change)",
+               "Flag for loose match (0 means only complete matches)",
+               "The species tag from *abs_species* to change")));
+
+  md_data_raw.push_back(MdRecord(
       NAME("abs_linesSetBaseParameterForMatchingLines"),
       DESCRIPTION(
           "Set parameter of all lines in *abs_lines* that match with *QuantumIdentifier*.\n"
@@ -818,6 +957,24 @@ void define_md_data_raw() {
                "Name of parameter to be replaced",
                "Value with which to change matching line{'s,s'}",
                "Flag for loose match (0 means only complete matches)")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_lines_per_speciesSetBaseParameterForSpecies"),
+      DESCRIPTION("See *abs_linesSetBaseParameterForMatchingLines* but for single species\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species", "abs_species"),
+      GIN("QI", "parameter_name", "change", "loose_matching", "species_tag"),
+      GIN_TYPE("QuantumIdentifier", "String", "Numeric", "Index", "String"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "0", NODEF),
+      GIN_DESC("Information to match the line.",
+               "Name of parameter to be replaced",
+               "Value with which to change matching line{'s,s'}",
+               "Flag for loose match (0 means only complete matches)",
+               "The species tag from *abs_species* to change")));
 
   md_data_raw.push_back(MdRecord(
       NAME("abs_linesSetLineShapeModelParameterForMatchingLines"),
@@ -890,6 +1047,31 @@ void define_md_data_raw() {
                "Coefficient of the parameter to be changed",
                "Species of parameter to be changed",
                "Sets the value found")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_lines_per_speciesSetLineShapeModelParameterForSpecies"),
+      DESCRIPTION("See *abs_linesSetLineShapeModelParameterForMatchingLines*\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species", "abs_species"),
+      GIN("QI", "parameter", "coefficient", "species", "change", "species_tag"),
+      GIN_TYPE("QuantumIdentifier",
+               "String",
+               "String",
+               "String",
+               "Numeric",
+               "String"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF, NODEF),
+      GIN_DESC("Information to match the line.",
+               "Name of parameter to be replaced",
+               "Coefficient of the parameter to be changed",
+               "Species of parameter to be changed",
+               "Sets the value found",
+               "The species tag from *abs_species* to change")));
 
   md_data_raw.push_back(MdRecord(
       NAME("abs_linesChangeLineShapeModelParameterForMatchingLines"),
@@ -972,6 +1154,33 @@ void define_md_data_raw() {
                "Flag for relative change (0 is absolute change)")));
 
   md_data_raw.push_back(MdRecord(
+      NAME("abs_lines_per_speciesChangeLineShapeModelParameterForSpecies"),
+      DESCRIPTION("See *abs_linesChangeLineShapeModelParameterForMatchingLines*\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species", "abs_species"),
+      GIN("QI", "parameter", "coefficient", "species", "change", "relative", "species_tag"),
+      GIN_TYPE("QuantumIdentifier",
+               "String",
+               "String",
+               "String",
+               "Numeric",
+               "Index",
+               "String"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, NODEF, NODEF, "0", NODEF),
+      GIN_DESC("Information to match the line.",
+               "Name of parameter to be replaced",
+               "Coefficient of the parameter to be changed",
+               "Species of parameter to be changed",
+               "Change in the value found",
+               "Flag for relative change (0 is absolute change)",
+               "The species tag from *abs_species* to change")));
+
+  md_data_raw.push_back(MdRecord(
       NAME("abs_lines_per_speciesSetRelamtLineMixingToMatches"),
       DESCRIPTION("Sets abs_lines_per_band and related variables from\n"
                   "*band_identifiers* to be computed by relaxation matrix\n"
@@ -996,6 +1205,35 @@ void define_md_data_raw() {
       GIN_TYPE("String"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Relaxation matrix type")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_linesCompact"),
+      DESCRIPTION("Removes lines that are unimportant because of their\n"
+                  "cutoff frequency range\n"),
+      AUTHORS("Stefan Buehler", "Richard Larsson"),
+      OUT("abs_lines"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines", "f_grid"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_lines_per_speciesCompact"),
+      DESCRIPTION("See *abs_linesCompact*\n"),
+      AUTHORS("Stefan Buehler", "Richard Larsson"),
+      OUT("abs_lines_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species", "f_grid"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
       NAME("abs_lines_per_speciesCreateFromLines"),
@@ -1358,6 +1596,23 @@ void define_md_data_raw() {
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+  
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_nlteFromRaw"),
+      DESCRIPTION("Sets NLTE values manually\n"
+                  "\n"
+                  "Touch\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_nlte"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("nlte_level_identifiers",
+         "nlte_vibrational_energies"),
+      GIN("data"),
+      GIN_TYPE("Matrix"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Vibrational data [nlevels, np]")));
 
   md_data_raw.push_back(MdRecord(
       NAME("abs_speciesAdd"),
@@ -4066,13 +4321,13 @@ void define_md_data_raw() {
           "ArrayOfTensor6, ArrayOfTensor7, ArrayOfArrayOfVector,"
           "ArrayOfArrayOfMatrix, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6,"
           "ArrayOfPropagationMatrix, ArrayOfArrayOfPropagationMatrix,"
-          "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,",
+          "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,EnergyLevelMap,",
           "Numeric, Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7,"
           "ArrayOfVector, ArrayOfMatrix, ArrayOfTensor3, ArrayOfTensor4,"
           "ArrayOfTensor6, ArrayOfTensor7, ArrayOfArrayOfVector,"
           "ArrayOfArrayOfMatrix, ArrayOfArrayOfTensor3, ArrayOfArrayOfTensor6,"
           "ArrayOfPropagationMatrix, ArrayOfArrayOfPropagationMatrix,"
-          "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,",
+          "ArrayOfStokesVector, ArrayOfArrayOfStokesVector,EnergyLevelMap,",
           "Numeric",
           "String"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, ""),
@@ -5355,6 +5610,20 @@ void define_md_data_raw() {
       GIN_TYPE("String"),
       GIN_DEFAULT("linear"),
       GIN_DESC("Interpolation method (\"linear\" or \"polynomial\").")));
+
+  md_data_raw.push_back(MdRecord(
+    NAME("EnergyLevelMapSet"),
+      DESCRIPTION("Sets an EnergyLevelMap\n"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT("x"),
+      GOUT_TYPE("EnergyLevelMap"),
+      GOUT_DESC("out"),
+      IN(),
+      GIN("y"),
+      GIN_TYPE("EnergyLevelMap"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("in")));
 
   md_data_raw.push_back(MdRecord(
       NAME("Error"),
@@ -10068,7 +10337,7 @@ void define_md_data_raw() {
           "\tTV:  Compute population by ratios found from NLTE vibrational temperatures\n"
           "\tND:  Compute population by ratios found from NLTE number densities\n"),
       AUTHORS("Richard Larsson"),
-      OUT("abs_lines_per_species"),
+      OUT("nlte_do", "abs_lines_per_species"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -10077,6 +10346,23 @@ void define_md_data_raw() {
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("nlte_fieldFromRaw"),
+      DESCRIPTION("Sets NLTE values manually\n"
+                  "\n"
+                  "Touch\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("nlte_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("nlte_level_identifiers",
+         "nlte_vibrational_energies"),
+      GIN("data"),
+      GIN_TYPE("Tensor4"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Vibrational data [nlevels, np, nlat, nlon]")));
 
   md_data_raw.push_back(MdRecord(
       NAME("nlte_fieldSetLteExternalPartitionFunction"),
@@ -13104,18 +13390,38 @@ void define_md_data_raw() {
       GIN_DESC("The numerator.", "The denominator.")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("ReadARTSCAT"),
-      DESCRIPTION("Reads a ARTSCAT file.\n"),
+      NAME("ReadArrayOfARTSCAT"),
+      DESCRIPTION("Reads an old Array<ArrayOfLineRecord> ARTSCAT file.\n"),
       AUTHORS("Stefan Buehler", "Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("filename", "globalquantumnumbers", "localquantumnumbers"),
-      GIN_TYPE("String", "String", "String"),
-      GIN_DEFAULT(NODEF, "", ""),
+      GIN("filename", "fmin", "fmax", "globalquantumnumbers", "localquantumnumbers"),
+      GIN_TYPE("String", "Numeric", "Numeric", "String", "String"),
+      GIN_DEFAULT(NODEF, "0", "1e99", "", ""),
       GIN_DESC("Name of the ARTSCAT4 file",
+               "Minimum frequency of read lines",
+               "Maximum frequency of read lines",
+               "Global quantum number list (space-separated)",
+               "Local quantum number list (space-separated)")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("ReadARTSCAT"),
+      DESCRIPTION("Reads an old ArrayOfLineRecord ARTSCAT file.\n"),
+      AUTHORS("Stefan Buehler", "Richard Larsson"),
+      OUT("abs_lines"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("filename", "fmin", "fmax", "globalquantumnumbers", "localquantumnumbers"),
+      GIN_TYPE("String", "Numeric", "Numeric", "String", "String"),
+      GIN_DEFAULT(NODEF, "0", "1e99", "", ""),
+      GIN_DESC("Name of the ARTSCAT4 file",
+               "Minimum frequency of read lines",
+               "Maximum frequency of read lines",
                "Global quantum number list (space-separated)",
                "Local quantum number list (space-separated)")));
 
@@ -13128,10 +13434,12 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("filename", "fmax", "globalquantumnumbers", "localquantumnumbers"),
-      GIN_TYPE("String", "Numeric", "String", "String"),
-      GIN_DEFAULT(NODEF, NODEF, "", ""),
-      GIN_DESC("Name of the HITRAN file", "Max frequency",
+      GIN("filename", "fmin", "fmax", "globalquantumnumbers", "localquantumnumbers"),
+      GIN_TYPE("String", "Numeric", "Numeric", "String", "String"),
+      GIN_DEFAULT(NODEF, "0", "1e99", "", ""),
+      GIN_DESC("Name of the HITRAN file",
+               "Minimum frequency of read lines",
+               "Maximum frequency of read lines",
                "Global quantum number list (space-separated)",
                "Local quantum number list (space-separated)")));
 
@@ -13144,10 +13452,12 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("filename", "fmax", "globalquantumnumbers", "localquantumnumbers"),
-      GIN_TYPE("String", "Numeric", "String", "String"),
-      GIN_DEFAULT(NODEF, NODEF, "", ""),
-      GIN_DESC("Name of the LBLRTM file", "Max frequency",
+      GIN("filename", "fmin", "fmax", "globalquantumnumbers", "localquantumnumbers"),
+      GIN_TYPE("String", "Numeric", "Numeric", "String", "String"),
+      GIN_DEFAULT(NODEF, "0", "1e99", "", ""),
+      GIN_DESC("Name of the LBLRTM file",
+               "Minimum frequency of read lines",
+               "Maximum frequency of read lines",
                "Global quantum number list (space-separated)",
                "Local quantum number list (space-separated)")));
 
@@ -13160,10 +13470,12 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("filename", "fmax", "globalquantumnumbers", "localquantumnumbers"),
-      GIN_TYPE("String", "Numeric", "String", "String"),
-      GIN_DEFAULT(NODEF, NODEF, "", ""),
-      GIN_DESC("Name of the Mytran2 file", "Max frequency",
+      GIN("filename", "fmin", "fmax", "globalquantumnumbers", "localquantumnumbers"),
+      GIN_TYPE("String", "Numeric", "Numeric", "String", "String"),
+      GIN_DEFAULT(NODEF, "0", "1e99", "", ""),
+      GIN_DESC("Name of the Mytran2 file",
+               "Minimum frequency of read lines",
+               "Maximum frequency of read lines",
                "Global quantum number list (space-separated)",
                "Local quantum number list (space-separated)")));
 
@@ -13176,10 +13488,12 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("filename", "fmax", "globalquantumnumbers", "localquantumnumbers"),
-      GIN_TYPE("String", "Numeric", "String", "String"),
-      GIN_DEFAULT(NODEF, NODEF, "", ""),
-      GIN_DESC("Name of the JPL file", "Max frequency",
+      GIN("filename", "fmin", "fmax", "globalquantumnumbers", "localquantumnumbers"),
+      GIN_TYPE("String", "Numeric", "Numeric", "String", "String"),
+      GIN_DEFAULT(NODEF, "0", "1e99", "", ""),
+      GIN_DESC("Name of the JPL file",
+               "Minimum frequency of read lines",
+               "Maximum frequency of read lines",
                "Global quantum number list (space-separated)",
                "Local quantum number list (space-separated)")));
 
@@ -14580,6 +14894,24 @@ void define_md_data_raw() {
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+  
+  
+  md_data_raw.push_back(MdRecord(
+      NAME("rtp_nlteFromRaw"),
+      DESCRIPTION("Sets NLTE values manually\n"
+                  "\n"
+                  "Touch\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("rtp_nlte"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("nlte_level_identifiers",
+         "nlte_vibrational_energies"),
+      GIN("data"),
+      GIN_TYPE("Vector"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Vibrational data [nlevels]")));
 
   md_data_raw.push_back(MdRecord(
       NAME("ScatElementsPndAndScatAdd"),

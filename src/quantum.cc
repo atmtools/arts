@@ -506,6 +506,26 @@ EnergyLevelMap::EnergyLevelMap(const Tensor4& data, const ArrayOfQuantumIdentifi
   ThrowIfNotOK();
 }
 
+EnergyLevelMap::EnergyLevelMap(const Matrix& data, const ArrayOfQuantumIdentifier& levels, const Vector& energies)
+{
+  mtype = EnergyLevelMapType::Vector_t;
+  mlevels = levels;
+  mvib_energy = energies;
+  mvalue.resize(data.nrows(), 1, 1, data.ncols());
+  mvalue(joker, 0, 0, joker) = data;
+  ThrowIfNotOK();
+}
+
+EnergyLevelMap::EnergyLevelMap(const Vector& data, const ArrayOfQuantumIdentifier& levels, const Vector& energies)
+{
+  mtype = EnergyLevelMapType::Numeric_t;
+  mlevels = levels;
+  mvib_energy = energies;
+  mvalue.resize(data.nelem(), 1, 1, 1);
+  mvalue(joker, 0, 0, 0) = data;
+  ThrowIfNotOK();
+}
+
 EnergyLevelMap EnergyLevelMap::InterpToGridPos(Index atmosphere_dim, const ArrayOfGridPos& p, const ArrayOfGridPos& lat, const ArrayOfGridPos& lon) const
 {
   if (mtype == EnergyLevelMapType::None_t)

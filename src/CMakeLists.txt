@@ -241,6 +241,7 @@ add_library (artscore STATIC
   m_planets.cc
   m_ppath.cc
   m_psd.cc
+  m_quantum.cc
   m_radiation_field.cc
   m_refraction.cc
   m_retrieval.cc

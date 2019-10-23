@@ -45,9 +45,10 @@ FrequencyFromCGSKayserWavenumber( f_grid, tmp_kayser )
 #WriteXML("ascii",tmp_kayser,"cm.xml")
 #WriteXML("ascii",f_grid,"f.xml")
 
-ReadXML(abs_lines_per_species,"testdata/NLTE_CO2_testlines.xml")
-abs_lines_per_speciesSetNormalizationForAll(option="VVH")
-abs_lines_per_speciesCutOffForAll(option=750e9)
+ReadArrayOfARTSCAT(abs_lines=abs_lines, filename="../../testdata/NLTE_CO2_testlines.xml", globalquantumnumbers="v1 v2 v3 r l2", localquantumnumbers="J")
+abs_linesSetNormalization(option="VVH")
+abs_linesSetCutoff(option="ByLine", value=750e9)
+abs_lines_per_speciesCreateFromLines
 isotopologue_ratiosInitFromBuiltin
 sensorOff
 jacobianOff
@@ -55,13 +56,13 @@ cloudboxOff
 StringSet( iy_unit, "W/(m^2 m-1 sr)" )
 
 # Note that this data is not at all reliable and does not represent a real world scenario...
-AtmWithNLTERawRead(  basename = "testdata/tropical" )
+AtmWithNLTERawRead(  basename = "testdata/tropical", expect_vibrational_energies=1  )
 AtmFieldsCalcExpand1D
 Extract( z_surface, z_field, 0 )
 
 VectorCreate(ev)
 ReadXML(ev,"testdata/tropical.ev.xml")
-nlteSetByQuantumIdentifiers(vibrational_energies = ev)
+nlteSetByQuantumIdentifiers
 
 #NumericSet(ppath_lmax,5e3)
 
@@ -74,15 +75,16 @@ sensor_checkedCalc
 yCalc
 
 VectorCreate(y_nlte_ref)
-# WriteXML("ascii",y,"TestNLTE_NLTE_old_method.xml")
-ReadXML(y_nlte_ref,"TestNLTE_NLTE_old_method.xml")
+WriteXML("ascii",y,"TestNLTE_NLTE.xml")
+ReadXML(y_nlte_ref,"TestNLTE_NLTE.xml")
 CompareRelative(y,y_nlte_ref,1e-5, "NLTE old method")
 
-Tensor4Create(tmp_t4)
+EnergyLevelMapCreate(tmp_elm)
 ArrayOfQuantumIdentifierCreate(tmp_aoqi)
-Copy(tmp_t4, nlte_field)
+Copy(tmp_elm, nlte_field)
 Copy(tmp_aoqi, nlte_level_identifiers)
 nlteOff
+abs_lines_per_speciesSetPopulation(option="LTE")
 
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
@@ -93,46 +95,7 @@ sensor_checkedCalc
 yCalc
 
 VectorCreate(y_lte_ref)
-# WriteXML("ascii",y,"TestNLTE_LTE_old_method.xml")
-ReadXML(y_lte_ref, "TestNLTE_LTE_old_method.xml")
+WriteXML("ascii",y,"TestNLTE_LTE.xml")
+ReadXML(y_lte_ref, "TestNLTE_LTE.xml")
 CompareRelative(y,y_lte_ref,1e-5, "LTE old method")
-
-# NOTE:  There is potentially a bug in AddLines2 for vib-NLTE.
-#        For some reason, the source function is almost exactly
-#        twice as large.  It is not known whether AddLines2 or
-#        AddLines have the correct results... neither is as well
-#        validated as the pure population distribution computations,
-#        which only works in AddLines2.
-AgendaSet(abs_xsec_agenda) { abs_xsec_per_speciesInit abs_xsec_per_speciesAddLines2 }
-Copy(nlte_field, tmp_t4)
-Copy(nlte_level_identifiers, tmp_aoqi)
-IndexSet(nlte_do, 1)
-
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
-atmfields_checkedCalc
-atmgeom_checkedCalc
-cloudbox_checkedCalc
-sensor_checkedCalc
-yCalc
-
-# WriteXML("ascii",y,"TestNLTE_NLTE_new_method.xml")
-ReadXML(y_nlte_ref,"TestNLTE_NLTE_new_method.xml")
-CompareRelative(y,y_nlte_ref,1e-5, "NLTE new method")
-
-nlteOff
-abs_lines_per_speciesSetNlteOffForAll
-
-abs_xsec_agenda_checkedCalc
-propmat_clearsky_agenda_checkedCalc
-atmfields_checkedCalc
-atmgeom_checkedCalc
-cloudbox_checkedCalc
-sensor_checkedCalc
-yCalc
-
-# WriteXML("ascii",y,"TestNLTE_LTE_new_method.xml")
-ReadXML(y_lte_ref, "TestNLTE_LTE_new_method.xml")
-CompareRelative(y,y_lte_ref,1e-5, "LTE new method")
-
 }

@@ -74,10 +74,8 @@ Extract( z_surface, z_field, 0 )
 # ---- Create absorption table -----------------------------------------------
 
 abs_lines_per_speciesCreateFromLines
-
-abs_lineshapeDefine( shape="Faddeeva_Algorithm_916",
-                     forefactor="VVH",
-                     cutoff=750e9 )
+abs_lines_per_speciesSetNormalization(option="VVH")
+abs_lines_per_speciesSetCutoff(option="ByLine", value=750e9)
 
 AbsInputFromAtmFields
 abs_speciesSet( abs_species=abs_nls, species=[] )

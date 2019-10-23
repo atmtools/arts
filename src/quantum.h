@@ -691,17 +691,15 @@ public:
   void ThrowIfNotOK() const {
     if (not (mvalue.nbooks() == mlevels.nelem() and 
       (mvib_energy.nelem() == mlevels.nelem() or mvib_energy.nelem() == 0)))
-      throw std::runtime_error("Bad dimensions");
-    if (mtype == EnergyLevelMapType::Tensor3_t) {}
-    else if (mtype == EnergyLevelMapType::Vector_t) {
+      throw std::runtime_error("Bad dimensions, vibrational energies and IDs and data of strange size");
+    if (mtype == EnergyLevelMapType::Tensor3_t) {
+    } else if (mtype == EnergyLevelMapType::Vector_t) {
       if (mvalue.npages() not_eq 1 or mvalue.nrows() not_eq 1)
         throw std::runtime_error("Bad dimensions for vector type");
-    }
-    else if (mtype == EnergyLevelMapType::Numeric_t) {
+    } else if (mtype == EnergyLevelMapType::Numeric_t) {
       if (mvalue.npages() not_eq 1 or mvalue.nrows() not_eq 1 or mvalue.ncols() not_eq 1)
         throw std::runtime_error("Bad dimensions for numeric type");
-    }
-    else if (mtype == EnergyLevelMapType::None_t) {
+    } else if (mtype == EnergyLevelMapType::None_t) {
       if (mvalue.npages() not_eq 0 or mvalue.nrows() not_eq 0 or mvalue.ncols() not_eq 0)
         throw std::runtime_error("Bad dimensions for none type");
     }
@@ -719,6 +717,12 @@ public:
   
   // Create Tensor3_t from the raw inputs
   EnergyLevelMap(const Tensor4& data, const ArrayOfQuantumIdentifier& levels, const Vector& energies=Vector(0));
+  
+  // Create Vector_t from the raw inputs
+  EnergyLevelMap(const Matrix& data, const ArrayOfQuantumIdentifier& levels, const Vector& energies=Vector(0));
+  
+  // Create Numeric_t from the raw inputs
+  EnergyLevelMap(const Vector& data, const ArrayOfQuantumIdentifier& levels, const Vector& energies=Vector(0));
   
   // Create Vector_t from Tensor3_t
   EnergyLevelMap InterpToGridPos(Index atmosphere_dim, const ArrayOfGridPos& p, const ArrayOfGridPos& lat, const ArrayOfGridPos& lon) const;

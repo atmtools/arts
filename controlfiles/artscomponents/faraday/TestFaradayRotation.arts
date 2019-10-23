@@ -79,6 +79,7 @@ ReadXML( raw3, "testdata/ne_iri_solmax_spring_12UTC_0latlon.xml" )
 Append( vmr_field_raw, raw3 )
 
 Touch(nlte_field_raw)
+Touch(nlte_vibrational_energies)
 # Interpolate to p_grid (VMR is "zero padded")
 #
 AtmFieldsCalc( vmr_zeropadding=1 )

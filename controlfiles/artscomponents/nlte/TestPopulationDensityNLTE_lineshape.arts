@@ -1,6 +1,6 @@
 Arts2 {
 
-  AgendaSet(abs_xsec_agenda) {abs_xsec_per_speciesInit abs_xsec_per_speciesAddLines2}
+  AgendaSet(abs_xsec_agenda) {abs_xsec_per_speciesInit abs_xsec_per_speciesAddLines}
 
 #   Can run with abs_xsec_per_speciesAddLines by uncommenting:
 #   abs_lineshapeDefine(abs_lineshape, "Faddeeva_Algorithm_916", "no_norm", -1)
@@ -11,7 +11,6 @@ Arts2 {
   partition_functionsInitFromBuiltin
   abs_speciesSet(species=["O2-66"])
   VectorNLinSpace(f_grid, 101, 99.99e9, 100.01e9)
-  VectorSet(rtp_nlte, [0.7, 0.4])
   VectorSet(rtp_vmr, [0.21])
   NumericSet(rtp_temperature, 250)
   NumericSet(rtp_pressure, 1e-5)
@@ -22,8 +21,8 @@ Arts2 {
   ArrayOfPropagationMatrixCreate(testdata)
   
   # Absorption line (Doppler, no Zeeman, no NLTE, no mirroring, no normalization)
-  ReadXML(abs_lines, "../lineshapes/testdata/lm-vp-line.xml")
-  ArrayOfLineRecordCreate(aolr)
+  ReadARTSCAT(abs_lines=abs_lines, filename="../lineshapes/testdata/lm-vp-line.xml", globalquantumnumbers="J")
+  ArrayOfAbsorptionLinesCreate(aolr)
   Copy(aolr, abs_lines)
   abs_lines_per_speciesCreateFromLines
   
@@ -35,7 +34,9 @@ Arts2 {
   
   # NLTE matching information
   ReadXML(nlte_level_identifiers, "testdata/o2-qi.xml")
-  nlteSetByQuantumIdentifiers(population_type="ND")
+  Touch(nlte_vibrational_energies)
+  rtp_nlteFromRaw(data=[0.7, 0.4])
+  nlteSetByQuantumIdentifiers(nlte_field=rtp_nlte)
   
   # Silly parameters that have to be set by agendas and ARTS in general but are completely useless for these calculations
   VectorSet(p_grid, [150])  # We have no grid
@@ -103,7 +104,7 @@ Arts2 {
   # Perform calculations for perturbed line strength derivative
   abs_linesChangeBaseParameterForMatchingLines(QI=QI, parameter_name="Line Strength", change=1e-30, relative=0, loose_matching=0)
   abs_lines_per_speciesCreateFromLines
-  nlteSetByQuantumIdentifiers(population_type="ND")
+  nlteSetByQuantumIdentifiers(nlte_field=rtp_nlte)
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
@@ -115,7 +116,7 @@ Arts2 {
   # Perform calculations for perturbed line center derivative
   abs_linesChangeBaseParameterForMatchingLines(QI=QI, parameter_name="Line Center", change=1e1, relative=0, loose_matching=0)
   abs_lines_per_speciesCreateFromLines
-  nlteSetByQuantumIdentifiers(population_type="ND")
+  nlteSetByQuantumIdentifiers(nlte_field=rtp_nlte)
   abs_xsec_agenda_checkedCalc
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
@@ -127,7 +128,7 @@ Arts2 {
 # Perform calculations for perturbed AIR-G0-X0 derivative
 abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="G0", coefficient="X0", species="AIR", change=10, relative=0)
 abs_lines_per_speciesCreateFromLines
-nlteSetByQuantumIdentifiers(population_type="ND")
+nlteSetByQuantumIdentifiers(nlte_field=rtp_nlte)
 abs_xsec_agenda_checkedCalc
 propmat_clearskyInit
 propmat_clearskyAddOnTheFly
@@ -139,7 +140,7 @@ CompareRelative(testdata, propmat_clearsky, 1e-6)
 # Perform calculations for perturbed AIR-G0-X1 derivative
 abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="G0", coefficient="X1", species="AIR", change=1e-05, relative=0)
 abs_lines_per_speciesCreateFromLines
-nlteSetByQuantumIdentifiers(population_type="ND")
+nlteSetByQuantumIdentifiers(nlte_field=rtp_nlte)
 abs_xsec_agenda_checkedCalc
 propmat_clearskyInit
 propmat_clearskyAddOnTheFly
@@ -151,7 +152,7 @@ CompareRelative(testdata, propmat_clearsky, 1e-6)
 # Perform calculations for perturbed AIR-D0-X0 derivative
 abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="D0", coefficient="X0", species="AIR", change=10, relative=0)
 abs_lines_per_speciesCreateFromLines
-nlteSetByQuantumIdentifiers(population_type="ND")
+nlteSetByQuantumIdentifiers(nlte_field=rtp_nlte)
 abs_xsec_agenda_checkedCalc
 propmat_clearskyInit
 propmat_clearskyAddOnTheFly
@@ -163,7 +164,7 @@ CompareRelative(testdata, propmat_clearsky, 1e-6)
 # Perform calculations for perturbed AIR-D0-X1 derivative
 abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="D0", coefficient="X1", species="AIR", change=1e-05, relative=0)
 abs_lines_per_speciesCreateFromLines
-nlteSetByQuantumIdentifiers(population_type="ND")
+nlteSetByQuantumIdentifiers(nlte_field=rtp_nlte)
 abs_xsec_agenda_checkedCalc
 propmat_clearskyInit
 propmat_clearskyAddOnTheFly
@@ -175,7 +176,7 @@ CompareRelative(testdata, propmat_clearsky, 1e-6)
 # Perform calculations for perturbed AIR-Y-X0 derivative
 abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X0", species="AIR", change=1e-10, relative=0)
 abs_lines_per_speciesCreateFromLines
-nlteSetByQuantumIdentifiers(population_type="ND")
+nlteSetByQuantumIdentifiers(nlte_field=rtp_nlte)
 abs_xsec_agenda_checkedCalc
 propmat_clearskyInit
 propmat_clearskyAddOnTheFly
@@ -187,7 +188,7 @@ CompareRelative(testdata, propmat_clearsky, 1e-6)
 # Perform calculations for perturbed AIR-Y-X1 derivative
 abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X1", species="AIR", change=1e-12, relative=0)
 abs_lines_per_speciesCreateFromLines
-nlteSetByQuantumIdentifiers(population_type="ND")
+nlteSetByQuantumIdentifiers(nlte_field=rtp_nlte)
 abs_xsec_agenda_checkedCalc
 propmat_clearskyInit
 propmat_clearskyAddOnTheFly
@@ -199,7 +200,7 @@ CompareRelative(testdata, propmat_clearsky, 1e-6)
 # Perform calculations for perturbed AIR-Y-X2 derivative
 abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="Y", coefficient="X2", species="AIR", change=1e-05, relative=0)
 abs_lines_per_speciesCreateFromLines
-nlteSetByQuantumIdentifiers(population_type="ND")
+nlteSetByQuantumIdentifiers(nlte_field=rtp_nlte)
 abs_xsec_agenda_checkedCalc
 propmat_clearskyInit
 propmat_clearskyAddOnTheFly
@@ -211,7 +212,7 @@ CompareRelative(testdata, propmat_clearsky, 1e-6)
 # Perform calculations for perturbed AIR-G-X0 derivative
 abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="G", coefficient="X0", species="AIR", change=1e-14, relative=0)
 abs_lines_per_speciesCreateFromLines
-nlteSetByQuantumIdentifiers(population_type="ND")
+nlteSetByQuantumIdentifiers(nlte_field=rtp_nlte)
 abs_xsec_agenda_checkedCalc
 propmat_clearskyInit
 propmat_clearskyAddOnTheFly
@@ -223,7 +224,7 @@ CompareRelative(testdata, propmat_clearsky, 1e-6)
 # Perform calculations for perturbed AIR-G-X1 derivative
 abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="G", coefficient="X1", species="AIR", change=1e-16, relative=0)
 abs_lines_per_speciesCreateFromLines
-nlteSetByQuantumIdentifiers(population_type="ND")
+nlteSetByQuantumIdentifiers(nlte_field=rtp_nlte)
 abs_xsec_agenda_checkedCalc
 propmat_clearskyInit
 propmat_clearskyAddOnTheFly
@@ -235,7 +236,7 @@ CompareRelative(testdata, propmat_clearsky, 1e-6)
 # Perform calculations for perturbed AIR-G-X2 derivative
 abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="G", coefficient="X2", species="AIR", change=1e-05, relative=0)
 abs_lines_per_speciesCreateFromLines
-nlteSetByQuantumIdentifiers(population_type="ND")
+nlteSetByQuantumIdentifiers(nlte_field=rtp_nlte)
 abs_xsec_agenda_checkedCalc
 propmat_clearskyInit
 propmat_clearskyAddOnTheFly
@@ -247,7 +248,7 @@ CompareRelative(testdata, propmat_clearsky, 1e-6)
 # Perform calculations for perturbed AIR-DV-X0 derivative
 abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X0", species="AIR", change=0.1, relative=0)
 abs_lines_per_speciesCreateFromLines
-nlteSetByQuantumIdentifiers(population_type="ND")
+nlteSetByQuantumIdentifiers(nlte_field=rtp_nlte)
 abs_xsec_agenda_checkedCalc
 propmat_clearskyInit
 propmat_clearskyAddOnTheFly
@@ -259,7 +260,7 @@ CompareRelative(testdata, propmat_clearsky, 1e-6)
 # Perform calculations for perturbed AIR-DV-X1 derivative
 abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X1", species="AIR", change=0.01, relative=0)
 abs_lines_per_speciesCreateFromLines
-nlteSetByQuantumIdentifiers(population_type="ND")
+nlteSetByQuantumIdentifiers(nlte_field=rtp_nlte)
 abs_xsec_agenda_checkedCalc
 propmat_clearskyInit
 propmat_clearskyAddOnTheFly
@@ -271,7 +272,7 @@ CompareRelative(testdata, propmat_clearsky, 1e-6)
 # Perform calculations for perturbed AIR-DV-X2 derivative
 abs_linesChangeLineShapeModelParameterForMatchingLines(QI=QI, parameter="DV", coefficient="X2", species="AIR", change=1e-05, relative=0)
 abs_lines_per_speciesCreateFromLines
-nlteSetByQuantumIdentifiers(population_type="ND")
+nlteSetByQuantumIdentifiers(nlte_field=rtp_nlte)
 abs_xsec_agenda_checkedCalc
 propmat_clearskyInit
 propmat_clearskyAddOnTheFly
@@ -281,25 +282,24 @@ ReadXML(testdata, "testdata/test-nlte/propmat-dlf-AIR-DV-X2.xml")
 CompareRelative(testdata, propmat_clearsky, 1e-6)
 
 # Perform calculations for perturbed lower levels derivative
-VectorSet(rtp_nlte, [0.7, 0.40001])
+rtp_nlteFromRaw(data=[0.7, 0.40001])
 abs_xsec_agenda_checkedCalc
 propmat_clearskyInit
 propmat_clearskyAddOnTheFly
-VectorSet(rtp_nlte, [0.7, 0.4])
+rtp_nlteFromRaw(data=[0.7, 0.4])
 Copy(abs_lines, aolr)
 #WriteXML("ascii", propmat_clearsky, "testdata/test-nlte/propmat-dlow.xml")
 ReadXML(testdata, "testdata/test-nlte/propmat-dlow.xml")
 CompareRelative(testdata, propmat_clearsky, 1e-6)
 
 # Perform calculations for perturbed lower levels derivative
-VectorSet(rtp_nlte, [0.70001, 0.4])
+rtp_nlteFromRaw(data=[0.70001, 0.4])
 abs_xsec_agenda_checkedCalc
 propmat_clearskyInit
 propmat_clearskyAddOnTheFly
-VectorSet(rtp_nlte, [0.7, 0.4])
+rtp_nlteFromRaw(data=[0.7, 0.4])
 Copy(abs_lines, aolr)
 #WriteXML("ascii", propmat_clearsky, "testdata/test-nlte/propmat-dupp.xml")
 ReadXML(testdata, "testdata/test-nlte/propmat-dupp.xml")
 CompareRelative(testdata, propmat_clearsky, 1e-6)
-
 }

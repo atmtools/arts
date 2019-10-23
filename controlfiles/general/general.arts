@@ -130,19 +130,6 @@ IndexSet( ybatch_start, 0 )
 
 
 #
-# Lineshape function
-#
-# These should be the most accurate settings:
-# Kuntz implementation of the Voigt function, 
-# Van-Vleck and Huber normalization factor,
-# cutoff at 750 GHz, consistent with Clough and Rosenkranz
-#
-abs_lineshapeDefine( shape="Voigt_Kuntz6",
-                     forefactor="VVH",
-                     cutoff=750e9 )
-
-
-#
 # Variables for calculation of propagation paths:
 #
 # The value for ppath_lmax of 10e3 is OK for limb sounding, and 

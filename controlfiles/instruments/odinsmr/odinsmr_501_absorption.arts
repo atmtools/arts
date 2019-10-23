@@ -14,6 +14,8 @@ abs_speciesSet( species=[
 ] )
 
 # Line file
-abs_linesReadFromArts( abs_lines, "linefile.SM_AC2ab.xml", 0, 2e12 )
+ReadARTSCAT(filename="linefile.SM_AC2ab.xml", fmin=0, fmax=2e12 )
+abs_linesSetNormalization(option="VVH")
+abs_linesSetCutoff(option="ByLine", value=750e9)
 
 }

@@ -52,7 +52,9 @@ cloudboxOff
 
 # Read a line file and a matching small frequency grid
 # ---
-ReadXML( abs_lines, "artscomponents/clearsky/abs_lines.xml" )
+ReadARTSCAT( abs_lines, "artscomponents/clearsky/abs_lines.xml" )
+abs_linesSetCutoff(abs_lines, "ByLine", 750e9)
+abs_linesSetNormalization(abs_lines, "VVH")
 VectorNLinSpace( f_grid, 5, 320e9, 322e9 )
 
 

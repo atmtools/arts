@@ -3,9 +3,8 @@ Arts2 {
   
   # Set lines and species
   abs_speciesSet(species=["O2-Z-66"])
-  ReadXML(abs_lines, "testdata/zeeman-lines.xml")
+  ReadARTSCAT(abs_lines=abs_lines, filename="testdata/zeeman-lines.xml", localquantumnumbers="J")
   abs_lines_per_speciesCreateFromLines
-  zeeman_linerecord_precalcCreateFromLines
   
   # Initialize standard inputs
   isotopologue_ratiosInitFromBuiltin

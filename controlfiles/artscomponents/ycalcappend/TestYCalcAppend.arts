@@ -55,7 +55,7 @@ abs_speciesSet( species=[
         "H2O-PWR98",
         "N2-SelfContStandardType",
         "O2-PWR98" ] )
-ReadXML( abs_lines, "ozone_line.xml" )
+ReadARTSCAT( abs_lines, "ozone_line.xml" )
 abs_lines_per_speciesCreateFromLines
 
 # Surface altitude

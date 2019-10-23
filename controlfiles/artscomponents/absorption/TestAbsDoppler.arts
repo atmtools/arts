@@ -26,7 +26,7 @@ Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
 
 # Read the spectroscopic line data from the ARTS catalogue and
 # create the workspace variable `lines'.
-abs_linesReadFromArts( abs_lines, "lines.xml", 1e9, 200e9 )
+ReadARTSCAT( abs_lines=abs_lines, filename="lines.xml", fmin=1e9, fmax=200e9 )
 
 # This test catalogue was generated from the HITRAN catalogue in the
 # following way:

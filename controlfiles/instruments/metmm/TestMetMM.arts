@@ -62,11 +62,7 @@ INCLUDE "general/planet_earth.arts"
     abs_speciesSet( species=[ "H2O, H2O-SelfContCKDMT252, H2O-ForeignContCKDMT252",
                               "O2-LM-66, O2-CIAfunCKDMT100",
                               "N2,  N2-CIAfunCKDMT252, N2-CIArotCKDMT252",
-                              "O3" ] )      
-    abs_lineshape_per_tgDefine( abs_lineshape, abs_species,
-    ["Voigt_Kuntz6", "Faddeeva_Algorithm_916", "Voigt_Kuntz6", "Voigt_Kuntz6"],
-    ["VVH", "VVH", "VVH", "VVH"],
-    [ 750e9, 750e9, 750e9, 5e9 ] )
+                              "O3" ] )
 
 
 # Read HITRAN catalog:
@@ -75,8 +71,11 @@ INCLUDE "general/planet_earth.arts"
 #                             0,
 #                             1000e9 )
 #    abs_linesArtscat5FromArtscat34( abs_lines )
-    ReadXML( abs_lines, "instruments/metmm/abs_lines_metmm.xml.gz" )
+    ReadARTSCAT( abs_lines, "instruments/metmm/abs_lines_metmm.xml.gz" )
+    abs_linesSetCutoff(option="ByLine", value=750e9)
+    abs_linesSetNormalization(option="VVH")
     abs_lines_per_speciesCreateFromLines
+    abs_lines_per_speciesSetCutoffForSpecies(option="ByLine", value=750e9, species_tag="O3")
 #    WriteXML( "zascii", abs_lines, "instruments/metmm/abs_lines_metmm.xml.gz" )
 
 
