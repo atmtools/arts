@@ -70,8 +70,9 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   Index nelem;
   
   // ARTSCAT data
-  ifstream is_xml;
-  xml_open_input_file(is_xml, artscat_file, verbosity);
+  shared_ptr<istream> ifs = nullptr;
+  xml_find_and_open_input_file(ifs, artscat_file, verbosity);
+  istream& is_xml = *ifs;
   auto a = FILE_TYPE_ASCII;
   auto b = NUMERIC_TYPE_DOUBLE;
   auto c = ENDIAN_TYPE_LITTLE;
@@ -202,8 +203,9 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   Index nelem;
   
   // ARTSCAT data
-  ifstream is_xml;
-  xml_open_input_file(is_xml, artscat_file, verbosity);
+  shared_ptr<istream> ifs = nullptr;
+  xml_find_and_open_input_file(ifs, artscat_file, verbosity);
+  istream& is_xml = *ifs;
   auto a = FILE_TYPE_ASCII;
   auto b = NUMERIC_TYPE_DOUBLE;
   auto c = ENDIAN_TYPE_LITTLE;
