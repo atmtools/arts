@@ -32,10 +32,6 @@
 
 // Needed for global_data::species_data
 class SpeciesRecord;
-// Needed for global_data::lineshape_data
-class LineshapeRecord;
-// Needed for global_data::lineshape_norm_data
-class LineshapeNormRecord;
 
 namespace global_data {
 
@@ -112,18 +108,6 @@ extern const Array<SpeciesRecord> species_data;
  Defined in absorption.cc.
  */
 extern const map<String, Index> SpeciesMap;
-
-//! The lookup data for the different lineshapes.
-/**
- Defined in lineshapes.cc.
- */
-extern const Array<LineshapeRecord> lineshape_data;
-
-//! The lookup data for the different normalization factors to the lineshapes.
-/**
- Defined in lineshapes.cc.
- */
-extern const Array<LineshapeNormRecord> lineshape_norm_data;
 
 } /* namespace global_data */
 

@@ -116,7 +116,6 @@ void abs_lookupCalc(  // Workspace reference:
   // Species list, lines, and line shapes, all with only 1 element:
   ArrayOfArrayOfSpeciesTag this_species(1);
   ArrayOfArrayOfLineRecord these_lines(1);
-  ArrayOfLineshapeSpec this_lineshape(1);
 
   // List of active species for agenda call. Will always be filled with only
   // one species.

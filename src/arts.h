@@ -128,8 +128,6 @@ Index get_wsv_id(const char* name);
 bool is_valid_keyword_group(const Index name);
 void define_species_data();
 void define_species_map();
-void define_lineshape_data();
-void define_lineshape_norm_data();
 
 void arts_exit(int status = EXIT_FAILURE);
 void arts_exit_with_error_message(const String& m, ArtsOut& os);

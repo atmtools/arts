@@ -47,7 +47,6 @@
 
 #include "global_data.h"
 #include "linefunctions.h"
-#include "partial_derivatives.h"
 
 /** Mapping of species auxiliary type names to SpeciesAuxData::AuxType enum */
 static const char* SpeciesAuxTypeNames[] = {"NONE",
@@ -747,14 +746,6 @@ void convMytranIER(Numeric& mdh, const Index& dh) {
     }
   }
   mdh = mdh / 100;
-}
-
-ostream& operator<<(ostream& os, const LineshapeSpec& lsspec) {
-  os << "LineshapeSpec Index: " << lsspec.Ind_ls()
-     << ", NormIndex: " << lsspec.Ind_lsn() << ", Cutoff: " << lsspec.Cutoff()
-     << endl;
-
-  return os;
 }
 
 /*! cross-section replacement computer 

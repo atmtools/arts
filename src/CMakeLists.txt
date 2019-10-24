@@ -209,7 +209,6 @@ add_library (artscore STATIC
   linemixing.cc
   linerecord.cc
   linescaling.cc
-  lineshapes.cc
   lineshapemodel.cc
   linefunctions.cc
   m_abs.cc
@@ -268,7 +267,6 @@ add_library (artscore STATIC
   parameters.cc
   parser.cc
   partition_function_data.cc
-  partial_derivatives.cc
   physics_funcs.cc
   poly_roots.cc
   ppath.cc

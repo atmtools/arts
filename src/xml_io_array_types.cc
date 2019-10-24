@@ -2590,40 +2590,6 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 }
 
-//=== ArrayOfLineshapeSpec ===========================================
-
-//! Reads ArrayOfLineshapeSpec from XML input stream
-/*!
-  \param is_xml   XML Input stream
-  \param alspec   ArrayOfLineshapeSpec return value
-  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
-*/
-void xml_read_from_stream(istream& is_xml _U_,
-                          ArrayOfLineshapeSpec& alspec _U_,
-                          bifstream* pbifs _U_,
-                          const Verbosity&) {
-  // FIXME: OLE: Implement this.
-  throw runtime_error("Boo. Not yet implemented.");
-}
-
-//! Writes ArrayOfLineshapeSpec to XML output stream
-/*!
-  \param os_xml   XML Output stream
-  \param alspec   ArrayOfLineshapeSpec
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
-  \param name     Optional name attribute
-*/
-void xml_write_to_stream(ostream& os_xml _U_,
-                         const ArrayOfLineshapeSpec& alspec _U_,
-                         bofstream* pbofs _U_,
-                         const String& name _U_,
-                         const Verbosity&)
-
-{
-  // FIXME: OLE: Implement this.
-  throw runtime_error("Boo. Not yet implemented.");
-}
-
 //=== ArrayOfTelsemAtlas =========================================================
 
 //! Reads ArrayOfTelsemAtlas from XML input stream

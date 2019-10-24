@@ -63,8 +63,6 @@ void InteractiveWorkspace::initialize() {
   assert(check_agenda_data());
   define_species_data();
   define_species_map();
-  define_lineshape_data();
-  define_lineshape_norm_data();
 
   // Add getaway for callbacks.
   size_t n_methods = md_data.size();
