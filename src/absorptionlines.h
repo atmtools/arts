@@ -1290,12 +1290,108 @@ SingleLineExternal ReadFromArtscat5Stream(istream& is);
 
 /** Read from LBLRTM
  * 
+ * LBLRTM follows the old HITRAN format from before 2004.  This
+ * HITRAN format is as follows (directly from the HITRAN documentation):
+ *
+ * @verbatim
+  Each line consists of 100
+  bytes of ASCII text data, followed by a line feed (ASCII 10) and
+  carriage return (ASCII 13) character, for a total of 102 bytes per line.
+  Each line can be read using the following READ and FORMAT statement pair
+  (for a FORTRAN sequential access read):
+
+        READ(3,800) MO,ISO,V,S,R,AGAM,SGAM,E,N,d,V1,V2,Q1,Q2,IERF,IERS,
+       *  IERH,IREFF,IREFS,IREFH
+  800   FORMAT(I2,I1,F12.6,1P2E10.3,0P2F5.4,F10.4,F4.2,F8.6,2I3,2A9,3I1,3I2)
+
+  Each item is defined below, with its format shown in parenthesis.
+
+    MO  (I2)  = molecule number
+    ISO (I1)  = isotopologue number (1 = most abundant, 2 = second, etc)
+    V (F12.6) = frequency of transition in wavenumbers (cm-1)
+    S (E10.3) = intensity in cm-1/(molec * cm-2) at 296 Kelvin
+    R (E10.3) = transition probability squared in Debyes**2
+    AGAM (F5.4) = air-broadened halfwidth (HWHM) in cm-1/atm at 296 Kelvin
+    SGAM (F5.4) = self-broadened halfwidth (HWHM) in cm-1/atm at 296 Kelvin
+    E (F10.4) = lower state energy in wavenumbers (cm-1)
+    N (F4.2) = coefficient of temperature dependence of air-broadened halfwidth
+    d (F8.6) = shift of transition due to pressure (cm-1)
+    V1 (I3) = upper state global quanta index
+    V2 (I3) = lower state global quanta index
+    Q1 (A9) = upper state local quanta
+    Q2 (A9) = lower state local quanta
+    IERF (I1) = accuracy index for frequency reference
+    IERS (I1) = accuracy index for intensity reference
+    IERH (I1) = accuracy index for halfwidth reference
+    IREFF (I2) = lookup index for frequency
+    IREFS (I2) = lookup index for intensity
+    IREFH (I2) = lookup index for halfwidth
+
+  The molecule numbers are encoded as shown in the table below:
+
+    0= Null    1=  H2O    2=  CO2    3=   O3    4=  N2O    5=   CO
+    6=  CH4    7=   O2    8=   NO    9=  SO2   10=  NO2   11=  NH3
+    12= HNO3   13=   OH   14=   HF   15=  HCl   16=  HBr   17=   HI
+    18=  ClO   19=  OCS   20= H2CO   21= HOCl   22=   N2   23=  HCN
+    24=CH3Cl   25= H2O2   26= C2H2   27= C2H6   28=  PH3   29= COF2
+    30=  SF6   31=  H2S   32=HCOOH
+ * @endverbatim
+ * 
  * @param[in] is Input stream
  * @return SingleLineExternal 
  */
 SingleLineExternal ReadFromLBLRTMStream(istream& is);
 
 /** Read from newer HITRAN
+ *
+ * The HITRAN format is as follows:
+ *
+ * @verbatim
+  Each line consists of 160 ASCII characters, followed by a line feed (ASCII 10)
+  and carriage return (ASCII 13) character, for a total of 162 bytes per line.
+
+  Each item is defined below, with its Fortran format shown in parenthesis.
+
+  (I2)     molecule number
+  (I1)     isotopologue number (1 = most abundant, 2 = second, etc)
+  (F12.6)  vacuum wavenumbers (cm-1)
+  (E10.3)  intensity in cm-1/(molec * cm-2) at 296 Kelvin
+  (E10.3)  Einstein-A coefficient (s-1)
+  (F5.4)   air-broadened halfwidth (HWHM) in cm-1/atm at 296 Kelvin
+  (F5.4)   self-broadened halfwidth (HWHM) in cm-1/atm at 296 Kelvin
+  (F10.4)  lower state energy (cm-1)
+  (F4.2)   coefficient of temperature dependence of air-broadened halfwidth
+  (F8.6)   air-broadened pressure shift of line transition at 296 K (cm-1)
+  (A15)    upper state global quanta
+  (A15)    lower state global quanta
+  (A15)    upper state local quanta
+  (A15)    lower state local quanta
+  (I1)     uncertainty index for wavenumber
+  (I1)     uncertainty index for intensity
+  (I1)     uncertainty index for air-broadened half-width
+  (I1)     uncertainty index for self-broadened half-width
+  (I1)     uncertainty index for temperature dependence
+  (I1)     uncertainty index for pressure shift
+  (I2)     index for table of references correspond. to wavenumber
+  (I2)     index for table of references correspond. to intensity
+  (I2)     index for table of references correspond. to air-broadened half-width
+  (I2)     index for table of references correspond. to self-broadened half-width
+  (I2)     index for table of references correspond. to temperature dependence
+  (I2)     index for table of references correspond. to pressure shift
+  (A1)     flag (*) for lines supplied with line-coupling algorithm
+  (F7.1)   upper state statistical weight
+  (F7.1)   lower state statistical weight
+
+  The molecule numbers are encoded as shown in the table below:
+
+    0= Null    1=  H2O    2=  CO2    3=   O3    4=  N2O    5=    CO
+    6=  CH4    7=   O2    8=   NO    9=  SO2   10=  NO2   11=   NH3
+    12= HNO3   13=   OH   14=   HF   15=  HCl   16=  HBr   17=    HI
+    18=  ClO   19=  OCS   20= H2CO   21= HOCl   22=   N2   23=   HCN
+    24=CH3Cl   25= H2O2   26= C2H2   27= C2H6   28=  PH3   29=  COF2
+    30=  SF6   31=  H2S   32=HCOOH   33=  HO2   34=    O   35=ClONO2
+    36=  NO+   37= HOBr   38= C2H4
+ * @endverbatim
  * 
  * @param[in] is Input stream
  * @param[in] fmin Lowest frequency to continue reading
@@ -1304,6 +1400,60 @@ SingleLineExternal ReadFromLBLRTMStream(istream& is);
 SingleLineExternal ReadFromHitran2004Stream(istream& is);
 
 /** Read from Mytran2
+ * The MYTRAN2
+ * format is as follows (directly taken from the abs_my.c documentation):
+ *
+ * @verbatim
+  The MYTRAN format is as follows (FORTRAN notation):
+  FORMAT(I2,I1,F13.4,1PE10.3,0P2F5.2,F10.4,2F4.2,F8.6,F6.4,2I3,2A9,4I1,3I2)
+  
+  Each item is defined below, with its FORMAT String shown in
+  parenthesis.
+  
+      MO  (I2)      = molecule number
+      ISO (I1)      = isotopologue number (1 = most abundant, 2 = second, etc)
+  *  F (F13.4)     = frequency of transition in MHz
+  *  errf (F8.4)   = error in f in MHz
+      S (E10.3)     = intensity in cm-1/(molec * cm-2) at 296 K
+  *  AGAM (F5.4)   = air-broadened halfwidth (HWHM) in MHz/Torr at Tref
+  *  SGAM (F5.4)   = self-broadened halfwidth (HWHM) in MHz/Torr at Tref
+      E (F10.4)     = lower state energy in wavenumbers (cm-1)
+      N (F4.2)      = coefficient of temperature dependence of 
+                      air-broadened halfwidth
+  *  N_self (F4.2) = coefficient of temperature dependence of 
+                      self-broadened halfwidth
+  *  Tref (F7.2)   = reference temperature for AGAM and SGAM 
+  *  d (F9.7)      = shift of transition due to pressure (MHz/Torr)
+      V1 (I3)       = upper state global quanta index
+      V2 (I3)       = lower state global quanta index
+      Q1 (A9)       = upper state local quanta
+      Q2 (A9)       = lower state local quanta
+      IERS (I1)     = accuracy index for S
+      IERH (I1)     = accuracy index for AGAM
+  *  IERN (I1)     = accuracy index for N
+
+  
+  The asterisks mark entries that are different from HITRAN.
+
+  Note that AGAM and SGAM are for the temperature Tref, while S is
+  still for 296 K!
+  
+  The molecule numbers are encoded as shown in the table below:
+  
+     0= Null    1=  H2O    2=  CO2    3=   O3    4=  N2O    5=   CO
+     6=  CH4    7=   O2    8=   NO    9=  SO2   10=  NO2   11=  NH3
+    12= HNO3   13=   OH   14=   HF   15=  HCl   16=  HBr   17=   HI
+    18=  ClO   19=  OCS   20= H2CO   21= HOCl   22=   N2   23=  HCN
+    24=CH3Cl   25= H2O2   26= C2H2   27= C2H6   28=  PH3   29= COF2
+    30=  SF6   31=  H2S   32=HCOOH   33= HO2    34=    O   35= CLONO2
+    36=  NO+   37= Null   38= Null   39= Null   40=H2O_L   41= Null
+    42= Null   43= OCLO   44= Null   45= Null   46=BRO     47= Null
+    48= H2SO4  49=CL2O2
+
+  All molecule numbers are from HITRAN, except for species with id's
+  greater or equals 40, which are not included in HITRAN.
+  (E.g.: For BrO, iso=1 is Br-79-O,iso=2 is  Br-81-O.)
+ * @endverbatim
  * 
  * @param[in] is Input stream
  * @return SingleLineExternal 
@@ -1311,6 +1461,45 @@ SingleLineExternal ReadFromHitran2004Stream(istream& is);
 SingleLineExternal ReadFromMytran2Stream(istream& is);
 
 /** Read from JPL
+ * 
+ *  The JPL format is as follows (directly taken from the JPL documentation):
+ * 
+ * @verbatim 
+    The catalog line files are composed of 80-character lines, with one
+    line entry per spectral line.  The format of each line is:
+
+    \label{lfmt}
+    \begin{tabular}{@{}lccccccccr@{}}
+    FREQ, & ERR, & LGINT, & DR, & ELO, & GUP, & TAG, & QNFMT, & QN${'}$, & QN${''}$\\ 
+    (F13.4, & F8.4, & F8.4, & I2, & F10.4, & I3, & I7, & I4, & 6I2, & 6I2)\\
+    \end{tabular}
+
+    \begin{tabular}{lp{4.5in}} 
+    FREQ: & Frequency of the line in MHz.\\ 
+    ERR: & Estimated or experimental error of FREQ in MHz.\\ 
+    LGINT: &Base 10 logarithm of the integrated intensity 
+    in units of \linebreak nm$^2$$\cdot$MHz at 300 K. (See Section 3 for 
+    conversions to other units.)\\ 
+    DR: & Degrees of freedom in the rotational partition 
+    function (0 for atoms, 2 for linear molecules, and 3 for nonlinear 
+    molecules).\\ 
+    ELO: &Lower state energy in cm$^{-1}$ relative to the lowest energy 
+    spin--rotation level in ground vibronic state.\\ 
+    GUP: & Upper state degeneracy.\\ 
+    TAG: & Species tag or molecular identifier. 
+    A negative value flags that the line frequency has 
+    been measured in the laboratory.  The absolute value of TAG is then the 
+    species tag and ERR is the reported experimental error.  The three most 
+    significant digits of the species tag are coded as the mass number of the 
+    species, as explained above.\\ 
+    QNFMT: &Identifies the format of the quantum numbers 
+    given in the field QN. These quantum number formats are given in Section 5 
+    and are different from those in the first two editions of the catalog.\\ 
+    QN${'}$: & Quantum numbers for the upper state coded 
+    according to QNFMT.\\ 
+    QN${''}$: & Quantum numbers for the lower state.\\
+    \end{tabular} 
+ * @endverbatim
  * 
  * @param[in] is Input stream
  * @return SingleLineExternal 
