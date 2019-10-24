@@ -108,6 +108,7 @@ VectorCreate( viewang )
 
 # No Jacobian Matrix in the basic test
 jacobianOff
+Touch(nlte_vibrational_energies)
 
 ################################################################################
 # START USER SETTINGS - Modify settings according to you wishes                #

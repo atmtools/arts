@@ -67,11 +67,9 @@ ReadXML(abs_cia_data, "spectroscopy/cia/hitran2011/hitran_cia2012_adapted.xml.gz
 
 # Line file and a matching coarse frequency grid
 # ---
-abs_linesReadFromSplitArtscat( 	
-    abs_lines, 
-    abs_species, 
-    "spectroscopy/Perrin/", 
-    1e9, 3000e9 )
+ReadSplitARTSCAT(basename="spectroscopy/Perrin/", fmin=1e9, fmax=3000e9)
+abs_linesSetCutoff(option="ByLine", value=750e9)
+abs_linesSetNormalization(option="VVH")
 VectorNLinSpace( f_grid, 100, 1e9, 3000e9 )
 
 

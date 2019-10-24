@@ -55,7 +55,7 @@ Copy( abs_xsec_agenda, abs_xsec_agenda__withCIAextraT )
 #  absorption lookup table
 #####
 ReadXML( abs_cia_data, "spectroscopy/cia/hitran2011/hitran_cia2012_adapted.xml.gz" )
-abs_linesReadFromSplitArtscat( basename="spectroscopy/Perrin/", fmin=0, fmax=4e12 )
+ReadSplitARTSCAT( basename="spectroscopy/Perrin/", fmin=0, fmax=4e12 )
 #abs_linesReadFromHitran( filename="your-HITRAN-file", fmin=0, fmax=4e12 )
 abs_lines_per_speciesCreateFromLines
 
