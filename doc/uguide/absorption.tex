@@ -213,12 +213,6 @@ abs\_xsec\_agenda.
  \begin{center}
   \includegraphics[scale=0.7]{abs_xsec_agenda}
   \caption{An inside view of abs\_xsec\_agenda.
-  % FIXME: abs_xsec_per_speciesAddLines has friend abs_xsec_per_speciesAddLines2.
-  % abs_xsec_per_speciesAddLines does not depend on:
-  % line_mixing_data line_mixing_data_lut.
-  % these 2 are there from legacy.
-  % in ADDITION abs_xsec_per_speciesAddLines2 does not depend on:
-  % abs_lineshape
   }
   \label{fig:absorption:xsec_inside}
  \end{center}
@@ -318,28 +312,17 @@ have to be set by the user anyway.
 \# & Step & Variables and Methods \\
 \hline
 %---------------------------------------------------------------------
-\mylabel{step:lineshape}
-\arabic{rownum} & 
-Define line shape function(s) to use. &
-Variable:
-\wsvindex{abs\_lineshape}. \newline
-Methods:
-\wsmindex{abs\_lineshapeDefine} (same shape for all species),
-\wsmindex{abs\_lineshape\_per\_tgDefine} (different shapes for different
-species). \\
-%---------------------------------------------------------------------
 \mylabel{step:readline}
 \arabic{rownum} &
 Read spectral line data (the order of the first two steps does not
 matter). &
 Variable: \wsvindex{abs\_lines}. \newline
 Methods: 
-\wsmindex{abs\_linesReadFromArts},
-\wsmindex{abs\_linesReadFromSplitArtscat},
-\wsmindex{abs\_linesReadFromHitran},
-\wsmindex{abs\_linesReadFromHitranPre2004},
-\wsmindex{abs\_linesReadFromJpl},
-\wsmindex{abs\_linesReadFromMytran2} (different methods are for
+\wsmindex{ReadArrayOfARTSCAT} (legacy catalog format),
+\wsmindex{ReadARTSCAT} (legacy catalog format),
+\wsmindex{ReadHITRAN},
+\wsmindex{ReadJPL},
+\wsmindex{ReadMytran2} (different methods are for
 different catalogue formats). For the ARTS internal format, the
 standard method \wsmindex{ReadXML} works also, but does not allow to
 select a frequency range, as the others do. \\
@@ -349,18 +332,15 @@ select a frequency range, as the others do. \\
 Split line data for different absorption species. &
 Variable: \wsvindex{abs\_lines\_per\_species}. \newline
 Methods:
-\wsmindex{abs\_lines\_per\_speciesCreateFromLines}. Alternatively, read
-lines from different catalogues for different species directly with
-\wsmindex{abs\_lines\_per\_speciesReadFromCatalogues}. \\
+\wsmindex{abs\_lines\_per\_speciesCreateFromLines}. \\
 %---------------------------------------------------------------------
 \mylabel{step:optline}
 \arabic{rownum} &
 Optimize line data. (optional)&
 Variable: \wsvindex{abs\_lines\_per\_species}. \newline
 Methods: Add mirror lines for VVW line shape with
-\wsmindex{abs\_lines\_per\_speciesAddMirrorLines} (see \theory,
-Chapter \ref{T-sec:abs_theory}). Remove lines that are outside the
-line shape cutoff with \wsmindex{abs\_lines\_per\_speciesCompact}. \\
+\wsmindex{abs\_linesSetMirroring} (see \theory,
+Chapter \ref{T-sec:abs_theory}). \\
 %---------------------------------------------------------------------
 \multicolumn{3}{>{\raggedright\arraybackslash\hsize=2\hsize}X}{The
   first four steps are preparation, and typically 
@@ -397,9 +377,8 @@ Variable: \wsvindex{propmat\_clearsky\_field}, \wsvindex{abs\_coef}. \newline
 Methods, high level: \wsmindex{propmat\_clearsky\_fieldCalc}. \newline
 Methods, low level: \newline
 \wsmindex{abs\_xsec\_per\_speciesInit}, \newline
-\wsmindex{abs\_xsec\_per\_speciesAddLines} (one core method for the
-actual line-by-line calculation that requires \wsvindex{abs\_lineshape} and \wsmindex{abs\_lines\_per\_speciesAddMirrorLines}),\newline
-\wsmindex{abs\_xsec\_per\_speciesAddLines2} (another core method for the
+\wsmindex{abs\_xsec\_per\_speciesAddLines} and \wsmindex{abs\_lines\_per\_speciesSetMirroring}),\newline
+\wsmindex{abs\_xsec\_per\_speciesAddLines} (another core method for the
 actual line-by-line calculation that assumes line shape data from the catalogue itself),\newline
 \wsmindex{abs\_xsec\_per\_speciesAddConts} (add continua or complete absorption
 models, see Section \ref{sec:absorption:continua}),\newline
@@ -681,7 +660,6 @@ specifically:
 The Zeeman effect is calculated in the method \wsmindex{propmat\_clearskyAddZeeman}.
 If this method is included in the \builtindoc{propmat\_clearsky\_agenda}, then species with the
 tag "\verb|-Z|" will be calculated as Zeeman species.
-This requires preparing a \wsvindex{zeeman\_linerecord\_precalc} first to speed up the calculations.
 Note that the order within the tag
 string is important: the Zeeman tag must directly follow the molecular species
 tag. That is, \verb|O2-Z-66| will be counted as Zeeman splitting on the
@@ -722,15 +700,6 @@ Input needs to be provided for each non-zero
 magnetic field component separately into the respective WSVs \wsvindex{mag\_w\_field}, 
 \wsvindex{mag\_v\_field}, and \wsvindex{mag\_u\_field}. For more information on
 magnetic field format in ARTS see Section~\ref{sec:atm:vecfields}.
-
-Lastly, it is necessary to take phase effects into account when calculating the
-Zeeman effect. It is therefore important that \wsvindex{abs\_lineshape} is
-chosen such that it allows for this information to be provided. One
-suitable line shape can be defined through
-\begin{code}
-abs_lineshapeDefine( abs_lineshape, "Faddeeva_Algorithm_916", 
-                     "VVH", 750e9 )
-\end{code}
 
 \subsection{Internal line-mixing}
 \label{sec:absorption:line-mixing}
