@@ -641,6 +641,37 @@ void xml_open_input_file(igzstream& ifs,
 
 #endif /* ENABLE_ZLIB */
 
+void xml_find_and_open_input_file(std::shared_ptr<istream>& ifs,
+                                  const String& filename,
+                                  const Verbosity& verbosity) {
+  CREATE_OUT2;
+
+  String xml_file = filename;
+  find_xml_file(xml_file, verbosity);
+  out2 << "  Reading " << xml_file << '\n';
+
+  // Open input stream:
+  if (xml_file.substr(xml_file.length() - 3, 3) == ".gz")
+#ifdef ENABLE_ZLIB
+  {
+    ifs = std::shared_ptr<istream>(new igzstream());
+    xml_open_input_file(
+        *(std::static_pointer_cast<igzstream>(ifs)), xml_file, verbosity);
+  }
+#else
+  {
+    throw runtime_error(
+        "This arts version was compiled without zlib support.\n"
+        "Thus zipped xml files cannot be read.");
+  }
+#endif /* ENABLE_ZLIB */
+  else {
+    ifs = shared_ptr<istream>(new ifstream());
+    xml_open_input_file(
+        *(std::static_pointer_cast<ifstream>(ifs)), xml_file, verbosity);
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////
 //   General XML functions (file header, start root tag, end root tag)
 ////////////////////////////////////////////////////////////////////////////

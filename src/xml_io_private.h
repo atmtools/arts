@@ -32,6 +32,7 @@
 #define xml_io_private_h
 
 #include <cfloat>
+#include <memory>
 #include <stdexcept>
 #include "absorption.h"
 #include "agenda_class.h"
@@ -54,6 +55,18 @@ void xml_open_output_file(ostream& file, const String& name);
 void xml_open_input_file(ifstream& file,
                          const String& name,
                          const Verbosity& verbosity);
+
+/** Open plain or zipped xml file.
+ *
+ * Searches the include and data paths for the given filename.
+ *
+ * \param[out] ifs Pointer to input file stream
+ * \param[in]  filename Input filename
+ * \param[in]  verbosity Verbosity
+ */
+void xml_find_and_open_input_file(std::shared_ptr<istream>& ifs,
+                                  const String& filename,
+                                  const Verbosity& verbosity);
 
 ////////////////////////////////////////////////////////////////////////////
 //   XML parser classes
