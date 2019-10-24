@@ -1293,8 +1293,9 @@ class Model {
    * 
    * @param[in] i Index of position to remove
    */
-  void Remove(Index i) {
+  void Remove(Index i, ArrayOfSpeciesTag& specs) {
     mdata.erase(mdata.begin() + i);
+    specs.erase(specs.begin() + i);
   }
 
   /** Sets the same line mixing model to all species

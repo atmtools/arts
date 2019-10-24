@@ -147,7 +147,7 @@ std::istream& LineShape::from_artscat4(std::istream& is,
         throw std::runtime_error(os.str());
       }
       m.mdata.front().D0().X0 = m.mdata[k].D0().X0;
-      m.Remove(k);
+      m.Remove(k, species);
       break;
     }
   }
