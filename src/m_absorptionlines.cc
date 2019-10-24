@@ -92,7 +92,6 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
     
     tag.get_attribute_value("nelem", nelem);
     
-    LineRecord dummy_line_record;
     String version;
     tag.get_attribute_value("version", version);
     
@@ -216,7 +215,6 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   
   tag.get_attribute_value("nelem", nelem);
   
-  LineRecord dummy_line_record;
   String version;
   tag.get_attribute_value("version", version);
   
@@ -291,6 +289,7 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
                 const Numeric& fmax,
                 const String& globalquantumnumbers,
                 const String& localquantumnumbers,
+                const String& hitran_type,
                 const Verbosity&)
 {
   // Take care of quantum numbers
@@ -316,6 +315,9 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
     }
   }
   
+  // HITRAN type
+  bool new_type = hitran_type=="Pre2004" ? false : true;
+  
   // Hitran data
   ifstream is;
   open_input_file(is, hitran_file);
@@ -324,7 +326,10 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
   
   bool go_on = true;
   while (go_on) {
-    v.push_back(Absorption::ReadFromHitran2004Stream(is));
+    if (new_type)
+      v.push_back(Absorption::ReadFromHitran2004Stream(is));
+    else
+      v.push_back(Absorption::ReadFromHitran2001Stream(is));
     
     if (v.back().bad) {
       v.pop_back();

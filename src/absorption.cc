@@ -748,240 +748,6 @@ void convMytranIER(Numeric& mdh, const Index& dh) {
   mdh = mdh / 100;
 }
 
-/*! cross-section replacement computer 
- *  
- * This will work as the interface for all line-by-line computations 
- * lacking special demands
- *  
- *  \param[in,out] xsec         Cross section of one tag group. This is now the
- *                              true attenuation cross section in units of m^2.
- *  \param[in,out] source       Cross section of one tag group. This is now the
- *                              true source cross section in units of m^2.
- *  \param[in,out] phase        Cross section of one tag group. This is now the
- *                              true phase cross section in units of m^2.
- *  \param[in,out] dxsec        Partial derivatives of xsec.
- *  \param[in,out] dsource      Partial derivatives of source.
- *  \param[in,out] dphase       Partial derivatives of phase.
- * 
- *  \param[in] flag_partials        Partial derivatives flags.
- *  \param[in] f_grid               Frequency grid.
- *  \param[in] abs_p                Pressure grid.
- *  \param[in] abs_t                Temperatures associated with abs_p.
- *  \param[in] abs_t_nlte           Non-lte temperatures for various energy levels.
- *  \param[in] all_vmrs             Gas volume mixing ratios [nspecies, np].
- *  \param[in] abs_species          Species tags for all species.
- *  \param[in] this_species         Index of the current species in abs_species.
- *  \param[in] abs_lines            The spectroscopic line list.
- *  \param[in] Z_DF                 The Zeeman line center shift over the magnitude of the magnetic field.
- *  \param[in] H_magntitude_Zeeman  The magnitude of the magnetic field required by Zeeman effect.
- *  \param[in] lm_p_lim             Line mixing pressure limit
- *  \param[in] isotopologue_ratios  Isotopologue ratios.
- *  \param[in] partition_functions  Partition functions.
- *  \param[in] verbosity            Verbosity level.
- * 
- *  \author Richard Larsson
- *  \date   2013-04-24
- * 
- */
-void xsec_species2(Matrix& xsec,
-                   Matrix& source,
-                   Matrix& phase,
-                   ArrayOfMatrix& dxsec_dx,
-                   ArrayOfMatrix& dsource_dx,
-                   ArrayOfMatrix& dphase_dx,
-                   const ArrayOfRetrievalQuantity& jacobian_quantities,
-                   const ArrayOfIndex& jacobian_propmat_positions,
-                   const Vector& f_grid,
-                   const Vector& abs_p,
-                   const Vector& abs_t,
-                   const Matrix& abs_nlte,
-                   const Matrix& all_vmrs,
-                   const ArrayOfArrayOfSpeciesTag& abs_species,
-                   const ArrayOfLineRecord& abs_lines,
-                   const SpeciesAuxData& isotopologue_ratios,
-                   const SpeciesAuxData& partition_functions) {
-  // Size of problem
-  const Index np = abs_p.nelem();      // number of pressure levels
-  const Index nf = f_grid.nelem();     // number of Dirac frequencies
-  const Index nl = abs_lines.nelem();  // number of lines in the catalog
-  const Index nj =
-      jacobian_propmat_positions.nelem();  // number of partial derivatives
-  const Index nt = source.nrows();         // number of energy levels in NLTE
-
-  // Type of problem
-  const bool do_nonlte = nt;
-  const bool do_jacobi = nj;
-  const bool do_temperature = do_temperature_jacobian(jacobian_quantities);
-
-  // Test if the size of the problem is 0
-  if (not np or not nf or not nl) return;
-
-  // Move the problem to Eigen-library types
-  const auto f_grid_eigen = MapToEigen(f_grid);
-
-  // Parallelization data holder (skip if in parallel or there are too few threads)
-  const Index nthread =
-      arts_omp_in_parallel()
-          ? 1
-          : arts_omp_get_max_threads() < nl ? arts_omp_get_max_threads() : 1;
-  std::vector<Eigen::VectorXcd> Fsum(nthread, Eigen::VectorXcd(nf));
-  std::vector<Eigen::MatrixXcd> dFsum(nthread, Eigen::MatrixXcd(nf, nj));
-  std::vector<Eigen::VectorXcd> Nsum(nthread, Eigen::VectorXcd(nf));
-  std::vector<Eigen::MatrixXcd> dNsum(nthread, Eigen::MatrixXcd(nf, nj));
-
-  for (Index ip = 0; ip < np; ip++) {
-    // Constants for this level
-    const Numeric& temperature = abs_t[ip];
-    const Numeric& pressure = abs_p[ip];
-
-    // Quasi-constants for this level, defined here to speed up later computations
-    Index this_iso = -1;  // line isotopologue number
-    Numeric t0 = -1;      // line temperature
-    Numeric dc = 0, ddc_dT = 0, qt = 0, qt0 = 1,
-            dqt_dT = 0;  // Doppler and partition functions
-
-    // Line shape constants
-    LineShape::Model line_shape_default_model;
-    LineShape::Model& line_shape_model{line_shape_default_model};
-    Vector line_shape_vmr(0);
-
-    // Reset sum-operators
-    for (Index ithread = 0; ithread < nthread; ithread++) {
-      Fsum[ithread].setZero();
-      dFsum[ithread].setZero();
-      Nsum[ithread].setZero();
-      dNsum[ithread].setZero();
-    }
-
-#pragma omp parallel for if (nthread > 1) schedule(guided, 4) \
-    firstprivate(this_iso,                                    \
-                 t0,                                          \
-                 dc,                                          \
-                 ddc_dT,                                      \
-                 qt,                                          \
-                 qt0,                                         \
-                 dqt_dT,                                      \
-                 line_shape_model,                            \
-                 line_shape_vmr)
-    for (Index il = 0; il < abs_lines.nelem(); il++) {
-      const auto& line = abs_lines[il];
-
-      // Local compute variables
-      thread_local Eigen::VectorXcd F(nf);
-      thread_local Eigen::MatrixXcd dF(nf, nj);
-      thread_local Eigen::VectorXcd N(nf);
-      thread_local Eigen::MatrixXcd dN(nf, nj);
-      thread_local Eigen::
-          Matrix<Complex, Eigen::Dynamic, Linefunctions::ExpectedDataSize()>
-              data(nf, Linefunctions::ExpectedDataSize());
-      thread_local Index start, nelem;
-
-      // Partition function depends on isotopologue and line temperatures.
-      // Both are commonly constant in a single catalog.  They are, however,
-      // allowed to change so we must check that they do not
-      if (line.Isotopologue() not_eq this_iso or line.Ti0() not_eq t0) {
-        t0 = line.Ti0();
-
-        partition_function(
-            qt0,
-            qt,
-            t0,
-            temperature,
-            partition_functions.getParamType(line.Species(),
-                                             line.Isotopologue()),
-            partition_functions.getParam(line.Species(), line.Isotopologue()));
-
-        if (do_temperature)
-          dpartition_function_dT(dqt_dT,
-                                 qt,
-                                 temperature,
-                                 temperature_perturbation(jacobian_quantities),
-                                 partition_functions.getParamType(
-                                     line.Species(), line.Isotopologue()),
-                                 partition_functions.getParam(
-                                     line.Species(), line.Isotopologue()));
-
-        if (line.Isotopologue() not_eq this_iso) {
-          this_iso = line.Isotopologue();
-          dc = Linefunctions::DopplerConstant(temperature,
-                                              line.IsotopologueData().Mass());
-          if (do_temperature)
-            ddc_dT = Linefunctions::dDopplerConstant_dT(temperature, dc);
-        }
-      }
-
-      if (not line_shape_model.same_broadening_species(
-              line.GetLineShapeModel())) {
-        line_shape_model = line.GetLineShapeModel();
-        line_shape_vmr = line_shape_model.vmrs(
-            all_vmrs(joker, ip), abs_species, line.QuantumIdentity());
-      }
-
-      Linefunctions::set_cross_section_for_single_line(
-          F,
-          dF,
-          N,
-          dN,
-          data,
-          start,
-          nelem,
-          f_grid_eigen,
-          line,
-          jacobian_quantities,
-          jacobian_propmat_positions,
-          line_shape_vmr,
-          nt ? abs_nlte(joker, ip) : Vector(0),
-          pressure,
-          temperature,
-          dc,
-          isotopologue_ratios.getParam(line.Species(), this_iso)[0].data[0],
-          0.0,
-          0.0,
-          ddc_dT,
-          qt,
-          dqt_dT,
-          qt0);
-
-      auto ithread = arts_omp_get_thread_num();
-      Fsum[ithread].segment(start, nelem).noalias() += F.segment(start, nelem);
-      if (do_jacobi)
-        dFsum[ithread].middleRows(start, nelem).noalias() +=
-            dF.middleRows(start, nelem);
-      if (do_nonlte)
-        Nsum[ithread].segment(start, nelem).noalias() +=
-            N.segment(start, nelem);
-      if (do_nonlte and do_jacobi)
-        dNsum[ithread].middleRows(start, nelem).noalias() +=
-            dN.middleRows(start, nelem);
-    }
-
-    // Sum all the threaded results
-    for (Index ithread = 0; ithread < nthread; ithread++) {
-      // absorption cross-section
-      MapToEigen(xsec).col(ip).noalias() += Fsum[ithread].real();
-      for (Index j = 0; j < nj; j++)
-        MapToEigen(dxsec_dx[j]).col(ip).noalias() +=
-            dFsum[ithread].col(j).real();
-
-      // phase cross-section
-      if (not phase.empty()) {
-        MapToEigen(phase).col(ip).noalias() += Fsum[ithread].imag();
-        for (Index j = 0; j < nj; j++)
-          MapToEigen(dphase_dx[j]).col(ip).noalias() +=
-              dFsum[ithread].col(j).imag();
-      }
-
-      // source ratio cross-section
-      if (do_nonlte) {
-        MapToEigen(source).col(ip).noalias() += Nsum[ithread].real();
-        for (Index j = 0; j < nj; j++)
-          MapToEigen(dsource_dx[j]).col(ip).noalias() +=
-              dNsum[ithread].col(j).real();
-      }
-    }
-  }
-}
-
 
 const SpeciesRecord& SpeciesDataOfLines(const AbsorptionLines& lines)
 {
@@ -991,32 +757,50 @@ const SpeciesRecord& SpeciesDataOfLines(const AbsorptionLines& lines)
 
 /** Cross-section algorithm
  * 
- *  \author Richard Larsson
- *  \date   2019-10-10
+ *  @param[in,out] xsec Cross section of one tag group. This is now the true attenuation cross section in units of m^2.
+ *  @param[in,out] sourceCross section of one tag group. This is now the true source cross section in units of m^2.
+ *  @param[in,out] phase Cross section of one tag group. This is now the true phase cross section in units of m^2.
+ *  @param[in,out] dxsec Partial derivatives of xsec.
+ *  @param[in,out] dsource Partial derivatives of source.
+ *  @param[in,out] dphase Partial derivatives of phase.
+ *  \param[in] jacobian_quantities As WSV
+ *  \param[in] jacobian_propmat_positions Positions in jacobian_quantities affected by propmat calculations
+ *  \param[in] f_grid As WSV
+ *  \param[in] abs_p As WSV
+ *  \param[in] abs_t As WSV
+ *  \param[in] abs_nlte As WSV
+ *  \param[in] abs_vmrs As WSV
+ *  \param[in] abs_species As WSV
+ *  \param[in] band A single absorption band
+ *  \param[in] isot_ratio Isotopologue ratio of this species
+ *  \param[in] partfun_type Partition function type for this species
+ *  \param[in] partfun_data Partition function model data for this species
  * 
+ *  @author Richard Larsson
+ *  @date   2019-10-10
  */
-void xsec_species3(Matrix& xsec,
-                   Matrix& source,
-                   Matrix& phase,
-                   ArrayOfMatrix& dxsec_dx,
-                   ArrayOfMatrix& dsource_dx,
-                   ArrayOfMatrix& dphase_dx,
-                   const ArrayOfRetrievalQuantity& jacobian_quantities,
-                   const ArrayOfIndex& jacobian_propmat_positions,
-                   const Vector& f_grid,
-                   const Vector& abs_p,
-                   const Vector& abs_t,
-                   const EnergyLevelMap& abs_nlte,
-                   const Matrix& all_vmrs,
-                   const ArrayOfArrayOfSpeciesTag& abs_species,
-                   const AbsorptionLines& lines,
-                   const Numeric& isot_ratio,
-                   const SpeciesAuxData::AuxType& partfun_type,
-                   const ArrayOfGriddedField1& partfun_data) {
+void xsec_species(Matrix& xsec,
+                  Matrix& source,
+                  Matrix& phase,
+                  ArrayOfMatrix& dxsec_dx,
+                  ArrayOfMatrix& dsource_dx,
+                  ArrayOfMatrix& dphase_dx,
+                  const ArrayOfRetrievalQuantity& jacobian_quantities,
+                  const ArrayOfIndex& jacobian_propmat_positions,
+                  const Vector& f_grid,
+                  const Vector& abs_p,
+                  const Vector& abs_t,
+                  const EnergyLevelMap& abs_nlte,
+                  const Matrix& abs_vmrs,
+                  const ArrayOfArrayOfSpeciesTag& abs_species,
+                  const AbsorptionLines& band,
+                  const Numeric& isot_ratio,
+                  const SpeciesAuxData::AuxType& partfun_type,
+                  const ArrayOfGriddedField1& partfun_data) {
   // Size of problem
   const Index np = abs_p.nelem();      // number of pressure levels
   const Index nf = f_grid.nelem();     // number of Dirac frequencies
-  const Index nl = lines.NumLines();  // number of lines in the catalog
+  const Index nl = band.NumLines();  // number of lines in the catalog
   const Index nj =
       jacobian_propmat_positions.nelem();  // number of partial derivatives
   const Index nt = source.nrows();         // number of energy levels in NLTE
@@ -1031,7 +815,7 @@ void xsec_species3(Matrix& xsec,
   if (not np or not nf or not nl) return;
   
   // Constant for all lines
-  const Numeric QT0 = single_partition_function(lines.T0(), partfun_type, partfun_data);
+  const Numeric QT0 = single_partition_function(band.T0(), partfun_type, partfun_data);
   
   for (Index ip = 0; ip < np; ip++) {
     // Constants for this level
@@ -1041,15 +825,15 @@ void xsec_species3(Matrix& xsec,
     // Constants for this level
     const Numeric QT = single_partition_function(temperature, partfun_type, partfun_data);
     const Numeric dQTdT = dsingle_partition_function_dT(QT, temperature, temperature_perturbation(jacobian_quantities), partfun_type, partfun_data);
-    const Numeric DC = Linefunctions::DopplerConstant(temperature, lines.SpeciesMass());
+    const Numeric DC = Linefunctions::DopplerConstant(temperature, band.SpeciesMass());
     const Numeric dDCdT = Linefunctions::dDopplerConstant_dT(temperature, DC);
-    const Vector line_shape_vmr = lines.BroadeningSpeciesVMR(all_vmrs(joker, ip), abs_species);
+    const Vector line_shape_vmr = band.BroadeningSpeciesVMR(abs_vmrs(joker, ip), abs_species);
     
     Linefunctions::set_cross_section_of_band(
       scratch,
       sum,
       f_grid,
-      lines,
+      band,
       jacobian_quantities,
       jacobian_propmat_positions,
       line_shape_vmr,

@@ -134,7 +134,6 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfGriddedField3)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfGridPos)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfArrayOfGridPos)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfIndex)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfLineRecord)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfMatrix)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfScatteringMetaData)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfSingleScatteringData)
@@ -150,7 +149,6 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfGriddedField3)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfGriddedField4)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfGridPos)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfIndex)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfLineRecord)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfMatrix)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfQuantumIdentifier)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfSparse)
@@ -188,13 +186,6 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfXsecRecord)
 
 void xml_parse_from_stream(
     istream &, Vector &, bifstream *, ArtsXMLTag &, const Verbosity &verbosity);
-
-void xml_read_from_stream(istream &,
-                          ArrayOfLineRecord &,
-                          const Numeric,
-                          const Numeric,
-                          bifstream *,
-                          const Verbosity &);
 
 void xml_parse_from_stream(
     istream &, ArrayOfString &, bifstream *, ArtsXMLTag &, const Verbosity &);

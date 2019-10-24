@@ -1336,6 +1336,10 @@ SingleLineExternal ReadFromArtscat5Stream(istream& is);
     24=CH3Cl   25= H2O2   26= C2H2   27= C2H6   28=  PH3   29= COF2
     30=  SF6   31=  H2S   32=HCOOH
  * @endverbatim
+ *
+ * Beyond the HITRAN pre-2004 format, there is one more tag for line mixing
+ * available in LBLRTM.  This is a sign at the end of the line to indicate that
+ * the very next line gives line mixing information.
  * 
  * @param[in] is Input stream
  * @return SingleLineExternal 
@@ -1398,6 +1402,15 @@ SingleLineExternal ReadFromLBLRTMStream(istream& is);
  * @return SingleLineExternal 
  */
 SingleLineExternal ReadFromHitran2004Stream(istream& is);
+
+/** Read from HITRAN before 2004
+ * 
+ * See ReadFromLBLRTMStream for details on format
+ * 
+ * @param[in] is Input stream
+ * @return SingleLineExternal 
+ */
+SingleLineExternal ReadFromHitran2001Stream(istream& is);
 
 /** Read from Mytran2
  * The MYTRAN2

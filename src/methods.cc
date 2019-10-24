@@ -445,24 +445,6 @@ void define_md_data_raw() {
       GIN_DESC("Line-array that removes lines from *abs_lines*.")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("abs_lines_per_bandSetLineMixingFromRelmat"),
-      DESCRIPTION("A dummy method to test line mixing.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines_per_band"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_band", "relmat_per_band", "partition_functions"),
-      GIN("temperatures", "linemixing_type", "do_g", "do_dv"),
-      GIN_TYPE("Vector", "String", "Index", "Index"),
-      GIN_DEFAULT(NODEF, "LM2", "1", "1", ),
-      GIN_DESC(
-          "Vector of temperatures to compute the relaxation matrix at",
-          "String describing type of line mixing adaptation in linerecord after computations",
-          "Index to indicate if g is to be left as zero",
-          "Index to indicate if dv is to be left as zero")));
-
-  md_data_raw.push_back(MdRecord(
       NAME("abs_lines_per_speciesSetEmpty"),
       DESCRIPTION("Empties *abs_lines_per_species* at the correct size.\n"),
       AUTHORS("Richard Larsson"),
@@ -490,7 +472,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, "LM2", "1", "1", ),
       GIN_DESC(
           "Vector of temperatures to compute the relaxation matrix at",
-          "String describing type of line mixing adaptation in linerecord after computations",
+          "String describing type of line mixing adaptation in the line shape model after computations",
           "Index to indicate if g is to be left as zero",
           "Index to indicate if dv is to be left as zero")));
 
@@ -1179,32 +1161,6 @@ void define_md_data_raw() {
                "Change in the value found",
                "Flag for relative change (0 is absolute change)",
                "The species tag from *abs_species* to change")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("abs_lines_per_speciesSetRelamtLineMixingToMatches"),
-      DESCRIPTION("Sets abs_lines_per_band and related variables from\n"
-                  "*band_identifiers* to be computed by relaxation matrix\n"
-                  "calcuations mode.\n"
-                  "\n"
-                  "*relaxation_type* must be one of:\n"
-                  "\t\"MendazaRelmat\"\n"
-                  "\t\"HartmannRelmat\"\n"
-                  "\n"
-                  "If *band_identifiers* identifies bands that are not in\n"
-                  "the line data, this method remains silent.  This allows\n"
-                  "the user to use automated identification methods such as:\n"
-                  "*SetBandIdentifiersAuto* to identify more bands than will\n"
-                  "be used in subsequent relaxation matrix calculations.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines_per_species"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_species", "band_identifiers"),
-      GIN("relaxation_type"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Relaxation matrix type")));
 
   md_data_raw.push_back(MdRecord(
       NAME("abs_linesCompact"),
@@ -2000,6 +1956,7 @@ void define_md_data_raw() {
       GIN_DESC("If less than this number of lines in a \"band\", "
                "relaxation matrix is set diagonal")));
 
+  /*
   md_data_raw.push_back(MdRecord(
       NAME("abs_xsec_per_speciesAddLineMixedBands"),
       DESCRIPTION(
@@ -2099,6 +2056,7 @@ void define_md_data_raw() {
           "Lets relmat know it is to print debug information if true.",
           "Choice of order of linemixing",
           "Truth-value if we should use the precomputed adiabatic factors")));
+  */
 
   md_data_raw.push_back(MdRecord(
       NAME("abs_xsec_per_speciesInit"),
@@ -13427,21 +13385,27 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(MdRecord(
       NAME("ReadHITRAN"),
-      DESCRIPTION("Reads a HITRAN .par file.\n"),
+      DESCRIPTION("Reads a HITRAN .par file.\n"
+                  "\n"
+                  "The HITRAN type switch can be:\n"
+                  "\t\"Pre2004\"\t-\tfor old format\n"
+                  "\t\"Post2004\"\t-\tfor new format\n"
+      ),
       AUTHORS("Hermann Berg", "Thomas Kuhn", "Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("filename", "fmin", "fmax", "globalquantumnumbers", "localquantumnumbers"),
-      GIN_TYPE("String", "Numeric", "Numeric", "String", "String"),
-      GIN_DEFAULT(NODEF, "0", "1e99", "", ""),
+      GIN("filename", "fmin", "fmax", "globalquantumnumbers", "localquantumnumbers", "hitran_type"),
+      GIN_TYPE("String", "Numeric", "Numeric", "String", "String", "String"),
+      GIN_DEFAULT(NODEF, "0", "1e99", "", "", "Post2004"),
       GIN_DESC("Name of the HITRAN file",
                "Minimum frequency of read lines",
                "Maximum frequency of read lines",
                "Global quantum number list (space-separated)",
-               "Local quantum number list (space-separated)")));
+               "Local quantum number list (space-separated)",
+               "Method to use to read the line data")));
 
   md_data_raw.push_back(MdRecord(
       NAME("ReadLBLRTM"),
@@ -16422,53 +16386,6 @@ void define_md_data_raw() {
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("SetLineMixingCoefficinetsFromRelmat"),
-      DESCRIPTION("Sets Rosenkranz coefficients for the line by non-linear\n"
-                  "regression from values computed by relmat\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines_per_band", "relmat_per_band"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_band",
-         "abs_species_per_band",
-         "band_identifiers",
-         "abs_species",
-         "isotopologue_ratios",
-         "partition_functions",
-         "rtp_pressure",
-         "abs_t",
-         "relmat_type_per_band",
-         "wigner_initialized"),
-      GIN("pressure_rule_limit",
-          "debug",
-          "order_of_linemixing",
-          "use_adiabatic_factor"),
-      GIN_TYPE("Numeric", "Index", "Index", "Index"),
-      GIN_DEFAULT("0.1", "0", "1", "1"),
-      GIN_DESC(
-          "Limit when perturbation theory is assumed to work",
-          "Lets relmat know it is to print debug information if true.",
-          "Choice of order of linemixing",
-          "Truth-value: if we should use the precomputed adiabatic factors")));
-
-  md_data_raw.push_back(
-      MdRecord(NAME("SetRelaxationMatrixCalcType"),
-               DESCRIPTION("Sets *relmat_type_per_band* (see for types).\n"
-                           "Set input to a 1-long array for the same type\n"
-                           "for all relaxation matrices.\n"),
-               AUTHORS("Richard Larsson"),
-               OUT("relmat_type_per_band"),
-               GOUT(),
-               GOUT_TYPE(),
-               GOUT_DESC(),
-               IN("abs_lines_per_band"),
-               GIN("type"),
-               GIN_TYPE("ArrayOfIndex"),
-               GIN_DEFAULT(NODEF),
-               GIN_DESC("Type of relaxation matrix calculations")));
 
   md_data_raw.push_back(MdRecord(
       NAME("SetBandIdentifiersAuto"),

@@ -34,7 +34,6 @@
 #include "array.h"
 #include "gridded_fields.h"
 #include "jacobian.h"
-#include "linerecord.h"
 #include "matpackI.h"
 #include "messages.h"
 #include "mystring.h"
@@ -313,11 +312,6 @@ class SpeciesAuxData {
   
   /** Returns mparams[qid.Species()][qid.Isotopologue()][0].data[0] */
   Numeric getIsotopologueRatio(const QuantumIdentifier& qid) const;
-
-  /** Return a constant reference to the parameters. */
-  const ArrayOfGriddedField1& getParam(const LineRecord& lr) const {
-    return getParam(lr.Species(), lr.Isotopologue());
-  }
   
   /** Return a constant reference to the parameters. */
   const ArrayOfGriddedField1& getParam(const QuantumIdentifier& qid) const {
@@ -347,11 +341,6 @@ class SpeciesAuxData {
   /** Return a constant reference to the parameter types. */
   const AuxType& getParamType(const QuantumIdentifier& qid) const {
     return getParamType(qid.Species(), qid.Isotopologue());
-  }
-  
-  /** Return a constant reference to the parameter types. */
-  const AuxType& getParamType(const LineRecord& lr) const {
-    return getParamType(lr.Species(), lr.Isotopologue());
   }
 
   /** Read parameters from input stream (only for version 1 format). */
@@ -408,32 +397,6 @@ ostream& operator<<(ostream& os, const SpeciesRecord& sr);
     \author Oliver Lemke */
 ostream& operator<<(ostream& os, const SpeciesAuxData& sad);
 
-void calc_gamma_and_deltaf_artscat4(Numeric& gamma,
-                                    Numeric& deltaf,
-                                    const Numeric p,
-                                    const Numeric t,
-                                    ConstVectorView vmrs,
-                                    const Index this_species,
-                                    const ArrayOfIndex& broad_spec_locations,
-                                    const Numeric& T0,
-                                    const Numeric& Sgam,
-                                    const Numeric& Nself,
-                                    const Vector& Gamma_foreign,
-                                    const Vector& N_foreign,
-                                    const Vector& Delta_foreign,
-                                    const Verbosity& verbosity);
-
-void calc_gamma_and_deltaf_artscat4_old_unused(
-    Numeric& gamma,
-    Numeric& deltaf,
-    const Numeric p,
-    const Numeric t,
-    ConstVectorView vmrs,
-    const Index this_species,
-    const ArrayOfIndex& broad_spec_locations,
-    const LineRecord& l_l,
-    const Verbosity& verbosity);
-
 // A helper function for energy conversion:
 Numeric wavenumber_to_joule(Numeric e);
 
@@ -473,42 +436,24 @@ void abs_h2oSet(Vector& abs_h2o,
                 const Matrix& abs_vmrs,
                 const Verbosity&);
 
-void xsec_species2(Matrix& xsec,
-                   Matrix& source,
-                   Matrix& phase,
-                   ArrayOfMatrix& dxsec_dx,
-                   ArrayOfMatrix& dsource_dx,
-                   ArrayOfMatrix& dphase_dx,
-                   const ArrayOfRetrievalQuantity& jacobian_quantities,
-                   const ArrayOfIndex& jacobian_propmat_positions,
-                   const Vector& f_grid,
-                   const Vector& abs_p,
-                   const Vector& abs_t,
-                   const Matrix& abs_nlte,
-                   const Matrix& all_vmrs,
-                   const ArrayOfArrayOfSpeciesTag& abs_species,
-                   const ArrayOfLineRecord& abs_lines,
-                   const SpeciesAuxData& isotopologue_ratios,
-                   const SpeciesAuxData& partition_functions);
-
-void xsec_species3(Matrix& xsec,
-                   Matrix& source,
-                   Matrix& phase,
-                   ArrayOfMatrix& dxsec_dx,
-                   ArrayOfMatrix& dsource_dx,
-                   ArrayOfMatrix& dphase_dx,
-                   const ArrayOfRetrievalQuantity& jacobian_quantities,
-                   const ArrayOfIndex& jacobian_propmat_positions,
-                   const Vector& f_grid,
-                   const Vector& abs_p,
-                   const Vector& abs_t,
-                   const EnergyLevelMap& abs_nlte,
-                   const Matrix& all_vmrs,
-                   const ArrayOfArrayOfSpeciesTag& abs_species,
-                   const AbsorptionLines& lines,
-                   const Numeric& isot_ratio,
-                   const SpeciesAuxData::AuxType& partfun_type,
-                   const ArrayOfGriddedField1& partfun_data);
+void xsec_species(Matrix& xsec,
+                  Matrix& source,
+                  Matrix& phase,
+                  ArrayOfMatrix& dxsec_dx,
+                  ArrayOfMatrix& dsource_dx,
+                  ArrayOfMatrix& dphase_dx,
+                  const ArrayOfRetrievalQuantity& jacobian_quantities,
+                  const ArrayOfIndex& jacobian_propmat_positions,
+                  const Vector& f_grid,
+                  const Vector& abs_p,
+                  const Vector& abs_t,
+                  const EnergyLevelMap& abs_nlte,
+                  const Matrix& all_vmrs,
+                  const ArrayOfArrayOfSpeciesTag& abs_species,
+                  const AbsorptionLines& lines,
+                  const Numeric& isot_ratio,
+                  const SpeciesAuxData::AuxType& partfun_type,
+                  const ArrayOfGriddedField1& partfun_data);
 
 /** Returns the species data */
 const SpeciesRecord& SpeciesDataOfLines(const AbsorptionLines& lines);

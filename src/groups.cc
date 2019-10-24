@@ -91,7 +91,6 @@ void define_wsv_group_names() {
   wsv_group_names.push_back("ArrayOfArrayOfGriddedField2");
   wsv_group_names.push_back("ArrayOfArrayOfGriddedField3");
   wsv_group_names.push_back("ArrayOfArrayOfIndex");
-  wsv_group_names.push_back("ArrayOfArrayOfLineRecord");
   wsv_group_names.push_back("ArrayOfArrayOfMatrix");
   wsv_group_names.push_back("ArrayOfPpath");
   wsv_group_names.push_back("ArrayOfArrayOfPropagationMatrix");
@@ -111,7 +110,6 @@ void define_wsv_group_names() {
   wsv_group_names.push_back("ArrayOfGriddedField3");
   wsv_group_names.push_back("ArrayOfGriddedField4");
   wsv_group_names.push_back("ArrayOfIndex");
-  wsv_group_names.push_back("ArrayOfLineRecord");
   wsv_group_names.push_back("ArrayOfMatrix");
   wsv_group_names.push_back("ArrayOfPropagationMatrix");
   wsv_group_names.push_back("ArrayOfQuantumIdentifier");

@@ -1931,7 +1931,7 @@ void abs_xsec_per_speciesAddLines(
       continue;
     
     for (auto& lines: abs_lines_per_species[i]) {
-      xsec_species3(
+      xsec_species(
           abs_xsec_per_species[i],
           src_xsec_per_species[i],
           dummy1,

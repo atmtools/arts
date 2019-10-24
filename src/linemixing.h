@@ -32,7 +32,6 @@
 #include "absorption.h"
 #include "complex.h"
 #include "constants.h"
-#include "linerecord.h"
 #include "rational.h"
 
 /** Compute the rotational energy of a Hund b case molecule
@@ -314,8 +313,14 @@ enum class Type { CO2_IR, O2_66_MW };
 
 /** CO2 IR off diagonal element computer
  * 
- * @param[in] j_line Line at pos j
- * @param[in] k_line Line at pos k
+ * @param[in] Jku Upper J of line k
+ * @param[in] Jju Upper J of line j
+ * @param[in] Jkl Lower J of line k
+ * @param[in] Jjl Lower J of line j
+ * @param[in] l2ku Upper l2 of line k
+ * @param[in] l2ju Upper l2 of line j
+ * @param[in] l2kl Lower l2 of line k
+ * @param[in] l2jl Lower l2 of line j
  * @param[in] j_rho Population density at pos j
  * @param[in] k_rho Population density at pos k
  * @param[in] br Basis rate computer
@@ -326,16 +331,6 @@ enum class Type { CO2_IR, O2_66_MW };
  * @param[in] collider_mass Mass of collider molecule
  * @return OffDiagonalElementOutput for j and k
  */
-OffDiagonalElementOutput CO2_IR(const LineRecord& j_line,
-                                const LineRecord& k_line,
-                                const Numeric& j_rho,
-                                const Numeric& k_rho,
-                                const BasisRate& br,
-                                const AdiabaticFactor& af,
-                                const Numeric& T,
-                                const Numeric& B0,
-                                const Numeric& main_mass,
-                                const Numeric& collider_mass);
 OffDiagonalElementOutput CO2_IR(const Rational& Jku,
                                 const Rational& Jju,
                                 const Rational& Jkl,
@@ -355,20 +350,20 @@ OffDiagonalElementOutput CO2_IR(const Rational& Jku,
 
 /** O2-66 MW off diagonal element computer 
  * 
- * @param[in] line1 Line at pos 1
- * @param[in] line2 Line at pos 2
+ * @param[in] J1u Upper J of line 1
+ * @param[in] N1u Upper N of line 1
+ * @param[in] J1l Lower J of line 1
+ * @param[in] N1l Lower N of line 1
+ * @param[in] J2u Upper J of line 2
+ * @param[in] N2u Upper N of line 2
+ * @param[in] J2l Lower J of line 2
+ * @param[in] N2l Lower N of line 2
  * @param[in] rho1 Population density at pos 1
  * @param[in] rho2 Population density at pos 2
  * @param[in] T Temperature
  * @param[in] collider_mass Mass of collider
  * @return OffDiagonalElementOutput for 1 and 2
  */
-OffDiagonalElementOutput O2_66_MW(const LineRecord& line1,
-                                  const LineRecord& line2,
-                                  const Numeric& rho1,
-                                  const Numeric& rho2,
-                                  const Numeric& T,
-                                  const Numeric& collider_mass);
 OffDiagonalElementOutput O2_66_MW(const Rational& J1u,
                                   const Rational& N1u,
                                   const Rational& J1l,
@@ -386,7 +381,6 @@ OffDiagonalElementOutput O2_66_MW(const Rational& J1u,
 /** Energy corrected sudden relaxation matrix using Hartmann's method
  * 
  * @param[in] abs_lines One band of lines
- * @param[in] main_species Species tag of these lines
  * @param[in] collider_species Species tag of collider
  * @param[in] collider_species_vmr VMR of collider
  * @param[in] partition_functions Method to compute the partition function
@@ -394,13 +388,6 @@ OffDiagonalElementOutput O2_66_MW(const Rational& J1u,
  * @param[in] size Number of elements
  * @return Relaxation Matrix
  */
-Matrix hartmann_ecs_interface(const ArrayOfLineRecord& abs_lines,
-                              const ArrayOfSpeciesTag& main_species,
-                              const ArrayOfSpeciesTag& collider_species,
-                              const Vector& collider_species_vmr,
-                              const SpeciesAuxData& partition_functions,
-                              const Numeric& T,
-                              const Index& size);
 Matrix hartmann_ecs_interface(const AbsorptionLines& abs_lines,
                               const ArrayOfSpeciesTag& collider_species,
                               const Vector& collider_species_vmr,
@@ -415,9 +402,6 @@ Matrix hartmann_ecs_interface(const AbsorptionLines& abs_lines,
  * @param[in] T Temperature
  * @return Vector The population density for each line
  */
-Vector population_density_vector(const ArrayOfLineRecord& abs_lines,
-                                 const SpeciesAuxData& partition_functions,
-                                 const Numeric& T);
 Vector population_density_vector(const AbsorptionLines& abs_lines,
                                  const SpeciesAuxData& partition_functions,
                                  const Numeric& T);
@@ -428,8 +412,6 @@ Vector population_density_vector(const AbsorptionLines& abs_lines,
  * @param[in] partition_functions Method to compute the partition function
  * @return Vector Dipole for each line
  */
-Vector dipole_vector(const ArrayOfLineRecord& abs_lines,
-                     const SpeciesAuxData& partition_functions);
 Vector dipole_vector(const AbsorptionLines& abs_lines,
                      const SpeciesAuxData& partition_functions);
 
@@ -442,8 +424,6 @@ enum class RedPoleType { ElectricRoVibDipole, MagneticQuadrapole };
  * @param[in] type Type of reduced dipole
  * @return Vector Reduced dipole for each line
  */
-Vector reduced_dipole_vector(const ArrayOfLineRecord& abs_lines,
-                             const RedPoleType type);
 Vector reduced_dipole_vector(const AbsorptionLines& abs_lines,
                              const RedPoleType type);
 
@@ -454,9 +434,6 @@ Vector reduced_dipole_vector(const AbsorptionLines& abs_lines,
  * @param[in] d0 Dipole vector
  * @return Vector G for each line
  */
-Vector rosenkranz_scaling_second_order(const ArrayOfLineRecord& abs_lines,
-                                       const Matrix& W,
-                                       const Vector& d0);
 Vector rosenkranz_scaling_second_order(const AbsorptionLines& abs_lines,
                                        const Matrix& W,
                                        const Vector& d0);
@@ -467,8 +444,6 @@ Vector rosenkranz_scaling_second_order(const AbsorptionLines& abs_lines,
  * @param[in] W Relaxation Matrix
  * @return Vector DV for each line
  */
-Vector rosenkranz_shifting_second_order(const ArrayOfLineRecord& abs_lines,
-                                        const Matrix& W);
 Vector rosenkranz_shifting_second_order(const AbsorptionLines& abs_lines,
                                         const Matrix& W);
 
@@ -479,9 +454,6 @@ Vector rosenkranz_shifting_second_order(const AbsorptionLines& abs_lines,
  * @param[in] d0 Dipole vector
  * @return Vector Y for each line
  */
-Vector rosenkranz_first_order(const ArrayOfLineRecord& abs_lines,
-                              const Matrix& W,
-                              const Vector& d0);
 Vector rosenkranz_first_order(const AbsorptionLines& abs_lines,
                               const Matrix& W,
                               const Vector& d0);
@@ -554,124 +526,15 @@ Matrix CO2_ir_training(const ArrayOfRational& Ji,
  * 
  * @param[out] relmat Relaxation matrix
  * @param[in] abs_lines Absorption band
- * @param[in] abs_species Atmospheric species
  * @param[in] partition_functions Partition functions
  * @param[in] wigner_initialized Indication of the Wigner state
  * @param[in] temperature Atmospheric temperature
- * @param[in] species This species index
  */
-void relmatInAir(Matrix& relmat,
-                 const ArrayOfLineRecord& abs_lines,
-                 const ArrayOfArrayOfSpeciesTag& abs_species,
-                 const SpeciesAuxData& partition_functions,
-                 const Index& wigner_initialized,
-                 const Numeric& temperature,
-                 const Index& species);
 void relmatInAir(Matrix& relmat,
                  const AbsorptionLines& abs_lines,
                  const SpeciesAuxData& partition_functions,
                  const Index& wigner_initialized,
                  const Numeric& temperature);
-
-/** Xsec from full relaxation matrix
- * 
- * @param[in,out] xsec Cross-section per level
- * @param[in,out] dxsec_dx Cross-section per species derivatives
- * @param[in] lines Absorption band
- * @param[in] derivatives_data The derivatives in dF
- * @param[in] derivatives_data_position The derivatives positions in dF
- * @param[in] Wmat Relaxation matrix
- * @param[in] Wmat_perturbedT Relaxation matrix perturbed by temperature
- * @param[in] f0 Line frequencies
- * @param[in] f_grid As WSV
- * @param[in] d0 Dipole moments
- * @param[in] rhoT Population density at temperature
- * @param[in] rhoT_perturbedT Population density at temperature perturbed by temperature
- * @param[in] psf Line shifting
- * @param[in] psf_perturbedT Line shifting perturbed by temperature
- * @param[in] T Atmospheric temperature
- * @param[in] isotopologue_ratio Ratio of isotopologue in atmosphere
- * @param[in] this_species Index pointing at this species
- * @param[in] this_level Index pointing at this species
- * @param[in] n Number of lines
- */
-void calculate_xsec_from_full_relmat(
-  ArrayOfMatrix& xsec,
-  ArrayOfArrayOfMatrix& dxsec_dx,
-  const ArrayOfLineRecord& lines,
-  const ArrayOfRetrievalQuantity& derivatives_data,
-  const ArrayOfIndex& derivatives_data_position,
-  const ConstMatrixView Wmat,
-  const ConstMatrixView Wmat_perturbedT,
-  const ConstVectorView f0,
-  const ConstVectorView f_grid,
-  const ConstVectorView d0,
-  const ConstVectorView rhoT,
-  const ConstVectorView rhoT_perturbedT,
-  const ConstVectorView psf,
-  const ConstVectorView psf_perturbedT,
-  const Numeric& T,
-  const Numeric& isotopologue_ratio,
-  const Index& this_species,
-  const Index& this_level,
-  const Index& n);
-
-
-/** Xsec from full relaxation matrix
- * 
- * @param[in,out] xsec Cross-section per level
- * @param[in,out] dxsec_dx Cross-section per species derivatives
- * @param[in] lines Absorption band
- * @param[in] derivatives_data The derivatives in dF
- * @param[in] derivatives_data_position The derivatives positions in dF
- * @param[in] Line broadening
- * @param[in] Line broadening temperature derivative
- * @param[in] f0 Line frequencies
- * @param[in] f_grid As WSV
- * @param[in] d0 Dipole moments
- * @param[in] rhoT Population density at temperature
- * @param[in] rhoT_perturbedT Population density at temperature temperature derivative
- * @param[in] psf Line shifting
- * @param[in] psf_perturbedT Line shifting temperature derivative
- * @param[in] Y First order line mixing coefficient
- * @param[in] dY_dT First order line mixing coefficient temperature derivative
- * @param[in] G Second order line mixing coefficient
- * @param[in] dG_dT Second order line mixing coefficient temperature derivative
- * @param[in] DV Second order line mixing shifting coefficient
- * @param[in] dDV_dT Second order line mixing shifting coefficient temperature derivative
- * @param[in] T Atmospheric temperature
- * @param[in] isotopologue_mass Mass of isotopologue
- * @param[in] isotopologue_ratio Ratio of isotopologue in atmosphere
- * @param[in] this_species Index pointing at this species
- * @param[in] this_level Index pointing at this species
- * @param[in] n Number of lines
- */
-void calculate_xsec_from_relmat_coefficients(
-  ArrayOfMatrix& xsec,
-  ArrayOfArrayOfMatrix& dxsec_dx,
-  const ArrayOfRetrievalQuantity& derivatives_data,
-  const ArrayOfIndex& derivatives_data_position,
-  const ConstVectorView pressure_broadening,
-  const ConstVectorView dpressure_broadening_dT,
-  const ConstVectorView f0,
-  const ConstVectorView f_grid,
-  const ConstVectorView d0,
-  const ConstVectorView rhoT,
-  const ConstVectorView drhoT_dT,
-  const ConstVectorView psf,
-  const ConstVectorView dpsf_dT,
-  const ConstVectorView Y,
-  const ConstVectorView dY_dT,
-  const ConstVectorView G,
-  const ConstVectorView dG_dT,
-  const ConstVectorView DV,
-  const ConstVectorView dDV_dT,
-  const Numeric& T,
-  const Numeric& isotopologue_mass,
-  const Numeric& isotopologue_ratio,
-  const Index& this_species,
-  const Index& this_level,
-  const Index& n);
 
 #ifdef ENABLE_RELMAT
 extern "C" {

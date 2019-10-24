@@ -26,7 +26,6 @@
 
 #include "abs_species_tags.h"
 #include "global_data.h"
-#include "linerecord.h"
 #include "physics_funcs.h"
 #include "quantum.h"
 #include "rte.h"

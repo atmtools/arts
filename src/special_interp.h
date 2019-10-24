@@ -29,6 +29,7 @@
 #include "gridded_fields.h"
 #include "interpolation.h"
 #include "interpolation_poly.h"
+#include "jacobian.h"
 
 /*===========================================================================
   === Interpolation functions for atmospheric grids, fields and surfaces

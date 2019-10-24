@@ -27,6 +27,7 @@
  */
 
 #include "zeemandata.h"
+#include "abs_species_tags.h"
 #include "species_info.h"
 
 Zeeman::Model Zeeman::GetSimpleModel(const QuantumIdentifier& qid) noexcept {

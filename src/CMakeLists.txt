@@ -207,7 +207,6 @@ add_library (artscore STATIC
   legendre.cc
   lin_alg.cc
   linemixing.cc
-  linerecord.cc
   linescaling.cc
   lineshapemodel.cc
   linefunctions.cc
@@ -474,11 +473,6 @@ target_link_libraries (test_matpack matpack artscore test_utils)
 
 add_executable (test_matpack_simple test_matpack_simple.cc)
 target_link_libraries (test_matpack_simple test_utils)
-
-########### next testcase ###############
-
-add_executable (test_quantum test_quantum.cc)
-target_link_libraries (test_quantum ${ALL_ARTS_LIBRARIES})
 
 ########### next testcase ###############
 

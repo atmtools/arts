@@ -396,12 +396,6 @@ void Workspace::define_wsv_data() {
           "Dimensions: [*abs_species*.nelem()][Depends on how many bands there are in *abs_lines*]\n"),
       GROUP("ArrayOfArrayOfAbsorptionLines")));
 
-  wsv_data.push_back(
-      WsvRecord(NAME("abs_lines_per_band"),
-                DESCRIPTION("A list of spectral line data for each band.\n"
-                            "Dimensions: (# of bands)\n"),
-                GROUP("ArrayOfArrayOfLineRecord")));
-
   wsv_data.push_back(WsvRecord(
       NAME("abs_lookup"),
       DESCRIPTION(
@@ -542,16 +536,6 @@ void Workspace::define_wsv_data() {
           "available tag groups for the calculation of scalar gas absorption\n"
           "coefficients.  See online documentation of method *abs_speciesSet* for\n"
           "more detailed information how tag groups work and some examples.\n"),
-      GROUP("ArrayOfArrayOfSpeciesTag")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("abs_species_per_band"),
-      DESCRIPTION(
-          "Tag groups for gas absorption.\n"
-          "\n"
-          "This is an array of arrays of SpeciesTag tag definitions that matches\n"
-          "*abs_species*.  This variable is the same towards *abs_lines_per_band\n"
-          "as *abs_species* is towards *abs_lines_per_species*.\n"),
       GROUP("ArrayOfArrayOfSpeciesTag")));
 
   wsv_data.push_back(WsvRecord(

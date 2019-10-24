@@ -32,7 +32,6 @@
 
 #include "complex.h"
 #include "jacobian.h"
-#include "linerecord.h"
 #include "absorptionlines.h"
 
 /** Line functions related to line shapes and line strength */
@@ -55,15 +54,6 @@ constexpr Index ExpectedDataSize() { return 2; }
  * @param[in]     magnetic_magnitude Strength of local magnetic field
  * @param[in]     abs_species Atmospheric absorption species
  */
-void set_lineshape(Eigen::Ref<Eigen::VectorXcd> F,
-                   const Eigen::Ref<const Eigen::VectorXd> f_grid,
-                   const LineRecord& line,
-                   const ConstVectorView vmrs,
-                   const Numeric& temperature,
-                   const Numeric& pressure,
-                   const Numeric& zeeman_df,
-                   const Numeric& magnetic_magnitude,
-                   const ArrayOfArrayOfSpeciesTag& abs_species);
 void set_lineshape(Eigen::Ref<Eigen::VectorXcd> F,
                    const Eigen::Ref<const Eigen::VectorXd> f_grid,
                    const Absorption::SingleLine& line,
@@ -339,38 +329,6 @@ Numeric lte_linestrength(Numeric S0,
  * @param[in,out] dF Lineshape derivative.  Must be right size
  * @param[in,out] N Source lineshape
  * @param[in,out] dN Source lineshape derivative
- * @param[in]     line The absortion line
- * @param[in]     T The atmospheric temperature
- * @param[in]     isotopic_ratio The ratio of the isotopologue in the atmosphere
- * @param[in]     QT Partition function at atmospheric temperature of level
- * @param[in]     QT0 Partition function at reference temperature
- * @param[in]     derivatives_data The derivatives in dF
- * @param[in]     derivatives_data_position The derivatives positions in dF
- * @param[in]     quantum_identity ID of the absorption line
- * @param[in]     dQT_dT Temperature derivative of QT
- */
-void apply_linestrength_scaling_by_lte(
-    Eigen::Ref<Eigen::VectorXcd> F,
-    Eigen::Ref<Eigen::MatrixXcd> dF,
-    Eigen::Ref<Eigen::VectorXcd> N,
-    Eigen::Ref<Eigen::MatrixXcd> dN,
-    const LineRecord& line,
-    const Numeric& T,
-    const Numeric& isotopic_ratio,
-    const Numeric& QT,
-    const Numeric& QT0,
-    const ArrayOfRetrievalQuantity& derivatives_data =
-        ArrayOfRetrievalQuantity(),
-    const ArrayOfIndex& derivatives_data_position = ArrayOfIndex(),
-    const QuantumIdentifier& quantum_identity = QuantumIdentifier(),
-    const Numeric& dQT_dT = 0.0);
-
-/** Applies linestrength to already set line shape by LTE population type
- * 
- * @param[in,out] F Lineshape.  Must be right size
- * @param[in,out] dF Lineshape derivative.  Must be right size
- * @param[in,out] N Source lineshape
- * @param[in,out] dN Source lineshape derivative
  * @param[in]     line The absorption line
  * @param[in]     T The atmospheric temperature
  * @param[in]     T0 The reference temperature
@@ -390,46 +348,6 @@ void apply_linestrength_scaling_by_lte(
     const Absorption::SingleLine& line,
     const Numeric& T,
     const Numeric& T0,
-    const Numeric& isotopic_ratio,
-    const Numeric& QT,
-    const Numeric& QT0,
-    const ArrayOfRetrievalQuantity& derivatives_data =
-        ArrayOfRetrievalQuantity(),
-    const ArrayOfIndex& derivatives_data_position = ArrayOfIndex(),
-    const QuantumIdentifier& quantum_identity = QuantumIdentifier(),
-    const Numeric& dQT_dT = 0.0);
-
-/** Applies linestrength to already set line shape by vibrational level temperatures
- * 
- * @param[in,out] F Lineshape.  Must be right size
- * @param[in,out] dF Lineshape derivative.  Must be right size
- * @param[in,out] N Source lineshape
- * @param[in,out] dN Source lineshape derivative
- * @param[in]     line The absortion line
- * @param[in]     T The atmospheric temperature
- * @param[in]     Tu The upper state vibrational temperature; must be T if level is LTE
- * @param[in]     Tl The lower state vibrational temperature; must be T if level is LTE
- * @param[in]     Evu The upper state vibrational energy; if set funny, yields funny results
- * @param[in]     Evl The lower state vibrational energy; if set funny, yields funny results
- * @param[in]     isotopic_ratio The ratio of the isotopologue in the atmosphere
- * @param[in]     QT Partition function at atmospheric temperature of level
- * @param[in]     QT0 Partition function at reference temperature
- * @param[in]     derivatives_data The derivatives in dF
- * @param[in]     derivatives_data_position The derivatives positions in dF
- * @param[in]     quantum_identity ID of the absorption line
- * @param[in]     dQT_dT Temperature derivative of QT
- */
-void apply_linestrength_scaling_by_vibrational_nlte(
-    Eigen::Ref<Eigen::VectorXcd> F,
-    Eigen::Ref<Eigen::MatrixXcd> dF,
-    Eigen::Ref<Eigen::VectorXcd> N,
-    Eigen::Ref<Eigen::MatrixXcd> dN,
-    const LineRecord& line,
-    const Numeric& T,
-    const Numeric& Tu,
-    const Numeric& Tl,
-    const Numeric& Evu,
-    const Numeric& Evl,
     const Numeric& isotopic_ratio,
     const Numeric& QT,
     const Numeric& QT0,
@@ -544,27 +462,6 @@ void apply_dipole(
  * @param[in]     derivatives_data The derivatives in dF
  * @param[in]     derivatives_data_position The derivatives positions in dF
  * @param[in]     quantum_identity ID of the absorption line
- * @param[in]     line The absorption line
- * @param[in]     T Atmospheric temperature
- * @param[in]     P Atmospheric pressure
- * @param[in]     vmrs VMRs for line shape broadeners
- */
-void apply_lineshapemodel_jacobian_scaling(
-    Eigen::Ref<Eigen::MatrixXcd> dF,
-    const ArrayOfRetrievalQuantity& derivatives_data,
-    const ArrayOfIndex& derivatives_data_position,
-    const QuantumIdentifier& quantum_identity,
-    const LineRecord& line,
-    const Numeric& T,
-    const Numeric& P,
-    const Vector& vmrs);
-
-/** Applies the line-by-line pressure broadening jacobian for the matching lines
- * 
- * @param[in,out] dF Lineshape derivative.  Must be right size
- * @param[in]     derivatives_data The derivatives in dF
- * @param[in]     derivatives_data_position The derivatives positions in dF
- * @param[in]     quantum_identity ID of the absorption line
  * @param[in]     band The absorption lines
  * @param[in]     T Atmospheric temperature
  * @param[in]     P Atmospheric pressure
@@ -599,111 +496,6 @@ Numeric DopplerConstant(Numeric T, Numeric mass);
  * @return Doppler broadening constant temperature derivative
  */
 Numeric dDopplerConstant_dT(const Numeric& T, const Numeric& dc);
-
-/** Cross section and derivatives
- * 
- * Combination function using standard setup to compute
- * line strength and lineshape of a single line.
- * Computes in order the lineshape, the linemirroring,
- * the linenormalization, the linemixing, the 
- * linestrength, the non-lte, and the cutoff frequency.
- * 
- * @param[in,out] F Lineshape.  Must be right size
- * @param[in,out] dF Lineshape derivative.  Must be right size
- * @param[in,out] N Source lineshape
- * @param[in,out] dN Source lineshape derivative
- * @param[in,out] data Block of allocated memory.  Output nonsensical
- * @param[out]    start_cutoff Start pos of cutoff frequency
- * @param[out]    end_cutoff End pos of cutoff frequency
- * @param[in]     f_grid Frequency grid of computations
- * @param[in]     line The absortion line
- * @param[in]     derivatives_data The derivatives in dF
- * @param[in]     derivatives_data_position The derivatives positions in dF
- * @param[in]     volume_mixing_ratio_of_lineshape As name suggests
- * @param[in]     nlte_distribution As name suggests
- * @param[in]     pressure As name suggests
- * @param[in]     temperature As name suggests
- * @param[in]     doppler_constant Frequency-independent part of the Doppler broadening
- * @param[in]     isotopologue_ratio The ratio of the isotopologue in the atmosphere at this level
- * @param[in]     zeeman_df Zeeman shift parameter for the line
- * @param[in]     magnetic_magnitude Absolute strength of the magnetic field
- * @param[in]     ddoppler_constant_dT Temperature derivative of doppler_constant
- * @param[in]     partition_function_at_temperature As name suggests
- * @param[in]     dpartition_function_at_temperature_dT Temeperature derivative of partition_function_at_temperature
- * @param[in]     partition_function_at_line_temperature As name suggests
- * @param[in]     cutoff_call Flag to ignore some functions inside if this call is from the cutoff-computations
- */
-void set_cross_section_for_single_line(
-    Eigen::Ref<Eigen::VectorXcd> F_full,
-    Eigen::Ref<Eigen::MatrixXcd> dF_full,
-    Eigen::Ref<Eigen::VectorXcd> N_full,
-    Eigen::Ref<Eigen::MatrixXcd> dN_full,
-    Eigen::Ref<Eigen::MatrixXcd> data_block,
-    Index& start_cutoff,
-    Index& nelem_cutoff,
-    const Eigen::Ref<const Eigen::VectorXd> f_grid,
-    const LineRecord& line,
-    const ArrayOfRetrievalQuantity& derivatives_data,
-    const ArrayOfIndex& derivatives_data_position,
-    const Vector& volume_mixing_ratio_of_lineshape,
-    const ConstVectorView nlte_distribution,
-    const Numeric& pressure,
-    const Numeric& temperature,
-    const Numeric& doppler_constant,
-    const Numeric& isotopologue_ratio,
-    const Numeric& zeeman_df,
-    const Numeric& magnetic_magnitude,
-    const Numeric& ddoppler_constant_dT,
-    const Numeric& partition_function_at_temperature,
-    const Numeric& dpartition_function_at_temperature_dT,
-    const Numeric& partition_function_at_line_temperature,
-    const bool cutoff_call = false);
-
-/** Perform cutoff calculations
- * 
- * Combination function using standard setup to compute line strength and lineshape of a single line.
- * Computes in order the lineshape, the linemirroring, the linenormalization, the linemixing, the 
- * linestrength, the non-lte, and the cutoff frequency.
- * 
- * @param[in,out] F Lineshape.  Must be right size
- * @param[in,out] dF Lineshape derivative.  Must be right size
- * @param[in,out] N Source lineshape
- * @param[in,out] dN Source lineshape derivative
- * @param[in]     derivatives_data The derivatives in dF
- * @param[in]     derivatives_data_position The derivatives positions in dF
- * @param[in]     line The absortion line
- * @param[in]     volume_mixing_ratio_of_lineshape As name suggests
- * @param[in]     nlte_distribution As name suggests
- * @param[in]     pressure As name suggests
- * @param[in]     temperature As name suggests
- * @param[in]     doppler_constant Frequency-independent part of the Doppler broadening
- * @param[in]     isotopologue_ratio The ratio of the isotopologue in the atmosphere at this level
- * @param[in]     zeeman_df Zeeman shift parameter for the line
- * @param[in]     magnetic_magnitude Absolute strength of the magnetic field
- * @param[in]     ddoppler_constant_dT Temperature derivative of doppler_constant
- * @param[in]     partition_function_at_temperature As name suggests
- * @param[in]     dpartition_function_at_temperature_dT Temeperature derivative of partition_function_at_temperature
- * @param[in]     partition_function_at_line_temperature As name suggests
- */
-void apply_cutoff(Eigen::Ref<Eigen::VectorXcd> F,
-                  Eigen::Ref<Eigen::MatrixXcd> dF,
-                  Eigen::Ref<Eigen::VectorXcd> N,
-                  Eigen::Ref<Eigen::MatrixXcd> dN,
-                  const ArrayOfRetrievalQuantity& derivatives_data,
-                  const ArrayOfIndex& derivatives_data_position,
-                  const LineRecord& line,
-                  const Vector& volume_mixing_ratio_of_lineshape,
-                  const ConstVectorView nlte_distribution,
-                  const Numeric& pressure,
-                  const Numeric& temperature,
-                  const Numeric& doppler_constant,
-                  const Numeric& isotopologue_ratio,
-                  const Numeric& zeeman_df,
-                  const Numeric& magnetic_magnitude,
-                  const Numeric& ddoppler_constant_dT,
-                  const Numeric& partition_function_at_temperature,
-                  const Numeric& dpartition_function_at_temperature_dT,
-                  const Numeric& partition_function_at_line_temperature);
 
 /** Sets cutoff frequency indices
  * 
@@ -795,6 +587,29 @@ public:
   }
 };  // InternalData
 
+/** Computes the cross-section of an absorption band
+ * 
+ * @param[in,out] scratch Data that is overwritten by every line
+ * @param[in,out] sun Data that is set to zero then added onto by every line
+ * @param[in] f_grid As WSV
+ * @param[in] band The absorption band
+ * @param[in] derivatives_data Derivatives
+ * @param[in] derivatives_data_active Derivatives that are active
+ * @param[in] vmrs The VMRs of this band's broadening species
+ * @param[in] nlte A map of NLTE energy levels
+ * @param[in] P The pressure
+ * @param[in] T The temperature
+ * @param[in] isot_ratio The band isotopic ratio
+ * @param[in] H The strength of the magnetic field
+ * @param[in] DC As per DopplerConstant
+ * @param[in] dDCdT Temperature derivative of DC
+ * @param[in] QT The partition function at the temperature
+ * @param[in] dQTdT Temperature derivative of QT
+ * @param[in] QT0 The partition function at the band reference temperature
+ * @param[in] no_negatives Check sum.F before output of any real negative values, and removes them if present
+ * @param[in] zeeman Attempts adding up the fine Zeeman lines
+ * @param[in] zeeman_polarization The polarization of Zeeman model (to know how many Zeeman lines there will be)
+ */
 void set_cross_section_of_band(
   InternalData& scratch,
   InternalData& sum,
