@@ -28,10 +28,10 @@
  **/
 
 #include "absorptionlines.h"
-#include "xml_io_private.h"
 #include "auto_md.h"
 #include "file.h"
-
+#include "global_data.h"
+#include "xml_io_private.h"
 
 void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
                         const String& artscat_file,
@@ -283,6 +283,66 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   abs_lines.reserve(x.size());
   for (auto& lines: x)
     abs_lines.push_back(lines);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
+                      const ArrayOfArrayOfSpeciesTag& abs_species,
+                      const String& basename,
+                      const Numeric& fmin,
+                      const Numeric& fmax,
+                      const String& globalquantumnumbers,
+                      const String& localquantumnumbers,
+                      const Verbosity& verbosity) {
+  using global_data::species_data;
+  
+  // Build a set of species indices. Duplicates are ignored.
+  std::set<Index> unique_species;
+  for (auto asp = abs_species.begin(); asp != abs_species.end(); asp++) {
+    for (ArrayOfSpeciesTag::const_iterator sp = asp->begin(); sp != asp->end(); sp++) {
+      if (sp->Type() == SpeciesTag::TYPE_PLAIN || sp->Type() == SpeciesTag::TYPE_ZEEMAN) {
+        unique_species.insert(sp->Species());
+      }
+    }
+  }
+  
+  String tmpbasename = basename;
+  if (basename.length() && basename[basename.length() - 1] != '/') {
+    tmpbasename += '.';
+  }
+  
+  // Read catalogs for each identified species and put them all into
+  // abs_lines.
+  abs_lines.resize(0);
+  for (auto it = unique_species.begin(); it != unique_species.end(); it++) {
+    ArrayOfAbsorptionLines more_abs_lines;
+    ReadARTSCAT(more_abs_lines,
+                tmpbasename + (species_data[*it].Name()) + ".xml",
+                fmin,
+                fmax,
+                globalquantumnumbers,
+                localquantumnumbers,
+                verbosity);
+    
+    // Either find a line like this in the list of lines or start a new Lines
+    for (auto& newband: more_abs_lines) {
+      bool found = false;
+      for (auto& band: abs_lines) {
+        if (band.Match(newband)) {
+          for (Index k=0; k<newband.NumLines(); k++) {
+            band.AppendSingleLine(newband.Line(k));
+            found = true;
+          }
+        }
+      }
+      if (not found) {
+        abs_lines.push_back(newband);
+      }
+    }
+  }
+  
+  
 }
 
 void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
