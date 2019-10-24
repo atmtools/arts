@@ -244,29 +244,34 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   
   bool go_on = true;
   Index n = 0;
-  while (go_on and n<nelem) {
-    switch(artscat_version) {
-      case 3:
-        v.push_back(Absorption::ReadFromArtscat3Stream(is_xml));
-        break;
-      case 4:
-        v.push_back(Absorption::ReadFromArtscat4Stream(is_xml));
-        break;
-      case 5:
-        v.push_back(Absorption::ReadFromArtscat5Stream(is_xml));
-        break;
-      default:
-        throw std::runtime_error("Bad version!");
-    }
-    
-    if (v.back().bad) {
-      v.pop_back();
-      go_on = false;
-    } else if (v.back().line.F0() < fmin) {
-      v.pop_back();
-    } else if (v.back().line.F0() > fmax) {
-      v.pop_back();
-      go_on = false;
+  while (n<nelem) {
+    if (go_on) {
+      switch(artscat_version) {
+        case 3:
+          v.push_back(Absorption::ReadFromArtscat3Stream(is_xml));
+          break;
+        case 4:
+          v.push_back(Absorption::ReadFromArtscat4Stream(is_xml));
+          break;
+        case 5:
+          v.push_back(Absorption::ReadFromArtscat5Stream(is_xml));
+          break;
+        default:
+          throw std::runtime_error("Bad version!");
+      }
+      
+      if (v.back().bad) {
+        v.pop_back();
+        go_on = false;
+      } else if (v.back().line.F0() < fmin) {
+        v.pop_back();
+      } else if (v.back().line.F0() > fmax) {
+        v.pop_back();
+        go_on = false;
+      }
+    } else {
+      String line;
+      getline(is_xml, line);
     }
     
     n++;
@@ -342,7 +347,8 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
     }
   }
   
-  
+  for (auto& band: abs_lines)
+    band.sort_by_frequency();
 }
 
 void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,

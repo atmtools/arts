@@ -315,6 +315,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat4Stream(istream& is) {
   // Default data and values for this type
   SingleLineExternal data;
   data.selfbroadening = true;
+  data.bathbroadening = false;
   data.lineshapetype = LineShape::Type::VP;
   
   // Global species lookup data:
