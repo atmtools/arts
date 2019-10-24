@@ -265,7 +265,7 @@ private:
   Zeeman::Model mzeeman;
   
   /** Line shape model */
-  LineShape::Model2 mlineshape;
+  LineShape::Model mlineshape;
   
   /** Lower level quantum numbers */
   std::vector<Rational> mlowerquanta;
@@ -294,7 +294,7 @@ public:
              Numeric gupp=0,
              Numeric A=0,
              Zeeman::Model zeeman=Zeeman::Model(),
-             const LineShape::Model2& lineshape=LineShape::Model2(),
+             const LineShape::Model& lineshape=LineShape::Model(),
              const std::vector<Rational>& lowerquanta={},
              const std::vector<Rational>& upperquanta={}) :
              mF0(F0),
@@ -313,7 +313,7 @@ public:
    * @param[in] nbroadeners Number of broadening species
    * @param[in] nquanta Number of local quantum numbers
    */
-  SingleLine(size_t nbroadeners, size_t nquanta, const LineShape::Model2& metamodel) :
+  SingleLine(size_t nbroadeners, size_t nquanta, const LineShape::Model& metamodel) :
   mlineshape(metamodel), mlowerquanta(nquanta), mupperquanta(nquanta) {
     if(Index(nbroadeners) not_eq mlineshape.nelem())
       throw std::runtime_error("Mismatch between broadeners and model");
@@ -358,7 +358,7 @@ public:
   Zeeman::Model Zeeman() const noexcept {return mzeeman;}
   
   /** Line shape model */
-  const LineShape::Model2& LineShape() const noexcept {return mlineshape;}
+  const LineShape::Model& LineShape() const noexcept {return mlineshape;}
   
   /** Lower level quantum numbers */
   const std::vector<Rational>& LowerQuantumNumbers() const noexcept {return mlowerquanta;}
@@ -392,7 +392,7 @@ public:
   Zeeman::Model& Zeeman() noexcept {return mzeeman;}
   
   /** Line shape model */
-  LineShape::Model2& LineShape() noexcept {return mlineshape;}
+  LineShape::Model& LineShape() noexcept {return mlineshape;}
   
   /** Lower level quantum numbers */
   std::vector<Rational>& LowerQuantumNumbers() noexcept {return mlowerquanta;}
@@ -609,7 +609,7 @@ public:
         const QuantumIdentifier& quantumidentity,
         const std::vector<QuantumNumberType>& localquanta,
         const ArrayOfSpeciesTag& broadeningspecies,
-        const LineShape::Model2& metamodel) :
+        const LineShape::Model& metamodel) :
         mselfbroadening(selfbroadening),
         mbathbroadening(bathbroadening),
         mcutoff(cutoff),

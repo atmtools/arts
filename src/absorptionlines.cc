@@ -303,9 +303,7 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(istream& is) {
     }
 
     // Set line shape computer
-    LineShape::Model lineshapemodel(sgam, nself, agam, nair, psf);
-    
-    data.line.LineShape() = LineShape::Model2(lineshapemodel.Data());
+    data.line.LineShape() = LineShape::Model(sgam, nself, agam, nair, psf);
   }
 
   // That's it!
@@ -421,10 +419,13 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat4Stream(istream& is) {
     // Extract lower state stat. weight:
     icecream >> double_imanip() >> data.line.g_low();
 
-    LineShape::Model x;
-    LineShape::from_artscat4(icecream, x, data.quantumidentity);
-    data.line.LineShape() = LineShape::Model2(x.Data());
-    data.species = x.Species();
+    LineShape::from_artscat4(icecream, 
+                             data.lineshapetype,
+                             data.selfbroadening,
+                             data.bathbroadening,
+                             data.line.LineShape(),
+                             data.species,
+                             data.quantumidentity);
 
     // Remaining entries are the quantum numbers
     String mquantum_numbers_str;
@@ -620,14 +621,18 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
       String token;
       Index nelem;
       icecream >> token;
-      
-      LineShape::Model x;
 
       while (icecream) {
         // Read pressure broadening (LEGACY)
         if (token == "PB") {
           LineShape::from_pressurebroadeningdata(
-              icecream, x, data.quantumidentity);
+              icecream,
+              data.lineshapetype,
+              data.selfbroadening,
+              data.bathbroadening,
+              data.line.LineShape(),
+              data.species,
+              data.quantumidentity);
           icecream >> token;
         } else if (token == "QN") {
           // Quantum numbers
@@ -661,16 +666,17 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
             data.quantumidentity.LowerQuantumNumbers().Set(token, r);
             icecream >> token;
           }
-        } else if (token == "LM")  // LEGACY
-        {
+        } else if (token == "LM") { // LEGACY
           LineShape::from_linemixingdata(icecream, line_mixing_model);
           icecream >> token;
           lmd_found = true;
         } else if (token == "LF") {
-          LineShape::from_linefunctiondata(icecream, x);
-          icecream >> token;
-        } else if (token == "LS") {
-          icecream >> x;
+          LineShape::from_linefunctiondata(icecream,
+                                           data.lineshapetype,
+                                           data.selfbroadening,
+                                           data.bathbroadening,
+                                           data.line.LineShape(),
+                                           data.species);
           icecream >> token;
         } else if (token == "ZM") {
           // Zeeman effect
@@ -724,12 +730,6 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
           throw std::runtime_error(os.str());
         }
       }
-      
-      data.line.LineShape() = LineShape::Model2(x.Data());
-      data.bathbroadening = x.Bath();
-      data.selfbroadening = x.Self();
-      data.lineshapetype = x.ModelType();
-      data.species = x.Species();
     }
   } catch (const std::runtime_error& e) {
     ostringstream os;
@@ -1129,7 +1129,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
   data.T0 = 296.0;
 
   // Set line shape computer
-  data.line.LineShape() = LineShape::Model2(sgam, nself, agam, nair, psf).Data();
+  data.line.LineShape() = LineShape::Model(sgam, nself, agam, nair, psf).Data();
   {
     Index garbage;
     extract(garbage, line, 13);
@@ -1501,7 +1501,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(istream& is)
   data.T0 = 296.0;
 
   // Set line shape computer
-  data.line.LineShape() = LineShape::Model2(sgam, nself, agam, nair, psf);
+  data.line.LineShape() = LineShape::Model(sgam, nself, agam, nair, psf);
 
   // That's it!
   data.bad = false;
@@ -1896,7 +1896,7 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
       getline(is, line);
     else  // the line is done and we are happy to leave
     {
-      data.line.LineShape() = LineShape::Model2(sgam, nself, agam, nair, psf);
+      data.line.LineShape() = LineShape::Model(sgam, nself, agam, nair, psf);
       
       data.bad = false;
       return data;
@@ -1975,7 +1975,7 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
     Index test;
     extract(test, line, 2);
     if (test == -1) {
-      data.line.LineShape() = LineShape::Model2(sgam,
+      data.line.LineShape() = LineShape::Model(sgam,
                                          nself,
                                          agam,
                                          nair,
@@ -1996,7 +1996,7 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
       data.bad = false;
       return data;
     } else if (test == -3) {
-      data.line.LineShape() = LineShape::Model2(sgam,
+      data.line.LineShape() = LineShape::Model(sgam,
                                          nself,
                                          agam,
                                          nair,
@@ -2892,7 +2892,7 @@ Absorption::SingleLineExternal Absorption::ReadFromMytran2Stream(istream& is)
   }
 
   // Set line shape computer
-  data.line.LineShape() = LineShape::Model2(sgam, nself, agam, nair, psf);
+  data.line.LineShape() = LineShape::Model(sgam, nself, agam, nair, psf);
 
   // That's it!
   data.bad = false;
@@ -3107,7 +3107,7 @@ Absorption::SingleLineExternal Absorption::ReadFromJplStream(istream& is)
   data.T0 = 300.0;
 
   // Set line shape computer
-  data.line.LineShape() = LineShape::Model2(sgam, nself, agam, nair, psf);
+  data.line.LineShape() = LineShape::Model(sgam, nself, agam, nair, psf);
 
   // That's it!
   data.bad = false;
