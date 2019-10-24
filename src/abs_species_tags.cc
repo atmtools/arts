@@ -69,9 +69,6 @@ SpeciesTag::SpeciesTag(String def) {
   // Set type to normal LBL species by default
   mtype = TYPE_PLAIN;
 
-  // Set line mixing to off by default
-  mline_mixing = LINE_MIXING_OFF;
-
   // We cannot set a default value for the isotopologue, because the
   // default should be `ALL' and the value for `ALL' depends on the
   // species.
@@ -166,23 +163,6 @@ SpeciesTag::SpeciesTag(String def) {
         def = "";
       }
     }
-
-    if ("LM" == isoname) {
-      mline_mixing = LINE_MIXING_ON;
-
-      // Line mixing flag was present, now extract the isotopologue name:
-      n = def.find('-');  // find the '-'
-      if (n != def.npos) {
-        isoname = def.substr(0, n);  // Extract before '-'
-        def.erase(0, n + 1);         // Remove from def
-      } else {
-        // n==def.npos means that def does not contain a '-'. In that
-        // case we assume that it contains just the isotopologue name and
-        // nothing else.
-        isoname = def;
-        def = "";
-      }
-    }
   } else {
     // n==def.npos means that def does not contain a '-'. In that
     // case we assume that it contains just the isotopologue name or
@@ -191,13 +171,6 @@ SpeciesTag::SpeciesTag(String def) {
     def = "";
     if ("Z" == isoname) {
       mtype = TYPE_ZEEMAN;
-      // This means that there is nothing else to parse. Apparently
-      // the user wants all isotopologues and no frequency limits.
-      misotopologue = spr.Isotopologue().nelem();
-      return;
-    }
-    if ("LM" == isoname) {
-      mline_mixing = LINE_MIXING_ON;
       // This means that there is nothing else to parse. Apparently
       // the user wants all isotopologues and no frequency limits.
       misotopologue = spr.Isotopologue().nelem();
@@ -398,11 +371,6 @@ String SpeciesTag::Name() const {
   } else {
     // Zeeman flag.
     if (mtype == TYPE_ZEEMAN) os << "Z-";
-
-    // Line Mixing Type
-    if (mline_mixing != LINE_MIXING_OFF) {
-      os << "LM-";
-    }
 
     // Now the isotopologue. Can be a single isotopologue or ALL.
     if (misotopologue == spr.Isotopologue().nelem()) {

@@ -120,58 +120,6 @@ class IsotopologueRecord {
     mqcoefftype = qcoefftype;
   }
 
-  //! Calculate partition function ratio.
-  /*!
-    This computes the partition function ratio Q(Tref)/Q(T). 
-
-    Unfortunately, we have to recalculate also Q(Tref) for each
-    spectral line, because the reference temperatures can be
-    different!
-    
-    \param reference_temperature The reference temperature.
-    \param actual_temperature The actual temperature.
-  
-    \return The ratio.
-  */
-  Numeric CalculatePartitionFctRatio(Numeric reference_temperature,
-                                     Numeric actual_temperature) const {
-    Numeric qcoeff_at_t_ref, qtemp;
-
-    switch (mqcoefftype) {
-      case PF_FROMCOEFF:
-        qcoeff_at_t_ref = CalculatePartitionFctAtTempFromCoeff_OldUnused(
-            reference_temperature);
-        qtemp =
-            CalculatePartitionFctAtTempFromCoeff_OldUnused(actual_temperature);
-        break;
-      case PF_FROMTEMP:
-        qcoeff_at_t_ref = CalculatePartitionFctAtTempFromData_OldUnused(
-            reference_temperature);
-        qtemp =
-            CalculatePartitionFctAtTempFromData_OldUnused(actual_temperature);
-        break;
-      default:
-        throw runtime_error("The partition functions are incorrect.\n");
-        break;
-    }
-    /*        cout << "ref_t: " << reference_temperature << ", act_t:" <<
-          actual_temperature << "\n";
-        cout << "ref_q: " << qcoeff_at_t_ref << ", act_q:" <<
-          qtemp << "\n";
-*/
-    if (qtemp > 0.)
-      return qcoeff_at_t_ref / qtemp;
-    else {
-      std::ostringstream os;
-      os << "Partition function of "
-         << "Isotopologue "
-         << mname
-         //               << " is unknown.";
-         << " at T=" << actual_temperature << "K is zero or negative.";
-      throw std::runtime_error(os.str());
-    }
-  }
-
   enum {
     PF_FROMCOEFF,  // Partition function will be from coefficients
     PF_FROMTEMP,   // Partition function will be from temperature field
@@ -179,13 +127,6 @@ class IsotopologueRecord {
   };
 
  private:
-  // calculate the partition fct at a certain temperature
-  // this is only the prototyping
-  Numeric CalculatePartitionFctAtTempFromCoeff_OldUnused(
-      Numeric temperature) const;
-  Numeric CalculatePartitionFctAtTempFromData_OldUnused(
-      Numeric temperature) const;
-
   String mname;
   Numeric mabundance;
   Numeric mmass;
@@ -412,18 +353,6 @@ String species_name_from_species_index(const Index spec_ind);
 //             Functions to convert the accuracy index
 //======================================================================
 
-// ********* for HITRAN database *************
-// convert index for the frequency accuracy.
-void convHitranIERF(Numeric& mdf, const Index& df);
-
-// convert to percents index for intensity and halfwidth accuracy.
-
-void convHitranIERSH(Numeric& mdh, const Index& dh);
-
-// ********* for MYTRAN database *************
-// convert index for the halfwidth accuracy.
-void convMytranIER(Numeric& mdh, const Index& dh);
-
 // Functions to set abs_n2 and abs_h2o:
 
 void abs_n2Set(Vector& abs_n2,
@@ -436,6 +365,30 @@ void abs_h2oSet(Vector& abs_h2o,
                 const Matrix& abs_vmrs,
                 const Verbosity&);
 
+/** Cross-section algorithm
+ * 
+ *  @param[in,out] xsec Cross section of one tag group. This is now the true attenuation cross section in units of m^2.
+ *  @param[in,out] sourceCross section of one tag group. This is now the true source cross section in units of m^2.
+ *  @param[in,out] phase Cross section of one tag group. This is now the true phase cross section in units of m^2.
+ *  @param[in,out] dxsec Partial derivatives of xsec.
+ *  @param[in,out] dsource Partial derivatives of source.
+ *  @param[in,out] dphase Partial derivatives of phase.
+ *  \param[in] jacobian_quantities As WSV
+ *  \param[in] jacobian_propmat_positions Positions in jacobian_quantities affected by propmat calculations
+ *  \param[in] f_grid As WSV
+ *  \param[in] abs_p As WSV
+ *  \param[in] abs_t As WSV
+ *  \param[in] abs_nlte As WSV
+ *  \param[in] abs_vmrs As WSV
+ *  \param[in] abs_species As WSV
+ *  \param[in] band A single absorption band
+ *  \param[in] isot_ratio Isotopologue ratio of this species
+ *  \param[in] partfun_type Partition function type for this species
+ *  \param[in] partfun_data Partition function model data for this species
+ * 
+ *  @author Richard Larsson
+ *  @date   2019-10-10
+ */
 void xsec_species(Matrix& xsec,
                   Matrix& source,
                   Matrix& phase,
@@ -450,12 +403,16 @@ void xsec_species(Matrix& xsec,
                   const EnergyLevelMap& abs_nlte,
                   const Matrix& all_vmrs,
                   const ArrayOfArrayOfSpeciesTag& abs_species,
-                  const AbsorptionLines& lines,
+                  const AbsorptionLines& band,
                   const Numeric& isot_ratio,
                   const SpeciesAuxData::AuxType& partfun_type,
                   const ArrayOfGriddedField1& partfun_data);
 
-/** Returns the species data */
-const SpeciesRecord& SpeciesDataOfLines(const AbsorptionLines& lines);
+/** Returns the species data
+ * 
+ * @param band An absorption band
+ * @return const ref to the species record
+ */
+const SpeciesRecord& SpeciesDataOfBand(const AbsorptionLines& band);
 
 #endif  // absorption_h

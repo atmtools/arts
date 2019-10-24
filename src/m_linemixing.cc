@@ -59,1161 +59,1159 @@ void SetBandIdentifiersAuto(ArrayOfQuantumIdentifier& band_identifiers,
     //for( const SpeciesTag& tag : spec )
     for (Index iabsorber = 0; iabsorber < spec.nelem(); iabsorber++) {
       const SpeciesTag& tag = spec[iabsorber];
-      if (tag.LineMixing() == SpeciesTag::LINE_MIXING_ON) {
-        if (CO2_626.Species() == tag.Species()) {
-          if (CO2_626.Isotopologue() == tag.Isotopologue() and
-              not co2_626_done) {
-            co2_626_done = true;
-            QuantumIdentifier qi;
-            Index nbands = 0;
-
-            //Frequency is around 471 cm-1
-            qi.SetFromStringForCO2Band("20003", "11101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 479 cm-1
-            qi.SetFromStringForCO2Band("13302", "12201", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 544 cm-1
-            qi.SetFromStringForCO2Band("11102", "10001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 568 cm-1
-            qi.SetFromStringForCO2Band("13302", "04401", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 594 cm-1
-            qi.SetFromStringForCO2Band("20002", "11101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 597 cm-1
-            qi.SetFromStringForCO2Band("11102", "02201", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 608 cm-1
-            qi.SetFromStringForCO2Band("10012", "01111", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 615 cm-1
-            qi.SetFromStringForCO2Band("20003", "11102", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 618 cm-1
-            qi.SetFromStringForCO2Band("10002", "01101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 647 cm-1
-            qi.SetFromStringForCO2Band("11102", "10002", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 654 cm-1
-            qi.SetFromStringForCO2Band("01111", "00011", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 655 cm-1
-            qi.SetFromStringForCO2Band("02211", "01111", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 667 cm-1
-            qi.SetFromStringForCO2Band("01101", "00001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 667 cm-1
-            qi.SetFromStringForCO2Band("02201", "01101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 668 cm-1
-            qi.SetFromStringForCO2Band("03301", "02201", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 668 cm-1
-            qi.SetFromStringForCO2Band("04401", "03301", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 681 cm-1
-            qi.SetFromStringForCO2Band("13301", "12201", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 683 cm-1
-            qi.SetFromStringForCO2Band("12201", "11101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 688 cm-1
-            qi.SetFromStringForCO2Band("11101", "10001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 703 cm-1
-            qi.SetFromStringForCO2Band("21101", "20001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 710 cm-1
-            qi.SetFromStringForCO2Band("10011", "01111", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 720 cm-1
-            qi.SetFromStringForCO2Band("20001", "11101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 720 cm-1
-            qi.SetFromStringForCO2Band("10001", "01101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 738 cm-1
-            qi.SetFromStringForCO2Band("20002", "11102", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 739 cm-1
-            qi.SetFromStringForCO2Band("21101", "12201", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 741 cm-1
-            qi.SetFromStringForCO2Band("11101", "02201", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 757 cm-1
-            qi.SetFromStringForCO2Band("12201", "03301", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 770 cm-1
-            qi.SetFromStringForCO2Band("13301", "04401", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 791 cm-1
-            qi.SetFromStringForCO2Band("11101", "10002", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 828 cm-1
-            qi.SetFromStringForCO2Band("12201", "11102", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 829 cm-1
-            qi.SetFromStringForCO2Band("21101", "20002", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 864 cm-1
-            qi.SetFromStringForCO2Band("20001", "11102", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 898 cm-1
-            qi.SetFromStringForCO2Band("02211", "12201", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 917 cm-1
-            qi.SetFromStringForCO2Band("10011", "20001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 927 cm-1
-            qi.SetFromStringForCO2Band("01111", "11101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 941 cm-1
-            qi.SetFromStringForCO2Band("10012", "20002", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 952 cm-1
-            qi.SetFromStringForCO2Band("21101", "20003", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 960 cm-1
-            qi.SetFromStringForCO2Band("00011", "10001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 1043 cm-1
-            qi.SetFromStringForCO2Band("10011", "20002", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 1063 cm-1
-            qi.SetFromStringForCO2Band("00011", "10002", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 1064 cm-1
-            qi.SetFromStringForCO2Band("10012", "20003", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 1071 cm-1
-            qi.SetFromStringForCO2Band("01111", "11102", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 1880 cm-1
-            qi.SetFromStringForCO2Band("20003", "01101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 1905 cm-1
-            qi.SetFromStringForCO2Band("13302", "02201", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 1932 cm-1
-            qi.SetFromStringForCO2Band("11102", "00001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2003 cm-1
-            qi.SetFromStringForCO2Band("20002", "01101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2076 cm-1
-            qi.SetFromStringForCO2Band("11101", "00001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2093 cm-1
-            qi.SetFromStringForCO2Band("12201", "01101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2107 cm-1
-            qi.SetFromStringForCO2Band("13301", "02201", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2112 cm-1
-            qi.SetFromStringForCO2Band("21101", "10001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2129 cm-1
-            qi.SetFromStringForCO2Band("20001", "01101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2165 cm-1
-            qi.SetFromStringForCO2Band("21101", "02201", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2170 cm-1
-            qi.SetFromStringForCO2Band("11112", "11101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2180 cm-1
-            qi.SetFromStringForCO2Band("20012", "20001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2182 cm-1
-            qi.SetFromStringForCO2Band("20013", "20002", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2224 cm-1
-            qi.SetFromStringForCO2Band("10012", "10001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2288 cm-1
-            qi.SetFromStringForCO2Band("13311", "13301", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2290 cm-1
-            qi.SetFromStringForCO2Band("13312", "13302", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2299 cm-1
-            qi.SetFromStringForCO2Band("04411", "04401", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2299 cm-1
-            qi.SetFromStringForCO2Band("02221", "02211", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2301 cm-1
-            qi.SetFromStringForCO2Band("12211", "12201", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2301 cm-1
-            qi.SetFromStringForCO2Band("10021", "10011", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2302 cm-1
-            qi.SetFromStringForCO2Band("10022", "10012", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2302 cm-1
-            qi.SetFromStringForCO2Band("20011", "20001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2305 cm-1
-            qi.SetFromStringForCO2Band("20013", "20003", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2306 cm-1
-            qi.SetFromStringForCO2Band("20012", "20002", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2311 cm-1
-            qi.SetFromStringForCO2Band("03311", "03301", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2311 cm-1
-            qi.SetFromStringForCO2Band("01121", "01111", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2313 cm-1
-            qi.SetFromStringForCO2Band("11111", "11101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2315 cm-1
-            qi.SetFromStringForCO2Band("11112", "11102", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2324 cm-1
-            qi.SetFromStringForCO2Band("02211", "02201", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2324 cm-1
-            qi.SetFromStringForCO2Band("00021", "00011", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2326 cm-1
-            qi.SetFromStringForCO2Band("10011", "10001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2327 cm-1
-            qi.SetFromStringForCO2Band("10012", "10002", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2336 cm-1
-            qi.SetFromStringForCO2Band("01111", "01101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2349 cm-1
-            qi.SetFromStringForCO2Band("00011", "00001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2428 cm-1
-            qi.SetFromStringForCO2Band("20011", "20002", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2429 cm-1
-            qi.SetFromStringForCO2Band("10011", "10002", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2429 cm-1
-            qi.SetFromStringForCO2Band("20012", "20003", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2458 cm-1
-            qi.SetFromStringForCO2Band("11111", "11102", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3465 cm-1
-            qi.SetFromStringForCO2Band("20013", "10001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3500 cm-1
-            qi.SetFromStringForCO2Band("21101", "00001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3527 cm-1
-            qi.SetFromStringForCO2Band("30014", "20003", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3527 cm-1
-            qi.SetFromStringForCO2Band("13312", "03301", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3550 cm-1
-            qi.SetFromStringForCO2Band("30012", "20001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3556 cm-1
-            qi.SetFromStringForCO2Band("30013", "20002", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3566 cm-1
-            qi.SetFromStringForCO2Band("10022", "00011", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3568 cm-1
-            qi.SetFromStringForCO2Band("20013", "10002", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3580 cm-1
-            qi.SetFromStringForCO2Band("11112", "01101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3589 cm-1
-            qi.SetFromStringForCO2Band("20012", "10001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3612 cm-1
-            qi.SetFromStringForCO2Band("10012", "00001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3667 cm-1
-            qi.SetFromStringForCO2Band("10021", "00011", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3676 cm-1
-            qi.SetFromStringForCO2Band("30012", "20002", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3679 cm-1
-            qi.SetFromStringForCO2Band("30013", "20003", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3692 cm-1
-            qi.SetFromStringForCO2Band("20012", "10002", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3705 cm-1
-            qi.SetFromStringForCO2Band("30011", "20001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3711 cm-1
-            qi.SetFromStringForCO2Band("20011", "10001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3714 cm-1
-            qi.SetFromStringForCO2Band("10011", "00001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3723 cm-1
-            qi.SetFromStringForCO2Band("11111", "01101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3726 cm-1
-            qi.SetFromStringForCO2Band("12211", "02201", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3727 cm-1
-            qi.SetFromStringForCO2Band("13311", "03301", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3799 cm-1
-            qi.SetFromStringForCO2Band("30012", "20003", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3814 cm-1
-            qi.SetFromStringForCO2Band("20011", "10002", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 4005 cm-1
-            qi.SetFromStringForCO2Band("00021", "01101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 4687 cm-1
-            qi.SetFromStringForCO2Band("30014", "10001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 4786 cm-1
-            qi.SetFromStringForCO2Band("31113", "11101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 4790 cm-1
-            qi.SetFromStringForCO2Band("30014", "10002", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 4839 cm-1
-            qi.SetFromStringForCO2Band("30013", "10001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 4853 cm-1
-            qi.SetFromStringForCO2Band("20013", "00001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 4931 cm-1
-            qi.SetFromStringForCO2Band("31113", "11102", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 4942 cm-1
-            qi.SetFromStringForCO2Band("30013", "10002", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 4946 cm-1
-            qi.SetFromStringForCO2Band("31112", "11101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 4959 cm-1
-            qi.SetFromStringForCO2Band("30012", "10001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 4977 cm-1
-            qi.SetFromStringForCO2Band("20012", "00001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 5062 cm-1
-            qi.SetFromStringForCO2Band("30012", "10002", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 5099 cm-1
-            qi.SetFromStringForCO2Band("20011", "00001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 5114 cm-1
-            qi.SetFromStringForCO2Band("30011", "10001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 5217 cm-1
-            qi.SetFromStringForCO2Band("30011", "10002", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 5247 cm-1
-            qi.SetFromStringForCO2Band("10022", "01101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 5291 cm-1
-            qi.SetFromStringForCO2Band("02221", "01101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 5315 cm-1
-            qi.SetFromStringForCO2Band("01121", "00001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 5349 cm-1
-            qi.SetFromStringForCO2Band("10012", "01101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 5584 cm-1
-            qi.SetFromStringForCO2Band("00031", "10001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 5687 cm-1
-            qi.SetFromStringForCO2Band("00031", "10002", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 6075 cm-1
-            qi.SetFromStringForCO2Band("30014", "00001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 6196 cm-1
-            qi.SetFromStringForCO2Band("31113", "01101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 6227 cm-1
-            qi.SetFromStringForCO2Band("30013", "00001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 6347 cm-1
-            qi.SetFromStringForCO2Band("30012", "00001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 6356 cm-1
-            qi.SetFromStringForCO2Band("31112", "01101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 6503 cm-1
-            qi.SetFromStringForCO2Band("30011", "00001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 6860 cm-1
-            qi.SetFromStringForCO2Band("03331", "03301", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 6897 cm-1
-            qi.SetFromStringForCO2Band("02231", "02201", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 6905 cm-1
-            qi.SetFromStringForCO2Band("10031", "10001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 6907 cm-1
-            qi.SetFromStringForCO2Band("10032", "10002", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 6935 cm-1
-            qi.SetFromStringForCO2Band("01131", "01101", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 6972 cm-1
-            qi.SetFromStringForCO2Band("00031", "00001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 8192 cm-1
-            qi.SetFromStringForCO2Band("10032", "00001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 8293 cm-1
-            qi.SetFromStringForCO2Band("10031", "00001", "626");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            out3 << "Set " << nbands << " for CO2-626";
-          } else if (CO2_636.Isotopologue() == tag.Isotopologue() and
-                     not co2_636_done) {
-            co2_636_done = true;
-            QuantumIdentifier qi;
-            Index nbands = 0;
-
-            //Frequency is around 617 cm-1
-            qi.SetFromStringForCO2Band("10002", "01101", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 636 cm-1
-            qi.SetFromStringForCO2Band("01111", "00011", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 648 cm-1
-            qi.SetFromStringForCO2Band("01101", "00001", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 648 cm-1
-            qi.SetFromStringForCO2Band("02201", "01101", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 649 cm-1
-            qi.SetFromStringForCO2Band("03301", "02201", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 667 cm-1
-            qi.SetFromStringForCO2Band("11101", "10001", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 721 cm-1
-            qi.SetFromStringForCO2Band("10001", "01101", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 739 cm-1
-            qi.SetFromStringForCO2Band("11101", "02201", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 771 cm-1
-            qi.SetFromStringForCO2Band("11101", "10002", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 883 cm-1
-            qi.SetFromStringForCO2Band("01111", "11101", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 913 cm-1
-            qi.SetFromStringForCO2Band("00011", "10001", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 1017 cm-1
-            qi.SetFromStringForCO2Band("00011", "10002", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2037 cm-1
-            qi.SetFromStringForCO2Band("11101", "00001", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2157 cm-1
-            qi.SetFromStringForCO2Band("10012", "10001", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2248 cm-1
-            qi.SetFromStringForCO2Band("01121", "01111", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2250 cm-1
-            qi.SetFromStringForCO2Band("11111", "11101", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2260 cm-1
-            qi.SetFromStringForCO2Band("02211", "02201", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2260 cm-1
-            qi.SetFromStringForCO2Band("00021", "00011", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2261 cm-1
-            qi.SetFromStringForCO2Band("10012", "10002", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2262 cm-1
-            qi.SetFromStringForCO2Band("10011", "10001", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2271 cm-1
-            qi.SetFromStringForCO2Band("01111", "01101", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2283 cm-1
-            qi.SetFromStringForCO2Band("00011", "00001", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2367 cm-1
-            qi.SetFromStringForCO2Band("10011", "10002", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2498 cm-1
-            qi.SetFromStringForCO2Band("11112", "01101", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3450 cm-1
-            qi.SetFromStringForCO2Band("13312", "03301", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3460 cm-1
-            qi.SetFromStringForCO2Band("21113", "11102", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3473 cm-1
-            qi.SetFromStringForCO2Band("12212", "02201", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3482 cm-1
-            qi.SetFromStringForCO2Band("20013", "10002", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3482 cm-1
-            qi.SetFromStringForCO2Band("21112", "11101", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3497 cm-1
-            qi.SetFromStringForCO2Band("30001", "01101", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3517 cm-1
-            qi.SetFromStringForCO2Band("20012", "10001", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3527 cm-1
-            qi.SetFromStringForCO2Band("10012", "00001", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3621 cm-1
-            qi.SetFromStringForCO2Band("20011", "10001", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3621 cm-1
-            qi.SetFromStringForCO2Band("20012", "10002", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3623 cm-1
-            qi.SetFromStringForCO2Band("21112", "11102", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3625 cm-1
-            qi.SetFromStringForCO2Band("21111", "11101", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3632 cm-1
-            qi.SetFromStringForCO2Band("10011", "00001", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3639 cm-1
-            qi.SetFromStringForCO2Band("11111", "01101", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3641 cm-1
-            qi.SetFromStringForCO2Band("12211", "02201", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3641 cm-1
-            qi.SetFromStringForCO2Band("13311", "03301", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3725 cm-1
-            qi.SetFromStringForCO2Band("20011", "10002", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 4748 cm-1
-            qi.SetFromStringForCO2Band("20013", "00001", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 4887 cm-1
-            qi.SetFromStringForCO2Band("20012", "00001", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 4991 cm-1
-            qi.SetFromStringForCO2Band("20011", "00001", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 5013 cm-1
-            qi.SetFromStringForCO2Band("21111", "01101", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 5168 cm-1
-            qi.SetFromStringForCO2Band("01121", "00001", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 6745 cm-1
-            qi.SetFromStringForCO2Band("01131", "01101", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 6780 cm-1
-            qi.SetFromStringForCO2Band("00031", "00001", "636");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            out3 << "Set " << nbands << " for CO2-636";
-          } else if (CO2_628.Isotopologue() == tag.Isotopologue() and
-                     not co2_628_done) {
-            co2_628_done = true;
-            QuantumIdentifier qi;
-            Index nbands = 0;
-
-            //Frequency is around 597 cm-1
-            qi.SetFromStringForCO2Band("10002", "01101", "628");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 662 cm-1
-            qi.SetFromStringForCO2Band("01101", "00001", "628");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 662 cm-1
-            qi.SetFromStringForCO2Band("02201", "01101", "628");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 703 cm-1
-            qi.SetFromStringForCO2Band("10001", "01101", "628");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 966 cm-1
-            qi.SetFromStringForCO2Band("00011", "10001", "628");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 1072 cm-1
-            qi.SetFromStringForCO2Band("00011", "10002", "628");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 1259 cm-1
-            qi.SetFromStringForCO2Band("10002", "00001", "628");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 1365 cm-1
-            qi.SetFromStringForCO2Band("10001", "00001", "628");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2205 cm-1
-            qi.SetFromStringForCO2Band("10012", "10001", "628");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2307 cm-1
-            qi.SetFromStringForCO2Band("02211", "02201", "628");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2309 cm-1
-            qi.SetFromStringForCO2Band("10011", "10001", "628");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2311 cm-1
-            qi.SetFromStringForCO2Band("10012", "10002", "628");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2319 cm-1
-            qi.SetFromStringForCO2Band("01111", "01101", "628");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2332 cm-1
-            qi.SetFromStringForCO2Band("00011", "00001", "628");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2415 cm-1
-            qi.SetFromStringForCO2Band("10011", "10002", "628");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2614 cm-1
-            qi.SetFromStringForCO2Band("20002", "00001", "628");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2618 cm-1
-            qi.SetFromStringForCO2Band("21102", "01101", "628");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2757 cm-1
-            qi.SetFromStringForCO2Band("20001", "00001", "628");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3571 cm-1
-            qi.SetFromStringForCO2Band("10012", "00001", "628");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3675 cm-1
-            qi.SetFromStringForCO2Band("10011", "00001", "628");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            out3 << "Set " << nbands << " for CO2-628";
-          } else if (CO2_828.Isotopologue() == tag.Isotopologue() and
-                     not co2_828_done) {
-            co2_828_done = true;
-            QuantumIdentifier qi;
-            Index nbands = 0;
-
-            //Frequency is around 2301 cm-1
-            qi.SetFromStringForCO2Band("01111", "01101", "828");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2314 cm-1
-            qi.SetFromStringForCO2Band("00011", "00001", "828");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3525 cm-1
-            qi.SetFromStringForCO2Band("10012", "00001", "828");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3638 cm-1
-            qi.SetFromStringForCO2Band("10011", "00001", "828");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            out3 << "Set " << nbands << " for CO2-828";
-          } else if (CO2_627.Isotopologue() == tag.Isotopologue() and
-                     not co2_627_done) {
-            co2_627_done = true;
-            QuantumIdentifier qi;
-            Index nbands = 0;
-
-            //Frequency is around 664 cm-1
-            qi.SetFromStringForCO2Band("01101", "00001", "627");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 711 cm-1
-            qi.SetFromStringForCO2Band("10001", "01101", "627");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 963 cm-1
-            qi.SetFromStringForCO2Band("00011", "10001", "627");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 1376 cm-1
-            qi.SetFromStringForCO2Band("10001", "00001", "627");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2340 cm-1
-            qi.SetFromStringForCO2Band("00011", "00001", "627");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 2641 cm-1
-            qi.SetFromStringForCO2Band("20002", "00001", "627");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            out3 << "Set " << nbands << " for CO2-627";
-          } else if (CO2_638.Isotopologue() == tag.Isotopologue() and
-                     not co2_638_done) {
-            co2_638_done = true;
-            QuantumIdentifier qi;
-            Index nbands = 0;
-
-            //Frequency is around 2265 cm-1
-            qi.SetFromStringForCO2Band("00011", "00001", "638");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3490 cm-1
-            qi.SetFromStringForCO2Band("10012", "00001", "638");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            //Frequency is around 3587 cm-1
-            qi.SetFromStringForCO2Band("10011", "00001", "638");
-            band_identifiers.push_back(qi);
-            nbands++;
-
-            out3 << "Set " << nbands << " for CO2-638";
-          }
-        } else if (O2_66.Species() == tag.Species() and
-                   O2_66.Isotopologue() == tag.Isotopologue() and
-                   not o2_66_done) {
-          o2_66_done = true;
+      if (CO2_626.Species() == tag.Species()) {
+        if (CO2_626.Isotopologue() == tag.Isotopologue() and
+            not co2_626_done) {
+          co2_626_done = true;
           QuantumIdentifier qi;
-          // The main band in the 60 GHz to 1.5 THz range.  LM mostly at 60 GHz, though the rest falls into this band.
-          qi.SetFromString("O2-66 TR UP v1 0/1 LO v1 0/1");
+          Index nbands = 0;
+
+          //Frequency is around 471 cm-1
+          qi.SetFromStringForCO2Band("20003", "11101", "626");
           band_identifiers.push_back(qi);
-          // The secondary band in the 60 GHz to 1.5 THz range.  LM mostly at 60 GHz, though the rest falls into this band.
-          qi.SetFromString("O2-66 TR UP v1 1/1 LO v1 1/1");
+          nbands++;
+
+          //Frequency is around 479 cm-1
+          qi.SetFromStringForCO2Band("13302", "12201", "626");
           band_identifiers.push_back(qi);
-        } else {
-          throw std::runtime_error(
-              "Unsupported species (edit m_linemixing.cc to fix or manually enter band_identifiers).\n");
+          nbands++;
+
+          //Frequency is around 544 cm-1
+          qi.SetFromStringForCO2Band("11102", "10001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 568 cm-1
+          qi.SetFromStringForCO2Band("13302", "04401", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 594 cm-1
+          qi.SetFromStringForCO2Band("20002", "11101", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 597 cm-1
+          qi.SetFromStringForCO2Band("11102", "02201", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 608 cm-1
+          qi.SetFromStringForCO2Band("10012", "01111", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 615 cm-1
+          qi.SetFromStringForCO2Band("20003", "11102", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 618 cm-1
+          qi.SetFromStringForCO2Band("10002", "01101", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 647 cm-1
+          qi.SetFromStringForCO2Band("11102", "10002", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 654 cm-1
+          qi.SetFromStringForCO2Band("01111", "00011", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 655 cm-1
+          qi.SetFromStringForCO2Band("02211", "01111", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 667 cm-1
+          qi.SetFromStringForCO2Band("01101", "00001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 667 cm-1
+          qi.SetFromStringForCO2Band("02201", "01101", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 668 cm-1
+          qi.SetFromStringForCO2Band("03301", "02201", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 668 cm-1
+          qi.SetFromStringForCO2Band("04401", "03301", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 681 cm-1
+          qi.SetFromStringForCO2Band("13301", "12201", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 683 cm-1
+          qi.SetFromStringForCO2Band("12201", "11101", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 688 cm-1
+          qi.SetFromStringForCO2Band("11101", "10001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 703 cm-1
+          qi.SetFromStringForCO2Band("21101", "20001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 710 cm-1
+          qi.SetFromStringForCO2Band("10011", "01111", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 720 cm-1
+          qi.SetFromStringForCO2Band("20001", "11101", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 720 cm-1
+          qi.SetFromStringForCO2Band("10001", "01101", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 738 cm-1
+          qi.SetFromStringForCO2Band("20002", "11102", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 739 cm-1
+          qi.SetFromStringForCO2Band("21101", "12201", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 741 cm-1
+          qi.SetFromStringForCO2Band("11101", "02201", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 757 cm-1
+          qi.SetFromStringForCO2Band("12201", "03301", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 770 cm-1
+          qi.SetFromStringForCO2Band("13301", "04401", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 791 cm-1
+          qi.SetFromStringForCO2Band("11101", "10002", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 828 cm-1
+          qi.SetFromStringForCO2Band("12201", "11102", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 829 cm-1
+          qi.SetFromStringForCO2Band("21101", "20002", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 864 cm-1
+          qi.SetFromStringForCO2Band("20001", "11102", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 898 cm-1
+          qi.SetFromStringForCO2Band("02211", "12201", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 917 cm-1
+          qi.SetFromStringForCO2Band("10011", "20001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 927 cm-1
+          qi.SetFromStringForCO2Band("01111", "11101", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 941 cm-1
+          qi.SetFromStringForCO2Band("10012", "20002", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 952 cm-1
+          qi.SetFromStringForCO2Band("21101", "20003", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 960 cm-1
+          qi.SetFromStringForCO2Band("00011", "10001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 1043 cm-1
+          qi.SetFromStringForCO2Band("10011", "20002", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 1063 cm-1
+          qi.SetFromStringForCO2Band("00011", "10002", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 1064 cm-1
+          qi.SetFromStringForCO2Band("10012", "20003", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 1071 cm-1
+          qi.SetFromStringForCO2Band("01111", "11102", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 1880 cm-1
+          qi.SetFromStringForCO2Band("20003", "01101", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 1905 cm-1
+          qi.SetFromStringForCO2Band("13302", "02201", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 1932 cm-1
+          qi.SetFromStringForCO2Band("11102", "00001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2003 cm-1
+          qi.SetFromStringForCO2Band("20002", "01101", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2076 cm-1
+          qi.SetFromStringForCO2Band("11101", "00001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2093 cm-1
+          qi.SetFromStringForCO2Band("12201", "01101", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2107 cm-1
+          qi.SetFromStringForCO2Band("13301", "02201", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2112 cm-1
+          qi.SetFromStringForCO2Band("21101", "10001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2129 cm-1
+          qi.SetFromStringForCO2Band("20001", "01101", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2165 cm-1
+          qi.SetFromStringForCO2Band("21101", "02201", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2170 cm-1
+          qi.SetFromStringForCO2Band("11112", "11101", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2180 cm-1
+          qi.SetFromStringForCO2Band("20012", "20001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2182 cm-1
+          qi.SetFromStringForCO2Band("20013", "20002", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2224 cm-1
+          qi.SetFromStringForCO2Band("10012", "10001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2288 cm-1
+          qi.SetFromStringForCO2Band("13311", "13301", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2290 cm-1
+          qi.SetFromStringForCO2Band("13312", "13302", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2299 cm-1
+          qi.SetFromStringForCO2Band("04411", "04401", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2299 cm-1
+          qi.SetFromStringForCO2Band("02221", "02211", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2301 cm-1
+          qi.SetFromStringForCO2Band("12211", "12201", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2301 cm-1
+          qi.SetFromStringForCO2Band("10021", "10011", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2302 cm-1
+          qi.SetFromStringForCO2Band("10022", "10012", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2302 cm-1
+          qi.SetFromStringForCO2Band("20011", "20001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2305 cm-1
+          qi.SetFromStringForCO2Band("20013", "20003", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2306 cm-1
+          qi.SetFromStringForCO2Band("20012", "20002", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2311 cm-1
+          qi.SetFromStringForCO2Band("03311", "03301", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2311 cm-1
+          qi.SetFromStringForCO2Band("01121", "01111", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2313 cm-1
+          qi.SetFromStringForCO2Band("11111", "11101", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2315 cm-1
+          qi.SetFromStringForCO2Band("11112", "11102", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2324 cm-1
+          qi.SetFromStringForCO2Band("02211", "02201", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2324 cm-1
+          qi.SetFromStringForCO2Band("00021", "00011", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2326 cm-1
+          qi.SetFromStringForCO2Band("10011", "10001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2327 cm-1
+          qi.SetFromStringForCO2Band("10012", "10002", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2336 cm-1
+          qi.SetFromStringForCO2Band("01111", "01101", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2349 cm-1
+          qi.SetFromStringForCO2Band("00011", "00001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2428 cm-1
+          qi.SetFromStringForCO2Band("20011", "20002", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2429 cm-1
+          qi.SetFromStringForCO2Band("10011", "10002", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2429 cm-1
+          qi.SetFromStringForCO2Band("20012", "20003", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2458 cm-1
+          qi.SetFromStringForCO2Band("11111", "11102", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3465 cm-1
+          qi.SetFromStringForCO2Band("20013", "10001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3500 cm-1
+          qi.SetFromStringForCO2Band("21101", "00001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3527 cm-1
+          qi.SetFromStringForCO2Band("30014", "20003", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3527 cm-1
+          qi.SetFromStringForCO2Band("13312", "03301", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3550 cm-1
+          qi.SetFromStringForCO2Band("30012", "20001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3556 cm-1
+          qi.SetFromStringForCO2Band("30013", "20002", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3566 cm-1
+          qi.SetFromStringForCO2Band("10022", "00011", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3568 cm-1
+          qi.SetFromStringForCO2Band("20013", "10002", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3580 cm-1
+          qi.SetFromStringForCO2Band("11112", "01101", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3589 cm-1
+          qi.SetFromStringForCO2Band("20012", "10001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3612 cm-1
+          qi.SetFromStringForCO2Band("10012", "00001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3667 cm-1
+          qi.SetFromStringForCO2Band("10021", "00011", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3676 cm-1
+          qi.SetFromStringForCO2Band("30012", "20002", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3679 cm-1
+          qi.SetFromStringForCO2Band("30013", "20003", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3692 cm-1
+          qi.SetFromStringForCO2Band("20012", "10002", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3705 cm-1
+          qi.SetFromStringForCO2Band("30011", "20001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3711 cm-1
+          qi.SetFromStringForCO2Band("20011", "10001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3714 cm-1
+          qi.SetFromStringForCO2Band("10011", "00001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3723 cm-1
+          qi.SetFromStringForCO2Band("11111", "01101", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3726 cm-1
+          qi.SetFromStringForCO2Band("12211", "02201", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3727 cm-1
+          qi.SetFromStringForCO2Band("13311", "03301", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3799 cm-1
+          qi.SetFromStringForCO2Band("30012", "20003", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3814 cm-1
+          qi.SetFromStringForCO2Band("20011", "10002", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 4005 cm-1
+          qi.SetFromStringForCO2Band("00021", "01101", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 4687 cm-1
+          qi.SetFromStringForCO2Band("30014", "10001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 4786 cm-1
+          qi.SetFromStringForCO2Band("31113", "11101", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 4790 cm-1
+          qi.SetFromStringForCO2Band("30014", "10002", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 4839 cm-1
+          qi.SetFromStringForCO2Band("30013", "10001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 4853 cm-1
+          qi.SetFromStringForCO2Band("20013", "00001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 4931 cm-1
+          qi.SetFromStringForCO2Band("31113", "11102", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 4942 cm-1
+          qi.SetFromStringForCO2Band("30013", "10002", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 4946 cm-1
+          qi.SetFromStringForCO2Band("31112", "11101", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 4959 cm-1
+          qi.SetFromStringForCO2Band("30012", "10001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 4977 cm-1
+          qi.SetFromStringForCO2Band("20012", "00001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 5062 cm-1
+          qi.SetFromStringForCO2Band("30012", "10002", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 5099 cm-1
+          qi.SetFromStringForCO2Band("20011", "00001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 5114 cm-1
+          qi.SetFromStringForCO2Band("30011", "10001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 5217 cm-1
+          qi.SetFromStringForCO2Band("30011", "10002", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 5247 cm-1
+          qi.SetFromStringForCO2Band("10022", "01101", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 5291 cm-1
+          qi.SetFromStringForCO2Band("02221", "01101", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 5315 cm-1
+          qi.SetFromStringForCO2Band("01121", "00001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 5349 cm-1
+          qi.SetFromStringForCO2Band("10012", "01101", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 5584 cm-1
+          qi.SetFromStringForCO2Band("00031", "10001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 5687 cm-1
+          qi.SetFromStringForCO2Band("00031", "10002", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 6075 cm-1
+          qi.SetFromStringForCO2Band("30014", "00001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 6196 cm-1
+          qi.SetFromStringForCO2Band("31113", "01101", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 6227 cm-1
+          qi.SetFromStringForCO2Band("30013", "00001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 6347 cm-1
+          qi.SetFromStringForCO2Band("30012", "00001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 6356 cm-1
+          qi.SetFromStringForCO2Band("31112", "01101", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 6503 cm-1
+          qi.SetFromStringForCO2Band("30011", "00001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 6860 cm-1
+          qi.SetFromStringForCO2Band("03331", "03301", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 6897 cm-1
+          qi.SetFromStringForCO2Band("02231", "02201", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 6905 cm-1
+          qi.SetFromStringForCO2Band("10031", "10001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 6907 cm-1
+          qi.SetFromStringForCO2Band("10032", "10002", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 6935 cm-1
+          qi.SetFromStringForCO2Band("01131", "01101", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 6972 cm-1
+          qi.SetFromStringForCO2Band("00031", "00001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 8192 cm-1
+          qi.SetFromStringForCO2Band("10032", "00001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 8293 cm-1
+          qi.SetFromStringForCO2Band("10031", "00001", "626");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          out3 << "Set " << nbands << " for CO2-626";
+        } else if (CO2_636.Isotopologue() == tag.Isotopologue() and
+                    not co2_636_done) {
+          co2_636_done = true;
+          QuantumIdentifier qi;
+          Index nbands = 0;
+
+          //Frequency is around 617 cm-1
+          qi.SetFromStringForCO2Band("10002", "01101", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 636 cm-1
+          qi.SetFromStringForCO2Band("01111", "00011", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 648 cm-1
+          qi.SetFromStringForCO2Band("01101", "00001", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 648 cm-1
+          qi.SetFromStringForCO2Band("02201", "01101", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 649 cm-1
+          qi.SetFromStringForCO2Band("03301", "02201", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 667 cm-1
+          qi.SetFromStringForCO2Band("11101", "10001", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 721 cm-1
+          qi.SetFromStringForCO2Band("10001", "01101", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 739 cm-1
+          qi.SetFromStringForCO2Band("11101", "02201", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 771 cm-1
+          qi.SetFromStringForCO2Band("11101", "10002", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 883 cm-1
+          qi.SetFromStringForCO2Band("01111", "11101", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 913 cm-1
+          qi.SetFromStringForCO2Band("00011", "10001", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 1017 cm-1
+          qi.SetFromStringForCO2Band("00011", "10002", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2037 cm-1
+          qi.SetFromStringForCO2Band("11101", "00001", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2157 cm-1
+          qi.SetFromStringForCO2Band("10012", "10001", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2248 cm-1
+          qi.SetFromStringForCO2Band("01121", "01111", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2250 cm-1
+          qi.SetFromStringForCO2Band("11111", "11101", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2260 cm-1
+          qi.SetFromStringForCO2Band("02211", "02201", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2260 cm-1
+          qi.SetFromStringForCO2Band("00021", "00011", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2261 cm-1
+          qi.SetFromStringForCO2Band("10012", "10002", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2262 cm-1
+          qi.SetFromStringForCO2Band("10011", "10001", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2271 cm-1
+          qi.SetFromStringForCO2Band("01111", "01101", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2283 cm-1
+          qi.SetFromStringForCO2Band("00011", "00001", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2367 cm-1
+          qi.SetFromStringForCO2Band("10011", "10002", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2498 cm-1
+          qi.SetFromStringForCO2Band("11112", "01101", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3450 cm-1
+          qi.SetFromStringForCO2Band("13312", "03301", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3460 cm-1
+          qi.SetFromStringForCO2Band("21113", "11102", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3473 cm-1
+          qi.SetFromStringForCO2Band("12212", "02201", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3482 cm-1
+          qi.SetFromStringForCO2Band("20013", "10002", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3482 cm-1
+          qi.SetFromStringForCO2Band("21112", "11101", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3497 cm-1
+          qi.SetFromStringForCO2Band("30001", "01101", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3517 cm-1
+          qi.SetFromStringForCO2Band("20012", "10001", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3527 cm-1
+          qi.SetFromStringForCO2Band("10012", "00001", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3621 cm-1
+          qi.SetFromStringForCO2Band("20011", "10001", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3621 cm-1
+          qi.SetFromStringForCO2Band("20012", "10002", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3623 cm-1
+          qi.SetFromStringForCO2Band("21112", "11102", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3625 cm-1
+          qi.SetFromStringForCO2Band("21111", "11101", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3632 cm-1
+          qi.SetFromStringForCO2Band("10011", "00001", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3639 cm-1
+          qi.SetFromStringForCO2Band("11111", "01101", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3641 cm-1
+          qi.SetFromStringForCO2Band("12211", "02201", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3641 cm-1
+          qi.SetFromStringForCO2Band("13311", "03301", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3725 cm-1
+          qi.SetFromStringForCO2Band("20011", "10002", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 4748 cm-1
+          qi.SetFromStringForCO2Band("20013", "00001", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 4887 cm-1
+          qi.SetFromStringForCO2Band("20012", "00001", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 4991 cm-1
+          qi.SetFromStringForCO2Band("20011", "00001", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 5013 cm-1
+          qi.SetFromStringForCO2Band("21111", "01101", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 5168 cm-1
+          qi.SetFromStringForCO2Band("01121", "00001", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 6745 cm-1
+          qi.SetFromStringForCO2Band("01131", "01101", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 6780 cm-1
+          qi.SetFromStringForCO2Band("00031", "00001", "636");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          out3 << "Set " << nbands << " for CO2-636";
+        } else if (CO2_628.Isotopologue() == tag.Isotopologue() and
+                    not co2_628_done) {
+          co2_628_done = true;
+          QuantumIdentifier qi;
+          Index nbands = 0;
+
+          //Frequency is around 597 cm-1
+          qi.SetFromStringForCO2Band("10002", "01101", "628");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 662 cm-1
+          qi.SetFromStringForCO2Band("01101", "00001", "628");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 662 cm-1
+          qi.SetFromStringForCO2Band("02201", "01101", "628");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 703 cm-1
+          qi.SetFromStringForCO2Band("10001", "01101", "628");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 966 cm-1
+          qi.SetFromStringForCO2Band("00011", "10001", "628");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 1072 cm-1
+          qi.SetFromStringForCO2Band("00011", "10002", "628");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 1259 cm-1
+          qi.SetFromStringForCO2Band("10002", "00001", "628");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 1365 cm-1
+          qi.SetFromStringForCO2Band("10001", "00001", "628");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2205 cm-1
+          qi.SetFromStringForCO2Band("10012", "10001", "628");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2307 cm-1
+          qi.SetFromStringForCO2Band("02211", "02201", "628");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2309 cm-1
+          qi.SetFromStringForCO2Band("10011", "10001", "628");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2311 cm-1
+          qi.SetFromStringForCO2Band("10012", "10002", "628");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2319 cm-1
+          qi.SetFromStringForCO2Band("01111", "01101", "628");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2332 cm-1
+          qi.SetFromStringForCO2Band("00011", "00001", "628");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2415 cm-1
+          qi.SetFromStringForCO2Band("10011", "10002", "628");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2614 cm-1
+          qi.SetFromStringForCO2Band("20002", "00001", "628");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2618 cm-1
+          qi.SetFromStringForCO2Band("21102", "01101", "628");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2757 cm-1
+          qi.SetFromStringForCO2Band("20001", "00001", "628");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3571 cm-1
+          qi.SetFromStringForCO2Band("10012", "00001", "628");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3675 cm-1
+          qi.SetFromStringForCO2Band("10011", "00001", "628");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          out3 << "Set " << nbands << " for CO2-628";
+        } else if (CO2_828.Isotopologue() == tag.Isotopologue() and
+                    not co2_828_done) {
+          co2_828_done = true;
+          QuantumIdentifier qi;
+          Index nbands = 0;
+
+          //Frequency is around 2301 cm-1
+          qi.SetFromStringForCO2Band("01111", "01101", "828");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2314 cm-1
+          qi.SetFromStringForCO2Band("00011", "00001", "828");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3525 cm-1
+          qi.SetFromStringForCO2Band("10012", "00001", "828");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3638 cm-1
+          qi.SetFromStringForCO2Band("10011", "00001", "828");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          out3 << "Set " << nbands << " for CO2-828";
+        } else if (CO2_627.Isotopologue() == tag.Isotopologue() and
+                    not co2_627_done) {
+          co2_627_done = true;
+          QuantumIdentifier qi;
+          Index nbands = 0;
+
+          //Frequency is around 664 cm-1
+          qi.SetFromStringForCO2Band("01101", "00001", "627");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 711 cm-1
+          qi.SetFromStringForCO2Band("10001", "01101", "627");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 963 cm-1
+          qi.SetFromStringForCO2Band("00011", "10001", "627");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 1376 cm-1
+          qi.SetFromStringForCO2Band("10001", "00001", "627");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2340 cm-1
+          qi.SetFromStringForCO2Band("00011", "00001", "627");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 2641 cm-1
+          qi.SetFromStringForCO2Band("20002", "00001", "627");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          out3 << "Set " << nbands << " for CO2-627";
+        } else if (CO2_638.Isotopologue() == tag.Isotopologue() and
+                    not co2_638_done) {
+          co2_638_done = true;
+          QuantumIdentifier qi;
+          Index nbands = 0;
+
+          //Frequency is around 2265 cm-1
+          qi.SetFromStringForCO2Band("00011", "00001", "638");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3490 cm-1
+          qi.SetFromStringForCO2Band("10012", "00001", "638");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          //Frequency is around 3587 cm-1
+          qi.SetFromStringForCO2Band("10011", "00001", "638");
+          band_identifiers.push_back(qi);
+          nbands++;
+
+          out3 << "Set " << nbands << " for CO2-638";
         }
+      } else if (O2_66.Species() == tag.Species() and
+                  O2_66.Isotopologue() == tag.Isotopologue() and
+                  not o2_66_done) {
+        o2_66_done = true;
+        QuantumIdentifier qi;
+        // The main band in the 60 GHz to 1.5 THz range.  LM mostly at 60 GHz, though the rest falls into this band.
+        qi.SetFromString("O2-66 TR UP v1 0/1 LO v1 0/1");
+        band_identifiers.push_back(qi);
+        // The secondary band in the 60 GHz to 1.5 THz range.  LM mostly at 60 GHz, though the rest falls into this band.
+        qi.SetFromString("O2-66 TR UP v1 1/1 LO v1 1/1");
+        band_identifiers.push_back(qi);
+      } else {
+        throw std::runtime_error(
+            "Unsupported species (edit m_linemixing.cc to fix or manually enter band_identifiers).\n");
       }
     }
   }

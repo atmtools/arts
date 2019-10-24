@@ -109,7 +109,7 @@ void abs_lines_per_speciesCreateFromLines(  // WS Output:
         if (this_tag.Species() not_eq lines.Species()) break;
         
         // Test isotopologue, we have to hit the end of the list for no isotopologue or the exact value
-        if (this_tag.Isotopologue() not_eq SpeciesDataOfLines(lines).Isotopologue().nelem() and
+        if (this_tag.Isotopologue() not_eq SpeciesDataOfBand(lines).Isotopologue().nelem() and
             this_tag.Isotopologue() not_eq lines.Isotopologue())
           continue;
         
