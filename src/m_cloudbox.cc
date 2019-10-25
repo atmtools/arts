@@ -604,7 +604,6 @@ void iyInterpCloudboxField(Matrix& iy,
                            const Numeric& za_extpolfac,
                            const Index& aa_interp_order,
                            const Verbosity&) {
-
   //--- Check input -----------------------------------------------------------
   if (!(atmosphere_dim == 1 || atmosphere_dim == 3))
     throw runtime_error("The atmospheric dimensionality must be 1 or 3.");
@@ -643,14 +642,15 @@ void iyInterpCloudboxField(Matrix& iy,
   // At each lat/lon, one value of the intensity field is defined at the
   // surface. Simplest way to handle this is to insert z_surface into z_field
   Tensor3 z_with_surface = z_field;
-  for (Index ilat=0; ilat < z_surface.nrows(); ilat++) {
-    for (Index ilon=0; ilon < z_surface.ncols(); ilon++) {
+  for (Index ilat = 0; ilat < z_surface.nrows(); ilat++) {
+    for (Index ilon = 0; ilon < z_surface.ncols(); ilon++) {
       Index ip = 0;
-      for (; z_surface(ilat,ilon) >= z_field(ip+1,ilat,ilon); ip++) {}
-      z_with_surface(ip,ilat,ilon) = z_surface(ilat,ilon);
-    }    
+      for (; z_surface(ilat, ilon) >= z_field(ip + 1, ilat, ilon); ip++) {
+      }
+      z_with_surface(ip, ilat, ilon) = z_surface(ilat, ilon);
+    }
   }
-  
+
   // Convert rte_pos to grid positions
   GridPos gp_p, gp_lat, gp_lon;
   rte_pos2gridpos(gp_p,
@@ -762,7 +762,7 @@ void iyInterpCloudboxField(Matrix& iy,
 
       assert(is_size(doit_i_field, nf, np, 1, 1, nza, 1, stokes_dim));
 
-      // Grid position in *p_grid* 
+      // Grid position in *p_grid*
       gp_p.idx = gp_p.idx - cloudbox_limits[0];
       gridpos_upperend_check(gp_p, cloudbox_limits[1] - cloudbox_limits[0]);
       Vector itw_p(2);
@@ -885,7 +885,6 @@ void iyInterpCloudboxField(Matrix& iy,
   //      separately.
   //   b) interpolation in plain zenith angles vs. in cosines of zenith angle.
 
-
   // find range of scat_za_grid that we will do interpolation over.
   Index za_start = 0;
   Index za_extend = scat_za_grid.nelem();
@@ -897,8 +896,7 @@ void iyInterpCloudboxField(Matrix& iy,
       throw runtime_error(
           "Hemisphere-restricted zenith angle interpolation not allowed\n"
           "for 90degree views.");
-    }
-    else if (rte_los[0] > 90) {
+    } else if (rte_los[0] > 90) {
       // upwelling, i.e. second part of scat_za_grid. that is, we need to find
       // the first point in scat_za_grid where za>90. and update za_start
       // accordingly.
@@ -931,7 +929,7 @@ void iyInterpCloudboxField(Matrix& iy,
       throw runtime_error(os.str());
     }
   }
-  
+
   // Grid position in *scat_za_grid*
   GridPosPoly gp_za, gp_aa;
 
@@ -2021,5 +2019,3 @@ void pnd_fieldZero(  //WS Output:
 
   pnd_field = 0.;
 }
-
-
