@@ -645,7 +645,8 @@ void iyInterpCloudboxField(Matrix& iy,
   for (Index ilat = 0; ilat < z_surface.nrows(); ilat++) {
     for (Index ilon = 0; ilon < z_surface.ncols(); ilon++) {
       Index ip = 0;
-      for (; z_surface(ilat, ilon) >= z_field(ip + 1, ilat, ilon); ip++) {
+      while (z_surface(ilat, ilon) >= z_field(ip + 1, ilat, ilon)) {
+        ip++;
       }
       z_with_surface(ip, ilat, ilon) = z_surface(ilat, ilon);
     }
