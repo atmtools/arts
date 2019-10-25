@@ -201,6 +201,9 @@ class SpeciesRecord {
     return misotopologue;
   }
   Array<IsotopologueRecord>& Isotopologue() { return misotopologue; }
+  
+  /** Return a copy of the full name of the k:th isotopologue */
+  String FullName(Index k) const {return mname + '-' + misotopologue[k].Name();}
 
  private:
   /** Species name. */

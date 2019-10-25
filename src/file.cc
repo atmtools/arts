@@ -439,6 +439,35 @@ void find_xml_file(String& filename, const Verbosity& verbosity) {
   filename = matching_files[0];
 }
 
+/** As find_xml_file but does not throw in the main body
+ * 
+ * The filename will be modified to contain the full path to the found match
+ * if there is a match
+ * 
+ * @param[in,out] filename   File to check.
+ * 
+ * @return If file is found
+ * 
+ * @author Oliver Lemke
+ */
+bool find_xml_file_existence(String& filename) {
+  // Command line parameters which give us the include search path.
+  extern const Parameters parameters;
+  ArrayOfString allpaths = parameters.includepath;
+  allpaths.insert(
+    allpaths.end(), parameters.datapath.begin(), parameters.datapath.end());
+  
+  ArrayOfString matching_files;
+  find_file(matching_files, filename, allpaths, {"", ".xml", ".gz", ".xml.gz"});
+  
+  if (matching_files.nelem()) {
+    filename = matching_files[0];
+    return true;
+  } else {
+    return false;
+  }
+}
+
 /*!
  Expands the ~ to home directory location in given path.
  

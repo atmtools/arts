@@ -626,6 +626,28 @@ void abs_linesWriteSplitXML(const ArrayOfAbsorptionLines& abs_lines,
   }
 }
 
+void abs_lines_per_speciesWriteSplitXML(const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                        const String& basename,
+                                        const Verbosity& verbosity)
+{
+  std::map<String, int> names;
+
+  String true_basename = basename;
+  if (not(true_basename.back() == '.' or true_basename.back() == '/'))
+    true_basename += '.';
+
+  for (auto& spec_lines : abs_lines_per_species) {
+    for (auto& lines : spec_lines) {
+      auto name = lines.SpeciesName();
+      const String fname = true_basename + name;
+
+      WriteXML("ascii", lines,
+              fname + '.' + std::to_string(names[name]++) + ".xml",
+              0, "", "", "", verbosity);
+    }
+  }
+}
+
 void abs_linesTruncateGlobalQuantumNumbers(ArrayOfAbsorptionLines& abs_lines,
                                            const Verbosity&)
 {
@@ -1467,4 +1489,52 @@ void abs_lines_per_speciesCompact(ArrayOfArrayOfAbsorptionLines& abs_lines_per_s
   for (auto& lines: abs_lines_per_species) {
     abs_linesCompact(lines, f_grid, verbosity);
   }
+}
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesReadSplitCatalog(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                           const ArrayOfArrayOfSpeciesTag& abs_species,
+                                           const String& basename,
+                                           const Verbosity& verbosity) {
+  using global_data::species_data;
+  
+  // Build a set of species indices. Duplicates are ignored.
+  std::set<Index> unique_species;
+  for (auto asp = abs_species.begin(); asp != abs_species.end(); asp++) {
+    for (ArrayOfSpeciesTag::const_iterator sp = asp->begin(); sp != asp->end(); sp++) {
+      if (sp->Type() == SpeciesTag::TYPE_PLAIN || sp->Type() == SpeciesTag::TYPE_ZEEMAN) {
+        unique_species.insert(sp->Species());
+      }
+    }
+  }
+  
+  String tmpbasename = basename;
+  if (basename.length() && basename[basename.length() - 1] != '/') {
+    tmpbasename += '.';
+  }
+  
+  // Read catalogs for each identified species and put them all into
+  // abs_lines
+  ArrayOfAbsorptionLines abs_lines(0);
+  for (auto it = unique_species.begin(); it != unique_species.end(); it++) {
+    for (Index k=0; k<species_data[*it].Isotopologue().nelem(); k++) {
+      String filename;
+      Index i = 0;
+      do {
+        filename = tmpbasename + species_data[*it].FullName(k) + '.' + std::to_string(i) + ".xml";
+        if (find_xml_file_existence(filename)) {
+          abs_lines.push_back(AbsorptionLines());
+          xml_read_from_file(filename, abs_lines.back(), verbosity);
+          i++;
+        } else {
+          break;
+        }
+      } while (true);
+    }
+  }
+  
+  abs_lines_per_speciesCreateFromLines(abs_lines_per_species, abs_lines, abs_species, verbosity);
 }

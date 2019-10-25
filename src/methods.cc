@@ -445,6 +445,23 @@ void define_md_data_raw() {
       GIN_DESC("Line-array that removes lines from *abs_lines*.")));
 
   md_data_raw.push_back(MdRecord(
+      NAME("abs_lines_per_speciesReadSplitCatalog"),
+      DESCRIPTION("Reads *abs_lines_per_species* split by\n"
+                  "*abs_linesWriteSplitXML* or *abs_lines_per_speciesWriteSplitXML*\n"
+                  "\n"
+                  "Note that this will sort the isotopologue\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_species"),
+      GIN("basename"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("The path to the split catalog files")));
+
+  md_data_raw.push_back(MdRecord(
       NAME("abs_lines_per_speciesSetEmpty"),
       DESCRIPTION("Empties *abs_lines_per_species* at the correct size.\n"),
       AUTHORS("Richard Larsson"),
@@ -13496,7 +13513,13 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(MdRecord(
       NAME("abs_linesWriteSplitXML"),
-      DESCRIPTION("Writes a split file.\n"),
+      DESCRIPTION("Writes a split catalog, AbsorptionLines by AbsorptionLines.\n"
+                  "\n"
+                  "There will be one unique file generated per AbsorptionLines in *abs_lines*.\n"
+                  "\n"
+                  "The names of these files will be:\n"
+                  "\tbasename+\".\"+AbsorptionLines.SpeciesName()+\".\"+to_string(N)+\".xml\"\n"
+                  "where N>=0 and the species name is something line \"H2O\".\n"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT(),
@@ -13506,7 +13529,24 @@ void define_md_data_raw() {
       GIN("basename"),
       GIN_TYPE("String"),
       GIN_DEFAULT(NODEF),
-      GIN_DESC("Name of the HITRAN file")));
+      GIN_DESC("Path to store the files at")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_lines_per_speciesWriteSplitXML"),
+      DESCRIPTION("See *abs_linesWriteSplitXML*\n"
+                  "\n"
+                  "In addition, the structure of the files generated will not care about\n"
+                  "generating identifiers for the order in *abs_species*\n"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species"),
+      GIN("basename"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Path to store the files at")));
 
   md_data_raw.push_back(MdRecord(
       NAME("ReadNetCDF"),

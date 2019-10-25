@@ -70,6 +70,8 @@ bool find_file(ArrayOfString& matches,
 
 void find_xml_file(String& filename, const Verbosity& verbosity);
 
+bool find_xml_file_existence(String& filename);
+
 String expand_path(const String& path);
 
 String add_basedir(const String& path);
