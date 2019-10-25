@@ -30,6 +30,8 @@ USA. */
 #include <cassert>
 #include <ostream>
 #include "array.h"
+#include "bifstream.h"
+#include "bofstream.h"
 #include "math_funcs.h"
 #include "matpack.h"
 
@@ -222,6 +224,18 @@ class Rational {
 
   /** Cast to int */
   explicit constexpr operator int() const { return toInt(); }
+  
+  /** Binary read for Rational */
+  bifstream& read(bifstream& bif) {
+    bif >> mnom >> mdenom;
+    return bif;
+  }
+  
+  /** Binary write for Rational */
+  bofstream& write(bofstream& bof) const {
+    bof << mnom << mdenom;
+    return bof;
+  }
 
  private:
   // Rational is supposed to be used rationally ( mnom / mdenom )
@@ -236,7 +250,7 @@ class Rational {
     }
     return *this;
   }
-};
+};  // Rational;
 
 // An undefined rational to be used everywhere for a undefined rationals
 #define RATIONAL_UNDEFINED Rational(0, 0)

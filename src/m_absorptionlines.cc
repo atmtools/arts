@@ -606,7 +606,8 @@ void ReadJPL(ArrayOfAbsorptionLines& abs_lines,
     abs_lines.push_back(lines);
 }
 
-void abs_linesWriteSplitXML(const ArrayOfAbsorptionLines& abs_lines,
+void abs_linesWriteSplitXML(const String& output_format,
+                            const ArrayOfAbsorptionLines& abs_lines,
                             const String& basename,
                             const Verbosity& verbosity)
 {
@@ -620,13 +621,14 @@ void abs_linesWriteSplitXML(const ArrayOfAbsorptionLines& abs_lines,
     auto name = lines.SpeciesName();
     const String fname = true_basename + name;
 
-    WriteXML("ascii", lines,
+    WriteXML(output_format, lines,
              fname + '.' + std::to_string(names[name]++) + ".xml",
              0, "", "", "", verbosity);
   }
 }
 
-void abs_lines_per_speciesWriteSplitXML(const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+void abs_lines_per_speciesWriteSplitXML(const String& output_format,
+                                        const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
                                         const String& basename,
                                         const Verbosity& verbosity)
 {
@@ -641,7 +643,7 @@ void abs_lines_per_speciesWriteSplitXML(const ArrayOfArrayOfAbsorptionLines& abs
       auto name = lines.SpeciesName();
       const String fname = true_basename + name;
 
-      WriteXML("ascii", lines,
+      WriteXML(output_format, lines,
               fname + '.' + std::to_string(names[name]++) + ".xml",
               0, "", "", "", verbosity);
     }

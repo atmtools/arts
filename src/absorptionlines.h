@@ -33,6 +33,8 @@
 #define absorptionlines_h
 
 #include <vector>
+#include "bifstream.h"
+#include "bofstream.h"
 #include "lineshapemodel.h"
 #include "matpack.h"
 #include "quantum.h"
@@ -461,6 +463,40 @@ public:
       sm.Y() = Y;
       sm.G() = G;
     }
+  }
+  
+  /** Binary read for AbsorptionLines */
+  bifstream& read(bifstream& bif) {
+    /** Standard parameters */
+    bif >> mF0 >> mI0 >> mE0 >> mglow >> mgupp >> mA >> mzeeman;
+    
+    /** Line shape model */
+    mlineshape.read(bif);
+    
+    /** Lower level quantum numbers */
+    for (auto& rat: mlowerquanta) rat.read(bif);
+    
+    /** Upper level quantum numbers */
+    for (auto& rat: mupperquanta) rat.read(bif);
+    
+    return bif;
+  }
+  
+  /** Binary write for AbsorptionLines */
+  bofstream& write(bofstream& bof) const {
+    /** Standard parameters */
+    bof << mF0 << mI0 << mE0 << mglow << mgupp << mA << mzeeman;
+    
+    /** Line shape model */
+    mlineshape.write(bof);
+    
+    /** Lower level quantum numbers */
+    for (auto& rat: mlowerquanta) rat.write(bof);
+    
+    /** Upper level quantum numbers */
+    for (auto& rat: mupperquanta) rat.write(bof);
+    
+    return bof;
   }
 };  // SingleLine
 
@@ -1262,6 +1298,20 @@ public:
    * @return VMR of the species
    */
   Numeric SelfVMR(const ConstVectorView, const ArrayOfArrayOfSpeciesTag&) const;
+  
+  /** Binary read for Lines */
+  bifstream& read(bifstream& is) {
+    for (auto& line: mlines)
+      line.read(is);
+    return is;
+  }
+  
+  /** Binary write for Lines */
+  bofstream& write(bofstream& os) const {
+    for (auto& line: mlines)
+      line.write(os);
+    return os;
+  }
 };  // Lines
 
 std::ostream& operator<<(std::ostream&, const Lines&);

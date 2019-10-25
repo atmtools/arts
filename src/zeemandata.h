@@ -441,7 +441,13 @@ class Model {
   
   /** Input operator for Zeeman::Model */
   friend inline std::istream& operator>>(std::istream& is, Model& m);
-};
+  
+  /** Output operator for Zeeman::Model */
+  friend inline std::ostream& operator<<(bofstream& bof, const Model& m);
+  
+  /** Input operator for Zeeman::Model */
+  friend inline std::istream& operator>>(bifstream& bif, Model& m);
+};  // Model;
 
 /** Returns a simple Zeeman model 
  * 
@@ -475,6 +481,16 @@ inline std::ostream& operator<<(std::ostream& os, const Model& m) {
 inline std::istream& operator>>(std::istream& is, Model& m) {
   is >> m.mdata.gu >> m.mdata.gl;
   return is;
+}
+
+inline std::ostream& operator<<(bofstream& bof, const Model& m) {
+  bof << m.mdata.gu << m.mdata.gl;
+  return bof;
+}
+
+inline std::istream& operator>>(bifstream& bif, Model& m) {
+  bif >> m.mdata.gu >> m.mdata.gl;
+  return bif;
 }
 
 /** Polarization vector for Zeeman Propagation Matrix

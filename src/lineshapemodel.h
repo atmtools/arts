@@ -708,15 +708,21 @@ Numeric compute_dT0(Numeric T, Numeric T0, Variable var) const noexcept {
   }
 
   /** Binary read for SingleSpeciesModel */
-  std::istream& read(std::istream& is) {
-    is.read(reinterpret_cast<char*>(this), sizeof(SingleSpeciesModel));
-    return is;
+  bifstream& read(bifstream& bif) {
+    for (auto& data: X) {
+      Index x;
+      bif >> x >> data.X0 >> data.X1 >> data.X2 >> data.X3;
+      data.type = TemperatureModel(x);
+    }
+    return bif;
   }
 
   /** Binary write for SingleSpeciesModel */
-  std::ostream& write(std::ostream& os) const {
-    os.write(reinterpret_cast<const char*>(this), sizeof(SingleSpeciesModel));
-    return os;
+  bofstream& write(bofstream& bof) const {
+    for (auto& data: X) {
+      bof << Index(data.type) << data.X0 << data.X1 << data.X2 << data.X3;
+    }
+    return bof;
   }
   
   bool MatchTypes(const SingleSpeciesModel& other) const noexcept {
@@ -1336,6 +1342,21 @@ class Model {
                               Model& m,
                               ArrayOfSpeciesTag& species,
                               const QuantumIdentifier& qid);
+  
+  
+  /** Binary read for Model */
+  bifstream& read(bifstream& bif) {
+    for (auto& data: mdata)
+      data.read(bif);
+    return bif;
+  }
+  
+  /** Binary write for Model */
+  bofstream& write(bofstream& bof) const {
+    for (auto& data: mdata)
+      data.write(bof);
+    return bof;
+  }
 };  // Model;
 
 std::ostream& operator<<(std::ostream&, const Model&);

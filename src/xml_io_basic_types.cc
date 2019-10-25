@@ -1537,12 +1537,12 @@ void xml_read_from_stream(istream& is_xml,
                        localquanta, broadeningspecies, metamodel);
   
   if (pbifs) {
-//     *pbifs >> al;
-//     if (pbifs->fail()) {
-      ostringstream os;
-      os << "AbsorptionLines cannot do binary IO yet";
-      xml_data_parse_error(tag, os.str());
-//     }
+    al.read(*pbifs);
+     if (pbifs->fail()) {
+       ostringstream os;
+       os << "AbsorptionLines has wrong dimensions";
+       xml_data_parse_error(tag, os.str());
+     }
   } else {
     is_xml >> al;
     if (is_xml.fail()) {
@@ -1601,10 +1601,8 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 
   xml_set_stream_precision(os_xml);
-  if (pbofs) {
-    *pbofs << al;
-    throw std::runtime_error("No binary AbsorptionLines IO yet");
-  }
+  if (pbofs)
+    al.write(*pbofs);
   else
     os_xml << al;
 
