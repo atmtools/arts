@@ -66,8 +66,7 @@ class IsotopologueRecord {
         mjpltags(jpltags),
         mqcoeff(),
         mqcoefftype(PF_NOTHING),
-        mqcoeffgrid(),
-        mqcoeffinterporder() {
+        mqcoeffgrid() {
     // With Matpack, initialization of mjpltags from jpltags should now work correctly.
 
     // Some consistency checks whether the given data makes sense.
@@ -137,7 +136,6 @@ class IsotopologueRecord {
   Vector mqcoeff;
   Index mqcoefftype;
   Vector mqcoeffgrid;
-  Index mqcoeffinterporder;
 };
 
 /** Contains the lookup data for one species.

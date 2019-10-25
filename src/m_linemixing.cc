@@ -1289,8 +1289,8 @@ void abs_lines_per_speciesSetRelamtLineMixingToMatches(
   }
 }
 
-static constexpr Index hartman_tran_type = 0;
-static constexpr Index linear_type = 1;
+//static constexpr Index hartman_tran_type = 0;
+//static constexpr Index linear_type = 1;
 
 
 // Ignore function arguments if compiled without RELMAT support
