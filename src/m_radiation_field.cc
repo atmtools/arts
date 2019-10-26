@@ -271,7 +271,7 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLines(
   line_irradiance = Matrix(nl, np, 0.0);
   line_transmission = Tensor3(1, nl, np, 0.0);
 
-  Tensor7 doit_i_field;
+  Tensor7 spectral_radiance_field;
   Tensor3 trans_field;
   for (Index il = 0; il < nl; il++) {
     const Numeric d = abs_lines_per_species[0][il].F() * df;
@@ -280,37 +280,37 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLines(
               abs_lines_per_species[0][il].F() - d,
               abs_lines_per_species[0][il].F() + d,
               nf);
-    doit_i_fieldClearskyPlaneParallel(ws,
-                                      doit_i_field,
-                                      trans_field,
-                                      propmat_clearsky_agenda,
-                                      water_p_eq_agenda,
-                                      iy_space_agenda,
-                                      iy_surface_agenda,
-                                      iy_cloudbox_agenda,
-                                      1,
-                                      f_grid,
-                                      atmosphere_dim,
-                                      p_grid,
-                                      z_field,
-                                      t_field,
-                                      nlte_field,
-                                      vmr_field,
-                                      abs_species,
-                                      Tensor3(0, 0, 0),
-                                      Tensor3(0, 0, 0),
-                                      Tensor3(0, 0, 0),
-                                      Tensor3(0, 0, 0),
-                                      Tensor3(0, 0, 0),
-                                      Tensor3(0, 0, 0),
-                                      z_field(0, joker, joker),
-                                      1e99,
-                                      0.0,
-                                      surface_props_data,
-                                      za_grid,
-                                      0,
-                                      verbosity);
-
+    spectral_radiance_fieldClearskyPlaneParallel(ws,
+                                                 spectral_radiance_field,
+                                                 trans_field,
+                                                 propmat_clearsky_agenda,
+                                                 water_p_eq_agenda,
+                                                 iy_space_agenda,
+                                                 iy_surface_agenda,
+                                                 iy_cloudbox_agenda,
+                                                 1,
+                                                 f_grid,
+                                                 atmosphere_dim,
+                                                 p_grid,
+                                                 z_field,
+                                                 t_field,
+                                                 nlte_field,
+                                                 vmr_field,
+                                                 abs_species,
+                                                 Tensor3(0, 0, 0),
+                                                 Tensor3(0, 0, 0),
+                                                 Tensor3(0, 0, 0),
+                                                 Tensor3(0, 0, 0),
+                                                 Tensor3(0, 0, 0),
+                                                 Tensor3(0, 0, 0),
+                                                 z_field(0, joker, joker),
+                                                 1e99,
+                                                 0.0,
+                                                 surface_props_data,
+                                                 za_grid,
+                                                 0,
+                                                 verbosity);
+    
     // Integrate over the sphere
     for (Index ip = 0; ip < np; ip++) {
       Eigen::VectorXcd F(nf);
@@ -331,10 +331,10 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLines(
           const Numeric x = wzad[iz] * 0.25 * intF;
           sx += x;
           line_irradiance(il, ip) +=
-              (doit_i_field(iv, ip, 0, 0, iz, 0, 0) +
-               doit_i_field(iv, ip, 0, 0, iz + 1, 0, 0) +
-               doit_i_field(iv + 1, ip, 0, 0, iz, 0, 0) +
-               doit_i_field(iv + 1, ip, 0, 0, iz + 1, 0, 0)) *
+              (spectral_radiance_field(iv, ip, 0, 0, iz, 0, 0) +
+               spectral_radiance_field(iv, ip, 0, 0, iz + 1, 0, 0) +
+               spectral_radiance_field(iv + 1, ip, 0, 0, iz, 0, 0) +
+               spectral_radiance_field(iv + 1, ip, 0, 0, iz + 1, 0, 0)) *
               0.25 * x;
 
           const Numeric exp_mtau =
@@ -365,9 +365,9 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLines(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void doit_i_fieldClearskyPlaneParallel(
+void spectral_radiance_fieldClearskyPlaneParallel(
     Workspace& ws,
-    Tensor7& doit_i_field,
+    Tensor7& spectral_radiance_field,
     Tensor3& trans_field,
     const Agenda& propmat_clearsky_agenda,
     const Agenda& water_p_eq_agenda,
@@ -396,6 +396,7 @@ void doit_i_fieldClearskyPlaneParallel(
     const Vector& scat_za_grid,
     const Index& use_parallel_iy,
     const Verbosity& verbosity) {
+  
   // Check input
   if (atmosphere_dim != 1)
     throw runtime_error("This method only works for atmosphere_dim = 1.");
@@ -409,15 +410,15 @@ void doit_i_fieldClearskyPlaneParallel(
   const Index nf = f_grid.nelem();
   const Index nza = scat_za_grid.nelem();
 
-  // Init doit_i_field and trans_field
-  doit_i_field.resize(nf, nl, 1, 1, nza, 1, stokes_dim);
+  // Init spectral_radiance_field and trans_field
+  spectral_radiance_field.resize(nf, nl, 1, 1, nza, 1, stokes_dim);
   trans_field.resize(nf, nl, nza);
 
   // De-activate cloudbox
   const Index cloudbox_on = 0, ppath_inside_cloudbox_do = 0;
   const ArrayOfIndex cloudbox_limits(0);
 
-  // Various input variables
+  // Various variables
   const String iy_unit = "1";
   const ArrayOfString iy_aux_vars(0);
   const Vector rte_pos2(0);
@@ -576,16 +577,17 @@ void doit_i_fieldClearskyPlaneParallel(
 
         // First and last points are most easily handled separately
         if (scat_za_grid[i] < 90) {
-          doit_i_field(joker, 0, 0, 0, i, 0, joker) = ppvar_iy(joker, joker, 0);
-          doit_i_field(joker, nl - 1, 0, 0, i, 0, joker) =
+          spectral_radiance_field(joker, 0, 0, 0, i, 0, joker) =
+            ppvar_iy(joker, joker, 0);
+          spectral_radiance_field(joker, nl - 1, 0, 0, i, 0, joker) =
               ppvar_iy(joker, joker, ppath.np - 1);
           trans_field(joker, 0, i) = ppvar_trans_partial(0, joker, 0, 0);
           trans_field(joker, nl - 1, i) =
               ppvar_trans_partial(ppath.np - 1, joker, 0, 0);
         } else {
-          doit_i_field(joker, nl - 1, 0, 0, i, 0, joker) =
+          spectral_radiance_field(joker, nl - 1, 0, 0, i, 0, joker) =
               ppvar_iy(joker, joker, 0);
-          doit_i_field(joker, 0, 0, 0, i, 0, joker) =
+          spectral_radiance_field(joker, 0, 0, 0, i, 0, joker) =
               ppvar_iy(joker, joker, ppath.np - 1);
           trans_field(joker, nl - 1, i) = ppvar_trans_partial(0, joker, 0, 0);
           trans_field(joker, 0, i) =
@@ -596,7 +598,7 @@ void doit_i_fieldClearskyPlaneParallel(
         for (Index p = 1; p < ppath.np - 1; p++) {
           // We just store values at pressure levels
           if (ppath.gp_p[p].fd[0] < 1e-2) {
-            doit_i_field(joker, ppath.gp_p[p].idx, 0, 0, i, 0, joker) =
+            spectral_radiance_field(joker, ppath.gp_p[p].idx, 0, 0, i, 0, joker) =
                 ppvar_iy(joker, joker, p);
             trans_field(joker, ppath.gp_p[p].idx, i) =
                 ppvar_trans_partial(p, joker, 0, 0);

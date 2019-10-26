@@ -1,7 +1,7 @@
 # DEFINITIONS:  -*-sh-*-
 
 # This control file handles a DOBatch calculation with
-# doit_i_fieldClearskyPlaneParallel
+# spectral_radiance_fieldClearskyPlaneParallel
 #
 # Author: Oliver Lemke
 #
@@ -183,7 +183,7 @@ AgendaSet( dobatch_calc_agenda ){
   StringSet( iy_unit, "PlanckBT" )
 
   # Calculate radiation field
-  doit_i_fieldClearskyPlaneParallel(trans_field=trans_field)
+  spectral_radiance_fieldClearskyPlaneParallel(trans_field=trans_field)
   Touch(radiance_field)
   Touch(irradiance_field)
   Touch(spectral_irradiance_field)

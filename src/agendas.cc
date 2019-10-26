@@ -123,11 +123,8 @@ void define_agenda_data() {
       DESCRIPTION(
           "Calculations to perform for each batch case.\n"
           "\n"
-          "Must produce a *doit_i_field*, *radiance_field*, *radiation_field*\n"
-          "and *spectral_irradiance_field*.\n"
-          "\n"
           "See further *dobatchCalc*.\n"),
-      OUTPUT("doit_i_field",
+      OUTPUT("spectral_radiance_field",
              "radiance_field",
              "irradiance_field",
              "spectral_irradiance_field"),

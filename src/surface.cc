@@ -20,13 +20,13 @@
   === File description 
   ===========================================================================*/
 
-/*!
-   \file   surface.cc
-   \author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
-   \date   2012-02-06 
+/**
+   @file   surface.cc
+   @author Patrick Eriksson <Patrick.Eriksson@chalmers.se>
+   @date   2012-02-06 
 
    This file contains internal functions associated with the surface.
-*/
+ */
 
 /*===========================================================================
   === External declarations
@@ -47,40 +47,19 @@
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-//! calc_incang
-/*!
-    Calculates the incidence angle for a flat surface, based on rte_los and
-    specular_los.
-
-    \param   incang             Return: Incidence angle.
-    \param   rte_los            Input: As the WSV with the same name.
-    \param   specular_los       Input: As the WSV with the same name.
-
-    \author Patrick Eriksson 
-    \date   2012-11-15
-*/
 Numeric calc_incang(ConstVectorView rte_los, ConstVectorView specular_los) {
   return (180 - abs(rte_los[0]) + abs(specular_los[0])) / 2;
 }
 
-//! surface_calc
-/*!
-    Weights together downwelling radiation and surface emission.
+Index index_of_zsurface(const Numeric& z_surface,
+                        ConstVectorView z_profile) {
+  Index ip = 0;
+  while (z_surface >= z_profile[ip+1]) {
+    ip++;
+  }
+  return ip;
+}
 
-    *iy* must have correct size when function is called.
-
-    \param   iy                 In/Out: Radiation matrix, amtching 
-                                        the WSV with the same name.
-    \param   I                  Input: Downwelling radiation, with dimensions
-                                       matching: 
-                                       (surface_los, f_grid, stokes_dim)
-    \param   surface_los        Input: As the WSV with the same name.
-    \param   surface_rmatrix    Input: As the WSV with the same name.
-    \param   surface_emission   Input: As the WSV with the same name.
-
-    \author Patrick Eriksson 
-    \date   2005-04-07
-*/
 void surface_calc(Matrix& iy,
                   ConstTensor3View I,
                   ConstMatrixView surface_los,
@@ -106,30 +85,6 @@ void surface_calc(Matrix& iy,
   }
 }
 
-//! surface_specular_R_and_b
-/*!
-    Sets up the surface reflection matrix and emission vector for
-    the case of specular reflection.
-
-    The function handles only one frequency at the time.
-
-    See further the surface chapter in the user guide.
-
-    \param   surface_rmatrix   Out: As the WSV with the same name, but slice
-                                    for one direction and one frequency.
-    \param   surface_emission  Out: As the WSV with the same name, but slice
-                                    for one direction and one frequency.
-    \param   Rv                In: Complex amplitude relection coefficient
-                                   for vertical polarisation.
-    \param   Rh                In: Complex amplitude relection coefficient
-                                   for horisontal polarisation.
-    \param   f                 In: Frequency (a scalar).
-    \param   stokes_dim        In: As the WSV with the same name.
-    \param   surface_skin_t    In: As the WSV with the same name.
-
-    \author Patrick Eriksson 
-    \date   2004-09-24
-*/
 void surface_specular_R_and_b(MatrixView surface_rmatrix,
                               VectorView surface_emission,
                               const Complex& Rv,

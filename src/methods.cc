@@ -2707,7 +2707,7 @@ void define_md_data_raw() {
                "Longitude retrieval grid.",
                "Index of position where the perturbation shall be performed.",
                "Size of perturbation.",
-               "Type of perturbation, ""ansolute"" or ""relative"".")));
+               "Type of perturbation, ""absolute"" or ""relative"".")));
 
   md_data_raw.push_back(MdRecord(
       NAME("AtmFieldPerturbAtmGrids"),
@@ -4451,6 +4451,24 @@ void define_md_data_raw() {
                "Particle aspect ratio.")));
 
   md_data_raw.push_back(MdRecord(
+      NAME("DiagonalMatrix"),
+      DESCRIPTION(
+          "Create a diagonal matrix from a vector."
+          "\n"
+          "This creates a dense or sparse diagonal matrix with the elements of the given vector\n"
+          " on the diagonal.\n"),
+      AUTHORS("Simon Pfreundschuh"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("Matrix, Sparse"),
+      GOUT_DESC("The diagonal matrix"),
+      IN(),
+      GIN("v"),
+      GIN_TYPE("Vector"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("The vector containing the diagonal elements.")));
+
+  md_data_raw.push_back(MdRecord(
       NAME("DiffZaAa"),
       DESCRIPTION(
           "Derives the difference betwenn zenith and azimuth angles.\n"
@@ -4994,64 +5012,6 @@ void define_md_data_raw() {
       GIN_DEFAULT("0"),
       GIN_DESC(
           "Index wether to accelerate only the intensity (1) or the whole Stokes Vector (4)")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("doit_i_fieldClearskyPlaneParallel"),
-      DESCRIPTION(
-          "Clear-sky radiation field of a plane parallel atmosphere.\n"
-          "\n"
-          "The method assumes a 1D flat planet. Radiances along each direction\n"
-          "given by *scat_za_grid* are calculated using *ppathPlaneParallel*\n"
-          "and *iyEmissionStandard*.\n"
-          "\n"
-          "Surface properties are defined by *iy_surface_agenda*, i.e. there is no\n"
-          "restriction e.g. specular surfaces. On the other hand, the method demands\n"
-          "that the surface is placed exactly at the first pressure level.\n"
-          "\n"
-          "Note that the variable *ppath_lmax* is considered, and that it can be\n"
-          "crucial for the accuracy for zenith angles close to 90 degrees. That\n"
-          "is, using ppath_lmax=-1 is not recommended for this function.\n"
-          "\n"
-          "Information on transmission is also provided by the GOUT *trans_field*.\n"
-          "For up-welling radiation (scat_za > 90), this variable holds the\n"
-          "transmission to space, for considered position and propagation direction.\n"
-          "For down-welling radiation, *trans_field* holds instead the transmission\n"
-          "down to the surface.\n"),
-      AUTHORS("Patrick Eriksson"),
-      OUT("doit_i_field"),
-      GOUT("trans_field"),
-      GOUT_TYPE("Tensor3"),
-      GOUT_DESC("Dimensions: [f_grid,p_grid,scat_za_grid]. See further above."),
-      IN("propmat_clearsky_agenda",
-         "water_p_eq_agenda",
-         "iy_space_agenda",
-         "iy_surface_agenda",
-         "iy_cloudbox_agenda",
-         "stokes_dim",
-         "f_grid",
-         "atmosphere_dim",
-         "p_grid",
-         "z_field",
-         "t_field",
-         "nlte_field",
-         "vmr_field",
-         "abs_species",
-         "wind_u_field",
-         "wind_v_field",
-         "wind_w_field",
-         "mag_u_field",
-         "mag_v_field",
-         "mag_w_field",
-         "z_surface",
-         "ppath_lmax",
-         "rte_alonglos_v",
-         "surface_props_data",
-         "scat_za_grid"),
-      GIN("use_parallel_iy"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT("0"),
-      GIN_DESC("0: Parallelize over zenith angles\n"
-               "1: Use more memory intensiv iyEmissionStandardParallel*")));
 
   md_data_raw.push_back(MdRecord(
       NAME("doit_i_fieldSetFromPrecalc"),
@@ -16384,27 +16344,9 @@ void define_md_data_raw() {
       GIN_DESC("Size of the matrix", "The value along the diagonal.")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("DiagonalMatrix"),
+      NAME("spectral_irradiance_fieldFromSpectralRadianceField"),
       DESCRIPTION(
-          "Create a diagonal matrix from a vector."
-          "\n"
-          "This creates a dense or sparse diagonal matrix with the elements of the given vector\n"
-          " on the diagonal.\n"),
-      AUTHORS("Simon Pfreundschuh"),
-      OUT(),
-      GOUT("out"),
-      GOUT_TYPE("Matrix, Sparse"),
-      GOUT_DESC("The diagonal matrix"),
-      IN(),
-      GIN("v"),
-      GIN_TYPE("Vector"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("The vector containing the diagonal elements.")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("spectral_irradiance_fieldFromiyField"),
-      DESCRIPTION(
-          "Calculates the spectral irradiance from *doit_i_field* .\n"
+          "Calculates the spectral irradiance from *spectral_radiance_field* .\n"
           "by integrating over the angular grids according to the grids set\n"
           "by *AngularGridsSetForFluxCalc* \n"
           "See *AngularGridsSetForFluxCalc to set \n"
@@ -16414,7 +16356,86 @@ void define_md_data_raw() {
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("doit_i_field", "scat_za_grid", "scat_aa_grid", "za_grid_weights"),
+      IN("spectral_radiance_field", "scat_za_grid", "scat_aa_grid", "za_grid_weights"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("spectral_radiance_fieldClearskyPlaneParallel"),
+      DESCRIPTION(
+          "Clear-sky radiance field of a plane parallel atmosphere.\n"
+          "\n"
+          "The method assumes a 1D flat planet. Radiances along each direction\n"
+          "given by *scat_za_grid* are calculated using *ppathPlaneParallel*\n"
+          "and *iyEmissionStandard*.\n"
+          "\n"
+          "Surface properties are defined by *iy_surface_agenda*, i.e. there is no\n"
+          "restriction to e.g. specular surfaces.\n"
+          "\n"
+          "Note that the variable *ppath_lmax* is considered, and that it can be\n"
+          "critical for the accuracy for zenith angles close to 90 degrees. That\n"
+          "is, using ppath_lmax=-1 is not recommended for this function.\n"
+          "\n"
+          "Information on transmission is also provided by the GOUT *trans_field*.\n"
+          "For up-welling radiation (scat_za > 90), this variable holds the\n"
+          "transmission to space, for considered position and propagation direction.\n"
+          "For down-welling radiation, *trans_field* holds instead the transmission\n"
+          "down to the surface.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("spectral_radiance_field"),
+      GOUT("trans_field"),
+      GOUT_TYPE("Tensor3"),
+      GOUT_DESC("Dimensions: [f_grid,p_grid,scat_za_grid]. See further above."),
+      IN("propmat_clearsky_agenda",
+         "water_p_eq_agenda",
+         "iy_space_agenda",
+         "iy_surface_agenda",
+         "iy_cloudbox_agenda",
+         "stokes_dim",
+         "f_grid",
+         "atmosphere_dim",
+         "p_grid",
+         "z_field",
+         "t_field",
+         "nlte_field",
+         "vmr_field",
+         "abs_species",
+         "wind_u_field",
+         "wind_v_field",
+         "wind_w_field",
+         "mag_u_field",
+         "mag_v_field",
+         "mag_w_field",
+         "z_surface",
+         "ppath_lmax",
+         "rte_alonglos_v",
+         "surface_props_data",
+         "scat_za_grid"),
+      GIN("use_parallel_iy"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("0"),
+      GIN_DESC("0: Parallelize over zenith angles\n"
+               "1: Use more memory intensiv iyEmissionStandardParallel*")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("spectral_radiance_fieldCopyCloudboxField"),
+      DESCRIPTION(
+          "Set *spectral_radiance_field* to be a copy of *cloudbox_field*.\n"
+          "\n"
+          "This method can only be used for 1D atmospheres and if the cloud\n"
+          "box covers the complete atmosphere. For such case, the two fields\n"
+          "cover the same atmospheric volume and a direct copying can be made.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("spectral_radiance_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atmosphere_dim",
+         "p_grid",
+         "cloudbox_limits",
+         "doit_i_field"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),

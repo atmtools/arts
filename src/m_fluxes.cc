@@ -179,12 +179,14 @@ void AngularGridsSetFluxCalc(Vector &scat_za_grid,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void spectral_irradiance_fieldFromiyField(Tensor5 &spectral_irradiance_field,
-                                          const Tensor7 &doit_i_field,
-                                          const Vector &scat_za_grid,
-                                          const Vector &scat_aa_grid,
-                                          const Vector &za_grid_weights,
-                                          const Verbosity &) {
+void spectral_irradiance_fieldFromSpectralRadianceField(
+  Tensor5 &spectral_irradiance_field,
+  const Tensor7 &spectral_radiance_field,
+  const Vector &scat_za_grid,
+  const Vector &scat_aa_grid,
+  const Vector &za_grid_weights,
+  const Verbosity &) {
+  
   // Number of zenith angles.
   const Index N_scat_za = scat_za_grid.nelem();
   const Index N_scat_aa = scat_aa_grid.nelem();
@@ -195,16 +197,16 @@ void spectral_irradiance_fieldFromiyField(Tensor5 &spectral_irradiance_field,
   if (N_scat_aa == 1)  //1D case no azimuth dependency
   {
     iy_field_aa_integrated =
-        doit_i_field(joker, joker, joker, joker, joker, 0, 0);
+      spectral_radiance_field(joker, joker, joker, joker, joker, 0, 0);
     iy_field_aa_integrated *= 2 * PI;
 
   } else  //general case with azimuth dependency
   {
-    iy_field_aa_integrated.resize(doit_i_field.nlibraries(),
-                                  doit_i_field.nvitrines(),
-                                  doit_i_field.nshelves(),
-                                  doit_i_field.nbooks(),
-                                  doit_i_field.npages());
+    iy_field_aa_integrated.resize(spectral_radiance_field.nlibraries(),
+                                  spectral_radiance_field.nvitrines(),
+                                  spectral_radiance_field.nshelves(),
+                                  spectral_radiance_field.nbooks(),
+                                  spectral_radiance_field.npages());
     iy_field_aa_integrated = 0.;
 
     for (Index s = 0; s < iy_field_aa_integrated.nshelves(); s++) {
@@ -214,8 +216,8 @@ void spectral_irradiance_fieldFromiyField(Tensor5 &spectral_irradiance_field,
             for (Index c = 0; c < iy_field_aa_integrated.ncols(); c++) {
               for (Index i = 0; i < N_scat_aa - 1; i++) {
                 iy_field_aa_integrated(s, b, p, r, c) +=
-                    (doit_i_field(s, b, p, r, c, i, 0) +
-                     doit_i_field(s, b, p, r, c, i + 1, 0)) /
+                    (spectral_radiance_field(s, b, p, r, c, i, 0) +
+                     spectral_radiance_field(s, b, p, r, c, i + 1, 0)) /
                     2. * abs(scat_aa_grid[i + 1] - scat_aa_grid[i]) * DEG2RAD;
               }
             }
@@ -226,10 +228,10 @@ void spectral_irradiance_fieldFromiyField(Tensor5 &spectral_irradiance_field,
   }
 
   //allocate
-  spectral_irradiance_field.resize(doit_i_field.nlibraries(),
-                                   doit_i_field.nvitrines(),
-                                   doit_i_field.nshelves(),
-                                   doit_i_field.nbooks(),
+  spectral_irradiance_field.resize(spectral_radiance_field.nlibraries(),
+                                   spectral_radiance_field.nvitrines(),
+                                   spectral_radiance_field.nshelves(),
+                                   spectral_radiance_field.nbooks(),
                                    2);
   spectral_irradiance_field = 0;
 
@@ -253,6 +255,28 @@ void spectral_irradiance_fieldFromiyField(Tensor5 &spectral_irradiance_field,
       }
     }
   }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void spectral_radiance_fieldCopyCloudboxField(Tensor7& spectral_radiance_field,
+                                              const Index& atmosphere_dim,
+                                              const Vector& p_grid,
+                                              const ArrayOfIndex& cloudbox_limits,
+                                              const Tensor7& doit_i_field,
+                                              const Verbosity &) {
+  if (atmosphere_dim > 1) {
+    ostringstream os;
+    os << "This method can only be used for 1D calculations.\n";
+    throw runtime_error(os.str());
+  }
+  if (cloudbox_limits[0] || cloudbox_limits[1] != p_grid.nelem()-1) {
+    ostringstream os;
+    os << "The clousd box is not covering all pressure levels.\n"
+       << "It is then not possible to use this method.\n";
+    throw runtime_error(os.str());
+  }
+  
+  spectral_radiance_field = doit_i_field;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

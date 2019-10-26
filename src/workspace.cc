@@ -1455,24 +1455,26 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("doit_i_field"),
       DESCRIPTION(
-          "Radiation field.\n"
+          "The spectral radiance field inside the cloudbx.\n"
           "\n"
-          "This variable is used to store the radiation field \n"
-          "inside the cloudbox which is found by an iterative solution (DOIT).\n"
-          "Refer to AUG for further information.\n"
+          "This variable is used to store the radiance field inside the cloud\n"
+          "box, probably determined by a scattering solver method.\n"
           "\n"
-          "Usage: Method output. \n"
+          "That is, this variable matches *spectral_radiance_field* but holds\n"
+          "a field that is restricted to the cloud box.\n"
           "\n"
           "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
           "\n"
-          "Size: [Nf,"
-          "       (cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
-          "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
-          "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
-          "        N_za, N_aa, N_i ]\n"
+          " Size: [f_grid,\n"
+          "       p_grid, \n"
+          "       lat_grid, \n"
+          "       lon_grid, \n"
+          "       za_grid,\n"
+          "       aa_grid,\n"
+          "       stokes_dim ]\n"
           "\n"
-          "Note: For 1D, the size of the azimuth angle dimension (N_aa) is\n"
-          "always 1.\n"),
+          "Note: For 1D, the size of the latitude, longitude and azimuth\n"
+          "dimension (N_aa) are all 1.\n"),
       GROUP("Tensor7")));
 
   wsv_data.push_back(WsvRecord(
@@ -4620,6 +4622,31 @@ void Workspace::define_wsv_data() {
           "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
           "        2]\n"),
       GROUP("Tensor5")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("spectral_radiance_field"),
+      DESCRIPTION(
+          "Spectral radiance field.\n"
+          "\n"
+          "This variable holds a calculation of the radiance field through\n"
+          "the atmosphere, for the directions matching *za_grid* and *aa_grid*.\n"
+          "\n"
+          "Don't confuse this variable with *cloudbox_field*. That varinale also\n"
+          "holds a field of spectral radiances, but is restricted to the cloud box.\n"
+          "\n"
+          "Units: W / (m^2 Hz sr)\n"
+          "\n"
+          " Size: [f_grid,\n"
+          "       p_grid, \n"
+          "       lat_grid, \n"
+          "       lon_grid, \n"
+          "       za_grid,\n"
+          "       aa_grid,\n"
+          "       stokes_dim ]\n"
+          "\n"
+          "Note: For 1D, the size of the latitude, longitude and azimuth\n"
+          "dimension (N_aa) are all 1.\n"),
+      GROUP("Tensor7")));
 
   wsv_data.push_back(WsvRecord(
       NAME("specific_heat_capacity"),
