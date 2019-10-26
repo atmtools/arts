@@ -856,7 +856,7 @@ void psdDelanoeEtAl14(Matrix& psd_data,
     }
 
     // Ensure that results are zero when IWC is zero.
-    if (iwc_p == 0.0) {
+    if ((!iwc_depend) && (iwc_p == 0.0)) {
       psd_data(0, joker) = 0.0;
       for (size_t i = 0; i < 2; ++i) {
         if (do_jac[i]) {
