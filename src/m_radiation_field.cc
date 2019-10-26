@@ -33,6 +33,7 @@
 #include "ppath.h"
 #include "propmat_field.h"
 #include "radiation_field.h"
+#include "surface.h"
 
 void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
     Workspace& ws,
@@ -401,9 +402,6 @@ void spectral_radiance_fieldClearskyPlaneParallel(
   if (atmosphere_dim != 1)
     throw runtime_error("This method only works for atmosphere_dim = 1.");
   chk_if_increasing("scat_za_grid", scat_za_grid);
-  if (abs(z_surface(0, 0) - z_field(0, 0, 0)) > 1e-3)
-    throw runtime_error(
-        "The surface must be placed exactly at the first pressure level.");
 
   // Sizes
   const Index nl = p_grid.nelem();
@@ -426,7 +424,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
   const Tensor3 iy_transmission(0, 0, 0);
   const Index jacobian_do = 0;
   const ArrayOfRetrievalQuantity jacobian_quantities(0);
-  // Create one altitde just above TOA
+  // Create one altitude just above TOA
   const Numeric z_space = z_field(nl - 1, 0, 0) + 10;
 
   Workspace l_ws(ws);
@@ -442,6 +440,10 @@ void spectral_radiance_fieldClearskyPlaneParallel(
   iy_main_agenda.set_name("iy_main_agenda");
   iy_main_agenda.check(ws, verbosity);
 
+  // Index in p_grid where field at surface shall be placed
+  const Index i0 = index_of_zsurface( z_surface(0, 0),
+                                      z_field(joker, 0, 0) );
+  
   // Loop zenith angles
   //
   if (nza)
@@ -474,6 +476,8 @@ void spectral_radiance_fieldClearskyPlaneParallel(
                            rte_los,
                            ppath_lmax,
                            verbosity);
+        assert( ppath.gp_p[ppath.np-1].idx == i0 ||
+                ppath.gp_p[ppath.np-1].idx == nl-2 );
 
         if (use_parallel_iy) {
           iyEmissionStandardParallel(l_ws,
@@ -572,12 +576,11 @@ void spectral_radiance_fieldClearskyPlaneParallel(
                              surface_props_data,
                              verbosity);
         }
-
         assert(iy.ncols() == stokes_dim);
 
         // First and last points are most easily handled separately
         if (scat_za_grid[i] < 90) {
-          spectral_radiance_field(joker, 0, 0, 0, i, 0, joker) =
+          spectral_radiance_field(joker, i0, 0, 0, i, 0, joker) =
             ppvar_iy(joker, joker, 0);
           spectral_radiance_field(joker, nl - 1, 0, 0, i, 0, joker) =
               ppvar_iy(joker, joker, ppath.np - 1);
@@ -587,7 +590,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
         } else {
           spectral_radiance_field(joker, nl - 1, 0, 0, i, 0, joker) =
               ppvar_iy(joker, joker, 0);
-          spectral_radiance_field(joker, 0, 0, 0, i, 0, joker) =
+          spectral_radiance_field(joker, i0, 0, 0, i, 0, joker) =
               ppvar_iy(joker, joker, ppath.np - 1);
           trans_field(joker, nl - 1, i) = ppvar_trans_partial(0, joker, 0, 0);
           trans_field(joker, 0, i) =
@@ -602,8 +605,18 @@ void spectral_radiance_fieldClearskyPlaneParallel(
                 ppvar_iy(joker, joker, p);
             trans_field(joker, ppath.gp_p[p].idx, i) =
                 ppvar_trans_partial(p, joker, 0, 0);
-          }
+          }          
         }
+
+        // We don't want undefined values to possibly affect an interpolation,
+        // and to be safe we set the fields for underground levels to equal the
+        // ones at the surface
+        for (Index p = 0; p < i0; p++) {
+          spectral_radiance_field(joker, p, 0, 0, i, 0, joker) =
+            spectral_radiance_field(joker, i0, 0, 0, i, 0, joker);
+          trans_field(joker, p, i) = trans_field(joker, i0, i);
+        }
+        
       } catch (const std::exception& e) {
 #pragma omp critical(planep_setabort)
         failed = true;

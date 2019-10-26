@@ -29,7 +29,7 @@
 #include "workspace_ng.h"
 
 /*!
-  \file   M_fluxes.cc
+  \file   m_fluxes.cc
   \author Manfred Brath  <manfred.brath@uni-hamburg.de>
   \date   2018-06-22
 
