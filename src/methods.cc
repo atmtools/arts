@@ -16434,12 +16434,70 @@ void define_md_data_raw() {
       GOUT_DESC(),
       IN("atmosphere_dim",
          "p_grid",
+         "cloudbox_on",
          "cloudbox_limits",
          "doit_i_field"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("spectral_radiance_fieldExpandCloudboxField"),
+      DESCRIPTION(
+          "Uses and expands *cloudbox_field* to set *spectral_radiance_field*.\n"
+          "\n"
+          "The method demands that *cloudbox_field* starts at the first pressure\n"
+          "level (i.e. cloudbox_limits[0] is 0). The method copies *cloudbox_field*\n"
+          "to fill *spectral_radiance_field* up to the top of the cloudbox.\n"
+          "\n"
+          "To fill the remaning part of *spectral_radiance_field*, clear-sky\n"
+          "calculations are performed largely in the same maner as done by\n"
+          "*spectral_radiance_fieldClearskyPlaneParallel*. That is, clear-sky\n"
+          "calculations are done for the upper part of the atmosphere, assuming\n"
+          "a flat planet.\n"
+          "\n"
+          "Note that the cloud box constitutes the lower boundary for the later\n"
+          "calculations, and *iy_cloudbox_agenda* must be set to perform an\n"
+          "interpolation of the cloudbox field.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("spectral_radiance_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("propmat_clearsky_agenda",
+         "water_p_eq_agenda",
+         "iy_space_agenda",
+         "iy_surface_agenda",
+         "iy_cloudbox_agenda",
+         "stokes_dim",
+         "f_grid",
+         "atmosphere_dim",
+         "p_grid",
+         "z_field",
+         "t_field",
+         "nlte_field",
+         "vmr_field",
+         "abs_species",
+         "wind_u_field",
+         "wind_v_field",
+         "wind_w_field",
+         "mag_u_field",
+         "mag_v_field",
+         "mag_w_field",
+         "z_surface",
+         "cloudbox_on",
+         "cloudbox_limits",
+         "doit_i_field",
+         "ppath_lmax",
+         "rte_alonglos_v",
+         "surface_props_data",
+         "scat_za_grid"),
+      GIN("use_parallel_iy"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("0"),
+      GIN_DESC("0: Parallelize over zenith angles\n"
+               "1: Use more memory intensiv iyEmissionStandardParallel*")));
 
   md_data_raw.push_back(MdRecord(
       NAME("specular_losCalc"),
