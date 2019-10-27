@@ -1,0 +1,136 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# Test and compares three manners to set spectral_radiance_field
+#
+# 2019-10-27, Patrick Eriksson
+
+Arts2 {
+
+INCLUDE "general/general.arts"
+INCLUDE "general/continua.arts"
+INCLUDE "general/agendas.arts"
+INCLUDE "general/planet_earth.arts"
+
+
+# Agenda for scalar gas absorption calculation
+Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
+
+# on-the-fly absorption
+Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__OnTheFly )
+
+# cosmic background radiation
+Copy( iy_space_agenda, iy_space_agenda__CosmicBackground )
+
+# sensor-only path
+Copy( ppath_agenda, ppath_agenda__FollowSensorLosPath )
+NumericSet( ppath_lmax, 100 )
+
+# Geometrical path calculation (i.e., refraction neglected)
+#
+Copy( ppath_step_agenda, ppath_step_agenda__GeometricPath )
+
+# Standard RT agendas
+#
+Copy( iy_main_agenda, iy_main_agenda__Emission )
+
+
+# Definition of species
+# 
+abs_speciesSet( species= [ "N2-SelfContStandardType",
+                           "O2-PWR98",
+                           "H2O-PWR98" ] )
+
+
+# No line data needed here
+# 
+abs_lines_per_speciesSetEmpty
+
+
+# Atmosphere
+#
+AtmosphereSet1D
+VectorNLogSpace( p_grid, 161, 1013e2, 1 )
+AtmRawRead( basename = "testdata/tropical" )
+#
+AtmFieldsCalc
+
+
+# Define (a blacbody) surface
+#
+MatrixSet( z_surface, [0] )
+Copy( iy_surface_agenda, iy_surface_agenda__UseSurfaceRtprop )
+Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )
+
+# Map this to variables used by DISORT
+#
+VectorSet( surface_scalar_reflectivity, [0] )
+VectorExtractFromMatrix( rtp_pos, z_surface, 0, "row" )
+InterpAtmFieldToPosition( out=surface_skin_t, field=t_field )
+
+
+
+
+# Frequencies and Stokes dim.
+#
+IndexSet( stokes_dim, 1 )
+VectorSet( f_grid, [184e9] )
+
+
+# Stuff not used
+#
+jacobianOff
+sensorOff
+
+# Create a za_grid
+#
+AngularGridsSetFluxCalc( N_za_grid = 38 )
+
+# Perform checks
+#
+abs_xsec_agenda_checkedCalc
+propmat_clearsky_agenda_checkedCalc
+atmfields_checkedCalc( bad_partition_functions_ok = 1 )
+atmgeom_checkedCalc
+FlagOn( sensor_checked ) 
+
+
+# We start with pure clear-sky calculations
+#
+cloudboxOff
+cloudbox_checkedCalc
+#
+Tensor3Create( dummy )
+#
+spectral_radiance_fieldClearskyPlaneParallel( trans_field = dummy )
+#
+Tensor7Create( ref_field )
+Copy( ref_field, spectral_radiance_field )
+WriteXML( "binary", z_field, "z.xml" )
+WriteXML( "binary", spectral_radiance_field, "f1.xml" )
+
+# Activate cloudbox, but no particles
+#
+cloudboxSetFullAtm
+pnd_fieldZero
+
+
+# Set spectral_radiance_field on full DISORT calculation
+#
+scat_data_checkedCalc
+DisortCalc( nstreams = 8 )
+spectral_radiance_fieldCopyCloudboxField
+#
+WriteXML( "binary", spectral_radiance_field, "f2.xml" )
+Compare( ref_field, spectral_radiance_field, 5e-18 )
+Copy( ref_field, spectral_radiance_field )
+
+
+# Crop cloudbox_field around 10 km and use a third method
+#
+doit_i_fieldCrop( new_limit1 = 18 )
+Copy( iy_cloudbox_agenda, iy_cloudbox_agenda__QuadInterpField1D )
+spectral_radiance_fieldExpandCloudboxField
+WriteXML( "binary", spectral_radiance_field, "f3.xml" )
+Compare( ref_field, spectral_radiance_field, 5e-18 )
+
+}
