@@ -41,7 +41,6 @@ Rational Absorption::Lines::LowerQuantumNumber(size_t k, QuantumNumberType qnt) 
   for(size_t i=0; i<mlocalquanta.size(); i++)
     if(mlocalquanta[i] == qnt)
       return mlines[k].LowerQuantumNumber(i);
-  
   return mquantumidentity.LowerQuantumNumber(qnt);
 }
 
@@ -49,7 +48,20 @@ Rational Absorption::Lines::UpperQuantumNumber(size_t k, QuantumNumberType qnt) 
   for(size_t i=0; i<mlocalquanta.size(); i++)
     if(mlocalquanta[i] == qnt)
       return mlines[k].UpperQuantumNumber(i);
-  
+  return mquantumidentity.UpperQuantumNumber(qnt);
+}
+
+Rational& Absorption::Lines::LowerQuantumNumber(size_t k, QuantumNumberType qnt) noexcept {
+  for(size_t i=0; i<mlocalquanta.size(); i++)
+    if(mlocalquanta[i] == qnt)
+      return mlines[k].LowerQuantumNumber(i);  
+  return mquantumidentity.LowerQuantumNumber(qnt);
+}
+
+Rational& Absorption::Lines::UpperQuantumNumber(size_t k, QuantumNumberType qnt) noexcept {
+  for(size_t i=0; i<mlocalquanta.size(); i++)
+    if(mlocalquanta[i] == qnt)
+      return mlines[k].UpperQuantumNumber(i);
   return mquantumidentity.UpperQuantumNumber(qnt);
 }
 

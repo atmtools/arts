@@ -33,6 +33,11 @@
 #include "global_data.h"
 #include "xml_io_private.h"
 
+/////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////// Reading old/external functions
+/////////////////////////////////////////////////////////////////////////////////////
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
                         const String& artscat_file,
                         const Numeric& fmin,
@@ -165,7 +170,7 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   }
 }
 
-
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
                  const String& artscat_file,
                  const Numeric& fmin,
@@ -290,7 +295,6 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
     abs_lines.push_back(lines);
 }
 
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
                       const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -299,7 +303,8 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
                       const Numeric& fmax,
                       const String& globalquantumnumbers,
                       const String& localquantumnumbers,
-                      const Verbosity& verbosity) {
+                      const Verbosity& verbosity)
+{
   using global_data::species_data;
   
   // Build a set of species indices. Duplicates are ignored.
@@ -351,6 +356,7 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
     band.sort_by_frequency();
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
                 const String& hitran_file,
                 const Numeric& fmin,
@@ -420,6 +426,7 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
     abs_lines.push_back(lines);
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ReadLBLRTM(ArrayOfAbsorptionLines& abs_lines,
                 const String& lblrtm_file,
                 const Numeric& fmin,
@@ -482,6 +489,7 @@ void ReadLBLRTM(ArrayOfAbsorptionLines& abs_lines,
     abs_lines.push_back(lines);
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ReadMytran2(ArrayOfAbsorptionLines& abs_lines,
                  const String& mytran2_file,
                  const Numeric& fmin,
@@ -544,6 +552,7 @@ void ReadMytran2(ArrayOfAbsorptionLines& abs_lines,
     abs_lines.push_back(lines);
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ReadJPL(ArrayOfAbsorptionLines& abs_lines,
              const String& jpl_file,
              const Numeric& fmin,
@@ -606,6 +615,11 @@ void ReadJPL(ArrayOfAbsorptionLines& abs_lines,
     abs_lines.push_back(lines);
 }
 
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////// IO of AbsorptionLines
+/////////////////////////////////////////////////////////////////////////////////////
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesWriteSplitXML(const String& output_format,
                             const ArrayOfAbsorptionLines& abs_lines,
                             const String& basename,
@@ -627,6 +641,7 @@ void abs_linesWriteSplitXML(const String& output_format,
   }
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesWriteSplitXML(const String& output_format,
                                         const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
                                         const String& basename,
@@ -650,6 +665,93 @@ void abs_lines_per_speciesWriteSplitXML(const String& output_format,
   }
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesReadSplitCatalog(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                           const ArrayOfArrayOfSpeciesTag& abs_species,
+                                           const String& basename,
+                                           const Verbosity& verbosity)
+{
+  using global_data::species_data;
+  
+  // Build a set of species indices. Duplicates are ignored.
+  std::set<Index> unique_species;
+  for (auto asp = abs_species.begin(); asp != abs_species.end(); asp++) {
+    for (ArrayOfSpeciesTag::const_iterator sp = asp->begin(); sp != asp->end(); sp++) {
+      if (sp->Type() == SpeciesTag::TYPE_PLAIN || sp->Type() == SpeciesTag::TYPE_ZEEMAN) {
+        unique_species.insert(sp->Species());
+      }
+    }
+  }
+  
+  String tmpbasename = basename;
+  if (basename.length() && basename[basename.length() - 1] != '/') {
+    tmpbasename += '.';
+  }
+  
+  // Read catalogs for each identified species and put them all into
+  // abs_lines
+  ArrayOfAbsorptionLines abs_lines(0);
+  for (auto it = unique_species.begin(); it != unique_species.end(); it++) {
+    for (Index k=0; k<species_data[*it].Isotopologue().nelem(); k++) {
+      String filename;
+      Index i = 0;
+      do {
+        filename = tmpbasename + species_data[*it].FullName(k) + '.' + std::to_string(i) + ".xml";
+        if (find_xml_file_existence(filename)) {
+          abs_lines.push_back(AbsorptionLines());
+          xml_read_from_file(filename, abs_lines.back(), verbosity);
+          i++;
+        } else {
+          break;
+        }
+      } while (true);
+    }
+  }
+  
+  abs_lines_per_speciesCreateFromLines(abs_lines_per_species, abs_lines, abs_species, verbosity);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////// Manipulation of quantum numbers
+/////////////////////////////////////////////////////////////////////////////////////
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesSetQuantumNumberForMatch(ArrayOfAbsorptionLines& abs_lines,
+                                       const String& qn,
+                                       const Rational& x,
+                                       const QuantumIdentifier& QI,
+                                       const Verbosity&)
+{
+  auto QN = string2quantumnumbertype(qn);
+  if (QN == QuantumNumberType::FINAL_ENTRY) {
+    ostringstream os;
+    os << "Usupported quantum number key: " << qn << '\n';
+    throw std::runtime_error(os.str());
+  }
+  
+  for (auto& band: abs_lines) {
+    for (Index k=0; k<band.NumLines(); k++) {
+      if (Absorption::id_in_line_lower(band, QI, k)) {
+        band.LowerQuantumNumber(k, QN) = x;
+      } else if (Absorption::id_in_line_upper(band, QI, k)) {
+        band.UpperQuantumNumber(k, QN) = x;
+      }
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesSetQuantumNumberForMatch(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                                   const String& qn,
+                                                   const Rational& x,
+                                                   const QuantumIdentifier& QI,
+                                                   const Verbosity& v)
+{
+  for (auto& band: abs_lines_per_species)
+    abs_linesSetQuantumNumberForMatch(band, qn, x, QI, v);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesTruncateGlobalQuantumNumbers(ArrayOfAbsorptionLines& abs_lines,
                                            const Verbosity&)
 {
@@ -679,6 +781,7 @@ void abs_linesTruncateGlobalQuantumNumbers(ArrayOfAbsorptionLines& abs_lines,
     lines.sort_by_frequency();
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesRemoveUnusedLocalQuantumNumbers(ArrayOfAbsorptionLines& abs_lines,
                                               const Verbosity&)
 {
@@ -687,7 +790,11 @@ void abs_linesRemoveUnusedLocalQuantumNumbers(ArrayOfAbsorptionLines& abs_lines,
   }
 }
 
+/////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////// Incremental change of abs_lines content
+/////////////////////////////////////////////////////////////////////////////////////
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesReplaceWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& replacing_lines, const Verbosity&)
 {
   for (auto& rlines: replacing_lines) {
@@ -718,7 +825,7 @@ void abs_linesReplaceWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfA
   }
 }
 
-
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesAppendWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& appending_lines, const Verbosity&)
 {
   std::vector<AbsorptionLines> addedlines(0);
@@ -756,7 +863,7 @@ void abs_linesAppendWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAb
   }
 }
 
-
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesDeleteWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& deleting_lines, const Verbosity&)
 {
   for (auto& dlines: deleting_lines) {
@@ -790,6 +897,15 @@ void abs_linesDeleteWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAb
   }
 }
 
+/////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////// Change of style of computations for whole bands
+/////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////
+///////////////////////////////// Change Cutoff Frequency
+/////////////////////////////////////////////////////////
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesSetCutoff(ArrayOfAbsorptionLines& abs_lines,
                         const String& type,
                         const Numeric& x,
@@ -802,50 +918,7 @@ void abs_linesSetCutoff(ArrayOfAbsorptionLines& abs_lines,
   }
 }
 
-void abs_linesSetMirroring(ArrayOfAbsorptionLines& abs_lines,
-                           const String& type,
-                           const Verbosity&) 
-{
-  auto t = Absorption::string2mirroringtype(type);
-  for (auto& lines: abs_lines)
-    lines.Mirroring(t);
-}
-
-void abs_linesSetPopulation(ArrayOfAbsorptionLines& abs_lines,
-                            const String& type,
-                            const Verbosity&) 
-{
-  auto t = Absorption::string2populationtype(type);
-  for (auto& lines: abs_lines)
-    lines.Population(t);
-}
-
-void abs_linesSetNormalization(ArrayOfAbsorptionLines& abs_lines,
-                           const String& type,
-                           const Verbosity&) 
-{
-  auto t = Absorption::string2normalizationtype(type);
-  for (auto& lines: abs_lines)
-    lines.Normalization(t);
-}
-
-void abs_linesSetLineShapeType(ArrayOfAbsorptionLines& abs_lines,
-                               const String& type,
-                               const Verbosity&) 
-{
-  auto t = LineShape::string2shapetype(type);
-  for (auto& lines: abs_lines)
-    lines.LineShapeType(t);
-}
-
-void abs_linesSetLinemixingLimit(ArrayOfAbsorptionLines& abs_lines,
-                                 const Numeric& x,
-                                 const Verbosity&) 
-{
-  for (auto& lines: abs_lines)
-    lines.LinemixingLimit(x);
-}
-
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesSetCutoff(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
                                     const String& type,
                                     const Numeric& x,
@@ -855,44 +928,34 @@ void abs_lines_per_speciesSetCutoff(ArrayOfArrayOfAbsorptionLines& abs_lines_per
     abs_linesSetCutoff(abs_lines, type, x, v);
 }
 
-void abs_lines_per_speciesSetMirroring(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                       const String& type,
-                                       const Verbosity& v) 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesSetCutoffForMatch(
+  ArrayOfAbsorptionLines& abs_lines,
+  const String& type,
+  const Numeric& x,
+  const QuantumIdentifier& QI,
+  const Verbosity&)
 {
-  for (auto& abs_lines: abs_lines_per_species)
-    abs_linesSetMirroring(abs_lines, type, v);
+  auto t = Absorption::string2cutofftype(type);
+  for (auto& band: abs_lines) {
+    if (QI.In(band.QuantumIdentity())) {
+      band.Cutoff(t);
+      band.CutoffFreqValue(x);
+    }
+  }
 }
 
-void abs_lines_per_speciesSetPopulation(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                        const String& type,
-                                        const Verbosity& v) 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesSetCutoffForMatch(
+  ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+  const String& type,
+  const Numeric& x,
+  const QuantumIdentifier& QI,
+  const Verbosity& verbosity)
 {
-  for (auto& abs_lines: abs_lines_per_species)
-    abs_linesSetPopulation(abs_lines, type, v);
-}
-
-void abs_lines_per_speciesSetNormalization(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                           const String& type,
-                                           const Verbosity& v) 
-{
-  for (auto& abs_lines: abs_lines_per_species)
-    abs_linesSetNormalization(abs_lines, type, v);
-}
-
-void abs_lines_per_speciesSetLineShapeType(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                           const String& type,
-                                           const Verbosity& v) 
-{
-  for (auto& abs_lines: abs_lines_per_species)
-    abs_linesSetLineShapeType(abs_lines, type, v);
-}
-
-void abs_lines_per_speciesSetLinemixingLimit(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                             const Numeric& x,
-                                             const Verbosity& v) 
-{
-  for (auto& abs_lines: abs_lines_per_species)
-    abs_linesSetLinemixingLimit(abs_lines, x, v);
+  for (auto& lines: abs_lines_per_species) {
+    abs_linesSetCutoffForMatch(lines, type, x, QI, verbosity);
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -914,6 +977,53 @@ void abs_lines_per_speciesSetCutoffForSpecies(
   }
 }
 
+/////////////////////////////////////////////////////////
+////////////////////////////////// Change Mirroring Style
+/////////////////////////////////////////////////////////
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesSetMirroring(ArrayOfAbsorptionLines& abs_lines,
+                           const String& type,
+                           const Verbosity&) 
+{
+  auto t = Absorption::string2mirroringtype(type);
+  for (auto& lines: abs_lines)
+    lines.Mirroring(t);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesSetMirroring(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                       const String& type,
+                                       const Verbosity& v) 
+{
+  for (auto& abs_lines: abs_lines_per_species)
+    abs_linesSetMirroring(abs_lines, type, v);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesSetMirroringForMatch(ArrayOfAbsorptionLines& abs_lines,
+                                   const String& type,
+                                   const QuantumIdentifier& QI,
+                                   const Verbosity&) 
+{
+  auto t = Absorption::string2mirroringtype(type);
+  for (auto& band: abs_lines) {
+    if (QI.In(band.QuantumIdentity())) {
+      band.Mirroring(t);
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesSetMirroringForMatch(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                               const String& type,
+                                               const QuantumIdentifier& QI,
+                                               const Verbosity& v) 
+{
+  for (auto& abs_lines: abs_lines_per_species)
+    abs_linesSetMirroringForMatch(abs_lines, type, QI, v);
+}
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesSetMirroringForSpecies(
   ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
@@ -930,6 +1040,51 @@ void abs_lines_per_speciesSetMirroringForSpecies(
       abs_linesSetMirroring(abs_lines_per_species[ispec], type, verbosity);
     }
   }
+}
+
+/////////////////////////////////////////////////////////
+///////////////////////////////// Change Population Style
+/////////////////////////////////////////////////////////
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesSetPopulation(ArrayOfAbsorptionLines& abs_lines,
+                            const String& type,
+                            const Verbosity&) 
+{
+  auto t = Absorption::string2populationtype(type);
+  for (auto& lines: abs_lines)
+    lines.Population(t);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesSetPopulation(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                        const String& type,
+                                        const Verbosity& v) 
+{
+  for (auto& abs_lines: abs_lines_per_species)
+    abs_linesSetPopulation(abs_lines, type, v);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesSetPopulationForMatch(ArrayOfAbsorptionLines& abs_lines,
+                                    const String& type,
+                                    const QuantumIdentifier& QI,
+                                    const Verbosity&) 
+{
+  auto t = Absorption::string2populationtype(type);
+  for (auto& lines: abs_lines)
+    if (QI.In(lines.QuantumIdentity()))
+      lines.Population(t);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesSetPopulationForMatch(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                                const String& type,
+                                                const QuantumIdentifier& QI,
+                                                const Verbosity& v) 
+{
+  for (auto& abs_lines: abs_lines_per_species)
+    abs_linesSetPopulationForMatch(abs_lines, type, QI, v);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -950,6 +1105,51 @@ void abs_lines_per_speciesSetPopulationForSpecies(
   }
 }
 
+/////////////////////////////////////////////////////////
+////////////////////////////// Change Normalization Style
+/////////////////////////////////////////////////////////
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesSetNormalization(ArrayOfAbsorptionLines& abs_lines,
+                           const String& type,
+                           const Verbosity&) 
+{
+  auto t = Absorption::string2normalizationtype(type);
+  for (auto& lines: abs_lines)
+    lines.Normalization(t);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesSetNormalization(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                           const String& type,
+                                           const Verbosity& v) 
+{
+  for (auto& abs_lines: abs_lines_per_species)
+    abs_linesSetNormalization(abs_lines, type, v);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesSetNormalizationForMatch(ArrayOfAbsorptionLines& abs_lines,
+                                       const String& type,
+                                       const QuantumIdentifier& QI,
+                                       const Verbosity&) 
+{
+  auto t = Absorption::string2normalizationtype(type);
+  for (auto& lines: abs_lines)
+    if (QI.In(lines.QuantumIdentity()))
+      lines.Normalization(t);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesSetNormalizationForMatch(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                                   const String& type,
+                                                   const QuantumIdentifier& QI,
+                                                   const Verbosity& v) 
+{
+  for (auto& abs_lines: abs_lines_per_species)
+    abs_linesSetNormalizationForMatch(abs_lines, type, QI, v);
+}
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesSetNormalizationForSpecies(
   ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
@@ -966,6 +1166,51 @@ void abs_lines_per_speciesSetNormalizationForSpecies(
       abs_linesSetNormalization(abs_lines_per_species[ispec], type, verbosity);
     }
   }
+}
+
+/////////////////////////////////////////////////////////
+///////////////////////////////// Change Line Shape Style
+/////////////////////////////////////////////////////////
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesSetLineShapeType(ArrayOfAbsorptionLines& abs_lines,
+                               const String& type,
+                               const Verbosity&) 
+{
+  auto t = LineShape::string2shapetype(type);
+  for (auto& lines: abs_lines)
+    lines.LineShapeType(t);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesSetLineShapeType(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                           const String& type,
+                                           const Verbosity& v) 
+{
+  for (auto& abs_lines: abs_lines_per_species)
+    abs_linesSetLineShapeType(abs_lines, type, v);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesSetLineShapeTypeForMatch(ArrayOfAbsorptionLines& abs_lines,
+                                       const String& type,
+                                       const QuantumIdentifier& QI,
+                                       const Verbosity&) 
+{
+  auto t = LineShape::string2shapetype(type);
+  for (auto& lines: abs_lines)
+    if (QI.In(lines.QuantumIdentity()))
+      lines.LineShapeType(t);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesSetLineShapeTypeForMatch(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                                   const String& type,
+                                                   const QuantumIdentifier& QI,
+                                                   const Verbosity& v) 
+{
+  for (auto& abs_lines: abs_lines_per_species)
+    abs_linesSetLineShapeTypeForMatch(abs_lines, type, QI, v);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -986,6 +1231,49 @@ void abs_lines_per_speciesSetLineShapeTypeForSpecies(
   }
 }
 
+/////////////////////////////////////////////////////////
+//////////////////////////////// Change Line Mixing Limit
+/////////////////////////////////////////////////////////
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesSetLinemixingLimit(ArrayOfAbsorptionLines& abs_lines,
+                                 const Numeric& x,
+                                 const Verbosity&) 
+{
+  for (auto& lines: abs_lines)
+    lines.LinemixingLimit(x);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesSetLinemixingLimit(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                             const Numeric& x,
+                                             const Verbosity& v) 
+{
+  for (auto& abs_lines: abs_lines_per_species)
+    abs_linesSetLinemixingLimit(abs_lines, x, v);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesSetLinemixingLimitForMatch(ArrayOfAbsorptionLines& abs_lines,
+                                         const Numeric& x,
+                                         const QuantumIdentifier& QI,
+                                         const Verbosity&) 
+{
+  for (auto& lines: abs_lines)
+    if (QI.In(lines.QuantumIdentity()))
+      lines.LinemixingLimit(x);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesSetLinemixingLimitForMatch(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                                     const Numeric& x,
+                                                     const QuantumIdentifier& QI,
+                                                     const Verbosity& v) 
+{
+  for (auto& abs_lines: abs_lines_per_species)
+    abs_linesSetLinemixingLimitForMatch(abs_lines, x, QI, v);
+}
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesSetLinemixingLimitForSpecies(
   ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
@@ -1004,6 +1292,11 @@ void abs_lines_per_speciesSetLinemixingLimitForSpecies(
   }
 }
 
+/////////////////////////////////////////////////////////
+//////////////////////////// Change Reference Temperature
+/////////////////////////////////////////////////////////
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesSetT0(ArrayOfAbsorptionLines& abs_lines,
                     const Numeric& x,
                     const Verbosity&) 
@@ -1012,12 +1305,34 @@ void abs_linesSetT0(ArrayOfAbsorptionLines& abs_lines,
     lines.T0(x);
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesSetT0(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
                                 const Numeric& x,
                                 const Verbosity& v) 
 {
   for (auto& abs_lines: abs_lines_per_species)
     abs_linesSetT0(abs_lines, x, v);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesSetT0ForMatch(ArrayOfAbsorptionLines& abs_lines,
+                            const Numeric& x,
+                            const QuantumIdentifier& QI,
+                            const Verbosity&) 
+{
+  for (auto& lines: abs_lines)
+    if (QI.In(lines.QuantumIdentity()))
+      lines.T0(x);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesSetT0ForMatch(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                        const Numeric& x,
+                                        const QuantumIdentifier& QI,
+                                        const Verbosity& v) 
+{
+  for (auto& abs_lines: abs_lines_per_species)
+    abs_linesSetT0ForMatch(abs_lines, x, QI, v);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1037,6 +1352,10 @@ void abs_lines_per_speciesSetT0ForSpecies(
     }
   }
 }
+
+/////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////// Change values for individual lines
+/////////////////////////////////////////////////////////////////////////////////////
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesChangeBaseParameterForMatchingLines(ArrayOfAbsorptionLines& abs_lines,
@@ -1058,12 +1377,16 @@ void abs_linesChangeBaseParameterForMatchingLines(ArrayOfAbsorptionLines& abs_li
     parameter_switch = 1;
   else if (parameter_name == "Lower State Energy")
     parameter_switch = 4;
-  else if (parameter_name == "Einstein")
+  else if (parameter_name == "Einstein Coefficient")
     parameter_switch = 5;
   else if (parameter_name == "Lower Statistical Weight")
     parameter_switch = 6;
   else if (parameter_name == "Upper Statistical Weight")
     parameter_switch = 7;
+  else if (parameter_name == "Lower Zeeman Coefficient")
+    parameter_switch = 8;
+  else if (parameter_name == "Upper Zeeman Coefficient")
+    parameter_switch = 9;
 
   for (auto& band: abs_lines) {
     for (Index k=0; k<band.NumLines(); k++) {
@@ -1105,6 +1428,18 @@ void abs_linesChangeBaseParameterForMatchingLines(ArrayOfAbsorptionLines& abs_li
               band.g_upp(k) += change;
             else
               band.g_upp(k) *= 1.0e0 + change;
+            break;
+          case 8:  // "Lower Zeeman Coefficient":
+            if (relative == 0)
+              band.Line(k).Zeeman().gl() += change;
+            else
+              band.Line(k).Zeeman().gl() *= 1.0e0 + change;
+            break;
+          case 9:  // "Upper Zeeman Coefficient":
+            if (relative == 0)
+              band.Line(k).Zeeman().gu() += change;
+            else
+              band.Line(k).Zeeman().gu() *= 1.0e0 + change;
             break;
           default: {
             ostringstream os;
@@ -1174,12 +1509,16 @@ void abs_linesSetBaseParameterForMatchingLines(ArrayOfAbsorptionLines& abs_lines
     parameter_switch = 1;
   else if (parameter_name == "Lower State Energy")
     parameter_switch = 4;
-  else if (parameter_name == "Einstein")
+  else if (parameter_name == "Einstein Coefficient")
     parameter_switch = 5;
   else if (parameter_name == "Lower Statistical Weight")
     parameter_switch = 6;
   else if (parameter_name == "Upper Statistical Weight")
     parameter_switch = 7;
+  else if (parameter_name == "Lower Zeeman Coefficient")
+    parameter_switch = 8;
+  else if (parameter_name == "Upper Zeeman Coefficient")
+    parameter_switch = 9;
   
   for (auto& band: abs_lines) {
     for (Index k=0; k<band.NumLines(); k++) {
@@ -1204,6 +1543,12 @@ void abs_linesSetBaseParameterForMatchingLines(ArrayOfAbsorptionLines& abs_lines
           case 7:  // "Upper Statistical Weight":
             band.g_upp(k) = x;
             break;
+          case 8:
+            band.Line(k).Zeeman().gl() = x;
+            break;
+          case 9:
+            band.Line(k).Zeeman().gu() = x;
+            break;
           default: {
             ostringstream os;
             os << "Usupported paramter_name\n"
@@ -1213,7 +1558,7 @@ void abs_linesSetBaseParameterForMatchingLines(ArrayOfAbsorptionLines& abs_lines
             break;
           }
         }
-        }
+      }
     }
   }
 }
@@ -1262,30 +1607,31 @@ void abs_linesChangeLineShapeModelParameterForMatchingLines(
     const Index& relative,
     const Verbosity&)
 {
-  // Set the spec index to negative 101 if species is self and negative 102 if species is bath and to the species otherwise
-  const Index spec = species == LineShape::self_broadening ? -101 :
-                     species == LineShape::bath_broadening ? -102 :
-                     SpeciesTag(species).Species();
+  const bool do_self = species == LineShape::self_broadening;
+  const bool do_bath = species == LineShape::bath_broadening;
+  
+  // Set the spec index if possible
+  const Index spec = (do_self or do_bath) ? -1 : SpeciesTag(species).Species();
 
   const LineShape::Variable var = LineShape::string2variable(parameter);
   
   for (auto& band: abs_lines) {
     for (Index k=0; k<band.NumLines(); k++) {
       if (Absorption::id_in_line(band, QI, k)) {
-        if (spec == -101 and band.Self()) {
+        if (do_self and band.Self()) {
           if (relative) {
             SingleModelParameter(band.Line(k).LineShape().Data().front().Data()[Index(var)], coefficient) *= 1 + x;
           } else {
             SingleModelParameter(band.Line(k).LineShape().Data().front().Data()[Index(var)], coefficient) += x;
           }
-        } else if (spec == -102 and band.Bath()) {
+        } else if (do_bath and band.Bath()) {
           if (relative) {
             SingleModelParameter(band.Line(k).LineShape().Data().back().Data()[Index(var)], coefficient) *= 1 + x;
           } else {
             SingleModelParameter(band.Line(k).LineShape().Data().back().Data()[Index(var)], coefficient) += x;
           }
         } else {
-          for (Index i=0; i<band.BroadeningSpecies().nelem(); i++) {
+          for (Index i=band.Self(); i<band.BroadeningSpecies().nelem()-band.Bath(); i++) {
             if (spec == band.BroadeningSpecies()[i].Species()) {
               if (relative) {
                 SingleModelParameter(band.Line(k).LineShape().Data()[i].Data()[Index(var)], coefficient) *= 1 + x;
@@ -1350,22 +1696,23 @@ void abs_linesSetLineShapeModelParameterForMatchingLines(
     const Numeric& new_value,
     const Verbosity&)
 {
-  // Set the spec index to negative 101 if species is self and negative 102 if species is bath and to the species otherwise
-  const Index spec = species == LineShape::self_broadening ? -101 :
-                     species == LineShape::bath_broadening ? -102 :
-                     SpeciesTag(species).Species();
+  const bool do_self = species == LineShape::self_broadening;
+  const bool do_bath = species == LineShape::bath_broadening;
+  
+  // Set the spec index if possible
+  const Index spec = (do_self or do_bath) ? -1 : SpeciesTag(species).Species();
 
   const LineShape::Variable var = LineShape::string2variable(parameter);
   
   for (auto& band: abs_lines) {
     for (Index k=0; k<band.NumLines(); k++) {
       if (Absorption::id_in_line(band, QI, k)) {
-        if (spec == -101 and band.Self()) {
+        if (do_self and band.Self()) {
           SingleModelParameter(band.Line(k).LineShape().Data().front().Data()[Index(var)], coefficient) = new_value;
-        } else if (spec == -102 and band.Bath()) {
+        } else if (do_bath and band.Bath()) {
           SingleModelParameter(band.Line(k).LineShape().Data().back().Data()[Index(var)], coefficient) = new_value;
         } else {
-          for (Index i=0; i<band.BroadeningSpecies().nelem(); i++) {
+          for (Index i=band.Self(); i<band.BroadeningSpecies().nelem()-band.Bath(); i++) {
             if (spec == band.BroadeningSpecies()[i].Species()) {
               SingleModelParameter(band.Line(k).LineShape().Data()[i].Data()[Index(var)], coefficient) = new_value;
             }
@@ -1414,12 +1761,183 @@ void abs_lines_per_speciesSetLineShapeModelParameterForSpecies(
   }
 }
 
+/////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////// Change values for individual levels
+/////////////////////////////////////////////////////////////////////////////////////
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesChangeBaseParameterForMatchingLevels(ArrayOfAbsorptionLines& abs_lines,
+                                                   const QuantumIdentifier& QI,
+                                                   const String& parameter_name,
+                                                   const Numeric& change,
+                                                   const Index& relative,
+                                                   const Verbosity&)
+{
+  if (QI.Type() not_eq QuantumIdentifier::ENERGY_LEVEL) {
+    std::ostringstream os;
+    os << "Bad input.  Must be energy level.  Is: " << QI << '\n';
+    throw std::runtime_error(os.str());
+  }
+  
+  Index parameter_switch = -1;
+  
+  if (parameter_name.nelem() == 0)
+    throw std::runtime_error("parameter_name is empty.\n");
+  else if (parameter_name == "Statistical Weight")
+    parameter_switch = 1;
+  else if (parameter_name == "Zeeman Coefficient")
+    parameter_switch = 2;
+  
+  for (auto& band: abs_lines) {
+    for (Index k=0; k<band.NumLines(); k++) {
+      if (Absorption::id_in_line_lower(band, QI, k)) {
+        switch (parameter_switch) {
+          case 1:  // "Statistical Weight":
+            if (relative == 0)
+              band.g_low(k) += change;
+            else
+              band.g_low(k) *= 1.0e0 + change;
+            break;
+          case 2:  // "Zeeman Coefficient":
+            if (relative == 0)
+              band.Line(k).Zeeman().gl() += change;
+            else
+              band.Line(k).Zeeman().gl() *= 1.0e0 + change;
+            break;
+          default: {
+            ostringstream os;
+            os << "Usupported paramter_name\n"
+            << parameter_name
+            << "\nSee method description for supported parameter names.\n";
+            throw std::runtime_error(os.str());
+            break;
+          }
+        }
+      } else if (Absorption::id_in_line_upper(band, QI, k)) {
+        switch (parameter_switch) {
+          case 1:  // "Statistical Weight":
+            if (relative == 0)
+              band.g_upp(k) += change;
+            else
+              band.g_upp(k) *= 1.0e0 + change;
+            break;
+          case 2:  // "Zeeman Coefficient":
+            if (relative == 0)
+              band.Line(k).Zeeman().gu() += change;
+            else
+              band.Line(k).Zeeman().gu() *= 1.0e0 + change;
+            break;
+          default: {
+            ostringstream os;
+            os << "Usupported paramter_name\n"
+            << parameter_name
+            << "\nSee method description for supported parameter names.\n";
+            throw std::runtime_error(os.str());
+            break;
+          }
+        }
+      }
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesChangeBaseParameterForMatchingLevels(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                                               const QuantumIdentifier& QI,
+                                                               const String& parameter_name,
+                                                               const Numeric& change,
+                                                               const Index& relative,
+                                                               const Verbosity& verbosity)
+{
+  for (auto& lines: abs_lines_per_species)
+    abs_linesChangeBaseParameterForMatchingLevels(lines, QI, parameter_name, change, relative, verbosity);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesSetBaseParameterForMatchingLevels(ArrayOfAbsorptionLines& abs_lines,
+                                                const QuantumIdentifier& QI,
+                                                const String& parameter_name,
+                                                const Numeric& x,
+                                                const Verbosity&)
+{
+  if (QI.Type() not_eq QuantumIdentifier::ENERGY_LEVEL) {
+    std::ostringstream os;
+    os << "Bad input.  Must be energy level.  Is: " << QI << '\n';
+    throw std::runtime_error(os.str());
+  }
+  
+  Index parameter_switch = -1;
+  
+  if (parameter_name.nelem() == 0)
+    throw std::runtime_error("parameter_name is empty.\n");
+  else if (parameter_name == "Statistical Weight")
+    parameter_switch = 1;
+  else if (parameter_name == "Zeeman Coefficient")
+    parameter_switch = 2;
+  
+  for (auto& band: abs_lines) {
+    for (Index k=0; k<band.NumLines(); k++) {
+      if (Absorption::id_in_line_lower(band, QI, k)) {
+        switch (parameter_switch) {
+          case 1:  // "Statistical Weight":
+            band.g_low(k) = x;
+            break;
+          case 2:  // "Zeeman Coefficient":
+            band.Line(k).Zeeman().gl() = x;
+            break;
+          default: {
+            ostringstream os;
+            os << "Usupported paramter_name\n"
+            << parameter_name
+            << "\nSee method description for supported parameter names.\n";
+            throw std::runtime_error(os.str());
+            break;
+          }
+        }
+      } else if (Absorption::id_in_line_upper(band, QI, k)) {
+        switch (parameter_switch) {
+          case 1:  // "Statistical Weight":
+            band.g_upp(k) = x;
+            break;
+          case 2:  // "Zeeman Coefficient":
+            band.Line(k).Zeeman().gu() += x;
+            break;
+          default: {
+            ostringstream os;
+            os << "Usupported paramter_name\n"
+            << parameter_name
+            << "\nSee method description for supported parameter names.\n";
+            throw std::runtime_error(os.str());
+            break;
+          }
+        }
+      }
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesSetBaseParameterForMatchingLevels(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                                            const QuantumIdentifier& QI,
+                                                            const String& parameter_name,
+                                                            const Numeric& change,
+                                                            const Verbosity& verbosity)
+{
+  for (auto& lines: abs_lines_per_species)
+    abs_linesSetBaseParameterForMatchingLevels(lines, QI, parameter_name, change, verbosity);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////// Special functions for special problems
+/////////////////////////////////////////////////////////////////////////////////////
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void nlteSetByQuantumIdentifiers(
     Index& nlte_do,
     ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const EnergyLevelMap& nlte_field,
-    const Verbosity&) {
+    const Verbosity&)
+{
   nlte_field.ThrowIfNotOK();
   
   if (nlte_field.Data().empty()) {
@@ -1429,13 +1947,13 @@ void nlteSetByQuantumIdentifiers(
     nlte_do = 1;
   }
   
-  const Absorption::PopulationType poptyp = nlte_field.Energies().nelem() == 0 ? 
+  const Absorption::PopulationType poptyp = nlte_field.Energies().empty() ? 
         Absorption::PopulationType::ByNLTEPopulationDistribution :
         Absorption::PopulationType::ByNLTEVibrationalTemperatures;
 
-  for (auto& id: nlte_field.Levels()) {
-    for (auto& spec_lines: abs_lines_per_species) {
-      for (auto& band: spec_lines) {
+  for (auto& spec_lines: abs_lines_per_species) {
+    for (auto& band: spec_lines) {
+      for (auto& id: nlte_field.Levels()) {
         if (band.QuantumIdentity().UpperQuantumId().In(id) or
             band.QuantumIdentity().LowerQuantumId().In(id)) {
           for (Index k=0; k<band.NumLines(); k++) {
@@ -1454,6 +1972,10 @@ void nlteSetByQuantumIdentifiers(
     }
   }
 }
+
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////// Destructively manipulate content of whole catalog
+/////////////////////////////////////////////////////////////////////////////////////
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesSetEmpty(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
@@ -1491,52 +2013,4 @@ void abs_lines_per_speciesCompact(ArrayOfArrayOfAbsorptionLines& abs_lines_per_s
   for (auto& lines: abs_lines_per_species) {
     abs_linesCompact(lines, f_grid, verbosity);
   }
-}
-
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesReadSplitCatalog(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                           const ArrayOfArrayOfSpeciesTag& abs_species,
-                                           const String& basename,
-                                           const Verbosity& verbosity) {
-  using global_data::species_data;
-  
-  // Build a set of species indices. Duplicates are ignored.
-  std::set<Index> unique_species;
-  for (auto asp = abs_species.begin(); asp != abs_species.end(); asp++) {
-    for (ArrayOfSpeciesTag::const_iterator sp = asp->begin(); sp != asp->end(); sp++) {
-      if (sp->Type() == SpeciesTag::TYPE_PLAIN || sp->Type() == SpeciesTag::TYPE_ZEEMAN) {
-        unique_species.insert(sp->Species());
-      }
-    }
-  }
-  
-  String tmpbasename = basename;
-  if (basename.length() && basename[basename.length() - 1] != '/') {
-    tmpbasename += '.';
-  }
-  
-  // Read catalogs for each identified species and put them all into
-  // abs_lines
-  ArrayOfAbsorptionLines abs_lines(0);
-  for (auto it = unique_species.begin(); it != unique_species.end(); it++) {
-    for (Index k=0; k<species_data[*it].Isotopologue().nelem(); k++) {
-      String filename;
-      Index i = 0;
-      do {
-        filename = tmpbasename + species_data[*it].FullName(k) + '.' + std::to_string(i) + ".xml";
-        if (find_xml_file_existence(filename)) {
-          abs_lines.push_back(AbsorptionLines());
-          xml_read_from_file(filename, abs_lines.back(), verbosity);
-          i++;
-        } else {
-          break;
-        }
-      } while (true);
-    }
-  }
-  
-  abs_lines_per_speciesCreateFromLines(abs_lines_per_species, abs_lines, abs_species, verbosity);
 }

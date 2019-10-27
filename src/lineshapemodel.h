@@ -1031,7 +1031,7 @@ class Model {
                vmrs.begin(),                                                 \
                0.0,                                                          \
                std::plus<Numeric>(),                                         \
-               [=](auto& x, auto vmr) -> Numeric {    \
+               [=](auto& x, auto vmr) -> Numeric {                           \
                  return vmr * x.compute(T, T0, Variable::XVAR);              \
                });                                                           \
   }

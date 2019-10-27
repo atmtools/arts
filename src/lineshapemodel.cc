@@ -488,23 +488,20 @@ Vector LineShape::vmrs(const ConstVectorView& atmospheric_vmrs,
   if (type == Type::DP) return line_vmrs;
   
   // Loop species ignoring self and bath
-  for (Index i = 0; i < lineshape_species.nelem(); i++) {
-    if (bath_in_list and &lineshape_species[i] == &lineshape_species.back()) {
-    } else {
-      // Select target in-case this is self-broadening
-      const auto target =
-      (self_in_list and  &lineshape_species[i] == &lineshape_species.front()) ? self.Species() : lineshape_species[i].Species();
+  for (Index i = 0; i < lineshape_species.nelem()-bath_in_list; i++) {
+    // Select target in-case this is self-broadening
+    const auto target =
+    (self_in_list and  &lineshape_species[i] == &lineshape_species.front()) ? self.Species() : lineshape_species[i].Species();
+    
+    // Find species in list or do nothing at all
+    Index this_species_index = -1;
+    for (Index j = 0; j < atmospheric_species.nelem(); j++)
+      if (atmospheric_species[j][0].Species() == target)
+        this_species_index = j;
       
-      // Find species in list or do nothing at all
-      Index this_species_index = -1;
-      for (Index j = 0; j < atmospheric_species.nelem(); j++)
-        if (atmospheric_species[j][0].Species() == target)
-          this_species_index = j;
-        
-      // Set to non-zero in-case species exists
-      if (this_species_index not_eq -1)
-        line_vmrs[i] = atmospheric_vmrs[this_species_index];
-    }
+    // Set to non-zero in-case species exists
+    if (this_species_index not_eq -1)
+      line_vmrs[i] = atmospheric_vmrs[this_species_index];
   }
   
   // Renormalize, if bath-species exist this is automatic.

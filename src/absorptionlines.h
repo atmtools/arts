@@ -862,6 +862,22 @@ public:
    */
   Rational UpperQuantumNumber(size_t k, QuantumNumberType qnt) const noexcept;
   
+  /** Quantum number lower level
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @param[in] qnt Quantum number type
+   * @return Quantum number
+   */
+  Rational& LowerQuantumNumber(size_t k, QuantumNumberType qnt) noexcept;
+  
+  /** Quantum number upper level
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @param[in] qnt Quantum number type
+   * @return Quantum number
+   */
+  Rational& UpperQuantumNumber(size_t k, QuantumNumberType qnt) noexcept;
+  
   /** Checks if all defined quantum numbers in qid are defined and equal to 
    * the k:th line's local quantum numbers
    * 
