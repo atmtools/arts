@@ -5014,6 +5014,47 @@ void define_md_data_raw() {
           "Index wether to accelerate only the intensity (1) or the whole Stokes Vector (4)")));
 
   md_data_raw.push_back(MdRecord(
+      NAME("doit_i_fieldCrop"),
+      DESCRIPTION(
+          "Extracts a part of an existing *doit_i_field*.\n"
+          "\n"
+          "The cropping is defined by defining new cloudbox limits. Note that\n"
+          "*new_limit0* is an index with respect to *p_grid*, etc.\n"
+          "\n"
+          "The following must be valid:\n"
+          "  new_limit0 >= cloudbox_limits[0]\n"
+          "  new_limit1 <= cloudbox_limits[1]\n"
+          "  new_limit2 >= cloudbox_limits[2]\n"
+          "  new_limit3 <= cloudbox_limits[3]\n"
+          "  new_limit4 >= cloudbox_limits[4]\n"
+          "  new_limit5 <= cloudbox_limits[5]\n"
+          "\n"
+          "Indexes for dimensions not used are ignored.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("doit_i_field","cloudbox_limits"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atmosphere_dim",
+         "cloudbox_on",
+         "cloudbox_limits",
+         "doit_i_field"),
+      GIN("new_limit0",
+          "new_limit1",
+          "new_limit2",
+          "new_limit3",
+          "new_limit4",
+          "new_limit5"),
+      GIN_TYPE("Index","Index","Index","Index","Index","Index"),
+      GIN_DEFAULT("0","0","0","0","0","0"),
+      GIN_DESC("New value for cloudbox_limits[0].",
+               "New value for cloudbox_limits[1].",
+               "New value for cloudbox_limits[2].",
+               "New value for cloudbox_limits[3].",
+               "New value for cloudbox_limits[4].",
+               "New value for cloudbox_limits[5]." )));
+
+  md_data_raw.push_back(MdRecord(
       NAME("doit_i_fieldSetFromPrecalc"),
       DESCRIPTION(
           "Sets the initial cloudbox intensity field *doit_i_field* from a\n"

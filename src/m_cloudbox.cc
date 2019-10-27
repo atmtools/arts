@@ -1025,6 +1025,79 @@ void iyInterpCloudboxField(Matrix& iy,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void doit_i_fieldCrop(Tensor7& doit_i_field,
+                      ArrayOfIndex& cloudbox_limits,
+                      const Index& atmosphere_dim,
+                      const Index& cloudbox_on,
+                      const Index& new_limit0,
+                      const Index& new_limit1,
+                      const Index& new_limit2,
+                      const Index& new_limit3,
+                      const Index& new_limit4,
+                      const Index& new_limit5,
+                      const Verbosity&) {
+  if (!cloudbox_on)
+    throw runtime_error("No need to use this method with cloudbox=0.");
+  if (new_limit0 < cloudbox_limits[0])
+    throw runtime_error("new_limits0 < cloudbox_limits[0], not allowed!");
+  if (new_limit1 > cloudbox_limits[1])
+    throw runtime_error("new_limits1 > cloudbox_limits[1], not allowed!");
+
+  Tensor7 fcopy = doit_i_field;
+  
+  if (atmosphere_dim == 1) {
+    doit_i_field = fcopy(joker,
+                         Range(new_limit0-cloudbox_limits[0],new_limit1-new_limit0+1),
+                         joker,
+                         joker,
+                         joker,
+                         joker,
+                         joker);
+    cloudbox_limits[0] = new_limit0;
+    cloudbox_limits[1] = new_limit1;
+  }
+  else {
+    if (new_limit2 < cloudbox_limits[2])
+      throw runtime_error("new_limits2 < cloudbox_limits[2], not allowed!");
+    if (new_limit3 > cloudbox_limits[3])
+      throw runtime_error("new_limits3 > cloudbox_limits[3], not allowed!");
+    
+    if (atmosphere_dim == 2) {
+      doit_i_field = fcopy(joker,
+                           Range(new_limit0-cloudbox_limits[0],new_limit1-new_limit0+1),
+                           Range(new_limit2-cloudbox_limits[2],new_limit3-new_limit2-1),
+                           joker,
+                           joker,
+                           joker,
+                           joker);
+      cloudbox_limits[0] = new_limit0;
+      cloudbox_limits[1] = new_limit1;
+      cloudbox_limits[2] = new_limit2;
+      cloudbox_limits[3] = new_limit3;
+    } else {
+      if (new_limit4 < cloudbox_limits[4])
+        throw runtime_error("new_limits4 < cloudbox_limits[4], not allowed!");
+      if (new_limit5 > cloudbox_limits[5])
+        throw runtime_error("new_limits5 > cloudbox_limits[5], not allowed!");
+      doit_i_field = fcopy(joker,
+                           Range(new_limit0-cloudbox_limits[0],new_limit1-new_limit0+1),
+                           Range(new_limit2-cloudbox_limits[2],new_limit3-new_limit2+1),
+                           Range(new_limit4-cloudbox_limits[4],new_limit5-new_limit4+1),
+                           joker,
+                           joker,
+                           joker);
+      cloudbox_limits[0] = new_limit0;
+      cloudbox_limits[1] = new_limit1;
+      cloudbox_limits[2] = new_limit2;
+      cloudbox_limits[3] = new_limit3;
+      cloudbox_limits[4] = new_limit4;
+      cloudbox_limits[5] = new_limit5;
+    }
+  }
+}
+
+                           
+/* Workspace method: Doxygen documentation will be auto-generated */
 void particle_fieldCleanup(  //WS Output:
     Tensor4& particle_field_out,
     //WS Input:

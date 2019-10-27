@@ -808,7 +808,7 @@ void spectral_radiance_fieldExpandCloudboxField(
   if (atmosphere_dim != 1)
     throw runtime_error("This method only works for atmosphere_dim = 1.");
   if (!cloudbox_on)
-    throw runtime_error("Cloudbox is off. This is not handled by this method.");
+    throw runtime_error("No ned to use this method with cloudbox=0.");
   if (cloudbox_limits[0])
     throw runtime_error("The first element of *cloudbox_limits* must be zero "
                         "to use this method.");
@@ -854,9 +854,9 @@ void spectral_radiance_fieldExpandCloudboxField(
   iy_main_agenda.set_name("iy_main_agenda");
   iy_main_agenda.check(ws, verbosity);
 
-  // Variables defining top of the cloudbox
+  // Variables related to the top of the cloudbox
   const Index i0 = cloudbox_limits[1];
-  const Numeric z_top = z_field(i0, 0, 0);
+  const Numeric z_top = z_field(i0+1, 0, 0);   // Note i0+1
   
   // Loop zenith angles
   //
@@ -993,16 +993,15 @@ void spectral_radiance_fieldExpandCloudboxField(
         assert(iy.ncols() == stokes_dim);
 
         // First and last points are most easily handled separately
+        // But field at top cloudbox already known from copying above
         if (scat_za_grid[i] < 90) {
-          spectral_radiance_field(joker, i0, 0, 0, i, 0, joker) =
+          spectral_radiance_field(joker, i0+1, 0, 0, i, 0, joker) =
             ppvar_iy(joker, joker, 0);
           spectral_radiance_field(joker, nl - 1, 0, 0, i, 0, joker) =
               ppvar_iy(joker, joker, ppath.np - 1);
         } else {
           spectral_radiance_field(joker, nl - 1, 0, 0, i, 0, joker) =
               ppvar_iy(joker, joker, 0);
-          spectral_radiance_field(joker, i0, 0, 0, i, 0, joker) =
-              ppvar_iy(joker, joker, ppath.np - 1);
         }
 
         // Remaining points
