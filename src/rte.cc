@@ -1330,23 +1330,23 @@ void get_stepwise_blackbody_radiation(VectorView B,
 }
 
 void get_stepwise_clearsky_propmat(
-  Workspace& ws,
-  PropagationMatrix& K,
-  StokesVector& S,
-  Index& lte,
-  ArrayOfPropagationMatrix& dK_dx,
-  ArrayOfStokesVector& dS_dx,
-  const Agenda& propmat_clearsky_agenda,
-  const ArrayOfRetrievalQuantity& jacobian_quantities,
-  ConstVectorView ppath_f_grid,
-  ConstVectorView ppath_magnetic_field,
-  ConstVectorView ppath_line_of_sight,
-  ConstVectorView ppath_nlte,
-  ConstVectorView ppath_vmrs,
-  const Numeric& ppath_temperature,
-  const Numeric& ppath_pressure,
-  const ArrayOfIndex& jacobian_species,
-  const bool& jacobian_do) {
+    Workspace& ws,
+    PropagationMatrix& K,
+    StokesVector& S,
+    Index& lte,
+    ArrayOfPropagationMatrix& dK_dx,
+    ArrayOfStokesVector& dS_dx,
+    const Agenda& propmat_clearsky_agenda,
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    ConstVectorView ppath_f_grid,
+    ConstVectorView ppath_magnetic_field,
+    ConstVectorView ppath_line_of_sight,
+    ConstVectorView ppath_nlte,
+    ConstVectorView ppath_vmrs,
+    const Numeric& ppath_temperature,
+    const Numeric& ppath_pressure,
+    const ArrayOfIndex& jacobian_species,
+    const bool& jacobian_do) {
   // All relevant quantities are extracted first
   const Index nq = jacobian_quantities.nelem();
 
@@ -1951,7 +1951,7 @@ void iyb_calc_body(bool& failed,
                    ArrayOfMatrix& diyb_dx,
                    const Index& mblock_index,
                    const Index& atmosphere_dim,
-                   ConstTensor4View nlte_field,                   
+                   ConstTensor4View nlte_field,
                    const Index& cloudbox_on,
                    const Index& stokes_dim,
                    ConstMatrixView sensor_pos,
@@ -2602,7 +2602,6 @@ void rtmethods_unit_conversion(
   }
 }
 
-
 void yCalc_mblock_loop_body(bool& failed,
                             String& fail_msg,
                             ArrayOfArrayOfVector& iyb_aux_array,
@@ -2615,7 +2614,7 @@ void yCalc_mblock_loop_body(bool& failed,
                             Matrix& y_geo,
                             Matrix& jacobian,
                             const Index& atmosphere_dim,
-                            ConstTensor4View nlte_field,              
+                            ConstTensor4View nlte_field,
                             const Index& cloudbox_on,
                             const Index& stokes_dim,
                             const Vector& f_grid,
@@ -2780,4 +2779,3 @@ void ze_cfac(Vector& fac,
     fac[iv] = a * la * la * la * la / K2;
   }
 }
-

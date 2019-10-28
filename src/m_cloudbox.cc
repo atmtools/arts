@@ -772,8 +772,8 @@ void iyInterpCloudboxField(Matrix& iy,
       for (Index is = 0; is < stokes_dim; is++)
         for (Index iv = 0; iv < nf; iv++)
           for (Index i_za = 0; i_za < nza; i_za++)
-            i_field_local(iv, i_za, 0, is) =
-                interp(itw_p, cloudbox_field(iv, joker, 0, 0, i_za, 0, is), gp_p);
+            i_field_local(iv, i_za, 0, is) = interp(
+                itw_p, cloudbox_field(iv, joker, 0, 0, i_za, 0, is), gp_p);
     }
   }
 
@@ -819,11 +819,12 @@ void iyInterpCloudboxField(Matrix& iy,
         for (Index iv = 0; iv < nf; iv++)
           for (Index i_za = 0; i_za < nza; i_za++)
             for (Index i_aa = 0; i_aa < naa; i_aa++)
-              i_field_local(iv, i_za, i_aa, is) = interp(
-                  itw,
-                  cloudbox_field(iv, border_index, joker, joker, i_za, i_aa, is),
-                  cb_gp_lat,
-                  cb_gp_lon);
+              i_field_local(iv, i_za, i_aa, is) =
+                  interp(itw,
+                         cloudbox_field(
+                             iv, border_index, joker, joker, i_za, i_aa, is),
+                         cb_gp_lat,
+                         cb_gp_lon);
     }
 
     // Outgoing from cloudbox north or south border, i.e. from a latitude level
@@ -845,11 +846,12 @@ void iyInterpCloudboxField(Matrix& iy,
         for (Index iv = 0; iv < nf; iv++)
           for (Index i_za = 0; i_za < nza; i_za++)
             for (Index i_aa = 0; i_aa < naa; i_aa++)
-              i_field_local(iv, i_za, i_aa, is) = interp(
-                  itw,
-                  cloudbox_field(iv, joker, border_index, joker, i_za, i_aa, is),
-                  cb_gp_p,
-                  cb_gp_lon);
+              i_field_local(iv, i_za, i_aa, is) =
+                  interp(itw,
+                         cloudbox_field(
+                             iv, joker, border_index, joker, i_za, i_aa, is),
+                         cb_gp_p,
+                         cb_gp_lon);
     }
 
     // Outgoing from cloudbox east or west border, i.e. from a longitude level
@@ -871,11 +873,12 @@ void iyInterpCloudboxField(Matrix& iy,
         for (Index iv = 0; iv < nf; iv++)
           for (Index i_za = 0; i_za < nza; i_za++)
             for (Index i_aa = 0; i_aa < naa; i_aa++)
-              i_field_local(iv, i_za, i_aa, is) = interp(
-                  itw,
-                  cloudbox_field(iv, joker, joker, border_index, i_za, i_aa, is),
-                  cb_gp_p,
-                  cb_gp_lat);
+              i_field_local(iv, i_za, i_aa, is) =
+                  interp(itw,
+                         cloudbox_field(
+                             iv, joker, joker, border_index, i_za, i_aa, is),
+                         cb_gp_p,
+                         cb_gp_lat);
     }
   }
 
@@ -973,8 +976,7 @@ void iyInterpCloudboxField(Matrix& iy,
     Vector za_g = za_grid[Range(za_start, za_extend)];
     const Numeric za = rte_los[0];
 
-    const Numeric za_min =
-        za_g[0] - za_extpolfac * (za_g[1] - za_g[0]);
+    const Numeric za_min = za_g[0] - za_extpolfac * (za_g[1] - za_g[0]);
     if (za < za_min) {
       ostringstream os;
       os << "Zenith angle " << rte_los[0] << "deg is outside the range"
@@ -1026,16 +1028,16 @@ void iyInterpCloudboxField(Matrix& iy,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void cloudbox_fieldCrop(Tensor7& cloudbox_field,
-                      ArrayOfIndex& cloudbox_limits,
-                      const Index& atmosphere_dim,
-                      const Index& cloudbox_on,
-                      const Index& new_limit0,
-                      const Index& new_limit1,
-                      const Index& new_limit2,
-                      const Index& new_limit3,
-                      const Index& new_limit4,
-                      const Index& new_limit5,
-                      const Verbosity&) {
+                        ArrayOfIndex& cloudbox_limits,
+                        const Index& atmosphere_dim,
+                        const Index& cloudbox_on,
+                        const Index& new_limit0,
+                        const Index& new_limit1,
+                        const Index& new_limit2,
+                        const Index& new_limit3,
+                        const Index& new_limit4,
+                        const Index& new_limit5,
+                        const Verbosity&) {
   if (!cloudbox_on)
     throw runtime_error("No need to use this method with cloudbox=0.");
   if (new_limit0 < cloudbox_limits[0])
@@ -1044,32 +1046,33 @@ void cloudbox_fieldCrop(Tensor7& cloudbox_field,
     throw runtime_error("new_limits1 > cloudbox_limits[1], not allowed!");
 
   Tensor7 fcopy = cloudbox_field;
-  
+
   if (atmosphere_dim == 1) {
-    cloudbox_field = fcopy(joker,
-                         Range(new_limit0-cloudbox_limits[0],new_limit1-new_limit0+1),
-                         joker,
-                         joker,
-                         joker,
-                         joker,
-                         joker);
+    cloudbox_field = fcopy(
+        joker,
+        Range(new_limit0 - cloudbox_limits[0], new_limit1 - new_limit0 + 1),
+        joker,
+        joker,
+        joker,
+        joker,
+        joker);
     cloudbox_limits[0] = new_limit0;
     cloudbox_limits[1] = new_limit1;
-  }
-  else {
+  } else {
     if (new_limit2 < cloudbox_limits[2])
       throw runtime_error("new_limits2 < cloudbox_limits[2], not allowed!");
     if (new_limit3 > cloudbox_limits[3])
       throw runtime_error("new_limits3 > cloudbox_limits[3], not allowed!");
-    
+
     if (atmosphere_dim == 2) {
-      cloudbox_field = fcopy(joker,
-                           Range(new_limit0-cloudbox_limits[0],new_limit1-new_limit0+1),
-                           Range(new_limit2-cloudbox_limits[2],new_limit3-new_limit2-1),
-                           joker,
-                           joker,
-                           joker,
-                           joker);
+      cloudbox_field = fcopy(
+          joker,
+          Range(new_limit0 - cloudbox_limits[0], new_limit1 - new_limit0 + 1),
+          Range(new_limit2 - cloudbox_limits[2], new_limit3 - new_limit2 - 1),
+          joker,
+          joker,
+          joker,
+          joker);
       cloudbox_limits[0] = new_limit0;
       cloudbox_limits[1] = new_limit1;
       cloudbox_limits[2] = new_limit2;
@@ -1079,13 +1082,14 @@ void cloudbox_fieldCrop(Tensor7& cloudbox_field,
         throw runtime_error("new_limits4 < cloudbox_limits[4], not allowed!");
       if (new_limit5 > cloudbox_limits[5])
         throw runtime_error("new_limits5 > cloudbox_limits[5], not allowed!");
-      cloudbox_field = fcopy(joker,
-                           Range(new_limit0-cloudbox_limits[0],new_limit1-new_limit0+1),
-                           Range(new_limit2-cloudbox_limits[2],new_limit3-new_limit2+1),
-                           Range(new_limit4-cloudbox_limits[4],new_limit5-new_limit4+1),
-                           joker,
-                           joker,
-                           joker);
+      cloudbox_field = fcopy(
+          joker,
+          Range(new_limit0 - cloudbox_limits[0], new_limit1 - new_limit0 + 1),
+          Range(new_limit2 - cloudbox_limits[2], new_limit3 - new_limit2 + 1),
+          Range(new_limit4 - cloudbox_limits[4], new_limit5 - new_limit4 + 1),
+          joker,
+          joker,
+          joker);
       cloudbox_limits[0] = new_limit0;
       cloudbox_limits[1] = new_limit1;
       cloudbox_limits[2] = new_limit2;
@@ -1096,7 +1100,6 @@ void cloudbox_fieldCrop(Tensor7& cloudbox_field,
   }
 }
 
-                           
 /* Workspace method: Doxygen documentation will be auto-generated */
 void particle_fieldCleanup(  //WS Output:
     Tensor4& particle_field_out,

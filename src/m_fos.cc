@@ -1713,17 +1713,17 @@ void iyHybrid2(Workspace& ws,
 
     if (j_analytical_do) {
       dB_dT.resize(nf);
-      FOR_ANALYTICAL_JACOBIANS_DO(dK_this_dx[iq] = PropagationMatrix(nf, ns);
-                                  dK_past_dx[iq] = PropagationMatrix(nf, ns);
-                                  dKp_dx[iq] = PropagationMatrix(nf, ns);
-                                  da_dx[iq] = StokesVector(nf, ns);
-                                  dS_dx[iq] = StokesVector(nf, ns);
-                                  dSp_dx[iq] = StokesVector(nf, ns);
-                                  if (jacobian_quantities[iq] == JacPropMatType::Temperature) {
-                                    temperature_derivative_position = iq;
-                                    do_hse = jacobian_quantities[iq].Subtag() ==
-                                             "HSE on";
-                                  })
+      FOR_ANALYTICAL_JACOBIANS_DO(
+          dK_this_dx[iq] = PropagationMatrix(nf, ns);
+          dK_past_dx[iq] = PropagationMatrix(nf, ns);
+          dKp_dx[iq] = PropagationMatrix(nf, ns);
+          da_dx[iq] = StokesVector(nf, ns);
+          dS_dx[iq] = StokesVector(nf, ns);
+          dSp_dx[iq] = StokesVector(nf, ns);
+          if (jacobian_quantities[iq] == JacPropMatType::Temperature) {
+            temperature_derivative_position = iq;
+            do_hse = jacobian_quantities[iq].Subtag() == "HSE on";
+          })
     }
     const bool temperature_jacobian =
         j_analytical_do and do_temperature_jacobian(jacobian_quantities);

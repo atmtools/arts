@@ -190,22 +190,21 @@ void doit_conv_flagAbs(  //WS Input and Output:
       for (Index lat_index = 0; lat_index < N_lat; lat_index++) {
         for (Index lon_index = 0; lon_index < N_lon; lon_index++) {
           for (Index za_index = 0; za_index < N_za; za_index++) {
-            for (Index aa_index = 0; aa_index < N_aa;
-                 aa_index++) {
+            for (Index aa_index = 0; aa_index < N_aa; aa_index++) {
               for (Index stokes_index = 0; stokes_index < stokes_dim;
                    stokes_index++) {
                 Numeric diff = (cloudbox_field_mono(p_index,
-                                                  lat_index,
-                                                  lon_index,
-                                                  za_index,
-                                                  aa_index,
-                                                  stokes_index) -
+                                                    lat_index,
+                                                    lon_index,
+                                                    za_index,
+                                                    aa_index,
+                                                    stokes_index) -
                                 cloudbox_field_mono_old(p_index,
-                                                      lat_index,
-                                                      lon_index,
-                                                      za_index,
-                                                      aa_index,
-                                                      stokes_index));
+                                                        lat_index,
+                                                        lon_index,
+                                                        za_index,
+                                                        aa_index,
+                                                        stokes_index));
 
                 // If the absolute difference of the components
                 // is larger than the pre-defined values, return
@@ -323,22 +322,21 @@ void doit_conv_flagAbsBT(  //WS Input and Output:
       for (Index lat_index = 0; lat_index < N_lat; lat_index++) {
         for (Index lon_index = 0; lon_index < N_lon; lon_index++) {
           for (Index za_index = 0; za_index < N_za; za_index++) {
-            for (Index aa_index = 0; aa_index < N_aa;
-                 aa_index++) {
+            for (Index aa_index = 0; aa_index < N_aa; aa_index++) {
               for (Index stokes_index = 0; stokes_index < stokes_dim;
                    stokes_index++) {
                 Numeric diff = cloudbox_field_mono(p_index,
-                                                 lat_index,
-                                                 lon_index,
-                                                 za_index,
-                                                 aa_index,
-                                                 stokes_index) -
+                                                   lat_index,
+                                                   lon_index,
+                                                   za_index,
+                                                   aa_index,
+                                                   stokes_index) -
                                cloudbox_field_mono_old(p_index,
-                                                     lat_index,
-                                                     lon_index,
-                                                     za_index,
-                                                     aa_index,
-                                                     stokes_index);
+                                                       lat_index,
+                                                       lon_index,
+                                                       za_index,
+                                                       aa_index,
+                                                       stokes_index);
 
                 // If the absolute difference of the components
                 // is larger than the pre-defined values, return
@@ -464,23 +462,18 @@ void doit_conv_flagLsq(  //WS Output:
       for (Index p_index = 0; p_index < N_p; p_index++) {
         for (Index lat_index = 0; lat_index < N_lat; lat_index++) {
           for (Index lon_index = 0; lon_index < N_lon; lon_index++) {
-            for (Index za_index = 0; za_index < N_za;
-                 za_index++) {
-              for (Index aa_index = 0; aa_index < N_aa;
-                   aa_index++) {
-                lqs[i] += pow(cloudbox_field_mono(p_index,
+            for (Index za_index = 0; za_index < N_za; za_index++) {
+              for (Index aa_index = 0; aa_index < N_aa; aa_index++) {
+                lqs[i] += pow(
+                    cloudbox_field_mono(
+                        p_index, lat_index, lon_index, za_index, aa_index, i) -
+                        cloudbox_field_mono_old(p_index,
                                                 lat_index,
                                                 lon_index,
                                                 za_index,
                                                 aa_index,
-                                                i) -
-                                  cloudbox_field_mono_old(p_index,
-                                                        lat_index,
-                                                        lon_index,
-                                                        za_index,
-                                                        aa_index,
-                                                        i),
-                              2);
+                                                i),
+                    2);
               }  // End loop aa_grid.
             }    // End loop za_grid.
           }      // End loop lon_grid.
@@ -502,15 +495,15 @@ void doit_conv_flagLsq(  //WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void cloudbox_field_monoIterate(Workspace& ws,
-                              // WS Input and Output:
-                              Tensor6& cloudbox_field_mono,
+                                // WS Input and Output:
+                                Tensor6& cloudbox_field_mono,
 
-                              // WS Input:
-                              const Agenda& doit_scat_field_agenda,
-                              const Agenda& doit_rte_agenda,
-                              const Agenda& doit_conv_test_agenda,
-                              const Index& accelerated,
-                              const Verbosity& verbosity)
+                                // WS Input:
+                                const Agenda& doit_scat_field_agenda,
+                                const Agenda& doit_rte_agenda,
+                                const Agenda& doit_conv_test_agenda,
+                                const Index& accelerated,
+                                const Verbosity& verbosity)
 
 {
   CREATE_OUT2;
@@ -723,8 +716,7 @@ void cloudbox_fieldUpdate1D(
   Index aa_index_local = 0;
 
   //Loop over all directions, defined by za_grid
-  for (Index za_index_local = 0; za_index_local < N_scat_za;
-       za_index_local++) {
+  for (Index za_index_local = 0; za_index_local < N_scat_za; za_index_local++) {
     // This function has to be called inside the angular loop, as
     // spt_calc_agenda takes *za_index_local* and *aa_index*
     // from the workspace.
@@ -940,8 +932,7 @@ void cloudbox_fieldUpdateSeq1D(
   }
 
   //Loop over all directions, defined by za_grid
-  for (Index za_index_local = 0; za_index_local < N_scat_za;
-       za_index_local++) {
+  for (Index za_index_local = 0; za_index_local < N_scat_za; za_index_local++) {
     // This function has to be called inside the angular loop, as
     // spt_calc_agenda takes *za_index* and *aa_index*
     // from the workspace.
@@ -1080,10 +1071,9 @@ void cloudbox_fieldUpdateSeq1D(
              p_index++) {
           for (Index stokes_index = 0; conv_flag && stokes_index < stokes_dim;
                stokes_index++) {
-            Numeric diff =
-                cloudbox_field_mono(
-                    p_index, 0, 0, za_index_local, 0, stokes_index) -
-                cloudbox_field_limb(p_index, stokes_index);
+            Numeric diff = cloudbox_field_mono(
+                               p_index, 0, 0, za_index_local, 0, stokes_index) -
+                           cloudbox_field_limb(p_index, stokes_index);
 
             // If the absolute difference of the components
             // is larger than the pre-defined values, continue with
@@ -1366,8 +1356,7 @@ void cloudbox_fieldUpdateSeq3D(
       // To be save we loop over the full cloudbox. Inside the function
       // cloud_ppath_update3D it is checked whether the intersection point is
       // inside the cloudbox or not.
-      else if (za_grid[za_index] > 90. &&
-               za_grid[za_index] < theta_lim) {
+      else if (za_grid[za_index] > 90. && za_grid[za_index] < theta_lim) {
         for (Index p_index = p_low; p_index <= p_up; p_index++) {
           // For this case the cloudbox goes down to the surface an we
           // look downwards. These cases are outside the cloudbox and
@@ -2224,8 +2213,7 @@ void doit_scat_fieldCalc(Workspace& ws,
     for (Index p_index = 0; p_index <= cloudbox_limits[1] - cloudbox_limits[0];
          p_index++) {
       //There is only loop over zenith angle grid ; no azimuth angle grid.
-      for (Index za_index_local = 0; za_index_local < Nza;
-           za_index_local++) {
+      for (Index za_index_local = 0; za_index_local < Nza; za_index_local++) {
         // Calculate the phase matrix of individual scattering elements
         out3 << "Multiplication of phase matrix with incoming"
              << " intensities \n";
@@ -2255,8 +2243,7 @@ void doit_scat_fieldCalc(Workspace& ws,
         if (Naa == 1) {
           for (Index i = 0; i < stokes_dim; i++) {
             doit_scat_field(p_index, 0, 0, za_index_local, 0, i) =
-                AngIntegrate_trapezoid(product_field(joker, 0, i),
-                                       za_grid) /
+                AngIntegrate_trapezoid(product_field(joker, 0, i), za_grid) /
                 2 / PI;
           }  //end i loop
         } else {
@@ -2328,11 +2315,11 @@ void doit_scat_fieldCalc(Workspace& ws,
                       product_field(za_in, aa_in, i) +=
                           pha_mat_local(za_in, aa_in, i, j) *
                           cloudbox_field_mono(p_index,
-                                            lat_index,
-                                            lon_index,
-                                            za_index_local,
-                                            aa_index_local,
-                                            j);
+                                              lat_index,
+                                              lon_index,
+                                              za_index_local,
+                                              aa_index_local,
+                                              j);
                     }
                   }
                 }  //end aa_in loop
@@ -2551,8 +2538,7 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
       }
 
       //There is only loop over zenith angle grid; no azimuth angle grid.
-      for (Index za_index_local = 0;
-           za_index_local < doit_za_grid_size;
+      for (Index za_index_local = 0; za_index_local < doit_za_grid_size;
            za_index_local++) {
         out3 << "Multiplication of phase matrix with incoming"
              << " intensities \n";
@@ -2582,8 +2568,8 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
         if (Naa == 1) {
           for (Index i = 0; i < stokes_dim; i++) {
             doit_scat_field_org(za_index_local, i) =
-                AngIntegrate_trapezoid(product_field(joker, 0, i), za_g) /
-                2 / PI;
+                AngIntegrate_trapezoid(product_field(joker, 0, i), za_g) / 2 /
+                PI;
           }  //end i loop
         } else {
           for (Index i = 0; i < stokes_dim; i++) {
@@ -2609,11 +2595,8 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
         } else  // polynomial interpolation
         {
           for (Index za = 0; za < za_grid.nelem(); za++) {
-            doit_scat_field(p_index, 0, 0, za, 0, i) =
-                interp_poly(za_g,
-                            doit_scat_field_org(joker, i),
-                            za_grid[za],
-                            gp_za[za]);
+            doit_scat_field(p_index, 0, 0, za, 0, i) = interp_poly(
+                za_g, doit_scat_field_org(joker, i), za_grid[za], gp_za[za]);
           }
         }
       }
@@ -2641,19 +2624,15 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
                aa_index_local++) {
             // Interpolate intensity field:
             for (Index i = 0; i < stokes_dim; i++) {
-              interp(cloudbox_field_int(joker, i),
-                     itw_za_i,
-                     cloudbox_field_mono(p_index,
-                                       lat_index,
-                                       lon_index,
-                                       joker,
-                                       aa_index_local,
-                                       i),
-                     gp_za_i);
+              interp(
+                  cloudbox_field_int(joker, i),
+                  itw_za_i,
+                  cloudbox_field_mono(
+                      p_index, lat_index, lon_index, joker, aa_index_local, i),
+                  gp_za_i);
             }
 
-            for (Index za_index_local = 0;
-                 za_index_local < doit_za_grid_size;
+            for (Index za_index_local = 0; za_index_local < doit_za_grid_size;
                  za_index_local++) {
               out3 << "Calculate phase matrix \n";
               pha_mat_spt_agendaExecute(ws,
@@ -2709,15 +2688,12 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
             }  //end za_prop loop
             //Interpolate on original za_grid.
             for (Index i = 0; i < stokes_dim; i++) {
-              interp(doit_scat_field(p_index,
-                                     lat_index,
-                                     lon_index,
-                                     joker,
-                                     aa_index_local,
-                                     i),
-                     itw_za,
-                     doit_scat_field_org(joker, i),
-                     gp_za);
+              interp(
+                  doit_scat_field(
+                      p_index, lat_index, lon_index, joker, aa_index_local, i),
+                  itw_za,
+                  doit_scat_field_org(joker, i),
+                  gp_za);
             }
           }  // end aa_prop loop
         }    //end lon loop
@@ -2906,8 +2882,11 @@ void DoitCalc(Workspace& ws,
 
         Tensor6 cloudbox_field_mono_local =
             cloudbox_field(f_index, joker, joker, joker, joker, joker, joker);
-        doit_mono_agendaExecute(
-            l_ws, cloudbox_field_mono_local, f_grid, f_index, l_doit_mono_agenda);
+        doit_mono_agendaExecute(l_ws,
+                                cloudbox_field_mono_local,
+                                f_grid,
+                                f_index,
+                                l_doit_mono_agenda);
         cloudbox_field(f_index, joker, joker, joker, joker, joker, joker) =
             cloudbox_field_mono_local;
       } catch (const std::exception& e) {
@@ -3000,7 +2979,8 @@ void DoitGetIncoming(Workspace& ws,
     //--- Get cloudbox_field at lower and upper boundary
     //    (boundary=0: lower, boundary=1: upper)
     for (Index boundary = 0; boundary <= 1; boundary++) {
-      const Index boundary_index = boundary ? cloudbox_field.nvitrines() - 1 : 0;
+      const Index boundary_index =
+          boundary ? cloudbox_field.nvitrines() - 1 : 0;
       pos[0] = z_field(cloudbox_limits[boundary], 0, 0);
 
       // doing the first angle separately for allowing dy between 2 angles
@@ -3036,13 +3016,11 @@ void DoitGetIncoming(Workspace& ws,
 
         if (rigorous) {
           for (Index fi = 0; fi < Nf; fi++) {
-            if (cloudbox_field(
-                    fi, boundary_index, 0, 0, za_index - 1, 0, 0) /
+            if (cloudbox_field(fi, boundary_index, 0, 0, za_index - 1, 0, 0) /
                         cloudbox_field(
                             fi, boundary_index, 0, 0, za_index, 0, 0) >
                     maxratio ||
-                cloudbox_field(
-                    fi, boundary_index, 0, 0, za_index - 1, 0, 0) /
+                cloudbox_field(fi, boundary_index, 0, 0, za_index - 1, 0, 0) /
                         cloudbox_field(
                             fi, boundary_index, 0, 0, za_index, 0, 0) <
                     1 / maxratio) {
@@ -3057,8 +3035,7 @@ void DoitGetIncoming(Workspace& ws,
                  << " between zenith angles " << za_grid[za_index - 1]
                  << " and " << za_grid[za_index] << "deg\n"
                  << "for frequency #" << fi << ", where radiances are "
-                 << cloudbox_field(
-                        fi, boundary_index, 0, 0, za_index - 1, 0, 0)
+                 << cloudbox_field(fi, boundary_index, 0, 0, za_index - 1, 0, 0)
                  << " and "
                  << cloudbox_field(fi, boundary_index, 0, 0, za_index, 0, 0)
                  << " W/(sr m2 Hz).";
@@ -3093,7 +3070,8 @@ void DoitGetIncoming(Workspace& ws,
     //--- Get cloudbox_field at lower and upper boundary
     //    (boundary=0: lower, boundary=1: upper)
     for (Index boundary = 0; boundary <= 1; boundary++) {
-      const Index boundary_index = boundary ? cloudbox_field.nvitrines() - 1 : 0;
+      const Index boundary_index =
+          boundary ? cloudbox_field.nvitrines() - 1 : 0;
       for (Index lat_index = 0; lat_index < Nlat_cloud; lat_index++) {
         for (Index lon_index = 0; lon_index < Nlon_cloud; lon_index++) {
           pos[2] = lon_grid[lon_index + cloudbox_limits[4]];
@@ -3103,16 +3081,14 @@ void DoitGetIncoming(Workspace& ws,
                            lon_index + cloudbox_limits[4]);
 
           for (Index za_index = 0; za_index < Nza; za_index++) {
-            for (Index aa_index = 0; aa_index < Naa;
-                 aa_index++) {
+            for (Index aa_index = 0; aa_index < Naa; aa_index++) {
               los[0] = za_grid[za_index];
               los[1] = aa_g[aa_index];
 
               // For end points of za_index (0 & 180deg), we
               // only need to perform calculations for one scat_aa
               // and set the others to same value
-              if ((za_index != 0 && za_index != (Nza - 1)) ||
-                  aa_index == 0) {
+              if ((za_index != 0 && za_index != (Nza - 1)) || aa_index == 0) {
                 get_iy(ws,
                        iy,
                        0,
@@ -3126,12 +3102,12 @@ void DoitGetIncoming(Workspace& ws,
               }
 
               cloudbox_field(joker,
-                           boundary_index,
-                           lat_index,
-                           lon_index,
-                           za_index,
-                           aa_index,
-                           joker) = iy;
+                             boundary_index,
+                             lat_index,
+                             lon_index,
+                             za_index,
+                             aa_index,
+                             joker) = iy;
             }
           }
         }
@@ -3150,15 +3126,13 @@ void DoitGetIncoming(Workspace& ws,
                            lon_index + cloudbox_limits[4]);
 
           for (Index za_index = 0; za_index < Nza; za_index++) {
-            for (Index aa_index = 0; aa_index < Naa;
-                 aa_index++) {
+            for (Index aa_index = 0; aa_index < Naa; aa_index++) {
               los[0] = za_grid[za_index];
               los[1] = aa_g[aa_index];
 
               // For end points of za_index, we need only to
               // perform calculations for first scat_aa
-              if ((za_index != 0 && za_index != (Nza - 1)) ||
-                  aa_index == 0) {
+              if ((za_index != 0 && za_index != (Nza - 1)) || aa_index == 0) {
                 get_iy(ws,
                        iy,
                        0,
@@ -3172,12 +3146,12 @@ void DoitGetIncoming(Workspace& ws,
               }
 
               cloudbox_field(joker,
-                           p_index,
-                           boundary_index,
-                           lon_index,
-                           za_index,
-                           aa_index,
-                           joker) = iy;
+                             p_index,
+                             boundary_index,
+                             lon_index,
+                             za_index,
+                             aa_index,
+                             joker) = iy;
             }
           }
         }
@@ -3196,15 +3170,13 @@ void DoitGetIncoming(Workspace& ws,
                            cloudbox_limits[boundary + 4]);
 
           for (Index za_index = 0; za_index < Nza; za_index++) {
-            for (Index aa_index = 0; aa_index < Naa;
-                 aa_index++) {
+            for (Index aa_index = 0; aa_index < Naa; aa_index++) {
               los[0] = za_grid[za_index];
               los[1] = aa_g[aa_index];
 
               // For end points of za_index, we need only to
               // perform calculations for first scat_aa
-              if ((za_index != 0 && za_index != (Nza - 1)) ||
-                  aa_index == 0) {
+              if ((za_index != 0 && za_index != (Nza - 1)) || aa_index == 0) {
                 get_iy(ws,
                        iy,
                        0,
@@ -3218,12 +3190,12 @@ void DoitGetIncoming(Workspace& ws,
               }
 
               cloudbox_field(joker,
-                           p_index,
-                           lat_index,
-                           boundary_index,
-                           za_index,
-                           aa_index,
-                           joker) = iy;
+                             p_index,
+                             lat_index,
+                             boundary_index,
+                             za_index,
+                             aa_index,
+                             joker) = iy;
             }
           }
         }
@@ -3245,7 +3217,7 @@ void DoitGetIncoming1DAtm(Workspace& ws,
                           const Vector& lat_grid,
                           const Vector& lon_grid,
                           const Tensor3& z_field,
-                          const Tensor4& nlte_field,                          
+                          const Tensor4& nlte_field,
                           const ArrayOfIndex& cloudbox_limits,
                           const Vector& f_grid,
                           const Index& stokes_dim,
@@ -3355,22 +3327,22 @@ void DoitGetIncoming1DAtm(Workspace& ws,
           for (Index lat = 0; lat < Nlat_cloud; lat++) {
             for (Index lon = 0; lon < Nlon_cloud; lon++) {
               cloudbox_field(joker,
-                           cloudbox_field.nvitrines(),
-                           lat,
-                           lon,
-                           za_index,
-                           aa,
-                           joker) = iy;
+                             cloudbox_field.nvitrines(),
+                             lat,
+                             lon,
+                             za_index,
+                             aa,
+                             joker) = iy;
             }
           }
 
         // scat_i_lat (both boundaries)
         for (Index lat = 0; lat < 2; lat++) {
           for (Index lon = 0; lon < Nlon_cloud; lon++) {
-            const Index boundary_index = lat ? cloudbox_field.nshelves() - 1 : 0;
+            const Index boundary_index =
+                lat ? cloudbox_field.nshelves() - 1 : 0;
             cloudbox_field(
-                joker, p_index, boundary_index, lon, za_index, aa, joker) =
-                iy;
+                joker, p_index, boundary_index, lon, za_index, aa, joker) = iy;
           }
         }
 
@@ -3379,8 +3351,7 @@ void DoitGetIncoming1DAtm(Workspace& ws,
           for (Index lon = 0; lon < 2; lon++) {
             const Index boundary_index = lon ? cloudbox_field.nbooks() - 1 : 0;
             cloudbox_field(
-                joker, p_index, lat, boundary_index, za_index, aa, joker) =
-                iy;
+                joker, p_index, lat, boundary_index, za_index, aa, joker) = iy;
           }
         }
       }
@@ -3391,14 +3362,14 @@ void DoitGetIncoming1DAtm(Workspace& ws,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void cloudbox_fieldSetFromPrecalc(Tensor7& cloudbox_field,
-                                const Vector& za_grid,
-                                const Vector& f_grid,
-                                const Index& atmosphere_dim,
-                                const Index& stokes_dim,
-                                const ArrayOfIndex& cloudbox_limits,
-                                const Index& doit_is_initialized,
-                                const Tensor7& cloudbox_field_precalc,
-                                const Verbosity&)  //verbosity)
+                                  const Vector& za_grid,
+                                  const Vector& f_grid,
+                                  const Index& atmosphere_dim,
+                                  const Index& stokes_dim,
+                                  const ArrayOfIndex& cloudbox_limits,
+                                  const Index& doit_is_initialized,
+                                  const Tensor7& cloudbox_field_precalc,
+                                  const Verbosity&)  //verbosity)
 {
   // this is only for 1D atmo!
   if (atmosphere_dim != 1) {
@@ -3494,15 +3465,15 @@ void cloudbox_fieldSetFromPrecalc(Tensor7& cloudbox_field,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void cloudbox_fieldSetClearsky(Tensor7& cloudbox_field,
-                             const Vector& p_grid,
-                             const Vector& lat_grid,
-                             const Vector& lon_grid,
-                             const ArrayOfIndex& cloudbox_limits,
-                             const Index& atmosphere_dim,
-                             const Index& cloudbox_on,
-                             const Index& doit_is_initialized,
-                             const Index& all_frequencies,
-                             const Verbosity& verbosity) {
+                               const Vector& p_grid,
+                               const Vector& lat_grid,
+                               const Vector& lon_grid,
+                               const ArrayOfIndex& cloudbox_limits,
+                               const Index& atmosphere_dim,
+                               const Index& cloudbox_on,
+                               const Index& doit_is_initialized,
+                               const Index& all_frequencies,
+                               const Verbosity& verbosity) {
   CREATE_OUT2;
 
   // Don't do anything if there's no cloudbox defined.
@@ -3553,12 +3524,12 @@ void cloudbox_fieldSetClearsky(Tensor7& cloudbox_field,
           cloudbox_field(f_index, 0, joker, joker, joker, joker, joker);
       scat_i_p(1, joker, joker, joker, joker, joker) =
           cloudbox_field(f_index,
-                       cloudbox_field.nvitrines() - 1,
-                       joker,
-                       joker,
-                       joker,
-                       joker,
-                       joker);
+                         cloudbox_field.nvitrines() - 1,
+                         joker,
+                         joker,
+                         joker,
+                         joker,
+                         joker);
 
       for (Index za_index = 0; za_index < N_za; ++za_index) {
         for (Index aa_index = 0; aa_index < N_aa; ++aa_index) {
@@ -3657,12 +3628,12 @@ void cloudbox_fieldSetClearsky(Tensor7& cloudbox_field,
             for (Index aa_index = 0; aa_index < N_aa; ++aa_index) {
               for (Index i = 0; i < N_i; ++i) {
                 VectorView target_field = cloudbox_field(f_index,
-                                                       Range(joker),
-                                                       lat_index,
-                                                       lon_index,
-                                                       za_index,
-                                                       aa_index,
-                                                       i);
+                                                         Range(joker),
+                                                         lat_index,
+                                                         lon_index,
+                                                         za_index,
+                                                         aa_index,
+                                                         i);
 
                 ConstVectorView source_field = scat_i_p(
                     Range(joker), lat_index, lon_index, za_index, aa_index, i);
@@ -3684,12 +3655,12 @@ void cloudbox_fieldSetClearsky(Tensor7& cloudbox_field,
             for (Index aa_index = 0; aa_index < N_aa; ++aa_index) {
               for (Index i = 0; i < N_i; ++i) {
                 VectorView target_field = cloudbox_field(f_index,
-                                                       p_index,
-                                                       Range(joker),
-                                                       lon_index,
-                                                       za_index,
-                                                       aa_index,
-                                                       i);
+                                                         p_index,
+                                                         Range(joker),
+                                                         lon_index,
+                                                         za_index,
+                                                         aa_index,
+                                                         i);
 
                 ConstVectorView source_field = scat_i_lat(
                     p_index, Range(joker), lon_index, za_index, aa_index, i);
@@ -3711,12 +3682,12 @@ void cloudbox_fieldSetClearsky(Tensor7& cloudbox_field,
             for (Index aa_index = 0; aa_index < N_aa; ++aa_index) {
               for (Index i = 0; i < N_i; ++i) {
                 VectorView target_field = cloudbox_field(f_index,
-                                                       p_index,
-                                                       lat_index,
-                                                       Range(joker),
-                                                       za_index,
-                                                       aa_index,
-                                                       i);
+                                                         p_index,
+                                                         lat_index,
+                                                         Range(joker),
+                                                         za_index,
+                                                         aa_index,
+                                                         i);
 
                 ConstVectorView source_field = scat_i_lon(
                     p_index, lat_index, Range(joker), za_index, aa_index, i);
@@ -3747,25 +3718,25 @@ void cloudbox_fieldSetConst(  //WS Output:
   CREATE_OUT2;
 
   Tensor6 cloudbox_field_mono(cloudbox_field.nvitrines(),
-                            cloudbox_field.nshelves(),
-                            cloudbox_field.nbooks(),
-                            cloudbox_field.npages(),
-                            cloudbox_field.nrows(),
-                            cloudbox_field.ncols());
+                              cloudbox_field.nshelves(),
+                              cloudbox_field.nbooks(),
+                              cloudbox_field.npages(),
+                              cloudbox_field.nrows(),
+                              cloudbox_field.ncols());
 
   for (Index f_index = 0; f_index < cloudbox_field.nlibraries(); f_index++) {
     cloudbox_field_mono =
         cloudbox_field(f_index, joker, joker, joker, joker, joker, joker);
 
     cloudbox_field_monoSetConst(cloudbox_field_mono,
-                              p_grid,
-                              lat_grid,
-                              lon_grid,
-                              cloudbox_limits,
-                              atmosphere_dim,
-                              stokes_dim,
-                              cloudbox_field_values,
-                              verbosity);
+                                p_grid,
+                                lat_grid,
+                                lon_grid,
+                                cloudbox_limits,
+                                atmosphere_dim,
+                                stokes_dim,
+                                cloudbox_field_values,
+                                verbosity);
 
     cloudbox_field(f_index, joker, joker, joker, joker, joker, joker) =
         cloudbox_field_mono;
@@ -3793,25 +3764,25 @@ void cloudbox_fieldSetConstPerFreq(  //WS Output:
         " the frequency dimension of *cloudbox_field*.");
 
   Tensor6 cloudbox_field_mono(cloudbox_field.nvitrines(),
-                            cloudbox_field.nshelves(),
-                            cloudbox_field.nbooks(),
-                            cloudbox_field.npages(),
-                            cloudbox_field.nrows(),
-                            cloudbox_field.ncols());
+                              cloudbox_field.nshelves(),
+                              cloudbox_field.nbooks(),
+                              cloudbox_field.npages(),
+                              cloudbox_field.nrows(),
+                              cloudbox_field.ncols());
 
   for (Index f_index = 0; f_index < cloudbox_field.nlibraries(); f_index++) {
     cloudbox_field_mono =
         cloudbox_field(f_index, joker, joker, joker, joker, joker, joker);
 
     cloudbox_field_monoSetConst(cloudbox_field_mono,
-                              p_grid,
-                              lat_grid,
-                              lon_grid,
-                              cloudbox_limits,
-                              atmosphere_dim,
-                              stokes_dim,
-                              cloudbox_field_values(f_index, joker),
-                              verbosity);
+                                p_grid,
+                                lat_grid,
+                                lon_grid,
+                                cloudbox_limits,
+                                atmosphere_dim,
+                                stokes_dim,
+                                cloudbox_field_values(f_index, joker),
+                                verbosity);
 
     cloudbox_field(f_index, joker, joker, joker, joker, joker, joker) =
         cloudbox_field_mono;

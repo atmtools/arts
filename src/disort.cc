@@ -161,7 +161,7 @@ void check_disort_input(  // Input
     if (za_grid[i] == 90)
       throw runtime_error("*za_grid* is not allowed to contain the value 90");
     i++;
-  } 
+  }
 
   // DISORT can only handle randomly oriented particles.
   bool all_totrand = true;
@@ -878,8 +878,7 @@ void run_cdisort(Workspace& ws,
   get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas, ext_bulk_par, abs_bulk_par, z);
 
   // Transform to mu, starting with negative values
-  for (Index i = 0; i < ds.numu; i++)
-    ds.umu[i] = -cos(za_grid[i] * PI / 180);
+  for (Index i = 0; i < ds.numu; i++) ds.umu[i] = -cos(za_grid[i] * PI / 180);
 
   //upper boundary conditions:
   // DISORT offers isotropic incoming radiance or emissivity-scaled planck

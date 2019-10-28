@@ -150,11 +150,11 @@ void DisortCalcClearsky(Workspace& ws,
                         const Index& nstreams,
                         const Index& cdisort_quiet,
                         const Verbosity& verbosity) {
-
   if (atmosphere_dim != 1)
-    throw runtime_error("For running DISORT, atmospheric dimensionality "
-                        "must be 1.\n");
-  
+    throw runtime_error(
+        "For running DISORT, atmospheric dimensionality "
+        "must be 1.\n");
+
   // Set cloudbox to cover complete atmosphere
   Index cloudbox_on;
   ArrayOfIndex cloudbox_limits;
@@ -166,7 +166,7 @@ void DisortCalcClearsky(Workspace& ws,
                      p_grid,
                      Vector(0),
                      Vector(0),
-                     verbosity);  
+                     verbosity);
 
   // Create data matching no particles
   Tensor4 pnd_field;

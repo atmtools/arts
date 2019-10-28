@@ -356,7 +356,7 @@ void get_pmom(Tensor3View pmom,
  */
 void reduced_1datm(Vector& p,
                    Vector& z,
-                   Vector& t, 
+                   Vector& t,
                    Matrix& vmr,
                    Matrix& pnd,
                    ArrayOfIndex& cboxlims,

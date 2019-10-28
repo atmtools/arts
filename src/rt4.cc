@@ -53,7 +53,6 @@ extern const Numeric RAD2DEG;
 extern const Numeric SPEED_OF_LIGHT;
 extern const Numeric COSMIC_BG_TEMP;
 
-
 void check_rt4_input(  // Output
     Index& nhstreams,
     Index& nhza,
@@ -72,7 +71,6 @@ void check_rt4_input(  // Output
     const String& quad_type,
     const Index& add_straight_angles,
     const Index& pnd_ncols) {
-
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) {
     throw runtime_error(
@@ -192,7 +190,6 @@ void check_rt4_input(  // Output
   //------------- end of checks ---------------------------------------
 }
 
-
 void get_quad_angles(  // Output
     VectorView mu_values,
     VectorView quad_weights,
@@ -230,7 +227,6 @@ void get_quad_angles(  // Output
   aa_grid.resize(1);
   aa_grid[0] = 0.;
 }
-
 
 void get_rt4surf_props(  // Output
     Vector& ground_albedo,
@@ -382,28 +378,27 @@ void run_rt4(Workspace& ws,
              const Numeric& pfct_threshold,
              const Numeric& max_delta_tau,
              const Verbosity& verbosity) {
+  // Create an atmosphere starting at z_surface
+  Vector p, z, t;
+  Matrix vmr, pnd;
+  ArrayOfIndex cboxlims;
+  Index ncboxremoved;
+  //
+  reduced_1datm(p,
+                z,
+                t,
+                vmr,
+                pnd,
+                cboxlims,
+                ncboxremoved,
+                p_grid,
+                z_profile,
+                surf_altitude,
+                t_profile,
+                vmr_profiles,
+                pnd_profiles,
+                cloudbox_limits);
 
-    // Create an atmosphere starting at z_surface
-    Vector p, z, t;
-    Matrix vmr, pnd;
-    ArrayOfIndex cboxlims;
-    Index ncboxremoved;
-    //
-    reduced_1datm(p,
-                  z,
-                  t,
-                  vmr,
-                  pnd,
-                  cboxlims,
-                  ncboxremoved,
-                  p_grid,
-                  z_profile,
-                  surf_altitude,
-                  t_profile,
-                  vmr_profiles,
-                  pnd_profiles,
-                  cloudbox_limits);
-  
   // Input variables for RT4
   Index num_layers = p.nelem() - 1;
 
@@ -471,7 +466,7 @@ void run_rt4(Workspace& ws,
                     za_grid,
                     -1,
                     pnd,
-                    t, 
+                    t,
                     cboxlims,
                     stokes_dim);
     if (emis_vector_allf.nshelves() == 1)  // scat_data had just a single freq
@@ -495,7 +490,7 @@ void run_rt4(Workspace& ws,
     // that here.
     za_grid_orig = za_grid;
   }
-  
+
   Index nummu_new = 0;
   // Loop over frequencies
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
@@ -599,8 +594,8 @@ void run_rt4(Workspace& ws,
                   up_rad.get_c_array(),
                   down_rad.get_c_array());
       }
-      
-    } else { // if (auto_inc_nstreams)
+
+    } else {  // if (auto_inc_nstreams)
 
       if (nummu_new < nummu) nummu_new = nummu + 1;
 
@@ -837,23 +832,23 @@ void run_rt4(Workspace& ws,
       for (Index ist = 0; ist < stokes_dim; ist++) {
         for (Index k = cboxlims[1] - cboxlims[0]; k >= 0; k--) {
           cloudbox_field(f_index, k + ncboxremoved, 0, 0, nummu + j, 0, ist) =
-            up_rad(num_layers - k, j, ist) * rad_l2f;
-          cloudbox_field(f_index, k + ncboxremoved, 0, 0, nummu - 1 - j, 0, ist) =
-            down_rad(num_layers - k, j, ist) * rad_l2f;
+              up_rad(num_layers - k, j, ist) * rad_l2f;
+          cloudbox_field(
+              f_index, k + ncboxremoved, 0, 0, nummu - 1 - j, 0, ist) =
+              down_rad(num_layers - k, j, ist) * rad_l2f;
         }
         // To avoid potential numerical problems at interpolation of the field,
         // we copy the surface field to underground altitudes
         for (Index k = ncboxremoved - 1; k >= 0; k--) {
           cloudbox_field(f_index, k, 0, 0, nummu + j, 0, ist) =
-            cloudbox_field(f_index, k + 1, 0, 0, nummu + j, 0, ist);
-          cloudbox_field(f_index, k, 0, 0, nummu -1 + j, 0, ist) =
-            cloudbox_field(f_index, k + 1, 0, 0, nummu -1 + j, 0, ist);
+              cloudbox_field(f_index, k + 1, 0, 0, nummu + j, 0, ist);
+          cloudbox_field(f_index, k, 0, 0, nummu - 1 + j, 0, ist) =
+              cloudbox_field(f_index, k + 1, 0, 0, nummu - 1 + j, 0, ist);
         }
       }
     }
   }
 }
-
 
 void za_grid_adjust(  // Output
     Vector& za_grid,
@@ -868,7 +863,6 @@ void za_grid_adjust(  // Output
     //     << " from mu[" << j << "]=" << mu_values[j] << "\n";
   }
 }
-
 
 void gas_optpropCalc(Workspace& ws,
                      VectorView gas_extinct,
@@ -899,8 +893,7 @@ void gas_optpropCalc(Workspace& ws,
 
     // Average vmrs
     for (Index j = 0; j < vmr_profiles.nrows(); j++)
-      rtp_vmr_local[j] =
-          0.5 * (vmr_profiles(j, i) + vmr_profiles(j, i + 1));
+      rtp_vmr_local[j] = 0.5 * (vmr_profiles(j, i) + vmr_profiles(j, i + 1));
 
     const Vector rtp_mag_dummy(3, 0);
     const Vector ppath_los_dummy;
@@ -1005,42 +998,41 @@ void par_optpropCalc(Tensor5View emis_vector,
         for (Index ist1 = 0; ist1 < stokes_dim; ist1++) {
           for (Index ist2 = 0; ist2 < stokes_dim; ist2++) {
             extinct_matrix(fi, ipc, 0, imu, ist2, ist1) =
-              .5 * (ext_mat_bulk(fi, ipc, imu, ist1, ist2) +
-                    ext_mat_bulk(fi, ipc + 1, imu, ist1, ist2));
+                .5 * (ext_mat_bulk(fi, ipc, imu, ist1, ist2) +
+                      ext_mat_bulk(fi, ipc + 1, imu, ist1, ist2));
             extinct_matrix(fi, ipc, 1, imu, ist2, ist1) =
-              .5 * (ext_mat_bulk(fi, ipc, nummu + imu, ist1, ist2) +
-                    ext_mat_bulk(fi, ipc + 1, nummu + imu, ist1, ist2));
+                .5 * (ext_mat_bulk(fi, ipc, nummu + imu, ist1, ist2) +
+                      ext_mat_bulk(fi, ipc + 1, nummu + imu, ist1, ist2));
           }
           emis_vector(fi, ipc, 0, imu, ist1) =
-            .5 * (abs_vec_bulk(fi, ipc, imu, ist1) +
-                  abs_vec_bulk(fi, ipc + 1, imu, ist1));
+              .5 * (abs_vec_bulk(fi, ipc, imu, ist1) +
+                    abs_vec_bulk(fi, ipc + 1, imu, ist1));
           emis_vector(fi, ipc, 1, imu, ist1) =
-            .5 * (abs_vec_bulk(fi, ipc, nummu + imu, ist1) +
-                  abs_vec_bulk(fi, ipc + 1, nummu + imu, ist1));
+              .5 * (abs_vec_bulk(fi, ipc, nummu + imu, ist1) +
+                    abs_vec_bulk(fi, ipc + 1, nummu + imu, ist1));
         }
       }
     }
   }
 }
 
-
 void sca_optpropCalc(  //Output
-                     Tensor6View scatter_matrix,
-                     Index& pfct_failed,
-                     //Input
-                     ConstTensor4View emis_vector,
-                     ConstTensor5View extinct_matrix,
-                     const Index& f_index,
-                     const ArrayOfArrayOfSingleScatteringData& scat_data,
-                     ConstMatrixView pnd_profiles,
-                     const Index& stokes_dim,
-                     const Vector& za_grid,
-                     ConstVectorView quad_weights,
-                     const String& pfct_method,
-                     const Index& pfct_aa_grid_size,
-                     const Numeric& pfct_threshold,
-                     const Index& auto_inc_nstreams,
-                     const Verbosity& verbosity) {
+    Tensor6View scatter_matrix,
+    Index& pfct_failed,
+    //Input
+    ConstTensor4View emis_vector,
+    ConstTensor5View extinct_matrix,
+    const Index& f_index,
+    const ArrayOfArrayOfSingleScatteringData& scat_data,
+    ConstMatrixView pnd_profiles,
+    const Index& stokes_dim,
+    const Vector& za_grid,
+    ConstVectorView quad_weights,
+    const String& pfct_method,
+    const Index& pfct_aa_grid_size,
+    const Numeric& pfct_threshold,
+    const Index& auto_inc_nstreams,
+    const Verbosity& verbosity) {
   // FIXME: this whole funtions needs revision/optimization regarding
   // - temperature dependence (using new-type scat_data)
   // - using redundancies in sca_mat data at least for totally random
@@ -1384,7 +1376,6 @@ void sca_optpropCalc(  //Output
   }
 }
 
-
 void surf_optpropCalc(Workspace& ws,
                       //Output
                       Tensor5View surf_refl_mat,
@@ -1571,8 +1562,7 @@ void surf_optpropCalc(Workspace& ws,
       // 180. - (rtp_los=za_grid[nummu+rmu]=180.-za_grid[rmu])
       // = za_grid[rmu].
       // check that, and if so, sort values into refmat(rmu,rmu).
-      assert(
-          is_same_within_epsilon(surface_los(0, 0), za_grid[rmu], 1e-12));
+      assert(is_same_within_epsilon(surface_los(0, 0), za_grid[rmu], 1e-12));
       for (Index f_index = 0; f_index < nf; f_index++)
         for (Index sto1 = 0; sto1 < stokes_dim; sto1++)
           for (Index sto2 = 0; sto2 < stokes_dim; sto2++)
@@ -1603,7 +1593,6 @@ void surf_optpropCalc(Workspace& ws,
     }
   }
 }
-
 
 void rt4_test(Tensor4& out_rad,
               const String& datapath,

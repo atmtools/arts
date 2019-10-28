@@ -118,17 +118,16 @@ void define_agenda_data() {
             "abs_nlte",
             "abs_vmrs")));
 
-  agenda_data.push_back(AgRecord(
-      NAME("dobatch_calc_agenda"),
-      DESCRIPTION(
-          "Calculations to perform for each batch case.\n"
-          "\n"
-          "See further *dobatchCalc*.\n"),
-      OUTPUT("spectral_radiance_field",
-             "radiance_field",
-             "irradiance_field",
-             "spectral_irradiance_field"),
-      INPUT("ybatch_index")));
+  agenda_data.push_back(
+      AgRecord(NAME("dobatch_calc_agenda"),
+               DESCRIPTION("Calculations to perform for each batch case.\n"
+                           "\n"
+                           "See further *dobatchCalc*.\n"),
+               OUTPUT("spectral_radiance_field",
+                      "radiance_field",
+                      "irradiance_field",
+                      "spectral_irradiance_field"),
+               INPUT("ybatch_index")));
 
   agenda_data.push_back(AgRecord(
       NAME("doit_conv_test_agenda"),
@@ -667,10 +666,7 @@ void define_agenda_data() {
           "The include file 'agendas.arts' defines some agendas that can be\n"
           "used here."),
       OUTPUT("ppath_step"),
-      INPUT("ppath_step",
-            "ppath_lmax",
-            "ppath_lraytrace",
-            "f_grid")));
+      INPUT("ppath_step", "ppath_lmax", "ppath_lraytrace", "f_grid")));
 
   agenda_data.push_back(AgRecord(
       NAME("refr_index_air_agenda"),

@@ -52,14 +52,14 @@ extern const Numeric DEG2RAD;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void AngularGridsSetFluxCalc(Vector &za_grid,
-                             Vector &aa_grid,
-                             Vector &za_grid_weights,
+void AngularGridsSetFluxCalc(Vector& za_grid,
+                             Vector& aa_grid,
+                             Vector& za_grid_weights,
                              // Keywords:
-                             const Index &N_za_grid,
-                             const Index &N_aa_grid,
-                             const String &za_grid_type,
-                             const Verbosity &) {
+                             const Index& N_za_grid,
+                             const Index& N_aa_grid,
+                             const String& za_grid_type,
+                             const Verbosity&) {
   // Azimuth angle grid
   if (N_aa_grid > 1)
     nlinspace(aa_grid, 0, 360, N_aa_grid);
@@ -184,12 +184,12 @@ void AngularGridsSetFluxCalc(Vector &za_grid,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void heating_ratesFromIrradiance(Tensor3 &heating_rates,
-                                 const Vector &p_grid,
-                                 const Tensor4 &irradiance_field,
-                                 const Tensor3 &specific_heat_capacity,
-                                 const Numeric &g0,
-                                 const Verbosity &) {
+void heating_ratesFromIrradiance(Tensor3& heating_rates,
+                                 const Vector& p_grid,
+                                 const Tensor4& irradiance_field,
+                                 const Tensor3& specific_heat_capacity,
+                                 const Numeric& g0,
+                                 const Verbosity&) {
   //allocate
   heating_rates.resize(irradiance_field.nbooks(),
                        irradiance_field.npages(),
@@ -253,12 +253,12 @@ void heating_ratesFromIrradiance(Tensor3 &heating_rates,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void irradiance_fieldFromRadiance(Tensor4 &irradiance_field,
-                                  const Tensor5 &radiance_field,
-                                  const Vector &za_grid,
-                                  const Vector &aa_grid,
-                                  const Vector &za_grid_weights,
-                                  const Verbosity &) {
+void irradiance_fieldFromRadiance(Tensor4& irradiance_field,
+                                  const Tensor5& radiance_field,
+                                  const Vector& za_grid,
+                                  const Vector& aa_grid,
+                                  const Vector& za_grid_weights,
+                                  const Verbosity&) {
   // Number of zenith angles.
   const Index N_scat_za = za_grid.nelem();
   const Index N_scat_aa = aa_grid.nelem();
@@ -325,10 +325,10 @@ void irradiance_fieldFromRadiance(Tensor4 &irradiance_field,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void RadiationFieldSpectralIntegrate(Tensor4 &radiation_field,
-                                     const Vector &f_grid,
-                                     const Tensor5 &spectral_radiation_field,
-                                     const Verbosity &) {
+void RadiationFieldSpectralIntegrate(Tensor4& radiation_field,
+                                     const Vector& f_grid,
+                                     const Tensor5& spectral_radiation_field,
+                                     const Verbosity&) {
   if (f_grid.nelem() != spectral_radiation_field.nshelves()) {
     throw runtime_error(
         "The length of f_grid does not match with\n"
@@ -362,10 +362,10 @@ void RadiationFieldSpectralIntegrate(Tensor4 &radiation_field,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void RadiationFieldSpectralIntegrate(Tensor5 &radiation_field,
-                                     const Vector &f_grid,
-                                     const Tensor7 &spectral_radiation_field,
-                                     const Verbosity &) {
+void RadiationFieldSpectralIntegrate(Tensor5& radiation_field,
+                                     const Vector& f_grid,
+                                     const Tensor7& spectral_radiation_field,
+                                     const Verbosity&) {
   if (f_grid.nelem() != spectral_radiation_field.nlibraries()) {
     throw runtime_error(
         "The length of f_grid does not match with\n"
@@ -403,13 +403,12 @@ void RadiationFieldSpectralIntegrate(Tensor5 &radiation_field,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void spectral_irradiance_fieldFromSpectralRadianceField(
-  Tensor5 &spectral_irradiance_field,
-  const Tensor7 &spectral_radiance_field,
-  const Vector &za_grid,
-  const Vector &aa_grid,
-  const Vector &za_grid_weights,
-  const Verbosity &) {
-  
+    Tensor5& spectral_irradiance_field,
+    const Tensor7& spectral_radiance_field,
+    const Vector& za_grid,
+    const Vector& aa_grid,
+    const Vector& za_grid_weights,
+    const Verbosity&) {
   // Number of zenith angles.
   const Index N_scat_za = za_grid.nelem();
   const Index N_scat_aa = aa_grid.nelem();
@@ -420,7 +419,7 @@ void spectral_irradiance_fieldFromSpectralRadianceField(
   if (N_scat_aa == 1)  //1D case no azimuth dependency
   {
     iy_field_aa_integrated =
-      spectral_radiance_field(joker, joker, joker, joker, joker, 0, 0);
+        spectral_radiance_field(joker, joker, joker, joker, joker, 0, 0);
     iy_field_aa_integrated *= 2 * PI;
 
   } else  //general case with azimuth dependency
@@ -512,7 +511,6 @@ void spectral_radiance_fieldClearskyPlaneParallel(
     const Vector& za_grid,
     const Index& use_parallel_iy,
     const Verbosity& verbosity) {
-  
   // Check input
   if (atmosphere_dim != 1)
     throw runtime_error("This method only works for atmosphere_dim = 1.");
@@ -555,9 +553,8 @@ void spectral_radiance_fieldClearskyPlaneParallel(
   iy_main_agenda.check(ws, verbosity);
 
   // Index in p_grid where field at surface shall be placed
-  const Index i0 = index_of_zsurface( z_surface(0, 0),
-                                      z_field(joker, 0, 0) );
-  
+  const Index i0 = index_of_zsurface(z_surface(0, 0), z_field(joker, 0, 0));
+
   // Loop zenith angles
   //
   if (nza)
@@ -590,8 +587,8 @@ void spectral_radiance_fieldClearskyPlaneParallel(
                            rte_los,
                            ppath_lmax,
                            verbosity);
-        assert( ppath.gp_p[ppath.np-1].idx == i0 ||
-                ppath.gp_p[ppath.np-1].idx == nl-2 );
+        assert(ppath.gp_p[ppath.np - 1].idx == i0 ||
+               ppath.gp_p[ppath.np - 1].idx == nl - 2);
 
         if (use_parallel_iy) {
           iyEmissionStandardParallel(l_ws,
@@ -695,7 +692,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
         // First and last points are most easily handled separately
         if (za_grid[i] < 90) {
           spectral_radiance_field(joker, i0, 0, 0, i, 0, joker) =
-            ppvar_iy(joker, joker, 0);
+              ppvar_iy(joker, joker, 0);
           spectral_radiance_field(joker, nl - 1, 0, 0, i, 0, joker) =
               ppvar_iy(joker, joker, ppath.np - 1);
           trans_field(joker, 0, i) = ppvar_trans_partial(0, joker, 0, 0);
@@ -715,11 +712,12 @@ void spectral_radiance_fieldClearskyPlaneParallel(
         for (Index p = 1; p < ppath.np - 1; p++) {
           // We just store values at pressure levels
           if (ppath.gp_p[p].fd[0] < 1e-2) {
-            spectral_radiance_field(joker, ppath.gp_p[p].idx, 0, 0, i, 0, joker) =
+            spectral_radiance_field(
+                joker, ppath.gp_p[p].idx, 0, 0, i, 0, joker) =
                 ppvar_iy(joker, joker, p);
             trans_field(joker, ppath.gp_p[p].idx, i) =
                 ppvar_trans_partial(p, joker, 0, 0);
-          }          
+          }
         }
 
         // We don't want undefined values to possibly affect an interpolation,
@@ -727,10 +725,10 @@ void spectral_radiance_fieldClearskyPlaneParallel(
         // ones at the surface
         for (Index p = 0; p < i0; p++) {
           spectral_radiance_field(joker, p, 0, 0, i, 0, joker) =
-            spectral_radiance_field(joker, i0, 0, 0, i, 0, joker);
+              spectral_radiance_field(joker, i0, 0, 0, i, 0, joker);
           trans_field(joker, p, i) = trans_field(joker, i0, i);
         }
-        
+
       } catch (const std::exception& e) {
 #pragma omp critical(planep_setabort)
         failed = true;
@@ -750,20 +748,22 @@ void spectral_radiance_fieldClearskyPlaneParallel(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void spectral_radiance_fieldCopyCloudboxField(Tensor7& spectral_radiance_field,
-                                              const Index& atmosphere_dim,
-                                              const Vector& p_grid,
-                                              const Index& cloudbox_on,
-                                              const ArrayOfIndex& cloudbox_limits,
-                                              const Tensor7& cloudbox_field,
-                                              const Verbosity &) {
-  if (atmosphere_dim > 1) 
+void spectral_radiance_fieldCopyCloudboxField(
+    Tensor7& spectral_radiance_field,
+    const Index& atmosphere_dim,
+    const Vector& p_grid,
+    const Index& cloudbox_on,
+    const ArrayOfIndex& cloudbox_limits,
+    const Tensor7& cloudbox_field,
+    const Verbosity&) {
+  if (atmosphere_dim > 1)
     throw runtime_error("This method can only be used for 1D calculations.\n");
   if (!cloudbox_on)
     throw runtime_error("Cloudbox is off. This is not handled by this method.");
-  if (cloudbox_limits[0] || cloudbox_limits[1] != p_grid.nelem()-1)
-    throw runtime_error("The cloudbox must cover all pressure levels "
-                        "to use this method.");
+  if (cloudbox_limits[0] || cloudbox_limits[1] != p_grid.nelem() - 1)
+    throw runtime_error(
+        "The cloudbox must cover all pressure levels "
+        "to use this method.");
 
   // If all OK, it is just to copy
   spectral_radiance_field = cloudbox_field;
@@ -803,15 +803,15 @@ void spectral_radiance_fieldExpandCloudboxField(
     const Vector& za_grid,
     const Index& use_parallel_iy,
     const Verbosity& verbosity) {
-  
   // Check input
   if (atmosphere_dim != 1)
     throw runtime_error("This method only works for atmosphere_dim = 1.");
   if (!cloudbox_on)
     throw runtime_error("No ned to use this method with cloudbox=0.");
   if (cloudbox_limits[0])
-    throw runtime_error("The first element of *cloudbox_limits* must be zero "
-                        "to use this method.");
+    throw runtime_error(
+        "The first element of *cloudbox_limits* must be zero "
+        "to use this method.");
 
   // Sizes
   const Index nl = p_grid.nelem();
@@ -823,13 +823,13 @@ void spectral_radiance_fieldExpandCloudboxField(
 
   // and copy the part taken from cloudbox_field
   spectral_radiance_field(joker,
-                          Range(0,cloudbox_limits[1]+1),
+                          Range(0, cloudbox_limits[1] + 1),
                           joker,
                           joker,
                           joker,
                           joker,
                           joker) = cloudbox_field;
-  
+
   // Various variables
   const Index ppath_inside_cloudbox_do = 0;
   const String iy_unit = "1";
@@ -856,8 +856,8 @@ void spectral_radiance_fieldExpandCloudboxField(
 
   // Variables related to the top of the cloudbox
   const Index i0 = cloudbox_limits[1];
-  const Numeric z_top = z_field(i0+1, 0, 0);   // Note i0+1
-  
+  const Numeric z_top = z_field(i0 + 1, 0, 0);  // Note i0+1
+
   // Loop zenith angles
   //
   if (nza)
@@ -890,8 +890,8 @@ void spectral_radiance_fieldExpandCloudboxField(
                            rte_los,
                            ppath_lmax,
                            verbosity);
-        assert( ppath.gp_p[ppath.np-1].idx == i0 ||
-                ppath.gp_p[ppath.np-1].idx == nl-2 );
+        assert(ppath.gp_p[ppath.np - 1].idx == i0 ||
+               ppath.gp_p[ppath.np - 1].idx == nl - 2);
 
         if (use_parallel_iy) {
           iyEmissionStandardParallel(l_ws,
@@ -995,8 +995,8 @@ void spectral_radiance_fieldExpandCloudboxField(
         // First and last points are most easily handled separately
         // But field at top cloudbox already known from copying above
         if (za_grid[i] < 90) {
-          spectral_radiance_field(joker, i0+1, 0, 0, i, 0, joker) =
-            ppvar_iy(joker, joker, 0);
+          spectral_radiance_field(joker, i0 + 1, 0, 0, i, 0, joker) =
+              ppvar_iy(joker, joker, 0);
           spectral_radiance_field(joker, nl - 1, 0, 0, i, 0, joker) =
               ppvar_iy(joker, joker, ppath.np - 1);
         } else {
@@ -1008,11 +1008,12 @@ void spectral_radiance_fieldExpandCloudboxField(
         for (Index p = 1; p < ppath.np - 1; p++) {
           // We just store values at pressure levels
           if (ppath.gp_p[p].fd[0] < 1e-2) {
-            spectral_radiance_field(joker, ppath.gp_p[p].idx, 0, 0, i, 0, joker) =
+            spectral_radiance_field(
+                joker, ppath.gp_p[p].idx, 0, 0, i, 0, joker) =
                 ppvar_iy(joker, joker, p);
-          }          
+          }
         }
-        
+
       } catch (const std::exception& e) {
 #pragma omp critical(planep_setabort)
         failed = true;

@@ -105,7 +105,6 @@ void get_quad_angles(  // Output
     const Index& nhza,
     const Index& nummu);
 
-
 //! Derive surface property input for RT4's proprietary surface handling
 /*!
   Derive surface property input for RT4's proprietary surface handling depending
@@ -278,7 +277,6 @@ void gas_optpropCalc(Workspace& ws,
                      ConstVectorView p_grid,
                      ConstVectorView f_mono);
 
-
 //! Calculates layer averaged particle extinction and absorption
 /*!
   Calculates layer averaged particle extinction and absorption (extinct_matrix
@@ -300,17 +298,17 @@ void gas_optpropCalc(Workspace& ws,
   \date   2016-08-08
 */
 void par_optpropCalc(  //Output
-                     Tensor5View emis_vector,
-                     Tensor6View extinct_matrix,
-                     //VectorView scatlayers,
-                     //Input
-                     const ArrayOfArrayOfSingleScatteringData& scat_data,
-                     const Vector& za_grid,
-                     const Index& f_index,
-                     ConstMatrixView pnd_profiles,
-                     ConstVectorView t_profile,
-                     const ArrayOfIndex& cloudbox_limits,
-                     const Index& stokes_dim);
+    Tensor5View emis_vector,
+    Tensor6View extinct_matrix,
+    //VectorView scatlayers,
+    //Input
+    const ArrayOfArrayOfSingleScatteringData& scat_data,
+    const Vector& za_grid,
+    const Index& f_index,
+    ConstMatrixView pnd_profiles,
+    ConstVectorView t_profile,
+    const ArrayOfIndex& cloudbox_limits,
+    const Index& stokes_dim);
 
 //! Calculates layer (and azimuthal) averaged phase matrix
 /*!
@@ -345,22 +343,22 @@ void par_optpropCalc(  //Output
   \date   2016-08-08
 */
 void sca_optpropCalc(  //Output
-                     Tensor6View scatter_matrix,
-                     Index& pfct_failed,
-                     //Input
-                     ConstTensor4View emis_vector,
-                     ConstTensor5View extinct_matrix,
-                     const Index& f_index,
-                     const ArrayOfArrayOfSingleScatteringData& scat_data,
-                     ConstMatrixView pnd_profiles,
-                     const Index& stokes_dim,
-                     const Vector& za_grid,
-                     ConstVectorView quad_weights,
-                     const String& pfct_method,
-                     const Index& pfct_aa_grid_size,
-                     const Numeric& pfct_threshold,
-                     const Index& auto_inc_nstreams,
-                     const Verbosity& verbosity);
+    Tensor6View scatter_matrix,
+    Index& pfct_failed,
+    //Input
+    ConstTensor4View emis_vector,
+    ConstTensor5View extinct_matrix,
+    const Index& f_index,
+    const ArrayOfArrayOfSingleScatteringData& scat_data,
+    ConstMatrixView pnd_profiles,
+    const Index& stokes_dim,
+    const Vector& za_grid,
+    ConstVectorView quad_weights,
+    const String& pfct_method,
+    const Index& pfct_aa_grid_size,
+    const Numeric& pfct_threshold,
+    const Index& auto_inc_nstreams,
+    const Verbosity& verbosity);
 
 //! Calculates bidirectional surface reflection matrices and emission direction
 /*!

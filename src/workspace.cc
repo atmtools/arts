@@ -1219,17 +1219,17 @@ void Workspace::define_wsv_data() {
           "\n"
           "This covariance matrix describes the Gaussian a priori distribution\n"
           "for an OEM retrieval. It is represented using a symmetric block matrix.\n"
-	  "covmat_sx can be used in two ways: Either with a block for each retrieval\n"
-	  "quantity or with a single block containing the full covariance matrix.\n"
-	  "\n"
-	  "Using a single block for each retrieval quantity has is advantageous for\n"
-	  "if the retrieval quantities are assumed to be independent. In this case,\n"
-	  "the covariance blocks can be added separately for each quantity and will\n"
-	  "allow optimizing matrix multiplications and inverses required for the OEM\n"
-	  "calculation.\n"
-	  "\n"
-	  "The other case of using a single-block covariance matrix is supported\n"
-	  "for convenience as well.\n"
+          "covmat_sx can be used in two ways: Either with a block for each retrieval\n"
+          "quantity or with a single block containing the full covariance matrix.\n"
+          "\n"
+          "Using a single block for each retrieval quantity has is advantageous for\n"
+          "if the retrieval quantities are assumed to be independent. In this case,\n"
+          "the covariance blocks can be added separately for each quantity and will\n"
+          "allow optimizing matrix multiplications and inverses required for the OEM\n"
+          "calculation.\n"
+          "\n"
+          "The other case of using a single-block covariance matrix is supported\n"
+          "for convenience as well.\n"
           "\n"
           "Usage:   Used by inversion methods.\n"
           "\n"
@@ -2059,10 +2059,10 @@ void Workspace::define_wsv_data() {
           "or keeps its value set by *yCalc*.\n"),
       GROUP("Index")));
 
-  wsv_data.push_back(WsvRecord(
-      NAME("iy_loop_freqs_agenda"),
-      DESCRIPTION("Agenda dedicated to *iyLoopFrequencies*."),
-      GROUP("Agenda")));
+  wsv_data.push_back(
+      WsvRecord(NAME("iy_loop_freqs_agenda"),
+                DESCRIPTION("Agenda dedicated to *iyLoopFrequencies*."),
+                GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
       NAME("iy_main_agenda"),
@@ -4941,19 +4941,18 @@ void Workspace::define_wsv_data() {
           "TESSEM2 neural network parameters for vertical polarization.\n"),
       GROUP("TessemNN")));
 
-  wsv_data.push_back(WsvRecord(NAME("test_agenda"),
-                               DESCRIPTION(
-                                   "A dummy agenda for testing purposes.\n"
-                                   "\n"
-                                   "Only used for testing by developers.\n"),
-                               GROUP("Agenda")));
+  wsv_data.push_back(
+      WsvRecord(NAME("test_agenda"),
+                DESCRIPTION("A dummy agenda for testing purposes.\n"
+                            "\n"
+                            "Only used for testing by developers.\n"),
+                GROUP("Agenda")));
 
   wsv_data.push_back(
       WsvRecord(NAME("test_agenda_array"),
-                DESCRIPTION(
-                    "Array of agenda for TestArrayOfAgenda case.\n"
-                    "\n"
-                    "Only used for testing by developers.\n"),
+                DESCRIPTION("Array of agenda for TestArrayOfAgenda case.\n"
+                            "\n"
+                            "Only used for testing by developers.\n"),
                 GROUP("ArrayOfAgenda")));
 
   wsv_data.push_back(WsvRecord(
