@@ -222,7 +222,7 @@ propmat_clearsky_agenda_checkedCalc
 #####
 DoitInit
 DoitGetIncoming( maxratio=DOITinterpol_ratio )
-doit_i_fieldSetClearsky
+cloudbox_fieldSetClearsky
 DoitCalc
 
 # and the (clearsky) RT calc

@@ -135,7 +135,7 @@ void define_agenda_data() {
       DESCRIPTION(
           "Compute the convergence test.\n"
           "\n"
-          "The method *doit_i_field_monoIterate* solves the VRTE iteratively."
+          "The method *cloudbox_field_monoIterate* solves the VRTE iteratively."
           "This method requires \n"
           "a convergence test. The user can choose different convergence tests\n"
           "which are to be defined in this agenda.\n"
@@ -150,15 +150,17 @@ void define_agenda_data() {
       OUTPUT("doit_conv_flag", "doit_iteration_counter"),
       INPUT("doit_conv_flag",
             "doit_iteration_counter",
-            "doit_i_field_mono",
-            "doit_i_field_mono_old")));
+            "cloudbox_field_mono",
+            "cloudbox_field_mono_old")));
 
+  /*
   agenda_data.push_back(
-      AgRecord(NAME("doit_i_field_agenda"),
+      AgRecord(NAME("cloudbox_field_agenda"),
                DESCRIPTION("So far just a test."),
-               OUTPUT("doit_i_field", "scat_za_grid", "scat_aa_grid"),
+               OUTPUT("cloudbox_field", "scat_za_grid", "scat_aa_grid"),
                INPUT()));
-
+  */
+  
   agenda_data.push_back(AgRecord(
       NAME("doit_mono_agenda"),
       DESCRIPTION(
@@ -166,7 +168,7 @@ void define_agenda_data() {
           "\n"
           "This agenda includes for example the following methods:\n"
           "   1. *DoitScatteringDataPrepare* \n"
-          "   2. *doit_i_field_monoIterate*\n"
+          "   2. *cloudbox_field_monoIterate*\n"
           "\n"
           "The result of the agenda is the radiation field inside the \n"
           "cloudbox and on the cloudbox boundary, which can be used \n"
@@ -175,8 +177,8 @@ void define_agenda_data() {
           "\n"
           "See the Arts online documentation\n"
           "for more information about the methods.\n"),
-      OUTPUT("doit_i_field_mono"),
-      INPUT("doit_i_field_mono", "f_grid", "f_index")));
+      OUTPUT("cloudbox_field_mono"),
+      INPUT("cloudbox_field_mono", "f_grid", "f_index")));
 
   agenda_data.push_back(AgRecord(
       NAME("doit_scat_field_agenda"),
@@ -199,7 +201,7 @@ void define_agenda_data() {
           "  resolution is required for the RT transfer part, this method \n"
           "  is much faster than *doit_scat_fieldCalc*. \n"),
       OUTPUT("doit_scat_field"),
-      INPUT("doit_scat_field", "doit_i_field_mono")));
+      INPUT("doit_scat_field", "cloudbox_field_mono")));
 
   agenda_data.push_back(AgRecord(
       NAME("doit_rte_agenda"),
@@ -212,12 +214,12 @@ void define_agenda_data() {
           "This agenda is called repeatedly in each DOIT iteration.\n"
           "\n"
           "Normally one should use\n"
-          "*doit_i_fieldUpdateSeq1D* or *doit_i_fieldUpdateSeq3D*:\n"
+          "*cloudbox_fieldUpdateSeq1D* or *cloudbox_fieldUpdateSeq3D*:\n"
           "Seqential update of the radiation field.\n"
           "   This method is the fastest and most accurate method.\n"
           "\n"
           "Very similar methods in plane parallel approximation are\n"
-          "*doit_i_fieldUpdate1DPlaneParallel* and *doit_i_fieldUpdate3DPlaneParallel*:\n"
+          "*cloudbox_fieldUpdate1DPlaneParallel* and *cloudbox_fieldUpdate3DPlaneParallel*:\n"
           "   These methods also include the sequential update and are slightly\n"
           "   faster than the above ones. The drawback is, that they are less\n"
           "   accurate, especially for limb geometries and large off-nadir\n"
@@ -226,9 +228,9 @@ void define_agenda_data() {
           "The following methods were used before the sequential update\n"
           "was invented. They are very slow and should therefore only \n"
           "be used for test cases.\n"
-          "*doit_i_fieldUpdate1D*, *doit_i_fieldUpdate3D*: Old methods.\n"),
-      OUTPUT("doit_i_field_mono"),
-      INPUT("doit_i_field_mono", "doit_scat_field")));
+          "*cloudbox_fieldUpdate1D*, *cloudbox_fieldUpdate3D*: Old methods.\n"),
+      OUTPUT("cloudbox_field_mono"),
+      INPUT("cloudbox_field_mono", "doit_scat_field")));
 
   agenda_data.push_back(AgRecord(
       NAME("forloop_agenda"),
@@ -558,7 +560,7 @@ void define_agenda_data() {
           "*abs_lookupAdapt*\n"
           "*DoitInit*\n"
           "*DoitGetIncoming*\n"
-          "*doit_i_fieldSetClearsky*\n"
+          "*cloudbox_fieldSetClearsky*\n"
           "*DoitCalc*\n"
           "*yCalc*\n"),
       OUTPUT("y"),

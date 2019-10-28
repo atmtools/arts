@@ -144,10 +144,10 @@ void get_rt4surf_props(  // Output
 //! Runs RT4
 /*!
   Prepares actual input variables for RT4, runs it, and sorts the output into
-  doit_i_field.
+  cloudbox_field.
 
   \param[in,out] ws Current workspace
-  \param[out]    doit_i_field Radiation field
+  \param[out]    cloudbox_field Radiation field
   \param[out]    scat_za_grid Zenith angle grid
   \param[in]     f_grid Frequency grid
   \param[in]     p_grid Pressure rid
@@ -196,7 +196,7 @@ void get_rt4surf_props(  // Output
 */
 void run_rt4(Workspace& ws,
              // Output
-             Tensor7& doit_i_field,
+             Tensor7& cloudbox_field,
              Vector& scat_za_grid,
              // Input
              ConstVectorView f_grid,

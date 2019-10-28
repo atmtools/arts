@@ -755,7 +755,7 @@ void spectral_radiance_fieldCopyCloudboxField(Tensor7& spectral_radiance_field,
                                               const Vector& p_grid,
                                               const Index& cloudbox_on,
                                               const ArrayOfIndex& cloudbox_limits,
-                                              const Tensor7& doit_i_field,
+                                              const Tensor7& cloudbox_field,
                                               const Verbosity &) {
   if (atmosphere_dim > 1) 
     throw runtime_error("This method can only be used for 1D calculations.\n");
@@ -766,7 +766,7 @@ void spectral_radiance_fieldCopyCloudboxField(Tensor7& spectral_radiance_field,
                         "to use this method.");
 
   // If all OK, it is just to copy
-  spectral_radiance_field = doit_i_field;
+  spectral_radiance_field = cloudbox_field;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -796,7 +796,7 @@ void spectral_radiance_fieldExpandCloudboxField(
     const Matrix& z_surface,
     const Index& cloudbox_on,
     const ArrayOfIndex& cloudbox_limits,
-    const Tensor7& doit_i_field,
+    const Tensor7& cloudbox_field,
     const Numeric& ppath_lmax,
     const Numeric& rte_alonglos_v,
     const Tensor3& surface_props_data,
@@ -821,14 +821,14 @@ void spectral_radiance_fieldExpandCloudboxField(
   // Init spectral_radiance_field
   spectral_radiance_field.resize(nf, nl, 1, 1, nza, 1, stokes_dim);
 
-  // and copy the part taken from doit_i_field
+  // and copy the part taken from cloudbox_field
   spectral_radiance_field(joker,
                           Range(0,cloudbox_limits[1]+1),
                           joker,
                           joker,
                           joker,
                           joker,
-                          joker) = doit_i_field;
+                          joker) = cloudbox_field;
   
   // Various variables
   const Index ppath_inside_cloudbox_do = 0;

@@ -211,13 +211,13 @@ DOBatchCalc
 # with the next batch job.
 # DOBatchCalc(robust=1)
 
-#WriteXML( "binary", dobatch_doit_i_field)
+#WriteXML( "binary", dobatch_cloudbox_field)
 
 # Verify results
 ArrayOfTensor7Create( dobatch_ref )
 ReadXML( dobatch_ref, "TestDOBatch.dobatch_doit_i_field.ref.xml" )
 
-Compare( dobatch_doit_i_field, dobatch_ref, 1e-7,
+Compare( dobatch_cloudbox_field, dobatch_ref, 1e-7,
          "Total BT should be close to the reference values")
 
 #==================stop==========================

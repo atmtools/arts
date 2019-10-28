@@ -205,7 +205,7 @@ void check_disort_input(  // Input
 }
 
 void init_ifield(  // Output
-    Tensor7& doit_i_field,
+    Tensor7& cloudbox_field,
     // Input
     const Vector& f_grid,
     const ArrayOfIndex& cloudbox_limits,
@@ -216,8 +216,8 @@ void init_ifield(  // Output
   //const Index Nza = scat_za_grid.nelem();
 
   // Resize and initialize radiation field in the cloudbox
-  doit_i_field.resize(Nf, Np_cloud, 1, 1, nang, 1, stokes_dim);
-  doit_i_field = NAN;
+  cloudbox_field.resize(Nf, Np_cloud, 1, 1, nang, 1, stokes_dim);
+  cloudbox_field = NAN;
 }
 
 void get_disortsurf_props(  // Output
@@ -767,7 +767,7 @@ void reduced_1datm(Vector& p,
 }
 
 void run_cdisort(Workspace& ws,
-                 Tensor7& doit_i_field,
+                 Tensor7& cloudbox_field,
                  ConstVectorView f_grid,
                  ConstVectorView p_grid,
                  ConstVectorView z_profile,
@@ -940,15 +940,15 @@ void run_cdisort(Workspace& ws,
 
     for (Index j = 0; j < ds.numu; j++) {
       for (Index k = cboxlims[1] - cboxlims[0]; k >= 0; k--) {
-        doit_i_field(f_index, k + ncboxremoved, 0, 0, j, 0, 0) =
+        cloudbox_field(f_index, k + ncboxremoved, 0, 0, j, 0, 0) =
             out.uu[ds.numu * (ds.nlyr - k - cboxlims[0]) + j] /
             (ds.wvnmhi - ds.wvnmlo) / (100 * SPEED_OF_LIGHT);
       }
       // To avoid potential numerical problems at interpolation of the field,
       // we copy the surface field to underground altitudes
       for (Index k = ncboxremoved - 1; k >= 0; k--) {
-        doit_i_field(f_index, k, 0, 0, j, 0, 0) =
-            doit_i_field(f_index, k + 1, 0, 0, j, 0, 0);
+        cloudbox_field(f_index, k, 0, 0, j, 0, 0) =
+            cloudbox_field(f_index, k + 1, 0, 0, j, 0, 0);
       }
     }
   }

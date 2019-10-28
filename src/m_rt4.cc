@@ -46,7 +46,7 @@ const Numeric pfct_threshold = 0.05;
 /* Workspace method: Doxygen documentation will be auto-generated */
 void RT4Calc(Workspace& ws,
              // WS Output:
-             Tensor7& doit_i_field,
+             Tensor7& cloudbox_field,
              Vector& scat_za_grid,
              Vector& scat_aa_grid,
              // WS Input
@@ -109,7 +109,7 @@ void RT4Calc(Workspace& ws,
                   add_straight_angles,
                   pnd_field.ncols());
 
-  init_ifield(doit_i_field, f_grid, cloudbox_limits, 2 * nummu, stokes_dim);
+  init_ifield(cloudbox_field, f_grid, cloudbox_limits, 2 * nummu, stokes_dim);
 
   // in RT4 mu_values is generally only output. however, we need the values for
   // preparing the single scattering data at these angles. therefore, we
@@ -158,7 +158,7 @@ void RT4Calc(Workspace& ws,
                    z_surface(0,0));
 
   run_rt4(ws,
-          doit_i_field,
+          cloudbox_field,
           scat_za_grid,
           f_grid,
           p_grid,
@@ -200,7 +200,7 @@ void RT4Calc(Workspace& ws,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void RT4CalcWithRT4Surface(Workspace& ws,
                            // WS Output:
-                           Tensor7& doit_i_field,
+                           Tensor7& cloudbox_field,
                            Vector& scat_za_grid,
                            Vector& scat_aa_grid,
                            // WS Input
@@ -267,7 +267,7 @@ void RT4CalcWithRT4Surface(Workspace& ws,
                   add_straight_angles,
                   pnd_field.ncols());
 
-  init_ifield(doit_i_field, f_grid, cloudbox_limits, 2 * nummu, stokes_dim);
+  init_ifield(cloudbox_field, f_grid, cloudbox_limits, 2 * nummu, stokes_dim);
 
   // in RT4 mu_values is generally only output. however, we need the values for
   // preparing the single scattering data at these angles. therefore, we
@@ -318,7 +318,7 @@ void RT4CalcWithRT4Surface(Workspace& ws,
   Agenda dummy_agenda;
 
   run_rt4(ws,
-          doit_i_field,
+          cloudbox_field,
           scat_za_grid,
           f_grid,
           p_grid,

@@ -11,7 +11,7 @@
 
 Arts2 {
 
-Tensor7Create( doit_i_field_ref )
+Tensor7Create( cloudbox_field_ref )
 
 IndexSet( stokes_dim, 4 )
 INCLUDE "artscomponents/doit/doit_setup.arts"
@@ -30,12 +30,12 @@ AgendaSet( doit_mono_agenda ){
   Ignore( f_grid )
   # Alternative method (needs less memory):
   #scat_data_monoCalc
-  #WriteXMLIndexed( in=doit_i_field_mono, file_index=f_index )
+  #WriteXMLIndexed( in=cloudbox_field_mono, file_index=f_index )
   # Perform iterations: 1. scattering integral. 2. RT calculations with 
   # fixed scattering integral field, 3. convergence test 
-  doit_i_field_monoIterate
+  cloudbox_field_monoIterate
   # Write the radiation field inside the cloudbox:
-  #WriteXMLIndexed( in=doit_i_field_mono, file_index=f_index )
+  #WriteXMLIndexed( in=cloudbox_field_mono, file_index=f_index )
 }
 
 
@@ -53,8 +53,8 @@ DoitInit
 # Calculate incoming radiation field at cloudbox boundary 
 DoitGetIncoming
 
-ReadXML(doit_i_field_ref, "doit_i_fieldREFERENCE_DOIT.xml")
-doit_i_fieldSetFromPrecalc(doit_i_field_precalc=doit_i_field_ref)
+ReadXML(cloudbox_field_ref, "doit_i_fieldREFERENCE_DOIT.xml")
+cloudbox_fieldSetFromPrecalc(cloudbox_field_precalc=cloudbox_field_ref)
 
 
 # Executes doit_mono_agenda for all frequencies

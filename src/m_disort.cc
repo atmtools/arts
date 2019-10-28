@@ -50,7 +50,7 @@
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DisortCalc(Workspace& ws,
                 // WS Output:
-                Tensor7& doit_i_field,
+                Tensor7& cloudbox_field,
                 // WS Input
                 const Index& atmfields_checked,
                 const Index& atmgeom_checked,
@@ -101,7 +101,7 @@ void DisortCalc(Workspace& ws,
                      pfct_method);
 
   init_ifield(
-      doit_i_field, f_grid, cloudbox_limits, scat_za_grid.nelem(), stokes_dim);
+      cloudbox_field, f_grid, cloudbox_limits, scat_za_grid.nelem(), stokes_dim);
 
   Vector albedo(f_grid.nelem(), 0.);
   Numeric btemp;
@@ -110,7 +110,7 @@ void DisortCalc(Workspace& ws,
       albedo, btemp, f_grid, surface_skin_t, surface_scalar_reflectivity);
 
   run_cdisort(ws,
-              doit_i_field,
+              cloudbox_field,
               f_grid,
               p_grid,
               z_field(joker, 0, 0),

@@ -346,7 +346,7 @@ void get_rt4surf_props(  // Output
 
 void run_rt4(Workspace& ws,
              // Output
-             Tensor7& doit_i_field,
+             Tensor7& cloudbox_field,
              Vector& scat_za_grid,
              // Input
              ConstVectorView f_grid,
@@ -821,8 +821,8 @@ void run_rt4(Workspace& ws,
     //
     // FIXME: if ever we allow the cloudbox to be not directly at the surface
     // (at atm level #0, respectively), the assigning from up/down_rad to
-    // doit_i_field needs to checked. there seems some offsetting going on
-    // (test example: TestDOIT.arts. if kept like below, doit_i_field at
+    // cloudbox_field needs to checked. there seems some offsetting going on
+    // (test example: TestDOIT.arts. if kept like below, cloudbox_field at
     // top-of-cloudbox seems to actually be from somewhere within the
     // cloud(box) indicated by downwelling being to high and downwelling
     // exhibiting a non-zero polarisation signature (which it wouldn't with
@@ -831,23 +831,23 @@ void run_rt4(Workspace& ws,
     Numeric rad_l2f = wavelength / f_grid[f_index];
     // down/up_rad contain the radiances in order from slant (90deg) to steep
     // (0 and 180deg, respectively) streams,then the possible extra angle(s).
-    // We need to resort them properly into doit_i_field, such that order is
+    // We need to resort them properly into cloudbox_field, such that order is
     // from 0 to 180deg.
     for (Index j = 0; j < nummu; j++) {
       for (Index ist = 0; ist < stokes_dim; ist++) {
         for (Index k = cboxlims[1] - cboxlims[0]; k >= 0; k--) {
-          doit_i_field(f_index, k + ncboxremoved, 0, 0, nummu + j, 0, ist) =
+          cloudbox_field(f_index, k + ncboxremoved, 0, 0, nummu + j, 0, ist) =
             up_rad(num_layers - k, j, ist) * rad_l2f;
-          doit_i_field(f_index, k + ncboxremoved, 0, 0, nummu - 1 - j, 0, ist) =
+          cloudbox_field(f_index, k + ncboxremoved, 0, 0, nummu - 1 - j, 0, ist) =
             down_rad(num_layers - k, j, ist) * rad_l2f;
         }
         // To avoid potential numerical problems at interpolation of the field,
         // we copy the surface field to underground altitudes
         for (Index k = ncboxremoved - 1; k >= 0; k--) {
-          doit_i_field(f_index, k, 0, 0, nummu + j, 0, ist) =
-            doit_i_field(f_index, k + 1, 0, 0, nummu + j, 0, ist);
-          doit_i_field(f_index, k, 0, 0, nummu -1 + j, 0, ist) =
-            doit_i_field(f_index, k + 1, 0, 0, nummu -1 + j, 0, ist);
+          cloudbox_field(f_index, k, 0, 0, nummu + j, 0, ist) =
+            cloudbox_field(f_index, k + 1, 0, 0, nummu + j, 0, ist);
+          cloudbox_field(f_index, k, 0, 0, nummu -1 + j, 0, ist) =
+            cloudbox_field(f_index, k + 1, 0, 0, nummu -1 + j, 0, ist);
         }
       }
     }
@@ -1721,7 +1721,7 @@ void rt4_test(Tensor4& out_rad,
   //RT4-output type table (specifically, resort up_rad such that it runs from
   //zenith welling to horizontal, thus forms a continuous angle grid with
   //down_rad. if later changing up_rad/down_rad sorting such that it is in
-  //line with doit_i_field, then this has to be adapted as well...
+  //line with cloudbox_field, then this has to be adapted as well...
   out_rad.resize(num_layers + 1, 2, nummu, nstokes);
   for (Index ii = 0; ii < nummu; ii++)
     out_rad(joker, 0, ii, joker) = up_rad(joker, nummu - 1 - ii, joker);

@@ -65,9 +65,9 @@ void check_disort_input(  // Input
 
 /** init_ifield.
  *
- * Initialize doit_i_field with the right size and NaN values.
+ * Initialize cloudbox_field with the right size and NaN values.
  *
- * @param[out] doit_i_field       As the WSV.
+ * @param[out] cloudbox_field       As the WSV.
  * @param[in]  f_grid             As the WSV.
  * @param[in]  cloudbox_limits    As the WSV.
  * @param[in]  nang               Total number of angles with RT output.
@@ -77,7 +77,7 @@ void check_disort_input(  // Input
  * @date       2017-03-06
  */
 void init_ifield(  // Output
-    Tensor7& doit_i_field,
+    Tensor7& cloudbox_field,
     // Input
     const Vector& f_grid,
     const ArrayOfIndex& cloudbox_limits,
@@ -115,7 +115,7 @@ void get_disortsurf_props(  // Output
 /** Calculate doit_i_feild with Disort.
  *
  * Prepares actual input variables for Disort, runs it, and sorts the output
- * into doit_i_field.
+ * into cloudbox_field.
  *
  * This version uses the C implementation of Disort based on ::run_disort.
  *
@@ -123,7 +123,7 @@ void get_disortsurf_props(  // Output
  * dimensions removed
  *
  * @param[in,out] ws Current workspace
- * @param[out]    doit_i_field Radiation field
+ * @param[out]    cloudbox_field Radiation field
  * @param[in]     f_grid Frequency grid
  * @param[in]     p_grid Pressure grid
  * @param[in]     z_profile Profile of geometric altitudes.
@@ -149,7 +149,7 @@ void get_disortsurf_props(  // Output
  */
 void run_cdisort(Workspace& ws,
                  // Output
-                 Tensor7& doit_i_field,
+                 Tensor7& cloudbox_field,
                  // Input
                  ConstVectorView f_grid,
                  ConstVectorView p_grid,

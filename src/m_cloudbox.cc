@@ -581,7 +581,7 @@ void cloudboxSetManuallyAltitude(  // WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyInterpCloudboxField(Matrix& iy,
-                           const Tensor7& doit_i_field,
+                           const Tensor7& cloudbox_field,
                            const Vector& rte_pos,
                            const Vector& rte_los,
                            const Index& jacobian_do,
@@ -633,9 +633,9 @@ void iyInterpCloudboxField(Matrix& iy,
         "Azimuth angle interpolation order *aa_interp_order*"
         " must be smaller\n"
         "than number of angles in *scat_aa_grid*.");
-  if (doit_i_field.nlibraries() != f_grid.nelem())
+  if (cloudbox_field.nlibraries() != f_grid.nelem())
     throw runtime_error(
-        "Inconsistency in size between f_grid and doit_i_field! "
+        "Inconsistency in size between f_grid and cloudbox_field! "
         "(This method does not yet handle dispersion type calculations.)");
   //---------------------------------------------------------------------------
 
@@ -734,7 +734,7 @@ void iyInterpCloudboxField(Matrix& iy,
   const Index nf = f_grid.nelem();
   DEBUG_ONLY(const Index np = cloudbox_limits[1] - cloudbox_limits[0] + 1);
   const Index nza = scat_za_grid.nelem();
-  const Index naa = doit_i_field.nrows();
+  const Index naa = cloudbox_field.nrows();
 
   //- Resize *iy*
   iy.resize(nf, stokes_dim);
@@ -761,7 +761,7 @@ void iyInterpCloudboxField(Matrix& iy,
     } else {
       assert(atmosphere_dim == 1);
 
-      assert(is_size(doit_i_field, nf, np, 1, 1, nza, 1, stokes_dim));
+      assert(is_size(cloudbox_field, nf, np, 1, 1, nza, 1, stokes_dim));
 
       // Grid position in *p_grid*
       gp_p.idx = gp_p.idx - cloudbox_limits[0];
@@ -773,7 +773,7 @@ void iyInterpCloudboxField(Matrix& iy,
         for (Index iv = 0; iv < nf; iv++)
           for (Index i_za = 0; i_za < nza; i_za++)
             i_field_local(iv, i_za, 0, is) =
-                interp(itw_p, doit_i_field(iv, joker, 0, 0, i_za, 0, is), gp_p);
+                interp(itw_p, cloudbox_field(iv, joker, 0, 0, i_za, 0, is), gp_p);
     }
   }
 
@@ -782,16 +782,16 @@ void iyInterpCloudboxField(Matrix& iy,
   // --- 1D ------------------------------------------------------------------
   else if (atmosphere_dim == 1) {
     i_field_local =
-        doit_i_field(joker, border_index, 0, 0, joker, joker, joker);
+        cloudbox_field(joker, border_index, 0, 0, joker, joker, joker);
   }
 
   // --- 3D ------------------------------------------------------------------
   else {
-    assert(is_size(doit_i_field,
+    assert(is_size(cloudbox_field,
                    nf,
-                   doit_i_field.nvitrines(),
-                   doit_i_field.nshelves(),
-                   doit_i_field.nbooks(),
+                   cloudbox_field.nvitrines(),
+                   cloudbox_field.nshelves(),
+                   cloudbox_field.nbooks(),
                    scat_za_grid.nelem(),
                    scat_aa_grid.nelem(),
                    stokes_dim));
@@ -821,7 +821,7 @@ void iyInterpCloudboxField(Matrix& iy,
             for (Index i_aa = 0; i_aa < naa; i_aa++)
               i_field_local(iv, i_za, i_aa, is) = interp(
                   itw,
-                  doit_i_field(iv, border_index, joker, joker, i_za, i_aa, is),
+                  cloudbox_field(iv, border_index, joker, joker, i_za, i_aa, is),
                   cb_gp_lat,
                   cb_gp_lon);
     }
@@ -847,7 +847,7 @@ void iyInterpCloudboxField(Matrix& iy,
             for (Index i_aa = 0; i_aa < naa; i_aa++)
               i_field_local(iv, i_za, i_aa, is) = interp(
                   itw,
-                  doit_i_field(iv, joker, border_index, joker, i_za, i_aa, is),
+                  cloudbox_field(iv, joker, border_index, joker, i_za, i_aa, is),
                   cb_gp_p,
                   cb_gp_lon);
     }
@@ -873,7 +873,7 @@ void iyInterpCloudboxField(Matrix& iy,
             for (Index i_aa = 0; i_aa < naa; i_aa++)
               i_field_local(iv, i_za, i_aa, is) = interp(
                   itw,
-                  doit_i_field(iv, joker, joker, border_index, i_za, i_aa, is),
+                  cloudbox_field(iv, joker, joker, border_index, i_za, i_aa, is),
                   cb_gp_p,
                   cb_gp_lat);
     }
@@ -1025,7 +1025,7 @@ void iyInterpCloudboxField(Matrix& iy,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void doit_i_fieldCrop(Tensor7& doit_i_field,
+void cloudbox_fieldCrop(Tensor7& cloudbox_field,
                       ArrayOfIndex& cloudbox_limits,
                       const Index& atmosphere_dim,
                       const Index& cloudbox_on,
@@ -1043,10 +1043,10 @@ void doit_i_fieldCrop(Tensor7& doit_i_field,
   if (new_limit1 > cloudbox_limits[1])
     throw runtime_error("new_limits1 > cloudbox_limits[1], not allowed!");
 
-  Tensor7 fcopy = doit_i_field;
+  Tensor7 fcopy = cloudbox_field;
   
   if (atmosphere_dim == 1) {
-    doit_i_field = fcopy(joker,
+    cloudbox_field = fcopy(joker,
                          Range(new_limit0-cloudbox_limits[0],new_limit1-new_limit0+1),
                          joker,
                          joker,
@@ -1063,7 +1063,7 @@ void doit_i_fieldCrop(Tensor7& doit_i_field,
       throw runtime_error("new_limits3 > cloudbox_limits[3], not allowed!");
     
     if (atmosphere_dim == 2) {
-      doit_i_field = fcopy(joker,
+      cloudbox_field = fcopy(joker,
                            Range(new_limit0-cloudbox_limits[0],new_limit1-new_limit0+1),
                            Range(new_limit2-cloudbox_limits[2],new_limit3-new_limit2-1),
                            joker,
@@ -1079,7 +1079,7 @@ void doit_i_fieldCrop(Tensor7& doit_i_field,
         throw runtime_error("new_limits4 < cloudbox_limits[4], not allowed!");
       if (new_limit5 > cloudbox_limits[5])
         throw runtime_error("new_limits5 > cloudbox_limits[5], not allowed!");
-      doit_i_field = fcopy(joker,
+      cloudbox_field = fcopy(joker,
                            Range(new_limit0-cloudbox_limits[0],new_limit1-new_limit0+1),
                            Range(new_limit2-cloudbox_limits[2],new_limit3-new_limit2+1),
                            Range(new_limit4-cloudbox_limits[4],new_limit5-new_limit4+1),

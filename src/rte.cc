@@ -1724,7 +1724,7 @@ void get_stepwise_scattersky_source(
         ppath_dpnd_dx,  // the full ppath_dpnd_dx, ie all ppath points
     const Index ppath_1p_id,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
-    ConstTensor7View doit_i_field,
+    ConstTensor7View cloudbox_field,
     ConstVectorView scat_za_grid,
     ConstVectorView scat_aa_grid,
     ConstMatrixView ppath_line_of_sight,
@@ -1755,7 +1755,7 @@ void get_stepwise_scattersky_source(
     for (Index iza = 0; iza < nza; iza++) {
       for (Index i = 0; i < stokes_dim; i++) {
         inc_field(iv, iza, i) =
-            interp(itw_p, doit_i_field(iv, joker, 0, 0, iza, 0, i), gp_p);
+            interp(itw_p, cloudbox_field(iv, joker, 0, 0, iza, 0, i), gp_p);
       }
     }
   }

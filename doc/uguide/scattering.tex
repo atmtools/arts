@@ -55,13 +55,13 @@ workspace method \wsmindex{DoitGetIncoming}:
 \begin{code}
 DoitGetIncoming
 \end{code}
-The method \wsmindex{doit\_i\_fieldSetClearsky} interpolates the
+The method \wsmindex{cloudbox\_fieldSetClearsky} interpolates the
 incoming radiation field on all points inside the cloudbox to obtain
-the initial field (\wsvindex{doit\_i\_field}) for the DOIT calculation. 
+the initial field (\wsvindex{cloudbox\_field}) for the DOIT calculation. 
 As a test one can alternatively start with a constant radiation field
-using the method \wsmindex{doit\_i\_fieldSetConst}. 
+using the method \wsmindex{cloudbox\_fieldSetConst}. 
 \begin{code}
-doit_i_fieldSetClearsky
+cloudbox_fieldSetClearsky
 \end{code}
 
 The grid discretization plays a very significant role in discrete
@@ -127,7 +127,7 @@ AgendaSet( doit_mono_agenda ){
  # scat_data_monoCalc
  # Perform iterations: 1. scattering integral. 2. RT calculations with 
  #   fixed scattering integral field, 3. convergence test 
-   doit_i_field_monoIterate
+   cloudbox_field_monoIterate
  }		
 \end{code}
 The first method \wsmindex{DoitScatteringDataPrepare} prepares the single
@@ -143,7 +143,7 @@ calculation it is recommended to use
 efficient. 
 
 The iteration is performed in the method
-\wsmindex{doit\_i\_field\_monoIterate}, which includes
+\wsmindex{cloudbox\_field\_monoIterate}, which includes
 \begin{itemize}
 \item the calculation of the scattering integral field
 \wsvindex{doit\_scat\_field} (requires agendas \wsaindex{pha\_mat\_spt\_agenda}
@@ -157,10 +157,10 @@ integral (requires agendas \wsaindex{spt\_calc\_agenda},
 For details on the agendas involved see Section
 \ref{sec:scattering:doit_iterate_agendas}.
 
-\subsection{Agendas used in \wsmindex{doit\_i\_field\_monoIterate}}
+\subsection{Agendas used in \wsmindex{cloudbox\_field\_monoIterate}}
 \label{sec:scattering:doit_iterate_agendas}
 There are several methods which can be used in
-\wsmindex{doit\_i\_field\_monoIterate}, for instance for the calculation of
+\wsmindex{cloudbox\_field\_monoIterate}, for instance for the calculation of
 the scattering integral. The methods are selected in the control-file by
 defining several agendas.
 
@@ -215,24 +215,24 @@ With a fixed scattering integral field the radiative transfer equation
 can be solved (\theory, Equation \ref{T-eq:scattering:vrte-fs-av}). The workspace
 method to be used for this calculation is defined in
 \wsaindex{doit\_rte\_agenda}. The most efficient and recommended
-workspace method is \wsmindex{doit\_i\_fieldUpdateSeq1D} where the
+workspace method is \wsmindex{cloudbox\_fieldUpdateSeq1D} where the
 sequential update which is described in \theory,
 Section \ref{T-sec:doit:sequential_update} is applied. The workspace
-method \wsmindex{doit\_i\_fieldUpdate1D} does the same calculation
+method \wsmindex{cloudbox\_fieldUpdate1D} does the same calculation
 without 
 sequential update and is therefore much less efficient because the
 number of iterations depends in this case on the number of pressure
 levels in the cloudbox.  Other options
 are to use a plane-parallel approximation implemented in the workspace
-method \wsmindex{doit\_i\_fieldUpdateSeq1DPP}. This method is not
-much more efficient than \wsmindex{doit\_i\_fieldUpdateSeq1D},
+method \wsmindex{cloudbox\_fieldUpdateSeq1DPP}. This method is not
+much more efficient than \wsmindex{cloudbox\_fieldUpdateSeq1D},
 therefore it is usually better to use
-\wsmindex{doit\_i\_fieldUpdateSeq1D} since it is more accurate. 
+\wsmindex{cloudbox\_fieldUpdateSeq1D} since it is more accurate. 
 \begin{code}
 AgendaSet( doit_rte_agenda ){
-     doit_i_fieldUpdateSeq1D
+     cloudbox_fieldUpdateSeq1D
    # Alternatives:
-   # doit_i_fieldUpdateSeq1DPP
+   # cloudbox_fieldUpdateSeq1DPP
    # i_fieldUpdate1D
    }
 \end{code}
@@ -244,7 +244,7 @@ radiative transfer equation. How they are calculated is specified in
 already interpolated on the frequency of the monochromatic
 calculation. This requirement is fulfilled when
 \wsmindex{DoitScatteringDataPrepare} or \wsmindex{scat\_data\_monoCalc}
-is executed before \wsmindex{doit\_i\_field\_monoIterate} (see
+is executed before \wsmindex{cloudbox\_field\_monoIterate} (see
 Section \ref{sec:scattering:doit_main_agenda}).
 \begin{code}
 AgendaSet( spt_calc_agenda ){
@@ -280,18 +280,18 @@ only be used for test purposes.
 \begin{code}
 AgendaSet( doit_conv_test_agenda) {
     doit_conv_flagAbsBT( doit_conv_flag, doit_iteration_counter,
-                         doit_i_field, doit_i_field_old,
+                         cloudbox_field, cloudbox_field_old,
                          f_grid, f_index,
                          [0.1, 0.01, 0.01, 0.01] )
     # Alternative: Give limits in radiances
     #   doit_conv_flagAbs( doit_conv_flag, doit_iteration_counter,
-    #                      doit_i_field, doit_i_field_old,
+    #                      cloudbox_field, cloudbox_field_old,
     #                      [0.1e-15, 0.1e-18, 0.1e-18, 0.1e-18] )
     #
     # If you want to look at several iteration fields, for example 
     # to investigate the convergence behavior, you can use
     # the following workspace method:
-    # DoitWriteIterationFields( doit_iteration_counter, doit_i_field,
+    # DoitWriteIterationFields( doit_iteration_counter, cloudbox_field,
     #                           [2, 4] )
 }
 \end{code}
@@ -318,7 +318,7 @@ to get sufficiently accurate results in reasonable computation
 time. Therefore only experienced ARTS users should use DOIT for 3D
 calculations only for smaller cloud scenarios. Please refer to the online
 documentation for the workspace method for  3D scattering calculations
-(\wsmindex{doit\_i\_fieldUpdateSeq3D}). All other workspace
+(\wsmindex{cloudbox\_fieldUpdateSeq3D}). All other workspace
 methods adapt automatically to the atmospheric dimensionality.
 
 

@@ -714,7 +714,7 @@ void get_stepwise_scattersky_source(
     const ArrayOfMatrix& ppath_dpnd_dx,
     const Index ppath_1p_id,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
-    ConstTensor7View doit_i_field,
+    ConstTensor7View cloudbox_field,
     ConstVectorView scat_za_grid,
     ConstVectorView scat_aa_grid,
     ConstMatrixView ppath_line_of_sight,

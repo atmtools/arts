@@ -104,10 +104,10 @@ AgendaSet( doit_scat_field_agenda ){ doit_scat_fieldCalc }
 AgendaSet( doit_mono_agenda ){
   DoitScatteringDataPrepare
   Ignore( f_grid )
-  doit_i_field_monoIterate
+  cloudbox_field_monoIterate
 }
 AgendaSet( doit_rte_agenda ){
-  doit_i_fieldUpdateSeq1D( normalize=1,
+  cloudbox_fieldUpdateSeq1D( normalize=1,
                            norm_error_threshold=0.05 )
 }
 doit_za_interpSet( interp_method="linear" )

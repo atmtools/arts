@@ -983,6 +983,82 @@ void Workspace::define_wsv_data() {
       GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("cloudbox_field"),
+      DESCRIPTION(
+          "The spectral radiance field inside the cloudbx.\n"
+          "\n"
+          "This variable is used to store the radiance field inside the cloud\n"
+          "box, probably determined by a scattering solver method.\n"
+          "\n"
+          "That is, this variable matches *spectral_radiance_field* but holds\n"
+          "a field that is restricted to the cloud box.\n"
+          "\n"
+          "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
+          "\n"
+          " Size: [f_grid,\n"
+          "       p_grid, \n"
+          "       lat_grid, \n"
+          "       lon_grid, \n"
+          "       za_grid,\n"
+          "       aa_grid,\n"
+          "       stokes_dim ]\n"
+          "\n"
+          "Note: For 1D, the size of the latitude, longitude and azimuth\n"
+          "dimension (N_aa) are all 1.\n"),
+      GROUP("Tensor7")));
+
+  /*
+  wsv_data.push_back(WsvRecord(
+      NAME("cloudbox_field_agenda"),
+      DESCRIPTION(
+          "Agenda providing *cloudbox_field* and associated variables.\n"),
+      GROUP("Agenda")));
+  */
+  
+  wsv_data.push_back(WsvRecord(
+      NAME("cloudbox_field_mono"),
+      DESCRIPTION(
+          "Monochromatic radiation field inside the cloudbox.\n"
+          "\n"
+          "This variable is used to store the monochromatic radiation field \n"
+          "inside the cloudbox which is found by an iterative solution (DOIT).\n"
+          "Refer to AUG for further information.\n"
+          "\n"
+          "Usage: Method output. \n"
+          "\n"
+          "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
+          "\n"
+          "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
+          "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
+          "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
+          "        N_za, N_aa, N_i ]\n"
+          "\n"
+          "Note: For 1D, the size of the azimuth angle dimension (N_aa) is\n"
+          "always 1.\n"),
+      GROUP("Tensor6")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("cloudbox_field_mono_old"),
+      DESCRIPTION(
+          "As *cloudbox_field_mono* but from previous iteration.\n"
+          "\n"
+          "This variable is used to store the intensity field inside the\n"
+          "cloudbox while performing the iteration. One has to store the\n"
+          "intensity field of the previous iteration to be able to do the \n"
+          "convergence test after each iteration.\n"
+          "Refer to AUG for more information.\n"
+          "\n"
+          "Usage: Method output. \n"
+          "\n"
+          "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
+          "\n"
+          "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
+          "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
+          "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
+          "        N_za, N_aa, N_i ]\n"),
+      GROUP("Tensor6")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("cloudbox_limits"),
       DESCRIPTION(
           "The limits of the cloud box.\n"
@@ -1221,16 +1297,16 @@ void Workspace::define_wsv_data() {
       GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("dobatch_doit_i_field"),
+      NAME("dobatch_cloudbox_field"),
       DESCRIPTION(
           "Batch of radiation fields.\n"
           "\n"
-          "Each element of *dobatch_doit_i_field* corresponds to a radiation field.\n"
+          "Each element of *dobatch_cloudbox_field* corresponds to a radiation field.\n"
           "See further *DOBatchCalc*.\n"
           "\n"
           "Usage: Most commonly produced by *DOBatchCalc*.\n"
           "\n"
-          "Unit:  See *doit_i_field*.\n"
+          "Unit:  See *cloudbox_field*.\n"
           "\n"
           "Dimensions: Number of array elements equals number of batch cases.\n"),
       GROUP("ArrayOfTensor7")));
@@ -1440,7 +1516,7 @@ void Workspace::define_wsv_data() {
           "Flag for the convergence test.\n"
           "\n"
           "This variable is initialized with 0 inside the method \n"
-          "*doit_i_field_monoIterate*.\n"
+          "*cloudbox_field_monoIterate*.\n"
           "If after an iteration the convergence test is fulfilled, 1 is \n"
           "assigned which means that the iteration is completed. \n"
           "\n"
@@ -1451,80 +1527,6 @@ void Workspace::define_wsv_data() {
       WsvRecord(NAME("doit_conv_test_agenda"),
                 DESCRIPTION("Agenda executing the DOIT convergence test.\n"),
                 GROUP("Agenda")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("doit_i_field"),
-      DESCRIPTION(
-          "The spectral radiance field inside the cloudbx.\n"
-          "\n"
-          "This variable is used to store the radiance field inside the cloud\n"
-          "box, probably determined by a scattering solver method.\n"
-          "\n"
-          "That is, this variable matches *spectral_radiance_field* but holds\n"
-          "a field that is restricted to the cloud box.\n"
-          "\n"
-          "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
-          "\n"
-          " Size: [f_grid,\n"
-          "       p_grid, \n"
-          "       lat_grid, \n"
-          "       lon_grid, \n"
-          "       za_grid,\n"
-          "       aa_grid,\n"
-          "       stokes_dim ]\n"
-          "\n"
-          "Note: For 1D, the size of the latitude, longitude and azimuth\n"
-          "dimension (N_aa) are all 1.\n"),
-      GROUP("Tensor7")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("doit_i_field_agenda"),
-      DESCRIPTION(
-          "Agenda providing *doit_i_field* and associated variables.\n"),
-      GROUP("Agenda")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("doit_i_field_mono"),
-      DESCRIPTION(
-          "Monochromatic radiation field inside the cloudbox.\n"
-          "\n"
-          "This variable is used to store the monochromatic radiation field \n"
-          "inside the cloudbox which is found by an iterative solution (DOIT).\n"
-          "Refer to AUG for further information.\n"
-          "\n"
-          "Usage: Method output. \n"
-          "\n"
-          "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
-          "\n"
-          "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
-          "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
-          "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
-          "        N_za, N_aa, N_i ]\n"
-          "\n"
-          "Note: For 1D, the size of the azimuth angle dimension (N_aa) is\n"
-          "always 1.\n"),
-      GROUP("Tensor6")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("doit_i_field_mono_old"),
-      DESCRIPTION(
-          "As *doit_i_field_mono* but from previous iteration.\n"
-          "\n"
-          "This variable is used to store the intensity field inside the\n"
-          "cloudbox while performing the iteration. One has to store the\n"
-          "intensity field of the previous iteration to be able to do the \n"
-          "convergence test after each iteration.\n"
-          "Refer to AUG for more information.\n"
-          "\n"
-          "Usage: Method output. \n"
-          "\n"
-          "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
-          "\n"
-          "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
-          "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
-          "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
-          "        N_za, N_aa, N_i ]\n"),
-      GROUP("Tensor6")));
 
   wsv_data.push_back(WsvRecord(
       NAME("doit_is_initialized"),
@@ -1567,7 +1569,7 @@ void Workspace::define_wsv_data() {
           "This variable holds the value of the scattering integral for all\n"
           "points inside the cloudbox. For more information refer to AUG.\n"
           "\n"
-          "Usage: Input to *doit_i_fieldUpdate...*. \n"
+          "Usage: Input to *cloudbox_fieldUpdate...*. \n"
           "\n"
           "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
           "\n"
@@ -3495,7 +3497,7 @@ void Workspace::define_wsv_data() {
       DESCRIPTION(
           "The original pressure grid before optimization.\n"
           "\n"
-          "This variable is used to interpolate *doit_i_field* back to its original\n"
+          "This variable is used to interpolate *cloudbox_field* back to its original\n"
           "size after the calculation with *OptimizeDoitPressureGrid*.\n"
           " The variable is listed as a subentry to\n"
           "\"workspace variables\".\n"

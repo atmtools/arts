@@ -40,11 +40,11 @@ AgendaSet( doit_mono_agenda ){
   #scat_data_monoCalc
   # Perform iterations: 1. scattering integral. 2. RT calculations with 
   # fixed scattering integral field, 3. convergence test, use acceleration 
-  doit_i_field_monoIterate(accelerated=1) 
-  # Interpolate doit_i_field_mono back to original size
-  doit_i_field_monoOptimizeReverse
+  cloudbox_field_monoIterate(accelerated=1) 
+  # Interpolate cloudbox_field_mono back to original size
+  cloudbox_field_monoOptimizeReverse
   # Write the radiation field inside the cloudbox:
-  #WriteXMLIndexed( in=doit_i_field_mono, file_index=f_index )
+  #WriteXMLIndexed( in=cloudbox_field_mono, file_index=f_index )
 }
 
 # Convergence test
@@ -54,8 +54,8 @@ AgendaSet( doit_conv_test_agenda ){
   doit_conv_flagAbsBT( epsilon=[0.1] )
 
   # Alternative: Give limits in radiances
-  #doit_conv_flagAbs( doit_conv_flag, doit_iteration_counter, doit_i_field,
-  #                   doit_i_field_old ){
+  #doit_conv_flagAbs( doit_conv_flag, doit_iteration_counter, cloudbox_field,
+  #                   cloudbox_field_old ){
   #  epsilon = [0.1e-15, 0.1e-18, 0.1e-18, 0.1e-18]
   #}
   # If you want to investigat several iteration fields, for example 
