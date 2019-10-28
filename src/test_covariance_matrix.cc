@@ -531,6 +531,10 @@ void test_workspace_methods() {
  * performed using a normal covariance matrix.
  */
 namespace {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wconversion"
+
 #include "invlib/algebra.h"
 #include "invlib/interfaces/arts_wrapper.h"
 
@@ -589,6 +593,8 @@ Numeric test_invlib_wrapper(Index n_tests) {
   }
   return e;
 }
+
+#pragma GCC diagnostic pop
 }  // namespace
 
 int main() {
