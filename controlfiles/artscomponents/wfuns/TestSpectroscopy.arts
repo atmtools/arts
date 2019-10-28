@@ -51,7 +51,7 @@ Arts2{
   MatrixCreate(testjac)
   
   ## Absorption lines (Doppler, no Zeeman, no NLTE, no mirroring, no normalization)
-  ReadARTSCAT(filename="../lineshapes/testdata/lm-htp-line.xml", globalquantumnumbers="J")
+  ReadXML(abs_lines, "../lineshapes/testdata/lm-htp-line.xml")
   ArrayOfAbsorptionLinesCreate(aolr)
   Copy(aolr, abs_lines)
   abs_lines_per_speciesCreateFromLines
