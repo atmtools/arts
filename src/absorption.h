@@ -32,6 +32,7 @@
 #include <stdexcept>
 #include "abs_species_tags.h"
 #include "array.h"
+#include "energylevelmap.h"
 #include "gridded_fields.h"
 #include "jacobian.h"
 #include "matpackI.h"

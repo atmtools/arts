@@ -194,6 +194,7 @@ add_library (artscore STATIC
   disort.cc
   docserver.cc
   doit.cc
+  energylevelmap.cc
   fastem.cc
   file.cc
   gas_abs_lookup.cc

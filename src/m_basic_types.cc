@@ -45,6 +45,7 @@
 #include <cmath>
 #include "array.h"
 #include "arts.h"
+#include "energylevelmap.h"
 #include "exceptions.h"
 #include "gridded_fields.h"
 #include "lin_alg.h"

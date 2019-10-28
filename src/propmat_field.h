@@ -30,6 +30,7 @@
 #ifndef PROPAGATION_FIELD_HEADER
 #define PROPAGATION_FIELD_HEADER
 
+#include "energylevelmap.h"
 #include "field.h"
 #include "transmissionmatrix.h"
 

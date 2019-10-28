@@ -23,6 +23,7 @@
  * @brief Quantum handling functions
  */
 
+#include "energylevelmap.h"
 #include "quantum.h"
 #include "messages.h"
 
