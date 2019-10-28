@@ -42,7 +42,7 @@
  * @param[in]  atmgeom_checked       as the WSV.
  * @param[in]  cloudbox_checked      as the WSV.
  * @param[in]  scat_data             as the WSV.
- * @param[in]  scat_za_grid          as the WSV.
+ * @param[in]  za_grid          as the WSV.
  * @param[in]  nstreams              Number of quadrature angles (both hemispheres).
  * @param[in]  pfct_method           see DisortCalc doc.
  *
@@ -59,7 +59,7 @@ void check_disort_input(  // Input
     const Index& stokes_dim,
     const ArrayOfIndex& cloudbox_limits,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
-    ConstVectorView scat_za_grid,
+    ConstVectorView za_grid,
     const Index& nstreams,
     const String& pfct_method);
 
@@ -137,7 +137,7 @@ void get_disortsurf_props(  // Output
  * @param[in]     cloudbox_limits Cloudbox limits
  * @param[in]     surface_skin_t Surface skin temperature
  * @param[in]     surface_scalar_reflectivity Surface scalar reflectivity
- * @param[in]     scat_za_grid Zenith angle grid
+ * @param[in]     za_grid Zenith angle grid
  * @param[in]     nstreams Number of quadrature angles (both hemispheres).
  * @param[in]     Npfct Number of angular grid points to calculate bulk phase
  *                function
@@ -163,7 +163,7 @@ void run_cdisort(Workspace& ws,
                  const ArrayOfIndex& cloudbox_limits,
                  const Numeric& surface_skin_t,
                  const Vector& surface_scalar_reflectivity,
-                 ConstVectorView scat_za_grid,
+                 ConstVectorView za_grid,
                  const Index& nstreams,
                  const Index& Npfct,
                  const Index& quiet,

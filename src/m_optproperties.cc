@@ -76,10 +76,10 @@ void pha_mat_sptFromData(  // Output:
     Tensor5& pha_mat_spt,
     // Input:
     const ArrayOfArrayOfSingleScatteringData& scat_data,
-    const Vector& scat_za_grid,
-    const Vector& scat_aa_grid,
-    const Index& scat_za_index,  // propagation directions
-    const Index& scat_aa_index,
+    const Vector& za_grid,
+    const Vector& aa_grid,
+    const Index& za_index,  // propagation directions
+    const Index& aa_index,
     const Index& f_index,
     const Vector& f_grid,
     const Numeric& rtp_temperature,
@@ -246,9 +246,9 @@ void pha_mat_sptFromData(  // Output:
         }
 
         // Do the transformation into the laboratory coordinate system.
-        for (Index za_inc_idx = 0; za_inc_idx < scat_za_grid.nelem();
+        for (Index za_inc_idx = 0; za_inc_idx < za_grid.nelem();
              za_inc_idx++) {
-          for (Index aa_inc_idx = 0; aa_inc_idx < scat_aa_grid.nelem();
+          for (Index aa_inc_idx = 0; aa_inc_idx < aa_grid.nelem();
                aa_inc_idx++) {
             pha_matTransform(
                 pha_mat_spt(i_se_flat, za_inc_idx, aa_inc_idx, joker, joker),
@@ -256,12 +256,12 @@ void pha_mat_sptFromData(  // Output:
                 ZA_DATAGRID,
                 AA_DATAGRID,
                 PART_TYPE,
-                scat_za_index,
-                scat_aa_index,
+                za_index,
+                aa_index,
                 za_inc_idx,
                 aa_inc_idx,
-                scat_za_grid,
-                scat_aa_grid,
+                za_grid,
+                aa_grid,
                 verbosity);
           }
         }
@@ -278,9 +278,9 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
     const ArrayOfTensor7& pha_mat_sptDOITOpt,
     const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
     const Index& doit_za_grid_size,
-    const Vector& scat_aa_grid,
-    const Index& scat_za_index,  // propagation directions
-    const Index& scat_aa_index,
+    const Vector& aa_grid,
+    const Index& za_index,  // propagation directions
+    const Index& aa_index,
     const Numeric& rtp_temperature,
     const Tensor4& pnd_field,
     const Index& scat_p_index,
@@ -308,15 +308,15 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
     assert(pha_mat_sptDOITOpt[0].nlibraries() ==
            scat_data_mono[0][0].T_grid.nelem());
     assert(pha_mat_sptDOITOpt[0].nvitrines() == doit_za_grid_size);
-    assert(pha_mat_sptDOITOpt[0].nshelves() == scat_aa_grid.nelem());
+    assert(pha_mat_sptDOITOpt[0].nshelves() == aa_grid.nelem());
     assert(pha_mat_sptDOITOpt[0].nbooks() == doit_za_grid_size);
-    assert(pha_mat_sptDOITOpt[0].npages() == scat_aa_grid.nelem());
+    assert(pha_mat_sptDOITOpt[0].npages() == aa_grid.nelem());
   }
 
   // atmosphere_dim = 1, only zenith angle required for scattered directions.
   else if (pnd_field.ncols() == 1) {
     //assert(is_size(scat_theta, doit_za_grid_size, 1,
-    //                doit_za_grid_size, scat_aa_grid.nelem()));
+    //                doit_za_grid_size, aa_grid.nelem()));
 
     assert(pha_mat_sptDOITOpt.nelem() == TotalNumberOfElements(scat_data_mono));
     // Assuming that if the size is o.k. for one scattering element, it will
@@ -326,7 +326,7 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
     assert(pha_mat_sptDOITOpt[0].nvitrines() == doit_za_grid_size);
     assert(pha_mat_sptDOITOpt[0].nshelves() == 1);
     assert(pha_mat_sptDOITOpt[0].nbooks() == doit_za_grid_size);
-    assert(pha_mat_sptDOITOpt[0].npages() == scat_aa_grid.nelem());
+    assert(pha_mat_sptDOITOpt[0].npages() == aa_grid.nelem());
   }
 
   assert(doit_za_grid_size > 0);
@@ -416,7 +416,7 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
 
         for (Index za_inc_idx = 0; za_inc_idx < doit_za_grid_size;
              za_inc_idx++) {
-          for (Index aa_inc_idx = 0; aa_inc_idx < scat_aa_grid.nelem();
+          for (Index aa_inc_idx = 0; aa_inc_idx < aa_grid.nelem();
                aa_inc_idx++) {
             if (ti < 0)  // Temperature interpolation
             {
@@ -425,8 +425,8 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
                   pha_mat_spt(i_se_flat, za_inc_idx, aa_inc_idx, i, j) =
                       interp(itw,
                              pha_mat_sptDOITOpt[i_se_flat](joker,
-                                                           scat_za_index,
-                                                           scat_aa_index,
+                                                           za_index,
+                                                           aa_index,
                                                            za_inc_idx,
                                                            aa_inc_idx,
                                                            i,
@@ -437,8 +437,8 @@ void pha_mat_sptFromDataDOITOpt(  // Output:
             } else {
               pha_mat_spt(i_se_flat, za_inc_idx, aa_inc_idx, joker, joker) =
                   pha_mat_sptDOITOpt[i_se_flat](ti,
-                                                scat_za_index,
-                                                scat_aa_index,
+                                                za_index,
+                                                aa_index,
                                                 za_inc_idx,
                                                 aa_inc_idx,
                                                 joker,
@@ -459,10 +459,10 @@ void opt_prop_sptFromData(  // Output and Input:
     ArrayOfStokesVector& abs_vec_spt,
     // Input:
     const ArrayOfArrayOfSingleScatteringData& scat_data,
-    const Vector& scat_za_grid,
-    const Vector& scat_aa_grid,
-    const Index& scat_za_index,  // propagation directions
-    const Index& scat_aa_index,
+    const Vector& za_grid,
+    const Vector& aa_grid,
+    const Index& za_index,  // propagation directions
+    const Index& aa_index,
     const Index& f_index,
     const Vector& f_grid,
     const Numeric& rtp_temperature,
@@ -472,8 +472,8 @@ void opt_prop_sptFromData(  // Output and Input:
     const Index& scat_lon_index,
     const Verbosity& verbosity) {
   const Index N_ss = scat_data.nelem();
-  const Numeric za_sca = scat_za_grid[scat_za_index];
-  const Numeric aa_sca = scat_aa_grid[scat_aa_index];
+  const Numeric za_sca = za_grid[za_index];
+  const Numeric aa_sca = aa_grid[aa_index];
 
   DEBUG_ONLY(const Index N_se_total = TotalNumberOfElements(scat_data);
              if (N_ss) {
@@ -664,10 +664,10 @@ void opt_prop_sptFromScat_data(  // Output and Input:
     // Input:
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     const Index& scat_data_checked,
-    const Vector& scat_za_grid,
-    const Vector& scat_aa_grid,
-    const Index& scat_za_index,  // propagation directions
-    const Index& scat_aa_index,
+    const Vector& za_grid,
+    const Vector& aa_grid,
+    const Index& za_index,  // propagation directions
+    const Index& aa_index,
     const Index& f_index,
     const Numeric& rtp_temperature,
     const Tensor4& pnd_field,
@@ -682,8 +682,8 @@ void opt_prop_sptFromScat_data(  // Output and Input:
 
   const Index N_ss = scat_data.nelem();
   const Index stokes_dim = ext_mat_spt[0].StokesDimensions();
-  const Numeric za_sca = scat_za_grid[scat_za_index];
-  const Numeric aa_sca = scat_aa_grid[scat_aa_index];
+  const Numeric za_sca = za_grid[za_index];
+  const Numeric aa_sca = aa_grid[aa_index];
 
   if (stokes_dim > 4 || stokes_dim < 1) {
     throw runtime_error(
@@ -1348,7 +1348,7 @@ void DoitScatteringDataPrepare(
     ArrayOfArrayOfSingleScatteringData& scat_data_mono,
     Tensor7& pha_mat_doit,
     //Output and Input:
-    Vector& scat_aa_grid,
+    Vector& aa_grid,
     //Input:
     const Index& doit_za_grid_size,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
@@ -1367,7 +1367,7 @@ void DoitScatteringDataPrepare(
         "passed a consistency check (scat_data_checked=1).");
 
   // Number of azimuth angles.
-  const Index Naa = scat_aa_grid.nelem();
+  const Index Naa = aa_grid.nelem();
   Vector grid_stepsize(2);
   grid_stepsize[0] = 180. / (Numeric)(doit_za_grid_size - 1);
   //grid_stepsize[1] = 360./(Numeric)(Naa - 1);
@@ -1375,7 +1375,7 @@ void DoitScatteringDataPrepare(
   // Initialize variable *pha_mat_spt*
   Tensor5 pha_mat_spt_local(pnd_field.nbooks(),
                             doit_za_grid_size,
-                            scat_aa_grid.nelem(),
+                            aa_grid.nelem(),
                             stokes_dim,
                             stokes_dim,
                             0.);
@@ -1396,7 +1396,7 @@ void DoitScatteringDataPrepare(
   if (atmosphere_dim == 1)
     N_aa_sca = 1;
   else
-    N_aa_sca = scat_aa_grid.nelem();
+    N_aa_sca = aa_grid.nelem();
 
   Vector za_grid;
   nlinspace(za_grid, 0, 180, doit_za_grid_size);
@@ -1418,7 +1418,7 @@ void DoitScatteringDataPrepare(
                                            doit_za_grid_size,
                                            N_aa_sca,
                                            doit_za_grid_size,
-                                           scat_aa_grid.nelem(),
+                                           aa_grid.nelem(),
                                            stokes_dim,
                                            stokes_dim);
 
@@ -1435,7 +1435,7 @@ void DoitScatteringDataPrepare(
             // Integration is performed over all incoming directions
             for (Index za_inc_idx = 0; za_inc_idx < doit_za_grid_size;
                  za_inc_idx++) {
-              for (Index aa_inc_idx = 0; aa_inc_idx < scat_aa_grid.nelem();
+              for (Index aa_inc_idx = 0; aa_inc_idx < aa_grid.nelem();
                    aa_inc_idx++) {
                 pha_matTransform(
                     pha_mat_sptDOITOpt[i_se_flat](t_idx,
@@ -1455,7 +1455,7 @@ void DoitScatteringDataPrepare(
                     za_inc_idx,
                     aa_inc_idx,
                     za_grid,
-                    scat_aa_grid,
+                    aa_grid,
                     verbosity);
               }
             }
@@ -1477,7 +1477,7 @@ void DoitScatteringDataPrepare(
   pha_mat_doit = 0;
 
   if (atmosphere_dim == 1) {
-    Index scat_aa_index_local = 0;
+    Index aa_index_local = 0;
 
     // Get pha_mat at the grid positions
     // Since atmosphere_dim = 1, there is no loop over lat and lon grids
@@ -1486,20 +1486,20 @@ void DoitScatteringDataPrepare(
       Numeric rtp_temperature_local =
           t_field(p_index + cloudbox_limits[0], 0, 0);
       //There is only loop over zenith angle grid ; no azimuth angle grid.
-      for (Index scat_za_index_local = 0;
-           scat_za_index_local < doit_za_grid_size;
-           scat_za_index_local++) {
+      for (Index za_index_local = 0;
+           za_index_local < doit_za_grid_size;
+           za_index_local++) {
         // Dummy index
         Index index_zero = 0;
 
         // Calculate the phase matrix of individual scattering elements
         pha_mat_spt_agendaExecute(ws,
                                   pha_mat_spt_local,
-                                  scat_za_index_local,
+                                  za_index_local,
                                   index_zero,
                                   index_zero,
                                   p_index,
-                                  scat_aa_index_local,
+                                  aa_index_local,
                                   rtp_temperature_local,
                                   pha_mat_spt_agenda);
 
@@ -1513,15 +1513,15 @@ void DoitScatteringDataPrepare(
                     0,
                     verbosity);
         pha_mat_doit(
-            p_index, scat_za_index_local, 0, joker, joker, joker, joker) =
+            p_index, za_index_local, 0, joker, joker, joker, joker) =
             pha_mat_local;
       }
     }
 
     // Set incoming azimuth grid scattering to zero, because there is no
     // no azimuth dependcy for 1d atmospheres
-    scat_aa_grid.resize(1);
-    scat_aa_grid = 0;
+    aa_grid.resize(1);
+    aa_grid = 0;
   }
 }
 
@@ -2264,10 +2264,10 @@ void opt_prop_sptFromMonoData(  // Output and Input:
     ArrayOfStokesVector& abs_vec_spt,
     // Input:
     const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
-    const Vector& scat_za_grid,
-    const Vector& scat_aa_grid,
-    const Index& scat_za_index,  // propagation directions
-    const Index& scat_aa_index,
+    const Vector& za_grid,
+    const Vector& aa_grid,
+    const Index& za_index,  // propagation directions
+    const Index& aa_index,
     const Numeric& rtp_temperature,
     const Tensor4& pnd_field,
     const Index& scat_p_index,
@@ -2276,8 +2276,8 @@ void opt_prop_sptFromMonoData(  // Output and Input:
     const Verbosity& verbosity) {
   DEBUG_ONLY(const Index N_se_total = TotalNumberOfElements(scat_data_mono);)
   const Index stokes_dim = ext_mat_spt[0].StokesDimensions();
-  const Numeric za_sca = scat_za_grid[scat_za_index];
-  const Numeric aa_sca = scat_aa_grid[scat_aa_index];
+  const Numeric za_sca = za_grid[za_index];
+  const Numeric aa_sca = aa_grid[aa_index];
 
   if (stokes_dim > 4 or stokes_dim < 1) {
     throw runtime_error(
@@ -2434,9 +2434,9 @@ void pha_mat_sptFromMonoData(  // Output:
     // Input:
     const ArrayOfArrayOfSingleScatteringData& scat_data_mono,
     const Index& doit_za_grid_size,
-    const Vector& scat_aa_grid,
-    const Index& scat_za_index,  // propagation directions
-    const Index& scat_aa_index,
+    const Vector& aa_grid,
+    const Index& za_index,  // propagation directions
+    const Index& aa_index,
     const Numeric& rtp_temperature,
     const Tensor4& pnd_field,
     const Index& scat_p_index,
@@ -2539,7 +2539,7 @@ void pha_mat_sptFromMonoData(  // Output:
         // Do the transformation into the laboratory coordinate system.
         for (Index za_inc_idx = 0; za_inc_idx < doit_za_grid_size;
              za_inc_idx++) {
-          for (Index aa_inc_idx = 0; aa_inc_idx < scat_aa_grid.nelem();
+          for (Index aa_inc_idx = 0; aa_inc_idx < aa_grid.nelem();
                aa_inc_idx++) {
             if (ti < 0)  // Temperature interpolation
             {
@@ -2551,12 +2551,12 @@ void pha_mat_sptFromMonoData(  // Output:
                     scat_data_mono[i_ss][i_se].za_grid,
                     scat_data_mono[i_ss][i_se].aa_grid,
                     scat_data_mono[i_ss][i_se].ptype,
-                    scat_za_index,
-                    scat_aa_index,
+                    za_index,
+                    aa_index,
                     za_inc_idx,
                     aa_inc_idx,
                     za_grid,
-                    scat_aa_grid,
+                    aa_grid,
                     verbosity);
               }
 
@@ -2575,12 +2575,12 @@ void pha_mat_sptFromMonoData(  // Output:
                   scat_data_mono[i_ss][i_se].za_grid,
                   scat_data_mono[i_ss][i_se].aa_grid,
                   scat_data_mono[i_ss][i_se].ptype,
-                  scat_za_index,
-                  scat_aa_index,
+                  za_index,
+                  aa_index,
                   za_inc_idx,
                   aa_inc_idx,
                   za_grid,
-                  scat_aa_grid,
+                  aa_grid,
                   verbosity);
             }
           }
@@ -2598,10 +2598,10 @@ void pha_mat_sptFromScat_data(  // Output:
     // Input:
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     const Index& scat_data_checked,
-    const Vector& scat_za_grid,
-    const Vector& scat_aa_grid,
-    const Index& scat_za_index,  // propagation directions
-    const Index& scat_aa_index,
+    const Vector& za_grid,
+    const Vector& aa_grid,
+    const Index& za_index,  // propagation directions
+    const Index& aa_index,
     const Index& f_index,
     const Numeric& rtp_temperature,
     const Tensor4& pnd_field,
@@ -2752,9 +2752,9 @@ void pha_mat_sptFromScat_data(  // Output:
         }
 
         // Do the transformation into the laboratory coordinate system.
-        for (Index za_inc_idx = 0; za_inc_idx < scat_za_grid.nelem();
+        for (Index za_inc_idx = 0; za_inc_idx < za_grid.nelem();
              za_inc_idx++) {
-          for (Index aa_inc_idx = 0; aa_inc_idx < scat_aa_grid.nelem();
+          for (Index aa_inc_idx = 0; aa_inc_idx < aa_grid.nelem();
                aa_inc_idx++) {
             pha_matTransform(
                 pha_mat_spt(i_se_flat, za_inc_idx, aa_inc_idx, joker, joker),
@@ -2762,12 +2762,12 @@ void pha_mat_sptFromScat_data(  // Output:
                 ZA_DATAGRID,
                 AA_DATAGRID,
                 PART_TYPE,
-                scat_za_index,
-                scat_aa_index,
+                za_index,
+                aa_index,
                 za_inc_idx,
                 aa_inc_idx,
-                scat_za_grid,
-                scat_aa_grid,
+                za_grid,
+                aa_grid,
                 verbosity);
           }
         }

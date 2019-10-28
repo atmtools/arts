@@ -114,8 +114,8 @@ doit_za_interpSet( interp_method="linear" )
 AgendaSet( doit_conv_test_agenda ){ doit_conv_flagAbsBT( epsilon=[0.1] ) }
 #
 # RT4 creates own grirs, so we need copies of the ones created above
-VectorCreate( scat_za_grid_copy )
-VectorCreate( scat_aa_grid_copy )
+VectorCreate( za_grid_copy )
+VectorCreate( aa_grid_copy )
 #
 # Hybrid requires that ppath_lmax is not too high
 NumericSet( ppath_lmax, 100 )

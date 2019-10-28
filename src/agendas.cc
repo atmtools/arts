@@ -157,7 +157,7 @@ void define_agenda_data() {
   agenda_data.push_back(
       AgRecord(NAME("cloudbox_field_agenda"),
                DESCRIPTION("So far just a test."),
-               OUTPUT("cloudbox_field", "scat_za_grid", "scat_aa_grid"),
+               OUTPUT("cloudbox_field", "za_grid", "aa_grid"),
                INPUT()));
   */
   
@@ -190,8 +190,8 @@ void define_agenda_data() {
           "scattering integral field: \n"
           "\n"
           "*doit_scat_fieldCalc*: This method calculates the scattering \n"
-          "  integral field by using the angular grids *scat_za_grid* \n"
-          "  and *scat_aa_grid*, which are also used in the update of the \n"
+          "  integral field by using the angular grids *za_grid* \n"
+          "  and *aa_grid*, which are also used in the update of the \n"
           "  radiation field (*doit_rte_agenda*).\n"
           "\n"
           "*doit_scat_fieldCalcLimb*: This method calculates the scattering \n"
@@ -583,11 +583,11 @@ void define_agenda_data() {
           "*pha_mat_sptFromData* or *pha_mat_sptFromDataDOITOpt*. \n"),
       OUTPUT("pha_mat_spt"),
       INPUT("pha_mat_spt",
-            "scat_za_index",
+            "za_index",
             "scat_lat_index",
             "scat_lon_index",
             "scat_p_index",
-            "scat_aa_index",
+            "aa_index",
             "rtp_temperature")));
 
   agenda_data.push_back(AgRecord(
@@ -729,8 +729,8 @@ void define_agenda_data() {
             "scat_lat_index",
             "scat_lon_index",
             "rtp_temperature",
-            "scat_za_index",
-            "scat_aa_index")));
+            "za_index",
+            "aa_index")));
 
   agenda_data.push_back(AgRecord(
       NAME("surface_rtprop_agenda"),

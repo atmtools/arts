@@ -2248,8 +2248,8 @@ void define_md_data_raw() {
           "for the zenith angle integration. For down- und up-looking\n"
           "geometries it suffices to define *N_za_grid* and\n"
           "*N_aa_grid*. From *N_aa_grid* an equally spaced grid is\n"
-          "created and stored in the WSV*scat_aa_grid*.\n"
-          "Depending on the desired *za_grid_type* *scat_za_grid* will be\n"
+          "created and stored in the WSV*aa_grid*.\n"
+          "Depending on the desired *za_grid_type* *za_grid* will be\n"
           "equally spaced ('linear') or unequally ('linear_mu','double_gauss')\n"
           "Important, *N_za_grid* must be an even number because for the \n"
           "integration over each hemisphere *N_za_grid* / 2 zenith angles are needed.\n"
@@ -2263,7 +2263,7 @@ void define_md_data_raw() {
 
           ),
       AUTHORS("Manfred Brath"),
-      OUT("scat_za_grid", "scat_aa_grid", "za_grid_weights"),
+      OUT("za_grid", "aa_grid", "za_grid_weights"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -3911,7 +3911,7 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("cloudbox_field",
-         "scat_za_grid",
+         "za_grid",
          "f_grid",
          "atmosphere_dim",
          "stokes_dim",
@@ -4058,7 +4058,7 @@ void define_md_data_raw() {
          "propmat_clearsky_agenda",
          "vmr_field",
          "spt_calc_agenda",
-         "scat_za_grid",
+         "za_grid",
          "pnd_field",
          "ppath_step_agenda",
          "ppath_lmax",
@@ -4097,8 +4097,8 @@ void define_md_data_raw() {
          "propmat_clearsky_agenda",
          "vmr_field",
          "spt_calc_agenda",
-         "scat_za_grid",
-         "scat_aa_grid",
+         "za_grid",
+         "aa_grid",
          "pnd_field",
          "ppath_step_agenda",
          "ppath_lmax",
@@ -4133,7 +4133,7 @@ void define_md_data_raw() {
           "*cloudbox_fieldUpdateSeq1D* and it is less accurate. It can not\n"
           "be used for limb simulations.\n"),
       AUTHORS("Sreerekha T.R."),
-      OUT("cloudbox_field_mono", "scat_za_index"),
+      OUT("cloudbox_field_mono", "za_index"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -4143,7 +4143,7 @@ void define_md_data_raw() {
          "propmat_clearsky_agenda",
          "vmr_field",
          "spt_calc_agenda",
-         "scat_za_grid",
+         "za_grid",
          "pnd_field",
          "p_grid",
          "z_field",
@@ -4178,8 +4178,8 @@ void define_md_data_raw() {
          "propmat_clearsky_agenda",
          "vmr_field",
          "spt_calc_agenda",
-         "scat_za_grid",
-         "scat_aa_grid",
+         "za_grid",
+         "aa_grid",
          "pnd_field",
          "ppath_step_agenda",
          "ppath_lmax",
@@ -4900,7 +4900,7 @@ void define_md_data_raw() {
           "reflection is handled.\n"
           "\n"
           "*nstreams* is the number of polar angles taken into account\n"
-          "internally in the scattering solution, *scat_za_grid* is the\n"
+          "internally in the scattering solution, *za_grid* is the\n"
           "polar angle grid on which *cloudbox_field* is provided.\n"
           "*nstreams* determines the angular resolution, hence the accuracy,\n"
           "of the scattering solution. The more anisotropic the bulk scattering\n"
@@ -4910,11 +4910,11 @@ void define_md_data_raw() {
           "likely insufficient for IR calculations involving ice clouds,\n"
           "though.\n"
           "\n"
-          "Further, *scat_za_grid* determines the resolution of the output\n"
-          "radiation field. The size of *scat_za_grid* has no practical\n"
+          "Further, *za_grid* determines the resolution of the output\n"
+          "radiation field. The size of *za_grid* has no practical\n"
           "impact on computation time in the case of Disort and higher\n"
           "resolution generally improves the interpolation results, hence\n"
-          "larger *scat_za_grid* are recommended. To ensure sufficient\n"
+          "larger *za_grid* are recommended. To ensure sufficient\n"
           "interpolation accuracy, we require a (hardcoded) minimum size of 38.\n"
           "\n"
           "Different sphericity levels are emulated here by embedding DISORT\n"
@@ -4966,7 +4966,7 @@ void define_md_data_raw() {
          "p_grid",
          "scat_data",
          "f_grid",
-         "scat_za_grid",
+         "za_grid",
          "stokes_dim",
          "z_surface",
          "surface_skin_t",
@@ -5006,7 +5006,7 @@ void define_md_data_raw() {
          "vmr_field",
          "p_grid",
          "f_grid",
-         "scat_za_grid",
+         "za_grid",
          "stokes_dim",
          "z_surface",
          "surface_skin_t",
@@ -5079,7 +5079,7 @@ void define_md_data_raw() {
           "scattering calculations (DOIT, DISORT). For down- und up-looking\n"
           "geometries it suffices to define *N_za_grid* (both solvers) and\n"
           "*N_aa_grid* (DOIT). From these numbers equally spaced grids are\n"
-          "created and stored in the WSVs *scat_za_grid* and *scat_aa_grid*.\n"
+          "created and stored in the WSVs *za_grid* and *aa_grid*.\n"
           "\n"
           "For limb simulations it is important to use an optimized zenith\n"
           "angle grid with a very fine resolution around the horizon\n"
@@ -5094,7 +5094,7 @@ void define_md_data_raw() {
           "down-looking cases using the equidistant grid typically suffices\n"
           "and speeds up the calculations.\n"),
       AUTHORS("Claudia Emde"),
-      OUT("doit_za_grid_size", "scat_aa_grid", "scat_za_grid"),
+      OUT("doit_za_grid_size", "aa_grid", "za_grid"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -5173,8 +5173,8 @@ void define_md_data_raw() {
          "cloudbox_limits",
          "f_grid",
          "stokes_dim",
-         "scat_za_grid",
-         "scat_aa_grid"),
+         "za_grid",
+         "aa_grid"),
       GIN("rigorous", "maxratio"),
       GIN_TYPE("Index", "Numeric"),
       GIN_DEFAULT("1", "100"),
@@ -5213,8 +5213,8 @@ void define_md_data_raw() {
          "cloudbox_limits",
          "f_grid",
          "stokes_dim",
-         "scat_za_grid",
-         "scat_aa_grid"),
+         "za_grid",
+         "aa_grid"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -5237,8 +5237,8 @@ void define_md_data_raw() {
       IN("stokes_dim",
          "atmosphere_dim",
          "f_grid",
-         "scat_za_grid",
-         "scat_aa_grid",
+         "za_grid",
+         "aa_grid",
          "doit_za_grid_size",
          "cloudbox_on",
          "cloudbox_limits"),
@@ -5262,12 +5262,12 @@ void define_md_data_raw() {
       OUT("pha_mat_sptDOITOpt",
           "scat_data_mono",
           "pha_mat_doit",
-          "scat_aa_grid"),
+          "aa_grid"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("doit_za_grid_size",
-         "scat_aa_grid",
+         "aa_grid",
          "scat_data",
          "scat_data_checked",
          "f_index",
@@ -5484,8 +5484,8 @@ void define_md_data_raw() {
          "t_field",
          "atmosphere_dim",
          "cloudbox_limits",
-         "scat_za_grid",
-         "scat_aa_grid",
+         "za_grid",
+         "aa_grid",
          "doit_za_grid_size",
          "pha_mat_doit"),
       GIN(),
@@ -5524,8 +5524,8 @@ void define_md_data_raw() {
          "t_field",
          "atmosphere_dim",
          "cloudbox_limits",
-         "scat_za_grid",
-         "scat_aa_grid",
+         "za_grid",
+         "aa_grid",
          "doit_za_grid_size",
          "doit_za_interp",
          "pha_mat_doit"),
@@ -5541,7 +5541,7 @@ void define_md_data_raw() {
           "\n"
           "This method optimizes the zenith angle grid. As input it requires\n"
           "a radiation field (*cloudbox_field*) which is calculated on a very\n"
-          "fine zenith angle grid (*scat_za_grid*). Based on this field\n"
+          "fine zenith angle grid (*za_grid*). Based on this field\n"
           "zenith angle grid points are selected, such that the maximum\n"
           "difference between the radiation field represented on the very\n"
           "fine zenith angle grid and the radiation field represented on the\n"
@@ -5556,7 +5556,7 @@ void define_md_data_raw() {
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("cloudbox_field_mono", "scat_za_grid", "doit_za_interp"),
+      IN("cloudbox_field_mono", "za_grid", "doit_za_interp"),
       GIN("acc"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
@@ -6657,13 +6657,13 @@ void define_md_data_raw() {
           "by integrating over the angular grids according to the grids set\n"
           "by *AngularGridsSetForFluxCalc* \n"
           "See *AngularGridsSetForFluxCalc to set \n"
-          "*scat_za_grid, scat_aa_grid, and za_grid_weights*\n"),
+          "*za_grid, aa_grid, and za_grid_weights*\n"),
       AUTHORS("Manfred Brath"),
       OUT("irradiance_field"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("radiance_field", "scat_za_grid", "scat_aa_grid", "za_grid_weights"),
+      IN("radiance_field", "za_grid", "aa_grid", "za_grid_weights"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -7238,7 +7238,7 @@ void define_md_data_raw() {
          "rte_alonglos_v",
          "surface_props_data",
          "cloudbox_field",
-         "scat_za_grid"),
+         "za_grid"),
       GIN("Naa_grid", "t_interp_order"),
       GIN_TYPE("Index", "Index"),
       GIN_DEFAULT("19", "1"),
@@ -7307,7 +7307,7 @@ void define_md_data_raw() {
          "rte_alonglos_v",
          "surface_props_data",
          "cloudbox_field",
-         "scat_za_grid"),
+         "za_grid"),
       GIN("Naa_grid", "t_interp_order"),
       GIN_TYPE("Index", "Index"),
       GIN_DEFAULT("19", "1"),
@@ -7414,8 +7414,8 @@ void define_md_data_raw() {
          "z_field",
          "z_surface",
          "stokes_dim",
-         "scat_za_grid",
-         "scat_aa_grid",
+         "za_grid",
+         "aa_grid",
          "f_grid"),
       GIN("za_interp_order",
           "za_restrict",
@@ -10665,10 +10665,10 @@ void define_md_data_raw() {
       IN("ext_mat_spt",
          "abs_vec_spt",
          "scat_data",
-         "scat_za_grid",
-         "scat_aa_grid",
-         "scat_za_index",
-         "scat_aa_index",
+         "za_grid",
+         "aa_grid",
+         "za_index",
+         "aa_index",
          "f_index",
          "f_grid",
          "rtp_temperature",
@@ -10699,10 +10699,10 @@ void define_md_data_raw() {
          "abs_vec_spt",
          "scat_data",
          "scat_data_checked",
-         "scat_za_grid",
-         "scat_aa_grid",
-         "scat_za_index",
-         "scat_aa_index",
+         "za_grid",
+         "aa_grid",
+         "za_index",
+         "aa_index",
          "f_index",
          "rtp_temperature",
          "pnd_field",
@@ -10730,10 +10730,10 @@ void define_md_data_raw() {
       IN("ext_mat_spt",
          "abs_vec_spt",
          "scat_data_mono",
-         "scat_za_grid",
-         "scat_aa_grid",
-         "scat_za_index",
-         "scat_aa_index",
+         "za_grid",
+         "aa_grid",
+         "za_index",
+         "aa_index",
          "rtp_temperature",
          "pnd_field",
          "scat_p_index",
@@ -10989,10 +10989,10 @@ void define_md_data_raw() {
       GOUT_DESC(),
       IN("pha_mat_spt",
          "scat_data",
-         "scat_za_grid",
-         "scat_aa_grid",
-         "scat_za_index",
-         "scat_aa_index",
+         "za_grid",
+         "aa_grid",
+         "za_index",
+         "aa_index",
          "f_index",
          "f_grid",
          "rtp_temperature",
@@ -11025,9 +11025,9 @@ void define_md_data_raw() {
          "pha_mat_sptDOITOpt",
          "scat_data_mono",
          "doit_za_grid_size",
-         "scat_aa_grid",
-         "scat_za_index",
-         "scat_aa_index",
+         "aa_grid",
+         "za_index",
+         "aa_index",
          "rtp_temperature",
          "pnd_field",
          "scat_p_index",
@@ -11052,9 +11052,9 @@ void define_md_data_raw() {
       IN("pha_mat_spt",
          "scat_data_mono",
          "doit_za_grid_size",
-         "scat_aa_grid",
-         "scat_za_index",
-         "scat_aa_index",
+         "aa_grid",
+         "za_index",
+         "aa_index",
          "rtp_temperature",
          "pnd_field",
          "scat_p_index",
@@ -11081,10 +11081,10 @@ void define_md_data_raw() {
       IN("pha_mat_spt",
          "scat_data",
          "scat_data_checked",
-         "scat_za_grid",
-         "scat_aa_grid",
-         "scat_za_index",
-         "scat_aa_index",
+         "za_grid",
+         "aa_grid",
+         "za_index",
+         "aa_index",
          "f_index",
          "rtp_temperature",
          "pnd_field",
@@ -14474,7 +14474,7 @@ void define_md_data_raw() {
           "most microwave scattering calculations. It is likely insufficient\n"
           "for IR calculations involving ice clouds, though.\n"
           "\n"
-          "Here, *scat_za_grid* is NOT an input parameter, but output, and its\n"
+          "Here, *za_grid* is NOT an input parameter, but output, and its\n"
           "size equals *nstreams* or *nstreams*+2 (Gauss-Legendre and Double\n"
           "Gauss quadratures in case *add_straight_angles*=1) (the reason is\n"
           "that the computational burden is high for additional angles,\n"
@@ -14513,7 +14513,7 @@ void define_md_data_raw() {
           "extinction matrix and absorption vector are always interpolated to\n"
           "the actual temperature.\n"),
       AUTHORS("Jana Mendrok"),
-      OUT("cloudbox_field", "scat_za_grid", "scat_aa_grid"),
+      OUT("cloudbox_field", "za_grid", "aa_grid"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -14604,7 +14604,7 @@ void define_md_data_raw() {
           "methods modified to behave similar to ARTS'\n"
           "*surfaceFlatReflectivity*.\n"),
       AUTHORS("Jana Mendrok"),
-      OUT("cloudbox_field", "scat_za_grid", "scat_aa_grid"),
+      OUT("cloudbox_field", "za_grid", "aa_grid"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -16427,13 +16427,13 @@ void define_md_data_raw() {
           "by integrating over the angular grids according to the grids set\n"
           "by *AngularGridsSetForFluxCalc* \n"
           "See *AngularGridsSetForFluxCalc to set \n"
-          "*scat_za_grid, scat_aa_grid, and za_grid_weights*\n"),
+          "*za_grid, aa_grid, and za_grid_weights*\n"),
       AUTHORS("Manfred Brath"),
       OUT("spectral_irradiance_field"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("spectral_radiance_field", "scat_za_grid", "scat_aa_grid", "za_grid_weights"),
+      IN("spectral_radiance_field", "za_grid", "aa_grid", "za_grid_weights"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -16445,7 +16445,7 @@ void define_md_data_raw() {
           "Clear-sky radiance field of a plane parallel atmosphere.\n"
           "\n"
           "The method assumes a 1D flat planet. Radiances along each direction\n"
-          "given by *scat_za_grid* are calculated using *ppathPlaneParallel*\n"
+          "given by *za_grid* are calculated using *ppathPlaneParallel*\n"
           "and *iyEmissionStandard*.\n"
           "\n"
           "Surface properties are defined by *iy_surface_agenda*, i.e. there is no\n"
@@ -16464,7 +16464,7 @@ void define_md_data_raw() {
       OUT("spectral_radiance_field"),
       GOUT("trans_field"),
       GOUT_TYPE("Tensor3"),
-      GOUT_DESC("Dimensions: [f_grid,p_grid,scat_za_grid]. See further above."),
+      GOUT_DESC("Dimensions: [f_grid,p_grid,za_grid]. See further above."),
       IN("propmat_clearsky_agenda",
          "water_p_eq_agenda",
          "iy_space_agenda",
@@ -16489,7 +16489,7 @@ void define_md_data_raw() {
          "ppath_lmax",
          "rte_alonglos_v",
          "surface_props_data",
-         "scat_za_grid"),
+         "za_grid"),
       GIN("use_parallel_iy"),
       GIN_TYPE("Index"),
       GIN_DEFAULT("0"),
@@ -16569,7 +16569,7 @@ void define_md_data_raw() {
          "ppath_lmax",
          "rte_alonglos_v",
          "surface_props_data",
-         "scat_za_grid"),
+         "za_grid"),
       GIN("use_parallel_iy"),
       GIN_TYPE("Index"),
       GIN_DEFAULT("0"),

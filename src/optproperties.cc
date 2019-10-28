@@ -1676,15 +1676,15 @@ void ext_matTransform(  //Output and Input
   \param[in]     aa_datagrid   Zenith angle grid in the database.
   \param[in]     ptype Type of scattering element.
   \param[in]     za_sca_idx    Index of zenith angle of scattered direction
-                                 within scat_za_grid.
+                                 within za_grid.
   \param[in]     aa_sca_idx    Index of azimuth angle of scattered direction
-                                 within scat_aa_grid.
+                                 within aa_grid.
   \param[in]     za_inc_idx    Index of zenith angle of incoming direction
-                                 within scat_za_grid.
+                                 within za_grid.
   \param[in]     aa_inc_idx    Index of azimuth angle of incoming direction
-                                 within scat_aa_grid.
-  \param[in]     scat_za_grid  Grid of zenith angles to extract pha_mat for.
-  \param[in]     scat_aa_grid  Grid of azimuth angles to extract pha_mat for.
+                                 within aa_grid.
+  \param[in]     za_grid  Grid of zenith angles to extract pha_mat for.
+  \param[in]     aa_grid  Grid of azimuth angles to extract pha_mat for.
   
   \author Claudia Emde
   \date   2003-08-19
@@ -1700,15 +1700,15 @@ void pha_matTransform(  //Output
     const Index& aa_sca_idx,
     const Index& za_inc_idx,
     const Index& aa_inc_idx,
-    ConstVectorView scat_za_grid,
-    ConstVectorView scat_aa_grid,
+    ConstVectorView za_grid,
+    ConstVectorView aa_grid,
     const Verbosity& verbosity) {
   const Index stokes_dim = pha_mat_lab.ncols();
 
-  Numeric za_sca = scat_za_grid[za_sca_idx];
-  Numeric aa_sca = scat_aa_grid[aa_sca_idx];
-  Numeric za_inc = scat_za_grid[za_inc_idx];
-  Numeric aa_inc = scat_aa_grid[aa_inc_idx];
+  Numeric za_sca = za_grid[za_sca_idx];
+  Numeric aa_sca = aa_grid[aa_sca_idx];
+  Numeric za_inc = za_grid[za_inc_idx];
+  Numeric aa_inc = aa_grid[aa_inc_idx];
 
   if (stokes_dim > 4 || stokes_dim < 1) {
     throw runtime_error(

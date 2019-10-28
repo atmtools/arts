@@ -80,12 +80,12 @@ void check_rt4_input(  // Output
 //! Derive the quadrature angles
 /*!
   Derive the quadrature angles related to selected RT4 quadrature type and set
-  scat_za_grid accordingly.
+  za_grid accordingly.
 
   \param[out]  mu_values Quadrature angle cosines.
   \param[out]  quad_weights Quadrature weights associated with mu_values.
-  \param[out]  scat_za_grid Zenith angle grid
-  \param[out]  scat_aa_grid Azimuth angle grid
+  \param[out]  za_grid Zenith angle grid
+  \param[out]  aa_grid Azimuth angle grid
   \param[in]   quad_type Quadrature method.
   \param[in]   nhstreams Number of single hemisphere streams (quadrature angles)
   \param[in]   nhza Number of single hemisphere additional angles with RT output
@@ -97,8 +97,8 @@ void check_rt4_input(  // Output
 void get_quad_angles(  // Output
     VectorView mu_values,
     VectorView quad_weights,
-    Vector& scat_za_grid,
-    Vector& scat_aa_grid,
+    Vector& za_grid,
+    Vector& aa_grid,
     // Input
     const String& quad_type,
     const Index& nhstreams,
@@ -148,7 +148,7 @@ void get_rt4surf_props(  // Output
 
   \param[in,out] ws Current workspace
   \param[out]    cloudbox_field Radiation field
-  \param[out]    scat_za_grid Zenith angle grid
+  \param[out]    za_grid Zenith angle grid
   \param[in]     f_grid Frequency grid
   \param[in]     p_grid Pressure rid
   \param[in]     z_profile Profile of geometrical altitudes
@@ -197,7 +197,7 @@ void get_rt4surf_props(  // Output
 void run_rt4(Workspace& ws,
              // Output
              Tensor7& cloudbox_field,
-             Vector& scat_za_grid,
+             Vector& za_grid,
              // Input
              ConstVectorView f_grid,
              ConstVectorView p_grid,
@@ -233,20 +233,20 @@ void run_rt4(Workspace& ws,
              const Numeric& max_delta_tau,
              const Verbosity& verbosity);
 
-//! Reset scat_za_grid such that it is consistent with ARTS
+//! Reset za_grid such that it is consistent with ARTS
 /*!
-  Reset scat_za_grid such that it is consistent with ARTS' scat_za_grid
+  Reset za_grid such that it is consistent with ARTS' za_grid
   requirements (instead of with RT4 as in input state).
 
-  \param[out]  scat_za_grid Zenith angle grid
+  \param[out]  za_grid Zenith angle grid
   \param[in]   mu_values Quadrature angle cosines.
   \param[in]   nummu Number of single hemisphere polar angles.
 
   \author Jana Mendrok
   \date   2017-02-22
 */
-void scat_za_grid_adjust(  // Output
-    Vector& scat_za_grid,
+void za_grid_adjust(  // Output
+    Vector& za_grid,
     // Input
     ConstVectorView mu_values,
     const Index& nummu);
@@ -289,7 +289,7 @@ void gas_optpropCalc(Workspace& ws,
   \param[out] extinct_matrix  Layer averaged particle extinction for all
               particle layers
   \param[in]  scat_data Array of single scattering data
-  \param[in]  scat_za_grid Zenith angle grid
+  \param[in]  za_grid Zenith angle grid
   \param[in]  f_index Index of frequency grid point handeled
   \param[in]  pnd_profiles PND profiles
   \param[in]  t_profile Temperature profile
@@ -305,7 +305,7 @@ void par_optpropCalc(  //Output
                      //VectorView scatlayers,
                      //Input
                      const ArrayOfArrayOfSingleScatteringData& scat_data,
-                     const Vector& scat_za_grid,
+                     const Vector& za_grid,
                      const Index& f_index,
                      ConstMatrixView pnd_profiles,
                      ConstVectorView t_profile,
@@ -330,8 +330,8 @@ void par_optpropCalc(  //Output
               (new-type, f_grid prepared)
   \param[in]  pnd_profiles PND profiles
   \param[in]  stokes_dim Dimension of Stokes vector
-  \param[in]  scat_za_grid Zenith angle grid
-  \param[in]  quad_weights Quadrature weights associated with scat_za_grid
+  \param[in]  za_grid Zenith angle grid
+  \param[in]  quad_weights Quadrature weights associated with za_grid
   \param[in]  pfct_method Method for scattering matrix temperature dependance
               handling
   \param[in]  pfct_aa_grid_size Number of azimuthal grid points in Fourier
@@ -354,7 +354,7 @@ void sca_optpropCalc(  //Output
                      const ArrayOfArrayOfSingleScatteringData& scat_data,
                      ConstMatrixView pnd_profiles,
                      const Index& stokes_dim,
-                     const Vector& scat_za_grid,
+                     const Vector& za_grid,
                      ConstVectorView quad_weights,
                      const String& pfct_method,
                      const Index& pfct_aa_grid_size,
@@ -375,8 +375,8 @@ void sca_optpropCalc(  //Output
   \param[in]      surface_rtprop_agenda surface_rtprop_agenda Provides radiative
                   properties of the surface
   \param[in]      f_grid Frequency grid
-  \param[in]      scat_za_grid Zenith angle grid
-  \param[in]      mu_values Cosines of scat_za_grid angles.
+  \param[in]      za_grid Zenith angle grid
+  \param[in]      mu_values Cosines of za_grid angles.
   \param[in]      quad_weights Quadrature weights associated with mu_values.
   \param[in]      stokes_dim Dimension of Stokes vector
   \param[in]      surf_alt Surface altitude.
@@ -391,7 +391,7 @@ void surf_optpropCalc(Workspace& ws,
                       //Input
                       const Agenda& surface_rtprop_agenda,
                       ConstVectorView f_grid,
-                      ConstVectorView scat_za_grid,
+                      ConstVectorView za_grid,
                       ConstVectorView mu_values,
                       ConstVectorView quad_weights,
                       const Index& stokes_dim,

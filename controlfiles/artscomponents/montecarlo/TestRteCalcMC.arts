@@ -89,7 +89,6 @@ IndexSet( stokes_dim, 4 )
 
 IndexSet( antenna_dim, 1 )
 #
-VectorCreate( za_grid )
 VectorSet( za_grid, [-0.2,-0.02,0.00,0.02,0.20 ] )
 Matrix1ColFromVector( mblock_dlos_grid, za_grid )
 #

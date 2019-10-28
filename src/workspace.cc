@@ -105,6 +105,37 @@ void Workspace::define_wsv_data() {
   ----------------------------------------------------------------------*/
 
   wsv_data.push_back(WsvRecord(
+      NAME("aa_grid"),
+      DESCRIPTION(
+          "Azimuthal angle grid.\n"
+          "\n"
+          "The azimutal angle grid, on which the intensity field is stored. \n"
+          "This grid is used for RT calculations inside the cloudbox, \n"
+          "therefore one has to define it if the cloudbox is activated by \n"
+          "the flag *cloudbox_on*.\n"
+          "The grid must be sorted in increasing order, with no repetitions.\n"
+          "\n"
+          "Usage:      Set by the user.\n"
+          "\n"
+          "Unit:       degrees \n"),
+      GROUP("Vector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("aa_index"),
+      DESCRIPTION(
+          "Azimuth angle index for scattering calculations.\n"
+          "\n"
+          "This variable is used in methods used for computing scattering\n"
+          "properties. \n"
+          "It holds the information about the azimuth angles for which the \n"
+          "scattering calculations are done.  The angles used for computing \n"
+          "scattering properties of particles can be different from that used \n"
+          "for radiative transfer calculation. \n"
+          "\n"
+          "Usage:    Method output.\n"),
+      GROUP("Index")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("abs_cia_data"),
       DESCRIPTION(
           "HITRAN Collision Induced Absorption (CIA) Data.\n"
@@ -2931,7 +2962,7 @@ void Workspace::define_wsv_data() {
           "\n"
           "Unit:        m^2\n"  //FIXME: really m2? not 1/m?
           "\n"
-          "Dimensions: [scat_za_grid, scat_aa_grid, stokes_dim, stokes_dim]\n"),
+          "Dimensions: [za_grid, aa_grid, stokes_dim, stokes_dim]\n"),
       GROUP("Tensor4")));
 
   wsv_data.push_back(WsvRecord(
@@ -2949,7 +2980,7 @@ void Workspace::define_wsv_data() {
           "\n"
           "Unit:        m^2\n"  //FIXME: really m2? not 1/m?
           "\n"
-          "Dimensions: [T,scat_za_grid, scat_aa_grid, scat_za_grid, scat_aa_grid, \n"
+          "Dimensions: [T,za_grid, aa_grid, za_grid, aa_grid, \n"
           " stokes_dim, stokes_dim]\n"),
       GROUP("Tensor7")));
 
@@ -2969,7 +3000,7 @@ void Workspace::define_wsv_data() {
           "\n"
           "Unit:       m^2\n"  //FIXME: really m2? not 1/m?
           "\n"
-          "Dimensions: [number of scattering elements, scat_za_grid, scat_aa_grid,\n"
+          "Dimensions: [number of scattering elements, za_grid, aa_grid,\n"
           "             stokes_dim, stokes_dim]\n"),
       GROUP("Tensor5")));
 
@@ -2988,7 +3019,7 @@ void Workspace::define_wsv_data() {
           "scattering frame interpolated on the actual frequency (the variable\n"
           "is used inside *doit_mono_agenda*) and also interpolated on all \n"
           "possible scattering angles following from all combinations of \n"
-          "*scat_za_grid* and *scat_aa_grid*. \n"
+          "*za_grid* and *aa_grid*. \n"
           "\n"
           "Usage:      Input of the method *pha_mat_sptFromDataDOITOpt*\n"
           "\n"
@@ -2996,7 +3027,7 @@ void Workspace::define_wsv_data() {
           "\n"
           "Dimensions: \n"
           "[number of scattering elements]\n"
-          "[T, scat_za_grid, scat_aa_grid, scat_za_grid, scat_aa_grid,\n"
+          "[T, za_grid, aa_grid, za_grid, aa_grid,\n"
           " stokes_dim, stokes_dim]\n"),
       GROUP("ArrayOfTensor7")));
 
@@ -3891,37 +3922,6 @@ void Workspace::define_wsv_data() {
       GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("scat_aa_grid"),
-      DESCRIPTION(
-          "Azimuthal angle grid.\n"
-          "\n"
-          "The azimutal angle grid, on which the intensity field is stored. \n"
-          "This grid is used for RT calculations inside the cloudbox, \n"
-          "therefore one has to define it if the cloudbox is activated by \n"
-          "the flag *cloudbox_on*.\n"
-          "The grid must be sorted in increasing order, with no repetitions.\n"
-          "\n"
-          "Usage:      Set by the user.\n"
-          "\n"
-          "Unit:       degrees \n"),
-      GROUP("Vector")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("scat_aa_index"),
-      DESCRIPTION(
-          "Azimuth angle index for scattering calculations.\n"
-          "\n"
-          "This variable is used in methods used for computing scattering\n"
-          "properties. \n"
-          "It holds the information about the azimuth angles for which the \n"
-          "scattering calculations are done.  The angles used for computing \n"
-          "scattering properties of particles can be different from that used \n"
-          "for radiative transfer calculation. \n"
-          "\n"
-          "Usage:    Method output.\n"),
-      GROUP("Index")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("scat_data"),
       DESCRIPTION(
           "Array of single scattering data.\n"
@@ -4212,34 +4212,6 @@ void Workspace::define_wsv_data() {
           "\n"
           "Dimension:  [number of scattering elements]\n"),
       GROUP("Vector")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("scat_za_grid"),
-      DESCRIPTION(
-          "Zenith angle grid.\n"
-          "\n"
-          "The zenith angle grid, on which the intensity field is stored. \n"
-          "This grid is used for RT calculations inside the cloudbox, therefore\n"
-          "the grid has to be defined\n"
-          "if the cloudbox is activated by the flag *cloudbox_on*.\n"
-          "The grid must be sorted in increasing order, with no repetitions.\n"
-          "\n"
-          "Usage:      Set by the user.\n"
-          "\n"
-          "Unit:       degrees \n"),
-      GROUP("Vector")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("scat_za_index"),
-      DESCRIPTION(
-          "Zenith angle index for scattering calculations.\n"
-          " \n"
-          "This variable is used internally in WSMs for computing scattering \n"
-          "properties. \n"
-          "\n"
-          "Usage:    Input to the agendas *spt_calc_agenda*, \n "
-          "                               *pha_mat_spt_agenda*.\n"),
-      GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
       NAME("sensor_checked"),
@@ -5691,6 +5663,40 @@ void Workspace::define_wsv_data() {
       GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("za_grid"),
+      DESCRIPTION(
+          "Zenith angle grid.\n"
+          "\n"
+          "The zenith angle grid, on which the intensity field is stored. \n"
+          "This grid is used for RT calculations inside the cloudbox, therefore\n"
+          "the grid has to be defined\n"
+          "if the cloudbox is activated by the flag *cloudbox_on*.\n"
+          "The grid must be sorted in increasing order, with no repetitions.\n"
+          "\n"
+          "Usage:      Set by the user.\n"
+          "\n"
+          "Unit:       degrees \n"),
+      GROUP("Vector")));
+
+  wsv_data.push_back(WsvRecord(NAME("za_grid_weights"),
+                               DESCRIPTION("TBD.\n"
+                                           "\n"
+                                           "Unit:  unitless\n"),
+                               GROUP("Vector")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("za_index"),
+      DESCRIPTION(
+          "Zenith angle index for scattering calculations.\n"
+          " \n"
+          "This variable is used internally in WSMs for computing scattering \n"
+          "properties. \n"
+          "\n"
+          "Usage:    Input to the agendas *spt_calc_agenda*, \n "
+          "                               *pha_mat_spt_agenda*.\n"),
+      GROUP("Index")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("z_field"),
       DESCRIPTION(
           "The field of geometrical altitudes.\n"
@@ -5781,12 +5787,6 @@ void Workspace::define_wsv_data() {
           "\n"
           "Dimensions: [ lat_grid, lon_grid ]\n"),
       GROUP("Matrix")));
-
-  wsv_data.push_back(WsvRecord(NAME("za_grid_weights"),
-                               DESCRIPTION("TBD.\n"
-                                           "\n"
-                                           "Unit:  unitless\n"),
-                               GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("zeeman_linerecord_precalc"),

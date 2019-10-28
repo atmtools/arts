@@ -47,8 +47,8 @@ const Numeric pfct_threshold = 0.05;
 void RT4Calc(Workspace& ws,
              // WS Output:
              Tensor7& cloudbox_field,
-             Vector& scat_za_grid,
-             Vector& scat_aa_grid,
+             Vector& za_grid,
+             Vector& aa_grid,
              // WS Input
              const Index& atmfields_checked,
              const Index& atmgeom_checked,
@@ -122,8 +122,8 @@ void RT4Calc(Workspace& ws,
 
   get_quad_angles(mu_values,
                   quad_weights,
-                  scat_za_grid,
-                  scat_aa_grid,
+                  za_grid,
+                  aa_grid,
                   quad_type,
                   nhstreams,
                   nhza,
@@ -151,7 +151,7 @@ void RT4Calc(Workspace& ws,
                    surf_emis_vec,
                    surface_rtprop_agenda,
                    f_grid,
-                   scat_za_grid,
+                   za_grid,
                    mu_values,
                    quad_weights,
                    stokes_dim,
@@ -159,7 +159,7 @@ void RT4Calc(Workspace& ws,
 
   run_rt4(ws,
           cloudbox_field,
-          scat_za_grid,
+          za_grid,
           f_grid,
           p_grid,
           z_field(joker,0,0),
@@ -194,15 +194,15 @@ void RT4Calc(Workspace& ws,
           max_delta_tau,
           verbosity);
 
-  scat_za_grid_adjust(scat_za_grid, mu_values, nummu);
+  za_grid_adjust(za_grid, mu_values, nummu);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void RT4CalcWithRT4Surface(Workspace& ws,
                            // WS Output:
                            Tensor7& cloudbox_field,
-                           Vector& scat_za_grid,
-                           Vector& scat_aa_grid,
+                           Vector& za_grid,
+                           Vector& aa_grid,
                            // WS Input
                            const Index& atmfields_checked,
                            const Index& atmgeom_checked,
@@ -280,8 +280,8 @@ void RT4CalcWithRT4Surface(Workspace& ws,
 
   get_quad_angles(mu_values,
                   quad_weights,
-                  scat_za_grid,
-                  scat_aa_grid,
+                  za_grid,
+                  aa_grid,
                   quad_type,
                   nhstreams,
                   nhza,
@@ -319,7 +319,7 @@ void RT4CalcWithRT4Surface(Workspace& ws,
 
   run_rt4(ws,
           cloudbox_field,
-          scat_za_grid,
+          za_grid,
           f_grid,
           p_grid,
           z_field(joker,0,0),
@@ -354,7 +354,7 @@ void RT4CalcWithRT4Surface(Workspace& ws,
           max_delta_tau,
           verbosity);
 
-  scat_za_grid_adjust(scat_za_grid, mu_values, nummu);
+  za_grid_adjust(za_grid, mu_values, nummu);
 }
 
 #else /* ENABLE_RT4 */

@@ -62,7 +62,7 @@ void check_disort_input(  // Input
     const Index& stokes_dim,
     const ArrayOfIndex& cloudbox_limits,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
-    ConstVectorView scat_za_grid,
+    ConstVectorView za_grid,
     const Index& nstreams,
     const String& pfct_method) {
   if (!cloudbox_on) {
@@ -133,9 +133,9 @@ void check_disort_input(  // Input
   }
 
   // Zenith angle grid.
-  Index nza = scat_za_grid.nelem();
+  Index nza = za_grid.nelem();
 
-  // scat_za_grid here is only relevant to provide an i_field from which the
+  // za_grid here is only relevant to provide an i_field from which the
   // sensor los angles can be interpolated by yCalc; it does not the determine
   // the accuracy of the DISORT output itself at these angles. So we can only
   // apply a very rough test here, whether the grid is appropriate. However, we
@@ -143,23 +143,23 @@ void check_disort_input(  // Input
   // of angles are negligible.
   if (nza < 20) {
     ostringstream os;
-    os << "We require size of scat_za_grid to be >= 20, to ensure a\n"
+    os << "We require size of za_grid to be >= 20, to ensure a\n"
        << "reasonable interpolation of the calculated cloudbox field.\n"
        << "Note that for DISORT additional computation costs for\n"
        << "larger numbers of angles are negligible.";
     throw runtime_error(os.str());
   }
 
-  if (scat_za_grid[0] != 0. || scat_za_grid[nza - 1] != 180.)
-    throw runtime_error("The range of *scat_za_grid* must [0 180].");
+  if (za_grid[0] != 0. || za_grid[nza - 1] != 180.)
+    throw runtime_error("The range of *za_grid* must [0 180].");
 
-  if (!is_increasing(scat_za_grid))
-    throw runtime_error("*scat_za_grid* must be increasing.");
+  if (!is_increasing(za_grid))
+    throw runtime_error("*za_grid* must be increasing.");
 
   Index i = 1;
-  while (scat_za_grid[i] <= 90) {
-    if (scat_za_grid[i] == 90)
-      throw runtime_error("*scat_za_grid* is not allowed to contain the value 90");
+  while (za_grid[i] <= 90) {
+    if (za_grid[i] == 90)
+      throw runtime_error("*za_grid* is not allowed to contain the value 90");
     i++;
   } 
 
@@ -213,7 +213,7 @@ void init_ifield(  // Output
     const Index& stokes_dim) {
   const Index Nf = f_grid.nelem();
   const Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
-  //const Index Nza = scat_za_grid.nelem();
+  //const Index Nza = za_grid.nelem();
 
   // Resize and initialize radiation field in the cloudbox
   cloudbox_field.resize(Nf, Np_cloud, 1, 1, nang, 1, stokes_dim);
@@ -780,7 +780,7 @@ void run_cdisort(Workspace& ws,
                  const ArrayOfIndex& cloudbox_limits,
                  const Numeric& surface_skin_t,
                  const Vector& surface_scalar_reflectivity,
-                 ConstVectorView scat_za_grid,
+                 ConstVectorView za_grid,
                  const Index& nstreams,
                  const Index& Npfct,
                  const Index& quiet,
@@ -846,7 +846,7 @@ void run_cdisort(Workspace& ws,
   ds.nphase = ds.nstr;
   ds.nmom = ds.nstr;
   //ds.ntau = ds.nlyr + 1;   // With ds.flag.usrtau = FALSE; set by cdisort
-  ds.numu = static_cast<int>(scat_za_grid.nelem());
+  ds.numu = static_cast<int>(za_grid.nelem());
   ds.nphi = 1;
   Index Nlegendre = nstreams + 1;
 
@@ -879,7 +879,7 @@ void run_cdisort(Workspace& ws,
 
   // Transform to mu, starting with negative values
   for (Index i = 0; i < ds.numu; i++)
-    ds.umu[i] = -cos(scat_za_grid[i] * PI / 180);
+    ds.umu[i] = -cos(za_grid[i] * PI / 180);
 
   //upper boundary conditions:
   // DISORT offers isotropic incoming radiance or emissivity-scaled planck

@@ -166,8 +166,8 @@ void cloud_fieldsCalc(Workspace& ws,
                       Tensor4View abs_vec_field,
                       // Input:
                       const Agenda& spt_calc_agenda,
-                      const Index& scat_za_index,
-                      const Index& scat_aa_index,
+                      const Index& za_index,
+                      const Index& aa_index,
                       const ArrayOfIndex& cloudbox_limits,
                       ConstTensor3View t_field,
                       ConstTensor4View pnd_field,
@@ -251,18 +251,18 @@ void cloud_fieldsCalc(Workspace& ws,
                                scat_lat_index_local,
                                scat_lon_index_local,
                                rtp_temperature_local,
-                               scat_za_index,
-                               scat_aa_index,
+                               za_index,
+                               aa_index,
                                spt_calc_agenda);
         /*
 // so far missing here (accessed through workspace within agenda):
 // - scat_data
-// - scat_za_grid, scat_aa_grid
+// - za_grid, aa_grid
 // - f_index
               opt_prop_sptFromScat_data(ext_mat_spt_local, abs_vec_spt_local,
                                         scat_data, 1,
-                                        scat_za_grid, scat_aa_grid,
-                                        scat_za_index, scat_aa_index,
+                                        za_grid, aa_grid,
+                                        za_index, aa_index,
                                         f_index,
                                         rtp_temperature_local,
                                         pnd_field, 
@@ -303,8 +303,8 @@ void cloud_ppath_update1D(Workspace& ws,
                           Tensor6View cloudbox_field_mono,
                           // ppath_step_agenda:
                           const Index& p_index,
-                          const Index& scat_za_index,
-                          ConstVectorView scat_za_grid,
+                          const Index& za_index,
+                          ConstVectorView za_grid,
                           const ArrayOfIndex& cloudbox_limits,
                           ConstTensor6View doit_scat_field,
                           // Calculate scalar gas absorption:
@@ -342,7 +342,7 @@ void cloud_ppath_update1D(Workspace& ws,
   ppath_step.r[0] = refellipsoid[0] + z_field(p_index, 0, 0);
 
   // Define the direction:
-  ppath_step.los(0, 0) = scat_za_grid[scat_za_index];
+  ppath_step.los(0, 0) = za_grid[za_index];
 
   // Define the grid positions:
   ppath_step.gp_p[0].idx = p_index;
@@ -402,7 +402,7 @@ void cloud_ppath_update1D(Workspace& ws,
                          p_grid,
                          ppath_step,
                          cloudbox_limits,
-                         scat_za_grid,
+                         za_grid,
                          scat_za_interp,
                          verbosity);
 
@@ -432,7 +432,7 @@ void cloud_ppath_update1D(Workspace& ws,
                            p_index,
                            0,
                            0,
-                           scat_za_index,
+                           za_index,
                            0,
                            verbosity);
 
@@ -447,8 +447,8 @@ void cloud_ppath_update1D(Workspace& ws,
                        stokes_dim,
                        ppath_step,
                        cloudbox_limits,
-                       scat_za_grid,
-                       scat_za_index);
+                       za_grid,
+                       za_index);
     }
 
   }  //end if inside cloudbox
@@ -459,8 +459,8 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
                                 Tensor6View cloudbox_field_mono,
                                 // ppath_step_agenda:
                                 const Index& p_index,
-                                const Index& scat_za_index,
-                                ConstVectorView scat_za_grid,
+                                const Index& za_index,
+                                ConstVectorView za_grid,
                                 const ArrayOfIndex& cloudbox_limits,
                                 ConstTensor6View cloudbox_field_mono_old,
                                 ConstTensor6View doit_scat_field,
@@ -499,7 +499,7 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
   ppath_step.r[0] = refellipsoid[0] + z_field(p_index, 0, 0);
 
   // Define the direction:
-  ppath_step.los(0, 0) = scat_za_grid[scat_za_index];
+  ppath_step.los(0, 0) = za_grid[za_index];
 
   // Define the grid positions:
   ppath_step.gp_p[0].idx = p_index;
@@ -559,7 +559,7 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
                          p_grid,
                          ppath_step,
                          cloudbox_limits,
-                         scat_za_grid,
+                         za_grid,
                          scat_za_interp,
                          verbosity);
 
@@ -593,7 +593,7 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
                            p_index,
                            0,
                            0,
-                           scat_za_index,
+                           za_index,
                            0,
                            verbosity);
 
@@ -606,8 +606,8 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
                        stokes_dim,
                        ppath_step,
                        cloudbox_limits,
-                       scat_za_grid,
-                       scat_za_index);
+                       za_grid,
+                       za_index);
     }
   }  //end if inside cloudbox
 }
@@ -615,8 +615,8 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
 void cloud_ppath_update1D_planeparallel(Workspace& ws,
                                         Tensor6View cloudbox_field_mono,
                                         const Index& p_index,
-                                        const Index& scat_za_index,
-                                        ConstVectorView scat_za_grid,
+                                        const Index& za_index,
+                                        ConstVectorView za_grid,
                                         const ArrayOfIndex& cloudbox_limits,
                                         ConstTensor6View doit_scat_field,
                                         // Calculate scalar gas absorption:
@@ -651,7 +651,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
   // to the considered point.
   Vector stokes_vec(stokes_dim);
   Index bkgr;
-  if ((p_index == 0) && (scat_za_grid[scat_za_index] > 90)) {
+  if ((p_index == 0) && (za_grid[za_index] > 90)) {
     bkgr = 2;
   } else {
     bkgr = 0;
@@ -659,20 +659,20 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
 
   // if 0, there is no background
   if (bkgr == 0) {
-    if (scat_za_grid[scat_za_index] <= 90.0) {
+    if (za_grid[za_index] <= 90.0) {
       stokes_vec = cloudbox_field_mono(
-          p_index - cloudbox_limits[0] + 1, 0, 0, scat_za_index, 0, joker);
+          p_index - cloudbox_limits[0] + 1, 0, 0, za_index, 0, joker);
       Numeric z_field_above = z_field(p_index + 1, 0, 0);
       Numeric z_field_0 = z_field(p_index, 0, 0);
 
       Numeric cos_theta, lstep;
-      if (scat_za_grid[scat_za_index] == 90.0) {
-        //cos_theta = cos((scat_za_grid[scat_za_index] -1)*PI/180.);
+      if (za_grid[za_index] == 90.0) {
+        //cos_theta = cos((za_grid[za_index] -1)*PI/180.);
         //                  cos_theta = cos(89.999999999999*PI/180.);
         cos_theta = 1e-20;
 
       } else {
-        cos_theta = cos(scat_za_grid[scat_za_index] * PI / 180.0);
+        cos_theta = cos(za_grid[za_index] * PI / 180.0);
       }
       Numeric dz = (z_field_above - z_field_0);
 
@@ -727,9 +727,9 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
         sca_vec_av[k] +=
             0.5 *
             (doit_scat_field(
-                 p_index - cloudbox_limits[0], 0, 0, scat_za_index, 0, k) +
+                 p_index - cloudbox_limits[0], 0, 0, za_index, 0, k) +
              doit_scat_field(
-                 p_index - cloudbox_limits[0] + 1, 0, 0, scat_za_index, 0, k));
+                 p_index - cloudbox_limits[0] + 1, 0, 0, za_index, 0, k));
       }
 
       //
@@ -785,22 +785,22 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
 
       // Assign calculated Stokes Vector to cloudbox_field_mono.
       cloudbox_field_mono(
-          p_index - cloudbox_limits[0], 0, 0, scat_za_index, 0, joker) =
+          p_index - cloudbox_limits[0], 0, 0, za_index, 0, joker) =
           stokes_vec;
     }
-    if (scat_za_grid[scat_za_index] > 90) {
+    if (za_grid[za_index] > 90) {
       stokes_vec = cloudbox_field_mono(
-          p_index - cloudbox_limits[0] - 1, 0, 0, scat_za_index, 0, joker);
+          p_index - cloudbox_limits[0] - 1, 0, 0, za_index, 0, joker);
       Numeric z_field_below = z_field(p_index - 1, 0, 0);
       Numeric z_field_0 = z_field(p_index, 0, 0);
 
       Numeric cos_theta, lstep;
-      if (scat_za_grid[scat_za_index] == 90.0) {
-        cos_theta = cos((scat_za_grid[scat_za_index] - 1) * PI / 180.);
+      if (za_grid[za_index] == 90.0) {
+        cos_theta = cos((za_grid[za_index] - 1) * PI / 180.);
         //cos_theta = cos(90.00000001*PI/180.);
         //cout<<"cos_theta"<<cos_theta<<endl;
       } else {
-        cos_theta = cos(scat_za_grid[scat_za_index] * PI / 180.0);
+        cos_theta = cos(za_grid[za_index] * PI / 180.0);
       }
       Numeric dz = (z_field_0 - z_field_below);
       lstep = abs(dz / cos_theta);
@@ -860,9 +860,9 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
         sca_vec_av[k] +=
             0.5 *
             (doit_scat_field(
-                 p_index - cloudbox_limits[0], 0, 0, scat_za_index, 0, k) +
+                 p_index - cloudbox_limits[0], 0, 0, za_index, 0, k) +
              doit_scat_field(
-                 p_index - cloudbox_limits[0] - 1, 0, 0, scat_za_index, 0, k));
+                 p_index - cloudbox_limits[0] - 1, 0, 0, za_index, 0, k));
       }
       //
       // Add average particle absorption to abs_vec.
@@ -917,7 +917,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
 
       // Assign calculated Stokes Vector to cloudbox_field_mono.
       cloudbox_field_mono(
-          p_index - cloudbox_limits[0], 0, 0, scat_za_index, 0, joker) =
+          p_index - cloudbox_limits[0], 0, 0, za_index, 0, joker) =
           stokes_vec;
     }
 
@@ -933,7 +933,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
     rte_pos = z_field_0;  //ppath_step.pos(np-1,Range(0,atmosphere_dim));
     //los
     Vector rte_los(1);
-    rte_los = scat_za_grid[scat_za_index];  //ppath_step.los(np-1,joker);
+    rte_los = za_grid[za_index];  //ppath_step.los(np-1,joker);
     //gp_p
     //GridPos rte_gp_p;
     //rte_gp_p.idx   = p_index;
@@ -968,7 +968,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                   cloudbox_field_mono_sum[0] += surface_refl_coeffs(ilos,f_index,0,0) *
                     cloudbox_field_mono(cloudbox_limits[0],
                             0, 0,
-                            (scat_za_grid.nelem() -1 - scat_za_index), 0,
+                            (za_grid.nelem() -1 - za_index), 0,
                             0);
                 }
               else
@@ -978,7 +978,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                         surface_refl_coeffs(ilos,0,joker,joker),
                         cloudbox_field_mono(cloudbox_limits[0],
                                 0, 0,
-                                (scat_za_grid.nelem() -1 - scat_za_index), 0,
+                                (za_grid.nelem() -1 - za_index), 0,
                                 joker));
                   for( Index is=0; is < stokes_dim; is++ )
                     {
@@ -992,11 +992,11 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
             {
               cloudbox_field_mono (cloudbox_limits[0],
                        0, 0,
-                       scat_za_index, 0,
+                       za_index, 0,
                        is) = cloudbox_field_mono_sum[is] + surface_emission(f_index,is);
             }
 
-          //cout<<"scat_za_grid"<<scat_za_grid[scat_za_index]<<endl;
+          //cout<<"za_grid"<<za_grid[za_index]<<endl;
           //cout<<"p_index"<<p_index<<endl;
           //cout<<"cloudboxlimit[0]"<<cloudbox_limits[0]<<endl;
           // now the RT is done to the next point in the path.
@@ -1004,20 +1004,20 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
           Vector stokes_vec_local;
           stokes_vec_local = cloudbox_field_mono (0,
                                       0, 0,
-                                      scat_za_index, 0,
+                                      za_index, 0,
                                       joker);
 
           Numeric z_field_above = z_field(p_index +1, 0, 0);
           //Numeric z_field_0 = z_field(p_index, 0, 0);
           Numeric cos_theta;
-          if (scat_za_grid[scat_za_index] == 90.0)
+          if (za_grid[za_index] == 90.0)
             {
-              //cos_theta = cos((scat_za_grid[scat_za_index] -1)*PI/180.);
+              //cos_theta = cos((za_grid[za_index] -1)*PI/180.);
               cos_theta = cos(90.00000001*PI/180.);
             }
           else
             {
-              cos_theta = cos(scat_za_grid[scat_za_index]* PI/180.0);
+              cos_theta = cos(za_grid[za_index]* PI/180.0);
             }
           Numeric dz = (z_field_above -  z_field_0);
 
@@ -1076,9 +1076,9 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
               // Averaging of sca_vec:
               //
               sca_vec_av[k] = 0.5*( doit_scat_field(p_index- cloudbox_limits[0],
-                                               0, 0, scat_za_index, 0, k)
+                                               0, 0, za_index, 0, k)
                                     + doit_scat_field(p_index- cloudbox_limits[0]+1,
-                                                 0, 0, scat_za_index, 0, k)) ;
+                                                 0, 0, za_index, 0, k)) ;
 
             }
           // Frequency
@@ -1098,7 +1098,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
           // Assign calculated Stokes Vector to cloudbox_field_mono.
           cloudbox_field_mono(p_index - cloudbox_limits[0],
                   0, 0,
-                  scat_za_index, 0,
+                  za_index, 0,
                   joker) = stokes_vec_local;
       */
   }  //end else loop over surface
@@ -1110,10 +1110,10 @@ void cloud_ppath_update3D(Workspace& ws,
                           const Index& p_index,
                           const Index& lat_index,
                           const Index& lon_index,
-                          const Index& scat_za_index,
-                          const Index& scat_aa_index,
-                          ConstVectorView scat_za_grid,
-                          ConstVectorView scat_aa_grid,
+                          const Index& za_index,
+                          const Index& aa_index,
+                          ConstVectorView za_grid,
+                          ConstVectorView aa_grid,
                           const ArrayOfIndex& cloudbox_limits,
                           ConstTensor6View doit_scat_field,
                           // Calculate scalar gas absorption:
@@ -1143,10 +1143,10 @@ void cloud_ppath_update3D(Workspace& ws,
   const Index stokes_dim = cloudbox_field_mono.ncols();
 
   Vector sca_vec_av(stokes_dim, 0);
-  Vector aa_grid(scat_aa_grid.nelem());
+  Vector aa_g(aa_grid.nelem());
 
-  for (Index i = 0; i < scat_aa_grid.nelem(); i++)
-    aa_grid[i] = scat_aa_grid[i] - 180.;
+  for (Index i = 0; i < aa_grid.nelem(); i++)
+    aa_g[i] = aa_grid[i] - 180.;
 
   //Initialize ppath for 3D.
   ppath_init_structure(ppath_step, 3, 1);
@@ -1166,8 +1166,8 @@ void cloud_ppath_update3D(Workspace& ws,
       refell2r(refellipsoid, ppath_step.pos(0, 1)) + ppath_step.pos(0, 0);
 
   // Define the direction:
-  ppath_step.los(0, 0) = scat_za_grid[scat_za_index];
-  ppath_step.los(0, 1) = aa_grid[scat_aa_index];
+  ppath_step.los(0, 0) = za_grid[za_index];
+  ppath_step.los(0, 1) = aa_g[aa_index];
 
   // Define the grid positions:
   ppath_step.gp_p[0].idx = p_index;
@@ -1236,10 +1236,10 @@ void cloud_ppath_update3D(Workspace& ws,
       los_grid_aa[i] = los_grid_aa[i] + 180.;
 
     ArrayOfGridPos gp_za(los_grid_za.nelem());
-    gridpos(gp_za, scat_za_grid, los_grid_za);
+    gridpos(gp_za, za_grid, los_grid_za);
 
     ArrayOfGridPos gp_aa(los_grid_aa.nelem());
-    gridpos(gp_aa, scat_aa_grid, los_grid_aa);
+    gridpos(gp_aa, aa_grid, los_grid_aa);
 
     Matrix itw_p_za(ppath_step.np, 32);
     interpweights(
@@ -1372,8 +1372,8 @@ void cloud_ppath_update3D(Workspace& ws,
                            p_index,
                            lat_index,
                            lon_index,
-                           scat_za_index,
-                           scat_aa_index,
+                           za_index,
+                           aa_index,
                            verbosity);
   }  //end if inside cloudbox
 }
@@ -1397,8 +1397,8 @@ void cloud_RT_no_background(Workspace& ws,
                             const Index& p_index,
                             const Index& lat_index,
                             const Index& lon_index,
-                            const Index& scat_za_index,
-                            const Index& scat_aa_index,
+                            const Index& za_index,
+                            const Index& aa_index,
                             const Verbosity& verbosity) {
   CREATE_OUT3;
 
@@ -1532,14 +1532,14 @@ void cloud_RT_no_background(Workspace& ws,
   // Assign calculated Stokes Vector to cloudbox_field_mono.
   if (atmosphere_dim == 1)
     cloudbox_field_mono(
-        p_index - cloudbox_limits[0], 0, 0, scat_za_index, 0, joker) =
+        p_index - cloudbox_limits[0], 0, 0, za_index, 0, joker) =
         stokes_vec;
   else if (atmosphere_dim == 3)
     cloudbox_field_mono(p_index - cloudbox_limits[0],
                       lat_index - cloudbox_limits[2],
                       lon_index - cloudbox_limits[4],
-                      scat_za_index,
-                      scat_aa_index,
+                      za_index,
+                      aa_index,
                       joker) = stokes_vec;
 }
 
@@ -1553,8 +1553,8 @@ void cloud_RT_surface(Workspace& ws,
                       const Index& stokes_dim,
                       const Ppath& ppath_step,
                       const ArrayOfIndex& cloudbox_limits,
-                      ConstVectorView scat_za_grid,
-                      const Index& scat_za_index) {
+                      ConstVectorView za_grid,
+                      const Index& za_index) {
   chk_not_empty("surface_rtprop_agenda", surface_rtprop_agenda);
 
   Matrix iy;
@@ -1606,13 +1606,13 @@ void cloud_RT_surface(Workspace& ws,
            cloudbox_field_mono(cloudbox_limits[0],
                              0,
                              0,
-                             (scat_za_grid.nelem() - 1 - scat_za_index),
+                             (za_grid.nelem() - 1 - za_index),
                              0,
                              joker));
       iy(0, joker) += rtmp;
     }
   }
-  cloudbox_field_mono(cloudbox_limits[0], 0, 0, scat_za_index, 0, joker) =
+  cloudbox_field_mono(cloudbox_limits[0], 0, 0, za_index, 0, joker) =
       iy(0, joker);
 }
 
@@ -1709,7 +1709,7 @@ void interp_cloud_coeff1D(  //Output
     ConstVectorView p_grid,
     const Ppath& ppath_step,
     const ArrayOfIndex& cloudbox_limits,
-    ConstVectorView scat_za_grid,
+    ConstVectorView za_grid,
     const Index& scat_za_interp,
     const Verbosity& verbosity) {
   CREATE_OUT3;
@@ -1740,7 +1740,7 @@ void interp_cloud_coeff1D(  //Output
   Vector los_grid = ppath_step.los(joker, 0);
 
   ArrayOfGridPos gp_za(los_grid.nelem());
-  gridpos(gp_za, scat_za_grid, los_grid);
+  gridpos(gp_za, za_grid, los_grid);
 
   Matrix itw_p_za(cloud_gp_p.nelem(), 4);
   interpweights(itw_p_za, cloud_gp_p, gp_za);
@@ -1793,10 +1793,10 @@ void interp_cloud_coeff1D(  //Output
       // interpolation is not implemented as multidimensional
       // interpolation.
       Tensor3 sca_vec_int_za(
-          stokes_dim, ppath_step.np, scat_za_grid.nelem(), 0.);
+          stokes_dim, ppath_step.np, za_grid.nelem(), 0.);
       Tensor3 cloudbox_field_mono_int_za(
-          stokes_dim, ppath_step.np, scat_za_grid.nelem(), 0.);
-      for (Index za = 0; za < scat_za_grid.nelem(); za++) {
+          stokes_dim, ppath_step.np, za_grid.nelem(), 0.);
+      for (Index za = 0; za < za_grid.nelem(); za++) {
         interp(sca_vec_int_za(i, joker, za),
                itw,
                doit_scat_field(joker, 0, 0, za, 0, i),
@@ -1808,12 +1808,12 @@ void interp_cloud_coeff1D(  //Output
                cloud_gp_p);
       }
       for (Index ip = 0; ip < ppath_step.np; ip++) {
-        sca_vec_int(i, ip) = interp_poly(scat_za_grid,
+        sca_vec_int(i, ip) = interp_poly(za_grid,
                                          sca_vec_int_za(i, ip, joker),
                                          los_grid[ip],
                                          gp_za[ip]);
         cloudbox_field_mono_int(i, ip) =
-            interp_poly(scat_za_grid,
+            interp_poly(za_grid,
                         cloudbox_field_mono_int_za(i, ip, joker),
                         los_grid[ip],
                         gp_za[ip]);
@@ -1961,8 +1961,8 @@ void doit_scat_fieldNormalize(Workspace& ws,
                               const ArrayOfIndex& cloudbox_limits,
                               const Agenda& spt_calc_agenda,
                               const Index& atmosphere_dim,
-                              const Vector& scat_za_grid,
-                              const Vector& scat_aa_grid,
+                              const Vector& za_grid,
+                              const Vector& aa_grid,
                               const Tensor4& pnd_field,
                               const Tensor3& t_field,
                               const Numeric& norm_error_threshold,
@@ -1975,16 +1975,16 @@ void doit_scat_fieldNormalize(Workspace& ws,
   CREATE_OUT2;
 
   // Number of zenith angles.
-  const Index Nza = scat_za_grid.nelem();
+  const Index Nza = za_grid.nelem();
 
-  if (scat_za_grid[0] != 0. || scat_za_grid[Nza - 1] != 180.)
-    throw runtime_error("The range of *scat_za_grid* must [0 180].");
+  if (za_grid[0] != 0. || za_grid[Nza - 1] != 180.)
+    throw runtime_error("The range of *za_grid* must [0 180].");
 
   // Number of azimuth angles.
-  const Index Naa = scat_aa_grid.nelem();
+  const Index Naa = aa_grid.nelem();
 
-  if (Naa > 1 && (scat_aa_grid[0] != 0. || scat_aa_grid[Naa - 1] != 360.))
-    throw runtime_error("The range of *scat_aa_grid* must [0 360].");
+  if (Naa > 1 && (aa_grid[0] != 0. || aa_grid[Naa - 1] != 360.))
+    throw runtime_error("The range of *aa_grid* must [0 360].");
 
   // Get stokes dimension from *doit_scat_field*:
   const Index stokes_dim = doit_scat_field.ncols();
@@ -2010,20 +2010,20 @@ void doit_scat_fieldNormalize(Workspace& ws,
                               doit_scat_field.nrows(),
                               0.);
 
-  Index scat_aa_index_local = 0;
+  Index aa_index_local = 0;
 
   // Calculate scattering extinction field
-  for (Index scat_za_index_local = 0; scat_za_index_local < Nza;
-       scat_za_index_local++) {
+  for (Index za_index_local = 0; za_index_local < Nza;
+       za_index_local++) {
     // This function has to be called inside the angular loop, as
-    // spt_calc_agenda takes *scat_za_index* and *scat_aa_index*
+    // spt_calc_agenda takes *za_index* and *aa_index*
     // from the workspace.
     cloud_fieldsCalc(ws,
                      ext_mat_field,
                      abs_vec_field,
                      spt_calc_agenda,
-                     scat_za_index_local,
-                     scat_aa_index_local,
+                     za_index_local,
+                     aa_index_local,
                      cloudbox_limits,
                      t_field,
                      pnd_field,
@@ -2037,8 +2037,8 @@ void doit_scat_fieldNormalize(Workspace& ws,
       // equivalent to:
       // I_ext = I * (K11-a1) + Q * (K12 - a2) + U * (K13 - a3) + V * (K14 - a4)
       for (Index i = 0; i < stokes_dim; i++) {
-        doit_scat_ext_field(p_index, 0, 0, scat_za_index_local, 0) +=
-            cloudbox_field_mono(p_index, 0, 0, scat_za_index_local, 0, i) *
+        doit_scat_ext_field(p_index, 0, 0, za_index_local, 0) +=
+            cloudbox_field_mono(p_index, 0, 0, za_index_local, 0, i) *
             (ext_mat_field(p_index, 0, 0, 0, i) -
              abs_vec_field(p_index, 0, 0, i));
       }
@@ -2051,10 +2051,10 @@ void doit_scat_fieldNormalize(Workspace& ws,
   for (Index p_index = 0; p_index < Np; p_index++) {
     // Calculate scattering integrals
     const Numeric scat_int = AngIntegrate_trapezoid(
-        doit_scat_field(p_index, 0, 0, joker, 0, 0), scat_za_grid);
+        doit_scat_field(p_index, 0, 0, joker, 0, 0), za_grid);
 
     const Numeric scat_ext_int = AngIntegrate_trapezoid(
-        doit_scat_ext_field(p_index, 0, 0, joker, 0), scat_za_grid);
+        doit_scat_ext_field(p_index, 0, 0, joker, 0), za_grid);
 
     // Calculate factor between scattered extinction field integral
     // and scattered field integral

@@ -1725,8 +1725,8 @@ void get_stepwise_scattersky_source(
     const Index ppath_1p_id,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     ConstTensor7View cloudbox_field,
-    ConstVectorView scat_za_grid,
-    ConstVectorView scat_aa_grid,
+    ConstVectorView za_grid,
+    ConstVectorView aa_grid,
     ConstMatrixView ppath_line_of_sight,
     const GridPos& ppath_pressure,
     const Vector& temperature,
@@ -1740,8 +1740,8 @@ void get_stepwise_scattersky_source(
   const Index stokes_dim = Sp.StokesDimensions();
   const Index ne = ppath_1p_pnd.nelem();
   assert(TotalNumberOfElements(scat_data) == ne);
-  const Index nza = scat_za_grid.nelem();
-  const Index naa = scat_aa_grid.nelem();
+  const Index nza = za_grid.nelem();
+  const Index naa = aa_grid.nelem();
   const Index nq = jacobian_do ? jacobian_quantities.nelem() : 0;
 
   // interpolate incident field to this ppath point (no need to do this
@@ -1761,13 +1761,13 @@ void get_stepwise_scattersky_source(
   }
 
   // create matrix of incident directions (flat representation of the
-  // scat_za_grid * scat_aa_grid matrix)
+  // za_grid * aa_grid matrix)
   Matrix idir(nza * naa, 2);
   Index ia = 0;
   for (Index iza = 0; iza < nza; iza++) {
     for (Index iaa = 0; iaa < naa; iaa++) {
-      idir(ia, 0) = scat_za_grid[iza];
-      idir(ia, 1) = scat_aa_grid[iaa];
+      idir(ia, 0) = za_grid[iza];
+      idir(ia, 1) = aa_grid[iaa];
       ia++;
     }
   }
@@ -1849,7 +1849,7 @@ void get_stepwise_scattersky_source(
 
           for (Index i = 0; i < stokes_dim; i++) {
             scat_source_1se(ise_flat, iv, i) = AngIntegrate_trapezoid(
-                product_fields(joker, joker, i), scat_za_grid, scat_aa_grid);
+                product_fields(joker, joker, i), za_grid, aa_grid);
           }
         }  // for iv
       }    // if val_pnd

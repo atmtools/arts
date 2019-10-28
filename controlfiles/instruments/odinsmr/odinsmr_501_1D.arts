@@ -58,7 +58,6 @@ MatrixSetConstant( sensor_pos, n_pbeams, 1, 600e3 )
 # Create vector of pencil beam directions
 VectorCreate( z_pbeams )
 VectorNLinSpace( z_pbeams, n_pbeams, 37e3, 9e3 )
-VectorCreate( za_grid )
 VectorZtanToZa1D( za_grid, sensor_pos, refellipsoid, atmosphere_dim, z_pbeams )
 Matrix1ColFromVector( mblock_dlos_grid, za_grid )
 

@@ -146,7 +146,7 @@ Copy( propmat_clearsky_agenda, propmat_clearsky_agenda__LookUpTable )
 # Sets the angular grids for radiation calculation
 # --------------------------------------------------------------------
 # For down- and up-looking geometries.
-DOAngularGridsSet( doit_za_grid_size, scat_aa_grid, scat_za_grid,
+DOAngularGridsSet( doit_za_grid_size, aa_grid, za_grid,
       40, 19, "" )
 
 cloudboxOff

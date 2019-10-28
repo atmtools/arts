@@ -904,7 +904,7 @@ void iyHybrid(Workspace& ws,
               const Numeric& rte_alonglos_v,
               const Tensor3& surface_props_data,
               const Tensor7& cloudbox_field,
-              const Vector& scat_za_grid,
+              const Vector& za_grid,
               const Index& Naa,
               const Index& t_interp_order,
               const Verbosity& verbosity) {
@@ -1000,10 +1000,10 @@ void iyHybrid(Workspace& ws,
   if (cloudbox_field.nrows() != 1)
     throw runtime_error(
         "Obtained *cloudbox_field* has wrong number of azimuth angles.");
-  if (cloudbox_field.npages() != scat_za_grid.nelem())
+  if (cloudbox_field.npages() != za_grid.nelem())
     throw runtime_error(
         "Obtained *cloudbox_field* number of zenith angles inconsistent with "
-        "*scat_za_grid*.");
+        "*za_grid*.");
   if (cloudbox_field.nbooks() != 1)
     throw runtime_error(
         "Obtained *cloudbox_field* has wrong number of longitude points.");
@@ -1218,8 +1218,8 @@ void iyHybrid(Workspace& ws,
                                       dK_this_dx[iq] += dKp_dx[iq];)
         }
 
-        Vector scat_aa_grid;
-        nlinspace(scat_aa_grid, 0, 360, Naa);
+        Vector aa_grid;
+        nlinspace(aa_grid, 0, 360, Naa);
         //
         get_stepwise_scattersky_source(Sp,
                                        dSp_dx,
@@ -1229,8 +1229,8 @@ void iyHybrid(Workspace& ws,
                                        ip,
                                        scat_data,
                                        cloudbox_field,
-                                       scat_za_grid,
-                                       scat_aa_grid,
+                                       za_grid,
+                                       aa_grid,
                                        ppath.los(Range(ip, 1), joker),
                                        ppath.gp_p[ip],
                                        ppvar_t[Range(ip, 1)],
@@ -1467,7 +1467,7 @@ void iyHybrid2(Workspace& ws,
                const Numeric& rte_alonglos_v,
                const Tensor3& surface_props_data,
                const Tensor7& cloudbox_field,
-               const Vector& scat_za_grid,
+               const Vector& za_grid,
                const Index& Naa,
                const Index& t_interp_order,
                const Verbosity& verbosity) {
@@ -1562,10 +1562,10 @@ void iyHybrid2(Workspace& ws,
   if (cloudbox_field.nrows() != 1)
     throw runtime_error(
         "Obtained *cloudbox_field* has wrong number of azimuth angles.");
-  if (cloudbox_field.npages() != scat_za_grid.nelem())
+  if (cloudbox_field.npages() != za_grid.nelem())
     throw runtime_error(
         "Obtained *cloudbox_field* number of zenith angles inconsistent with "
-        "*scat_za_grid*.");
+        "*za_grid*.");
   if (cloudbox_field.nbooks() != 1)
     throw runtime_error(
         "Obtained *cloudbox_field* has wrong number of longitude points.");
@@ -1787,8 +1787,8 @@ void iyHybrid2(Workspace& ws,
           FOR_ANALYTICAL_JACOBIANS_DO(da_dx[iq] += dK_this_dx[iq];
                                       dK_this_dx[iq] += dKp_dx[iq];)
 
-        Vector scat_aa_grid;
-        nlinspace(scat_aa_grid, 0, 360, Naa);
+        Vector aa_grid;
+        nlinspace(aa_grid, 0, 360, Naa);
         //
         get_stepwise_scattersky_source(Sp,
                                        dSp_dx,
@@ -1798,8 +1798,8 @@ void iyHybrid2(Workspace& ws,
                                        ip,
                                        scat_data,
                                        cloudbox_field,
-                                       scat_za_grid,
-                                       scat_aa_grid,
+                                       za_grid,
+                                       aa_grid,
                                        ppath.los(Range(ip, 1), joker),
                                        ppath.gp_p[ip],
                                        ppvar_t[Range(ip, 1)],
