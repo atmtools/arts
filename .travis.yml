@@ -7,7 +7,7 @@ dist: xenial
 
 matrix:
   include:
-    - name: User guide
+    - name: Build user guide PDFs
       addons:
         apt:
           sources:
