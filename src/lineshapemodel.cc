@@ -562,6 +562,9 @@ String LineShape::ModelShape2MetaData(const Model& m)
 
 LineShape::Model LineShape::MetaData2ModelShape(const String& s)
 {
+  if (s.nelem() == 0)
+    return LineShape::Model();
+  
   const auto names = AllLineShapeVars();
   
   std::istringstream str(s);

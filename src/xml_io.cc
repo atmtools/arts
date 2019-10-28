@@ -215,6 +215,8 @@ void ArtsXMLTag::get_attribute_value(const String& aname, ArrayOfSpeciesTag& val
   istringstream strstr("");
   
   get_attribute_value(aname, attribute_value);
+  if (attribute_value.nelem() == 0) return;
+  
   strstr.str(attribute_value);
   String val;
   
@@ -245,6 +247,8 @@ void ArtsXMLTag::get_attribute_value(const String& aname, std::vector<QuantumNum
   istringstream strstr("");
   
   get_attribute_value(aname, attribute_value);
+  if (attribute_value.nelem() == 0) return;
+  
   strstr.str(attribute_value);
   String val;
   
