@@ -615,52 +615,6 @@ void za_gridOpt(  //Output:
     const Numeric& acc,
     const Index& scat_za_interp);
 
-//! Interpolates the intensity field of the cloud box
-/*!
-  Spatial interpolation so far hardcoded as linear.
-
-  \param[out] iy Monochromatic pencil beam radiance spectrum
-  \param[in] doit_i_field Radiation field
-  \param[in] rte_gp_p Pressure of radiative transfer point
-  \param[in] rte_gp_lat Latitude of radiative transfer point
-  \param[in] rte_gp_lon Longitude of radiative transfer point
-  \param[in] rte_los Line-of-sight at radiative transfer point
-  \param[in] cloudbox_on Flag to activate the cloud box
-  \param[in] cloudbox_limits Cloudbox limits
-  \param[in] atmosphere_dim Dimension of Atmosphere
-  \param[in] stokes_dim Dimension of Stokes vector
-  \param[in] scat_za_grid Zenith angle grid
-  \param[in] scat_aa_grid Azimuth angle grid
-  \param[in] f_grid Frequency grid
-  \param[in] p_grid Pressure grid
-  \param[in] interpmeth Interpolation method. Can be "linear" or  "polynomial".
-  \param[in] rigorous Fails if incoming field is not safely interpolable and
-             rigorous is true.
-  \param[in] maxratio Maximum allowed ratio of two radiances regarded as
-             interpolable.
-  \param[in] verbosity Verbosity setting
-
-  \author Claudia Emde and Patrick Eriksson
-  \date 2004-09-29
-*/
-void iy_interp_cloudbox_field(Matrix& iy,
-                              const Tensor7& doit_i_field,
-                              const GridPos& rte_gp_p,
-                              const GridPos& rte_gp_lat,
-                              const GridPos& rte_gp_lon,
-                              const Vector& rte_los,
-                              const Index& cloudbox_on,
-                              const ArrayOfIndex& cloudbox_limits,
-                              const Index& atmosphere_dim,
-                              const Index& stokes_dim,
-                              const Vector& scat_za_grid,
-                              const Vector& scat_aa_grid,
-                              const Vector& f_grid,
-                              const String& interpmeth,
-                              const Index& rigorous,
-                              const Numeric& maxratio,
-                              const Verbosity& verbosity);
-
 //! Normalization of scattered field
 /*!
   Calculate the scattered extinction field and apply the

@@ -1,0 +1,10 @@
+Arts2{
+
+# DOIT
+DoitInit
+DoitGetIncoming( rigorous=0 )
+doit_i_fieldSetClearsky
+DoitCalc
+yCalc( y = y_doit )
+
+}

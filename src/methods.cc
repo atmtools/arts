@@ -4496,23 +4496,16 @@ void define_md_data_raw() {
           "(8) is sufficient for most microwave scattering calculations. It is\n"
           "likely insufficient for IR calculations involving ice clouds,\n"
           "though.\n"
-          "*scat_za_grid* determines the resolution of the output radiation\n"
-          "field. The size of *scat_za_grid* has no practical impact on\n"
-          "computation time in the case of Disort and higher resolution\n"
-          "generally improves the interpolation results, hence larger\n"
-          "*scat_za_grid* are recommended. To ensure sufficient interpolation\n"
-          "accuracy, we require a (hardcoded) minimum size of 38.\n"
           "\n"
-          "ARTS-DISORT can be run with different levels of (pseudo-)sphericity,\n"
-          "determined by the cloudbox settings.\n"
-          "The higher the sphericity level is, the more accurate are the\n"
-          "results, but the longer the calculation takes (typically, for\n"
-          "downlooking cases - even 50deg off-nadir ones - the differences\n"
-          "between all three levels are in the order of sub-K only;\n"
-          "differences for limb cases can be significant, though.).\n"
-          "DISORT itself always assumes a plane-parallel atmosphere. Different\n"
-          "sphericity levels are emulated here by embedding DISORT in\n"
-          "different ways and using different output. The available options\n"
+          "Further, *scat_za_grid* determines the resolution of the output\n"
+          "radiation field. The size of *scat_za_grid* has no practical\n"
+          "impact on computation time in the case of Disort and higher\n"
+          "resolution generally improves the interpolation results, hence\n"
+          "larger *scat_za_grid* are recommended. To ensure sufficient\n"
+          "interpolation accuracy, we require a (hardcoded) minimum size of 38.\n"
+          "\n"
+          "Different sphericity levels are emulated here by embedding DISORT\n"
+          "in different ways and using different output. The available options\n"
           "(from low to high sphericity level) are:\n"
           "- Cloudbox extends over whole atmosphere (e.g. by setting cloudbox\n"
           "  from *cloudboxSetFullAtm*).\n"
@@ -4521,9 +4514,6 @@ void define_md_data_raw() {
           "  *cloudboxSetManually*). Internally, DISORT is run over the whole\n"
           "  atmosphere, but only the radiation field within the cloudbox is\n"
           "  passed on and used further in ARTS (e.g. by *yCalc*).\n"
-          "  This incoming field is internally calculated by ARTS clearsky \n"
-          "  methods that take atmospheric sphericity and refractivity fully\n"
-          "  into account.\n"
           "\n"
           "Known issues of ARTS implementation:\n"
           "- Surface altitude is not an interface parameter. Surface is\n"
@@ -4565,6 +4555,7 @@ void define_md_data_raw() {
          "f_grid",
          "scat_za_grid",
          "stokes_dim",
+         "z_surface",
          "surface_skin_t",
          "surface_scalar_reflectivity"),
       GIN("nstreams", "pfct_method", "Npfct", "quiet"),
@@ -7350,14 +7341,25 @@ void define_md_data_raw() {
       DESCRIPTION(
           "Interpolates the intensity field of the cloud box.\n"
           "\n"
-          "Revised method using polynomials of user-defined order for polar\n"
-          "angle interpolation. It can be (and should be) restricted to one\n"
-          "hemisphere (default is currently 'not restricted' in order to\n"
-          "reflect previous behaviour of the WSM, which is now\n"
-          "*iyInterpLinCloudboxField*).\n"
+          "Determines the intensity field at the position and direction\n"
+          "specified by *rte_pos* and *rte_los*. The position can be both\n"
+          "inside the cloud box or at its edge.\n"
           "\n"
-          "Spatial interpolation so far hardcoded as linear.\n"),
-      AUTHORS("Jana Mendrok"),
+          "The interpolation in the spatial dimensions is linear.\n"
+          "\n"
+          "For the zenith angle dimensions several options for controlling\n"
+          "the interpolation are at hand. Default is linear interpolation.\n"
+          "Higher order polynomial interpolation is activated by setting\n"
+          "*za_interp_order* to a value > 1. Default is to perform the\n"
+          "interpolation separately for [0,90[ and ]90,180]. To handle\n"
+          "90 degree or use the full range ([0,180]) as basis for the\n"
+          "interpolation, set *za_restrict* to 0. You can select to use\n"
+          "cos(za) as the independent variable (instead of za) by setting\n"
+          "*cos_za_interp* to 1.\n"
+          "\n"
+          "For the azimuth dimension the interpolation order can be\n"
+          "selected, in the same manner as for zenith.\n"),
+      AUTHORS("Claudia Emde", "Patrick Eriksson", "Jana Mendrok"),
       OUT("iy"),
       GOUT(),
       GOUT_TYPE(),
@@ -7373,6 +7375,7 @@ void define_md_data_raw() {
          "lat_grid",
          "lon_grid",
          "z_field",
+         "z_surface",
          "stokes_dim",
          "scat_za_grid",
          "scat_aa_grid",
@@ -7383,86 +7386,13 @@ void define_md_data_raw() {
           "za_extpolfac",
           "aa_interp_order"),
       GIN_TYPE("Index", "Index", "Index", "Numeric", "Index"),
-      GIN_DEFAULT("1", "0", "0", "1.0", "1"),
+      GIN_DEFAULT("1", "0", "0", "0.5", "1"),
       GIN_DESC("Zenith angle interpolation order.",
                "Flag whether to restric zenith angle interpolation to one"
                " hemisphere.",
                "Flag whether to do zenith angle interpolation in cosine space.",
                "Maximum allowed extrapolation range in zenith angle.",
                "Azimuth angle interpolation order.")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("iyInterpLinCloudboxField"),
-      DESCRIPTION(
-          "Interpolates the intensity field of the cloud box.\n"
-          "\n"
-          "This is the standard method to put in *iy_cloudbox_agenda* if the\n"
-          "the scattering inside the cloud box is handled by the DOIT method.\n"
-          "\n"
-          "The intensity field is interpolated to the position (specified by\n"
-          "*rtp_pos*) and direction (specified by *rtp_los*) given. Linear\n"
-          "interpolation is used for all dimensions.\n"
-          "\n"
-          "The intensity field on the cloux box boundaries is provided by\n"
-          "*doit_i_field* and interpolated if the given position is at any boundary.\n"),
-      AUTHORS("Claudia Emde"),
-      OUT("iy"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("doit_i_field",
-         "rtp_pos",
-         "rtp_los",
-         "jacobian_do",
-         "cloudbox_on",
-         "cloudbox_limits",
-         "atmosphere_dim",
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "z_field",
-         "stokes_dim",
-         "scat_za_grid",
-         "scat_aa_grid",
-         "f_grid"),
-      GIN("rigorous", "maxratio"),
-      GIN_TYPE("Index", "Numeric"),
-      GIN_DEFAULT("1", "3"),
-      GIN_DESC(
-          "Fail if cloudbox field is not safely interpolable.",
-          "Maximum allowed ratio of two radiances regarded as interpolable.")));
-
-  md_data_raw.push_back(MdRecord(
-      NAME("iyInterpPolyCloudboxField"),
-      DESCRIPTION(
-          "As *iyInterpCloudboxField* but performs quadratic interpolation.\n"
-          "\n"
-          "Works so far only for 1D cases, and accordingly a quadratic\n"
-          "interpolation along *scat_za_grid* is performed.\n"),
-      AUTHORS("Claudia Emde"),
-      OUT("iy"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("doit_i_field",
-         "rtp_pos",
-         "rtp_los",
-         "jacobian_do",
-         "cloudbox_on",
-         "cloudbox_limits",
-         "atmosphere_dim",
-         "p_grid",
-         "lat_grid",
-         "lon_grid",
-         "z_field",
-         "stokes_dim",
-         "scat_za_grid",
-         "scat_aa_grid",
-         "f_grid"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
       NAME("iyLoopFrequencies"),
@@ -14481,12 +14411,7 @@ void define_md_data_raw() {
   md_data_raw.push_back(MdRecord(
       NAME("RT4Calc"),
       DESCRIPTION(
-          "Interface to the PolRadTran RT4 scattering solver (Evans).\n"
-          "\n"
-          "DISCLAIMER: There is a number of known issues with the current\n"
-          "implementation (see below). Use this WSM with care and only if\n"
-          "these limitations/requirements are fulfilled. Results might be\n"
-          "erroneous otherwise.\n"
+          "Interface to the PolRadTran RT4 scattering solver (by F. Evans).\n"
           "\n"
           "RT4 provides the radiation field (*doit_i_field*) from a vector\n"
           "1D scattering solution assuming a plane-parallel atmosphere (flat\n"
@@ -14536,11 +14461,8 @@ void define_md_data_raw() {
           "used by *RT4CalcWithRT4Surface*).\n"
           "\n"
           "Known issues of ARTS implementation:\n"
-          "- Surface altitude is not an interface parameter. Surface is\n"
-          "  implicitly assumed to be at the lowest atmospheric level.\n"
           "- TOA incoming radiation is so far assumed as blackbody cosmic\n"
           "  background (temperature taken from the ARTS-internal constant).\n"
-          "- *pfct_method* 'interpolate' currently not implemented here.\n"
           "\n"
           "The keyword *pfct_method* allows to choose the method to extract the\n"
           "scattering matrix. 'interpolate' considers temperature dependence,\n"
@@ -14574,7 +14496,8 @@ void define_md_data_raw() {
          "p_grid",
          "scat_data",
          "f_grid",
-         "stokes_dim"),
+         "stokes_dim",
+         "z_surface"),
       GIN("nstreams",
           "pfct_method",
           "quad_type",
@@ -14664,6 +14587,7 @@ void define_md_data_raw() {
          "scat_data",
          "f_grid",
          "stokes_dim",
+         "z_surface",
          "surface_skin_t",
          "surface_scalar_reflectivity",
          "surface_reflectivity",

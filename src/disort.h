@@ -45,8 +45,6 @@
  * @param[in]  scat_za_grid          as the WSV.
  * @param[in]  nstreams              Number of quadrature angles (both hemispheres).
  * @param[in]  pfct_method           see DisortCalc doc.
- * @param[in]  pnd_ncols             Number of columns (latitude points) in *pnd_field*.
- * @param[in]  ifield_npages         Number of pages (polar angle points) in *doit_i_field*.
  *
  * @author     Jana Mendrok
  * @date       2017-02-23
@@ -63,8 +61,7 @@ void check_disort_input(  // Input
     const ArrayOfArrayOfSingleScatteringData& scat_data,
     ConstVectorView scat_za_grid,
     const Index& nstreams,
-    const String& pfct_method,
-    const Index& pnd_ncols);
+    const String& pfct_method);
 
 /** init_ifield.
  *
@@ -122,14 +119,18 @@ void get_disortsurf_props(  // Output
  *
  * This version uses the C implementation of Disort based on ::run_disort.
  *
+ * Altitudes, temperatures, VMRs and PNDs shall be provided with lat and lon
+ * dimensions removed
+ *
  * @param[in,out] ws Current workspace
  * @param[out]    doit_i_field Radiation field
  * @param[in]     f_grid Frequency grid
  * @param[in]     p_grid Pressure grid
- * @param[in]     z_field field of geometrical altitudes
- * @param[in]     t_field field of atmospheric temperatures
- * @param[in]     vmr_field VMR field
- * @param[in]     pnd_field PND field
+ * @param[in]     z_profile Profile of geometric altitudes.
+ * @param[in]     z_surface Surface altitude.
+ * @param[in]     t_profile Temperature profile.
+ * @param[in]     vmr_profiles VMR profiles.
+ * @param[in]     pnd_profiles PND profiles.
  * @param[in]     scat_data Array of single scattering data
  * @param[in]     propmat_clearsky_agenda calculates the absorption coefficient
                   matrix
@@ -152,10 +153,11 @@ void run_cdisort(Workspace& ws,
                  // Input
                  ConstVectorView f_grid,
                  ConstVectorView p_grid,
-                 ConstTensor3View z_field,
-                 ConstTensor3View t_field,
-                 ConstTensor4View vmr_field,
-                 ConstTensor4View pnd_field,
+                 ConstVectorView z_profile,
+                 const Numeric& z_surface,
+                 ConstVectorView t_profile,
+                 ConstMatrixView vmr_profiles,
+                 ConstMatrixView pnd_profiles,
                  const ArrayOfArrayOfSingleScatteringData& scat_data,
                  const Agenda& propmat_clearsky_agenda,
                  const ArrayOfIndex& cloudbox_limits,
@@ -167,67 +169,15 @@ void run_cdisort(Workspace& ws,
                  const Index& quiet,
                  const Verbosity& verbosity);
 
-/** Calculate doit_i_feild with Disort.
- *
- * Prepares actual input variables for Disort, runs it, and sorts the output into
- * doit_i_field.
- * This version using unified optprop extraction scheme. supposed to replace
- * run_disort
- *
- * @param[in,out] ws Current workspace
- * @param[out]    doit_i_field Radiation field
- * @param[in]     f_grid Frequency grid
- * @param[in]     p_grid Pressure grid
- * @param[in]     z_field field of geometrical altitudes
- * @param[in]     t_field field of atmospheric temperatures
- * @param[in]     vmr_field VMR field
- * @param[in]     pnd_field PND field
- * @param[in]     scat_data Array of single scattering data
- * @param[in]     propmat_clearsky_agenda calculates the absorption coefficient
-                  matrix
- * @param[in]     cloudbox_limits Cloudbox limits
- * @param[in]     surface_skin_t Surface skin temperature
- * @param[in]     surface_scalar_reflectivity Surface scalar reflectivity
- * @param[in]     scat_za_grid Zenith angle grid
- * @param[in]     nstreams Number of quadrature angles (both hemispheres).
- * @param[in]     do_deltam Boolean to activate DISORT's delta-m scaling
- * @param[in]     Npfct Number of angular grid points to calculate bulk phase
- *                function
- * @param[in]     verbosity Verbosity setting
- *
- * @author        Jana Mendrok
- * @date          2017-02-23
- */
-void run_disort(Workspace& ws,
-                // Output
-                Tensor7& doit_i_field,
-                // Input
-                ConstVectorView f_grid,
-                ConstVectorView p_grid,
-                ConstTensor3View z_field,
-                ConstTensor3View t_field,
-                ConstTensor4View vmr_field,
-                ConstTensor4View pnd_field,
-                const ArrayOfArrayOfSingleScatteringData& scat_data,
-                const Agenda& propmat_clearsky_agenda,
-                const ArrayOfIndex& cloudbox_limits,
-                Numeric& surface_skin_t,
-                Vector& surface_scalar_reflectivity,
-                ConstVectorView scat_za_grid,
-                const Index& nstreams,
-                const Index& do_deltam,
-                const Index& Npfct,
-                const Verbosity& verbosity);
-
 /** get_gasoptprop.
  *
  * Derives level-based gas bulk optical properties (extinction).
  *
  * @param[in,out] ws                      Current workspace.
  * @param[out]    ext_bulk_gas            Gas bulk extinction (all levels & freqs).
- * @param[in]     propmat_clearsky_agenda As the WSA.
- * @param[in]     t_field                 As the WSV.
- * @param[in]     vmr_field               As the WSV.
+ * @param[in]     propmat_clearsky_agenda As the WSV.
+ * @param[in]     t_profile               Temperature profile
+ * @param[in]     vmr_profiles            VMR profiles
  * @param[in]     p_grid                  As the WSV.
  * @param[in]     f_grid                  As the WSV.
  *
@@ -237,8 +187,8 @@ void run_disort(Workspace& ws,
 void get_gasoptprop(Workspace& ws,
                     MatrixView ext_bulk_gas,
                     const Agenda& propmat_clearsky_agenda,
-                    ConstVectorView t_field,
-                    ConstMatrixView vmr_field,
+                    ConstVectorView t_profile,
+                    ConstMatrixView vmr_profiles,
                     ConstVectorView p_grid,
                     ConstVectorView f_grid);
 
@@ -250,8 +200,8 @@ void get_gasoptprop(Workspace& ws,
  * @param[out] ext_bulk_par     Particle bulk extinction (all levels & freqs).
  * @param[out] abs_bulk_par     Particle bulk absorption (all levels & freqs).
  * @param[in]  scat_data        As the WSV.
- * @param[in]  pnd_field        As the WSV.
- * @param[in]  t_field          As the WSV.
+ * @param[in]  pnd_profiles     PND profiles.
+ * @param[in]  t_profile        Temperature profile
  * @param[in]  p_grid           As the WSV.
  * @param[in]  cloudbox_limits  As the WSV.
  * @param[in]  f_grid           As the WSV.
@@ -262,8 +212,8 @@ void get_gasoptprop(Workspace& ws,
 void get_paroptprop(MatrixView ext_bulk_par,
                     MatrixView abs_bulk_par,
                     const ArrayOfArrayOfSingleScatteringData& scat_data,
-                    ConstMatrixView pnd_field,
-                    ConstVectorView t_field,
+                    ConstMatrixView pnd_profiles,
+                    ConstVectorView t_profile,
                     ConstVectorView p_grid,
                     const ArrayOfIndex& cloudbox_limits,
                     ConstVectorView f_grid);
@@ -279,7 +229,7 @@ void get_paroptprop(MatrixView ext_bulk_par,
  * @param[in]  ext_bulk_gas  See get_gasoptprop.
  * @param[in]  ext_bulk_par  See get_paroptprop.
  * @param[in]  abs_bulk_par  See get_paroptprop.
- * @param[in]  z_field       Ss the WSV.
+ * @param[in]  z_profile     Profile of geometrical altitudes.
  *
  * @author     Jana Mendrok
  * @date       2018-04-04
@@ -289,7 +239,7 @@ void get_dtauc_ssalb(MatrixView dtauc,
                      ConstMatrixView ext_bulk_gas,
                      ConstMatrixView ext_bulk_par,
                      ConstMatrixView abs_bulk_par,
-                     ConstVectorView z_field);
+                     ConstVectorView z_profile);
 
 /** get_angs.
  *
@@ -320,8 +270,8 @@ void get_angs(Vector& pfct_angs,
  * @param[out] pha_bulk_par     Particle bulk phase function (all levels & ssd freqs).
  * @param[out] pfct_angs        Angular grid of pfct_bulk_par.
  * @param[in]  scat_data        As the WSV.
- * @param[in]  pnd_field        As the WSV.
- * @param[in]  t_field          As the WSV.
+ * @param[in]  pnd_profiles     PND profiles.
+ * @param[in]  t_profile        Temperature profile.
  * @param[in]  p_grid           As the WSV.
  * @param[in]  cloudbox_limits  As the WSV.
  * @param[in]  ext_bulk_par     See get_paroptprop.
@@ -336,8 +286,8 @@ void get_angs(Vector& pfct_angs,
  */
 void get_parZ(Tensor3& pha_bulk_par,
               const ArrayOfArrayOfSingleScatteringData& scat_data,
-              ConstMatrixView pnd_field,
-              ConstVectorView t_field,
+              ConstMatrixView pnd_profiles,
+              ConstVectorView t_profile,
               ConstVectorView pfct_angs,
               const ArrayOfIndex& cloudbox_limits);
 
@@ -380,5 +330,43 @@ void get_pmom(Tensor3View pmom,
               ConstTensor3View pfct_bulk_par,
               ConstVectorView pfct_angs,
               const Index& Nlegendre);
+
+/** reduced_1datm
+ *
+ * Crops a 1D atmosphere, to create an atmosphere where the surface is placed
+ * at p_grid[0]. Developed to work with DISORT and RT4.
+ *
+ * @param[out] p               New pressure grid,
+ * @param[out] z               New profile of geometrical altitudes.
+ * @param[out] t               New temperature profile,
+ * @param[out] vmr             New VMR profiles.
+ * @param[out] pnd             New PND profiles.
+ * @param[out] cboxlims        Adjusted version of cloudbox_limits.
+ * @param[out] ncboxremoved    Number of levels inside cloudbox removed
+ * @param[in]  p_grid          Original pressure grid 
+ * @param[in]  z_profile       Original profile of geometric altitudes.
+ * @param[in]  z_surface       Surface altitude.
+ * @param[in]  t_profile       Original temperature profile.
+ * @param[in]  vmr_profiles    Original VMR profiles.
+ * @param[in]  pnd_profiles    Original PND profiles.
+ * @param[in]  cloudbox_limits Original cloudbox limits
+ *
+ * @author     Patrick Eriksson
+ * @date       2019-10-22
+ */
+void reduced_1datm(Vector& p,
+                   Vector& z,
+                   Vector& t, 
+                   Matrix& vmr,
+                   Matrix& pnd,
+                   ArrayOfIndex& cboxlims,
+                   Index& ncboxremoved,
+                   ConstVectorView p_grid,
+                   ConstVectorView z_profile,
+                   const Numeric& z_surface,
+                   ConstVectorView t_profile,
+                   ConstMatrixView vmr_profiles,
+                   ConstMatrixView pnd_profiles,
+                   const ArrayOfIndex& cloudbox_limits);
 
 #endif /* disort_h */

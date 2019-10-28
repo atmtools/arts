@@ -1,0 +1,7 @@
+Arts2{
+
+# DISORT
+DisortCalc( pfct_method = "interpolate" )
+yCalc( y = y_disort )
+
+}

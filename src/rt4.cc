@@ -36,6 +36,7 @@
 #include <complex.h>
 #include <cfloat>
 #include <stdexcept>
+#include "disort.h"
 #include "interpolation.h"
 #include "m_xml.h"
 #include "optproperties.h"
@@ -71,12 +72,8 @@ void check_rt4_input(  // Output
     const String& quad_type,
     const Index& add_straight_angles,
     const Index& pnd_ncols) {
+
   // Don't do anything if there's no cloudbox defined.
-  //if (!cloudbox_on) return;
-  // Seems to loopholy to just skip the scattering, so rather throw an error
-  // (assuming if RT4 is called than it's expected that a scattering calc is
-  // performed. semi-quietly skipping can easily be missed and lead to wrong
-  // conclusions.).
   if (!cloudbox_on) {
     throw runtime_error(
         "Cloudbox is off, no scattering calculations to be"
@@ -229,10 +226,6 @@ void get_quad_angles(  // Output
   for (Index imu = 0; imu < nummu; imu++) {
     scat_za_grid[imu] = acos(mu_values[imu]) * RAD2DEG;
     scat_za_grid[nummu + imu] = 180. - scat_za_grid[imu];
-    //cout << "Setting za[" << imu << "]=" << scat_za_grid[imu]
-    //     << " and  za[" << nummu+imu << "]=" << scat_za_grid[nummu+imu]
-    //     << " from mu[" << imu << "]=" << mu_values[imu]
-    //     << " with quadweight w=" << quad_weights[imu] << ".\n";
   }
   scat_aa_grid.resize(1);
   scat_aa_grid[0] = 0.;
@@ -332,9 +325,6 @@ void get_rt4surf_props(  // Output
 
   } else if (ground_type == "F")  // RT4's proprietary Fresnel
   {
-    //though complex ref index is typically not smaller than (1.,0.), there
-    //are physically possible exceptions. hence we don't test the values here.
-
     //extract/interpolate from GriddedField
     Matrix n_real(nf, 1), n_imag(nf, 1);
     complex_n_interp(n_real,
@@ -361,10 +351,10 @@ void run_rt4(Workspace& ws,
              // Input
              ConstVectorView f_grid,
              ConstVectorView p_grid,
-             ConstTensor3View z_field,
-             ConstTensor3View t_field,
-             ConstTensor4View vmr_field,
-             ConstTensor4View pnd_field,
+             ConstVectorView z_profile,
+             ConstVectorView t_profile,
+             ConstMatrixView vmr_profiles,
+             ConstMatrixView pnd_profiles,
              const ArrayOfArrayOfSingleScatteringData& scat_data,
              const Agenda& propmat_clearsky_agenda,
              const ArrayOfIndex& cloudbox_limits,
@@ -392,36 +382,30 @@ void run_rt4(Workspace& ws,
              const Numeric& pfct_threshold,
              const Numeric& max_delta_tau,
              const Verbosity& verbosity) {
+
+    // Create an atmosphere starting at z_surface
+    Vector p, z, t;
+    Matrix vmr, pnd;
+    ArrayOfIndex cboxlims;
+    Index ncboxremoved;
+    //
+    reduced_1datm(p,
+                  z,
+                  t,
+                  vmr,
+                  pnd,
+                  cboxlims,
+                  ncboxremoved,
+                  p_grid,
+                  z_profile,
+                  surf_altitude,
+                  t_profile,
+                  vmr_profiles,
+                  pnd_profiles,
+                  cloudbox_limits);
+  
   // Input variables for RT4
-  Index num_layers = p_grid.nelem() - 1;
-  /*
-  bool do_non_iso;
-  if( p_grid.nelem() == pnd_field.npages() )
-    // cloudbox covers whole atmo anyways. no need for a calculation of
-    // non-iso incoming field at top-of-cloudbox. rt4 will be run over
-    // whole atmo.
-    {
-      do_non_iso = false;
-      num_layers = p_grid.nelem()-1;
-    }
-  else
-    {
-      if( non_iso_inc )
-        // cloudbox only covers part of atmo. rt4 will be initialized with
-        // non-isotropic incoming field and run over cloudbox only.
-        {
-          do_non_iso = true;
-          num_layers = pnd_field.npages()-1;
-        }
-      else
-        // cloudbox only covers part of atmo. rt4 will be run over whole
-        // atmo, though (but only in-cloudbox rad field passed to doit_i_field).
-        {
-          do_non_iso = false;
-          num_layers = p_grid.nelem()-1;
-        }
-    }
-  */
+  Index num_layers = p.nelem() - 1;
 
   // Top of the atmosphere temperature
   //  FIXME: so far hard-coded to cosmic background. However, change that to set
@@ -438,8 +422,8 @@ void run_rt4(Workspace& ws,
   Vector height(num_layers + 1);
   Vector temperatures(num_layers + 1);
   for (Index i = 0; i < height.nelem(); i++) {
-    height[i] = z_field(num_layers - i, 0, 0);
-    temperatures[i] = t_field(num_layers - i, 0, 0);
+    height[i] = z[num_layers - i];
+    temperatures[i] = t[num_layers - i];
   }
 
   // this indexes all cloudbox layers as cloudy layers.
@@ -448,7 +432,7 @@ void run_rt4(Workspace& ws,
   // cloudbox. That requires some kind of recognition and index setting based on
   // pnd_field or (derived) cloud layer extinction or scattering.
   // we use something similar with iyHybrid. have a look there...
-  const Index num_scatlayers = pnd_field.npages() - 1;
+  const Index num_scatlayers = pnd.ncols() - 1;
   Vector scatlayers(num_layers, 0.);
   Vector gas_extinct(num_layers, 0.);
   Tensor6 scatter_matrix(
@@ -460,13 +444,13 @@ void run_rt4(Workspace& ws,
   // if there is no scatt particle at all, we don't need to calculate the
   // scat properties (FIXME: that should rather be done by a proper setting
   // of scat_layers).
-  Vector pnd_per_level(pnd_field.npages());
-  for (Index clev = 0; clev < pnd_field.npages(); clev++)
-    pnd_per_level[clev] = pnd_field(joker, clev, 0, 0).sum();
+  Vector pnd_per_level(pnd.ncols());
+  for (Index clev = 0; clev < pnd.ncols(); clev++)
+    pnd_per_level[clev] = pnd(joker, clev).sum();
   Numeric pndtot = pnd_per_level.sum();
 
-  for (Index i = 0; i < cloudbox_limits[1] - cloudbox_limits[0]; i++) {
-    scatlayers[num_layers - 1 - cloudbox_limits[0] - i] = float(i + 1);
+  for (Index i = 0; i < cboxlims[1] - cboxlims[0]; i++) {
+    scatlayers[num_layers - 1 - cboxlims[0] - i] = float(i + 1);
   }
 
   // Output variables
@@ -486,9 +470,9 @@ void run_rt4(Workspace& ws,
                     scat_data,
                     scat_za_grid,
                     -1,
-                    pnd_field,
-                    t_field(Range(0, num_layers + 1), joker, joker),
-                    cloudbox_limits,
+                    pnd,
+                    t, 
+                    cboxlims,
                     stokes_dim);
     if (emis_vector_allf.nshelves() == 1)  // scat_data had just a single freq
                                            // point. copy into emis/ext here and
@@ -503,14 +487,15 @@ void run_rt4(Workspace& ws,
   // FIXME: once, all old optprop scheme incl. the applied agendas is removed,
   // we can remove this as well.
   Vector scat_za_grid_orig;
-  if (auto_inc_nstreams)
+  if (auto_inc_nstreams) {
     // For the WSV scat_za_grid, we need to reset these grids instead of
     // creating a new container. this because further down some agendas are
     // used that access scat_za/aa_grid through the workspace.
     // Later on, we need to reconstruct the original setting, hence backup
     // that here.
     scat_za_grid_orig = scat_za_grid;
-
+  }
+  
   Index nummu_new = 0;
   // Loop over frequencies
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
@@ -527,13 +512,13 @@ void run_rt4(Workspace& ws,
     // vmr_field is not freq-dependent, gas_extinct will remain as above
     // initialized (with 0) for all freqs, ie we can rely on that it wasn't
     // changed).
-    if (vmr_field.nbooks() > 0) {
+    if (vmr.ncols() > 0) {
       gas_optpropCalc(ws,
                       gas_extinct,
                       propmat_clearsky_agenda,
-                      t_field(Range(0, num_layers + 1), joker, joker),
-                      vmr_field(joker, Range(0, num_layers + 1), joker, joker),
-                      p_grid[Range(0, num_layers + 1)],
+                      t[Range(0, num_layers + 1)],
+                      vmr(joker, Range(0, num_layers + 1)),
+                      p[Range(0, num_layers + 1)],
                       f_grid[Range(f_index, 1)]);
     }
 
@@ -556,9 +541,9 @@ void run_rt4(Workspace& ws,
                           scat_data,
                           scat_za_grid,
                           f_index,
-                          pnd_field,
-                          t_field(Range(0, num_layers + 1), joker, joker),
-                          cloudbox_limits,
+                          pnd,
+                          t[Range(0, num_layers + 1)],
+                          cboxlims,
                           stokes_dim);
         }
         sca_optpropCalc(scatter_matrix,
@@ -567,7 +552,7 @@ void run_rt4(Workspace& ws,
                         extinct_matrix(0, joker, joker, joker, joker, joker),
                         f_index,
                         scat_data,
-                        pnd_field,
+                        pnd,
                         stokes_dim,
                         scat_za_grid,
                         quad_weights,
@@ -614,8 +599,9 @@ void run_rt4(Workspace& ws,
                   up_rad.get_c_array(),
                   down_rad.get_c_array());
       }
-    } else  // if (auto_inc_nstreams)
-    {
+      
+    } else { // if (auto_inc_nstreams)
+
       if (nummu_new < nummu) nummu_new = nummu + 1;
 
       Index nhstreams_new;
@@ -663,9 +649,9 @@ void run_rt4(Workspace& ws,
                         scat_data,
                         scat_za_grid,
                         f_index,
-                        pnd_field,
-                        t_field(Range(0, num_layers + 1), joker, joker),
-                        cloudbox_limits,
+                        pnd,
+                        t[Range(0, num_layers + 1)],
+                        cboxlims,
                         stokes_dim);
 
         //   - resize & recalc scatter_matrix
@@ -680,7 +666,7 @@ void run_rt4(Workspace& ws,
             extinct_matrix_new(0, joker, joker, joker, joker, joker),
             f_index,
             scat_data,
-            pnd_field,
+            pnd,
             stokes_dim,
             scat_za_grid,
             quad_weights_new,
@@ -720,7 +706,7 @@ void run_rt4(Workspace& ws,
               extinct_matrix_new(0, joker, joker, joker, joker, joker),
               f_index,
               scat_data,
-              pnd_field,
+              pnd,
               stokes_dim,
               scat_za_grid,
               quad_weights_new,
@@ -847,18 +833,24 @@ void run_rt4(Workspace& ws,
     // (0 and 180deg, respectively) streams,then the possible extra angle(s).
     // We need to resort them properly into doit_i_field, such that order is
     // from 0 to 180deg.
-    for (Index j = 0; j < nummu; j++)
-      for (Index k = 0; k < (cloudbox_limits[1] - cloudbox_limits[0] + 1); k++)
-        for (Index ist = 0; ist < stokes_dim; ist++) {
-          //doit_i_field(f_index, k, 0, 0, nummu+j, 0, ist) =
-          //  up_rad(num_layers-k,j,ist)*rad_l2f;
-          //doit_i_field(f_index, k, 0, 0, nummu-1-j, 0, ist) =
-          //  down_rad(num_layers-k,j,ist)*rad_l2f;
-          doit_i_field(f_index, k, 0, 0, nummu + j, 0, ist) =
-              up_rad(num_layers - k, j, ist) * rad_l2f;
-          doit_i_field(f_index, k, 0, 0, nummu - 1 - j, 0, ist) =
-              down_rad(num_layers - k, j, ist) * rad_l2f;
+    for (Index j = 0; j < nummu; j++) {
+      for (Index ist = 0; ist < stokes_dim; ist++) {
+        for (Index k = cboxlims[1] - cboxlims[0]; k >= 0; k--) {
+          doit_i_field(f_index, k + ncboxremoved, 0, 0, nummu + j, 0, ist) =
+            up_rad(num_layers - k, j, ist) * rad_l2f;
+          doit_i_field(f_index, k + ncboxremoved, 0, 0, nummu - 1 - j, 0, ist) =
+            down_rad(num_layers - k, j, ist) * rad_l2f;
         }
+        // To avoid potential numerical problems at interpolation of the field,
+        // we copy the surface field to underground altitudes
+        for (Index k = ncboxremoved - 1; k >= 0; k--) {
+          doit_i_field(f_index, k, 0, 0, nummu + j, 0, ist) =
+            doit_i_field(f_index, k + 1, 0, 0, nummu + j, 0, ist);
+          doit_i_field(f_index, k, 0, 0, nummu -1 + j, 0, ist) =
+            doit_i_field(f_index, k + 1, 0, 0, nummu -1 + j, 0, ist);
+        }
+      }
+    }
   }
 }
 
@@ -881,8 +873,8 @@ void scat_za_grid_adjust(  // Output
 void gas_optpropCalc(Workspace& ws,
                      VectorView gas_extinct,
                      const Agenda& propmat_clearsky_agenda,
-                     ConstTensor3View t_field,
-                     ConstTensor4View vmr_field,
+                     ConstVectorView t_profile,
+                     ConstMatrixView vmr_profiles,
                      ConstVectorView p_grid,
                      ConstVectorView f_mono) {
   // Initialization
@@ -896,19 +888,19 @@ void gas_optpropCalc(Workspace& ws,
   Numeric rtp_temperature_local;
   Numeric rtp_pressure_local;
   ArrayOfPropagationMatrix propmat_clearsky_local;
-  Vector rtp_vmr_local(vmr_field.nbooks());
+  Vector rtp_vmr_local(vmr_profiles.nrows());
 
   const Vector rtp_temperature_nlte_local_dummy(0);
 
   // Calculate layer averaged gaseous extinction
   for (Index i = 0; i < Np - 1; i++) {
     rtp_pressure_local = 0.5 * (p_grid[i] + p_grid[i + 1]);
-    rtp_temperature_local = 0.5 * (t_field(i, 0, 0) + t_field(i + 1, 0, 0));
+    rtp_temperature_local = 0.5 * (t_profile[i] + t_profile[i + 1]);
 
     // Average vmrs
-    for (Index j = 0; j < vmr_field.nbooks(); j++)
+    for (Index j = 0; j < vmr_profiles.nrows(); j++)
       rtp_vmr_local[j] =
-          0.5 * (vmr_field(j, i, 0, 0) + vmr_field(j, i + 1, 0, 0));
+          0.5 * (vmr_profiles(j, i) + vmr_profiles(j, i + 1));
 
     const Vector rtp_mag_dummy(3, 0);
     const Vector ppath_los_dummy;
@@ -950,22 +942,22 @@ void par_optpropCalc(Tensor5View emis_vector,
                      const ArrayOfArrayOfSingleScatteringData& scat_data,
                      const Vector& scat_za_grid,
                      const Index& f_index,
-                     ConstTensor4View pnd_field,
-                     ConstTensor3View t_field,
+                     ConstMatrixView pnd_profiles,
+                     ConstVectorView t_profile,
                      const ArrayOfIndex& cloudbox_limits,
                      const Index& stokes_dim) {
   // Initialization
   extinct_matrix = 0.;
   emis_vector = 0.;
 
-  const Index Np_cloud = pnd_field.npages();
+  const Index Np_cloud = pnd_profiles.ncols();
   const Index nummu = scat_za_grid.nelem() / 2;
 
   assert(emis_vector.nbooks() == Np_cloud - 1);
   assert(extinct_matrix.nshelves() == Np_cloud - 1);
 
   // preparing input data
-  Vector T_array = t_field(Range(cloudbox_limits[0], Np_cloud), 0, 0);
+  Vector T_array = t_profile[Range(cloudbox_limits[0], Np_cloud)];
   Matrix dir_array(scat_za_grid.nelem(), 2, 0.);
   dir_array(joker, 0) = scat_za_grid;
 
@@ -996,7 +988,7 @@ void par_optpropCalc(Tensor5View emis_vector,
                         ext_mat_Nse,
                         abs_vec_Nse,
                         ptypes_Nse,
-                        pnd_field(joker, joker, 0, 0),
+                        pnd_profiles(joker, joker),
                         t_ok);
   opt_prop_Bulk(ext_mat_bulk,
                 abs_vec_bulk,
@@ -1008,52 +1000,47 @@ void par_optpropCalc(Tensor5View emis_vector,
   // Calculate layer averaged extinction and absorption and sort into RT4-format
   // data tensors
   for (Index ipc = 0; ipc < Np_cloud - 1; ipc++) {
-    /*
-    if ( (ext_mat_bulk(0,ipc,0,0,0)+
-          ext_mat_bulk(0,ipc+1,0,0,0)) > 0. )
-    {
-      scatlayers[Np_cloud-2-cloudbox_limits[0]-ipc] = float(ipc);
-*/
-    for (Index fi = 0; fi < abs_vec_bulk.nbooks(); fi++)
-      for (Index imu = 0; imu < nummu; imu++)
+    for (Index fi = 0; fi < abs_vec_bulk.nbooks(); fi++) {
+      for (Index imu = 0; imu < nummu; imu++) {
         for (Index ist1 = 0; ist1 < stokes_dim; ist1++) {
           for (Index ist2 = 0; ist2 < stokes_dim; ist2++) {
             extinct_matrix(fi, ipc, 0, imu, ist2, ist1) =
-                .5 * (ext_mat_bulk(fi, ipc, imu, ist1, ist2) +
-                      ext_mat_bulk(fi, ipc + 1, imu, ist1, ist2));
+              .5 * (ext_mat_bulk(fi, ipc, imu, ist1, ist2) +
+                    ext_mat_bulk(fi, ipc + 1, imu, ist1, ist2));
             extinct_matrix(fi, ipc, 1, imu, ist2, ist1) =
-                .5 * (ext_mat_bulk(fi, ipc, nummu + imu, ist1, ist2) +
-                      ext_mat_bulk(fi, ipc + 1, nummu + imu, ist1, ist2));
+              .5 * (ext_mat_bulk(fi, ipc, nummu + imu, ist1, ist2) +
+                    ext_mat_bulk(fi, ipc + 1, nummu + imu, ist1, ist2));
           }
           emis_vector(fi, ipc, 0, imu, ist1) =
-              .5 * (abs_vec_bulk(fi, ipc, imu, ist1) +
-                    abs_vec_bulk(fi, ipc + 1, imu, ist1));
+            .5 * (abs_vec_bulk(fi, ipc, imu, ist1) +
+                  abs_vec_bulk(fi, ipc + 1, imu, ist1));
           emis_vector(fi, ipc, 1, imu, ist1) =
-              .5 * (abs_vec_bulk(fi, ipc, nummu + imu, ist1) +
-                    abs_vec_bulk(fi, ipc + 1, nummu + imu, ist1));
+            .5 * (abs_vec_bulk(fi, ipc, nummu + imu, ist1) +
+                  abs_vec_bulk(fi, ipc + 1, nummu + imu, ist1));
         }
-    //    }
+      }
+    }
   }
 }
 
 
 void sca_optpropCalc(  //Output
-    Tensor6View scatter_matrix,
-    Index& pfct_failed,
-    //Input
-    ConstTensor4View emis_vector,
-    ConstTensor5View extinct_matrix,
-    const Index& f_index,
-    const ArrayOfArrayOfSingleScatteringData& scat_data,
-    ConstTensor4View pnd_field,
-    const Index& stokes_dim,
-    const Vector& scat_za_grid,
-    ConstVectorView quad_weights,
-    const String& pfct_method,
-    const Index& pfct_aa_grid_size,
-    const Numeric& pfct_threshold,
-    const Index& auto_inc_nstreams,
-    const Verbosity& verbosity) {
+                     Tensor6View scatter_matrix,
+                     Index& pfct_failed,
+                     //Input
+                     ConstTensor4View emis_vector,
+                     ConstTensor5View extinct_matrix,
+                     const Index& f_index,
+                     const ArrayOfArrayOfSingleScatteringData& scat_data,
+                     ConstMatrixView pnd_profiles,
+                     const Index& stokes_dim,
+                     const Vector& scat_za_grid,
+                     ConstVectorView quad_weights,
+                     const String& pfct_method,
+                     const Index& pfct_aa_grid_size,
+                     const Numeric& pfct_threshold,
+                     const Index& auto_inc_nstreams,
+                     const Verbosity& verbosity) {
   // FIXME: this whole funtions needs revision/optimization regarding
   // - temperature dependence (using new-type scat_data)
   // - using redundancies in sca_mat data at least for totally random
@@ -1068,20 +1055,20 @@ void sca_optpropCalc(  //Output
   // Initialization
   scatter_matrix = 0.;
 
-  const Index N_se = pnd_field.nbooks();
-  const Index Np_cloud = pnd_field.npages();
+  const Index N_se = pnd_profiles.nrows();
+  const Index Np_cloud = pnd_profiles.ncols();
   const Index nza_rt = scat_za_grid.nelem();
 
   assert(scatter_matrix.nvitrines() == Np_cloud - 1);
 
-  // Check that total number of scattering elements in scat_data and pnd_field
+  // Check that total number of scattering elements in scat_data and pnd_profiles
   // agree.
   // FIXME: this should be done earlier. in calling method. outside freq- and
   // other possible loops. rather assert than runtime error.
   if (TotalNumberOfElements(scat_data) != N_se) {
     ostringstream os;
     os << "Total number of scattering elements in scat_data ("
-       << TotalNumberOfElements(scat_data) << ") and pnd_field (" << N_se
+       << TotalNumberOfElements(scat_data) << ") and pnd_profiles (" << N_se
        << ") disagree.";
     throw runtime_error(os.str());
   }
@@ -1254,8 +1241,8 @@ void sca_optpropCalc(  //Output
     Vector ext_fixT(nza_rt, 0.), abs_fixT(nza_rt, 0.);
 
     for (Index i_se = 0; i_se < N_se; i_se++) {
-      Numeric pnd_mean = 0.5 * (pnd_field(i_se, scat_p_index_local + 1, 0, 0) +
-                                pnd_field(i_se, scat_p_index_local, 0, 0));
+      Numeric pnd_mean = 0.5 * (pnd_profiles(i_se, scat_p_index_local + 1) +
+                                pnd_profiles(i_se, scat_p_index_local));
       if (pnd_mean != 0.)
         for (Index iza = 0; iza < nummu; iza++) {
           // JM171003: not clear to me anymore why this check. if pnd_mean
