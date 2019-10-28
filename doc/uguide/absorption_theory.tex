@@ -180,7 +180,7 @@ We will introduce here the main concepts concerning line
 absorption. The aim is to give some overview and show some key
 equations, not to give a full treatment of the theory. To really
 understand line absorption, you should refer to one of the cited
-books, or some other book on spectroscopy.
+books, or some other book on spectroscopy. 
 
 \subsubsection{Basic expressions} 
 
@@ -200,7 +200,7 @@ function is normalized as:
 
 The values of $S(T)$ at reference temperature $T_0$ are contained in
 spectroscopic databases (more on this below). The conversion to
-different temperatures is done by
+different temperatures in local thermodynamic equilibrium is done by
 \begin{equation}\label{eq:abs_theory:line_intensity}
   S(T)=S(T_0)~\frac{Q(T_0)}{Q(T)}~\frac{e^{-E_f/(kT)}
     - e^{-E_i/(kT)}}{e^{-E_f/(kT_0)} - e^{-E_i/(kT_0)}}
@@ -213,19 +213,17 @@ energy can be computed by $E_u$=$E_l$+h$\nu$. Partition functions for
 the different molecular species are commonly available along with the
 spectroscopic databases, given in the form of tabulated values for a set
 temperatures (e.g., for JPL catalogue) or through some computer code (e.g.,
-the TIPS program coming with the HITRAN catalogue).
+the TIPS program coming with the HITRAN catalogue).  For non-local
+thermodynamic equilibrium calculations, please see later subsections.
 
 As absorption is additive, the total absorption coefficient is derived by 
 adding up the absorption contributions of all spectral lines of all molecular 
 species.
 
-The following subsections discuss common descriptions of the line shape
-function, present partition functions and their calculation formalism more in
-depth, and introduce the Zeeman effect.
-
-
-\subsubsection{Line shape functions} 
+\subsubsection{Line functions - theory} 
 \label{sec:abs_theory:shape}
+
+\paragraph*{Line shapes} \ 
 
 So far, there exists no complete analytical function that accurately
 describes the line shape in all atmospheric conditions and for all
@@ -354,8 +352,8 @@ $-\nu_o$.
 
 The van Vleck and Huber lineshape \citep{vanvleckhuber:77} is similar
 to Eq.\,\ref{eq:abs_theory:vvw}, except for the factor $(\nu/\nu_0)^2$ which is
-replaced by $(\nu * \tanh(h*\nu/(2kT)))/(\nu_0 *
-\tanh(h*\nu_0/(2kT)))$, with $k$ the Boltzmann constant, $h$ the Planck
+replaced by $\left[\nu \tanh\left(h\nu\middle/2kT\right)\middle/\nu_0 
+\tanh\left(h\nu_0\middle/2kT\right)\right]$, with $k$ the Boltzmann constant, $h$ the Planck
 constant, and $T$ the atmospheric temperature (the denominator is
 actually a consequence of the line strength definition in the
 spectroscopic catalogs). The lineshape Eq.\,\ref{eq:abs_theory:vvw} with this
@@ -372,8 +370,7 @@ function
 \end{equation}
 though there's no strict justification for its use - the two processes
 are assumed to act independently, which in reality is not the
-fact. Regardless of this flaw, it is the only way up to now to model
-the combination of the broadening processes. The integral in Eq.\,\ref{eq:abs_theory:voigt}
+fact. The integral in Eq.\,\ref{eq:abs_theory:voigt}
 can not be computed analytically, so certain approximation algorithms
 must be used.
 
@@ -401,28 +398,21 @@ Formula, as defined in \citet{hui:78} and in Equation 2.60 of
 \citet{pwr:93}. Provided the condition above is fulfilled, the $F_S$
 line shape gives a smooth transition from high tropospheric pressures
 to low stratospheric ones, and should be valid near the line centers
-throughout the microwave region. With a Van Vleck / Huber forefactor
-instead of the Van Vleck / Weisskopf forefactor, it should be valid
+throughout the microwave region. With a Van Vleck and Huber forefactor
+instead of the Van Vleck and Weisskopf forefactor, it should be valid
 throughout the thermal infrared spectral range, but there the mirror
 line at negative frequency is negligible anyway, because it is so far
 away.
 
-For some applications, it is necessary to calculate not only the real
-part of the Lorentzian, but also its imaginary part is required. Such
-cases includes, e.g., Zeeman effect calculations and line mixing 
-calculations.  The Lorentzian that retains its imaginary parts is written
-\begin{equation}
-  F'_L(\nu)=\frac{1}{\pi}\frac{1}{\nu-\nu_0-i\gamma_L},
-\end{equation}
-where we want to make sure the reader notes that $F_L(\nu)=\Re\left[F'_L(\nu)\right]$.
-When generalized to deal with both high and low pressure conditions, 
-this turns into the Faddeeva function $F_F(\nu)$.  Again, the reader
-should note that $F_V(\nu)=\Re\left[F_F(\nu)\right]$.
+% FIXME: We need to add a theoretical description of HTP and speed-dependency here
+Further refinement to line shape models include speed-dependent Voigt profiles
+and the Hartmann-Tran profile.  We will not go into them here because
+any theoretical description we offer at this point would not do them justice (FIXME).
 
-\subsubsection{Partition functions}
+\paragraph*{Partition functions} \
 
 Partition functions are needed to compute the temperature dependence
-of the line intensities (Equation \ref{eq:abs_theory:line_intensity} on
+of the line intensities in local thermodynamic equilibrium (Equation \ref{eq:abs_theory:line_intensity} on
 page \pageref{eq:abs_theory:line_intensity}).  They are related to the
 molecular energy states and their statistical distribution during the
 radiation process.
@@ -545,10 +535,41 @@ Q_r = \frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{ABC}\right)^{1/2}
 and for a {\it{spherical}} top, using the current notation of
 \citet{gordyandcook:70} in the respective expression in \citet{herzberg:45},
 \begin{equation}\label{eq:abs_theory:rot_partition_sphetop}
-Q_r = \frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{A^3}\right)^{1/2}
+Q_r = \frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{A^3}\right)^{1/2}.
 \end{equation}
 
-\subsection{Line shape model \label{modern_lineshapes}}
+For \textit{non-local thermodynamic equilibrium}, \textit{NLTE}, the partitioning
+is no longer as simple as described above.  Yet there exists techniques to emulate
+the above behavior for limited use-cases.  One such simplification is to assume 
+that only the vibrational energy state's level distribution can be described by
+purely changing the vibrational energy state's temperature 
+in Equation~\ref{eq:abs_theory:vib_partition_fin}.  This essentially rewrites
+it as
+\begin{equation}
+Q_v^{(N)}=Q_v \left(\frac{1-e^{h\omega_N/kT_N}}{1-e^{h\omega_N/kT}}\right)^{-d_N},
+\end{equation}
+where $T_N$ is the pseudo-temperature of the $N$:th level.  Note that this
+set of equations describe LTE when $T_N=T$
+
+Generally in NLTE one might be better off using a more pure approach
+of computing the energy level distributions.  This yields that the
+rate of absorption, replacing $S(T)$ in Equation~\ref{eq:abs_coeff}
+as the absorption strength coefficient, is
+\begin{equation}
+ k = \frac{h\nu_0}{4\pi} \frac{A_{21}c^2}{2h\nu_0^3} \left(\frac{g_2}{g_1}r_1 - r_2\right).
+\end{equation}
+Note that here $r_1$ and $r_2$ is the ratio of absorbers in state 1 and 2 respectively.  To retain the system equilibrium, it is important that state 2
+emits an equal rate of photons as is absorbed.  This yields an emission
+coefficient of
+\begin{equation}
+ e = \frac{h\nu_0}{4\pi} A_{21} r_2.
+\end{equation}
+Note that this set of equations describes LTE when $e/B \equiv k$, where $B$ is the
+Planck blackbody emission function.
+
+
+\subsection{Line functions - method \label{modern_lineshapes}}
+
 The line shape model employed in internal calculations is closely coupled to
 the data structure the user can send into the code.
 There have therefore been many iterations of ARTS absorption line data format.  The
@@ -666,7 +687,6 @@ are given before the upper state numbers.
 \end{table}
 
 The generic function in use for each individual line's cross-section can now be presented as
-% \end{equation}
 \begin{equation}
  \sigma = S(\cdots) \left(1 - iY + G\right) F\left( \cdots \right),
  \label{eq:lsalg-standard-equation}
@@ -678,7 +698,10 @@ $G$ is the second order line mixing strength-adjusting coefficient, and
 $F(\cdots)$ is the line shape model with undefined inputs.
 The input to $F(\cdots)$ in part depends
 on the selection of line shape type, which can be seen in table~\ref{tab:abs_theory:lineshape:lineshapetype},
-and in part to the single line data.
+and in part to the single line data.  Note the differences
+to Equation~\ref{eq:abs_coeff} is mostly the separation of the line mixing
+coefficients.  This is done for efficiency and to help keep the code 
+structure easy.
 
 \begin{table}[ht!]
  \centering
