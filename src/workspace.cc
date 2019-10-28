@@ -1038,14 +1038,6 @@ void Workspace::define_wsv_data() {
           "dimension (N_aa) are all 1.\n"),
       GROUP("Tensor7")));
 
-  /*
-  wsv_data.push_back(WsvRecord(
-      NAME("cloudbox_field_agenda"),
-      DESCRIPTION(
-          "Agenda providing *cloudbox_field* and associated variables.\n"),
-      GROUP("Agenda")));
-  */
-  
   wsv_data.push_back(WsvRecord(
       NAME("cloudbox_field_mono"),
       DESCRIPTION(
@@ -1312,14 +1304,6 @@ void Workspace::define_wsv_data() {
           "Dimensions: \n"
           "     [*abs_species*][n_quantities][*f_grid*, *abs_p* ]\n"),
       GROUP("ArrayOfArrayOfMatrix")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("disort_is_initialized"),
-      DESCRIPTION("Flag to determine if *DisortInit* was called.\n"
-                  "\n"
-                  "This flag is checked by *DisortCalc* to make sure that\n"
-                  "*DisortInit* was called before.\n"),
-      GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
       NAME("dobatch_calc_agenda"),
@@ -3568,22 +3552,6 @@ void Workspace::define_wsv_data() {
       GROUP("Tensor5")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("radiation_field"),
-      DESCRIPTION(
-          "The spherical radiation field at a single position.\n"
-          "\n"
-          "Grids: [Zenith angle, Azimuth Angle, *f_grid*, *stokes_dim*]\n"),
-      GROUP("GriddedField4")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("transmission_field"),
-      DESCRIPTION(
-          "The spherical transmission field at a single position.\n"
-          "\n"
-          "Grids: [Zenith angle, Azimuth Angle, *f_grid*, *stokes_dim*, *stokes_dim*]\n"),
-      GROUP("GriddedField4")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("range_bins"),
       DESCRIPTION(
           "The range bins of an active instrument.\n"
@@ -3705,15 +3673,6 @@ void Workspace::define_wsv_data() {
           "elements of the covariance matrix of the smoothing error, *S_s* in Rodgers'\n"
           "book.\n"),
       GROUP("Vector")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("rt4_is_initialized"),
-      DESCRIPTION(
-          "Flag to determine if *RT4Init* was called.\n"
-          "\n"
-          "This flag is checked by *RT4Calc* to make sure that *RT4Init* was\n"
-          "called before.\n"),
-      GROUP("Index")));
 
   wsv_data.push_back(WsvRecord(
       NAME("rte_alonglos_v"),
@@ -4798,8 +4757,7 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("surface_props_names"),
       DESCRIPTION(
-          //FIXMEDOC First sentence unclear.
-          "Name on surface properties found *surface_props_data*.\n"
+          "Name on surface properties found in *surface_props_data*.\n"
           "\n"
           "Each string names a property in *surface_props_data*. The user is free\n"
           "to include data with any name, but the surface methods making use of\n"

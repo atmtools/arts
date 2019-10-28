@@ -153,14 +153,6 @@ void define_agenda_data() {
             "cloudbox_field_mono",
             "cloudbox_field_mono_old")));
 
-  /*
-  agenda_data.push_back(
-      AgRecord(NAME("cloudbox_field_agenda"),
-               DESCRIPTION("So far just a test."),
-               OUTPUT("cloudbox_field", "za_grid", "aa_grid"),
-               INPUT()));
-  */
-  
   agenda_data.push_back(AgRecord(
       NAME("doit_mono_agenda"),
       DESCRIPTION(
