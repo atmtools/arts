@@ -4491,7 +4491,7 @@ void define_md_data_raw() {
   md_data_raw.push_back(MdRecord(
       NAME("DisortCalc"),
       DESCRIPTION(
-          "Interface to the DISORT scattering solver (Stamnes et al.).\n"
+          "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
           "\n"
           "DISCLAIMER: There is a couple of known issues with the current\n"
           "implementation (see below). Use this WSM with care and only if\n"
@@ -4585,6 +4585,42 @@ void define_md_data_raw() {
                "Number of angular grid points to calculate bulk phase"
                " function on (and derive Legendre polnomials from). If <0,"
                " the finest za_grid from scat_data will be used.",
+               "Silence C Disort warnings.")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("DisortCalcClearsky"),
+      DESCRIPTION(
+          "Interface to DISORT for running clear-sky cases.\n"
+          "\n"
+          "The method runs DISORT with *pnd_field* set to zero.\n"
+          "\n"
+          "Note that this version returns *spectral_radiance_field*, i.e.\n"
+          "the solution for the full atmosphere. The standard *DisortCalc*\n"
+          "only returns the field inside the cloudbox.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("spectral_radiance_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atmfields_checked",
+         "atmgeom_checked",
+         "propmat_clearsky_agenda",
+         "atmosphere_dim",
+         "t_field",
+         "z_field",
+         "vmr_field",
+         "p_grid",
+         "f_grid",
+         "scat_za_grid",
+         "stokes_dim",
+         "z_surface",
+         "surface_skin_t",
+         "surface_scalar_reflectivity"),
+      GIN("nstreams", "quiet"),
+      GIN_TYPE("Index", "Index"),
+      GIN_DEFAULT("8", "0"),
+      GIN_DESC("Number of polar angle directions (streams) in DISORT "
+               "solution (must be an even number).",
                "Silence C Disort warnings.")));
 
   md_data_raw.push_back(MdRecord(

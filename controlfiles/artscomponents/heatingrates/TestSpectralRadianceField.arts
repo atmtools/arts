@@ -105,32 +105,31 @@ spectral_radiance_fieldClearskyPlaneParallel( trans_field = dummy )
 #
 Tensor7Create( ref_field )
 Copy( ref_field, spectral_radiance_field )
-WriteXML( "binary", z_field, "z.xml" )
-WriteXML( "binary", spectral_radiance_field, "f1.xml" )
-
-# Activate cloudbox, but no particles
-#
-cloudboxSetFullAtm
-pnd_fieldZero
+#WriteXML( "binary", z_field, "z.xml" )
+#WriteXML( "binary", spectral_radiance_field, "f1.xml" )
 
 
-# Set spectral_radiance_field on full DISORT calculation
+# Set spectral_radiance_field as full DISORT calculation
 #
-scat_data_checkedCalc
-DisortCalc( nstreams = 8 )
-spectral_radiance_fieldCopyCloudboxField
-#
-WriteXML( "binary", spectral_radiance_field, "f2.xml" )
+DisortCalcClearsky( nstreams = 8 )
+#WriteXML( "binary", spectral_radiance_field, "f2.xml" )
 Compare( ref_field, spectral_radiance_field, 2e-18 )
-Copy( ref_field, spectral_radiance_field )
+#Copy( ref_field, spectral_radiance_field )
 
 
-# Crop cloudbox_field around 10 km and use a third method
+# For last test, we create an empty cloudbox up to about 10 km
 #
-doit_i_fieldCrop( new_limit1 = 18 )
+cloudboxSetManually(p1=1100e3, p2=220e2, lat1=-1, lat2=-1, lon1=-1, lon2=-1)
+pnd_fieldZero
+scat_data_checkedCalc
+
+
+# Run DISORT and use a third method
+#
+DisortCalc( nstreams = 8 )
 Copy( iy_cloudbox_agenda, iy_cloudbox_agenda__QuadInterpField1D )
 spectral_radiance_fieldExpandCloudboxField
-WriteXML( "binary", spectral_radiance_field, "f3.xml" )
+#WriteXML( "binary", spectral_radiance_field, "f3.xml" )
 Compare( ref_field, spectral_radiance_field, 2e-18 )
 
 }

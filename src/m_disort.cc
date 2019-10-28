@@ -129,3 +129,86 @@ void DisortCalc(Workspace& ws,
               cdisort_quiet,
               verbosity);
 }
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void DisortCalcClearsky(Workspace& ws,
+                        Tensor7& spectral_radiance_field,
+                        const Index& atmfields_checked,
+                        const Index& atmgeom_checked,
+                        const Agenda& propmat_clearsky_agenda,
+                        const Index& atmosphere_dim,
+                        const Tensor3& t_field,
+                        const Tensor3& z_field,
+                        const Tensor4& vmr_field,
+                        const Vector& p_grid,
+                        const Vector& f_grid,
+                        const Vector& scat_za_grid,
+                        const Index& stokes_dim,
+                        const Matrix& z_surface,
+                        const Numeric& surface_skin_t,
+                        const Vector& surface_scalar_reflectivity,
+                        const Index& nstreams,
+                        const Index& cdisort_quiet,
+                        const Verbosity& verbosity) {
+
+  if (atmosphere_dim != 1)
+    throw runtime_error("For running DISORT, atmospheric dimensionality "
+                        "must be 1.\n");
+  
+  // Set cloudbox to cover complete atmosphere
+  Index cloudbox_on;
+  ArrayOfIndex cloudbox_limits;
+  const Index cloudbox_checked = 1;
+  //
+  cloudboxSetFullAtm(cloudbox_on,
+                     cloudbox_limits,
+                     atmosphere_dim,
+                     p_grid,
+                     Vector(0),
+                     Vector(0),
+                     verbosity);  
+
+  // Create data matching no particles
+  Tensor4 pnd_field;
+  ArrayOfTensor4 dpnd_field_dx;
+  ArrayOfArrayOfSingleScatteringData scat_data;
+  const Index scat_data_checked = 1;
+  //
+  pnd_fieldZero(pnd_field,
+                dpnd_field_dx,
+                scat_data,
+                atmosphere_dim,
+                f_grid,
+                cloudbox_limits,
+                ArrayOfRetrievalQuantity(0),
+                verbosity);
+
+  // Call standard DISORT method
+  DisortCalc(ws,
+             spectral_radiance_field,
+             atmfields_checked,
+             atmgeom_checked,
+             scat_data_checked,
+             cloudbox_checked,
+             cloudbox_on,
+             cloudbox_limits,
+             propmat_clearsky_agenda,
+             atmosphere_dim,
+             pnd_field,
+             t_field,
+             z_field,
+             vmr_field,
+             p_grid,
+             scat_data,
+             f_grid,
+             scat_za_grid,
+             stokes_dim,
+             z_surface,
+             surface_skin_t,
+             surface_scalar_reflectivity,
+             nstreams,
+             "median",
+             181,
+             cdisort_quiet,
+             verbosity);
+}
