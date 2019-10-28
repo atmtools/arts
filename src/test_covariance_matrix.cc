@@ -460,7 +460,7 @@ void test_workspace_methods() {
     covmat_seAddBlock(covmat, A, 3, 3, Verbosity());
     // This should fail.
     assert(false);
-  } catch (std::runtime_error) {
+  } catch (const std::runtime_error&) {
   }
 
   covmat_seAddBlock(covmat, A, 0, 1, Verbosity());
@@ -471,7 +471,7 @@ void test_workspace_methods() {
     covmat_seAddBlock(covmat, B, 1, 2, Verbosity());
     // This should fail.
     assert(false);
-  } catch (std::runtime_error) {
+  } catch (const std::runtime_error&) {
   }
 
   covmat_seAddInverseBlock(covmat, A, 0, 1, Verbosity());
@@ -480,7 +480,7 @@ void test_workspace_methods() {
     covmat_seAddInverseBlock(covmat, B, 3, 3, Verbosity());
     // This should fail.
     assert(false);
-  } catch (std::runtime_error) {
+  } catch (const std::runtime_error&) {
   }
 
   // covmat_sxSet
@@ -509,7 +509,7 @@ void test_workspace_methods() {
     covmat_sxAddBlock(covmat, rqs, A_sparse, 0, 1, Verbosity());
     // This should fail.
     assert(false);
-  } catch (std::runtime_error) {
+  } catch (const std::runtime_error&) {
   }
 
   covmat_sxAddBlock(covmat, rqs, C, 0, 1, Verbosity());
@@ -519,7 +519,7 @@ void test_workspace_methods() {
     covmat_sxAddInverseBlock(covmat, rqs, C, 1, 1, Verbosity());
     // This should fail.
     assert(false);
-  } catch (std::runtime_error) {
+  } catch (const std::runtime_error&) {
   }
 }
 
