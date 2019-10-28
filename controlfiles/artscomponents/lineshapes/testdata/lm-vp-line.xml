@@ -1,6 +1,40 @@
 <?xml version="1.0"?>
 <arts format="ascii" version="1">
-<ArrayOfLineRecord version="ARTSCAT-5" nelem="1">
-@ O2-66 100000000000 1e-15 296 3e-20 1e-21 3 1 LF VP LM2 1 AIR T1 10000 0.7 T5 1000 0.7 T4 1e-07 1e-09 0.8 T4 1e-11 1e-13 1.6 T4 0.0001 1e-06 1.6  QN UP J 1 LO J 0
-</ArrayOfLineRecord>
+<Array type="AbsorptionLines" nelem="1">
+<comment>
+Lines meta-data:
+	Species identity:
+		Species: O2-66
+		Lower Quantum Numbers: J 0
+		Upper Quantum Numbers: J 1
+	No cut-off will be applied.
+	The lines are considered as in pure LTE.
+	No re-normalization in the far wing will be applied.
+	The line shape type is the Voigt profile.
+	These lines are not mirrored at 0 Hz.
+	The reference temperature for all line parameters is 296 K.
+	If applicable, there is no line mixing limit.
+	There are 1 lines available.
+	The front line has:
+		f0: 1e+11 Hz
+		i0: 1e-15 m^2/Hz
+		e0: 3e-20 J
+		Lower stat. weight: 1 [-]
+		Upper stat. weight: 3 [-]
+		A: 1e-21 1/s
+		Zeeman splitting of lower state: 0 [-]
+		Zeeman splitting of upper state: 0 [-]
+		Lower state local quantum numbers:
+		Upper state local quantum numbers:
+		Line shape parameters (are normalized by sum(VMR)):
+			G0 ~ VMR(AIR) * 10000 * (296/T)^0.7
+			D0 ~ VMR(AIR) * 1000 * (296/T)^(0.25 + 1.5 * 0.7)
+			Y ~ VMR(AIR) * (1e-07 + 1e-09 * (296/T - 1)) * (296/T)^0.8
+			G ~ VMR(AIR) * (1e-11 + 1e-13 * (296/T - 1)) * (296/T)^1.6
+			DV ~ VMR(AIR) * (0.0001 + 1e-06 * (296/T - 1)) * (296/T)^1.6
+</comment>
+<AbsorptionLines nlines="1" species="O2-66" cutofftype="None" mirroringtype="None" populationtype="LTE" normalizationtype="None" lineshapetype="VP" T0="296" cutofffreq="0" linemixinglimit="-1" localquanta="" upperglobalquanta="J 1" lowerglobalquanta="J 0" broadeningspecies=" AIR" temperaturemodes="G0 T1 D0 T5 Y T4 G T4 DV T4">
+100000000000 1e-15 3e-20 1 3 1e-21 0 0 10000 0.7 0 0 1000 0.7 0 0 1e-07 1e-09 0.8 0 1e-11 1e-13 1.6 0 0.0001 1e-06 1.6 0 
+</AbsorptionLines>
+</Array>
 </arts>

@@ -25,7 +25,7 @@ Arts2{
   ArrayOfPropagationMatrixCreate(testdata)
   
   ## Absorption lines (Doppler, no Zeeman, no NLTE, no mirroring, no normalization)
-  ReadARTSCAT(abs_lines=abs_lines, filename="testdata/htp-vp-line.xml", globalquantumnumbers="J")
+  ReadXML(abs_lines, "testdata/htp-vp-line.xml")
   ArrayOfAbsorptionLinesCreate(aolr)
   Copy(aolr, abs_lines)
   abs_lines_per_speciesCreateFromLines
