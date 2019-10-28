@@ -83,7 +83,7 @@ sensorOff
 
 # Create a za_grid
 #
-AngularGridsSetFluxCalc( N_za_grid = 38 )
+AngularGridsSetFluxCalc( N_za_grid = 20 )
 
 # Perform checks
 #
@@ -121,7 +121,7 @@ DisortCalc( nstreams = 8 )
 spectral_radiance_fieldCopyCloudboxField
 #
 WriteXML( "binary", spectral_radiance_field, "f2.xml" )
-Compare( ref_field, spectral_radiance_field, 5e-18 )
+Compare( ref_field, spectral_radiance_field, 2e-18 )
 Copy( ref_field, spectral_radiance_field )
 
 
@@ -131,6 +131,6 @@ doit_i_fieldCrop( new_limit1 = 18 )
 Copy( iy_cloudbox_agenda, iy_cloudbox_agenda__QuadInterpField1D )
 spectral_radiance_fieldExpandCloudboxField
 WriteXML( "binary", spectral_radiance_field, "f3.xml" )
-Compare( ref_field, spectral_radiance_field, 5e-18 )
+Compare( ref_field, spectral_radiance_field, 2e-18 )
 
 }

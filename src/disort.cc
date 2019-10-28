@@ -141,10 +141,10 @@ void check_disort_input(  // Input
   // apply a very rough test here, whether the grid is appropriate. However, we
   // set the threshold fairly high since calculation costs for a higher number
   // of angles are negligible.
-  if (nza < 37) {
+  if (nza < 20) {
     ostringstream os;
-    os << "We require size of scat_za_grid to be > 36\n"
-       << "to ensure accurate radiance field interpolation in yCalc.\n"
+    os << "We require size of scat_za_grid to be >= 20, to ensure a\n"
+       << "reasonable interpolation of the calculated cloudbox field.\n"
        << "Note that for DISORT additional computation costs for\n"
        << "larger numbers of angles are negligible.";
     throw runtime_error(os.str());
@@ -156,26 +156,12 @@ void check_disort_input(  // Input
   if (!is_increasing(scat_za_grid))
     throw runtime_error("*scat_za_grid* must be increasing.");
 
-  if (nza / 2 * 2 != nza) {
-    // uneven nza detected. uneven nza (when set as equidistant grid as
-    // commonly done by ARTS) lead to polar angle grid point at 90deg, ie at
-    // the horizontal. this is not safely calculable in a plane-parallel atmo.
-    // for now we just force the user to use an even nza.
-    //
-    // an even nza does not place the center angles close to horizon, though,
-    // unless the number of streams is very high. therefore, one could instead
-    // replace this gridpoint with two points centered closely around 90deg
-    // and derive the 90deg value from averaging these two.
-    // however, this is left to the future (and needs testing).
-    //
-    // FIXME: more correct (and stable in case of non-equidistant grids) is to
-    // check whether scat_za_grid actually contains the 90deg angle and to
-    // reject (or circumvent) this specifically.
-    ostringstream os;
-    os << "Uneven number of angles in scat_za_grid (nza=" << nza << ".\n"
-       << "Use even number with no grid point at 90deg poin.t\n";
-    throw runtime_error(os.str());
-  }
+  Index i = 1;
+  while (scat_za_grid[i] <= 90) {
+    if (scat_za_grid[i] == 90)
+      throw runtime_error("*scat_za_grid* is not allowed to contain the value 90");
+    i++;
+  } 
 
   // DISORT can only handle randomly oriented particles.
   bool all_totrand = true;
