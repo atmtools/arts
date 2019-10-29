@@ -174,7 +174,10 @@ then presents aspects of the specific implementation in ARTS.
 %-----------------------
 \label{sec:abs_theory:line_absorption}
 
-\subsection{Theoretical background}
+This section will first go over the theory of line-by-line absorption.
+It will then switch to the method of how this theory is implemented into ARTS.
+
+\subsection{Line functions - theory}
  
 We will introduce here the main concepts concerning line
 absorption. The aim is to give some overview and show some key
@@ -198,32 +201,13 @@ function is normalized as:
   \int F(\nu)d\nu=1
 \end{equation}
 
-The values of $S(T)$ at reference temperature $T_0$ are contained in
-spectroscopic databases (more on this below). The conversion to
-different temperatures in local thermodynamic equilibrium is done by
-\begin{equation}\label{eq:abs_theory:line_intensity}
-  S(T)=S(T_0)~\frac{Q(T_0)}{Q(T)}~\frac{e^{-E_f/(kT)}
-    - e^{-E_i/(kT)}}{e^{-E_f/(kT_0)} - e^{-E_i/(kT_0)}}
-\end{equation}
-given the energies $E_f$ and $E_i$ of the two levels between which the
-transition occurs as well as the partition function  $Q(T)$ \citep{rothman:98}.
-The databases contain the lower state energy $E_l$ tabulated along with
-the $S$ and the transition frequency $\nu$, so that the upper state
-energy can be computed by $E_u$=$E_l$+h$\nu$. Partition functions for
-the different molecular species are commonly available along with the
-spectroscopic databases, given in the form of tabulated values for a set
-temperatures (e.g., for JPL catalogue) or through some computer code (e.g.,
-the TIPS program coming with the HITRAN catalogue).  For non-local
-thermodynamic equilibrium calculations, please see later subsections.
-
 As absorption is additive, the total absorption coefficient is derived by 
 adding up the absorption contributions of all spectral lines of all molecular 
 species.
 
-\subsubsection{Line functions - theory} 
 \label{sec:abs_theory:shape}
 
-\paragraph*{Line shapes} \ 
+\subsubsection{Line shapes}
 
 So far, there exists no complete analytical function that accurately
 describes the line shape in all atmospheric conditions and for all
@@ -409,13 +393,12 @@ Further refinement to line shape models include speed-dependent Voigt profiles
 and the Hartmann-Tran profile.  We will not go into them here because
 any theoretical description we offer at this point would not do them justice (FIXME).
 
-\paragraph*{Partition functions} \
+\subsubsection{Partition functions}
 
 Partition functions are needed to compute the temperature dependence
-of the line intensities in local thermodynamic equilibrium (Equation \ref{eq:abs_theory:line_intensity} on
-page \pageref{eq:abs_theory:line_intensity}).  They are related to the
-molecular energy states and their statistical distribution during the
-radiation process.
+of the line intensities in local thermodynamic equilibrium.
+They are related to the molecular energy states and their statistical
+distribution during the radiation process.
 
 In any case of spectroscopic interest the free molecules of a gas are
 not optically thick at all frequencies, so the radiation energy is not
@@ -448,6 +431,25 @@ ground state \citep{gordyandcook:70}. Thus the total particle number $N$ is give
 The quantity $Q(T)$ is the {\it{partition function}\nocorr} of the
 gas, which generally speaking describes the energy states distribution
 of the gas molecules and atoms. 
+
+The values of $S(T)$ at reference temperature $T_0$ of
+Equation~\ref{eq:abs_coeff} are contained in
+spectroscopic databases (more on this below). The conversion to
+different temperatures in local thermodynamic equilibrium is done by
+\begin{equation}\label{eq:abs_theory:line_intensity}
+  S(T)=S(T_0)~\frac{Q(T_0)}{Q(T)}~\frac{e^{-E_f/kT}
+    - e^{-E_i/kT}}{e^{-E_f/kT_0} - e^{-E_i/kT_0}}
+\end{equation}
+given the energies $E_f$ and $E_i$ of the two levels between which the
+transition occurs as well as the partition function  $Q(T)$ \citep{rothman:98}.
+The databases contain the lower state energy $E_l$ tabulated along with
+the $S$ and the transition frequency $\nu$, so that the upper state
+energy can be computed by $E_u$=$E_l$+h$\nu$. Partition functions for
+the different molecular species are commonly available along with the
+spectroscopic databases, given in the form of tabulated values for a set
+temperatures (e.g., for JPL catalogue) or through some computer code (e.g.,
+the TIPS program coming with the HITRAN catalogue).  For non-local
+thermodynamic equilibrium calculations, please see the end of this subsubsection.
 
 The partition function for a perfect gas molecule can be represented
 by the product of the {\it{translational}\nocorr} and the
@@ -548,7 +550,7 @@ it as
 \begin{equation}
 Q_v^{(N)}=Q_v \left(\frac{1-e^{h\omega_N/kT_N}}{1-e^{h\omega_N/kT}}\right)^{-d_N},
 \end{equation}
-where $T_N$ is the pseudo-temperature of the $N$:th level.  Note that this
+where $T_N$ is the pseudo-temperature of the $N$:th level.  This
 set of equations describe LTE when $T_N=T$
 
 Generally in NLTE one might be better off using a more pure approach
@@ -564,15 +566,15 @@ coefficient of
 \begin{equation}
  e = \frac{h\nu_0}{4\pi} A_{21} r_2.
 \end{equation}
-Note that this set of equations describes LTE when $e/B \equiv k$, where $B$ is the
-Planck blackbody emission function.
-
+This set of equations describes LTE when $e/B(T) \equiv k$, where $B(T)$ is the
+Planck blackbody emission function at the atmospheric temperature.
 
 \subsection{Line functions - method \label{modern_lineshapes}}
 
 The line shape model employed in internal calculations is closely coupled to
 the data structure the user can send into the code.
-There have therefore been many iterations of ARTS absorption line data format.  The
+There have therefore been many iterations of the ARTS absorption
+line data format.  The
 newest format is described here.  We refer to the newest version as the ARTSCAT-6
 format.  Older ARTSCAT(s) are still supported but by reading only.  You have stored
 a modern version of the ARTSCAT if the main class is called
@@ -585,10 +587,14 @@ and explain the consequences various \verb|AbsorptionLines|-settings have on the
 final result.  These settings are easily extensible so please return here
 to keep up-to-date whenever you discover or add a new option to the line shape model.
 
+\subsubsection{Basic data structure}
+
 The basic structure of the latest ARTS absorption line catalog
 is to group as many global variables together as possible for 
 the lines of a single isotopologue.  The global variables are
-introduced in table~\ref{tab:abs_theory:lineshape:abscatglob}.
+introduced in table~\ref{tab:abs_theory:lineshape:abscatglob}
+and are meant to either describe the basis of the data or to
+influence the computations by selecting the algorithm invoked.
 
 \begin{table}[ht!]
  \centering
@@ -616,12 +622,13 @@ introduced in table~\ref{tab:abs_theory:lineshape:abscatglob}.
 \caption{Global line parameters.  Single line parameters can be found in table~\ref{tab:abs_theory:lineshape:abscatline}.
 Especially important here are
 each of the 5 keys used to describe a type of calculations.
+These are the keys whose names end in ``type''.
 These have been given their own tables
-\ref{tab:abs_theory:lineshape:lineshapetype},
-\ref{tab:abs_theory:lineshape:cutofftype}, 
-\ref{tab:abs_theory:lineshape:normalizationtype},
-\ref{tab:abs_theory:lineshape:mirroringtype}, and
-\ref{tab:abs_theory:lineshape:populationtype},
+\ref{tab:abs_theory:lineshape:lineshapetype} for line shape,
+\ref{tab:abs_theory:lineshape:cutofftype} for cutoff, 
+\ref{tab:abs_theory:lineshape:normalizationtype} for normalization,
+\ref{tab:abs_theory:lineshape:mirroringtype} for mirroring, and
+\ref{tab:abs_theory:lineshape:populationtype} for population distribution,
 Some important notes about this format. 
 There exist a defined set of quantum numbers.  You can only set numbers
 from these.
@@ -636,8 +643,8 @@ The temperature models are discussed in table~\ref{tab:abs_theory:lineshape:temp
 \label{tab:abs_theory:lineshape:abscatglob}
 \end{table}
 
-Each individual line in the catalog has the parameters
-described in table~\ref{tab:abs_theory:lineshape:abscatline} defined.
+Each individual line in the catalog has their parameters
+described in table~\ref{tab:abs_theory:lineshape:abscatline}.
 Note that it is possible to set up calculations that cannot
 work with specialized methods because of the two changeable
 parameters.  For instance, you cannot perform pressure broadening
@@ -652,7 +659,7 @@ because it is difficult to know whether a decision is intentional
 \begin{table}[ht]
 \centering
  \begin{tabular}{c}
-  Values for individual lines\\\hline
+  Variables for individual lines\\\hline
  \end{tabular}
 \begin{tabular}{lll}
 Variable(s)&Description&Unit(s)\\
@@ -686,6 +693,8 @@ are given before the upper state numbers.
 \label{tab:abs_theory:lineshape:abscatline}
 \end{table}
 
+\subsubsection{Basic expressions}
+
 The generic function in use for each individual line's cross-section can now be presented as
 \begin{equation}
  \sigma = S(\cdots) \left(1 - iY + G\right) F\left( \cdots \right),
@@ -700,8 +709,8 @@ The input to $F(\cdots)$ in part depends
 on the selection of line shape type, which can be seen in table~\ref{tab:abs_theory:lineshape:lineshapetype},
 and in part to the single line data.  Note the differences
 to Equation~\ref{eq:abs_coeff} is mostly the separation of the line mixing
-coefficients.  This is done for efficiency and to help keep the code 
-structure easy.
+coefficients and the lack of the total number density.
+This change is done for efficiency and to help keep the code structure easy.
 
 \begin{table}[ht!]
  \centering
@@ -733,7 +742,7 @@ structure easy.
 \end{table}
 
 The only somewhat special input to the calculations of $F(\cdots)$ of equation~\ref{eq:lsalg-standard-equation} is the Zeeman splitting.
-To compute the Zeeman splitting, you do
+To compute the Zeeman splitting, where
 \begin{equation}
  \nu_z = \frac{\mu_B}{h}\left(g_{z_1}M_1 - g_{z_2}M_2\right) ||\vec{B}||,
 \end{equation}
@@ -743,6 +752,8 @@ $h$ is the Planck constant,
 $||\vec{B}||$ is the magnitude of the magnetic field strength, and
 $M\in\left[-J, -J+1, \cdots, J-1, J\right]$, where $J$ is the rotational quantum number.
 Note that physics demands that $J\geq0$ , that $|J_1-J_2|\in[0,1]$, and that $|M_1-M_2|\in[0,1]$.
+
+\subsubsection{Line shapes}
 
 The ellipsis arguments of $F(\cdots)$ depends in part on the \verb|temperaturemodes|
 \verb|AbsorptionLines| key.  The relevant line shape parameter coefficients
@@ -901,6 +912,8 @@ the effect is instead ignored entirely to not risk introducing numerical bugs.
  \label{tab:abs_theory:lineshape:mirroringtype}
 \end{table}
 
+\subsubsection{Line strengths}
+
 The last global key is the population types, \verb|populationtype| of \verb|AbsorptionLines|.
 These are found in table~\ref{tab:abs_theory:lineshape:populationtype}.
 They affect the computations of $S(\cdots)$ of equation~\ref{eq:lsalg-standard-equation}.
@@ -933,7 +946,7 @@ are separating absorption and source cross-sections when dealing with NLTE.
 We do this since the atmospheric emission and absorption no longer leads to a simple Planck function, but must be considered different.
 The additional emission factor for the vibrational NLTE becomes
 \begin{equation}
- S^{(src)}_{Vib-NLTE} = S_{LTE}\exp\left({E_2 (T - T_2)}\middle/{kTT_2}\right) - S^{(abs)}_{Vib-NLTE}.
+ S^{(src)}_{Vib-NLTE} = e^{\left.{E_2 (T - T_2)}\middle/{kTT_2}\right.}S_{LTE} - S^{(abs)}_{Vib-NLTE}.
 \end{equation}
 and
 \begin{equation}
@@ -980,314 +993,314 @@ where $C$ is 1.5 if $M_2\equiv M_1$ or 0.75 otherwise, and $(:::)$ are Wigner sy
 Note that all combinations of $M$ and $J$ are automatically computed in ARTS and checked
 against the sum of unity.
 
-\paragraph*{The comment tag in ARTSCAT-6}
-We use a comment tag to help explain the data in ARTSCAT-6 to anyone that reads the data file manually.
-This comment tag looks different depending on options presented.  Here is an example
-for a the water band containing the commonly measured 22~GHz line that has been read from HITRAN
-without altering anything
-{\tiny
-\begin{verbatim}
-<comment>
-Lines meta-data:
-  Species identity:
-    Species: H2O-161
-    Lower Quantum Numbers: v1 0 v2 0 v3 0
-    Upper Quantum Numbers: v1 0 v2 0 v3 0
-  No cut-off will be applied.
-  The lines are considered as in pure LTE.
-  No re-normalization in the far wing will be applied.
-  The line shape type is the Voigt profile.
-  These lines are not mirrored at 0 Hz.
-  The reference temperature for all line parameters is 296 K.
-  If applicable, there is no line mixing limit.
-  There are 2 lines available.
-  The front line has:
-    f0: 1.24722e+10 Hz
-    i0: 5.87972e-26 m^2/Hz
-    e0: 7.19841e-20 J
-    Lower stat. weight: 33 [-]
-    Upper stat. weight: 31 [-]
-    A: 3.183e-10 1/s
-    Zeeman splitting of lower state: 0 [-]
-    Zeeman splitting of upper state: 0 [-]
-    Lower state local quantum numbers: J=16; N=0/0; Omega=0/0;
-    Upper state local quantum numbers: J=15; N=0/0; Omega=0/0;
-    Line shape parameters (are normalized by sum(VMR)):
-      G0 ~ VMR(SELF) * 61541.4 * (296/T)^0.38 + VMR(AIR) * 10207.6 * (296/T)^0.38
-      D0 ~ VMR(SELF) * 2810.79 * (296/T)^(0.25 + 1.5 * 0.38) + VMR(AIR) * 2810.79 * (296/T)^(0.25 + 1.5 * 0.38)
-</comment>
-\end{verbatim}}
-whose first line reads (snipped to help the reader)
-{\tiny
-\begin{verbatim}
-12472205671.6824 5.87971575585295e-26 7.19840939592874e-20 33 31 3.183e-10 0 0 61541.4076131261 0.38 0 0
-(snip) 2810.78544386874 0.38 0 0 10207.5892435233 0.38 0 0 2810.78544386874 0.38 0 0 16 0/0 0/0 15 0/0 0/0 
-\end{verbatim}}
-Compare this to tables~\ref{tab:abs_theory:lineshape:abscatglob}~and~\ref{tab:abs_theory:lineshape:abscatline}
-and hopefully our catalog format makes more sense.  There were some problems with the requested read of this
-catalog, but none that will affect standard line-by-line calculations.  The problem is that several 0/0 ratios
-have appeared among the quantum numbers.  The reader requested that $J$, $N$, and $\Omega$ all appear as local
-quantum numbers. However, they are either not all defined for water, or there is an error in the ARTS HITRAN
-reader.  In these cases, we will leave numbers undefined and try to catch the problem where it is relevant
-for real calculations.
-
-\subsubsection{Line shapes}
-
-What follows are the profiles available in ARTS written out in full.
-Note that this will be complicated towards the end, especially as 
-we have limited experience applying SDVP and HTP calculations in real
-life.
-
-\paragraph*{Doppler profile}
-\begin{equation}
- F_{DP} = \frac{1}{\sqrt{\pi}\Gamma_D}e^{\left.- \left[\nu - \nu_0 - \nu_z\right]^2 \middle/ \Gamma_D^2\right.}
-\end{equation}
-
-\paragraph*{Lorentz profile}
-\begin{equation}
- F_{LP} = \frac{1}{\pi} \frac{1}{\Gamma_0+i\Delta_0+i\delta\nu+i\nu_0+i\nu_z-i\nu}
-\end{equation}
-
-\paragraph*{Voigt profile}
-\begin{equation}
- F_{VP} = \frac{1}{\sqrt{\pi}\Gamma_D} w(z),
-\end{equation}
-where
-\begin{equation}
- z = \frac{\nu-\Delta_0-\delta\nu-\nu_0-\nu_z + i\Gamma_0}{\Gamma_D},
-\end{equation}
-and $w(\cdots)$ is the Faddeeva function.
-
-\paragraph*{The Hartman-Tran profile and Speed-dependent Voigt profile}
-will get very complicated.  Note before reading this that we convert all
-values into CGS in ARTS before performing the following calculations.
-The reasoning we have is that this is how the line shape was published,
-and we are using a translation of the original code. This will hopefully
-change in the future as we grow confident in our use of the code.
-To translate these values back, to ARTS, we have to apply not just a conjunction
-of the results but also scale the results by a factor $1/100c$.
-
-\begin{equation}
- F_{HTP} = \frac{1}{\pi}\frac{A}{\left[\left(C_0 - \left.3C_2\middle/2\right.\right)\eta - \nu_{FVC}\right] A + \eta C_2 B + 1}
-\end{equation}
-where
-\begin{equation}
- C_0 = \Gamma_0 - i\Delta_0
-\end{equation}
-and
-\begin{equation}
- C_2 = \Gamma_2 - i\Delta_2.
-\end{equation}
-Now it will soon get complicated by braching out depending on values.
-Before going into the conditional branches,
-these are constant in all of the expressions that will follow.
-\begin{equation}
- y = \left(\frac{1}{2\left.{\sqrt{\ln 2}\left(1-\eta\right)C_2}\middle/{\Gamma_D}\right.}\right)^2
-\end{equation}
-\begin{equation}
- x = \frac{\left(1-\eta\right)\left(C_0 - \left.3C_2\middle/2\right.\right) + \nu_{VC} + i\nu - i\nu_0 - i\nu_z}{\left(1-\eta\right)C_2}.
-\end{equation}
-
-Normally, that is if all numbers are reasonable large and normal,
-\begin{equation}
- A = \sqrt{\pi}\frac{\sqrt{\ln 2}}{\Gamma_D}\left[w(i z_1) - w(i z_2)\right]
-\end{equation}
-and
-\begin{equation}
- B = \frac{\left.\sqrt{\pi} \left[\left(1-z_1^2\right)w(i z_1) - \left(1-z_2^2\right)w(i z_2) \right] \middle/ 2\sqrt{y}\right. -1}{\left(1-\eta\right)C_2},
-\end{equation}
-where $z_1 = \sqrt{x+y} - \sqrt{y}$ and $z_2 = \sqrt{x+y} + \sqrt{y}$.
-
-If $|y| \leq 10^{-15}|x|$ but all other numbers are reasonably large and normal,
-then if $|\sqrt{x}| \leq 4000$
-\begin{equation}
- A = \frac{2\sqrt{\pi}}{\left(1-\eta\right)C_2}
- \left(\frac{1}{\sqrt{\pi}} - z_bw(i z_b)\right)
-\end{equation}
-and
-\begin{equation}
- B = \frac{ 
- 2\sqrt{\pi} \left[ \left( 1-x-2y \right) \left(1/\sqrt{\pi} - z_bw(i z_b)\right) +
- z_1w(i z_1)\right] -1}{\left(1-\eta\right)C_2},
-\end{equation}
-where $z_1 = \sqrt{x+y}$ and $z_b = \sqrt{x}$.
-Still if $|y| \leq 1e-15|x|$ but all other numbers are reasonably large and normal,
-then if $|\sqrt{x}| > 4000$
-\begin{equation}
- A = \frac{1/x - \left.3\middle/2x^2\right.}{\left(1-\eta\right)C_2}
-\end{equation}
-and
-\begin{equation}
- B = \frac{ 
-  \left( 1-x-2y \right) \left(1/x - \left.3 \middle/ 2x^2\right.\right) +
- 2\sqrt{\pi}z_1w(i z_1) -1}{\left(1-\eta\right)C_2},
-\end{equation}
-with $z_1=\sqrt{x+y}$.
-
-If $|x| \leq 3\times10^{-8}|y|$ and the other numbers are normal then
-\begin{equation}
- A = \sqrt{\pi}\frac{\sqrt{\ln 2}}{\Gamma_D}\left[w(i z_1) - w(i z_2)\right]
-\end{equation}
-and
-\begin{equation}
- B = \frac{\left.\sqrt{\pi} \left[\left(1-z_1^2\right)w(i z_1) - \left(1-z_2^2\right)w(i z_2) \right] \middle/ 2\sqrt{y}\right. -1}{\left(1-\eta\right)C_2},
-\end{equation}
-with 
-$z_1 =  \left. \sqrt{\ln 2}\left[ i\nu-i\nu_0-i\nu_z + \left(1-\eta\right)\left(C_0 - \left.3C_2\middle/2\right.\right) + \nu_{VC}\right] \middle/ \Gamma_D \right.$ and
-$z_2 = \sqrt{x+y} + \sqrt{y}$.
-
-Lastly, if $\left(1-\eta\right)C_2 \equiv 0$, then
-\begin{equation}
- A = \sqrt{\pi}\frac{\sqrt{\ln 2}}{\Gamma_D}w(i z_1)
-\end{equation}
-with $z_1 =  \left. \sqrt{\ln 2}\left[ i\nu-i\nu_0-i\nu_z + \left(1-\eta\right)\left(C_0 - \left.3C_2\middle/2\right.\right) + \nu_{VC}\right] \middle/ \Gamma_D \right.$.
-If $|z_1| \leq 4000$ then
-\begin{equation}
- B = \sqrt{\pi}\frac{\sqrt{\ln 2}}{\Gamma_D}\left[\left(1 - z_1^2\right) w(i z_1) + \frac{z_1} {\sqrt{\pi}}\right]
-\end{equation}
-otherwise if $|z_1| > 4000$
-\begin{equation}
- B = \frac{\sqrt{\ln 2}}{\Gamma_D} \left[ \sqrt{\pi}w(i z_1) + \frac{1}{2z_1} - \frac{3}{4z_1^3} \right].
-\end{equation}
-
-\subsubsection{Partial derivatives of $F\left(\cdots\right)$}
-
-The partial derivatives are listed below in order of the different profiles. 
-
-\paragraph*{Partial derivative w.r.t.\ $T$}
-
-\begin{itemize}
- \item[DP:] $\frac{\partial F_{DP}}{\partial T} = F_{DP}\left(2\left[\frac{\nu - \nu_0 - \nu_z}{\Gamma_D}\right]^2-1\right) \frac{\partial \Gamma_D}{\partial T} \frac{1}{\Gamma_D}$
- 
- \item[LP:] $\frac{\partial F_{LP}}{\partial T} = -\frac{F_{LP}}{\Gamma_0+i\Delta_0+i\delta\nu+i\nu_0+i\nu_z-i\nu} \left( \frac{\partial \Gamma_0}{\partial T} + i\frac{\partial \Delta_0}{\partial T} + i \frac{\partial \delta\nu}{\partial T}\right)$ 
- 
- \item[VP:] $\frac{\partial F_{VP}}{\partial T} = \frac{2}{\sqrt{\pi}\Gamma_D}\left(\frac{i}{\sqrt{\pi}} - z w\left(z\right) \right)
- \left(i\frac{\partial \Gamma_0}{\partial T} - \frac{\partial\Delta_0}{\partial T} - \frac{\partial\delta\nu}{\partial T} -z\frac{\partial\Gamma_D}{\partial T}\right) - F_{VP}\frac{\partial\Gamma_D}{\partial T}\frac{1}{\Gamma_D}$
- 
- \item[SDVP:] Formulation too long. Analytical solution available in ARTS.
- 
- \item[HTP:] Formulation too long. Analytical solution available in ARTS.
-\end{itemize}
-Also note that the partial derivatives for the parameters of 
-Table~\ref{tab:abs_theory:lineshape:temperaturemodes} are trivial from said table's equations.
-
-\paragraph*{Partial derivative w.r.t.\ $\nu$}
-
-\begin{itemize}
- \item[DP:] $\frac{\partial F_{DP}}{\partial \nu} = -2 F_{DP} \left[\frac{\nu - \nu_0 - \nu_z}{\Gamma_D^2}\right]$
- 
- \item[LP:] $\frac{\partial F_{LP}}{\partial\nu} = \frac{iF_{LP}}{\Gamma_0+i\Delta_0+i\delta\nu+i\nu_0+i\nu_z-i\nu}$
- 
- \item[VP:] $\frac{\partial F_{VP}}{\partial \nu} = \frac{2}{\sqrt{\pi}\Gamma_D}\left(\frac{i}{\sqrt{\pi}} - z w\left(z\right) \right) \frac{1}{\Gamma_D}$
- 
- \item[SDVP:] Formulation too long. Analytical solution available in ARTS.
- 
- \item[HTP:] Formulation too long. Analytical solution available in ARTS.
-\end{itemize}
-Also note that the frequency derivative is used to derive wind derivatives
-in a later stage.
-
-\paragraph*{Partial derivative w.r.t.\ $\nu_0$}
-
-\begin{itemize}
- \item[DP:] $\frac{\partial F_{DP}}{\partial \nu_0} = 2F_{DP} \left[\frac{\nu-\nu_0-\nu_z}{\Gamma_D}\right] \left(\frac{\left[\frac{\nu - \nu_0 - \nu_z}{\Gamma_D}\right]-1}{\nu_0 + \nu_z}+ \frac{1}{\Gamma_D}\right)$
- 
- \item[LP:] $\frac{\partial F_{LP}}{\partial\nu_0} = -\frac{iF_{LP}}{\Gamma_0+i\Delta_0+i\delta\nu+i\nu_0+i\nu_z-i\nu}$
- 
- \item[VP:] $\frac{\partial F_{VP}}{\partial \nu_0} = \frac{2}{\sqrt{\pi}\Gamma_D}\left(\frac{i}{\sqrt{\pi}} - z w\left(z\right) \right) \left(-\frac{1}{\Gamma_D}-\frac{z}{\Delta_0+\delta\nu+\nu_0+\nu_z}\right) - \frac{F_{VP}}{\Delta_0+\delta\nu+\nu_0+\nu_z}$
- 
- \item[SDVP:] Formulation too long. Analytical solution available in ARTS.
- 
- \item[HTP:] Formulation too long. Analytical solution available in ARTS.
-\end{itemize}
-Also note that Equation~\ref{eq:lsalg-standard-equation} has the line strength that depends on the line central frequency. 
-
-\paragraph*{Partial derivative w.r.t.\ $\delta\nu$}
-
-See ``Partial derivative w.r.t.\ $\nu_0$'' for identical solution.  Also note that chaining for
-any coefficient in Table~\ref{tab:abs_theory:lineshape:temperaturemodes} is possible.
-
-\paragraph*{Partial derivative w.r.t.\ $\Delta_0$}
-
-See ``Partial derivative w.r.t.\ $\nu_0$'' for identical solution.  Also note that chaining for
-any coefficient in Table~\ref{tab:abs_theory:lineshape:temperaturemodes} is possible.
-
-\paragraph*{Partial derivative w.r.t.\ $||\vec{B}||$}
-
-See ``Partial derivative w.r.t.\ $\nu_0$'' for almost identical solution.
-Scale expressions by $\left. \mu_B \left(g_{z_1}M_1-g_{z_2}M_2\right) \middle/h\right.$ to be correct.
-
-\paragraph*{Partial derivative w.r.t.\ $\Gamma_0$}
-
-\begin{itemize}
- \item[DP:] N/A
- 
- \item[LP:] $\frac{\partial F_{LP}}{\partial\Gamma_0} = -\frac{F_{LP}}{\Gamma_0+i\Delta_0+i\delta\nu+i\nu_0+i\nu_z-i\nu}$
- 
- \item[VP:] $\frac{\partial F_{VP}}{\partial \Gamma_0} = \frac{2}{\sqrt{\pi}\Gamma_D}\left(\frac{i}{\sqrt{\pi}} - z w\left(z\right) \right) \frac{i}{\Gamma_D}$
- 
- \item[SDVP:] Formulation too long. Analytical solution available in ARTS.
- 
- \item[HTP:] Formulation too long. Analytical solution available in ARTS.
-\end{itemize}
-
-\paragraph*{Partial derivative w.r.t.\ $\Gamma_2$}
-
-\begin{itemize}
- \item[DP:] N/A
- 
- \item[LP:] N/A
- 
- \item[VP:] N/A
- 
- \item[SDVP:] Formulation too long. Analytical solution available in ARTS.
- 
- \item[HTP:] Formulation too long. Analytical solution available in ARTS.
-\end{itemize}
-
-\paragraph*{Partial derivative w.r.t.\ $\Delta_2$}
-
-\begin{itemize}
- \item[DP:] N/A
- 
- \item[LP:] N/A
- 
- \item[VP:] N/A
- 
- \item[SDVP:] Formulation too long. Analytical solution available in ARTS.
- 
- \item[HTP:] Formulation too long. Analytical solution available in ARTS.
-\end{itemize}
-
-\paragraph*{Partial derivative w.r.t.\ $\eta$}
-
-\begin{itemize}
- \item[DP:] N/A
- 
- \item[LP:] N/A
- 
- \item[VP:] N/A
- 
- \item[SDVP:] N/A
- 
- \item[HTP:] Formulation too long. Analytical solution available in ARTS.
-\end{itemize}
-
-\paragraph*{Partial derivative w.r.t.\ $\nu_{FVC}$}
-
-\begin{itemize}
- \item[DP:] N/A
- 
- \item[LP:] N/A
- 
- \item[VP:] N/A
- 
- \item[SDVP:] N/A
- 
- \item[HTP:] Formulation too long. Analytical solution available in ARTS.
-\end{itemize}
-
-Note that chaining for any coefficient in Table~\ref{tab:abs_theory:lineshape:temperaturemodes} is possible.
+% \paragraph*{The comment tag in ARTSCAT-6}
+% We use a comment tag to help explain the data in ARTSCAT-6 to anyone that reads the data file manually.
+% This comment tag looks different depending on options presented.  Here is an example
+% for a the water band containing the commonly measured 22~GHz line that has been read from HITRAN
+% without altering anything
+% {\tiny
+% \begin{verbatim}
+% <comment>
+% Lines meta-data:
+%   Species identity:
+%     Species: H2O-161
+%     Lower Quantum Numbers: v1 0 v2 0 v3 0
+%     Upper Quantum Numbers: v1 0 v2 0 v3 0
+%   No cut-off will be applied.
+%   The lines are considered as in pure LTE.
+%   No re-normalization in the far wing will be applied.
+%   The line shape type is the Voigt profile.
+%   These lines are not mirrored at 0 Hz.
+%   The reference temperature for all line parameters is 296 K.
+%   If applicable, there is no line mixing limit.
+%   There are 2 lines available.
+%   The front line has:
+%     f0: 1.24722e+10 Hz
+%     i0: 5.87972e-26 m^2/Hz
+%     e0: 7.19841e-20 J
+%     Lower stat. weight: 33 [-]
+%     Upper stat. weight: 31 [-]
+%     A: 3.183e-10 1/s
+%     Zeeman splitting of lower state: 0 [-]
+%     Zeeman splitting of upper state: 0 [-]
+%     Lower state local quantum numbers: J=16; N=0/0; Omega=0/0;
+%     Upper state local quantum numbers: J=15; N=0/0; Omega=0/0;
+%     Line shape parameters (are normalized by sum(VMR)):
+%       G0 ~ VMR(SELF) * 61541.4 * (296/T)^0.38 + VMR(AIR) * 10207.6 * (296/T)^0.38
+%       D0 ~ VMR(SELF) * 2810.79 * (296/T)^(0.25 + 1.5 * 0.38) + VMR(AIR) * 2810.79 * (296/T)^(0.25 + 1.5 * 0.38)
+% </comment>
+% \end{verbatim}}
+% whose first line reads (snipped to help the reader)
+% {\tiny
+% \begin{verbatim}
+% 12472205671.6824 5.87971575585295e-26 7.19840939592874e-20 33 31 3.183e-10 0 0 61541.4076131261 0.38 0 0
+% (snip) 2810.78544386874 0.38 0 0 10207.5892435233 0.38 0 0 2810.78544386874 0.38 0 0 16 0/0 0/0 15 0/0 0/0 
+% \end{verbatim}}
+% Compare this to tables~\ref{tab:abs_theory:lineshape:abscatglob}~and~\ref{tab:abs_theory:lineshape:abscatline}
+% and hopefully our catalog format makes more sense.  There were some problems with the requested read of this
+% catalog, but none that will affect standard line-by-line calculations.  The problem is that several 0/0 ratios
+% have appeared among the quantum numbers.  The reader requested that $J$, $N$, and $\Omega$ all appear as local
+% quantum numbers. However, they are either not all defined for water, or there is an error in the ARTS HITRAN
+% reader.  In these cases, we will leave numbers undefined and try to catch the problem where it is relevant
+% for real calculations.
+% 
+% \subsubsection{Line shapes}
+% 
+% What follows are the profiles available in ARTS written out in full.
+% Note that this will be complicated towards the end, especially as 
+% we have limited experience applying SDVP and HTP calculations in real
+% life.
+% 
+% \paragraph*{Doppler profile}
+% \begin{equation}
+%  F_{DP} = \frac{1}{\sqrt{\pi}\Gamma_D}e^{\left.- \left[\nu - \nu_0 - \nu_z\right]^2 \middle/ \Gamma_D^2\right.}
+% \end{equation}
+% 
+% \paragraph*{Lorentz profile}
+% \begin{equation}
+%  F_{LP} = \frac{1}{\pi} \frac{1}{\Gamma_0+i\Delta_0+i\delta\nu+i\nu_0+i\nu_z-i\nu}
+% \end{equation}
+% 
+% \paragraph*{Voigt profile}
+% \begin{equation}
+%  F_{VP} = \frac{1}{\sqrt{\pi}\Gamma_D} w(z),
+% \end{equation}
+% where
+% \begin{equation}
+%  z = \frac{\nu-\Delta_0-\delta\nu-\nu_0-\nu_z + i\Gamma_0}{\Gamma_D},
+% \end{equation}
+% and $w(\cdots)$ is the Faddeeva function.
+% 
+% \paragraph*{The Hartman-Tran profile and Speed-dependent Voigt profile}
+% will get very complicated.  Note before reading this that we convert all
+% values into CGS in ARTS before performing the following calculations.
+% The reasoning we have is that this is how the line shape was published,
+% and we are using a translation of the original code. This will hopefully
+% change in the future as we grow confident in our use of the code.
+% To translate these values back, to ARTS, we have to apply not just a conjunction
+% of the results but also scale the results by a factor $1/100c$.
+% 
+% \begin{equation}
+%  F_{HTP} = \frac{1}{\pi}\frac{A}{\left[\left(C_0 - \left.3C_2\middle/2\right.\right)\eta - \nu_{FVC}\right] A + \eta C_2 B + 1}
+% \end{equation}
+% where
+% \begin{equation}
+%  C_0 = \Gamma_0 - i\Delta_0
+% \end{equation}
+% and
+% \begin{equation}
+%  C_2 = \Gamma_2 - i\Delta_2.
+% \end{equation}
+% Now it will soon get complicated by braching out depending on values.
+% Before going into the conditional branches,
+% these are constant in all of the expressions that will follow.
+% \begin{equation}
+%  y = \left(\frac{1}{2\left.{\sqrt{\ln 2}\left(1-\eta\right)C_2}\middle/{\Gamma_D}\right.}\right)^2
+% \end{equation}
+% \begin{equation}
+%  x = \frac{\left(1-\eta\right)\left(C_0 - \left.3C_2\middle/2\right.\right) + \nu_{VC} + i\nu - i\nu_0 - i\nu_z}{\left(1-\eta\right)C_2}.
+% \end{equation}
+% 
+% Normally, that is if all numbers are reasonable large and normal,
+% \begin{equation}
+%  A = \sqrt{\pi}\frac{\sqrt{\ln 2}}{\Gamma_D}\left[w(i z_1) - w(i z_2)\right]
+% \end{equation}
+% and
+% \begin{equation}
+%  B = \frac{\left.\sqrt{\pi} \left[\left(1-z_1^2\right)w(i z_1) - \left(1-z_2^2\right)w(i z_2) \right] \middle/ 2\sqrt{y}\right. -1}{\left(1-\eta\right)C_2},
+% \end{equation}
+% where $z_1 = \sqrt{x+y} - \sqrt{y}$ and $z_2 = \sqrt{x+y} + \sqrt{y}$.
+% 
+% If $|y| \leq 10^{-15}|x|$ but all other numbers are reasonably large and normal,
+% then if $|\sqrt{x}| \leq 4000$
+% \begin{equation}
+%  A = \frac{2\sqrt{\pi}}{\left(1-\eta\right)C_2}
+%  \left(\frac{1}{\sqrt{\pi}} - z_bw(i z_b)\right)
+% \end{equation}
+% and
+% \begin{equation}
+%  B = \frac{ 
+%  2\sqrt{\pi} \left[ \left( 1-x-2y \right) \left(1/\sqrt{\pi} - z_bw(i z_b)\right) +
+%  z_1w(i z_1)\right] -1}{\left(1-\eta\right)C_2},
+% \end{equation}
+% where $z_1 = \sqrt{x+y}$ and $z_b = \sqrt{x}$.
+% Still if $|y| \leq 1e-15|x|$ but all other numbers are reasonably large and normal,
+% then if $|\sqrt{x}| > 4000$
+% \begin{equation}
+%  A = \frac{1/x - \left.3\middle/2x^2\right.}{\left(1-\eta\right)C_2}
+% \end{equation}
+% and
+% \begin{equation}
+%  B = \frac{ 
+%   \left( 1-x-2y \right) \left(1/x - \left.3 \middle/ 2x^2\right.\right) +
+%  2\sqrt{\pi}z_1w(i z_1) -1}{\left(1-\eta\right)C_2},
+% \end{equation}
+% with $z_1=\sqrt{x+y}$.
+% 
+% If $|x| \leq 3\times10^{-8}|y|$ and the other numbers are normal then
+% \begin{equation}
+%  A = \sqrt{\pi}\frac{\sqrt{\ln 2}}{\Gamma_D}\left[w(i z_1) - w(i z_2)\right]
+% \end{equation}
+% and
+% \begin{equation}
+%  B = \frac{\left.\sqrt{\pi} \left[\left(1-z_1^2\right)w(i z_1) - \left(1-z_2^2\right)w(i z_2) \right] \middle/ 2\sqrt{y}\right. -1}{\left(1-\eta\right)C_2},
+% \end{equation}
+% with 
+% $z_1 =  \left. \sqrt{\ln 2}\left[ i\nu-i\nu_0-i\nu_z + \left(1-\eta\right)\left(C_0 - \left.3C_2\middle/2\right.\right) + \nu_{VC}\right] \middle/ \Gamma_D \right.$ and
+% $z_2 = \sqrt{x+y} + \sqrt{y}$.
+% 
+% Lastly, if $\left(1-\eta\right)C_2 \equiv 0$, then
+% \begin{equation}
+%  A = \sqrt{\pi}\frac{\sqrt{\ln 2}}{\Gamma_D}w(i z_1)
+% \end{equation}
+% with $z_1 =  \left. \sqrt{\ln 2}\left[ i\nu-i\nu_0-i\nu_z + \left(1-\eta\right)\left(C_0 - \left.3C_2\middle/2\right.\right) + \nu_{VC}\right] \middle/ \Gamma_D \right.$.
+% If $|z_1| \leq 4000$ then
+% \begin{equation}
+%  B = \sqrt{\pi}\frac{\sqrt{\ln 2}}{\Gamma_D}\left[\left(1 - z_1^2\right) w(i z_1) + \frac{z_1} {\sqrt{\pi}}\right]
+% \end{equation}
+% otherwise if $|z_1| > 4000$
+% \begin{equation}
+%  B = \frac{\sqrt{\ln 2}}{\Gamma_D} \left[ \sqrt{\pi}w(i z_1) + \frac{1}{2z_1} - \frac{3}{4z_1^3} \right].
+% \end{equation}
+% 
+% \subsubsection{Partial derivatives of $F\left(\cdots\right)$}
+% 
+% The partial derivatives are listed below in order of the different profiles. 
+% 
+% \paragraph*{Partial derivative w.r.t.\ $T$}
+% 
+% \begin{itemize}
+%  \item[DP:] $\frac{\partial F_{DP}}{\partial T} = F_{DP}\left(2\left[\frac{\nu - \nu_0 - \nu_z}{\Gamma_D}\right]^2-1\right) \frac{\partial \Gamma_D}{\partial T} \frac{1}{\Gamma_D}$
+%  
+%  \item[LP:] $\frac{\partial F_{LP}}{\partial T} = -\frac{F_{LP}}{\Gamma_0+i\Delta_0+i\delta\nu+i\nu_0+i\nu_z-i\nu} \left( \frac{\partial \Gamma_0}{\partial T} + i\frac{\partial \Delta_0}{\partial T} + i \frac{\partial \delta\nu}{\partial T}\right)$ 
+%  
+%  \item[VP:] $\frac{\partial F_{VP}}{\partial T} = \frac{2}{\sqrt{\pi}\Gamma_D}\left(\frac{i}{\sqrt{\pi}} - z w\left(z\right) \right)
+%  \left(i\frac{\partial \Gamma_0}{\partial T} - \frac{\partial\Delta_0}{\partial T} - \frac{\partial\delta\nu}{\partial T} -z\frac{\partial\Gamma_D}{\partial T}\right) - F_{VP}\frac{\partial\Gamma_D}{\partial T}\frac{1}{\Gamma_D}$
+%  
+%  \item[SDVP:] Formulation too long. Analytical solution available in ARTS.
+%  
+%  \item[HTP:] Formulation too long. Analytical solution available in ARTS.
+% \end{itemize}
+% Also note that the partial derivatives for the parameters of 
+% Table~\ref{tab:abs_theory:lineshape:temperaturemodes} are trivial from said table's equations.
+% 
+% \paragraph*{Partial derivative w.r.t.\ $\nu$}
+% 
+% \begin{itemize}
+%  \item[DP:] $\frac{\partial F_{DP}}{\partial \nu} = -2 F_{DP} \left[\frac{\nu - \nu_0 - \nu_z}{\Gamma_D^2}\right]$
+%  
+%  \item[LP:] $\frac{\partial F_{LP}}{\partial\nu} = \frac{iF_{LP}}{\Gamma_0+i\Delta_0+i\delta\nu+i\nu_0+i\nu_z-i\nu}$
+%  
+%  \item[VP:] $\frac{\partial F_{VP}}{\partial \nu} = \frac{2}{\sqrt{\pi}\Gamma_D}\left(\frac{i}{\sqrt{\pi}} - z w\left(z\right) \right) \frac{1}{\Gamma_D}$
+%  
+%  \item[SDVP:] Formulation too long. Analytical solution available in ARTS.
+%  
+%  \item[HTP:] Formulation too long. Analytical solution available in ARTS.
+% \end{itemize}
+% Also note that the frequency derivative is used to derive wind derivatives
+% in a later stage.
+% 
+% \paragraph*{Partial derivative w.r.t.\ $\nu_0$}
+% 
+% \begin{itemize}
+%  \item[DP:] $\frac{\partial F_{DP}}{\partial \nu_0} = 2F_{DP} \left[\frac{\nu-\nu_0-\nu_z}{\Gamma_D}\right] \left(\frac{\left[\frac{\nu - \nu_0 - \nu_z}{\Gamma_D}\right]-1}{\nu_0 + \nu_z}+ \frac{1}{\Gamma_D}\right)$
+%  
+%  \item[LP:] $\frac{\partial F_{LP}}{\partial\nu_0} = -\frac{iF_{LP}}{\Gamma_0+i\Delta_0+i\delta\nu+i\nu_0+i\nu_z-i\nu}$
+%  
+%  \item[VP:] $\frac{\partial F_{VP}}{\partial \nu_0} = \frac{2}{\sqrt{\pi}\Gamma_D}\left(\frac{i}{\sqrt{\pi}} - z w\left(z\right) \right) \left(-\frac{1}{\Gamma_D}-\frac{z}{\Delta_0+\delta\nu+\nu_0+\nu_z}\right) - \frac{F_{VP}}{\Delta_0+\delta\nu+\nu_0+\nu_z}$
+%  
+%  \item[SDVP:] Formulation too long. Analytical solution available in ARTS.
+%  
+%  \item[HTP:] Formulation too long. Analytical solution available in ARTS.
+% \end{itemize}
+% Also note that Equation~\ref{eq:lsalg-standard-equation} has the line strength that depends on the line central frequency. 
+% 
+% \paragraph*{Partial derivative w.r.t.\ $\delta\nu$}
+% 
+% See ``Partial derivative w.r.t.\ $\nu_0$'' for identical solution.  Also note that chaining for
+% any coefficient in Table~\ref{tab:abs_theory:lineshape:temperaturemodes} is possible.
+% 
+% \paragraph*{Partial derivative w.r.t.\ $\Delta_0$}
+% 
+% See ``Partial derivative w.r.t.\ $\nu_0$'' for identical solution.  Also note that chaining for
+% any coefficient in Table~\ref{tab:abs_theory:lineshape:temperaturemodes} is possible.
+% 
+% \paragraph*{Partial derivative w.r.t.\ $||\vec{B}||$}
+% 
+% See ``Partial derivative w.r.t.\ $\nu_0$'' for almost identical solution.
+% Scale expressions by $\left. \mu_B \left(g_{z_1}M_1-g_{z_2}M_2\right) \middle/h\right.$ to be correct.
+% 
+% \paragraph*{Partial derivative w.r.t.\ $\Gamma_0$}
+% 
+% \begin{itemize}
+%  \item[DP:] N/A
+%  
+%  \item[LP:] $\frac{\partial F_{LP}}{\partial\Gamma_0} = -\frac{F_{LP}}{\Gamma_0+i\Delta_0+i\delta\nu+i\nu_0+i\nu_z-i\nu}$
+%  
+%  \item[VP:] $\frac{\partial F_{VP}}{\partial \Gamma_0} = \frac{2}{\sqrt{\pi}\Gamma_D}\left(\frac{i}{\sqrt{\pi}} - z w\left(z\right) \right) \frac{i}{\Gamma_D}$
+%  
+%  \item[SDVP:] Formulation too long. Analytical solution available in ARTS.
+%  
+%  \item[HTP:] Formulation too long. Analytical solution available in ARTS.
+% \end{itemize}
+% 
+% \paragraph*{Partial derivative w.r.t.\ $\Gamma_2$}
+% 
+% \begin{itemize}
+%  \item[DP:] N/A
+%  
+%  \item[LP:] N/A
+%  
+%  \item[VP:] N/A
+%  
+%  \item[SDVP:] Formulation too long. Analytical solution available in ARTS.
+%  
+%  \item[HTP:] Formulation too long. Analytical solution available in ARTS.
+% \end{itemize}
+% 
+% \paragraph*{Partial derivative w.r.t.\ $\Delta_2$}
+% 
+% \begin{itemize}
+%  \item[DP:] N/A
+%  
+%  \item[LP:] N/A
+%  
+%  \item[VP:] N/A
+%  
+%  \item[SDVP:] Formulation too long. Analytical solution available in ARTS.
+%  
+%  \item[HTP:] Formulation too long. Analytical solution available in ARTS.
+% \end{itemize}
+% 
+% \paragraph*{Partial derivative w.r.t.\ $\eta$}
+% 
+% \begin{itemize}
+%  \item[DP:] N/A
+%  
+%  \item[LP:] N/A
+%  
+%  \item[VP:] N/A
+%  
+%  \item[SDVP:] N/A
+%  
+%  \item[HTP:] Formulation too long. Analytical solution available in ARTS.
+% \end{itemize}
+% 
+% \paragraph*{Partial derivative w.r.t.\ $\nu_{FVC}$}
+% 
+% \begin{itemize}
+%  \item[DP:] N/A
+%  
+%  \item[LP:] N/A
+%  
+%  \item[VP:] N/A
+%  
+%  \item[SDVP:] N/A
+%  
+%  \item[HTP:] Formulation too long. Analytical solution available in ARTS.
+% \end{itemize}
+% 
+% Note that chaining for any coefficient in Table~\ref{tab:abs_theory:lineshape:temperaturemodes} is possible.
 
 \subsection{Species-specific data in ARTS}
 \label{sec:abs_theory:species_data}
