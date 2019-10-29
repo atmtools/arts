@@ -993,6 +993,235 @@ where $C$ is 1.5 if $M_2\equiv M_1$ or 0.75 otherwise, and $(:::)$ are Wigner sy
 Note that all combinations of $M$ and $J$ are automatically computed in ARTS and checked
 against the sum of unity.
 
+\subsubsection{Line function algorithms}
+
+This subsection will go over systematically the various algorithms that
+are invoked to compute each stage of the equations we have been
+presenting so far.  Note that the order of computations are to always set the
+line shape functions first.
+
+\paragraph*{Doppler line shape (lineshapetype is DP)} \
+
+The Doppler line shape algorithm is just as simple as its equations in the
+theory section implies
+\begin{equation}
+ F(\Gamma_D, \nu, \nu_0, \nu_z) = \frac{1}{\sqrt{\pi}\Gamma_D} e^{-x^2},
+\end{equation}
+where
+\begin{equation}
+ x = \frac{\nu-\nu_0-\nu_z}{\Gamma_D}
+\end{equation}
+
+The only non-zero derivatives considered are for frequency, temperature,
+and line center.  We do not have an algorithm that returns the phase
+of the line shape for the Doppler algorithm so the magnetic derivative
+is ignored.  This might change in the future.  The forward calculations
+are still mostly good for a quick overview, which is the main use of the Doppler
+line shape anyways. The frequency derivative is found as
+\begin{equation}
+ \frac{\partial}{\partial \nu} F(\Gamma_D, \nu, \nu_0, \nu_z) = - \frac{2x}{\Gamma_D} F(\Gamma_D, \nu, \nu_0, \nu_z).
+\end{equation}
+The temperature derivative is found as
+\begin{equation}
+ \frac{\partial}{\partial T} F(\Gamma_D, \nu, \nu_0, \nu_z) = - \frac{\nu_0}{\Gamma_D}\frac{\partial \Gamma_D}{\partial T} \left[ 2x^2F(\Gamma_D, \nu, \nu_0, \nu_z) + F(\Gamma_D, \nu, \nu_0, \nu_z) \right].
+\end{equation}
+The line center derivative is found as
+\begin{equation}
+ \frac{\partial}{\partial \nu_0} F(\Gamma_D, \nu, \nu_0, \nu_z) = - \frac{2x^2}{\nu_0}F(\Gamma_D, \nu, \nu_0, \nu_z) + \left(\frac{1}{\Gamma_D}-\frac{1}{\nu_0}\right)2xF(\Gamma_D, \nu, \nu_0, \nu_z).
+\end{equation}
+
+\paragraph*{Lorentz line shape (lineshapetype is LP)} \
+
+The Lorentz line shape algorithm is handled in complex numbers contrary to the
+theory section.  This allows line mixing.  The function is
+\begin{equation}
+ F(\Gamma_0, \Delta_0, \nu, \nu_0, \nu_z, \delta\nu) = \frac{1}{z},
+\end{equation}
+where
+\begin{equation}
+ z = \pi \Gamma_0 + i\pi\left(\nu_0 + \Delta_0 + \nu_z + \delta\nu - \nu\right).
+\end{equation}
+
+The relevant derivatives are for the temperature, the frequency, the line center,
+the pressure broadening parameters $\Gamma_0$ and $\Delta_0$, the magnetic field
+strength, and for the volume mixing ratio.  Each of these will look fairly similar,
+so a helper variable is set up as
+\begin{equation}
+ \Delta_F = -\pi \left[F(\Gamma_0, \Delta_0, \nu, \nu_0, \nu_z, \delta\nu)\right]^2.
+\end{equation}
+The temperature derivative is found as
+\begin{equation}
+ \frac{\partial}{\partial T} F(\Gamma_0, \Delta_0, \nu, \nu_0, \nu_z, \delta\nu) = \left(\frac{\partial\Gamma_0}{\partial T} + i\frac{\partial\Delta_0}{\partial T}+i\frac{\partial\delta\nu}{\partial T}\right) \Delta_F.
+\end{equation}
+The frequency derivative is found as
+\begin{equation}
+ \frac{\partial}{\partial \nu} F(\Gamma_0, \Delta_0, \nu, \nu_0, \nu_z, \delta\nu) = -i\Delta_F.
+\end{equation}
+The line center derivative is found as
+\begin{equation}
+ \frac{\partial}{\partial \nu_0} F(\Gamma_0, \Delta_0, \nu, \nu_0, \nu_z, \delta\nu) = i\Delta_F.
+\end{equation}
+The $\Gamma_0$ derivative is found as
+\begin{equation}
+ \frac{\partial}{\partial \Gamma_0} F(\Gamma_0, \Delta_0, \nu, \nu_0, \nu_z, \delta\nu) = \Delta_F.
+\end{equation}
+The $\Delta_0$ derivative is found as
+\begin{equation}
+ \frac{\partial}{\partial \Delta_0} F(\Gamma_0, \Delta_0, \nu, \nu_0, \nu_z, \delta\nu) = i\Delta_F.
+\end{equation}
+The magnetic field strength derivative is found as
+\begin{equation}
+ \frac{\partial}{\partial ||\vec{B}||} F(\Gamma_0, \Delta_0, \nu, \nu_0, \nu_z, \delta\nu) = i \frac{\mu_B}{h}\left(g_{z_1}M_1 - g_{z_2}M_2\right) \Delta_F.
+\end{equation}
+The volume mixing ratio derivative is found as
+\begin{equation}
+ \frac{\partial}{\partial r} F(\Gamma_0, \Delta_0, \nu, \nu_0, \nu_z, \delta\nu) = \left(\frac{\partial\Gamma_0}{\partial r} + i\frac{\partial\Delta_0}{\partial r}+i\frac{\partial\delta\nu}{\partial r}\right) \Delta_F.
+\end{equation}
+
+\paragraph*{Voigt line shape (lineshapetype is VP)} \
+
+The Voigt line shape profile also handles complex numbers contrary to the 
+theory.  The Voigt profile is computed using an external Faddeeva function
+package developed by \citet{zaghloul12:_algorithm916_acm} and implemented into
+C++ by Steven G.\ Johnson.  The Voigt profile is
+\begin{equation}
+ F(\Gamma_D, \Gamma_0, \Delta_0, \nu, \nu_0, \nu_z, \delta\nu) = \frac{w(z)}{\sqrt{\pi}\Gamma_D},
+\end{equation}
+where $w(z)$ is the Faddeeva function and
+\begin{equation}
+ z = \frac{\nu-\nu_0-\nu_z-\Delta_0-\delta\nu + i\Gamma_0}{\Gamma_D}.
+\end{equation}
+
+The derivatives that matter to the Voigt algorithm are the same as those
+that matters for the Lorentz algorithm.  Many of these derivatives will 
+look very similar so a helper variable is set up as
+\begin{equation}
+ \Delta_F = \frac{2i}{\pi\Gamma_D} - 2zF(\Gamma_D, \Gamma_0, \Delta_0, \nu, \nu_0, \nu_z, \delta\nu).
+\end{equation}
+One problem presenting these derivatives is that many of the
+expression consist of three or more sub-expressions.  For the
+remaining part of this algorithm please read $F$ as the
+computed Voigt profile.  The frequency derivative is
+\begin{equation}
+ \frac{\partial}{\partial\nu} F = \frac{1}{\Gamma_D}\Delta_F.
+\end{equation}
+The temperature derivative is
+\begin{equation}
+ \frac{\partial}{\partial T} F = \frac{1}{\Gamma_D}\left(i\frac{\partial\Gamma_0}{\partial T} - \frac{\partial\Delta_0}{\partial T} - \frac{\partial\delta\nu}{\partial T}\right)\Delta_F - \frac{\partial \Gamma_D}{\partial T} \frac{1}{\Gamma_D} \left[ F + z\Delta_F\right].
+\end{equation}
+The line center derivative is
+\begin{equation}
+ \frac{\partial}{\partial\nu_0} F = -\frac{F}{\nu_0} - \frac{\Delta_F}{\Gamma_D} - \frac{z\Delta_F}{\nu_0}
+\end{equation}
+The $\Gamma_0$ derivative is
+\begin{equation}
+ \frac{\partial}{\partial\Gamma_0} F = i \frac{\Delta_F}{\Gamma_D}.
+\end{equation}
+The $\Delta_0$ derivative is
+\begin{equation}
+ \frac{\partial}{\partial\Delta_0} F = - \frac{\Delta_F}{\Gamma_D}.
+\end{equation}
+The magnetic field strength derivative is
+\begin{equation}
+ \frac{\partial}{\partial ||\vec{B}||} F = - \frac{\mu_B}{h}\left(g_{z_1}M_1 - g_{z_2}M_2\right) \frac{\Delta_F}{\Gamma_D}.
+\end{equation}
+The volume mixing ratio derivative is
+\begin{equation}
+ \frac{\partial}{\partial r} F = \frac{1}{\Gamma_D} \left(i\frac{\partial\Gamma_0}{\partial r} - \frac{\partial\Delta_0}{\partial r} - \frac{\partial\delta\nu}{\partial r}\right) \Delta_F.
+\end{equation}
+
+\paragraph*{Hartmann-Tran line shape (lineshapetype is SDVP or HTP)} \
+
+The algorithm from the original paper by \citet{tran13:_htp_jqsrt}. 
+This algorithm is chained and conditioned because the main algorithm
+reach many mathematical limits. One of these limits is the speed
+dependent Voigt line shape.  There is still limited experience in
+the ARTS community for applications of this type of line shape so
+many small bugs might be present and not rooted out.
+
+\begin{equation}
+ F(\Gamma_D, \Gamma_0, \Delta_0, \Gamma_2, \Delta_2, \eta, \nu_{FVC}, \nu, \nu_0, \nu_z, \delta\nu) = \frac{1}{\pi}\frac{A}{\left[\left(C_0 - \left.3C_2\middle/2\right.\right)\eta - \nu_{FVC}\right] A + \eta C_2 B + 1}
+\end{equation}
+where
+\begin{equation}
+ C_0 = \Gamma_0 - i\Delta_0
+\end{equation}
+and
+\begin{equation}
+ C_2 = \Gamma_2 - i\Delta_2.
+\end{equation}
+Now it will soon get complicated by braching out depending on values.
+Before going into the conditional branches,
+these are constant in all of the expressions that will follow.
+\begin{equation}
+ y = \left(\frac{1}{2\left.{\sqrt{\ln 2}\left(1-\eta\right)C_2}\middle/{\Gamma_D}\right.}\right)^2
+\end{equation}
+\begin{equation}
+ x = \frac{\left(1-\eta\right)\left(C_0 - \left.3C_2\middle/2\right.\right) + \nu_{VC} + i\nu - i\nu_0 - i\nu_z}{\left(1-\eta\right)C_2}.
+\end{equation}
+
+Normally, that is if all numbers are reasonable large and normal,
+\begin{equation}
+ A = \sqrt{\pi}\frac{\sqrt{\ln 2}}{\Gamma_D}\left[w(i z_1) - w(i z_2)\right]
+\end{equation}
+and
+\begin{equation}
+ B = \frac{\left.\sqrt{\pi} \left[\left(1-z_1^2\right)w(i z_1) - \left(1-z_2^2\right)w(i z_2) \right] \middle/ 2\sqrt{y}\right. -1}{\left(1-\eta\right)C_2},
+\end{equation}
+where $z_1 = \sqrt{x+y} - \sqrt{y}$ and $z_2 = \sqrt{x+y} + \sqrt{y}$.
+
+If $|y| \leq 10^{-15}|x|$ but all other numbers are reasonably large and normal,
+then if $|\sqrt{x}| \leq 4000$
+\begin{equation}
+ A = \frac{2\sqrt{\pi}}{\left(1-\eta\right)C_2}
+ \left(\frac{1}{\sqrt{\pi}} - z_bw(i z_b)\right)
+\end{equation}
+and
+\begin{equation}
+ B = \frac{ 
+ 2\sqrt{\pi} \left[ \left( 1-x-2y \right) \left(1/\sqrt{\pi} - z_bw(i z_b)\right) +
+ z_1w(i z_1)\right] -1}{\left(1-\eta\right)C_2},
+\end{equation}
+where $z_1 = \sqrt{x+y}$ and $z_b = \sqrt{x}$.
+Still if $|y| \leq 1e-15|x|$ but all other numbers are reasonably large and normal,
+then if $|\sqrt{x}| > 4000$
+\begin{equation}
+ A = \frac{1/x - \left.3\middle/2x^2\right.}{\left(1-\eta\right)C_2}
+\end{equation}
+and
+\begin{equation}
+ B = \frac{ 
+  \left( 1-x-2y \right) \left(1/x - \left.3 \middle/ 2x^2\right.\right) +
+ 2\sqrt{\pi}z_1w(i z_1) -1}{\left(1-\eta\right)C_2},
+\end{equation}
+with $z_1=\sqrt{x+y}$.
+
+If $|x| \leq 3\times10^{-8}|y|$ and the other numbers are normal then
+\begin{equation}
+ A = \sqrt{\pi}\frac{\sqrt{\ln 2}}{\Gamma_D}\left[w(i z_1) - w(i z_2)\right]
+\end{equation}
+and
+\begin{equation}
+ B = \frac{\left.\sqrt{\pi} \left[\left(1-z_1^2\right)w(i z_1) - \left(1-z_2^2\right)w(i z_2) \right] \middle/ 2\sqrt{y}\right. -1}{\left(1-\eta\right)C_2},
+\end{equation}
+with 
+$z_1 =  \left. \sqrt{\ln 2}\left[ i\nu-i\nu_0-i\nu_z + \left(1-\eta\right)\left(C_0 - \left.3C_2\middle/2\right.\right) + \nu_{VC}\right] \middle/ \Gamma_D \right.$ and
+$z_2 = \sqrt{x+y} + \sqrt{y}$.
+
+Lastly, if $\left(1-\eta\right)C_2 \equiv 0$, then
+\begin{equation}
+ A = \sqrt{\pi}\frac{\sqrt{\ln 2}}{\Gamma_D}w(i z_1)
+\end{equation}
+with $z_1 =  \left. \sqrt{\ln 2}\left[ i\nu-i\nu_0-i\nu_z + \left(1-\eta\right)\left(C_0 - \left.3C_2\middle/2\right.\right) + \nu_{VC}\right] \middle/ \Gamma_D \right.$.
+If $|z_1| \leq 4000$ then
+\begin{equation}
+ B = \sqrt{\pi}\frac{\sqrt{\ln 2}}{\Gamma_D}\left[\left(1 - z_1^2\right) w(i z_1) + \frac{z_1} {\sqrt{\pi}}\right]
+\end{equation}
+otherwise if $|z_1| > 4000$
+\begin{equation}
+ B = \frac{\sqrt{\ln 2}}{\Gamma_D} \left[ \sqrt{\pi}w(i z_1) + \frac{1}{2z_1} - \frac{3}{4z_1^3} \right].
+\end{equation}
+
 % \paragraph*{The comment tag in ARTSCAT-6}
 % We use a comment tag to help explain the data in ARTSCAT-6 to anyone that reads the data file manually.
 % This comment tag looks different depending on options presented.  Here is an example
@@ -1080,88 +1309,7 @@ against the sum of unity.
 % To translate these values back, to ARTS, we have to apply not just a conjunction
 % of the results but also scale the results by a factor $1/100c$.
 % 
-% \begin{equation}
-%  F_{HTP} = \frac{1}{\pi}\frac{A}{\left[\left(C_0 - \left.3C_2\middle/2\right.\right)\eta - \nu_{FVC}\right] A + \eta C_2 B + 1}
-% \end{equation}
-% where
-% \begin{equation}
-%  C_0 = \Gamma_0 - i\Delta_0
-% \end{equation}
-% and
-% \begin{equation}
-%  C_2 = \Gamma_2 - i\Delta_2.
-% \end{equation}
-% Now it will soon get complicated by braching out depending on values.
-% Before going into the conditional branches,
-% these are constant in all of the expressions that will follow.
-% \begin{equation}
-%  y = \left(\frac{1}{2\left.{\sqrt{\ln 2}\left(1-\eta\right)C_2}\middle/{\Gamma_D}\right.}\right)^2
-% \end{equation}
-% \begin{equation}
-%  x = \frac{\left(1-\eta\right)\left(C_0 - \left.3C_2\middle/2\right.\right) + \nu_{VC} + i\nu - i\nu_0 - i\nu_z}{\left(1-\eta\right)C_2}.
-% \end{equation}
-% 
-% Normally, that is if all numbers are reasonable large and normal,
-% \begin{equation}
-%  A = \sqrt{\pi}\frac{\sqrt{\ln 2}}{\Gamma_D}\left[w(i z_1) - w(i z_2)\right]
-% \end{equation}
-% and
-% \begin{equation}
-%  B = \frac{\left.\sqrt{\pi} \left[\left(1-z_1^2\right)w(i z_1) - \left(1-z_2^2\right)w(i z_2) \right] \middle/ 2\sqrt{y}\right. -1}{\left(1-\eta\right)C_2},
-% \end{equation}
-% where $z_1 = \sqrt{x+y} - \sqrt{y}$ and $z_2 = \sqrt{x+y} + \sqrt{y}$.
-% 
-% If $|y| \leq 10^{-15}|x|$ but all other numbers are reasonably large and normal,
-% then if $|\sqrt{x}| \leq 4000$
-% \begin{equation}
-%  A = \frac{2\sqrt{\pi}}{\left(1-\eta\right)C_2}
-%  \left(\frac{1}{\sqrt{\pi}} - z_bw(i z_b)\right)
-% \end{equation}
-% and
-% \begin{equation}
-%  B = \frac{ 
-%  2\sqrt{\pi} \left[ \left( 1-x-2y \right) \left(1/\sqrt{\pi} - z_bw(i z_b)\right) +
-%  z_1w(i z_1)\right] -1}{\left(1-\eta\right)C_2},
-% \end{equation}
-% where $z_1 = \sqrt{x+y}$ and $z_b = \sqrt{x}$.
-% Still if $|y| \leq 1e-15|x|$ but all other numbers are reasonably large and normal,
-% then if $|\sqrt{x}| > 4000$
-% \begin{equation}
-%  A = \frac{1/x - \left.3\middle/2x^2\right.}{\left(1-\eta\right)C_2}
-% \end{equation}
-% and
-% \begin{equation}
-%  B = \frac{ 
-%   \left( 1-x-2y \right) \left(1/x - \left.3 \middle/ 2x^2\right.\right) +
-%  2\sqrt{\pi}z_1w(i z_1) -1}{\left(1-\eta\right)C_2},
-% \end{equation}
-% with $z_1=\sqrt{x+y}$.
-% 
-% If $|x| \leq 3\times10^{-8}|y|$ and the other numbers are normal then
-% \begin{equation}
-%  A = \sqrt{\pi}\frac{\sqrt{\ln 2}}{\Gamma_D}\left[w(i z_1) - w(i z_2)\right]
-% \end{equation}
-% and
-% \begin{equation}
-%  B = \frac{\left.\sqrt{\pi} \left[\left(1-z_1^2\right)w(i z_1) - \left(1-z_2^2\right)w(i z_2) \right] \middle/ 2\sqrt{y}\right. -1}{\left(1-\eta\right)C_2},
-% \end{equation}
-% with 
-% $z_1 =  \left. \sqrt{\ln 2}\left[ i\nu-i\nu_0-i\nu_z + \left(1-\eta\right)\left(C_0 - \left.3C_2\middle/2\right.\right) + \nu_{VC}\right] \middle/ \Gamma_D \right.$ and
-% $z_2 = \sqrt{x+y} + \sqrt{y}$.
-% 
-% Lastly, if $\left(1-\eta\right)C_2 \equiv 0$, then
-% \begin{equation}
-%  A = \sqrt{\pi}\frac{\sqrt{\ln 2}}{\Gamma_D}w(i z_1)
-% \end{equation}
-% with $z_1 =  \left. \sqrt{\ln 2}\left[ i\nu-i\nu_0-i\nu_z + \left(1-\eta\right)\left(C_0 - \left.3C_2\middle/2\right.\right) + \nu_{VC}\right] \middle/ \Gamma_D \right.$.
-% If $|z_1| \leq 4000$ then
-% \begin{equation}
-%  B = \sqrt{\pi}\frac{\sqrt{\ln 2}}{\Gamma_D}\left[\left(1 - z_1^2\right) w(i z_1) + \frac{z_1} {\sqrt{\pi}}\right]
-% \end{equation}
-% otherwise if $|z_1| > 4000$
-% \begin{equation}
-%  B = \frac{\sqrt{\ln 2}}{\Gamma_D} \left[ \sqrt{\pi}w(i z_1) + \frac{1}{2z_1} - \frac{3}{4z_1^3} \right].
-% \end{equation}
+
 % 
 % \subsubsection{Partial derivatives of $F\left(\cdots\right)$}
 % 
