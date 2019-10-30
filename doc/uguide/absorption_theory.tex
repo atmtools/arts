@@ -869,7 +869,7 @@ where $N$ can be found in table~\ref{tab:abs_theory:lineshape:normalizationtype}
  \begin{tabular}{lll}
   Key&Name&Normalization factor\\
   None&&$N=1$\\[5pt]
-  VVH&Van Vleck and Huber& $N = \frac{\tanh \left( h\nu \; \middle/ 2kT \right)}{\tanh \left( h\nu_0 \middle/ 2kT \right)} $ \\[5pt]
+  VVH&Van Vleck and Huber& $N = \frac{\nu}{\nu_0}\frac{\tanh \left( h\nu \; \middle/ 2kT \right)}{\tanh \left( h\nu_0 \middle/ 2kT \right)} $ \\[5pt]
   VVW&Van Vleck and Weiskopf&$N = \frac{\nu^2}{\nu^2_0}$\\[5pt]
   RQ&Rosenkranz quadratic& $N = \frac{\nu^2 }{\left. h\nu_0 \sinh\left( h\nu_0 \middle/ 2kT \right) \middle/ 2kT \right.} $
  \end{tabular}
@@ -1435,7 +1435,57 @@ with
 
 \paragraph*{Van Vleck and Huber normalization (normalizationtype is VVH)} \
 
-placeholder...
+The van Vleck and Huber algorithm modifies the line shape calculations. It computes
+\begin{equation}
+ N = \frac{\nu}{\nu_0}\frac{\tanh \left( h\nu \; \middle/ 2kT \right)}{\tanh \left( h\nu_0 \middle/ 2kT \right)},
+\end{equation}
+It adds its own derivatives in the form of temperature, frequency, and line center.
+The derivatives are
+\begin{equation}
+\begin{array}{ll}
+ \frac{\partial}{\partial T} NF &= -\frac{h}{2kT^2} \left\{\left[\nu_0\tanh \left( \frac{h\nu_0} {2kT} \right)  - \frac{\nu_0}{\tanh \left( h\nu_0 \middle/ 2kT \right)}\right] N \right. \\[5pt] &\left. \nu_0 \tanh \left( \frac{h\nu_0}{2kT} \right) N^2 + \frac{\nu N}{\tanh \left( \frac{h\nu} {2kT} \right)} \right\} F  + N\frac{\partial F}{\partial T}\\[5pt]
+ \frac{\partial}{\partial \nu} NF &= \left\{\frac{1}{\nu} + \frac{h}{2kT}\left[\frac{1}{\tanh \left( {h\nu} \middle/ {2kT} \right)} - {\tanh \left( \frac{h\nu} {2kT} \right)}\right]\right\}NF  + N\frac{\partial F}{\partial \nu}\\[5pt]
+ \frac{\partial}{\partial \nu} NF &= \left\{\frac{1}{\nu_0} + \frac{h}{2kT}\left[{\tanh \left( \frac{h\nu_0} {2kT} \right)} - \frac{1}{\tanh \left( {h\nu_0} \middle/ {2kT} \right)}\right]\right\}NF + N\frac{\partial F}{\partial \nu_0} \\[5pt]
+ \frac{\partial}{\partial t} NF &= N\frac{\partial F}{\partial t},
+\end{array}
+\end{equation}
+where $F$ and $[\partial F / \partial T;\; \partial F / \partial \nu;\; \partial F / \partial \nu_0;\; \partial F / \partial t]$ are set in a line shape algorithm.
+
+\paragraph*{Van Vleck and Weiskopf normalization (normalizationtype is VVW)} \
+
+The van Vleck and Weiskopf algorithm modifies the line shape calculations. It computes
+\begin{equation}
+ N = \frac{\nu^2}{\nu^2_0},
+\end{equation}
+meaning it adds frequency and line center derivatives.  The derivatives are
+\begin{equation}
+ \begin{array}{ll}
+  \frac{\partial}{\partial \nu} NF &= \frac{2}{\nu} NF + N\frac{\partial F}{\partial \nu} \\[5pt]
+  \frac{\partial}{\partial \nu_0} NF &= -\frac{2}{\nu_0} NF + N\frac{\partial F}{\partial \nu_0} \\[5pt]
+  \frac{\partial}{\partial t} NF &= N\frac{\partial F}{\partial \nu_0}
+ \end{array}
+\end{equation}
+where $F$ and $[\partial F / \partial \nu;\; \partial F / \partial \nu_0;\; \partial F / \partial t]$ are set in a line shape algorithm.
+
+\paragraph*{Rosenkranz quadratic normalization (normalizationtype is RQ)} \
+
+The Rosenkranz quadratic algorithm modifies the line shape calculations. It computes
+\begin{equation}
+ N = \frac{\nu^2 }{\left. h\nu_0 \sinh\left( h\nu_0 \middle/ 2kT \right) \middle/ 2kT \right.},
+\end{equation}
+meaning it adds the same derivatives as the van Vleck and Huber methods. The derivatives are
+\begin{equation}
+ \begin{array}{ll}
+  \frac{\partial}{\partial T} NF &= -\frac{kT -
+  \left.{h\nu_0}\middle/{2 \tanh\left(h\nu_0 \middle/ 2kT\right)}\right.}{kT^2}NF + N\frac{\partial F}{\partial T} \\[5pt]
+  \frac{\partial}{\partial \nu} NF &= \frac{2}{\nu}NF + N\frac{\partial F}{\partial \nu} \\[5pt]
+  \frac{\partial}{\partial \nu_0} NF &= 
+  \left[- \frac{1}{\nu_0} - \left. h \middle/ 2kT \tanh\left(h\nu_0 \middle/2kT\right)\right. \right]  NF + N\frac{\partial F}{\partial \nu_0} \\[5pt]
+  \frac{\partial}{\partial t} NF &= N\frac{\partial F}{\partial t},
+ \end{array}
+\end{equation}
+where $F$ and $[\partial F / \partial T;\; \partial F / \partial \nu;\; \partial F / \partial \nu_0;\; \partial F / \partial t]$ are set in a line shape algorithm.
+
 
 % \paragraph*{The comment tag in ARTSCAT-6}
 % We use a comment tag to help explain the data in ARTSCAT-6 to anyone that reads the data file manually.
