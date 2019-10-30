@@ -1136,11 +1136,16 @@ The algorithm from the original paper by \citet{tran13:_htp_jqsrt}.
 This algorithm is chained and conditioned because the main algorithm
 reach many mathematical limits. One of these limits is the speed
 dependent Voigt line shape.  There is still limited experience in
-the ARTS community for applications of this type of line shape so
-many small bugs might be present and not rooted out.
+the ARTS development community for applications of this type of
+line shape so many small bugs might be present and not rooted out.
 
+The main HTP expression that holds in all cases is
 \begin{equation}
- F(\Gamma_D, \Gamma_0, \Delta_0, \Gamma_2, \Delta_2, \eta, \nu_{FVC}, \nu, \nu_0, \nu_z, \delta\nu) = \frac{1}{\pi}\frac{A}{\left[\left(C_0 - \left.3C_2\middle/2\right.\right)\eta - \nu_{FVC}\right] A + \eta C_2 B + 1}
+\begin{array}{l}
+F(\Gamma_D, \Gamma_0, \Delta_0, \Gamma_2, \Delta_2, \eta, \nu_{VC}, \nu, \nu_0, \nu_z, \delta\nu) = \\[5pt]
+F =
+ \frac{1}{\pi}\frac{A}{\left[\left(C_0 - \left.3C_2\middle/2\right.\right)\eta - \nu_{VC}\right] A + \eta C_2 B + 1}
+ \end{array}
 \end{equation}
 where
 \begin{equation}
@@ -1150,12 +1155,13 @@ and
 \begin{equation}
  C_2 = \Gamma_2 - i\Delta_2.
 \end{equation}
-Now it will soon get complicated by braching out depending on values.
+Now it will soon get complicated by branching out depending on values.
 Before going into the conditional branches,
-these are constant in all of the expressions that will follow.
+these are constant in all of the expressions that will follow
 \begin{equation}
- y = \left(\frac{1}{2\left.{\sqrt{\ln 2}\left(1-\eta\right)C_2}\middle/{\Gamma_D}\right.}\right)^2
+ y = \left(\frac{1}{2\left.{\sqrt{\ln 2}\left(1-\eta\right)C_2}\middle/{\Gamma_D}\right.}\right)^2,
 \end{equation}
+and
 \begin{equation}
  x = \frac{\left(1-\eta\right)\left(C_0 - \left.3C_2\middle/2\right.\right) + \nu_{VC} + i\nu - i\nu_0 - i\nu_z}{\left(1-\eta\right)C_2}.
 \end{equation}
@@ -1168,7 +1174,7 @@ and
 \begin{equation}
  B = \frac{\left.\sqrt{\pi} \left[\left(1-z_1^2\right)w(i z_1) - \left(1-z_2^2\right)w(i z_2) \right] \middle/ 2\sqrt{y}\right. -1}{\left(1-\eta\right)C_2},
 \end{equation}
-where $z_1 = \sqrt{x+y} - \sqrt{y}$ and $z_2 = \sqrt{x+y} + \sqrt{y}$.
+where $z_1 = \sqrt{x+y} - \sqrt{y}$ and $z_2 = \sqrt{x+y} + \sqrt{y}$.  This is marked as case 1 below for the description of the derivatives.
 
 If $|y| \leq 10^{-15}|x|$ but all other numbers are reasonably large and normal,
 then if $|\sqrt{x}| \leq 4000$
@@ -1182,7 +1188,7 @@ and
  2\sqrt{\pi} \left[ \left( 1-x-2y \right) \left(1/\sqrt{\pi} - z_bw(i z_b)\right) +
  z_1w(i z_1)\right] -1}{\left(1-\eta\right)C_2},
 \end{equation}
-where $z_1 = \sqrt{x+y}$ and $z_b = \sqrt{x}$.
+where $z_1 = \sqrt{x+y}$ and $z_b = \sqrt{x}$.  This is marked as case 2.1 below for the description of the derivatives.
 Still if $|y| \leq 1e-15|x|$ but all other numbers are reasonably large and normal,
 then if $|\sqrt{x}| > 4000$
 \begin{equation}
@@ -1194,7 +1200,7 @@ and
   \left( 1-x-2y \right) \left(1/x - \left.3 \middle/ 2x^2\right.\right) +
  2\sqrt{\pi}z_1w(i z_1) -1}{\left(1-\eta\right)C_2},
 \end{equation}
-with $z_1=\sqrt{x+y}$.
+with $z_1=\sqrt{x+y}$.  This is marked as case 2.2 below for the description of the derivatives.
 
 If $|x| \leq 3\times10^{-8}|y|$ and the other numbers are normal then
 \begin{equation}
@@ -1206,7 +1212,7 @@ and
 \end{equation}
 with 
 $z_1 =  \left. \sqrt{\ln 2}\left[ i\nu-i\nu_0-i\nu_z + \left(1-\eta\right)\left(C_0 - \left.3C_2\middle/2\right.\right) + \nu_{VC}\right] \middle/ \Gamma_D \right.$ and
-$z_2 = \sqrt{x+y} + \sqrt{y}$.
+$z_2 = \sqrt{x+y} + \sqrt{y}$.  This is marked as case 3 below for the description of the derivatives.
 
 Lastly, if $\left(1-\eta\right)C_2 \equiv 0$, then
 \begin{equation}
@@ -1221,6 +1227,215 @@ otherwise if $|z_1| > 4000$
 \begin{equation}
  B = \frac{\sqrt{\ln 2}}{\Gamma_D} \left[ \sqrt{\pi}w(i z_1) + \frac{1}{2z_1} - \frac{3}{4z_1^3} \right].
 \end{equation}
+These are marked as case 4.1 and 4.2, respectively, below for the description of the derivatives.
+
+The main derivative of HTP still follows from the main expression and will look like
+this beast of an equation
+\begin{equation}
+ \frac{\partial}{\partial t} F = 
+ \begin{array}{l}
+   \left.\frac{\partial A}{\partial t} \middle/\pi \left\{\left[\left(C_0 - \left.3C_2\middle/2\right.\right) \eta - \nu_{VC}\right] A + \eta C_2 B + 1\right\} \right. - \\[5pt]
+   \Bigl\{
+   \left[\left(C_0 - \left.3C_2\middle/2\right.\right) \eta - \nu_{VC}\right] \frac{\partial A}{\partial t} + C_2 B \frac{\partial \eta}{\partial t} + \eta B \frac{\partial C_2}{\partial t} + \\[5pt]
+   \left[\left(C_0 - \left.3C_2\middle/2\right.\right) \frac{\partial \eta}{\partial t} + \left(\frac{\partial C_0}{\partial t} - \left.3\frac{\partial C_2}{\partial t}\middle/2\right.\right) \eta - \frac{\partial \nu_{VC}}{\partial t}\right] A +  \\[5pt]
+   \left. \eta C_2 \frac{\partial B}{\partial t}
+   \Bigr\} A \middle/ \pi \left\{\left[\left(C_0 - \left.3C_2\middle/2\right.\right) \eta - \nu_{VC}\right] A + \eta C_2 B + 1\right\}^2 \right.,
+ \end{array}
+\end{equation}
+where $t$ represents an arbitrary variable.
+The derivatives that matter to the HTP algorithm are the same as those
+that matters for the Lorentz algorithm, with the addition of the 4
+additional pressure broadening variables.  Note that for many of these,
+several of the inputs to the above will be zero.
+
+Going over the four generic variables defined before the branching above,
+\begin{equation}
+ \begin{array}{ll}
+  \frac{\partial}{\partial T} C_0 &= \frac{\partial \Gamma_0}{\partial T} - i\frac{\partial \Delta_0}{\partial T} \\[5pt]
+  \frac{\partial}{\partial r} C_0 &= \frac{\partial \Gamma_0}{\partial r} - i\frac{\partial \Delta_0}{\partial r} \\[5pt]
+  \frac{\partial}{\partial \Gamma_0} C_0 &= 1 \\[5pt]
+  \frac{\partial}{\partial \Delta_0} C_0 &= -i \\[5pt]
+  \frac{\partial}{\partial t} C_0 &= 0,
+ \end{array}
+\end{equation}
+where $t$ is from now on any other derivative than those previously defined in 
+an expression.  Likewise,
+\begin{equation}
+ \begin{array}{ll}
+  \frac{\partial}{\partial T} C_2 &= \frac{\partial \Gamma_2}{\partial T} - i\frac{\partial \Delta_2}{\partial T} \\[5pt]
+  \frac{\partial}{\partial r} C_2 &= \frac{\partial \Gamma_2}{\partial r} - i\frac{\partial \Delta_2}{\partial r} \\[5pt]
+  \frac{\partial}{\partial \Gamma_2} C_2 &= 1 \\[5pt]
+  \frac{\partial}{\partial \Delta_2} C_2 &= -i \\[5pt]
+  \frac{\partial}{\partial t} C_2 &= 0.
+ \end{array}
+\end{equation}
+For the two constant expressions,
+\begin{equation}
+ \frac{\partial}{\partial t} y = -2 \left[ \frac{1}{\Gamma_D}\frac{\partial \Gamma_D}{\partial t} + \left. \left(\frac{\partial \eta}{\partial t}C_2 + (1-\eta)\frac{\partial C_2}{\partial t}\right) \middle/ (1-\eta)C_2 \right. \right] y,
+\end{equation}
+and
+\begin{equation}
+ \begin{array}{ll}
+  \frac{\partial}{\partial ||\vec{B}||} x &= -\frac{\left.i\mu_B\left(g_{z_1}M_1 - g_{z_2}M_2\right)\middle/h\right.}{(1-\eta)C_2} \\[5pt]
+  \frac{\partial}{\partial \nu_0} x &= -\frac{i}{(1-\eta)C_2} \\[5pt]
+  \frac{\partial}{\partial \nu} x &= -\frac{i}{(1-\eta)C_2} \\[5pt]
+  \frac{\partial}{\partial t} x &= \frac{\frac{\partial \nu_{VC}}{\partial t} - \left(C_0 - \left.3C_2\middle/2\right.\right)\frac{\partial \eta}{\partial t} + (1-\eta)\left(\frac{\partial C_0}{\partial t} - \left.3\frac{\partial C_2}{\partial t}\middle/2\right.\right)}{(1-\eta)C_2}-\frac{(1-\eta)\frac{\partial C_2}{\partial t} - \frac{\partial\eta}{\partial t}C_2}{(1-\eta)C_2}x.
+ \end{array}
+\end{equation}
+
+Before branching, this replacement will be used throughout the expressions
+\begin{equation}
+ \Delta_{w(iz)} = -2 \left[\frac{1}{\sqrt{\pi}} - z w(iz)\right] \frac{\partial z}{\partial t}.
+\end{equation}
+
+In case 1,
+\begin{equation}
+ \frac{\partial}{\partial t} A = \sqrt{\pi} \left[\left(w(iz_1) - w(iz_2)\right) \frac{\sqrt{\ln 2}}{\Gamma_D}\frac{\partial \Gamma_D}{\partial t} + \left(\Delta_{w(iz_1)} - \Delta_{w(iz_2)}\right) \frac{\sqrt{\ln 2}}{\Gamma_D}\right],
+\end{equation}
+and
+\begin{equation}
+\frac{\partial}{\partial t} B =
+\begin{array}{l}
+ \frac{\sqrt{\pi} \left[\left(z_1^2 - 1\right) w(iz_1) - \left(z_2^2 - 1\right) w(iz_2)\right] \frac{\partial y }{\partial t}}{4 \sqrt{y^3} (1-\eta)C_2} + \\[5pt]  
+ \frac{\sqrt{\pi} \left[
+ \left(-\left(z_1^2 - 1\right) \Delta_{w(iz_1)} + \left(z_2^2 - 1\right) \Delta_{w(iz_2)} -
+ 2 w(iz_1) z_1 \frac{\partial z_1}{\partial t} + 2 w(iz_2) z_2 \frac{\partial z_2}{\partial t}\right)  \right] }{2 \sqrt{y} (1-\eta)C_2} + \\[5pt]
+  \frac{\left[\sqrt{\pi} (z_1^2 - 1) w(iz_1) -
+  \sqrt{\pi} (z_2^2 - 1) w(iz_2) + 2 \sqrt{y}\right]
+  \left[(1-\eta)\frac{\partial C_2}{\partial t} - \frac{\partial\eta}{\partial t}C_2\right] }
+  {2 \sqrt{y} \left[(1-\eta)C_2\right]^2}.
+\end{array} 
+\end{equation}
+The remaining derivatives for case 1 are, for completeness,
+\begin{equation}
+\frac{\partial}{\partial t} z_1 = -\left.\frac{\partial y}{\partial t} \middle/ 2\sqrt{y}\right. + \left.\left(\frac{\partial x}{\partial t} + \frac{\partial y}{\partial t}\right) \middle/ 2 \sqrt{x+y} \right.
+\end{equation}
+and 
+\begin{equation}
+\frac{\partial}{\partial t} z_2 = \left.\frac{\partial y}{\partial t} \middle/ 2\sqrt{y}\right. + \left.\left(\frac{\partial x}{\partial t} + \frac{\partial y}{\partial t}\right) \middle/ 2 \sqrt{x+y} \right..
+\end{equation}
+
+In case 2.1,
+\begin{equation}
+\frac{\partial}{\partial t}A =
+\begin{array}{l}
+ \frac{-\sqrt{\pi} \left[w(iz_b)  \frac{\partial x}{\partial t} + 2 x \Delta_{w(iz_b)}\right]}{\sqrt{x} (1-\eta)C_2} + 
+ \frac{2 (\sqrt{\pi} w(iz_b) \sqrt{x} - 1) \left[(1-\eta)\frac{\partial C_2}{\partial t} - \frac{\partial \eta}{\partial t}C_2\right]}
+ {\left[(1-\eta)C_2\right]^2},
+\end{array}
+\end{equation}
+and
+\begin{equation}
+ \frac{\partial}{\partial t} B =
+ \begin{array}{l}
+  \frac{-\left[2 \left(\sqrt{\pi} w(iz_b) \sqrt{x} - 1\right) (x + 2 y - 1) + 2 \sqrt{\pi} \sqrt{x+y} w(iz_1) - 1\right] \left[(1-\eta)\frac{\partial C_2}{\partial t} - \frac{\partial \eta}{\partial t}C_2\right]}
+  {\left[(1-\eta)C_2\right]^2}
+  \\[5pt]
+  \frac{2\left[\left(\sqrt{\pi} w(iz_b) \sqrt{x} - 1\right) \left(\frac{\partial x}{\partial t} + 2 \frac{\partial y}{\partial t}\right)
+                     \sqrt{\pi} \sqrt{x+y} \Delta_{w(iz_1)}\right]
+                    }{(1-\eta)C_2} + \\[5pt]
+  \frac{\sqrt{x} +
+                \sqrt{\pi} \left(w(iz_b) \frac{\partial x}{\partial t} + 2x \Delta_{w(iz_b)}\right) \left(x + 2 y - 1\right)}
+  {\sqrt{x}(1-\eta)C_2} + \frac{\sqrt{\pi} \left(\frac{\partial x}{\partial t} + \frac{\partial y}{\partial t}\right) w(iz_1)}{\sqrt{x+y}(1-\eta)C_2},
+ \end{array}
+\end{equation}
+with
+\begin{equation}
+ \frac{\partial}{\partial t} z_b = \left.\frac{\partial x}{\partial t}\middle/2\sqrt{x}\right..
+\end{equation}
+
+In case 2.2,
+\begin{equation}
+ \frac{\partial}{\partial t} A = \frac{(3-x) (1-\eta)C_2 \frac{\partial x}{\partial t} - (x - 3/2) x \left[(1-\eta)\frac{\partial C_2}{\partial t} - \frac{\partial \eta}{\partial t}C_2\right]}{x^3 \left[(1-\eta)C_2\right]^2}
+\end{equation}
+and
+\begin{equation}
+\frac{\partial}{\partial t} B =
+\begin{array}{l}
+\frac{\left[\left(-2 \sqrt{\pi} \sqrt{x+y} w(iz_1) + 1\right) x^2 +
+                     \left(x - 3/2\right)\left(x + 2 y - 1\right)\right]
+                         \left[(1-\eta)\frac{\partial C_2}{\partial t} - \frac{\partial \eta}{\partial t}C_2\right]}{x^2 \left[(1-\eta)C_2\right]^2} + \\[5pt]
+ \frac{(x - 3)(x + 2 y - 1) \frac{\partial x}{\partial t} -
+                     (x - 3/2) (\frac{\partial x}{\partial t} + 2 \frac{\partial y}{\partial t}) x}
+                   {x^3 (1-\eta)C_2} + \\[5pt] 
+                     \frac{\sqrt{\pi}\left[2 (x + y) \Delta_{w(iz_1)} +
+                     (\frac{\partial x}{\partial t} + \frac{\partial y}{\partial t}) w(iz_1)\right]}
+                   {\sqrt{x+y}(1-\eta)C_2}.
+\end{array}
+\end{equation}
+In both case 2.1 and 2.2,
+\begin{equation}
+ \frac{\partial}{\partial t} z_1 = \left.\left[\frac{\partial x}{\partial t} + \frac{\partial y}{\partial t}\right]\middle/2\sqrt{x+y}\right..
+\end{equation}
+
+In case 3,
+\begin{equation}
+  \frac{\partial}{\partial t} A = \sqrt{\pi} \left[ \left(w(iz_1) - w(iz_2)\right) \frac{\sqrt{\ln 2}}{\Gamma_D}\frac{\partial \Gamma_D}{\partial t} + \left(\Delta_{w(iz_1)} - \Delta_{w(iz_2)}\right) \frac{\sqrt{\ln 2}}{\Gamma_D}\right]
+\end{equation}
+and
+\begin{equation}
+ \frac{\partial}{\partial t} B =
+ \begin{array}{l}
+ \frac{\sqrt{\pi}\left[\left(z_1^2 - 1\right) w(iz_1) - \left(z_2^2 - 1\right)w(iz_2)\right] \frac{\partial y}{\partial t}}{4 \sqrt{y^3} (1-\eta)C_2} + \\[5pt]
+  \frac{\sqrt{\pi}
+                       2 \left[-\left(z_1^2 - 1\right) \Delta_{w(iz_1)} + \left(z_2^2 - 1\right) \Delta_{w(iz_2)} -
+                            2 w(iz_1) z_1 \frac{\partial z_1}{\partial t} + 2 w(iz_2) z_2 \frac{\partial z_2}{\partial t}\right]}{4 \sqrt{y} (1-\eta)C_2} + \\[5pt]
+  \frac{\left[\sqrt{\pi} \left(z_1^2 - 1\right) w(iz_1) -
+                       \sqrt{\pi} \left(z^2_2 - 1\right) w(iz_2) + 2 \sqrt{y}\right]
+                      \left[(1-\eta)\frac{\partial C_2}{\partial t} - \frac{\partial \eta}{\partial t}C_2\right] }
+                 {2 \sqrt{y} \left[(1-\eta)C_2\right]^2},
+ \end{array}
+\end{equation}
+with
+\begin{equation}
+ \begin{array}{ll}
+  \frac{\partial}{\partial ||\vec{B}||}z_1 &= -i \sqrt{\ln 2} \left.i\mu_B\left(g_{z_1}M_1 - g_{z_2}M_2\right)\middle/h\Gamma_D\right.  \\[5pt]
+  \frac{\partial}{\partial \nu_0} z_1 &= -i\left.\sqrt{\ln2}\middle/\Gamma_D\right. \\[5pt]
+  \frac{\partial}{\partial \nu} z_1 &= i\left.\sqrt{\ln 2}\middle/\Gamma_D\right. \\[5pt]
+  \frac{\partial}{\partial t} z_1 &= \left[i\nu - i\nu_0 - i\nu_z + (1-\eta)\left(C_0 - \left.3C_2\middle/2\right.\right) + \nu_{VC}\right] \frac{\sqrt{\ln 2}}{\Gamma_D}\frac{\partial \Gamma_D}{\partial t} + \\[5pt]&
+ \frac{\sqrt{\ln 2}}{\Gamma_D} \left[(1-\eta)\left(\frac{\partial C_0}{\partial t} - \left.3\frac{\partial C_2}{\partial t}\middle/2\right.\right)-\frac{\partial\eta}{\partial t}\left(C_0 - \left.3C_2\middle/2\right.\right) + \frac{\partial\nu_{VC}}{\partial t}\right]
+ \end{array}
+\end{equation}
+and
+\begin{equation}
+\frac{\partial}{\partial t} z_2 = \left.\frac{\partial y}{\partial t} \middle/ 2\sqrt{y}\right. + \left.\left(\frac{\partial x}{\partial t} + \frac{\partial y}{\partial t}\right) \middle/ 2 \sqrt{x+y} \right..
+\end{equation}
+
+In both case 4.1 and case 4.2,
+\begin{equation}
+ \frac{\partial}{\partial t} A = \sqrt{\pi} \left(w(iz_1)\frac{\sqrt{\ln 2}}{\Gamma_D}\frac{\partial \Gamma_D}{\partial t} + \frac{\sqrt{\ln 2}}{\Gamma_D}\Delta_{w(iz_1)}\right).
+\end{equation}
+For case 4.1,
+\begin{equation}
+\frac{\partial}{\partial t} B =
+\begin{array}{l}
+ -\left\{\sqrt{\pi} \left[\left(z_1^2 - 1\right) \Delta_{w(iz_1)} + 2 w(iz_1) z_1 \frac{\partial z_1}{\partial t}\right] - \frac{\partial z_1}{\partial t}\right\}
+                  \frac{\sqrt{\ln 2}}{\Gamma_D} - \\[5pt]
+              \left[\sqrt{\pi} \left(z_1^2 - 1\right) w(iz_1) - z_1\right] \frac{\sqrt{\ln 2}}{\Gamma_D}\frac{\partial \Gamma_D}{\partial t}
+\end{array}
+\end{equation}
+and for case 4.2,
+\begin{equation}
+\frac{\partial}{\partial t} B =
+\begin{array}{l}
+\left.{\left(\sqrt{\pi} w(iz_1) z_1^3 + \left.z_1^2\middle/2\right. - \left.3\middle/4\right.\right) \frac{\sqrt{\ln 2}}{\Gamma_D}\frac{\partial \Gamma_D}{\partial t}}\middle/{z_1^3}\right. + \\[5pt]
+\left.{\left(\sqrt{\pi} z_1^4 \Delta_{w(iz_1)} - \left.z_1^2\middle/2\right. \frac{\partial z_1}{\partial t} + \left.9\frac{\partial z_1}{\partial t}\middle/4\right.\right)\frac{\sqrt{\ln 2}}{\Gamma_D}}\middle/{z_1^4}\right.
+\end{array}
+\end{equation}
+with
+\begin{equation}
+ \begin{array}{ll}
+  \frac{\partial}{\partial ||\vec{B}||}z_1 &= -i \sqrt{\ln 2} \left.i\mu_B\left(g_{z_1}M_1 - g_{z_2}M_2\right)\middle/h\Gamma_D\right.  \\[5pt]
+  \frac{\partial}{\partial \nu_0} z_1 &= -i\left.\sqrt{\ln2}\middle/\Gamma_D\right. \\[5pt]
+  \frac{\partial}{\partial \nu} z_1 &= i\left.\sqrt{\ln 2}\middle/\Gamma_D\right. \\[5pt]
+  \frac{\partial}{\partial t} z_1 &= \left[i\nu - i\nu_0 - i\nu_z + (1-\eta)\left(C_0 - \left.3C_2\middle/2\right.\right) + \nu_{VC}\right] \frac{\sqrt{\ln 2}}{\Gamma_D}\frac{\partial \Gamma_D}{\partial t} + \\[5pt]&
+ \frac{\sqrt{\ln 2}}{\Gamma_D} \left[(1-\eta)\left(\frac{\partial C_0}{\partial t} - \left.3\frac{\partial C_2}{\partial t}\middle/2\right.\right)-\frac{\partial\eta}{\partial t}\left(C_0 - \left.3C_2\middle/2\right.\right) + \frac{\partial\nu_{VC}}{\partial t}\right].
+ \end{array}
+\end{equation}
+
+\paragraph*{Van Vleck and Huber normalization (normalizationtype is VVH)} \
+
+placeholder...
 
 % \paragraph*{The comment tag in ARTSCAT-6}
 % We use a comment tag to help explain the data in ARTSCAT-6 to anyone that reads the data file manually.
@@ -1272,183 +1487,6 @@ otherwise if $|z_1| > 4000$
 % quantum numbers. However, they are either not all defined for water, or there is an error in the ARTS HITRAN
 % reader.  In these cases, we will leave numbers undefined and try to catch the problem where it is relevant
 % for real calculations.
-% 
-% \subsubsection{Line shapes}
-% 
-% What follows are the profiles available in ARTS written out in full.
-% Note that this will be complicated towards the end, especially as 
-% we have limited experience applying SDVP and HTP calculations in real
-% life.
-% 
-% \paragraph*{Doppler profile}
-% \begin{equation}
-%  F_{DP} = \frac{1}{\sqrt{\pi}\Gamma_D}e^{\left.- \left[\nu - \nu_0 - \nu_z\right]^2 \middle/ \Gamma_D^2\right.}
-% \end{equation}
-% 
-% \paragraph*{Lorentz profile}
-% \begin{equation}
-%  F_{LP} = \frac{1}{\pi} \frac{1}{\Gamma_0+i\Delta_0+i\delta\nu+i\nu_0+i\nu_z-i\nu}
-% \end{equation}
-% 
-% \paragraph*{Voigt profile}
-% \begin{equation}
-%  F_{VP} = \frac{1}{\sqrt{\pi}\Gamma_D} w(z),
-% \end{equation}
-% where
-% \begin{equation}
-%  z = \frac{\nu-\Delta_0-\delta\nu-\nu_0-\nu_z + i\Gamma_0}{\Gamma_D},
-% \end{equation}
-% and $w(\cdots)$ is the Faddeeva function.
-% 
-% \paragraph*{The Hartman-Tran profile and Speed-dependent Voigt profile}
-% will get very complicated.  Note before reading this that we convert all
-% values into CGS in ARTS before performing the following calculations.
-% The reasoning we have is that this is how the line shape was published,
-% and we are using a translation of the original code. This will hopefully
-% change in the future as we grow confident in our use of the code.
-% To translate these values back, to ARTS, we have to apply not just a conjunction
-% of the results but also scale the results by a factor $1/100c$.
-% 
-
-% 
-% \subsubsection{Partial derivatives of $F\left(\cdots\right)$}
-% 
-% The partial derivatives are listed below in order of the different profiles. 
-% 
-% \paragraph*{Partial derivative w.r.t.\ $T$}
-% 
-% \begin{itemize}
-%  \item[DP:] $\frac{\partial F_{DP}}{\partial T} = F_{DP}\left(2\left[\frac{\nu - \nu_0 - \nu_z}{\Gamma_D}\right]^2-1\right) \frac{\partial \Gamma_D}{\partial T} \frac{1}{\Gamma_D}$
-%  
-%  \item[LP:] $\frac{\partial F_{LP}}{\partial T} = -\frac{F_{LP}}{\Gamma_0+i\Delta_0+i\delta\nu+i\nu_0+i\nu_z-i\nu} \left( \frac{\partial \Gamma_0}{\partial T} + i\frac{\partial \Delta_0}{\partial T} + i \frac{\partial \delta\nu}{\partial T}\right)$ 
-%  
-%  \item[VP:] $\frac{\partial F_{VP}}{\partial T} = \frac{2}{\sqrt{\pi}\Gamma_D}\left(\frac{i}{\sqrt{\pi}} - z w\left(z\right) \right)
-%  \left(i\frac{\partial \Gamma_0}{\partial T} - \frac{\partial\Delta_0}{\partial T} - \frac{\partial\delta\nu}{\partial T} -z\frac{\partial\Gamma_D}{\partial T}\right) - F_{VP}\frac{\partial\Gamma_D}{\partial T}\frac{1}{\Gamma_D}$
-%  
-%  \item[SDVP:] Formulation too long. Analytical solution available in ARTS.
-%  
-%  \item[HTP:] Formulation too long. Analytical solution available in ARTS.
-% \end{itemize}
-% Also note that the partial derivatives for the parameters of 
-% Table~\ref{tab:abs_theory:lineshape:temperaturemodes} are trivial from said table's equations.
-% 
-% \paragraph*{Partial derivative w.r.t.\ $\nu$}
-% 
-% \begin{itemize}
-%  \item[DP:] $\frac{\partial F_{DP}}{\partial \nu} = -2 F_{DP} \left[\frac{\nu - \nu_0 - \nu_z}{\Gamma_D^2}\right]$
-%  
-%  \item[LP:] $\frac{\partial F_{LP}}{\partial\nu} = \frac{iF_{LP}}{\Gamma_0+i\Delta_0+i\delta\nu+i\nu_0+i\nu_z-i\nu}$
-%  
-%  \item[VP:] $\frac{\partial F_{VP}}{\partial \nu} = \frac{2}{\sqrt{\pi}\Gamma_D}\left(\frac{i}{\sqrt{\pi}} - z w\left(z\right) \right) \frac{1}{\Gamma_D}$
-%  
-%  \item[SDVP:] Formulation too long. Analytical solution available in ARTS.
-%  
-%  \item[HTP:] Formulation too long. Analytical solution available in ARTS.
-% \end{itemize}
-% Also note that the frequency derivative is used to derive wind derivatives
-% in a later stage.
-% 
-% \paragraph*{Partial derivative w.r.t.\ $\nu_0$}
-% 
-% \begin{itemize}
-%  \item[DP:] $\frac{\partial F_{DP}}{\partial \nu_0} = 2F_{DP} \left[\frac{\nu-\nu_0-\nu_z}{\Gamma_D}\right] \left(\frac{\left[\frac{\nu - \nu_0 - \nu_z}{\Gamma_D}\right]-1}{\nu_0 + \nu_z}+ \frac{1}{\Gamma_D}\right)$
-%  
-%  \item[LP:] $\frac{\partial F_{LP}}{\partial\nu_0} = -\frac{iF_{LP}}{\Gamma_0+i\Delta_0+i\delta\nu+i\nu_0+i\nu_z-i\nu}$
-%  
-%  \item[VP:] $\frac{\partial F_{VP}}{\partial \nu_0} = \frac{2}{\sqrt{\pi}\Gamma_D}\left(\frac{i}{\sqrt{\pi}} - z w\left(z\right) \right) \left(-\frac{1}{\Gamma_D}-\frac{z}{\Delta_0+\delta\nu+\nu_0+\nu_z}\right) - \frac{F_{VP}}{\Delta_0+\delta\nu+\nu_0+\nu_z}$
-%  
-%  \item[SDVP:] Formulation too long. Analytical solution available in ARTS.
-%  
-%  \item[HTP:] Formulation too long. Analytical solution available in ARTS.
-% \end{itemize}
-% Also note that Equation~\ref{eq:lsalg-standard-equation} has the line strength that depends on the line central frequency. 
-% 
-% \paragraph*{Partial derivative w.r.t.\ $\delta\nu$}
-% 
-% See ``Partial derivative w.r.t.\ $\nu_0$'' for identical solution.  Also note that chaining for
-% any coefficient in Table~\ref{tab:abs_theory:lineshape:temperaturemodes} is possible.
-% 
-% \paragraph*{Partial derivative w.r.t.\ $\Delta_0$}
-% 
-% See ``Partial derivative w.r.t.\ $\nu_0$'' for identical solution.  Also note that chaining for
-% any coefficient in Table~\ref{tab:abs_theory:lineshape:temperaturemodes} is possible.
-% 
-% \paragraph*{Partial derivative w.r.t.\ $||\vec{B}||$}
-% 
-% See ``Partial derivative w.r.t.\ $\nu_0$'' for almost identical solution.
-% Scale expressions by $\left. \mu_B \left(g_{z_1}M_1-g_{z_2}M_2\right) \middle/h\right.$ to be correct.
-% 
-% \paragraph*{Partial derivative w.r.t.\ $\Gamma_0$}
-% 
-% \begin{itemize}
-%  \item[DP:] N/A
-%  
-%  \item[LP:] $\frac{\partial F_{LP}}{\partial\Gamma_0} = -\frac{F_{LP}}{\Gamma_0+i\Delta_0+i\delta\nu+i\nu_0+i\nu_z-i\nu}$
-%  
-%  \item[VP:] $\frac{\partial F_{VP}}{\partial \Gamma_0} = \frac{2}{\sqrt{\pi}\Gamma_D}\left(\frac{i}{\sqrt{\pi}} - z w\left(z\right) \right) \frac{i}{\Gamma_D}$
-%  
-%  \item[SDVP:] Formulation too long. Analytical solution available in ARTS.
-%  
-%  \item[HTP:] Formulation too long. Analytical solution available in ARTS.
-% \end{itemize}
-% 
-% \paragraph*{Partial derivative w.r.t.\ $\Gamma_2$}
-% 
-% \begin{itemize}
-%  \item[DP:] N/A
-%  
-%  \item[LP:] N/A
-%  
-%  \item[VP:] N/A
-%  
-%  \item[SDVP:] Formulation too long. Analytical solution available in ARTS.
-%  
-%  \item[HTP:] Formulation too long. Analytical solution available in ARTS.
-% \end{itemize}
-% 
-% \paragraph*{Partial derivative w.r.t.\ $\Delta_2$}
-% 
-% \begin{itemize}
-%  \item[DP:] N/A
-%  
-%  \item[LP:] N/A
-%  
-%  \item[VP:] N/A
-%  
-%  \item[SDVP:] Formulation too long. Analytical solution available in ARTS.
-%  
-%  \item[HTP:] Formulation too long. Analytical solution available in ARTS.
-% \end{itemize}
-% 
-% \paragraph*{Partial derivative w.r.t.\ $\eta$}
-% 
-% \begin{itemize}
-%  \item[DP:] N/A
-%  
-%  \item[LP:] N/A
-%  
-%  \item[VP:] N/A
-%  
-%  \item[SDVP:] N/A
-%  
-%  \item[HTP:] Formulation too long. Analytical solution available in ARTS.
-% \end{itemize}
-% 
-% \paragraph*{Partial derivative w.r.t.\ $\nu_{FVC}$}
-% 
-% \begin{itemize}
-%  \item[DP:] N/A
-%  
-%  \item[LP:] N/A
-%  
-%  \item[VP:] N/A
-%  
-%  \item[SDVP:] N/A
-%  
-%  \item[HTP:] Formulation too long. Analytical solution available in ARTS.
-% \end{itemize}
-% 
-% Note that chaining for any coefficient in Table~\ref{tab:abs_theory:lineshape:temperaturemodes} is possible.
 
 \subsection{Species-specific data in ARTS}
 \label{sec:abs_theory:species_data}
