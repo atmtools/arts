@@ -30,6 +30,7 @@
 #define linescaling_h
 
 #include "absorption.h"
+#include "constants.h"
 
 /** Computes the partition function at one temperature
  * 
@@ -135,17 +136,31 @@ Numeric dstimulated_relative_emission_dF0(const Numeric& gamma,
  */
 Numeric boltzman_ratio(const Numeric& T, const Numeric& T0, const Numeric& E0);
 
-/** Computes temperature derivatives exp(E0/c  (T - T0) / (T * T0))
+/** Computes temperature derivatives exp(E0/k  (T - T0) / (T * T0))
  * 
  * @param[in] boltzmann_ratio Output of boltzmann_ratio(...)
  * @param[in] T Temperature
  * @param[in] E0 Lower state energy
  * 
- * @return exp(E0/c  (T - T0) / (T * T0))
+ * @return exp(E0/k  (T - T0) / (T * T0))
  */
 Numeric dboltzman_ratio_dT(const Numeric& boltzmann_ratio,
                            const Numeric& T,
                            const Numeric& E0);
+
+/** Computes temperature derivatives exp(E0/k  (T - T0) / (T * T0)) / 
+ * exp(E0/c  (T - T0) / (T * T0))
+ * 
+ * @param[in] T Temperature
+ * @param[in] E0 Lower state energy
+ * 
+ * @return E0 k / T^2
+ */
+constexpr Numeric dboltzman_ratio_dT_div_boltzmann_ratio(Numeric T,
+                                                         Numeric E0)
+{
+  return E0 / (Constant::k * T * T);
+}
 
 /** Computes exp(- E0/kT)
  * 

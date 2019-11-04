@@ -234,7 +234,7 @@ Numeric dabsorption_nlte_rate_dF0(const Numeric& gamma,
   extern const Numeric BOLTZMAN_CONST;
   static const Numeric c = -PLANCK_CONST / BOLTZMAN_CONST;
 
-  return c * gamma * (r_low - r_upp) / (T * (gamma * gamma - 2 * gamma + 1));
+  return c * gamma * (r_low - r_upp) / (T * Constant::pow2(gamma - 1));
 }
 
 Numeric dabsorption_nlte_rate_dTl(const Numeric& gamma,

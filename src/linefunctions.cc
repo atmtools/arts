@@ -664,7 +664,7 @@ void Linefunctions::apply_linestrength_scaling_by_lte(
       dF.col(iq).noalias() +=
       F * (dstimulated_relative_emission_dT(gamma, gamma_ref, line.F0(), T) /
                    K2 +
-                   dboltzman_ratio_dT(K1, T, line.E0()) / K1 - invQT * dQT_dT);
+                   dboltzman_ratio_dT_div_boltzmann_ratio(T, line.E0()) - invQT * dQT_dT);
     else if (deriv == JacPropMatType::LineStrength and
              Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
       dF.col(iq).noalias() = F / line.I0();  //nb. overwrite
@@ -913,10 +913,10 @@ void Linefunctions::apply_linestrength_from_nlte_level_distributions(
         const Numeric dk_dr2 = -c3 * A21 / c2, de_dr2 = c3 * A21,
                       dratio_dr2 = de_dr2 / b - dk_dr2;
         dN.col(iq).noalias() = F * dratio_dr2;
-        dF.col(iq).noalias() += F * dk_dr2;
+        dF.col(iq).noalias() = F * dk_dr2;
       } else if (Absorption::id_in_line_upper(band, deriv.QuantumIdentity(), line_ind)) {
         const Numeric dk_dr1 = c3 * x * A21 / c2;
-        dF.col(iq).noalias() += F * dk_dr1;
+        dF.col(iq).noalias() = F * dk_dr1;
       }
     }
   }

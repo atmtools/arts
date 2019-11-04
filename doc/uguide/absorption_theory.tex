@@ -1443,10 +1443,10 @@ It adds its own derivatives in the form of temperature, frequency, and line cent
 The derivatives are
 \begin{equation}
 \begin{array}{ll}
- \frac{\partial}{\partial T} NF &= -\frac{h}{2kT^2} \left\{\left[\nu_0\tanh \left( \frac{h\nu_0} {2kT} \right)  - \frac{\nu_0}{\tanh \left( h\nu_0 \middle/ 2kT \right)}\right] N \right. \\[5pt] &\left. \nu_0 \tanh \left( \frac{h\nu_0}{2kT} \right) N^2 + \frac{\nu N}{\tanh \left( \frac{h\nu} {2kT} \right)} \right\} F  + N\frac{\partial F}{\partial T}\\[5pt]
- \frac{\partial}{\partial \nu} NF &= \left\{\frac{1}{\nu} + \frac{h}{2kT}\left[\frac{1}{\tanh \left( {h\nu} \middle/ {2kT} \right)} - {\tanh \left( \frac{h\nu} {2kT} \right)}\right]\right\}NF  + N\frac{\partial F}{\partial \nu}\\[5pt]
- \frac{\partial}{\partial \nu} NF &= \left\{\frac{1}{\nu_0} + \frac{h}{2kT}\left[{\tanh \left( \frac{h\nu_0} {2kT} \right)} - \frac{1}{\tanh \left( {h\nu_0} \middle/ {2kT} \right)}\right]\right\}NF + N\frac{\partial F}{\partial \nu_0} \\[5pt]
- \frac{\partial}{\partial t} NF &= N\frac{\partial F}{\partial t},
+ \frac{\partial}{\partial T} \left[NF\right] &= -\frac{h}{2kT^2} \left\{\left[\nu_0\tanh \left( \frac{h\nu_0} {2kT} \right)  - \frac{\nu_0}{\tanh \left( h\nu_0 \middle/ 2kT \right)}\right] N \right. \\[5pt] &\left. \nu_0 \tanh \left( \frac{h\nu_0}{2kT} \right) N^2 + \frac{\nu N}{\tanh \left( \left.{h\nu}\middle/{2kT}\right. \right)} \right\} F  + N\frac{\partial F}{\partial T}\\[5pt]
+ \frac{\partial}{\partial \nu} \left[NF\right] &= \left\{\frac{1}{\nu} + \frac{h}{2kT}\left[\frac{1}{\tanh \left( {h\nu} \middle/ {2kT} \right)} - {\tanh \left( \frac{h\nu} {2kT} \right)}\right]\right\}NF  + N\frac{\partial F}{\partial \nu}\\[5pt]
+ \frac{\partial}{\partial \nu} \left[NF\right] &= \left\{\frac{1}{\nu_0} + \frac{h}{2kT}\left[{\tanh \left( \frac{h\nu_0} {2kT} \right)} - \frac{1}{\tanh \left( {h\nu_0} \middle/ {2kT} \right)}\right]\right\}NF + N\frac{\partial F}{\partial \nu_0} \\[5pt]
+ \frac{\partial}{\partial t} \left[NF\right] &= N\frac{\partial F}{\partial t},
 \end{array}
 \end{equation}
 where $F$ and $[\partial F / \partial T;\; \partial F / \partial \nu;\; \partial F / \partial \nu_0;\; \partial F / \partial t]$ are set in a line shape algorithm.
@@ -1460,9 +1460,9 @@ The van Vleck and Weiskopf algorithm modifies the line shape calculations. It co
 meaning it adds frequency and line center derivatives.  The derivatives are
 \begin{equation}
  \begin{array}{ll}
-  \frac{\partial}{\partial \nu} NF &= \frac{2}{\nu} NF + N\frac{\partial F}{\partial \nu} \\[5pt]
-  \frac{\partial}{\partial \nu_0} NF &= -\frac{2}{\nu_0} NF + N\frac{\partial F}{\partial \nu_0} \\[5pt]
-  \frac{\partial}{\partial t} NF &= N\frac{\partial F}{\partial \nu_0}
+  \frac{\partial}{\partial \nu} \left[NF\right] &= \frac{2}{\nu} NF + N\frac{\partial F}{\partial \nu} \\[5pt]
+  \frac{\partial}{\partial \nu_0} \left[NF\right] &= -\frac{2}{\nu_0} NF + N\frac{\partial F}{\partial \nu_0} \\[5pt]
+  \frac{\partial}{\partial t} \left[NF\right] &= N\frac{\partial F}{\partial \nu_0}
  \end{array}
 \end{equation}
 where $F$ and $[\partial F / \partial \nu;\; \partial F / \partial \nu_0;\; \partial F / \partial t]$ are set in a line shape algorithm.
@@ -1476,16 +1476,122 @@ The Rosenkranz quadratic algorithm modifies the line shape calculations. It comp
 meaning it adds the same derivatives as the van Vleck and Huber methods. The derivatives are
 \begin{equation}
  \begin{array}{ll}
-  \frac{\partial}{\partial T} NF &= -\frac{kT -
+  \frac{\partial}{\partial T}  \left[NF\right] &= -\frac{kT -
   \left.{h\nu_0}\middle/{2 \tanh\left(h\nu_0 \middle/ 2kT\right)}\right.}{kT^2}NF + N\frac{\partial F}{\partial T} \\[5pt]
-  \frac{\partial}{\partial \nu} NF &= \frac{2}{\nu}NF + N\frac{\partial F}{\partial \nu} \\[5pt]
-  \frac{\partial}{\partial \nu_0} NF &= 
+  \frac{\partial}{\partial \nu}  \left[NF\right] &= \frac{2}{\nu}NF + N\frac{\partial F}{\partial \nu} \\[5pt]
+  \frac{\partial}{\partial \nu_0}  \left[NF\right] &= 
   \left[- \frac{1}{\nu_0} - \left. h \middle/ 2kT \tanh\left(h\nu_0 \middle/2kT\right)\right. \right]  NF + N\frac{\partial F}{\partial \nu_0} \\[5pt]
-  \frac{\partial}{\partial t} NF &= N\frac{\partial F}{\partial t},
+  \frac{\partial}{\partial t}  \left[NF\right] &= N\frac{\partial F}{\partial t},
  \end{array}
 \end{equation}
 where $F$ and $[\partial F / \partial T;\; \partial F / \partial \nu;\; \partial F / \partial \nu_0;\; \partial F / \partial t]$ are set in a line shape algorithm.
 
+\paragraph*{LTE line strength (populationtype is LTE)} \
+
+The main equation of the LTE line strength is
+\begin{equation}
+ S_{LTE} = I_0\frac{1 - e^{\left. -h\nu_0 \middle/ kT\right.}}{1 - e^{\left.
+ -h\nu_0 \middle/ kT_0\right.}}e^{\left.{E_0 (T - T_0)}\middle/
+ {kTT_0}\right.}\frac{Q(T_0)}{Q(T)}.
+\end{equation}
+It adds its own derivatives in the form of temperature,
+line strength, and line center. The derivatives are
+\begin{equation}
+\begin{array}{ll}
+ \frac{\partial}{\partial T} \left[SNF\right]_{LTE} &= S\left( \frac{NF}{kT^2}\left[{E_0} - 
+ \frac{{h\nu_0}e^{\left. -h\nu_0 \middle/ kT\right.}}{
+ {1 - e^{\left. -h\nu_0 \middle/ kT\right.}}}\right] - \frac{NF}{Q(T)}\frac{\partial Q(T)}{\partial T} + \frac{\partial\left[NF\right]}{\partial T}  \right) \\[5pt]
+ \frac{\partial}{\partial I_0} \left[SNF\right]_{LTE} &= \frac{SNF}{I_0} \\[5pt]
+ \frac{\partial}{\partial \nu_0} \left[SNF\right]_{LTE} &= S\left(\frac{-hNF}{\left(1 - e^{\left. -h\nu_0 \middle/ kT\right.}\right)} \left[ \frac{ e^{\left. -h\nu_0 \middle/ kT_0\right.} }{ kT_0 } - \frac{ e^{\left. -h\nu_0 \middle/ kT\right.}}{kT}\right]
+ +  \frac{\partial\left[NF\right]}{\partial \nu_0}  \right) \\[5pt]
+ \frac{\partial}{\partial t} \left[SNF\right]_{LTE} &= S \frac{\partial}{\partial t} \left[NF\right].
+\end{array}
+\end{equation}
+Note that $NF$ is here assumed set by one of the normalization functions.  If no normalization function is used, this is considered equivalent to $N:=1$. 
+Note that $S=S_{LTE}$.  All source ratios are set to zero by this algorithm.
+
+\paragraph*{NLTE line strength with vibrational temperatures (populationtype is NLTE-VibrationalTemperatures)} \
+
+The main equation of the NLTE line strength with vibrational temperatures is
+\begin{equation}
+ S^{(abs)}_{Vib-NLTE} = S_{LTE} \frac{e^{\left.{E_1 (T - T_1)}\middle/{kTT_1}\right.} - e^{\left.{E_2 (T - T_2)}\middle/{kTT_2}\right.}e^{\left. -h\nu_0 \middle/ kT\right.}}{1 - e^{\left. -h\nu_0 \middle/ kT\right.}}.
+\end{equation}
+It adds its own derivatives in the form of temperature,
+line strength, line center, and the vibrational temperatures. The derivatives are
+\begin{equation}
+ \begin{array}{ll}
+  \frac{\partial}{\partial T} \left[SNF\right]^{(abs)} &= \frac{S}{S_{LTE}}\frac{\partial}{\partial T} \left[SNF\right]_{LTE} - SNF\Bigl[ \\[5pt]& \frac{(h\nu_0)^2 e^{\frac{ -h\nu_0 }{ kT }} \left(e^{\left.{E_1 (T - T_1)}\middle/{kTT_1}\right.}-e^{\left.{E_2 (T - T_2)}\middle/{kTT_2}\right.}\right)}{kT^2\left(e^{\left. -h\nu_0 \middle/ kT\right.} - 1\right)^2} - \\[5pt]
+  & \left. \frac{h\nu_0\left(E_1e^{\left.{E_1 (T - T_1)}\middle/{kTT_1}\right.} - E_2e^{\frac{ -h\nu_0 }{ kT }}e^{\left.{E_2 (T - T_2)}\middle/{kTT_2}\right.}\right)}{kT^2\left(e^{\left. -h\nu_0 \middle/ kT\right.} - 1\right)}\right] \\[5pt]
+  \frac{\partial}{\partial I_0} \left[SNF\right]^{(abs)} &= \frac{SNF}{I_0} \\[5pt]
+  \frac{\partial}{\partial \nu_0} \left[SNF\right]^{(abs)} &= \frac{S}{S_{LTE}} \frac{\partial}{\partial \nu_0} \left[SNF\right]_{LTE} - \\[5pt]& 
+  \frac{h e^{\left. -h\nu_0 \middle/ kT \right.} \left(e^{\left.{E_1 (T - T_1)}\middle/{kTT_1}\right.} - e^{\left.{E_2 (T - T_2)}\middle/{kTT_2}\right.}\right)}{kT^2\left(e^{\left. -h\nu_0 \middle/ kT \right.} - 1\right)^2}S_{LTE}NF \\[5pt]
+  \frac{\partial}{\partial T_1} \left[SNF\right]^{(abs)} &= \frac{E_1e^{\left.{E_1 (T - T_1)}\middle/{kTT_1}\right.}}{e^{\left.{E_1 (T - T_1)}\middle/{kTT_1}\right.} - e^{\left.{E_2 (T - T_2)}\middle/{kTT_2}\right.}e^{\left. -h\nu_0 \middle/ kT\right.}}\frac{1}{kT_1^2}SNF \\[5pt]
+  \frac{\partial}{\partial T_2} \left[SNF\right]^{(abs)} &= \frac{E_2e^{\left.{E_2 (T - T_1)}\middle/{kTT_2}\right.}e^{\left. -h\nu_0 \middle/ kT\right.}}{e^{\left.{E_2 (T - T_1)}\middle/{kTT_1}\right.} - e^{\left.{E_2 (T - T_2)}\middle/{kTT_2}\right.}e^{\left. -h\nu_0 \middle/ kT\right.}}\frac{1}{kT_2^2}SNF \\[5pt]
+  \frac{\partial}{\partial t} \left[SNF\right]^{(abs)} &= S \frac{\partial}{\partial t} \left[NF\right] \\[5pt]
+  \frac{\partial}{\partial t} \left[SNF\right]^{(abs)} &= S\frac{\partial}{\partial t} \left[NF\right].
+ \end{array}
+\end{equation}
+Note that $NF$ is here assumed set by one of the normalization functions.  If no normalization function is used, 
+this is considered equivalent to $N:=1$. Note that $S=S^{(abs)}_{Vib-NLTE}$ and that $S_{LTE}$ is as computed in 
+another algorithm.  Since the atmosphere is not locally thermodynamically stable, the source function differs 
+from the emission function by some small amount following
+\begin{equation}
+ S^{(src)}_{Vib-NLTE} = S_{LTE} e^{\left.{E_2 (T - T_2)}\middle/{kTT_2}\right.}.
+\end{equation}
+and the following derivatives are the pure derivatives
+\begin{equation}
+ \begin{array}{ll}
+  \frac{\partial}{\partial T} \left[SNF\right]^{(src)} &= \frac{S}{S_{LTE}}\frac{\partial}{\partial T} \left[SNF\right]_{LTE} - S \frac{E_2}{kT^2}NF \\[5pt]
+  \frac{\partial}{\partial I_0} \left[SNF\right]^{(src)} &= \frac{SNF}{I_0} \\[5pt]
+  \frac{\partial}{\partial \nu_0} \left[SNF\right]^{(src)} &= \frac{S}{S_{LTE}} \frac{\partial}{\partial \nu_0} \left[SNF\right]_{LTE} \\[5pt]
+  \frac{\partial}{\partial T_1} \left[SNF\right]^{(src)} &= 0 \\[5pt]
+  \frac{\partial}{\partial T_2} \left[SNF\right]^{(src)} &= S \frac{E_2}{kT^2_2} NF \\[5pt]
+  \frac{\partial}{\partial t} \left[SNF\right]^{(src)} &= S\frac{\partial}{\partial t} \left[NF\right],
+ \end{array}
+\end{equation}
+where $S:=S^{(src)}_{Vib-NLTE}$.
+Note that we consider all of this as an 'additional' source in our algorithms.  So 
+the values that are returned by internal algorithms are always the difference between
+source and absorption and not the independent source.
+
+Lastly, please remember that even though we output the temperature derivative of this
+function, this does not make much sense since a change in the atmosphere and signal of
+course means that also the $T_1$ and $T_2$ values change.  So be careful using this algorithm.
+
+\paragraph*{NLTE line strength with ratios (populationtype is NLTE)} \
+
+The main equation here is that
+\begin{equation}
+  S^{(abs)}_{NLTE} = \frac{h\nu_0}{4\pi}\left(\frac{g_2}{g_1} r_1 - r_2\right) \left.A_{21}\middle/\frac{2h\nu_0^3}{c^2}\right.,
+\end{equation}
+and the following derivatives
+\begin{equation}
+ \begin{array}{ll}
+  \frac{\partial}{\partial T} \left[SNF\right]^{(abs)} &= S\frac{\partial}{\partial T} \left[NF\right] \\[5pt]
+  \frac{\partial}{\partial \nu_0} \left[SNF\right]^{(abs)} &= S\frac{\partial}{\partial \nu_0} \left[NF\right] + 
+  \frac{h\left(\left. g_2 r_1 \middle/ g_1 \right. - r_2\right)}{4\pi} \frac{A_{21}}{\left. 2h\nu_0^3 \middle/ c^2 \right.} NF - \frac{3}{\nu_0}SNF \\[5pt]
+  \frac{\partial}{\partial r_1} \left[SNF\right]^{(abs)} &= - \frac{h\nu_0}{4\pi}\frac{A_{21}}{\left. 2h\nu_0^3 \middle/ c^2 \right.} NF \\[5pt]
+  \frac{\partial}{\partial r_2} \left[SNF\right]^{(abs)} &= \frac{h\nu_0}{4\pi}\frac{g_2}{g_1}\frac{A_{21}}{\left. 2h\nu_0^3 \middle/ c^2 \right.} NF,
+  \\[5pt]
+  \frac{\partial}{\partial t} \left[SNF\right]^{(abs)} &= S\frac{\partial}{\partial t} \left[NF\right],
+ \end{array}
+\end{equation}
+where $S:=S^{(abs)}_{NLTE}$.  The source is
+\begin{equation}
+  S^{(src)}_{NLTE} = \frac{h\nu_0}{4\pi}  r_2 \left(e^{\left. h\nu_0 \middle/ kT \right.} - 1\right) \left.A_{21}\middle/\frac{2h\nu_0^3}{c^2}\right.
+\end{equation}
+with the following derivatives
+\begin{equation}
+ \begin{array}{ll}
+  \frac{\partial}{\partial T} \left[SNF\right]^{(src)} &= S\frac{\partial}{\partial T} \left[NF\right] + NF \frac{h^2\nu_0^2}{4\pi}  r_2 e^{\left. h\nu_0 \middle/ kT \right.} \left.A_{21}\middle/kT^2\frac{2h\nu_0^3}{c^2}\right. \\[5pt]
+  \frac{\partial}{\partial \nu_0} \left[SNF\right]^{(src)} &= S\frac{\partial}{\partial \nu_0} \left[NF\right] +
+  \frac{h}{4\pi}r_2A_{21}\frac{e^{\left. h\nu_0 \middle/ kT \right.}-1}{2h\nu_0^3/c^2}NF + \\[5pt]& \left(\frac{he^{\left. h\nu_0 \middle/ kT \right.}}{2kTh\nu_0^3/c^2} - \frac{3}{\nu_0}\frac{2h\nu_0^3/c^2}{e^{\left. h\nu_0 \middle/ kT \right.} - 1}\right)  \frac{h\nu_0}{4\pi}  r_2 A_{21}NF \\[5pt]
+  \frac{\partial}{\partial r_1} \left[SNF\right]^{(src)} &= 0 \\[5pt]
+  \frac{\partial}{\partial r_2} \left[SNF\right]^{(src)} &= \frac{SNF}{r_2} \\[5pt]
+  \frac{\partial}{\partial t} \left[SNF\right]^{(src)} &= S\frac{\partial}{\partial t} \left[NF\right],
+ \end{array}
+\end{equation}
+where $S:=S^{(src)}_{NLTE}$.
 
 % \paragraph*{The comment tag in ARTSCAT-6}
 % We use a comment tag to help explain the data in ARTSCAT-6 to anyone that reads the data file manually.
