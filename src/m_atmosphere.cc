@@ -3938,6 +3938,38 @@ void p_gridFromZRaw(  //WS Output
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void lat_gridFromZRaw(  //WS Output
+    Vector& lat_grid,
+    //WS Input
+    const GriddedField3& z_field_raw,
+    const Verbosity&) {
+  lat_grid = z_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void lon_gridFromZRaw(  //WS Output
+    Vector& lon_grid,
+    //WS Input
+    const GriddedField3& z_field_raw,
+    const Verbosity&) {
+  lon_grid = z_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void atm_gridsFromZRaw(  //WS Output
+    Vector& p_grid,
+    Vector& lat_grid,
+    Vector& lon_grid,
+    //WS Input
+    const GriddedField3& z_field_raw,
+    const Index& no_negZ,
+    const Verbosity& v) {
+  p_gridFromZRaw(p_grid, z_field_raw, no_negZ, v);
+  lat_gridFromZRaw(lat_grid, z_field_raw, v);
+  lon_gridFromZRaw(lon_grid, z_field_raw, v);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void lat_gridFromRawField(  //WS Output
     Vector& lat_grid,
     //WS Input

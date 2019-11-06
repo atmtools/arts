@@ -2014,3 +2014,60 @@ void abs_lines_per_speciesCompact(ArrayOfArrayOfAbsorptionLines& abs_lines_per_s
     abs_linesCompact(lines, f_grid, verbosity);
   }
 }
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesRemoveBand(ArrayOfAbsorptionLines& abs_lines,
+                                     const QuantumIdentifier& qid,
+                                     const Verbosity&)
+{
+  for (Index i=0; i<abs_lines.nelem(); i++) {
+    if (qid.In(abs_lines[i].QuantumIdentity())) {
+      abs_lines.erase(abs_lines.begin()+i);
+      break;
+    }
+  }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////// Manipulation of other ARTS variables based on AbsorptionLines
+/////////////////////////////////////////////////////////////////////////////////////
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void f_gridFromAbsorptionLines(Vector& f_grid,
+                               const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                               const Numeric& delta_f_low,
+                               const Numeric& delta_f_upp,
+                               const Index& num_freqs,
+                               const Verbosity&)
+{
+  const Index n=nelem(abs_lines_per_species);
+  
+  if (delta_f_low >= delta_f_upp) {
+    throw std::runtime_error("The lower frequency delta has to be smaller "
+                             "than the upper frequency delta");
+  } else if (num_freqs < 1) {
+    throw std::runtime_error("Need more than zero frequency points");
+  } else if (n < 1) {
+    throw std::runtime_error("No lines found.  Error?  Use *VectorSet* "
+                             "to resize *f_grid*");
+  }
+  
+  f_grid.resize(n*num_freqs);
+  
+  Index i=0;
+  for (auto& lines: abs_lines_per_species) {
+    for (auto& band: lines) {
+      for (Index k=0; k<band.NumLines(); k++) {
+        if (num_freqs > 1) {
+          nlinspace(f_grid[Range(i, num_freqs)], band.F0(k)+delta_f_low, band.F0(k)+delta_f_upp, num_freqs);
+        } else {
+          f_grid[i] = band.F0(k);
+        }
+        i += num_freqs;
+      }
+    }
+  }
+  
+  auto tmp = MapToEigen(f_grid);
+  std::sort(tmp.data(), tmp.data()+tmp.size(), [](auto a, auto b){return a < b;});
+}

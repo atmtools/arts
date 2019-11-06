@@ -66,6 +66,20 @@ void propmat_clearskyAddZeeman(
     throw "Only for 3D *atmosphere_dim* or a manual magnetic field";
   if ((ppath_los.nelem() not_eq 2) and (not manual_zeeman_tag))
     throw "Only for 2D *ppath_los* or a manual magnetic field";
+//   //  Need to place this in a lbl_checkedCalc call
+//   for (auto& lines: abs_lines_per_species) {
+//     for (auto& band: lines) {
+//       for (Index k=0; k<band.NumLines(); k++) {
+//         auto Ju = band.UpperQuantumNumber(k, QuantumNumberType::J);
+//         auto Jl = band.LowerQuantumNumber(k, QuantumNumberType::J);
+//         if (Ju.isDefined() and not is_Wigner3_ready(Ju)) {
+//           throw std::runtime_error("Bad wigner numbers for upper state J");
+//         } else if (Jl.isDefined() and not is_Wigner3_ready(Jl)) {
+//           throw std::runtime_error("Bad wigner numbers for lower state J");
+//         }
+//       }
+//     }
+//   }
 
   // Change to LOS by radiation
   Vector rtp_los;

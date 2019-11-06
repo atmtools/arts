@@ -364,6 +364,20 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
+    NAME("abs_linesRemoveBand"),
+      DESCRIPTION("Removes *qid* band from *abs_lines*\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines"),
+      GIN("qid"),
+      GIN_TYPE("QuantumIdentifier"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Band ID")));
+
+  md_data_raw.push_back(MdRecord(
     NAME("abs_linesRemoveUnusedLocalQuantumNumbers"),
       DESCRIPTION(
           "Removes unused quantums from local values in the line lists\n"),
@@ -6253,6 +6267,31 @@ void define_md_data_raw() {
       GIN_TYPE("Numeric, Vector"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Kayser wavenumber [cm^-1]")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("f_gridFromAbsorptionLines"),
+      DESCRIPTION("Sets *f_grid* to a grid relative to *abs_lines_per_species*\n"
+                  "\n"
+                  "Each line will have *abs_lines_per_species* will have a grid\n"
+                  "of *num_freqs* grid points in [f0+*delta_f_low*, f0+*delta_f_upp*],\n"
+                  "where f0 is the line center.\n"
+                  "\n"
+                  "Before leaving the function, *f_grid* is sorted.\n"
+                  "\n"
+                  "Note that this method could generate significantly large *f_grid*\n"
+                  "if used carelessly\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("f_grid"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species"),
+      GIN("delta_f_low", "delta_f_upp", "num_freqs"),
+      GIN_TYPE("Numeric", "Numeric", "Index"),
+      GIN_DEFAULT("-5e6", "5e6", NODEF),
+      GIN_DESC("Lower range of delta f",
+               "Upper range of delta f",
+               "Number of frequencies")));
 
   md_data_raw.push_back(MdRecord(
       NAME("f_gridFromGasAbsLookup"),
@@ -13544,6 +13583,51 @@ void define_md_data_raw() {
           "extracted. If negative altitudes shall also be selected, set no_neg=0.\n"),
       AUTHORS("Claudia Emde, Jana Mendrok"),
       OUT("p_grid"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("z_field_raw"),
+      GIN("no_negZ"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("1"),
+      GIN_DESC("Exclude negative altitudes.")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("lat_gridFromZRaw"),
+      DESCRIPTION(
+          "Sets *lat_grid* according to input atmosphere's *z_field_raw*\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("lat_grid"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("z_field_raw"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("lon_gridFromZRaw"),
+      DESCRIPTION(
+          "Sets *lon_grid* according to input atmosphere's *z_field_raw*\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("lon_grid"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("z_field_raw"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("atm_gridsFromZRaw"),
+      DESCRIPTION(
+          "Calls *p_gridFromZRaw*, *lat_gridFromZRaw* and *lon_gridFromZRaw*\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("p_grid", "lat_grid", "lon_grid"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
