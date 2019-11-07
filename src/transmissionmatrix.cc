@@ -1383,8 +1383,10 @@ void stepwise_source(RadiationVector& J,
   for (Index i = 0; i < K.NumberOfFrequencies(); i++) {
     if (K.IsRotational(i)) {
       J.SetZero(i);
-      for (Index j = 0; j < jacobian_quantities.nelem(); j++)
-        if (jacobian_quantities[j].Analytical()) dJ[j].SetZero(i);
+      if (jacobian_do) {
+        for (Index j = 0; j < jacobian_quantities.nelem(); j++)
+          if (jacobian_quantities[j].Analytical()) dJ[j].SetZero(i);
+      }
     } else {
       J.setSource(a, B, S, i);
       switch (J.StokesDim()) {
