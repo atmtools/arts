@@ -778,7 +778,7 @@ void iyEmissionStandardParallel(
     Workspace l_ws(ws);
     // Loop ppath points and determine radiative properties
 #pragma omp parallel for if (!arts_omp_in_parallel()) \
-    firstprivate(l_ws, l_propmat_clearsky_agenda, a, B, dB_dT, S, dS_dx)
+    firstprivate(l_ws, l_propmat_clearsky_agenda, a, B, dB_dT, S, da_dx, dS_dx)
     for (Index ip = 0; ip < np; ip++) {
       get_stepwise_blackbody_radiation(
           B, dB_dT, ppvar_f(joker, ip), ppvar_t[ip], temperature_jacobian);
