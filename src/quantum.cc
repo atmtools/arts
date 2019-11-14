@@ -471,6 +471,9 @@ void QuantumIdentifier::SetFromStringForCO2Band(String upper,
 std::ostream& operator<<(std::ostream& os, const QuantumIdentifier& qi) {
   using global_data::species_data;
 
+  if (qi.Species() < 0 || qi.Isotopologue() < 0)
+    return os;
+
   const SpeciesRecord& spr = species_data[qi.Species()];
 
   os << spr.Name() << "-";
