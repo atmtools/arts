@@ -506,8 +506,6 @@ void parse_a1_sym_hitran(Rational& qn, String& s, const Index species) {
       qn = Rational(1, 2);
     else if (ch == '-')
       qn = Rational(-1, 2);
-    else
-      throw std::runtime_error("Error parsing quantum number Sym");
   } else if ((ch == 'd' || ch == 'q') &&
              (species == species_index_from_species_name("O2") ||
               species == species_index_from_species_name("N2"))) {
@@ -518,8 +516,7 @@ void parse_a1_sym_hitran(Rational& qn, String& s, const Index species) {
     // FIXME: How to handle linedoubling values?
   } else if (ch == '+' || ch == '-') {
     // FIXME: How to handle symmetry parameter?
-  } else if (ch != ' ')
-    throw std::runtime_error("Error parsing quantum number Sym");
+  }
 
   s.erase(0, 1);
 }
@@ -532,6 +529,7 @@ void parse_a1_s_hitran(Rational& qn, String& s, const Index /* species */) {
 
 void parse_a1_x_hitran(Rational& qn, String& s, const Index species) {
   const char ch = s[0];
+  qn = RATIONAL_UNDEFINED;
 
   if (species == species_index_from_species_name("O2")) {
     if (ch == 'X')
@@ -540,30 +538,18 @@ void parse_a1_x_hitran(Rational& qn, String& s, const Index species) {
       qn = Index(QuantumNumberTypeLabelsHitran::O2_X_is_a);
     else if (ch == 'b')
       qn = Index(QuantumNumberTypeLabelsHitran::O2_X_is_b);
-    else
-      throw std::runtime_error("Unidentified X for O2 in HITRAN parsing...");
   } else if (species == species_index_from_species_name("NO")) {
     if (ch == 'X')
       qn = Index(QuantumNumberTypeLabelsHitran::NO_X_is_X);
-    else
-      throw std::runtime_error("Unidentified X for NO in HITRAN parsing...");
-
   } else if (species == species_index_from_species_name("OH")) {
     if (ch == 'X')
       qn = Index(QuantumNumberTypeLabelsHitran::OH_X_is_X);
     else if (ch == 'A')
       qn = Index(QuantumNumberTypeLabelsHitran::OH_X_is_A);
-    else
-      throw std::runtime_error("Unidentified X for OH in HITRAN parsing...");
-
   } else if (species == species_index_from_species_name("ClO")) {
     if (ch == 'X')
       qn = Index(QuantumNumberTypeLabelsHitran::ClO_X_is_X);
-    else
-      throw std::runtime_error("Unidentified X for ClO in HITRAN parsing...");
-
-  } else
-    qn = RATIONAL_UNDEFINED;
+  }
 
   s.erase(0, 1);
 }
@@ -597,16 +583,11 @@ void parse_a5_hitran(Rational& qn, String& s, const Index /* species */) {
       char* endptr;
 
       nom = strtol(as[0].c_str(), &endptr, 10);
-      if (endptr != as[0].c_str() + as[0].nelem()) {
-        throw std::runtime_error("Error parsing quantum number of type A5");
-      }
-
-      if (as[1] == "5")
-        qn = Rational(nom * 2 + 1, 2);
-      else if (as[1] == "0")
-        qn = nom;
-      else {
-        throw std::runtime_error("Error parsing quantum number of type A5");
+      if (endptr == as[0].c_str() + as[0].nelem()) {
+        if (as[1] == "5")
+          qn = Rational(nom * 2 + 1, 2);
+        else if (as[1] == "0")
+          qn = nom;
       }
     }
   }
@@ -644,25 +625,14 @@ void parse_f51_hitran(Rational& qn, String& s, const Index /* species */) {
       char* endptr;
 
       nom = strtol(as[0].c_str(), &endptr, 10);
-      if (endptr != as[0].c_str() + as[0].nelem()) {
-        throw std::runtime_error("Error parsing quantum number of type F5.1");
-      }
-
-      if (as[1] == "5")
-        qn = Rational(nom * 2 + 1, 2);
-      else if (as[1] == "0")
-        qn = nom;
-      else {
-        throw std::runtime_error("Error parsing quantum number of type F5.1");
+      if (endptr == as[0].c_str() + as[0].nelem()) {
+        if (as[1] == "5")
+          qn = Rational(nom * 2 + 1, 2);
+        else if (as[1] == "0")
+          qn = nom;
       }
       s.erase(0, 5);
     } else {
-      bool valid_num = true;
-      for (Index i = 0; valid_num && i < qnf.nelem(); i++)
-        if (qnf[i] < '0' || qnf[i] > '9') valid_num = false;
-      if (!valid_num)
-        throw std::runtime_error("Error parsing quantum number of type F5.1");
-
       Index q;
       extract(q, s, qnf.nelem());
     }
