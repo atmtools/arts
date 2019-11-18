@@ -92,6 +92,7 @@ Extract( z_surface, z_field, 0 )
 
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
+lbl_checkedCalc
 
 # check basic atm&surface setup of
 atmfields_checkedCalc

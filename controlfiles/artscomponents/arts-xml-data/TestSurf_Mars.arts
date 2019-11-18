@@ -197,6 +197,7 @@ GriddedFieldLatLonRegrid( gf2tmp, lat_grid, lon_grid, gf2tmp )
 FieldFromGriddedField( z_surface, p_grid, lat_grid, lon_grid, gf2tmp )
 
 abs_xsec_agenda_checkedCalc
+lbl_checkedCalc
 propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc( bad_partition_functions_ok = 1 )
 atmgeom_checkedCalc

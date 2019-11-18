@@ -96,6 +96,7 @@ INCLUDE "general/planet_earth.arts"
 # Absorption lookup table
     abs_lookupSetupBatch
     abs_xsec_agenda_checkedCalc
+    lbl_checkedCalc
     abs_lookupCalc
 
 # Setting the agenda for batch calculation 

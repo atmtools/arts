@@ -121,6 +121,7 @@ propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc
+lbl_checkedCalc
 iyCalc
 
 #WriteXML( "ascii", iy )

@@ -90,6 +90,7 @@ VectorSet( abs_nls_pert, [] )
 VectorSet( abs_t_pert, [] )
 
 abs_xsec_agenda_checkedCalc
+lbl_checkedCalc
 abs_lookupCalc
 
 

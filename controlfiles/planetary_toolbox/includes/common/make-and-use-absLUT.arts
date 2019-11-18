@@ -60,6 +60,7 @@ ReadSplitARTSCAT( basename="spectroscopy/Perrin/", fmin=0, fmax=4e12 )
 abs_lines_per_speciesCreateFromLines
 
 abs_xsec_agenda_checkedCalc
+lbl_checkedCalc
 atmfields_checkedCalc( bad_partition_functions_ok=bad_partition_functions_ok )
 abs_lookupSetup
 abs_lookupCalc
