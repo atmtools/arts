@@ -1881,11 +1881,12 @@ void abs_xsec_per_speciesAddLines(
     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const SpeciesAuxData& isotopologue_ratios,
     const SpeciesAuxData& partition_functions,
+    const Index& lbl_checked,
     const Verbosity&) {
   if (not abs_lines_per_species.nelem()) return;
   
-  // Check that correct isotopologue ratios are defined
-  checkIsotopologueRatios(abs_species, isotopologue_ratios);
+  if (not lbl_checked)
+    throw std::runtime_error("Please set lbl_checked true to use this function");
 
   // Check that all temperatures are above 0 K
   if (min(abs_t) < 0) {

@@ -885,6 +885,69 @@ void scat_data_checkedCalc(Index& scat_data_checked,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void lbl_checkedCalc(Index& lbl_checked,
+                     const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                     const ArrayOfArrayOfSpeciesTag& abs_species,
+                     const SpeciesAuxData& isotopologue_ratios,
+                     const SpeciesAuxData& partition_functions,
+                     const Verbosity&)
+{
+  checkIsotopologueRatios(abs_species, isotopologue_ratios);
+  checkPartitionFunctions(abs_species, partition_functions);
+  
+  lbl_checked = false;
+  
+  if (abs_lines_per_species.nelem() not_eq abs_species.nelem()) {
+    std::ostringstream os;
+    os << "abs_lines_per_species and abs_species must have same length.\n"
+    << "Instead len(abs_lines_per_species) = " << abs_lines_per_species.nelem() << ' '
+    << "and len(abs_species) = " << abs_species.nelem() << '\n';
+    throw std::runtime_error(os.str());
+  }
+  
+  for (Index i=0; i<abs_species.nelem(); i++) {
+    auto& specs = abs_species[i];
+    auto& lines = abs_lines_per_species[i];
+    
+    if (not specs.nelem()) {
+      if (not lines.nelem()) {
+        continue;
+      } else {
+        throw std::runtime_error("Lines for non-existent species discovered!\n");
+      }
+    }
+    
+    const bool any_zeeman = specs[0].Type() == SpeciesTag::TYPE_ZEEMAN;
+    for (auto& s: specs) {
+      if (s.Type() not_eq SpeciesTag::TYPE_ZEEMAN) {
+        if (any_zeeman) {
+          std::ostringstream os;
+          os << "Zeeman species found but not all sub-species support Zeeman\n";
+          os << "Offending tag: " << specs << '\n';
+          throw std::runtime_error(os.str());
+        }
+      }
+    }
+    
+    if (any_zeeman) {
+      for (auto& band: lines) {
+        for (Index k=0; k<band.NumLines(); k++) {
+          auto Ju = band.UpperQuantumNumber(k, QuantumNumberType::J);
+          auto Jl = band.LowerQuantumNumber(k, QuantumNumberType::J);
+          if (Ju.isDefined() and not is_Wigner3_ready(Ju)) {
+            throw std::runtime_error("Bad wigner numbers for upper state J.  Try increasing the Wigner memory allocation.\n");
+          } else if (Jl.isDefined() and not is_Wigner3_ready(Jl)) {
+            throw std::runtime_error("Bad wigner numbers for lower state J.  Try increasing the Wigner memory allocation.\n");
+          }
+        }
+      }
+    }
+  }
+  
+  lbl_checked = true;
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearsky_agenda_checkedCalc(
     Workspace& ws _U_,
     Index& propmat_clearsky_agenda_checked,

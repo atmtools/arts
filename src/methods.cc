@@ -2290,7 +2290,8 @@ void define_md_data_raw() {
          "abs_vmrs",
          "abs_lines_per_species",
          "isotopologue_ratios",
-         "partition_functions"),
+         "partition_functions",
+         "lbl_checked"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -9526,6 +9527,22 @@ void define_md_data_raw() {
       GIN_DESC("A raw atmospheric field.")));
 
   md_data_raw.push_back(MdRecord(
+      NAME("lbl_checkedCalc"),
+      DESCRIPTION("Checks that the line-by-line parameters are OK.\n"
+                  "\n"
+                  "On failure, will throw.  On success, lbl_checked evals as true\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("lbl_checked"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+                                 IN("abs_lines_per_species", "abs_species", "isotopologue_ratios", "partition_functions"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
       NAME("lon_gridFromRawField"),
       DESCRIPTION(
           "Sets *lon_grid* according to given raw atmospheric field's lat_grid.\n"
@@ -12476,7 +12493,8 @@ void define_md_data_raw() {
          "rtp_vmr",
          "rtp_mag",
          "rtp_los",
-         "atmosphere_dim"),
+         "atmosphere_dim",
+         "lbl_checked"),
       GIN("manual_zeeman_tag",
           "manual_zeeman_magnetic_field_strength",
           "manual_zeeman_theta",

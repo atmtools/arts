@@ -51,6 +51,7 @@ void propmat_clearskyAddZeeman(
     const Vector& rtp_mag,
     const Vector& ppath_los,
     const Index& atmosphere_dim,
+    const Index& lbl_checked,
     const Index& manual_zeeman_tag,
     const Numeric& manual_zeeman_magnetic_field_strength,
     const Numeric& manual_zeeman_theta,
@@ -58,28 +59,14 @@ void propmat_clearskyAddZeeman(
     const Verbosity&) try {
   if (abs_lines_per_species.nelem() == 0) return;
 
-  // Check that correct isotopologue ratios are defined
-  checkIsotopologueRatios(abs_species, isotopologue_ratios);
-  checkPartitionFunctions(abs_species, partition_functions);
-
   if ((atmosphere_dim not_eq 3) and (not manual_zeeman_tag))
     throw "Only for 3D *atmosphere_dim* or a manual magnetic field";
+  
   if ((ppath_los.nelem() not_eq 2) and (not manual_zeeman_tag))
     throw "Only for 2D *ppath_los* or a manual magnetic field";
-//   //  Need to place this in a lbl_checkedCalc call
-//   for (auto& lines: abs_lines_per_species) {
-//     for (auto& band: lines) {
-//       for (Index k=0; k<band.NumLines(); k++) {
-//         auto Ju = band.UpperQuantumNumber(k, QuantumNumberType::J);
-//         auto Jl = band.LowerQuantumNumber(k, QuantumNumberType::J);
-//         if (Ju.isDefined() and not is_Wigner3_ready(Ju)) {
-//           throw std::runtime_error("Bad wigner numbers for upper state J");
-//         } else if (Jl.isDefined() and not is_Wigner3_ready(Jl)) {
-//           throw std::runtime_error("Bad wigner numbers for lower state J");
-//         }
-//       }
-//     }
-//   }
+  
+  if (not lbl_checked)
+    throw "Please set lbl_checked true to use this function";
 
   // Change to LOS by radiation
   Vector rtp_los;

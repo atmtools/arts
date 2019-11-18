@@ -2202,6 +2202,15 @@ void Workspace::define_wsv_data() {
           "Unit:  degrees\n"),
       GROUP("Vector")));
 
+  wsv_data.push_back(WsvRecord(
+    NAME("lbl_checked"),
+      DESCRIPTION("Flag to check if the line-by-line calculations will work\n"
+                  "\n"
+                  "Usage: Set manually on own risk, or use *lbl_checkedCalc*.\n"
+                  "\n"
+                  "Unit:  Boolean\n"),
+      GROUP("Index")));
+  
   wsv_data.push_back(
       WsvRecord(NAME("line_irradiance"),
                 DESCRIPTION("Irradiance as seen by a single absorption line.\n"
@@ -2215,30 +2224,6 @@ void Workspace::define_wsv_data() {
                   "\n"
                   "Used internally for, e.g., NLTE effects\n"),
       GROUP("Tensor3")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("lm_p_lim"),
-      DESCRIPTION(
-          "The pressure limit at which line mixing takes place.\n"
-          "\n"
-          "If positive, this is the lower pressure limit at which line\n"
-          "mixing takes place.\n"
-          "\n"
-          "If negative, the abs of this is the extrapolation factor of any\n"
-          "routine interacting with line mixing in ARTS.\n"
-          "\n"
-          "If exactly zero, then this is ignored in all calculations.\n"
-          "\n"
-          "Unit when positive:  Pa\n"
-          "Unit when negative:  none\n"
-          "\n"
-          "This variable is used on your own risk.  The calculations will not\n"
-          "be correct if this is misused.  You might end up with nonsensical\n"
-          "absorption (even negative absorption). Do not use this for anything\n"
-          "important.\n"
-          "\n"
-          "Usage: Set by the user.\n"),
-      GROUP("Numeric")));
 
   wsv_data.push_back(WsvRecord(
       NAME("lo"),
