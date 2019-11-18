@@ -19,7 +19,6 @@ Arts2{
   Touch(rtp_nlte)
   NumericSet(rtp_temperature, 250)
   NumericSet(rtp_pressure, 25000)
-  NumericSet(lm_p_lim, 0)
   IndexSet(stokes_dim, 1)
   Touch(rtp_nlte)
   IndexSet(abs_f_interp_order, 3)
@@ -56,6 +55,7 @@ Arts2{
   
   # Perform calculations for analytical propagation matrix and derivatives
   abs_xsec_agenda_checkedCalc
+  lbl_checkedCalc
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
 #   WriteXML("ascii", propmat_clearsky, "tests/propmat.xml")

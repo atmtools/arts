@@ -189,6 +189,7 @@ ArrayOfStringSet( iy_aux_vars, [ ] )
 #
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
+lbl_checkedCalc
 
 yCalc
 

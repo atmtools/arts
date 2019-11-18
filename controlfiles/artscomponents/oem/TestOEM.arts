@@ -165,6 +165,7 @@ atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc
 sensor_checkedCalc
+lbl_checkedCalc
 
 
 # Simulate "measurement vector"

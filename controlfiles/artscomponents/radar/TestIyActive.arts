@@ -105,6 +105,7 @@ atmgeom_checkedCalc
 cloudbox_checkedCalc
 sensor_checkedCalc
 scat_data_checkedCalc
+lbl_checkedCalc
 
 
 # Test with all extinction set to 0

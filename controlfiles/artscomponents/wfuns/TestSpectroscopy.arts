@@ -21,7 +21,6 @@ Arts2{
   VectorSet(lat_grid, [-1, 1])  # We have no grid
   VectorSet(lon_grid, [-1, 1])  # We have no grid
   z_surfaceConstantAltitude
-  NumericSet(lm_p_lim, 0)
   NumericSet(rte_alonglos_v, 0)
   NumericSet(ppath_lmax, 1000)
   NumericSet(ppath_lraytrace, 1000)
@@ -101,6 +100,7 @@ Arts2{
   atmgeom_checkedCalc
   cloudbox_checkedCalc
   sensor_checkedCalc
+  lbl_checkedCalc
   yCalc
   #WriteXML("ascii", y, "testdata/comparedata/y.xml")
   #WriteXML("ascii", jacobian, "testdata/comparedata/dy.xml")

@@ -11,7 +11,6 @@ Arts2 {
   partition_functionsInitFromBuiltin
   VectorNLinSpace(f_grid, 501, 99.99e9, 100.01e9)
   Touch(rtp_nlte)
-  NumericSet(lm_p_lim, 0)
   IndexSet(propmat_clearsky_agenda_checked, 1)
   AtmosphereSet3D
   IndexSet(stokes_dim, 4)
@@ -49,6 +48,7 @@ Arts2 {
   jacobianClose
   
   propmat_clearskyInit
+  lbl_checkedCalc
   propmat_clearskyAddZeeman
   #WriteXML("ascii", propmat_clearsky, "testdata/zeeman/propmat.xml")
   #WriteXML("ascii", dpropmat_clearsky_dx, "testdata/zeeman/dpropmat.xml")

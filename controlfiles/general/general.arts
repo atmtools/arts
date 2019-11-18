@@ -170,13 +170,6 @@ NumericSet( mc_taustep_limit, 0.1 )
 
 
 #
-# Line Mixing
-#
-# Limit to pressure is passed on as a constant numeric.  Default:  No limit
-NumericSet(lm_p_lim,0)
-
-
-#
 # Turn off non-LTE calculations by default
 #
 nlteOff

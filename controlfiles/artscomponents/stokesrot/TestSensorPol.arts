@@ -116,6 +116,7 @@ propmat_clearsky_agenda_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc
 sensor_checkedCalc
+lbl_checkedCalc
 
 # Calculate Stokes vector values
 ArrayOfStringSet( iy_aux_vars, ["Optical depth","Radiative background"] )

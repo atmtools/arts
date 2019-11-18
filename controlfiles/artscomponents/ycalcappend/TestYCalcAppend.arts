@@ -73,6 +73,7 @@ abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
+lbl_checkedCalc
 
 
 # ---- Part 1: An emission measurement at 110.8 GHz --------------------------

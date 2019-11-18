@@ -14,7 +14,6 @@ Arts2 {
   VectorSet(rtp_vmr, [0.21])
   NumericSet(rtp_temperature, 250)
   NumericSet(rtp_pressure, 1e-5)
-  NumericSet(lm_p_lim, 0)
   IndexSet(stokes_dim, 1)
   
   # Comparative parameter
@@ -59,8 +58,10 @@ Arts2 {
   
   # Perform calculations for analytical propagation matrix and derivatives
   abs_xsec_agenda_checkedCalc
+  lbl_checkedCalc
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
+  lbl_checkedCalc
   #WriteXML("ascii", propmat_clearsky, "testdata/test-nlte/propmat.xml")
   #WriteXML("ascii", dpropmat_clearsky_dx, "testdata/test-nlte/dpropmat.xml")
   ReadXML(testdata, "testdata/test-nlte/propmat.xml")
