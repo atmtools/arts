@@ -2227,10 +2227,10 @@ To describe the MPM93 water vapor line absorption, a set of six parameters
 ($\bek$ and $\bdk$) per line are used: two for the line strength and 
 four for the line width. The total line absorption coefficient 
 (in units of dB/km) is the sum over all individual line absorption 
-coefficients\footnote{see footnote for MPM97 line absorption}:
+coefficients\footnote{see footnote for MPM93 line absorption}:
 \begin{equation}
   \label{eq:abs_theory:mpm93:absline}
-  \alphampmnl = 0.1820 \cdot \nuk \cdot \phzo \cdot 
+  \alphampmnl = 0.1820 \cdot \nu \cdot \phzo \cdot 
   \sum_{k}{\inten \cdot \shape}\hspace*{10mm}\mbox{dB/km}
 \end{equation}
 where $\inten$ is the line intensity described by the parameterization
@@ -2256,7 +2256,7 @@ single parameter $\bdk$ in the following way:
   \label{eq:abs_theory:mpm93:gamma}
   \gamk = \bdk \cdot 
           (4.80 \cdot \phzo \cdot \Theta^{1.1} + \pda \cdot
-          \Theta^{0.6})\hspace*{10mm}\mbox{GHz}
+          \Theta^{0.6}) \cdot 10^{-3} \hspace*{10mm}\mbox{GHz}
 \end{equation}
 where $\pda$ is the partial pressure of dry air ($\pda=\ptot-\phzo$). 
 
