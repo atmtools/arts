@@ -642,6 +642,52 @@ void abs_linesWriteSplitXML(const String& output_format,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesWriteSpeciesSplitXML(const String& output_format,
+                                   const ArrayOfAbsorptionLines& abs_lines,
+                                   const String& basename,
+                                   const Verbosity& verbosity)
+{
+  // Set the true name of the saving
+  String true_basename = basename;
+  if (not(true_basename.back() == '.' or true_basename.back() == '/'))
+    true_basename += '.';
+  
+  // Find all species
+  ArrayOfString specs(0);
+  for (auto& band: abs_lines) {
+    auto specname = band.SpeciesName();
+    
+    bool any = false;
+    for (auto& thisname: specs) {
+      if (any) break;
+      else if (thisname == specname) any = true;
+    }
+    
+    if (not any)
+      specs.push_back(specname);
+  }
+  
+  // Make all species into a species tag array
+  Index throwaway;
+  ArrayOfArrayOfSpeciesTag as;
+  abs_speciesSet(as, throwaway, throwaway, specs, verbosity);
+  
+  // Split lines by species
+  ArrayOfArrayOfAbsorptionLines alps;
+  abs_lines_per_speciesCreateFromLines(alps, abs_lines, as, verbosity);
+  
+  // Save the arrays
+  for (Index i=0; i<specs.nelem(); i++) {
+    auto& name = specs[i];
+    auto& lines = alps[i];
+    
+    WriteXML(output_format, lines,
+             true_basename + name + ".xml",
+             0, "", "", "", verbosity);
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lines_per_speciesWriteSplitXML(const String& output_format,
                                         const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
                                         const String& basename,
@@ -663,6 +709,24 @@ void abs_lines_per_speciesWriteSplitXML(const String& output_format,
               0, "", "", "", verbosity);
     }
   }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesWriteSpeciesSplitXML(const String& output_format,
+                                               const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                               const String& basename,
+                                               const Verbosity& verbosity)
+{ 
+  // Compact to abs_lines
+  ArrayOfAbsorptionLines abs_lines(0);
+  for (auto& lines: abs_lines_per_species) {
+    for (auto& band: lines) {
+      abs_lines.push_back(band);
+    }
+  }
+  
+  // Save using the other function
+  abs_linesWriteSpeciesSplitXML(output_format, abs_lines, basename, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -705,6 +769,49 @@ void abs_lines_per_speciesReadSplitCatalog(ArrayOfArrayOfAbsorptionLines& abs_li
           break;
         }
       } while (true);
+    }
+  }
+  
+  abs_lines_per_speciesCreateFromLines(abs_lines_per_species, abs_lines, abs_species, verbosity);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesReadSpeciesSplitCatalog(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                                  const ArrayOfArrayOfSpeciesTag& abs_species,
+                                                  const String& basename,
+                                                  const Verbosity& verbosity)
+{
+  using global_data::species_data;
+  
+  // Build a set of species indices. Duplicates are ignored.
+  std::set<Index> unique_species;
+  for (auto asp = abs_species.begin(); asp != abs_species.end(); asp++) {
+    for (ArrayOfSpeciesTag::const_iterator sp = asp->begin(); sp != asp->end(); sp++) {
+      if (sp->Type() == SpeciesTag::TYPE_PLAIN || sp->Type() == SpeciesTag::TYPE_ZEEMAN) {
+        unique_species.insert(sp->Species());
+      }
+    }
+  }
+  
+  String tmpbasename = basename;
+  if (basename.length() && basename[basename.length() - 1] != '/') {
+    tmpbasename += '.';
+  }
+  
+  // Read catalogs for each identified species and put them all into
+  // abs_lines
+  ArrayOfAbsorptionLines abs_lines(0);
+  for (auto it = unique_species.begin(); it != unique_species.end(); it++) {
+    for (Index k=0; k<species_data[*it].Isotopologue().nelem(); k++) {
+      String filename;
+      filename = tmpbasename + species_data[*it].FullName(k) + ".xml";
+      if (find_xml_file_existence(filename)) {
+        ArrayOfAbsorptionLines speclines;
+        xml_read_from_file(filename, speclines, verbosity);
+        for (auto& band: speclines) {
+          abs_lines.push_back(band);
+        }
+      }
     }
   }
   

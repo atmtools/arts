@@ -476,6 +476,21 @@ void define_md_data_raw() {
       GIN_DESC("The path to the split catalog files")));
 
   md_data_raw.push_back(MdRecord(
+      NAME("abs_lines_per_speciesReadSpeciesSplitCatalog"),
+      DESCRIPTION("See *abs_lines_per_speciesReadSplitCatalog* but expects\n"
+                  "a single file per species of *ArrayOfAbsorptionLines*\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_species"),
+      GIN("basename"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("The path to the split catalog files")));
+
+  md_data_raw.push_back(MdRecord(
       NAME("abs_lines_per_speciesSetEmpty"),
       DESCRIPTION("Empties *abs_lines_per_species* at the correct size.\n"),
       AUTHORS("Richard Larsson"),
@@ -13986,8 +14001,40 @@ void define_md_data_raw() {
       GIN_DESC("Path to store the files at")));
 
   md_data_raw.push_back(MdRecord(
+      NAME("abs_linesWriteSpeciesSplitXML"),
+      DESCRIPTION("As *abs_linesWriteSplitXML* but writes an array\n"
+                  "per species\n"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("output_file_format", "abs_lines"),
+      GIN("basename"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Path to store the files at")));
+
+  md_data_raw.push_back(MdRecord(
       NAME("abs_lines_per_speciesWriteSplitXML"),
       DESCRIPTION("See *abs_linesWriteSplitXML*\n"
+                  "\n"
+                  "In addition, the structure of the files generated will not care about\n"
+                  "generating identifiers for the order in *abs_species*\n"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("output_file_format", "abs_lines_per_species"),
+      GIN("basename"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Path to store the files at")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_lines_per_speciesWriteSpeciesSplitXML"),
+      DESCRIPTION("See *abs_linesWriteSpeciesSplitXML*\n"
                   "\n"
                   "In addition, the structure of the files generated will not care about\n"
                   "generating identifiers for the order in *abs_species*\n"),
