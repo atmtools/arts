@@ -205,6 +205,26 @@ void abs_speciesDefineAllInScenario(  // WS Output:
     out2 << "     " << excluded[i] << "\n";
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_speciesDefineAll(  // WS Output:
+    ArrayOfArrayOfSpeciesTag& abs_species,
+    Index& propmat_clearsky_agenda_checked,
+    Index& abs_xsec_agenda_checked,
+    // Control Parameters:
+    const Verbosity& verbosity) {
+  // Species lookup data:
+  using global_data::species_data;
+
+  // We want to make lists of all species
+  ArrayOfString specs(0);
+  for (auto& spec: species_data) {
+    specs.push_back(spec.Name());
+  }
+
+  // Set the values
+  abs_speciesSet(abs_species, abs_xsec_agenda_checked, propmat_clearsky_agenda_checked, specs, verbosity);
+}
+
 //! abs_h2oSet.
 /*!
  Sets abs_h2o to the profile of the first tag group containing

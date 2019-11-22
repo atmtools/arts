@@ -2055,6 +2055,22 @@ void define_md_data_raw() {
           "The name and path of a particular atmospheric scenario.\n"
           "For example: /pool/lookup2/arts-data/atmosphere/fascod/tropical")));
 
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_speciesDefineAll"),
+      DESCRIPTION("Sets *abs_species*[i][0] to all species in ARTS\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_species",
+          "propmat_clearsky_agenda_checked",
+          "abs_xsec_agenda_checked"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
   md_data_raw.push_back(
       MdRecord(NAME("abs_speciesInit"),
                DESCRIPTION("Sets  *abs_species* to be empty.\n"),
@@ -13860,14 +13876,15 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_species"),
-      GIN("basename", "fmin", "fmax", "globalquantumnumbers", "localquantumnumbers"),
-      GIN_TYPE("String", "Numeric", "Numeric", "String", "String"),
-      GIN_DEFAULT(NODEF, "0", "1e99", "", ""),
+      GIN("basename", "fmin", "fmax", "globalquantumnumbers", "localquantumnumbers", "ignore_missing"),
+      GIN_TYPE("String", "Numeric", "Numeric", "String", "String", "Index"),
+      GIN_DEFAULT(NODEF, "0", "1e99", "", "", "0"),
       GIN_DESC("Path to the files",
                "Minimum frequency of read lines",
                "Maximum frequency of read lines",
                "Global quantum number list (space-separated)",
-               "Local quantum number list (space-separated)")));
+               "Local quantum number list (space-separated)",
+               "Ignores instead of throws if an *abs_species* is missing")));
 
   md_data_raw.push_back(MdRecord(
       NAME("ReadARTSCAT"),

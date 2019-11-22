@@ -303,6 +303,7 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
                       const Numeric& fmax,
                       const String& globalquantumnumbers,
                       const String& localquantumnumbers,
+                      const Index& ignore_missing,
                       const Verbosity& verbosity)
 {
   using global_data::species_data;
@@ -327,27 +328,39 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   abs_lines.resize(0);
   for (auto it = unique_species.begin(); it != unique_species.end(); it++) {
     ArrayOfAbsorptionLines more_abs_lines;
-    ReadARTSCAT(more_abs_lines,
-                tmpbasename + (species_data[*it].Name()) + ".xml",
-                fmin,
-                fmax,
-                globalquantumnumbers,
-                localquantumnumbers,
-                verbosity);
     
-    // Either find a line like this in the list of lines or start a new Lines
-    for (auto& newband: more_abs_lines) {
-      bool found = false;
-      for (auto& band: abs_lines) {
-        if (band.Match(newband)) {
-          for (Index k=0; k<newband.NumLines(); k++) {
-            band.AppendSingleLine(newband.Line(k));
-            found = true;
+    try {
+      ReadARTSCAT(more_abs_lines,
+                  tmpbasename + (species_data[*it].Name()) + ".xml",
+                  fmin,
+                  fmax,
+                  globalquantumnumbers,
+                  localquantumnumbers,
+                  verbosity);
+      
+      // Either find a line like this in the list of lines or start a new Lines
+      for (auto& newband: more_abs_lines) {
+        bool found = false;
+        for (auto& band: abs_lines) {
+          if (band.Match(newband)) {
+            for (Index k=0; k<newband.NumLines(); k++) {
+              band.AppendSingleLine(newband.Line(k));
+              found = true;
+            }
           }
         }
+        if (not found) {
+          abs_lines.push_back(newband);
+        }
       }
-      if (not found) {
-        abs_lines.push_back(newband);
+    } catch (const std::exception& e) {
+      if (not ignore_missing) {
+        std::ostringstream os;
+        os << "Errors in calls by *propmat_clearskyAddZeeman*:\n";
+        os << e.what();
+        throw std::runtime_error(os.str());
+      } else {
+        continue;
       }
     }
   }
