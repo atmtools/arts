@@ -37,6 +37,34 @@
 ////////////////////////////////////////////////////// Reading old/external functions
 /////////////////////////////////////////////////////////////////////////////////////
 
+/** Get a list of quantum numbers from a string
+ * 
+ * @param[in] qnstr A string such as "J N v1"
+ * 
+ * @return List of quantum numbers
+ */
+std::vector<QuantumNumberType> string2vecqn(const String& qnstr)
+{
+  std::vector<QuantumNumberType> nums(0);
+  
+  String part;
+  if (qnstr not_eq "") {
+    std::istringstream str(qnstr);
+    while (not str.eof()) {
+      str >> part; 
+      if (IsValidQuantumNumberName(part)) {
+        nums.push_back(string2quantumnumbertype(part));
+      } else {
+        std::ostringstream os;
+        os << "The quantum number key: \"" << part << "\" is invalid.\n";
+        throw std::runtime_error(os.str());
+      }
+    }
+  }
+  
+  return nums;
+}
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
                         const String& artscat_file,
@@ -46,28 +74,11 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
                         const String& localquantumnumbers,
                         const Verbosity& verbosity)
 {
-  // Take care of quantum numbers
-  String tmp_string;
-  
   // Global numbers
-  std::vector<QuantumNumberType> global_nums(0);
-  if (globalquantumnumbers not_eq "") {
-    std::istringstream global_str(globalquantumnumbers);
-    while (not global_str.eof()) {
-      global_str >> tmp_string; 
-      global_nums.push_back(string2quantumnumbertype(tmp_string));
-    }
-  }
+  const std::vector<QuantumNumberType> global_nums = string2vecqn(globalquantumnumbers);
   
   // Local numbers
-  std::vector<QuantumNumberType> local_nums(0);
-  if (localquantumnumbers not_eq "") {
-    std::istringstream local_str(localquantumnumbers);
-    while (not local_str.eof()) {
-      local_str >> tmp_string;
-      local_nums.push_back(string2quantumnumbertype(tmp_string));
-    }
-  }
+  const std::vector<QuantumNumberType> local_nums = string2vecqn(localquantumnumbers);
   
   CREATE_OUT2;
   
@@ -179,28 +190,11 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
                  const String& localquantumnumbers,
                  const Verbosity& verbosity)
 {
-  // Take care of quantum numbers
-  String tmp_string;
-  
   // Global numbers
-  std::vector<QuantumNumberType> global_nums(0);
-  if (globalquantumnumbers not_eq "") {
-    std::istringstream global_str(globalquantumnumbers);
-    while (not global_str.eof()) {
-      global_str >> tmp_string; 
-      global_nums.push_back(string2quantumnumbertype(tmp_string));
-    }
-  }
+  const std::vector<QuantumNumberType> global_nums = string2vecqn(globalquantumnumbers);
   
   // Local numbers
-  std::vector<QuantumNumberType> local_nums(0);
-  if (localquantumnumbers not_eq "") {
-    std::istringstream local_str(localquantumnumbers);
-    while (not local_str.eof()) {
-      local_str >> tmp_string;
-      local_nums.push_back(string2quantumnumbertype(tmp_string));
-    }
-  }
+  const std::vector<QuantumNumberType> local_nums = string2vecqn(localquantumnumbers);
   
   CREATE_OUT2;
   
@@ -379,28 +373,11 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
                 const String& hitran_type,
                 const Verbosity&)
 {
-  // Take care of quantum numbers
-  String tmp_string;
-  
   // Global numbers
-  std::vector<QuantumNumberType> global_nums(0);
-  if (globalquantumnumbers not_eq "") {
-    std::istringstream global_str(globalquantumnumbers);
-    while (not global_str.eof()) {
-      global_str >> tmp_string; 
-      global_nums.push_back(string2quantumnumbertype(tmp_string));
-    }
-  }
+  const std::vector<QuantumNumberType> global_nums = string2vecqn(globalquantumnumbers);
   
   // Local numbers
-  std::vector<QuantumNumberType> local_nums(0);
-  if (localquantumnumbers not_eq "") {
-    std::istringstream local_str(localquantumnumbers);
-    while (not local_str.eof()) {
-      local_str >> tmp_string;
-      local_nums.push_back(string2quantumnumbertype(tmp_string));
-    }
-  }
+  const std::vector<QuantumNumberType> local_nums = string2vecqn(localquantumnumbers);
   
   // HITRAN type
   bool new_type = hitran_type=="Pre2004" ? false : true;
@@ -448,28 +425,11 @@ void ReadLBLRTM(ArrayOfAbsorptionLines& abs_lines,
                 const String& localquantumnumbers,
                 const Verbosity&)
 {
-  // Take care of quantum numbers
-  String tmp_string;
-  
   // Global numbers
-  std::vector<QuantumNumberType> global_nums(0);
-  if (globalquantumnumbers not_eq "") {
-    std::istringstream global_str(globalquantumnumbers);
-    while (not global_str.eof()) {
-      global_str >> tmp_string; 
-      global_nums.push_back(string2quantumnumbertype(tmp_string));
-    }
-  }
+  const std::vector<QuantumNumberType> global_nums = string2vecqn(globalquantumnumbers);
   
   // Local numbers
-  std::vector<QuantumNumberType> local_nums(0);
-  if (localquantumnumbers not_eq "") {
-    std::istringstream local_str(localquantumnumbers);
-    while (not local_str.eof()) {
-      local_str >> tmp_string;
-      local_nums.push_back(string2quantumnumbertype(tmp_string));
-    }
-  }
+  const std::vector<QuantumNumberType> local_nums = string2vecqn(localquantumnumbers);
   
   // LBLRTM data
   ifstream is;
@@ -511,28 +471,11 @@ void ReadMytran2(ArrayOfAbsorptionLines& abs_lines,
                  const String& localquantumnumbers,
                  const Verbosity&)
 {
-  // Take care of quantum numbers
-  String tmp_string;
-  
   // Global numbers
-  std::vector<QuantumNumberType> global_nums(0);
-  if (globalquantumnumbers not_eq "") {
-    std::istringstream global_str(globalquantumnumbers);
-    while (not global_str.eof()) {
-      global_str >> tmp_string; 
-      global_nums.push_back(string2quantumnumbertype(tmp_string));
-    }
-  }
+  const std::vector<QuantumNumberType> global_nums = string2vecqn(globalquantumnumbers);
   
   // Local numbers
-  std::vector<QuantumNumberType> local_nums(0);
-  if (localquantumnumbers not_eq "") {
-    std::istringstream local_str(localquantumnumbers);
-    while (not local_str.eof()) {
-      local_str >> tmp_string;
-      local_nums.push_back(string2quantumnumbertype(tmp_string));
-    }
-  }
+  const std::vector<QuantumNumberType> local_nums = string2vecqn(localquantumnumbers);
   
   // LBLRTM data
   ifstream is;
@@ -574,28 +517,11 @@ void ReadJPL(ArrayOfAbsorptionLines& abs_lines,
              const String& localquantumnumbers,
              const Verbosity&)
 {
-  // Take care of quantum numbers
-  String tmp_string;
-  
   // Global numbers
-  std::vector<QuantumNumberType> global_nums(0);
-  if (globalquantumnumbers not_eq "") {
-    std::istringstream global_str(globalquantumnumbers);
-    while (not global_str.eof()) {
-      global_str >> tmp_string; 
-      global_nums.push_back(string2quantumnumbertype(tmp_string));
-    }
-  }
+  const std::vector<QuantumNumberType> global_nums = string2vecqn(globalquantumnumbers);
   
   // Local numbers
-  std::vector<QuantumNumberType> local_nums(0);
-  if (localquantumnumbers not_eq "") {
-    std::istringstream local_str(localquantumnumbers);
-    while (not local_str.eof()) {
-      local_str >> tmp_string;
-      local_nums.push_back(string2quantumnumbertype(tmp_string));
-    }
-  }
+  const std::vector<QuantumNumberType> local_nums = string2vecqn(localquantumnumbers);
   
   // LBLRTM data
   ifstream is;
