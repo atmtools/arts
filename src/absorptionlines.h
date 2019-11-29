@@ -1464,10 +1464,24 @@ SingleLineExternal ReadFromLBLRTMStream(istream& is);
  * @endverbatim
  * 
  * @param[in] is Input stream
- * @param[in] fmin Lowest frequency to continue reading
  * @return SingleLineExternal 
  */
 SingleLineExternal ReadFromHitran2004Stream(istream& is);
+
+/** Read from HITRAN online
+ * 
+ * The data format from online should be a .par line
+ * followed by upper state quantum numbers and then
+ * lower state quantum numbers.  See ReadFromHitran2004Stream
+ * for the format of the .par-bit.  The quantum numbers are
+ * parsed by name and should look as:
+ * 
+ * J=5.5;N1=2.5;parity=-;kronigParity=f [[tab]] J=6.5;N1=2.5;parity=-;kronigParity=f
+ * 
+ * @param[in] is Input stream
+ * @return SingleLineExternal 
+*/ 
+SingleLineExternal ReadFromHitranOnlineStream(istream& is);
 
 /** Read from HITRAN before 2004
  * 
