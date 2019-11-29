@@ -97,3 +97,32 @@ std::istream& operator>>(std::istream& is, Rational& a) {
 
   return is;
 }
+
+Rational::Rational(const String& s)
+{
+  auto len = s.length();
+  
+  if (len) {
+    auto dot_pos = s.find(".");
+    if (len > dot_pos) {
+      auto full = std::stoi(s.substr(0, dot_pos));
+      auto frac = std::stoi(s.substr(dot_pos+1, s.length()));
+      
+      if (frac == 1) {
+        *this = Rational(10*full + 1, 10);
+      } else if (frac == 2) {
+        *this = Rational(5*full + 1, 5);
+      } else if (frac == 5) {
+        *this = Rational(2*full + 1, 2);
+      } else {
+        *this = RATIONAL_UNDEFINED;
+      }
+    } else {
+      *this = std::stoi(s);
+    }
+  } else {
+    *this = RATIONAL_UNDEFINED;
+  }
+  
+  Simplify();
+}

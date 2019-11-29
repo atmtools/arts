@@ -74,7 +74,7 @@ QuantumParserHITRAN2004::QuantumParserHITRAN2004() {
     Array<QuantumFieldDescription>& this_class = mclass[CI_CLASS2];
     SKIP_X_SPACES(this_class, 7);
     this_class.push_back(
-        QuantumFieldDescription(QuantumNumberType::X, parse_a1_x_hitran));
+        QuantumFieldDescription(QuantumNumberType::ElectronState, parse_a1_x_hitran));
     SKIP_X_SPACES(this_class, 5);
     this_class.push_back(
         QuantumFieldDescription(QuantumNumberType::v1, parse_i2_hitran));
@@ -85,7 +85,7 @@ QuantumParserHITRAN2004::QuantumParserHITRAN2004() {
     Array<QuantumFieldDescription>& this_class = mclass[CI_CLASS3];
     SKIP_X_SPACES(this_class, 7);
     this_class.push_back(
-        QuantumFieldDescription(QuantumNumberType::X, parse_a1_x_hitran));
+        QuantumFieldDescription(QuantumNumberType::ElectronState, parse_a1_x_hitran));
     this_class.push_back(
         QuantumFieldDescription(QuantumNumberType::Omega, parse_a3_hitran));
     SKIP_X_SPACES(this_class, 2);
@@ -722,34 +722,34 @@ void postprocess_group5_hitran(QuantumIdentifier& qid) {
 
   assert(qid.Species() == species_index_from_species_name("O2"));
 
-  if (qid.LowerQuantumNumber(QuantumNumberType::X).toIndex() ==
+  if (qid.LowerQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
       Index(QuantumNumberTypeLabelsHitran::O2_X_is_X)) {
     qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseB));
     qid.LowerQuantumNumbers().Set(QuantumNumberType::S, Rational(1, 1));
     qid.LowerQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(0, 1));
-  } else if (qid.LowerQuantumNumber(QuantumNumberType::X).toIndex() ==
+  } else if (qid.LowerQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
              Index(QuantumNumberTypeLabelsHitran::O2_X_is_a)) {
     qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseB));
     qid.LowerQuantumNumbers().Set(QuantumNumberType::S, Rational(0, 1));
     qid.LowerQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(2, 1));
-  } else if (qid.LowerQuantumNumber(QuantumNumberType::X).toIndex() ==
+  } else if (qid.LowerQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
              Index(QuantumNumberTypeLabelsHitran::O2_X_is_b)) {
     qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseB));
     qid.LowerQuantumNumbers().Set(QuantumNumberType::S, Rational(0, 1));
     qid.LowerQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(0, 1));
   }
 
-  if (qid.UpperQuantumNumber(QuantumNumberType::X).toIndex() ==
+  if (qid.UpperQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
       Index(QuantumNumberTypeLabelsHitran::O2_X_is_X)) {
     qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseB));
     qid.UpperQuantumNumbers().Set(QuantumNumberType::S, Rational(1, 1));
     qid.UpperQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(0, 1));
-  } else if (qid.UpperQuantumNumber(QuantumNumberType::X).toIndex() ==
+  } else if (qid.UpperQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
              Index(QuantumNumberTypeLabelsHitran::O2_X_is_a)) {
     qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseB));
     qid.UpperQuantumNumbers().Set(QuantumNumberType::S, Rational(0, 1));
     qid.UpperQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(2, 1));
-  } else if (qid.UpperQuantumNumber(QuantumNumberType::X).toIndex() ==
+  } else if (qid.UpperQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
              Index(QuantumNumberTypeLabelsHitran::O2_X_is_b)) {
     qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseB));
     qid.UpperQuantumNumbers().Set(QuantumNumberType::S, Rational(0, 1));
@@ -759,8 +759,8 @@ void postprocess_group5_hitran(QuantumIdentifier& qid) {
   // We don't need these after this point
   qid.LowerQuantumNumbers().Set(QuantumNumberType::dN, RATIONAL_UNDEFINED);
   qid.LowerQuantumNumbers().Set(QuantumNumberType::dJ, RATIONAL_UNDEFINED);
-  qid.LowerQuantumNumbers().Set(QuantumNumberType::X, RATIONAL_UNDEFINED);
-  qid.UpperQuantumNumbers().Set(QuantumNumberType::X, RATIONAL_UNDEFINED);
+  qid.LowerQuantumNumbers().Set(QuantumNumberType::ElectronState, RATIONAL_UNDEFINED);
+  qid.UpperQuantumNumbers().Set(QuantumNumberType::ElectronState, RATIONAL_UNDEFINED);
 }
 
 void postprocess_group6_hitran(QuantumIdentifier& qid) {
@@ -770,7 +770,7 @@ void postprocess_group6_hitran(QuantumIdentifier& qid) {
           qid.LowerQuantumNumbers()[QuantumNumberType::dJ]);
 
   if (qid.Species() == species_index_from_species_name("NO")) {
-    if (qid.LowerQuantumNumber(QuantumNumberType::X).toIndex() ==
+    if (qid.LowerQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
         Index(QuantumNumberTypeLabelsHitran::NO_X_is_X)) {
       qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund,
                                     Index(Hund::CaseA));
@@ -780,7 +780,7 @@ void postprocess_group6_hitran(QuantumIdentifier& qid) {
       throw std::runtime_error(
           "Missing definition of NO... this is a developer bug because it should fail earlier...");
 
-    if (qid.UpperQuantumNumber(QuantumNumberType::X).toIndex() ==
+    if (qid.UpperQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
         Index(QuantumNumberTypeLabelsHitran::NO_X_is_X)) {
       qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund,
                                     Index(Hund::CaseA));
@@ -790,7 +790,7 @@ void postprocess_group6_hitran(QuantumIdentifier& qid) {
       throw std::runtime_error(
           "Missing definition of NO... this is a developer bug because it should fail earlier...");
   } else if (qid.Species() == species_index_from_species_name("ClO")) {
-    if (qid.LowerQuantumNumber(QuantumNumberType::X).toIndex() ==
+    if (qid.LowerQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
         Index(QuantumNumberTypeLabelsHitran::ClO_X_is_X)) {
       qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund,
                                     Index(Hund::CaseA));
@@ -800,7 +800,7 @@ void postprocess_group6_hitran(QuantumIdentifier& qid) {
       throw std::runtime_error(
           "Missing definition of ClO... this is a developer bug because it should fail earlier...");
 
-    if (qid.UpperQuantumNumber(QuantumNumberType::X).toIndex() ==
+    if (qid.UpperQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
         Index(QuantumNumberTypeLabelsHitran::ClO_X_is_X)) {
       qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund,
                                     Index(Hund::CaseA));
@@ -815,8 +815,8 @@ void postprocess_group6_hitran(QuantumIdentifier& qid) {
 
   // We don't need these after this point
   qid.LowerQuantumNumbers().Set(QuantumNumberType::dJ, RATIONAL_UNDEFINED);
-  qid.LowerQuantumNumbers().Set(QuantumNumberType::X, RATIONAL_UNDEFINED);
-  qid.UpperQuantumNumbers().Set(QuantumNumberType::X, RATIONAL_UNDEFINED);
+  qid.LowerQuantumNumbers().Set(QuantumNumberType::ElectronState, RATIONAL_UNDEFINED);
+  qid.UpperQuantumNumbers().Set(QuantumNumberType::ElectronState, RATIONAL_UNDEFINED);
 }
 
 void postprocess_group6oh_hitran(QuantumIdentifier& qid) {
@@ -828,11 +828,11 @@ void postprocess_group6oh_hitran(QuantumIdentifier& qid) {
           qid.LowerQuantumNumbers()[QuantumNumberType::dJ]);
 
   qid.LowerQuantumNumbers().Set(QuantumNumberType::S, Rational(1, 2));
-  if (qid.LowerQuantumNumber(QuantumNumberType::X).toIndex() ==
+  if (qid.LowerQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
       Index(QuantumNumberTypeLabelsHitran::OH_X_is_X)) {
     qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseA));
     qid.LowerQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(1, 1));
-  } else if (qid.LowerQuantumNumber(QuantumNumberType::X).toIndex() ==
+      } else if (qid.LowerQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
              Index(QuantumNumberTypeLabelsHitran::OH_X_is_A)) {
     qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseB));
     qid.LowerQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(0, 1));
@@ -853,11 +853,11 @@ void postprocess_group6oh_hitran(QuantumIdentifier& qid) {
         "Missing definition of OH... this is a developer bug because it should fail earlier...");
 
   qid.UpperQuantumNumbers().Set(QuantumNumberType::S, Rational(1, 2));
-  if (qid.UpperQuantumNumber(QuantumNumberType::X).toIndex() ==
+  if (qid.UpperQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
       Index(QuantumNumberTypeLabelsHitran::OH_X_is_X)) {
     qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseA));
     qid.UpperQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(1, 1));
-  } else if (qid.UpperQuantumNumber(QuantumNumberType::X).toIndex() ==
+  } else if (qid.UpperQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
              Index(QuantumNumberTypeLabelsHitran::OH_X_is_A)) {
     qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseB));
     qid.UpperQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(0, 1));
@@ -883,6 +883,6 @@ void postprocess_group6oh_hitran(QuantumIdentifier& qid) {
   // We don't need these after this point
   qid.LowerQuantumNumbers().Set(QuantumNumberType::dN, RATIONAL_UNDEFINED);
   qid.LowerQuantumNumbers().Set(QuantumNumberType::dJ, RATIONAL_UNDEFINED);
-  qid.LowerQuantumNumbers().Set(QuantumNumberType::X, RATIONAL_UNDEFINED);
-  qid.UpperQuantumNumbers().Set(QuantumNumberType::X, RATIONAL_UNDEFINED);
+  qid.LowerQuantumNumbers().Set(QuantumNumberType::ElectronState, RATIONAL_UNDEFINED);
+  qid.UpperQuantumNumbers().Set(QuantumNumberType::ElectronState, RATIONAL_UNDEFINED);
 }

@@ -62,6 +62,7 @@ enum class QuantumNumberType : Index {
   alpha,   // Alpha from HITRAN
   Sym,     // Symmetry expression
   parity,  // parity value (+/-)
+  kronigParity,  // ???
   v1,      // Vibrational mode 1
   v2,      // Vibrational mode 2
   l2,      // Vibrational angular momentum associated with v2
@@ -73,7 +74,7 @@ enum class QuantumNumberType : Index {
   pm,      // Symmetry type for l=0
   r,       // Rank of the level within a set of the same vibrational symmetry
   S_global,  // Symmetry of the level
-  X,         // Electronic state
+  ElectronState,  // Electronic state
   n_global,  // Torosional quanta
   C,         // Another symmetry expression
   Hund,  // Flag for Hund case type.  This flag lets Zeeman know what to expect
@@ -90,6 +91,7 @@ inline QuantumNumberType string2quantumnumbertype(const String& s) {
   else INPUT_QUANTUM(dN);
   else INPUT_QUANTUM(S);
   else INPUT_QUANTUM(F);
+  else if (s.find("F#") < s.length()) return QuantumNumberType::F;  // HITRAN has many names for F
   else INPUT_QUANTUM(K);
   else INPUT_QUANTUM(Ka);
   else INPUT_QUANTUM(Kc);
@@ -99,7 +101,9 @@ inline QuantumNumberType string2quantumnumbertype(const String& s) {
   else INPUT_QUANTUM(alpha);
   else INPUT_QUANTUM(Sym);
   else INPUT_QUANTUM(parity);
+  else INPUT_QUANTUM(kronigParity);
   else INPUT_QUANTUM(v1);
+  else if (s == "v") return QuantumNumberType::v1;  // HITRAN name
   else INPUT_QUANTUM(v2);
   else INPUT_QUANTUM(l2);
   else INPUT_QUANTUM(v3);
@@ -110,7 +114,8 @@ inline QuantumNumberType string2quantumnumbertype(const String& s) {
   else INPUT_QUANTUM(pm);
   else INPUT_QUANTUM(r);
   else INPUT_QUANTUM(S_global);
-  else INPUT_QUANTUM(X);
+  else INPUT_QUANTUM(ElectronState);
+  else if (s == "ElecStateLabel") return QuantumNumberType::ElectronState;  // HITRAN name
   else INPUT_QUANTUM(n_global);
   else INPUT_QUANTUM(C);
   else INPUT_QUANTUM(Hund);
@@ -137,6 +142,7 @@ inline String quantumnumbertype2string(QuantumNumberType s) {
   else INPUT_QUANTUM(alpha);
   else INPUT_QUANTUM(Sym);
   else INPUT_QUANTUM(parity);
+  else INPUT_QUANTUM(kronigParity);
   else INPUT_QUANTUM(v1);
   else INPUT_QUANTUM(v2);
   else INPUT_QUANTUM(l2);
@@ -148,7 +154,7 @@ inline String quantumnumbertype2string(QuantumNumberType s) {
   else INPUT_QUANTUM(pm);
   else INPUT_QUANTUM(r);
   else INPUT_QUANTUM(S_global);
-  else INPUT_QUANTUM(X);
+  else INPUT_QUANTUM(ElectronState);
   else INPUT_QUANTUM(n_global);
   else INPUT_QUANTUM(C);
   else INPUT_QUANTUM(Hund);
@@ -656,5 +662,15 @@ std::ostream& operator<<(std::ostream& os, const QuantumNumbers& qn);
 std::ostream& operator<<(std::ostream& os, const QuantumIdentifier& qi);
 
 std::ostream& operator<<(std::ostream& os, QuantumNumberType t);
+
+/** Updates the quantum identifier based on a lists of strings
+ * 
+ * The input lists of strings should be paired as {key, value}
+ * 
+ * \param[in,out] qid Identifier to update
+ * \param[in] upper_list List of strings to update upper state
+ * \param[in] lower_list List of strings to update lower state
+ */
+void update_id(QuantumIdentifier& qid, const std::vector<std::array<String, 2> >& upper_list, const std::vector<std::array<String, 2> >& lower_list);
 
 #endif

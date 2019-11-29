@@ -45,6 +45,8 @@ class Rational {
    */
   constexpr Rational(const Index nom = 0, const Index denom = 1)
       : mnom(nom), mdenom(denom) {}
+  
+  Rational(const String& s);
 
   /** Nominator */
   constexpr Index Nom() const { return mnom; }

@@ -221,7 +221,7 @@ std::ostream& operator<<(std::ostream& os, const QuantumNumbers& qn) {
   OUTPUT_QUANTUM(pm);
   OUTPUT_QUANTUM(r);
   OUTPUT_QUANTUM(S_global);
-  OUTPUT_QUANTUM(X);
+  OUTPUT_QUANTUM(ElectronState);
   OUTPUT_QUANTUM(n_global);
   OUTPUT_QUANTUM(C);
   OUTPUT_QUANTUM(Hund);
@@ -442,4 +442,64 @@ bool QuantumIdentifier::any_quantumnumbers() const {
 std::ostream& operator<<(std::ostream& os, QuantumNumberType t)
 {
   return os << quantumnumbertype2string(t);
+}
+
+Rational interpret_stringdata(const QuantumNumberType key, const String& val) {
+  if (key == QuantumNumberType::parity) {
+    if (val == "+")
+      return 1;
+    else if (val == "-")
+      return -1;
+  } else if (key == QuantumNumberType::ElectronState) {
+    if (val == "X")
+      return int('X');
+  } else if (key == QuantumNumberType::kronigParity) {
+    if (val == "f")
+      return int('f');
+    else if (val == "e")
+      return int('e');
+  } else {
+    return Rational(val);
+  }
+  
+  return RATIONAL_UNDEFINED;
+}
+
+void update_id(QuantumIdentifier& qid, const std::vector<std::array<String, 2> >& upper_list, const std::vector<std::array<String, 2> >& lower_list)
+{
+  for (auto& keyval: upper_list) {
+    auto key = string2quantumnumbertype(keyval[0]);
+    if (key == QuantumNumberType::FINAL_ENTRY) {
+      std::ostringstream os;
+      os << "The key \"" << keyval[0] << "\" is an invalid input as a quantum number key";
+      std::cout << "WARNING: " << os.str() << '\n';
+    } else {
+      auto val = interpret_stringdata(key, keyval[1]);
+      if (val != RATIONAL_UNDEFINED) {
+        qid.UpperQuantumNumber(key) = val;
+      } else {
+        std::ostringstream os;
+        os << "The key \"" << keyval[0] << "\" and value \"" << keyval[1] << "\" are invalid input as a quantum number key and value pair";
+        std::cout << "WARNING: " << os.str() << '\n';
+      }
+    }
+  }
+  
+  for (auto& keyval: lower_list) {
+    auto key = string2quantumnumbertype(keyval[0]);
+    if (key == QuantumNumberType::FINAL_ENTRY) {
+      std::ostringstream os;
+      os << "The key \"" << keyval[0] << "\" is an invalid input as a quantum number key";
+      std::cout << "WARNING: " << os.str() << '\n';
+    } else {
+      auto val = interpret_stringdata(key, keyval[1]);
+      if (val != RATIONAL_UNDEFINED) {
+        qid.LowerQuantumNumber(key) = val;
+      } else {
+        std::ostringstream os;
+        os << "The key \"" << keyval[0] << "\" and value \"" << keyval[1] << "\" are invalid input as a quantum number key and value pair";
+        std::cout << "WARNING: " << os.str() << '\n';
+      }
+    }
+  }
 }
