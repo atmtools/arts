@@ -13911,6 +13911,7 @@ void define_md_data_raw() {
                   "The HITRAN type switch can be:\n"
                   "\t\"Pre2004\"\t-\tfor old format\n"
                   "\t\"Post2004\"\t-\tfor new format\n"
+                  "\t\"Online\"\t-\tfor the online format with quantum numbers (highly experimental)\n"
       ),
       AUTHORS("Hermann Berg", "Thomas Kuhn", "Richard Larsson"),
       OUT("abs_lines"),

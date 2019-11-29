@@ -363,6 +363,26 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
     band.sort_by_frequency();
 }
 
+enum class HitranType {
+  Pre2004,
+  Post2004,
+  Online,
+};
+
+HitranType string2hitrantype(const String& s) {
+  if (s == "Pre2004")
+    return HitranType::Pre2004;
+  else if (s == "Post2004")
+    return HitranType::Post2004;
+  else if (s == "Online")
+    return HitranType::Online;
+  else {
+    std::ostringstream os;
+    os << "The type \"" << s << "\" is an invalid hitran type\n";
+    throw std::runtime_error(os.str());
+  }
+}
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
                 const String& hitran_file,
@@ -380,7 +400,7 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
   const std::vector<QuantumNumberType> local_nums = string2vecqn(localquantumnumbers);
   
   // HITRAN type
-  bool new_type = hitran_type=="Pre2004" ? false : true;
+  const auto hitran_version = string2hitrantype(hitran_type);
   
   // Hitran data
   ifstream is;
@@ -390,10 +410,19 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
   
   bool go_on = true;
   while (go_on) {
-    if (new_type)
-      v.push_back(Absorption::ReadFromHitran2004Stream(is));
-    else
-      v.push_back(Absorption::ReadFromHitran2001Stream(is));
+    switch (hitran_version) {
+      case HitranType::Post2004:
+        v.push_back(Absorption::ReadFromHitran2004Stream(is));
+        break;
+      case HitranType::Pre2004:
+        v.push_back(Absorption::ReadFromHitran2001Stream(is));
+        break;
+      case HitranType::Online:
+        v.push_back(Absorption::ReadFromHitranOnlineStream(is));
+        break;
+      default:
+        throw std::runtime_error("A bad developer did not throw in time to stop this message.\nThe HitranType enum class has to be fully updated!\n");
+    }
     
     if (v.back().bad) {
       v.pop_back();
