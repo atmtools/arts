@@ -481,6 +481,7 @@ endif()
 add_subdirectory (src)
 add_subdirectory (doc)
 add_subdirectory (controlfiles)
+add_subdirectory (python)
 
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
                 ${CMAKE_CURRENT_BINARY_DIR}/src/config.h)
