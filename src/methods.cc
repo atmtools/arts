@@ -1150,7 +1150,7 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("abs_linesChangeBaseParameterForMatchingLevels"),
+      NAME("abs_linesChangeBaseParameterForMatchingLevel"),
       DESCRIPTION(
           "Change parameter of all levels in *abs_lines* that match with *QuantumIdentifier*.\n"
           "Only works for these parameters:\n"
@@ -1171,8 +1171,25 @@ void define_md_data_raw() {
                "Flag for relative change (0 is absolute change)")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("abs_lines_per_speciesChangeBaseParameterForMatchingLevels"),
-      DESCRIPTION("See *abs_linesChangeBaseParameterForMatchingLevels*\n"),
+      NAME("abs_linesChangeBaseParameterForMatchingLevels"),
+      DESCRIPTION("See *abs_linesChangeBaseParameterForMatchingLevel*\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines"),
+      GIN("QI", "parameter_name", "change", "relative"),
+      GIN_TYPE("ArrayOfQuantumIdentifier", "String", "Vector", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "0"),
+      GIN_DESC("Information to match the level.",
+               "Name of parameter to be replaced",
+               "Value with which to change matching level's value",
+               "Flag for relative change (0 is absolute change)")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_lines_per_speciesChangeBaseParameterForMatchingLevel"),
+      DESCRIPTION("See *abs_linesChangeBaseParameterForMatchingLevel*\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -1188,7 +1205,24 @@ void define_md_data_raw() {
                "Flag for relative change (0 is absolute change)")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("abs_linesSetBaseParameterForMatchingLevels"),
+      NAME("abs_lines_per_speciesChangeBaseParameterForMatchingLevels"),
+      DESCRIPTION("See *abs_linesChangeBaseParameterForMatchingLevel*\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species"),
+      GIN("QI", "parameter_name", "change", "relative"),
+      GIN_TYPE("ArrayOfQuantumIdentifier", "String", "Vector", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "0"),
+      GIN_DESC("Information to match the level.",
+               "Name of parameter to be replaced",
+               "Value with which to change matching level's value",
+               "Flag for relative change (0 is absolute change)")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_linesSetBaseParameterForMatchingLevel"),
       DESCRIPTION(
           "Set parameter of all levels in *abs_lines* that match with *QuantumIdentifier*.\n"
           "Only works for these parameters:\n"
@@ -1208,8 +1242,24 @@ void define_md_data_raw() {
                "Value with which to set matching level's value")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("abs_lines_per_speciesSetBaseParameterForMatchingLevels"),
-      DESCRIPTION("See *abs_linesSetBaseParameterForMatchingLevels*\n"),
+      NAME("abs_linesSetBaseParameterForMatchingLevels"),
+      DESCRIPTION("See *abs_linesSetBaseParameterForMatchingLevel*\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines"),
+      GIN("QI", "parameter_name", "change"),
+      GIN_TYPE("ArrayOfQuantumIdentifier", "String", "Vector"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF),
+      GIN_DESC("Information to match the level.",
+               "Name of parameter to be replaced",
+               "Value with which to set matching level's value")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_lines_per_speciesSetBaseParameterForMatchingLevel"),
+      DESCRIPTION("See *abs_linesSetBaseParameterForMatchingLevel*\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines_per_species"),
       GOUT(),
@@ -1218,6 +1268,22 @@ void define_md_data_raw() {
       IN("abs_lines_per_species"),
       GIN("QI", "parameter_name", "change"),
       GIN_TYPE("QuantumIdentifier", "String", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF),
+      GIN_DESC("Information to match the level.",
+               "Name of parameter to be replaced",
+               "Value with which to set matching level's value")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_lines_per_speciesSetBaseParameterForMatchingLevels"),
+      DESCRIPTION("See *abs_linesSetBaseParameterForMatchingLevel*\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species"),
+      GIN("QI", "parameter_name", "change"),
+      GIN_TYPE("ArrayOfQuantumIdentifier", "String", "Vector"),
       GIN_DEFAULT(NODEF, NODEF, NODEF),
       GIN_DESC("Information to match the level.",
                "Name of parameter to be replaced",

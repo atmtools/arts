@@ -1841,12 +1841,12 @@ void abs_lines_per_speciesSetLineShapeModelParameterForSpecies(
 /////////////////////////////////////////////////////////////////////////////////////
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesChangeBaseParameterForMatchingLevels(ArrayOfAbsorptionLines& abs_lines,
-                                                   const QuantumIdentifier& QI,
-                                                   const String& parameter_name,
-                                                   const Numeric& change,
-                                                   const Index& relative,
-                                                   const Verbosity&)
+void abs_linesChangeBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_lines,
+                                                  const QuantumIdentifier& QI,
+                                                  const String& parameter_name,
+                                                  const Numeric& change,
+                                                  const Index& relative,
+                                                  const Verbosity&)
 {
   if (QI.Type() not_eq QuantumIdentifier::ENERGY_LEVEL) {
     std::ostringstream os;
@@ -1917,23 +1917,56 @@ void abs_linesChangeBaseParameterForMatchingLevels(ArrayOfAbsorptionLines& abs_l
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesChangeBaseParameterForMatchingLevels(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                                               const QuantumIdentifier& QI,
-                                                               const String& parameter_name,
-                                                               const Numeric& change,
-                                                               const Index& relative,
-                                                               const Verbosity& verbosity)
+void abs_lines_per_speciesChangeBaseParameterForMatchingLevel(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                                              const QuantumIdentifier& QI,
+                                                              const String& parameter_name,
+                                                              const Numeric& change,
+                                                              const Index& relative,
+                                                              const Verbosity& verbosity)
 {
   for (auto& lines: abs_lines_per_species)
-    abs_linesChangeBaseParameterForMatchingLevels(lines, QI, parameter_name, change, relative, verbosity);
+    abs_linesChangeBaseParameterForMatchingLevel(lines, QI, parameter_name, change, relative, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesSetBaseParameterForMatchingLevels(ArrayOfAbsorptionLines& abs_lines,
-                                                const QuantumIdentifier& QI,
-                                                const String& parameter_name,
-                                                const Numeric& x,
-                                                const Verbosity&)
+void abs_linesChangeBaseParameterForMatchingLevels(ArrayOfAbsorptionLines& abs_lines,
+                                                   const ArrayOfQuantumIdentifier& QID,
+                                                   const String& parameter_name,
+                                                   const Vector& change,
+                                                   const Index& relative,
+                                                   const Verbosity& verbosity)
+{
+  if (QID.nelem() not_eq change.nelem()) {
+    throw std::runtime_error("Mismatch between QID and change input lengths not allowed");
+  }
+  
+  for (Index iq=0; iq<QID.nelem(); iq++)
+    abs_linesChangeBaseParameterForMatchingLevel(abs_lines, QID[iq], parameter_name, change[iq], relative, verbosity);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesChangeBaseParameterForMatchingLevels(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                                               const ArrayOfQuantumIdentifier& QID,
+                                                               const String& parameter_name,
+                                                               const Vector& change,
+                                                               const Index& relative,
+                                                               const Verbosity& verbosity)
+{
+  if (QID.nelem() not_eq change.nelem()) {
+    throw std::runtime_error("Mismatch between QID and change input lengths not allowed");
+  }
+  
+  for (Index iq=0; iq<QID.nelem(); iq++)
+    for (auto& lines: abs_lines_per_species)
+      abs_linesChangeBaseParameterForMatchingLevel(lines, QID[iq], parameter_name, change[iq], relative, verbosity);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesSetBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_lines,
+                                               const QuantumIdentifier& QI,
+                                               const String& parameter_name,
+                                               const Numeric& x,
+                                               const Verbosity&)
 {
   if (QI.Type() not_eq QuantumIdentifier::ENERGY_LEVEL) {
     std::ostringstream os;
@@ -1992,14 +2025,45 @@ void abs_linesSetBaseParameterForMatchingLevels(ArrayOfAbsorptionLines& abs_line
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lines_per_speciesSetBaseParameterForMatchingLevels(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
-                                                            const QuantumIdentifier& QI,
-                                                            const String& parameter_name,
-                                                            const Numeric& change,
-                                                            const Verbosity& verbosity)
+void abs_lines_per_speciesSetBaseParameterForMatchingLevel(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                                           const QuantumIdentifier& QI,
+                                                           const String& parameter_name,
+                                                           const Numeric& change,
+                                                           const Verbosity& verbosity)
 {
   for (auto& lines: abs_lines_per_species)
-    abs_linesSetBaseParameterForMatchingLevels(lines, QI, parameter_name, change, verbosity);
+    abs_linesSetBaseParameterForMatchingLevel(lines, QI, parameter_name, change, verbosity);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesSetBaseParameterForMatchingLevels(ArrayOfAbsorptionLines& abs_lines,
+                                                const ArrayOfQuantumIdentifier& QID,
+                                                const String& parameter_name,
+                                                const Vector& change,
+                                                const Verbosity& verbosity)
+{
+  if (QID.nelem() not_eq change.nelem()) {
+    throw std::runtime_error("Mismatch between QID and change input lengths not allowed");
+  }
+  
+  for (Index iq=0; iq<QID.nelem(); iq++)
+    abs_linesSetBaseParameterForMatchingLevel(abs_lines, QID[iq], parameter_name, change[iq], verbosity);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lines_per_speciesSetBaseParameterForMatchingLevels(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                                            const ArrayOfQuantumIdentifier& QID,
+                                                            const String& parameter_name,
+                                                            const Vector& change,
+                                                            const Verbosity& verbosity)
+{
+  if (QID.nelem() not_eq change.nelem()) {
+    throw std::runtime_error("Mismatch between QID and change input lengths not allowed");
+  }
+  
+  for (Index iq=0; iq<QID.nelem(); iq++)
+    for (auto& lines: abs_lines_per_species)
+      abs_linesSetBaseParameterForMatchingLevel(lines, QID[iq], parameter_name, change[iq], verbosity);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
