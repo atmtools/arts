@@ -163,7 +163,7 @@ inline String quantumnumbertype2string(QuantumNumberType s) {
 }
 
 /** Enum for Hund cases */
-enum class Hund : Index { CaseA = 0, CaseB = 1 };
+enum class Hund : Index { CaseA = int('a'), CaseB = int('b') };
 
 /** Container class for Quantum Numbers */
 class QuantumNumbers {
@@ -183,7 +183,7 @@ class QuantumNumbers {
                    RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,
                    RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,
                    RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,
-                   RATIONAL_UNDEFINED}) {}
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED}) {}
 
   /** Access operator
    * 

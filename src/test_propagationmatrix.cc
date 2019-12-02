@@ -516,6 +516,17 @@ void test_zeeman() {
   }
 }
 
+constexpr bool test_quantum_numbers(const QuantumNumbers qns, const Index i)
+{
+  return (i > 0) ? (qns[i].isUndefined() ? test_quantum_numbers(qns, i-1) : false) : true;
+}
+
+void test_quantum()
+{
+  static_assert(test_quantum_numbers(QuantumNumbers(), Index(QuantumNumberType::FINAL_ENTRY) - 1),
+                "Bad last entry in QuantumNumbers.  Did you recently expand the list?");
+}
+
 int main() {
   /*test_speed_of_pressurebroadening();
     test_transmissionmatrix();
