@@ -104,19 +104,20 @@ Rational::Rational(const String& s)
   
   if (len) {
     auto dot_pos = s.find(".");
+    auto slash_pos = s.find("/");
     if (len > dot_pos) {
-      auto full = std::stoi(s.substr(0, dot_pos));
       auto frac = std::stoi(s.substr(dot_pos+1, s.length()));
       
-      if (frac == 1) {
-        *this = Rational(10*full + 1, 10);
-      } else if (frac == 2) {
-        *this = Rational(5*full + 1, 5);
-      } else if (frac == 5) {
-        *this = Rational(2*full + 1, 2);
+      if (frac == 5) {
+        *this = Rational(2*std::stoi(s.substr(0, dot_pos)) + 1, 2);
+      } else if (frac == 0) {
+        *this = Rational(std::stoi(s.substr(0, dot_pos)), 1);
       } else {
         *this = RATIONAL_UNDEFINED;
       }
+    } else if (len > slash_pos) {
+      *this = Rational(std::stoi(s.substr(0, slash_pos)),
+                       std::stoi(s.substr(slash_pos+1, s.length())));
     } else {
       *this = std::stoi(s);
     }

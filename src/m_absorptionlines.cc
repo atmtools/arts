@@ -972,6 +972,64 @@ void abs_linesDeleteWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAb
   }
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesDeleteLinesWithUndefinedLocalQuanta(ArrayOfAbsorptionLines& abs_lines, const Verbosity& verbosity)
+{
+  CREATE_OUT2;
+  Index i = 0;
+  
+  for (auto& band: abs_lines) {
+    std::vector<Index> deleters(0);
+    
+    for (Index iline=0; iline<band.NumLines(); iline++) {
+      if (std::any_of(band.Line(iline).LowerQuantumNumbers().cbegin(),
+                      band.Line(iline).LowerQuantumNumbers().cend(),
+                      [](auto x) -> bool {return x.isUndefined();}) or
+          std::any_of(band.Line(iline).UpperQuantumNumbers().cbegin(),
+                      band.Line(iline).UpperQuantumNumbers().cend(),
+                      [](auto x) -> bool {return x.isUndefined();})) {
+        deleters.push_back(iline);
+      }
+    }
+    
+    while (deleters.size()) {
+      band.RemoveLine(deleters.back());
+      deleters.pop_back();
+      i++;
+    }
+  }
+  
+  out2 << "Deleted " << i << " lines.\n";
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesDeleteLinesWithBadOrHighChangingJs(ArrayOfAbsorptionLines& abs_lines, const Verbosity& verbosity)
+{
+  CREATE_OUT2;
+  Index i = 0;
+  
+  for (auto& band: abs_lines) {
+    std::vector<Index> deleters(0);
+    
+    for (Index iline=0; iline<band.NumLines(); iline++) {
+      auto Jlo = band.LowerQuantumNumber(iline, QuantumNumberType::J);
+      auto Jup = band.UpperQuantumNumber(iline, QuantumNumberType::J);
+      
+      if (Jlo.isUndefined() or Jup.isUndefined() or 1 < abs(Jup - Jlo)) {
+        deleters.push_back(iline);
+      }
+    }
+    
+    while (deleters.size()) {
+      band.RemoveLine(deleters.back());
+      deleters.pop_back();
+      i++;
+    }
+  }
+  
+  out2 << "Deleted " << i << " lines.\n";
+}
+
 /////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////// Change of style of computations for whole bands
 /////////////////////////////////////////////////////////////////////////////////////

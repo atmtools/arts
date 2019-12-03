@@ -459,6 +459,36 @@ void define_md_data_raw() {
       GIN_DESC("Line-array that removes lines from *abs_lines*.")));
 
   md_data_raw.push_back(MdRecord(
+      NAME("abs_linesDeleteLinesWithUndefinedLocalQuanta"),
+      DESCRIPTION(
+          "Deletes all lines in *abs_lines* that have undefined local quanta\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_linesDeleteLinesWithBadOrHighChangingJs"),
+      DESCRIPTION("Deletes all lines in *abs_lines* that have undefined Js or Js\n"
+                  "that change more than 1 between energy levels\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
       NAME("abs_lines_per_speciesReadSplitCatalog"),
       DESCRIPTION("Reads *abs_lines_per_species* split by\n"
                   "*abs_linesWriteSplitXML* or *abs_lines_per_speciesWriteSplitXML*\n"
