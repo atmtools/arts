@@ -774,82 +774,120 @@ void iyEmissionStandardParallel(
 
     Agenda l_propmat_clearsky_agenda(propmat_clearsky_agenda);
     Workspace l_ws(ws);
+    ArrayOfString fail_msg;
+    bool do_abort = false;
+
     // Loop ppath points and determine radiative properties
 #pragma omp parallel for if (!arts_omp_in_parallel()) \
     firstprivate(l_ws, l_propmat_clearsky_agenda, a, B, dB_dT, S, da_dx, dS_dx)
     for (Index ip = 0; ip < np; ip++) {
-      get_stepwise_blackbody_radiation(
-          B, dB_dT, ppvar_f(joker, ip), ppvar_t[ip], temperature_jacobian);
+      if (do_abort) continue;
+      try {
+        get_stepwise_blackbody_radiation(
+            B, dB_dT, ppvar_f(joker, ip), ppvar_t[ip], temperature_jacobian);
 
-      get_stepwise_clearsky_propmat(l_ws,
-                                    K[ip],
-                                    S,
-                                    lte[ip],
-                                    dK_dx[ip],
-                                    dS_dx,
-                                    l_propmat_clearsky_agenda,
-                                    jacobian_quantities,
-                                    ppvar_f(joker, ip),
-                                    ppvar_mag(joker, ip),
-                                    ppath.los(ip, joker),
-                                    ppvar_nlte[ip],
-                                    ppvar_vmr(joker, ip),
-                                    ppvar_t[ip],
-                                    ppvar_p[ip],
-                                    jac_species_i,
-                                    j_analytical_do);
+        get_stepwise_clearsky_propmat(l_ws,
+                                      K[ip],
+                                      S,
+                                      lte[ip],
+                                      dK_dx[ip],
+                                      dS_dx,
+                                      l_propmat_clearsky_agenda,
+                                      jacobian_quantities,
+                                      ppvar_f(joker, ip),
+                                      ppvar_mag(joker, ip),
+                                      ppath.los(ip, joker),
+                                      ppvar_nlte[ip],
+                                      ppvar_vmr(joker, ip),
+                                      ppvar_t[ip],
+                                      ppvar_p[ip],
+                                      jac_species_i,
+                                      j_analytical_do);
 
-      if (j_analytical_do)
-        adapt_stepwise_partial_derivatives(dK_dx[ip],
-                                           dS_dx,
-                                           jacobian_quantities,
-                                           ppvar_f(joker, ip),
-                                           ppath.los(ip, joker),
-                                           ppvar_vmr(joker, ip),
-                                           ppvar_t[ip],
-                                           ppvar_p[ip],
-                                           jac_species_i,
-                                           jac_wind_i,
-                                           lte[ip],
-                                           atmosphere_dim,
-                                           j_analytical_do);
+        if (j_analytical_do)
+          adapt_stepwise_partial_derivatives(dK_dx[ip],
+                                             dS_dx,
+                                             jacobian_quantities,
+                                             ppvar_f(joker, ip),
+                                             ppath.los(ip, joker),
+                                             ppvar_vmr(joker, ip),
+                                             ppvar_t[ip],
+                                             ppvar_p[ip],
+                                             jac_species_i,
+                                             jac_wind_i,
+                                             lte[ip],
+                                             atmosphere_dim,
+                                             j_analytical_do);
 
-      // Here absorption equals extinction
-      a = K[ip];
-      if (j_analytical_do)
-        FOR_ANALYTICAL_JACOBIANS_DO(da_dx[iq] = dK_dx[ip][iq];);
+        // Here absorption equals extinction
+        a = K[ip];
+        if (j_analytical_do)
+          FOR_ANALYTICAL_JACOBIANS_DO(da_dx[iq] = dK_dx[ip][iq];);
 
-      stepwise_source(src_rad[ip],
-                      dsrc_rad[ip],
-                      K[ip],
-                      a,
-                      S,
-                      dK_dx[ip],
-                      da_dx,
-                      dS_dx,
-                      B,
-                      dB_dT,
-                      jacobian_quantities,
-                      jacobian_do);
+        stepwise_source(src_rad[ip],
+                        dsrc_rad[ip],
+                        K[ip],
+                        a,
+                        S,
+                        dK_dx[ip],
+                        da_dx,
+                        dS_dx,
+                        B,
+                        dB_dT,
+                        jacobian_quantities,
+                        jacobian_do);
+      } catch (const std::runtime_error& e) {
+        ostringstream os;
+        os << "Runtime-error in source calculation at index " << ip
+           << ": \n";
+        os << e.what();
+#pragma omp critical(iyEmissionStandard_source)
+        {
+          do_abort = true;
+          fail_msg.push_back(os.str());
+        }
+      }
     }
 
 #pragma omp parallel for if (!arts_omp_in_parallel())
     for (Index ip = 1; ip < np; ip++) {
-      const Numeric dr_dT_past =
-          do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_t[ip - 1]) : 0;
-      const Numeric dr_dT_this =
-          do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_t[ip]) : 0;
-      stepwise_transmission(lyr_tra[ip],
-                            dlyr_tra_above[ip],
-                            dlyr_tra_below[ip],
-                            K[ip - 1],
-                            K[ip],
-                            dK_dx[ip - 1],
-                            dK_dx[ip],
-                            ppath.lstep[ip - 1],
-                            dr_dT_past,
-                            dr_dT_this,
-                            temperature_derivative_position);
+      if (do_abort) continue;
+      try {
+        const Numeric dr_dT_past =
+            do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_t[ip - 1]) : 0;
+        const Numeric dr_dT_this =
+            do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_t[ip]) : 0;
+        stepwise_transmission(lyr_tra[ip],
+                              dlyr_tra_above[ip],
+                              dlyr_tra_below[ip],
+                              K[ip - 1],
+                              K[ip],
+                              dK_dx[ip - 1],
+                              dK_dx[ip],
+                              ppath.lstep[ip - 1],
+                              dr_dT_past,
+                              dr_dT_this,
+                              temperature_derivative_position);
+      } catch (const std::runtime_error& e) {
+        ostringstream os;
+        os << "Runtime-error in transmission calculation at index " << ip
+           << ": \n";
+        os << e.what();
+#pragma omp critical(iyEmissionStandard_transmission)
+        {
+          do_abort = true;
+          fail_msg.push_back(os.str());
+        }
+      }
+    }
+
+    if (do_abort) {
+      std::ostringstream os;
+      os << "Error messages from failed cases:\n";
+      for (const auto& msg : fail_msg) {
+        os << msg << '\n';
+      }
+      throw std::runtime_error(os.str());
     }
   }
 
