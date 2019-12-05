@@ -1504,11 +1504,11 @@ the water vapor continuum absorption can be well described by
   \label{eq:abs_theory:abs_cont}
   \alphac = \nu^2 \cdot \Theta^{3} \cdot 
             (\cso \cdot \phzo^2 \cdot \Theta^{\xs} + 
-             \cdo \cdot \phzo \cdot \pda \cdot \Theta^{\xf})
+             \cdo \cdot \phzo \cdot \pda \cdot \Theta^{\xd})  % there is different from the \xd below
 \end{equation}
 where the microwave approximation ($h\nu\ll k_BT$ ) of the radiation field term 
 is already applied. The adjustment of Eq. \ref{eq:abs_theory:abs_cont} to the data 
-is performed through the parameter set $\cso$, $\xs$, $\cdo$, and $\xf$. 
+is performed through the parameter set $\cso$, $\xs$, $\cdo$, and $\xd$. 
 Table \ref{tab:wvcontparam} gives some commonly used continuum parameter sets.
 \begin{table}[!hbt]
   \begin{center}
@@ -2066,8 +2066,7 @@ values are listed in Table \ref{tab:mpm89linelist}. To describe the line
 absorption, a set of six parameters ($\bek$ and $\bsk$) per line are used: two 
 for the line strength and four for the line width. The total line 
 absorption coefficient (in units of dB/km) is the sum over all
-individual line absorption coefficients\footnote{see footnote for
-  MPM97 line absorption}:
+individual line absorption coefficients:
 \begin{equation}
   \label{eq:abs_theory:mpm89:absline}
   \alphampmml = 0.1820 \cdot \nuk \cdot \phzo \cdot 
@@ -2227,10 +2226,10 @@ To describe the MPM93 water vapor line absorption, a set of six parameters
 ($\bek$ and $\bdk$) per line are used: two for the line strength and 
 four for the line width. The total line absorption coefficient 
 (in units of dB/km) is the sum over all individual line absorption 
-coefficients\footnote{see footnote for MPM97 line absorption}:
+coefficients:
 \begin{equation}
   \label{eq:abs_theory:mpm93:absline}
-  \alphampmnl = 0.1820 \cdot \nuk \cdot \phzo \cdot 
+  \alphampmnl = 0.1820 \cdot \nu \cdot \phzo \cdot 
   \sum_{k}{\inten \cdot \shape}\hspace*{10mm}\mbox{dB/km}
 \end{equation}
 where $\inten$ is the line intensity described by the parameterization
@@ -2255,8 +2254,9 @@ single parameter $\bdk$ in the following way:
 \begin{equation}
   \label{eq:abs_theory:mpm93:gamma}
   \gamk = \bdk \cdot 
-          (4.80 \cdot \phzo \cdot \Theta^{1.1} + \pda \cdot
-          \Theta^{0.6})\hspace*{10mm}\mbox{GHz}
+         (\bfk \cdot \phzo \cdot \Theta^{\bsk} +
+                     \pda  \cdot \Theta^{\bvk})
+        \cdot 10^{-3}\hspace*{10mm}\mbox{GHz}
 \end{equation}
 where $\pda$ is the partial pressure of dry air ($\pda=\ptot-\phzo$). 
 
