@@ -489,6 +489,20 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
+      NAME("abs_linesPrintDefinedQuantumNumbers"),
+      DESCRIPTION("Print the count of defined quantum numbers in the catalog\n"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
       NAME("abs_lines_per_speciesReadSplitCatalog"),
       DESCRIPTION("Reads *abs_lines_per_species* split by\n"
                   "*abs_linesWriteSplitXML* or *abs_lines_per_speciesWriteSplitXML*\n"
@@ -500,6 +514,20 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_species"),
+      GIN("basename"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("The path to the split catalog files")));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_linesReadSpeciesSplitCatalog"),
+      DESCRIPTION("Reads a catalog of absorption lines files in a directory\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
       GIN("basename"),
       GIN_TYPE("String"),
       GIN_DEFAULT(NODEF),
