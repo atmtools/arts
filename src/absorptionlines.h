@@ -1543,7 +1543,7 @@ SingleLineExternal ReadFromJplStream(istream& is);
  * @param[in] globalquantas List of quantum numbers to be presumed global
  * @return A list of properly ordered Lines
  */
-std::vector<Lines> split_list_of_external_lines(const std::vector<SingleLineExternal>& external_lines,
+std::vector<Lines> split_list_of_external_lines(std::vector<SingleLineExternal>& external_lines,
                                                 const std::vector<QuantumNumberType>& localquantas={},
                                                 const std::vector<QuantumNumberType>& globalquantas={});
 

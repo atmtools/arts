@@ -2443,7 +2443,7 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
   }
 }
 
-std::vector<Absorption::Lines> Absorption::split_list_of_external_lines(const std::vector<SingleLineExternal>& external_lines,
+std::vector<Absorption::Lines> Absorption::split_list_of_external_lines(std::vector<SingleLineExternal>& external_lines,
                                                                         const std::vector<QuantumNumberType>& localquantas,
                                                                         const std::vector<QuantumNumberType>& globalquantas)
 {
@@ -2454,7 +2454,9 @@ std::vector<Absorption::Lines> Absorption::split_list_of_external_lines(const st
   std::vector<Rational> upperquanta_global(globalquantas.size());
   
   // Loop but make copies because we will need to modify some of the data
-  for(SingleLineExternal sle: external_lines) {
+  while(external_lines.size()) {
+    auto& sle = external_lines.back();
+    
     // Set the quantum numbers
     std::transform(localquantas.cbegin(), localquantas.cend(), lowerquanta_local.begin(),
                    [&](auto qn){return sle.quantumidentity.LowerQuantumNumber(qn);});
@@ -2483,11 +2485,14 @@ std::vector<Absorption::Lines> Absorption::split_list_of_external_lines(const st
         break;
       }
     }
-    if(not found_match)
+    if(not found_match) {
       lines.push_back(Lines(sle.selfbroadening, sle.bathbroadening, sle.cutoff,
                             sle.mirroring, sle.population, sle.normalization,
                             sle.lineshapetype, sle.T0, sle.cutofffreq,
                             sle.linemixinglimit, qid, localquantas, sle.species, {line}));
+    }
+    
+    external_lines.erase(external_lines.end());
   }
   
   return lines;
