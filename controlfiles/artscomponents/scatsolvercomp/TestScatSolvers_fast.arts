@@ -97,8 +97,8 @@ Append( pnd_agenda_array_input_names, pnd_agenda_input_names )
 # Angular grid DISORT
 DOAngularGridsSet( N_za_grid=38 )
 # RT4 creates own grirs, so we need copies of the ones created above
-VectorCreate( scat_za_grid_copy )
-VectorCreate( scat_aa_grid_copy )
+VectorCreate( za_grid_copy )
+VectorCreate( aa_grid_copy )
 #
 # Hybrid requires that ppath_lmax is not too high
 NumericSet( ppath_lmax, 100 )

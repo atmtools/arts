@@ -903,8 +903,8 @@ void iyHybrid(Workspace& ws,
               const Vector& rte_pos2,
               const Numeric& rte_alonglos_v,
               const Tensor3& surface_props_data,
-              const Tensor7& doit_i_field,
-              const Vector& scat_za_grid,
+              const Tensor7& cloudbox_field,
+              const Vector& za_grid,
               const Index& Naa,
               const Index& t_interp_order,
               const Verbosity& verbosity) {
@@ -993,30 +993,30 @@ void iyHybrid(Workspace& ws,
         "calculated in this way:\n   ppathCalc( cloudbox_on = 0 ).");
   // iy_aux_vars checked below
   // Checks of i_field
-  if (doit_i_field.ncols() != stokes_dim)
+  if (cloudbox_field.ncols() != stokes_dim)
     throw runtime_error(
-        "Obtained *doit_i_field* number of Stokes elements inconsistent with "
+        "Obtained *cloudbox_field* number of Stokes elements inconsistent with "
         "*stokes_dim*.");
-  if (doit_i_field.nrows() != 1)
+  if (cloudbox_field.nrows() != 1)
     throw runtime_error(
-        "Obtained *doit_i_field* has wrong number of azimuth angles.");
-  if (doit_i_field.npages() != scat_za_grid.nelem())
+        "Obtained *cloudbox_field* has wrong number of azimuth angles.");
+  if (cloudbox_field.npages() != za_grid.nelem())
     throw runtime_error(
-        "Obtained *doit_i_field* number of zenith angles inconsistent with "
-        "*scat_za_grid*.");
-  if (doit_i_field.nbooks() != 1)
+        "Obtained *cloudbox_field* number of zenith angles inconsistent with "
+        "*za_grid*.");
+  if (cloudbox_field.nbooks() != 1)
     throw runtime_error(
-        "Obtained *doit_i_field* has wrong number of longitude points.");
-  if (doit_i_field.nshelves() != 1)
+        "Obtained *cloudbox_field* has wrong number of longitude points.");
+  if (cloudbox_field.nshelves() != 1)
     throw runtime_error(
-        "Obtained *doit_i_field* has wrong number of latitude points.");
-  if (doit_i_field.nvitrines() != cloudbox_limits[1] - cloudbox_limits[0] + 1)
+        "Obtained *cloudbox_field* has wrong number of latitude points.");
+  if (cloudbox_field.nvitrines() != cloudbox_limits[1] - cloudbox_limits[0] + 1)
     throw runtime_error(
-        "Obtained *doit_i_field* number of pressure points inconsistent with "
+        "Obtained *cloudbox_field* number of pressure points inconsistent with "
         "*cloudbox_limits*.");
-  if (doit_i_field.nlibraries() != nf)
+  if (cloudbox_field.nlibraries() != nf)
     throw runtime_error(
-        "Obtained *doit_i_field* number of frequency points inconsistent with "
+        "Obtained *cloudbox_field* number of frequency points inconsistent with "
         "*f_grid*.");
 
   //  Init Jacobian quantities
@@ -1218,8 +1218,8 @@ void iyHybrid(Workspace& ws,
                                       dK_this_dx[iq] += dKp_dx[iq];)
         }
 
-        Vector scat_aa_grid;
-        nlinspace(scat_aa_grid, 0, 360, Naa);
+        Vector aa_grid;
+        nlinspace(aa_grid, 0, 360, Naa);
         //
         get_stepwise_scattersky_source(Sp,
                                        dSp_dx,
@@ -1228,9 +1228,9 @@ void iyHybrid(Workspace& ws,
                                        ppvar_dpnd_dx,
                                        ip,
                                        scat_data,
-                                       doit_i_field,
-                                       scat_za_grid,
-                                       scat_aa_grid,
+                                       cloudbox_field,
+                                       za_grid,
+                                       aa_grid,
                                        ppath.los(Range(ip, 1), joker),
                                        ppath.gp_p[ip],
                                        ppvar_t[Range(ip, 1)],
@@ -1466,8 +1466,8 @@ void iyHybrid2(Workspace& ws,
                const Vector& rte_pos2,
                const Numeric& rte_alonglos_v,
                const Tensor3& surface_props_data,
-               const Tensor7& doit_i_field,
-               const Vector& scat_za_grid,
+               const Tensor7& cloudbox_field,
+               const Vector& za_grid,
                const Index& Naa,
                const Index& t_interp_order,
                const Verbosity& verbosity) {
@@ -1555,30 +1555,30 @@ void iyHybrid2(Workspace& ws,
         "calculated in this way:\n   ppathCalc( cloudbox_on = 0 ).");
   // iy_aux_vars checked below
   // Checks of i_field
-  if (doit_i_field.ncols() != stokes_dim)
+  if (cloudbox_field.ncols() != stokes_dim)
     throw runtime_error(
-        "Obtained *doit_i_field* number of Stokes elements inconsistent with "
+        "Obtained *cloudbox_field* number of Stokes elements inconsistent with "
         "*stokes_dim*.");
-  if (doit_i_field.nrows() != 1)
+  if (cloudbox_field.nrows() != 1)
     throw runtime_error(
-        "Obtained *doit_i_field* has wrong number of azimuth angles.");
-  if (doit_i_field.npages() != scat_za_grid.nelem())
+        "Obtained *cloudbox_field* has wrong number of azimuth angles.");
+  if (cloudbox_field.npages() != za_grid.nelem())
     throw runtime_error(
-        "Obtained *doit_i_field* number of zenith angles inconsistent with "
-        "*scat_za_grid*.");
-  if (doit_i_field.nbooks() != 1)
+        "Obtained *cloudbox_field* number of zenith angles inconsistent with "
+        "*za_grid*.");
+  if (cloudbox_field.nbooks() != 1)
     throw runtime_error(
-        "Obtained *doit_i_field* has wrong number of longitude points.");
-  if (doit_i_field.nshelves() != 1)
+        "Obtained *cloudbox_field* has wrong number of longitude points.");
+  if (cloudbox_field.nshelves() != 1)
     throw runtime_error(
-        "Obtained *doit_i_field* has wrong number of latitude points.");
-  if (doit_i_field.nvitrines() != cloudbox_limits[1] - cloudbox_limits[0] + 1)
+        "Obtained *cloudbox_field* has wrong number of latitude points.");
+  if (cloudbox_field.nvitrines() != cloudbox_limits[1] - cloudbox_limits[0] + 1)
     throw runtime_error(
-        "Obtained *doit_i_field* number of pressure points inconsistent with "
+        "Obtained *cloudbox_field* number of pressure points inconsistent with "
         "*cloudbox_limits*.");
-  if (doit_i_field.nlibraries() != nf)
+  if (cloudbox_field.nlibraries() != nf)
     throw runtime_error(
-        "Obtained *doit_i_field* number of frequency points inconsistent with "
+        "Obtained *cloudbox_field* number of frequency points inconsistent with "
         "*f_grid*.");
 
   //  Init Jacobian quantities
@@ -1713,17 +1713,17 @@ void iyHybrid2(Workspace& ws,
 
     if (j_analytical_do) {
       dB_dT.resize(nf);
-      FOR_ANALYTICAL_JACOBIANS_DO(dK_this_dx[iq] = PropagationMatrix(nf, ns);
-                                  dK_past_dx[iq] = PropagationMatrix(nf, ns);
-                                  dKp_dx[iq] = PropagationMatrix(nf, ns);
-                                  da_dx[iq] = StokesVector(nf, ns);
-                                  dS_dx[iq] = StokesVector(nf, ns);
-                                  dSp_dx[iq] = StokesVector(nf, ns);
-                                  if (jacobian_quantities[iq] == JacPropMatType::Temperature) {
-                                    temperature_derivative_position = iq;
-                                    do_hse = jacobian_quantities[iq].Subtag() ==
-                                             "HSE on";
-                                  })
+      FOR_ANALYTICAL_JACOBIANS_DO(
+          dK_this_dx[iq] = PropagationMatrix(nf, ns);
+          dK_past_dx[iq] = PropagationMatrix(nf, ns);
+          dKp_dx[iq] = PropagationMatrix(nf, ns);
+          da_dx[iq] = StokesVector(nf, ns);
+          dS_dx[iq] = StokesVector(nf, ns);
+          dSp_dx[iq] = StokesVector(nf, ns);
+          if (jacobian_quantities[iq] == JacPropMatType::Temperature) {
+            temperature_derivative_position = iq;
+            do_hse = jacobian_quantities[iq].Subtag() == "HSE on";
+          })
     }
     const bool temperature_jacobian =
         j_analytical_do and do_temperature_jacobian(jacobian_quantities);
@@ -1787,8 +1787,8 @@ void iyHybrid2(Workspace& ws,
           FOR_ANALYTICAL_JACOBIANS_DO(da_dx[iq] += dK_this_dx[iq];
                                       dK_this_dx[iq] += dKp_dx[iq];)
 
-        Vector scat_aa_grid;
-        nlinspace(scat_aa_grid, 0, 360, Naa);
+        Vector aa_grid;
+        nlinspace(aa_grid, 0, 360, Naa);
         //
         get_stepwise_scattersky_source(Sp,
                                        dSp_dx,
@@ -1797,9 +1797,9 @@ void iyHybrid2(Workspace& ws,
                                        ppvar_dpnd_dx,
                                        ip,
                                        scat_data,
-                                       doit_i_field,
-                                       scat_za_grid,
-                                       scat_aa_grid,
+                                       cloudbox_field,
+                                       za_grid,
+                                       aa_grid,
                                        ppath.los(Range(ip, 1), joker),
                                        ppath.gp_p[ip],
                                        ppvar_t[Range(ip, 1)],

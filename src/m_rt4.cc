@@ -46,9 +46,9 @@ const Numeric pfct_threshold = 0.05;
 /* Workspace method: Doxygen documentation will be auto-generated */
 void RT4Calc(Workspace& ws,
              // WS Output:
-             Tensor7& doit_i_field,
-             Vector& scat_za_grid,
-             Vector& scat_aa_grid,
+             Tensor7& cloudbox_field,
+             Vector& za_grid,
+             Vector& aa_grid,
              // WS Input
              const Index& atmfields_checked,
              const Index& atmgeom_checked,
@@ -109,7 +109,7 @@ void RT4Calc(Workspace& ws,
                   add_straight_angles,
                   pnd_field.ncols());
 
-  init_ifield(doit_i_field, f_grid, cloudbox_limits, 2 * nummu, stokes_dim);
+  init_ifield(cloudbox_field, f_grid, cloudbox_limits, 2 * nummu, stokes_dim);
 
   // in RT4 mu_values is generally only output. however, we need the values for
   // preparing the single scattering data at these angles. therefore, we
@@ -122,8 +122,8 @@ void RT4Calc(Workspace& ws,
 
   get_quad_angles(mu_values,
                   quad_weights,
-                  scat_za_grid,
-                  scat_aa_grid,
+                  za_grid,
+                  aa_grid,
                   quad_type,
                   nhstreams,
                   nhza,
@@ -151,21 +151,21 @@ void RT4Calc(Workspace& ws,
                    surf_emis_vec,
                    surface_rtprop_agenda,
                    f_grid,
-                   scat_za_grid,
+                   za_grid,
                    mu_values,
                    quad_weights,
                    stokes_dim,
-                   z_surface(0,0));
+                   z_surface(0, 0));
 
   run_rt4(ws,
-          doit_i_field,
-          scat_za_grid,
+          cloudbox_field,
+          za_grid,
           f_grid,
           p_grid,
-          z_field(joker,0,0),
-          t_field(joker,0,0),
-          vmr_field(joker,joker,0,0),
-          pnd_field(joker,joker,0,0),
+          z_field(joker, 0, 0),
+          t_field(joker, 0, 0),
+          vmr_field(joker, joker, 0, 0),
+          pnd_field(joker, joker, 0, 0),
           scat_data,
           propmat_clearsky_agenda,
           cloudbox_limits,
@@ -180,7 +180,7 @@ void RT4Calc(Workspace& ws,
           surf_refl_mat,
           surf_emis_vec,
           surface_rtprop_agenda,
-          z_surface(0,0),
+          z_surface(0, 0),
           quad_type,
           mu_values,
           quad_weights,
@@ -194,15 +194,15 @@ void RT4Calc(Workspace& ws,
           max_delta_tau,
           verbosity);
 
-  scat_za_grid_adjust(scat_za_grid, mu_values, nummu);
+  za_grid_adjust(za_grid, mu_values, nummu);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void RT4CalcWithRT4Surface(Workspace& ws,
                            // WS Output:
-                           Tensor7& doit_i_field,
-                           Vector& scat_za_grid,
-                           Vector& scat_aa_grid,
+                           Tensor7& cloudbox_field,
+                           Vector& za_grid,
+                           Vector& aa_grid,
                            // WS Input
                            const Index& atmfields_checked,
                            const Index& atmgeom_checked,
@@ -267,7 +267,7 @@ void RT4CalcWithRT4Surface(Workspace& ws,
                   add_straight_angles,
                   pnd_field.ncols());
 
-  init_ifield(doit_i_field, f_grid, cloudbox_limits, 2 * nummu, stokes_dim);
+  init_ifield(cloudbox_field, f_grid, cloudbox_limits, 2 * nummu, stokes_dim);
 
   // in RT4 mu_values is generally only output. however, we need the values for
   // preparing the single scattering data at these angles. therefore, we
@@ -280,8 +280,8 @@ void RT4CalcWithRT4Surface(Workspace& ws,
 
   get_quad_angles(mu_values,
                   quad_weights,
-                  scat_za_grid,
-                  scat_aa_grid,
+                  za_grid,
+                  aa_grid,
                   quad_type,
                   nhstreams,
                   nhza,
@@ -318,14 +318,14 @@ void RT4CalcWithRT4Surface(Workspace& ws,
   Agenda dummy_agenda;
 
   run_rt4(ws,
-          doit_i_field,
-          scat_za_grid,
+          cloudbox_field,
+          za_grid,
           f_grid,
           p_grid,
-          z_field(joker,0,0),
-          t_field(joker,0,0),
-          vmr_field(joker,joker,0,0),
-          pnd_field(joker,joker,0,0),
+          z_field(joker, 0, 0),
+          t_field(joker, 0, 0),
+          vmr_field(joker, joker, 0, 0),
+          pnd_field(joker, joker, 0, 0),
           scat_data,
           propmat_clearsky_agenda,
           cloudbox_limits,
@@ -340,7 +340,7 @@ void RT4CalcWithRT4Surface(Workspace& ws,
           surf_refl_mat,
           surf_emis_vec,
           dummy_agenda,
-          z_surface(0,0),
+          z_surface(0, 0),
           quad_type,
           mu_values,
           quad_weights,
@@ -354,7 +354,7 @@ void RT4CalcWithRT4Surface(Workspace& ws,
           max_delta_tau,
           verbosity);
 
-  scat_za_grid_adjust(scat_za_grid, mu_values, nummu);
+  za_grid_adjust(za_grid, mu_values, nummu);
 }
 
 #else /* ENABLE_RT4 */

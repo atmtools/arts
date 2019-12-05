@@ -1330,23 +1330,23 @@ void get_stepwise_blackbody_radiation(VectorView B,
 }
 
 void get_stepwise_clearsky_propmat(
-  Workspace& ws,
-  PropagationMatrix& K,
-  StokesVector& S,
-  Index& lte,
-  ArrayOfPropagationMatrix& dK_dx,
-  ArrayOfStokesVector& dS_dx,
-  const Agenda& propmat_clearsky_agenda,
-  const ArrayOfRetrievalQuantity& jacobian_quantities,
-  ConstVectorView ppath_f_grid,
-  ConstVectorView ppath_magnetic_field,
-  ConstVectorView ppath_line_of_sight,
-  ConstVectorView ppath_nlte,
-  ConstVectorView ppath_vmrs,
-  const Numeric& ppath_temperature,
-  const Numeric& ppath_pressure,
-  const ArrayOfIndex& jacobian_species,
-  const bool& jacobian_do) {
+    Workspace& ws,
+    PropagationMatrix& K,
+    StokesVector& S,
+    Index& lte,
+    ArrayOfPropagationMatrix& dK_dx,
+    ArrayOfStokesVector& dS_dx,
+    const Agenda& propmat_clearsky_agenda,
+    const ArrayOfRetrievalQuantity& jacobian_quantities,
+    ConstVectorView ppath_f_grid,
+    ConstVectorView ppath_magnetic_field,
+    ConstVectorView ppath_line_of_sight,
+    ConstVectorView ppath_nlte,
+    ConstVectorView ppath_vmrs,
+    const Numeric& ppath_temperature,
+    const Numeric& ppath_pressure,
+    const ArrayOfIndex& jacobian_species,
+    const bool& jacobian_do) {
   // All relevant quantities are extracted first
   const Index nq = jacobian_quantities.nelem();
 
@@ -1724,9 +1724,9 @@ void get_stepwise_scattersky_source(
         ppath_dpnd_dx,  // the full ppath_dpnd_dx, ie all ppath points
     const Index ppath_1p_id,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
-    ConstTensor7View doit_i_field,
-    ConstVectorView scat_za_grid,
-    ConstVectorView scat_aa_grid,
+    ConstTensor7View cloudbox_field,
+    ConstVectorView za_grid,
+    ConstVectorView aa_grid,
     ConstMatrixView ppath_line_of_sight,
     const GridPos& ppath_pressure,
     const Vector& temperature,
@@ -1740,8 +1740,8 @@ void get_stepwise_scattersky_source(
   const Index stokes_dim = Sp.StokesDimensions();
   const Index ne = ppath_1p_pnd.nelem();
   assert(TotalNumberOfElements(scat_data) == ne);
-  const Index nza = scat_za_grid.nelem();
-  const Index naa = scat_aa_grid.nelem();
+  const Index nza = za_grid.nelem();
+  const Index naa = aa_grid.nelem();
   const Index nq = jacobian_do ? jacobian_quantities.nelem() : 0;
 
   // interpolate incident field to this ppath point (no need to do this
@@ -1755,19 +1755,19 @@ void get_stepwise_scattersky_source(
     for (Index iza = 0; iza < nza; iza++) {
       for (Index i = 0; i < stokes_dim; i++) {
         inc_field(iv, iza, i) =
-            interp(itw_p, doit_i_field(iv, joker, 0, 0, iza, 0, i), gp_p);
+            interp(itw_p, cloudbox_field(iv, joker, 0, 0, iza, 0, i), gp_p);
       }
     }
   }
 
   // create matrix of incident directions (flat representation of the
-  // scat_za_grid * scat_aa_grid matrix)
+  // za_grid * aa_grid matrix)
   Matrix idir(nza * naa, 2);
   Index ia = 0;
   for (Index iza = 0; iza < nza; iza++) {
     for (Index iaa = 0; iaa < naa; iaa++) {
-      idir(ia, 0) = scat_za_grid[iza];
-      idir(ia, 1) = scat_aa_grid[iaa];
+      idir(ia, 0) = za_grid[iza];
+      idir(ia, 1) = aa_grid[iaa];
       ia++;
     }
   }
@@ -1849,7 +1849,7 @@ void get_stepwise_scattersky_source(
 
           for (Index i = 0; i < stokes_dim; i++) {
             scat_source_1se(ise_flat, iv, i) = AngIntegrate_trapezoid(
-                product_fields(joker, joker, i), scat_za_grid, scat_aa_grid);
+                product_fields(joker, joker, i), za_grid, aa_grid);
           }
         }  // for iv
       }    // if val_pnd
@@ -1951,7 +1951,7 @@ void iyb_calc_body(bool& failed,
                    ArrayOfMatrix& diyb_dx,
                    const Index& mblock_index,
                    const Index& atmosphere_dim,
-                   ConstTensor4View nlte_field,                   
+                   ConstTensor4View nlte_field,
                    const Index& cloudbox_on,
                    const Index& stokes_dim,
                    ConstMatrixView sensor_pos,
@@ -2602,7 +2602,6 @@ void rtmethods_unit_conversion(
   }
 }
 
-
 void yCalc_mblock_loop_body(bool& failed,
                             String& fail_msg,
                             ArrayOfArrayOfVector& iyb_aux_array,
@@ -2615,7 +2614,7 @@ void yCalc_mblock_loop_body(bool& failed,
                             Matrix& y_geo,
                             Matrix& jacobian,
                             const Index& atmosphere_dim,
-                            ConstTensor4View nlte_field,              
+                            ConstTensor4View nlte_field,
                             const Index& cloudbox_on,
                             const Index& stokes_dim,
                             const Vector& f_grid,
@@ -2780,4 +2779,3 @@ void ze_cfac(Vector& fac,
     fac[iv] = a * la * la * la * la / K2;
   }
 }
-

@@ -581,7 +581,7 @@ void cloudboxSetManuallyAltitude(  // WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyInterpCloudboxField(Matrix& iy,
-                           const Tensor7& doit_i_field,
+                           const Tensor7& cloudbox_field,
                            const Vector& rte_pos,
                            const Vector& rte_los,
                            const Index& jacobian_do,
@@ -594,8 +594,8 @@ void iyInterpCloudboxField(Matrix& iy,
                            const Tensor3& z_field,
                            const Matrix& z_surface,
                            const Index& stokes_dim,
-                           const Vector& scat_za_grid,
-                           const Vector& scat_aa_grid,
+                           const Vector& za_grid,
+                           const Vector& aa_grid,
                            const Vector& f_grid,
                            //const Index&    p_interp_order,
                            const Index& za_interp_order,
@@ -619,23 +619,23 @@ void iyInterpCloudboxField(Matrix& iy,
         "*cloudbox_limits* is a vector which contains the upper and lower\n"
         "limit of the cloud for all atmospheric dimensions.\n"
         "So its length must be 2 x *atmosphere_dim*");
-  if (scat_za_grid.nelem() == 0)
+  if (za_grid.nelem() == 0)
     throw runtime_error(
-        "The variable *scat_za_grid* is empty. Are dummy "
+        "The variable *za_grid* is empty. Are dummy "
         "values from *cloudboxOff used?");
-  if (!(za_interp_order < scat_za_grid.nelem()))
+  if (!(za_interp_order < za_grid.nelem()))
     throw runtime_error(
         "Zenith angle interpolation order *za_interp_order*"
         " must be smaller\n"
-        "than number of angles in *scat_za_grid*.");
-  if (atmosphere_dim > 1 && !(aa_interp_order < scat_aa_grid.nelem()))
+        "than number of angles in *za_grid*.");
+  if (atmosphere_dim > 1 && !(aa_interp_order < aa_grid.nelem()))
     throw runtime_error(
         "Azimuth angle interpolation order *aa_interp_order*"
         " must be smaller\n"
-        "than number of angles in *scat_aa_grid*.");
-  if (doit_i_field.nlibraries() != f_grid.nelem())
+        "than number of angles in *aa_grid*.");
+  if (cloudbox_field.nlibraries() != f_grid.nelem())
     throw runtime_error(
-        "Inconsistency in size between f_grid and doit_i_field! "
+        "Inconsistency in size between f_grid and cloudbox_field! "
         "(This method does not yet handle dispersion type calculations.)");
   //---------------------------------------------------------------------------
 
@@ -733,8 +733,8 @@ void iyInterpCloudboxField(Matrix& iy,
   //- Sizes
   const Index nf = f_grid.nelem();
   DEBUG_ONLY(const Index np = cloudbox_limits[1] - cloudbox_limits[0] + 1);
-  const Index nza = scat_za_grid.nelem();
-  const Index naa = doit_i_field.nrows();
+  const Index nza = za_grid.nelem();
+  const Index naa = cloudbox_field.nrows();
 
   //- Resize *iy*
   iy.resize(nf, stokes_dim);
@@ -761,7 +761,7 @@ void iyInterpCloudboxField(Matrix& iy,
     } else {
       assert(atmosphere_dim == 1);
 
-      assert(is_size(doit_i_field, nf, np, 1, 1, nza, 1, stokes_dim));
+      assert(is_size(cloudbox_field, nf, np, 1, 1, nza, 1, stokes_dim));
 
       // Grid position in *p_grid*
       gp_p.idx = gp_p.idx - cloudbox_limits[0];
@@ -772,8 +772,8 @@ void iyInterpCloudboxField(Matrix& iy,
       for (Index is = 0; is < stokes_dim; is++)
         for (Index iv = 0; iv < nf; iv++)
           for (Index i_za = 0; i_za < nza; i_za++)
-            i_field_local(iv, i_za, 0, is) =
-                interp(itw_p, doit_i_field(iv, joker, 0, 0, i_za, 0, is), gp_p);
+            i_field_local(iv, i_za, 0, is) = interp(
+                itw_p, cloudbox_field(iv, joker, 0, 0, i_za, 0, is), gp_p);
     }
   }
 
@@ -782,18 +782,18 @@ void iyInterpCloudboxField(Matrix& iy,
   // --- 1D ------------------------------------------------------------------
   else if (atmosphere_dim == 1) {
     i_field_local =
-        doit_i_field(joker, border_index, 0, 0, joker, joker, joker);
+        cloudbox_field(joker, border_index, 0, 0, joker, joker, joker);
   }
 
   // --- 3D ------------------------------------------------------------------
   else {
-    assert(is_size(doit_i_field,
+    assert(is_size(cloudbox_field,
                    nf,
-                   doit_i_field.nvitrines(),
-                   doit_i_field.nshelves(),
-                   doit_i_field.nbooks(),
-                   scat_za_grid.nelem(),
-                   scat_aa_grid.nelem(),
+                   cloudbox_field.nvitrines(),
+                   cloudbox_field.nshelves(),
+                   cloudbox_field.nbooks(),
+                   za_grid.nelem(),
+                   aa_grid.nelem(),
                    stokes_dim));
 
     // Interpolation weights (for 2D "red" interpolation)
@@ -819,11 +819,12 @@ void iyInterpCloudboxField(Matrix& iy,
         for (Index iv = 0; iv < nf; iv++)
           for (Index i_za = 0; i_za < nza; i_za++)
             for (Index i_aa = 0; i_aa < naa; i_aa++)
-              i_field_local(iv, i_za, i_aa, is) = interp(
-                  itw,
-                  doit_i_field(iv, border_index, joker, joker, i_za, i_aa, is),
-                  cb_gp_lat,
-                  cb_gp_lon);
+              i_field_local(iv, i_za, i_aa, is) =
+                  interp(itw,
+                         cloudbox_field(
+                             iv, border_index, joker, joker, i_za, i_aa, is),
+                         cb_gp_lat,
+                         cb_gp_lon);
     }
 
     // Outgoing from cloudbox north or south border, i.e. from a latitude level
@@ -845,11 +846,12 @@ void iyInterpCloudboxField(Matrix& iy,
         for (Index iv = 0; iv < nf; iv++)
           for (Index i_za = 0; i_za < nza; i_za++)
             for (Index i_aa = 0; i_aa < naa; i_aa++)
-              i_field_local(iv, i_za, i_aa, is) = interp(
-                  itw,
-                  doit_i_field(iv, joker, border_index, joker, i_za, i_aa, is),
-                  cb_gp_p,
-                  cb_gp_lon);
+              i_field_local(iv, i_za, i_aa, is) =
+                  interp(itw,
+                         cloudbox_field(
+                             iv, joker, border_index, joker, i_za, i_aa, is),
+                         cb_gp_p,
+                         cb_gp_lon);
     }
 
     // Outgoing from cloudbox east or west border, i.e. from a longitude level
@@ -871,11 +873,12 @@ void iyInterpCloudboxField(Matrix& iy,
         for (Index iv = 0; iv < nf; iv++)
           for (Index i_za = 0; i_za < nza; i_za++)
             for (Index i_aa = 0; i_aa < naa; i_aa++)
-              i_field_local(iv, i_za, i_aa, is) = interp(
-                  itw,
-                  doit_i_field(iv, joker, joker, border_index, i_za, i_aa, is),
-                  cb_gp_p,
-                  cb_gp_lat);
+              i_field_local(iv, i_za, i_aa, is) =
+                  interp(itw,
+                         cloudbox_field(
+                             iv, joker, joker, border_index, i_za, i_aa, is),
+                         cb_gp_p,
+                         cb_gp_lat);
     }
   }
 
@@ -886,39 +889,39 @@ void iyInterpCloudboxField(Matrix& iy,
   //      separately.
   //   b) interpolation in plain zenith angles vs. in cosines of zenith angle.
 
-  // find range of scat_za_grid that we will do interpolation over.
+  // find range of za_grid that we will do interpolation over.
   Index za_start = 0;
-  Index za_extend = scat_za_grid.nelem();
+  Index za_extend = za_grid.nelem();
   if (za_restrict) {
     // which hemisphere do we need?
     if (is_same_within_epsilon(rte_los[0], 90., 1e-6)) {
-      //FIXME: we should allow this though, if scat_za_grid has a grid point
+      //FIXME: we should allow this though, if za_grid has a grid point
       //at 90deg.
       throw runtime_error(
           "Hemisphere-restricted zenith angle interpolation not allowed\n"
           "for 90degree views.");
     } else if (rte_los[0] > 90) {
-      // upwelling, i.e. second part of scat_za_grid. that is, we need to find
-      // the first point in scat_za_grid where za>90. and update za_start
+      // upwelling, i.e. second part of za_grid. that is, we need to find
+      // the first point in za_grid where za>90. and update za_start
       // accordingly.
-      while (za_start < scat_za_grid.nelem() && scat_za_grid[za_start] < 90.) {
+      while (za_start < za_grid.nelem() && za_grid[za_start] < 90.) {
         za_start++;
       }
-      if (za_start == scat_za_grid.nelem())
+      if (za_start == za_grid.nelem())
         throw runtime_error(
-            "No scat_za_grid grid point found in 90-180deg hemisphere.\n"
+            "No za_grid grid point found in 90-180deg hemisphere.\n"
             "No hemispheric interpolation possible.");
       za_extend -= za_start;
     } else {
-      // downwelling, i.e. first part of scat_za_grid. that is, we need to
-      // find the last point in scat_za_grid where za<90. and update za_extend
+      // downwelling, i.e. first part of za_grid. that is, we need to
+      // find the last point in za_grid where za<90. and update za_extend
       // accordingly.
-      while (za_extend > 0 && scat_za_grid[za_extend - 1] > 90.) {
+      while (za_extend > 0 && za_grid[za_extend - 1] > 90.) {
         za_extend--;
       }
       if (za_extend == 0)
         throw runtime_error(
-            "No scat_za_grid grid point found in 0-90deg hemisphere.\n"
+            "No za_grid grid point found in 0-90deg hemisphere.\n"
             "No hemispheric interpolation possible.");
     }
     if (!(za_interp_order < za_extend)) {
@@ -931,7 +934,7 @@ void iyInterpCloudboxField(Matrix& iy,
     }
   }
 
-  // Grid position in *scat_za_grid*
+  // Grid position in *za_grid*
   GridPosPoly gp_za, gp_aa;
 
   if (cos_za_interp) {
@@ -939,7 +942,7 @@ void iyInterpCloudboxField(Matrix& iy,
     const Numeric cosza = cos(rte_los[0] * DEG2RAD);
 
     for (Index i_za = 0; i_za < za_extend; i_za++)
-      cosza_grid[i_za] = cos(scat_za_grid[i_za + za_start] * DEG2RAD);
+      cosza_grid[i_za] = cos(za_grid[i_za + za_start] * DEG2RAD);
 
     // OBS: cosza is a decreasing grid!
     const Numeric cosza_min =
@@ -947,11 +950,11 @@ void iyInterpCloudboxField(Matrix& iy,
     if (cosza > cosza_min) {
       ostringstream os;
       os << "Zenith angle " << rte_los[0] << "deg is outside the range"
-         << " covered by scat_za_grid.\n"
+         << " covered by za_grid.\n"
          << "Lower limit of allowed range is " << acos(cosza_min) * RAD2DEG
          << ".\n"
          << "Increase za_extpolfac (now=" << za_extpolfac << ") or"
-         << " use wider scat_za_grid.\n";
+         << " use wider za_grid.\n";
       throw runtime_error(os.str());
     }
     const Numeric cosza_max =
@@ -960,48 +963,47 @@ void iyInterpCloudboxField(Matrix& iy,
     if (cosza < cosza_max) {
       ostringstream os;
       os << "Zenith angle " << rte_los[0] << "deg is outside the range"
-         << " covered by scat_za_grid.\n"
+         << " covered by za_grid.\n"
          << "Upper limit of allowed range is " << acos(cosza_max) * RAD2DEG
          << ".\n"
          << "Increase za_extpolfac (now=" << za_extpolfac << ") or"
-         << " use wider scat_za_grid.\n";
+         << " use wider za_grid.\n";
       throw runtime_error(os.str());
     }
 
     gridpos_poly(gp_za, cosza_grid, cosza, za_interp_order, za_extpolfac);
   } else {
-    Vector za_grid = scat_za_grid[Range(za_start, za_extend)];
+    Vector za_g = za_grid[Range(za_start, za_extend)];
     const Numeric za = rte_los[0];
 
-    const Numeric za_min =
-        za_grid[0] - za_extpolfac * (za_grid[1] - za_grid[0]);
+    const Numeric za_min = za_g[0] - za_extpolfac * (za_g[1] - za_g[0]);
     if (za < za_min) {
       ostringstream os;
       os << "Zenith angle " << rte_los[0] << "deg is outside the range"
-         << " covered by scat_za_grid.\n"
+         << " covered by za_grid.\n"
          << "Lower limit of allowed range is " << za_min << ".\n"
          << "Increase za_extpolfac (now=" << za_extpolfac << ") or"
-         << " use wider scat_za_grid.\n";
+         << " use wider za_grid.\n";
       throw runtime_error(os.str());
     }
     const Numeric za_max =
-        za_grid[za_grid.nelem() - 1] +
-        za_extpolfac * (za_grid[za_extend - 1] - za_grid[za_extend - 2]);
+        za_g[za_g.nelem() - 1] +
+        za_extpolfac * (za_g[za_extend - 1] - za_g[za_extend - 2]);
     if (za > za_max) {
       ostringstream os;
       os << "Zenith angle " << za << "deg is outside the range"
-         << " covered by scat_za_grid.\n"
+         << " covered by za_grid.\n"
          << "Upper limit of allowed range is " << za_max << ".\n"
          << "Increase za_extpolfac (now=" << za_extpolfac << ") or"
-         << " use wider scat_za_grid.\n";
+         << " use wider za_grid.\n";
       throw runtime_error(os.str());
     }
-    gridpos_poly(gp_za, za_grid, za, za_interp_order, za_extpolfac);
+    gridpos_poly(gp_za, za_g, za, za_interp_order, za_extpolfac);
   }
 
   if (atmosphere_dim > 1) {
     gridpos_poly_cyclic_longitudinal(
-        gp_aa, scat_aa_grid, rte_los[1], aa_interp_order);
+        gp_aa, aa_grid, rte_los[1], aa_interp_order);
   } else {
     gp_aa.idx.resize(1);
     gp_aa.idx[0] = 0;
@@ -1020,6 +1022,80 @@ void iyInterpCloudboxField(Matrix& iy,
                  i_field_local(iv, Range(za_start, za_extend), joker, is),
                  gp_za,
                  gp_aa);
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void cloudbox_fieldCrop(Tensor7& cloudbox_field,
+                        ArrayOfIndex& cloudbox_limits,
+                        const Index& atmosphere_dim,
+                        const Index& cloudbox_on,
+                        const Index& new_limit0,
+                        const Index& new_limit1,
+                        const Index& new_limit2,
+                        const Index& new_limit3,
+                        const Index& new_limit4,
+                        const Index& new_limit5,
+                        const Verbosity&) {
+  if (!cloudbox_on)
+    throw runtime_error("No need to use this method with cloudbox=0.");
+  if (new_limit0 < cloudbox_limits[0])
+    throw runtime_error("new_limits0 < cloudbox_limits[0], not allowed!");
+  if (new_limit1 > cloudbox_limits[1])
+    throw runtime_error("new_limits1 > cloudbox_limits[1], not allowed!");
+
+  Tensor7 fcopy = cloudbox_field;
+
+  if (atmosphere_dim == 1) {
+    cloudbox_field = fcopy(
+        joker,
+        Range(new_limit0 - cloudbox_limits[0], new_limit1 - new_limit0 + 1),
+        joker,
+        joker,
+        joker,
+        joker,
+        joker);
+    cloudbox_limits[0] = new_limit0;
+    cloudbox_limits[1] = new_limit1;
+  } else {
+    if (new_limit2 < cloudbox_limits[2])
+      throw runtime_error("new_limits2 < cloudbox_limits[2], not allowed!");
+    if (new_limit3 > cloudbox_limits[3])
+      throw runtime_error("new_limits3 > cloudbox_limits[3], not allowed!");
+
+    if (atmosphere_dim == 2) {
+      cloudbox_field = fcopy(
+          joker,
+          Range(new_limit0 - cloudbox_limits[0], new_limit1 - new_limit0 + 1),
+          Range(new_limit2 - cloudbox_limits[2], new_limit3 - new_limit2 - 1),
+          joker,
+          joker,
+          joker,
+          joker);
+      cloudbox_limits[0] = new_limit0;
+      cloudbox_limits[1] = new_limit1;
+      cloudbox_limits[2] = new_limit2;
+      cloudbox_limits[3] = new_limit3;
+    } else {
+      if (new_limit4 < cloudbox_limits[4])
+        throw runtime_error("new_limits4 < cloudbox_limits[4], not allowed!");
+      if (new_limit5 > cloudbox_limits[5])
+        throw runtime_error("new_limits5 > cloudbox_limits[5], not allowed!");
+      cloudbox_field = fcopy(
+          joker,
+          Range(new_limit0 - cloudbox_limits[0], new_limit1 - new_limit0 + 1),
+          Range(new_limit2 - cloudbox_limits[2], new_limit3 - new_limit2 + 1),
+          Range(new_limit4 - cloudbox_limits[4], new_limit5 - new_limit4 + 1),
+          joker,
+          joker,
+          joker);
+      cloudbox_limits[0] = new_limit0;
+      cloudbox_limits[1] = new_limit1;
+      cloudbox_limits[2] = new_limit2;
+      cloudbox_limits[3] = new_limit3;
+      cloudbox_limits[4] = new_limit4;
+      cloudbox_limits[5] = new_limit5;
     }
   }
 }

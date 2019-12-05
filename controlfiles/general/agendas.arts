@@ -143,7 +143,7 @@ AgendaSet( iy_surface_agenda__UseSurfaceRtprop ){
 
 # Note: iy_cloudbox_agenda only needs to be defined when a iy_main_agenda uses
 #  iyEmissionStandard while a scattering calculation shall be performed. In
-#  other words, when a scattering solver is applied that provides doit_i_field
+#  other words, when a scattering solver is applied that provides cloudbox_field
 #  as output (these are, so far, the solvers DOIT, Disort, RT4).
 #  Scattering solvers that have their dedicated iy* methods to be applied in the
 #  iy_main_agenda (so far, iyMC and iyFOS) do not require iy_cloudbox_agenda to

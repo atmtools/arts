@@ -42,7 +42,7 @@
  * @param[in]  atmgeom_checked       as the WSV.
  * @param[in]  cloudbox_checked      as the WSV.
  * @param[in]  scat_data             as the WSV.
- * @param[in]  scat_za_grid          as the WSV.
+ * @param[in]  za_grid          as the WSV.
  * @param[in]  nstreams              Number of quadrature angles (both hemispheres).
  * @param[in]  pfct_method           see DisortCalc doc.
  *
@@ -59,15 +59,15 @@ void check_disort_input(  // Input
     const Index& stokes_dim,
     const ArrayOfIndex& cloudbox_limits,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
-    ConstVectorView scat_za_grid,
+    ConstVectorView za_grid,
     const Index& nstreams,
     const String& pfct_method);
 
 /** init_ifield.
  *
- * Initialize doit_i_field with the right size and NaN values.
+ * Initialize cloudbox_field with the right size and NaN values.
  *
- * @param[out] doit_i_field       As the WSV.
+ * @param[out] cloudbox_field       As the WSV.
  * @param[in]  f_grid             As the WSV.
  * @param[in]  cloudbox_limits    As the WSV.
  * @param[in]  nang               Total number of angles with RT output.
@@ -77,7 +77,7 @@ void check_disort_input(  // Input
  * @date       2017-03-06
  */
 void init_ifield(  // Output
-    Tensor7& doit_i_field,
+    Tensor7& cloudbox_field,
     // Input
     const Vector& f_grid,
     const ArrayOfIndex& cloudbox_limits,
@@ -115,7 +115,7 @@ void get_disortsurf_props(  // Output
 /** Calculate doit_i_feild with Disort.
  *
  * Prepares actual input variables for Disort, runs it, and sorts the output
- * into doit_i_field.
+ * into cloudbox_field.
  *
  * This version uses the C implementation of Disort based on ::run_disort.
  *
@@ -123,7 +123,7 @@ void get_disortsurf_props(  // Output
  * dimensions removed
  *
  * @param[in,out] ws Current workspace
- * @param[out]    doit_i_field Radiation field
+ * @param[out]    cloudbox_field Radiation field
  * @param[in]     f_grid Frequency grid
  * @param[in]     p_grid Pressure grid
  * @param[in]     z_profile Profile of geometric altitudes.
@@ -137,7 +137,7 @@ void get_disortsurf_props(  // Output
  * @param[in]     cloudbox_limits Cloudbox limits
  * @param[in]     surface_skin_t Surface skin temperature
  * @param[in]     surface_scalar_reflectivity Surface scalar reflectivity
- * @param[in]     scat_za_grid Zenith angle grid
+ * @param[in]     za_grid Zenith angle grid
  * @param[in]     nstreams Number of quadrature angles (both hemispheres).
  * @param[in]     Npfct Number of angular grid points to calculate bulk phase
  *                function
@@ -149,7 +149,7 @@ void get_disortsurf_props(  // Output
  */
 void run_cdisort(Workspace& ws,
                  // Output
-                 Tensor7& doit_i_field,
+                 Tensor7& cloudbox_field,
                  // Input
                  ConstVectorView f_grid,
                  ConstVectorView p_grid,
@@ -163,7 +163,7 @@ void run_cdisort(Workspace& ws,
                  const ArrayOfIndex& cloudbox_limits,
                  const Numeric& surface_skin_t,
                  const Vector& surface_scalar_reflectivity,
-                 ConstVectorView scat_za_grid,
+                 ConstVectorView za_grid,
                  const Index& nstreams,
                  const Index& Npfct,
                  const Index& quiet,
@@ -356,7 +356,7 @@ void get_pmom(Tensor3View pmom,
  */
 void reduced_1datm(Vector& p,
                    Vector& z,
-                   Vector& t, 
+                   Vector& t,
                    Matrix& vmr,
                    Matrix& pnd,
                    ArrayOfIndex& cboxlims,

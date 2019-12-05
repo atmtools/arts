@@ -650,7 +650,7 @@ void ybatchMetProfilesClear(Workspace& ws,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DOBatchCalc(Workspace& ws,
-                 ArrayOfTensor7& dobatch_doit_i_field,
+                 ArrayOfTensor7& dobatch_cloudbox_field,
                  ArrayOfTensor5& dobatch_radiance_field,
                  ArrayOfTensor4& dobatch_irradiance_field,
                  ArrayOfTensor5& dobatch_spectral_irradiance_field,
@@ -679,7 +679,7 @@ void DOBatchCalc(Workspace& ws,
   Index job_counter = 0;
 
   // Resize the output arrays:
-  dobatch_doit_i_field.resize(ybatch_n);
+  dobatch_cloudbox_field.resize(ybatch_n);
   dobatch_radiance_field.resize(ybatch_n);
   dobatch_irradiance_field.resize(ybatch_n);
   dobatch_spectral_irradiance_field.resize(ybatch_n);
@@ -712,21 +712,21 @@ void DOBatchCalc(Workspace& ws,
       }
 
       try {
-        Tensor7 doit_i_field;
+        Tensor7 cloudbox_field;
         Tensor5 radiance_field;
         Tensor4 irradiance_field;
         Tensor5 spectral_irradiance_field;
 
         dobatch_calc_agendaExecute(l_ws,
-                                   doit_i_field,
+                                   cloudbox_field,
                                    radiance_field,
                                    irradiance_field,
                                    spectral_irradiance_field,
                                    ybatch_start + ybatch_index,
                                    l_dobatch_calc_agenda);
 
-#pragma omp critical(dobatchCalc_assign_doit_i_field)
-        dobatch_doit_i_field[ybatch_index] = doit_i_field;
+#pragma omp critical(dobatchCalc_assign_cloudbox_field)
+        dobatch_cloudbox_field[ybatch_index] = cloudbox_field;
 #pragma omp critical(dobatchCalc_assign_radiance_field)
         dobatch_radiance_field[ybatch_index] = radiance_field;
 #pragma omp critical(dobatchCalc_assign_irradiance_field)

@@ -271,8 +271,8 @@ void pha_matTransform(  //Output
     const Index& aa_sca_idx,
     const Index& za_inc_idx,
     const Index& aa_inc_idx,
-    ConstVectorView scat_za_grid,
-    ConstVectorView scat_aa_grid,
+    ConstVectorView za_grid,
+    ConstVectorView aa_grid,
     const Verbosity& verbosity);
 
 void ext_matFromabs_vec(  //Output

@@ -14,15 +14,15 @@ DoitInit
 DoitGetIncoming
 
 # Set first guess field
-doit_i_fieldSetClearsky
+cloudbox_fieldSetClearsky
 
 # Executes doit_mono_agenda for all frequencies
 DoitCalc
 # Writing out the radition field solution from inside cloudbox for
 # initialization of perturbed pnd_field calculation from non-clearsky first
 # guess
-#WriteXML( in=doit_i_field, filename="doit_i_fieldREFERENCE_DOIT.xml" )
-#WriteXML( in=doit_i_field )
+#WriteXML( in=cloudbox_field, filename="cloudbox_fieldREFERENCE_DOIT.xml" )
+#WriteXML( in=cloudbox_field )
 
 # Calculate RT from cloudbox boundary to the sensor
 yCalc

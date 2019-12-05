@@ -198,9 +198,9 @@ AgendaSet( doit_mono_agenda ){
   #scat_data_monoCalc
   # Perform iterations: 1. scattering integral. 2. RT calculations with 
   # fixed scattering integral field, 3. convergence test 
-  doit_i_field_monoIterate
+  cloudbox_field_monoIterate
   # Write the radiation field inside the cloudbox:
-  #WriteXMLIndexed( in=doit_i_field_mono, file_index=f_index )
+  #WriteXMLIndexed( in=cloudbox_field_mono, file_index=f_index )
 }
 
 # Definitions for methods used in *i_fieldIterate*:
@@ -228,15 +228,15 @@ AgendaSet( doit_scat_field_agenda ){
 
 AgendaSet( doit_rte_agenda ){
   # Sequential update for 1D
-  doit_i_fieldUpdateSeq1D( normalize=1,
+  cloudbox_fieldUpdateSeq1D( normalize=1,
                            norm_error_threshold=0.05 )
   # Alternatives:
   # Plane parallel approximation for determination of propagation path steps
-  #doit_i_fieldUpdateSeq1DPP
+  #cloudbox_fieldUpdateSeq1DPP
   # Without sequential update (not efficient):
-  #doit_i_fieldUpdate1D
+  #cloudbox_fieldUpdate1D
   # 3D atmosphere:
-  #doit_i_fieldUpdateSeq3D
+  #cloudbox_fieldUpdateSeq3D
 }
 
 # Calculate opticle properties of particles and add particle absorption
@@ -255,8 +255,8 @@ AgendaSet( doit_conv_test_agenda ){
   doit_conv_flagAbsBT( epsilon=[0.1, 0.01, 0.01, 0.01] )
 
   # Alternative: Give limits in radiances
-  #doit_conv_flagAbs( doit_conv_flag, doit_iteration_counter, doit_i_field,
-  #                   doit_i_field_old ){
+  #doit_conv_flagAbs( doit_conv_flag, doit_iteration_counter, cloudbox_field,
+  #                   cloudbox_field_old ){
   #  epsilon = [0.1e-15, 0.1e-18, 0.1e-18, 0.1e-18]
   #}
   # If you want to investigat several iteration fields, for example 

@@ -62,7 +62,7 @@ void check_disort_input(  // Input
     const Index& stokes_dim,
     const ArrayOfIndex& cloudbox_limits,
     const ArrayOfArrayOfSingleScatteringData& scat_data,
-    ConstVectorView scat_za_grid,
+    ConstVectorView za_grid,
     const Index& nstreams,
     const String& pfct_method) {
   if (!cloudbox_on) {
@@ -133,48 +133,34 @@ void check_disort_input(  // Input
   }
 
   // Zenith angle grid.
-  Index nza = scat_za_grid.nelem();
+  Index nza = za_grid.nelem();
 
-  // scat_za_grid here is only relevant to provide an i_field from which the
+  // za_grid here is only relevant to provide an i_field from which the
   // sensor los angles can be interpolated by yCalc; it does not the determine
   // the accuracy of the DISORT output itself at these angles. So we can only
   // apply a very rough test here, whether the grid is appropriate. However, we
   // set the threshold fairly high since calculation costs for a higher number
   // of angles are negligible.
-  if (nza < 37) {
+  if (nza < 20) {
     ostringstream os;
-    os << "We require size of scat_za_grid to be > 36\n"
-       << "to ensure accurate radiance field interpolation in yCalc.\n"
+    os << "We require size of za_grid to be >= 20, to ensure a\n"
+       << "reasonable interpolation of the calculated cloudbox field.\n"
        << "Note that for DISORT additional computation costs for\n"
        << "larger numbers of angles are negligible.";
     throw runtime_error(os.str());
   }
 
-  if (scat_za_grid[0] != 0. || scat_za_grid[nza - 1] != 180.)
-    throw runtime_error("The range of *scat_za_grid* must [0 180].");
+  if (za_grid[0] != 0. || za_grid[nza - 1] != 180.)
+    throw runtime_error("The range of *za_grid* must [0 180].");
 
-  if (!is_increasing(scat_za_grid))
-    throw runtime_error("*scat_za_grid* must be increasing.");
+  if (!is_increasing(za_grid))
+    throw runtime_error("*za_grid* must be increasing.");
 
-  if (nza / 2 * 2 != nza) {
-    // uneven nza detected. uneven nza (when set as equidistant grid as
-    // commonly done by ARTS) lead to polar angle grid point at 90deg, ie at
-    // the horizontal. this is not safely calculable in a plane-parallel atmo.
-    // for now we just force the user to use an even nza.
-    //
-    // an even nza does not place the center angles close to horizon, though,
-    // unless the number of streams is very high. therefore, one could instead
-    // replace this gridpoint with two points centered closely around 90deg
-    // and derive the 90deg value from averaging these two.
-    // however, this is left to the future (and needs testing).
-    //
-    // FIXME: more correct (and stable in case of non-equidistant grids) is to
-    // check whether scat_za_grid actually contains the 90deg angle and to
-    // reject (or circumvent) this specifically.
-    ostringstream os;
-    os << "Uneven number of angles in scat_za_grid (nza=" << nza << ".\n"
-       << "Use even number with no grid point at 90deg poin.t\n";
-    throw runtime_error(os.str());
+  Index i = 1;
+  while (za_grid[i] <= 90) {
+    if (za_grid[i] == 90)
+      throw runtime_error("*za_grid* is not allowed to contain the value 90");
+    i++;
   }
 
   // DISORT can only handle randomly oriented particles.
@@ -219,7 +205,7 @@ void check_disort_input(  // Input
 }
 
 void init_ifield(  // Output
-    Tensor7& doit_i_field,
+    Tensor7& cloudbox_field,
     // Input
     const Vector& f_grid,
     const ArrayOfIndex& cloudbox_limits,
@@ -227,11 +213,11 @@ void init_ifield(  // Output
     const Index& stokes_dim) {
   const Index Nf = f_grid.nelem();
   const Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
-  //const Index Nza = scat_za_grid.nelem();
+  //const Index Nza = za_grid.nelem();
 
   // Resize and initialize radiation field in the cloudbox
-  doit_i_field.resize(Nf, Np_cloud, 1, 1, nang, 1, stokes_dim);
-  doit_i_field = NAN;
+  cloudbox_field.resize(Nf, Np_cloud, 1, 1, nang, 1, stokes_dim);
+  cloudbox_field = NAN;
 }
 
 void get_disortsurf_props(  // Output
@@ -781,7 +767,7 @@ void reduced_1datm(Vector& p,
 }
 
 void run_cdisort(Workspace& ws,
-                 Tensor7& doit_i_field,
+                 Tensor7& cloudbox_field,
                  ConstVectorView f_grid,
                  ConstVectorView p_grid,
                  ConstVectorView z_profile,
@@ -794,7 +780,7 @@ void run_cdisort(Workspace& ws,
                  const ArrayOfIndex& cloudbox_limits,
                  const Numeric& surface_skin_t,
                  const Vector& surface_scalar_reflectivity,
-                 ConstVectorView scat_za_grid,
+                 ConstVectorView za_grid,
                  const Index& nstreams,
                  const Index& Npfct,
                  const Index& quiet,
@@ -860,7 +846,7 @@ void run_cdisort(Workspace& ws,
   ds.nphase = ds.nstr;
   ds.nmom = ds.nstr;
   //ds.ntau = ds.nlyr + 1;   // With ds.flag.usrtau = FALSE; set by cdisort
-  ds.numu = static_cast<int>(scat_za_grid.nelem());
+  ds.numu = static_cast<int>(za_grid.nelem());
   ds.nphi = 1;
   Index Nlegendre = nstreams + 1;
 
@@ -892,8 +878,7 @@ void run_cdisort(Workspace& ws,
   get_dtauc_ssalb(dtauc, ssalb, ext_bulk_gas, ext_bulk_par, abs_bulk_par, z);
 
   // Transform to mu, starting with negative values
-  for (Index i = 0; i < ds.numu; i++)
-    ds.umu[i] = -cos(scat_za_grid[i] * PI / 180);
+  for (Index i = 0; i < ds.numu; i++) ds.umu[i] = -cos(za_grid[i] * PI / 180);
 
   //upper boundary conditions:
   // DISORT offers isotropic incoming radiance or emissivity-scaled planck
@@ -954,15 +939,15 @@ void run_cdisort(Workspace& ws,
 
     for (Index j = 0; j < ds.numu; j++) {
       for (Index k = cboxlims[1] - cboxlims[0]; k >= 0; k--) {
-        doit_i_field(f_index, k + ncboxremoved, 0, 0, j, 0, 0) =
+        cloudbox_field(f_index, k + ncboxremoved, 0, 0, j, 0, 0) =
             out.uu[ds.numu * (ds.nlyr - k - cboxlims[0]) + j] /
             (ds.wvnmhi - ds.wvnmlo) / (100 * SPEED_OF_LIGHT);
       }
       // To avoid potential numerical problems at interpolation of the field,
       // we copy the surface field to underground altitudes
       for (Index k = ncboxremoved - 1; k >= 0; k--) {
-        doit_i_field(f_index, k, 0, 0, j, 0, 0) =
-            doit_i_field(f_index, k + 1, 0, 0, j, 0, 0);
+        cloudbox_field(f_index, k, 0, 0, j, 0, 0) =
+            cloudbox_field(f_index, k + 1, 0, 0, j, 0, 0);
       }
     }
   }

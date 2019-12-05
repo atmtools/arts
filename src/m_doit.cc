@@ -69,8 +69,8 @@ extern const Numeric RAD2DEG;
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DOAngularGridsSet(  // WS Output:
     Index& doit_za_grid_size,
-    Vector& scat_aa_grid,
-    Vector& scat_za_grid,
+    Vector& aa_grid,
+    Vector& za_grid,
     // Keywords:
     const Index& N_za_grid,
     const Index& N_aa_grid,
@@ -79,14 +79,14 @@ void DOAngularGridsSet(  // WS Output:
   // Azimuth angle grid (the same is used for the scattering integral and
   // for the radiative transfer.
   if (N_aa_grid > 1)
-    nlinspace(scat_aa_grid, 0, 360, N_aa_grid);
+    nlinspace(aa_grid, 0, 360, N_aa_grid);
   else if (N_aa_grid < 1) {
     ostringstream os;
     os << "N_aa_grid must be > 0 (even for 1D / DISORT cases).";
     throw runtime_error(os.str());
   } else {
-    scat_aa_grid.resize(1);
-    scat_aa_grid[0] = 0.;
+    aa_grid.resize(1);
+    aa_grid[0] = 0.;
   }
 
   // Zenith angle grid:
@@ -100,24 +100,24 @@ void DOAngularGridsSet(  // WS Output:
 
   if (za_grid_opt_file == "")
     if (N_za_grid == 0)
-      scat_za_grid.resize(0);
+      za_grid.resize(0);
     else if (N_za_grid == 1) {
       ostringstream os;
       os << "N_za_grid must be >1 or =0 (the latter only allowed for RT4).";
       throw runtime_error(os.str());
     } else
-      nlinspace(scat_za_grid, 0, 180, N_za_grid);
+      nlinspace(za_grid, 0, 180, N_za_grid);
   else
-    xml_read_from_file(za_grid_opt_file, scat_za_grid, verbosity);
+    xml_read_from_file(za_grid_opt_file, za_grid, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void doit_conv_flagAbs(  //WS Input and Output:
     Index& doit_conv_flag,
     Index& doit_iteration_counter,
-    Tensor6& doit_i_field_mono,
+    Tensor6& cloudbox_field_mono,
     // WS Input:
-    const Tensor6& doit_i_field_mono_old,
+    const Tensor6& cloudbox_field_mono_old,
     // Keyword:
     const Vector& epsilon,
     const Index& max_iterations,
@@ -133,12 +133,12 @@ void doit_conv_flagAbs(  //WS Input and Output:
         "WSM is not used correctly. *doit_conv_flagAbs* should\n"
         "be used only in *doit_conv_test_agenda*\n");
 
-  const Index N_p = doit_i_field_mono.nvitrines();
-  const Index N_lat = doit_i_field_mono.nshelves();
-  const Index N_lon = doit_i_field_mono.nbooks();
-  const Index N_za = doit_i_field_mono.npages();
-  const Index N_aa = doit_i_field_mono.nrows();
-  const Index stokes_dim = doit_i_field_mono.ncols();
+  const Index N_p = cloudbox_field_mono.nvitrines();
+  const Index N_lat = cloudbox_field_mono.nshelves();
+  const Index N_lon = cloudbox_field_mono.nbooks();
+  const Index N_za = cloudbox_field_mono.npages();
+  const Index N_aa = cloudbox_field_mono.nrows();
+  const Index stokes_dim = cloudbox_field_mono.ncols();
 
   // Check keyword "epsilon":
   if (epsilon.nelem() != stokes_dim)
@@ -148,12 +148,12 @@ void doit_conv_flagAbs(  //WS Input and Output:
         "separately. That means that *epsilon* must "
         "have *stokes_dim* elements!");
 
-  // Check if doit_i_field and doit_i_field_old have the same dimensions:
+  // Check if cloudbox_field and cloudbox_field_old have the same dimensions:
   if (!is_size(
-          doit_i_field_mono_old, N_p, N_lat, N_lon, N_za, N_aa, stokes_dim))
+          cloudbox_field_mono_old, N_p, N_lat, N_lon, N_za, N_aa, stokes_dim))
     throw runtime_error(
-        "The fields (Tensor6) *doit_i_field* and \n"
-        "*doit_i_field_old* which are compared in the \n"
+        "The fields (Tensor6) *cloudbox_field* and \n"
+        "*cloudbox_field_old* which are compared in the \n"
         "convergence test do not have the same size.\n");
 
   //-----------End of checks-------------------------------------------------
@@ -170,7 +170,7 @@ void doit_conv_flagAbs(  //WS Input and Output:
         << "calculation is not correct. In case of limb \n"
         << "simulations please make sure that you use an \n"
         << "optimized zenith angle grid. \n"
-        << "*doit_i_field* might be wrong.\n";
+        << "*cloudbox_field* might be wrong.\n";
     if (throw_nonconv_error != 0) {
       // FIXME: OLE: Remove this later
       //          ostringstream os;
@@ -178,7 +178,7 @@ void doit_conv_flagAbs(  //WS Input and Output:
       //             << out.str();
       //          throw runtime_error( os.str() );
       out1 << "Warning in DOIT calculation (output set to NaN):\n" << out.str();
-      doit_i_field_mono = NAN;
+      cloudbox_field_mono = NAN;
       doit_conv_flag = 1;
     } else {
       out1 << "Warning in DOIT calculation (output equals current status):\n"
@@ -189,27 +189,26 @@ void doit_conv_flagAbs(  //WS Input and Output:
     for (Index p_index = 0; p_index < N_p; p_index++) {
       for (Index lat_index = 0; lat_index < N_lat; lat_index++) {
         for (Index lon_index = 0; lon_index < N_lon; lon_index++) {
-          for (Index scat_za_index = 0; scat_za_index < N_za; scat_za_index++) {
-            for (Index scat_aa_index = 0; scat_aa_index < N_aa;
-                 scat_aa_index++) {
+          for (Index za_index = 0; za_index < N_za; za_index++) {
+            for (Index aa_index = 0; aa_index < N_aa; aa_index++) {
               for (Index stokes_index = 0; stokes_index < stokes_dim;
                    stokes_index++) {
-                Numeric diff = (doit_i_field_mono(p_index,
-                                                  lat_index,
-                                                  lon_index,
-                                                  scat_za_index,
-                                                  scat_aa_index,
-                                                  stokes_index) -
-                                doit_i_field_mono_old(p_index,
-                                                      lat_index,
-                                                      lon_index,
-                                                      scat_za_index,
-                                                      scat_aa_index,
-                                                      stokes_index));
+                Numeric diff = (cloudbox_field_mono(p_index,
+                                                    lat_index,
+                                                    lon_index,
+                                                    za_index,
+                                                    aa_index,
+                                                    stokes_index) -
+                                cloudbox_field_mono_old(p_index,
+                                                        lat_index,
+                                                        lon_index,
+                                                        za_index,
+                                                        aa_index,
+                                                        stokes_index));
 
                 // If the absolute difference of the components
                 // is larger than the pre-defined values, return
-                // to *doit_i_fieldIterarte* and do next iteration
+                // to *cloudbox_fieldIterarte* and do next iteration
 
                 if (abs(diff) > epsilon[stokes_index]) {
                   out1 << "difference: " << diff << "\n";
@@ -217,8 +216,8 @@ void doit_conv_flagAbs(  //WS Input and Output:
                 }
 
               }  // End loop stokes_dom.
-            }    // End loop scat_aa_grid.
-          }      // End loop scat_za_grid.
+            }    // End loop aa_grid.
+          }      // End loop za_grid.
         }        // End loop lon_grid.
       }          // End loop lat_grid.
     }            // End p_grid.
@@ -232,9 +231,9 @@ void doit_conv_flagAbs(  //WS Input and Output:
 void doit_conv_flagAbsBT(  //WS Input and Output:
     Index& doit_conv_flag,
     Index& doit_iteration_counter,
-    Tensor6& doit_i_field_mono,
+    Tensor6& cloudbox_field_mono,
     // WS Input:
-    const Tensor6& doit_i_field_mono_old,
+    const Tensor6& cloudbox_field_mono_old,
     const Vector& f_grid,
     const Index& f_index,
     // Keyword:
@@ -253,12 +252,12 @@ void doit_conv_flagAbsBT(  //WS Input and Output:
         "WSM is not used correctly. *doit_conv_flagAbs* should\n"
         "be used only in *doit_conv_test_agenda*\n");
 
-  const Index N_p = doit_i_field_mono.nvitrines();
-  const Index N_lat = doit_i_field_mono.nshelves();
-  const Index N_lon = doit_i_field_mono.nbooks();
-  const Index N_za = doit_i_field_mono.npages();
-  const Index N_aa = doit_i_field_mono.nrows();
-  const Index stokes_dim = doit_i_field_mono.ncols();
+  const Index N_p = cloudbox_field_mono.nvitrines();
+  const Index N_lat = cloudbox_field_mono.nshelves();
+  const Index N_lon = cloudbox_field_mono.nbooks();
+  const Index N_za = cloudbox_field_mono.npages();
+  const Index N_aa = cloudbox_field_mono.nrows();
+  const Index stokes_dim = cloudbox_field_mono.ncols();
 
   // Check keyword "epsilon":
   if (epsilon.nelem() != stokes_dim)
@@ -268,12 +267,12 @@ void doit_conv_flagAbsBT(  //WS Input and Output:
         "separately. That means that *epsilon* must "
         "have *stokes_dim* elements!");
 
-  // Check if doit_i_field and doit_i_field_old have the same dimensions:
+  // Check if cloudbox_field and cloudbox_field_old have the same dimensions:
   if (!is_size(
-          doit_i_field_mono_old, N_p, N_lat, N_lon, N_za, N_aa, stokes_dim))
+          cloudbox_field_mono_old, N_p, N_lat, N_lon, N_za, N_aa, stokes_dim))
     throw runtime_error(
-        "The fields (Tensor6) *doit_i_field* and \n"
-        "*doit_i_field_old* which are compared in the \n"
+        "The fields (Tensor6) *cloudbox_field* and \n"
+        "*cloudbox_field_old* which are compared in the \n"
         "convergence test do not have the same size.\n");
 
   // Frequency grid
@@ -303,7 +302,7 @@ void doit_conv_flagAbsBT(  //WS Input and Output:
         << "calculation is not correct. In case of limb \n"
         << "simulations please make sure that you use an \n"
         << "optimized zenith angle grid. \n"
-        << "*doit_i_field* might be wrong.\n";
+        << "*cloudbox_field* might be wrong.\n";
     if (throw_nonconv_error != 0) {
       // FIXME: OLE: Remove this later
       //          ostringstream os;
@@ -311,7 +310,7 @@ void doit_conv_flagAbsBT(  //WS Input and Output:
       //             << out.str();
       //          throw runtime_error( os.str() );
       out1 << "Warning in DOIT calculation (output set to NaN):\n" << out.str();
-      doit_i_field_mono = NAN;
+      cloudbox_field_mono = NAN;
       doit_conv_flag = 1;
     } else {
       out1 << "Warning in DOIT calculation (output equals current status):\n"
@@ -322,27 +321,26 @@ void doit_conv_flagAbsBT(  //WS Input and Output:
     for (Index p_index = 0; p_index < N_p; p_index++) {
       for (Index lat_index = 0; lat_index < N_lat; lat_index++) {
         for (Index lon_index = 0; lon_index < N_lon; lon_index++) {
-          for (Index scat_za_index = 0; scat_za_index < N_za; scat_za_index++) {
-            for (Index scat_aa_index = 0; scat_aa_index < N_aa;
-                 scat_aa_index++) {
+          for (Index za_index = 0; za_index < N_za; za_index++) {
+            for (Index aa_index = 0; aa_index < N_aa; aa_index++) {
               for (Index stokes_index = 0; stokes_index < stokes_dim;
                    stokes_index++) {
-                Numeric diff = doit_i_field_mono(p_index,
-                                                 lat_index,
-                                                 lon_index,
-                                                 scat_za_index,
-                                                 scat_aa_index,
-                                                 stokes_index) -
-                               doit_i_field_mono_old(p_index,
-                                                     lat_index,
-                                                     lon_index,
-                                                     scat_za_index,
-                                                     scat_aa_index,
-                                                     stokes_index);
+                Numeric diff = cloudbox_field_mono(p_index,
+                                                   lat_index,
+                                                   lon_index,
+                                                   za_index,
+                                                   aa_index,
+                                                   stokes_index) -
+                               cloudbox_field_mono_old(p_index,
+                                                       lat_index,
+                                                       lon_index,
+                                                       za_index,
+                                                       aa_index,
+                                                       stokes_index);
 
                 // If the absolute difference of the components
                 // is larger than the pre-defined values, return
-                // to *doit_i_fieldIterate* and do next iteration
+                // to *cloudbox_fieldIterate* and do next iteration
                 Numeric diff_bt = invrayjean(diff, f_grid[f_index]);
                 //                        if( abs(diff_bt) > max_diff_bt )
                 //                          max_diff_bt = abs(diff_bt);
@@ -355,8 +353,8 @@ void doit_conv_flagAbsBT(  //WS Input and Output:
                   return;
                 }
               }  // End loop stokes_dom.
-            }    // End loop scat_aa_grid.
-          }      // End loop scat_za_grid.
+            }    // End loop aa_grid.
+          }      // End loop za_grid.
         }        // End loop lon_grid.
       }          // End loop lat_grid.
     }            // End p_grid.
@@ -372,9 +370,9 @@ void doit_conv_flagAbsBT(  //WS Input and Output:
 void doit_conv_flagLsq(  //WS Output:
     Index& doit_conv_flag,
     Index& doit_iteration_counter,
-    Tensor6& doit_i_field_mono,
+    Tensor6& cloudbox_field_mono,
     // WS Input:
-    const Tensor6& doit_i_field_mono_old,
+    const Tensor6& cloudbox_field_mono_old,
     const Vector& f_grid,
     const Index& f_index,
     // Keyword:
@@ -393,12 +391,12 @@ void doit_conv_flagLsq(  //WS Output:
         "WSM is not used correctly. *doit_conv_flagAbs* should\n"
         "be used only in *doit_conv_test_agenda*\n");
 
-  const Index N_p = doit_i_field_mono.nvitrines();
-  const Index N_lat = doit_i_field_mono.nshelves();
-  const Index N_lon = doit_i_field_mono.nbooks();
-  const Index N_za = doit_i_field_mono.npages();
-  const Index N_aa = doit_i_field_mono.nrows();
-  const Index stokes_dim = doit_i_field_mono.ncols();
+  const Index N_p = cloudbox_field_mono.nvitrines();
+  const Index N_lat = cloudbox_field_mono.nshelves();
+  const Index N_lon = cloudbox_field_mono.nbooks();
+  const Index N_za = cloudbox_field_mono.npages();
+  const Index N_aa = cloudbox_field_mono.nrows();
+  const Index stokes_dim = cloudbox_field_mono.ncols();
 
   // Check keyword "epsilon":
   if (epsilon.nelem() != stokes_dim)
@@ -408,12 +406,12 @@ void doit_conv_flagLsq(  //WS Output:
         "separately. That means that *epsilon* must "
         "have *stokes_dim* elements!");
 
-  // Check if doit_i_field and doit_i_field_old have the same dimensions:
+  // Check if cloudbox_field and cloudbox_field_old have the same dimensions:
   if (!is_size(
-          doit_i_field_mono_old, N_p, N_lat, N_lon, N_za, N_aa, stokes_dim))
+          cloudbox_field_mono_old, N_p, N_lat, N_lon, N_za, N_aa, stokes_dim))
     throw runtime_error(
-        "The fields (Tensor6) *doit_i_field* and \n"
-        "*doit_i_field_old* which are compared in the \n"
+        "The fields (Tensor6) *cloudbox_field* and \n"
+        "*cloudbox_field_old* which are compared in the \n"
         "convergence test do not have the same size.\n");
 
   // Frequency grid
@@ -448,7 +446,7 @@ void doit_conv_flagLsq(  //WS Output:
       //             << out.str();
       //          throw runtime_error( os.str() );
       out1 << "Warning in DOIT calculation (output set to NaN):\n" << out.str();
-      doit_i_field_mono = NAN;
+      cloudbox_field_mono = NAN;
       doit_conv_flag = 1;
     } else {
       out1 << "Warning in DOIT calculation (output equals current status):\n"
@@ -464,25 +462,20 @@ void doit_conv_flagLsq(  //WS Output:
       for (Index p_index = 0; p_index < N_p; p_index++) {
         for (Index lat_index = 0; lat_index < N_lat; lat_index++) {
           for (Index lon_index = 0; lon_index < N_lon; lon_index++) {
-            for (Index scat_za_index = 0; scat_za_index < N_za;
-                 scat_za_index++) {
-              for (Index scat_aa_index = 0; scat_aa_index < N_aa;
-                   scat_aa_index++) {
-                lqs[i] += pow(doit_i_field_mono(p_index,
+            for (Index za_index = 0; za_index < N_za; za_index++) {
+              for (Index aa_index = 0; aa_index < N_aa; aa_index++) {
+                lqs[i] += pow(
+                    cloudbox_field_mono(
+                        p_index, lat_index, lon_index, za_index, aa_index, i) -
+                        cloudbox_field_mono_old(p_index,
                                                 lat_index,
                                                 lon_index,
-                                                scat_za_index,
-                                                scat_aa_index,
-                                                i) -
-                                  doit_i_field_mono_old(p_index,
-                                                        lat_index,
-                                                        lon_index,
-                                                        scat_za_index,
-                                                        scat_aa_index,
-                                                        i),
-                              2);
-              }  // End loop scat_aa_grid.
-            }    // End loop scat_za_grid.
+                                                za_index,
+                                                aa_index,
+                                                i),
+                    2);
+              }  // End loop aa_grid.
+            }    // End loop za_grid.
           }      // End loop lon_grid.
         }        // End loop lat_grid.
       }          // End p_grid.
@@ -501,16 +494,16 @@ void doit_conv_flagLsq(  //WS Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void doit_i_field_monoIterate(Workspace& ws,
-                              // WS Input and Output:
-                              Tensor6& doit_i_field_mono,
+void cloudbox_field_monoIterate(Workspace& ws,
+                                // WS Input and Output:
+                                Tensor6& cloudbox_field_mono,
 
-                              // WS Input:
-                              const Agenda& doit_scat_field_agenda,
-                              const Agenda& doit_rte_agenda,
-                              const Agenda& doit_conv_test_agenda,
-                              const Index& accelerated,
-                              const Verbosity& verbosity)
+                                // WS Input:
+                                const Agenda& doit_scat_field_agenda,
+                                const Agenda& doit_rte_agenda,
+                                const Agenda& doit_conv_test_agenda,
+                                const Index& accelerated,
+                                const Verbosity& verbosity)
 
 {
   CREATE_OUT2;
@@ -520,34 +513,34 @@ void doit_i_field_monoIterate(Workspace& ws,
   chk_not_empty("doit_rte_agenda", doit_rte_agenda);
   chk_not_empty("doit_conv_test_agenda", doit_conv_test_agenda);
 
-  for (Index v = 0; v < doit_i_field_mono.nvitrines(); v++)
-    for (Index s = 0; s < doit_i_field_mono.nshelves(); s++)
-      for (Index b = 0; b < doit_i_field_mono.nbooks(); b++)
-        for (Index p = 0; p < doit_i_field_mono.npages(); p++)
-          for (Index r = 0; r < doit_i_field_mono.nrows(); r++)
-            for (Index c = 0; c < doit_i_field_mono.ncols(); c++)
-              if (std::isnan(doit_i_field_mono(v, s, b, p, r, c)))
+  for (Index v = 0; v < cloudbox_field_mono.nvitrines(); v++)
+    for (Index s = 0; s < cloudbox_field_mono.nshelves(); s++)
+      for (Index b = 0; b < cloudbox_field_mono.nbooks(); b++)
+        for (Index p = 0; p < cloudbox_field_mono.npages(); p++)
+          for (Index r = 0; r < cloudbox_field_mono.nrows(); r++)
+            for (Index c = 0; c < cloudbox_field_mono.ncols(); c++)
+              if (std::isnan(cloudbox_field_mono(v, s, b, p, r, c)))
                 throw std::runtime_error(
-                    "*doit_i_field_mono* contains at least one NaN value.\n"
-                    "This indicates an improper initialization of *doit_i_field*.");
+                    "*cloudbox_field_mono* contains at least one NaN value.\n"
+                    "This indicates an improper initialization of *cloudbox_field*.");
 
-  //doit_i_field_mono can not be further checked here, because there is no way
+  //cloudbox_field_mono can not be further checked here, because there is no way
   //to find out the size without including a lot more interface
   //variables
   //-----------End of checks--------------------------------------
 
-  Tensor6 doit_i_field_mono_old_local;
+  Tensor6 cloudbox_field_mono_old_local;
   Index doit_conv_flag_local;
   Index doit_iteration_counter_local;
 
   // Resize and initialize doit_scat_field,
-  // which  has the same dimensions as doit_i_field
-  Tensor6 doit_scat_field_local(doit_i_field_mono.nvitrines(),
-                                doit_i_field_mono.nshelves(),
-                                doit_i_field_mono.nbooks(),
-                                doit_i_field_mono.npages(),
-                                doit_i_field_mono.nrows(),
-                                doit_i_field_mono.ncols(),
+  // which  has the same dimensions as cloudbox_field
+  Tensor6 doit_scat_field_local(cloudbox_field_mono.nvitrines(),
+                                cloudbox_field_mono.nshelves(),
+                                cloudbox_field_mono.nbooks(),
+                                cloudbox_field_mono.npages(),
+                                cloudbox_field_mono.nrows(),
+                                cloudbox_field_mono.ncols(),
                                 0.);
 
   doit_conv_flag_local = 0;
@@ -558,47 +551,47 @@ void doit_i_field_monoIterate(Workspace& ws,
     acceleration_input.resize(4);
   }
   while (doit_conv_flag_local == 0) {
-    // 1. Copy doit_i_field to doit_i_field_old.
-    doit_i_field_mono_old_local = doit_i_field_mono;
+    // 1. Copy cloudbox_field to cloudbox_field_old.
+    cloudbox_field_mono_old_local = cloudbox_field_mono;
 
     // 2.Calculate scattered field vector for all points in the cloudbox.
 
     // Calculate the scattered field.
     out2 << "  Execute doit_scat_field_agenda. \n";
     doit_scat_field_agendaExecute(
-        ws, doit_scat_field_local, doit_i_field_mono, doit_scat_field_agenda);
+        ws, doit_scat_field_local, cloudbox_field_mono, doit_scat_field_agenda);
 
-    // Update doit_i_field.
+    // Update cloudbox_field.
     out2 << "  Execute doit_rte_agenda. \n";
     doit_rte_agendaExecute(
-        ws, doit_i_field_mono, doit_scat_field_local, doit_rte_agenda);
+        ws, cloudbox_field_mono, doit_scat_field_local, doit_rte_agenda);
 
     //Convergence test.
     doit_conv_test_agendaExecute(ws,
                                  doit_conv_flag_local,
                                  doit_iteration_counter_local,
-                                 doit_i_field_mono,
-                                 doit_i_field_mono_old_local,
+                                 cloudbox_field_mono,
+                                 cloudbox_field_mono_old_local,
                                  doit_conv_test_agenda);
 
     // Convergence Acceleration, if wished.
     if (accelerated > 0 && doit_conv_flag_local == 0) {
       acceleration_input[(doit_iteration_counter_local - 1) % 4] =
-          doit_i_field_mono;
+          cloudbox_field_mono;
       // NG - Acceleration
       if (doit_iteration_counter_local % 4 == 0) {
-        doit_i_field_ngAcceleration(
-            doit_i_field_mono, acceleration_input, accelerated, verbosity);
+        cloudbox_field_ngAcceleration(
+            cloudbox_field_mono, acceleration_input, accelerated, verbosity);
       }
     }
   }  //end of while loop, convergence is reached.
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void doit_i_fieldUpdate1D(
+void cloudbox_fieldUpdate1D(
     Workspace& ws,
     // WS Input and Output:
-    Tensor6& doit_i_field_mono,
+    Tensor6& cloudbox_field_mono,
     // WS Input:
     const Tensor6& doit_scat_field,
     const ArrayOfIndex& cloudbox_limits,
@@ -607,7 +600,7 @@ void doit_i_fieldUpdate1D(
     const Tensor4& vmr_field,
     // Optical properties for individual scattering elements:
     const Agenda& spt_calc_agenda,
-    const Vector& scat_za_grid,
+    const Vector& za_grid,
     const Tensor4& pnd_field,
     // Propagation path calculation:
     const Agenda& ppath_step_agenda,
@@ -627,7 +620,7 @@ void doit_i_fieldUpdate1D(
   CREATE_OUT3;
 
   out2
-      << "  doit_i_fieldUpdate1D: Radiative transfer calculation in cloudbox\n";
+      << "  cloudbox_fieldUpdate1D: Radiative transfer calculation in cloudbox\n";
   out2 << "  ------------------------------------------------------------- \n";
 
   // ---------- Check the input ----------------------------------------
@@ -640,13 +633,13 @@ void doit_i_fieldUpdate1D(
     throw runtime_error(
         "The cloudbox dimension is not 1D! \n"
         "Do you really want to do a 1D calculation? \n"
-        "If not, use *doit_i_fieldUpdateSeq3D*.\n");
+        "If not, use *cloudbox_fieldUpdateSeq3D*.\n");
 
   // Number of zenith angles.
-  const Index N_scat_za = scat_za_grid.nelem();
+  const Index N_scat_za = za_grid.nelem();
 
-  if (scat_za_grid[0] != 0. || scat_za_grid[N_scat_za - 1] != 180.)
-    throw runtime_error("The range of *scat_za_grid* must [0 180].");
+  if (za_grid[0] != 0. || za_grid[N_scat_za - 1] != 180.)
+    throw runtime_error("The range of *za_grid* must [0 180].");
 
   if (p_grid.nelem() < 2)
     throw runtime_error("The length of *p_grid* must be >= 2.");
@@ -675,7 +668,7 @@ void doit_i_fieldUpdate1D(
   assert(stokes_dim > 0 || stokes_dim < 5);
 
   // These variables are calculated internally, so assertions should be o.k.
-  assert(is_size(doit_i_field_mono,
+  assert(is_size(cloudbox_field_mono,
                  (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                  1,
                  1,
@@ -717,23 +710,22 @@ void doit_i_fieldUpdate1D(
   Tensor4 abs_vec_field(
       cloudbox_limits[1] - cloudbox_limits[0] + 1, 1, 1, stokes_dim, 0.);
 
-  Tensor6 doit_i_field_old(doit_i_field_mono);
+  Tensor6 cloudbox_field_old(cloudbox_field_mono);
 
   //Only dummy variable:
-  Index scat_aa_index_local = 0;
+  Index aa_index_local = 0;
 
-  //Loop over all directions, defined by scat_za_grid
-  for (Index scat_za_index_local = 0; scat_za_index_local < N_scat_za;
-       scat_za_index_local++) {
+  //Loop over all directions, defined by za_grid
+  for (Index za_index_local = 0; za_index_local < N_scat_za; za_index_local++) {
     // This function has to be called inside the angular loop, as
-    // spt_calc_agenda takes *scat_za_index_local* and *scat_aa_index*
+    // spt_calc_agenda takes *za_index_local* and *aa_index*
     // from the workspace.
     cloud_fieldsCalc(ws,
                      ext_mat_field,
                      abs_vec_field,
                      spt_calc_agenda,
-                     scat_za_index_local,
-                     scat_aa_index_local,
+                     za_index_local,
+                     aa_index_local,
                      cloudbox_limits,
                      t_field,
                      pnd_field,
@@ -745,14 +737,14 @@ void doit_i_fieldUpdate1D(
 
     for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
          p_index++) {
-      if ((p_index != 0) || (scat_za_grid[scat_za_index_local] <= 90.)) {
+      if ((p_index != 0) || (za_grid[za_index_local] <= 90.)) {
         cloud_ppath_update1D_noseq(ws,
-                                   doit_i_field_mono,
+                                   cloudbox_field_mono,
                                    p_index,
-                                   scat_za_index_local,
-                                   scat_za_grid,
+                                   za_index_local,
+                                   za_grid,
                                    cloudbox_limits,
-                                   doit_i_field_old,
+                                   cloudbox_field_old,
                                    doit_scat_field,
                                    propmat_clearsky_agenda,
                                    vmr_field,
@@ -772,14 +764,14 @@ void doit_i_fieldUpdate1D(
                                    verbosity);
       }
     }
-  }  // Closes loop over scat_za_grid.
+  }  // Closes loop over za_grid.
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void doit_i_fieldUpdateSeq1D(
+void cloudbox_fieldUpdateSeq1D(
     Workspace& ws,
     // WS Input and Output:
-    Tensor6& doit_i_field_mono,
+    Tensor6& cloudbox_field_mono,
     Tensor6& doit_scat_field,
     // WS Input:
     const ArrayOfIndex& cloudbox_limits,
@@ -788,8 +780,8 @@ void doit_i_fieldUpdateSeq1D(
     const Tensor4& vmr_field,
     // Optical properties for individual scattering elements:
     const Agenda& spt_calc_agenda,
-    const Vector& scat_za_grid,
-    const Vector& scat_aa_grid,
+    const Vector& za_grid,
+    const Vector& aa_grid,
     const Tensor4& pnd_field,
     // Propagation path calculation:
     const Agenda& ppath_step_agenda,
@@ -812,7 +804,7 @@ void doit_i_fieldUpdateSeq1D(
   CREATE_OUT3;
 
   out2
-      << "  doit_i_fieldUpdateSeq1D: Radiative transfer calculation in cloudbox\n";
+      << "  cloudbox_fieldUpdateSeq1D: Radiative transfer calculation in cloudbox\n";
   out2 << "  ------------------------------------------------------------- \n";
 
   // ---------- Check the input ----------------------------------------
@@ -826,13 +818,13 @@ void doit_i_fieldUpdateSeq1D(
     throw runtime_error(
         "The cloudbox dimension is not 1D! \n"
         "Do you really want to do a 1D calculation? \n"
-        "For 3D use *doit_i_fieldUpdateSeq3D*.\n");
+        "For 3D use *cloudbox_fieldUpdateSeq3D*.\n");
 
   // Number of zenith angles.
-  const Index N_scat_za = scat_za_grid.nelem();
+  const Index N_scat_za = za_grid.nelem();
 
-  if (scat_za_grid[0] != 0. || scat_za_grid[N_scat_za - 1] != 180.)
-    throw runtime_error("The range of *scat_za_grid* must [0 180].");
+  if (za_grid[0] != 0. || za_grid[N_scat_za - 1] != 180.)
+    throw runtime_error("The range of *za_grid* must [0 180].");
 
   if (p_grid.nelem() < 2)
     throw runtime_error("The length of *p_grid* must be >= 2.");
@@ -861,7 +853,7 @@ void doit_i_fieldUpdateSeq1D(
   assert(stokes_dim > 0 || stokes_dim < 5);
 
   // These variables are calculated internally, so assertions should be o.k.
-  assert(is_size(doit_i_field_mono,
+  assert(is_size(cloudbox_field_mono,
                  (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                  1,
                  1,
@@ -917,21 +909,21 @@ void doit_i_fieldUpdateSeq1D(
   epsilon[2] = 0.01;
   epsilon[3] = 0.01;
 
-  Matrix doit_i_field_limb;
+  Matrix cloudbox_field_limb;
 
   //Only dummy variables:
-  Index scat_aa_index_local = 0;
+  Index aa_index_local = 0;
 
   if (normalize) {
     Tensor4 si, sei, si_corr;
     doit_scat_fieldNormalize(ws,
                              doit_scat_field,
-                             doit_i_field_mono,
+                             cloudbox_field_mono,
                              cloudbox_limits,
                              spt_calc_agenda,
                              1,
-                             scat_za_grid,
-                             scat_aa_grid,
+                             za_grid,
+                             aa_grid,
                              pnd_field,
                              t_field,
                              norm_error_threshold,
@@ -939,18 +931,17 @@ void doit_i_fieldUpdateSeq1D(
                              verbosity);
   }
 
-  //Loop over all directions, defined by scat_za_grid
-  for (Index scat_za_index_local = 0; scat_za_index_local < N_scat_za;
-       scat_za_index_local++) {
+  //Loop over all directions, defined by za_grid
+  for (Index za_index_local = 0; za_index_local < N_scat_za; za_index_local++) {
     // This function has to be called inside the angular loop, as
-    // spt_calc_agenda takes *scat_za_index* and *scat_aa_index*
+    // spt_calc_agenda takes *za_index* and *aa_index*
     // from the workspace.
     cloud_fieldsCalc(ws,
                      ext_mat_field,
                      abs_vec_field,
                      spt_calc_agenda,
-                     scat_za_index_local,
-                     scat_aa_index_local,
+                     za_index_local,
+                     aa_index_local,
                      cloudbox_limits,
                      t_field,
                      pnd_field,
@@ -961,7 +952,7 @@ void doit_i_fieldUpdateSeq1D(
     //=====================================================================
 
     // Sequential update for uplooking angles
-    if (scat_za_grid[scat_za_index_local] <= 90.) {
+    if (za_grid[za_index_local] <= 90.) {
       // Loop over all positions inside the cloud box defined by the
       // cloudbox_limits excluding the upper boundary. For uplooking
       // directions, we start from cloudbox_limits[1]-1 and go down
@@ -971,10 +962,10 @@ void doit_i_fieldUpdateSeq1D(
            p_index >= cloudbox_limits[0];
            p_index--) {
         cloud_ppath_update1D(ws,
-                             doit_i_field_mono,
+                             cloudbox_field_mono,
                              p_index,
-                             scat_za_index_local,
-                             scat_za_grid,
+                             za_index_local,
+                             za_grid,
                              cloudbox_limits,
                              doit_scat_field,
                              propmat_clearsky_agenda,
@@ -994,7 +985,7 @@ void doit_i_fieldUpdateSeq1D(
                              doit_za_interp,
                              verbosity);
       }
-    } else if (scat_za_grid[scat_za_index_local] >= theta_lim) {
+    } else if (za_grid[za_index_local] >= theta_lim) {
       //
       // Sequential updating for downlooking angles
       //
@@ -1002,10 +993,10 @@ void doit_i_fieldUpdateSeq1D(
            p_index <= cloudbox_limits[1];
            p_index++) {
         cloud_ppath_update1D(ws,
-                             doit_i_field_mono,
+                             cloudbox_field_mono,
                              p_index,
-                             scat_za_index_local,
-                             scat_za_grid,
+                             za_index_local,
+                             za_grid,
                              cloudbox_limits,
                              doit_scat_field,
                              propmat_clearsky_agenda,
@@ -1039,8 +1030,8 @@ void doit_i_fieldUpdateSeq1D(
       Index limb_it = 0;
       while (!conv_flag && limb_it < 10) {
         limb_it++;
-        doit_i_field_limb =
-            doit_i_field_mono(joker, 0, 0, scat_za_index_local, 0, joker);
+        cloudbox_field_limb =
+            cloudbox_field_mono(joker, 0, 0, za_index_local, 0, joker);
         for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
              p_index++) {
           // For this case the cloudbox goes down to the surface and we
@@ -1049,10 +1040,10 @@ void doit_i_fieldUpdateSeq1D(
           // gives an error for such cases.
           if (p_index != 0) {
             cloud_ppath_update1D(ws,
-                                 doit_i_field_mono,
+                                 cloudbox_field_mono,
                                  p_index,
-                                 scat_za_index_local,
-                                 scat_za_grid,
+                                 za_index_local,
+                                 za_grid,
                                  cloudbox_limits,
                                  doit_scat_field,
                                  propmat_clearsky_agenda,
@@ -1076,14 +1067,13 @@ void doit_i_fieldUpdateSeq1D(
 
         conv_flag = true;
         for (Index p_index = 0;
-             conv_flag && p_index < doit_i_field_mono.nvitrines();
+             conv_flag && p_index < cloudbox_field_mono.nvitrines();
              p_index++) {
           for (Index stokes_index = 0; conv_flag && stokes_index < stokes_dim;
                stokes_index++) {
-            Numeric diff =
-                doit_i_field_mono(
-                    p_index, 0, 0, scat_za_index_local, 0, stokes_index) -
-                doit_i_field_limb(p_index, stokes_index);
+            Numeric diff = cloudbox_field_mono(
+                               p_index, 0, 0, za_index_local, 0, stokes_index) -
+                           cloudbox_field_limb(p_index, stokes_index);
 
             // If the absolute difference of the components
             // is larger than the pre-defined values, continue with
@@ -1099,14 +1089,14 @@ void doit_i_fieldUpdateSeq1D(
       }
       out2 << "Limb iterations: " << limb_it << "\n";
     }
-  }  // Closes loop over scat_za_grid.
+  }  // Closes loop over za_grid.
 }  // End of the function.
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void doit_i_fieldUpdateSeq3D(
+void cloudbox_fieldUpdateSeq3D(
     Workspace& ws,
     // WS Output and Input:
-    Tensor6& doit_i_field_mono,
+    Tensor6& cloudbox_field_mono,
     // WS Input:
     const Tensor6& doit_scat_field,
     const ArrayOfIndex& cloudbox_limits,
@@ -1115,8 +1105,8 @@ void doit_i_fieldUpdateSeq3D(
     const Tensor4& vmr_field,
     // Optical properties for individual scattering elements:
     const Agenda& spt_calc_agenda,
-    const Vector& scat_za_grid,
-    const Vector& scat_aa_grid,
+    const Vector& za_grid,
+    const Vector& aa_grid,
     const Tensor4& pnd_field,
     // Propagation path calculation:
     const Agenda& ppath_step_agenda,
@@ -1137,7 +1127,7 @@ void doit_i_fieldUpdateSeq3D(
   CREATE_OUT3;
 
   out2
-      << "  doit_i_fieldUpdateSeq3D: Radiative transfer calculatiuon in cloudbox.\n";
+      << "  cloudbox_fieldUpdateSeq3D: Radiative transfer calculatiuon in cloudbox.\n";
   out2 << "  ------------------------------------------------------------- \n";
 
   // ---------- Check the input ----------------------------------------
@@ -1151,19 +1141,19 @@ void doit_i_fieldUpdateSeq3D(
     throw runtime_error(
         "The cloudbox dimension is not 3D! \n"
         "Do you really want to do a 3D calculation? \n"
-        "For 1D use *doit_i_fieldUpdateSeq1D*.\n");
+        "For 1D use *cloudbox_fieldUpdateSeq1D*.\n");
 
   // Number of zenith angles.
-  const Index N_scat_za = scat_za_grid.nelem();
+  const Index N_scat_za = za_grid.nelem();
 
-  if (scat_za_grid[0] != 0. || scat_za_grid[N_scat_za - 1] != 180.)
-    throw runtime_error("The range of *scat_za_grid* must [0 180].");
+  if (za_grid[0] != 0. || za_grid[N_scat_za - 1] != 180.)
+    throw runtime_error("The range of *za_grid* must [0 180].");
 
   // Number of azimuth angles.
-  const Index N_scat_aa = scat_aa_grid.nelem();
+  const Index N_scat_aa = aa_grid.nelem();
 
-  if (scat_aa_grid[0] != 0. || scat_aa_grid[N_scat_aa - 1] != 360.)
-    throw runtime_error("The range of *scat_za_grid* must [0 360].");
+  if (aa_grid[0] != 0. || aa_grid[N_scat_aa - 1] != 360.)
+    throw runtime_error("The range of *za_grid* must [0 360].");
 
   // Check atmospheric grids
   chk_atm_grids(3, p_grid, lat_grid, lon_grid);
@@ -1194,7 +1184,7 @@ void doit_i_fieldUpdateSeq3D(
   assert(stokes_dim > 0 || stokes_dim < 5);
 
   // These variables are calculated internally, so assertions should be o.k.
-  assert(is_size(doit_i_field_mono,
+  assert(is_size(cloudbox_field_mono,
                  (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                  (cloudbox_limits[3] - cloudbox_limits[2]) + 1,
                  (cloudbox_limits[5] - cloudbox_limits[4]) + 1,
@@ -1248,24 +1238,24 @@ void doit_i_fieldUpdateSeq3D(
                         stokes_dim,
                         0.);
 
-  //Loop over all directions, defined by scat_za_grid
-  for (Index scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index++) {
-    //Loop over azimuth directions (scat_aa_grid). First and last point in
+  //Loop over all directions, defined by za_grid
+  for (Index za_index = 0; za_index < N_scat_za; za_index++) {
+    //Loop over azimuth directions (aa_grid). First and last point in
     // azimuth angle grid are euqal. Start with second element.
-    for (Index scat_aa_index = 1; scat_aa_index < N_scat_aa; scat_aa_index++) {
+    for (Index aa_index = 1; aa_index < N_scat_aa; aa_index++) {
       //==================================================================
       // Radiative transfer inside the cloudbox
       //==================================================================
 
       // This function has to be called inside the angular loop, as
-      // it spt_calc_agenda takes *scat_za_index* and *scat_aa_index*
+      // it spt_calc_agenda takes *za_index* and *aa_index*
       // from the workspace.
       cloud_fieldsCalc(ws,
                        ext_mat_field,
                        abs_vec_field,
                        spt_calc_agenda,
-                       scat_za_index,
-                       scat_aa_index,
+                       za_index,
+                       aa_index,
                        cloudbox_limits,
                        t_field,
                        pnd_field,
@@ -1278,7 +1268,7 @@ void doit_i_fieldUpdateSeq3D(
                                      RAD2DEG;
 
       // Sequential update for uplooking angles
-      if (scat_za_grid[scat_za_index] <= 90.) {
+      if (za_grid[za_index] <= 90.) {
         // Loop over all positions inside the cloud box defined by the
         // cloudbox_limits exculding the upper boundary. For uplooking
         // directions, we start from cloudbox_limits[1]-1 and go down
@@ -1288,14 +1278,14 @@ void doit_i_fieldUpdateSeq3D(
           for (Index lat_index = lat_low; lat_index <= lat_up; lat_index++) {
             for (Index lon_index = lon_low; lon_index <= lon_up; lon_index++) {
               cloud_ppath_update3D(ws,
-                                   doit_i_field_mono,
+                                   cloudbox_field_mono,
                                    p_index,
                                    lat_index,
                                    lon_index,
-                                   scat_za_index,
-                                   scat_aa_index,
-                                   scat_za_grid,
-                                   scat_aa_grid,
+                                   za_index,
+                                   aa_index,
+                                   za_grid,
+                                   aa_grid,
                                    cloudbox_limits,
                                    doit_scat_field,
                                    propmat_clearsky_agenda,
@@ -1319,7 +1309,7 @@ void doit_i_fieldUpdateSeq3D(
           }
         }
       }  // close up-looking case
-      else if (scat_za_grid[scat_za_index] > theta_lim) {
+      else if (za_grid[za_index] > theta_lim) {
         //
         // Sequential updating for downlooking angles
         //
@@ -1327,14 +1317,14 @@ void doit_i_fieldUpdateSeq3D(
           for (Index lat_index = lat_low; lat_index <= lat_up; lat_index++) {
             for (Index lon_index = lon_low; lon_index <= lon_up; lon_index++) {
               cloud_ppath_update3D(ws,
-                                   doit_i_field_mono,
+                                   cloudbox_field_mono,
                                    p_index,
                                    lat_index,
                                    lon_index,
-                                   scat_za_index,
-                                   scat_aa_index,
-                                   scat_za_grid,
-                                   scat_aa_grid,
+                                   za_index,
+                                   aa_index,
+                                   za_grid,
+                                   aa_grid,
                                    cloudbox_limits,
                                    doit_scat_field,
                                    propmat_clearsky_agenda,
@@ -1366,26 +1356,25 @@ void doit_i_fieldUpdateSeq3D(
       // To be save we loop over the full cloudbox. Inside the function
       // cloud_ppath_update3D it is checked whether the intersection point is
       // inside the cloudbox or not.
-      else if (scat_za_grid[scat_za_index] > 90. &&
-               scat_za_grid[scat_za_index] < theta_lim) {
+      else if (za_grid[za_index] > 90. && za_grid[za_index] < theta_lim) {
         for (Index p_index = p_low; p_index <= p_up; p_index++) {
           // For this case the cloudbox goes down to the surface an we
           // look downwards. These cases are outside the cloudbox and
           // not needed. Switch is included here, as ppath_step_agenda
           // gives an error for such cases.
-          if (!(p_index == 0 && scat_za_grid[scat_za_index] > 90.)) {
+          if (!(p_index == 0 && za_grid[za_index] > 90.)) {
             for (Index lat_index = lat_low; lat_index <= lat_up; lat_index++) {
               for (Index lon_index = lon_low; lon_index <= lon_up;
                    lon_index++) {
                 cloud_ppath_update3D(ws,
-                                     doit_i_field_mono,
+                                     cloudbox_field_mono,
                                      p_index,
                                      lat_index,
                                      lon_index,
-                                     scat_za_index,
-                                     scat_aa_index,
-                                     scat_za_grid,
-                                     scat_aa_grid,
+                                     za_index,
+                                     aa_index,
+                                     za_grid,
+                                     aa_grid,
                                      cloudbox_limits,
                                      doit_scat_field,
                                      propmat_clearsky_agenda,
@@ -1411,19 +1400,19 @@ void doit_i_fieldUpdateSeq3D(
         }
       }
     }  //  Closes loop over aa_grid.
-  }    // Closes loop over scat_za_grid.
+  }    // Closes loop over za_grid.
 
-  doit_i_field_mono(joker, joker, joker, joker, 0, joker) =
-      doit_i_field_mono(joker, joker, joker, joker, N_scat_aa - 1, joker);
+  cloudbox_field_mono(joker, joker, joker, joker, 0, joker) =
+      cloudbox_field_mono(joker, joker, joker, joker, N_scat_aa - 1, joker);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void doit_i_fieldUpdateSeq1DPP(
+void cloudbox_fieldUpdateSeq1DPP(
     Workspace& ws,
     // WS Output:
-    Tensor6& doit_i_field_mono,
+    Tensor6& cloudbox_field_mono,
     // spt_calc_agenda:
-    Index& scat_za_index,
+    Index& za_index,
     // WS Input:
     const Tensor6& doit_scat_field,
     const ArrayOfIndex& cloudbox_limits,
@@ -1432,7 +1421,7 @@ void doit_i_fieldUpdateSeq1DPP(
     const Tensor4& vmr_field,
     // Optical properties for individual scattering elements:
     const Agenda& spt_calc_agenda,
-    const Vector& scat_za_grid,
+    const Vector& za_grid,
     const Tensor4& pnd_field,
     // Propagation path calculation:
     const Vector& p_grid,
@@ -1446,7 +1435,7 @@ void doit_i_fieldUpdateSeq1DPP(
   CREATE_OUT3;
 
   out2
-      << "  doit_i_fieldUpdateSeq1DPP: Radiative transfer calculation in cloudbox.\n";
+      << "  cloudbox_fieldUpdateSeq1DPP: Radiative transfer calculation in cloudbox.\n";
   out2
       << "  --------------------------------------------------------------------- \n";
 
@@ -1460,11 +1449,11 @@ void doit_i_fieldUpdateSeq1DPP(
         "The dimension of stokes vector must be"
         "1,2,3, or 4");
 
-  assert(is_size(doit_i_field_mono,
+  assert(is_size(cloudbox_field_mono,
                  (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                  1,
                  1,
-                 scat_za_grid.nelem(),
+                 za_grid.nelem(),
                  1,
                  stokes_dim));
 
@@ -1472,7 +1461,7 @@ void doit_i_fieldUpdateSeq1DPP(
                  (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                  1,
                  1,
-                 scat_za_grid.nelem(),
+                 za_grid.nelem(),
                  1,
                  stokes_dim));
 
@@ -1482,7 +1471,7 @@ void doit_i_fieldUpdateSeq1DPP(
   // End of checks
 
   // Number of zenith angles.
-  const Index N_scat_za = scat_za_grid.nelem();
+  const Index N_scat_za = za_grid.nelem();
 
   //=======================================================================
   // Calculate scattering coefficients for all positions in the cloudbox
@@ -1507,17 +1496,17 @@ void doit_i_fieldUpdateSeq1DPP(
   Tensor4 abs_vec_field(
       cloudbox_limits[1] - cloudbox_limits[0] + 1, 1, 1, stokes_dim, 0.);
 
-  //Loop over all directions, defined by scat_za_grid
-  for (scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index++) {
+  //Loop over all directions, defined by za_grid
+  for (za_index = 0; za_index < N_scat_za; za_index++) {
     //Only dummy variables:
-    Index scat_aa_index = 0;
+    Index aa_index = 0;
 
     cloud_fieldsCalc(ws,
                      ext_mat_field,
                      abs_vec_field,
                      spt_calc_agenda,
-                     scat_za_index,
-                     scat_aa_index,
+                     za_index,
+                     aa_index,
                      cloudbox_limits,
                      t_field,
                      pnd_field,
@@ -1529,7 +1518,7 @@ void doit_i_fieldUpdateSeq1DPP(
 
     Vector stokes_vec(stokes_dim, 0.);
     // Sequential update for uplooking angles
-    if (scat_za_grid[scat_za_index] <= 90) {
+    if (za_grid[za_index] <= 90) {
       // Loop over all positions inside the cloud box defined by the
       // cloudbox_limits exculding the upper boundary. For uplooking
       // directions, we start from cloudbox_limits[1]-1 and go down
@@ -1542,10 +1531,10 @@ void doit_i_fieldUpdateSeq1DPP(
            p_index >= cloudbox_limits[0];
            p_index--) {
         cloud_ppath_update1D_planeparallel(ws,
-                                           doit_i_field_mono,
+                                           cloudbox_field_mono,
                                            p_index,
-                                           scat_za_index,
-                                           scat_za_grid,
+                                           za_index,
+                                           za_grid,
                                            cloudbox_limits,
                                            doit_scat_field,
                                            propmat_clearsky_agenda,
@@ -1559,7 +1548,7 @@ void doit_i_fieldUpdateSeq1DPP(
                                            abs_vec_field,
                                            verbosity);
       }
-    } else if (scat_za_grid[scat_za_index] > 90) {
+    } else if (za_grid[za_index] > 90) {
       //
       // Sequential updating for downlooking angles
       //
@@ -1567,10 +1556,10 @@ void doit_i_fieldUpdateSeq1DPP(
            p_index <= cloudbox_limits[1];
            p_index++) {
         cloud_ppath_update1D_planeparallel(ws,
-                                           doit_i_field_mono,
+                                           cloudbox_field_mono,
                                            p_index,
-                                           scat_za_index,
-                                           scat_za_grid,
+                                           za_index,
+                                           za_grid,
                                            cloudbox_limits,
                                            doit_scat_field,
                                            propmat_clearsky_agenda,
@@ -1586,20 +1575,20 @@ void doit_i_fieldUpdateSeq1DPP(
       }  // Close loop over p_grid (inside cloudbox).
     }    // end if downlooking.
 
-  }  // Closes loop over scat_za_grid.
+  }  // Closes loop over za_grid.
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DoitInit(  //WS Output
     Tensor6& doit_scat_field,
-    Tensor7& doit_i_field,
+    Tensor7& cloudbox_field,
     Index& doit_is_initialized,
     // WS Input
     const Index& stokes_dim,
     const Index& atmosphere_dim,
     const Vector& f_grid,
-    const Vector& scat_za_grid,
-    const Vector& scat_aa_grid,
+    const Vector& za_grid,
+    const Vector& aa_grid,
     const Index& doit_za_grid_size,
     const Index& cloudbox_on,
     const ArrayOfIndex& cloudbox_limits,
@@ -1623,42 +1612,42 @@ void DoitInit(  //WS Output
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
 
   // Number of zenith angles.
-  const Index N_scat_za = scat_za_grid.nelem();
+  const Index N_scat_za = za_grid.nelem();
 
   // The recommended values were found by testing the accuracy and the speed of
   // 1D DOIT calculations for different grid sizes. For 3D calculations it can
   // be necessary to use more grid points.
   if (N_scat_za < 16)
     throw runtime_error(
-        "For accurate results, scat_za_grid must have "
+        "For accurate results, za_grid must have "
         "more than 15 elements.");
   else if (N_scat_za > 100) {
     CREATE_OUT1;
-    out1 << "Warning: scat_za_grid is very large, which means that the \n"
+    out1 << "Warning: za_grid is very large, which means that the \n"
          << "calculation will be very slow.\n";
   }
 
-  if (scat_za_grid[0] != 0. || scat_za_grid[N_scat_za - 1] != 180.)
-    throw runtime_error("The range of *scat_za_grid* must [0 180].");
+  if (za_grid[0] != 0. || za_grid[N_scat_za - 1] != 180.)
+    throw runtime_error("The range of *za_grid* must [0 180].");
 
-  if (!is_increasing(scat_za_grid))
-    throw runtime_error("*scat_za_grid* must be increasing.");
+  if (!is_increasing(za_grid))
+    throw runtime_error("*za_grid* must be increasing.");
 
   // Number of azimuth angles.
-  const Index N_scat_aa = scat_aa_grid.nelem();
+  const Index N_scat_aa = aa_grid.nelem();
 
   if (N_scat_aa < 6)
     throw runtime_error(
-        "For accurate results, scat_aa_grid must have "
+        "For accurate results, aa_grid must have "
         "more than 5 elements.");
   else if (N_scat_aa > 100) {
     CREATE_OUT1;
-    out1 << "Warning: scat_aa_grid is very large which means that the \n"
+    out1 << "Warning: aa_grid is very large which means that the \n"
          << "calculation will be very slow.\n";
   }
 
-  if (scat_aa_grid[0] != 0. || scat_aa_grid[N_scat_aa - 1] != 360.)
-    throw runtime_error("The range of *scat_aa_grid* must [0 360].");
+  if (aa_grid[0] != 0. || aa_grid[N_scat_aa - 1] != 360.)
+    throw runtime_error("The range of *aa_grid* must [0 360].");
 
   if (doit_za_grid_size < 16)
     throw runtime_error(
@@ -1680,19 +1669,19 @@ void DoitInit(  //WS Output
 
   const Index Nf = f_grid.nelem();
   const Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
-  const Index Nza = scat_za_grid.nelem();
+  const Index Nza = za_grid.nelem();
   const Index Ns = stokes_dim;
 
   // Resize and initialize radiation field in the cloudbox
   if (atmosphere_dim == 1) {
-    doit_i_field.resize(Nf, Np_cloud, 1, 1, Nza, 1, Ns);
+    cloudbox_field.resize(Nf, Np_cloud, 1, 1, Nza, 1, Ns);
     doit_scat_field.resize(Np_cloud, 1, 1, Nza, 1, Ns);
   } else if (atmosphere_dim == 3) {
     const Index Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1;
     const Index Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
-    const Index Naa = scat_aa_grid.nelem();
+    const Index Naa = aa_grid.nelem();
 
-    doit_i_field.resize(Nf, Np_cloud, Nlat_cloud, Nlon_cloud, Nza, Naa, Ns);
+    cloudbox_field.resize(Nf, Np_cloud, Nlat_cloud, Nlon_cloud, Nza, Naa, Ns);
     doit_scat_field.resize(Np_cloud, Nlat_cloud, Nlon_cloud, Nza, Naa, Ns);
   } else {
     throw runtime_error(
@@ -1701,23 +1690,23 @@ void DoitInit(  //WS Output
         "*atmosphere_dim* has to be either 1 or 3");
   }
 
-  doit_i_field = NAN;
+  cloudbox_field = NAN;
   doit_scat_field = NAN;
   doit_is_initialized = 1;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void doit_i_field_monoOptimizeReverse(  //WS input
-    Tensor6& doit_i_field_mono,
+void cloudbox_field_monoOptimizeReverse(  //WS input
+    Tensor6& cloudbox_field_mono,
     const Vector& p_grid_orig,
     const Vector& p_grid,
     const ArrayOfIndex& cloudbox_limits,
     const Verbosity& /* verbosity */) {
-  Tensor6 doit_i_field_mono_opt(
-      p_grid_orig.nelem(), 1, 1, doit_i_field_mono.npages(), 1, 1);
+  Tensor6 cloudbox_field_mono_opt(
+      p_grid_orig.nelem(), 1, 1, cloudbox_field_mono.npages(), 1, 1);
   ArrayOfGridPos Z_gp(p_grid_orig.nelem());
   Matrix itw_z(Z_gp.nelem(), 2);
-  // We only need the p_grid inside the cloudbox as doit_i_field_mono is only defined in the
+  // We only need the p_grid inside the cloudbox as cloudbox_field_mono is only defined in the
   // cloudbox
   Vector p_grid_cloudbox = p_grid[Range(
       cloudbox_limits[0], cloudbox_limits[1] - cloudbox_limits[0] + 1)];
@@ -1729,14 +1718,14 @@ void doit_i_field_monoOptimizeReverse(  //WS input
   gridpos(Z_gp, p_grid_cloudbox, p_grid_orig);
   // Interpolation weights:
   interpweights(itw_z, Z_gp);
-  // Interpolate doit_i_field_mono
-  for (Index i = 0; i < doit_i_field_mono.npages(); i++) {
-    interp(doit_i_field_mono_opt(joker, 0, 0, i, 0, 0),
+  // Interpolate cloudbox_field_mono
+  for (Index i = 0; i < cloudbox_field_mono.npages(); i++) {
+    interp(cloudbox_field_mono_opt(joker, 0, 0, i, 0, 0),
            itw_z,
-           doit_i_field_mono(joker, 0, 0, i, 0, 0),
+           cloudbox_field_mono(joker, 0, 0, i, 0, 0),
            Z_gp);
   }
-  doit_i_field_mono = doit_i_field_mono_opt;
+  cloudbox_field_mono = cloudbox_field_mono_opt;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1749,7 +1738,7 @@ void OptimizeDoitPressureGrid(
     ArrayOfArrayOfSingleScatteringData& scat_data_mono,
     Tensor3& z_field,
     ArrayOfIndex& cloudbox_limits,
-    Tensor6& doit_i_field_mono,
+    Tensor6& cloudbox_field_mono,
     Tensor7& pha_mat_doit,
     Tensor4& vmr_field,
     Vector& p_grid_orig,
@@ -1763,7 +1752,7 @@ void OptimizeDoitPressureGrid(
   CREATE_OUT2;
   CREATE_OUT3;
   // Make sure that stokes_dim = 1 and that ScatSpeciesMerge has been applied:
-  if (doit_i_field_mono.ncols() != 1)
+  if (cloudbox_field_mono.ncols() != 1)
     throw runtime_error(
         " This method currently only works for unpolarized radiation "
         "( stokes_dim = 1)");
@@ -1953,8 +1942,8 @@ void OptimizeDoitPressureGrid(
   ArrayOfArrayOfSingleScatteringData scat_data_new;
   Tensor3 t_field_new(z_grid.nelem(), 1, 1);
   Vector p_grid_opt(z_grid.nelem());
-  Tensor6 doit_i_field_mono_opt(
-      cloudbox_opt_size, 1, 1, doit_i_field_mono.npages(), 1, 1);
+  Tensor6 cloudbox_field_mono_opt(
+      cloudbox_opt_size, 1, 1, cloudbox_field_mono.npages(), 1, 1);
   Tensor7 pha_mat_doit_opt(cloudbox_opt_size,
                            pha_mat_doit.nvitrines(),
                            1,
@@ -1991,7 +1980,7 @@ void OptimizeDoitPressureGrid(
     interp(
         vmr_field_opt(i, joker, 0, 0), itw_z, vmr_field(i, joker, 0, 0), Z_gp);
 
-  // Interpolate doit_i_field_mono and pha_mat_doit
+  // Interpolate cloudbox_field_mono and pha_mat_doit
   ArrayOfGridPos Z_gp_2(cloudbox_opt_size);
   Matrix itw_z_2(Z_gp_2.nelem(), 2);
   Range r1 =
@@ -2006,10 +1995,10 @@ void OptimizeDoitPressureGrid(
           z_grid[Range(cloudbox_limits_opt[0], cloudbox_opt_size)]);
   interpweights(itw_z_2, Z_gp_2);
 
-  for (Index i = 0; i < doit_i_field_mono.npages(); i++) {
-    interp(doit_i_field_mono_opt(joker, 0, 0, i, 0, 0),
+  for (Index i = 0; i < cloudbox_field_mono.npages(); i++) {
+    interp(cloudbox_field_mono_opt(joker, 0, 0, i, 0, 0),
            itw_z_2,
-           doit_i_field_mono(joker, 0, 0, i, 0, 0),
+           cloudbox_field_mono(joker, 0, 0, i, 0, 0),
            Z_gp_2);
   }
   for (Index i = 0; i < pha_mat_doit.nvitrines(); i++) {
@@ -2032,7 +2021,7 @@ void OptimizeDoitPressureGrid(
   p_grid = p_grid_opt;
   t_field = t_field_new;
   cloudbox_limits = cloudbox_limits_opt;
-  doit_i_field_mono = doit_i_field_mono_opt;
+  cloudbox_field_mono = cloudbox_field_mono_opt;
   pha_mat_doit = pha_mat_doit_opt;
   z_field.resize(z_grid.nelem(), 1, 1);
   z_field(joker, 0, 0) = z_grid;
@@ -2042,7 +2031,7 @@ void OptimizeDoitPressureGrid(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DoitWriteIterationFields(  //WS input
     const Index& doit_iteration_counter,
-    const Tensor6& doit_i_field_mono,
+    const Tensor6& cloudbox_field_mono,
     const Index& f_index,
     //Keyword:
     const ArrayOfIndex& iterations,
@@ -2059,7 +2048,7 @@ void DoitWriteIterationFields(  //WS input
   // All iterations for all frequencies are written to files
   if (frequencies[0] == -1 && iterations[0] == -1) {
     xml_write_to_file(
-        os.str() + ".xml", doit_i_field_mono, FILE_TYPE_ASCII, 0, verbosity);
+        os.str() + ".xml", cloudbox_field_mono, FILE_TYPE_ASCII, 0, verbosity);
   }
 
   for (Index j = 0; j < frequencies.nelem(); j++) {
@@ -2067,7 +2056,7 @@ void DoitWriteIterationFields(  //WS input
       // All iterations are written to files
       if (iterations[0] == -1) {
         xml_write_to_file(os.str() + ".xml",
-                          doit_i_field_mono,
+                          cloudbox_field_mono,
                           FILE_TYPE_ASCII,
                           0,
                           verbosity);
@@ -2078,7 +2067,7 @@ void DoitWriteIterationFields(  //WS input
         for (Index i = 0; i < iterations.nelem(); i++) {
           if (doit_iteration_counter == iterations[i])
             xml_write_to_file(os.str() + ".xml",
-                              doit_i_field_mono,
+                              cloudbox_field_mono,
                               FILE_TYPE_ASCII,
                               0,
                               verbosity);
@@ -2094,13 +2083,13 @@ void doit_scat_fieldCalc(Workspace& ws,
                          Tensor6& doit_scat_field,
                          //WS Input:
                          const Agenda& pha_mat_spt_agenda,
-                         const Tensor6& doit_i_field_mono,
+                         const Tensor6& cloudbox_field_mono,
                          const Tensor4& pnd_field,
                          const Tensor3& t_field,
                          const Index& atmosphere_dim,
                          const ArrayOfIndex& cloudbox_limits,
-                         const Vector& scat_za_grid,
-                         const Vector& scat_aa_grid,
+                         const Vector& za_grid,
+                         const Vector& aa_grid,
                          const Index& doit_za_grid_size,
                          const Tensor7& pha_mat_doit,
                          const Verbosity& verbosity)
@@ -2115,16 +2104,16 @@ void doit_scat_fieldCalc(Workspace& ws,
   chk_not_empty("pha_mat_spt_agenda", pha_mat_spt_agenda);
 
   // Number of zenith angles.
-  const Index Nza = scat_za_grid.nelem();
+  const Index Nza = za_grid.nelem();
 
-  if (scat_za_grid[0] != 0. || scat_za_grid[Nza - 1] != 180.)
-    throw runtime_error("The range of *scat_za_grid* must [0 180].");
+  if (za_grid[0] != 0. || za_grid[Nza - 1] != 180.)
+    throw runtime_error("The range of *za_grid* must [0 180].");
 
   // Number of azimuth angles.
-  const Index Naa = scat_aa_grid.nelem();
+  const Index Naa = aa_grid.nelem();
 
-  if (Naa > 1 && (scat_aa_grid[0] != 0. || scat_aa_grid[Naa - 1] != 360.))
-    throw runtime_error("The range of *scat_aa_grid* must [0 360].");
+  if (Naa > 1 && (aa_grid[0] != 0. || aa_grid[Naa - 1] != 360.))
+    throw runtime_error("The range of *aa_grid* must [0 360].");
 
   // Get stokes dimension from *doit_scat_field*:
   const Index stokes_dim = doit_scat_field.ncols();
@@ -2136,10 +2125,10 @@ void doit_scat_fieldCalc(Workspace& ws,
   // that it is defined only inside the cloudbox.
 
   // Check atmospheric dimension and dimensions of
-  // radiation field (*doit_i_field*) and scattering integral field
+  // radiation field (*cloudbox_field*) and scattering integral field
   // (*doit_scat_field*)
   if (atmosphere_dim == 1) {
-    assert(is_size(doit_i_field_mono,
+    assert(is_size(cloudbox_field_mono,
                    (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                    1,
                    1,
@@ -2150,11 +2139,11 @@ void doit_scat_fieldCalc(Workspace& ws,
                    (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                    1,
                    1,
-                   scat_za_grid.nelem(),
+                   za_grid.nelem(),
                    1,
                    stokes_dim));
   } else if (atmosphere_dim == 3) {
-    assert(is_size(doit_i_field_mono,
+    assert(is_size(cloudbox_field_mono,
                    (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                    (cloudbox_limits[3] - cloudbox_limits[2]) + 1,
                    (cloudbox_limits[5] - cloudbox_limits[4]) + 1,
@@ -2198,11 +2187,11 @@ void doit_scat_fieldCalc(Workspace& ws,
 
   // Initialize variables *pha_mat* and *pha_mat_spt*
   Tensor4 pha_mat_local(
-      doit_za_grid_size, scat_aa_grid.nelem(), stokes_dim, stokes_dim, 0.);
+      doit_za_grid_size, aa_grid.nelem(), stokes_dim, stokes_dim, 0.);
 
   Tensor5 pha_mat_spt_local(pnd_field.nbooks(),
                             doit_za_grid_size,
-                            scat_aa_grid.nelem(),
+                            aa_grid.nelem(),
                             stokes_dim,
                             stokes_dim,
                             0.);
@@ -2224,8 +2213,7 @@ void doit_scat_fieldCalc(Workspace& ws,
     for (Index p_index = 0; p_index <= cloudbox_limits[1] - cloudbox_limits[0];
          p_index++) {
       //There is only loop over zenith angle grid ; no azimuth angle grid.
-      for (Index scat_za_index_local = 0; scat_za_index_local < Nza;
-           scat_za_index_local++) {
+      for (Index za_index_local = 0; za_index_local < Nza; za_index_local++) {
         // Calculate the phase matrix of individual scattering elements
         out3 << "Multiplication of phase matrix with incoming"
              << " intensities \n";
@@ -2243,8 +2231,8 @@ void doit_scat_fieldCalc(Workspace& ws,
               for (Index j = 0; j < stokes_dim; j++) {
                 product_field(za_in, aa_in, i) +=
                     pha_mat_doit(
-                        p_index, scat_za_index_local, 0, za_in, aa_in, i, j) *
-                    doit_i_field_mono(p_index, 0, 0, za_in, 0, j);
+                        p_index, za_index_local, 0, za_in, aa_in, i, j) *
+                    cloudbox_field_mono(p_index, 0, 0, za_in, 0, j);
               }
             }
 
@@ -2254,17 +2242,16 @@ void doit_scat_fieldCalc(Workspace& ws,
         //  over zenith angle and azimuth angle grid. It calls
         if (Naa == 1) {
           for (Index i = 0; i < stokes_dim; i++) {
-            doit_scat_field(p_index, 0, 0, scat_za_index_local, 0, i) =
-                AngIntegrate_trapezoid(product_field(joker, 0, i),
-                                       scat_za_grid) /
+            doit_scat_field(p_index, 0, 0, za_index_local, 0, i) =
+                AngIntegrate_trapezoid(product_field(joker, 0, i), za_grid) /
                 2 / PI;
           }  //end i loop
         } else {
           for (Index i = 0; i < stokes_dim; i++) {
-            doit_scat_field(p_index, 0, 0, scat_za_index_local, 0, i) =
+            doit_scat_field(p_index, 0, 0, za_index_local, 0, i) =
                 AngIntegrate_trapezoid_opti(product_field(joker, joker, i),
-                                            scat_za_grid,
-                                            scat_aa_grid,
+                                            za_grid,
+                                            aa_grid,
                                             grid_stepsize);
           }
         }
@@ -2291,18 +2278,18 @@ void doit_scat_fieldCalc(Workspace& ws,
                       lat_index + cloudbox_limits[2],
                       lon_index + cloudbox_limits[4]);
 
-          for (Index scat_aa_index_local = 1; scat_aa_index_local < Naa;
-               scat_aa_index_local++) {
-            for (Index scat_za_index_local = 0; scat_za_index_local < Nza;
-                 scat_za_index_local++) {
+          for (Index aa_index_local = 1; aa_index_local < Naa;
+               aa_index_local++) {
+            for (Index za_index_local = 0; za_index_local < Nza;
+                 za_index_local++) {
               out3 << "Calculate phase matrix \n";
               pha_mat_spt_agendaExecute(ws,
                                         pha_mat_spt_local,
-                                        scat_za_index_local,
+                                        za_index_local,
                                         lat_index,
                                         lon_index,
                                         p_index,
-                                        scat_aa_index_local,
+                                        aa_index_local,
                                         rtp_temperature_local,
                                         pha_mat_spt_agenda);
 
@@ -2327,12 +2314,12 @@ void doit_scat_fieldCalc(Workspace& ws,
                     for (Index j = 0; j < stokes_dim; j++) {
                       product_field(za_in, aa_in, i) +=
                           pha_mat_local(za_in, aa_in, i, j) *
-                          doit_i_field_mono(p_index,
-                                            lat_index,
-                                            lon_index,
-                                            scat_za_index_local,
-                                            scat_aa_index_local,
-                                            j);
+                          cloudbox_field_mono(p_index,
+                                              lat_index,
+                                              lon_index,
+                                              za_index_local,
+                                              aa_index_local,
+                                              j);
                     }
                   }
                 }  //end aa_in loop
@@ -2345,12 +2332,12 @@ void doit_scat_fieldCalc(Workspace& ws,
                 doit_scat_field(p_index,
                                 lat_index,
                                 lon_index,
-                                scat_za_index_local,
-                                scat_aa_index_local,
+                                za_index_local,
+                                aa_index_local,
                                 i) =
                     AngIntegrate_trapezoid_opti(product_field(joker, joker, i),
-                                                scat_za_grid,
-                                                scat_aa_grid,
+                                                za_grid,
+                                                aa_grid,
                                                 grid_stepsize);
               }  //end i loop
             }    //end aa_prop loop
@@ -2370,13 +2357,13 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
                              Tensor6& doit_scat_field,
                              //WS Input:
                              const Agenda& pha_mat_spt_agenda,
-                             const Tensor6& doit_i_field_mono,
+                             const Tensor6& cloudbox_field_mono,
                              const Tensor4& pnd_field,
                              const Tensor3& t_field,
                              const Index& atmosphere_dim,
                              const ArrayOfIndex& cloudbox_limits,
-                             const Vector& scat_za_grid,
-                             const Vector& scat_aa_grid,
+                             const Vector& za_grid,
+                             const Vector& aa_grid,
                              const Index& doit_za_grid_size,
                              const Index& doit_za_interp,
                              const Tensor7& pha_mat_doit,
@@ -2390,16 +2377,16 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
   chk_not_empty("pha_mat_spt_agenda", pha_mat_spt_agenda);
 
   // Number of zenith angles.
-  const Index Nza = scat_za_grid.nelem();
+  const Index Nza = za_grid.nelem();
 
-  if (scat_za_grid[0] != 0. || scat_za_grid[Nza - 1] != 180.)
-    throw runtime_error("The range of *scat_za_grid* must [0 180].");
+  if (za_grid[0] != 0. || za_grid[Nza - 1] != 180.)
+    throw runtime_error("The range of *za_grid* must [0 180].");
 
   // Number of azimuth angles.
-  const Index Naa = scat_aa_grid.nelem();
+  const Index Naa = aa_grid.nelem();
 
-  if (Naa > 1 && (scat_aa_grid[0] != 0. || scat_aa_grid[Naa - 1] != 360.))
-    throw runtime_error("The range of *scat_aa_grid* must [0 360].");
+  if (Naa > 1 && (aa_grid[0] != 0. || aa_grid[Naa - 1] != 360.))
+    throw runtime_error("The range of *aa_grid* must [0 360].");
 
   // Get stokes dimension from *doit_scat_field*:
   const Index stokes_dim = doit_scat_field.ncols();
@@ -2411,10 +2398,10 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
   // that it is defined only inside the cloudbox.
 
   // Check atmospheric dimension and dimensions of
-  // radiation field (*doit_i_field*) and scattering integral field
+  // radiation field (*cloudbox_field*) and scattering integral field
   // (*doit_scat_field*)
   if (atmosphere_dim == 1) {
-    assert(is_size(doit_i_field_mono,
+    assert(is_size(cloudbox_field_mono,
                    (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                    1,
                    1,
@@ -2425,11 +2412,11 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
                    (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                    1,
                    1,
-                   scat_za_grid.nelem(),
+                   za_grid.nelem(),
                    1,
                    stokes_dim));
   } else if (atmosphere_dim == 3) {
-    assert(is_size(doit_i_field_mono,
+    assert(is_size(cloudbox_field_mono,
                    (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                    (cloudbox_limits[3] - cloudbox_limits[2]) + 1,
                    (cloudbox_limits[5] - cloudbox_limits[4]) + 1,
@@ -2478,34 +2465,34 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
 
   // Initialize variables *pha_mat* and *pha_mat_spt*
   Tensor4 pha_mat_local(
-      doit_za_grid_size, scat_aa_grid.nelem(), stokes_dim, stokes_dim, 0.);
+      doit_za_grid_size, aa_grid.nelem(), stokes_dim, stokes_dim, 0.);
 
   Tensor5 pha_mat_spt_local(pnd_field.nbooks(),
                             doit_za_grid_size,
-                            scat_aa_grid.nelem(),
+                            aa_grid.nelem(),
                             stokes_dim,
                             stokes_dim,
                             0.);
 
   // Create the grids for the calculation of the scattering integral.
-  Vector za_grid;
-  nlinspace(za_grid, 0, 180, doit_za_grid_size);
+  Vector za_g;
+  nlinspace(za_g, 0, 180, doit_za_grid_size);
 
   // Two interpolations are required. First we have to interpolate the
   // intensity field on the equidistant grid:
   ArrayOfGridPos gp_za_i(doit_za_grid_size);
-  gridpos(gp_za_i, scat_za_grid, za_grid);
+  gridpos(gp_za_i, za_grid, za_g);
 
   Matrix itw_za_i(doit_za_grid_size, 2);
   interpweights(itw_za_i, gp_za_i);
 
   // Intensity field interpolated on equidistant grid.
-  Matrix doit_i_field_int(doit_za_grid_size, stokes_dim, 0);
+  Matrix cloudbox_field_int(doit_za_grid_size, stokes_dim, 0);
 
   // Second, we have to interpolate the scattering integral on the RT
   // zenith angle grid.
   ArrayOfGridPos gp_za(Nza);
-  gridpos(gp_za, za_grid, scat_za_grid);
+  gridpos(gp_za, za_g, za_grid);
 
   Matrix itw_za(Nza, 2);
   interpweights(itw_za, gp_za);
@@ -2531,17 +2518,17 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
       // Interpolate intensity field:
       for (Index i = 0; i < stokes_dim; i++) {
         if (doit_za_interp == 0) {
-          interp(doit_i_field_int(joker, i),
+          interp(cloudbox_field_int(joker, i),
                  itw_za_i,
-                 doit_i_field_mono(p_index, 0, 0, joker, 0, i),
+                 cloudbox_field_mono(p_index, 0, 0, joker, 0, i),
                  gp_za_i);
         } else if (doit_za_interp == 1) {
           // Polynomial
-          for (Index za = 0; za < za_grid.nelem(); za++) {
-            doit_i_field_int(za, i) =
-                interp_poly(scat_za_grid,
-                            doit_i_field_mono(p_index, 0, 0, joker, 0, i),
-                            za_grid[za],
+          for (Index za = 0; za < za_g.nelem(); za++) {
+            cloudbox_field_int(za, i) =
+                interp_poly(za_grid,
+                            cloudbox_field_mono(p_index, 0, 0, joker, 0, i),
+                            za_g[za],
                             gp_za_i[za]);
           }
         }
@@ -2551,9 +2538,8 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
       }
 
       //There is only loop over zenith angle grid; no azimuth angle grid.
-      for (Index scat_za_index_local = 0;
-           scat_za_index_local < doit_za_grid_size;
-           scat_za_index_local++) {
+      for (Index za_index_local = 0; za_index_local < doit_za_grid_size;
+           za_index_local++) {
         out3 << "Multiplication of phase matrix with incoming"
              << " intensities \n";
 
@@ -2570,8 +2556,8 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
               for (Index j = 0; j < stokes_dim; j++) {
                 product_field(za_in, aa_in, i) +=
                     pha_mat_doit(
-                        p_index, scat_za_index_local, 0, za_in, aa_in, i, j) *
-                    doit_i_field_int(za_in, j);
+                        p_index, za_index_local, 0, za_in, aa_in, i, j) *
+                    cloudbox_field_int(za_in, j);
               }
             }
 
@@ -2581,23 +2567,23 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
         out3 << "Compute integral. \n";
         if (Naa == 1) {
           for (Index i = 0; i < stokes_dim; i++) {
-            doit_scat_field_org(scat_za_index_local, i) =
-                AngIntegrate_trapezoid(product_field(joker, 0, i), za_grid) /
-                2 / PI;
+            doit_scat_field_org(za_index_local, i) =
+                AngIntegrate_trapezoid(product_field(joker, 0, i), za_g) / 2 /
+                PI;
           }  //end i loop
         } else {
           for (Index i = 0; i < stokes_dim; i++) {
-            doit_scat_field_org(scat_za_index_local, i) =
+            doit_scat_field_org(za_index_local, i) =
                 AngIntegrate_trapezoid_opti(product_field(joker, joker, i),
-                                            za_grid,
-                                            scat_aa_grid,
+                                            za_g,
+                                            aa_grid,
                                             grid_stepsize);
           }
         }
 
       }  //end za_prop loop
 
-      // Interpolation on scat_za_grid, which is used in
+      // Interpolation on za_grid, which is used in
       // radiative transfer part.
       for (Index i = 0; i < stokes_dim; i++) {
         if (doit_za_interp == 0)  // linear interpolation
@@ -2608,12 +2594,9 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
                  gp_za);
         } else  // polynomial interpolation
         {
-          for (Index za = 0; za < scat_za_grid.nelem(); za++) {
-            doit_scat_field(p_index, 0, 0, za, 0, i) =
-                interp_poly(za_grid,
-                            doit_scat_field_org(joker, i),
-                            scat_za_grid[za],
-                            gp_za[za]);
+          for (Index za = 0; za < za_grid.nelem(); za++) {
+            doit_scat_field(p_index, 0, 0, za, 0, i) = interp_poly(
+                za_g, doit_scat_field_org(joker, i), za_grid[za], gp_za[za]);
           }
         }
       }
@@ -2637,32 +2620,28 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
                       lon_index + cloudbox_limits[4]);
 
           // Loop over scattered directions
-          for (Index scat_aa_index_local = 1; scat_aa_index_local < Naa;
-               scat_aa_index_local++) {
+          for (Index aa_index_local = 1; aa_index_local < Naa;
+               aa_index_local++) {
             // Interpolate intensity field:
             for (Index i = 0; i < stokes_dim; i++) {
-              interp(doit_i_field_int(joker, i),
-                     itw_za_i,
-                     doit_i_field_mono(p_index,
-                                       lat_index,
-                                       lon_index,
-                                       joker,
-                                       scat_aa_index_local,
-                                       i),
-                     gp_za_i);
+              interp(
+                  cloudbox_field_int(joker, i),
+                  itw_za_i,
+                  cloudbox_field_mono(
+                      p_index, lat_index, lon_index, joker, aa_index_local, i),
+                  gp_za_i);
             }
 
-            for (Index scat_za_index_local = 0;
-                 scat_za_index_local < doit_za_grid_size;
-                 scat_za_index_local++) {
+            for (Index za_index_local = 0; za_index_local < doit_za_grid_size;
+                 za_index_local++) {
               out3 << "Calculate phase matrix \n";
               pha_mat_spt_agendaExecute(ws,
                                         pha_mat_spt_local,
-                                        scat_za_index_local,
+                                        za_index_local,
                                         lat_index,
                                         lon_index,
                                         p_index,
-                                        scat_aa_index_local,
+                                        aa_index_local,
                                         rtp_temperature_local,
                                         pha_mat_spt_agenda);
 
@@ -2690,7 +2669,7 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
                     for (Index j = 0; j < stokes_dim; j++) {
                       product_field(za_in, aa_in, i) +=
                           pha_mat_local(za_in, aa_in, i, j) *
-                          doit_i_field_int(za_in, j);
+                          cloudbox_field_int(za_in, j);
                     }
                   }
                 }  //end aa_in loop
@@ -2699,25 +2678,22 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
               out3 << "Compute the integral \n";
 
               for (Index i = 0; i < stokes_dim; i++) {
-                doit_scat_field_org(scat_za_index_local, i) =
+                doit_scat_field_org(za_index_local, i) =
                     AngIntegrate_trapezoid_opti(product_field(joker, joker, i),
                                                 za_grid,
-                                                scat_aa_grid,
+                                                aa_grid,
                                                 grid_stepsize);
               }  //end stokes_dim loop
 
             }  //end za_prop loop
             //Interpolate on original za_grid.
             for (Index i = 0; i < stokes_dim; i++) {
-              interp(doit_scat_field(p_index,
-                                     lat_index,
-                                     lon_index,
-                                     joker,
-                                     scat_aa_index_local,
-                                     i),
-                     itw_za,
-                     doit_scat_field_org(joker, i),
-                     gp_za);
+              interp(
+                  doit_scat_field(
+                      p_index, lat_index, lon_index, joker, aa_index_local, i),
+                  itw_za,
+                  doit_scat_field_org(joker, i),
+                  gp_za);
             }
           }  // end aa_prop loop
         }    //end lon loop
@@ -2733,8 +2709,8 @@ void doit_scat_fieldCalcLimb(Workspace& ws,
 void doit_za_grid_optCalc(  //WS Output
     Vector& doit_za_grid_opt,
     // WS Input:
-    const Tensor6& doit_i_field_mono,
-    const Vector& scat_za_grid,
+    const Tensor6& cloudbox_field_mono,
+    const Vector& za_grid,
     const Index& doit_za_interp,
     //Keywords:
     const Numeric& acc,
@@ -2742,23 +2718,23 @@ void doit_za_grid_optCalc(  //WS Output
   CREATE_OUT1;
   //-------- Check the input ---------------------------------
 
-  // Here it is checked whether doit_i_field is 1D and whether it is
-  // consistent with scat_za_grid. The number of pressure levels and the
+  // Here it is checked whether cloudbox_field is 1D and whether it is
+  // consistent with za_grid. The number of pressure levels and the
   // number of stokes components does not matter.
-  chk_size("doit_i_field",
-           doit_i_field_mono,
-           doit_i_field_mono.nvitrines(),
+  chk_size("cloudbox_field",
+           cloudbox_field_mono,
+           cloudbox_field_mono.nvitrines(),
            1,
            1,
-           scat_za_grid.nelem(),
+           za_grid.nelem(),
            1,
-           doit_i_field_mono.ncols());
+           cloudbox_field_mono.ncols());
 
-  if (doit_i_field_mono.ncols() < 1 || doit_i_field_mono.ncols() > 4)
+  if (cloudbox_field_mono.ncols() < 1 || cloudbox_field_mono.ncols() > 4)
     throw runtime_error(
-        "The last dimension of *doit_i_field* corresponds\n"
+        "The last dimension of *cloudbox_field* corresponds\n"
         "to the Stokes dimension, therefore the number of\n"
-        "columns in *doit_i_field* must be a number between\n"
+        "columns in *cloudbox_field* must be a number between\n"
         "1 and 4, but it is not!");
 
   if (!(doit_za_interp == 0 || doit_za_interp == 1))
@@ -2766,11 +2742,11 @@ void doit_za_grid_optCalc(  //WS Output
         "Interpolation method is not defined. Use \n"
         "*doit_za_interpSet*.\n");
 
-  if (scat_za_grid.nelem() < 500) {
-    out1 << "Warning: The fine grid (*scat_za_grid*) has less than\n"
+  if (za_grid.nelem() < 500) {
+    out1 << "Warning: The fine grid (*za_grid*) has less than\n"
          << "500 grid points which is likely not sufficient for\n"
          << "grid_optimization\n";
-    /*    throw runtime_error("The fine grid (*scat_za_grid*) has less than \n"
+    /*    throw runtime_error("The fine grid (*za_grid*) has less than \n"
                         "500 grid points which is not sufficient for \n"
                         "grid_optimization");
 */
@@ -2778,14 +2754,14 @@ void doit_za_grid_optCalc(  //WS Output
   // ------------- end of checks -------------------------------------
 
   // Here only used as dummy variable.
-  Matrix doit_i_field_opt_mat;
-  doit_i_field_opt_mat = 0.;
+  Matrix cloudbox_field_opt_mat;
+  cloudbox_field_opt_mat = 0.;
 
   // Optimize zenith angle grid.
   za_gridOpt(doit_za_grid_opt,
-             doit_i_field_opt_mat,
-             scat_za_grid,
-             doit_i_field_mono,
+             cloudbox_field_opt_mat,
+             za_grid,
+             cloudbox_field_mono,
              acc,
              doit_za_interp);
 }
@@ -2817,7 +2793,7 @@ void doit_za_interpSet(Index& doit_za_interp,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DoitCalc(Workspace& ws,
-              Tensor7& doit_i_field,
+              Tensor7& cloudbox_field,
               const Index& atmfields_checked,
               const Index& atmgeom_checked,
               const Index& cloudbox_checked,
@@ -2895,7 +2871,7 @@ void DoitCalc(Workspace& ws,
     firstprivate(l_ws, l_doit_mono_agenda)
     for (Index f_index = 0; f_index < nf; f_index++) {
       if (failed) {
-        doit_i_field(f_index, joker, joker, joker, joker, joker, joker) = NAN;
+        cloudbox_field(f_index, joker, joker, joker, joker, joker, joker) = NAN;
         continue;
       }
 
@@ -2904,14 +2880,17 @@ void DoitCalc(Workspace& ws,
         os << "Frequency: " << f_grid[f_index] / 1e9 << " GHz \n";
         out2 << os.str();
 
-        Tensor6 doit_i_field_mono_local =
-            doit_i_field(f_index, joker, joker, joker, joker, joker, joker);
-        doit_mono_agendaExecute(
-            l_ws, doit_i_field_mono_local, f_grid, f_index, l_doit_mono_agenda);
-        doit_i_field(f_index, joker, joker, joker, joker, joker, joker) =
-            doit_i_field_mono_local;
+        Tensor6 cloudbox_field_mono_local =
+            cloudbox_field(f_index, joker, joker, joker, joker, joker, joker);
+        doit_mono_agendaExecute(l_ws,
+                                cloudbox_field_mono_local,
+                                f_grid,
+                                f_index,
+                                l_doit_mono_agenda);
+        cloudbox_field(f_index, joker, joker, joker, joker, joker, joker) =
+            cloudbox_field_mono_local;
       } catch (const std::exception& e) {
-        doit_i_field(f_index, joker, joker, joker, joker, joker, joker) = NAN;
+        cloudbox_field(f_index, joker, joker, joker, joker, joker, joker) = NAN;
         ostringstream os;
         os << "Error for f_index = " << f_index << " (" << f_grid[f_index]
            << " Hz)" << endl
@@ -2931,7 +2910,7 @@ void DoitCalc(Workspace& ws,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DoitGetIncoming(Workspace& ws,
-                     Tensor7& doit_i_field,
+                     Tensor7& cloudbox_field,
                      const Index& atmfields_checked,
                      const Index& atmgeom_checked,
                      const Index& cloudbox_checked,
@@ -2946,8 +2925,8 @@ void DoitGetIncoming(Workspace& ws,
                      const ArrayOfIndex& cloudbox_limits,
                      const Vector& f_grid,
                      const Index& stokes_dim,
-                     const Vector& scat_za_grid,
-                     const Vector& scat_aa_grid,
+                     const Vector& za_grid,
+                     const Vector& aa_grid,
                      const Index& rigorous,
                      const Numeric& maxratio,
                      const Verbosity&) {
@@ -2981,31 +2960,32 @@ void DoitGetIncoming(Workspace& ws,
 
   Index Nf = f_grid.nelem();
   Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
-  Index Nza = scat_za_grid.nelem();
+  Index Nza = za_grid.nelem();
   Matrix iy;
   Ppath ppath;
 
   //--- Check input ----------------------------------------------------------
   if (!(atmosphere_dim == 1 || atmosphere_dim == 3))
     throw runtime_error("The atmospheric dimensionality must be 1 or 3.");
-  if (scat_za_grid[0] != 0. || scat_za_grid[Nza - 1] != 180.)
+  if (za_grid[0] != 0. || za_grid[Nza - 1] != 180.)
     throw runtime_error(
-        "*scat_za_grid* must include 0 and 180 degrees as endpoints.");
+        "*za_grid* must include 0 and 180 degrees as endpoints.");
   //--------------------------------------------------------------------------
 
   if (atmosphere_dim == 1) {
     //Define the variables for position and direction.
     Vector los(1), pos(1);
 
-    //--- Get doit_i_field at lower and upper boundary
+    //--- Get cloudbox_field at lower and upper boundary
     //    (boundary=0: lower, boundary=1: upper)
     for (Index boundary = 0; boundary <= 1; boundary++) {
-      const Index boundary_index = boundary ? doit_i_field.nvitrines() - 1 : 0;
+      const Index boundary_index =
+          boundary ? cloudbox_field.nvitrines() - 1 : 0;
       pos[0] = z_field(cloudbox_limits[boundary], 0, 0);
 
       // doing the first angle separately for allowing dy between 2 angles
       // in the loop
-      los[0] = scat_za_grid[0];
+      los[0] = za_grid[0];
       get_iy(ws,
              iy,
              0,
@@ -3016,10 +2996,10 @@ void DoitGetIncoming(Workspace& ws,
              Vector(0),
              iy_unit,
              iy_main_agenda);
-      doit_i_field(joker, boundary_index, 0, 0, 0, 0, joker) = iy;
+      cloudbox_field(joker, boundary_index, 0, 0, 0, 0, joker) = iy;
 
-      for (Index scat_za_index = 1; scat_za_index < Nza; scat_za_index++) {
-        los[0] = scat_za_grid[scat_za_index];
+      for (Index za_index = 1; za_index < Nza; za_index++) {
+        los[0] = za_grid[za_index];
 
         get_iy(ws,
                iy,
@@ -3032,19 +3012,17 @@ void DoitGetIncoming(Workspace& ws,
                iy_unit,
                iy_main_agenda);
 
-        doit_i_field(joker, boundary_index, 0, 0, scat_za_index, 0, joker) = iy;
+        cloudbox_field(joker, boundary_index, 0, 0, za_index, 0, joker) = iy;
 
         if (rigorous) {
           for (Index fi = 0; fi < Nf; fi++) {
-            if (doit_i_field(
-                    fi, boundary_index, 0, 0, scat_za_index - 1, 0, 0) /
-                        doit_i_field(
-                            fi, boundary_index, 0, 0, scat_za_index, 0, 0) >
+            if (cloudbox_field(fi, boundary_index, 0, 0, za_index - 1, 0, 0) /
+                        cloudbox_field(
+                            fi, boundary_index, 0, 0, za_index, 0, 0) >
                     maxratio ||
-                doit_i_field(
-                    fi, boundary_index, 0, 0, scat_za_index - 1, 0, 0) /
-                        doit_i_field(
-                            fi, boundary_index, 0, 0, scat_za_index, 0, 0) <
+                cloudbox_field(fi, boundary_index, 0, 0, za_index - 1, 0, 0) /
+                        cloudbox_field(
+                            fi, boundary_index, 0, 0, za_index, 0, 0) <
                     1 / maxratio) {
               ostringstream os;
               os << "ERROR: Radiance difference between "
@@ -3054,13 +3032,12 @@ void DoitGetIncoming(Workspace& ws,
                  << "za_grid being too coarse or the radiance field "
                  << "being a step-like function.\n"
                  << "Happens at boundary " << boundary_index
-                 << " between zenith angles " << scat_za_grid[scat_za_index - 1]
-                 << " and " << scat_za_grid[scat_za_index] << "deg\n"
+                 << " between zenith angles " << za_grid[za_index - 1]
+                 << " and " << za_grid[za_index] << "deg\n"
                  << "for frequency #" << fi << ", where radiances are "
-                 << doit_i_field(
-                        fi, boundary_index, 0, 0, scat_za_index - 1, 0, 0)
+                 << cloudbox_field(fi, boundary_index, 0, 0, za_index - 1, 0, 0)
                  << " and "
-                 << doit_i_field(fi, boundary_index, 0, 0, scat_za_index, 0, 0)
+                 << cloudbox_field(fi, boundary_index, 0, 0, za_index, 0, 0)
                  << " W/(sr m2 Hz).";
               throw runtime_error(os.str());
             }
@@ -3072,28 +3049,29 @@ void DoitGetIncoming(Workspace& ws,
 
   //--- atmosphere_dim = 3: --------------------------------------------------
   else {
-    Index Naa = scat_aa_grid.nelem();
+    Index Naa = aa_grid.nelem();
 
-    if (scat_aa_grid[0] != 0. || scat_aa_grid[Naa - 1] != 360.)
+    if (aa_grid[0] != 0. || aa_grid[Naa - 1] != 360.)
       throw runtime_error(
-          "*scat_aa_grid* must include 0 and 360 degrees as endpoints.");
+          "*aa_grid* must include 0 and 360 degrees as endpoints.");
 
     Index Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1;
     Index Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
 
-    // Convert scat_aa_grid to "sensor coordinates"
+    // Convert aa_grid to "sensor coordinates"
     // (-180° < azimuth angle < 180°)
     //
-    Vector aa_grid(Naa);
-    for (Index i = 0; i < Naa; i++) aa_grid[i] = scat_aa_grid[i] - 180;
+    Vector aa_g(Naa);
+    for (Index i = 0; i < Naa; i++) aa_g[i] = aa_grid[i] - 180;
 
     // Define the variables for position and direction.
     Vector los(2), pos(3);
 
-    //--- Get doit_i_field at lower and upper boundary
+    //--- Get cloudbox_field at lower and upper boundary
     //    (boundary=0: lower, boundary=1: upper)
     for (Index boundary = 0; boundary <= 1; boundary++) {
-      const Index boundary_index = boundary ? doit_i_field.nvitrines() - 1 : 0;
+      const Index boundary_index =
+          boundary ? cloudbox_field.nvitrines() - 1 : 0;
       for (Index lat_index = 0; lat_index < Nlat_cloud; lat_index++) {
         for (Index lon_index = 0; lon_index < Nlon_cloud; lon_index++) {
           pos[2] = lon_grid[lon_index + cloudbox_limits[4]];
@@ -3102,17 +3080,15 @@ void DoitGetIncoming(Workspace& ws,
                            lat_index + cloudbox_limits[2],
                            lon_index + cloudbox_limits[4]);
 
-          for (Index scat_za_index = 0; scat_za_index < Nza; scat_za_index++) {
-            for (Index scat_aa_index = 0; scat_aa_index < Naa;
-                 scat_aa_index++) {
-              los[0] = scat_za_grid[scat_za_index];
-              los[1] = aa_grid[scat_aa_index];
+          for (Index za_index = 0; za_index < Nza; za_index++) {
+            for (Index aa_index = 0; aa_index < Naa; aa_index++) {
+              los[0] = za_grid[za_index];
+              los[1] = aa_g[aa_index];
 
-              // For end points of scat_za_index (0 & 180deg), we
+              // For end points of za_index (0 & 180deg), we
               // only need to perform calculations for one scat_aa
               // and set the others to same value
-              if ((scat_za_index != 0 && scat_za_index != (Nza - 1)) ||
-                  scat_aa_index == 0) {
+              if ((za_index != 0 && za_index != (Nza - 1)) || aa_index == 0) {
                 get_iy(ws,
                        iy,
                        0,
@@ -3125,13 +3101,13 @@ void DoitGetIncoming(Workspace& ws,
                        iy_main_agenda);
               }
 
-              doit_i_field(joker,
-                           boundary_index,
-                           lat_index,
-                           lon_index,
-                           scat_za_index,
-                           scat_aa_index,
-                           joker) = iy;
+              cloudbox_field(joker,
+                             boundary_index,
+                             lat_index,
+                             lon_index,
+                             za_index,
+                             aa_index,
+                             joker) = iy;
             }
           }
         }
@@ -3140,7 +3116,7 @@ void DoitGetIncoming(Workspace& ws,
 
     //--- Get scat_i_lat (2nd and 3rd boundary)
     for (Index boundary = 0; boundary <= 1; boundary++) {
-      const Index boundary_index = boundary ? doit_i_field.nshelves() - 1 : 0;
+      const Index boundary_index = boundary ? cloudbox_field.nshelves() - 1 : 0;
       for (Index p_index = 0; p_index < Np_cloud; p_index++) {
         for (Index lon_index = 0; lon_index < Nlon_cloud; lon_index++) {
           pos[2] = lon_grid[lon_index + cloudbox_limits[4]];
@@ -3149,16 +3125,14 @@ void DoitGetIncoming(Workspace& ws,
                            cloudbox_limits[boundary + 2],
                            lon_index + cloudbox_limits[4]);
 
-          for (Index scat_za_index = 0; scat_za_index < Nza; scat_za_index++) {
-            for (Index scat_aa_index = 0; scat_aa_index < Naa;
-                 scat_aa_index++) {
-              los[0] = scat_za_grid[scat_za_index];
-              los[1] = aa_grid[scat_aa_index];
+          for (Index za_index = 0; za_index < Nza; za_index++) {
+            for (Index aa_index = 0; aa_index < Naa; aa_index++) {
+              los[0] = za_grid[za_index];
+              los[1] = aa_g[aa_index];
 
-              // For end points of scat_za_index, we need only to
+              // For end points of za_index, we need only to
               // perform calculations for first scat_aa
-              if ((scat_za_index != 0 && scat_za_index != (Nza - 1)) ||
-                  scat_aa_index == 0) {
+              if ((za_index != 0 && za_index != (Nza - 1)) || aa_index == 0) {
                 get_iy(ws,
                        iy,
                        0,
@@ -3171,13 +3145,13 @@ void DoitGetIncoming(Workspace& ws,
                        iy_main_agenda);
               }
 
-              doit_i_field(joker,
-                           p_index,
-                           boundary_index,
-                           lon_index,
-                           scat_za_index,
-                           scat_aa_index,
-                           joker) = iy;
+              cloudbox_field(joker,
+                             p_index,
+                             boundary_index,
+                             lon_index,
+                             za_index,
+                             aa_index,
+                             joker) = iy;
             }
           }
         }
@@ -3186,7 +3160,7 @@ void DoitGetIncoming(Workspace& ws,
 
     //--- Get scat_i_lon (1st and 2nd boundary):
     for (Index boundary = 0; boundary <= 1; boundary++) {
-      const Index boundary_index = boundary ? doit_i_field.nbooks() - 1 : 0;
+      const Index boundary_index = boundary ? cloudbox_field.nbooks() - 1 : 0;
       for (Index p_index = 0; p_index < Np_cloud; p_index++) {
         for (Index lat_index = 0; lat_index < Nlat_cloud; lat_index++) {
           pos[2] = lon_grid[cloudbox_limits[boundary + 4]];
@@ -3195,16 +3169,14 @@ void DoitGetIncoming(Workspace& ws,
                            lat_index + cloudbox_limits[2],
                            cloudbox_limits[boundary + 4]);
 
-          for (Index scat_za_index = 0; scat_za_index < Nza; scat_za_index++) {
-            for (Index scat_aa_index = 0; scat_aa_index < Naa;
-                 scat_aa_index++) {
-              los[0] = scat_za_grid[scat_za_index];
-              los[1] = aa_grid[scat_aa_index];
+          for (Index za_index = 0; za_index < Nza; za_index++) {
+            for (Index aa_index = 0; aa_index < Naa; aa_index++) {
+              los[0] = za_grid[za_index];
+              los[1] = aa_g[aa_index];
 
-              // For end points of scat_za_index, we need only to
+              // For end points of za_index, we need only to
               // perform calculations for first scat_aa
-              if ((scat_za_index != 0 && scat_za_index != (Nza - 1)) ||
-                  scat_aa_index == 0) {
+              if ((za_index != 0 && za_index != (Nza - 1)) || aa_index == 0) {
                 get_iy(ws,
                        iy,
                        0,
@@ -3217,13 +3189,13 @@ void DoitGetIncoming(Workspace& ws,
                        iy_main_agenda);
               }
 
-              doit_i_field(joker,
-                           p_index,
-                           lat_index,
-                           boundary_index,
-                           scat_za_index,
-                           scat_aa_index,
-                           joker) = iy;
+              cloudbox_field(joker,
+                             p_index,
+                             lat_index,
+                             boundary_index,
+                             za_index,
+                             aa_index,
+                             joker) = iy;
             }
           }
         }
@@ -3234,7 +3206,7 @@ void DoitGetIncoming(Workspace& ws,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void DoitGetIncoming1DAtm(Workspace& ws,
-                          Tensor7& doit_i_field,
+                          Tensor7& cloudbox_field,
                           Index& cloudbox_on,
                           const Index& atmfields_checked,
                           const Index& atmgeom_checked,
@@ -3245,12 +3217,12 @@ void DoitGetIncoming1DAtm(Workspace& ws,
                           const Vector& lat_grid,
                           const Vector& lon_grid,
                           const Tensor3& z_field,
-                          const Tensor4& nlte_field,                          
+                          const Tensor4& nlte_field,
                           const ArrayOfIndex& cloudbox_limits,
                           const Vector& f_grid,
                           const Index& stokes_dim,
-                          const Vector& scat_za_grid,
-                          const Vector& scat_aa_grid,
+                          const Vector& za_grid,
+                          const Vector& aa_grid,
                           const Verbosity&) {
   chk_if_in_range("stokes_dim", stokes_dim, 1, 4);
   if (atmfields_checked != 1)
@@ -3283,20 +3255,20 @@ void DoitGetIncoming1DAtm(Workspace& ws,
   Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
   Index Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1;
   Index Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
-  Index Nza = scat_za_grid.nelem();
-  Index Naa = scat_aa_grid.nelem();
+  Index Nza = za_grid.nelem();
+  Index Naa = aa_grid.nelem();
   Matrix iy;
   Ppath ppath;
 
   //--- Check input ----------------------------------------------------------
   if (atmosphere_dim != 3)
     throw runtime_error("The atmospheric dimensionality must be 3.");
-  if (scat_za_grid[0] != 0. || scat_za_grid[Nza - 1] != 180.)
+  if (za_grid[0] != 0. || za_grid[Nza - 1] != 180.)
     throw runtime_error(
-        "*scat_za_grid* must include 0 and 180 degrees as endpoints.");
-  if (scat_aa_grid[0] != 0. || scat_aa_grid[Naa - 1] != 360.)
+        "*za_grid* must include 0 and 180 degrees as endpoints.");
+  if (aa_grid[0] != 0. || aa_grid[Naa - 1] != 360.)
     throw runtime_error(
-        "*scat_aa_grid* must include 0 and 360 degrees as endpoints.");
+        "*aa_grid* must include 0 and 360 degrees as endpoints.");
   //--------------------------------------------------------------------------
 
   // Dummy variable for flag cloudbox_on. It has to be 0 here not to get
@@ -3304,11 +3276,11 @@ void DoitGetIncoming1DAtm(Workspace& ws,
   // box at some other position.
   cloudbox_on = 0;
 
-  // Convert scat_za_grid to "sensor coordinates"
+  // Convert za_grid to "sensor coordinates"
   //(-180° < azimuth angle < 180°)
   //
-  Vector aa_grid(Naa);
-  for (Index i = 0; i < Naa; i++) aa_grid[i] = scat_aa_grid[i] - 180;
+  Vector aa_g(Naa);
+  for (Index i = 0; i < Naa; i++) aa_g[i] = aa_grid[i] - 180;
 
   // As the atmosphere is spherically symmetric we only have to calculate
   // one azimuth angle.
@@ -3320,15 +3292,15 @@ void DoitGetIncoming1DAtm(Workspace& ws,
   // These variables are constant for all calculations:
   pos[1] = lat_grid[cloudbox_limits[2]];
   pos[2] = lon_grid[cloudbox_limits[4]];
-  los[1] = aa_grid[aa_index];
+  los[1] = aa_g[aa_index];
 
-  // Calculate doit_i_field on boundary
+  // Calculate cloudbox_field on boundary
   for (Index p_index = 0; p_index < Np_cloud; p_index++) {
     pos[0] = z_field(
         cloudbox_limits[0] + p_index, cloudbox_limits[2], cloudbox_limits[4]);
 
-    for (Index scat_za_index = 0; scat_za_index < Nza; scat_za_index++) {
-      los[0] = scat_za_grid[scat_za_index];
+    for (Index za_index = 0; za_index < Nza; za_index++) {
+      los[0] = za_grid[za_index];
 
       get_iy(ws,
              iy,
@@ -3342,45 +3314,44 @@ void DoitGetIncoming1DAtm(Workspace& ws,
              iy_main_agenda);
 
       for (Index aa = 0; aa < Naa; aa++) {
-        // doit_i_field lower boundary
+        // cloudbox_field lower boundary
         if (p_index == 0) {
           for (Index lat = 0; lat < Nlat_cloud; lat++) {
             for (Index lon = 0; lon < Nlon_cloud; lon++) {
-              doit_i_field(joker, 0, lat, lon, scat_za_index, aa, joker) = iy;
+              cloudbox_field(joker, 0, lat, lon, za_index, aa, joker) = iy;
             }
           }
         }
-        //doit_i_field at upper boundary
+        //cloudbox_field at upper boundary
         else if (p_index == Np_cloud - 1)
           for (Index lat = 0; lat < Nlat_cloud; lat++) {
             for (Index lon = 0; lon < Nlon_cloud; lon++) {
-              doit_i_field(joker,
-                           doit_i_field.nvitrines(),
-                           lat,
-                           lon,
-                           scat_za_index,
-                           aa,
-                           joker) = iy;
+              cloudbox_field(joker,
+                             cloudbox_field.nvitrines(),
+                             lat,
+                             lon,
+                             za_index,
+                             aa,
+                             joker) = iy;
             }
           }
 
         // scat_i_lat (both boundaries)
         for (Index lat = 0; lat < 2; lat++) {
           for (Index lon = 0; lon < Nlon_cloud; lon++) {
-            const Index boundary_index = lat ? doit_i_field.nshelves() - 1 : 0;
-            doit_i_field(
-                joker, p_index, boundary_index, lon, scat_za_index, aa, joker) =
-                iy;
+            const Index boundary_index =
+                lat ? cloudbox_field.nshelves() - 1 : 0;
+            cloudbox_field(
+                joker, p_index, boundary_index, lon, za_index, aa, joker) = iy;
           }
         }
 
         // scat_i_lon (both boundaries)
         for (Index lat = 0; lat < Nlat_cloud; lat++) {
           for (Index lon = 0; lon < 2; lon++) {
-            const Index boundary_index = lon ? doit_i_field.nbooks() - 1 : 0;
-            doit_i_field(
-                joker, p_index, lat, boundary_index, scat_za_index, aa, joker) =
-                iy;
+            const Index boundary_index = lon ? cloudbox_field.nbooks() - 1 : 0;
+            cloudbox_field(
+                joker, p_index, lat, boundary_index, za_index, aa, joker) = iy;
           }
         }
       }
@@ -3390,15 +3361,15 @@ void DoitGetIncoming1DAtm(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void doit_i_fieldSetFromPrecalc(Tensor7& doit_i_field,
-                                const Vector& scat_za_grid,
-                                const Vector& f_grid,
-                                const Index& atmosphere_dim,
-                                const Index& stokes_dim,
-                                const ArrayOfIndex& cloudbox_limits,
-                                const Index& doit_is_initialized,
-                                const Tensor7& doit_i_field_precalc,
-                                const Verbosity&)  //verbosity)
+void cloudbox_fieldSetFromPrecalc(Tensor7& cloudbox_field,
+                                  const Vector& za_grid,
+                                  const Vector& f_grid,
+                                  const Index& atmosphere_dim,
+                                  const Index& stokes_dim,
+                                  const ArrayOfIndex& cloudbox_limits,
+                                  const Index& doit_is_initialized,
+                                  const Tensor7& cloudbox_field_precalc,
+                                  const Verbosity&)  //verbosity)
 {
   // this is only for 1D atmo!
   if (atmosphere_dim != 1) {
@@ -3411,44 +3382,44 @@ void doit_i_fieldSetFromPrecalc(Tensor7& doit_i_field,
   if (!doit_is_initialized) {
     ostringstream os;
     os << "Initialization method *DoitInit* has to be called before "
-       << "*doit_i_fieldSetFromPrecalc*";
+       << "*cloudbox_fieldSetFromPrecalc*";
     throw runtime_error(os.str());
   }
 
-  // check dimensions of doit_i_field_precalc
+  // check dimensions of cloudbox_field_precalc
   Index nf = f_grid.nelem();
-  Index nza = scat_za_grid.nelem();
+  Index nza = za_grid.nelem();
   Index np = cloudbox_limits[1] - cloudbox_limits[0] + 1;
 
-  if (nf != doit_i_field_precalc.nlibraries()) {
+  if (nf != cloudbox_field_precalc.nlibraries()) {
     ostringstream os;
-    os << "doit_i_field_precalc has wrong size in frequency dimension.\n"
-       << nf << " frequency points are expected, but doit_i_field_precalc "
-       << "contains " << doit_i_field_precalc.nlibraries()
+    os << "cloudbox_field_precalc has wrong size in frequency dimension.\n"
+       << nf << " frequency points are expected, but cloudbox_field_precalc "
+       << "contains " << cloudbox_field_precalc.nlibraries()
        << "frequency points.\n";
     throw runtime_error(os.str());
   }
-  if (np != doit_i_field_precalc.nvitrines()) {
+  if (np != cloudbox_field_precalc.nvitrines()) {
     ostringstream os;
-    os << "doit_i_field_precalc has wrong size in pressure level dimension.\n"
-       << np << " pressure levels expected, but doit_i_field_precalc "
-       << "contains " << doit_i_field_precalc.nvitrines()
+    os << "cloudbox_field_precalc has wrong size in pressure level dimension.\n"
+       << np << " pressure levels expected, but cloudbox_field_precalc "
+       << "contains " << cloudbox_field_precalc.nvitrines()
        << "pressure levels.\n";
     throw runtime_error(os.str());
   }
-  if (nza != doit_i_field_precalc.npages()) {
+  if (nza != cloudbox_field_precalc.npages()) {
     ostringstream os;
-    os << "doit_i_field_precalc has wrong size in polar angle dimension.\n"
-       << nza << " angles expected, but doit_i_field_precalc "
-       << "contains " << doit_i_field_precalc.npages() << "angles.\n";
+    os << "cloudbox_field_precalc has wrong size in polar angle dimension.\n"
+       << nza << " angles expected, but cloudbox_field_precalc "
+       << "contains " << cloudbox_field_precalc.npages() << "angles.\n";
     throw runtime_error(os.str());
   }
-  if (stokes_dim != doit_i_field_precalc.ncols()) {
+  if (stokes_dim != cloudbox_field_precalc.ncols()) {
     ostringstream os;
-    os << "doit_i_field_precalc has wrong stokes dimension.\n"
+    os << "cloudbox_field_precalc has wrong stokes dimension.\n"
        << "Dimension " << stokes_dim
-       << " expected, but doit_i_field_precalc is dimesnion "
-       << doit_i_field_precalc.ncols() << ".\n";
+       << " expected, but cloudbox_field_precalc is dimesnion "
+       << cloudbox_field_precalc.ncols() << ".\n";
     throw runtime_error(os.str());
   }
 
@@ -3456,53 +3427,53 @@ void doit_i_fieldSetFromPrecalc(Tensor7& doit_i_field,
   // compared to our first guess initialization, the clearsky field around might
   // have changed.
 
-  // Find which scat_za_grid entries describe upwelling, which downwelling
+  // Find which za_grid entries describe upwelling, which downwelling
   // radiation.
   Index first_upwell = 0;
-  assert(scat_za_grid[0] < 90.);
-  assert(scat_za_grid[scat_za_grid.nelem() - 1] > 90.);
-  while (scat_za_grid[first_upwell] < 90.) first_upwell++;
+  assert(za_grid[0] < 90.);
+  assert(za_grid[za_grid.nelem() - 1] > 90.);
+  while (za_grid[first_upwell] < 90.) first_upwell++;
 
   Range downwell(0, first_upwell);
-  Range upwell(first_upwell, scat_za_grid.nelem() - first_upwell);
+  Range upwell(first_upwell, za_grid.nelem() - first_upwell);
 
   // Copy everything inside the field
-  doit_i_field(joker, Range(1, np - 2), 0, 0, joker, 0, joker) =
-      doit_i_field_precalc(joker, Range(1, np - 2), 0, 0, joker, 0, joker);
+  cloudbox_field(joker, Range(1, np - 2), 0, 0, joker, 0, joker) =
+      cloudbox_field_precalc(joker, Range(1, np - 2), 0, 0, joker, 0, joker);
 
   // At boundaries we need to be a bit careful. We shouldn't overwrite the
   // boundary conditions.
 
   // Copy only upwelling radiation at upper boundary from precalc field
   // (Downwelling is "boundary condition" and has been set by DoitGetIncoming)
-  doit_i_field(joker, np - 1, 0, 0, upwell, 0, joker) =
-      doit_i_field_precalc(joker, np - 1, 0, 0, upwell, 0, joker);
+  cloudbox_field(joker, np - 1, 0, 0, upwell, 0, joker) =
+      cloudbox_field_precalc(joker, np - 1, 0, 0, upwell, 0, joker);
 
   if (cloudbox_limits[0] != 0)
     // Copy only downwelling radiation at lower boundary from precalc field
     // (Upwelling is "boundary condition" and has been set by DoitGetIncoming)
-    doit_i_field(joker, 0, 0, 0, downwell, 0, joker) =
-        doit_i_field_precalc(joker, 0, 0, 0, downwell, 0, joker);
+    cloudbox_field(joker, 0, 0, 0, downwell, 0, joker) =
+        cloudbox_field_precalc(joker, 0, 0, 0, downwell, 0, joker);
   else
     // Copy all directions at lower boundary from precalc field
     // (when lower boundary at surface, the upwelling field is fixed "boundary
     // condition", but part of the field getting iteratively updated according
     // to the cloudbox-dependent surface reflection contribution)
-    doit_i_field(joker, 0, 0, 0, joker, 0, joker) =
-        doit_i_field_precalc(joker, 0, 0, 0, joker, 0, joker);
+    cloudbox_field(joker, 0, 0, 0, joker, 0, joker) =
+        cloudbox_field_precalc(joker, 0, 0, 0, joker, 0, joker);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void doit_i_fieldSetClearsky(Tensor7& doit_i_field,
-                             const Vector& p_grid,
-                             const Vector& lat_grid,
-                             const Vector& lon_grid,
-                             const ArrayOfIndex& cloudbox_limits,
-                             const Index& atmosphere_dim,
-                             const Index& cloudbox_on,
-                             const Index& doit_is_initialized,
-                             const Index& all_frequencies,
-                             const Verbosity& verbosity) {
+void cloudbox_fieldSetClearsky(Tensor7& cloudbox_field,
+                               const Vector& p_grid,
+                               const Vector& lat_grid,
+                               const Vector& lon_grid,
+                               const ArrayOfIndex& cloudbox_limits,
+                               const Index& atmosphere_dim,
+                               const Index& cloudbox_on,
+                               const Index& doit_is_initialized,
+                               const Index& all_frequencies,
+                               const Verbosity& verbosity) {
   CREATE_OUT2;
 
   // Don't do anything if there's no cloudbox defined.
@@ -3512,7 +3483,7 @@ void doit_i_fieldSetClearsky(Tensor7& doit_i_field,
   if (!doit_is_initialized) {
     ostringstream os;
     os << "Initialization method *DoitInit* has to be called before "
-       << "*doit_i_fieldSetClearsky*.";
+       << "*cloudbox_fieldSetClearsky*.";
     throw runtime_error(os.str());
   }
 
@@ -3523,12 +3494,12 @@ void doit_i_fieldSetClearsky(Tensor7& doit_i_field,
   // first frequency. For the next frequencies the solution field from the
   // previous frequencies is used.
   if (atmosphere_dim == 1) {
-    const Index nf = all_frequencies ? doit_i_field.nlibraries() : 1;
+    const Index nf = all_frequencies ? cloudbox_field.nlibraries() : 1;
 
     for (Index f_index = 0; f_index < nf; f_index++) {
-      Index N_za = doit_i_field.npages();
-      Index N_aa = doit_i_field.nrows();
-      Index N_i = doit_i_field.ncols();
+      Index N_za = cloudbox_field.npages();
+      Index N_aa = cloudbox_field.nrows();
+      Index N_i = cloudbox_field.ncols();
 
       //1. interpolation - pressure grid
 
@@ -3550,20 +3521,20 @@ void doit_i_fieldSetClearsky(Tensor7& doit_i_field,
 
       Tensor6 scat_i_p(2, 1, 1, N_za, 1, N_i);
       scat_i_p(0, joker, joker, joker, joker, joker) =
-          doit_i_field(f_index, 0, joker, joker, joker, joker, joker);
+          cloudbox_field(f_index, 0, joker, joker, joker, joker, joker);
       scat_i_p(1, joker, joker, joker, joker, joker) =
-          doit_i_field(f_index,
-                       doit_i_field.nvitrines() - 1,
-                       joker,
-                       joker,
-                       joker,
-                       joker,
-                       joker);
+          cloudbox_field(f_index,
+                         cloudbox_field.nvitrines() - 1,
+                         joker,
+                         joker,
+                         joker,
+                         joker,
+                         joker);
 
       for (Index za_index = 0; za_index < N_za; ++za_index) {
         for (Index aa_index = 0; aa_index < N_aa; ++aa_index) {
           for (Index i = 0; i < N_i; ++i) {
-            VectorView target_field = doit_i_field(
+            VectorView target_field = cloudbox_field(
                 f_index, Range(joker), 0, 0, za_index, aa_index, i);
 
             ConstVectorView source_field =
@@ -3577,34 +3548,34 @@ void doit_i_fieldSetClearsky(Tensor7& doit_i_field,
   } else if (atmosphere_dim == 3) {
     if (all_frequencies == false)
       throw runtime_error(
-          "Error in doit_i_fieldSetClearsky: For 3D "
+          "Error in cloudbox_fieldSetClearsky: For 3D "
           "all_frequencies option is not implemented \n");
 
-    for (Index f_index = 0; f_index < doit_i_field.nvitrines(); f_index++) {
-      Index N_p = doit_i_field.nvitrines();
-      Index N_lat = doit_i_field.nshelves();
-      Index N_lon = doit_i_field.nbooks();
-      Index N_za = doit_i_field.npages();
-      Index N_aa = doit_i_field.nrows();
-      Index N_i = doit_i_field.ncols();
+    for (Index f_index = 0; f_index < cloudbox_field.nvitrines(); f_index++) {
+      Index N_p = cloudbox_field.nvitrines();
+      Index N_lat = cloudbox_field.nshelves();
+      Index N_lon = cloudbox_field.nbooks();
+      Index N_za = cloudbox_field.npages();
+      Index N_aa = cloudbox_field.nrows();
+      Index N_i = cloudbox_field.ncols();
 
       Tensor6 scat_i_p(2, N_lat, N_lon, N_za, N_aa, N_i);
       scat_i_p(0, joker, joker, joker, joker, joker) =
-          doit_i_field(f_index, 0, joker, joker, joker, joker, joker);
+          cloudbox_field(f_index, 0, joker, joker, joker, joker, joker);
       scat_i_p(1, joker, joker, joker, joker, joker) =
-          doit_i_field(f_index, N_p - 1, joker, joker, joker, joker, joker);
+          cloudbox_field(f_index, N_p - 1, joker, joker, joker, joker, joker);
 
       Tensor6 scat_i_lat(N_p, 2, N_lon, N_za, N_aa, N_i);
       scat_i_lat(joker, 0, joker, joker, joker, joker) =
-          doit_i_field(f_index, joker, 0, joker, joker, joker, joker);
+          cloudbox_field(f_index, joker, 0, joker, joker, joker, joker);
       scat_i_lat(joker, 1, joker, joker, joker, joker) =
-          doit_i_field(f_index, joker, N_lat - 1, joker, joker, joker, joker);
+          cloudbox_field(f_index, joker, N_lat - 1, joker, joker, joker, joker);
 
       Tensor6 scat_i_lon(N_p, N_lat, 2, N_za, N_aa, N_i);
       scat_i_lon(joker, joker, 0, joker, joker, joker) =
-          doit_i_field(f_index, joker, joker, 0, joker, joker, joker);
+          cloudbox_field(f_index, joker, joker, 0, joker, joker, joker);
       scat_i_lon(joker, joker, 1, joker, joker, joker) =
-          doit_i_field(f_index, joker, joker, N_lon - 1, joker, joker, joker);
+          cloudbox_field(f_index, joker, joker, N_lon - 1, joker, joker, joker);
 
       //1. interpolation - pressure grid, latitude grid and longitude grid
 
@@ -3656,13 +3627,13 @@ void doit_i_fieldSetClearsky(Tensor7& doit_i_field,
           for (Index za_index = 0; za_index < N_za; ++za_index) {
             for (Index aa_index = 0; aa_index < N_aa; ++aa_index) {
               for (Index i = 0; i < N_i; ++i) {
-                VectorView target_field = doit_i_field(f_index,
-                                                       Range(joker),
-                                                       lat_index,
-                                                       lon_index,
-                                                       za_index,
-                                                       aa_index,
-                                                       i);
+                VectorView target_field = cloudbox_field(f_index,
+                                                         Range(joker),
+                                                         lat_index,
+                                                         lon_index,
+                                                         za_index,
+                                                         aa_index,
+                                                         i);
 
                 ConstVectorView source_field = scat_i_p(
                     Range(joker), lat_index, lon_index, za_index, aa_index, i);
@@ -3683,13 +3654,13 @@ void doit_i_fieldSetClearsky(Tensor7& doit_i_field,
           for (Index za_index = 0; za_index < N_za; ++za_index) {
             for (Index aa_index = 0; aa_index < N_aa; ++aa_index) {
               for (Index i = 0; i < N_i; ++i) {
-                VectorView target_field = doit_i_field(f_index,
-                                                       p_index,
-                                                       Range(joker),
-                                                       lon_index,
-                                                       za_index,
-                                                       aa_index,
-                                                       i);
+                VectorView target_field = cloudbox_field(f_index,
+                                                         p_index,
+                                                         Range(joker),
+                                                         lon_index,
+                                                         za_index,
+                                                         aa_index,
+                                                         i);
 
                 ConstVectorView source_field = scat_i_lat(
                     p_index, Range(joker), lon_index, za_index, aa_index, i);
@@ -3710,13 +3681,13 @@ void doit_i_fieldSetClearsky(Tensor7& doit_i_field,
           for (Index za_index = 0; za_index < N_za; ++za_index) {
             for (Index aa_index = 0; aa_index < N_aa; ++aa_index) {
               for (Index i = 0; i < N_i; ++i) {
-                VectorView target_field = doit_i_field(f_index,
-                                                       p_index,
-                                                       lat_index,
-                                                       Range(joker),
-                                                       za_index,
-                                                       aa_index,
-                                                       i);
+                VectorView target_field = cloudbox_field(f_index,
+                                                         p_index,
+                                                         lat_index,
+                                                         Range(joker),
+                                                         za_index,
+                                                         aa_index,
+                                                         i);
 
                 ConstVectorView source_field = scat_i_lon(
                     p_index, lat_index, Range(joker), za_index, aa_index, i);
@@ -3732,8 +3703,8 @@ void doit_i_fieldSetClearsky(Tensor7& doit_i_field,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void doit_i_fieldSetConst(  //WS Output:
-    Tensor7& doit_i_field,
+void cloudbox_fieldSetConst(  //WS Output:
+    Tensor7& cloudbox_field,
     //WS Input:
     const Vector& p_grid,
     const Vector& lat_grid,
@@ -3742,39 +3713,39 @@ void doit_i_fieldSetConst(  //WS Output:
     const Index& atmosphere_dim,
     const Index& stokes_dim,
     // Keyword
-    const Vector& doit_i_field_values,
+    const Vector& cloudbox_field_values,
     const Verbosity& verbosity) {
   CREATE_OUT2;
 
-  Tensor6 doit_i_field_mono(doit_i_field.nvitrines(),
-                            doit_i_field.nshelves(),
-                            doit_i_field.nbooks(),
-                            doit_i_field.npages(),
-                            doit_i_field.nrows(),
-                            doit_i_field.ncols());
+  Tensor6 cloudbox_field_mono(cloudbox_field.nvitrines(),
+                              cloudbox_field.nshelves(),
+                              cloudbox_field.nbooks(),
+                              cloudbox_field.npages(),
+                              cloudbox_field.nrows(),
+                              cloudbox_field.ncols());
 
-  for (Index f_index = 0; f_index < doit_i_field.nlibraries(); f_index++) {
-    doit_i_field_mono =
-        doit_i_field(f_index, joker, joker, joker, joker, joker, joker);
+  for (Index f_index = 0; f_index < cloudbox_field.nlibraries(); f_index++) {
+    cloudbox_field_mono =
+        cloudbox_field(f_index, joker, joker, joker, joker, joker, joker);
 
-    doit_i_field_monoSetConst(doit_i_field_mono,
-                              p_grid,
-                              lat_grid,
-                              lon_grid,
-                              cloudbox_limits,
-                              atmosphere_dim,
-                              stokes_dim,
-                              doit_i_field_values,
-                              verbosity);
+    cloudbox_field_monoSetConst(cloudbox_field_mono,
+                                p_grid,
+                                lat_grid,
+                                lon_grid,
+                                cloudbox_limits,
+                                atmosphere_dim,
+                                stokes_dim,
+                                cloudbox_field_values,
+                                verbosity);
 
-    doit_i_field(f_index, joker, joker, joker, joker, joker, joker) =
-        doit_i_field_mono;
+    cloudbox_field(f_index, joker, joker, joker, joker, joker, joker) =
+        cloudbox_field_mono;
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void doit_i_fieldSetConstPerFreq(  //WS Output:
-    Tensor7& doit_i_field,
+void cloudbox_fieldSetConstPerFreq(  //WS Output:
+    Tensor7& cloudbox_field,
     //WS Input:
     const Vector& p_grid,
     const Vector& lat_grid,
@@ -3783,44 +3754,44 @@ void doit_i_fieldSetConstPerFreq(  //WS Output:
     const Index& atmosphere_dim,
     const Index& stokes_dim,
     // Keyword
-    const Matrix& doit_i_field_values,
+    const Matrix& cloudbox_field_values,
     const Verbosity& verbosity) {
   CREATE_OUT2;
 
-  if (doit_i_field.nlibraries() != doit_i_field_values.nrows())
+  if (cloudbox_field.nlibraries() != cloudbox_field_values.nrows())
     throw runtime_error(
-        "Number of rows in *doit_i_field_values* has to be equal"
-        " the frequency dimension of *doit_i_field*.");
+        "Number of rows in *cloudbox_field_values* has to be equal"
+        " the frequency dimension of *cloudbox_field*.");
 
-  Tensor6 doit_i_field_mono(doit_i_field.nvitrines(),
-                            doit_i_field.nshelves(),
-                            doit_i_field.nbooks(),
-                            doit_i_field.npages(),
-                            doit_i_field.nrows(),
-                            doit_i_field.ncols());
+  Tensor6 cloudbox_field_mono(cloudbox_field.nvitrines(),
+                              cloudbox_field.nshelves(),
+                              cloudbox_field.nbooks(),
+                              cloudbox_field.npages(),
+                              cloudbox_field.nrows(),
+                              cloudbox_field.ncols());
 
-  for (Index f_index = 0; f_index < doit_i_field.nlibraries(); f_index++) {
-    doit_i_field_mono =
-        doit_i_field(f_index, joker, joker, joker, joker, joker, joker);
+  for (Index f_index = 0; f_index < cloudbox_field.nlibraries(); f_index++) {
+    cloudbox_field_mono =
+        cloudbox_field(f_index, joker, joker, joker, joker, joker, joker);
 
-    doit_i_field_monoSetConst(doit_i_field_mono,
-                              p_grid,
-                              lat_grid,
-                              lon_grid,
-                              cloudbox_limits,
-                              atmosphere_dim,
-                              stokes_dim,
-                              doit_i_field_values(f_index, joker),
-                              verbosity);
+    cloudbox_field_monoSetConst(cloudbox_field_mono,
+                                p_grid,
+                                lat_grid,
+                                lon_grid,
+                                cloudbox_limits,
+                                atmosphere_dim,
+                                stokes_dim,
+                                cloudbox_field_values(f_index, joker),
+                                verbosity);
 
-    doit_i_field(f_index, joker, joker, joker, joker, joker, joker) =
-        doit_i_field_mono;
+    cloudbox_field(f_index, joker, joker, joker, joker, joker, joker) =
+        cloudbox_field_mono;
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void doit_i_field_monoSetConst(  //WS Output:
-    Tensor6& doit_i_field_mono,
+void cloudbox_field_monoSetConst(  //WS Output:
+    Tensor6& cloudbox_field_mono,
     //WS Input:
     const Vector& p_grid,
     const Vector& lat_grid,
@@ -3829,12 +3800,12 @@ void doit_i_field_monoSetConst(  //WS Output:
     const Index& atmosphere_dim,
     const Index& stokes_dim,
     // Keyword
-    const Vector& doit_i_field_values,
+    const Vector& cloudbox_field_values,
     const Verbosity& verbosity) {
   CREATE_OUT2;
   CREATE_OUT3;
 
-  out2 << "  Set initial field to constant values: " << doit_i_field_values
+  out2 << "  Set initial field to constant values: " << cloudbox_field_values
        << "\n";
 
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
@@ -3848,9 +3819,9 @@ void doit_i_field_monoSetConst(  //WS Output:
         "The dimension of stokes vector must be"
         "1,2,3, or 4.");
 
-  if (stokes_dim != doit_i_field_values.nelem())
+  if (stokes_dim != cloudbox_field_values.nelem())
     throw runtime_error(
-        "Length of *doit_i_field_values* has to be equal"
+        "Length of *cloudbox_field_values* has to be equal"
         " *stokes_dim*.");
   if (cloudbox_limits.nelem() != 2 * atmosphere_dim)
     throw runtime_error(
@@ -3860,7 +3831,7 @@ void doit_i_field_monoSetConst(  //WS Output:
         "be 2 x *atmosphere_dim*.");
 
   for (Index i = 0; i < stokes_dim; i++) {
-    doit_i_field_mono(joker, joker, joker, joker, joker, i) =
-        doit_i_field_values[i];
+    cloudbox_field_mono(joker, joker, joker, joker, joker, i) =
+        cloudbox_field_values[i];
   }
 }

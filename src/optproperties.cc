@@ -1676,15 +1676,15 @@ void ext_matTransform(  //Output and Input
   \param[in]     aa_datagrid   Zenith angle grid in the database.
   \param[in]     ptype Type of scattering element.
   \param[in]     za_sca_idx    Index of zenith angle of scattered direction
-                                 within scat_za_grid.
+                                 within za_grid.
   \param[in]     aa_sca_idx    Index of azimuth angle of scattered direction
-                                 within scat_aa_grid.
+                                 within aa_grid.
   \param[in]     za_inc_idx    Index of zenith angle of incoming direction
-                                 within scat_za_grid.
+                                 within za_grid.
   \param[in]     aa_inc_idx    Index of azimuth angle of incoming direction
-                                 within scat_aa_grid.
-  \param[in]     scat_za_grid  Grid of zenith angles to extract pha_mat for.
-  \param[in]     scat_aa_grid  Grid of azimuth angles to extract pha_mat for.
+                                 within aa_grid.
+  \param[in]     za_grid  Grid of zenith angles to extract pha_mat for.
+  \param[in]     aa_grid  Grid of azimuth angles to extract pha_mat for.
   
   \author Claudia Emde
   \date   2003-08-19
@@ -1700,15 +1700,15 @@ void pha_matTransform(  //Output
     const Index& aa_sca_idx,
     const Index& za_inc_idx,
     const Index& aa_inc_idx,
-    ConstVectorView scat_za_grid,
-    ConstVectorView scat_aa_grid,
+    ConstVectorView za_grid,
+    ConstVectorView aa_grid,
     const Verbosity& verbosity) {
   const Index stokes_dim = pha_mat_lab.ncols();
 
-  Numeric za_sca = scat_za_grid[za_sca_idx];
-  Numeric aa_sca = scat_aa_grid[aa_sca_idx];
-  Numeric za_inc = scat_za_grid[za_inc_idx];
-  Numeric aa_inc = scat_aa_grid[aa_inc_idx];
+  Numeric za_sca = za_grid[za_sca_idx];
+  Numeric aa_sca = aa_grid[aa_sca_idx];
+  Numeric za_inc = za_grid[za_inc_idx];
+  Numeric aa_inc = aa_grid[aa_inc_idx];
 
   if (stokes_dim > 4 || stokes_dim < 1) {
     throw runtime_error(
@@ -1749,186 +1749,186 @@ void pha_matTransform(  //Output
 
     case PTYPE_AZIMUTH_RND:  //Added by Cory Davis
                              //Data is already stored in the laboratory frame,
-    //but it is compressed a little.  Details elsewhere.
-    {
-      assert(pha_mat_data.ncols() == 16);
-      assert(pha_mat_data.npages() == za_datagrid.nelem());
-      Numeric delta_aa =
-          aa_sca - aa_inc + (aa_sca - aa_inc < -180) * 360 -
-          (aa_sca - aa_inc > 180) * 360;  //delta_aa corresponds to the "books"
-                                          //dimension of pha_mat_data
-      GridPos za_sca_gp;
-      GridPos delta_aa_gp;
-      GridPos za_inc_gp;
-      Vector itw(8);
+      //but it is compressed a little.  Details elsewhere.
+      {
+        assert(pha_mat_data.ncols() == 16);
+        assert(pha_mat_data.npages() == za_datagrid.nelem());
+        Numeric delta_aa = aa_sca - aa_inc + (aa_sca - aa_inc < -180) * 360 -
+                           (aa_sca - aa_inc > 180) *
+                               360;  //delta_aa corresponds to the "books"
+                                     //dimension of pha_mat_data
+        GridPos za_sca_gp;
+        GridPos delta_aa_gp;
+        GridPos za_inc_gp;
+        Vector itw(8);
 
-      gridpos(delta_aa_gp, aa_datagrid, abs(delta_aa));
-      gridpos(za_inc_gp, za_datagrid, za_inc);
-      gridpos(za_sca_gp, za_datagrid, za_sca);
+        gridpos(delta_aa_gp, aa_datagrid, abs(delta_aa));
+        gridpos(za_inc_gp, za_datagrid, za_inc);
+        gridpos(za_sca_gp, za_datagrid, za_sca);
 
-      interpweights(itw, za_sca_gp, delta_aa_gp, za_inc_gp);
+        interpweights(itw, za_sca_gp, delta_aa_gp, za_inc_gp);
 
-      pha_mat_lab(0, 0) =
-          interp(itw,
-                 pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 0),
-                 za_sca_gp,
-                 delta_aa_gp,
-                 za_inc_gp);
-      if (stokes_dim == 1) {
+        pha_mat_lab(0, 0) =
+            interp(itw,
+                   pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 0),
+                   za_sca_gp,
+                   delta_aa_gp,
+                   za_inc_gp);
+        if (stokes_dim == 1) {
+          break;
+        }
+        pha_mat_lab(0, 1) =
+            interp(itw,
+                   pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 1),
+                   za_sca_gp,
+                   delta_aa_gp,
+                   za_inc_gp);
+        pha_mat_lab(1, 0) =
+            interp(itw,
+                   pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 4),
+                   za_sca_gp,
+                   delta_aa_gp,
+                   za_inc_gp);
+        pha_mat_lab(1, 1) =
+            interp(itw,
+                   pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 5),
+                   za_sca_gp,
+                   delta_aa_gp,
+                   za_inc_gp);
+        if (stokes_dim == 2) {
+          break;
+        }
+        if (delta_aa >= 0) {
+          pha_mat_lab(0, 2) = interp(
+              itw,
+              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 2),
+              za_sca_gp,
+              delta_aa_gp,
+              za_inc_gp);
+          pha_mat_lab(1, 2) = interp(
+              itw,
+              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 6),
+              za_sca_gp,
+              delta_aa_gp,
+              za_inc_gp);
+          pha_mat_lab(2, 0) = interp(
+              itw,
+              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 8),
+              za_sca_gp,
+              delta_aa_gp,
+              za_inc_gp);
+          pha_mat_lab(2, 1) = interp(
+              itw,
+              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 9),
+              za_sca_gp,
+              delta_aa_gp,
+              za_inc_gp);
+        } else {
+          pha_mat_lab(0, 2) = -interp(
+              itw,
+              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 2),
+              za_sca_gp,
+              delta_aa_gp,
+              za_inc_gp);
+          pha_mat_lab(1, 2) = -interp(
+              itw,
+              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 6),
+              za_sca_gp,
+              delta_aa_gp,
+              za_inc_gp);
+          pha_mat_lab(2, 0) = -interp(
+              itw,
+              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 8),
+              za_sca_gp,
+              delta_aa_gp,
+              za_inc_gp);
+          pha_mat_lab(2, 1) = -interp(
+              itw,
+              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 9),
+              za_sca_gp,
+              delta_aa_gp,
+              za_inc_gp);
+        }
+        pha_mat_lab(2, 2) = interp(
+            itw,
+            pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 10),
+            za_sca_gp,
+            delta_aa_gp,
+            za_inc_gp);
+        if (stokes_dim == 3) {
+          break;
+        }
+        if (delta_aa >= 0) {
+          pha_mat_lab(0, 3) = interp(
+              itw,
+              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 3),
+              za_sca_gp,
+              delta_aa_gp,
+              za_inc_gp);
+          pha_mat_lab(1, 3) = interp(
+              itw,
+              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 7),
+              za_sca_gp,
+              delta_aa_gp,
+              za_inc_gp);
+          pha_mat_lab(3, 0) = interp(
+              itw,
+              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 12),
+              za_sca_gp,
+              delta_aa_gp,
+              za_inc_gp);
+          pha_mat_lab(3, 1) = interp(
+              itw,
+              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 13),
+              za_sca_gp,
+              delta_aa_gp,
+              za_inc_gp);
+        } else {
+          pha_mat_lab(0, 3) = -interp(
+              itw,
+              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 3),
+              za_sca_gp,
+              delta_aa_gp,
+              za_inc_gp);
+          pha_mat_lab(1, 3) = -interp(
+              itw,
+              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 7),
+              za_sca_gp,
+              delta_aa_gp,
+              za_inc_gp);
+          pha_mat_lab(3, 0) = -interp(
+              itw,
+              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 12),
+              za_sca_gp,
+              delta_aa_gp,
+              za_inc_gp);
+          pha_mat_lab(3, 1) = -interp(
+              itw,
+              pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 13),
+              za_sca_gp,
+              delta_aa_gp,
+              za_inc_gp);
+        }
+        pha_mat_lab(2, 3) = interp(
+            itw,
+            pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 11),
+            za_sca_gp,
+            delta_aa_gp,
+            za_inc_gp);
+        pha_mat_lab(3, 2) = interp(
+            itw,
+            pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 14),
+            za_sca_gp,
+            delta_aa_gp,
+            za_inc_gp);
+        pha_mat_lab(3, 3) = interp(
+            itw,
+            pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 15),
+            za_sca_gp,
+            delta_aa_gp,
+            za_inc_gp);
         break;
       }
-      pha_mat_lab(0, 1) =
-          interp(itw,
-                 pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 1),
-                 za_sca_gp,
-                 delta_aa_gp,
-                 za_inc_gp);
-      pha_mat_lab(1, 0) =
-          interp(itw,
-                 pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 4),
-                 za_sca_gp,
-                 delta_aa_gp,
-                 za_inc_gp);
-      pha_mat_lab(1, 1) =
-          interp(itw,
-                 pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 5),
-                 za_sca_gp,
-                 delta_aa_gp,
-                 za_inc_gp);
-      if (stokes_dim == 2) {
-        break;
-      }
-      if (delta_aa >= 0) {
-        pha_mat_lab(0, 2) =
-            interp(itw,
-                   pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 2),
-                   za_sca_gp,
-                   delta_aa_gp,
-                   za_inc_gp);
-        pha_mat_lab(1, 2) =
-            interp(itw,
-                   pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 6),
-                   za_sca_gp,
-                   delta_aa_gp,
-                   za_inc_gp);
-        pha_mat_lab(2, 0) =
-            interp(itw,
-                   pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 8),
-                   za_sca_gp,
-                   delta_aa_gp,
-                   za_inc_gp);
-        pha_mat_lab(2, 1) =
-            interp(itw,
-                   pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 9),
-                   za_sca_gp,
-                   delta_aa_gp,
-                   za_inc_gp);
-      } else {
-        pha_mat_lab(0, 2) = -interp(
-            itw,
-            pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 2),
-            za_sca_gp,
-            delta_aa_gp,
-            za_inc_gp);
-        pha_mat_lab(1, 2) = -interp(
-            itw,
-            pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 6),
-            za_sca_gp,
-            delta_aa_gp,
-            za_inc_gp);
-        pha_mat_lab(2, 0) = -interp(
-            itw,
-            pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 8),
-            za_sca_gp,
-            delta_aa_gp,
-            za_inc_gp);
-        pha_mat_lab(2, 1) = -interp(
-            itw,
-            pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 9),
-            za_sca_gp,
-            delta_aa_gp,
-            za_inc_gp);
-      }
-      pha_mat_lab(2, 2) =
-          interp(itw,
-                 pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 10),
-                 za_sca_gp,
-                 delta_aa_gp,
-                 za_inc_gp);
-      if (stokes_dim == 3) {
-        break;
-      }
-      if (delta_aa >= 0) {
-        pha_mat_lab(0, 3) =
-            interp(itw,
-                   pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 3),
-                   za_sca_gp,
-                   delta_aa_gp,
-                   za_inc_gp);
-        pha_mat_lab(1, 3) =
-            interp(itw,
-                   pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 7),
-                   za_sca_gp,
-                   delta_aa_gp,
-                   za_inc_gp);
-        pha_mat_lab(3, 0) = interp(
-            itw,
-            pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 12),
-            za_sca_gp,
-            delta_aa_gp,
-            za_inc_gp);
-        pha_mat_lab(3, 1) = interp(
-            itw,
-            pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 13),
-            za_sca_gp,
-            delta_aa_gp,
-            za_inc_gp);
-      } else {
-        pha_mat_lab(0, 3) = -interp(
-            itw,
-            pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 3),
-            za_sca_gp,
-            delta_aa_gp,
-            za_inc_gp);
-        pha_mat_lab(1, 3) = -interp(
-            itw,
-            pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 7),
-            za_sca_gp,
-            delta_aa_gp,
-            za_inc_gp);
-        pha_mat_lab(3, 0) = -interp(
-            itw,
-            pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 12),
-            za_sca_gp,
-            delta_aa_gp,
-            za_inc_gp);
-        pha_mat_lab(3, 1) = -interp(
-            itw,
-            pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 13),
-            za_sca_gp,
-            delta_aa_gp,
-            za_inc_gp);
-      }
-      pha_mat_lab(2, 3) =
-          interp(itw,
-                 pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 11),
-                 za_sca_gp,
-                 delta_aa_gp,
-                 za_inc_gp);
-      pha_mat_lab(3, 2) =
-          interp(itw,
-                 pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 14),
-                 za_sca_gp,
-                 delta_aa_gp,
-                 za_inc_gp);
-      pha_mat_lab(3, 3) =
-          interp(itw,
-                 pha_mat_data(Range(joker), Range(joker), Range(joker), 0, 15),
-                 za_sca_gp,
-                 delta_aa_gp,
-                 za_inc_gp);
-      break;
-    }
 
     default: {
       CREATE_OUT0;

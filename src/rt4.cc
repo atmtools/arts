@@ -53,7 +53,6 @@ extern const Numeric RAD2DEG;
 extern const Numeric SPEED_OF_LIGHT;
 extern const Numeric COSMIC_BG_TEMP;
 
-
 void check_rt4_input(  // Output
     Index& nhstreams,
     Index& nhza,
@@ -72,7 +71,6 @@ void check_rt4_input(  // Output
     const String& quad_type,
     const Index& add_straight_angles,
     const Index& pnd_ncols) {
-
   // Don't do anything if there's no cloudbox defined.
   if (!cloudbox_on) {
     throw runtime_error(
@@ -192,12 +190,11 @@ void check_rt4_input(  // Output
   //------------- end of checks ---------------------------------------
 }
 
-
 void get_quad_angles(  // Output
     VectorView mu_values,
     VectorView quad_weights,
-    Vector& scat_za_grid,
-    Vector& scat_aa_grid,
+    Vector& za_grid,
+    Vector& aa_grid,
     // Input
     const String& quad_type,
     const Index& nhstreams,
@@ -218,19 +215,18 @@ void get_quad_angles(  // Output
   // Set "extra" angle (at 0deg) if quad_type!="L" && !add_straight_angles
   if (nhza > 0) mu_values[nhstreams] = 1.;
 
-  // FIXME: we should be able to avoid setting scat_za_grid here in one way,
+  // FIXME: we should be able to avoid setting za_grid here in one way,
   // and resetting in another before leaving the WSM. This, however, requires
   // rearranging the angle order and angle assignment in the RT4-SSP prep
   // routines.
-  scat_za_grid.resize(2 * nummu);
+  za_grid.resize(2 * nummu);
   for (Index imu = 0; imu < nummu; imu++) {
-    scat_za_grid[imu] = acos(mu_values[imu]) * RAD2DEG;
-    scat_za_grid[nummu + imu] = 180. - scat_za_grid[imu];
+    za_grid[imu] = acos(mu_values[imu]) * RAD2DEG;
+    za_grid[nummu + imu] = 180. - za_grid[imu];
   }
-  scat_aa_grid.resize(1);
-  scat_aa_grid[0] = 0.;
+  aa_grid.resize(1);
+  aa_grid[0] = 0.;
 }
-
 
 void get_rt4surf_props(  // Output
     Vector& ground_albedo,
@@ -346,8 +342,8 @@ void get_rt4surf_props(  // Output
 
 void run_rt4(Workspace& ws,
              // Output
-             Tensor7& doit_i_field,
-             Vector& scat_za_grid,
+             Tensor7& cloudbox_field,
+             Vector& za_grid,
              // Input
              ConstVectorView f_grid,
              ConstVectorView p_grid,
@@ -382,28 +378,27 @@ void run_rt4(Workspace& ws,
              const Numeric& pfct_threshold,
              const Numeric& max_delta_tau,
              const Verbosity& verbosity) {
+  // Create an atmosphere starting at z_surface
+  Vector p, z, t;
+  Matrix vmr, pnd;
+  ArrayOfIndex cboxlims;
+  Index ncboxremoved;
+  //
+  reduced_1datm(p,
+                z,
+                t,
+                vmr,
+                pnd,
+                cboxlims,
+                ncboxremoved,
+                p_grid,
+                z_profile,
+                surf_altitude,
+                t_profile,
+                vmr_profiles,
+                pnd_profiles,
+                cloudbox_limits);
 
-    // Create an atmosphere starting at z_surface
-    Vector p, z, t;
-    Matrix vmr, pnd;
-    ArrayOfIndex cboxlims;
-    Index ncboxremoved;
-    //
-    reduced_1datm(p,
-                  z,
-                  t,
-                  vmr,
-                  pnd,
-                  cboxlims,
-                  ncboxremoved,
-                  p_grid,
-                  z_profile,
-                  surf_altitude,
-                  t_profile,
-                  vmr_profiles,
-                  pnd_profiles,
-                  cloudbox_limits);
-  
   // Input variables for RT4
   Index num_layers = p.nelem() - 1;
 
@@ -468,10 +463,10 @@ void run_rt4(Workspace& ws,
                     extinct_matrix_allf,
                     //scatlayers,
                     scat_data,
-                    scat_za_grid,
+                    za_grid,
                     -1,
                     pnd,
-                    t, 
+                    t,
                     cboxlims,
                     stokes_dim);
     if (emis_vector_allf.nshelves() == 1)  // scat_data had just a single freq
@@ -486,16 +481,16 @@ void run_rt4(Workspace& ws,
 
   // FIXME: once, all old optprop scheme incl. the applied agendas is removed,
   // we can remove this as well.
-  Vector scat_za_grid_orig;
+  Vector za_grid_orig;
   if (auto_inc_nstreams) {
-    // For the WSV scat_za_grid, we need to reset these grids instead of
+    // For the WSV za_grid, we need to reset these grids instead of
     // creating a new container. this because further down some agendas are
     // used that access scat_za/aa_grid through the workspace.
     // Later on, we need to reconstruct the original setting, hence backup
     // that here.
-    scat_za_grid_orig = scat_za_grid;
+    za_grid_orig = za_grid;
   }
-  
+
   Index nummu_new = 0;
   // Loop over frequencies
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index++) {
@@ -539,7 +534,7 @@ void run_rt4(Workspace& ws,
                           extinct_matrix,
                           //scatlayers,
                           scat_data,
-                          scat_za_grid,
+                          za_grid,
                           f_index,
                           pnd,
                           t[Range(0, num_layers + 1)],
@@ -554,7 +549,7 @@ void run_rt4(Workspace& ws,
                         scat_data,
                         pnd,
                         stokes_dim,
-                        scat_za_grid,
+                        za_grid,
                         quad_weights,
                         pfct_method,
                         pfct_aa_grid_size,
@@ -599,13 +594,13 @@ void run_rt4(Workspace& ws,
                   up_rad.get_c_array(),
                   down_rad.get_c_array());
       }
-      
-    } else { // if (auto_inc_nstreams)
+
+    } else {  // if (auto_inc_nstreams)
 
       if (nummu_new < nummu) nummu_new = nummu + 1;
 
       Index nhstreams_new;
-      Vector mu_values_new, quad_weights_new, scat_aa_grid_new;
+      Vector mu_values_new, quad_weights_new, aa_grid_new;
       Tensor6 scatter_matrix_new;
       Tensor6 extinct_matrix_new;
       Tensor5 emis_vector_new;
@@ -622,8 +617,8 @@ void run_rt4(Workspace& ws,
         quad_weights_new = 0.;
         get_quad_angles(mu_values_new,
                         quad_weights_new,
-                        scat_za_grid,
-                        scat_aa_grid_new,
+                        za_grid,
+                        aa_grid_new,
                         quad_type,
                         nhstreams_new,
                         nhza,
@@ -647,7 +642,7 @@ void run_rt4(Workspace& ws,
                         extinct_matrix_new,
                         //scatlayers,
                         scat_data,
-                        scat_za_grid,
+                        za_grid,
                         f_index,
                         pnd,
                         t[Range(0, num_layers + 1)],
@@ -668,7 +663,7 @@ void run_rt4(Workspace& ws,
             scat_data,
             pnd,
             stokes_dim,
-            scat_za_grid,
+            za_grid,
             quad_weights_new,
             pfct_method,
             pfct_aa_grid_size,
@@ -708,7 +703,7 @@ void run_rt4(Workspace& ws,
               scat_data,
               pnd,
               stokes_dim,
-              scat_za_grid,
+              za_grid,
               quad_weights_new,
               pfct_method,
               pfct_aa_grid_size,
@@ -729,7 +724,7 @@ void run_rt4(Workspace& ws,
                          sev_new,
                          surface_rtprop_agenda,
                          f_grid[Range(f_index, 1)],
-                         scat_za_grid,
+                         za_grid,
                          mu_values_new,
                          quad_weights_new,
                          stokes_dim,
@@ -793,8 +788,8 @@ void run_rt4(Workspace& ws,
               gp_za, mu_values_new, mu_values[j], za_interp_order, 0.5);
         } else {
           gridpos_poly(gp_za,
-                       scat_za_grid[Range(0, nummu_new)],
-                       scat_za_grid_orig[j],
+                       za_grid[Range(0, nummu_new)],
+                       za_grid_orig[j],
                        za_interp_order,
                        0.5);
         }
@@ -809,8 +804,8 @@ void run_rt4(Workspace& ws,
           }
       }
 
-      // reconstruct scat_za_grid
-      scat_za_grid = scat_za_grid_orig;
+      // reconstruct za_grid
+      za_grid = za_grid_orig;
     }
 
     // RT4 rad output is in wavelength units, nominally in W/(m2 sr um), where
@@ -821,8 +816,8 @@ void run_rt4(Workspace& ws,
     //
     // FIXME: if ever we allow the cloudbox to be not directly at the surface
     // (at atm level #0, respectively), the assigning from up/down_rad to
-    // doit_i_field needs to checked. there seems some offsetting going on
-    // (test example: TestDOIT.arts. if kept like below, doit_i_field at
+    // cloudbox_field needs to checked. there seems some offsetting going on
+    // (test example: TestDOIT.arts. if kept like below, cloudbox_field at
     // top-of-cloudbox seems to actually be from somewhere within the
     // cloud(box) indicated by downwelling being to high and downwelling
     // exhibiting a non-zero polarisation signature (which it wouldn't with
@@ -831,44 +826,43 @@ void run_rt4(Workspace& ws,
     Numeric rad_l2f = wavelength / f_grid[f_index];
     // down/up_rad contain the radiances in order from slant (90deg) to steep
     // (0 and 180deg, respectively) streams,then the possible extra angle(s).
-    // We need to resort them properly into doit_i_field, such that order is
+    // We need to resort them properly into cloudbox_field, such that order is
     // from 0 to 180deg.
     for (Index j = 0; j < nummu; j++) {
       for (Index ist = 0; ist < stokes_dim; ist++) {
         for (Index k = cboxlims[1] - cboxlims[0]; k >= 0; k--) {
-          doit_i_field(f_index, k + ncboxremoved, 0, 0, nummu + j, 0, ist) =
-            up_rad(num_layers - k, j, ist) * rad_l2f;
-          doit_i_field(f_index, k + ncboxremoved, 0, 0, nummu - 1 - j, 0, ist) =
-            down_rad(num_layers - k, j, ist) * rad_l2f;
+          cloudbox_field(f_index, k + ncboxremoved, 0, 0, nummu + j, 0, ist) =
+              up_rad(num_layers - k, j, ist) * rad_l2f;
+          cloudbox_field(
+              f_index, k + ncboxremoved, 0, 0, nummu - 1 - j, 0, ist) =
+              down_rad(num_layers - k, j, ist) * rad_l2f;
         }
         // To avoid potential numerical problems at interpolation of the field,
         // we copy the surface field to underground altitudes
         for (Index k = ncboxremoved - 1; k >= 0; k--) {
-          doit_i_field(f_index, k, 0, 0, nummu + j, 0, ist) =
-            doit_i_field(f_index, k + 1, 0, 0, nummu + j, 0, ist);
-          doit_i_field(f_index, k, 0, 0, nummu -1 + j, 0, ist) =
-            doit_i_field(f_index, k + 1, 0, 0, nummu -1 + j, 0, ist);
+          cloudbox_field(f_index, k, 0, 0, nummu + j, 0, ist) =
+              cloudbox_field(f_index, k + 1, 0, 0, nummu + j, 0, ist);
+          cloudbox_field(f_index, k, 0, 0, nummu - 1 + j, 0, ist) =
+              cloudbox_field(f_index, k + 1, 0, 0, nummu - 1 + j, 0, ist);
         }
       }
     }
   }
 }
 
-
-void scat_za_grid_adjust(  // Output
-    Vector& scat_za_grid,
+void za_grid_adjust(  // Output
+    Vector& za_grid,
     // Input
     ConstVectorView mu_values,
     const Index& nummu) {
   for (Index j = 0; j < nummu; j++) {
-    scat_za_grid[nummu - 1 - j] = acos(mu_values[j]) * RAD2DEG;
-    scat_za_grid[nummu + j] = 180. - acos(mu_values[j]) * RAD2DEG;
-    //cout << "setting scat_za[" << nummu-1-j << "]=" << scat_za_grid[nummu-1-j]
-    //     << " and [" << nummu+j << "]=" << scat_za_grid[nummu+j]
+    za_grid[nummu - 1 - j] = acos(mu_values[j]) * RAD2DEG;
+    za_grid[nummu + j] = 180. - acos(mu_values[j]) * RAD2DEG;
+    //cout << "setting scat_za[" << nummu-1-j << "]=" << za_grid[nummu-1-j]
+    //     << " and [" << nummu+j << "]=" << za_grid[nummu+j]
     //     << " from mu[" << j << "]=" << mu_values[j] << "\n";
   }
 }
-
 
 void gas_optpropCalc(Workspace& ws,
                      VectorView gas_extinct,
@@ -899,8 +893,7 @@ void gas_optpropCalc(Workspace& ws,
 
     // Average vmrs
     for (Index j = 0; j < vmr_profiles.nrows(); j++)
-      rtp_vmr_local[j] =
-          0.5 * (vmr_profiles(j, i) + vmr_profiles(j, i + 1));
+      rtp_vmr_local[j] = 0.5 * (vmr_profiles(j, i) + vmr_profiles(j, i + 1));
 
     const Vector rtp_mag_dummy(3, 0);
     const Vector ppath_los_dummy;
@@ -940,7 +933,7 @@ void par_optpropCalc(Tensor5View emis_vector,
                      Tensor6View extinct_matrix,
                      //VectorView scatlayers,
                      const ArrayOfArrayOfSingleScatteringData& scat_data,
-                     const Vector& scat_za_grid,
+                     const Vector& za_grid,
                      const Index& f_index,
                      ConstMatrixView pnd_profiles,
                      ConstVectorView t_profile,
@@ -951,15 +944,15 @@ void par_optpropCalc(Tensor5View emis_vector,
   emis_vector = 0.;
 
   const Index Np_cloud = pnd_profiles.ncols();
-  const Index nummu = scat_za_grid.nelem() / 2;
+  const Index nummu = za_grid.nelem() / 2;
 
   assert(emis_vector.nbooks() == Np_cloud - 1);
   assert(extinct_matrix.nshelves() == Np_cloud - 1);
 
   // preparing input data
   Vector T_array = t_profile[Range(cloudbox_limits[0], Np_cloud)];
-  Matrix dir_array(scat_za_grid.nelem(), 2, 0.);
-  dir_array(joker, 0) = scat_za_grid;
+  Matrix dir_array(za_grid.nelem(), 2, 0.);
+  dir_array(joker, 0) = za_grid;
 
   // making output containers
   ArrayOfArrayOfTensor5 ext_mat_Nse;
@@ -1005,42 +998,41 @@ void par_optpropCalc(Tensor5View emis_vector,
         for (Index ist1 = 0; ist1 < stokes_dim; ist1++) {
           for (Index ist2 = 0; ist2 < stokes_dim; ist2++) {
             extinct_matrix(fi, ipc, 0, imu, ist2, ist1) =
-              .5 * (ext_mat_bulk(fi, ipc, imu, ist1, ist2) +
-                    ext_mat_bulk(fi, ipc + 1, imu, ist1, ist2));
+                .5 * (ext_mat_bulk(fi, ipc, imu, ist1, ist2) +
+                      ext_mat_bulk(fi, ipc + 1, imu, ist1, ist2));
             extinct_matrix(fi, ipc, 1, imu, ist2, ist1) =
-              .5 * (ext_mat_bulk(fi, ipc, nummu + imu, ist1, ist2) +
-                    ext_mat_bulk(fi, ipc + 1, nummu + imu, ist1, ist2));
+                .5 * (ext_mat_bulk(fi, ipc, nummu + imu, ist1, ist2) +
+                      ext_mat_bulk(fi, ipc + 1, nummu + imu, ist1, ist2));
           }
           emis_vector(fi, ipc, 0, imu, ist1) =
-            .5 * (abs_vec_bulk(fi, ipc, imu, ist1) +
-                  abs_vec_bulk(fi, ipc + 1, imu, ist1));
+              .5 * (abs_vec_bulk(fi, ipc, imu, ist1) +
+                    abs_vec_bulk(fi, ipc + 1, imu, ist1));
           emis_vector(fi, ipc, 1, imu, ist1) =
-            .5 * (abs_vec_bulk(fi, ipc, nummu + imu, ist1) +
-                  abs_vec_bulk(fi, ipc + 1, nummu + imu, ist1));
+              .5 * (abs_vec_bulk(fi, ipc, nummu + imu, ist1) +
+                    abs_vec_bulk(fi, ipc + 1, nummu + imu, ist1));
         }
       }
     }
   }
 }
 
-
 void sca_optpropCalc(  //Output
-                     Tensor6View scatter_matrix,
-                     Index& pfct_failed,
-                     //Input
-                     ConstTensor4View emis_vector,
-                     ConstTensor5View extinct_matrix,
-                     const Index& f_index,
-                     const ArrayOfArrayOfSingleScatteringData& scat_data,
-                     ConstMatrixView pnd_profiles,
-                     const Index& stokes_dim,
-                     const Vector& scat_za_grid,
-                     ConstVectorView quad_weights,
-                     const String& pfct_method,
-                     const Index& pfct_aa_grid_size,
-                     const Numeric& pfct_threshold,
-                     const Index& auto_inc_nstreams,
-                     const Verbosity& verbosity) {
+    Tensor6View scatter_matrix,
+    Index& pfct_failed,
+    //Input
+    ConstTensor4View emis_vector,
+    ConstTensor5View extinct_matrix,
+    const Index& f_index,
+    const ArrayOfArrayOfSingleScatteringData& scat_data,
+    ConstMatrixView pnd_profiles,
+    const Index& stokes_dim,
+    const Vector& za_grid,
+    ConstVectorView quad_weights,
+    const String& pfct_method,
+    const Index& pfct_aa_grid_size,
+    const Numeric& pfct_threshold,
+    const Index& auto_inc_nstreams,
+    const Verbosity& verbosity) {
   // FIXME: this whole funtions needs revision/optimization regarding
   // - temperature dependence (using new-type scat_data)
   // - using redundancies in sca_mat data at least for totally random
@@ -1057,7 +1049,7 @@ void sca_optpropCalc(  //Output
 
   const Index N_se = pnd_profiles.nrows();
   const Index Np_cloud = pnd_profiles.ncols();
-  const Index nza_rt = scat_za_grid.nelem();
+  const Index nza_rt = za_grid.nelem();
 
   assert(scatter_matrix.nvitrines() == Np_cloud - 1);
 
@@ -1127,7 +1119,7 @@ void sca_optpropCalc(  //Output
                   saa,
                   iza,
                   0,
-                  scat_za_grid,
+                  za_grid,
                   aa_grid,
                   verbosity);
 
@@ -1193,8 +1185,8 @@ void sca_optpropCalc(  //Output
             GridPos za_inc_gp;
             Vector itw(4);
             Matrix pha_mat_lab(stokes_dim, stokes_dim, 0.);
-            Numeric za_sca = scat_za_grid[sza];
-            Numeric za_inc = scat_za_grid[iza];
+            Numeric za_sca = za_grid[sza];
+            Numeric za_inc = za_grid[iza];
 
             gridpos(za_inc_gp, za_datagrid, za_inc);
             gridpos(za_sca_gp, za_datagrid, za_sca);
@@ -1384,7 +1376,6 @@ void sca_optpropCalc(  //Output
   }
 }
 
-
 void surf_optpropCalc(Workspace& ws,
                       //Output
                       Tensor5View surf_refl_mat,
@@ -1392,7 +1383,7 @@ void surf_optpropCalc(Workspace& ws,
                       //Input
                       const Agenda& surface_rtprop_agenda,
                       ConstVectorView f_grid,
-                      ConstVectorView scat_za_grid,
+                      ConstVectorView za_grid,
                       ConstVectorView mu_values,
                       ConstVectorView quad_weights,
                       const Index& stokes_dim,
@@ -1435,7 +1426,7 @@ void surf_optpropCalc(Workspace& ws,
   chk_not_empty("surface_rtprop_agenda", surface_rtprop_agenda);
 
   const Index nf = f_grid.nelem();
-  const Index nummu = scat_za_grid.nelem() / 2;
+  const Index nummu = za_grid.nelem() / 2;
   const String B_unit = "R";
 
   // Local input of surface_rtprop_agenda.
@@ -1449,10 +1440,10 @@ void surf_optpropCalc(Workspace& ws,
     Matrix surface_emission;
 
     // rtp_los is reflected direction, ie upwelling direction, which is >90deg
-    // in ARTS. scat_za_grid is sorted here as downwelling (90->0) in 1st
+    // in ARTS. za_grid is sorted here as downwelling (90->0) in 1st
     // half, upwelling (90->180) in second half. that is, here we have to take
     // the second half grid or, alternatively, use 180deg-za[imu].
-    Vector rtp_los(1, scat_za_grid[nummu + rmu]);
+    Vector rtp_los(1, za_grid[nummu + rmu]);
 
     surface_rtprop_agendaExecute(ws,
                                  surface_skin_t,
@@ -1476,7 +1467,7 @@ void surf_optpropCalc(Workspace& ws,
     // (re-)deriving diffuse reflectivity stokes components (which should be
     // the sum of the incident polar angle dependent reflectivities. so, that
     // might ensure better consistency. but then we should calculate
-    // gnd_radiance only after surface_los to scat_za_grid conversion of the
+    // gnd_radiance only after surface_los to za_grid conversion of the
     // reflection matrix). For now, we use the rescaling approach.
     for (Index f_index = 0; f_index < nf; f_index++) {
       Numeric freq = f_grid[f_index];
@@ -1537,7 +1528,7 @@ void surf_optpropCalc(Workspace& ws,
       for (Index imu = 0; imu < nummu; imu++) {
         try {
           GridPos gp_za;
-          gridpos(gp_za, surface_los(joker, 0), scat_za_grid[imu]);
+          gridpos(gp_za, surface_los(joker, 0), za_grid[imu]);
           // Testing: interpolation in cos(za)
           //gridpos( gp_za, mu_surf_los, mu_values[imu] );
           Vector itw(2);
@@ -1568,11 +1559,10 @@ void surf_optpropCalc(Workspace& ws,
         R_arts[f_index] = surface_rmatrix(joker, f_index, 0, 0).sum();
 
       // surface_los angle should be identical to
-      // 180. - (rtp_los=scat_za_grid[nummu+rmu]=180.-scat_za_grid[rmu])
-      // = scat_za_grid[rmu].
+      // 180. - (rtp_los=za_grid[nummu+rmu]=180.-za_grid[rmu])
+      // = za_grid[rmu].
       // check that, and if so, sort values into refmat(rmu,rmu).
-      assert(
-          is_same_within_epsilon(surface_los(0, 0), scat_za_grid[rmu], 1e-12));
+      assert(is_same_within_epsilon(surface_los(0, 0), za_grid[rmu], 1e-12));
       for (Index f_index = 0; f_index < nf; f_index++)
         for (Index sto1 = 0; sto1 < stokes_dim; sto1++)
           for (Index sto2 = 0; sto2 < stokes_dim; sto2++)
@@ -1603,7 +1593,6 @@ void surf_optpropCalc(Workspace& ws,
     }
   }
 }
-
 
 void rt4_test(Tensor4& out_rad,
               const String& datapath,
@@ -1721,7 +1710,7 @@ void rt4_test(Tensor4& out_rad,
   //RT4-output type table (specifically, resort up_rad such that it runs from
   //zenith welling to horizontal, thus forms a continuous angle grid with
   //down_rad. if later changing up_rad/down_rad sorting such that it is in
-  //line with doit_i_field, then this has to be adapted as well...
+  //line with cloudbox_field, then this has to be adapted as well...
   out_rad.resize(num_layers + 1, 2, nummu, nstokes);
   for (Index ii = 0; ii < nummu; ii++)
     out_rad(joker, 0, ii, joker) = up_rad(joker, nummu - 1 - ii, joker);

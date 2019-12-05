@@ -170,11 +170,11 @@ Arts2 {
 	Tensor3Create(trans_field)
 
 	#calculate the full radiation field for plane parallel atmosphere
-    doit_i_fieldClearskyPlaneParallel(trans_field=trans_field)
+    spectral_radiance_fieldClearskyPlaneParallel(trans_field=trans_field)
         
-    # Calculate Radiance from doit_i_field
+    # Calculate Radiance from cloudbox_field
     RadiationFieldSpectralIntegrate(radiation_field=radiance_field, 
-                                spectral_radiation_field=doit_i_field
+                                spectral_radiation_field=spectral_radiance_field
     )
 
     # calculate flux from radiance field
@@ -198,7 +198,7 @@ Arts2 {
     
     # For testing calculate first spectral irradiance and than do spectral 
     # integration
-    spectral_irradiance_fieldFromiyField    
+    spectral_irradiance_fieldFromSpectralRadianceField    
     RadiationFieldSpectralIntegrate(radiation_field=irradiance_field, 
                             spectral_radiation_field=spectral_irradiance_field
     )

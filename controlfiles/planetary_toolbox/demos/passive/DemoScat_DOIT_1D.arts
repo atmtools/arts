@@ -203,7 +203,7 @@ AgendaSet( iy_cloudbox_agenda ){
 }
 #
 doit_za_interpSet( doit_za_interp, atmosphere_dim, "linear" )
-DOAngularGridsSet( doit_za_grid_size, scat_aa_grid, scat_za_grid,
+DOAngularGridsSet( doit_za_grid_size, aa_grid, za_grid,
                      Nza, Naa, "" )
 
 
@@ -222,7 +222,7 @@ propmat_clearsky_agenda_checkedCalc
 #####
 DoitInit
 DoitGetIncoming( maxratio=DOITinterpol_ratio )
-doit_i_fieldSetClearsky
+cloudbox_fieldSetClearsky
 DoitCalc
 
 # and the (clearsky) RT calc

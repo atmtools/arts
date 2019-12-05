@@ -108,8 +108,8 @@ void rte_step_doit_replacement(
   \param[out]   ext_mat_field extinction matrix field
   \param[out]   abs_vec_field absorption vector field
   \param[in]    spt_calc_agenda Agenda for calculation of single scattering properties
-  \param[in]    scat_za_index Indices for
-  \param[in]    scat_aa_index    propagation direction
+  \param[in]    za_index Indices for
+  \param[in]    aa_index    propagation direction
   \param[in]    cloudbox_limits Cloudbox limits.
   \param[in]    t_field Temperature field
   \param[in]    pnd_field Particle number density field.
@@ -124,8 +124,8 @@ void cloud_fieldsCalc(Workspace& ws,
                       Tensor4View abs_vec_field,
                       // Input:
                       const Agenda& spt_calc_agenda,
-                      const Index& scat_za_index,
-                      const Index& scat_aa_index,
+                      const Index& za_index,
+                      const Index& aa_index,
                       const ArrayOfIndex& cloudbox_limits,
                       ConstTensor3View t_field,
                       ConstTensor4View pnd_field,
@@ -145,8 +145,8 @@ void cloud_fieldsCalc(Workspace& ws,
   \param[in,out] ws Current Workspace
   \param[out]   i_field Updated radiation field inside the cloudbox.
   \param[in]    p_index Pressure index
-  \param[in]    scat_za_index Index for proagation direction
-  \param[in]    scat_za_grid Zenith angle grid
+  \param[in]    za_index Index for proagation direction
+  \param[in]    za_grid Zenith angle grid
   \param[in]    cloudbox_limits The limits of the cloud box
   \param[in]    scat_field Scattered field
   \param[in]    propmat_clearsky_agenda calculates the absorption coefficient
@@ -178,8 +178,8 @@ void cloud_ppath_update1D(Workspace& ws,
                           Tensor6View i_field,
                           // ppath_step_agenda:
                           const Index& p_index,
-                          const Index& scat_za_index,
-                          ConstVectorView scat_za_grid,
+                          const Index& za_index,
+                          ConstVectorView za_grid,
                           const ArrayOfIndex& cloudbox_limits,
                           ConstTensor6View scat_field,
                           // Calculate scalar gas absorption:
@@ -211,12 +211,12 @@ void cloud_ppath_update1D(Workspace& ws,
   i_field_old is always used as incoming Stokes vector.
 
   \param[in,out] ws Current Workspace
-  \param[out]   doit_i_field_mono Updated radiation field inside the cloudbox.
+  \param[out]   cloudbox_field_mono Updated radiation field inside the cloudbox.
   \param[in]    p_index Pressure index
-  \param[in]    scat_za_index Index for propagation direction
-  \param[in]    scat_za_grid Zenith angle grid
+  \param[in]    za_index Index for propagation direction
+  \param[in]    za_grid Zenith angle grid
   \param[in]    cloudbox_limits The limits of the cloud box
-  \param[in]    doit_i_field_mono_old Radiation field inside the cloudbox from
+  \param[in]    cloudbox_field_mono_old Radiation field inside the cloudbox from
                 previous iteration step
   \param[in]    doit_scat_field Scattered field
   \param[in]    propmat_clearsky_agenda calculates the absorption coefficient
@@ -246,13 +246,13 @@ void cloud_ppath_update1D(Workspace& ws,
 */
 void cloud_ppath_update1D_noseq(Workspace& ws,
                                 // Input and output
-                                Tensor6View doit_i_field_mono,
+                                Tensor6View cloudbox_field_mono,
                                 // ppath_step_agenda:
                                 const Index& p_index,
-                                const Index& scat_za_index,
-                                ConstVectorView scat_za_grid,
+                                const Index& za_index,
+                                ConstVectorView za_grid,
                                 const ArrayOfIndex& cloudbox_limits,
-                                ConstTensor6View doit_i_field_mono_old,
+                                ConstTensor6View cloudbox_field_mono_old,
                                 ConstTensor6View doit_scat_field,
                                 // Calculate scalar gas absorption:
                                 const Agenda& propmat_clearsky_agenda,
@@ -286,14 +286,14 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
   The function gets all the atmospheric points on the pressure grid.
   Then a radiative transfer step is
   performed using the stokes vector as output and input. The inermediate
-  Stokes vectors are stored in the WSV doit_i_field_mono.
+  Stokes vectors are stored in the WSV cloudbox_field_mono.
 
   \param[in,out] ws Current Workspace
-  \param[out]    doit_i_field_mono Updated radiation field inside the cloudbox.
+  \param[out]    cloudbox_field_mono Updated radiation field inside the cloudbox.
 
   \param[in]     p_index Pressure index
-  \param[in]     scat_za_index Index for propagation direction
-  \param[in]     scat_za_grid Zenith angle grid
+  \param[in]     za_index Index for propagation direction
+  \param[in]     za_grid Zenith angle grid
   \param[in]     cloudbox_limits The limits of the cloud box
   \param[in]     scat_field Scattered field.
   \param[in]     propmat_clearsky_agenda calculates the absorption coefficient
@@ -313,11 +313,11 @@ void cloud_ppath_update1D_noseq(Workspace& ws,
   \date 2003-11-17
 */
 void cloud_ppath_update1D_planeparallel(Workspace& ws,
-                                        Tensor6View doit_i_field_mono,
+                                        Tensor6View cloudbox_field_mono,
                                         // ppath_step_agenda:
                                         const Index& p_index,
-                                        const Index& scat_za_index,
-                                        ConstVectorView scat_za_grid,
+                                        const Index& za_index,
+                                        ConstVectorView za_grid,
                                         const ArrayOfIndex& cloudbox_limits,
                                         ConstTensor6View scat_field,
                                         // Calculate scalar gas absorption:
@@ -347,17 +347,17 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
   next layer is calculated and all atmospheric properties are
   interpolated an the intersection point. Then a radiative transfer step is
   performed using the stokes vector as output and input. The inermediate
-  Stokes vectors are stored in the WSV doit_i_field_mono.
+  Stokes vectors are stored in the WSV cloudbox_field_mono.
 
   \param[in,out] ws Current workspace
-  \param[out]    doit_i_field_mono Updated radiation field inside the cloudbox.
+  \param[out]    cloudbox_field_mono Updated radiation field inside the cloudbox.
   \param[in]     p_index Pressure index
   \param[in]     lat_index Latitude index
   \param[in]     lon_index Longitude index
-  \param[in]     scat_za_index Index for propagation zenith direction
-  \param[in]     scat_aa_index Index for propagation azimuth direction
-  \param[in]     scat_za_grid Zenith angle grid
-  \param[in]     scat_aa_grid Azimuth angle grid
+  \param[in]     za_index Index for propagation zenith direction
+  \param[in]     aa_index Index for propagation azimuth direction
+  \param[in]     za_grid Zenith angle grid
+  \param[in]     aa_grid Azimuth angle grid
   \param[in]     cloudbox_limits The limits of the cloud box
   \param[in]     doit_scat_field Scattered field.
   \param[in]     propmat_clearsky_agenda calculates the absorption coefficient
@@ -385,15 +385,15 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
   \date 2003-06-04
 */
 void cloud_ppath_update3D(Workspace& ws,
-                          Tensor6View doit_i_field_mono,
+                          Tensor6View cloudbox_field_mono,
                           // ppath_step_agenda:
                           const Index& p_index,
                           const Index& lat_index,
                           const Index& lon_index,
-                          const Index& scat_za_index,
-                          const Index& scat_aa_index,
-                          ConstVectorView scat_za_grid,
-                          ConstVectorView scat_aa_grid,
+                          const Index& za_index,
+                          const Index& aa_index,
+                          ConstVectorView za_grid,
+                          ConstVectorView aa_grid,
                           const ArrayOfIndex& cloudbox_limits,
                           ConstTensor6View doit_scat_field,
                           // Calculate scalar gas absorption:
@@ -426,7 +426,7 @@ void cloud_ppath_update3D(Workspace& ws,
   It is used inside the functions cloud_ppath_update1DXXX.
 
   \param[in,out] ws Current workspace
-  \param[out]    doit_i_field_mono Radiation field in cloudbox
+  \param[out]    cloudbox_field_mono Radiation field in cloudbox
   \param[in]     propmat_clearsky_agenda Calculate gas absorption
   \param[in]     ppath_step Propagation path step from one pressure level to the next
   \param[in]     t_int Temperature values interpolated on propagation path points
@@ -434,17 +434,17 @@ void cloud_ppath_update3D(Workspace& ws,
   \param[in]     ext_mat_int Interpolated total particle extinction matrix
   \param[in]     abs_vec_int Interpolated total particle absorption vector
   \param[in]     sca_vec_int Interpolated total particle scattering vector
-  \param[in]     doit_i_field_mono_int Interpolated radiances
+  \param[in]     cloudbox_field_mono_int Interpolated radiances
   \param[in]     p_int Interpolated pressure values
   \param[in]     cloudbox_limits Cloudbox limits
   \param[in]     f_grid Frequency grid
   \param[in]     f_index Frequency index of (monochromatic) scattering
                  calculation
-  \param[in]     p_index Pressure index in *doit_i_field_mono*
+  \param[in]     p_index Pressure index in *cloudbox_field_mono*
   \param[in]     lat_index Latitude index
   \param[in]     lon_index Longitude index
-  \param[in]     scat_za_index Zenith angle index in *doit_i_field_mono*
-  \param[in]     scat_aa_index Azimuth angle index in *doit_i_field_mono*
+  \param[in]     za_index Zenith angle index in *cloudbox_field_mono*
+  \param[in]     aa_index Azimuth angle index in *cloudbox_field_mono*
   \param[in]     verbosity Verbosity setting
 
   \author Claudia Emde
@@ -452,7 +452,7 @@ void cloud_ppath_update3D(Workspace& ws,
 */
 void cloud_RT_no_background(Workspace& ws,
                             //Output
-                            Tensor6View doit_i_field_mono,
+                            Tensor6View cloudbox_field_mono,
                             // Input
                             const Agenda& propmat_clearsky_agenda,
                             const Ppath& ppath_step,
@@ -461,7 +461,7 @@ void cloud_RT_no_background(Workspace& ws,
                             ConstTensor3View ext_mat_int,
                             ConstMatrixView abs_vec_int,
                             ConstMatrixView sca_vec_int,
-                            ConstMatrixView doit_i_field_mono_int,
+                            ConstMatrixView cloudbox_field_mono_int,
                             ConstVectorView p_int,
                             const ArrayOfIndex& cloudbox_limits,
                             ConstVectorView f_grid,
@@ -469,8 +469,8 @@ void cloud_RT_no_background(Workspace& ws,
                             const Index& p_index,
                             const Index& lat_index,
                             const Index& lon_index,
-                            const Index& scat_za_index,
-                            const Index& scat_aa_index,
+                            const Index& za_index,
+                            const Index& aa_index,
                             const Verbosity& verbosity);
 
 //! Calculates RT in the cloudbox
@@ -479,7 +479,7 @@ void cloud_RT_no_background(Workspace& ws,
   level is the surface.
 
   \param[in,out] ws Current workspace
-  \param[out]    doit_i_field_mono Radiation field in cloudbox
+  \param[out]    cloudbox_field_mono Radiation field in cloudbox
   \param[in]     surface_rtprop_agenda Provides radiative properties of the
                  surface
   \param[in]     f_grid Frequency grid
@@ -488,8 +488,8 @@ void cloud_RT_no_background(Workspace& ws,
   \param[in]     stokes_dim Dimension of Stokes vector
   \param[in]     ppath_step Propagation path step
   \param[in]     cloudbox_limits Cloudbox limits
-  \param[in]     scat_za_grid Zenith angle grid
-  \param[in]     scat_za_index Zenith angle index
+  \param[in]     za_grid Zenith angle grid
+  \param[in]     za_index Zenith angle index
 
 
   \author Claudia Emde
@@ -498,7 +498,7 @@ void cloud_RT_no_background(Workspace& ws,
 */
 void cloud_RT_surface(Workspace& ws,
                       //Output
-                      Tensor6View doit_i_field_mono,
+                      Tensor6View cloudbox_field_mono,
                       //Input
                       const Agenda& surface_rtprop_agenda,
                       ConstVectorView f_grid,
@@ -506,8 +506,8 @@ void cloud_RT_surface(Workspace& ws,
                       const Index& stokes_dim,
                       const Ppath& ppath_step,
                       const ArrayOfIndex& cloudbox_limits,
-                      ConstVectorView scat_za_grid,
-                      const Index& scat_za_index);
+                      ConstVectorView za_grid,
+                      const Index& za_index);
 
 //! Convergence acceleration
 /*!
@@ -515,7 +515,7 @@ void cloud_RT_surface(Workspace& ws,
  of the doit_i_mono from the previous three iteration steps.
  The acceleration method is called Ng-Acceleration and was develop by Ng (1974)
 
- \param[out]    doit_i_field_mono Radiation field in cloudbox
+ \param[out]    cloudbox_field_mono Radiation field in cloudbox
  \param[in]     acceleration_input Array of the previous three iteration steps
  \param[in]     accelerated Index wether to accelerate only the intensity or the
                 whole Stokes Vector
@@ -525,8 +525,8 @@ void cloud_RT_surface(Workspace& ws,
  \date 2016-04-26
 
 */
-void doit_i_field_ngAcceleration(  //Output
-    Tensor6& doit_i_field_mono,
+void cloudbox_field_ngAcceleration(  //Output
+    Tensor6& cloudbox_field_mono,
     //Input
     const ArrayOfTensor6& acceleration_input,
     const Index& accelerated,
@@ -539,7 +539,7 @@ void doit_i_field_ngAcceleration(  //Output
   \param[out]   ext_mat_int Interpolated extinction matrix for 1D atmosphere
   \param[out]   abs_vec_int Interpolated absorption vector for 1D atmosphere
   \param[out]   sca_vec_int Interpolated scattering field for 1D atmosphere
-  \param[out]   doit_i_field_mono_int Interpolated radiation field
+  \param[out]   cloudbox_field_mono_int Interpolated radiation field
                 for 1D atmosphere
   \param[out]   t_int Interpolated temperature field for 1D atmosphere
   \param[out]   vmr_list_int Interpolated vmr field for each ppath_step
@@ -547,13 +547,13 @@ void doit_i_field_ngAcceleration(  //Output
   \param[in]    ext_mat_field Extinction matrix field
   \param[in]    abs_vec_field Absorption vector field
   \param[in]    doit_scat_field Scattering field
-  \param[in]    doit_i_field_mono Radiation field
+  \param[in]    cloudbox_field_mono Radiation field
   \param[in]    t_field Atmopheric temperature field
   \param[in]    vmr_field VMR field
   \param[in]    p_grid Pressure grid
   \param[in]    ppath_step Propagation path step
   \param[in]    cloudbox_limits Cloudbox limits
-  \param[in]    scat_za_grid Zenith angle grid
+  \param[in]    za_grid Zenith angle grid
   \param[in]    scat_za_interp Flag for interplation method in zenith angle
                 dimension
   \param[in]    verbosity Verbosity setting
@@ -565,7 +565,7 @@ void interp_cloud_coeff1D(  //Output
     Tensor3View ext_mat_int,
     MatrixView abs_vec_int,
     MatrixView sca_vec_int,
-    MatrixView doit_i_field_mono_int,
+    MatrixView cloudbox_field_mono_int,
     VectorView t_int,
     MatrixView vmr_list_int,
     VectorView p_int,
@@ -573,13 +573,13 @@ void interp_cloud_coeff1D(  //Output
     ConstTensor5View ext_mat_field,
     ConstTensor4View abs_vec_field,
     ConstTensor6View doit_scat_field,
-    ConstTensor6View doit_i_field_mono,
+    ConstTensor6View cloudbox_field_mono,
     ConstTensor3View t_field,
     ConstTensor4View vmr_field,
     ConstVectorView p_grid,
     const Ppath& ppath_step,
     const ArrayOfIndex& cloudbox_limits,
-    ConstVectorView scat_za_grid,
+    ConstVectorView za_grid,
     const Index& scat_za_interp,
     const Verbosity& verbosity);
 
@@ -597,9 +597,9 @@ void interp_cloud_coeff1D(  //Output
   don't want to use the clearsky field for grid optimuzation.)
 
   \param[out]   za_grid_opt Optimized zenith angle grid.
-  \param[out]   doit_i_field_opt Optimized intensity field.
+  \param[out]   cloudbox_field_opt Optimized intensity field.
   \param[in]    za_grid_fine Fine zenith angle grid.
-  \param[in]    doit_i_field_mono Radiation field calculated on a very fine za grid.
+  \param[in]    cloudbox_field_mono Radiation field calculated on a very fine za grid.
   \param[in]    acc Accuracy of optimization [%].
   \param[in]    scat_za_interp Interpolation method.
 
@@ -624,12 +624,12 @@ void za_gridOpt(  //Output:
 
   \param[in,out] ws Current workspace
   \param[in,out] doit_scat_field Scattered field
-  \param[in]     doit_i_field_mono Radiation field
+  \param[in]     cloudbox_field_mono Radiation field
   \param[in]     cloudbox_limits Cloudbox limits
   \param[in]     spt_calc_agenda Calculates single scattering properties
   \param[in]     atmopshere_dim Dimension of atmosphere
-  \param[in]     scat_za_grid Zenith angle grid
-  \param[in]     scat_aa_grid Azimuth angle grid
+  \param[in]     za_grid Zenith angle grid
+  \param[in]     aa_grid Azimuth angle grid
   \param[in]     pnd_field pnd field
   \param[in]     t_field Atmospheric temperature field
   \param[in]     norm_error_threshold  Normalization error threshold
@@ -641,12 +641,12 @@ void za_gridOpt(  //Output:
 */
 void doit_scat_fieldNormalize(Workspace& ws,
                               Tensor6& doit_scat_field,
-                              const Tensor6& doit_i_field_mono,
+                              const Tensor6& cloudbox_field_mono,
                               const ArrayOfIndex& cloudbox_limits,
                               const Agenda& spt_calc_agenda,
                               const Index& atmosphere_dim,
-                              const Vector& scat_za_grid,
-                              const Vector& scat_aa_grid,
+                              const Vector& za_grid,
+                              const Vector& aa_grid,
                               const Tensor4& pnd_field,
                               const Tensor3& t_field,
                               const Numeric& norm_error_threshold,
