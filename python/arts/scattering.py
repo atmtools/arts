@@ -90,7 +90,7 @@ class SingleScatteringData:
     defaults = {'ptype': 'totally_random',
                 'version': 3,
                 # as defined in optproperties.h
-                'description': 'SingleScatteringData created with Typhon.',
+                'description': 'SingleScatteringData created with arts.',
                 'T_grid': np.array([250]),
                 'za_grid': np.arange(0, 181, 10),
                 'aa_grid': np.arange(0, 181, 10),
@@ -479,7 +479,7 @@ class SpectralSingleScatteringData:
     defaults = {'ptype': 'totally_random',
                 'version': 3,
                 # as defined in optproperties.h
-                'description': 'SpectralSingleScatteringData created with Typhon.',
+                'description': 'SpectralSingleScatteringData created with arts.',
                 'T_grid': np.array([250]),
                 }
 
