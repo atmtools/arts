@@ -10081,7 +10081,7 @@ void define_md_data_raw() {
       GIN_TYPE("String"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("The string representing the value."),
-      SETMETHOD(true)));
+      SETMETHOD(false)));
 
   md_data_raw.push_back(MdRecord(
       NAME("ArrayOfQuantumIdentifierSet"),
@@ -10098,7 +10098,7 @@ void define_md_data_raw() {
       GIN_TYPE("ArrayOfString"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("The array of string representing the values of the array."),
-      SETMETHOD(true)));
+      SETMETHOD(false)));
 
   md_data_raw.push_back(MdRecord(
       NAME("nelemGet"),
