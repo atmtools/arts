@@ -52,8 +52,9 @@ enum class QuantumNumberType : Index {
   N,       // J minus spin
   dN,      // Delta J minus spin
   S,       // Spin angular momentum (from electrons) NOTE: S_global for HITRAN S
+  tau,
+  n,
   F,       // J + nuclear spin
-  K,       //(This is a projection of J along one axis)
   Ka,      //(This is a projection of J along one axis)
   Kc,      //(This is a projection of J along another axis)
   Omega,   // This is an absolute projection of J and S
@@ -65,12 +66,28 @@ enum class QuantumNumberType : Index {
   kronigParity,  // ???
   v1,      // Vibrational mode 1
   v2,      // Vibrational mode 2
-  l2,      // Vibrational angular momentum associated with v2
   v3,      // Vibrational mode 3
   v4,      // Vibrational mode 4
   v5,      // Vibrational mode 5
   v6,      // Vibrational mode 6
-  l,       // The absolute sum of l_j for v_j
+  v7,
+  v8,
+  v9,
+  v10,
+  v11,
+  v12,
+  l1,      // The absolute sum of l_j for v_j
+  l2,      // Vibrational angular momentum associated with v2
+  l3,
+  l4,
+  l5,
+  l6,
+  l7,
+  l8,
+  l9,
+  l10,
+  l11,
+  l12,
   pm,      // Symmetry type for l=0
   r,       // Rank of the level within a set of the same vibrational symmetry
   S_global,  // Symmetry of the level
@@ -89,10 +106,12 @@ inline QuantumNumberType string2quantumnumbertype(const String& s) {
   else INPUT_QUANTUM(M);
   else INPUT_QUANTUM(N);
   else INPUT_QUANTUM(dN);
+  else INPUT_QUANTUM(tau);
+  else INPUT_QUANTUM(n);
   else INPUT_QUANTUM(S);
   else INPUT_QUANTUM(F);
   else if (s.find("F#") < s.length()) return QuantumNumberType::F;  // HITRAN has many names for F
-  else INPUT_QUANTUM(K);
+  else if (s == "K") return QuantumNumberType::Ka;  // HITRAN name
   else INPUT_QUANTUM(Ka);
   else INPUT_QUANTUM(Kc);
   else INPUT_QUANTUM(Omega);
@@ -102,15 +121,32 @@ inline QuantumNumberType string2quantumnumbertype(const String& s) {
   else INPUT_QUANTUM(Sym);
   else INPUT_QUANTUM(parity);
   else INPUT_QUANTUM(kronigParity);
-  else INPUT_QUANTUM(v1);
   else if (s == "v") return QuantumNumberType::v1;  // HITRAN name
+  else INPUT_QUANTUM(v1);
   else INPUT_QUANTUM(v2);
-  else INPUT_QUANTUM(l2);
   else INPUT_QUANTUM(v3);
   else INPUT_QUANTUM(v4);
   else INPUT_QUANTUM(v5);
   else INPUT_QUANTUM(v6);
-  else INPUT_QUANTUM(l);
+  else INPUT_QUANTUM(v7);
+  else INPUT_QUANTUM(v8);
+  else INPUT_QUANTUM(v9);
+  else INPUT_QUANTUM(v10);
+  else INPUT_QUANTUM(v11);
+  else INPUT_QUANTUM(v12);
+  else if (s == "l") return QuantumNumberType::l1;  // HITRAN name
+  else INPUT_QUANTUM(l1);
+  else INPUT_QUANTUM(l2);
+  else INPUT_QUANTUM(l3);
+  else INPUT_QUANTUM(l4);
+  else INPUT_QUANTUM(l5);
+  else INPUT_QUANTUM(l6);
+  else INPUT_QUANTUM(l7);
+  else INPUT_QUANTUM(l8);
+  else INPUT_QUANTUM(l9);
+  else INPUT_QUANTUM(l10);
+  else INPUT_QUANTUM(l11);
+  else INPUT_QUANTUM(l12);
   else INPUT_QUANTUM(pm);
   else INPUT_QUANTUM(r);
   else INPUT_QUANTUM(S_global);
@@ -131,9 +167,10 @@ inline String quantumnumbertype2string(QuantumNumberType s) {
   else INPUT_QUANTUM(M);
   else INPUT_QUANTUM(N);
   else INPUT_QUANTUM(dN);
+  else INPUT_QUANTUM(tau);
+  else INPUT_QUANTUM(n);
   else INPUT_QUANTUM(S);
   else INPUT_QUANTUM(F);
-  else INPUT_QUANTUM(K);
   else INPUT_QUANTUM(Ka);
   else INPUT_QUANTUM(Kc);
   else INPUT_QUANTUM(Omega);
@@ -145,12 +182,28 @@ inline String quantumnumbertype2string(QuantumNumberType s) {
   else INPUT_QUANTUM(kronigParity);
   else INPUT_QUANTUM(v1);
   else INPUT_QUANTUM(v2);
-  else INPUT_QUANTUM(l2);
   else INPUT_QUANTUM(v3);
   else INPUT_QUANTUM(v4);
   else INPUT_QUANTUM(v5);
   else INPUT_QUANTUM(v6);
-  else INPUT_QUANTUM(l);
+  else INPUT_QUANTUM(v7);
+  else INPUT_QUANTUM(v8);
+  else INPUT_QUANTUM(v9);
+  else INPUT_QUANTUM(v10);
+  else INPUT_QUANTUM(v11);
+  else INPUT_QUANTUM(v12);
+  else INPUT_QUANTUM(l1);
+  else INPUT_QUANTUM(l2);
+  else INPUT_QUANTUM(l3);
+  else INPUT_QUANTUM(l4);
+  else INPUT_QUANTUM(l5);
+  else INPUT_QUANTUM(l6);
+  else INPUT_QUANTUM(l7);
+  else INPUT_QUANTUM(l8);
+  else INPUT_QUANTUM(l9);
+  else INPUT_QUANTUM(l10);
+  else INPUT_QUANTUM(l11);
+  else INPUT_QUANTUM(l12);
   else INPUT_QUANTUM(pm);
   else INPUT_QUANTUM(r);
   else INPUT_QUANTUM(S_global);
@@ -173,17 +226,23 @@ class QuantumNumbers {
 
   /** Initializer with undefined values */
   constexpr QuantumNumbers() noexcept
-      : mqnumbers({RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,
-                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,
-                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,
-                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,
-                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,
-                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,
-                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,
-                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,
-                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,
-                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,
-                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED}) {}
+      : mqnumbers({RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 3
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 6
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 9
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 12
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 15
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 18
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 21
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 24
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 27
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 30
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 33
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 36
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 39
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 42
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 45
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 48
+                   RATIONAL_UNDEFINED}) {}
 
   /** Access operator
    * 

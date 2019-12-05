@@ -149,7 +149,7 @@ QuantumParserHITRAN2004::QuantumParserHITRAN2004() {
     this_class.push_back(
         QuantumFieldDescription(QuantumNumberType::v5, parse_i2_hitran));
     this_class.push_back(
-        QuantumFieldDescription(QuantumNumberType::l, parse_i2_hitran));
+        QuantumFieldDescription(QuantumNumberType::l1, parse_i2_hitran));
     this_class.push_back(
         QuantumFieldDescription(QuantumNumberType::pm, parse_a1_pm_hitran));
     this_class.push_back(
@@ -283,7 +283,7 @@ QuantumParserHITRAN2004::QuantumParserHITRAN2004() {
     this_group.push_back(
         QuantumFieldDescription(QuantumNumberType::J, parse_i3_hitran));
     this_group.push_back(
-        QuantumFieldDescription(QuantumNumberType::K, parse_a2_hitran));
+        QuantumFieldDescription(QuantumNumberType::Ka, parse_a2_hitran));
     this_group.push_back(
         QuantumFieldDescription(QuantumNumberType::Kc, parse_i3_hitran));
     this_group.push_back(
@@ -296,9 +296,9 @@ QuantumParserHITRAN2004::QuantumParserHITRAN2004() {
     this_group.push_back(
         QuantumFieldDescription(QuantumNumberType::J, parse_i3_hitran));
     this_group.push_back(
-        QuantumFieldDescription(QuantumNumberType::K, parse_i3_hitran));
+        QuantumFieldDescription(QuantumNumberType::Ka, parse_i3_hitran));
     this_group.push_back(
-        QuantumFieldDescription(QuantumNumberType::l, parse_i2_hitran));
+        QuantumFieldDescription(QuantumNumberType::l1, parse_i2_hitran));
     this_group.push_back(
         QuantumFieldDescription(QuantumNumberType::C, parse_a2_hitran));
     this_group.push_back(
@@ -312,9 +312,9 @@ QuantumParserHITRAN2004::QuantumParserHITRAN2004() {
     this_group.push_back(
         QuantumFieldDescription(QuantumNumberType::J, parse_i3_hitran));
     this_group.push_back(
-        QuantumFieldDescription(QuantumNumberType::K, parse_i3_hitran));
+        QuantumFieldDescription(QuantumNumberType::Ka, parse_i3_hitran));
     this_group.push_back(
-        QuantumFieldDescription(QuantumNumberType::l, parse_i2_hitran));
+        QuantumFieldDescription(QuantumNumberType::l1, parse_i2_hitran));
     this_group.push_back(
         QuantumFieldDescription(QuantumNumberType::C, parse_a2_hitran));
     this_group.push_back(

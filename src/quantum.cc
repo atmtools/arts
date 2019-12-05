@@ -186,47 +186,16 @@ std::istream& operator>>(std::istream& is, QuantumNumbers& qn) {
 
 std::ostream& operator<<(std::ostream& os, const QuantumNumbers& qn) {
   bool first = true;
-  // Define a helper macro to save some typing.
-#define OUTPUT_QUANTUM(ID)                               \
-  if (!qn[Index(QuantumNumberType::ID)].isUndefined()) { \
-    if (!first) os << " ";                               \
-    first = false;                                       \
-    os << #ID << " " << qn[QuantumNumberType::ID];       \
+  for (Index i=0; i<Index(QuantumNumberType::FINAL_ENTRY); i++) {
+    if (qn[i].isDefined()) {
+      if (first) {
+        os << quantumnumbertype2string(QuantumNumberType(i)) << ' ' << qn[i];
+        first = false;
+      } else {
+        os << ' ' << quantumnumbertype2string(QuantumNumberType(i)) << ' ' << qn[i];
+      }
+    }
   }
-
-  OUTPUT_QUANTUM(J);
-  OUTPUT_QUANTUM(dJ);
-  OUTPUT_QUANTUM(M);
-  OUTPUT_QUANTUM(N);
-  OUTPUT_QUANTUM(dN);
-  OUTPUT_QUANTUM(S);
-  OUTPUT_QUANTUM(F);
-  OUTPUT_QUANTUM(K);
-  OUTPUT_QUANTUM(Ka);
-  OUTPUT_QUANTUM(Kc);
-  OUTPUT_QUANTUM(Omega);
-  OUTPUT_QUANTUM(i);
-  OUTPUT_QUANTUM(Lambda);
-  OUTPUT_QUANTUM(alpha);
-  OUTPUT_QUANTUM(Sym);
-  OUTPUT_QUANTUM(parity);
-  OUTPUT_QUANTUM(v1);
-  OUTPUT_QUANTUM(v2);
-  OUTPUT_QUANTUM(l2);
-  OUTPUT_QUANTUM(v3);
-  OUTPUT_QUANTUM(v4);
-  OUTPUT_QUANTUM(v5);
-  OUTPUT_QUANTUM(v6);
-  OUTPUT_QUANTUM(l);
-  OUTPUT_QUANTUM(pm);
-  OUTPUT_QUANTUM(r);
-  OUTPUT_QUANTUM(S_global);
-  OUTPUT_QUANTUM(ElectronState);
-  OUTPUT_QUANTUM(n_global);
-  OUTPUT_QUANTUM(C);
-  OUTPUT_QUANTUM(Hund);
-
-#undef OUTPUT_QUANTUM
 
   return os;
 }
