@@ -175,9 +175,10 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   auto x = Absorption::split_list_of_external_lines(v, local_nums, global_nums);
   abs_lines.resize(0);
   abs_lines.reserve(x.size());
-  for (auto& lines: x) {
-    lines.sort_by_frequency();
-    abs_lines.push_back(lines);
+  while (x.size()) {
+    abs_lines.push_back(x.back());
+    abs_lines.back().sort_by_frequency();
+    x.erase(x.end());
   }
 }
 
@@ -285,8 +286,11 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   auto x = Absorption::split_list_of_external_lines(v, local_nums, global_nums);
   abs_lines.resize(0);
   abs_lines.reserve(x.size());
-  for (auto& lines: x)
-    abs_lines.push_back(lines);
+  while (x.size()) {
+    abs_lines.push_back(x.back());
+    abs_lines.back().sort_by_frequency();
+    x.erase(x.end());
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -441,8 +445,11 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
   auto x = Absorption::split_list_of_external_lines(v, local_nums, global_nums);
   abs_lines.resize(0);
   abs_lines.reserve(x.size());
-  for (auto& lines: x)
-    abs_lines.push_back(lines);
+  while (x.size()) {
+    abs_lines.push_back(x.back());
+    abs_lines.back().sort_by_frequency();
+    x.erase(x.end());
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -487,8 +494,11 @@ void ReadLBLRTM(ArrayOfAbsorptionLines& abs_lines,
   auto x = Absorption::split_list_of_external_lines(v, local_nums, global_nums);
   abs_lines.resize(0);
   abs_lines.reserve(x.size());
-  for (auto& lines: x)
-    abs_lines.push_back(lines);
+  while (x.size()) {
+    abs_lines.push_back(x.back());
+    abs_lines.back().sort_by_frequency();
+    x.erase(x.end());
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -533,8 +543,11 @@ void ReadMytran2(ArrayOfAbsorptionLines& abs_lines,
   auto x = Absorption::split_list_of_external_lines(v, local_nums, global_nums);
   abs_lines.resize(0);
   abs_lines.reserve(x.size());
-  for (auto& lines: x)
-    abs_lines.push_back(lines);
+  while (x.size()) {
+    abs_lines.push_back(x.back());
+    abs_lines.back().sort_by_frequency();
+    x.erase(x.end());
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -579,8 +592,11 @@ void ReadJPL(ArrayOfAbsorptionLines& abs_lines,
   auto x = Absorption::split_list_of_external_lines(v, local_nums, global_nums);
   abs_lines.resize(0);
   abs_lines.reserve(x.size());
-  for (auto& lines: x)
-    abs_lines.push_back(lines);
+  while (x.size()) {
+    abs_lines.push_back(x.back());
+    abs_lines.back().sort_by_frequency();
+    x.erase(x.end());
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -741,6 +757,36 @@ void abs_lines_per_speciesReadSplitCatalog(ArrayOfArrayOfAbsorptionLines& abs_li
   }
   
   abs_lines_per_speciesCreateFromLines(abs_lines_per_species, abs_lines, abs_species, verbosity);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesReadSpeciesSplitCatalog(ArrayOfAbsorptionLines& abs_lines,
+                                      const String& basename,
+                                      const Verbosity& verbosity)
+{
+  using global_data::species_data;
+  
+  String tmpbasename = basename;
+  if (basename.length() && basename[basename.length() - 1] != '/') {
+    tmpbasename += '.';
+  }
+  
+  // Read catalogs for each identified species and put them all into
+  // abs_lines
+  abs_lines.resize(0);
+  for (auto it = species_data.begin(); it != species_data.end(); it++) {
+    for (Index k=0; k<(*it).Isotopologue().nelem(); k++) {
+      String filename;
+      filename = tmpbasename + (*it).FullName(k) + ".xml";
+      if (find_xml_file_existence(filename)) {
+        ArrayOfAbsorptionLines speclines;
+        xml_read_from_file(filename, speclines, verbosity);
+        for (auto& band: speclines) {
+          abs_lines.push_back(band);
+        }
+      }
+    }
+  }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -2267,4 +2313,32 @@ void f_gridFromAbsorptionLines(Vector& f_grid,
   
   auto tmp = MapToEigen(f_grid);
   std::sort(tmp.data(), tmp.data()+tmp.size(), [](auto a, auto b){return a < b;});
+}
+
+/////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////// Print meta data about the lines
+/////////////////////////////////////////////////////////////////////////////////////
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesPrintDefinedQuantumNumbers(const ArrayOfAbsorptionLines& abs_lines,
+                                         const Verbosity& verbosity)
+{
+  CREATE_OUT0;
+  
+  std::map<Index, Index> qns;
+  
+  for (auto& band: abs_lines) {
+    for (Index iline=0; iline<band.NumLines(); iline++) {
+      for (Index iqn=0; iqn<Index(QuantumNumberType::FINAL_ENTRY); iqn++) {
+        if (band.LowerQuantumNumber(iline, QuantumNumberType(iqn)).isDefined() or
+            band.UpperQuantumNumber(iline, QuantumNumberType(iqn)).isDefined()) {
+          qns[iqn]++;
+        }
+      }
+    }
+  }
+  
+  for (auto& qn: qns) {
+    out0 << quantumnumbertype2string(QuantumNumberType(qn.first)) << ':' << ' ' << qn.second << '\n';
+  }
 }
