@@ -178,7 +178,7 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   while (x.size()) {
     abs_lines.push_back(x.back());
     abs_lines.back().sort_by_frequency();
-    x.erase(x.end());
+    x.pop_back();
   }
 }
 
@@ -289,7 +289,7 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   while (x.size()) {
     abs_lines.push_back(x.back());
     abs_lines.back().sort_by_frequency();
-    x.erase(x.end());
+    x.pop_back();
   }
 }
 
@@ -448,7 +448,7 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
   while (x.size()) {
     abs_lines.push_back(x.back());
     abs_lines.back().sort_by_frequency();
-    x.erase(x.end());
+    x.pop_back();
   }
 }
 
@@ -497,7 +497,7 @@ void ReadLBLRTM(ArrayOfAbsorptionLines& abs_lines,
   while (x.size()) {
     abs_lines.push_back(x.back());
     abs_lines.back().sort_by_frequency();
-    x.erase(x.end());
+    x.pop_back();
   }
 }
 
@@ -546,7 +546,7 @@ void ReadMytran2(ArrayOfAbsorptionLines& abs_lines,
   while (x.size()) {
     abs_lines.push_back(x.back());
     abs_lines.back().sort_by_frequency();
-    x.erase(x.end());
+    x.pop_back();
   }
 }
 
@@ -595,7 +595,7 @@ void ReadJPL(ArrayOfAbsorptionLines& abs_lines,
   while (x.size()) {
     abs_lines.push_back(x.back());
     abs_lines.back().sort_by_frequency();
-    x.erase(x.end());
+    x.pop_back();
   }
 }
 

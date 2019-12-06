@@ -2492,7 +2492,7 @@ std::vector<Absorption::Lines> Absorption::split_list_of_external_lines(std::vec
                             sle.linemixinglimit, qid, localquantas, sle.species, {line}));
     }
     
-    external_lines.erase(external_lines.end());
+    external_lines.pop_back();
   }
   
   return lines;
