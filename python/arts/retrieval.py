@@ -4,7 +4,7 @@ Implementation of RetrievalQuantity.
 
 """
 
-from .utils import return_if_arts_type
+from arts.utils.arts import return_if_arts_type
 
 __all__ = ['RetrievalQuantity',
            ]

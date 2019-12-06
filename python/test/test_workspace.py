@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 import scipy as sp
 
-import typhon
+import arts
 
 try:
     from arts.workspace import Workspace, arts_agenda

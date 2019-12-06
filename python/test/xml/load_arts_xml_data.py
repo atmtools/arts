@@ -4,7 +4,7 @@ import os
 import pytest
 
 from arts import xml
-from typhon import environment
+from arts import environment
 
 
 def collect_xml_files():

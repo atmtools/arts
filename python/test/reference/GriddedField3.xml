@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<arts version="1" format="ascii">
+<GriddedField3>
+<Vector name="grid1" nelem="2">
+0.0000000e+00
+1.0000000e+00
+</Vector>
+<Vector name="grid2" nelem="2">
+0.0000000e+00
+1.0000000e+00
+</Vector>
+<Vector name="grid3" nelem="2">
+0.0000000e+00
+1.0000000e+00
+</Vector>
+<Tensor3 name="Data" nrows="2" npages="2" ncols="2">
+0.0000000e+00 1.0000000e+00
+2.0000000e+00 3.0000000e+00
+4.0000000e+00 5.0000000e+00
+6.0000000e+00 7.0000000e+00
+</Tensor3>
+</GriddedField3>
+</arts>

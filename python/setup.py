@@ -5,6 +5,7 @@ arts: The Python interface for ARTS
 import logging
 import sys
 import subprocess
+import shutil
 
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
@@ -19,6 +20,15 @@ __version__ = open(join("@ARTS_SRC_DIR@", 'VERSION')).read().strip()
 
 
 here = abspath(dirname(__file__))
+
+try:
+    lib_path = join("@ARTS_BINARY_DIR@", "src", "libarts_api.so")
+    shutil.copy(lib_path, "arts/workspace")
+except:
+    raise Exception("Could not find ARTS API, which is required for the Python "
+                    "interface. Please make sure the installation was "
+                    "successful.")
+
 
 setup(
     name='arts',
@@ -59,10 +69,11 @@ setup(
             'gdal',
         ],
     },
+    package_data={
+        '': ['*.so'],
+    },
+
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
-    package_data={
-       'lib': ['/home/simonpf/build/arts/libarts_api.so'],
-    },
-    include_package_data=True,
+    include_package_data=True
 )

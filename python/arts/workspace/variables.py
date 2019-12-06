@@ -266,7 +266,7 @@ class WorkspaceVariable:
             by the interface.
 
         """
-        from arts.types import classes as typhon_classes
+        from arts.types import classes as arts_classes
 
 
         if (self.ws):
@@ -278,8 +278,8 @@ class WorkspaceVariable:
         if not v.initialized:
             raise Exception("WorkspaceVariable " + self.name + " is uninitialized.")
 
-        if self.group in typhon_classes:
-            cls = typhon_classes[self.group]
+        if self.group in arts_classes:
+            cls = arts_classes[self.group]
             if hasattr(cls, "__from_variable_value_struct__"):
                 return cls.__from_variable_value_struct__(v)
         if self.group == "Index":

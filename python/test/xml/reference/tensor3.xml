@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<arts format="ascii" version="1">
+<Tensor3 ncols="2" nrows="2" npages="2">
+0.0000000e+00 1.0000000e+00
+2.0000000e+00 3.0000000e+00
+4.0000000e+00 5.0000000e+00
+6.0000000e+00 7.0000000e+00
+</Tensor3>
+</arts>

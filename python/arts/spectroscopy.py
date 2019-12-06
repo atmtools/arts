@@ -5,7 +5,7 @@
 import numpy as np
 from scipy import interpolate
 
-import typhon.constants as constants
+import arts.constants as constants
 
 
 __all__ = [

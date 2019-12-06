@@ -8,7 +8,7 @@ This package contains the internal implementation for writing ARTS XML files.
 import numpy as np
 
 from .names import dimension_names
-from ..utils import get_arts_typename
+from arts.utils.arts import get_arts_typename
 
 __all__ = ['ARTSXMLWriter']
 

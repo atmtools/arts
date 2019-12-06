@@ -6,8 +6,8 @@ import os
 import shutil
 import subprocess
 
-from environment import environ
-from utils import path_append
+from arts.environment import environ
+from arts.utils import path_append
 
 
 __all__ = [

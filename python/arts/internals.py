@@ -1887,4 +1887,4 @@ class PartitionFunctions:
 from .catalogues import SpeciesAuxData
 from .catalogues import ArrayOfLineRecord
 from .catalogues import QuantumNumberRecord
-from .utils import as_quantumnumbers
+from .utils.arts import as_quantumnumbers

@@ -97,20 +97,16 @@ numpy.asarray.
 
 import logging
 
-from environment import environ
+from arts.environment import environ
 
 
 logger = logging.getLogger(__name__)
 
-if environ.get('ARTS_BUILD_PATH') is None:
-    logger.warning(
-        "ARTS_BUILD_PATH environment variable required to locate ARTS API.")
-else:
-    from arts.workspace.workspace import Workspace, arts_agenda, Include
-    from arts.workspace.variables import WorkspaceVariable
-    from arts.workspace.methods   import WorkspaceMethod
-    from arts.workspace.api       import arts_include_path   \
-                                                , include_path_push \
-                                                , data_path_push    \
-                                                , data_path_pop     \
+from arts.workspace.workspace import Workspace, arts_agenda, Include
+from arts.workspace.variables import WorkspaceVariable
+from arts.workspace.methods   import WorkspaceMethod
+from arts.workspace.api       import arts_include_path   \
+                                            , include_path_push \
+                                            , data_path_push    \
+                                            , data_path_pop     \
 

@@ -22,11 +22,12 @@ Attributes:
 import ctypes as c
 import logging
 import os
+import pkg_resources
 
 import numpy as np
 import scipy as sp
 
-from environment import environ
+from arts.environment import environ
 
 
 logger = logging.getLogger(__name__)
@@ -44,12 +45,11 @@ arts_minimum_revision = 1167
 ################################################################################
 
 try:
-    base_path = os.path.join(os.path.dirname(__file__), "..", "..")
-    lib_path = os.path.join(base_path, lib, "libarts_api.so")
+    lib_path = pkg_resources.resource_filename(__name__, "libarts_api.so")
     arts_api = c.cdll.LoadLibrary(lib_path)
-except:
-    raise EnvironmentError("Loading of libarts_api.so failed. Something seems "
-                           "to be wrong with your ARTS installation.")
+except Exception e:
+    raise EnvironmentError("The following error was encountered when "
+                           "trying to load the ARTS API: ", e)
 
 ################################################################################
 # Version Check

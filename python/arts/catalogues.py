@@ -1480,14 +1480,6 @@ class StokesVector:
         xmlwriter.close_tag()
 
 
-try:
-    from .utils import return_if_arts_type
-    from .utils import as_quantumnumbers
-    from .internals import PartitionFunctions
-    from .internals import ARTSCAT5
-    from .internals import Rational
-    from .internals import LineMixing
-except:
-    from arts.utils import return_if_arts_type, as_quantumnumbers
+    from arts.utils.arts import return_if_arts_type, as_quantumnumbers
     from arts.internals import PartitionFunctions, ARTSCAT5, Rational, \
         LineMixing

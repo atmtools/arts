@@ -1,12 +1,13 @@
+add_subdirectory(doc)
 
+#
+# Copy Python source files.
+#
 file(GLOB_RECURSE PYTHON_SRC_FILES
   RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/*.py)
-message(WARNING ${PYTHON_SRC_FILES})
-
 set(ARTS_BINARY_DIR ${CMAKE_BINARY_DIR/src})
 set(ARTS_SRC_DIR ${CMAKE_SOURCE_DIR})
-
 foreach(file ${PYTHON_SRC_FILES})
   configure_file(${file} ${file} @ONLY)
 endforeach()

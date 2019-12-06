@@ -7,7 +7,7 @@ import numpy as np
 import xarray
 from scipy import interpolate
 
-from .utils import return_if_arts_type, get_arts_typename
+from arts.utils.arts import return_if_arts_type, get_arts_typename
 
 __all__ = [
     'GriddedField1',

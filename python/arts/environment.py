@@ -22,8 +22,6 @@ Note:
 """
 import os
 
-from config import conf
-
 
 __all__ = [
     'environ',
@@ -39,10 +37,9 @@ class _EnvironmentHandler:
         try:
             # First, try to return the value from the user's environment...
             return os.environ[key]
-        except KeyError:
-            # if the key is not set, try to find it in the config.
-            # If this also fails, a KeyError is raised.
-            return conf['environment'][key]
+        except :
+            # TODO: Error handling.
+            pass
 
     def __setitem__(self, key, value):
         # If an environment variable is set, pass it to the actual user's
@@ -66,10 +63,7 @@ class _EnvironmentHandler:
         # Try to return the value from the user's environment.
         # If the key is not set, try to find it in the config.
         # If this also fails, return a default value.
-        return os.environ.get(key, default=conf.get(section='environment',
-                                                    option=key,
-                                                    fallback=default)
-                              )
+        return os.environ.get(key)
 
 
 environ = _EnvironmentHandler()
