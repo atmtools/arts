@@ -234,7 +234,7 @@ endif (HAVE_SYS_TYPES_H AND HAVE_UNISTD_H AND HAVE_SYS_STAT_H AND HAVE_CTIME
 
 ########### Zlib support ##########
 include (FindZLIB)
-set (ENABLE_ZLIB ${ZLIB_FOUND})
+set (ENABLE_ZLIB ${ZLIB_FOUND} REQUIRED)
 
 ########## BLAS support #########
 if (${CMAKE_VERSION} VERSION_LESS "2.8.8")
@@ -246,6 +246,7 @@ endif()
 ########## BLAS/LAPACK support #########
 
 find_package (LAPACK REQUIRED)
+message(WARNING ${LAPACK_LIBRARIES})
 
 ########## NetCDF support #########
 if (ENABLE_NETCDF)

@@ -17,7 +17,6 @@ foreach(file ${PYTHON_SOURCE_FILES})
 endforeach()
 
 file(GLOB_RECURSE RST_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.rst")
-message(WARNING ${RST_FILES})
 foreach(file ${RST_FILES})
   configure_file(${file} ${file} @ONLY)
 endforeach()
