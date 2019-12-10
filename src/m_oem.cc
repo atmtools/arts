@@ -1409,7 +1409,7 @@ void covmat_ssCalc(Matrix& covmat_ss,
   id_mat(tmp1);
   tmp1 -= avk;
 
-  mult(tmp2, covmat_sx, tmp1);
+  mult(tmp2, covmat_sx, transpose(tmp1));
   mult(covmat_ss, tmp1, tmp2);
 }
 
