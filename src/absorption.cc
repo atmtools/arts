@@ -624,59 +624,90 @@ void xsec_species(Matrix& xsec,
   
   // Constant for all lines
   const Numeric QT0 = single_partition_function(band.T0(), partfun_type, partfun_data);
-  
+
+  ArrayOfString fail_msg;
+  bool do_abort = false;
+
+#pragma omp parallel for if (!arts_omp_in_parallel() && np > 1) \
+    firstprivate(scratch, sum)
   for (Index ip = 0; ip < np; ip++) {
-    // Constants for this level
-    const Numeric& temperature = abs_t[ip];
-    const Numeric& pressure = abs_p[ip];
-    
-    // Constants for this level
-    const Numeric QT = single_partition_function(temperature, partfun_type, partfun_data);
-    const Numeric dQTdT = dsingle_partition_function_dT(QT, temperature, temperature_perturbation(jacobian_quantities), partfun_type, partfun_data);
-    const Numeric DC = Linefunctions::DopplerConstant(temperature, band.SpeciesMass());
-    const Numeric dDCdT = Linefunctions::dDopplerConstant_dT(temperature, DC);
-    const Vector line_shape_vmr = band.BroadeningSpeciesVMR(abs_vmrs(joker, ip), abs_species);
-    
-    Linefunctions::set_cross_section_of_band(
-      scratch,
-      sum,
-      f_grid,
-      band,
-      jacobian_quantities,
-      jacobian_propmat_positions,
-      line_shape_vmr,
-      abs_nlte[ip],
-      pressure,
-      temperature,
-      isot_ratio,
-      0,
-      DC,
-      dDCdT,
-      QT,
-      dQTdT,
-      QT0,
-      false);
-    
-    // absorption cross-section
-    MapToEigen(xsec).col(ip).noalias() += sum.F.real();
-    for (Index j = 0; j < nj; j++)
-      MapToEigen(dxsec_dx[j]).col(ip).noalias() +=
-      sum.dF.col(j).real();
-    
-    // phase cross-section
-    if (not phase.empty()) {
-      MapToEigen(phase).col(ip).noalias() += sum.F.imag();
+    if (do_abort) continue;
+    try {
+      // Constants for this level
+      const Numeric& temperature = abs_t[ip];
+      const Numeric& pressure = abs_p[ip];
+
+      // Constants for this level
+      const Numeric QT =
+          single_partition_function(temperature, partfun_type, partfun_data);
+      const Numeric dQTdT = dsingle_partition_function_dT(
+          QT,
+          temperature,
+          temperature_perturbation(jacobian_quantities),
+          partfun_type,
+          partfun_data);
+      const Numeric DC =
+          Linefunctions::DopplerConstant(temperature, band.SpeciesMass());
+      const Numeric dDCdT = Linefunctions::dDopplerConstant_dT(temperature, DC);
+      const Vector line_shape_vmr =
+          band.BroadeningSpeciesVMR(abs_vmrs(joker, ip), abs_species);
+
+      Linefunctions::set_cross_section_of_band(scratch,
+                                               sum,
+                                               f_grid,
+                                               band,
+                                               jacobian_quantities,
+                                               jacobian_propmat_positions,
+                                               line_shape_vmr,
+                                               abs_nlte[ip],
+                                               pressure,
+                                               temperature,
+                                               isot_ratio,
+                                               0,
+                                               DC,
+                                               dDCdT,
+                                               QT,
+                                               dQTdT,
+                                               QT0,
+                                               false);
+
+      // absorption cross-section
+      MapToEigen(xsec).col(ip).noalias() += sum.F.real();
       for (Index j = 0; j < nj; j++)
-        MapToEigen(dphase_dx[j]).col(ip).noalias() +=
-        sum.dF.col(j).imag();
+        MapToEigen(dxsec_dx[j]).col(ip).noalias() += sum.dF.col(j).real();
+
+      // phase cross-section
+      if (not phase.empty()) {
+        MapToEigen(phase).col(ip).noalias() += sum.F.imag();
+        for (Index j = 0; j < nj; j++)
+          MapToEigen(dphase_dx[j]).col(ip).noalias() += sum.dF.col(j).imag();
+      }
+
+      // source ratio cross-section
+      if (do_nonlte) {
+        MapToEigen(source).col(ip).noalias() += sum.N.real();
+        for (Index j = 0; j < nj; j++)
+          MapToEigen(dsource_dx[j]).col(ip).noalias() += sum.dN.col(j).real();
+      }
+    } catch (const std::runtime_error& e) {
+      ostringstream os;
+      os << "Runtime-error in cross-section calculation at p_abs index " << ip
+         << ": \n";
+      os << e.what();
+#pragma omp critical(xsec_species_cross_sections)
+      {
+        do_abort = true;
+        fail_msg.push_back(os.str());
+      }
     }
-    
-    // source ratio cross-section
-    if (do_nonlte) {
-      MapToEigen(source).col(ip).noalias() += sum.N.real();
-      for (Index j = 0; j < nj; j++)
-        MapToEigen(dsource_dx[j]).col(ip).noalias() +=
-        sum.dN.col(j).real();
+  }
+
+  if (do_abort) {
+    std::ostringstream os;
+    os << "Error messages from failed cases:\n";
+    for (const auto& msg : fail_msg) {
+      os << msg << '\n';
     }
+    throw std::runtime_error(os.str());
   }
 }
