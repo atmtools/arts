@@ -7495,7 +7495,7 @@ void define_md_data_raw() {
           "If nothing else is stated, only the first column of *iy_aux* is filled,\n"
           "i.e. the column matching Stokes element I, while remaing columns are\n"
           "are filled with zeros.\n"),
-      AUTHORS("Patrick Eriksson", "Richard Larsson"),
+      AUTHORS("Patrick Eriksson", "Richard Larsson", "Oliver Lemke"),
       OUT("iy",
           "iy_aux",
           "diy_dx",
@@ -7551,13 +7551,13 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
-      NAME("iyEmissionStandardParallel"),
+      NAME("iyEmissionStandardSequential"),
       DESCRIPTION(
-          "Parallelized version of *iyEmissionStandard* at the expense of\n"
-          "higher memory usage.\n"
+          "DEPRECATED! Should go away soon\n"
+          "Sequential version of *iyEmissionStandard*\n"
           "\n"
           "For documentation see *iyEmissionStandard*.\n"),
-      AUTHORS("Patrick Eriksson", "Richard Larsson", "Oliver Lemke"),
+      AUTHORS("Patrick Eriksson", "Richard Larsson"),
       OUT("iy",
           "iy_aux",
           "diy_dx",

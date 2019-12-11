@@ -169,7 +169,7 @@ void iyCalc(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyEmissionStandard(Workspace& ws,
+void iyEmissionStandardSequential(Workspace& ws,
                         Matrix& iy,
                         ArrayOfMatrix& iy_aux,
                         ArrayOfTensor3& diy_dx,
@@ -561,7 +561,7 @@ void iyEmissionStandard(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyEmissionStandardParallel(
+void iyEmissionStandard(
     Workspace& ws,
     Matrix& iy,
     ArrayOfMatrix& iy_aux,
