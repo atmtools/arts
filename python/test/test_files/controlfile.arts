@@ -1,0 +1,14 @@
+Arts2 {
+  StringCreate(foo)
+  StringSet(foo, "bar")
+  Print(foo)
+
+  VectorCreate(v_1)
+  VectorCreate(v_2)
+
+  ReadXML(v_1, "vector.xml")
+  VectorSet(v_2, [1.0])
+
+  Compare(v_1, v_2, 1e-10)
+
+}
