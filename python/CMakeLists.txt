@@ -11,3 +11,7 @@ set(ARTS_SRC_DIR ${CMAKE_SOURCE_DIR})
 foreach(file ${PYTHON_SRC_FILES})
   configure_file(${file} ${file} @ONLY)
 endforeach()
+
+file(COPY test/reference DESTINATION test/reference)
+file(COPY test/xml/reference DESTINATION test/xml/reference)
+file(COPY test/test_files DESTINATION test/test_files)

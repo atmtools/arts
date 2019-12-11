@@ -324,7 +324,7 @@ class WorkspaceVariable:
                 return np.zeros(shape)
         else:
             try:
-                return self.to_typhon()
+                return self.to_arts()
             except:
                 raise Exception("Type of workspace variable is not supported "
                                 + " by the interface.")
@@ -361,7 +361,7 @@ class WorkspaceVariable:
         """
         print(self.description.format())
 
-    def to_typhon(self):
+    def to_arts(self):
         """
         Return the value of this variable as a typhon type. This function
         writes the value of the variable to a temporary file and reads it
@@ -385,7 +385,7 @@ class WorkspaceVariable:
 
         return v
 
-    def from_typhon(self, var):
+    def from_arts(self, var):
         """
         Set the value of this WSV in the associated workspace to the given
         typhon type. This function writes the value in ASCII format to a

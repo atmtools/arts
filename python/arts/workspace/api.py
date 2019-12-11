@@ -47,7 +47,7 @@ arts_minimum_revision = 1167
 try:
     lib_path = pkg_resources.resource_filename(__name__, "libarts_api.so")
     arts_api = c.cdll.LoadLibrary(lib_path)
-except Exception e:
+except Exception as e:
     raise EnvironmentError("The following error was encountered when "
                            "trying to load the ARTS API: ", e)
 
