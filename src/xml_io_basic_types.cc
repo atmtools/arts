@@ -1446,6 +1446,172 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 }
 
+//=== AbsorptionLines ================================================================
+
+//! Reads AbsorptionLines from XML input stream
+/*!
+ *  \param is_xml  XML Input stream
+ *  \param al      AbsorptionLines return value
+ *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream& is_xml,
+                          AbsorptionLines& al,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity) {
+  ArtsXMLTag tag(verbosity);
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("AbsorptionLines");
+  
+  // Number of lines
+  Index nlines;
+  tag.get_attribute_value("nlines", nlines);
+  
+  // Species of the lines
+  SpeciesTag spec;
+  tag.get_attribute_value("species", spec);
+  
+  // Cutoff type
+  String s_cutoff;
+  tag.get_attribute_value("cutofftype", s_cutoff);
+  const Absorption::CutoffType cutoff = Absorption::string2cutofftype(s_cutoff);
+  
+  // Mirroring type
+  String s_mirroring;
+  tag.get_attribute_value("mirroringtype", s_mirroring);
+  const Absorption::MirroringType mirroring = Absorption::string2mirroringtype(s_mirroring);
+  
+  // Line population type
+  String s_population;
+  tag.get_attribute_value("populationtype", s_population);
+  const Absorption::PopulationType population = Absorption::string2populationtype(s_population);
+  
+  // Normalization type
+  String s_normalization;
+  tag.get_attribute_value("normalizationtype", s_normalization);
+  const Absorption::NormalizationType normalization = Absorption::string2normalizationtype(s_normalization);
+  
+  // Normalization type
+  String s_lineshapetype;
+  tag.get_attribute_value("lineshapetype", s_lineshapetype);
+  const LineShape::Type lineshapetype = LineShape::string2shapetype(s_lineshapetype);
+  
+  /** Reference temperature for all parameters of the lines */
+  Numeric T0;
+  tag.get_attribute_value("T0", T0);
+  
+  /** cutoff frequency */
+  Numeric cutofffreq;
+  tag.get_attribute_value("cutofffreq", cutofffreq);
+  
+  /** linemixing limit */
+  Numeric linemixinglimit;
+  tag.get_attribute_value("linemixinglimit", linemixinglimit);
+  
+  /** List of local quantum numbers, these must be defined */
+  std::vector<QuantumNumberType> localquanta;
+  tag.get_attribute_value("localquanta", localquanta);
+  
+  /** Catalog ID */  
+  QuantumNumbers upperglobalquanta;
+  tag.get_attribute_value("upperglobalquanta", upperglobalquanta);
+  QuantumNumbers lowerglobalquanta;
+  tag.get_attribute_value("lowerglobalquanta", lowerglobalquanta);
+  
+  /** A list of broadening species */
+  ArrayOfSpeciesTag broadeningspecies;
+  bool selfbroadening;
+  bool bathbroadening;
+  tag.get_attribute_value("broadeningspecies", broadeningspecies, selfbroadening, bathbroadening);
+  
+  String temperaturemodes;
+  tag.get_attribute_value("temperaturemodes", temperaturemodes);
+  auto metamodel = LineShape::MetaData2ModelShape(temperaturemodes);
+
+  al = AbsorptionLines(selfbroadening, bathbroadening,
+                       nlines, cutoff, mirroring,
+                       population, normalization,
+                       lineshapetype, T0, cutofffreq,
+                       linemixinglimit, QuantumIdentifier(spec.Species(),
+                       spec.Isotopologue(), upperglobalquanta, lowerglobalquanta),
+                       localquanta, broadeningspecies, metamodel);
+  
+  if (pbifs) {
+    al.read(*pbifs);
+     if (pbifs->fail()) {
+       ostringstream os;
+       os << "AbsorptionLines has wrong dimensions";
+       xml_data_parse_error(tag, os.str());
+     }
+  } else {
+    is_xml >> al;
+    if (is_xml.fail()) {
+      ostringstream os;
+      os << "AbsorptionLines has wrong dimensions";
+      xml_data_parse_error(tag, os.str());
+    }
+  }
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/AbsorptionLines");
+}
+
+//! Writes AbsorptionLines to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param al      AbsorptionLines
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute (ignored)
+ */
+void xml_write_to_stream(ostream& os_xml,
+                         const AbsorptionLines& al,
+                         bofstream* pbofs,
+                         const String&,
+                         const Verbosity& verbosity) {
+  ArtsXMLTag open_comment_tag(verbosity);
+  ArtsXMLTag close_comment_tag(verbosity);
+  open_comment_tag.set_name("comment");
+  open_comment_tag.write_to_stream(os_xml);
+  os_xml << al.MetaData();
+  close_comment_tag.set_name("/comment");
+  close_comment_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("AbsorptionLines");
+  open_tag.add_attribute("nlines", al.NumLines());
+  open_tag.add_attribute("species", al.SpeciesName());
+  open_tag.add_attribute("cutofftype", Absorption::cutofftype2string(al.Cutoff()));
+  open_tag.add_attribute("mirroringtype", Absorption::mirroringtype2string(al.Mirroring()));
+  open_tag.add_attribute("populationtype", Absorption::populationtype2string(al.Population()));
+  open_tag.add_attribute("normalizationtype", Absorption::normalizationtype2string(al.Normalization()));
+  open_tag.add_attribute("lineshapetype", LineShape::shapetype2string(al.LineShapeType()));
+  open_tag.add_attribute("T0", al.T0());
+  open_tag.add_attribute("cutofffreq", al.CutoffFreqValue());
+  open_tag.add_attribute("linemixinglimit", al.LinemixingLimit());
+  open_tag.add_attribute("localquanta", al.LocalQuanta());
+  open_tag.add_attribute("upperglobalquanta", al.UpperQuantumNumbers());
+  open_tag.add_attribute("lowerglobalquanta", al.LowerQuantumNumbers());
+  open_tag.add_attribute("broadeningspecies", al.BroadeningSpecies(), al.Self(), al.Bath());
+  open_tag.add_attribute("temperaturemodes", al.LineShapeMetaData());
+
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  xml_set_stream_precision(os_xml);
+  if (pbofs)
+    al.write(*pbofs);
+  else
+    os_xml << al;
+
+  close_tag.set_name("/AbsorptionLines");
+  close_tag.write_to_stream(os_xml);
+
+  os_xml << '\n';
+}
+
 ////////////////////////////////////////////////////////////////////////////
 //   Dummy funtion for groups for which
 //   IO function have not yet been implemented

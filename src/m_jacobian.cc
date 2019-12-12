@@ -812,7 +812,7 @@ void jacobianCalcPointingZaRecalc(
     const Vector& iyb _U_,
     const Vector& yb,
     const Index& atmosphere_dim,
-    const Tensor4& nlte_field,              
+    const EnergyLevelMap& nlte_field,              
     const Index& cloudbox_on,
     const Index& stokes_dim,
     const Vector& f_grid,

@@ -68,8 +68,6 @@ Copy( surface_rtprop_agenda,
 # only for O3, where only the local lines matter.
 # Could be speed-optimized further by selecting only the relevant 
 # lines from the line list.
-ArrayOfLineshapeSpecCreate( abs_lineshapeDefine )
-abs_lineshapeDefine( abs_lineshapeDefine, "Voigt_Kuntz6", "VVH", 5e9 )
 
 abs_speciesSet( species=[ "H2O-PWR98",
 #                          "O3",
@@ -119,6 +117,7 @@ abs_lookupSetupBatch
 # Create the lookup table
 # ---
 abs_xsec_agenda_checkedCalc
+lbl_checkedCalc
 
 jacobianOff
 

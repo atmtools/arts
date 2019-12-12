@@ -33,51 +33,62 @@
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ArrayOfQuantumIdentifierFromLines(
     ArrayOfQuantumIdentifier& qid,
-    const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+    const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const Index& global,
     const Verbosity&) {
   // Defined only as output not input so resizing
   qid.resize(0);
 
+  QuantumIdentifier lower, upper;
+  
   // For all lines' upper and lower energy levels
-  for (const auto& lines : abs_lines_per_species) {
-    for (const auto& line : lines) {
-      QuantumIdentifier lower = line.QuantumIdentity().LowerQuantumId();
-      QuantumIdentifier upper = line.QuantumIdentity().UpperQuantumId();
-      const bool canbeinlower = lower.any_quantumnumbers(),
-                 canbeinupper = upper.any_quantumnumbers();
+  for (const auto& lines: abs_lines_per_species) {
+    for (const auto& band: lines) {
+      for (Index k=0; k<band.NumLines() and (global ? (k==0) : false); k++) {
+        if (global) {
+          lower = band.QuantumIdentity().LowerQuantumId();
+          upper = band.QuantumIdentity().UpperQuantumId();
+        } else {
+          auto x = band.QuantumIdentityOfLine(k);
+          lower = x.LowerQuantumId();
+          upper = x.UpperQuantumId();
+        }
+        
+        const bool canbeinlower = lower.any_quantumnumbers(),
+                   canbeinupper = upper.any_quantumnumbers();
 
-      // Test if the level has already been treated
-      const Index n = qid.nelem();
-      bool inlower = false, inupper = false;
-      for (Index i = 0; i < n; i++) {
-        if (not inlower and canbeinlower)
-          if (qid[i] == lower) inlower = true;
+        // Test if the level has already been treated
+        const Index n = qid.nelem();
+        bool inlower = false, inupper = false;
+        for (Index i = 0; i < n; i++) {
+          if (not inlower and canbeinlower)
+            if (qid[i] == lower) inlower = true;
+          if (not inupper and canbeinupper)
+            if (qid[i] == upper) inupper = true;
+        }
+
+        // If the level has not been treated and has any quantum numbers, then store it
+        if (not inlower and canbeinlower) qid.push_back(lower);
         if (not inupper and canbeinupper)
-          if (qid[i] == upper) inupper = true;
+          if (not(lower == upper)) qid.push_back(upper);
       }
-
-      // If the level has not been treated and has any quantum numbers, then store it
-      if (not inlower and canbeinlower) qid.push_back(lower);
-      if (not inupper and canbeinupper)
-        if (not(lower == upper)) qid.push_back(upper);
     }
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void nlte_fieldRescalePopulationLevels(Tensor4& nlte_field,
+void nlte_fieldRescalePopulationLevels(EnergyLevelMap& nlte_field,
                                        const Numeric& scale,
                                        const Verbosity&) {
-  nlte_field *= scale;
+  nlte_field.Data() *= scale;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void nlte_fieldForSingleSpeciesNonOverlappingLines(
     Workspace& ws,
-    Tensor4& nlte_field,
+    EnergyLevelMap& nlte_field,
     const ArrayOfArrayOfSpeciesTag& abs_species,
-    const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-    const ArrayOfQuantumIdentifier& nlte_level_identifiers,
+    const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
     const ArrayOfArrayOfGriddedField1& collision_coefficients,
     const ArrayOfQuantumIdentifier& collision_line_identifiers,
     const SpeciesAuxData& isotopologue_ratios,
@@ -102,43 +113,38 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(
     const Index& nf,
     const Index& dampened,
     const Index& iteration_limit,
-    const Verbosity& verbosity) {
+    const Verbosity& verbosity)
+{
   CREATE_OUT2;
 
   if (not nlte_do) throw std::runtime_error("Must be set to do NLTE");
-  if (nlte_field.empty())
+  if (nlte_field.Data().empty())
     throw std::runtime_error("Error in NLTE field, it is empty");
 
   Matrix line_irradiance;
   Tensor3 line_transmission;
 
-  const Index nlevels = nlte_level_identifiers.nelem(), np = p_grid.nelem();
+  const Index nlevels = nlte_field.Levels().nelem(), np = p_grid.nelem();
   if (nlevels < 5)
     throw std::runtime_error("Must have more than a four levels");
 
   if (atmosphere_dim not_eq 1)
     throw std::runtime_error("Only for 1D atmosphere");
 
-  ArrayOfLineRecord lines;
-  lines.reserve(nlevels * 2);
-  for (const auto& aolr : abs_lines_per_species)
-    for (const auto& lr : aolr)
-      if (lr.NLTELowerIndex() >= 0) lines.push_back(lr);
-
-  const Index nlines = lines.nelem();
+  const Index nlines = nelem(abs_lines_per_species);
   if (nlevels >= nlines)
     throw std::runtime_error(
         "Bad number of lines... overlapping lines in nlte_level_identifiers?");
 
   // Create basic compute vectors
-  const Vector Aij = createAij(lines);
-  const Vector Bij = createBij(lines);
-  const Vector Bji = createBji(Bij, lines);
+  const Vector Aij = createAij(abs_lines_per_species);
+  const Vector Bij = createBij(abs_lines_per_species);
+  const Vector Bji = createBji(Bij, abs_lines_per_species);
   Vector Cij(nlines), Cji(nlines);
 
   ArrayOfIndex upper, lower;
   nlte_positions_in_statistical_equilibrium_matrix(
-      upper, lower, lines, nlte_level_identifiers);
+    upper, lower, abs_lines_per_species, nlte_field);
   const Index unique = find_first_unique_in_lower(upper, lower);
 
   // Compute arrays
@@ -152,11 +158,6 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(
     max_change = 0.0;
 
     //     //Compute radiation and transmission
-    //     line_irradianceCalcForSingleSpeciesNonOverlappingLines(ws, line_irradiance, line_transmission, abs_species, abs_lines_per_species,
-    //                                                            nlte_field, vmr_field, t_field, z_field,
-    //                                                            p_grid, atmosphere_dim, surface_props_data, iy_space_agenda, iy_surface_agenda,
-    //                                                            iy_cloudbox_agenda, propmat_clearsky_agenda, water_p_eq_agenda, df, nz, nf, verbosity);
-
     line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
         ws,
         line_irradiance,
@@ -183,10 +184,10 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(
         verbosity);
 
     for (Index ip = 0; ip < np; ip++) {
-      r = nlte_field(joker, ip, 0, 0);
+      r = nlte_field.Data()(joker, ip, 0, 0);
       nlte_collision_factorsCalcFromCoeffs(Cij,
                                            Cji,
-                                           lines,
+                                           abs_lines_per_species,
                                            abs_species,
                                            collision_coefficients,
                                            collision_line_identifiers,
@@ -194,6 +195,7 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(
                                            vmr_field(joker, ip, 0, 0),
                                            t_field(ip, 0, 0),
                                            p_grid[ip]);
+      
 
       if (dampened)
         dampened_statistical_equilibrium_equation(
@@ -220,11 +222,11 @@ void nlte_fieldForSingleSpeciesNonOverlappingLines(
                                          lower);
 
       set_constant_statistical_equilibrium_matrix(SEE, x, r.sum(), unique);
-      solve(nlte_field(joker, ip, 0, 0), SEE, x);
+      solve(nlte_field.Data()(joker, ip, 0, 0), SEE, x);
 
       for (Index il = 0; il < nlevels; il++) {
         max_change =
-            max(abs(nlte_field(il, ip, 0, 0) - r[il]) / r[il], max_change);
+            max(abs(nlte_field.Data()(il, ip, 0, 0) - r[il]) / r[il], max_change);
       }
     }
     i++;
@@ -276,10 +278,10 @@ void collision_coefficientsFromSplitFiles(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void nlteOff(Index& nlte_do,
-             Tensor4& t_nlte_field,
+             EnergyLevelMap& nlte_field,
              ArrayOfQuantumIdentifier& nlte_level_identifiers,
              const Verbosity&) {
   nlte_do = 0;
-  t_nlte_field.resize(0, 0, 0, 0);
+  nlte_field = EnergyLevelMap();
   nlte_level_identifiers.resize(0);
 }

@@ -1241,7 +1241,8 @@ class StokesVector : public PropagationMatrix {
     mfreqs = x.NumberOfFrequencies();
     mza = x.NumberOfZenithAngles();
     maa = x.NumberOfAzimuthAngles();
-    mdata = x.GetData()(joker, joker, joker, Range(0, mstokes_dim, 1));
+    mdata.resize(maa, mza, mfreqs, mstokes_dim);
+    mdata(joker, joker, joker, Range(0, mstokes_dim, 1)) = x.GetData()(joker, joker, joker, Range(0, mstokes_dim, 1));
     return *this;
   }
 

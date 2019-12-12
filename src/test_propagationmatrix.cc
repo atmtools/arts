@@ -412,29 +412,6 @@ void test_transmat_to_cumulativetransmat() {
   std::cout << "Reflect accumulation:\n" << cumulative_reflect << "\n\n";
 }
 
-void test_lineshape_xsec() {
-  define_species_data();
-  define_species_map();
-
-  LineRecord vp_line;
-  Verbosity v;
-  String s =
-      "@ O2-66 100000000000 1e-27 296 3e-20 0 3 1 LF VP LM2 2 SELF T1 20000 0.8 T5 1000 0.7 T4 1e-07 1e-09 0.8 T4 1e-11 1e-13 1.6 T4 10 0.1 1.6 AIR T1 10000 0.7 T5 1000 0.7 T4 1e-07 1e-09 0.8 T4 1e-11 1e-13 1.6 T4 10 0.1 1.6 QN UP J 1 LO J 0";
-  istringstream is(s);
-  vp_line.ReadFromArtscat5Stream(is, v);
-  Vector vmrs(1, 0.21);
-  const ArrayOfArrayOfSpeciesTag abs_species(
-      1, ArrayOfSpeciesTag(1, SpeciesTag("O2-66")));
-
-  Eigen::VectorXcd F(101);
-  Eigen::VectorXd f_grid(101);
-  for (int i = 0; i < 101; i++)
-    f_grid[i] = Numeric(i - 50) / 50.0 * 1e4 + 100e9;
-  Linefunctions::set_lineshape(
-      F, f_grid, vp_line, vmrs, 273., 100., 0., 0., abs_species);
-  std::cout << F << "\n";
-}
-
 void test_sinc_likes_0limit() {
   Numeric start = 1.0;
   Numeric end = 1e-7;
@@ -539,13 +516,23 @@ void test_zeeman() {
   }
 }
 
+constexpr bool test_quantum_numbers(const QuantumNumbers qns, const Index i)
+{
+  return (i > 0) ? (qns[i].isUndefined() ? test_quantum_numbers(qns, i-1) : false) : true;
+}
+
+void test_quantum()
+{
+  static_assert(test_quantum_numbers(QuantumNumbers(), Index(QuantumNumberType::FINAL_ENTRY) - 1),
+                "Bad last entry in QuantumNumbers.  Did you recently expand the list?");
+}
+
 int main() {
   /*test_speed_of_pressurebroadening();
     test_transmissionmatrix();
     test_r_deriv_propagationmatrix();
     test_transmat_from_propmat();
     test_transmat_to_cumulativetransmat();
-    test_lineshape_xsec();
     test_sinc_likes_0limit();*/
   test_zeeman();
   return 0;

@@ -61,7 +61,9 @@ cloudboxOff
 
 # Read a line file and a matching small frequency grid
 # ---
-ReadXML( abs_lines, "abs_lines.xml" )
+ReadARTSCAT( abs_lines, "abs_lines.xml" )
+abs_linesSetCutoff(option="ByLine", value=750e9)
+abs_linesSetNormalization(option="VVH")
 VectorNLinSpace( f_grid, 5, 320e9, 322e9 )
 
 
@@ -135,6 +137,7 @@ atmfields_checkedCalc
 atmgeom_checkedCalc
 cloudbox_checkedCalc
 sensor_checkedCalc
+lbl_checkedCalc
 yCalc
 
 # OK?

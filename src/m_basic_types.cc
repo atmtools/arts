@@ -45,6 +45,7 @@
 #include <cmath>
 #include "array.h"
 #include "arts.h"
+#include "energylevelmap.h"
 #include "exceptions.h"
 #include "gridded_fields.h"
 #include "lin_alg.h"
@@ -2913,6 +2914,36 @@ void CompareRelative(const ArrayOfArrayOfStokesVector& var1,
                      const Verbosity& verbosity) {
   _cr_internal_(var1,
                 var2,
+                maxabsreldiff,
+                error_message,
+                var1name,
+                var2name,
+                "",
+                "",
+                verbosity);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void CompareRelative(const EnergyLevelMap& var1,
+                     const EnergyLevelMap& var2,
+                     const Numeric& maxabsreldiff,
+                     const String& error_message,
+                     const String& var1name,
+                     const String& var2name,
+                     const String&,
+                     const String&,
+                     const Verbosity& verbosity) {
+  _cr_internal_(var1.Data(),
+                var2.Data(),
+                maxabsreldiff,
+                error_message,
+                var1name,
+                var2name,
+                "",
+                "",
+                verbosity);
+  _cr_internal_(var1.Energies(),
+                var2.Energies(),
                 maxabsreldiff,
                 error_message,
                 var1name,

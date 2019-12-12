@@ -177,6 +177,7 @@ add_library (artscore STATIC
   ${ARTSCORE_EXTRA_SOURCES}
   abs_species_tags.cc
   absorption.cc
+  absorptionlines.cc
   agenda_class.cc
   agenda_record.cc
   arts.cc
@@ -193,6 +194,7 @@ add_library (artscore STATIC
   disort.cc
   docserver.cc
   doit.cc
+  energylevelmap.cc
   fastem.cc
   file.cc
   gas_abs_lookup.cc
@@ -206,12 +208,11 @@ add_library (artscore STATIC
   legendre.cc
   lin_alg.cc
   linemixing.cc
-  linerecord.cc
   linescaling.cc
-  lineshapes.cc
   lineshapemodel.cc
   linefunctions.cc
   m_abs.cc
+  m_absorptionlines.cc
   m_abs_lookup.cc
   m_agenda.cc
   m_atmosphere.cc
@@ -230,7 +231,6 @@ add_library (artscore STATIC
   m_hitran_xsec.cc
   m_jacobian.cc
   m_linemixing.cc
-  m_linerecord.cc
   m_microphysics.cc
   m_montecarlo.cc
   m_nlte.cc
@@ -240,6 +240,7 @@ add_library (artscore STATIC
   m_planets.cc
   m_ppath.cc
   m_psd.cc
+  m_quantum.cc
   m_radiation_field.cc
   m_refraction.cc
   m_retrieval.cc
@@ -266,7 +267,6 @@ add_library (artscore STATIC
   parameters.cc
   parser.cc
   partition_function_data.cc
-  partial_derivatives.cc
   physics_funcs.cc
   poly_roots.cc
   ppath.cc
@@ -474,11 +474,6 @@ target_link_libraries (test_matpack matpack artscore test_utils)
 
 add_executable (test_matpack_simple test_matpack_simple.cc)
 target_link_libraries (test_matpack_simple test_utils)
-
-########### next testcase ###############
-
-add_executable (test_quantum test_quantum.cc)
-target_link_libraries (test_quantum ${ALL_ARTS_LIBRARIES})
 
 ########### next testcase ###############
 

@@ -107,6 +107,7 @@ propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc( bad_partition_functions_ok = 1 )
 atmgeom_checkedCalc
 cloudbox_checkedCalc
+lbl_checkedCalc
 
 
 # Sensor pos/los

@@ -51,10 +51,9 @@ abs_speciesSet( species= [ "N2-SelfContStandardType",
 
 # Line data
 #
-ReadXML(abs_lines, "line_118ghz.xml")
+ReadARTSCAT(filename="line_118ghz.xml", localquantumnumbers="J")
 abs_lines_per_speciesCreateFromLines
 Wigner6Init(wigner_initialized, 40000, 100)
-zeeman_linerecord_precalcCreateFromLines
 
 
 # Atmosphere
@@ -121,6 +120,7 @@ atmfields_checkedCalc( bad_partition_functions_ok = 1 )
 atmgeom_checkedCalc
 cloudbox_checkedCalc
 sensor_checkedCalc
+lbl_checkedCalc
 
 
 # HSE

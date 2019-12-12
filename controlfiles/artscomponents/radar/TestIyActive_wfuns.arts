@@ -104,6 +104,7 @@ propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
 sensor_checkedCalc
+lbl_checkedCalc
 
 
 # IWC, analytical Jacobian

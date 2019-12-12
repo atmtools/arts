@@ -55,7 +55,7 @@ abs_speciesSet( species=[
         "H2O-PWR98",
         "N2-SelfContStandardType",
         "O2-PWR98" ] )
-ReadXML( abs_lines, "ozone_line.xml" )
+ReadARTSCAT( abs_lines, "ozone_line.xml" )
 abs_lines_per_speciesCreateFromLines
 
 # Surface altitude
@@ -73,6 +73,7 @@ abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc
 atmgeom_checkedCalc
+lbl_checkedCalc
 
 
 # ---- Part 1: An emission measurement at 110.8 GHz --------------------------

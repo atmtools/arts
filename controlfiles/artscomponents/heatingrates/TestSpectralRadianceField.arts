@@ -91,6 +91,7 @@ abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc( bad_partition_functions_ok = 1 )
 atmgeom_checkedCalc
+lbl_checkedCalc
 FlagOn( sensor_checked ) 
 
 

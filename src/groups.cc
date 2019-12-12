@@ -80,15 +80,17 @@ void define_wsv_group_names() {
   //--------------------< Build the group names array >--------------------
   // Initialize to empty, just in case.
   wsv_group_names.resize(0);
-
+  
+  wsv_group_names.push_back("AbsorptionLines");
   wsv_group_names.push_back("Agenda");
   wsv_group_names.push_back("Any");
+  wsv_group_names.push_back("ArrayOfAbsorptionLines");
+  wsv_group_names.push_back("ArrayOfArrayOfAbsorptionLines");
   wsv_group_names.push_back("ArrayOfAgenda");
   wsv_group_names.push_back("ArrayOfArrayOfGriddedField1");
   wsv_group_names.push_back("ArrayOfArrayOfGriddedField2");
   wsv_group_names.push_back("ArrayOfArrayOfGriddedField3");
   wsv_group_names.push_back("ArrayOfArrayOfIndex");
-  wsv_group_names.push_back("ArrayOfArrayOfLineRecord");
   wsv_group_names.push_back("ArrayOfArrayOfMatrix");
   wsv_group_names.push_back("ArrayOfPpath");
   wsv_group_names.push_back("ArrayOfArrayOfPropagationMatrix");
@@ -108,8 +110,6 @@ void define_wsv_group_names() {
   wsv_group_names.push_back("ArrayOfGriddedField3");
   wsv_group_names.push_back("ArrayOfGriddedField4");
   wsv_group_names.push_back("ArrayOfIndex");
-  wsv_group_names.push_back("ArrayOfLineRecord");
-  wsv_group_names.push_back("ArrayOfLineshapeSpec");
   wsv_group_names.push_back("ArrayOfMatrix");
   wsv_group_names.push_back("ArrayOfPropagationMatrix");
   wsv_group_names.push_back("ArrayOfQuantumIdentifier");
@@ -131,6 +131,7 @@ void define_wsv_group_names() {
   wsv_group_names.push_back("ArrayOfXsecRecord");
   wsv_group_names.push_back("CIARecord");
   wsv_group_names.push_back("CovarianceMatrix");
+  wsv_group_names.push_back("EnergyLevelMap");
   wsv_group_names.push_back("GasAbsLookup");
   wsv_group_names.push_back("GridPos");
   wsv_group_names.push_back("GriddedField1");

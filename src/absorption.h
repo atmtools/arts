@@ -32,272 +32,13 @@
 #include <stdexcept>
 #include "abs_species_tags.h"
 #include "array.h"
+#include "energylevelmap.h"
 #include "gridded_fields.h"
 #include "jacobian.h"
-#include "linerecord.h"
 #include "matpackI.h"
 #include "messages.h"
 #include "mystring.h"
-
-/** The type that is used to store pointers to lineshape
-    functions.  */
-typedef void (*lsf_type)(Vector&,  //attenuation
-                         Vector&,  //phase
-                         Vector&,  //partial attenuation over frequency term
-                         Vector&,  //partial phase over frequency term
-                         Vector&,  //partial attenuation over pressure term
-                         Vector&,  //partial phase over pressure term
-                         Vector&,  //xvector helper (?)
-                         const Numeric,
-                         const Numeric,
-                         const Numeric,
-                         const Numeric,
-                         const Numeric,
-                         const Numeric,
-                         const Numeric,
-                         const Numeric,
-                         ConstVectorView,
-                         const bool,  //do phase
-                         const bool   //do partial derivative
-);
-/**  The types that are used to store pointers to lineshape
-     functions internal derivatives.  */
-typedef void (*lsf_type_dT)(
-    Vector&,          // dx/dT
-    Numeric&,         // dy/dT
-    Numeric&,         // dFu/dT
-    ConstVectorView,  // frequency
-    const Numeric&,   // line center + line shifts
-    const Numeric&,   // sigma
-    const Numeric&,   // derivative of pressure shift with temperature
-    const Numeric&,   // derivative of line mixing shift with temperature
-    const Numeric&,   // derivative of sigma with temperature
-    const Numeric&,   // gamma
-    const Numeric&    // derivative of gamma with temperature
-);
-typedef void (*lsf_type_dF)(Numeric&,       // dx/dF
-                            const Numeric&  // sigma
-);
-typedef void (*lsf_type_dF0)(Numeric&,       // dx/dF
-                             const Numeric&  // sigma
-);
-typedef void (*lsf_type_dgamma)(Numeric&,       // dy/dgamma
-                                const Numeric&  // sigma
-);
-typedef void (*lsf_type_dH)(
-    Numeric&,        // dx/dH
-    const Numeric&,  // sigma
-    const Numeric&   // derivative of magnetic shift to magnetic strength
-);
-typedef void (*lsf_type_dDF)(Numeric&,       // dx/dDF
-                             const Numeric&  // sigma
-);
-
-/** Lineshape related information. There is one LineshapeRecord for
-    each available lineshape function.
-
-    \author Stefan Buehler
-    \date   2000-08-21  */
-class LineshapeRecord {
- public:
-  /** Default constructor. */
-  LineshapeRecord()
-      : mname(),
-        mdescription(),
-        mphase(),
-        mpartials(),
-        mfunction(),
-        mfunction_dT(),
-        mfunction_dF(),
-        mfunction_dgamma(),
-        mfunction_dH(),
-        mfunction_dDF() { /* Nothing to do here. */
-  }
-
-  /** Initializing constructor, used to build the lookup table. No partials. */
-  LineshapeRecord(const String& name,
-                  const String& description,
-                  lsf_type function,
-                  const bool phase,
-                  const bool partials)
-      : mname(name),
-        mdescription(description),
-        mphase(phase),
-        mpartials(partials),
-        mfunction(function) {
-    if (mpartials)
-      throw std::runtime_error(
-          "Warning to developers:\n"
-          "The line shape is poorly designed since partials"
-          "are expected but none given in the definition.\nThis will fail.\n");
-  }
-  /** Initializing constructor, used to build the lookup table. With partials. */
-  LineshapeRecord(const String& name,
-                  const String& description,
-                  lsf_type function,
-                  lsf_type_dT function_dT,
-                  lsf_type_dF function_dF,
-                  lsf_type_dF0 function_dF0,
-                  lsf_type_dgamma function_dgamma,
-                  lsf_type_dH function_dH,
-                  lsf_type_dDF function_dDF,
-                  const bool phase,
-                  const bool partials)
-      : mname(name),
-        mdescription(description),
-        mphase(phase),
-        mpartials(partials),
-        mfunction(function),
-        mfunction_dT(function_dT),
-        mfunction_dF(function_dF),
-        mfunction_dF0(function_dF0),
-        mfunction_dgamma(function_dgamma),
-        mfunction_dH(function_dH),
-        mfunction_dDF(function_dDF) { /* Nothing to do here. */
-  }
-
-  /** Return the name of this lineshape. */
-  const String& Name() const { return mname; }
-  /** Return the description text. */
-  const String& Description() const { return mdescription; }
-  /** Return pointer to lineshape function. */
-  lsf_type Function() const { return mfunction; }
-  lsf_type_dT dInput_dT() const { return mfunction_dT; }
-  lsf_type_dF dInput_dF() const { return mfunction_dF; }
-  lsf_type_dF dInput_dF0() const { return mfunction_dF0; }
-  lsf_type_dgamma dInput_dgamma() const { return mfunction_dgamma; }
-  lsf_type_dH dInput_dH() const { return mfunction_dH; }
-  lsf_type_dDF dInput_dDF() const { return mfunction_dDF; }
-  /** Returns true if lineshape function calculates phase information. */
-  bool Phase() const { return mphase; }
-  bool Partials() const { return mpartials; }
-
- private:
-  String mname;         ///< Name of the function (e.g., Lorentz).
-  String mdescription;  ///< Short description.
-  bool mphase;          ///< Does this lineshape calculate phase information?
-  bool mpartials;       ///< Does this lineshape calculate partial derivatives?
-  lsf_type mfunction;   ///< Pointer to lineshape function.
-  lsf_type_dT mfunction_dT;    ///< Pointer to lineshape function derivative.
-  lsf_type_dF mfunction_dF;    ///< Pointer to lineshape function derivative.
-  lsf_type_dF0 mfunction_dF0;  ///< Pointer to lineshape function derivative.
-  lsf_type_dgamma
-      mfunction_dgamma;        ///< Pointer to lineshape function derivative.
-  lsf_type_dH mfunction_dH;    ///< Pointer to lineshape function derivative.
-  lsf_type_dDF mfunction_dDF;  ///< Pointer to lineshape function derivative.
-};
-
-/** The type that is used to store pointers to lineshape
-    normalization functions.  */
-typedef void (*lsnf_type)(Vector&,
-                          const Numeric,
-                          ConstVectorView,
-                          const Numeric);
-
-/** Lineshape related normalization function information. There is one
-    LineshapeNormRecord for each available lineshape normalization
-    function.
-
-    \author Axel von Engeln
-    \date   2000-11-30  */
-class LineshapeNormRecord {
- public:
-  /** Default constructor. */
-  LineshapeNormRecord()
-      : mname(),
-        mdescription(),
-        mfunction(),
-        mfunction_dT(),
-        mfunction_dF(),
-        mfunction_dF0() { /* Nothing to do here. */
-  }
-
-  /** Initializing constructor, used to build the lookup table. */
-  LineshapeNormRecord(const String& name,
-                      const String& description,
-                      lsnf_type function,
-                      lsnf_type dfunction_dT,
-                      lsnf_type dfunction_dF,
-                      lsnf_type dfunction_dF0)
-      : mname(name),
-        mdescription(description),
-        mfunction(function),
-        mfunction_dT(dfunction_dT),
-        mfunction_dF(dfunction_dF),
-        mfunction_dF0(dfunction_dF0) { /* Nothing to do here. */
-  }
-  /** Return the name of this lineshape. */
-  const String& Name() const { return mname; }
-  /** Return the description text. */
-  const String& Description() const { return mdescription; }
-  /** Return pointer to lineshape normalization function. */
-  lsnf_type Function() const { return mfunction; }
-
-  lsnf_type dFunction_dT() const { return mfunction_dT; }
-  lsnf_type dFunction_dF() const { return mfunction_dF; }
-  lsnf_type dFunction_dF0() const { return mfunction_dF0; }
-
- private:
-  String mname;         ///< Name of the function (e.g., linear).
-  String mdescription;  ///< Short description.
-  lsnf_type mfunction;  ///< Pointer to lineshape normalization function.
-  lsnf_type
-      mfunction_dT;  ///< Pointer to lineshape normalization function partial derivative temperature.
-  lsnf_type
-      mfunction_dF;  ///< Pointer to lineshape normalization function partial derivative frequency.
-  lsnf_type
-      mfunction_dF0;  ///< Pointer to lineshape normalization function partial derivative frequency.
-};
-
-/** Lineshape related specification like which lineshape to use, the
-normalizationfactor, and the cutoff.
-
-    \author Axel von Engeln
-    \date   2001-01-05  */
-class LineshapeSpec {
- public:
-  /** Default constructor. */
-  LineshapeSpec()
-      : mind_ls(-1), mind_lsn(-1), mcutoff(0.) { /* Nothing to do here. */
-  }
-
-  /** Initializing constructor. */
-  LineshapeSpec(const Index& ind_ls,
-                const Index& ind_lsn,
-                const Numeric& cutoff)
-      : mind_ls(ind_ls),
-        mind_lsn(ind_lsn),
-        mcutoff(cutoff) { /* Nothing to do here. */
-  }
-
-  /** Return the index of this lineshape. */
-  const Index& Ind_ls() const { return mind_ls; }
-  /** Set it. */
-  void SetInd_ls(Index ind_ls) { mind_ls = ind_ls; }
-
-  /** Return the index of the normalization factor. */
-  const Index& Ind_lsn() const { return mind_lsn; }
-  /** Set it. */
-  void SetInd_lsn(Index ind_lsn) { mind_lsn = ind_lsn; }
-
-  /** Return the cutoff frequency (in Hz). This is the distance from
-      the line center outside of which the lineshape is defined to be
-      zero. Negative means no cutoff.*/
-  const Numeric& Cutoff() const { return mcutoff; }
-  /** Set it. */
-  void SetCutoff(Numeric cutoff) { mcutoff = cutoff; }
-
- private:
-  Index mind_ls;
-  Index mind_lsn;
-  Numeric mcutoff;
-};
-
-ostream& operator<<(ostream& os, const LineshapeSpec& lsspec);
-
-/** Holds a list of lineshape specifications: function, normalization, cutoff.
-    \author Axel von Engeln */
-typedef Array<LineshapeSpec> ArrayOfLineshapeSpec;
+#include "absorptionlines.h"
 
 /** Contains the lookup data for one isotopologue.
     \author Stefan Buehler */
@@ -325,8 +66,7 @@ class IsotopologueRecord {
         mjpltags(jpltags),
         mqcoeff(),
         mqcoefftype(PF_NOTHING),
-        mqcoeffgrid(),
-        mqcoeffinterporder() {
+        mqcoeffgrid() {
     // With Matpack, initialization of mjpltags from jpltags should now work correctly.
 
     // Some consistency checks whether the given data makes sense.
@@ -380,58 +120,6 @@ class IsotopologueRecord {
     mqcoefftype = qcoefftype;
   }
 
-  //! Calculate partition function ratio.
-  /*!
-    This computes the partition function ratio Q(Tref)/Q(T). 
-
-    Unfortunately, we have to recalculate also Q(Tref) for each
-    spectral line, because the reference temperatures can be
-    different!
-    
-    \param reference_temperature The reference temperature.
-    \param actual_temperature The actual temperature.
-  
-    \return The ratio.
-  */
-  Numeric CalculatePartitionFctRatio(Numeric reference_temperature,
-                                     Numeric actual_temperature) const {
-    Numeric qcoeff_at_t_ref, qtemp;
-
-    switch (mqcoefftype) {
-      case PF_FROMCOEFF:
-        qcoeff_at_t_ref = CalculatePartitionFctAtTempFromCoeff_OldUnused(
-            reference_temperature);
-        qtemp =
-            CalculatePartitionFctAtTempFromCoeff_OldUnused(actual_temperature);
-        break;
-      case PF_FROMTEMP:
-        qcoeff_at_t_ref = CalculatePartitionFctAtTempFromData_OldUnused(
-            reference_temperature);
-        qtemp =
-            CalculatePartitionFctAtTempFromData_OldUnused(actual_temperature);
-        break;
-      default:
-        throw runtime_error("The partition functions are incorrect.\n");
-        break;
-    }
-    /*        cout << "ref_t: " << reference_temperature << ", act_t:" <<
-          actual_temperature << "\n";
-        cout << "ref_q: " << qcoeff_at_t_ref << ", act_q:" <<
-          qtemp << "\n";
-*/
-    if (qtemp > 0.)
-      return qcoeff_at_t_ref / qtemp;
-    else {
-      std::ostringstream os;
-      os << "Partition function of "
-         << "Isotopologue "
-         << mname
-         //               << " is unknown.";
-         << " at T=" << actual_temperature << "K is zero or negative.";
-      throw std::runtime_error(os.str());
-    }
-  }
-
   enum {
     PF_FROMCOEFF,  // Partition function will be from coefficients
     PF_FROMTEMP,   // Partition function will be from temperature field
@@ -439,13 +127,6 @@ class IsotopologueRecord {
   };
 
  private:
-  // calculate the partition fct at a certain temperature
-  // this is only the prototyping
-  Numeric CalculatePartitionFctAtTempFromCoeff_OldUnused(
-      Numeric temperature) const;
-  Numeric CalculatePartitionFctAtTempFromData_OldUnused(
-      Numeric temperature) const;
-
   String mname;
   Numeric mabundance;
   Numeric mmass;
@@ -455,7 +136,6 @@ class IsotopologueRecord {
   Vector mqcoeff;
   Index mqcoefftype;
   Vector mqcoeffgrid;
-  Index mqcoeffinterporder;
 };
 
 /** Contains the lookup data for one species.
@@ -520,6 +200,9 @@ class SpeciesRecord {
     return misotopologue;
   }
   Array<IsotopologueRecord>& Isotopologue() { return misotopologue; }
+  
+  /** Return a copy of the full name of the k:th isotopologue */
+  String FullName(Index k) const {return mname + '-' + misotopologue[k].Name();}
 
  private:
   /** Species name. */
@@ -569,10 +252,13 @@ class SpeciesAuxData {
 
   /** Returns mparams[st.Species()][st.Isotopologue()][0].data[0] if st.Isotopologue() > 0, else 1 */
   Numeric getIsotopologueRatio(const SpeciesTag& st) const;
-
+  
+  /** Returns mparams[qid.Species()][qid.Isotopologue()][0].data[0] */
+  Numeric getIsotopologueRatio(const QuantumIdentifier& qid) const;
+  
   /** Return a constant reference to the parameters. */
-  const ArrayOfGriddedField1& getParam(const LineRecord& lr) const {
-    return getParam(lr.Species(), lr.Isotopologue());
+  const ArrayOfGriddedField1& getParam(const QuantumIdentifier& qid) const {
+    return getParam(qid.Species(), qid.Isotopologue());
   }
 
   /** Return a parameter type as string. */
@@ -596,8 +282,8 @@ class SpeciesAuxData {
   }
 
   /** Return a constant reference to the parameter types. */
-  const AuxType& getParamType(const LineRecord& lr) const {
-    return getParamType(lr.Species(), lr.Isotopologue());
+  const AuxType& getParamType(const QuantumIdentifier& qid) const {
+    return getParamType(qid.Species(), qid.Isotopologue());
   }
 
   /** Read parameters from input stream (only for version 1 format). */
@@ -654,124 +340,6 @@ ostream& operator<<(ostream& os, const SpeciesRecord& sr);
     \author Oliver Lemke */
 ostream& operator<<(ostream& os, const SpeciesAuxData& sad);
 
-void xsec_species(MatrixView xsec_attenuation,
-                  MatrixView xsec_source,
-                  MatrixView xsec_phase,
-                  ConstVectorView f_grid,
-                  ConstVectorView abs_p,
-                  ConstVectorView abs_t,
-                  ConstMatrixView abs_t_nlte,
-                  ConstMatrixView all_vmrs,
-                  const ArrayOfArrayOfSpeciesTag& abs_species,
-                  const ArrayOfLineRecord& abs_lines,
-                  const Index ind_ls,
-                  const Index ind_lsn,
-                  const Numeric cutoff,
-                  const SpeciesAuxData& isotopologue_ratios,
-                  const SpeciesAuxData& partition_functions,
-                  const Verbosity& verbosity);
-
-void xsec_single_line(  // Output:
-    VectorView xsec_accum_attenuation,
-    VectorView xsec_accum_source,
-    VectorView xsec_accum_phase,
-    // Helper variables
-    Vector& attenuation,
-    Vector& phase,
-    Vector& da_dF,
-    Vector& dp_dF,
-    Vector& da_dP,
-    Vector& dp_dP,
-    Range& this_f_range,
-    //Vector& dC_dT, for normalization factor
-    Vector& fac,
-    Vector& aux,
-    // Frequency grid:
-    Vector& f_local,
-    const ConstVectorView f_grid,
-    const Index nf,
-    const Numeric cutoff,
-    Numeric F0,
-    // Line strength:
-    Numeric intensity,
-    const Numeric part_fct_ratio,
-    const Numeric boltzmann_ratio,
-    const Numeric abs_nlte_ratio,
-    const Numeric src_nlte_ratio,
-    const Numeric Isotopologue_Ratio,
-    // Atmospheric state
-    const Numeric temperature,
-    // Line shape:
-    const Index ind_ls,
-    const Index ind_lsn,
-    // Line broadening:
-    const Numeric gamma_0,
-    const Numeric gamma_2,
-    const Numeric eta,
-    const Numeric df_0,
-    const Numeric df_2,
-    const Numeric sigma,
-    const Numeric f_VC,
-    // Line mixing
-    const Numeric LM_DF,
-    const Numeric LM_Y,
-    const Numeric LM_G,
-    // Feature flags
-    const bool calc_cut,
-    const bool calc_phase,
-    const bool calc_partials,
-    const bool calc_src);
-
-void xsec_species_line_mixing_wrapper(
-    MatrixView xsec_attenuation,
-    MatrixView xsec_source,
-    MatrixView xsec_phase,
-    ArrayOfMatrix& partial_xsec_attenuation,
-    ArrayOfMatrix& partial_xsec_source,
-    ArrayOfMatrix& partial_xsec_phase,
-    const ArrayOfRetrievalQuantity& flag_partials,
-    const ArrayOfIndex& flag_partials_position,
-    ConstVectorView f_grid,
-    ConstVectorView abs_p,
-    ConstVectorView abs_t,
-    ConstMatrixView abs_t_nlte,
-    ConstMatrixView all_vmrs,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const Index this_species,
-    const ArrayOfLineRecord& abs_lines,
-    const Numeric H_magnitude_Zeeman,
-    const Index ind_ls,
-    const Index ind_lsn,
-    const Numeric cutoff,
-    const SpeciesAuxData& isotopologue_ratios,
-    const SpeciesAuxData& partition_functions);
-
-void calc_gamma_and_deltaf_artscat4(Numeric& gamma,
-                                    Numeric& deltaf,
-                                    const Numeric p,
-                                    const Numeric t,
-                                    ConstVectorView vmrs,
-                                    const Index this_species,
-                                    const ArrayOfIndex& broad_spec_locations,
-                                    const Numeric& T0,
-                                    const Numeric& Sgam,
-                                    const Numeric& Nself,
-                                    const Vector& Gamma_foreign,
-                                    const Vector& N_foreign,
-                                    const Vector& Delta_foreign,
-                                    const Verbosity& verbosity);
-
-void calc_gamma_and_deltaf_artscat4_old_unused(
-    Numeric& gamma,
-    Numeric& deltaf,
-    const Numeric p,
-    const Numeric t,
-    ConstVectorView vmrs,
-    const Index this_species,
-    const ArrayOfIndex& broad_spec_locations,
-    const LineRecord& l_l,
-    const Verbosity& verbosity);
-
 // A helper function for energy conversion:
 Numeric wavenumber_to_joule(Numeric e);
 
@@ -787,18 +355,6 @@ String species_name_from_species_index(const Index spec_ind);
 //             Functions to convert the accuracy index
 //======================================================================
 
-// ********* for HITRAN database *************
-// convert index for the frequency accuracy.
-void convHitranIERF(Numeric& mdf, const Index& df);
-
-// convert to percents index for intensity and halfwidth accuracy.
-
-void convHitranIERSH(Numeric& mdh, const Index& dh);
-
-// ********* for MYTRAN database *************
-// convert index for the halfwidth accuracy.
-void convMytranIER(Numeric& mdh, const Index& dh);
-
 // Functions to set abs_n2 and abs_h2o:
 
 void abs_n2Set(Vector& abs_n2,
@@ -811,22 +367,54 @@ void abs_h2oSet(Vector& abs_h2o,
                 const Matrix& abs_vmrs,
                 const Verbosity&);
 
-void xsec_species2(Matrix& xsec,
-                   Matrix& source,
-                   Matrix& phase,
-                   ArrayOfMatrix& dxsec_dx,
-                   ArrayOfMatrix& dsource_dx,
-                   ArrayOfMatrix& dphase_dx,
-                   const ArrayOfRetrievalQuantity& jacobian_quantities,
-                   const ArrayOfIndex& jacobian_propmat_positions,
-                   const Vector& f_grid,
-                   const Vector& abs_p,
-                   const Vector& abs_t,
-                   const Matrix& abs_t_nlte,
-                   const Matrix& all_vmrs,
-                   const ArrayOfArrayOfSpeciesTag& abs_species,
-                   const ArrayOfLineRecord& abs_lines,
-                   const SpeciesAuxData& isotopologue_ratios,
-                   const SpeciesAuxData& partition_functions);
+/** Cross-section algorithm
+ * 
+ *  @param[in,out] xsec Cross section of one tag group. This is now the true attenuation cross section in units of m^2.
+ *  @param[in,out] sourceCross section of one tag group. This is now the true source cross section in units of m^2.
+ *  @param[in,out] phase Cross section of one tag group. This is now the true phase cross section in units of m^2.
+ *  @param[in,out] dxsec Partial derivatives of xsec.
+ *  @param[in,out] dsource Partial derivatives of source.
+ *  @param[in,out] dphase Partial derivatives of phase.
+ *  \param[in] jacobian_quantities As WSV
+ *  \param[in] jacobian_propmat_positions Positions in jacobian_quantities affected by propmat calculations
+ *  \param[in] f_grid As WSV
+ *  \param[in] abs_p As WSV
+ *  \param[in] abs_t As WSV
+ *  \param[in] abs_nlte As WSV
+ *  \param[in] abs_vmrs As WSV
+ *  \param[in] abs_species As WSV
+ *  \param[in] band A single absorption band
+ *  \param[in] isot_ratio Isotopologue ratio of this species
+ *  \param[in] partfun_type Partition function type for this species
+ *  \param[in] partfun_data Partition function model data for this species
+ * 
+ *  @author Richard Larsson
+ *  @date   2019-10-10
+ */
+void xsec_species(Matrix& xsec,
+                  Matrix& source,
+                  Matrix& phase,
+                  ArrayOfMatrix& dxsec_dx,
+                  ArrayOfMatrix& dsource_dx,
+                  ArrayOfMatrix& dphase_dx,
+                  const ArrayOfRetrievalQuantity& jacobian_quantities,
+                  const ArrayOfIndex& jacobian_propmat_positions,
+                  const Vector& f_grid,
+                  const Vector& abs_p,
+                  const Vector& abs_t,
+                  const EnergyLevelMap& abs_nlte,
+                  const Matrix& all_vmrs,
+                  const ArrayOfArrayOfSpeciesTag& abs_species,
+                  const AbsorptionLines& band,
+                  const Numeric& isot_ratio,
+                  const SpeciesAuxData::AuxType& partfun_type,
+                  const ArrayOfGriddedField1& partfun_data);
+
+/** Returns the species data
+ * 
+ * @param band An absorption band
+ * @return const ref to the species record
+ */
+const SpeciesRecord& SpeciesDataOfBand(const AbsorptionLines& band);
 
 #endif  // absorption_h

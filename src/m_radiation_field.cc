@@ -39,8 +39,8 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
     Matrix& line_irradiance,
     Tensor3& line_transmission,
     const ArrayOfArrayOfSpeciesTag& abs_species,
-    const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-    const Tensor4& nlte_field,
+    const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+    const EnergyLevelMap& nlte_field,
     const Tensor4& vmr_field,
     const Tensor3& t_field,
     const Tensor3& z_field,
@@ -57,12 +57,13 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
     const Index& nz,
     const Index& nf,
     const Numeric& r,
-    const Verbosity& verbosity) {
+    const Verbosity& verbosity)
+{
   if (abs_lines_per_species.nelem() not_eq 1)
     throw std::runtime_error("Only for one species...");
   if (nf % 2 not_eq 1)
     throw std::runtime_error("Must hit line center, nf % 2 must be 1.");
-  const Index nl = abs_lines_per_species[0].nelem();
+  const Index nl = nelem(abs_lines_per_species);
   const Index np = p_grid.nelem();
 
   // Compute variables
@@ -73,12 +74,14 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
 
   // Check that the lines and nf is correct
   Vector f_grid(nf * nl);
-  for (Index il = 0; il < nl; il++) {
-    const Numeric d = abs_lines_per_species[0][il].F() * df;
-    nlinspace(f_grid[Range(il * nf, nf)],
-              abs_lines_per_species[0][il].F() - d,
-              abs_lines_per_species[0][il].F() + d,
-              nf);
+  Index il=0;
+  for (auto& lines: abs_lines_per_species) {
+    for (auto& band: lines) {
+      for (Index k=0; k<band.NumLines(); k++) {
+        nlinspace(f_grid[Range(il * nf, nf)], band.F0(k) * (1 - df), band.F0(k) * (1 + df), nf);
+        il++;
+      }
+    }
   }
 
   ppath_fieldFromDownUpLimbGeoms(ws,
@@ -125,21 +128,26 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
 
   Array<Array<Eigen::VectorXcd>> lineshapes(
       nl, Array<Eigen::VectorXcd>(np, Eigen::VectorXcd(nf * nl)));
-  for (Index il = 0; il < nl; il++)
-    for (Index ip = 0; ip < np; ip++)
-      Linefunctions::set_lineshape(lineshapes[il][ip],
-                                   MapToEigen(f_grid),
-                                   abs_lines_per_species[0][il],
-                                   Vector(1, vmr_field(0, ip, 0, 0)),
-                                   t_field(ip, 0, 0),
-                                   p_grid[ip],
-                                   0.0,
-                                   0.0,
-                                   abs_species);
+  for (Index ip=0; ip<np; ip++) {
+    il=0;
+    for (auto& lines: abs_lines_per_species) {
+      for (auto& band: lines) {
+        const Numeric doppler_constant = Linefunctions::DopplerConstant(t_field(ip, 0, 0), band.SpeciesMass());
+        const Vector vmrs = band.BroadeningSpeciesVMR(vmr_field(joker, ip, 0, 0), abs_species);
+        for (Index k=0; k<band.NumLines(); k++) {
+          const auto X = band.ShapeParameters(k, t_field(ip, 0, 0), p_grid[ip], vmrs);
+          Linefunctions::set_lineshape(lineshapes[il][ip], MapToEigen(f_grid),
+                                       band.Line(k), t_field(ip, 0, 0), 0, 0, doppler_constant, X,
+                                       band.LineShapeType(), band.Mirroring(), band.Normalization());
+          il++;
+        }
+      }
+    }
+  }
   for (auto& aols : lineshapes)
     for (auto& ls : aols)
       error_in_integrate(
-          "Your lineshape integration does normalize.  Increase nf and decrease df until it does.",
+          "Your lineshape integration does not normalize.  Increase nf and decrease df until it does.",
           test_integrate_convolved(ls, f_grid));
 
   // Counting the path index so we can make the big loop parallel
@@ -173,7 +181,8 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
                                                   l_iy_main_agenda,    \
                                                   l_iy_space_agenda,   \
                                                   l_iy_surface_agenda, \
-                                                  l_iy_cloudbox_agenda)
+                                                  l_iy_cloudbox_agenda,\
+                                                  il)
   for (Index i = 0; i < ppath_field.nelem(); i++) {
     const Ppath& path = ppath_field[i];
 
@@ -200,166 +209,31 @@ void line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D(
                                 l_iy_cloudbox_agenda,
                                 surface_props_data,
                                 verbosity);
-
+    
     for (Index ip_path = 0; ip_path < path.np; ip_path++) {
       const Index ip_grid = grid_index_from_gp(path.gp_p[ip_path]);
-      for (Index il = 0; il < nl; il++)
+      for (il = 0; il < nl; il++)
         line_radiance[ip_grid](counted_path_index[i][ip_path], il) =
             integrate_convolved(
                 lvl_rad[ip_path], lineshapes[il][ip_grid], f_grid);
     }
   }
 
-  for (Index ip = 0; ip < np; ip++)
-    for (Index il = 0; il < nl; il++)
+  for (Index ip = 0; ip < np; ip++) {
+    for (il = 0; il < nl; il++) {
       line_irradiance(il, ip) = integrate_zenith(line_radiance[ip](joker, il),
                                                  cos_zenith_angles[ip],
                                                  sorted_index[ip]);
+    }
+  }
 
   if (r > 0) {
     const FieldOfTransmissionMatrix transmat_field =
         transmat_field_calc_from_propmat_field(propmat_field, r);
     for (Index ip = 0; ip < np; ip++)
-      for (Index il = 0; il < nl; il++)
+      for (il = 0; il < nl; il++)
         line_transmission(0, il, ip) = integrate_convolved(
             transmat_field(ip, 0, 0), lineshapes[il][ip], f_grid);
   }
 }
 
-void line_irradianceCalcForSingleSpeciesNonOverlappingLines(
-    Workspace& ws,
-    Matrix& line_irradiance,
-    Tensor3& line_transmission,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-    const Tensor4& nlte_field,
-    const Tensor4& vmr_field,
-    const Tensor3& t_field,
-    const Tensor3& z_field,
-    const Vector& p_grid,
-    const Index& atmosphere_dim,
-    const Tensor3& surface_props_data,
-    const Agenda& iy_space_agenda,
-    const Agenda& iy_surface_agenda,
-    const Agenda& iy_cloudbox_agenda,
-    const Agenda& propmat_clearsky_agenda,
-    const Agenda& water_p_eq_agenda,
-    const Numeric& df,
-    const Index& nz,
-    const Index& nf,
-    const Verbosity& verbosity) {
-  extern const Numeric DEG2RAD;
-  const Index ns = abs_species.nelem();
-  if (ns not_eq 1)
-    throw std::runtime_error("Only for a single species in this test version");
-  const Index nl = abs_lines_per_species[0].nelem();
-  const Index np = p_grid.nelem();
-  if (nz % 2)
-    throw std::runtime_error(
-        "Cannot hit the tangent point in this test version; nz must be even");
-  if (nf % 2 not_eq 1)
-    throw std::runtime_error(
-        "Must include central frequency to test validity; nf must be uneven.");
-
-  // Find Zenith angles and weigh them by their area
-  Vector za_grid;
-  nlinspace(za_grid, 0.0, 180.0, nz);
-  Vector wzad(nz - 1);
-  for (Index iz = 0; iz < nz - 1; iz++)
-    wzad[iz] = cos(DEG2RAD * za_grid[iz]) - cos(DEG2RAD * za_grid[iz + 1]);
-
-  line_irradiance = Matrix(nl, np, 0.0);
-  line_transmission = Tensor3(1, nl, np, 0.0);
-
-  Tensor7 spectral_radiance_field;
-  Tensor3 trans_field;
-  for (Index il = 0; il < nl; il++) {
-    const Numeric d = abs_lines_per_species[0][il].F() * df;
-    Vector f_grid;
-    nlinspace(f_grid,
-              abs_lines_per_species[0][il].F() - d,
-              abs_lines_per_species[0][il].F() + d,
-              nf);
-    spectral_radiance_fieldClearskyPlaneParallel(ws,
-                                                 spectral_radiance_field,
-                                                 trans_field,
-                                                 propmat_clearsky_agenda,
-                                                 water_p_eq_agenda,
-                                                 iy_space_agenda,
-                                                 iy_surface_agenda,
-                                                 iy_cloudbox_agenda,
-                                                 1,
-                                                 f_grid,
-                                                 atmosphere_dim,
-                                                 p_grid,
-                                                 z_field,
-                                                 t_field,
-                                                 nlte_field,
-                                                 vmr_field,
-                                                 abs_species,
-                                                 Tensor3(0, 0, 0),
-                                                 Tensor3(0, 0, 0),
-                                                 Tensor3(0, 0, 0),
-                                                 Tensor3(0, 0, 0),
-                                                 Tensor3(0, 0, 0),
-                                                 Tensor3(0, 0, 0),
-                                                 z_field(0, joker, joker),
-                                                 1e99,
-                                                 0.0,
-                                                 surface_props_data,
-                                                 za_grid,
-                                                 0,
-                                                 verbosity);
-    
-    // Integrate over the sphere
-    for (Index ip = 0; ip < np; ip++) {
-      Eigen::VectorXcd F(nf);
-      Linefunctions::set_lineshape(F,
-                                   MapToEigen(f_grid),
-                                   abs_lines_per_species[0][il],
-                                   Vector(1, vmr_field(0, ip, 0, 0)),
-                                   t_field(ip, 0, 0),
-                                   p_grid[ip],
-                                   0.0,
-                                   0.0,
-                                   abs_species);
-      Numeric sx = 0;
-      for (Index iv = 0; iv < nf - 1; iv++) {
-        const Numeric intF =
-            (F[iv].real() + F[iv + 1].real()) * (f_grid[iv + 1] - f_grid[iv]);
-        for (Index iz = 0; iz < nz - 1; iz++) {
-          const Numeric x = wzad[iz] * 0.25 * intF;
-          sx += x;
-          line_irradiance(il, ip) +=
-              (spectral_radiance_field(iv, ip, 0, 0, iz, 0, 0) +
-               spectral_radiance_field(iv, ip, 0, 0, iz + 1, 0, 0) +
-               spectral_radiance_field(iv + 1, ip, 0, 0, iz, 0, 0) +
-               spectral_radiance_field(iv + 1, ip, 0, 0, iz + 1, 0, 0)) *
-              0.25 * x;
-
-          const Numeric exp_mtau =
-              0.25 *
-              (trans_field(iv, ip, iz) + trans_field(iv, ip, iz + 1) +
-               trans_field(iv + 1, ip, iz) + trans_field(iv + 1, ip, iz + 1));
-          if (abs(1 - exp_mtau) < 1e-6) { /* do nothing */
-          } else
-            line_transmission(0, il, ip) +=
-                (1 + (1 - exp_mtau) / log(exp_mtau)) * x;
-        }
-      }
-
-      if (abs(sx - 1) > 1e-3) {
-        ostringstream os;
-        os << "Integrated iy normalizes to " << sx << " instead of 1\n";
-        os << "This means your frequency grid spanning " << f_grid[0] << " to "
-           << f_grid[nf - 1] << " is not good enough\n";
-        if (sx < 1)
-          os << "Please consider increasing df by about the inverse of the missing normalizations (a factor about "
-             << 1 / sx << " is approximately enough)\n";
-        else
-          os << "Please consider increasing nf so that the frequency grid better represents the lineshape\n";
-        throw std::runtime_error(os.str());
-      }
-    }
-  }
-}

@@ -174,13 +174,16 @@ then presents aspects of the specific implementation in ARTS.
 %-----------------------
 \label{sec:abs_theory:line_absorption}
 
-\subsection{Theoretical background}
+This section will first go over the theory of line-by-line absorption.
+It will then switch to the method of how this theory is implemented into ARTS.
+
+\subsection{Line functions - theory}
  
 We will introduce here the main concepts concerning line
 absorption. The aim is to give some overview and show some key
 equations, not to give a full treatment of the theory. To really
 understand line absorption, you should refer to one of the cited
-books, or some other book on spectroscopy.
+books, or some other book on spectroscopy. 
 
 \subsubsection{Basic expressions} 
 
@@ -198,34 +201,13 @@ function is normalized as:
   \int F(\nu)d\nu=1
 \end{equation}
 
-The values of $S(T)$ at reference temperature $T_0$ are contained in
-spectroscopic databases (more on this below). The conversion to
-different temperatures is done by
-\begin{equation}\label{eq:abs_theory:line_intensity}
-  S(T)=S(T_0)~\frac{Q(T_0)}{Q(T)}~\frac{e^{-E_f/(kT)}
-    - e^{-E_i/(kT)}}{e^{-E_f/(kT_0)} - e^{-E_i/(kT_0)}}
-\end{equation}
-given the energies $E_f$ and $E_i$ of the two levels between which the
-transition occurs as well as the partition function  $Q(T)$ \citep{rothman:98}.
-The databases contain the lower state energy $E_l$ tabulated along with
-the $S$ and the transition frequency $\nu$, so that the upper state
-energy can be computed by $E_u$=$E_l$+h$\nu$. Partition functions for
-the different molecular species are commonly available along with the
-spectroscopic databases, given in the form of tabulated values for a set
-temperatures (e.g., for JPL catalogue) or through some computer code (e.g.,
-the TIPS program coming with the HITRAN catalogue).
-
 As absorption is additive, the total absorption coefficient is derived by 
 adding up the absorption contributions of all spectral lines of all molecular 
 species.
 
-The following subsections discuss common descriptions of the line shape
-function, present partition functions and their calculation formalism more in
-depth, and introduce the Zeeman effect.
-
-
-\subsubsection{Line shape functions} 
 \label{sec:abs_theory:shape}
+
+\subsubsection{Line shapes}
 
 So far, there exists no complete analytical function that accurately
 describes the line shape in all atmospheric conditions and for all
@@ -354,8 +336,8 @@ $-\nu_o$.
 
 The van Vleck and Huber lineshape \citep{vanvleckhuber:77} is similar
 to Eq.\,\ref{eq:abs_theory:vvw}, except for the factor $(\nu/\nu_0)^2$ which is
-replaced by $(\nu * \tanh(h*\nu/(2kT)))/(\nu_0 *
-\tanh(h*\nu_0/(2kT)))$, with $k$ the Boltzmann constant, $h$ the Planck
+replaced by $\left[\nu \tanh\left(h\nu\middle/2kT\right)\middle/\nu_0 
+\tanh\left(h\nu_0\middle/2kT\right)\right]$, with $k$ the Boltzmann constant, $h$ the Planck
 constant, and $T$ the atmospheric temperature (the denominator is
 actually a consequence of the line strength definition in the
 spectroscopic catalogs). The lineshape Eq.\,\ref{eq:abs_theory:vvw} with this
@@ -372,8 +354,7 @@ function
 \end{equation}
 though there's no strict justification for its use - the two processes
 are assumed to act independently, which in reality is not the
-fact. Regardless of this flaw, it is the only way up to now to model
-the combination of the broadening processes. The integral in Eq.\,\ref{eq:abs_theory:voigt}
+fact. The integral in Eq.\,\ref{eq:abs_theory:voigt}
 can not be computed analytically, so certain approximation algorithms
 must be used.
 
@@ -401,31 +382,23 @@ Formula, as defined in \citet{hui:78} and in Equation 2.60 of
 \citet{pwr:93}. Provided the condition above is fulfilled, the $F_S$
 line shape gives a smooth transition from high tropospheric pressures
 to low stratospheric ones, and should be valid near the line centers
-throughout the microwave region. With a Van Vleck / Huber forefactor
-instead of the Van Vleck / Weisskopf forefactor, it should be valid
+throughout the microwave region. With a Van Vleck and Huber forefactor
+instead of the Van Vleck and Weisskopf forefactor, it should be valid
 throughout the thermal infrared spectral range, but there the mirror
 line at negative frequency is negligible anyway, because it is so far
 away.
 
-For some applications, it is necessary to calculate not only the real
-part of the Lorentzian, but also its imaginary part is required. Such
-cases includes, e.g., Zeeman effect calculations and line mixing 
-calculations.  The Lorentzian that retains its imaginary parts is written
-\begin{equation}
-  F'_L(\nu)=\frac{1}{\pi}\frac{1}{\nu-\nu_0-i\gamma_L},
-\end{equation}
-where we want to make sure the reader notes that $F_L(\nu)=\Re\left[F'_L(\nu)\right]$.
-When generalized to deal with both high and low pressure conditions, 
-this turns into the Faddeeva function $F_F(\nu)$.  Again, the reader
-should note that $F_V(\nu)=\Re\left[F_F(\nu)\right]$.
+% FIXME: We need to add a theoretical description of HTP and speed-dependency here
+Further refinement to line shape models include speed-dependent Voigt profiles
+and the Hartmann-Tran profile.  We will not go into them here because
+any theoretical description we offer at this point would not do them justice (FIXME).
 
 \subsubsection{Partition functions}
 
 Partition functions are needed to compute the temperature dependence
-of the line intensities (Equation \ref{eq:abs_theory:line_intensity} on
-page \pageref{eq:abs_theory:line_intensity}).  They are related to the
-molecular energy states and their statistical distribution during the
-radiation process.
+of the line intensities in local thermodynamic equilibrium.
+They are related to the molecular energy states and their statistical
+distribution during the radiation process.
 
 In any case of spectroscopic interest the free molecules of a gas are
 not optically thick at all frequencies, so the radiation energy is not
@@ -458,6 +431,25 @@ ground state \citep{gordyandcook:70}. Thus the total particle number $N$ is give
 The quantity $Q(T)$ is the {\it{partition function}\nocorr} of the
 gas, which generally speaking describes the energy states distribution
 of the gas molecules and atoms. 
+
+The values of $S(T)$ at reference temperature $T_0$ of
+Equation~\ref{eq:abs_coeff} are contained in
+spectroscopic databases (more on this below). The conversion to
+different temperatures in local thermodynamic equilibrium is done by
+\begin{equation}\label{eq:abs_theory:line_intensity}
+  S(T)=S(T_0)~\frac{Q(T_0)}{Q(T)}~\frac{e^{-E_f/kT}
+    - e^{-E_i/kT}}{e^{-E_f/kT_0} - e^{-E_i/kT_0}}
+\end{equation}
+given the energies $E_f$ and $E_i$ of the two levels between which the
+transition occurs as well as the partition function  $Q(T)$ \citep{rothman:98}.
+The databases contain the lower state energy $E_l$ tabulated along with
+the $S$ and the transition frequency $\nu$, so that the upper state
+energy can be computed by $E_u$=$E_l$+h$\nu$. Partition functions for
+the different molecular species are commonly available along with the
+spectroscopic databases, given in the form of tabulated values for a set
+temperatures (e.g., for JPL catalogue) or through some computer code (e.g.,
+the TIPS program coming with the HITRAN catalogue).  For non-local
+thermodynamic equilibrium calculations, please see the end of this subsubsection.
 
 The partition function for a perfect gas molecule can be represented
 by the product of the {\it{translational}\nocorr} and the
@@ -545,805 +537,1112 @@ Q_r = \frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{ABC}\right)^{1/2}
 and for a {\it{spherical}} top, using the current notation of
 \citet{gordyandcook:70} in the respective expression in \citet{herzberg:45},
 \begin{equation}\label{eq:abs_theory:rot_partition_sphetop}
-Q_r = \frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{A^3}\right)^{1/2}
+Q_r = \frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{A^3}\right)^{1/2}.
 \end{equation}
 
-\subsubsection{Line mixing}
-
-Line mixing is an effect where the line shape of multiple lines must be described as one
-band shape.  In effect, the Lorentzian pressure broadening is only valid when the relaxation
-matrix \citep[see, e.g., equation 9 of][]{ben-reuven66:_impact_pr}, is near diagonal.
-If the relaxation matrix is not diagonal, either the full matrix expression for the 
-line shape must be used, or perturbation theory applied to find out the effect per line.
-In ARTS, we have no way presently to use the full matrix expression. Instead we rely on the 
-perturbation methods explained by, e.g., \citet{smith81_jcp_absorption}.
-
-In such a perturbation method, the line shape per line is simply altered as
+For \textit{non-local thermodynamic equilibrium}, \textit{NLTE}, the partitioning
+is no longer as simple as described above.  Yet there exists techniques to emulate
+the above behavior for limited use-cases.  One such simplification is to assume 
+that only the vibrational energy state's level distribution can be described by
+purely changing the vibrational energy state's temperature 
+in Equation~\ref{eq:abs_theory:vib_partition_fin}.  This essentially rewrites
+it as
 \begin{equation}
-  F'(\nu) = (1-iy_{\mathrm{lm}}p+ig_{\mathrm{lm}}p^2)F(\nu-\delta\nu_{\mathrm{lm}}p^2),
-  \label{eq:abs:lm:2ndorder}
+Q_v^{(N)}=Q_v \left(\frac{1-e^{h\omega_N/kT_N}}{1-e^{h\omega_N/kT}}\right)^{-d_N},
 \end{equation}
-where $y_{\mathrm{lm}}$ is a first order correction term, and $g_{\mathrm{lm}}$ and 
-$\delta\nu_{\mathrm{lm}}$ are second order corrections.  Note that $F(\nu)$ must contain
-the imaginary part of the Lorentzian for the equation above to make sense.
+where $T_N$ is the pseudo-temperature of the $N$:th level.  This
+set of equations describe LTE when $T_N=T$
 
-\subsubsection{The Zeeman effect for O$_2$}
+Generally in NLTE one might be better off using a more pure approach
+of computing the energy level distributions.  This yields that the
+rate of absorption, replacing $S(T)$ in Equation~\ref{eq:abs_coeff}
+as the absorption strength coefficient, is
+\begin{equation}
+ k = \frac{h\nu_0}{4\pi} \frac{A_{21}c^2}{2h\nu_0^3} \left(\frac{g_2}{g_1}r_1 - r_2\right).
+\end{equation}
+Note that here $r_1$ and $r_2$ is the ratio of absorbers in state 1 and 2 respectively.  To retain the system equilibrium, it is important that state 2
+emits an equal rate of photons as is absorbed.  This yields an emission
+coefficient of
+\begin{equation}
+ e = \frac{h\nu_0}{4\pi} A_{21} r_2.
+\end{equation}
+This set of equations describes LTE when $e/B(T) \equiv k$, where $B(T)$ is the
+Planck blackbody emission function at the atmospheric temperature.
 
-The Zeeman effect implementation in ARTS is described by \citet{larsson14:_treatment_jqsrt}.
+\subsection{Line functions - method \label{modern_lineshapes}}
 
-\subsection{Line-specific data and line catalogue data in ARTS} 
-\label{sec:abs_theory:catalogue_formats}
+The line shape model employed in internal calculations is closely coupled to
+the data structure the user can send into the code.
+There have therefore been many iterations of the ARTS absorption
+line data format.  The
+newest format is described here.  We refer to the newest version as the ARTSCAT-6
+format.  Older ARTSCAT(s) are still supported but by reading only.  You have stored
+a modern version of the ARTSCAT if the main class is called
+\verb|AbsorptionLines|.  Legacy catalogs used to have the user manually set
+several parameters about their calculations in external catalogs.  Now these
+parameters are set to the catalog instead so that if you save and reload your
+catalog, the same calculations as was done before is performed on a line-by-line
+basis.  This section will look through the basis of the line shape calculations
+and explain the consequences various \verb|AbsorptionLines|-settings have on the
+final result.  These settings are easily extensible so please return here
+to keep up-to-date whenever you discover or add a new option to the line shape model.
 
-ARTS has an internal representation of spectral line data that maps
-naturally to a native catalogue format, which we will discuss
-below. This internal catalogue data exists and can be
-handled in two variants, the so-called ARTSCAT-3, ARTSCAT-4, and ARTSCAT-5 -- versions~3, 4, and 5
-of the ARTS catalogue format. The spectroscopic databases commonly
-used in Earth atmospheric research contain the spectroscopic parameters
-representative for Earth conditions. This regards particular the foreign
-broadened width, often called the air broadened width as it considers
-the contribution from nitrogen and oxygen that make up for the vast majority
-of gases in the Earth atmosphere, and the pressure shift. ARTSCAT-3 contains
-these ``classical'' spectroscopic parameters. ARTSCAT-4 on the other hand has
-been developed with view on planetary science. That is, it holds these
-parameters separately for the different molecular species. Theoretically this
-has to list all cross-combinations of species. However, most species show only
-very low abundances and can safely be neglected. For now, the main atmospheric
-constituents of Earth, Mars, Venus, and Jupiter, namely N$_2$, O$_2$, H$_2$O, CO$_2$, H$_2$,
-and He are considered in the database.  ARTSCAT-5 lets you select line formats by using
-a tag system described further down in the text.
-It should be noted, that all line data formats can be handled simultaneously
-within one calculation, but that it is only possible to write out in a
-single format.
+\subsubsection{Basic data structure}
 
-Besides its own internal format, ARTS can also read several other catalogue
-formats, in particular HITRAN, JPL, and LBLRTM formats. If these other catalogues are used,
-line data are converted to the internal ARTSCAT-3 or ARTSCAT-5 representation during
-reading. In other words, all unit conversions are done by the reading
-routines.
+The basic structure of the latest ARTS absorption line catalog
+is to group as many global variables together as possible for 
+the lines of a single isotopologue.  The global variables are
+introduced in table~\ref{tab:abs_theory:lineshape:abscatglob}
+and are meant to either describe the basis of the data or to
+influence the computations by selecting the algorithm invoked.
 
-The ARTS internal spectral line data files contain
-an XML header and footer, and between them one entry for each spectral line.
-Each entry starts with with an `@' character. It then contains the different line
-parameters, separated by one or more blank characters. Scientific
-notation is allowed, e.g. 501.12345e9.  
-
-In contrast to other catalogues that are optimized for processing with
-programs written in the FORTRAN language, ARTS does not use fixed
-column widths. The advantage of this is that the precision of the
-parameters is not limited by the format.
-
-The first column of each entry contains the species and isotopologue,
-following the naming scheme described below. Note that the intensity
-is per molecule, i.e., it does not contain the isotopologue ratio. This is
-similar to JPL, but different to HITRAN.
-The definition of the further entries differ between the ARTSCAT
-representations.
-
-\paragraph*{The ARTSCAT-3 line format is:}
-\begin{code}
-
-Col  Variable                     Label    Unit     
------------------------------------------------      
- 0   `@'                         ENTRY        -     
- 1   molecule & isotopologue tag  NAME        -
- 2   center frequency                F       Hz     
- 3   pressure shift of F           PSF    Hz/Pa    
- 4   line intensity per molecule    I0   m^2/Hz     
- 5   reference temp. for I0       T_I0        K
- 6   lower state energy           ELOW        J    
- 7   air broadened width          AGAM    Hz/Pa     
- 8   self broadened width         SGAM    Hz/Pa
- 9   AGAM temp. exponent          NAIR        -     
-10   SGAM temp. exponent         NSELF        - 
-11   ref. temp. for AGAM, SGAM   T_GAM        K
-12   number of aux. parameters   N_AUX        -
-13   auxiliary parameter          AUX1        -
-14   ... 
-15   error for F                    DF       Hz
-16   error for I0                  DI0    %/100
-17   error for AGAM              DAGAM    %/100
-18   error for SGAM              DSGAM    %/100
-19   error for NAIR              DNAIR    %/100
-20   error for NSELF            DNSELF    %/100
-21   error for PSF                DPSF    %/100
-
-\end{code}
-The parameters 0-12 must be present, the others can be missing, since
-they are not needed for the calculation. For the error fields (15-21),
-a $-1$ means that no value exists.
-
-Some species may need special parameters that are not needed by other
-species (for example overlap coefficients for $O_2$). In the case of
-oxygen two parameters are sufficient to describe the overlap, but
-other species, e.g., methane, may need more coefficients. The default
-for \texttt{N\_AUX} is zero. In that case, no further \texttt{AUX}
-fields are present.
-
-\paragraph*{The ARTSCAT-4 line format is:}
-\begin{code}
-
-Col  Variable                        Label    Unit
---------------------------------------------------
- 0   `@'                             ENTRY       -
- 1   molecule & isotopologue tag      NAME       -
- 2   center frequency                    F      Hz
- 3   line intensity                     I0  Hz*m^2
- 4   reference temperature            T_I0       K
- 5   lower state energy               ELOW       J
- 6   Einstein A-coefficient              A     1/s 
- 7   Upper state stat. weight      G_upper       -
- 8   Lower state stat. weight      G_lower       -
- 9   broadening parameter self        SGAM   Hz/Pa
-10   broadening parameter N2      GAMMA_N2   Hz/Pa
-11   broadening parameter O2      GAMMA_O2   Hz/Pa
-12   broadening parameter H2O    GAMMA_H2O   Hz/Pa
-13   broadening parameter CO2    GAMMA_CO2   Hz/Pa
-14   broadening parameter H2      GAMMA_H2   Hz/Pa
-15   broadening parameter He      GAMMA_He   Hz/Pa
-16   GAM temp. exponent self         NSELF       -
-17   GAM temp. exponent N2            N_N2       -
-18   GAM temp. exponent O2            N_O2       -
-19   GAM temp. exponent H2O          N_H2O       -
-20   GAM temp. exponent CO2          N_CO2       -
-21   GAM temp. exponent H2            N_H2       -
-22   GAM temp. exponent He            N_He       -
-23   F pressure shift N2          DELTA_N2   Hz/Pa
-24   F pressure shift O2          DELTA_O2   Hz/Pa   
-25   F pressure shift H2O        DELTA_H2O   Hz/Pa   
-26   F pressure shift CO2        DELTA_CO2   Hz/Pa   
-27   F pressure shift H2          DELTA_H2   Hz/Pa   
-28   F pressure shift He          DELTA_He   Hz/Pa   
-29   Vib. & rotational assignments     VRA       -                      
-
-\end{code}
-Parameters 0-28 must be present. Parameter 29 contains coded quantum numbers.
-The coding conventions are species specific. The definitions are given in file
-\shortcode{ARTSCAT-4\_Col29\_Conventions.txt}, which is available along with
-the first incarnation of an ARTSCAT-4 type spectroscopic catalog from the
-\shortcode{arts-xml-data} package.
-
-\paragraph*{The ARTSCAT-5 line format is:}
-\begin{code}
-
-Col  Variable                        Label    Unit
---------------------------------------------------
- 0   `@'                             ENTRY       -
- 1   molecule & isotopologue tag      NAME       -
- 2   center frequency                    F      Hz
- 3   line intensity                     I0  Hz*m^2
- 4   reference temperature              T0       K
- 5   lower state energy               ELOW       J
- 6   Einstein A-coefficient              A     1/s 
- 7   Upper state stat. weight      G_upper       -
- 8   Lower state stat. weight      G_lower       -
-9-N  Tag system followed by data         -       -
-
-\end{code}
-Parameters 0-8 must be present. Parameter 9 contains coded tags for various applications.
-These tags and their implications are discussed throughout
-the ARTS documentation.  The present tags are LM for
-line mixing, PB for pressure broadening, PF for partition
-function, and QN for quantum numbers.  Each of these tags are followed by a subtag that lets
-ARTS know what information is contained in the line record.
-
-For the line mixing tag LM, these are the subtags and their data format
-\begin{code}    
-Subtag/col  Variable                        Label    Unit
----------------------------------------------------------
-       NA
-        0  None                                 -       -
----------------------------------------------------------
-       LL  LBLRTM line mixing
-        1  first reference temperature         T1       K
-        2  second reference temperature        T2       K
-        3  third reference temperature         T3       K
-        4  fourth reference temperature        T4       K
-        5  1st order LM term at T1           Y_T1    1/Pa
-        6  1st order LM term at T2           Y_T2    1/Pa
-        7  1st order LM term at T3           Y_T3    1/Pa
-        8  1st order LM term at T4           Y_T4    1/Pa
-        9  2nd order LM term at T1           G_T1  1/Pa^2
-       10  2nd order LM term at T2           G_T2  1/Pa^2
-       11  2nd order LM term at T3           G_T3  1/Pa^2
-       12  2nd order LM term at T4           G_T4  1/Pa^2
----------------------------------------------------------
-       L1  1st order LM as found in Tretyakov et al. 2005
-        1  reference temperature             T_LM       K
-        2  1st order LM term at T_LM    Y_LM_T_LM    1/Pa
-        3  Y_T_LM temp. exponent           N_Y_LM       -
----------------------------------------------------------
-       L1  2nd order LM as found in Makarov et al. 2011
-        1  1st order LM 1st term               Y'    1/Pa
-        2  1st order LM 2nd term              Y''    1/Pa
-        3  2nd order LM 1st absolute term      G'  1/Pa^2
-        4  2nd order LM 2nd absolute term     G''  1/Pa^2
-        5  2nd order LM 1st frequency term    DV' Hz/Pa^2
-        6  2nd order LM 2nd frequency term   DV'' Hz/Pa^2
-        7  reference temperature             T_LM       K
-        8  Y  temp. exponent                  N_Y       -
-        9  G  temp. exponent                  N_G       -
-        10 DV temp. exponent                 N_DV       -
-\end{code}
-
-For the pressure broadening tag PB, these are the subtags and their data format
-\begin{code}    
-Subtag/col  Variable                        Label    Unit
----------------------------------------------------------
-       NA
-        0  None                                 -       -
----------------------------------------------------------
-       N2  pressure broadening ARTSCAT-3 like
-        1  self broadened width             SGAM    Hz/Pa
-        2  SGAM temp. exponent             NSELF        -
-        3  air broadened width              AGAM    Hz/Pa
-        4  AGAM temp. exponent              NAIR        -
-        5  pressure shift of F               PSF    Hz/Pa
-        6  error for SGAM                  DSGAM    %/100
-        7  error for NSELF                DNSELF    %/100
-        8  error for AGAM                  DAGAM    %/100
-        9  error for NAIR                  DNAIR    %/100
-       10  error for PSF                    DPSF    %/100
----------------------------------------------------------
-       AP  pressure broadening ARTSCAT-4 like
-        1   broadening parameter self        SGAM   Hz/Pa
-        2   broadening parameter N2      GAMMA_N2   Hz/Pa
-        3   broadening parameter O2      GAMMA_O2   Hz/Pa
-        4   broadening parameter H2O    GAMMA_H2O   Hz/Pa
-        5   broadening parameter CO2    GAMMA_CO2   Hz/Pa
-        6   broadening parameter H2      GAMMA_H2   Hz/Pa
-        7   broadening parameter He      GAMMA_He   Hz/Pa
-        8   GAM temp. exponent self         NSELF       -
-        9   GAM temp. exponent N2            N_N2       -
-       10   GAM temp. exponent O2            N_O2       -
-       11   GAM temp. exponent H2O          N_H2O       -
-       12   GAM temp. exponent CO2          N_CO2       -
-       13   GAM temp. exponent H2            N_H2       -
-       14   GAM temp. exponent He            N_He       -
-       15   F pressure shift N2          DELTA_N2   Hz/Pa
-       16   F pressure shift O2          DELTA_O2   Hz/Pa   
-       17   F pressure shift H2O        DELTA_H2O   Hz/Pa   
-       18   F pressure shift CO2        DELTA_CO2   Hz/Pa   
-       19   F pressure shift H2          DELTA_H2   Hz/Pa   
-       20   F pressure shift He          DELTA_He   Hz/Pa
----------------------------------------------------------
-       WA  air and water pressure broadening
-        1  self broadened width             SGAM    Hz/Pa
-        2  SGAM temp. exponent             NSELF        -
-        3  pressure shift self              SPSF    Hz/Pa
-        4  air broadened width              AGAM    Hz/Pa
-        5  AGAM temp. exponent              NAIR        -
-        6  pressure shift air               APSF    Hz/Pa
-        7  water broadened width       GAMMA_H2O    Hz/Pa
-        8  GAMMA_H2O temp. exponent        N_H2O        -
-        9  pressure shift water        DELTA_H2O    Hz/Pa
-\end{code}
-
-For the partition function tag PF, which is new and is therefore still under development, these are the subtags and their data formats are
-\begin{code}
-Subtag/col  Variable                        Label    Unit
----------------------------------------------------------
-       NA
-        0  None                                 -       -
----------------------------------------------------------
-       CN  coefficients-based temperature dependence
-        1  number of coefficients            N          -
-      2-N  the coefficients                 CN  1/K^(N-1)
-
-\end{code}
-
-For the quantum numbers tag QN, the subtags work in a slightly different manner than for the other tagging systems.  Here UP and DO are
-used to denote upper and lower levels, respectively.  After one of these subtags, several subsubtags follow.  These subsubtags are the denotation
-we use for quantum numbers and the valid subsubtags are: "J", "M", "N", "S", "F", "Omega", "K1", "K2", "v1", "v2", and "v3". In order, these
-numbers respectively refers to total angular momentum, projection of J along the magnetic field, 
-total angular momentum without the spin, total spin, J and nuclear spin, absolute projection of J and S,
-K or Ka in HITRAN, Kb in HITRAN, first vibrational mode, second vibrational mode, and third vibrational mode.  
-
-\subsection{Pressure broadening and shift calculation (legacy) \label{legacy_lineshapes}}
-Note that the following section holds true for all
-calculations in ARTS following \verb|abs_xsec_per_speciesAddLines|.
-For calculations following \verb|abs_xsec_per_speciesAddLines2|,
-see subsection~\ref{modern_lineshapes}.
-
-The pressure broadened line width $\gamma_L$ (see Equations
-\ref{eq:abs_theory:pressure_lorentz} and \ref{eq:abs_theory:vvw}) is
-calculated from spectral line parameters and atmospheric state
-variables. At the same time, a pressure shift $\Delta \nu$ is also calculated.
-The calculations are different for ARTSCAT-3 and ARTSCAT-4
-lines. Table \ref{tab:abs_theory:pb_inputs} lists the input variables
-for the two different cases. 
-
-\begin{table}
-\begin{tabularx}{\hsize}{lXX}
-\hline
-&  ARTSCAT-3 & ARTSCAT-4 \\
-\hline
- Atmospheric variables&
- pressure $p$ \newline 
- temperature $T$\newline 
- VMR of current species $x_\mathrm{self}$
- & 
- pressure $p$ \newline 
- temperature $T$\newline
- VMR of current species $x_\mathrm{self}$
- broadening species VMRs $x_i$ (where $i$ is the index of the gas species)
-\\
-Spectral line parameters&
-T\_GAM,
- AGAM,    
- SGAM,
- NAIR,     
-NSELF, 
-  PSF  (see Section \ref{sec:abs_theory:catalogue_formats} for definitions)      
-&
- T\_I0,\newline
- SGAM, 
-   GAMMA\_N2, 
-   GAMMA\_O2, 
-  GAMMA\_H2O, 
-  GAMMA\_CO2, 
-   GAMMA\_H2, 
-   GAMMA\_He,\newline 
-     NSELF, 
-       N\_N2, 
-       N\_O2, 
-      N\_H2O, 
-      N\_CO2, 
-       N\_H2, 
-       N\_He,\newline 
-   DELTA\_N2, 
-   DELTA\_O2,    
-  DELTA\_H2O,    
-  DELTA\_CO2,    
-   DELTA\_H2,    
-   DELTA\_He (see Section \ref{sec:abs_theory:catalogue_formats} for definitions)   
-\\
-\hline
-\end{tabularx}
-\caption{Pressure broadening and pressure shift input variables for ARTSCAT-3
-and ARTSCAT-4. ARTSCAT-5 inputs depends on the tag system, and is presented in
-the text.}
-\label{tab:abs_theory:pb_inputs}
+\begin{table}[ht!]
+ \centering
+ \begin{tabular}{c}
+  Keys for \verb|AbsorptionLines|\\\hline
+ \end{tabular}
+ \begin{tabular}{lll}
+  Key&Description&Example(s)\\
+  \verb|nlines|&Number of available lines&Any integer\\
+  \verb|species|&The isotopologue&H2O-161; O2-67\\
+  \verb|cutofftype|&Type of line cutoff&None; ByLine; ByBand\\
+  \verb|mirroringtype|&How to mirror the line&None; Lorentz; Same\\
+  \verb|populationtype|&How to compute the strength&LTE; NLTE\\
+  \verb|normalizationtype|&How to normalize the line&None; VVH; VVW\\
+  \verb|lineshapetype|&Line shape method&VP; DP; HTP\\
+  \verb|T0|&Reference temperature&Any float\\
+  \verb|cutofffreq|&Cutoff frequency&Any float\\
+  \verb|linemixinglimit|&Line mixing pressure limit&Any float; -1\\
+  \verb|localquanta|&Local quantum numbers&J N; ""\\
+  \verb|upperglobalquanta|&Upper global quantums&J 1/2 S 1; ""\\
+  \verb|lowerglobalquanta|&Lower global quantums&v1 1\\
+  \verb|broadeningspecies|&Line shape broadening species&SELF AIR; SELF O2 N2\\
+  \verb|temperaturemodes|&Line shape temperature models&G0 T1 T1 D0 T5 T5\\
+ \end{tabular}
+\caption{Global line parameters.  Single line parameters can be found in table~\ref{tab:abs_theory:lineshape:abscatline}.
+Especially important here are
+each of the 5 keys used to describe a type of calculations.
+These are the keys whose names end in ``type''.
+These have been given their own tables
+\ref{tab:abs_theory:lineshape:lineshapetype} for line shape,
+\ref{tab:abs_theory:lineshape:cutofftype} for cutoff, 
+\ref{tab:abs_theory:lineshape:normalizationtype} for normalization,
+\ref{tab:abs_theory:lineshape:mirroringtype} for mirroring, and
+\ref{tab:abs_theory:lineshape:populationtype} for population distribution,
+Some important notes about this format. 
+There exist a defined set of quantum numbers.  You can only set numbers
+from these.
+Line mixing is inactive and all line mixing parameters are set to zero 
+if the limit is positive and the pressure level is below this limit.  The broadening species must have SELF first
+and AIR last to include self- and/or air-broadening.  These keys are not required,
+and you must not have all species of the atmosphere defined either.
+The other broadening species can be any species that is available in ARTS general
+calculations but isotopologue are ignored.
+The temperature models are discussed in table~\ref{tab:abs_theory:lineshape:temperaturemodes}.
+}
+\label{tab:abs_theory:lineshape:abscatglob}
 \end{table}
 
-\subsubsection{ARTSCAT-3}
+Each individual line in the catalog has their parameters
+described in table~\ref{tab:abs_theory:lineshape:abscatline}.
+Note that it is possible to set up calculations that cannot
+work with specialized methods because of the two changeable
+parameters.  For instance, you cannot perform pressure broadening
+calculations if you do not define at least the speed-independent
+pressure broadening coefficients as one of your relevant line shape
+parameters.  Other issues can arise if you do not provide defined
+$J$-quantum numbers for when you want to perform Zeeman calculations.
+There are very few safety measures in place to deal with these issues
+because it is difficult to know whether a decision is intentional 
+(for e.g., testing) or by mistake.
 
-With ARTSCAT-3, the pressure broadened line width is calculate as
-\begin{eqnarray}
-  \gamma_L &=& x_\mathrm{self} \; p \; \mathrm{SGAM} \; 
-             \left(
-             \frac{\mathrm{T\_GAM}}{T}
-             \right)^{\mathrm{NSELF}} \nonumber \\
-           & &
-             + \; (1-x_\mathrm{self}) \; p \; \mathrm{AGAM} \; 
-             \left(
-             \frac{\mathrm{T\_GAM}}{T}
-             \right)^{\mathrm{NAIR}} \;,
-\end{eqnarray}
-and the pressure shift is calculated as
+\begin{table}[ht]
+\centering
+ \begin{tabular}{c}
+  Variables for individual lines\\\hline
+ \end{tabular}
+\begin{tabular}{lll}
+Variable(s)&Description&Unit(s)\\
+ $\nu_0$&Line central (reference) frequency&Hz\\
+ $I_0$&Line strength at reference temperature&m$^2$/Hz\\
+ $E_0$&Lower state (reference) energy&J\\
+ $g_1$&Lower statistical weight&-\\
+ $g_2$&Upper statistical weight&-\\
+ $A_{21}$&Einstein coefficient&1/s\\
+ $g_{z_1}$&Lower state Zeeman splitting coefficient&-\\
+ $g_{z_2}$&Upper state Zeeman splitting coefficient&-\\
+ Many different&Relevant line shape parameter coefficients&Hz/Pa;Hz/Pa$^2$;-\\
+ Many different&Relevant local quantum numbers&-
+\end{tabular}
+\caption{Single line parameters.  Global parameters can be found in table~\ref{tab:abs_theory:lineshape:abscatglob}.
+The first 8 are floating point values.
+The relevant line shape parameters are also floating point values and there are
+4 floating points per temperature model, even if said model requires fewer
+to perform its calculations.
+The relevant local quantum numbers are ratios --- examples that work are 1 and 1/2 --- and there is two numbers per quantum number defined in the local quantum number list.  Note the 
+special ratio 0/0 is considered as an undefined rational.
+If you need a quantum number but
+it is undefined in the catalog format you load into ARTS,
+then undefined behavior can ensue.
+The line shape parameter coefficients are described in table~\ref{tab:abs_theory:lineshape:temperaturemodes}.
+A value is considered relevant if it has been given a key.  The storage of these
+values are species first and then the tags as seen in table~\ref{tab:abs_theory:lineshape:modelparamaters}.
+The local quantum numbers of each line are ordered so that the lower state numbers
+are given before the upper state numbers.
+}
+\label{tab:abs_theory:lineshape:abscatline}
+\end{table}
+
+\subsubsection{Basic expressions}
+
+The generic function in use for each individual line's cross-section can now be presented as
 \begin{equation}
-  \Delta \nu = p \; \mathrm{PSF} \; 
-             \left(
-             \frac{\mathrm{T\_GAM}}{T}
-             \right)^{(0.25 + 1.5 * \mathrm{NAIR})} \;,
-\end{equation}
-where all variables are defined as in Table \ref{tab:abs_theory:pb_inputs}. 
-
-
-
-\subsubsection{ARTSCAT-4}
-
-With ARTSCAT-4, the pressure broadened line width is calculate as
-\begin{eqnarray}
-  \gamma_L &=& x_\mathrm{self} \; p \; \mathrm{SGAM} \; 
-               \left(
-               \frac{\mathrm{T\_I0}}{T}
-               \right)^{\mathrm{NSELF}}
-               \nonumber \\
-           & & + \; (1-x_\mathrm{self}) \; p \; 
-               \frac{\sum_i \left[ x_i \; \mathrm{GAMMA}_i \;
-                     \left(
-                     \frac{\mathrm{T\_I0}}{T}
-                     \right)^{\mathrm{N}_i} \right] }
-               {\sum_i x_i} \;,
-\end{eqnarray}
-where index $i$ runs over the six different broadening species N$_2$,
-O$_2$, H$_2$O, CO$_2$, H$_2$, and He, and all other variables are
-defined as in Table \ref{tab:abs_theory:pb_inputs}. Note that there is
-no separate reference temperature for the broadening and shift
-parameters in ARTSCAT-4. Instead we use T\_I0 the same reference
-temperature as for the line intensity.
- 
-Similarly, the pressure shift is calculated as
-\begin{equation}
-\Delta \nu = p \; 
-             \frac{\sum_i \left[ x_i \; \mathrm{DELTA}_i \;
-                   \left(
-                   \frac{\mathrm{T\_I0}}{T}
-                   \right)^{(0.25 + 1.5 * \mathrm{N}_i)} \right] }
-             {\sum_i x_i} \;.
-\end{equation}
-The normalisation by $\sum_i x_i$ in both formulas accounts for the fact that the sum
-of the foreign broadening species usually will not exactly add up to
-1. With this normalisation, the ARTSCAT-4 broadening and shift
-reproduce the
-ARTSCAT-3  results if all foreign parameters are filled with the
-ARTSCAT-3 value. To make sure that the broadening species account for
-a reasonable part of the atmosphere, we throw a runtime error if their
-VMR sum deviates from 1 by more than 10\%.
-
-Two other caveats should be mentioned here. Caveat 1: The species list for the
-absorption calculation may contain multiple tags groups for the same
-molecular species, for example corresponding to different isotopes or
-even individual spectral lines. For the broadening and shift
-calculation we always use the VMR belonging to the first tag
-group. For example, if the species list is
-[``H2O-161'',``H2O-181'',``O3-666'',``O3-668''], then the VMRs of
-``H2O-161'' and ``O3-666'' will be the ones that are used for the broadening and
-shift calculations.
-
-Caveat 2: If the species to which the line belongs is equal to one of
-the broadening species, then the VMR of the species itself will be
-used for broadening, even if it is not first in the list. With the
-same absorption species as above, if the line that we are working on
-belongs to ``O3-668'', then the VMRs of ``H2O-161'' and ``O3-668''
-will be used for the calculation, and the VMR of ``O3-666'' will be
-ignored. 
-
-Both these caveats mean that the broadening calculation may
-give unexpected results in the presence of drastically different VMRs
-that belong to the same molecular species, because in that case it makes a
-difference which of the VMR is selected for broadening.
-
-\subsubsection{ARTSCAT-5 Pressure Broadening Tag}
-\paragraph*{If} the subtag is \verb|N2|, 
-the pressure broadening proceeds as specified by the ARTSCAT-3 method above.
-
-\paragraph*{If} the subtag is \verb|AP|,
-the pressure broadening  calculations follow the ARTSCAT-4 method above.
-
-\paragraph*{If} if the subtag is \verb|WA|, one of two things happens:
-1) If there is no water in the atmosphere, or if the pressure effects on a water
-line is being calculated, the method behaves identical to air broadening or ARTSCAT-3.
-2) If water is present and the line is not a water line, pressure broadening 
-is calculated as follows for the atmospheric temperature $T$
-\begin{eqnarray}
-  \gamma_L &=& x_\mathrm{self} \; p \; \mathrm{SGAM} \; 
-             \left(
-             \frac{\mathrm{T0}}{T}
-             \right)^{\mathrm{NSELF}} \nonumber \\
-           & &
-           x_\mathrm{water} \; p \; \mathrm{GAMMA\_H2O} \; 
-             \left(
-             \frac{\mathrm{T0}}{T}
-             \right)^{\mathrm{N\_H2O}} \nonumber \\
-           & &
-             + \; (1-x_\mathrm{self}-x_\mathrm{water}) \; p \; \mathrm{AGAM} \; 
-             \left(
-             \frac{\mathrm{T0}}{T}
-             \right)^{\mathrm{NAIR}} \;,
-\end{eqnarray}
-and the pressure shift is calculated as
-\begin{eqnarray}
-  \Delta \nu &=& x_\mathrm{self} \; p \; \mathrm{SPSF} \; 
-             \left(
-             \frac{\mathrm{T0}}{T}
-             \right)^{(0.25 + 1.5 * \mathrm{NSELF})} \nonumber \\
-           & &
-           x_\mathrm{water} \; p \; \mathrm{DELTA\_H2O} \; 
-             \left(
-             \frac{\mathrm{T0}}{T}
-             \right)^{(0.25 + 1.5 * \mathrm{N\_H2O})} \nonumber \\
-           & &
-             + \; (1-x_\mathrm{self}-x_\mathrm{water}) \; p \; \mathrm{APSF} \; 
-             \left(
-             \frac{\mathrm{T0}}{T}
-             \right)^{(0.25 + 1.5 * \mathrm{NAIR})}.
-\end{eqnarray}
-
-\subsubsection{ARTSCAT-5 Line Mixing Tag}
-Note that inputs of line mixing goes towards Equation~\ref{eq:abs:lm:2ndorder}.  If a subtag does not mention one of $y_{lm}$, $g_{lm}$, or $\delta\nu_{lm}$,
-then the method assumes that it is nil.
-\paragraph*{If} the subtag is \verb|LL| for LBLRTM line mixing,
-then the values of of $y_{lm}$ and $g_{lm}$ are interpolated to their values at the atmospheric temperature.
-
-\paragraph*{If} the subtag is \verb|L1| for first order line mixing styled as by \citet{tretyakov05:_60-ghz_jms}, then
-this calculation is performed for the atmospheric temperature $T$
-\begin{equation}
-  y_{\mathrm{lm}} =  y'_{\mathrm{lm}}(T_{\mathrm{lm}})\left(\frac{T_{\mathrm{lm}}}{T}\right)^{n_{y_{\mathrm{lm}}}}.
-\end{equation}
-
-\paragraph*{If} the subtag is \verb|L2| for second order line mixing styled as by \citet{makarov11:_60-ghz_jqsrt},
-then the line mixing parameters are calculated as below for the atmospheric temperature $T$
-term:
-\begin{eqnarray}
-  y_{\mathrm{lm}}&=& \left[y'_{\mathrm{lm}}(T_{\mathrm{lm}})+y''_{\mathrm{lm}}(T_{\mathrm{lm}})\left(\frac{T_{\mathrm{lm}}}{T}-
-  1\right)\right]\left(\frac{T_{\mathrm{lm}}}{T}\right)^{n_{y_{\mathrm{lm}}}},\\
-  g_{\mathrm{lm}}&=& \left[g'_{\mathrm{lm}}(T_{\mathrm{lm}})+g''_{\mathrm{lm}}(T_{\mathrm{lm}})\left(\frac{T_{\mathrm{lm}}}{T}-
-  1\right)\right]\left(\frac{T_{\mathrm{lm}}}{T}\right)^{n_{g_{\mathrm{lm}}}},\;\mathrm{and}\\
-  \delta\nu_{\mathrm{lm}}&=& \left[\delta\nu'_{\mathrm{lm}}(T_{\mathrm{lm}})+\delta\nu''_{\mathrm{lm}}(T_{\mathrm{lm}})\left(\frac{T_{\mathrm{lm}}}{T}-
-  1\right)\right]\left(\frac{T_{\mathrm{lm}}}{T}\right)^{n_{\delta\nu_{\mathrm{lm}}}}.
-\end{eqnarray}
-
-\subsection{Pressure broadening and shift calculation (modern) \label{moder_lineshapes}}
-There are two line shape calculators in ARTS, a legacy and a more modern calculator.
-You are using the legacy calculator if you are using (directly or indirectly)
-\verb|abs_xsec_per_speciesAddLines|,
-and the modern calculator if you are calling \verb|abs_xsec_per_speciesAddLines2|.
-The legacy calculator has the user choose the line shape algorithm, cut-off
-frequency, and line renormalization routine directly in the controlfile for a
-given species tag. This is described above in this documentation and will
-not be iterated upon here.
-The modern calculator sets the line shape on a line-by-line basis directly in
-the line catalog.  This still allows for cut-off frequencies and line renormalization
-to be part of the computation, and for a different line shape algorithm to be called,
-but generally, the available pressure broadening and line mixing data describes these
-things and so the calculator will work regardless.  And once set up, the line shape
-will be the same for all others using the line catalog, offering easier traceability
-of utilized spectroscopic data.
-
-\subsubsection{Line shapes}
-
-The available line shapes are shown in Table~\ref{tab:lsalg-ls-and-input}.
-The generic function in use for  each individual line's cross-section is
-\begin{equation}
- \sigma = S \left(1 - iY + G\right) F\left( \Gamma_D, \Gamma_0, 
-            \Delta_0, \Gamma_2, \Delta_2, \eta, \nu_{VC}, \delta\nu \right),
+ \sigma = S(\cdots) \left(1 - iY + G\right) F\left( \cdots \right),
  \label{eq:lsalg-standard-equation}
 \end{equation}
 where
-$S$ is the line strength,
+$S(\cdots)$ is the line strength,
 $Y$ is the first order line mixing coefficient,
-$G$ is the second order line mixing strength-adjusting coefficient,
-$\Gamma_D$ is the Doppler broadening half-width,
-$\Gamma_0$ is the speed-independent pressure broadening half-width,
-$\Delta_0$ is the speed-independent pressure broadening frequency shift,
-$\Gamma_2$ is the speed-dependent pressure broadening half-width,
-$\Delta_2$ is the speed-dependent pressure broadening frequency shift,
-$\eta$ is a correlation parameter,
-$\nu_{VC}$ is the frequency of velocity-changing collisions, and
-$\delta\nu$ is the second order line mixing frequency shifting.
-For the individual profiles, not all input are needed or used.
-Note that the line strength is a function temperature, 
-line central frequency, and the energy of the lower state level in local
-thermodynamic equilibrium, and the number densities at upper and 
-lower state levels outside local thermodynamic equilibrium.
-I will not go into more details about line strength scaling here.
-
-The individual line profiles take the forms
-\begin{itemize}
- \item[DP:] $F_{DP} = \frac{1}{\sqrt{\pi}\Gamma_D} 
- \exp\left(-\left[\frac{\nu - \nu_0}{\Gamma_D}\right]^2\right)$
- 
- \item[LP:] $F_{LP} = \frac{1}{\pi} \frac{1}{\Gamma_0+i\Delta_0+i\delta\nu+i\nu_0-i\nu}$
- 
- \item[VP:] $F_{VP} = \frac{1}{\sqrt{\pi}\Gamma_D} w\left(z\right);\;z=\frac{\nu-\nu_0-\delta\nu-\Delta_0 + i\Gamma_0}{\Gamma_D}$
- 
- \item[HTP:] Formulation not fully tested yet.
-\end{itemize}
-Note that
-$w(z)$ is the Faddeeva function,
-$T$ is the temperature,
-$\nu$ is the frequency, and 
-$\nu_0$ is the line frequency.
+$G$ is the second order line mixing strength-adjusting coefficient, and
+$F(\cdots)$ is the line shape model with undefined inputs.
+The input to $F(\cdots)$ in part depends
+on the selection of line shape type, which can be seen in table~\ref{tab:abs_theory:lineshape:lineshapetype},
+and in part to the single line data.  Note the differences
+to Equation~\ref{eq:abs_coeff} is mostly the separation of the line mixing
+coefficients and the lack of the total number density.
+This change is done for efficiency and to help keep the code structure easy.
 
 \begin{table}[ht!]
  \centering
- \begin{tabular}{lcll}
-  Profiles &  & Parameters & Mixing \\
-  Doppler profile & DP & $\Gamma_D$ & None \\
-  Lorentz profile & LP & $\Gamma_0$, $\Delta_0$ & $Y$, $G$, $\delta\nu$ \\
-  Voigt profile & VP & $\Gamma_D$, $\Gamma_0$, $\Delta_0$ & $Y$, $G$, $\delta\nu$ \\
-  Speed-dependent VP & SDVP & $\Gamma_D$, $\Gamma_0$, $\Delta_0$, $\Gamma_2$, $\Delta_2$ & $Y$, $G$ \\
-  Hartmann-Tran profile & HTP & $\Gamma_D$, $\Gamma_0$, $\Delta_0$, $\Gamma_2$, $\Delta_2$, $\nu_{VC}$, $\eta$ & $Y$, $G$
+ \begin{tabular}{c}
+  Keys available for \verb|lineshapetype|\\\hline
  \end{tabular}
- \caption{Line shapes and parameters they depend on. Note that for both SDVP and HTP,
- $G$ is not defined in theory but it is computed in these algorithm if provided --- 
- do not provide $G$ unless you wish to use it. Also note that SDVP relies on HTP code to
- execute internally.}
- \label{tab:lsalg-ls-and-input}
+ \begin{tabular}{lll}
+  Key&Name&$F(\cdots)$-parameters (Eq.~\ref{eq:lsalg-standard-equation})\\
+  DP&Doppler profile&$\Gamma_D$, $\nu$, $\nu_0$, $\nu_z$\\[5pt]
+  LP&Lorentz profile&$\Gamma_0$, $\Delta_0$, $\nu$, $\nu_0$, $\nu_z$, $\delta\nu$\\[5pt]
+  VP&Voigt profile&$\Gamma_D$, $\Gamma_0$, $\Delta_0$, $\nu$, $\nu_0$, $\nu_z$, $\delta\nu$\\[5pt]
+  SDVP&Speed-dependent VP&$\Gamma_D$, $\Gamma_0$, $\Delta_0$, $\Gamma_2$, $\Delta_2$, $\nu$, $\nu_0$, $\nu_z$\\[5pt]
+  HTP&Hartman-Tran profile&$\Gamma_D$, $\Gamma_0$, $\Delta_0$, $\Gamma_2$, $\Delta_2$, $\eta$, $\nu_{VC}$, $\nu$, $\nu_0$, $\nu_z$
+ \end{tabular}
+ \caption{Type of line profile solvers and their relevant parameters, where
+ $\Gamma_D$ is the Doppler broadening divided by $\sqrt{\ln 2}$ (for practical reasons),
+ $\nu$ is the frequency,
+ $\nu_0$ is the central frequency,
+ $\nu_z$ is the Zeeman splitting,
+ $\Gamma_0$ is the speed-independent pressure broadening,
+ $\Delta_0$ is the speed-independent pressure broadening frequency shift,
+ $\delta\nu$ is the second order line mixing frequency shifting,
+ $\Gamma_2$ is the speed-dependent pressure broadening,
+ $\Delta_2$ is the speed-dependent pressure broadening frequency shift,
+ $\eta$ is the correlation factor, and
+ $\nu_{VC}$ is the the frequency of velocity-changing collisions.
+ }
+ \label{tab:abs_theory:lineshape:lineshapetype}
 \end{table}
 
-\subsubsection{Spectroscopic data}
-Spectroscopic data is provided per species.  Thus for all parameters of 
-Table~\ref{tab:lsalg-ls-and-input} the sum is computed and the results 
-are re-normalized to 100\% volume mixing ratio.  For example,
-$$\Gamma_0 = \left.\left(\Gamma_{0,\rm{H}_2\rm{O}} + \Gamma_{0,\rm{O}_2} + \Gamma_{0,\rm{O}_3} +  + \Gamma_{0,\rm{N}_2} + \cdots\right)\middle/\left(r_{\rm{H}_2\rm{O}}+r_{\rm{O}_2}+r_{\rm{O}_3}+r_{\rm{N}_2}\cdots\right) \right. , $$
-where $r_i$ is the fraction of 
-species $i$ in the atmosphere (at the level $\Gamma_0$ is computed).
-
-Each parameter of Table~\ref{tab:lsalg-ls-and-input}
-depends on temperature.  All but $\Gamma_D$, $G$, and $\delta\nu$ linearly scale with pressure; the former does not scale with pressure at all and the latter two scales with pressure squared.
-
-\paragraph*{Doppler half-width}
-
-For $\Gamma_D$ the temperature dependency is fixed and the parameter can simply be found as
+The only somewhat special input to the calculations of $F(\cdots)$ of equation~\ref{eq:lsalg-standard-equation} is the Zeeman splitting.
+To compute the Zeeman splitting, where
 \begin{equation}
- \Gamma_D = \sqrt{\frac{2k_BT}{mc^2}} \nu_0,
+ \nu_z = \frac{\mu_B}{h}\left(g_{z_1}M_1 - g_{z_2}M_2\right) ||\vec{B}||,
 \end{equation}
-where $k_B$ is the Boltzman constant, $c$ is the speed of light, and $m$ is the mass of the species.
-This $\Gamma_D$ comes from random motion of the species in its 'bath'.  
+where
+$\mu_B$ is the Bohr magneton,
+$h$ is the Planck constant,
+$||\vec{B}||$ is the magnitude of the magnetic field strength, and
+$M\in\left[-J, -J+1, \cdots, J-1, J\right]$, where $J$ is the rotational quantum number.
+Note that physics demands that $J\geq0$ , that $|J_1-J_2|\in[0,1]$, and that $|M_1-M_2|\in[0,1]$.
 
-\paragraph*{Pressure broadening and line mixing terms}
+\subsubsection{Line shapes}
 
-The other parameters are more cumbersome and often lacks clear physical derivations.
-Instead, lab measurements are used to fit them to some parametric form.  In ARTS, we
-have the parametric forms of Table~\ref{tab:lsalg-parametric-form} available to 
-choose from.  It is straightforward to add new terms to this table, so please
-be aware of such terms being added during updates (if you update seldom, check
-back on this documentation).
+The ellipsis arguments of $F(\cdots)$ depends in part on the \verb|temperaturemodes|
+\verb|AbsorptionLines| key.  The relevant line shape parameter coefficients
+of table~\ref{tab:abs_theory:lineshape:abscatline} are available as overview
+of the different parameters and their parameter keys in table~\ref{tab:abs_theory:lineshape:modelparamaters}
+and the method to compute a single species single parameter is seen in table~\ref{tab:abs_theory:lineshape:temperaturemodes}.
 
 \begin{table}[ht!]
  \centering
+ \begin{tabular}{c}
+  Keys available for model parameters in \verb|temperaturemodes|\\\hline
+ \end{tabular}
  \begin{tabular}{lll}
-  Notation & Parameters & Equation  \\[5pt]
+  Key&Variable&Description\\
+  G0&$\Gamma_0$&The speed-independent pressure broadening half-width\\
+  D0&$\Delta_0$&The speed-independent pressure broadening frequency shift\\
+  G2&$\Gamma_2$&The speed-dependent pressure broadening half-width\\
+  D2&$\Delta_2$&The speed-dependent pressure broadening frequency shift\\
+  ETA&$\eta$&The correlation parameter\\
+  FVC&$\nu_{VC}$&The the frequency of velocity-changing collisions\\
+  Y&$Y$&The the first order line mixing coefficient\\
+  G&$G$&The the second order line mixing strength-adjusting coefficient\\
+  DV&$\delta\nu$&The second order line mixing frequency shifting
+ \end{tabular}
+ \caption{The model parameters of pressure broadening schemes in ARTS.
+ These are the 9 values going into the line shape model $F(\cdots)$ that
+ can be set from the catalog itself.  The way these are computed
+ depends on the selected temperature model as seen in table~\ref{tab:abs_theory:lineshape:temperaturemodes}.}
+ \label{tab:abs_theory:lineshape:modelparamaters}
+\end{table}
+
+\begin{table}[ht!]
+ \centering
+ \begin{tabular}{c}
+  Keys available for temperature models in \verb|temperaturemodes|\\\hline
+ \end{tabular}
+ \begin{tabular}{lll}
+  Key & Parameters & Equation(s)  \\[5pt]
+  None&&$X=0$\\[5pt]
   T0 & $x_0$ & $X = x_0$ \\[5pt]
   T1 & $x_0$, $x_1$, $T_0$, $T$ & $X = x_0 \left(\frac{T_0}{T}\right)^{x_1}$ \\[5pt]
   T2 & $x_0$, $x_1$, $x_2$, $T_0$, $T$ & $X = x_0\left(\frac{T_0}{T}\right)^{x_1} \left(1 + x_2\log\left(\frac{T}{T_0}\right) \right) $ \\[5pt]
   T3 & $x_0$, $x_1$, $T_0$, $T$ & $X = x_0 + x_1\left(T - T_0\right) $ \\[5pt]
   T4 & $x_0$, $x_1$, $x_2$, $T_0$, $T$ & $X = \left(x_0 + x_1\left[\frac{T_0}{T} - 1\right]\right) \left(\frac{T_0}{T}\right)^{x_2} $ \\[5pt]
   T5 & $x_0$, $x_1$, $T_0$, $T$ & $X = x_0 \left(\frac{T_0}{T}\right)^{1.5x_1+0.25}$ \\[5pt]
-  Interpolation & As required & As required
+  DPL & $x_0$, $x_1$, $x_2$, $x_3$, $T_0$, $T$ & $X = x_0 \left(\frac{T_0}{T}\right)^{x_1} + x_2 \left(\frac{T_0}{T}\right)^{x_3}$ \\[5pt]
+  LM\_AER & $x_0$, $x_1$, $x_2$, $x_3$, $T$ & $X = x_0 + (T-200)\frac{x_1-x_0}{50}\;\forall\;T<250$, \\[5pt]
+  &&$X=x_1 + (T-250)\frac{x_2-x_1}{46}\;\forall\; 250\leq T\leq296$, or\\[5pt]
+  &&$X=x_2 + (T-296)\frac{x_3-x_2}{44}\;\forall \;T>296$\\[5pt]
  \end{tabular}
- \caption{Parametric forms of ARTS pressure broadening and line mixing.  $T_0$ is
- a line reference temperature, the $x_0-x_2$ are best-fit parameters.}
- \label{tab:lsalg-parametric-form}
+ \caption{The temperature models available for the model parameters. Multi-line equations
+ are conditional.}
+ \label{tab:abs_theory:lineshape:temperaturemodes}
 \end{table}
 
-\paragraph*{Input format}
+The model parameters depend on several species.
+To therefore align them to the atmosphere the following expression is applied
+\begin{equation}
+X(T) = \frac{r_{\rm{H}_2\rm{O}}X_{\rm{H}_2\rm{O}}(T) + r_{\rm{O}_2}X_{\rm{O}_2}(T) + r_{\rm{O}_3}X_{\rm{O}_3}(T) + \cdots + r_{\rm{N}_2}X_{\rm{N}_2}(T)}
+{r_{\rm{H}_2\rm{O}}+r_{\rm{O}_2}+r_{\rm{O}_3}+\cdots+r_{\rm{N}_2}}
+\end{equation}
+where $r$ indicates the ratio of the sub-indexed species at the path point, and the 
+$X(T)$ gives the value for the model parameter of the sub-indexed species. If air-broadening
+is present, the normalization step does not occur.  However, note that 
+in the somewhat odd scenario that air broadening is present but the sum
+of the ratio of the other species is above 1, then air broadening will
+act with a negative sign to still normalize the output.
+The above expression is scaled by the local pressure for most of the variables available in 
+table~\ref{tab:abs_theory:lineshape:modelparamaters}.  The three exceptions are $\delta\nu$ and 
+$G$, which are scaled by pressure-squared, and $\eta$, which is not scaled by the pressure at all.
 
-To input the data above into simply have it follow the ARTSCAT5 input format during reading.
-The ARTSCAT5 input format for this kind of spectroscopic data must follow an \verb|LF|-tag.
-The immediate tag afterwards must be one of the tags in Table~\ref{tab:lsalg-ls-and-input}.
-The second next tag defines how many line mixing parameters are defined.  The available
-line mixing parameters are found in Table~\ref{tab:lsalg-mixing-forms}. The third value tells how many species there are.  The next tag gives the first species, and then as many variables
-that are required by the combination of line shape and line mixing tags will follow, first by the parametric form used to compute the variable (i.e., from Table~\ref{tab:lsalg-parametric-form}), and then by as many as required of the coefficients ($x_0$-$x_2$).  This form is repeated for all species of interest.  As a special rule, the first species can be SELF for self broadening, and the last species can be AIR, to account for all remaining volume mixing ratio.
+There exist three additional features dealing with the use of equation~\ref{eq:lsalg-standard-equation}.
+These are the cutoff frequency, the normalization factor, and 0-frequency mirroring.
+
+The cutoff frequency can be found
+in table~\ref{tab:abs_theory:lineshape:cutofftype}.  When cutoff of the line shape model is desired,
+the output line shape model changes by
+\begin{equation}
+ F_c(\cdots) = F(\nu, \cdots) - F(\nu_c, \cdots),
+\end{equation}
+where $\nu_c$ is the cutoff frequency found in table~\ref{tab:abs_theory:lineshape:cutofftype}.
 
 \begin{table}[ht!]
  \centering
- \begin{tabular}{ll|l}
-  Method & Variables & Notes\\
-  \verb|#| & None & No mixing\\
-  \verb|LM1| & $Y$ & First order\\
-  \verb|LM2| & $Y$, $G$, $\delta\nu$ & Second order \\
-  \verb|ConstG| & $G$ & For scaling purposes\\
-  \verb|LM_AER| & $Y$, $G$ & Fixed form 12 values: [$T_{0-3}$, $Y_{0-3}$, $G_{0-3}$]\\
+ \begin{tabular}{c}
+  Keys available for \verb|cutofftype|\\\hline
  \end{tabular}
-\caption{Line mixing models in ARTS}
-\label{tab:lsalg-mixing-forms}
+ 
+ \begin{tabular}{ll}
+  Key&Cutoff frequency for the line\\
+  None&$\nu_c = \infty$\\
+  ByLine&$\nu_c = \nu_{c,0}+\nu_0$\\
+  ByBand&$\nu_c = \nu_{c,0}$
+ \end{tabular}
+ \caption{Cutoff types, where $\nu_{c,0}$ is the cutoff frequency from the global values
+ and $\nu_0$ the single line frequency.  The cutoff calculations means that the entire
+ line shape is computed once more at the indicated frequency and the result is removed
+ from the individual line absorption profile.}
+ \label{tab:abs_theory:lineshape:cutofftype}
 \end{table}
 
-\paragraph*{Examples of ARTSCAT5 line function data formats}
+When normalization factor is active, equation~\ref{eq:lsalg-standard-equation} is altered by using
+\begin{equation}
+ F_n(\cdots) = N F(\cdots),
+\end{equation}
+where $N$ can be found in table~\ref{tab:abs_theory:lineshape:normalizationtype}.
 
-Note that none of these examples are illustrative about actual values but just around to demonstrate the idea of the ARTS input format.
+\begin{table}[ht!]
+ \centering
+ \begin{tabular}{c}
+  Keys available for \verb|normalizationtype|\\\hline
+ \end{tabular}
+ \begin{tabular}{lll}
+  Key&Name&Normalization factor\\
+  None&&$N=1$\\[5pt]
+  VVH&Van Vleck and Huber& $N = \frac{\nu}{\nu_0}\frac{\tanh \left( h\nu \; \middle/ 2kT \right)}{\tanh \left( h\nu_0 \middle/ 2kT \right)} $ \\[5pt]
+  VVW&Van Vleck and Weiskopf&$N = \frac{\nu^2}{\nu^2_0}$\\[5pt]
+  RQ&Rosenkranz quadratic& $N = \frac{\nu^2 }{\left. h\nu_0 \sinh\left( h\nu_0 \middle/ 2kT \right) \middle/ 2kT \right.} $
+ \end{tabular}
+ \caption{Normalization types, where $h$ is Planck's constant, $\nu$ is the frequency, $k$ is Boltzmann's constant,
+ $T$ is the temperature, and $\nu_0$ is the central frequency.  These factors are applied on a line-by-line basis.}
+ \label{tab:abs_theory:lineshape:normalizationtype}
+\end{table}
 
-A line that will be computed by pure air broadening using the Voigt profile ignoring line mixing using T1 parametric form for the speed-independent pressure broadening parameter and T5 parametric form for the speed-independent pressure frequency shift term:
-\begin{verbatim}
-LF VP # 1 AIR T1 20000 0.8 T5 100 0.8
-\end{verbatim}
-At 1~Pa and $T_0/T = 0.5$, this line will have $\Gamma_0\approx11487$~Hz and $\Delta_0\approx37$~Hz.
+Finally, if 0-frequency mirroring is applied, equation~\ref{eq:lsalg-standard-equation}
+is altered by using
+\begin{equation}
+ F_m(\cdots)= F(\nu_0, \cdots) + F(-\nu_0, \cdots),
+\end{equation}
+where $F(-\nu_0, \cdots)$ is computed as described in table~\ref{tab:abs_theory:lineshape:mirroringtype}.
 
-A line with the same air-effects but with self-affected $x_0$ values that are twice as large:
-\begin{verbatim}
-LF VP # 2 SELF T1 40000 0.8 T5 200 0.8 AIR T1 20000 0.8 T5 100
-0.8 
-\end{verbatim}
-At 2~Pa and $T_0/T = 1.2$ with self volume mixing ratio of 10\%, this line 
-will have $\Gamma_0\approx25455$~Hz and $\Delta_0\approx143$~Hz.
+The three of the line shape altering equations can be combined together.  If all three are active,
+equation~\ref{eq:lsalg-standard-equation} will read
+\begin{equation}
+ \sigma = S \left(1 - iY + G\right) N \left[F\left(\nu, \nu_0 \right) + F\left(\nu, -\nu_0 \right) - F\left(\nu_c, \nu_0 \right)  - F\left(\nu_c, -\nu_0 \right) \right],
+\end{equation}
+where the ellipsis in $F(\cdots)$ and $S(\cdots)$ have been dropped due to lack of page space.
+We leave it to the reader to figure out the less complicated combinations.
+Note that the ``None'' option that exist for all of these three are not computed but
+the effect is instead ignored entirely to not risk introducing numerical bugs.
 
-Same Voigt profile again but with water parameters that are half as 
-large as the air parameters
-\begin{verbatim}
-LF VP # 3 SELF T1 40000 0.8 T5 200 0.8 H2O T1 10000 0.8 T5 50
-0.8 AIR T1 20000 0.2 T5 100 0.7 
-\end{verbatim}
+\begin{table}[ht!]
+ \centering
+ \begin{tabular}{c}
+  Keys available for \verb|mirroringtype|\\\hline
+ \end{tabular}
+ \begin{tabular}{ll}
+  Key&Description\\
+  None&There is no mirroring\\
+  Lorentz&There is a line at $-\nu_0$ treated as pure Lorentz profile\\
+  Same&There is a line at $-\nu_0$ treated the same as the line at $\nu_0$\\
+  Manual&This line should have a manual copy at $-\nu_0$ in the line catalog
+ \end{tabular}
+ \caption{Mirroring type.  Will perform computations as if there is a line at the
+ negative central frequency.}
+ \label{tab:abs_theory:lineshape:mirroringtype}
+\end{table}
 
+\subsubsection{Line strengths}
 
-A Hartmann-Tran line with only air as species but also first order line mixing:
-\begin{verbatim}
-LF HTP LM1 1 AIR T1 20000 0.8 T5 100 0.8 T3 200 300 T0 10 T0 1 T0
-0.01 T1 1e-7 0.8
-\end{verbatim}
-At 10~Pa and $T_0/T = 1$ will have $\Gamma_0=200,000$~Hz, $\Delta_0=1000$~Hz, 
-$\Gamma_2=2000$~Hz, $\Delta_2=100$~Hz, $\nu_{VC}=10$~Hz, $\eta=0.01$, and $Y=10^{-6}$.
+The last global key is the population types, \verb|populationtype| of \verb|AbsorptionLines|.
+These are found in table~\ref{tab:abs_theory:lineshape:populationtype}.
+They affect the computations of $S(\cdots)$ of equation~\ref{eq:lsalg-standard-equation}.
+If the line level distribution is considered in local thermodynamic equilibrium, then
+\begin{equation}
+ S_{LTE} = I_0\frac{1 - e^{\left. -h\nu_0 \middle/ kT\right.}}{1 - e^{\left. -h\nu_0 \middle/ kT_0\right.}}e^{\left.{E_0 (T - T_0)}\middle/{kTT_0}\right.}\frac{Q(T_0)}{Q(T)},
+ \label{eq:linestrength:calc}
+\end{equation}
+where $Q(T)$ is the partition function at the given temperature.
+If only the vibrational level distribution is considered offset from local thermodynamic equilibrium, then
+\begin{equation}
+ S^{(abs)}_{Vib-NLTE} = S_{LTE} \frac{e^{\left.{E_1 (T - T_1)}\middle/{kTT_1}\right.} - e^{\left.{E_2 (T - T_2)}\middle/{kTT_2}\right.}e^{\left. -h\nu_0 \middle/ kT\right.}}{1 - e^{\left. -h\nu_0 \middle/ kT\right.}},
+\end{equation}
+where
+$E_1$ is the vibrational energy of the lower vibrational level,
+$E_2$ is the vibrational energy of the upper vibrational level,
+$T_1$ is the vibrational temperature of the Boltzmann distribution of the lower vibrational level, and
+$T_2$ is the vibrational temperature of the Boltzmann distribution of the upper vibrational level.
+Note that as $T_1$ and $T_2$ approach $T$, the NLTE expression goes away.
+Finally, if the population type is considered to not be similar at all to the distribution by kinetic collisions,
+then the equation becomes
+\begin{equation}
+  S^{(abs)}_{NLTE} = \frac{h\nu_0}{4\pi}\left(\frac{g_2}{g_1} r_1 - r_2\right) \left.A_{21}\middle/\frac{2h\nu_0^3}{c^2}\right.,
+\end{equation}
+where
+$r_1$ is the lower state relative distribution, and 
+$r_2$ is the upper state relative distribution.
+In both the NLTE cases we have added the superscript of ``(abs)'' to indicate that we 
+are separating absorption and source cross-sections when dealing with NLTE.
+We do this since the atmospheric emission and absorption no longer leads to a simple Planck function, but must be considered different.
+The additional emission factor for the vibrational NLTE becomes
+\begin{equation}
+ S^{(src)}_{Vib-NLTE} = e^{\left.{E_2 (T - T_2)}\middle/{kTT_2}\right.}S_{LTE} - S^{(abs)}_{Vib-NLTE}.
+\end{equation}
+and
+\begin{equation}
+  S^{(src)}_{NLTE} =  \left.\frac{h\nu_0}{4\pi}A_{21}r_2\middle/{\frac{\left.{2h\nu_0^3}\middle/{c^2}\right.}{\exp\left(h\nu_0\middle/kT\right) - 1}}\right. - S^{(abs)}_{NLTE}
+\end{equation}
+for the respective types.  Note that we consider this an additional factor so
+that it is possible to mix different population types in all calculations.
+In the LTE case you would then simply not add anything to the source terms.
+Note that a special input method exist for all of the NLTE values.  They are not considered part
+of the standard line catalog inputs.  To match the NLTE values to the level, the isotopolgue, 
+and quantum numbers must be used to match the line catalog.
 
-A Lorentz profile with second order line mixing and only air parameters
-\begin{verbatim}
-LF LP LM2 1 AIR T1 20000 0.8 T5 60 0.8 T4 1e-7 1e-9 0.8 T4 1e-9 
-1e-11 1.6 T4 1 1e-2 1.6
-\end{verbatim}
-At 100~Pa and $T_0/T = 1$, this will have $\Gamma_0=2$~MHz, $\Delta_0=6$~kHz,
-$Y=10^{-5}$, $G=10^{-5}$, and $\delta\nu=10$~kHz.
+\begin{table}[ht!]
+ \centering
+ \begin{tabular}{c}
+  Keys available for \verb|populationtype|\\\hline
+ \end{tabular}
+ \begin{tabular}{lp{6cm}}
+  Key&Description\\
+  LTE&The line is treated as if in local thermodynamic equilibrium\\
+  NLTE-VibrationalTemperatures&The line is in non-local thermodynamic equilibrium but can be described by vibrational temperature distributions\\
+  NLTE& The line is in non-local thermodynamic equilibrium entirety
+ \end{tabular}
+ \caption{Population types.  The total strength of the line is computed from the upper and lower population densities.
+ This key determines how it is computed.  Note that the two NLTE keys will require more information to be fed into ARTS
+ to match the energy levels to the required distribution.}
+ \label{tab:abs_theory:lineshape:populationtype}
+\end{table}
 
-\subsubsection{Partial derivatives of $F\left( \Gamma_D, \Gamma_0, 
-            \Delta_0, \Gamma_2, \Delta_2, \eta, \nu_{VC}, \delta\nu \right)$}
+To both the NLTE and LTE line strengths, an additional Zeeman term will apply if
+the Zeeman effect is considered.  This term is
+\begin{equation}
+ S_z = S(\cdots)  \left(
+ \begin{array}{ccc}
+ J_1 & 1 & J_2 \\ 
+ M_1 & M_2-M_1 & -M_2
+ \end{array} \right) \left(
+ \begin{array}{ccc}
+ J_1 & 1 & J_2 \\ 
+ M_1 & M_2-M_1 & -M_2
+ \end{array} \right) C,
+ \end{equation}
+where $C$ is 1.5 if $M_2\equiv M_1$ or 0.75 otherwise, and $(:::)$ are Wigner symbols.
+Note that all combinations of $M$ and $J$ are automatically computed in ARTS and checked
+against the sum of unity.
 
-The partial derivatives are listed below in order of the different profiles. 
+\subsubsection{Line function algorithms}
 
-\paragraph*{Partial derivative w.r.t.\ temperature}
+This subsection will go over systematically the various algorithms that
+are invoked to compute each stage of the equations we have been
+presenting so far.  Note that the order of computations are to always set the
+line shape functions first.
 
-\begin{itemize}
- \item[DP:] $\frac{\partial F_{DP}}{\partial T} = F_{DP}\left(2\left[\frac{\nu - \nu_0}{\Gamma_D}\right]^2-1\right) \frac{\partial \Gamma_D}{\partial T} \frac{1}{\Gamma_D}$
- 
- \item[LP:] $\frac{\partial F_{LP}}{\partial T} = -\frac{F_{LP}}{\Gamma_0+i\Delta_0+i\delta\nu+i\nu_0-i\nu} \left( \frac{\partial \Gamma_0}{\partial T} + i\frac{\partial \Delta_0}{\partial T} + i \frac{\partial \delta\nu}{\partial T}\right)$ 
- 
- \item[VP:] $\frac{\partial F_{VP}}{\partial T} = \frac{2}{\sqrt{\pi}\Gamma_D}\left(\frac{i}{\sqrt{\pi}} - z w\left(z\right) \right)
- \left(i\frac{\partial \Gamma_0}{\partial T} - \frac{\partial\Delta_0}{\partial T} - \frac{\partial\delta\nu}{\partial T} -z\frac{\partial\Gamma_D}{\partial T}\right) - F_{VP}\frac{\partial\Gamma_D}{\partial T}\frac{1}{\Gamma_D}$
- 
- \item[HTP:] Formulation not fully tested yet.
-\end{itemize}
-Also note that the partial derivatives for the parameters of 
-Table~\ref{tab:lsalg-parametric-form} are trivial from said table's equations.
+\paragraph*{Doppler line shape (lineshapetype is DP)} \
 
-\paragraph*{Partial derivative w.r.t.\ frequency}
+The Doppler line shape algorithm is just as simple as its equations in the
+theory section implies
+\begin{equation}
+ F(\Gamma_D, \nu, \nu_0, \nu_z) = \frac{1}{\sqrt{\pi}\Gamma_D} e^{-x^2},
+\end{equation}
+where
+\begin{equation}
+ x = \frac{\nu-\nu_0-\nu_z}{\Gamma_D}
+\end{equation}
 
-\begin{itemize}
- \item[DP:] $\frac{\partial F_{DP}}{\partial \nu} = -2 F_{DP} \left[\frac{\nu - \nu_0}{\Gamma_D^2}\right]$
- 
- \item[LP:] $\frac{\partial F_{LP}}{\partial\nu} = \frac{iF_{LP}}{\Gamma_0+i\Delta_0+i\delta\nu+i\nu_0-i\nu}$
- 
- \item[VP:] $\frac{\partial F_{VP}}{\partial \nu} = \frac{2}{\sqrt{\pi}\Gamma_D}\left(\frac{i}{\sqrt{\pi}} - z w\left(z\right) \right) \frac{1}{\Gamma_D}$
- 
- \item[HTP:] Formulation not fully tested yet.
-\end{itemize}
-Also note that the frequency derivative is used to derive wind derivatives
-in a later stage.
+The only non-zero derivatives considered are for frequency, temperature,
+and line center.  We do not have an algorithm that returns the phase
+of the line shape for the Doppler algorithm so the magnetic derivative
+is ignored.  This might change in the future.  The forward calculations
+are still mostly good for a quick overview, which is the main use of the Doppler
+line shape anyways. The frequency derivative is found as
+\begin{equation}
+ \frac{\partial}{\partial \nu} F(\Gamma_D, \nu, \nu_0, \nu_z) = - \frac{2x}{\Gamma_D} F(\Gamma_D, \nu, \nu_0, \nu_z).
+\end{equation}
+The temperature derivative is found as
+\begin{equation}
+ \frac{\partial}{\partial T} F(\Gamma_D, \nu, \nu_0, \nu_z) = - \frac{\nu_0}{\Gamma_D}\frac{\partial \Gamma_D}{\partial T} \left[ 2x^2F(\Gamma_D, \nu, \nu_0, \nu_z) + F(\Gamma_D, \nu, \nu_0, \nu_z) \right].
+\end{equation}
+The line center derivative is found as
+\begin{equation}
+ \frac{\partial}{\partial \nu_0} F(\Gamma_D, \nu, \nu_0, \nu_z) = - \frac{2x^2}{\nu_0}F(\Gamma_D, \nu, \nu_0, \nu_z) + \left(\frac{1}{\Gamma_D}-\frac{1}{\nu_0}\right)2xF(\Gamma_D, \nu, \nu_0, \nu_z).
+\end{equation}
 
-\paragraph*{Partial derivative w.r.t.\ line frequency}
+\paragraph*{Lorentz line shape (lineshapetype is LP)} \
 
-\begin{itemize}
- \item[DP:] $\frac{\partial F_{DP}}{\partial \nu_0} = 2F_{DP} \left[\frac{\nu-\nu_0}{\Gamma_D}\right] \left(\frac{\left[\frac{\nu - \nu_0}{\Gamma_D}\right]-1}{\nu_0}+ \frac{1}{\Gamma_D}\right)$
- 
- \item[LP:] $\frac{\partial F_{LP}}{\partial\nu_0} = -\frac{iF_{LP}}{\Gamma_0+i\Delta_0+i\delta\nu+i\nu_0-i\nu}$
- 
- \item[VP:] $\frac{\partial F_{VP}}{\partial \nu_0} = \frac{2}{\sqrt{\pi}\Gamma_D}\left(\frac{i}{\sqrt{\pi}} - z w\left(z\right) \right) \left(-\frac{1}{\Gamma_D}-\frac{z}{\nu_0}\right) - \frac{F_{VP}}{\nu_0}$
- 
- \item[HTP:] Formulation not fully tested yet.
-\end{itemize}
-Also note that Equation~\ref{eq:lsalg-standard-equation} has the line strength that depends on the line central frequency. 
+The Lorentz line shape algorithm is handled in complex numbers contrary to the
+theory section.  This allows line mixing.  The function is
+\begin{equation}
+ F(\Gamma_0, \Delta_0, \nu, \nu_0, \nu_z, \delta\nu) = \frac{1}{z},
+\end{equation}
+where
+\begin{equation}
+ z = \pi \Gamma_0 + i\pi\left(\nu_0 + \Delta_0 + \nu_z + \delta\nu - \nu\right).
+\end{equation}
 
-\paragraph*{Partial derivative w.r.t.\ second order line mixing frequency shift}
+The relevant derivatives are for the temperature, the frequency, the line center,
+the pressure broadening parameters $\Gamma_0$ and $\Delta_0$, the magnetic field
+strength, and for the volume mixing ratio.  Each of these will look fairly similar,
+so a helper variable is set up as
+\begin{equation}
+ \Delta_F = -\pi \left[F(\Gamma_0, \Delta_0, \nu, \nu_0, \nu_z, \delta\nu)\right]^2.
+\end{equation}
+The temperature derivative is found as
+\begin{equation}
+ \frac{\partial}{\partial T} F(\Gamma_0, \Delta_0, \nu, \nu_0, \nu_z, \delta\nu) = \left(\frac{\partial\Gamma_0}{\partial T} + i\frac{\partial\Delta_0}{\partial T}+i\frac{\partial\delta\nu}{\partial T}\right) \Delta_F.
+\end{equation}
+The frequency derivative is found as
+\begin{equation}
+ \frac{\partial}{\partial \nu} F(\Gamma_0, \Delta_0, \nu, \nu_0, \nu_z, \delta\nu) = -i\Delta_F.
+\end{equation}
+The line center derivative is found as
+\begin{equation}
+ \frac{\partial}{\partial \nu_0} F(\Gamma_0, \Delta_0, \nu, \nu_0, \nu_z, \delta\nu) = i\Delta_F.
+\end{equation}
+The $\Gamma_0$ derivative is found as
+\begin{equation}
+ \frac{\partial}{\partial \Gamma_0} F(\Gamma_0, \Delta_0, \nu, \nu_0, \nu_z, \delta\nu) = \Delta_F.
+\end{equation}
+The $\Delta_0$ derivative is found as
+\begin{equation}
+ \frac{\partial}{\partial \Delta_0} F(\Gamma_0, \Delta_0, \nu, \nu_0, \nu_z, \delta\nu) = i\Delta_F.
+\end{equation}
+The magnetic field strength derivative is found as
+\begin{equation}
+ \frac{\partial}{\partial ||\vec{B}||} F(\Gamma_0, \Delta_0, \nu, \nu_0, \nu_z, \delta\nu) = i \frac{\mu_B}{h}\left(g_{z_1}M_1 - g_{z_2}M_2\right) \Delta_F.
+\end{equation}
+The volume mixing ratio derivative is found as
+\begin{equation}
+ \frac{\partial}{\partial r} F(\Gamma_0, \Delta_0, \nu, \nu_0, \nu_z, \delta\nu) = \left(\frac{\partial\Gamma_0}{\partial r} + i\frac{\partial\Delta_0}{\partial r}+i\frac{\partial\delta\nu}{\partial r}\right) \Delta_F.
+\end{equation}
 
-See ``Partial derivative w.r.t.\ line frequency''.  Also note that chaining for
-any coefficient in Table~\ref{tab:lsalg-parametric-form} is possible.
+\paragraph*{Voigt line shape (lineshapetype is VP)} \
 
-\paragraph*{Partial derivative w.r.t.\ pressure broadening frequency shift}
+The Voigt line shape profile also handles complex numbers contrary to the 
+theory.  The Voigt profile is computed using an external Faddeeva function
+package developed by \citet{zaghloul12:_algorithm916_acm} and implemented into
+C++ by Steven G.\ Johnson.  The Voigt profile is
+\begin{equation}
+ F(\Gamma_D, \Gamma_0, \Delta_0, \nu, \nu_0, \nu_z, \delta\nu) = \frac{w(z)}{\sqrt{\pi}\Gamma_D},
+\end{equation}
+where $w(z)$ is the Faddeeva function and
+\begin{equation}
+ z = \frac{\nu-\nu_0-\nu_z-\Delta_0-\delta\nu + i\Gamma_0}{\Gamma_D}.
+\end{equation}
 
-See ``Partial derivative w.r.t.\ line frequency''.  Also note that chaining for
-any coefficient in Table~\ref{tab:lsalg-parametric-form} is possible.
+The derivatives that matter to the Voigt algorithm are the same as those
+that matters for the Lorentz algorithm.  Many of these derivatives will 
+look very similar so a helper variable is set up as
+\begin{equation}
+ \Delta_F = \frac{2i}{\pi\Gamma_D} - 2zF(\Gamma_D, \Gamma_0, \Delta_0, \nu, \nu_0, \nu_z, \delta\nu).
+\end{equation}
+One problem presenting these derivatives is that many of the
+expression consist of three or more sub-expressions.  For the
+remaining part of this algorithm please read $F$ as the
+computed Voigt profile.  The frequency derivative is
+\begin{equation}
+ \frac{\partial}{\partial\nu} F = \frac{1}{\Gamma_D}\Delta_F.
+\end{equation}
+The temperature derivative is
+\begin{equation}
+ \frac{\partial}{\partial T} F = \frac{1}{\Gamma_D}\left(i\frac{\partial\Gamma_0}{\partial T} - \frac{\partial\Delta_0}{\partial T} - \frac{\partial\delta\nu}{\partial T}\right)\Delta_F - \frac{\partial \Gamma_D}{\partial T} \frac{1}{\Gamma_D} \left[ F + z\Delta_F\right].
+\end{equation}
+The line center derivative is
+\begin{equation}
+ \frac{\partial}{\partial\nu_0} F = -\frac{F}{\nu_0} - \frac{\Delta_F}{\Gamma_D} - \frac{z\Delta_F}{\nu_0}
+\end{equation}
+The $\Gamma_0$ derivative is
+\begin{equation}
+ \frac{\partial}{\partial\Gamma_0} F = i \frac{\Delta_F}{\Gamma_D}.
+\end{equation}
+The $\Delta_0$ derivative is
+\begin{equation}
+ \frac{\partial}{\partial\Delta_0} F = - \frac{\Delta_F}{\Gamma_D}.
+\end{equation}
+The magnetic field strength derivative is
+\begin{equation}
+ \frac{\partial}{\partial ||\vec{B}||} F = - \frac{\mu_B}{h}\left(g_{z_1}M_1 - g_{z_2}M_2\right) \frac{\Delta_F}{\Gamma_D}.
+\end{equation}
+The volume mixing ratio derivative is
+\begin{equation}
+ \frac{\partial}{\partial r} F = \frac{1}{\Gamma_D} \left(i\frac{\partial\Gamma_0}{\partial r} - \frac{\partial\Delta_0}{\partial r} - \frac{\partial\delta\nu}{\partial r}\right) \Delta_F.
+\end{equation}
 
-\paragraph*{Partial derivative w.r.t.\ pressure broadening half-width}
+\paragraph*{Hartmann-Tran line shape (lineshapetype is SDVP or HTP)} \
 
-\begin{itemize}
- \item[DP:] N/A
- 
- \item[LP:] $\frac{\partial F_{LP}}{\partial\Gamma_0} = -\frac{F_{LP}}{\Gamma_0+i\Delta_0+i\delta\nu+i\nu_0-i\nu}$
- 
- \item[VP:] $\frac{\partial F_{VP}}{\partial \Gamma_0} = \frac{2}{\sqrt{\pi}\Gamma_D}\left(\frac{i}{\sqrt{\pi}} - z w\left(z\right) \right) \frac{i}{\Gamma_D}$
- 
- \item[HTP:] Formulation not fully tested yet.
-\end{itemize}
+The algorithm from the original paper by \citet{tran13:_htp_jqsrt}. 
+This algorithm is chained and conditioned because the main algorithm
+reach many mathematical limits. One of these limits is the speed
+dependent Voigt line shape.  There is still limited experience in
+the ARTS development community for applications of this type of
+line shape so many small bugs might be present and not rooted out.
 
-Note that chaining for any coefficient in Table~\ref{tab:lsalg-parametric-form} is possible.
+The main HTP expression that holds in all cases is
+\begin{equation}
+\begin{array}{l}
+F(\Gamma_D, \Gamma_0, \Delta_0, \Gamma_2, \Delta_2, \eta, \nu_{VC}, \nu, \nu_0, \nu_z, \delta\nu) = \\[5pt]
+F =
+ \frac{1}{\pi}\frac{A}{\left[\left(C_0 - \left.3C_2\middle/2\right.\right)\eta - \nu_{VC}\right] A + \eta C_2 B + 1}
+ \end{array}
+\end{equation}
+where
+\begin{equation}
+ C_0 = \Gamma_0 - i\Delta_0
+\end{equation}
+and
+\begin{equation}
+ C_2 = \Gamma_2 - i\Delta_2.
+\end{equation}
+Now it will soon get complicated by branching out depending on values.
+Before going into the conditional branches,
+these are constant in all of the expressions that will follow
+\begin{equation}
+ y = \left(\frac{1}{2\left.{\sqrt{\ln 2}\left(1-\eta\right)C_2}\middle/{\Gamma_D}\right.}\right)^2,
+\end{equation}
+and
+\begin{equation}
+ x = \frac{\left(1-\eta\right)\left(C_0 - \left.3C_2\middle/2\right.\right) + \nu_{VC} + i\nu - i\nu_0 - i\nu_z}{\left(1-\eta\right)C_2}.
+\end{equation}
 
-\paragraph*{Partial derivative w.r.t.\ magnetic field strength}
+Normally, that is if all numbers are reasonable large and normal,
+\begin{equation}
+ A = \sqrt{\pi}\frac{\sqrt{\ln 2}}{\Gamma_D}\left[w(i z_1) - w(i z_2)\right]
+\end{equation}
+and
+\begin{equation}
+ B = \frac{\left.\sqrt{\pi} \left[\left(1-z_1^2\right)w(i z_1) - \left(1-z_2^2\right)w(i z_2) \right] \middle/ 2\sqrt{y}\right. -1}{\left(1-\eta\right)C_2},
+\end{equation}
+where $z_1 = \sqrt{x+y} - \sqrt{y}$ and $z_2 = \sqrt{x+y} + \sqrt{y}$.  This is marked as case 1 below for the description of the derivatives.
 
-See ``Partial derivative w.r.t.\ line frequency''.  Scale expressions by $\left. \mu_B \left(g''M''_J-g'M'_J\right) \middle/h\right.$, where $\mu_B$
-is the Bohr magneton, $h$ is the Planck constant, $g$ is the Zeeman effect splitting coefficient, double prime means for the lower state, single prime for the upper state, and $M$ is the quantum number of the projection of the total angular momentum quantum number along the magnetic field.
+If $|y| \leq 10^{-15}|x|$ but all other numbers are reasonably large and normal,
+then if $|\sqrt{x}| \leq 4000$
+\begin{equation}
+ A = \frac{2\sqrt{\pi}}{\left(1-\eta\right)C_2}
+ \left(\frac{1}{\sqrt{\pi}} - z_bw(i z_b)\right)
+\end{equation}
+and
+\begin{equation}
+ B = \frac{ 
+ 2\sqrt{\pi} \left[ \left( 1-x-2y \right) \left(1/\sqrt{\pi} - z_bw(i z_b)\right) +
+ z_1w(i z_1)\right] -1}{\left(1-\eta\right)C_2},
+\end{equation}
+where $z_1 = \sqrt{x+y}$ and $z_b = \sqrt{x}$.  This is marked as case 2.1 below for the description of the derivatives.
+Still if $|y| \leq 1e-15|x|$ but all other numbers are reasonably large and normal,
+then if $|\sqrt{x}| > 4000$
+\begin{equation}
+ A = \frac{1/x - \left.3\middle/2x^2\right.}{\left(1-\eta\right)C_2}
+\end{equation}
+and
+\begin{equation}
+ B = \frac{ 
+  \left( 1-x-2y \right) \left(1/x - \left.3 \middle/ 2x^2\right.\right) +
+ 2\sqrt{\pi}z_1w(i z_1) -1}{\left(1-\eta\right)C_2},
+\end{equation}
+with $z_1=\sqrt{x+y}$.  This is marked as case 2.2 below for the description of the derivatives.
 
-\paragraph*{Partial derivative w.r.t.\ first order line mixing}
+If $|x| \leq 3\times10^{-8}|y|$ and the other numbers are normal then
+\begin{equation}
+ A = \sqrt{\pi}\frac{\sqrt{\ln 2}}{\Gamma_D}\left[w(i z_1) - w(i z_2)\right]
+\end{equation}
+and
+\begin{equation}
+ B = \frac{\left.\sqrt{\pi} \left[\left(1-z_1^2\right)w(i z_1) - \left(1-z_2^2\right)w(i z_2) \right] \middle/ 2\sqrt{y}\right. -1}{\left(1-\eta\right)C_2},
+\end{equation}
+with 
+$z_1 =  \left. \sqrt{\ln 2}\left[ i\nu-i\nu_0-i\nu_z + \left(1-\eta\right)\left(C_0 - \left.3C_2\middle/2\right.\right) + \nu_{VC}\right] \middle/ \Gamma_D \right.$ and
+$z_2 = \sqrt{x+y} + \sqrt{y}$.  This is marked as case 3 below for the description of the derivatives.
 
-See Equation~\ref{eq:lsalg-standard-equation}.  It is trivial from there.  Also note that chaining for
-any coefficient in Table~\ref{tab:lsalg-parametric-form} is possible.
+Lastly, if $\left(1-\eta\right)C_2 \equiv 0$, then
+\begin{equation}
+ A = \sqrt{\pi}\frac{\sqrt{\ln 2}}{\Gamma_D}w(i z_1)
+\end{equation}
+with $z_1 =  \left. \sqrt{\ln 2}\left[ i\nu-i\nu_0-i\nu_z + \left(1-\eta\right)\left(C_0 - \left.3C_2\middle/2\right.\right) + \nu_{VC}\right] \middle/ \Gamma_D \right.$.
+If $|z_1| \leq 4000$ then
+\begin{equation}
+ B = \sqrt{\pi}\frac{\sqrt{\ln 2}}{\Gamma_D}\left[\left(1 - z_1^2\right) w(i z_1) + \frac{z_1} {\sqrt{\pi}}\right]
+\end{equation}
+otherwise if $|z_1| > 4000$
+\begin{equation}
+ B = \frac{\sqrt{\ln 2}}{\Gamma_D} \left[ \sqrt{\pi}w(i z_1) + \frac{1}{2z_1} - \frac{3}{4z_1^3} \right].
+\end{equation}
+These are marked as case 4.1 and 4.2, respectively, below for the description of the derivatives.
 
-\paragraph*{Partial derivative w.r.t.\ second order line mixing strength-adjusting coefficient}
+The main derivative of HTP still follows from the main expression and will look like
+this beast of an equation
+\begin{equation}
+ \frac{\partial}{\partial t} F = 
+ \begin{array}{l}
+   \left.\frac{\partial A}{\partial t} \middle/\pi \left\{\left[\left(C_0 - \left.3C_2\middle/2\right.\right) \eta - \nu_{VC}\right] A + \eta C_2 B + 1\right\} \right. - \\[5pt]
+   \Bigl\{
+   \left[\left(C_0 - \left.3C_2\middle/2\right.\right) \eta - \nu_{VC}\right] \frac{\partial A}{\partial t} + C_2 B \frac{\partial \eta}{\partial t} + \eta B \frac{\partial C_2}{\partial t} + \\[5pt]
+   \left[\left(C_0 - \left.3C_2\middle/2\right.\right) \frac{\partial \eta}{\partial t} + \left(\frac{\partial C_0}{\partial t} - \left.3\frac{\partial C_2}{\partial t}\middle/2\right.\right) \eta - \frac{\partial \nu_{VC}}{\partial t}\right] A +  \\[5pt]
+   \left. \eta C_2 \frac{\partial B}{\partial t}
+   \Bigr\} A \middle/ \pi \left\{\left[\left(C_0 - \left.3C_2\middle/2\right.\right) \eta - \nu_{VC}\right] A + \eta C_2 B + 1\right\}^2 \right.,
+ \end{array}
+\end{equation}
+where $t$ represents an arbitrary variable.
+The derivatives that matter to the HTP algorithm are the same as those
+that matters for the Lorentz algorithm, with the addition of the 4
+additional pressure broadening variables.  Note that for many of these,
+several of the inputs to the above will be zero.
 
-See Equation~\ref{eq:lsalg-standard-equation}.  It is trivial from there.  Also note that chaining for
-any coefficient in Table~\ref{tab:lsalg-parametric-form} is possible.
+Going over the four generic variables defined before the branching above,
+\begin{equation}
+ \begin{array}{ll}
+  \frac{\partial}{\partial T} C_0 &= \frac{\partial \Gamma_0}{\partial T} - i\frac{\partial \Delta_0}{\partial T} \\[5pt]
+  \frac{\partial}{\partial r} C_0 &= \frac{\partial \Gamma_0}{\partial r} - i\frac{\partial \Delta_0}{\partial r} \\[5pt]
+  \frac{\partial}{\partial \Gamma_0} C_0 &= 1 \\[5pt]
+  \frac{\partial}{\partial \Delta_0} C_0 &= -i \\[5pt]
+  \frac{\partial}{\partial t} C_0 &= 0,
+ \end{array}
+\end{equation}
+where $t$ is from now on any other derivative than those previously defined in 
+an expression.  Likewise,
+\begin{equation}
+ \begin{array}{ll}
+  \frac{\partial}{\partial T} C_2 &= \frac{\partial \Gamma_2}{\partial T} - i\frac{\partial \Delta_2}{\partial T} \\[5pt]
+  \frac{\partial}{\partial r} C_2 &= \frac{\partial \Gamma_2}{\partial r} - i\frac{\partial \Delta_2}{\partial r} \\[5pt]
+  \frac{\partial}{\partial \Gamma_2} C_2 &= 1 \\[5pt]
+  \frac{\partial}{\partial \Delta_2} C_2 &= -i \\[5pt]
+  \frac{\partial}{\partial t} C_2 &= 0.
+ \end{array}
+\end{equation}
+For the two constant expressions,
+\begin{equation}
+ \frac{\partial}{\partial t} y = -2 \left[ \frac{1}{\Gamma_D}\frac{\partial \Gamma_D}{\partial t} + \left. \left(\frac{\partial \eta}{\partial t}C_2 + (1-\eta)\frac{\partial C_2}{\partial t}\right) \middle/ (1-\eta)C_2 \right. \right] y,
+\end{equation}
+and
+\begin{equation}
+ \begin{array}{ll}
+  \frac{\partial}{\partial ||\vec{B}||} x &= -\frac{\left.i\mu_B\left(g_{z_1}M_1 - g_{z_2}M_2\right)\middle/h\right.}{(1-\eta)C_2} \\[5pt]
+  \frac{\partial}{\partial \nu_0} x &= -\frac{i}{(1-\eta)C_2} \\[5pt]
+  \frac{\partial}{\partial \nu} x &= -\frac{i}{(1-\eta)C_2} \\[5pt]
+  \frac{\partial}{\partial t} x &= \frac{\frac{\partial \nu_{VC}}{\partial t} - \left(C_0 - \left.3C_2\middle/2\right.\right)\frac{\partial \eta}{\partial t} + (1-\eta)\left(\frac{\partial C_0}{\partial t} - \left.3\frac{\partial C_2}{\partial t}\middle/2\right.\right)}{(1-\eta)C_2}-\frac{(1-\eta)\frac{\partial C_2}{\partial t} - \frac{\partial\eta}{\partial t}C_2}{(1-\eta)C_2}x.
+ \end{array}
+\end{equation}
 
-\paragraph*{Partial derivative w.r.t.\ line strength}
+Before branching, this replacement will be used throughout the expressions
+\begin{equation}
+ \Delta_{w(iz)} = -2 \left[\frac{1}{\sqrt{\pi}} - z w(iz)\right] \frac{\partial z}{\partial t}.
+\end{equation}
 
-See Equation~\ref{eq:lsalg-standard-equation}.  It is trivial from there.
+In case 1,
+\begin{equation}
+ \frac{\partial}{\partial t} A = \sqrt{\pi} \left[\left(w(iz_1) - w(iz_2)\right) \frac{\sqrt{\ln 2}}{\Gamma_D}\frac{\partial \Gamma_D}{\partial t} + \left(\Delta_{w(iz_1)} - \Delta_{w(iz_2)}\right) \frac{\sqrt{\ln 2}}{\Gamma_D}\right],
+\end{equation}
+and
+\begin{equation}
+\frac{\partial}{\partial t} B =
+\begin{array}{l}
+ \frac{\sqrt{\pi} \left[\left(z_1^2 - 1\right) w(iz_1) - \left(z_2^2 - 1\right) w(iz_2)\right] \frac{\partial y }{\partial t}}{4 \sqrt{y^3} (1-\eta)C_2} + \\[5pt]  
+ \frac{\sqrt{\pi} \left[
+ \left(-\left(z_1^2 - 1\right) \Delta_{w(iz_1)} + \left(z_2^2 - 1\right) \Delta_{w(iz_2)} -
+ 2 w(iz_1) z_1 \frac{\partial z_1}{\partial t} + 2 w(iz_2) z_2 \frac{\partial z_2}{\partial t}\right)  \right] }{2 \sqrt{y} (1-\eta)C_2} + \\[5pt]
+  \frac{\left[\sqrt{\pi} (z_1^2 - 1) w(iz_1) -
+  \sqrt{\pi} (z_2^2 - 1) w(iz_2) + 2 \sqrt{y}\right]
+  \left[(1-\eta)\frac{\partial C_2}{\partial t} - \frac{\partial\eta}{\partial t}C_2\right] }
+  {2 \sqrt{y} \left[(1-\eta)C_2\right]^2}.
+\end{array} 
+\end{equation}
+The remaining derivatives for case 1 are, for completeness,
+\begin{equation}
+\frac{\partial}{\partial t} z_1 = -\left.\frac{\partial y}{\partial t} \middle/ 2\sqrt{y}\right. + \left.\left(\frac{\partial x}{\partial t} + \frac{\partial y}{\partial t}\right) \middle/ 2 \sqrt{x+y} \right.
+\end{equation}
+and 
+\begin{equation}
+\frac{\partial}{\partial t} z_2 = \left.\frac{\partial y}{\partial t} \middle/ 2\sqrt{y}\right. + \left.\left(\frac{\partial x}{\partial t} + \frac{\partial y}{\partial t}\right) \middle/ 2 \sqrt{x+y} \right..
+\end{equation}
+
+In case 2.1,
+\begin{equation}
+\frac{\partial}{\partial t}A =
+\begin{array}{l}
+ \frac{-\sqrt{\pi} \left[w(iz_b)  \frac{\partial x}{\partial t} + 2 x \Delta_{w(iz_b)}\right]}{\sqrt{x} (1-\eta)C_2} + 
+ \frac{2 (\sqrt{\pi} w(iz_b) \sqrt{x} - 1) \left[(1-\eta)\frac{\partial C_2}{\partial t} - \frac{\partial \eta}{\partial t}C_2\right]}
+ {\left[(1-\eta)C_2\right]^2},
+\end{array}
+\end{equation}
+and
+\begin{equation}
+ \frac{\partial}{\partial t} B =
+ \begin{array}{l}
+  \frac{-\left[2 \left(\sqrt{\pi} w(iz_b) \sqrt{x} - 1\right) (x + 2 y - 1) + 2 \sqrt{\pi} \sqrt{x+y} w(iz_1) - 1\right] \left[(1-\eta)\frac{\partial C_2}{\partial t} - \frac{\partial \eta}{\partial t}C_2\right]}
+  {\left[(1-\eta)C_2\right]^2}
+  \\[5pt]
+  \frac{2\left[\left(\sqrt{\pi} w(iz_b) \sqrt{x} - 1\right) \left(\frac{\partial x}{\partial t} + 2 \frac{\partial y}{\partial t}\right)
+                     \sqrt{\pi} \sqrt{x+y} \Delta_{w(iz_1)}\right]
+                    }{(1-\eta)C_2} + \\[5pt]
+  \frac{\sqrt{x} +
+                \sqrt{\pi} \left(w(iz_b) \frac{\partial x}{\partial t} + 2x \Delta_{w(iz_b)}\right) \left(x + 2 y - 1\right)}
+  {\sqrt{x}(1-\eta)C_2} + \frac{\sqrt{\pi} \left(\frac{\partial x}{\partial t} + \frac{\partial y}{\partial t}\right) w(iz_1)}{\sqrt{x+y}(1-\eta)C_2},
+ \end{array}
+\end{equation}
+with
+\begin{equation}
+ \frac{\partial}{\partial t} z_b = \left.\frac{\partial x}{\partial t}\middle/2\sqrt{x}\right..
+\end{equation}
+
+In case 2.2,
+\begin{equation}
+ \frac{\partial}{\partial t} A = \frac{(3-x) (1-\eta)C_2 \frac{\partial x}{\partial t} - (x - 3/2) x \left[(1-\eta)\frac{\partial C_2}{\partial t} - \frac{\partial \eta}{\partial t}C_2\right]}{x^3 \left[(1-\eta)C_2\right]^2}
+\end{equation}
+and
+\begin{equation}
+\frac{\partial}{\partial t} B =
+\begin{array}{l}
+\frac{\left[\left(-2 \sqrt{\pi} \sqrt{x+y} w(iz_1) + 1\right) x^2 +
+                     \left(x - 3/2\right)\left(x + 2 y - 1\right)\right]
+                         \left[(1-\eta)\frac{\partial C_2}{\partial t} - \frac{\partial \eta}{\partial t}C_2\right]}{x^2 \left[(1-\eta)C_2\right]^2} + \\[5pt]
+ \frac{(x - 3)(x + 2 y - 1) \frac{\partial x}{\partial t} -
+                     (x - 3/2) (\frac{\partial x}{\partial t} + 2 \frac{\partial y}{\partial t}) x}
+                   {x^3 (1-\eta)C_2} + \\[5pt] 
+                     \frac{\sqrt{\pi}\left[2 (x + y) \Delta_{w(iz_1)} +
+                     (\frac{\partial x}{\partial t} + \frac{\partial y}{\partial t}) w(iz_1)\right]}
+                   {\sqrt{x+y}(1-\eta)C_2}.
+\end{array}
+\end{equation}
+In both case 2.1 and 2.2,
+\begin{equation}
+ \frac{\partial}{\partial t} z_1 = \left.\left[\frac{\partial x}{\partial t} + \frac{\partial y}{\partial t}\right]\middle/2\sqrt{x+y}\right..
+\end{equation}
+
+In case 3,
+\begin{equation}
+  \frac{\partial}{\partial t} A = \sqrt{\pi} \left[ \left(w(iz_1) - w(iz_2)\right) \frac{\sqrt{\ln 2}}{\Gamma_D}\frac{\partial \Gamma_D}{\partial t} + \left(\Delta_{w(iz_1)} - \Delta_{w(iz_2)}\right) \frac{\sqrt{\ln 2}}{\Gamma_D}\right]
+\end{equation}
+and
+\begin{equation}
+ \frac{\partial}{\partial t} B =
+ \begin{array}{l}
+ \frac{\sqrt{\pi}\left[\left(z_1^2 - 1\right) w(iz_1) - \left(z_2^2 - 1\right)w(iz_2)\right] \frac{\partial y}{\partial t}}{4 \sqrt{y^3} (1-\eta)C_2} + \\[5pt]
+  \frac{\sqrt{\pi}
+                       2 \left[-\left(z_1^2 - 1\right) \Delta_{w(iz_1)} + \left(z_2^2 - 1\right) \Delta_{w(iz_2)} -
+                            2 w(iz_1) z_1 \frac{\partial z_1}{\partial t} + 2 w(iz_2) z_2 \frac{\partial z_2}{\partial t}\right]}{4 \sqrt{y} (1-\eta)C_2} + \\[5pt]
+  \frac{\left[\sqrt{\pi} \left(z_1^2 - 1\right) w(iz_1) -
+                       \sqrt{\pi} \left(z^2_2 - 1\right) w(iz_2) + 2 \sqrt{y}\right]
+                      \left[(1-\eta)\frac{\partial C_2}{\partial t} - \frac{\partial \eta}{\partial t}C_2\right] }
+                 {2 \sqrt{y} \left[(1-\eta)C_2\right]^2},
+ \end{array}
+\end{equation}
+with
+\begin{equation}
+ \begin{array}{ll}
+  \frac{\partial}{\partial ||\vec{B}||}z_1 &= -i \sqrt{\ln 2} \left.i\mu_B\left(g_{z_1}M_1 - g_{z_2}M_2\right)\middle/h\Gamma_D\right.  \\[5pt]
+  \frac{\partial}{\partial \nu_0} z_1 &= -i\left.\sqrt{\ln2}\middle/\Gamma_D\right. \\[5pt]
+  \frac{\partial}{\partial \nu} z_1 &= i\left.\sqrt{\ln 2}\middle/\Gamma_D\right. \\[5pt]
+  \frac{\partial}{\partial t} z_1 &= \left[i\nu - i\nu_0 - i\nu_z + (1-\eta)\left(C_0 - \left.3C_2\middle/2\right.\right) + \nu_{VC}\right] \frac{\sqrt{\ln 2}}{\Gamma_D}\frac{\partial \Gamma_D}{\partial t} + \\[5pt]&
+ \frac{\sqrt{\ln 2}}{\Gamma_D} \left[(1-\eta)\left(\frac{\partial C_0}{\partial t} - \left.3\frac{\partial C_2}{\partial t}\middle/2\right.\right)-\frac{\partial\eta}{\partial t}\left(C_0 - \left.3C_2\middle/2\right.\right) + \frac{\partial\nu_{VC}}{\partial t}\right]
+ \end{array}
+\end{equation}
+and
+\begin{equation}
+\frac{\partial}{\partial t} z_2 = \left.\frac{\partial y}{\partial t} \middle/ 2\sqrt{y}\right. + \left.\left(\frac{\partial x}{\partial t} + \frac{\partial y}{\partial t}\right) \middle/ 2 \sqrt{x+y} \right..
+\end{equation}
+
+In both case 4.1 and case 4.2,
+\begin{equation}
+ \frac{\partial}{\partial t} A = \sqrt{\pi} \left(w(iz_1)\frac{\sqrt{\ln 2}}{\Gamma_D}\frac{\partial \Gamma_D}{\partial t} + \frac{\sqrt{\ln 2}}{\Gamma_D}\Delta_{w(iz_1)}\right).
+\end{equation}
+For case 4.1,
+\begin{equation}
+\frac{\partial}{\partial t} B =
+\begin{array}{l}
+ -\left\{\sqrt{\pi} \left[\left(z_1^2 - 1\right) \Delta_{w(iz_1)} + 2 w(iz_1) z_1 \frac{\partial z_1}{\partial t}\right] - \frac{\partial z_1}{\partial t}\right\}
+                  \frac{\sqrt{\ln 2}}{\Gamma_D} - \\[5pt]
+              \left[\sqrt{\pi} \left(z_1^2 - 1\right) w(iz_1) - z_1\right] \frac{\sqrt{\ln 2}}{\Gamma_D}\frac{\partial \Gamma_D}{\partial t}
+\end{array}
+\end{equation}
+and for case 4.2,
+\begin{equation}
+\frac{\partial}{\partial t} B =
+\begin{array}{l}
+\left.{\left(\sqrt{\pi} w(iz_1) z_1^3 + \left.z_1^2\middle/2\right. - \left.3\middle/4\right.\right) \frac{\sqrt{\ln 2}}{\Gamma_D}\frac{\partial \Gamma_D}{\partial t}}\middle/{z_1^3}\right. + \\[5pt]
+\left.{\left(\sqrt{\pi} z_1^4 \Delta_{w(iz_1)} - \left.z_1^2\middle/2\right. \frac{\partial z_1}{\partial t} + \left.9\frac{\partial z_1}{\partial t}\middle/4\right.\right)\frac{\sqrt{\ln 2}}{\Gamma_D}}\middle/{z_1^4}\right.
+\end{array}
+\end{equation}
+with
+\begin{equation}
+ \begin{array}{ll}
+  \frac{\partial}{\partial ||\vec{B}||}z_1 &= -i \sqrt{\ln 2} \left.i\mu_B\left(g_{z_1}M_1 - g_{z_2}M_2\right)\middle/h\Gamma_D\right.  \\[5pt]
+  \frac{\partial}{\partial \nu_0} z_1 &= -i\left.\sqrt{\ln2}\middle/\Gamma_D\right. \\[5pt]
+  \frac{\partial}{\partial \nu} z_1 &= i\left.\sqrt{\ln 2}\middle/\Gamma_D\right. \\[5pt]
+  \frac{\partial}{\partial t} z_1 &= \left[i\nu - i\nu_0 - i\nu_z + (1-\eta)\left(C_0 - \left.3C_2\middle/2\right.\right) + \nu_{VC}\right] \frac{\sqrt{\ln 2}}{\Gamma_D}\frac{\partial \Gamma_D}{\partial t} + \\[5pt]&
+ \frac{\sqrt{\ln 2}}{\Gamma_D} \left[(1-\eta)\left(\frac{\partial C_0}{\partial t} - \left.3\frac{\partial C_2}{\partial t}\middle/2\right.\right)-\frac{\partial\eta}{\partial t}\left(C_0 - \left.3C_2\middle/2\right.\right) + \frac{\partial\nu_{VC}}{\partial t}\right].
+ \end{array}
+\end{equation}
+
+\paragraph*{Van Vleck and Huber normalization (normalizationtype is VVH)} \
+
+The van Vleck and Huber algorithm modifies the line shape calculations. It computes
+\begin{equation}
+ N = \frac{\nu}{\nu_0}\frac{\tanh \left( h\nu \; \middle/ 2kT \right)}{\tanh \left( h\nu_0 \middle/ 2kT \right)},
+\end{equation}
+It adds its own derivatives in the form of temperature, frequency, and line center.
+The derivatives are
+\begin{equation}
+\begin{array}{ll}
+ \frac{\partial}{\partial T} \left[NF\right] &= -\frac{h}{2kT^2} \left\{\left[\nu_0\tanh \left( \frac{h\nu_0} {2kT} \right)  - \frac{\nu_0}{\tanh \left( h\nu_0 \middle/ 2kT \right)}\right] N \right. \\[5pt] &\left. \nu_0 \tanh \left( \frac{h\nu_0}{2kT} \right) N^2 + \frac{\nu N}{\tanh \left( \left.{h\nu}\middle/{2kT}\right. \right)} \right\} F  + N\frac{\partial F}{\partial T}\\[5pt]
+ \frac{\partial}{\partial \nu} \left[NF\right] &= \left\{\frac{1}{\nu} + \frac{h}{2kT}\left[\frac{1}{\tanh \left( {h\nu} \middle/ {2kT} \right)} - {\tanh \left( \frac{h\nu} {2kT} \right)}\right]\right\}NF  + N\frac{\partial F}{\partial \nu}\\[5pt]
+ \frac{\partial}{\partial \nu} \left[NF\right] &= \left\{\frac{1}{\nu_0} + \frac{h}{2kT}\left[{\tanh \left( \frac{h\nu_0} {2kT} \right)} - \frac{1}{\tanh \left( {h\nu_0} \middle/ {2kT} \right)}\right]\right\}NF + N\frac{\partial F}{\partial \nu_0} \\[5pt]
+ \frac{\partial}{\partial t} \left[NF\right] &= N\frac{\partial F}{\partial t},
+\end{array}
+\end{equation}
+where $F$ and $[\partial F / \partial T;\; \partial F / \partial \nu;\; \partial F / \partial \nu_0;\; \partial F / \partial t]$ are set in a line shape algorithm.
+
+\paragraph*{Van Vleck and Weiskopf normalization (normalizationtype is VVW)} \
+
+The van Vleck and Weiskopf algorithm modifies the line shape calculations. It computes
+\begin{equation}
+ N = \frac{\nu^2}{\nu^2_0},
+\end{equation}
+meaning it adds frequency and line center derivatives.  The derivatives are
+\begin{equation}
+ \begin{array}{ll}
+  \frac{\partial}{\partial \nu} \left[NF\right] &= \frac{2}{\nu} NF + N\frac{\partial F}{\partial \nu} \\[5pt]
+  \frac{\partial}{\partial \nu_0} \left[NF\right] &= -\frac{2}{\nu_0} NF + N\frac{\partial F}{\partial \nu_0} \\[5pt]
+  \frac{\partial}{\partial t} \left[NF\right] &= N\frac{\partial F}{\partial \nu_0}
+ \end{array}
+\end{equation}
+where $F$ and $[\partial F / \partial \nu;\; \partial F / \partial \nu_0;\; \partial F / \partial t]$ are set in a line shape algorithm.
+
+\paragraph*{Rosenkranz quadratic normalization (normalizationtype is RQ)} \
+
+The Rosenkranz quadratic algorithm modifies the line shape calculations. It computes
+\begin{equation}
+ N = \frac{\nu^2 }{\left. h\nu_0 \sinh\left( h\nu_0 \middle/ 2kT \right) \middle/ 2kT \right.},
+\end{equation}
+meaning it adds the same derivatives as the van Vleck and Huber methods. The derivatives are
+\begin{equation}
+ \begin{array}{ll}
+  \frac{\partial}{\partial T}  \left[NF\right] &= -\frac{kT -
+  \left.{h\nu_0}\middle/{2 \tanh\left(h\nu_0 \middle/ 2kT\right)}\right.}{kT^2}NF + N\frac{\partial F}{\partial T} \\[5pt]
+  \frac{\partial}{\partial \nu}  \left[NF\right] &= \frac{2}{\nu}NF + N\frac{\partial F}{\partial \nu} \\[5pt]
+  \frac{\partial}{\partial \nu_0}  \left[NF\right] &= 
+  \left[- \frac{1}{\nu_0} - \left. h \middle/ 2kT \tanh\left(h\nu_0 \middle/2kT\right)\right. \right]  NF + N\frac{\partial F}{\partial \nu_0} \\[5pt]
+  \frac{\partial}{\partial t}  \left[NF\right] &= N\frac{\partial F}{\partial t},
+ \end{array}
+\end{equation}
+where $F$ and $[\partial F / \partial T;\; \partial F / \partial \nu;\; \partial F / \partial \nu_0;\; \partial F / \partial t]$ are set in a line shape algorithm.
+
+\paragraph*{LTE line strength (populationtype is LTE)} \
+
+The main equation of the LTE line strength is
+\begin{equation}
+ S_{LTE} = I_0\frac{1 - e^{\left. -h\nu_0 \middle/ kT\right.}}{1 - e^{\left.
+ -h\nu_0 \middle/ kT_0\right.}}e^{\left.{E_0 (T - T_0)}\middle/
+ {kTT_0}\right.}\frac{Q(T_0)}{Q(T)}.
+\end{equation}
+It adds its own derivatives in the form of temperature,
+line strength, and line center. The derivatives are
+\begin{equation}
+\begin{array}{ll}
+ \frac{\partial}{\partial T} \left[SNF\right]_{LTE} &= S\left( \frac{NF}{kT^2}\left[{E_0} - 
+ \frac{{h\nu_0}e^{\left. -h\nu_0 \middle/ kT\right.}}{
+ {1 - e^{\left. -h\nu_0 \middle/ kT\right.}}}\right] - \frac{NF}{Q(T)}\frac{\partial Q(T)}{\partial T} + \frac{\partial\left[NF\right]}{\partial T}  \right) \\[5pt]
+ \frac{\partial}{\partial I_0} \left[SNF\right]_{LTE} &= \frac{SNF}{I_0} \\[5pt]
+ \frac{\partial}{\partial \nu_0} \left[SNF\right]_{LTE} &= S\left(\frac{-hNF}{\left(1 - e^{\left. -h\nu_0 \middle/ kT\right.}\right)} \left[ \frac{ e^{\left. -h\nu_0 \middle/ kT_0\right.} }{ kT_0 } - \frac{ e^{\left. -h\nu_0 \middle/ kT\right.}}{kT}\right]
+ +  \frac{\partial\left[NF\right]}{\partial \nu_0}  \right) \\[5pt]
+ \frac{\partial}{\partial t} \left[SNF\right]_{LTE} &= S \frac{\partial}{\partial t} \left[NF\right].
+\end{array}
+\end{equation}
+Note that $NF$ is here assumed set by one of the normalization functions.  If no normalization function is used, this is considered equivalent to $N:=1$. 
+Note that $S=S_{LTE}$.  All source ratios are set to zero by this algorithm.
+
+\paragraph*{NLTE line strength with vibrational temperatures (populationtype is NLTE-VibrationalTemperatures)} \
+
+The main equation of the NLTE line strength with vibrational temperatures is
+\begin{equation}
+ S^{(abs)}_{Vib-NLTE} = S_{LTE} \frac{e^{\left.{E_1 (T - T_1)}\middle/{kTT_1}\right.} - e^{\left.{E_2 (T - T_2)}\middle/{kTT_2}\right.}e^{\left. -h\nu_0 \middle/ kT\right.}}{1 - e^{\left. -h\nu_0 \middle/ kT\right.}}.
+\end{equation}
+It adds its own derivatives in the form of temperature,
+line strength, line center, and the vibrational temperatures. The derivatives are
+\begin{equation}
+ \begin{array}{ll}
+  \frac{\partial}{\partial T} \left[SNF\right]^{(abs)} &= \frac{S}{S_{LTE}}\frac{\partial}{\partial T} \left[SNF\right]_{LTE} - SNF\Bigl[ \\[5pt]& \frac{(h\nu_0)^2 e^{\frac{ -h\nu_0 }{ kT }} \left(e^{\left.{E_1 (T - T_1)}\middle/{kTT_1}\right.}-e^{\left.{E_2 (T - T_2)}\middle/{kTT_2}\right.}\right)}{kT^2\left(e^{\left. -h\nu_0 \middle/ kT\right.} - 1\right)^2} - \\[5pt]
+  & \left. \frac{h\nu_0\left(E_1e^{\left.{E_1 (T - T_1)}\middle/{kTT_1}\right.} - E_2e^{\frac{ -h\nu_0 }{ kT }}e^{\left.{E_2 (T - T_2)}\middle/{kTT_2}\right.}\right)}{kT^2\left(e^{\left. -h\nu_0 \middle/ kT\right.} - 1\right)}\right] \\[5pt]
+  \frac{\partial}{\partial I_0} \left[SNF\right]^{(abs)} &= \frac{SNF}{I_0} \\[5pt]
+  \frac{\partial}{\partial \nu_0} \left[SNF\right]^{(abs)} &= \frac{S}{S_{LTE}} \frac{\partial}{\partial \nu_0} \left[SNF\right]_{LTE} - \\[5pt]& 
+  \frac{h e^{\left. -h\nu_0 \middle/ kT \right.} \left(e^{\left.{E_1 (T - T_1)}\middle/{kTT_1}\right.} - e^{\left.{E_2 (T - T_2)}\middle/{kTT_2}\right.}\right)}{kT^2\left(e^{\left. -h\nu_0 \middle/ kT \right.} - 1\right)^2}S_{LTE}NF \\[5pt]
+  \frac{\partial}{\partial T_1} \left[SNF\right]^{(abs)} &= \frac{E_1e^{\left.{E_1 (T - T_1)}\middle/{kTT_1}\right.}}{e^{\left.{E_1 (T - T_1)}\middle/{kTT_1}\right.} - e^{\left.{E_2 (T - T_2)}\middle/{kTT_2}\right.}e^{\left. -h\nu_0 \middle/ kT\right.}}\frac{1}{kT_1^2}SNF \\[5pt]
+  \frac{\partial}{\partial T_2} \left[SNF\right]^{(abs)} &= \frac{E_2e^{\left.{E_2 (T - T_1)}\middle/{kTT_2}\right.}e^{\left. -h\nu_0 \middle/ kT\right.}}{e^{\left.{E_2 (T - T_1)}\middle/{kTT_1}\right.} - e^{\left.{E_2 (T - T_2)}\middle/{kTT_2}\right.}e^{\left. -h\nu_0 \middle/ kT\right.}}\frac{1}{kT_2^2}SNF \\[5pt]
+  \frac{\partial}{\partial t} \left[SNF\right]^{(abs)} &= S \frac{\partial}{\partial t} \left[NF\right] \\[5pt]
+  \frac{\partial}{\partial t} \left[SNF\right]^{(abs)} &= S\frac{\partial}{\partial t} \left[NF\right].
+ \end{array}
+\end{equation}
+Note that $NF$ is here assumed set by one of the normalization functions.  If no normalization function is used, 
+this is considered equivalent to $N:=1$. Note that $S=S^{(abs)}_{Vib-NLTE}$ and that $S_{LTE}$ is as computed in 
+another algorithm.  Since the atmosphere is not locally thermodynamically stable, the source function differs 
+from the emission function by some small amount following
+\begin{equation}
+ S^{(src)}_{Vib-NLTE} = S_{LTE} e^{\left.{E_2 (T - T_2)}\middle/{kTT_2}\right.}.
+\end{equation}
+and the following derivatives are the pure derivatives
+\begin{equation}
+ \begin{array}{ll}
+  \frac{\partial}{\partial T} \left[SNF\right]^{(src)} &= \frac{S}{S_{LTE}}\frac{\partial}{\partial T} \left[SNF\right]_{LTE} - S \frac{E_2}{kT^2}NF \\[5pt]
+  \frac{\partial}{\partial I_0} \left[SNF\right]^{(src)} &= \frac{SNF}{I_0} \\[5pt]
+  \frac{\partial}{\partial \nu_0} \left[SNF\right]^{(src)} &= \frac{S}{S_{LTE}} \frac{\partial}{\partial \nu_0} \left[SNF\right]_{LTE} \\[5pt]
+  \frac{\partial}{\partial T_1} \left[SNF\right]^{(src)} &= 0 \\[5pt]
+  \frac{\partial}{\partial T_2} \left[SNF\right]^{(src)} &= S \frac{E_2}{kT^2_2} NF \\[5pt]
+  \frac{\partial}{\partial t} \left[SNF\right]^{(src)} &= S\frac{\partial}{\partial t} \left[NF\right],
+ \end{array}
+\end{equation}
+where $S:=S^{(src)}_{Vib-NLTE}$.
+Note that we consider all of this as an 'additional' source in our algorithms.  So 
+the values that are returned by internal algorithms are always the difference between
+source and absorption and not the independent source.
+
+Lastly, please remember that even though we output the temperature derivative of this
+function, this does not make much sense since a change in the atmosphere and signal of
+course means that also the $T_1$ and $T_2$ values change.  So be careful using this algorithm.
+
+\paragraph*{NLTE line strength with ratios (populationtype is NLTE)} \
+
+The main equation here is that
+\begin{equation}
+  S^{(abs)}_{NLTE} = \frac{h\nu_0}{4\pi}\left(\frac{g_2}{g_1} r_1 - r_2\right) \left.A_{21}\middle/\frac{2h\nu_0^3}{c^2}\right.,
+\end{equation}
+and the following derivatives
+\begin{equation}
+ \begin{array}{ll}
+  \frac{\partial}{\partial T} \left[SNF\right]^{(abs)} &= S\frac{\partial}{\partial T} \left[NF\right] \\[5pt]
+  \frac{\partial}{\partial \nu_0} \left[SNF\right]^{(abs)} &= S\frac{\partial}{\partial \nu_0} \left[NF\right] + 
+  \frac{h\left(\left. g_2 r_1 \middle/ g_1 \right. - r_2\right)}{4\pi} \frac{A_{21}}{\left. 2h\nu_0^3 \middle/ c^2 \right.} NF - \frac{3}{\nu_0}SNF \\[5pt]
+  \frac{\partial}{\partial r_1} \left[SNF\right]^{(abs)} &= - \frac{h\nu_0}{4\pi}\frac{A_{21}}{\left. 2h\nu_0^3 \middle/ c^2 \right.} NF \\[5pt]
+  \frac{\partial}{\partial r_2} \left[SNF\right]^{(abs)} &= \frac{h\nu_0}{4\pi}\frac{g_2}{g_1}\frac{A_{21}}{\left. 2h\nu_0^3 \middle/ c^2 \right.} NF,
+  \\[5pt]
+  \frac{\partial}{\partial t} \left[SNF\right]^{(abs)} &= S\frac{\partial}{\partial t} \left[NF\right],
+ \end{array}
+\end{equation}
+where $S:=S^{(abs)}_{NLTE}$.  The source is
+\begin{equation}
+  S^{(src)}_{NLTE} = \frac{h\nu_0}{4\pi}  r_2 \left(e^{\left. h\nu_0 \middle/ kT \right.} - 1\right) \left.A_{21}\middle/\frac{2h\nu_0^3}{c^2}\right.
+\end{equation}
+with the following derivatives
+\begin{equation}
+ \begin{array}{ll}
+  \frac{\partial}{\partial T} \left[SNF\right]^{(src)} &= S\frac{\partial}{\partial T} \left[NF\right] + NF \frac{h^2\nu_0^2}{4\pi}  r_2 e^{\left. h\nu_0 \middle/ kT \right.} \left.A_{21}\middle/kT^2\frac{2h\nu_0^3}{c^2}\right. \\[5pt]
+  \frac{\partial}{\partial \nu_0} \left[SNF\right]^{(src)} &= S\frac{\partial}{\partial \nu_0} \left[NF\right] +
+  \frac{h}{4\pi}r_2A_{21}\frac{e^{\left. h\nu_0 \middle/ kT \right.}-1}{2h\nu_0^3/c^2}NF + \\[5pt]& \left(\frac{he^{\left. h\nu_0 \middle/ kT \right.}}{2kTh\nu_0^3/c^2} - \frac{3}{\nu_0}\frac{2h\nu_0^3/c^2}{e^{\left. h\nu_0 \middle/ kT \right.} - 1}\right)  \frac{h\nu_0}{4\pi}  r_2 A_{21}NF \\[5pt]
+  \frac{\partial}{\partial r_1} \left[SNF\right]^{(src)} &= 0 \\[5pt]
+  \frac{\partial}{\partial r_2} \left[SNF\right]^{(src)} &= \frac{SNF}{r_2} \\[5pt]
+  \frac{\partial}{\partial t} \left[SNF\right]^{(src)} &= S\frac{\partial}{\partial t} \left[NF\right],
+ \end{array}
+\end{equation}
+where $S:=S^{(src)}_{NLTE}$.
+
+% \paragraph*{The comment tag in ARTSCAT-6}
+% We use a comment tag to help explain the data in ARTSCAT-6 to anyone that reads the data file manually.
+% This comment tag looks different depending on options presented.  Here is an example
+% for a the water band containing the commonly measured 22~GHz line that has been read from HITRAN
+% without altering anything
+% {\tiny
+% \begin{verbatim}
+% <comment>
+% Lines meta-data:
+%   Species identity:
+%     Species: H2O-161
+%     Lower Quantum Numbers: v1 0 v2 0 v3 0
+%     Upper Quantum Numbers: v1 0 v2 0 v3 0
+%   No cut-off will be applied.
+%   The lines are considered as in pure LTE.
+%   No re-normalization in the far wing will be applied.
+%   The line shape type is the Voigt profile.
+%   These lines are not mirrored at 0 Hz.
+%   The reference temperature for all line parameters is 296 K.
+%   If applicable, there is no line mixing limit.
+%   There are 2 lines available.
+%   The front line has:
+%     f0: 1.24722e+10 Hz
+%     i0: 5.87972e-26 m^2/Hz
+%     e0: 7.19841e-20 J
+%     Lower stat. weight: 33 [-]
+%     Upper stat. weight: 31 [-]
+%     A: 3.183e-10 1/s
+%     Zeeman splitting of lower state: 0 [-]
+%     Zeeman splitting of upper state: 0 [-]
+%     Lower state local quantum numbers: J=16; N=0/0; Omega=0/0;
+%     Upper state local quantum numbers: J=15; N=0/0; Omega=0/0;
+%     Line shape parameters (are normalized by sum(VMR)):
+%       G0 ~ VMR(SELF) * 61541.4 * (296/T)^0.38 + VMR(AIR) * 10207.6 * (296/T)^0.38
+%       D0 ~ VMR(SELF) * 2810.79 * (296/T)^(0.25 + 1.5 * 0.38) + VMR(AIR) * 2810.79 * (296/T)^(0.25 + 1.5 * 0.38)
+% </comment>
+% \end{verbatim}}
+% whose first line reads (snipped to help the reader)
+% {\tiny
+% \begin{verbatim}
+% 12472205671.6824 5.87971575585295e-26 7.19840939592874e-20 33 31 3.183e-10 0 0 61541.4076131261 0.38 0 0
+% (snip) 2810.78544386874 0.38 0 0 10207.5892435233 0.38 0 0 2810.78544386874 0.38 0 0 16 0/0 0/0 15 0/0 0/0 
+% \end{verbatim}}
+% Compare this to tables~\ref{tab:abs_theory:lineshape:abscatglob}~and~\ref{tab:abs_theory:lineshape:abscatline}
+% and hopefully our catalog format makes more sense.  There were some problems with the requested read of this
+% catalog, but none that will affect standard line-by-line calculations.  The problem is that several 0/0 ratios
+% have appeared among the quantum numbers.  The reader requested that $J$, $N$, and $\Omega$ all appear as local
+% quantum numbers. However, they are either not all defined for water, or there is an error in the ARTS HITRAN
+% reader.  In these cases, we will leave numbers undefined and try to catch the problem where it is relevant
+% for real calculations.
 
 \subsection{Species-specific data in ARTS}
 \label{sec:abs_theory:species_data}

@@ -1,6 +1,6 @@
 Arts2{
   
-  AgendaSet(abs_xsec_agenda) {abs_xsec_per_speciesInit abs_xsec_per_speciesAddLines2}
+  AgendaSet(abs_xsec_agenda) {abs_xsec_per_speciesInit abs_xsec_per_speciesAddLines}
 
 #   Can run with abs_xsec_per_speciesAddLines by uncommenting:
 #   abs_lineshapeDefine(abs_lineshape, "Faddeeva_Algorithm_916", "no_norm", -1)
@@ -11,11 +11,10 @@ Arts2{
   partition_functionsInitFromBuiltin
   abs_speciesSet(species=["O2-66"])
   VectorNLinSpace(f_grid, 101, 90e9, 110e9)
-  VectorSet(rtp_nlte, [0.6, 0.4])
+  Touch(rtp_nlte)
   VectorSet(rtp_vmr, [0.21])
   NumericSet(rtp_temperature, 250)
   NumericSet(rtp_pressure, 25000)
-  NumericSet(lm_p_lim, 0)
   IndexSet(stokes_dim, 1)
   
   ## Calculate w/o NLTE
@@ -26,7 +25,7 @@ Arts2{
   
   ## Absorption lines (Doppler, no Zeeman, no NLTE, no mirroring, no normalization)
   ReadXML(abs_lines, "testdata/lm-vp-line.xml")
-  ArrayOfLineRecordCreate(aolr)
+  ArrayOfAbsorptionLinesCreate(aolr)
   Copy(aolr, abs_lines)
   abs_lines_per_speciesCreateFromLines
   
@@ -68,6 +67,7 @@ Arts2{
   
   # Perform calculations for analytical propagation matrix and derivatives
   abs_xsec_agenda_checkedCalc
+  lbl_checkedCalc
   propmat_clearskyInit
   propmat_clearskyAddOnTheFly
   #WriteXML("ascii", propmat_clearsky, "testdata/test-lm-vp/propmat.xml")

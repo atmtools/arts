@@ -66,10 +66,6 @@ VectorNLogSpace( p_grid, 20, 1000e2, 1 )
 # ---
 abs_speciesSet(species=["CFC11-HXSEC"])
 
-# set the extrapolation level, if lm_p_lim is <0
-NumericSet( lm_p_lim,   -3 )
-Print(lm_p_lim,0)
-
 # Atmospheric scenario
 # ---
 AtmRawRead( basename = "testdata/tropical" )

@@ -214,7 +214,7 @@ void xml_write_to_stream(ostream& os_xml,
 
   covmat_tag.set_name("CovarianceMatrix");
   covmat_tag.add_attribute(
-      "n_blocks", covmat.correlations_.size() + covmat.inverses_.size());
+      "n_blocks", Index(covmat.correlations_.size() + covmat.inverses_.size()));
   covmat_tag.write_to_stream(os_xml);
   os_xml << '\n';
   for (const Block& c : covmat.correlations_) {
@@ -232,7 +232,7 @@ void xml_write_to_stream(ostream& os_xml,
     block_tag.add_attribute("row_extent", row_range.get_extent());
     block_tag.add_attribute("column_start", column_range.get_start());
     block_tag.add_attribute("column_extent", column_range.get_extent());
-    block_tag.add_attribute("is_inverse", 0);
+    block_tag.add_attribute("is_inverse", Index(0));
     if (c.get_matrix_type() == Block::MatrixType::dense) {
       block_tag.add_attribute("type", "Matrix");
       block_tag.write_to_stream(os_xml);
@@ -263,7 +263,7 @@ void xml_write_to_stream(ostream& os_xml,
     block_tag.add_attribute("row_extent", row_range.get_extent());
     block_tag.add_attribute("column_start", column_range.get_start());
     block_tag.add_attribute("column_extent", column_range.get_extent());
-    block_tag.add_attribute("is_inverse", 1);
+    block_tag.add_attribute("is_inverse", Index(1));
     if (c.get_matrix_type() == Block::MatrixType::dense) {
       block_tag.add_attribute("type", "Matrix");
       block_tag.write_to_stream(os_xml);
@@ -282,6 +282,66 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
   close_tag.set_name("/CovarianceMatrix");
   close_tag.write_to_stream(os_xml);
+}
+
+//=== EnergyLevelMap ===========================================================
+
+//! Reads EnergyLevelMap from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param gal     EnergyLevelMap return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(istream& is_xml,
+                          EnergyLevelMap& elm,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity) {
+  ArtsXMLTag tag(verbosity);
+
+  tag.read_from_stream(is_xml);
+  
+  tag.check_name("EnergyLevelMap");
+  String type;
+  tag.get_attribute_value("type", type);
+  elm.Type() = string2energylevelmaptype(type);
+
+  xml_read_from_stream(is_xml, elm.Levels(), pbifs, verbosity);
+  xml_read_from_stream(is_xml, elm.Data(), pbifs, verbosity);
+  xml_read_from_stream(is_xml, elm.Energies(), pbifs, verbosity);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/EnergyLevelMap");
+  
+  elm.ThrowIfNotOK();
+}
+
+//! Writes EnergyLevelMap to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param gal     EnergyLevelMap
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void xml_write_to_stream(ostream& os_xml,
+                         const EnergyLevelMap& elm,
+                         bofstream* pbofs,
+                         const String& name,
+                         const Verbosity& verbosity) {
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("EnergyLevelMap");
+  if (name.length()) open_tag.add_attribute("name", name);
+  open_tag.add_attribute("type", energylevelmaptype2string(elm.Type()));
+  open_tag.write_to_stream(os_xml);
+
+  xml_write_to_stream(os_xml, elm.Levels(), pbofs, "Energy Levels", verbosity);
+  xml_write_to_stream(os_xml, elm.Data(), pbofs, "Level Data", verbosity);
+  xml_write_to_stream(os_xml, elm.Energies(), pbofs, "Level Energy", verbosity);
+
+  close_tag.set_name("/EnergyLevelMap");
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
 }
 
 //=== GasAbsLookup ===========================================================
@@ -1230,7 +1290,7 @@ void xml_write_to_stream(ostream& os_xml,
 
   open_tag.set_name("QuantumNumbers");
   if (name.length()) open_tag.add_attribute("name", name);
-  open_tag.add_attribute("nelem", qn.GetNumbers().size());
+  open_tag.add_attribute("nelem", Index(qn.GetNumbers().size()));
   open_tag.write_to_stream(os_xml);
 
   os_xml << " " << qn << " ";
@@ -1668,7 +1728,7 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.set_name("SpeciesAuxData");
   if (name.length()) open_tag.add_attribute("name", name);
 
-  open_tag.add_attribute("version", 2);
+  open_tag.add_attribute("version", Index(2));
   open_tag.add_attribute("nelem", nelem);
 
   open_tag.write_to_stream(os_xml);

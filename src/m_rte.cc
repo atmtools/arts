@@ -111,7 +111,7 @@ void iyCalc(Workspace& ws,
             const Index& cloudbox_checked,
             const Index& scat_data_checked,
             const Vector& f_grid,            
-            const Tensor4& nlte_field,
+            const EnergyLevelMap& nlte_field,
             const Vector& rte_pos,
             const Vector& rte_los,
             const Vector& rte_pos2,
@@ -169,13 +169,13 @@ void iyCalc(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyEmissionStandard(Workspace& ws,
+void iyEmissionStandardSequential(Workspace& ws,
                         Matrix& iy,
                         ArrayOfMatrix& iy_aux,
                         ArrayOfTensor3& diy_dx,
                         Vector& ppvar_p,
                         Vector& ppvar_t,
-                        Matrix& ppvar_nlte,
+                        EnergyLevelMap& ppvar_nlte,
                         Matrix& ppvar_vmr,
                         Matrix& ppvar_wind,
                         Matrix& ppvar_mag,
@@ -189,7 +189,7 @@ void iyEmissionStandard(Workspace& ws,
                         const Index& atmosphere_dim,
                         const Vector& p_grid,
                         const Tensor3& t_field,
-                        const Tensor4& nlte_field,
+                        const EnergyLevelMap& nlte_field,
                         const Tensor4& vmr_field,
                         const ArrayOfArrayOfSpeciesTag& abs_species,
                         const Tensor3& wind_u_field,
@@ -316,7 +316,6 @@ void iyEmissionStandard(Workspace& ws,
     ppvar_p.resize(0);
     ppvar_t.resize(0);
     ppvar_vmr.resize(0, 0);
-    ppvar_nlte.resize(0, 0);
     ppvar_wind.resize(0, 0);
     ppvar_mag.resize(0, 0);
     ppvar_f.resize(0, 0);
@@ -393,7 +392,7 @@ void iyEmissionStandard(Workspace& ws,
                                     ppvar_f(joker, ip),
                                     ppvar_mag(joker, ip),
                                     ppath.los(ip, joker),
-                                    ppvar_nlte(joker, ip),
+                                    ppvar_nlte[ip],
                                     ppvar_vmr(joker, ip),
                                     ppvar_t[ip],
                                     ppvar_p[ip],
@@ -562,14 +561,14 @@ void iyEmissionStandard(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyEmissionStandardParallel(
+void iyEmissionStandard(
     Workspace& ws,
     Matrix& iy,
     ArrayOfMatrix& iy_aux,
     ArrayOfTensor3& diy_dx,
     Vector& ppvar_p,
     Vector& ppvar_t,
-    Matrix& ppvar_nlte,
+    EnergyLevelMap& ppvar_nlte,
     Matrix& ppvar_vmr,
     Matrix& ppvar_wind,
     Matrix& ppvar_mag,
@@ -583,7 +582,7 @@ void iyEmissionStandardParallel(
     const Index& atmosphere_dim,
     const Vector& p_grid,
     const Tensor3& t_field,
-    const Tensor4& nlte_field,
+    const EnergyLevelMap& nlte_field,
     const Tensor4& vmr_field,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const Tensor3& wind_u_field,
@@ -710,7 +709,6 @@ void iyEmissionStandardParallel(
     ppvar_p.resize(0);
     ppvar_t.resize(0);
     ppvar_vmr.resize(0, 0);
-    ppvar_nlte.resize(0, 0);
     ppvar_wind.resize(0, 0);
     ppvar_mag.resize(0, 0);
     ppvar_f.resize(0, 0);
@@ -776,82 +774,120 @@ void iyEmissionStandardParallel(
 
     Agenda l_propmat_clearsky_agenda(propmat_clearsky_agenda);
     Workspace l_ws(ws);
+    ArrayOfString fail_msg;
+    bool do_abort = false;
+
     // Loop ppath points and determine radiative properties
 #pragma omp parallel for if (!arts_omp_in_parallel()) \
     firstprivate(l_ws, l_propmat_clearsky_agenda, a, B, dB_dT, S, da_dx, dS_dx)
     for (Index ip = 0; ip < np; ip++) {
-      get_stepwise_blackbody_radiation(
-          B, dB_dT, ppvar_f(joker, ip), ppvar_t[ip], temperature_jacobian);
+      if (do_abort) continue;
+      try {
+        get_stepwise_blackbody_radiation(
+            B, dB_dT, ppvar_f(joker, ip), ppvar_t[ip], temperature_jacobian);
 
-      get_stepwise_clearsky_propmat(l_ws,
-                                    K[ip],
-                                    S,
-                                    lte[ip],
-                                    dK_dx[ip],
-                                    dS_dx,
-                                    l_propmat_clearsky_agenda,
-                                    jacobian_quantities,
-                                    ppvar_f(joker, ip),
-                                    ppvar_mag(joker, ip),
-                                    ppath.los(ip, joker),
-                                    ppvar_nlte(joker, ip),
-                                    ppvar_vmr(joker, ip),
-                                    ppvar_t[ip],
-                                    ppvar_p[ip],
-                                    jac_species_i,
-                                    j_analytical_do);
+        get_stepwise_clearsky_propmat(l_ws,
+                                      K[ip],
+                                      S,
+                                      lte[ip],
+                                      dK_dx[ip],
+                                      dS_dx,
+                                      l_propmat_clearsky_agenda,
+                                      jacobian_quantities,
+                                      ppvar_f(joker, ip),
+                                      ppvar_mag(joker, ip),
+                                      ppath.los(ip, joker),
+                                      ppvar_nlte[ip],
+                                      ppvar_vmr(joker, ip),
+                                      ppvar_t[ip],
+                                      ppvar_p[ip],
+                                      jac_species_i,
+                                      j_analytical_do);
 
-      if (j_analytical_do)
-        adapt_stepwise_partial_derivatives(dK_dx[ip],
-                                           dS_dx,
-                                           jacobian_quantities,
-                                           ppvar_f(joker, ip),
-                                           ppath.los(ip, joker),
-                                           ppvar_vmr(joker, ip),
-                                           ppvar_t[ip],
-                                           ppvar_p[ip],
-                                           jac_species_i,
-                                           jac_wind_i,
-                                           lte[ip],
-                                           atmosphere_dim,
-                                           j_analytical_do);
+        if (j_analytical_do)
+          adapt_stepwise_partial_derivatives(dK_dx[ip],
+                                             dS_dx,
+                                             jacobian_quantities,
+                                             ppvar_f(joker, ip),
+                                             ppath.los(ip, joker),
+                                             ppvar_vmr(joker, ip),
+                                             ppvar_t[ip],
+                                             ppvar_p[ip],
+                                             jac_species_i,
+                                             jac_wind_i,
+                                             lte[ip],
+                                             atmosphere_dim,
+                                             j_analytical_do);
 
-      // Here absorption equals extinction
-      a = K[ip];
-      if (j_analytical_do)
-        FOR_ANALYTICAL_JACOBIANS_DO(da_dx[iq] = dK_dx[ip][iq];);
+        // Here absorption equals extinction
+        a = K[ip];
+        if (j_analytical_do)
+          FOR_ANALYTICAL_JACOBIANS_DO(da_dx[iq] = dK_dx[ip][iq];);
 
-      stepwise_source(src_rad[ip],
-                      dsrc_rad[ip],
-                      K[ip],
-                      a,
-                      S,
-                      dK_dx[ip],
-                      da_dx,
-                      dS_dx,
-                      B,
-                      dB_dT,
-                      jacobian_quantities,
-                      jacobian_do);
+        stepwise_source(src_rad[ip],
+                        dsrc_rad[ip],
+                        K[ip],
+                        a,
+                        S,
+                        dK_dx[ip],
+                        da_dx,
+                        dS_dx,
+                        B,
+                        dB_dT,
+                        jacobian_quantities,
+                        jacobian_do);
+      } catch (const std::runtime_error& e) {
+        ostringstream os;
+        os << "Runtime-error in source calculation at index " << ip
+           << ": \n";
+        os << e.what();
+#pragma omp critical(iyEmissionStandard_source)
+        {
+          do_abort = true;
+          fail_msg.push_back(os.str());
+        }
+      }
     }
 
 #pragma omp parallel for if (!arts_omp_in_parallel())
     for (Index ip = 1; ip < np; ip++) {
-      const Numeric dr_dT_past =
-          do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_t[ip - 1]) : 0;
-      const Numeric dr_dT_this =
-          do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_t[ip]) : 0;
-      stepwise_transmission(lyr_tra[ip],
-                            dlyr_tra_above[ip],
-                            dlyr_tra_below[ip],
-                            K[ip - 1],
-                            K[ip],
-                            dK_dx[ip - 1],
-                            dK_dx[ip],
-                            ppath.lstep[ip - 1],
-                            dr_dT_past,
-                            dr_dT_this,
-                            temperature_derivative_position);
+      if (do_abort) continue;
+      try {
+        const Numeric dr_dT_past =
+            do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_t[ip - 1]) : 0;
+        const Numeric dr_dT_this =
+            do_hse ? ppath.lstep[ip - 1] / (2.0 * ppvar_t[ip]) : 0;
+        stepwise_transmission(lyr_tra[ip],
+                              dlyr_tra_above[ip],
+                              dlyr_tra_below[ip],
+                              K[ip - 1],
+                              K[ip],
+                              dK_dx[ip - 1],
+                              dK_dx[ip],
+                              ppath.lstep[ip - 1],
+                              dr_dT_past,
+                              dr_dT_this,
+                              temperature_derivative_position);
+      } catch (const std::runtime_error& e) {
+        ostringstream os;
+        os << "Runtime-error in transmission calculation at index " << ip
+           << ": \n";
+        os << e.what();
+#pragma omp critical(iyEmissionStandard_transmission)
+        {
+          do_abort = true;
+          fail_msg.push_back(os.str());
+        }
+      }
+    }
+
+    if (do_abort) {
+      std::ostringstream os;
+      os << "Error messages from failed cases:\n";
+      for (const auto& msg : fail_msg) {
+        os << msg << '\n';
+      }
+      throw std::runtime_error(os.str());
     }
   }
 
@@ -978,7 +1014,7 @@ void iyIndependentBeamApproximation(Workspace& ws,
                                     const Tensor3& t_field,
                                     const Tensor3& z_field,
                                     const Tensor4& vmr_field,
-                                    const Tensor4& t_nlte_field,
+                                    const EnergyLevelMap& nlte_field,
                                     const Tensor3& wind_u_field,
                                     const Tensor3& wind_v_field,
                                     const Tensor3& wind_w_field,
@@ -1011,9 +1047,9 @@ void iyIndependentBeamApproximation(Workspace& ws,
     throw runtime_error(
         "Jacobians not provided by the method, *jacobian_do* "
         "must be 0.");
-  if (!t_nlte_field.empty())
+  if (!nlte_field.Data().empty())
     throw runtime_error(
-        "This method does not yet support non-empty *t_nlte_field*.");
+        "This method does not yet support non-empty *nlte_field*.");
   if (!wind_u_field.empty())
     throw runtime_error(
         "This method does not yet support non-empty *wind_u_field*.");
@@ -1723,7 +1759,7 @@ void yCalc(Workspace& ws,
            const Index& atmgeom_checked,
            const Index& atmfields_checked,
            const Index& atmosphere_dim,
-           const Tensor4& nlte_field,
+           const EnergyLevelMap& nlte_field,
            const Index& cloudbox_on,
            const Index& cloudbox_checked,
            const Index& scat_data_checked,
@@ -1981,7 +2017,7 @@ void yCalcAppend(Workspace& ws,
                  const Index& atmfields_checked,
                  const Index& atmgeom_checked,
                  const Index& atmosphere_dim,
-                 const Tensor4& nlte_field,
+                 const EnergyLevelMap& nlte_field,
                  const Index& cloudbox_on,
                  const Index& cloudbox_checked,
                  const Index& scat_data_checked,

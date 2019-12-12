@@ -41,10 +41,11 @@ void field_of_propagation(Workspace& ws,
                           const Vector& p_grid,
                           const Tensor3& z_field,
                           const Tensor3& t_field,
-                          const Tensor4& nlte_field,
+                          const EnergyLevelMap& nlte_field,
                           const Tensor4& vmr_field,
                           const ArrayOfRetrievalQuantity& jacobian_quantities,
-                          const Agenda& propmat_clearsky_agenda) {
+                          const Agenda& propmat_clearsky_agenda)
+{
   const Index nalt = z_field.npages();
   const Index nlat = z_field.nrows();
   const Index nlon = z_field.ncols();
@@ -93,7 +94,7 @@ void field_of_propagation(Workspace& ws,
             f_grid,
             mag_field,
             los,
-            nlte_field.empty() ? tmp[joker] : nlte_field(joker, i, j, k),
+            nlte_field(i, j, k),
             vmr_field(joker, i, j, k),
             t_field(i, j, k),
             p_grid[i],
@@ -106,7 +107,8 @@ void field_of_propagation(Workspace& ws,
 }
 
 FieldOfTransmissionMatrix transmat_field_calc_from_propmat_field(
-    const FieldOfPropagationMatrix& propmat_field, const Numeric& r) {
+    const FieldOfPropagationMatrix& propmat_field, const Numeric& r)
+{
   FieldOfTransmissionMatrix transmat_field(
       propmat_field.npages(), propmat_field.nrows(), propmat_field.ncols());
   for (size_t ip = 0; ip < propmat_field.npages(); ip++)
@@ -128,14 +130,15 @@ void emission_from_propmat_field(
     const FieldOfStokesVector& additional_source_field,
     const Vector& f_grid,
     const Tensor3& t_field,
-    const Tensor4& nlte_field,
+    const EnergyLevelMap& nlte_field,
     const Ppath& ppath,
     const Agenda& iy_main_agenda,
     const Agenda& iy_space_agenda,
     const Agenda& iy_surface_agenda,
     const Agenda& iy_cloudbox_agenda,
     const Tensor3& surface_props_data,
-    const Verbosity& verbosity) {
+    const Verbosity& verbosity)
+{
   // Size of problem
   const Index nf = f_grid.nelem();
   const Index ns = propmat_field(0, 0, 0).StokesDimensions();

@@ -84,6 +84,41 @@ void ArtsXMLTag::add_attribute(const String& aname, const Index& value) {
   add_attribute(aname, v.str());
 }
 
+void ArtsXMLTag::add_attribute(const String& aname, const Numeric& value) {
+  ostringstream v;
+  
+  v << value;
+  add_attribute(aname, v.str());
+}
+
+void ArtsXMLTag::add_attribute(const String& aname, const std::vector<QuantumNumberType>& value) {
+  ostringstream v;
+  
+  if(value.size() == 0)
+    v << "";
+  else {
+    for(size_t i=0; i<value.size()-1; i++)
+      v << quantumnumbertype2string(value[i]) << " ";
+    v << quantumnumbertype2string(value.back());
+  }
+  
+  add_attribute(aname, v.str());
+}
+
+void ArtsXMLTag::add_attribute(const String& aname, const ArrayOfSpeciesTag& value, const bool self, const bool bath) {
+  ostringstream v;
+  
+  if(self)
+    v << LineShape::self_broadening;
+  for(Index i=Index(self); i<value.nelem()-Index(bath); i++)
+    v << ' ' << value[i].SpeciesNameMain();
+  if(bath) {
+    v << ' ' << LineShape::bath_broadening;
+  }
+  
+  add_attribute(aname, v.str());
+}
+
 //! Checks whether attribute has the expected value
 /*!
 
@@ -148,6 +183,100 @@ void ArtsXMLTag::get_attribute_value(const String& aname, Index& value) {
   if (strstr.fail()) {
     xml_parse_error("Error while parsing value of " + aname + " from <" + name +
                     ">");
+  }
+}
+
+void ArtsXMLTag::get_attribute_value(const String& aname, Numeric& value) {
+  String attribute_value;
+  istringstream strstr("");
+  
+  get_attribute_value(aname, attribute_value);
+  strstr.str(attribute_value);
+  strstr >> value;
+  if (strstr.fail()) {
+    xml_parse_error("Error while parsing value of " + aname + " from <" + name +
+    ">");
+  }
+}
+
+void ArtsXMLTag::get_attribute_value(const String& aname, SpeciesTag& value) {
+  String attribute_value;
+  
+  get_attribute_value(aname, attribute_value);
+  value = SpeciesTag(attribute_value);
+}
+
+void ArtsXMLTag::get_attribute_value(const String& aname, ArrayOfSpeciesTag& value, bool& self, bool& bath) {
+  value.resize(0);
+  self=false;
+  bath=false;
+  
+  String attribute_value;
+  istringstream strstr("");
+  
+  get_attribute_value(aname, attribute_value);
+  if (attribute_value.nelem() == 0) return;
+  
+  strstr.str(attribute_value);
+  String val;
+  
+  while(not strstr.eof()) {
+    strstr >> val;
+    if (strstr.fail()) {
+      xml_parse_error("Error while parsing value of " + aname + " from <" + name +
+      ">");
+    }
+    
+    if(val == LineShape::self_broadening) {
+      value.push_back(SpeciesTag());
+      self = true;
+    }
+    else if(val == LineShape::bath_broadening) {
+      value.push_back(SpeciesTag());
+      bath = true;
+    }
+    else
+      value.push_back(SpeciesTag(val));
+  }
+}
+
+void ArtsXMLTag::get_attribute_value(const String& aname, std::vector<QuantumNumberType>& value) {
+  value.resize(0);
+  
+  String attribute_value;
+  istringstream strstr("");
+  
+  get_attribute_value(aname, attribute_value);
+  if (attribute_value.nelem() == 0) return;
+  
+  strstr.str(attribute_value);
+  String val;
+  
+  while(not strstr.eof()) {
+    strstr >> val;
+    if (strstr.fail()) {
+      xml_parse_error("Error while parsing value of " + aname + " from <" + name +
+      ">");
+    }
+    value.push_back(string2quantumnumbertype(val));
+  }
+}
+
+void ArtsXMLTag::get_attribute_value(const String& aname, QuantumNumbers& value) {
+  String attribute_value;
+  istringstream strstr("");
+  
+  get_attribute_value(aname, attribute_value);
+  
+  strstr.str(attribute_value);
+  String key;
+  Rational r;
+  
+  strstr >> key;
+  while (strstr) {
+    strstr >> r;
+    value.Set(key, r);
+    strstr >> key;
   }
 }
 
@@ -516,6 +645,37 @@ void xml_open_input_file(igzstream& ifs,
 
 #endif /* ENABLE_ZLIB */
 
+void xml_find_and_open_input_file(std::shared_ptr<istream>& ifs,
+                                  const String& filename,
+                                  const Verbosity& verbosity) {
+  CREATE_OUT2;
+
+  String xml_file = filename;
+  find_xml_file(xml_file, verbosity);
+  out2 << "  Reading " << xml_file << '\n';
+
+  // Open input stream:
+  if (xml_file.substr(xml_file.length() - 3, 3) == ".gz")
+#ifdef ENABLE_ZLIB
+  {
+    ifs = std::shared_ptr<istream>(new igzstream());
+    xml_open_input_file(
+        *(std::static_pointer_cast<igzstream>(ifs)), xml_file, verbosity);
+  }
+#else
+  {
+    throw runtime_error(
+        "This arts version was compiled without zlib support.\n"
+        "Thus zipped xml files cannot be read.");
+  }
+#endif /* ENABLE_ZLIB */
+  else {
+    ifs = shared_ptr<istream>(new ifstream());
+    xml_open_input_file(
+        *(std::static_pointer_cast<ifstream>(ifs)), xml_file, verbosity);
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////
 //   General XML functions (file header, start root tag, end root tag)
 ////////////////////////////////////////////////////////////////////////////
@@ -786,67 +946,6 @@ void xml_read_from_file(const String& filename,
       String bfilename = xml_file + ".bin";
       bifstream bifs(bfilename.c_str());
       xml_read_from_stream(*ifs, type, &bifs, verbosity);
-    }
-    xml_read_footer_from_stream(*ifs, verbosity);
-  } catch (const std::runtime_error& e) {
-    delete ifs;
-    ostringstream os;
-    os << "Error reading file: " << xml_file << '\n' << e.what();
-    throw runtime_error(os.str());
-  }
-
-  delete ifs;
-}
-
-void xml_read_arts_catalogue_from_file(const String& filename,
-                                       ArrayOfLineRecord& type,
-                                       const Numeric& fmin,
-                                       const Numeric& fmax,
-                                       const Verbosity& verbosity) {
-  CREATE_OUT2;
-
-  String xml_file = filename;
-  find_xml_file(xml_file, verbosity);
-  out2 << "  Reading " << xml_file << '\n';
-
-  // Open input stream:
-  istream* ifs;
-  if (xml_file.substr(xml_file.length() - 3, 3) == ".gz")
-#ifdef ENABLE_ZLIB
-  {
-    ifs = new igzstream();
-    xml_open_input_file(*(igzstream*)ifs, xml_file, verbosity);
-  }
-#else
-  {
-    throw runtime_error(
-        "This arts version was compiled without zlib support.\n"
-        "Thus zipped xml files cannot be read.");
-  }
-#endif /* ENABLE_ZLIB */
-  else {
-    ifs = new ifstream();
-    xml_open_input_file(*(ifstream*)ifs, xml_file, verbosity);
-  }
-
-  // No need to check for error, because xml_open_input_file throws a
-  // runtime_error with an appropriate error message.
-
-  // Read the matrix from the stream. Here we catch the exception,
-  // because then we can issue a nicer error message that includes the
-  // filename.
-  try {
-    FileType ftype;
-    NumericType ntype;
-    EndianType etype;
-
-    xml_read_header_from_stream(*ifs, ftype, ntype, etype, verbosity);
-    if (ftype == FILE_TYPE_ASCII) {
-      xml_read_from_stream(*ifs, type, fmin, fmax, NULL, verbosity);
-    } else {
-      String bfilename = xml_file + ".bin";
-      bifstream bifs(bfilename.c_str());
-      xml_read_from_stream(*ifs, type, fmin, fmax, &bifs, verbosity);
     }
     xml_read_footer_from_stream(*ifs, verbosity);
   } catch (const std::runtime_error& e) {

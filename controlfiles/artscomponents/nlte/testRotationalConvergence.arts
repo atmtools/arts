@@ -14,7 +14,7 @@ Arts2{
 
     AgendaSet(propmat_clearsky_agenda) { Ignore(rtp_mag) Ignore(rtp_los) propmat_clearskyInit propmat_clearskyAddOnTheFly }
 
-    AgendaSet(abs_xsec_agenda) { abs_xsec_per_speciesInit abs_xsec_per_speciesAddLines2 }
+    AgendaSet(abs_xsec_agenda) { abs_xsec_per_speciesInit abs_xsec_per_speciesAddLines }
 
     AgendaSet(surface_rtprop_agenda) { InterpAtmFieldToPosition(out=surface_skin_t, field=t_field) surfaceBlackbody }
     
@@ -32,13 +32,12 @@ Arts2{
     IndexSet(stokes_dim, 1)
     NumericSet(rte_alonglos_v, 0.0)
     NumericSet(ppath_lmax, -1)
-    NumericSet(lm_p_lim, 0.0)
     MatrixSetConstant(z_surface, 1, 1, 0.0)
     abs_speciesSet(species=["H2O-161"])
     
     # Data reading
     AtmRawRead(basename="testdata/")
-    ReadXML(abs_lines, "testdata/lines.xml")
+    ReadARTSCAT(abs_lines=abs_lines, filename="testdata/lines.xml", globalquantumnumbers="Ka Kc J")
     
     collision_coefficientsFromSplitFiles(basename="spectroscopy/nlte/H2O/")
     ReadXML(nlte_level_identifiers, "testdata/qi.xml")
@@ -63,13 +62,14 @@ Arts2{
     # Check that we are performing sane computations
     propmat_clearsky_agenda_checkedCalc
     abs_xsec_agenda_checkedCalc
+    lbl_checkedCalc
     
     # Compute the new nlte_field
     nlte_fieldForSingleSpeciesNonOverlappingLines(df=1e-4, nz=10, nf=401, dampened=0, iteration_limit=100, convergence_limit=1e-4)
     #WriteXML("ascii", nlte_field, "testdata/nlte_testdata.xml")
     
     # Compare with stored data to make sure it is OK
-    Tensor4Create(nlte_testdata)
+    EnergyLevelMapCreate(nlte_testdata)
     ReadXML(nlte_testdata, "testdata/nlte_testdata.xml")
     CompareRelative(nlte_testdata, nlte_field, 1e-6)
 }

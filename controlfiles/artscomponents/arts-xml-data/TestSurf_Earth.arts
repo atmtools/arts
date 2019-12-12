@@ -100,7 +100,7 @@ IndexSet( stokes_dim, 1 )
 VectorSet( f_grid, [300e9] )
 sensorOff
 StringSet( iy_unit, "PlanckBT" )
-abs_linesReadFromSplitArtscat(abs_lines, abs_species, "spectroscopy/Perrin/", 0, 1e12)
+ReadSplitARTSCAT(basename="spectroscopy/Perrin/", fmin=0, fmax=1e12)
 abs_lines_per_speciesCreateFromLines
 
 # and agenda settings needed for RT calc
@@ -164,6 +164,7 @@ GriddedField2Create( lsmask )
 ReadXML( lsmask, casefull )
 
 abs_xsec_agenda_checkedCalc
+lbl_checkedCalc
 propmat_clearsky_agenda_checkedCalc
 
 # now we need to do some RT calc in order to APPLY the reflectivity data

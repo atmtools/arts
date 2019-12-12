@@ -57,6 +57,7 @@
 #include "tessem.h"
 #include "transmissionmatrix.h"
 #include "xml_io_private.h"
+#include "absorptionlines.h"
 
 #define TMPL_XML_READ_WRITE_STREAM(what)                  \
   void xml_read_from_stream(                              \
@@ -89,9 +90,11 @@ TMPL_XML_READ_WRITE_STREAM(Vector)
 
 //=== Compound Types =======================================================
 
+TMPL_XML_READ_WRITE_STREAM(AbsorptionLines)
 TMPL_XML_READ_WRITE_STREAM(Agenda)
 TMPL_XML_READ_WRITE_STREAM(CIARecord)
 TMPL_XML_READ_WRITE_STREAM(CovarianceMatrix)
+TMPL_XML_READ_WRITE_STREAM(EnergyLevelMap)
 TMPL_XML_READ_WRITE_STREAM(GriddedField1)
 TMPL_XML_READ_WRITE_STREAM(GriddedField2)
 TMPL_XML_READ_WRITE_STREAM(GriddedField3)
@@ -119,6 +122,8 @@ TMPL_XML_READ_WRITE_STREAM(Verbosity)
 
 //=== Array Types ==========================================================
 
+TMPL_XML_READ_WRITE_STREAM(ArrayOfAbsorptionLines)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfAbsorptionLines)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfAgenda)
 TMPL_XML_READ_WRITE_STREAM(Array<IsotopologueRecord>)
 TMPL_XML_READ_WRITE_STREAM(Array<SpeciesRecord>)
@@ -129,7 +134,6 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfGriddedField3)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfGridPos)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfArrayOfGridPos)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfIndex)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfLineRecord)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfMatrix)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfScatteringMetaData)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfArrayOfSingleScatteringData)
@@ -145,8 +149,6 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfGriddedField3)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfGriddedField4)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfGridPos)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfIndex)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfLineRecord)
-TMPL_XML_READ_WRITE_STREAM(ArrayOfLineshapeSpec)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfMatrix)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfQuantumIdentifier)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfSparse)
@@ -184,13 +186,6 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfXsecRecord)
 
 void xml_parse_from_stream(
     istream &, Vector &, bifstream *, ArtsXMLTag &, const Verbosity &verbosity);
-
-void xml_read_from_stream(istream &,
-                          ArrayOfLineRecord &,
-                          const Numeric,
-                          const Numeric,
-                          bifstream *,
-                          const Verbosity &);
 
 void xml_parse_from_stream(
     istream &, ArrayOfString &, bifstream *, ArtsXMLTag &, const Verbosity &);

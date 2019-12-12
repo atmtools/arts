@@ -90,6 +90,7 @@ int main() {
         << "#include \"agenda_record.h\"\n"
         << "#include \"workspace_ng.h\"\n"
         << "#include \"global_data.h\"\n"
+        << "#include \"absorptionlines.h\"\n"
         << "\n";
 
     //ofs << "static Index agendacallcount = 0;\n";

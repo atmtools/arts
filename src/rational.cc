@@ -97,3 +97,33 @@ std::istream& operator>>(std::istream& is, Rational& a) {
 
   return is;
 }
+
+Rational::Rational(const String& s)
+{
+  auto len = s.length();
+  
+  if (len) {
+    auto dot_pos = s.find(".");
+    auto slash_pos = s.find("/");
+    if (len > dot_pos) {
+      auto frac = std::stoi(s.substr(dot_pos+1, s.length()));
+      
+      if (frac == 5) {
+        *this = Rational(2*std::stoi(s.substr(0, dot_pos)) + 1, 2);
+      } else if (frac == 0) {
+        *this = Rational(std::stoi(s.substr(0, dot_pos)), 1);
+      } else {
+        *this = RATIONAL_UNDEFINED;
+      }
+    } else if (len > slash_pos) {
+      *this = Rational(std::stoi(s.substr(0, slash_pos)),
+                       std::stoi(s.substr(slash_pos+1, s.length())));
+    } else {
+      *this = std::stoi(s);
+    }
+  } else {
+    *this = RATIONAL_UNDEFINED;
+  }
+  
+  Simplify();
+}

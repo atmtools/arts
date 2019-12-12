@@ -27,9 +27,10 @@
  */
 
 #include "zeemandata.h"
+#include "abs_species_tags.h"
 #include "species_info.h"
 
-Zeeman::Model Zeeman::GetSimpleModel(const QuantumIdentifier& qid) {
+Zeeman::Model Zeeman::GetSimpleModel(const QuantumIdentifier& qid) noexcept {
   const Numeric GS = get_lande_spin_constant(qid.Species());
   const Numeric GL = get_lande_lambda_constant();
   const Numeric gu = SimpleG(qid.UpperQuantumNumbers(), GS, GL);
@@ -151,7 +152,7 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) noexcept {
   return Model({0, 0});
 }
 
-Zeeman::Model::Model(const QuantumIdentifier& qid) {
+Zeeman::Model::Model(const QuantumIdentifier& qid) noexcept {
   Model m = GetAdvancedModel(qid);
   if (m.empty()) m = GetSimpleModel(qid);
   *this = m;

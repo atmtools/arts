@@ -2352,278 +2352,6 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 }
 
-//=== ArrayOfLineRecord ===========================================
-
-//! Reads ArrayOfLineRecord from XML input stream
-/*!
-  \param is_xml   XML Input stream
-  \param alrecord ArrayOfLineRecord return value
-  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
-*/
-void xml_read_from_stream(istream& is_xml,
-                          ArrayOfLineRecord& alrecord,
-                          bifstream* pbifs,
-                          const Verbosity& verbosity) {
-  xml_read_from_stream(is_xml, alrecord, NAN, NAN, pbifs, verbosity);
-}
-
-//! Reads ArrayOfLineRecord from XML input stream within specified frequency
-//! range
-/*!
-  \param is_xml   XML Input stream
-  \param alrecord ArrayOfLineRecord return value
-  \param fmin     Lowest frequency (NAN = no limit)
-  \param fmax     Highest frequency (NAN = no limit)
-  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
-*/
-void xml_read_from_stream(istream& is_xml,
-                          ArrayOfLineRecord& alrecord,
-                          const Numeric fmin,
-                          const Numeric fmax,
-                          bifstream* pbifs _U_,
-                          const Verbosity& verbosity) {
-  CREATE_OUT2;
-
-  ArtsXMLTag tag(verbosity);
-  Index nelem;
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("ArrayOfLineRecord");
-
-  tag.get_attribute_value("nelem", nelem);
-
-  LineRecord dummy_line_record;
-  String version;
-  tag.get_attribute_value("version", version);
-
-  Index artscat_version;
-
-  if (version == "3") {
-    artscat_version = 3;
-  } else if (version.substr(0, 8) != "ARTSCAT-") {
-    ostringstream os;
-    os << "The ARTS line file you are trying to read does not contain a valid version tag.\n"
-       << "Probably it was created with an older version of ARTS that used different units.";
-    throw runtime_error(os.str());
-  } else {
-    istringstream is(version.substr(8));
-    is >> artscat_version;
-  }
-
-  if (artscat_version < 3 or artscat_version > 5) {
-    ostringstream os;
-    os << "Unknown ARTS line file version: " << version;
-    throw runtime_error(os.str());
-  }
-
-  alrecord.resize(0);
-
-  Index n;
-  try {
-    for (n = 0; n < nelem; n++) {
-      LineRecord lr;
-      switch (artscat_version) {
-        case 3:
-          if (lr.ReadFromArtscat3Stream(is_xml, verbosity))
-            throw runtime_error("Cannot read line from file");
-          break;
-        case 4:
-          if (lr.ReadFromArtscat4Stream(is_xml, verbosity))
-            throw runtime_error("Cannot read line from file");
-          break;
-        case 5:
-          if (lr.ReadFromArtscat5Stream(is_xml, verbosity))
-            throw runtime_error("Cannot read line from file");
-          break;
-        default:
-          throw runtime_error(
-              "Programmer error. This should never be reached.\n"
-              "Fix version number check above!");
-          break;
-      }
-
-      if ((std::isnan(fmin) || fmin <= lr.F()) &&
-          (std::isnan(fmax) || lr.F() <= fmax))
-        alrecord.push_back(std::move(lr));
-    }
-  } catch (const std::runtime_error& e) {
-    ostringstream os;
-    os << "Error reading ArrayOfLineRecord: "
-       << "\n Element: " << n << "\n"
-       << e.what();
-    throw runtime_error(os.str());
-  }
-
-  out2 << "  Read " << alrecord.nelem() << " out of " << nelem << " lines.\n";
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("/ArrayOfLineRecord");
-}
-
-//! Writes ArrayOfLineRecord to XML output stream
-/*!
-  \param os_xml   XML Output stream
-  \param alrecord ArrayOfLineRecord
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
-  \param name     Optional name attribute
-*/
-void xml_write_to_stream(ostream& os_xml,
-                         const ArrayOfLineRecord& alrecord,
-                         bofstream* pbofs _U_,
-                         const String& name,
-                         const Verbosity& verbosity)
-
-{
-  static const LineRecord dummy_linerecord;
-  ArtsXMLTag open_tag(verbosity);
-  ArtsXMLTag close_tag(verbosity);
-  Index catalog_version = dummy_linerecord.Version();
-
-  open_tag.set_name("ArrayOfLineRecord");
-  if (name.length()) open_tag.add_attribute("name", name);
-
-  if (alrecord.nelem()) {
-    catalog_version = alrecord[0].Version();
-    open_tag.add_attribute("version", alrecord[0].VersionString());
-  } else {
-    open_tag.add_attribute("version", dummy_linerecord.VersionString());
-  }
-
-  open_tag.add_attribute("nelem", alrecord.nelem());
-
-  open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-
-  for (ArrayOfLineRecord::const_iterator it = alrecord.begin();
-       it != alrecord.end();
-       it++) {
-    if (catalog_version != it->Version()) {
-      ostringstream os;
-      os << "This ArrayOfLineRecords contains a mixture of lines from different\n"
-         << "ARTS catalog versions (writing ARTSCAT-" << catalog_version
-         << ", this LineRecord is ARTSCAT-" << it->Version() << ").\n"
-         << "Writing them to the same catalog file is unsupported."
-         << "The offending LineRecord is: \n"
-         << *it;
-
-      throw runtime_error(os.str());
-    }
-    os_xml << *it << "\n";
-  }
-
-  close_tag.set_name("/ArrayOfLineRecord");
-  close_tag.write_to_stream(os_xml);
-
-  os_xml << '\n';
-}
-
-//=== ArrayOfArrayOfLineRecord ===========================================
-
-//! Reads ArrayOfArrayOfLineRecord from XML input stream
-/*!
-  \param is_xml   XML Input stream
-  \param aalrecord ArrayOfArrayOfLineRecord return value
-  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
-*/
-void xml_read_from_stream(istream& is_xml,
-                          ArrayOfArrayOfLineRecord& aalrecord,
-                          bifstream* pbifs,
-                          const Verbosity& verbosity) {
-  ArtsXMLTag tag(verbosity);
-  Index nelem;
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("Array");
-  tag.check_attribute("type", "ArrayOfLineRecord");
-
-  tag.get_attribute_value("nelem", nelem);
-  aalrecord.resize(nelem);
-
-  Index n;
-  try {
-    for (n = 0; n < nelem; n++)
-      xml_read_from_stream(is_xml, aalrecord[n], pbifs, verbosity);
-  } catch (const std::runtime_error& e) {
-    ostringstream os;
-    os << "Error reading ArrayOfArrayOfLineRecord: "
-       << "\n Element: " << n << "\n"
-       << e.what();
-    throw runtime_error(os.str());
-  }
-
-  tag.read_from_stream(is_xml);
-  tag.check_name("/Array");
-}
-
-//! Writes ArrayOfArrayOfLineRecord to XML output stream
-/*!
-  \param os_xml   XML Output stream
-  \param aalrecord ArrayOfArrayOfLineRecord
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
-  \param name     Optional name attribute
-*/
-void xml_write_to_stream(ostream& os_xml,
-                         const ArrayOfArrayOfLineRecord& aalrecord,
-                         bofstream* pbofs,
-                         const String& name,
-                         const Verbosity& verbosity)
-
-{
-  ArtsXMLTag open_tag(verbosity);
-  ArtsXMLTag close_tag(verbosity);
-
-  open_tag.set_name("Array");
-  if (name.length()) open_tag.add_attribute("name", name);
-
-  open_tag.add_attribute("type", "ArrayOfLineRecord");
-  open_tag.add_attribute("nelem", aalrecord.nelem());
-
-  open_tag.write_to_stream(os_xml);
-  os_xml << '\n';
-
-  for (Index n = 0; n < aalrecord.nelem(); n++)
-    xml_write_to_stream(os_xml, aalrecord[n], pbofs, "", verbosity);
-
-  close_tag.set_name("/Array");
-  close_tag.write_to_stream(os_xml);
-
-  os_xml << '\n';
-}
-
-//=== ArrayOfLineshapeSpec ===========================================
-
-//! Reads ArrayOfLineshapeSpec from XML input stream
-/*!
-  \param is_xml   XML Input stream
-  \param alspec   ArrayOfLineshapeSpec return value
-  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
-*/
-void xml_read_from_stream(istream& is_xml _U_,
-                          ArrayOfLineshapeSpec& alspec _U_,
-                          bifstream* pbifs _U_,
-                          const Verbosity&) {
-  // FIXME: OLE: Implement this.
-  throw runtime_error("Boo. Not yet implemented.");
-}
-
-//! Writes ArrayOfLineshapeSpec to XML output stream
-/*!
-  \param os_xml   XML Output stream
-  \param alspec   ArrayOfLineshapeSpec
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
-  \param name     Optional name attribute
-*/
-void xml_write_to_stream(ostream& os_xml _U_,
-                         const ArrayOfLineshapeSpec& alspec _U_,
-                         bofstream* pbofs _U_,
-                         const String& name _U_,
-                         const Verbosity&)
-
-{
-  // FIXME: OLE: Implement this.
-  throw runtime_error("Boo. Not yet implemented.");
-}
-
 //=== ArrayOfTelsemAtlas =========================================================
 
 //! Reads ArrayOfTelsemAtlas from XML input stream
@@ -3557,6 +3285,148 @@ void xml_write_to_stream(ostream& os_xml,
 
   for (Index n = 0; n < apm.nelem(); n++)
     xml_write_to_stream(os_xml, apm[n], pbofs, "", verbosity);
+
+  close_tag.set_name("/Array");
+  close_tag.write_to_stream(os_xml);
+
+  os_xml << '\n';
+}
+
+//=== ArrayOfAbsorptionLines ======================================================
+
+//! Reads ArrayOfAbsorptionLines from XML input stream
+/*!
+ * \param is_xml     XML Input stream
+ * \param aal        ArrayOfAbsorptionLines return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream& is_xml,
+                          ArrayOfAbsorptionLines& aal,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity) {
+  ArtsXMLTag tag(verbosity);
+  Index nelem;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("Array");
+  tag.check_attribute("type", "AbsorptionLines");
+
+  tag.get_attribute_value("nelem", nelem);
+  aal.resize(nelem);
+
+  Index n;
+  try {
+    for (n = 0; n < nelem; n++)
+      xml_read_from_stream(is_xml, aal[n], pbifs, verbosity);
+  } catch (const std::runtime_error& e) {
+    ostringstream os;
+    os << "Error reading ArrayOfAbsorptionLines: "
+       << "\n Element: " << n << "\n"
+       << e.what();
+    throw runtime_error(os.str());
+  }
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Array");
+}
+
+//! Writes ArrayOfAbsorptionLines to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param aal     ArrayOfAbsorptionLines
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute
+ */
+void xml_write_to_stream(ostream& os_xml,
+                         const ArrayOfAbsorptionLines& aal,
+                         bofstream* pbofs,
+                         const String& name,
+                         const Verbosity& verbosity) {
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("Array");
+  if (name.length()) open_tag.add_attribute("name", name);
+
+  open_tag.add_attribute("type", "AbsorptionLines");
+  open_tag.add_attribute("nelem", aal.nelem());
+
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  for (Index n = 0; n < aal.nelem(); n++)
+    xml_write_to_stream(os_xml, aal[n], pbofs, "", verbosity);
+
+  close_tag.set_name("/Array");
+  close_tag.write_to_stream(os_xml);
+
+  os_xml << '\n';
+}
+
+//=== ArrayOfArrayOfAbsorptionLines ======================================================
+
+//! Reads ArrayOfArrayOfAbsorptionLines from XML input stream
+/*!
+ * \param is_xml     XML Input stream
+ * \param aal        ArrayOfArrayOfAbsorptionLines return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream& is_xml,
+                          ArrayOfArrayOfAbsorptionLines& aal,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity) {
+  ArtsXMLTag tag(verbosity);
+  Index nelem;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("Array");
+  tag.check_attribute("type", "ArrayOfAbsorptionLines");
+
+  tag.get_attribute_value("nelem", nelem);
+  aal.resize(nelem);
+
+  Index n;
+  try {
+    for (n = 0; n < nelem; n++)
+      xml_read_from_stream(is_xml, aal[n], pbifs, verbosity);
+  } catch (const std::runtime_error& e) {
+    ostringstream os;
+    os << "Error reading ArrayOfArrayOfAbsorptionLines: "
+       << "\n Element: " << n << "\n"
+       << e.what();
+    throw runtime_error(os.str());
+  }
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Array");
+}
+
+//! Writes ArrayOfArrayOfAbsorptionLines to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param aal     ArrayOfArrayOfAbsorptionLines
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute
+ */
+void xml_write_to_stream(ostream& os_xml,
+                         const ArrayOfArrayOfAbsorptionLines& aal,
+                         bofstream* pbofs,
+                         const String& name,
+                         const Verbosity& verbosity) {
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("Array");
+  if (name.length()) open_tag.add_attribute("name", name);
+
+  open_tag.add_attribute("type", "ArrayOfAbsorptionLines");
+  open_tag.add_attribute("nelem", aal.nelem());
+
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  for (Index n = 0; n < aal.nelem(); n++)
+    xml_write_to_stream(os_xml, aal[n], pbofs, "", verbosity);
 
   close_tag.set_name("/Array");
   close_tag.write_to_stream(os_xml);

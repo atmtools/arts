@@ -102,7 +102,7 @@ StringSet( iy_unit, "PlanckBT" )
 
 # we manually select a minumim set of basic atm data (main atm constituents)
 abs_speciesSet( species=["CO2"] )
-abs_linesReadFromSplitArtscat(abs_lines, abs_species, "spectroscopy/Perrin/", 0, 1e12)
+ReadSplitARTSCAT(basename="spectroscopy/Perrin/", fmin=0, fmax=1e12)
 abs_lines_per_speciesCreateFromLines
 
 # and agenda settings needed for RT calc
@@ -197,6 +197,7 @@ GriddedFieldLatLonRegrid( gf2tmp, lat_grid, lon_grid, gf2tmp )
 FieldFromGriddedField( z_surface, p_grid, lat_grid, lon_grid, gf2tmp )
 
 abs_xsec_agenda_checkedCalc
+lbl_checkedCalc
 propmat_clearsky_agenda_checkedCalc
 atmfields_checkedCalc( bad_partition_functions_ok = 1 )
 atmgeom_checkedCalc

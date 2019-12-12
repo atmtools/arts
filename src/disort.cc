@@ -281,7 +281,7 @@ void get_gasoptprop(Workspace& ws,
   ext_bulk_gas = 0.;
 
   // making gas property output containers and input dummies
-  const Vector rtp_temperature_nlte_dummy(0);
+  const EnergyLevelMap rtp_nlte_dummy;
   const Vector rtp_mag_dummy(3, 0);
   const Vector ppath_los_dummy;
   ArrayOfStokesVector nlte_dummy, partial_source_dummy, partial_nlte_dummy;
@@ -307,7 +307,7 @@ void get_gasoptprop(Workspace& ws,
                                    ppath_los_dummy,
                                    p_grid[ip],
                                    t_profile[ip],
-                                   rtp_temperature_nlte_dummy,
+                                   rtp_nlte_dummy,
                                    vmr_profiles(joker, ip),
                                    propmat_clearsky_agenda);
 

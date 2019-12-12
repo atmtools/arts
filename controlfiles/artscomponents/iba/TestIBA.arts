@@ -62,6 +62,7 @@ abs_lines_per_speciesSetEmpty
 #
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
+lbl_checkedCalc
 
 # Surface = Ocean by FASTEM
 #

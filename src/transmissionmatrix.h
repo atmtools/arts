@@ -149,6 +149,24 @@ class TransmissionMatrix {
    */
   const Eigen::Matrix<double, 1, 1>& Mat1(size_t i) const { return T1[i]; }
 
+  /** Get Matrix at position by copy
+   * 
+   * @param[in] i Position
+   * @return Right size
+   */
+  Eigen::MatrixXd Mat(size_t i) const {
+    switch (stokes_dim) {
+      case 1:
+        return Mat1(i);
+      case 2:
+        return Mat2(i);
+      case 3:
+        return Mat3(i);
+      case 4:
+        return Mat4(i);
+    }
+    std::terminate();
+  }
 
   /** Get Matrix at position
    * 
@@ -455,6 +473,24 @@ class RadiationVector {
    * @return const Eigen::Matrix<double, 1, 1>& Vector
    */
   const Eigen::Matrix<double, 1, 1>& Vec1(size_t i) const { return R1[i]; }
+  
+  /** Return Vector at position by copy
+   * 
+   * @param[in] i position
+   * @return const Eigen::Matrix<double, 1, 1>& Vector
+   */
+  Eigen::VectorXd Vec(size_t i) const { 
+    switch (stokes_dim) {
+      case 4:
+        return Vec4(i);
+      case 3:
+        return Vec3(i);
+      case 2:
+        return Vec2(i);
+      default:
+        return Vec1(i);
+    }
+  }
 
 
   /** Return Vector at position

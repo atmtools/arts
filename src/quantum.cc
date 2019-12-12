@@ -28,6 +28,7 @@
 #include <stdexcept>
 #include "absorption.h"
 #include "global_data.h"
+#include "special_interp.h"
 
 bool QuantumNumbers::Compare(const QuantumNumbers& qn) const {
   const QuantumContainer& qnumbers2 = qn.GetNumbers();
@@ -161,44 +162,7 @@ bool QuantumIdentifier::In(const QuantumIdentifier& other) const {
 }
 
 bool IsValidQuantumNumberName(String name) {
-  bool valid = false;
-  // Define a helper macro to save some typing.
-#define INPUT_QUANTUM(ID) \
-  if (name == #ID) valid = true
-
-  INPUT_QUANTUM(J);
-  else INPUT_QUANTUM(dJ);
-  else INPUT_QUANTUM(M);
-  else INPUT_QUANTUM(N);
-  else INPUT_QUANTUM(dN);
-  else INPUT_QUANTUM(S);
-  else INPUT_QUANTUM(F);
-  else INPUT_QUANTUM(K);
-  else INPUT_QUANTUM(Ka);
-  else INPUT_QUANTUM(Kc);
-  else INPUT_QUANTUM(Omega);
-  else INPUT_QUANTUM(i);
-  else INPUT_QUANTUM(Lambda);
-  else INPUT_QUANTUM(alpha);
-  else INPUT_QUANTUM(Sym);
-  else INPUT_QUANTUM(parity);
-  else INPUT_QUANTUM(v1);
-  else INPUT_QUANTUM(v2);
-  else INPUT_QUANTUM(l2);
-  else INPUT_QUANTUM(v3);
-  else INPUT_QUANTUM(v4);
-  else INPUT_QUANTUM(v5);
-  else INPUT_QUANTUM(v6);
-  else INPUT_QUANTUM(l);
-  else INPUT_QUANTUM(pm);
-  else INPUT_QUANTUM(r);
-  else INPUT_QUANTUM(S_global);
-  else INPUT_QUANTUM(X);
-  else INPUT_QUANTUM(n_global);
-  else INPUT_QUANTUM(C);
-  else INPUT_QUANTUM(Hund);
-#undef INPUT_QUANTUM
-  return valid;
+  return QuantumNumberType::FINAL_ENTRY not_eq string2quantumnumbertype(name);
 }
 
 void ThrowIfQuantumNumberNameInvalid(String name) {
@@ -215,95 +179,23 @@ std::istream& operator>>(std::istream& is, QuantumNumbers& qn) {
 
   is >> name >> r;
 
-  // Define a helper macro to save some typing.
-#define INPUT_QUANTUM(ID) \
-  if (name == #ID) qn.Set(QuantumNumberType::ID, r)
-
-  INPUT_QUANTUM(J);
-  else INPUT_QUANTUM(dJ);
-  else INPUT_QUANTUM(M);
-  else INPUT_QUANTUM(N);
-  else INPUT_QUANTUM(dN);
-  else INPUT_QUANTUM(S);
-  else INPUT_QUANTUM(F);
-  else INPUT_QUANTUM(K);
-  else INPUT_QUANTUM(Ka);
-  else INPUT_QUANTUM(Kc);
-  else INPUT_QUANTUM(Omega);
-  else INPUT_QUANTUM(i);
-  else INPUT_QUANTUM(Lambda);
-  else INPUT_QUANTUM(alpha);
-  else INPUT_QUANTUM(Sym);
-  else INPUT_QUANTUM(parity);
-  else INPUT_QUANTUM(v1);
-  else INPUT_QUANTUM(v2);
-  else INPUT_QUANTUM(l2);
-  else INPUT_QUANTUM(v3);
-  else INPUT_QUANTUM(v4);
-  else INPUT_QUANTUM(v5);
-  else INPUT_QUANTUM(v6);
-  else INPUT_QUANTUM(l);
-  else INPUT_QUANTUM(pm);
-  else INPUT_QUANTUM(r);
-  else INPUT_QUANTUM(S_global);
-  else INPUT_QUANTUM(X);
-  else INPUT_QUANTUM(n_global);
-  else INPUT_QUANTUM(C);
-  else INPUT_QUANTUM(Hund);
-  else {
-    std::ostringstream os;
-    os << "Unknown quantum number: " << name << " (" << r << ").";
-    throw std::runtime_error(os.str());
-  }
-
-#undef INPUT_QUANTUM
-
+  qn.Set(name, r);
+  
   return is;
 }
 
 std::ostream& operator<<(std::ostream& os, const QuantumNumbers& qn) {
   bool first = true;
-  // Define a helper macro to save some typing.
-#define OUTPUT_QUANTUM(ID)                               \
-  if (!qn[Index(QuantumNumberType::ID)].isUndefined()) { \
-    if (!first) os << " ";                               \
-    first = false;                                       \
-    os << #ID << " " << qn[QuantumNumberType::ID];       \
+  for (Index i=0; i<Index(QuantumNumberType::FINAL_ENTRY); i++) {
+    if (qn[i].isDefined()) {
+      if (first) {
+        os << quantumnumbertype2string(QuantumNumberType(i)) << ' ' << qn[i];
+        first = false;
+      } else {
+        os << ' ' << quantumnumbertype2string(QuantumNumberType(i)) << ' ' << qn[i];
+      }
+    }
   }
-
-  OUTPUT_QUANTUM(J);
-  OUTPUT_QUANTUM(dJ);
-  OUTPUT_QUANTUM(M);
-  OUTPUT_QUANTUM(N);
-  OUTPUT_QUANTUM(dN);
-  OUTPUT_QUANTUM(S);
-  OUTPUT_QUANTUM(F);
-  OUTPUT_QUANTUM(K);
-  OUTPUT_QUANTUM(Ka);
-  OUTPUT_QUANTUM(Kc);
-  OUTPUT_QUANTUM(Omega);
-  OUTPUT_QUANTUM(i);
-  OUTPUT_QUANTUM(Lambda);
-  OUTPUT_QUANTUM(alpha);
-  OUTPUT_QUANTUM(Sym);
-  OUTPUT_QUANTUM(parity);
-  OUTPUT_QUANTUM(v1);
-  OUTPUT_QUANTUM(v2);
-  OUTPUT_QUANTUM(l2);
-  OUTPUT_QUANTUM(v3);
-  OUTPUT_QUANTUM(v4);
-  OUTPUT_QUANTUM(v5);
-  OUTPUT_QUANTUM(v6);
-  OUTPUT_QUANTUM(l);
-  OUTPUT_QUANTUM(pm);
-  OUTPUT_QUANTUM(r);
-  OUTPUT_QUANTUM(S_global);
-  OUTPUT_QUANTUM(X);
-  OUTPUT_QUANTUM(n_global);
-  OUTPUT_QUANTUM(C);
-  OUTPUT_QUANTUM(Hund);
-
-#undef OUTPUT_QUANTUM
 
   return os;
 }
@@ -514,4 +406,69 @@ bool QuantumIdentifier::any_quantumnumbers() const {
       break;
   }
   return false;
+}
+
+std::ostream& operator<<(std::ostream& os, QuantumNumberType t)
+{
+  return os << quantumnumbertype2string(t);
+}
+
+Rational interpret_stringdata(const QuantumNumberType key, const String& val) {
+  if (key == QuantumNumberType::parity) {
+    if (val == "+")
+      return 1;
+    else if (val == "-")
+      return -1;
+  } else if (key == QuantumNumberType::ElectronState) {
+    if (val == "X")
+      return int('X');
+  } else if (key == QuantumNumberType::kronigParity) {
+    if (val == "f")
+      return int('f');
+    else if (val == "e")
+      return int('e');
+  } else {
+    return Rational(val);
+  }
+  
+  return RATIONAL_UNDEFINED;
+}
+
+void update_id(QuantumIdentifier& qid, const std::vector<std::array<String, 2> >& upper_list, const std::vector<std::array<String, 2> >& lower_list)
+{
+  for (auto& keyval: upper_list) {
+    auto key = string2quantumnumbertype(keyval[0]);
+    if (key == QuantumNumberType::FINAL_ENTRY) {
+      std::ostringstream os;
+      os << "The key \"" << keyval[0] << "\" is an invalid input as a quantum number key";
+      std::cout << "WARNING: " << os.str() << '\n';
+    } else {
+      auto val = interpret_stringdata(key, keyval[1]);
+      if (val != RATIONAL_UNDEFINED) {
+        qid.UpperQuantumNumber(key) = val;
+      } else {
+        std::ostringstream os;
+        os << "The key \"" << keyval[0] << "\" and value \"" << keyval[1] << "\" are invalid input as a quantum number key and value pair";
+        std::cout << "WARNING: " << os.str() << '\n';
+      }
+    }
+  }
+  
+  for (auto& keyval: lower_list) {
+    auto key = string2quantumnumbertype(keyval[0]);
+    if (key == QuantumNumberType::FINAL_ENTRY) {
+      std::ostringstream os;
+      os << "The key \"" << keyval[0] << "\" is an invalid input as a quantum number key";
+      std::cout << "WARNING: " << os.str() << '\n';
+    } else {
+      auto val = interpret_stringdata(key, keyval[1]);
+      if (val != RATIONAL_UNDEFINED) {
+        qid.LowerQuantumNumber(key) = val;
+      } else {
+        std::ostringstream os;
+        os << "The key \"" << keyval[0] << "\" and value \"" << keyval[1] << "\" are invalid input as a quantum number key and value pair";
+        std::cout << "WARNING: " << os.str() << '\n';
+      }
+    }
+  }
 }

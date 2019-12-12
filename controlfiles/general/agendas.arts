@@ -134,7 +134,7 @@ AgendaCreate( iy_surface_agenda__UseSurfaceRtprop )
 AgendaSet( iy_surface_agenda__UseSurfaceRtprop ){
   SurfaceDummy
   iySurfaceRtpropAgenda
-} 
+}
 
 
 ##################################

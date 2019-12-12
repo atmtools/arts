@@ -382,35 +382,19 @@ void Workspace::define_wsv_data() {
           "the lookup table. This is the global default value, set in\n"
           "general.arts.\n"),
       GROUP("Index")));
-
+  
+  
   wsv_data.push_back(WsvRecord(NAME("abs_lines"),
                                DESCRIPTION("A list of spectral line data.\n"),
-                               GROUP("ArrayOfLineRecord")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("abs_lineshape"),
-      DESCRIPTION(
-          "Lineshape specification: function, norm, cutoff.\n"
-          "\n"
-          "There is one entry for each abs_tag, not for each species.\n"
-          "This means if you have several abs_tags for different\n"
-          "isotopologues or transitions of a species, you\n"
-          "may use different lineshapes.  See *abs_lineshapeDefine* for more details.\n"),
-      GROUP("ArrayOfLineshapeSpec")));
+                               GROUP("ArrayOfAbsorptionLines")));
 
   wsv_data.push_back(WsvRecord(
       NAME("abs_lines_per_species"),
       DESCRIPTION(
           "A list of spectral line data for each tag.\n"
           "\n"
-          "Dimensions: (tag_groups.nelem()) (# of lines for this tag)\n"),
-      GROUP("ArrayOfArrayOfLineRecord")));
-
-  wsv_data.push_back(
-      WsvRecord(NAME("abs_lines_per_band"),
-                DESCRIPTION("A list of spectral line data for each band.\n"
-                            "Dimensions: (# of bands)\n"),
-                GROUP("ArrayOfArrayOfLineRecord")));
+          "Dimensions: [*abs_species*.nelem()][Depends on how many bands there are in *abs_lines*]\n"),
+      GROUP("ArrayOfArrayOfAbsorptionLines")));
 
   wsv_data.push_back(WsvRecord(
       NAME("abs_lookup"),
@@ -555,16 +539,6 @@ void Workspace::define_wsv_data() {
       GROUP("ArrayOfArrayOfSpeciesTag")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("abs_species_per_band"),
-      DESCRIPTION(
-          "Tag groups for gas absorption.\n"
-          "\n"
-          "This is an array of arrays of SpeciesTag tag definitions that matches\n"
-          "*abs_species*.  This variable is the same towards *abs_lines_per_band\n"
-          "as *abs_species* is towards *abs_lines_per_species*.\n"),
-      GROUP("ArrayOfArrayOfSpeciesTag")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("abs_species_active"),
       DESCRIPTION(
           "Indices of active absorption species.\n"
@@ -594,17 +568,17 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("abs_nlte"),
       DESCRIPTION(
-          "List of NLTE temperatures or ratios to be used for the calculation of\n"
+          "NLTE temperatures or ratios to be used for the calculation of\n"
           "absorption coefficients.\n"
           "\n"
           "In contrast to the global *nlte_field*, this is just a matrix. Any\n"
           "absorption method should check that the columns of this vector is the\n"
           "same as that of *abs_p*\n"
           "\n"
-          "Dimension: [nltes, p_grid] or [ 0, 0 ]\n"
+          "Dimension: [nltes, 1, 1, p_grid] or [ 0, 0, 0, 0 ]\n"
           "\n"
           "Unit: K\n"),
-      GROUP("Matrix")));
+      GROUP("EnergyLevelMap")));
 
   wsv_data.push_back(WsvRecord(
       NAME("abs_vec"),
@@ -654,18 +628,18 @@ void Workspace::define_wsv_data() {
                   "Dimensions: [tag_groups.nelem(), abs_p.nelem()]\n"),
       GROUP("Matrix")));
 
-  wsv_data.push_back(WsvRecord(
-      NAME("abs_xsec_agenda"),
-      DESCRIPTION(
-          "Agenda to calculate scalar gas absorption cross sections.\n"),
-      GROUP("Agenda")));
-
   wsv_data.push_back(
       WsvRecord(NAME("abs_xsec_agenda_checked"),
                 DESCRIPTION("OK-flag for *abs_xsec_agenda*.\n"
                             "\n"
                             "Set by *abs_xsec_agenda_checkedCalc*.\n"),
                 GROUP("Index")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("abs_xsec_agenda"),
+      DESCRIPTION(
+          "Agenda to calculate scalar gas absorption cross sections.\n"),
+      GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
       NAME("abs_xsec_per_species"),
@@ -2228,6 +2202,15 @@ void Workspace::define_wsv_data() {
           "Unit:  degrees\n"),
       GROUP("Vector")));
 
+  wsv_data.push_back(WsvRecord(
+    NAME("lbl_checked"),
+      DESCRIPTION("Flag to check if the line-by-line calculations will work\n"
+                  "\n"
+                  "Usage: Set manually on own risk, or use *lbl_checkedCalc*.\n"
+                  "\n"
+                  "Unit:  Boolean\n"),
+      GROUP("Index")));
+  
   wsv_data.push_back(
       WsvRecord(NAME("line_irradiance"),
                 DESCRIPTION("Irradiance as seen by a single absorption line.\n"
@@ -2241,30 +2224,6 @@ void Workspace::define_wsv_data() {
                   "\n"
                   "Used internally for, e.g., NLTE effects\n"),
       GROUP("Tensor3")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("lm_p_lim"),
-      DESCRIPTION(
-          "The pressure limit at which line mixing takes place.\n"
-          "\n"
-          "If positive, this is the lower pressure limit at which line\n"
-          "mixing takes place.\n"
-          "\n"
-          "If negative, the abs of this is the extrapolation factor of any\n"
-          "routine interacting with line mixing in ARTS.\n"
-          "\n"
-          "If exactly zero, then this is ignored in all calculations.\n"
-          "\n"
-          "Unit when positive:  Pa\n"
-          "Unit when negative:  none\n"
-          "\n"
-          "This variable is used on your own risk.  The calculations will not\n"
-          "be correct if this is misused.  You might end up with nonsensical\n"
-          "absorption (even negative absorption). Do not use this for anything\n"
-          "important.\n"
-          "\n"
-          "Usage: Set by the user.\n"),
-      GROUP("Numeric")));
 
   wsv_data.push_back(WsvRecord(
       NAME("lo"),
@@ -2742,11 +2701,15 @@ void Workspace::define_wsv_data() {
 
   wsv_data.push_back(WsvRecord(
       NAME("nlte_level_identifiers"),
-      DESCRIPTION("An array of non-lte quantum identifiers for levels.\n"
-                  "\n"
-                  "Used to match *abs_lines_per_species* to NLTE\n"
-                  "temperatures/ratios.\n"),
+      DESCRIPTION("An array of non-lte quantum identifiers for levels matching\n"
+                  "*nlte_field_raw* and on request *nlte_vibrational_energies*.\n"),
       GROUP("ArrayOfQuantumIdentifier")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("nlte_vibrational_energies"),
+      DESCRIPTION("An list of vibrational energies matching\n"
+                  "*nlte_level_identifiers* and *nlte_field_raw* or being 0.\n"),
+      GROUP("Vector"))); 
 
   wsv_data.push_back(WsvRecord(
       NAME("collision_line_identifiers"),
@@ -3308,10 +3271,10 @@ void Workspace::define_wsv_data() {
           "\n"
           "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
           "\n"
-          "Dimension: [ number of non-lte temperatures, ppath.np ]\n"
+          "Dimension: [ number of non-lte temperatures, 1, 1, ppath.np ]\n"
           "\n"
           "Usage: Output of radiative transfer methods.\n"),
-      GROUP("Matrix")));
+      GROUP("EnergyLevelMap")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_p"),
@@ -3430,17 +3393,17 @@ void Workspace::define_wsv_data() {
           "Unit: 1/m\n"),
       GROUP("ArrayOfPropagationMatrix")));
 
-  wsv_data.push_back(WsvRecord(
-      NAME("propmat_clearsky_agenda"),
-      DESCRIPTION("Agenda calculating the absorption coefficient matrices.\n"),
-      GROUP("Agenda")));
-
   wsv_data.push_back(
       WsvRecord(NAME("propmat_clearsky_agenda_checked"),
                 DESCRIPTION("OK-flag for *propmat_clearsky_agenda*.\n"
                             "\n"
                             "Set by *propmat_clearsky_agenda_checkedCalc*.\n"),
                 GROUP("Index")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("propmat_clearsky_agenda"),
+      DESCRIPTION("Agenda calculating the absorption coefficient matrices.\n"),
+      GROUP("Agenda")));
 
   wsv_data.push_back(WsvRecord(
       NAME("propmat_clearsky_field"),
@@ -3858,9 +3821,9 @@ void Workspace::define_wsv_data() {
           "\n"
           "Usage: Communication variable.\n"
           "\n"
-          "Units: [ K ]\n"
-          "Size:  [ n of NLTE levels ] or [ 0 ]\n"),
-      GROUP("Vector")));
+          "Units: [ K/# ]\n"
+          "Size:  [ NLTE levels, 1, 1, 1 ] or [ 0, 0, 0, 0 ]\n"),
+      GROUP("EnergyLevelMap")));
 
   wsv_data.push_back(WsvRecord(
       NAME("rtp_vmr"),
@@ -5031,7 +4994,7 @@ void Workspace::define_wsv_data() {
           "Units:       [ K or \% ]]\n"
           "\n"
           "Dimensions: [ NLTE levels, p_grid, lat_grid, lon_grid ] or [ 0, 0, 0, 0 ]\n"),
-      GROUP("Tensor4")));
+      GROUP("EnergyLevelMap")));
 
   wsv_data.push_back(WsvRecord(
       NAME("t_field_raw"),
@@ -5744,14 +5707,6 @@ void Workspace::define_wsv_data() {
           "\n"
           "Dimensions: [ lat_grid, lon_grid ]\n"),
       GROUP("Matrix")));
-
-  wsv_data.push_back(WsvRecord(
-      NAME("zeeman_linerecord_precalc"),
-      DESCRIPTION(
-          "LineRecord holder for speedy Zeeman effect calculaions.\n"
-          "\n"
-          "Dimensions: none or three times the Zeeman species in *abs_species*\n"),
-      GROUP("ArrayOfArrayOfLineRecord")));
 }
 
 //! Get index of WSV

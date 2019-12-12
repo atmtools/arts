@@ -73,7 +73,9 @@ Copy( surface_rtprop_agenda, surface_rtprop_agenda__Blackbody_SurfTFromt_field )
 abs_speciesSet( species=["H2O-161", "H2O-162", "N2", "O2"] )
 
 # use planetary catalogue
-abs_linesReadFromSplitArtscat(abs_lines, abs_species, "spectroscopy/Perrin/", 0, 3e12)
+ReadSplitARTSCAT(basename="spectroscopy/Perrin/", fmin=0, fmax=3e12)
+abs_linesSetCutoff(option="ByLine", value=750e9)
+abs_linesSetNormalization(option="VVH")
 abs_lines_per_speciesCreateFromLines
 
 
@@ -90,6 +92,7 @@ Extract( z_surface, z_field, 0 )
 
 abs_xsec_agenda_checkedCalc
 propmat_clearsky_agenda_checkedCalc
+lbl_checkedCalc
 
 # check basic atm&surface setup of
 atmfields_checkedCalc
@@ -182,7 +185,7 @@ yCalc
 #WriteXML( "ascii", y, "y.IsoRatios_H2Omani.xml" )
 VectorCreate( yC )
 Copy( yC, y )
-Compare( yA, yC, 1e-3 )
+Compare( yA, yC, 1e-2 )
 
 }
 

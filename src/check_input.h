@@ -39,7 +39,6 @@
 #include "agenda_class.h"
 #include "exceptions.h"
 #include "gridded_fields.h"
-#include "linerecord.h"
 #include "matpackVII.h"
 #include "mystring.h"
 //#include <cfloat>
@@ -366,13 +365,5 @@ void chk_griddedfield_gridname(const GriddedField& gf,
                                const String& gridname);
 
 void chk_met_mm_backend(const Matrix& bdsp);
-
-void chk_nlte(const Tensor4& t_nlte_field,
-              const ArrayOfQuantumIdentifier& nlte_quantum_identifiers,
-              const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-              const Vector& p_grid,
-              const Vector& lat_grid,
-              const Vector& lon_grid,
-              const Index& atmosphere_dim);
 
 #endif  // checkinput_h

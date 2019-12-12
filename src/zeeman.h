@@ -26,32 +26,9 @@
 
 #include "abs_species_tags.h"
 #include "global_data.h"
-#include "linerecord.h"
 #include "physics_funcs.h"
 #include "quantum.h"
 #include "rte.h"
-
-/** Creates a Zeeman ArrayOfArrayOfLineRecord
- * 
- * Sets the Zeeman LineRecord(s) for all the
- * lines.  Sets them by best computations if
- * this is possible or by simplified Hund cases
- * elsewise.  Can be forced to set zeroes instead
- * of real values (e.g., to have them replaced later)
- * 
- * Tests that the computations are sane by 
- * summing up relative strengths.
- * 
- * @param[out] aoaol List of list of lines with set Zeeman effects
- * @param[in]  abs_species as WSV
- * @param[in]  abs_lines_per_species as WSV
- * @param[in]  zero_values Sets Zeeman splitting coefficients to 0
- */
-void create_Zeeman_linerecordarrays(
-    ArrayOfArrayOfLineRecord& aoaol,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const ArrayOfArrayOfLineRecord& abs_lines_per_species,
-    const bool zero_values);
 
 /** Main and only way to compute Zeeman effect
  * 
@@ -67,7 +44,7 @@ void create_Zeeman_linerecordarrays(
  * @param[in,out] nlte_dsource_dx as WSV
  * @param[in]  abs_species as WSV
  * @param[in]  jacobian_quantities as WSV
- * @param[in]  zeeman_linerecord_precalc as WSV
+ * @param[in]  abs_lines_per_species as WSV
  * @param[in]  isotopologue_ratios as WSV
  * @param[in]  partition_functions as WSV
  * @param[in]  f_grid as WSV
@@ -83,24 +60,24 @@ void create_Zeeman_linerecordarrays(
  * @param[in]  manual_zeeman_eta Magnetic field eta angle
  */
 void zeeman_on_the_fly(
-    ArrayOfPropagationMatrix& propmat_clearsky,
-    ArrayOfStokesVector& nlte_source,
-    ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
-    ArrayOfStokesVector& dnlte_dx_source,
-    ArrayOfStokesVector& nlte_dsource_dx,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const ArrayOfRetrievalQuantity& jacobian_quantities,
-    const ArrayOfArrayOfLineRecord& zeeman_linerecord_precalc,
-    const SpeciesAuxData& isotopologue_ratios,
-    const SpeciesAuxData& partition_functions,
-    const Vector& f_grid,
-    const Vector& rtp_vmr,
-    const Vector& rtp_nlte,
-    const Vector& rtp_mag,
-    const Vector& rtp_los,
-    const Numeric& rtp_pressure,
-    const Numeric& rtp_temperature,
-    const Index& manual_zeeman_tag,
-    const Numeric& manual_zeeman_magnetic_field_strength,
-    const Numeric& manual_zeeman_theta,
-    const Numeric& manual_zeeman_eta);
+  ArrayOfPropagationMatrix& propmat_clearsky,
+  ArrayOfStokesVector& nlte_source,
+  ArrayOfPropagationMatrix& dpropmat_clearsky_dx,
+  ArrayOfStokesVector& dnlte_dx_source,
+  ArrayOfStokesVector& nlte_dsource_dx,
+  const ArrayOfArrayOfSpeciesTag& abs_species,
+  const ArrayOfRetrievalQuantity& jacobian_quantities,
+  const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+  const SpeciesAuxData& isotopologue_ratios,
+  const SpeciesAuxData& partition_functions,
+  const Vector& f_grid,
+  const Vector& rtp_vmr,
+  const EnergyLevelMap& rtp_nlte,
+  const Vector& rtp_mag,
+  const Vector& rtp_los,
+  const Numeric& rtp_pressure,
+  const Numeric& rtp_temperature,
+  const Index& manual_tag,
+  const Numeric& H0,
+  const Numeric& theta0,
+  const Numeric& eta0);

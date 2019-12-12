@@ -62,16 +62,7 @@ abs_cont_descriptionAppend( abs_cont_names, abs_cont_models, abs_cont_parameters
   [ 1.34 ]
 )
 
-# ----- End of absorption models used for Odin-SMR -------------------------
-
-
-
-# Line shape settings
-abs_lineshapeDefine( abs_lineshape,
-  "Voigt_Kuntz6",
-  "Rosenkranz_quadratic",
-  -1 
-)
+# ----- End of absorption models used for Odin-SMR ------------------------
 
 
 # Odin-SMR gives RJ brightness temperatures

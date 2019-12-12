@@ -93,70 +93,96 @@ void set_constant_statistical_equilibrium_matrix(MatrixView A,
   x[row] = sem_ratio;
 }
 
-Vector createAij(const ArrayOfLineRecord& abs_lines) {
+Vector createAij(const ArrayOfArrayOfAbsorptionLines& abs_lines) {
   // Size of problem
-  const Index n = abs_lines.nelem();
+  const Index n = nelem(abs_lines);
   Vector Aij(n);
-
-  for (Index i = 0; i < n; i++) Aij[i] = abs_lines[i].A();
+  
+  Index i=0;
+  for (auto& lines: abs_lines) {
+    for (auto& band: lines) {
+      for (Index k=0; k<band.NumLines(); k++) {
+        Aij[i] = band.A(k); 
+        i++;
+      }
+    }
+  }
   return Aij;
 }
 
-Vector createBij(const ArrayOfLineRecord& abs_lines) {
+Vector createBij(const ArrayOfArrayOfAbsorptionLines& abs_lines) {
   extern const Numeric PLANCK_CONST, SPEED_OF_LIGHT;
   const static Numeric c0 =
-      2.0 * PLANCK_CONST / SPEED_OF_LIGHT / SPEED_OF_LIGHT;
-
+  2.0 * PLANCK_CONST / SPEED_OF_LIGHT / SPEED_OF_LIGHT;
+  
   // Size of problem
-  const Index n = abs_lines.nelem();
+  const Index n = nelem(abs_lines);
   Vector Bij(n);
-
+  
   // Base equation for single state:  B21 = A21 c^2 / 2 h f^3  (nb. SI, don't use this without checking your need)
-  for (Index i = 0; i < n; i++)
-    Bij[i] = abs_lines[i].A() /
-             (c0 * abs_lines[i].F() * abs_lines[i].F() * abs_lines[i].F());
+  Index i=0;
+  for (auto& lines: abs_lines) {
+    for (auto& band: lines) {
+      for (Index k=0; k<band.NumLines(); k++) {
+        Bij[i] = band.A(k) / (c0 * band.F0(k) * band.F0(k) * band.F0(k));
+        i++;
+      }
+    }
+  }
   return Bij;
 }
 
-Vector createBji(ConstVectorView Bij, const ArrayOfLineRecord& abs_lines) {
+Vector createBji(const Vector& Bij, const ArrayOfArrayOfAbsorptionLines& abs_lines) {
   // Size of problem
   const Index n = Bij.nelem();
   Vector Bji(n);
 
   // Base equation for single state:  B12 = B21 g2 / g1
-  for (Index i = 0; i < n; i++)
-    Bji[i] = Bij[i] * abs_lines[i].G_upper() / abs_lines[i].G_lower();
+  Index i=0;
+  for (auto& lines: abs_lines) {
+    for (auto& band: lines) {
+      for (Index k=0; k<band.NumLines();k++) {
+        Bji[i] = Bij[i] * band.g_upp(k) / band.g_low(k);
+        i++;
+      }
+    }
+  }
   return Bji;
 }
 
-Vector createCji(ConstVectorView Cij,
-                 const ArrayOfLineRecord& abs_lines,
+Vector createCji(const Vector& Cij,
+                 const ArrayOfArrayOfAbsorptionLines& abs_lines,
                  const Numeric& T) {
-  const Index n = abs_lines.nelem();
+  const Index n = nelem(abs_lines);
   Vector Cji(n);
-  setCji(Cji, Cij, abs_lines, T, n);
+  setCji(Cji, Cij, abs_lines, T);
   return Cji;
 }
 
-void setCji(VectorView Cji,
-            ConstVectorView Cij,
-            const ArrayOfLineRecord& abs_lines,
-            const Numeric& T,
-            const Index n) {
+void setCji(Vector& Cji,
+            const Vector& Cij,
+            const ArrayOfArrayOfAbsorptionLines& abs_lines,
+            const Numeric& T) {
   extern const Numeric PLANCK_CONST, BOLTZMAN_CONST;
   const static Numeric c0 = -PLANCK_CONST / BOLTZMAN_CONST;
   const Numeric constant = c0 / T;
 
   // Base equation for single state:  C12 = C21 exp(-hf / kT) g2 / g1
-  for (Index i = 0; i < n; i++)
-    Cji[i] = Cij[i] * exp(constant * abs_lines[i].F()) *
-             abs_lines[i].G_upper() / abs_lines[i].G_lower();
+  Index i=0;
+  for (auto& lines: abs_lines) {
+    for (auto& band: lines) {
+      for (Index k=0; k<band.NumLines(); k++) {
+        Cji[i] = Cij[i] * exp(constant * band.F0(k)) * band.g_upp(k) / band.g_low(k);
+        i++;
+      }
+    }
+  }
 }
 
 void nlte_collision_factorsCalcFromCoeffs(
     Vector& Cij,
     Vector& Cji,
-    const ArrayOfLineRecord& abs_lines,
+    const ArrayOfArrayOfAbsorptionLines& abs_lines,
     const ArrayOfArrayOfSpeciesTag& abs_species,
     const ArrayOfArrayOfGriddedField1& collision_coefficients,
     const ArrayOfQuantumIdentifier& collision_line_identifiers,
@@ -169,7 +195,6 @@ void nlte_collision_factorsCalcFromCoeffs(
   // size of problem
   const Index nspec = abs_species.nelem();
   const Index ntrans = collision_line_identifiers.nelem();
-  const Index nlines = abs_lines.nelem();
 
   // reset Cij for summing later
   Cij = 0;
@@ -181,57 +206,67 @@ void nlte_collision_factorsCalcFromCoeffs(
         vmr[i] * (abs_species[i][0].SpeciesNameMain() == "free_electrons"
                       ? 1.0
                       : P / (BOLTZMAN_CONST * T));
-    for (Index k = 0; k < nlines; k++) {
-      const auto& line = abs_lines[k];
-
-      const Numeric isot_ratio =
-          isotopologue_ratios.getParam(line.Species(), line.Isotopologue())[0]
-              .data[0];
-
-      for (Index j = 0; j < ntrans; j++) {
-        const auto& transition = collision_line_identifiers[j];
-        const auto& gf1 = collision_coefficients[i][j];
-
-        if (transition.In(line.QuantumIdentity())) {
-          // Standard linear ARTS interpolation
-          GridPosPoly gp;
-          gridpos_poly(gp, gf1.get_numeric_grid(0), T, 1, 0.5);
-          Vector itw(gp.idx.nelem());
-          interpweights(itw, gp);
-
-          Cij[k] += interp(itw, gf1.data, gp) * numden * isot_ratio;
-
-          break;  // A transition can only match one line
+    
+    for (Index j = 0; j < ntrans; j++) {
+      Index iline=0;
+      for (auto& lines: abs_lines) {
+        for (auto& band: lines) {
+          const Numeric isot_ratio =
+          isotopologue_ratios.getParam(band.Species(), band.Isotopologue())[0]
+          .data[0];
+          for (Index k=0; k<band.NumLines(); k++) {
+            
+            const auto& transition = collision_line_identifiers[j];
+            const auto& gf1 = collision_coefficients[i][j];
+            
+            if (Absorption::id_in_line(band, transition, k)) {
+              // Standard linear ARTS interpolation
+              GridPosPoly gp;
+              gridpos_poly(gp, gf1.get_numeric_grid(0), T, 1, 0.5);
+              Vector itw(gp.idx.nelem());
+              interpweights(itw, gp);
+              
+              Cij[iline] += interp(itw, gf1.data, gp) * numden * isot_ratio;
+              iline++;
+              break;
+            }
+            iline++;
+          }
         }
       }
     }
   }
 
   // Compute the reverse
-  setCji(Cji, Cij, abs_lines, T, Cij.nelem());
+  setCji(Cji, Cij, abs_lines, T);
 }
 
 void nlte_positions_in_statistical_equilibrium_matrix(
     ArrayOfIndex& upper,
     ArrayOfIndex& lower,
-    const ArrayOfLineRecord& abs_lines,
-    const ArrayOfQuantumIdentifier& nlte_level_identifiers) {
-  const Index nl = abs_lines.nelem(), nq = nlte_level_identifiers.nelem();
+    const ArrayOfArrayOfAbsorptionLines& abs_lines,
+    const EnergyLevelMap& nlte_field) {
+  const Index nl = nelem(abs_lines), nq = nlte_field.Levels().nelem();
 
   upper = ArrayOfIndex(nl, -1);
   lower = ArrayOfIndex(nl, -1);
 
-  for (Index il = 0; il < nl; il++) {
-    for (Index iq = 0; iq < nq; iq++) {
-      if (nlte_level_identifiers[iq].InLower(abs_lines[il].QuantumIdentity()))
-        lower[il] = iq;
-      else if (nlte_level_identifiers[iq].InUpper(
-                   abs_lines[il].QuantumIdentity()))
-        upper[il] = iq;
+  Index i=0;
+  for (auto& lines: abs_lines) {
+    for (const AbsorptionLines& band: lines) {
+      for (Index k=0; k<band.NumLines(); k++) {
+        for (Index iq = 0; iq < nq; iq++) {
+          if (Absorption::id_in_line_lower(band, nlte_field.Levels()[iq], i))
+            lower[i] = iq;
+          if (Absorption::id_in_line_upper(band, nlte_field.Levels()[iq], i))
+            upper[i] = iq;
+        }
+        i++;
+      }
     }
   }
-
-  Index i = 0;
+  
+  i = 0;
   for (Index il = 0; il < nl; il++)
     if (upper[il] < 0 or lower[il] < 0) i++;
   if (i > 1)

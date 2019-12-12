@@ -106,16 +106,6 @@ Arts2 {
 							"N2, N2-CIAfunCKDMT252, N2-CIArotCKDMT252",
                            "CH4",
                            "CO"])
-	
-	
-	# Define Line shape (no line mixing)
-    abs_lineshape_per_tgDefine(shape=["Voigt_Kuntz6", "Voigt_Kuntz6",
-                                      "Voigt_Kuntz6", "Voigt_Kuntz6",
-                                      "Voigt_Kuntz6", "Voigt_Kuntz6", "Voigt_Kuntz6"],
-                 normalizationfactor=["VVH", "VVH", "VVH", "VVH", "VVH", "VVH", "VVH"],
-                              cutoff=[750e9, 750e9, 750e9, 750e9, 750e9, 750e9, 750e9])
-
-
 
     #Read HITRAN catalog:
     #abs_linesReadFromHitran(abs_lines,

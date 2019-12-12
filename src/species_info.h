@@ -15,6 +15,8 @@
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include "matpack.h"
+
 /**
  * @file species_info.h
  * @author Richard Larsson
@@ -22,8 +24,6 @@
  * 
  * @brief Some molecular constants
  */
-
-#include "linerecord.h"
 
 /** Get the Lande spin constant
  * 
@@ -43,21 +43,3 @@ Numeric get_lande_spin_constant(const Index species) noexcept;
  * @return Numeric Lande Lambda constant
  */
 Numeric get_lande_lambda_constant() noexcept;
-
-/** Reduced dipole moment calculations
- * 
- * Not universal
- * 
- * @param line An absorption line
- * @return Numeric The reduced dipole moment
- */
-Numeric reduced_dipole(const LineRecord& line);
-
-/** Sign of reduced dipole moment calculations
- * 
- * Not universal
- * 
- * @param line An absorption line
- * @return Numeric The sign of the reduced dipole moment
- */
-Numeric sign_reduced_dipole(const LineRecord& line);

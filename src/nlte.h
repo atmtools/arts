@@ -26,7 +26,6 @@
 
 #include "absorption.h"
 #include "gridded_fields.h"
-#include "linerecord.h"
 #include "matpackI.h"
 
 /** Sets up the solution matrix for linear statistical equilibrium equation
@@ -96,14 +95,14 @@ void set_constant_statistical_equilibrium_matrix(MatrixView A,
  * @param[in] abs_lines All lines of interest
  * @return Vector Einstein coefficient for spontaneuos emission of all lines
  */
-Vector createAij(const ArrayOfLineRecord& abs_lines);
+Vector createAij(const ArrayOfArrayOfAbsorptionLines& abs_lines);
 
 /** Create a Bij object
  * 
  * @param[in] abs_lines All lines of interest
  * @return Vector Einstein coefficient for induced emission of all lines
  */
-Vector createBij(const ArrayOfLineRecord& abs_lines);
+Vector createBij(const ArrayOfArrayOfAbsorptionLines& abs_lines);
 
 /** Create a Bji object
  * 
@@ -111,7 +110,7 @@ Vector createBij(const ArrayOfLineRecord& abs_lines);
  * @param[in] abs_lines All lines of interest
  * @return Vector Einstein coefficient for induced absorption of all lines
  */
-Vector createBji(ConstVectorView Bij, const ArrayOfLineRecord& abs_lines);
+Vector createBji(const Vector& Bij, const ArrayOfArrayOfAbsorptionLines& abs_lines);
 
 /** Create a Cji object
  * 
@@ -120,8 +119,8 @@ Vector createBji(ConstVectorView Bij, const ArrayOfLineRecord& abs_lines);
  * @param[in] T Temperature
  * @return Vector Collisional rate of change from lower to upper state level
  */
-Vector createCji(ConstVectorView Cij,
-                 const ArrayOfLineRecord& abs_lines,
+Vector createCji(const Vector& Cij,
+                 const ArrayOfArrayOfAbsorptionLines& abs_lines,
                  const Numeric& T);
 
 /** Set the Cji object
@@ -132,11 +131,10 @@ Vector createCji(ConstVectorView Cij,
  * @param[in] T Temperature
  * @param[in] n Size of Cij
  */
-void setCji(VectorView Cji,
-            ConstVectorView Cij,
-            const ArrayOfLineRecord& abs_lines,
-            const Numeric& T,
-            const Index n);
+void setCji(Vector& Cji,
+            const Vector& Cij,
+            const ArrayOfArrayOfAbsorptionLines& abs_lines,
+            const Numeric& T);
 
 /** Gets collisional factors from coefficients
  * 
@@ -152,16 +150,16 @@ void setCji(VectorView Cji,
  * @param[in] P Pressure
  */
 void nlte_collision_factorsCalcFromCoeffs(
-    Vector& Cij,
-    Vector& Cji,
-    const ArrayOfLineRecord& abs_lines,
-    const ArrayOfArrayOfSpeciesTag& abs_species,
-    const ArrayOfArrayOfGriddedField1& collision_coefficients,
-    const ArrayOfQuantumIdentifier& collision_line_identifiers,
-    const SpeciesAuxData& isotopologue_ratios,
-    const ConstVectorView vmr,
-    const Numeric& T,
-    const Numeric& P);
+  Vector& Cij,
+  Vector& Cji,
+  const ArrayOfArrayOfAbsorptionLines& abs_lines,
+  const ArrayOfArrayOfSpeciesTag& abs_species,
+  const ArrayOfArrayOfGriddedField1& collision_coefficients,
+  const ArrayOfQuantumIdentifier& collision_line_identifiers,
+  const SpeciesAuxData& isotopologue_ratios,
+  const ConstVectorView vmr,
+  const Numeric& T,
+  const Numeric& P);
 
 /** Finds upper and lower states in SEE Matrix
  * 
@@ -171,10 +169,10 @@ void nlte_collision_factorsCalcFromCoeffs(
  * @param[in] nlte_quantum_identifiers As WSV
  */
 void nlte_positions_in_statistical_equilibrium_matrix(
-    ArrayOfIndex& upper,
-    ArrayOfIndex& lower,
-    const ArrayOfLineRecord& abs_lines,
-    const ArrayOfQuantumIdentifier& nlte_quantum_identifiers);
+  ArrayOfIndex& upper,
+  ArrayOfIndex& lower,
+  const ArrayOfArrayOfAbsorptionLines& abs_lines,
+  const EnergyLevelMap& nlte_field);
 
 /** Finds a unique lower state if one exists or returns index to last element
  * 

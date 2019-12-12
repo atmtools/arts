@@ -275,31 +275,6 @@ void define_agenda_data() {
       OUTPUT("geo_pos"),
       INPUT("ppath")));
 
-  //   agenda_data.push_back
-  //     (AgRecord
-  //      ( NAME( "geomag_los_calc_agenda" ),
-  //        DESCRIPTION
-  //        (
-  //         "Calculates the magnetic field along a given propagation path.\n"
-  //         "\n"
-  //         "The agenda relates the vector of the geomagnetic field to \n"
-  //         "a specified propagation path. As a result the magnitude of \n"
-  //         "this vector is calculated in each point of the propagation \n"
-  //         "path, alongside with the corresponding angle between the \n"
-  //         "geomagnetic field vector and the propagation direction.  \n"
-  //         "The output is the WSV *geomag_los*, containing the two \n"
-  //         "quantities discussed above. \n"
-  //         "\n"
-  //         "Output:    \n"
-  //         "   geomag_los : Magnetic field along LOS plus angle  \n"
-  //         "\n"
-  //         "Input: ppath_   \n"
-  //         "       geomag_intensitities.xml \n"
-  //         "\n"
-  //           ),
-  //        OUTPUT( "geomag_los" ),
-  //        INPUT(  )));
-
   agenda_data.push_back(AgRecord(
       NAME("inversion_iterate_agenda"),
       DESCRIPTION(
