@@ -8,6 +8,7 @@ file(GLOB_RECURSE PYTHON_SRC_FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/*.py)
 set(ARTS_BINARY_DIR ${CMAKE_BINARY_DIR/src})
 set(ARTS_SRC_DIR ${CMAKE_SOURCE_DIR})
+file(STRINGS ${CMAKE_SOURCE_DIR}/VERSION ARTS_VERSION)
 foreach(file ${PYTHON_SRC_FILES})
   configure_file(${file} ${file} @ONLY)
 endforeach()
