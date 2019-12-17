@@ -676,8 +676,8 @@ public:
    * @param[in] sl A single line
    */
   void AppendSingleLine(SingleLine&& sl) {
-    if(NumBroadeners() not_eq sl.LowerQuantumElems() or
-       NumBroadeners() not_eq sl.UpperQuantumElems())
+    if(NumLocalQuanta() not_eq sl.LowerQuantumElems() or
+       NumLocalQuanta() not_eq sl.UpperQuantumElems())
       throw std::runtime_error("Error calling appending function, bad size of quantum numbers");
     
     if(NumLines() not_eq 0 and 
@@ -700,8 +700,8 @@ public:
    * @param[in] sl A single line
    */
   void AppendSingleLine(const SingleLine& sl) {
-    if(NumBroadeners() not_eq sl.LowerQuantumElems() or
-       NumBroadeners() not_eq sl.UpperQuantumElems())
+    if(NumLocalQuanta() not_eq sl.LowerQuantumElems() or
+       NumLocalQuanta() not_eq sl.UpperQuantumElems())
       throw std::runtime_error("Error calling appending function, bad size of quantum numbers");
     
     if(NumLines() not_eq 0 and 
@@ -836,7 +836,10 @@ public:
   std::vector<SingleLine>& AllLines() noexcept {return mlines;}
   
   /** Number of broadening species */
-  Index NumBroadeners() const noexcept {return Index(mlocalquanta.size());}
+  Index NumBroadeners() const noexcept {return Index(mbroadeningspecies.nelem());}
+  
+  /** Number of local quantum numbers */
+  Index NumLocalQuanta() const noexcept {return Index(mlocalquanta.size());}
   
   /** Remove quantum numbers that are not used by even a single line
    */

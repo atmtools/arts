@@ -1076,6 +1076,37 @@ void abs_linesDeleteLinesWithBadOrHighChangingJs(ArrayOfAbsorptionLines& abs_lin
   out2 << "Deleted " << i << " lines.\n";
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesSetEmptyBroadeningParametersToEmpty(ArrayOfAbsorptionLines& abs_lines, const Verbosity& /*verbosity*/)
+{
+  for (auto& band: abs_lines) {
+    std::array<bool, LineShape::nVars> var_is_empty;
+    
+    // Species by species can be empty, so loop each species by themselves
+    for (Index ispec=0; ispec<band.NumBroadeners(); ispec++) {
+      var_is_empty.fill(true);
+      
+      // Check if any variable in this band for any line is non-empty
+      for (Index iline=0; iline<band.NumLines(); iline++) {
+        for (Index ivar=0; ivar < LineShape::nVars; ivar++) {
+          if (not LineShape::modelparameterEmpty(band.Line(iline).LineShape().Data()[ispec].Data()[ivar])) {
+            var_is_empty[ivar] = false;
+          }
+        }
+      }
+      
+      // Remove empty variables from the writing.  This will also speed up some calculations
+      for (Index iline=0; iline<band.NumLines(); iline++) {
+        for (Index ivar=0; ivar < LineShape::nVars; ivar++) {
+          if (var_is_empty[ivar]) {
+            band.Line(iline).LineShape().Data()[ispec].Data()[ivar].type = LineShape::TemperatureModel::None;
+          }
+        }
+      }
+    }
+  }
+}
+
 /////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////// Change of style of computations for whole bands
 /////////////////////////////////////////////////////////////////////////////////////
