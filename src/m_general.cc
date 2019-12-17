@@ -490,6 +490,11 @@ void GetEnvironmentVariable(  // WS Generic Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void GetNumberOfThreads(Index& nthreads, const Verbosity& /* verbosity */) {
+  nthreads = arts_omp_get_max_threads();
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void GetEnvironmentVariable(  // WS Generic Output:
     Index& i,
     // WS Generic Input:
@@ -511,3 +516,17 @@ void GetEnvironmentVariable(  // WS Generic Output:
     throw std::runtime_error(os.str());
   }
 }
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+#ifdef _OPENMP
+void SetNumberOfThreads(const Index& nthreads,
+                        const Verbosity& /* verbosity */) {
+  omp_set_num_threads((int)nthreads);
+}
+#else
+void SetNumberOfThreads(const Index& /* nthreads */,
+                        const Verbosity& verbosity) {
+  CREATE_OUT1;
+  out1 << "No OpenMP support. Can't change number of threads.\n";
+}
+#endif
