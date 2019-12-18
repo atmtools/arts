@@ -303,6 +303,30 @@ inline Numeric& SingleModelParameter(ModelParameters& mp, const String& type) {
   std::terminate();
 }
 
+inline bool modelparameterEmpty(const ModelParameters mp) noexcept {
+  switch(mp.type) {
+    case TemperatureModel::None:   // 0
+      return true;
+    case TemperatureModel::T0:     // Constant, X0
+      return (mp.X0 == 0);
+    case TemperatureModel::T1:     // Standard, X0 * (T0/T) ^ X1
+      return (mp.X0 == 0);
+    case TemperatureModel::T2:     // X0 * (T0/T) ^ X1 * (1 + X2 * log(T/T0));
+      return (mp.X0 == 0);
+    case TemperatureModel::T3:     // X0 + X1 * (T - T0)
+      return (mp.X0 == 0 and mp.X1 == 0);
+    case TemperatureModel::T4:     // (X0 + X1 * (T0/T - 1)) * (T0/T)^X2;
+      return (mp.X0 == 0 and mp.X1 == 0);
+    case TemperatureModel::T5:     // X0 * (T0/T)^(0.25 + 1.5*X1)
+      return (mp.X0 == 0);
+    case TemperatureModel::LM_AER: // X(200) = X0; X(250) = X1; X(298) = X2; X(340) = X3;  Linear interpolation in between
+      return (mp.X0 == 0 and mp.X1 == 0 and mp.X2 == 0 and mp.X3 == 0);
+    case TemperatureModel::DPL:    // X0 * (T0/T) ^ X1 + X2 * (T0/T) ^ X3
+      return (mp.X0 == 0 and mp.X2 == 0);
+  }
+  std::terminate();
+}
+
 /** Output operator for ModelParameters */
 inline std::ostream& operator<<(std::ostream& os, const ModelParameters& mp) {
   os << temperaturemodel2string(mp.type) << ' ' << mp.X0 << ' ' << mp.X1 << ' '

@@ -581,6 +581,23 @@ void define_md_data_raw() {
           "Index to indicate if dv is to be left as zero")));
 
   md_data_raw.push_back(
+      MdRecord(NAME("abs_linesSetEmptyBroadeningParametersToEmpty"),
+               DESCRIPTION("Sets a broadening parameter to empty if it is efficiently empty\n"
+                           "\n"
+                           "This will not save RAM but it will save disk space (reading time),\n"
+                           "and computational time by not doing unecessary calculations\n"),
+               AUTHORS("Richard Larsson"),
+               OUT("abs_lines"),
+               GOUT(),
+               GOUT_TYPE(),
+               GOUT_DESC(),
+               IN("abs_lines"),
+               GIN(),
+               GIN_TYPE(),
+               GIN_DEFAULT(),
+               GIN_DESC()));
+
+  md_data_raw.push_back(
       MdRecord(NAME("abs_linesSetNormalization"),
                DESCRIPTION("Sets normalization type for all lines.\n"
                            "\n"
