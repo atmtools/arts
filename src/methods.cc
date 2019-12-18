@@ -6789,6 +6789,20 @@ void define_md_data_raw() {
       GIN_DESC("Name of environment variable.")));
 
   md_data_raw.push_back(
+      MdRecord(NAME("GetNumberOfThreads"),
+               DESCRIPTION("Returns the number of threads used by ARTS.\n"),
+               AUTHORS("Oliver Lemke"),
+               OUT(),
+               GOUT("nthreads"),
+               GOUT_TYPE("Index"),
+               GOUT_DESC("Number of threads."),
+               IN(),
+               GIN(),
+               GIN_TYPE(),
+               GIN_DEFAULT(),
+               GIN_DESC()));
+
+  md_data_raw.push_back(
       MdRecord(NAME("GriddedFieldGetName"),
                DESCRIPTION("Get the name of a GriddedField.\n"
                            "\n"
@@ -17149,6 +17163,20 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, "1"),
       GIN_DESC("Quantum numbers that are defined for the band",
                "Flag to check if only global quantum numbers should be used")));
+
+  md_data_raw.push_back(
+      MdRecord(NAME("SetNumberOfThreads"),
+               DESCRIPTION("Change the number of threads used by ARTS.\n"),
+               AUTHORS("Oliver Lemke"),
+               OUT(),
+               GOUT(),
+               GOUT_TYPE(),
+               GOUT_DESC(),
+               IN(),
+               GIN("nthreads"),
+               GIN_TYPE("Index"),
+               GIN_DEFAULT(NODEF),
+               GIN_DESC("Number of threads.")));
 
   md_data_raw.push_back(MdRecord(
       NAME("SparseSparseMultiply"),
