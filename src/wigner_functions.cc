@@ -101,12 +101,12 @@ bool is_wigner_ready(int j) {
   return not(j > wigxjpf_max_prime_decomp);
 }
 
-bool is_Wigner3_ready(const Rational& J) {
+bool is_wigner3_ready(const Rational& J) {
   const int test = (J * 6).toInt() / 2 + 1;  // nb. J can be half-valued
   return is_wigner_ready(test);
 }
 
-bool is_Wigner6_ready(const Rational& J) {
+bool is_wigner6_ready(const Rational& J) {
   const int test = (J * 4).toInt() + 1;  // nb. J can be half-valued
   return is_wigner_ready(test);
 }

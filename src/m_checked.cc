@@ -900,8 +900,11 @@ void lbl_checkedCalc(Index& lbl_checked,
   if (abs_lines_per_species.nelem() not_eq abs_species.nelem()) {
     std::ostringstream os;
     os << "abs_lines_per_species and abs_species must have same length.\n"
-    << "Instead len(abs_lines_per_species) = " << abs_lines_per_species.nelem() << ' '
-    << "and len(abs_species) = " << abs_species.nelem() << '\n';
+       << "Instead len(abs_lines_per_species) = "
+       << abs_lines_per_species.nelem()
+       << " and len(abs_species) = "
+       << abs_species.nelem()
+       << '\n';
     throw std::runtime_error(os.str());
   }
   
@@ -917,16 +920,12 @@ void lbl_checkedCalc(Index& lbl_checked,
       }
     }
     
-    const bool any_zeeman = specs[0].Type() == SpeciesTag::TYPE_ZEEMAN;
-    for (auto& s: specs) {
-      if (s.Type() not_eq SpeciesTag::TYPE_ZEEMAN) {
-        if (any_zeeman) {
-          std::ostringstream os;
-          os << "Zeeman species found but not all sub-species support Zeeman\n";
-          os << "Offending tag: " << specs << '\n';
-          throw std::runtime_error(os.str());
-        }
-      }
+    const bool any_zeeman = std::any_of(specs.cbegin(), specs.cend(), [](auto& x){return x.Type() == SpeciesTag::TYPE_ZEEMAN;});
+    if (any_zeeman and (not std::all_of(specs.cbegin(), specs.cend(), [](auto& x){return x.Type() == SpeciesTag::TYPE_ZEEMAN;}))) {
+      std::ostringstream os;
+      os << "Zeeman species found but not all sub-species tags support Zeeman effect.\n";
+      os << "Offending tag: " << specs << '\n';
+      throw std::runtime_error(os.str());
     }
     
     if (any_zeeman) {
@@ -934,10 +933,19 @@ void lbl_checkedCalc(Index& lbl_checked,
         for (Index k=0; k<band.NumLines(); k++) {
           auto Ju = band.UpperQuantumNumber(k, QuantumNumberType::J);
           auto Jl = band.LowerQuantumNumber(k, QuantumNumberType::J);
-          if (Ju.isDefined() and not is_Wigner3_ready(Ju)) {
-            throw std::runtime_error("Bad wigner numbers for upper state J.  Try increasing the Wigner memory allocation.\n");
-          } else if (Jl.isDefined() and not is_Wigner3_ready(Jl)) {
-            throw std::runtime_error("Bad wigner numbers for lower state J.  Try increasing the Wigner memory allocation.\n");
+          auto Ze = band.Line(k).Zeeman();
+          if (Ju.isDefined()) {
+            throw std::runtime_error("Bad upper state J(s).\n");
+          } else if (Jl.isDefined()) {
+            throw std::runtime_error("Bad lower state J(s).\n");
+          } else if (not is_wigner3_ready(Ju)) {
+            throw std::runtime_error("Bad Wigner numbers for lower state J.  Try increasing the Wigner memory allocation.\n");
+          } else if (not is_wigner3_ready(Jl)) {
+            throw std::runtime_error("Bad Wigner numbers for lower state J.  Try increasing the Wigner memory allocation.\n");
+          } else if (Ze.gu() == 0 ? false : not std::isnormal(Ze.gu())) {
+            throw std::runtime_error("Bad value(s) in the upper Zeeman data not allowed when modeling Zeeman effect.\n");
+          } else if (Ze.gl() == 0 ? false : not std::isnormal(Ze.gl())) {
+            throw std::runtime_error("Bad value(s) in the lower Zeeman data not allowed when modeling Zeeman effect.\n");
           }
         }
       }

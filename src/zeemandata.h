@@ -241,7 +241,7 @@ constexpr bool GoodHundData(const QuantumNumbers& qns) noexcept {
  * @param[in] Lambda The Lambda quantum number of the level
  * @param[in] S The S quantum number of the level
  * @param[in] GS The spin Landé coefficient of the molecule
- * @param[in] GS The Landé coefficient of the molecule
+ * @param[in] GL The Landé coefficient of the molecule
  * 
  * @return Zeeman splitting coefficient of the level
  */
@@ -278,7 +278,7 @@ constexpr Numeric SimpleGCaseB(Rational N,
  * @param[in] Lambda The Lambda quantum number of the level
  * @param[in] Sigma The Sigma quantum number of the level
  * @param[in] GS The spin Landé coefficient of the molecule
- * @param[in] GS The Landé coefficient of the molecule
+ * @param[in] GL The Landé coefficient of the molecule
  * 
  * @return Zeeman splitting coefficient of the level
  */
