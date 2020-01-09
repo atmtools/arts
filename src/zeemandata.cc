@@ -91,10 +91,10 @@ Numeric case_b_g_coefficient_o2(Rational j,
            2 * GLE * cos(2 * phi) / (2 * J + 1) - GR;
 }
 
-Numeric closed_shell_trilinear(Rational k,
-                               Rational j,
-                               Numeric gperp,
-                               Numeric gpara)
+constexpr Numeric closed_shell_trilinear(Rational k,
+                                         Rational j,
+                                         Numeric gperp,
+                                         Numeric gpara)
 {
   if (k.isUndefined() or j.isUndefined() or j == 0)
     return 0;

@@ -934,9 +934,9 @@ void lbl_checkedCalc(Index& lbl_checked,
           auto Ju = band.UpperQuantumNumber(k, QuantumNumberType::J);
           auto Jl = band.LowerQuantumNumber(k, QuantumNumberType::J);
           auto Ze = band.Line(k).Zeeman();
-          if (Ju.isDefined()) {
+          if (Ju.isUndefined()) {
             throw std::runtime_error("Bad upper state J(s).\n");
-          } else if (Jl.isDefined()) {
+          } else if (Jl.isUndefined()) {
             throw std::runtime_error("Bad lower state J(s).\n");
           } else if (not is_wigner3_ready(Ju)) {
             throw std::runtime_error("Bad Wigner numbers for lower state J.  Try increasing the Wigner memory allocation.\n");
@@ -949,6 +949,7 @@ void lbl_checkedCalc(Index& lbl_checked,
           }
         }
       }
+    } else /*if (not any any_zeeman)*/ {
     }
   }
   
