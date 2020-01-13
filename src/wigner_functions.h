@@ -179,7 +179,7 @@ bool is_wigner_ready(int j);
  * @return true If is_wigner_ready(3J + 1) does
  * @return false Otherwise
  */
-bool is_Wigner3_ready(const Rational& J);
+bool is_wigner3_ready(const Rational& J);
 
 /** Tells if the function is ready for Wigner 6J calculations
  * 
@@ -187,4 +187,4 @@ bool is_Wigner3_ready(const Rational& J);
  * @return true If is_wigner_ready(4J + 1)
  * @return false Otherwise
  */
-bool is_Wigner6_ready(const Rational& J);
+bool is_wigner6_ready(const Rational& J);

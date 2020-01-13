@@ -272,6 +272,26 @@ static constexpr Numeric electron_mass = 2 * h * R_inf / (c * pow2(alpha));
 /** Mass of resting electron convenience name [kg] **/
 static constexpr Numeric m_e = electron_mass;
 
+/** Mass ratio of electrons to protons [-]
+    From: https://physics.nist.gov/cgi-bin/cuu/Value?mpsme
+    Date: 2020-01-08
+    Reported error: (11)
+    **/
+static constexpr Numeric mass_ratio_electrons_per_proton = 1'836.152'673'43;
+
+/** Mass of a proton [kg] */
+static constexpr Numeric proton_mass = electron_mass * mass_ratio_electrons_per_proton;
+
+/** Mass ratio of electrons to protons [-]
+    From: https://physics.nist.gov/cgi-bin/cuu/Value?mnsme
+    Date: 2020-01-08
+    Reported error: (89)
+    **/
+static constexpr Numeric mass_ratio_electrons_per_neutron = 1'838.683'661'73;
+
+/** Mass of a neutron [kg] */
+static constexpr Numeric neutron_mass = electron_mass * mass_ratio_electrons_per_neutron;
+
 /** Bohr magneton [J/T] **/
 static constexpr Numeric bohr_magneton = e * h_bar / (2 * m_e);
 

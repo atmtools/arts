@@ -64,12 +64,11 @@ Numeric case_b_g_coefficient_o2(Rational j,
   else if (j == 0)
     return 0;
 
-  Numeric J = j.toNumeric();
+  auto J = j.toNumeric();
 
-  Numeric nom = (lB + lD * (J * J + J + 1) + lH * pow2(J * J + J + 1)) *
-                (2 * sqrt(J * J + J) / (2 * J + 1));
+  auto nom = (lB + lD * (J * J + J + 1) + lH * pow2(J * J + J + 1)) * (2 * sqrt(J * J + J) / (2 * J + 1));
 
-  Numeric denom =
+  auto denom =
       B * J * (J - 1) - D * pow2(J * (J - 1)) + H * pow3(J * (J - 1)) +
       (gB + gD * J * (J - 1) + gH * pow2(J * (J - 1))) * (J - 1) +
       (lB + lD * J * (J - 1) + lH * pow2(J * (J - 1))) *
@@ -80,7 +79,7 @@ Numeric case_b_g_coefficient_o2(Rational j,
        (lB + lD * (J + 2) * (J + 1) + lH * pow2((J + 2) * (J + 1))) *
            (2. / 3. - 2 * (J + 1) / (2 * J + 1)));
 
-  Numeric phi = atan2(2 * nom, denom) / 2;
+  auto phi = atan2(2 * nom, denom) / 2;
 
   if (j == n)
     return (GS + GR) / (J * (J + 1)) - GR;
@@ -90,6 +89,17 @@ Numeric case_b_g_coefficient_o2(Rational j,
   else /*if(j > n)*/
     return (GS + GR) * (pow2(sin(phi)) / J - pow2(cos(phi)) / (J + 1)) -
            2 * GLE * cos(2 * phi) / (2 * J + 1) - GR;
+}
+
+constexpr Numeric closed_shell_trilinear(Rational k,
+                                         Rational j,
+                                         Numeric gperp,
+                                         Numeric gpara)
+{
+  if (k.isUndefined() or j.isUndefined() or j == 0)
+    return 0;
+  else
+    return gperp + (gperp + gpara) * Numeric(k*k / (j*(j+1)));
 }
 
 Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) noexcept {
@@ -146,6 +156,49 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) noexcept {
             JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
         return Model({gu, gl});
       }
+    }
+  } else if (qid.SpeciesName() == "CO") {
+    if (qid.Isotopologue() == SpeciesTag("CO-26").Isotopologue()) {
+      Numeric gperp = -0.2689 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
+      
+      return Model({gperp, gperp});
+    }
+  } else if (qid.SpeciesName() == "OCS") {
+    if (qid.Isotopologue() == SpeciesTag("OCS-622").Isotopologue()) {
+      Numeric gperp = -.02889 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
+      Numeric gpara = 0 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
+      
+      auto JU = qid.UpperQuantumNumber(QuantumNumberType::J);
+      auto KU = qid.UpperQuantumNumber(QuantumNumberType::Ka);
+      auto JL = qid.LowerQuantumNumber(QuantumNumberType::J);
+      auto KL = qid.LowerQuantumNumber(QuantumNumberType::Ka);
+      
+      return Model({closed_shell_trilinear(KU, JU, gperp, gpara),
+                    closed_shell_trilinear(KL, JL, gperp, gpara)});
+    } else if (qid.Isotopologue() == SpeciesTag("OCS-624").Isotopologue()) {
+      Numeric gperp = -.0285 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
+      Numeric gpara = -.061 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
+      
+      auto JU = qid.UpperQuantumNumber(QuantumNumberType::J);
+      auto KU = qid.UpperQuantumNumber(QuantumNumberType::Ka);
+      auto JL = qid.LowerQuantumNumber(QuantumNumberType::J);
+      auto KL = qid.LowerQuantumNumber(QuantumNumberType::Ka);
+      
+      return Model({closed_shell_trilinear(KU, JU, gperp, gpara),
+                    closed_shell_trilinear(KL, JL, gperp, gpara)});
+    }
+  } else if (qid.SpeciesName() == "CO2") {
+    if (qid.Isotopologue() == SpeciesTag("CO2-626").Isotopologue()) {
+      Numeric gperp = -.05508 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
+      Numeric gpara = 0 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
+      
+      auto JU = qid.UpperQuantumNumber(QuantumNumberType::J);
+      auto KU = qid.UpperQuantumNumber(QuantumNumberType::Ka);
+      auto JL = qid.LowerQuantumNumber(QuantumNumberType::J);
+      auto KL = qid.LowerQuantumNumber(QuantumNumberType::Ka);
+      
+      return Model({closed_shell_trilinear(KU, JU, gperp, gpara),
+                    closed_shell_trilinear(KL, JL, gperp, gpara)});
     }
   }
 
