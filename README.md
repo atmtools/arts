@@ -1,4 +1,5 @@
-[![Travis](https://img.shields.io/travis/atmtools/arts/master.svg?label=Travis%20CI)](https://travis-ci.org/atmtools/arts)
+[![Build](https://github.com/atmtools/arts/workflows/Build/badge.svg)](https://github.com/atmtools/arts/actions)
+
 
 Welcome to ARTS
 ===============
