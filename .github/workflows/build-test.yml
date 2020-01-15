@@ -1,0 +1,131 @@
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        name: [
+          ubuntu-gcc-7,
+          ubuntu-gcc-8,
+          ubuntu-gcc-9,
+          ubuntu-clang-9-nofortran,
+          ubuntu-doc,
+        ]
+
+        include:
+          - name: ubuntu-gcc-7
+            os: ubuntu-18.04
+            compiler: gcc
+            version: "7"
+            doc: "no"
+            arts: "yes"
+            fortran: "yes"
+            check: "yes"
+
+          - name: ubuntu-gcc-8
+            os: ubuntu-18.04
+            compiler: gcc
+            version: "8"
+            doc: "no"
+            arts: "yes"
+            fortran: "yes"
+            check: "yes"
+
+          - name: ubuntu-gcc-9
+            os: ubuntu-18.04
+            compiler: gcc
+            version: "9"
+            doc: "no"
+            arts: "yes"
+            fortran: "yes"
+            check: "yes"
+
+          - name: ubuntu-clang-9-nofortran
+            os: ubuntu-18.04
+            compiler: clang
+            version: "9"
+            doc: "no"
+            arts: "yes"
+            fortran: "no"
+            check: "yes"
+
+          - name: ubuntu-doc
+            os: ubuntu-18.04
+            compiler: gcc
+            version: "9"
+            doc: "yes"
+            arts: "no"
+            fortran: "no"
+            check: "no"
+
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+
+      - name: Setup (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          if [ "${{ matrix.compiler }}" = "clang" ] && [ "${{ matrix.version }}" = "9" ]; then
+             sudo add-apt-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-9 main"
+          fi
+
+          sudo apt-get update
+
+          if [ "${{ matrix.compiler }}" = "gcc" ]; then
+            sudo apt-get install -y g++-${{ matrix.version }}
+            echo "::set-env name=CC::gcc-${{ matrix.version }}"
+            echo "::set-env name=CXX::g++-${{ matrix.version }}"
+          fi
+
+          if [ "${{ matrix.fortran }}" = "yes" ]; then
+            sudo apt-get install -y gfortran-${{ matrix.version }}
+            echo "::set-env name=FC::gfortran-${{ matrix.version }}"
+            echo "::set-env name=USEFORTRAN::1"
+          else
+            echo "::set-env name=USEFORTRAN::0"
+          fi
+
+          if [ "${{ matrix.compiler }}" = "clang" ]; then
+            sudo apt-get install -y clang++-${{ matrix.version }}
+            echo "::set-env name=CC::clang-${{ matrix.version }}"
+            echo "::set-env name=CXX::clang++-${{ matrix.version }}"
+          fi
+
+          if [ "${{ matrix.doc }}" = "yes" ]; then
+            sudo apt-get install -y texlive
+          fi
+
+          sudo apt-get install -y zlib1g-dev libblas-dev liblapack-dev libfftw3-dev
+
+      - name: Configure (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          mkdir cmake-build
+          cd cmake-build
+          cmake -DENABLE_FORTRAN=$USEFORTRAN ..
+
+      - name: Build (Linux)
+        if: runner.os == 'Linux' && matrix.arts == 'yes'
+        run: |
+          cd cmake-build
+          make -j2 -C 3rdparty
+          make -j2 -C src
+
+      - name: Docs (Linux)
+        if: runner.os == 'Linux' && matrix.doc == 'yes'
+        run: |
+          cd cmake-build
+          make -j2 -C doc/uguide
+
+      - name: Check (Linux)
+        if: runner.os == 'Linux' && matrix.check == 'yes'
+        run: |
+          cd cmake-build
+          make check
