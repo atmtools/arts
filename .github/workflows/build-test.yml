@@ -11,14 +11,24 @@ jobs:
       fail-fast: false
       matrix:
         name: [
+          ubuntu-doc,
           ubuntu-gcc-7,
           ubuntu-gcc-8,
           ubuntu-gcc-9,
           ubuntu-clang-9-nofortran,
-          ubuntu-doc,
+          macos-gcc-9,
         ]
 
         include:
+          - name: ubuntu-doc
+            os: ubuntu-18.04
+            compiler: gcc
+            version: "9"
+            doc: "yes"
+            arts: "no"
+            fortran: "no"
+            check: "no"
+
           - name: ubuntu-gcc-7
             os: ubuntu-18.04
             compiler: gcc
@@ -55,14 +65,14 @@ jobs:
             fortran: "no"
             check: "yes"
 
-          - name: ubuntu-doc
-            os: ubuntu-18.04
+          - name: macos-gcc-9
+            os: macos-latest
             compiler: gcc
             version: "9"
-            doc: "yes"
-            arts: "no"
-            fortran: "no"
-            check: "no"
+            doc: "no"
+            arts: "yes"
+            fortran: "yes"
+            check: "yes"
 
     steps:
       - uses: actions/checkout@v1
@@ -104,28 +114,46 @@ jobs:
 
           sudo apt-get install -y zlib1g-dev libblas-dev liblapack-dev libfftw3-dev
 
-      - name: Configure (Linux)
-        if: runner.os == 'Linux'
+      - name: Setup (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install cmake
+          if [ "${{ matrix.compiler }}" = "gcc" ]; then
+            brew install gcc@${{ matrix.version }}
+            echo "::set-env name=CC::gcc-${{ matrix.version }}"
+            echo "::set-env name=CXX::g++-${{ matrix.version }}"
+            if [ "${{ matrix.fortran }}" = "yes" ]; then
+              echo "::set-env name=FC::gfortran-${{ matrix.version }}"
+              echo "::set-env name=USEFORTRAN::1"
+            else
+              echo "::set-env name=USEFORTRAN::0"
+            fi
+          else
+            exit 1
+          fi
+
+      - name: Configure (Linux / macOS)
+        if: runner.os == 'Linux' || runner.os == 'macOS'
         run: |
           mkdir cmake-build
           cd cmake-build
           cmake -DENABLE_FORTRAN=$USEFORTRAN ..
 
-      - name: Build (Linux)
-        if: runner.os == 'Linux' && matrix.arts == 'yes'
+      - name: Build (Linux / macOS)
+        if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.arts == 'yes'
         run: |
           cd cmake-build
           make -j2 -C 3rdparty
           make -j2 -C src
 
-      - name: Docs (Linux)
-        if: runner.os == 'Linux' && matrix.doc == 'yes'
+      - name: Docs (Linux / macOS)
+        if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.doc == 'yes'
         run: |
           cd cmake-build
           make -j2 -C doc/uguide
 
-      - name: Check (Linux)
-        if: runner.os == 'Linux' && matrix.check == 'yes'
+      - name: Check (Linux / macOS)
+        if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.check == 'yes'
         run: |
           cd cmake-build
           make check
