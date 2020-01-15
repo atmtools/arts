@@ -1,4 +1,4 @@
-[![Build](https://github.com/atmtools/arts/workflows/Build/badge.svg)](https://github.com/atmtools/arts/actions)
+[![Build](https://github.com/atmtools/arts/workflows/Build/badge.svg?branch=master)](https://github.com/atmtools/arts/commits/master)
 
 
 Welcome to ARTS
