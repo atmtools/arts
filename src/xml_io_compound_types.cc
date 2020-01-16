@@ -139,6 +139,7 @@ void xml_read_from_stream(istream& is_xml,
   tag.check_name("CovarianceMatrix");
   tag.get_attribute_value("n_blocks", n_blocks);
 
+  covmat = CovarianceMatrix();
   for (Index i = 0; i < n_blocks; i++) {
     tag.read_from_stream(is_xml);
     tag.check_name("Block");
