@@ -1661,7 +1661,13 @@ void Docserver::insert_stylesheet() {
       << "}" << endl
 
       << ".brokendoclink {" << endl
-      << "color: #f00;" << endl
+      << "  color: #f44336;" << endl
+      << "}" << endl
+
+      << "@media (prefers-color-scheme: dark) {" << endl
+      << "  .brokendoclink {" << endl
+      << "    color: #ef9a9a;" << endl
+      << "  }" << endl
       << "}" << endl
 
       << ".goto {" << endl
@@ -1704,9 +1710,15 @@ void Docserver::insert_stylesheet() {
       << "}" << endl
 
       << ".error {" << endl
-      << "color: #ff0000;" << endl
+      << "color: #f44336;" << endl
       << "font-weight: bold;" << endl
       << "font-size: 1.2em;" << endl
+      << "}" << endl
+
+      << "@media (prefers-color-scheme: dark) {" << endl
+      << "  .error {" << endl
+      << "    color: #ef9a9a;" << endl
+      << "  }" << endl
       << "}" << endl
 
       << "div.footer {" << endl
