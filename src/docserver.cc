@@ -1676,12 +1676,10 @@ void Docserver::insert_stylesheet() {
       << "}" << endl
 
       << ".goto {" << endl
-      << "font-size: small;" << endl
       << "float: right;" << endl
       << "}" << endl
 
       << ".breadcrumbs {" << endl
-      << "font-size: small;" << endl
       << "float: left;" << endl
       << "}" << endl
 
