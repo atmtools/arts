@@ -1577,6 +1577,15 @@ void Docserver::insert_stylesheet() {
       << endl
       << "a:hover { color: #f57900; text-decoration: none; }" << endl
 
+      << "@media (prefers-color-scheme: dark) {" << endl
+      << "  body { background-color: #121212; color: #b0bec5; }" << endl
+      << "  a:link { color: #90caf9; }" << endl
+      << "  a:visited { color: #bbdefb; }" << endl
+      << "  a:hover { color: #ffcc80; }" << endl
+      << "  a:active { color: #ffcc80; background-color: #121212; }"
+      << endl
+      << "}" << endl
+
       << "table.list {" << endl
       << "width: 90%;" << endl
       << "margin-left: 5%;" << endl
@@ -1609,6 +1618,16 @@ void Docserver::insert_stylesheet() {
       << "border-left: solid 1px #ddd;" << endl
       << "border-right: solid 1px #ddd;" << endl
       << "padding: 2px;" << endl
+      << "}" << endl
+
+      << "@media (prefers-color-scheme: dark) {" << endl
+      << "  #navbar {" << endl
+      << "    background-color: #121212;" << endl
+      << "    color: #b0bec5;" << endl
+      << "    border-bottom-color: #b0bec5;" << endl
+      << "    border-left-color: #b0bec5;" << endl
+      << "    border-right-color: #b0bec5;" << endl
+      << "  }" << endl
       << "}" << endl
 
       << ".firstcol {" << endl
