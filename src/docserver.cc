@@ -1570,12 +1570,26 @@ void Docserver::insert_doc() {
   */
 void Docserver::insert_stylesheet() {
   get_os()
-      << "body { font-family: monospace; }" << endl
+      << "@import url('https://fonts.googleapis.com/css?family=Inconsolata:regular,bold');"
+      << endl
+
+      << "body { font-family: 'Inconsolata', monospace; }" << endl
       << "a:link { color: #3465a4; text-decoration: none; }" << endl
       << "a:visited { color: #729fcf; text-decoration: none; }" << endl
       << "a:active { color: #ce5c00; text-decoration: none; background-color: #eeeeec}"
       << endl
       << "a:hover { color: #f57900; text-decoration: none; }" << endl
+
+      << "@media (prefers-color-scheme: dark) {" << endl
+      << "  body { background-color: #121212; color: #b0bec5; }" << endl
+      << "  a:link { color: #90caf9; }" << endl
+      << "  a:visited { color: #bbdefb; }" << endl
+      << "  a:hover { color: #ffcc80; }" << endl
+      << "  a:active { color: #ffcc80; background-color: #121212; }"
+      << endl
+      << "}" << endl
+
+      << "pre { font-family: 'Inconsolata', monospace; }" << endl
 
       << "table.list {" << endl
       << "width: 90%;" << endl
@@ -1611,6 +1625,16 @@ void Docserver::insert_stylesheet() {
       << "padding: 2px;" << endl
       << "}" << endl
 
+      << "@media (prefers-color-scheme: dark) {" << endl
+      << "  #navbar {" << endl
+      << "    background-color: #121212;" << endl
+      << "    color: #b0bec5;" << endl
+      << "    border-bottom-color: #b0bec5;" << endl
+      << "    border-left-color: #b0bec5;" << endl
+      << "    border-right-color: #b0bec5;" << endl
+      << "  }" << endl
+      << "}" << endl
+
       << ".firstcol {" << endl
       << "float: left;" << endl
       << "clear: left;" << endl
@@ -1642,16 +1666,20 @@ void Docserver::insert_stylesheet() {
       << "}" << endl
 
       << ".brokendoclink {" << endl
-      << "color: #f00;" << endl
+      << "  color: #f44336;" << endl
+      << "}" << endl
+
+      << "@media (prefers-color-scheme: dark) {" << endl
+      << "  .brokendoclink {" << endl
+      << "    color: #ef9a9a;" << endl
+      << "  }" << endl
       << "}" << endl
 
       << ".goto {" << endl
-      << "font-size: small;" << endl
       << "float: right;" << endl
       << "}" << endl
 
       << ".breadcrumbs {" << endl
-      << "font-size: small;" << endl
       << "float: left;" << endl
       << "}" << endl
 
@@ -1685,9 +1713,15 @@ void Docserver::insert_stylesheet() {
       << "}" << endl
 
       << ".error {" << endl
-      << "color: #ff0000;" << endl
+      << "color: #f44336;" << endl
       << "font-weight: bold;" << endl
       << "font-size: 1.2em;" << endl
+      << "}" << endl
+
+      << "@media (prefers-color-scheme: dark) {" << endl
+      << "  .error {" << endl
+      << "    color: #ef9a9a;" << endl
+      << "  }" << endl
       << "}" << endl
 
       << "div.footer {" << endl
