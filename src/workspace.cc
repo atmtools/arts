@@ -423,11 +423,7 @@ void Workspace::define_wsv_data() {
           "absorption model species for water vapor and oxygen \n"
           "([\"H2O-PWR98\", \"O2-PWR93\"]).\n"
           "\n"
-          "It only makes sense to put a species here if is either a water vapor\n"
-          "species, or some other species that uses *abs_h2o*, that is, for which\n"
-          "the absorption coefficient depends directly on water vapor.\n"
-          "\n"
-          "See user guide and online documentation of *abs_pts* and *abs_lookupCalc*\n"
+          "See user guide and online documentation of *abs_lookupCalc*\n"
           "for more details and usage examples.\n"),
       GROUP("ArrayOfArrayOfSpeciesTag")));
 
@@ -967,7 +963,7 @@ void Workspace::define_wsv_data() {
           "The WSV is used to describe the frequency response of backend channels\n"
           "together with the accompanying WSV *channel2fgrid_indexes*.\n"
           "\n"
-          "This WSV shall have excatly the same sizes as *channels2fgrid_indexes*.\n"
+          "This WSV shall have excatly the same sizes as *channel2fgrid_indexes*.\n"
           "Each element gives the weight to be assigned to the associated\n"
           "monochromatic frequency. \n"),
       GROUP("ArrayOfVector")));
@@ -981,7 +977,7 @@ void Workspace::define_wsv_data() {
           "and practically correct way. For example, that there is sufficient\n"
           "space between the cloudbox and edges of the model atmosphere (for\n"
           "2D and 3D). Pure clear-sky variables are covered by\n"
-          "*atmfields_checked* (and *atmgeo_checked*).\n"
+          "*atmfields_checked* (and *atmgeom_checked*).\n"
           "\n"
           "Relevant checks are performed by *cloudbox_checkedCalc. Only the\n"
           "value 1 is taken as OK.\n"),
@@ -1148,10 +1144,10 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("covmat_block"),
       DESCRIPTION(
-          "Holds matrices used to set blocks in covmat_sx and covmat_se.\n"
+          "Holds matrices used to set blocks in *covmat_sx* and *covmat_se*.\n"
           "\n"
           "The matrix contained in this block will be added to the blocks in\n"
-          "in covmat_sx and covmat_se by the corresponding WSMs. Its dimensions\n"
+          "in *covmat_sx* and *covmat_se* by the corresponding WSMs. Its dimensions\n"
           "must agree with gridpoints of the correlated retrieval quantities."
           "\n"
           "Usage:   Used by the retrievalAdd functions.\n"),
@@ -1160,7 +1156,7 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("covmat_inv_block"),
       DESCRIPTION(
-          "Holds matrices used to set the inverse blocks in covmat_sx and covmat_se.\n"
+          "Holds matrices used to set the inverse blocks in *covmat_sx* and *covmat_se*.\n"
           "\n"
           "The matrix contained in this block will be used as the inverse of the matrix\n"
           "contained in covmat_block.\n"
@@ -1175,7 +1171,7 @@ void Workspace::define_wsv_data() {
           "\n"
           "This matrix (Se) describes the uncertainty of the measurement vector (*y*),\n"
           "and can be writtenn as\n"
-          "   Se = Seps + Kb*Sb*Kb',\n"
+          "   Se = Seps + Kb * Sb * Kb',\n"
           "where Seps describes direct measurement errors (such as thermal noise),\n"
           "Kb is Jacobian for forward model parameters, and Sb describes the uncertainty\n"
           "of the forwatrd model parameters.\n"
@@ -1217,7 +1213,7 @@ void Workspace::define_wsv_data() {
           "Covariance matrix describing the retrieval error due to uncertainties of\n"
           "the observation system.\n"
           "\n"
-          "That is: So = G*Se*G', where G is the gain matrix (*dxdy*).\n"
+          "That is: So = G * Se * G', where G is the gain matrix (*dxdy*).\n"
           "\n"
           "Usage: Set by the covmat_soCalc workspace method to characterize the error.\n"
           "of a successful OEM calculation.\n"
@@ -1231,7 +1227,8 @@ void Workspace::define_wsv_data() {
       DESCRIPTION(
           "Covariance matrix describing the retrieval error due to smoothing.\n"
           "\n"
-          "That is: Ss = (A-I)*Sx*(A-I)', where A is the averaging kernel matrix (*avk*).\n"
+          "That is: Ss = (A-I) * Sx * (A-I)', where A is the averaging kernel "
+          "matrix (*avk*).\n"
           "\n"
           "Usage: Set by the covmat_ssCalc workspace method to characterize the.\n"
           "errors of a successful OEM calculation."
@@ -1944,7 +1941,7 @@ void Workspace::define_wsv_data() {
           "\n"
           "Unit:       W / (m^2 Hz sr) or transmission.\n"
           "\n"
-          "Dimensions: [ nlos*nf*stokes_dim ] where nlos is number of rows in\n"
+          "Dimensions: [ nlos * nf * stokes_dim ] where nlos is number of rows in\n"
           "            mblock_dlos_grid, and nf is length of f_grid.\n"),
       GROUP("Vector")));
 
@@ -2097,7 +2094,7 @@ void Workspace::define_wsv_data() {
           "is changed. The possible choices differ between the radiative\n"
           "methods, including not considering the variable at all.\n"
           "Accordingly, for details see the radiative method you have selected\n"
-          "(e.g., *iyEmissionStandard*, *iyMC*, *iyCloudRadar* and the like).\n"),
+          "(e.g., *iyEmissionStandard*, *iyMC*, *iyActiveSingleScat* and the like).\n"),
       GROUP("String")));
 
   wsv_data.push_back(WsvRecord(
@@ -2809,7 +2806,7 @@ void Workspace::define_wsv_data() {
           "  3: End value of y-part of cost function.\n"
           "  4: Number of iterations used.\n"
           "\n"
-          "See WSM *oem* for a definition of \"cost\". Values not calculated\n"
+          "See WSM *OEM* for a definition of \"cost\". Values not calculated\n"
           "are set to NaN.\n"),
       GROUP("Vector")));
   wsv_data.push_back(
@@ -2841,7 +2838,7 @@ void Workspace::define_wsv_data() {
           "\n"
           "The data shall be given on the standard atmospheric grids. When actually\n"
           "used, this variable must have zeros at all positions outside and at the\n"
-          "border of the *cloudbox*.\n"
+          "border of the cloudbox.\n"
           "\n"
           "Dimensions: [ particle_bulkprop_names, p_grid, lat_grid, lon_grid ]\n"),
       GROUP("Tensor4")));
@@ -3082,7 +3079,7 @@ void Workspace::define_wsv_data() {
           "*ScatElementsPndAndScatAdd* or *ScatSpeciesPndAndScatAdd* and\n"
           "interpolated to the calculation grids *p_grid*, *lat_grid*, and\n"
           "*lon_grid* inside the cloudbox. An alternative method to create\n"
-          "*pnd_field* is *pnd_fieldCalcFromscat_speciesFields*.\n"
+          "*pnd_field* is *pnd_fieldCalcFromParticleBulkProps*.\n"
           "\n"
           "Total number and order of scattering elements in *pnd_field* and (the\n"
           "flattened) *scat_data* has to be identical.\n"
@@ -3091,7 +3088,7 @@ void Workspace::define_wsv_data() {
           "*pnd_field* is required to be 0 at its outer limits (corresponding\n"
           "to the *cloudbox_limits*).\n"
           "\n"
-          "Usage:      Set by user or output of *pnd_fieldCalcFromscat_speciesFields*\n"
+          "Usage:      Set by user or output of *pnd_fieldCalcFromParticleBulkProps*\n"
           "\n"
           "Unit:        m^-3\n"
           "\n"
@@ -3602,9 +3599,6 @@ void Workspace::define_wsv_data() {
                   "   0: Hartmann-Tran type relaxation matrix.\n"
                   "   1: Linear type relaxation matrix.\n"
                   "\n"
-                  "Please use *SetRelaxationMatrixCalcType* for setting this\n"
-                  "variable\n"
-                  "\n"
                   "Dimensions: [number of bands]\n"),
       GROUP("ArrayOfIndex")));
 
@@ -3622,7 +3616,7 @@ void Workspace::define_wsv_data() {
           "The estimated error in the retrieval due to uncertainty in the observations.\n"
           "\n"
           "The vector contains the square roots  of the diagonal elements of  the\n"
-          "covariance matrix of the error due to measurement noise, *S_m* in Rodgers'\n"
+          "covariance matrix of the error due to measurement noise, S_m in Rodgers'\n"
           " book.\n"),
       GROUP("Vector")));
 
@@ -3633,7 +3627,7 @@ void Workspace::define_wsv_data() {
           "observation system.\n"
           "\n"
           "The vector contains the square roots of the diagonal\n"
-          "elements of the covariance matrix of the smoothing error, *S_s* in Rodgers'\n"
+          "elements of the covariance matrix of the smoothing error, S_s in Rodgers'\n"
           "book.\n"),
       GROUP("Vector")));
 
@@ -4044,7 +4038,7 @@ void Workspace::define_wsv_data() {
           "species (i.e., one sub-array per scattering species holding one\n"
           "*scat_meta_single* instance per scattering element assigned to this\n"
           "scattering species). It is primarily used for particle size and shape\n"
-          "distribution calculations using *pnd_fieldCalcFromscat_speciesFields*.\n"
+          "distribution calculations using *pnd_fieldCalcFromParticleBulkProps*.\n"
           "It is also applied for deducing microphysical characterizations of\n"
           "scattering species, e.g., by *particle_massesFromMetaData*.\n"
           "\n"
@@ -4089,7 +4083,7 @@ void Workspace::define_wsv_data() {
           "  content), RR (rain rate), and SR (snow rate).\n"
           "- particle size distribution [*String*]:\n"
           "  the size distribution function/parametrization to apply. For\n"
-          "  currently possible PSDs see *pnd_fieldCalcFromscat_speciesFields*.\n"
+          "  currently possible PSDs see *pnd_fieldCalcFromParticleBulkProps*.\n"
           "\n"
           "Example: [''IWC-MH97'', ''LWC-H98_STCO'', ...]\n"),
       GROUP("ArrayOfString")));
@@ -4303,9 +4297,6 @@ void Workspace::define_wsv_data() {
       DESCRIPTION(
           "The relative azimuth angles associated with the output of\n"
           "*sensor_response*.\n"
-          "\n"
-          "Definition of angle matches *mblock_aa_grid*. Works otherwise as\n"
-          "*sensor_response_f*.\n"
           "\n"
           "The variable shall not be set manually, it will be set together with\n"
           "*sensor_response* by sensor response WSMs.\n"
@@ -4644,7 +4635,7 @@ void Workspace::define_wsv_data() {
           "the rotation is applied before the antenna is included in \n"
           "*sensor_response*, there should be one angle for each row of\n"
           "*mblock_dlos_grid*. After inclusion of an antenna response, the relevant\n"
-          "number of angles is determined by the rows of *antenna_los*.\n"
+          "number of angles is determined by the rows of *antenna_dlos*.\n"
           "\n"
           "It is assumed that the rotation is common for all frequency elements.\n"
           "\n"
@@ -5437,7 +5428,7 @@ void Workspace::define_wsv_data() {
           "\n"
           "Definition of angles matches *sensor_los* (such as first column holds\n"
           "zenith angles), but gives actual observed LOS. That is, the values of\n"
-          "both *sensor_los* and *antenna_los* are considered. Data are provided\n"
+          "both *sensor_los* and *antenna_dlos* are considered. Data are provided\n"
           "for each element of *y*, following y_f, and the number of rows equals\n"
           "the length of *y*.\n"
           "\n"
