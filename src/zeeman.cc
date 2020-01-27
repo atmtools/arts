@@ -220,10 +220,10 @@ void zeeman_on_the_fly(
         // Constants for these lines
         const Numeric QT0 = single_partition_function(band.T0(),
                                                       partition_functions.getParamType(band.QuantumIdentity()),
-                                                    partition_functions.getParam(band.QuantumIdentity()));
-        const Numeric QT = single_partition_function(rtp_temperature,
-                                                      partition_functions.getParamType(band.QuantumIdentity()),
                                                       partition_functions.getParam(band.QuantumIdentity()));
+        const Numeric QT = single_partition_function(rtp_temperature,
+                                                     partition_functions.getParamType(band.QuantumIdentity()),
+                                                     partition_functions.getParam(band.QuantumIdentity()));
         const Numeric dQTdT = dsingle_partition_function_dT(QT, rtp_temperature, temperature_perturbation(jacobian_quantities),
                                                             partition_functions.getParamType(band.QuantumIdentity()),
                                                             partition_functions.getParam(band.QuantumIdentity()));

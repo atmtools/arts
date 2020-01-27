@@ -887,9 +887,15 @@ public:
    * @param[in] type Type of Zeeman polarization
    */
   Index ZeemanCount(size_t k, Zeeman::Polarization type) const noexcept {
-    return Zeeman::nelem(UpperQuantumNumber(k, QuantumNumberType::J),
-                         LowerQuantumNumber(k, QuantumNumberType::J),
-                         type);
+    if (UpperQuantumNumber(k, QuantumNumberType::F).isDefined() and LowerQuantumNumber(k, QuantumNumberType::F).isDefined()) {
+      return Zeeman::nelem(UpperQuantumNumber(k, QuantumNumberType::F),
+                           LowerQuantumNumber(k, QuantumNumberType::F),
+                           type);
+    } else {
+      return Zeeman::nelem(UpperQuantumNumber(k, QuantumNumberType::J),
+                           LowerQuantumNumber(k, QuantumNumberType::J),
+                           type);
+    }
   }
   
   /** Returns the strength of a Zeeman split line
@@ -899,9 +905,15 @@ public:
    * @param[in] i Zeeman line count
    */
   Numeric ZeemanStrength(size_t k, Zeeman::Polarization type, Index i) const noexcept {
-    return mlines[k].Zeeman().Strength(UpperQuantumNumber(k, QuantumNumberType::J),
-                                       LowerQuantumNumber(k, QuantumNumberType::J),
-                                       type, i);
+    if (UpperQuantumNumber(k, QuantumNumberType::F).isDefined() and LowerQuantumNumber(k, QuantumNumberType::F).isDefined()) {
+      return mlines[k].Zeeman().Strength(UpperQuantumNumber(k, QuantumNumberType::F),
+                                         LowerQuantumNumber(k, QuantumNumberType::F),
+                                         type, i);
+    } else {
+      return mlines[k].Zeeman().Strength(UpperQuantumNumber(k, QuantumNumberType::J),
+                                         LowerQuantumNumber(k, QuantumNumberType::J),
+                                         type, i);
+    }
   }
   
   /** Returns the splitting of a Zeeman split line
@@ -911,9 +923,15 @@ public:
    * @param[in] i Zeeman line count
    */
   Numeric ZeemanSplitting(size_t k, Zeeman::Polarization type, Index i) const noexcept {
-    return mlines[k].Zeeman().Splitting(UpperQuantumNumber(k, QuantumNumberType::J),
-                                        LowerQuantumNumber(k, QuantumNumberType::J),
-                                        type, i);
+    if (UpperQuantumNumber(k, QuantumNumberType::F).isDefined() and LowerQuantumNumber(k, QuantumNumberType::F).isDefined()) {
+      return mlines[k].Zeeman().Splitting(UpperQuantumNumber(k, QuantumNumberType::F),
+                                          LowerQuantumNumber(k, QuantumNumberType::F),
+                                          type, i);
+    } else {
+      return mlines[k].Zeeman().Splitting(UpperQuantumNumber(k, QuantumNumberType::J),
+                                          LowerQuantumNumber(k, QuantumNumberType::J),
+                                          type, i);
+    }
   }
   
   /** Set Zeeman effect for all lines that have the correct quantum numbers */
