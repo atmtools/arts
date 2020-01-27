@@ -84,9 +84,12 @@ bool any_negative(const Tensor4& var) {
 
 bool good_J(const AbsorptionLines& band) {
   for (Index i=0; i<band.NumLines(); i++) {
+    auto Fl = band.LowerQuantumNumber(i, QuantumNumberType::F);
+    auto Fu = band.UpperQuantumNumber(i, QuantumNumberType::F);
     auto Jl = band.LowerQuantumNumber(i, QuantumNumberType::J);
     auto Ju = band.UpperQuantumNumber(i, QuantumNumberType::J);
-    if (Jl.isUndefined() or Ju.isUndefined() or 1 < abs(Jl - Ju)) {
+    if ((Fl.isUndefined() or Fu.isUndefined() or 1 < abs(Fl - Fu)) and
+        (Jl.isUndefined() or Ju.isUndefined() or 1 < abs(Jl - Ju))) {
       return false;
     }
   }
