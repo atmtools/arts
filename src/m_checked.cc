@@ -931,17 +931,19 @@ void lbl_checkedCalc(Index& lbl_checked,
     if (any_zeeman) {
       for (auto& band: lines) {
         for (Index k=0; k<band.NumLines(); k++) {
+          auto Fu = band.UpperQuantumNumber(k, QuantumNumberType::F);
+          auto Fl = band.LowerQuantumNumber(k, QuantumNumberType::F);
           auto Ju = band.UpperQuantumNumber(k, QuantumNumberType::J);
           auto Jl = band.LowerQuantumNumber(k, QuantumNumberType::J);
           auto Ze = band.Line(k).Zeeman();
-          if (Ju.isUndefined()) {
-            throw std::runtime_error("Bad upper state J(s).\n");
-          } else if (Jl.isUndefined()) {
-            throw std::runtime_error("Bad lower state J(s).\n");
-          } else if (not is_wigner3_ready(Ju)) {
-            throw std::runtime_error("Bad Wigner numbers for lower state J.  Try increasing the Wigner memory allocation.\n");
-          } else if (not is_wigner3_ready(Jl)) {
-            throw std::runtime_error("Bad Wigner numbers for lower state J.  Try increasing the Wigner memory allocation.\n");
+          if (Fu.isUndefined() and Ju.isUndefined()) {
+            throw std::runtime_error("Bad upper state F(s) or J(s).\n");
+          } else if (Fl.isUndefined() and Jl.isUndefined()) {
+            throw std::runtime_error("Bad lower state F(s) or J(s).\n");
+          } else if (not is_wigner3_ready(Fu.isUndefined() ? Ju : Fu)) {
+            throw std::runtime_error("Bad Wigner numbers for lower state F or J.  Try increasing the Wigner memory allocation.\n");
+          } else if (not is_wigner3_ready(Fl.isUndefined() ? Jl : Fl)) {
+            throw std::runtime_error("Bad Wigner numbers for lower state F or J.  Try increasing the Wigner memory allocation.\n");
           } else if (Ze.gu() == 0 ? false : not std::isnormal(Ze.gu())) {
             throw std::runtime_error("Bad value(s) in the upper Zeeman data not allowed when modeling Zeeman effect.\n");
           } else if (Ze.gl() == 0 ? false : not std::isnormal(Ze.gl())) {
