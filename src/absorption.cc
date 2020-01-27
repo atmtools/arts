@@ -582,6 +582,32 @@ String species_name_from_species_index(const Index spec_ind) {
   return spr.Name();
 }
 
+//!  set_abs_from_first_species.
+/*!
+ Returns vmr for the profile of the first tag group containing
+ the given species.
+
+ \author Oliver Lemke
+
+ \param[out] vmr          Volume mixing ratio
+ \param[in]  species_name Species Name
+ \param[in]  abs_species  WS Input
+ \param[in]  abs_vmrs     WS Input
+ */
+void set_vmr_from_first_species(Vector& vmr,
+                                const String& species_name,
+                                const ArrayOfArrayOfSpeciesTag& abs_species,
+                                const Matrix& abs_vmrs) {
+  const Index index = find_first_species_tg(
+      abs_species, species_index_from_species_name (species_name));
+
+  vmr.resize(abs_vmrs.ncols());
+  if (index < 0)
+    vmr = -99;
+  else
+    vmr = abs_vmrs(index, Range(joker));
+}
+
 const SpeciesRecord& SpeciesDataOfBand(const AbsorptionLines& lines)
 {
   return global_data::species_data[lines.Species()];

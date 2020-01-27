@@ -351,21 +351,10 @@ Index species_index_from_species_name(String name);
 
 String species_name_from_species_index(const Index spec_ind);
 
-//======================================================================
-//             Functions to convert the accuracy index
-//======================================================================
-
-// Functions to set abs_n2 and abs_h2o:
-
-void abs_n2Set(Vector& abs_n2,
-               const ArrayOfArrayOfSpeciesTag& abs_species,
-               const Matrix& abs_vmrs,
-               const Verbosity&);
-
-void abs_h2oSet(Vector& abs_h2o,
-                const ArrayOfArrayOfSpeciesTag& abs_species,
-                const Matrix& abs_vmrs,
-                const Verbosity&);
+void set_vmr_from_first_species(Vector& vmr,
+                                const String& species_name,
+                                const ArrayOfArrayOfSpeciesTag& abs_species,
+                                const Matrix& abs_vmrs);
 
 /** Cross-section algorithm
  * 
