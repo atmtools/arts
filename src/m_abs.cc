@@ -225,87 +225,6 @@ void abs_speciesDefineAll(  // WS Output:
   abs_speciesSet(abs_species, abs_xsec_agenda_checked, propmat_clearsky_agenda_checked, specs, verbosity);
 }
 
-//! abs_h2oSet.
-/*!
- Sets abs_h2o to the profile of the first tag group containing
- water.
- 
- This is necessary, because for example *abs_coefCalc* requires abs_h2o
- to contain the water vapour profile(the reason for this is the
- calculation of oxygen line broadening requires water vapour profile).
- Then this function can be used to copy the profile of the first tag
- group of water.
- 
- \author Stefan Buehler
- 
- \param[out] abs_h2o    WS Output
- \param[in]     abs_species WS Input
- \param[in]     abs_vmrs WS Input
- */
-void abs_h2oSet(Vector& abs_h2o,
-                const ArrayOfArrayOfSpeciesTag& abs_species,
-                const Matrix& abs_vmrs,
-                const Verbosity&) {
-  const Index h2o_index = find_first_species_tg(
-      abs_species, species_index_from_species_name("H2O"));
-
-  abs_h2o.resize(abs_vmrs.ncols());
-  if (h2o_index < 0)
-    abs_h2o = -99;
-  else
-    abs_h2o = abs_vmrs(h2o_index, Range(joker));
-}
-
-//!  abs_n2Set.
-/*!
- Sets abs_n2 to the profile of the first tag group containing
- molecular nitrogen. See *abs_h2oSet* for more details.
- 
- \author Stefan Buehler
- 
- \param[out] abs_n2    WS Output
- \param[in]     abs_species WS Input
- \param[in]     abs_vmrs WS Input
- */
-void abs_n2Set(Vector& abs_n2,
-               const ArrayOfArrayOfSpeciesTag& abs_species,
-               const Matrix& abs_vmrs,
-               const Verbosity&) {
-  const Index n2_index =
-      find_first_species_tg(abs_species, species_index_from_species_name("N2"));
-
-  abs_n2.resize(abs_vmrs.ncols());
-  if (n2_index < 0)
-    abs_n2 = -99;
-  else
-    abs_n2 = abs_vmrs(n2_index, Range(joker));
-}
-
-//!  abs_o2Set.
-/*!
- Sets abs_o2 to the profile of the first tag group containing
- molecular oxygen. See *abs_h2oSet* for more details.
- 
- \author Mayuri Tatiya
- 
- \param[out] abs_o2    WS Output
- \param[in]     abs_species WS Input
- \param[in]     abs_vmrs WS Input
- */
-void abs_o2Set(Vector& abs_o2,
-               const ArrayOfArrayOfSpeciesTag& abs_species,
-               const Matrix& abs_vmrs,
-               const Verbosity&) {
-  const Index o2_index =
-      find_first_species_tg(abs_species, species_index_from_species_name("O2"));
-
-  abs_o2.resize(abs_vmrs.ncols());
-  if (o2_index < 0)
-    abs_o2 = -99;
-  else
-    abs_o2 = abs_vmrs(o2_index, Range(joker));
-}
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AbsInputFromAtmFields(  // WS Output:
     Vector& abs_p,
@@ -774,9 +693,9 @@ void abs_xsec_per_speciesAddConts(  // WS Output:
         const String ContOption = abs_cont_models[n];
 
         // Set abs_h2o, abs_n2, and abs_o2 from the first matching species.
-        abs_h2oSet(abs_h2o, tgs, abs_vmrs, verbosity);
-        abs_n2Set(abs_n2, tgs, abs_vmrs, verbosity);
-        abs_o2Set(abs_o2, tgs, abs_vmrs, verbosity);
+        set_vmr_from_first_species(abs_h2o, "H2O", tgs, abs_vmrs);
+        set_vmr_from_first_species(abs_n2, "N2", tgs, abs_vmrs);
+        set_vmr_from_first_species(abs_o2, "O2", tgs, abs_vmrs);
 
         // Add the continuum for this tag. The parameters in
         // this call should be clear. The vmr is in
