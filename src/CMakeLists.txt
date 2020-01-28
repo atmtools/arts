@@ -533,4 +533,5 @@ arts_test_cmdline("input" -i Index)
 arts_test_cmdline("methods" -m all)
 arts_test_cmdline("version" -v)
 arts_test_cmdline("workspacevariables" -w all)
+arts_test_cmdline("check-docs" -C)
 
