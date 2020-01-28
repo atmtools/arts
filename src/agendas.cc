@@ -122,7 +122,7 @@ void define_agenda_data() {
       AgRecord(NAME("dobatch_calc_agenda"),
                DESCRIPTION("Calculations to perform for each batch case.\n"
                            "\n"
-                           "See further *dobatchCalc*.\n"),
+                           "See further *DOBatchCalc*.\n"),
                OUTPUT("spectral_radiance_field",
                       "radiance_field",
                       "irradiance_field",
@@ -209,17 +209,17 @@ void define_agenda_data() {
           "Seqential update of the radiation field.\n"
           "   This method is the fastest and most accurate method.\n"
           "\n"
-          "Very similar methods in plane parallel approximation are\n"
-          "*cloudbox_fieldUpdate1DPlaneParallel* and *cloudbox_fieldUpdate3DPlaneParallel*:\n"
-          "   These methods also include the sequential update and are slightly\n"
-          "   faster than the above ones. The drawback is, that they are less\n"
+          "A very similar method in plane parallel approximation is\n"
+          "*cloudbox_fieldUpdateSeq1DPP*:\n"
+          "   This method also includes the sequential update and is slightly\n"
+          "   faster than the above one. The drawback is that it is less\n"
           "   accurate, especially for limb geometries and large off-nadir\n"
           "   viewing angles.\n"
           "\n"
-          "The following methods were used before the sequential update\n"
-          "was invented. They are very slow and should therefore only \n"
+          "The following method was used before the sequential update\n"
+          "was invented. It is very slow and should therefore only \n"
           "be used for test cases.\n"
-          "*cloudbox_fieldUpdate1D*, *cloudbox_fieldUpdate3D*: Old methods.\n"),
+          "*cloudbox_fieldUpdate1D*: Old method.\n"),
       OUTPUT("cloudbox_field_mono"),
       INPUT("cloudbox_field_mono", "doit_scat_field")));
 

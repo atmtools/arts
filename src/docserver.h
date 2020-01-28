@@ -53,9 +53,6 @@ class Docserver {
   void insert_error_message(const string& error = "");
 
   void insert_stylesheet();
-  void insert_broken_doc_links();
-  vector<string> find_broken_description_links(const String& desc,
-                                               const String& mname = "");
   void insert_index();
   void insert_doc();
   void insert_error(const string& error);
@@ -75,8 +72,8 @@ class Docserver {
 
   void find_token_type();
 
-  string html_escape_char(const char ch);
-  string html_escape_string(const string& s);
+  static string html_escape_char(const char ch);
+  static string html_escape_string(const string& s);
 
   void split_tokens(const string& s);
 
@@ -92,6 +89,12 @@ class Docserver {
 
  public:
   Docserver(const Index port, const string& baseurl = "");
+
+  static std::tuple<size_t, std::vector<string> >
+  list_broken_description_links();
+
+  static vector<string> find_broken_description_links(const String& desc,
+                                                      const String& mname = "");
 
   string new_page(const string& url);
 

@@ -202,7 +202,7 @@ void define_md_data_raw() {
           "Initialize absorption input WSVs from local atmospheric conditions.\n"
           "\n"
           "The purpose of this method is to allow an explicit line-by-line\n"
-          "calculation, e.g., by *abs_coefCalc*, to be put inside the\n"
+          "calculation, e.g., by *abs_coefCalcFromXsec*, to be put inside the\n"
           "*propmat_clearsky_agenda*. What the method does is to prepare absorption\n"
           "input parameters (pressure, temperature, VMRs), from the input\n"
           "parameters to *propmat_clearsky_agenda*.\n"),
@@ -349,7 +349,7 @@ void define_md_data_raw() {
           "*abs_cont_descriptionAppend* wants to append to the variables.\n"
           "\n"
           "Formally, the continuum description workspace variables are required\n"
-          "by the absorption calculation methods (e.g., *abs_coefCalc*). Therefore you\n"
+          "by the absorption calculation methods (e.g., *abs_coefCalcFromXsec*). Therefore you\n"
           "always have to call at least *abs_cont_descriptionInit*, even if you do\n"
           "not want to use any continua.\n"),
       AUTHORS("Thomas Kuhn", "Stefan Buehler"),
@@ -1792,12 +1792,7 @@ void define_md_data_raw() {
           "generated.\n"
           "\n"
           "Note, that the absorbing gas can be any gas, but the perturbing gas is\n"
-          "always H2O.\n"
-          "\n"
-          "In contrast to other absorption functions, this method does not use\n"
-          "the input variable *abs_h2o*. This is because *abs_h2o* has to be set\n"
-          "interally to allow perturbations. If there are more than one H2O\n"
-          "species, the first is assumed to be the main one.\n"),
+          "always H2O.\n"),
       AUTHORS("Stefan Buehler"),
       OUT("abs_lookup", "abs_lookup_is_adapted"),
       GOUT(),
@@ -1901,12 +1896,12 @@ void define_md_data_raw() {
           "Set up input parameters for abs_lookupCalc for batch calculations.\n"
           "\n"
           "This method performs a similar task as *abs_lookupSetup*, with the\n"
-          "difference, that the lookup table setup is not for a single\n"
+          "difference that the lookup table setup is not for a single\n"
           "atmospheric state, but for a whole batch of them, stored in\n"
           "*batch_atm_fields_compact*.\n"
           "\n"
-          "The method checks *abs_species* to decide, which species depend on\n"
-          "*abs_h2o*, and hence require nonlinear treatment in the lookup table.\n"
+          "The method checks *abs_species* to decide which species require\n"
+          "nonlinear treatment in the lookup table.\n"
           "\n"
           "The method also checks which range of pressures, temperatures, and\n"
           "VMRs occurs, and sets *abs_p*, *abs_t*, *abs_t_pert*, and *abs_vmrs*\n"
@@ -4185,9 +4180,9 @@ void define_md_data_raw() {
           "\n"
           "This WSM handles one *Tensor4* type *particle_field* at a time. It can\n"
           "be used to determine the cloudbox from *particle_bulkprop_field*,\n"
-          "but also from the various *scat_species_XXX_field* (or even from a\n"
+          "but also from the various scat_species_XXX_field (or even from a\n"
           "read-in *pnd_field*). For the latter, the WSM needs to be called\n"
-          "once per each *scat_species_XXX_field*, with previously determined\n"
+          "once per each scat_species_XXX_field, with previously determined\n"
           "*cloudbox_limits* provided through *cloudbox_limits_old*.\n"
           "\n"
           "The function must be called before executing any WSM that applies\n"
@@ -4195,7 +4190,7 @@ void define_md_data_raw() {
           "\n"
           "The function iterates over all 3D fields in *particle_field* (which\n"
           "might correspond to the different scattering species as in\n"
-          "*scat_species_XX_field* or to different particle bulk properties as\n"
+          "scat_species_XXX_field or to different particle bulk properties as\n"
           "in *particle_bulkprop_field*). Each field is searched for the first\n"
           "and last pressure index, where the value is unequal to zero. This\n"
           "index is then copied to *cloudbox_limits*.\n"
@@ -4211,7 +4206,7 @@ void define_md_data_raw() {
           "to the surface. Hence, the lower cloudbox_limit is set to 0 (index\n"
           "of first pressure level).\n"
           "*cloudbox_margin* will be applied on each call of the WSM. Hence,\n"
-          "if called successively, e.g. for several *scat_species_XXX_field*,\n"
+          "if called successively, e.g. for several scat_species_XXX_field,\n"
           "and *cloudbox_margin* is not -1, it is suggested to apply the\n"
           "desired *cloudbox_margin* only for the last WSM call, while for the\n"
           "others set *cloudbox_margin* to 0.\n"
@@ -5124,7 +5119,7 @@ void define_md_data_raw() {
           "Add a block to the measurement covariance matrix *covmat_se*\n"
           "\n"
           "This functions adds a given dense or sparse matrix as block to the covariance\n"
-          "matrix *covmatrix_sx*. The position of the block can be given by the generic\n"
+          "matrix *covmat_sx*. The position of the block can be given by the generic\n"
           "arguments *i* and *j*. Note that diagonal blocks must be added in order starting from\n"
           " in  the top left corner. If an off-diagonal block is added it must have corresponding\n"
           " existing blocks on the diagonal and these must be consistent with the dimensions\n"
@@ -5152,7 +5147,7 @@ void define_md_data_raw() {
           "Add the inverse of a block to covariance matrix *covmat_se*\n"
           "\n"
           "This functions adds a given matrix as the inverse of a block in the covariance\n"
-          "matrix *covmatrix_se*. The purpose of this function is to allow the user to\n"
+          "matrix *covmat_se*. The purpose of this function is to allow the user to\n"
           "to use a precomputed inverse for this block in the covariance matrix, that may\n"
           "for example have been obtained analytically.\n"
           "\n"
@@ -5229,7 +5224,7 @@ void define_md_data_raw() {
           "Add a block to the a priori covariance matrix *covmat_sx*\n"
           "\n"
           "This functions adds a given matrix as a block in the covariance\n"
-          "matrix *covmatrix_sx*. The position of the block can be given by the generic\n"
+          "matrix *covmat_sx*. The position of the block can be given by the generic\n"
           "arguments *i* and *j*, which should give the index of the retrieval quantity in\n"
           "*jacobian_quantities*, which is given just by the order the quantities have been\n"
           "added to the retrieval.\n"
@@ -5261,7 +5256,7 @@ void define_md_data_raw() {
           "Add the inverse of a block in covariance matrix *covmat_sx*\n"
           "\n"
           "This functions adds a given matrix as the inverse of a block in the covariance\n"
-          "matrix *covmatrix_sx*. The purpose of this function is to allow the user to\n"
+          "matrix *covmat_sx*. The purpose of this function is to allow the user to\n"
           "to use a precomputed inverse for this block in the covariance matrix, the may\n"
           "for example by obtained analytically.\n"
           "\n"
@@ -5294,7 +5289,7 @@ void define_md_data_raw() {
           "Extract the square root of the diagonal of the state space covariance matrix."
           "\n"
           "This function extracts the diagonal of the state space covariance matrix\n"
-          "*covmatrix_sx* and computes its square root. The resulting vector can then\n"
+          "*covmat_sx* and computes its square root. The resulting vector can then\n"
           "be used as *x_norm* argument for the OEM method to avoid scaling problems.\n"),
       AUTHORS("Simon Pfreundschuh"),
       OUT(),
@@ -6268,7 +6263,7 @@ void define_md_data_raw() {
           "FASTEM is a parameterisation of the emissivity of water surfaces\n"
           "including the impact of waves, salinity and non-specular effects.\n"
           "This is more or less direct interface to FASTEM, but slightly\n"
-          "adopted to fit with ARTS. The unit of *frequency* and salinity\n"
+          "adopted to fit with ARTS. The unit of frequency and salinity\n"
           "differ, and this version is \"vectorised\" in frequency.\n"
           "\n"
           "The output is four emissivity and reflectivity values for each\n"
@@ -6760,7 +6755,7 @@ void define_md_data_raw() {
           "The geo-position is set to the position where the propagation\n"
           "path passes the reference altitude. If this altitude is passes\n"
           "more than once, the passing closest to the sensor is selected.\n"
-          "If the reference altitude is not passed at all, *geo*pos* is\n"
+          "If the reference altitude is not passed at all, *geo_pos* is\n"
           "set to NaN.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("geo_pos"),
@@ -7201,8 +7196,8 @@ void define_md_data_raw() {
       DESCRIPTION(
           "Calculate the irradiance also known as flux density from the *radiance_field* .\n"
           "by integrating over the angular grids according to the grids set\n"
-          "by *AngularGridsSetForFluxCalc* \n"
-          "See *AngularGridsSetForFluxCalc to set \n"
+          "by *AngularGridsSetFluxCalc* \n"
+          "See *AngularGridsSetFluxCalc to set \n"
           "*za_grid, aa_grid, and za_grid_weights*\n"),
       AUTHORS("Manfred Brath"),
       OUT("irradiance_field"),
@@ -9032,7 +9027,7 @@ void define_md_data_raw() {
       DESCRIPTION(
           "Includes sinusoidal baseline fit in the Jacobian.\n"
           "\n"
-          "Works as *jacobianAddPolyFit*, beside that a series of sine and\n"
+          "Works as *jacobianAddPolyfit*, beside that a series of sine and\n"
           "cosine terms are used for the baseline fit.\n"
           "\n"
           "For each value in *period_lengths one sine and one cosine term are\n"
@@ -9042,7 +9037,7 @@ void define_md_data_raw() {
           "\n"
           "If the simulation/retrieval deals with a single spectrum, the number\n"
           "of elements added to the state vector (*x*) is 2*nperiods, where\n"
-          "*nperiods* is the length of *period_lengths*. The same is true\n"
+          "nperiods is the length of *period_lengths*. The same is true\n"
           "if *no_pol_variation*, *no_los_variation* and *no_mblock_variation*\n"
           "all are set to 1, even if several spectra are involved. Otherwise the"
           "number of elements added to *x* depends on the number of spectra and\n"
@@ -9127,7 +9122,7 @@ void define_md_data_raw() {
           "Includes a surface quantity in the Jacobian.\n"
           "\n"
           "The quantity is specified by the GIN-variable *quantity*. The name\n"
-          "of the quantity must match the name used in *surface_prop_names*.\n"
+          "of the quantity must match the name used in *surface_props_names*.\n"
           "\n"
           "For 1D or 2D calculations the latitude and/or longitude grid of\n"
           "the retrieval field should set to have zero length.\n"
@@ -9214,7 +9209,7 @@ void define_md_data_raw() {
           "The method follows the pattern of other Jacobian methods. The\n"
           "calculations can only be performed by analytic expressions.\n"
           "Some lower level function depends on frequency perturbations,\n"
-          "however, so therefore a frequency perturbation *df* is required\n"
+          "however, so therefore a frequency perturbation df is required\n"
           "and as a consequence *abs_f_interp_order* must be > 0.\n"
           "\n"
           "The wind field components are retrieved separately, and,\n"
@@ -9264,7 +9259,7 @@ void define_md_data_raw() {
           "all, there is no need to call this method(, but you can still include it\n"
           "without causing any error, the calculations will just be a bit slower).\n"
           "Otherwise, this method should be called, typically as part of\n"
-          "*inversion_iteration_agenda*.\n"
+          "*inversion_iterate_agenda*.\n"
           "\n"
           "The method accepts if *jacobian* is empty, and then does, nothing.\n"),
       AUTHORS("Patrick Eriksson"),
@@ -9655,7 +9650,7 @@ void define_md_data_raw() {
           "is lower limit for allowed values of z. On the other hand, *z_max*\n"
           "eines the upper limit for z.\n"
           "\n"
-          "The GIN *tfunc_parameter* is so far only used for atanh. The parameter\n"
+          "The GIN *transformation_func* is so far only used for atanh. The parameter\n"
           "specifies the maximum allowed value allowed for u. That is, the valid\n"
           "range for u becomes ]0,tfunc_parameter[. Note that log and log10\n"
           "demands/ensures that u > 0, but implies no upper limit.\n"
@@ -9681,7 +9676,7 @@ void define_md_data_raw() {
           "Activating a transformation function is done by this method. Note\n"
           "that the functions are defined as the transformation from z to x.\n"
           "For more details on affine transformations, see\n"
-          "*jacobiaSetAffineTransformation*.\n"),
+          "*jacobianSetAffineTransformation*.\n"),
       AUTHORS("Patrick Eriksson", "Simon Pfreundschuh"),
       OUT("jacobian_quantities"),
       GOUT(),
@@ -11483,7 +11478,7 @@ void define_md_data_raw() {
           "\n"
           "This method is supposed to be used to derive *particle_masses*\n"
           "when *pnd_field* is internally calculated using\n"
-          "*pnd_fieldCalcFromscat_speciesFields* (in contrast to reading it\n"
+          "*pnd_fieldCalcFromParticleBulkProps* (in contrast to reading it\n"
           "from external sources using *ScatElementsPndAndScatAdd* and\n"
           "*pnd_fieldCalcFrompnd_field_raw*).\n"
           "It extracts the mass information of the scattering elements from\n"
@@ -12876,20 +12871,20 @@ void define_md_data_raw() {
           "'Normalized particle size distribution for remote sensing\n"
           "application', J. Geophys. Res. Atmos., 119, 4204–422.\n"
           "\n"
-          "The PSD has two independent parameters *N0star*, the intercept\n"
+          "The PSD has two independent parameters *n0Star*, the intercept\n"
           "parameter, and *Dm*, the volume-weighted diameter.\n"
           "This implementation expects as input two out of the following\n"
           "three quantities: *iwc*, *n0Star*, *Dm*. In this case one of\n"
-          "the input parameters *iwc*, *N0start*, *Dm* must be set to -999.\n*"
+          "the input parameters *iwc*, *n0Star*, *Dm* must be set to -999.\n*"
           "It is also possible to provide only *iwc*, in which case an a\n"
-          "priori assumption will be used to deduce *N0star* from *temperature*.\n"
-          "In this case both *N0star* and *Dm* must be set to -999.0.\n"
+          "priori assumption will be used to deduce *n0Star* from temperature.\n"
+          "In this case both *n0Star* and *Dm* must be set to -999.0.\n"
           "\n"
           "This PSD is not defined for vanishing concentrations of\n"
           "scatterers as it requires normalization by *Dm*. It is up\n"
           "to the user to ensure that the value of *Dm* is sufficiently\n"
           "large. An error is thrown if *Dm* is zero or below the value\n"
-          "provided by *Dm_min*.\n"),
+          "provided by *dm_min*.\n"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -12982,7 +12977,7 @@ void define_md_data_raw() {
           "Checks of the sanity of the mass-dimension relationship are performed\n"
           "Errors are thrown if:\n"
           "- Mass-dimension relation exponent *scat_species_b* is outside\n"
-          "  [*b_min*, *b_max*].\n"),
+          "  [*beta_min*, *beta_max*].\n"),
       AUTHORS("Jana Mendrok"),
       OUT("psd_data", "dpsd_data_dx"),
       GOUT(),
@@ -14600,7 +14595,7 @@ void define_md_data_raw() {
           "frequency, and w is the angular frequency (the function returns\n"
           "n-1, that here is slightly negative). This expressions is found in\n"
           "many textbooks, e.g. Rybicki and Lightman (1979). The above refers\n"
-          "to *refr_index*. *refr_index_group* is sqrt(1+wp^2/w^2).\n"
+          "to *refr_index_air*. *refr_index_air_group* is sqrt(1+wp^2/w^2).\n"
           "\n"
           "The expression is dispersive. The frequency applied is the mean of\n"
           "first and last element of *f_grid* is selected. This frequency must\n"
@@ -14722,7 +14717,7 @@ void define_md_data_raw() {
           "conditions. Reference refractivities are also taken from Newell&Baird (1965)\n"
           "and are vailable for N2, O2, CO2, H2, and He. Additionally, H2O reference\n"
           "refractivity has been derived from H2O contribution in Thayer (see\n"
-          "*refr_index_airThayer*) for T0=273.15K. Any mixture of these gases\n"
+          "*refr_index_airMicrowavesEarth*) for T0=273.15K. Any mixture of these gases\n"
           "can be taken into account.\n"),
       AUTHORS("Jana Mendrok"),
       OUT("refr_index_air", "refr_index_air_group"),
@@ -14879,10 +14874,11 @@ void define_md_data_raw() {
   md_data_raw.push_back(MdRecord(
       NAME("retrievalAddCatalogParameter"),
       DESCRIPTION(
-          "Siminlar to *jacobianAddCatalogParameter* but also adds a corresponding\n"
+          "Similar to *jacobianAddBasicCatalogParameter* but also adds a corresponding\n"
           "block to *covmat_sx* with the given *var* as variance value.\n"
           "\n"
-          "For number and order of elements added to *x*, see *jacobianAddCatalogParameter*.\n"),
+          "For number and order of elements added to *x*,\n"
+          "see *jacobianAddBasicCatalogParameter*.\n"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_sx", "jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -14899,13 +14895,15 @@ void define_md_data_raw() {
   md_data_raw.push_back(MdRecord(
       NAME("retrievalAddCatalogParameters"),
       DESCRIPTION(
-          "Same as *jacobianAddCatalogParameters* but also adds a new block to *covmat_sx*\n"
-          "using the matrices in *covmat_block* and *covmat_inv_block*.\n"
+          "Same as *jacobianAddBasicCatalogParameters* but also adds a new\n"
+          "block to *covmat_sx* using the matrices in *covmat_block* and\n"
+          "*covmat_inv_block*.\n"
           "\n"
           "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
           "which avoids its numerical computation.\n"
           "\n"
-          "For number and order of elements added to *x*, see *jacobianAddCatalogParameters*.\n"),
+          "For number and order of elements added to *x*,\n"
+          "see *jacobianAddBasicCatalogParameters*.\n"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_sx", "jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -14931,7 +14929,7 @@ void define_md_data_raw() {
           "If *covmat_inv_block* is non-empty, it is used as inverse for the added block\n"
           "which avoids its numerical computation.\n"
           "\n"
-          "For number and order of elements added to *x*, see *jacobianAddAbsMagField*.\n"),
+          "For number and order of elements added to *x*, see *jacobianAddMagField*.\n"),
       AUTHORS("Simon Pfreundschuh"),
       OUT("covmat_sx", "jacobian_quantities", "jacobian_agenda"),
       GOUT(),
@@ -15290,7 +15288,7 @@ void define_md_data_raw() {
           "quadrature angles supplemented with 0 and 180deg are considered to\n"
           "provide the best radiation field for a given effort).\n"
           "\n"
-          "The *auto_inc_streams* feature can be used to increase the number\n"
+          "The *auto_inc_nstreams* feature can be used to increase the number\n"
           "of streams used internally in the scattering solution when found\n"
           "necessary.\n"
           "NOTE: this number-of-streams increase is only internally - the\n"
@@ -15792,7 +15790,7 @@ void define_md_data_raw() {
           "*cloudbox_checkedCalc*.\n"
           "\n"
           "The method is suggested to be called directly after\n"
-          "*pnd_fieldCalcFromscat_speciesFields* (but also after\n"
+          "*pnd_fieldCalcFromParticleBulkProps* (but also after\n"
           "*cloudbox_checkedCalc*).\n"
           "Its purpose is to speed up the scattering calculations.\n"
           "\n"
@@ -16261,7 +16259,7 @@ void define_md_data_raw() {
           "Removes unrealistically small or erroneous data from particle fields.\n"
           "\n"
           "This WSM checks if the input particle field (e.g.\n"
-          "*particle_bulkprop_field*, *scat_species_XXX_field) contains values\n"
+          "*particle_bulkprop_field*, scat_species_XXX_field) contains values\n"
           "smaller than the given *threshold*. In this case, these values will\n"
           "be set to zero.\n"
           "\n"
@@ -16863,8 +16861,8 @@ void define_md_data_raw() {
           "The frequency response is defined using *channel2fgrid_indexes* and\n"
           "*channel2fgrid_weights*.\n"
           "\n"
-          "Both *frequency_index* and *frequency_weights* are assumed to be common\n"
-          "for all viewing directions.\n"),
+          "Both *channel2fgrid_indexes* and *channel2fgrid_weights* are assumed\n"
+          "to be common for all viewing directions.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("sensor_response",
           "sensor_response_f",
@@ -17220,8 +17218,8 @@ void define_md_data_raw() {
       DESCRIPTION(
           "Calculates the spectral irradiance from *spectral_radiance_field* .\n"
           "by integrating over the angular grids according to the grids set\n"
-          "by *AngularGridsSetForFluxCalc* \n"
-          "See *AngularGridsSetForFluxCalc to set \n"
+          "by *AngularGridsSetFluxCalc* \n"
+          "See *AngularGridsSetFluxCalc to set \n"
           "*za_grid, aa_grid, and za_grid_weights*\n"),
       AUTHORS("Manfred Brath"),
       OUT("spectral_irradiance_field"),
@@ -18035,7 +18033,7 @@ void define_md_data_raw() {
   md_data_raw.push_back(MdRecord(
       NAME("surface_rtpropCallAgendaX"),
       DESCRIPTION(
-          "Switch between the elements of *surfacertprop__agenda_array*.\n"
+          "Switch between the elements of *surface_rtprop_agenda_array*.\n"
           "\n"
           "This method simply calls the agenda matching *surface_type* and\n"
           "returns the results. That is, the agenda in *surface_rtprop_agenda_array*\n"
@@ -20374,7 +20372,7 @@ void define_md_data_raw() {
           "The content of *y_aux* follows *iy_aux_vars. See the method selected\n"
           "for *iy_main_agenda* for allowed choices.\n"
           "\n"
-          "The geo-positions (*y_geo*) are set based on *sensor_reponse*. When\n"
+          "The geo-positions (*y_geo*) are set based on *sensor_response*. When\n"
           "an antenna pattern is considered, there are several pencil beams,\n"
           "and thus also several goe-positions, associated with each value of *y*.\n"
           "The geo-position assigned to a value in *y* is the *geo_pos* of the pencil\n"
@@ -20384,7 +20382,7 @@ void define_md_data_raw() {
           "\n"
           "The Jacobian provided (*jacobian*) is adopted to selected retrieval\n"
           "units, but no transformations are applied. Transformations are\n"
-          "included by calling *jacobianAdjustAndTranform*.\n"),
+          "included by calling *jacobianAdjustAndTransform*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "y_geo", "jacobian"),
       GOUT(),
@@ -20460,7 +20458,7 @@ void define_md_data_raw() {
           "\n"
           "As for *yCalc* Jacobian transformations are not handled, and the\n"
           "the input Jacobian shall not contain transformations. That is\n"
-          "*jacobainAdjustAndTranform* shall be called after this method,\n"
+          "*jacobianAdjustAndTransform* shall be called after this method,\n"
           "when the complete Jacobian is at hand.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("y",
@@ -20523,7 +20521,7 @@ void define_md_data_raw() {
           "The output format for *iy* when simulating radars and lidars differs\n"
           "from the standard one, and *yCalc* can not be used for such simulations.\n"
           "This method works largely as *yCalc*, but is tailored to handle the\n"
-          "output from *iyActiveSingleScattering*.\n"
+          "output from *iyActiveSingleScat*.\n"
           "\n"
           "The method requires additional information about the sensor,\n"
           "regarding its recieving properties. First of all, recieved\n"
@@ -20549,7 +20547,7 @@ void define_md_data_raw() {
           "\n"
           "The conversion from backscatter coefficient to Ze is:\n"
           "   Ze = 1e18 * lambda^4 / (k2 * pi^5) * sum(sigma),\n"
-          "where sum(sigma) = 4*pi*b, and b is the backscatter coefficient.\n"
+          "where sum(sigma) = 4 * pi * b, and b is the backscatter coefficient.\n"
           "\n"
           "The reference dielectric factor can either specified directly by\n"
           "the argument *k2*. For example, to mimic the CloudSat data, *k2*\n"

@@ -809,6 +809,19 @@ int main(int argc, char** argv) {
   // Now we are set to deal with the more interesting command line
   // switches.
 
+  if (parameters.check_docs) {
+    // Check built-in docs and then exit
+    const auto broken_links = Docserver::list_broken_description_links();
+    const size_t nbroken = std::get<0>(broken_links);
+    for (auto&& s : std::get<1>(broken_links)) {
+      std::cout << s << std::endl;
+    }
+    std::cout << std::endl
+              << nbroken << " broken link" << (nbroken == 1 ? "" :"s")
+              << " found." << std::endl;
+    arts_exit(nbroken ? EXIT_FAILURE : EXIT_SUCCESS);
+  }
+
   // React to option `methods'. If given the argument `all', it
   // should simply prints a list of all methods. If given the name of
   // a variable, it should print all methods that produce this
