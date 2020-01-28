@@ -64,8 +64,9 @@ class Parameters {
         docserver(0),
         baseurl(""),
         daemon(false),
-        gui(false) { /* Nothing to be done here */
-  }
+        gui(false),
+        check_docs(false) { /* Nothing to be done here */
+    }
 
   /** Short message how to call the program. */
   String usage;
@@ -128,6 +129,8 @@ class Parameters {
   bool daemon;
   /** Flag to run with graphical user interface. */
   bool gui;
+  /** Flag to check built-in documentation */
+  bool check_docs;
 };
 
 /**

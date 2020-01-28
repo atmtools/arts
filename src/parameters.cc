@@ -74,7 +74,7 @@ bool get_parameters(int argc, char **argv) {
 
     extern char *optarg; (argument value for options that take an argument)
     extern int optind;   (index in ARGV of the next element to be scanned.)
-    extern int opterr;   (we don´t use this)
+    extern int opterr;   (we donï¿½t use this)
     extern int optopt;   (set to an option caracter that was recoginized)
   */
 
@@ -116,6 +116,7 @@ bool get_parameters(int argc, char **argv) {
   */
   struct option longopts[] = {
       {"basename", required_argument, NULL, 'b'},
+      {"check-docs", no_argument, NULL, 'C'},
       {"describe", required_argument, NULL, 'd'},
       {"groups", no_argument, NULL, 'g'},
       {"help", no_argument, NULL, 'h'},
@@ -215,7 +216,9 @@ bool get_parameters(int argc, char **argv) {
       "-w, --workspacevariables  If this is given the argument 'all',\n"
       "                    it simply prints a list of all variables.\n"
       "                    If it is given the name of a method, it\n"
-      "                    prints all variables needed by this method.";
+      "                    prints all variables needed by this method.\n"
+      "\nDEVELOPER ONLY:\n\n"
+      "-C, --check-docs    Check for broken links in built-in docs.\n";
 
   // Set the short options automatically from the last columns of
   // longopts.
@@ -259,6 +262,9 @@ bool get_parameters(int argc, char **argv) {
     switch (optc) {
       case 'h':
         parameters.help = true;
+        break;
+      case 'C':
+        parameters.check_docs = true;
         break;
       case 'b':
         parameters.basename = optarg;
