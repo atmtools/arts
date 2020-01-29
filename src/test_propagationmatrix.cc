@@ -532,7 +532,7 @@ void test_quantum()
 
 void test_mpm20()
 {
-//   using Constant::inv_sqrt_pi;
+  using Constant::sqrt_pi;
   using Constant::pow2;
   using Constant::pow3;
   using Constant::log10_euler;
@@ -644,7 +644,7 @@ void test_mpm20()
   // Model constants
   constexpr Numeric x = 0.754;
   constexpr Numeric t0 = 300;
-  constexpr Numeric conversion = 0.1820 * 1.00000e-3 / (10.0 * log10_euler);
+  constexpr Numeric conversion = 0.1820 * 1.00000e-3 / (0.2085 * 10.0 * log10_euler);
   
   // Test constants
   constexpr Index nf = 501;
@@ -662,45 +662,36 @@ void test_mpm20()
   const Numeric theta_3 = pow3(theta);
   const Numeric theta_x = std::pow(theta, x);
   const Numeric theta_2x = pow2(theta_x);
-//   const Numeric GD_div_F0 = Linefunctions::DopplerConstant(t, SpeciesTag("O2-66").SpeciesMass());
+  const Numeric GD_div_F0 = Linefunctions::DopplerConstant(t, SpeciesTag("O2-66").SpeciesMass());
   
   xsec = 0;
   for (Index i=0; i<n; i++) {
-//     const Numeric invGD = 1 / (GD_div_F0 * f0[i]*1e9);
-//     const Numeric fac = inv_sqrt_pi * invGD;
-    const Numeric G0 = 1e9 * 1e-5 * p * gamma[i] * theta_x;
+    const Numeric invGD = 1 / (GD_div_F0 * f0[i]*1e9);
+    const Numeric fac = sqrt_pi * invGD;
+    const Numeric G0 = 1e9 * (1e-5 * p * gamma[i]) * theta_x;
     const Numeric Y = 1e-5 * p * (y0[i] + y1[i] * theta_m1) * theta_x;
     const Numeric G = pow2(1e-5 * p) * (g0[i] + g1[i] * theta_m1) * theta_2x;
     const Numeric DV = 1e9 * pow2(1e-5 * p) * (dv0[i] + dv1[i] * theta_m1) * theta_2x;
-    const Numeric ST = 1e-6 * p * theta_3 * intens[i]/(1e9*f0[i]) * std::exp(-a2[i] * theta_m1);
+    const Numeric ST = 1e-6 * theta_3 * (1e-3 * p * intens[i])/(1e9*f0[i]) * std::exp(-a2[i] * theta_m1);
     
     std::cout<<f0[i]<<" "<<ST<<"\n";
     
     for (Index j=0; j<f.nelem(); j++) {
       xsec[j] += ST * pow2(f[j]) * (
-//         (G0 * (1 + G) + Y * (f[j] - f0[i]*1e9 - DV)) /
-//         (pow2(f[j] - f0[i]*1e9 - DV) + pow2(G0)) +
-        fac * Complex(1 + G, Y) *
-      Faddeeva::w(Complex(f0[i]*1e9 + DV - f[j], G0) * invGD) +
-      (G0 * (1 + G) - Y * (f[j] + f0[i]*1e9 + DV)) /
-      (pow2(f[j] + f0[i]*1e9 + DV) + pow2(G0)));
+        fac * Complex(1 + G, Y) * 
+          Faddeeva::w(Complex(f0[i]*1e9 + DV - f[j], G0) * invGD) +
+        Complex(1 + G, -Y) / Complex(G0, f[j] + f0[i]*1e9 + DV));
     }
   }
   
   std::cout<<'\n';
   Matrix pxsec(nf, 1, 0);
-//   MPM87O2AbsModel(pxsec, 0, 1, 1, 1, "user", f, Vector(1, p), Vector(1, t), Vector(1, 0), Vector(1, 1), Verbosity());
   PWR93O2AbsModel(pxsec, 0, 1, 1, 1, "user", "PWR98", f, Vector(1, p), Vector(1, t), Vector(1, 0), Vector(1, 1), Verbosity());
   
-  xsec *= conversion/200;
+  xsec *= conversion;
   std::cout<< "xr = np.array([";
-  for (auto xi: xsec)
-    std::cout<<xi.real() << ',' << ' ';
-  std::cout << ']' << ')' << '\n';
-  
-  std::cout<< "xr2 = np.array([";
   for (Index i=0; i<nf; i++)
-    std::cout<<pxsec(i, 0) << ',' << ' ';
+    std::cout<<'['<<xsec[i].real()<<','<<' '<<pxsec(i, 0) << ']' << ',' << ' ';
   std::cout << ']' << ')' << '\n';
 }
 
