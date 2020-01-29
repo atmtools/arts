@@ -165,6 +165,11 @@ Numeric co2_ecs_wigner_symbol(
 Numeric o2_ecs_wigner_symbol(
     int Nl, int Nk, int Jl, int Jk, int Jl_p, int Jk_p, int L);
 
+Numeric o2_ecs_wigner_symbol_tran(
+  int Ni,  int Nf,  int Ji,  int Jf,
+  int Nip, int Nfp, int Jip, int Jfp,
+  int L, int Si, int Sf, int n);
+
 /** Tells if the function can deal with the input integer
  * 
  * @param[in] j 
