@@ -33,23 +33,22 @@ void makarov2020_o2_lines(ArrayOfMatrix& xsec,
                           const Vector& t,
                           const makarov2020_o2_lines_control& ctrl)
 {
-  if (ctrl.pressure > 0 or 
-    ctrl.f0 > 0 or
-    ctrl.intens > 0 or
-    ctrl.a2 > 0 or
-    ctrl.gamma > 0 or
-    ctrl.y0 > 0 or
-    ctrl.y1 > 0 or
-    ctrl.g0 > 0 or
-    ctrl.g1 > 0 or
-    ctrl.dv0 > 0 or
-    ctrl.dv1 > 0 or
-    ctrl.x > 0) {
+  if (ctrl.pressure >= 0 or 
+    ctrl.f0 >= 0 or
+    ctrl.intens >= 0 or
+    ctrl.a2 >= 0 or
+    ctrl.gamma >= 0 or
+    ctrl.y0 >= 0 or
+    ctrl.y1 >= 0 or
+    ctrl.g0 >= 0 or
+    ctrl.g1 >= 0 or
+    ctrl.dv0 >= 0 or
+    ctrl.dv1 >= 0 or
+    ctrl.x >= 0) {
     throw std::runtime_error ("Not implemented");
   }
   
   using Constant::pi;
-  using Constant::inv_pi;
   using Constant::sqrt_pi;
   using Constant::inv_sqrt_pi;
   using Constant::pow2;
@@ -218,7 +217,7 @@ void makarov2020_o2_lines(ArrayOfMatrix& xsec,
       for (Index j=0; j<f.nelem(); j++) {
         const Complex z = Complex(f0[i]*1e9 + DV - f[j], G0) * invGD;
         const Complex Fv = fac * Faddeeva::w(z);
-        const Complex Flm = inv_pi / Complex(G0, f[j] + f0[i]*1e9 + DV);
+        const Complex Flm = 1 / Complex(G0, f[j] + f0[i]*1e9 + DV);
         
         xsec[ctrl.pos_in_xsec](j, ip) += std::real(conversion * ST * pow2(f[j]) *
         (
@@ -228,7 +227,7 @@ void makarov2020_o2_lines(ArrayOfMatrix& xsec,
           Complex(1 + G, -Y) * Flm
         ));
         
-        if (ctrl.temperature > 0) {
+        if (ctrl.temperature >= 0) {
           const Numeric dinvGD = - invGD * Linefunctions::dDopplerConstant_dT(t[ip], GD_div_F0);
           const Numeric dG0 = -(x/t[ip]) * G0;
           const Numeric dY = -((y1[i]*t0 + x*(y0[i]*t - y1[i]*(t[ip]-t0)))/(t[ip] * (y0[i]*t[ip] - y1[i]*(t[ip]-t0)))) * Y;
@@ -254,7 +253,7 @@ void makarov2020_o2_lines(ArrayOfMatrix& xsec,
           ));
         }
         
-        if (ctrl.frequency > 0) {
+        if (ctrl.frequency >= 0) {
           const Complex dFv = 2 * (Complex(0, fac * inv_sqrt_pi) - z * Fv) * invGD;
           const Complex dFlm = Complex(0, pi) * pow2(Flm);
           dxsec[ctrl.temperature][ctrl.pos_in_xsec](j, ip) += std::real(conversion * ST * pow2(f[j]) * 
