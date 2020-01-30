@@ -52,14 +52,11 @@ setup(
 
     install_requires=[
         'docutils',
-        'imageio',
         'matplotlib>=1.4',
         'netCDF4>=1.1.1',
-        'numba',
-        'numexpr',
         'numpy>=1.13',
         'scipy>=0.15.1',
-        'setuptools>=0.7.2',
+        'setuptools>=0.7.2'
     ],
     extras_require={
         'docs': ['sphinx_rtd_theme'],
