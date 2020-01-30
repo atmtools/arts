@@ -25,17 +25,62 @@
  */
 
 
-#include "absorption.h"
+#include "fullmodel.h"
 
 
-void abs_xsec_per_speciesAddO2Lines(ArrayOfMatrix& abs_xsec_per_species,
-                                    ArrayOfArrayOfMatrix& dabs_xsec_per_species_dx,
-                                    const ArrayOfArrayOfSpeciesTag& abs_species,
-                                    const ArrayOfRetrievalQuantity& jacobian_quantities,
-                                    const Vector& f_grid,
-                                    const Vector& abs_p,
-                                    const Vector& abs_t,
-                                    const Matrix& abs_vmrs,
-                                    const Verbosity& verbosity)
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_xsec_per_speciesAddO2LinesMPM2020(ArrayOfMatrix& abs_xsec_per_species,
+                                           ArrayOfArrayOfMatrix& dabs_xsec_per_species_dx,
+                                           const ArrayOfArrayOfSpeciesTag& abs_species,
+                                           const ArrayOfRetrievalQuantity& jacobian_quantities,
+                                           const Vector& f_grid,
+                                           const Vector& abs_p,
+                                           const Vector& abs_t,
+                                           const Matrix& abs_vmrs,
+                                           const Verbosity&)
 {
+  // Forward simulations and their error handling
+  if (abs_vmrs.ncols() not_eq abs_p.nelem()) {
+    throw std::runtime_error("Mismatch dimensions on pressure and VMR inputs");
+  } else if (abs_t.nelem() not_eq abs_p.nelem()) {
+    throw std::runtime_error("Mismatch dimensions on pressure and temperature inputs");
+  } else if (abs_vmrs.nrows() not_eq abs_species.nelem()) {
+    throw std::runtime_error("Mismatch dimensions on species and VMR inputs");
+  } else if (abs_xsec_per_species.nelem() not_eq abs_species.nelem()) {
+    throw std::runtime_error("Mismatch dimensions on xsec and VMR inputs");
+  } else if (std::any_of(abs_xsec_per_species.cbegin(), abs_xsec_per_species.cend(), 
+    [&abs_p](auto x){return x.ncols() not_eq abs_p.nelem();})) {
+    throw std::runtime_error("Mismatch dimensions on internal matrices of xsec and pressure");
+  } else if (std::any_of(abs_xsec_per_species.cbegin(), abs_xsec_per_species.cend(),
+    [&f_grid](auto x){return x.nrows() not_eq f_grid.nelem();})) {
+    throw std::runtime_error("Mismatch dimensions on internal matrices of xsec and frequency");
+  }
+
+  // Derivatives and their error handling
+  const auto jac_pos = equivalent_propmattype_indexes(jacobian_quantities);
+  if(dabs_xsec_per_species_dx.nelem() not_eq abs_species.nelem()) {
+    throw std::runtime_error("Mismatch dimensions on species inputs and xsec derivatives");
+  } else if (std::any_of(dabs_xsec_per_species_dx.cbegin(), dabs_xsec_per_species_dx.cend(), 
+    [&jac_pos](auto x){return x.nelem() not_eq jac_pos.nelem();})) {
+    throw std::runtime_error("Mismatch dimensions on xsec derivatives and Jacobian grids");
+  } else if (std::any_of(dabs_xsec_per_species_dx.cbegin(), dabs_xsec_per_species_dx.cend(),
+    [&abs_p](auto x1){return std::any_of(x1.cbegin(), x1.cend(), 
+      [&abs_p](auto x2){return x2.ncols() not_eq abs_p.nelem();});})) {
+    throw std::runtime_error("Mismatch dimensions on internal matrices of xsec derivatives and pressure");
+  } else if (std::any_of(dabs_xsec_per_species_dx.cbegin(), dabs_xsec_per_species_dx.cend(),
+    [&f_grid](auto x1){return std::any_of(x1.cbegin(), x1.cend(), 
+      [&f_grid](auto x2){return x2.nrows() not_eq f_grid.nelem();});})) {
+    throw std::runtime_error("Mismatch dimensions on internal matrices of xsec derivatives and frequency");
+  }
+  
+  // Positions of important species and VMR of water
+  const Index o2_pos = find_first_species_tg(abs_species, SpeciesTag("O2").Species());
+  const Index h2o_pos = find_first_species_tg(abs_species, SpeciesTag("H2O").Species());
+  const Vector h2o_vmr = h2o_pos == -1 ? Vector(abs_p.nelem(), 0) : abs_vmrs(h2o_pos, joker);
+  
+  // Perform calculations if there is any oxygen
+  if (o2_pos >= 0) {
+    FullAbsorptionModel::makarov2020_o2_lines_mpm(abs_xsec_per_species[o2_pos], dabs_xsec_per_species_dx[o2_pos],
+                                                  f_grid, abs_p, abs_t, h2o_vmr, jacobian_quantities, jac_pos);
+  }
 }

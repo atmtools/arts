@@ -541,20 +541,38 @@ void test_mpm20()
   constexpr Numeric p = 1e4;
   Vector f(nf);
   nlinspace(f, fstart, fend, nf);
-  ArrayOfMatrix xsec(1, Matrix(nf, 1, 0));
-  ArrayOfArrayOfMatrix dxsec(0);
+  Matrix xsec(nf, 1, 0);
+  ArrayOfMatrix dxsec(2, Matrix(nf, 1, 0));
   
-  constexpr makarov2020_o2_lines_control ctrl = {
-    0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
-  };
-  makarov2020_o2_lines(xsec, dxsec, f, {p}, {t}, ctrl);
+  ArrayOfRetrievalQuantity jacs(2);
+  jacs[0].PropType(JacPropMatType::Temperature);
+  jacs[1].PropType(JacPropMatType::Frequency);
+  FullAbsorptionModel::makarov2020_o2_lines_mpm(xsec, dxsec, f, {p}, {t}, {0.5}, jacs, {0, 1});
   
+  constexpr auto df = 1000;
+  constexpr auto dt = 0.1;
   Matrix pxsec(nf, 1, 0);
-  PWR93O2AbsModel(pxsec, 0, 1, 1, 1, "user", "PWR98", f, Vector(1, p), Vector(1, t), Vector(1, 0), Vector(1, 1), Verbosity());
+  Matrix pxsec_dt(nf, 1, 0);
+  Matrix pxsec_df(nf, 1, 0);
+  Vector f_pert = f;
+  f_pert += df;
+  PWR93O2AbsModel(pxsec, 0, 1, 1, 1, "user", "PWR98", f, {p}, {t}, {0.5}, {1}, Verbosity());
+  PWR93O2AbsModel(pxsec_dt, 0, 1, 1, 1, "user", "PWR98", f, {p}, {t+dt}, {0.5}, {1}, Verbosity());
+  PWR93O2AbsModel(pxsec_df, 0, 1, 1, 1, "user", "PWR98", f_pert, {p}, {t}, {0.5}, {1}, Verbosity());
   
   std::cout<< "xr = np.array([";
   for (Index i=0; i<nf; i++)
-    std::cout<<'['<<xsec[0](i, 0)<<','<<' '<<pxsec(i, 0) << ']' << ',' << ' ';
+    std::cout<<'['<<xsec(i, 0)<<','<<' '<<pxsec(i, 0) << ']' << ',' << ' ';
+  std::cout << ']' << ')' << '\n';
+  
+  std::cout<< "dxr_dt = np.array([";
+  for (Index i=0; i<nf; i++)
+    std::cout<<'['<<dxsec[0](i, 0)<<','<<' '<<(pxsec_dt(i, 0)-pxsec(i, 0))/dt << ']' << ',' << ' ';
+  std::cout << ']' << ')' << '\n';
+  
+  std::cout<< "dxr_df = np.array([";
+  for (Index i=0; i<nf; i++)
+    std::cout<<'['<<dxsec[1](i, 0)<<','<<' '<<(pxsec_df(i, 0)-pxsec(i, 0))/df << ']' << ',' << ' ';
   std::cout << ']' << ')' << '\n';
 }
 

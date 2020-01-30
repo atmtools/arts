@@ -26,28 +26,16 @@
 
 #include "fullmodel.h"
 
-void makarov2020_o2_lines(ArrayOfMatrix& xsec,
-                          ArrayOfArrayOfMatrix& dxsec,
-                          const Vector& f,
-                          const Vector& p,
-                          const Vector& t,
-                          const makarov2020_o2_lines_control& ctrl)
+
+void FullAbsorptionModel::makarov2020_o2_lines_mpm(Matrix& xsec,
+                                                   ArrayOfMatrix& dxsec,
+                                                   const Vector& f,
+                                                   const Vector& p,
+                                                   const Vector& t,
+                                                   const Vector& water_vmr,
+                                                   const ArrayOfRetrievalQuantity& jacs,
+                                                   const ArrayOfIndex& jacs_pos)
 {
-  if (ctrl.pressure >= 0 or 
-    ctrl.f0 >= 0 or
-    ctrl.intens >= 0 or
-    ctrl.a2 >= 0 or
-    ctrl.gamma >= 0 or
-    ctrl.y0 >= 0 or
-    ctrl.y1 >= 0 or
-    ctrl.g0 >= 0 or
-    ctrl.g1 >= 0 or
-    ctrl.dv0 >= 0 or
-    ctrl.dv1 >= 0 or
-    ctrl.x >= 0) {
-    throw std::runtime_error ("Not implemented");
-  }
-  
   using Constant::pi;
   using Constant::sqrt_pi;
   using Constant::inv_sqrt_pi;
@@ -192,10 +180,8 @@ void makarov2020_o2_lines(ArrayOfMatrix& xsec,
   // Conversion to per meter absorption from per kilometer in decibel
   constexpr Numeric conversion = 0.1820 * 1e-3 / (0.2085 * 10.0 * log10_euler);
   
-  // Cancel when there are no lines before any calculations are performed
-  if (ctrl.pos_in_xsec < 0) return;
-  
   // Per pressure level
+  #pragma omp parallel for if (not arts_omp_in_parallel() and p.nelem() >= arts_omp_get_max_threads()) schedule(guided) 
   for (Index ip=0; ip<p.nelem(); ip++) {
     // Model implementation
     const Numeric theta = t0 / t[ip];
@@ -208,7 +194,7 @@ void makarov2020_o2_lines(ArrayOfMatrix& xsec,
     for (Index i=0; i<n; i++) {
       const Numeric invGD = 1 / (GD_div_F0 * f0[i]*1e9);
       const Numeric fac = sqrt_pi * invGD;
-      const Numeric G0 = 1e9 * (1e-5 * p[ip] * gamma[i]) * theta_x;
+      const Numeric G0 = 1e9 * (1 + 0.1*water_vmr[ip]) *(1e-5 * p[ip] * gamma[i]) * theta_x;
       const Numeric Y = 1e-5 * p[ip] * (y0[i] + y1[i] * theta_m1) * theta_x;
       const Numeric G = pow2(1e-5 * p[ip]) * (g0[i] + g1[i] * theta_m1) * theta_2x;
       const Numeric DV = 1e9 * pow2(1e-5 * p[ip]) * (dv0[i] + dv1[i] * theta_m1) * theta_2x;
@@ -219,7 +205,7 @@ void makarov2020_o2_lines(ArrayOfMatrix& xsec,
         const Complex Fv = fac * Faddeeva::w(z);
         const Complex Flm = 1 / Complex(G0, f[j] + f0[i]*1e9 + DV);
         
-        xsec[ctrl.pos_in_xsec](j, ip) += std::real(conversion * ST * pow2(f[j]) *
+        xsec(j, ip) += std::real(conversion * ST * pow2(f[j]) *
         (
           /* around line center */
           Complex(1 + G, Y) * Fv +
@@ -227,51 +213,61 @@ void makarov2020_o2_lines(ArrayOfMatrix& xsec,
           Complex(1 + G, -Y) * Flm
         ));
         
-        if (ctrl.temperature >= 0) {
-          const Numeric dinvGD = - invGD * Linefunctions::dDopplerConstant_dT(t[ip], GD_div_F0);
-          const Numeric dG0 = -(x/t[ip]) * G0;
-          const Numeric dY = -((y1[i]*t0 + x*(y0[i]*t - y1[i]*(t[ip]-t0)))/(t[ip] * (y0[i]*t[ip] - y1[i]*(t[ip]-t0)))) * Y;
-          const Numeric dG = -((g1[i]*t0 + 2*x*(g0[i]*t - g1[i]*(t[ip]-t0)))/(t[ip] * (g0[i]*t[ip] - g1[i]*(t[ip]-t0)))) * G;
-          const Numeric dDV = -((dv1[i]*t0 + 2*x*(dv0[i]*t - dv1[i]*(t[ip]-t0)))/(t[ip] * (dv0[i]*t[ip] - dv1[i]*(t[ip]-t0)))) * DV;
-          const Numeric dST = (a2[i]*t0 - 3*t[ip]) / pow2(t[ip]) * ST;
+        if (jacs_pos.nelem()) {
+          const Complex dw = 2 * (Complex(0, fac * inv_sqrt_pi) - z * Fv);
+          const Complex dm = - pi * pow2(Flm);
           
-          const Complex dFv = 2 * (Complex(0, fac * inv_sqrt_pi) - z * Fv) * (invGD * Complex(dDV, dG0) - dinvGD) + Fv * dinvGD;
-          const Complex dFlm = - pi * pow2(Flm) * Complex(dG0, dDV);
-          dxsec[ctrl.temperature][ctrl.pos_in_xsec](j, ip) += std::real(conversion * ST * pow2(f[j]) * 
-          (
-            /* around line center */
-            Complex(1 + G, Y) * dFv + Complex(dG, dY) * Fv +
-            /* mirrored line far from line center */
-            Complex(1 + G, -Y) * dFlm + Complex(G, -dY) * Flm
-          )) +
-          std::real(conversion * dST * pow2(f[j]) *
-          (
-            /* around line center */
-            Complex(1 + G, Y) * Fv +
-            /* mirrored line far from line center */
-            Complex(1 + G, -Y) * Flm
-          ));
+          for (Index iq=0; iq<jacs_pos.nelem(); iq++) {
+            if (jacs[jacs_pos[iq]] == JacPropMatType::Temperature) {
+              const Numeric dinvGD = - invGD * Linefunctions::dDopplerConstant_dT(t[ip], GD_div_F0);
+              const Numeric dG0 = -(x/t[ip]) * G0;
+              const Numeric dY = (y1[i] not_eq 0 and y0[i] not_eq 0) ?
+              -((y1[i]*t0 + x*(y0[i]*t - y1[i]*(t[ip]-t0)))/(t[ip] * (y0[i]*t[ip] - y1[i]*(t[ip]-t0)))) * Y :
+              0;
+              const Numeric dG =  (g1[i] not_eq 0 and g0[i] not_eq 0) ?
+              -((g1[i]*t0 + 2*x*(g0[i]*t - g1[i]*(t[ip]-t0)))/(t[ip] * (g0[i]*t[ip] - g1[i]*(t[ip]-t0)))) * G :
+              0;
+              const Numeric dDV =  (dv1[i] not_eq 0 and dv0[i] not_eq 0) ?
+              -((dv1[i]*t0 + 2*x*(dv0[i]*t - dv1[i]*(t[ip]-t0)))/(t[ip] * (dv0[i]*t[ip] - dv1[i]*(t[ip]-t0)))) * DV :
+              0;
+              const Numeric dST = (a2[i]*t0 - 3*t[ip]) / pow2(t[ip]) * ST;
+              
+              const Complex dFv = dw * (invGD * Complex(dDV, dG0) - dinvGD) + Fv * dinvGD;
+              const Complex dFlm = dm * Complex(dG0, dDV);
+              dxsec[iq](j, ip) += std::real(conversion * ST * pow2(f[j]) * 
+              (
+                /* around line center */
+                Complex(1 + G, Y) * dFv + Complex(dG, dY) * Fv +
+                /* mirrored line far from line center */
+                Complex(1 + G, -Y) * dFlm + Complex(G, -dY) * Flm
+              )) +
+              std::real(conversion * dST * pow2(f[j]) *
+              (
+                /* around line center */
+                Complex(1 + G, Y) * Fv +
+                /* mirrored line far from line center */
+                Complex(1 + G, -Y) * Flm
+              ));
+            } else if (is_frequency_parameter(jacs[jacs_pos[iq]])) {
+              const Complex dFv = - dw * invGD;
+              const Complex dFlm = Complex(0, 1) * dm;
+              dxsec[iq](j, ip) += std::real(conversion * ST * pow2(f[j]) * 
+              (
+                /* around line center */
+                Complex(1 + G, Y) * dFv +
+                /* mirrored line far from line center */
+                Complex(1 + G, -Y) * dFlm
+              )) + 
+              std::real(conversion * ST * 2 * f[j] *
+              (
+                /* around line center */
+                Complex(1 + G, Y) * Fv +
+                /* mirrored line far from line center */
+                Complex(1 + G, -Y) * Flm
+              ));
+            }
+          }
         }
-        
-        if (ctrl.frequency >= 0) {
-          const Complex dFv = 2 * (Complex(0, fac * inv_sqrt_pi) - z * Fv) * invGD;
-          const Complex dFlm = Complex(0, pi) * pow2(Flm);
-          dxsec[ctrl.temperature][ctrl.pos_in_xsec](j, ip) += std::real(conversion * ST * pow2(f[j]) * 
-          (
-            /* around line center */
-            Complex(1 + G, Y) * dFv +
-            /* mirrored line far from line center */
-            Complex(1 + G, -Y) * dFlm
-          )) + 
-          std::real(conversion * ST * 2 * f[j] *
-          (
-            /* around line center */
-            Complex(1 + G, Y) * Fv +
-            /* mirrored line far from line center */
-            Complex(1 + G, -Y) * Flm
-          ));
-        }
-        
       }
     }
   }

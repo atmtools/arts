@@ -31,29 +31,35 @@
 #include <Faddeeva/Faddeeva.hh>
 #include "linefunctions.h"
 
-struct makarov2020_o2_lines_control {
-  Index pos_in_xsec;
-  Index frequency;
-  Index pressure;
-  Index temperature;
-  Index f0;
-  Index intens;
-  Index a2;
-  Index gamma;
-  Index y0;
-  Index y1;
-  Index g0;
-  Index g1;
-  Index dv0;
-  Index dv1;
-  Index x;
-};
+namespace FullAbsorptionModel {
 
-void makarov2020_o2_lines(ArrayOfMatrix& xsec,
-                          ArrayOfArrayOfMatrix& dxsec,
-                          const Vector& f,
-                          const Vector& p,
-                          const Vector& t,
-                          const makarov2020_o2_lines_control& ctrl);
+/** Adds Makarov MPM2020 O2 absorption lines to the absorption matrix
+ * 
+ * Adds negative values outside of bounds.  Works for Earth only
+ * 
+ * Water is 10% more effective at broadening than dry air so must
+ * be included.  Does not deal with Zeeman effect and ignores negative
+ * absorption far from the line center
+ * 
+ * @param[in,out] xsec Cross-section of oxygen (size: [f x p])
+ * @param[in,out] dxsec Cross-section derivatives of oxygen (size: [jacs_pos][f x p])
+ * @param[in]     f Frequency grid of computations (size: [f])
+ * @param[in]     p Pressure grid of computations (size: [p])
+ * @param[in]     t Temperature grid of computations (size: [p])
+ * @param[in]     water_vmr Water volume mixing ratio (size: [p])
+ * @param[in]     magnetic_magnitude Strength of local magnetic field
+ * @param[in]     jacs The Jacobian descriptions (size: [greater than max(jacs_pos)])
+ * @param[in]     jacs_pos The Jacobian matrix positions in dxsec (size: [jacs_pos])
+ */
+void makarov2020_o2_lines_mpm(Matrix& xsec,
+                              ArrayOfMatrix& dxsec,
+                              const Vector& f,
+                              const Vector& p,
+                              const Vector& t,
+                              const Vector& water_vmr,
+                              const ArrayOfRetrievalQuantity& jacs,
+                              const ArrayOfIndex& jacs_pos);
+
+};  //FullAbsorptionModel 
 
 #endif  // fullmodel_h
