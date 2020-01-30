@@ -4,7 +4,6 @@ import numbers
 
 import netCDF4
 import numpy as np
-import xarray
 from scipy import interpolate
 
 from arts.utils.arts import return_if_arts_type, get_arts_typename
@@ -499,6 +498,7 @@ class _GriddedField:
         return d
 
     def to_xarray(self):
+        import xarray
         """Convert GriddedField to xarray.DataArray object.
 
         Convert a GriddedField object into a :func:`xarray.DataArray`
@@ -588,6 +588,7 @@ class _GriddedField:
 
     @classmethod
     def from_xarray(cls, da):
+        import xarray
         """Create GriddedField from a xarray.DataArray object.
 
         The data and its dimensions are returned as a :class:`GriddedField` object.
