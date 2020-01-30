@@ -31,7 +31,7 @@ except:
 
 
 setup(
-    name='arts',
+    name='ARTS',
     version=__version__,
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
