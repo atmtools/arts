@@ -17,8 +17,6 @@ import traceback
 from warnings import warn
 from functools import (partial, wraps)
 
-import xarray
-import pandas
 import numpy as np
 
 
@@ -451,46 +449,6 @@ def image2mpeg(glob, outfile, framerate=12, resolution='1920x1080'):
     if p.returncode != 0:
         raise Exception(p.stderr)
 
-def stack_xarray_repdim(da, **dims):
-    """Like xarrays stack, but with partial support for repeated dimensions
-
-    The xarray.DataArray.stack method fails when any dimension occurs
-    multiple times, as repeated dimensions are not currently very well
-    supported in xarray (2018-03-26).  This method provides a workaround
-    so that stack can be used for an array where some dimensions are
-    repeated, as long as the repeated dimensions are themselves not
-    stacked.
-
-
-    Parameters:
-        da (DataArray): DataArray to operate on.
-        **dims: Dimensions to stack.  As for xarray.DataArray.stack.
-    """
-
-    # make view of da without repeated dimensions
-    cnt = collections.Counter(da.dims)
-    D = {k: itertools.count() for k in cnt.keys()}
-    tmpdims = []
-    dimmap = {}
-    for dim in da.dims:
-        if cnt[dim] == 1:
-            tmpdims.append(dim)
-        else:
-            newdim = "{:s}{:d}".format(dim, next(D[dim]))
-            tmpdims.append(newdim)
-            dimmap[newdim] = dim
-    da2 = xarray.DataArray(da.values, dims=tmpdims)
-    da2_stacked = da2.stack(**dims)
-    # put back repeated dimensions with new coordinates
-    da3 = xarray.DataArray(da2_stacked.values,
-        dims=[dimmap.get(d, d) for d in da2_stacked.dims])
-    da3 = da3.assign_coords(
-        **{k: pandas.MultiIndex.from_product(
-                    [da.coords[kk] for kk in dims[k]], names=dims[k])
-                if k in dims else da.coords[k] for k in np.unique(da3.dims)})
-    return da3
-
-
 def split_units(value):
     """Splits a string into float number and potential unit
 
@@ -556,109 +514,3 @@ def reraise_with_stack(func):
 
     return wrapped
 
-
-def get_xarray_groups(dataset, only_names=False):
-    """Get pseudo groups from xarray dataset object (only direct under root)
-
-    xarray.Dataset objects does not allow the use of groups, but you can
-    emulate them by using */* in the variable's name.
-
-    Args:
-        dataset: A xarray.Dataset object
-        only_names: Return only the names of the groups.
-
-    Returns:
-        A set of group names if `only_names` is True. Otherwise, a dictionary
-        with the group names and all its variables as xarray.Datasets objects.
-    """
-
-    groups = {
-        var_name.split("/", 1)[0]
-        for var_name in dataset.variables
-        if "/" in var_name
-    }
-
-    if only_names:
-        return groups
-
-    return {
-        group: get_xarray_group(dataset, group)
-        for group in groups
-    }
-
-
-def get_xarray_group(dataset, group):
-    """Get pseudo group from xarray.Dataset
-
-    Args:
-        dataset: A xarray.Dataset object with pseudo groups.
-        group: The name of the group (can also be a subgroup).
-
-    Returns:
-        A xarray.Dataset with the pseudo group.
-    """
-
-    if not group.endswith("/"):
-        group += "/"
-
-    group_vars = [
-        var
-        for var in dataset.variables
-        if var.startswith(group)
-    ]
-
-    if not group_vars:
-        raise KeyError(f"The group {group} was not found!")
-
-    return dataset[group_vars]
-
-
-def add_xarray_groups(ds, **kwargs):
-    """Add a xarray.Dataset as a subgroup to another xarray.Dataset
-
-    Args:
-        ds: The root xarray.Dataset.
-        **kwargs: Keyword arguments: the key is the name of the group and the
-            value must be a xarray.Dataset.
-
-    Returns:
-        `ds` with the added subgroups
-    """
-    datasets = [ds]
-
-    for group_name, group in kwargs.items():
-        group = group.rename(
-            {
-                var_name: "/".join([group_name, var_name])
-                for var_name in group.variables
-            },
-        )
-
-        # Add the group name also to the dimensions:
-        group = group.rename({
-            dim: "/".join([group_name, dim])
-            for dim in group.dims
-            if dim not in group.coords
-        })
-
-        datasets.append(group)
-
-    return xarray.merge(datasets)
-
-
-def to_array(item):
-    """Convert item to numpy array
-
-    Args:
-        item: Can be a number, list, tuple or numpy array.
-
-    Returns:
-        `item` converted to a numpy array.
-    """
-    if isinstance(item, np.ndarray):
-        return item
-
-    if isinstance(item, Number):
-        return np.array([item])
-    else:
-        return np.array(item)
