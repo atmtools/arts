@@ -2517,7 +2517,8 @@ void define_md_data_raw() {
         "\thttps://doi.org/10.1016/j.jqsrt.2019.106798\n"
         "\n"
         "Note that this is only really applicable to Earth and at lower altitudes.\n"
-        "The only two derivatives computed are for frequency and for temperature.\n"
+        "The only two tested derivatives are for frequency and for temperature but\n"
+        "other untested derivatives are available for all model parameters except a2\n"
       ),
       AUTHORS("Richard Larsson"),
       OUT("abs_xsec_per_species",

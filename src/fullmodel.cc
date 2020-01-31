@@ -240,7 +240,6 @@ void FullAbsorptionModel::makarov2020_o2_lines_mpm(Matrix& xsec,
   // Reference temperature [K]
   constexpr Numeric t0 = 300;
   
-  /*
   // N of upper level
   constexpr std::array<Index, nlines_mpm2020> Np = {
     1, 1, 3, 3, 5, 5, 7, 7, 9, 9,
@@ -272,16 +271,14 @@ void FullAbsorptionModel::makarov2020_o2_lines_mpm(Matrix& xsec,
     18, 20,  20, 22, 22, 24, 24, 26,
     26, 28, 28, 30, 30, 32, 32, 34,
     34, 36, 36, 38, 2, 2, 3, 4, 4, 5};
-  */
-  auto species = SpeciesTag("O2-66");
-  /*
+  
+  auto species = SpeciesTag("O2-66");\
   std::array<QuantumIdentifier, nlines_mpm2020> qids;
-  std::array<Zeeman::Model, nlines_mpm2020> zee;
+//   std::array<Zeeman::Model, nlines_mpm2020> zee;
   for (Index i=0; i<nlines_mpm2020; i++) {
     qids[i] = init_mpm2020_qid(species.Species(), species.Isotopologue(), Jp[i], Jpp[i], Np[i], Npp[i]);
-    zee[i] = Zeeman::GetAdvancedModel(qids[i]);
+//     zee[i] = Zeeman::GetAdvancedModel(qids[i]);
   }
-  */
   
   // Model setting
   const bool do_temp_deriv = do_temperature_jacobian(jacs);
@@ -346,6 +343,103 @@ void FullAbsorptionModel::makarov2020_o2_lines_mpm(Matrix& xsec,
                 Complex(1 + G, Y) * dFv +
                 /* mirrored line far from line center */
                 Complex(1 + G, -Y) * dFlm) + 2 * abs.real() * f[j]);
+            } else if (deriv.QuantumIdentity().In(qids[i])) {
+              if (deriv == JacPropMatType::LineShapeG0X0) {
+                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
+                  /* around line center */
+                  Complex(1 + G, Y) * Complex(0, 1) * dw * invGD +
+                  /* mirrored line far from line center */
+                  Complex(1 + G, -Y) * dm) * 
+                    lsm[i].compute_dX0(t[ip], t0, LineShape::Variable::G0);
+              } else if (deriv == JacPropMatType::LineShapeG0X1) {
+                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
+                  /* around line center */
+                  Complex(1 + G, Y) * Complex(0, 1) * dw * invGD +
+                  /* mirrored line far from line center */
+                  Complex(1 + G, -Y) * dm) * 
+                    lsm[i].compute_dX1(t[ip], t0, LineShape::Variable::DV);
+              } else if (deriv == JacPropMatType::LineShapeDVX0) {
+                const Complex dFv = dw * invGD;
+                const Complex dFlm = Complex(0, 1) * dm;
+                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
+                  /* around line center */
+                  Complex(1 + G, Y) * dFv +
+                  /* mirrored line far from line center */
+                  Complex(1 + G, -Y) * dFlm) * 
+                    lsm[i].compute_dX0(t[ip], t0, LineShape::Variable::DV);;
+              } else if (deriv == JacPropMatType::LineShapeDVX1) {
+                const Complex dFv = dw * invGD;
+                const Complex dFlm = Complex(0, 1) * dm;
+                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
+                  /* around line center */
+                  Complex(1 + G, Y) * dFv +
+                  /* mirrored line far from line center */
+                  Complex(1 + G, -Y) * dFlm) * 
+                    lsm[i].compute_dX1(t[ip], t0, LineShape::Variable::DV);;
+              } else if (deriv == JacPropMatType::LineShapeDVX2) {
+                const Complex dFv = dw * invGD;
+                const Complex dFlm = Complex(0, 1) * dm;
+                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
+                  /* around line center */
+                  Complex(1 + G, Y) * dFv +
+                  /* mirrored line far from line center */
+                  Complex(1 + G, -Y) * dFlm) * 
+                    lsm[i].compute_dX2(t[ip], t0, LineShape::Variable::DV);
+              } else if (deriv == JacPropMatType::LineShapeGX0) {
+                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
+                  /* around line center */
+                  Fv +
+                  /* mirrored line far from line center */
+                  Flm) * 
+                    lsm[i].compute_dX0(t[ip], t0, LineShape::Variable::G);
+              } else if (deriv == JacPropMatType::LineShapeYX0) {
+                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
+                  /* around line center */
+                  Fv +
+                  /* mirrored line far from line center */
+                  Flm) * 
+                    lsm[i].compute_dX0(t[ip], t0, LineShape::Variable::Y);
+              } else if (deriv == JacPropMatType::LineShapeGX1) {
+                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
+                  /* around line center */
+                  Fv -
+                  /* mirrored line far from line center */
+                  Flm) * 
+                    lsm[i].compute_dX1(t[ip], t0, LineShape::Variable::G);
+              } else if (deriv == JacPropMatType::LineShapeYX1) {
+                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
+                  /* around line center */
+                  Fv +
+                  /* mirrored line far from line center */
+                  Flm) * 
+                    lsm[i].compute_dX1(t[ip], t0, LineShape::Variable::Y);
+              } else if (deriv == JacPropMatType::LineShapeGX2) {
+                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
+                  /* around line center */
+                  Fv -
+                  /* mirrored line far from line center */
+                  Flm) * 
+                    lsm[i].compute_dX2(t[ip], t0, LineShape::Variable::G);
+              } else if (deriv == JacPropMatType::LineShapeYX2) {
+                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
+                  /* around line center */
+                  Fv -
+                  /* mirrored line far from line center */
+                  Flm) * 
+                    lsm[i].compute_dX2(t[ip], t0, LineShape::Variable::Y);
+              } else if (deriv == JacPropMatType::LineCenter) {
+                const Complex dFv = Fv / f0[i] - dw * invGD + dw * z / f0[i];
+                const Complex dFlm = Complex(0, 1) * dm;
+                dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
+                  /* around line center */
+                  Complex(1 + G, Y) * dFv +
+                  /* mirrored line far from line center */
+                  Complex(1 + G, -Y) * dFlm);
+              } else if (deriv == JacPropMatType::LineStrength) {
+                dxsec[iq](j, ip) += theta_3 * p[ip] * std::exp(-a2[i] * theta_m1) * pow2(f[j]) * abs.real();
+              } else if (deriv == JacPropMatType::LineSpecialParameter1) {
+                dxsec[iq](j, ip) += -theta_m1 * ST * pow2(f[j]) * abs.real();
+              }
             }
           }
         }

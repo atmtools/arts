@@ -1403,6 +1403,8 @@ String propmattype_string(const RetrievalQuantity& rq) {
       return "Line-Strength";
     case JacPropMatType::LineCenter:
       return "Line-Center";
+    case JacPropMatType::LineSpecialParameter1:
+      return "Line-Special-Parameter-1";
     case JacPropMatType::NLTE:
       return "NLTE-Level";
     case lineshapevariable(G0, X0);
