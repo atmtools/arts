@@ -31,15 +31,9 @@ __all__ = [
     'get_time_dimensions',
     'get_time_coordinates',
     'concat_each_time_coordinate',
-    'undo_xarray_floatification',
     'image2mpeg',
-    'stack_xarray_repdim',
     'split_units',
-    'reraise_with_stack',
-    'get_xarray_groups',
-    'get_xarray_group',
-    'add_xarray_groups',
-    'to_array',
+    'reraise_with_stack'
 ]
 
 
