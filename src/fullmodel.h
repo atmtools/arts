@@ -39,7 +39,8 @@ namespace FullAbsorptionModel {
  * 
  * Water is 10% more effective at broadening than dry air so must
  * be included.  Does not deal with Zeeman effect and ignores negative
- * absorption far from the line center
+ * absorption far from the line center (this can be fixed but requires
+ * clear-cut motivation)
  * 
  * @param[in,out] xsec Cross-section of oxygen (size: [f x p])
  * @param[in,out] dxsec Cross-section derivatives of oxygen (size: [jacs_pos][f x p])
@@ -47,7 +48,6 @@ namespace FullAbsorptionModel {
  * @param[in]     p Pressure grid of computations (size: [p])
  * @param[in]     t Temperature grid of computations (size: [p])
  * @param[in]     water_vmr Water volume mixing ratio (size: [p])
- * @param[in]     magnetic_magnitude Strength of local magnetic field
  * @param[in]     jacs The Jacobian descriptions (size: [greater than max(jacs_pos)])
  * @param[in]     jacs_pos The Jacobian matrix positions in dxsec (size: [jacs_pos])
  */

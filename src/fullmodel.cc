@@ -27,6 +27,93 @@
 #include "fullmodel.h"
 
 
+constexpr auto nlines_mpm2020 = 38 + 6;
+
+
+constexpr LineShape::SingleSpeciesModel init_mpm2020_lsm(Numeric g00,
+                                                         Numeric y0,
+                                                         Numeric y1,
+                                                         Numeric g0,
+                                                         Numeric g1,
+                                                         Numeric dv0,
+                                                         Numeric dv1,
+                                                         Numeric x)
+{
+  return LineShape::SingleSpeciesModel(
+  {LineShape::TemperatureModel::T1, g00, x, 0, 0},
+  {LineShape::TemperatureModel::None, 0, 0, 0, 0},
+  {LineShape::TemperatureModel::None, 0, 0, 0, 0},
+  {LineShape::TemperatureModel::None, 0, 0, 0, 0},
+  {LineShape::TemperatureModel::None, 0, 0, 0, 0},
+  {LineShape::TemperatureModel::None, 0, 0, 0, 0},
+  {LineShape::TemperatureModel::T4, y0, y1, x, 0},
+  {LineShape::TemperatureModel::T4, g0, g1, 2*x, 0},
+  {LineShape::TemperatureModel::T4, dv0, dv1, 2*x, 0});
+}
+
+
+constexpr std::array<LineShape::SingleSpeciesModel, nlines_mpm2020> init_mpm2020(const std::array<Numeric, nlines_mpm2020>& g00,
+                                                                                 const std::array<Numeric, nlines_mpm2020>& y0,
+                                                                                 const std::array<Numeric, nlines_mpm2020>& y1,
+                                                                                 const std::array<Numeric, nlines_mpm2020>& g0,
+                                                                                 const std::array<Numeric, nlines_mpm2020>& g1,
+                                                                                 const std::array<Numeric, nlines_mpm2020>& dv0,
+                                                                                 const std::array<Numeric, nlines_mpm2020>& dv1,
+                                                                                 const Numeric& x)
+{
+  return {init_mpm2020_lsm(g00[0], y0[0], y1[0], g0[0], g1[0], dv0[0], dv1[0], x),
+          init_mpm2020_lsm(g00[1], y0[1], y1[1], g0[1], g1[1], dv0[1], dv1[1], x),
+          init_mpm2020_lsm(g00[2], y0[2], y1[2], g0[2], g1[2], dv0[2], dv1[2], x),
+          init_mpm2020_lsm(g00[3], y0[3], y1[3], g0[3], g1[3], dv0[3], dv1[3], x),
+          init_mpm2020_lsm(g00[4], y0[4], y1[4], g0[4], g1[4], dv0[4], dv1[4], x),
+          init_mpm2020_lsm(g00[5], y0[5], y1[5], g0[5], g1[5], dv0[5], dv1[5], x),
+          init_mpm2020_lsm(g00[6], y0[6], y1[6], g0[6], g1[6], dv0[6], dv1[6], x),
+          init_mpm2020_lsm(g00[7], y0[7], y1[7], g0[7], g1[7], dv0[7], dv1[7], x),
+          init_mpm2020_lsm(g00[8], y0[8], y1[8], g0[8], g1[8], dv0[8], dv1[8], x),
+          init_mpm2020_lsm(g00[9], y0[9], y1[9], g0[9], g1[9], dv0[9], dv1[9], x),
+          init_mpm2020_lsm(g00[10], y0[10], y1[10], g0[10], g1[10], dv0[10], dv1[10], x),
+          init_mpm2020_lsm(g00[11], y0[11], y1[11], g0[11], g1[11], dv0[11], dv1[11], x),
+          init_mpm2020_lsm(g00[12], y0[12], y1[12], g0[12], g1[12], dv0[12], dv1[12], x),
+          init_mpm2020_lsm(g00[13], y0[13], y1[13], g0[13], g1[13], dv0[13], dv1[13], x),
+          init_mpm2020_lsm(g00[14], y0[14], y1[14], g0[14], g1[14], dv0[14], dv1[14], x),
+          init_mpm2020_lsm(g00[15], y0[15], y1[15], g0[15], g1[15], dv0[15], dv1[15], x),
+          init_mpm2020_lsm(g00[16], y0[16], y1[16], g0[16], g1[16], dv0[16], dv1[16], x),
+          init_mpm2020_lsm(g00[17], y0[17], y1[17], g0[17], g1[17], dv0[17], dv1[17], x),
+          init_mpm2020_lsm(g00[18], y0[18], y1[18], g0[18], g1[18], dv0[18], dv1[18], x),
+          init_mpm2020_lsm(g00[19], y0[19], y1[19], g0[19], g1[19], dv0[19], dv1[19], x),
+          init_mpm2020_lsm(g00[20], y0[20], y1[20], g0[20], g1[20], dv0[20], dv1[20], x),
+          init_mpm2020_lsm(g00[21], y0[21], y1[21], g0[21], g1[21], dv0[21], dv1[21], x),
+          init_mpm2020_lsm(g00[22], y0[22], y1[22], g0[22], g1[22], dv0[22], dv1[22], x),
+          init_mpm2020_lsm(g00[23], y0[23], y1[23], g0[23], g1[23], dv0[23], dv1[23], x),
+          init_mpm2020_lsm(g00[24], y0[24], y1[24], g0[24], g1[24], dv0[24], dv1[24], x),
+          init_mpm2020_lsm(g00[25], y0[25], y1[25], g0[25], g1[25], dv0[25], dv1[25], x),
+          init_mpm2020_lsm(g00[26], y0[26], y1[26], g0[26], g1[26], dv0[26], dv1[26], x),
+          init_mpm2020_lsm(g00[27], y0[27], y1[27], g0[27], g1[27], dv0[27], dv1[27], x),
+          init_mpm2020_lsm(g00[28], y0[28], y1[28], g0[28], g1[28], dv0[28], dv1[28], x),
+          init_mpm2020_lsm(g00[29], y0[29], y1[29], g0[29], g1[29], dv0[29], dv1[29], x),
+          init_mpm2020_lsm(g00[30], y0[30], y1[30], g0[30], g1[30], dv0[30], dv1[30], x),
+          init_mpm2020_lsm(g00[31], y0[31], y1[31], g0[31], g1[31], dv0[31], dv1[31], x),
+          init_mpm2020_lsm(g00[32], y0[32], y1[32], g0[32], g1[32], dv0[32], dv1[32], x),
+          init_mpm2020_lsm(g00[33], y0[33], y1[33], g0[33], g1[33], dv0[33], dv1[33], x),
+          init_mpm2020_lsm(g00[34], y0[34], y1[34], g0[34], g1[34], dv0[34], dv1[34], x),
+          init_mpm2020_lsm(g00[35], y0[35], y1[35], g0[35], g1[35], dv0[35], dv1[35], x),
+          init_mpm2020_lsm(g00[36], y0[36], y1[36], g0[36], g1[36], dv0[36], dv1[36], x),
+          init_mpm2020_lsm(g00[37], y0[37], y1[37], g0[37], g1[37], dv0[37], dv1[37], x),
+          init_mpm2020_lsm(g00[38], y0[38], y1[38], g0[38], g1[38], dv0[38], dv1[38], x),
+          init_mpm2020_lsm(g00[39], y0[39], y1[39], g0[39], g1[39], dv0[39], dv1[39], x),
+          init_mpm2020_lsm(g00[40], y0[40], y1[40], g0[40], g1[40], dv0[40], dv1[40], x),
+          init_mpm2020_lsm(g00[41], y0[41], y1[41], g0[41], g1[41], dv0[41], dv1[41], x),
+          init_mpm2020_lsm(g00[42], y0[42], y1[42], g0[42], g1[42], dv0[42], dv1[42], x),
+          init_mpm2020_lsm(g00[43], y0[43], y1[43], g0[43], g1[43], dv0[43], dv1[43], x),};
+}
+
+
+constexpr QuantumIdentifier init_mpm2020_qid(Index species, Index isot, Rational Jup, Rational Jlow, Rational Nup, Rational Nlow)
+{
+  return QuantumIdentifier(species, isot, QuantumNumbers(Jup, Nup, 0), QuantumNumbers(Jlow, Nlow, 0));
+}
+
+
 void FullAbsorptionModel::makarov2020_o2_lines_mpm(Matrix& xsec,
                                                    ArrayOfMatrix& dxsec,
                                                    const Vector& f,
@@ -41,33 +128,33 @@ void FullAbsorptionModel::makarov2020_o2_lines_mpm(Matrix& xsec,
   using Constant::inv_sqrt_pi;
   using Constant::pow2;
   using Constant::pow3;
-  using Constant::log10_euler;
   
-  constexpr Index n = 38 + 6;
+  // Central frequency [Hz]
+  constexpr std::array<Numeric, nlines_mpm2020> f0 = {
+    1.18750334E+11, 5.6264774E+10, 6.2486253E+10, 5.8446588E+10, 6.0306056E+10, 
+    5.9590983E+10, 5.9164204E+10, 6.0434778E+10, 5.8323877E+10, 6.1150562E+10, 
+    5.7612486E+10, 6.1800158E+10, 5.6968211E+10, 6.2411220E+10, 5.6363399E+10, 
+    6.2997984E+10, 5.5783815E+10, 6.3568526E+10, 5.5221384E+10, 6.4127775E+10, 
+    5.4671180E+10, 6.4678910E+10, 5.4130025E+10, 6.5224078E+10, 5.3595775E+10, 
+    6.5764779E+10, 5.3066934E+10, 6.6302096E+10, 5.2542418E+10, 6.6836834E+10, 
+    5.2021429E+10, 6.7369601E+10, 5.1503360E+10, 6.7900868E+10, 5.0987745E+10, 
+    6.8431006E+10, 5.0474214E+10, 6.8960312E+10, 3.68498246E+11, 4.24763020E+11, 
+    4.87249273E+11, 7.15392902E+11, 7.73839490E+11, 8.34145546E+11, };
   
-  // Central frequency [GHz]
-  constexpr std::array<Numeric, n> f0 = {
-    118.750334, 56.264774, 62.486253, 58.446588, 60.306056,
-    59.590983, 59.164204, 60.434778, 58.323877, 61.150562,
-    57.612486, 61.800158, 56.968211, 62.411220, 56.363399,
-    62.997984, 55.783815, 63.568526, 55.221384, 64.127775,
-    54.671180, 64.678910, 54.130025, 65.224078, 53.595775,
-    65.764779, 53.066934, 66.302096, 52.542418, 66.836834,
-    52.021429, 67.369601, 51.503360, 67.900868, 50.987745,
-    68.431006, 50.474214, 68.960312, 368.498246, 424.763020,
-    487.249273, 715.392902, 773.839490, 834.145546};
-  
-  // Intensity [kHz / kPa]
-  constexpr std::array<Numeric, n> intens = {
-    940.3, 543.4, 1503.0, 1442.1, 2103.4, 2090.7, 2379.9,
-    2438.0, 2363.7, 2479.5, 2120.1, 2275.9, 1746.6, 1915.4,
-    1331.8, 1490.2, 945.3, 1078.0, 627.1, 728.7, 389.7, 461.3,
-    227.3, 274.0, 124.6, 153.0, 64.29, 80.40, 31.24, 39.80,
-    14.32, 18.56, 6.193, 8.172, 2.529, 3.397, 0.975, 1.334,
-    67.4, 637.7, 237.4, 98.1, 572.3, 183.1};
+  // Intensity [1 / Pa] (rounded to 10 digits because at most 9 digits exist in f0)
+  constexpr std::array<Numeric, nlines_mpm2020> intens = {
+    1.591521878E-21, 1.941172240E-21, 4.834543970E-21, 4.959264029E-21, 7.010386457E-21, 
+    7.051673348E-21, 8.085012578E-21, 8.108262250E-21, 8.145673278E-21, 8.149757320E-21, 
+    7.396406085E-21, 7.401923754E-21, 6.162286575E-21, 6.168475265E-21, 4.749226167E-21, 
+    4.754435107E-21, 3.405982896E-21, 3.408455562E-21, 2.282498656E-21, 2.283934341E-21, 
+    1.432692459E-21, 1.433513473E-21, 8.439995690E-22, 8.443521837E-22, 4.672706507E-22, 
+    4.676049313E-22, 2.435008301E-22, 2.437304596E-22, 1.195038747E-22, 1.196873412E-22, 
+    5.532759045E-23, 5.537261239E-23, 2.416832398E-23, 2.418989865E-23, 9.969285671E-24, 
+    9.977543709E-24, 3.882541154E-24, 3.888101811E-24, 3.676253816E-23, 3.017524005E-22, 
+    9.792882227E-23, 2.756166168E-23, 1.486462215E-22, 4.411918954E-23, };
   
   // Temperature intensity modifier
-  constexpr std::array<Numeric, n> a2 = {
+  constexpr std::array<Numeric, nlines_mpm2020> a2 = {
     0.01, 0.014, 0.083, 0.083, 0.207, 0.207, 0.387, 0.386,
     0.621, 0.621, 0.910, 0.910, 1.255, 1.255, 1.654, 1.654,
     2.109, 2.108, 2.618, 2.617, 3.182, 3.181, 3.800, 3.800,
@@ -75,71 +162,87 @@ void FullAbsorptionModel::makarov2020_o2_lines_mpm(Matrix& xsec,
     7.709, 7.708, 8.653, 8.652, 9.651, 9.650, 0.048, 0.044,
     0.049, 0.145, 0.141, 0.145};
   
-  // Pressure broadening coefficient
-  constexpr std::array<Numeric, n> gamma = {
-    1.685, 1.703, 1.513, 1.495, 1.433, 1.408, 1.353, 1.353,
-    1.303, 1.319, 1.262, 1.265, 1.238, 1.217, 1.207, 1.207,
-    1.137, 1.137, 1.101, 1.101, 1.037, 1.038, 0.996, 0.996,
-    0.955, 0.955, 0.906, 0.906, 0.858, 0.858, 0.811, 0.811,
-    0.764, 0.764, 0.717, 0.717, 0.669, 0.669, 1.64, 1.64, 1.60,
-    1.60, 1.62, 1.47};
+  // Line shape model in SI units
+  constexpr auto lsm = init_mpm2020(
+    // Pressure broadening [1/Pa] at reference temperature
+    {1.685E+4, 1.703E+4, 1.513E+4, 1.495E+4, 1.433E+4, 
+      1.408E+4, 1.353E+4, 1.353E+4, 1.303E+4, 1.319E+4, 
+      1.262E+4, 1.265E+4, 1.238E+4, 1.217E+4, 1.207E+4, 
+      1.207E+4, 1.137E+4, 1.137E+4, 1.101E+4, 1.101E+4, 
+      1.037E+4, 1.038E+4, 9.96E+3, 9.96E+3, 9.55E+3, 
+      9.55E+3, 9.06E+3, 9.06E+3, 8.58E+3, 8.58E+3, 
+      8.11E+3, 8.11E+3, 7.64E+3, 7.64E+3, 7.17E+3, 
+      7.17E+3, 6.69E+3, 6.69E+3, 1.64E+4, 1.64E+4, 
+      1.60E+4, 1.60E+4, 1.62E+4, 1.47E+4,},
+    // First order line mixing first coefficient [1/Pa] at reference temperature
+    {-4.1E-7, 0.00000277, -0.00000372, 0.00000559, -0.00000573, 
+      0.00000618, -0.00000366, 0.00000278, -8.9E-7, -2.1E-7, 
+      6.0E-7, -0.00000152, 0.00000216, -0.00000293, 0.00000373, 
+      -0.00000436, 0.00000491, -0.00000542, 0.00000571, -0.00000613, 
+      0.00000636, -0.00000670, 0.00000690, -0.00000718, 0.00000740, 
+      -0.00000763, 0.00000788, -0.00000807, 0.00000834, -0.00000849, 
+      0.00000876, -0.00000887, 0.00000915, -0.00000922, 0.00000950, 
+      -0.00000955, 0.00000987, -0.00000988, 0.00000, 0.00000, 
+      0.00000, 0.00000, 0.00000, 0.00000,}, 
+    // First order line mixing second coefficient [1/Pa] at reference temperature
+    {0.00000, 0.00000124, -2E-8, 8E-8, 4.5E-7, 
+      -9.3E-7, 0.00000264, -0.00000351, 0.00000359, -0.00000416, 
+      0.00000326, -0.00000353, 0.00000484, -0.00000503, 0.00000579, 
+      -0.00000590, 0.00000616, -0.00000619, 0.00000611, -0.00000609, 
+      0.00000574, -0.00000568, 0.00000574, -0.00000566, 0.0000060, 
+      -0.0000059, 0.0000063, -0.0000062, 0.0000064, -0.0000063, 
+      0.0000065, -0.0000064, 0.0000065, -0.0000064, 0.0000065, 
+      -0.0000064, 0.0000064, -0.0000062, 0.00000, 0.00000, 
+      0.00000, 0.00000, 0.00000, 0.00000, },
+    // Second order line mixing strength adjustment first coefficient [1/Pa^2] at reference temperature
+    {-6.95E-14, -9.0E-12, -1.03E-11, -2.39E-11, -1.72E-11, 
+      -1.71E-11, 2.8E-12, 1.50E-11, 1.32E-11, 1.70E-11, 
+      8.7E-12, 6.9E-12, 8.3E-12, 6.7E-12, 7E-13, 
+      1.6E-12, -2.1E-12, -6.6E-12, -9.5E-12, -1.15E-11, 
+      -1.18E-11, -1.40E-11, -1.73E-11, -1.86E-11, -2.17E-11, 
+      -2.27E-11, -2.34E-11, -2.42E-11, -2.66E-11, -2.72E-11, 
+      -3.01E-11, -3.04E-11, -3.34E-11, -3.33E-11, -3.61E-11, 
+      -3.58E-11, -3.48E-11, -3.44E-11, 0E-10, 0E-10, 
+      0E-10, 0E-10, 0E-10, 0E-10,},
+    // Second order line mixing strength adjustment second coefficient [1/Pa^2] at reference temperature
+    {0E-10, -4.5E-12, 7E-13, 3.3E-12, 8.1E-12, 
+      1.62E-11, 1.79E-11, 2.25E-11, 5.4E-12, 3E-13, 
+      4E-14, -4.7E-12, -3.4E-12, -7.1E-12, -1.80E-11, 
+      -2.10E-11, -2.85E-11, -3.23E-11, -3.63E-11, -3.80E-11, 
+      -3.78E-11, -3.87E-11, -3.92E-11, -3.94E-11, -4.24E-11, 
+      -4.22E-11, -4.65E-11, -4.6E-11, -5.1E-11, -5.0E-11, 
+      -5.5E-11, -5.4E-11, -5.8E-11, -5.6E-11, -6.2E-11, 
+      -5.9E-11, -6.8E-11, -6.5E-11, 0E-10, 0E-10, 
+      0E-10, 0E-10, 0E-10, 0E-10, },
+    // Second order line mixing frequency adjustment first coefficient [Hz/Pa^2] at reference temperature
+    {-0.000028, 0.000597, -0.00195, 0.0032, -0.00475, 
+      0.00541, -0.00232, 0.00154, 0.00007, -0.00084, 
+      -0.00025, -0.00014, -0.00004, -0.00020, 0.0005, 
+      -0.00066, 0.00072, -0.0008, 0.00064, -0.00070, 
+      0.00056, -0.00060, 0.00047, -0.00049, 0.00040, 
+      -0.00041, 0.00036, -0.00037, 0.00033, -0.00034, 
+      0.00032, -0.00032, 0.00030, -0.00030, 0.00028, 
+      -0.00029, 0.00029, -0.00029, 0.0, 0.0, 
+      0.0, 0.0, 0.0, 0.0, },
+    // Second order line mixing frequency adjustment second coefficient [Hz/Pa^2] at reference temperature
+    {-0.000039, 0.0009, -0.0012, 0.0016, -0.0027, 
+      0.0029, 0.0006, -0.0015, 0.0010, -0.0014, 
+      -0.0013, 0.0013, 0.0004, -0.0005, 0.0010, 
+      -0.0010, 0.0010, -0.0011, 0.0008, -0.0009, 
+      0.0003, -0.0003, 0.00009, -0.00009, 0.00017, 
+      -0.00016, 0.00024, -0.00023, 0.00024, -0.00024, 
+      0.00024, -0.00020, 0.00017, -0.00016, 0.00013, 
+      -0.00012, 0.00005, -0.00004, 0.0, 0.0, 
+      0.0, 0.0, 0.0, 0.0, },
+    // Temperature scaling exponent [-]
+    0.754);
   
-  // First order line mixing first coefficient
-  constexpr std::array<Numeric, n> y0 = {
-    -0.041, 0.277, -0.372, 0.559, -0.573, 0.618, -0.366, 0.278,
-    -0.089, -0.021, 0.060, -0.152, 0.216, -0.293, 0.373, -0.436,
-    0.491, -0.542, 0.571, -0.613, 0.636, -0.670, 0.690, -0.718,
-    0.740, -0.763, 0.788, -0.807, 0.834, -0.849, 0.876, -0.887,
-    0.915, -0.922, 0.950, -0.955, 0.987, -0.988, 0, 0, 0, 0, 0, 0};
-  
-  // First order line mixing second coefficient
-  constexpr std::array<Numeric, n> y1 = {
-    0, 0.124, -0.002, 0.008, 0.045, -0.093, 0.264, -0.351, 0.359,
-    -0.416, 0.326, -0.353, 0.484, -0.503, 0.579, -0.590, 0.616,
-    -0.619, 0.611, -0.609, 0.574, -0.568, 0.574, -0.566, 0.60,
-    -0.59, 0.63, -0.62, 0.64, -0.63, 0.65, -0.64, 0.65, -0.64,
-    0.65, -0.64, 0.64, -0.62, 0, 0, 0, 0, 0, 0};
-  
-  // Second order line mixing strength adjustment first coefficient
-  constexpr std::array<Numeric, n> g0 = {
-    -0.000695, -0.090,  -0.103, -0.239, -0.172, -0.171, 0.028,
-    0.150, 0.132, 0.170, 0.087, 0.069, 0.083, 0.067, 0.007,
-    0.016, -0.021, -0.066, -0.095, -0.115, -0.118, -0.140,
-    -0.173, -0.186, -0.217, -0.227, -0.234, -0.242, -0.266,
-    -0.272, -0.301, -0.304, -0.334, -0.333, -0.361, -0.358,
-    -0.348, -0.344, 0, 0, 0, 0, 0, 0};
-  
-  // Second order line mixing strength adjustment second coefficient
-  constexpr std::array<Numeric, n> g1 = {
-    0, -0.045, 0.007, 0.033, 0.081, 0.162, 0.179, 0.225, 0.054,
-    0.003, 0.0004, -0.047, -0.034, -0.071, -0.180, -0.210, -0.285,
-    -0.323, -0.363, -0.380, -0.378, -0.387, -0.392, -0.394, -0.424,
-    -0.422, -0.465, -0.46, -0.51, -0.50, -0.55, -0.54, -0.58, -0.56,
-    -0.62, -0.59, -0.68, -0.65, 0, 0, 0, 0, 0, 0};
-  
-  // Second order line mixing frequency adjustment first coefficient
-  constexpr std::array<Numeric, n> dv0 = {
-    -0.00028, 0.00597, -0.0195, 0.032, -0.0475, 0.0541, -0.0232,
-    0.0154, 0.0007, -0.0084, -0.0025, -0.0014, -0.0004, -0.0020,
-    0.005, -0.0066, 0.0072, -0.008, 0.0064, -0.0070, 0.0056, -0.0060,
-    0.0047, -0.0049, 0.0040, -0.0041, 0.0036, -0.0037, 0.0033, -0.0034,
-    0.0032, -0.0032, 0.0030, -0.0030, 0.0028, -0.0029, 0.0029, -0.0029,
-    0, 0, 0, 0, 0, 0};
-  
-  // Second order line mixing frequency adjustment second coefficient
-  constexpr std::array<Numeric, n> dv1 = {
-    -0.00039, 0.009, -0.012, 0.016, -0.027, 0.029, 0.006, -0.015,
-    0.010, -0.014, -0.013, 0.013, 0.004, -0.005, 0.010, -0.010, 0.010,
-    -0.011, 0.008, -0.009, 0.003, -0.003, 0.0009, -0.0009, 0.0017,
-    -0.0016, 0.0024, -0.0023, 0.0024, -0.0024, 0.0024, -0.0020, 0.0017,
-    -0.0016, 0.0013, -0.0012, 0.0005, -0.0004, 0, 0, 0, 0, 0, 0};
+  // Reference temperature [K]
+  constexpr Numeric t0 = 300;
   
   /*
-   Quantum numbers kept so that Zeeman effect can be
-   easily implemented in the future
-   
   // N of upper level
-  constexpr std::array<Index ,n> Np = {
+  constexpr std::array<Index, nlines_mpm2020> Np = {
     1, 1, 3, 3, 5, 5, 7, 7, 9, 9,
     11, 11, 13, 13, 15, 15, 17, 17,
     19, 19,  21, 21, 23, 23, 25, 25,
@@ -147,7 +250,7 @@ void FullAbsorptionModel::makarov2020_o2_lines_mpm(Matrix& xsec,
     35, 35, 37, 37, 1, 1, 1, 3, 3, 3};
   
   // N of lower level
-  constexpr std::array<Index ,n> Npp = {
+  constexpr std::array<Index, nlines_mpm2020> Npp = {
     1, 1, 3, 3, 5, 5, 7, 7, 9, 9,
     11, 11, 13, 13, 15, 15, 17, 17,
     19, 19,  21, 21, 23, 23, 25, 25,
@@ -155,116 +258,94 @@ void FullAbsorptionModel::makarov2020_o2_lines_mpm(Matrix& xsec,
     35, 35, 37, 37, 3, 3, 3, 5, 5, 5};
   
   // J of upper level
-  constexpr std::array<Index ,n> Jp = {
+  constexpr std::array<Index, nlines_mpm2020> Jp = {
     1, 1, 3, 3, 5, 5, 7, 7, 9, 9,
     11, 11, 13, 13, 15, 15, 17, 17,
     19, 19,  21, 21, 23, 23, 25, 25,
     27, 27, 29, 29, 31, 31, 33, 33,
     35, 35, 37, 37, 1, 2, 2, 3, 4, 4};
   
-  // J of upper level
-  constexpr std::array<Index ,n> Jpp = {
+  // J of lower level
+  constexpr std::array<Index, nlines_mpm2020> Jpp = {
     0, 2, 2, 4, 4, 6, 6, 8, 8, 10,
     10, 12, 12, 14, 14, 16, 16, 18,
     18, 20,  20, 22, 22, 24, 24, 26,
     26, 28, 28, 30, 30, 32, 32, 34,
     34, 36, 36, 38, 2, 2, 3, 4, 4, 5};
   */
+  auto species = SpeciesTag("O2-66");
+  /*
+  std::array<QuantumIdentifier, nlines_mpm2020> qids;
+  std::array<Zeeman::Model, nlines_mpm2020> zee;
+  for (Index i=0; i<nlines_mpm2020; i++) {
+    qids[i] = init_mpm2020_qid(species.Species(), species.Isotopologue(), Jp[i], Jpp[i], Np[i], Npp[i]);
+    zee[i] = Zeeman::GetAdvancedModel(qids[i]);
+  }
+  */
   
-  // Exponent for temperature
-  constexpr Numeric x = 0.754;
-  
-  // Temperature dependency
-  constexpr Numeric t0 = 300;
-  
-  // Conversion to per meter absorption from per kilometer in decibel
-  constexpr Numeric conversion = 0.1820 * 1e-3 / (0.2085 * 10.0 * log10_euler);
+  // Model setting
+  const bool do_temp_deriv = do_temperature_jacobian(jacs);
   
   // Per pressure level
   #pragma omp parallel for if (not arts_omp_in_parallel() and p.nelem() >= arts_omp_get_max_threads()) schedule(guided) 
   for (Index ip=0; ip<p.nelem(); ip++) {
-    // Model implementation
     const Numeric theta = t0 / t[ip];
     const Numeric theta_m1 = theta - 1;
     const Numeric theta_3 = pow3(theta);
-    const Numeric theta_x = std::pow(theta, x);
-    const Numeric theta_2x = pow2(theta_x);
-    const Numeric GD_div_F0 = Linefunctions::DopplerConstant(t[ip], SpeciesTag("O2-66").SpeciesMass());
+    const Numeric GD_div_F0 = Linefunctions::DopplerConstant(t[ip], species.SpeciesMass());
     
-    for (Index i=0; i<n; i++) {
-      const Numeric invGD = 1 / (GD_div_F0 * f0[i]*1e9);
+    for (Index i=0; i<nlines_mpm2020; i++) {
+      const Numeric invGD = 1 / (GD_div_F0 * f0[i]);
       const Numeric fac = sqrt_pi * invGD;
-      const Numeric G0 = 1e9 * (1 + 0.1*water_vmr[ip]) *(1e-5 * p[ip] * gamma[i]) * theta_x;
-      const Numeric Y = 1e-5 * p[ip] * (y0[i] + y1[i] * theta_m1) * theta_x;
-      const Numeric G = pow2(1e-5 * p[ip]) * (g0[i] + g1[i] * theta_m1) * theta_2x;
-      const Numeric DV = 1e9 * pow2(1e-5 * p[ip]) * (dv0[i] + dv1[i] * theta_m1) * theta_2x;
-      const Numeric ST = 1e-6 * theta_3 * (1e-3 * p[ip] * intens[i])/(1e9*f0[i]) * std::exp(-a2[i] * theta_m1);
+      const Numeric ST = theta_3 * p[ip] * intens[i] * std::exp(-a2[i] * theta_m1);
+      const Numeric G0 = (1 + 0.1*water_vmr[ip]) * p[ip] * lsm[i].compute(t[ip], t0, LineShape::Variable::G0);
+      const Numeric Y = p[ip] * lsm[i].compute(t[ip], t0, LineShape::Variable::Y);
+      const Numeric G = pow2( p[ip]) * lsm[i].compute(t[ip], t0, LineShape::Variable::G);
+      const Numeric DV = pow2(p[ip]) * lsm[i].compute(t[ip], t0, LineShape::Variable::DV);
+      
+      const Numeric dinvGD_dT = do_temp_deriv ? - invGD * Linefunctions::dDopplerConstant_dT(t[ip], GD_div_F0) : 0;
+      const Numeric dST_dT = do_temp_deriv ? (a2[i]*t0 - 3*t[ip]) / pow2(t[ip]) * ST : 0;
+      const Numeric dG0_dT = do_temp_deriv ? (1 + 0.1*water_vmr[ip]) * p[ip] * lsm[i].compute_dT(t[ip], t0, LineShape::Variable::G0) : 0;
+      const Numeric dY_dT = do_temp_deriv ? p[ip] * lsm[i].compute_dT(t[ip], t0, LineShape::Variable::Y) : 0;
+      const Numeric dG_dT = do_temp_deriv ? pow2(p[ip]) * lsm[i].compute_dT(t[ip], t0, LineShape::Variable::G) : 0;
+      const Numeric dDV_dT = do_temp_deriv ? pow2(p[ip]) * lsm[i].compute_dT(t[ip], t0, LineShape::Variable::DV) : 0;
       
       for (Index j=0; j<f.nelem(); j++) {
-        const Complex z = Complex(f0[i]*1e9 + DV - f[j], G0) * invGD;
+        const Complex z = Complex(f0[i] + DV - f[j], G0) * invGD;
         const Complex Fv = fac * Faddeeva::w(z);
-        const Complex Flm = 1 / Complex(G0, f[j] + f0[i]*1e9 + DV);
+        const Complex Flm = 1 / Complex(G0, f[j] + f0[i] + DV);
         
-        xsec(j, ip) += std::real(conversion * ST * pow2(f[j]) *
-        (
+        const Complex abs = std::real(
           /* around line center */
           Complex(1 + G, Y) * Fv +
           /* mirrored line far from line center */
-          Complex(1 + G, -Y) * Flm
-        ));
+          Complex(1 + G, -Y) * Flm);
+        
+        xsec(j, ip) += ST * pow2(f[j]) * abs.real();
         
         if (jacs_pos.nelem()) {
           const Complex dw = 2 * (Complex(0, fac * inv_sqrt_pi) - z * Fv);
           const Complex dm = - pi * pow2(Flm);
           
           for (Index iq=0; iq<jacs_pos.nelem(); iq++) {
-            if (jacs[jacs_pos[iq]] == JacPropMatType::Temperature) {
-              const Numeric dinvGD = - invGD * Linefunctions::dDopplerConstant_dT(t[ip], GD_div_F0);
-              const Numeric dG0 = -(x/t[ip]) * G0;
-              const Numeric dY = (y1[i] not_eq 0 and y0[i] not_eq 0) ?
-              -((y1[i]*t0 + x*(y0[i]*t - y1[i]*(t[ip]-t0)))/(t[ip] * (y0[i]*t[ip] - y1[i]*(t[ip]-t0)))) * Y :
-              0;
-              const Numeric dG =  (g1[i] not_eq 0 and g0[i] not_eq 0) ?
-              -((g1[i]*t0 + 2*x*(g0[i]*t - g1[i]*(t[ip]-t0)))/(t[ip] * (g0[i]*t[ip] - g1[i]*(t[ip]-t0)))) * G :
-              0;
-              const Numeric dDV =  (dv1[i] not_eq 0 and dv0[i] not_eq 0) ?
-              -((dv1[i]*t0 + 2*x*(dv0[i]*t - dv1[i]*(t[ip]-t0)))/(t[ip] * (dv0[i]*t[ip] - dv1[i]*(t[ip]-t0)))) * DV :
-              0;
-              const Numeric dST = (a2[i]*t0 - 3*t[ip]) / pow2(t[ip]) * ST;
-              
-              const Complex dFv = dw * (invGD * Complex(dDV, dG0) - dinvGD) + Fv * dinvGD;
-              const Complex dFlm = dm * Complex(dG0, dDV);
-              dxsec[iq](j, ip) += std::real(conversion * ST * pow2(f[j]) * 
-              (
+            const auto& deriv = jacs[jacs_pos[iq]];
+            
+            if (deriv == JacPropMatType::Temperature) {
+              const Complex dFv = dw * (invGD * Complex(dDV_dT, dG0_dT) - dinvGD_dT) + Fv * dinvGD_dT;
+              const Complex dFlm = dm * Complex(dG0_dT, dDV_dT);
+              dxsec[iq](j, ip) += pow2(f[j]) * (ST * std::real(
                 /* around line center */
-                Complex(1 + G, Y) * dFv + Complex(dG, dY) * Fv +
+                Complex(1 + G, Y) * dFv + Complex(dG_dT, dY_dT) * Fv +
                 /* mirrored line far from line center */
-                Complex(1 + G, -Y) * dFlm + Complex(G, -dY) * Flm
-              )) +
-              std::real(conversion * dST * pow2(f[j]) *
-              (
-                /* around line center */
-                Complex(1 + G, Y) * Fv +
-                /* mirrored line far from line center */
-                Complex(1 + G, -Y) * Flm
-              ));
-            } else if (is_frequency_parameter(jacs[jacs_pos[iq]])) {
+                Complex(1 + G, -Y) * dFlm + Complex(G, -dY_dT) * Flm) + abs.real() * dST_dT);
+            } else if (is_frequency_parameter(deriv)) {
               const Complex dFv = - dw * invGD;
               const Complex dFlm = Complex(0, 1) * dm;
-              dxsec[iq](j, ip) += std::real(conversion * ST * pow2(f[j]) * 
-              (
+              dxsec[iq](j, ip) += ST * (pow2(f[j]) * std::real(
                 /* around line center */
                 Complex(1 + G, Y) * dFv +
                 /* mirrored line far from line center */
-                Complex(1 + G, -Y) * dFlm
-              )) + 
-              std::real(conversion * ST * 2 * f[j] *
-              (
-                /* around line center */
-                Complex(1 + G, Y) * Fv +
-                /* mirrored line far from line center */
-                Complex(1 + G, -Y) * Flm
-              ));
+                Complex(1 + G, -Y) * dFlm) + 2 * abs.real() * f[j]);
             }
           }
         }
