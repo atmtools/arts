@@ -9,8 +9,6 @@ add_custom_target(Sphinx
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   COMMENT "Generating documentation with Sphinx")
 
-
-
 file(GLOB_RECURSE PYTHON_SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.py")
 foreach(file ${PYTHON_SOURCE_FILES})
   configure_file(${file} ${file} @ONLY)
