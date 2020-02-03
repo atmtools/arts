@@ -219,6 +219,9 @@ void Linefunctions::set_lineshape(
   switch (norm_type) {
     case Absorption::NormalizationType::None:
       break;
+    case Absorption::NormalizationType::MPM:
+      apply_MPM_scaling(F, dF, data, f_grid);
+      break;
     case Absorption::NormalizationType::VVH:
       apply_VVH_scaling(F, dF, data, f_grid, line.F0(), temperature);
       break;
@@ -528,6 +531,31 @@ void Linefunctions::apply_rosenkranz_quadratic_scaling(
   }
 }
 
+void Linefunctions::apply_MPM_scaling(
+    Eigen::Ref<Eigen::VectorXcd> F,
+    Eigen::Ref<Eigen::MatrixXcd> dF,
+    Eigen::Ref<Eigen::Matrix<Complex, Eigen::Dynamic, ExpectedDataSize()>> data,
+    const Eigen::Ref<const Eigen::VectorXd> f_grid,
+    const ArrayOfRetrievalQuantity& derivatives_data,
+    const ArrayOfIndex& derivatives_data_position) {
+  auto nppd = derivatives_data_position.nelem();
+  
+  static_assert(ExpectedDataSize() >= 1, "Not enough allocated data size");
+  auto f2 = data.col(0).array() = f_grid.array().square();
+  
+  // All dF should scale by f2
+  dF.array().colwise() *= f2;
+  for (auto iq = 0; iq < nppd; iq++) {
+    const auto& deriv = derivatives_data[derivatives_data_position[iq]];
+    if (is_frequency_parameter(deriv)) {
+      dF.col(iq).noalias() += 2 * F.cwiseQuotient(f_grid);  // Add more to frequency dF 
+    }
+  }
+  
+  // Finalize with fixing F so that there's no divisions in derivatives
+  F.array() *= f2;
+}
+
 void Linefunctions::apply_VVH_scaling(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -699,7 +727,7 @@ void Linefunctions::apply_linestrength_scaling_by_mpm(
   
   const Numeric theta = T0 / T;
   const Numeric theta3 = Constant::pow3(theta);
-  const Numeric S = P * line.I0() * isotopic_ratio * theta3 * std::exp(line.a2() * (theta - 1));
+  const Numeric S = P * line.I0() * isotopic_ratio * theta3 * std::exp(line.a2() * (1 - theta));
 
   F *= S;
   dF *= S;
@@ -707,13 +735,13 @@ void Linefunctions::apply_linestrength_scaling_by_mpm(
     const auto& deriv = derivatives_data[derivatives_data_position[iq]];
 
     if (deriv == JacPropMatType::Temperature) {
-      dF.col(iq).noalias() += - F * (3*T + line.a2()*T0) / Constant::pow2(T);
+      dF.col(iq).noalias() += F * (line.a2()*theta - 3) / T;
     } else if (deriv == JacPropMatType::LineStrength and
              Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind)) {
       dF.col(iq).noalias() = F / line.I0();  // nb. overwrite
     } else if (deriv == JacPropMatType::LineSpecialParameter1 and
              Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind)) {
-      dF.col(iq).noalias() = F * (theta - 1);  // nb. overwrite
+      dF.col(iq).noalias() = F * (1 - theta);  // nb. overwrite
     }
   }
 
@@ -1521,6 +1549,9 @@ void Linefunctions::set_cross_section_of_band(
       // Normalize the lines
       switch (band.Normalization()) {
         case Absorption::NormalizationType::None:
+          break;
+        case Absorption::NormalizationType::MPM:
+          apply_MPM_scaling(F, dF, data, f, derivatives_data, derivatives_data_active);
           break;
         case Absorption::NormalizationType::VVH:
           apply_VVH_scaling(F, dF, data, f, band.F0(i), T, band, i, derivatives_data, derivatives_data_active);

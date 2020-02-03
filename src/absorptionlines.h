@@ -96,6 +96,7 @@ inline String mirroringtype2metadatastring(MirroringType in) {
  */
 enum class NormalizationType {
   None,  // Do not renormalize the line shape
+  MPM,   // Renormalize with MPM specifications
   VVH,   // Renormalize with Van Vleck and Huber specifications
   VVW,   // Renormalize with Van Vleck and Weiskopf specifications
   RosenkranzQuadratic,  // Renormalize using Rosenkranz's quadratic specifications
@@ -104,6 +105,8 @@ enum class NormalizationType {
 inline NormalizationType string2normalizationtype(const String& in) {
   if (in == "None")
     return NormalizationType::None;
+  else if (in == "MPM")
+    return NormalizationType::MPM;
   else if (in == "VVH")
     return NormalizationType::VVH;
   else if (in == "VVW")
@@ -117,6 +120,8 @@ inline NormalizationType string2normalizationtype(const String& in) {
 inline String normalizationtype2string(NormalizationType in) {
   if (in == NormalizationType::None)
     return "None";
+  else if (in == NormalizationType::MPM)
+    return "MPM";
   else if (in == NormalizationType::VVH)
     return "VVH";
   else if (in == NormalizationType::VVW)
@@ -129,6 +134,8 @@ inline String normalizationtype2string(NormalizationType in) {
 inline String normalizationtype2metadatastring(NormalizationType in) {
   if (in == NormalizationType::None)
     return "No re-normalization in the far wing will be applied.\n";
+  else if (in == NormalizationType::MPM)
+    return "MPM renormalization will be applied, i.e. F ~ f*f\n";
   else if (in == NormalizationType::VVH)
     return "van Vleck and Huber far-wing renormalization will be applied, "
       "i.e. F ~ (f tanh(hf/2kT))/(f0 tanh(hf0/2kT))\n";
