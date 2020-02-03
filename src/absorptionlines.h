@@ -147,6 +147,7 @@ inline String normalizationtype2metadatastring(NormalizationType in) {
  */
 enum class PopulationType {
   ByLTE,                          // Assume line is in LTE
+  ByMPM,                          // Assume line is in LTE using MPM formalism
   ByRelmatMendazaLTE,             // Assume line is in LTE but requires Relaxation matrix calculations - follows Mendaza method
   ByRelmatHartmannLTE,            // Assume line is in LTE but requires Relaxation matrix calculations - follows Hartmann method
   ByNLTEVibrationalTemperatures,  // Assume line is in NLTE described by vibrational temperatures
@@ -156,6 +157,8 @@ enum class PopulationType {
 inline PopulationType string2populationtype(const String& in) {
   if (in == "LTE")
     return PopulationType::ByLTE;
+  if (in == "MPM")
+    return PopulationType::ByMPM;
   if (in == "MendazaRelmat")
     return PopulationType::ByRelmatMendazaLTE;
   if (in == "HartmannRelmat")
@@ -172,6 +175,8 @@ inline String populationtype2string(PopulationType in) {
   switch (in) {
     case PopulationType::ByLTE:
       return "LTE";
+    case PopulationType::ByMPM:
+      return "MPM";
     case PopulationType::ByRelmatMendazaLTE:
       return "MendazaRelmat";
     case PopulationType::ByRelmatHartmannLTE:
@@ -187,6 +192,8 @@ inline String populationtype2metadatastring(PopulationType in) {
   switch (in) {
     case PopulationType::ByLTE:
       return "The lines are considered as in pure LTE.\n";
+    case PopulationType::ByMPM:
+      return "The lines are considered as in pure LTE with MPM scaling method.\n";
     case PopulationType::ByRelmatMendazaLTE:
       return "The lines requires Relaxation matrix calculations in LTE - Mendaza method.\n";
     case PopulationType::ByRelmatHartmannLTE:
@@ -251,7 +258,7 @@ private:
   /** Reference intensity */
   Numeric mI0;
   
-  /** Lower state energy level */
+  /** Lower state energy level or MPM scaling factor */
   Numeric mE0;
   
   /** Lower level statistical weight */
@@ -344,6 +351,9 @@ public:
   /** Lower level energy */
   Numeric E0() const noexcept {return mE0;}
   
+  /** Temperature scaling MPM */
+  Numeric a2() const noexcept {return mE0;}
+  
   /** Reference line strength */
   Numeric I0() const noexcept {return mI0;}
   
@@ -377,6 +387,9 @@ public:
   
   /** Lower level energy */
   Numeric& E0() noexcept {return mE0;}
+  
+  /** Temperature scaling MPM */
+  Numeric& a2() noexcept {return mE0;}
   
   /** Reference line strength */
   Numeric& I0() noexcept {return mI0;}
@@ -972,12 +985,26 @@ public:
    */
   Numeric E0(size_t k) const noexcept {return mlines[k].E0();}
   
+  /** Temperature scaling MPM
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @return Temperature scaling MPM
+   */
+  Numeric a2(size_t k) const noexcept {return mlines[k].E0();}
+  
   /** Lower level energy
    * 
    * @param[in] k Line number (less than NumLines())
    * @return Lower level energy
    */
   Numeric& E0(size_t k) noexcept {return mlines[k].E0();}
+  
+  /** Temperature scaling MPM
+   * 
+   * @param[in] k Line number (less than NumLines())
+   * @return Lower level energy
+   */
+  Numeric& a2(size_t k) noexcept {return mlines[k].E0();}
   
   /** Reference line strength
    * 

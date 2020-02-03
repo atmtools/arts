@@ -681,6 +681,47 @@ void Linefunctions::apply_linestrength_scaling_by_lte(
   dN.setZero();
 }
 
+void Linefunctions::apply_linestrength_scaling_by_mpm(
+    Eigen::Ref<Eigen::VectorXcd> F,
+    Eigen::Ref<Eigen::MatrixXcd> dF,
+    Eigen::Ref<Eigen::VectorXcd> N,
+    Eigen::Ref<Eigen::MatrixXcd> dN,
+    const Absorption::SingleLine& line,
+    const Numeric& P,
+    const Numeric& T,
+    const Numeric& T0,
+    const Numeric& isotopic_ratio,
+    const AbsorptionLines& band,
+    const Index& line_ind,
+    const ArrayOfRetrievalQuantity& derivatives_data,
+    const ArrayOfIndex& derivatives_data_position) {
+  auto nppd = derivatives_data_position.nelem();
+  
+  const Numeric theta = T0 / T;
+  const Numeric theta3 = Constant::pow3(theta);
+  const Numeric S = P * line.I0() * isotopic_ratio * theta3 * std::exp(line.a2() * (theta - 1));
+
+  F *= S;
+  dF *= S;
+  for (auto iq = 0; iq < nppd; iq++) {
+    const auto& deriv = derivatives_data[derivatives_data_position[iq]];
+
+    if (deriv == JacPropMatType::Temperature) {
+      dF.col(iq).noalias() += - F * (3*T + line.a2()*T0) / Constant::pow2(T);
+    } else if (deriv == JacPropMatType::LineStrength and
+             Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind)) {
+      dF.col(iq).noalias() = F / line.I0();  // nb. overwrite
+    } else if (deriv == JacPropMatType::LineSpecialParameter1 and
+             Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind)) {
+      dF.col(iq).noalias() = F * (theta - 1);  // nb. overwrite
+    }
+  }
+
+  // No NLTE variables
+  N.setZero();
+  dN.setZero();
+}
+
 void Linefunctions::apply_linestrength_scaling_by_vibrational_nlte(
     Eigen::Ref<Eigen::VectorXcd> F,
     Eigen::Ref<Eigen::MatrixXcd> dF,
@@ -1496,6 +1537,9 @@ void Linefunctions::set_cross_section_of_band(
       switch (band.Population()) {
         case Absorption::PopulationType::ByLTE:
           apply_linestrength_scaling_by_lte(F, dF, N, dN, band.Line(i), T, band.T0(), isot_ratio, QT, QT0, band, i, derivatives_data, derivatives_data_active, dQTdT);
+          break;
+        case Absorption::PopulationType::ByMPM:
+          apply_linestrength_scaling_by_mpm(F, dF, N, dN, band.Line(i), P, T, band.T0(), isot_ratio, band, i, derivatives_data, derivatives_data_active);
           break;
         case Absorption::PopulationType::ByNLTEVibrationalTemperatures: {
           auto nlte_data = nlte.get_vibtemp_params(band, i, T);
