@@ -82,11 +82,11 @@ inline String mirroringtype2metadatastring(MirroringType in) {
   if (in == MirroringType::None)
     return "These lines are not mirrored at 0 Hz.\n";
   else if (in == MirroringType::Lorentz)
-    return "These lines are mirrored around 0 Hz using the Lorentz line shape for the f0<0 mirrors.\n";
+    return "These lines are mirrored around 0 Hz using the Lorentz line shape.\n";
   else if (in == MirroringType::SameAsLineShape)
-    return "These line are mirrored around 0 Hz using the original line shape for the f0<0 mirrors.\n";
+    return "These line are mirrored around 0 Hz using the original line shape.\n";
   else if (in == MirroringType::Manual)
-    return "There are manual line entires in the catalog at -f0 to mirror this line.\n";
+    return "There are manual line entries in the catalog to mirror this line.\n";
   std::terminate();
 }
 

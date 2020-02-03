@@ -272,13 +272,22 @@ void FullAbsorptionModel::makarov2020_o2_lines_mpm(Matrix& xsec,
     26, 28, 28, 30, 30, 32, 32, 34,
     34, 36, 36, 38, 2, 2, 3, 4, 4, 5};
   
-  auto species = SpeciesTag("O2-66");\
+  auto species = SpeciesTag("O2-66");
   std::array<QuantumIdentifier, nlines_mpm2020> qids;
 //   std::array<Zeeman::Model, nlines_mpm2020> zee;
   for (Index i=0; i<nlines_mpm2020; i++) {
     qids[i] = init_mpm2020_qid(species.Species(), species.Isotopologue(), Jp[i], Jpp[i], Np[i], Npp[i]);
 //     zee[i] = Zeeman::GetAdvancedModel(qids[i]);
   }
+  
+//   auto water = lsm;
+//   for (auto& tmp: water) {
+//     tmp.G0().X0 *= 1.1;
+//   }
+//   
+//   for (Index i=0; i<nlines_mpm2020; i++) {
+//     std::cout << std::setprecision(15) << f0[i] << ' ' << intens[i] << ' ' << a2[i] << ' ' << "0 0 0" << ' ' << zee[i] << ' ' << water[i] << ' ' << lsm[i] << ' ' << Jpp[i] << ' ' << Npp[i] << ' ' << Jp[i] << ' ' << Np[i] << '\n';
+//   }
   
   // Model setting
   const bool do_temp_deriv = do_temperature_jacobian(jacs);
