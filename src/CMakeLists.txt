@@ -196,6 +196,7 @@ add_library (artscore STATIC
   doit.cc
   energylevelmap.cc
   fastem.cc
+  fullmodel.cc
   file.cc
   gas_abs_lookup.cc
   geodetic.cc
@@ -225,6 +226,7 @@ add_library (artscore STATIC
   m_disort.cc
   m_doit.cc
   m_fluxes.cc
+  m_fullmodel.cc
   m_fos.cc
   m_general.cc
   m_geodetic.cc

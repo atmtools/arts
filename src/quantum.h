@@ -243,6 +243,28 @@ class QuantumNumbers {
                    RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 45
                    RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 48
                    RATIONAL_UNDEFINED}) {}
+  
+  // Temporary initialization until there is a more reliable way to setup 
+  // a full initialization for all quantum numbers but only choose a few
+  // select ones based on the problem at hand
+  constexpr QuantumNumbers(Rational J, Rational N, Rational v) noexcept
+      : mqnumbers({J, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 3
+                   N, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 6
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 9
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 12
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 15
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 18
+                   v, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 21
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 24
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 27
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 30
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 33
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 36
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 39
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 42
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 45
+                   RATIONAL_UNDEFINED, RATIONAL_UNDEFINED, RATIONAL_UNDEFINED,  // 48
+                   RATIONAL_UNDEFINED}) {}
 
   /** Access operator
    * 

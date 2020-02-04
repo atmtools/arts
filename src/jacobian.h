@@ -62,6 +62,8 @@ enum class JacPropMatType : Index {
 
   LineStrength,
   LineCenter,
+  
+  LineSpecialParameter1,
 
   LineShapeG0X0,
   LineShapeG0X1,

@@ -2507,6 +2507,38 @@ void define_md_data_raw() {
       GIN_DESC("If less than this number of lines in a \"band\", "
                "relaxation matrix is set diagonal")));
 
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_xsec_per_speciesAddO2LinesMPM2020"),
+      DESCRIPTION("Reimplementation of published O2 absorption line cross-section algorithm\n"
+        "\n"
+        "Based on:\n"
+        "\tDmitriy S. Makarov, Mikhail Yu. Tretyakov, Philip W. Rosenkranz, JQSRT 243, 2020,\n"
+        "\tRevision of the 60-GHz atmospheric oxygen absorption band models for practical use,\n"
+        "\thttps://doi.org/10.1016/j.jqsrt.2019.106798\n"
+        "\n"
+        "Note that this is only really applicable to Earth and at lower altitudes.\n"
+        "The only two tested derivatives are for frequency and for temperature but\n"
+        "other untested derivatives are available for all model parameters except a2\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_xsec_per_species",
+          "dabs_xsec_per_species_dx"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_xsec_per_species",
+         "dabs_xsec_per_species_dx",
+         "abs_species",
+         "jacobian_quantities",
+         "f_grid",
+         "abs_p",
+         "abs_t",
+         "abs_vmrs"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
   /*
   md_data_raw.push_back(MdRecord(
       NAME("abs_xsec_per_speciesAddLineMixedBands"),

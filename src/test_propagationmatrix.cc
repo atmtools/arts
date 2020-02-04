@@ -33,9 +33,9 @@
 #include "transmissionmatrix.h"
 #include "zeeman.h"
 #include "zeemandata.h"
-
-// void define_species_data();
-// void define_species_map();
+#include <Faddeeva/Faddeeva.hh>
+#include "continua.h"
+#include "fullmodel.h"
 
 void test_matrix_buildup() {
   const Numeric k11 = 1;
@@ -527,6 +527,55 @@ void test_quantum()
                 "Bad last entry in QuantumNumbers.  Did you recently expand the list?");
 }
 
+
+void test_mpm20()
+{
+  define_species_data();
+  define_species_map();
+  
+  // Test constants
+  constexpr Index nf = 501;
+  constexpr Numeric fstart = 25e9;
+  constexpr Numeric fend = 165e9;
+  constexpr Numeric t = 200;
+  constexpr Numeric p = 1e4;
+  Vector f(nf);
+  nlinspace(f, fstart, fend, nf);
+  Matrix xsec(nf, 1, 0);
+  ArrayOfMatrix dxsec(2, Matrix(nf, 1, 0));
+  
+  ArrayOfRetrievalQuantity jacs(2);
+  jacs[0].PropType(JacPropMatType::Temperature);
+  jacs[1].PropType(JacPropMatType::Frequency);
+  FullAbsorptionModel::makarov2020_o2_lines_mpm(xsec, dxsec, f, {p}, {t}, {0.5}, jacs, {0, 1});
+  
+  constexpr auto df = 1000;
+  constexpr auto dt = 0.1;
+  Matrix pxsec(nf, 1, 0);
+  Matrix pxsec_dt(nf, 1, 0);
+  Matrix pxsec_df(nf, 1, 0);
+  Vector f_pert = f;
+  f_pert += df;
+  PWR93O2AbsModel(pxsec, 0, 1, 1, 1, "user", "PWR98", f, {p}, {t}, {0.5}, {1}, Verbosity());
+  PWR93O2AbsModel(pxsec_dt, 0, 1, 1, 1, "user", "PWR98", f, {p}, {t+dt}, {0.5}, {1}, Verbosity());
+  PWR93O2AbsModel(pxsec_df, 0, 1, 1, 1, "user", "PWR98", f_pert, {p}, {t}, {0.5}, {1}, Verbosity());
+  
+  std::cout<< "xr = np.array([";
+  for (Index i=0; i<nf; i++)
+    std::cout<<'['<<xsec(i, 0)<<','<<' '<<pxsec(i, 0) << ']' << ',' << ' ';
+  std::cout << ']' << ')' << '\n';
+  
+  std::cout<< "dxr_dt = np.array([";
+  for (Index i=0; i<nf; i++)
+    std::cout<<'['<<dxsec[0](i, 0)<<','<<' '<<(pxsec_dt(i, 0)-pxsec(i, 0))/dt << ']' << ',' << ' ';
+  std::cout << ']' << ')' << '\n';
+  
+  std::cout<< "dxr_df = np.array([";
+  for (Index i=0; i<nf; i++)
+    std::cout<<'['<<dxsec[1](i, 0)<<','<<' '<<(pxsec_df(i, 0)-pxsec(i, 0))/df << ']' << ',' << ' ';
+  std::cout << ']' << ')' << '\n';
+}
+
 int main() {
   /*test_speed_of_pressurebroadening();
     test_transmissionmatrix();
@@ -534,6 +583,7 @@ int main() {
     test_transmat_from_propmat();
     test_transmat_to_cumulativetransmat();
     test_sinc_likes_0limit();*/
-  test_zeeman();
+//   test_zeeman();
+test_mpm20();
   return 0;
 }

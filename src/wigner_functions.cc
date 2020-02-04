@@ -96,6 +96,19 @@ Numeric o2_ecs_wigner_symbol(
          WIGNER6(L, Jk_p, Jl_p, 2, Nl, Nk) * WIGNER6(L, Jk, Jl, 2, Jl_p, Jk_p);
 }
 
+Numeric o2_ecs_wigner_symbol_tran(
+  int Ni,  int Nf,  int Ji,  int Jf,
+  int Nip, int Nfp, int Jip, int Jfp,
+  int L, int Si, int Sf, int n)
+{
+  auto a = WIGNER3(2*Nip, 2*Ni, 2*L, 0, 0, 0);
+  auto b = WIGNER3(2*Nfp, 2*Nf, 2*L, 0, 0, 0);
+  auto c = WIGNER6(2*L, 2*Ji, 2*Jip, 2*Si, 2*Nip, 2*Ni);
+  auto d = WIGNER6(2*L, 2*Jf, 2*Jfp, 2*Sf, 2*Nfp, 2*Nf);
+  auto e = WIGNER6(2*L, 2*Ji, 2*Jip, 2*n, 2*Jfp, 2*Jf);
+  return (a * b * c * d * e) * (2*L + 1);
+}
+
 bool is_wigner_ready(int j) {
   extern int wigxjpf_max_prime_decomp;
   return not(j > wigxjpf_max_prime_decomp);
