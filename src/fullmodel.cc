@@ -40,15 +40,15 @@ constexpr LineShape::SingleSpeciesModel init_mpm2020_lsm(Numeric g00,
                                                          Numeric x)
 {
   return LineShape::SingleSpeciesModel(
-  {LineShape::TemperatureModel::T1, g00, x, 0, 0},
-  {LineShape::TemperatureModel::None, 0, 0, 0, 0},
-  {LineShape::TemperatureModel::None, 0, 0, 0, 0},
-  {LineShape::TemperatureModel::None, 0, 0, 0, 0},
-  {LineShape::TemperatureModel::None, 0, 0, 0, 0},
-  {LineShape::TemperatureModel::None, 0, 0, 0, 0},
-  {LineShape::TemperatureModel::T4, y0, y1, x, 0},
-  {LineShape::TemperatureModel::T4, g0, g1, 2*x, 0},
-  {LineShape::TemperatureModel::T4, dv0, dv1, 2*x, 0});
+  {LineShape::TemperatureModel::T1, g00, x, NAN, NAN},
+  {LineShape::TemperatureModel::None, NAN, NAN, NAN, NAN},
+  {LineShape::TemperatureModel::None, NAN, NAN, NAN, NAN},
+  {LineShape::TemperatureModel::None, NAN, NAN, NAN, NAN},
+  {LineShape::TemperatureModel::None, NAN, NAN, NAN, NAN},
+  {LineShape::TemperatureModel::None, NAN, NAN, NAN, NAN},
+  {LineShape::TemperatureModel::T4, y0, y1, x, NAN},
+  {LineShape::TemperatureModel::T4, g0, g1, 2*x, NAN},
+  {LineShape::TemperatureModel::T4, dv0, dv1, 2*x, NAN});
 }
 
 
@@ -286,7 +286,7 @@ void FullAbsorptionModel::makarov2020_o2_lines_mpm(Matrix& xsec,
 //   }
 //   
 //   for (Index i=0; i<nlines_mpm2020; i++) {
-//     std::cout << std::setprecision(15) << f0[i] << ' ' << intens[i] << ' ' << a2[i] << ' ' << "0 0 0" << ' ' << zee[i] << ' ' << water[i] << ' ' << lsm[i] << ' ' << Jpp[i] << ' ' << Npp[i] << ' ' << Jp[i] << ' ' << Np[i] << '\n';
+//     std::cout << std::setprecision(15) << f0[i] << ' ' << intens[i]*f0[i]*f0[i] << ' ' << a2[i] << ' ' << "nan nan nan" << ' ' << zee[i] << ' ' << water[i] << ' ' << lsm[i] << ' ' << Jpp[i] << ' ' << Npp[i] << ' ' << Jp[i] << ' ' << Np[i] << '\n';
 //   }
   
   // Model setting

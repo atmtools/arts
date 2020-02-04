@@ -31,6 +31,7 @@
 
 #include <limits>
 #include "constants.h"
+#include "file.h"
 #include "mystring.h"
 #include "quantum.h"
 #include "wigner_functions.h"
@@ -479,7 +480,7 @@ inline std::ostream& operator<<(std::ostream& os, const Model& m) {
 }
 
 inline std::istream& operator>>(std::istream& is, Model& m) {
-  is >> m.mdata.gu >> m.mdata.gl;
+  is >> double_imanip() >> m.mdata.gu >> m.mdata.gl;
   return is;
 }
 

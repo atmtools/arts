@@ -2530,13 +2530,15 @@ std::ostream & Absorption::operator<<(std::ostream& os, const Absorption::Single
 
 std::istream& Absorption::operator>>(std::istream& is, Absorption::SingleLine& line)
 {
-  is >> line.F0()
+  is >> double_imanip()
+     >> line.F0()
      >> line.I0()
      >> line.E0()
      >> line.g_low()
      >> line.g_upp()
-     >> line.A()
-     >> line.Zeeman()
+     >> line.A();
+  
+  is >> line.Zeeman()
      >> line.LineShape();
   for(auto& r: line.LowerQuantumNumbers())
     is >> r;

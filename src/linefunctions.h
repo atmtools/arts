@@ -273,24 +273,6 @@ void apply_rosenkranz_quadratic_scaling(
         ArrayOfRetrievalQuantity(),
     const ArrayOfIndex& derivatives_data_position = ArrayOfIndex());
 
-/** Applies MPM normalization to already set line shape
- * 
- * @param[in,out] F Lineshape.  Must be right size
- * @param[in,out] dF Lineshape derivative.  Must be right size
- * @param[in,out] data Block of allocated memory.  Output nonsensical
- * @param[in]     f_grid Frequency grid of computations
- * @param[in]     derivatives_data The derivatives in dF
- * @param[in]     derivatives_data_position The derivatives positions in dF
- */
-void apply_MPM_scaling(
-    Eigen::Ref<Eigen::VectorXcd> F,
-    Eigen::Ref<Eigen::MatrixXcd> dF,
-    Eigen::Ref<Eigen::Matrix<Complex, Eigen::Dynamic, ExpectedDataSize()>> data,
-    const Eigen::Ref<const Eigen::VectorXd> f_grid,
-    const ArrayOfRetrievalQuantity& derivatives_data =
-        ArrayOfRetrievalQuantity(),
-    const ArrayOfIndex& derivatives_data_position = ArrayOfIndex());
-
 /** Applies Van Vleck and Huber normalization to already set line shape
  * 
  * @param[in,out] F Lineshape.  Must be right size
