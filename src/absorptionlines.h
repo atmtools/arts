@@ -104,7 +104,7 @@ enum class NormalizationType {
 inline NormalizationType string2normalizationtype(const String& in) {
   if (in == "None")
     return NormalizationType::None;
-  else if (in == "MPM")
+  else if (in == "VVH")
     return NormalizationType::VVH;
   else if (in == "VVW")
     return NormalizationType::VVW;
