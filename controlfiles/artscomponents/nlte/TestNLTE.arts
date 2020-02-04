@@ -77,7 +77,7 @@ yCalc
 
 VectorCreate(y_nlte_ref)
 WriteXML("ascii",y,"TestNLTE_NLTE.xml")
-ReadXML(y_nlte_ref,"TestNLTE_NLTE.xml")
+ReadXML(y_nlte_ref,"TestNLTE_NLTE_REFERENCE.xml")
 CompareRelative(y,y_nlte_ref,1e-5, "NLTE old method")
 
 EnergyLevelMapCreate(tmp_elm)
@@ -97,6 +97,6 @@ yCalc
 
 VectorCreate(y_lte_ref)
 WriteXML("ascii",y,"TestNLTE_LTE.xml")
-ReadXML(y_lte_ref, "TestNLTE_LTE.xml")
+ReadXML(y_lte_ref, "TestNLTE_LTE_REFERENCE.xml")
 CompareRelative(y,y_lte_ref,1e-5, "LTE old method")
 }
