@@ -2058,7 +2058,6 @@ following expression
     \alphac &=& \widehat{C} \cdot \frac{\nu^2}{(1.0+a\cdot \nu^{n_{\nu}})} 
                 \cdot \Theta^{3.5} \cdot \pda^2
                 \hspace*{16mm}:~\mbox{MPM93}\\
-          a &=&  
 \nonumber
 \end{eqnarray}
 where the parameter is $\widehat{C} = 2.55\cdot 10^{-13}$ dB/(km\,hPa$^2$\,GHz$^2$), 
@@ -2092,7 +2091,7 @@ extended with measurements in the far--infrared.
 absorption term as for the nitrogen continuum, with 
 \begin{equation}
   \label{eq:abs_theory:abs_cont_pwr_co2}
-    \alphac =   \cdot \nu^2 \cdot  
+    \alphac =   \nu^2 \cdot  
                 \left[ C_s \cdot \pcoz^2           \cdot \Theta^{n_s} +
                        C_f \cdot \pcoz  \cdot \pnz \cdot \Theta^{n_f} \right]
 \end{equation}
@@ -2209,7 +2208,7 @@ individual line absorption coefficients\footnote{The factor
   does therefore not appear in the pre-factor.}:
 \begin{equation}
   \label{eq:abs_theory:mpm87:absline}
-  \alphampmol = 0.1820 \cdot \nuk \cdot \phzo \cdot 
+  \alphampmol = 0.1820 \cdot \nu \cdot \phzo \cdot 
   \sum_{k}{\inten \cdot \shape}\hspace*{10mm}\mbox{dB/km}
 \end{equation}
 where $\inten$ is the line intensity described by the parameterization
@@ -2368,7 +2367,7 @@ absorption coefficient (in units of dB/km) is the sum over all
 individual line absorption coefficients:
 \begin{equation}
   \label{eq:abs_theory:mpm89:absline}
-  \alphampmml = 0.1820 \cdot \nuk \cdot \phzo \cdot 
+  \alphampmml = 0.1820 \cdot \nu \cdot \phzo \cdot 
   \sum_{k}{\inten \cdot \shape}\hspace*{10mm}\mbox{dB/km}
 \end{equation}
 where $\inten$ is the line intensity described by the parameterization
@@ -2392,8 +2391,8 @@ where the pressure broadened line width, $\gamk$, is calculated as
 \begin{equation}
   \label{eq:abs_theory:mpm89:gamma}
   \gamk = \bdk \cdot 
-         (\bfk \cdot \phzo \cdot \Theta^{\bsk} + 
-                     \pda  \cdot \Theta^{\bvk})
+         (\bvk \cdot \phzo \cdot \Theta^{\bsk} + 
+                     \pda  \cdot \Theta^{\bfk})
         \cdot 10^{-3}\hspace*{10mm}\mbox{GHz}
 \end{equation}
 with $\pda=\ptot-\phzo$ as the dry air partial pressure. 
@@ -2522,7 +2521,7 @@ distinguish a self- and foreign broadening term in the continuum.
 The water vapor line spectrum of MPM93 \citep{liebeetal:93} 
 consists of 34 lines below 1\,THz (four more than in MPM89 and MPM87). 
 To describe the MPM93 water vapor line absorption, a set of six parameters 
-($\bek$ and $\bdk$) per line are used: two for the line strength and 
+($\bek$ and $\bsk$) per line are used: two for the line strength and 
 four for the line width. The total line absorption coefficient 
 (in units of dB/km) is the sum over all individual line absorption 
 coefficients:
@@ -2738,7 +2737,7 @@ California (11. December 1991) and West Palm Beach, Florida
 %-----------------------------------------
 The CP98 model uses the same water vapor continuum 
 parameterization as MPM87, just scaled with an empirical 
-factor, $CC$, determined from the above mentioned data:
+factor, $C_C$, determined from the above mentioned data:
 \begin{equation}
  \label{eq:abs_theory:cp98_cont_scaling}
  \alphacpc = C_C \cdot \alphampmoc 
@@ -2895,7 +2894,7 @@ parameters, since Rosenkranz used additional data to fit his set of
 parameters. A second point is the cutoff in the line shape of the line 
 absorption calculation. Since this cutoff decreases the line absorption 
 in the window regions, the continuum absorption tends to compensate this 
-decrease to get the same total absorption as withouot cutoff. This effects 
+decrease to get the same total absorption as without cutoff. This effects 
 mainly the parameters $\cso$ and $\cdo$ but has also an influence in the 
 temperature dependence and therefore on $\xs$ and $\xd$.
 
