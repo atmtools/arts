@@ -2530,13 +2530,15 @@ std::ostream & Absorption::operator<<(std::ostream& os, const Absorption::Single
 
 std::istream& Absorption::operator>>(std::istream& is, Absorption::SingleLine& line)
 {
-  is >> line.F0()
+  is >> double_imanip()
+     >> line.F0()
      >> line.I0()
      >> line.E0()
      >> line.g_low()
      >> line.g_upp()
-     >> line.A()
-     >> line.Zeeman()
+     >> line.A();
+  
+  is >> line.Zeeman()
      >> line.LineShape();
   for(auto& r: line.LowerQuantumNumbers())
     is >> r;
@@ -2623,8 +2625,13 @@ String Absorption::Lines::MetaData() const noexcept
     auto& line = mlines.front();
     os << "\tThe front line has:\n";
     os << "\t\t" << "f0: " << line.F0() << " Hz\n";
-    os << "\t\t" << "i0: " << line.I0() << " m^2/Hz\n";
-    os << "\t\t" << "e0: " << line.E0() << " J\n";
+    if (mpopulation == PopulationType::ByMPM) {
+      os << "\t\t" << "i0: " << line.I0() << " 1/Pa\n";
+      os << "\t\t" << "a2: " << line.a2() << "\n";
+    } else {
+      os << "\t\t" << "i0: " << line.I0() << " m^2/Hz\n";
+      os << "\t\t" << "e0: " << line.E0() << " J\n";
+    }
     os << "\t\t" << "Lower stat. weight: " << line.g_low() << " [-]\n";
     os << "\t\t" << "Upper stat. weight: " << line.g_upp() << " [-]\n";
     os << "\t\t" << "A: " << line.A() << " 1/s\n";

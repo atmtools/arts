@@ -38,9 +38,10 @@
 #include <algorithm>
 #include "abs_species_tags.h"
 #include "constants.h"
+#include "file.h"
 #include "jacobian.h"
 
-/** Return the deriveative type based on string input 
+/** Return the derivative type based on string input 
  * 
  * @param[in] var Variable in AllLineShapeVars()
  * @param[in] coeff Coefficient in AllLineShapeCoeffs()
@@ -392,15 +393,15 @@ class SingleSpeciesModel {
  public:
   /** Default initialization */
   constexpr SingleSpeciesModel(
-      ModelParameters G0 = {TemperatureModel::None, 0, 0, 0, 0},
-      ModelParameters D0 = {TemperatureModel::None, 0, 0, 0, 0},
-      ModelParameters G2 = {TemperatureModel::None, 0, 0, 0, 0},
-      ModelParameters D2 = {TemperatureModel::None, 0, 0, 0, 0},
-      ModelParameters FVC = {TemperatureModel::None, 0, 0, 0, 0},
-      ModelParameters ETA = {TemperatureModel::None, 0, 0, 0, 0},
-      ModelParameters Y = {TemperatureModel::None, 0, 0, 0, 0},
-      ModelParameters G = {TemperatureModel::None, 0, 0, 0, 0},
-      ModelParameters DV = {TemperatureModel::None, 0, 0, 0, 0})
+    ModelParameters G0 = {TemperatureModel::None, NAN, NAN, NAN, NAN},
+    ModelParameters D0 = {TemperatureModel::None, NAN, NAN, NAN, NAN},
+    ModelParameters G2 = {TemperatureModel::None, NAN, NAN, NAN, NAN},
+    ModelParameters D2 = {TemperatureModel::None, NAN, NAN, NAN, NAN},
+    ModelParameters FVC = {TemperatureModel::None, NAN, NAN, NAN, NAN},
+    ModelParameters ETA = {TemperatureModel::None, NAN, NAN, NAN, NAN},
+    ModelParameters Y = {TemperatureModel::None, NAN, NAN, NAN, NAN},
+    ModelParameters G = {TemperatureModel::None, NAN, NAN, NAN, NAN},
+    ModelParameters DV = {TemperatureModel::None, NAN, NAN, NAN, NAN})
       : X({G0, D0, G2, D2, FVC, ETA, Y, G, DV}) {}
 
 #define x0 X[Index(var)].X0
@@ -767,7 +768,7 @@ inline std::ostream& operator<<(std::ostream& os,
 inline std::istream& operator>>(std::istream& is, SingleSpeciesModel& ssm) {
   for (auto& mp : ssm.Data())
     if(mp.type not_eq TemperatureModel::None)
-      is >> mp.X0 >> mp.X1 >> mp.X2 >> mp.X3;
+      is >> double_imanip() >> mp.X0 >> mp.X1 >> mp.X2 >> mp.X3;
   return is;
 }
 
