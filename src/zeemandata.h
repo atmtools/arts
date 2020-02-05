@@ -316,7 +316,7 @@ constexpr Numeric SimpleG(const QuantumNumbers& qns,
                           const Numeric& GS,
                           const Numeric& GL) noexcept{
   if (not GoodHundData(qns))
-    return 0;
+    return NAN;
 
   switch (Hund(qns[QuantumNumberType::Hund].toIndex())) {
     case Hund::CaseA:
@@ -335,7 +335,7 @@ constexpr Numeric SimpleG(const QuantumNumbers& qns,
                           GL);
   }
 
-  return 0;
+  return NAN;
 }
 
 /** Main storage for Zeeman splitting coefficients
@@ -361,7 +361,7 @@ class Model {
 
  public:
    /** Default copy/init of Model from its only private variable */
-  constexpr Model(SplittingData gs = {0, 0}) noexcept : mdata(gs) {}
+  constexpr Model(SplittingData gs = {NAN, NAN}) noexcept : mdata(gs) {}
   
   /** Attempts to compute Zeeman input if available
    * 
@@ -377,7 +377,7 @@ class Model {
 
   /** Returns true if the Model represents no Zeeman effect */
   constexpr bool empty() const noexcept {
-    return mdata.gu == mdata.gl and mdata.gu == 0;
+    return std::isnan(mdata.gu) and std::isnan(mdata.gl);
   }
 
   /** Returns the upper state g */

@@ -31,7 +31,8 @@
 #include <Faddeeva/Faddeeva.hh>
 #include "linefunctions.h"
 
-namespace FullAbsorptionModel {
+namespace Absorption {
+namespace PredefinedModel {
 
 /** Adds Makarov MPM2020 O2 absorption lines to the absorption matrix
  * 
@@ -60,6 +61,7 @@ void makarov2020_o2_lines_mpm(Matrix& xsec,
                               const ArrayOfRetrievalQuantity& jacs,
                               const ArrayOfIndex& jacs_pos);
 
-};  //FullAbsorptionModel 
+};  //PredefinedModel 
+};  //Absorption
 
 #endif  // fullmodel_h

@@ -83,8 +83,7 @@ void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
   }
 
   if (needs_lines and
-      not(abs_xsec_agenda.has_method("abs_xsec_per_speciesAddLines") or
-          abs_xsec_agenda.has_method("abs_xsec_per_speciesAddLines2"))) {
+      not(abs_xsec_agenda.has_method("abs_xsec_per_speciesAddLines"))) {
     throw runtime_error(
         "*abs_species* contains line species but *abs_xsec_agenda*\n"
         "does not contain *abs_xsec_per_speciesAddLines*.");
@@ -108,6 +107,14 @@ void abs_xsec_agenda_checkedCalc(Workspace& ws _U_,
     throw runtime_error(
         "*abs_species* contains HITRAN xsec species but *abs_xsec_agenda*\n"
         "does not contain *abs_xsec_per_speciesAddHitranXsec*.");
+  }
+  
+  if (find_first_species_tg(abs_species, SpeciesTag("O2-MPM2020")) >= 0) {
+    if (not abs_xsec_agenda.has_method("abs_xsec_per_speciesAddPredefinedO2MPM2020")) {
+      throw runtime_error(
+        "*abs_species contains \"O2-MPM2020\" but *abs_xsec_agenda*\n"
+        "does not contain *abs_xsec_per_speciesAddPredefinedO2MPM2020*.");
+    }
   }
 
   // If here, all OK

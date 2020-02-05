@@ -377,38 +377,6 @@ void apply_linestrength_scaling_by_lte(
     const ArrayOfIndex& derivatives_data_position = ArrayOfIndex(),
     const Numeric& dQT_dT = 0.0);
 
-/** Applies linestrength to already set line shape by MPM population type
- * 
- * @param[in,out] F Lineshape.  Must be right size
- * @param[in,out] dF Lineshape derivative.  Must be right size
- * @param[in,out] N Source lineshape
- * @param[in,out] dN Source lineshape derivative
- * @param[in]     line The absorption line
- * @param[in]     P The atmospheric pressure
- * @param[in]     T The atmospheric temperature
- * @param[in]     T0 The reference temperature
- * @param[in]     isotopic_ratio The ratio of the isotopologue in the atmosphere
- * @param[in]     band The absorption lines
- * @param[in]     line_ind The current line's ID
- * @param[in]     derivatives_data The derivatives in dF
- * @param[in]     derivatives_data_position The derivatives positions in dF
- */
-void apply_linestrength_scaling_by_mpm(
-  Eigen::Ref<Eigen::VectorXcd> F,
-  Eigen::Ref<Eigen::MatrixXcd> dF,
-  Eigen::Ref<Eigen::VectorXcd> N,
-  Eigen::Ref<Eigen::MatrixXcd> dN,
-  const Absorption::SingleLine& line,
-  const Numeric& P,
-  const Numeric& T,
-  const Numeric& T0,
-  const Numeric& isotopic_ratio,
-  const AbsorptionLines& band=AbsorptionLines(),
-  const Index& line_ind=0,
-  const ArrayOfRetrievalQuantity& derivatives_data =
-      ArrayOfRetrievalQuantity(),
-  const ArrayOfIndex& derivatives_data_position = ArrayOfIndex());
-
 /** Applies linestrength to already set line shape by vibrational level temperatures
  * 
  * @param[in,out] F Lineshape.  Must be right size

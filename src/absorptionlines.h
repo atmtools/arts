@@ -147,7 +147,6 @@ inline String normalizationtype2metadatastring(NormalizationType in) {
  */
 enum class PopulationType {
   ByLTE,                          // Assume line is in LTE
-  ByMPM,                          // Assume line is in LTE using MPM formalism
   ByRelmatMendazaLTE,             // Assume line is in LTE but requires Relaxation matrix calculations - follows Mendaza method
   ByRelmatHartmannLTE,            // Assume line is in LTE but requires Relaxation matrix calculations - follows Hartmann method
   ByNLTEVibrationalTemperatures,  // Assume line is in NLTE described by vibrational temperatures
@@ -157,11 +156,9 @@ enum class PopulationType {
 inline PopulationType string2populationtype(const String& in) {
   if (in == "LTE")
     return PopulationType::ByLTE;
-  if (in == "MPM")
-    return PopulationType::ByMPM;
-  if (in == "MendazaRelmat")
+  else if (in == "MendazaRelmat")
     return PopulationType::ByRelmatMendazaLTE;
-  if (in == "HartmannRelmat")
+  else if (in == "HartmannRelmat")
     return PopulationType::ByRelmatHartmannLTE;
   else if (in == "NLTE-VibrationalTemperatures")
     return PopulationType::ByNLTEVibrationalTemperatures;
@@ -175,8 +172,6 @@ inline String populationtype2string(PopulationType in) {
   switch (in) {
     case PopulationType::ByLTE:
       return "LTE";
-    case PopulationType::ByMPM:
-      return "MPM";
     case PopulationType::ByRelmatMendazaLTE:
       return "MendazaRelmat";
     case PopulationType::ByRelmatHartmannLTE:
@@ -192,8 +187,6 @@ inline String populationtype2metadatastring(PopulationType in) {
   switch (in) {
     case PopulationType::ByLTE:
       return "The lines are considered as in pure LTE.\n";
-    case PopulationType::ByMPM:
-      return "The lines are considered as in pure LTE with MPM scaling method.\n";
     case PopulationType::ByRelmatMendazaLTE:
       return "The lines requires Relaxation matrix calculations in LTE - Mendaza method.\n";
     case PopulationType::ByRelmatHartmannLTE:

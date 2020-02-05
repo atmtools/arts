@@ -2508,7 +2508,7 @@ void define_md_data_raw() {
                "relaxation matrix is set diagonal")));
 
   md_data_raw.push_back(MdRecord(
-      NAME("abs_xsec_per_speciesAddO2LinesMPM2020"),
+      NAME("abs_xsec_per_speciesAddPredefinedO2MPM2020"),
       DESCRIPTION("Reimplementation of published O2 absorption line cross-section algorithm\n"
         "\n"
         "Based on:\n"

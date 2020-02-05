@@ -60,7 +60,7 @@ Numeric case_b_g_coefficient_o2(Rational j,
   using std::sqrt;
 
   if (j.isUndefined() or n.isUndefined())
-    return 0;
+    return NAN;
   else if (j == 0)
     return 0;
 
@@ -201,8 +201,8 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) noexcept {
                     closed_shell_trilinear(KL, JL, gperp, gpara)});
     }
   }
-
-  return Model({0, 0});
+  
+  return Model({NAN, NAN});
 }
 
 Zeeman::Model::Model(const QuantumIdentifier& qid) noexcept {

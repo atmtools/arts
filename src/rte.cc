@@ -34,7 +34,7 @@
 #include <stdexcept>
 #include "auto_md.h"
 #include "check_input.h"
-#include "continua.h"
+#include "legacy_continua.h"
 #include "geodetic.h"
 #include "lin_alg.h"
 #include "logic.h"
