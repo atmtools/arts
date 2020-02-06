@@ -668,6 +668,11 @@ void define_partition_species_data() {
       Qcoeff(0, 0, 0, 0),
       Qcoeff(150.0, 300.0),
       IsotopologueRecord::PF_FROMCOEFF);
+  iso(it_isotopologue,
+      "MPM2020",
+      Qcoeff(0, 0, 0, 0),
+      Qcoeff(150.0, 300.0),
+      IsotopologueRecord::PF_FROMCOEFF);
 
   // NO
   // Coeff: 1 1 1

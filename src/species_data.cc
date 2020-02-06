@@ -375,7 +375,8 @@ void define_basic_species_data() {
           REC("MPM92", NAN, NAN, -1, -1, TAGS()),
           REC("MPM89", NAN, NAN, -1, -1, TAGS()),
           REC("MPM87", NAN, NAN, -1, -1, TAGS()),
-          REC("MPM85", NAN, NAN, -1, -1, TAGS()))));
+          REC("MPM85", NAN, NAN, -1, -1, TAGS()),
+          REC("MPM2020", NAN, NAN, -1, -1, TAGS()))));
 
   // NO
   // Isotopologue Ratios: 1 1 1

@@ -758,3 +758,17 @@ void get_tag_group_index_for_tag_group(Index& tgs1_index,
     throw runtime_error(os.str());
   }
 }
+
+
+Index find_first_species_tg(const ArrayOfArrayOfSpeciesTag& list_of_tags, const SpeciesTag& tag)
+{
+  for (Index i=0; i<list_of_tags.nelem(); i++) {
+    for (Index j=0; j<list_of_tags[i].nelem(); j++) {
+      if (list_of_tags[i][j] == tag) {
+        return i;
+      }
+    }
+  }
+  return -1;
+}
+

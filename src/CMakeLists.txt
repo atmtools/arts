@@ -72,7 +72,7 @@ target_link_libraries (arts ${ALL_ARTS_LIBRARIES})
 
 install (TARGETS arts RUNTIME DESTINATION bin)
 
-set_source_files_properties (continua.cc PROPERTIES
+set_source_files_properties (legacy_continua.cc PROPERTIES
                              COMPILE_FLAGS "-fno-strict-aliasing")
 set_source_files_properties (binio.cc PROPERTIES
                              COMPILE_FLAGS "-fno-strict-aliasing")
@@ -189,14 +189,14 @@ add_library (artscore STATIC
   cia.cc
   cloudbox.cc
   constants.cc
-  continua.cc
+  legacy_continua.cc
   covariance_matrix.cc
   disort.cc
   docserver.cc
   doit.cc
   energylevelmap.cc
   fastem.cc
-  fullmodel.cc
+  predefined_absorption_models.cc
   file.cc
   gas_abs_lookup.cc
   geodetic.cc
@@ -226,7 +226,7 @@ add_library (artscore STATIC
   m_disort.cc
   m_doit.cc
   m_fluxes.cc
-  m_fullmodel.cc
+  m_predefined_absorption_models.cc
   m_fos.cc
   m_general.cc
   m_geodetic.cc

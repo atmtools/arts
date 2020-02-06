@@ -217,6 +217,16 @@ Index find_next_species_tg(const ArrayOfArrayOfSpeciesTag& tgs,
                            const Index& spec,
                            const Index& start);
 
+/** Return the position in the list of tags that contain tag
+ * 
+ * If there is no tag in the list of tags, then return -1
+ * 
+ * @param[in] list_of_tags A list of several tags
+ * @param[in] tag A single tag that might be in one of the listed tags
+ * @return Position in list or -1
+ */
+Index find_first_species_tg(const ArrayOfArrayOfSpeciesTag& list_of_tags, const SpeciesTag& tag);
+
 void array_species_tag_from_string(ArrayOfSpeciesTag& tags,
                                    const String& names);
 

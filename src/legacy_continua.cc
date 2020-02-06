@@ -396,7 +396,7 @@
 
 */
 
-#include "continua.h"
+#include "legacy_continua.h"
 #include <cmath>
 #include "absorption.h"
 #include "array.h"

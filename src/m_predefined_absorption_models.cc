@@ -25,19 +25,19 @@
  */
 
 
-#include "fullmodel.h"
+#include "predefined_absorption_models.h"
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_xsec_per_speciesAddO2LinesMPM2020(ArrayOfMatrix& abs_xsec_per_species,
-                                           ArrayOfArrayOfMatrix& dabs_xsec_per_species_dx,
-                                           const ArrayOfArrayOfSpeciesTag& abs_species,
-                                           const ArrayOfRetrievalQuantity& jacobian_quantities,
-                                           const Vector& f_grid,
-                                           const Vector& abs_p,
-                                           const Vector& abs_t,
-                                           const Matrix& abs_vmrs,
-                                           const Verbosity&)
+void abs_xsec_per_speciesAddPredefinedO2MPM2020(ArrayOfMatrix& abs_xsec_per_species,
+                                                ArrayOfArrayOfMatrix& dabs_xsec_per_species_dx,
+                                                const ArrayOfArrayOfSpeciesTag& abs_species,
+                                                const ArrayOfRetrievalQuantity& jacobian_quantities,
+                                                const Vector& f_grid,
+                                                const Vector& abs_p,
+                                                const Vector& abs_t,
+                                                const Matrix& abs_vmrs,
+                                                const Verbosity&)
 {
   // Forward simulations and their error handling
   if (abs_vmrs.ncols() not_eq abs_p.nelem()) {
@@ -74,13 +74,13 @@ void abs_xsec_per_speciesAddO2LinesMPM2020(ArrayOfMatrix& abs_xsec_per_species,
   }
   
   // Positions of important species and VMR of water
-  const Index o2_pos = find_first_species_tg(abs_species, SpeciesTag("O2").Species());
-  const Index h2o_pos = find_first_species_tg(abs_species, SpeciesTag("H2O").Species());
-  const Vector h2o_vmr = h2o_pos == -1 ? Vector(abs_p.nelem(), 0) : abs_vmrs(h2o_pos, joker);
+  auto o2_mpm2020 =  find_first_species_tg(abs_species, SpeciesTag("O2-MPM2020"));
+  auto h2o = find_first_species_tg(abs_species, SpeciesTag("H2O").Species());
+  auto h2o_vmr = h2o == -1 ? Vector(abs_p.nelem(), 0) : abs_vmrs(h2o, joker);
   
   // Perform calculations if there is any oxygen
-  if (o2_pos >= 0) {
-    FullAbsorptionModel::makarov2020_o2_lines_mpm(abs_xsec_per_species[o2_pos], dabs_xsec_per_species_dx[o2_pos],
-                                                  f_grid, abs_p, abs_t, h2o_vmr, jacobian_quantities, jac_pos);
+  if (o2_mpm2020 >= 0 and o2_mpm2020 < abs_xsec_per_species.nelem()) {
+    Absorption::PredefinedModel::makarov2020_o2_lines_mpm(abs_xsec_per_species[o2_mpm2020], dabs_xsec_per_species_dx[o2_mpm2020],
+                                                          f_grid, abs_p, abs_t, h2o_vmr, jacobian_quantities, jac_pos);
   }
 }

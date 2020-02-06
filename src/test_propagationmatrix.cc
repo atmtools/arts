@@ -34,8 +34,8 @@
 #include "zeeman.h"
 #include "zeemandata.h"
 #include <Faddeeva/Faddeeva.hh>
-#include "continua.h"
-#include "fullmodel.h"
+#include "legacy_continua.h"
+#include "predefined_absorption_models.h"
 
 void test_matrix_buildup() {
   const Numeric k11 = 1;
@@ -547,7 +547,7 @@ void test_mpm20()
   ArrayOfRetrievalQuantity jacs(2);
   jacs[0].PropType(JacPropMatType::Temperature);
   jacs[1].PropType(JacPropMatType::Frequency);
-  FullAbsorptionModel::makarov2020_o2_lines_mpm(xsec, dxsec, f, {p}, {t}, {0.5}, jacs, {0, 1});
+  Absorption::PredefinedModel::makarov2020_o2_lines_mpm(xsec, dxsec, f, {p}, {t}, {0.5}, jacs, {0, 1});
   
   constexpr auto df = 1000;
   constexpr auto dt = 0.1;

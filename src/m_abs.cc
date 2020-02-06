@@ -37,7 +37,7 @@
 #include "arts.h"
 #include "auto_md.h"
 #include "check_input.h"
-#include "continua.h"
+#include "legacy_continua.h"
 #include "file.h"
 #include "global_data.h"
 #include "jacobian.h"
