@@ -70,7 +70,7 @@ Arts2{
   ReadXML(testdata, "testdata/test-htp-sdvp/propmat.xml")
   CompareRelative(testdata, propmat_clearsky, 1e-6)
   ReadXML(testdata, "testdata/test-htp-sdvp/dpropmat.xml")
-  CompareRelative(testdata, dpropmat_clearsky_dx, 2e-4)
+  CompareRelative(testdata, dpropmat_clearsky_dx, 2e-3)
   
   # Turn off the jacobian to make for faster calculations for perturbations below
   jacobianOff
