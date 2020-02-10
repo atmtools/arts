@@ -376,7 +376,7 @@ class Model {
   Model(const QuantumIdentifier& qid) noexcept;
 
   /** Returns true if the Model represents no Zeeman effect */
-  constexpr bool empty() const noexcept {
+  /* constexpr */ bool empty() const noexcept {
     return std::isnan(mdata.gu) and std::isnan(mdata.gl);
   }
 
