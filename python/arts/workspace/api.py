@@ -478,6 +478,7 @@ try:
     arts_include_path = environ.get("ARTS_INCLUDE_PATH").split(":")
 except:
     arts_include_path = []
+arts_include_path += [os.path.join("@ARTS_SRC_DIR@", "controlfiles")]
 
 try:
     arts_data_path = environ.get("ARTS_DATA_PATH").split(":")

@@ -285,7 +285,7 @@ class Workspace:
 
 
     """
-    def __init__(self, verbosity=1, agenda_verbosity=0):
+    def __init__(self, verbosity=0, agenda_verbosity=0):
         """
         The init function just creates an instance of the ArtsWorkspace class of the
         C API and sets the ptr attributed to the returned handle.

@@ -9,7 +9,6 @@ from arts.utils.arts import return_if_arts_type
 __all__ = ['RetrievalQuantity',
            ]
 
-
 class RetrievalQuantity:
     """Represents a RetrievalQuantity object.
 

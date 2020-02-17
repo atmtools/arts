@@ -90,7 +90,14 @@ class WorkspaceMethod:
                 self.is_create = True
 
     def __repr__(self):
-        return arts_api.method_print_doc(self.m_ids[0]).decode("utf8")
+        return "ARTS Workspace Method: " + self.name
+
+    def help(self):
+        """
+        Print ARTS documentation for this method.
+        """
+        print(arts_api.method_print_doc(self.m_ids[0]).decode("utf8"))
+        return None
 
     def add_overload(self, m_ids, g_in_types, g_out_types):
         """ Add one or more overloads to a workspace method.
@@ -173,64 +180,105 @@ class WorkspaceMethod:
         return res
 
     def _parse_output_input_lists(self, ws, args, kwargs):
-        n_args = self.n_g_out + self.n_g_in
 
-        ins  = self.ins[:]
+        ins  = [i for i in self.ins if not i in self.outs]
         outs = self.outs[:]
         temps = []
 
-        # Add positional arguments to kwargs
-        if (len(args)) and (len(args)) < self.n_g_out + self.n_in:
-            raise Exception("Only " + str(len(args)) + " positional arguments provided " +
-                            "but WSM " + self.name + "requires at least "
-                            + str(self.n_g_out + self.n_in))
+        # Can call function using only positional or named arguments
+        if len(args) and len(kwargs.keys()):
+            raise SyntaxError("ARTS WSMs can only be called using either " +
+                              " positional or named arguments.")
+
+        # Use dict to store named arguments. Generic in- and outputs
+        # will be added to this.
+        named_args = dict(**kwargs)
+
+        #
+        # Parse positional arguments
+        #
+
         for j in range(len(args)):
-            if j < self.n_g_out:
-                name = self.g_out[j]
-                try:
-                    kwargs[name] = args[j]
-                except:
-                    raise Exception("Generic parameter " + str(name) + " set twice.")
-            elif j < self.n_g_out + self.n_in:
-                k = j - self.n_g_out
+            # Parse output arguments
+            if j < self.n_out:
+                if not type(args[j]) == WorkspaceVariable:
+                    out_name = WorkspaceVariable.get_variable_name(outs[j])
+                    raise TypeError("Positional argument for output {} is not of type "
+                                    "WorkspaceVariable.".format(out_name))
+
+                outs[j] = args[j].ws_id
+            # Parse generic output arguments and to list of named
+            # args.
+            elif j < self.n_out + self.n_g_out:
+                k = j - self.n_out
+                name = self.g_out[k]
+                named_args[name] = args[j]
+
+            # Parse input arguments
+            elif j < self.n_out + self.n_g_out + len(ins):
+                k = j - self.n_g_out - self.n_out
                 if type(args[j]) == WorkspaceVariable:
                     ins[k] = args[j].ws_id
                 else:
                     temps.append(ws.add_variable(args[j]))
                     ins[k] = temps[-1].ws_id
-                if self.ins[k] in outs:
-                    # Need to replace variable also in output if its used as both output
-                    # and input.
-                    outs[outs.index(self.ins[k])] = ins[k]
-
-            elif j < self.n_g_out + self.n_in + self.n_g_in:
-                name = self.g_in[j - self.n_g_out - self.n_in]
-                try:
-                    kwargs[name] = args[j]
-                except:
-                    raise Exception("Generic parameter " + str(name) + " set twice.")
+            # Parse generic input arguments
+            elif j < self.n_out + self.n_g_out + len(ins) + self.n_g_in:
+                k = j - self.n_g_out - self.n_out - len(ins)
+                name = self.g_in[k]
+                named_args[name] = args[j]
             else:
-                raise Exception(str(j) + " positional arguments given, but this WSM expects " +
-                                str(j-1) + ".")
+                raise Exception(" {} positional arguments given, but this WSM takes at " +
+                                "most {}.".format(len(args), j))
+
+        # Parse named arguments
+        ins_names = [WorkspaceVariable.get_variable_name(i) for i in ins]
+        outs_names = [WorkspaceVariable.get_variable_name(i) for i in outs]
+
+        # Raise exception if named argument does not match method arguments.
+        for k in kwargs:
+            if not (k in ins_names or k in outs_names or
+                    k in self.g_in or k in self.g_out):
+                raise Exception("The provided named argument '{0}' does not match "
+                                " any of the arguments of WSM {1}."
+                                .format(k, self.name))
+
+            if k in ins_names:
+                i = ins_names.index(k)
+                arg = kwargs[k]
+                if type(arg) == WorkspaceVariable:
+                    ins[i] = arg.ws_id
+                else:
+                    temps.append(ws.add_variable(arg))
+                    ins[i] = temps[-1].ws_id
+
+            if k in outs_names:
+                i = outs_names.index(k)
+                arg = kwargs[k]
+                if type(arg) == WorkspaceVariable:
+                    outs[i] = arg.ws_id
+                else:
+                    raise Exception(("Output argument {} must be a workspace "
+                                     + "variable.").format(k))
 
         # Check output argument names
         g_output_args = dict()
         for k in self.g_out:
-            if not k in kwargs:
+            if not k in named_args:
                 raise Exception("WSM " + self.name + " needs generic output " + k)
             else:
-                g_output_args[k] = kwargs[k]
+                g_output_args[k] = named_args[k]
 
         # Check input argument names
         g_input_args = dict()
         for k in self.g_in:
-            if not k in kwargs:
+            if not k in named_args:
                 if k in self.g_in_default:
                     g_input_args[k] = self.g_in_default[k]
                 else:
                     raise Exception("WSM " + self.name + " needs generic input " + k)
             else:
-                g_input_args[k] = kwargs[k]
+                g_input_args[k] = named_args[k]
 
         # Resolve overload (if necessary).
         g_out_types = dict([(k,WorkspaceVariable.get_group_id(g_output_args[k]))

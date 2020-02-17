@@ -66,11 +66,18 @@ class WorkspaceVariable:
             self.ndim = state
 
     def __repr__(self):
+        return "ARTS Workspace Variable: " + self.name
+
+    def help(self):
+        """
+        Print ARTS documentation for this variable.
+        """
         s  = "ARTS Workspace Variable\n\n"
         s += "Name:  " + self.name + "\n"
         s += "Group: " + self.group + "\n\n"
         s += self.description
-        return s
+        print(s)
+        return None
 
     def __str__(self):
         return self.__repr__()
