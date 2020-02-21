@@ -522,8 +522,18 @@ inline Numeric sqrt(Rational r) { return std::sqrt(r.toNumeric()); }
  * @param[in] exp Any Rational
  * @return Numeric base to the power of exp
  */
+inline Numeric pow(Rational base, Numeric exp) {
+  return std::pow(Numeric(base), exp);
+}
+
+/** Power of
+ * 
+ * @param[in] base Any Rational
+ * @param[in] exp Any Rational
+ * @return Numeric base to the power of exp
+ */
 inline Numeric pow(Rational base, Rational exp) {
-  return std::pow(Numeric(base), Numeric(exp));
+  return pow(base, exp.toNumeric());
 }
 
 /** Output operator */
