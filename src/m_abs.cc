@@ -664,6 +664,8 @@ void abs_xsec_per_speciesAddConts(  // WS Output:
                                 .Isotopologue()[tgs[i][s].Isotopologue()]
                                 .Name();
 
+        if (name == "O2-MPM2020") continue;
+                                
         // Check, if we have parameters for this model. For
         // this, the model name must be listed in
         // abs_cont_names.
