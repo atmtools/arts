@@ -29,49 +29,18 @@
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Wigner6Init(Index& wigner_initialized,
-#if DO_FAST_WIGNER
                  const Index& fast_wigner_stored_symbols,
-#else
-                 const Index&,
-#endif
                  const Index& largest_wigner_symbol_parameter,
                  const Verbosity&) {
-  wigner_initialized = largest_wigner_symbol_parameter;
-
-#if DO_FAST_WIGNER
-  fastwigxj_load(FAST_WIGNER_PATH_3J, 3, NULL);
-  fastwigxj_load(FAST_WIGNER_PATH_6J, 6, NULL);
-#ifdef _OPENMP
-  fastwigxj_thread_dyn_init(3, fast_wigner_stored_symbols);
-  fastwigxj_thread_dyn_init(6, fast_wigner_stored_symbols);
-#else
-  fastwigxj_dyn_init(3, fast_wigner_stored_symbols);
-  fastwigxj_dyn_init(6, fast_wigner_stored_symbols);
-#endif
-#endif
-  wig_table_init(int(largest_wigner_symbol_parameter * 2), 6);
+  wigner_initialized = make_wigner_ready(int(largest_wigner_symbol_parameter), int(fast_wigner_stored_symbols), 6);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Wigner3Init(Index& wigner_initialized,
-#if DO_FAST_WIGNER
                  const Index& fast_wigner_stored_symbols,
-#else
-                 const Index&,
-#endif
                  const Index& largest_wigner_symbol_parameter,
                  const Verbosity&) {
-  wigner_initialized = largest_wigner_symbol_parameter;
-
-#if DO_FAST_WIGNER
-  fastwigxj_load(FAST_WIGNER_PATH_3J, 3, NULL);
-#ifdef _OPENMP
-  fastwigxj_thread_dyn_init(3, fast_wigner_stored_symbols);
-#else
-  fastwigxj_dyn_init(3, fast_wigner_stored_symbols);
-#endif
-#endif
-  wig_table_init(int(largest_wigner_symbol_parameter * 2), 3);
+  wigner_initialized = make_wigner_ready(int(largest_wigner_symbol_parameter), int(fast_wigner_stored_symbols), 3);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

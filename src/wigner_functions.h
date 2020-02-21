@@ -165,10 +165,83 @@ Numeric co2_ecs_wigner_symbol(
 Numeric o2_ecs_wigner_symbol(
     int Nl, int Nk, int Jl, int Jk, int Jl_p, int Jk_p, int L);
 
+/** Returns the wigner symbol used in Tran etal 2006
+ * 
+ * Symbol:
+ * /               \  /               \  /                  \  /                  \  /                 \
+ * |  Ni_p  Ni  L  |  |  Nf_p  Nf  L  |  |  L   Ji    Ji_p  |  |  L   Jf    Jf_p  |  |  L  Ji    Ji_p  |
+ * |               |  |               |  <                  >  <                  >  <                 >  (2L + 1)  (OmegaNi / OmegaL) * QL
+ * |  0     0   0  |  |  0     0   0  |  |  Si  Ni_p  Ni    |  <  Sf  Nf_p  Nf    |  |  n  Jf_p  Jf    |
+ * \               /  \               /  \                  /  \                  /  \                 /
+ * 
+ * Reference:
+ * H. Tran, C. Boulet, and J.-M. Hartmann
+ * Line mixing and collision-induced absorption by oxygen in the A
+ * band: Laboratory mea*surements, model, and tools for atmospheric
+ * spectra computations,
+ * Journal Of Geophysical Research,
+ * Volume 111,
+ * 2006,
+ * doi:10.1029/2005JD006869.
+ * 
+ * Note:  The ARTS implementation has not been tested in detail
+ *
+ * Warning:  Must have called wig_temp_init(j) with appropriate j before 
+ *           using this function.  Failure to do so will cause segfault.
+ * 
+ * @param[in] Ji Initial J of level
+ * @param[in] Jf Final J of level
+ * @param[in] Ni Initial N of level
+ * @param[in] Nf Final N of level
+ * @param[in] Si Initial S of level
+ * @param[in] Sf Final S of level
+ * @param[in] Ji_p Initial J of pseudo-level
+ * @param[in] Jf_p Final J of pseudo-level
+ * @param[in] Ni_p Initial N of pseudo-level
+ * @param[in] Nf_p Final N of pseudo-level
+ * @param[in] L Coupling to pseudo-level
+ * @param[in] n Order of the tensor (n=1 is magnetic dipole)
+ * @param[in] OmegaNi Adiabatic factor at initial N
+ * @param[in] OmegaL Adiabatic factor at L
+ * @param[in] QL Adiabatic factor at L
+ * @return Numeric Symbol value
+ */
 Numeric o2_ecs_wigner_symbol_tran(
-  int Ni,  int Nf,  int Ji,  int Jf,
-  int Nip, int Nfp, int Jip, int Jfp,
-  int L, int Si, int Sf, int n);
+  const Rational& Ji,
+  const Rational& Jf,
+  const Rational& Ni,
+  const Rational& Nf,
+  const Rational& Si,
+  const Rational& Sf,
+  const Rational& Ji_p,
+  const Rational& Jf_p,
+  const Rational& Ni_p,
+  const Rational& Nf_p,
+  const Rational& n,
+  const Numeric& T);
+
+/** Returns the reduced dipole moment following Makarov etal 2013
+ * 
+ * Only for N+ and N- lines
+ * 
+ * @param[in] Jup Upper state's J
+ * @param[in] Jlo Lower state's J
+ * @param[in] N Upp/low states' N
+ * @return The reduced dipole moment
+ */
+Numeric o2_makarov2013_reduced_dipole(
+  const Rational& Jup,
+  const Rational& Jlo,
+  const Rational& N);
+
+/** Ready Wigner
+ * 
+ * @param[in] largest
+ * @param[in] fastest
+ * @param[in] size [3 or 6]
+ * @return largest if successful
+ */
+Index make_wigner_ready(int largest, int fastest, int size);
 
 /** Tells if the function can deal with the input integer
  * 

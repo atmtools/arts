@@ -61,6 +61,7 @@ void makarov2020_o2_lines_mpm(Matrix& xsec,
                               const ArrayOfRetrievalQuantity& jacs,
                               const ArrayOfIndex& jacs_pos);
 
+void makarov2020_o2_lines_ecs(Numeric P, Numeric T, Numeric water_vmr);
 };  //PredefinedModel 
 };  //Absorption
 

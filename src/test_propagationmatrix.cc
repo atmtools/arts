@@ -576,6 +576,19 @@ void test_mpm20()
   std::cout << ']' << ')' << '\n';
 }
 
+
+void test_ecs20()
+{
+  define_species_data();
+  define_species_map();
+  
+  make_wigner_ready(200, 200, 6);
+  
+  wig_temp_init(200);
+  Absorption::PredefinedModel::makarov2020_o2_lines_ecs(1e5, 300, 0);
+  wig_temp_free();
+}
+
 int main() {
   /*test_speed_of_pressurebroadening();
     test_transmissionmatrix();
@@ -584,6 +597,7 @@ int main() {
     test_transmat_to_cumulativetransmat();
     test_sinc_likes_0limit();*/
 //   test_zeeman();
-test_mpm20();
+// test_mpm20();
+test_ecs20();
   return 0;
 }
