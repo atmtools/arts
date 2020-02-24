@@ -63,7 +63,7 @@ struct VariableValueStruct {
    */
   const void *ptr;
   /** Initialization status
-   * 
+   *
    * Bool value indicating whether the variable is initialized.
    */
   bool initialized;
@@ -91,7 +91,7 @@ struct VariableValueStruct {
 };
 
 /** Representation of workspace methods
- * 
+ *
  * This struct is used to return descriptions of a workspace method.
  */
 struct MethodStruct {

@@ -205,7 +205,7 @@ class WorkspaceVariable:
             group(any):    The object to convert
 
         Returns:
-            (any): The converted object.
+            (any): The converted object or None is conversion was unsuccessful.
         """
         if (group == "Index"):
             return int(value)

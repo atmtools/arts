@@ -392,9 +392,38 @@ class Workspace:
         wsv = self.create_variable(group, None)
 
         # Set WSV value using the ARTS C API
-        s  = VariableValueStruct(var)
-        if s.ptr:
+        self.set_variable(wsv, var)
+        self._vars[wsv.name] = wsv
+        return wsv
 
+    def set_variable(self, wsv, value):
+        """
+        This will set a WSV to the given value.
+
+        Natively supported types, i.e. any of int, str, [str], [int], numpy.ndarrays,
+        and scipy.sparse, will be copied directly into the newly created WSV.
+
+        In addition to that all arts types the can be stored to XML can
+        be set to a WSV, but in this case the communication will happen through
+        the file system (cf. :code:`WorkspaceVariable.from_arts`).
+
+        Args:
+            wsv: The :class:`WorkspaceVariable` to set.
+            value: The Python object representing the value to set :code:`wsv` to.
+        """
+        group = group_names[WorkspaceVariable.get_group_id(value)]
+        if group != wsv.group:
+            try:
+                converted = WorkspaceVariable.convert(wsv.group, value)
+            except:
+                converted = None
+            if converted is None:
+                raise Exception("Cannot set workspace variable of type {} to "
+                                " value  '{}'.".format(wsv.group, value))
+            value = converted
+
+        s = VariableValueStruct(value)
+        if s.ptr:
             e = arts_api.set_variable_value(self.ptr, wsv.ws_id, wsv.group_id, s)
             if e:
                 arts_api.erase_variable(self.ptr, wsv.ws_id, wsv.group_id)
@@ -405,13 +434,11 @@ class Workspace:
         # and read into ARTS workspace.
         else:
             try:
-                wsv.from_arts(var)
+                wsv.from_arts(value)
             except:
-                raise Exception("Could not add variable since + "
-                                + str(type(var)) + " is neither supported by "
+                raise Exception("Could not set variable since + "
+                                + str(type(value)) + " is neither supported by "
                                 + "the C API nor arts XML IO.")
-        self._vars[wsv.name] = wsv
-        return wsv
 
     def __dir__(self):
         return {**self._vars, **workspace_variables, **self.__dict__}
@@ -473,18 +500,7 @@ class Workspace:
                                         VariableValueStruct(value))
             return None
 
-        t = self.add_variable(value)
-
-        if not t.group_id == v.group_id:
-            raise Exception("Incompatible groups: Workspace variable " + name +
-                            " of group " + group_names[v.group_id] + " and value " + str(value)
-                            + " of group " + group_names[t.group_id] + ".")
-
-        self.Copy(v, t)
-
-        # Remove t only if it wasn't an existing WSV already before.
-        if not type(value) == WorkspaceVariable:
-            t.erase()
+        self.set_variable(v, value)
 
     def execute_agenda(self, agenda):
         """ Execute agenda on workspace.

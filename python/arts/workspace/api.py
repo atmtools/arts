@@ -184,8 +184,9 @@ class VariableValueStruct(c.Structure):
             - int
             - float
             - string
-            - numpy.ndarray
             - lists of int and lists of string
+            - numpy.ndarray
+            - scipy.sparse
 
         User defined classes are supported through a generic interface. The constructor
         looks for an attribute function __to_value_struct__, which should return a dictionary
@@ -310,21 +311,6 @@ class MethodStruct(c.Structure):
                 # Generic Input
                 ("n_g_in", c.c_ulong),
                 ("g_in_types", c.POINTER(c.c_long))]
-
-# TODO: Check if can be used as constructor
-def variable_value_factory(value):
-    """ Create a VariableValue struct from a python object.
-
-    This functions creates a variable value struct from a python object so that it
-    can be passed to the C API. If the type of the object is not supported, the data
-    pointer will be NULL.
-
-    Args:
-        value(object): The python object to represent as a VariableValue struct.
-
-    TODO: Add proper error handling.
-    """
-    return VariableValueStruct(value)
 
 ################################################################################
 # Function Arguments and Return Types

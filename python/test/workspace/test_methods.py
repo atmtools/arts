@@ -11,7 +11,9 @@ class TestMethods:
     Tests the calling of ARTS workspace methods.
     """
     def setup_method(self):
-        """This ensures a new Workspace for every test."""
+        """
+        This ensures a new Workspace for every test.
+        """
         self.ws  = Workspace(verbosity = 0)
         self.setup_workspace()
 
@@ -100,3 +102,29 @@ class TestMethods:
         ws.sensor_los = np.zeros((2, 2))
         ws.ReadXML(out = ws.sensor_los, filename = "matrix.xml")
         assert(mat, ws.sensor_los.value)
+
+    def test_supergeneric_overload_resolution(self):
+        """
+        Test resolution of supergeneric methods.
+        """
+        self.ws.ArrayOfIndexCreate("array_of_index")
+        self.ws.ArrayOfArrayOfIndexCreate("array_of_array_of_index")
+        self.ws.array_of_index = [1, 2, 3]
+        self.ws.Append(self.ws.array_of_array_of_index, self.ws.array_of_index)
+        self.ws.Append(self.ws.array_of_array_of_index, self.ws.array_of_index)
+
+    def test_supergeneric_overload_failure(self):
+        """
+        Test expected failure of supergeneric overload resolution.
+        """
+        with pytest.raises(Exception):
+            self.ws.NumericCreate("numeric_wsv")
+            self.ws.StringCreate("string_wsv")
+            self.ws.Copy(self.ws.string_wsv, self.ws.numeric_wsv)
+
+    def test_wsm_error(self):
+        """
+        Test error handling from ARTS WSMs.
+        """
+        with pytest.raises(Exception):
+            self.ws.yCalc()
