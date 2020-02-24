@@ -24,6 +24,7 @@
  * @brief Wigner symbol interactions
  */
 
+#include "constants.h"
 #include "wigner_functions.h"
 #include <algorithm>
 #include "arts_omp.h"
@@ -96,28 +97,232 @@ Numeric o2_ecs_wigner_symbol(
          WIGNER6(L, Jk_p, Jl_p, 2, Nl, Nk) * WIGNER6(L, Jk, Jl, 2, Jl_p, Jk_p);
 }
 
-Numeric o2_ecs_wigner_symbol_tran(
-  int Ni,  int Nf,  int Ji,  int Jf,
-  int Nip, int Nfp, int Jip, int Jfp,
-  int L, int Si, int Sf, int n)
+
+struct Wigner3JTriangleLimit {
+  int lower;
+  int upper;
+};
+
+
+
+/** Finds the upper and lower limits of L3 given a Wigner-3J symbol:
+ * 
+ * /            \
+ * |  L1 L2 L3  |
+ * |            |
+ * |  M1 M2 M3  |
+ * \            /
+ * 
+ * Based on abs(L1-L2) <= L3 <= L1+L2, where L1 and L2 are positives
+ * 
+ * @param[in] L1 As in Wigner symbol
+ * @param[in] L2 As in Wigner symbol
+ * @return The limits
+ */
+constexpr Wigner3JTriangleLimit find_wigner3j_limits(const Rational L1,
+                                                     const Rational L2)
 {
-  auto a = WIGNER3(2*Nip, 2*Ni, 2*L, 0, 0, 0);
-  auto b = WIGNER3(2*Nfp, 2*Nf, 2*L, 0, 0, 0);
-  auto c = WIGNER6(2*L, 2*Ji, 2*Jip, 2*Si, 2*Nip, 2*Ni);
-  auto d = WIGNER6(2*L, 2*Jf, 2*Jfp, 2*Sf, 2*Nfp, 2*Nf);
-  auto e = WIGNER6(2*L, 2*Ji, 2*Jip, 2*n, 2*Jfp, 2*Jf);
-  return (a * b * c * d * e) * (2*L + 1);
+  return {abs(L1-L2).toInt(), (L1+L2).toInt()};
 }
+
+
+/** Combines two limits and return the highest even-numbered low value and the
+ * lowest numbered even high value
+ * 
+ * @param[in] lim1 Limit 1
+ * @param[in] lim2 Limit 2
+ * @return More limited limit
+ */
+constexpr Wigner3JTriangleLimit find_even_limits(const Wigner3JTriangleLimit lim1,
+                                                 const Wigner3JTriangleLimit lim2)
+{
+  return 
+  {
+  lim1.lower > lim2.lower ?
+    (lim1.lower % 2 ?
+      lim1.lower + 1 :
+      lim1.lower) :
+    (lim2.lower % 2 ?
+      lim2.lower + 1 :
+      lim2.lower),
+  lim1.upper < lim2.upper ?
+    (lim1.upper % 2 ?
+      lim1.upper - 1 :
+      lim1.upper) :
+    (lim2.upper % 2?
+      lim2.upper - 1 :
+      lim2.upper)
+  };
+}
+
+
+Numeric o2_ecs_erot_jn_same(Rational J)
+{
+  using Constant::h;
+  using Constant::pow2;
+  using Constant::pow3;
+  
+  constexpr auto B = 43100.44276e6;
+  constexpr auto D = 145.1271e3;
+  constexpr auto H = 49e-3;
+  constexpr auto lB = 59501.3438e6;
+  constexpr auto lD = 58.3680e3;
+  constexpr auto lH = 290.8e-3;
+  constexpr auto gB = -252.58634e6;
+  constexpr auto gD = -243.42;
+  constexpr auto gH = -1.46e-3;
+  
+  const auto lJ = (J * (J + 1)).toNumeric();
+  return h * (
+  B*lJ - D*pow2(lJ) + H*pow3(lJ) -
+  (gB + gD*lJ + gH*pow2(lJ)) +
+  2.0/3.0 * (lB + lD*lJ + lH*pow2(lJ)));
+}
+
+
+Numeric o2_ecs_ql_makarov(Rational L, Numeric T)
+{
+  using Constant::k;
+  
+  auto lambda =  0.39;
+  auto beta = 0.567;
+  auto el = o2_ecs_erot_jn_same(L);
+  
+  return
+  (2*L + 1).toNumeric() / pow(L * (L+1), lambda) * std::exp(-beta * el / (k*T));
+}
+
+
+Numeric o2_ecs_adiabatic_factor_makarov(Rational N, Numeric T)
+{
+  using Conversion::angstrom2meter;
+  using Constant::h_bar;
+  using Constant::pow2;
+  using Constant::m_u;
+  using Constant::pi;
+  using Constant::k;
+  
+  auto dc =  angstrom2meter(0.61);
+  
+  auto en = o2_ecs_erot_jn_same(N);
+  auto enm2 = o2_ecs_erot_jn_same(N-2);
+  auto wnnm2 = (en - enm2) / h_bar;
+  
+  auto v_bar = std::sqrt(8*k*T/(pi * 31.989830 * m_u));
+  auto tauc = dc / v_bar;
+  
+  return 1.0 / pow2(1 + 1.0/24.0 * pow2(wnnm2 * tauc));
+}
+
+
+Numeric o2_ecs_wigner_symbol_tran(
+  const Rational& Ji,
+  const Rational& Jf,
+  const Rational& Ni,
+  const Rational& Nf,
+  const Rational& Si,
+  const Rational& Sf,
+  const Rational& Ji_p,
+  const Rational& Jf_p,
+  const Rational& Ni_p,
+  const Rational& Nf_p,
+  const Rational& n,
+  const Numeric& T)
+{
+  Numeric o2_ecs_wigner_symbol_tran = 0;
+  
+  // Limits above 2 and below the largest index there is
+  auto lims = find_even_limits({2, std::numeric_limits<int>::max()},
+                               find_even_limits(find_wigner3j_limits(Ni_p, Ni),
+                                                find_wigner3j_limits(Nf_p, Nf)));
+  
+  for (int L=lims.lower; L<=lims.upper; L+=2) {
+    auto OmegaL = o2_ecs_adiabatic_factor_makarov(L, T);
+    auto QL = o2_ecs_ql_makarov(L, T);
+    
+    // Method 1
+    auto a = WIGNER3((2*Ni_p).toInt(), (2*Ni).toInt(), 2*L, 0, 0, 0);
+    auto b = WIGNER3((2*Nf_p).toInt(), (2*Nf).toInt(), 2*L, 0, 0, 0);
+    auto c = WIGNER6(2*L, (2*Ji).toInt(), (2*Ji_p).toInt(), (2*Si).toInt(), (2*Ni_p).toInt(), (2*Ni).toInt());
+    auto d = WIGNER6(2*L, (2*Jf).toInt(), (2*Jf_p).toInt(), (2*Sf).toInt(), (2*Nf_p).toInt(), (2*Nf).toInt());
+    auto e = WIGNER6(2*L, (2*Ji).toInt(), (2*Ji_p).toInt(), (2*n).toInt(), (2*Jf_p).toInt(), (2*Jf).toInt());
+    
+//       // Method 2
+//     auto a = WIGNER3((2*Ni_p).toInt(), (2*Ni).toInt(), 2*L, 0, 0, 0);
+//     auto b = WIGNER3((2*Nf_p).toInt(), (2*Nf).toInt(), 2*L, 0, 0, 0);
+//     auto c = WIGNER6(2*L, (2*Ji).toInt(), (2*Ni_p).toInt(), (2*Si).toInt(), (2*Ji_p).toInt(), (2*Ni).toInt());
+//     auto d = WIGNER6(2*L, (2*Jf).toInt(), (2*Jf_p).toInt(), (2*Sf).toInt(), (2*Nf_p).toInt(), (2*Nf).toInt());
+//     auto e = WIGNER6(2*L, (2*Ji).toInt(), (2*Ji_p).toInt(), (2*n).toInt(), (2*Jf_p).toInt(), (2*Jf).toInt());
+    
+    o2_ecs_wigner_symbol_tran += (a * b * c * d * e) * (2*L + 1) * (QL / OmegaL);
+  }
+  
+  auto OmegaNi = o2_ecs_ql_makarov(Ni, T);
+  auto f = sqrt(2*Ni+1) * sqrt(2*Ni_p+1) * sqrt(2*Jf+1) * sqrt(2*Jf_p+1) * sqrt(2*Nf+1) * sqrt(2*Nf_p+1) * (2*Ji_p+1).toNumeric();
+  auto g = (((Ji_p + Ji + n) % 2) == 0 ? 1 : -1);
+  
+  o2_ecs_wigner_symbol_tran *= f * g * OmegaNi;
+  return o2_ecs_wigner_symbol_tran;
+}
+
+
+Numeric o2_makarov2013_reduced_dipole(const Rational& Jup, const Rational& Jlo, const Rational& N)
+{
+  return 
+  ((Jlo + N) % 2 ? -1 : 1) *
+  sqrt(6 * (2*Jlo + 1) * (2*Jup + 1)) *
+  WIGNER6(2, 2, 2, (2*Jup).toInt(), (2*Jlo).toInt(), (2*N).toInt());
+}
+
+
+Index make_wigner_ready(int largest, 
+       [[maybe_unused]] int fastest,
+                        int size)
+{
+  if (size == 3) {
+    #if DO_FAST_WIGNER
+    fastwigxj_load(FAST_WIGNER_PATH_3J, 3, NULL);
+    #ifdef _OPENMP
+    fastwigxj_thread_dyn_init(3, fastest);
+    #else
+    fastwigxj_dyn_init(3, fastest);
+    #endif
+    #endif
+    wig_table_init(largest, 3);
+    
+    return largest;
+  } else if (size == 6) {
+    #if DO_FAST_WIGNER
+    fastwigxj_load(FAST_WIGNER_PATH_3J, 3, NULL);
+    fastwigxj_load(FAST_WIGNER_PATH_6J, 6, NULL);
+    #ifdef _OPENMP
+    fastwigxj_thread_dyn_init(3, fastest);
+    fastwigxj_thread_dyn_init(6, fastest);
+    #else
+    fastwigxj_dyn_init(3, fastest);
+    fastwigxj_dyn_init(6, fastest);
+    #endif
+    #endif
+    wig_table_init(largest * 2, 6);
+    
+    return largest;
+  } else {
+    return 0;
+  }
+}
+
 
 bool is_wigner_ready(int j) {
   extern int wigxjpf_max_prime_decomp;
   return not(j > wigxjpf_max_prime_decomp);
 }
 
+
 bool is_wigner3_ready(const Rational& J) {
   const int test = (J * 6).toInt() / 2 + 1;  // nb. J can be half-valued
   return is_wigner_ready(test);
 }
+
 
 bool is_wigner6_ready(const Rational& J) {
   const int test = (J * 4).toInt() + 1;  // nb. J can be half-valued

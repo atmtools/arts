@@ -58,29 +58,33 @@ void abs_xsec_per_speciesAddPredefinedO2MPM2020(ArrayOfMatrix& abs_xsec_per_spec
 
   // Derivatives and their error handling
   const auto jac_pos = equivalent_propmattype_indexes(jacobian_quantities);
-  if(dabs_xsec_per_species_dx.nelem() not_eq abs_species.nelem()) {
-    throw std::runtime_error("Mismatch dimensions on species inputs and xsec derivatives");
-  } else if (std::any_of(dabs_xsec_per_species_dx.cbegin(), dabs_xsec_per_species_dx.cend(), 
-    [&jac_pos](auto x){return x.nelem() not_eq jac_pos.nelem();})) {
-    throw std::runtime_error("Mismatch dimensions on xsec derivatives and Jacobian grids");
-  } else if (std::any_of(dabs_xsec_per_species_dx.cbegin(), dabs_xsec_per_species_dx.cend(),
-    [&abs_p](auto x1){return std::any_of(x1.cbegin(), x1.cend(), 
-      [&abs_p](auto x2){return x2.ncols() not_eq abs_p.nelem();});})) {
-    throw std::runtime_error("Mismatch dimensions on internal matrices of xsec derivatives and pressure");
-  } else if (std::any_of(dabs_xsec_per_species_dx.cbegin(), dabs_xsec_per_species_dx.cend(),
-    [&f_grid](auto x1){return std::any_of(x1.cbegin(), x1.cend(), 
-      [&f_grid](auto x2){return x2.nrows() not_eq f_grid.nelem();});})) {
-    throw std::runtime_error("Mismatch dimensions on internal matrices of xsec derivatives and frequency");
+  if (dabs_xsec_per_species_dx.nelem()) {
+    if(dabs_xsec_per_species_dx.nelem() not_eq abs_species.nelem()) {
+      throw std::runtime_error("Mismatch dimensions on species inputs and xsec derivatives");
+    } else if (std::any_of(dabs_xsec_per_species_dx.cbegin(), dabs_xsec_per_species_dx.cend(), 
+      [&jac_pos](auto x){return x.nelem() not_eq jac_pos.nelem();})) {
+      throw std::runtime_error("Mismatch dimensions on xsec derivatives and Jacobian grids");
+    } else if (std::any_of(dabs_xsec_per_species_dx.cbegin(), dabs_xsec_per_species_dx.cend(),
+      [&abs_p](auto x1){return std::any_of(x1.cbegin(), x1.cend(), 
+        [&abs_p](auto x2){return x2.ncols() not_eq abs_p.nelem();});})) {
+      throw std::runtime_error("Mismatch dimensions on internal matrices of xsec derivatives and pressure");
+    } else if (std::any_of(dabs_xsec_per_species_dx.cbegin(), dabs_xsec_per_species_dx.cend(),
+      [&f_grid](auto x1){return std::any_of(x1.cbegin(), x1.cend(), 
+        [&f_grid](auto x2){return x2.nrows() not_eq f_grid.nelem();});})) {
+      throw std::runtime_error("Mismatch dimensions on internal matrices of xsec derivatives and frequency");
+    }
   }
   
   // Positions of important species and VMR of water
   auto o2_mpm2020 =  find_first_species_tg(abs_species, SpeciesTag("O2-MPM2020"));
   auto h2o = find_first_species_tg(abs_species, SpeciesTag("H2O").Species());
   auto h2o_vmr = h2o == -1 ? Vector(abs_p.nelem(), 0) : abs_vmrs(h2o, joker);
+  ArrayOfMatrix empty(0);
   
   // Perform calculations if there is any oxygen
   if (o2_mpm2020 >= 0 and o2_mpm2020 < abs_xsec_per_species.nelem()) {
-    Absorption::PredefinedModel::makarov2020_o2_lines_mpm(abs_xsec_per_species[o2_mpm2020], dabs_xsec_per_species_dx[o2_mpm2020],
+    Absorption::PredefinedModel::makarov2020_o2_lines_mpm(abs_xsec_per_species[o2_mpm2020], 
+                                                          dabs_xsec_per_species_dx.nelem() ? dabs_xsec_per_species_dx[o2_mpm2020] : empty,
                                                           f_grid, abs_p, abs_t, h2o_vmr, jacobian_quantities, jac_pos);
   }
 }

@@ -272,6 +272,16 @@ static constexpr Numeric electron_mass = 2 * h * R_inf / (c * pow2(alpha));
 /** Mass of resting electron convenience name [kg] **/
 static constexpr Numeric m_e = electron_mass;
 
+/** Unified atomic mass unit [kg] 
+    From: https://physics.nist.gov/cgi-bin/cuu/Value?ukg
+    Date: 2020-02-18
+    Reported error: (50)
+    **/
+static constexpr Numeric unified_atomic_mass_unit = 1.66053906660e-27;
+
+/** Unified atomic mass unit convenience name [kg] **/
+static constexpr Numeric m_u = unified_atomic_mass_unit;
+
 /** Mass ratio of electrons to protons [-]
     From: https://physics.nist.gov/cgi-bin/cuu/Value?mpsme
     Date: 2020-01-08
@@ -479,6 +489,15 @@ constexpr T hitran2arts_energy(T x) {
 template <class T>
 constexpr T arts2hitran_energy(T x) {
   return x * ARTS2HITRAN_ENERGY;
+}
+
+template <class T>
+constexpr T angstrom2meter(T x) {
+  return x * 1e-10;
+}
+template <class T>
+constexpr T meter2angstrom(T x) {
+  return x * 1e10;
 }
 };  // namespace Conversion
 

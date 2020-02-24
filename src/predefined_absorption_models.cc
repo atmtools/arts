@@ -25,6 +25,7 @@
  */
 
 #include "predefined_absorption_models.h"
+#include "wigner_functions.h"
 
 
 constexpr auto nlines_mpm2020 = 38 + 6;
@@ -500,4 +501,56 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(Matrix& xsec,
       }
     }
   }
+}
+
+
+void Absorption::PredefinedModel::makarov2020_o2_lines_ecs(Numeric P, Numeric T, Numeric water_vmr)
+{
+  constexpr auto necs2020 = nlines_mpm2020 - 6;
+  
+  constexpr auto qids = init_mpm2020_qids(0, 0);
+  constexpr auto lsm = init_mpm2020_lsm();
+  constexpr auto T0 = 300;
+  
+  Vector dl(necs2020, 9);
+  Matrix W(necs2020, necs2020, 0);
+  for (Index i=0; i<necs2020; i++) {
+    auto Ji = qids[i].UpperQuantumNumber(QuantumNumberType::J);
+    auto Jf = qids[i].LowerQuantumNumber(QuantumNumberType::J);
+    auto Ni = qids[i].UpperQuantumNumber(QuantumNumberType::N);
+    auto Nf = qids[i].LowerQuantumNumber(QuantumNumberType::N);
+    
+    // Compute reduced dipole
+    dl[i] = o2_makarov2013_reduced_dipole(Ji, Jf, Ni);
+    
+    // Do virtual transitions
+    for (Index j=0; j<necs2020; j++) {
+      auto Ji_p = qids[j].UpperQuantumNumber(QuantumNumberType::J);
+      auto Jf_p = qids[j].LowerQuantumNumber(QuantumNumberType::J);
+      auto Ni_p = qids[j].UpperQuantumNumber(QuantumNumberType::N);
+      auto Nf_p = qids[j].LowerQuantumNumber(QuantumNumberType::N);
+      if (i not_eq j) {
+        W(i, j) =  o2_ecs_wigner_symbol_tran(Ji, Jf, Ni, Nf, 1, 1, Ji_p, Jf_p, Ni_p, Nf_p, 1, T);
+      } else {
+        W(i, j) = (1 + 0.1*water_vmr) * P * lsm[i].compute(T, T0, LineShape::Variable::G0);
+      }
+    }
+  }
+  
+  std::cout << "W = np.array([";
+  for (Index i=0; i<necs2020; i++) {
+    std::cout << "[";
+    for (Index j=0; j<necs2020; j++) {
+      std::cout << W(i, j) << ", ";
+    }
+    std::cout << "], ";
+  }
+  std::cout << "])\n";
+  
+  
+  std::cout << "dl = np.array([";
+  for (Index i=0; i<necs2020; i++) {
+    std::cout << dl[i] << ", ";
+  }
+  std::cout << "])\n";
 }
