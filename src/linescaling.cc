@@ -173,10 +173,9 @@ Numeric dboltzman_ratio_dT(const Numeric& boltzmann_ratio,
 }
 
 // Boltzmann factor at T
-Numeric boltzman_factor(Numeric T, Numeric E0) {
-  using namespace Constant;
-  static constexpr Numeric c1 = -1 / k;
-  return std::exp(c1 * E0 / T);
+Numeric boltzman_factor(Numeric T, Numeric E0)
+{
+  return std::exp(- E0 / (Constant::k*T));
 }
 
 // Boltzmann factor at T

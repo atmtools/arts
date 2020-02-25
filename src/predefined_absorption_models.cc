@@ -25,10 +25,13 @@
  */
 
 #include "predefined_absorption_models.h"
+#include "lin_alg.h"
+#include "linescaling.h"
 #include "wigner_functions.h"
 
 
-constexpr auto nlines_mpm2020 = 38 + 6;
+constexpr auto necs2020 = 38;
+constexpr auto nlines_mpm2020 = necs2020 + 6;
 
 
 constexpr LineShape::SingleSpeciesModel init_mpm2020_slsm(Numeric g00,
@@ -504,53 +507,113 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(Matrix& xsec,
 }
 
 
-void Absorption::PredefinedModel::makarov2020_o2_lines_ecs(Numeric P, Numeric T, Numeric water_vmr)
+void normalize_relaxation_matrix(Eigen::Ref<Eigen::MatrixXcd> W,
+                                 const Eigen::Ref<Eigen::VectorXd> rho,
+                                 const Eigen::Ref<Eigen::VectorXd> d)
 {
-  constexpr auto necs2020 = nlines_mpm2020 - 6;
+  // FIXME:  
+  // rho[i] / rho[j] or rho[j] / rho[i] in the next for-loop.  [See {Prop. 1}]
+  // The current order is the same as for the second-to-next for-loop.  [See {Prop. 2}]
+  // If the first loop changes, the renormalization in the second loop
+  // must change...
   
+  // Population density balanced parameters
+  for (Index i=0; i<necs2020; i++) {
+    for (Index j=0; j<i; j++) {
+      if (i not_eq j) {
+        W(i, j) = W(j, i) * (rho[i] / rho[j]);  // {Prop. 1}  --- division-order should change?
+      }
+    }
+  }
+  
+  // Balance by the reduced dipole
+  for (Index i=0; i<necs2020; i++) {
+    auto norm = - d[i] * W(i, i) / (W.row(i) * d - d[i] * W(i, i));  // {Prop. 2}  --- dot-product axis should to column?
+    for (Index j=0; j<necs2020; j++) {
+      if (i not_eq j) {
+        W(i, j) *= norm;  // {Prop. 2}  --- If yes, then change W(i, j) to W(j, i)
+      }
+    }
+  }
+}
+
+
+void Absorption::PredefinedModel::makarov2020_o2_lines_ecs(ComplexVector& I, const Vector& f, Numeric P, Numeric T, Numeric water_vmr)
+{
   constexpr auto qids = init_mpm2020_qids(0, 0);
   constexpr auto lsm = init_mpm2020_lsm();
   constexpr auto T0 = 300;
   
-  Vector dl(necs2020, 9);
-  Matrix W(necs2020, necs2020, 0);
+  // Computed values
+  Eigen::Matrix<Numeric, necs2020, 1> d;
+  Eigen::Matrix<Numeric, necs2020, 1> rho;
+  Eigen::Matrix<Complex, necs2020, 1> B;
+  Eigen::Matrix<Complex, necs2020, necs2020> W;
+  Eigen::Matrix<Complex, necs2020, necs2020> v_inv;
+  Eigen::ComplexEigenSolver<Eigen::Matrix<Complex, necs2020, necs2020>> eV;
+  
+  // Diagonal and upper triangular values
   for (Index i=0; i<necs2020; i++) {
     auto Ji = qids[i].UpperQuantumNumber(QuantumNumberType::J);
     auto Jf = qids[i].LowerQuantumNumber(QuantumNumberType::J);
     auto Ni = qids[i].UpperQuantumNumber(QuantumNumberType::N);
     auto Nf = qids[i].LowerQuantumNumber(QuantumNumberType::N);
-    
-    // Compute reduced dipole
-    dl[i] = o2_makarov2013_reduced_dipole(Ji, Jf, Ni);
-    
-    // Do virtual transitions
-    for (Index j=0; j<necs2020; j++) {
+    for (Index j=i; j<necs2020; j++) {
       auto Ji_p = qids[j].UpperQuantumNumber(QuantumNumberType::J);
       auto Jf_p = qids[j].LowerQuantumNumber(QuantumNumberType::J);
       auto Ni_p = qids[j].UpperQuantumNumber(QuantumNumberType::N);
       auto Nf_p = qids[j].LowerQuantumNumber(QuantumNumberType::N);
       if (i not_eq j) {
-        W(i, j) =  o2_ecs_wigner_symbol_tran(Ji, Jf, Ni, Nf, 1, 1, Ji_p, Jf_p, Ni_p, Nf_p, 1, T);
+        W(i, j) = 1i * o2_ecs_wigner_symbol_tran(Ji, Jf, Ni, Nf, 1, 1, Ji_p, Jf_p, Ni_p, Nf_p, 1, T);
       } else {
-        W(i, j) = (1 + 0.1*water_vmr) * P * lsm[i].compute(T, T0, LineShape::Variable::G0);
+        W(i, j) = 1i * (1 + 0.1*water_vmr) * P * lsm[i].compute(T, T0, LineShape::Variable::G0);
       }
     }
   }
   
-  std::cout << "W = np.array([";
+  std::transform(qids.cbegin(), qids.cbegin()+necs2020, d.data(), [](auto& qns){return 
+    o2_makarov2013_reduced_dipole (qns.UpperQuantumNumber(QuantumNumberType::J),
+                                   qns.LowerQuantumNumber(QuantumNumberType::J),
+                                   qns.UpperQuantumNumber(QuantumNumberType::N));});
+  
+  std::transform(qids.cbegin(), qids.cbegin()+necs2020, rho.data(), [T](auto& qns){return 
+    boltzman_factor(T, o2_ecs_erot_jn_same(qns.LowerQuantumNumber(QuantumNumberType::J)));});
+  
+  // Central frequency [Hz]
+  constexpr std::array<Numeric, nlines_mpm2020> f0 = {
+    1.18750334E+11, 5.6264774E+10, 6.2486253E+10, 5.8446588E+10, 6.0306056E+10, 
+    5.9590983E+10, 5.9164204E+10, 6.0434778E+10, 5.8323877E+10, 6.1150562E+10, 
+    5.7612486E+10, 6.1800158E+10, 5.6968211E+10, 6.2411220E+10, 5.6363399E+10, 
+    6.2997984E+10, 5.5783815E+10, 6.3568526E+10, 5.5221384E+10, 6.4127775E+10, 
+    5.4671180E+10, 6.4678910E+10, 5.4130025E+10, 6.5224078E+10, 5.3595775E+10, 
+    6.5764779E+10, 5.3066934E+10, 6.6302096E+10, 5.2542418E+10, 6.6836834E+10, 
+    5.2021429E+10, 6.7369601E+10, 5.1503360E+10, 6.7900868E+10, 5.0987745E+10, 
+    6.8431006E+10, 5.0474214E+10, 6.8960312E+10, 3.68498246E+11, 4.24763020E+11, 
+    4.87249273E+11, 7.15392902E+11, 7.73839490E+11, 8.34145546E+11, };
+  
+  normalize_relaxation_matrix(W, rho, d);
+  
   for (Index i=0; i<necs2020; i++) {
-    std::cout << "[";
-    for (Index j=0; j<necs2020; j++) {
-      std::cout << W(i, j) << ", ";
+    W(i, i) += f0[i];
+  }
+  
+  eV.compute(W);
+  auto& D = eV.eigenvalues(); 
+  auto& v = eV.eigenvectors(); 
+  v_inv = eV.eigenvectors().inverse();
+  
+  for (Index m=0; m<necs2020; m++) {
+    B[m] = 0;
+    for (Index i=0; i<necs2020; i++) {
+      for (Index j=0; j<necs2020; j++) {
+        B[m] += rho[i] * d[i] * d[j] * v(j, m) * v_inv(m, i);
+      }
     }
-    std::cout << "], ";
   }
-  std::cout << "])\n";
   
-  
-  std::cout << "dl = np.array([";
-  for (Index i=0; i<necs2020; i++) {
-    std::cout << dl[i] << ", ";
+  // Lorentz profile!
+  const Numeric div = Constant::inv_pi / rho.cwiseProduct(d.cwiseAbs2()).sum();
+  for (Index i=0; i<f.nelem(); i++) {
+    I[i] = div * (B.array() / (f[i] - D.array())).sum();
   }
-  std::cout << "])\n";
 }

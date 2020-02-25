@@ -2384,22 +2384,11 @@ void linreg(Vector& p, ConstVectorView x, ConstVectorView y) {
   p[0] = s3 / Numeric(n) - p[1] * xm;
 }
 
-/*!
- *    Least squares fitting by solving x for known A and y
- * 
- *    (A^T A)x = A^T y
- * 
- *    Returns the squared residual, i.e., <(A^T A)x-A^T y|(A^T A)x-A^T y>.
- * 
- *    \param  x   Out: As equation
- *    \param  A   In: As equation
- *    \param  y   In: As equation
- */
-Numeric lsf(VectorView x, ConstMatrixView A, ConstVectorView y) noexcept {
+Numeric lsf(VectorView x, ConstMatrixView A, ConstVectorView y, bool residual) noexcept {
   // Size of the problem
   const Index n = x.nelem();
   Matrix AT, ATA(n, n);
-  Vector ATy(n), r(n);
+  Vector ATy(n);
 
   // Solver
   AT = transpose(A);
@@ -2408,7 +2397,18 @@ Numeric lsf(VectorView x, ConstMatrixView A, ConstVectorView y) noexcept {
   solve(x, ATA, ATy);
 
   // Residual
-  mult(r, ATA, x);
-  r -= ATy;
-  return r * r;
+  if (residual) {
+    Vector r(n);
+    mult(r, ATA, x);
+    r -= ATy;
+    return r * r;
+  } else {
+    return 0;
+  }
+}
+
+Eigen::ComplexEigenSolver<Eigen::MatrixXcd> eig(const Eigen::Ref<Eigen::MatrixXcd> A)
+{
+  Eigen::ComplexEigenSolver<Eigen::MatrixXcd> ces;
+  return ces.compute(A);
 }

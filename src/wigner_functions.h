@@ -122,6 +122,14 @@ Numeric wigner6j(const Rational j1,
 Numeric co2_ecs_wigner_symbol(
     int Ji, int Jf, int Ji_p, int Jf_p, int L, int li, int lf);
 
+
+/** Energy of the J=N line at J
+ * 
+ * @param[in]  J Rotational quantum number
+ * @return  O2 energy at this level
+ */
+Numeric o2_ecs_erot_jn_same(Rational J);
+
 /** Returns the wigner symbol used in Makarov etal 2013
  *
  * Symbol:

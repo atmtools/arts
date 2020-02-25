@@ -132,6 +132,27 @@ Numeric det(ConstMatrixView A);
 
 void linreg(Vector& p, ConstVectorView x, ConstVectorView y);
 
-Numeric lsf(VectorView x, ConstMatrixView A, ConstVectorView y) noexcept;
+
+/** Least squares fitting by solving x for known A and y
+ * 
+ * (A^T A)x = A^T y
+ * 
+ * Returns the squared residual, i.e., <(A^T A)x-A^T y|(A^T A)x-A^T y>.
+ * 
+ * @param[in]  x   As equation
+ * @param[in]  A   As equation
+ * @param[in]  y   As equation
+ * @param[in]  residual (optional) Returns the residual if true
+ * @return Squared residual or 0
+ */
+Numeric lsf(VectorView x, ConstMatrixView A, ConstVectorView y, bool residual=true) noexcept;
+
+
+/** Return the Eigen decomposition of the eigen matrix
+ * 
+ * @param[in] A a matrix to eigen value decompose
+ * @return Object with eigenvalues and eigenvectors computed
+ */
+Eigen::ComplexEigenSolver<Eigen::MatrixXcd> eig(const Eigen::Ref<Eigen::MatrixXcd> A);
 
 #endif  // linalg_h
