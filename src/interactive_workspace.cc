@@ -71,7 +71,11 @@ void InteractiveWorkspace::initialize() {
 }
 
 const char *InteractiveWorkspace::execute_agenda(const Agenda *a) {
-  resize();
+  // Need to check size of stack as agenda definitions may have
+  // added variables.
+  if (wsv_data.size() != ws.size()) {
+      resize();
+  }
   try {
     a->execute(*this);
   } catch (const std::exception &e) {
@@ -84,6 +88,12 @@ const char *InteractiveWorkspace::execute_agenda(const Agenda *a) {
 const char *InteractiveWorkspace::execute_workspace_method(
     long id, const ArrayOfIndex &output, const ArrayOfIndex &input) {
   const MdRecord &m = md_data[id];
+
+  // Need to check size of stack as agenda definitions may have
+  // added variables.
+  if (wsv_data.size() != ws.size()) {
+    resize();
+  }
 
   // Check if all input variables are initialized.
   for (Index i : input) {
@@ -125,7 +135,9 @@ const char *InteractiveWorkspace::execute_workspace_method(
 
 void InteractiveWorkspace::set_agenda_variable(Index id, const Agenda &src) {
   Agenda &dst = *reinterpret_cast<Agenda *>(this->operator[](id));
+  String old_name = dst.name();
   dst = src;
+  dst.set_name(old_name);
   dst.check(*this, verbosity_at_launch);
 }
 
@@ -279,9 +291,11 @@ void InteractiveWorkspace::initialize_variable(Index i) {
 }
 
 Index InteractiveWorkspace::add_variable(Index group_id, const char *name) {
+
   if (wsv_data.size() != ws.size()) {
     resize();
   }
+
   Index id = static_cast<Index>(ws.size());
 
   ws.push_back(stack<WsvStruct *>());

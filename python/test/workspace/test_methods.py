@@ -1,3 +1,6 @@
+"""
+Test calling of workspace methods.
+"""
 import os
 import numpy as np
 import pytest
