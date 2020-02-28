@@ -503,15 +503,13 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat4Stream(istream& is) {
         if (q[1] > -1)
           data.quantumidentity.UpperQuantumNumbers().Set(QuantumNumberType::J, Rational(q[1]));
         if (q[2] > -1)
-          data.quantumidentity.UpperQuantumNumbers().Set(QuantumNumberType::F,
-                                         q[2] - Rational(1, 2));
+          data.quantumidentity.UpperQuantumNumbers().Set(QuantumNumberType::F, q[2] - 1_2);
         if (q[3] > -1)
           data.quantumidentity.LowerQuantumNumbers().Set(QuantumNumberType::N, Rational(q[3]));
         if (q[4] > -1)
           data.quantumidentity.LowerQuantumNumbers().Set(QuantumNumberType::J, Rational(q[4]));
         if (q[5] > -1)
-          data.quantumidentity.LowerQuantumNumbers().Set(QuantumNumberType::F,
-                                         q[5] - Rational(1, 2));
+          data.quantumidentity.LowerQuantumNumbers().Set(QuantumNumberType::F, q[5] - 1_2);
       }
     }
   }
@@ -2955,17 +2953,17 @@ bool Absorption::line_is_id(const Absorption::Lines& band, const QuantumIdentifi
 
 Numeric Absorption::reduced_rovibrational_dipole(Rational Jf, Rational Ji, Rational lf, Rational li, Rational k) {
   const Numeric val = sqrt(2 * Jf + 1) * wigner3j(Jf, k, Ji, li, lf - li, -lf);
-  if ((Jf + lf + 1) % 2)
+  if (not even(Jf + lf + 1))
     return -val;
   else
     return +val;
 }
 
 Numeric Absorption::reduced_magnetic_quadrapole(Rational Jf, Rational Ji, Rational N) {
-  constexpr Rational one(1, 1);
+  constexpr Rational one=1;
   const Numeric val = sqrt(6 * (2 * Jf + 1) * (2 * Ji + 1)) *
   wigner6j(one, one, one, Ji, Jf, N);
-  if ((Jf + N) % 2)
+  if (not even(Jf + N))
     return -val;
   else
     return +val;

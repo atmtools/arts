@@ -579,11 +579,11 @@ void test_mpm20()
 
 void test_ecs20()
 {
-  constexpr Index nf = 1001;
-  constexpr Numeric fstart = 40e9;
-  constexpr Numeric fend = 90e9;
+  constexpr Index nf = 501;
+  constexpr Numeric fstart = 45e9;
+  constexpr Numeric fend = 85e9;
   constexpr Numeric t = 296;
-  constexpr Numeric p = 100658.388;
+  constexpr Numeric p = 1.00658388e5;
   Vector f(nf);
   ComplexVector I(nf);
   Matrix xsec(nf, 1, 0);
@@ -604,13 +604,13 @@ void test_ecs20()
   
   std::cout<<"I = np.array([";
   for (Index i=0; i<f.nelem(); i++)
-    std::cout<<I[i].real()<< "+1j*("<<I[i].imag()<<"), ";
-  std::cout<<"])\n";
+    std::cout<<I[i].real()<<", ";
+  std::cout<<"]); ";
   
-//   std::cout<<"I2 = np.array([";
-//   for (Index i=0; i<f.nelem(); i++)
-//     std::cout<<xsec(i,0)<<", ";
-//   std::cout<<"])\n";
+  std::cout<<"I2 = np.array([";
+  for (Index i=0; i<f.nelem(); i++)
+    std::cout<<xsec(i,0)<<", ";
+  std::cout<<"])\n";
 }
 
 int main() {

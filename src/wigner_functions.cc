@@ -239,27 +239,18 @@ Numeric o2_ecs_wigner_symbol_tran(
   for (int L=lims.lower; L<=lims.upper; L+=2) {
     auto OmegaL = o2_ecs_adiabatic_factor_makarov(L, T);
     auto QL = o2_ecs_ql_makarov(L, T);
-    
-    // Method 1
-    auto a = WIGNER3((2*Ni_p).toInt(), (2*Ni).toInt(), 2*L, 0, 0, 0);
-    auto b = WIGNER3((2*Nf_p).toInt(), (2*Nf).toInt(), 2*L, 0, 0, 0);
-    auto c = WIGNER6(2*L, (2*Ji).toInt(), (2*Ji_p).toInt(), (2*Si).toInt(), (2*Ni_p).toInt(), (2*Ni).toInt());
-    auto d = WIGNER6(2*L, (2*Jf).toInt(), (2*Jf_p).toInt(), (2*Sf).toInt(), (2*Nf_p).toInt(), (2*Nf).toInt());
-    auto e = WIGNER6(2*L, (2*Ji).toInt(), (2*Ji_p).toInt(), (2*n).toInt(), (2*Jf_p).toInt(), (2*Jf).toInt());
-    
-//       // Method 2
-//     auto a = WIGNER3((2*Ni_p).toInt(), (2*Ni).toInt(), 2*L, 0, 0, 0);
-//     auto b = WIGNER3((2*Nf_p).toInt(), (2*Nf).toInt(), 2*L, 0, 0, 0);
-//     auto c = WIGNER6(2*L, (2*Ji).toInt(), (2*Ni_p).toInt(), (2*Si).toInt(), (2*Ji_p).toInt(), (2*Ni).toInt());
-//     auto d = WIGNER6(2*L, (2*Jf).toInt(), (2*Jf_p).toInt(), (2*Sf).toInt(), (2*Nf_p).toInt(), (2*Nf).toInt());
-//     auto e = WIGNER6(2*L, (2*Ji).toInt(), (2*Ji_p).toInt(), (2*n).toInt(), (2*Jf_p).toInt(), (2*Jf).toInt());
+    auto a = WIGNER3(Ni_p.toInt(2), Ni.toInt(2), 2*L, 0, 0, 0);
+    auto b = WIGNER3(Nf_p.toInt(2), Nf.toInt(2), 2*L, 0, 0, 0);
+    auto c = WIGNER6(2*L, Ji.toInt(2), Ji_p.toInt(2), Si.toInt(2), Ni_p.toInt(2), Ni.toInt(2));
+    auto d = WIGNER6(2*L, Jf.toInt(2), Jf_p.toInt(2), Sf.toInt(2), Nf_p.toInt(2), Nf.toInt(2));
+    auto e = WIGNER6(2*L, Ji.toInt(2), Ji_p.toInt(2), n.toInt(2), Jf_p.toInt(2), Jf.toInt(2));
     
     o2_ecs_wigner_symbol_tran += (a * b * c * d * e) * (2*L + 1) * (QL / OmegaL);
   }
   
   auto OmegaNi = o2_ecs_ql_makarov(Ni, T);
   auto f = sqrt(2*Ni+1) * sqrt(2*Ni_p+1) * sqrt(2*Jf+1) * sqrt(2*Jf_p+1) * sqrt(2*Nf+1) * sqrt(2*Nf_p+1) * (2*Ji_p+1).toNumeric();
-  auto g = (((Ji_p + Ji + n) % 2) == 0 ? 1 : -1);
+  auto g = even(Ji_p + Ji + n) ? 1 : -1;  // -1^(Ji_p + Ji + n)
   
   o2_ecs_wigner_symbol_tran *= f * g * OmegaNi;
   return o2_ecs_wigner_symbol_tran;
@@ -269,9 +260,9 @@ Numeric o2_ecs_wigner_symbol_tran(
 Numeric o2_makarov2013_reduced_dipole(const Rational& Jup, const Rational& Jlo, const Rational& N)
 {
   return 
-  ((Jlo + N) % 2 ? -1 : 1) *
+  (even(Jlo + N) ? 1 : -1) *
   sqrt(6 * (2*Jlo + 1) * (2*Jup + 1)) *
-  WIGNER6(2, 2, 2, (2*Jup).toInt(), (2*Jlo).toInt(), (2*N).toInt());
+  WIGNER6(2, 2, 2, Jup.toInt(2), Jlo.toInt(2), N.toInt(2));
 }
 
 
@@ -319,12 +310,12 @@ bool is_wigner_ready(int j) {
 
 
 bool is_wigner3_ready(const Rational& J) {
-  const int test = (J * 6).toInt() / 2 + 1;  // nb. J can be half-valued
+  const int test = J.toInt(6) / 2 + 1;  // nb. J can be half-valued
   return is_wigner_ready(test);
 }
 
 
 bool is_wigner6_ready(const Rational& J) {
-  const int test = (J * 4).toInt() + 1;  // nb. J can be half-valued
+  const int test = J.toInt(4) + 1;  // nb. J can be half-valued
   return is_wigner_ready(test);
 }

@@ -508,8 +508,8 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(Matrix& xsec,
 
 
 void normalize_relaxation_matrix(Eigen::Ref<Eigen::MatrixXcd> W,
-                                 const Eigen::Ref<Eigen::VectorXd> rho,
-                                 const Eigen::Ref<Eigen::VectorXd> d)
+                                 const Eigen::Ref<Eigen::ArrayXd> rho,
+                                 const Eigen::Ref<Eigen::ArrayXd> d)
 {
   // FIXME:  
   // rho[i] / rho[j] or rho[j] / rho[i] in the next for-loop.  [See {Prop. 1}]
@@ -528,7 +528,7 @@ void normalize_relaxation_matrix(Eigen::Ref<Eigen::MatrixXcd> W,
   
   // Balance by the reduced dipole
   for (Index i=0; i<necs2020; i++) {
-    auto norm = - d[i] * W(i, i) / (W.row(i) * d - d[i] * W(i, i));  // {Prop. 2}  --- dot-product axis should to column?
+    auto norm = - std::imag(d[i] * W(i, i)) / std::imag(W.row(i) * d.abs().matrix() - std::abs(d[i]) * W(i, i));  // {Prop. 2}  --- dot-product axis should to column?
     for (Index j=0; j<necs2020; j++) {
       if (i not_eq j) {
         W(i, j) *= norm;  // {Prop. 2}  --- If yes, then change W(i, j) to W(j, i)
@@ -540,17 +540,51 @@ void normalize_relaxation_matrix(Eigen::Ref<Eigen::MatrixXcd> W,
 
 void Absorption::PredefinedModel::makarov2020_o2_lines_ecs(ComplexVector& I, const Vector& f, Numeric P, Numeric T, Numeric water_vmr)
 {
+  using Constant::h;
+  using Constant::k;
+  using Constant::pow3;
+  
   constexpr auto qids = init_mpm2020_qids(0, 0);
   constexpr auto lsm = init_mpm2020_lsm();
   constexpr auto T0 = 300;
   
-  // Computed values
-  Eigen::Matrix<Numeric, necs2020, 1> d;
-  Eigen::Matrix<Numeric, necs2020, 1> rho;
-  Eigen::Matrix<Complex, necs2020, 1> B;
+  // Central frequency [Hz]
+  constexpr std::array<Numeric, nlines_mpm2020> f0 = {
+    1.18750334E+11, 5.6264774E+10, 6.2486253E+10, 5.8446588E+10, 6.0306056E+10, 
+    5.9590983E+10, 5.9164204E+10, 6.0434778E+10, 5.8323877E+10, 6.1150562E+10, 
+    5.7612486E+10, 6.1800158E+10, 5.6968211E+10, 6.2411220E+10, 5.6363399E+10, 
+    6.2997984E+10, 5.5783815E+10, 6.3568526E+10, 5.5221384E+10, 6.4127775E+10, 
+    5.4671180E+10, 6.4678910E+10, 5.4130025E+10, 6.5224078E+10, 5.3595775E+10, 
+    6.5764779E+10, 5.3066934E+10, 6.6302096E+10, 5.2542418E+10, 6.6836834E+10, 
+    5.2021429E+10, 6.7369601E+10, 5.1503360E+10, 6.7900868E+10, 5.0987745E+10, 
+    6.8431006E+10, 5.0474214E+10, 6.8960312E+10, 3.68498246E+11, 4.24763020E+11, 
+    4.87249273E+11, 7.15392902E+11, 7.73839490E+11, 8.34145546E+11, };
+    
+  // Intensity [1 / Pa] (rounded to 10 digits because at most 9 digits exist in f0)
+  constexpr std::array<Numeric, nlines_mpm2020> intens = {
+    1.591521878E-21, 1.941172240E-21, 4.834543970E-21, 4.959264029E-21, 7.010386457E-21, 
+    7.051673348E-21, 8.085012578E-21, 8.108262250E-21, 8.145673278E-21, 8.149757320E-21, 
+    7.396406085E-21, 7.401923754E-21, 6.162286575E-21, 6.168475265E-21, 4.749226167E-21, 
+    4.754435107E-21, 3.405982896E-21, 3.408455562E-21, 2.282498656E-21, 2.283934341E-21, 
+    1.432692459E-21, 1.433513473E-21, 8.439995690E-22, 8.443521837E-22, 4.672706507E-22, 
+    4.676049313E-22, 2.435008301E-22, 2.437304596E-22, 1.195038747E-22, 1.196873412E-22, 
+    5.532759045E-23, 5.537261239E-23, 2.416832398E-23, 2.418989865E-23, 9.969285671E-24, 
+    9.977543709E-24, 3.882541154E-24, 3.888101811E-24, 3.676253816E-23, 3.017524005E-22, 
+    9.792882227E-23, 2.756166168E-23, 1.486462215E-22, 4.411918954E-23, };
+    
+  // Temperature intensity modifier
+  constexpr std::array<Numeric, nlines_mpm2020> a2 = {
+    0.01, 0.014, 0.083, 0.083, 0.207, 0.207, 0.387, 0.386,
+    0.621, 0.621, 0.910, 0.910, 1.255, 1.255, 1.654, 1.654,
+    2.109, 2.108, 2.618, 2.617, 3.182, 3.181, 3.800, 3.800,
+    4.474, 4.473, 5.201, 5.200, 5.983, 5.982, 6.819, 6.818,
+    7.709, 7.708, 8.653, 8.652, 9.651, 9.650, 0.048, 0.044,
+    0.049, 0.145, 0.141, 0.145};
+  
+  // Computed arrays values
+  Eigen::Array<Numeric, necs2020, 1> d;
+  Eigen::Array<Numeric, necs2020, 1> rho;
   Eigen::Matrix<Complex, necs2020, necs2020> W;
-  Eigen::Matrix<Complex, necs2020, necs2020> v_inv;
-  Eigen::ComplexEigenSolver<Eigen::Matrix<Complex, necs2020, necs2020>> eV;
   
   // Diagonal and upper triangular values
   for (Index i=0; i<necs2020; i++) {
@@ -579,41 +613,49 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_ecs(ComplexVector& I, con
   std::transform(qids.cbegin(), qids.cbegin()+necs2020, rho.data(), [T](auto& qns){return 
     boltzman_factor(T, o2_ecs_erot_jn_same(qns.LowerQuantumNumber(QuantumNumberType::J)));});
   
-  // Central frequency [Hz]
-  constexpr std::array<Numeric, nlines_mpm2020> f0 = {
-    1.18750334E+11, 5.6264774E+10, 6.2486253E+10, 5.8446588E+10, 6.0306056E+10, 
-    5.9590983E+10, 5.9164204E+10, 6.0434778E+10, 5.8323877E+10, 6.1150562E+10, 
-    5.7612486E+10, 6.1800158E+10, 5.6968211E+10, 6.2411220E+10, 5.6363399E+10, 
-    6.2997984E+10, 5.5783815E+10, 6.3568526E+10, 5.5221384E+10, 6.4127775E+10, 
-    5.4671180E+10, 6.4678910E+10, 5.4130025E+10, 6.5224078E+10, 5.3595775E+10, 
-    6.5764779E+10, 5.3066934E+10, 6.6302096E+10, 5.2542418E+10, 6.6836834E+10, 
-    5.2021429E+10, 6.7369601E+10, 5.1503360E+10, 6.7900868E+10, 5.0987745E+10, 
-    6.8431006E+10, 5.0474214E+10, 6.8960312E+10, 3.68498246E+11, 4.24763020E+11, 
-    4.87249273E+11, 7.15392902E+11, 7.73839490E+11, 8.34145546E+11, };
-  
+  const Numeric theta = T0 / T;
+  const Numeric theta_m1 = theta - 1;
+  const Numeric theta_3 = pow3(theta);
+  for (Index i=0; i<necs2020; i++) {
+    const Numeric ST = theta_3 * P * intens[i] * std::exp(-a2[i] * theta_m1);
+    const Numeric gamma = 1 - std::exp(-h * f0[i] / (k * T));
+    const Numeric sgn = std::abs(d[i]) / d[i];
+    d[i] = sgn * f0[i] * std::sqrt(ST / rho[i] / gamma);
+  }
+    
   normalize_relaxation_matrix(W, rho, d);
   
-  for (Index i=0; i<necs2020; i++) {
-    W(i, i) += f0[i];
-  }
-  
-  eV.compute(W);
-  auto& D = eV.eigenvalues(); 
-  auto& v = eV.eigenvectors(); 
-  v_inv = eV.eigenvectors().inverse();
-  
-  for (Index m=0; m<necs2020; m++) {
-    B[m] = 0;
+  if (not full) {
     for (Index i=0; i<necs2020; i++) {
-      for (Index j=0; j<necs2020; j++) {
-        B[m] += rho[i] * d[i] * d[j] * v(j, m) * v_inv(m, i);
+      W(i, i) += f0[i];
+    }
+    
+    Eigen::ComplexEigenSolver<Eigen::Matrix<Complex, necs2020, necs2020>> eV;
+    eV.compute(W);
+    auto& D = eV.eigenvalues(); 
+    auto& V = eV.eigenvectors(); 
+    auto& Vinv = W = eV.eigenvectors().inverse();
+    
+    Eigen::Array<Complex, necs2020, 1> B; B *= 0;
+    for (Index m=0; m<necs2020; m++) {
+      for (Index i=0; i<necs2020; i++) {
+        for (Index j=0; j<necs2020; j++) {
+          B[m] += rho[i] * d[i] * d[j] * V(j, m) * Vinv(m, i);
+        }
       }
     }
-  }
-  
-  // Lorentz profile!
-  const Numeric div = Constant::inv_pi / rho.cwiseProduct(d.cwiseAbs2()).sum();
-  for (Index i=0; i<f.nelem(); i++) {
-    I[i] = div * (B.array() / (f[i] - D.array())).sum();
+
+//  // Lorentz profile!
+//  const Numeric div = Constant::inv_pi / rho.cwiseProduct(d.cwiseAbs2()).sum();
+//  for (Index i=0; i<f.nelem(); i++) {
+//    I[i] = div * (B.array() / (f[i] - D.array())).sum();
+    
+    auto GD0 = Linefunctions::DopplerConstant(T, SpeciesTag("O2-66").SpeciesMass());
+    for (Index i=0; i<necs2020; i++) {
+      const Numeric scale = 1 - std::exp(-h * f0[i] / (k * T));
+      for (Index iv=0; iv<f.nelem(); iv++) {
+        I[iv] +=  scale * (Constant::inv_sqrt_pi / (GD0 * D[i].real())) * Faddeeva::w((f[iv] - std::conj(D[i])) / (GD0 * D[i].real())) * B[i];
+      }
+    }
   }
 }
