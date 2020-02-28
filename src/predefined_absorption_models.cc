@@ -618,9 +618,8 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_ecs(ComplexVector& I, con
   const Numeric theta_3 = pow3(theta);
   for (Index i=0; i<necs2020; i++) {
     const Numeric ST = theta_3 * P * intens[i] * std::exp(-a2[i] * theta_m1);
-    const Numeric gamma = 1 - std::exp(-h * f0[i] / (k * T));
     const Numeric sgn = std::abs(d[i]) / d[i];
-    d[i] = sgn * f0[i] * std::sqrt(ST / rho[i] / gamma);
+    d[i] = sgn * f0[i] * std::sqrt(ST / rho[i]);
   }
     
   normalize_relaxation_matrix(W, rho, d);
@@ -652,9 +651,8 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_ecs(ComplexVector& I, con
   
   auto GD0 = Linefunctions::DopplerConstant(T, SpeciesTag("O2-66").SpeciesMass());
   for (Index i=0; i<necs2020; i++) {
-    const Numeric scale = 1 - std::exp(-h * f0[i] / (k * T));
     for (Index iv=0; iv<f.nelem(); iv++) {
-      I[iv] +=  scale * (Constant::inv_sqrt_pi / (GD0 * D[i].real())) * Faddeeva::w((f[iv] - std::conj(D[i])) / (GD0 * D[i].real())) * B[i];
+      I[iv] +=  (Constant::inv_sqrt_pi / (GD0 * D[i].real())) * Faddeeva::w((f[iv] - std::conj(D[i])) / (GD0 * D[i].real())) * B[i];
     }
   }
 }
