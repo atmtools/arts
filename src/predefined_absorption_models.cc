@@ -625,37 +625,36 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_ecs(ComplexVector& I, con
     
   normalize_relaxation_matrix(W, rho, d);
   
-  if (not full) {
+  /*if (not full)*/
+  for (Index i=0; i<necs2020; i++) {
+    W(i, i) += f0[i];
+  }
+  
+  Eigen::ComplexEigenSolver<Eigen::Matrix<Complex, necs2020, necs2020>> eV;
+  eV.compute(W);
+  auto& D = eV.eigenvalues(); 
+  auto& V = eV.eigenvectors(); 
+  auto& Vinv = W = eV.eigenvectors().inverse();
+  
+  Eigen::Array<Complex, necs2020, 1> B; B *= 0;
+  for (Index m=0; m<necs2020; m++) {
     for (Index i=0; i<necs2020; i++) {
-      W(i, i) += f0[i];
-    }
-    
-    Eigen::ComplexEigenSolver<Eigen::Matrix<Complex, necs2020, necs2020>> eV;
-    eV.compute(W);
-    auto& D = eV.eigenvalues(); 
-    auto& V = eV.eigenvectors(); 
-    auto& Vinv = W = eV.eigenvectors().inverse();
-    
-    Eigen::Array<Complex, necs2020, 1> B; B *= 0;
-    for (Index m=0; m<necs2020; m++) {
-      for (Index i=0; i<necs2020; i++) {
-        for (Index j=0; j<necs2020; j++) {
-          B[m] += rho[i] * d[i] * d[j] * V(j, m) * Vinv(m, i);
-        }
+      for (Index j=0; j<necs2020; j++) {
+        B[m] += rho[i] * d[i] * d[j] * V(j, m) * Vinv(m, i);
       }
     }
+  }
 
 //  // Lorentz profile!
 //  const Numeric div = Constant::inv_pi / rho.cwiseProduct(d.cwiseAbs2()).sum();
 //  for (Index i=0; i<f.nelem(); i++) {
 //    I[i] = div * (B.array() / (f[i] - D.array())).sum();
-    
-    auto GD0 = Linefunctions::DopplerConstant(T, SpeciesTag("O2-66").SpeciesMass());
-    for (Index i=0; i<necs2020; i++) {
-      const Numeric scale = 1 - std::exp(-h * f0[i] / (k * T));
-      for (Index iv=0; iv<f.nelem(); iv++) {
-        I[iv] +=  scale * (Constant::inv_sqrt_pi / (GD0 * D[i].real())) * Faddeeva::w((f[iv] - std::conj(D[i])) / (GD0 * D[i].real())) * B[i];
-      }
+  
+  auto GD0 = Linefunctions::DopplerConstant(T, SpeciesTag("O2-66").SpeciesMass());
+  for (Index i=0; i<necs2020; i++) {
+    const Numeric scale = 1 - std::exp(-h * f0[i] / (k * T));
+    for (Index iv=0; iv<f.nelem(); iv++) {
+      I[iv] +=  scale * (Constant::inv_sqrt_pi / (GD0 * D[i].real())) * Faddeeva::w((f[iv] - std::conj(D[i])) / (GD0 * D[i].real())) * B[i];
     }
   }
 }
