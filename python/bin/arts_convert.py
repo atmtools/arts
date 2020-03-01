@@ -1,0 +1,33 @@
+import argparse
+import os
+import glob
+
+import arts
+from arts.parser import convert_to_python, camel_to_snake
+
+parser = argparse.ArgumentParser(description='Convert ARTS controlfile to Python.')
+parser.add_argument('files', metavar='files', type=str, nargs='+',
+                   help='Single filename of base path for recursive conversion.')
+args = parser.parse_args()
+files = args.files
+
+print(files)
+if len(files) == 1:
+    print(files)
+    if os.path.isdir(files[0]):
+        files = glob.glob(os.path.join(files[0], "**/*.arts"), recursive=True)
+        print(files)
+
+for f in files:
+    path, filename = os.path.split(f)
+    filename_out, _ = os.path.splitext(camel_to_snake(filename))
+    filename_out += ".py"
+    f_out = os.path.join(path, filename_out)
+
+    print("Converting {} to {}.".format(filename, filename_out))
+    try:
+        convert_to_python(f, f_out)
+    except Exception as e:
+        print("Error converting {}:".format(f))
+        print(e)
+
