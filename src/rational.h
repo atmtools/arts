@@ -68,23 +68,25 @@ class Rational {
    */
   constexpr bool isDefined() const { return mdenom not_eq 0; }
 
-  /** Is the object an Index
+  /** Is the object a n-scaled Index
    * 
+   * @param[in]  n Scale
    * @return true If Nom() % Denom() is 0
    * @return false Otherwise
    */
-  constexpr bool isIndex() const {
-    return isDefined() and not bool(mnom % mdenom);
+  constexpr bool isIndex(int n=1) const {
+    return isDefined() and not bool((n*mnom) % mdenom);
   }
 
-  /** Converts the value to index by direct division
+  /** Converts the value to index by n-scaled division
    * 
    * Throws a logic error if *this is not an Index
    * 
+   * @param[in]  n Scale to *this
    * @return constexpr Index Of *this
    */
-  constexpr Index toIndex() const {
-    return isIndex() ? mnom / mdenom
+  constexpr Index toIndex(int n=1) const {
+    return isIndex(n) ? (n*mnom) / mdenom
                      : throw std::logic_error(
                            "Rational is not representative of an integer");
   }
@@ -96,9 +98,15 @@ class Rational {
   constexpr Numeric toNumeric() const {
     return Numeric(mnom) / Numeric(mdenom);
   }
-
-  /** Same as int(toIndex()) */
-  constexpr int toInt() const { return int(toIndex()); }
+  
+  /** Converts the value to int by n-scaled division in Index form
+   * 
+   * Throws a logic error if *this is not an Index
+   * 
+   * @param[in]  n Scale to *this
+   * @return constexpr Index Of *this
+   */
+  constexpr int toInt(int n=1) const { return int(toIndex(n)); }
 
   /** Simplify by reducing to smallest possible denominator */
   Rational& Simplify();
@@ -562,5 +570,26 @@ constexpr Rational& max(Rational& a, Rational& b) {
 }  // Let other operators find out if this is allowed instead
 
 typedef Array<Rational> ArrayOfRational;
+
+/** Returns common operator n/2
+ * 
+ * @param[in] n Any positive integer
+ * @return Rational(n, 2)
+ */
+constexpr Rational operator ""_2(unsigned long long int n) {
+  return Rational(n, 2);
+};
+
+/** Returns true if even integer
+ * 
+ * @param[in]  r Any rational
+ * @return  true if r is even, otherwise false
+ */
+constexpr bool even(Rational r) {
+  if (r % 2)
+    return false;
+  else
+    return true;
+}
 
 #endif  // rational_h

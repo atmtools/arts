@@ -743,7 +743,7 @@ void test42() {
 
 void test43() {
   // Simple construction compile-time test
-  constexpr Rational r(3, 2);  // should be 3/2
+  constexpr Rational r=3_2;  // should be 3/2
   static_assert(r.Nom() == 3, "Setup of rational fail to initialize properly");
   static_assert(r.Denom() == 2,
                 "Setup of rational fail to initialize properly");

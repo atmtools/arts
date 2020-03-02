@@ -579,14 +579,38 @@ void test_mpm20()
 
 void test_ecs20()
 {
+  constexpr Index nf = 501;
+  constexpr Numeric fstart = 45e9;
+  constexpr Numeric fend = 85e9;
+  constexpr Numeric t = 296;
+  constexpr Numeric p = 1.00658388e5;
+  Vector f(nf);
+  ComplexVector I(nf);
+  Matrix xsec(nf, 1, 0);
+  ArrayOfMatrix dxsec(0, Matrix(nf, 1, 0));
+  nlinspace(f, fstart, fend, nf);
+  
+  
   define_species_data();
   define_species_map();
   
   make_wigner_ready(200, 200, 6);
   
   wig_temp_init(200);
-  Absorption::PredefinedModel::makarov2020_o2_lines_ecs(1e5, 300, 0);
+  Absorption::PredefinedModel::makarov2020_o2_lines_ecs(I, f, p, t, 0);
+  ArrayOfRetrievalQuantity jacs(0);
+  Absorption::PredefinedModel::makarov2020_o2_lines_mpm(xsec, dxsec, f, {p}, {t}, {0.5}, jacs, {});
   wig_temp_free();
+  
+  std::cout<<"I = np.array([";
+  for (Index i=0; i<f.nelem(); i++)
+    std::cout<<I[i].real()<<", ";
+  std::cout<<"]); ";
+  
+  std::cout<<"I2 = np.array([";
+  for (Index i=0; i<f.nelem(); i++)
+    std::cout<<xsec(i,0)<<", ";
+  std::cout<<"])\n";
 }
 
 int main() {
