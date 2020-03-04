@@ -137,6 +137,12 @@ def data_path_pop():
     """
     arts_api.data_path_pop()
 
+################################################################################
+# Python values that represent empty elements.
+################################################################################
+
+def is_empty(value):
+    return (value == []) or (value is None)
 
 ################################################################################
 # ctypes Structures
@@ -434,6 +440,10 @@ arts_api.get_method_g_in.restype  = c.c_char_p
 arts_api.get_method_g_in_default.argtypes = [c.c_long, c.c_long]
 arts_api.get_method_g_in_default.restype  = c.c_char_p
 
+# Return pointer to the default value of the jth generic input of a given WSM.
+arts_api.get_g_in_nodef.argtypes = []
+arts_api.get_g_in_nodef.restype  = c.c_char_p
+
 # Return block from covariance matrix.
 arts_api.get_covariance_matrix_block.argtypes = [c.c_void_p, c.c_long, c.c_bool]
 arts_api.get_covariance_matrix_block.restype = CovarianceMatrixBlockStruct
@@ -480,3 +490,5 @@ for p in arts_data_path:
 
 include_path_push(os.getcwd())
 data_path_push(os.getcwd())
+
+nodef = arts_api.get_g_in_nodef().decode("utf8")

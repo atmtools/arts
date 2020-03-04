@@ -17,7 +17,7 @@ import ctypes as c
 import numpy as np
 
 
-from arts.workspace.api       import arts_api
+from arts.workspace.api       import arts_api, nodef
 from arts.workspace.variables import WorkspaceVariable, group_ids, group_names
 from arts.workspace import variables, workspace
 from arts.workspace.output import CoutCapture
@@ -149,10 +149,8 @@ class WorkspaceMethod:
         res = dict()
         for i,t in enumerate(g_in):
             k = arts_api.get_method_g_in(m_id, i).decode("utf8")
-            d = arts_api.get_method_g_in_default(m_id, i).decode("utf8")
-            if d == "":
-                pass
-            elif d[0] == "@":
+            d = arts_api.get_method_g_in_default(m_id, i).decode("utf8").strip()
+            if d == nodef:
                 d = None
             elif d == "Inf":
                 res[k] = np.float64("inf")
@@ -228,7 +226,7 @@ class WorkspaceMethod:
                 name = self.g_in[k]
                 named_args[name] = args[j]
             else:
-                raise Exception(" {} positional arguments given, but this WSM takes at " +
+                raise Exception(" {} positional arguments given, but this WSM takes at "
                                 "most {}.".format(len(args), j))
 
         # Parse named arguments
@@ -280,28 +278,64 @@ class WorkspaceMethod:
             else:
                 g_input_args[k] = named_args[k]
 
-        # Resolve overload (if necessary).
-        g_out_types = dict([(k,WorkspaceVariable.get_group_id(g_output_args[k]))
-                            for k in self.g_out])
-        g_in_types  = dict([(k,WorkspaceVariable.get_group_id(g_input_args[k]))
-                            for k in self.g_in])
         m_id = self.m_ids[0]
         sg_index = 0
 
         if (len(self.m_ids) > 1):
-            out_indices = [i for i,ts in enumerate(self.g_out_types) if ts == g_out_types]
-            in_indices  = [i for i,ts in enumerate(self.g_in_types) if ts == g_in_types]
-            sg_indices  = set(out_indices) & set(in_indices)
 
-            if len(sg_indices) > 1:
-                raise Exception("Could not uniquely resolve super-generic overload.")
+            #
+            # First, try resolving solely based on WSV input since we can
+            # easily identify their type.
+            #
 
-            if len(sg_indices) == 0:
-                raise Exception("Could not find super-generic overload matching"
-                                + " the given groups.")
+            candidates = []
+            for i, m_id in enumerate(self.m_ids):
+                g_in_types = self.g_in_types[i]
+                g_out_types = self.g_out_types[i]
 
-            sg_index = sg_indices.pop()
-            m_id = self.m_ids[sg_index]
+                convertable = True
+
+                for k in g_in_types:
+                    in_type = group_names[g_in_types[k]]
+                    in_arg = g_input_args[k]
+                    if isinstance(in_arg, WorkspaceVariable):
+                        if not in_arg.group == in_type:
+                            convertable = False
+                            break
+
+                for k in g_out_types:
+                    out_type = group_names[g_out_types[k]]
+                    out_arg = g_output_args[k]
+                    if isinstance(out_arg, WorkspaceVariable):
+                        if not out_arg.group == out_type:
+                            convertable = False
+                            break
+
+                if convertable:
+                    candidates.append((m_id, i))
+
+            if len(candidates) == 1:
+                m_id, sg_index = candidates[0]
+            else:
+                # Resolve overload (if necessary).
+                g_out_types = dict([(k,WorkspaceVariable.get_group_id(g_output_args[k]))
+                                    for k in self.g_out])
+                g_in_types  = dict([(k,WorkspaceVariable.get_group_id(g_input_args[k]))
+                                    for k in self.g_in])
+
+                out_indices = [i for i,ts in enumerate(self.g_out_types) if ts == g_out_types]
+                in_indices  = [i for i,ts in enumerate(self.g_in_types) if ts == g_in_types]
+                sg_indices  = set(out_indices) & set(in_indices)
+
+                if len(sg_indices) > 1:
+                    raise Exception("Could not uniquely resolve super-generic overload.")
+
+                if len(sg_indices) == 0:
+                    raise Exception("Could not find super-generic overload matching"
+                                    + " the given groups.")
+
+                sg_index = sg_indices.pop()
+                m_id = self.m_ids[sg_index]
 
         # Combine input and output arguments into lists.
         arts_args_out = []
@@ -329,12 +363,12 @@ class WorkspaceMethod:
             if type(arg) == WorkspaceVariable:
                 arts_args_in.append(arg.ws_id)
             else:
-                group_id = WorkspaceVariable.get_group_id(arg)
-                expected = self.g_in_types[sg_index][name]
-                if not group_id == expected:
-                    raise Exception("Generic input " + name + " expected to be of type "
-                                    + group_names[expected])
-                temps.append(ws.add_variable(arg))
+                gid = self.g_in_types[sg_index][name]
+                arg_converted = WorkspaceVariable.convert(group_names[gid], arg)
+                if arg_converted is None:
+                    raise Exception("Could not convert input {} to expected group {}"
+                                    .format(arg, group_names[gid]))
+                temps.append(ws.add_variable(arg_converted, gid))
                 arts_args_in.append(temps[-1].ws_id)
         return (m_id, arts_args_out, arts_args_in, temps)
 

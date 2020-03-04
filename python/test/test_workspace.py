@@ -41,34 +41,6 @@ class TestWorkspace:
         ws.sensor_pos = 830e3 * np.ones((1, 1))
         ws.sensorOff()
 
-    def test_agenda(self):
-
-        self.ws.atmosphere_dim = 1
-
-        @arts_agenda
-        def add_1(ws):
-            ws.IndexAdd(ws.atmosphere_dim,
-                        ws.atmosphere_dim,
-                        1)
-        add_1.execute(self.ws)
-
-        assert self.ws.atmosphere_dim.value == 2
-
-        add_1.append(add_1)
-        add_1.execute(self.ws)
-
-        assert self.ws.atmosphere_dim.value == 4
-
-        args = [self.ws.atmosphere_dim, self.ws.atmosphere_dim, 1]
-
-        @arts_agenda
-        def add_2(ws):
-            ws.IndexAdd(*args)
-
-        add_2.execute(self.ws)
-
-        assert self.ws.atmosphere_dim.value == 5
-
     def test_execute_controlfile(self):
 
         dir = os.path.dirname(os.path.realpath(__file__))

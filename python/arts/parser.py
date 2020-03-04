@@ -66,7 +66,7 @@ grammar = r"""
 %import common.NEWLINE
 %ignore WS
 """
-arts_parser = Lark(grammar, start="controlfile", debug=True, parser="earley")
+arts_parser = Lark(grammar, start="controlfile", debug=False, parser="earley")
 
 ################################################################################
 # Python representation of syntax elements
@@ -87,7 +87,7 @@ def to_python(obj, workspace):
     if hasattr(obj, "to_python"):
         return obj.to_python(workspace)
     elif isinstance(obj, np.ndarray):
-        return "np.(" + str(obj) + ")"
+        return  repr(obj)
     elif isinstance(obj, str):
         return "\"" + str(obj) + "\""
     else:
@@ -112,13 +112,52 @@ class WSMCall:
 
         self.wsm_outs = [WorkspaceVariable.get_variable_name(m) for m in self.wsm.outs]
         self.wsm_gouts = self.wsm.g_out
-        self.wsm_ins = [WorkspaceVariable.get_variable_name(m) for m in self.wsm.ins]
+        self.wsm_ins = [WorkspaceVariable.get_variable_name(m) for m in self.wsm.ins \
+                        if not m in self.wsm.outs]
         self.wsm_gins = self.wsm.g_in
         self.arg_names = self.wsm_outs + self.wsm_gouts + self.wsm_ins + self.wsm_gins
 
         self.name = name
         self.args = args
         self.kwargs = kwargs
+
+        if not kwargs is None:
+            if "in" in kwargs:
+                self.kwargs_to_args()
+
+    def kwargs_to_args(self):
+        """
+        Convert function call from named arguments to positional arguments.
+        """
+        if self.kwargs == None:
+            return None
+
+        args = []
+
+        for n in self.wsm_outs:
+            if not n in self.kwargs:
+                args.append(WSV(n))
+            else:
+                args.append(self.kwargs[n])
+
+        for n in self.wsm_gouts:
+            args.append(self.kwargs[n])
+
+        for n in self.wsm_ins:
+            if not n in self.kwargs:
+                args.append(WSV(n))
+            else:
+                args.append(self.kwargs[n])
+
+        for n in self.wsm_gins:
+            if not n in self.kwargs:
+                args.append(self.wsm.g_in_default[n])
+            else:
+                args.append(self.kwargs[n])
+
+
+        self.kwargs = None
+        self.args = args
 
     def __repr__(self):
         """
@@ -232,11 +271,12 @@ class AgendaDefinition:
         """
         Print agenda definition in Python syntax.
         """
-        s = "@arts_agenda\ndef " + self.name + ":\n"
+        s = "@arts_agenda\ndef " + self.name + "({}):\n".format(workspace)
         cs = ""
         for c in self.content:
             cs += to_python(c, workspace)
-        s = s + indent(cs, " " * 4) + "\n"
+        s = s + indent(cs, " " * 4)
+        s += workspace + "." + self.name + " = " + self.name + "\n\n"
         return s
 
 class AgendaAppend:
@@ -265,12 +305,12 @@ class AgendaAppend:
         """
         Print agenda definition in Python syntax.
         """
-        s = "@arts_agenda\ndef " + self.name + ":\n"
+        s = "@arts_agenda\ndef " + self.name + "({}):\n".format(workspace)
         cs = ""
         for c in self.content:
             cs += to_python(c, workspace)
         s = s + indent(cs, " " * 4) + "\n"
-        s += (workspace + ".ArrayOfAgendaAppend(" + workspace + "." + self.name
+        s += (workspace + ".Append(" + workspace + "." + self.name
               + ", " + self.name + ")\n\n")
         return s
 
@@ -366,8 +406,9 @@ class Agenda:
         """
         s = """
 import numpy as np
+from numpy import array, float64
 import arts
-from arts.workspace import Workspace
+from arts.workspace import Workspace, arts_agenda
 {} = Workspace(verbosity=0)
 """.format(workspace)
 
@@ -501,13 +542,14 @@ def camel_to_snake(s):
     s = pattern.sub('_', s).lower()
     return s
 
-controlfile = "/home/simonpf/src/arts_pi/controlfiles/artscomponents/wfuns/TestWfuns.arts"
-with open(controlfile) as f:
-    source = f.read()
-s = """yCalc("10",
- #bla,
-20)
-"""
-tree = arts_parser.parse(s)
-t = ArtsTransformer().transform(tree)
-s = t.to_python("ws")
+#controlfile = "/home/simonpf/src/arts_pi/controlfiles/artscomponents/wfuns/TestWfuns.arts"
+#with open(controlfile) as f:
+#    source = f.read()
+#s = """
+#jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
+#    atmosphere_dim, p_grid, lat_grid, lon_grid, 
+#    retrieval_grid, lat_grid, lon_grid, "O3", "rel", 1 )
+#"""
+#tree = arts_parser.parse(s)
+#t = ArtsTransformer().transform(tree)
+#s = t.to_python("ws")

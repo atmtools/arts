@@ -453,6 +453,14 @@ const char *get_method_g_in(Index i, Index j);
 DLL_PUBLIC
 const char *get_method_g_in_default(Index i, Index j);
 
+/**
+ * Get string defining missing default parameter.
+ */
+DLL_PUBLIC
+const char *get_g_in_nodef() {
+    return NODEF;
+}
+
 /** Get name value of generic output argument.
  *
  * @param[in] i The index of the WSM

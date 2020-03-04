@@ -100,7 +100,7 @@ class WorkspaceVariable:
             Exception: If the variable has no associated workspace.
         """
         if (self.ws):
-            self.ws.Print(self, 1)
+            self.ws.Print(self, 0)
         else:
             raise Exception("Can't print variable without associated ARTS workspace.")
 
@@ -207,10 +207,17 @@ class WorkspaceVariable:
         Returns:
             (any): The converted object or None is conversion was unsuccessful.
         """
+        try:
+            gid = cls.get_group_id(value)
+            if group_names[gid] == group:
+                return value
+        except:
+            pass
+
         if (group == "Index"):
             return int(value)
         if (group == "String"):
-            return value
+            return str(value)
         if (group == "ArrayOfString"):
             return [str(i) for i in value]
         if (group == "Numeric"):
@@ -305,7 +312,6 @@ class WorkspaceVariable:
             if nnz == 0:
                 return sp.sparse.csr_matrix(0)
             else:
-                print(m, n, nnz)
                 data = np.ctypeslib.as_array(c.cast(v.ptr,
                                                     c.POINTER(c.c_double)),
                                              (nnz,))

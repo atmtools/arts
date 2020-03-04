@@ -11,12 +11,9 @@ parser.add_argument('files', metavar='files', type=str, nargs='+',
 args = parser.parse_args()
 files = args.files
 
-print(files)
 if len(files) == 1:
-    print(files)
     if os.path.isdir(files[0]):
         files = glob.glob(os.path.join(files[0], "**/*.arts"), recursive=True)
-        print(files)
 
 for f in files:
     path, filename = os.path.split(f)

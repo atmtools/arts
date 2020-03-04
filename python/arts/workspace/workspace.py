@@ -22,12 +22,12 @@ from copy       import copy
 from functools  import wraps
 import os
 
-from arts.workspace.api       import arts_api, VariableValueStruct, \
-                                            data_path_push, data_path_pop, \
-                                            include_path_push, include_path_pop
+from arts.workspace.api import (arts_api, VariableValueStruct, data_path_push,
+                                data_path_pop, include_path_push,
+                                include_path_pop, is_empty)
 from arts.workspace.methods   import WorkspaceMethod, workspace_methods
-from arts.workspace.variables import WorkspaceVariable, group_names, group_ids, \
-                                            workspace_variables
+from arts.workspace.variables import (WorkspaceVariable, group_names, group_ids,
+                                      workspace_variables)
 from arts.workspace.agendas   import Agenda
 from arts.workspace import variables as V
 from arts.workspace.output import CoutCapture
@@ -363,7 +363,7 @@ class Workspace:
         self._vars[wsv.name] = wsv
         return wsv
 
-    def add_variable(self, var):
+    def add_variable(self, var, group = None):
         """
         This will try to copy a given python variable to the ARTS workspace and
         return a WorkspaceVariable object representing this newly created
@@ -388,7 +388,10 @@ class Workspace:
             return var
 
         # Create WSV in ARTS Workspace
-        group = group_names[WorkspaceVariable.get_group_id(var)]
+        if group is None:
+            group = WorkspaceVariable.get_group_id(var)
+
+        group = group_names[group]
         wsv = self.create_variable(group, None)
 
         # Set WSV value using the ARTS C API
@@ -411,6 +414,11 @@ class Workspace:
             wsv: The :class:`WorkspaceVariable` to set.
             value: The Python object representing the value to set :code:`wsv` to.
         """
+        if is_empty(value):
+            arts_api.set_variable_value(self.ptr, wsv.ws_id, wsv.group_id,
+                                        VariableValueStruct.empty())
+            return None
+
         group = group_names[WorkspaceVariable.get_group_id(value)]
         if group != wsv.group:
             try:
