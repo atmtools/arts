@@ -142,7 +142,7 @@ def data_path_pop():
 ################################################################################
 
 def is_empty(value):
-    return (value == []) or (value is None)
+    return (value is None) or ((type(value) is list) and (len(value) == 0))
 
 ################################################################################
 # ctypes Structures
@@ -480,6 +480,7 @@ try:
     arts_data_path = environ.get("ARTS_DATA_PATH").split(":")
 except:
     arts_data_path = []
+arts_data_path += [@ARTS_XML_DIR@]
 
 # Set runtime parameters
 for p in arts_include_path:

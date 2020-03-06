@@ -31,7 +31,7 @@ grammar = r"""
 
     agenda_append : "ArrayOfAgendaAppend" "(" CNAME ")" "{" statement* "}"
 
-    comment : /[ \t]*#.*/
+    comment : /[ \t]*#.*\n/
 
     function : CNAME ("(" arguments  ")")? 
 
@@ -40,11 +40,16 @@ grammar = r"""
 
     named_arguments : [argument_pair ("," argument_pair? )*]
 
-    argument_pair : CNAME  "=" value
+    argument_pair : comment* CNAME comment*  "=" comment* value comment*
 
-    positional_arguments: (value | comment) (("," | "\n") (value  | comment)?)*
+    positional_arguments: (comment* value comment* | comment+) (("," comment*  value)  | comment+)*
 
-    list : "[" ((value | comment) (("," | ";" | "\n") (value | comment))*)? "]"
+    list : "[" ((comment* value comment*)? (comment* ("," ) comment* value | comment+)*
+               | nested_list (";" nested_list | comment)+) "]"
+
+    nested_list : (comment* value comment*) (comment* (",") comment* value | comment)*
+
+    matrix : "[" ( | comment)? (comment? ("," | ";") comment? value | comment)* "]"
 
     empty_list : "[" "]"
 
@@ -53,6 +58,7 @@ grammar = r"""
            | SIGNED_INT
            | list
            | CNAME
+           | comment
 
     DOUBLE_QUOTED_STRING  : /"[^"]*"/
     SINGLE_QUOTED_STRING  : /'[^']*'/
@@ -72,6 +78,9 @@ arts_parser = Lark(grammar, start="controlfile", debug=False, parser="earley")
 # Python representation of syntax elements
 ################################################################################
 
+replace_array = re.compile(r'array\(([^\)]*)\)')
+replace_dtype = re.compile(r'dtype=([^\s]+)')
+
 def to_python(obj, workspace):
     """
     Generic function to write elements of a controlfile AST in
@@ -87,6 +96,9 @@ def to_python(obj, workspace):
     if hasattr(obj, "to_python"):
         return obj.to_python(workspace)
     elif isinstance(obj, np.ndarray):
+        s = repr(obj)
+        s = replace_array.sub(r"np.ndarray(\1)", s)
+        s = replace_dtype.sub(r"dtype=np.\1", s)
         return  repr(obj)
     elif isinstance(obj, str):
         return "\"" + str(obj) + "\""
@@ -325,7 +337,7 @@ class Comment:
         """
         Print comment in controlfile syntax.
         """
-        return str(self.text) + "\n"
+        return str(self.text)
 
     def to_python(self, workspace):
         """
@@ -362,6 +374,8 @@ class WSV:
         name: Name of the WSV
     """
     def __init__(self, name):
+        if name in workspace_methods:
+            name = camel_to_snake(name)
         self.name = name
 
     def __repr__(self):
@@ -406,7 +420,6 @@ class Agenda:
         """
         s = """
 import numpy as np
-from numpy import array, float64
 import arts
 from arts.workspace import Workspace, arts_agenda
 {} = Workspace(verbosity=0)
@@ -465,9 +478,14 @@ class ArtsTransformer(Transformer):
         return s[1:-1]
 
     def arguments(self, c):
+        c = [e for e in c if not isinstance(e, Comment)]
         return c
 
     def list(self, c):
+        c = [e for e in c if not isinstance(e, Comment)]
+        return c
+
+    def nested_list(self, c):
         c = [e for e in c if not isinstance(e, Comment)]
         return c
 
@@ -501,6 +519,7 @@ class ArtsTransformer(Transformer):
         Arguments pairs have a string on the left and a python
         literal or a variable name on the right.
         """
+        p = [e for e in p if not isinstance(e, Comment)]
         pl, pr = p
         pl = str(pl)
         if isinstance(pr, Token) and pr.type == "CNAME":
@@ -542,14 +561,18 @@ def camel_to_snake(s):
     s = pattern.sub('_', s).lower()
     return s
 
-#controlfile = "/home/simonpf/src/arts_pi/controlfiles/artscomponents/wfuns/TestWfuns.arts"
-#with open(controlfile) as f:
-#    source = f.read()
-#s = """
-#jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
-#    atmosphere_dim, p_grid, lat_grid, lon_grid, 
-#    retrieval_grid, lat_grid, lon_grid, "O3", "rel", 1 )
-#"""
-#tree = arts_parser.parse(s)
-#t = ArtsTransformer().transform(tree)
-#s = t.to_python("ws")
+controlfile = "/home/simon/src/arts_pi/controlfiles/instruments/metmm/sensor_descriptions/sensor_mwhs2.arts"
+with open(controlfile) as f:
+    source = f.read()
+s = """
+ARTS {
+yCalc([1, 2, 3;
+ 2, 3, 4;
+ 5,6,7
+])
+}
+#
+"""
+tree = arts_parser.parse(source)
+t = ArtsTransformer().transform(tree)
+s = t.to_python("ws")

@@ -132,6 +132,7 @@ class WorkspaceVariable:
             int: The index of the group which can be used to represent the python variable
                  or None if the type is not supported.
         """
+        import numpy as np
         if type(value) == WorkspaceVariable:
             return group_ids[value.group]
         elif type(value) == Agenda:
@@ -428,6 +429,5 @@ group_ids = dict([(id, name) for (name,id) in enumerate(group_names)])
 
 workspace_variables = dict()
 for v in WorkspaceVariable.iter():
-    globals()[v.name] = v
     workspace_variables[v.name] = v
 

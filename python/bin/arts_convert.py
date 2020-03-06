@@ -1,9 +1,12 @@
+"""
+Simple script to convert .arts controlfiles to Python.
+"""
 import argparse
 import os
 import glob
 
 import arts
-from arts.parser import convert_to_python, camel_to_snake
+from arts.parser import convert_to_python
 
 parser = argparse.ArgumentParser(description='Convert ARTS controlfile to Python.')
 parser.add_argument('files', metavar='files', type=str, nargs='+',
@@ -17,7 +20,7 @@ if len(files) == 1:
 
 for f in files:
     path, filename = os.path.split(f)
-    filename_out, _ = os.path.splitext(camel_to_snake(filename))
+    filename_out, _ = os.path.splitext(filename)
     filename_out += ".py"
     f_out = os.path.join(path, filename_out)
 

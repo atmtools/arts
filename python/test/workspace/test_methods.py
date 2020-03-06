@@ -5,6 +5,7 @@ import os
 import numpy as np
 import pytest
 import scipy as sp
+from tempfile import NamedTemporaryFile
 import arts
 from arts.workspace import Workspace
 from arts.xml import load, save
@@ -95,16 +96,19 @@ class TestMethods:
         """
         ws = self.ws
 
+        tempfile = NamedTemporaryFile()
+
         mat = np.ones((2, 2))
-        save(mat, "matrix.xml")
+        ws.sensor_los = np.ones((2, 2))
+        ws.WriteXML("ascii", ws.sensor_los, tempfile.name)
 
         ws.sensor_los = np.zeros((2, 2))
-        ws.ReadXML(ws.sensor_los, "matrix.xml")
+        ws.ReadXML(ws.sensor_los, tempfile.name)
         assert(np.allclose(mat, ws.sensor_los.value))
 
         ws.sensor_los = np.zeros((2, 2))
-        ws.ReadXML(out = ws.sensor_los, filename = "matrix.xml")
-        assert(mat, ws.sensor_los.value)
+        ws.ReadXML(out = ws.sensor_los, filename = tempfile.name)
+        assert(np.allclose(mat, ws.sensor_los.value))
 
     def test_supergeneric_overload_resolution(self):
         """
@@ -130,4 +134,5 @@ class TestMethods:
         Test error handling from ARTS WSMs.
         """
         with pytest.raises(Exception):
+            ws.atmgeom_checked = 0
             self.ws.yCalc()
