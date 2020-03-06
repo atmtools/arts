@@ -560,19 +560,3 @@ pattern = re.compile(r'(?<!^)(?=[A-Z])')
 def camel_to_snake(s):
     s = pattern.sub('_', s).lower()
     return s
-
-controlfile = "/home/simon/src/arts_pi/controlfiles/instruments/metmm/sensor_descriptions/sensor_mwhs2.arts"
-with open(controlfile) as f:
-    source = f.read()
-s = """
-ARTS {
-yCalc([1, 2, 3;
- 2, 3, 4;
- 5,6,7
-])
-}
-#
-"""
-tree = arts_parser.parse(source)
-t = ArtsTransformer().transform(tree)
-s = t.to_python("ws")
