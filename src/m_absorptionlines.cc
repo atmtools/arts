@@ -1077,6 +1077,20 @@ void abs_linesDeleteLinesWithBadOrHighChangingJs(ArrayOfAbsorptionLines& abs_lin
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesDeleteLinesWithQuantumNumberAbove(ArrayOfAbsorptionLines& abs_lines, const String& qn_id, const Index& qn_val, const Verbosity& v)
+{
+  const auto qn = string2quantumnumbertype(qn_id);
+  
+  for (auto& band: abs_lines) {
+    for (Index i=band.NumLines() - 1; i>=0; i--) {
+      if (band.UpperQuantumNumber(i, qn) > qn_val or band.LowerQuantumNumber(i, qn) > qn_val) {
+        band.RemoveLine(i);
+      }
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesSetEmptyBroadeningParametersToEmpty(ArrayOfAbsorptionLines& abs_lines, const Verbosity& /*verbosity*/)
 {
   for (auto& band: abs_lines) {
@@ -1103,6 +1117,44 @@ void abs_linesSetEmptyBroadeningParametersToEmpty(ArrayOfAbsorptionLines& abs_li
           }
         }
       }
+    }
+  }
+}
+
+void abs_linesKeepBands(ArrayOfAbsorptionLines& abs_lines, const QuantumIdentifier& qid, const Index& ignore_spec, const Index& ignore_isot, const Verbosity&)
+{
+  // Invalid setting
+  if (ignore_spec and not ignore_isot) {
+    throw std::runtime_error("Cannot ignore the species and not ignore the isotopologue");
+  }
+  
+  // local ID is a transition even if an energy level is given
+  QuantumIdentifier this_id=qid;
+  if (QuantumIdentifier::ENERGY_LEVEL == this_id.Type()) {
+    this_id.SetTransition();
+    this_id.UpperQuantumNumbers() = qid.EnergyLevelQuantumNumbers();
+    this_id.LowerQuantumNumbers() = qid.EnergyLevelQuantumNumbers();
+  }
+  
+  for (auto& band: abs_lines) {
+    if (ignore_spec)
+      this_id.Species() = band.Species();
+    if (ignore_isot)
+      this_id.Isotopologue() = band.Isotopologue();
+    
+    const bool in_lines = band.QuantumIdentity().In(this_id);
+    while (not in_lines and band.NumLines()) {
+      band.RemoveLine(0);
+    }
+  }
+}
+
+
+void abs_linesCleanupEmpty(ArrayOfAbsorptionLines& abs_lines, const Verbosity&)
+{
+  for (Index i=abs_lines.nelem() - 1; i>=0; i--) {
+    if (abs_lines[i].NumLines() == 0) {
+      abs_lines.erase(abs_lines.begin() + i);
     }
   }
 }
@@ -2143,7 +2195,7 @@ void abs_linesSetBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_lines
             band.g_upp(k) = x;
             break;
           case 2:  // "Zeeman Coefficient":
-            band.Line(k).Zeeman().gu() += x;
+            band.Line(k).Zeeman().gu() = x;
             break;
           default: {
             ostringstream os;
