@@ -331,7 +331,7 @@ constexpr Rational numeric2rational(Numeric x, size_t maxdec=4) {
 
 
 // An undefined rational to be used everywhere for a undefined rationals
-#define RATIONAL_UNDEFINED Rational((Index)0, 0)
+#define RATIONAL_UNDEFINED Rational(0, 0)
 
 /** Negative
  * 
@@ -669,6 +669,5 @@ constexpr bool even(Rational r) {
   else
     return true;
 }
-
 
 #endif  // rational_h
