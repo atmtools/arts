@@ -1077,7 +1077,7 @@ void abs_linesDeleteLinesWithBadOrHighChangingJs(ArrayOfAbsorptionLines& abs_lin
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesDeleteLinesWithQuantumNumberAbove(ArrayOfAbsorptionLines& abs_lines, const String& qn_id, const Index& qn_val, const Verbosity& v)
+void abs_linesDeleteLinesWithQuantumNumberAbove(ArrayOfAbsorptionLines& abs_lines, const String& qn_id, const Index& qn_val, const Verbosity&)
 {
   const auto qn = string2quantumnumbertype(qn_id);
   
