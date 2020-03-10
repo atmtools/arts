@@ -236,6 +236,10 @@ Numeric o2_ecs_wigner_symbol_tran(
                                find_even_limits(find_wigner3j_limits(Ni_p, Ni),
                                                 find_wigner3j_limits(Nf_p, Nf)));
   
+  auto f = sqrt(2*Ni+1) * sqrt(2*Ni_p+1) * sqrt(2*Jf+1) * sqrt(2*Jf_p+1) * sqrt(2*Nf+1) * sqrt(2*Nf_p+1) * (2*Ji_p+1).toNumeric();
+  auto g = even(Ji_p + Ji + n) ? 1 : -1;  // -1^(Ji_p + Ji + n)
+  auto OmegaNi = o2_ecs_ql_makarov(Ni, T);
+  
   for (int L=lims.lower; L<=lims.upper; L+=2) {
     auto OmegaL = o2_ecs_adiabatic_factor_makarov(L, T);
     auto QL = o2_ecs_ql_makarov(L, T);
@@ -245,14 +249,9 @@ Numeric o2_ecs_wigner_symbol_tran(
     auto d = WIGNER6(2*L, Jf.toInt(2), Jf_p.toInt(2), Sf.toInt(2), Nf_p.toInt(2), Nf.toInt(2));
     auto e = WIGNER6(2*L, Ji.toInt(2), Ji_p.toInt(2), n.toInt(2), Jf_p.toInt(2), Jf.toInt(2));
     
-    o2_ecs_wigner_symbol_tran += (a * b * c * d * e) * (2*L + 1) * (QL / OmegaL);
+    o2_ecs_wigner_symbol_tran += (a * b * c * d * e * f * g) * (2*L + 1) * QL * (OmegaNi / OmegaL);
   }
   
-  auto OmegaNi = o2_ecs_ql_makarov(Ni, T);
-  auto f = sqrt(2*Ni+1) * sqrt(2*Ni_p+1) * sqrt(2*Jf+1) * sqrt(2*Jf_p+1) * sqrt(2*Nf+1) * sqrt(2*Nf_p+1) * (2*Ji_p+1).toNumeric();
-  auto g = even(Ji_p + Ji + n) ? 1 : -1;  // -1^(Ji_p + Ji + n)
-  
-  o2_ecs_wigner_symbol_tran *= f * g * OmegaNi;
   return o2_ecs_wigner_symbol_tran;
 }
 
@@ -262,7 +261,7 @@ Numeric o2_makarov2013_reduced_dipole(const Rational& Jup, const Rational& Jlo, 
   return 
   (even(Jlo + N) ? 1 : -1) *
   sqrt(6 * (2*Jlo + 1) * (2*Jup + 1)) *
-  WIGNER6(2, 2, 2, Jup.toInt(2), Jlo.toInt(2), N.toInt(2));
+  WIGNER6(2, 2, 2, Jup.toInt(2), Jlo.toInt(2), N.toInt(2)) / (2*N + 1).toNumeric();
 }
 
 

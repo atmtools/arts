@@ -599,7 +599,7 @@ void test_ecs20()
   wig_temp_init(200);
   Absorption::PredefinedModel::makarov2020_o2_lines_ecs(I, f, p, t, 0);
   ArrayOfRetrievalQuantity jacs(0);
-  Absorption::PredefinedModel::makarov2020_o2_lines_mpm(xsec, dxsec, f, {p}, {t}, {0.5}, jacs, {});
+  Absorption::PredefinedModel::makarov2020_o2_lines_mpm(xsec, dxsec, f, {p}, {t}, {0.0}, jacs, {});
   wig_temp_free();
   
   std::cout<<"I = np.array([";
