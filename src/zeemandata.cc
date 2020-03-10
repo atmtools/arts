@@ -202,7 +202,10 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) noexcept {
     }
   }
   
-  return Model({NAN, NAN});
+  // Take care of zeroes since they do not show up in replacement databases
+  const bool upperzero = qid.UpperQuantumNumber(QuantumNumberType::J) == 0 or qid.UpperQuantumNumber(QuantumNumberType::F) == 0;
+  const bool lowerzero = qid.LowerQuantumNumber(QuantumNumberType::J) == 0 or qid.LowerQuantumNumber(QuantumNumberType::F) == 0;
+  return Model({upperzero ? 0 : NAN, lowerzero ? 0 : NAN});
 }
 
 Zeeman::Model::Model(const QuantumIdentifier& qid) noexcept {
