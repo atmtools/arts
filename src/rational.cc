@@ -25,7 +25,6 @@ USA. */
  **/
 
 #include "rational.h"
-#include "constants.h"
 
 #include <ostream>
 #include <stdexcept>
