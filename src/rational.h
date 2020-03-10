@@ -59,13 +59,13 @@ class Rational {
    * @param[in] denom Denominator
    */
   constexpr Rational(const Index nom = 0, const Index denom = 1)
-      : mnom(nom), mdenom(denom) {
-        const auto div = gcd(nom, denom);
-        if (div) {
-          mnom /= div;
-          mdenom /= div;
-        }
-      }
+  : mnom(denom ? nom : 0), mdenom(denom) {
+    const auto div = gcd(nom, denom);
+    if (div) {
+      mnom /= div;
+      mdenom /= div;
+    }
+  }
   
   Rational(const String& s);
 
@@ -92,7 +92,7 @@ class Rational {
   /** Is the object a n-scaled Index
    * 
    * @param[in]  n Scale
-   * @return true If Nom() % Denom() is 0
+   * @return true If n*Nom() % Denom() is 0
    * @return false Otherwise
    */
   constexpr bool isIndex(int n=1) const {
@@ -125,12 +125,9 @@ class Rational {
    * Throws a logic error if *this is not an Index
    * 
    * @param[in]  n Scale to *this
-   * @return constexpr Index Of *this
+   * @return constexpr int Of *this
    */
   constexpr int toInt(int n=1) const { return int(toIndex(n)); }
-
-  /** Simplify by reducing to smallest possible denominator */
-  Rational& Simplify();
   
   /** Add to this
    * 
@@ -303,7 +300,35 @@ constexpr Rational reduce_by_gcd(Rational a) {
  * @param[in] x Numeric value
  * @param[in] maxdec Maximum number of decimals
  */
-Rational numeric2rational(Numeric x, size_t maxdec=4);
+constexpr Rational numeric2rational(Numeric x, size_t maxdec=4) {
+  Index nom=0, denom=1;
+  
+  // Keep track of sign independently
+  const bool signchange = x < 0;
+  x = x < 0 ? -x : x;
+  
+  // Add numbers by keeping the floor
+  size_t i=0;
+  do {
+    const Index xi=Index(x);
+    nom += xi;
+    x = 10 * (x - Numeric(xi));
+    nom *= 10;
+    denom *= 10;
+    i++;
+  } while (i<=maxdec);
+  
+  // Fix possible rounding error
+  if (x >= 5)
+    nom += 10;
+  
+  // Change sign or not
+  if (signchange)
+    return Rational(-nom, denom);
+  else
+    return Rational(nom, denom);
+}
+
 
 // An undefined rational to be used everywhere for a undefined rationals
 #define RATIONAL_UNDEFINED Rational((Index)0, 0)
@@ -466,7 +491,7 @@ constexpr Rational operator%(Rational a, Rational b) {
  * @return constexpr Rational a % b
  */
 constexpr Rational operator%(Rational a, Index b) {
-  return Rational(a.Nom() % b, a.Denom());
+  return Rational(a.Nom() % (a.Denom() * b), a.Denom());
 }
 
 /** Remainder
@@ -570,11 +595,21 @@ inline Numeric sqrt(Rational r) { return std::sqrt(r.toNumeric()); }
 /** Power of
  * 
  * @param[in] base Any Rational
- * @param[in] exp Any Rational
+ * @param[in] exp Any Numeric
  * @return Numeric base to the power of exp
  */
 inline Numeric pow(Rational base, Numeric exp) {
-  return std::pow(Numeric(base), exp);
+  return std::pow(base.toNumeric(), exp);
+}
+
+/** Power of
+ * 
+ * @param[in] base Any Numeric
+ * @param[in] exp Any Rational
+ * @return Numeric base to the power of exp
+ */
+inline Numeric pow(Numeric base, Rational exp) {
+  return std::pow(base, exp.toNumeric());
 }
 
 /** Power of

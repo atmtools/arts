@@ -81,36 +81,6 @@ std::istream& operator>>(std::istream& is, Rational& a) {
 }
 
 
-Rational numeric2rational(Numeric x, size_t maxdec)
-{
-  Index nom=0, denom=1;
-  
-  // Keep track of sign independently
-  const bool signchange = x < 0;
-  x = std::abs(x);
-  
-  // Add numbers by keeping the floor
-  size_t i=0;
-  do {
-    nom += Index(std::floor(x));
-    x = 10 * std::fmod(x, 1);
-    nom *= 10;
-    denom *= 10;
-    i++;
-  } while (i<=maxdec);
-  
-  // Fix possible rounding error
-  if (x >= 5)
-    nom += 10;
-  
-  // Change sign
-  if (signchange)
-    nom = -nom;
-  
-  return Rational(nom, denom);
-}
-
-
 Rational::Rational(const String& s)
 {
   auto len = s.length();
