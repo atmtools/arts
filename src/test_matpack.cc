@@ -756,7 +756,7 @@ void test43() {
 
   // Div-zero by index generates an undefined rational, div-by-undefined rational is a logical error
   constexpr Rational r3 = r / 0;  // should be undefined
-  static_assert(r3.Nom() == 3, "Setup of rational fail to initialize properly");
+  static_assert(r3.Nom() == 1, "Setup of rational fail to initialize properly");
   static_assert(r3.Denom() == 0,
                 "Setup of rational fail to initialize properly");
   static_assert(r3 not_eq r3, "Setup of rational fail to initialize properly");
@@ -764,16 +764,15 @@ void test43() {
                 "Setup of rational fail to initialize properly");
 
   // Complicated expression compile-time test
-  constexpr Rational r4 =
-      ((2 * ((((((r++)++)++)++) * Rational(1, 3))--)) % 3);  // should be 1/6
+  constexpr Rational r4 = (Rational(11, 4) * Rational(1, 3)) % 3;  // should be 1/6
   static_assert(r4.Nom() == 1, "Setup of rational fail to initialize properly");
   static_assert(r4.Denom() == 6,
                 "Setup of rational fail to initialize properly");
 
-  // The simplify operation still does not work so some expressions can look a little bit silly
+  // The simplify operation simplifies expressions
   constexpr Rational r5 = 10 % Rational(6, 4);  // should be 1
-  static_assert(r5.Nom() == 4, "Setup of rational fail to initialize properly");
-  static_assert(r5.Denom() == 4,
+  static_assert(r5.Nom() == 1, "Setup of rational fail to initialize properly");
+  static_assert(r5.Denom() == 1,
                 "Setup of rational fail to initialize properly");
   static_assert(r5.toInt() == 1,
                 "Setup of rational fail to initialize properly");
@@ -781,6 +780,16 @@ void test43() {
                 "Setup of rational fail to initialize properly");
   static_assert(r5.toNumeric() == 1e0,
                 "Setup of rational fail to initialize properly");
+  
+  Index i = 0;
+  do  {
+      const Rational r6 = numeric2rational(1 + Numeric(i)/100, 2);
+      const Rational r7 = Rational(100 + i, 100);
+      std::cout << r7.toNumeric() << ":\tConverted: " << r6 << ";\tExact: " << r7 << "\n";
+      if(r6.Denom() not_eq r7.Denom() or r6.Nom() not_eq r7.Nom())
+        throw std::runtime_error("Bad initialization of Rational from Numeric");
+      i += 1;
+  } while (i <= 100);
 }
 
 void test44() {

@@ -35,6 +35,21 @@ USA. */
 #include "math_funcs.h"
 #include "matpack.h"
 
+
+/** Returns the greatest common denominator of two numbers
+ * 
+ * @param[in] a number a
+ * @param[in] b number b
+ * @return num such that Rational(a/num, b/num) is the same as Rational(a, b)
+ */
+constexpr Index gcd(Index a, Index b) {
+  if (b == 0)
+    return a;
+  else
+    return gcd(b, a%b);
+}
+
+
 /** Implements rational numbers to work with other ARTS types */
 class Rational {
  public:
@@ -44,7 +59,13 @@ class Rational {
    * @param[in] denom Denominator
    */
   constexpr Rational(const Index nom = 0, const Index denom = 1)
-      : mnom(nom), mdenom(denom) {}
+      : mnom(nom), mdenom(denom) {
+        const auto div = gcd(nom, denom);
+        if (div) {
+          mnom /= div;
+          mdenom /= div;
+        }
+      }
   
   Rational(const String& s);
 
@@ -110,7 +131,7 @@ class Rational {
 
   /** Simplify by reducing to smallest possible denominator */
   Rational& Simplify();
-
+  
   /** Add to this
    * 
    * @param[in] a To add
@@ -246,24 +267,46 @@ class Rational {
     bof << mnom << mdenom;
     return bof;
   }
-
- private:
-  // Rational is supposed to be used rationally ( mnom / mdenom )
-  Index mnom;
-  Index mdenom;
-
+  
   /** Makes the sign of mdenom positive */
-  Rational& fixSign() {
+  constexpr Rational& fixSign() {
     if (mdenom < 0) {
       mnom = -mnom;
       mdenom = -mdenom;
     }
     return *this;
   }
+
+ private:
+  // Rational is supposed to be used rationally ( mnom / mdenom )
+  Index mnom;
+  Index mdenom;
 };  // Rational;
 
+/** Returns the rational reduced by the greates 
+ * 
+ * @param[in] a Any Rational
+ * @return a / gcd(a)
+ */
+constexpr Rational reduce_by_gcd(Rational a) {
+  const Index div = gcd(a.Nom(), a.Denom());
+  if (div)
+    return Rational(a.Nom() / div, a.Denom());
+  else
+    return a;
+}
+
+/** Rational from Numeric
+ * 
+ * Performs basic rounding
+ * 
+ * @param[in] x Numeric value
+ * @param[in] maxdec Maximum number of decimals
+ */
+Rational numeric2rational(Numeric x, size_t maxdec=4);
+
 // An undefined rational to be used everywhere for a undefined rationals
-#define RATIONAL_UNDEFINED Rational(0, 0)
+#define RATIONAL_UNDEFINED Rational((Index)0, 0)
 
 /** Negative
  * 
@@ -591,5 +634,6 @@ constexpr bool even(Rational r) {
   else
     return true;
 }
+
 
 #endif  // rational_h

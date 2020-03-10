@@ -25,33 +25,15 @@ USA. */
  **/
 
 #include "rational.h"
+#include "constants.h"
 
 #include <ostream>
 #include <stdexcept>
 #include "mystring.h"
 
-Rational& Rational::Simplify() {
-  fixSign();
-  Index ii = mdenom;
-
-  while (ii != 0) {
-    if (mnom % ii == 0 and mdenom % ii == 0) {
-      mnom /= ii;
-      mdenom /= ii;
-
-      if (mnom == 1 or mdenom == 1 or mnom == -1) break;
-    }
-    if (mdenom < ii)
-      ii = mdenom;
-    else
-      ii--;
-  }
-  return *this;
-}
-
 std::ostream& operator<<(std::ostream& os, const Rational& a) {
-  Rational r = a;
-  r.Simplify();
+  Rational r = reduce_by_gcd(a);
+  r.fixSign();
 
   if (r.Denom() == 1)
     os << r.Nom();
@@ -98,6 +80,37 @@ std::istream& operator>>(std::istream& is, Rational& a) {
   return is;
 }
 
+
+Rational numeric2rational(Numeric x, size_t maxdec)
+{
+  Index nom=0, denom=1;
+  
+  // Keep track of sign independently
+  const bool signchange = x < 0;
+  x = std::abs(x);
+  
+  // Add numbers by keeping the floor
+  size_t i=0;
+  do {
+    nom += Index(std::floor(x));
+    x = 10 * std::fmod(x, 1);
+    nom *= 10;
+    denom *= 10;
+    i++;
+  } while (i<=maxdec);
+  
+  // Fix possible rounding error
+  if (x >= 5)
+    nom += 10;
+  
+  // Change sign
+  if (signchange)
+    nom = -nom;
+  
+  return Rational(nom, denom);
+}
+
+
 Rational::Rational(const String& s)
 {
   auto len = s.length();
@@ -106,24 +119,14 @@ Rational::Rational(const String& s)
     auto dot_pos = s.find(".");
     auto slash_pos = s.find("/");
     if (len > dot_pos) {
-      auto frac = std::stoi(s.substr(dot_pos+1, s.length()));
-      
-      if (frac == 5) {
-        *this = Rational(2*std::stoi(s.substr(0, dot_pos)) + 1, 2);
-      } else if (frac == 0) {
-        *this = Rational(std::stoi(s.substr(0, dot_pos)), 1);
-      } else {
-        *this = RATIONAL_UNDEFINED;
-      }
+      *this = numeric2rational(std::stod(s), len - dot_pos - 1);
     } else if (len > slash_pos) {
       *this = Rational(std::stoi(s.substr(0, slash_pos)),
-                       std::stoi(s.substr(slash_pos+1, s.length())));
+                       std::stoi(s.substr(slash_pos + 1, len)));
     } else {
-      *this = std::stoi(s);
+      *this = Rational(std::stoi(s));
     }
   } else {
     *this = RATIONAL_UNDEFINED;
   }
-  
-  Simplify();
 }
