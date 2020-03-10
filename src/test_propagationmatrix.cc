@@ -589,7 +589,7 @@ void test_ecs20()
   Matrix xsec(nf, 1, 0);
   ArrayOfMatrix dxsec(0, Matrix(nf, 1, 0));
   nlinspace(f, fstart, fend, nf);
-  
+//   std::cout << "import numpy as np\n";
   
   define_species_data();
   define_species_map();
@@ -604,12 +604,12 @@ void test_ecs20()
   
   std::cout<<"I = np.array([";
   for (Index i=0; i<f.nelem(); i++)
-    std::cout<<I[i].real()<<", ";
-  std::cout<<"]); ";
+    std::cout<<I[i].real()<<",\n";
+  std::cout<<"])\n";
   
   std::cout<<"I2 = np.array([";
   for (Index i=0; i<f.nelem(); i++)
-    std::cout<<xsec(i,0)<<", ";
+    std::cout<<xsec(i,0)<<",\n";
   std::cout<<"])\n";
 }
 

@@ -231,6 +231,14 @@ Numeric o2_ecs_wigner_symbol_tran(
 {
   Numeric o2_ecs_wigner_symbol_tran = 0;
   
+//   std::cout<<"import numpy as np";
+//   std::cout << "wigsym=np.array([";
+//   for (Index L=1; L<=250; L++) {
+//     std::cout<<"["<<L<<", "<< o2_ecs_adiabatic_factor_makarov(L, T)<<","<<o2_ecs_ql_makarov(L, T)<<"],\n";
+//   }
+//   std::cout<<"])\n";
+//   std::exit(1);
+  
   // Limits above 2 and below the largest index there is
   auto lims = find_even_limits({2, std::numeric_limits<int>::max()},
                                find_even_limits(find_wigner3j_limits(Ni_p, Ni),
@@ -261,7 +269,7 @@ Numeric o2_makarov2013_reduced_dipole(const Rational& Jup, const Rational& Jlo, 
   return 
   (even(Jlo + N) ? 1 : -1) *
   sqrt(6 * (2*Jlo + 1) * (2*Jup + 1)) *
-  WIGNER6(2, 2, 2, Jup.toInt(2), Jlo.toInt(2), N.toInt(2)) / (2*N + 1).toNumeric();
+  WIGNER6(2, 2, 2, Jup.toInt(2), Jlo.toInt(2), N.toInt(2));
 }
 
 

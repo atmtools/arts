@@ -610,11 +610,60 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_ecs(ComplexVector& I, con
     o2_makarov2013_reduced_dipole (qns.UpperQuantumNumber(QuantumNumberType::J),
                                    qns.LowerQuantumNumber(QuantumNumberType::J),
                                    qns.UpperQuantumNumber(QuantumNumberType::N));});
+//   std::cout << "Ji = np.array([";
+//   for (Index i=0; i<necs2020; i++) {
+//     std::cout << qids[i].UpperQuantumNumber(QuantumNumberType::J) << ",\n";
+//   }
+//   std::cout<<"])\n";
+//   std::cout << "f0 = np.array([";
+//   for (Index i=0; i<necs2020; i++) {
+//     std::cout << f0[i] << ",\n";
+//   }
+//   std::cout<<"])\n";
+//   std::cout << "Jf = np.array([";
+//   for (Index i=0; i<necs2020; i++) {
+//     std::cout << qids[i].LowerQuantumNumber(QuantumNumberType::J) << ",\n";
+//   }
+//   std::cout<<"])\n";
+//   std::cout << "N = np.array([";
+//   for (Index i=0; i<necs2020; i++) {
+//     std::cout << qids[i].LowerQuantumNumber(QuantumNumberType::N) << ",\n";
+//   }
+//   std::cout<<"])\n";
+//   
+//   std::cout << "d = np.array([";
+//   for (Index i=0; i<necs2020; i++) {
+//     std::cout << d[i] << ",\n";
+//   }
+//   std::cout<<"])\n";
   
   std::transform(qids.cbegin(), qids.cbegin()+necs2020, rho.data(), [T](auto& qns){return 
     boltzman_factor(T, o2_ecs_erot_jn_same(qns.LowerQuantumNumber(QuantumNumberType::J)));});
-  
+//   std::cout << "rho = np.array([";
+//   for (Index i=0; i<necs2020; i++) {
+//     std::cout << rho[i] << ",\n";
+//   }
+//   std::cout<<"])\n";
+//   
+//   std::cout << "Wprenorm = np.array([";
+//   for (Index i=0; i<necs2020; i++) {
+//     std::cout << "[";
+//     for (Index j=0; j<necs2020; j++) {
+//       std::cout << W(i, j).imag() << ",\n";
+//     }
+//     std::cout<<"],\n";
+//   }
+//   std::cout<<"])\n";
   normalize_relaxation_matrix(W, rho, d);
+//   std::cout << "Wnorm = np.array([";
+//   for (Index i=0; i<necs2020; i++) {
+//     std::cout << "[";
+//     for (Index j=0; j<necs2020; j++) {
+//       std::cout << W(i, j).imag() << ",\n";
+//     }
+//     std::cout<<"],\n";
+//   }
+//   std::cout<<"])\n";
   
   // Rescale dipole to be proportional to line strength
   const Numeric theta = T0 / T;
@@ -625,6 +674,11 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_ecs(ComplexVector& I, con
     const Numeric sgn = std::abs(d[i]) / d[i];
     d[i] = sgn * f0[i] * std::sqrt(ST / rho[i]);
   }
+  //std::cout << "ST = np.array([";
+  //for (Index i=0; i<necs2020; i++) {
+  //  std::cout << d[i] << ",\n";
+  //}
+  //std::cout<<"])\n";
   
   /*if (not full)*/
   for (Index i=0; i<necs2020; i++) {
