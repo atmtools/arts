@@ -246,7 +246,6 @@ endif()
 ########## BLAS/LAPACK support #########
 
 find_package (LAPACK REQUIRED)
-message(WARNING ${LAPACK_LIBRARIES})
 
 ########## NetCDF support #########
 if (ENABLE_NETCDF)
