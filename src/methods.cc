@@ -364,6 +364,37 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(MdRecord(
+    NAME("abs_linesCleanupEmpty"),
+      DESCRIPTION("Removes empty bands from *abs_lines*.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
+    NAME("abs_linesKeepBands"),
+      DESCRIPTION("Keep only *qid*-matches in *abs_lines*\n"
+        "\n"
+        "The ignore values will ignore isotopologue and/or species.\n"
+        "The latter means the isotopologue has to be ignores.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines"),
+      GIN("qid", "ignore_spec", "ignore_isot"),
+      GIN_TYPE("QuantumIdentifier", "Index", "Index"),
+      GIN_DEFAULT(NODEF, "1", "1"),
+      GIN_DESC("Band ID", "If species is to be ignores", "If isotopologue is to be ignored")));
+
+  md_data_raw.push_back(MdRecord(
     NAME("abs_linesRemoveBand"),
       DESCRIPTION("Removes *qid* band from *abs_lines*\n"),
       AUTHORS("Richard Larsson"),
@@ -487,6 +518,20 @@ void define_md_data_raw() {
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+
+  md_data_raw.push_back(MdRecord(
+      NAME("abs_linesDeleteLinesWithQuantumNumberAbove"),
+      DESCRIPTION("Deletes all lines in *abs_lines* that have too large quantum number\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines"),
+      GIN("quantumnumber", "quantumnumber_value"),
+      GIN_TYPE("String", "Index"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Quantum number identified", "Value")));
 
   md_data_raw.push_back(MdRecord(
       NAME("abs_linesPrintDefinedQuantumNumbers"),
