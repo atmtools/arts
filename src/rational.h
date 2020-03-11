@@ -67,6 +67,18 @@ class Rational {
     }
   }
   
+  /** Initialization call
+   * 
+   * Sets the rational from the string. Formats accepted are
+   * 
+   * Numeric:  1.234567890
+   * Fraction: 12345/67890
+   * Index:    1234567890
+   * 
+   * Note that overflow is possible and we do not care to capture it
+   * 
+   * @param[in] s String of the value
+   */
   Rational(const String& s);
 
   /** Nominator */
