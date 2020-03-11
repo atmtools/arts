@@ -208,6 +208,8 @@ class WorkspaceVariable:
         Returns:
             (any): The converted object or None is conversion was unsuccessful.
         """
+        import numpy as np
+
         try:
             gid = cls.get_group_id(value)
             if group_names[gid] == group:

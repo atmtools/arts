@@ -45,7 +45,7 @@ grammar = r"""
     positional_arguments: (comment* value comment* | comment+) (("," comment*  value)  | comment+)*
 
     list : "[" ((comment* value comment*)? (comment* ("," ) comment* value | comment+)*
-               | nested_list (";" nested_list | comment)+) "]"
+               | nested_list (";" nested_list ";"? comment? | comment)+) "]"
 
     nested_list : (comment* value comment*) (comment* (",") comment* value | comment)*
 
@@ -96,10 +96,12 @@ def to_python(obj, workspace):
     if hasattr(obj, "to_python"):
         return obj.to_python(workspace)
     elif isinstance(obj, np.ndarray):
+        if obj.size == 0:
+            return "[]"
         s = repr(obj)
-        s = replace_array.sub(r"np.ndarray(\1)", s)
+        s = replace_array.sub(r"np.array(\1)", s)
         s = replace_dtype.sub(r"dtype=np.\1", s)
-        return  repr(obj)
+        return  s
     elif isinstance(obj, str):
         return "\"" + str(obj) + "\""
     else:
