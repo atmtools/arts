@@ -8,8 +8,8 @@ abs_cont_descriptionInit
 
 # ----- H2O continuum ------------------------------------
 #
-# the conversion factor from dB/km/GHz²/hPa² to arts units
-# of 1/m/Hz²/Pa² is 2.30259 * 10¯26.
+# the conversion factor from dB/km/GHz^2/hPa^2 to arts units
+# of 1/m/Hz^2/Pa^2 is 2.30259 * 10^{-26}.
 # Note the parameters are deduced using a Van Vleck-Weisskopf
 
 # Present values are taken from Podobedov et al., JQSRT, 2008 (Table 3, 
