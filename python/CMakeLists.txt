@@ -28,17 +28,17 @@ if (PYTHONINTERP_FOUND)
   if (DEVELOPER_MODE)
     add_custom_target(pyarts
       ALL
-      COMMAND ${PYTHON_EXECUTABLE} setup.py develop
+      COMMAND ${PYTHON_EXECUTABLE} setup.py build
       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
       DEPENDS arts_api
-      COMMENT "Installing ARTS python package.")
+      COMMENT "Building ARTS python package.")
   else()
     add_custom_target(pyarts
       ALL
-      COMMAND ${PYTHON_EXECUTABLE} setup.py develop
+      COMMAND ${PYTHON_EXECUTABLE} setup.py build
       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
       DEPENDS arts_api
-      COMMENT "Installing ARTS python package.")
+      COMMENT "Building ARTS python package.")
   endif()
 endif()
 
