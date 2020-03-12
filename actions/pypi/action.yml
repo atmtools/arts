@@ -1,0 +1,12 @@
+name: 'pypi'
+description: 'Builds Python binary wheels and uploads them to PyPI'
+inputs:
+  pypi_access:  # id of input
+    description: 'Access token for PyPI repository.'
+    required: true
+outputs:
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  env:
+    - pypi_access: ${{inputs.pypi_access}}
