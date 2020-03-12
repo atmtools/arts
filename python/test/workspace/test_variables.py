@@ -211,6 +211,15 @@ class TestVariables:
         self.ws.f_grid = []
         assert self.ws.f_grid.value.size == 0
 
+    def test_variable_create(self):
+        """
+        Test initialization of workspace variables.
+        """
+        self.ws = Workspace()
+        self.ws.IndexCreate("myindex")
+        with pytest.raises(Exception):
+            print(self.ws.myindex.value)
+
     def test_convert(self):
         """
         Test automatic conversion of Python types.

@@ -320,7 +320,7 @@ Index InteractiveWorkspace::add_variable(Index group_id, const char *name) {
   push(ws.size() - 1, nullptr);
   ws.back().top()->wsv = wsmh.allocate(group_id);
   ws.back().top()->auto_allocated = true;
-  ws.back().top()->initialized = true;
+  ws.back().top()->initialized = false;
 
   String s;
   if (name) {
