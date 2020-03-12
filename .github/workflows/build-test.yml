@@ -157,6 +157,6 @@ jobs:
     name: Build and publish Python wheels.
     steps:
       - name: PyPI release
-        uses: actions/pypi@4253b5c0a2f4194b9f7c18a4b76821614a07230f
+        uses: ./action/pypi
         with:
           pypi_access: ${{secrets.pypi_access}}
