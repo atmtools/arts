@@ -152,11 +152,11 @@ jobs:
           cd cmake-build
           make -j2 -C doc/uguide
 
- publish:
+  publish:
     runs-on: ubuntu-latest
     name: Build and publish Python wheels.
     steps:
-    - name: PyPI release
-      uses: actions/pypi
-      with:
-        pypi_access: ${{secrets.pypi_access}}
+      - name: PyPI release
+        uses: actions/pypi
+        with:
+          pypi_access: ${{secrets.pypi_access}}
