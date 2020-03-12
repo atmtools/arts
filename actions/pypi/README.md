@@ -13,4 +13,4 @@ as input.
 
 uses: actions/pypi
 with:
-  pypi_access: ${{secrets.pypi_access}}
+pypi_access: ${{secrets.pypi_access}}

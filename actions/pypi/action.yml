@@ -8,5 +8,3 @@ outputs:
 runs:
   using: 'docker'
   image: 'Dockerfile'
-  env:
-    - pypi_access: ${{inputs.pypi_access}}
