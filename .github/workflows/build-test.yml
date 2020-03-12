@@ -152,8 +152,11 @@ jobs:
           cd cmake-build
           make -j2 -C doc/uguide
 
-      - name: Check (Linux / macOS)
-        if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.check == 'yes'
-        run: |
-          cd cmake-build
-          make check
+ publish:
+    runs-on: ubuntu-latest
+    name: Build and publish Python wheels.
+    steps:
+    - name: PyPI release
+      uses: actions/pypi
+      with:
+        pypi_access: ${{secrets.pypi_access}}
