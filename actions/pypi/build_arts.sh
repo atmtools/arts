@@ -12,4 +12,4 @@ make pyarts
 cd python
 python3 setup.py sdist bdist_wheel
 auditwheel repair dist/pyarts*.whl
-python3 -m twine upload wheelhouse/pyarts*.whl -u __token__ -p ${INPUT_pypi_access}
+python3 -m twine upload wheelhouse/pyarts*.whl -u __token__ -p ${INPUT_PYPI_ACCESS}
