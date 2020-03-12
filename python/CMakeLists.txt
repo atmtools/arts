@@ -23,7 +23,7 @@ endforeach()
 # Install pyarts
 #
 
-find_package(Python)
+find_package(PythonInterp)
 if (PYTHONINTERP_FOUND)
   if (DEVELOPER_MODE)
     add_custom_target(pyarts
