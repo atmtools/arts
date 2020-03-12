@@ -161,6 +161,6 @@ jobs:
         with:
           ref: ${{ github.ref }}
       - name: PyPI release
-        uses: ./action/pypi
+        uses: ./actions/pypi
         with:
           pypi_access: ${{secrets.pypi_access}}
