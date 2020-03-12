@@ -37,9 +37,9 @@ ws.Copy(ws.propmat_clearsky_agenda, ws.propmat_clearsky_agenda__OnTheFly)
 ws.Copy(ws.ppath_agenda, ws.ppath_agenda__FollowSensorLosPath)
 ws.abs_speciesSet(species=["H2O", "N2"])
 ws.abs_lines_per_speciesSetEmpty()
-ws.VectorSet(ws.p_grid, array([1.013e05, 1.000e00]))
-ws.VectorSet(ws.lat_grid, array([-90.0, 90.0]))
-ws.VectorSet(ws.lon_grid, array([-180.0, 180.0]))
+ws.VectorSet(ws.p_grid, np.array([1.013e05, 1.000e00]))
+ws.VectorSet(ws.lat_grid, np.array([-90.0, 90.0]))
+ws.VectorSet(ws.lon_grid, np.array([-180.0, 180.0]))
 ws.AtmosphereSet3D()
 ws.MatrixSetConstant(ws.z_surface, 2, 2, 0.0)
 ws.Tensor3SetConstant(ws.t_field, 2, 2, 2, 300.0)
@@ -51,7 +51,7 @@ ws.z_fieldFromHSE(p_hse=101300.0, z_hse_accuracy=1000.0)
 # A flat water surface, at 300K
 #
 ws.VectorCreate("data_t_grid")
-ws.VectorSet(ws.data_t_grid, array([290.0, 300.0, 310.0]))
+ws.VectorSet(ws.data_t_grid, np.array([290.0, 300.0, 310.0]))
 ws.VectorCreate("data_f_grid")
 ws.VectorLinSpace(ws.data_f_grid, 10000000000.0, 100000000000.0, 5000000000.0)
 ws.complex_refr_indexWaterLiebe93(
@@ -72,12 +72,14 @@ ws.surface_rtprop_agenda = surface_rtprop_agenda
 ws.IndexSet(ws.stokes_dim, 3)
 # Frequency grid
 #
-ws.VectorSet(ws.f_grid, array([1.0e10, 2.0e10, 3.0e10]))
+ws.VectorSet(ws.f_grid, np.array([1.0e10, 2.0e10, 3.0e10]))
 # Sensor pos, los and pol
 #
-ws.MatrixSet(ws.sensor_pos, array([[6.0e05, 2.3e01, 4.0e00], [6.0e05, 7.8e01, 7.7e01]]))
-ws.MatrixSet(ws.sensor_los, array([[145.0, 30.0], [145.0, -26.0]]))
-ws.MatrixSet(ws.sensor_pol, array([[0.0, 90.0, -45.0], [0.0, 90.0, -45.0]]))
+ws.MatrixSet(
+    ws.sensor_pos, np.array([[6.0e05, 2.3e01, 4.0e00], [6.0e05, 7.8e01, 7.7e01]])
+)
+ws.MatrixSet(ws.sensor_los, np.array([[145.0, 30.0], [145.0, -26.0]]))
+ws.MatrixSet(ws.sensor_pol, np.array([[0.0, 90.0, -45.0], [0.0, 90.0, -45.0]]))
 # No "standard" sensor responses, but use RJ-Tb
 #
 ws.sensorOff()

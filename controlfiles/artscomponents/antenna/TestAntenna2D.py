@@ -39,15 +39,15 @@ ws.geo_pos_agenda = geo_pos_agenda
 #
 ws.AtmosphereSet3D()
 ws.IndexSet(ws.stokes_dim, 2)
-ws.VectorSet(ws.f_grid, array([1.8e10, 3.1e10]))
+ws.VectorSet(ws.f_grid, np.array([1.8e10, 3.1e10]))
 ws.StringSet(ws.iy_unit, "PlanckBT")
 # no jacobian calculation
 ws.jacobianOff()
 # no scattering
 ws.cloudboxOff()
 # lat and lon true can be left empty for 3D
-ws.VectorSet(ws.lat_true, array([], dtype=float64))
-ws.VectorSet(ws.lon_true, array([], dtype=float64))
+ws.VectorSet(ws.lat_true, [])
+ws.VectorSet(ws.lon_true, [])
 # Definition of species
 #
 ws.abs_speciesSet(species=["N2-SelfContStandardType", "O2-PWR98", "H2O-PWR98"])
@@ -98,8 +98,8 @@ ws.cloudbox_checkedCalc()
 ws.lbl_checkedCalc()
 # Sensor pos/los
 #
-ws.MatrixSet(ws.sensor_pos, array([[800000.0, 0.0, 0.0], [800000.0, 0.0, 0.0]]))
-ws.MatrixSet(ws.sensor_los, array([[130.0, 20.0], [130.0, 15.0]]))
+ws.MatrixSet(ws.sensor_pos, np.array([[800000.0, 0.0, 0.0], [800000.0, 0.0, 0.0]]))
+ws.MatrixSet(ws.sensor_los, np.array([[130.0, 20.0], [130.0, 15.0]]))
 # First do without antenna to get reference for geo_pos
 #
 ws.sensorOff()
@@ -122,7 +122,7 @@ ws.antenna_responseVaryingGaussian(
 )
 ws.IndexSet(ws.sensor_norm, 1)
 ws.IndexSet(ws.antenna_dim, 1)
-ws.MatrixSet(ws.antenna_dlos, array([[0.0]]))
+ws.MatrixSet(ws.antenna_dlos, np.array([[0.0]]))
 #
 ws.IndexSet(ws.ndlos, 21)
 ws.VectorNLinSpace(ws.dza, ws.ndlos, -2.0, 2.0)

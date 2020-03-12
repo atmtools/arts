@@ -43,18 +43,18 @@ ws.AtmRawRead(basename="testdata/tropical")
 ws.AtmFieldsCalc()
 # Define (a blacbody) surface
 #
-ws.MatrixSet(ws.z_surface, array([[0.0]]))
+ws.MatrixSet(ws.z_surface, np.array([[0.0]]))
 ws.Copy(ws.iy_surface_agenda, ws.iy_surface_agenda__UseSurfaceRtprop)
 ws.Copy(ws.surface_rtprop_agenda, ws.surface_rtprop_agenda__Blackbody_SurfTFromt_field)
 # Map this to variables used by DISORT
 #
-ws.VectorSet(ws.surface_scalar_reflectivity, array([0.0]))
+ws.VectorSet(ws.surface_scalar_reflectivity, np.array([0.0]))
 ws.VectorExtractFromMatrix(ws.rtp_pos, ws.z_surface, 0, "row")
 ws.InterpAtmFieldToPosition(out=ws.surface_skin_t, field=ws.t_field)
 # Frequencies and Stokes dim.
 #
 ws.IndexSet(ws.stokes_dim, 1)
-ws.VectorSet(ws.f_grid, array([1.84e11]))
+ws.VectorSet(ws.f_grid, np.array([1.84e11]))
 # Stuff not used
 #
 ws.jacobianOff()

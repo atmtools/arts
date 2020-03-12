@@ -62,7 +62,7 @@ ws.ReadXML(ws.f_grid, "testdata/f_grid.xml")
 ws.ReadXML(ws.range_bins, "testdata/range_bins.xml")
 #
 ws.ReadXML(ws.sensor_pos, "testdata/sensor_pos.xml")
-ws.MatrixSet(ws.sensor_los, array([[180.0]]))
+ws.MatrixSet(ws.sensor_los, np.array([[180.0]]))
 #
 @arts_agenda
 def iy_transmitter_agenda(ws):

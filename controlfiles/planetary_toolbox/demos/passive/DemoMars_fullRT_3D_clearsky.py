@@ -176,9 +176,9 @@ ws.NumericSet(ws.obslon, 0.0)
 # (a) viewing angles (e.g., for slantlooking; but working for ALL geometries)
 # - can be empty
 # (a-1) the zenith angles [degree]
-ws.VectorSet(ws.viewang_zen, array([180.0, 150.0, 120.0]))
+ws.VectorSet(ws.viewang_zen, np.array([180.0, 150.0, 120.0]))
 # (a-2) the corresponding azimuth angles [degree] (0=North, counting clockwise)
-ws.VectorSet(ws.viewang_azi, array([90.0, 90.0, 90.0]))
+ws.VectorSet(ws.viewang_azi, np.array([90.0, 90.0, 90.0]))
 # (b) tangent altitudes for limb views
 # - can be empty
 # - depending on your choice of type of geometry/refraction below, specified
@@ -191,11 +191,11 @@ ws.VectorSet(ws.viewang_azi, array([90.0, 90.0, 90.0]))
 # (b-1) the tangent altitudes [m]
 ws.VectorSet(
     ws.tanh,
-    array([5.0e00, 4.0e03, 4.0e03, 4.0e03, 4.0e03, 1.0e04, 2.0e04, 4.0e04, 6.0e04]),
+    np.array([5.0e00, 4.0e03, 4.0e03, 4.0e03, 4.0e03, 1.0e04, 2.0e04, 4.0e04, 6.0e04]),
 )
 # (b-2) the corresponding azimuth angles [degree] (0=North, counting clockwise)
 ws.VectorSet(
-    ws.tanh_azi, array([90.0, -90.0, 0.0, 90.0, 180.0, 90.0, 90.0, 90.0, 90.0])
+    ws.tanh_azi, np.array([90.0, -90.0, 0.0, 90.0, 180.0, 90.0, 90.0, 90.0, 90.0])
 )
 # ---
 # Type of geometry/refraction

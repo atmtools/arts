@@ -135,9 +135,9 @@ ws.Copy(ws.surface_temperature_file, ws.superatmo)
 #  fields), namely for: A-3, B-1e, B-2e, B-3
 #  If you do not select any of these cases, the values set here do not matter.
 # SET one(!) number (-90...90)
-ws.VectorSet(ws.lat_true, array([0.0]))
+ws.VectorSet(ws.lat_true, np.array([0.0]))
 # SET one(!) number (-360...360)
-ws.VectorSet(ws.lon_true, array([0.0]))
+ws.VectorSet(ws.lon_true, np.array([0.0]))
 # -------
 # PART A: Surface Altitude (Topography)
 # -------

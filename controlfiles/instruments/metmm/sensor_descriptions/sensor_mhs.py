@@ -25,7 +25,7 @@ ws = Workspace(verbosity=0)
 # There are 45 different angles, corresponding to one side of the MHS scan.
 ws.MatrixSet(
     ws.antenna_dlos,
-    array(
+    np.array(
         [
             [-49.444444],
             [-48.333333],
@@ -79,7 +79,7 @@ ws.MatrixSet(
 # ---
 ws.MatrixSet(
     ws.met_mm_backend,
-    array(
+    np.array(
         [
             [8.90000e10, 0.00000e00, 0.00000e00, 2.80000e09],
             [1.57000e11, 0.00000e00, 0.00000e00, 2.80000e09],
@@ -93,9 +93,9 @@ ws.ArrayOfStringSet(
     ws.met_mm_polarisation, ["AMSU-V", "AMSU-V", "AMSU-H", "AMSU-H", "AMSU-V"]
 )
 # Antenna is not supported for now
-ws.VectorSet(ws.met_mm_antenna, array([], dtype=float64))
+ws.VectorSet(ws.met_mm_antenna, [])
 ws.ArrayOfIndexSet(ws.met_mm_freq_number, [12, 12, 12, 12, 12])
-ws.VectorSet(ws.freq_spacing_tmp, array([1.0e10, 1.0e09, 1.0e09, 1.0e09]))
+ws.VectorSet(ws.freq_spacing_tmp, np.array([1.0e10, 1.0e09, 1.0e09, 1.0e09]))
 ws.Extract(ws.current_spacing, ws.freq_spacing_tmp, ws.met_mm_accuracy)
 ws.nrowsGet(ws.met_mm_nchannels, ws.met_mm_backend)
 ws.VectorSetConstant(ws.met_mm_freq_spacing, ws.met_mm_nchannels, ws.current_spacing)

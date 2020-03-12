@@ -25,7 +25,7 @@ ws.Copy(ws.propmat_clearsky_agenda, ws.propmat_clearsky_agenda__OnTheFly)
 ws.IndexSet(ws.stokes_dim, 1)
 # Frequency grid
 #
-ws.VectorSet(ws.f_grid, array([1.0e09, 5.0e09, 1.0e10]))
+ws.VectorSet(ws.f_grid, np.array([1.0e09, 5.0e09, 1.0e10]))
 # A pressure grid rougly matching 0 to 80 km, in steps of 250.
 #
 ws.VectorNLogSpace(ws.p_grid, 321, 101300.0, 1.0)
@@ -55,7 +55,7 @@ ws.AtmFieldsCalc(
     ws.vmr_field_raw,
     ws.t_field_raw,
     ws.atmosphere_dim,
-    array([3.0]),
+    np.array([3.0]),
 )
 # Surface altitude
 ws.MatrixSetConstant(ws.z_surface, 1, 1, 0.0)
@@ -92,15 +92,15 @@ ws.NumericSet(ws.ppath_lmax, 10000.0)
 ws.NumericSet(ws.ppath_lraytrace, 100.0)
 # Radiative transfer agendas and variables
 #
-ws.VectorSet(ws.rte_los, array([], dtype=float64))
+ws.VectorSet(ws.rte_los, [])
 # Dummy value
 #
 ws.Copy(ws.iy_transmitter_agenda, ws.iy_transmitter_agenda__UnitUnpolIntensity)
 ws.Copy(ws.iy_main_agenda, ws.iy_main_agenda__Radiolink)
 # Postion of sensor/receiver and transmitter
 #
-ws.VectorSet(ws.rte_pos, array([80000.0]))
-ws.VectorSet(ws.rte_pos2, array([0.0, 5.1]))
+ws.VectorSet(ws.rte_pos, np.array([80000.0]))
+ws.VectorSet(ws.rte_pos2, np.array([0.0, 5.1]))
 # Auxilary variables
 #
 ws.ArrayOfStringSet(

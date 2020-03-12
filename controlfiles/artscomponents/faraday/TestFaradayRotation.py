@@ -72,8 +72,8 @@ ws.MatrixSetConstant(ws.z_surface, 1, 1, 0.0)
 # (this roughly recreates the original altitudes for the input electron density
 #  and magnetic field)
 #
-ws.VectorSet(ws.lat_true, array([0.0]))
-ws.VectorSet(ws.lon_true, array([0.0]))
+ws.VectorSet(ws.lat_true, np.array([0.0]))
+ws.VectorSet(ws.lon_true, np.array([0.0]))
 ws.NumericSet(ws.p_hse, 101300.0)
 ws.NumericSet(ws.z_hse_accuracy, 10.0)
 #
@@ -129,9 +129,9 @@ ws.iy_transmitter_agenda = iy_transmitter_agenda
 ws.Copy(ws.iy_main_agenda, ws.iy_main_agenda__Transmission)
 # Sensor/receiver and transmitter
 #
-ws.MatrixSet(ws.sensor_pos, array([[0.0]]))
-ws.MatrixSet(ws.sensor_los, array([[0.0]]))
-ws.MatrixSet(ws.transmitter_pos, array([], shape=(1, 0), dtype=float64))
+ws.MatrixSet(ws.sensor_pos, np.array([[0.0]]))
+ws.MatrixSet(ws.sensor_los, np.array([[0.0]]))
+ws.MatrixSet(ws.transmitter_pos, [])
 # Dummy value
 ws.ArrayOfIndexSet(ws.instrument_pol, [5])
 #

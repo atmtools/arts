@@ -33,7 +33,7 @@ ws.verbosityInit()
 # Semi-mandatory variables associated with scattering calculations
 #
 ws.ArrayOfStringSet(ws.scat_species, [])
-ws.MatrixSet(ws.particle_masses, array([], shape=(1, 0), dtype=float64))
+ws.MatrixSet(ws.particle_masses, [])
 ws.Tensor4SetConstant(ws.particle_bulkprop_field, 0, 0, 0, 0, 0.0)
 ws.ArrayOfStringSet(ws.particle_bulkprop_names, [])
 ws.Touch(ws.dpnd_field_dx)
@@ -45,7 +45,7 @@ ws.ArrayOfStringSet(ws.surface_props_names, [])
 #
 # Default is that no transmitter is involved
 #
-ws.MatrixSet(ws.transmitter_pos, array([], shape=(1, 0), dtype=float64))
+ws.MatrixSet(ws.transmitter_pos, [])
 #
 # Default assmption is that the sensor cause no Doppler effect
 #
@@ -119,14 +119,14 @@ ws.NumericSet(ws.ppath_lraytrace, 1000.0)
 # Various geo-positioning
 #
 # Default is to leave the geo-pos undefined
-ws.VectorSet(ws.lat_true, array([], dtype=float64))
-ws.VectorSet(ws.lon_true, array([], dtype=float64))
+ws.VectorSet(ws.lat_true, [])
+ws.VectorSet(ws.lon_true, [])
 
 
 @arts_agenda
 def geo_pos_agenda(ws):
     ws.Ignore(ws.ppath)
-    ws.VectorSet(ws.geo_pos, array([], dtype=float64))
+    ws.VectorSet(ws.geo_pos, [])
 
 
 ws.geo_pos_agenda = geo_pos_agenda

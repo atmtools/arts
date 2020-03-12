@@ -57,7 +57,7 @@ ws.Matrix1RowFromVector(ws.sensor_los, ws.rte_los)
 ws.IndexSet(ws.stokes_dim, 4)
 ws.IndexSet(ws.antenna_dim, 1)
 #
-ws.VectorSet(ws.za_grid, array([-0.2, -0.02, 0.0, 0.02, 0.2]))
+ws.VectorSet(ws.za_grid, np.array([-0.2, -0.02, 0.0, 0.02, 0.2]))
 ws.Matrix1ColFromVector(ws.mblock_dlos_grid, ws.za_grid)
 #
 ws.MatrixSetConstant(ws.antenna_dlos, 1, 1, 0.0)

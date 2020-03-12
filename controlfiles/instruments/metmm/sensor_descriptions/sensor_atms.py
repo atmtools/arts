@@ -23,7 +23,7 @@ ws = Workspace(verbosity=0)
 # There are 48 different angles, corresponding to one side of the ATMS scan.
 ws.MatrixSet(
     ws.antenna_dlos,
-    array(
+    np.array(
         [
             [-52.777777],
             [-51.666666],
@@ -80,7 +80,7 @@ ws.MatrixSet(
 # ---
 ws.MatrixSet(
     ws.met_mm_backend,
-    array(
+    np.array(
         [
             [2.3800000e10, 0.0000000e00, 0.0000000e00, 2.7000000e08],
             [3.1400000e10, 0.0000000e00, 0.0000000e00, 1.8000000e08],
@@ -135,7 +135,7 @@ ws.ArrayOfStringSet(
     ],
 )
 # Antenna is not supported for now
-ws.VectorSet(ws.met_mm_antenna, array([], dtype=float64))
+ws.VectorSet(ws.met_mm_antenna, [])
 ws.ArrayOfIndexSet(
     ws.met_mm_freq_number,
     [
@@ -165,7 +165,7 @@ ws.ArrayOfIndexSet(
 )
 ws.VectorSet(
     ws.freq_spacing_tmp,
-    array(
+    np.array(
         [
             1.0e09,
             1.0e09,

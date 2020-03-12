@@ -63,7 +63,7 @@ ws.Extract(ws.t_surface, ws.t_field, 0)
 ws.IndexSet(ws.stokes_dim, 4)
 # A single frequency
 #
-ws.VectorSet(ws.f_grid, array([3.0e10]))
+ws.VectorSet(ws.f_grid, np.array([3.0e10]))
 # Set surface to be flat water
 #
 ws.VectorCreate("data_f_grid")
@@ -93,8 +93,8 @@ ws.StringSet(ws.iy_unit, "RJBT")
 # It is allowed that sensor_los+mblock_grid is > 180, this is automatically
 # mapped to a correct angle.
 #
-ws.MatrixSet(ws.sensor_pos, array([[800000.0]]))
-ws.MatrixSet(ws.sensor_los, array([[180.0]]))
+ws.MatrixSet(ws.sensor_pos, np.array([[800000.0]]))
+ws.MatrixSet(ws.sensor_los, np.array([[180.0]]))
 #
 ws.VectorCreate("angles")
 ws.VectorNLinSpace(ws.angles, 5, 0.0, 60.0)
@@ -131,7 +131,7 @@ ws.yCalc()
 ws.VectorCreate("yref")
 ws.VectorSet(
     ws.yref,
-    array(
+    np.array(
         [
             127.654,
             0.0,

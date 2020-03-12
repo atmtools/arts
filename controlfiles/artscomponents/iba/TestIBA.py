@@ -29,7 +29,7 @@ ws.Copy(ws.ppath_step_agenda, ws.ppath_step_agenda__GeometricPath)
 # Basic settings
 #
 ws.IndexSet(ws.stokes_dim, 1)
-ws.VectorSet(ws.f_grid, array([3.10e10, 8.90e10, 1.60e11, 1.84e11]))
+ws.VectorSet(ws.f_grid, np.array([3.10e10, 8.90e10, 1.60e11, 1.84e11]))
 ws.StringSet(ws.iy_unit, "PlanckBT")
 # no jacobian calculation
 ws.jacobianOff()
@@ -77,8 +77,8 @@ ws.MatrixSetConstant(ws.z_surface, 1, 1, 0.0)
 #
 ws.AtmFieldsCalc()
 #
-ws.MatrixSet(ws.sensor_pos, array([[800000.0]]))
-ws.MatrixSet(ws.sensor_los, array([[130.0]]))
+ws.MatrixSet(ws.sensor_pos, np.array([[800000.0]]))
+ws.MatrixSet(ws.sensor_los, np.array([[130.0]]))
 #
 ws.atmfields_checkedCalc(bad_partition_functions_ok=1)
 ws.atmgeom_checkedCalc()
@@ -102,8 +102,8 @@ ws.VectorSetConstant(ws.lon_true, ws.nlat, 0.0)
 #
 ws.AtmFieldsCalcExpand1D()
 #
-ws.MatrixSet(ws.sensor_pos, array([[800000.0, 0.0]]))
-ws.MatrixSet(ws.sensor_los, array([[130.0]]))
+ws.MatrixSet(ws.sensor_pos, np.array([[800000.0, 0.0]]))
+ws.MatrixSet(ws.sensor_los, np.array([[130.0]]))
 #
 ws.atmfields_checkedCalc(bad_partition_functions_ok=1)
 ws.atmgeom_checkedCalc()

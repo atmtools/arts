@@ -39,11 +39,11 @@ ws.VectorNLinSpace(ws.lat_grid, 2, -60.0, 60.0)
 ws.VectorNLinSpace(ws.lon_grid, 2, -30.0, 30.0)
 ws.MatrixSet(
     ws.sensor_los,
-    array([[112.68855143, 0.0], [112.25892819, 0.0], [111.82133233, 0.0]]),
+    np.array([[112.68855143, 0.0], [112.25892819, 0.0], [111.82133233, 0.0]]),
 )
 ws.MatrixSet(
     ws.sensor_pos,
-    array([[600000.0, 0.0, 0.0], [600000.0, 0.0, 0.0], [600000.0, 0.0, 0.0]]),
+    np.array([[600000.0, 0.0, 0.0], [600000.0, 0.0, 0.0], [600000.0, 0.0, 0.0]]),
 )
 ws.refellipsoidEarth(ws.refellipsoid, "Sphere")
 ws.AtmosphereSet3D()

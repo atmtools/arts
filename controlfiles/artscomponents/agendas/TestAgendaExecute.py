@@ -47,11 +47,11 @@ ws.AgendaExecuteExclusive(ws.g0_agenda)
 ws.NumericSet(ws.ref, 0.0)
 ws.Compare(ws.lat, ws.ref, 0.0, "Error in Agenda Scoping")
 ws.MatrixCreate("mref")
-ws.MatrixSet(ws.mref, array([[4.0, 5.0, 6.0]]))
-ws.VectorSet(ws.x, array([], dtype=float64))
+ws.MatrixSet(ws.mref, np.array([[4.0, 5.0, 6.0]]))
+ws.VectorSet(ws.x, [])
 ws.IndexSet(ws.jacobian_do, 0)
 ws.IndexSet(ws.inversion_iteration_counter, 0)
-ws.MatrixSet(ws.jacobian, array([[1.0, 2.0, 3.0]]))
+ws.MatrixSet(ws.jacobian, np.array([[1.0, 2.0, 3.0]]))
 
 
 @arts_agenda
@@ -60,8 +60,8 @@ def inversion_iterate_agenda(ws):
     ws.Ignore(ws.jacobian_do)
     ws.Ignore(ws.jacobian)
     ws.Ignore(ws.inversion_iteration_counter)
-    ws.VectorSet(ws.yf, array([4.0, 5.0, 6.0]))
-    ws.MatrixSet(ws.jacobian, array([[4.0, 5.0, 6.0]]))
+    ws.VectorSet(ws.yf, np.array([4.0, 5.0, 6.0]))
+    ws.MatrixSet(ws.jacobian, np.array([[4.0, 5.0, 6.0]]))
 
 
 ws.inversion_iterate_agenda = inversion_iterate_agenda

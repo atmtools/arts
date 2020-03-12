@@ -55,7 +55,7 @@ ws.cloudboxOff()
 # ArrayOfIndexSet( cloudbox_limits, [ 4, 7, 10, 11, 8, 12 ] )
 # A dummy frequency grid
 #
-ws.VectorSet(ws.f_grid, array([1.0e10]))
+ws.VectorSet(ws.f_grid, np.array([1.0e10]))
 # Check if atmosphere OK
 #
 ws.atmfields_checkedCalc()
@@ -69,9 +69,9 @@ ws.NumericSet(ws.ppath_lmax, 20000.0)
 #
 # Set a observation position and line-of-sight (LOS)
 #
-ws.VectorSet(ws.rte_pos, array([6.00e05, 7.01e01, 0.00e00]))
-ws.VectorSet(ws.rte_los, array([113.0, 180.0]))
-ws.VectorSet(ws.rte_pos2, array([], dtype=float64))
+ws.VectorSet(ws.rte_pos, np.array([6.00e05, 7.01e01, 0.00e00]))
+ws.VectorSet(ws.rte_los, np.array([113.0, 180.0]))
+ws.VectorSet(ws.rte_pos2, [])
 # No transmitter involved
 #
 # no refraction
@@ -93,7 +93,7 @@ ws.ppathCalc()
 #
 ws.MatrixSet(
     ws.sensor_pos,
-    array(
+    np.array(
         [
             [6.00e05, 2.02e01, 2.30e01],
             [6.00e05, 7.03e01, -1.20e01],
@@ -114,7 +114,7 @@ ws.MatrixSet(
 )
 ws.MatrixSet(
     ws.sensor_los,
-    array(
+    np.array(
         [
             [45.0, 15.0],
             [95.0, 135.0],

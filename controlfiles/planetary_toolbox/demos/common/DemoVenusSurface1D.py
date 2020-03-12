@@ -107,9 +107,9 @@ ws.StringSet(ws.surface_temperature_file, "planets/Venus/MPS/Venus.t_surface.xml
 #  fields), namely for: A-3, B-1e, B-2e, B-3
 #  If you do not select any of these cases, the values set here do not matter.
 # SET one(!) number (-90...90)
-ws.VectorSet(ws.lat_true, array([20.0]))
+ws.VectorSet(ws.lat_true, np.array([20.0]))
 # SET one(!) number (-360...360)
-ws.VectorSet(ws.lon_true, array([-50.0]))
+ws.VectorSet(ws.lon_true, np.array([-50.0]))
 # -------
 # PART A: Surface Altitude (Topography)
 # -------

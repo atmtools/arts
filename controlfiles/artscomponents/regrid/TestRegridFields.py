@@ -79,7 +79,7 @@ ws.ArrayOfStringSet(ws.iy_aux_vars, ["Optical depth"])
 # Definition of sensor position and LOS
 # ---
 ws.MatrixSetConstant(ws.sensor_pos, 3, 1, 600000.0)
-ws.MatrixSet(ws.sensor_los, array([[95.0], [113.0], [135.0]]))
+ws.MatrixSet(ws.sensor_los, np.array([[95.0], [113.0], [135.0]]))
 #########################################################################
 # initial vertical spacing
 #########################################################################

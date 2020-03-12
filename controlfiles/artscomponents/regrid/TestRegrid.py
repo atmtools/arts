@@ -51,8 +51,8 @@ ws.Compare(ws.gf_regridded, ws.gf_ref, ws.maxabsdiff)
 ws.ReadXML(ws.gf, "gf.xml")
 ws.GriddedField3Create("gf_z")
 ws.ReadXML(out=ws.gf_z, filename="gf_data_z.xml")
-ws.VectorSet(ws.lat_grid, array([0.0]))
-ws.VectorSet(ws.lon_grid, array([0.0]))
+ws.VectorSet(ws.lat_grid, np.array([0.0]))
+ws.VectorSet(ws.lon_grid, np.array([0.0]))
 ws.GriddedField3Create("zraw_regridded")
 #
 # New grid is inside the old grid

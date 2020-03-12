@@ -24,7 +24,7 @@ ws.MatrixSetConstant(ws.sensor_los, 1, 1, 135.0)
 # bandwidth (see http://www.wmo-sat.info/oscar/instruments/view/342 ).
 ws.MatrixSet(
     ws.sensor_description_amsu,
-    array(
+    np.array(
         [
             [1.8331e11, 7.0000e09, 2.0000e09],
             [1.8331e11, 3.4000e09, 1.5000e09],

@@ -160,8 +160,8 @@ ws.ForLoop(ws.forloop_agenda, 0, ws.ncases, 1)
 # We continue with magnetic field (B). This is given in 3D, but first we try a 1D
 # case, i.e. we will extract data for a given geographical location.
 # We have only one set of B-field data given, hence we don't need a forloop here.
-ws.VectorSet(ws.lat_true, array([-12.0]))
-ws.VectorSet(ws.lon_true, array([10.0]))
+ws.VectorSet(ws.lat_true, np.array([-12.0]))
+ws.VectorSet(ws.lon_true, np.array([10.0]))
 # construct atmcase
 ws.Extract(ws.basename, ws.basecasearray, 2)
 # now reading and regridding of each of the 3 B-field components separately

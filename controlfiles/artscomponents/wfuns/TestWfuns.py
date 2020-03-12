@@ -57,8 +57,8 @@ ws.abs_lines_per_speciesSetNormalization(option="VVH")
 ws.abs_lines_per_speciesSetCutoff(option="ByLine", value=750000000000.0)
 ws.AbsInputFromAtmFields()
 ws.abs_speciesSet(abs_species=ws.abs_nls, species=[])
-ws.VectorSet(ws.abs_nls_pert, array([], dtype=float64))
-ws.VectorSet(ws.abs_t_pert, array([], dtype=float64))
+ws.VectorSet(ws.abs_nls_pert, [])
+ws.VectorSet(ws.abs_t_pert, [])
 ws.abs_xsec_agenda_checkedCalc()
 ws.lbl_checkedCalc()
 ws.abs_lookupCalc()
@@ -166,8 +166,8 @@ ws.Compare(ws.Ja, ws.Jp, 0.005)
 # Stuff needed for HSE
 ws.NumericSet(ws.p_hse, 100000.0)
 ws.NumericSet(ws.z_hse_accuracy, 1.0)
-ws.VectorSet(ws.lat_true, array([15.0]))
-ws.VectorSet(ws.lon_true, array([123.0]))
+ws.VectorSet(ws.lat_true, np.array([15.0]))
+ws.VectorSet(ws.lon_true, np.array([123.0]))
 #
 ws.StringSet(ws.info, "T analytical")
 ws.Print(ws.info, 0)
@@ -359,7 +359,7 @@ ws.jacobianAddSinefit(
     ws.sensor_response_pol_grid,
     ws.sensor_response_dlos_grid,
     ws.sensor_pos,
-    array([2.0e08, 4.0e07]),
+    np.array([2.0e08, 4.0e07]),
     0,
     0,
     0,

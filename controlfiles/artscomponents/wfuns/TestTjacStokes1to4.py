@@ -34,7 +34,7 @@ ws.Copy(ws.iy_main_agenda, ws.iy_main_agenda__Emission)
 # Frequencies and Stokes dim.
 #
 ws.IndexSet(ws.stokes_dim, 4)
-ws.VectorSet(ws.f_grid, array([3.5e10]))
+ws.VectorSet(ws.f_grid, np.array([3.5e10]))
 # Definition of species
 #
 ws.abs_speciesSet(species=["N2-SelfContStandardType", "O2-PWR98", "H2O-PWR98"])
@@ -73,8 +73,8 @@ ws.surface_rtprop_agenda = surface_rtprop_agenda
 
 # Sensor pos and los
 #
-ws.MatrixSet(ws.sensor_pos, array([[820000.0]]))
-ws.MatrixSet(ws.sensor_los, array([[140.0]]))
+ws.MatrixSet(ws.sensor_pos, np.array([[820000.0]]))
+ws.MatrixSet(ws.sensor_los, np.array([[140.0]]))
 # Define analytical Jacobian
 #
 ws.jacobianInit()
@@ -95,8 +95,8 @@ ws.sensor_checkedCalc()
 ws.lbl_checkedCalc()
 # HSE
 #
-ws.VectorSet(ws.lat_true, array([0.0]))
-ws.VectorSet(ws.lon_true, array([0.0]))
+ws.VectorSet(ws.lat_true, np.array([0.0]))
+ws.VectorSet(ws.lon_true, np.array([0.0]))
 #
 ws.Extract(ws.p_hse, ws.p_grid, 0)
 ws.NumericSet(ws.z_hse_accuracy, 0.5)

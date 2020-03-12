@@ -59,10 +59,10 @@ ws.VectorNLinSpace(ws.f_grid, 100, 50000000000.0, 150000000000.0)
 ws.abs_speciesSet(abs_species=ws.abs_nls, species=[])
 # abs_speciesSet( abs_species=abs_nls, species=["H2O-PWR98", "O2-PWR93"] )
 # Set tempertature perturbation vector for lookup table:
-ws.VectorSet(ws.abs_t_pert, array([], dtype=float64))
+ws.VectorSet(ws.abs_t_pert, [])
 # VectorLinSpace( abs_t_pert, -10, 10, 1 )
 # Set non-linear species VMR perturbation vector for lookup table:
-ws.VectorSet(ws.abs_nls_pert, array([], dtype=float64))
+ws.VectorSet(ws.abs_nls_pert, [])
 # VectorNLogSpace( abs_nls_pert, 5, 0.01, 10 )
 ws.abs_xsec_agenda_checkedCalc()
 ws.lbl_checkedCalc()

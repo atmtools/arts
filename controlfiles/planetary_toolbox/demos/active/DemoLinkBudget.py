@@ -29,7 +29,7 @@ ws = Workspace(verbosity=0)
 ws.VectorCreate("reciever")
 # z [m], lat [deg], lon  [deg]
 #
-ws.VectorSet(ws.reciever, array([0.0, 15.0, 78.0]))
+ws.VectorSet(ws.reciever, np.array([0.0, 15.0, 78.0]))
 #
 # Position of transmitter
 #
@@ -38,7 +38,7 @@ ws.VectorSet(ws.reciever, array([0.0, 15.0, 78.0]))
 ws.VectorCreate("transmitter")
 # z [m], lat [deg], lon  [deg]
 #
-ws.VectorSet(ws.transmitter, array([8.0e05, 1.7e01, 8.8e01]))
+ws.VectorSet(ws.transmitter, np.array([8.0e05, 1.7e01, 8.8e01]))
 #
 # Frequency
 #
@@ -109,7 +109,7 @@ ws.NumericAdd(ws.grid_start, ws.f_centre, ws.grid_hwidth)
 ws.VectorNLinSpace(ws.f_grid, 3, ws.grid_start, ws.grid_stop)
 # Postion and line-of-sight of sensor
 #
-ws.VectorSet(ws.rte_los, array([], dtype=float64))
+ws.VectorSet(ws.rte_los, [])
 # Dummy value
 #
 ws.Copy(ws.rte_pos, ws.reciever)
@@ -124,8 +124,8 @@ ws.jacobianOff()
 ws.cloudboxOff()
 ws.sensorOff()
 #
-ws.VectorSet(ws.lat_true, array([], dtype=float64))
-ws.VectorSet(ws.lon_true, array([], dtype=float64))
+ws.VectorSet(ws.lat_true, [])
+ws.VectorSet(ws.lon_true, [])
 # ============================================================================
 # Generate lat_grid and lon_grid
 # ============================================================================
@@ -178,9 +178,9 @@ ws.ArrayOfStringSet(ws.iy_aux_vars, ["Faraday rotation", "Extra path delay"])
 #
 ws.MatrixCreate("iy_trans")
 #
-ws.VectorSet(ws.rtp_pos, array([], dtype=float64))
+ws.VectorSet(ws.rtp_pos, [])
 # Dummy values
-ws.VectorSet(ws.rtp_los, array([], dtype=float64))
+ws.VectorSet(ws.rtp_los, [])
 ws.AgendaExecute(ws.iy_transmitter_agenda)
 ws.Copy(ws.iy_trans, ws.iy)
 #

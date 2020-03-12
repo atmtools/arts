@@ -27,7 +27,7 @@ ws.jacobianOff()
 # Frequency grid
 # --------------
 # Note: The frequencies must be contained in the gas absorption lookup table.
-ws.VectorSet(ws.f_grid, array([2.295e11, 2.305e11]))
+ws.VectorSet(ws.f_grid, np.array([2.295e11, 2.305e11]))
 # Number of Stokes components to be computed
 # -------------------------------------------
 # IndexSet( stokes_dim, 4 )
@@ -90,7 +90,7 @@ ws.surface_rtprop_agenda = surface_rtprop_agenda
 ws.VectorCreate("vector_1")
 ws.VectorCreate("vector_2")
 # Sensor viewing angles
-ws.VectorSet(ws.vector_1, array([99.7841942]))
+ws.VectorSet(ws.vector_1, np.array([99.7841942]))
 # VectorNLinSpace( vector_2, 4, 120, 180 ) #extend with a couple of downviewing los
 # Append( vector_1, vector_2 )
 ws.nelemGet(ws.nelem, ws.vector_1)
@@ -232,7 +232,7 @@ ws.spt_calc_agenda = spt_calc_agenda
 @arts_agenda
 def doit_conv_test_agenda(ws):
     # Give limits for all Stokes components in Rayleigh Jeans BT:
-    ws.doit_conv_flagAbsBT(epsilon=array([0.1, 0.01, 0.01, 0.01]))
+    ws.doit_conv_flagAbsBT(epsilon=np.array([0.1, 0.01, 0.01, 0.01]))
     # Alternative: Give limits in radiances
     # doit_conv_flagAbs( doit_conv_flag, doit_iteration_counter, cloudbox_field,
     #                   cloudbox_field_old ){

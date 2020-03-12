@@ -30,7 +30,7 @@ ws.IndexSet(ws.antenna_dim, 1)
 #
 ws.VectorSet(
     ws.za_grid,
-    array(
+    np.array(
         [
             -0.2,
             -0.15,

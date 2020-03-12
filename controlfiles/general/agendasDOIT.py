@@ -90,7 +90,7 @@ ws.spt_calc_agenda = spt_calc_agenda
 @arts_agenda
 def doit_conv_test_agenda(ws):
     # Give limits for all Stokes components in BT:
-    ws.doit_conv_flagAbsBT(epsilon=array([0.1]))
+    ws.doit_conv_flagAbsBT(epsilon=np.array([0.1]))
     # for stokes dim 1
     # Alternative: Give limits in radiances
     # doit_conv_flagAbs( epsilon=[0.1e-15, 0.1e-18, 0.1e-18, 0.1e-18] )

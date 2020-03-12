@@ -25,7 +25,7 @@ from arts.workspace import Workspace, arts_agenda
 ws = Workspace(verbosity=0)
 ws.MatrixSet(
     ws.antenna_dlos,
-    array(
+    np.array(
         [
             [-48.33],
             [-44.996897],
@@ -49,7 +49,7 @@ ws.MatrixSet(
 # ---
 ws.MatrixSet(
     ws.met_mm_backend,
-    array(
+    np.array(
         [
             [2.3800000e10, 0.0000000e00, 0.0000000e00, 2.7000000e08],
             [3.1400000e10, 0.0000000e00, 0.0000000e00, 1.8000000e08],
@@ -90,7 +90,7 @@ ws.ArrayOfStringSet(
     ],
 )
 # Antenna is not supported for now
-ws.VectorSet(ws.met_mm_antenna, array([], dtype=float64))
+ws.VectorSet(ws.met_mm_antenna, [])
 # How many monochromatic frequencies to simulate the channel
 ws.Touch(ws.met_mm_available_accuracies)
 ws.Delete(ws.met_mm_available_accuracies)
@@ -110,7 +110,7 @@ ws.ArrayOfIndexSet(
     ws.freq_number_tmp, [6, 1, 3, 23, 24, 44, 43, 34, 38, 26, 26, 27, 31, 17, 4]
 )
 ws.Append(ws.met_mm_available_accuracies, ws.freq_number_tmp)
-ws.VectorSet(ws.freq_spacing_tmp, array([1.0e10, 1.0e09, 1.0e09, 1.0e09]))
+ws.VectorSet(ws.freq_spacing_tmp, np.array([1.0e10, 1.0e09, 1.0e09, 1.0e09]))
 ws.Delete(ws.freq_number_tmp)
 ws.Extract(ws.met_mm_freq_number, ws.met_mm_available_accuracies, ws.met_mm_accuracy)
 ws.Extract(ws.current_spacing, ws.freq_spacing_tmp, ws.met_mm_accuracy)

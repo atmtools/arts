@@ -149,7 +149,7 @@ ws.NumericSet(ws.obsh, 450000.0)
 #
 # (a) zenith viewing angles (e.g., for slantlooking, but working for ALL geometries)
 # - can be empty
-ws.VectorSet(ws.viewang, array([180.0, 150.0, 120.0]))
+ws.VectorSet(ws.viewang, np.array([180.0, 150.0, 120.0]))
 # (b) tangent altitudes (in m) for limb views
 # - can be empty
 # - depending on your choice of type of geometry/refraction below, specified
@@ -159,7 +159,9 @@ ws.VectorSet(ws.viewang, array([180.0, 150.0, 120.0]))
 # - specified tanh are allowed to be negative. In case of theoretical tangent
 #    altitudes (but not for true ones!), they can even be "false" tangent
 #    altitudes, i.e., pointing BELOW the actual surface level.
-ws.VectorSet(ws.tanh, array([5.0e00, 4.0e03, 1.0e04, 1.2e04, 2.0e04, 4.0e04, 6.0e04]))
+ws.VectorSet(
+    ws.tanh, np.array([5.0e00, 4.0e03, 1.0e04, 1.2e04, 2.0e04, 4.0e04, 6.0e04])
+)
 # ---
 # Type of geometry/refraction
 # ---

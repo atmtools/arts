@@ -12,15 +12,15 @@ ws.VectorCreate("tessem_out")
 ws.VectorCreate("tessem_ref")
 ws.VectorSet(
     ws.tessem_in,
-    array([1.0000000e10, 0.0000000e00, 0.0000000e00, 2.7314999e02, 3.0000000e-03]),
+    np.array([1.0000000e10, 0.0000000e00, 0.0000000e00, 2.7314999e02, 3.0000000e-03]),
 )
-ws.VectorSet(ws.tessem_ref, array([0.395911]))
+ws.VectorSet(ws.tessem_ref, np.array([0.395911]))
 ws.TestTessem(ws.tessem_out, ws.tessem_neth, ws.tessem_in)
 ws.Compare(ws.tessem_out, ws.tessem_ref, 1e-06)
 ws.VectorSet(
     ws.tessem_in,
-    array([1.0000000e10, 0.0000000e00, 0.0000000e00, 2.7314999e02, 3.0000000e-03]),
+    np.array([1.0000000e10, 0.0000000e00, 0.0000000e00, 2.7314999e02, 3.0000000e-03]),
 )
-ws.VectorSet(ws.tessem_ref, array([0.374513]))
+ws.VectorSet(ws.tessem_ref, np.array([0.374513]))
 ws.TestTessem(ws.tessem_out, ws.tessem_netv, ws.tessem_in)
 ws.Compare(ws.tessem_out, ws.tessem_ref, 1e-06)

@@ -50,7 +50,7 @@ ws.cloudboxOff()
 # ArrayOfIndexSet( cloudbox_limits, [ 4, 10 ] )
 # A dummy frequency grid
 #
-ws.VectorSet(ws.f_grid, array([1.0e10]))
+ws.VectorSet(ws.f_grid, np.array([1.0e10]))
 # Check if atmosphere OK
 #
 ws.atmfields_checkedCalc()
@@ -64,10 +64,10 @@ ws.NumericSet(ws.ppath_lmax, 20000.0)
 #
 # Set a observation position and line-of-sight (LOS)
 #
-ws.VectorSet(ws.rte_pos, array([600000.0]))
+ws.VectorSet(ws.rte_pos, np.array([600000.0]))
 # VectorSet( rte_los, [ 112.2550477986 ] )  # Angle that just touches for 600e3
-ws.VectorSet(ws.rte_los, array([113.0]))
-ws.VectorSet(ws.rte_pos2, array([], dtype=float64))
+ws.VectorSet(ws.rte_los, np.array([113.0]))
+ws.VectorSet(ws.rte_pos2, [])
 # No transmitter involved
 #
 # no refraction
@@ -89,7 +89,7 @@ ws.ppathCalc()
 #
 ws.MatrixSet(
     ws.sensor_pos,
-    array(
+    np.array(
         [
             [6.0e05],
             [6.0e05],
@@ -105,7 +105,9 @@ ws.MatrixSet(
 )
 ws.MatrixSet(
     ws.sensor_los,
-    array([[45.0], [95.0], [113.0], [180.0], [0.0], [90.0], [100.0], [45.0], [100.0]]),
+    np.array(
+        [[45.0], [95.0], [113.0], [180.0], [0.0], [90.0], [100.0], [45.0], [100.0]]
+    ),
 )
 ws.IndexCreate("ilast")
 ws.nrowsGet(ws.ilast, ws.sensor_pos)

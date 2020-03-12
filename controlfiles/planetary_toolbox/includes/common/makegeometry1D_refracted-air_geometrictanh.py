@@ -79,4 +79,4 @@ ws.Append(ws.allzang, ws.zang)
 # MatrixSetConstant( sensor_pos, itmp, 1, obsh )
 # for use with looped iyCalc, i.e., we have to set rte_pos, not sensor_pos
 ws.VectorSetConstant(ws.rte_pos, 1, ws.obsh)
-ws.VectorSet(ws.rte_pos2, array([], dtype=float64))
+ws.VectorSet(ws.rte_pos2, [])

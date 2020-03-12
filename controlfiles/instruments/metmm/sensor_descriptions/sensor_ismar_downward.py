@@ -22,7 +22,7 @@ ws = Workspace(verbosity=0)
 # Viewing angles
 ws.MatrixSet(
     ws.antenna_dlos,
-    array(
+    np.array(
         [
             [-180.0],
             [-170.0],
@@ -46,7 +46,7 @@ ws.MatrixSet(
 # ---
 ws.MatrixSet(
     ws.met_mm_backend,
-    array(
+    np.array(
         [
             [1.187503e11, 1.100000e09, 0.000000e00, 4.000000e08],
             [1.187503e11, 1.500000e09, 0.000000e00, 4.000000e08],
@@ -99,7 +99,7 @@ ws.ArrayOfStringSet(
     ],
 )
 # Antenna is not supported for now
-ws.VectorSet(ws.met_mm_antenna, array([], dtype=float64))
+ws.VectorSet(ws.met_mm_antenna, [])
 # How many monochromatic frequencies to simulate the channel
 ws.Touch(ws.met_mm_available_accuracies)
 ws.Delete(ws.met_mm_available_accuracies)
@@ -172,7 +172,7 @@ ws.ArrayOfIndexSet(
 )
 ws.Append(ws.met_mm_available_accuracies, ws.freq_number_tmp)
 ws.Delete(ws.freq_number_tmp)
-ws.VectorSet(ws.freq_spacing_tmp, array([1.0e10, 1.0e09, 1.0e09, 1.0e09]))
+ws.VectorSet(ws.freq_spacing_tmp, np.array([1.0e10, 1.0e09, 1.0e09, 1.0e09]))
 ws.Extract(ws.met_mm_freq_number, ws.met_mm_available_accuracies, ws.met_mm_accuracy)
 ws.Extract(ws.current_spacing, ws.freq_spacing_tmp, ws.met_mm_accuracy)
 ws.nrowsGet(ws.met_mm_nchannels, ws.met_mm_backend)

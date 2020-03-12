@@ -101,7 +101,7 @@ ws.yCalcAppend(
     jacobian_quantities_copy=ws.jacobian_quantities_copy, append_instrument_wfs=0
 )
 # ---- Part 3: Data from tropospheric water vapour radiometer -----------------
-ws.VectorSet(ws.f_grid, array([2.34e10, 3.10e10]))
+ws.VectorSet(ws.f_grid, np.array([2.34e10, 3.10e10]))
 ws.Copy(ws.iy_main_agenda, ws.iy_main_agenda__Emission)
 ws.MatrixSetConstant(ws.sensor_los, 1, 1, 0.0)
 ws.sensorOff()

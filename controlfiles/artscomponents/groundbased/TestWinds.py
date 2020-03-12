@@ -45,12 +45,12 @@ ws.AtmRawRead(basename="testdata/tropical")
 # All settings here:
 #
 # ---- Select atmosphere_dim, LOS angles  and winds --------------------------
-ws.VectorSet(ws.lat_grid, array([-10.0, 10.0]))
-ws.VectorSet(ws.lon_grid, array([-10.0, 10.0]))
+ws.VectorSet(ws.lat_grid, np.array([-10.0, 10.0]))
+ws.VectorSet(ws.lon_grid, np.array([-10.0, 10.0]))
 # AtmosphereSet1D
 # AtmosphereSet2D
 ws.AtmosphereSet3D()
-ws.MatrixSet(ws.sensor_los, array([[30.0, 50.0]]))
+ws.MatrixSet(ws.sensor_los, np.array([[30.0, 50.0]]))
 # AtmFieldsCalc
 ws.AtmFieldsCalcExpand1D()
 ws.nrowsGet(ws.nrows, ws.t_field)

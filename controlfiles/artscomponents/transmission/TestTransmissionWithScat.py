@@ -33,7 +33,7 @@ ws.IndexSet(ws.stokes_dim, 4)
 ws.refellipsoidEarth(ws.refellipsoid, "WGS84")
 # Frequency grid
 #
-ws.VectorSet(ws.f_grid, array([2.3e11]))
+ws.VectorSet(ws.f_grid, np.array([2.3e11]))
 # A pressure grid rougly matching 0 to 80 km, in steps of 2 km.
 #
 ws.VectorNLogSpace(ws.p_grid, 41, 101300.0, 1.0)
@@ -85,7 +85,7 @@ ws.NumericSet(ws.ppath_lraytrace, 500.0)
 # VectorSet( rte_los, [ 80, 24 ] )
 ws.rte_losSet(ws.rte_los, ws.atmosphere_dim, 70.0, 180.0)
 ws.rte_posSet(ws.rte_pos, ws.atmosphere_dim, 8000.0, 0.0, 0.0)
-ws.VectorSet(ws.rte_pos2, array([], dtype=float64))
+ws.VectorSet(ws.rte_pos2, [])
 # No transmitter position defined
 # Radiative transfer agendas
 #

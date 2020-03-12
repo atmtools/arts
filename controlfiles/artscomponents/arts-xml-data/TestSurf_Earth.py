@@ -92,7 +92,7 @@ ws.p_gridFromZRaw(ws.p_grid, ws.z_field_raw, 0)
 ws.jacobianOff()
 ws.cloudboxOff()
 ws.IndexSet(ws.stokes_dim, 1)
-ws.VectorSet(ws.f_grid, array([3.0e11]))
+ws.VectorSet(ws.f_grid, np.array([3.0e11]))
 ws.sensorOff()
 ws.StringSet(ws.iy_unit, "PlanckBT")
 ws.ReadSplitARTSCAT(basename="spectroscopy/Perrin/", fmin=0.0, fmax=1000000000000.0)
@@ -106,7 +106,7 @@ ws.Copy(ws.iy_space_agenda, ws.iy_space_agenda__CosmicBackground)
 ws.Copy(ws.iy_surface_agenda, ws.iy_surface_agenda__UseSurfaceRtprop)
 ws.Copy(ws.ppath_step_agenda, ws.ppath_step_agenda__GeometricPath)
 # LOS zenith angle
-ws.MatrixSet(ws.sensor_los, array([[180.0], [130.0], [115.0], [113.8]]))
+ws.MatrixSet(ws.sensor_los, np.array([[180.0], [130.0], [115.0], [113.8]]))
 # LOS azimuth angle
 # MatrixSet( mtmp,       [])
 ws.nrowsGet(ws.itmp, ws.sensor_los)
@@ -151,7 +151,7 @@ ws.cloudbox_checkedCalc()
 ws.sensor_checkedCalc()
 # CASE A-1
 #####
-ws.VectorSet(ws.surface_scalar_reflectivity, array([0.4]))
+ws.VectorSet(ws.surface_scalar_reflectivity, np.array([0.4]))
 ws.Copy(
     ws.surface_rtprop_agenda,
     ws.surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_field,

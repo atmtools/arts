@@ -70,8 +70,8 @@ ws.cloudboxSetFullAtm()
 #
 ws.sensorOff()
 #
-ws.MatrixSet(ws.sensor_pos, array([[400000.0]]))
-ws.MatrixSet(ws.sensor_los, array([[180.0]]))
+ws.MatrixSet(ws.sensor_pos, np.array([[400000.0]]))
+ws.MatrixSet(ws.sensor_los, np.array([[180.0]]))
 #
 ws.ArrayOfIndexSet(ws.instrument_pol, [5])
 ws.Append(ws.instrument_pol_array, ws.instrument_pol)

@@ -88,7 +88,7 @@ ws.VectorCreate("yREFERENCE")
 ws.jacobianOff()
 ws.cloudboxOff()
 ws.IndexSet(ws.stokes_dim, 1)
-ws.VectorSet(ws.f_grid, array([3.0e11]))
+ws.VectorSet(ws.f_grid, np.array([3.0e11]))
 ws.sensorOff()
 ws.StringSet(ws.iy_unit, "PlanckBT")
 # we manually select a minumim set of basic atm data (main atm constituents)
@@ -106,7 +106,7 @@ ws.Copy(ws.ppath_step_agenda, ws.ppath_step_agenda__GeometricPath)
 # sensor placed over Maxwell Montes region scanning from the high to low surface
 #  RI region
 # LOS zenith angle
-ws.MatrixSet(ws.sensor_los, array([[180.0], [130.0], [115.0], [113.8]]))
+ws.MatrixSet(ws.sensor_los, np.array([[180.0], [130.0], [115.0], [113.8]]))
 # LOS azimuth angle
 # MatrixSet( mtmp,       [])
 ws.nrowsGet(ws.itmp, ws.sensor_los)
@@ -177,7 +177,7 @@ ws.atmgeom_checkedCalc()
 # now we need to do some RT calc in order to APPLY the reflectivity data
 ws.cloudbox_checkedCalc()
 ws.sensor_checkedCalc()
-ws.VectorSet(ws.surface_scalar_reflectivity, array([0.4]))
+ws.VectorSet(ws.surface_scalar_reflectivity, np.array([0.4]))
 # surface temp from atmospheric t_field
 @arts_agenda
 def surface_rtprop_agenda(ws):

@@ -48,8 +48,8 @@ ws.abs_speciesSet(
     ]
 )
 ws.VectorNLinSpace(ws.f_grid, 100, 0.0, 75000000000000.0)
-ws.VectorSet(ws.abs_p, array([100000.0]))
-ws.VectorSet(ws.abs_t, array([310.0]))
+ws.VectorSet(ws.abs_p, np.array([100000.0]))
+ws.VectorSet(ws.abs_t, np.array([310.0]))
 # Set all VMR values to the same value:
 ws.nelemGet(ws.nrows, ws.abs_species)
 ws.nelemGet(ws.ncols, ws.abs_t)

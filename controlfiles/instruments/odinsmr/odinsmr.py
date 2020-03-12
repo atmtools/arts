@@ -20,7 +20,7 @@ ws.abs_cont_descriptionAppend(
     ws.abs_cont_parameters,
     "H2O-SelfContStandardType",
     "user",
-    array([9.21e-34, 5.50e00]),
+    np.array([9.21e-34, 5.50e00]),
 )
 ws.abs_cont_descriptionAppend(
     ws.abs_cont_names,
@@ -28,7 +28,7 @@ ws.abs_cont_descriptionAppend(
     ws.abs_cont_parameters,
     "H2O-ForeignContStandardType",
     "user",
-    array([5.32e-35, 1.80e00]),
+    np.array([5.32e-35, 1.80e00]),
 )
 # ----- O2 continuum models ------------------------------
 # Rosenkranz O2 absorption model (only continuum):
@@ -38,7 +38,7 @@ ws.abs_cont_descriptionAppend(
     ws.abs_cont_parameters,
     "O2-PWR98",
     "RosenkranzContinuum",
-    array([], dtype=float64),
+    [],
 )
 # ----- N2 continuum -------------------------------------
 #
@@ -63,7 +63,7 @@ ws.abs_cont_descriptionAppend(
     ws.abs_cont_parameters,
     "N2-SelfContMPM93",
     "MPM93Scale",
-    array([1.34]),
+    np.array([1.34]),
 )
 # ----- End of absorption models used for Odin-SMR ------------------------
 # Odin-SMR gives RJ brightness temperatures

@@ -9,7 +9,7 @@ ws = Workspace(verbosity=0)
 # ---
 ws.MatrixSet(
     ws.sensor_description_amsu,
-    array(
+    np.array(
         [
             [1.8331e11, 1.5000e09, 1.4000e09],
             [1.8331e11, 3.5000e09, 2.0000e09],

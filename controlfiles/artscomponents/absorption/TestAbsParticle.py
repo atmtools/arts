@@ -35,7 +35,7 @@ ws.jacobianOff()
 # Frequency grid
 # --------------
 # Note: The frequencies must be contained in the gas absorption lookup table.
-ws.VectorSet(ws.f_grid, array([2.295e11, 2.305e11]))
+ws.VectorSet(ws.f_grid, np.array([2.295e11, 2.305e11]))
 # Number of Stokes components to be computed
 # -------------------------------------------
 ws.IndexSet(ws.stokes_dim, 4)

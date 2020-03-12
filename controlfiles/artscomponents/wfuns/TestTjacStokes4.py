@@ -36,7 +36,7 @@ ws.Copy(ws.iy_main_agenda, ws.iy_main_agenda__Emission)
 # Frequencies and Stokes dim.
 #
 ws.IndexSet(ws.stokes_dim, 4)
-ws.VectorSet(ws.f_grid, array([3.50000e10, 1.18751e11]))
+ws.VectorSet(ws.f_grid, np.array([3.50000e10, 1.18751e11]))
 # Definition of species
 #
 ws.abs_speciesSet(species=["N2-SelfContStandardType", "O2-Z-66", "H2O-PWR98"])
@@ -49,7 +49,7 @@ ws.Wigner6Init(ws.wigner_initialized, 40000, 100)
 #
 ws.AtmosphereSet3D()
 ws.VectorNLogSpace(ws.p_grid, 201, 101300.0, 0.05)
-ws.VectorSet(ws.lat_grid, array([-10.0, 10.0]))
+ws.VectorSet(ws.lat_grid, np.array([-10.0, 10.0]))
 ws.Copy(ws.lon_grid, ws.lat_grid)
 ws.AtmRawRead(basename="testdata/tropical")
 #
@@ -88,8 +88,8 @@ ws.surface_rtprop_agenda = surface_rtprop_agenda
 
 # Sensor pos and los
 #
-ws.MatrixSet(ws.sensor_pos, array([[820000.0, 0.0, 0.0]]))
-ws.MatrixSet(ws.sensor_los, array([[140.0, 45.0]]))
+ws.MatrixSet(ws.sensor_pos, np.array([[820000.0, 0.0, 0.0]]))
+ws.MatrixSet(ws.sensor_los, np.array([[140.0, 45.0]]))
 # Define analytical Jacobian
 #
 ws.jacobianInit()
@@ -110,8 +110,8 @@ ws.sensor_checkedCalc()
 ws.lbl_checkedCalc()
 # HSE
 #
-ws.VectorSet(ws.lat_true, array([0.0]))
-ws.VectorSet(ws.lon_true, array([0.0]))
+ws.VectorSet(ws.lat_true, np.array([0.0]))
+ws.VectorSet(ws.lon_true, np.array([0.0]))
 #
 ws.Extract(ws.p_hse, ws.p_grid, 0)
 ws.NumericSet(ws.z_hse_accuracy, 0.5)

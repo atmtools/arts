@@ -59,9 +59,9 @@ ws.AtmFieldsCalc()
 ws.Extract(ws.z_surface, ws.z_field, 0)
 # Definition of position and LOS (simulating limb sounding from 600 km)
 #
-ws.VectorSet(ws.rte_pos, array([600000.0]))
-ws.VectorSet(ws.rte_los, array([113.3]))
-ws.VectorSet(ws.rte_pos2, array([], dtype=float64))
+ws.VectorSet(ws.rte_pos, np.array([600000.0]))
+ws.VectorSet(ws.rte_los, np.array([113.3]))
+ws.VectorSet(ws.rte_pos2, [])
 # No transmitter involved
 # Define auxiliary data (the order between the quantities is free)
 #

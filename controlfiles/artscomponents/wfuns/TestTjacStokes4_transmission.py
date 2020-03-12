@@ -33,7 +33,7 @@ ws.Copy(ws.iy_main_agenda, ws.iy_main_agenda__Transmission)
 # Frequencies and Stokes dim.
 #
 ws.IndexSet(ws.stokes_dim, 4)
-ws.VectorSet(ws.f_grid, array([1.18751e11]))
+ws.VectorSet(ws.f_grid, np.array([1.18751e11]))
 # Definition of species
 #
 ws.abs_speciesSet(species=["N2-SelfContStandardType", "O2-Z-66", "H2O-PWR98"])
@@ -46,7 +46,7 @@ ws.Wigner6Init(ws.wigner_initialized, 40000, 100)
 #
 ws.AtmosphereSet3D()
 ws.VectorNLogSpace(ws.p_grid, 101, 1.0, 0.05)
-ws.VectorSet(ws.lat_grid, array([-10.0, 10.0]))
+ws.VectorSet(ws.lat_grid, np.array([-10.0, 10.0]))
 ws.Copy(ws.lon_grid, ws.lat_grid)
 ws.AtmRawRead(basename="testdata/tropical")
 #
@@ -70,15 +70,15 @@ def iy_transmitter_agenda(ws):
     ws.Ignore(ws.rtp_pos)
     ws.Ignore(ws.rtp_los)
     ws.Ignore(ws.f_grid)
-    ws.MatrixSet(ws.iy, array([[1.0, 0.25, 0.05, 0.1]]))
+    ws.MatrixSet(ws.iy, np.array([[1.0, 0.25, 0.05, 0.1]]))
 
 
 ws.iy_transmitter_agenda = iy_transmitter_agenda
 
 # Sensor pos and los
 #
-ws.MatrixSet(ws.sensor_pos, array([[820000.0, 0.0, 0.0]]))
-ws.MatrixSet(ws.sensor_los, array([[140.0, 45.0]]))
+ws.MatrixSet(ws.sensor_pos, np.array([[820000.0, 0.0, 0.0]]))
+ws.MatrixSet(ws.sensor_los, np.array([[140.0, 45.0]]))
 # Define analytical Jacobian
 #
 ws.jacobianInit()
@@ -99,8 +99,8 @@ ws.sensor_checkedCalc()
 ws.lbl_checkedCalc()
 # HSE
 #
-ws.VectorSet(ws.lat_true, array([0.0]))
-ws.VectorSet(ws.lon_true, array([0.0]))
+ws.VectorSet(ws.lat_true, np.array([0.0]))
+ws.VectorSet(ws.lon_true, np.array([0.0]))
 #
 ws.Extract(ws.p_hse, ws.p_grid, 0)
 ws.NumericSet(ws.z_hse_accuracy, 0.5)

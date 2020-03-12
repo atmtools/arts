@@ -99,7 +99,7 @@ ws.Extract(ws.t_surface, ws.t_field, 0)
 # Definition of sensor position and LOS
 # ---
 ws.MatrixSetConstant(ws.sensor_pos, 3, 1, 600000.0)
-ws.MatrixSet(ws.sensor_los, array([[95.0], [113.0], [135.0]]))
+ws.MatrixSet(ws.sensor_los, np.array([[95.0], [113.0], [135.0]]))
 # Perform RT calculations
 # ---
 ws.abs_xsec_agenda_checkedCalc()

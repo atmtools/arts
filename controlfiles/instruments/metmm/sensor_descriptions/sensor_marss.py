@@ -22,7 +22,7 @@ ws = Workspace(verbosity=0)
 # Viewing angles
 ws.MatrixSet(
     ws.antenna_dlos,
-    array(
+    np.array(
         [
             [-180.0],
             [-170.0],
@@ -51,7 +51,7 @@ ws.MatrixSet(
 # ---
 ws.MatrixSet(
     ws.met_mm_backend,
-    array(
+    np.array(
         [
             [8.89920e10, 1.07500e09, 0.00000e00, 6.50000e08],
             [1.57075e11, 2.60000e09, 0.00000e00, 2.60000e09],
@@ -64,9 +64,9 @@ ws.MatrixSet(
 ws.ArrayOfStringSet(
     ws.met_mm_polarisation, ["MARSS-V", "MARSS-H", "MARSS-H", "MARSS-H", "MARSS-H"]
 )
-ws.VectorSet(ws.met_mm_antenna, array([], dtype=float64))
+ws.VectorSet(ws.met_mm_antenna, [])
 ws.ArrayOfIndexSet(ws.met_mm_freq_number, [12, 12, 12, 12, 12])
-ws.VectorSet(ws.freq_spacing_tmp, array([1.0e10, 1.0e09, 1.0e09, 1.0e09]))
+ws.VectorSet(ws.freq_spacing_tmp, np.array([1.0e10, 1.0e09, 1.0e09, 1.0e09]))
 ws.Extract(ws.current_spacing, ws.freq_spacing_tmp, ws.met_mm_accuracy)
 ws.nrowsGet(ws.met_mm_nchannels, ws.met_mm_backend)
 ws.VectorSetConstant(ws.met_mm_freq_spacing, ws.met_mm_nchannels, ws.current_spacing)

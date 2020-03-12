@@ -25,7 +25,7 @@ from arts.workspace import Workspace, arts_agenda
 ws = Workspace(verbosity=0)
 ws.MatrixSet(
     ws.antenna_dlos,
-    array(
+    np.array(
         [
             [-48.95],
             [-47.85],
@@ -79,7 +79,7 @@ ws.MatrixSet(
 # ---
 ws.MatrixSet(
     ws.met_mm_backend,
-    array(
+    np.array(
         [
             [8.9000e10, 9.0000e08, 0.0000e00, 1.0000e09],
             [1.5000e11, 9.0000e08, 0.0000e00, 1.0000e09],
@@ -93,7 +93,7 @@ ws.ArrayOfStringSet(
     ws.met_mm_polarisation, ["AMSU-V", "AMSU-V", "AMSU-V", "AMSU-V", "AMSU-V"]
 )
 # Antenna is not supported for now
-ws.VectorSet(ws.met_mm_antenna, array([], dtype=float64))
+ws.VectorSet(ws.met_mm_antenna, [])
 # How many monochromatic frequencies to simulate the channel
 ws.Touch(ws.met_mm_available_accuracies)
 ws.Delete(ws.met_mm_available_accuracies)
@@ -109,7 +109,7 @@ ws.Append(ws.met_mm_available_accuracies, ws.freq_number_tmp)
 # Number of frequencies for fourth accuracy (reference)
 ws.ArrayOfIndexSet(ws.freq_number_tmp, [2, 23, 67, 19, 25])
 ws.Append(ws.met_mm_available_accuracies, ws.freq_number_tmp)
-ws.VectorSet(ws.freq_spacing_tmp, array([1.0e10, 1.0e09, 1.0e09, 1.0e09]))
+ws.VectorSet(ws.freq_spacing_tmp, np.array([1.0e10, 1.0e09, 1.0e09, 1.0e09]))
 ws.Delete(ws.freq_number_tmp)
 ws.Extract(ws.met_mm_freq_number, ws.met_mm_available_accuracies, ws.met_mm_accuracy)
 ws.Extract(ws.current_spacing, ws.freq_spacing_tmp, ws.met_mm_accuracy)

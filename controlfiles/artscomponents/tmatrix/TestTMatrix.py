@@ -13,9 +13,9 @@ ws.VectorNLinSpace(ws.data_za_grid, 19, 0.0, 180.0)
 ws.VectorCreate("data_aa_grid")
 ws.VectorNLinSpace(ws.data_aa_grid, 19, 0.0, 180.0)
 ws.VectorCreate("data_f_grid")
-ws.VectorSet(ws.data_f_grid, array([2.3e11, 2.4e11]))
+ws.VectorSet(ws.data_f_grid, np.array([2.3e11, 2.4e11]))
 ws.VectorCreate("data_t_grid")
-ws.VectorSet(ws.data_t_grid, array([220.0, 250.0, 270.0]))
+ws.VectorSet(ws.data_t_grid, np.array([220.0, 250.0, 270.0]))
 # complex_refr_indexIceMatzler06(
 #  data_f_grid = data_f_grid,
 #  data_T_grid = data_t_grid )

@@ -129,4 +129,4 @@ ws.Append(ws.rte_pos, ws.zang)
 ws.VectorSetConstant(ws.zang, 1, ws.obslon)
 # zang just used as container
 ws.Append(ws.rte_pos, ws.zang)
-ws.VectorSet(ws.rte_pos2, array([], dtype=float64))
+ws.VectorSet(ws.rte_pos2, [])

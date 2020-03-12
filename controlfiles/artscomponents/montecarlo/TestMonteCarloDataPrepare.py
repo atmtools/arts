@@ -14,7 +14,7 @@ ws.execute_controlfile("general/planet_earth.arts")
 # Agenda for scalar gas absorption calculation
 ws.Copy(ws.abs_xsec_agenda, ws.abs_xsec_agenda__noCIA)
 ws.output_file_formatSetBinary()
-ws.VectorSet(ws.f_grid, array([2.3e11]))
+ws.VectorSet(ws.f_grid, np.array([2.3e11]))
 ws.WriteXML(ws.output_file_format, ws.f_grid)
 ws.IndexSet(ws.f_index, 0)
 ws.IndexSet(ws.stokes_dim, 4)

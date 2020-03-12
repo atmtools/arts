@@ -19,7 +19,7 @@ ws.Copy(ws.abs_xsec_agenda, ws.abs_xsec_agenda__noCIA)
 ws.Copy(ws.propmat_clearsky_agenda, ws.propmat_clearsky_agenda__OnTheFly)
 # Blackbody surface
 ws.Copy(ws.surface_rtprop_agenda, ws.surface_rtprop_agenda__Blackbody_SurfTFromt_field)
-ws.VectorSet(ws.surface_scalar_reflectivity, array([0.0]))
+ws.VectorSet(ws.surface_scalar_reflectivity, np.array([0.0]))
 # Standard ppath calculations
 ws.Copy(ws.ppath_step_agenda, ws.ppath_step_agenda__GeometricPath)
 ws.Copy(ws.ppath_agenda, ws.ppath_agenda__FollowSensorLosPath)
@@ -129,10 +129,10 @@ ws.atmfields_checkedCalc(bad_partition_functions_ok=1)
 # Intitial settings for tests
 ws.IndexSet(ws.stokes_dim, 1)
 # See non-fast cfile for possible frequencies to select
-ws.VectorSet(ws.f_grid, array([1.65e11]))
+ws.VectorSet(ws.f_grid, np.array([1.65e11]))
 ws.Extract(ws.z_surface, ws.z_field, 0)
-ws.MatrixSet(ws.sensor_pos, array([[20000.0], [8000.0], [20000.0]]))
-ws.MatrixSet(ws.sensor_los, array([[180.0], [160.0], [130.0]]))
+ws.MatrixSet(ws.sensor_pos, np.array([[20000.0], [8000.0], [20000.0]]))
+ws.MatrixSet(ws.sensor_los, np.array([[180.0], [160.0], [130.0]]))
 # Some stuff that depends on the settings above
 ws.sensorOff()
 ws.atmgeom_checkedCalc()

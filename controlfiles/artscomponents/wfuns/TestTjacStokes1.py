@@ -54,7 +54,7 @@ ws.AtmFieldsCalc()
 #
 ws.Extract(ws.z_surface, ws.z_field, 0)
 ws.Extract(ws.t_surface, ws.t_field, 0)
-ws.VectorSet(ws.surface_scalar_reflectivity, array([0.4]))
+ws.VectorSet(ws.surface_scalar_reflectivity, np.array([0.4]))
 ws.Copy(
     ws.surface_rtprop_agenda,
     ws.surface_rtprop_agenda__Specular_NoPol_ReflFix_SurfTFromt_surface,
@@ -62,11 +62,11 @@ ws.Copy(
 # Frequencies and Stokes dim.
 #
 ws.IndexSet(ws.stokes_dim, 1)
-ws.VectorSet(ws.f_grid, array([3.5000e10, 1.1875e11, 1.1880e11]))
+ws.VectorSet(ws.f_grid, np.array([3.5000e10, 1.1875e11, 1.1880e11]))
 # Sensor pos and los
 #
-ws.MatrixSet(ws.sensor_pos, array([[820000.0]]))
-ws.MatrixSet(ws.sensor_los, array([[140.0]]))
+ws.MatrixSet(ws.sensor_pos, np.array([[820000.0]]))
+ws.MatrixSet(ws.sensor_los, np.array([[140.0]]))
 # Define analytical Jacobian
 #
 ws.jacobianInit()
@@ -87,8 +87,8 @@ ws.sensor_checkedCalc()
 ws.lbl_checkedCalc()
 # HSE
 #
-ws.VectorSet(ws.lat_true, array([0.0]))
-ws.VectorSet(ws.lon_true, array([0.0]))
+ws.VectorSet(ws.lat_true, np.array([0.0]))
+ws.VectorSet(ws.lon_true, np.array([0.0]))
 #
 ws.Extract(ws.p_hse, ws.p_grid, 0)
 ws.NumericSet(ws.z_hse_accuracy, 0.5)
@@ -193,20 +193,20 @@ ws.Compare(
 # Move to a 3D view and redo analytical with HSE=on
 #
 ws.AtmosphereSet3D()
-ws.VectorSet(ws.lat_grid, array([-10.0, 10.0]))
+ws.VectorSet(ws.lat_grid, np.array([-10.0, 10.0]))
 ws.Copy(ws.lon_grid, ws.lat_grid)
 ws.AtmFieldsCalcExpand1D()
 #
 ws.Extract(ws.z_surface, ws.z_field, 0)
 ws.Extract(ws.t_surface, ws.t_field, 0)
 #
-ws.MatrixSet(ws.sensor_pos, array([[820000.0, 0.0, 0.0]]))
-ws.MatrixSet(ws.sensor_los, array([[140.0, 20.0]]))
+ws.MatrixSet(ws.sensor_pos, np.array([[820000.0, 0.0, 0.0]]))
+ws.MatrixSet(ws.sensor_los, np.array([[140.0, 20.0]]))
 #
 ws.VectorCreate("lat0")
 ws.VectorCreate("lon0")
-ws.VectorSet(ws.lat0, array([0.0]))
-ws.VectorSet(ws.lon0, array([0.0]))
+ws.VectorSet(ws.lat0, np.array([0.0]))
+ws.VectorSet(ws.lon0, np.array([0.0]))
 ws.jacobianInit()
 ws.jacobianAddTemperature(g1=ws.p_grid, g2=ws.lat0, g3=ws.lon0, hse="on")
 ws.jacobianClose()

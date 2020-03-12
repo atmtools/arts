@@ -50,8 +50,8 @@ ws.AtmFieldsCalc(vmr_zeropadding=1)
 # (this roughly recreates the original altitudes for the input electron density
 #  and magnetic field)
 #
-ws.VectorSet(ws.lat_true, array([0.0]))
-ws.VectorSet(ws.lon_true, array([0.0]))
+ws.VectorSet(ws.lat_true, np.array([0.0]))
+ws.VectorSet(ws.lon_true, np.array([0.0]))
 ws.NumericSet(ws.p_hse, 101300.0)
 ws.NumericSet(ws.z_hse_accuracy, 10.0)
 #

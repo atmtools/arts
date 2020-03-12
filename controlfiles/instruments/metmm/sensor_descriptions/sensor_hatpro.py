@@ -26,12 +26,12 @@ ws = Workspace(verbosity=0)
 # ftp://ftp.etl.noaa.gov/psd3/arctic/summit/mwr/0_docs/Summit_Datagrams_MicroWaveRadiometer.pdf
 # Viewing angles( !Caution ground-based instrument! )
 # This instrument has only 1 viewing angle
-ws.MatrixSet(ws.antenna_dlos, array([[180.0]]))
+ws.MatrixSet(ws.antenna_dlos, np.array([[180.0]]))
 # Sensor response setup
 # ---
 ws.MatrixSet(
     ws.met_mm_backend,
-    array(
+    np.array(
         [
             [2.224e10, 0.000e00, 0.000e00, 2.300e08],
             [2.304e10, 0.000e00, 0.000e00, 2.300e08],
@@ -74,14 +74,14 @@ ws.ArrayOfStringSet(
     ],
 )
 # Antenna is not supported for now
-ws.VectorSet(ws.met_mm_antenna, array([], dtype=float64))
+ws.VectorSet(ws.met_mm_antenna, [])
 ws.ArrayOfIndexSet(
     ws.met_mm_freq_number,
     [12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12],
 )
 ws.VectorSet(
     ws.freq_spacing_tmp,
-    array(
+    np.array(
         [
             1.0e09,
             1.0e09,

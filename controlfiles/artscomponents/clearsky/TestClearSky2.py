@@ -81,9 +81,9 @@ ws.Extract(ws.z_surface, ws.z_field, 0)
 ws.Extract(ws.t_surface, ws.t_field, 0)
 # Definition of sensor position and LOS
 # ---
-ws.VectorSet(ws.rte_pos, array([600000.0]))
-ws.VectorSet(ws.rte_los, array([113.4]))
-ws.VectorSet(ws.rte_pos2, array([], dtype=float64))
+ws.VectorSet(ws.rte_pos, np.array([600000.0]))
+ws.VectorSet(ws.rte_los, np.array([113.4]))
+ws.VectorSet(ws.rte_pos2, [])
 # A dummy value
 # Perform RT calculations
 # ---

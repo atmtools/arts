@@ -31,7 +31,7 @@ ws.doit_mono_agenda = doit_mono_agenda
 @arts_agenda
 def doit_conv_test_agenda(ws):
     # Give limits for all Stokes components in Rayleigh Jeans BT:
-    ws.doit_conv_flagAbsBT(epsilon=array([0.001, 0.01, 0.01, 0.01]))
+    ws.doit_conv_flagAbsBT(epsilon=np.array([0.001, 0.01, 0.01, 0.01]))
     # Alternative: Give limits in radiances
     # doit_conv_flagAbs( doit_conv_flag, doit_iteration_counter, cloudbox_field,
     #                   cloudbox_field_old ){

@@ -37,7 +37,7 @@ ws.iy_main_agenda = iy_main_agenda
 @arts_agenda
 def geo_pos_agenda(ws):
     ws.Ignore(ws.ppath)
-    ws.VectorSet(ws.geo_pos, array([], dtype=float64))
+    ws.VectorSet(ws.geo_pos, [])
 
 
 ws.geo_pos_agenda = geo_pos_agenda
@@ -105,9 +105,9 @@ ws.abs_speciesSet(species=["O2-66"])
 ws.VectorNLinSpace(ws.f_grid, 100, 85000000000.0, 115000000000.0)
 # FIXME: 101 freqs fail because HTP fails
 ws.VectorNLogSpace(ws.p_grid, 51, 103000.0, 1.0)
-ws.VectorSet(ws.lat_grid, array([-1.0, 1.0]))
+ws.VectorSet(ws.lat_grid, np.array([-1.0, 1.0]))
 # We have no grid
-ws.VectorSet(ws.lon_grid, array([-1.0, 1.0]))
+ws.VectorSet(ws.lon_grid, np.array([-1.0, 1.0]))
 # We have no grid
 ws.z_surfaceConstantAltitude()
 ws.NumericSet(ws.rte_alonglos_v, 0.0)
@@ -144,9 +144,9 @@ ws.ArrayOfQuantumIdentifierCreate("qi_lines")
 ws.ReadXML(ws.qi_lines, "../lineshapes/testdata/qi-line.xml")
 ws.QuantumIdentifierCreate("QI")
 ws.Extract(ws.QI, ws.qi_lines, 0)
-ws.MatrixSet(ws.sensor_pos, array([[300000.0, 0.0, 0.0]]))
+ws.MatrixSet(ws.sensor_pos, np.array([[300000.0, 0.0, 0.0]]))
 # 300 km altitude
-ws.MatrixSet(ws.sensor_los, array([[180.0, 0.0]]))
+ws.MatrixSet(ws.sensor_los, np.array([[180.0, 0.0]]))
 # Nadir looking
 ws.sensorOff()
 # We have no sensor

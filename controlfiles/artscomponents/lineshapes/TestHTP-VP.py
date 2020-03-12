@@ -22,7 +22,7 @@ ws.partition_functionsInitFromBuiltin()
 ws.abs_speciesSet(species=["O2-66"])
 ws.VectorNLinSpace(ws.f_grid, 101, 90000000000.0, 110000000000.0)
 ws.Touch(ws.rtp_nlte)
-ws.VectorSet(ws.rtp_vmr, array([0.21]))
+ws.VectorSet(ws.rtp_vmr, np.array([0.21]))
 ws.NumericSet(ws.rtp_temperature, 250.0)
 ws.NumericSet(ws.rtp_pressure, 25000.0)
 ws.IndexSet(ws.stokes_dim, 1)
@@ -41,15 +41,15 @@ ws.ReadXML(ws.qi_lines, "testdata/qi-line.xml")
 ws.QuantumIdentifierCreate("QI")
 ws.Extract(ws.QI, ws.qi_lines, 0)
 ## Silly parameters that have to be set by agendas and ARTS in general but are completely useless for these calculations
-ws.VectorSet(ws.p_grid, array([150.0]))
+ws.VectorSet(ws.p_grid, np.array([150.0]))
 # We have no grid
-ws.VectorSet(ws.lat_grid, array([0.0]))
+ws.VectorSet(ws.lat_grid, np.array([0.0]))
 # We have no grid
-ws.VectorSet(ws.lon_grid, array([0.0]))
+ws.VectorSet(ws.lon_grid, np.array([0.0]))
 # We have no grid
 ws.IndexSet(ws.atmosphere_dim, 1)
 # We have no atmosphere
-ws.MatrixSet(ws.sensor_pos, array([[0.0, 0.0, 0.0]]))
+ws.MatrixSet(ws.sensor_pos, np.array([[0.0, 0.0, 0.0]]))
 # We have no sensor
 ws.sensorOff()
 # We have no sensor
@@ -57,10 +57,14 @@ ws.IndexSet(ws.propmat_clearsky_agenda_checked, 1)
 # We have no propmat agenda
 ## Set up partial derivatives
 ws.jacobianInit()
-ws.jacobianAddTemperature(g1=ws.p_grid, g2=array([0.0]), g3=array([0.0]))
-ws.jacobianAddWind(g1=ws.p_grid, g2=array([0.0]), g3=array([0.0]), dfrequency=0.1)
+ws.jacobianAddTemperature(g1=ws.p_grid, g2=np.array([0.0]), g3=np.array([0.0]))
+ws.jacobianAddWind(g1=ws.p_grid, g2=np.array([0.0]), g3=np.array([0.0]), dfrequency=0.1)
 ws.jacobianAddAbsSpecies(
-    g1=ws.p_grid, g2=array([0.0]), g3=array([0.0]), species="O2-66", for_species_tag=0
+    g1=ws.p_grid,
+    g2=np.array([0.0]),
+    g3=np.array([0.0]),
+    species="O2-66",
+    for_species_tag=0,
 )
 ws.jacobianAddBasicCatalogParameters(
     catalog_identities=ws.qi_lines, catalog_parameters=["Line Strength", "Line Center"]
@@ -110,11 +114,11 @@ ws.VectorNLinSpace(ws.f_grid, 101, 90000000000.0, 110000000000.0)
 ws.ReadXML(ws.testdata, "testdata/test-htp-vp/propmat-df.xml")
 ws.CompareRelative(ws.testdata, ws.propmat_clearsky, 1e-06)
 # Perform calculations for perturbed VMR derivative
-ws.VectorSet(ws.rtp_vmr, array([0.2101]))
+ws.VectorSet(ws.rtp_vmr, np.array([0.2101]))
 ws.abs_xsec_agenda_checkedCalc()
 ws.propmat_clearskyInit()
 ws.propmat_clearskyAddOnTheFly()
-ws.VectorSet(ws.rtp_vmr, array([0.21]))
+ws.VectorSet(ws.rtp_vmr, np.array([0.21]))
 # WriteXML("ascii", propmat_clearsky, "testdata/test-htp-vp/propmat-dvmr.xml")
 ws.ReadXML(ws.testdata, "testdata/test-htp-vp/propmat-dvmr.xml")
 ws.CompareRelative(ws.testdata, ws.propmat_clearsky, 1e-06)

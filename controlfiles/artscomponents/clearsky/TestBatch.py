@@ -36,7 +36,7 @@ ws.Copy(ws.ppath_step_agenda, ws.ppath_step_agenda__GeometricPath)
 ws.output_file_formatSetAscii()
 # Define f_grid
 # --------------
-ws.VectorSet(ws.f_grid, array([9.0e10, 1.9e11]))
+ws.VectorSet(ws.f_grid, np.array([9.0e10, 1.9e11]))
 # ReadXML(f_grid, "f_grid.xml")
 # VectorNLinSpace (f_grid, 10, 120e9, 300e9)
 # WriteXML (output_file_format, f_grid, "f_grid.xml")
@@ -69,7 +69,7 @@ ws.Copy(
 # Definition of sensor position and LOS
 # ------------------------------------
 # Line of sight
-ws.MatrixSet(ws.sensor_los, array([[131.0], [179.0]]))
+ws.MatrixSet(ws.sensor_los, np.array([[131.0], [179.0]]))
 # Sensor position
 ws.nrowsGet(ws.nrows, ws.sensor_los)
 ws.ncolsGet(ws.ncols, ws.sensor_los)
