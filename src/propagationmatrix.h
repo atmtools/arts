@@ -185,7 +185,7 @@ class PropagationMatrix {
     switch (mstokes_dim) {
       case 4:
         mdata(0, 0, 0, 5) = x(1, 3);
-        mdata(0, 0, 0, 5) = x(2, 3);
+        mdata(0, 0, 0, 6) = x(2, 3);
         mdata(0, 0, 0, 3) = x(0, 3); /* FALLTHROUGH */
       case 3:
         mdata(0, 0, 0, mstokes_dim) = x(1, 2);
