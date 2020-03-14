@@ -5,9 +5,9 @@ import os
 import numpy as np
 import pytest
 import scipy as sp
-import arts
-from arts.workspace import Workspace, arts_agenda
-from arts.xml import load, save
+import pyarts
+from pyarts.workspace import Workspace, arts_agenda
+from pyarts.xml import load, save
 
 @arts_agenda
 def ppath_agenda(ws):

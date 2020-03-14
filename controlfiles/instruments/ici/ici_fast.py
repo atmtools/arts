@@ -27,8 +27,8 @@
 # 2014-06-09 Jana Mendrok, Antonin Verlet-Banide
 
 import numpy as np
-import arts
-from arts.workspace import Workspace, arts_agenda
+import pyarts
+from pyarts.workspace import Workspace, arts_agenda
 
 ws = Workspace(verbosity=0)
 ws.execute_controlfile("instruments/ici/ici.arts")

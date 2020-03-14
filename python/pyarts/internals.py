@@ -5,10 +5,10 @@ Implementation of classes to handle various ARTS internal structures.
 """
 
 
-import arts.constants as constants
-import arts.spectroscopy as spectroscopy
-import arts
-    
+import pyarts.constants as constants
+import pyarts.spectroscopy as spectroscopy
+import pyarts
+
 import numpy as np
 import scipy.interpolate as _ip
 from scipy.special import wofz as _Faddeeva_
@@ -83,7 +83,7 @@ def read_hitran_online(hitran_file, fmin=0, fmax=1e9999,
     assert not hitran_file == hit_tmp, "Must have separate files"
 
     # setup a quiet workspace
-    from arts.workspace import Workspace
+    from pyarts.workspace import Workspace
     arts = Workspace(verbosity=0)
 
     # read a file from hitran of format [par, qn upper, qn lower]
@@ -115,11 +115,11 @@ def read_hitran_online(hitran_file, fmin=0, fmax=1e9999,
 
     # replace quantum numbers by
     arts.abs_linesNewestArtscatFromLegacyCatalog()
-    cat = arts.abs_lines.value.as_ARTSCAT5()
+    cat = pyarts.abs_lines.value.as_ARTSCAT5()
 
     for i in range(len(cat)):
         if reset_qn:
-            cat._dictionaries[i]['QN'] = arts.catalogues.QuantumNumberRecord(arts.catalogues.QuantumNumbers(''), arts.catalogues.QuantumNumbers(''))
+            cat._dictionaries[i]['QN'] = pyarts.catalogues.QuantumNumberRecord(arts.catalogues.QuantumNumbers(''), arts.catalogues.QuantumNumbers(''))
         for qn in up_data[i]:
             key, data = qn.split('=')
             if 'ElecStateLabel' in key:

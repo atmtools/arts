@@ -9,8 +9,8 @@ import ctypes as c
 import numpy  as np
 import os
 
-from arts.workspace.api import find_controlfile, arts_api
-from arts.workspace.output import CoutCapture
+from pyarts.workspace.api import find_controlfile, arts_api
+from pyarts.workspace.output import CoutCapture
 
 class Agenda:
     def __init__(self, ptr):
@@ -74,7 +74,7 @@ class Agenda:
 
             **kwargs: Key-word arguments of the WSM call to add to the agenda.
         """
-        from arts.workspace.variables import group_names
+        from pyarts.workspace.variables import group_names
 
         if len(args) < 3:
             raise Exception("Need at least self, a workspace and the method to"
@@ -98,7 +98,7 @@ class Agenda:
                                        len(args_out), arg_out_ptr,
                                        len(args_in), arg_in_ptr)
         else:
-            from arts.workspace.variables import WorkspaceVariable
+            from pyarts.workspace.variables import WorkspaceVariable
 
             name_out = WorkspaceVariable.get_variable_name(args_out[0])
             name_in = WorkspaceVariable.get_variable_name(args_in[0])

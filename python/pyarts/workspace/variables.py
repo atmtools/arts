@@ -20,9 +20,9 @@ import re
 import scipy as sp
 import tempfile
 
-from arts.workspace.api import arts_api
-from arts.workspace.agendas import Agenda
-from arts.xml.names import tensor_names
+from pyarts.workspace.api import arts_api
+from pyarts.workspace.agendas import Agenda
+from pyarts.xml.names import tensor_names
 
 
 class WorkspaceVariable:
@@ -283,7 +283,7 @@ class WorkspaceVariable:
             by the interface.
 
         """
-        from arts.types import classes as arts_classes
+        from pyarts.types import classes as arts_classes
 
 
         if (self.ws):
@@ -389,7 +389,7 @@ class WorkspaceVariable:
             A typhon object with the same value as the WSV in the associated
             workspace.
         """
-        from arts.xml import load
+        from pyarts.xml import load
 
         if not self.ws:
             raise Exception("Cannot retrieve the value of a variable without "
@@ -412,7 +412,7 @@ class WorkspaceVariable:
                  workspace.
 
         """
-        from arts.xml import save
+        from pyarts.xml import save
 
         if not self.ws:
             raise Exception("Cannot set the value of a variable without "

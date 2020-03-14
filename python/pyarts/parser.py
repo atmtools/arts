@@ -9,8 +9,8 @@ to transform the parsed controlfile to a Python script.
 import numpy as np
 import re
 from textwrap import indent
-from arts.workspace.methods import workspace_methods
-from arts.workspace.variables import (workspace_variables, group_names,
+from pyarts.workspace.methods import workspace_methods
+from pyarts.workspace.variables import (workspace_variables, group_names,
                                       WorkspaceVariable)
 from lark import Lark, Transformer, Token
 grammar = r"""
@@ -422,8 +422,8 @@ class Agenda:
         """
         s = """
 import numpy as np
-import arts
-from arts.workspace import Workspace, arts_agenda
+import pyarts
+from pyarts.workspace import Workspace, arts_agenda
 {} = Workspace(verbosity=0)
 """.format(workspace)
 

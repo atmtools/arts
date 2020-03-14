@@ -1,7 +1,7 @@
 import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
-from arts.catalogues import Sparse
+from pyarts.catalogues import Sparse
 import ctypes as c
 
 class Block(object):

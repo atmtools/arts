@@ -5,8 +5,8 @@
 # 2019-10-27, Patrick Eriksson
 
 import numpy as np
-import arts
-from arts.workspace import Workspace, arts_agenda
+import pyarts
+from pyarts.workspace import Workspace, arts_agenda
 
 ws = Workspace(verbosity=0)
 ws.execute_controlfile("general/general.arts")

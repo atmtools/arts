@@ -6,9 +6,9 @@ import numpy as np
 import pytest
 import scipy as sp
 from tempfile import NamedTemporaryFile
-import arts
-from arts.workspace import Workspace
-from arts.xml import load, save
+import pyarts
+from pyarts.workspace import Workspace
+from pyarts.xml import load, save
 
 class TestMethods:
     """

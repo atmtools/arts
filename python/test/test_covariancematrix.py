@@ -8,8 +8,8 @@ import numpy as np
 import scipy as sp
 import os
 from tempfile import mkstemp
-from arts.covariancematrix import Block, CovarianceMatrix
-from arts.xml import load, save
+from pyarts.covariancematrix import Block, CovarianceMatrix
+from pyarts.xml import load, save
 
 class TestCovarianceMatrix:
 

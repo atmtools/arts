@@ -97,15 +97,15 @@ numpy.asarray.
 
 import logging
 
-from arts.environment import environ
+from pyarts.environment import environ
 
 
 logger = logging.getLogger(__name__)
 
-from arts.workspace.workspace import Workspace, arts_agenda, Include
-from arts.workspace.variables import WorkspaceVariable
-from arts.workspace.methods   import WorkspaceMethod
-from arts.workspace.api       import arts_include_path   \
+from pyarts.workspace.workspace import Workspace, arts_agenda, Include
+from pyarts.workspace.variables import WorkspaceVariable
+from pyarts.workspace.methods   import WorkspaceMethod
+from pyarts.workspace.api       import arts_include_path   \
                                             , include_path_push \
                                             , data_path_push    \
                                             , data_path_pop     \

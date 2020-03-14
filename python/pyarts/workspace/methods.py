@@ -17,10 +17,10 @@ import ctypes as c
 import numpy as np
 
 
-from arts.workspace.api       import arts_api, nodef
-from arts.workspace.variables import WorkspaceVariable, group_ids, group_names
-from arts.workspace import variables, workspace
-from arts.workspace.output import CoutCapture
+from pyarts.workspace.api       import arts_api, nodef
+from pyarts.workspace.variables import WorkspaceVariable, group_ids, group_names
+from pyarts.workspace import variables, workspace
+from pyarts.workspace.output import CoutCapture
 
 class WorkspaceMethod:
     """

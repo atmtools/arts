@@ -11,8 +11,8 @@ import numpy as np
 from scipy import sparse
 import pytest
 
-from arts import xml
-from arts.catalogues import Sparse
+from pyarts import xml
+from pyarts.catalogues import Sparse
 
 
 def _create_tensor(n):

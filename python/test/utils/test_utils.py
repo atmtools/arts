@@ -8,7 +8,7 @@ from datetime import timedelta
 
 import pytest
 
-from arts import utils
+from pyarts import utils
 
 
 class TestUtils:

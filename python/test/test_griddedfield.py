@@ -5,7 +5,7 @@ from tempfile import mkstemp
 import numpy as np
 import pytest
 
-from arts import griddedfield, xml
+from pyarts import griddedfield, xml
 
 
 def _create_tensor(n):

@@ -22,16 +22,16 @@ from copy       import copy
 from functools  import wraps
 import os
 
-from arts.workspace.api import (arts_api, VariableValueStruct, data_path_push,
+from pyarts.workspace.api import (arts_api, VariableValueStruct, data_path_push,
                                 data_path_pop, include_path_push,
                                 include_path_pop, is_empty)
-from arts.workspace.methods   import WorkspaceMethod, workspace_methods
-from arts.workspace.variables import (WorkspaceVariable, group_names, group_ids,
+from pyarts.workspace.methods   import WorkspaceMethod, workspace_methods
+from pyarts.workspace.variables import (WorkspaceVariable, group_names, group_ids,
                                       workspace_variables)
-from arts.workspace.agendas   import Agenda
-from arts.workspace import variables as V
-from arts.workspace.output import CoutCapture
-from arts.workspace.utility import unindent
+from pyarts.workspace.agendas   import Agenda
+from pyarts.workspace import variables as V
+from pyarts.workspace.output import CoutCapture
+from pyarts.workspace.utility import unindent
 
 imports = dict()
 

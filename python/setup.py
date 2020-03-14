@@ -23,7 +23,7 @@ here = abspath(dirname(__file__))
 
 try:
     lib_path = join("@ARTS_BINARY_DIR@", "src", "libarts_api.so")
-    shutil.copy(lib_path, "arts/workspace")
+    shutil.copy(lib_path, "pyarts/workspace")
 except:
     raise Exception("Could not find ARTS API, which is required for the Python "
                     "interface. Please make sure the installation was "

@@ -5,8 +5,8 @@ import argparse
 import os
 import glob
 
-import arts
-from arts.parser import convert_to_python
+import pyarts
+from pyarts.parser import convert_to_python
 
 parser = argparse.ArgumentParser(description='Convert ARTS controlfile to Python.')
 parser.add_argument('files', metavar='files', type=str, nargs='+',

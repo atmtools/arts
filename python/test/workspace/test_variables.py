@@ -5,9 +5,9 @@ import os
 import numpy as np
 import pytest
 import scipy as sp
-import arts
-from arts.workspace import Workspace, WorkspaceVariable
-from arts.xml import load, save
+import pyarts
+from pyarts.workspace import Workspace, WorkspaceVariable
+from pyarts.xml import load, save
 
 class TestVariables:
     """
@@ -72,7 +72,7 @@ class TestVariables:
 
         """
         self.ws.ArrayOfVectorCreate("array_of_vector_variable")
-        aov = arts.xml.load(os.path.join(self.dir, "../xml/reference/arrayofvector.xml"))
+        aov = pyarts.xml.load(os.path.join(self.dir, "../xml/reference/arrayofvector.xml"))
         self.ws.array_of_vector_variable = aov
         assert self.ws.array_of_vector_variable.value == aov
 

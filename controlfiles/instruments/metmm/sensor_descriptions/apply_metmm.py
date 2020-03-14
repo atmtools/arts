@@ -13,8 +13,8 @@
 # viewing_angles (ArrayOfIndex) Which views you want.
 
 import numpy as np
-import arts
-from arts.workspace import Workspace, arts_agenda
+import pyarts
+from pyarts.workspace import Workspace, arts_agenda
 
 ws = Workspace(verbosity=0)
 ws.Select(ws.antenna_dlos, ws.antenna_dlos, ws.viewing_angles)

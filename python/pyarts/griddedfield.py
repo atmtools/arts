@@ -6,7 +6,7 @@ import netCDF4
 import numpy as np
 from scipy import interpolate
 
-from arts.utils.arts import return_if_arts_type, get_arts_typename
+from pyarts.utils.arts import return_if_arts_type, get_arts_typename
 
 __all__ = [
     'GriddedField1',

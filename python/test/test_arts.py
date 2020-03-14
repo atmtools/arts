@@ -3,7 +3,7 @@
 """
 import shutil
 import pytest
-import arts
+import pyarts
 
 
 class TestARTS:

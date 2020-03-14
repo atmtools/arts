@@ -25,8 +25,8 @@
 ################################################################################
 
 import numpy as np
-import arts
-from arts.workspace import Workspace, arts_agenda
+import pyarts
+from pyarts.workspace import Workspace, arts_agenda
 
 ws = Workspace(verbosity=0)
 # here, we do LTE only so far, but need to initialize NLTE t-field accordingly

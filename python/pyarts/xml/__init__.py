@@ -41,7 +41,7 @@ def save(var, filename, precision='.7e', format='ascii', comment=None,
 
     Example:
         >>> x = numpy.array([1.,2.,3.])
-        >>> arts.xml.save(x, 'myvector.xml')
+        >>> pyarts.xml.save(x, 'myvector.xml')
 
     """
     if parents:
@@ -87,7 +87,7 @@ def load(filename):
         Data from the XML file. Type depends on data in file.
 
     Example:
-        >>> arts.xml.load('tests/reference/matrix.xml')
+        >>> pyarts.xml.load('tests/reference/matrix.xml')
         array([[ 0.,  1.],
                [ 2.,  3.]])
 

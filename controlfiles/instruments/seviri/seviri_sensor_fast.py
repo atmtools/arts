@@ -1,8 +1,8 @@
 # Included by seviri_fast.arts
 
 import numpy as np
-import arts
-from arts.workspace import Workspace, arts_agenda
+import pyarts
+from pyarts.workspace import Workspace, arts_agenda
 
 ws = Workspace(verbosity=0)
 # Fast frequency grid

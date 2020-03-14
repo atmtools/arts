@@ -5,21 +5,13 @@ import numpy as np
 import pytest
 import scipy as sp
 
-import arts
-
-try:
-    from arts.workspace import Workspace, arts_agenda
-    from arts.workspace.variables import WorkspaceVariable
-except ImportError:
-    skip_arts_tests = True
-else:
-    skip_arts_tests = False
-
+import pyarts
+from pyarts.workspace import Workspace, arts_agenda
+from pyarts.workspace.variables import WorkspaceVariable
 
 def agenda(ws):
     ws.Print(ws.y, 0)
 
-@pytest.mark.skipif(skip_arts_tests, reason='ARTS library not available')
 class TestWorkspace:
     def setup_method(self):
         """This ensures a new Workspace for every test."""

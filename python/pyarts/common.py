@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-"""Common functions for the arts subpackage.
+"""Common functions for the pyarts package.
 """
 import collections
 import os
 import shutil
 import subprocess
 
-from arts.environment import environ
-from arts.utils import path_append
+from pyarts.environment import environ
+from pyarts.utils import path_append
 
 
 __all__ = [

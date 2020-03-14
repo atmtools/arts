@@ -28,7 +28,7 @@ import numpy as np
 import scipy as sp
 import sys
 
-from arts.environment import environ
+from pyarts.environment import environ
 
 
 logger = logging.getLogger(__name__)

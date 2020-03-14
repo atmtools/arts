@@ -4,7 +4,7 @@
 
 import numpy as np
 
-from arts.xml.names import basic_types, tensor_names, complex_tensor_names
+from pyarts.xml.names import basic_types, tensor_names, complex_tensor_names
 
 
 def get_arts_typename(var):
@@ -98,5 +98,5 @@ def as_quantumnumbers(var):
     else:
         return QuantumNumbers(var)
 
-from arts.catalogues import QuantumNumberRecord
-from arts.catalogues import QuantumNumbers
+from pyarts.catalogues import QuantumNumberRecord
+from pyarts.catalogues import QuantumNumbers

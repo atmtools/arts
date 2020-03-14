@@ -4,8 +4,8 @@
 # Jana Mendrok 2013-02-26
 
 import numpy as np
-import arts
-from arts.workspace import Workspace, arts_agenda
+import pyarts
+from pyarts.workspace import Workspace, arts_agenda
 
 ws = Workspace(verbosity=0)
 ws.AgendaCreate("propmat_clearsky_agenda__OnTheFly")
