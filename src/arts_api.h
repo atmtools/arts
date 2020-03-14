@@ -271,7 +271,7 @@ DLL_PUBLIC
 void initialize();
 
 /** Finalize ARTS runtime.
- * 
+ *
  * Deletes the error buffer.
  */
 DLL_PUBLIC
@@ -283,6 +283,14 @@ void finalize();
  */
 DLL_PUBLIC
 const char *get_error();
+
+/** Set the ARTS basename.
+ *
+ * The basename is a global variable that is used in some cases
+ * by some WSMs for example to store or read data.
+ */
+DLL_PUBLIC
+void set_basename(const char *name);
 
 ////////////////////////////////////////////////////////////////////////////
 // Parsing and executing agendas.

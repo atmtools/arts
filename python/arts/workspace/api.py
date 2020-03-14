@@ -26,6 +26,7 @@ import pkg_resources
 
 import numpy as np
 import scipy as sp
+import sys
 
 from arts.environment import environ
 
@@ -81,6 +82,12 @@ if (version.major, version.minor, version.revision) \
 ################################################################################
 
 arts_api.initialize()
+try:
+    filename = sys.modules["__main__"].__file__
+    basename, _ = os.path.splitext(os.path.basename(filename))
+    arts_api.set_basename(c.c_char_p(basename.encode()))
+except:
+    pass
 
 ################################################################################
 # ARTS runtime environment manipulation
@@ -347,6 +354,9 @@ arts_api.data_path_pop.argtypes = None
 # Set include ad data path of the arts runtime.
 arts_api.get_error.restype  = c.c_char_p
 arts_api.get_error.argtypes = None
+
+arts_api.set_basename.restype  = None
+arts_api.set_basename.argtypes = [c.c_char_p]
 
 # Agendas
 #

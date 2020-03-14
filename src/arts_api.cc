@@ -13,6 +13,7 @@ using global_data::md_data;
 using global_data::wsv_group_names;
 extern Parameters parameters;
 extern Verbosity verbosity_at_launch;
+extern String out_basename;
 Index get_wsv_id(const char *);
 
 using global_data::MdMap;
@@ -62,6 +63,8 @@ void finalize() {
 }
 
 const char *get_error() { return string_buffer.c_str(); }
+
+void set_basename(const char *name) {out_basename = name;}
 
 ////////////////////////////////////////////////////////////////////////////
 // Parsing and executing agendas.
