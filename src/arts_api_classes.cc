@@ -1,0 +1,675 @@
+/* Copyright (C) 2020 Richard Larsson <larsson@mps.mpg.de>
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License as
+   published by the Free Software Foundation; either version 2 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+   USA. */
+
+////////////////////////////////////////////////////////////////////////////
+//   File description
+////////////////////////////////////////////////////////////////////////////
+/*!
+  \file   arts_api_classes.cc
+  \author Richard Larsson <larsson@mps.mpg.de>
+  \date   2020-03-12
+
+  \brief This file contains all declarations of the ARTS C API class interface.
+*/
+
+#include "arts_api_classes.h"
+
+#include "absorption.h"
+#include "absorptionlines.h"
+#include "global_data.h"
+#include "lineshapemodel.h"
+#include "quantum.h"
+#include "zeemandata.h"
+  
+void * createZeemanModel()
+{
+  return new Zeeman::Model;
+}
+
+void deleteZeemanModel(void * data)
+{
+  delete static_cast<Zeeman::Model *>(data);
+}
+
+void printZeemanModel(void * data)
+{
+  std::cout << (*static_cast<Zeeman::Model *>(data)) << std::endl;
+}
+
+Numeric getZeemanModelGU(void * data)
+{
+  return static_cast<Zeeman::Model *>(data)->gu();
+}
+
+Numeric getZeemanModelGL(void * data)
+{
+  return static_cast<Zeeman::Model *>(data)->gl();
+}
+
+void setZeemanModelGU(void * data, Numeric newdata)
+{
+  static_cast<Zeeman::Model *>(data)->gu() = newdata;
+}
+
+void setZeemanModelGL(void * data, Numeric newdata)
+{
+  static_cast<Zeeman::Model *>(data)->gl() = newdata;
+}
+
+
+void * createRational()
+{
+  return new Rational;
+}
+
+void deleteRational(void * data)
+{
+  delete static_cast<Rational *>(data);
+}
+
+void printRational(void * data)
+{
+  std::cout << (*static_cast<Rational *>(data)) << std::endl;
+}
+
+Index getRationalNom(void * data)
+{
+  return static_cast<Rational *>(data)->Nom();
+}
+
+Index getRationalDenom(void * data)
+{
+  return static_cast<Rational *>(data)->Denom();
+}
+
+void setRationalNom(void * data, Index newdata)
+{
+  static_cast<Rational *>(data)->Nom() = newdata;
+}
+
+void setRationalDenom(void * data, Index newdata)
+{
+  static_cast<Rational *>(data)->Denom() = newdata;
+}
+
+void simplifyRational(void * data)
+{
+  static_cast<Rational *>(data)->simplify_in_place();
+}
+
+
+void printLineShapeModelParameters(void * data)
+{
+  std::cout << (*static_cast<LineShape::ModelParameters *>(data)) << std::endl;
+}
+
+
+void * createLineShapeSingleSpeciesModel()
+{
+  return new LineShape::SingleSpeciesModel;
+}
+
+void deleteLineShapeSingleSpeciesModel(void * data)
+{
+  delete static_cast<LineShape::SingleSpeciesModel *>(data);
+}
+
+void printLineShapeSingleSpeciesModel(void * data)
+{
+  std::cout << (*static_cast<LineShape::SingleSpeciesModel *>(data)) << std::endl;
+}
+
+void * getLineShapeSingleSpeciesModelG0(void * data)
+{
+  return &static_cast<LineShape::SingleSpeciesModel *>(data)->G0();
+}
+
+void setLineShapeSingleSpeciesModelG0(void * data, void * newdata)
+{
+  static_cast<LineShape::SingleSpeciesModel *>(data)->G0() = *static_cast<LineShape::ModelParameters *>(newdata);
+}
+
+void * getLineShapeSingleSpeciesModelD0(void * data)
+{
+  return &static_cast<LineShape::SingleSpeciesModel *>(data)->D0();
+}
+
+void setLineShapeSingleSpeciesModelD0(void * data, void * newdata)
+{
+  static_cast<LineShape::SingleSpeciesModel *>(data)->D0() = *static_cast<LineShape::ModelParameters *>(newdata);
+}
+
+void * getLineShapeSingleSpeciesModelG2(void * data)
+{
+  return &static_cast<LineShape::SingleSpeciesModel *>(data)->G2();
+}
+
+void setLineShapeSingleSpeciesModelG2(void * data, void * newdata)
+{
+  static_cast<LineShape::SingleSpeciesModel *>(data)->G2() = *static_cast<LineShape::ModelParameters *>(newdata);
+}
+
+void * getLineShapeSingleSpeciesModelD2(void * data)
+{
+  return &static_cast<LineShape::SingleSpeciesModel *>(data)->D2();
+}
+
+void setLineShapeSingleSpeciesModelD2(void * data, void * newdata)
+{
+  static_cast<LineShape::SingleSpeciesModel *>(data)->D2() = *static_cast<LineShape::ModelParameters *>(newdata);
+}
+
+void * getLineShapeSingleSpeciesModelFVC(void * data)
+{
+  return &static_cast<LineShape::SingleSpeciesModel *>(data)->FVC();
+}
+
+void setLineShapeSingleSpeciesModelFVC(void * data, void * newdata)
+{
+  static_cast<LineShape::SingleSpeciesModel *>(data)->FVC() = *static_cast<LineShape::ModelParameters *>(newdata);
+}
+
+void * getLineShapeSingleSpeciesModelETA(void * data)
+{
+  return &static_cast<LineShape::SingleSpeciesModel *>(data)->ETA();
+}
+
+void setLineShapeSingleSpeciesModelETA(void * data, void * newdata)
+{
+  static_cast<LineShape::SingleSpeciesModel *>(data)->ETA() = *static_cast<LineShape::ModelParameters *>(newdata);
+}
+
+void * getLineShapeSingleSpeciesModelY(void * data)
+{
+  return &static_cast<LineShape::SingleSpeciesModel *>(data)->Y();
+}
+
+void setLineShapeSingleSpeciesModelY(void * data, void * newdata)
+{
+  static_cast<LineShape::SingleSpeciesModel *>(data)->Y() = *static_cast<LineShape::ModelParameters *>(newdata);
+}
+
+void * getLineShapeSingleSpeciesModelG(void * data)
+{
+  return &static_cast<LineShape::SingleSpeciesModel *>(data)->G();
+}
+
+void setLineShapeSingleSpeciesModelG(void * data, void * newdata)
+{
+  static_cast<LineShape::SingleSpeciesModel *>(data)->G() = *static_cast<LineShape::ModelParameters *>(newdata);
+}
+
+void * getLineShapeSingleSpeciesModelDV(void * data)
+{
+  return &static_cast<LineShape::SingleSpeciesModel *>(data)->DV();
+}
+
+void setLineShapeSingleSpeciesModelDV(void * data, void * newdata)
+{
+  static_cast<LineShape::SingleSpeciesModel *>(data)->DV() = *static_cast<LineShape::ModelParameters *>(newdata);
+}
+
+
+void * createLineShapeModel()
+{
+  return new LineShape::Model;
+}
+
+void deleteLineShapeModel(void * data)
+{
+  delete static_cast<LineShape::Model *>(data);
+}
+
+void printLineShapeModel(void * data)
+{
+  std::cout << (*static_cast<LineShape::Model *>(data)) << std::endl;
+}
+
+Index sizeLineShapeModel(void * data)
+{
+  return static_cast<LineShape::Model *>(data)->nelem();
+}
+
+void resizeLineShapeModel(Index n, void * data)
+{
+  static_cast<LineShape::Model *>(data)->resize(n);
+}
+
+void * getLineShapeModelSingleSpeciesModel(Index i, void * data)
+{
+  return &static_cast<LineShape::Model *>(data)->Data()[i];
+}
+
+
+void * createAbsorptionSingleLine()
+{
+  return new Absorption::SingleLine;
+}
+
+void deleteAbsorptionSingleLine(void * data)
+{
+  delete static_cast<Absorption::SingleLine *>(data);
+}
+
+void printAbsorptionSingleLine(void * data)
+{
+  std::cout << (*static_cast<Absorption::SingleLine *>(data)) << std::endl;
+}
+
+Numeric getAbsorptionSingleLineF0(void * data)
+{
+  return static_cast<Absorption::SingleLine *>(data)->F0();
+}
+
+Numeric getAbsorptionSingleLineI0(void * data)
+{
+  return static_cast<Absorption::SingleLine *>(data)->I0();
+}
+
+Numeric getAbsorptionSingleLineE0(void * data)
+{
+  return static_cast<Absorption::SingleLine *>(data)->E0();
+}
+
+Numeric getAbsorptionSingleLineGL(void * data)
+{
+  return static_cast<Absorption::SingleLine *>(data)->g_low();
+}
+
+Numeric getAbsorptionSingleLineGU(void * data)
+{
+  return static_cast<Absorption::SingleLine *>(data)->g_upp();
+}
+
+Numeric getAbsorptionSingleLineA(void * data)
+{
+  return static_cast<Absorption::SingleLine *>(data)->A();
+}
+
+void setAbsorptionSingleLineF0(void * data, Numeric newdata)
+{
+  static_cast<Absorption::SingleLine *>(data)->F0() = newdata;
+}
+
+void setAbsorptionSingleLineI0(void * data, Numeric newdata)
+{
+  static_cast<Absorption::SingleLine *>(data)->I0() = newdata;
+}
+
+void setAbsorptionSingleLineE0(void * data, Numeric newdata)
+{
+  static_cast<Absorption::SingleLine *>(data)->E0() = newdata;
+}
+
+void setAbsorptionSingleLineGL(void * data, Numeric newdata)
+{
+  static_cast<Absorption::SingleLine *>(data)->g_low() = newdata;
+}
+
+void setAbsorptionSingleLineGU(void * data, Numeric newdata)
+{
+  static_cast<Absorption::SingleLine *>(data)->g_upp() = newdata;
+}
+
+void setAbsorptionSingleLineA(void * data, Numeric newdata)
+{
+  static_cast<Absorption::SingleLine *>(data)->A() = newdata;
+}
+
+void * getAbsorptionSingleLineZeemanModel(void * data)
+{
+  return &static_cast<Absorption::SingleLine *>(data)->Zeeman();
+}
+
+void * getAbsorptionSingleLineLineShapeModel(void * data)
+{
+  return &static_cast<Absorption::SingleLine *>(data)->LineShape();
+}
+
+Index sizeAbsorptionSingleLineLowerQuantas(void * data)
+{
+  return static_cast<Absorption::SingleLine *>(data)->LowerQuantumNumbers().size();
+}
+
+Index sizeAbsorptionSingleLineUpperQuantas(void * data)
+{
+  return static_cast<Absorption::SingleLine *>(data)->UpperQuantumNumbers().size();
+}
+
+void resizeAbsorptionSingleLineLowerQuantas(Index n, void * data)
+{
+  static_cast<Absorption::SingleLine *>(data)->LowerQuantumNumbers().resize(n);
+}
+
+void resizeAbsorptionSingleLineUpperQuantas(Index n, void * data)
+{
+  static_cast<Absorption::SingleLine *>(data)->UpperQuantumNumbers().resize(n);
+}
+
+void * getAbsorptionSingleLineLowerQuanta(Index i, void * data)
+{
+  return &static_cast<Absorption::SingleLine *>(data)->LowerQuantumNumbers()[i];
+}
+
+void * getAbsorptionSingleLineUpperQuanta(Index i, void * data)
+{
+  return &static_cast<Absorption::SingleLine *>(data)->UpperQuantumNumbers()[i];
+}
+
+
+void * createQuantumNumbers()
+{
+  return new QuantumNumbers;
+}
+
+void deleteQuantumNumbers(void * data)
+{
+  delete static_cast<QuantumNumbers *>(data);
+}
+
+void printQuantumNumbers(void * data)
+{
+  std::cout << (*static_cast<QuantumNumbers *>(data)) << std::endl;
+}
+
+Index getQuantumNumbersMaxNumber()
+{
+    return Index(QuantumNumberType::FINAL_ENTRY);
+}
+
+void * getQuantumNumbersNumber(Index i, void * data)
+{
+    return &static_cast<QuantumNumbers *>(data)->operator[](i);
+}
+
+Index string2quantumnumbersindex(char * str)
+{
+    return Index(string2quantumnumbertype(str));
+}
+
+
+void * createQuantumIdentifier()
+{
+  return new QuantumIdentifier;
+}
+
+void deleteQuantumIdentifier(void * data)
+{
+  delete static_cast<QuantumIdentifier *>(data);
+}
+
+void printQuantumIdentifier(void * data)
+{
+  std::cout << (*static_cast<QuantumIdentifier *>(data)) << std::endl;
+}
+
+Index getQuantumIdentifierType(void * data)
+{
+    return Index(static_cast<QuantumIdentifier *>(data)->Type());
+}
+
+Index setQuantumIdentifierType(void * data, char * str)
+{
+    if (std::string("ENERGY_LEVEL") == str) {
+        static_cast<QuantumIdentifier *>(data)->SetEnergyLevel(static_cast<QuantumIdentifier *>(data)->EnergyLevelQuantumNumbers());
+        return EXIT_SUCCESS;
+    } else if (std::string("TRANSITION") == str) {
+        static_cast<QuantumIdentifier *>(data)->SetTransition();
+        return EXIT_SUCCESS;
+    } 
+    else if (std::string("ALL") == str) {
+        static_cast<QuantumIdentifier *>(data)->SetAll();
+        return EXIT_SUCCESS;
+    } 
+    else if (std::string("NONE") == str) {
+        static_cast<QuantumIdentifier *>(data)->SetNone();
+        return EXIT_SUCCESS;
+    } else
+        return EXIT_FAILURE;
+}
+
+Index getQuantumIdentifierSpecies(void * data)
+{
+    return static_cast<QuantumIdentifier *>(data)->Species();
+}
+
+Index validSpecies(Index spec)
+{
+    if (spec >= 0 and spec < global_data::species_data.nelem())
+        return EXIT_SUCCESS;
+    else
+        return EXIT_FAILURE;
+}
+
+void setQuantumIdentifierSpecies(void * data, Index spec)
+{
+    static_cast<QuantumIdentifier *>(data)->Species() = spec;
+}
+
+Index getQuantumIdentifierIsotopologue(void * data)
+{
+    return static_cast<QuantumIdentifier *>(data)->Isotopologue();
+}
+
+Index validIsotopologue(Index spec, Index isot)
+{
+    auto& species = global_data::species_data[spec];
+    if (isot >= 0 and isot < species.Isotopologue().nelem()) {
+        if (not species.Isotopologue()[isot].isContinuum())
+            return EXIT_SUCCESS;
+        else
+            return EXIT_FAILURE;
+    } else
+        return EXIT_FAILURE;
+}
+
+void setQuantumIdentifierIsotopologue(void * data, Index isot)
+{
+    static_cast<QuantumIdentifier *>(data)->Isotopologue() = isot;
+}
+
+void * getQuantumIdentifierLevelQuantumNumbers(void * data)
+{
+    return &static_cast<QuantumIdentifier *>(data) ->EnergyLevelQuantumNumbers();
+}
+
+void * getQuantumIdentifierLowerQuantumNumbers(void * data)
+{
+    return &static_cast<QuantumIdentifier *>(data) ->LowerQuantumNumbers();
+}
+
+void * getQuantumIdentifierUpperQuantumNumbers(void * data)
+{
+    return &static_cast<QuantumIdentifier *>(data) ->UpperQuantumNumbers();
+}
+
+
+void * createSpeciesTag()
+{
+  return new SpeciesTag;
+}
+
+void deleteSpeciesTag(void * data)
+{
+    delete static_cast<SpeciesTag *>(data);
+}
+
+void printSpeciesTag(void * data)
+{
+    std::cout << (*static_cast<SpeciesTag *>(data)) << std::endl;
+}
+
+void setSpeciesTag(void * data, char * newdata)
+{
+    *static_cast<SpeciesTag *>(data) = SpeciesTag(newdata);
+}
+
+Index getSpeciesTagSpecies(void * data)
+{
+    return static_cast<SpeciesTag *>(data)->Species();
+}
+
+Index getSpeciesTagIsotopologue(void * data)
+{
+    return static_cast<SpeciesTag *>(data)->Isotopologue();
+}
+
+Numeric getSpeciesTagLowerFrequency(void * data)
+{
+    return static_cast<SpeciesTag *>(data)->Lf();
+}
+
+Numeric getSpeciesTagUpperFrequency(void * data)
+{
+    return static_cast<SpeciesTag *>(data)->Uf();
+}
+
+Index getSpeciesTagType(void * data)
+{
+    return static_cast<SpeciesTag *>(data)->Type();
+}
+
+Index getSpeciesTagCIASecond(void * data)
+{
+    return static_cast<SpeciesTag *>(data)->CIASecond();
+}
+
+Index getSpeciesTagCIADataset(void * data)
+{
+    return static_cast<SpeciesTag *>(data)->CIADataset();
+}
+
+
+void * createAbsorptionLines()
+{
+  return new Absorption::Lines;
+}
+
+void deleteAbsorptionLines(void * data)
+{
+    delete static_cast<Absorption::Lines *>(data);
+}
+
+void printAbsorptionLines(void * data)
+{
+    std::cout << (*static_cast<Absorption::Lines *>(data)) << std::endl;
+}
+
+void printmetaAbsorptionLines(void * data)
+{
+    std::cout << static_cast<Absorption::Lines *>(data)->MetaData() << std::endl;
+}
+
+bool getAbsorptionLinesSelfBroadening(void * data)
+{
+    return static_cast<Absorption::Lines *>(data)->Self();
+}
+
+void setAbsorptionLinesSelfBroadening(void * data, bool newdata)
+{
+    static_cast<Absorption::Lines *>(data)->Self() = newdata;
+}
+
+bool getAbsorptionLinesBathBroadening(void * data)
+{
+    return static_cast<Absorption::Lines *>(data)->Bath();
+}
+
+void setAbsorptionLinesBathBroadening(void * data, bool newdata)
+{
+    static_cast<Absorption::Lines *>(data)->Bath() = newdata;
+}
+
+Index getAbsorptionLinesCutoffType(void * data)
+{
+    return Index(static_cast<Absorption::Lines *>(data)->Cutoff());
+}
+
+void getAbsorptionLinesCutoffType(void * data, Index newdata)
+{
+    static_cast<Absorption::Lines *>(data)->Cutoff(Absorption::CutoffType(newdata));
+}
+
+Index getAbsorptionLinesMirroringType(void * data)
+{
+    return Index(static_cast<Absorption::Lines *>(data)->Mirroring());
+}
+
+Index getAbsorptionLinesPopulationType(void * data)
+{
+    return Index(static_cast<Absorption::Lines *>(data)->Population());
+}
+
+Index getAbsorptionLinesNormalizationType(void * data)
+{
+    return Index(static_cast<Absorption::Lines *>(data)->Normalization());
+}
+
+Index getAbsorptionLinesLineShapeType(void * data)
+{
+    return Index(static_cast<Absorption::Lines *>(data)->LineShapeType());
+}
+
+Numeric getAbsorptionLinesT0(void * data)
+{
+    return static_cast<Absorption::Lines *>(data)->T0();
+}
+
+Numeric getAbsorptionLinesCutoffFrequency(void * data)
+{
+    return static_cast<Absorption::Lines *>(data)->CutoffFreqValue();
+}
+
+Numeric getAbsorptionLinesLinemixingLimit(void * data)
+{
+    return static_cast<Absorption::Lines *>(data)->LinemixingLimit();
+}
+
+void * getAbsorptionLinesQuantumIdentifier(void * data)
+{
+    return &static_cast<Absorption::Lines *>(data)->QuantumIdentity();
+}
+
+Index getAbsorptionLinesLocalQuantumNumber(Index i, void * data)
+{
+    return Index(static_cast<Absorption::Lines *>(data)->LocalQuanta()[i]);
+}
+
+Index getAbsorptionLinesLocalQuantumNumberCount(void * data)
+{
+    return static_cast<Absorption::Lines *>(data)->NumLocalQuanta();
+}
+
+void * getAbsorptionLinesSpeciesTag(Index i, void * data)
+{
+    return &static_cast<Absorption::Lines *>(data)->BroadeningSpecies()[i];
+}
+
+Index getAbsorptionLinesSpeciesTagCount(void * data)
+{
+    return static_cast<Absorption::Lines *>(data)->NumBroadeners();
+}
+
+void * getAbsorptionLinesSingleLine(Index i, void * data)
+{
+    return &static_cast<Absorption::Lines *>(data)->Line(i);
+}
+
+Index getAbsorptionLinesSingleLineCount(void * data)
+{
+    return static_cast<Absorption::Lines *>(data)->NumLines();
+}

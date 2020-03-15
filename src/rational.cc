@@ -99,3 +99,12 @@ Rational::Rational(const String& s)
     *this = RATIONAL_UNDEFINED;
   }
 }
+
+
+void Rational::simplify_in_place()
+{
+  Rational a = reduce_by_gcd(*this);
+  mnom = a.Nom();
+  mdenom = a.Denom();
+  fixSign();
+}

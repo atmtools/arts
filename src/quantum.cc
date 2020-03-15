@@ -238,8 +238,6 @@ void QuantumIdentifier::SetEnergyLevel(const QuantumNumbers& q) {
   mqm[ENERGY_LEVEL_INDEX] = q;
 }
 
-void QuantumIdentifier::SetAll() { mqtype = QuantumIdentifier::ALL; }
-
 void QuantumIdentifier::SetFromString(String str) {
   // Global species lookup data:
   using global_data::species_data;

@@ -86,6 +86,9 @@ enum class TemperatureModel : Index {
   // ALWAYS ADD NEW AT THE END
 };
 
+// Always store the maximum value
+constexpr Index TemperatureModelMax = Index(TemperatureModel::DPL);
+
 /** Turns selected TemperatureModel type into a string
  * 
  * This function takes the input TemperatureModel
@@ -773,7 +776,7 @@ inline std::istream& operator>>(std::istream& is, SingleSpeciesModel& ssm) {
 }
 
 /** Type of line shape to compute */
-enum class Type {
+enum class Type : Index {
   DP,    // Doppler
   LP,    // Lorentz
   VP,    // Voigt
@@ -1629,3 +1632,4 @@ void vector2modelpb(LineShape::Type& mtype,
 };  // namespace LineShape
 
 #endif  // lineshapemodel_h
+
