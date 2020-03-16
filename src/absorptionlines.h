@@ -1328,6 +1328,8 @@ public:
       line.write(os);
     return os;
   }
+  
+  bool OK() const noexcept;
 };  // Lines
 
 std::ostream& operator<<(std::ostream&, const Lines&);

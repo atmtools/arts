@@ -151,6 +151,13 @@ extern "C" {
   DLL_PUBLIC Index getSpeciesTagType(void *);
   DLL_PUBLIC Index getSpeciesTagCIASecond(void *);
   DLL_PUBLIC Index getSpeciesTagCIADataset(void *);
+  DLL_PUBLIC void setSpeciesTagSpecies(void *, Index);
+  DLL_PUBLIC void setSpeciesTagIsotopologue(void *, Index);
+  DLL_PUBLIC void setSpeciesTagLowerFrequency(void *, Numeric);
+  DLL_PUBLIC void setSpeciesTagUpperFrequency(void *, Numeric);
+  DLL_PUBLIC void setSpeciesTagType(void *, Index);
+  DLL_PUBLIC void setSpeciesTagCIASecond(void *, Index);
+  DLL_PUBLIC void setSpeciesTagCIADataset(void *, Index);
   
   // Absorption::Lines
   DLL_PUBLIC void * createAbsorptionLines();
@@ -163,14 +170,19 @@ extern "C" {
   DLL_PUBLIC void setAbsorptionLinesBathBroadening(void *, bool);
   DLL_PUBLIC Index getAbsorptionLinesCutoffType(void *);
   DLL_PUBLIC Index setAbsorptionLinesCutoffType(void *, char *);
+  DLL_PUBLIC void setAbsorptionLinesCutoffTypeByIndex(void *, Index);
   DLL_PUBLIC Index getAbsorptionLinesMirroringType(void *);
   DLL_PUBLIC Index setAbsorptionLinesMirroringType(void *, char *);
+  DLL_PUBLIC void setAbsorptionLinesMirroringTypeByIndex(void *, Index);
   DLL_PUBLIC Index getAbsorptionLinesPopulationType(void *);
   DLL_PUBLIC Index setAbsorptionLinesPopulationType(void *, char *);
+  DLL_PUBLIC void setAbsorptionLinesPopulationTypeByIndex(void *, Index);
   DLL_PUBLIC Index getAbsorptionLinesNormalizationType(void *);
   DLL_PUBLIC Index setAbsorptionLinesNormalizationType(void *, char *);
+  DLL_PUBLIC void setAbsorptionLinesNormalizationTypeByIndex(void *, Index);
   DLL_PUBLIC Index getAbsorptionLinesLineShapeType(void *);
   DLL_PUBLIC Index setAbsorptionLinesLineShapeType(void *, char *);
+  DLL_PUBLIC void setAbsorptionLinesLineShapeTypeByIndex(void *, Index);
   DLL_PUBLIC Numeric getAbsorptionLinesT0(void *);
   DLL_PUBLIC void setAbsorptionLinesT0(void *, Numeric);
   DLL_PUBLIC Numeric getAbsorptionLinesCutoffFrequency(void *);
@@ -185,6 +197,7 @@ extern "C" {
   DLL_PUBLIC void resizeAbsorptionLinesSpeciesTag(Index, void *);
   DLL_PUBLIC void * getAbsorptionLinesSpeciesTag(Index, void *);
   DLL_PUBLIC Index getAbsorptionLinesSpeciesTagCount(void *);
+  DLL_PUBLIC Index isAbsorptionLinesOK(void *);
   
   DLL_PUBLIC void resizeAbsorptionLinesSingleLine(Index, void *);
   DLL_PUBLIC void * getAbsorptionLinesSingleLine(Index, void *);

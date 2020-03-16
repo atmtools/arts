@@ -3540,3 +3540,30 @@ Absorption::SingleLineExternal Absorption::ReadFromJplStream(istream& is)
   data.bad = false;
   return data;
 }
+
+
+
+bool Absorption::Lines::OK() const noexcept
+{
+  const Index nq = mlocalquanta.size();
+  const Index nb = mbroadeningspecies.nelem();
+  
+  // Test that self and bath is covered by the range if set positive
+  if (nb < (Index(mselfbroadening) + Index(mbathbroadening)))
+    return false;
+ 
+  // Test that the temperature is physical
+  if (mT0 <= 0)
+    return false;
+  
+  // Test that all lines have the correct sized line shape model
+  if (std::any_of(mlines.cbegin(), mlines.cend(), [nb](auto& line){return line.LineShapeElems() != nb;}))
+    return false;
+  
+  // Test that all lines have the correct sized local quantum numbers
+  if (std::any_of(mlines.cbegin(), mlines.cend(), [nq](auto& line){return line.LowerQuantumElems() != nq or line.UpperQuantumElems() != nq;}))
+    return false;
+  
+  // Otherwise everything is fine!
+  return true;
+}

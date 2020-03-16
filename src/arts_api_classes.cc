@@ -587,6 +587,41 @@ Index getSpeciesTagCIADataset(void * data)
     return static_cast<SpeciesTag *>(data)->CIADataset();
 }
 
+void setSpeciesTagSpecies(void * data, Index newdata)
+{
+  static_cast<SpeciesTag *>(data)->Species(newdata);
+}
+
+void setSpeciesTagIsotopologue(void * data, Index newdata)
+{
+  static_cast<SpeciesTag *>(data)->Isotopologue(newdata);
+}
+
+void setSpeciesTagLowerFrequency(void * data, Numeric newdata)
+{
+  static_cast<SpeciesTag *>(data)->Lf(newdata);
+}
+
+void setSpeciesTagUpperFrequency(void * data, Numeric newdata)
+{
+  static_cast<SpeciesTag *>(data)->Uf(newdata);
+}
+
+void setSpeciesTagType(void * data, Index newdata)
+{
+  static_cast<SpeciesTag *>(data)->Type(newdata);
+}
+
+void setSpeciesTagCIASecond(void * data, Index newdata)
+{
+  static_cast<SpeciesTag *>(data)->CIASecond(newdata);
+}
+
+void setSpeciesTagCIADataset(void * data, Index newdata)
+{
+  static_cast<SpeciesTag *>(data)->CIADataset(newdata);
+}
+
 
 void * createAbsorptionLines()
 {
@@ -643,6 +678,11 @@ Index setAbsorptionLinesCutoffType(void * data, char * newdata)
     }
 }
 
+void setAbsorptionLinesCutoffTypeByIndex(void * data, Index newdata)
+{
+  static_cast<Absorption::Lines *>(data)->Cutoff(Absorption::CutoffType(newdata));
+}
+
 Index getAbsorptionLinesMirroringType(void * data)
 {
     return Index(static_cast<Absorption::Lines *>(data)->Mirroring());
@@ -656,6 +696,11 @@ Index setAbsorptionLinesMirroringType(void * data, char * newdata)
     } catch(const std::exception& e) {
       return EXIT_FAILURE;
     }
+}
+
+void setAbsorptionLinesMirroringTypeByIndex(void * data, Index newdata)
+{
+  static_cast<Absorption::Lines *>(data)->Mirroring(Absorption::MirroringType(newdata));
 }
 
 Index getAbsorptionLinesPopulationType(void * data)
@@ -673,6 +718,11 @@ Index setAbsorptionLinesPopulationType(void * data, char * newdata)
     }
 }
 
+void setAbsorptionLinesPopulationTypeByIndex(void * data, Index newdata)
+{
+  static_cast<Absorption::Lines *>(data)->Population(Absorption::PopulationType(newdata));
+}
+
 Index getAbsorptionLinesNormalizationType(void * data)
 {
     return Index(static_cast<Absorption::Lines *>(data)->Normalization());
@@ -688,6 +738,11 @@ Index setAbsorptionLinesNormalizationType(void * data, char * newdata)
     }
 }
 
+void setAbsorptionLinesNormalizationTypeByIndex(void * data, Index newdata)
+{
+  static_cast<Absorption::Lines *>(data)->Normalization(Absorption::NormalizationType(newdata));
+}
+
 Index getAbsorptionLinesLineShapeType(void * data)
 {
     return Index(static_cast<Absorption::Lines *>(data)->LineShapeType());
@@ -701,6 +756,11 @@ Index setAbsorptionLinesLineShapeType(void * data, char * newdata)
     } catch(const std::exception& e) {
       return EXIT_FAILURE;
     }
+}
+
+void setAbsorptionLinesLineShapeTypeByIndex(void * data, Index newdata)
+{
+  static_cast<Absorption::Lines *>(data)->LineShapeType(LineShape::Type(newdata));
 }
 
 Numeric getAbsorptionLinesT0(void * data)
@@ -786,4 +846,12 @@ void * getAbsorptionLinesSingleLine(Index i, void * data)
 Index getAbsorptionLinesSingleLineCount(void * data)
 {
     return static_cast<Absorption::Lines *>(data)->NumLines();
+}
+
+Index isAbsorptionLinesOK(void * data)
+{
+  if (static_cast<Absorption::Lines *>(data) -> OK())
+    return 1;
+  else
+    return 0;
 }
