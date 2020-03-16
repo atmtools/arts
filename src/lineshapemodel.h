@@ -86,9 +86,6 @@ enum class TemperatureModel : Index {
   // ALWAYS ADD NEW AT THE END
 };
 
-// Always store the maximum value
-constexpr Index TemperatureModelMax = Index(TemperatureModel::DPL);
-
 /** Turns selected TemperatureModel type into a string
  * 
  * This function takes the input TemperatureModel

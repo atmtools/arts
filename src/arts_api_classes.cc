@@ -117,6 +117,15 @@ void printLineShapeModelParameters(void * data)
   std::cout << (*static_cast<LineShape::ModelParameters *>(data)) << std::endl;
 }
 
+Index getLineShapeModelParametersType(char * data)
+{
+  try {
+    return Index(LineShape::string2temperaturemodel(data));
+  } catch (std::runtime_error& e) {
+    return -1;
+  }
+}
+
 
 void * createLineShapeSingleSpeciesModel()
 {
@@ -422,7 +431,27 @@ Index getQuantumIdentifierType(void * data)
     return Index(static_cast<QuantumIdentifier *>(data)->Type());
 }
 
-Index setQuantumIdentifierType(void * data, char * str)
+Index setQuantumIdentifierTypeFromIndex(void * data, Index ind)
+{
+    if (QuantumIdentifier::ENERGY_LEVEL == ind) {
+        static_cast<QuantumIdentifier *>(data)->SetEnergyLevel(static_cast<QuantumIdentifier *>(data)->EnergyLevelQuantumNumbers());
+        return EXIT_SUCCESS;
+    } else if (QuantumIdentifier::TRANSITION == ind) {
+        static_cast<QuantumIdentifier *>(data)->SetTransition();
+        return EXIT_SUCCESS;
+    } 
+    else if (QuantumIdentifier::ALL == ind) {
+        static_cast<QuantumIdentifier *>(data)->SetAll();
+        return EXIT_SUCCESS;
+    } 
+    else if (QuantumIdentifier::NONE == ind) {
+        static_cast<QuantumIdentifier *>(data)->SetNone();
+        return EXIT_SUCCESS;
+    } else
+        return EXIT_FAILURE;
+}
+
+Index setQuantumIdentifierTypeFromString(void * data, char * str)
 {
     if (std::string("ENERGY_LEVEL") == str) {
         static_cast<QuantumIdentifier *>(data)->SetEnergyLevel(static_cast<QuantumIdentifier *>(data)->EnergyLevelQuantumNumbers());
@@ -469,12 +498,12 @@ Index validIsotopologue(Index spec, Index isot)
 {
     auto& species = global_data::species_data[spec];
     if (isot >= 0 and isot < species.Isotopologue().nelem()) {
-        if (not species.Isotopologue()[isot].isContinuum())
+        if (not species.Isotopologue()[isot].isContinuum()) {
             return EXIT_SUCCESS;
-        else
-            return EXIT_FAILURE;
-    } else
-        return EXIT_FAILURE;
+        }
+    }
+    
+    return EXIT_FAILURE;
 }
 
 void setQuantumIdentifierIsotopologue(void * data, Index isot)
@@ -513,9 +542,14 @@ void printSpeciesTag(void * data)
     std::cout << (*static_cast<SpeciesTag *>(data)) << std::endl;
 }
 
-void setSpeciesTag(void * data, char * newdata)
+Index setSpeciesTag(void * data, char * newdata)
 {
-    *static_cast<SpeciesTag *>(data) = SpeciesTag(newdata);
+    try {
+      *static_cast<SpeciesTag *>(data) = SpeciesTag(newdata);
+      return EXIT_SUCCESS;
+    } catch(std::exception& e) {
+      return EXIT_FAILURE;
+    }
 }
 
 Index getSpeciesTagSpecies(void * data)
@@ -599,9 +633,14 @@ Index getAbsorptionLinesCutoffType(void * data)
     return Index(static_cast<Absorption::Lines *>(data)->Cutoff());
 }
 
-void getAbsorptionLinesCutoffType(void * data, Index newdata)
+Index setAbsorptionLinesCutoffType(void * data, char * newdata)
 {
-    static_cast<Absorption::Lines *>(data)->Cutoff(Absorption::CutoffType(newdata));
+    try {
+      static_cast<Absorption::Lines *>(data)->Cutoff(Absorption::string2cutofftype(newdata));
+      return EXIT_SUCCESS;
+    } catch(const std::exception& e) {
+      return EXIT_FAILURE;
+    }
 }
 
 Index getAbsorptionLinesMirroringType(void * data)
@@ -609,9 +648,29 @@ Index getAbsorptionLinesMirroringType(void * data)
     return Index(static_cast<Absorption::Lines *>(data)->Mirroring());
 }
 
+Index setAbsorptionLinesMirroringType(void * data, char * newdata)
+{
+    try {
+      static_cast<Absorption::Lines *>(data)->Mirroring(Absorption::string2mirroringtype(newdata));
+      return EXIT_SUCCESS;
+    } catch(const std::exception& e) {
+      return EXIT_FAILURE;
+    }
+}
+
 Index getAbsorptionLinesPopulationType(void * data)
 {
     return Index(static_cast<Absorption::Lines *>(data)->Population());
+}
+
+Index setAbsorptionLinesPopulationType(void * data, char * newdata)
+{
+    try {
+      static_cast<Absorption::Lines *>(data)->Population(Absorption::string2populationtype(newdata));
+      return EXIT_SUCCESS;
+    } catch(const std::exception& e) {
+      return EXIT_FAILURE;
+    }
 }
 
 Index getAbsorptionLinesNormalizationType(void * data)
@@ -619,9 +678,29 @@ Index getAbsorptionLinesNormalizationType(void * data)
     return Index(static_cast<Absorption::Lines *>(data)->Normalization());
 }
 
+Index setAbsorptionLinesNormalizationType(void * data, char * newdata)
+{
+    try {
+      static_cast<Absorption::Lines *>(data)->Normalization(Absorption::string2normalizationtype(newdata));
+      return EXIT_SUCCESS;
+    } catch(const std::exception& e) {
+      return EXIT_FAILURE;
+    }
+}
+
 Index getAbsorptionLinesLineShapeType(void * data)
 {
     return Index(static_cast<Absorption::Lines *>(data)->LineShapeType());
+}
+
+Index setAbsorptionLinesLineShapeType(void * data, char * newdata)
+{
+    try {
+      static_cast<Absorption::Lines *>(data)->LineShapeType(LineShape::string2shapetype(newdata));
+      return EXIT_SUCCESS;
+    } catch(const std::exception& e) {
+      return EXIT_FAILURE;
+    }
 }
 
 Numeric getAbsorptionLinesT0(void * data)
@@ -629,9 +708,19 @@ Numeric getAbsorptionLinesT0(void * data)
     return static_cast<Absorption::Lines *>(data)->T0();
 }
 
+void setAbsorptionLinesT0(void * data, Numeric newdata)
+{
+    static_cast<Absorption::Lines *>(data)->T0(newdata);
+}
+
 Numeric getAbsorptionLinesCutoffFrequency(void * data)
 {
     return static_cast<Absorption::Lines *>(data)->CutoffFreqValue();
+}
+
+void setAbsorptionLinesCutoffFrequency(void * data, Numeric newdata)
+{
+  static_cast<Absorption::Lines *>(data)->CutoffFreqValue(newdata);
 }
 
 Numeric getAbsorptionLinesLinemixingLimit(void * data)
@@ -639,9 +728,19 @@ Numeric getAbsorptionLinesLinemixingLimit(void * data)
     return static_cast<Absorption::Lines *>(data)->LinemixingLimit();
 }
 
+void setAbsorptionLinesLinemixingLimit(void * data, Numeric newdata)
+{
+    static_cast<Absorption::Lines *>(data)->LinemixingLimit(newdata);
+}
+
 void * getAbsorptionLinesQuantumIdentifier(void * data)
 {
     return &static_cast<Absorption::Lines *>(data)->QuantumIdentity();
+}
+
+void resizeAbsorptionLinesLocalQuantumNumber(Index n, void * data)
+{
+  static_cast<Absorption::Lines *>(data)->LocalQuanta().resize(n);
 }
 
 Index getAbsorptionLinesLocalQuantumNumber(Index i, void * data)
@@ -649,9 +748,19 @@ Index getAbsorptionLinesLocalQuantumNumber(Index i, void * data)
     return Index(static_cast<Absorption::Lines *>(data)->LocalQuanta()[i]);
 }
 
+void setAbsorptionLinesLocalQuantumNumber(Index i, void * data, Index newdata)
+{
+    static_cast<Absorption::Lines *>(data)->LocalQuanta()[i] = QuantumNumberType(newdata);
+}
+
 Index getAbsorptionLinesLocalQuantumNumberCount(void * data)
 {
     return static_cast<Absorption::Lines *>(data)->NumLocalQuanta();
+}
+
+void resizeAbsorptionLinesSpeciesTag(Index n, void * data)
+{
+    static_cast<Absorption::Lines *>(data)->BroadeningSpecies().resize(n);
 }
 
 void * getAbsorptionLinesSpeciesTag(Index i, void * data)
@@ -662,6 +771,11 @@ void * getAbsorptionLinesSpeciesTag(Index i, void * data)
 Index getAbsorptionLinesSpeciesTagCount(void * data)
 {
     return static_cast<Absorption::Lines *>(data)->NumBroadeners();
+}
+
+void resizeAbsorptionLinesSingleLine(Index n, void * data)
+{
+  static_cast<Absorption::Lines *>(data)->AllLines().resize(n);
 }
 
 void * getAbsorptionLinesSingleLine(Index i, void * data)

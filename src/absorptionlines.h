@@ -1223,6 +1223,11 @@ public:
     return mlocalquanta;
   }
   
+  /** Returns local quantum numbers */
+  std::vector<QuantumNumberType>& LocalQuanta() noexcept {
+    return mlocalquanta;
+  }
+  
   /** Returns the broadening species */
   const ArrayOfSpeciesTag& BroadeningSpecies() const noexcept {
     return mbroadeningspecies;

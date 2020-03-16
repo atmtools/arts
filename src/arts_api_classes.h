@@ -60,6 +60,7 @@ extern "C" {
   
   // LineShape::ModelParameters
   DLL_PUBLIC void printLineShapeModelParameters(void *);
+  DLL_PUBLIC Index getLineShapeModelParametersType(char *);
   
   // LineShape::SingleSpeciesModel
   DLL_PUBLIC void * createLineShapeSingleSpeciesModel();
@@ -127,7 +128,9 @@ extern "C" {
   DLL_PUBLIC void * createQuantumIdentifier();
   DLL_PUBLIC void deleteQuantumIdentifier(void *);
   DLL_PUBLIC void printQuantumIdentifier(void *);
-  DLL_PUBLIC Index setQuantumIdentifierType(void *, char *);
+  DLL_PUBLIC Index getQuantumIdentifierType(void *);
+  DLL_PUBLIC Index setQuantumIdentifierTypeFromString(void *, char *);
+  DLL_PUBLIC Index setQuantumIdentifierTypeFromIndex(void *, Index);
   DLL_PUBLIC Index getQuantumIdentifierSpecies(void *);
   DLL_PUBLIC void setQuantumIdentifierSpecies(void *, Index);
   DLL_PUBLIC Index getQuantumIdentifierIsotopologue(void *);
@@ -140,7 +143,7 @@ extern "C" {
   DLL_PUBLIC void * createSpeciesTag();
   DLL_PUBLIC void deleteSpeciesTag(void *);
   DLL_PUBLIC void printSpeciesTag(void *);
-  DLL_PUBLIC void setSpeciesTag(void *, char *);
+  DLL_PUBLIC Index setSpeciesTag(void *, char *);
   DLL_PUBLIC Index getSpeciesTagSpecies(void *);
   DLL_PUBLIC Index getSpeciesTagIsotopologue(void *);
   DLL_PUBLIC Numeric getSpeciesTagLowerFrequency(void *);
@@ -159,19 +162,31 @@ extern "C" {
   DLL_PUBLIC bool getAbsorptionLinesBathBroadening(void *);
   DLL_PUBLIC void setAbsorptionLinesBathBroadening(void *, bool);
   DLL_PUBLIC Index getAbsorptionLinesCutoffType(void *);
-  DLL_PUBLIC void setAbsorptionLinesCutoffType(void *, Index);
+  DLL_PUBLIC Index setAbsorptionLinesCutoffType(void *, char *);
   DLL_PUBLIC Index getAbsorptionLinesMirroringType(void *);
+  DLL_PUBLIC Index setAbsorptionLinesMirroringType(void *, char *);
   DLL_PUBLIC Index getAbsorptionLinesPopulationType(void *);
+  DLL_PUBLIC Index setAbsorptionLinesPopulationType(void *, char *);
   DLL_PUBLIC Index getAbsorptionLinesNormalizationType(void *);
+  DLL_PUBLIC Index setAbsorptionLinesNormalizationType(void *, char *);
   DLL_PUBLIC Index getAbsorptionLinesLineShapeType(void *);
+  DLL_PUBLIC Index setAbsorptionLinesLineShapeType(void *, char *);
   DLL_PUBLIC Numeric getAbsorptionLinesT0(void *);
+  DLL_PUBLIC void setAbsorptionLinesT0(void *, Numeric);
   DLL_PUBLIC Numeric getAbsorptionLinesCutoffFrequency(void *);
+  DLL_PUBLIC void setAbsorptionLinesCutoffFrequency(void *, Numeric);
   DLL_PUBLIC Numeric getAbsorptionLinesLinemixingLimit(void *);
+  DLL_PUBLIC void setAbsorptionLinesLinemixingLimit(void *, Numeric);
   DLL_PUBLIC void * getAbsorptionLinesQuantumIdentifier(void *);
+  DLL_PUBLIC void resizeAbsorptionLinesLocalQuantumNumber(Index, void *);
   DLL_PUBLIC Index getAbsorptionLinesLocalQuantumNumber(Index, void *);
+  DLL_PUBLIC void setAbsorptionLinesLocalQuantumNumber(Index, void *, Index);
   DLL_PUBLIC Index getAbsorptionLinesLocalQuantumNumberCount(void *);
+  DLL_PUBLIC void resizeAbsorptionLinesSpeciesTag(Index, void *);
   DLL_PUBLIC void * getAbsorptionLinesSpeciesTag(Index, void *);
   DLL_PUBLIC Index getAbsorptionLinesSpeciesTagCount(void *);
+  
+  DLL_PUBLIC void resizeAbsorptionLinesSingleLine(Index, void *);
   DLL_PUBLIC void * getAbsorptionLinesSingleLine(Index, void *);
   DLL_PUBLIC Index getAbsorptionLinesSingleLineCount(void *);
   
