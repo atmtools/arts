@@ -143,24 +143,11 @@ void WriteXML(  //WS Input:
 #endif  // ENABLE_MPI
 
   String filename = f;
-  FileType ftype;
 
   // Create default filename if empty
   filename_xml(filename, v_name);
 
-  if (file_format == "ascii")
-    ftype = FILE_TYPE_ASCII;
-  else if (file_format == "zascii")
-    ftype = FILE_TYPE_ZIPPED_ASCII;
-  else if (file_format == "binary")
-    ftype = FILE_TYPE_BINARY;
-  else
-    throw runtime_error(
-        "file_format contains illegal string. "
-        "Valid values are:\n"
-        "  ascii:  XML output\n"
-        "  zascii: Zipped XML output\n"
-        "  binary: XML + binary output");
+  const FileType ftype = string2filetype(file_format);
 
   String errmsg;
 
