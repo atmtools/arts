@@ -33,6 +33,8 @@
 #include "global_data.h"
 #include "lineshapemodel.h"
 #include "quantum.h"
+#include "xml_io.h"
+#include "xml_io_types.h"
 #include "zeemandata.h"
   
 void * createZeemanModel()
@@ -625,53 +627,73 @@ void setSpeciesTagCIADataset(void * data, Index newdata)
 
 void * createAbsorptionLines()
 {
-  return new Absorption::Lines;
+  return new AbsorptionLines;
 }
 
 void deleteAbsorptionLines(void * data)
 {
-    delete static_cast<Absorption::Lines *>(data);
+    delete static_cast<AbsorptionLines *>(data);
 }
 
 void printAbsorptionLines(void * data)
 {
-    std::cout << (*static_cast<Absorption::Lines *>(data)) << std::endl;
+    std::cout << (*static_cast<AbsorptionLines *>(data)) << std::endl;
+}
+
+Index xmlreadAbsorptionLines(void * data, char * filepath)
+{
+    try {
+        xml_read_from_file(filepath, *static_cast<AbsorptionLines *>(data), Verbosity());
+        return EXIT_SUCCESS;
+    } catch (std::runtime_error& e) {
+        return EXIT_FAILURE;
+    }
+}
+
+Index xmlsaveAbsorptionLines(void * data, char * filepath, Index filetype, Index clobber)
+{
+    try {
+        xml_write_to_file(filepath, *static_cast<const AbsorptionLines *>(data), FileType(filetype), not clobber, Verbosity());
+        return EXIT_SUCCESS;
+    } catch (std::runtime_error& e) {
+        return EXIT_FAILURE;
+    }
 }
 
 void printmetaAbsorptionLines(void * data)
 {
-    std::cout << static_cast<Absorption::Lines *>(data)->MetaData() << std::endl;
+    std::cout << static_cast<AbsorptionLines *>(data)->MetaData() << std::endl;
 }
 
 bool getAbsorptionLinesSelfBroadening(void * data)
 {
-    return static_cast<Absorption::Lines *>(data)->Self();
+    return static_cast<AbsorptionLines *>(data)->Self();
 }
 
 void setAbsorptionLinesSelfBroadening(void * data, bool newdata)
 {
-    static_cast<Absorption::Lines *>(data)->Self() = newdata;
+    static_cast<AbsorptionLines *>(data)->Self() = newdata;
 }
 
 bool getAbsorptionLinesBathBroadening(void * data)
 {
-    return static_cast<Absorption::Lines *>(data)->Bath();
+    return static_cast<AbsorptionLines *>(data)->Bath();
 }
 
 void setAbsorptionLinesBathBroadening(void * data, bool newdata)
 {
-    static_cast<Absorption::Lines *>(data)->Bath() = newdata;
+    static_cast<AbsorptionLines *>(data)->Bath() = newdata;
 }
 
 Index getAbsorptionLinesCutoffType(void * data)
 {
-    return Index(static_cast<Absorption::Lines *>(data)->Cutoff());
+    return Index(static_cast<AbsorptionLines *>(data)->Cutoff());
 }
 
 Index setAbsorptionLinesCutoffType(void * data, char * newdata)
 {
     try {
-      static_cast<Absorption::Lines *>(data)->Cutoff(Absorption::string2cutofftype(newdata));
+      static_cast<AbsorptionLines *>(data)->Cutoff(Absorption::string2cutofftype(newdata));
       return EXIT_SUCCESS;
     } catch(const std::exception& e) {
       return EXIT_FAILURE;
@@ -680,18 +702,18 @@ Index setAbsorptionLinesCutoffType(void * data, char * newdata)
 
 void setAbsorptionLinesCutoffTypeByIndex(void * data, Index newdata)
 {
-  static_cast<Absorption::Lines *>(data)->Cutoff(Absorption::CutoffType(newdata));
+  static_cast<AbsorptionLines *>(data)->Cutoff(Absorption::CutoffType(newdata));
 }
 
 Index getAbsorptionLinesMirroringType(void * data)
 {
-    return Index(static_cast<Absorption::Lines *>(data)->Mirroring());
+    return Index(static_cast<AbsorptionLines *>(data)->Mirroring());
 }
 
 Index setAbsorptionLinesMirroringType(void * data, char * newdata)
 {
     try {
-      static_cast<Absorption::Lines *>(data)->Mirroring(Absorption::string2mirroringtype(newdata));
+      static_cast<AbsorptionLines *>(data)->Mirroring(Absorption::string2mirroringtype(newdata));
       return EXIT_SUCCESS;
     } catch(const std::exception& e) {
       return EXIT_FAILURE;
@@ -700,18 +722,18 @@ Index setAbsorptionLinesMirroringType(void * data, char * newdata)
 
 void setAbsorptionLinesMirroringTypeByIndex(void * data, Index newdata)
 {
-  static_cast<Absorption::Lines *>(data)->Mirroring(Absorption::MirroringType(newdata));
+  static_cast<AbsorptionLines *>(data)->Mirroring(Absorption::MirroringType(newdata));
 }
 
 Index getAbsorptionLinesPopulationType(void * data)
 {
-    return Index(static_cast<Absorption::Lines *>(data)->Population());
+    return Index(static_cast<AbsorptionLines *>(data)->Population());
 }
 
 Index setAbsorptionLinesPopulationType(void * data, char * newdata)
 {
     try {
-      static_cast<Absorption::Lines *>(data)->Population(Absorption::string2populationtype(newdata));
+      static_cast<AbsorptionLines *>(data)->Population(Absorption::string2populationtype(newdata));
       return EXIT_SUCCESS;
     } catch(const std::exception& e) {
       return EXIT_FAILURE;
@@ -720,18 +742,18 @@ Index setAbsorptionLinesPopulationType(void * data, char * newdata)
 
 void setAbsorptionLinesPopulationTypeByIndex(void * data, Index newdata)
 {
-  static_cast<Absorption::Lines *>(data)->Population(Absorption::PopulationType(newdata));
+  static_cast<AbsorptionLines *>(data)->Population(Absorption::PopulationType(newdata));
 }
 
 Index getAbsorptionLinesNormalizationType(void * data)
 {
-    return Index(static_cast<Absorption::Lines *>(data)->Normalization());
+    return Index(static_cast<AbsorptionLines *>(data)->Normalization());
 }
 
 Index setAbsorptionLinesNormalizationType(void * data, char * newdata)
 {
     try {
-      static_cast<Absorption::Lines *>(data)->Normalization(Absorption::string2normalizationtype(newdata));
+      static_cast<AbsorptionLines *>(data)->Normalization(Absorption::string2normalizationtype(newdata));
       return EXIT_SUCCESS;
     } catch(const std::exception& e) {
       return EXIT_FAILURE;
@@ -740,18 +762,18 @@ Index setAbsorptionLinesNormalizationType(void * data, char * newdata)
 
 void setAbsorptionLinesNormalizationTypeByIndex(void * data, Index newdata)
 {
-  static_cast<Absorption::Lines *>(data)->Normalization(Absorption::NormalizationType(newdata));
+  static_cast<AbsorptionLines *>(data)->Normalization(Absorption::NormalizationType(newdata));
 }
 
 Index getAbsorptionLinesLineShapeType(void * data)
 {
-    return Index(static_cast<Absorption::Lines *>(data)->LineShapeType());
+    return Index(static_cast<AbsorptionLines *>(data)->LineShapeType());
 }
 
 Index setAbsorptionLinesLineShapeType(void * data, char * newdata)
 {
     try {
-      static_cast<Absorption::Lines *>(data)->LineShapeType(LineShape::string2shapetype(newdata));
+      static_cast<AbsorptionLines *>(data)->LineShapeType(LineShape::string2shapetype(newdata));
       return EXIT_SUCCESS;
     } catch(const std::exception& e) {
       return EXIT_FAILURE;
@@ -760,98 +782,108 @@ Index setAbsorptionLinesLineShapeType(void * data, char * newdata)
 
 void setAbsorptionLinesLineShapeTypeByIndex(void * data, Index newdata)
 {
-  static_cast<Absorption::Lines *>(data)->LineShapeType(LineShape::Type(newdata));
+  static_cast<AbsorptionLines *>(data)->LineShapeType(LineShape::Type(newdata));
 }
 
 Numeric getAbsorptionLinesT0(void * data)
 {
-    return static_cast<Absorption::Lines *>(data)->T0();
+    return static_cast<AbsorptionLines *>(data)->T0();
 }
 
 void setAbsorptionLinesT0(void * data, Numeric newdata)
 {
-    static_cast<Absorption::Lines *>(data)->T0(newdata);
+    static_cast<AbsorptionLines *>(data)->T0(newdata);
 }
 
 Numeric getAbsorptionLinesCutoffFrequency(void * data)
 {
-    return static_cast<Absorption::Lines *>(data)->CutoffFreqValue();
+    return static_cast<AbsorptionLines *>(data)->CutoffFreqValue();
 }
 
 void setAbsorptionLinesCutoffFrequency(void * data, Numeric newdata)
 {
-  static_cast<Absorption::Lines *>(data)->CutoffFreqValue(newdata);
+  static_cast<AbsorptionLines *>(data)->CutoffFreqValue(newdata);
 }
 
 Numeric getAbsorptionLinesLinemixingLimit(void * data)
 {
-    return static_cast<Absorption::Lines *>(data)->LinemixingLimit();
+    return static_cast<AbsorptionLines *>(data)->LinemixingLimit();
 }
 
 void setAbsorptionLinesLinemixingLimit(void * data, Numeric newdata)
 {
-    static_cast<Absorption::Lines *>(data)->LinemixingLimit(newdata);
+    static_cast<AbsorptionLines *>(data)->LinemixingLimit(newdata);
 }
 
 void * getAbsorptionLinesQuantumIdentifier(void * data)
 {
-    return &static_cast<Absorption::Lines *>(data)->QuantumIdentity();
+    return &static_cast<AbsorptionLines *>(data)->QuantumIdentity();
 }
 
 void resizeAbsorptionLinesLocalQuantumNumber(Index n, void * data)
 {
-  static_cast<Absorption::Lines *>(data)->LocalQuanta().resize(n);
+  static_cast<AbsorptionLines *>(data)->LocalQuanta().resize(n);
 }
 
 Index getAbsorptionLinesLocalQuantumNumber(Index i, void * data)
 {
-    return Index(static_cast<Absorption::Lines *>(data)->LocalQuanta()[i]);
+    return Index(static_cast<AbsorptionLines *>(data)->LocalQuanta()[i]);
 }
 
 void setAbsorptionLinesLocalQuantumNumber(Index i, void * data, Index newdata)
 {
-    static_cast<Absorption::Lines *>(data)->LocalQuanta()[i] = QuantumNumberType(newdata);
+    static_cast<AbsorptionLines *>(data)->LocalQuanta()[i] = QuantumNumberType(newdata);
 }
 
 Index getAbsorptionLinesLocalQuantumNumberCount(void * data)
 {
-    return static_cast<Absorption::Lines *>(data)->NumLocalQuanta();
+    return static_cast<AbsorptionLines *>(data)->NumLocalQuanta();
 }
 
 void resizeAbsorptionLinesSpeciesTag(Index n, void * data)
 {
-    static_cast<Absorption::Lines *>(data)->BroadeningSpecies().resize(n);
+    static_cast<AbsorptionLines *>(data)->BroadeningSpecies().resize(n);
 }
 
 void * getAbsorptionLinesSpeciesTag(Index i, void * data)
 {
-    return &static_cast<Absorption::Lines *>(data)->BroadeningSpecies()[i];
+    return &static_cast<AbsorptionLines *>(data)->BroadeningSpecies()[i];
 }
 
 Index getAbsorptionLinesSpeciesTagCount(void * data)
 {
-    return static_cast<Absorption::Lines *>(data)->NumBroadeners();
+    return static_cast<AbsorptionLines *>(data)->NumBroadeners();
 }
 
 void resizeAbsorptionLinesSingleLine(Index n, void * data)
 {
-  static_cast<Absorption::Lines *>(data)->AllLines().resize(n);
+  static_cast<AbsorptionLines *>(data)->AllLines().resize(n);
 }
 
 void * getAbsorptionLinesSingleLine(Index i, void * data)
 {
-    return &static_cast<Absorption::Lines *>(data)->Line(i);
+    return &static_cast<AbsorptionLines *>(data)->Line(i);
 }
 
 Index getAbsorptionLinesSingleLineCount(void * data)
 {
-    return static_cast<Absorption::Lines *>(data)->NumLines();
+    return static_cast<AbsorptionLines *>(data)->NumLines();
 }
 
 Index isAbsorptionLinesOK(void * data)
 {
-  if (static_cast<Absorption::Lines *>(data) -> OK())
+  if (static_cast<AbsorptionLines *>(data) -> OK())
     return 1;
   else
     return 0;
+}
+
+
+Index string2filetypeindex(char * data)
+{
+    try {
+        return Index(string2filetype(data));
+    } catch (std::runtime_error& e) {
+        return -1;
+    }
 }

@@ -8,6 +8,7 @@ from pyarts.classes.QuantumIdentifier import QuantumIdentifier
 from pyarts.classes.QuantumNumbers import QuantumNumbers
 from pyarts.classes.Rational import Rational
 from pyarts.classes.SpeciesTag import SpeciesTag
+from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 
 
 class AbsorptionLines:
@@ -375,6 +376,32 @@ class AbsorptionLines:
         else:
             raise TypeError("Expects AbsorptionLines")
 
+    def readxml(self, file):
+        """ Reads the XML file
+
+        Input:
+            file:
+                Filename to valid class-file (str)
+        """
+        if lib.xmlreadAbsorptionLines(self.__data__, correct_read_arguments(file)):
+            raise OSError("Cannot read {}".format(file))
+
+    def savexml(self, file, type="ascii", clobber=True):
+        """ Saves the class to XML file
+
+        Input:
+            file:
+                Filename to writable file (str)
+
+            type:
+                Filetype (str)
+
+            clobber:
+                Allow clobbering files? (any boolean)
+        """
+        if lib.xmlsaveAbsorptionLines(self.__data__, *correct_save_arguments(file, type, clobber)):
+            raise OSError("Cannot save {}".format(file))
+
 
 lib.createAbsorptionLines.restype = c.c_void_p
 lib.createAbsorptionLines.argtypes = []
@@ -384,6 +411,12 @@ lib.deleteAbsorptionLines.argtypes = [c.c_void_p]
 
 lib.printAbsorptionLines.restype = None
 lib.printAbsorptionLines.argtypes = [c.c_void_p]
+
+lib.xmlreadAbsorptionLines.restype = c.c_long
+lib.xmlreadAbsorptionLines.argtypes = [c.c_void_p, c.c_char_p]
+
+lib.xmlsaveAbsorptionLines.restype = c.c_long
+lib.xmlsaveAbsorptionLines.argtypes = [c.c_void_p, c.c_char_p, c.c_long, c.c_long]
 
 lib.printmetaAbsorptionLines.restype = None
 lib.printmetaAbsorptionLines.argtypes = [c.c_void_p]

@@ -163,6 +163,8 @@ extern "C" {
   DLL_PUBLIC void * createAbsorptionLines();
   DLL_PUBLIC void deleteAbsorptionLines(void *);
   DLL_PUBLIC void printAbsorptionLines(void *);
+  DLL_PUBLIC Index xmlreadAbsorptionLines(void *, char *);
+  DLL_PUBLIC Index xmlsaveAbsorptionLines(void *, char *, Index, Index);
   DLL_PUBLIC void printmetaAbsorptionLines(void *);
   DLL_PUBLIC bool getAbsorptionLinesSelfBroadening(void *);
   DLL_PUBLIC void setAbsorptionLinesSelfBroadening(void *, bool);
@@ -198,7 +200,6 @@ extern "C" {
   DLL_PUBLIC void * getAbsorptionLinesSpeciesTag(Index, void *);
   DLL_PUBLIC Index getAbsorptionLinesSpeciesTagCount(void *);
   DLL_PUBLIC Index isAbsorptionLinesOK(void *);
-  
   DLL_PUBLIC void resizeAbsorptionLinesSingleLine(Index, void *);
   DLL_PUBLIC void * getAbsorptionLinesSingleLine(Index, void *);
   DLL_PUBLIC Index getAbsorptionLinesSingleLineCount(void *);
@@ -208,6 +209,7 @@ extern "C" {
   DLL_PUBLIC Index validIsotopologue(Index, Index);
   DLL_PUBLIC Index getQuantumNumbersMaxNumber();
   DLL_PUBLIC Index string2quantumnumbersindex(char *);
+  DLL_PUBLIC Index string2filetypeindex(char *);
 }
 
 #if REMOVE_DLL_PUBLIC
