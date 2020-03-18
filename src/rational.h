@@ -67,6 +67,18 @@ class Rational {
     }
   }
   
+  /** Initialization call
+   * 
+   * Sets the rational from the string. Formats accepted are
+   * 
+   * Numeric:  1.234567890
+   * Fraction: 12345/67890
+   * Index:    1234567890
+   * 
+   * Note that overflow is possible and we do not care to capture it
+   * 
+   * @param[in] s String of the value
+   */
   Rational(const String& s);
 
   /** Nominator */
@@ -74,6 +86,15 @@ class Rational {
 
   /** Denominator */
   constexpr Index Denom() const { return mdenom; }
+  
+  /** Nominator */
+  constexpr Index& Nom() { return mnom; }
+  
+  /** Denominator */
+  constexpr Index& Denom() { return mdenom; }
+  
+  /** Simplify by reducing the values locally */
+  void simplify_in_place();
 
   /** Is the object not defined
    * 
@@ -288,7 +309,7 @@ class Rational {
 constexpr Rational reduce_by_gcd(Rational a) {
   const Index div = gcd(a.Nom(), a.Denom());
   if (div)
-    return Rational(a.Nom() / div, a.Denom());
+    return Rational(a.Nom() / div, a.Denom() / div);
   else
     return a;
 }
@@ -671,3 +692,4 @@ constexpr bool even(Rational r) {
 }
 
 #endif  // rational_h
+

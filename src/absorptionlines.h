@@ -46,7 +46,7 @@ namespace Absorption {
  * 
  * Each type but None has to have an implemented effect
  */
-enum class MirroringType {
+enum class MirroringType : Index {
   None,             // No mirroring
   Lorentz,          // Mirror, but use Lorentz line shape
   SameAsLineShape,  // Mirror using the same line shape
@@ -94,7 +94,7 @@ inline String mirroringtype2metadatastring(MirroringType in) {
  *
  * Each type but None has to have an implemented effect
  */
-enum class NormalizationType {
+enum class NormalizationType : Index {
   None,  // Do not renormalize the line shape
   VVH,   // Renormalize with Van Vleck and Huber specifications
   VVW,   // Renormalize with Van Vleck and Weiskopf specifications
@@ -145,7 +145,7 @@ inline String normalizationtype2metadatastring(NormalizationType in) {
  *
  * The types here might require that different data is available at runtime absorption calculations
  */
-enum class PopulationType {
+enum class PopulationType : Index {
   ByLTE,                          // Assume line is in LTE
   ByRelmatMendazaLTE,             // Assume line is in LTE but requires Relaxation matrix calculations - follows Mendaza method
   ByRelmatHartmannLTE,            // Assume line is in LTE but requires Relaxation matrix calculations - follows Hartmann method
@@ -204,7 +204,7 @@ inline bool relaxationtype_relmat(PopulationType in) {
 }
 
 /** Describes the type of cutoff calculations */
-enum class CutoffType {
+enum class CutoffType : Index {
   None,                // No cutoff frequency at all
   LineByLineOffset,    // The cutoff frequency is at SingleLine::F0 plus the cutoff frequency
   BandFixedFrequency,  // The curoff frequency is the cutoff frequency for all SingleLine(s)
@@ -1223,8 +1223,18 @@ public:
     return mlocalquanta;
   }
   
+  /** Returns local quantum numbers */
+  std::vector<QuantumNumberType>& LocalQuanta() noexcept {
+    return mlocalquanta;
+  }
+  
   /** Returns the broadening species */
   const ArrayOfSpeciesTag& BroadeningSpecies() const noexcept {
+    return mbroadeningspecies;
+  }
+  
+  /** Returns the broadening species */
+  ArrayOfSpeciesTag& BroadeningSpecies() noexcept {
     return mbroadeningspecies;
   }
   
@@ -1233,13 +1243,28 @@ public:
     return mselfbroadening;
   }
   
+  /** Returns self broadening status */
+  bool& Self() noexcept {
+    return mselfbroadening;
+  }
+  
   /** Returns bath broadening status */
   bool Bath() const noexcept {
     return mbathbroadening;
   }
   
+  /** Returns bath broadening status */
+  bool& Bath() noexcept {
+    return mbathbroadening;
+  }
+  
   /** Returns identity status */
   const QuantumIdentifier& QuantumIdentity() const noexcept {
+    return mquantumidentity;
+  }
+  
+  /** Returns identity status */
+  QuantumIdentifier& QuantumIdentity() noexcept {
     return mquantumidentity;
   }
   
@@ -1303,6 +1328,8 @@ public:
       line.write(os);
     return os;
   }
+  
+  bool OK() const noexcept;
 };  // Lines
 
 std::ostream& operator<<(std::ostream&, const Lines&);

@@ -62,6 +62,9 @@ class SpeciesTag {
 
   /** Molecular species index. */
   Index Species() const { return mspecies; }
+  
+  /** Set molecular species index. */
+  void Species(Index x) { mspecies = x; }
 
   /** Molecular species index. */
   Index BathSpecies() const { return mcia_second; }
@@ -82,20 +85,37 @@ class SpeciesTag {
       If this is equal to the number of isotopologues (one more than
       allowed) it means all isotopologues of this species. */
   Index Isotopologue() const { return misotopologue; }
+  
+  /** Isotopologue species index */
+  void Isotopologue(Index x) { misotopologue = x; }
 
   /** The lower line center frequency in Hz.
       If this is <0 it means no lower limit. */
   Numeric Lf() const { return mlf; }
 
+  /** The lower line center frequency in Hz.
+      If this is <0 it means no lower limit. */
+  void Lf(Numeric x) { mlf = x; }
+
   /** The upper line center frequency in Hz:
       If this is <0 it means no upper limit. */
   Numeric Uf() const { return muf; }
 
+  /** The upper line center frequency in Hz:
+      If this is <0 it means no upper limit. */
+  void Uf(Numeric x) { muf = x; }
+
   /** Species index of the 2nd CIA species */
   Index CIASecond() const { return mcia_second; }
+  
+  /** Species index of the 2nd CIA species */
+  void CIASecond(Index x) { mcia_second = x; }
 
   /** CIA dataset index inside this CIA file. */
   Index CIADataset() const { return mcia_dataset; }
+  
+  /** CIA dataset index inside this CIA file. */
+  void CIADataset(Index x) { mcia_dataset = x; }
 
   //! Comparison operator for species tags.
   /*!
@@ -138,6 +158,11 @@ class SpeciesTag {
    
    See private member mtype for more explanations.   */
   Index Type() const { return mtype; }
+
+  /** Return the type of this tag.
+   
+   See private member mtype for more explanations.   */
+  void Type(Index x) { mtype = x; }
 
  private:
   //! Molecular species index.

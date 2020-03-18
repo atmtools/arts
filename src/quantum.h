@@ -390,7 +390,7 @@ typedef Array<QuantumNumbers> ArrayOfQuantumNumbers;
 class QuantumIdentifier {
  public:
   /** Ways to identify quantum numbers */
-  typedef enum { TRANSITION, ENERGY_LEVEL, ALL, NONE } QType;
+  typedef enum : Index { TRANSITION, ENERGY_LEVEL, ALL, NONE } QType;
 
   /** Initialize with no matches */
   constexpr QuantumIdentifier() noexcept
@@ -500,7 +500,10 @@ class QuantumIdentifier {
   void SetEnergyLevel(const QuantumNumbers& q);
 
   /** Set to All identifier */
-  void SetAll();
+  void SetAll() { mqtype = QuantumIdentifier::ALL; };
+  
+  /** Set to NONE identifier */
+  void SetNone() { mqtype = QuantumIdentifier::NONE; };
 
   /** Set key to transition type */
   void SetTransition() { mqtype = QuantumIdentifier::TRANSITION; };

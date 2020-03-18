@@ -773,7 +773,7 @@ inline std::istream& operator>>(std::istream& is, SingleSpeciesModel& ssm) {
 }
 
 /** Type of line shape to compute */
-enum class Type {
+enum class Type : Index {
   DP,    // Doppler
   LP,    // Lorentz
   VP,    // Voigt
@@ -1629,3 +1629,4 @@ void vector2modelpb(LineShape::Type& mtype,
 };  // namespace LineShape
 
 #endif  // lineshapemodel_h
+
