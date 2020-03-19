@@ -210,6 +210,22 @@ extern "C" {
   DLL_PUBLIC Index getQuantumNumbersMaxNumber();
   DLL_PUBLIC Index string2quantumnumbersindex(char *);
   DLL_PUBLIC Index string2filetypeindex(char *);
+  
+  // Array IO
+  #define WorkspaceArrayInterfaceCAPI_HFILE(BASETYPE) \
+  DLL_PUBLIC void * createArrayOf##BASETYPE(); \
+  DLL_PUBLIC void deleteArrayOf##BASETYPE(void *); \
+  DLL_PUBLIC void printArrayOf##BASETYPE(void *); \
+  DLL_PUBLIC Index sizeArrayOf##BASETYPE(void *); \
+  DLL_PUBLIC void resizeArrayOf##BASETYPE(Index, void *); \
+  DLL_PUBLIC void * getelemArrayOf##BASETYPE(Index, void *); \
+  DLL_PUBLIC Index xmlreadArrayOf##BASETYPE(void *, char *); \
+  DLL_PUBLIC Index xmlsaveArrayOf##BASETYPE(void *, char *, Index, Index);
+  
+  WorkspaceArrayInterfaceCAPI_HFILE(AbsorptionLines)
+  WorkspaceArrayInterfaceCAPI_HFILE(ArrayOfAbsorptionLines)
+  
+  #undef WorkspaceArrayInterfaceCAPI_HFILE
 }
 
 #if REMOVE_DLL_PUBLIC

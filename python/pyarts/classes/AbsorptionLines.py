@@ -9,6 +9,7 @@ from pyarts.classes.QuantumNumbers import QuantumNumbers
 from pyarts.classes.Rational import Rational
 from pyarts.classes.SpeciesTag import SpeciesTag
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
+from pyarts.classes.ArrayBase import array_base, define_array_lib
 
 
 class AbsorptionLines:
@@ -356,6 +357,11 @@ class AbsorptionLines:
     def __repr__(self):
         return "ARTS AbsorptionLines"
 
+    @staticmethod
+    def name():
+        """ Name of the class as a string.  Required for arrayification """
+        return __class__.__name__
+
     def set(self, other):
         """ Sets this class according to another python instance of itself """
         if isinstance(other, AbsorptionLines):
@@ -401,6 +407,13 @@ class AbsorptionLines:
         """
         if lib.xmlsaveAbsorptionLines(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
+
+
+# Generate ArrayOfAbsorptionLines
+exec(array_base(AbsorptionLines))
+
+# Generate ArrayOfArrayOfAbsorptionLines
+exec(array_base(ArrayOfAbsorptionLines))
 
 
 lib.createAbsorptionLines.restype = c.c_void_p

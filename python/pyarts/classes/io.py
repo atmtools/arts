@@ -1,8 +1,6 @@
 import ctypes as c
 from pyarts.workspace.api import arts_api as lib
 
-from pyarts.classes import *
-
 
 def correct_read_arguments(filename):
     """ Return ARTS-like arguments for reading file IO

@@ -3,7 +3,7 @@
 """This module contains classes within ARTS.
 """
 
-from pyarts.classes.AbsorptionLines import AbsorptionLines
+from pyarts.classes.AbsorptionLines import AbsorptionLines, ArrayOfAbsorptionLines, ArrayOfArrayOfAbsorptionLines
 from pyarts.classes.AbsorptionSingleLine import AbsorptionSingleLine
 from pyarts.classes.LineShapeModelParameters import LineShapeModelParameters
 from pyarts.classes.LineShapeModel import LineShapeModel

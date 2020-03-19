@@ -887,3 +887,63 @@ Index string2filetypeindex(char * data)
         return -1;
     }
 }
+
+
+#define WorkspaceArrayInterfaceCAPI_CCFILE(BASETYPE)                                                                                               \
+void * createArrayOf##BASETYPE()                                                                                                    \
+{                                                                                                                                   \
+    return new ArrayOf##BASETYPE;                                                                                                   \
+}                                                                                                                                   \
+                                                                                                                                    \
+void deleteArrayOf##BASETYPE(void * data)                                                                                           \
+{                                                                                                                                   \
+    delete static_cast<ArrayOf##BASETYPE *>(data);                                                                                  \
+}                                                                                                                                   \
+                                                                                                                                    \
+void printArrayOf##BASETYPE(void * data)                                                                                            \
+{                                                                                                                                   \
+  std::cout << (*static_cast<ArrayOf##BASETYPE *>(data)) << std::endl;                                                              \
+}                                                                                                                                   \
+                                                                                                                                    \
+Index sizeArrayOf##BASETYPE(void * data)                                                                                            \
+{                                                                                                                                   \
+    return static_cast<ArrayOf##BASETYPE *>(data) -> nelem();                                                                       \
+}                                                                                                                                   \
+                                                                                                                                    \
+void resizeArrayOf##BASETYPE(Index n, void * data)                                                                                  \
+{                                                                                                                                   \
+    static_cast<ArrayOf##BASETYPE *>(data) -> resize(n);                                                                            \
+}                                                                                                                                   \
+                                                                                                                                    \
+void * getelemArrayOf##BASETYPE(Index i, void * data)                                                                               \
+{                                                                                                                                   \
+    if (i >= 0 and i < static_cast<ArrayOf##BASETYPE *>(data) -> nelem())                                                           \
+        return &static_cast<ArrayOf##BASETYPE *>(data) -> operator[](i);                                                            \
+    else                                                                                                                            \
+        return nullptr;                                                                                                             \
+}                                                                                                                                   \
+                                                                                                                                    \
+Index xmlreadArrayOf##BASETYPE(void * data, char * filepath)                                                                        \
+{                                                                                                                                   \
+    try {                                                                                                                           \
+        xml_read_from_file(filepath, *static_cast<ArrayOf##BASETYPE *>(data), Verbosity());                                         \
+        return EXIT_SUCCESS;                                                                                                        \
+    } catch (std::runtime_error& e) {                                                                                               \
+        return EXIT_FAILURE;                                                                                                        \
+    }                                                                                                                               \
+}                                                                                                                                   \
+                                                                                                                                    \
+Index xmlsaveArrayOf##BASETYPE(void * data, char * filepath, Index filetype, Index clobber)                                         \
+{                                                                                                                                   \
+    try {                                                                                                                           \
+        xml_write_to_file(filepath, *static_cast<const ArrayOf##BASETYPE *>(data), FileType(filetype), not clobber, Verbosity());   \
+        return EXIT_SUCCESS;                                                                                                        \
+    } catch (std::runtime_error& e) {                                                                                               \
+        return EXIT_FAILURE;                                                                                                        \
+    }                                                                                                                               \
+}
+
+WorkspaceArrayInterfaceCAPI_CCFILE(AbsorptionLines)
+WorkspaceArrayInterfaceCAPI_CCFILE(ArrayOfAbsorptionLines)
+
+#undef WorkspaceArrayInterfaceCAPI_CCFILE
