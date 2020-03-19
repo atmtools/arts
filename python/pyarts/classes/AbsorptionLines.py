@@ -412,6 +412,7 @@ class AbsorptionLines:
 # Generate ArrayOfAbsorptionLines
 exec(array_base(AbsorptionLines))
 
+
 # Generate ArrayOfArrayOfAbsorptionLines
 exec(array_base(ArrayOfAbsorptionLines))
 
