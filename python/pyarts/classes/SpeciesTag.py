@@ -11,25 +11,25 @@ class SpeciesTag:
 
     Properties:
         spec:
-            Species of tag (const Index)
+            Species of tag (Index)
 
         isot:
-            Isotopologue of tag (const Index)
+            Isotopologue of tag (Index)
 
         type:
-            Type of tag (const Index)
+            Type of tag (Index)
 
         cia_second:
-            Secondary species when CIA mode (const Index)
+            Secondary species when CIA mode (Index)
 
         cia_dataset:
-            CIA dataset when CIA mode (const Index)
+            CIA dataset when CIA mode (Index)
 
         lf:
-            Lower frequency range (const Numeric)
+            Lower frequency range (Numeric)
 
         uf:
-            Upper frequency range (const Numeric)
+            Upper frequency range (Numeric)
     """
     def __init__(self, data=None):
         if isinstance(data, c.c_void_p):
@@ -57,7 +57,7 @@ class SpeciesTag:
 
     @property
     def spec(self):
-        """ Species of tag (const Index) """
+        """ Species of tag (Index) """
         return lib.getSpeciesSpeciesTag(self.__data__)
 
     @spec.setter
@@ -69,7 +69,7 @@ class SpeciesTag:
 
     @property
     def isot(self):
-        """ Isotopologue of tag (const Index) """
+        """ Isotopologue of tag (Index) """
         return lib.getIsotopologueSpeciesTag(self.__data__)
 
     @isot.setter
@@ -81,7 +81,7 @@ class SpeciesTag:
 
     @property
     def type(self):
-        """ Type of tag (const Index) """
+        """ Type of tag (Index) """
         return lib.getTypeSpeciesTag(self.__data__)
 
     @type.setter
@@ -95,7 +95,7 @@ class SpeciesTag:
 
     @property
     def cia_second(self):
-        """ Secondary species when CIA mode (const Index) """
+        """ Secondary species when CIA mode (Index) """
         return lib.getCIASecondSpeciesTag(self.__data__)
 
     @cia_second.setter
@@ -109,7 +109,7 @@ class SpeciesTag:
 
     @property
     def cia_dataset(self):
-        """ CIA dataset when CIA mode (const Index) """
+        """ CIA dataset when CIA mode (Index) """
         return lib.getCIADatasetSpeciesTag(self.__data__)
 
     @cia_dataset.setter
@@ -118,7 +118,7 @@ class SpeciesTag:
 
     @property
     def lf(self):
-        """ Lower frequency range (const Numeric) """
+        """ Lower frequency range (Numeric) """
         return lib.getLfSpeciesTag(self.__data__)
 
     @lf.setter
@@ -131,7 +131,7 @@ class SpeciesTag:
 
     @property
     def uf(self):
-        """ Upper frequency range (const Numeric) """
+        """ Upper frequency range (Numeric) """
         return lib.getLfSpeciesTag(self.__data__)
 
     @uf.setter

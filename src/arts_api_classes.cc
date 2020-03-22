@@ -330,6 +330,7 @@ Index isAbsorptionLinesOK(void * data) { return Index(static_cast<AbsorptionLine
 
 // EnergyLevelMap
 BasicInterfaceCAPI(EnergyLevelMap)
+BasicInputOutputCAPI(EnergyLevelMap)
 EnumGetterSetterCAPI(EnergyLevelMap, Type, EnergyLevelMapType)
 VoidGetterCAPI(EnergyLevelMap, Levels)
 VoidGetterCAPI(EnergyLevelMap, Energies)

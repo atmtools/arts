@@ -228,6 +228,7 @@ extern "C" {
     
     // EnergyLevelMap
     BasicInterfaceCAPI(EnergyLevelMap)
+    BasicInputOutputCAPI(EnergyLevelMap)
     EnumGetterSetterCAPI(EnergyLevelMap, Type, EnergyLevelMapType)
     VoidGetterCAPI(EnergyLevelMap, Levels)
     VoidGetterCAPI(EnergyLevelMap, Energies)
