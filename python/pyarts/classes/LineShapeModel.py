@@ -58,7 +58,7 @@ class LineShapeModel:
 
     def __getitem__(self, ind):
         if ind >= 0 and ind < self.size:
-            return LineShapeSingleSpeciesModel(c.c_void_p(lib.getLineShapeModelSingleSpeciesModel(ind, self.__data__)))
+            return LineShapeSingleSpeciesModel(c.c_void_p(lib.getelemLineShapeModel(ind, self.__data__)))
         else:
             raise IndexError("Out of bounds")
 
@@ -93,11 +93,11 @@ lib.deleteLineShapeModel.argtypes = [c.c_void_p]
 lib.printLineShapeModel.restype = None
 lib.printLineShapeModel.argtypes = [c.c_void_p]
 
+lib.getelemLineShapeModel.restype = c.c_void_p
+lib.getelemLineShapeModel.argtypes = [c.c_long, c.c_void_p]
+
 lib.sizeLineShapeModel.restype = c.c_long
 lib.sizeLineShapeModel.argtypes = []
 
 lib.resizeLineShapeModel.restype = None
 lib.resizeLineShapeModel.argtypes = [c.c_long]
-
-lib.getLineShapeModelSingleSpeciesModel.restype = c.c_void_p
-lib.getLineShapeModelSingleSpeciesModel.argtypes = [c.c_long, c.c_void_p]

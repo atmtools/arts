@@ -69,61 +69,67 @@ class AbsorptionSingleLine:
     @property
     def f0(self):
         """ Line frequency (Numeric) """
-        return lib.getAbsorptionSingleLineF0(self.__data__)
+        return lib.getF0AbsorptionSingleLine(self.__data__)
 
     @f0.setter
     def f0(self, x):
-        lib.setAbsorptionSingleLineF0(self.__data__, c.c_double(x))
+        x = float(x)
+        lib.setF0AbsorptionSingleLine(self.__data__, x)
 
     @property
     def i0(self):
         """ Line strength (Numeric) """
-        return lib.getAbsorptionSingleLineI0(self.__data__)
+        return lib.getI0AbsorptionSingleLine(self.__data__)
 
     @i0.setter
     def i0(self, x):
-        lib.setAbsorptionSingleLineI0(self.__data__, c.c_double(x))
+        x = float(x)
+        lib.setI0AbsorptionSingleLine(self.__data__, x)
 
     @property
     def e0(self):
         """ Line lower state energy (Numeric) """
-        return lib.getAbsorptionSingleLineE0(self.__data__)
+        return lib.getE0AbsorptionSingleLine(self.__data__)
 
     @e0.setter
     def e0(self, x):
-        lib.setAbsorptionSingleLineE0(self.__data__, c.c_double(x))
+        x = float(x)
+        lib.setE0AbsorptionSingleLine(self.__data__, x)
 
     @property
     def gl(self):
         """ Lower state statistical weight (Numeric) """
-        return lib.getAbsorptionSingleLineGL(self.__data__)
+        return lib.getg_lowAbsorptionSingleLine(self.__data__)
 
     @gl.setter
     def gl(self, x):
-        lib.setAbsorptionSingleLineGL(self.__data__, c.c_double(x))
+        x = float(x)
+        lib.setg_lowAbsorptionSingleLine(self.__data__, x)
 
     @property
     def gu(self):
         """ Upper state statistical weight (Numeric) """
-        return lib.getAbsorptionSingleLineGU(self.__data__)
+        return lib.getg_uppAbsorptionSingleLine(self.__data__)
 
     @gu.setter
     def gu(self, x):
-        lib.setAbsorptionSingleLineGU(self.__data__, c.c_double(x))
+        x = float(x)
+        lib.setg_uppAbsorptionSingleLine(self.__data__, x)
 
     @property
     def a(self):
-        return lib.getAbsorptionSingleLineA(self.__data__)
+        """ Einstein coefficient (Numeric) """
+        return lib.getAAbsorptionSingleLine(self.__data__)
 
     @a.setter
     def a(self, x):
-        """ Einstein coefficient (Numeric) """
-        lib.setAbsorptionSingleLineA(self.__data__, c.c_double(x))
+        x = float(x)
+        lib.setAAbsorptionSingleLine(self.__data__, x)
 
     @property
     def zeeman(self):
         """ Zeeman model data (ZeemanModel) """
-        return ZeemanModel(c.c_void_p(lib.getAbsorptionSingleLineZeemanModel(self.__data__)))
+        return ZeemanModel(c.c_void_p(lib.getZeemanAbsorptionSingleLine(self.__data__)))
 
     @zeeman.setter
     def zeeman(self, x):
@@ -132,7 +138,7 @@ class AbsorptionSingleLine:
     @property
     def lsm(self):
         """ Line shape model (LineShapeModel) """
-        return LineShapeModel(c.c_void_p(lib.getAbsorptionSingleLineLineShapeModel(self.__data__)))
+        return LineShapeModel(c.c_void_p(lib.getLineShapeAbsorptionSingleLine(self.__data__)))
 
     @lsm.setter
     def lsm(self, x):
@@ -145,12 +151,12 @@ class AbsorptionSingleLine:
         Note that the upper and lower state quantum numbers must be equally
         many for the class to be considered OK
         """
-        return lib.sizeAbsorptionSingleLineUpperQuantas(self.__data__)
+        return lib.sizeUpperQuantumNumbersAbsorptionSingleLine(self.__data__)
 
     @sizequpp.setter
     def sizequpp(self, n):
         n = int(n)
-        lib.resizeAbsorptionSingleLineUpperQuantas(c.c_long(n), self.__data__)
+        lib.resizeUpperQuantumNumbersAbsorptionSingleLine(c.c_long(n), self.__data__)
 
     @property
     def sizeqlow(self):
@@ -159,12 +165,12 @@ class AbsorptionSingleLine:
         Note that the upper and lower state quantum numbers must be equally
         many for the class to be considered OK
         """
-        return lib.sizeAbsorptionSingleLineLowerQuantas(self.__data__)
+        return lib.sizeLowerQuantumNumbersAbsorptionSingleLine(self.__data__)
 
     @sizeqlow.setter
     def sizeqlow(self, n):
         n = int(n)
-        lib.resizeAbsorptionSingleLineLowerQuantas(c.c_long(n), self.__data__)
+        lib.resizeLowerQuantumNumbersAbsorptionSingleLine(c.c_long(n), self.__data__)
 
     @property
     def qupp(self):
@@ -172,7 +178,7 @@ class AbsorptionSingleLine:
         x = []
         n = self.sizequpp
         for i in range(n):
-            x.append(Rational(c.c_void_p(lib.getAbsorptionSingleLineUpperQuanta(i, self.__data__))))
+            x.append(Rational(c.c_void_p(lib.getelemUpperQuantumNumbersAbsorptionSingleLine(i, self.__data__))))
         return x
 
     @qupp.setter
@@ -192,7 +198,7 @@ class AbsorptionSingleLine:
         x = []
         n = self.sizeqlow
         for i in range(n):
-            x.append(Rational(c.c_void_p(lib.getAbsorptionSingleLineLowerQuanta(i, self.__data__))))
+            x.append(Rational(c.c_void_p(lib.getelemLowerQuantumNumbersAbsorptionSingleLine(i, self.__data__))))
         return x
 
     @qlow.setter
@@ -243,62 +249,62 @@ lib.deleteAbsorptionSingleLine.argtypes = [c.c_void_p]
 lib.printAbsorptionSingleLine.restype = None
 lib.printAbsorptionSingleLine.argtypes = [c.c_void_p]
 
-lib.getAbsorptionSingleLineF0.restype = c.c_double
-lib.getAbsorptionSingleLineF0.argtypes = [c.c_void_p]
+lib.getF0AbsorptionSingleLine.restype = c.c_double
+lib.getF0AbsorptionSingleLine.argtypes = [c.c_void_p]
 
-lib.getAbsorptionSingleLineI0.restype = c.c_double
-lib.getAbsorptionSingleLineI0.argtypes = [c.c_void_p]
+lib.getI0AbsorptionSingleLine.restype = c.c_double
+lib.getI0AbsorptionSingleLine.argtypes = [c.c_void_p]
 
-lib.getAbsorptionSingleLineE0.restype = c.c_double
-lib.getAbsorptionSingleLineE0.argtypes = [c.c_void_p]
+lib.getE0AbsorptionSingleLine.restype = c.c_double
+lib.getE0AbsorptionSingleLine.argtypes = [c.c_void_p]
 
-lib.getAbsorptionSingleLineGL.restype = c.c_double
-lib.getAbsorptionSingleLineGL.argtypes = [c.c_void_p]
+lib.getg_lowAbsorptionSingleLine.restype = c.c_double
+lib.getg_lowAbsorptionSingleLine.argtypes = [c.c_void_p]
 
-lib.getAbsorptionSingleLineGU.restype = c.c_double
-lib.getAbsorptionSingleLineGU.argtypes = [c.c_void_p]
+lib.getg_uppAbsorptionSingleLine.restype = c.c_double
+lib.getg_uppAbsorptionSingleLine.argtypes = [c.c_void_p]
 
-lib.getAbsorptionSingleLineA.restype = c.c_double
-lib.getAbsorptionSingleLineA.argtypes = [c.c_void_p]
+lib.getAAbsorptionSingleLine.restype = c.c_double
+lib.getAAbsorptionSingleLine.argtypes = [c.c_void_p]
 
-lib.setAbsorptionSingleLineF0.restype = None
-lib.setAbsorptionSingleLineF0.argtypes = [c.c_void_p, c.c_double]
+lib.setF0AbsorptionSingleLine.restype = None
+lib.setF0AbsorptionSingleLine.argtypes = [c.c_void_p, c.c_double]
 
-lib.setAbsorptionSingleLineI0.restype = None
-lib.setAbsorptionSingleLineI0.argtypes = [c.c_void_p, c.c_double]
+lib.setI0AbsorptionSingleLine.restype = None
+lib.setI0AbsorptionSingleLine.argtypes = [c.c_void_p, c.c_double]
 
-lib.setAbsorptionSingleLineE0.restype = None
-lib.setAbsorptionSingleLineE0.argtypes = [c.c_void_p, c.c_double]
+lib.setE0AbsorptionSingleLine.restype = None
+lib.setE0AbsorptionSingleLine.argtypes = [c.c_void_p, c.c_double]
 
-lib.setAbsorptionSingleLineGL.restype = None
-lib.setAbsorptionSingleLineGL.argtypes = [c.c_void_p, c.c_double]
+lib.setg_lowAbsorptionSingleLine.restype = None
+lib.setg_lowAbsorptionSingleLine.argtypes = [c.c_void_p, c.c_double]
 
-lib.setAbsorptionSingleLineGU.restype = None
-lib.setAbsorptionSingleLineGU.argtypes = [c.c_void_p, c.c_double]
+lib.setg_uppAbsorptionSingleLine.restype = None
+lib.setg_uppAbsorptionSingleLine.argtypes = [c.c_void_p, c.c_double]
 
-lib.setAbsorptionSingleLineA.restype = None
-lib.setAbsorptionSingleLineA.argtypes = [c.c_void_p, c.c_double]
+lib.setAAbsorptionSingleLine.restype = None
+lib.setAAbsorptionSingleLine.argtypes = [c.c_void_p, c.c_double]
 
-lib.getAbsorptionSingleLineZeemanModel.restype = c.c_void_p
-lib.getAbsorptionSingleLineZeemanModel.argtypes = [c.c_void_p]
+lib.getZeemanAbsorptionSingleLine.restype = c.c_void_p
+lib.getZeemanAbsorptionSingleLine.argtypes = [c.c_void_p]
 
-lib.getAbsorptionSingleLineLineShapeModel.restype = c.c_void_p
-lib.getAbsorptionSingleLineLineShapeModel.argtypes = [c.c_void_p]
+lib.getLineShapeAbsorptionSingleLine.restype = c.c_void_p
+lib.getLineShapeAbsorptionSingleLine.argtypes = [c.c_void_p]
 
-lib.sizeAbsorptionSingleLineLowerQuantas.restype = c.c_long
-lib.sizeAbsorptionSingleLineLowerQuantas.argtypes = [c.c_void_p]
+lib.sizeLowerQuantumNumbersAbsorptionSingleLine.restype = c.c_long
+lib.sizeLowerQuantumNumbersAbsorptionSingleLine.argtypes = [c.c_void_p]
 
-lib.sizeAbsorptionSingleLineUpperQuantas.restype = c.c_long
-lib.sizeAbsorptionSingleLineUpperQuantas.argtypes = [c.c_void_p]
+lib.sizeUpperQuantumNumbersAbsorptionSingleLine.restype = c.c_long
+lib.sizeUpperQuantumNumbersAbsorptionSingleLine.argtypes = [c.c_void_p]
 
-lib.resizeAbsorptionSingleLineLowerQuantas.restype = None
-lib.resizeAbsorptionSingleLineLowerQuantas.argtypes = [c.c_long, c.c_void_p]
+lib.resizeLowerQuantumNumbersAbsorptionSingleLine.restype = None
+lib.resizeLowerQuantumNumbersAbsorptionSingleLine.argtypes = [c.c_long, c.c_void_p]
 
-lib.resizeAbsorptionSingleLineUpperQuantas.restype = None
-lib.resizeAbsorptionSingleLineUpperQuantas.argtypes = [c.c_long, c.c_void_p]
+lib.resizeUpperQuantumNumbersAbsorptionSingleLine.restype = None
+lib.resizeUpperQuantumNumbersAbsorptionSingleLine.argtypes = [c.c_long, c.c_void_p]
 
-lib.getAbsorptionSingleLineLowerQuanta.restype = c.c_void_p
-lib.getAbsorptionSingleLineLowerQuanta.argtypes = [c.c_long, c.c_void_p]
+lib.getelemLowerQuantumNumbersAbsorptionSingleLine.restype = c.c_void_p
+lib.getelemLowerQuantumNumbersAbsorptionSingleLine.argtypes = [c.c_long, c.c_void_p]
 
-lib.getAbsorptionSingleLineUpperQuanta.restype = c.c_void_p
-lib.getAbsorptionSingleLineUpperQuanta.argtypes = [c.c_long, c.c_void_p]
+lib.getelemUpperQuantumNumbersAbsorptionSingleLine.restype = c.c_void_p
+lib.getelemUpperQuantumNumbersAbsorptionSingleLine.argtypes = [c.c_long, c.c_void_p]

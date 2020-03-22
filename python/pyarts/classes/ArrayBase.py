@@ -3,17 +3,13 @@ from pyarts.workspace.api import arts_api as lib
 
 
 def define_array_lib(var):
-    """ Ugly way to return and set all the interface to ARTS Array
+    """ Set all the interface to ARTS Array
 
     Do not use manually
 
     Input:
         var:
             The baseclass of an array
-
-    Output:
-        Creatoin functions for the array type
-        create, delete, print, size, resize, getelem, xmlread, xmlsave, var, var.name() (tuple)
     """
     global lib
     string = var.name()
@@ -50,7 +46,6 @@ def define_array_lib(var):
     xmlsave.restype = c.c_long
     xmlsave.argtypes = [c.c_void_p, c.c_char_p, c.c_long, c.c_long]
 
-    return (create, delete, print, size, resize, getelem, xmlread, xmlsave, var, string)
 
 def array_base(var):
     """ A full Array<>-class implementation as a string
@@ -64,12 +59,12 @@ def array_base(var):
     return:
         A string to be exec to generate the class
     """
-    return '''class ArrayOfBASENAME:
-        __funcreate, __fundel, __funprint, __funsize, __funresize, \\
-            __fungetelem, __funxmlread, __funxmlsave, __type, __strtype = \\
-                define_array_lib(BASENAME)
 
-        __doc__ = """ Array of {} from ARTS
+    define_array_lib(var)
+
+
+    return '''class ArrayOfBASENAME:
+        """ ArrayOfBASENAME from ARTS
 
             Getter and setter returns underlying type
 
@@ -78,11 +73,11 @@ def array_base(var):
                     Size of the array (Index)
 
                 type:
-                    Underlying type (const type)
+                    Underlying type (constexpr BASENAME)
 
                 data:
-                    All the data (list of type with size elements)
-        """.format(__strtype)
+                    All the data (list of BASENAME with size-number of elements)
+        """
 
         def __init__(self, data=None):
             if isinstance(data, c.c_void_p):
@@ -90,27 +85,27 @@ def array_base(var):
                 self.__data__ = data
             elif data is None:
                 self.__delete__ = True
-                self.__data__ = c.c_void_p(__class__.__funcreate())
+                self.__data__ = c.c_void_p(lib.createArrayOfBASENAME())
             else:
                 raise TypeError("Invalid initialization")
 
         @property
         def type(self):
-            return self.__type
+            return BASENAME
 
         @property
         def size(self):
             """ Size of the array (Index) """
-            return __class__.__funsize(self.__data__)
+            return lib.sizeArrayOfBASENAME(self.__data__)
 
         @size.setter
         def size(self, size):
             size = int(size)
-            __class__.__funresize(size, self.__data__)
+            lib.resizeArrayOfBASENAME(size, self.__data__)
 
         @property
         def data(self):
-            """ All the data (list of type with size elements)"""
+            """ All the data (list of BASENAME with size-number of elements)"""
             x = []
             n = self.size
             for i in range(n):
@@ -128,40 +123,58 @@ def array_base(var):
                 raise TypeError("Expects list of values")
 
         def __getitem__(self, ind):
-            ind = int(ind)
-            if ind >= 0 and ind < self.size:
-                return self.type(c.c_void_p(__class__.__fungetelem(ind, self.__data__)))
+            if isinstance(ind, slice):
+                return [self[i] for i in range(ind)]
+            elif isinstance(ind, int) and ind < self.size:
+                return self.type(c.c_void_p(lib.getelemArrayOfBASENAME(ind % self.size, self.__data__)))
             else:
                 raise IndexError("Out of bounds")
 
         def __setitem__(self, ind, val):
             old = self[ind]
-            if isinstance(val, self.type):
+            if isinstance(ind, slice):
+                if isinstance(val, Sized):
+                    for i in range(len(old)):
+                        old[i] = val[i]
+                else:
+                    for i in range(len(old)):
+                        old[i] = val
+            elif isinstance(val, self.type):
                 old.set(val)
             else:
-                raise TypeError("Expect {}".format(__class__.__strtype))
+                raise TypeError("Expect BASENAME")
+
+        def append(self, val):
+            if isinstance(val, self.type):
+                self.size += 1
+                self[self.size-1].set(val)
+            else:
+                raise TypeError("Expect BASENAME")
+
+        def __len__(self):
+            return self.size
 
         def print(self):
             """ Print to cout the ARTS representation of the class """
-            __class__.__funprint(self.__data__)
+            lib.printArrayOfBASENAME(self.__data__)
 
         def __del__(self):
             if self.__delete__:
-                __class__.__fundel(self.__data__)
+                lib.deleteArrayOfBASENAME(self.__data__)
 
         def __repr__(self):
-            return "ARTS {} with {} elements".format(__class__.__name__, self.size)
+            return "ARTS ArrayOfBASENAME with {} elements".format(self.size)
 
         def set(self, other):
             """ Sets this class according to another python instance of itself """
-            if isinstance(other, type(self)):
-                pass
+            if isinstance(other, ArrayOfBASENAME):
+                self.data = other.data
             else:
-                raise TypeError("Expects {}".format(self.name()))
+                raise TypeError("Expects ArrayOfBASENAME")
 
         @staticmethod
         def name():
-            return __class__.__name__
+            return "ArrayOfBASENAME"
 
         def readxml(self, file):
             """ Reads the XML file
@@ -170,7 +183,7 @@ def array_base(var):
                 file:
                     Filename to valid class-file (str)
             """
-            if __class__.__funxmlread(self.__data__, correct_read_arguments(file)):
+            if lib.xmlreadArrayOfBASENAME(self.__data__, correct_read_arguments(file)):
                 raise OSError("Cannot read {}".format(file))
 
         def savexml(self, file, type="ascii", clobber=True):
@@ -186,6 +199,6 @@ def array_base(var):
                 clobber:
                     Allow clobbering files? (any boolean)
             """
-            if __class__.__funxmlsave(self.__data__, *correct_save_arguments(file, type, clobber)):
+            if lib.xmlsaveArrayOfBASENAME(self.__data__, *correct_save_arguments(file, type, clobber)):
                 raise OSError("Cannot save {}".format(file))
     '''.replace("BASENAME", var.name())

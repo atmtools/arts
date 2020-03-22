@@ -183,8 +183,8 @@ void jacobianAddAbsSpecies(Workspace&,
           "This is not supported.  Please give just a single species instead.\n"
           "Otherwise consider if you intended for_species_tag to be evaluated true.\n");
     qi.SetAll();
-    qi.SetIsotopologue(test[0].Isotopologue());
-    qi.SetSpecies(test[0].Species());
+    qi.Isotopologue(test[0].Isotopologue());
+    qi.Species(test[0].Species());
   }
 
   // Check that this species is not already included in the jacobian.

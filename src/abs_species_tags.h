@@ -144,7 +144,7 @@ class SpeciesTag {
   /** Enum for type of this tag.
 
   See private member mtype for more explanations.   */
-  enum {
+  enum : Index {
     TYPE_PLAIN,
     TYPE_ZEEMAN,
     TYPE_PREDEF,
@@ -163,6 +163,37 @@ class SpeciesTag {
    
    See private member mtype for more explanations.   */
   void Type(Index x) { mtype = x; }
+  
+  /** Checks if input is a valid Type */
+  bool validIndexForType(Index x) const { 
+    for(auto y: {TYPE_PLAIN, TYPE_ZEEMAN, TYPE_PREDEF, TYPE_CIA, TYPE_FREE_ELECTRONS, TYPE_PARTICLES, TYPE_HITRAN_XSEC }) {
+      if (y == x) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  /** @return Value if string is a Type or -1 if not */
+  Index string2Type(const String& str) const {
+    if (std::string("TYPE_PLAIN") == str) {
+      return TYPE_PLAIN;
+    } else if (std::string("TYPE_ZEEMAN") == str) {
+      return TYPE_ZEEMAN;
+    } else if (std::string("TYPE_PREDEF") == str) {
+      return TYPE_PREDEF;
+    } else if (std::string("TYPE_CIA") == str) {
+      return TYPE_CIA;
+    } else if (std::string("TYPE_FREE_ELECTRONS") == str) {
+      return TYPE_FREE_ELECTRONS;
+    } else if (std::string("TYPE_PARTICLES") == str) {
+      return TYPE_PARTICLES;
+    } else if (std::string("TYPE_HITRAN_XSEC") == str) {
+      return TYPE_HITRAN_XSEC;
+    } else {
+      return -1;
+    }
+  }
 
  private:
   //! Molecular species index.

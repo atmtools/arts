@@ -26,22 +26,20 @@ class ZeemanModel:
     @property
     def gu(self):
         """ Upper level Zeeman splitting (Numeric) """
-        return lib.getZeemanModelGU(self.__data__)
+        return lib.getguZeemanModel(self.__data__)
 
     @gu.setter
     def gu(self, x):
-        x = float(x)
-        lib.setZeemanModelGU(self.__data__, x)
+        lib.setguZeemanModel(self.__data__, float(x))
 
     @property
     def gl(self):
         """ Lower level Zeeman splitting (Numeric) """
-        return lib.getZeemanModelGL(self.__data__)
+        return lib.getglZeemanModel(self.__data__)
 
     @gl.setter
     def gl(self, x):
-        x = float(x)
-        lib.setZeemanModelGL(self.__data__, x)
+        lib.setglZeemanModel(self.__data__, float(x))
 
     def print(self):
         """ Print to cout the ARTS representation of the class """
@@ -72,14 +70,14 @@ lib.deleteZeemanModel.argtypes = [c.c_void_p]
 lib.printZeemanModel.restype = None
 lib.printZeemanModel.argtypes = [c.c_void_p]
 
-lib.getZeemanModelGU.restype = c.c_double
-lib.getZeemanModelGU.argtypes = [c.c_void_p]
+lib.getguZeemanModel.restype = c.c_double
+lib.getguZeemanModel.argtypes = [c.c_void_p]
 
-lib.getZeemanModelGL.restype = c.c_double
-lib.getZeemanModelGL.argtypes = [c.c_void_p]
+lib.getglZeemanModel.restype = c.c_double
+lib.getglZeemanModel.argtypes = [c.c_void_p]
 
-lib.setZeemanModelGU.restype = None
-lib.setZeemanModelGU.argtypes = [c.c_void_p, c.c_double]
+lib.setguZeemanModel.restype = None
+lib.setguZeemanModel.argtypes = [c.c_void_p, c.c_double]
 
-lib.setZeemanModelGL.restype = None
-lib.setZeemanModelGL.argtypes = [c.c_void_p, c.c_double]
+lib.setglZeemanModel.restype = None
+lib.setglZeemanModel.argtypes = [c.c_void_p, c.c_double]

@@ -237,10 +237,10 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(istream& is) {
     SpecIsoMap id = i->second;
 
     // Set mspecies:
-    data.quantumidentity.SetSpecies(id.Speciesindex());
+    data.quantumidentity.Species(id.Speciesindex());
 
     // Set misotopologue:
-    data.quantumidentity.SetIsotopologue(id.Isotopologueindex());
+    data.quantumidentity.Isotopologue(id.Isotopologueindex());
 
     // Extract center frequency:
     icecream >> double_imanip() >> data.line.F0();
@@ -408,8 +408,8 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat4Stream(istream& is) {
     SpecIsoMap id = i->second;
 
     // Set line ID
-    data.quantumidentity.SetSpecies(id.Speciesindex());
-    data.quantumidentity.SetIsotopologue(id.Isotopologueindex());
+    data.quantumidentity.Species(id.Speciesindex());
+    data.quantumidentity.Isotopologue(id.Isotopologueindex());
 
     // Extract center frequency:
     icecream >> double_imanip() >> data.line.F0();
@@ -605,8 +605,8 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat5Stream(istream& is) {
       SpecIsoMap id = i->second;
 
       // Set line ID:
-      data.quantumidentity.SetSpecies(id.Speciesindex());
-      data.quantumidentity.SetIsotopologue(id.Isotopologueindex());
+      data.quantumidentity.Species(id.Speciesindex());
+      data.quantumidentity.Isotopologue(id.Isotopologueindex());
 
       // Extract center frequency:
       icecream >> double_imanip() >> data.line.F0();
@@ -914,7 +914,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
   // Ok, we seem to have a valid species here.
 
   // Set mspecies from my cool index table:
-  data.quantumidentity.SetSpecies(hspec[mo]);
+  data.quantumidentity.Species(hspec[mo]);
 
   // Extract isotopologue:
   Index iso;
@@ -925,9 +925,9 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
   // We have to be careful to issue an error for unknown iso tags. Iso
   // could be either larger than the size of hiso[mo], or set
   // explicitly to missing. Unfortunately we have to test both cases.
-  data.quantumidentity.SetIsotopologue(missing);
+  data.quantumidentity.Isotopologue(missing);
   if (iso < hiso[mo].nelem())
-    if (missing != hiso[mo][iso]) data.quantumidentity.SetIsotopologue(hiso[mo][iso]);
+    if (missing != hiso[mo][iso]) data.quantumidentity.Isotopologue(hiso[mo][iso]);
 
   // Issue error message if misotopologue is still missing:
     if (missing == data.quantumidentity.Isotopologue()) {
@@ -1322,7 +1322,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(istream& i
   // Ok, we seem to have a valid species here.
 
   // Set mspecies from my cool index table:
-  data.quantumidentity.SetSpecies(hspec[mo]);
+  data.quantumidentity.Species(hspec[mo]);
 
   // Extract isotopologue:
   Index iso;
@@ -1333,9 +1333,9 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(istream& i
   // We have to be careful to issue an error for unknown iso tags. Iso
   // could be either larger than the size of hiso[mo], or set
   // explicitly to missing. Unfortunately we have to test both cases.
-  data.quantumidentity.SetIsotopologue(missing);
+  data.quantumidentity.Isotopologue(missing);
   if (iso < hiso[mo].nelem())
-    if (missing != hiso[mo][iso]) data.quantumidentity.SetIsotopologue(hiso[mo][iso]);
+    if (missing != hiso[mo][iso]) data.quantumidentity.Isotopologue(hiso[mo][iso]);
 
   // Issue error message if misotopologue is still missing:
     if (missing == data.quantumidentity.Isotopologue()) {
@@ -1722,7 +1722,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(istream& is)
   // Ok, we seem to have a valid species here.
 
   // Set mspecies from my cool index table:
-  data.quantumidentity.SetSpecies(hspec[mo]);
+  data.quantumidentity.Species(hspec[mo]);
 
   // Extract isotopologue:
   Index iso;
@@ -1733,9 +1733,9 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(istream& is)
   // We have to be careful to issue an error for unknown iso tags. Iso
   // could be either larger than the size of hiso[mo], or set
   // explicitly to missing. Unfortunately we have to test both cases.
-  data.quantumidentity.SetIsotopologue(missing);
+  data.quantumidentity.Isotopologue(missing);
   if (iso < hiso[mo].nelem())
-    if (missing != hiso[mo][iso]) data.quantumidentity.SetIsotopologue(hiso[mo][iso]);
+    if (missing != hiso[mo][iso]) data.quantumidentity.Isotopologue(hiso[mo][iso]);
 
   // Issue error message if misotopologue is still missing:
     if (missing == data.quantumidentity.Isotopologue()) {
@@ -2082,7 +2082,7 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
   // Ok, we seem to have a valid species here.
 
   // Set mspecies from my cool index table:
-  data.quantumidentity.SetSpecies(hspec[mo]);
+  data.quantumidentity.Species(hspec[mo]);
 
   // Extract isotopologue:
   Index iso;
@@ -2093,9 +2093,9 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
   // We have to be careful to issue an error for unknown iso tags. Iso
   // could be either larger than the size of hiso[mo], or set
   // explicitly to missing. Unfortunately we have to test both cases.
-  data.quantumidentity.SetIsotopologue(missing);
+  data.quantumidentity.Isotopologue(missing);
   if (iso < hiso[mo].nelem())
-    if (missing != hiso[mo][iso]) data.quantumidentity.SetIsotopologue(hiso[mo][iso]);
+    if (missing != hiso[mo][iso]) data.quantumidentity.Isotopologue(hiso[mo][iso]);
 
   // Issue error message if misotopologue is still missing:
   if (missing == data.quantumidentity.Isotopologue()) {
@@ -3114,7 +3114,7 @@ Absorption::SingleLineExternal Absorption::ReadFromMytran2Stream(istream& is)
   // Ok, we seem to have a valid species here.
 
   // Set mspecies from my cool index table:
-  data.quantumidentity.SetSpecies(hspec[mo]);
+  data.quantumidentity.Species(hspec[mo]);
 
   // Extract isotopologue:
   Index iso;
@@ -3125,9 +3125,9 @@ Absorption::SingleLineExternal Absorption::ReadFromMytran2Stream(istream& is)
   // We have to be careful to issue an error for unknown iso tags. Iso
   // could be either larger than the size of hiso[mo], or set
   // explicitly to missing. Unfortunately we have to test both cases.
-  data.quantumidentity.SetIsotopologue(missing);
+  data.quantumidentity.Isotopologue(missing);
   if (iso < hiso[mo].nelem())
-    if (missing != hiso[mo][iso]) data.quantumidentity.SetIsotopologue(hiso[mo][iso]);
+    if (missing != hiso[mo][iso]) data.quantumidentity.Isotopologue(hiso[mo][iso]);
 
   // Issue error message if misotopologue is still missing:
     if (missing == data.quantumidentity.Isotopologue()) {
@@ -3486,8 +3486,8 @@ Absorption::SingleLineExternal Absorption::ReadFromJplStream(istream& is)
   SpecIsoMap id = i->second;
 
   // Set line ID
-  data.quantumidentity.SetSpecies(id.Speciesindex());
-  data.quantumidentity.SetIsotopologue(id.Isotopologueindex());
+  data.quantumidentity.Species(id.Speciesindex());
+  data.quantumidentity.Isotopologue(id.Isotopologueindex());
 
   // Air broadening parameters: unknown to jpl, use old iup forward
   // model default values, which is mostly set to 0.0025 GHz/hPa, even

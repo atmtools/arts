@@ -7,9 +7,10 @@ from pyarts.classes.LineShapeModel import LineShapeModel
 from pyarts.classes.QuantumIdentifier import QuantumIdentifier
 from pyarts.classes.QuantumNumbers import QuantumNumbers
 from pyarts.classes.Rational import Rational
-from pyarts.classes.SpeciesTag import SpeciesTag
+from pyarts.classes.SpeciesTag import ArrayOfSpeciesTag
+from pyarts.classes.BasicTypes import Index
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
-from pyarts.classes.ArrayBase import array_base, define_array_lib
+from pyarts.classes.ArrayBase import array_base
 
 
 class AbsorptionLines:
@@ -112,127 +113,117 @@ class AbsorptionLines:
     @property
     def selfbroadening(self):
         """ Self broadening (bool) """
-        return lib.getAbsorptionLinesSelfBroadening(self.__data__)
+        return lib.getSelfAbsorptionLines(self.__data__)
 
     @selfbroadening.setter
     def selfbroadening(self, val):
-        val = bool(val)
-        lib.setAbsorptionLinesSelfBroadening(self.__data__, val)
+        lib.setSelfAbsorptionLines(self.__data__, bool(val))
 
     @property
     def bathbroadening(self):
         """ Air broadening (bool) """
-        return lib.getAbsorptionLinesBathBroadening(self.__data__)
+        return lib.getBathAbsorptionLines(self.__data__)
 
     @bathbroadening.setter
     def bathbroadening(self, val):
-        val = bool(val)
-        lib.setAbsorptionLinesBathBroadening(self.__data__, val)
+        lib.setBathAbsorptionLines(self.__data__, bool(val))
 
     @property
     def cutoff(self):
         """ Type of cutoff (get: Index; set: str) """
-        return lib.getAbsorptionLinesCutoffType(self.__data__)
+        return lib.getCutoffAbsorptionLines(self.__data__)
 
     @cutoff.setter
-    def cutoff(self, data):
-        if isinstance(data, str):
-            data = data.encode("ascii")
-            if lib.setAbsorptionLinesCutoffType(self.__data__, data):
-                raise ValueError("Invalid cutoff type")
+    def cutoff(self, type):
+        if isinstance(type, str):
+            self.type = int(lib.string2indexCutoffAbsorptionLines(self.__data__, type.encode("ascii")))
         else:
-            raise TypeError("Expects str input")
+            if lib.setCutoffAbsorptionLines(self.__data__, int(type)):
+                raise ValueError("Invalid type")
 
     @property
     def mirroring(self):
         """ Type of mirroring (get: Index; set: str) """
-        return lib.getAbsorptionLinesMirroringType(self.__data__)
+        return lib.getMirroringAbsorptionLines(self.__data__)
 
     @mirroring.setter
-    def mirroring(self, data):
-        if isinstance(data, str):
-            data = data.encode("ascii")
-            if lib.setAbsorptionLinesMirroringType(self.__data__, data):
-                raise ValueError("Invalid mirroring type")
+    def mirroring(self, type):
+        if isinstance(type, str):
+            self.type = int(lib.string2indexMirroringAbsorptionLines(self.__data__, type.encode("ascii")))
         else:
-            raise TypeError("Expects str input")
+            if lib.setMirroringAbsorptionLines(self.__data__, int(type)):
+                raise ValueError("Invalid type")
 
     @property
     def population(self):
         """ Type of population (get: Index; set: str) """
-        return lib.getAbsorptionLinesPopulationType(self.__data__)
+        return lib.getPopulationAbsorptionLines(self.__data__)
 
     @population.setter
-    def population(self, data):
-        if isinstance(data, str):
-            data = data.encode("ascii")
-            if lib.setAbsorptionLinesPopulationType(self.__data__, data):
-                raise ValueError("Invalid population type")
+    def population(self, type):
+        if isinstance(type, str):
+            self.type = int(lib.string2indexPopulationAbsorptionLines(self.__data__, type.encode("ascii")))
         else:
-            raise TypeError("Expects str input")
+            if lib.setPopulationAbsorptionLines(self.__data__, int(type)):
+                raise ValueError("Invalid type")
 
     @property
     def normalization(self):
         """ Type of normalization (get: Index; set: str) """
-        return lib.getAbsorptionLinesNormalizationType(self.__data__)
+        return lib.getNormalizationAbsorptionLines(self.__data__)
 
     @normalization.setter
-    def normalization(self, data):
-        if isinstance(data, str):
-            data = str(data).encode("ascii")
-            if lib.setAbsorptionLinesNormalizationType(self.__data__, data):
-                raise ValueError("Invalid normalization type")
+    def normalization(self, type):
+        if isinstance(type, str):
+            self.type = int(lib.string2indexPopulationAbsorptionLines(self.__data__, type.encode("ascii")))
         else:
-            raise TypeError("Expects str input")
+            if lib.setNormalizationAbsorptionLines(self.__data__, int(type)):
+                raise ValueError("Invalid type")
 
     @property
     def lineshape(self):
         """ Type of lineshapetype (get: Index; set: str) """
-        return lib.getAbsorptionLinesLineShapeType(self.__data__)
+        return lib.getLineShapeTypeAbsorptionLines(self.__data__)
 
-    @lineshape.setter
-    def lineshape(self, data):
-        if isinstance(data, str):
-            data = str(data).encode("ascii")
-            if lib.setAbsorptionLinesLineShapeType(self.__data__, data):
-                raise ValueError("Invalid lineshape type")
+    @population.setter
+    def population(self, type):
+        if isinstance(type, str):
+            self.type = int(lib.string2indexLineShapeTypeAbsorptionLines(self.__data__, type.encode("ascii")))
         else:
-            raise TypeError("Expects str input")
+            if lib.setLineShapeTypeAbsorptionLines(self.__data__, int(type)):
+                raise ValueError("Invalid type")
 
     @property
     def t0(self):
         """ Reference temperature (Numeric) """
-        return lib.getAbsorptionLinesT0(self.__data__)
+        return lib.getT0AbsorptionLines(self.__data__)
 
     @t0.setter
     def t0(self, data):
-        data = float(data)
-        lib.setAbsorptionLinesT0(self.__data__, data)
+        lib.setT0AbsorptionLines(self.__data__, float(data))
 
     @property
     def cutofffreq(self):
         """ Cutoff frequency (Numeric) """
-        return lib.getAbsorptionLinesCutoffFrequency(self.__data__)
+        return lib.getCutoffFreqValueAbsorptionLines(self.__data__)
 
     @cutofffreq.setter
     def cutofffreq(self, data):
-        data = float(data)
-        lib.setAbsorptionLinesCutoffFrequency(self.__data__, data)
+        lib.setCutoffFreqValueAbsorptionLines(self.__data__, float(data))
 
     @property
     def linemixinglimit(self):
         """ Line mixing pressure limit (Numeric) """
-        return lib.getAbsorptionLinesLinemixingLimit(self.__data__)
+        return lib.getLinemixingLimitAbsorptionLines(self.__data__)
 
     @linemixinglimit.setter
     def linemixinglimit(self, data):
-        data = float(data)
-        lib.setAbsorptionLinesLinemixingLimit(self.__data__, data)
+        lib.setLinemixingLimitAbsorptionLines(self.__data__, float(data))
 
     @property
     def quantumidentity(self):
         """ Quantum identity (QuantumIdentifier) """
-        return QuantumIdentifier(c.c_void_p(lib.getAbsorptionLinesQuantumIdentifier(self.__data__)))
+        return QuantumIdentifier(c.c_void_p(lib.getQuantumIdentityAbsorptionLines(self.__data__)))
 
     @quantumidentity.setter
     def quantumidentity(self, val):
@@ -241,13 +232,13 @@ class AbsorptionLines:
     @property
     def sizelocalquantumnumbers(self):
         """ Number of local quantum numbers (Index) """
-        return lib.getAbsorptionLinesLocalQuantumNumberCount(self.__data__)
+        return lib.sizeLocalQuantaAbsorptionLines(self.__data__)
 
     @sizelocalquantumnumbers.setter
     def sizelocalquantumnumbers(self, size):
         size = int(size)
         if size >= 0:
-            lib.resizeAbsorptionLinesLocalQuantumNumber(size, self.__data__)
+            lib.resizeLocalQuantaAbsorptionLines(size, self.__data__)
         else:
             raise ValueError("Invalid size")
 
@@ -257,62 +248,39 @@ class AbsorptionLines:
         n = self.sizelocalquantumnumbers
         x = []
         for i in range(n):
-            x.append(lib.getAbsorptionLinesLocalQuantumNumber(i, self.__data__))
+            x.append(Index(c.c_void_p(lib.getelemLocalQuantaAbsorptionLines(i, self.__data__))))
         return x
 
     @localquantumnumbers.setter
     def localquantumnumbers(self, val):
         if isinstance(val, Sized):
             self.sizelocalquantumnumbers = len(val)
+            x = self.localquantumnumbers
             n = self.sizelocalquantumnumbers
             for i in range(n):
-                lib.setAbsorptionLinesLocalQuantumNumber(i, self.__data__, QuantumNumbers.to_index(val[i]))
+                x[i].set(QuantumNumbers.to_index(val[i]))
         else:
             raise TypeError("Only accepts array-like input")
-
-    @property
-    def sizebroadeningspecies(self):
-        """ Number of broadening species (Index) """
-        return lib.getAbsorptionLinesSpeciesTagCount(self.__data__)
-
-    @sizebroadeningspecies.setter
-    def sizebroadeningspecies(self, size):
-        size = int(size)
-        if size >= 0:
-            lib.resizeAbsorptionLinesSpeciesTag(size, self.__data__)
-        else:
-            raise ValueError("Invalid size")
 
     @property
     def broadeningspecies(self):
-        """ Broadening species (list of SpeciesTag) """
-        n = self.sizebroadeningspecies
-        x = []
-        for i in range(n):
-            x.append(SpeciesTag(c.c_void_p(lib.getAbsorptionLinesSpeciesTag(i, self.__data__))))
-        return x
+        """ Broadening species (ArrayOfSpeciesTag) """
+        return ArrayOfSpeciesTag(c.c_void_p(lib.getBroadeningSpeciesAbsorptionLines(self.__data__)))
 
     @broadeningspecies.setter
     def broadeningspecies(self, val):
-        if isinstance(val, Sized):
-            self.sizebroadeningspecies = len(val)
-            x = self.broadeningspecies
-            n = self.sizebroadeningspecies
-            for i in range(n):
-                x[i].set(val[i])
-        else:
-            raise TypeError("Only accepts array-like input")
+        self.broadeningspecies.set(val)
 
     @property
     def sizelines(self):
         """ Number of absorption lines (Index) """
-        return lib.getAbsorptionLinesSingleLineCount(self.__data__)
+        return lib.sizeAllLinesAbsorptionLines(self.__data__)
 
     @sizelines.setter
     def sizelines(self, size):
         size = int(size)
         if size >= 0:
-            lib.resizeAbsorptionLinesSingleLine(size, self.__data__)
+            lib.resizeAllLinesAbsorptionLines(size, self.__data__)
         else:
             raise ValueError("Invalid size")
 
@@ -322,7 +290,7 @@ class AbsorptionLines:
         n = self.sizelines
         x = []
         for i in range(n):
-            x.append(AbsorptionSingleLine(c.c_void_p(lib.getAbsorptionLinesSingleLine(i, self.__data__))))
+            x.append(AbsorptionSingleLine(c.c_void_p(lib.getelemAllLinesAbsorptionLines(i, self.__data__))))
         return x
 
     @lines.setter
@@ -360,18 +328,18 @@ class AbsorptionLines:
     @staticmethod
     def name():
         """ Name of the class as a string.  Required for arrayification """
-        return __class__.__name__
+        return "AbsorptionLines"
 
     def set(self, other):
         """ Sets this class according to another python instance of itself """
         if isinstance(other, AbsorptionLines):
             self.selfbroadening = other.selfbroadening
             self.bathbroadening = other.bathbroadening
-            lib.setAbsorptionLinesCutoffTypeByIndex(self.__data__, other.cutoff)
-            lib.setAbsorptionLinesMirroringTypeByIndex(self.__data__, other.mirroring)
-            lib.setAbsorptionLinesPopulationTypeByIndex(self.__data__, other.population)
-            lib.setAbsorptionLinesNormalizationTypeByIndex(self.__data__, other.normalization)
-            lib.setAbsorptionLinesLineShapeTypeByIndex(self.__data__, other.lineshapetype)
+            self.cutoff = other.cutoff
+            self.mirroring = other.mirroring
+            self.population = other.population
+            self.normalization = other.normalization
+            self.lineshapetype = other.lineshapetype
             self.t0 = other.t0
             self.cutofffreq = other.cutofffreq
             self.linemixinglimit = other.linemixinglimit
@@ -435,107 +403,104 @@ lib.xmlsaveAbsorptionLines.argtypes = [c.c_void_p, c.c_char_p, c.c_long, c.c_lon
 lib.printmetaAbsorptionLines.restype = None
 lib.printmetaAbsorptionLines.argtypes = [c.c_void_p]
 
-lib.getAbsorptionLinesSelfBroadening.restype = c.c_bool
-lib.getAbsorptionLinesSelfBroadening.argtypes = [c.c_void_p]
+lib.getSelfAbsorptionLines.restype = c.c_bool
+lib.getSelfAbsorptionLines.argtypes = [c.c_void_p]
 
-lib.setAbsorptionLinesSelfBroadening.restype = None
-lib.setAbsorptionLinesSelfBroadening.argtypes = [c.c_void_p, c.c_bool]
+lib.setSelfAbsorptionLines.restype = None
+lib.setSelfAbsorptionLines.argtypes = [c.c_void_p, c.c_bool]
 
-lib.getAbsorptionLinesCutoffType.restype = c.c_long
-lib.getAbsorptionLinesCutoffType.argtypes = [c.c_void_p]
+lib.getBathAbsorptionLines.restype = c.c_bool
+lib.getBathAbsorptionLines.argtypes = [c.c_void_p]
 
-lib.setAbsorptionLinesCutoffType.restype = c.c_long
-lib.setAbsorptionLinesCutoffType.argtypes = [c.c_void_p, c.c_char_p]
+lib.setBathAbsorptionLines.restype = None
+lib.setBathAbsorptionLines.argtypes = [c.c_void_p, c.c_bool]
 
-lib.setAbsorptionLinesCutoffTypeByIndex.restype = None
-lib.setAbsorptionLinesCutoffTypeByIndex.argtypes = [c.c_void_p, c.c_long]
+lib.getCutoffAbsorptionLines.restype = c.c_long
+lib.getCutoffAbsorptionLines.argtypes = [c.c_void_p]
 
-lib.getAbsorptionLinesMirroringType.restype = c.c_long
-lib.getAbsorptionLinesMirroringType.argtypes = [c.c_void_p]
+lib.setCutoffAbsorptionLines.restype = c.c_long
+lib.setCutoffAbsorptionLines.argtypes = [c.c_void_p, c.c_long]
 
-lib.setAbsorptionLinesMirroringType.restype = c.c_long
-lib.setAbsorptionLinesMirroringType.argtypes = [c.c_void_p, c.c_char_p]
+lib.string2indexCutoffAbsorptionLines.restype = c.c_long
+lib.string2indexCutoffAbsorptionLines.argtypes = [c.c_void_p, c.c_char_p]
 
-lib.setAbsorptionLinesMirroringTypeByIndex.restype = None
-lib.setAbsorptionLinesMirroringTypeByIndex.argtypes = [c.c_void_p, c.c_long]
+lib.getMirroringAbsorptionLines.restype = c.c_long
+lib.getMirroringAbsorptionLines.argtypes = [c.c_void_p]
 
-lib.getAbsorptionLinesPopulationType.restype = c.c_long
-lib.getAbsorptionLinesPopulationType.argtypes = [c.c_void_p]
+lib.setMirroringAbsorptionLines.restype = c.c_long
+lib.setMirroringAbsorptionLines.argtypes = [c.c_void_p, c.c_long]
 
-lib.setAbsorptionLinesPopulationType.restype = c.c_long
-lib.setAbsorptionLinesPopulationType.argtypes = [c.c_void_p, c.c_char_p]
+lib.string2indexMirroringAbsorptionLines.restype = c.c_long
+lib.string2indexMirroringAbsorptionLines.argtypes = [c.c_void_p, c.c_char_p]
 
-lib.setAbsorptionLinesPopulationTypeByIndex.restype = None
-lib.setAbsorptionLinesPopulationTypeByIndex.argtypes = [c.c_void_p, c.c_long]
+lib.getLineShapeTypeAbsorptionLines.restype = c.c_long
+lib.getLineShapeTypeAbsorptionLines.argtypes = [c.c_void_p]
 
-lib.getAbsorptionLinesNormalizationType.restype = c.c_long
-lib.getAbsorptionLinesNormalizationType.argtypes = [c.c_void_p]
+lib.setLineShapeTypeAbsorptionLines.restype = c.c_long
+lib.setLineShapeTypeAbsorptionLines.argtypes = [c.c_void_p, c.c_long]
 
-lib.setAbsorptionLinesNormalizationType.restype = c.c_long
-lib.setAbsorptionLinesNormalizationType.argtypes = [c.c_void_p, c.c_char_p]
+lib.string2indexLineShapeTypeAbsorptionLines.restype = c.c_long
+lib.string2indexLineShapeTypeAbsorptionLines.argtypes = [c.c_void_p, c.c_char_p]
 
-lib.setAbsorptionLinesNormalizationTypeByIndex.restype = None
-lib.setAbsorptionLinesNormalizationTypeByIndex.argtypes = [c.c_void_p, c.c_long]
+lib.getPopulationAbsorptionLines.restype = c.c_long
+lib.getPopulationAbsorptionLines.argtypes = [c.c_void_p]
 
-lib.getAbsorptionLinesLineShapeType.restype = c.c_long
-lib.getAbsorptionLinesLineShapeType.argtypes = [c.c_void_p]
+lib.setPopulationAbsorptionLines.restype = c.c_long
+lib.setPopulationAbsorptionLines.argtypes = [c.c_void_p, c.c_long]
 
-lib.setAbsorptionLinesLineShapeType.restype = c.c_long
-lib.setAbsorptionLinesLineShapeType.argtypes = [c.c_void_p, c.c_char_p]
+lib.string2indexPopulationAbsorptionLines.restype = c.c_long
+lib.string2indexPopulationAbsorptionLines.argtypes = [c.c_void_p, c.c_char_p]
 
-lib.setAbsorptionLinesLineShapeTypeByIndex.restype = None
-lib.setAbsorptionLinesLineShapeTypeByIndex.argtypes = [c.c_void_p, c.c_long]
+lib.getNormalizationAbsorptionLines.restype = c.c_long
+lib.getNormalizationAbsorptionLines.argtypes = [c.c_void_p]
 
-lib.getAbsorptionLinesT0.restype = c.c_double
-lib.getAbsorptionLinesT0.argtypes = [c.c_void_p]
+lib.setNormalizationAbsorptionLines.restype = c.c_long
+lib.setNormalizationAbsorptionLines.argtypes = [c.c_void_p, c.c_long]
 
-lib.setAbsorptionLinesT0.restype = None
-lib.setAbsorptionLinesT0.argtypes = [c.c_void_p, c.c_double]
+lib.string2indexNormalizationAbsorptionLines.restype = c.c_long
+lib.string2indexPopulationAbsorptionLines.argtypes = [c.c_void_p, c.c_char_p]
 
-lib.getAbsorptionLinesCutoffFrequency.restype = c.c_double
-lib.getAbsorptionLinesCutoffFrequency.argtypes = [c.c_void_p]
+lib.getT0AbsorptionLines.restype = c.c_double
+lib.getT0AbsorptionLines.argtypes = [c.c_void_p]
 
-lib.setAbsorptionLinesCutoffFrequency.restype = None
-lib.setAbsorptionLinesCutoffFrequency.argtypes = [c.c_void_p, c.c_double]
+lib.setT0AbsorptionLines.restype = None
+lib.setT0AbsorptionLines.argtypes = [c.c_void_p, c.c_double]
 
-lib.getAbsorptionLinesLinemixingLimit.restype = c.c_double
-lib.getAbsorptionLinesLinemixingLimit.argtypes = [c.c_void_p]
+lib.getCutoffFreqValueAbsorptionLines.restype = c.c_double
+lib.getCutoffFreqValueAbsorptionLines.argtypes = [c.c_void_p]
 
-lib.setAbsorptionLinesLinemixingLimit.restype = None
-lib.setAbsorptionLinesLinemixingLimit.argtypes = [c.c_void_p, c.c_double]
+lib.setCutoffFreqValueAbsorptionLines.restype = None
+lib.setCutoffFreqValueAbsorptionLines.argtypes = [c.c_void_p, c.c_double]
 
-lib.getAbsorptionLinesQuantumIdentifier.restype = c.c_void_p
-lib.getAbsorptionLinesQuantumIdentifier.argtypes = [c.c_void_p]
+lib.getLinemixingLimitAbsorptionLines.restype = c.c_double
+lib.getLinemixingLimitAbsorptionLines.argtypes = [c.c_void_p]
 
-lib.resizeAbsorptionLinesLocalQuantumNumber.restype = None
-lib.resizeAbsorptionLinesLocalQuantumNumber.argtypes = [c.c_long, c.c_void_p]
+lib.setLinemixingLimitAbsorptionLines.restype = None
+lib.setLinemixingLimitAbsorptionLines.argtypes = [c.c_void_p, c.c_double]
 
-lib.getAbsorptionLinesLocalQuantumNumber.restype = c.c_long
-lib.getAbsorptionLinesLocalQuantumNumber.argtypes = [c.c_long, c.c_void_p]
+lib.getQuantumIdentityAbsorptionLines.restype = c.c_void_p
+lib.getQuantumIdentityAbsorptionLines.argtypes = [c.c_void_p]
 
-lib.getAbsorptionLinesLocalQuantumNumberCount.restype = c.c_long
-lib.getAbsorptionLinesLocalQuantumNumberCount.argtypes = [c.c_void_p]
+lib.sizeLocalQuantaAbsorptionLines.restype = c.c_long
+lib.sizeLocalQuantaAbsorptionLines.argtypes = [c.c_void_p]
 
-lib.setAbsorptionLinesLocalQuantumNumber.restype = None
-lib.setAbsorptionLinesLocalQuantumNumber.argtypes = [c.c_long, c.c_void_p, c.c_long]
+lib.resizeLocalQuantaAbsorptionLines.restype = None
+lib.resizeLocalQuantaAbsorptionLines.argtypes = [c.c_long, c.c_void_p]
 
-lib.resizeAbsorptionLinesSpeciesTag.restype = None
-lib.resizeAbsorptionLinesSpeciesTag.argtypes = [c.c_long, c.c_void_p]
+lib.getelemLocalQuantaAbsorptionLines.restype = c.c_void_p
+lib.getelemLocalQuantaAbsorptionLines.argtypes = [c.c_long, c.c_void_p]
 
-lib.getAbsorptionLinesSpeciesTag.restype = c.c_void_p
-lib.getAbsorptionLinesSpeciesTag.argtypes = [c.c_long, c.c_void_p]
+lib.getBroadeningSpeciesAbsorptionLines.restype = c.c_void_p
+lib.getBroadeningSpeciesAbsorptionLines.argtypes = [c.c_void_p]
 
-lib.getAbsorptionLinesSpeciesTagCount.restype = c.c_long
-lib.getAbsorptionLinesSpeciesTagCount.argtypes = [c.c_void_p]
+lib.sizeAllLinesAbsorptionLines.restype = c.c_long
+lib.sizeAllLinesAbsorptionLines.argtypes = [c.c_void_p]
 
-lib.resizeAbsorptionLinesSingleLine.restype = None
-lib.resizeAbsorptionLinesSingleLine.argtypes = [c.c_long, c.c_void_p]
+lib.resizeAllLinesAbsorptionLines.restype = None
+lib.resizeAllLinesAbsorptionLines.argtypes = [c.c_long, c.c_void_p]
 
-lib.getAbsorptionLinesSingleLine.restype = c.c_void_p
-lib.getAbsorptionLinesSingleLine.argtypes = [c.c_long, c.c_void_p]
-
-lib.getAbsorptionLinesSingleLineCount.restype = c.c_long
-lib.getAbsorptionLinesSingleLineCount.argtypes = [c.c_void_p]
+lib.getelemAllLinesAbsorptionLines.restype = c.c_void_p
+lib.getelemAllLinesAbsorptionLines.argtypes = [c.c_long, c.c_void_p]
 
 lib.isAbsorptionLinesOK.restype = c.c_long
 lib.isAbsorptionLinesOK.argtypes = [c.c_void_p]

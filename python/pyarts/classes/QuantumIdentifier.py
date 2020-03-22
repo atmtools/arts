@@ -3,6 +3,8 @@ from pyarts.workspace.api import arts_api as lib
 
 from pyarts.classes.QuantumNumbers import QuantumNumbers
 from pyarts.classes.SpeciesTag import SpeciesTag
+from pyarts.classes.io import correct_save_arguments, correct_read_arguments
+from pyarts.classes.ArrayBase import array_base
 
 
 class QuantumIdentifier:
@@ -43,45 +45,43 @@ class QuantumIdentifier:
     @property
     def type(self):
         """ Type of identifier (get: Index; set: Index or str) """
-        return lib.getQuantumIdentifierType(self.__data__)
+        return lib.getTypeQuantumIdentifier(self.__data__)
 
     @type.setter
     def type(self, type):
         if isinstance(type, str):
-            type = type.encode("ascii")
-            if lib.setQuantumIdentifierTypeFromString(self.__data__, type):
-                raise ValueError("Invalid type")
+            self.type = int(lib.string2indexTypeQuantumIdentifier(self.__data__, type.encode("ascii")))
         else:
             type = int(type)
-            if lib.setQuantumIdentifierTypeFromIndex(self.__data__, type):
+            if lib.setTypeQuantumIdentifier(self.__data__, type):
                 raise ValueError("Invalid type")
 
     @property
     def spec(self):
         """ Species of the identifier (Index) """
-        return lib.getQuantumIdentifierSpecies(self.__data__)
+        return lib.getSpeciesQuantumIdentifier(self.__data__)
 
     @spec.setter
     def spec(self, val):
         if not SpeciesTag.validSpecies(val):
             raise ValueError("Invalid species")
-        lib.setQuantumIdentifierSpecies(self.__data__, c.c_long(val))
+        lib.setSpeciesQuantumIdentifier(self.__data__, c.c_long(val))
 
     @property
     def isot(self):
         """ Isotopologue of the identifier (Index) """
-        return lib.getQuantumIdentifierIsotopologue(self.__data__)
+        return lib.getIsotopologueQuantumIdentifier(self.__data__)
 
     @isot.setter
     def isot(self, val):
         if not SpeciesTag.validIsotopologue(self.spec, val):
             raise ValueError("Invalid isotopologue")
-        lib.setQuantumIdentifierIsotopologue(self.__data__, int(val))
+        lib.setIsotopologueQuantumIdentifier(self.__data__, int(val))
 
     @property
     def lowerqn(self):
         """ Lower state quantum numbers of the identifier (QuantumNumbers) """
-        return QuantumNumbers(c.c_void_p(lib.getQuantumIdentifierLowerQuantumNumbers(self.__data__)))
+        return QuantumNumbers(c.c_void_p(lib.getLowerQuantumNumbersQuantumIdentifier(self.__data__)))
 
     @lowerqn.setter
     def lowerqn(self, val):
@@ -90,7 +90,7 @@ class QuantumIdentifier:
     @property
     def upperqn(self):
         """ Upper state quantum numbers of the identifier (QuantumNumbers) """
-        return QuantumNumbers(c.c_void_p(lib.getQuantumIdentifierUpperQuantumNumbers(self.__data__)))
+        return QuantumNumbers(c.c_void_p(lib.getUpperQuantumNumbersQuantumIdentifier(self.__data__)))
 
     @upperqn.setter
     def upperqn(self, val):
@@ -98,7 +98,7 @@ class QuantumIdentifier:
 
     @property
     def levelqn(self):
-        return QuantumNumbers(c.c_void_p(lib.getQuantumIdentifierLevelQuantumNumbers(self.__data__)))
+        return QuantumNumbers(c.c_void_p(lib.getEnergyLevelQuantumNumbersQuantumIdentifier(self.__data__)))
 
     @levelqn.setter
     def levelqn(self, val):
@@ -128,6 +128,40 @@ class QuantumIdentifier:
         else:
             raise TypeError("Expects QuantumIdentifier")
 
+    @staticmethod
+    def name():
+        return "QuantumIdentifier"
+
+    def readxml(self, file):
+        """ Reads the XML file
+
+        Input:
+            file:
+                Filename to valid class-file (str)
+        """
+        if lib.xmlreadQuantumIdentifier(self.__data__, correct_read_arguments(file)):
+            raise OSError("Cannot read {}".format(file))
+
+    def savexml(self, file, type="ascii", clobber=True):
+        """ Saves the class to XML file
+
+        Input:
+            file:
+                Filename to writable file (str)
+
+            type:
+                Filetype (str)
+
+            clobber:
+                Allow clobbering files? (any boolean)
+        """
+        if lib.xmlsaveQuantumIdentifier(self.__data__, *correct_save_arguments(file, type, clobber)):
+            raise OSError("Cannot save {}".format(file))
+
+
+# Generate ArrayOfQuantumIdentifier
+exec(array_base(QuantumIdentifier))
+
 
 lib.createQuantumIdentifier.restype = c.c_void_p
 lib.createQuantumIdentifier.argtypes = []
@@ -138,32 +172,38 @@ lib.deleteQuantumIdentifier.argtypes = [c.c_void_p]
 lib.printQuantumIdentifier.restype = None
 lib.printQuantumIdentifier.argtypes = [c.c_void_p]
 
-lib.getQuantumIdentifierType.restype = c.c_long
-lib.getQuantumIdentifierType.argtypes = [c.c_void_p]
+lib.xmlreadQuantumIdentifier.restype = c.c_long
+lib.xmlreadQuantumIdentifier.argtypes = [c.c_void_p, c.c_char_p]
 
-lib.setQuantumIdentifierTypeFromString.restype = c.c_long
-lib.setQuantumIdentifierTypeFromString.argtypes = [c.c_void_p, c.c_char_p]
+lib.xmlsaveQuantumIdentifier.restype = c.c_long
+lib.xmlsaveQuantumIdentifier.argtypes = [c.c_void_p, c.c_char_p, c.c_long, c.c_long]
 
-lib.setQuantumIdentifierTypeFromIndex.restype = c.c_long
-lib.setQuantumIdentifierTypeFromIndex.argtypes = [c.c_void_p, c.c_long]
+lib.getTypeQuantumIdentifier.restype = c.c_long
+lib.getTypeQuantumIdentifier.argtypes = [c.c_void_p]
 
-lib.getQuantumIdentifierSpecies.restype = c.c_long
-lib.getQuantumIdentifierSpecies.argtypes = [c.c_void_p]
+lib.setTypeQuantumIdentifier.restype = c.c_long
+lib.setTypeQuantumIdentifier.argtypes = [c.c_void_p, c.c_long]
 
-lib.setQuantumIdentifierSpecies.restype = None
-lib.setQuantumIdentifierSpecies.argtypes = [c.c_void_p, c.c_long]
+lib.string2indexTypeQuantumIdentifier.restype = c.c_long
+lib.string2indexTypeQuantumIdentifier.argtypes = [c.c_void_p, c.c_char_p]
 
-lib.getQuantumIdentifierIsotopologue.restype = c.c_long
-lib.getQuantumIdentifierIsotopologue.argtypes = [c.c_void_p]
+lib.getSpeciesQuantumIdentifier.restype = c.c_long
+lib.getSpeciesQuantumIdentifier.argtypes = [c.c_void_p]
 
-lib.setQuantumIdentifierIsotopologue.restype = None
-lib.setQuantumIdentifierIsotopologue.argtypes = [c.c_void_p, c.c_long]
+lib.setSpeciesQuantumIdentifier.restype = None
+lib.setSpeciesQuantumIdentifier.argtypes = [c.c_void_p, c.c_long]
 
-lib.getQuantumIdentifierLevelQuantumNumbers.restype = c.c_void_p
-lib.getQuantumIdentifierLevelQuantumNumbers.argtypes = [c.c_void_p]
+lib.getIsotopologueQuantumIdentifier.restype = c.c_long
+lib.getIsotopologueQuantumIdentifier.argtypes = [c.c_void_p]
 
-lib.getQuantumIdentifierLowerQuantumNumbers.restype = c.c_void_p
-lib.getQuantumIdentifierLowerQuantumNumbers.argtypes = [c.c_void_p]
+lib.setIsotopologueQuantumIdentifier.restype = None
+lib.setIsotopologueQuantumIdentifier.argtypes = [c.c_void_p, c.c_long]
 
-lib.getQuantumIdentifierUpperQuantumNumbers.restype = c.c_void_p
-lib.getQuantumIdentifierUpperQuantumNumbers.argtypes = [c.c_void_p]
+lib.getEnergyLevelQuantumNumbersQuantumIdentifier.restype = c.c_void_p
+lib.getEnergyLevelQuantumNumbersQuantumIdentifier.argtypes = [c.c_void_p]
+
+lib.getLowerQuantumNumbersQuantumIdentifier.restype = c.c_void_p
+lib.getLowerQuantumNumbersQuantumIdentifier.argtypes = [c.c_void_p]
+
+lib.getUpperQuantumNumbersQuantumIdentifier.restype = c.c_void_p
+lib.getUpperQuantumNumbersQuantumIdentifier.argtypes = [c.c_void_p]

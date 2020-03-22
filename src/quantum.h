@@ -478,13 +478,13 @@ class QuantumIdentifier {
    * 
    * @param[in] sp Species index-mapped
    */
-  void SetSpecies(const Index& sp) { mspecies = sp; }
+  void Species(Index sp) { mspecies = sp; }
 
   /** Set the Isotopologue
    * 
    * @param[in] is Isotopologue index-mapped
    */
-  void SetIsotopologue(const Index& iso) { miso = iso; }
+  void Isotopologue(Index iso) { miso = iso; }
 
   /** Set to transition type identifier
    * 
@@ -524,6 +524,34 @@ class QuantumIdentifier {
 
   /** @return constexpr QType Type of identifier */
   constexpr QType Type() const { return mqtype; }
+  
+  /** Set Type */
+  void Type(QType x) { mqtype = x; }
+  
+  /** Checks if input is a valid Type */
+  bool validIndexForType(Index x) const { 
+    for(auto y: { TRANSITION, ENERGY_LEVEL, ALL, NONE }) {
+      if (y == x) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  /** @return QType if string is a Type or -1 if not */
+  QType string2Type(const String& str) const {
+    if (std::string("ENERGY_LEVEL") == str) {
+      return QuantumIdentifier::ENERGY_LEVEL;
+    } else if (std::string("TRANSITION") == str) {
+      return QuantumIdentifier::TRANSITION;
+    } else if (std::string("ALL") == str) {
+      return QuantumIdentifier::ALL;
+    } else if (std::string("NONE") == str) {
+      return QuantumIdentifier::NONE;
+    } else {
+      return QType(-1);
+    }
+  }
 
   /** @return QType as String */
   String TypeStr() const;

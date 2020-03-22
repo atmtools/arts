@@ -1,6 +1,8 @@
 import ctypes as c
 from pyarts.workspace.api import arts_api as lib
 
+from pyarts.classes.io import correct_save_arguments, correct_read_arguments
+
 
 class Rational:
     """ ARTS Rational data
@@ -20,7 +22,7 @@ class Rational:
             self.__data__ = nom
         else:
             self.__delete__ = True
-            self.__data__ = c.cast(lib.createRational(), c.c_void_p)
+            self.__data__ = c.c_void_p(lib.createRational())
             self.denom = denom
             self.nom = nom
             self.simplify()
@@ -32,20 +34,20 @@ class Rational:
     @property
     def nom(self):
         """ Nominator (Index) """
-        return lib.getRationalNom(self.__data__)
+        return lib.getNomRational(self.__data__)
 
     @nom.setter
     def nom(self, x):
-        lib.setRationalNom(self.__data__, c.c_long(x))
+        lib.setNomRational(self.__data__, int(x))
 
     @property
     def denom(self):
         """ Denominator (Index) """
-        return lib.getRationalDenom(self.__data__)
+        return lib.getDenomRational(self.__data__)
 
     @denom.setter
     def denom(self, x):
-        lib.setRationalDenom(self.__data__, c.c_long(x))
+        lib.setDenomRational(self.__data__, int(x))
 
     def print(self):
         """ Print to cout the ARTS representation of the class """
@@ -110,6 +112,33 @@ class Rational:
         else:
             raise TypeError("Expects Rational")
 
+    def readxml(self, file):
+        """ Reads the XML file
+
+        Input:
+            file:
+                Filename to valid class-file (str)
+        """
+        if lib.xmlreadRational(self.__data__, correct_read_arguments(file)):
+            raise OSError("Cannot read {}".format(file))
+
+    def savexml(self, file, type="ascii", clobber=True):
+        """ Saves the class to XML file
+
+        Input:
+            file:
+                Filename to writable file (str)
+
+            type:
+                Filetype (str)
+
+            clobber:
+                Allow clobbering files? (any boolean)
+        """
+        if lib.xmlsaveRational(self.__data__, *correct_save_arguments(file, type, clobber)):
+            raise OSError("Cannot save {}".format(file))
+
+
 lib.createRational.restype = c.c_void_p
 lib.createRational.argtypes = []
 
@@ -119,17 +148,23 @@ lib.deleteRational.argtypes = [c.c_void_p]
 lib.printRational.restype = None
 lib.printRational.argtypes = [c.c_void_p]
 
-lib.getRationalNom.restype = c.c_long
-lib.getRationalNom.argtypes = [c.c_void_p]
+lib.xmlreadRational.restype = c.c_long
+lib.xmlreadRational.argtypes = [c.c_void_p, c.c_char_p]
 
-lib.getRationalDenom.restype = c.c_long
-lib.getRationalDenom.argtypes = [c.c_void_p]
+lib.xmlsaveRational.restype = c.c_long
+lib.xmlsaveRational.argtypes = [c.c_void_p, c.c_char_p, c.c_long, c.c_long]
 
-lib.setRationalNom.restype = None
-lib.setRationalNom.argtypes = [c.c_void_p, c.c_long]
+lib.getNomRational.restype = c.c_long
+lib.getNomRational.argtypes = [c.c_void_p]
 
-lib.setRationalDenom.restype = None
-lib.setRationalDenom.argtypes = [c.c_void_p, c.c_long]
+lib.getDenomRational.restype = c.c_long
+lib.getDenomRational.argtypes = [c.c_void_p]
+
+lib.setNomRational.restype = None
+lib.setNomRational.argtypes = [c.c_void_p, c.c_long]
+
+lib.setDenomRational.restype = None
+lib.setDenomRational.argtypes = [c.c_void_p, c.c_long]
 
 lib.simplifyRational.restype = None
 lib.simplifyRational.argtypes = [c.c_void_p]

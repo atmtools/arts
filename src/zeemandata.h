@@ -385,6 +385,12 @@ class Model {
   
   /** Returns the lower state g */
   Numeric& gl() noexcept { return mdata.gl; }
+
+  /** Sets the upper state g */
+  void gu(Numeric x) noexcept { mdata.gu = x; }
+  
+  /** Sets the lower state g */
+  void gl(Numeric x) noexcept { mdata.gl = x; }
   
   /** Returns the upper state g */
   constexpr Numeric gu() const noexcept { return mdata.gu; }
@@ -740,5 +746,8 @@ inline Derived FromPreDerived(Numeric H,
   return {H, theta, eta, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 }
 };  // namespace Zeeman
+
+// Typedef to make it easier to use
+typedef Zeeman::Model ZeemanModel;
 
 #endif /* zeemandata_h */

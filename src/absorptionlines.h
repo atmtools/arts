@@ -251,7 +251,7 @@ private:
   /** Reference intensity */
   Numeric mI0;
   
-  /** Lower state energy level or MPM scaling factor */
+  /** Lower state energy level */
   Numeric mE0;
   
   /** Lower level statistical weight */
@@ -344,9 +344,6 @@ public:
   /** Lower level energy */
   Numeric E0() const noexcept {return mE0;}
   
-  /** Temperature scaling MPM */
-  Numeric a2() const noexcept {return mE0;}
-  
   /** Reference line strength */
   Numeric I0() const noexcept {return mI0;}
   
@@ -381,9 +378,6 @@ public:
   /** Lower level energy */
   Numeric& E0() noexcept {return mE0;}
   
-  /** Temperature scaling MPM */
-  Numeric& a2() noexcept {return mE0;}
-  
   /** Reference line strength */
   Numeric& I0() noexcept {return mI0;}
   
@@ -407,6 +401,28 @@ public:
   
   /** Upper level quantum numbers */
   std::vector<Rational>& UpperQuantumNumbers() noexcept {return mupperquanta;}
+  
+  //////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////// Basic Setters
+  //////////////////////////////////////////////////////////////////
+  
+  /** Central frequency */
+  void F0(Numeric x) noexcept {mF0 = x;}
+  
+  /** Lower level energy */
+  void E0(Numeric x) noexcept {mE0 = x;}
+  
+  /** Reference line strength */
+  void I0(Numeric x) noexcept {mI0 = x;}
+  
+  /** Einstein spontaneous emission */
+  void A(Numeric x) noexcept {mA = x;}
+  
+  /** Lower level statistical weight */
+  void g_low(Numeric x) noexcept {mglow = x;}
+  
+  /** Upper level statistical weight */
+  void g_upp(Numeric x) noexcept {mgupp = x;}
   
   //////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////// Special access
@@ -978,26 +994,12 @@ public:
    */
   Numeric E0(size_t k) const noexcept {return mlines[k].E0();}
   
-  /** Temperature scaling MPM
-   * 
-   * @param[in] k Line number (less than NumLines())
-   * @return Temperature scaling MPM
-   */
-  Numeric a2(size_t k) const noexcept {return mlines[k].E0();}
-  
   /** Lower level energy
    * 
    * @param[in] k Line number (less than NumLines())
    * @return Lower level energy
    */
   Numeric& E0(size_t k) noexcept {return mlines[k].E0();}
-  
-  /** Temperature scaling MPM
-   * 
-   * @param[in] k Line number (less than NumLines())
-   * @return Lower level energy
-   */
-  Numeric& a2(size_t k) noexcept {return mlines[k].E0();}
   
   /** Reference line strength
    * 
@@ -1058,32 +1060,144 @@ public:
   /** Returns mirroring style */
   MirroringType Mirroring() const noexcept {return mmirroring;}
   
-  /** Returns normalization style */
-  NormalizationType Normalization() const noexcept {return mnormalization;}
-  
-  /** Returns cutoff style */
-  CutoffType Cutoff() const noexcept {return mcutoff;}
-  
-  /** Returns population style */
-  PopulationType Population() const noexcept {return mpopulation;}
-  
-  /** Returns population style */
-  LineShape::Type LineShapeType() const noexcept {return mlineshapetype;}
-  
   /** Returns mirroring style */
   void Mirroring(MirroringType x) noexcept {mmirroring = x;}
+  
+  /** Checks if index is a valid mirroring */
+  bool validIndexForMirroring(Index x) {
+    for (auto y: {MirroringType::None, MirroringType::Lorentz, MirroringType::SameAsLineShape, MirroringType::Manual, })
+      if (Index(y) == x)
+        return true;
+    return false;
+  }
+  
+  /** @return MirroringType if string is a MirroringType or -1 if not */
+  MirroringType string2Mirroring(const String& in) {
+    if (in == "None")
+      return MirroringType::None;
+    else if (in == "Lorentz")
+      return MirroringType::Lorentz;
+    else if (in == "Same")
+      return MirroringType::SameAsLineShape;
+    else if (in == "Manual")
+      return MirroringType::Manual;
+    else
+      return MirroringType(-1);
+  }
+  
+  /** Returns normalization style */
+  NormalizationType Normalization() const noexcept {return mnormalization;}
   
   /** Returns normalization style */
   void Normalization(NormalizationType x) noexcept {mnormalization = x;}
   
+  /** Checks if index is a valid normalization */
+  bool validIndexForNormalization(Index x) {
+    for (auto y: {NormalizationType::None, NormalizationType::VVH, NormalizationType::VVW, NormalizationType::RosenkranzQuadratic, })
+      if (Index(y) == x)
+        return true;
+    return false;
+  }
+  
+  /** @return NormalizationType if string is a NormalizationType or -1 if not */
+  NormalizationType string2Normalization(const String& in) {
+    if (in == "None")
+      return NormalizationType::None;
+    else if (in == "VVH")
+      return NormalizationType::VVH;
+    else if (in == "VVW")
+      return NormalizationType::VVW;
+    else if (in == "RQ")
+      return NormalizationType::RosenkranzQuadratic;
+    else
+      return NormalizationType(-1);
+  }
+  
   /** Returns cutoff style */
+  CutoffType Cutoff() const noexcept {return mcutoff;}
+  
+  /** Sets cutoff style */
   void Cutoff(CutoffType x) noexcept {mcutoff = x;}
   
-  /** Returns population style */
-  void Population(PopulationType x) noexcept {mpopulation = x;}
+  /** Checks if index is a valid cutoff */
+  bool validIndexForCutoff(Index x) {
+    for (auto y: {CutoffType::None, CutoffType::LineByLineOffset, CutoffType::BandFixedFrequency, })
+      if (Index(y) == x)
+        return true;
+    return false;
+  }
+  
+  /** @return CutoffType if string is a CutoffType or -1 if not */
+  CutoffType string2Cutoff(const String& in) {
+    if (in == "None")
+      return CutoffType::None;
+    else if (in == "ByLine")
+      return CutoffType::LineByLineOffset;
+    else if (in == "ByBand")
+      return CutoffType::BandFixedFrequency;
+    else
+      return CutoffType(-1);
+  }
   
   /** Returns population style */
+  PopulationType Population() const noexcept {return mpopulation;}
+  
+  /** Sets population style */
+  void Population(PopulationType x) noexcept {mpopulation = x;}
+  
+  /** Checks if index is a valid population */
+  bool validIndexForPopulation(Index x) {
+    for (auto y: {PopulationType::ByLTE, PopulationType::ByRelmatMendazaLTE, PopulationType::ByRelmatHartmannLTE, PopulationType::ByNLTEVibrationalTemperatures, PopulationType::ByNLTEPopulationDistribution, })
+      if (Index(y) == x)
+        return true;
+    return false;
+  }
+  
+  /** @return PopulationType if string is a PopulationType or -1 if not */
+  PopulationType string2Population(const String& in) {
+    if (in == "LTE")
+      return PopulationType::ByLTE;
+    else if (in == "MendazaRelmat")
+      return PopulationType::ByRelmatMendazaLTE;
+    else if (in == "HartmannRelmat")
+      return PopulationType::ByRelmatHartmannLTE;
+    else if (in == "NLTE-VibrationalTemperatures")
+      return PopulationType::ByNLTEVibrationalTemperatures;
+    else if (in == "NLTE")
+      return PopulationType::ByNLTEPopulationDistribution;
+    else
+      return PopulationType(-1);
+  }
+  
+  /** Returns lineshapetype style */
+  LineShape::Type LineShapeType() const noexcept {return mlineshapetype;}
+  
+  /** Sets lineshapetype style */
   void LineShapeType(LineShape::Type x) noexcept {mlineshapetype = x;}
+  
+  /** Checks if index is a valid lineshapetype */
+  bool validIndexForLineShapeType(Index x) {
+    for (auto y: {LineShape::Type::DP, LineShape::Type::LP, LineShape::Type::VP, LineShape::Type::SDVP, LineShape::Type::HTP, })
+      if (Index(y) == x)
+        return true;
+    return false;
+  }
+  
+  /** @return LineShape::Type if string is a LineShape::Type or -1 if not */
+  LineShape::Type string2LineShapeType(const String& type) {
+    if (type == "DP")
+      return LineShape::Type::DP;
+    else if (type == String("LP"))
+      return LineShape::Type::LP;
+    else if (type == String("VP"))
+      return LineShape::Type::VP;
+    else if (type == String("SDVP"))
+      return LineShape::Type::SDVP;
+    else if (type == String("HTP"))
+      return LineShape::Type::HTP;
+    else
+      return LineShape::Type(-1);
+  }
   
   /** Returns if the pressure should do line mixing
    * 
@@ -1244,8 +1358,8 @@ public:
   }
   
   /** Returns self broadening status */
-  bool& Self() noexcept {
-    return mselfbroadening;
+  void Self(bool x) noexcept {
+    mselfbroadening = x;
   }
   
   /** Returns bath broadening status */
@@ -1254,8 +1368,8 @@ public:
   }
   
   /** Returns bath broadening status */
-  bool& Bath() noexcept {
-    return mbathbroadening;
+  void Bath(bool x) noexcept {
+    mbathbroadening = x;
   }
   
   /** Returns identity status */
@@ -1727,6 +1841,7 @@ Numeric reduced_rovibrational_dipole(Rational Jf, Rational Ji, Rational lf, Rati
 Numeric reduced_magnetic_quadrapole(Rational Jf, Rational Ji, Rational N);
 };  // Absorption
 
+typedef Absorption::SingleLine AbsorptionSingleLine;
 typedef Absorption::Lines AbsorptionLines;
 typedef Array<AbsorptionLines> ArrayOfAbsorptionLines;
 typedef Array<ArrayOfAbsorptionLines> ArrayOfArrayOfAbsorptionLines;

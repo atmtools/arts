@@ -93,6 +93,12 @@ class Rational {
   /** Denominator */
   constexpr Index& Denom() { return mdenom; }
   
+  /** Nominator */
+  void Nom(Index x) { mnom = x; }
+  
+  /** Denominator */
+  void Denom(Index x) { mdenom = x; }
+  
   /** Simplify by reducing the values locally */
   void simplify_in_place();
 

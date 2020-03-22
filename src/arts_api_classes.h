@@ -38,195 +38,214 @@
 #define REMOVE_DLL_PUBLIC 0
 #endif
 
+#define BasicInterfaceCAPI(TYPE)        \
+__attribute__((visibility("default")))  \
+void * create##TYPE();                  \
+__attribute__((visibility("default")))  \
+void delete##TYPE(void * data);         \
+__attribute__((visibility("default")))  \
+void print##TYPE(void * data);
+
+
+#define GetterSetterCAPI(TYPE, VALUE, BASETYPE) \
+__attribute__((visibility("default")))          \
+BASETYPE get##VALUE##TYPE(void * data);         \
+__attribute__((visibility("default")))          \
+void set##VALUE##TYPE(void * data, BASETYPE newval);
+
+
+#define EnumGetterSetterCAPI(TYPE, VALUE, ENUM)     \
+__attribute__((visibility("default")))              \
+Index get##VALUE##TYPE(void * data);                \
+__attribute__((visibility("default")))              \
+Index set##VALUE##TYPE(void * data, Index newval);  \
+__attribute__((visibility("default")))              \
+Index string2index##VALUE##TYPE(void * data, char * newval);
+
+
+#define VoidGetterCAPI(TYPE, VALUE)     \
+__attribute__((visibility("default")))  \
+void * get##VALUE##TYPE(void * data);
+
+
+#define BasicInputOutputCAPI(TYPE)                  \
+__attribute__((visibility("default")))              \
+Index xmlread##TYPE(void * data, char * filepath);  \
+__attribute__((visibility("default")))              \
+Index xmlsave##TYPE(void * data, char * filepath, Index filetype, Index clobber);
+
+
+#define VoidArrayCAPI(TYPE)                 \
+__attribute__((visibility("default")))      \
+Index size##TYPE(void * data);              \
+__attribute__((visibility("default")))      \
+void resize##TYPE(Index n, void * data);    \
+__attribute__((visibility("default")))      \
+void * getelem##TYPE(Index i, void * data);
+
+
+#define VoidArrayElemCAPI(TYPE, ELEM)           \
+__attribute__((visibility("default")))          \
+Index size##ELEM##TYPE(void * data);            \
+__attribute__((visibility("default")))          \
+void resize##ELEM##TYPE(Index n, void * data);  \
+__attribute__((visibility("default")))          \
+void * getelem##ELEM##TYPE(Index i, void * data);
+
+
 extern "C" {
-  // Zeeman::Model
-  DLL_PUBLIC void * createZeemanModel();
-  DLL_PUBLIC void deleteZeemanModel(void *);
-  DLL_PUBLIC Numeric getZeemanModelGU(void *);
-  DLL_PUBLIC Numeric getZeemanModelGL(void *);
-  DLL_PUBLIC void setZeemanModelGU(void *, Numeric);
-  DLL_PUBLIC void setZeemanModelGL(void *, Numeric);
-  DLL_PUBLIC void printZeemanModel(void *);
+    // Index
+    BasicInterfaceCAPI(Index)
+    BasicInputOutputCAPI(Index)
+    DLL_PUBLIC Index getIndex(void *);
+    DLL_PUBLIC void setIndex(void *, Index);
+    VoidArrayCAPI(ArrayOfIndex)
+    BasicInterfaceCAPI(ArrayOfIndex)
+    BasicInputOutputCAPI(ArrayOfIndex)
+    VoidArrayCAPI(ArrayOfArrayOfIndex)
+    BasicInterfaceCAPI(ArrayOfArrayOfIndex)
+    BasicInputOutputCAPI(ArrayOfArrayOfIndex)
+    
+    // Numeric
+    BasicInterfaceCAPI(Numeric)
+    BasicInputOutputCAPI(Numeric)
+    DLL_PUBLIC Numeric getNumeric(void * data);
+    DLL_PUBLIC void setNumeric(void * data, Numeric newval);
   
-  // Rational
-  DLL_PUBLIC void * createRational();
-  DLL_PUBLIC void deleteRational(void *);
-  DLL_PUBLIC Index getRationalNom(void *);
-  DLL_PUBLIC Index getRationalDenom(void *);
-  DLL_PUBLIC void setRationalNom(void *, Index);
-  DLL_PUBLIC void setRationalDenom(void *, Index);
-  DLL_PUBLIC void printRational(void *);
-  DLL_PUBLIC void simplifyRational(void *);
+    // ZeemanModel
+    BasicInterfaceCAPI(ZeemanModel)
+    GetterSetterCAPI(ZeemanModel, gu, Numeric)
+    GetterSetterCAPI(ZeemanModel, gl, Numeric)
+
+    // Rational
+    BasicInterfaceCAPI(Rational)
+    BasicInputOutputCAPI(Rational)
+    GetterSetterCAPI(Rational, Nom, Index)
+    GetterSetterCAPI(Rational, Denom, Index)
+    DLL_PUBLIC void simplifyRational(void *);
   
-  // LineShape::ModelParameters
-  DLL_PUBLIC void printLineShapeModelParameters(void *);
-  DLL_PUBLIC Index getLineShapeModelParametersType(char *);
+    // LineShape::ModelParameters
+    DLL_PUBLIC void printLineShapeModelParameters(void *);
+    DLL_PUBLIC Index getLineShapeModelParametersType(char *);
   
-  // LineShape::SingleSpeciesModel
-  DLL_PUBLIC void * createLineShapeSingleSpeciesModel();
-  DLL_PUBLIC void deleteLineShapeSingleSpeciesModel(void *);
-  DLL_PUBLIC void printLineShapeSingleSpeciesModel(void *);
-  DLL_PUBLIC void * getLineShapeSingleSpeciesModelG0(void *);
-  DLL_PUBLIC void * getLineShapeSingleSpeciesModelD0(void *);
-  DLL_PUBLIC void * getLineShapeSingleSpeciesModelG2(void *);
-  DLL_PUBLIC void * getLineShapeSingleSpeciesModelD2(void *);
-  DLL_PUBLIC void * getLineShapeSingleSpeciesModelFVC(void *);
-  DLL_PUBLIC void * getLineShapeSingleSpeciesModelETA(void *);
-  DLL_PUBLIC void * getLineShapeSingleSpeciesModelY(void *);
-  DLL_PUBLIC void * getLineShapeSingleSpeciesModelG(void *);
-  DLL_PUBLIC void * getLineShapeSingleSpeciesModelDV(void *);
-  DLL_PUBLIC void setLineShapeSingleSpeciesModelG0(void *, void *);
-  DLL_PUBLIC void setLineShapeSingleSpeciesModelD0(void *, void *);
-  DLL_PUBLIC void setLineShapeSingleSpeciesModelG2(void *, void *);
-  DLL_PUBLIC void setLineShapeSingleSpeciesModelD2(void *, void *);
-  DLL_PUBLIC void setLineShapeSingleSpeciesModelFVC(void *, void *);
-  DLL_PUBLIC void setLineShapeSingleSpeciesModelETA(void *, void *);
-  DLL_PUBLIC void setLineShapeSingleSpeciesModelY(void *, void *);
-  DLL_PUBLIC void setLineShapeSingleSpeciesModelG(void *, void *);
-  DLL_PUBLIC void setLineShapeSingleSpeciesModelDV(void *, void *);
+    // LineShape::SingleSpeciesModel
+    BasicInterfaceCAPI(LineShapeSingleSpeciesModel)
+    VoidGetterCAPI(LineShapeSingleSpeciesModel, G0)
+    VoidGetterCAPI(LineShapeSingleSpeciesModel, D0)
+    VoidGetterCAPI(LineShapeSingleSpeciesModel, G2)
+    VoidGetterCAPI(LineShapeSingleSpeciesModel, D2)
+    VoidGetterCAPI(LineShapeSingleSpeciesModel, FVC)
+    VoidGetterCAPI(LineShapeSingleSpeciesModel, ETA)
+    VoidGetterCAPI(LineShapeSingleSpeciesModel, Y)
+    VoidGetterCAPI(LineShapeSingleSpeciesModel, G)
+    VoidGetterCAPI(LineShapeSingleSpeciesModel, DV)
   
-  // LineShape::Model
-  DLL_PUBLIC void * createLineShapeModel();
-  DLL_PUBLIC void deleteLineShapeModel(void *);
-  DLL_PUBLIC void printLineShapeModel(void *);
-  DLL_PUBLIC void resizeLineShapeModel(Index, void *);
-  DLL_PUBLIC Index sizeLineShapeModel(void *);
-  DLL_PUBLIC void * getLineShapeModelSingleSpeciesModel(Index, void *);
+    // LineShape::Model
+    BasicInterfaceCAPI(LineShapeModel)
+    VoidArrayCAPI(LineShapeModel)
   
-  // Absorption::SingleLine
-  DLL_PUBLIC void * createAbsorptionSingleLine();
-  DLL_PUBLIC void deleteAbsorptionSingleLine(void *);
-  DLL_PUBLIC void printAbsorptionSingleLine(void *);
-  DLL_PUBLIC Numeric getAbsorptionSingleLineF0(void *);
-  DLL_PUBLIC Numeric getAbsorptionSingleLineI0(void *);
-  DLL_PUBLIC Numeric getAbsorptionSingleLineE0(void *);
-  DLL_PUBLIC Numeric getAbsorptionSingleLineGL(void *);
-  DLL_PUBLIC Numeric getAbsorptionSingleLineGU(void *);
-  DLL_PUBLIC Numeric getAbsorptionSingleLineA(void *);
-  DLL_PUBLIC void setAbsorptionSingleLineF0(void *, Numeric);
-  DLL_PUBLIC void setAbsorptionSingleLineI0(void *, Numeric);
-  DLL_PUBLIC void setAbsorptionSingleLineE0(void *, Numeric);
-  DLL_PUBLIC void setAbsorptionSingleLineGL(void *, Numeric);
-  DLL_PUBLIC void setAbsorptionSingleLineGU(void *, Numeric);
-  DLL_PUBLIC void setAbsorptionSingleLineA(void *, Numeric);
-  DLL_PUBLIC void * getAbsorptionSingleLineZeemanModel(void *);
-  DLL_PUBLIC void * getAbsorptionSingleLineLineShapeModel(void *);
-  DLL_PUBLIC Index sizeAbsorptionSingleLineLowerQuantas(void *);
-  DLL_PUBLIC Index sizeAbsorptionSingleLineUpperQuantas(void *);
-  DLL_PUBLIC void resizeAbsorptionSingleLineLowerQuantas(Index, void *);
-  DLL_PUBLIC void resizeAbsorptionSingleLineUpperQuantas(Index, void *);
-  DLL_PUBLIC void * getAbsorptionSingleLineLowerQuanta(Index, void *);
-  DLL_PUBLIC void * getAbsorptionSingleLineUpperQuanta(Index, void *);
+    // Absorption::SingleLine
+    BasicInterfaceCAPI(AbsorptionSingleLine)
+    GetterSetterCAPI(AbsorptionSingleLine, F0, Numeric)
+    GetterSetterCAPI(AbsorptionSingleLine, I0, Numeric)
+    GetterSetterCAPI(AbsorptionSingleLine, E0, Numeric)
+    GetterSetterCAPI(AbsorptionSingleLine, g_low, Numeric)
+    GetterSetterCAPI(AbsorptionSingleLine, g_upp, Numeric)
+    GetterSetterCAPI(AbsorptionSingleLine, A, Numeric)
+    VoidGetterCAPI(AbsorptionSingleLine, Zeeman)
+    VoidGetterCAPI(AbsorptionSingleLine, LineShape)
+    VoidArrayElemCAPI(AbsorptionSingleLine, LowerQuantumNumbers)
+    VoidArrayElemCAPI(AbsorptionSingleLine, UpperQuantumNumbers)
   
-  // QuantumNumbers
-  DLL_PUBLIC void * createQuantumNumbers();
-  DLL_PUBLIC void deleteQuantumNumbers(void *);
-  DLL_PUBLIC void printQuantumNumbers(void *);
-  DLL_PUBLIC void * getQuantumNumbersNumber(Index, void *);
+    // QuantumNumbers
+    BasicInterfaceCAPI(QuantumNumbers)
+    DLL_PUBLIC void * getelemQuantumNumbers(Index, void *);
+    DLL_PUBLIC Index sizeQuantumNumbers();
+    DLL_PUBLIC Index string2quantumnumbersindex(char *);
   
-  // QuantumIdentifier
-  DLL_PUBLIC void * createQuantumIdentifier();
-  DLL_PUBLIC void deleteQuantumIdentifier(void *);
-  DLL_PUBLIC void printQuantumIdentifier(void *);
-  DLL_PUBLIC Index getQuantumIdentifierType(void *);
-  DLL_PUBLIC Index setQuantumIdentifierTypeFromString(void *, char *);
-  DLL_PUBLIC Index setQuantumIdentifierTypeFromIndex(void *, Index);
-  DLL_PUBLIC Index getQuantumIdentifierSpecies(void *);
-  DLL_PUBLIC void setQuantumIdentifierSpecies(void *, Index);
-  DLL_PUBLIC Index getQuantumIdentifierIsotopologue(void *);
-  DLL_PUBLIC void setQuantumIdentifierIsotopologue(void *, Index);
-  DLL_PUBLIC void * getQuantumIdentifierLevelQuantumNumbers(void *);
-  DLL_PUBLIC void * getQuantumIdentifierLowerQuantumNumbers(void *);
-  DLL_PUBLIC void * getQuantumIdentifierUpperQuantumNumbers(void *);
+    // QuantumIdentifier
+    BasicInterfaceCAPI(QuantumIdentifier)
+    BasicInputOutputCAPI(QuantumIdentifier)
+    EnumGetterSetterCAPI(QuantumIdentifier, Type, QuantumIdentifier::QType)
+    GetterSetterCAPI(QuantumIdentifier, Species, Index)
+    GetterSetterCAPI(QuantumIdentifier, Isotopologue, Index)
+    VoidGetterCAPI(QuantumIdentifier, EnergyLevelQuantumNumbers)
+    VoidGetterCAPI(QuantumIdentifier, LowerQuantumNumbers)
+    VoidGetterCAPI(QuantumIdentifier, UpperQuantumNumbers)
+    
+    // ArrayOfQuantumIdentifier
+    BasicInterfaceCAPI(ArrayOfQuantumIdentifier)
+    BasicInputOutputCAPI(ArrayOfQuantumIdentifier)
+    VoidArrayCAPI(ArrayOfQuantumIdentifier)
   
-  // SpeciesTag
-  DLL_PUBLIC void * createSpeciesTag();
-  DLL_PUBLIC void deleteSpeciesTag(void *);
-  DLL_PUBLIC void printSpeciesTag(void *);
-  DLL_PUBLIC Index setSpeciesTag(void *, char *);
-  DLL_PUBLIC Index getSpeciesTagSpecies(void *);
-  DLL_PUBLIC Index getSpeciesTagIsotopologue(void *);
-  DLL_PUBLIC Numeric getSpeciesTagLowerFrequency(void *);
-  DLL_PUBLIC Numeric getSpeciesTagUpperFrequency(void *);
-  DLL_PUBLIC Index getSpeciesTagType(void *);
-  DLL_PUBLIC Index getSpeciesTagCIASecond(void *);
-  DLL_PUBLIC Index getSpeciesTagCIADataset(void *);
-  DLL_PUBLIC void setSpeciesTagSpecies(void *, Index);
-  DLL_PUBLIC void setSpeciesTagIsotopologue(void *, Index);
-  DLL_PUBLIC void setSpeciesTagLowerFrequency(void *, Numeric);
-  DLL_PUBLIC void setSpeciesTagUpperFrequency(void *, Numeric);
-  DLL_PUBLIC void setSpeciesTagType(void *, Index);
-  DLL_PUBLIC void setSpeciesTagCIASecond(void *, Index);
-  DLL_PUBLIC void setSpeciesTagCIADataset(void *, Index);
+    // SpeciesTag
+    BasicInterfaceCAPI(SpeciesTag)
+    BasicInputOutputCAPI(SpeciesTag)
+    GetterSetterCAPI(SpeciesTag, Species, Index)
+    GetterSetterCAPI(SpeciesTag, Isotopologue, Index)
+    GetterSetterCAPI(SpeciesTag, Uf, Numeric)
+    GetterSetterCAPI(SpeciesTag, Lf, Numeric)
+    GetterSetterCAPI(SpeciesTag, CIASecond, Index)
+    GetterSetterCAPI(SpeciesTag, CIADataset, Index)
+    EnumGetterSetterCAPI(SpeciesTag, Type, Index)
+    VoidArrayCAPI(ArrayOfSpeciesTag)
+    BasicInterfaceCAPI(ArrayOfSpeciesTag)
+    BasicInputOutputCAPI(ArrayOfSpeciesTag)
+    VoidArrayCAPI(ArrayOfArrayOfSpeciesTag)
+    BasicInterfaceCAPI(ArrayOfArrayOfSpeciesTag)
+    BasicInputOutputCAPI(ArrayOfArrayOfSpeciesTag)
+    DLL_PUBLIC Index setSpeciesTag(void *, char *);
+    DLL_PUBLIC Index validSpecies(Index);
+    DLL_PUBLIC Index validAllIsotopologues(Index, Index);
+    DLL_PUBLIC Index validIsotopologue(Index, Index);
+    DLL_PUBLIC Index validContinuum(Index, Index);
   
-  // Absorption::Lines
-  DLL_PUBLIC void * createAbsorptionLines();
-  DLL_PUBLIC void deleteAbsorptionLines(void *);
-  DLL_PUBLIC void printAbsorptionLines(void *);
-  DLL_PUBLIC Index xmlreadAbsorptionLines(void *, char *);
-  DLL_PUBLIC Index xmlsaveAbsorptionLines(void *, char *, Index, Index);
-  DLL_PUBLIC void printmetaAbsorptionLines(void *);
-  DLL_PUBLIC bool getAbsorptionLinesSelfBroadening(void *);
-  DLL_PUBLIC void setAbsorptionLinesSelfBroadening(void *, bool);
-  DLL_PUBLIC bool getAbsorptionLinesBathBroadening(void *);
-  DLL_PUBLIC void setAbsorptionLinesBathBroadening(void *, bool);
-  DLL_PUBLIC Index getAbsorptionLinesCutoffType(void *);
-  DLL_PUBLIC Index setAbsorptionLinesCutoffType(void *, char *);
-  DLL_PUBLIC void setAbsorptionLinesCutoffTypeByIndex(void *, Index);
-  DLL_PUBLIC Index getAbsorptionLinesMirroringType(void *);
-  DLL_PUBLIC Index setAbsorptionLinesMirroringType(void *, char *);
-  DLL_PUBLIC void setAbsorptionLinesMirroringTypeByIndex(void *, Index);
-  DLL_PUBLIC Index getAbsorptionLinesPopulationType(void *);
-  DLL_PUBLIC Index setAbsorptionLinesPopulationType(void *, char *);
-  DLL_PUBLIC void setAbsorptionLinesPopulationTypeByIndex(void *, Index);
-  DLL_PUBLIC Index getAbsorptionLinesNormalizationType(void *);
-  DLL_PUBLIC Index setAbsorptionLinesNormalizationType(void *, char *);
-  DLL_PUBLIC void setAbsorptionLinesNormalizationTypeByIndex(void *, Index);
-  DLL_PUBLIC Index getAbsorptionLinesLineShapeType(void *);
-  DLL_PUBLIC Index setAbsorptionLinesLineShapeType(void *, char *);
-  DLL_PUBLIC void setAbsorptionLinesLineShapeTypeByIndex(void *, Index);
-  DLL_PUBLIC Numeric getAbsorptionLinesT0(void *);
-  DLL_PUBLIC void setAbsorptionLinesT0(void *, Numeric);
-  DLL_PUBLIC Numeric getAbsorptionLinesCutoffFrequency(void *);
-  DLL_PUBLIC void setAbsorptionLinesCutoffFrequency(void *, Numeric);
-  DLL_PUBLIC Numeric getAbsorptionLinesLinemixingLimit(void *);
-  DLL_PUBLIC void setAbsorptionLinesLinemixingLimit(void *, Numeric);
-  DLL_PUBLIC void * getAbsorptionLinesQuantumIdentifier(void *);
-  DLL_PUBLIC void resizeAbsorptionLinesLocalQuantumNumber(Index, void *);
-  DLL_PUBLIC Index getAbsorptionLinesLocalQuantumNumber(Index, void *);
-  DLL_PUBLIC void setAbsorptionLinesLocalQuantumNumber(Index, void *, Index);
-  DLL_PUBLIC Index getAbsorptionLinesLocalQuantumNumberCount(void *);
-  DLL_PUBLIC void resizeAbsorptionLinesSpeciesTag(Index, void *);
-  DLL_PUBLIC void * getAbsorptionLinesSpeciesTag(Index, void *);
-  DLL_PUBLIC Index getAbsorptionLinesSpeciesTagCount(void *);
-  DLL_PUBLIC Index isAbsorptionLinesOK(void *);
-  DLL_PUBLIC void resizeAbsorptionLinesSingleLine(Index, void *);
-  DLL_PUBLIC void * getAbsorptionLinesSingleLine(Index, void *);
-  DLL_PUBLIC Index getAbsorptionLinesSingleLineCount(void *);
+    // AbsorptionLines
+    BasicInterfaceCAPI(AbsorptionLines)
+    BasicInputOutputCAPI(AbsorptionLines)
+    GetterSetterCAPI(AbsorptionLines, Self, bool)
+    GetterSetterCAPI(AbsorptionLines, Bath, bool)
+    EnumGetterSetterCAPI(AbsorptionLines, Cutoff, Absorption::CutoffType)
+    EnumGetterSetterCAPI(AbsorptionLines, LineShapeType, LineShape::Type)
+    EnumGetterSetterCAPI(AbsorptionLines, Mirroring, Absorption::MirroringType)
+    EnumGetterSetterCAPI(AbsorptionLines, Population, Absorption::PopulationType)
+    EnumGetterSetterCAPI(AbsorptionLines, Normalization, Absorption::NormalizationType)
+    GetterSetterCAPI(AbsorptionLines, T0, Numeric)
+    GetterSetterCAPI(AbsorptionLines, CutoffFreqValue, Numeric)
+    GetterSetterCAPI(AbsorptionLines, LinemixingLimit, Numeric)
+    VoidGetterCAPI(AbsorptionLines, QuantumIdentity)
+    VoidArrayElemCAPI(AbsorptionLines, LocalQuanta)
+    VoidGetterCAPI(AbsorptionLines, BroadeningSpecies)
+    VoidArrayElemCAPI(AbsorptionLines, AllLines)
+    VoidArrayCAPI(ArrayOfAbsorptionLines)
+    BasicInterfaceCAPI(ArrayOfAbsorptionLines)
+    BasicInputOutputCAPI(ArrayOfAbsorptionLines)
+    VoidArrayCAPI(ArrayOfArrayOfAbsorptionLines)
+    BasicInterfaceCAPI(ArrayOfArrayOfAbsorptionLines)
+    BasicInputOutputCAPI(ArrayOfArrayOfAbsorptionLines)
+    DLL_PUBLIC void printmetaAbsorptionLines(void *);
+    DLL_PUBLIC Index isAbsorptionLinesOK(void *);
+    
+    // EnergyLevelMap
+    BasicInterfaceCAPI(EnergyLevelMap)
+    EnumGetterSetterCAPI(EnergyLevelMap, Type, EnergyLevelMapType)
+    VoidGetterCAPI(EnergyLevelMap, Levels)
+    VoidGetterCAPI(EnergyLevelMap, Energies)
+    VoidGetterCAPI(EnergyLevelMap, Data)
   
-  // generic
-  DLL_PUBLIC Index validSpecies(Index);
-  DLL_PUBLIC Index validIsotopologue(Index, Index);
-  DLL_PUBLIC Index getQuantumNumbersMaxNumber();
-  DLL_PUBLIC Index string2quantumnumbersindex(char *);
-  DLL_PUBLIC Index string2filetypeindex(char *);
-  
-  // Array IO
-  #define WorkspaceArrayInterfaceCAPI_HFILE(BASETYPE) \
-  DLL_PUBLIC void * createArrayOf##BASETYPE(); \
-  DLL_PUBLIC void deleteArrayOf##BASETYPE(void *); \
-  DLL_PUBLIC void printArrayOf##BASETYPE(void *); \
-  DLL_PUBLIC Index sizeArrayOf##BASETYPE(void *); \
-  DLL_PUBLIC void resizeArrayOf##BASETYPE(Index, void *); \
-  DLL_PUBLIC void * getelemArrayOf##BASETYPE(Index, void *); \
-  DLL_PUBLIC Index xmlreadArrayOf##BASETYPE(void *, char *); \
-  DLL_PUBLIC Index xmlsaveArrayOf##BASETYPE(void *, char *, Index, Index);
-  
-  WorkspaceArrayInterfaceCAPI_HFILE(AbsorptionLines)
-  WorkspaceArrayInterfaceCAPI_HFILE(ArrayOfAbsorptionLines)
-  
-  #undef WorkspaceArrayInterfaceCAPI_HFILE
+    // generic
+    DLL_PUBLIC Index string2filetypeindex(char *);
 }
+
+
+#undef BasicInterfaceCAPI
+#undef GetterSetterCAPI
+#undef EnumGetterSetterCAPI
+#undef VoidGetterCAPI
+#undef BasicInputOutputCAPI
+#undef VoidArrayCAPI
+#undef VoidArrayElemCAPI
+
 
 #if REMOVE_DLL_PUBLIC
 #undef DLL_PUBLIC

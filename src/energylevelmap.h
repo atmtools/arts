@@ -134,6 +134,36 @@ public:
   /** Energy level type */
   Tensor4& Data() noexcept {return mvalue;}
   
+  ////////////////////////////
+  // C API interface access //
+  ////////////////////////////
+  
+  bool validIndexForType(Index x)
+  {
+    for (auto y: {EnergyLevelMapType::Tensor3_t, EnergyLevelMapType::Vector_t, EnergyLevelMapType::Numeric_t, EnergyLevelMapType::None_t,})
+      if (Index(y) == x)
+        return true;
+    return false;
+  }
+  
+  /** Energy level type */
+  void Type(EnergyLevelMapType x) noexcept {mtype = x;}
+  
+  EnergyLevelMapType string2Type(const String& s)
+  {
+    if (s == "Tensor3")
+      return EnergyLevelMapType::Tensor3_t;
+    else if (s == "Vector")
+      return EnergyLevelMapType::Vector_t;
+    else if (s == "Numeric")
+      return EnergyLevelMapType::Numeric_t;
+    else if (s == "None")
+      return EnergyLevelMapType::None_t;
+    else {
+      return EnergyLevelMapType(-1);
+    }
+  }
+  
   //////////////////////
   // Numeric_t access //
   //////////////////////

@@ -44,7 +44,7 @@ class QuantumNumbers:
     @property
     def size(self):
         """ Number of defined quantum numbers (constexpr Index) """
-        return lib.getQuantumNumbersMaxNumber()
+        return lib.sizeQuantumNumbers()
 
     @property
     def data(self):
@@ -65,7 +65,7 @@ class QuantumNumbers:
             raise TypeError("Invalid input")
 
     def __getitem__(self, ind):
-        return Rational(c.c_void_p(lib.getQuantumNumbersNumber(self.to_index(ind), self.__data__)))
+        return Rational(c.c_void_p(lib.getelemQuantumNumbers(self.to_index(ind), self.__data__)))
 
     def __setitem__(self, ind, val):
         self[ind].set(val)
@@ -110,7 +110,7 @@ class QuantumNumbers:
         else:
             ind = int(ind)
 
-        if ind >= 0 and ind < lib.getQuantumNumbersMaxNumber():
+        if ind >= 0 and ind < lib.sizeQuantumNumbers():
             return ind
         else:
             raise IndexError("Out of bounds")
@@ -125,11 +125,11 @@ lib.deleteQuantumNumbers.argtypes = [c.c_void_p]
 lib.printQuantumNumbers.restype = None
 lib.printQuantumNumbers.argtypes = [c.c_void_p]
 
-lib.getQuantumNumbersMaxNumber.restype = c.c_long
-lib.getQuantumNumbersMaxNumber.argtypes = []
+lib.getelemQuantumNumbers.restype = c.c_void_p
+lib.getelemQuantumNumbers.argtypes = [c.c_long, c.c_void_p]
 
-lib.getQuantumNumbersNumber.restype = c.c_void_p
-lib.getQuantumNumbersNumber.argtypes = [c.c_long, c.c_void_p]
+lib.sizeQuantumNumbers.restype = c.c_long
+lib.sizeQuantumNumbers.argtypes = []
 
 lib.string2quantumnumbersindex.restype = c.c_long
 lib.string2quantumnumbersindex.argtypes = [c.c_char_p]
