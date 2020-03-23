@@ -201,7 +201,7 @@ void test_r_deriv_propagationmatrix() {
       }
     }
   }
-  a.GetData() *= 1e-5;
+  a.Data() *= 1e-5;
 
   PropagationMatrix b(1, nstokes);
   b.Kjj() = 5 + Numeric(rand() % 1000) / 100;
@@ -217,10 +217,10 @@ void test_r_deriv_propagationmatrix() {
       }
     }
   }
-  b.GetData() *= 5e-6;
+  b.Data() *= 5e-6;
 
   ArrayOfPropagationMatrix da(1, PropagationMatrix(1, nstokes));
-  da[0].GetData() = 0;
+  da[0].Data() = 0;
   Tensor3 T_normal(1, nstokes, nstokes), T_extra(1, nstokes, nstokes);
   Tensor4 dT1(1, 1, nstokes, nstokes), dT2(1, 1, nstokes, nstokes);
 
@@ -380,7 +380,7 @@ void test_transmat_to_cumulativetransmat() {
     i++;
     pm.Kjj() = 2 * i;
     i++;
-    pm.GetData() *= 1e-2;
+    pm.Data() *= 1e-2;
   }
 
   std::cout << "Propmats:\n" << propmats << "\n\n";

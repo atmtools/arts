@@ -100,8 +100,7 @@ def array_base(var):
 
         @size.setter
         def size(self, size):
-            size = int(size)
-            lib.resizeArrayOfBASENAME(size, self.__data__)
+            lib.resizeArrayOfBASENAME(int(size), self.__data__)
 
         @property
         def data(self):
@@ -163,7 +162,7 @@ def array_base(var):
                 lib.deleteArrayOfBASENAME(self.__data__)
 
         def __repr__(self):
-            return "ARTS ArrayOfBASENAME with {} elements".format(self.size)
+            return repr(self.data)
 
         def set(self, other):
             """ Sets this class according to another python instance of itself """

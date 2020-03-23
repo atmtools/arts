@@ -337,6 +337,175 @@ VoidGetterCAPI(EnergyLevelMap, Energies)
 VoidGetterCAPI(EnergyLevelMap, Data)
 
 
+// Vector
+BasicInterfaceCAPI(Vector)
+BasicInputOutputCAPI(Vector)
+VoidArrayCAPI(ArrayOfVector)
+BasicInterfaceCAPI(ArrayOfVector)
+BasicInputOutputCAPI(ArrayOfVector)
+VoidArrayCAPI(ArrayOfArrayOfVector)
+BasicInterfaceCAPI(ArrayOfArrayOfVector)
+BasicInputOutputCAPI(ArrayOfArrayOfVector)
+void resizeVector(Index n, void * data) {static_cast<Vector *>(data) -> resize(n);}
+Index nelemVector(void * data) {return static_cast<Vector *>(data) -> nelem();}
+Numeric * getDataVector(void * data) {return static_cast<Vector *>(data) -> get_c_array();}
+
+
+// Matrix
+BasicInterfaceCAPI(Matrix)
+BasicInputOutputCAPI(Matrix)
+VoidArrayCAPI(ArrayOfMatrix)
+BasicInterfaceCAPI(ArrayOfMatrix)
+BasicInputOutputCAPI(ArrayOfMatrix)
+VoidArrayCAPI(ArrayOfArrayOfMatrix)
+BasicInterfaceCAPI(ArrayOfArrayOfMatrix)
+BasicInputOutputCAPI(ArrayOfArrayOfMatrix)
+void resizeMatrix(Index nrows, Index ncols, void * data) {static_cast<Matrix *>(data) -> resize(nrows, ncols);}
+Index rowsMatrix(void * data) {return static_cast<Matrix *>(data) -> nrows();}
+Index colsMatrix(void * data) {return static_cast<Matrix *>(data) -> ncols();}
+Numeric * getDataMatrix(void * data) {return static_cast<Matrix *>(data) -> get_c_array();}
+
+
+// Tensor3
+BasicInterfaceCAPI(Tensor3)
+BasicInputOutputCAPI(Tensor3)
+VoidArrayCAPI(ArrayOfTensor3)
+BasicInterfaceCAPI(ArrayOfTensor3)
+BasicInputOutputCAPI(ArrayOfTensor3)
+VoidArrayCAPI(ArrayOfArrayOfTensor3)
+BasicInterfaceCAPI(ArrayOfArrayOfTensor3)
+BasicInputOutputCAPI(ArrayOfArrayOfTensor3)
+void resizeTensor3(Index npages, Index nrows, Index ncols, void * data) {static_cast<Tensor3 *>(data) -> resize(npages, nrows, ncols);}
+Index pagesTensor3(void * data) {return static_cast<Tensor3 *>(data) -> npages();}
+Index rowsTensor3(void * data) {return static_cast<Tensor3 *>(data) -> nrows();}
+Index colsTensor3(void * data) {return static_cast<Tensor3 *>(data) -> ncols();}
+Numeric * getDataTensor3(void * data) {return static_cast<Tensor3 *>(data) -> get_c_array();}
+
+
+// Tensor4
+BasicInterfaceCAPI(Tensor4)
+BasicInputOutputCAPI(Tensor4)
+VoidArrayCAPI(ArrayOfTensor4)
+BasicInterfaceCAPI(ArrayOfTensor4)
+BasicInputOutputCAPI(ArrayOfTensor4)
+// VoidArrayCAPI(ArrayOfArrayOfTensor4)
+// BasicInterfaceCAPI(ArrayOfArrayOfTensor4)
+// BasicInputOutputCAPI(ArrayOfArrayOfTensor4)
+void resizeTensor4(Index nbooks, Index npages, Index nrows, Index ncols, void * data) {static_cast<Tensor4 *>(data) -> resize(nbooks, npages, nrows, ncols);}
+Index booksTensor4(void * data) {return static_cast<Tensor4 *>(data) -> nbooks();}
+Index pagesTensor4(void * data) {return static_cast<Tensor4 *>(data) -> npages();}
+Index rowsTensor4(void * data) {return static_cast<Tensor4 *>(data) -> nrows();}
+Index colsTensor4(void * data) {return static_cast<Tensor4 *>(data) -> ncols();}
+Numeric * getDataTensor4(void * data) {return static_cast<Tensor4 *>(data) -> get_c_array();}
+
+
+// Tensor5
+BasicInterfaceCAPI(Tensor5)
+BasicInputOutputCAPI(Tensor5)
+VoidArrayCAPI(ArrayOfTensor5)
+BasicInterfaceCAPI(ArrayOfTensor5)
+BasicInputOutputCAPI(ArrayOfTensor5)
+// VoidArrayCAPI(ArrayOfArrayOfTensor5)
+// BasicInterfaceCAPI(ArrayOfArrayOfTensor5)
+// BasicInputOutputCAPI(ArrayOfArrayOfTensor5)
+void resizeTensor5(Index nshelves, Index nbooks, Index npages, Index nrows, Index ncols, void * data) {static_cast<Tensor5 *>(data) -> resize(nshelves, nbooks, npages, nrows, ncols);}
+Index shelvesTensor5(void * data) {return static_cast<Tensor5 *>(data) -> nshelves();}
+Index booksTensor5(void * data) {return static_cast<Tensor5 *>(data) -> nbooks();}
+Index pagesTensor5(void * data) {return static_cast<Tensor5 *>(data) -> npages();}
+Index rowsTensor5(void * data) {return static_cast<Tensor5 *>(data) -> nrows();}
+Index colsTensor5(void * data) {return static_cast<Tensor5 *>(data) -> ncols();}
+Numeric * getDataTensor5(void * data) {return static_cast<Tensor5 *>(data) -> get_c_array();}
+
+
+// Tensor6
+BasicInterfaceCAPI(Tensor6)
+BasicInputOutputCAPI(Tensor6)
+VoidArrayCAPI(ArrayOfTensor6)
+BasicInterfaceCAPI(ArrayOfTensor6)
+BasicInputOutputCAPI(ArrayOfTensor6)
+VoidArrayCAPI(ArrayOfArrayOfTensor6)
+BasicInterfaceCAPI(ArrayOfArrayOfTensor6)
+BasicInputOutputCAPI(ArrayOfArrayOfTensor6)
+void resizeTensor6(Index nvitrines, Index nshelves, Index nbooks, Index npages, Index nrows, Index ncols, void * data) {static_cast<Tensor6 *>(data) -> resize(nvitrines, nshelves, nbooks, npages, nrows, ncols);}
+Index vitrinesTensor6(void * data) {return static_cast<Tensor6 *>(data) -> nvitrines();}
+Index shelvesTensor6(void * data) {return static_cast<Tensor6 *>(data) -> nshelves();}
+Index booksTensor6(void * data) {return static_cast<Tensor6 *>(data) -> nbooks();}
+Index pagesTensor6(void * data) {return static_cast<Tensor6 *>(data) -> npages();}
+Index rowsTensor6(void * data) {return static_cast<Tensor6 *>(data) -> nrows();}
+Index colsTensor6(void * data) {return static_cast<Tensor6 *>(data) -> ncols();}
+Numeric * getDataTensor6(void * data) {return static_cast<Tensor6 *>(data) -> get_c_array();}
+
+
+// Tensor7
+BasicInterfaceCAPI(Tensor7)
+BasicInputOutputCAPI(Tensor7)
+VoidArrayCAPI(ArrayOfTensor7)
+BasicInterfaceCAPI(ArrayOfTensor7)
+BasicInputOutputCAPI(ArrayOfTensor7)
+// VoidArrayCAPI(ArrayOfArrayOfTensor7)
+// BasicInterfaceCAPI(ArrayOfArrayOfTensor7)
+// BasicInputOutputCAPI(ArrayOfArrayOfTensor7)
+void resizeTensor7(Index nlibraries, Index nvitrines, Index nshelves, Index nbooks, Index npages, Index nrows, Index ncols, void * data) {static_cast<Tensor7 *>(data) -> resize(nlibraries, nvitrines, nshelves, nbooks, npages, nrows, ncols);}
+Index librariesTensor7(void * data) {return static_cast<Tensor7 *>(data) -> nlibraries();}
+Index vitrinesTensor7(void * data) {return static_cast<Tensor7 *>(data) -> nvitrines();}
+Index shelvesTensor7(void * data) {return static_cast<Tensor7 *>(data) -> nshelves();}
+Index booksTensor7(void * data) {return static_cast<Tensor7 *>(data) -> nbooks();}
+Index pagesTensor7(void * data) {return static_cast<Tensor7 *>(data) -> npages();}
+Index rowsTensor7(void * data) {return static_cast<Tensor7 *>(data) -> nrows();}
+Index colsTensor7(void * data) {return static_cast<Tensor7 *>(data) -> ncols();}
+Numeric * getDataTensor7(void * data) {return static_cast<Tensor7 *>(data) -> get_c_array();}
+
+
+// PropagationMatrix
+BasicInterfaceCAPI(PropagationMatrix)
+BasicInputOutputCAPI(PropagationMatrix)
+VoidGetterCAPI(PropagationMatrix, Data)
+VoidArrayCAPI(ArrayOfPropagationMatrix)
+BasicInterfaceCAPI(ArrayOfPropagationMatrix)
+BasicInputOutputCAPI(ArrayOfPropagationMatrix)
+VoidArrayCAPI(ArrayOfArrayOfPropagationMatrix)
+BasicInterfaceCAPI(ArrayOfArrayOfPropagationMatrix)
+BasicInputOutputCAPI(ArrayOfArrayOfPropagationMatrix)
+Index stokesPropagationMatrix(void * data) {return static_cast<PropagationMatrix *>(data) -> StokesDimensions();}
+Index frequenciesPropagationMatrix(void * data) {return static_cast<PropagationMatrix *>(data) -> NumberOfFrequencies();}
+Index zenithsPropagationMatrix(void * data) {return static_cast<PropagationMatrix *>(data) -> NumberOfZenithAngles();}
+Index azimuthsPropagationMatrix(void * data) {return static_cast<PropagationMatrix *>(data) -> NumberOfAzimuthAngles();}
+Index setPropagationMatrix(void * data, Index f, Index s, Index z, Index a, Numeric v)
+{
+  if (s >= 0 and s < 5 and f >= 0 and z >= 0 and a >= 0) {
+    static_cast<PropagationMatrix *>(data) -> operator=(PropagationMatrix(f, s, z, a, v));
+    return EXIT_SUCCESS;
+  } else {
+    return EXIT_FAILURE;
+  }
+}
+
+
+// StokesVector
+BasicInterfaceCAPI(StokesVector)
+BasicInputOutputCAPI(StokesVector)
+VoidGetterCAPI(StokesVector, Data)
+VoidArrayCAPI(ArrayOfStokesVector)
+BasicInterfaceCAPI(ArrayOfStokesVector)
+BasicInputOutputCAPI(ArrayOfStokesVector)
+VoidArrayCAPI(ArrayOfArrayOfStokesVector)
+BasicInterfaceCAPI(ArrayOfArrayOfStokesVector)
+BasicInputOutputCAPI(ArrayOfArrayOfStokesVector)
+Index stokesStokesVector(void * data) {return static_cast<StokesVector *>(data) -> StokesDimensions();}
+Index frequenciesStokesVector(void * data) {return static_cast<StokesVector *>(data) -> NumberOfFrequencies();}
+Index zenithsStokesVector(void * data) {return static_cast<StokesVector *>(data) -> NumberOfZenithAngles();}
+Index azimuthsStokesVector(void * data) {return static_cast<StokesVector *>(data) -> NumberOfAzimuthAngles();}
+Index setStokesVector(void * data, Index f, Index s, Index z, Index a, Numeric v)
+{
+  if (s >= 0 and s < 5 and f >= 0 and z >= 0 and a >= 0) {
+    static_cast<StokesVector *>(data) -> operator=(StokesVector(f, s, z, a, v));
+    return EXIT_SUCCESS;
+  } else {
+    return EXIT_FAILURE;
+  }
+}
+
+
 // generic
 Index string2filetypeindex(char * data) { try { return Index(string2filetype(data)); } catch (std::runtime_error& e) { return -1; } }
 

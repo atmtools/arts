@@ -976,10 +976,10 @@ class PropagationMatrix {
   void SetZero() { mdata = 0.0; }
 
   /** Get full view to data */
-  Tensor4View GetData() { return mdata; }
+  Tensor4& Data() { return mdata; }
 
   /** Get full const view to data */
-  ConstTensor4View GetData() const { return mdata; }
+  const Tensor4& Data() const { return mdata; }
 
   /** Multiply the matrix input from the left of this at position
    * 
@@ -1217,7 +1217,7 @@ class StokesVector : public PropagationMatrix {
    * @return StokesVector& *this
    */
   StokesVector& operator+=(const PropagationMatrix& x) {
-    mdata += x.GetData()(joker, joker, joker, Range(0, mstokes_dim, 1));
+    mdata += x.Data()(joker, joker, joker, Range(0, mstokes_dim, 1));
     return *this;
   }
 
@@ -1242,7 +1242,7 @@ class StokesVector : public PropagationMatrix {
     mza = x.NumberOfZenithAngles();
     maa = x.NumberOfAzimuthAngles();
     mdata.resize(maa, mza, mfreqs, mstokes_dim);
-    mdata(joker, joker, joker, Range(0, mstokes_dim, 1)) = x.GetData()(joker, joker, joker, Range(0, mstokes_dim, 1));
+    mdata(joker, joker, joker, Range(0, mstokes_dim, 1)) = x.Data()(joker, joker, joker, Range(0, mstokes_dim, 1));
     return *this;
   }
 
@@ -1278,7 +1278,7 @@ class StokesVector : public PropagationMatrix {
     assert(mza == y.NumberOfZenithAngles());
     assert(maa == y.NumberOfAzimuthAngles());
 
-    const ConstTensor4View data = y.GetData();
+    const ConstTensor4View data = y.Data();
 
     for (Index i = 0; i < maa; i++)
       for (Index j = 0; j < mza; j++)

@@ -261,7 +261,7 @@ void zeeman_on_the_fly(
         
         auto pol_real = pol.attenuation();
         auto pol_imag = pol.dispersion();
-        auto abs = propmat_clearsky[ispecies].GetData()(0, 0, joker, joker);
+        auto abs = propmat_clearsky[ispecies].Data()(0, 0, joker, joker);
 
         // Propagation matrix calculations
         MapToEigen(abs).leftCols<4>().noalias() += numdens * sum.F.real() * pol_real;
@@ -272,7 +272,7 @@ void zeeman_on_the_fly(
             const auto& deriv = jacobian_quantities[jacobian_quantities_positions[j]];
             Eigen::Map<
                 Eigen::Matrix<Numeric, Eigen::Dynamic, 7, Eigen::RowMajor>>
-                dabs(dpropmat_clearsky_dx[j].GetData().get_c_array(),
+                dabs(dpropmat_clearsky_dx[j].Data().get_c_array(),
                     f_grid.nelem(), 7);
 
             if (deriv == JacPropMatType::Temperature) {
@@ -341,7 +341,7 @@ void zeeman_on_the_fly(
           // Source vector calculations
         if (nn) {
           auto nlte_src =
-              nlte_source[ispecies].GetData()(0, 0, joker, joker);
+              nlte_source[ispecies].Data()(0, 0, joker, joker);
 
           MapToEigen(nlte_src)
               .leftCols<4>()
@@ -353,9 +353,9 @@ void zeeman_on_the_fly(
 
             Eigen::Map<
                 Eigen::Matrix<Numeric, Eigen::Dynamic, 4, Eigen::RowMajor>>
-                dnlte_dx_src(dnlte_dx_source[j].GetData().get_c_array(),
+                dnlte_dx_src(dnlte_dx_source[j].Data().get_c_array(),
                             f_grid.nelem(), 4),
-                nlte_dsrc_dx(nlte_dsource_dx[j].GetData().get_c_array(),
+                nlte_dsrc_dx(nlte_dsource_dx[j].Data().get_c_array(),
                             f_grid.nelem(), 4);
 
             if (deriv == JacPropMatType::Temperature) {

@@ -97,14 +97,14 @@ extern "C" {
     // Index
     BasicInterfaceCAPI(Index)
     BasicInputOutputCAPI(Index)
-    DLL_PUBLIC Index getIndex(void *);
-    DLL_PUBLIC void setIndex(void *, Index);
     VoidArrayCAPI(ArrayOfIndex)
     BasicInterfaceCAPI(ArrayOfIndex)
     BasicInputOutputCAPI(ArrayOfIndex)
     VoidArrayCAPI(ArrayOfArrayOfIndex)
     BasicInterfaceCAPI(ArrayOfArrayOfIndex)
     BasicInputOutputCAPI(ArrayOfArrayOfIndex)
+    DLL_PUBLIC Index getIndex(void *);
+    DLL_PUBLIC void setIndex(void *, Index);
     
     // Numeric
     BasicInterfaceCAPI(Numeric)
@@ -233,6 +233,150 @@ extern "C" {
     VoidGetterCAPI(EnergyLevelMap, Levels)
     VoidGetterCAPI(EnergyLevelMap, Energies)
     VoidGetterCAPI(EnergyLevelMap, Data)
+    
+    // Vector
+    BasicInterfaceCAPI(Vector)
+    BasicInputOutputCAPI(Vector)
+    VoidArrayCAPI(ArrayOfVector)
+    BasicInterfaceCAPI(ArrayOfVector)
+    BasicInputOutputCAPI(ArrayOfVector)
+    VoidArrayCAPI(ArrayOfArrayOfVector)
+    BasicInterfaceCAPI(ArrayOfArrayOfVector)
+    BasicInputOutputCAPI(ArrayOfArrayOfVector)
+    DLL_PUBLIC void resizeVector(Index, void *);
+    DLL_PUBLIC Index nelemVector(void *);
+    DLL_PUBLIC Numeric * getDataVector(void *);
+    
+    // Matrix
+    BasicInterfaceCAPI(Matrix)
+    BasicInputOutputCAPI(Matrix)
+    VoidArrayCAPI(ArrayOfMatrix)
+    BasicInterfaceCAPI(ArrayOfMatrix)
+    BasicInputOutputCAPI(ArrayOfMatrix)
+    VoidArrayCAPI(ArrayOfArrayOfMatrix)
+    BasicInterfaceCAPI(ArrayOfArrayOfMatrix)
+    BasicInputOutputCAPI(ArrayOfArrayOfMatrix)
+    DLL_PUBLIC void resizeMatrix(Index, Index, void *);
+    DLL_PUBLIC Index rowsMatrix(void *);
+    DLL_PUBLIC Index colsMatrix(void *);
+    DLL_PUBLIC Numeric * getDataMatrix(void *);
+    
+    // Tensor3
+    BasicInterfaceCAPI(Tensor3)
+    BasicInputOutputCAPI(Tensor3)
+    VoidArrayCAPI(ArrayOfTensor3)
+    BasicInterfaceCAPI(ArrayOfTensor3)
+    BasicInputOutputCAPI(ArrayOfTensor3)
+    VoidArrayCAPI(ArrayOfArrayOfTensor3)
+    BasicInterfaceCAPI(ArrayOfArrayOfTensor3)
+    BasicInputOutputCAPI(ArrayOfArrayOfTensor3)
+    DLL_PUBLIC void resizeTensor3(Index, Index, Index, void *);
+    DLL_PUBLIC Index pagesTensor3(void *);
+    DLL_PUBLIC Index rowsTensor3(void *);
+    DLL_PUBLIC Index colsTensor3(void *);
+    DLL_PUBLIC Numeric * getDataTensor3(void *);
+    
+    // Tensor4
+    BasicInterfaceCAPI(Tensor4)
+    BasicInputOutputCAPI(Tensor4)
+    VoidArrayCAPI(ArrayOfTensor4)
+    BasicInterfaceCAPI(ArrayOfTensor4)
+    BasicInputOutputCAPI(ArrayOfTensor4)
+//     VoidArrayCAPI(ArrayOfArrayOfTensor4)
+//     BasicInterfaceCAPI(ArrayOfArrayOfTensor4)
+//     BasicInputOutputCAPI(ArrayOfArrayOfTensor4)
+    DLL_PUBLIC void resizeTensor4(Index, Index, Index, Index, void *);
+    DLL_PUBLIC Index booksTensor4(void *);
+    DLL_PUBLIC Index pagesTensor4(void *);
+    DLL_PUBLIC Index rowsTensor4(void *);
+    DLL_PUBLIC Index colsTensor4(void *);
+    DLL_PUBLIC Numeric * getDataTensor4(void *);
+    
+    // Tensor5
+    BasicInterfaceCAPI(Tensor5)
+    BasicInputOutputCAPI(Tensor5)
+    VoidArrayCAPI(ArrayOfTensor5)
+    BasicInterfaceCAPI(ArrayOfTensor5)
+    BasicInputOutputCAPI(ArrayOfTensor5)
+//     VoidArrayCAPI(ArrayOfArrayOfTensor5)
+//     BasicInterfaceCAPI(ArrayOfArrayOfTensor5)
+//     BasicInputOutputCAPI(ArrayOfArrayOfTensor5)
+    DLL_PUBLIC void resizeTensor5(Index, Index, Index, Index, Index, void *);
+    DLL_PUBLIC Index shelvesTensor5(void *);
+    DLL_PUBLIC Index booksTensor5(void *);
+    DLL_PUBLIC Index pagesTensor5(void *);
+    DLL_PUBLIC Index rowsTensor5(void *);
+    DLL_PUBLIC Index colsTensor5(void *);
+    DLL_PUBLIC Numeric * getDataTensor5(void *);
+    
+    // Tensor6
+    BasicInterfaceCAPI(Tensor6)
+    BasicInputOutputCAPI(Tensor6)
+    VoidArrayCAPI(ArrayOfTensor6)
+    BasicInterfaceCAPI(ArrayOfTensor6)
+    BasicInputOutputCAPI(ArrayOfTensor6)
+    VoidArrayCAPI(ArrayOfArrayOfTensor6)
+    BasicInterfaceCAPI(ArrayOfArrayOfTensor6)
+    BasicInputOutputCAPI(ArrayOfArrayOfTensor6)
+    DLL_PUBLIC void resizeTensor6(Index, Index, Index, Index, Index, Index, void *);
+    DLL_PUBLIC Index vitrinesTensor6(void *);
+    DLL_PUBLIC Index shelvesTensor6(void *);
+    DLL_PUBLIC Index booksTensor6(void *);
+    DLL_PUBLIC Index pagesTensor6(void *);
+    DLL_PUBLIC Index rowsTensor6(void *);
+    DLL_PUBLIC Index colsTensor6(void *);
+    DLL_PUBLIC Numeric * getDataTensor6(void *);
+    
+    // Tensor7
+    BasicInterfaceCAPI(Tensor7)
+    BasicInputOutputCAPI(Tensor7)
+    VoidArrayCAPI(ArrayOfTensor7)
+    BasicInterfaceCAPI(ArrayOfTensor7)
+    BasicInputOutputCAPI(ArrayOfTensor7)
+//     VoidArrayCAPI(ArrayOfArrayOfTensor7)
+//     BasicInterfaceCAPI(ArrayOfArrayOfTensor7)
+//     BasicInputOutputCAPI(ArrayOfArrayOfTensor7)
+    DLL_PUBLIC void resizeTensor7(Index, Index, Index, Index, Index, Index, Index, void *);
+    DLL_PUBLIC Index librariesTensor7(void *);
+    DLL_PUBLIC Index vitrinesTensor7(void *);
+    DLL_PUBLIC Index shelvesTensor7(void *);
+    DLL_PUBLIC Index booksTensor7(void *);
+    DLL_PUBLIC Index pagesTensor7(void *);
+    DLL_PUBLIC Index rowsTensor7(void *);
+    DLL_PUBLIC Index colsTensor7(void *);
+    DLL_PUBLIC Numeric * getDataTensor7(void *);
+    
+    // PropagationMatrix
+    BasicInterfaceCAPI(PropagationMatrix)
+    BasicInputOutputCAPI(PropagationMatrix)
+    VoidGetterCAPI(PropagationMatrix, Data)
+    VoidArrayCAPI(ArrayOfPropagationMatrix)
+    BasicInterfaceCAPI(ArrayOfPropagationMatrix)
+    BasicInputOutputCAPI(ArrayOfPropagationMatrix)
+    VoidArrayCAPI(ArrayOfArrayOfPropagationMatrix)
+    BasicInterfaceCAPI(ArrayOfArrayOfPropagationMatrix)
+    BasicInputOutputCAPI(ArrayOfArrayOfPropagationMatrix)
+    DLL_PUBLIC Index stokesPropagationMatrix(void *);
+    DLL_PUBLIC Index frequenciesPropagationMatrix(void *);
+    DLL_PUBLIC Index zenithsPropagationMatrix(void *);
+    DLL_PUBLIC Index azimuthsPropagationMatrix(void *);
+    DLL_PUBLIC Index setPropagationMatrix(void *, Index, Index, Index, Index, Numeric);
+    
+    // StokesVector
+    BasicInterfaceCAPI(StokesVector)
+    BasicInputOutputCAPI(StokesVector)
+    VoidGetterCAPI(StokesVector, Data)
+    VoidArrayCAPI(ArrayOfStokesVector)
+    BasicInterfaceCAPI(ArrayOfStokesVector)
+    BasicInputOutputCAPI(ArrayOfStokesVector)
+    VoidArrayCAPI(ArrayOfArrayOfStokesVector)
+    BasicInterfaceCAPI(ArrayOfArrayOfStokesVector)
+    BasicInputOutputCAPI(ArrayOfArrayOfStokesVector)
+    DLL_PUBLIC Index stokesStokesVector(void *);
+    DLL_PUBLIC Index frequenciesStokesVector(void *);
+    DLL_PUBLIC Index zenithsStokesVector(void *);
+    DLL_PUBLIC Index azimuthsStokesVector(void *);
+    DLL_PUBLIC Index setStokesVector(void *, Index, Index, Index, Index, Numeric);
   
     // generic
     DLL_PUBLIC Index string2filetypeindex(char *);
