@@ -35,7 +35,7 @@ if (PYTHONINTERP_FOUND)
     set(CONTROLFILE_DIR ${CMAKE_SOURCE_DIR}/controlfiles)
     add_custom_target(python_tests
       ALL
-      COMMAND ${PYTHON_EXECUTABLE} bin/arts_convert.py ${CONTROLFILE_DIR} -o controlfiles
+      COMMAND PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR} ${PYTHON_EXECUTABLE} bin/arts_convert.py ${CONTROLFILE_DIR} -o controlfiles
       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
       DEPENDS pyarts
       COMMENT "Converting *.arts controlfiles to Python")
