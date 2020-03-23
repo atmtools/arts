@@ -412,7 +412,7 @@ add_custom_target(check
   COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -E '\(python.|.nocheck.|.slow.|.xmldata.|.planettoolbox.\)' DEPENDS arts)
 
 add_custom_target(check-python
-  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -R '\(python.|.cmdline.|.doc.\)' -E '\(.nocheck.|.slow.|.xmldata.|.planettoolbox.\)' DEPENDS pyarts)
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -R '\(python.|.cmdline.|.doc.\)' -E '\(.nocheck.|.slow.|.xmldata.|.planettoolbox.\)' DEPENDS python_tests arts)
 
 add_custom_target(check-xmldata
   COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -R '\(python.|.xmldata.\)' DEPENDS arts)
