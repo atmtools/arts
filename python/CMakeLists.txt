@@ -18,6 +18,7 @@ file(STRINGS ${CMAKE_SOURCE_DIR}/VERSION ARTS_VERSION)
 foreach(file ${PYTHON_SRC_FILES})
   configure_file(${file} ${file} @ONLY)
 endforeach()
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/controlfiles/)
 
 #
 # Install pyarts
@@ -25,21 +26,19 @@ endforeach()
 
 find_package(PythonInterp)
 if (PYTHONINTERP_FOUND)
-  if (DEVELOPER_MODE)
     add_custom_target(pyarts
       ALL
       COMMAND ${PYTHON_EXECUTABLE} setup.py build
       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
       DEPENDS arts_api
       COMMENT "Building ARTS python package.")
-  else()
-    add_custom_target(pyarts
+    set(CONTROLFILE_DIR ${CMAKE_SOURCE_DIR}/controlfiles)
+    add_custom_target(python_tests
       ALL
-      COMMAND ${PYTHON_EXECUTABLE} setup.py build
+      COMMAND ${PYTHON_EXECUTABLE} bin/arts_convert.py ${CONTROLFILE_DIR} -o controlfiles
       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-      DEPENDS arts_api
-      COMMENT "Building ARTS python package.")
-  endif()
+      DEPENDS pyarts
+      COMMENT "Converting *.arts controlfiles to Python")
 endif()
 
 file(COPY test/reference DESTINATION test/)

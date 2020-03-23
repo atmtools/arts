@@ -22,6 +22,9 @@ install (DIRECTORY artscomponents
          DESTINATION ${ARTS_CONTROLFILE_DIR}
          PATTERN ".svn" EXCLUDE)
 
+file(GLOB_RECURSE ARTS_CONTROLFILES
+  RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/*.arts)
 
 #######################
 ### ARTS Components ###
