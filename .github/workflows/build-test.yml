@@ -154,3 +154,9 @@ jobs:
           cd cmake-build
           make -j2 -C doc/uguide
 
+      - name: Check (Linux / macOS)
+        if: (runner.os == 'Linux' || runner.os == 'macOS') && matrix.check == 'yes'
+        run: |
+          cd cmake-build
+          make check
+
