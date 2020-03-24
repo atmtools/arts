@@ -427,6 +427,40 @@ extern "C" {
     VoidArrayCAPI(ArrayOfPpath)
     BasicInterfaceCAPI(ArrayOfPpath)
     BasicInputOutputCAPI(ArrayOfPpath)
+    
+    // TransmissionMatrix
+    BasicInterfaceCAPI(TransmissionMatrix)
+    BasicInputOutputCAPI(TransmissionMatrix)
+    VoidArrayCAPI(ArrayOfTransmissionMatrix)
+    BasicInterfaceCAPI(ArrayOfTransmissionMatrix)
+    BasicInputOutputCAPI(ArrayOfTransmissionMatrix)
+    VoidArrayCAPI(ArrayOfArrayOfTransmissionMatrix)
+    BasicInterfaceCAPI(ArrayOfArrayOfTransmissionMatrix)
+    BasicInputOutputCAPI(ArrayOfArrayOfTransmissionMatrix)
+    DLL_PUBLIC Numeric * getMat1TransmissionMatrix(Index, void *);
+    DLL_PUBLIC Numeric * getMat2TransmissionMatrix(Index, void *);
+    DLL_PUBLIC Numeric * getMat3TransmissionMatrix(Index, void *);
+    DLL_PUBLIC Numeric * getMat4TransmissionMatrix(Index, void *);
+    DLL_PUBLIC void setTransmissionMatrix(void *, Index, Index);
+    DLL_PUBLIC Index getStokesDimTransmissionMatrix(void *);
+    DLL_PUBLIC Index getFrequenciesTransmissionMatrix(void *);
+    
+    // RadiationVector
+    BasicInterfaceCAPI(RadiationVector)
+    BasicInputOutputCAPI(RadiationVector)
+    VoidArrayCAPI(ArrayOfRadiationVector)
+    BasicInterfaceCAPI(ArrayOfRadiationVector)
+    BasicInputOutputCAPI(ArrayOfRadiationVector)
+    VoidArrayCAPI(ArrayOfArrayOfRadiationVector)
+    BasicInterfaceCAPI(ArrayOfArrayOfRadiationVector)
+    BasicInputOutputCAPI(ArrayOfArrayOfRadiationVector)
+    DLL_PUBLIC Numeric * getVec1RadiationVector(Index, void *);
+    DLL_PUBLIC Numeric * getVec2RadiationVector(Index, void *);
+    DLL_PUBLIC Numeric * getVec3RadiationVector(Index, void *);
+    DLL_PUBLIC Numeric * getVec4RadiationVector(Index, void *);
+    DLL_PUBLIC void setRadiationVector(void *, Index, Index);
+    DLL_PUBLIC Index getStokesDimRadiationVector(void *);
+    DLL_PUBLIC Index getFrequenciesRadiationVector(void *);
   
     // generic
     DLL_PUBLIC Index string2filetypeindex(char *);

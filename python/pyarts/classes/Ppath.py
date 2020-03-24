@@ -72,13 +72,15 @@ class Ppath:
             Index position with respect to the longitude grid (ArrayOfGridPos)
     """
 
-    def __init__(self, gu=float('nan'), gl=float('nan')):
-        if isinstance(gu, c.c_void_p):
+    def __init__(self, data=None):
+        if isinstance(data, c.c_void_p):
             self.__delete__ = False
-            self.__data__ = gu
+            self.__data__ = data
         else:
             self.__delete__ = True
             self.__data__ = c.c_void_p(lib.createPpath())
+            if data is not None:
+                raise RuntimeError("Only supports void initialization")
 
     @staticmethod
     def name():
@@ -269,8 +271,25 @@ class Ppath:
     def set(self, other):
         """ Sets this class according to another python instance of itself """
         if isinstance(other, Ppath):
-            self.gl = other.gl
-            self.gu = other.gu
+            self.dim = other.dim
+            self.np = other.np
+            self.constant = other.constant
+            self.background = other.background
+            self.start_pos = other.start_pos
+            self.start_los = other.start_los
+            self.start_lstep = other.start_lstep
+            self.pos = other.pos
+            self.los = other.los
+            self.r = other.r
+            self.lstep = other.lstep
+            self.end_pos = other.end_pos
+            self.end_los = other.end_los
+            self.end_lstep = other.end_lstep
+            self.nreal = other.nreal
+            self.ngroup = other.ngroup
+            self.gp_p = other.gp_p
+            self.gp_lat = other.gp_lat
+            self.gp_lon = other.gp_lon
         else:
             raise TypeError("Expects Ppath")
 

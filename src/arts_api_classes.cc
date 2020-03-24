@@ -565,6 +565,42 @@ void printArrayOfPpath(void *) {std::cout << std::endl;}
 BasicInputOutputCAPI(ArrayOfPpath)
 
 
+// TransmissionMatrix
+BasicInterfaceCAPI(TransmissionMatrix)
+BasicInputOutputCAPI(TransmissionMatrix)
+VoidArrayCAPI(ArrayOfTransmissionMatrix)
+BasicInterfaceCAPI(ArrayOfTransmissionMatrix)
+BasicInputOutputCAPI(ArrayOfTransmissionMatrix)
+VoidArrayCAPI(ArrayOfArrayOfTransmissionMatrix)
+BasicInterfaceCAPI(ArrayOfArrayOfTransmissionMatrix)
+BasicInputOutputCAPI(ArrayOfArrayOfTransmissionMatrix)
+Numeric * getMat1TransmissionMatrix(Index i, void * data) {return static_cast<TransmissionMatrix *>(data) -> Mat1(i).data();}
+Numeric * getMat2TransmissionMatrix(Index i, void * data) {return static_cast<TransmissionMatrix *>(data) -> Mat2(i).data();}
+Numeric * getMat3TransmissionMatrix(Index i, void * data) {return static_cast<TransmissionMatrix *>(data) -> Mat3(i).data();}
+Numeric * getMat4TransmissionMatrix(Index i, void * data) {return static_cast<TransmissionMatrix *>(data) -> Mat4(i).data();}
+void setTransmissionMatrix(void * data, Index stokes, Index freqs) {static_cast<TransmissionMatrix *>(data) -> operator=(TransmissionMatrix(freqs, stokes));}
+Index getStokesDimTransmissionMatrix(void * data) {return static_cast<TransmissionMatrix *>(data) -> StokesDim();}
+Index getFrequenciesTransmissionMatrix(void * data) {return static_cast<TransmissionMatrix *>(data) -> Frequencies();}
+
+
+// RadiationVector
+BasicInterfaceCAPI(RadiationVector)
+BasicInputOutputCAPI(RadiationVector)
+VoidArrayCAPI(ArrayOfRadiationVector)
+BasicInterfaceCAPI(ArrayOfRadiationVector)
+BasicInputOutputCAPI(ArrayOfRadiationVector)
+VoidArrayCAPI(ArrayOfArrayOfRadiationVector)
+BasicInterfaceCAPI(ArrayOfArrayOfRadiationVector)
+BasicInputOutputCAPI(ArrayOfArrayOfRadiationVector)
+Numeric * getVec1RadiationVector(Index i, void * data) {return static_cast<RadiationVector *>(data) -> Vec1(i).data();}
+Numeric * getVec2RadiationVector(Index i, void * data) {return static_cast<RadiationVector *>(data) -> Vec2(i).data();}
+Numeric * getVec3RadiationVector(Index i, void * data) {return static_cast<RadiationVector *>(data) -> Vec3(i).data();}
+Numeric * getVec4RadiationVector(Index i, void * data) {return static_cast<RadiationVector *>(data) -> Vec4(i).data();}
+void setRadiationVector(void * data, Index stokes, Index freqs) {static_cast<RadiationVector *>(data) -> operator=(RadiationVector(freqs, stokes));}
+Index getStokesDimRadiationVector(void * data) {return static_cast<RadiationVector *>(data) -> StokesDim();}
+Index getFrequenciesRadiationVector(void * data) {return static_cast<RadiationVector *>(data) -> Frequencies();}
+
+
 // generic
 Index string2filetypeindex(char * data) { try { return Index(string2filetype(data)); } catch (std::runtime_error& e) { return -1; } }
 
