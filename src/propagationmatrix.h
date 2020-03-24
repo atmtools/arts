@@ -1114,7 +1114,7 @@ std::ostream& operator<<(std::ostream& os,
                          const ArrayOfArrayOfPropagationMatrix& aapm);
 
 /** Stokes vector is as Propagation matrix but only has 4 possible values */
-class StokesVector : public PropagationMatrix {
+class StokesVector final : public PropagationMatrix {
  public:
 
   /** Initialize variable sizes

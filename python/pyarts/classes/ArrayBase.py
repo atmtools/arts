@@ -83,11 +83,11 @@ def array_base(var):
             if isinstance(data, c.c_void_p):
                 self.__delete__ = False
                 self.__data__ = data
-            elif data is None:
+            else:
                 self.__delete__ = True
                 self.__data__ = c.c_void_p(lib.createArrayOfBASENAME())
-            else:
-                raise TypeError("Invalid initialization")
+                if data is not None:
+                    self.data = data
 
         @property
         def type(self):

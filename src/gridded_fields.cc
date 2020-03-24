@@ -84,7 +84,7 @@ void GriddedField::copy_grids(const GriddedField& gf) {
   \param[in]  i  Grid index.
   \return        Numeric grid.
 */
-ConstVectorView GriddedField::get_numeric_grid(Index i) const {
+const Vector& GriddedField::get_numeric_grid(Index i) const {
   assert(i < dim);
   if (mgridtypes[i] != GRID_TYPE_NUMERIC) {
     ostringstream os;
@@ -101,7 +101,7 @@ ConstVectorView GriddedField::get_numeric_grid(Index i) const {
     throw runtime_error(os.str());
   }
 
-  return (mnumericgrids[i]);
+  return mnumericgrids[i];
 }
 
 //! Get a numeric grid.
@@ -113,7 +113,7 @@ ConstVectorView GriddedField::get_numeric_grid(Index i) const {
   \param[in]  i  Grid index.
   \return        Numeric grid.
 */
-VectorView GriddedField::get_numeric_grid(Index i) {
+Vector& GriddedField::get_numeric_grid(Index i) {
   assert(i < dim);
   if (mgridtypes[i] != GRID_TYPE_NUMERIC) {
     ostringstream os;
@@ -130,7 +130,7 @@ VectorView GriddedField::get_numeric_grid(Index i) {
     throw runtime_error(os.str());
   }
 
-  return (mnumericgrids[i]);
+  return mnumericgrids[i];
 }
 
 //! Get a string grid.

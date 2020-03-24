@@ -461,6 +461,123 @@ extern "C" {
     DLL_PUBLIC void setRadiationVector(void *, Index, Index);
     DLL_PUBLIC Index getStokesDimRadiationVector(void *);
     DLL_PUBLIC Index getFrequenciesRadiationVector(void *);
+    
+    // GriddedField1
+    BasicInterfaceCAPI(GriddedField1)
+    BasicInputOutputCAPI(GriddedField1)
+    VoidArrayCAPI(ArrayOfGriddedField1)
+    BasicInterfaceCAPI(ArrayOfGriddedField1)
+    BasicInputOutputCAPI(ArrayOfGriddedField1)
+    VoidArrayCAPI(ArrayOfArrayOfGriddedField1)
+    BasicInterfaceCAPI(ArrayOfArrayOfGriddedField1)
+    BasicInputOutputCAPI(ArrayOfArrayOfGriddedField1)
+    DLL_PUBLIC Index get_dimGriddedField1(void * data);
+    DLL_PUBLIC Index get_grid_typeIndexGriddedField1(Index i, void * data);
+    DLL_PUBLIC Index get_grid_sizeGriddedField1(Index i, void * data);
+    DLL_PUBLIC char * get_nameGriddedField1(void * data);
+    DLL_PUBLIC void set_nameGriddedField1(void * data, char * newdata);
+    DLL_PUBLIC char * get_grid_nameGriddedField1(Index i, void * data);
+    DLL_PUBLIC void set_grid_nameGriddedField1(Index i, void * data, char * newdata);
+    DLL_PUBLIC void * get_numeric_gridGriddedField1(Index i, void * data);
+    DLL_PUBLIC void * get_string_gridGriddedField1(Index i, void * data);
+    DLL_PUBLIC void set_gridGriddedField1(Index i, void * data, void * newdata, bool NumericType);
+    DLL_PUBLIC void * dataGriddedField1(void * data);
+    DLL_PUBLIC bool checksizeGriddedField1(void * data);
+    
+    // GriddedField2
+    BasicInterfaceCAPI(GriddedField2)
+    BasicInputOutputCAPI(GriddedField2)
+    VoidArrayCAPI(ArrayOfGriddedField2)
+    BasicInterfaceCAPI(ArrayOfGriddedField2)
+    BasicInputOutputCAPI(ArrayOfGriddedField2)
+    VoidArrayCAPI(ArrayOfArrayOfGriddedField2)
+    BasicInterfaceCAPI(ArrayOfArrayOfGriddedField2)
+    BasicInputOutputCAPI(ArrayOfArrayOfGriddedField2)
+    DLL_PUBLIC Index get_dimGriddedField2(void * data);
+    DLL_PUBLIC Index get_grid_typeIndexGriddedField2(Index i, void * data);
+    DLL_PUBLIC Index get_grid_sizeGriddedField2(Index i, void * data);
+    DLL_PUBLIC char * get_nameGriddedField2(void * data);
+    DLL_PUBLIC void set_nameGriddedField2(void * data, char * newdata);
+    DLL_PUBLIC char * get_grid_nameGriddedField2(Index i, void * data);
+    DLL_PUBLIC void set_grid_nameGriddedField2(Index i, void * data, char * newdata);
+    DLL_PUBLIC void * get_numeric_gridGriddedField2(Index i, void * data);
+    DLL_PUBLIC void * get_string_gridGriddedField2(Index i, void * data);
+    DLL_PUBLIC void set_gridGriddedField2(Index i, void * data, void * newdata, bool NumericType);
+    DLL_PUBLIC void * dataGriddedField2(void * data);
+    DLL_PUBLIC bool checksizeGriddedField2(void * data);
+    
+    // GriddedField3
+    BasicInterfaceCAPI(GriddedField3)
+    BasicInputOutputCAPI(GriddedField3)
+    VoidArrayCAPI(ArrayOfGriddedField3)
+    BasicInterfaceCAPI(ArrayOfGriddedField3)
+    BasicInputOutputCAPI(ArrayOfGriddedField3)
+    VoidArrayCAPI(ArrayOfArrayOfGriddedField3)
+    BasicInterfaceCAPI(ArrayOfArrayOfGriddedField3)
+    BasicInputOutputCAPI(ArrayOfArrayOfGriddedField3)
+    DLL_PUBLIC Index get_dimGriddedField3(void * data);
+    DLL_PUBLIC Index get_grid_typeIndexGriddedField3(Index i, void * data);
+    DLL_PUBLIC Index get_grid_sizeGriddedField3(Index i, void * data);
+    DLL_PUBLIC char * get_nameGriddedField3(void * data);
+    DLL_PUBLIC void set_nameGriddedField3(void * data, char * newdata);
+    DLL_PUBLIC char * get_grid_nameGriddedField3(Index i, void * data);
+    DLL_PUBLIC void set_grid_nameGriddedField3(Index i, void * data, char * newdata);
+    DLL_PUBLIC void * get_numeric_gridGriddedField3(Index i, void * data);
+    DLL_PUBLIC void * get_string_gridGriddedField3(Index i, void * data);
+    DLL_PUBLIC void set_gridGriddedField3(Index i, void * data, void * newdata, bool NumericType);
+    DLL_PUBLIC void * dataGriddedField3(void * data);
+    DLL_PUBLIC bool checksizeGriddedField3(void * data);
+    
+    // GriddedField4
+    BasicInterfaceCAPI(GriddedField4)
+    BasicInputOutputCAPI(GriddedField4)
+    VoidArrayCAPI(ArrayOfGriddedField4)
+    BasicInterfaceCAPI(ArrayOfGriddedField4)
+    BasicInputOutputCAPI(ArrayOfGriddedField4)
+    DLL_PUBLIC Index get_dimGriddedField4(void * data);
+    DLL_PUBLIC Index get_grid_typeIndexGriddedField4(Index i, void * data);
+    DLL_PUBLIC Index get_grid_sizeGriddedField4(Index i, void * data);
+    DLL_PUBLIC char * get_nameGriddedField4(void * data);
+    DLL_PUBLIC void set_nameGriddedField4(void * data, char * newdata);
+    DLL_PUBLIC char * get_grid_nameGriddedField4(Index i, void * data);
+    DLL_PUBLIC void set_grid_nameGriddedField4(Index i, void * data, char * newdata);
+    DLL_PUBLIC void * get_numeric_gridGriddedField4(Index i, void * data);
+    DLL_PUBLIC void * get_string_gridGriddedField4(Index i, void * data);
+    DLL_PUBLIC void set_gridGriddedField4(Index i, void * data, void * newdata, bool NumericType);
+    DLL_PUBLIC void * dataGriddedField4(void * data);
+    DLL_PUBLIC bool checksizeGriddedField4(void * data);
+    
+    // GriddedField5
+    BasicInterfaceCAPI(GriddedField5)
+    BasicInputOutputCAPI(GriddedField5)
+    DLL_PUBLIC Index get_dimGriddedField5(void * data);
+    DLL_PUBLIC Index get_grid_typeIndexGriddedField5(Index i, void * data);
+    DLL_PUBLIC Index get_grid_sizeGriddedField5(Index i, void * data);
+    DLL_PUBLIC char * get_nameGriddedField5(void * data);
+    DLL_PUBLIC void set_nameGriddedField5(void * data, char * newdata);
+    DLL_PUBLIC char * get_grid_nameGriddedField5(Index i, void * data);
+    DLL_PUBLIC void set_grid_nameGriddedField5(Index i, void * data, char * newdata);
+    DLL_PUBLIC void * get_numeric_gridGriddedField5(Index i, void * data);
+    DLL_PUBLIC void * get_string_gridGriddedField5(Index i, void * data);
+    DLL_PUBLIC void set_gridGriddedField5(Index i, void * data, void * newdata, bool NumericType);
+    DLL_PUBLIC void * dataGriddedField5(void * data);
+    DLL_PUBLIC bool checksizeGriddedField5(void * data);
+    
+    // GriddedField6
+    BasicInterfaceCAPI(GriddedField6)
+    BasicInputOutputCAPI(GriddedField6)
+    DLL_PUBLIC Index get_dimGriddedField6(void * data);
+    DLL_PUBLIC Index get_grid_typeIndexGriddedField6(Index i, void * data);
+    DLL_PUBLIC Index get_grid_sizeGriddedField6(Index i, void * data);
+    DLL_PUBLIC char * get_nameGriddedField6(void * data);
+    DLL_PUBLIC void set_nameGriddedField6(void * data, char * newdata);
+    DLL_PUBLIC char * get_grid_nameGriddedField6(Index i, void * data);
+    DLL_PUBLIC void set_grid_nameGriddedField6(Index i, void * data, char * newdata);
+    DLL_PUBLIC void * get_numeric_gridGriddedField6(Index i, void * data);
+    DLL_PUBLIC void * get_string_gridGriddedField6(Index i, void * data);
+    DLL_PUBLIC void set_gridGriddedField6(Index i, void * data, void * newdata, bool NumericType);
+    DLL_PUBLIC void * dataGriddedField6(void * data);
+    DLL_PUBLIC bool checksizeGriddedField6(void * data);
   
     // generic
     DLL_PUBLIC Index string2filetypeindex(char *);

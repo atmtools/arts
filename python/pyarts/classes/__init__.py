@@ -7,6 +7,12 @@ from pyarts.classes.AbsorptionLines import AbsorptionLines, ArrayOfAbsorptionLin
 from pyarts.classes.AbsorptionSingleLine import AbsorptionSingleLine
 from pyarts.classes.BasicTypes import Numeric, Index, ArrayOfIndex, ArrayOfArrayOfIndex, String, ArrayOfString, ArrayOfArrayOfString
 from pyarts.classes.EnergyLevelMap import EnergyLevelMap
+from pyarts.classes.GriddedField1 import GriddedField1, ArrayOfGriddedField1, ArrayOfArrayOfGriddedField1
+from pyarts.classes.GriddedField2 import GriddedField2, ArrayOfGriddedField2, ArrayOfArrayOfGriddedField2
+from pyarts.classes.GriddedField3 import GriddedField3, ArrayOfGriddedField3, ArrayOfArrayOfGriddedField3
+from pyarts.classes.GriddedField4 import GriddedField4, ArrayOfGriddedField4
+from pyarts.classes.GriddedField5 import GriddedField5
+from pyarts.classes.GriddedField6 import GriddedField6
 from pyarts.classes.GridPos import GridPos, ArrayOfGridPos
 from pyarts.classes.LineShapeModelParameters import LineShapeModelParameters
 from pyarts.classes.LineShapeModel import LineShapeModel

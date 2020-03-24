@@ -139,9 +139,9 @@ class GriddedField {
   */
   GridType get_grid_type(Index i) const { return mgridtypes[i]; }
 
-  ConstVectorView get_numeric_grid(Index i) const;
+  const Vector& get_numeric_grid(Index i) const;
 
-  VectorView get_numeric_grid(Index i);
+  Vector& get_numeric_grid(Index i);
 
   const ArrayOfString& get_string_grid(Index i) const;
 
@@ -193,7 +193,7 @@ class GriddedField {
   friend std::ostream& operator<<(std::ostream& os, const GriddedField& gf);
 };
 
-class GriddedField1 : public GriddedField {
+class GriddedField1 final : public GriddedField {
  public:
   //! Construct an empty GriddedField1
   GriddedField1() : GriddedField(1, "") {}
@@ -201,12 +201,12 @@ class GriddedField1 : public GriddedField {
   /*! \param[in] s Name. */
   GriddedField1(const String& s) : GriddedField(1, s) {}
 
-  virtual bool checksize() const {
+  bool checksize() const final {
     return (!get_grid_size(0) && data.nelem() == 1) ||
            data.nelem() == get_grid_size(0);
   }
 
-  virtual void checksize_strict() const {
+  void checksize_strict() const final {
     if (!checksize()) {
       std::ostringstream os;
       os << "GriddedField1 ";
@@ -234,7 +234,7 @@ class GriddedField1 : public GriddedField {
   Vector data;
 };
 
-class GriddedField2 : public GriddedField {
+class GriddedField2 final : public GriddedField {
  public:
   //! Construct an empty GriddedField2
   GriddedField2() : GriddedField(2, "") {}
@@ -242,14 +242,14 @@ class GriddedField2 : public GriddedField {
   /*! \param[in] s Name. */
   GriddedField2(const String& s) : GriddedField(2, s) {}
 
-  virtual bool checksize() const {
+  bool checksize() const final {
     return ((!get_grid_size(1) && data.ncols() == 1) ||
             data.ncols() == get_grid_size(1)) &&
            ((!get_grid_size(0) && data.nrows() == 1) ||
             data.nrows() == get_grid_size(0));
   }
 
-  virtual void checksize_strict() const {
+  void checksize_strict() const final {
     if (!checksize()) {
       std::ostringstream os;
       os << "GriddedField2 ";
@@ -281,7 +281,7 @@ class GriddedField2 : public GriddedField {
   Matrix data;
 };
 
-class GriddedField3 : public GriddedField {
+class GriddedField3 final : public GriddedField {
  public:
   //! Construct an empty GriddedField3
   GriddedField3() : GriddedField(3, "") {}
@@ -295,7 +295,7 @@ class GriddedField3 : public GriddedField {
     return *this;
   }
 
-  virtual bool checksize() const {
+  bool checksize() const final {
     return ((!get_grid_size(2) && data.ncols() == 1) ||
             data.ncols() == get_grid_size(2)) &&
            ((!get_grid_size(1) && data.nrows() == 1) ||
@@ -304,7 +304,7 @@ class GriddedField3 : public GriddedField {
             data.npages() == get_grid_size(0));
   }
 
-  virtual void checksize_strict() const {
+  void checksize_strict() const final {
     if (!checksize()) {
       std::ostringstream os;
       os << "GriddedField3 ";
@@ -337,7 +337,7 @@ class GriddedField3 : public GriddedField {
   Tensor3 data;
 };
 
-class GriddedField4 : public GriddedField {
+class GriddedField4 final : public GriddedField {
  public:
   //! Construct an empty GriddedField4
   GriddedField4() : GriddedField(4, "") {}
@@ -345,7 +345,7 @@ class GriddedField4 : public GriddedField {
   /*! \param[in] s Name. */
   GriddedField4(const String& s) : GriddedField(4, s) {}
 
-  virtual bool checksize() const {
+  bool checksize() const final {
     return ((!get_grid_size(3) && data.ncols() == 1) ||
             data.ncols() == get_grid_size(3)) &&
            ((!get_grid_size(2) && data.nrows() == 1) ||
@@ -356,7 +356,7 @@ class GriddedField4 : public GriddedField {
             data.nbooks() == get_grid_size(0));
   }
 
-  virtual void checksize_strict() const {
+  void checksize_strict() const final {
     if (!checksize()) {
       std::ostringstream os;
       os << "GriddedField4 ";
@@ -392,7 +392,7 @@ class GriddedField4 : public GriddedField {
   Tensor4 data;
 };
 
-class GriddedField5 : public GriddedField {
+class GriddedField5 final : public GriddedField {
  public:
   //! Construct an empty GriddedField5
   GriddedField5() : GriddedField(5, "") {}
@@ -400,7 +400,7 @@ class GriddedField5 : public GriddedField {
   /*! \param[in] s Name. */
   GriddedField5(const String& s) : GriddedField(5, s) {}
 
-  virtual bool checksize() const {
+  bool checksize() const final {
     return ((!get_grid_size(4) && data.ncols() == 1) ||
             data.ncols() == get_grid_size(4)) &&
            ((!get_grid_size(3) && data.nrows() == 1) ||
@@ -413,7 +413,7 @@ class GriddedField5 : public GriddedField {
             data.nshelves() == get_grid_size(0));
   }
 
-  virtual void checksize_strict() const {
+  void checksize_strict() const final {
     if (!checksize()) {
       std::ostringstream os;
       os << "GriddedField5 ";
@@ -452,7 +452,7 @@ class GriddedField5 : public GriddedField {
   Tensor5 data;
 };
 
-class GriddedField6 : public GriddedField {
+class GriddedField6 final : public GriddedField {
  public:
   //! Construct an empty GriddedField6
   GriddedField6() : GriddedField(6, "") {}
@@ -460,7 +460,7 @@ class GriddedField6 : public GriddedField {
   /*! \param[in] s Name. */
   GriddedField6(const String& s) : GriddedField(6, s) {}
 
-  virtual bool checksize() const {
+  bool checksize() const final {
     return ((!get_grid_size(5) && data.ncols() == 1) ||
             data.ncols() == get_grid_size(5)) &&
            ((!get_grid_size(4) && data.nrows() == 1) ||
@@ -475,7 +475,7 @@ class GriddedField6 : public GriddedField {
             data.nvitrines() == get_grid_size(0));
   }
 
-  virtual void checksize_strict() const {
+  void checksize_strict() const final {
     if (!checksize()) {
       std::ostringstream os;
       os << "GriddedField6 ";

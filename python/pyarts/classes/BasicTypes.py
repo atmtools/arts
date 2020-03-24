@@ -19,7 +19,7 @@ class Index:
             self.__data__ = value
         else:
             self.__delete__ = False
-            self.__data__ = lib.createIndex()
+            self.__data__ = c.c_void_p(lib.createIndex())
             self.val = value
 
     @staticmethod
@@ -93,7 +93,7 @@ class Numeric:
             self.__data__ = value
         else:
             self.__delete__ = False
-            self.__data__ = lib.createNumeric()
+            self.__data__ = c.c_void_p(lib.createNumeric())
             self.val = value
 
     @staticmethod
@@ -167,7 +167,7 @@ class String:
             self.__data__ = value
         else:
             self.__delete__ = False
-            self.__data__ = lib.createString()
+            self.__data__ = c.c_void_p(lib.createString())
             self.val = value
 
     @staticmethod
@@ -176,8 +176,9 @@ class String:
 
     @property
     def val(self):
-        """ a value (float) """
-        return lib.getString(self.__data__).decode("utf-8")
+        """ a value (str) """
+        x = lib.getString(self.__data__)
+        return x.decode("utf-8") if x else ""
 
     @val.setter
     def val(self, x):
@@ -235,6 +236,7 @@ exec(array_base(ArrayOfIndex))
 
 
 exec(array_base(String))
+
 
 exec(array_base(ArrayOfString))
 

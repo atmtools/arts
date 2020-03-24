@@ -601,6 +601,165 @@ Index getStokesDimRadiationVector(void * data) {return static_cast<RadiationVect
 Index getFrequenciesRadiationVector(void * data) {return static_cast<RadiationVector *>(data) -> Frequencies();}
 
 
+// GriddedField1
+BasicInterfaceCAPI(GriddedField1)
+BasicInputOutputCAPI(GriddedField1)
+VoidArrayCAPI(ArrayOfGriddedField1)
+BasicInterfaceCAPI(ArrayOfGriddedField1)
+BasicInputOutputCAPI(ArrayOfGriddedField1)
+VoidArrayCAPI(ArrayOfArrayOfGriddedField1)
+BasicInterfaceCAPI(ArrayOfArrayOfGriddedField1)
+BasicInputOutputCAPI(ArrayOfArrayOfGriddedField1)
+Index get_dimGriddedField1(void * data) {return static_cast<GriddedField1 *>(data) -> get_dim();}
+Index get_grid_typeIndexGriddedField1(Index i, void * data) {return Index(static_cast<GriddedField1 *>(data) -> get_grid_type(i));}
+Index get_grid_sizeGriddedField1(Index i, void * data) {return static_cast<GriddedField1 *>(data) -> get_grid_size(i);}
+char * get_nameGriddedField1(void * data) {return const_cast<char *>(static_cast<GriddedField1 *>(data) -> get_name().data());}
+void set_nameGriddedField1(void * data, char * newdata) {static_cast<GriddedField1 *>(data) -> set_name(newdata);}
+char * get_grid_nameGriddedField1(Index i, void * data) {return const_cast<char *>(static_cast<GriddedField1 *>(data) -> get_grid_name(i).data());}
+void set_grid_nameGriddedField1(Index i, void * data, char * newdata) {static_cast<GriddedField1 *>(data) -> set_grid_name(i, newdata);}
+void * get_numeric_gridGriddedField1(Index i, void * data) {return &static_cast<GriddedField1 *>(data) -> get_numeric_grid(i);}
+void * get_string_gridGriddedField1(Index i, void * data) {return &static_cast<GriddedField1 *>(data) -> get_string_grid(i);}
+void set_gridGriddedField1(Index i, void * data, void * newdata, bool NumericType) 
+{
+  if (NumericType)
+    static_cast<GriddedField1 *>(data) -> set_grid(i, *static_cast<Vector *>(newdata));
+  else
+    static_cast<GriddedField1 *>(data) -> set_grid(i, *static_cast<ArrayOfString *>(newdata));
+}
+void * dataGriddedField1(void * data) {return &static_cast<GriddedField1 *>(data) -> data;}
+bool checksizeGriddedField1(void * data) {return static_cast<GriddedField1 *>(data) -> checksize();}
+
+
+// GriddedField2
+BasicInterfaceCAPI(GriddedField2)
+BasicInputOutputCAPI(GriddedField2)
+VoidArrayCAPI(ArrayOfGriddedField2)
+BasicInterfaceCAPI(ArrayOfGriddedField2)
+BasicInputOutputCAPI(ArrayOfGriddedField2)
+VoidArrayCAPI(ArrayOfArrayOfGriddedField2)
+BasicInterfaceCAPI(ArrayOfArrayOfGriddedField2)
+BasicInputOutputCAPI(ArrayOfArrayOfGriddedField2)
+Index get_dimGriddedField2(void * data) {return static_cast<GriddedField2 *>(data) -> get_dim();}
+Index get_grid_typeIndexGriddedField2(Index i, void * data) {return Index(static_cast<GriddedField2 *>(data) -> get_grid_type(i));}
+Index get_grid_sizeGriddedField2(Index i, void * data) {return static_cast<GriddedField2 *>(data) -> get_grid_size(i);}
+char * get_nameGriddedField2(void * data) {return const_cast<char *>(static_cast<GriddedField2 *>(data) -> get_name().data());}
+void set_nameGriddedField2(void * data, char * newdata) {static_cast<GriddedField2 *>(data) -> set_name(newdata);}
+char * get_grid_nameGriddedField2(Index i, void * data) {return const_cast<char *>(static_cast<GriddedField2 *>(data) -> get_grid_name(i).data());}
+void set_grid_nameGriddedField2(Index i, void * data, char * newdata) {static_cast<GriddedField2 *>(data) -> set_grid_name(i, newdata);}
+void * get_numeric_gridGriddedField2(Index i, void * data) {return &static_cast<GriddedField2 *>(data) -> get_numeric_grid(i);}
+void * get_string_gridGriddedField2(Index i, void * data) {return &static_cast<GriddedField2 *>(data) -> get_string_grid(i);}
+void set_gridGriddedField2(Index i, void * data, void * newdata, bool NumericType) 
+{
+  if (NumericType)
+    static_cast<GriddedField2 *>(data) -> set_grid(i, *static_cast<Vector *>(newdata));
+  else
+    static_cast<GriddedField2 *>(data) -> set_grid(i, *static_cast<ArrayOfString *>(newdata));
+}
+void * dataGriddedField2(void * data) {return &static_cast<GriddedField2 *>(data) -> data;}
+bool checksizeGriddedField2(void * data) {return static_cast<GriddedField2 *>(data) -> checksize();}
+
+
+// GriddedField3
+BasicInterfaceCAPI(GriddedField3)
+BasicInputOutputCAPI(GriddedField3)
+VoidArrayCAPI(ArrayOfGriddedField3)
+BasicInterfaceCAPI(ArrayOfGriddedField3)
+BasicInputOutputCAPI(ArrayOfGriddedField3)
+VoidArrayCAPI(ArrayOfArrayOfGriddedField3)
+BasicInterfaceCAPI(ArrayOfArrayOfGriddedField3)
+BasicInputOutputCAPI(ArrayOfArrayOfGriddedField3)
+Index get_dimGriddedField3(void * data) {return static_cast<GriddedField3 *>(data) -> get_dim();}
+Index get_grid_typeIndexGriddedField3(Index i, void * data) {return Index(static_cast<GriddedField3 *>(data) -> get_grid_type(i));}
+Index get_grid_sizeGriddedField3(Index i, void * data) {return static_cast<GriddedField3 *>(data) -> get_grid_size(i);}
+char * get_nameGriddedField3(void * data) {return const_cast<char *>(static_cast<GriddedField3 *>(data) -> get_name().data());}
+void set_nameGriddedField3(void * data, char * newdata) {static_cast<GriddedField3 *>(data) -> set_name(newdata);}
+char * get_grid_nameGriddedField3(Index i, void * data) {return const_cast<char *>(static_cast<GriddedField3 *>(data) -> get_grid_name(i).data());}
+void set_grid_nameGriddedField3(Index i, void * data, char * newdata) {static_cast<GriddedField3 *>(data) -> set_grid_name(i, newdata);}
+void * get_numeric_gridGriddedField3(Index i, void * data) {return &static_cast<GriddedField3 *>(data) -> get_numeric_grid(i);}
+void * get_string_gridGriddedField3(Index i, void * data) {return &static_cast<GriddedField3 *>(data) -> get_string_grid(i);}
+void set_gridGriddedField3(Index i, void * data, void * newdata, bool NumericType) 
+{
+  if (NumericType)
+    static_cast<GriddedField3 *>(data) -> set_grid(i, *static_cast<Vector *>(newdata));
+  else
+    static_cast<GriddedField3 *>(data) -> set_grid(i, *static_cast<ArrayOfString *>(newdata));
+}
+void * dataGriddedField3(void * data) {return &static_cast<GriddedField3 *>(data) -> data;}
+bool checksizeGriddedField3(void * data) {return static_cast<GriddedField3 *>(data) -> checksize();}
+
+
+// GriddedField4
+BasicInterfaceCAPI(GriddedField4)
+BasicInputOutputCAPI(GriddedField4)
+VoidArrayCAPI(ArrayOfGriddedField4)
+BasicInterfaceCAPI(ArrayOfGriddedField4)
+BasicInputOutputCAPI(ArrayOfGriddedField4)
+Index get_dimGriddedField4(void * data) {return static_cast<GriddedField4 *>(data) -> get_dim();}
+Index get_grid_typeIndexGriddedField4(Index i, void * data) {return Index(static_cast<GriddedField4 *>(data) -> get_grid_type(i));}
+Index get_grid_sizeGriddedField4(Index i, void * data) {return static_cast<GriddedField4 *>(data) -> get_grid_size(i);}
+char * get_nameGriddedField4(void * data) {return const_cast<char *>(static_cast<GriddedField4 *>(data) -> get_name().data());}
+void set_nameGriddedField4(void * data, char * newdata) {static_cast<GriddedField4 *>(data) -> set_name(newdata);}
+char * get_grid_nameGriddedField4(Index i, void * data) {return const_cast<char *>(static_cast<GriddedField4 *>(data) -> get_grid_name(i).data());}
+void set_grid_nameGriddedField4(Index i, void * data, char * newdata) {static_cast<GriddedField4 *>(data) -> set_grid_name(i, newdata);}
+void * get_numeric_gridGriddedField4(Index i, void * data) {return &static_cast<GriddedField4 *>(data) -> get_numeric_grid(i);}
+void * get_string_gridGriddedField4(Index i, void * data) {return &static_cast<GriddedField4 *>(data) -> get_string_grid(i);}
+void set_gridGriddedField4(Index i, void * data, void * newdata, bool NumericType) 
+{
+  if (NumericType)
+    static_cast<GriddedField4 *>(data) -> set_grid(i, *static_cast<Vector *>(newdata));
+  else
+    static_cast<GriddedField4 *>(data) -> set_grid(i, *static_cast<ArrayOfString *>(newdata));
+}
+void * dataGriddedField4(void * data) {return &static_cast<GriddedField4 *>(data) -> data;}
+bool checksizeGriddedField4(void * data) {return static_cast<GriddedField4 *>(data) -> checksize();}
+
+
+// GriddedField5
+BasicInterfaceCAPI(GriddedField5)
+BasicInputOutputCAPI(GriddedField5)
+Index get_dimGriddedField5(void * data) {return static_cast<GriddedField5 *>(data) -> get_dim();}
+Index get_grid_typeIndexGriddedField5(Index i, void * data) {return Index(static_cast<GriddedField5 *>(data) -> get_grid_type(i));}
+Index get_grid_sizeGriddedField5(Index i, void * data) {return static_cast<GriddedField5 *>(data) -> get_grid_size(i);}
+char * get_nameGriddedField5(void * data) {return const_cast<char *>(static_cast<GriddedField5 *>(data) -> get_name().data());}
+void set_nameGriddedField5(void * data, char * newdata) {static_cast<GriddedField5 *>(data) -> set_name(newdata);}
+char * get_grid_nameGriddedField5(Index i, void * data) {return const_cast<char *>(static_cast<GriddedField5 *>(data) -> get_grid_name(i).data());}
+void set_grid_nameGriddedField5(Index i, void * data, char * newdata) {static_cast<GriddedField5 *>(data) -> set_grid_name(i, newdata);}
+void * get_numeric_gridGriddedField5(Index i, void * data) {return &static_cast<GriddedField5 *>(data) -> get_numeric_grid(i);}
+void * get_string_gridGriddedField5(Index i, void * data) {return &static_cast<GriddedField5 *>(data) -> get_string_grid(i);}
+void set_gridGriddedField5(Index i, void * data, void * newdata, bool NumericType) 
+{
+  if (NumericType)
+    static_cast<GriddedField5 *>(data) -> set_grid(i, *static_cast<Vector *>(newdata));
+  else
+    static_cast<GriddedField5 *>(data) -> set_grid(i, *static_cast<ArrayOfString *>(newdata));
+}
+void * dataGriddedField5(void * data) {return &static_cast<GriddedField5 *>(data) -> data;}
+bool checksizeGriddedField5(void * data) {return static_cast<GriddedField5 *>(data) -> checksize();}
+
+
+// GriddedField6
+BasicInterfaceCAPI(GriddedField6)
+BasicInputOutputCAPI(GriddedField6)
+Index get_dimGriddedField6(void * data) {return static_cast<GriddedField6 *>(data) -> get_dim();}
+Index get_grid_typeIndexGriddedField6(Index i, void * data) {return Index(static_cast<GriddedField6 *>(data) -> get_grid_type(i));}
+Index get_grid_sizeGriddedField6(Index i, void * data) {return static_cast<GriddedField6 *>(data) -> get_grid_size(i);}
+char * get_nameGriddedField6(void * data) {return const_cast<char *>(static_cast<GriddedField6 *>(data) -> get_name().data());}
+void set_nameGriddedField6(void * data, char * newdata) {static_cast<GriddedField6 *>(data) -> set_name(newdata);}
+char * get_grid_nameGriddedField6(Index i, void * data) {return const_cast<char *>(static_cast<GriddedField6 *>(data) -> get_grid_name(i).data());}
+void set_grid_nameGriddedField6(Index i, void * data, char * newdata) {static_cast<GriddedField6 *>(data) -> set_grid_name(i, newdata);}
+void * get_numeric_gridGriddedField6(Index i, void * data) {return &static_cast<GriddedField6 *>(data) -> get_numeric_grid(i);}
+void * get_string_gridGriddedField6(Index i, void * data) {return &static_cast<GriddedField6 *>(data) -> get_string_grid(i);}
+void set_gridGriddedField6(Index i, void * data, void * newdata, bool NumericType) 
+{
+  if (NumericType)
+    static_cast<GriddedField6 *>(data) -> set_grid(i, *static_cast<Vector *>(newdata));
+  else
+    static_cast<GriddedField6 *>(data) -> set_grid(i, *static_cast<ArrayOfString *>(newdata));
+}
+void * dataGriddedField6(void * data) {return &static_cast<GriddedField6 *>(data) -> data;}
+bool checksizeGriddedField6(void * data) {return static_cast<GriddedField6 *>(data) -> checksize();}
+
+
 // generic
 Index string2filetypeindex(char * data) { try { return Index(string2filetype(data)); } catch (std::runtime_error& e) { return -1; } }
 
