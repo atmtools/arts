@@ -24,22 +24,19 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/controlfiles/)
 # Install pyarts
 #
 
-find_package(PythonInterp)
-if (PYTHONINTERP_FOUND)
-    add_custom_target(pyarts
-      ALL
-      COMMAND ${PYTHON_EXECUTABLE} setup.py build
-      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-      DEPENDS arts_api
-      COMMENT "Building ARTS python package.")
-    set(CONTROLFILE_DIR ${CMAKE_SOURCE_DIR}/controlfiles)
-    add_custom_target(python_tests
-      ALL
-      COMMAND PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR} ${PYTHON_EXECUTABLE} bin/arts_convert.py ${CONTROLFILE_DIR} -o controlfiles
-      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-      DEPENDS pyarts
-      COMMENT "Converting *.arts controlfiles to Python")
-endif()
+add_custom_target(pyarts
+  ALL
+  COMMAND ${PYTHON_EXECUTABLE} setup.py build
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS arts_api
+  COMMENT "Building ARTS python package.")
+set(CONTROLFILE_DIR ${CMAKE_SOURCE_DIR}/controlfiles)
+add_custom_target(python_tests
+  ALL
+  COMMAND PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR} ${PYTHON_EXECUTABLE} bin/arts_convert.py ${CONTROLFILE_DIR} -o controlfiles
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS pyarts
+  COMMENT "Converting *.arts controlfiles to Python")
 
 file(COPY test/reference DESTINATION test/)
 file(COPY test/xml/reference DESTINATION test/xml/)
