@@ -48,9 +48,24 @@ enable_language(CXX)
 
 enable_testing ()
 
+set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
+
 ########### Find Python ##########
 set(Python_ADDITIONAL_VERSIONS 3)
 find_package (PythonInterp REQUIRED)
+
+include (CheckPythonModule)
+set(REQUIRED_MODULES
+  docutils
+  lark
+  matplotlib
+  netCDF4
+  numpy
+  pytest
+  scipy
+  setuptools
+  )
+check_python_modules("${REQUIRED_MODULES}")
 
 if (ENABLE_FORTRAN)
   enable_language (Fortran)
@@ -90,8 +105,6 @@ include (CheckIncludeFileCXX)
 
 include (CheckTypeSize)
 include (CheckFunctionExists)
-
-set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 
 include (ArtsTestcases)
 
