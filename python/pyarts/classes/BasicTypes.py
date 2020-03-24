@@ -85,7 +85,7 @@ class Numeric:
 
     Properties:
         val:
-            a value (int)
+            a value (float)
     """
     def __init__(self, value):
         if isinstance(value, c.c_void_p):
@@ -154,9 +154,89 @@ class Numeric:
             raise OSError("Cannot save {}".format(file))
 
 
+class String:
+    """ ARTS String data
+
+    Properties:
+        val:
+            a value (str)
+    """
+    def __init__(self, value):
+        if isinstance(value, c.c_void_p):
+            self.__delete__ = False
+            self.__data__ = value
+        else:
+            self.__delete__ = False
+            self.__data__ = lib.createString()
+            self.val = value
+
+    @staticmethod
+    def name():
+        return "String"
+
+    @property
+    def val(self):
+        """ a value (float) """
+        return lib.getString(self.__data__).decode("utf-8")
+
+    @val.setter
+    def val(self, x):
+        lib.setString(self.__data__, str(x).encode("ascii"))
+
+    def print(self):
+        """ Print to cout the ARTS representation of the class """
+        lib.printString(self.__data__)
+
+    def __del__(self):
+        if self.__delete__:
+            lib.deleteString(self.__data__)
+
+    def __repr__(self):
+        return "{}".format(self.val)
+
+    def set(self, other):
+        """ Sets this class according to another python instance of itself """
+        if isinstance(other, String):
+            self.val = other.val
+        else:
+            self.val = other
+
+    def readxml(self, file):
+        """ Reads the XML file
+
+        Input:
+            file:
+                Filename to valid class-file (str)
+        """
+        if lib.xmlreadString(self.__data__, correct_read_arguments(file)):
+            raise OSError("Cannot read {}".format(file))
+
+    def savexml(self, file, type="ascii", clobber=True):
+        """ Saves the class to XML file
+
+        Input:
+            file:
+                Filename to writable file (str)
+
+            type:
+                Filetype (str)
+
+            clobber:
+                Allow clobbering files? (any boolean)
+        """
+        if lib.xmlsaveString(self.__data__, *correct_save_arguments(file, type, clobber)):
+            raise OSError("Cannot save {}".format(file))
+
+
 exec(array_base(Index))
 
+
 exec(array_base(ArrayOfIndex))
+
+
+exec(array_base(String))
+
+exec(array_base(ArrayOfString))
 
 
 lib.createIndex.restype = c.c_void_p
@@ -181,7 +261,6 @@ lib.xmlsaveIndex.restype = c.c_long
 lib.xmlsaveIndex.argtypes = [c.c_void_p, c.c_char_p, c.c_long, c.c_long]
 
 
-
 lib.createNumeric.restype = c.c_void_p
 lib.createNumeric.argtypes = []
 
@@ -202,3 +281,25 @@ lib.xmlreadNumeric.argtypes = [c.c_void_p, c.c_char_p]
 
 lib.xmlsaveNumeric.restype = c.c_long
 lib.xmlsaveNumeric.argtypes = [c.c_void_p, c.c_char_p, c.c_long, c.c_long]
+
+
+lib.createString.restype = c.c_void_p
+lib.createString.argtypes = []
+
+lib.deleteString.restype = None
+lib.deleteString.argtypes = [c.c_void_p]
+
+lib.printString.restype = None
+lib.printString.argtypes = [c.c_void_p]
+
+lib.getString.restype = c.c_char_p
+lib.getString.argtypes = [c.c_void_p]
+
+lib.setString.restype = None
+lib.setString.argtypes = [c.c_void_p, c.c_char_p]
+
+lib.xmlreadString.restype = c.c_long
+lib.xmlreadString.argtypes = [c.c_void_p, c.c_char_p]
+
+lib.xmlsaveString.restype = c.c_long
+lib.xmlsaveString.argtypes = [c.c_void_p, c.c_char_p, c.c_long, c.c_long]

@@ -5,8 +5,9 @@
 
 from pyarts.classes.AbsorptionLines import AbsorptionLines, ArrayOfAbsorptionLines, ArrayOfArrayOfAbsorptionLines
 from pyarts.classes.AbsorptionSingleLine import AbsorptionSingleLine
-from pyarts.classes.BasicTypes import Numeric, Index, ArrayOfIndex, ArrayOfArrayOfIndex
+from pyarts.classes.BasicTypes import Numeric, Index, ArrayOfIndex, ArrayOfArrayOfIndex, String, ArrayOfString, ArrayOfArrayOfString
 from pyarts.classes.EnergyLevelMap import EnergyLevelMap
+from pyarts.classes.GridPos import GridPos, ArrayOfGridPos
 from pyarts.classes.LineShapeModelParameters import LineShapeModelParameters
 from pyarts.classes.LineShapeModel import LineShapeModel
 from pyarts.classes.LineShapeSingleSpeciesModel import LineShapeSingleSpeciesModel

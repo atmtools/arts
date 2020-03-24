@@ -92,6 +92,12 @@ void * get##VALUE##TYPE(void * data)                \
     return &static_cast<TYPE *>(data) -> VALUE();   \
 }
 
+#define VoidStructGetterCAPI(TYPE, VALUE)     \
+void * get##VALUE##TYPE(void * data)          \
+{                                             \
+  return &static_cast<TYPE *>(data) -> VALUE; \
+}
+
 
 #define BasicInputOutputCAPI(TYPE)                                                                                      \
 Index xmlread##TYPE(void * data, char * filepath)                                                                       \
@@ -506,6 +512,59 @@ Index setStokesVector(void * data, Index f, Index s, Index z, Index a, Numeric v
 }
 
 
+// String
+BasicInterfaceCAPI(String)
+BasicInputOutputCAPI(String)
+VoidArrayCAPI(ArrayOfString)
+BasicInterfaceCAPI(ArrayOfString)
+BasicInputOutputCAPI(ArrayOfString)
+VoidArrayCAPI(ArrayOfArrayOfString)
+BasicInterfaceCAPI(ArrayOfArrayOfString)
+BasicInputOutputCAPI(ArrayOfArrayOfString)
+void setString(void * data, char * newdata) {static_cast<String *>(data) -> operator=(String(newdata));}
+char * getString(void * data) {return const_cast<char *>(static_cast<String *>(data) -> data());}
+
+
+// GridPos
+BasicInputOutputCAPI(GridPos)
+VoidArrayCAPI(ArrayOfGridPos)
+BasicInterfaceCAPI(ArrayOfGridPos)
+BasicInputOutputCAPI(ArrayOfGridPos)
+void printGridPos(void * data) {std::cout << (*static_cast<GridPos *>(data)) << std::endl;}
+
+
+// Ppath
+// BasicInterfaceCAPI(Ppath)
+void * createPpath() {return new Ppath;}
+void deletePpath(void * data) {delete static_cast<Ppath *>(data);}
+void printPpath(void *) {std::cout << std::endl;}
+BasicInputOutputCAPI(Ppath)
+VoidStructGetterCAPI(Ppath, dim)
+VoidStructGetterCAPI(Ppath, np)
+VoidStructGetterCAPI(Ppath, constant)
+VoidStructGetterCAPI(Ppath, background)
+VoidStructGetterCAPI(Ppath, start_pos)
+VoidStructGetterCAPI(Ppath, start_los)
+VoidStructGetterCAPI(Ppath, start_lstep)
+VoidStructGetterCAPI(Ppath, pos)
+VoidStructGetterCAPI(Ppath, los)
+VoidStructGetterCAPI(Ppath, r)
+VoidStructGetterCAPI(Ppath, lstep)
+VoidStructGetterCAPI(Ppath, end_pos)
+VoidStructGetterCAPI(Ppath, end_los)
+VoidStructGetterCAPI(Ppath, end_lstep)
+VoidStructGetterCAPI(Ppath, nreal)
+VoidStructGetterCAPI(Ppath, ngroup)
+VoidStructGetterCAPI(Ppath, gp_p)
+VoidStructGetterCAPI(Ppath, gp_lat)
+VoidStructGetterCAPI(Ppath, gp_lon)
+VoidArrayCAPI(ArrayOfPpath)
+void * createArrayOfPpath() {return new ArrayOfPpath;}
+void deleteArrayOfPpath(void * data) {delete static_cast<ArrayOfPpath *>(data);}
+void printArrayOfPpath(void *) {std::cout << std::endl;}
+BasicInputOutputCAPI(ArrayOfPpath)
+
+
 // generic
 Index string2filetypeindex(char * data) { try { return Index(string2filetype(data)); } catch (std::runtime_error& e) { return -1; } }
 
@@ -514,6 +573,7 @@ Index string2filetypeindex(char * data) { try { return Index(string2filetype(dat
 #undef GetterSetterCAPI
 #undef EnumGetterSetterCAPI
 #undef VoidGetterCAPI
+#undef VoidStructGetterCAPI
 #undef BasicInputOutputCAPI
 #undef VoidArrayCAPI
 #undef VoidArrayElemCAPI

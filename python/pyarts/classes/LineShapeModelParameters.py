@@ -11,11 +11,11 @@ class InternalLineShapeModelParameters(c.Structure):
                 ("x3", c.c_double),]
 
     def __init__(self, type=0, x0=float('nan'), x1=float('nan'), x2=float('nan'), x3=float('nan')):
-        self.type = type
-        self.x0 = c.c_double(x0)
-        self.x1 = c.c_double(x1)
-        self.x2 = c.c_double(x2)
-        self.x3 = c.c_double(x3)
+        self.type = int(type)
+        self.x0 = float(x0)
+        self.x1 = float(x1)
+        self.x2 = float(x2)
+        self.x3 = float(x3)
 
     def print(self):
         """ Print to cout the ARTS representation of the struct """
@@ -72,7 +72,7 @@ class LineShapeModelParameters:
 
     @x0.setter
     def x0(self, val):
-        self.__data__.x0 = c.c_double(val)
+        self.__data__.x0 = float(val)
 
     @property
     def x1(self):
@@ -81,7 +81,7 @@ class LineShapeModelParameters:
 
     @x1.setter
     def x1(self, val):
-        self.__data__.x1 = c.c_double(val)
+        self.__data__.x1 = float(val)
 
     @property
     def x2(self):
@@ -90,7 +90,7 @@ class LineShapeModelParameters:
 
     @x2.setter
     def x2(self, val):
-        self.__data__.x2 = c.c_double(val)
+        self.__data__.x2 = float(val)
 
     @property
     def x3(self):
@@ -99,7 +99,7 @@ class LineShapeModelParameters:
 
     @x3.setter
     def x3(self, val):
-        self.__data__.x3 = c.c_double(val)
+        self.__data__.x3 = float(val)
 
     @property
     def data(self):
@@ -109,6 +109,9 @@ class LineShapeModelParameters:
     def print(self):
         """ Print to cout the ARTS representation of the class """
         self.__data__.print()
+
+    def __repr__(self):
+        return "ARTS LineShape::ModelParameters"
 
     def set(self, other):
         """ Sets this class according to another python instance of itself """

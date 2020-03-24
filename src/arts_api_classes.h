@@ -68,6 +68,11 @@ __attribute__((visibility("default")))  \
 void * get##VALUE##TYPE(void * data);
 
 
+#define VoidStructGetterCAPI(TYPE, VALUE) \
+__attribute__((visibility("default")))    \
+void * get##VALUE##TYPE(void * data);
+
+
 #define BasicInputOutputCAPI(TYPE)                  \
 __attribute__((visibility("default")))              \
 Index xmlread##TYPE(void * data, char * filepath);  \
@@ -377,6 +382,51 @@ extern "C" {
     DLL_PUBLIC Index zenithsStokesVector(void *);
     DLL_PUBLIC Index azimuthsStokesVector(void *);
     DLL_PUBLIC Index setStokesVector(void *, Index, Index, Index, Index, Numeric);
+    
+    // String
+    BasicInterfaceCAPI(String)
+    BasicInputOutputCAPI(String)
+    VoidArrayCAPI(ArrayOfString)
+    BasicInterfaceCAPI(ArrayOfString)
+    BasicInputOutputCAPI(ArrayOfString)
+    VoidArrayCAPI(ArrayOfArrayOfString)
+    BasicInterfaceCAPI(ArrayOfArrayOfString)
+    BasicInputOutputCAPI(ArrayOfArrayOfString)
+    DLL_PUBLIC void setString(void * data, char * newdata);
+    DLL_PUBLIC char * getString(void * data);
+    
+    // GridPos
+    BasicInputOutputCAPI(GridPos)
+    VoidArrayCAPI(ArrayOfGridPos)
+    BasicInterfaceCAPI(ArrayOfGridPos)
+    BasicInputOutputCAPI(ArrayOfGridPos)
+    DLL_PUBLIC void printGridPos(void *);
+    
+    // Ppath
+    BasicInterfaceCAPI(Ppath)
+    BasicInputOutputCAPI(Ppath)
+    VoidStructGetterCAPI(Ppath, dim)
+    VoidStructGetterCAPI(Ppath, np)
+    VoidStructGetterCAPI(Ppath, constant)
+    VoidStructGetterCAPI(Ppath, background)
+    VoidStructGetterCAPI(Ppath, start_pos)
+    VoidStructGetterCAPI(Ppath, start_los)
+    VoidStructGetterCAPI(Ppath, start_lstep)
+    VoidStructGetterCAPI(Ppath, pos)
+    VoidStructGetterCAPI(Ppath, los)
+    VoidStructGetterCAPI(Ppath, r)
+    VoidStructGetterCAPI(Ppath, lstep)
+    VoidStructGetterCAPI(Ppath, end_pos)
+    VoidStructGetterCAPI(Ppath, end_los)
+    VoidStructGetterCAPI(Ppath, end_lstep)
+    VoidStructGetterCAPI(Ppath, nreal)
+    VoidStructGetterCAPI(Ppath, ngroup)
+    VoidStructGetterCAPI(Ppath, gp_p)
+    VoidStructGetterCAPI(Ppath, gp_lat)
+    VoidStructGetterCAPI(Ppath, gp_lon)
+    VoidArrayCAPI(ArrayOfPpath)
+    BasicInterfaceCAPI(ArrayOfPpath)
+    BasicInputOutputCAPI(ArrayOfPpath)
   
     // generic
     DLL_PUBLIC Index string2filetypeindex(char *);
@@ -387,6 +437,7 @@ extern "C" {
 #undef GetterSetterCAPI
 #undef EnumGetterSetterCAPI
 #undef VoidGetterCAPI
+#undef VoidStructGetterCAPI
 #undef BasicInputOutputCAPI
 #undef VoidArrayCAPI
 #undef VoidArrayElemCAPI

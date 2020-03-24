@@ -2,7 +2,8 @@ import ctypes as c
 from pyarts.workspace.api import arts_api as lib
 
 from pyarts.classes.QuantumIdentifier import ArrayOfQuantumIdentifier
-# from somewhere import Vector, Tensor4
+from pyarts.classes.Vector import Vector
+from pyarts.classes.Tensor4 import Tensor4
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 
 class EnergyLevelMap:
@@ -121,7 +122,6 @@ class EnergyLevelMap:
             clobber:
                 Allow clobbering files? (any boolean)
         """
-
         if lib.xmlsaveEnergyLevelMap(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
 
