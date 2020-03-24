@@ -112,12 +112,14 @@ jobs:
             sudo apt-get install -y texlive
           fi
 
-          sudo apt-get install -y zlib1g-dev libblas-dev liblapack-dev libfftw3-dev
+          sudo apt-get install -y python3-minimal python3-pip zlib1g-dev libblas-dev liblapack-dev libfftw3-dev
+          sudo pip3 install docutils lark-parser matplotlib netCDF4 numpy pytest scipy
 
       - name: Setup (macOS)
         if: runner.os == 'macOS'
         run: |
-          brew install cmake
+          brew install cmake python3
+          sudo pip3 install docutils lark-parser matplotlib netCDF4 numpy pytest scipy
           if [ "${{ matrix.compiler }}" = "gcc" ]; then
             brew install gcc@${{ matrix.version }}
             echo "::set-env name=CC::gcc-${{ matrix.version }}"
