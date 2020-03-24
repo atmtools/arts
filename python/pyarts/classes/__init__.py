@@ -22,6 +22,7 @@ from pyarts.classes.PropagationMatrix import PropagationMatrix, ArrayOfPropagati
 from pyarts.classes.QuantumIdentifier import QuantumIdentifier, ArrayOfQuantumIdentifier
 from pyarts.classes.QuantumNumbers import QuantumNumbers
 from pyarts.classes.Rational import Rational
+from pyarts.classes.SpeciesAuxData import SpeciesAuxData
 from pyarts.classes.SpeciesTag import SpeciesTag, ArrayOfSpeciesTag, ArrayOfArrayOfSpeciesTag
 from pyarts.classes.StokesVector import StokesVector, ArrayOfStokesVector, ArrayOfArrayOfStokesVector
 from pyarts.classes.Tensor3 import Tensor3, ArrayOfTensor3, ArrayOfArrayOfTensor3

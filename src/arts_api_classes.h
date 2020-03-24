@@ -579,6 +579,15 @@ extern "C" {
     DLL_PUBLIC void * dataGriddedField6(void * data);
     DLL_PUBLIC bool checksizeGriddedField6(void * data);
   
+    // SpeciesAuxData
+    BasicInterfaceCAPI(SpeciesAuxData)
+    BasicInputOutputCAPI(SpeciesAuxData)
+    DLL_PUBLIC void initSpeciesAuxData(void * data);
+    DLL_PUBLIC bool validindexSpeciesAuxData(void * data, Index s, Index i);
+    DLL_PUBLIC void * getDataSpeciesAuxData(void * data, Index s, Index i);
+    DLL_PUBLIC Index setTypeFromIndexSpeciesAuxData(void * data, Index s, Index i, Index t);
+    DLL_PUBLIC Index getTypeSpeciesAuxData(void * data, Index s, Index i);
+    
     // generic
     DLL_PUBLIC Index string2filetypeindex(char *);
 }

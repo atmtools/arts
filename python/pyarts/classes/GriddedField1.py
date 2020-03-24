@@ -2,7 +2,7 @@ import ctypes as c
 from collections.abc import Sized
 from pyarts.workspace.api import arts_api as lib
 
-from pyarts.classes.BasicTypes import String, ArrayOfString
+from pyarts.classes.BasicTypes import ArrayOfString
 from pyarts.classes.Vector import Vector
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 from pyarts.classes.ArrayBase import array_base

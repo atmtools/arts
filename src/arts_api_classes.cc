@@ -760,6 +760,16 @@ void * dataGriddedField6(void * data) {return &static_cast<GriddedField6 *>(data
 bool checksizeGriddedField6(void * data) {return static_cast<GriddedField6 *>(data) -> checksize();}
 
 
+// SpeciesAuxData
+BasicInterfaceCAPI(SpeciesAuxData)
+BasicInputOutputCAPI(SpeciesAuxData)
+void initSpeciesAuxData(void * data) {static_cast<SpeciesAuxData *>(data) -> InitFromSpeciesData();}
+bool validindexSpeciesAuxData(void * data, Index s, Index i) {return static_cast<SpeciesAuxData *>(data) -> validIndex(s, i);}
+void * getDataSpeciesAuxData(void * data, Index s, Index i) {return &static_cast<SpeciesAuxData *>(data) -> Data(s, i);}
+Index setTypeFromIndexSpeciesAuxData(void * data, Index s, Index i, Index t) {return static_cast<SpeciesAuxData *>(data) -> setParamType(s, i, t);}
+Index getTypeSpeciesAuxData(void * data, Index s, Index i) {return Index(static_cast<SpeciesAuxData *>(data) -> getParamType(s, i));}
+
+
 // generic
 Index string2filetypeindex(char * data) { try { return Index(string2filetype(data)); } catch (std::runtime_error& e) { return -1; } }
 
