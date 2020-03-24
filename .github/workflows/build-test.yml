@@ -160,3 +160,9 @@ jobs:
           cd cmake-build
           make check
 
+      - name: Check Python (Linux)
+        if: runner.os == 'Linux' && matrix.check == 'yes'
+        run: |
+          cd cmake-build
+          make check-python
+
