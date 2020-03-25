@@ -588,6 +588,132 @@ extern "C" {
     DLL_PUBLIC Index setTypeFromIndexSpeciesAuxData(void * data, Index s, Index i, Index t);
     DLL_PUBLIC Index getTypeSpeciesAuxData(void * data, Index s, Index i);
     
+    // CIARecord
+    BasicInterfaceCAPI(CIARecord)
+    BasicInputOutputCAPI(CIARecord)
+    VoidGetterCAPI(CIARecord, Data)
+    VoidArrayCAPI(ArrayOfCIARecord)
+    BasicInterfaceCAPI(ArrayOfCIARecord)
+    BasicInputOutputCAPI(ArrayOfCIARecord)
+    DLL_PUBLIC Index getSpecies1CIARecord(void *);
+    DLL_PUBLIC Index getSpecies2CIARecord(void *);
+    DLL_PUBLIC void setSpeciesCIARecord(void *, Index, Index);
+    
+    // Verbosity
+    BasicInterfaceCAPI(Verbosity)
+    BasicInputOutputCAPI(Verbosity)
+    DLL_PUBLIC Index getAgendaVerbosity(void *);
+    DLL_PUBLIC Index getScreenVerbosity(void *);
+    DLL_PUBLIC Index getFileVerbosity(void *);
+    DLL_PUBLIC bool getMainVerbosity(void *);
+    DLL_PUBLIC void setVerbosity(void *, Index, Index, Index, bool);
+    
+    // TessemNN
+    BasicInterfaceCAPI(TessemNN)
+    BasicInputOutputCAPI(TessemNN)
+    VoidStructGetterCAPI(TessemNN, nb_inputs)
+    VoidStructGetterCAPI(TessemNN, nb_outputs)
+    VoidStructGetterCAPI(TessemNN, nb_cache)
+    VoidStructGetterCAPI(TessemNN, b1)
+    VoidStructGetterCAPI(TessemNN, b2)
+    VoidStructGetterCAPI(TessemNN, w1)
+    VoidStructGetterCAPI(TessemNN, w2)
+    VoidStructGetterCAPI(TessemNN, x_min)
+    VoidStructGetterCAPI(TessemNN, x_max)
+    VoidStructGetterCAPI(TessemNN, y_min)
+    VoidStructGetterCAPI(TessemNN, y_max)
+    
+    // SingleScatteringData
+    BasicInterfaceCAPI(SingleScatteringData)
+    BasicInputOutputCAPI(SingleScatteringData)
+    VoidStructGetterCAPI(SingleScatteringData, ptype)
+    VoidStructGetterCAPI(SingleScatteringData, description)
+    VoidStructGetterCAPI(SingleScatteringData, f_grid)
+    VoidStructGetterCAPI(SingleScatteringData, T_grid)
+    VoidStructGetterCAPI(SingleScatteringData, za_grid)
+    VoidStructGetterCAPI(SingleScatteringData, aa_grid)
+    VoidStructGetterCAPI(SingleScatteringData, pha_mat_data)
+    VoidStructGetterCAPI(SingleScatteringData, ext_mat_data)
+    VoidStructGetterCAPI(SingleScatteringData, abs_vec_data)
+    VoidArrayCAPI(ArrayOfSingleScatteringData)
+    BasicInterfaceCAPI(ArrayOfSingleScatteringData)
+    BasicInputOutputCAPI(ArrayOfSingleScatteringData)
+    VoidArrayCAPI(ArrayOfArrayOfSingleScatteringData)
+    BasicInterfaceCAPI(ArrayOfArrayOfSingleScatteringData)
+    BasicInputOutputCAPI(ArrayOfArrayOfSingleScatteringData)
+    
+    // ScatteringMetaData
+    BasicInterfaceCAPI(ScatteringMetaData)
+    BasicInputOutputCAPI(ScatteringMetaData)
+    VoidStructGetterCAPI(ScatteringMetaData, description)
+    VoidStructGetterCAPI(ScatteringMetaData, source)
+    VoidStructGetterCAPI(ScatteringMetaData, refr_index)
+    VoidStructGetterCAPI(ScatteringMetaData, mass)
+    VoidStructGetterCAPI(ScatteringMetaData, diameter_max)
+    VoidStructGetterCAPI(ScatteringMetaData, diameter_volume_equ)
+    VoidStructGetterCAPI(ScatteringMetaData, diameter_area_equ_aerodynamical)
+    VoidArrayCAPI(ArrayOfScatteringMetaData)
+    BasicInterfaceCAPI(ArrayOfScatteringMetaData)
+    BasicInputOutputCAPI(ArrayOfScatteringMetaData)
+    VoidArrayCAPI(ArrayOfArrayOfScatteringMetaData)
+    BasicInterfaceCAPI(ArrayOfArrayOfScatteringMetaData)
+    BasicInputOutputCAPI(ArrayOfArrayOfScatteringMetaData)
+    
+    // Timer
+    BasicInterfaceCAPI(Timer)
+    BasicInputOutputCAPI(Timer)
+    
+    // TelsemAtlas
+    BasicInterfaceCAPI(TelsemAtlas)
+    BasicInputOutputCAPI(TelsemAtlas)
+    VoidArrayCAPI(ArrayOfTelsemAtlas)
+    BasicInterfaceCAPI(ArrayOfTelsemAtlas)
+    BasicInputOutputCAPI(ArrayOfTelsemAtlas)
+    
+    // MCAntenna
+    BasicInterfaceCAPI(MCAntenna)
+    BasicInputOutputCAPI(MCAntenna)
+    
+    // GasAbsLookup
+    BasicInterfaceCAPI(GasAbsLookup)
+    BasicInputOutputCAPI(GasAbsLookup)
+    
+    // XsecRecord
+    BasicInterfaceCAPI(XsecRecord)
+    BasicInputOutputCAPI(XsecRecord)
+    VoidArrayCAPI(ArrayOfXsecRecord)
+    BasicInterfaceCAPI(ArrayOfXsecRecord)
+    BasicInputOutputCAPI(ArrayOfXsecRecord)
+    
+    // Sparse
+    BasicInterfaceCAPI(Sparse)
+    BasicInputOutputCAPI(Sparse)
+    VoidArrayCAPI(ArrayOfSparse)
+    BasicInterfaceCAPI(ArrayOfSparse)
+    BasicInputOutputCAPI(ArrayOfSparse)
+    
+    // CovarianceMatrix
+    BasicInterfaceCAPI(CovarianceMatrix)
+    BasicInputOutputCAPI(CovarianceMatrix)
+    
+    // Any
+    BasicInterfaceCAPI(Any)
+    BasicInputOutputCAPI(Any)
+    
+    // Agenda
+    BasicInterfaceCAPI(Agenda)
+    BasicInputOutputCAPI(Agenda)
+    VoidArrayCAPI(ArrayOfAgenda)
+    BasicInterfaceCAPI(ArrayOfAgenda)
+    BasicInputOutputCAPI(ArrayOfAgenda)
+    
+    // RetrievalQuantity
+    BasicInterfaceCAPI(RetrievalQuantity)
+    BasicInputOutputCAPI(RetrievalQuantity)
+    VoidArrayCAPI(ArrayOfRetrievalQuantity)
+    BasicInterfaceCAPI(ArrayOfRetrievalQuantity)
+    BasicInputOutputCAPI(ArrayOfRetrievalQuantity)
+    
     // generic
     DLL_PUBLIC Index string2filetypeindex(char *);
 }

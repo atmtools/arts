@@ -34,6 +34,7 @@
 #include "global_data.h"
 #include "lineshapemodel.h"
 #include "quantum.h"
+#include "supergeneric.h"
 #include "xml_io.h"
 #include "xml_io_types.h"
 #include "zeemandata.h"
@@ -768,6 +769,160 @@ bool validindexSpeciesAuxData(void * data, Index s, Index i) {return static_cast
 void * getDataSpeciesAuxData(void * data, Index s, Index i) {return &static_cast<SpeciesAuxData *>(data) -> Data(s, i);}
 Index setTypeFromIndexSpeciesAuxData(void * data, Index s, Index i, Index t) {return static_cast<SpeciesAuxData *>(data) -> setParamType(s, i, t);}
 Index getTypeSpeciesAuxData(void * data, Index s, Index i) {return Index(static_cast<SpeciesAuxData *>(data) -> getParamType(s, i));}
+
+
+// CIARecord
+BasicInterfaceCAPI(CIARecord)
+BasicInputOutputCAPI(CIARecord)
+VoidGetterCAPI(CIARecord, Data)
+VoidArrayCAPI(ArrayOfCIARecord)
+BasicInterfaceCAPI(ArrayOfCIARecord)
+BasicInputOutputCAPI(ArrayOfCIARecord)
+Index getSpecies1CIARecord(void * data) {return static_cast<CIARecord *>(data) -> Species(0);}
+Index getSpecies2CIARecord(void * data) {return static_cast<CIARecord *>(data) -> Species(1);}
+void setSpeciesCIARecord(void * data, Index newval1, Index newval2) {return static_cast<CIARecord *>(data) -> SetSpecies(newval1, newval2);}
+
+
+// Verbosity
+BasicInterfaceCAPI(Verbosity)
+BasicInputOutputCAPI(Verbosity)
+Index getAgendaVerbosity(void * data) {return static_cast<Verbosity *>(data) -> get_agenda_verbosity();}
+Index getScreenVerbosity(void * data) {return static_cast<Verbosity *>(data) -> get_screen_verbosity();}
+Index getFileVerbosity(void * data) {return static_cast<Verbosity *>(data) -> get_file_verbosity();}
+bool getMainVerbosity(void * data) {return static_cast<Verbosity *>(data) -> is_main_agenda();}
+void setVerbosity(void * data, Index a, Index s, Index f, bool m) {
+  auto x = static_cast<Verbosity *>(data);
+  x -> set_agenda_verbosity(a);
+  x -> set_screen_verbosity(s);
+  x -> set_file_verbosity(f);
+  x -> set_main_agenda(m);
+}
+
+
+// TessemNN
+void * createTessemNN() {return new TessemNN;}
+void deleteTessemNN(void * data) {delete static_cast<TessemNN *>(data);}
+void printTessemNN(void *) {std::cout << std::endl;}
+BasicInputOutputCAPI(TessemNN)
+VoidStructGetterCAPI(TessemNN, nb_inputs)
+VoidStructGetterCAPI(TessemNN, nb_outputs)
+VoidStructGetterCAPI(TessemNN, nb_cache)
+VoidStructGetterCAPI(TessemNN, b1)
+VoidStructGetterCAPI(TessemNN, b2)
+VoidStructGetterCAPI(TessemNN, w1)
+VoidStructGetterCAPI(TessemNN, w2)
+VoidStructGetterCAPI(TessemNN, x_min)
+VoidStructGetterCAPI(TessemNN, x_max)
+VoidStructGetterCAPI(TessemNN, y_min)
+VoidStructGetterCAPI(TessemNN, y_max)
+
+
+// SingleScatteringData
+BasicInterfaceCAPI(SingleScatteringData)
+BasicInputOutputCAPI(SingleScatteringData)
+VoidStructGetterCAPI(SingleScatteringData, ptype)
+VoidStructGetterCAPI(SingleScatteringData, description)
+VoidStructGetterCAPI(SingleScatteringData, f_grid)
+VoidStructGetterCAPI(SingleScatteringData, T_grid)
+VoidStructGetterCAPI(SingleScatteringData, za_grid)
+VoidStructGetterCAPI(SingleScatteringData, aa_grid)
+VoidStructGetterCAPI(SingleScatteringData, pha_mat_data)
+VoidStructGetterCAPI(SingleScatteringData, ext_mat_data)
+VoidStructGetterCAPI(SingleScatteringData, abs_vec_data)
+VoidArrayCAPI(ArrayOfSingleScatteringData)
+BasicInterfaceCAPI(ArrayOfSingleScatteringData)
+BasicInputOutputCAPI(ArrayOfSingleScatteringData)
+VoidArrayCAPI(ArrayOfArrayOfSingleScatteringData)
+BasicInterfaceCAPI(ArrayOfArrayOfSingleScatteringData)
+BasicInputOutputCAPI(ArrayOfArrayOfSingleScatteringData)
+
+
+// ScatteringMetaData
+BasicInterfaceCAPI(ScatteringMetaData)
+BasicInputOutputCAPI(ScatteringMetaData)
+VoidStructGetterCAPI(ScatteringMetaData, description)
+VoidStructGetterCAPI(ScatteringMetaData, source)
+VoidStructGetterCAPI(ScatteringMetaData, refr_index)
+VoidStructGetterCAPI(ScatteringMetaData, mass)
+VoidStructGetterCAPI(ScatteringMetaData, diameter_max)
+VoidStructGetterCAPI(ScatteringMetaData, diameter_volume_equ)
+VoidStructGetterCAPI(ScatteringMetaData, diameter_area_equ_aerodynamical)
+VoidArrayCAPI(ArrayOfScatteringMetaData)
+BasicInterfaceCAPI(ArrayOfScatteringMetaData)
+BasicInputOutputCAPI(ArrayOfScatteringMetaData)
+VoidArrayCAPI(ArrayOfArrayOfScatteringMetaData)
+BasicInterfaceCAPI(ArrayOfArrayOfScatteringMetaData)
+BasicInputOutputCAPI(ArrayOfArrayOfScatteringMetaData)
+
+
+// Timer
+void * createTimer() {return new Timer;}
+void deleteTimer(void * data) {delete static_cast<Timer *>(data);}
+void printTimer(void *) {std::cout << std::endl;}
+BasicInputOutputCAPI(Timer)
+
+
+// TelsemAtlas
+BasicInterfaceCAPI(TelsemAtlas)
+BasicInputOutputCAPI(TelsemAtlas)
+VoidArrayCAPI(ArrayOfTelsemAtlas)
+BasicInterfaceCAPI(ArrayOfTelsemAtlas)
+BasicInputOutputCAPI(ArrayOfTelsemAtlas)
+
+
+// MCAntenna
+BasicInterfaceCAPI(MCAntenna)
+BasicInputOutputCAPI(MCAntenna)
+
+
+// GasAbsLookup
+BasicInterfaceCAPI(GasAbsLookup)
+BasicInputOutputCAPI(GasAbsLookup)
+
+
+// XsecRecord
+BasicInterfaceCAPI(XsecRecord)
+BasicInputOutputCAPI(XsecRecord)
+VoidArrayCAPI(ArrayOfXsecRecord)
+BasicInterfaceCAPI(ArrayOfXsecRecord)
+BasicInputOutputCAPI(ArrayOfXsecRecord)
+
+
+// Sparse
+BasicInterfaceCAPI(Sparse)
+BasicInputOutputCAPI(Sparse)
+VoidArrayCAPI(ArrayOfSparse)
+BasicInterfaceCAPI(ArrayOfSparse)
+BasicInputOutputCAPI(ArrayOfSparse)
+
+
+// CovarianceMatrix
+BasicInterfaceCAPI(CovarianceMatrix)
+BasicInputOutputCAPI(CovarianceMatrix)
+
+
+// Any
+void * createAny() {return new Any;}
+void deleteAny(void * data) {delete static_cast<Any *>(data);}
+void printAny(void *) {std::cout << std::endl;}
+Index xmlreadAny(void *, char *) {return 1;}
+Index xmlsaveAny(void *, char *, Index, Index) {return 1;}
+
+
+// Agenda
+BasicInterfaceCAPI(Agenda)
+BasicInputOutputCAPI(Agenda)
+VoidArrayCAPI(ArrayOfAgenda)
+BasicInterfaceCAPI(ArrayOfAgenda)
+BasicInputOutputCAPI(ArrayOfAgenda)
+
+
+// RetrievalQuantity
+BasicInterfaceCAPI(RetrievalQuantity)
+BasicInputOutputCAPI(RetrievalQuantity)
+VoidArrayCAPI(ArrayOfRetrievalQuantity)
+BasicInterfaceCAPI(ArrayOfRetrievalQuantity)
+BasicInputOutputCAPI(ArrayOfRetrievalQuantity)
 
 
 // generic
