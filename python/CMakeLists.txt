@@ -21,8 +21,25 @@ endforeach()
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/controlfiles/)
 
 #
+# Controlfiles
+#
+
+file(GLOB_RECURSE ARTS_CONTROLFILES
+  RELATIVE ${CMAKE_SOURCE_DIR}
+  ${CMAKE_SOURCE_DIR}/controlfiles/general/*.arts)
+file(GLOB_RECURSE ARTS_CONTROLFILES_INSTRUMENTS
+  RELATIVE ${CMAKE_SOURCE_DIR}
+  ${CMAKE_SOURCE_DIR}/controlfiles/instruments/*.arts)
+list(APPEND ARTS_CONTROLFILES ${ARTS_CONTROLFILES_INSTRUMENTS})
+foreach(file ${ARTS_CONTROLFILES})
+  configure_file(${CMAKE_SOURCE_DIR}/${file} pyarts/${file})
+endforeach()
+
+#
 # Install pyarts
 #
+
+configure_file(MANIFEST.in MANIFEST.in)
 
 add_custom_target(pyarts
   ALL
