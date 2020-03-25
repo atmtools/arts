@@ -206,6 +206,7 @@ def arts_agenda(func):
             m  = workspace_methods[name]
 
             args = [ws, m]
+            kwargs = dict()
 
             for a in call.args:
                 # Handle starred expression
@@ -213,16 +214,19 @@ def arts_agenda(func):
                     bs = eval_argument(a.value)
                     for b in bs:
                         args.append(b)
-                    continue
-
-                args.append(eval_argument(a))
+                else:
+                    args.append(eval_argument(a))
 
             # Extract keyword arguments
-            kwargs = dict()
             for k in call.keywords:
-                kwargs[k.arg] = eval(
-                    compile(Expression(k.value), "<unknown>", 'eval'),
-                    context)
+                if k.arg is None:
+                    d = eval(compile(Expression(k.value), "<unknown>", 'eval'),
+                             context)
+                    kwargs.update(d)
+                else:
+                    kwargs[k.arg] = eval(compile(Expression(k.value),
+                                                 "<unknown>", 'eval'),
+                                         context)
 
             # Add function to agenda
             if len(callback_body) > 0:

@@ -146,4 +146,33 @@ class TestAgendas:
 
         agenda.execute(self.ws)
 
+    def test_starred(self):
+        """
+        Test expansion of starred expression.
+        """
+        @arts_agenda
+        def agenda(ws):
+            """
+            This agenda uses a starred expression.
+            """
+            ws.IndexSet(*[ws.stokes_dim, 42])
+
+        self.ws.stokes_dim = 0
+        agenda.execute(self.ws)
+        assert self.ws.stokes_dim.value == 42
+
+    def test_double_starred(self):
+        """
+        Test expansion of starred expression.
+        """
+        @arts_agenda
+        def agenda(ws):
+            """
+            This agenda uses a starred expression.
+            """
+            ws.IndexSet(**{"out" : ws.stokes_dim,
+                           "value" : 42})
+
+        self.ws.stokes_dim = 0
+        agenda.execute(self.ws)
         assert self.ws.stokes_dim.value == 42
