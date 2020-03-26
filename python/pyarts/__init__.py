@@ -6,6 +6,7 @@
 from pyarts import sensor  # noqa
 from pyarts import xml  # noqa
 from pyarts import classes  # noqa
+from pyarts import workspace  # noqa
 from pyarts.common import *  # noqa
 
 __all__ = [s for s in dir() if not s.startswith('_')]
