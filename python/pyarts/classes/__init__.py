@@ -9,6 +9,7 @@ from pyarts.classes.Any import Any
 from pyarts.classes.BasicTypes import Numeric, Index, ArrayOfIndex, ArrayOfArrayOfIndex, String, ArrayOfString, ArrayOfArrayOfString
 from pyarts.classes.CIARecord import CIARecord, ArrayOfCIARecord
 from pyarts.classes.EnergyLevelMap import EnergyLevelMap
+from pyarts.classes.GasAbsLookup import GasAbsLookup
 from pyarts.classes.GriddedField1 import GriddedField1, ArrayOfGriddedField1, ArrayOfArrayOfGriddedField1
 from pyarts.classes.GriddedField2 import GriddedField2, ArrayOfGriddedField2, ArrayOfArrayOfGriddedField2
 from pyarts.classes.GriddedField3 import GriddedField3, ArrayOfGriddedField3, ArrayOfArrayOfGriddedField3
@@ -41,7 +42,6 @@ from pyarts.classes.XsecRecord import ArrayOfXsecRecord
 # No interface but creation and IO
 from pyarts.classes.Agenda import Agenda, ArrayOfAgenda
 from pyarts.classes.CovarianceMatrix import CovarianceMatrix
-from pyarts.classes.GasAbsLookup import GasAbsLookup
 from pyarts.classes.MCAntenna import MCAntenna
 from pyarts.classes.RetrievalQuantity import ArrayOfRetrievalQuantity
 from pyarts.classes.Sparse import Sparse, ArrayOfSparse
