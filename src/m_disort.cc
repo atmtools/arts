@@ -131,6 +131,103 @@ void DisortCalc(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void DisortCalcWithARTSSurface(
+    Workspace& ws,
+    // WS Output:
+    Tensor7& cloudbox_field,
+    // WS Input
+    const Index& atmfields_checked,
+    const Index& atmgeom_checked,
+    const Index& scat_data_checked,
+    const Index& cloudbox_checked,
+    const Index& cloudbox_on,
+    const ArrayOfIndex& cloudbox_limits,
+    const Agenda& propmat_clearsky_agenda,
+    const Agenda& surface_rtprop_agenda,
+    const Index& atmosphere_dim,
+    const Tensor4& pnd_field,
+    const Tensor3& t_field,
+    const Tensor3& z_field,
+    const Tensor4& vmr_field,
+    const Vector& p_grid,
+    const ArrayOfArrayOfSingleScatteringData& scat_data,
+    const Vector& f_grid,
+    const Vector& za_grid,
+    const Index& stokes_dim,
+    const Index& nstreams,
+    const String& pfct_method,
+    const Index& Npfct,
+    const Index& cdisort_quiet,
+    const Verbosity& verbosity) {
+  if (!cloudbox_on) {
+    CREATE_OUT0;
+    out0 << "  Cloudbox is off, DISORT calculation will be skipped.\n";
+    return;
+  }
+
+  // FIXME: so far surface is implictly assumed at lowest atmospheric level.
+  // That should be fixed (using z_surface and allowing other altitudes) at some
+  // point.
+
+  // FIXME: At the moment, combining scattering elements stored on different
+  //  scattering angle grids is only possible for pfct_method 'interpolate'.
+
+  check_disort_input(cloudbox_on,
+                     atmfields_checked,
+                     atmgeom_checked,
+                     cloudbox_checked,
+                     scat_data_checked,
+                     atmosphere_dim,
+                     stokes_dim,
+                     cloudbox_limits,
+                     scat_data,
+                     za_grid,
+                     nstreams,
+                     pfct_method);
+
+  init_ifield(
+      cloudbox_field, f_grid, cloudbox_limits, za_grid.nelem(), stokes_dim);
+
+  Vector albedo(f_grid.nelem(), 0.);
+  Numeric btemp;
+
+  // for now, surface at lowest atm level. later use z_surface or the like
+  // for that.
+  // at the moment this is only required for groundtype "A", but
+  const Numeric surf_altitude = z_field(0, 0, 0);
+  //const Numeric surf_altitude = z_surface(0,0);
+
+  surf_albedoCalc(ws,
+                  albedo,
+                  btemp,
+                  surface_rtprop_agenda,
+                  f_grid,
+                  za_grid,
+                  surf_altitude,
+                  verbosity);
+
+  run_cdisort(ws,
+              cloudbox_field,
+              f_grid,
+              p_grid,
+              z_field(joker, 0, 0),
+              surf_altitude,
+              t_field(joker, 0, 0),
+              vmr_field(joker, joker, 0, 0),
+              pnd_field(joker, joker, 0, 0),
+              scat_data,
+              propmat_clearsky_agenda,
+              cloudbox_limits,
+              btemp,
+              albedo,
+              za_grid,
+              nstreams,
+              Npfct,
+              cdisort_quiet,
+              verbosity);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void DisortCalcClearsky(Workspace& ws,
                         Tensor7& spectral_radiance_field,
                         const Index& atmfields_checked,
