@@ -167,14 +167,8 @@ arts_test_run_ctlfile(slow instruments/odinsmr/TestOdinSMR_1D.arts)
 arts_test_run_ctlfile(fast instruments/ici/TestICI_fast.arts)
 
 arts_test_run_ctlfile(slow instruments/hirs/TestHIRS_fast.arts)
-arts_test_run_ctlfile(nocheck instruments/hirs/TestHIRS_reference.arts)
 
 arts_test_run_ctlfile(slow instruments/metmm/TestMetMM.arts)
-
-#arts_test_run_ctlfile(slow instruments/avhrr/TestAVHRR.arts)
-
-arts_test_run_ctlfile(nocheck instruments/seviri/TestSEVIRI.arts)
-arts_test_run_ctlfile(nocheck instruments/mviri/TestMVIRI.arts)
 
 if (ARTS_XML_DATA_DIR)
 
