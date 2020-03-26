@@ -532,7 +532,6 @@ void iyActiveSingleScat(Workspace& ws,
         // Combine iy0, double transmission and scattering matrix
         Vector iy1(ns), iy2(ns);
         const Index iout = iv * np + ip;
-        //mult( iy1, tr_rev(iv,joker,joker), iy0(iv,joker) );
         mult(iy1, ppvar_trans_cumulat(ip, iv, joker, joker), iy0(iv, joker));
         mult(iy2, P, iy1);
         mult(iy(iout, joker), ppvar_trans_cumulat(ip, iv, joker, joker), iy2);
