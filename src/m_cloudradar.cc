@@ -31,6 +31,7 @@
 
 #include <cmath>
 #include <stdexcept>
+
 #include "arts.h"
 #include "auto_md.h"
 #include "logic.h"
@@ -631,9 +632,8 @@ void iyActiveSingleScat(Workspace& ws,
                    dtrans_partial_dx_above(ip, iq, iv, joker, joker),
                    iy(iout, joker));
               Matrix tr_inv(ns, ns);
-              inv(tr_inv, trans_partial(ip, iv, joker, joker));
               Vector jnew(ns);
-              mult(jnew, tr_inv, jterm);
+              solve(jnew, trans_partial(ip, iv, joker, joker), jterm);
               jnew *= 2;
               diy_dpath[iq](ip, iout, joker) += jnew;
             }
@@ -642,10 +642,9 @@ void iyActiveSingleScat(Workspace& ws,
               mult(jterm,
                    dtrans_partial_dx_below(ip, iq, iv, joker, joker),
                    iy(iout, joker));
-              Matrix tr_inv(ns, ns);
-              inv(tr_inv, trans_partial(ip + 1, iv, joker, joker));
               Vector jnew(ns);
-              mult(jnew, tr_inv, jterm);
+              solve(jnew, trans_partial(ip, iv, joker, joker), jterm);
+              //mult(jnew, tr_inv, jterm);
               jnew *= 2;
               diy_dpath[iq](ip, iout, joker) += jnew;
             }
@@ -653,7 +652,7 @@ void iyActiveSingleScat(Workspace& ws,
         }
       })
     }
-    
+
     rtmethods_jacobian_finalisation(ws,
                                     diy_dx,
                                     diy_dpath,
@@ -864,10 +863,10 @@ void iyActiveSingleScat2(Workspace& ws,
   ppvar_trans_cumulat.resize(np, nf, ns, ns);
 
   ArrayOfRadiationVector lvl_rad(np, RadiationVector(nf, ns));
-  ArrayOfArrayOfArrayOfRadiationVector dlvl_rad(np,
-    ArrayOfArrayOfRadiationVector(np,
-    ArrayOfRadiationVector(nq,
-    RadiationVector(nf, ns))));
+  ArrayOfArrayOfArrayOfRadiationVector dlvl_rad(
+      np,
+      ArrayOfArrayOfRadiationVector(
+          np, ArrayOfRadiationVector(nq, RadiationVector(nf, ns))));
 
   ArrayOfTransmissionMatrix lyr_tra(np, TransmissionMatrix(nf, ns));
   ArrayOfArrayOfTransmissionMatrix dlyr_tra_above(
@@ -957,17 +956,17 @@ void iyActiveSingleScat2(Workspace& ws,
       dS_dx.resize(nq);
       dSp_dx.resize(nq);
       dB_dT.resize(nf);
-      FOR_ANALYTICAL_JACOBIANS_DO(dK_this_dx[iq] = PropagationMatrix(nf, ns);
-                                  dK_past_dx[iq] = PropagationMatrix(nf, ns);
-                                  dKp_dx[iq] = PropagationMatrix(nf, ns);
-                                  da_dx[iq] = StokesVector(nf, ns);
-                                  dS_dx[iq] = StokesVector(nf, ns);
-                                  dSp_dx[iq] = StokesVector(nf, ns);
-                                  if (jacobian_quantities[iq] == JacPropMatType::Temperature) {
-                                    temperature_derivative_position = iq;
-                                    do_hse = jacobian_quantities[iq].Subtag() ==
-                                             "HSE on";
-                                  })
+      FOR_ANALYTICAL_JACOBIANS_DO(
+          dK_this_dx[iq] = PropagationMatrix(nf, ns);
+          dK_past_dx[iq] = PropagationMatrix(nf, ns);
+          dKp_dx[iq] = PropagationMatrix(nf, ns);
+          da_dx[iq] = StokesVector(nf, ns);
+          dS_dx[iq] = StokesVector(nf, ns);
+          dSp_dx[iq] = StokesVector(nf, ns);
+          if (jacobian_quantities[iq] == JacPropMatType::Temperature) {
+            temperature_derivative_position = iq;
+            do_hse = jacobian_quantities[iq].Subtag() == "HSE on";
+          })
     }
 
     // Loop ppath points and determine radiative properties
@@ -1150,14 +1149,17 @@ void iyActiveSingleScat2(Workspace& ws,
     for (Index iv = 0; iv < nf; iv++) {
       for (Index is = 0; is < stokes_dim; is++) {
         iy(iv * np + ip, is) = lvl_rad[ip](iv, is);
-        FOR_ANALYTICAL_JACOBIANS_DO(
-          for(Index ip2=0; ip2<np; ip2++)
-            diy_dpath[iq](ip, iv * np + ip2, is) = dlvl_rad[ip][ip2][iq](iv, is););
+        if (j_analytical_do) {
+          FOR_ANALYTICAL_JACOBIANS_DO(for (Index ip2 = 0; ip2 < np; ip2++)
+                                          diy_dpath[iq](ip, iv * np + ip2, is) =
+                                              dlvl_rad[ip][ip2][iq](iv, is););
+        }
       }
     }
   }
   // FIXME: Add the aux-variables back
-  
+
+
   // Finalize analytical Jacobian
   if (j_analytical_do)
     rtmethods_jacobian_finalisation(ws,
@@ -1231,6 +1233,7 @@ void yActive(Workspace& ws,
   }
   chk_if_increasing("f_grid", f_grid);
   if (f_grid[0] <= 0) {
+
     throw runtime_error("All frequencies in *f_grid* must be > 0.");
   }
   //
