@@ -534,6 +534,16 @@ BasicInputOutputCAPI(ArrayOfGridPos)
 void printGridPos(void * data) {std::cout << (*static_cast<GridPos *>(data)) << std::endl;}
 
 
+// GridPosPoly
+BasicInterfaceCAPI(GridPosPoly)
+VoidStructGetterCAPI(GridPosPoly, idx)
+VoidStructGetterCAPI(GridPosPoly, w)
+VoidArrayCAPI(ArrayOfGridPosPoly)
+BasicInterfaceCAPI(ArrayOfGridPosPoly)
+Index xmlreadArrayOfGridPosPoly(void *, char *) {return 1;}
+Index xmlsaveArrayOfGridPosPoly(void *, char *, Index, Index) {return 1;}
+
+
 // Ppath
 // BasicInterfaceCAPI(Ppath)
 void * createPpath() {return new Ppath;}

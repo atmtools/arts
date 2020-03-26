@@ -402,6 +402,14 @@ extern "C" {
     BasicInputOutputCAPI(ArrayOfGridPos)
     DLL_PUBLIC void printGridPos(void *);
     
+    // GridPosPoly
+    BasicInterfaceCAPI(GridPosPoly)
+    VoidStructGetterCAPI(GridPosPoly, idx)
+    VoidStructGetterCAPI(GridPosPoly, w)
+    VoidArrayCAPI(ArrayOfGridPosPoly)
+    BasicInterfaceCAPI(ArrayOfGridPosPoly)
+    BasicInputOutputCAPI(ArrayOfGridPosPoly)
+    
     // Ppath
     BasicInterfaceCAPI(Ppath)
     BasicInputOutputCAPI(Ppath)
