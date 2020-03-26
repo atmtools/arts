@@ -50,14 +50,20 @@ typename SeType,
 typename VectorType
 >
 auto MAPBase<ForwardModel, MatrixType, SaType, SeType, VectorType>
-::cost_function(const VectorType &x)
+::cost_function(const VectorType &x,
+                bool robust)
     -> RealType
 {
-    VectorType y = evaluate(x);
-    VectorType dy = y - *y_ptr;
-    VectorType dx = xa - x;
-
-    return dot(dy, inv(Se) * dy) + dot(dx, inv(Sa) * dx);
+    try {
+        VectorType y = evaluate(x);
+        VectorType dy = y - *y_ptr;
+        VectorType dx = xa - x;
+        return dot(dy, inv(Se) * dy) + dot(dx, inv(Sa) * dx);
+    } catch (...) {
+        if (robust) {
+            return std::numeric_limits<RealType>::max();
+        }
+    }
 }
 
 template

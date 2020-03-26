@@ -4,6 +4,7 @@
 #include <iostream>
 #include <chrono>
 #include <exception>
+#include <limits>
 
 using std::chrono::steady_clock;
 using std::chrono::duration;
@@ -164,7 +165,8 @@ public:
      *
      * \param x A given state vector of dimension m.
      */
-    RealType cost_function(const VectorType &x);
+    RealType cost_function(const VectorType &x,
+                           bool robust = false);
 
     /*! Compute the the contribution of the estimated state vector
      * to the total cost function, which is given by
@@ -200,7 +202,7 @@ public:
     /*! Exception safe wrapper for the evaluate function of the forward
      * model.
      */
-    MeasurementVectorType evaluate(const VectorType &x);
+MeasurementVectorType evaluate(const VectorType &x);
 
     /*! Exception safe wrapper for the Jaobian computation function of the
      * forward model.
@@ -497,7 +499,8 @@ public:
     RealType cost_function(const VectorType &x,
                            const VectorType &y,
                            const VectorType &yi);
-    RealType cost_function(const VectorType &x);
+    RealType cost_function(const VectorType &x,
+                           bool robust);
 
     /*! Compute the maximum a posteriori estimator for the inverse problem
      * represented by this MAP object and the given measurement vector

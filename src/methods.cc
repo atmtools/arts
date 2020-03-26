@@ -5603,6 +5603,45 @@ void define_md_data_raw() {
                "Silence C Disort warnings.")));
 
   md_data_raw.push_back(MdRecord(
+      NAME("DisortCalcWithARTSSurface"),
+      DESCRIPTION(
+          "DISORT with surface.\n"
+          ),
+      AUTHORS("Claudia Emde, Jana Mendrok"),
+      OUT("cloudbox_field"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atmfields_checked",
+         "atmgeom_checked",
+         "scat_data_checked",
+         "cloudbox_checked",
+         "cloudbox_on",
+         "cloudbox_limits",
+         "propmat_clearsky_agenda",
+         "surface_rtprop_agenda",
+         "atmosphere_dim",
+         "pnd_field",
+         "t_field",
+         "z_field",
+         "vmr_field",
+         "p_grid",
+         "scat_data",
+         "f_grid",
+         "za_grid",
+         "stokes_dim"),
+      GIN("nstreams", "pfct_method", "Npfct", "quiet"),
+      GIN_TYPE("Index", "String", "Index", "Index"),
+      GIN_DEFAULT("8", "median", "181", "0"),
+      GIN_DESC("Number of polar angle directions (streams) in DISORT "
+               "solution (must be an even number).",
+               "Flag which method to apply to derive phase function.",
+               "Number of angular grid points to calculate bulk phase"
+               " function on (and derive Legendre polnomials from). If <0,"
+               " the finest za_grid from scat_data will be used.",
+               "Silence C Disort warnings.")));
+
+  md_data_raw.push_back(MdRecord(
       NAME("DisortCalcClearsky"),
       DESCRIPTION(
           "Interface to DISORT for running clear-sky cases.\n"

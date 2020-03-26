@@ -369,4 +369,30 @@ void reduced_1datm(Vector& p,
                    ConstMatrixView pnd_profiles,
                    const ArrayOfIndex& cloudbox_limits);
 
+/** Surface albed
+ *
+ * Computes surface albedo for using ARTS' surface with DISORT.
+ *
+ * @param[in, out] ws                      The workspace
+ * @param[out]     albedo                  The computed albedo
+ * @param[out]     btemp                   Upw. bts.
+ * @param[in]      surface_rtprop_agenda   Agenda to compute surf. props
+ * @param[in]      f_grid                  Frequency grid
+ * @param[in]      scat_za_grid            Zenith angle grid
+ * @param[in]      surface_alt             surface altitude
+ * @param[in]      verbosity
+ *
+ * @author     Patrick Eriksson
+ * @date       2019-10-22
+ */
+void surf_albedoCalc(Workspace& ws,
+                     //Output
+                     VectorView albedo,
+                     Numeric& btemp,
+                     //Input
+                     const Agenda& surface_rtprop_agenda,
+                     ConstVectorView f_grid,
+                     ConstVectorView scat_za_grid,
+                     const Numeric& surf_alt,
+                     const Verbosity& verbosity);
 #endif /* disort_h */
