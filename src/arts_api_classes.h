@@ -685,6 +685,17 @@ extern "C" {
     // GasAbsLookup
     BasicInterfaceCAPI(GasAbsLookup)
     BasicInputOutputCAPI(GasAbsLookup)
+    VoidGetterCAPI(GasAbsLookup, Species)
+    VoidGetterCAPI(GasAbsLookup, NonLinearSpecies)
+    VoidGetterCAPI(GasAbsLookup, Fgrid)
+    VoidGetterCAPI(GasAbsLookup, FGPDefault)
+    VoidGetterCAPI(GasAbsLookup, Pgrid)
+    VoidGetterCAPI(GasAbsLookup, LogPgrid)
+    VoidGetterCAPI(GasAbsLookup, VMRs)
+    VoidGetterCAPI(GasAbsLookup, Tref)
+    VoidGetterCAPI(GasAbsLookup, Tpert)
+    VoidGetterCAPI(GasAbsLookup, NLSPert)
+    VoidGetterCAPI(GasAbsLookup, Xsec)
     
     // XsecRecord
     BasicInterfaceCAPI(XsecRecord)

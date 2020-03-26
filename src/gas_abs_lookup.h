@@ -158,6 +158,39 @@ class GasAbsLookup {
                                 const GasAbsLookup& gal,
                                 const Verbosity&);
 
+  /** The species tags for which the table is valid */
+  ArrayOfArrayOfSpeciesTag& Species() {return species;}
+  
+  /** The species tags with non-linear treatment */
+  ArrayOfIndex& NonLinearSpecies() {return nonlinear_species;}
+  
+  /** The frequency grid [Hz] */
+  Vector& Fgrid() {return f_grid;}
+  
+  /** Frequency grid positions */
+  ArrayOfGridPosPoly& FGPDefault() {return fgp_default;}
+  
+  /** The pressure grid for the table [Pa] */
+  Vector& Pgrid() {return p_grid;}
+  
+  /** The natural log of the pressure grid */
+  Vector& LogPgrid() {return log_p_grid;}
+  
+  /** The reference VMR profiles */
+  Matrix& VMRs() {return vmrs_ref;}
+  
+  /** The reference temperature profile [K] */
+  Vector& Tref() {return t_ref;}
+  
+  /** The vector of temperature perturbations [K] */
+  Vector& Tpert() {return t_pert;}
+  
+  /** The vector of perturbations for the VMRs of the nonlinear species */
+  Vector& NLSPert() {return nls_pert;}
+  
+  /** Absorption cross sections */
+  Tensor4& Xsec() {return xsec;}
+  
  private:
   //! The species tags for which the table is valid.
   ArrayOfArrayOfSpeciesTag species;
