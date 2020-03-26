@@ -65,6 +65,27 @@ class XsecRecord {
 
   /** Get intersect of temperature fit */
   const ArrayOfVector& TemperatureIntersect() const { return mtintersect; };
+  
+  /** Get coefficients */
+  Vector& Coeffs() { return mcoeffs; };
+  
+  /** Get reference pressures */
+  Vector& RefPressure() { return mrefpressure; };
+  
+  /** Get reference temperatures */
+  Vector& RefTemperature() { return mreftemperature; };
+  
+  /** Get frequency grids of cross sections */
+  ArrayOfVector& Fgrids() { return mfgrids; };
+  
+  /** Get cross sections */
+  ArrayOfVector& Xsecs() { return mxsecs; };
+  
+  /** Get slope of temperature fit */
+  ArrayOfVector& TemperatureSlope() { return mtslope; };
+  
+  /** Get intersect of temperature fit */
+  ArrayOfVector& TemperatureIntersect() { return mtintersect; };
 
   /** Interpolate cross section data.
 

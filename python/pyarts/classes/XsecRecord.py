@@ -2,6 +2,8 @@ import ctypes as c
 from collections.abc import Sized
 from pyarts.workspace.api import arts_api as lib
 
+from pyarts.classes.Vector import Vector, ArrayOfVector
+from pyarts.classes.SpeciesTag import SpeciesTag
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 from pyarts.classes.ArrayBase import array_base
 
@@ -9,10 +11,30 @@ from pyarts.classes.ArrayBase import array_base
 class XsecRecord:
     """ ARTS XsecRecord data
 
-    FIXME:  NO INTERFACE AVAILABLE
-
     Properties:
-        None: Can only initialize from pointer and use XML
+        spec:
+            Species (Index)
+
+        coeffs:
+            Coefficients (Vector)
+
+        ref_pressure:
+            Reference pressure (Vector)
+
+        ref_temperature:
+            Reference temperature (Vector)
+
+        fgrids:
+            Frequency grids (ArrayOfVector)
+
+        xsecs:
+            Cross-sections (ArrayOfVector)
+
+        temperature_slope:
+            Slope of temperature fits (ArrayOfVector)
+
+        temperature_intersect:
+            Intersect of temperature fits (ArrayOfVector)
     """
 
     def __init__(self, data=None):
@@ -24,6 +46,81 @@ class XsecRecord:
             self.__data__ = c.c_void_p(lib.createXsecRecord())
             if data is not None:
                 raise RuntimeError("Only supports void initialization")
+
+    @property
+    def spec(self):
+        """ Species (Index) """
+        return lib.getSpeciesXsecRecord(self.__data__)
+
+    @spec.setter
+    def spec(self, val):
+        if SpeciesTag.validSpecies(val):
+            lib.setSpeciesXsecRecord(self.__data__, int(val))
+        else:
+            raise RuntimeError("Invalid species")
+
+    @property
+    def coeffs(self):
+        """ Coefficients (Vector) """
+        return Vector(c.c_void_p(lib.getCoeffsXsecRecord(self.__data__)))
+
+    @coeffs.setter
+    def coeffs(self, val):
+        self.coeffs.set(val)
+
+    @property
+    def ref_pressure(self):
+        """ Reference pressure (Vector) """
+        return Vector(c.c_void_p(lib.getRefPressureXsecRecord(self.__data__)))
+
+    @ref_pressure.setter
+    def ref_pressure(self, val):
+        self.ref_pressure.set(val)
+
+    @property
+    def ref_temperature(self):
+        """ Reference temperature (Vector) """
+        return Vector(c.c_void_p(lib.getRefTemperatureXsecRecord(self.__data__)))
+
+    @ref_temperature.setter
+    def ref_temperature(self, val):
+        self.ref_temperature.set(val)
+
+    @property
+    def fgrids(self):
+        """ Frequency grids (ArrayOfVector) """
+        return ArrayOfVector(c.c_void_p(lib.getFgridsXsecRecord(self.__data__)))
+
+    @fgrids.setter
+    def fgrids(self, val):
+        self.fgrids.set(val)
+
+    @property
+    def xsecs(self):
+        """ Cross-sections (ArrayOfVector) """
+        return ArrayOfVector(c.c_void_p(lib.getXsecsXsecRecord(self.__data__)))
+
+    @xsecs.setter
+    def xsecs(self, val):
+        self.xsecs.set(val)
+
+    @property
+    def temperature_slope(self):
+        """ Slope of temperature fits (ArrayOfVector) """
+        return ArrayOfVector(c.c_void_p(lib.getTemperatureSlopeXsecRecord(self.__data__)))
+
+    @temperature_slope.setter
+    def temperature_slope(self, val):
+        self.temperature_slope.set(val)
+
+    @property
+    def temperature_intersect(self):
+        """ Intersect of temperature fits (ArrayOfVector) """
+        return ArrayOfVector(c.c_void_p(lib.getTemperatureIntersectXsecRecord(self.__data__)))
+
+    @temperature_intersect.setter
+    def temperature_intersect(self, val):
+        self.temperature_intersect.set(val)
 
     @staticmethod
     def name():
@@ -91,3 +188,30 @@ lib.xmlreadXsecRecord.argtypes = [c.c_void_p, c.c_char_p]
 
 lib.xmlsaveXsecRecord.restype = c.c_long
 lib.xmlsaveXsecRecord.argtypes = [c.c_void_p, c.c_char_p, c.c_long, c.c_long]
+
+lib.getSpeciesXsecRecord.restype = c.c_long
+lib.getSpeciesXsecRecord.argtypes = [c.c_void_p]
+
+lib.setSpeciesXsecRecord.restype = None
+lib.setSpeciesXsecRecord.argtypes = [c.c_void_p, c.c_long]
+
+lib.getCoeffsXsecRecord.restype = c.c_void_p
+lib.getCoeffsXsecRecord.argtypes = [c.c_void_p]
+
+lib.getRefPressureXsecRecord.restype = c.c_void_p
+lib.getRefPressureXsecRecord.argtypes = [c.c_void_p]
+
+lib.getRefTemperatureXsecRecord.restype = c.c_void_p
+lib.getRefTemperatureXsecRecord.argtypes = [c.c_void_p]
+
+lib.getFgridsXsecRecord.restype = c.c_void_p
+lib.getFgridsXsecRecord.argtypes = [c.c_void_p]
+
+lib.getXsecsXsecRecord.restype = c.c_void_p
+lib.getXsecsXsecRecord.argtypes = [c.c_void_p]
+
+lib.getTemperatureSlopeXsecRecord.restype = c.c_void_p
+lib.getTemperatureSlopeXsecRecord.argtypes = [c.c_void_p]
+
+lib.getTemperatureIntersectXsecRecord.restype = c.c_void_p
+lib.getTemperatureIntersectXsecRecord.argtypes = [c.c_void_p]

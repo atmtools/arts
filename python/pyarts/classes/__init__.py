@@ -36,6 +36,7 @@ from pyarts.classes.TessemNN import TessemNN
 from pyarts.classes.TransmissionMatrix import TransmissionMatrix, ArrayOfTransmissionMatrix, ArrayOfArrayOfTransmissionMatrix
 from pyarts.classes.Vector import Vector, ArrayOfVector, ArrayOfArrayOfVector
 from pyarts.classes.Verbosity import Verbosity
+from pyarts.classes.XsecRecord import ArrayOfXsecRecord
 
 # No interface but creation and IO
 from pyarts.classes.Agenda import Agenda, ArrayOfAgenda
@@ -46,4 +47,3 @@ from pyarts.classes.RetrievalQuantity import ArrayOfRetrievalQuantity
 from pyarts.classes.Sparse import Sparse, ArrayOfSparse
 from pyarts.classes.TelsemAtlas import TelsemAtlas, ArrayOfTelsemAtlas
 from pyarts.classes.Timer import Timer
-from pyarts.classes.XsecRecord import ArrayOfXsecRecord

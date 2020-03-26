@@ -681,9 +681,18 @@ extern "C" {
     // XsecRecord
     BasicInterfaceCAPI(XsecRecord)
     BasicInputOutputCAPI(XsecRecord)
+    VoidGetterCAPI(XsecRecord, Coeffs)
+    VoidGetterCAPI(XsecRecord, RefPressure)
+    VoidGetterCAPI(XsecRecord, RefTemperature)
+    VoidGetterCAPI(XsecRecord, Fgrids)
+    VoidGetterCAPI(XsecRecord, Xsecs)
+    VoidGetterCAPI(XsecRecord, TemperatureSlope)
+    VoidGetterCAPI(XsecRecord, TemperatureIntersect)
     VoidArrayCAPI(ArrayOfXsecRecord)
     BasicInterfaceCAPI(ArrayOfXsecRecord)
     BasicInputOutputCAPI(ArrayOfXsecRecord)
+    DLL_PUBLIC Index getSpeciesXsecRecord(void *);
+    DLL_PUBLIC void setSpeciesXsecRecord(void *, Index);
     
     // Sparse
     BasicInterfaceCAPI(Sparse)
