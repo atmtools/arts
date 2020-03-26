@@ -649,8 +649,8 @@ void c_errmsg(const char* messag, int type) {
     CREATE_OUT1;
     out1 << "  ******* WARNING >>>>>>  " << messag << "\n";
   } else {
-    CREATE_OUT0;
-    out0 << "  >>>>>>  TOO MANY WARNING MESSAGES --  They will no longer be "
+    CREATE_OUT1;
+    out1 << "  >>>>>>  TOO MANY WARNING MESSAGES --  They will no longer be "
             "printed  <<<<<<<\n\n";
     warning_limit = TRUE;
   }
