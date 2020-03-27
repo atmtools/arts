@@ -960,6 +960,13 @@ void lbl_checkedCalc(Index& lbl_checked,
       }
     } else /*if (not any any_zeeman)*/ {
     }
+    
+    // Checks per band
+    for (auto& band: lines) {
+      if (band.Mirroring() not_eq Absorption::MirroringType::Manual and std::any_of(band.AllLines().cbegin(), band.AllLines().cend(), [](auto& x){return x.F0() <= 0;})) {
+        throw std::runtime_error("Negative or zero frequency in non-Manual mirrored band.\n");
+      }
+    }
   }
   
   lbl_checked = true;
