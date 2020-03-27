@@ -647,10 +647,10 @@ void define_md_data_raw() {
                DESCRIPTION("Sets normalization type for all lines.\n"
                            "\n"
                            "Available options:\n"
-                           "\t\"VVH\" \t-\tVan Vleck and Huber\n"
-                           "\t\"VVW\" \t-\tVan Vleck and Weisskopf\n"
-                           "\t\"RQ\"  \t-\tRosenkranz quadratic\n"
-                           "\t\"None\"\t-\tNo extra normalization\n"
+                           "\t\"VVH\"  \t - \t Van Vleck and Huber\n"
+                           "\t\"VVW\"  \t - \t Van Vleck and Weisskopf\n"
+                           "\t\"RQ\"   \t - \t Rosenkranz quadratic\n"
+                           "\t\"None\" \t - \t No extra normalization\n"
                            "\n"
                            "See the theory guide for more details.\n"),
                AUTHORS("Richard Larsson"),
@@ -732,15 +732,15 @@ void define_md_data_raw() {
                DESCRIPTION("Sets mirroring type for all lines.\n"
                            "\n"
                            "Available options:\n"
-                           "\t\"None\"\t-   \tNo mirrored line\n"
-                           "\t\"Same\"\t-   \tMirrored line broadened by line shape\n"
-                           "\t\"Manual\"\t- \tManually mirrored line (be careful)\n"
-                           "\t\"Lorentz\"\t-\tMirrored line broadened by Lorentz\n"
+                           "\t\"None\"    \t - \t No mirrored line\n"
+                           "\t\"Same\"    \t - \t Mirrored line broadened by line shape\n"
+                           "\t\"Manual\"  \t - \t Manually mirrored line (be careful; allows all frequencies)\n"
+                           "\t\"Lorentz\" \t - \t Mirrored line broadened by Lorentz\n"
                            "\n"
                            "Note that mirroring is never applied for DP line shape\n"
                            "Also note that Lorentz profile is approached by most line shapes at high frequency offset.\n"
                            "Also note that Manual settings are potentially dangerous as other frequency\n"
-                           "offsets Might not work as hoped\n"),
+                           "offsets might not work as hoped.\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines"),
                GOUT(),
@@ -820,9 +820,9 @@ void define_md_data_raw() {
                DESCRIPTION("Sets population type for all lines.\n"
                            "\n"
                            "Available options:\n"
-                           "\t\"LTE\"                         \t-\tStandard distribution by temperature\n"
-                           "\t\"NLTE-VibrationalTemperatures\"\t-\tLTE but with vibrational temperatures\n"
-                           "\t\"NLTE\"                        \t-\tDistribution is given as input\n"
+                           "\t\"LTE\"                          \t - \t Standard distribution by temperature\n"
+                           "\t\"NLTE-VibrationalTemperatures\" \t - \t LTE but with vibrational temperatures\n"
+                           "\t\"NLTE\"                         \t - \t Distribution is given as input\n"
                            "\n"
                            "You must have set *nlte_field* and/or its ilk to use the NLTE methods.\n"),
                AUTHORS("Richard Larsson"),
@@ -904,11 +904,11 @@ void define_md_data_raw() {
                DESCRIPTION("Sets shape calculations type for all lines.\n"
                            "\n"
                            "Available options:\n"
-                           "\t\"DP\"  \t-\tDoppler profile\n"
-                           "\t\"LP\"  \t-\tLorentz profile\n"
-                           "\t\"VP\"  \t-\tVoigt profile\n"
-                           "\t\"SDVP\"\t-\tSpeed-dependent Voigt profile\n"
-                           "\t\"HTP\" \t-\tHartman-Tran profile\n"
+                           "\t\"DP\"   \t - \t Doppler profile\n"
+                           "\t\"LP\"   \t - \t Lorentz profile\n"
+                           "\t\"VP\"   \t - \t Voigt profile\n"
+                           "\t\"SDVP\" \t - \t Speed-dependent Voigt profile\n"
+                           "\t\"HTP\"  \t - \t Hartman-Tran profile\n"
                            "\n"
                            "See the theory guide for more details.\n"),
                AUTHORS("Richard Larsson"),
@@ -993,9 +993,9 @@ void define_md_data_raw() {
                            "The only non-zero range is from this range to its negative equivalent\n"
                            "\n"
                            "Available options:\n"
-                           "\t\"None\"  \t-\tNo cutoff\n"
-                           "\t\"ByLine\"\t-\tCutoff relative line center, highest frequency: F0+cutoff\n"
-                           "\t\"ByBand\"\t-\tAbsolute frequency, highest frequency: cutoff\n"
+                           "\t\"None\"   \t - \t No cutoff\n"
+                           "\t\"ByLine\" \t - \t Cutoff relative line center, highest frequency: F0+cutoff\n"
+                           "\t\"ByBand\" \t - \t Absolute frequency, highest frequency: cutoff\n"
                            "\n"
                            "For \"ByLine\", the negative frequency is at F0-cutoff\n"
                            "For \"ByBand\", the negative frequency is at cutoff minus twice the average band frequency\n"),
@@ -9827,13 +9827,17 @@ void define_md_data_raw() {
       NAME("lbl_checkedCalc"),
       DESCRIPTION("Checks that the line-by-line parameters are OK.\n"
                   "\n"
-                  "On failure, will throw.  On success, lbl_checked evals as true\n"),
+                  "On failure, will throw.  On success, lbl_checked evals as true\n"
+                  "\n"
+                  "Note that checks may become more stringent as ARTS evolves, especially for\n"
+                  "\"new\" options.  This test might succeed in one version of ARTS but fail\n"
+                  "in later versions\n"),
       AUTHORS("Richard Larsson"),
       OUT("lbl_checked"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-                                 IN("abs_lines_per_species", "abs_species", "isotopologue_ratios", "partition_functions"),
+      IN("abs_lines_per_species", "abs_species", "isotopologue_ratios", "partition_functions"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
