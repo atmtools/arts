@@ -425,7 +425,7 @@ add_custom_target(check
   COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -E '\(python.|.nocheck.|.slow.|.xmldata.|.planettoolbox.\)' DEPENDS arts)
 
 add_custom_target(check-python
-  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -R '\(python.|.cmdline.|.doc.\)' -E '\(.nocheck.|.slow.|.xmldata.|.planettoolbox.\)' DEPENDS python_tests arts)
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -R '\(python.|.pyarts.|.cmdline.|.doc.\)' -E '\(.nocheck.|.slow.|.xmldata.|.planettoolbox.\)' DEPENDS python_tests arts)
 
 add_custom_target(check-xmldata
   COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -R '\(python.|.xmldata.\)' DEPENDS arts)
@@ -497,6 +497,7 @@ endif()
 add_subdirectory (src)
 add_subdirectory (doc)
 add_subdirectory (controlfiles)
+add_subdirectory (controlfiles-python)
 add_subdirectory (python)
 
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
