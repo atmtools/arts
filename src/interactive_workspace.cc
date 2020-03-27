@@ -8,7 +8,9 @@ extern WorkspaceMemoryHandler wsmh;
 extern std::string string_buffer;
 
 namespace global_data {
+extern map<String, Index> AgendaMap;
 extern Array<MdRecord> md_data;
+extern map<String, Index> WsvGroupMap;
 }
 using global_data::md_data;
 
@@ -48,6 +50,19 @@ InteractiveWorkspace::InteractiveWorkspace(const Index verbosity,
   verbosity_at_launch.set_agenda_verbosity(agenda_verbosity);
   // No report file is used for the C interface
   verbosity_at_launch.set_file_verbosity(0);
+
+  // Set names of agendas.
+  using global_data::AgendaMap;
+  using global_data::WsvGroupMap;
+  const Index WsvAgendaGroupIndex = WsvGroupMap.find("Agenda")->second;
+  for (const auto & agenda_iterator : AgendaMap) {
+      const auto & wsv_iterator = Workspace::WsvMap.find(agenda_iterator.first);
+      if (!(wsv_iterator == Workspace::WsvMap.end())
+          && (wsv_data[wsv_iterator->second].Group() == WsvAgendaGroupIndex)) {
+          Agenda &agenda = *reinterpret_cast<Agenda *>(this->operator[](wsv_iterator->second));
+          agenda.set_name(agenda_iterator.first);
+      }
+  }
 }
 
 void InteractiveWorkspace::initialize() {
@@ -71,7 +86,11 @@ void InteractiveWorkspace::initialize() {
 }
 
 const char *InteractiveWorkspace::execute_agenda(const Agenda *a) {
-  resize();
+  // Need to check size of stack as agenda definitions may have
+  // added variables.
+  if (wsv_data.size() != ws.size()) {
+      resize();
+  }
   try {
     a->execute(*this);
   } catch (const std::exception &e) {
@@ -84,6 +103,12 @@ const char *InteractiveWorkspace::execute_agenda(const Agenda *a) {
 const char *InteractiveWorkspace::execute_workspace_method(
     long id, const ArrayOfIndex &output, const ArrayOfIndex &input) {
   const MdRecord &m = md_data[id];
+
+  // Need to check size of stack as agenda definitions may have
+  // added variables.
+  if (wsv_data.size() != ws.size()) {
+    resize();
+  }
 
   // Check if all input variables are initialized.
   for (Index i : input) {
@@ -124,8 +149,13 @@ const char *InteractiveWorkspace::execute_workspace_method(
 }
 
 void InteractiveWorkspace::set_agenda_variable(Index id, const Agenda &src) {
+  using global_data::AgendaMap;
   Agenda &dst = *reinterpret_cast<Agenda *>(this->operator[](id));
+  String old_name = dst.name();
   dst = src;
+  if (old_name != "") {
+    dst.set_name(old_name);
+  }
   dst.check(*this, verbosity_at_launch);
 }
 
@@ -279,16 +309,18 @@ void InteractiveWorkspace::initialize_variable(Index i) {
 }
 
 Index InteractiveWorkspace::add_variable(Index group_id, const char *name) {
+
   if (wsv_data.size() != ws.size()) {
     resize();
   }
+
   Index id = static_cast<Index>(ws.size());
 
   ws.push_back(stack<WsvStruct *>());
   push(ws.size() - 1, nullptr);
   ws.back().top()->wsv = wsmh.allocate(group_id);
   ws.back().top()->auto_allocated = true;
-  ws.back().top()->initialized = true;
+  ws.back().top()->initialized = false;
 
   String s;
   if (name) {

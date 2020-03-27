@@ -63,7 +63,7 @@ struct VariableValueStruct {
    */
   const void *ptr;
   /** Initialization status
-   * 
+   *
    * Bool value indicating whether the variable is initialized.
    */
   bool initialized;
@@ -91,7 +91,7 @@ struct VariableValueStruct {
 };
 
 /** Representation of workspace methods
- * 
+ *
  * This struct is used to return descriptions of a workspace method.
  */
 struct MethodStruct {
@@ -271,7 +271,7 @@ DLL_PUBLIC
 void initialize();
 
 /** Finalize ARTS runtime.
- * 
+ *
  * Deletes the error buffer.
  */
 DLL_PUBLIC
@@ -283,6 +283,14 @@ void finalize();
  */
 DLL_PUBLIC
 const char *get_error();
+
+/** Set the ARTS basename.
+ *
+ * The basename is a global variable that is used in some cases
+ * by some WSMs for example to store or read data.
+ */
+DLL_PUBLIC
+void set_basename(const char *name);
 
 ////////////////////////////////////////////////////////////////////////////
 // Parsing and executing agendas.
@@ -452,6 +460,14 @@ const char *get_method_g_in(Index i, Index j);
  */
 DLL_PUBLIC
 const char *get_method_g_in_default(Index i, Index j);
+
+/**
+ * Get string defining missing default parameter.
+ */
+DLL_PUBLIC
+const char *get_g_in_nodef() {
+    return NODEF;
+}
 
 /** Get name value of generic output argument.
  *

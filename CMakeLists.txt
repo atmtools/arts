@@ -48,9 +48,24 @@ enable_language(CXX)
 
 enable_testing ()
 
+set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
+
 ########### Find Python ##########
 set(Python_ADDITIONAL_VERSIONS 3)
 find_package (PythonInterp REQUIRED)
+
+include (CheckPythonModule)
+set(REQUIRED_MODULES
+  docutils
+  lark
+  matplotlib
+  netCDF4
+  numpy
+  pytest
+  scipy
+  setuptools
+  )
+check_python_modules("${REQUIRED_MODULES}")
 
 if (ENABLE_FORTRAN)
   enable_language (Fortran)
@@ -90,8 +105,6 @@ include (CheckIncludeFileCXX)
 
 include (CheckTypeSize)
 include (CheckFunctionExists)
-
-set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 
 include (ArtsTestcases)
 
@@ -234,7 +247,7 @@ endif (HAVE_SYS_TYPES_H AND HAVE_UNISTD_H AND HAVE_SYS_STAT_H AND HAVE_CTIME
 
 ########### Zlib support ##########
 include (FindZLIB)
-set (ENABLE_ZLIB ${ZLIB_FOUND})
+set (ENABLE_ZLIB ${ZLIB_FOUND} REQUIRED)
 
 ########## BLAS support #########
 if (${CMAKE_VERSION} VERSION_LESS "2.8.8")
@@ -409,10 +422,13 @@ if (CMAKE_GENERATOR STREQUAL "Xcode")
 endif (CMAKE_GENERATOR STREQUAL "Xcode")
 
 add_custom_target(check
-  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -E '\(.nocheck.|.slow.|.xmldata.|.planettoolbox.\)' DEPENDS arts)
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -E '\(python.|.pyarts.|.nocheck.|.slow.|.xmldata.|.planettoolbox.\)' DEPENDS arts)
+
+add_custom_target(check-python
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -R '\(python.|.pyarts.|.cmdline.|.doc.\)' -E '\(.nocheck.|.slow.|.xmldata.|.planettoolbox.\)' DEPENDS python_tests arts)
 
 add_custom_target(check-xmldata
-  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -R '\(.xmldata.\)' DEPENDS arts)
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -R '\(python.|.xmldata.\)' DEPENDS arts)
 
 add_dependencies(check-xmldata mkdir-arts-results)
 
@@ -421,6 +437,9 @@ add_custom_target(check-planettoolbox
 
 add_custom_target(check-all
   COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -E '\(.nocheck.\)' DEPENDS arts)
+
+add_custom_target(check-pyarts-only
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -R '\.pyarts\.' DEPENDS pyarts)
 
 add_dependencies(check-all mkdir-arts-results)
 
@@ -481,6 +500,8 @@ endif()
 add_subdirectory (src)
 add_subdirectory (doc)
 add_subdirectory (controlfiles)
+add_subdirectory (controlfiles-python)
+add_subdirectory (python)
 
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
                 ${CMAKE_CURRENT_BINARY_DIR}/src/config.h)
