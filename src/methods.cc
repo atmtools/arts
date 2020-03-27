@@ -14117,58 +14117,106 @@ void define_md_data_raw() {
 
   md_data_raw.push_back(MdRecord(
       NAME("ReadArrayOfARTSCAT"),
-      DESCRIPTION("Reads an old Array<ArrayOfLineRecord> ARTSCAT file.\n"),
+      DESCRIPTION("Reads an old Array<ArrayOfLineRecord> ARTSCAT file.\n"
+                  "\n"
+                  "Note that the ARTSCAT-5 had quantum numbers and options\n"
+                  "stored inside it but that the options will overwrite that\n"
+                  "information.  Be careful setting the options!\n"),
       AUTHORS("Stefan Buehler", "Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("filename", "fmin", "fmax", "globalquantumnumbers", "localquantumnumbers"),
-      GIN_TYPE("String", "Numeric", "Numeric", "String", "String"),
-      GIN_DEFAULT(NODEF, "0", "1e99", "", ""),
+      GIN("filename", "fmin", "fmax", "globalquantumnumbers",
+          "localquantumnumbers", "normalization_option", "mirroring_option",
+          "population_option", "lineshapetype_option", "cutoff_option",
+          "cutoff_value", "linemixinglimit_value"),
+      GIN_TYPE("String", "Numeric", "Numeric", "String", "String", "String",
+               "String", "String", "String", "String", "Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, "0", "1e99", "", "", "None", "None", "LTE", "VP",
+                 "None", "750e9", "-1"),
       GIN_DESC("Name of the ARTSCAT file",
                "Minimum frequency of read lines",
                "Maximum frequency of read lines",
                "Global quantum number list (space-separated)",
-               "Local quantum number list (space-separated)")));
+               "Local quantum number list (space-separated)",
+               "Normalization option, see *abs_linesSetNormalization*",
+               "Mirroring option, see *abs_linesSetMirroring*",
+               "Population option, see *abs_linesSetPopulation*",
+               "Lineshape option, see *abs_linesSetLineShapeType*",
+               "Cutoff option, see *abs_linesSetCutoff*",
+               "Cutoff value, see *abs_linesSetCutoff*",
+               "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
 
   md_data_raw.push_back(MdRecord(
       NAME("ReadSplitARTSCAT"),
-      DESCRIPTION("Reads several old ArrayOfLineRecord ARTSCAT file.\n"),
+      DESCRIPTION("Reads several old ArrayOfLineRecord ARTSCAT file\n"
+                  "\n"
+                  "Note that the ARTSCAT-5 had quantum numbers and options\n"
+                  "stored inside it but that the options will overwrite that\n"
+                  "information.  Be careful setting the options!\n"),
       AUTHORS("Oliver Lemke", "Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_species"),
-      GIN("basename", "fmin", "fmax", "globalquantumnumbers", "localquantumnumbers", "ignore_missing"),
-      GIN_TYPE("String", "Numeric", "Numeric", "String", "String", "Index"),
-      GIN_DEFAULT(NODEF, "0", "1e99", "", "", "0"),
+      GIN("basename", "fmin", "fmax", "globalquantumnumbers", "localquantumnumbers",
+          "ignore_missing", "normalization_option", "mirroring_option",
+          "population_option", "lineshapetype_option", "cutoff_option",
+          "cutoff_value", "linemixinglimit_value"),
+      GIN_TYPE("String", "Numeric", "Numeric", "String", "String", "Index", "String",
+               "String", "String", "String", "String", "Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, "0", "1e99", "", "", "0", "None", "None", "LTE", "VP",
+                 "None", "750e9", "-1"),
       GIN_DESC("Path to the files",
                "Minimum frequency of read lines",
                "Maximum frequency of read lines",
                "Global quantum number list (space-separated)",
                "Local quantum number list (space-separated)",
-               "Ignores instead of throws if an *abs_species* is missing")));
+               "Ignores instead of throws if an *abs_species* is missing",
+               "Normalization option, see *abs_linesSetNormalization*",
+               "Mirroring option, see *abs_linesSetMirroring*",
+               "Population option, see *abs_linesSetPopulation*",
+               "Lineshape option, see *abs_linesSetLineShapeType*",
+               "Cutoff option, see *abs_linesSetCutoff*",
+               "Cutoff value, see *abs_linesSetCutoff*",
+               "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
 
   md_data_raw.push_back(MdRecord(
       NAME("ReadARTSCAT"),
-      DESCRIPTION("Reads an old ArrayOfLineRecord ARTSCAT file.\n"),
+      DESCRIPTION("Reads an old ArrayOfLineRecord ARTSCAT file\n"
+                  "\n"
+                  "Note that the ARTSCAT-5 had quantum numbers and options\n"
+                  "stored inside it but that the options will overwrite that\n"
+                  "information.  Be careful setting the options!\n"),
       AUTHORS("Stefan Buehler", "Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("filename", "fmin", "fmax", "globalquantumnumbers", "localquantumnumbers"),
-      GIN_TYPE("String", "Numeric", "Numeric", "String", "String"),
-      GIN_DEFAULT(NODEF, "0", "1e99", "", ""),
+      GIN("filename", "fmin", "fmax", "globalquantumnumbers",
+          "localquantumnumbers", "normalization_option", "mirroring_option",
+          "population_option", "lineshapetype_option", "cutoff_option",
+          "cutoff_value", "linemixinglimit_value"),
+      GIN_TYPE("String", "Numeric", "Numeric", "String", "String", "String",
+               "String", "String", "String", "String", "Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, "0", "1e99", "", "", "None", "None", "LTE", "VP",
+                 "None", "750e9", "-1"),
       GIN_DESC("Name of the ARTSCAT file",
                "Minimum frequency of read lines",
                "Maximum frequency of read lines",
                "Global quantum number list (space-separated)",
-               "Local quantum number list (space-separated)")));
+               "Local quantum number list (space-separated)",
+               "Normalization option, see *abs_linesSetNormalization*",
+               "Mirroring option, see *abs_linesSetMirroring*",
+               "Population option, see *abs_linesSetPopulation*",
+               "Lineshape option, see *abs_linesSetLineShapeType*",
+               "Cutoff option, see *abs_linesSetCutoff*",
+               "Cutoff value, see *abs_linesSetCutoff*",
+               "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
 
   md_data_raw.push_back(MdRecord(
       NAME("ReadHITRAN"),
@@ -14178,6 +14226,8 @@ void define_md_data_raw() {
                   "\t\"Pre2004\"\t-\tfor old format\n"
                   "\t\"Post2004\"\t-\tfor new format\n"
                   "\t\"Online\"\t-\tfor the online format with quantum numbers (highly experimental)\n"
+                  "\n"
+                  "Be careful setting the options!\n"
       ),
       AUTHORS("Hermann Berg", "Thomas Kuhn", "Richard Larsson"),
       OUT("abs_lines"),
@@ -14185,69 +14235,123 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("filename", "fmin", "fmax", "globalquantumnumbers", "localquantumnumbers", "hitran_type"),
-      GIN_TYPE("String", "Numeric", "Numeric", "String", "String", "String"),
-      GIN_DEFAULT(NODEF, "0", "1e99", "", "", "Post2004"),
+      GIN("filename", "fmin", "fmax", "globalquantumnumbers", "localquantumnumbers",
+          "hitran_type", "normalization_option", "mirroring_option",
+          "population_option", "lineshapetype_option", "cutoff_option",
+          "cutoff_value", "linemixinglimit_value"),
+      GIN_TYPE("String", "Numeric", "Numeric", "String", "String", "String", "String",
+               "String", "String", "String", "String", "Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, "0", "1e99", "", "", "Post2004", "None", "None", "LTE", "VP",
+                 "None", "750e9", "-1"),
       GIN_DESC("Name of the HITRAN file",
                "Minimum frequency of read lines",
                "Maximum frequency of read lines",
                "Global quantum number list (space-separated)",
                "Local quantum number list (space-separated)",
-               "Method to use to read the line data")));
+               "Method to use to read the line data",
+               "Normalization option, see *abs_linesSetNormalization*",
+               "Mirroring option, see *abs_linesSetMirroring*",
+               "Population option, see *abs_linesSetPopulation*",
+               "Lineshape option, see *abs_linesSetLineShapeType*",
+               "Cutoff option, see *abs_linesSetCutoff*",
+               "Cutoff value, see *abs_linesSetCutoff*",
+               "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
 
   md_data_raw.push_back(MdRecord(
       NAME("ReadLBLRTM"),
-      DESCRIPTION("Reads a LBLRTM file.\n"),
+      DESCRIPTION("Reads a LBLRTM file.\n"
+                  "\n"
+                  "Be careful setting the options!\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("filename", "fmin", "fmax", "globalquantumnumbers", "localquantumnumbers"),
-      GIN_TYPE("String", "Numeric", "Numeric", "String", "String"),
-      GIN_DEFAULT(NODEF, "0", "1e99", "", ""),
+      GIN("filename", "fmin", "fmax", "globalquantumnumbers",
+          "localquantumnumbers", "normalization_option", "mirroring_option",
+          "population_option", "lineshapetype_option", "cutoff_option",
+          "cutoff_value", "linemixinglimit_value"),
+      GIN_TYPE("String", "Numeric", "Numeric", "String", "String", "String",
+               "String", "String", "String", "String", "Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, "0", "1e99", "", "", "None", "None", "LTE", "VP",
+                 "None", "750e9", "-1"),
       GIN_DESC("Name of the LBLRTM file",
                "Minimum frequency of read lines",
                "Maximum frequency of read lines",
                "Global quantum number list (space-separated)",
-               "Local quantum number list (space-separated)")));
+               "Local quantum number list (space-separated)",
+               "Normalization option, see *abs_linesSetNormalization*",
+               "Mirroring option, see *abs_linesSetMirroring*",
+               "Population option, see *abs_linesSetPopulation*",
+               "Lineshape option, see *abs_linesSetLineShapeType*",
+               "Cutoff option, see *abs_linesSetCutoff*",
+               "Cutoff value, see *abs_linesSetCutoff*",
+               "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
 
   md_data_raw.push_back(MdRecord(
       NAME("ReadMytran2"),
-      DESCRIPTION("Reads a Mytran2 file.\n"),
+      DESCRIPTION("Reads a Mytran2 file.\n"
+                  "\n"
+                  "Be careful setting the options!\n"),
       AUTHORS("Axel von Engeln", "Stefan Buehler", "Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("filename", "fmin", "fmax", "globalquantumnumbers", "localquantumnumbers"),
-      GIN_TYPE("String", "Numeric", "Numeric", "String", "String"),
-      GIN_DEFAULT(NODEF, "0", "1e99", "", ""),
+      GIN("filename", "fmin", "fmax", "globalquantumnumbers",
+          "localquantumnumbers", "normalization_option", "mirroring_option",
+          "population_option", "lineshapetype_option", "cutoff_option",
+          "cutoff_value", "linemixinglimit_value"),
+      GIN_TYPE("String", "Numeric", "Numeric", "String", "String", "String",
+               "String", "String", "String", "String", "Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, "0", "1e99", "", "", "None", "None", "LTE", "VP",
+                 "None", "750e9", "-1"),
       GIN_DESC("Name of the Mytran2 file",
                "Minimum frequency of read lines",
                "Maximum frequency of read lines",
                "Global quantum number list (space-separated)",
-               "Local quantum number list (space-separated)")));
+               "Local quantum number list (space-separated)",
+               "Normalization option, see *abs_linesSetNormalization*",
+               "Mirroring option, see *abs_linesSetMirroring*",
+               "Population option, see *abs_linesSetPopulation*",
+               "Lineshape option, see *abs_linesSetLineShapeType*",
+               "Cutoff option, see *abs_linesSetCutoff*",
+               "Cutoff value, see *abs_linesSetCutoff*",
+               "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
 
   md_data_raw.push_back(MdRecord(
       NAME("ReadJPL"),
-      DESCRIPTION("Reads a JPL file.\n"),
+      DESCRIPTION("Reads a JPL file.\n"
+                  "\n"
+                  "Be careful setting the options!\n"),
       AUTHORS("Thomas Kuhn", "Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN(),
-      GIN("filename", "fmin", "fmax", "globalquantumnumbers", "localquantumnumbers"),
-      GIN_TYPE("String", "Numeric", "Numeric", "String", "String"),
-      GIN_DEFAULT(NODEF, "0", "1e99", "", ""),
+      GIN("filename", "fmin", "fmax", "globalquantumnumbers",
+          "localquantumnumbers", "normalization_option", "mirroring_option",
+          "population_option", "lineshapetype_option", "cutoff_option",
+          "cutoff_value", "linemixinglimit_value"),
+      GIN_TYPE("String", "Numeric", "Numeric", "String", "String", "String",
+               "String", "String", "String", "String", "Numeric", "Numeric"),
+      GIN_DEFAULT(NODEF, "0", "1e99", "", "", "None", "None", "LTE", "VP",
+                 "None", "750e9", "-1"),
       GIN_DESC("Name of the JPL file",
                "Minimum frequency of read lines",
                "Maximum frequency of read lines",
                "Global quantum number list (space-separated)",
-               "Local quantum number list (space-separated)")));
+               "Local quantum number list (space-separated)",
+               "Normalization option, see *abs_linesSetNormalization*",
+               "Mirroring option, see *abs_linesSetMirroring*",
+               "Population option, see *abs_linesSetPopulation*",
+               "Lineshape option, see *abs_linesSetLineShapeType*",
+               "Cutoff option, see *abs_linesSetCutoff*",
+               "Cutoff value, see *abs_linesSetCutoff*",
+               "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
 
   md_data_raw.push_back(MdRecord(
       NAME("abs_linesTruncateGlobalQuantumNumbers"),

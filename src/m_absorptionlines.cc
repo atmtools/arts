@@ -72,6 +72,13 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
                         const Numeric& fmax,
                         const String& globalquantumnumbers,
                         const String& localquantumnumbers,
+                        const String& normalization_option,
+                        const String& mirroring_option,
+                        const String& population_option,
+                        const String& lineshapetype_option,
+                        const String& cutoff_option,
+                        const Numeric& cutoff_value,
+                        const Numeric& linemixinglimit_value,
                         const Verbosity& verbosity)
 {
   // Global numbers
@@ -180,6 +187,13 @@ void ReadArrayOfARTSCAT(ArrayOfAbsorptionLines& abs_lines,
     abs_lines.back().sort_by_frequency();
     x.pop_back();
   }
+  
+  abs_linesSetNormalization(abs_lines, normalization_option, verbosity);
+  abs_linesSetMirroring(abs_lines, mirroring_option, verbosity);
+  abs_linesSetPopulation(abs_lines, population_option, verbosity);
+  abs_linesSetLineShapeType(abs_lines, lineshapetype_option, verbosity);
+  abs_linesSetCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
+  abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -189,6 +203,13 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
                  const Numeric& fmax,
                  const String& globalquantumnumbers,
                  const String& localquantumnumbers,
+                 const String& normalization_option,
+                 const String& mirroring_option,
+                 const String& population_option,
+                 const String& lineshapetype_option,
+                 const String& cutoff_option,
+                 const Numeric& cutoff_value,
+                 const Numeric& linemixinglimit_value,
                  const Verbosity& verbosity)
 {
   // Global numbers
@@ -291,6 +312,13 @@ void ReadARTSCAT(ArrayOfAbsorptionLines& abs_lines,
     abs_lines.back().sort_by_frequency();
     x.pop_back();
   }
+  
+  abs_linesSetNormalization(abs_lines, normalization_option, verbosity);
+  abs_linesSetMirroring(abs_lines, mirroring_option, verbosity);
+  abs_linesSetPopulation(abs_lines, population_option, verbosity);
+  abs_linesSetLineShapeType(abs_lines, lineshapetype_option, verbosity);
+  abs_linesSetCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
+  abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -302,6 +330,13 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
                       const String& globalquantumnumbers,
                       const String& localquantumnumbers,
                       const Index& ignore_missing,
+                      const String& normalization_option,
+                      const String& mirroring_option,
+                      const String& population_option,
+                      const String& lineshapetype_option,
+                      const String& cutoff_option,
+                      const Numeric& cutoff_value,
+                      const Numeric& linemixinglimit_value,
                       const Verbosity& verbosity)
 {
   using global_data::species_data;
@@ -334,6 +369,13 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
                   fmax,
                   globalquantumnumbers,
                   localquantumnumbers,
+                  normalization_option,
+                  mirroring_option,
+                  population_option,
+                  lineshapetype_option,
+                  cutoff_option,
+                  cutoff_value,
+                  linemixinglimit_value,
                   verbosity);
       
       // Either find a line like this in the list of lines or start a new Lines
@@ -365,6 +407,18 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
   
   for (auto& band: abs_lines)
     band.sort_by_frequency();
+  
+  if (normalization_option != "None")
+    abs_linesSetNormalization(abs_lines, normalization_option, verbosity);
+  if (mirroring_option != "None")
+    abs_linesSetMirroring(abs_lines, mirroring_option, verbosity);
+  if (population_option != "None")
+    abs_linesSetPopulation(abs_lines, population_option, verbosity);
+  if (lineshapetype_option != "None")
+    abs_linesSetLineShapeType(abs_lines, lineshapetype_option, verbosity);
+  if (lineshapetype_option != "None")
+    abs_linesSetCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
+  abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
 }
 
 enum class HitranType {
@@ -395,7 +449,14 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
                 const String& globalquantumnumbers,
                 const String& localquantumnumbers,
                 const String& hitran_type,
-                const Verbosity&)
+                const String& normalization_option,
+                const String& mirroring_option,
+                const String& population_option,
+                const String& lineshapetype_option,
+                const String& cutoff_option,
+                const Numeric& cutoff_value,
+                const Numeric& linemixinglimit_value,
+                const Verbosity& verbosity)
 {
   // Global numbers
   const std::vector<QuantumNumberType> global_nums = string2vecqn(globalquantumnumbers);
@@ -450,6 +511,13 @@ void ReadHITRAN(ArrayOfAbsorptionLines& abs_lines,
     abs_lines.back().sort_by_frequency();
     x.pop_back();
   }
+  
+  abs_linesSetNormalization(abs_lines, normalization_option, verbosity);
+  abs_linesSetMirroring(abs_lines, mirroring_option, verbosity);
+  abs_linesSetPopulation(abs_lines, population_option, verbosity);
+  abs_linesSetLineShapeType(abs_lines, lineshapetype_option, verbosity);
+  abs_linesSetCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
+  abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -459,7 +527,14 @@ void ReadLBLRTM(ArrayOfAbsorptionLines& abs_lines,
                 const Numeric& fmax,
                 const String& globalquantumnumbers,
                 const String& localquantumnumbers,
-                const Verbosity&)
+                const String& normalization_option,
+                const String& mirroring_option,
+                const String& population_option,
+                const String& lineshapetype_option,
+                const String& cutoff_option,
+                const Numeric& cutoff_value,
+                const Numeric& linemixinglimit_value,
+                const Verbosity& verbosity)
 {
   // Global numbers
   const std::vector<QuantumNumberType> global_nums = string2vecqn(globalquantumnumbers);
@@ -499,6 +574,13 @@ void ReadLBLRTM(ArrayOfAbsorptionLines& abs_lines,
     abs_lines.back().sort_by_frequency();
     x.pop_back();
   }
+  
+  abs_linesSetNormalization(abs_lines, normalization_option, verbosity);
+  abs_linesSetMirroring(abs_lines, mirroring_option, verbosity);
+  abs_linesSetPopulation(abs_lines, population_option, verbosity);
+  abs_linesSetLineShapeType(abs_lines, lineshapetype_option, verbosity);
+  abs_linesSetCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
+  abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -508,7 +590,14 @@ void ReadMytran2(ArrayOfAbsorptionLines& abs_lines,
                  const Numeric& fmax,
                  const String& globalquantumnumbers,
                  const String& localquantumnumbers,
-                 const Verbosity&)
+                 const String& normalization_option,
+                 const String& mirroring_option,
+                 const String& population_option,
+                 const String& lineshapetype_option,
+                 const String& cutoff_option,
+                 const Numeric& cutoff_value,
+                 const Numeric& linemixinglimit_value,
+                 const Verbosity& verbosity)
 {
   // Global numbers
   const std::vector<QuantumNumberType> global_nums = string2vecqn(globalquantumnumbers);
@@ -548,6 +637,13 @@ void ReadMytran2(ArrayOfAbsorptionLines& abs_lines,
     abs_lines.back().sort_by_frequency();
     x.pop_back();
   }
+  
+  abs_linesSetNormalization(abs_lines, normalization_option, verbosity);
+  abs_linesSetMirroring(abs_lines, mirroring_option, verbosity);
+  abs_linesSetPopulation(abs_lines, population_option, verbosity);
+  abs_linesSetLineShapeType(abs_lines, lineshapetype_option, verbosity);
+  abs_linesSetCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
+  abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -557,7 +653,14 @@ void ReadJPL(ArrayOfAbsorptionLines& abs_lines,
              const Numeric& fmax,
              const String& globalquantumnumbers,
              const String& localquantumnumbers,
-             const Verbosity&)
+             const String& normalization_option,
+             const String& mirroring_option,
+             const String& population_option,
+             const String& lineshapetype_option,
+             const String& cutoff_option,
+             const Numeric& cutoff_value,
+             const Numeric& linemixinglimit_value,
+             const Verbosity& verbosity)
 {
   // Global numbers
   const std::vector<QuantumNumberType> global_nums = string2vecqn(globalquantumnumbers);
@@ -597,6 +700,13 @@ void ReadJPL(ArrayOfAbsorptionLines& abs_lines,
     abs_lines.back().sort_by_frequency();
     x.pop_back();
   }
+  
+  abs_linesSetNormalization(abs_lines, normalization_option, verbosity);
+  abs_linesSetMirroring(abs_lines, mirroring_option, verbosity);
+  abs_linesSetPopulation(abs_lines, population_option, verbosity);
+  abs_linesSetLineShapeType(abs_lines, lineshapetype_option, verbosity);
+  abs_linesSetCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
+  abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
