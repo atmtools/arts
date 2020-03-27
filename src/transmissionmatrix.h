@@ -973,6 +973,7 @@ ArrayOfTransmissionMatrix cumulative_transmission(
  * 
  * @param[in,out] I Radiation vector of all layers
  * @param[in,out] dI Radiation vector derivative of all layers
+ * @param[in] I_incoming Incoming radiation vector
  * @param[in] T Transmission matrix of all layers
  * @param[in] PiTf Forwards accumulated transmission of all layers
  * @param[in] PiTr Backwards accumulated transmission of all layers
@@ -985,6 +986,7 @@ ArrayOfTransmissionMatrix cumulative_transmission(
 void set_backscatter_radiation_vector(
     ArrayOfRadiationVector& I,
     ArrayOfArrayOfArrayOfRadiationVector& dI,
+    const RadiationVector & I_incoming,
     const ArrayOfTransmissionMatrix& T,
     const ArrayOfTransmissionMatrix& PiTf,
     const ArrayOfTransmissionMatrix& PiTr,

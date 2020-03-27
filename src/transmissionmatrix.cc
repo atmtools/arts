@@ -1538,6 +1538,7 @@ ArrayOfTransmissionMatrix cumulative_transmission(
 void set_backscatter_radiation_vector(
     ArrayOfRadiationVector& I,
     ArrayOfArrayOfArrayOfRadiationVector& dI,
+    const RadiationVector &I_incoming,
     const ArrayOfTransmissionMatrix& T,
     const ArrayOfTransmissionMatrix& PiTf,
     const ArrayOfTransmissionMatrix& PiTr,
@@ -1552,10 +1553,10 @@ void set_backscatter_radiation_vector(
   const Index nq = np ? dI[0][0].nelem() : 0;
   
   // For all transmission, the I-vector is the same
-  for (Index ip = 1; ip < np; ip++)
-    I[ip].setBackscatterTransmission(I[0], PiTr[ip], PiTf[ip], Z[ip]);
+  for (Index ip = 0; ip < np; ip++)
+    I[ip].setBackscatterTransmission(I_incoming, PiTr[ip], PiTf[ip], Z[ip]);
   
-  for (Index ip = 1; ip < np; ip++) {
+  for (Index ip = 0; ip < np; ip++) {
     for (Index iq = 0; iq < nq; iq++) {
       dI[ip][ip][iq].setBackscatterTransmissionDerivative(
         I[0], PiTr[ip], PiTf[ip], dZ[ip][iq]);
@@ -1568,7 +1569,7 @@ void set_backscatter_radiation_vector(
       switch(ns) { 
         case 1: {
           BackscatterSolverCommutativeTransmissionStokesDimOne:
-          for (Index ip = 1; ip < np; ip++) {
+          for (Index ip = 0; ip < np; ip++) {
             for (Index j = ip; j < np; j++) {
               for (Index iq = 0; iq < nq; iq++) {
                 for (Index iv = 0; iv < nv; iv++) {
@@ -1588,7 +1589,7 @@ void set_backscatter_radiation_vector(
           }
         } break;
         case 2: {
-          for (Index ip = 1; ip < np; ip++) {
+          for (Index ip = 0; ip < np; ip++) {
             for (Index j = ip; j < np; j++) {
               for (Index iq = 0; iq < nq; iq++) {
                 for (Index iv = 0; iv < nv; iv++) {
@@ -1608,7 +1609,7 @@ void set_backscatter_radiation_vector(
           }
         } break;
         case 3: {
-          for (Index ip = 1; ip < np; ip++) {
+          for (Index ip = 0; ip < np; ip++) {
             for (Index j = ip; j < np; j++) {
               for (Index iq = 0; iq < nq; iq++) {
                 for (Index iv = 0; iv < nv; iv++) {
@@ -1628,7 +1629,7 @@ void set_backscatter_radiation_vector(
           }
         } break;
         case 4: {
-          for (Index ip = 1; ip < np; ip++) {
+          for (Index ip = 0; ip < np; ip++) {
             for (Index j = ip; j < np; j++) {
               for (Index iq = 0; iq < nq; iq++) {
                 for (Index iv = 0; iv < nv; iv++) {
@@ -1657,7 +1658,7 @@ void set_backscatter_radiation_vector(
           goto BackscatterSolverCommutativeTransmissionStokesDimOne;
         } break;
         case 2: {
-          for (Index ip = 1; ip < np; ip++) {
+          for (Index ip = 0; ip < np; ip++) {
             for (Index j = ip; j < np; j++) {
               for (Index iq = 0; iq < nq; iq++) {
                 for (Index iv = 0; iv < nv; iv++) {
