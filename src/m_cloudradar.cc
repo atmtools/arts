@@ -1131,8 +1131,11 @@ void iyActiveSingleScat2(Workspace& ws,
       cumulative_backscatter_derivative(Pe, ppvar_dpnd_dx);
 
   lvl_rad[0] = iy0;
+  RadiationVector rad_inc = RadiationVector(nf, ns);
+  rad_inc = iy0;
   set_backscatter_radiation_vector(lvl_rad,
                                    dlvl_rad,
+                                   rad_inc,
                                    lyr_tra,
                                    tot_tra_forward,
                                    tot_tra_reflect,
@@ -1141,6 +1144,7 @@ void iyActiveSingleScat2(Workspace& ws,
                                    dlyr_tra_below,
                                    dreflect_matrix,
                                    BackscatterSolver::CommutativeTransmission);
+
 
   // Size iy and set to zero
   iy.resize(nf * np, ns);  // iv*np + ip is the desired output order...
