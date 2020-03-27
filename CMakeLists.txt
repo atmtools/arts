@@ -422,7 +422,7 @@ if (CMAKE_GENERATOR STREQUAL "Xcode")
 endif (CMAKE_GENERATOR STREQUAL "Xcode")
 
 add_custom_target(check
-  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -E '\(python.|.nocheck.|.slow.|.xmldata.|.planettoolbox.\)' DEPENDS arts)
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -E '\(python.|.pyarts.|.nocheck.|.slow.|.xmldata.|.planettoolbox.\)' DEPENDS arts)
 
 add_custom_target(check-python
   COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -R '\(python.|.pyarts.|.cmdline.|.doc.\)' -E '\(.nocheck.|.slow.|.xmldata.|.planettoolbox.\)' DEPENDS python_tests arts)
