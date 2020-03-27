@@ -113,7 +113,12 @@ class MCAntenna:
     def set(self, other):
         """ Sets this class according to another python instance of itself """
         if isinstance(other, MCAntenna):
-              raise RuntimeWarning("Cannot set MCAntenna, remains constant")
+            self.type = other.type
+            self.sigma_aa = other.sigma_aa
+            self.sigma_za = other.sigma_za
+            self.aa_grid = other.aa_grid
+            self.za_grid = other.za_grid
+            self.g_lookup = other.g_lookup
         else:
             raise TypeError("Expects MCAntenna")
 
