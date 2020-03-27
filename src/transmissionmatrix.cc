@@ -1559,7 +1559,7 @@ void set_backscatter_radiation_vector(
   for (Index ip = 0; ip < np; ip++) {
     for (Index iq = 0; iq < nq; iq++) {
       dI[ip][ip][iq].setBackscatterTransmissionDerivative(
-        I[0], PiTr[ip], PiTf[ip], dZ[ip][iq]);
+        I_incoming, PiTr[ip], PiTf[ip], dZ[ip][iq]);
     }
   }
   

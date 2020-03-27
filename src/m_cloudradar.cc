@@ -1131,7 +1131,7 @@ void iyActiveSingleScat2(Workspace& ws,
       cumulative_backscatter_derivative(Pe, ppvar_dpnd_dx);
 
   lvl_rad[0] = iy0;
-  RadiationVector rad_inc{};
+  RadiationVector rad_inc = RadiationVector(nf, ns);
   rad_inc = iy0;
   set_backscatter_radiation_vector(lvl_rad,
                                    dlvl_rad,
