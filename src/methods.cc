@@ -447,27 +447,30 @@ void define_md_data_raw() {
   md_data_raw.push_back(MdRecord(
       NAME("abs_linesAppendWithLines"),
       DESCRIPTION(
-          "Appends all lines in *abs_lines* that match with lines in replacement_lines.\n"
+          "Appends all lines in *abs_lines* that match with lines in replacement_lines if *safe*.\n"
+          "If not *safe*, appends all lines.\n"
           "\n"
-          "No appended line is allowed to match any line in *abs_lines*\n"
+          "No appended line is allowed to match any line in *abs_lines* if *safe*\n"
           "\n"
-          "Conditional behavior:\n"
+          "Conditional behavior if *safe*:\n"
           "\tIf the AbosorptionLines to be appended match no AbsorptionLines\n"
           "\tin *abs_lines*, then the entire AbsorptionLines is appended.\n"
           "\tOtherwise, only a single AbsorptionLines can be matched and is not\n"
           "\tallowed to have any internal matches\n"
           "\n"
-          "Note that lines are identified by their AbsorptionLines tags and by their quantum numbers.\n"),
+          "Note that lines are identified by their AbsorptionLines tags and by their quantum numbers\n"
+          "in *safe* mode.\n"),
       AUTHORS("Richard Larsson"),
       OUT("abs_lines"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_lines"),
-      GIN("appending_lines"),
-      GIN_TYPE("ArrayOfAbsorptionLines"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Line-array that appends lines in *abs_lines*.")));
+      GIN("appending_lines", "safe"),
+      GIN_TYPE("ArrayOfAbsorptionLines", "Index"),
+      GIN_DEFAULT(NODEF, "1"),
+      GIN_DESC("Line-array that appends lines in *abs_lines*.",
+               "Flag whether to check quantum numbers or not")));
 
   md_data_raw.push_back(MdRecord(
       NAME("abs_linesDeleteWithLines"),

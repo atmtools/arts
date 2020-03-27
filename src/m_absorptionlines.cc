@@ -1057,40 +1057,45 @@ void abs_linesReplaceWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfA
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_linesAppendWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& appending_lines, const Verbosity&)
+void abs_linesAppendWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& appending_lines, const Index& safe, const Verbosity&)
 {
-  std::vector<AbsorptionLines> addedlines(0);
-  
-  for (auto& alines: appending_lines) {
-    Index number_of_matching_bands = 0;
-    for (auto& tlines: abs_lines) {
-      if (tlines.Match(alines)) {
-        number_of_matching_bands++;
-        for (auto& aline: alines.AllLines()) {
-          Index number_of_matching_single_lines = 0;
-          for (auto& tline: tlines.AllLines()) {
-            if (tline.SameQuantumNumbers(aline)) {
-              number_of_matching_single_lines++;
+  if (safe) {
+    std::vector<AbsorptionLines> addedlines(0);
+    
+    for (auto& alines: appending_lines) {
+      Index number_of_matching_bands = 0;
+      for (auto& tlines: abs_lines) {
+        if (tlines.Match(alines)) {
+          number_of_matching_bands++;
+          for (auto& aline: alines.AllLines()) {
+            Index number_of_matching_single_lines = 0;
+            for (auto& tline: tlines.AllLines()) {
+              if (tline.SameQuantumNumbers(aline)) {
+                number_of_matching_single_lines++;
+              }
             }
+            if (number_of_matching_single_lines not_eq 0) {
+              throw std::runtime_error("Error: Did match to a single single line.  This means the input data has not been understood.  This function needs exactly zero matches.");
+            }
+            tlines.AppendSingleLine(aline);
           }
-          if (number_of_matching_single_lines not_eq 0) {
-            throw std::runtime_error("Error: Did match to a single single line.  This means the input data has not been understood.  This function needs exactly zero matches.");
-          }
-          tlines.AppendSingleLine(aline);
+          tlines.sort_by_frequency();
         }
-        tlines.sort_by_frequency();
+      }
+      
+      if (number_of_matching_bands == 0)
+        addedlines.push_back(alines);
+      else if (number_of_matching_bands not_eq 1) {
+        throw std::runtime_error("Error: Did not match to a single set of absorption lines.  This means the input data has not been understood.  This function needs exactly one or zero matches.");
       }
     }
     
-    if (number_of_matching_bands == 0)
-      addedlines.push_back(alines);
-    else if (number_of_matching_bands not_eq 1) {
-      throw std::runtime_error("Error: Did not match to a single set of absorption lines.  This means the input data has not been understood.  This function needs exactly one or zero matches.");
+    for (auto& lines: addedlines) {
+      abs_lines.push_back(std::move(lines));
     }
-  }
-  
-  for (auto& lines: addedlines) {
-    abs_lines.push_back(std::move(lines));
+  } else {
+    for (auto& band: appending_lines)
+      abs_lines.push_back(band);
   }
 }
 
