@@ -681,6 +681,13 @@ extern "C" {
     // MCAntenna
     BasicInterfaceCAPI(MCAntenna)
     BasicInputOutputCAPI(MCAntenna)
+    VoidGetterCAPI(MCAntenna, saa)
+    VoidGetterCAPI(MCAntenna, sza)
+    VoidGetterCAPI(MCAntenna, aag)
+    VoidGetterCAPI(MCAntenna, zag)
+    VoidGetterCAPI(MCAntenna, G)
+    DLL_PUBLIC Index getTypeMCAntenna(void *);
+    DLL_PUBLIC Index setTypeMCAntenna(void *, Index);
     
     // GasAbsLookup
     BasicInterfaceCAPI(GasAbsLookup)

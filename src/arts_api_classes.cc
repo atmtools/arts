@@ -883,6 +883,13 @@ BasicInputOutputCAPI(ArrayOfTelsemAtlas)
 // MCAntenna
 BasicInterfaceCAPI(MCAntenna)
 BasicInputOutputCAPI(MCAntenna)
+VoidGetterCAPI(MCAntenna, saa)
+VoidGetterCAPI(MCAntenna, sza)
+VoidGetterCAPI(MCAntenna, aag)
+VoidGetterCAPI(MCAntenna, zag)
+VoidGetterCAPI(MCAntenna, G)
+Index getTypeMCAntenna(void * data) {return Index(static_cast<MCAntenna *>(data) -> Type());}
+Index setTypeMCAntenna(void * data, Index newval) {return Index(static_cast<MCAntenna *>(data) -> Type(AntennaType(newval)));}
 
 
 // GasAbsLookup

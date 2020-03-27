@@ -18,6 +18,7 @@ from pyarts.classes.GriddedField5 import GriddedField5
 from pyarts.classes.GriddedField6 import GriddedField6
 from pyarts.classes.GridPos import GridPos
 from pyarts.classes.Matrix import Matrix, ArrayOfMatrix, ArrayOfArrayOfMatrix
+from pyarts.classes.MCAntenna import MCAntenna
 from pyarts.classes.Ppath import Ppath, ArrayOfPpath
 from pyarts.classes.PropagationMatrix import PropagationMatrix, ArrayOfPropagationMatrix, ArrayOfArrayOfPropagationMatrix
 from pyarts.classes.QuantumIdentifier import QuantumIdentifier, ArrayOfQuantumIdentifier
@@ -42,7 +43,6 @@ from pyarts.classes.XsecRecord import ArrayOfXsecRecord
 # No interface but creation and IO
 from pyarts.classes.Agenda import Agenda, ArrayOfAgenda
 from pyarts.classes.CovarianceMatrix import CovarianceMatrix
-from pyarts.classes.MCAntenna import MCAntenna
 from pyarts.classes.RetrievalQuantity import ArrayOfRetrievalQuantity
 from pyarts.classes.Sparse import Sparse, ArrayOfSparse
 from pyarts.classes.TelsemAtlas import TelsemAtlas, ArrayOfTelsemAtlas
