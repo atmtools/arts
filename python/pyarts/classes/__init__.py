@@ -24,6 +24,7 @@ from pyarts.classes.PropagationMatrix import PropagationMatrix, ArrayOfPropagati
 from pyarts.classes.QuantumIdentifier import QuantumIdentifier, ArrayOfQuantumIdentifier
 from pyarts.classes.RadiationVector import RadiationVector, ArrayOfRadiationVector, ArrayOfArrayOfRadiationVector
 from pyarts.classes.Rational import Rational
+from pyarts.classes.RetrievalQuantity import ArrayOfRetrievalQuantity
 from pyarts.classes.ScatteringMetaData import ScatteringMetaData, ArrayOfScatteringMetaData, ArrayOfArrayOfScatteringMetaData
 from pyarts.classes.SingleScatteringData import SingleScatteringData, ArrayOfSingleScatteringData, ArrayOfArrayOfSingleScatteringData
 from pyarts.classes.SpeciesAuxData import SpeciesAuxData
@@ -43,7 +44,6 @@ from pyarts.classes.XsecRecord import ArrayOfXsecRecord
 # No interface but creation and IO
 from pyarts.classes.Agenda import Agenda, ArrayOfAgenda
 from pyarts.classes.CovarianceMatrix import CovarianceMatrix
-from pyarts.classes.RetrievalQuantity import ArrayOfRetrievalQuantity
 from pyarts.classes.Sparse import Sparse, ArrayOfSparse
 from pyarts.classes.TelsemAtlas import TelsemAtlas, ArrayOfTelsemAtlas
 from pyarts.classes.Timer import Timer

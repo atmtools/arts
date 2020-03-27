@@ -745,9 +745,24 @@ extern "C" {
     // RetrievalQuantity
     BasicInterfaceCAPI(RetrievalQuantity)
     BasicInputOutputCAPI(RetrievalQuantity)
+    VoidGetterCAPI(RetrievalQuantity, MainTag)
+    VoidGetterCAPI(RetrievalQuantity, SubTag)
+    VoidGetterCAPI(RetrievalQuantity, SubSubTag)
+    VoidGetterCAPI(RetrievalQuantity, Mode)
+    VoidGetterCAPI(RetrievalQuantity, Analytical)
+    VoidGetterCAPI(RetrievalQuantity, Perturbation)
+    VoidGetterCAPI(RetrievalQuantity, Grids)
+    VoidGetterCAPI(RetrievalQuantity, QuantumIdentity)
+    VoidGetterCAPI(RetrievalQuantity, TransformationFunc)
+    VoidGetterCAPI(RetrievalQuantity, TFuncParameters)
+    VoidGetterCAPI(RetrievalQuantity, Transformation)
+    VoidGetterCAPI(RetrievalQuantity, Offset)
+    GetterSetterCAPI(RetrievalQuantity, Integration, bool)
     VoidArrayCAPI(ArrayOfRetrievalQuantity)
     BasicInterfaceCAPI(ArrayOfRetrievalQuantity)
     BasicInputOutputCAPI(ArrayOfRetrievalQuantity)
+    DLL_PUBLIC Index getTypeRetrievalQuantity(void *);
+    DLL_PUBLIC Index setTypeRetrievalQuantity(void *, Index);
     
     // generic
     DLL_PUBLIC Index string2filetypeindex(char *);

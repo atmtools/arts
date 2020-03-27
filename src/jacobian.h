@@ -359,6 +359,23 @@ class RetrievalQuantity {
            a.mquantumidentifier == mquantumidentifier and
            a.mproptype == mproptype;
   }
+  
+  String& MainTag() {return mmaintag;}
+  String& SubTag() {return msubtag;}
+  String& SubSubTag() {return msubsubtag;}
+  String& Mode() {return mmode;}
+  Index& Analytical() {return manalytical;}
+  Numeric& Perturbation() {return mperturbation;}
+  ArrayOfVector& Grids() {return mgrids;}
+  QuantumIdentifier& QuantumIdentity() {return mquantumidentifier;}
+  JacPropMatType Proptype() {return mproptype;}
+  Index Proptype(JacPropMatType x) {if (validProptype(x)) {mproptype = x; return EXIT_SUCCESS;} else return EXIT_FAILURE;}
+  bool validProptype(JacPropMatType x) {return Index(x) <= Index(JacPropMatType::NotPropagationMatrixType) and Index(x) >= 0;}
+  void Integration(bool x) {mintegration_flag = x;}
+  String& TransformationFunc() {return transformation_func;}
+  Vector& TFuncParameters() {return tfunc_parameters;}
+  Matrix& Transformation() {return transformation_matrix;}
+  Vector& Offset() {return offset_vector;}
 
  private:
   String mmaintag;
