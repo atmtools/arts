@@ -459,6 +459,11 @@ VariableValueStruct get_variable_value(InteractiveWorkspace *workspace,
   return value;
 }
 
+void * get_variable_data_pointer(InteractiveWorkspace *workspace,
+                                 Index id) {
+  return workspace->operator[](id);
+}
+
 CovarianceMatrixBlockStruct get_covariance_matrix_block(CovarianceMatrix *m,
                                                         long block_index,
                                                         bool inverse) {

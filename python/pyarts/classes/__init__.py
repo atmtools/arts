@@ -5,6 +5,7 @@
 
 # Full interface including internal manipulation
 from pyarts.classes.AbsorptionLines import AbsorptionLines, ArrayOfAbsorptionLines, ArrayOfArrayOfAbsorptionLines
+from pyarts.classes.Agenda import Agenda, ArrayOfAgenda
 from pyarts.classes.Any import Any
 from pyarts.classes.BasicTypes import Numeric, Index, ArrayOfIndex, ArrayOfArrayOfIndex, String, ArrayOfString, ArrayOfArrayOfString
 from pyarts.classes.CIARecord import CIARecord, ArrayOfCIARecord
@@ -36,23 +37,23 @@ from pyarts.classes.Tensor5 import Tensor5, ArrayOfTensor5
 from pyarts.classes.Tensor6 import Tensor6, ArrayOfTensor6, ArrayOfArrayOfTensor6
 from pyarts.classes.Tensor7 import Tensor7, ArrayOfTensor7
 from pyarts.classes.TessemNN import TessemNN
+from pyarts.classes.Timer import Timer
 from pyarts.classes.TransmissionMatrix import TransmissionMatrix, ArrayOfTransmissionMatrix, ArrayOfArrayOfTransmissionMatrix
 from pyarts.classes.Vector import Vector, ArrayOfVector, ArrayOfArrayOfVector
 from pyarts.classes.Verbosity import Verbosity
 from pyarts.classes.XsecRecord import ArrayOfXsecRecord
 
 # No interface but creation and IO
-from pyarts.classes.Agenda import Agenda, ArrayOfAgenda
 from pyarts.classes.CovarianceMatrix import CovarianceMatrix
 from pyarts.classes.Sparse import Sparse, ArrayOfSparse
 from pyarts.classes.TelsemAtlas import TelsemAtlas, ArrayOfTelsemAtlas
-from pyarts.classes.Timer import Timer
 
 
 # Attempt at conversions
 import pyarts
 import ctypes as c
 from pyarts.workspace.api import arts_api as lib
+
 def from_workspace(x):
     """ Converts a workspace variable to a python class
 
@@ -64,15 +65,16 @@ def from_workspace(x):
         A modifyable ARTS variable (pyarts.workspace.eval(x.group))
     """
     if isinstance(x, pyarts.workspace.WorkspaceVariable):
-        v = lib.get_variable_value(x.ws.ptr, x.ws_id, x.group_id)
+        v = lib.get_variable_data_pointer(x.ws.ptr, x.ws_id, x.group_id)
         typ = eval(x.group)
 
-        if v.ptr is None:
-            raise RuntimeError("Cannot initializae from uninitialized")
+        if v is None:
+            raise RuntimeError("Expects non-nullptr")
 
-        if typ in (Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7, Sparse):
-            raise RuntimeError("Cannot convert matpack types")
-
-        return typ(c.c_void_p(v.ptr))
+        return typ(c.c_void_p(v))
     else:
         raise TypeError("Expects WorkspaceVariable")
+
+
+lib.get_variable_data_pointer.restype = c.c_void_p
+lib.get_variable_data_pointer.argtypes = [c.c_void_p, c.c_long]
