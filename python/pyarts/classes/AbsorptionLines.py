@@ -103,9 +103,10 @@ class AbsorptionLines:
             for line in y:
                 line.set(x)
 
-            if not self.OK():
+            if not self.OK:
                 raise ValueError("Bad initialization of class")
 
+    @property
     def OK(self):
         """ Returns whether the class is OK or not """
         return bool(lib.isAbsorptionLinesOK(self.__data__))
@@ -306,17 +307,20 @@ class AbsorptionLines:
 
     def print(self):
         """ Print to cout the ARTS representation of the class """
-        lib.printAbsorptionLines(self.__data__)
+        if self.OK:
+            lib.printAbsorptionLines(self.__data__)
+        else:
+            raise ValueError("Cannot print; class is not OK")
 
     def printmeta(self):
         """ Print to cout the ARTS meta representation of the class
 
         Will check if the class is OK or raise a ValueError
         """
-        if self.OK():
+        if self.OK:
             lib.printmetaAbsorptionLines(self.__data__)
         else:
-            raise ValueError("Class is in a bad state")
+            raise ValueError("Cannot understand metadata; class is not OK")
 
     def __del__(self):
         if self.__delete__:
@@ -373,6 +377,9 @@ class AbsorptionLines:
             clobber:
                 Allow clobbering files? (any boolean)
         """
+        if not self.OK:
+            raise ValueError("Cannot store; class is not OK")
+
         if lib.xmlsaveAbsorptionLines(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
 
