@@ -66,6 +66,10 @@ def from_workspace(x):
     if isinstance(x, pyarts.workspace.WorkspaceVariable):
         v = lib.get_variable_value(x.ws.ptr, x.ws_id, x.group_id)
         typ = eval(x.group)
+
+        if v.ptr is None:
+            raise RuntimeError("Cannot initializae from uninitialized")
+
         if typ in (Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7, Sparse):
             raise RuntimeError("Cannot convert matpack types")
 
