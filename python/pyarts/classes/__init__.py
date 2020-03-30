@@ -47,3 +47,28 @@ from pyarts.classes.CovarianceMatrix import CovarianceMatrix
 from pyarts.classes.Sparse import Sparse, ArrayOfSparse
 from pyarts.classes.TelsemAtlas import TelsemAtlas, ArrayOfTelsemAtlas
 from pyarts.classes.Timer import Timer
+
+
+# Attempt at conversions
+import pyarts
+import ctypes as c
+from pyarts.workspace.api import arts_api as lib
+def from_workspace(x):
+    """ Converts a workspace variable to a python class
+
+    Input:
+        x:
+            A workspace variable (pyarts.workspace.WorkspaceVariable)
+
+    Output:
+        A modifyable ARTS variable (pyarts.workspace.eval(x.group))
+    """
+    if isinstance(x, pyarts.workspace.WorkspaceVariable):
+        v = lib.get_variable_value(x.ws.ptr, x.ws_id, x.group_id)
+        typ = eval(x.group)
+        if typ in (Vector, Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7, Sparse):
+            raise RuntimeError("Cannot convert matpack types")
+
+        return typ(c.c_void_p(v.ptr))
+    else:
+        raise TypeError("Expects WorkspaceVariable")
