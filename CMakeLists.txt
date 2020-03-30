@@ -55,17 +55,7 @@ set(Python_ADDITIONAL_VERSIONS 3)
 find_package (PythonInterp REQUIRED)
 
 include (CheckPythonModule)
-set(REQUIRED_MODULES
-  docutils
-  lark
-  matplotlib
-  netCDF4
-  numpy
-  pytest
-  scipy
-  setuptools
-  )
-check_python_modules("${REQUIRED_MODULES}")
+check_python_modules()
 
 if (ENABLE_FORTRAN)
   enable_language (Fortran)
