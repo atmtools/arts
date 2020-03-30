@@ -5,7 +5,7 @@
 macro (CHECK_PYTHON_MODULES)
   set(REQUIRED_MODULES
     docutils
-    lark
+    lark.parse_tree_builder
     matplotlib
     netCDF4
     numpy
