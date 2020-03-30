@@ -4,6 +4,8 @@ on: [push]
 
 jobs:
   publish:
+    if: github.repository == 'atmtools/arts'
+    continue-on-error: true
     runs-on: ubuntu-latest
     name: Build and publish Python wheels.
     steps:
