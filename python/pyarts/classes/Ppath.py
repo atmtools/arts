@@ -319,6 +319,34 @@ class Ppath:
         if lib.xmlsavePpath(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
 
+    def __eq__(self, other):
+        if isinstance(other, Ppath) and \
+                self.dim == other.dim and \
+                self.np == other.np and \
+                self.constant == other.constant and \
+                self.background == other.background and \
+                self.start_pos == other.start_pos and \
+                self.start_los == other.start_los and \
+                self.start_lstep == other.start_lstep and \
+                self.pos == other.pos and \
+                self.los == other.los and \
+                self.r == other.r and \
+                self.lstep == other.lstep and \
+                self.end_pos == other.end_pos and \
+                self.end_los == other.end_los and \
+                self.end_lstep == other.end_lstep and \
+                self.nreal == other.nreal and \
+                self.ngroup == other.ngroup and \
+                self.gp_p == other.gp_p and \
+                self.gp_lat == other.gp_lat and \
+                self.gp_lon == other.gp_lon:
+            return True
+        else:
+            return False
+
+    def __bool__(self):
+        return self.np > 0
+
 
 exec(array_base(Ppath))
 
