@@ -397,11 +397,13 @@ extern "C" {
     DLL_PUBLIC char * getString(void * data);
     
     // GridPos
+    BasicInterfaceCAPI(GridPos)
     BasicInputOutputCAPI(GridPos)
+    VoidStructGetterCAPI(GridPos, idx)
+    VoidStructGetterCAPI(GridPos, fd)
     VoidArrayCAPI(ArrayOfGridPos)
     BasicInterfaceCAPI(ArrayOfGridPos)
     BasicInputOutputCAPI(ArrayOfGridPos)
-    DLL_PUBLIC void printGridPos(void *);
     
     // GridPosPoly
     BasicInterfaceCAPI(GridPosPoly)

@@ -20,3 +20,7 @@ acr2 = from_workspace(ws.abs_cia_data)
 assert acr1, "Bad read"
 assert acr1 == acr2, "Bad read"
 assert isinstance(acr1[0], CIARecord), "Bad type"
+
+acr3 = ArrayOfCIARecord()
+acr3.set(acr1)
+assert acr1 == acr3, "Bad read"

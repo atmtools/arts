@@ -17,9 +17,15 @@ assert isinstance(i, Index), "Bad read"
 
 s.val = "Hej"
 assert s == "Hej", "Bad write"
+s.set(String("Help"))
+assert s == "Help", "Bad write"
 
 i.val = 3
 assert i == 3, "Bad write"
+i.set(5)
+assert i == 5, "Bad write"
 
 n.val = 3.5
 assert n == 3.5, "Bad write"
+n.set(3.14)
+assert n == 3.14, "Bad write"

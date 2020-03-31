@@ -88,6 +88,15 @@ class Index:
     def __lt__(self, other):
         return self.val < int(other)
 
+    def __le__(self, other):
+        return self.val <= int(other)
+
+    def __gt__(self, other):
+        return self.val > int(other)
+
+    def __ge__(self, other):
+        return self.val >= int(other)
+
 
 class Numeric:
     """ ARTS Numeric data
@@ -170,6 +179,15 @@ class Numeric:
 
     def __lt__(self, other):
         return self.val < float(other)
+
+    def __le__(self, other):
+        return self.val <= float(other)
+
+    def __gt__(self, other):
+        return self.val > float(other)
+
+    def __ge__(self, other):
+        return self.val >= float(other)
 
 
 class String:

@@ -41,7 +41,11 @@ ws.abs_speciesSet(species = ["O2-66"])
 aal.readxml(fn2)
 ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename = fn1)
 
-# Everythin should be the same (with silly not-empty test)
+# Everything should be the same (with silly not-empty test)
 assert aal == aaal[0], "Bad load"
 assert aal[0].lines[0].f0 != 0, "Bad frequency"
 assert 2*aal[0].lines[0].f0 == 2*aaal[0][0].lines[0].f0, "Bad frequency"
+
+al.set(aal[0])
+assert al == aal[0]
+

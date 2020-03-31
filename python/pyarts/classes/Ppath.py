@@ -345,7 +345,7 @@ class Ppath:
             return False
 
     def __bool__(self):
-        return self.np > 0
+        return not self.np <= 0
 
 
 exec(array_base(Ppath))

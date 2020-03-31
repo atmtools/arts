@@ -67,3 +67,24 @@ assert not gf5.OK
 gf6.data = Tensor6(np.zeros((10, 20, 5, 3, 2, 4)))
 assert not gf6
 assert not gf6.OK
+
+gf12 = GriddedField1()
+gf22 = GriddedField2()
+gf32 = GriddedField3()
+gf42 = GriddedField4()
+gf52 = GriddedField5()
+gf62 = GriddedField6()
+
+gf12.set(gf1)
+gf22.set(gf2)
+gf32.set(gf3)
+gf42.set(gf4)
+gf52.set(gf5)
+gf62.set(gf6)
+
+assert gf1 == gf12
+assert gf2 == gf22
+assert gf3 == gf32
+assert gf4 == gf42
+assert gf5 == gf52
+assert gf6 == gf62

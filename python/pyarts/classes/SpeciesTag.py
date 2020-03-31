@@ -160,9 +160,9 @@ class SpeciesTag:
     def set(self, other):
         """ Sets this class according to another python instance of itself """
         if isinstance(other, SpeciesTag):
-            self.type = other.type
-            self.spec = other.spec
-            self.isot = other.isot
+            lib.setTypeSpeciesTag(self.__data__, int(other.type))
+            lib.setSpeciesSpeciesTag(self.__data__, int(other.spec))
+            lib.setIsotopologueSpeciesTag(self.__data__, int(other.isot))
             self.cia_second = other.cia_second
             self.cia_dataset = other.cia_dataset
             self.uf = float("inf")

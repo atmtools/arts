@@ -56,3 +56,27 @@ assert (t1.data == t7.data).all()
 
 t7.data = t7.data.reshape(3, 1, 1, 1, 1, 1, 1)
 assert (t1.data == t7.data.flatten()).all()
+
+t12 = Vector()
+t22 = Matrix()
+t32 = Tensor3()
+t42 = Tensor4()
+t52 = Tensor5()
+t62 = Tensor6()
+t72 = Tensor7()
+
+t12.set(t1)
+t22.set(t2)
+t32.set(t3)
+t42.set(t4)
+t52.set(t5)
+t62.set(t6)
+t72.set(t7)
+
+assert t12 == t1
+assert t22 == t2
+assert t32 == t3
+assert t42 == t4
+assert t52 == t5
+assert t62 == t6
+assert t72 == t7

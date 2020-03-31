@@ -16,3 +16,8 @@ elm2 = from_workspace(ws.nlte_field)
 assert elm1, "Bad read"
 assert elm1 == elm2, "Bad read"
 assert elm1.data
+
+elm3 = EnergyLevelMap()
+elm3.set(elm1)
+
+assert elm3 == elm2

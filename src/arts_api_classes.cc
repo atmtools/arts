@@ -528,11 +528,13 @@ char * getString(void * data) {return const_cast<char *>(static_cast<String *>(d
 
 
 // GridPos
+BasicInterfaceCAPI(GridPos)
 BasicInputOutputCAPI(GridPos)
+VoidStructGetterCAPI(GridPos, idx)
+VoidStructGetterCAPI(GridPos, fd)
 VoidArrayCAPI(ArrayOfGridPos)
 BasicInterfaceCAPI(ArrayOfGridPos)
 BasicInputOutputCAPI(ArrayOfGridPos)
-void printGridPos(void * data) {std::cout << (*static_cast<GridPos *>(data)) << std::endl;}
 
 
 // GridPosPoly

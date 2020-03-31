@@ -1,4 +1,5 @@
 import ctypes as c
+from collections.abc import Sized
 from pyarts.workspace.api import arts_api as lib
 
 from pyarts.classes.QuantumNumbers import QuantumNumbers

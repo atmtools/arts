@@ -55,7 +55,7 @@ class EnergyLevelMap:
 
     @levels.setter
     def levels(self, val):
-        self.broadeningspecies.set(val)
+        self.levels.set(val)
 
     @property
     def energies(self):
