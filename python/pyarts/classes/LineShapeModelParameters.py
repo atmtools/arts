@@ -1,7 +1,7 @@
 import ctypes as c
 from pyarts.workspace.api import arts_api as lib
 
-from math import isnan
+from math import isnan, nan
 
 
 class InternalLineShapeModelParameters(c.Structure):
@@ -12,7 +12,7 @@ class InternalLineShapeModelParameters(c.Structure):
                 ("x2", c.c_double),
                 ("x3", c.c_double),]
 
-    def __init__(self, type=0, x0=float('nan'), x1=float('nan'), x2=float('nan'), x3=float('nan')):
+    def __init__(self, type=0, x0=nan, x1=nan, x2=nan, x3=nan):
         self.type = int(type)
         self.x0 = float(x0)
         self.x1 = float(x1)
@@ -43,7 +43,7 @@ class LineShapeModelParameters:
         x3:
             Model parameter #4 (Numeric)
         """
-    def __init__(self, type="#", x0=float('nan'), x1=float('nan'), x2=float('nan'), x3=float('nan')):
+    def __init__(self, type="#", x0=nan, x1=nan, x2=nan, x3=nan):
         if isinstance(type, InternalLineShapeModelParameters):
             self.__data__ = type
         else:

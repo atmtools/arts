@@ -1,7 +1,7 @@
 import ctypes as c
 from pyarts.workspace.api import arts_api as lib
 
-from math import isnan
+from math import isnan, nan
 
 class ZeemanModel:
     """ ARTS Zeeman::Model data
@@ -14,7 +14,7 @@ class ZeemanModel:
             Lower level Zeeman splitting (Numeric)
         """
 
-    def __init__(self, gu=float('nan'), gl=float('nan')):
+    def __init__(self, gu=nan, gl=nan):
         if isinstance(gu, c.c_void_p):
             self.__delete__ = False
             self.__data__ = gu
