@@ -6,6 +6,8 @@ from pyarts.classes.AbsorptionLines import AbsorptionLines, ArrayOfAbsorptionLin
 
 ws = Workspace()
 datapath = "../../arts-xml-data/" if not os.getenv("ARTS_XML_DATA_DIR") else os.getenv("ARTS_XML_DATA_DIR")
+fn1 = os.path.join(datapath, 'spectroscopy/cat/')
+fn2 = os.path.join(datapath, 'spectroscopy/cat/O2-66.xml')
 
 # Init
 al = AbsorptionLines()
@@ -36,8 +38,8 @@ assert al.OK, "Bad init"
 
 # Read same file twice, in ARTS and external
 ws.abs_speciesSet(species = ["O2-66"])
-aal.readxml(datapath + 'spectroscopy/cat/O2-66.xml')
-ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename = datapath + 'spectroscopy/cat/')
+aal.readxml(fn2)
+ws.abs_lines_per_speciesReadSpeciesSplitCatalog(basename = fn1)
 
 # Everythin should be the same (with silly not-empty test)
 assert aal == aaal[0], "Bad load"

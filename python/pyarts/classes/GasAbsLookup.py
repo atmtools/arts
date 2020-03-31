@@ -175,7 +175,17 @@ class GasAbsLookup:
     def set(self, other):
         """ Sets this class according to another python instance of itself """
         if isinstance(other, GasAbsLookup):
-              raise RuntimeWarning("Cannot set GasAbsLookup, remains constant")
+            self.specs = other.specs
+            self.nonlinspecs = other.nonlinspecs
+            self.f_grid = other.f_grid
+            self.fgp_default = other.fgp_default
+            self.p_grid = other.p_grid
+            self.log_p_grid = other.log_p_grid
+            self.vmrs = other.vmrs
+            self.t_ref = other.t_ref
+            self.t_pert = other.t_pert
+            self.nls_pert = other.nls_pert
+            self.xsec = other.xsec
         else:
             raise TypeError("Expects GasAbsLookup")
 
@@ -204,6 +214,26 @@ class GasAbsLookup:
         """
         if lib.xmlsaveGasAbsLookup(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
+
+    def __eq__(self, other):
+        if isinstance(other, GasAbsLookup) and \
+                self.specs == other.specs and \
+                self.nonlinspecs == other.nonlinspecs and \
+                self.f_grid == other.f_grid and \
+                self.fgp_default == other.fgp_default and \
+                self.p_grid == other.p_grid and \
+                self.log_p_grid == other.log_p_grid and \
+                self.vmrs == other.vmrs and \
+                self.t_ref == other.t_ref and \
+                self.t_pert == other.t_pert and \
+                self.nls_pert == other.nls_pert and \
+                self.xsec == other.xsec:
+            return True
+        else:
+            return False
+
+    def __bool__(self):
+        return bool(self.xsec)
 
 
 lib.createGasAbsLookup.restype = c.c_void_p

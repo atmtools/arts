@@ -63,6 +63,12 @@ class GridPosPoly:
         else:
             raise TypeError("Expects GridPosPoly")
 
+    def __eq__(self, other):
+        if isinstance(other, GridPosPoly) and self.idx == other.idx and self.w == other.w:
+            return True
+        else:
+            return False
+
 
 exec(array_base(GridPosPoly))
 
