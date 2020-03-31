@@ -5,6 +5,8 @@ from pyarts.workspace.api import arts_api as lib
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 from pyarts.classes.ArrayBase import array_base
 
+from math import isclose
+
 
 class InternalGridPos(c.Structure):
     """ ARTS Internal data layout... do not use """
@@ -39,6 +41,10 @@ class GridPos:
             self.idx = idx
             self.fd = fd
 
+    @property
+    def OK(self):
+        return bool(self)
+
     @staticmethod
     def name():
         return "GridPos"
@@ -69,7 +75,10 @@ class GridPos:
 
     def print(self):
         """ Print to cout the ARTS representation of the class """
-        self.__data__.print()
+        if self.OK:
+            self.__data__.print()
+        else:
+            raise ValueError("Class is in bad state")
 
     def set(self, other):
         """ Sets this class according to another python instance of itself """
@@ -102,9 +111,20 @@ class GridPos:
             clobber:
                 Allow clobbering files? (any boolean)
         """
+        if not self.OK:
+            raise ValueError("Class is in bad state")
+
         if lib.xmlsaveGridPos(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
 
+    def __eq__(self, other):
+        if isinstance(other, GridPos) and self.idx == other.idx and self.fd == other.fd:
+            return True
+        else:
+            return False
+
+    def __bool__(self):
+        return isclose(sum(self.fd), 1) and self.idx >= 0
 
 
 exec(array_base(GridPos))

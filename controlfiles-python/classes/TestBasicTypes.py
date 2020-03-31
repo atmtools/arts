@@ -23,8 +23,3 @@ assert i == 3, "Bad write"
 
 n.val = 3.5
 assert n == 3.5, "Bad write"
-
-del s
-del i
-del n
-del ws

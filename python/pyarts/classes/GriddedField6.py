@@ -195,6 +195,9 @@ class GriddedField6:
         else:
             return False
 
+    def __bool__(self):
+        return bool(self.data)
+
 
 lib.createGriddedField6.restype = c.c_void_p
 lib.createGriddedField6.argtypes = []

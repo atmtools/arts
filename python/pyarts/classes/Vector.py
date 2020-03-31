@@ -125,10 +125,16 @@ class Vector:
             raise OSError("Cannot save {}".format(file))
 
     def __eq__(self, other):
-        return (self.data == other.data).all()
+        if isinstance(other, Vector):
+            return (self.data == other.data).all()
+        else:
+            return self.data == other
 
     def __lt__(self, other):
-        return (self.data < other.data).all()
+        if isinstance(other, Vector):
+            return (self.data < other.data).all()
+        else:
+            return self.data < other
 
     def __bool__(self):
         return bool((self.data != 0).any())

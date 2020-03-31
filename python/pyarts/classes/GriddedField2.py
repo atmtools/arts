@@ -195,6 +195,9 @@ class GriddedField2:
         else:
             return False
 
+    def __bool__(self):
+        return bool(self.data)
+
 
 exec(array_base(GriddedField2))
 
