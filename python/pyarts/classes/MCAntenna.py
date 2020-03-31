@@ -148,6 +148,18 @@ class MCAntenna:
         if lib.xmlsaveMCAntenna(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
 
+    def __eq__(self, other):
+        if isinstance(other, MCAntenna) and \
+                self.type == other.type and \
+                self.sigma_aa == other.sigma_aa and \
+                self.sigma_za == other.sigma_za and \
+                self.aa_grid == other.aa_grid and \
+                self.za_grid == other.za_grid and \
+                self.g_lookup == other.g_lookup:
+            return True
+        else:
+            return False
+
 
 lib.createMCAntenna.restype = c.c_void_p
 lib.createMCAntenna.argtypes = []
