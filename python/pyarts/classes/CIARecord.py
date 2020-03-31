@@ -34,7 +34,7 @@ class CIARecord:
         return "CIARecord"
 
     @property
-    def data(self, x):
+    def data(self):
         """ The data (ArrayOfGriddedField2) """
         return ArrayOfGriddedField2(c.c_void_p(lib.getDataCIARecord(self.__data__)))
 
@@ -101,6 +101,13 @@ class CIARecord:
         """
         if lib.xmlsaveCIARecord(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
+
+    def __eq__(self, other):
+        if isinstance(other, CIARecord) and self.specs == other.specs and self.data == other.data:
+            return True
+        else:
+            return False
+
 
 
 exec(array_base(CIARecord))

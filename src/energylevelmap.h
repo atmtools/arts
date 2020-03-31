@@ -65,24 +65,29 @@ private:
   Tensor4 mvalue;
   
 public:
-  void ThrowIfNotOK() const {
+  bool OK() const {
     if (not (mvalue.nbooks() == mlevels.nelem() and 
       (mvib_energy.nelem() == mlevels.nelem() or mvib_energy.nelem() == 0)))
-      throw std::runtime_error("Bad dimensions, vibrational energies and IDs and data of strange size");
+      return false;  // Bad dimensions, vibrational energies and IDs and data of strange size
+    
     if (mtype == EnergyLevelMapType::Tensor3_t) {
     } else if (mtype == EnergyLevelMapType::Vector_t) {
       if (mvalue.npages() not_eq 1 or mvalue.nrows() not_eq 1)
-        throw std::runtime_error("Bad dimensions for vector type");
+        return false;  // Bad dimensions for vector type
     } else if (mtype == EnergyLevelMapType::Numeric_t) {
       if (mvalue.npages() not_eq 1 or mvalue.nrows() not_eq 1 or mvalue.ncols() not_eq 1)
-        throw std::runtime_error("Bad dimensions for numeric type");
+        return false;  // Bad dimensions for numeric type
     } else if (mtype == EnergyLevelMapType::None_t) {
       if (mvalue.npages() not_eq 0 or mvalue.nrows() not_eq 0 or mvalue.ncols() not_eq 0)
-        throw std::runtime_error("Bad dimensions for none type");
+        return false;  // Bad dimensions for none type
     }
     
-    for (auto& e: mvib_energy) if (e < 0) throw std::runtime_error("Bad energies");
+    for (auto& e: mvib_energy) if (e < 0) return false;  // Bad energies
+    
+    return true;
   }
+  
+  void ThrowIfNotOK() const {if (not OK()) throw std::runtime_error("Class in bad state");}
   
   EnergyLevelMap() : mtype(EnergyLevelMapType::None_t), mlevels(0),
   mvib_energy(0), mvalue(0, 0, 0, 0) {ThrowIfNotOK();}

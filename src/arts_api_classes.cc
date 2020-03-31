@@ -342,6 +342,7 @@ EnumGetterSetterCAPI(EnergyLevelMap, Type, EnergyLevelMapType)
 VoidGetterCAPI(EnergyLevelMap, Levels)
 VoidGetterCAPI(EnergyLevelMap, Energies)
 VoidGetterCAPI(EnergyLevelMap, Data)
+bool getOKEnergyLevelMap(void * data) {return static_cast<EnergyLevelMap *>(data) -> OK();}
 
 
 // Vector

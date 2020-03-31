@@ -22,15 +22,19 @@ class EnergyLevelMap:
         data:
             NLTE data (Tensor4)
     """
-    def __init__(self, type=None, levels=None, vib_energy=None, value=None):
-        if isinstance(type, c.c_void_p):
+    def __init__(self, data=None):
+        if isinstance(data, c.c_void_p):
             self.__delete__ = False
-            self.__data__ = type
-        elif type is None:
+            self.__data__ = data
+        else:
             self.__delete__ = True
             self.__data__ = c.c_void_p(lib.createEnergyLevelMap())
-        else:
-            raise ValueError("Cannot initialize by value before Vector and Tensor4 is implemented")
+            if data is not None:
+                raise ValueError("Cannot init with value")
+
+    @property
+    def OK(self):
+        return bool(lib.getOKEnergyLevelMap(self.__data__))
 
     @property
     def type(self):
@@ -41,10 +45,8 @@ class EnergyLevelMap:
     def type(self, type):
         if isinstance(type, str):
             self.type = int(lib.string2indexTypeEnergyLevelMap(self.__data__, type.encode("ascii")))
-        else:
-            type = int(type)
-            if lib.setTypeEnergyLevelMap(self.__data__, type):
-                raise ValueError("Invalid type")
+        elif lib.setTypeEnergyLevelMap(self.__data__, int(type)):
+            raise ValueError("Invalid type")
 
     @property
     def levels(self):
@@ -75,7 +77,10 @@ class EnergyLevelMap:
 
     def print(self):
         """ Print to cout the ARTS representation of the class """
-        lib.printEnergyLevelMap(self.__data__)
+        if self.OK:
+            lib.printEnergyLevelMap(self.__data__)
+        else:
+            raise RuntimeError("Class in bad state")
 
     def __del__(self):
         if self.__delete__:
@@ -122,8 +127,24 @@ class EnergyLevelMap:
             clobber:
                 Allow clobbering files? (any boolean)
         """
+        if not self.OK:
+            raise RuntimeError("Class in bad state")
+
         if lib.xmlsaveEnergyLevelMap(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
+
+    def __eq__(self, other):
+        if isinstance(other, EnergyLevelMap) and \
+                self.type == other.type and \
+                self.levels == other.levels and \
+                self.energies == other.energies and \
+                self.data == other.data:
+            return True
+        else:
+            return False
+
+    def __bool__(self):
+        return self.OK and bool(self.data)
 
 
 lib.createEnergyLevelMap.restype = c.c_void_p
@@ -158,3 +179,6 @@ lib.getEnergiesEnergyLevelMap.argtypes = [c.c_void_p]
 
 lib.getDataEnergyLevelMap.restype = c.c_void_p
 lib.getDataEnergyLevelMap.argtypes = [c.c_void_p]
+
+lib.getOKEnergyLevelMap.restype = c.c_bool
+lib.getOKEnergyLevelMap.argtypes = [c.c_void_p]

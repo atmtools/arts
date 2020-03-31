@@ -121,6 +121,15 @@ class Tensor5:
         if lib.xmlsaveTensor5(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
 
+    def __eq__(self, other):
+        return (self.data == other.data).all()
+
+    def __lt__(self, other):
+        return (self.data < other.data).all()
+
+    def __bool__(self):
+        return bool((self.data != 0).any())
+
 
 # ArrayOfTensor5
 exec(array_base(Tensor5))

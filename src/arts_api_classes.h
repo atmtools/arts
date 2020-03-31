@@ -238,6 +238,7 @@ extern "C" {
     VoidGetterCAPI(EnergyLevelMap, Levels)
     VoidGetterCAPI(EnergyLevelMap, Energies)
     VoidGetterCAPI(EnergyLevelMap, Data)
+    DLL_PUBLIC bool getOKEnergyLevelMap(void *);
     
     // Vector
     BasicInterfaceCAPI(Vector)

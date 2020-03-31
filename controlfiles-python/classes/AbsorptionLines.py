@@ -1,10 +1,11 @@
+import os
 from pyarts.workspace import Workspace
 from pyarts.classes import from_workspace
 from pyarts.classes.AbsorptionLines import AbsorptionLines, ArrayOfAbsorptionLines
 
 
 ws = Workspace()
-datapath = "../../arts-xml-data/"
+datapath = "../../arts-xml-data/" if not os.getenv("ARTS_XML_DATA_DIR") else os.getenv("ARTS_XML_DATA_DIR")
 
 # Init
 al = AbsorptionLines()

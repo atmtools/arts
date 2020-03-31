@@ -124,6 +124,15 @@ class Vector:
         if lib.xmlsaveVector(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
 
+    def __eq__(self, other):
+        return (self.data == other.data).all()
+
+    def __lt__(self, other):
+        return (self.data < other.data).all()
+
+    def __bool__(self):
+        return bool((self.data != 0).any())
+
 
 # ArrayOfVector
 exec(array_base(Vector))

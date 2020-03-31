@@ -184,6 +184,16 @@ class GriddedField1:
         if lib.xmlsaveGriddedField1(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
 
+    def __eq__(self, other):
+        if isinstance(other, GriddedField1) and \
+                self.fieldname == other.fieldname and \
+                self.gridnames == other.gridnames and \
+                self.grids == other.grids and \
+                self.data == other.data:
+            return True
+        else:
+            return False
+
 
 exec(array_base(GriddedField1))
 
