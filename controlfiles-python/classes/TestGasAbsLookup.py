@@ -5,7 +5,7 @@ from pyarts.classes import from_workspace
 
 # Get a workspace
 ws = Workspace()
-fn = "../controlfiles/testdata/testdoit_gas_abs_lookup.xml"
+fn = "../../controlfiles/testdata/testdoit_gas_abs_lookup.xml"
 
 gal1 = GasAbsLookup()
 assert not gal1, "Bad init"
