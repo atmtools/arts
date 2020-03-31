@@ -8,6 +8,7 @@ arts_test_run_pyfile(fast classes/TestAgenda.py)
 arts_test_run_pyfile(fast classes/TestGriddedField.py)
 arts_test_run_pyfile(fast classes/TestGasAbsLookup.py)
 arts_test_run_pyfile(fast classes/TestGridPos.py)
+arts_test_run_pyfile(fast classes/TestMatpackTypes.py)
 
 if (ARTS_XML_DATA_DIR)
   arts_test_run_pyfile(fast classes/TestAbsorptionLines.py)

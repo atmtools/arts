@@ -6,6 +6,7 @@ from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 from pyarts.classes.ArrayBase import array_base
 
 import numpy as np
+from copy import deepcopy as copy
 
 
 class Tensor3:
@@ -52,8 +53,9 @@ class Tensor3:
         if val.dtype != float:
             raise ValueError("Expects Numeric-like type. Got: {}".format(val.dtype))
 
+        x = copy(val)
         self.shape = val.shape
-        self.data.flat[:] = val.flat[:]
+        self.data.flat[:] = x.flat[:]
 
     @property
     def shape(self):
