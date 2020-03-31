@@ -115,6 +115,12 @@ class QuantumNumbers:
         else:
             raise IndexError("Out of bounds")
 
+    def __eq__(self, other):
+        if isinstance(other, QuantumNumbers) and self.data == other.data:
+            return True
+        else:
+            return False
+
 
 lib.createQuantumNumbers.restype = c.c_void_p
 lib.createQuantumNumbers.argtypes = []

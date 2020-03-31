@@ -40,6 +40,7 @@ class SpeciesTag:
             self.__data__ = c.c_void_p(lib.createSpeciesTag())
             if data is not None:
                 self.setFromString(data)
+                assert self.OK, "Fail initialize properly"
 
     def setFromString(self, data):
         """ Set the species tag from a string
@@ -144,7 +145,7 @@ class SpeciesTag:
 
     def print(self):
         """ Print to cout the ARTS representation of the class """
-        if self.OK():
+        if self.OK:
             lib.printSpeciesTag(self.__data__)
         else:
             raise RuntimeError("Cannot print SpeciesTag in bad state")
@@ -170,6 +171,7 @@ class SpeciesTag:
         else:
             raise TypeError("Expects SpeciesTag")
 
+    @property
     def OK(self):
         """ Returns true if the class is OK """
         return self.validCIASpecies() and (self.validIsotopologue(self.spec, self.isot) or self.validContinuum(self.spec, self.isot) or self.validAllIsotopologues(self.spec, self.isot))
@@ -313,11 +315,24 @@ class SpeciesTag:
             clobber:
                 Allow clobbering files? (any boolean)
         """
-        if not self.OK():
+        if not self.OK:
             raise RuntimeError("Cannot save SpeciesTag in bad state")
 
         if lib.xmlsaveSpeciesTag(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
+
+    def __eq__(self, other):
+        if isinstance(other, SpeciesTag) and \
+                self.type == other.type and \
+                self.spec == other.spec and \
+                self.isot == other.isot and \
+                self.cia_second == other.cia_second and \
+                self.cia_dataset == other.cia_dataset and \
+                self.lf == other.lf and \
+                self.uf == other.uf:
+            return True
+        else:
+            return False
 
 
 # Generate ArrayOfSpeciesTag

@@ -1,6 +1,8 @@
 import ctypes as c
 from pyarts.workspace.api import arts_api as lib
 
+from math import isnan
+
 
 class InternalLineShapeModelParameters(c.Structure):
     """ ARTS Internal data layout... do not use """
@@ -123,6 +125,17 @@ class LineShapeModelParameters:
             self.x3 = other.x3
         else:
             raise TypeError("Expects LineShapeModelParameters")
+
+    def __eq__(self, other):
+        if isinstance(other, LineShapeModelParameters) and \
+                self.type == other.type and \
+                (self.x0 == other.x0 or (isnan(self.x0) and isnan(other.x0))) and \
+                (self.x1 == other.x1 or (isnan(self.x1) and isnan(other.x1))) and \
+                (self.x2 == other.x2 or (isnan(self.x2) and isnan(other.x2))) and \
+                (self.x3 == other.x3 or (isnan(self.x3) and isnan(other.x3))):
+            return True
+        else:
+            return False
 
 
 lib.printLineShapeModelParameters.restype = None

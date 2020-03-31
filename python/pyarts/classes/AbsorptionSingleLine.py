@@ -6,6 +6,8 @@ from pyarts.classes.LineShapeModel import LineShapeModel
 from pyarts.classes.Rational import Rational
 from pyarts.classes.ZeemanModel import ZeemanModel
 
+from math import isnan
+
 
 class AbsorptionSingleLine:
     """ ARTS Absorption::SingleLine data
@@ -238,6 +240,22 @@ class AbsorptionSingleLine:
             self.qlow = other.qlow
         else:
             raise TypeError("Expects AbsorptionSingleLine")
+
+    def __eq__(self, other):
+        if isinstance(other, AbsorptionSingleLine) and \
+                (self.f0 == other.f0 or (isnan(self.f0 and isnan(other.f0)))) and \
+                (self.i0 == other.i0 or (isnan(self.i0 and isnan(other.i0)))) and \
+                (self.e0 == other.e0 or (isnan(self.e0 and isnan(other.e0)))) and \
+                (self.gl == other.gl or (isnan(self.gl and isnan(other.gl)))) and \
+                (self.gu == other.gu or (isnan(self.gu and isnan(other.gu)))) and \
+                (self.a == other.a or (isnan(self.a and isnan(other.a)))) and \
+                self.zeeman == other.zeeman and \
+                self.lsm == other.lsm and \
+                self.qupp == other.qupp and \
+                self.qlow == other.qlow:
+            return True
+        else:
+            return False
 
 
 lib.createAbsorptionSingleLine.restype = c.c_void_p

@@ -74,8 +74,8 @@ class AbsorptionLines:
     def __init__(self, selfbroadening=False, bathbroadening=False, nlines=0,
                  cutoff="None", mirroring="None", population="LTE", normalization="None",
                  lineshapetype="VP", t0=296, cutofffreq=-1, linemixinglimit=-1,
-                 quantumidentity=QuantumIdentifier(),
-                 localquantumnumbers=[], broadeningspecies=[], lsm=LineShapeModel()):
+                 quantumidentity=QuantumIdentifier(), localquantumnumbers=[],
+                 broadeningspecies=ArrayOfSpeciesTag(), lsm=LineShapeModel()):
         if isinstance(selfbroadening, c.c_void_p):
             self.__delete__ = False
             self.__data__ = selfbroadening
@@ -182,12 +182,12 @@ class AbsorptionLines:
                 raise ValueError("Invalid type")
 
     @property
-    def lineshape(self):
+    def lineshapetype(self):
         """ Type of lineshapetype (get: Index; set: str) """
         return lib.getLineShapeTypeAbsorptionLines(self.__data__)
 
-    @population.setter
-    def population(self, type):
+    @lineshapetype.setter
+    def lineshapetype(self, type):
         if isinstance(type, str):
             self.type = int(lib.string2indexLineShapeTypeAbsorptionLines(self.__data__, type.encode("ascii")))
         else:
@@ -350,7 +350,7 @@ class AbsorptionLines:
             self.quantumidentity = other.quantumidentity
             self.localquantumnumbers = other.localquantumnumbers
             self.broadeningspecies = other.broadeningspecies
-            self.lsm = other.lsm
+            self.lines = other.lines
         else:
             raise TypeError("Expects AbsorptionLines")
 
@@ -382,6 +382,26 @@ class AbsorptionLines:
 
         if lib.xmlsaveAbsorptionLines(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
+
+    def __eq__(self, other):
+        if isinstance(other, AbsorptionLines) and \
+                self.selfbroadening == other.selfbroadening and \
+                self.bathbroadening == other.bathbroadening and \
+                self.cutoff == other.cutoff and \
+                self.mirroring == other.mirroring and \
+                self.population == other.population and \
+                self.normalization == other.normalization and \
+                self.lineshapetype == other.lineshapetype and \
+                self.t0 == other.t0 and \
+                self.cutofffreq == other.cutofffreq and \
+                self.linemixinglimit == other.linemixinglimit and \
+                self.quantumidentity == other.quantumidentity and \
+                self.localquantumnumbers == other.localquantumnumbers and \
+                self.broadeningspecies == other.broadeningspecies and \
+                self.lines == other.lines:
+            return True
+        else:
+            return False
 
 
 # Generate ArrayOfAbsorptionLines

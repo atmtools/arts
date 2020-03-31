@@ -16,3 +16,4 @@
 /controlfiles/**/*.rep
 heaptrack.*.gz
 src/.vscode/c_cpp_properties.json
+**/__pycache__/

@@ -138,6 +138,12 @@ class Rational:
         if lib.xmlsaveRational(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
 
+    def __eq__(self, other):
+        if isinstance(other, Rational) and other.nom * self.denom == self.nom * other.denom:
+            return True
+        else:
+            return False
+
 
 lib.createRational.restype = c.c_void_p
 lib.createRational.argtypes = []

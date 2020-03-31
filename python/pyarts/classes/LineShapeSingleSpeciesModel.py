@@ -164,6 +164,21 @@ class LineShapeSingleSpeciesModel:
         else:
             raise TypeError("Expects LineShapeSingleSpeciesModel")
 
+    def __eq__(self, other):
+        if isinstance(other, LineShapeSingleSpeciesModel) and \
+                self.g0 == other.g0 and \
+                self.d0 == other.d0 and \
+                self.g2 == other.g2 and \
+                self.d2 == other.d2 and \
+                self.fvc == other.fvc and \
+                self.eta == other.eta and \
+                self.y == other.y and \
+                self.g == other.g and \
+                self.dv == other.dv:
+            return True
+        else:
+            return False
+
 
 lib.createLineShapeSingleSpeciesModel.restype = c.c_void_p
 lib.createLineShapeSingleSpeciesModel.argtypes = []

@@ -79,6 +79,15 @@ class Index:
         if lib.xmlsaveIndex(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
 
+    def __int__(self):
+        return self.val
+
+    def __eq__(self, other):
+        return self.val == int(other)
+
+    def __lt__(self, other):
+        return self.val < int(other)
+
 
 class Numeric:
     """ ARTS Numeric data
@@ -152,6 +161,15 @@ class Numeric:
         """
         if lib.xmlsaveNumeric(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
+
+    def __float__(self):
+        return self.val
+
+    def __eq__(self, other):
+        return self.val == float(other)
+
+    def __lt__(self, other):
+        return self.val < float(other)
 
 
 class String:
@@ -227,6 +245,9 @@ class String:
         """
         if lib.xmlsaveString(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
+
+    def __eq__(self, other):
+        return self.val == str(other)
 
 
 exec(array_base(Index))

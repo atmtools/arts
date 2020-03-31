@@ -158,6 +158,18 @@ class QuantumIdentifier:
         if lib.xmlsaveQuantumIdentifier(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
 
+    def __eq__(self, other):
+        if isinstance(other, QuantumIdentifier) and \
+                self.type == other.type and \
+                self.spec == other.spec and \
+                self.isot == other.isot and \
+                self.lowerqn == other.lowerqn and \
+                self.upperqn == other.upperqn and \
+                self.levelqn == other.levelqn:
+            return True
+        else:
+            return False
+
 
 # Generate ArrayOfQuantumIdentifier
 exec(array_base(QuantumIdentifier))

@@ -1,6 +1,7 @@
 import ctypes as c
 from pyarts.workspace.api import arts_api as lib
 
+from math import isnan
 
 class ZeemanModel:
     """ ARTS Zeeman::Model data
@@ -59,6 +60,14 @@ class ZeemanModel:
             self.gu = other.gu
         else:
             raise TypeError("Expects ZeemanModel")
+
+    def __eq__(self, other):
+        if isinstance(other, ZeemanModel) and \
+            (self.gl == other.gl or (isnan(self.gl) and isnan(other.gl)))  and \
+            (self.gu == other.gu or (isnan(self.gu) and isnan(other.gu))):
+            return True
+        else:
+            return False
 
 
 lib.createZeemanModel.restype = c.c_void_p

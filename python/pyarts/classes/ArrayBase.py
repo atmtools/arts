@@ -200,4 +200,25 @@ def array_base(var):
             """
             if lib.xmlsaveArrayOfBASENAME(self.__data__, *correct_save_arguments(file, type, clobber)):
                 raise OSError("Cannot save {}".format(file))
+
+        def __eq__(self, other):
+            n = len(self)
+            if len(other) != n:
+                return False
+
+            for i in range(n):
+                if self[i] != other[i]:
+                    return False
+            return True
+
+        def __lt__(self, other):
+            n = len(self)
+            if len(other) != n:
+                return False
+
+            for i in range(n):
+                if self[i] >= other[i]:
+                    return False
+            return True
+
     '''.replace("BASENAME", var.name())

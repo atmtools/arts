@@ -83,6 +83,12 @@ class LineShapeModel:
         else:
             raise TypeError("Expects LineShapeModel")
 
+    def __eq__(self, other):
+        if isinstance(other, LineShapeModel) and self.data == other.data:
+            return True
+        else:
+            return False
+
 
 lib.createLineShapeModel.restype = c.c_void_p
 lib.createLineShapeModel.argtypes = []
