@@ -6,15 +6,13 @@ from pyarts.classes.Tensor4 import Tensor4
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 from pyarts.classes.ArrayBase import array_base
 
-import numpy as np
-
 
 class PropagationMatrix:
     """ ARTS PropagationMatrix data
 
     Properties:
         data:
-            The data (numpy-array)
+            The data (Tensor4)
 
         stokes:
             Stokes dimension (const Index)
@@ -32,23 +30,24 @@ class PropagationMatrix:
     def __init__(self, data=0.0, freqs=0, stokes=1, za=1, aa=1):
         if isinstance(data, c.c_void_p):
             self.__delete__ = False
-            self.__data__ = freqs
+            self.__data__ = data
         else:
             self.__delete__ = True
             self.__data__ = c.c_void_p(lib.createPropagationMatrix())
             self.setData(freqs, stokes, za, aa, data)
 
     @property
+    def OK(self):
+        return lib.getOKPropagationMatrix(self.__data__)
+
+    @property
     def data(self):
-        """ The data (numpy-array) """
-        return Tensor4(c.c_void_p(lib.getDataPropagationMatrix(self.__data__))).data
+        """ The data (Tensor4) """
+        return Tensor4(c.c_void_p(lib.getDataPropagationMatrix(self.__data__)))
 
     @data.setter
     def data(self, value):
-        if value.shape == self.data.shape:
-            self.data.flat[:] = value[:]
-        else:
-            raise TypeError("Expects same-size data")
+        self.data.set(value)
 
     @property
     def stokes(self):
@@ -77,7 +76,10 @@ class PropagationMatrix:
 
     def print(self):
         """ Print to cout the ARTS representation of the class """
-        lib.printPropagationMatrix(self.__data__)
+        if self.OK:
+            lib.printPropagationMatrix(self.__data__)
+        else:
+            raise RuntimeError("Class is in bad state")
 
     def __del__(self):
         if self.__delete__:
@@ -89,8 +91,9 @@ class PropagationMatrix:
     def set(self, other):
         """ Sets this class according to another python instance of itself """
         if isinstance(other, PropagationMatrix):
-            self.shape = other.shape
-            self.data = other.data
+            tmp = Tensor4(other.data.data)
+            self.setData(other.frequencies, other.stokes, other.zeniths, other.azimuths, 0.0)
+            self.data = tmp
         else:
             raise TypeError("Expects PropagationMatrix")
 
@@ -121,8 +124,25 @@ class PropagationMatrix:
             clobber:
                 Allow clobbering files? (any boolean)
         """
+        if not self.OK:
+            raise RuntimeError("Class is in bad state")
+
         if lib.xmlsavePropagationMatrix(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
+
+    def __eq__(self, other):
+        if isinstance(other, PropagationMatrix) and \
+                self.frequencies == other.frequencies and \
+                self.stokes == other.stokes and \
+                self.zeniths == other.zeniths and \
+                self.azimuths == other.azimuths and \
+                self.data == other.data:
+            return True
+        else:
+            return False
+
+    def __bool__(self):
+        return self.OK and bool(self.data)
 
 
 # ArrayOfPropagationMatrix
@@ -165,3 +185,6 @@ lib.getDataPropagationMatrix.argtypes = [c.c_void_p]
 
 lib.setPropagationMatrix.restype = c.c_long
 lib.setPropagationMatrix.argtypes = [c.c_void_p, c.c_long, c.c_long, c.c_long, c.c_long, c.c_double]
+
+lib.getOKPropagationMatrix.restype = c.c_bool
+lib.getOKPropagationMatrix.argtypes = [c.c_void_p]

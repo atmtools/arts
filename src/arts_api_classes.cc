@@ -487,6 +487,7 @@ Index setPropagationMatrix(void * data, Index f, Index s, Index z, Index a, Nume
     return EXIT_FAILURE;
   }
 }
+bool getOKPropagationMatrix(void * data) {return static_cast<PropagationMatrix *>(data) -> OK();}
 
 
 // StokesVector
@@ -512,6 +513,7 @@ Index setStokesVector(void * data, Index f, Index s, Index z, Index a, Numeric v
     return EXIT_FAILURE;
   }
 }
+bool getOKStokesVector(void * data) {return static_cast<StokesVector *>(data) -> OK();}
 
 
 // String

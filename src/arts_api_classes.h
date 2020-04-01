@@ -367,6 +367,7 @@ extern "C" {
     DLL_PUBLIC Index zenithsPropagationMatrix(void *);
     DLL_PUBLIC Index azimuthsPropagationMatrix(void *);
     DLL_PUBLIC Index setPropagationMatrix(void *, Index, Index, Index, Index, Numeric);
+    DLL_PUBLIC bool getOKPropagationMatrix(void *);
     
     // StokesVector
     BasicInterfaceCAPI(StokesVector)
@@ -383,6 +384,7 @@ extern "C" {
     DLL_PUBLIC Index zenithsStokesVector(void *);
     DLL_PUBLIC Index azimuthsStokesVector(void *);
     DLL_PUBLIC Index setStokesVector(void *, Index, Index, Index, Index, Numeric);
+    DLL_PUBLIC bool getOKStokesVector(void *);
     
     // String
     BasicInterfaceCAPI(String)

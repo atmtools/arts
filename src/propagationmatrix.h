@@ -197,52 +197,6 @@ class PropagationMatrix {
     }
   };
 
-  /** Construct a PropagationMatrix from two scaled propagation matrices
-   * 
-   * Sets a new propagation matrix from the relation: (a + b) * scale
-   * 
-   * Assumes a and b have the same sizes, will crash if b is smaller than a
-   * 
-   * @param[in] a Propmat 1
-   * @param[in] b Propmat 2
-   * @param[in] scale the scale
-   */
-  PropagationMatrix(const PropagationMatrix& a,
-                    const PropagationMatrix& b,
-                    const Numeric& scale = 0.5)
-      : mfreqs(a.mfreqs),
-        mstokes_dim(a.mstokes_dim),
-        mza(a.mza),
-        maa(a.maa),
-        mdata(maa, mza, mfreqs, mstokes_dim),
-        mvectortype(false) {
-    for (Index i = 0; i < maa; i++)
-      for (Index j = 0; j < mza; j++)
-        for (Index k = 0; k < mfreqs; k++) {
-          switch (mstokes_dim) {
-            case 4:
-              mdata(i, j, k, 3) =
-                  (a.mdata(i, j, k, 3) + b.mdata(i, j, k, 3)) * scale;
-              mdata(i, j, k, 5) =
-                  (a.mdata(i, j, k, 5) + b.mdata(i, j, k, 5)) * scale;
-              mdata(i, j, k, 6) = (a.mdata(i, j, k, 6) + b.mdata(i, j, k, 6)) *
-                                  scale; /* FALLTHROUGH */
-            case 3:
-              mdata(i, j, k, 2) =
-                  (a.mdata(i, j, k, 2) + b.mdata(i, j, k, 2)) * scale;
-              mdata(i, j, k, mstokes_dim) = (a.mdata(i, j, k, mstokes_dim) +
-                                             b.mdata(i, j, k, mstokes_dim)) *
-                                            scale; /* FALLTHROUGH */
-            case 2:
-              mdata(i, j, k, 1) = (a.mdata(i, j, k, 1) + b.mdata(i, j, k, 1)) *
-                                  scale; /* FALLTHROUGH */
-            case 1:
-              mdata(i, j, k, 0) = (a.mdata(i, j, k, 0) + b.mdata(i, j, k, 0)) *
-                                  scale; /* FALLTHROUGH */
-          }
-        }
-  };
-
   /** The stokes dimension of the propagation matrix */
   Index StokesDimensions() const { return mstokes_dim; };
 
@@ -254,6 +208,8 @@ class PropagationMatrix {
 
   /** The number of azimuth angles of the propagation matrix */
   Index NumberOfAzimuthAngles() const { return maa; };
+  
+  bool OK() const {return mdata.ncols() == NumberOfNeededVectors() and mdata.nrows() == mfreqs and mdata.npages() == mza and mdata.nbooks() == maa;}
 
   /** Set the Vector Type object
    * 
