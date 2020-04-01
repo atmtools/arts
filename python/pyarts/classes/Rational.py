@@ -68,42 +68,45 @@ class Rational:
         return self.nom != 0 and self.denom != 0
 
     def __add__(self, val):
-        if isinstance(val, int):
-            return Rational(self.nom + val * self.denom, self.denom)
-        elif isinstance(val, Rational):
+        if isinstance(val, Rational):
             return Rational(self.nom * val.denom + self.denom * val.nom, self.denom*val.denom)
         else:
-            raise ValueError("Cannot add {} to Rational".format(val))
+            r = Rational()
+            r.set(val)
+            return self + r
 
     def __sub__(self, val):
-        if isinstance(val, int):
-            return Rational(self.nom - val * self.denom, self.denom)
-        elif isinstance(val, Rational):
+        if isinstance(val, Rational):
             return Rational(self.nom * val.denom - self.denom * val.nom, self.denom*val.denom)
         else:
-            raise ValueError("Cannot sub {} to Rational".format(val))
+            r = Rational()
+            r.set(val)
+            return self - r
 
     def __mul__(self, val):
-        if isinstance(val, int):
-            return Rational(self.nom * val, self.denom)
-        elif isinstance(val, Rational):
+        if isinstance(val, Rational):
             return Rational(self.nom*val.nom, self.denom*val.denom)
         else:
-            raise ValueError("Cannot mul {} to Rational".format(val))
+            r = Rational()
+            r.set(val)
+            return self * r
 
     def __pow__(self, val):
         if isinstance(val, int):
             return Rational(self.nom ** val, self.denom ** val)
         else:
-            raise ValueError("Cannot pow {} to Rational".format(val))
+            return float(self)**val
 
     def __truediv__(self, val):
-        if isinstance(val, int):
-            return Rational(self.nom, self.denom*val)
-        elif isinstance(val, Rational):
+        if isinstance(val, Rational):
             return Rational(self.nom*val.denom, self.denom*val.nom)
         else:
-            raise ValueError("Cannot div {} to Rational".format(val))
+            r = Rational()
+            r.set(val)
+            return self / r
+
+    def __float__(self):
+        return self.nom / self.denom
 
     def set(self, other):
         """ Sets this class according to another python instance of itself """
