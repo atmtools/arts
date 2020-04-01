@@ -144,6 +144,30 @@ class Tensor7:
     def __array__(self):
         return self.data
 
+    def __iadd__(self, val):
+        self.data += np.array(val)
+        return self
+
+    def __isub__(self, val):
+        self.data -= np.array(val)
+        return self
+
+    def __imul__(self, val):
+        self.data *= np.array(val)
+        return self
+
+    def __imatmul__(self, val):
+        self.data @= np.array(val)
+        return self
+
+    def __itruediv__(self, val):
+        self.data /= np.array(val)
+        return self
+
+    def __ipow__(self, val):
+        self.data **= np.array(val)
+        return self
+
     def __add__(self, val):
         return Tensor7(self.data + np.array(val))
 
@@ -161,6 +185,24 @@ class Tensor7:
 
     def __pow__(self, val):
         return Tensor7(self.data ** np.array(val))
+
+    def __radd__(self, val):
+        return Tensor7(np.array(val) + self.data)
+
+    def __rsub__(self, val):
+        return Tensor7(np.array(val) - self.data)
+
+    def __rmul__(self, val):
+        return Tensor7(np.array(val) * self.data)
+
+    def __rmatmul__(self, val):
+        return np.array(val) @ self.data
+
+    def __rtruediv__(self, val):
+        return Tensor7(np.array(val) / self.data)
+
+    def __rpow__(self, val):
+        return Tensor7(np.array(val) ** self.data)
 
 
 # ArrayOfTensor7

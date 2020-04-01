@@ -82,6 +82,9 @@ class Index:
     def __int__(self):
         return self.val
 
+    def __float__(self):
+        return float(self.val)
+
     def __eq__(self, other):
         return self.val == int(other)
 
@@ -97,6 +100,26 @@ class Index:
     def __ge__(self, other):
         return self.val >= int(other)
 
+    def __iadd__(self, val):
+        self.val += int(val)
+        return self
+
+    def __isub__(self, val):
+        self.val -= int(val)
+        return self
+
+    def __imul__(self, val):
+        self.val *= int(val)
+        return self
+
+    def __itruediv__(self, val):
+        self.val /= int(val)
+        return self
+
+    def __ipow__(self, val):
+        self.val **= int(val)
+        return self
+
     def __add__(self, val):
         return Index(self.val + int(val))
 
@@ -111,6 +134,21 @@ class Index:
 
     def __pow__(self, val):
         return Index(self.val ** int(val))
+
+    def __radd__(self, val):
+        return Index(int(val) + self.val)
+
+    def __rsub__(self, val):
+        return Index(int(val) - self.val)
+
+    def __rmul__(self, val):
+        return Index(int(val) * self.val)
+
+    def __rtruediv__(self, val):
+        return Index(int(val) / self.val)
+
+    def __rpow__(self, val):
+        return Index(int(val) ** self.val)
 
 
 class Numeric:
@@ -186,6 +224,9 @@ class Numeric:
         if lib.xmlsaveNumeric(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
 
+    def __int__(self):
+        return int(self.val)
+
     def __float__(self):
         return self.val
 
@@ -204,6 +245,26 @@ class Numeric:
     def __ge__(self, other):
         return self.val >= float(other)
 
+    def __iadd__(self, val):
+        self.val += float(val)
+        return self
+
+    def __isub__(self, val):
+        self.val -= float(val)
+        return self
+
+    def __imul__(self, val):
+        self.val *= float(val)
+        return self
+
+    def __itruediv__(self, val):
+        self.val /= float(val)
+        return self
+
+    def __ipow__(self, val):
+        self.val **= float(val)
+        return self
+
     def __add__(self, val):
         return Numeric(self.val + float(val))
 
@@ -218,6 +279,21 @@ class Numeric:
 
     def __pow__(self, val):
         return Numeric(self.val ** float(val))
+
+    def __radd__(self, val):
+        return Numeric(float(val) + self.val)
+
+    def __rsub__(self, val):
+        return Numeric(float(val) - self.val)
+
+    def __rmul__(self, val):
+        return Numeric(float(val) * self.val)
+
+    def __rtruediv__(self, val):
+        return Numeric(float(val) / self.val)
+
+    def __rpow__(self, val):
+        return Numeric(float(val) ** self.val)
 
 
 class String:
@@ -297,8 +373,15 @@ class String:
     def __eq__(self, other):
         return self.val == str(other)
 
+    def __iadd__(self, val):
+        self.val += str(val)
+        return self
+
     def __add__(self, val):
         return String(self.val + str(val))
+
+    def __radd__(self, val):
+        return String(str(val) + self.val)
 
 
 exec(array_base(Index))

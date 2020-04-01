@@ -148,6 +148,30 @@ class Vector:
     def __array__(self):
         return self.data
 
+    def __iadd__(self, val):
+        self.data += np.array(val)
+        return self
+
+    def __isub__(self, val):
+        self.data -= np.array(val)
+        return self
+
+    def __imul__(self, val):
+        self.data *= np.array(val)
+        return self
+
+    def __imatmul__(self, val):
+        self.data @= np.array(val)
+        return self
+
+    def __itruediv__(self, val):
+        self.data /= np.array(val)
+        return self
+
+    def __ipow__(self, val):
+        self.data **= np.array(val)
+        return self
+
     def __add__(self, val):
         return Vector(self.data + np.array(val))
 
@@ -165,6 +189,24 @@ class Vector:
 
     def __pow__(self, val):
         return Vector(self.data ** np.array(val))
+
+    def __radd__(self, val):
+        return Vector(np.array(val) + self.data)
+
+    def __rsub__(self, val):
+        return Vector(np.array(val) - self.data)
+
+    def __rmul__(self, val):
+        return Vector(np.array(val) * self.data)
+
+    def __rmatmul__(self, val):
+        return np.array(val) @ self.data
+
+    def __rtruediv__(self, val):
+        return Vector(np.array(val) / self.data)
+
+    def __rpow__(self, val):
+        return Vector(np.array(val) ** self.data)
 
 
 # ArrayOfVector
