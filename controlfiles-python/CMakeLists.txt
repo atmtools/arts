@@ -15,6 +15,7 @@ arts_test_run_pyfile(fast classes/TestPropagationTypes.py)
 arts_test_run_pyfile(fast classes/TestQuantum.py)
 arts_test_run_pyfile(fast classes/TestRational.py)
 arts_test_run_pyfile(fast classes/TestRetrievalQuantity.py)
+arts_test_run_pyfile(fast classes/TestSpeciesTag.py)
 
 if (ARTS_XML_DATA_DIR)
   arts_test_run_pyfile(fast classes/TestAbsorptionLines.py)
