@@ -3,6 +3,7 @@ from pyarts.workspace.api import arts_api as lib
 
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 
+from fractions import Fraction
 
 class Rational:
     """ ARTS Rational data
@@ -110,7 +111,9 @@ class Rational:
             self.nom = other.nom
             self.denom = other.denom
         else:
-            raise TypeError("Expects Rational")
+            x = Fraction(other)
+            self.nom = x.numerator
+            self.denom = x.denominator
 
     def readxml(self, file):
         """ Reads the XML file
