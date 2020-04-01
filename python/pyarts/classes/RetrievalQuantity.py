@@ -212,7 +212,20 @@ class RetrievalQuantity:
     def set(self, other):
         """ Sets this class according to another python instance of itself """
         if isinstance(other, RetrievalQuantity):
-              raise RuntimeWarning("Cannot set RetrievalQuantity, remains constant")
+            self.maintag = other.maintag
+            self.subtag = other.subtag
+            self.subsubtag = other.subsubtag
+            self.mode = other.mode
+            self.analytical = other.analytical
+            self.perturbation = other.perturbation
+            self.grids = other.grids
+            self.quantumidentity = other.quantumidentity
+            self.transformation_func = other.transformation_func
+            self.t_func_parameters = other.t_func_parameters
+            self.transformation = other.transformation
+            self.offset = other.offset
+            self.type = other.type
+            self.integration = other.integration
         else:
             raise TypeError("Expects RetrievalQuantity")
 
@@ -241,6 +254,26 @@ class RetrievalQuantity:
         """
         if lib.xmlsaveRetrievalQuantity(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
+
+    def __eq__(self, other):
+        if isinstance(other, RetrievalQuantity) and \
+                self.maintag == other.maintag and \
+                self.subtag == other.subtag and \
+                self.subsubtag == other.subsubtag and \
+                self.mode == other.mode and \
+                self.analytical == other.analytical and \
+                self.perturbation == other.perturbation and \
+                self.grids == other.grids and \
+                self.quantumidentity == other.quantumidentity and \
+                self.transformation_func == other.transformation_func and \
+                self.t_func_parameters == other.t_func_parameters and \
+                self.transformation == other.transformation and \
+                self.offset == other.offset and \
+                self.type == other.type and \
+                self.integration == other.integration:
+            return True
+        else:
+            return False
 
 
 exec(array_base(RetrievalQuantity))

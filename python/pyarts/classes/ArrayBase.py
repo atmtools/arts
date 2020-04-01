@@ -134,10 +134,10 @@ def array_base(var):
             if isinstance(ind, slice):
                 if isinstance(val, Sized):
                     for i in range(len(old)):
-                        old[i] = val[i]
+                        old[i].set(val[i])
                 else:
                     for i in range(len(old)):
-                        old[i] = val
+                        old[i].set(val)
             elif isinstance(val, self.type):
                 old.set(val)
             else:

@@ -64,9 +64,9 @@ class QuantumIdentifier:
 
     @spec.setter
     def spec(self, val):
-        if not SpeciesTag.validSpecies(val):
+        if not SpeciesTag.validSpecies(int(val)):
             raise ValueError("Invalid species")
-        lib.setSpeciesQuantumIdentifier(self.__data__, c.c_long(val))
+        lib.setSpeciesQuantumIdentifier(self.__data__, int(val))
 
     @property
     def isot(self):
@@ -75,7 +75,7 @@ class QuantumIdentifier:
 
     @isot.setter
     def isot(self, val):
-        if not SpeciesTag.validIsotopologue(self.spec, val):
+        if not SpeciesTag.validIsotopologue(self.spec, int(val)):
             raise ValueError("Invalid isotopologue")
         lib.setIsotopologueQuantumIdentifier(self.__data__, int(val))
 
@@ -121,8 +121,8 @@ class QuantumIdentifier:
         """ Sets this class according to another python instance of itself """
         if isinstance(other, QuantumIdentifier):
             self.type = other.type
-            self.spec = other.spec
-            self.isot = other.isot
+            lib.setSpeciesQuantumIdentifier(self.__data__, other.spec)
+            lib.setIsotopologueQuantumIdentifier(self.__data__, other.isot)
             self.lowerqn = other.lowerqn
             self.upperqn = other.upperqn
             self.levelqn = other.levelqn  # repeat but for now keep...
