@@ -18,7 +18,7 @@ class Index:
             self.__delete__ = False
             self.__data__ = value
         else:
-            self.__delete__ = False
+            self.__delete__ = True
             self.__data__ = c.c_void_p(lib.createIndex())
             self.val = value
 
@@ -97,6 +97,21 @@ class Index:
     def __ge__(self, other):
         return self.val >= int(other)
 
+    def __add__(self, val):
+        return Index(self.val + int(val))
+
+    def __sub__(self, val):
+        return Index(self.val - int(val))
+
+    def __mul__(self, val):
+        return Index(self.val * int(val))
+
+    def __truediv__(self, val):
+        return Index(self.val / int(val))
+
+    def __pow__(self, val):
+        return Index(self.val ** int(val))
+
 
 class Numeric:
     """ ARTS Numeric data
@@ -110,7 +125,7 @@ class Numeric:
             self.__delete__ = False
             self.__data__ = value
         else:
-            self.__delete__ = False
+            self.__delete__ = True
             self.__data__ = c.c_void_p(lib.createNumeric())
             self.val = value
 
@@ -189,6 +204,21 @@ class Numeric:
     def __ge__(self, other):
         return self.val >= float(other)
 
+    def __add__(self, val):
+        return Numeric(self.val + float(val))
+
+    def __sub__(self, val):
+        return Numeric(self.val - float(val))
+
+    def __mul__(self, val):
+        return Numeric(self.val * float(val))
+
+    def __truediv__(self, val):
+        return Numeric(self.val / float(val))
+
+    def __pow__(self, val):
+        return Numeric(self.val ** float(val))
+
 
 class String:
     """ ARTS String data
@@ -202,7 +232,7 @@ class String:
             self.__delete__ = False
             self.__data__ = value
         else:
-            self.__delete__ = False
+            self.__delete__ = True
             self.__data__ = c.c_void_p(lib.createString())
             self.val = value
 
@@ -266,6 +296,9 @@ class String:
 
     def __eq__(self, other):
         return self.val == str(other)
+
+    def __add__(self, val):
+        return String(self.val + str(val))
 
 
 exec(array_base(Index))

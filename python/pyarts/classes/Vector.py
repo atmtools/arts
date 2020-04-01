@@ -145,6 +145,27 @@ class Vector:
     def __bool__(self):
         return bool((self.data != 0).any())
 
+    def __array__(self):
+        return self.data
+
+    def __add__(self, val):
+        return Vector(self.data + np.array(val))
+
+    def __sub__(self, val):
+        return Vector(self.data - np.array(val))
+
+    def __mul__(self, val):
+        return Vector(self.data * np.array(val))
+
+    def __matmul__(self, val):
+        return self.data @ np.array(val)
+
+    def __truediv__(self, val):
+        return Vector(self.data / np.array(val))
+
+    def __pow__(self, val):
+        return Vector(self.data ** np.array(val))
+
 
 # ArrayOfVector
 exec(array_base(Vector))
