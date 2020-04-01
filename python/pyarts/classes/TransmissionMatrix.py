@@ -55,20 +55,8 @@ class TransmissionMatrix:
     def data(self):
         """ The data (list of numpy-arrays) """
         x = []
-        s = self.stokes
-        f = self.freqs
-        if s == 1:
-            for i in range(f):
-                x.append(np.ctypeslib.as_array(lib.getMat1TransmissionMatrix(int(i), self.__data__), (s, s)))
-        elif s == 2:
-            for i in range(f):
-                x.append(np.ctypeslib.as_array(lib.getMat2TransmissionMatrix(int(i), self.__data__), (s, s)))
-        elif s == 3:
-            for i in range(f):
-                x.append(np.ctypeslib.as_array(lib.getMat3TransmissionMatrix(int(i), self.__data__), (s, s)))
-        elif s == 4:
-            for i in range(f):
-                x.append(np.ctypeslib.as_array(lib.getMat4TransmissionMatrix(int(i), self.__data__), (s, s)))
+        for i in range(self.freqs):
+            x.append(self[i])
         return x
 
     @data.setter
@@ -81,20 +69,27 @@ class TransmissionMatrix:
         if f and not hasattr(val[0], "shape"):
             raise TypeError("Only accepts array-like input")
         else:
-            s = val[0].shape[0] if f else 1
+            s = val[0].shape[0] if f else self.stokes
 
         if s > 4 or s < 1:
             raise ValueError("Bad input")
 
-        for v in val:
-            if not hasattr(v, "shape") or not v.shape == (s, s):
-                raise TypeError("Not same types in list")
-
         self.setTransmissionMatrix(s, f)
-        x = self.data
-
         for i in range(f):
-            x[i].flat[:] = val[i].flat[:]
+            self[i] = val[i]
+
+    def __getitem__(self, i):
+        if self.stokes == 1 and i < self.freqs:
+            return np.ctypeslib.as_array(lib.getMat1TransmissionMatrix(int(i) % self.freqs, self.__data__), (1, 1))
+        elif self.stokes == 2:
+            return np.ctypeslib.as_array(lib.getMat2TransmissionMatrix(int(i) % self.freqs, self.__data__), (2, 2))
+        elif self.stokes == 3:
+            return np.ctypeslib.as_array(lib.getMat3TransmissionMatrix(int(i) % self.freqs, self.__data__), (3, 3))
+        elif self.stokes == 4:
+            return np.ctypeslib.as_array(lib.getMat4TransmissionMatrix(int(i) % self.freqs, self.__data__), (4, 4))
+
+    def __setitem__(self, i, x):
+        self[i].flat[:] = x.flat[:]
 
     def print(self):
         """ Print to cout the ARTS representation of the class """
@@ -105,11 +100,15 @@ class TransmissionMatrix:
             lib.deleteTransmissionMatrix(self.__data__)
 
     def __repr__(self):
-        return "ARTS TransmissionMatrix"
+        return repr(self.data)
+
+    def __len__(self):
+        return self.freqs
 
     def set(self, other):
         """ Sets this class according to another python instance of itself """
         if isinstance(other, TransmissionMatrix):
+            lib.setTransmissionMatrix(self.__data__, self.stokes, self.freqs)
             self.data = other.data
         else:
             raise TypeError("Expects TransmissionMatrix")
@@ -139,6 +138,15 @@ class TransmissionMatrix:
         """
         if lib.xmlsaveTransmissionMatrix(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
+
+    def __eq__(self, other):
+        if isinstance(other, Sized) and len(other) == len(self):
+            for i in range(len(self)):
+                if (self[i] != other[i]).any():
+                    return False
+            return True
+        else:
+            return False
 
 
 exec(array_base(TransmissionMatrix))

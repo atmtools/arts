@@ -38,6 +38,10 @@ class Tensor6:
         return 6
 
     @property
+    def flat(self):
+        return self.data.flat
+
+    @property
     def data(self):
         """ The data (numpy-array) """
         if not np.any(self.shape == np.zeros(shape=(self.dims))):
