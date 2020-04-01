@@ -324,7 +324,7 @@ class String:
 
     @val.setter
     def val(self, x):
-        lib.setString(self.__data__, str(x).encode("ascii"))
+        lib.setString(self.__data__, str(x).encode("utf-8"))
 
     def print(self):
         """ Print to cout the ARTS representation of the class """

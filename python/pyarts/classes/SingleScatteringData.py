@@ -189,6 +189,21 @@ class SingleScatteringData:
         if lib.xmlsaveSingleScatteringData(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
 
+    def __eq__(self, other):
+        if isinstance(other, SingleScatteringData) and \
+                self.ptype == other.ptype and \
+                self.description == other.description and \
+                self.f_grid == other.f_grid and \
+                self.T_grid == other.T_grid and \
+                self.za_grid == other.za_grid and \
+                self.aa_grid == other.aa_grid and \
+                self.pha_mat_data == other.pha_mat_data and \
+                self.ext_mat_data == other.ext_mat_data and \
+                self.abs_vec_data == other.abs_vec_data:
+            return True
+        else:
+            return False
+
 
 exec(array_base(SingleScatteringData))
 

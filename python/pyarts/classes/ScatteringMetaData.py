@@ -160,6 +160,19 @@ class ScatteringMetaData:
         if lib.xmlsaveScatteringMetaData(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
 
+    def __eq__(self, other):
+        if isinstance(other, ScatteringMetaData) and \
+                self.description == other.description and \
+                self.source == other.source and \
+                self.refr_index == other.refr_index and \
+                self.mass == other.mass and \
+                self.diameter_max == other.diameter_max and \
+                self.diameter_volume_equ == other.diameter_volume_equ and \
+                self.diameter_area_equ_aerodynamical == other.diameter_area_equ_aerodynamical:
+            return True
+        else:
+            return False
+
 
 exec(array_base(ScatteringMetaData))
 
