@@ -106,7 +106,7 @@ class GridPos:
             return False
 
     def __bool__(self):
-        return True
+        return self.idx >= 0
 
 
 exec(array_base(GridPos))
