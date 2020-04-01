@@ -132,7 +132,7 @@ class Vector:
 
     def __eq__(self, other):
         if isinstance(other, Vector):
-            return (self.data == other.data).all()
+            return (np.logical_or(self.data == other.data, np.logical_and(np.isnan(self.data), np.isnan(other.data)))).all()
         else:
             return self.data == other
 

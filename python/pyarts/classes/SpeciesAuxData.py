@@ -22,7 +22,11 @@ class SpeciesAuxData:
         else:
             self.__delete__ = True
             self.__data__ = c.c_void_p(lib.createSpeciesAuxData())
-            lib.initSpeciesAuxData(self.__data__)
+            self.initDefault()
+
+    def initDefault(self):
+        """ Initialize to default """
+        lib.initSpeciesAuxData(self.__data__)
 
     @property
     def data(self):
@@ -39,6 +43,14 @@ class SpeciesAuxData:
         x.pop()
         return x
 
+    @data.setter
+    def data(self, other):
+        """ The data (const list of lists of ArrayOfGriddedField1) """
+        x = self.data
+        for s in range(len(x)):
+            for i in range(len(x[s])):
+                x[s][i].set(other[s][i])
+
     @property
     def types(self):
         """ The types (const list of lists of Index) """
@@ -52,6 +64,13 @@ class SpeciesAuxData:
                 i += 1
             s += 1
         return x
+
+    @types.setter
+    def types(self, other):
+        x = self.types
+        for s in range(len(x)):
+            for i in range(len(x[s])):
+                self.setType(s, i, other[s][i])
 
     def setType(self, s, i, t):
         """ Sets type of aux data
@@ -87,7 +106,11 @@ class SpeciesAuxData:
 
     def set(self, other):
         """ Sets this class according to another python instance of itself """
-        raise TypeError("Cannot set full SpeciesAuxData")
+        if isinstance(other, SpeciesAuxData):
+            self.types = other.types
+            self.data = other.data
+        else:
+            raise TypeError("Expects SpeciesAuxData")
 
     @staticmethod
     def name():
@@ -118,6 +141,12 @@ class SpeciesAuxData:
         """
         if lib.xmlsaveSpeciesAuxData(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
+
+    def __eq__(self, other):
+        if isinstance(other, SpeciesAuxData) and self.types == other.types and self.data == other.data:
+            return True
+        else:
+            return False
 
 
 lib.createSpeciesAuxData.restype = c.c_void_p

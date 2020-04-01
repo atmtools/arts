@@ -129,7 +129,7 @@ class Tensor6:
 
     def __eq__(self, other):
         if isinstance(other, Tensor6):
-            return (self.data == other.data).all()
+            return (np.logical_or(self.data == other.data, np.logical_and(np.isnan(self.data), np.isnan(other.data)))).all()
         else:
             return self.data == other
 
