@@ -1511,6 +1511,13 @@ void update_radiation_vector(RadiationVector& I,
       }
       I.leftMul(T);
     } break;
+    
+    case RadiativeTransferSolver::WeightedEmission: {
+      I.rem_weighted(J1, J2, T);
+      /* ADD DERIVATIVES */
+      I.leftMul(T);
+      I.add_weighted(J1, J2, T);
+    } break;
   }
 }
 

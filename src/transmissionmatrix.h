@@ -318,6 +318,17 @@ class TransmissionMatrix {
     operator*=(lstm.scale);
     return *this;
   }
+  
+  std::pair<Numeric, Numeric> weight(Index i) const { 
+    auto e_mtau = this -> operator()(i, 0, 0);
+    
+    if (e_mtau > 0.9 /* tau approx 0.1 */) {
+      return {0.5, 0.5};
+    } else {
+      auto tau = - std::log(e_mtau);
+      return {(1 - (1 + tau) * e_mtau) / tau, (tau - 1 + e_mtau) / tau};
+    }
+  }
 
   /** Output operator */
   friend std::ostream& operator<<(std::ostream& os,
@@ -552,6 +563,52 @@ class RadiationVector {
       R2[i].noalias() += 0.5 * (O1.R2[i] + O2.R2[i]);
     for (size_t i = 0; i < R1.size(); i++)
       R1[i].noalias() += 0.5 * (O1.R1[i] + O2.R1[i]);
+  }
+  
+  
+  /** Remove two weighted RadiationVector to *this
+   * 
+   * @param[in] O1 Input 1
+   * @param[in] O2 Input 2
+   * @param[in] T Transmission matrix from O1 to O2
+   */
+  void rem_weighted(const RadiationVector& O1, const RadiationVector& O2, const TransmissionMatrix& T) {
+    for (size_t i = 0; i < R4.size(); i++) {
+      auto w = T.weight(i);
+      R4[i].noalias() -= w.first * O1.R4[i] + w.second * O2.R4[i];
+    } for (size_t i = 0; i < R3.size(); i++) {
+      auto w = T.weight(i);
+      R3[i].noalias() -= w.first * O1.R3[i] + w.second * O2.R3[i];
+    } for (size_t i = 0; i < R2.size(); i++) {
+      auto w = T.weight(i);
+      R2[i].noalias() -= w.first * O1.R2[i] + w.second * O2.R2[i];
+    } for (size_t i = 0; i < R1.size(); i++) {
+      auto w = T.weight(i);
+      R1[i].noalias() -= w.first * O1.R1[i] + w.second * O2.R1[i];
+    }
+  }
+  
+  
+  /** Add two weighted RadiationVector to *this
+   * 
+   * @param[in] O1 Input 1
+   * @param[in] O2 Input 2
+   * @param[in] T Transmission matrix from O1 to O2
+   */
+  void add_weighted(const RadiationVector& O1, const RadiationVector& O2, const TransmissionMatrix& T) {
+    for (size_t i = 0; i < R4.size(); i++) {
+      auto w = T.weight(i);
+      R4[i].noalias() += w.first * O1.R4[i] + w.second * O2.R4[i];
+    } for (size_t i = 0; i < R3.size(); i++) {
+      auto w = T.weight(i);
+      R3[i].noalias() += w.first * O1.R3[i] + w.second * O2.R3[i];
+    } for (size_t i = 0; i < R2.size(); i++) {
+      auto w = T.weight(i);
+      R2[i].noalias() += w.first * O1.R2[i] + w.second * O2.R2[i];
+    } for (size_t i = 0; i < R1.size(); i++) {
+      auto w = T.weight(i);
+      R1[i].noalias() += w.first * O1.R1[i] + w.second * O2.R1[i];
+    }
   }
 
   /** Add the emission derivative to this
@@ -875,6 +932,7 @@ enum class CumulativeTransmission {
 enum class RadiativeTransferSolver {
   Emission,
   Transmission,
+  WeightedEmission,
 };
 
 /** Update the Radiation Vector
