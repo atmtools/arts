@@ -212,6 +212,22 @@ class TessemNN:
         if lib.xmlsaveTessemNN(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
 
+    def __eq__(self, other):
+        if isinstance(other, TessemNN) and \
+                  self.nb_inputs == other.nb_inputs and \
+                  self.nb_outputs == other.nb_outputs and \
+                  self.nb_cache == other.nb_cache and \
+                  self.b1 == other.b1 and \
+                  self.b2 == other.b2 and \
+                  self.w1 == other.w1 and \
+                  self.w2 == other.w2 and \
+                  self.x_min == other.x_min and \
+                  self.x_max == other.x_max and \
+                  self.y_min == other.y_min and \
+                  self.y_max == other.y_max:
+            return True
+        else:
+            return False
 
 lib.createTessemNN.restype = c.c_void_p
 lib.createTessemNN.argtypes = []
