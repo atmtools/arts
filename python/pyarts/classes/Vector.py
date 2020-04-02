@@ -51,14 +51,8 @@ class Vector:
 
     @data.setter
     def data(self, val):
-        if not hasattr(val, 'shape'):
-            val = np.array(val, dtype=float)
-
-        if val.dtype != float:
-            raise ValueError("Expects Numeric-like type. Got: {}".format(val.dtype))
-
-        x = copy(val)
-        self.shape = val.shape
+        x = copy(np.array(val))
+        self.shape = x.shape
         self.data.flat[:] = x.flat[:]
 
     @property
@@ -161,7 +155,7 @@ class Vector:
         return self
 
     def __imatmul__(self, val):
-        self.data @= np.array(val)
+        self.data = self.data @ np.array(val)
         return self
 
     def __itruediv__(self, val):
