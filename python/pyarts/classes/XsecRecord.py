@@ -140,7 +140,14 @@ class XsecRecord:
     def set(self, other):
         """ Sets this class according to another python instance of itself """
         if isinstance(other, XsecRecord):
-              raise RuntimeWarning("Cannot set XsecRecord, remains constant")
+            lib.setSpeciesXsecRecord(self.__data__, int(other.spec))
+            self.coeffs = other.coeffs
+            self.ref_pressure = other.ref_pressure
+            self.ref_temperature = other.ref_temperature
+            self.fgrids = other.fgrids
+            self.xsecs = other.xsecs
+            self.temperature_slope = other.temperature_slope
+            self.temperature_intersect = other.temperature_intersect
         else:
             raise TypeError("Expects XsecRecord")
 
@@ -169,6 +176,20 @@ class XsecRecord:
         """
         if lib.xmlsaveXsecRecord(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
+
+    def __eq__(self, other):
+        if isinstance(other, XsecRecord) and \
+                self.spec == other.spec and \
+                self.coeffs == other.coeffs and \
+                self.ref_pressure == other.ref_pressure and \
+                self.ref_temperature == other.ref_temperature and \
+                self.fgrids == other.fgrids and \
+                self.xsecs == other.xsecs and \
+                self.temperature_slope == other.temperature_slope and \
+                self.temperature_intersect == other.temperature_intersect:
+            return True
+        else:
+            return False
 
 
 exec(array_base(XsecRecord))
