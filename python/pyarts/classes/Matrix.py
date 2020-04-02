@@ -86,10 +86,9 @@ class Matrix:
     def set(self, other):
         """ Sets this class according to another python instance of itself """
         if isinstance(other, Matrix):
-            self.shape = other.shape
             self.data = other.data
         else:
-            raise TypeError("Expects Matrix")
+            self.data = other
 
     @staticmethod
     def name():

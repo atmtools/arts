@@ -86,10 +86,9 @@ class Tensor3:
     def set(self, other):
         """ Sets this class according to another python instance of itself """
         if isinstance(other, Tensor3):
-            self.shape = other.shape
             self.data = other.data
         else:
-            raise TypeError("Expects Tensor3")
+            self.data = other
 
     @staticmethod
     def name():

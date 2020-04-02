@@ -89,10 +89,9 @@ class Vector:
     def set(self, other):
         """ Sets this class according to another python instance of itself """
         if isinstance(other, Vector):
-            self.shape = other.shape
             self.data = other.data
         else:
-            raise TypeError("Expects Vector")
+            self.data = other
 
     @staticmethod
     def name():
