@@ -39,6 +39,9 @@
 #include "xml_io_types.h"
 #include "zeemandata.h"
 
+#ifdef TIME_SUPPORT
+#include <unistd.h>
+#endif
 
 #define BasicInterfaceCAPI(TYPE)                            \
 void * create##TYPE()                                       \
@@ -875,6 +878,166 @@ void * createTimer() {return new Timer;}
 void deleteTimer(void * data) {delete static_cast<Timer *>(data);}
 void printTimer(void *) {std::cout << std::endl;}
 BasicInputOutputCAPI(Timer)
+bool getrunningTimer(void * data) {return static_cast<Timer *>(data) -> running;}
+bool getfinishedTimer(void * data) {return static_cast<Timer *>(data) -> finished;}
+Index getcputime_start_utimeTimer(void * data)
+{
+#ifdef TIME_SUPPORT
+  return static_cast<Timer *>(data) -> cputime_start.tms_utime;
+#else
+  return 0;
+#endif
+}
+Index getcputime_start_stimeTimer(void * data)
+{
+#ifdef TIME_SUPPORT
+  return static_cast<Timer *>(data) -> cputime_start.tms_stime;
+#else
+  return 0;
+#endif
+}
+Index getcputime_start_cutimeTimer(void * data)
+{
+#ifdef TIME_SUPPORT
+  return static_cast<Timer *>(data) -> cputime_start.tms_cutime;
+#else
+  return 0;
+#endif
+}
+Index getcputime_start_cstimeTimer(void * data)
+{
+#ifdef TIME_SUPPORT
+  return static_cast<Timer *>(data) -> cputime_start.tms_cstime;
+#else
+  return 0;
+#endif
+}
+Index getrealtime_startTimer(void * data)
+{
+#ifdef TIME_SUPPORT
+  return static_cast<Timer *>(data) -> realtime_start;
+#else
+  return 0;
+#endif
+}
+Index getcputime_end_utimeTimer(void * data)
+{
+#ifdef TIME_SUPPORT
+  return static_cast<Timer *>(data) -> cputime_end.tms_utime;
+#else
+  return 0;
+#endif
+}
+Index getcputime_end_stimeTimer(void * data)
+{
+#ifdef TIME_SUPPORT
+  return static_cast<Timer *>(data) -> cputime_end.tms_stime;
+#else
+  return 0;
+#endif
+}
+Index getcputime_end_cutimeTimer(void * data)
+{
+#ifdef TIME_SUPPORT
+  return static_cast<Timer *>(data) -> cputime_end.tms_cutime;
+#else
+  return 0;
+#endif
+}
+Index getcputime_end_cstimeTimer(void * data)
+{
+#ifdef TIME_SUPPORT
+  return static_cast<Timer *>(data) -> cputime_end.tms_cstime;
+#else
+  return 0;
+#endif
+}
+Index getrealtime_endTimer(void * data)
+{
+#ifdef TIME_SUPPORT
+  return static_cast<Timer *>(data) -> realtime_end;
+#else
+  return 0;
+#endif
+}
+void setrunningTimer(void * data, bool newdata) {static_cast<Timer *>(data) -> running = newdata;}
+void setfinishedTimer(void * data, bool newdata) {static_cast<Timer *>(data) -> finished = newdata;}
+void setcputime_start_utimeTimer(void * data, Index newdata)
+{
+#ifdef TIME_SUPPORT
+  static_cast<Timer *>(data) -> cputime_start.tms_utime = clock_t(newdata);
+#endif
+}
+void setcputime_start_stimeTimer(void * data, Index newdata)
+{
+#ifdef TIME_SUPPORT
+  static_cast<Timer *>(data) -> cputime_start.tms_stime = clock_t(newdata);
+#endif
+}
+void setcputime_start_cutimeTimer(void * data, Index newdata)
+{
+#ifdef TIME_SUPPORT
+  static_cast<Timer *>(data) -> cputime_start.tms_cutime = clock_t(newdata);
+#endif
+}
+void setcputime_start_cstimeTimer(void * data, Index newdata)
+{
+#ifdef TIME_SUPPORT
+  static_cast<Timer *>(data) -> cputime_start.tms_cstime = clock_t(newdata);
+#endif
+}
+void setrealtime_startTimer(void * data, Index newdata)
+{
+#ifdef TIME_SUPPORT
+  static_cast<Timer *>(data) -> realtime_start = clock_t(newdata);
+#endif
+}
+void setcputime_end_utimeTimer(void * data, Index newdata)
+{
+#ifdef TIME_SUPPORT
+  static_cast<Timer *>(data) -> cputime_end.tms_utime = clock_t(newdata);
+#endif
+}
+void setcputime_end_stimeTimer(void * data, Index newdata)
+{
+#ifdef TIME_SUPPORT
+  static_cast<Timer *>(data) -> cputime_end.tms_stime = clock_t(newdata);
+#endif
+}
+void setcputime_end_cutimeTimer(void * data, Index newdata)
+{
+#ifdef TIME_SUPPORT
+  static_cast<Timer *>(data) -> cputime_end.tms_cutime = clock_t(newdata);
+#endif
+}
+void setcputime_end_cstimeTimer(void * data, Index newdata)
+{
+#ifdef TIME_SUPPORT
+  static_cast<Timer *>(data) -> cputime_end.tms_cstime = clock_t(newdata);
+#endif
+}
+void setrealtime_endTimer(void * data, Index newdata)
+{
+#ifdef TIME_SUPPORT
+  static_cast<Timer *>(data) -> realtime_end = clock_t(newdata);
+#endif
+}
+bool supportTimer()
+{
+#ifdef TIME_SUPPORT
+  return true;
+#else
+  return false;
+#endif
+}
+Index tickTimer()
+{
+#ifdef TIME_SUPPORT
+  return sysconf(_SC_CLK_TCK);
+#else
+  return 0;
+#endif
+}
 
 
 // TelsemAtlas

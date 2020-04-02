@@ -675,6 +675,32 @@ extern "C" {
     // Timer
     BasicInterfaceCAPI(Timer)
     BasicInputOutputCAPI(Timer)
+    DLL_PUBLIC bool getrunningTimer(void *);
+    DLL_PUBLIC bool getfinishedTimer(void *);
+    DLL_PUBLIC Index getcputime_start_utimeTimer(void *);
+    DLL_PUBLIC Index getcputime_start_stimeTimer(void *);
+    DLL_PUBLIC Index getcputime_start_cutimeTimer(void *);
+    DLL_PUBLIC Index getcputime_start_cstimeTimer(void *);
+    DLL_PUBLIC Index getrealtime_startTimer(void *);
+    DLL_PUBLIC Index getcputime_end_utimeTimer(void *);
+    DLL_PUBLIC Index getcputime_end_stimeTimer(void *);
+    DLL_PUBLIC Index getcputime_end_cutimeTimer(void *);
+    DLL_PUBLIC Index getcputime_end_cstimeTimer(void *);
+    DLL_PUBLIC Index getrealtime_endTimer(void *);
+    DLL_PUBLIC void setrunningTimer(void *, bool);
+    DLL_PUBLIC void setfinishedTimer(void *, bool);
+    DLL_PUBLIC void setcputime_start_utimeTimer(void *, Index);
+    DLL_PUBLIC void setcputime_start_stimeTimer(void *, Index);
+    DLL_PUBLIC void setcputime_start_cutimeTimer(void *, Index);
+    DLL_PUBLIC void setcputime_start_cstimeTimer(void *, Index);
+    DLL_PUBLIC void setrealtime_startTimer(void *, Index);
+    DLL_PUBLIC void setcputime_end_utimeTimer(void *, Index);
+    DLL_PUBLIC void setcputime_end_stimeTimer(void *, Index);
+    DLL_PUBLIC void setcputime_end_cutimeTimer(void *, Index);
+    DLL_PUBLIC void setcputime_end_cstimeTimer(void *, Index);
+    DLL_PUBLIC void setrealtime_endTimer(void *, Index);
+    DLL_PUBLIC bool supportTimer();
+    DLL_PUBLIC Index tickTimer();
     
     // TelsemAtlas
     BasicInterfaceCAPI(TelsemAtlas)
