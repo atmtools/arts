@@ -31,3 +31,13 @@ ssd3.set(ssd2)
 
 assert ssd1 == ssd2
 assert ssd1 == ssd3
+
+smd4 = ScatteringMetaData()
+smd1.savexml("tmp.smd.xml", "binary")
+smd4.readxml("tmp.smd.xml")
+assert smd1 == smd4
+
+ssd4 = SingleScatteringData()
+ssd1.savexml("tmp.ssd.xml", "binary")
+ssd4.readxml("tmp.ssd.xml")
+assert ssd1 == ssd4

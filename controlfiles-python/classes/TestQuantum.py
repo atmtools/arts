@@ -1,5 +1,5 @@
 from pyarts.workspace import Workspace
-from pyarts.classes.QuantumIdentifier import QuantumIdentifier
+from pyarts.classes.QuantumIdentifier import QuantumIdentifier, ArrayOfQuantumIdentifier
 from pyarts.classes.SpeciesTag import SpeciesTag
 from pyarts.classes import from_workspace
 
@@ -27,3 +27,8 @@ aqi[1].set(aqi[0])
 assert aqi[0] == aqi[1]
 aqi.append(qi)
 assert aqi[0] == aqi[2]
+
+aqi2 = ArrayOfQuantumIdentifier()
+aqi.savexml("tmp.aqi.xml", "binary")
+aqi2.readxml("tmp.aqi.xml")
+assert aqi == aqi2

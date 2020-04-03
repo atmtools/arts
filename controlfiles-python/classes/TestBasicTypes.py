@@ -29,3 +29,19 @@ n.val = 3.5
 assert n == 3.5, "Bad write"
 n.set(3.14)
 assert n == 3.14, "Bad write"
+
+s2 = String(0)
+s.savexml("tmp.s.xml", "binary")
+s2.readxml("tmp.s.xml")
+assert s == s2
+
+i2 = Index(0)
+i.savexml("tmp.i.xml", "binary")
+i2.readxml("tmp.i.xml")
+assert i == i2
+
+n2 = Numeric(0)
+n.savexml("tmp.n.xml", "binary")
+n2.readxml("tmp.n.xml")
+assert n == n2
+

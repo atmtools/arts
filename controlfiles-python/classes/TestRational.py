@@ -25,3 +25,8 @@ print(r)
 r.set(3/2)
 assert r == r
 print(r)
+
+r2 = Rational()
+r.savexml("tmp.r.xml", "binary")
+r2.readxml("tmp.r.xml")
+assert r == r2

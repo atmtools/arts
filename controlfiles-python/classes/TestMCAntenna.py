@@ -23,3 +23,8 @@ mca2 = from_workspace(ws.mc_antenna)
 mca2.set(mca)
 
 assert mca2 == mca
+
+# mca3 = MCAntenna()
+# mca.savexml("tmp.mca.xml", "binary")
+# mca3.readxml("tmp.mca.xml")
+# assert mca3 == mca

@@ -202,3 +202,38 @@ assert t42 == t4
 assert t52 == t5
 assert t62 == t6
 assert t72 == t7
+
+t13 = Vector()
+t1.savexml("tmp.mt.xml", "binary")
+t13.readxml("tmp.mt.xml")
+assert t1 == t13
+
+t23 = Matrix()
+t2.savexml("tmp.mt.xml", "binary")
+t23.readxml("tmp.mt.xml")
+assert t2 == t23
+
+t33 = Tensor3()
+t3.savexml("tmp.mt.xml", "binary")
+t33.readxml("tmp.mt.xml")
+assert t3 == t33
+
+t43 = Tensor4()
+t4.savexml("tmp.mt.xml", "binary")
+t43.readxml("tmp.mt.xml")
+assert t4 == t43
+
+t53 = Tensor5()
+t5.savexml("tmp.mt.xml", "binary")
+t53.readxml("tmp.mt.xml")
+assert t5 == t53
+
+t63 = Tensor6()
+t6.savexml("tmp.mt.xml", "binary")
+t63.readxml("tmp.mt.xml")
+assert t6 == t63
+
+t73 = Tensor7()
+t7.savexml("tmp.mt.xml", "binary")
+t73.readxml("tmp.mt.xml")
+assert t7 == t73

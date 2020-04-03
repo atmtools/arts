@@ -49,3 +49,7 @@ assert 2*aal[0].lines[0].f0 == 2*aaal[0][0].lines[0].f0, "Bad frequency"
 al.set(aal[0])
 assert al == aal[0]
 
+al2 = AbsorptionLines()
+al.savexml("tmp.al.xml", "binary")
+al2.readxml("tmp.al.xml")
+assert al == al2

@@ -105,6 +105,10 @@ class GridPos:
         else:
             return False
 
+    @property
+    def OK(self):
+        return bool(self)
+
     def __bool__(self):
         return self.idx >= 0
 

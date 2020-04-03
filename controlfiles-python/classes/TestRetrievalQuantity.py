@@ -33,3 +33,14 @@ arq[1].set(rq)
 assert arq[1] == arq[0]
 arq.append(rq)
 assert arq[1] == arq[2]
+
+arq2 = ArrayOfRetrievalQuantity()
+arq.savexml("tmp.arq.xml", "ascii")
+arq2.readxml("tmp.arq.xml")
+
+try:
+    assert arq == arq2
+except:
+    ws.ReadXML(ws.jacobian_quantities, "tmp.arq.xml")
+    assert arq == arq2
+    Warning("We had a failure that should not be!!!")

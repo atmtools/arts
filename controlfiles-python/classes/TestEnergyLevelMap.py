@@ -21,3 +21,8 @@ elm3 = EnergyLevelMap()
 elm3.set(elm1)
 
 assert elm3 == elm2
+
+elm4 = EnergyLevelMap()
+elm1.savexml("tmp.elm.xml", "binary")
+elm4.readxml("tmp.elm.xml")
+assert elm4 == elm1

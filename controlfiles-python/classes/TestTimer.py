@@ -20,3 +20,8 @@ if t.supported:
     # Test that we are within 2.5 ticks of the true answer
     assert isclose((t.realtime_end - t.realtime_start) / t.tick, time,
                    rel_tol = 2.5 / t.tick)
+
+# t2 = Timer()
+# t.savexml("tmp.t.xml", "binary")
+# t2.readxml("tmp.t.xml")
+# assert t == t2

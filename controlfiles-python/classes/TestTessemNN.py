@@ -23,3 +23,8 @@ assert tnn == tnn
 tnn2 = from_workspace(ws.tessem_neth)
 tnn2.set(tnn)
 assert tnn == tnn2
+
+# tnn3 = TessemNN()
+# tnn.savexml("tmp.tnn.xml", "binary")
+# tnn3.readxml("tmp.tnn.xml")
+# assert tnn == tnn3

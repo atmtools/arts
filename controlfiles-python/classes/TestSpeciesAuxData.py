@@ -16,6 +16,11 @@ sad2 = from_workspace(ws.isotopologue_ratios)
 ws.ReadXML(ws.isotopologue_ratios, fn)
 sad3 = SpeciesAuxData()
 sad3.set(sad2)
+sad4 = SpeciesAuxData()
+
+sad1.savexml("tmp.sad.xml", "binary")
+sad4.readxml("tmp.sad.xml")
+assert sad1 == sad4
 
 assert sad1 == sad2
 assert sad1 == sad3

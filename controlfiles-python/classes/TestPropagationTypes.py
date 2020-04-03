@@ -40,3 +40,12 @@ asv[4].set(asv[3])
 assert not asv[0]
 assert asv[1]
 assert asv[5] == sv
+
+apm.savexml("tmp.apm.xml", "binary")
+asv.savexml("tmp.asv.xml", "binary")
+apm2 = ArrayOfPropagationMatrix()
+asv2 = ArrayOfStokesVector()
+apm2.readxml("tmp.apm.xml")
+asv2.readxml("tmp.asv.xml")
+assert apm2 == apm
+assert asv2 == asv

@@ -29,3 +29,8 @@ path2.set(path)
 assert isinstance(path, Ppath), "Bad read"
 assert path, "Bad read"
 assert path2 == path
+
+path3 = Ppath()
+path.savexml("tmp.pp.xml", "binary")
+path3.readxml("tmp.pp.xml")
+assert path == path3

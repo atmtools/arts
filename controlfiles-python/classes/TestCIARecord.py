@@ -24,3 +24,9 @@ assert isinstance(acr1[0], CIARecord), "Bad type"
 acr3 = ArrayOfCIARecord()
 acr3.set(acr1)
 assert acr1 == acr3, "Bad read"
+
+
+acr1.savexml("tmp.acr.xml", "binary")
+acr3 = ArrayOfCIARecord()
+acr3.readxml("tmp.acr.xml")
+assert acr3 == acr1
