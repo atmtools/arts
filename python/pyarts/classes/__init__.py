@@ -28,6 +28,7 @@ from pyarts.classes.Rational import Rational
 from pyarts.classes.RetrievalQuantity import ArrayOfRetrievalQuantity
 from pyarts.classes.ScatteringMetaData import ScatteringMetaData, ArrayOfScatteringMetaData, ArrayOfArrayOfScatteringMetaData
 from pyarts.classes.SingleScatteringData import SingleScatteringData, ArrayOfSingleScatteringData, ArrayOfArrayOfSingleScatteringData
+from pyarts.classes.Sparse import Sparse, ArrayOfSparse
 from pyarts.classes.SpeciesAuxData import SpeciesAuxData
 from pyarts.classes.SpeciesTag import ArrayOfArrayOfSpeciesTag
 from pyarts.classes.StokesVector import StokesVector, ArrayOfStokesVector, ArrayOfArrayOfStokesVector
@@ -45,7 +46,6 @@ from pyarts.classes.XsecRecord import ArrayOfXsecRecord
 
 # No interface but creation and IO
 from pyarts.classes.CovarianceMatrix import CovarianceMatrix
-from pyarts.classes.Sparse import Sparse, ArrayOfSparse
 from pyarts.classes.TelsemAtlas import TelsemAtlas, ArrayOfTelsemAtlas
 
 
