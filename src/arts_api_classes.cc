@@ -148,7 +148,7 @@ Index size##ELEM##TYPE(void * data)                     \
 }                                                       \
 void resize##ELEM##TYPE(Index n, void * data)           \
 {                                                       \
-  return static_cast<TYPE *>(data) -> ELEM().resize(n); \
+  static_cast<TYPE *>(data) -> ELEM().resize(n);        \
 }                                                       \
 void * getelem##ELEM##TYPE(Index i, void * data)        \
 {                                                       \
@@ -1113,6 +1113,12 @@ void setDataSparse(void * data, Index r, Index c, Numeric v) {(static_cast<Spars
 // CovarianceMatrix
 BasicInterfaceCAPI(CovarianceMatrix)
 BasicInputOutputCAPI(CovarianceMatrix)
+Index sizeget_blocksCovarianceMatrix(void * data) { return static_cast<CovarianceMatrix *>(data) -> get_blocks().size(); }
+void resizeget_blocksCovarianceMatrix(Index n, void * data) { static_cast<CovarianceMatrix *>(data) -> get_blocks() = std::vector<Block>(n, Block(Range(joker), Range(joker), {0, 0}, std::make_shared<Matrix>(Matrix()))); }
+void * getelemget_blocksCovarianceMatrix(Index i, void * data) { return &static_cast<CovarianceMatrix *>(data) -> get_blocks()[i]; }
+Index sizeget_inverse_blocksCovarianceMatrix(void * data) { return static_cast<CovarianceMatrix *>(data) -> get_inverse_blocks().size(); }
+void resizeget_inverse_blocksCovarianceMatrix(Index n, void * data) { static_cast<CovarianceMatrix *>(data) -> get_inverse_blocks() = std::vector<Block>(n, Block(Range(joker), Range(joker), {0, 0}, std::make_shared<Matrix>(Matrix()))); }
+void * getelemget_inverse_blocksCovarianceMatrix(Index i, void * data) { return &static_cast<CovarianceMatrix *>(data) -> get_inverse_blocks()[i]; }
 
 
 // Any

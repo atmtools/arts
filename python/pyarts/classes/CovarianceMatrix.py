@@ -1,16 +1,26 @@
 import ctypes as c
+from collections.abc import Sized
 from pyarts.workspace.api import arts_api as lib
 
+from pyarts.classes.Block import Block
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 
 
 class CovarianceMatrix:
     """ ARTS CovarianceMatrix data
 
-    FIXME:  NO INTERFACE AVAILABLE
-
     Properties:
-        None: Can only initialize from pointer and use XML
+        sizeblocks:
+            Size of blocks (Index)
+
+        blocks:
+            List of blocks of the covariance matrix (list of Block)
+
+        sizeinverse_blocks:
+            Size of inverse_blocks (Index)
+
+        inverse_blocks:
+            List of inverse blocks of the covariance matrix (list of Block)
     """
 
     def __init__(self, data=None):
@@ -27,6 +37,66 @@ class CovarianceMatrix:
     def name():
         return "CovarianceMatrix"
 
+    @property
+    def sizeblocks(self):
+        """ Size of blocks (Index) """
+        return lib.sizeget_blocksCovarianceMatrix(self.__data__)
+
+    @sizeblocks.setter
+    def sizeblocks(self, x):
+        assert x >= 0
+        lib.resizeget_blocksCovarianceMatrix(int(x), self.__data__)
+
+    @property
+    def blocks(self):
+        """ List of blocks of the covariance matrix (list of Block) """
+        x = []
+        n = self.sizeblocks
+        for i in range(n):
+            x.append(Block(c.c_void_p(lib.getelemget_blocksCovarianceMatrix(i, self.__data__))))
+        return x
+
+    @blocks.setter
+    def blocks(self, val):
+        if isinstance(val, Sized):
+            self.sizeblocks = len(val)
+            n = self.sizeblocks
+            x = self.blocks
+            for i in range(n):
+                x[i].set(val[i])
+        else:
+            raise TypeError("Only accepts array-like input")
+
+    @property
+    def sizeinverse_blocks(self):
+        """ Size of inverse_blocks (Index) """
+        return lib.sizeget_inverse_blocksCovarianceMatrix(self.__data__)
+
+    @sizeinverse_blocks.setter
+    def sizeinverse_blocks(self, x):
+        assert x >= 0
+        lib.resizeget_inverse_blocksCovarianceMatrix(int(x), self.__data__)
+
+    @property
+    def inverse_blocks(self):
+        """ List of inverse blocks of the covariance matrix (list of Block) """
+        x = []
+        n = self.sizeinverse_blocks
+        for i in range(n):
+            x.append(Block(c.c_void_p(lib.getelemget_inverse_blocksCovarianceMatrix(i, self.__data__))))
+        return x
+
+    @inverse_blocks.setter
+    def inverse_blocks(self, val):
+        if isinstance(val, Sized):
+            self.sizeinverse_blocks = len(val)
+            n = self.sizeinverse_blocks
+            x = self.inverse_blocks
+            for i in range(n):
+                x[i].set(val[i])
+        else:
+            raise TypeError("Only accepts array-like input")
+
     def print(self):
         """ Print to cout the ARTS representation of the class """
         lib.printCovarianceMatrix(self.__data__)
@@ -41,7 +111,8 @@ class CovarianceMatrix:
     def set(self, other):
         """ Sets this class according to another python instance of itself """
         if isinstance(other, CovarianceMatrix):
-              raise RuntimeWarning("Cannot set CovarianceMatrix, remains constant")
+              self.blocks = other.blocks
+              self.inverse_blocks = other.inverse_blocks
         else:
             raise TypeError("Expects CovarianceMatrix")
 
@@ -86,3 +157,21 @@ lib.xmlreadCovarianceMatrix.argtypes = [c.c_void_p, c.c_char_p]
 
 lib.xmlsaveCovarianceMatrix.restype = c.c_long
 lib.xmlsaveCovarianceMatrix.argtypes = [c.c_void_p, c.c_char_p, c.c_long, c.c_long]
+
+lib.sizeget_blocksCovarianceMatrix.restype = c.c_long
+lib.sizeget_blocksCovarianceMatrix.argtypes = [c.c_void_p]
+
+lib.resizeget_blocksCovarianceMatrix.restype = None
+lib.resizeget_blocksCovarianceMatrix.argtypes = [c.c_long, c.c_void_p]
+
+lib.getelemget_blocksCovarianceMatrix.restype = c.c_void_p
+lib.getelemget_blocksCovarianceMatrix.argtypes = [c.c_long, c.c_void_p]
+
+lib.sizeget_inverse_blocksCovarianceMatrix.restype = c.c_long
+lib.sizeget_inverse_blocksCovarianceMatrix.argtypes = [c.c_void_p]
+
+lib.resizeget_inverse_blocksCovarianceMatrix.restype = None
+lib.resizeget_inverse_blocksCovarianceMatrix.argtypes = [c.c_long, c.c_void_p]
+
+lib.getelemget_inverse_blocksCovarianceMatrix.restype = c.c_void_p
+lib.getelemget_inverse_blocksCovarianceMatrix.argtypes = [c.c_long, c.c_void_p]

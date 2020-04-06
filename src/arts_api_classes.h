@@ -769,6 +769,8 @@ extern "C" {
     // CovarianceMatrix
     BasicInterfaceCAPI(CovarianceMatrix)
     BasicInputOutputCAPI(CovarianceMatrix)
+    VoidArrayElemCAPI(CovarianceMatrix, get_blocks)
+    VoidArrayElemCAPI(CovarianceMatrix, get_inverse_blocks)
     
     // Any
     BasicInterfaceCAPI(Any)
