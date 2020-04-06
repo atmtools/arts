@@ -30,6 +30,7 @@
 
 #include "absorption.h"
 #include "absorptionlines.h"
+#include "covariance_matrix.h"
 #include "energylevelmap.h"
 #include "global_data.h"
 #include "lineshapemodel.h"
@@ -1168,6 +1169,28 @@ void setRange(void * data, Index start, Index extent, Index stride)
     static_cast<Range *>(data) -> operator=(Range(start, joker, stride));
 }
 
+
+// Block
+void * createBlock() {return new Block(Range(joker), Range(joker), {0, 0}, std::make_shared<Matrix>(Matrix()));}
+void deleteBlock(void * data) {delete static_cast<Block *>(data);}
+void printBlock(void *) {std::cout << std::endl;}
+VoidGetterCAPI(Block, get_row_range)
+VoidGetterCAPI(Block, get_column_range)
+VoidGetterCAPI(Block, get_dense)
+VoidGetterCAPI(Block, get_sparse)
+Index get_matrix_typeBlock(void * data) {return Index(static_cast<Block *>(data) -> get_matrix_type());}
+Index get_index1Block(void * data) {return static_cast<Block *>(data) -> get_indices().first;}
+Index get_index2Block(void * data) {return static_cast<Block *>(data) -> get_indices().second;}
+void set_indicesBlock(void * data, Index i1, Index i2) {static_cast<Block *>(data) -> set_indices(i1, i2);}
+void set_matrixBlock(void * data, void * newdata, bool dense)
+{
+  auto x = static_cast<Block *>(data);
+  if (dense) {
+    x -> operator=(Block(x -> get_row_range(), x -> get_column_range(), x -> get_indices(), std::make_shared<Matrix>(*static_cast<Matrix *>(newdata))));
+  } else {
+    x -> operator=(Block(x -> get_row_range(), x -> get_column_range(), x -> get_indices(), std::make_shared<Sparse>(*static_cast<Sparse *>(newdata))));
+  }
+}
 
 // generic
 Index string2filetypeindex(char * data) { try { return Index(string2filetype(data)); } catch (std::runtime_error& e) { return -1; } }

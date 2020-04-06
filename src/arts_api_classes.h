@@ -812,6 +812,15 @@ extern "C" {
     
     // Block
     BasicInterfaceCAPI(Block)
+    VoidGetterCAPI(Block, get_row_range)
+    VoidGetterCAPI(Block, get_column_range)
+    VoidGetterCAPI(Block, get_dense)
+    VoidGetterCAPI(Block, get_sparse)
+    DLL_PUBLIC Index get_matrix_typeBlock(void *);
+    DLL_PUBLIC Index get_index1Block(void *);
+    DLL_PUBLIC Index get_index2Block(void *);
+    DLL_PUBLIC void set_indicesBlock(void *, Index, Index);
+    DLL_PUBLIC void set_matrixBlock(void *, void *, bool);
     
     // generic
     DLL_PUBLIC Index string2filetypeindex(char *);

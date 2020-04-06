@@ -129,6 +129,11 @@ class Block {
   Range get_row_range() const { return row_range_; }
   /*! The column range of this block*/
   Range get_column_range() const { return column_range_; }
+  
+  /*! The row range of this block*/
+  Range& get_row_range() { return row_range_; }
+  /*! The column range of this block*/
+  Range& get_column_range() { return column_range_; }
 
   void set_matrix(std::shared_ptr<Sparse> sparse) { sparse_ = sparse; }
   void set_matrix(std::shared_ptr<Matrix> dense) { dense_ = dense; }
@@ -144,6 +149,10 @@ class Block {
 
   /*! Return the indices of the retrieval quantities correlated by this block as std::pair. */
   IndexPair get_indices() const { return indices_; }
+  
+  /*! Return the indices of the retrieval quantities correlated by this block as std::pair. */
+  void set_indices(Index f, Index s) { indices_ = {f, s}; }
+  
   /*! Return the type of the matrix holding the correlation coefficients. */
   MatrixType get_matrix_type() const { return matrix_type_; }
 
