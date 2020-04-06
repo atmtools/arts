@@ -52,7 +52,7 @@ class Sparse:
 
     @property
     def row_ind_ptr(self):
-        """ Rows pointer (numpy-array) """
+        """ Row pointers (numpy-array) """
         x = np.ctypeslib.as_array(lib.rowsptrSparse(self.__data__), (self.shape[0]+1,))
         x[-1] = self.size
         return x
@@ -109,7 +109,7 @@ class Sparse:
     def set(self, other):
         """ Sets this class according to another python instance of itself """
         if isinstance(other, Sparse):
-              raise RuntimeWarning("Cannot set Sparse, remains constant")
+            self.data = other.data
         else:
             raise TypeError("Expects Sparse")
 

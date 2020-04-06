@@ -803,6 +803,16 @@ extern "C" {
     DLL_PUBLIC Index getTypeRetrievalQuantity(void *);
     DLL_PUBLIC Index setTypeRetrievalQuantity(void *, Index);
     
+    // Range
+    BasicInterfaceCAPI(Range)
+    DLL_PUBLIC Index get_startRange(void *);
+    DLL_PUBLIC Index get_strideRange(void *);
+    DLL_PUBLIC Index get_extentRange(void *);
+    DLL_PUBLIC void setRange(void *, Index, Index, Index);
+    
+    // Block
+    BasicInterfaceCAPI(Block)
+    
     // generic
     DLL_PUBLIC Index string2filetypeindex(char *);
 }

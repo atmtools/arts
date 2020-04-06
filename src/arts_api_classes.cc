@@ -1153,6 +1153,22 @@ Index getTypeRetrievalQuantity(void * data) {return Index(static_cast<RetrievalQ
 Index setTypeRetrievalQuantity(void * data, Index newval) {return Index(static_cast<RetrievalQuantity *>(data) -> Proptype(JacPropMatType(newval)));}
 
 
+// Range
+void * createRange() {return new Range(joker);}
+void deleteRange(void * data) {delete static_cast<Range *>(data);}
+void printRange(void * data) {std::cout << (*static_cast<Range *>(data)) << std::endl;}
+Index get_startRange(void * data) {return static_cast<Range *>(data) -> get_start();}
+Index get_strideRange(void * data) {return static_cast<Range *>(data) -> get_stride();}
+Index get_extentRange(void * data) {return static_cast<Range *>(data) -> get_extent();}
+void setRange(void * data, Index start, Index extent, Index stride)
+{
+  if (extent >= 0)
+    static_cast<Range *>(data) -> operator=(Range(start, extent, stride));
+  else
+    static_cast<Range *>(data) -> operator=(Range(start, joker, stride));
+}
+
+
 // generic
 Index string2filetypeindex(char * data) { try { return Index(string2filetype(data)); } catch (std::runtime_error& e) { return -1; } }
 
