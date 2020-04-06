@@ -757,6 +757,14 @@ extern "C" {
     VoidArrayCAPI(ArrayOfSparse)
     BasicInterfaceCAPI(ArrayOfSparse)
     BasicInputOutputCAPI(ArrayOfSparse)
+    DLL_PUBLIC void resizeSparse(Index, Index, void *);
+    DLL_PUBLIC Index rowsSparse(void *);
+    DLL_PUBLIC Index colsSparse(void *);
+    DLL_PUBLIC Index sizeSparse(void *);
+    DLL_PUBLIC int * rowsptrSparse(void *);
+    DLL_PUBLIC int * colsptrSparse(void *);
+    DLL_PUBLIC Numeric * getDataSparse(void *);
+    DLL_PUBLIC void setDataSparse(void *, Index, Index, Numeric);
     
     // CovarianceMatrix
     BasicInterfaceCAPI(CovarianceMatrix)

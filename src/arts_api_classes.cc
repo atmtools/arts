@@ -1099,6 +1099,14 @@ BasicInputOutputCAPI(Sparse)
 VoidArrayCAPI(ArrayOfSparse)
 BasicInterfaceCAPI(ArrayOfSparse)
 BasicInputOutputCAPI(ArrayOfSparse)
+void resizeSparse(Index nrows, Index ncols, void * data) {static_cast<Sparse *>(data) -> resize(nrows, ncols);}
+Index rowsSparse(void * data) {return static_cast<Sparse *>(data) -> nrows();}
+Index colsSparse(void * data) {return static_cast<Sparse *>(data) -> ncols();}
+Index sizeSparse(void * data) {return static_cast<Sparse *>(data) -> nnz();}
+int * rowsptrSparse(void * data) {return static_cast<Sparse *>(data) -> get_row_start_pointer();}
+int * colsptrSparse(void * data) {return static_cast<Sparse *>(data) -> get_column_index_pointer();}
+Numeric * getDataSparse(void * data) {return static_cast<Sparse *>(data) -> get_element_pointer();}
+void setDataSparse(void * data, Index r, Index c, Numeric v) {(static_cast<Sparse *>(data) -> rw(r, c)) = v;}
 
 
 // CovarianceMatrix
