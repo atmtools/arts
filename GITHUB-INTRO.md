@@ -24,7 +24,6 @@ authentication with the GitHub server
 1. [Fork the project](#fork-the-project)
 2. [Clone your fork](#clone-the-forked-project)
 3. [Set up remotes](#set-up-remotes)
-4. [Update your working copy](#update-your-working-copy)
 
 ### Fork the project
 The first step is to [fork the project][github-fork] (click the ``Fork`` 
