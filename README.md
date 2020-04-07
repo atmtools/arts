@@ -29,6 +29,16 @@ Build Prerequisites:
 - blas
 - lapack
 - netcdf (optional)
+- Python3 (>=3.6)
+  - required modules:
+    docutils
+    lark-parser
+    matplotlib
+    netCDF4
+    numpy
+    pytest
+    scipy
+    setuptools
 
 To build the documentation you also need:
 
@@ -63,6 +73,19 @@ make -jX
 Where X is the number of parallel build processes.
 X=(Number of Cores)+1 gives you usually the fastest compilation time.
 
+Developer install of the PyARTS Python package:
+
+```
+cd python
+pip install --user -e .
+```
+
+You only have to do the package install once. If the ARTS source has changed,
+update the PyARTS package by running:
+
+```
+make -jX pyarts
+```
 
 Build configurations
 --------------------
