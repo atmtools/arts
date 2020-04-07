@@ -1044,9 +1044,36 @@ Index tickTimer()
 // TelsemAtlas
 BasicInterfaceCAPI(TelsemAtlas)
 BasicInputOutputCAPI(TelsemAtlas)
+VoidGetterCAPI(TelsemAtlas, DataCount)
+VoidGetterCAPI(TelsemAtlas, ChannelCount)
+VoidGetterCAPI(TelsemAtlas, Name)
+VoidGetterCAPI(TelsemAtlas, Month)
+VoidGetterCAPI(TelsemAtlas, Lat)
+VoidGetterCAPI(TelsemAtlas, Cells)
+VoidGetterCAPI(TelsemAtlas, FirstCells)
+VoidGetterCAPI(TelsemAtlas, Emis)
+VoidGetterCAPI(TelsemAtlas, Emis_err)
+VoidGetterCAPI(TelsemAtlas, Correlations)
+VoidGetterCAPI(TelsemAtlas, Classes1)
+VoidGetterCAPI(TelsemAtlas, Classes2)
+VoidGetterCAPI(TelsemAtlas, Cellnumber)
+VoidGetterCAPI(TelsemAtlas, Correspondance)
 VoidArrayCAPI(ArrayOfTelsemAtlas)
 BasicInterfaceCAPI(ArrayOfTelsemAtlas)
 BasicInputOutputCAPI(ArrayOfTelsemAtlas)
+Numeric getA0_K0TelsemAtlas(Index i, void* data) {return static_cast<TelsemAtlas *>(data) -> A0_K0(i);}
+Numeric getA0_K1TelsemAtlas(Index i, void* data) {return static_cast<TelsemAtlas *>(data) -> A0_K1(i);}
+Numeric getA0_K2TelsemAtlas(Index i, void* data) {return static_cast<TelsemAtlas *>(data) -> A0_K2(i);}
+Numeric getA0_EVEHTelsemAtlas(Index i, void* data) {return static_cast<TelsemAtlas *>(data) -> A0_EVEH(i);}
+Numeric getA1_EVEHTelsemAtlas(Index i, void* data) {return static_cast<TelsemAtlas *>(data) -> A1_EVEH(i);}
+Numeric getA2_EVEHTelsemAtlas(Index i, void* data) {return static_cast<TelsemAtlas *>(data) -> A2_EVEH(i);}
+Numeric getA3_EVEHTelsemAtlas(Index i, void* data) {return static_cast<TelsemAtlas *>(data) -> A3_EVEH(i);}
+Numeric getB0_EVEHTelsemAtlas(Index i, void* data) {return static_cast<TelsemAtlas *>(data) -> B0_EVEH(i);}
+Numeric getB1_EVEHTelsemAtlas(Index i, void* data) {return static_cast<TelsemAtlas *>(data) -> B1_EVEH(i);}
+Numeric getB2_EVEHTelsemAtlas(Index i, void* data) {return static_cast<TelsemAtlas *>(data) -> B2_EVEH(i);}
+Numeric getB3_EVEHTelsemAtlas(Index i, void* data) {return static_cast<TelsemAtlas *>(data) -> B3_EVEH(i);}
+Numeric getRAPPORT43_32TelsemAtlas(Index i, void* data) {return static_cast<TelsemAtlas *>(data) -> RAPPORT43_32(i);}
+Numeric getRAPPORT54_43TelsemAtlas(Index i, void* data) {return static_cast<TelsemAtlas *>(data) -> RAPPORT54_43(i);}
 
 
 // MCAntenna

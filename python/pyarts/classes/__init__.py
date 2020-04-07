@@ -33,6 +33,7 @@ from pyarts.classes.Sparse import Sparse, ArrayOfSparse
 from pyarts.classes.SpeciesAuxData import SpeciesAuxData
 from pyarts.classes.SpeciesTag import ArrayOfArrayOfSpeciesTag
 from pyarts.classes.StokesVector import StokesVector, ArrayOfStokesVector, ArrayOfArrayOfStokesVector
+from pyarts.classes.TelsemAtlas import TelsemAtlas, ArrayOfTelsemAtlas
 from pyarts.classes.Tensor3 import Tensor3, ArrayOfTensor3, ArrayOfArrayOfTensor3
 from pyarts.classes.Tensor4 import Tensor4, ArrayOfTensor4
 from pyarts.classes.Tensor5 import Tensor5, ArrayOfTensor5
@@ -44,9 +45,6 @@ from pyarts.classes.TransmissionMatrix import TransmissionMatrix, ArrayOfTransmi
 from pyarts.classes.Vector import Vector, ArrayOfVector, ArrayOfArrayOfVector
 from pyarts.classes.Verbosity import Verbosity
 from pyarts.classes.XsecRecord import ArrayOfXsecRecord
-
-# No interface but creation and IO
-from pyarts.classes.TelsemAtlas import TelsemAtlas, ArrayOfTelsemAtlas
 
 
 # Attempt at conversions

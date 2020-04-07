@@ -705,9 +705,36 @@ extern "C" {
     // TelsemAtlas
     BasicInterfaceCAPI(TelsemAtlas)
     BasicInputOutputCAPI(TelsemAtlas)
+    VoidGetterCAPI(TelsemAtlas, DataCount)
+    VoidGetterCAPI(TelsemAtlas, ChannelCount)
+    VoidGetterCAPI(TelsemAtlas, Name)
+    VoidGetterCAPI(TelsemAtlas, Month)
+    VoidGetterCAPI(TelsemAtlas, Lat)
+    VoidGetterCAPI(TelsemAtlas, Cells)
+    VoidGetterCAPI(TelsemAtlas, FirstCells)
+    VoidGetterCAPI(TelsemAtlas, Emis)
+    VoidGetterCAPI(TelsemAtlas, Emis_err)
+    VoidGetterCAPI(TelsemAtlas, Correlations)
+    VoidGetterCAPI(TelsemAtlas, Classes1)
+    VoidGetterCAPI(TelsemAtlas, Classes2)
+    VoidGetterCAPI(TelsemAtlas, Cellnumber)
+    VoidGetterCAPI(TelsemAtlas, Correspondance)
     VoidArrayCAPI(ArrayOfTelsemAtlas)
     BasicInterfaceCAPI(ArrayOfTelsemAtlas)
     BasicInputOutputCAPI(ArrayOfTelsemAtlas)
+    DLL_PUBLIC Numeric getA0_K0TelsemAtlas(Index, void*);
+    DLL_PUBLIC Numeric getA0_K1TelsemAtlas(Index, void*);
+    DLL_PUBLIC Numeric getA0_K2TelsemAtlas(Index, void*);
+    DLL_PUBLIC Numeric getA0_EVEHTelsemAtlas(Index, void*);
+    DLL_PUBLIC Numeric getA1_EVEHTelsemAtlas(Index, void*);
+    DLL_PUBLIC Numeric getA2_EVEHTelsemAtlas(Index, void*);
+    DLL_PUBLIC Numeric getA3_EVEHTelsemAtlas(Index, void*);
+    DLL_PUBLIC Numeric getB0_EVEHTelsemAtlas(Index, void*);
+    DLL_PUBLIC Numeric getB1_EVEHTelsemAtlas(Index, void*);
+    DLL_PUBLIC Numeric getB2_EVEHTelsemAtlas(Index, void*);
+    DLL_PUBLIC Numeric getB3_EVEHTelsemAtlas(Index, void*);
+    DLL_PUBLIC Numeric getRAPPORT43_32TelsemAtlas(Index, void*);
+    DLL_PUBLIC Numeric getRAPPORT54_43TelsemAtlas(Index, void*);
     
     // MCAntenna
     BasicInterfaceCAPI(MCAntenna)
