@@ -8,6 +8,7 @@ controlfiles and can be executed on a given `Workspace` object.
 import ctypes as c
 import numpy  as np
 import os
+from copy import copy
 
 from pyarts.workspace.api import find_controlfile, arts_api
 from pyarts.workspace.output import CoutCapture
@@ -144,10 +145,8 @@ class Agenda:
 
     def __del__(self):
         """Destroys ARTS C API Agenda object associated with this Agenda object."""
-        try:
+        if self.ptr:
             arts_api.destroy_agenda(self.ptr)
-        except:
-            pass
 
     @staticmethod
     def parse(name):
@@ -171,3 +170,8 @@ class Agenda:
             e = arts_api.get_error().decode("utf8")
             raise Exception("Error during parsing of controlfile " + str(path) + ":\n" + e)
         return Agenda(ptr)
+
+    def __getstate__(self):
+        state = copy(self.__dict__)
+        state["ptr"] = None
+        return state
