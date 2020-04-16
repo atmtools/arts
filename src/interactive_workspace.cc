@@ -21,7 +21,8 @@ std::vector<Callback *> InteractiveWorkspace::callbacks_{};
 
 void callback_getaway(Workspace &ws, const MRecord &mr) {
   InteractiveWorkspace &iws = *reinterpret_cast<InteractiveWorkspace *>(&ws);
-  iws.execute_callback(static_cast<Index>(mr.SetValue()));
+#pragma omp critical
+  { iws.execute_callback(static_cast<Index>(mr.SetValue())); }
 }
 
 MdRecord callback_mr = MdRecord("APICallback",
