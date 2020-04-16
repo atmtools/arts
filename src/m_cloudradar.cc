@@ -630,9 +630,11 @@ void iyActiveSingleScat(Workspace& ws,
               mult(jterm,
                    dtrans_partial_dx_above(ip, iq, iv, joker, joker),
                    iy(iout, joker));
-              Matrix tr_inv(ns, ns);
               Vector jnew(ns);
               solve(jnew, trans_partial(ip, iv, joker, joker), jterm);
+              for (Index i = 0; i < jnew.nelem(); ++i) {
+                if (isnan(jnew[i])) jnew[i] = 0.0;
+              }
               jnew *= 2;
               diy_dpath[iq](ip, iout, joker) += jnew;
             }
@@ -643,7 +645,9 @@ void iyActiveSingleScat(Workspace& ws,
                    iy(iout, joker));
               Vector jnew(ns);
               solve(jnew, trans_partial(ip, iv, joker, joker), jterm);
-              //mult(jnew, tr_inv, jterm);
+              for (Index i = 0; i < jnew.nelem(); ++i) {
+                if (isnan(jnew[i])) jnew[i] = 0.0;
+              }
               jnew *= 2;
               diy_dpath[iq](ip, iout, joker) += jnew;
             }
