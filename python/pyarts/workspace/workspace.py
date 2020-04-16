@@ -317,12 +317,10 @@ class Workspace:
         if not self.ptr is None:
             if not arts_api is None:
                 arts_api.destroy_workspace(self.ptr)
+                self.ptr = None
 
     def __getstate__(self):
-        return None
-
-    def __setstate__(self):
-        pass
+        raise Exception("ARTS workspaces cannot be pickled.")
 
     def __verbosity_init__(self):
         """
@@ -348,7 +346,6 @@ class Workspace:
         Args:
 
             group: The group name of the variable to create.
-
             name: The name of the variable to create. If None, the
             ARTS API will assign a unique name.
 
