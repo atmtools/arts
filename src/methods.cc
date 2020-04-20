@@ -8082,10 +8082,10 @@ void define_md_data_raw() {
           "za_extpolfac",
           "aa_interp_order"),
       GIN_TYPE("Index", "Index", "Index", "Numeric", "Index"),
-      GIN_DEFAULT("1", "0", "0", "0.5", "1"),
+      GIN_DEFAULT("1", "1", "0", "0.5", "1"),
       GIN_DESC("Zenith angle interpolation order.",
-               "Flag whether to restric zenith angle interpolation to one"
-               " hemisphere.",
+               "Flag whether to restric zenith angle interpolation to one "
+               "hemisphere.",
                "Flag whether to do zenith angle interpolation in cosine space.",
                "Maximum allowed extrapolation range in zenith angle.",
                "Azimuth angle interpolation order.")));

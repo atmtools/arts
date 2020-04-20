@@ -157,10 +157,10 @@ AgendaSet( iy_cloudbox_agenda__LinInterpField ){
 }
 
 ###
-# quadratic interpolation of the intensity field of the cloud box
+# quartic interpolation of the intensity field of the cloud box
 #
-AgendaCreate( iy_cloudbox_agenda__QuadInterpField1D )
-AgendaSet( iy_cloudbox_agenda__QuadInterpField1D ){
+AgendaCreate( iy_cloudbox_agenda__QuarticInterpField )
+AgendaSet( iy_cloudbox_agenda__QuarticInterpField ){
   iyInterpCloudboxField( za_interp_order = 4 )
 }
 
