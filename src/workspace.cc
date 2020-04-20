@@ -1140,6 +1140,12 @@ void Workspace::define_wsv_data() {
           "      ArrayOfString Complex[2]\n"
           "      Tensor3 data[N_f][N_T][2]\n"),
       GROUP("GriddedField3")));
+  
+  wsv_data.push_back(WsvRecord(
+      NAME("counts"),
+      DESCRIPTION(
+          "Holds a list of counts, any counts.\n"),
+      GROUP("ArrayOfIndex")));
 
   wsv_data.push_back(WsvRecord(
       NAME("covmat_block"),
@@ -1181,6 +1187,15 @@ void Workspace::define_wsv_data() {
           "Dimensions: \n"
           "     [ y, y ]\n"),
       GROUP("CovarianceMatrix")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("covmat_sepsbatch"),
+      DESCRIPTION(
+          "Covariance matrix for measurement uncertainties\n"
+          "\n"
+          "Dimensions: \n"
+          "     [*ybatch*.nelem()][ *ybatch*[i], *ybatch*[i] ]\n"),
+      GROUP("ArrayOfMatrix")));
 
   wsv_data.push_back(WsvRecord(
       NAME("covmat_sx"),
@@ -3528,6 +3543,12 @@ void Workspace::define_wsv_data() {
       GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("raw"),
+      DESCRIPTION(
+          "A matrix of raw data.  Content is up to function\n"),
+      GROUP("Matrix")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("refr_index_air"),
       DESCRIPTION(
           "Real part of the refractive index of air.\n"
@@ -4620,6 +4641,11 @@ void Workspace::define_wsv_data() {
       GROUP("ArrayOfMatrix")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("start_time"),
+      DESCRIPTION("Start time for some time series.\n"),
+      GROUP("Time")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("stokes_rotation"),
       DESCRIPTION(
           "Rotation of the Stokes H and V directions.\n"
@@ -4913,6 +4939,11 @@ void Workspace::define_wsv_data() {
       NAME("timer"),
       DESCRIPTION("Stores the starting time for time measurements.\n"),
       GROUP("Timer")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("time_series"),
+      DESCRIPTION("Stores a time series.\n"),
+      GROUP("ArrayOfTime")));
 
   wsv_data.push_back(WsvRecord(
       NAME("transmitter_pos"),
@@ -5524,6 +5555,15 @@ void Workspace::define_wsv_data() {
                   "Usage: Set by *ybatchCalc*, for communication with\n"
                   "       *ybatch_calc_agenda*.\n"),
       GROUP("Index")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("ybatch_corr"),
+      DESCRIPTION(
+          "Correction terms for *ybatch*.\n"
+          "\n"
+          "Dimensions: Number of array elements equals number of batch cases,\n"
+          "            Vectors have length depending on correction method\n"),
+      GROUP("ArrayOfVector")));
 
   wsv_data.push_back(WsvRecord(
       NAME("ybatch_jacobians"),

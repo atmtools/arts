@@ -1446,6 +1446,73 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 }
 
+//=== Time ================================================================
+
+//! Reads Time from XML input stream
+/*!
+ *  \param is_xml  XML Input stream
+ *  \param t       Time return value
+ *  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream& is_xml,
+                          Time& t,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity) {
+  ArtsXMLTag tag(verbosity);
+  
+  tag.read_from_stream(is_xml);
+  tag.check_name("Time");
+  
+  Index version;
+  tag.get_attribute_value("version", version);
+  if (version == 1) {/* OK */}
+  else {
+    throw std::runtime_error("Your version of ARTS can only handle version 1 of Time");
+  }
+  
+  if (pbifs) {
+    throw std::runtime_error("Cannot read binary Time");
+  } else {
+    is_xml >> t;
+    if (is_xml.fail()) {
+      xml_data_parse_error(tag, "Time is poorly formatted");
+    }
+  }
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Time");
+}
+
+//! Writes Time to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param t       Time
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute (ignored)
+ */
+void xml_write_to_stream(ostream& os_xml,
+                         const Time& t,
+                         bofstream* pbofs,
+                         const String&,
+                         const Verbosity& verbosity) {
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("Time");
+  open_tag.add_attribute("version", t.Version());
+  open_tag.write_to_stream(os_xml);
+
+  xml_set_stream_precision(os_xml);
+  if (pbofs)
+    throw std::runtime_error("Cannot write binary time");
+  else
+    os_xml << t;
+
+  close_tag.set_name("/Time");
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+}
+
 //=== AbsorptionLines ================================================================
 
 //! Reads AbsorptionLines from XML input stream

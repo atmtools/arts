@@ -182,6 +182,7 @@ add_library (artscore STATIC
   agenda_record.cc
   arts.cc
   arts_omp.cc
+  artstime.cc
   bifstream.cc
   binio.cc
   bofstream.cc
@@ -216,6 +217,7 @@ add_library (artscore STATIC
   m_absorptionlines.cc
   m_abs_lookup.cc
   m_agenda.cc
+  m_artstime.cc
   m_atmosphere.cc
   m_basic_types.cc
   m_batch.cc
@@ -244,6 +246,7 @@ add_library (artscore STATIC
   m_psd.cc
   m_quantum.cc
   m_radiation_field.cc
+  m_raw.cc
   m_refraction.cc
   m_retrieval.cc
   m_rt4.cc
@@ -279,6 +282,7 @@ add_library (artscore STATIC
   quantum_parser_hitran.cc
   radiation_field.cc
   rational.cc
+  raw.cc
   refraction.cc
   rng.cc
   rt4.cc

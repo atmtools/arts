@@ -31,6 +31,7 @@
 #define xml_io_h
 
 #include "absorption.h"
+#include "artstime.h"
 #include "mystring.h"
 
 enum FileType : Index {

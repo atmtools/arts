@@ -36,6 +36,7 @@
 #include "absorption.h"
 #include "agenda_class.h"
 #include "array.h"
+#include "artstime.h"
 #include "bifstream.h"
 #include "bofstream.h"
 #include "cia.h"
@@ -86,6 +87,7 @@ TMPL_XML_READ_WRITE_STREAM(Tensor5)
 TMPL_XML_READ_WRITE_STREAM(Tensor6)
 TMPL_XML_READ_WRITE_STREAM(Tensor7)
 TMPL_XML_READ_WRITE_STREAM(Timer)
+TMPL_XML_READ_WRITE_STREAM(Time)
 TMPL_XML_READ_WRITE_STREAM(Vector)
 
 //=== Compound Types =======================================================
@@ -164,6 +166,7 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor4)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor5)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor6)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfTensor7)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfTime)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfVector)
 TMPL_XML_READ_WRITE_STREAM(PropagationMatrix)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfPropagationMatrix)
