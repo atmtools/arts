@@ -235,9 +235,6 @@ class SpeciesAuxData {
 
   void InitFromSpeciesData();
 
-  /** Get single parameter value. */
-  AuxType getType(Index species, Index isotopologue) const;
-
   /** Returns number of species. */
   Index nspecies() const { return mparams.nelem(); };
 
@@ -291,7 +288,31 @@ class SpeciesAuxData {
                       istream& is,
                       Index nparams,
                       const Verbosity& verbosity);
-
+  
+  /** Returns value for one isotopologue */
+  ArrayOfGriddedField1& Data(const Index species, const Index isotopologue) {return mparams[species][isotopologue];}
+  
+  /** Sets type for one isotopologue if type is valid (returns 0 if valid) */
+  Index setParamType(const Index species, const Index isotopologue, Index type) {
+    for (auto y: {AT_NONE, AT_ISOTOPOLOGUE_RATIO, AT_ISOTOPOLOGUE_QUANTUM, AT_PARTITIONFUNCTION_TFIELD, AT_PARTITIONFUNCTION_COEFF, AT_PARTITIONFUNCTION_COEFF_VIBROT, AT_FINAL_ENTRY }) {
+      if (Index(y) == type) {
+        mparam_type[species][isotopologue] = y;
+        return 0;
+      }
+    }
+    return 1;
+  }
+  
+  /** Returns true if species and isotopologue are valid */
+  bool validIndex(Index species, Index isotopologue) const { 
+    if(species >= 0 and isotopologue >= 0 and 
+      mparams.nelem() > species and mparams[species].nelem() > isotopologue and 
+      mparam_type.nelem() > species and mparam_type[species].nelem() > isotopologue)
+      return true;
+    else
+      return false;
+  }
+  
  private:
   ArrayOfArrayOfAuxData mparams;
   ArrayOfArrayOfAuxType mparam_type;

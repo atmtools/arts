@@ -161,6 +161,21 @@ class MCAntenna {
                 Rng& rng,
                 ConstMatrixView R_ant2enu,
                 ConstVectorView bore_sight_los) const;
+  
+  AntennaType Type() {return atype;}
+  Index Type(AntennaType x) {if (validType(x)) {atype = x; return EXIT_SUCCESS;} else return EXIT_FAILURE;}
+  bool validType(AntennaType x) 
+  {
+    for (auto y: {ANTENNA_TYPE_PENCIL_BEAM, ANTENNA_TYPE_GAUSSIAN, ANTENNA_TYPE_LOOKUP})
+      if (y == x)
+        return true;
+    return false;
+  }
+  Numeric& saa() {return sigma_aa;}
+  Numeric& sza() {return sigma_za;};
+  Vector& aag() {return aa_grid;}
+  Vector& zag() {return za_grid;}
+  Matrix& G() {return G_lookup;}
 };
 
 ostream& operator<<(ostream& os, const MCAntenna& mca);

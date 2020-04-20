@@ -48,6 +48,22 @@
 SpeciesTag::SpeciesTag(String def) {
   // Save input string for error messages:
   String def_original = def;
+  
+  // Set default values for isotopologue	
+  misotopologue = -1;	
+  
+  // Set frequency limits to default values (no limits):	
+  mlf = -1;	
+  muf = -1;	
+  
+  // Set CIA species to -1 by default	
+  mcia_second = -1;	
+  
+  // Set CIA dataset to -1 by default	
+  mcia_dataset = -1;	
+  
+  // Set type to normal LBL species by default	
+  mtype = TYPE_PLAIN;
 
   // Species lookup data:
   using global_data::species_data;
@@ -55,19 +71,6 @@ SpeciesTag::SpeciesTag(String def) {
   String name, isoname;
   // Aux index:
   Index n;
-
-  // Set default values for isotopologue
-  misotopologue = -1;
-
-  // Set frequency limits to default values (no limits):
-  mlf = -1;
-  muf = -1;
-
-  // Set CIA species to -1 by default
-  mcia_second = -1;
-
-  // Set type to normal LBL species by default
-  mtype = TYPE_PLAIN;
 
   // We cannot set a default value for the isotopologue, because the
   // default should be `ALL' and the value for `ALL' depends on the

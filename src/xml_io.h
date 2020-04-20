@@ -33,7 +33,7 @@
 #include "absorption.h"
 #include "mystring.h"
 
-enum FileType {
+enum FileType : Index {
   FILE_TYPE_ASCII = 0,
   FILE_TYPE_ZIPPED_ASCII = 1,
   FILE_TYPE_BINARY = 2
@@ -74,5 +74,22 @@ void xml_read_from_file(const String&, T&, const Verbosity&);
 
 template <typename T>
 void xml_write_to_file(const String&, const T&, FileType, const Verbosity&);
+
+inline FileType string2filetype(const String& file_format)
+{
+  if (file_format == "ascii")
+    return FILE_TYPE_ASCII;
+  else if (file_format == "zascii")
+    return FILE_TYPE_ZIPPED_ASCII;
+  else if (file_format == "binary")
+    return FILE_TYPE_BINARY;
+  else
+    throw std::runtime_error(
+        "file_format contains illegal string. "
+        "Valid values are:\n"
+        "  ascii:  XML output\n"
+        "  zascii: Zipped XML output\n"
+        "  binary: XML + binary output");
+}
 
 #endif

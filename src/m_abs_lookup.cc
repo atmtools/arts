@@ -2381,7 +2381,7 @@ void propmat_clearsky_fieldCalc(Workspace& ws,
               if (not nlte_field.Data().empty()) {
                 //If some are NLTE and others not, this might be bad...
                 nlte_source_field(i, joker, joker, ipr, ila, ilo) =
-                    nlte[i].GetData()(0, 0, joker, joker);
+                nlte[i].Data()(0, 0, joker, joker);
               }
             }
           }

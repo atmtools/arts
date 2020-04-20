@@ -291,6 +291,61 @@ class TelsemAtlas {
                                    bifstream *,
                                    const Verbosity &);
 
+  // Number of lines in the Atlas.
+  Index& DataCount() {return ndat;}
+  
+  // Number of channels in the Atlas.
+  Index& ChannelCount() {return nchan;}
+  
+  // Name of the atlas (including version number).
+  String& Name() {return name;}
+  
+  // Month of the Atlas.
+  Index& Month() {return month;}
+  
+  // Resolution of the Atlas.
+  Numeric& Lat() {return dlat;}
+  
+  // Number of cells per lat band.
+  ArrayOfIndex& Cells() {return ncells;}
+  
+  // The first cell number of lat band.
+  ArrayOfIndex& FirstCells() {return firstcells;}
+  
+  // Emissivities
+  Matrix& Emis() {return emis;}
+  
+  // Emissivity uncertainties.
+  Matrix& Emis_err() {return emis_err;}
+  
+  // Emissivity correlations.
+  Tensor3& Correlations() {return correl;}
+  
+  // Surface classes.
+  ArrayOfIndex& Classes1() {return classes1;}
+  ArrayOfIndex& Classes2() {return classes2;}
+  
+  // Cellnumber of each of the pixels in the atlas.
+  ArrayOfIndex& Cellnumber() {return cellnums;}
+  
+  // Derived from file data
+  ArrayOfIndex& Correspondance() {return correspondence;}
+  
+  // Regression coefficients.
+  Numeric A0_K0(Index i) {return a0_k0[i];}
+  Numeric A0_K1(Index i) {return a0_k1[i];}
+  Numeric A0_K2(Index i) {return a0_k2[i];}
+  Numeric A0_EVEH(Index i) {return a0_eveh[i];}
+  Numeric A1_EVEH(Index i) {return a1_eveh[i];}
+  Numeric A2_EVEH(Index i) {return a2_eveh[i];}
+  Numeric A3_EVEH(Index i) {return a3_eveh[i];}
+  Numeric B0_EVEH(Index i) {return b0_eveh[i];}
+  Numeric B1_EVEH(Index i) {return b1_eveh[i];}
+  Numeric B2_EVEH(Index i) {return b2_eveh[i];}
+  Numeric B3_EVEH(Index i) {return b3_eveh[i];}
+  Numeric RAPPORT43_32(Index i) {return rapport43_32[i];}
+  Numeric RAPPORT54_43(Index i) {return rapport54_43[i];}
+  
  private:
   // Number of lines in the Atlas.
   Index ndat;

@@ -1172,7 +1172,7 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  xml_write_to_stream(os_xml, pm.GetData(), pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, pm.Data(), pbofs, "", verbosity);
 
   close_tag.set_name("/PropagationMatrix");
   close_tag.write_to_stream(os_xml);
@@ -1954,7 +1954,7 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.write_to_stream(os_xml);
   os_xml << '\n';
 
-  xml_write_to_stream(os_xml, sv.GetData(), pbofs, "", verbosity);
+  xml_write_to_stream(os_xml, sv.Data(), pbofs, "", verbosity);
 
   close_tag.set_name("/StokesVector");
   close_tag.write_to_stream(os_xml);

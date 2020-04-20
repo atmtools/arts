@@ -548,6 +548,18 @@ VariableValueStruct get_variable_value(InteractiveWorkspace *workspace,
                                        Index id,
                                        Index group_id);
 
+/** Get data pointer to the WSV variable
+ * 
+ * Initalize uninitialized WSV variable
+ * 
+ * @param workspace Pointer to a InteractiveWorkspace object.
+ * @param id Index of the workspace variable.
+ * @return void * to the data
+ */
+DLL_PUBLIC
+void * get_variable_data_pointer(InteractiveWorkspace *workspace,
+                                 Index id);
+
 /** Return block of covariance matrix.
  *
  *

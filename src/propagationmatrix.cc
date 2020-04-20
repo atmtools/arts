@@ -2117,7 +2117,7 @@ Numeric PropagationMatrix::operator()(const Index iv,
 
 // Needs to be implemented in this file!!!
 std::ostream& operator<<(std::ostream& os, const PropagationMatrix& pm) {
-  os << pm.GetData() << "\n";
+  os << pm.Data() << "\n";
   return os;
 }
 
@@ -2135,7 +2135,7 @@ std::ostream& operator<<(std::ostream& os,
 
 // Needs to be implemented in this file!!!
 std::ostream& operator<<(std::ostream& os, const StokesVector& sv) {
-  os << sv.GetData() << "\n";
+  os << sv.Data() << "\n";
   return os;
 }
 

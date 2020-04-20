@@ -50,7 +50,7 @@
   A detailed description of the different cases can be found in AUG.
 
 */
-enum PType {
+enum PType : Index {
   PTYPE_GENERAL = 300,
   PTYPE_AZIMUTH_RND = 200,
   PTYPE_TOTAL_RND = 100,

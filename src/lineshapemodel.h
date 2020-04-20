@@ -1294,6 +1294,9 @@ class Model {
   /** Number of species in Model */
   Index nelem() const { return Index(mdata.size()); }
   
+  /** Number of species in Model */
+  Index size() const { return Index(mdata.size()); }
+  
   /** Resize function for Model 
    * 
    * Just resizes, does nothing with the new data
@@ -1309,6 +1312,20 @@ class Model {
    * @param[in] n New reserves of mspecies and mdata
    */
   void reserve(Index n) {mdata.reserve(n);}
+  
+  /** Get a SingleSpeciesModel
+   * 
+   * @param[in] i Position in mdata
+   * @return reference to SingleSpeciesModel
+   */
+  SingleSpeciesModel& operator[](Index i) {return mdata[i];}
+  
+  /** Get a SingleSpeciesModel
+   * 
+   * @param[in] i Position in mdata
+   * @return reference to SingleSpeciesModel
+   */
+  const SingleSpeciesModel& operator[](Index i) const {return mdata[i];}
   
   
   /** The line shape model data */
@@ -1625,8 +1642,10 @@ void vector2modelpb(LineShape::Type& mtype,
                     LegacyPressureBroadeningData::TypePB type,
                     bool self_in_list);
 };  // namespace LegacyPressureBroadeningData
-
 };  // namespace LineShape
+
+typedef LineShape::Model LineShapeModel;
+typedef LineShape::SingleSpeciesModel LineShapeSingleSpeciesModel;
 
 #endif  // lineshapemodel_h
 

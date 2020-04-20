@@ -279,8 +279,8 @@ void QuantumIdentifier::SetFromString(String str) {
   }
 
   SpecIsoMap id = i->second;
-  SetSpecies(id.Speciesindex());
-  SetIsotopologue(id.Isotopologueindex());
+  Species(id.Speciesindex());
+  Isotopologue(id.Isotopologueindex());
 
   is >> token;
   if (token == "TR") {

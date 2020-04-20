@@ -135,6 +135,10 @@ class CIARecord {
   /** Return CIA data.
      */
   const ArrayOfGriddedField2& Data() const { return mdata; }
+  
+  /** Return CIA data.
+   */
+  ArrayOfGriddedField2& Data() { return mdata; }
 
   /** Set CIA species.
      \param[in] first CIA Species.
