@@ -39,29 +39,87 @@ Array<MdRecord> md_data_raw;
 extern const ArrayOfString wsv_group_names;
 }  // namespace global_data
 
+template <typename ... T>
+std::array<String, sizeof...(T)> string_array(const T&... input)
+{
+  return {String(input)...};
+}
+
+template <size_t LEN_OF_NAME,
+          size_t LEN_OF_DESCRIPTION,
+          size_t NUM_OF_AUTHORS,
+          size_t NUM_OF_OUTPUTS,
+          size_t NUM_OF_GOUT_ARGS,
+          size_t NUM_OF_GOUT_TYPES,
+          size_t NUM_OF_GOUT_DESCRIPTIONS,
+          size_t NUM_OF_INPUTS,
+          size_t NUM_OF_GIN_ARGS,
+          size_t NUM_OF_GIN_TYPES,
+          size_t NUM_OF_GIN_DEFAULTS,
+          size_t NUM_OF_GIN_DESCRIPTIONS,
+          typename ... Ts>
+MdRecord create_mdrecord(
+  const char (&name) [LEN_OF_NAME],
+  const char (&description) [LEN_OF_DESCRIPTION],
+  const std::array<String, NUM_OF_AUTHORS>& authors,
+  const std::array<String, NUM_OF_OUTPUTS>& output,
+  const std::array<String, NUM_OF_GOUT_ARGS>& gout,
+  const std::array<String, NUM_OF_GOUT_TYPES>& gouttype,
+  const std::array<String, NUM_OF_GOUT_DESCRIPTIONS>& goutdesc,
+  const std::array<String, NUM_OF_INPUTS>& input,
+  const std::array<String, NUM_OF_GIN_ARGS>& gin,
+  const std::array<String, NUM_OF_GIN_TYPES>& gintype,
+  const std::array<String, NUM_OF_GIN_DEFAULTS>& gindefault,
+  const std::array<String, NUM_OF_GIN_DESCRIPTIONS>& gindesc,
+  Ts ... flags)
+{ 
+  static_assert(LEN_OF_NAME > 1, "Must have a name");
+  static_assert(LEN_OF_DESCRIPTION > 1, "Must have a description");
+  static_assert(NUM_OF_AUTHORS not_eq 0, "Must have at least one author");
+  static_assert(NUM_OF_GOUT_ARGS == NUM_OF_GOUT_TYPES, "GOUT type(s) count does not match number of GOUT");
+  static_assert(NUM_OF_GOUT_ARGS == NUM_OF_GOUT_DESCRIPTIONS, "GOUT description(s) count does not match number of GOUT");
+  static_assert(NUM_OF_GIN_ARGS == NUM_OF_GIN_TYPES, "GIN type(s) count does not match number of GIN");
+  static_assert(NUM_OF_GIN_ARGS == NUM_OF_GIN_DEFAULTS, "GIN default(s) count does not match number of GIN");
+  static_assert(NUM_OF_GIN_ARGS == NUM_OF_GIN_DESCRIPTIONS, "GIN description(s) count does not match number of GIN");
+  
+  return MdRecord(name,
+                  description,
+                  ArrayOfString(authors),
+                  ArrayOfString(output),
+                  ArrayOfString(gout),
+                  ArrayOfString(gouttype),
+                  ArrayOfString(goutdesc),
+                  ArrayOfString(input),
+                  ArrayOfString(gin),
+                  ArrayOfString(gintype),
+                  ArrayOfString(gindefault),
+                  ArrayOfString(gindesc),
+                  bool(flags) ...);
+}
+
 // Some #defines and typedefs to make the records better readable:
 #define NAME(x) x
 #define DESCRIPTION(x) x
 #define AUTHORS(...) \
-  { __VA_ARGS__ }
+  string_array( __VA_ARGS__ )
 #define OUT(...) \
-  { __VA_ARGS__ }
+  string_array( __VA_ARGS__ )
 #define GOUT(...) \
-  { __VA_ARGS__ }
+  string_array( __VA_ARGS__ )
 #define GOUT_TYPE(...) \
-  { __VA_ARGS__ }
+  string_array( __VA_ARGS__ )
 #define GOUT_DESC(...) \
-  { __VA_ARGS__ }
+  string_array( __VA_ARGS__ )
 #define IN(...) \
-  { __VA_ARGS__ }
+  string_array( __VA_ARGS__ )
 #define GIN(...) \
-  { __VA_ARGS__ }
+  string_array( __VA_ARGS__ )
 #define GIN_TYPE(...) \
-  { __VA_ARGS__ }
+  string_array( __VA_ARGS__ )
 #define GIN_DEFAULT(...) \
-  { __VA_ARGS__ }
+  string_array( __VA_ARGS__ )
 #define GIN_DESC(...) \
-  { __VA_ARGS__ }
+  string_array( __VA_ARGS__ )
 #define SETMETHOD(x) x
 #define AGENDAMETHOD(x) x
 #define USES_TEMPLATES(x) x
@@ -71,7 +129,7 @@ extern const ArrayOfString wsv_group_names;
 /* Here's a template record entry:  (PE 2008-09-20)
 
   md_data_raw.push_back
-    ( MdRecord
+    ( create_mdrecord
       ( NAME( "MethodName" ),
         DESCRIPTION
         (
@@ -105,7 +163,7 @@ extern const ArrayOfString wsv_group_names;
  I had to put it in there because C++ doesn't allow nested comments.
  
   md_data_raw.push_back
-    ( MdRecord
+    ( create_mdrecord
       ( NAME( "MethodName" ),
         ...
         ...
@@ -158,16 +216,16 @@ void define_md_data_raw() {
                      "\n"
                      "After being created, the variable is uninitialized.\n")
                   .c_str()),
-          AUTHORS("Oliver Lemke"),
-          OUT(),
-          GOUT("out"),
-          GOUT_TYPE((*it).c_str()),
-          GOUT_DESC("Variable to create."),
-          IN(),
-          GIN(),
-          GIN_TYPE(),
-          GIN_DEFAULT(),
-          GIN_DESC()));
+          ArrayOfString(AUTHORS("Oliver Lemke")),
+          ArrayOfString(OUT()),
+          ArrayOfString(GOUT("out")),
+          ArrayOfString(GOUT_TYPE((*it).c_str())),
+          ArrayOfString(GOUT_DESC("Variable to create.")),
+          ArrayOfString(IN()),
+          ArrayOfString(GIN()),
+          ArrayOfString(GIN_TYPE()),
+          ArrayOfString(GIN_DEFAULT()),
+          ArrayOfString(GIN_DESC())));
     }
   }
 
@@ -179,7 +237,7 @@ void define_md_data_raw() {
   // Patrick Eriksson 2002-05-08
   /////////////////////////////////////////////////////////////////////////////
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("AbsInputFromAtmFields"),
       DESCRIPTION("Initialises the WSVs *abs_p*, *abs_t* and *abs_vmrs* from\n"
                   "*p_grid, *t_field* and *vmr_field*.\n"
@@ -196,7 +254,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("AbsInputFromRteScalars"),
       DESCRIPTION(
           "Initialize absorption input WSVs from local atmospheric conditions.\n"
@@ -217,7 +275,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_cia_dataAddCIARecord"),
       DESCRIPTION(
           "Takes CIARecord as input and appends the results in the appropriate place.\n"
@@ -238,7 +296,7 @@ void define_md_data_raw() {
       GIN_DESC("CIA record to append to *abs_cia_data*.",
                "If true, the new input clobbers the old cia data.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_cia_dataReadFromCIA"),
       DESCRIPTION(
           "Read data from a CIA data file for all CIA molecules defined\n"
@@ -261,7 +319,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Path to the CIA catalog directory.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_cia_dataReadFromXML"),
       DESCRIPTION(
           "Read data from a CIA XML file and check that all CIA tags defined\n"
@@ -279,7 +337,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(""),
       GIN_DESC("Name of the XML file.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_coefCalcFromXsec"),
       DESCRIPTION("Calculate absorption coefficients from cross sections.\n"
                   "\n"
@@ -311,7 +369,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_cont_descriptionAppend"),
       DESCRIPTION(
           "Appends the description of a continuum model or a complete absorption\n"
@@ -338,7 +396,7 @@ void define_md_data_raw() {
           "The meaning of the parameters and how many parameters are required\n"
           "depends on the model.\n")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_cont_descriptionInit"),
       DESCRIPTION(
           "Initializes the two workspace variables for the continuum description,\n"
@@ -363,7 +421,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesCleanupEmpty"),
       DESCRIPTION("Removes empty bands from *abs_lines*.\n"),
       AUTHORS("Richard Larsson"),
@@ -377,7 +435,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesKeepBands"),
       DESCRIPTION("Keep only *qid*-matches in *abs_lines*\n"
         "\n"
@@ -394,7 +452,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, "1", "1"),
       GIN_DESC("Band ID", "If species is to be ignores", "If isotopologue is to be ignored")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesRemoveBand"),
       DESCRIPTION("Removes *qid* band from *abs_lines*\n"),
       AUTHORS("Richard Larsson"),
@@ -408,7 +466,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Band ID")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesRemoveUnusedLocalQuantumNumbers"),
       DESCRIPTION(
           "Removes unused quantums from local values in the line lists\n"),
@@ -423,7 +481,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesReplaceWithLines"),
       DESCRIPTION(
           "Replace all lines in *abs_lines* that match with lines in replacement_lines.\n"
@@ -444,7 +502,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Line-array that replace lines in *abs_lines*.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesAppendWithLines"),
       DESCRIPTION(
           "Appends all lines in *abs_lines* that match with lines in replacement_lines if *safe*.\n"
@@ -472,7 +530,7 @@ void define_md_data_raw() {
       GIN_DESC("Line-array that appends lines in *abs_lines*.",
                "Flag whether to check quantum numbers or not")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesDeleteWithLines"),
       DESCRIPTION(
           "Deletes all lines in *abs_lines* that match with lines in replacement_lines.\n"
@@ -492,7 +550,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Line-array that removes lines from *abs_lines*.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesDeleteLinesWithUndefinedLocalQuanta"),
       DESCRIPTION(
           "Deletes all lines in *abs_lines* that have undefined local quanta\n"),
@@ -507,7 +565,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesDeleteLinesWithBadOrHighChangingJs"),
       DESCRIPTION("Deletes all lines in *abs_lines* that have undefined Js or Js\n"
                   "that change more than 1 between energy levels\n"),
@@ -522,7 +580,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesDeleteLinesWithQuantumNumberAbove"),
       DESCRIPTION("Deletes all lines in *abs_lines* that have too large quantum number\n"),
       AUTHORS("Richard Larsson"),
@@ -536,7 +594,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Quantum number identified", "Value")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesPrintDefinedQuantumNumbers"),
       DESCRIPTION("Print the count of defined quantum numbers in the catalog\n"),
       AUTHORS("Richard Larsson"),
@@ -550,7 +608,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesReadSplitCatalog"),
       DESCRIPTION("Reads *abs_lines_per_species* split by\n"
                   "*abs_linesWriteSplitXML* or *abs_lines_per_speciesWriteSplitXML*\n"
@@ -567,7 +625,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("The path to the split catalog files")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesReadSpeciesSplitCatalog"),
       DESCRIPTION("Reads a catalog of absorption lines files in a directory\n"),
       AUTHORS("Richard Larsson"),
@@ -581,7 +639,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("The path to the split catalog files")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesReadSpeciesSplitCatalog"),
       DESCRIPTION("See *abs_lines_per_speciesReadSplitCatalog* but expects\n"
                   "a single file per species of *ArrayOfAbsorptionLines*\n"),
@@ -596,7 +654,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("The path to the split catalog files")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesSetEmpty"),
       DESCRIPTION("Empties *abs_lines_per_species* at the correct size.\n"),
       AUTHORS("Richard Larsson"),
@@ -610,7 +668,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesSetLineMixingFromRelmat"),
       DESCRIPTION("A dummy method to test line mixing.\n"),
       AUTHORS("Richard Larsson"),
@@ -621,7 +679,7 @@ void define_md_data_raw() {
       IN("abs_lines_per_species", "relmat_per_band", "partition_functions"),
       GIN("temperatures", "linemixing_type", "do_g", "do_dv"),
       GIN_TYPE("Vector", "String", "Index", "Index"),
-      GIN_DEFAULT(NODEF, "LM2", "1", "1", ),
+      GIN_DEFAULT(NODEF, "LM2", "1", "1"),
       GIN_DESC(
           "Vector of temperatures to compute the relaxation matrix at",
           "String describing type of line mixing adaptation in the line shape model after computations",
@@ -629,7 +687,7 @@ void define_md_data_raw() {
           "Index to indicate if dv is to be left as zero")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_linesSetEmptyBroadeningParametersToEmpty"),
+      create_mdrecord(NAME("abs_linesSetEmptyBroadeningParametersToEmpty"),
                DESCRIPTION("Sets a broadening parameter to empty if it is efficiently empty\n"
                            "\n"
                            "This will not save RAM but it will save disk space (reading time),\n"
@@ -646,7 +704,7 @@ void define_md_data_raw() {
                GIN_DESC()));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_linesSetNormalization"),
+      create_mdrecord(NAME("abs_linesSetNormalization"),
                DESCRIPTION("Sets normalization type for all lines.\n"
                            "\n"
                            "Available options:\n"
@@ -668,7 +726,7 @@ void define_md_data_raw() {
                GIN_DESC("Method of line normalizations")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_lines_per_speciesSetNormalization"),
+      create_mdrecord(NAME("abs_lines_per_speciesSetNormalization"),
                DESCRIPTION("See *abs_linesSetNormalization*\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
@@ -682,7 +740,7 @@ void define_md_data_raw() {
                GIN_DESC("Method of line normalizations")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_linesSetNormalizationForMatch"),
+      create_mdrecord(NAME("abs_linesSetNormalizationForMatch"),
                DESCRIPTION("See *abs_linesSetNormalization* for options\n"
                            "\n"
                            "This function only acts on matches between the bands and input ID\n"),
@@ -699,7 +757,7 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_lines_per_speciesSetNormalizationForMatch"),
+      create_mdrecord(NAME("abs_lines_per_speciesSetNormalizationForMatch"),
                DESCRIPTION("See *abs_linesSetNormalization* for options\n"
                            "\n"
                            "This function only acts on matches between the bands and input ID\n"),
@@ -716,7 +774,7 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
   
   md_data_raw.push_back(
-    MdRecord(NAME("abs_lines_per_speciesSetNormalizationForSpecies"),
+    create_mdrecord(NAME("abs_lines_per_speciesSetNormalizationForSpecies"),
              DESCRIPTION("See *abs_linesSetNormalization* but for single species\n"),
              AUTHORS("Richard Larsson"),
              OUT("abs_lines_per_species"),
@@ -731,7 +789,7 @@ void define_md_data_raw() {
                       "The species tag from *abs_species* to change")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_linesSetMirroring"),
+      create_mdrecord(NAME("abs_linesSetMirroring"),
                DESCRIPTION("Sets mirroring type for all lines.\n"
                            "\n"
                            "Available options:\n"
@@ -756,7 +814,7 @@ void define_md_data_raw() {
                GIN_DESC("Method of line mirroring")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_lines_per_speciesSetMirroring"),
+      create_mdrecord(NAME("abs_lines_per_speciesSetMirroring"),
                DESCRIPTION("See *abs_linesSetMirroring*\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
@@ -770,7 +828,7 @@ void define_md_data_raw() {
                GIN_DESC("Method of line mirroring")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_linesSetMirroringForMatch"),
+      create_mdrecord(NAME("abs_linesSetMirroringForMatch"),
                DESCRIPTION("See *abs_linesSetMirroring* for options\n"
                            "\n"
                            "This function only acts on matches between the bands and input ID\n"),
@@ -787,7 +845,7 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_lines_per_speciesSetMirroringForMatch"),
+      create_mdrecord(NAME("abs_lines_per_speciesSetMirroringForMatch"),
                DESCRIPTION("See *abs_linesSetMirroring* for options\n"
                            "\n"
                            "This function only acts on matches between the bands and input ID\n"),
@@ -804,7 +862,7 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
   
   md_data_raw.push_back(
-    MdRecord(NAME("abs_lines_per_speciesSetMirroringForSpecies"),
+    create_mdrecord(NAME("abs_lines_per_speciesSetMirroringForSpecies"),
              DESCRIPTION("See *abs_linesSetMirroring* but for single species\n"),
              AUTHORS("Richard Larsson"),
              OUT("abs_lines_per_species"),
@@ -819,7 +877,7 @@ void define_md_data_raw() {
                       "The species tag from *abs_species* to change")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_linesSetPopulation"),
+      create_mdrecord(NAME("abs_linesSetPopulation"),
                DESCRIPTION("Sets population type for all lines.\n"
                            "\n"
                            "Available options:\n"
@@ -840,7 +898,7 @@ void define_md_data_raw() {
                GIN_DESC("Method of line population")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_lines_per_speciesSetPopulation"),
+      create_mdrecord(NAME("abs_lines_per_speciesSetPopulation"),
                DESCRIPTION("See *abs_linesSetPopulation*\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
@@ -854,7 +912,7 @@ void define_md_data_raw() {
                GIN_DESC("Method of line population")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_linesSetPopulationForMatch"),
+      create_mdrecord(NAME("abs_linesSetPopulationForMatch"),
                DESCRIPTION("See *abs_linesSetPopulation* for options\n"
                            "\n"
                            "This function only acts on matches between the bands and input ID\n"),
@@ -871,7 +929,7 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_lines_per_speciesSetPopulationForMatch"),
+      create_mdrecord(NAME("abs_lines_per_speciesSetPopulationForMatch"),
                DESCRIPTION("See *abs_linesSetPopulation* for options\n"
                            "\n"
                            "This function only acts on matches between the bands and input ID\n"),
@@ -888,7 +946,7 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_lines_per_speciesSetPopulationForSpecies"),
+      create_mdrecord(NAME("abs_lines_per_speciesSetPopulationForSpecies"),
                DESCRIPTION("See *abs_linesSetPopulation* but for single species\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
@@ -903,7 +961,7 @@ void define_md_data_raw() {
                         "The species tag from *abs_species* to change")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_linesSetLineShapeType"),
+      create_mdrecord(NAME("abs_linesSetLineShapeType"),
                DESCRIPTION("Sets shape calculations type for all lines.\n"
                            "\n"
                            "Available options:\n"
@@ -926,7 +984,7 @@ void define_md_data_raw() {
                GIN_DESC("Method of line shape calculations")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_lines_per_speciesSetLineShapeType"),
+      create_mdrecord(NAME("abs_lines_per_speciesSetLineShapeType"),
                DESCRIPTION("See *abs_linesSetLineShapeType*\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
@@ -940,7 +998,7 @@ void define_md_data_raw() {
                GIN_DESC("Method of line shape calculations")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_linesSetLineShapeTypeForMatch"),
+      create_mdrecord(NAME("abs_linesSetLineShapeTypeForMatch"),
                DESCRIPTION("See *abs_linesSetLineShapeType* for options\n"
                            "\n"
                            "This function only acts on matches between the bands and input ID\n"),
@@ -957,7 +1015,7 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_lines_per_speciesSetLineShapeTypeForMatch"),
+      create_mdrecord(NAME("abs_lines_per_speciesSetLineShapeTypeForMatch"),
                DESCRIPTION("See *abs_linesSetLineShapeType* for options\n"
                            "\n"
                            "This function only acts on matches between the bands and input ID\n"),
@@ -974,7 +1032,7 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
   
   md_data_raw.push_back(
-    MdRecord(NAME("abs_lines_per_speciesSetLineShapeTypeForSpecies"),
+    create_mdrecord(NAME("abs_lines_per_speciesSetLineShapeTypeForSpecies"),
              DESCRIPTION("See *abs_linesSetLineShapeType* but for single species\n"),
              AUTHORS("Richard Larsson"),
              OUT("abs_lines_per_species"),
@@ -989,7 +1047,7 @@ void define_md_data_raw() {
                       "The species tag from *abs_species* to change")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_linesSetCutoff"),
+      create_mdrecord(NAME("abs_linesSetCutoff"),
                DESCRIPTION("Sets cutoff type and magnitude for all lines.\n"
                            "\n"
                            "The line is cut off when this is active at the given frequency.\n"
@@ -1015,7 +1073,7 @@ void define_md_data_raw() {
                         "Value of cutoff")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_lines_per_speciesSetCutoff"),
+      create_mdrecord(NAME("abs_lines_per_speciesSetCutoff"),
                DESCRIPTION("See *abs_linesSetCutoff*\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
@@ -1030,7 +1088,7 @@ void define_md_data_raw() {
                         "Value of cutoff")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_linesSetCutoffForMatch"),
+      create_mdrecord(NAME("abs_linesSetCutoffForMatch"),
                DESCRIPTION("See *abs_linesSetCutoff* for more options.\n"
                            "\n"
                            "This function only acts on matches between the bands and input ID\n"),
@@ -1048,7 +1106,7 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_lines_per_speciesSetCutoffForMatch"),
+      create_mdrecord(NAME("abs_lines_per_speciesSetCutoffForMatch"),
                DESCRIPTION("See *abs_linesSetCutoff* for more options.\n"
                            "\n"
                            "This function only acts on matches between the bands and input ID\n"),
@@ -1066,7 +1124,7 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_lines_per_speciesSetCutoffForSpecies"),
+      create_mdrecord(NAME("abs_lines_per_speciesSetCutoffForSpecies"),
                DESCRIPTION("See *abs_linesSetCutoff* but for single species\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
@@ -1082,7 +1140,7 @@ void define_md_data_raw() {
                         "The species tag from *abs_species* to change")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_linesSetLinemixingLimit"),
+      create_mdrecord(NAME("abs_linesSetLinemixingLimit"),
                DESCRIPTION("Sets line mixing limit for all lines.\n"
                            "\n"
                            "If value is less than 0, no limit is applied and line mixing is active.\n"
@@ -1099,7 +1157,7 @@ void define_md_data_raw() {
                GIN_DESC("Value of limit")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_lines_per_speciesSetLinemixingLimit"),
+      create_mdrecord(NAME("abs_lines_per_speciesSetLinemixingLimit"),
                DESCRIPTION("See *abs_linesSetLinemixingLimit*\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
@@ -1113,7 +1171,7 @@ void define_md_data_raw() {
                GIN_DESC("Value of limit")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_linesSetLinemixingLimitForMatch"),
+      create_mdrecord(NAME("abs_linesSetLinemixingLimitForMatch"),
                DESCRIPTION("See *abs_linesSetLinemixingLimit* for values\n"
                            "\n"
                            "This function only acts on matches between the bands and input ID\n"),
@@ -1130,7 +1188,7 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_lines_per_speciesSetLinemixingLimitForMatch"),
+      create_mdrecord(NAME("abs_lines_per_speciesSetLinemixingLimitForMatch"),
                DESCRIPTION("See *abs_linesSetLinemixingLimit* for values\n"
                            "\n"
                            "This function only acts on matches between the bands and input ID\n"),
@@ -1147,7 +1205,7 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_lines_per_speciesSetLinemixingLimitForSpecies"),
+      create_mdrecord(NAME("abs_lines_per_speciesSetLinemixingLimitForSpecies"),
                DESCRIPTION("See *abs_linesSetLinemixingLimit* but for single species\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
@@ -1162,7 +1220,7 @@ void define_md_data_raw() {
                         "The species tag from *abs_species* to change")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_linesSetT0"),
+      create_mdrecord(NAME("abs_linesSetT0"),
                DESCRIPTION("Sets reference temperature for all lines.\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines"),
@@ -1176,7 +1234,7 @@ void define_md_data_raw() {
                GIN_DESC("Value of T0")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_lines_per_speciesSetT0"),
+      create_mdrecord(NAME("abs_lines_per_speciesSetT0"),
                DESCRIPTION("See *abs_linesSetT0*\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
@@ -1190,7 +1248,7 @@ void define_md_data_raw() {
                GIN_DESC("Value of T0")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_linesSetT0ForMatch"),
+      create_mdrecord(NAME("abs_linesSetT0ForMatch"),
                DESCRIPTION("Sets reference temperature\n"
                            "\n"
                            "This function only acts on matches between the bands and input ID\n"),
@@ -1207,7 +1265,7 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_lines_per_speciesSetT0ForMatch"),
+      create_mdrecord(NAME("abs_lines_per_speciesSetT0ForMatch"),
                DESCRIPTION("Sets reference temperature\n"
                            "\n"
                            "This function only acts on matches between the bands and input ID\n"),
@@ -1224,7 +1282,7 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
   
   md_data_raw.push_back(
-    MdRecord(NAME("abs_lines_per_speciesSetT0ForSpecies"),
+    create_mdrecord(NAME("abs_lines_per_speciesSetT0ForSpecies"),
              DESCRIPTION("See *abs_linesSetT0* but for single species\n"),
              AUTHORS("Richard Larsson"),
              OUT("abs_lines_per_species"),
@@ -1239,7 +1297,7 @@ void define_md_data_raw() {
                       "The species tag from *abs_species* to change")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_linesSetQuantumNumberForMatch"),
+      create_mdrecord(NAME("abs_linesSetQuantumNumberForMatch"),
                DESCRIPTION("Sets a quantum number to a new value\n"
                            "\n"
                            "This function only acts on matches between the bands and input ID\n"),
@@ -1257,7 +1315,7 @@ void define_md_data_raw() {
                         "ID of one or more bands")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_lines_per_speciesSetQuantumNumberForMatch"),
+      create_mdrecord(NAME("abs_lines_per_speciesSetQuantumNumberForMatch"),
                DESCRIPTION("See *abs_linesSetQuantumNumberForMatch*\n"),
                AUTHORS("Richard Larsson"),
                OUT("abs_lines_per_species"),
@@ -1272,7 +1330,7 @@ void define_md_data_raw() {
                         "Value of quantum number",
                         "ID of one or more bands")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesChangeBaseParameterForMatchingLevel"),
       DESCRIPTION(
           "Change parameter of all levels in *abs_lines* that match with *QuantumIdentifier*.\n"
@@ -1293,7 +1351,7 @@ void define_md_data_raw() {
                "Value with which to change matching level's value",
                "Flag for relative change (0 is absolute change)")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesChangeBaseParameterForMatchingLevels"),
       DESCRIPTION("See *abs_linesChangeBaseParameterForMatchingLevel*\n"),
       AUTHORS("Richard Larsson"),
@@ -1310,7 +1368,7 @@ void define_md_data_raw() {
                "Value with which to change matching level's value",
                "Flag for relative change (0 is absolute change)")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesChangeBaseParameterForMatchingLevel"),
       DESCRIPTION("See *abs_linesChangeBaseParameterForMatchingLevel*\n"),
       AUTHORS("Richard Larsson"),
@@ -1327,7 +1385,7 @@ void define_md_data_raw() {
                "Value with which to change matching level's value",
                "Flag for relative change (0 is absolute change)")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesChangeBaseParameterForMatchingLevels"),
       DESCRIPTION("See *abs_linesChangeBaseParameterForMatchingLevel*\n"),
       AUTHORS("Richard Larsson"),
@@ -1344,7 +1402,7 @@ void define_md_data_raw() {
                "Value with which to change matching level's value",
                "Flag for relative change (0 is absolute change)")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesSetBaseParameterForMatchingLevel"),
       DESCRIPTION(
           "Set parameter of all levels in *abs_lines* that match with *QuantumIdentifier*.\n"
@@ -1364,7 +1422,7 @@ void define_md_data_raw() {
                "Name of parameter to be replaced",
                "Value with which to set matching level's value")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesSetBaseParameterForMatchingLevels"),
       DESCRIPTION("See *abs_linesSetBaseParameterForMatchingLevel*\n"),
       AUTHORS("Richard Larsson"),
@@ -1380,7 +1438,7 @@ void define_md_data_raw() {
                "Name of parameter to be replaced",
                "Value with which to set matching level's value")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesSetBaseParameterForMatchingLevel"),
       DESCRIPTION("See *abs_linesSetBaseParameterForMatchingLevel*\n"),
       AUTHORS("Richard Larsson"),
@@ -1396,7 +1454,7 @@ void define_md_data_raw() {
                "Name of parameter to be replaced",
                "Value with which to set matching level's value")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesSetBaseParameterForMatchingLevels"),
       DESCRIPTION("See *abs_linesSetBaseParameterForMatchingLevel*\n"),
       AUTHORS("Richard Larsson"),
@@ -1412,7 +1470,7 @@ void define_md_data_raw() {
                "Name of parameter to be replaced",
                "Value with which to set matching level's value")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesChangeBaseParameterForMatchingLines"),
       DESCRIPTION(
           "Change parameter of all lines in *abs_lines* that match with *QuantumIdentifier*.\n"
@@ -1443,7 +1501,7 @@ void define_md_data_raw() {
                "Flag for relative change (0 is absolute change)",
                "Flag for loose match (0 means only complete matches)")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesChangeBaseParameterForMatchingLines"),
       DESCRIPTION("See *abs_linesChangeBaseParameterForMatchingLines*\n"),
       AUTHORS("Richard Larsson"),
@@ -1461,7 +1519,7 @@ void define_md_data_raw() {
                "Flag for relative change (0 is absolute change)",
                "Flag for loose match (0 means only complete matches)")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesChangeBaseParameterForSpecies"),
       DESCRIPTION("See *abs_linesChangeBaseParameterForMatchingLines* but for single species\n"),
       AUTHORS("Richard Larsson"),
@@ -1480,7 +1538,7 @@ void define_md_data_raw() {
                "Flag for loose match (0 means only complete matches)",
                "The species tag from *abs_species* to change")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesSetBaseParameterForMatchingLines"),
       DESCRIPTION(
           "Set parameter of all lines in *abs_lines* that match with *QuantumIdentifier*.\n"
@@ -1510,7 +1568,7 @@ void define_md_data_raw() {
                "Value with which to change matching line's value",
                "Flag for loose match (0 means only complete matches)")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesSetBaseParameterForMatchingLines"),
       DESCRIPTION("See *abs_linesSetBaseParameterForMatchingLines*\n"),
       AUTHORS("Richard Larsson"),
@@ -1527,7 +1585,7 @@ void define_md_data_raw() {
                "Value with which to change matching line's value",
                "Flag for loose match (0 means only complete matches)")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesSetBaseParameterForSpecies"),
       DESCRIPTION("See *abs_linesSetBaseParameterForMatchingLines* but for single species\n"),
       AUTHORS("Richard Larsson"),
@@ -1545,7 +1603,7 @@ void define_md_data_raw() {
                "Flag for loose match (0 means only complete matches)",
                "The species tag from *abs_species* to change")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesSetLineShapeModelParameterForMatchingLines"),
       DESCRIPTION("Sets line shape model data parameter in matching lines.\n"
         "\n"
@@ -1594,7 +1652,7 @@ void define_md_data_raw() {
                "Species of parameter to be changed",
                "Sets the value found")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesSetLineShapeModelParameterForMatchingLines"),
       DESCRIPTION("See *abs_linesSetLineShapeModelParameterForMatchingLines*\n"
       ),
@@ -1617,7 +1675,7 @@ void define_md_data_raw() {
                "Species of parameter to be changed",
                "Sets the value found")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesSetLineShapeModelParameterForSpecies"),
       DESCRIPTION("See *abs_linesSetLineShapeModelParameterForMatchingLines*\n"
       ),
@@ -1642,7 +1700,7 @@ void define_md_data_raw() {
                "Sets the value found",
                "The species tag from *abs_species* to change")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesChangeLineShapeModelParameterForMatchingLines"),
       DESCRIPTION("Change line shape model data parameter in matching lines.\n"
         "\n"
@@ -1697,7 +1755,7 @@ void define_md_data_raw() {
                "Change in the value found",
                "Flag for relative change (0 is absolute change)")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesChangeLineShapeModelParameterForMatchingLines"),
       DESCRIPTION("See *abs_linesChangeLineShapeModelParameterForMatchingLines*\n"
       ),
@@ -1722,7 +1780,7 @@ void define_md_data_raw() {
                "Change in the value found",
                "Flag for relative change (0 is absolute change)")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesChangeLineShapeModelParameterForSpecies"),
       DESCRIPTION("See *abs_linesChangeLineShapeModelParameterForMatchingLines*\n"
       ),
@@ -1749,7 +1807,7 @@ void define_md_data_raw() {
                "Flag for relative change (0 is absolute change)",
                "The species tag from *abs_species* to change")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesCompact"),
       DESCRIPTION("Removes lines that are unimportant because of their\n"
                   "cutoff frequency range\n"),
@@ -1764,7 +1822,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesCompact"),
       DESCRIPTION("See *abs_linesCompact*\n"),
       AUTHORS("Stefan Buehler", "Richard Larsson"),
@@ -1778,7 +1836,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesCreateFromLines"),
       DESCRIPTION(
           "Split lines up into the different species.\n"
@@ -1796,7 +1854,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lookupAdapt"),
       DESCRIPTION(
           "Adapts a gas absorption lookup table to the current calculation.\n"
@@ -1824,7 +1882,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lookupCalc"),
       DESCRIPTION(
           "Creates a gas absorption lookup table.\n"
@@ -1860,7 +1918,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lookupInit"),
       DESCRIPTION(
           "Creates an empty gas absorption lookup table.\n"
@@ -1878,7 +1936,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lookupSetup"),
       DESCRIPTION(
           "Set up input parameters for abs_lookupCalc.\n"
@@ -1938,7 +1996,7 @@ void define_md_data_raw() {
                "based on abs_species and the atmospheric dimension). For a "
                "1D atmosphere this parameter is not used.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lookupSetupBatch"),
       DESCRIPTION(
           "Set up input parameters for abs_lookupCalc for batch calculations.\n"
@@ -2020,7 +2078,7 @@ void define_md_data_raw() {
                "A flag with value 1 or 0. If set to one, the gridnames of \n"
                " every *atm_fields_compact* are checked.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lookupSetupWide"),
       DESCRIPTION(
           "Set up input parameters for abs_lookupCalc for a wide range of\n"
@@ -2075,7 +2133,7 @@ void define_md_data_raw() {
                "Humidity grid minimum [fractional].",
                "Humidity grid maximum [fractional].")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lookupTestAccuracy"),
       DESCRIPTION(
           "Test accuracy of absorption lookup table.\n"
@@ -2103,7 +2161,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lookupTestAccMC"),
       DESCRIPTION(
           "Test accuracy of absorption lookup table with Monte Carlo Algorithm.\n"
@@ -2135,7 +2193,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
   
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_nlteFromRaw"),
       DESCRIPTION("Sets NLTE values manually\n"
                   "\n"
@@ -2152,7 +2210,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Vibrational data [nlevels, np]")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_speciesAdd"),
       DESCRIPTION(
           "Adds species tag groups to the list of absorption species.\n"
@@ -2178,7 +2236,7 @@ void define_md_data_raw() {
                "add. Inside the String, separate the tags by commas\n"
                "(plus optional blanks).\n")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_speciesAdd2"),
       DESCRIPTION(
           "Adds a species tag group to the list of absorption species and\n"
@@ -2214,7 +2272,7 @@ void define_md_data_raw() {
       USES_TEMPLATES(false),
       PASSWORKSPACE(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_speciesDefineAllInScenario"),
       DESCRIPTION(
           "Define one tag group for each species known to ARTS and included in an\n"
@@ -2239,7 +2297,7 @@ void define_md_data_raw() {
           "The name and path of a particular atmospheric scenario.\n"
           "For example: /pool/lookup2/arts-data/atmosphere/fascod/tropical")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_speciesDefineAll"),
       DESCRIPTION("Sets *abs_species*[i][0] to all species in ARTS\n"),
       AUTHORS("Richard Larsson"),
@@ -2256,7 +2314,7 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(
-      MdRecord(NAME("abs_speciesInit"),
+      create_mdrecord(NAME("abs_speciesInit"),
                DESCRIPTION("Sets  *abs_species* to be empty.\n"),
                AUTHORS("Stefan Buehler"),
                OUT("abs_species"),
@@ -2269,7 +2327,7 @@ void define_md_data_raw() {
                GIN_DEFAULT(),
                GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_speciesSet"),
       DESCRIPTION(
           "Set up a list of absorption species tag groups.\n"
@@ -2352,7 +2410,7 @@ void define_md_data_raw() {
                "create. Inside the String, separate the tags by commas\n"
                "(plus optional blanks).\n")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_vecAddGas"),
       DESCRIPTION(
           "Add gas absorption to first element of absorption vector.\n"
@@ -2371,7 +2429,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_xsec_agenda_checkedCalc"),
       DESCRIPTION(
           "Checks if the *abs_xsec_agenda* contains all necessary\n"
@@ -2390,7 +2448,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_xsec_per_speciesAddCIA"),
       DESCRIPTION(
           "Calculate absorption cross sections per tag group for HITRAN CIA continua.\n"
@@ -2421,7 +2479,7 @@ void define_md_data_raw() {
           "Temperature extrapolation factor (relative to grid spacing).",
           "Set to 1 to suppress runtime errors (and return NAN values instead).")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_xsec_per_speciesAddHitranXsec"),
       DESCRIPTION(
           "Calculate absorption cross sections per tag group for HITRAN xsec species.\n"
@@ -2452,7 +2510,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("1"),
       GIN_DESC("Apply temperature fit.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_xsec_per_speciesAddConts"),
       DESCRIPTION(
           "Calculate absorption cross sections per tag group for continua.\n"),
@@ -2478,7 +2536,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_xsec_per_speciesAddLines"),
       DESCRIPTION(
           "Calculates the line spectrum for both attenuation and phase\n"
@@ -2512,7 +2570,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_xsec_per_speciesAddLineMixedLines"),
       DESCRIPTION("Calculates the band-wise cross-section TEST FUNCTION\n"),
       AUTHORS("Richard Larsson"),
@@ -2533,7 +2591,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_xsec_per_speciesAddLineMixedLinesInAir"),
       DESCRIPTION("Calculates the band-wise cross-section TEST FUNCTION\n"),
       AUTHORS("Richard Larsson"),
@@ -2555,7 +2613,7 @@ void define_md_data_raw() {
       GIN_DESC("If less than this number of lines in a \"band\", "
                "relaxation matrix is set diagonal")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_xsec_per_speciesAddPredefinedO2MPM2020"),
       DESCRIPTION("Reimplementation of published O2 absorption line cross-section algorithm\n"
         "\n"
@@ -2588,7 +2646,7 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   /*
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_xsec_per_speciesAddLineMixedBands"),
       DESCRIPTION(
           "Calculate absorption cross sections per band for Relmat line mixing.\n"
@@ -2689,7 +2747,7 @@ void define_md_data_raw() {
           "Truth-value if we should use the precomputed adiabatic factors")));
   */
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_xsec_per_speciesInit"),
       DESCRIPTION(
           "Initialize *abs_xsec_per_species*.\n"
@@ -2718,7 +2776,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("AddZaAa"),
       DESCRIPTION(
           "Adds zenith and azimuth angles.\n"
@@ -2738,7 +2796,7 @@ void define_md_data_raw() {
       GIN_DESC("Reference line-of-sight (a single LOS).",
                "Change in line-of-sight (can be multiple LOS).")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("AgendaAppend"),
       DESCRIPTION(
           "Append methods to an agenda.\n"
@@ -2769,7 +2827,7 @@ void define_md_data_raw() {
       PASSWORKSPACE(false),
       PASSWSVNAMES(true)));
 
-  md_data_raw.push_back(MdRecord(NAME("AgendaExecute"),
+  md_data_raw.push_back(create_mdrecord(NAME("AgendaExecute"),
                                  DESCRIPTION("Execute an agenda.\n"),
                                  AUTHORS("Oliver Lemke"),
                                  OUT(),
@@ -2784,7 +2842,7 @@ void define_md_data_raw() {
                                  SETMETHOD(false),
                                  AGENDAMETHOD(false)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("AgendaExecuteExclusive"),
       DESCRIPTION(
           "Execute an agenda exclusively.\n"
@@ -2805,7 +2863,7 @@ void define_md_data_raw() {
       SETMETHOD(false),
       AGENDAMETHOD(false)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("AgendaSet"),
       DESCRIPTION(
           "Set up an agenda.\n"
@@ -2836,7 +2894,7 @@ void define_md_data_raw() {
       PASSWORKSPACE(false),
       PASSWSVNAMES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("AngularGridsSetFluxCalc"),
       DESCRIPTION(
           "Sets the angular grids for the calculation of radiation fluxes\n"
@@ -2874,7 +2932,7 @@ void define_md_data_raw() {
                "Number of azimuth angles",
                "Zenith angle grid type")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ArrayOfAgendaAppend"),
       DESCRIPTION("Set up an agenda and append it to the array of agendas.\n"
                   "\n"
@@ -2896,7 +2954,7 @@ void define_md_data_raw() {
       PASSWSVNAMES(true)));
 
   md_data_raw.push_back(
-      MdRecord(NAME("ArrayOfAgendaExecute"),
+      create_mdrecord(NAME("ArrayOfAgendaExecute"),
                DESCRIPTION("Execute an agenda from an ArrayOfAgenda.\n"),
                AUTHORS("Oliver Lemke"),
                OUT(),
@@ -2911,7 +2969,7 @@ void define_md_data_raw() {
                SETMETHOD(false),
                AGENDAMETHOD(false)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("AntennaConstantGaussian1D"),
       DESCRIPTION(
           "Sets up a 1D gaussian antenna response and a matching\n"
@@ -2949,7 +3007,7 @@ void define_md_data_raw() {
                "Half-width of response, in terms of std. dev.",
                "Grid spacing, in terms of std. dev.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("AntennaMultiBeamsToPencilBeams"),
       DESCRIPTION(
           "Maps a multi-beam case to a matching pencil beam case.\n"
@@ -2984,7 +3042,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("AntennaOff"),
       DESCRIPTION(
           "Sets some antenna related variables\n"
@@ -3003,7 +3061,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("antenna_responseGaussian"),
       DESCRIPTION(
           "Sets up a gaussian antenna response.\n"
@@ -3040,7 +3098,7 @@ void define_md_data_raw() {
                "Grid spacing, in terms of std. dev.",
                "Set to 1 to create a 2D antenna pattern.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("antenna_responseVaryingGaussian"),
       DESCRIPTION(
           "Sets up gaussian antenna responses.\n"
@@ -3093,7 +3151,7 @@ void define_md_data_raw() {
                "End point of frequency grid",
                "Set to 1 to create a 2D antenna pattern.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Append"),
       DESCRIPTION(
           "Append one workspace variable to another.\n"
@@ -3145,7 +3203,7 @@ void define_md_data_raw() {
       PASSWORKSPACE(false),
       PASSWSVNAMES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ArrayOfGriddedFieldGetNames"),
       DESCRIPTION("Get the names of all GriddedFields stored in an Array.\n"
                   "\n"
@@ -3165,7 +3223,7 @@ void define_md_data_raw() {
       AGENDAMETHOD(false),
       USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ArrayOfIndexLinSpace"),
       DESCRIPTION(
           "Initializes an ArrayOfIndex with linear spacing.\n"
@@ -3188,7 +3246,7 @@ void define_md_data_raw() {
                "Maximum/minimum value of the end value",
                "Spacing of the array.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ArrayOfIndexSet"),
       DESCRIPTION("Creates an ArrayOfIndex from the given list of numbers.\n"),
       AUTHORS("Oliver Lemke"),
@@ -3203,7 +3261,7 @@ void define_md_data_raw() {
       GIN_DESC("Indexes for initializiation."),
       SETMETHOD(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ArrayOfIndexSetConstant"),
       DESCRIPTION("Creates an ArrayOfIndex of length *nelem*, with all values\n"
                   "identical.\n"),
@@ -3219,7 +3277,7 @@ void define_md_data_raw() {
       GIN_DESC("Array value.."),
       SETMETHOD(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ArrayOfStringSet"),
       DESCRIPTION("Sets a String array according the given text.\n"
                   "The format is text = [\"String1\",\"String2\",...]\n"),
@@ -3235,7 +3293,7 @@ void define_md_data_raw() {
       GIN_DESC("Strings for initialization."),
       SETMETHOD(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Arts"),
       DESCRIPTION(
           "Runs the agenda that is specified inside the curly braces. ARTS\n"
@@ -3256,7 +3314,7 @@ void define_md_data_raw() {
       SETMETHOD(false),
       AGENDAMETHOD(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Arts2"),
       DESCRIPTION(
           "Runs the agenda that is specified inside the curly braces. ARTS\n"
@@ -3275,7 +3333,7 @@ void define_md_data_raw() {
       SETMETHOD(false),
       AGENDAMETHOD(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("AtmFieldPerturb"),
       DESCRIPTION(
           "Adds a perturbation to an atmospheric field.\n"
@@ -3322,7 +3380,7 @@ void define_md_data_raw() {
                "relative"
                ".")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("AtmFieldPerturbAtmGrids"),
       DESCRIPTION(
           "As *AtmFieldPerturb*, but perturbation follows the atmospheric grids.\n"
@@ -3354,7 +3412,7 @@ void define_md_data_raw() {
                "relative"
                ".")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("AtmFieldPRegrid"),
       DESCRIPTION(
           "Interpolates the input field along the pressure dimension from\n"
@@ -3376,7 +3434,7 @@ void define_md_data_raw() {
                "Pressure grid of input field",
                "Interpolation order.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("AtmFieldsCalc"),
       DESCRIPTION(
           "Interpolation of raw atmospheric T, z, VMR, and NLTE T/r fields to\n"
@@ -3430,7 +3488,7 @@ void define_md_data_raw() {
                "If set to 1, negative VMRs are set to 0.",
                "-1: Skip step. 0: Negative is 0. Else: Negative is t.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("AtmFieldsCalcExpand1D"),
       DESCRIPTION(
           "Interpolation of 1D raw atmospheric fields to create 2D or 3D\n"
@@ -3470,7 +3528,7 @@ void define_md_data_raw() {
                "If set to 1, negative VMRs are set to 0.",
                "-1: Skip step. 0: Negative is 0. Else: Negative is t.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("AtmFieldsExpand1D"),
       DESCRIPTION(
           "Maps a 1D case to 2D or 3D homogeneous atmospheric fields.\n"
@@ -3503,7 +3561,7 @@ void define_md_data_raw() {
       GIN_DESC(
           "Flag to determine if a search for NaN shall be performed or not.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("AtmFieldsExtract1D"),
       DESCRIPTION(
           "Converts 2D or 3D homogeneous atmospheric fields to a 1D case.\n"
@@ -3534,7 +3592,7 @@ void define_md_data_raw() {
       GIN_DESC("Pick data having this latitude index (0-based).",
                "Pick data having this longitude index (0-based).")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("AtmFieldsRefinePgrid"),
       DESCRIPTION(
           "Refines the pressure grid and regrids the clearsky atmospheric\n"
@@ -3585,7 +3643,7 @@ void define_md_data_raw() {
                "are added until each log step is smaller than this.\n",
                "Interpolation order.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("AtmFieldsAndParticleBulkPropFieldFromCompact"),
       DESCRIPTION(
           "Extract pressure grid and atmospheric fields from\n"
@@ -3638,7 +3696,7 @@ void define_md_data_raw() {
                "A flag with value 1 or 0. If set to one, the gridnames of \n"
                " the *atm_fields_compact* are checked.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("atmfields_checkedCalc"),
       DESCRIPTION(
           "Checks consistency of (clear sky) atmospheric fields.\n"
@@ -3698,7 +3756,7 @@ void define_md_data_raw() {
                "Flag whether to accept partition functions not covering"
                " *t_field* range.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("atmgeom_checkedCalc"),
       DESCRIPTION(
           "Checks consistency of geometric considerations of the atmosphere.\n"
@@ -3740,7 +3798,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("AtmosphereSet1D"),
       DESCRIPTION(
           "Sets the atmospheric dimension to 1D.\n"
@@ -3758,7 +3816,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("AtmosphereSet2D"),
       DESCRIPTION(
           "Sets the atmospheric dimension to be 2D.\n"
@@ -3775,7 +3833,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("AtmosphereSet3D"),
       DESCRIPTION(
           "Sets the atmospheric dimension to 3D.\n"
@@ -3793,7 +3851,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("AtmRawRead"),
       DESCRIPTION(
           "Reads atmospheric data from a scenario.\n"
@@ -3840,7 +3898,7 @@ void define_md_data_raw() {
                "example: \"/smiles_local/arts-data/atmosphere/fascod/"
                "tropical\"")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("AtmWithNLTERawRead"),
       DESCRIPTION(
           "Reads atmospheric data from a scenario.\n"
@@ -3881,7 +3939,7 @@ void define_md_data_raw() {
                "tropical\"",
                "Should ev.xml be read?")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("atm_fields_compactAddConstant"),
       DESCRIPTION(
           "Adds a constant field to atm_fields_compact.\n"
@@ -3915,7 +3973,7 @@ void define_md_data_raw() {
           "0 = Append to the end, 1 = insert at the beginning.",
           "List of condensibles used to scale down the VMR of the added species.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("atm_fields_compactAddSpecies"),
       DESCRIPTION(
           "Adds a field to atm_fields_compact, with interpolation.\n"
@@ -3947,7 +4005,7 @@ void define_md_data_raw() {
                "Value of additional atmospheric field.",
                "0 = Append to the end, 1 = insert at the beginning.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("atm_fields_compactCleanup"),
       DESCRIPTION(
           "Removes unrealistically small or erroneous data from\n"
@@ -3973,7 +4031,7 @@ void define_md_data_raw() {
       GIN_DESC(
           "Threshold below which *atm_fields_compact* values are set to zero.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("atm_fields_compactCreateFromField"),
       DESCRIPTION(
           "Initiates *atm_fields_compact* from a field.\n"
@@ -3991,7 +4049,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Name atmospheric field.", "The atmospheric field.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("atm_fields_compactFromMatrix"),
       DESCRIPTION(
           "Sets *atm_fields_compact* from 1D fields given in form of a matrix.\n"
@@ -4035,7 +4093,7 @@ void define_md_data_raw() {
       GIN_DESC("One atmosphere matrix from batch input ArrayOfMatrix.",
                "Order/names of atmospheric fields.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("backend_channel_responseFlat"),
       DESCRIPTION(
           "Sets up a rectangular channel response.\n"
@@ -4055,7 +4113,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("The spectrometer resolution.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("backend_channel_responseGaussian"),
       DESCRIPTION(
           "Sets up a gaussian backend channel response.\n"
@@ -4090,7 +4148,7 @@ void define_md_data_raw() {
                "Half-width of response, in terms of std. dev.",
                "Grid spacing, in terms of std. dev.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("batch_atm_fields_compactAddConstant"),
       DESCRIPTION("Adds a constant field to batch_atm_fields_compact.\n"
                   "\n"
@@ -4111,7 +4169,7 @@ void define_md_data_raw() {
           "0 = Append to the end, 1 = insert at the beginning.",
           "List of condensibles used to scale down the VMR of the added species.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("batch_atm_fields_compactAddSpecies"),
       DESCRIPTION(
           "Adds a field to *batch_atm_fields_compact*, with interpolation.\n"
@@ -4132,7 +4190,7 @@ void define_md_data_raw() {
           "Value of additional atmospheric field.",
           "0 = Append to the end, 1 = insert at the beginning.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("batch_atm_fields_compactCleanup"),
       DESCRIPTION(
           "Removes unrealistically small or erroneous data from each data field\n"
@@ -4158,7 +4216,7 @@ void define_md_data_raw() {
       GIN_DESC(
           "Threshold below which *atm_fields_compact* values are set to zero.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("batch_atm_fields_compactFromArrayOfMatrix"),
       DESCRIPTION(
           "Expand batch of 1D atmospheric state matrices to batch_atm_fields_compact.\n"
@@ -4187,7 +4245,7 @@ void define_md_data_raw() {
       GIN_DESC("Batch of atmospheres stored in one array of matrix",
                "Order/names of atmospheric fields.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("CIAInfo"),
       DESCRIPTION(
           "Display information about the given CIA tags.\n"
@@ -4204,7 +4262,7 @@ void define_md_data_raw() {
       GIN_DESC("Path to the CIA catalog directory.",
                "Array of CIA tags to view, e.g. [ \"N2-N2\", \"H2-H2\" ]")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("CIARecordReadFromFile"),
       DESCRIPTION("Reads CIARecord from Hitran-style file.\n"),
       AUTHORS("Richard Larsson"),
@@ -4220,7 +4278,7 @@ void define_md_data_raw() {
                "*abs_speciesSet* for correct format.",
                "Filename of HITRAN CIA data file.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("cloudboxOff"),
       DESCRIPTION(
           "Deactivates the cloud box.\n"
@@ -4252,7 +4310,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("cloudboxSetAutomatically"),
       DESCRIPTION(
           "Sets the cloud box to encompass the cloud given by the entries\n"
@@ -4312,7 +4370,7 @@ void define_md_data_raw() {
                " the lowest atmospheric level (or the surface).")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("cloudboxSetFullAtm"),
+      create_mdrecord(NAME("cloudboxSetFullAtm"),
                DESCRIPTION("Sets the cloudbox to cover the full atmosphere.\n"),
                AUTHORS("Claudia Emde, Jana Mendrok"),
                OUT("cloudbox_on", "cloudbox_limits"),
@@ -4325,7 +4383,7 @@ void define_md_data_raw() {
                GIN_DEFAULT(),
                GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("cloudboxSetManually"),
       DESCRIPTION(
           "Sets the cloud box to encompass the given positions.\n"
@@ -4366,7 +4424,7 @@ void define_md_data_raw() {
                "Lower longitude point.",
                "Upper longitude point.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("cloudboxSetManuallyAltitude"),
       DESCRIPTION(
           "Sets the cloud box to encompass the given positions.\n"
@@ -4391,7 +4449,7 @@ void define_md_data_raw() {
                "Lower longitude point.",
                "Upper longitude point.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_checkedCalc"),
       DESCRIPTION(
           "Checks consistency and validity of the cloudbox governing variables.\n"
@@ -4445,7 +4503,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("0"),
       GIN_DESC("Flag whether to accept pnd_field < 0.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_field_monoIterate"),
       DESCRIPTION(
           "Iterative solution of the VRTE (DOIT method).\n"
@@ -4476,7 +4534,7 @@ void define_md_data_raw() {
       GIN_DESC(
           "Index wether to accelerate only the intensity (1) or the whole Stokes Vector (4)")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldCrop"),
       DESCRIPTION(
           "Extracts a part of an existing *cloudbox_field*.\n"
@@ -4514,7 +4572,7 @@ void define_md_data_raw() {
                "New value for cloudbox_limits[4].",
                "New value for cloudbox_limits[5].")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldSetFromPrecalc"),
       DESCRIPTION(
           "Sets the initial cloudbox intensity field *cloudbox_field* from a\n"
@@ -4545,7 +4603,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Precalculated radiation field (of type *cloudbox_field*)")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldSetClearsky"),
       DESCRIPTION(
           "Interpolate clearsky field on all gridpoints in cloudbox.\n"
@@ -4578,7 +4636,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("1"),
       GIN_DESC("See above.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_field_monoSetConst"),
       DESCRIPTION(
           "This method sets the initial field inside the cloudbox to a\n"
@@ -4605,7 +4663,7 @@ void define_md_data_raw() {
       GIN_DESC("A vector containing 4 elements with the value of the "
                "initial field for each Stokes dimension.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldSetConst"),
       DESCRIPTION(
           "This method sets the initial field inside the cloudbox to a\n"
@@ -4631,7 +4689,7 @@ void define_md_data_raw() {
       GIN_DESC("A vector containing *stokes_dim* elements with the value of"
                " the initial field for each Stokes dimension.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldSetConstPerFreq"),
       DESCRIPTION(
           "This method sets the initial field inside the cloudbox to a\n"
@@ -4658,7 +4716,7 @@ void define_md_data_raw() {
                " (row) with the value of the initial field for each"
                " frequency and Stokes dimension.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldUpdate1D"),
       DESCRIPTION(
           "RT calculation in cloudbox with fixed scattering integral (1D).\n"
@@ -4699,7 +4757,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldUpdateSeq1D"),
       DESCRIPTION(
           "RT calculation in cloudbox with fixed scattering integral.\n"
@@ -4742,7 +4800,7 @@ void define_md_data_raw() {
           "Error threshold for scattered field correction factor.",
           "Debugging flag. Set to 1 to output normalization factor to out0.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldUpdateSeq1DPP"),
       DESCRIPTION(
           "RT calculation in cloudbox with fixed scattering integral.\n"
@@ -4778,7 +4836,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_fieldUpdateSeq3D"),
       DESCRIPTION(
           "RT calculation in cloudbox with fixed scattering integral.\n"
@@ -4821,7 +4879,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("cloudbox_field_monoOptimizeReverse"),
       DESCRIPTION(
           "Interpolate *cloudbox_field_mono* back to the original p_grid.\n"
@@ -4837,7 +4895,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Compare"),
       DESCRIPTION(
           "Checks the consistency between two variables.\n"
@@ -4877,7 +4935,7 @@ void define_md_data_raw() {
       PASSWORKSPACE(false),
       PASSWSVNAMES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("CompareRelative"),
       DESCRIPTION(
           "Checks the consistency between two variables by their relative values.\n"
@@ -4930,7 +4988,7 @@ void define_md_data_raw() {
       PASSWORKSPACE(false),
       PASSWSVNAMES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("complex_refr_indexConstant"),
       DESCRIPTION(
           "Set complex refractive index to a constant value.\n"
@@ -4949,7 +5007,7 @@ void define_md_data_raw() {
       GIN_DESC("Real part of refractive index",
                "Imag part of refractive index")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("complex_refr_indexIceMatzler06"),
       DESCRIPTION(
           "Refractive index of ice following Matzler06 parameterization.\n"
@@ -4979,7 +5037,7 @@ void define_md_data_raw() {
       GIN_DESC("Frequency grid for refractive index calculation",
                "Temperature grid for refractive index calculation")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("complex_refr_indexIceWarren84"),
       DESCRIPTION(
           "Refractive index of ice following Warren84 parameterization.\n"
@@ -5020,7 +5078,7 @@ void define_md_data_raw() {
       GIN_DESC("Frequency grid for refractive index calculation",
                "Temperature grid for refractive index calculation")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("complex_refr_indexWaterLiebe93"),
       DESCRIPTION(
           "Complex refractive index of liquid water according to Liebe 1993.\n"
@@ -5045,7 +5103,7 @@ void define_md_data_raw() {
       GIN_DESC("Frequency grid for refractive index calculation",
                "Temperature grid for refractive index calculation")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Copy"),
       DESCRIPTION(
           "Copy a workspace variable.\n"
@@ -5079,7 +5137,7 @@ void define_md_data_raw() {
       PASSWORKSPACE(false),
       PASSWSVNAMES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("covmat1D"),
       DESCRIPTION(
           "Create 1D covariance matrix.\n"
@@ -5131,12 +5189,12 @@ void define_md_data_raw() {
                "The correlations lengths of the second retrieval quantity."
                "(If empty taken as cls_1)",
                "The cutoff value for covariance matrix elements.",
-               "The name of the functional form to use.", ),
+               "The name of the functional form to use."),
       PASSWORKSPACE(false),
       SETMETHOD(false),
       USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("covmat1DMarkov"),
       DESCRIPTION(
           "Create Markov Process Covariance Matrix.\n"
@@ -5169,7 +5227,7 @@ void define_md_data_raw() {
       SETMETHOD(false),
       USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("covmatDiagonal"),
       DESCRIPTION(
           "Sets the matrix in covmat_block to a diagonal matrix with the variances\n"
@@ -5193,7 +5251,7 @@ void define_md_data_raw() {
       SETMETHOD(false),
       USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("covmat_seAddBlock"),
       DESCRIPTION(
           "Add a block to the measurement covariance matrix *covmat_se*\n"
@@ -5221,7 +5279,7 @@ void define_md_data_raw() {
       SETMETHOD(false),
       USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("covmat_seAddInverseBlock"),
       DESCRIPTION(
           "Add the inverse of a block to covariance matrix *covmat_se*\n"
@@ -5254,7 +5312,7 @@ void define_md_data_raw() {
       SETMETHOD(false),
       USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("covmat_seSet"),
       DESCRIPTION(
           "Set covmat_se to a given matrix.\n"
@@ -5276,7 +5334,7 @@ void define_md_data_raw() {
       SETMETHOD(false),
       USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("covmat_sxSet"),
       DESCRIPTION(
           "Set covmat_sx to a given matrix.\n"
@@ -5298,7 +5356,7 @@ void define_md_data_raw() {
       SETMETHOD(false),
       USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("covmat_sxAddBlock"),
       DESCRIPTION(
           "Add a block to the a priori covariance matrix *covmat_sx*\n"
@@ -5330,7 +5388,7 @@ void define_md_data_raw() {
       SETMETHOD(false),
       USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("covmat_sxAddInverseBlock"),
       DESCRIPTION(
           "Add the inverse of a block in covariance matrix *covmat_sx*\n"
@@ -5363,7 +5421,7 @@ void define_md_data_raw() {
       SETMETHOD(false),
       USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("covmat_sxExtractSqrtDiagonal"),
       DESCRIPTION(
           "Extract the square root of the diagonal of the state space covariance matrix."
@@ -5385,7 +5443,7 @@ void define_md_data_raw() {
       PASSWORKSPACE(false),
       SETMETHOD(false)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Delete"),
       DESCRIPTION(
           "Deletes a workspace variable.\n"
@@ -5409,7 +5467,7 @@ void define_md_data_raw() {
       PASSWORKSPACE(true),
       PASSWSVNAMES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("diameter_maxFromDiameter_volume_equ"),
       DESCRIPTION(
           "Calculates maximum and area equivalent diameters from volume\n"
@@ -5442,7 +5500,7 @@ void define_md_data_raw() {
                "Particle equivalent volume diameter.",
                "Particle aspect ratio.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("diameter_volume_equFromDiameter_max"),
       DESCRIPTION(
           "Converts from maximum to volume equivalent diameter.\n"
@@ -5468,7 +5526,7 @@ void define_md_data_raw() {
                "Maximum dimension of the particle.",
                "Particle aspect ratio.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("DiagonalMatrix"),
       DESCRIPTION(
           "Create a diagonal matrix from a vector."
@@ -5486,7 +5544,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("The vector containing the diagonal elements.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("DiffZaAa"),
       DESCRIPTION(
           "Derives the difference betwenn zenith and azimuth angles.\n"
@@ -5506,7 +5564,7 @@ void define_md_data_raw() {
       GIN_DESC("Reference line-of-sight (a single LOS).",
                "Other line-of-sights (can be multiple LOS).")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("DisortCalc"),
       DESCRIPTION(
           "Interface to the DISORT scattering solver (by Stamnes et al.).\n"
@@ -5605,7 +5663,7 @@ void define_md_data_raw() {
                " the finest za_grid from scat_data will be used.",
                "Silence C Disort warnings.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("DisortCalcWithARTSSurface"),
       DESCRIPTION(
           "DISORT with surface.\n"
@@ -5644,7 +5702,7 @@ void define_md_data_raw() {
                " the finest za_grid from scat_data will be used.",
                "Silence C Disort warnings.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("DisortCalcClearsky"),
       DESCRIPTION(
           "Interface to DISORT for running clear-sky cases.\n"
@@ -5680,7 +5738,7 @@ void define_md_data_raw() {
                "solution (must be an even number).",
                "Silence C Disort warnings.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("DOBatchCalc"),
       DESCRIPTION(
           "Performs batch calculations for radiation fields.\n"
@@ -5731,7 +5789,7 @@ void define_md_data_raw() {
                "(out1 output stream), and the output array entry for the\n"
                "failed job in the output fields is left empty.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("DOAngularGridsSet"),
       DESCRIPTION(
           "Sets the angular grids for Discrete Ordinate type scattering\n"
@@ -5770,7 +5828,7 @@ void define_md_data_raw() {
                "Recommended value is 37.",
                "Name of special grid for RT part.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("DoitCalc"),
       DESCRIPTION(
           "Main DOIT method.\n"
@@ -5797,7 +5855,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("DoitGetIncoming"),
       DESCRIPTION(
           "Calculates incoming radiation field of the cloudbox by repeated\n"
@@ -5844,7 +5902,7 @@ void define_md_data_raw() {
           "Fail if incoming field is not safely interpolable.",
           "Maximum allowed ratio of two radiances regarded as interpolable.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("DoitGetIncoming1DAtm"),
       DESCRIPTION(
           "As *DoitGetIncoming* but assumes clear sky part to be 1D."
@@ -5882,7 +5940,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("DoitInit"),
       DESCRIPTION(
           "Initialises variables for DOIT scattering calculations.\n"
@@ -5909,7 +5967,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("DoitScatteringDataPrepare"),
       DESCRIPTION(
           "Prepares single scattering data for a DOIT scattering calculation.\n"
@@ -5941,7 +5999,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("DoitWriteIterationFields"),
       DESCRIPTION(
           "Writes DOIT iteration fields.\n"
@@ -5974,7 +6032,7 @@ void define_md_data_raw() {
       GIN_DESC("Selection of iterations to store.",
                "Selection of frequencies to store.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("doit_conv_flagAbs"),
       DESCRIPTION(
           "DOIT convergence test (maximum absolute difference).\n"
@@ -6009,7 +6067,7 @@ void define_md_data_raw() {
                "or whether to return NaNs in case of non-convergence at"
                "max_iterations")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("doit_conv_flagAbsBT"),
       DESCRIPTION(
           "DOIT convergence test (maximum absolute difference in Rayleigh Jeans "
@@ -6039,7 +6097,7 @@ void define_md_data_raw() {
                "or whether to return NaNs in case of non-convergence at"
                "max_iterations")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("doit_conv_flagLsq"),
       DESCRIPTION(
           "DOIT convergence test (least squares).\n"
@@ -6072,7 +6130,7 @@ void define_md_data_raw() {
                "or whether to return NaNs in case of non-convergence at"
                "max_iterations")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("OptimizeDoitPressureGrid"),
       DESCRIPTION(
           "Optimization of the pressure grid for RT calculation.\n"
@@ -6123,7 +6181,7 @@ void define_md_data_raw() {
                "Maximum single scattering albedo",
                "Maximum cloudbox size")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("doit_scat_fieldCalc"),
       DESCRIPTION(
           "Calculates the scattering integral field in the DOIT module.\n"
@@ -6152,7 +6210,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("doit_scat_fieldCalcLimb"),
       DESCRIPTION(
           "Calculates the scattering integral field in the DOIT module (limb).\n"
@@ -6193,7 +6251,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("doit_za_grid_optCalc"),
       DESCRIPTION(
           "Zenith angle grid optimization for scattering calculation.\n"
@@ -6221,7 +6279,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Accuracy to achieve [%].")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("doit_za_interpSet"),
       DESCRIPTION(
           "Define interpolation method for zenith angle dimension.\n"
@@ -6239,7 +6297,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("linear"),
       GIN_DESC("Interpolation method (\"linear\" or \"polynomial\").")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
     NAME("EnergyLevelMapSet"),
       DESCRIPTION("Sets an EnergyLevelMap\n"),
       AUTHORS("Richard Larsson"),
@@ -6253,7 +6311,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("in")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Error"),
       DESCRIPTION(
           "Issues an error and exits ARTS.\n"
@@ -6275,7 +6333,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("String describing the error.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Exit"),
       DESCRIPTION(
           "Stops the execution and exits ARTS.\n"
@@ -6294,7 +6352,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Extract"),
       DESCRIPTION(
           "Extracts an element from an array.\n"
@@ -6337,7 +6395,7 @@ void define_md_data_raw() {
       AGENDAMETHOD(false),
       USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ExtractFromMetaSingleScatSpecies"),
       DESCRIPTION(
           "Extract (numeric) parameters from scat_meta of a single scattering\n"
@@ -6356,7 +6414,7 @@ void define_md_data_raw() {
       GIN_DESC("Name of the meta parameter to extract.",
                "Array index of scattering species from which to extract.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ext_matAddGas"),
       DESCRIPTION(
           "Add gas absorption to all diagonal elements of extinction matrix.\n"
@@ -6374,7 +6432,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("FastemStandAlone"),
       DESCRIPTION(
           "Stand-alone usage of FASTEM.\n"
@@ -6424,7 +6482,7 @@ void define_md_data_raw() {
                "path of the downwelling radiation. One value per frequency.",
                "The version of FASTEM to use.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("FieldFromGriddedField"),
       DESCRIPTION("Extract the data from a GriddedField.\n"
                   "\n"
@@ -6442,7 +6500,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Raw input gridded field.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("FlagOff"),
       DESCRIPTION("Sets an index variable that acts as an on/off flag to 0.\n"),
       AUTHORS("Patrick Eriksson"),
@@ -6456,7 +6514,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("FlagOn"),
       DESCRIPTION("Sets an index variable that acts as an on/off flag to 1.\n"),
       AUTHORS("Patrick Eriksson"),
@@ -6470,7 +6528,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ForLoop"),
       DESCRIPTION(
           "A simple for-loop.\n"
@@ -6504,7 +6562,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF, NODEF),
       GIN_DESC("Start value.", "End value.", "Step size.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("FrequencyFromWavelength"),
       DESCRIPTION(
           "Convert from wavelength [m] to frequency [Hz].\n"
@@ -6521,7 +6579,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("wavelength [m]")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("FrequencyFromCGSAngularWavenumber"),
       DESCRIPTION(
           "Convert from angular wavenumber [cm^-1] to frequency [Hz].\n"
@@ -6538,7 +6596,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("angular wavenumber [cm^-1]")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("FrequencyFromCGSKayserWavenumber"),
       DESCRIPTION(
           "Convert from Kayser wavenumber [cm^-1] to frequency [Hz].\n"
@@ -6555,7 +6613,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Kayser wavenumber [cm^-1]")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("f_gridFromAbsorptionLines"),
       DESCRIPTION("Sets *f_grid* to a grid relative to *abs_lines_per_species*\n"
                   "\n"
@@ -6580,7 +6638,7 @@ void define_md_data_raw() {
                "Upper range of delta f",
                "Number of frequencies")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("f_gridFromGasAbsLookup"),
       DESCRIPTION(
           "Sets *f_grid* to the frequency grid of *abs_lookup*.\n"
@@ -6598,7 +6656,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("f_gridFromSensorAMSU"),
       DESCRIPTION(
           "Automatically calculate f_grid to match the sensor.\n"
@@ -6635,7 +6693,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(".1e9"),
       GIN_DESC("Desired grid spacing in Hz.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("f_gridFromSensorAMSUgeneric"),
       DESCRIPTION(
           "Automatcially calculate f_grid to match the sensor. \n"
@@ -6664,7 +6722,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(".1e9", "[]"),
       GIN_DESC("Desired grid spacing in Hz.", "Bandwidth adjusted spacing")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("f_gridFromSensorHIRS"),
       DESCRIPTION(
           "Automatically calculate f_grid to match the sensor.\n"
@@ -6697,7 +6755,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("5e8"),
       GIN_DESC("Desired grid spacing in Hz.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("f_gridMetMM"),
       DESCRIPTION(
           "Sets *f_grid* and associated variables match MetMM settings.\n"
@@ -6743,7 +6801,7 @@ void define_md_data_raw() {
                "Number of frequencies per passband for each channel.",
                "Merge frequencies that are closer than this value in Hz.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("g0Earth"),
       DESCRIPTION(
           "Gravity at zero altitude on Earth.\n"
@@ -6760,7 +6818,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(NAME("g0Io"),
+  md_data_raw.push_back(create_mdrecord(NAME("g0Io"),
                                  DESCRIPTION("Gravity at zero altitude on Io.\n"
                                              "\n"
                                              "Numeric from Wikipedia.\n"),
@@ -6775,7 +6833,7 @@ void define_md_data_raw() {
                                  GIN_DEFAULT(),
                                  GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("g0Jupiter"),
       DESCRIPTION(
           "Gravity at zero altitude on Jupiter.\n"
@@ -6793,7 +6851,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("g0Mars"),
       DESCRIPTION(
           "Gravity at zero altitude on Mars.\n"
@@ -6811,7 +6869,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("g0Venus"),
       DESCRIPTION(
           "Gravity at zero altitude on Venus.\n"
@@ -6829,7 +6887,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("geo_posEndOfPpath"),
       DESCRIPTION("Sets geo-position based on *ppath*.\n"
                   "\n"
@@ -6848,7 +6906,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("geo_posLowestAltitudeOfPpath"),
       DESCRIPTION(
           "Sets geo-position based on *ppath*.\n"
@@ -6866,7 +6924,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("geo_posWherePpathPassesZref"),
       DESCRIPTION(
           "Sets geo-position based on *ppath*.\n"
@@ -6887,7 +6945,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Reference altitude.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("GetEnvironmentVariable"),
       DESCRIPTION(
           "Copy the contents of an environment variable to an ARTS String or Index.\n"),
@@ -6903,7 +6961,7 @@ void define_md_data_raw() {
       GIN_DESC("Name of environment variable.")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("GetNumberOfThreads"),
+      create_mdrecord(NAME("GetNumberOfThreads"),
                DESCRIPTION("Returns the number of threads used by ARTS.\n"),
                AUTHORS("Oliver Lemke"),
                OUT(),
@@ -6917,7 +6975,7 @@ void define_md_data_raw() {
                GIN_DESC()));
 
   md_data_raw.push_back(
-      MdRecord(NAME("GriddedFieldGetName"),
+      create_mdrecord(NAME("GriddedFieldGetName"),
                DESCRIPTION("Get the name of a GriddedField.\n"
                            "\n"
                            "See *ArrayOfGriddedFieldGetNames*.\n"),
@@ -6936,7 +6994,7 @@ void define_md_data_raw() {
                AGENDAMETHOD(false),
                USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("GriddedFieldLatLonExpand"),
       DESCRIPTION(
           "Expands the latitude and longitude grid of the GriddedField to\n"
@@ -6958,7 +7016,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Raw input gridded field.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("GriddedFieldLatLonRegrid"),
       DESCRIPTION(
           "Interpolates the input field along the latitude and longitude dimensions\n"
@@ -6982,7 +7040,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, "1"),
       GIN_DESC("Raw input gridded field.", "Interpolation order.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("GriddedFieldPRegrid"),
       DESCRIPTION(
           "Interpolates the input field along the pressure dimension to *p_grid*.\n"
@@ -7012,7 +7070,7 @@ void define_md_data_raw() {
                "Interpolation order.",
                "Apply zero-padding.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("GriddedFieldZToPRegrid"),
       DESCRIPTION(
           "Interpolates the input field along the vertical dimension to *p_grid*.\n"
@@ -7036,7 +7094,7 @@ void define_md_data_raw() {
       GIN_DESC("Raw input; Altitude-gridded field.",
                "Interpolation order.",
                "Apply zero-padding.")));
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("heating_ratesFromIrradiance"),
       DESCRIPTION(
           "Calculates heating rates. It assumes that the heating rates\n"
@@ -7054,7 +7112,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Ignore"),
       DESCRIPTION(
           "Ignore a workspace variable.\n"
@@ -7089,7 +7147,7 @@ void define_md_data_raw() {
       AGENDAMETHOD(false),
       USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("INCLUDE"),
       DESCRIPTION(
           "Includes the contents of another controlfile.\n"
@@ -7131,7 +7189,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("IndexAdd"),
       DESCRIPTION(
           "Adds a index and a value (out = in+value).\n"
@@ -7149,7 +7207,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Input Index.", "Value to add.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("IndexNumberOfAtmosphericPoints"),
       DESCRIPTION(
           "Counts number of points in the atmosphere.\n"
@@ -7169,7 +7227,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("IndexSet"),
       DESCRIPTION("Sets an index workspace variable to the given value.\n"),
       AUTHORS("Patrick Eriksson"),
@@ -7184,7 +7242,7 @@ void define_md_data_raw() {
       GIN_DESC("Value."),
       SETMETHOD(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("IndexSetToLast"),
       DESCRIPTION(
           "Set an Index to point towards last position of array-type variables.\n"
@@ -7206,7 +7264,7 @@ void define_md_data_raw() {
       USES_TEMPLATES(true)));
 
   md_data_raw.push_back(
-      MdRecord(NAME("IndexStepDown"),
+      create_mdrecord(NAME("IndexStepDown"),
                DESCRIPTION("Performas: out = in - 1\n"
                            "\n"
                            "Input and output can be same variable.\n"),
@@ -7222,7 +7280,7 @@ void define_md_data_raw() {
                GIN_DESC("Input index variable.")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("IndexStepUp"),
+      create_mdrecord(NAME("IndexStepUp"),
                DESCRIPTION("Performas: out = in + 1\n"
                            "\n"
                            "Input and output can be same variable.\n"),
@@ -7237,7 +7295,7 @@ void define_md_data_raw() {
                GIN_DEFAULT(NODEF),
                GIN_DESC("Input index variable.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("InterpAtmFieldToPosition"),
       DESCRIPTION("Point interpolation of atmospheric fields.\n"
                   "\n"
@@ -7260,7 +7318,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Field to interpolate.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("InterpGriddedField2ToPosition"),
       DESCRIPTION(
           "Latitude and longitude interpolation of a GriddedField2.\n"
@@ -7284,7 +7342,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Gridded field to interpolate.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("InterpSurfaceFieldToPosition"),
       DESCRIPTION(
           "Point interpolation of surface fields.\n"
@@ -7310,7 +7368,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Field to interpolate.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("irradiance_fieldFromRadiance"),
       DESCRIPTION(
           "Calculate the irradiance also known as flux density from the *radiance_field* .\n"
@@ -7329,7 +7387,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("isotopologue_ratiosInitFromBuiltin"),
       DESCRIPTION(
           "Initialize isotopologue ratios with default values from built-in\n"
@@ -7345,7 +7403,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("iyActiveSingleScat"),
       DESCRIPTION(
           "Simulation of radar/lidar, restricted to single scattering.\n"
@@ -7467,7 +7525,7 @@ void define_md_data_raw() {
                " far only applied in phase matrix, not in extinction and"
                " absorption.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("iyActiveSingleScat2"),
       DESCRIPTION("TESTING\n"),
       AUTHORS("Patrick Eriksson", "Richard Larsson"),
@@ -7530,7 +7588,7 @@ void define_md_data_raw() {
                " far only applied in phase matrix, not in extinction and"
                " absorption.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("iyApplyUnit"),
       DESCRIPTION(
           "Conversion of *iy* to other spectral units.\n"
@@ -7564,7 +7622,7 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(
-      MdRecord
+      create_mdrecord
 
       (NAME("iyCalc"),
        DESCRIPTION(
@@ -7603,7 +7661,7 @@ void define_md_data_raw() {
        GIN_DEFAULT(),
        GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("iyEmissionStandard"),
       DESCRIPTION(
           "Standard method for radiative transfer calculations with emission.\n"
@@ -7695,7 +7753,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("iyEmissionStandardSequential"),
       DESCRIPTION(
           "DEPRECATED! Should go away soon\n"
@@ -7758,7 +7816,7 @@ void define_md_data_raw() {
       GIN_DESC()));
   /*
   md_data_raw.push_back
-    ( MdRecord
+    ( create_mdrecord
       ( NAME( "iyFOS" ),
         DESCRIPTION
         (
@@ -7839,7 +7897,7 @@ void define_md_data_raw() {
         ));
   */
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("iyHybrid"),
       DESCRIPTION("So far just for testing.\n"),
       AUTHORS("Patrick Eriksson", "Jana Mendrok", "Richard Larsson"),
@@ -7908,7 +7966,7 @@ void define_md_data_raw() {
                " far only applied in phase matrix, not in extinction and"
                " absorption.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("iyHybrid2"),
       DESCRIPTION("So far just for even more testing.\n"),
       AUTHORS("Patrick Eriksson", "Jana Mendrok", "Richard Larsson"),
@@ -7977,7 +8035,7 @@ void define_md_data_raw() {
                " far only applied in phase matrix, not in extinction and"
                " absorption.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("iyIndependentBeamApproximation"),
       DESCRIPTION("In development ....\n"
                   "\n"
@@ -8032,7 +8090,7 @@ void define_md_data_raw() {
           "Flag to include particle category masses in *atm_fields_compact*."
           "Conversion is done by *particle_masses*.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("iyInterpCloudboxField"),
       DESCRIPTION(
           "Interpolates the intensity field of the cloud box.\n"
@@ -8090,7 +8148,7 @@ void define_md_data_raw() {
                "Maximum allowed extrapolation range in zenith angle.",
                "Azimuth angle interpolation order.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("iyLoopFrequencies"),
       DESCRIPTION(
           "Radiative transfer calculations one frequency at the time.\n"
@@ -8122,7 +8180,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("iyMC"),
       DESCRIPTION(
           "Interface to Monte Carlo part for *iy_main_agenda*.\n"
@@ -8205,7 +8263,7 @@ void define_md_data_raw() {
 
   /*
   md_data_raw.push_back
-    ( MdRecord
+    ( create_mdrecord
       ( NAME( "iyRadioLink" ),
         DESCRIPTION
         (
@@ -8321,7 +8379,7 @@ void define_md_data_raw() {
         ));
   */
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("iyReplaceFromAux"),
       DESCRIPTION(
           "Change of main output variable.\n"
@@ -8345,7 +8403,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Auxiliary variable to insert as *iy*.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceCallAgendaX"),
       DESCRIPTION(
           "Switch between the elements of *iy_surface_agenda_array*.\n"
@@ -8377,7 +8435,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceFastem"),
       DESCRIPTION(
           "Usage of FASTEM for emissivity and reflectivity of water surfaces.\n"
@@ -8427,7 +8485,7 @@ void define_md_data_raw() {
                "Wind direction. See further above.",
                "The version of FASTEM to use.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceRtpropAgenda"),
       DESCRIPTION(
           "Interface to *surface_rtprop_agenda* for *iy_surface_agenda*.\n"
@@ -8463,7 +8521,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("iySurfaceRtpropCalc"),
       DESCRIPTION(
           "Applies *surface_los*, *surface_rmatrix* and *surface_emission*.\n"
@@ -8507,7 +8565,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("iyTransmissionStandard"),
       DESCRIPTION(
           "Standard method for handling transmission measurements.\n"
@@ -8595,7 +8653,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("iy_transmitterMultiplePol"),
       DESCRIPTION(
           "Transmitted signal having multiple polarisations.\n"
@@ -8616,7 +8674,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("iy_transmitterSinglePol"),
       DESCRIPTION(
           "Transmitted signal having a single polarisations.\n"
@@ -8638,7 +8696,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddAbsSpecies"),
       DESCRIPTION(
           "Includes an absorption species in the Jacobian.\n"
@@ -8692,7 +8750,7 @@ void define_md_data_raw() {
       USES_TEMPLATES(false),
       PASSWORKSPACE(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddBasicCatalogParameter"),
       DESCRIPTION(
           "Includes a basic catalog parameter in the Jacobian. These are constant\n"
@@ -8729,7 +8787,7 @@ void define_md_data_raw() {
       GIN_DESC("The catalog line matching information.",
                "The catalog parameter of the retrieval quantity.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddBasicCatalogParameters"),
       DESCRIPTION(
           "See *jacobianAddBasicCatalogParameter*.\n"
@@ -8749,7 +8807,7 @@ void define_md_data_raw() {
       GIN_DESC("The catalog line matching information.",
                "The catalog parameter of the retrieval quantity.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddFreqShift"),
       DESCRIPTION(
           "Includes a frequency fit of shift type in the Jacobian.\n"
@@ -8771,7 +8829,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("100e3"),
       GIN_DESC("Size of perturbation to apply.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddFreqStretch"),
       DESCRIPTION(
           "Includes a frequency fit of stretch type in the Jacobian.\n"
@@ -8793,7 +8851,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("100e3"),
       GIN_DESC("Size of perturbation to apply.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddShapeCatalogParameter"),
       DESCRIPTION(
           "Adds a line shape parameter to the Jacobian calculations. These\n"
@@ -8844,7 +8902,7 @@ void define_md_data_raw() {
                "Variable of interest",
                "Coefficient of interest")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddShapeCatalogParameters"),
       DESCRIPTION(
           "See *jacobianAddShapeCatalogParameter* for information on\n"
@@ -8890,7 +8948,7 @@ void define_md_data_raw() {
                "List of variables of interest",
                "List of coefficients of interest")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddMagField"),
       DESCRIPTION(
           "Includes one magnetic field component in the Jacobian.\n"
@@ -8930,7 +8988,7 @@ void define_md_data_raw() {
                "Magnetic field component to retrieve",
                "Magnetic field perturbation")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddNLTE"),
       DESCRIPTION(
           "Experimental NLTE Jacobian.\n"
@@ -8972,7 +9030,7 @@ void define_md_data_raw() {
                "Identifier to the eneregy level",
                "Perturbation of value if required by method")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddNLTEs"),
       DESCRIPTION(
           "Experimental NLTE Jacobian.  Same as *jacobianAddNLTE* but for\n"
@@ -9004,7 +9062,7 @@ void define_md_data_raw() {
                "Identifiers to the eneregy level",
                "Perturbation of value if required by method")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddPointingZa"),
       DESCRIPTION(
           "Adds sensor pointing zenith angle off-set jacobian.\n"
@@ -9051,7 +9109,7 @@ void define_md_data_raw() {
                "Calculation method. See above",
                "Size of perturbation to apply (when applicable).")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddPolyfit"),
       DESCRIPTION(
           "Includes polynomial baseline fit in the Jacobian.\n"
@@ -9102,7 +9160,7 @@ void define_md_data_raw() {
                "Set to 1 if the baseline off-set is the same for all "
                "measurement blocks.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddScatSpecies"),
       DESCRIPTION(
           "Includes a scattering species in the Jacobian.\n"
@@ -9141,7 +9199,7 @@ void define_md_data_raw() {
       USES_TEMPLATES(false),
       PASSWORKSPACE(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddSinefit"),
       DESCRIPTION(
           "Includes sinusoidal baseline fit in the Jacobian.\n"
@@ -9190,7 +9248,7 @@ void define_md_data_raw() {
                "Set to 1 if the baseline off-set is the same for all "
                "measurement blocks.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddSpecialSpecies"),
       DESCRIPTION(
           "Includes a special absorption species in the Jacobian.\n"
@@ -9235,7 +9293,7 @@ void define_md_data_raw() {
       USES_TEMPLATES(false),
       PASSWORKSPACE(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddSurfaceQuantity"),
       DESCRIPTION(
           "Includes a surface quantity in the Jacobian.\n"
@@ -9273,7 +9331,7 @@ void define_md_data_raw() {
       USES_TEMPLATES(false),
       PASSWORKSPACE(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddTemperature"),
       DESCRIPTION(
           "Includes atmospheric temperatures in the Jacobian.\n"
@@ -9320,7 +9378,7 @@ void define_md_data_raw() {
                "Longitude retreival grid.",
                "Flag to assume HSE or not (\"on\" or \"off\").")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAddWind"),
       DESCRIPTION(
           "Includes one atmospheric wind component in the Jacobian.\n"
@@ -9361,7 +9419,7 @@ void define_md_data_raw() {
                "Wind component to retrieve",
                "This is the frequency perturbation")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianAdjustAndTransform"),
       DESCRIPTION(
           "Applies adjustments and transformations on *jacobian*.\n"
@@ -9392,7 +9450,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianCalcDoNothing"),
       DESCRIPTION(
           "This function doesn't do anything. It just exists to satisfy\n"
@@ -9412,7 +9470,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianCalcFreqShift"),
       DESCRIPTION(
           "Calculates frequency shift jacobians by interpolation\n"
@@ -9439,7 +9497,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianCalcFreqStretch"),
       DESCRIPTION(
           "Calculates frequency stretch jacobians by interpolation\n"
@@ -9469,7 +9527,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianCalcPointingZaInterp"),
       DESCRIPTION("Calculates zenith angle pointing deviation jacobians by\n"
                   "inter-extrapolation of *iyb*.\n"
@@ -9498,7 +9556,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianCalcPointingZaRecalc"),
       DESCRIPTION("Calculates zenith angle pointing deviation jacobians by\n"
                   "recalulation of *iyb*.\n"
@@ -9535,7 +9593,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianCalcPolyfit"),
       DESCRIPTION(
           "Calculates jacobians for polynomial baseline fit.\n"
@@ -9562,7 +9620,7 @@ void define_md_data_raw() {
       GIN_DESC("Polynomial coefficient to handle."),
       SETMETHOD(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianCalcSinefit"),
       DESCRIPTION(
           "Calculates jacobians for sinusoidal baseline fit.\n"
@@ -9589,7 +9647,7 @@ void define_md_data_raw() {
       GIN_DESC("Index among the period length specified for add-method."),
       SETMETHOD(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianClose"),
       DESCRIPTION(
           "Closes the array of retrieval quantities and prepares for\n"
@@ -9611,7 +9669,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianFromTwoY"),
       DESCRIPTION(
           "Sets *jacobian* based on the difference vetween two measurement vectors.\n"
@@ -9635,7 +9693,7 @@ void define_md_data_raw() {
       GIN_DESC("Perturbed measurement vector",
                "Size of perturbation behind spectra in *ybatch*.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianFromYbatch"),
       DESCRIPTION(
           "Sets *jacobian* based on perturbation calcuations.\n"
@@ -9657,7 +9715,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Size of perturbation behind spectra in *ybatch*.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianInit"),
       DESCRIPTION(
           "Initialises the variables connected to the Jacobian matrix.\n"
@@ -9679,7 +9737,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianOff"),
       DESCRIPTION(
           "Makes mandatory initialisation of some jacobian variables.\n"
@@ -9701,7 +9759,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianSetAffineTransformation"),
       DESCRIPTION(
           "Adds an affine transformation of the last element of\n"
@@ -9738,7 +9796,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("The transformation matrix A", "The offset vector b")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("jacobianSetFuncTransformation"),
       DESCRIPTION(
           "Sets the functional transformation of the last element of\n"
@@ -9809,7 +9867,7 @@ void define_md_data_raw() {
                "Lower limit of z.",
                "Upper limit of z.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("lat_gridFromRawField"),
       DESCRIPTION(
           "Sets *lat_grid* according to given raw atmospheric field's lat_grid.\n"
@@ -9826,7 +9884,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("A raw atmospheric field.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("lbl_checkedCalc"),
       DESCRIPTION("Checks that the line-by-line parameters are OK.\n"
                   "\n"
@@ -9846,7 +9904,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("lon_gridFromRawField"),
       DESCRIPTION(
           "Sets *lon_grid* according to given raw atmospheric field's lat_grid.\n"
@@ -9863,7 +9921,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("A raw atmospheric field.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("MagFieldsCalc"),
       DESCRIPTION(
           "Interpolation of raw magnetic fields to calculation grids.\n"
@@ -9889,7 +9947,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("1"),
       GIN_DESC("Interpolation order (1=linear interpolation).")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("MagFieldsCalcExpand1D"),
       DESCRIPTION(
           "Interpolation of 1D raw atmospheric fields to create 2D or 3D\n"
@@ -9916,7 +9974,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("1"),
       GIN_DESC("Interpolation order (1=linear interpolation).")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("MagFieldsFromAltitudeRawCalc"),
       DESCRIPTION(
           "Regrids the rawfield by lat-lon and interpolates to z_field.\n"),
@@ -9930,14 +9988,14 @@ void define_md_data_raw() {
          "z_field",
          "mag_u_field_raw",
          "mag_v_field_raw",
-         "mag_w_field_raw", ),
+         "mag_w_field_raw"),
       GIN("interp_order", "extrapolating"),
       GIN_TYPE("Index", "Numeric"),
       GIN_DEFAULT("1", "1e99"),
       GIN_DESC("Interpolation order (1=linear interpolation).",
                "Extrapolation allowed in interpolation of altitude.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("MagRawRead"),
       DESCRIPTION(
           "Reads magnetic field data from a scenario.\n"
@@ -9960,7 +10018,7 @@ void define_md_data_raw() {
       GIN_DESC("Name of scenario, probably including the full path. For "
                "example: \"/data/magnetic_field\"")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("MatrixAddScalar"),
       DESCRIPTION(
           "Adds a scalar to all elements of a matrix.\n"
@@ -9977,7 +10035,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Input matrix.", "The value to be added to the matrix.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("MatrixCBR"),
       DESCRIPTION(
           "Sets a matrix to hold cosmic background radiation (CBR).\n"
@@ -10006,7 +10064,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Frequency vector.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("MatrixCopySparse"),
       DESCRIPTION("Creates a matrix by copying a variable of type Sparse.\n"),
       AUTHORS("Patrick Eriksson"),
@@ -10020,7 +10078,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("The sparse matrix to be copied.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("MatrixExtractFromTensor3"),
       DESCRIPTION(
           "Extracts a Matrix from a Tensor3.\n"
@@ -10042,7 +10100,7 @@ void define_md_data_raw() {
                "Direction. \"page\" or \"row\" or \"column\".")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("MatrixFromCovarianceMatrix"),
+      create_mdrecord(NAME("MatrixFromCovarianceMatrix"),
                DESCRIPTION("Turns a covariance matrix into a Matrix.\n"),
                AUTHORS("Richard Larsson"),
                OUT(),
@@ -10055,7 +10113,7 @@ void define_md_data_raw() {
                GIN_DEFAULT(NODEF),
                GIN_DESC("Input covariance matrix.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("MatrixIdentity"),
       DESCRIPTION(
           "Returns an identity matrix.\n"
@@ -10075,7 +10133,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, "1"),
       GIN_DESC("Size of the matrix", "The value along the diagonal.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("MatrixMatrixMultiply"),
       DESCRIPTION(
           "Multiply a Matrix with another Matrix and store the result in the result\n"
@@ -10095,7 +10153,7 @@ void define_md_data_raw() {
       GIN_DESC("The Matrix to multiply (dimension mxn).",
                "The original Matrix (dimension nxc).")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("MatrixPlanck"),
       DESCRIPTION(
           "Sets a matrix to hold blackbody radiation.\n"
@@ -10119,7 +10177,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Frequency vector.", "Temperature [K].")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("MatrixScale"),
       DESCRIPTION("Scales all elements of a matrix with the specified value.\n"
                   "\n"
@@ -10137,7 +10195,7 @@ void define_md_data_raw() {
       GIN_DESC("Input matrix.",
                "The value to be multiplied with the matrix.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("MatrixSet"),
       DESCRIPTION("Initialize a Matrix from the given list of numbers.\n"
                   "\n"
@@ -10156,7 +10214,7 @@ void define_md_data_raw() {
                "by commas, rows by semicolons."),
       SETMETHOD(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("MatrixSetConstant"),
       DESCRIPTION(
           "Creates a matrix and sets all elements to the specified value.\n"
@@ -10173,7 +10231,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Matrix value.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("MatrixUnitIntensity"),
       DESCRIPTION(
           "Sets a matrix to hold unpolarised radiation with unit intensity.\n"
@@ -10190,7 +10248,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Frequency vector.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("MatrixVectorMultiply"),
       DESCRIPTION(
           "Multiply a Matrix with a Vector\n"
@@ -10209,7 +10267,7 @@ void define_md_data_raw() {
       GIN_DESC("The Matrix to multiply (dimension mxn).",
                "The original Vector (length n).")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Matrix1ColFromVector"),
       DESCRIPTION("Forms a matrix containing one column from a vector.\n"),
       AUTHORS("Mattias Ekstrom"),
@@ -10223,7 +10281,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("The vector to be copied.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Matrix2ColFromVectors"),
       DESCRIPTION(
           "Forms a matrix containing two columns from two vectors.\n"
@@ -10242,7 +10300,7 @@ void define_md_data_raw() {
       GIN_DESC("The vector to be copied into the first column.",
                "The vector to be copied into the second column.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Matrix3ColFromVectors"),
       DESCRIPTION(
           "Forms a matrix containing three columns from three vectors.\n"
@@ -10262,7 +10320,7 @@ void define_md_data_raw() {
                "The vector to be copied into the second column.",
                "The vector to be copied into the third column.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Matrix1RowFromVector"),
       DESCRIPTION("Forms a matrix containing one row from a vector.\n"),
       AUTHORS("Mattias Ekstrom"),
@@ -10276,7 +10334,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("The vector to be copied.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Matrix2RowFromVectors"),
       DESCRIPTION(
           "Forms a matrix containing two rows from two vectors.\n"
@@ -10295,7 +10353,7 @@ void define_md_data_raw() {
       GIN_DESC("The vector to be copied into the first row.",
                "The vector to be copied into the second row.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Matrix3RowFromVectors"),
       DESCRIPTION(
           "Forms a matrix containing three rows from three vectors.\n"
@@ -10315,7 +10373,7 @@ void define_md_data_raw() {
                "The vector to be copied into the second row.",
                "The vector to be copied into the third row.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("mblock_dlos_gridUniformCircular"),
       DESCRIPTION(
           "Gives *mblock_dlos_grid* roughly circular coverage, with uniform spacing.\n"
@@ -10343,7 +10401,7 @@ void define_md_data_raw() {
                "The maximum half-width to include.",
                "Set to 1 to place a point at (0,0).")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("mblock_dlos_gridUniformRectangular"),
       DESCRIPTION(
           "Gives *mblock_dlos_grid* rectangular coverage, with uniform spacing.\n"
@@ -10370,7 +10428,7 @@ void define_md_data_raw() {
                "Max value of half-width in azimuth angle direction.",
                "Set to 1 to place a point at (0,0).")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("mc_antennaSetGaussian"),
       DESCRIPTION(
           "Makes mc_antenna (used by MCGeneral) a 2D Gaussian pattern.\n"
@@ -10390,7 +10448,7 @@ void define_md_data_raw() {
       GIN_DESC("Width in the zenith angle dimension as described above.",
                "Width in the azimuth angle dimension as described above.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("mc_antennaSetGaussianByFWHM"),
       DESCRIPTION(
           "Makes mc_antenna (used by MCGeneral) a 2D Gaussian pattern.\n"
@@ -10410,7 +10468,7 @@ void define_md_data_raw() {
       GIN_DESC("Width in the zenith angle dimension as described above.",
                "Width in the azimuth angle dimension as described above.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("mc_antennaSetPencilBeam"),
       DESCRIPTION(
           "Makes mc_antenna (used by MCGeneral) a pencil beam.\n"
@@ -10428,7 +10486,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("MCGeneral"),
       DESCRIPTION(
           "A generalised 3D reversed Monte Carlo radiative algorithm, that\n"
@@ -10510,7 +10568,7 @@ void define_md_data_raw() {
                " far only applied in phase matrix, not in extinction and"
                " absorption.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("MCRadar"),
       DESCRIPTION(
           "A radar 3D foward Monte Carlo radiative algorithm, that allows \n"
@@ -10588,7 +10646,7 @@ void define_md_data_raw() {
                " absorption.")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("MCSetSeedFromTime"),
+      create_mdrecord(NAME("MCSetSeedFromTime"),
                DESCRIPTION("Sets the value of mc_seed from system time\n"),
                AUTHORS("Cory Davis"),
                OUT("mc_seed"),
@@ -10601,7 +10659,7 @@ void define_md_data_raw() {
                GIN_DEFAULT(),
                GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("nlte_fieldRescalePopulationLevels"),
       DESCRIPTION(
           "Rescale NLTE field to expected total distribution amongst levels\n"),
@@ -10616,7 +10674,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Scaling (e.g., 0.75 for only orth-water on Earth)")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("nlte_fieldForSingleSpeciesNonOverlappingLines"),
       DESCRIPTION(
           "NLTE field for a simple setup.\n"
@@ -10660,7 +10718,7 @@ void define_md_data_raw() {
                "use transmission dampening or not",
                "max number of iterations before defaul break of iterations")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("collision_coefficientsFromSplitFiles"),
       DESCRIPTION(
           "Reads *collision_coefficients* and *collision_line_identifiers* from location on filesystem\n"
@@ -10677,7 +10735,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("./"),
       GIN_DESC("path to files to read")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("NumericAdd"),
       DESCRIPTION(
           "Adds a numeric and a value (out = in+value).\n"
@@ -10695,7 +10753,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Input numeric.", "Value to add.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("NumericFromVector"),
       DESCRIPTION(
           "Derivs a numeric from a vector, following selected operation.\n"
@@ -10717,7 +10775,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Input vector.", "Selected operation.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("NumericInvScale"),
       DESCRIPTION(
           "Inversely scales/divides a numeric with a value (out = in/value).\n"
@@ -10735,7 +10793,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Input numeric.", "Scaling value.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("NumericScale"),
       DESCRIPTION(
           "Scales/multiplies a numeric with a value (out = in*value).\n"
@@ -10753,7 +10811,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Input numeric.", "Scaling value.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("NumericSet"),
       DESCRIPTION("Sets a numeric workspace variable to the given value.\n"),
       AUTHORS("Patrick Eriksson"),
@@ -10768,7 +10826,7 @@ void define_md_data_raw() {
       GIN_DESC("The value."),
       SETMETHOD(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("QuantumIdentifierSet"),
       DESCRIPTION(
           "Sets a QuantumIdentifier workspace variable to the given value\n"
@@ -10785,7 +10843,7 @@ void define_md_data_raw() {
       GIN_DESC("The string representing the value."),
       SETMETHOD(false)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ArrayOfQuantumIdentifierSet"),
       DESCRIPTION(
           "Sets an ArrayOfQuantumIdentifier workspace variable to the given value\n"
@@ -10802,7 +10860,7 @@ void define_md_data_raw() {
       GIN_DESC("The array of string representing the values of the array."),
       SETMETHOD(false)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("nelemGet"),
       DESCRIPTION(
           "Retrieve nelem from given variable and store the value in the\n"
@@ -10821,7 +10879,7 @@ void define_md_data_raw() {
       AGENDAMETHOD(false),
       USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ncolsGet"),
       DESCRIPTION(
           "Retrieve ncols from given variable and store the value in the\n"
@@ -10840,7 +10898,7 @@ void define_md_data_raw() {
       AGENDAMETHOD(false),
       USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("nrowsGet"),
       DESCRIPTION(
           "Retrieve nrows from given variable and store the value in the\n"
@@ -10859,7 +10917,7 @@ void define_md_data_raw() {
       AGENDAMETHOD(false),
       USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("npagesGet"),
       DESCRIPTION(
           "Retrieve npages from given variable and store the value in the\n"
@@ -10878,7 +10936,7 @@ void define_md_data_raw() {
       AGENDAMETHOD(false),
       USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("nbooksGet"),
       DESCRIPTION(
           "Retrieve nbooks from given variable and store the value in the\n"
@@ -10897,7 +10955,7 @@ void define_md_data_raw() {
       AGENDAMETHOD(false),
       USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("nshelvesGet"),
       DESCRIPTION(
           "Retrieve nshelves from given variable and store the value in the\n"
@@ -10916,7 +10974,7 @@ void define_md_data_raw() {
       AGENDAMETHOD(false),
       USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("nvitrinesGet"),
       DESCRIPTION(
           "Retrieve nvitrines from given variable and store the value in the\n"
@@ -10935,7 +10993,7 @@ void define_md_data_raw() {
       AGENDAMETHOD(false),
       USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("nlibrariesGet"),
       DESCRIPTION(
           "Retrieve nlibraries from given variable and store the value in the\n"
@@ -10954,7 +11012,7 @@ void define_md_data_raw() {
       AGENDAMETHOD(false),
       USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("nlte_sourceFromTemperatureAndSrcCoefPerSpecies"),
       DESCRIPTION(
           "Turn NLTE absorption per species into the source function by multiplying\n"
@@ -10975,7 +11033,7 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(
-      MdRecord(NAME("nlteOff"),
+      create_mdrecord(NAME("nlteOff"),
                DESCRIPTION("Disable Non-LTE calculations.\n"
                            "\n"
                            "The variables are set as follows:\n"
@@ -10992,7 +11050,7 @@ void define_md_data_raw() {
                GIN_DEFAULT(),
                GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("nlteSetByQuantumIdentifiers"),
       DESCRIPTION(
           "Turns on NTLE calculations.\n"
@@ -11034,7 +11092,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("nlte_fieldFromRaw"),
       DESCRIPTION("Sets NLTE values manually\n"
                   "\n"
@@ -11051,7 +11109,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Vibrational data [nlevels, np, nlat, nlon]")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("nlte_fieldSetLteExternalPartitionFunction"),
       DESCRIPTION("Turns on NTLE calculations.\n"
                   "\n"
@@ -11071,7 +11129,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ArrayOfQuantumIdentifierFromLines"),
       DESCRIPTION(
           "Sets an ArrayOfQuantumIdentifier to all levels in *abs_lines_per_species*\n"
@@ -11089,7 +11147,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("1"),
       GIN_DESC("Only look at global quantum numbers")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("nlte_fieldSetLteInternalPartitionFunction"),
       DESCRIPTION(
           "Turns on NTLE calculations.\n"
@@ -11108,7 +11166,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("OEM"),
       DESCRIPTION(
           "Inversion by the so called optimal estimation method (OEM).\n"
@@ -11234,7 +11292,7 @@ void define_md_data_raw() {
                "Flag to control if inversion diagnostics shall be printed "
                "on the screen.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("avkCalc"),
       DESCRIPTION(
           "Calculates the averaging kernel matrix describing the sensitivity of the\n"
@@ -11252,7 +11310,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("covmat_soCalc"),
       DESCRIPTION(
           "Calculates the covariance matrix describing the error due to uncertainties\n"
@@ -11273,7 +11331,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("covmat_ssCalc"),
       DESCRIPTION(
           "Calculates the covariance matrix describing the error due to smoothing.\n"
@@ -11291,7 +11349,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("opt_prop_bulkCalc"),
       DESCRIPTION(
           "Calculates bulk absorption extinction at one atmospheric grid point.\n"
@@ -11322,7 +11380,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("opt_prop_sptFromData"),
       DESCRIPTION(
           "Calculates monochromatic optical properties for all scattering\n"
@@ -11361,7 +11419,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("opt_prop_sptFromScat_data"),
       DESCRIPTION(
           "Derives monochromatic optical properties for all scattering\n"
@@ -11394,7 +11452,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("opt_prop_sptFromMonoData"),
       DESCRIPTION(
           "Calculates optical properties for the scattering elements.\n"
@@ -11425,7 +11483,7 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(
-      MdRecord(NAME("output_file_formatSetAscii"),
+      create_mdrecord(NAME("output_file_formatSetAscii"),
                DESCRIPTION("Sets the output file format to ASCII.\n"),
                AUTHORS("Oliver Lemke"),
                OUT("output_file_format"),
@@ -11439,7 +11497,7 @@ void define_md_data_raw() {
                GIN_DESC()));
 
   md_data_raw.push_back(
-      MdRecord(NAME("output_file_formatSetBinary"),
+      create_mdrecord(NAME("output_file_formatSetBinary"),
                DESCRIPTION("Sets the output file format to binary.\n"),
                AUTHORS("Oliver Lemke"),
                OUT("output_file_format"),
@@ -11453,7 +11511,7 @@ void define_md_data_raw() {
                GIN_DESC()));
 
   md_data_raw.push_back(
-      MdRecord(NAME("output_file_formatSetZippedAscii"),
+      create_mdrecord(NAME("output_file_formatSetZippedAscii"),
                DESCRIPTION("Sets the output file format to zipped ASCII.\n"),
                AUTHORS("Oliver Lemke"),
                OUT("output_file_format"),
@@ -11466,7 +11524,7 @@ void define_md_data_raw() {
                GIN_DEFAULT(),
                GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("particle_bulkprop_fieldClip"),
       DESCRIPTION(
           "Clipping of *particle_bulkprop_field*.\n"
@@ -11493,7 +11551,7 @@ void define_md_data_raw() {
                "Lower limit for clipping.",
                "Upper limit for clipping.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("particle_bulkprop_fieldPerturb"),
       DESCRIPTION(
           "Adds a perturbation to *particle_bulkprop_field*.\n"
@@ -11534,7 +11592,7 @@ void define_md_data_raw() {
                "relative"
                ".")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("particle_bulkprop_fieldPerturbAtmGrids"),
       DESCRIPTION(
           "Adds a perturbation to *particle_bulkprop_field*.\n"
@@ -11565,7 +11623,7 @@ void define_md_data_raw() {
                "relative"
                ".")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("particle_massesFromMetaDataSingleCategory"),
       DESCRIPTION(
           "Sets *particle_masses* based on *scat_meta* assuming\n"
@@ -11594,7 +11652,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("particle_massesFromMetaData"),
       DESCRIPTION(
           "Derives *particle_masses* from *scat_meta*.\n"
@@ -11620,7 +11678,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("partition_functionsInitFromBuiltin"),
       DESCRIPTION(
           "Initialize partition functions with default values from built-in\n"
@@ -11636,7 +11694,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("pha_matCalc"),
       DESCRIPTION(
           "Calculates the total phase matrix of all scattering elements.\n"
@@ -11662,7 +11720,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("pha_mat_sptFromData"),
       DESCRIPTION(
           "Calculation of the phase matrix of the individual scattering elements.\n"
@@ -11710,7 +11768,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("pha_mat_sptFromDataDOITOpt"),
       DESCRIPTION(
           "Calculation of the phase matrix of the individual scattering elements.\n"
@@ -11743,7 +11801,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("pha_mat_sptFromMonoData"),
       DESCRIPTION(
           "Calculation of the phase matrix of the individual scattering elements.\n"
@@ -11770,7 +11828,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("pha_mat_sptFromScat_data"),
       DESCRIPTION(
           "Calculation of the phase matrix of the individual scattering elements.\n"
@@ -11801,7 +11859,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("pndFromPsd"),
       DESCRIPTION(
           "Calculates *pnd_data* from given *psd_data* for one scattering species.\n"
@@ -11866,7 +11924,7 @@ void define_md_data_raw() {
                "Minimum ratio of edge point pnd to maximum pnd of this"
                " scattering element over all pressure levels.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("pndFromPsdBasic"),
       DESCRIPTION(
           "Calculates *pnd_data* from given *psd_data*.\n"
@@ -11884,7 +11942,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("1"),
       GIN_DESC("Order of bin quadrature.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("pnd_fieldCalcFromParticleBulkProps"),
       DESCRIPTION(
           "Converts particle bulk property data to *pnd_field*.\n"
@@ -11924,7 +11982,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("pnd_fieldCalcFrompnd_field_raw"),
       DESCRIPTION(
           "Interpolation of particle number density fields to calculation grid\n"
@@ -11955,7 +12013,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("0"),
       GIN_DESC("Allow zeropadding of pnd_field.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("pnd_fieldExpand1D"),
       DESCRIPTION(
           "Maps a 1D pnd_field to a (homogeneous) 2D or 3D pnd_field.\n"
@@ -11985,7 +12043,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("1"),
       GIN_DESC("Number of zero values inside lat and lon limits.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("pnd_fieldZero"),
       DESCRIPTION(
           "Sets *pnd_field* to zero.\n"
@@ -12023,7 +12081,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ppath_fieldFromDownUpLimbGeoms"),
       DESCRIPTION(
           "Computes ppath_field from \"standalone\" sensors looking upwards from\n"
@@ -12067,7 +12125,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("3"),
       GIN_DESC("Number of zenith angles per position")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ppathCalc"),
       DESCRIPTION(
           "Stand-alone calculation of propagation paths.\n"
@@ -12101,7 +12159,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ppath_fieldCalc"),
       DESCRIPTION(
           "Stand-alone calculation of propagation path field from sensors.\n"
@@ -12128,7 +12186,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ppathCalcFromAltitude"),
       DESCRIPTION(
           "Moves *rte_pos* forwards to near altitude before calling *ppathCalc*\n"
@@ -12166,7 +12224,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, "0.5"),
       GIN_DESC("Altitude to move forward towards", "Accuracy of altitude")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ppathFromRtePos2"),
       DESCRIPTION(
           "Determines the propagation path from *rte_pos2* to *rte_pos*.\n"
@@ -12215,7 +12273,7 @@ void define_md_data_raw() {
                "Lowest value ppath_lraytrace to consider. The calculations "
                "are halted if this length is passed.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ppathPlaneParallel"),
       DESCRIPTION(
           "Propagation path calculations for a plane parallel atmosphere.\n"
@@ -12251,7 +12309,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ppathStepByStep"),
       DESCRIPTION(
           "Standard method for calculation of propagation paths.\n"
@@ -12292,7 +12350,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ppathWriteXMLPartial"),
       DESCRIPTION(
           "WSM to only write a reduced Ppath, omitting grid positions.\n"
@@ -12319,7 +12377,7 @@ void define_md_data_raw() {
       GIN_DESC("File name. See above.",
                "Optional file index to append to filename.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ppath_stepGeometric"),
       DESCRIPTION(
           "Calculates a geometrical propagation path step.\n"
@@ -12353,7 +12411,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ppath_stepRefractionBasic"),
       DESCRIPTION(
           "Calculates a propagation path step, considering refraction by a\n"
@@ -12398,7 +12456,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ppvar_optical_depthFromPpvar_trans_cumulat"),
       DESCRIPTION(
           "Sets *ppvar_optical_depth* according to provided transmission data.\n"
@@ -12417,7 +12475,7 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(
-      MdRecord(NAME("Print"),
+      create_mdrecord(NAME("Print"),
                DESCRIPTION("Prints a variable on the screen.\n"),
                AUTHORS("Oliver Lemke"),
                OUT(),
@@ -12434,7 +12492,7 @@ void define_md_data_raw() {
                USES_TEMPLATES(true)));
 
   md_data_raw.push_back(
-      MdRecord(NAME("PrintPhysicalConstants"),
+      create_mdrecord(NAME("PrintPhysicalConstants"),
                DESCRIPTION("Prints (most) physical constants used in ARTS.\n"),
                AUTHORS("Richard Larsson"),
                OUT(),
@@ -12447,7 +12505,7 @@ void define_md_data_raw() {
                GIN_DEFAULT(),
                GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("PrintSelfLineMixingStatus"),
       DESCRIPTION("Test function for printing status of linemixing.\n"),
       AUTHORS("Richard Larsson"),
@@ -12455,14 +12513,14 @@ void define_md_data_raw() {
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("abs_lines_per_species",),
+      IN("abs_lines_per_species"),
       GIN("temperature"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT("296"),
       GIN_DESC("Temperature to evaluate at")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("PrintWorkspace"),
+      create_mdrecord(NAME("PrintWorkspace"),
                DESCRIPTION("Prints a list of the workspace variables.\n"),
                AUTHORS("Oliver Lemke"),
                OUT(),
@@ -12481,7 +12539,7 @@ void define_md_data_raw() {
                USES_TEMPLATES(true),
                PASSWORKSPACE(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ZFromPSimple"),
       DESCRIPTION(
           "Simple conversion from pressure to altitude.\n"
@@ -12505,7 +12563,7 @@ void define_md_data_raw() {
       SETMETHOD(false),
       AGENDAMETHOD(false)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("PFromZSimple"),
       DESCRIPTION(
           "Simple conversion from altitude to pressure.\n"
@@ -12530,7 +12588,7 @@ void define_md_data_raw() {
       SETMETHOD(false),
       AGENDAMETHOD(false)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddFaraday"),
       DESCRIPTION(
           "Calculates absorption matrix describing Faraday rotation.\n"
@@ -12568,7 +12626,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddFromAbsCoefPerSpecies"),
       DESCRIPTION(
           "Copy *propmat_clearsky* from *abs_coef_per_species*. This is handy for putting an\n"
@@ -12588,7 +12646,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddFromLookup"),
       DESCRIPTION(
           "Extract gas absorption coefficients from lookup table.\n"
@@ -12648,7 +12706,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("0.5"),
       GIN_DESC("Extrapolation factor (for temperature and VMR grid edges).")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddOnTheFly"),
       DESCRIPTION(
           "Calculates gas absorption coefficients line-by-line.\n"
@@ -12691,7 +12749,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddParticles"),
       DESCRIPTION(
           "Calculates absorption coefficients of particles to be used in\n"
@@ -12764,7 +12822,7 @@ void define_md_data_raw() {
                "emission also includes a pseudo-emission contribution from\n"
                "the scattering coefficient.\n")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddZeeman"),
       DESCRIPTION(
           "Calculates Zeeman-affected polarized propagation matrix and its\n"
@@ -12810,7 +12868,7 @@ void define_md_data_raw() {
                "Manual theta given positive tag",
                "Manual eta given positive tag")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyInit"),
       DESCRIPTION(
           "Initialize *propmat_clearsky* and *nlte_source*.\n"
@@ -12837,7 +12895,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyZero"),
       DESCRIPTION(
           "Sets *propmat_clearsky* to match zero attenuation.\n"
@@ -12858,7 +12916,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyForceNegativeToZero"),
       DESCRIPTION("Sets *propmat_clearsky* to match zero attenuation\n"
                   "if negative value.  Useful for line mixing in some cases.\n"
@@ -12875,7 +12933,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearsky_agenda_checkedCalc"),
       DESCRIPTION(
           "Checks if the *propmat_clearsky_agenda* contains all necessary\n"
@@ -12894,7 +12952,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearsky_fieldCalc"),
       DESCRIPTION(
           "Calculate (vector) gas absorption coefficients for all points in the\n"
@@ -12937,7 +12995,7 @@ void define_md_data_raw() {
                "empty or have same dimension as p_grid.",
                "Line of sight")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("psdAbelBoutle12"),
       DESCRIPTION(
           "Abel and Boutle [2012] particle size distribution for rain.\n"
@@ -12985,7 +13043,7 @@ void define_md_data_raw() {
           "High temperature limit to calculate a psd.",
           "Flag whether to be strict with parametrization value checks.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("psdDelanoeEtAl14"),
       DESCRIPTION(
           "Normalized PSD as proposed in Delanoë et al. ((2014)),\n"
@@ -13060,7 +13118,7 @@ void define_md_data_raw() {
           "Lower threshold for *Dm* below which an error is thrown.",
           "Flag whether to be strict with parametrization value checks.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("psdFieldEtAl07"),
       DESCRIPTION(
           "The Field et al. [2007] particle size distribution for snow and\n"
@@ -13140,7 +13198,7 @@ void define_md_data_raw() {
           "High *b* limit (only if picky).",
           "Flag whether to be strict with parametrization value checks.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("psdFieldEtAl19"),
       DESCRIPTION(
           "The Field [2019] particle size distribution for hail.\n"
@@ -13184,7 +13242,7 @@ void define_md_data_raw() {
           "High temperature limit to calculate a psd.",
           "Flag whether to be strict with parametrization value checks.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("psdMcFarquaharHeymsfield97"),
       DESCRIPTION(
           "McFarquahar and Heymsfield [1997] particle size distribution\n"
@@ -13241,7 +13299,7 @@ void define_md_data_raw() {
                "Flag whether to be strict with parametrization value checks.",
                "Distribution parameter perturbance flag")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("psdMilbrandtYau05"),
       DESCRIPTION(
           "Calculates *psd_data* and  *dpsd_data_dx* following Milbrandt and Yau (2005)\n"
@@ -13305,7 +13363,7 @@ void define_md_data_raw() {
           "High temperature limit to calculate a psd.",
           "Flag whether to be strict with parametrization value checks.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("psdModifiedGamma"),
       DESCRIPTION(
           "Modified gamma distribution PSD using n0, mu, la and ga as parameters.\n"
@@ -13378,7 +13436,7 @@ void define_md_data_raw() {
           "High temperature limit to calculate a psd.",
           "Flag whether to be strict with parametrization value checks.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("psdModifiedGammaMass"),
       DESCRIPTION(
           "Modified gamma distribution (MGD) PSD, with mass content as input.\n"
@@ -13437,7 +13495,7 @@ void define_md_data_raw() {
           "High temperature limit to calculate a psd.",
           "Flag whether to be strict with parametrization value checks.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("psdModifiedGammaMassNtot"),
       DESCRIPTION(
           "Modified gamma distribution PSD, with mass content and total number\n"
@@ -13484,7 +13542,7 @@ void define_md_data_raw() {
           "High temperature limit to calculate a psd.",
           "Flag whether to be strict with parametrization value checks.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("psdModifiedGammaMassMeanParticleMass"),
       DESCRIPTION(
           "Modified gamma distribution PSD, with mass content and mean particle\n"
@@ -13534,7 +13592,7 @@ void define_md_data_raw() {
           "High temperature limit to calculate a psd.",
           "Flag whether to be strict with parametrization value checks.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("psdModifiedGammaMassSingleMoment"),
       DESCRIPTION(
           "Modified gamma distribution PSD, with mass content as input.\n"
@@ -13577,7 +13635,7 @@ void define_md_data_raw() {
           "High temperature limit to calculate a psd.",
           "Flag whether to be strict with parametrization value checks.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("psdModifiedGammaMassXmean"),
       DESCRIPTION(
           "Modified gamma distribution PSD, with mass content and mean size\n"
@@ -13628,7 +13686,7 @@ void define_md_data_raw() {
           "High temperature limit to calculate a psd.",
           "Flag whether to be strict with parametrization value checks.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("psdModifiedGammaMassXmedian"),
       DESCRIPTION(
           "Modified gamma distribution PSD, with mass content and median size\n"
@@ -13676,7 +13734,7 @@ void define_md_data_raw() {
           "High temperature limit to calculate a psd.",
           "Flag whether to be strict with parametrization value checks.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("psdMonoDispersive"),
       DESCRIPTION(
           "Mono-dispersive PSD, with number density given.\n"
@@ -13713,7 +13771,7 @@ void define_md_data_raw() {
           "High temperature limit to calculate a psd.",
           "Flag whether to be strict with parametrization value checks.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("psdMonoMass"),
       DESCRIPTION(
           "Mono-dispersive PSD, with mass content given.\n"
@@ -13751,7 +13809,7 @@ void define_md_data_raw() {
           "High temperature limit to calculate a psd.",
           "Flag whether to be strict with parametrization value checks.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("psdSeifertBeheng06"),
       DESCRIPTION(
           "Calculates *psd_data* and *dpsd_data_dx* following Seifert and Beheng (2006)\n"
@@ -13815,7 +13873,7 @@ void define_md_data_raw() {
           "High temperature limit to calculate a psd.",
           "Flag whether to be strict with parametrization value checks.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("psdWangEtAl16"),
       DESCRIPTION(
           "Wang et al. [2016] particle size distribution for rain.\n"
@@ -13863,7 +13921,7 @@ void define_md_data_raw() {
           "High temperature limit to calculate a psd.",
           "Flag whether to be strict with parametrization value checks.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("p_gridDensify"),
       DESCRIPTION(
           "A simple way to make *p_grid* more dense.\n"
@@ -13896,7 +13954,7 @@ void define_md_data_raw() {
                "Number of points to add between adjacent pressure points."
                "The default value (-1) results in an error.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("p_gridFromZRaw"),
       DESCRIPTION(
           "Sets *p_grid* according to input atmosphere's raw z_field, derived\n"
@@ -13914,7 +13972,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("1"),
       GIN_DESC("Exclude negative altitudes.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("lat_gridFromZRaw"),
       DESCRIPTION(
           "Sets *lat_grid* according to input atmosphere's *z_field_raw*\n"),
@@ -13929,7 +13987,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("lon_gridFromZRaw"),
       DESCRIPTION(
           "Sets *lon_grid* according to input atmosphere's *z_field_raw*\n"),
@@ -13944,7 +14002,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("atm_gridsFromZRaw"),
       DESCRIPTION(
           "Calls *p_gridFromZRaw*, *lat_gridFromZRaw* and *lon_gridFromZRaw*\n"),
@@ -13959,7 +14017,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("1"),
       GIN_DESC("Exclude negative altitudes.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("p_gridFromGasAbsLookup"),
       DESCRIPTION("Sets *p_grid* to the pressure grid of *abs_lookup*.\n"),
       AUTHORS("Patrick Eriksson"),
@@ -13973,7 +14031,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("p_gridRefine"),
       DESCRIPTION(
           "Provides refined pressure grid.\n"
@@ -14002,7 +14060,7 @@ void define_md_data_raw() {
                "coarser than this, additional points are added until each "
                "log step is smaller than this.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("RadiationFieldSpectralIntegrate"),
       DESCRIPTION(
           "Integrates fields like *spectral_irradiance_field* or *cloudbox_field*\n"
@@ -14021,7 +14079,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("TBD")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("line_irradianceCalcForSingleSpeciesNonOverlappingLinesPseudo2D"),
       DESCRIPTION("Computes the line irradiance and line transmission\n"
                   "\n"
@@ -14054,7 +14112,7 @@ void define_md_data_raw() {
                "number of frequencies per line",
                "Distance assumed when computing local (1-T)")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("RationalAdd"),
       DESCRIPTION(
           "Adds a Rational and a value (out = in+value).\n"
@@ -14072,7 +14130,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Input Rational.", "Value to add.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("RationalInvScale"),
       DESCRIPTION(
           "Inversely scales/divides a Rational with a value (out = in/value).\n"
@@ -14090,7 +14148,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Input Rational.", "Scaling Rational.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("RationalScale"),
       DESCRIPTION(
           "Scales/multiplies a Rational with a value (out = in*value).\n"
@@ -14108,7 +14166,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Input Rational.", "Scaling value.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("RationalSet"),
       DESCRIPTION("Sets a Rational workspace variable to the given value.\n"),
       AUTHORS("Richard Larsson"),
@@ -14122,7 +14180,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, "1"),
       GIN_DESC("The numerator.", "The denominator.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ReadArrayOfARTSCAT"),
       DESCRIPTION("Reads an old Array<ArrayOfLineRecord> ARTSCAT file.\n"
                   "\n"
@@ -14156,7 +14214,7 @@ void define_md_data_raw() {
                "Cutoff value, see *abs_linesSetCutoff*",
                "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ReadSplitARTSCAT"),
       DESCRIPTION("Reads several old ArrayOfLineRecord ARTSCAT file\n"
                   "\n"
@@ -14191,7 +14249,7 @@ void define_md_data_raw() {
                "Cutoff value, see *abs_linesSetCutoff*",
                "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ReadARTSCAT"),
       DESCRIPTION("Reads an old ArrayOfLineRecord ARTSCAT file\n"
                   "\n"
@@ -14225,7 +14283,7 @@ void define_md_data_raw() {
                "Cutoff value, see *abs_linesSetCutoff*",
                "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ReadHITRAN"),
       DESCRIPTION("Reads a HITRAN .par file.\n"
                   "\n"
@@ -14264,7 +14322,7 @@ void define_md_data_raw() {
                "Cutoff value, see *abs_linesSetCutoff*",
                "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ReadLBLRTM"),
       DESCRIPTION("Reads a LBLRTM file.\n"
                   "\n"
@@ -14296,7 +14354,7 @@ void define_md_data_raw() {
                "Cutoff value, see *abs_linesSetCutoff*",
                "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ReadMytran2"),
       DESCRIPTION("Reads a Mytran2 file.\n"
                   "\n"
@@ -14328,7 +14386,7 @@ void define_md_data_raw() {
                "Cutoff value, see *abs_linesSetCutoff*",
                "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ReadJPL"),
       DESCRIPTION("Reads a JPL file.\n"
                   "\n"
@@ -14360,7 +14418,7 @@ void define_md_data_raw() {
                "Cutoff value, see *abs_linesSetCutoff*",
                "Line mixing limit, see *abs_linesSetLinemixingLimit*")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesTruncateGlobalQuantumNumbers"),
       DESCRIPTION("Truncates all global quantum numbers\n"
                   "and then recombine the line list.\n"),
@@ -14375,7 +14433,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesWriteSplitXML"),
       DESCRIPTION("Writes a split catalog, AbsorptionLines by AbsorptionLines.\n"
                   "\n"
@@ -14395,7 +14453,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Path to store the files at")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesWriteSpeciesSplitXML"),
       DESCRIPTION("As *abs_linesWriteSplitXML* but writes an array\n"
                   "per species\n"),
@@ -14410,7 +14468,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Path to store the files at")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesWriteSplitXML"),
       DESCRIPTION("See *abs_linesWriteSplitXML*\n"
                   "\n"
@@ -14427,7 +14485,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Path to store the files at")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesWriteSpeciesSplitXML"),
       DESCRIPTION("See *abs_linesWriteSpeciesSplitXML*\n"
                   "\n"
@@ -14444,7 +14502,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Path to store the files at")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ReadNetCDF"),
       DESCRIPTION("Reads a workspace variable from a NetCDF file.\n"
                   "\n"
@@ -14469,7 +14527,7 @@ void define_md_data_raw() {
       PASSWORKSPACE(false),
       PASSWSVNAMES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ReadXML"),
       DESCRIPTION(
           "Reads a workspace variable from an XML file.\n"
@@ -14496,7 +14554,7 @@ void define_md_data_raw() {
       PASSWORKSPACE(false),
       PASSWSVNAMES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ReadXMLIndexed"),
       DESCRIPTION("As *ReadXML*, but reads indexed file names.\n"
                   "\n"
@@ -14525,7 +14583,7 @@ void define_md_data_raw() {
       PASSWORKSPACE(false),
       PASSWSVNAMES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Reduce"),
       DESCRIPTION(
           "Reduces a larger class to a smaller class of same size.\n"
@@ -14565,7 +14623,7 @@ void define_md_data_raw() {
       AGENDAMETHOD(false),
       USES_TEMPLATES(false)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("refellipsoidEarth"),
       DESCRIPTION(
           "Earth reference ellipsoids.\n"
@@ -14590,7 +14648,7 @@ void define_md_data_raw() {
       GIN_DESC("Model ellipsoid to use. Options listed above.")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("refellipsoidGanymede"),
+      create_mdrecord(NAME("refellipsoidGanymede"),
                DESCRIPTION("Ganymede reference ellipsoids.\n"
                            "\n"
                            "From Wikipedia\n"),
@@ -14605,7 +14663,7 @@ void define_md_data_raw() {
                GIN_DEFAULT("Sphere"),
                GIN_DESC("Model ellipsoid to use. Options listed above.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("refellipsoidForAzimuth"),
       DESCRIPTION(
           "Conversion of 3D ellipsoid to 1D curvature radius.\n"
@@ -14629,7 +14687,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Latitude.", "Azimuth angle.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("refellipsoidEuropa"),
       DESCRIPTION(
           "Io reference ellipsoids.\n"
@@ -14650,7 +14708,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("Sphere"),
       GIN_DESC("Model ellipsoid to use. Options listed above.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("refellipsoidIo"),
       DESCRIPTION(
           "Io reference ellipsoids.\n"
@@ -14671,7 +14729,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("Sphere"),
       GIN_DESC("Model ellipsoid to use. Options listed above.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("refellipsoidJupiter"),
       DESCRIPTION(
           "Jupiter reference ellipsoids.\n"
@@ -14695,7 +14753,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("Sphere"),
       GIN_DESC("Model ellipsoid to use. Options listed above.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("refellipsoidMars"),
       DESCRIPTION(
           "Mars reference ellipsoids.\n"
@@ -14719,7 +14777,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("Sphere"),
       GIN_DESC("Model ellipsoid to use. Options listed above.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("refellipsoidMoon"),
       DESCRIPTION(
           "Moon reference ellipsoids.\n"
@@ -14744,7 +14802,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("Sphere"),
       GIN_DESC("Model ellipsoid to use. Options listed above.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("refellipsoidOrbitPlane"),
       DESCRIPTION(
           "Conversion of 3D ellipsoid to 2D orbit track geometry.\n"
@@ -14766,7 +14824,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Orbit inclination.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("refellipsoidSet"),
       DESCRIPTION(
           "Manual setting of the reference ellipsoid.\n"
@@ -14785,7 +14843,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, "0"),
       GIN_DESC("Average or equatorial radius.", "Eccentricity")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("refellipsoidVenus"),
       DESCRIPTION(
           "Venus reference ellipsoids.\n"
@@ -14809,7 +14867,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("Sphere"),
       GIN_DESC("Model ellipsoid to use. Options listed above.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("refr_index_airFreeElectrons"),
       DESCRIPTION(
           "Microwave refractive index due to free electrons.\n"
@@ -14848,7 +14906,7 @@ void define_md_data_raw() {
       GIN_DESC("Flag to control if it is demanded that free electrons are "
                "in *abs_species*. Default is that this is demanded.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("refr_index_airInfraredEarth"),
       DESCRIPTION(
           "Calculates the IR refractive index due to gases in the\n"
@@ -14877,7 +14935,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("refr_index_airMicrowavesEarth"),
       DESCRIPTION(
           "Microwave refractive index in Earth's atmosphere.\n"
@@ -14924,7 +14982,7 @@ void define_md_data_raw() {
                "Coefficient b, see above",
                "Coefficient c, see above")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("refr_index_airMicrowavesGeneral"),
       DESCRIPTION(
           "Microwave refractive index due to gases in planetary atmospheres.\n"
@@ -14962,7 +15020,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("retrievalDefClose"),
       DESCRIPTION(
           "Closes the definition of retrieval quantities and correlations and\n"
@@ -14981,7 +15039,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddAbsSpecies"),
       DESCRIPTION(
           "Adds an absorption species to the retrieval quantities.\n"
@@ -15025,7 +15083,7 @@ void define_md_data_raw() {
       USES_TEMPLATES(false),
       PASSWORKSPACE(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddFreqShift"),
       DESCRIPTION(
           "Same as *jacobianAddFreqShift* but also adds the correlation block\n"
@@ -15048,7 +15106,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("100e3"),
       GIN_DESC("Size of perturbation to apply.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddFreqStretch"),
       DESCRIPTION(
           "Same as *jacobianAddFreqShift* but also adds the correlation block\n"
@@ -15070,7 +15128,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("100e3"),
       GIN_DESC("Size of perturbation to apply.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("retrievalDefInit"),
       DESCRIPTION(
           "Begin retrieval definition section.\n"
@@ -15098,7 +15156,7 @@ void define_md_data_raw() {
       GIN_DESC("Flag whether or not to (re)initialize Jacobian-related\n"
                "quantities. Set to 0 if Jacobian is already defined.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddCatalogParameter"),
       DESCRIPTION(
           "Similar to *jacobianAddBasicCatalogParameter* but also adds a corresponding\n"
@@ -15119,7 +15177,7 @@ void define_md_data_raw() {
                "The catalog parameter of the retrieval quantity.",
                "The variance of the catalog parameter.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddCatalogParameters"),
       DESCRIPTION(
           "Same as *jacobianAddBasicCatalogParameters* but also adds a new\n"
@@ -15147,7 +15205,7 @@ void define_md_data_raw() {
       GIN_DESC("The catalog line matching informations.",
                "The catalog parameters of the retrieval quantity.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddMagField"),
       DESCRIPTION(
           "Same as *jacobianAddMagField* but also adds a new block to *covmat_sx*\n"
@@ -15180,7 +15238,7 @@ void define_md_data_raw() {
                "Magnetic field component to retrieve",
                "Magnetic field perturbation")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddPointingZa"),
       DESCRIPTION(
           "Same as *jacobianAddPointingZa* but also adds a new block to *covmat_sx*\n"
@@ -15210,7 +15268,7 @@ void define_md_data_raw() {
                "Calculation method. See above",
                "Size of perturbation to apply (when applicable).")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddPolyfit"),
       DESCRIPTION(
           "Same as *jacobianAddPolyfit* but also adds a new block to *covmat_sx*\n"
@@ -15247,7 +15305,7 @@ void define_md_data_raw() {
                "Set to 1 if the baseline off-set is the same for all "
                "measurement blocks.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddScatSpecies"),
       DESCRIPTION(
           "Same as *jacobianAddPolyfit* but also adds a new block to *covmat_sx*\n"
@@ -15285,7 +15343,7 @@ void define_md_data_raw() {
       USES_TEMPLATES(false),
       PASSWORKSPACE(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddSinefit"),
       DESCRIPTION(
           "Same as *jacobianAddSinefit* but also adds a new block to *covmat_sx*\n"
@@ -15322,7 +15380,7 @@ void define_md_data_raw() {
                "Set to 1 if the baseline off-set is the same for all "
                "measurement blocks.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddSpecialSpecies"),
       DESCRIPTION(
           "Same as *jacobianAddSpecialSpecies* but also adds a new block to *covmat_sx*\n"
@@ -15358,7 +15416,7 @@ void define_md_data_raw() {
       USES_TEMPLATES(false),
       PASSWORKSPACE(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddSurfaceQuantity"),
       DESCRIPTION(
           "Same as *jacobianAddSurfaceQuantity* but also adds a new block to *covmat_sx*\n"
@@ -15388,7 +15446,7 @@ void define_md_data_raw() {
                "Longitude retreival grid.",
                "Retrieval quantity, e.g. \"Wind speed\".")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddTemperature"),
       DESCRIPTION(
           "Same as *jacobianAddTemperature* but also adds a new block to *covmat_sx*\n"
@@ -15420,7 +15478,7 @@ void define_md_data_raw() {
                "Longitude retreival grid.",
                "Flag to assume HSE or not (\"on\" or \"off\").")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("retrievalAddWind"),
       DESCRIPTION(
           "Same as *jacobianAddWind* but also adds a new block to *covmat_sx*\n"
@@ -15453,7 +15511,7 @@ void define_md_data_raw() {
                "Wind component to retrieve",
                "This is the frequency perturbation")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("retrievalErrorsExtract"),
       DESCRIPTION(
           "Extract retrieval error from covariance matrices.\n"
@@ -15478,7 +15536,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("RT4Calc"),
       DESCRIPTION(
           "Interface to the PolRadTran RT4 scattering solver (by F. Evans).\n"
@@ -15620,7 +15678,7 @@ void define_md_data_raw() {
                "Maximum optical depth of infinitesimal layer (where single"
                " scattering approximation is assumed to apply).")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("RT4CalcWithRT4Surface"),
       DESCRIPTION(
           "As RT4Calc except for using RT4's proprietary surface type handling.\n"
@@ -15715,7 +15773,7 @@ void define_md_data_raw() {
                "Maximum optical depth of infinitesimal layer (where single"
                " scattering approximation is assumed to apply).")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("RT4Test"),
       DESCRIPTION(
           "RT4 validation test.\n"
@@ -15733,7 +15791,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("artscomponents/polradtran/testdata/"),
       GIN_DESC("Folder containing arts-xml converted test case input data.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("rte_losGeometricFromRtePosToRtePos2"),
       DESCRIPTION(
           "The geometric line-of-sight between two points.\n"
@@ -15761,7 +15819,7 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(
-      MdRecord(NAME("rte_losSet"),
+      create_mdrecord(NAME("rte_losSet"),
                DESCRIPTION("Sets *rte_los* to the given angles.\n"
                            "\n"
                            "The azimuth angle is ignored for 1D and 2D.\n"),
@@ -15777,7 +15835,7 @@ void define_md_data_raw() {
                GIN_DESC("Zenith angle of sensor line-of-sight.",
                         "Azimuth angle of sensor line-of-sight.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("rte_posSet"),
       DESCRIPTION(
           "Sets *rte_pos* to the given co-ordinates.\n"
@@ -15797,7 +15855,7 @@ void define_md_data_raw() {
                "Latitude of sensor position.",
                "Longitude of sensor position.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("rte_pos_losMoveToStartOfPpath"),
       DESCRIPTION(
           "Sets *rte_pos* and *rte_los* to values for last point in *ppath*.\n"
@@ -15817,7 +15875,7 @@ void define_md_data_raw() {
       GIN_DESC()));
   
   
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("rtp_nlteFromRaw"),
       DESCRIPTION("Sets NLTE values manually\n"
                   "\n"
@@ -15834,7 +15892,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Vibrational data [nlevels]")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ScatElementsPndAndScatAdd"),
       DESCRIPTION(
           "Adds single scattering data and particle number density for\n"
@@ -15855,7 +15913,7 @@ void define_md_data_raw() {
       GIN_DESC("List of names of single scattering data files.",
                "List of names of the corresponding pnd_field files.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ScatElementsSelect"),
       DESCRIPTION(
           "Allows to limit considered scattering elements according to size.\n"
@@ -15885,7 +15943,7 @@ void define_md_data_raw() {
                "Relative numerical tolerance of size limit values.",
                "Delimiter string of *scat_species* elements.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ScatElementsToabs_speciesAdd"),
       DESCRIPTION(
           "Appends scattering elements to *abs_species* including reading\n"
@@ -15918,7 +15976,7 @@ void define_md_data_raw() {
       GIN_DESC("List of names of single scattering data files.",
                "List of names of the corresponding pnd_field files.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ScatSpeciesExtendTemperature"),
       DESCRIPTION(
           "Extends valid temperature range of single scattering data.\n"
@@ -15966,7 +16024,7 @@ void define_md_data_raw() {
           "Temperature grid extension point at low temperature limit.",
           "Temperature grid extension point at high temperature limit.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ScatSpeciesInit"),
       DESCRIPTION(
           "Initializes the scattering species related data variables.\n"
@@ -15995,7 +16053,7 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   //TODO: Check if ScatSpeciesMerge can be removed
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ScatSpeciesMerge"),
       DESCRIPTION(
           "Merges single scattering data of all scattering elements into one\n"
@@ -16054,7 +16112,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ScatSpeciesPndAndScatAdd"),
       DESCRIPTION(
           "Adds single scattering data and particle number densities for one\n"
@@ -16089,7 +16147,7 @@ void define_md_data_raw() {
           "Array of names of files containing the single scattering data.",
           "Name of file holding the corresponding array of pnd_field data.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ScatSpeciesScatAndMetaRead"),
       DESCRIPTION(
           "Reads single scattering data and scattering meta data for one\n"
@@ -16124,7 +16182,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Array of single scattering data file names.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("scat_data_singleTmatrix"),
       DESCRIPTION(
           "A basic interface to Mishchenko's T-matrix code linked to ARTS.\n"
@@ -16234,7 +16292,7 @@ void define_md_data_raw() {
 
   /*
    md_data_raw.push_back
-    ( MdRecord
+    ( create_mdrecord
     ( NAME( "scat_metaAddTmatrix" ),
       DESCRIPTION
       (
@@ -16282,7 +16340,7 @@ void define_md_data_raw() {
       ));
 */
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("scat_data_checkedCalc"),
       DESCRIPTION(
           "Checks dimensions, grids and single scattering properties of all\n"
@@ -16326,7 +16384,7 @@ void define_md_data_raw() {
                "See *check_level* in *scat_dataCheck*.",
                "See *sca_mat_threshold* in *scat_dataCheck*.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("scat_data_monoCalc"),
       DESCRIPTION(
           "Interpolates *scat_data* by frequency to give *scat_data_mono*.\n"),
@@ -16341,7 +16399,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("scat_data_monoExtract"),
       DESCRIPTION(
           "Extracts data at *f_index* from *scat_data* to give *scat_data_mono*.\n"),
@@ -16356,7 +16414,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("scat_dataCalc"),
       DESCRIPTION(
           "Prepares *scat_data* for the scattering solver.\n"
@@ -16375,7 +16433,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("1"),
       GIN_DESC("Interpolation order.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("scat_dataCheck"),
       DESCRIPTION(
           "Method for checking the validity and consistency of the single\n"
@@ -16409,7 +16467,7 @@ void define_md_data_raw() {
                " see above).",
                "Threshold for allowed albedo deviation (see above).")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("scat_dataReduceT"),
       DESCRIPTION(
           "Reduces temperature dimension of single scattering to a single entry.\n"
@@ -16439,7 +16497,7 @@ void define_md_data_raw() {
                " data only (1) or on all single scattering properties (0).",
                "Threshold for allowed albedo deviation.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ScatSpeciesSizeMassInfo"),
       DESCRIPTION(
           "Derives size and mass information for a scattering species."
@@ -16480,7 +16538,7 @@ void define_md_data_raw() {
                "save some time. The a and b parameters are then set to -1."
                "Default is to calculate a and b.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("particle_fieldCleanup"),
       DESCRIPTION(
           "Removes unrealistically small or erroneous data from particle fields.\n"
@@ -16517,7 +16575,7 @@ void define_md_data_raw() {
                "Threshold below which the *particle_field* values are set to"
                " zero.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Select"),
       DESCRIPTION(
           "Method to select some elements from one array and copy them to\n"
@@ -16553,7 +16611,7 @@ void define_md_data_raw() {
       AGENDAMETHOD(false),
       USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("sensor_checkedCalc"),
       DESCRIPTION(
           "Checks consistency of the sensor variables.\n"
@@ -16593,7 +16651,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("sensorOff"),
       DESCRIPTION(
           "Sets sensor WSVs to obtain monochromatic pencil beam values.\n"
@@ -16619,7 +16677,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("sensor_losGeometricFromSensorPosToOtherPositions"),
       DESCRIPTION(
           "The geometric line-of-sight between pair of points.\n"
@@ -16648,7 +16706,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Target position, for each position in *sensor_pos*.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseAntenna"),
       DESCRIPTION(
           "Includes response of the antenna.\n"
@@ -16700,7 +16758,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseBackend"),
       DESCRIPTION(
           "Includes response of the backend (spectrometer).\n"
@@ -16734,7 +16792,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseBackendFrequencySwitching"),
       DESCRIPTION(
           "Frequency switching for a pure SSB reciever.\n"
@@ -16780,7 +16838,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Frequency throw for cycle1.", "Frequency throw for cycle2.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseBeamSwitching"),
       DESCRIPTION(
           "Simulation of \"beam switching\".\n"
@@ -16817,7 +16875,7 @@ void define_md_data_raw() {
       GIN_DESC("Weight for values from first viewing direction.",
                "Weight for values from second viewing direction.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseFillFgrid"),
       DESCRIPTION(
           "Polynomial frequency interpolation of spectra.\n"
@@ -16865,7 +16923,7 @@ void define_md_data_raw() {
       GIN_DESC("Polynomial order of interpolation",
                "Number of points to insert in each gap of f_grid")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseFrequencySwitching"),
       DESCRIPTION(
           "Simulation of \"frequency switching\".\n"
@@ -16903,7 +16961,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseIF2RF"),
       DESCRIPTION(
           "Converts sensor response variables from IF to RF.\n"
@@ -16927,7 +16985,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseInit"),
       DESCRIPTION(
           "Initialises the variables summarising the sensor response.\n"
@@ -16968,7 +17026,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseMetMM"),
       DESCRIPTION(
           "Sensor setup for meteorological millimeter instruments.\n"
@@ -17035,7 +17093,7 @@ void define_md_data_raw() {
       GIN_DESC("Flag to enable (1) or disable (0) antenna.",
                "Flag to include second part of swath (only 3D, see above).")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseMixer"),
       DESCRIPTION(
           "Includes response of the mixer of a heterodyne system.\n"
@@ -17072,7 +17130,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseMixerBackendPrecalcWeights"),
       DESCRIPTION(
           "Includes pre-calculated response covering mixer and backend.\n"
@@ -17114,7 +17172,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseMultiMixerBackend"),
       DESCRIPTION(
           "Handles mixer and backend parts for an instrument having multiple\n"
@@ -17156,7 +17214,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responsePolarisation"),
       DESCRIPTION(
           "Extraction of non-default polarisation components.\n"
@@ -17204,7 +17262,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseStokesRotation"),
       DESCRIPTION(
           "Includes a rotation of the Stokes H and V directions.\n"
@@ -17233,7 +17291,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseSimpleAMSU"),
       DESCRIPTION(
           "Simplified sensor setup for an AMSU-type instrument.\n"
@@ -17270,7 +17328,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(".1e9"),
       GIN_DESC("Desired grid spacing in Hz.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseGenericAMSU"),
       DESCRIPTION(
           "Simplified sensor setup for an AMSU-type instrument.\n"
@@ -17312,7 +17370,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(".1e9"),
       GIN_DESC("Desired grid spacing in Hz.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseWMRF"),
       DESCRIPTION(
           "Adds WMRF weights to sensor response.\n"
@@ -17344,7 +17402,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("SetBandIdentifiersAuto"),
       DESCRIPTION("Sets *band_identifiers* to multiple O2-66 and\n"
                   "CO2-* bands.  This is not an exhaustive list so\n"
@@ -17361,7 +17419,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("SetBandIdentifiersFromLines"),
       DESCRIPTION(
           "Sets (not adds to) *band_identifiers* to all uniques in *abs_lines*\n"
@@ -17390,7 +17448,7 @@ void define_md_data_raw() {
                "Flag to check if only global quantum numbers should be used")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("SetNumberOfThreads"),
+      create_mdrecord(NAME("SetNumberOfThreads"),
                DESCRIPTION("Change the number of threads used by ARTS.\n"),
                AUTHORS("Oliver Lemke"),
                OUT(),
@@ -17403,7 +17461,7 @@ void define_md_data_raw() {
                GIN_DEFAULT(NODEF),
                GIN_DESC("Number of threads.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("SparseSparseMultiply"),
       DESCRIPTION(
           "Multiplies a Sparse with another Sparse, result stored in Sparse.\n"
@@ -17420,7 +17478,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Left sparse matrix.", "Right sparse matrix.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("SparseMatrixIdentity"),
       DESCRIPTION(
           "Returns a sparse dentity matrix.\n"
@@ -17440,7 +17498,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, "1"),
       GIN_DESC("Size of the matrix", "The value along the diagonal.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("spectral_irradiance_fieldFromSpectralRadianceField"),
       DESCRIPTION(
           "Calculates the spectral irradiance from *spectral_radiance_field* .\n"
@@ -17459,7 +17517,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("spectral_radiance_fieldClearskyPlaneParallel"),
       DESCRIPTION(
           "Clear-sky radiance field of a plane parallel atmosphere.\n"
@@ -17516,7 +17574,7 @@ void define_md_data_raw() {
       GIN_DESC("0: Parallelize over zenith angles\n"
                "1: Use more memory intensiv iyEmissionStandardParallel*")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("spectral_radiance_fieldCopyCloudboxField"),
       DESCRIPTION(
           "Set *spectral_radiance_field* to be a copy of *cloudbox_field*.\n"
@@ -17539,7 +17597,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("spectral_radiance_fieldExpandCloudboxField"),
       DESCRIPTION(
           "Uses and expands *cloudbox_field* to set *spectral_radiance_field*.\n"
@@ -17596,7 +17654,7 @@ void define_md_data_raw() {
       GIN_DESC("0: Parallelize over zenith angles\n"
                "1: Use more memory intensiv iyEmissionStandardParallel*")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("specular_losCalc"),
       DESCRIPTION(
           "Calculates the specular direction of surface reflections.\n"
@@ -17632,7 +17690,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("0"),
       GIN_DESC("Flag to control if surface slope is consdered or not.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("specular_losCalcNoTopography"),
       DESCRIPTION(
           "Calculates the specular direction of surface reflections for horisontal\n"
@@ -17654,7 +17712,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("StringJoin"),
       DESCRIPTION(
           "Concatenate two or more strings.\n"
@@ -17700,7 +17758,7 @@ void define_md_data_raw() {
                "Input text string.")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("StringSet"),
+      create_mdrecord(NAME("StringSet"),
                DESCRIPTION("Sets a String to the given text string.\n"),
                AUTHORS("Patrick Eriksson"),
                OUT(),
@@ -17714,7 +17772,7 @@ void define_md_data_raw() {
                GIN_DESC("Input text string."),
                SETMETHOD(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("z_surfaceFromFileAndGrid"),
       DESCRIPTION(
           "Sets the surface altitude for a given latitude and longitude grid.\n"),
@@ -17732,7 +17790,7 @@ void define_md_data_raw() {
           "Interpolation order",
           "Index that sets the lowest altitude to 0 to ignore sub-surface pressures/altitudes")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("z_surfaceConstantAltitude"),
       DESCRIPTION(
           "Sets the surface altitude to a constant. Defaults to zero.\n"),
@@ -17747,7 +17805,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("0"),
       GIN_DESC("The constant altitude.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("surfaceBlackbody"),
       DESCRIPTION(
           "Creates variables to mimic a blackbody surface.\n"
@@ -17772,7 +17830,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("surfaceFastem"),
       DESCRIPTION(
           "Usage of FASTEM together with MC and DOIT.\n"
@@ -17817,7 +17875,7 @@ void define_md_data_raw() {
                "with the same length as *f_grid*.",
                "The version of FASTEM to use.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("surfaceTessem"),
       DESCRIPTION(
           "TESSEM sea surface microwave emissivity parametrization.\n"
@@ -17851,7 +17909,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("0.035", NODEF),
       GIN_DESC("Salinity, 0-1. That is, 3% is given as 0.03.", "Wind speed.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("surfaceTelsem"),
       DESCRIPTION(
           "Compute surface emissivities using the TELSEM 2 model.\n"
@@ -17907,7 +17965,7 @@ void define_md_data_raw() {
                " interpolation. Set to a negative value or zero to disable"
                " interpolation.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("surfaceFlatRefractiveIndex"),
       DESCRIPTION(
           "Creates variables to mimic specular reflection by a (flat) surface\n"
@@ -17939,7 +17997,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("surfaceFlatReflectivity"),
       DESCRIPTION(
           "Creates variables to mimic specular reflection by a (flat) surface\n"
@@ -17968,7 +18026,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("surfaceFlatRvRh"),
       DESCRIPTION(
           "Creates variables to mimic specular reflection by a (flat) surface\n"
@@ -18000,7 +18058,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("surfaceFlatScalarReflectivity"),
       DESCRIPTION(
           "Creates variables to mimic specular reflection by a (flat) surface\n"
@@ -18030,7 +18088,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("surfaceLambertianSimple"),
       DESCRIPTION(
           "Creates variables to mimic a Lambertian surface.\n"
@@ -18083,7 +18141,7 @@ void define_md_data_raw() {
                "Position of angle in *surface_los* inside ranges of zenith "
                "angle grid. See above.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("surfaceSemiSpecularBy3beams"),
       DESCRIPTION(
           "A simplistic treatment of semi-specular surfaces.\n"
@@ -18133,7 +18191,7 @@ void define_md_data_raw() {
                "Zenith angle seperation to each secondary direction. A "
                "between 0 and 45 degrees.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("surfaceSplitSpecularTo3beams"),
       DESCRIPTION(
           "A very simple approximation of a semi-specular surface.\n"
@@ -18168,7 +18226,7 @@ void define_md_data_raw() {
                "Zenith angle seperation to each secondary direction. A "
                "between 0 and 45 degrees.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("surface_complex_refr_indexFromGriddedField5"),
       DESCRIPTION(
           "Extracts complex refractive index from a field of such data.\n"
@@ -18204,7 +18262,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("A field of complex refractive index.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("surface_reflectivityFromGriddedField6"),
       DESCRIPTION(
           "Extracts surface reflectivities from a field of such data.\n"
@@ -18257,7 +18315,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("A field of surface reflectivities")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("surface_rtpropCallAgendaX"),
       DESCRIPTION(
           "Switch between the elements of *surface_rtprop_agenda_array*.\n"
@@ -18284,7 +18342,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("surface_scalar_reflectivityFromGriddedField4"),
       DESCRIPTION(
           "Extracts scalar surface reflectivities from a field of such data.\n"
@@ -18333,7 +18391,7 @@ void define_md_data_raw() {
 
   /*
   md_data_raw.push_back
-    ( MdRecord
+    ( create_mdrecord
       ( NAME( "surface_reflectivityFromSurface_rmatrix" ),
         DESCRIPTION
         (
@@ -18357,7 +18415,7 @@ void define_md_data_raw() {
         ));
 */
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("surface_scalar_reflectivityFromSurface_rmatrix"),
       DESCRIPTION(
           "Sets *surface_scalar_reflectivity* based on *surface_rmatrix*.\n"
@@ -18375,7 +18433,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("surface_typeInterpTypeMask"),
       DESCRIPTION(
           "Closest neighbour interpolation of surface type mask.\n"
@@ -18405,7 +18463,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("SurfaceDummy"),
       DESCRIPTION(
           "Dummy method for *iy_surface_agenda*.\n"
@@ -18434,7 +18492,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("SurfaceFastem"),
       DESCRIPTION(
           "FASTEM sea surface microwave emissivity parametrization.\n"
@@ -18475,7 +18533,7 @@ void define_md_data_raw() {
                "with the same length as *f_grid*.",
                "The version of FASTEM to use.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("SurfaceTessem"),
       DESCRIPTION(
           "TESSEM sea surface microwave emissivity parametrization.\n"
@@ -18527,7 +18585,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("TangentPointExtract"),
       DESCRIPTION(
           "Finds the tangent point of a propagation path.\n"
@@ -18551,7 +18609,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("TangentPointPrint"),
       DESCRIPTION(
           "Prints information about the tangent point of a propagation path.\n"
@@ -18571,7 +18629,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("1"),
       GIN_DESC("Output level to use.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("telsemStandalone"),
       DESCRIPTION(
           "Stand-alone evaluation of the Telsem model.\n"
@@ -18604,7 +18662,7 @@ void define_md_data_raw() {
                "The maximum allowed distance for nearest neighbor"
                " interpolation in meters.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("telsemAtlasLookup"),
       DESCRIPTION(
           "Lookup SSMI emissivities from Telsem Atlas.\n"
@@ -18628,7 +18686,7 @@ void define_md_data_raw() {
                "The latitude for which to compute the emissivities.",
                "The Telsem atlas to use.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("telsemSurfaceTypeLandSea"),
       DESCRIPTION(
           "TELSEM based land sea mask.\n"
@@ -18650,7 +18708,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("The telsem atlas from which to lookup the surface type.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("telsem_atlasReadAscii"),
       DESCRIPTION(
           "Reads single TELSEM atlas.\n"
@@ -18671,7 +18729,7 @@ void define_md_data_raw() {
                "The month for which the atlas should be read.",
                "Filename pattern (@MM@ gets replaced by month number)")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("telsem_atlasesReadAscii"),
       DESCRIPTION(
           "Reads TELSEM atlas files.\n"
@@ -18691,7 +18749,7 @@ void define_md_data_raw() {
       GIN_DESC("Directory with TELSEM 2 SSMI atlas files.",
                "Filename pattern (@MM@ gets replaced by month number)")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Tensor3AddScalar"),
       DESCRIPTION("Adds a scalar value to all elements of a tensor3.\n"
                   "\n"
@@ -18708,7 +18766,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Input tensor.", "The value to be added to the tensor.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Tensor3ExtractFromTensor4"),
       DESCRIPTION(
           "Extracts a Tensor3 from a Tensor4.\n"
@@ -18729,7 +18787,7 @@ void define_md_data_raw() {
                "Index of book, page, row or column to extract.",
                "Direction. \"book\" or \"page\" or \"row\" or \"column\".")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Tensor3Scale"),
       DESCRIPTION("Scales all elements of a tensor with the specified value.\n"
                   "\n"
@@ -18747,7 +18805,7 @@ void define_md_data_raw() {
       GIN_DESC("Input tensor.",
                "The value to be multiplied with the tensor.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Tensor3SetConstant"),
       DESCRIPTION(
           "Creates a tensor and sets all elements to the specified value.\n"
@@ -18764,7 +18822,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Tensor value.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Tensor4AddScalar"),
       DESCRIPTION("Adds a scalar value to all elements of a tensor4.\n"
                   "\n"
@@ -18782,7 +18840,7 @@ void define_md_data_raw() {
       GIN_DESC("Input tensor.", "The value to be added to the tensor.")));
   /*
   md_data_raw.push_back
-    ( MdRecord
+    ( create_mdrecord
       ( NAME( "Tensor4Clip" ),
         DESCRIPTION
         (
@@ -18815,7 +18873,7 @@ void define_md_data_raw() {
         ));
   */
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Tensor4Scale"),
       DESCRIPTION("Scales all elements of a tensor with the specified value.\n"
                   "\n"
@@ -18833,7 +18891,7 @@ void define_md_data_raw() {
       GIN_DESC("Input tensor.",
                "The value to be multiplied with the tensor.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Tensor4SetConstant"),
       DESCRIPTION(
           "Creates a tensor and sets all elements to the specified value.\n"
@@ -18850,7 +18908,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Tensor value.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Tensor5Scale"),
       DESCRIPTION("Scales all elements of a tensor with the specified value.\n"
                   "\n"
@@ -18868,7 +18926,7 @@ void define_md_data_raw() {
       GIN_DESC("Input tensor.",
                "The value to be multiplied with the tensor.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Tensor5SetConstant"),
       DESCRIPTION(
           "Creates a tensor and sets all elements to the specified value.\n"
@@ -18885,7 +18943,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Tensor value.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Tensor6Scale"),
       DESCRIPTION("Scales all elements of a tensor with the specified value.\n"
                   "\n"
@@ -18903,7 +18961,7 @@ void define_md_data_raw() {
       GIN_DESC("Input tensor.",
                "The value to be multiplied with the tensor.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Tensor6SetConstant"),
       DESCRIPTION(
           "Creates a tensor and sets all elements to the specified value.\n"
@@ -18920,7 +18978,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Tensor value.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Tensor7Scale"),
       DESCRIPTION("Scales all elements of a tensor with the specified value.\n"
                   "\n"
@@ -18938,7 +18996,7 @@ void define_md_data_raw() {
       GIN_DESC("Input tensor.",
                "The value to be multiplied with the tensor.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Tensor7SetConstant"),
       DESCRIPTION(
           "Creates a tensor and sets all elements to the specified value.\n"
@@ -18961,7 +19019,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Tensor value.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("TestArrayOfAgenda"),
       DESCRIPTION(
           "A method that is used for the TestArrayOfAgenda test case.\n"),
@@ -18976,7 +19034,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("0"),
       GIN_DESC("Index of agenda in array to execute.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("TessemNNReadAscii"),
       DESCRIPTION(
           "Reads the initialization data for the TESSEM NeuralNet from an ASCII file.\n"),
@@ -18992,7 +19050,7 @@ void define_md_data_raw() {
       GIN_DESC(
           "NeuralNet parameters file as provided in the TESSEM 2 distribution.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("TestTessem"),
       DESCRIPTION(
           "Example method for TESSEM2.\n"
@@ -19017,7 +19075,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Tessem NeuralNet parameters.", "Input data.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("relmat_per_bandInAir"),
       DESCRIPTION("A dummy method to test line mixing.\n"),
       AUTHORS("Richard Larsson"),
@@ -19033,7 +19091,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Vector of temperatures to compute the relaxation matrix at")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Test"),
       DESCRIPTION(
           "A dummy method that can be used for test purposes.\n"
@@ -19054,7 +19112,7 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(
-      MdRecord(NAME("timerStart"),
+      create_mdrecord(NAME("timerStart"),
                DESCRIPTION("Initializes the CPU timer."
                            "\n"
                            "Use *timerStop* to stop the timer.\n"
@@ -19076,7 +19134,7 @@ void define_md_data_raw() {
                GIN_DESC()));
 
   md_data_raw.push_back(
-      MdRecord(NAME("timerStop"),
+      create_mdrecord(NAME("timerStop"),
                DESCRIPTION("Stops the CPU timer."
                            "\n"
                            "See *timerStart* for example usage.\n"),
@@ -19091,7 +19149,7 @@ void define_md_data_raw() {
                GIN_DEFAULT(),
                GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("TMatrixTest"),
       DESCRIPTION(
           "T-Matrix validation test.\n"
@@ -19110,7 +19168,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Touch"),
       DESCRIPTION(
           "As *Ignore* but for agenda output.\n"
@@ -19135,7 +19193,7 @@ void define_md_data_raw() {
       AGENDAMETHOD(false),
       USES_TEMPLATES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("transmittanceFromIy_aux"),
       DESCRIPTION(
           "Creates a vector of transmittance values.\n"
@@ -19156,7 +19214,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("VectorAddScalar"),
       DESCRIPTION(
           "Adds a scalar to all elements of a vector.\n"
@@ -19173,7 +19231,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Input vector.", "The value to be added to the vector.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("VectorAddVector"),
       DESCRIPTION(
           "Element-wise addition of two vectors.\n"
@@ -19196,7 +19254,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Input vector.", "Vector to be added.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("VectorCrop"),
       DESCRIPTION(
           "Keeps only values of a vector inside the specified range.\n"
@@ -19218,7 +19276,7 @@ void define_md_data_raw() {
                "Minimum value to keep",
                "Maximum value to keep")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("VectorExtractFromMatrix"),
       DESCRIPTION(
           "Extracts a Vector from a Matrix.\n"
@@ -19238,7 +19296,7 @@ void define_md_data_raw() {
                "Index of row or column.",
                "Direction. \"row\" or \"column\".")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("VectorFlip"),
       DESCRIPTION(
           "Flips a vector.\n"
@@ -19256,7 +19314,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Input vector.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("VectorInsertGridPoints"),
       DESCRIPTION(
           "Insert some additional points into a grid.\n"
@@ -19289,7 +19347,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("The original grid vector", "The points to insert")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("VectorLinSpace"),
       DESCRIPTION(
           "Initializes a vector with linear spacing.\n"
@@ -19312,7 +19370,7 @@ void define_md_data_raw() {
                "Maximum/minimum value of the end value",
                "Spacing of the vector.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("VectorLogSpace"),
       DESCRIPTION(
           "Initializes a vector with logarithmic spacing.\n"
@@ -19340,7 +19398,7 @@ void define_md_data_raw() {
                "The maximum value of the end value. (Direct coordinates!)",
                "The spacing of the vector. (Log coordinates!)")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("VectorMatrixMultiply"),
       DESCRIPTION(
           "Multiply a Vector with a Matrix and store the result in another\n"
@@ -19361,7 +19419,7 @@ void define_md_data_raw() {
       GIN_DESC("The Matrix to multiply (dimension mxn).",
                "The original Vector (dimension n).")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("VectorNLinSpace"),
       DESCRIPTION(
           "Creates a vector with length *nelem*, equally spaced between the\n"
@@ -19379,7 +19437,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Start value.", "End value.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("VectorNLogSpace"),
       DESCRIPTION(
           "Creates a vector with length *nelem*, equally logarithmically\n"
@@ -19397,7 +19455,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Start value.", "End value.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("VectorReshapeMatrix"),
       DESCRIPTION(
           "Converts a Matrix to a Vector.\n"
@@ -19416,7 +19474,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, "column"),
       GIN_DESC("Input matrix.", "Direction. \"row\" or \"column\".")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("VectorScale"),
       DESCRIPTION(
           "Scales all elements of a vector with the same value.\n"
@@ -19433,7 +19491,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Input vector.", "Scaling value.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("VectorSetConstant"),
       DESCRIPTION(
           "Creates a vector and sets all elements to the specified value.\n"
@@ -19450,7 +19508,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Vector value.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("VectorSet"),
       DESCRIPTION(
           "Create a vector from the given list of numbers.\n"
@@ -19469,7 +19527,7 @@ void define_md_data_raw() {
       GIN_DESC("The vector elements."),
       SETMETHOD(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("VectorSubtractVector"),
       DESCRIPTION(
           "Element-wise subtraction of two vectors.\n"
@@ -19492,7 +19550,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Input vector.", "Vector to be subtracted.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("VectorVectorMultiply"),
       DESCRIPTION(
           "Multiply a Vector with another Vector and store result in a third one.\n"
@@ -19511,7 +19569,7 @@ void define_md_data_raw() {
       GIN_DESC("Original Vector #1 (dimension m).",
                "Original Vector #2 (dimension m).")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("VectorZtanToZaRefr1D"),
       DESCRIPTION(
           "Converts a set of true tangent altitudes to zenith angles.\n"
@@ -19539,7 +19597,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Vector with tangent altitudes.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("VectorZtanToZa1D"),
       DESCRIPTION(
           "Converts a set of geometrical tangent altitudes to zenith angles.\n"
@@ -19559,7 +19617,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Vector with tangent altitudes.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("verbosityInit"),
       DESCRIPTION(
           "Initializes the verbosity levels.\n"
@@ -19576,7 +19634,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("verbositySet"),
       DESCRIPTION(
           "Sets the verbosity levels.\n"
@@ -19599,7 +19657,7 @@ void define_md_data_raw() {
                "Report file verbosity level")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("verbositySetAgenda"),
+      create_mdrecord(NAME("verbositySetAgenda"),
                DESCRIPTION("Sets the verbosity level for agenda output.\n"
                            "\n"
                            "See *verbositySet*\n"),
@@ -19615,7 +19673,7 @@ void define_md_data_raw() {
                GIN_DESC("Agenda verbosity level")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("verbositySetFile"),
+      create_mdrecord(NAME("verbositySetFile"),
                DESCRIPTION("Sets the verbosity level for report file output.\n"
                            "\n"
                            "See *verbositySet*\n"),
@@ -19631,7 +19689,7 @@ void define_md_data_raw() {
                GIN_DESC("Report file verbosity level")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("verbositySetScreen"),
+      create_mdrecord(NAME("verbositySetScreen"),
                DESCRIPTION("Sets the verbosity level for screen output.\n"
                            "\n"
                            "See *verbositySet*\n"),
@@ -19646,7 +19704,7 @@ void define_md_data_raw() {
                GIN_DEFAULT(NODEF),
                GIN_DESC("Screen verbosity level")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("vmr_fieldClip"),
       DESCRIPTION(
           "Clipping of *vmr_field*.\n"
@@ -19672,7 +19730,7 @@ void define_md_data_raw() {
                "Lower limit for clipping.",
                "Upper limit for clipping.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("vmr_fieldPerturb"),
       DESCRIPTION("Adds a perturbation to *vmr_field*.\n"
                   "\n"
@@ -19710,7 +19768,7 @@ void define_md_data_raw() {
                "relative"
                ".")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("vmr_fieldPerturbAtmGrids"),
       DESCRIPTION(
           "Adds a perturbation to *vmr_field*.\n"
@@ -19739,7 +19797,7 @@ void define_md_data_raw() {
                "relative"
                ".")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("vmr_fieldSetAllConstant"),
       DESCRIPTION(
           "Sets the VMR of all species to a select constant value.\n"
@@ -19757,7 +19815,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("VMR value to apply for each abs_species.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("water_p_eq_fieldMK05"),
       DESCRIPTION(
           "Calculates *water_p_eq_field* according to Murphy and Koop, 2005.\n"
@@ -19781,7 +19839,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("vmr_fieldSetConstant"),
       DESCRIPTION(
           "Sets the VMR of a species to a constant value.\n"
@@ -19799,7 +19857,7 @@ void define_md_data_raw() {
       GIN_DESC("Species to set.",
                "VMR value to apply for the selected species.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Wigner6Init"),
       DESCRIPTION("Initialize the wigner 3 and 6 tables\n"
                   "\n"
@@ -19817,7 +19875,7 @@ void define_md_data_raw() {
           "Number of stored symbols possible before replacements",
           "Largest symbol used for initializing factorials (e.g., largest J or L)")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Wigner3Init"),
       DESCRIPTION("Initialize the wigner 3 tables\n"
                   "\n"
@@ -19836,7 +19894,7 @@ void define_md_data_raw() {
           "Largest symbol used for initializing factorials (e.g., largest J or L)")));
 
   md_data_raw.push_back(
-      MdRecord(NAME("Wigner6Unload"),
+      create_mdrecord(NAME("Wigner6Unload"),
                DESCRIPTION("Unloads the wigner 3 and 6 tables\n"),
                AUTHORS("Richard Larsson"),
                OUT("wigner_initialized"),
@@ -19849,7 +19907,7 @@ void define_md_data_raw() {
                GIN_DEFAULT(),
                GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(NAME("Wigner3Unload"),
+  md_data_raw.push_back(create_mdrecord(NAME("Wigner3Unload"),
                                  DESCRIPTION("Unloads the wigner 3 tables\n"),
                                  AUTHORS("Richard Larsson"),
                                  OUT("wigner_initialized"),
@@ -19862,7 +19920,7 @@ void define_md_data_raw() {
                                  GIN_DEFAULT(),
                                  GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("WignerFastInfoPrint"),
       DESCRIPTION(
           "Prints the fast wigner table information if compiled with this option\n"),
@@ -19877,7 +19935,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("WindFieldsCalc"),
       DESCRIPTION(
           "Interpolation of raw wind fields to calculation grids.\n"
@@ -19903,7 +19961,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("1"),
       GIN_DESC("Interpolation order (1=linear interpolation).")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("WindFieldsCalcExpand1D"),
       DESCRIPTION(
           "Interpolation of 1D raw atmospheric fields to create 2D or 3D\n"
@@ -19930,7 +19988,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("1"),
       GIN_DESC("Interpolation order (1=linear interpolation).")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("WindRawRead"),
       DESCRIPTION(
           "Reads wind field data from a scenario.\n"
@@ -19953,7 +20011,7 @@ void define_md_data_raw() {
       GIN_DESC("Name of scenario, probably including the full path. For "
                "example: \"/data/wind_field\"")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("wind_u_fieldIncludePlanetRotation"),
       DESCRIPTION(
           "Maps the planet's rotation to an imaginary wind.\n"
@@ -19983,7 +20041,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("WMRFSelectChannels"),
       DESCRIPTION(
           "Select some channels for WMRF calculation.\n"
@@ -20011,7 +20069,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("WriteMolTau"),
       DESCRIPTION(
           "Writes a 'molecular_tau_file' as required for libRadtran.\n"
@@ -20036,7 +20094,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Name of the *molecular_tau_file*.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("WriteNetCDF"),
       DESCRIPTION("Writes a workspace variable to a NetCDF file.\n"
                   "\n"
@@ -20062,7 +20120,7 @@ void define_md_data_raw() {
       PASSWORKSPACE(false),
       PASSWSVNAMES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("WriteNetCDFIndexed"),
       DESCRIPTION("As *WriteNetCDF*, but creates indexed file names.\n"
                   "\n"
@@ -20088,7 +20146,7 @@ void define_md_data_raw() {
       PASSWORKSPACE(false),
       PASSWSVNAMES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("WriteXML"),
       DESCRIPTION("Writes a workspace variable to an XML file.\n"
                   "\n"
@@ -20116,7 +20174,7 @@ void define_md_data_raw() {
       PASSWORKSPACE(false),
       PASSWSVNAMES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("WriteXMLIndexed"),
       DESCRIPTION("As *WriteXML*, but creates indexed file names.\n"
                   "\n"
@@ -20146,7 +20204,7 @@ void define_md_data_raw() {
       PASSWORKSPACE(false),
       PASSWSVNAMES(true)));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("xaStandard"),
       DESCRIPTION(
           "Standard function for creating *xa*.\n"
@@ -20194,7 +20252,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("xClip"),
       DESCRIPTION(
           "Clipping of the state vector.\n"
@@ -20223,7 +20281,7 @@ void define_md_data_raw() {
                "Lower limit for clipping.",
                "Upper limit for clipping.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("x2artsAtmAndSurf"),
       DESCRIPTION(
           "Maps *x* to atmospheric and surface variables.\n"
@@ -20284,7 +20342,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("x2artsSensor"),
       DESCRIPTION(
           "Maps *x* to sensor variables.\n"
@@ -20342,7 +20400,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("x2artsSpectroscopy"),
       DESCRIPTION("Just defined to indicate a future extensiom.\n"
                   "\n"
@@ -20358,7 +20416,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("yApplySensorPol"),
       DESCRIPTION(
           "Extraction of arbitrary linear polarisation.\n"
@@ -20395,7 +20453,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("yApplyUnit"),
       DESCRIPTION(
           "Conversion of *y* to other spectral units.\n"
@@ -20436,7 +20494,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ybatchCalc"),
       DESCRIPTION(
           "Performs batch calculations for the measurement vector y.\n"
@@ -20493,7 +20551,7 @@ void define_md_data_raw() {
                "(out1 output stream), and the *y* Vector entry for the\n"
                "failed job in *ybatch* is left empty.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ybatchMetProfiles"),
       DESCRIPTION(
           "This method is used for simulating ARTS for metoffice model fields"
@@ -20537,7 +20595,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF, NODEF),
       GIN_DESC("FIXME DOC", "FIXME DOC", "FIXME DOC")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ybatchMetProfilesClear"),
       DESCRIPTION(
           "This method is used for simulating ARTS for metoffice model fields\n"
@@ -20578,7 +20636,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("FIXME DOC", "FIXME DOC")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("yCalc"),
       DESCRIPTION(
           "Calculation of complete measurement vectors (y).\n"
@@ -20645,7 +20703,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("yCalcAppend"),
       DESCRIPTION(
           "Replaces *yCalc* if a measurement shall be appended to an\n"
@@ -20740,7 +20798,7 @@ void define_md_data_raw() {
                "Flag controlling if instrumental weighting functions are "
                "appended or treated as different retrieval quantities.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("yActive"),
       DESCRIPTION(
           "Replaces *yCalc* for radar/lidar calculations.\n"
@@ -20819,7 +20877,7 @@ void define_md_data_raw() {
                "Reference dielectric factor.",
                "Clip value for dBZe.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ySimpleSpectrometer"),
       DESCRIPTION(
           "Converts *iy* to *y* assuming a fixed frequency resolution.\n"
@@ -20844,7 +20902,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF),
       GIN_DESC("Selected frequency resolution.")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("z_fieldFromHSE"),
       DESCRIPTION(
           "Force altitudes to fulfil hydrostatic equilibrium.\n"
