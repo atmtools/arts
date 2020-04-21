@@ -19,6 +19,7 @@ import numpy as np
 import re
 import scipy as sp
 import tempfile
+import weakref
 
 from pyarts.workspace.api import arts_api
 from pyarts.workspace.agendas import Agenda
@@ -33,10 +34,11 @@ class WorkspaceVariable:
     method.
 
     Attributes:
-    ws_id(int):          The Index variable identifying the variable in the ARTS C API.
-    name(str):        The name of the workspace variable.
-    group(str):       The name of the group this variable belongs to.
-    description(str): The documentation of the variable as in methods.cc
+        ws_id(int): The Index variable identifying the variable in the ARTS C API.
+        name(str): The name of the workspace variable.
+        group(str): The name of the group this variable belongs to.
+        description(str): The documentation of the variable as in methods.cc
+        ws(Workspace): The associated workspace (if available) or None
     """
     def __init__(self, ws_id, name, group, description, ws = None):
         self.ws_id = ws_id
@@ -44,7 +46,10 @@ class WorkspaceVariable:
         self.group = group
         self.group_id = group_ids[group]
         self.description = description
-        self.ws = ws
+        if not ws is None:
+            self._ws = weakref.ref(ws)
+        else:
+            self._ws = None
 
         self.ndim = None
         if self.group == "Vector":
@@ -56,6 +61,20 @@ class WorkspaceVariable:
             self.ndim = int(m.group(1))
 
         self.update()
+
+    @property
+    def ws(self):
+        if self._ws is None:
+            return None
+        else:
+            return self._ws()
+
+    @ws.setter
+    def ws(self, workspace):
+        if workspace is None:
+            self._ws = workspace
+        else:
+            self._ws = weakref.ref(workspace)
 
     def __getstate__(self):
         return self.ws_id, self.name, self.group, \
