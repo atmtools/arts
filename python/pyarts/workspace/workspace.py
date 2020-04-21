@@ -12,6 +12,7 @@ Attributes:
 import ctypes as c
 import logging
 import numpy  as np
+import weakref
 
 import ast
 from   ast      import iter_child_nodes, parse, NodeVisitor, Call, Attribute, Name, \
@@ -258,9 +259,13 @@ class WSMCall:
 
     """
     def __init__(self, ws, m):
-        self.ws = ws
+        self._ws = weakref.ref(ws)
         self.m  = m
         self.__doc__  = m.__doc__
+
+    @property
+    def ws(self):
+        return self._ws()
 
     def __call__(self, *args, **kwargs):
         self.m.call(self.ws, *args, **kwargs)
