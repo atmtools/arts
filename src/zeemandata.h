@@ -671,6 +671,26 @@ struct Derived {
 
 /** Computes the derived plane from ARTS grids
  * 
+ * When done and if everything is well-defined:
+ * \f[ H = \sqrt{u^2 + v^2 + w^2}, \f]
+ * \f[ \theta = \arccos \left( \vec{n} \cdot \vec{n}_H \right), \f]
+ * \f[ \eta = \arctan\left( \frac{y}{x} \right), \f]
+ * \f[ \frac{\partial H}{\partial \vec{H}} = \vec{n}_H, \f]
+ * \f[ \frac{\partial \theta}{\partial \vec{H}} = \frac{\vec{n}_H \cos{\theta} - \vec{n}}{H\sin\theta}, \f]
+ * \f[ \frac{\partial \eta}{\partial \vec{H}} = \frac{\vec{n}\times\vec{n}_H}{Hx^2 + Hy^2} \f]
+ * 
+ * With these helpers (some defined, others not):
+ * \f[ \vec{H} = \left[v,u,w\right], \f]
+ * \f[ \vec{n}_H = \left[v,u,w\right] / H, \f]
+ * \f[ \vec{n} = \left[ \cos a \sin z, \sin a\sin z, \cos z \right], \f]
+ * \f[ \vec{e}_v = \left[ \cos a \cos z, \sin a\cos z, -\sin z \right], \f]
+ * \f[ y = \left\{\vec{e}_v \times \left[\vec{n}_H - \left(\vec{n}_H\cdot\vec{n}\right)\vec{n}\right]\right\} \cdot \vec{n}, \f]
+ * \f[ x = \vec{e}_v \cdot \left[\vec{n}_H - \left(\vec{n}_H\cdot\vec{n}\right)\vec{n}\right] \f]
+ * 
+ * Note that all other values are zero if \f$ H \f$ is zero, that \f$ \frac{\partial \theta}{\partial \vec{H}} \f$
+ * is zero if \f$ \sin{\theta} \f$ is zero, that \f$ \frac{\partial \eta}{\partial \vec{H}} \f$ is zero
+ * if \f$ x \f$ and \f$ y \f$ are zero, and that the atan2(y, x) function is used for \f$ \eta \f$.
+ * 
  * @param[in] u Magnetic field u-parameter
  * @param[in] v Magnetic field b-parameter
  * @param[in] w Magnetic field w-parameter
@@ -679,58 +699,7 @@ struct Derived {
  * 
  * @return The derived plane
  */
-inline Derived FromGrids(
-    Numeric u, Numeric v, Numeric w, Numeric z, Numeric a) noexcept {
-  // Constants evaluated once for both eta and theta
-  auto cz = std::cos(z), ca = std::cos(a), sz = std::sin(z), sa = std::sin(a);
-
-  /*
-   *   H = ||{u, v, w}||
-   */
-  auto H = std::hypot(std::hypot(u, v), w);
-  auto dH_du = H > 0 ? u / H : 0;
-  auto dH_dv = H > 0 ? v / H : 0;
-  auto dH_dw = H > 0 ? w / H : 0;
-
-  /*
-   *              ( / cos(a) sin(z) \   / u \   // || / u \ || )
-   *  theta = acos( | sin(a) sin(z) | o | v |  //  || | v | || )
-   *              ( \        cos(z) /   \ w / //   || \ w / || )
-   */
-  auto x = u * sz * ca + v * sa * sz + w * cz,
-       d = std::sqrt(1 - std::pow(x / H, 2)) * H * H * H;
-
-  auto theta = H > 0 ? std::acos(x / H) : std::acos(0);
-  auto dtheta_du = d not_eq 0 ? (u * x - H * H * sz * ca) / d : 0;
-  auto dtheta_dv = d not_eq 0 ? (v * x - H * H * sa * sz) / d : 0;
-  auto dtheta_dw = d not_eq 0 ? (w * x - H * H * cz) / d : 0;
-
-  /*
-   *              ( / -sin(a) \   [ / u \   / cos(a) sin(z) \   / u \   / u \ ]   / cos(a) sin(z) \   // / -sin(a) \   [ / u \   / cos(a) sin(z) \   / u \   / u \ ] )
-   *    eta = atan( |  cos(a) | x [ | v | - | sin(a) sin(z) | o | v | * | v | ] o | sin(a) sin(z) |  //  |  cos(a) | o [ | v | - | sin(a) sin(z) | o | v | * | v | ] )
-   *              ( \    0    /   [ \ w /   \        cos(z) /   \ w /   \ w / ]   \        cos(z) / //   \    0    /   [ \ w /   \        cos(z) /   \ w /   \ w / ] )
-   */
-  auto p = std::pow(u * sa - v * ca, 2) +
-           std::pow(u * ca * cz + v * sa * cz - w * sz, 2);
-
-  auto eta = std::atan2(u * ca * cz + v * sa * cz - w * sz, u * sa - v * ca);
-  auto deta_du = p not_eq 0 ? (-v * cz + w * sa * sz) / p : 0;
-  auto deta_dv = p not_eq 0 ? (u * cz - w * sz * ca) / p : 0;
-  auto deta_dw = p not_eq 0 ? -(u * sa - v * ca) * sz / p : 0;
-
-  return {H,
-          theta,
-          eta,
-          dH_du,
-          dH_dv,
-          dH_dw,
-          dtheta_du,
-          dtheta_dv,
-          dtheta_dw,
-          deta_du,
-          deta_dv,
-          deta_dw};
-}
+Derived FromGrids(Numeric u, Numeric v, Numeric w, Numeric z, Numeric a) noexcept;
 
 /** Sets Derived from predefined Derived parameters
  * 
@@ -740,9 +709,9 @@ inline Derived FromGrids(
  * 
  * @return The pre-derived plane
  */
-inline Derived FromPreDerived(Numeric H,
-                              Numeric theta,
-                              Numeric eta) noexcept {
+constexpr Derived FromPreDerived(Numeric H,
+                                 Numeric theta,
+                                 Numeric eta) noexcept {
   return {H, theta, eta, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 }
 };  // namespace Zeeman
