@@ -4941,8 +4941,8 @@ void Workspace::define_wsv_data() {
       GROUP("Timer")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("time_series"),
-      DESCRIPTION("Stores a time series.\n"),
+      NAME("time_grid"),
+      DESCRIPTION("A grid of time.  Should be increasing\n"),
       GROUP("ArrayOfTime")));
 
   wsv_data.push_back(WsvRecord(

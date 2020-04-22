@@ -46,8 +46,8 @@ void LocalTimeOffset(Numeric& dt, const Verbosity&)
 }
 
 
-void time_seriesOffset(ArrayOfTime& time_series, const Numeric& offset, const Verbosity&)
+void time_gridOffset(ArrayOfTime& time_grid, const Numeric& offset, const Verbosity&)
 {
-  for (Time& t: time_series)
+  for (Time& t: time_grid)
     t += TimeStep(offset);
 }

@@ -63,12 +63,14 @@ public:
   InternalTimeStep operator-(const Time& t) const {return mtime - t.mtime;}
   bool operator<(const Time& t) const {return mtime < t.mtime;}
   template <typename T, typename R> Time& operator+=(const std::chrono::duration<T, R>& dt) {mtime += std::chrono::duration_cast<InternalTimeStep>(dt); return *this;}
-  template <typename T, typename R> Time operator+(const std::chrono::duration<T, R>& dt) const {Time t(*this); return (t += dt);}
   template <typename T, typename R> Time& operator-=(const std::chrono::duration<T, R>& dt) {mtime -= std::chrono::duration_cast<InternalTimeStep>(dt); return *this;}
-  template <typename T, typename R> Time operator-(const std::chrono::duration<T, R>& dt) const {Time t(*this); return (t -= dt);}
+  template <typename T, typename R> Time operator+(const std::chrono::duration<T, R>& dt) const {return (Time(*this) += dt);}
+  template <typename T, typename R> Time operator-(const std::chrono::duration<T, R>& dt) const {return (Time(*this) -= dt);}
   
   // helpers
-  Numeric PartOfSecond() const {return std::fmod(Numeric(InternalTimeStep::period::num * operator-(Time(toStruct())).count()) / InternalTimeStep::period::den, 1.0);}
+  Numeric Seconds() const {return std::chrono::duration_cast<TimeStep>(mtime.time_since_epoch()).count();}
+  void Seconds(Numeric x) {operator+=(TimeStep(x - Seconds()));}
+  Numeric PartOfSecond() const {return std::fmod(Seconds(), 1.0);}
 }; // Time
 
 /** List of times */

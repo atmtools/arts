@@ -851,6 +851,14 @@ extern "C" {
     DLL_PUBLIC void set_indicesBlock(void *, Index, Index);
     DLL_PUBLIC void set_matrixBlock(void *, void *, bool);
     
+    // Time
+    BasicInterfaceCAPI(Time)
+    BasicInputOutputCAPI(Time)
+    VoidArrayCAPI(ArrayOfTime)
+    BasicInterfaceCAPI(ArrayOfTime)
+    BasicInputOutputCAPI(ArrayOfTime)
+    GetterSetterCAPI(Time, Seconds, Numeric)
+    
     // generic
     DLL_PUBLIC Index string2filetypeindex(char *);
 }

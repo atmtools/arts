@@ -6298,7 +6298,7 @@ void define_md_data_raw() {
       GIN_DEFAULT("linear"),
       GIN_DESC("Interpolation method (\"linear\" or \"polynomial\").")));
   
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("Duration"),
       DESCRIPTION("Sets the seconds between two times.\n"),
       AUTHORS("Richard Larsson"),
@@ -9919,7 +9919,7 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
   
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("LocalTimeOffset"),
       DESCRIPTION("Sets the seconds between localtime and gmtime representation of now().\n"),
       AUTHORS("Richard Larsson"),
@@ -11194,11 +11194,8 @@ void define_md_data_raw() {
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-
-<<<<<<< HEAD
+  
   md_data_raw.push_back(create_mdrecord(
-=======
-  md_data_raw.push_back(MdRecord(
       NAME("Now"),
       DESCRIPTION("Sets time to system_clock::now().\n"),
       AUTHORS("Richard Larsson"),
@@ -11211,9 +11208,8 @@ void define_md_data_raw() {
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
->>>>>>> Initial raw handling
+  
+  md_data_raw.push_back(create_mdrecord(
       NAME("OEM"),
       DESCRIPTION(
           "Inversion by the so called optimal estimation method (OEM).\n"
@@ -19158,19 +19154,19 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
   
-  md_data_raw.push_back(MdRecord(
-      NAME("time_seriesOffset"),
-      DESCRIPTION("Offsets a time series by some seconds.\n"),
+  md_data_raw.push_back(create_mdrecord(
+      NAME("time_gridOffset"),
+      DESCRIPTION("Offsets a time grid by some seconds.\n"),
       AUTHORS("Richard Larsson"),
-      OUT("time_series"),
+      OUT("time_grid"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("time_series"),
+      IN("time_grid"),
       GIN("dt"),
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
-      GIN_DESC("Time in seconds between local and gmt")));
+      GIN_DESC("Time in seconds to add")));
 
   md_data_raw.push_back(
       create_mdrecord(NAME("timerStart"),
@@ -20611,11 +20607,8 @@ void define_md_data_raw() {
                "that case, a warning message is written to screen and file\n"
                "(out1 output stream), and the *y* Vector entry for the\n"
                "failed job in *ybatch* is left empty.")));
-
-<<<<<<< HEAD
+  
   md_data_raw.push_back(create_mdrecord(
-=======
-  md_data_raw.push_back(MdRecord(
       NAME("yCAH"),
       DESCRIPTION(
           "Computes *y* from input using standard calibration scheme\n"),
@@ -20634,9 +20627,8 @@ void define_md_data_raw() {
                "Cold load temperature",
                "Hot load temperature",
                "Flag for calibration scheme, 0 means system temperature is computed")));
-
-  md_data_raw.push_back(MdRecord(
->>>>>>> Initial raw handling
+  
+  md_data_raw.push_back(create_mdrecord(
       NAME("ybatchMetProfiles"),
       DESCRIPTION(
           "This method is used for simulating ARTS for metoffice model fields"
@@ -20721,10 +20713,8 @@ void define_md_data_raw() {
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("FIXME DOC", "FIXME DOC")));
 
-<<<<<<< HEAD
+  
   md_data_raw.push_back(create_mdrecord(
-=======
-  md_data_raw.push_back(MdRecord(
       NAME("ybatchTimeAveraging"),
       DESCRIPTION(
           "Time average of *ybatch*\n"
@@ -20737,16 +20727,16 @@ void define_md_data_raw() {
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("time_series"),
+      IN("time_grid"),
       GIN("indata", "time_step", "start_even", "disregard_last"),
       GIN_TYPE("ArrayOfVector", "String", "Index", "Index"),
       GIN_DEFAULT(NODEF, NODEF, "0", "0"),
-      GIN_DESC("Data to average, length must be size of *time_series* and each vector must have the same size",
+      GIN_DESC("Data to average, length must be size of *time_grid* and each vector must have the same size",
                "Time step in the form \"INDEX SCALE\", where SCALE is \"h\", \"min\", or \"s\" for hours, minutes or seconds",
                "Flag to start at an even time step, such that \"12 h\" means to start at first noon or midnight passing",
                "Flag to remove last time step (e.g., if it is an incomplete step)")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ybatchTroposphericCorrectionNaiveMedianForward"),
       DESCRIPTION(
           "Performs naive tropospheric corrections on *ybatch*\n"
@@ -20766,13 +20756,10 @@ void define_md_data_raw() {
                "Radiative temperature of the troposphere",
                "Temperature target of the baseline")));
 
-  md_data_raw.push_back(MdRecord(
+  md_data_raw.push_back(create_mdrecord(
       NAME("ybatchTroposphericCorrectionNaiveMedianInverse"),
       DESCRIPTION(
-          "Performs naive tropospheric corrections on *ybatch*\n"
-          "\n"
-          "Sets *ybatch_corr* to be able to perform the inverse of the corrections,\n"
-          "each array-element with 3 entries as [median, part_trans, trop_temp]\n"),
+          "Performs inverse of naive tropospheric corrections on *ybatch*\n"),
       AUTHORS("Richard Larsson"),
       OUT("ybatch"),
       GOUT(),
@@ -20783,9 +20770,8 @@ void define_md_data_raw() {
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-
-  md_data_raw.push_back(MdRecord(
->>>>>>> Initial raw handling
+  
+  md_data_raw.push_back(create_mdrecord(
       NAME("yCalc"),
       DESCRIPTION(
           "Calculation of complete measurement vectors (y).\n"
