@@ -613,9 +613,6 @@ void test_ecs20()
   std::cout<<"])\n";
 }
 
-#include "artstime.h"
-#include "raw.h"
-
 int main() {
   /*test_speed_of_pressurebroadening();
     test_transmissionmatrix();
