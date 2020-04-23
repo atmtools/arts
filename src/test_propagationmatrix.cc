@@ -625,22 +625,6 @@ int main() {
     test_sinc_likes_0limit();*/
 //   test_zeeman();
 // test_mpm20();
-// test_ecs20();
-
-ArrayOfTime ts{Time()};
-for (Index i=0; i<20; i++)
-  ts.push_back(ts.back() + std::chrono::seconds(35));
-
-String step = "4 minutes";
-bool start_even = true;
-ArrayOfIndex lims = time_steps(ts, step, start_even);
-
-for (Index i=0; i<ts.nelem(); i++) {
-  std::cout << ts[i];
-  if (std::any_of(lims.begin(), lims.end(), [i](auto j){return j==i;}))
-    std::cout << " <- new duration starts";
-  std::cout << "\n";
-}
-  
+test_ecs20();
   return 0;
 }
