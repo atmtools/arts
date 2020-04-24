@@ -17,7 +17,7 @@
  * USA. */
 
 /**
- * @file   time.h
+ * @file   artstime.h
  * @author Richard Larsson
  * @date   2020-04-13
  * 
@@ -52,6 +52,9 @@ public:
   Time(std::time_t t) : mtime(std::chrono::system_clock::from_time_t(t)) {}
   Time(std::tm t) : Time(std::mktime(&t)) {}
   
+  // Data
+  const std::chrono::system_clock::time_point& Data() const {return mtime;}
+  
   // Conversions
   std::time_t toTimeT() const {return std::chrono::system_clock::to_time_t(mtime);}
   std::tm toStruct() const {std::time_t x=toTimeT();  std::tm* y = std::localtime(&x); return *y;}
@@ -62,6 +65,7 @@ public:
   // Operations
   InternalTimeStep operator-(const Time& t) const {return mtime - t.mtime;}
   bool operator<(const Time& t) const {return mtime < t.mtime;}
+  bool operator==(const Time& t) const {return mtime == t.mtime;}
   template <typename T, typename R> Time& operator+=(const std::chrono::duration<T, R>& dt) {mtime += std::chrono::duration_cast<InternalTimeStep>(dt); return *this;}
   template <typename T, typename R> Time& operator-=(const std::chrono::duration<T, R>& dt) {mtime -= std::chrono::duration_cast<InternalTimeStep>(dt); return *this;}
   template <typename T, typename R> Time operator+(const std::chrono::duration<T, R>& dt) const {return (Time(*this) += dt);}
@@ -75,6 +79,9 @@ public:
 
 /** List of times */
 using ArrayOfTime = Array<Time>;
+
+/** List of times */
+using ArrayOfArrayOfTime = Array<ArrayOfTime>;
 
 /** Output for Time */
 std::ostream& operator<<(std::ostream& os, const Time& t);
@@ -100,5 +107,13 @@ inline std::ostream& operator<<(std::ostream& os, const TimeStep& dt) {return os
  * @return Starting index of the time-series
  */
 ArrayOfIndex time_steps(const ArrayOfTime& time, const String& step, const bool start_even);
+
+/** Computes the average time in a list
+ * 
+ * @param[in] ts A list of time
+ * @param[in] s A starting index; valid range [0, ts.nelem())
+ * @param[in] e The end+1 index; valid range [-1, ts.nelem()]; -1 is treated as ts.nelem()
+ */
+Time mean_time(const ArrayOfTime& ts, Index s=0, Index e=-1);
 
 #endif  // ARTSTIME_H

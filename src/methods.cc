@@ -6544,6 +6544,21 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("Flatten"),
+      DESCRIPTION("Flattens an ArrayOfArray<T> to Array<T> or an Array\n"
+        "of matpack-types to a larger dimension matpack (if dimensions agree)\n"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("ArrayOfTime,ArrayOfVector,Matrix"),
+      GOUT_DESC("Flatter array/matpack-type"),
+      IN(),
+      GIN("in"),
+      GIN_TYPE("ArrayOfArrayOfTime,ArrayOfArrayOfVector,ArrayOfVector"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("An array")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("ForLoop"),
       DESCRIPTION(
           "A simple for-loop.\n"
@@ -11208,6 +11223,20 @@ void define_md_data_raw() {
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
+  
+  md_data_raw.push_back(create_mdrecord(
+      NAME("Offset"),
+      DESCRIPTION("Offset a time for some seconds\n"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT("outtime"),
+      GOUT_TYPE("Time"),
+      GOUT_DESC("A time"),
+      IN(),
+      GIN("intime", "offset"),
+      GIN_TYPE("Time", "Numeric"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("A time", "Time in seconds")));
   
   md_data_raw.push_back(create_mdrecord(
       NAME("OEM"),
@@ -17503,6 +17532,34 @@ void define_md_data_raw() {
                GIN_TYPE("Index"),
                GIN_DEFAULT(NODEF),
                GIN_DESC("Number of threads.")));
+  
+  md_data_raw.push_back(create_mdrecord(
+      NAME("Sleep"),
+      DESCRIPTION("Sleeps for a number of seconds\n"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("time"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Time to sleep for in seconds")));
+  
+  md_data_raw.push_back(create_mdrecord(
+      NAME("SleepUntil"),
+      DESCRIPTION("Sleeps until time has been reached.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN(),
+      GIN("time"),
+      GIN_TYPE("Time"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Time until when to sleep")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("SparseSparseMultiply"),
@@ -19205,6 +19262,20 @@ void define_md_data_raw() {
                GIN_TYPE(),
                GIN_DEFAULT(),
                GIN_DESC()));
+  
+  md_data_raw.push_back(create_mdrecord(
+      NAME("TimeSort"),
+      DESCRIPTION("Sort *in* by *time_stamps* into *out*.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT(),
+      GOUT("out"),
+      GOUT_TYPE("ArrayOfTime,ArrayOfVector"),
+      GOUT_DESC("Array sorted by time"),
+      IN("time_stamps"),
+      GIN("in"),
+      GIN_TYPE("ArrayOfTime,ArrayOfVector"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Array to sort of same size as *time_stamps*")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("TMatrixTest"),
@@ -20723,15 +20794,16 @@ void define_md_data_raw() {
           "stores the number of elements per averaging in *counts*, and\n"
           "sets the *start_time* to the first time in the averaging\n"),
       AUTHORS("Richard Larsson"),
-      OUT("ybatch", "covmat_sepsbatch", "counts", "start_time"),
+      OUT("ybatch", "time_grid", "covmat_sepsbatch", "counts"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("time_grid"),
-      GIN("indata", "time_step", "start_even", "disregard_last"),
-      GIN_TYPE("ArrayOfVector", "String", "Index", "Index"),
-      GIN_DEFAULT(NODEF, NODEF, "0", "0"),
-      GIN_DESC("Data to average, length must be size of *time_grid* and each vector must have the same size",
+      IN(),
+      GIN("ybatch_fine", "time_grid_fine", "time_step", "start_even", "disregard_last"),
+      GIN_TYPE("ArrayOfVector", "ArrayOfTime", "String", "Index", "Index"),
+      GIN_DEFAULT(NODEF, NODEF, NODEF, "0", "0"),
+      GIN_DESC("Data to average, length must be size of *time_grid_fine* and each vector must have the same size",
+               "Time grid of input data",
                "Time step in the form \"INDEX SCALE\", where SCALE is \"h\", \"min\", or \"s\" for hours, minutes or seconds",
                "Flag to start at an even time step, such that \"12 h\" means to start at first noon or midnight passing",
                "Flag to remove last time step (e.g., if it is an incomplete step)")));

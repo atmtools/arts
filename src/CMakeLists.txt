@@ -217,6 +217,7 @@ add_library (artscore STATIC
   m_absorptionlines.cc
   m_abs_lookup.cc
   m_agenda.cc
+  m_array.cc
   m_artstime.cc
   m_atmosphere.cc
   m_basic_types.cc

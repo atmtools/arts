@@ -55,40 +55,40 @@ void yCAH(Vector& y,
 }
 
 
-void ybatchTimeAveraging(ArrayOfVector& ybatch,
+void ybatchTimeAveraging(ArrayOfVector& ybatch_out,
+                         ArrayOfTime& time_grid_out,
                          ArrayOfMatrix& covmat_sepsbatch,
                          ArrayOfIndex& counts,
-                         Time& start_time,
-                         const ArrayOfTime& time_series,
-                         const ArrayOfVector& indata,
+                         const ArrayOfVector& ybatch_in,
+                         const ArrayOfTime& time_grid_in,
                          const String& time_step,
                          const Index& start_at_even,
                          const Index& disregard_last,
                          const Verbosity&)
 {
   // Size of problem
-  const Index n=indata.nelem();
-  if (time_series.nelem() not_eq n) {
+  const Index n=time_grid_in.nelem();
+  if (time_grid_in.nelem() not_eq n) {
     throw std::runtime_error("Time vector length must match input data length");
   }
   
   // Time is not decreasing
-  if (not std::is_sorted(time_series.cbegin(), time_series.cend()))
+  if (not std::is_sorted(time_grid_in.cbegin(), time_grid_in.cend()))
     throw std::runtime_error("Time vector cannot decrease");
   
   // Find the limits of the range
-  auto lims = time_steps(time_series, time_step, start_at_even);
+  auto lims = time_steps(time_grid_in, time_step, start_at_even);
   
   if (lims.front() == n) {
-    ybatch.resize(0);
+    ybatch_out.resize(0);
+    time_grid_out.resize(0);
     covmat_sepsbatch.resize(0);
     counts.resize(0);
-    start_time = Time();
   } else {
     
     // Frequency grids
-    const Index k = indata[0].nelem();
-    if (not std::all_of(indata.cbegin(), indata.cend(), [k](auto& x){return x.nelem()==k;})) {
+    const Index k = ybatch_in[0].nelem();
+    if (not std::all_of(ybatch_in.cbegin(), ybatch_in.cend(), [k](auto& x){return x.nelem()==k;})) {
       throw std::runtime_error("Bad frequency grid size in input data; expects all equal");
     }
     
@@ -96,19 +96,21 @@ void ybatchTimeAveraging(ArrayOfVector& ybatch,
     const Index m = lims.nelem() - 1 - bool(disregard_last);
     if (m < 0)
       throw std::runtime_error("Must include last if time step covers all of the range"),
-    ybatch = ArrayOfVector(m, Vector(k));
+    ybatch_out = ArrayOfVector(m, Vector(k));
+    time_grid_out = ArrayOfTime(m);
     covmat_sepsbatch = ArrayOfMatrix(m, Matrix(k, k));
     counts.resize(m);
-    start_time = time_series[lims.front()];
     
     // Fill output
     for (Index i=0; i<m; i++) {
       counts[i] = lims[i+1] - lims[i];
-      linalg::avg(ybatch[i], indata, lims[i], lims[i+1]);
-      linalg::cov(covmat_sepsbatch[i], ybatch[i], indata, lims[i], lims[i+1]);
+      time_grid_out = mean_time(time_grid_in, lims[i], lims[i+1]);
+      linalg::avg(ybatch_out[i], ybatch_in, lims[i], lims[i+1]);
+      linalg::cov(covmat_sepsbatch[i], ybatch_out[i], ybatch_in, lims[i], lims[i+1]);
     }
   }
 }
+
 
 void ybatchTroposphericCorrectionNaiveMedianForward(ArrayOfVector& ybatch_corr,
                                                     ArrayOfVector& ybatch,
@@ -143,6 +145,7 @@ void ybatchTroposphericCorrectionNaiveMedianForward(ArrayOfVector& ybatch_corr,
     ybatch[i] += ybatch_corr[i][2] * (1 - ybatch_corr[i][1]);
   }
 }
+
 
 void ybatchTroposphericCorrectionNaiveMedianInverse(ArrayOfVector& ybatch,
                                                     const ArrayOfVector& ybatch_corr,

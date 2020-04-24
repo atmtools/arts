@@ -102,6 +102,7 @@ void define_wsv_group_names() {
   wsv_group_names.push_back("ArrayOfArrayOfString");
   wsv_group_names.push_back("ArrayOfArrayOfTensor3");
   wsv_group_names.push_back("ArrayOfArrayOfTensor6");
+  wsv_group_names.push_back("ArrayOfArrayOfTime");
   wsv_group_names.push_back("ArrayOfArrayOfTransmissionMatrix");
   wsv_group_names.push_back("ArrayOfArrayOfVector");
   wsv_group_names.push_back("ArrayOfCIARecord");

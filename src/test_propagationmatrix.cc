@@ -613,6 +613,8 @@ void test_ecs20()
   std::cout<<"])\n";
 }
 
+#include "artstime.h"
+
 int main() {
   /*test_speed_of_pressurebroadening();
     test_transmissionmatrix();
@@ -622,6 +624,14 @@ int main() {
     test_sinc_likes_0limit();*/
 //   test_zeeman();
 // test_mpm20();
-test_ecs20();
+// test_ecs20();
+
+Time t;
+ArrayOfTime ts={t, t, t, t-2h};
+
+Index s=0, e=-1;
+std::cout<<ts[s]<<'\n';
+std::cout<<mean_time(ts, s, e)<<'\n';
+
   return 0;
 }

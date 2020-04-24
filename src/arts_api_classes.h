@@ -854,10 +854,16 @@ extern "C" {
     // Time
     BasicInterfaceCAPI(Time)
     BasicInputOutputCAPI(Time)
+    GetterSetterCAPI(Time, Seconds, Numeric)
     VoidArrayCAPI(ArrayOfTime)
     BasicInterfaceCAPI(ArrayOfTime)
     BasicInputOutputCAPI(ArrayOfTime)
-    GetterSetterCAPI(Time, Seconds, Numeric)
+    VoidArrayCAPI(ArrayOfArrayOfTime)
+    BasicInterfaceCAPI(ArrayOfArrayOfTime)
+    BasicInputOutputCAPI(ArrayOfArrayOfTime)
+    DLL_PUBLIC void setTime(void *, void *);
+    DLL_PUBLIC bool equalTime(void *, void *);
+    DLL_PUBLIC bool lessTime(void *, void *);
     
     // generic
     DLL_PUBLIC Index string2filetypeindex(char *);

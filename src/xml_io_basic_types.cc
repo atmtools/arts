@@ -1506,7 +1506,7 @@ void xml_write_to_stream(ostream& os_xml,
   if (pbofs)
     throw std::runtime_error("Cannot write binary time");
   else
-    os_xml << t;
+    os_xml << ' ' << t << ' ';
 
   close_tag.set_name("/Time");
   close_tag.write_to_stream(os_xml);

@@ -3543,12 +3543,6 @@ void Workspace::define_wsv_data() {
       GROUP("Vector")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("raw"),
-      DESCRIPTION(
-          "A matrix of raw data.  Content is up to function\n"),
-      GROUP("Matrix")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("refr_index_air"),
       DESCRIPTION(
           "Real part of the refractive index of air.\n"
@@ -4942,7 +4936,12 @@ void Workspace::define_wsv_data() {
 
   wsv_data.push_back(WsvRecord(
       NAME("time_grid"),
-      DESCRIPTION("A grid of time.  Should be increasing\n"),
+      DESCRIPTION("A grid of times.  Should be increasing\n"),
+      GROUP("ArrayOfTime")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("time_stamps"),
+      DESCRIPTION("A set of times.  Can be in random order\n"),
       GROUP("ArrayOfTime")));
 
   wsv_data.push_back(WsvRecord(

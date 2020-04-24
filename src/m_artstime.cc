@@ -24,16 +24,35 @@
  * @brief  Stuff related to manipulating time
  */
 
+#include <thread>
+
+#include "matpackI.h"
 #include "artstime.h"
 #include "messages.h"
+#include "sorting.h"
 
 
-void Now(Time& t, const Verbosity&) {t = Time();}
+void Now(Time& t, const Verbosity&)
+{
+  t = Time();
+}
 
 
 void Duration(Numeric& duration, const Time& t0, const Time& t1, const Verbosity&)
 {
   duration = std::chrono::duration_cast<TimeStep>(t1 - t0).count();
+}
+
+
+void Sleep(const Numeric& duration, const Verbosity&)
+{
+  std::this_thread::sleep_for(TimeStep(duration));
+}
+
+
+void SleepUntil(const Time& time, const Verbosity&)
+{
+  std::this_thread::sleep_until(time.Data());
 }
 
 
@@ -46,8 +65,14 @@ void LocalTimeOffset(Numeric& dt, const Verbosity&)
 }
 
 
+void Offset(Time& outtime, const Time& intime, const Numeric& offset, const Verbosity&)
+{
+  outtime = intime + TimeStep(offset);
+}
+
+
 void time_gridOffset(ArrayOfTime& time_grid, const Numeric& offset, const Verbosity&)
 {
-  for (Time& t: time_grid)
-    t += TimeStep(offset);
+  for (Time& time: time_grid)
+    time += TimeStep(offset);
 }

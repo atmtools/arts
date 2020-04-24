@@ -5,15 +5,19 @@ from pyarts.workspace.api import arts_api as lib
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 from pyarts.classes.ArrayBase import array_base
 
+import datetime
+
 
 class Time:
     """ ARTS Time data
 
-    Note that the local epoch is UNIX time in CPP20 onwards
+    Note that the local epoch is UNIX time in CPP20 onwards, but that we assume it
+    is the time on your system for this class to work.  Please confirm this before
+    using any Time features
 
     Properties:
         sec:
-            Time in system time seconds since local epoch (Numeric)
+            Time in system time seconds since local epoch (not-an-exact Numeric)
     """
 
     def __init__(self, data=None):
@@ -48,12 +52,12 @@ class Time:
             lib.deleteTime(self.__data__)
 
     def __repr__(self):
-        return "ARTS Time"
+        return datetime.datetime.fromtimestamp(self.sec).strftime("%Y-%m-%d %H:%M:%S.%f")
 
     def set(self, other):
         """ Sets this class according to another python instance of itself """
         if isinstance(other, Time):
-            self.sec = other.sec
+            lib.setTime(self.__data__, other.__data__)  # Workaround that "sec" is not exact
         else:
             raise TypeError("Expects Time")
 
@@ -84,7 +88,13 @@ class Time:
             raise OSError("Cannot save {}".format(file))
 
     def __eq__(self, other):
-        if isinstance(other, Time) and self.sec == other.sec:
+        if isinstance(other, Time) and lib.equalTime(self.__data__, other.__data__):
+            return True
+        else:
+            return False
+
+    def __lt__(self, other):
+        if isinstance(other, Time) and lib.lessTime(self.__data__, other.__data__):
             return True
         else:
             return False
@@ -92,6 +102,10 @@ class Time:
 
 # ArrayOfTime
 exec(array_base(Time))
+
+
+# ArrayOfArrayOfTime
+exec(array_base(ArrayOfTime))
 
 
 lib.createTime.restype = c.c_void_p
@@ -114,3 +128,12 @@ lib.getSecondsTime.argtypes = [c.c_void_p]
 
 lib.setSecondsTime.restype = None
 lib.setSecondsTime.argtypes = [c.c_void_p, c.c_double]
+
+lib.setTime.restype = None
+lib.setTime.argtypes = [c.c_void_p, c.c_void_p]
+
+lib.equalTime.restype = c.c_bool
+lib.equalTime.argtypes = [c.c_void_p, c.c_void_p]
+
+lib.lessTime.restype = c.c_bool
+lib.lessTime.argtypes = [c.c_void_p, c.c_void_p]

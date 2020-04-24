@@ -17,7 +17,7 @@
  * USA. */
 
 /**
- * @file   time.h
+ * @file   artstime.cc
  * @author Richard Larsson
  * @date   2020-04-13
  * 
@@ -147,3 +147,20 @@ std::istream& operator>>(std::istream& is, Time& t)
   
   return is;
 }
+
+Time mean_time(const ArrayOfTime& ts, Index s, Index e)
+{
+  if (e == -1)
+    e = ts.nelem();
+  else if (e < 0 or e > ts.nelem())
+    throw std::runtime_error("Bad last index, valid options are [-1, ts.nelem()]");
+  
+  if (s < 0 or s > ts.nelem())
+    throw std::runtime_error("Bad first index, valid options are [0, ts.nelem()]");
+
+  Time::InternalTimeStep dt(0);    
+  for (Index i=s+1; i<e; i++)
+    dt += (ts[i] - ts[s])  / (e - s);
+  return ts[s] + dt;
+}
+

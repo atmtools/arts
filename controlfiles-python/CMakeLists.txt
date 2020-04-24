@@ -17,6 +17,7 @@ arts_test_run_pyfile(fast classes/TestRational.py)
 arts_test_run_pyfile(fast classes/TestRetrievalQuantity.py)
 arts_test_run_pyfile(fast classes/TestSpeciesTag.py)
 arts_test_run_pyfile(fast classes/TestTessemNN.py)
+arts_test_run_pyfile(fast classes/TestTime.py)
 arts_test_run_pyfile(fast classes/TestTimer.py)
 arts_test_run_pyfile(fast classes/TestXsecRecord.py)
 
