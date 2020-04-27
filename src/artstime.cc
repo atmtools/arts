@@ -37,67 +37,49 @@ TimeStep time_stepper_selection(const String& time_step)
   x >> length >> type;
   type.tolower();
   
-  if (type == "hour" or type == "hours" or type == "h") {
-    if (length > 24)
-      throw std::runtime_error("Max 24 hours allowed");
+  if (type == "hour" or type == "hours" or type == "h")
     return TimeStep(std::chrono::hours(length ));
-  }
   else if (type == "minute" or type == "minutes" or type == "min")
     return TimeStep(std::chrono::minutes(length));
   else if (type == "second" or type == "seconds" or type == "s")
     return TimeStep(std::chrono::seconds(length));
   else 
-    return TimeStep(0);
+    throw std::runtime_error("Bad time step definition");
 }
 
-Index next_larger_from_time(const ArrayOfTime& times, const TimeStep& step, const Index curpos, const Index start_pos)
+Time next_even(const Time& t, const TimeStep& dt_in_sec)
 {
-  if (TimeStep(0) == step) {
-    return curpos+1;
-  } else {
-    Numeric intt0, intt1;
-    std::modf((times[curpos] - times[start_pos]) / step, &intt0);
-    for (Index i=curpos+1; i<times.nelem(); i++) {
-      std::modf((times[i] - times[start_pos]) / step, &intt1);
-      if (intt1 > intt0)
-        return i;
-    }
-    return times.nelem();
+  auto dt = std::chrono::duration_cast<Time::InternalTimeStep>(dt_in_sec);
+  return t + dt - t.EpochTime() % dt;
+}
+
+ArrayOfIndex time_steps(const ArrayOfTime& times, const String& step)
+{
+  Index N = times.nelem();
+  if (N < 2) {
+    throw std::runtime_error("Can only find time steps for 2-long or longer time grids");
   }
-}
-
-Index start_index_from_time(const ArrayOfTime& times, const TimeStep& step, const bool next_even)
-{
-  if (not next_even) {
-    return 0;
-  } else if(TimeStep(0) == step) {
-    return 0;
-  } else {
-    if(times.nelem() == 0)
-      return 0;
-    else if(times.nelem() > 1 and times[1] - times[0] > step)
-      return 0;
-    else {
-      for (Index i=1; i<times.nelem(); i++)
-        if (std::fmod(times[i].seconds_into_day().count(), step.count()) < std::fmod(times[i-1].seconds_into_day().count(), step.count()))
-          return i;
-      return times.nelem();
-    }
-  }
-}
-
-ArrayOfIndex time_steps(const ArrayOfTime& times, const String& step, const bool start_even)
-{
+  
   auto dt = time_stepper_selection(step);
   if (dt < decltype(dt)(0)) {
     throw std::runtime_error("Must have positive time steps (or 0 for all times)");
   }
   
-  ArrayOfIndex time_steps{start_index_from_time(times, dt, start_even)};
+  ArrayOfIndex time_steps{0};
   
-  while (time_steps.back() not_eq times.nelem())
-    time_steps.push_back(next_larger_from_time(times, dt, time_steps.back(), time_steps.front()));
+  if (N > 2) {
+    Time tupp = next_even(times[0], dt);
+    time_steps.push_back(1);
     
+    for (; time_steps.back() < N; time_steps.back()++) {
+      if (not (times[time_steps.back()] < tupp)) {
+        tupp = next_even(tupp, dt);
+        time_steps.push_back(time_steps.back());
+      }
+    }
+  } else {
+    time_steps.push_back(N);
+  }
   return time_steps;
 }
 
@@ -106,9 +88,7 @@ std::ostream& operator<<(std::ostream& os, const Time& t)
   // FIXME: C++20 has much better calendar handling
   std::tm x = t.toStruct();
   
-  // Deal with subsections for partial seconds
-  
-  // Deal with seconds;
+  // Deal with seconds
   char sec[2+1+9+100];
   Numeric seconds = Numeric(x.tm_sec) + t.PartOfSecond();
   sprintf(sec, "%.9lf", seconds);

@@ -92,21 +92,27 @@ std::istream& operator>>(std::istream& is, Time& t);
 /** Debug output for duration */
 inline std::ostream& operator<<(std::ostream& os, const TimeStep& dt) {return os << dt.count() << " seconds";}
 
+/** Returns the next time after t with an even time-step
+ * 
+ * @param[in] t A time
+ * @param[in] dt A duration of time
+ * @return Next even time, e.g., 14:14:00 with dt as 10 minutes gives 14:20:00
+ */
+Time next_even(const Time& t, const TimeStep& dt);
+
 /** Finds the index matching demands in a list of times
- *
- * The output makes index(i+1)-index(i) mark the range of a time step.  If start_even
- * is true, the time step begins at the beginning of an even step daily (e.g., 2 hour time
- * step means a range starts at 00:00, 02:00, 04:00, and so on)
+ * 
+ * The first index is 0 and the second index is the start of the first even period of
+ * the given stepsize
  * 
  * The last index is times.nelem().  If output has 1 element, no range was found matching the
  * criteria.
  * 
  * @param[in] times Times sorted in ascending order
  * @param[in] step A duration of time
- * @param[in] start_even Flag for the first time
  * @return Starting index of the time-series
  */
-ArrayOfIndex time_steps(const ArrayOfTime& time, const String& step, const bool start_even);
+ArrayOfIndex time_steps(const ArrayOfTime& time, const String& step);
 
 /** Computes the average time in a list
  * 
