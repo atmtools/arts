@@ -519,6 +519,11 @@ target_link_libraries (test_propagationmatrix ${ALL_ARTS_LIBRARIES})
 
 ########### next testcase ###############
 
+add_executable (test_time test_time.cc artstime.h)
+target_link_libraries (test_time ${ALL_ARTS_LIBRARIES})
+
+########### next testcase ###############
+
 add_executable (test_covariance_matrix test_covariance_matrix.cc)
 target_link_libraries(test_covariance_matrix test_utils ${ALL_ARTS_LIBRARIES})
 
