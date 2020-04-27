@@ -50,7 +50,11 @@ TimeStep time_stepper_selection(const String& time_step)
 Time next_even(const Time& t, const TimeStep& dt_in_sec)
 {
   auto dt = std::chrono::duration_cast<Time::InternalTimeStep>(dt_in_sec);
-  return t + dt - t.EpochTime() % dt;
+  
+  if (dt.count())
+    return t + dt - t.EpochTime() % dt;
+  else 
+    return t;
 }
 
 ArrayOfIndex time_steps(const ArrayOfTime& times, const String& step)
