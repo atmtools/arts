@@ -6550,11 +6550,11 @@ void define_md_data_raw() {
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT("out"),
-      GOUT_TYPE("ArrayOfTime,ArrayOfVector,Matrix"),
+      GOUT_TYPE("ArrayOfTime,ArrayOfVector,Matrix,Tensor3,Tensor4,Tensor5,Tensor6,Tensor7"),
       GOUT_DESC("Flatter array/matpack-type"),
       IN(),
       GIN("in"),
-      GIN_TYPE("ArrayOfArrayOfTime,ArrayOfArrayOfVector,ArrayOfVector"),
+      GIN_TYPE("ArrayOfArrayOfTime,ArrayOfArrayOfVector,ArrayOfVector,ArrayOfMatrix,ArrayOfTensor3,ArrayOfTensor4,ArrayOfTensor5,ArrayOfTensor6"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("An array")));
 
@@ -20788,24 +20788,21 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("ybatchTimeAveraging"),
       DESCRIPTION(
-          "Time average of *ybatch*\n"
+          "Time average of *ybatch* and *time_grid*\n"
           "\n"
-          "Computes the internal covariance matrix in *covmat_sepsbatch*,\n"
-          "stores the number of elements per averaging in *counts*, and\n"
-          "sets the *start_time* to the first time in the averaging\n"),
+          "Computes the internal covariance matrix in *covmat_sepsbatch*, and\n"
+          "stores the number of elements per averaging in *counts*\n"),
       AUTHORS("Richard Larsson"),
       OUT("ybatch", "time_grid", "covmat_sepsbatch", "counts"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN(),
-      GIN("ybatch_fine", "time_grid_fine", "time_step", "start_even", "disregard_last"),
-      GIN_TYPE("ArrayOfVector", "ArrayOfTime", "String", "Index", "Index"),
-      GIN_DEFAULT(NODEF, NODEF, NODEF, "0", "0"),
-      GIN_DESC("Data to average, length must be size of *time_grid_fine* and each vector must have the same size",
-               "Time grid of input data",
-               "Time step in the form \"INDEX SCALE\", where SCALE is \"h\", \"min\", or \"s\" for hours, minutes or seconds",
-               "Flag to start at an even time step, such that \"12 h\" means to start at first noon or midnight passing",
+      IN("ybatch", "time_grid"),
+      GIN("time_step", "disregard_first", "disregard_last"),
+      GIN_TYPE("String", "Index", "Index"),
+      GIN_DEFAULT(NODEF, "0", "0"),
+      GIN_DESC("Time step in the form \"INDEX SCALE\", where SCALE is \"h\", \"min\", or \"s\" for hours, minutes or seconds",
+               "Flag to remove first time step (e.g., if it is an incomplete step)",
                "Flag to remove last time step (e.g., if it is an incomplete step)")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -20837,7 +20834,7 @@ void define_md_data_raw() {
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN("ybatch_corr"),
+      IN("ybatch", "ybatch_corr"),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),

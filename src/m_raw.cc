@@ -55,29 +55,31 @@ void yCAH(Vector& y,
 }
 
 
-void ybatchTimeAveraging(ArrayOfVector& ybatch_out,
-                         ArrayOfTime& time_grid_out,
+void ybatchTimeAveraging(ArrayOfVector& ybatch,
+                         ArrayOfTime& time_grid,
                          ArrayOfMatrix& covmat_sepsbatch,
                          ArrayOfIndex& counts,
-                         const ArrayOfVector& ybatch_in,
-                         const ArrayOfTime& time_grid_in,
                          const String& time_step,
-                         const Index& start_at_even,
+                         const Index& disregard_first,
                          const Index& disregard_last,
                          const Verbosity&)
 {
   // Size of problem
-  const Index n=time_grid_in.nelem();
-  if (time_grid_in.nelem() not_eq n) {
+  const Index n=time_grid.nelem();
+  if (time_grid.nelem() not_eq n) {
     throw std::runtime_error("Time vector length must match input data length");
   }
   
   // Time is not decreasing
-  if (not std::is_sorted(time_grid_in.cbegin(), time_grid_in.cend()))
+  if (not std::is_sorted(time_grid.cbegin(), time_grid.cend()))
     throw std::runtime_error("Time vector cannot decrease");
   
   // Find the limits of the range
-  auto lims = time_steps(time_grid_in, time_step, start_at_even);
+  auto lims = time_steps(time_grid, time_step);
+  
+  // Output variables
+  ArrayOfVector ybatch_out;
+  ArrayOfTime time_grid_out;
   
   if (lims.front() == n) {
     ybatch_out.resize(0);
@@ -87,28 +89,32 @@ void ybatchTimeAveraging(ArrayOfVector& ybatch_out,
   } else {
     
     // Frequency grids
-    const Index k = ybatch_in[0].nelem();
-    if (not std::all_of(ybatch_in.cbegin(), ybatch_in.cend(), [k](auto& x){return x.nelem()==k;})) {
+    const Index k = ybatch[0].nelem();
+    if (not std::all_of(ybatch.cbegin(), ybatch.cend(), [k](auto& x){return x.nelem() == k;})) {
       throw std::runtime_error("Bad frequency grid size in input data; expects all equal");
     }
     
     // Allocate output
-    const Index m = lims.nelem() - 1 - bool(disregard_last);
+    const Index m = lims.nelem() - 1 - bool(disregard_last) - bool(disregard_first);
     if (m < 0)
-      throw std::runtime_error("Must include last if time step covers all of the range"),
+      throw std::runtime_error("Must include last if time step covers all of the range");
     ybatch_out = ArrayOfVector(m, Vector(k));
     time_grid_out = ArrayOfTime(m);
     covmat_sepsbatch = ArrayOfMatrix(m, Matrix(k, k));
     counts.resize(m);
     
     // Fill output
-    for (Index i=0; i<m; i++) {
-      counts[i] = lims[i+1] - lims[i];
-      time_grid_out = mean_time(time_grid_in, lims[i], lims[i+1]);
-      linalg::avg(ybatch_out[i], ybatch_in, lims[i], lims[i+1]);
-      linalg::cov(covmat_sepsbatch[i], ybatch_out[i], ybatch_in, lims[i], lims[i+1]);
+    #pragma omp parallel for if (not arts_omp_in_parallel()) schedule(guided)
+    for (Index i=bool(disregard_first); i<m; i++) {
+      counts[i-bool(disregard_first)] = lims[i+1] - lims[i];
+      time_grid_out[i-bool(disregard_first)] = mean_time(time_grid, lims[i], lims[i+1]);
+      linalg::avg(ybatch_out[i-bool(disregard_first)], ybatch, lims[i], lims[i+1]);
+      linalg::cov(covmat_sepsbatch[i-bool(disregard_first)], ybatch_out[i-bool(disregard_first)], ybatch, lims[i], lims[i+1]);
     }
   }
+  
+  ybatch = ybatch_out;
+  time_grid = time_grid_out;
 }
 
 
@@ -153,10 +159,7 @@ void ybatchTroposphericCorrectionNaiveMedianInverse(ArrayOfVector& ybatch,
 {
   // Size of problem
   const Index n=ybatch.nelem();
-  const Index m=n?ybatch[0].nelem():0;
-  if (std::any_of(ybatch.begin(), ybatch.end(), [m](auto& y){return y.nelem() not_eq m;})) {
-    throw std::runtime_error("Bad input size, all of ybatch must match itself");
-  } else if ((std::any_of(ybatch_corr.begin(), ybatch_corr.end(), [](auto& corr){return corr.nelem() not_eq 3;})) or ybatch_corr.nelem() not_eq n) {
+  if ((std::any_of(ybatch_corr.begin(), ybatch_corr.end(), [](auto& corr){return corr.nelem() not_eq 3;})) or ybatch_corr.nelem() not_eq n) {
     throw std::runtime_error("Bad input size, all of ybatch_corr must match ybatch and have three elements each");
   }
   
