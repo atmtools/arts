@@ -5,7 +5,8 @@ from pyarts.workspace.api import arts_api as lib
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 from pyarts.classes.ArrayBase import array_base
 
-import datetime
+from datetime import datetime
+import numpy as np
 
 
 class Time:
@@ -14,6 +15,12 @@ class Time:
     Note that the local epoch is UNIX time in CPP20 onwards, but that we assume it
     is the time on your system for this class to work.  Please confirm this before
     using any Time features
+
+    Addition to class is treated like adding seconds.  Subtraction from class
+    is also treated as seconds.  Subtracting Time from another time gives the
+    number of seconds between two time stamps.  Note that since the internal
+    clock is in units of scaled integers, even adding 0 to Time may round the
+    clock enough that (t0 + 0 != t0) is True.
 
     Properties:
         sec:
@@ -34,6 +41,10 @@ class Time:
     def name():
         return "Time"
 
+    @staticmethod
+    def now():
+        return Time()
+
     @property
     def sec(self):
         """ Time in system time seconds since local epoch (Numeric) """
@@ -52,7 +63,7 @@ class Time:
             lib.deleteTime(self.__data__)
 
     def __repr__(self):
-        return datetime.datetime.fromtimestamp(self.sec).strftime("%Y-%m-%d %H:%M:%S.%f")
+        return datetime.fromtimestamp(self.sec).strftime("%Y-%m-%d %H:%M:%S.%f")
 
     def set(self, other):
         """ Sets this class according to another python instance of itself """
@@ -99,9 +110,58 @@ class Time:
         else:
             return False
 
+    def __add__(self, other):
+        if isinstance(other, Time):
+            raise TypeError("Cannot add Time to itself")
+        else:
+            return Time(self.sec + other)
+
+    def __sub__(self, other):
+        if isinstance(other, Time):
+            return self.sec - other.sec
+        else:
+            return Time(self.sec-other)
+
+    def __radd__(self, other):
+        if isinstance(other, Time):
+            raise TypeError("Cannot add Time to itself")
+        else:
+            return Time(other + self.sec)
+
+    def __rsub__(self, other):
+        if isinstance(other, Time):
+            return other.sec - self.sec
+        else:
+            return Time(self.sec-other)
+
 
 # ArrayOfTime
 exec(array_base(Time))
+
+
+def TimeGrid(ts):
+    """ Return an array of datetimes from an ArrayOfTime or list of Time
+
+    Helps to make calls to matplotlib look decent
+
+    Example:
+        >>> import numpy as np
+        >>> import matplotlib.pyplot as plt
+        >>> ts = [Time.now() + 3600*i for i in range(60*24)]  # Hourly time stamps for 60 days from now
+        >>> y = [np.sin(4*np.pi * t.sec / (3600*60*24)) for t in ts]  # 2 Waves
+        >>> plt.plot(TimeGrid(ts), y), plt.gcf().autofmt_xdate()  # Formatted plots
+
+    Input:
+        ts: An ArrayOfTime
+
+    Output:
+        List of datetime.datetime(s)
+    """
+    return np.array([datetime.fromtimestamp(t.sec) for t in ts])
+
+
+# Makes example above work directly on ArrayOfTime without TimeGrid-conversion
+ArrayOfTime.__array__ = TimeGrid
 
 
 # ArrayOfArrayOfTime
