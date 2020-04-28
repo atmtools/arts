@@ -95,7 +95,12 @@ void abs_lines_per_speciesCreateFromLines(  // WS Output:
     const Verbosity&) {
   // Size is set but inner size will now change from the original definition of species tags...
   abs_lines_per_species.resize(tgs.nelem());
-  
+
+  // The inner arrays need to be emptied, because they may contain lines
+  // from a previous calculation
+  for (auto &tg : abs_lines_per_species)
+    tg.resize(0);
+
   // Take copies because we have to support frequency ranges, so might have to delete
   for (AbsorptionLines lines: abs_lines) {
     
