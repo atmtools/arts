@@ -17962,8 +17962,8 @@ void define_md_data_raw() {
                "Minimum allowed value for reflectivity to apply.",
                "Maximum allowed value for reflectivity to apply.",
                "Maximum allowed distance in meters for nearest neighbor"
-               " interpolation. Set to a negative value or zero to disable"
-               " interpolation.")));
+               " interpolation in meters. Set to a negative value or zero "
+               " to disable interpolation.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("surfaceFlatRefractiveIndex"),
