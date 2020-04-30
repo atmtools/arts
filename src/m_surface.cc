@@ -54,6 +54,7 @@
 #include "surface.h"
 #include "tessem.h"
 
+extern Numeric EARTH_RADIUS;
 extern const Numeric DEG2RAD;
 
 /*===========================================================================
@@ -1034,27 +1035,26 @@ void surfaceTelsem(Matrix& surface_los,
   }
   chk_if_in_range("Longitude input to TELSEM2", lon, 0.0, 360.0);
 
-  Index cellnumber = 0;
-  if (d_max <= 0.0) {
-    cellnumber = atlas.calc_cellnum(lat, lon);
-    // Check if cell is in atlas.
-    if (!atlas.contains(cellnumber)) {
+  Index cellnumber = atlas.calc_cellnum(lat, lon);
+  // Check if cell is in atlas.
+  if (!atlas.contains(cellnumber)) {
+    if (d_max <= 0.0) {
       throw std::runtime_error(
           "Given coordinates are not contained in "
           " TELSEM atlas. To enable nearest neighbor"
           "interpolation set *d_max* to a positive "
           "value.");
-    }
-  } else {
-    cellnumber = atlas.calc_cellnum_nearest_neighbor(lat, lon);
-    Numeric lat_nn, lon_nn;
-    std::tie(lat_nn, lon_nn) = atlas.get_coordinates(cellnumber);
-    Numeric d = sphdist(lat, lon, lat_nn, lon_nn);
-    if (d > d_max) {
-      std::ostringstream out{};
-      out << "Distance of nearest neighbor exceeds provided limit (";
-      out << d << " > " << d_max << ").";
-      throw std::runtime_error(out.str());
+    } else {
+      cellnumber = atlas.calc_cellnum_nearest_neighbor(lat, lon);
+      Numeric lat_nn, lon_nn;
+      std::tie(lat_nn, lon_nn) = atlas.get_coordinates(cellnumber);
+      Numeric d = sphdist(lat, lon, lat_nn, lon_nn);
+      if (d > d_max) {
+        std::ostringstream out{};
+        out << "Distance of nearest neighbor exceeds provided limit (";
+        out << d << " > " << d_max << ").";
+        throw std::runtime_error(out.str());
+      }
     }
   }
 
