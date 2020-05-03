@@ -163,10 +163,6 @@ void zeeman_on_the_fly(
   if (rtp_temperature <= 0) throw "Non-positive temperature";
   if (rtp_pressure <= 0) throw "Non-positive pressure";
   if (manual_tag and H0 < 0) throw "Negative manual magnetic field strength";
-  for (auto& lines: abs_lines_per_species)
-    for (auto& band: lines) 
-      if (not good_J(band))
-        throw "Bad or undefined J quantum numbers";
 
   // Pressure information
   const Numeric dnumdens_dmvr = number_density(rtp_pressure, rtp_temperature);
