@@ -370,5 +370,10 @@ else()
  endif()
 endif()
 
+if(NOT APPLE AND NOT LAPACK_LIBRARIES MATCHES "libopenblas")
+  message(WARNING "Non-OpenBLAS LAPACK library detected. "
+          "We recommend to use OpenBLAS instead.")
+endif()
+
 cmake_pop_check_state()
 set(CMAKE_FIND_LIBRARY_SUFFIXES ${_lapack_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES})

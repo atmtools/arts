@@ -26,8 +26,7 @@ Build Prerequisites:
 - gcc/g++ >=8 (or llvm/clang >=8) older versions might work, but are untested
 - cmake (>=3.1.0)
 - zlib
-- blas
-- lapack
+- openblas
 - netcdf (optional)
 - Python3 (>=3.6)
   - required modules:
