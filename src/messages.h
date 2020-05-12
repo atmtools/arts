@@ -59,7 +59,7 @@ class Verbosity {
    * @return True if ok.
    */
   bool valid() const {
-    return (va >= 0 && va <= 3) && (vs >= 0 && vs <= 3) && (vf >= 0 || vf <= 3);
+    return (va >= 0 && va <= 3) && (vs >= 0 && vs <= 3) && (vf >= 0 && vf <= 3);
   }
 
   Index get_agenda_verbosity() const { return va; }
