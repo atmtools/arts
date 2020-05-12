@@ -30,6 +30,7 @@
   \author Stefan Buehler
   \date 2000-06-10 */
 
+#include <array>
 #include "methods.h"
 #include "arts.h"
 #include "wsv_aux.h"
