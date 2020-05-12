@@ -123,6 +123,27 @@ systems, but not portable. Note that since this build-mode is meant for
 fast-but-accurate computations, some IEEE rules will be ignored. For now only
 complex computations are IEEE incompatible running this mode of build.
 
+Installing PyARTS
+-----------------
+
+To install the PyARTS Python package, you need to build it and install it with
+pip. Create your build directory and configure ARTS with cmake as described in
+the previous sections. Then, run the following commands inside your build
+directory:
+
+```
+make pyarts
+cd python
+pip install --user -e .
+```
+
+This will not mess your system's Python installation.
+A link to the pyarts package is created in your home directory, usually
+`$HOME/.local/lib/python3.X/site-packages/pyarts.egg-link`.
+
+You don't need to reinstall the package with pip after updating ARTS.
+You only need to run `make pyarts` again.
+
 Tests
 -----
 
