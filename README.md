@@ -137,7 +137,7 @@ cd python
 pip install --user -e .
 ```
 
-This will not mess your system's Python installation.
+This will not mess with your system's Python installation.
 A link to the pyarts package is created in your home directory, usually
 `$HOME/.local/lib/python3.X/site-packages/pyarts.egg-link`.
 
