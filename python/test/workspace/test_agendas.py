@@ -179,7 +179,8 @@ class TestAgendas:
 
     def test_exception(self):
         """
-        Test expansion of starred expression.
+        Ensure that exception is thrown when a agenda
+        variable is set to an invalid value.
         """
         @pyarts.workspace.arts_agenda
         def abs_xsec_agenda(ws):
