@@ -1,4 +1,5 @@
 #include "arts_api.h"
+
 #include "agenda_class.h"
 #include "arts.h"
 #include "auto_md.h"
@@ -64,7 +65,7 @@ void finalize() {
 
 const char *get_error() { return string_buffer.c_str(); }
 
-void set_basename(const char *name) {out_basename = name;}
+void set_basename(const char *name) { out_basename = name; }
 
 ////////////////////////////////////////////////////////////////////////////
 // Parsing and executing agendas.
@@ -459,8 +460,7 @@ VariableValueStruct get_variable_value(InteractiveWorkspace *workspace,
   return value;
 }
 
-void * get_variable_data_pointer(InteractiveWorkspace *workspace,
-                                 Index id) {
+void *get_variable_data_pointer(InteractiveWorkspace *workspace, Index id) {
   return workspace->operator[](id);
 }
 
@@ -519,8 +519,13 @@ const char *set_variable_value(InteractiveWorkspace *workspace,
   }
   // Agenda
   else if (wsv_group_names[group_id] == "Agenda") {
-    const Agenda *ptr = reinterpret_cast<const Agenda *>(value.ptr);
-    workspace->set_agenda_variable(id, *ptr);
+    try {
+      const Agenda *ptr = reinterpret_cast<const Agenda *>(value.ptr);
+      workspace->set_agenda_variable(id, *ptr);
+    } catch (const std::exception &e) {
+      string_buffer = std::string(e.what());
+      return string_buffer.c_str();
+    }
   }
   // Index
   else if (wsv_group_names[group_id] == "Index") {

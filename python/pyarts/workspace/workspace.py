@@ -421,8 +421,12 @@ class Workspace:
             value: The Python object representing the value to set :code:`wsv` to.
         """
         if is_empty(value):
-            arts_api.set_variable_value(self.ptr, wsv.ws_id, wsv.group_id,
-                                        VariableValueStruct.empty())
+            err = arts_api.set_variable_value(self.ptr, wsv.ws_id, wsv.group_id,
+                                              VariableValueStruct.empty())
+            if not err is None:
+                msg = ("The following error occurred when trying to set the"
+                       " WSV {}: {}".format(wsv.name, err.decode()))
+                raise Exception(msg)
             return None
 
         group = group_names[WorkspaceVariable.get_group_id(value)]
@@ -438,12 +442,11 @@ class Workspace:
 
         s = VariableValueStruct(value)
         if s.ptr:
-            e = arts_api.set_variable_value(self.ptr, wsv.ws_id, wsv.group_id, s)
-            if e:
-                arts_api.erase_variable(self.ptr, wsv.ws_id, wsv.group_id)
-                raise Exception("Setting of workspace variable through C API "
-                                " failed with  the " + "following error:\n"
-                                + e.decode("utf8"))
+            err = arts_api.set_variable_value(self.ptr, wsv.ws_id, wsv.group_id, s)
+            if not err is None:
+                msg = ("The following error occurred when trying to set the"
+                       " WSV {}: {}".format(wsv.name, err.decode()))
+                raise Exception(msg)
         # If the type is not supported by the C API try to write the type to XML
         # and read into ARTS workspace.
         else:
@@ -507,11 +510,6 @@ class Workspace:
         if value is None or (isinstance(value, list) and not value):
             arts_api.set_variable_value(self.ptr, v.ws_id, v.group_id,
                                         VariableValueStruct.empty())
-            return None
-
-        if type(value) == Agenda:
-            arts_api.set_variable_value(self.ptr, v.ws_id, v.group_id,
-                                        VariableValueStruct(value))
             return None
 
         self.set_variable(v, value)
