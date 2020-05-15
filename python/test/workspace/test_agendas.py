@@ -176,3 +176,14 @@ class TestAgendas:
         self.ws.stokes_dim = 0
         agenda.execute(self.ws)
         assert self.ws.stokes_dim.value == 42
+
+    def test_exception(self):
+        """
+        Test expansion of starred expression.
+        """
+        @pyarts.workspace.arts_agenda
+        def abs_xsec_agenda(ws):
+              pass
+        self.ws = pyarts.workspace.Workspace()
+        with pytest.raises(Exception):
+              self.ws.abs_xsec_agenda = abs_xsec_agenda
