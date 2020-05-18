@@ -52,6 +52,7 @@ from pyarts.classes.XsecRecord import ArrayOfXsecRecord
 import pyarts
 import ctypes as c
 from pyarts.workspace.api import arts_api as lib
+import pyarts.classes.netcdf
 
 def from_workspace(x):
     """ Converts a workspace variable to a python class
