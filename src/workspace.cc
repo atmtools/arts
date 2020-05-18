@@ -4635,11 +4635,6 @@ void Workspace::define_wsv_data() {
       GROUP("ArrayOfMatrix")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("start_time"),
-      DESCRIPTION("Start time for some time series.\n"),
-      GROUP("Time")));
-
-  wsv_data.push_back(WsvRecord(
       NAME("stokes_rotation"),
       DESCRIPTION(
           "Rotation of the Stokes H and V directions.\n"
@@ -4928,6 +4923,11 @@ void Workspace::define_wsv_data() {
                             "\n"
                             "Only used for testing by developers.\n"),
                 GROUP("ArrayOfAgenda")));
+
+  wsv_data.push_back(WsvRecord(
+      NAME("time"),
+      DESCRIPTION("A time point.\n"),
+      GROUP("Time")));
 
   wsv_data.push_back(WsvRecord(
       NAME("timer"),

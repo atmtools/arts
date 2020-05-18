@@ -5,6 +5,8 @@ from pyarts.classes.Range import Range
 from pyarts.classes.Matrix import Matrix
 from pyarts.classes.Sparse import Sparse
 
+import numpy as np
+
 class Block:
     """ ARTS Block data
 
@@ -47,7 +49,7 @@ class Block:
     @property
     def col_range(self):
         """ Column range of block (Range) """
-        return Range(c.c_void_p(lib.getget_row_rangeBlock(self.__data__)))
+        return Range(c.c_void_p(lib.getget_column_rangeBlock(self.__data__)))
 
     @row_range.setter
     def row_range(self, other):
@@ -116,6 +118,37 @@ class Block:
             self.data = other.data
         else:
             raise TypeError("Expects Block")
+
+    def netcdfify(self):
+        """ Create the NETCDF4 information required for writing this data
+        
+            Output: list that can be processed by netcdf.py, False arraytype
+        """
+        out, _ = self.data.netcdfify()
+        out.append(["MatrixType", "Sparse" if self.type else "Matrix", str, {}])
+        out.append(["indices", np.array(self.indices), int, {"two": 2}])
+        out.append(self.col_range.netcdfify()[0][0])
+        out.append(self.row_range.netcdfify()[0][0])
+        out[-2][0] = "col_range"
+        out[-1][0] = "row_range"
+        return out, False
+    
+    def denetcdf(self, group):
+        """ Sets this based on a netcdf group
+        
+        Input:
+            Group of data that can be interpreted as this's information
+        """
+        self.col_range.denetcdf(group, "col_range")
+        self.row_range.denetcdf(group, "row_range")
+        self.indices = np.array(group["indices"])
+        
+        if group.MatrixType == "Matrix":
+            x = Matrix()
+        else:
+            x = Sparse()
+        x.denetcdf(group)
+        self.data = x
 
 
 lib.createBlock.restype = c.c_void_p

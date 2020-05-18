@@ -369,6 +369,21 @@ class String:
         """
         if lib.xmlsaveString(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
+    
+    def netcdfify(self):
+        """ Create the NETCDF4 information required for writing this data
+        
+        Output: list that can be processed by netcdf.py, False arraytype
+        """
+        return [["val", self.val, str, {}]], False
+    
+    def denetcdf(self, group):
+        """ Sets this based on a netcdf group
+        
+        Input:
+            Group of data that can be interpreted as this's information
+        """
+        self.val = group.variables["val"]
 
     def __eq__(self, other):
         return self.val == str(other)

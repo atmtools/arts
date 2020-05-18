@@ -62,8 +62,10 @@ def array_base(var):
 
     define_array_lib(var)
 
-
-    return '''class ArrayOfBASENAME:
+    x = "from collections.abc import Sized\n\n"
+        
+    return x + '''class ArrayOfBASENAME:
+        
         """ ArrayOfBASENAME from ARTS
 
             Getter and setter returns underlying type
@@ -199,6 +201,24 @@ def array_base(var):
             """
             if lib.xmlsaveArrayOfBASENAME(self.__data__, *correct_save_arguments(file, type, clobber)):
                 raise OSError("Cannot save {}".format(file))
+
+        def netcdfify(self):
+            """ Create the NETCDF4 information required for writing this data
+            
+            Output: list that can be processed by netcdf.py, True arraytype
+            """
+            return [x.netcdfify() for x in self], True
+        
+        def denetcdf(self, group):
+            """ Sets this based on a netcdf group
+            
+            Input:
+                Group of data that can be interpreted as this's information
+            """
+            self.size = group.nelem
+            for i in range(group.nelem):
+                self[i].denetcdf(group["pos{}".format(i)])
+            
 
         def __eq__(self, other):
             n = len(self)

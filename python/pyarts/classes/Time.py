@@ -1,5 +1,4 @@
 import ctypes as c
-from collections.abc import Sized
 from pyarts.workspace.api import arts_api as lib
 
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
@@ -63,7 +62,7 @@ class Time:
             lib.deleteTime(self.__data__)
 
     def __repr__(self):
-        return datetime.fromtimestamp(self.sec).strftime("%Y-%m-%d %H:%M:%S.%f")
+        return self.strftime("%Y-%m-%d %H:%M:%S.%f")
 
     def set(self, other):
         """ Sets this class according to another python instance of itself """
@@ -97,6 +96,20 @@ class Time:
         """
         if lib.xmlsaveTime(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
+
+    def netcdfify(self):
+        """ Create the NETCDF4 information required for writing this data
+        
+            Output: list that can be processed by netcdf.py, False arraytype
+        """
+        return [["val", str(self), str, {}]], False
+
+    def denetcdf(self, group):
+        """ Create the NETCDF4 information required for writing this data
+        
+            Output: list that can be processed by netcdf.py, False arraytype
+        """
+        self.sec = datetime.fromisoformat(group.val).timestamp()
 
     def __eq__(self, other):
         if isinstance(other, Time) and lib.equalTime(self.__data__, other.__data__):
@@ -133,6 +146,9 @@ class Time:
             return other.sec - self.sec
         else:
             return Time(self.sec-other)
+    
+    def strftime(self, fmt):
+        return datetime.fromtimestamp(self.sec).strftime(fmt)
 
 
 # ArrayOfTime
