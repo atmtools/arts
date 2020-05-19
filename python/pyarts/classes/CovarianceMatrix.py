@@ -145,7 +145,7 @@ class CovarianceMatrix:
     def netcdfify(self):
         """ Create the NETCDF4 information required for writing this data
         
-            Output: list that can be processed by netcdf.py, False arraytype
+            Output: list that can be processed by netcdf.py, True arraytype
         """
         return [x.netcdfify() for x in self.blocks], True
 
