@@ -147,8 +147,13 @@ class Time:
         else:
             return Time(self.sec-other)
     
-    def strftime(self, fmt):
+    def strftime(self, fmt : str):
+        """ Return self as string formatted by datetime """
         return datetime.fromtimestamp(self.sec).strftime(fmt)
+    
+    def fromisoformat(self, time: str):
+        """ Sets self.sec from string by datetime fromisoformat """
+        self.sec = datetime.fromisoformat(time).timestamp()
 
 
 # ArrayOfTime
@@ -213,3 +218,4 @@ lib.equalTime.argtypes = [c.c_void_p, c.c_void_p]
 
 lib.lessTime.restype = c.c_bool
 lib.lessTime.argtypes = [c.c_void_p, c.c_void_p]
+

@@ -95,7 +95,7 @@ void ybatchTimeAveraging(ArrayOfVector& ybatch,
     }
     
     // Allocate output
-    const Index m = lims.nelem() - 1 - bool(disregard_last) - bool(disregard_first);
+    const Index m = lims.nelem() - 1;
     if (m < 0)
       throw std::runtime_error("Must include last if time step covers all of the range");
     ybatch_out = ArrayOfVector(m, Vector(k));
@@ -105,12 +105,26 @@ void ybatchTimeAveraging(ArrayOfVector& ybatch,
     
     // Fill output
     #pragma omp parallel for if (not arts_omp_in_parallel()) schedule(guided)
-    for (Index i=bool(disregard_first); i<m; i++) {
-      counts[i-bool(disregard_first)] = lims[i+1] - lims[i];
-      time_grid_out[i-bool(disregard_first)] = mean_time(time_grid, lims[i], lims[i+1]);
-      linalg::avg(ybatch_out[i-bool(disregard_first)], ybatch, lims[i], lims[i+1]);
-      linalg::cov(covmat_sepsbatch[i-bool(disregard_first)], ybatch_out[i-bool(disregard_first)], ybatch, lims[i], lims[i+1]);
+    for (Index i=0; i<m; i++) {
+      counts[i] = lims[i+1] - lims[i];
+      time_grid_out[i] = mean_time(time_grid, lims[i], lims[i+1]);
+      linalg::avg(ybatch_out[i], ybatch, lims[i], lims[i+1]);
+      linalg::cov(covmat_sepsbatch[i], ybatch_out[i], ybatch, lims[i], lims[i+1]);
     }
+  }
+  
+  if (disregard_first) {
+    counts.erase(counts.begin());
+    ybatch_out.erase(ybatch_out.begin());
+    time_grid_out.erase(time_grid_out.begin());
+    covmat_sepsbatch.erase(covmat_sepsbatch.begin());
+  }
+  
+  if (disregard_last) {
+    counts.pop_back();
+    ybatch_out.pop_back();
+    time_grid_out.pop_back();
+    covmat_sepsbatch.pop_back();
   }
   
   ybatch = ybatch_out;

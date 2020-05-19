@@ -20,6 +20,8 @@ arts_test_run_pyfile(fast classes/TestTessemNN.py)
 arts_test_run_pyfile(fast classes/TestTime.py)
 arts_test_run_pyfile(fast classes/TestTimer.py)
 arts_test_run_pyfile(fast classes/TestXsecRecord.py)
+arts_test_run_pyfile(fast raw/calib.py)
+arts_test_run_pyfile(fast raw/corr.py)
 
 if (ARTS_XML_DATA_DIR)
   arts_test_run_pyfile(fast classes/TestAbsorptionLines.py)
