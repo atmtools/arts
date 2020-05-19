@@ -15,18 +15,18 @@ cur_time = from_workspace(ws.time)
 dt = from_workspace(ws.dt)
 
 # Test Now and Sleep
-ws.Now(ws.start)
+ws.timeNow(ws.start)
 ws.Sleep(1)
-ws.Now(ws.end)
+ws.timeNow(ws.end)
 ws.Duration(ws.dt, ws.start, ws.end)
 assert isclose(dt, 1, abs_tol=1e-3), \
     "Slept for one second but time differs by more than 1 ms"
 
 # Test SleepUntil
-ws.Now(ws.start)
+ws.timeNow(ws.start)
 end_time.sec = start_time.sec + 1
-ws.SleepUntil(ws.end)
-ws.Now(ws.time)
+ws.timeSleep(ws.end)
+ws.timeNow(ws.time)
 assert isclose(cur_time.sec - start_time.sec, 1, abs_tol=1e-3), \
     "Slept for what should be one second but is off by more than 1 ms..."
 
