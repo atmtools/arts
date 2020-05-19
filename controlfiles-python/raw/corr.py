@@ -1,3 +1,4 @@
+import os
 import pyarts
 import numpy as np
 
@@ -56,8 +57,9 @@ ws.ybatchTroposphericCorrectionNaiveMedianForward(ws.ybatch_corr, ws.ybatch, ws.
 ws.ybatchTimeAveraging(time_step="24 h", disregard_first=1, disregard_last=1)
 
 # A simple
-# pyarts.classes.netcdf.save("corr_ref.nc", [ws.covmat_sepsbatch, ws.ybatch, ws.time_grid, ws.counts])
-refs = pyarts.classes.netcdf.load("corr_ref.nc")
+ncfn = os.path.splitext(__file__)[0]+'_ref.nc'
+# pyarts.classes.netcdf.save(ncfn, [ws.covmat_sepsbatch, ws.ybatch, ws.time_grid, ws.counts])
+refs = pyarts.classes.netcdf.load(ncfn)
 x = max(np.array(refs["ybatch"][0] - ys[0]))
 assert x < 1.0,  "Fail to satisfy similar computations"
     
