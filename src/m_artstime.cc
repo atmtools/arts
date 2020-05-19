@@ -32,9 +32,9 @@
 #include "sorting.h"
 
 
-void Now(Time& t, const Verbosity&)
+void timeNow(Time& time, const Verbosity&)
 {
-  t = Time();
+  time = Time();
 }
 
 
@@ -50,7 +50,7 @@ void Sleep(const Numeric& duration, const Verbosity&)
 }
 
 
-void SleepUntil(const Time& time, const Verbosity&)
+void timeSleep(const Time& time, const Verbosity&)
 {
   std::this_thread::sleep_until(time.Data());
 }
@@ -65,14 +65,14 @@ void LocalTimeOffset(Numeric& dt, const Verbosity&)
 }
 
 
-void Offset(Time& outtime, const Time& intime, const Numeric& offset, const Verbosity&)
+void timeOffset(Time& time, const Numeric& offset, const Verbosity&)
 {
-  outtime = intime + TimeStep(offset);
+  time += TimeStep(offset);
 }
 
 
-void time_gridOffset(ArrayOfTime& time_grid, const Numeric& offset, const Verbosity&)
+void time_gridOffset(ArrayOfTime& time_grid, const Numeric& offset, const Verbosity& verbosity)
 {
   for (Time& time: time_grid)
-    time += TimeStep(offset);
+    timeOffset(time, offset, verbosity);
 }

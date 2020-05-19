@@ -48,6 +48,15 @@ def check_data(record: list) -> bool:
 
 
 def write_record_to_group(group: netCDF4.Group, record: list) -> None:
+    """ Writes a netcdfiable record to the group
+    
+    Input:
+        group:
+            A place to write to
+        
+        record:
+            A list of a string, some data, the underlying data type, a dict of dims of ints
+    """
     assert check_data(record), "Cannot understand netfifable record"
     name = record[0]
     data = record[1]
@@ -71,6 +80,15 @@ def write_record_to_group(group: netCDF4.Group, record: list) -> None:
 
 
 def write_to_group(group: netCDF4.Group, ncdata: list) -> None:
+    """ Writes a list of netcdfiable records to the group or to array-like
+    
+    Input:
+        group:
+            A place to write to
+        
+        record:
+            A tuple of lists and an array bool
+    """
     data, arraytype = ncdata
     
     if arraytype:
@@ -84,6 +102,15 @@ def write_to_group(group: netCDF4.Group, ncdata: list) -> None:
 
 
 def save_workspace_variable(nc: netCDF4.Dataset, var: pyarts.workspace.WorkspaceVariable) -> None:
+    """ Saves a variable to a netcdf dataset
+    
+    Input:
+        nc:
+            A writable netcdf dataset
+        
+        var:
+            A workspace variable
+    """
     ncdata = pyarts.classes.from_workspace(var).netcdfify()
 
     group = nc.createGroup(var.name)
@@ -92,6 +119,20 @@ def save_workspace_variable(nc: netCDF4.Dataset, var: pyarts.workspace.Workspace
         
 
 def save(filename: str, arts_list: list) -> None:
+    """ Saves a list of workspace variable to a netcdf file
+    
+    Tries to save the variable but close the file in a try-except catch
+    
+    Input:
+        filename:
+            A path, preferably a .nc file (note that .nc files blocks after bad writes)
+        
+        arts_list:
+            A list of workspace variables
+    
+    Output:
+        A file at path "filename"
+    """
     nc = netCDF4.Dataset(filename, "w", format="NETCDF4")
     
     nc.pyarts_version = pyarts.version
@@ -106,7 +147,16 @@ def save(filename: str, arts_list: list) -> None:
 
 
 def load(filename: str) -> dict:
-    nc = netCDF4.Dataset("play.nc", "r")
+    """ Loads a netcdf file into a dictionary of pyarts.classes
+    
+    Input:
+        filename:
+            The name of a readable netcdf file
+    
+    Output:
+        A dict of classes
+    """
+    nc = netCDF4.Dataset(filename, "r")
     
     out = {}
     for key in nc.groups:
@@ -114,3 +164,28 @@ def load(filename: str) -> dict:
         out[key] = pyarts.classes.__dict__[group.type]()
         out[key].denetcdf(group)
     return out
+
+
+def set_workspace(input: dict, arts: pyarts.workspace.Workspace) -> None:
+    """ Set workspace from a dict
+    
+    All variables that cannot be read are added to the workspace as
+    "newpython_KEY", where KEY is a dictionary key [uses staticmethod: name()]
+    
+    Input:
+        input:
+            A dictionary of pyarts.classes, where the dictionary name is a valid
+            name of the same type in the ARTS workspace
+    
+        arts:
+            A valid ARTS workspace
+    """
+    
+    for key in input:
+        try:
+            exec("pyarts.classes.from_workspace(arts.{}).set(input[key])".format(key))  # FIXME:  there must be a better way to do this...
+        except:
+            print("Trying to create variable: newpython_{}".format(key))
+            arts.create_variable(input[key].name(), "newpython_{}".format(key))
+            exec("pyarts.classes.from_workspace(arts.newpython_{}).set(input[key])".format(key))  # ...
+    

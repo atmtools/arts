@@ -43,7 +43,7 @@ Array<T> TimeSortTemplate(const Array<T>& arr, const ArrayOfTime& time_stamps)
   ArrayOfIndex sortings(n);
   get_sorted_indexes(sortings, time_stamps);
   
-  // Fill the data into a njew array
+  // Fill the data into a new array
   Array<T> out(n);
   for (Index i=0; i<n; i++)
     out[i] = arr[sortings[i]];
@@ -52,7 +52,7 @@ Array<T> TimeSortTemplate(const Array<T>& arr, const ArrayOfTime& time_stamps)
 }
 
 #define TIME_SORT_MACRO(VAR) \
-void TimeSort(VAR & out, const ArrayOfTime& time_stamps, const VAR & in, const Verbosity&) \
+void time_stampsSort(VAR & out, const ArrayOfTime& time_stamps, const VAR & in, const Verbosity&) \
 {out = TimeSortTemplate(in, time_stamps);}
 
 TIME_SORT_MACRO(ArrayOfTime)

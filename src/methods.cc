@@ -6309,7 +6309,7 @@ void define_md_data_raw() {
       IN(),
       GIN("start", "end"),
       GIN_TYPE("Time", "Time"),
-      GIN_DEFAULT(NODEF, "Time"),
+      GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Start time", "End time")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -6546,7 +6546,13 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("Flatten"),
       DESCRIPTION("Flattens an ArrayOfArray<T> to Array<T> or an Array\n"
-        "of matpack-types to a larger dimension matpack (if dimensions agree)\n"),
+        "of matpack-types to a larger dimension matpack (if dimensions agree)\n"
+        "\n"
+        "The intended transformation for arrays is (sub-arrays can have different sizes):\n"
+        "    {{a, b, c}, {d, e}} -> {a, b, c, d, e}\n"
+        "\n"
+        "The intended transformation for arrays to matpack types is (sub-types must have same size):\n"
+        "    {{a, b, c}, {d, e, f}} -> {a, b, c, d, e, f}\n"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT("out"),
@@ -11211,13 +11217,13 @@ void define_md_data_raw() {
       GIN_DESC()));
   
   md_data_raw.push_back(create_mdrecord(
-      NAME("Now"),
+      NAME("timeNow"),
       DESCRIPTION("Sets time to system_clock::now().\n"),
       AUTHORS("Richard Larsson"),
-      OUT(),
-      GOUT("time"),
-      GOUT_TYPE("Time"),
-      GOUT_DESC("A time variable, set to now()"),
+      OUT("time"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
       IN(),
       GIN(),
       GIN_TYPE(),
@@ -11225,18 +11231,18 @@ void define_md_data_raw() {
       GIN_DESC()));
   
   md_data_raw.push_back(create_mdrecord(
-      NAME("Offset"),
-      DESCRIPTION("Offset a time for some seconds\n"),
+      NAME("timeOffset"),
+      DESCRIPTION("Offsets time for some seconds\n"),
       AUTHORS("Richard Larsson"),
-      OUT(),
-      GOUT("outtime"),
-      GOUT_TYPE("Time"),
-      GOUT_DESC("A time"),
-      IN(),
-      GIN("intime", "offset"),
-      GIN_TYPE("Time", "Numeric"),
-      GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("A time", "Time in seconds")));
+      OUT("time"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("time"),
+      GIN("offset"),
+      GIN_TYPE("Numeric"),
+      GIN_DEFAULT(NODEF),
+      GIN_DESC("Time in seconds")));
   
   md_data_raw.push_back(create_mdrecord(
       NAME("OEM"),
@@ -17548,18 +17554,18 @@ void define_md_data_raw() {
       GIN_DESC("Time to sleep for in seconds")));
   
   md_data_raw.push_back(create_mdrecord(
-      NAME("SleepUntil"),
+      NAME("timeSleep"),
       DESCRIPTION("Sleeps until time has been reached.\n"),
       AUTHORS("Richard Larsson"),
       OUT(),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
-      IN(),
-      GIN("time"),
-      GIN_TYPE("Time"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Time until when to sleep")));
+      IN("time"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("SparseSparseMultiply"),
@@ -19264,7 +19270,7 @@ void define_md_data_raw() {
                GIN_DESC()));
   
   md_data_raw.push_back(create_mdrecord(
-      NAME("TimeSort"),
+      NAME("time_stampsSort"),
       DESCRIPTION("Sort *in* by *time_stamps* into *out*.\n"),
       AUTHORS("Richard Larsson"),
       OUT(),
@@ -20680,9 +20686,15 @@ void define_md_data_raw() {
                "failed job in *ybatch* is left empty.")));
   
   md_data_raw.push_back(create_mdrecord(
-      NAME("yCAH"),
+      NAME("yColdAtmHot"),
       DESCRIPTION(
-          "Computes *y* from input using standard calibration scheme\n"),
+          "Computes *y* from input using standard calibration scheme of cold-atm-hot observations\n"
+          "\n"
+          "If calib evaluates as true:\n"
+          "    y = cold_temp + (hot_temp - cold_temp) * (atm - cold) / (hot - cold)\n"
+          "\n"
+          "If calib evaluates as false:\n"
+          "    y = (hot_temp * cold - cold_temp * hot) / (hot - cold)\n"),
       AUTHORS("Richard Larsson"),
       OUT("y"),
       GOUT(),
@@ -20697,7 +20709,7 @@ void define_md_data_raw() {
                "N-elem Vector of hot load linear power",
                "Cold load temperature",
                "Hot load temperature",
-               "Flag for calibration scheme, 0 means system temperature is computed")));
+               "Flag for calibration scheme, false means system temperature is computed")));
   
   md_data_raw.push_back(create_mdrecord(
       NAME("ybatchMetProfiles"),

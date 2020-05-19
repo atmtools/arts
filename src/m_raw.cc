@@ -29,14 +29,14 @@
 #include "raw.h"
 
 
-void yCAH(Vector& y,
-          const Vector& cold,
-          const Vector& atm,
-          const Vector& hot,
-          const Numeric& cold_temp,
-          const Numeric& hot_temp,
-          const Index& calib,
-          const Verbosity&)
+void yColdAtmHot(Vector& y,
+                 const Vector& cold,
+                 const Vector& atm,
+                 const Vector& hot,
+                 const Numeric& cold_temp,
+                 const Numeric& hot_temp,
+                 const Index& calib,
+                 const Verbosity&)
 {
   if(cold.nelem() not_eq atm.nelem() or atm.nelem() not_eq hot.nelem()) {
     throw std::runtime_error("Length of vectors must be correct");
