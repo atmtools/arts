@@ -25,7 +25,7 @@ ceps = pyarts.classes.from_workspace(ws.covmat_sepsbatch)
 
 # Current time
 some_time = pyarts.classes.Time()
-some_time.fromisoformat("2020-05-19 15:39")
+some_time.sec = 1589895540.0
 
 # Set up the signal every 20 minutes from now
 for i in range(N):
