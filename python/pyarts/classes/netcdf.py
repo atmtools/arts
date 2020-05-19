@@ -12,29 +12,43 @@ import netCDF4
 import numpy as np
 
 
-def check_data(record):
-        name = record[0]
-        data = record[1]
-        typ = record[2]
-        dims = record[3]
-        
-        if not isinstance(name, str):
+def check_data(record: list) -> bool:
+    """ Checks a netcdfifable record if it is good or not
+    
+    Throws if the record is not Sized:4
+    
+    Input:
+        A list of a string, some data, the underlying data type, a dict of dims of ints
+    
+    Output:
+        True or False
+    """
+    name = record[0]
+    data = record[1]
+    typ = record[2]
+    dims = record[3]
+    
+    if not isinstance(name, str):
+        return False
+    if not isinstance(typ, type):
+        return False
+    if typ == float:
+        if not (isinstance(data, np.ndarray) or isinstance(data, float)):
             return False
-        if not isinstance(typ, type):
+    elif typ == str:
+        if not isinstance(data, np.str):
             return False
-        if typ == float:
-            if not (isinstance(data, np.ndarray) or isinstance(data, float)):
+    if not isinstance(dims, dict):
+        return False
+    else:
+        for key in dims:
+            if not isinstance(dims[key], int):
                 return False
-        elif typ == str:
-            if not isinstance(data, np.str):
-                return False
-        if not isinstance(dims, dict):
-            return False
-        return True    
+    return True    
 
 
-def write_record_to_group(group, record):
-    assert check_data(record), "Cannot understand output"
+def write_record_to_group(group: netCDF4.Group, record: list) -> None:
+    assert check_data(record), "Cannot understand netfifable record"
     name = record[0]
     data = record[1]
     typ = record[2]
@@ -56,7 +70,7 @@ def write_record_to_group(group, record):
         var[:] = data
 
 
-def write_to_group(group, ncdata):
+def write_to_group(group: netCDF4.Group, ncdata: list) -> None:
     data, arraytype = ncdata
     
     if arraytype:
@@ -69,7 +83,7 @@ def write_to_group(group, ncdata):
             write_record_to_group(group, record)
 
 
-def save_workspace_variable(nc, var):
+def save_workspace_variable(nc: netCDF4.Dataset, var: pyarts.workspace.WorkspaceVariable) -> None:
     ncdata = pyarts.classes.from_workspace(var).netcdfify()
 
     group = nc.createGroup(var.name)
@@ -77,7 +91,7 @@ def save_workspace_variable(nc, var):
     write_to_group(group, ncdata)
         
 
-def save(filename, arts_list):
+def save(filename: str, arts_list: list) -> None:
     nc = netCDF4.Dataset(filename, "w", format="NETCDF4")
     
     nc.pyarts_version = pyarts.version
@@ -91,7 +105,7 @@ def save(filename, arts_list):
         raise RuntimeError("Cannot write all variables, closing...")
 
 
-def load(filename):
+def load(filename: str) -> dict:
     nc = netCDF4.Dataset("play.nc", "r")
     
     out = {}
