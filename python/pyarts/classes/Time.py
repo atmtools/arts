@@ -109,7 +109,7 @@ class Time:
         
             Output: list that can be processed by netcdf.py, False arraytype
         """
-        self.sec = datetime.fromisoformat(group.val).timestamp()
+        self.fromisoformat(group.val)
 
     def __eq__(self, other):
         if isinstance(other, Time) and lib.equalTime(self.__data__, other.__data__):

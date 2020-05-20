@@ -58,8 +58,11 @@ ws.ybatchTimeAveraging(time_step="24 h", disregard_first=1, disregard_last=1)
 
 # A simple
 ncfn = os.path.splitext(__file__)[0]+'_ref.nc'
-# pyarts.classes.netcdf.save(ncfn, [ws.covmat_sepsbatch, ws.ybatch, ws.time_grid, ws.counts])
+# pyarts.classes.netcdf.save(ncfn, [ws.covmat_sepsbatch, ws.ybatch])
 refs = pyarts.classes.netcdf.load(ncfn)
-x = max(np.array(refs["ybatch"][0] - ys[0]))
+
+x = max(np.array(refs["ybatch"][0] - ys[0]).flatten())
+assert x < 1.0,  "Fail to satisfy similar computations"
+x = max(np.array(refs["covmat_sepsbatch"][0] - ceps[0]).flatten())
 assert x < 1.0,  "Fail to satisfy similar computations"
     
