@@ -346,8 +346,8 @@ void iyEmissionStandardSequential(Workspace& ws,
 
     // Size radiative variables always used
     Vector B(nf);
-    PropagationMatrix K_this(nf, ns), K_past(nf, ns), Kp(nf, ns);
-    StokesVector a(nf, ns), S(nf, ns), Sp(nf, ns);
+    PropagationMatrix K_this(nf, ns), K_past(nf, ns);
+    StokesVector a(nf, ns), S(nf, ns);
     ArrayOfIndex lte(np);
 
     // Init variables only used if analytical jacobians done
@@ -2213,7 +2213,7 @@ void yCalcAppend(Workspace& ws,
           jacobian_quantities2[q2].MainTag() == WIND_MAINTAG ||
           jacobian_quantities2[q2].MainTag() == SURFACE_MAINTAG ||
           append_instrument_wfs) {
-        for (Index q1 = 0; q1 < nrq1; q1++ && pos < 0) {
+        for (Index q1 = 0; q1 < nrq1; q1++ && pos < 0) {  // FIXME: What is with this "&& pos < 0"
           if (jacobian_quantities2[q2].MainTag() ==
               jacobian_quantities_copy[q1].MainTag()) {
             // Absorption species
@@ -2424,12 +2424,10 @@ void yApplyUnit(Vector& y,
         }
 
         // Jacobian
-        if (do_j) {
-          Tensor3 J(jacobian.ncols(), 1, n);
-          J(joker, 0, joker) = transpose(jacobian(ii, joker));
-          apply_iy_unit2(J, yv, iy_unit, y_f[i0], 1, i_pol);
-          jacobian(ii, joker) = transpose(J(joker, 0, joker));
-        }
+        Tensor3 J(jacobian.ncols(), 1, n);
+        J(joker, 0, joker) = transpose(jacobian(ii, joker));
+        apply_iy_unit2(J, yv, iy_unit, y_f[i0], 1, i_pol);
+        jacobian(ii, joker) = transpose(J(joker, 0, joker));
       }
 
       // y (must be done last)

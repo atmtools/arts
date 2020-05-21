@@ -87,31 +87,31 @@ Output4 EnergyLevelMap::get_vibtemp_params(
   return x;
 }
 
-EnergyLevelMap::EnergyLevelMap(const Tensor4& data, const ArrayOfQuantumIdentifier& levels, const Vector& energies)
+EnergyLevelMap::EnergyLevelMap(const Tensor4& data, const ArrayOfQuantumIdentifier& levels, const Vector& energies) :
+  mtype(EnergyLevelMapType::Tensor3_t),
+  mlevels(levels),
+  mvib_energy(energies),
+  mvalue(data)
 {
-  mtype = EnergyLevelMapType::Tensor3_t;
-  mlevels = levels;
-  mvib_energy = energies;
-  mvalue = data;
   ThrowIfNotOK();
 }
 
-EnergyLevelMap::EnergyLevelMap(const Matrix& data, const ArrayOfQuantumIdentifier& levels, const Vector& energies)
+EnergyLevelMap::EnergyLevelMap(const Matrix& data, const ArrayOfQuantumIdentifier& levels, const Vector& energies) :
+  mtype(EnergyLevelMapType::Vector_t),
+  mlevels(levels),
+  mvib_energy(energies),
+  mvalue(data.nrows(), 1, 1, data.ncols())
 {
-  mtype = EnergyLevelMapType::Vector_t;
-  mlevels = levels;
-  mvib_energy = energies;
-  mvalue.resize(data.nrows(), 1, 1, data.ncols());
   mvalue(joker, 0, 0, joker) = data;
   ThrowIfNotOK();
 }
 
-EnergyLevelMap::EnergyLevelMap(const Vector& data, const ArrayOfQuantumIdentifier& levels, const Vector& energies)
+EnergyLevelMap::EnergyLevelMap(const Vector& data, const ArrayOfQuantumIdentifier& levels, const Vector& energies) :
+  mtype(EnergyLevelMapType::Numeric_t),
+  mlevels(levels),
+  mvib_energy(energies),
+  mvalue(data.nelem(), 1, 1, 1)
 {
-  mtype = EnergyLevelMapType::Numeric_t;
-  mlevels = levels;
-  mvib_energy = energies;
-  mvalue.resize(data.nelem(), 1, 1, 1);
   mvalue(joker, 0, 0, 0) = data;
   ThrowIfNotOK();
 }

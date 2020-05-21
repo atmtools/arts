@@ -104,7 +104,7 @@ class TransmissionMatrix {
    * @param[in] pm Propagation Matrix
    * @param[in] r Distance
    */
-  TransmissionMatrix(const PropagationMatrix& pm, const Numeric& r = 1.0);
+  explicit TransmissionMatrix(const PropagationMatrix& pm, const Numeric& r = 1.0);
 
   operator Tensor3() const {
     Tensor3 T(Frequencies(), stokes_dim, stokes_dim);
@@ -198,18 +198,18 @@ class TransmissionMatrix {
 
   /** Set to identity matrix */
   void setIdentity() {
-    for (auto& T : T4) T = Eigen::Matrix4d::Identity();
-    for (auto& T : T3) T = Eigen::Matrix3d::Identity();
-    for (auto& T : T2) T = Eigen::Matrix2d::Identity();
-    for (auto& T : T1) T(0, 0) = 1;
+    std::fill(T4.begin(), T4.end(), Eigen::Matrix4d::Identity());
+    std::fill(T3.begin(), T3.end(), Eigen::Matrix3d::Identity());
+    std::fill(T2.begin(), T2.end(), Eigen::Matrix2d::Identity());
+    std::fill(T1.begin(), T1.end(), Eigen::Matrix<double, 1, 1>::Identity());
   }
 
   /** Set to zero matrix */
   void setZero() {
-    for (auto& T : T4) T = Eigen::Matrix4d::Zero();
-    for (auto& T : T3) T = Eigen::Matrix3d::Zero();
-    for (auto& T : T2) T = Eigen::Matrix2d::Zero();
-    for (auto& T : T1) T(0, 0) = 0;
+    std::fill(T4.begin(), T4.end(), Eigen::Matrix4d::Zero());
+    std::fill(T3.begin(), T3.end(), Eigen::Matrix3d::Zero());
+    std::fill(T2.begin(), T2.end(), Eigen::Matrix2d::Zero());
+    std::fill(T1.begin(), T1.end(), Eigen::Matrix<double, 1, 1>::Zero());
   }
 
   /** Set this to a multiple of A by B

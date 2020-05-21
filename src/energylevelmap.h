@@ -82,6 +82,9 @@ public:
         return false;  // Bad dimensions for none type
     }
     
+    // FIXME: matpack does not do pointers in a clear manner
+    // return not std::any_of(mvib_energy.begin(), mvib_energy.end(), [](auto& x){return x < 0;});
+    
     for (auto& e: mvib_energy) if (e < 0) return false;  // Bad energies
     
     return true;
@@ -143,18 +146,16 @@ public:
   // C API interface access //
   ////////////////////////////
   
-  bool validIndexForType(Index x)
+  static bool validIndexForType(Index x) noexcept
   {
-    for (auto y: {EnergyLevelMapType::Tensor3_t, EnergyLevelMapType::Vector_t, EnergyLevelMapType::Numeric_t, EnergyLevelMapType::None_t,})
-      if (Index(y) == x)
-        return true;
-    return false;
+    constexpr auto keys = stdarrayify(Index(EnergyLevelMapType::Tensor3_t), EnergyLevelMapType::Vector_t, EnergyLevelMapType::Numeric_t, EnergyLevelMapType::None_t);
+    return std::any_of(keys.cbegin(), keys.cend(), [x](auto y){return x == y;});
   }
   
   /** Energy level type */
   void Type(EnergyLevelMapType x) noexcept {mtype = x;}
   
-  EnergyLevelMapType string2Type(const String& s)
+  static EnergyLevelMapType string2Type(const String& s) noexcept
   {
     if (s == "Tensor3")
       return EnergyLevelMapType::Tensor3_t;

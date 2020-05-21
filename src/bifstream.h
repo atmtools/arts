@@ -52,11 +52,11 @@ class bifstream : public binistream, public ifstream {
   }
 
   virtual ~bifstream() {}
-  void seek(long spos, Offset offs);
-  streampos pos();
+  void seek(long spos, Offset offs) override final;
+  streampos pos() override final;
 
-  bifstream::Byte getByte();
-  void getRaw(char* c, streamsize n) { this->read(c, n); }
+  bifstream::Byte getByte() override final;
+  void getRaw(char* c, streamsize n) override final { this->read(c, n); }
 };
 
 /* Overloaded input operators */

@@ -368,4 +368,11 @@ Index FlattenedIndex(const Array<Array<base> >& aa,
 // place. If I do this than a file cannot use one without defining all
 // the others.
 
+//! Make a std::array of a list of variables (must be 1-long at least)
+template <typename T, typename ... Ts>
+constexpr std::array<T, 1 + sizeof...(Ts)> stdarrayify(const T& first, const Ts&... the_rest)
+{
+  return {first, T(the_rest)...};
+}
+
 #endif  // array_h

@@ -55,7 +55,7 @@ class SpeciesTag {
   }
 
   // Documentation is with implementation.
-  SpeciesTag(String def);
+  explicit SpeciesTag(String def);
 
   // Documentation is with implementation.
   String Name() const;
@@ -165,13 +165,9 @@ class SpeciesTag {
   void Type(Index x) { mtype = x; }
   
   /** Checks if input is a valid Type */
-  bool validIndexForType(Index x) const { 
-    for(auto y: {TYPE_PLAIN, TYPE_ZEEMAN, TYPE_PREDEF, TYPE_CIA, TYPE_FREE_ELECTRONS, TYPE_PARTICLES, TYPE_HITRAN_XSEC }) {
-      if (y == x) {
-        return true;
-      }
-    }
-    return false;
+  static bool validIndexForType(Index x) noexcept {
+    constexpr auto keys = stdarrayify(Index(TYPE_PLAIN), TYPE_ZEEMAN, TYPE_PREDEF, TYPE_CIA, TYPE_FREE_ELECTRONS, TYPE_PARTICLES, TYPE_HITRAN_XSEC);
+    return std::any_of(keys.cbegin(), keys.cend(), [x](auto y){return x == y;});
   }
   
   /** @return Value if string is a Type or -1 if not */

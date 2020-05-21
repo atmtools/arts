@@ -230,6 +230,8 @@ class PropagationMatrix {
   bool IsZero(const Index iv = 0,
               const Index iz = 0,
               const Index ia = 0) const {
+    // FIXME: matpack does not do pointers in a clear manner
+    // return std::any_of(mdata(ia, iz, iv, joker).begin(), mdata(ia, iz, iv, joker).end(), [](auto& x){return x not_eq 0;});
     for (auto& n : mdata(ia, iz, iv, joker))
       if (n not_eq 0) return false;
     return true;
@@ -1234,10 +1236,10 @@ class StokesVector final : public PropagationMatrix {
     assert(mza == y.NumberOfZenithAngles());
     assert(maa == y.NumberOfAzimuthAngles());
 
-    const ConstTensor4View data = y.Data();
+    const Tensor4& data = y.Data();
 
-    for (Index i = 0; i < maa; i++)
-      for (Index j = 0; j < mza; j++)
+    for (Index i = 0; i < maa; i++) {
+      for (Index j = 0; j < mza; j++) {
         for (Index k = 0; k < mfreqs; k++) {
           switch (mstokes_dim) {
             case 4:
@@ -1250,6 +1252,8 @@ class StokesVector final : public PropagationMatrix {
               mdata(i, j, k, 0) += x * data(i, j, k, 0); /* FALLTHROUGH */
           }
         }
+      }
+    }
   }
 
   /** Get a vectorview to the position
@@ -1276,34 +1280,6 @@ class StokesVector final : public PropagationMatrix {
                                    const Index iz = 0,
                                    const Index ia = 0) const {
     return mdata(ia, iz, iv, joker);
-  }
-
-  /** Get a vectorview to the position
-   * 
-   * @param[in,out] Stokes vector
-   * @param[in] iv Frequency index
-   * @param[in] iz Zenith index
-   * @param[in] ia Azimuth index
-   */
-  void VectorAtPosition(VectorView ret,
-                        const Index iv = 0,
-                        const Index iz = 0,
-                        const Index ia = 0) {
-    ret = mdata(ia, iz, iv, joker);
-  }
-
-  /** Get a vectorview to the position
-   * 
-   * @param[in,out] Stokes vector
-   * @param[in] iv Frequency index
-   * @param[in] iz Zenith index
-   * @param[in] ia Azimuth index
-   */
-  void VectorAtPosition(VectorView ret,
-                        const Index iv = 0,
-                        const Index iz = 0,
-                        const Index ia = 0) const {
-    ret = mdata(ia, iz, iv, joker);
   }
 
   void SetAtPosition(ConstVectorView x,

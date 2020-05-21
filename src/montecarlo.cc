@@ -320,7 +320,7 @@ void clear_rt_vars_at_gp(Workspace& ws,
       local_ext_mat, local_abs_vec, local_propmat_clearsky);
 
   local_ext_mat.MatrixAtPosition(ext_mat_mono);
-  local_abs_vec.VectorAtPosition(abs_vec_mono);
+  abs_vec_mono = local_abs_vec.VectorAtPosition();
 }
 
 void cloudy_rt_vars_at_gp(Workspace& ws,
@@ -409,7 +409,7 @@ void cloudy_rt_vars_at_gp(Workspace& ws,
       local_ext_mat, local_abs_vec, local_propmat_clearsky);
 
   local_ext_mat.MatrixAtPosition(ext_mat_mono);
-  local_abs_vec.VectorAtPosition(abs_vec_mono);
+  abs_vec_mono = local_abs_vec.VectorAtPosition();
 
   ArrayOfArrayOfTensor5 ext_mat_Nse;
   ArrayOfArrayOfTensor4 abs_vec_Nse;

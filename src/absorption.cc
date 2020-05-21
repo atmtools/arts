@@ -608,9 +608,9 @@ void set_vmr_from_first_species(Vector& vmr,
     vmr = abs_vmrs(index, Range(joker));
 }
 
-const SpeciesRecord& SpeciesDataOfBand(const AbsorptionLines& lines)
+const SpeciesRecord& SpeciesDataOfBand(const AbsorptionLines& band)
 {
-  return global_data::species_data[lines.Species()];
+  return global_data::species_data[band.Species()];
 }
 
 void xsec_species(Matrix& xsec,

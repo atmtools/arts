@@ -190,7 +190,7 @@ void diff_za_aa(Numeric& dza,
    @author Patrick Eriksson
    @date   2018-03-07
  */
-void error_if_limb_ppath(const Ppath ppath);
+void error_if_limb_ppath(const Ppath& ppath);
 
 /** Identifies the tangent point of a propagation path
 
@@ -205,7 +205,7 @@ void error_if_limb_ppath(const Ppath ppath);
    @author Patrick Eriksson
    @date   2012-04-07
  */
-void find_tanpoint(Index& it, const Ppath ppath);
+void find_tanpoint(Index& it, const Ppath& ppath);
 
 /** Determines ppath position just below an altitude
 

@@ -1119,7 +1119,7 @@ void abs_linesDeleteWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAb
         // Sort and test the input
         std::sort(hits.begin(), hits.end());
         auto n = hits.size();
-        std::unique(hits.begin(), hits.end());
+        hits.erase(std::unique(hits.begin(), hits.end()), hits.end());
         if(n not_eq hits.size()) {
           throw std::runtime_error("Removing the same line more than once is not accepted");
         }

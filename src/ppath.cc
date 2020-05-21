@@ -522,7 +522,7 @@ void resolve_lon(Numeric& lon, const Numeric& lon5, const Numeric& lon6) {
   }
 }
 
-void find_tanpoint(Index& it, const Ppath ppath) {
+void find_tanpoint(Index& it, const Ppath& ppath) {
   Numeric zmin = 99e99;
   it = -1;
   while (it < ppath.np - 1 && ppath.pos(it + 1, 0) < zmin) {
@@ -552,7 +552,7 @@ Index first_pos_before_altitude(const Ppath& p, const Numeric& alt) {
   return -1;
 }
 
-void error_if_limb_ppath(const Ppath ppath) {
+void error_if_limb_ppath(const Ppath& ppath) {
   if (ppath.np > 2) {
     Numeric signfac = sign(ppath.pos(1, 0) - ppath.pos(0, 0));
     for (Index i = 2; i < ppath.np; i++) {

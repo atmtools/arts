@@ -426,7 +426,7 @@ void LineShape::LegacyPressureBroadeningData::vector2modelpb(
 
 LineShape::Model LineShape::LegacyLineMixingData::vector2modellm(
     Vector x, LineShape::LegacyLineMixingData::TypeLM type) {
-  auto y = Model(1);
+  Model y(1);
   switch (type) {
     case TypeLM::LM_NONE:
       break;

@@ -128,7 +128,7 @@ void transform_jacobian(Matrix& jacobian,
         jacobian(joker, c) *= NAT_LOG_TEN * pow(10.0, x_t[c]);
       }
     } else if (tfun == "atanh") {
-      const Vector pars = jq.TFuncParameters();
+      const Vector& pars = jq.TFuncParameters();
       for (Index c = jis[i][0]; c <= jis[i][1]; ++c) {
         jacobian(joker, c) *=
             2 * (pars[1] - pars[0]) / pow(exp(-x_t[c]) + exp(x_t[c]), 2.0);
@@ -180,7 +180,7 @@ void transform_x(Vector& x, const ArrayOfRetrievalQuantity& jqs) {
     if (tfun == "") {
       // Nothing to do
     } else if (tfun == "log") {
-      const Vector pars = jq.TFuncParameters();
+      const Vector& pars = jq.TFuncParameters();
       for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
         if (x[r] <= pars[0]) {
           ostringstream os;
@@ -192,7 +192,7 @@ void transform_x(Vector& x, const ArrayOfRetrievalQuantity& jqs) {
         x[r] = log(x[r] - pars[0]);
       }
     } else if (tfun == "log10") {
-      const Vector pars = jq.TFuncParameters();
+      const Vector& pars = jq.TFuncParameters();
       for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
         if (x[r] <= 0) {
           ostringstream os;
@@ -204,7 +204,7 @@ void transform_x(Vector& x, const ArrayOfRetrievalQuantity& jqs) {
         x[r] = log10(x[r] - pars[0]);
       }
     } else if (tfun == "atanh") {
-      const Vector pars = jq.TFuncParameters();
+      const Vector& pars = jq.TFuncParameters();
       for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
         if (x[r] <= pars[0]) {
           ostringstream os;
@@ -298,17 +298,17 @@ void transform_x_back(Vector& x_t,
       if (tfun == "") {
         // Nothing to do
       } else if (tfun == "log") {
-        const Vector pars = jq.TFuncParameters();
+        const Vector& pars = jq.TFuncParameters();
         for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
           x_t[r] = pars[0] + exp(x_t[r]);
         }
       } else if (tfun == "log10") {
-        const Vector pars = jq.TFuncParameters();
+        const Vector& pars = jq.TFuncParameters();
         for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
           x_t[r] = pars[0] + pow(10.0, x_t[r]);
         }
       } else if (tfun == "atanh") {
-        const Vector pars = jq.TFuncParameters();
+        const Vector& pars = jq.TFuncParameters();
         for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
           x_t[r] = pars[0] + ((pars[1] - pars[0]) / 2) * (1 + tanh(x_t[r]));
         }

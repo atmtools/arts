@@ -277,10 +277,8 @@ void nlte_positions_in_statistical_equilibrium_matrix(
 Index find_first_unique_in_lower(const ArrayOfIndex& upper,
                                  const ArrayOfIndex& lower) noexcept {
   for (const Index& l : lower) {
-    bool test = false;
-    for (const Index& u : upper)
-      if (l == u) test = true;
-    if (not test) return l;
+    if (std::find(upper.cbegin(), upper.cend(), l) == upper.cend())
+      return l;
   }
   return upper.nelem() - 1;
 }

@@ -49,8 +49,8 @@ public:
   
   // Construction
   Time() : mtime(std::chrono::system_clock::now()) {}
-  Time(std::time_t t) : mtime(std::chrono::system_clock::from_time_t(t)) {}
-  Time(std::tm t) : Time(std::mktime(&t)) {}
+  explicit Time(std::time_t t) : mtime(std::chrono::system_clock::from_time_t(t)) {}
+  explicit Time(std::tm t) : Time(std::mktime(&t)) {}
   
   // Data
   const std::chrono::system_clock::time_point& Data() const {return mtime;}

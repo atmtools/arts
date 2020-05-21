@@ -52,11 +52,11 @@ class bofstream : public binostream, public ofstream {
   }
 
   virtual ~bofstream() {}
-  void seek(long spos, Offset offs);
-  streampos pos();
+  void seek(long spos, Offset offs) override final;
+  streampos pos() override final;
 
-  void putByte(bofstream::Byte b);
-  void putRaw(const char* c, streamsize n) { this->write(c, n); }
+  void putByte(bofstream::Byte b) override final;
+  void putRaw(const char* c, streamsize n) override final { this->write(c, n); }
 };
 
 /* Overloaded output operators */

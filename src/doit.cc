@@ -755,7 +755,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
 
       // Some messages:
       if (out3.sufficient_priority()) {
-        abs_vec.VectorAtPosition(vector_tmp);
+        vector_tmp = abs_vec.VectorAtPosition();
         ext_mat.MatrixAtPosition(matrix_tmp);
         out3 << "-----------------------------------------\n";
         out3 << "Input for radiative transfer step \n"
@@ -887,7 +887,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
 
       // Some messages:
       if (out3.sufficient_priority()) {
-        abs_vec.VectorAtPosition(vector_tmp);
+        vector_tmp = abs_vec.VectorAtPosition();
         ext_mat.MatrixAtPosition(matrix_tmp);
         out3 << "-----------------------------------------\n";
         out3 << "Input for radiative transfer step \n"
@@ -1500,7 +1500,7 @@ void cloud_RT_no_background(Workspace& ws,
 
     // Some messages:
     if (out3.sufficient_priority()) {
-      abs_vec_local.VectorAtPosition(vector_tmp);
+      vector_tmp = abs_vec_local.VectorAtPosition();
       ext_mat_local.MatrixAtPosition(matrix_tmp);
       out3 << "-----------------------------------------\n";
       out3 << "Input for radiative transfer step \n"

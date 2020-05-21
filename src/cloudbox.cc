@@ -70,11 +70,9 @@ void chk_pnd_data(const GriddedField3& pnd_field_raw,
                   const Verbosity& verbosity) {
   CREATE_OUT3;
 
-  const ConstVectorView pfr_p_grid =
-      pnd_field_raw.get_numeric_grid(GFIELD3_P_GRID);
-  const ConstVectorView pfr_lat_grid =
+  const Vector& pfr_lat_grid =
       pnd_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
-  const ConstVectorView pfr_lon_grid =
+  const Vector& pfr_lon_grid =
       pnd_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
 
   // The consistency of the dimensions is checked in the reading routine.
