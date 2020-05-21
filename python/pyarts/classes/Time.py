@@ -62,7 +62,7 @@ class Time:
             lib.deleteTime(self.__data__)
 
     def __repr__(self):
-        return self.strftime("%Y-%m-%d %H:%M:%S.%f")
+        return self.todatetime().strftime("%Y-%m-%d %H:%M:%S.%f")
 
     def set(self, other):
         """ Sets this class according to another python instance of itself """
@@ -109,7 +109,7 @@ class Time:
         
             Output: list that can be processed by netcdf.py, False arraytype
         """
-        self.fromisoformat(group.val)
+        self.fromdatetime( datetime.fromisoformat(group.val))
 
     def __eq__(self, other):
         if isinstance(other, Time) and lib.equalTime(self.__data__, other.__data__):
@@ -147,13 +147,13 @@ class Time:
         else:
             return Time(self.sec-other)
     
-    def strftime(self, fmt : str):
-        """ Return self as string formatted by datetime """
-        return datetime.fromtimestamp(self.sec).strftime(fmt)
+    def todatetime(self):
+        """ Return self as datetime """
+        return datetime.fromtimestamp(self.sec)
     
-    def fromisoformat(self, time: str):
-        """ Sets self.sec from string by datetime fromisoformat """
-        self.sec = datetime.fromisoformat(time).timestamp()
+    def fromdatetime(self, dt: datetime):
+        """ Sets self from datetime """
+        self.sec = dt.timestamp()
 
 
 # ArrayOfTime
@@ -178,7 +178,7 @@ def TimeGrid(ts):
     Output:
         List of datetime.datetime(s)
     """
-    return np.array([datetime.fromtimestamp(t.sec) for t in ts])
+    return np.array([t.todatetime() for t in ts])
 
 
 # Makes example above work directly on ArrayOfTime without TimeGrid-conversion
