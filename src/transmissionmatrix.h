@@ -248,7 +248,7 @@ class TransmissionMatrix {
    * @param[in] k Col in matrix
    * @return const Numeric& value
    */
-  const Numeric& operator()(const Index i, const Index j, const Index k) const {
+  Numeric operator()(const Index i, const Index j, const Index k) const {
     switch (stokes_dim) {
       case 4:
         return T4[i](j, k);

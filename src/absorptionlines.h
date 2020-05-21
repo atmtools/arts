@@ -1393,7 +1393,7 @@ public:
   }
   
   /** Returns a printable statement about the lines */
-  String MetaData() const noexcept;
+  String MetaData() const;
   
   /** Removes a single line */
   void RemoveLine(Index) noexcept;

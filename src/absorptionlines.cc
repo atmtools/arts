@@ -2592,7 +2592,7 @@ String Absorption::Lines::LowerQuantumNumbers() const noexcept
   return s;
 }
 
-String Absorption::Lines::MetaData() const noexcept
+String Absorption::Lines::MetaData() const
 {
   std::ostringstream os;
   
