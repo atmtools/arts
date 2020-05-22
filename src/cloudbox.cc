@@ -178,7 +178,7 @@ void chk_pnd_field_raw_only_in_cloudbox(
             // Verify latitude is too
             if (dim > 1) {
               lat = pnd_field_raw[n].get_numeric_grid(GFIELD3_LAT_GRID)[lat_i];
-              if (!((lat > lat_grid[cloudbox_limits[2]]) &
+              if (!((lat > lat_grid[cloudbox_limits[2]]) bitand
                     (lat < lat_grid[cloudbox_limits[3]]))) {
                 ostringstream os;
                 os << "Found non-zero pnd outside cloudbox. "
@@ -194,7 +194,7 @@ void chk_pnd_field_raw_only_in_cloudbox(
             // Etc. for longitude
             if (dim > 2) {
               lon = pnd_field_raw[n].get_numeric_grid(GFIELD3_LON_GRID)[lon_i];
-              if (!((lon > lon_grid[cloudbox_limits[4]]) &
+              if (!((lon > lon_grid[cloudbox_limits[4]]) bitand
                     (lon < lon_grid[cloudbox_limits[5]]))) {
                 ostringstream os;
                 os << "Found non-zero pnd outside cloudbox. "
