@@ -66,7 +66,7 @@ void linalg::var(VectorView var, const Vector& y, const ArrayOfVector& ys, const
 void linalg::std(VectorView std, const Vector& y, const ArrayOfVector& ys, const Index start, const Index end_tmp)
 {
   var(std, y, ys, start, end_tmp);
-  std::transform(std.begin(), std.end(), std.begin(), [](auto& x){return std::sqrt(x);});
+  std::transform(std.begin(), std.end(), std.begin(), [](const auto& x){return std::sqrt(x);});
 }
 
 void linalg::cov(MatrixView cov, const Vector& y, const ArrayOfVector& ys, const Index start, const Index end_tmp)

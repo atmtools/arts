@@ -1135,8 +1135,6 @@ void ppath_fieldFromDownUpLimbGeoms(Workspace& ws,
                                     const Index& atmosphere_dim,
                                     const Index& zenith_angles_per_position,
                                     const Verbosity& verbosity) {
-  extern const Numeric RAD2DEG;
-
   if (atmosphere_dim not_eq 1)
     throw std::runtime_error("Only for 1D atmospheres");
   if (refellipsoid[1] not_eq 0.0)

@@ -86,15 +86,15 @@ void rte_step_doit_replacement(  //Output and Input:
   //assert (not ext_mat_av.AnySingular());  This is asserted at a later time in this version...
 
   // Check, if only the first component of abs_vec is non-zero:
-  const bool unpol_abs_vec = abs_vec_av.IsUnpolarized(0);
+//   const bool unpol_abs_vec = abs_vec_av.IsUnpolarized(0);
 
-  bool unpol_sca_vec = true;
+//   bool unpol_sca_vec = true;
 
-  for (Index i = 1; i < stokes_dim; i++)
-    if (sca_vec_av[i] != 0) unpol_sca_vec = false;
+//   for (Index i = 1; i < stokes_dim; i++)
+//     if (sca_vec_av[i] != 0) unpol_sca_vec = false;
 
   // Calculate transmission by general function, if not precalculated
-  Index extmat_case = 0;
+//   Index extmat_case = 0;
   if (!trans_is_precalc) {
     compute_transmission_matrix_from_averaged_matrix_at_frequency(
         trans_mat, lstep, ext_mat_av, 0);
@@ -114,19 +114,19 @@ void rte_step_doit_replacement(  //Output and Input:
   // non-zero value in position 1.
 
   //- Unpolarised
-  else if (extmat_case == 1 && unpol_abs_vec && unpol_sca_vec) {
-    const Numeric invK = 1.0 / ext_mat_av.Kjj()[0];
-    // Stokes dim 1
-    stokes_vec[0] = stokes_vec[0] * trans_mat(0, 0) +
-                    (abs_vec_av.Kjj()[0] * rtp_planck_value + sca_vec_av[0]) *
-                        invK * (1 - trans_mat(0, 0));
-
-    // Stokes dims > 1
-    for (Index i = 1; i < stokes_dim; i++) {
-      stokes_vec[i] = stokes_vec[i] * trans_mat(i, i) +
-                      sca_vec_av[i] * invK * (1 - trans_mat(i, i));
-    }
-  }
+//   else if (extmat_case == 1 && unpol_abs_vec && unpol_sca_vec) {
+//     const Numeric invK = 1.0 / ext_mat_av.Kjj()[0];
+//     // Stokes dim 1
+//     stokes_vec[0] = stokes_vec[0] * trans_mat(0, 0) +
+//                     (abs_vec_av.Kjj()[0] * rtp_planck_value + sca_vec_av[0]) *
+//                         invK * (1 - trans_mat(0, 0));
+// 
+//     // Stokes dims > 1
+//     for (Index i = 1; i < stokes_dim; i++) {
+//       stokes_vec[i] = stokes_vec[i] * trans_mat(i, i) +
+//                       sca_vec_av[i] * invK * (1 - trans_mat(i, i));
+//     }
+//   }
 
   //- General case
   else {

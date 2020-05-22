@@ -717,30 +717,30 @@ bool is_zeeman(const ArrayOfSpeciesTag& tg) {
     
     \author Patrick Eriksson, Axel von Engeln, and Stefan Buehler
     \date 2001-01-31 */
-void get_tag_group_index_for_tag_group(Index& tgs1_index,
-                                       const ArrayOfArrayOfSpeciesTag& tgs1,
-                                       const ArrayOfSpeciesTag& tg2) {
+void get_tag_group_index_for_tag_group(Index& tags1_index,
+                                       const ArrayOfArrayOfSpeciesTag& tags1,
+                                       const ArrayOfSpeciesTag& tag2) {
   bool found = false;
 
-  for (Index i = 0; i < tgs1.nelem() && !found; ++i) {
+  for (Index i = 0; i < tags1.nelem() && !found; ++i) {
     // Is at least the size correct?
-    if (tg2.nelem() == tgs1[i].nelem()) {
+    if (tag2.nelem() == tags1[i].nelem()) {
       bool ok = true;
 
-      for (Index j = 0; j < tg2.nelem(); ++j) {
-        if (tg2[j].Name() != tgs1[i][j].Name()) ok = false;
+      for (Index j = 0; j < tag2.nelem(); ++j) {
+        if (tag2[j].Name() != tags1[i][j].Name()) ok = false;
       }
 
       if (ok) {
         found = true;
-        tgs1_index = i;
+        tags1_index = i;
       }
     }
   }
 
   if (!found) {
     ostringstream os;
-    os << "The tag String \"" << tg2
+    os << "The tag String \"" << tag2
        << "\" does not match any of the given tags.\n";
     throw runtime_error(os.str());
   }

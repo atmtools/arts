@@ -649,8 +649,8 @@ inline void dtransmat3(TransmissionMatrix& T,
                         du2 = 2 * u * du;
           const Numeric dx = either ? ((db2 + dc2 - du2) * inv_x * 0.5) : 0,
                         dx2 = 2 * x * dx;
-          const Numeric dsx = real ? cx * dx : -cx * dx;
-          const Numeric dcx = real ? sx * dx : sx * dx;
+          const Numeric dsx = (real ? 1 : -1) * cx * dx;
+          const Numeric dcx = sx * dx;
 
           const Numeric dC0 = either ? da2 * (cx - 1.0) + da2 * (dcx - 1.0) -
                                            da * x * sx - a * dx * sx -
@@ -706,8 +706,8 @@ inline void dtransmat3(TransmissionMatrix& T,
                         du2 = 2 * u * du;
           const Numeric dx = either ? ((db2 + dc2 - du2) * inv_x * 0.5) : 0,
                         dx2 = 2 * x * dx;
-          const Numeric dsx = real ? cx * dx : -cx * dx;
-          const Numeric dcx = real ? sx * dx : sx * dx;
+          const Numeric dsx = (real ? 1 : -1) * cx * dx;
+          const Numeric dcx = sx * dx;
 
           const Numeric dC0 = either ? da2 * (cx - 1.0) + da2 * (dcx - 1.0) -
                                            da * x * sx - a * dx * sx -
@@ -1831,25 +1831,28 @@ std::ostream& operator<<(std::ostream& os,
   return os;
 }
 
-std::istream& operator>>(std::istream& data, TransmissionMatrix& tm) {
+std::istream& operator>>(std::istream& is, TransmissionMatrix& tm) {
   for (auto& T : tm.T4)
-    data >> T(0, 0) >> T(0, 1) >> T(0, 2) >> T(0, 3) >> T(1, 0) >> T(1, 1) >>
-        T(1, 2) >> T(1, 3) >> T(2, 0) >> T(2, 1) >> T(2, 2) >> T(2, 3) >>
-        T(3, 0) >> T(3, 1) >> T(3, 2) >> T(3, 3);
+    is >> T(0, 0) >> T(0, 1) >> T(0, 2) >> T(0, 3) >>
+          T(1, 0) >> T(1, 1) >> T(1, 2) >> T(1, 3) >>
+          T(2, 0) >> T(2, 1) >> T(2, 2) >> T(2, 3) >>
+          T(3, 0) >> T(3, 1) >> T(3, 2) >> T(3, 3);
   for (auto& T : tm.T3)
-    data >> T(0, 0) >> T(0, 1) >> T(0, 2) >> T(1, 0) >> T(1, 1) >> T(1, 2) >>
-        T(2, 0) >> T(2, 1) >> T(2, 2);
-  for (auto& T : tm.T2) data >> T(0, 0) >> T(0, 1) >> T(1, 0) >> T(1, 1);
-  for (auto& T : tm.T1) data >> T(0, 0);
-  return data;
+    is >> T(0, 0) >> T(0, 1) >> T(0, 2) >>
+          T(1, 0) >> T(1, 1) >> T(1, 2) >>
+          T(2, 0) >> T(2, 1) >> T(2, 2);
+  for (auto& T : tm.T2) is >> T(0, 0) >> T(0, 1) >>
+                              T(1, 0) >> T(1, 1);
+  for (auto& T : tm.T1) is >> T(0, 0);
+  return is;
 }
 
-std::istream& operator>>(std::istream& data, RadiationVector& rv) {
-  for (auto& R : rv.R4) data >> R[0] >> R[1] >> R[2] >> R[3];
-  for (auto& R : rv.R3) data >> R[0] >> R[1] >> R[2];
-  for (auto& R : rv.R2) data >> R[0] >> R[1] >> R[2];
-  for (auto& R : rv.R1) data >> R[0];
-  return data;
+std::istream& operator>>(std::istream& is, RadiationVector& rv) {
+  for (auto& R : rv.R4) is >> R[0] >> R[1] >> R[2] >> R[3];
+  for (auto& R : rv.R3) is >> R[0] >> R[1] >> R[2];
+  for (auto& R : rv.R2) is >> R[0] >> R[1] >> R[2];
+  for (auto& R : rv.R1) is >> R[0];
+  return is;
 }
 
 TransmissionMatrix::TransmissionMatrix(const PropagationMatrix& pm,

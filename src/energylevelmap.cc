@@ -196,7 +196,7 @@ std::ostream& operator<<(std::ostream& os, const EnergyLevelMap& elm) {
             << elm.Energies() << '\n';
 }
 
-EnergyLevelMap EnergyLevelMap::operator()(Index i, Index j, Index k) const
+EnergyLevelMap EnergyLevelMap::operator()(Index ip, Index ilat, Index ilon) const
 {
   if (mtype == EnergyLevelMapType::None_t or mtype == EnergyLevelMapType::Numeric_t)
     return *this;
@@ -204,6 +204,6 @@ EnergyLevelMap EnergyLevelMap::operator()(Index i, Index j, Index k) const
     throw std::runtime_error("Must have Tensor3_t, input type is bad");
   
   auto elm = EnergyLevelMap(EnergyLevelMapType::Numeric_t, 1, 1, 1, *this);
-  elm.mvalue(joker, 0, 0, 0) = mvalue(joker, i, j, k);
+  elm.mvalue(joker, 0, 0, 0) = mvalue(joker, ip, ilat, ilon);
   return elm;
 }

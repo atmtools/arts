@@ -79,7 +79,7 @@ class SpeciesTag {
   bool IsSpecies(const String& s) const;
 
   /** Check if the isotopologue is same as SpeciesTag(s).Isotopologue() */
-  bool IsIsotopologue(const String& s) const;
+  bool IsIsotopologue(const String& i) const;
 
   /** Isotopologue species index.
       If this is equal to the number of isotopologues (one more than
@@ -282,7 +282,7 @@ Index find_first_species_tg(const ArrayOfArrayOfSpeciesTag& list_of_tags, const 
 void array_species_tag_from_string(ArrayOfSpeciesTag& tags,
                                    const String& names);
 
-void check_abs_species(const ArrayOfArrayOfSpeciesTag& tags);
+void check_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species);
 
 bool is_zeeman(const ArrayOfSpeciesTag& tg);
 

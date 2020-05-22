@@ -559,7 +559,7 @@ OffDiagonalElementOutput OffDiagonalElement::CO2_IR(
   const Numeric AF1 = af.get(Ji / 2, B0, T, main_mass, collider_mass);
 
   // Scale constant for final state NOTE: "%4" and lack of 2*J because Fast library already doubles these numbers
-  const Numeric K1 = ((li + lf) % 4 ? 1.0 : -1.0) * Numeric(Ji_p + 1) *
+  const Numeric K1 = (((li + lf) % 4) ? 1.0 : -1.0) * Numeric(Ji_p + 1) *
                      sqrt(Numeric((Jf + 1) * (Jf_p + 1))) * AF1;
 
   Numeric sum = 0;
@@ -613,7 +613,7 @@ void linearized_relaxation_matrix(Tensor3& M,
       if (i == j) continue;         // to next loop
       if (Ji[i] < Ji[j]) continue;  // because we renormalize this
 
-      const Numeric K1 = ((l2i[i] + l2f[i]) % 2 ? 1 : -1) *
+      const Numeric K1 = (((l2i[i] + l2f[i]) % 2) ? 1 : -1) *
                          Numeric(2 * Ji[j] + 1) *
                          sqrt((2 * Jf[i] + 1) * (2 * Jf[j] + 1));
       const Numeric d_ratio = d[j] / d[i];

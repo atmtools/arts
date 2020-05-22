@@ -38,12 +38,6 @@ void compute_transmission_matrix(Tensor3View T,
                                  const Index ia) {
   const Index mstokes_dim = upper_level.StokesDimensions();
   const Index mfreqs = upper_level.NumberOfFrequencies();
-  assert(r > 0.);
-  assert(T.npages() == mfreqs);
-  assert(T.nrows() == mstokes_dim);
-  assert(T.ncols() == mstokes_dim);
-  assert(lower_level.StokesDimensions() == mstokes_dim);
-  assert(lower_level.NumberOfFrequencies() == mfreqs);
 
   if (mstokes_dim == 1) {
     for (Index i = 0; i < mfreqs; i++)
@@ -284,10 +278,6 @@ void compute_transmission_matrix_from_averaged_matrix_at_frequency(
     const Index ia) {
   static const Numeric sqrt_05 = sqrt(0.5);
   const Index mstokes_dim = averaged_propagation_matrix.StokesDimensions();
-  assert(r > 0.);
-  assert(T.nrows() == mstokes_dim);
-  assert(T.ncols() == mstokes_dim);
-  assert(iv < averaged_propagation_matrix.NumberOfFrequencies());
 
   if (mstokes_dim == 1) {
     T(0, 0) = exp(-r * averaged_propagation_matrix.Kjj(iz, ia)[iv]);
@@ -502,45 +492,6 @@ void compute_transmission_matrix_and_derivative(
   const Index mstokes_dim = upper_level.StokesDimensions();
   const Index mfreqs = upper_level.NumberOfFrequencies();
   const Index nppd = dupper_level_dx.nelem();
-
-  DEBUG_ONLY(
-      assert(r > 0.); assert(T.npages() == mfreqs);
-      assert(T.nrows() == mstokes_dim);
-      assert(T.ncols() == mstokes_dim);
-      assert(lower_level.StokesDimensions() == mstokes_dim);
-      assert(lower_level.NumberOfFrequencies() == mfreqs);
-
-      assert(nppd == dlower_level_dx.nelem());
-      assert(nppd == dT_dx_upper_level.nbooks());
-      assert(nppd == dT_dx_lower_level.nbooks());
-      assert(mfreqs == dT_dx_upper_level.npages());
-      assert(mfreqs == dT_dx_lower_level.npages());
-      assert(mstokes_dim == dT_dx_upper_level.nrows());
-      assert(mstokes_dim == dT_dx_lower_level.nrows());
-      assert(mstokes_dim == dT_dx_upper_level.ncols());
-      assert(mstokes_dim == dT_dx_lower_level.ncols());
-
-      for (const PropagationMatrix& d_dx
-           : dupper_level_dx) {
-        if (d_dx.StokesDimensions() == 1 and
-            d_dx.NumberOfFrequencies() ==
-                0)  // Catch cases with outer-perturbed jacobians
-          continue;
-        assert(d_dx.StokesDimensions() == mstokes_dim);
-        assert(d_dx.NumberOfFrequencies() == mfreqs or
-               d_dx.NumberOfFrequencies() == 0);
-      }
-
-      for (const PropagationMatrix& d_dx
-           : dlower_level_dx) {
-        if (d_dx.StokesDimensions() == 1 and
-            d_dx.NumberOfFrequencies() ==
-                0)  // Catch cases with outer-perturbed jacobians
-          continue;
-        assert(d_dx.StokesDimensions() == mstokes_dim);
-        assert(d_dx.NumberOfFrequencies() == mfreqs or
-               d_dx.NumberOfFrequencies() == 0);
-      });
 
   if (mstokes_dim == 1) {
     for (Index i = 0; i < mfreqs; i++) {
@@ -1556,14 +1507,8 @@ void PropagationMatrix::MatrixInverseAtPosition(MatrixView ret,
                                                 const Index iv,
                                                 const Index iz,
                                                 const Index ia) const {
-  assert(ret.ncols() == mstokes_dim and ret.nrows() == mstokes_dim);
-  assert(iv < mfreqs);
-  assert(iz < mza);
-  assert(ia < maa);
-
   switch (mstokes_dim) {
     case 1:
-      assert(Kjj(iz, ia)[iv] not_eq 0);
       ret(0, 0) = 1.0 / Kjj(iz, ia)[iv];
       break;
     case 2: {
@@ -1571,9 +1516,6 @@ void PropagationMatrix::MatrixInverseAtPosition(MatrixView ret,
                     b2 = b * b;
 
       const Numeric f = a2 - b2;
-
-      // condition to be invertible
-      assert(f not_eq 0);
 
       const Numeric div = 1.0 / f;
 
@@ -1586,9 +1528,6 @@ void PropagationMatrix::MatrixInverseAtPosition(MatrixView ret,
                     u = K23(iz, ia)[iv], u2 = u * u;
 
       const Numeric f = a * (a2 - b2 - c2 + u2);
-
-      // condition to be invertible
-      assert(f not_eq 0);
 
       const Numeric div = 1.0 / f;
 
@@ -1615,9 +1554,6 @@ void PropagationMatrix::MatrixInverseAtPosition(MatrixView ret,
                         a2 * v2 + a2 * w2 - b2 * w2 + 2 * b * c * v * w -
                         2 * b * d * u * w - c2 * v2 + 2 * c * d * u * v -
                         d2 * u2;
-
-      // condition to be invertible
-      assert(f not_eq 0);
 
       const Numeric div = 1.0 / f;
 
@@ -1694,9 +1630,6 @@ void PropagationMatrix::AddAverageAtPosition(ConstMatrixView mat1,
 
 void PropagationMatrix::MultiplyAndAdd(const Numeric x,
                                        const PropagationMatrix& y) {
-  assert(mstokes_dim == y.mstokes_dim);
-  assert(mfreqs == y.mfreqs);
-
   for (Index i = 0; i < maa; i++)
     for (Index j = 0; j < mza; j++)
       for (Index k = 0; k < mfreqs; k++)
@@ -1739,7 +1672,6 @@ bool PropagationMatrix::FittingShape(ConstMatrixView x) const {
 }
 
 void PropagationMatrix::GetTensor3(Tensor3View tensor3, Index iz, Index ia) {
-  assert(not mvectortype);
   switch (mstokes_dim) {
     case 4:
       tensor3(joker, 3, 3) = mdata(ia, iz, joker, 0);
@@ -1777,9 +1709,6 @@ void PropagationMatrix::LeftMultiplyAtPosition(MatrixView out,
                                                const Index iv,
                                                const Index iz,
                                                const Index ia) const {
-  assert(not mvectortype);
-  assert(out.ncols() == mstokes_dim and out.nrows() == mstokes_dim);
-  assert(in.ncols() == mstokes_dim and in.nrows() == mstokes_dim);
   switch (mstokes_dim) {
     case 1:
       out(0, 0) = Kjj(iz, ia)[iv] * in(0, 0);
@@ -1843,10 +1772,6 @@ void PropagationMatrix::RightMultiplyAtPosition(MatrixView out,
                                                 const Index iv,
                                                 const Index iz,
                                                 const Index ia) const {
-  assert(not mvectortype);
-  assert(out.ncols() == mstokes_dim and out.nrows() == mstokes_dim);
-  assert(in.ncols() == mstokes_dim and in.nrows() == mstokes_dim);
-
   switch (mstokes_dim) {
     case 1:
       out(0, 0) = in(0, 0) * Kjj(iz, ia)[iv];
@@ -2030,11 +1955,6 @@ Numeric PropagationMatrix::operator()(const Index iv,
                                       const Index is2,
                                       const Index iz,
                                       const Index ia) const {
-  assert(is1 < mstokes_dim and is2 < mstokes_dim);
-  assert(iv < mfreqs);
-  assert(iz < mza);
-  assert(ia < maa);
-
   switch (is1) {
     case 0:
       switch (is2) {
@@ -2055,7 +1975,6 @@ Numeric PropagationMatrix::operator()(const Index iv,
       }
       break;
     case 1:
-      assert(not mvectortype);
       switch (is2) {
         case 0:
           return mdata(ia, iz, iv, 1);
@@ -2073,7 +1992,6 @@ Numeric PropagationMatrix::operator()(const Index iv,
           throw std::runtime_error("out of bounds");
       }
     case 2:
-      assert(not mvectortype);
       switch (is2) {
         case 0:
           return mdata(ia, iz, iv, 2);
@@ -2092,7 +2010,6 @@ Numeric PropagationMatrix::operator()(const Index iv,
       }
       break;
     case 3:
-      assert(not mvectortype);
       switch (is2) {
         case 0:
           return mdata(ia, iz, iv, 3);

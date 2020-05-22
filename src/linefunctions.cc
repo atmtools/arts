@@ -239,7 +239,7 @@ void Linefunctions::set_lorentz(
     const Numeric& zeeman_df,
     const Numeric& magnetic_magnitude,
     const Numeric& F0_noshift,
-    const LineShape::Output& x,
+    const LineShape::Output& lso,
     const AbsorptionLines& band,
     const Index& line_ind,
     const ArrayOfRetrievalQuantity& derivatives_data,
@@ -253,14 +253,14 @@ void Linefunctions::set_lorentz(
   auto nppd = derivatives_data_position.nelem();
 
   // The central frequency
-  const Numeric F0 = F0_noshift + x.D0 + zeeman_df * magnetic_magnitude + x.DV;
+  const Numeric F0 = F0_noshift + lso.D0 + zeeman_df * magnetic_magnitude + lso.DV;
 
   // Naming req data blocks
   auto z = data.col(0);
   auto dw = data.col(1);
 
   z.noalias() =
-      (Constant::pi * Complex(x.G0, F0) - cpi * f_grid.array()).matrix();
+      (Constant::pi * Complex(lso.G0, F0) - cpi * f_grid.array()).matrix();
   F.noalias() = z.cwiseInverse();
 
   if (nppd) {
@@ -304,24 +304,24 @@ void Linefunctions::set_voigt(
     const Numeric& magnetic_magnitude,
     const Numeric& F0_noshift,
     const Numeric& GD_div_F0,
-    const LineShape::Output& x,
+    const LineShape::Output& lso,
     const AbsorptionLines& band,
     const Index& line_ind,
     const ArrayOfRetrievalQuantity& derivatives_data,
     const ArrayOfIndex& derivatives_data_position,
     const Numeric& dGD_div_F0_dT,
-    const LineShape::Output& dxdT,
-    const LineShape::Output& dxdVMR) {
+    const LineShape::Output& dT,
+    const LineShape::Output& dVMR) {
   constexpr Complex iz(0.0, 1.0);
 
   // Size of problem
   auto nppd = derivatives_data_position.nelem();
 
   // Doppler broadening and line center
-  const Numeric F0 = F0_noshift + zeeman_df * magnetic_magnitude + x.D0 + x.DV;
+  const Numeric F0 = F0_noshift + zeeman_df * magnetic_magnitude + lso.D0 + lso.DV;
   const Numeric GD = GD_div_F0 * F0;
   const Numeric invGD = 1.0 / GD;
-  const Numeric dGD_dT = dGD_div_F0_dT * F0 - GD_div_F0 * (dxdT.D0 + dxdT.DV);
+  const Numeric dGD_dT = dGD_div_F0_dT * F0 - GD_div_F0 * (dT.D0 + dT.DV);
 
   // constant normalization factor for Voigt
   const Numeric fac = Constant::inv_sqrt_pi * invGD;
@@ -331,7 +331,7 @@ void Linefunctions::set_voigt(
   auto dw = data.col(1);
 
   // Frequency grid
-  z.noalias() = invGD * (Complex(-F0, x.G0) + f_grid.array()).matrix();
+  z.noalias() = invGD * (Complex(-F0, lso.G0) + f_grid.array()).matrix();
 
   // Line shape
   F.noalias() = fac * z.unaryExpr(&w);
@@ -348,7 +348,7 @@ void Linefunctions::set_voigt(
         dF.col(iq).noalias() = invGD * dw;
       else if (deriv == JacPropMatType::Temperature)
         dF.col(iq).noalias() =
-            dw * Complex(-dxdT.D0 - dxdT.DV, dxdT.G0) * invGD -
+            dw * Complex(-dT.D0 - dT.DV, dT.G0) * invGD -
             F * dGD_dT * invGD - dw.cwiseProduct(z) * dGD_dT * invGD;
       else if ((deriv == JacPropMatType::LineCenter or
                 is_pressure_broadening_DV(deriv)) and
@@ -365,7 +365,7 @@ void Linefunctions::set_voigt(
       else if (deriv == JacPropMatType::VMR and
                Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
         dF.col(iq).noalias() =
-            dw * Complex(-dxdVMR.D0 - dxdVMR.DV, dxdVMR.G0) * invGD;
+            dw * Complex(-dVMR.D0 - dVMR.DV, dVMR.G0) * invGD;
       else
         dF.col(iq).setZero();
     }
@@ -435,9 +435,9 @@ void Linefunctions::apply_linemixing_scaling_and_mirroring(
   const Complex LM = Complex(1.0 + X.G, -X.Y);
 
   dF *= LM;
-  if (with_mirroring) dF.noalias() += dFm * conj(LM);
-
   if (with_mirroring) {
+    dF.noalias() += dFm * conj(LM);
+    
     for (auto iq = 0; iq < nppd; iq++) {
       const auto& deriv = derivatives_data[derivatives_data_position[iq]];
 
@@ -935,14 +935,14 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
                             const Numeric& magnetic_magnitude_si,
                             const Numeric& F0_noshift_si,
                             const Numeric& GD_div_F0_si,
-                            const LineShape::Output& x_si,
+                            const LineShape::Output& lso_si,
                             const AbsorptionLines& band,
                             const Index& line_ind,
                             const ArrayOfRetrievalQuantity& derivatives_data,
                             const ArrayOfIndex& derivatives_data_position,
                             const Numeric& dGD_div_F0_dT_si,
-                            const LineShape::Output& dxdT_si,
-                            const LineShape::Output& dxdVMR_si) {
+                            const LineShape::Output& dT_si,
+                            const LineShape::Output& dVMR_si) {
   using Constant::inv_sqrt_pi;
   using Constant::pi;
   using Constant::pow2;
@@ -960,19 +960,19 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
   const Numeric sg0 =
       freq2kaycm(F0_noshift_si + zeeman_df_si * magnetic_magnitude_si);
   const Numeric GamD = GD_div_F0_si * sg0 / sqrt_ln_2;
-  const auto x = si2cgs(x_si);
-  const auto dT = si2cgs(dxdT_si);
-  const auto dV = si2cgs(dxdVMR_si);
+  const auto lso = si2cgs(lso_si);
+  const auto dT = si2cgs(dT_si);
+  const auto dV = si2cgs(dVMR_si);
 
   // General normalization
   const Numeric cte = sqrt_ln_2 / GamD;
   constexpr Complex iz(0, 1);
 
   // Calculating the different parameters
-  const Complex c0(x.G0, -x.D0);
-  const Complex c2(x.G2, -x.D2);
-  const Complex c0t = (1 - x.ETA) * (c0 - 1.5 * c2) + x.FVC;
-  const Complex c2t = (1 - x.ETA) * c2;
+  const Complex c0(lso.G0, -lso.D0);
+  const Complex c2(lso.G2, -lso.D2);
+  const Complex c0t = (1 - lso.ETA) * (c0 - 1.5 * c2) + lso.FVC;
+  const Complex c2t = (1 - lso.ETA) * c2;
   const Complex Y = pow2(1 / (2 * cte * c2t));
   const Complex sqrtY = sqrt(Y);
 
@@ -1046,8 +1046,8 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
               c2t;
     }
 
-    F(iv) = Aterm / (pi * (((c0 - 1.5 * c2) * x.ETA - x.FVC) * Aterm +
-                           Bterm * c2 * x.ETA + 1));
+    F(iv) = Aterm / (pi * (((c0 - 1.5 * c2) * lso.ETA - lso.FVC) * Aterm +
+                           Bterm * c2 * lso.ETA + 1));
 
     for (auto iq = 0; iq < derivatives_data_position.nelem(); iq++) {
       const RetrievalQuantity& rt =
@@ -1061,37 +1061,37 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
         dc0 = Complex(dT.G0, -dT.D0);  // for T
         dc2 = Complex(dT.G2, -dT.D2);  // for T
         dc0t = (-(c0 - 1.5 * c2) * dT.ETA + dT.FVC) +
-               ((1 - x.ETA) * (dc0 - 1.5 * dc2));     // for T
-        dc2t = (-c2 * dT.ETA) + ((1 - x.ETA) * dc2);  // for T
+               ((1 - lso.ETA) * (dc0 - 1.5 * dc2));     // for T
+        dc2t = (-c2 * dT.ETA) + ((1 - lso.ETA) * dc2);  // for T
       } else if (rt == JacPropMatType::VMR and
                  Absorption::id_in_line(band, rt.QuantumIdentity(), line_ind)) {
         dc0 = Complex(dV.G0, -dV.D0);  // for VMR
         dc2 = Complex(dV.G2, -dV.D2);  // for VMR
         dc0t = (-(c0 - 1.5 * c2) * dV.ETA + dV.FVC) +
-               ((1 - x.ETA) * (dc0 - 1.5 * dc2));     // for VMR
-        dc2t = (-c2 * dV.ETA) + ((1 - x.ETA) * dc2);  // for VMR
+               ((1 - lso.ETA) * (dc0 - 1.5 * dc2));     // for VMR
+        dc2t = (-c2 * dV.ETA) + ((1 - lso.ETA) * dc2);  // for VMR
       } else if (is_pressure_broadening_G2(rt) and
                  Absorption::id_in_line(band, rt.QuantumIdentity(), line_ind)) {
         dc2 =
             1;  // for Gam2(T, VMR) and for Shift2(T, VMR), the derivative is wrt c2 for later computations
-        dc0t = ((1 - x.ETA) * (dc0 - 1.5 * dc2));
-        dc2t = ((1 - x.ETA) * dc2);
+        dc0t = ((1 - lso.ETA) * (dc0 - 1.5 * dc2));
+        dc2t = ((1 - lso.ETA) * dc2);
       } else if (is_pressure_broadening_D2(rt) and
                  Absorption::id_in_line(band, rt.QuantumIdentity(), line_ind)) {
         dc2 =
             -iz;  // for Gam2(T, VMR) and for Shift2(T, VMR), the derivative is wrt c2 for later computations
-        dc0t = ((1 - x.ETA) * (dc0 - 1.5 * dc2));
-        dc2t = ((1 - x.ETA) * dc2);
+        dc0t = ((1 - lso.ETA) * (dc0 - 1.5 * dc2));
+        dc2t = ((1 - lso.ETA) * dc2);
       } else if (is_pressure_broadening_G0(rt) and
                  Absorption::id_in_line(band, rt.QuantumIdentity(), line_ind)) {
         dc0 =
             1;  // for Gam0(T, VMR) and for Shift0(T, VMR), the derivative is wrt c0 for later computations
-        dc0t = ((1 - x.ETA) * (dc0 - 1.5 * dc2));
+        dc0t = ((1 - lso.ETA) * (dc0 - 1.5 * dc2));
       } else if (is_pressure_broadening_D0(rt) and
                  Absorption::id_in_line(band, rt.QuantumIdentity(), line_ind)) {
         dc0 =
             -iz;  // for Gam0(T, VMR) and for Shift0(T, VMR), the derivative is wrt c0 for later computations
-        dc0t = ((1 - x.ETA) * (dc0 - 1.5 * dc2));
+        dc0t = ((1 - lso.ETA) * (dc0 - 1.5 * dc2));
       } else if (is_pressure_broadening_FVC(rt) and
                  Absorption::id_in_line(band, rt.QuantumIdentity(), line_ind)) {
         dc0t = (1);  // for FVC(T, VMR)
@@ -1256,16 +1256,16 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
         dFVC = 1;
 
       dF.col(iq)(iv) =
-          ((((c0 - 1.5 * c2) * x.ETA - x.FVC) * Aterm + Bterm * c2 * x.ETA +
+          ((((c0 - 1.5 * c2) * lso.ETA - lso.FVC) * Aterm + Bterm * c2 * lso.ETA +
             1) *
                dAterm -
-           (((c0 - 1.5 * c2) * x.ETA - x.FVC) * dAterm +
-            ((c0 - 1.5 * c2) * dETA + (dc0 - 1.5 * dc2) * x.ETA - dFVC) *
+           (((c0 - 1.5 * c2) * lso.ETA - lso.FVC) * dAterm +
+            ((c0 - 1.5 * c2) * dETA + (dc0 - 1.5 * dc2) * lso.ETA - dFVC) *
                 Aterm +
-            Bterm * c2 * dETA + Bterm * x.ETA * dc2 + c2 * x.ETA * dBterm) *
+            Bterm * c2 * dETA + Bterm * lso.ETA * dc2 + c2 * lso.ETA * dBterm) *
                Aterm) /
-          (pi * pow2(((c0 - 1.5 * c2) * x.ETA - x.FVC) * Aterm +
-                     Bterm * c2 * x.ETA + 1));  // for all
+          (pi * pow2(((c0 - 1.5 * c2) * lso.ETA - lso.FVC) * Aterm +
+                     Bterm * c2 * lso.ETA + 1));  // for all
     }
   }
 

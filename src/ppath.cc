@@ -5139,7 +5139,7 @@ void ppath_start_stepping(Ppath& ppath,
         } else if (above) {
           ppath.pos(0, 0) = rte_pos[0];
           ppath.pos(0, 1) = rte_pos[1];
-          ppath.pos(0, 1) = lon2use;
+//           ppath.pos(0, 1) = lon2use;
           ppath.r[0] = r_e + rte_pos[0];
           ppath.los(0, 0) = rte_los[0];
           ppath.los(0, 1) = rte_los[1];

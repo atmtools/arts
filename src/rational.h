@@ -653,7 +653,7 @@ inline Numeric pow(const Rational base, const Rational exp) {
 std::ostream& operator<<(std::ostream& os, const Rational& a);
 
 /** Input operator */
-std::istream& operator>>(std::istream& os, Rational& a);
+std::istream& operator>>(std::istream& is, Rational& a);
 
 /** less
  * 

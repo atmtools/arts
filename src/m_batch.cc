@@ -518,8 +518,8 @@ void ybatchMetProfilesClear(Workspace& ws,
   lat = met_amsu_data(Range(joker), 0);
   lon = met_amsu_data(Range(joker), 1);
 
-  Vector oro_height;
-  oro_height = met_amsu_data(Range(joker), 5);
+//   Vector oro_height;
+//   oro_height = met_amsu_data(Range(joker), 5);
 
   z_surface.resize(1, 1);
   for (Index i = 0; i < no_profiles; ++i) {

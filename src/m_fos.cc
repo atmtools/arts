@@ -1347,7 +1347,6 @@ void iyHybrid(Workspace& ws,
           one_minus_transmission -= T;
         }
 
-        const Vector iy_old = iy(iv, joker);
         from_level = J(ip, iv, joker);
         from_level += J(ip + 1, iv, joker);
         from_level *= 0.5;

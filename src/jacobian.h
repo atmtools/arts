@@ -1121,11 +1121,11 @@ bool supports_propmat_clearsky(const ArrayOfRetrievalQuantity& js);
  * Very slow compared to index input
  * 
  * @param[in] rq A retrieval quantity
- * @param[in] st A list of species tags
+ * @param[in] ast A list of species tags
  * @return true if all species in the tags list matches the species in the retrieval quantity
  * @return false otherwise
  */
-bool species_match(const RetrievalQuantity& rq, const ArrayOfSpeciesTag& st);
+bool species_match(const RetrievalQuantity& rq, const ArrayOfSpeciesTag& ast);
 
 /** Returns if the Retrieval quantity is VMR derivative for all the species in the species tags
  * 

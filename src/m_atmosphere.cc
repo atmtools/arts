@@ -993,7 +993,7 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
   // If lon grid is cyclic, the data values at 0 and 360 must match
   const Vector& in_lat_grid =
       gfraw_in.get_numeric_grid(lat_grid_index);
-  const Vector in_lon_grid =
+  const Vector& in_lon_grid =
       gfraw_in.get_numeric_grid(lon_grid_index);
 
   if (is_lon_cyclic(in_lon_grid)) {
@@ -4289,24 +4289,19 @@ void nlte_fieldSetLteExternalPartitionFunction(
           if (Absorption::id_in_line_lower(band, qi, k)) {
             band.Population(Absorption::PopulationType::ByNLTEPopulationDistribution);
             
-            bool compute_level = false;
-            
             if (not checked[in]) {
               checked[in] = 1;
-              compute_level = true;
               
-              if (compute_level) {
-                for (Index ip = 0; ip < np; ip++) {
-                  for (Index ilat = 0; ilat < nlat; ilat++) {
-                    for (Index ilon = 0; ilon < nlon; ilon++) {
-                      lte(ip, ilat, ilon) =
-                      boltzman_factor(t_field(ip, ilat, ilon), band.E0(k)) *
-                      band.g_low(k) / single_partition_function(
-                        t_field(ip, ilat, ilon), partition_functions.getParamType(band.Species(),
-                                                                                  band.Isotopologue()),
-                                                 partition_functions.getParam(band.Species(),
-                                                                              band.Isotopologue()));
-                    }
+              for (Index ip = 0; ip < np; ip++) {
+                for (Index ilat = 0; ilat < nlat; ilat++) {
+                  for (Index ilon = 0; ilon < nlon; ilon++) {
+                    lte(ip, ilat, ilon) =
+                    boltzman_factor(t_field(ip, ilat, ilon), band.E0(k)) *
+                    band.g_low(k) / single_partition_function(
+                      t_field(ip, ilat, ilon), partition_functions.getParamType(band.Species(),
+                                                                                band.Isotopologue()),
+                                                partition_functions.getParam(band.Species(),
+                                                                            band.Isotopologue()));
                   }
                 }
               }
@@ -4316,24 +4311,18 @@ void nlte_fieldSetLteExternalPartitionFunction(
           if (Absorption::id_in_line_upper(band, qi, k)) {
             band.Population(Absorption::PopulationType::ByNLTEPopulationDistribution);
             
-            bool compute_level = false;
-            
             if (not checked[in]) {
               checked[in] = 1;
-              compute_level = true;
-              
-              if (compute_level) {
-                for (Index ip = 0; ip < np; ip++) {
-                  for (Index ilat = 0; ilat < nlat; ilat++) {
-                    for (Index ilon = 0; ilon < nlon; ilon++) {
-                      lte(ip, ilat, ilon) =
-                      boltzman_factor(t_field(ip, ilat, ilon), band.E0(k) + h*band.F0(k)) *
-                      band.g_upp(k) / single_partition_function(
-                        t_field(ip, ilat, ilon), partition_functions.getParamType(band.Species(),
-                                                                                  band.Isotopologue()),
-                                                 partition_functions.getParam(band.Species(),
-                                                                              band.Isotopologue()));
-                    }
+              for (Index ip = 0; ip < np; ip++) {
+                for (Index ilat = 0; ilat < nlat; ilat++) {
+                  for (Index ilon = 0; ilon < nlon; ilon++) {
+                    lte(ip, ilat, ilon) =
+                    boltzman_factor(t_field(ip, ilat, ilon), band.E0(k) + h*band.F0(k)) *
+                    band.g_upp(k) / single_partition_function(
+                      t_field(ip, ilat, ilon), partition_functions.getParamType(band.Species(),
+                                                                                band.Isotopologue()),
+                                                partition_functions.getParam(band.Species(),
+                                                                            band.Isotopologue()));
                   }
                 }
               }
@@ -4405,22 +4394,17 @@ void nlte_fieldSetLteInternalPartitionFunction(
           if (Absorption::id_in_line_lower(band, qi, k)) {
             band.Population(Absorption::PopulationType::ByNLTEPopulationDistribution);
             
-            bool compute_level = false;
-            
             if (not checked[in]) {
               checked[in] = 1;
-              compute_level = true;
               
-              if (compute_level) {
-                for (Index ip = 0; ip < np; ip++) {
-                  for (Index ilat = 0; ilat < nlat; ilat++) {
-                    for (Index ilon = 0; ilon < nlon; ilon++) {
-                      lte(ip, ilat, ilon) =
-                        boltzman_factor(t_field(ip, ilat, ilon), band.E0(k)) *
-                                        band.g_low(k);
-                      part_fun(part_fun_pos[in], ip, ilat, ilon) +=
-                        lte(ip, ilat, ilon);
-                    }
+              for (Index ip = 0; ip < np; ip++) {
+                for (Index ilat = 0; ilat < nlat; ilat++) {
+                  for (Index ilon = 0; ilon < nlon; ilon++) {
+                    lte(ip, ilat, ilon) =
+                      boltzman_factor(t_field(ip, ilat, ilon), band.E0(k)) *
+                                      band.g_low(k);
+                    part_fun(part_fun_pos[in], ip, ilat, ilon) +=
+                      lte(ip, ilat, ilon);
                   }
                 }
               }
@@ -4430,23 +4414,18 @@ void nlte_fieldSetLteInternalPartitionFunction(
           if (Absorption::id_in_line_upper(band, qi, k)) {
             band.Population(Absorption::PopulationType::ByNLTEPopulationDistribution);
             
-            bool compute_level = false;
-            
             if (not checked[in]) {
               checked[in] = 1;
-              compute_level = true;
               
-              if (compute_level) {
-                for (Index ip = 0; ip < np; ip++) {
-                  for (Index ilat = 0; ilat < nlat; ilat++) {
-                    for (Index ilon = 0; ilon < nlon; ilon++) {
-                      lte(ip, ilat, ilon) =
-                        boltzman_factor(t_field(ip, ilat, ilon),
-                                        band.E0(k) + h * band.F0(k)) *
-                                        band.g_upp(k);
-                      part_fun(part_fun_pos[in], ip, ilat, ilon) +=
-                        lte(ip, ilat, ilon);
-                    }
+              for (Index ip = 0; ip < np; ip++) {
+                for (Index ilat = 0; ilat < nlat; ilat++) {
+                  for (Index ilon = 0; ilon < nlon; ilon++) {
+                    lte(ip, ilat, ilon) =
+                      boltzman_factor(t_field(ip, ilat, ilon),
+                                      band.E0(k) + h * band.F0(k)) *
+                                      band.g_upp(k);
+                    part_fun(part_fun_pos[in], ip, ilat, ilon) +=
+                      lte(ip, ilat, ilon);
                   }
                 }
               }

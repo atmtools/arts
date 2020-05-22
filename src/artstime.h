@@ -112,7 +112,7 @@ Time next_even(const Time& t, const TimeStep& dt);
  * @param[in] step A duration of time
  * @return Starting index of the time-series
  */
-ArrayOfIndex time_steps(const ArrayOfTime& time, const String& step);
+ArrayOfIndex time_steps(const ArrayOfTime& times, const String& step);
 
 /** Computes the average time in a list
  * 

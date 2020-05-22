@@ -353,7 +353,7 @@ void iyEmissionStandardSequential(Workspace& ws,
     // Init variables only used if analytical jacobians done
     Vector dB_dT(0);
     ArrayOfPropagationMatrix dK_this_dx(nq), dK_past_dx(nq), dKp_dx(nq);
-    ArrayOfStokesVector da_dx(nq), dS_dx(nq), dSp_dx(nq);
+    ArrayOfStokesVector da_dx(nq), dS_dx(nq);
 
     // HSE variables
     Index temperature_derivative_position = -1;
@@ -366,7 +366,6 @@ void iyEmissionStandardSequential(Workspace& ws,
                                   dKp_dx[iq] = PropagationMatrix(nf, ns);
                                   da_dx[iq] = StokesVector(nf, ns);
                                   dS_dx[iq] = StokesVector(nf, ns);
-                                  dSp_dx[iq] = StokesVector(nf, ns);
                                   if (jacobian_quantities[iq] == JacPropMatType::Temperature) {
                                     temperature_derivative_position = iq;
                                     do_hse = jacobian_quantities[iq].Subtag() ==
@@ -739,7 +738,7 @@ void iyEmissionStandard(
 
     // Size radiative variables always used
     Vector B(nf);
-    StokesVector a(nf, ns), S(nf, ns), Sp(nf, ns);
+    StokesVector a(nf, ns), S(nf, ns);
     ArrayOfIndex lte(np);
 
     ArrayOfPropagationMatrix K(np);

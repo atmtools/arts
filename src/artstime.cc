@@ -47,12 +47,12 @@ TimeStep time_stepper_selection(const String& time_step)
     throw std::runtime_error("Bad time step definition");
 }
 
-Time next_even(const Time& t, const TimeStep& dt_in_sec)
+Time next_even(const Time& t, const TimeStep& dt)
 {
-  auto dt = std::chrono::duration_cast<Time::InternalTimeStep>(dt_in_sec);
+  auto dt_internal = std::chrono::duration_cast<Time::InternalTimeStep>(dt);
   
-  if (dt.count())
-    return t + dt - t.EpochTime() % dt;
+  if (dt_internal.count())
+    return t + dt_internal - t.EpochTime() % dt_internal;
   else 
     return t;
 }

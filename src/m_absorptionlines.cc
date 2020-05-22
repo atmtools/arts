@@ -417,7 +417,7 @@ void ReadSplitARTSCAT(ArrayOfAbsorptionLines& abs_lines,
     abs_linesSetPopulation(abs_lines, population_option, verbosity);
   if (lineshapetype_option != "None")
     abs_linesSetLineShapeType(abs_lines, lineshapetype_option, verbosity);
-  if (lineshapetype_option != "None")
+  if (cutoff_option != "None")
     abs_linesSetCutoff(abs_lines, cutoff_option, cutoff_value, verbosity);
   abs_linesSetLinemixingLimit(abs_lines, linemixinglimit_value, verbosity);
 }
@@ -1825,7 +1825,6 @@ void abs_linesChangeBaseParameterForMatchingLines(ArrayOfAbsorptionLines& abs_li
               << parameter_name
               << "\nSee method description for supported parameter names.\n";
             throw std::runtime_error(os.str());
-            break;
           }
         }
       }
@@ -1933,7 +1932,6 @@ void abs_linesSetBaseParameterForMatchingLines(ArrayOfAbsorptionLines& abs_lines
             << parameter_name
             << "\nSee method description for supported parameter names.\n";
             throw std::runtime_error(os.str());
-            break;
           }
         }
       }
@@ -2188,7 +2186,6 @@ void abs_linesChangeBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_li
             << parameter_name
             << "\nSee method description for supported parameter names.\n";
             throw std::runtime_error(os.str());
-            break;
           }
         }
       } else if (Absorption::id_in_line_upper(band, QI, k)) {
@@ -2211,7 +2208,6 @@ void abs_linesChangeBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_li
             << parameter_name
             << "\nSee method description for supported parameter names.\n";
             throw std::runtime_error(os.str());
-            break;
           }
         }
       }
@@ -2302,7 +2298,6 @@ void abs_linesSetBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_lines
             << parameter_name
             << "\nSee method description for supported parameter names.\n";
             throw std::runtime_error(os.str());
-            break;
           }
         }
       } else if (Absorption::id_in_line_upper(band, QI, k)) {
@@ -2319,7 +2314,6 @@ void abs_linesSetBaseParameterForMatchingLevel(ArrayOfAbsorptionLines& abs_lines
             << parameter_name
             << "\nSee method description for supported parameter names.\n";
             throw std::runtime_error(os.str());
-            break;
           }
         }
       }

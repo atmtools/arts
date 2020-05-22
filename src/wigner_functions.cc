@@ -139,17 +139,17 @@ constexpr Wigner3JTriangleLimit find_even_limits(const Wigner3JTriangleLimit lim
   return 
   {
   lim1.lower > lim2.lower ?
-    (lim1.lower % 2 ?
+    ((lim1.lower % 2) ?
       lim1.lower + 1 :
       lim1.lower) :
-    (lim2.lower % 2 ?
+    ((lim2.lower % 2) ?
       lim2.lower + 1 :
       lim2.lower),
   lim1.upper < lim2.upper ?
-    (lim1.upper % 2 ?
+    ((lim1.upper % 2) ?
       lim1.upper - 1 :
       lim1.upper) :
-    (lim2.upper % 2?
+    ((lim2.upper % 2) ?
       lim2.upper - 1 :
       lim2.upper)
   };

@@ -162,7 +162,7 @@ class MCAntenna {
                 ConstMatrixView R_ant2enu,
                 ConstVectorView bore_sight_los) const;
   
-  AntennaType Type() {return atype;}
+  AntennaType Type() const {return atype;}
   Index Type(AntennaType x) {if (validType(x)) {atype = x; return EXIT_SUCCESS;} else return EXIT_FAILURE;}
   static bool validType(AntennaType x) noexcept
   {

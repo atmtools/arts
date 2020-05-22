@@ -686,9 +686,9 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_ecs(ComplexVector& I, con
   }
   
   const Eigen::ComplexEigenSolver<Eigen::Matrix<Complex, necs2020, necs2020>> eV(W, true);
-  auto& D = eV.eigenvalues(); 
-  auto& V = eV.eigenvectors(); 
-  auto& Vinv = W = eV.eigenvectors().inverse();  // Reuse W memory but with different &name
+  const auto& D = eV.eigenvalues(); 
+  const auto& V = eV.eigenvectors(); 
+  const auto& Vinv = W = eV.eigenvectors().inverse();  // Reuse W memory but with different &name
   
   Eigen::Array<Complex, necs2020, 1> B; B *= 0;
   for (Index m=0; m<necs2020; m++) {
