@@ -661,7 +661,7 @@ void GriddedFieldPRegridHelper(Index& ing_min,
 
   out2 << "  Interpolation order: " << interp_order << "\n";
 
-  const ConstVectorView in_p_grid = gfraw_in.get_numeric_grid(p_grid_index);
+  const Vector& in_p_grid = gfraw_in.get_numeric_grid(p_grid_index);
 
   // Initialize output field. Set grids and copy grid names
   gfraw_out.set_grid(p_grid_index, p_grid);
@@ -914,8 +914,8 @@ void GriddedFieldLatLonRegridHelper(ArrayOfGridPosPoly& gp_lat,
 
   out2 << "  Interpolation order: " << interp_order << "\n";
 
-  const ConstVectorView in_lat_grid = gfraw_in.get_numeric_grid(lat_grid_index);
-  const ConstVectorView in_lon_grid = gfraw_in.get_numeric_grid(lon_grid_index);
+  const Vector& in_lat_grid = gfraw_in.get_numeric_grid(lat_grid_index);
+  const Vector& in_lon_grid = gfraw_in.get_numeric_grid(lon_grid_index);
 
   // Initialize output field. Set grids and copy grid names
   gfraw_out.set_grid(lat_grid_index, lat_true);
@@ -991,9 +991,9 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
   Tensor3 itw;
 
   // If lon grid is cyclic, the data values at 0 and 360 must match
-  const ConstVectorView& in_lat_grid =
+  const Vector& in_lat_grid =
       gfraw_in.get_numeric_grid(lat_grid_index);
-  const ConstVectorView& in_lon_grid =
+  const Vector& in_lon_grid =
       gfraw_in.get_numeric_grid(lon_grid_index);
 
   if (is_lon_cyclic(in_lon_grid)) {
@@ -1082,10 +1082,10 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
   Tensor3 itw;
 
   // If lon grid is cyclic, the data values at 0 and 360 must match
-  const ConstVectorView& in_grid0 = gfraw_in.get_numeric_grid(0);
-  const ConstVectorView& in_lat_grid =
+  const Vector& in_grid0 = gfraw_in.get_numeric_grid(0);
+  const Vector& in_lat_grid =
       gfraw_in.get_numeric_grid(lat_grid_index);
-  const ConstVectorView& in_lon_grid =
+  const Vector& in_lon_grid =
       gfraw_in.get_numeric_grid(lon_grid_index);
 
   if (is_lon_cyclic(in_lon_grid)) {
@@ -1200,11 +1200,11 @@ void GriddedFieldLatLonRegrid(  // WS Generic Output:
                                  verbosity);
 
   // If lon grid is cyclic, the data values at 0 and 360 must match
-  const ConstVectorView& in_grid0 = gfraw_in.get_numeric_grid(0);
-  const ConstVectorView& in_grid1 = gfraw_in.get_numeric_grid(1);
-  const ConstVectorView& in_lat_grid =
+  const Vector& in_grid0 = gfraw_in.get_numeric_grid(0);
+  const Vector& in_grid1 = gfraw_in.get_numeric_grid(1);
+  const Vector& in_lat_grid =
       gfraw_in.get_numeric_grid(lat_grid_index);
-  const ConstVectorView& in_lon_grid =
+  const Vector& in_lon_grid =
       gfraw_in.get_numeric_grid(lon_grid_index);
 
   if (is_lon_cyclic(in_lon_grid)) {
@@ -1303,7 +1303,7 @@ void GriddedFieldZToPRegridHelper(Index& ing_min,
 
   out2 << "  Interpolation order: " << interp_order << "\n";
 
-  const ConstVectorView in_z_grid = gfraw_in.get_numeric_grid(z_grid_index);
+  const Vector& in_z_grid = gfraw_in.get_numeric_grid(z_grid_index);
 
   if (zeropadding) {
     if (in_z_grid[0] > z_grid[z_grid.nelem() - 1] ||
@@ -2100,17 +2100,17 @@ void AtmFieldsCalc(  //WS Output:
     const Verbosity& verbosity) {
   CREATE_OUT2;
 
-  const ConstVectorView tfr_p_grid =
+  const Vector& tfr_p_grid =
       t_field_raw.get_numeric_grid(GFIELD3_P_GRID);
-  const ConstVectorView tfr_lat_grid =
+  const Vector& tfr_lat_grid =
       t_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
-  const ConstVectorView tfr_lon_grid =
+  const Vector& tfr_lon_grid =
       t_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
-  const ConstVectorView zfr_p_grid =
+  const Vector& zfr_p_grid =
       z_field_raw.get_numeric_grid(GFIELD3_P_GRID);
-  const ConstVectorView zfr_lat_grid =
+  const Vector& zfr_lat_grid =
       z_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
-  const ConstVectorView zfr_lon_grid =
+  const Vector& zfr_lon_grid =
       z_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
 
   out2 << "  Interpolation order: " << interp_order << "\n";
@@ -2494,23 +2494,23 @@ void MagFieldsCalc(  //WS Output:
     const Verbosity& verbosity) {
   CREATE_OUT2;
 
-  const ConstVectorView ufr_p_grid =
+  const Vector& ufr_p_grid =
       mag_u_field_raw.get_numeric_grid(GFIELD3_P_GRID);
-  const ConstVectorView ufr_lat_grid =
+  const Vector& ufr_lat_grid =
       mag_u_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
-  const ConstVectorView ufr_lon_grid =
+  const Vector& ufr_lon_grid =
       mag_u_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
-  const ConstVectorView vfr_p_grid =
+  const Vector& vfr_p_grid =
       mag_v_field_raw.get_numeric_grid(GFIELD3_P_GRID);
-  const ConstVectorView vfr_lat_grid =
+  const Vector& vfr_lat_grid =
       mag_v_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
-  const ConstVectorView vfr_lon_grid =
+  const Vector& vfr_lon_grid =
       mag_v_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
-  const ConstVectorView wfr_p_grid =
+  const Vector& wfr_p_grid =
       mag_w_field_raw.get_numeric_grid(GFIELD3_P_GRID);
-  const ConstVectorView wfr_lat_grid =
+  const Vector& wfr_lat_grid =
       mag_w_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
-  const ConstVectorView wfr_lon_grid =
+  const Vector& wfr_lon_grid =
       mag_w_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
 
   out2 << "  Interpolation order: " << interp_order << "\n";
@@ -2842,23 +2842,23 @@ void WindFieldsCalc(  //WS Output:
     const Verbosity& verbosity) {
   CREATE_OUT2;
 
-  const ConstVectorView ufr_p_grid =
+  const Vector& ufr_p_grid =
       wind_u_field_raw.get_numeric_grid(GFIELD3_P_GRID);
-  const ConstVectorView ufr_lat_grid =
+  const Vector& ufr_lat_grid =
       wind_u_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
-  const ConstVectorView ufr_lon_grid =
+  const Vector& ufr_lon_grid =
       wind_u_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
-  const ConstVectorView vfr_p_grid =
+  const Vector& vfr_p_grid =
       wind_v_field_raw.get_numeric_grid(GFIELD3_P_GRID);
-  const ConstVectorView vfr_lat_grid =
+  const Vector& vfr_lat_grid =
       wind_v_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
-  const ConstVectorView vfr_lon_grid =
+  const Vector& vfr_lon_grid =
       wind_v_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
-  const ConstVectorView wfr_p_grid =
+  const Vector& wfr_p_grid =
       wind_w_field_raw.get_numeric_grid(GFIELD3_P_GRID);
-  const ConstVectorView wfr_lat_grid =
+  const Vector& wfr_lat_grid =
       wind_w_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
-  const ConstVectorView wfr_lon_grid =
+  const Vector& wfr_lon_grid =
       wind_w_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
 
   out2 << "  Interpolation order: " << interp_order << "\n";
@@ -4289,24 +4289,19 @@ void nlte_fieldSetLteExternalPartitionFunction(
           if (Absorption::id_in_line_lower(band, qi, k)) {
             band.Population(Absorption::PopulationType::ByNLTEPopulationDistribution);
             
-            bool compute_level = false;
-            
             if (not checked[in]) {
               checked[in] = 1;
-              compute_level = true;
               
-              if (compute_level) {
-                for (Index ip = 0; ip < np; ip++) {
-                  for (Index ilat = 0; ilat < nlat; ilat++) {
-                    for (Index ilon = 0; ilon < nlon; ilon++) {
-                      lte(ip, ilat, ilon) =
-                      boltzman_factor(t_field(ip, ilat, ilon), band.E0(k)) *
-                      band.g_low(k) / single_partition_function(
-                        t_field(ip, ilat, ilon), partition_functions.getParamType(band.Species(),
-                                                                                  band.Isotopologue()),
-                                                 partition_functions.getParam(band.Species(),
-                                                                              band.Isotopologue()));
-                    }
+              for (Index ip = 0; ip < np; ip++) {
+                for (Index ilat = 0; ilat < nlat; ilat++) {
+                  for (Index ilon = 0; ilon < nlon; ilon++) {
+                    lte(ip, ilat, ilon) =
+                    boltzman_factor(t_field(ip, ilat, ilon), band.E0(k)) *
+                    band.g_low(k) / single_partition_function(
+                      t_field(ip, ilat, ilon), partition_functions.getParamType(band.Species(),
+                                                                                band.Isotopologue()),
+                                                partition_functions.getParam(band.Species(),
+                                                                            band.Isotopologue()));
                   }
                 }
               }
@@ -4316,24 +4311,18 @@ void nlte_fieldSetLteExternalPartitionFunction(
           if (Absorption::id_in_line_upper(band, qi, k)) {
             band.Population(Absorption::PopulationType::ByNLTEPopulationDistribution);
             
-            bool compute_level = false;
-            
             if (not checked[in]) {
               checked[in] = 1;
-              compute_level = true;
-              
-              if (compute_level) {
-                for (Index ip = 0; ip < np; ip++) {
-                  for (Index ilat = 0; ilat < nlat; ilat++) {
-                    for (Index ilon = 0; ilon < nlon; ilon++) {
-                      lte(ip, ilat, ilon) =
-                      boltzman_factor(t_field(ip, ilat, ilon), band.E0(k) + h*band.F0(k)) *
-                      band.g_upp(k) / single_partition_function(
-                        t_field(ip, ilat, ilon), partition_functions.getParamType(band.Species(),
-                                                                                  band.Isotopologue()),
-                                                 partition_functions.getParam(band.Species(),
-                                                                              band.Isotopologue()));
-                    }
+              for (Index ip = 0; ip < np; ip++) {
+                for (Index ilat = 0; ilat < nlat; ilat++) {
+                  for (Index ilon = 0; ilon < nlon; ilon++) {
+                    lte(ip, ilat, ilon) =
+                    boltzman_factor(t_field(ip, ilat, ilon), band.E0(k) + h*band.F0(k)) *
+                    band.g_upp(k) / single_partition_function(
+                      t_field(ip, ilat, ilon), partition_functions.getParamType(band.Species(),
+                                                                                band.Isotopologue()),
+                                                partition_functions.getParam(band.Species(),
+                                                                            band.Isotopologue()));
                   }
                 }
               }
@@ -4405,22 +4394,17 @@ void nlte_fieldSetLteInternalPartitionFunction(
           if (Absorption::id_in_line_lower(band, qi, k)) {
             band.Population(Absorption::PopulationType::ByNLTEPopulationDistribution);
             
-            bool compute_level = false;
-            
             if (not checked[in]) {
               checked[in] = 1;
-              compute_level = true;
               
-              if (compute_level) {
-                for (Index ip = 0; ip < np; ip++) {
-                  for (Index ilat = 0; ilat < nlat; ilat++) {
-                    for (Index ilon = 0; ilon < nlon; ilon++) {
-                      lte(ip, ilat, ilon) =
-                        boltzman_factor(t_field(ip, ilat, ilon), band.E0(k)) *
-                                        band.g_low(k);
-                      part_fun(part_fun_pos[in], ip, ilat, ilon) +=
-                        lte(ip, ilat, ilon);
-                    }
+              for (Index ip = 0; ip < np; ip++) {
+                for (Index ilat = 0; ilat < nlat; ilat++) {
+                  for (Index ilon = 0; ilon < nlon; ilon++) {
+                    lte(ip, ilat, ilon) =
+                      boltzman_factor(t_field(ip, ilat, ilon), band.E0(k)) *
+                                      band.g_low(k);
+                    part_fun(part_fun_pos[in], ip, ilat, ilon) +=
+                      lte(ip, ilat, ilon);
                   }
                 }
               }
@@ -4430,23 +4414,18 @@ void nlte_fieldSetLteInternalPartitionFunction(
           if (Absorption::id_in_line_upper(band, qi, k)) {
             band.Population(Absorption::PopulationType::ByNLTEPopulationDistribution);
             
-            bool compute_level = false;
-            
             if (not checked[in]) {
               checked[in] = 1;
-              compute_level = true;
               
-              if (compute_level) {
-                for (Index ip = 0; ip < np; ip++) {
-                  for (Index ilat = 0; ilat < nlat; ilat++) {
-                    for (Index ilon = 0; ilon < nlon; ilon++) {
-                      lte(ip, ilat, ilon) =
-                        boltzman_factor(t_field(ip, ilat, ilon),
-                                        band.E0(k) + h * band.F0(k)) *
-                                        band.g_upp(k);
-                      part_fun(part_fun_pos[in], ip, ilat, ilon) +=
-                        lte(ip, ilat, ilon);
-                    }
+              for (Index ip = 0; ip < np; ip++) {
+                for (Index ilat = 0; ilat < nlat; ilat++) {
+                  for (Index ilon = 0; ilon < nlon; ilon++) {
+                    lte(ip, ilat, ilon) =
+                      boltzman_factor(t_field(ip, ilat, ilon),
+                                      band.E0(k) + h * band.F0(k)) *
+                                      band.g_upp(k);
+                    part_fun(part_fun_pos[in], ip, ilat, ilon) +=
+                      lte(ip, ilat, ilon);
                   }
                 }
               }

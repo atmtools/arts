@@ -62,8 +62,10 @@ def array_base(var):
 
     define_array_lib(var)
 
-
-    return '''class ArrayOfBASENAME:
+    x = "from collections.abc import Sized\n\n"
+        
+    return x + '''class ArrayOfBASENAME:
+        
         """ ArrayOfBASENAME from ARTS
 
             Getter and setter returns underlying type
@@ -131,24 +133,21 @@ def array_base(var):
 
         def __setitem__(self, ind, val):
             old = self[ind]
-            if isinstance(ind, slice):
-                if isinstance(val, Sized):
-                    for i in range(len(old)):
-                        old[i].set(val[i])
-                else:
-                    for i in range(len(old)):
-                        old[i].set(val)
-            elif isinstance(val, self.type):
-                old.set(val)
+            if isinstance(ind, slice) and isinstance(val, Sized):
+                for i in range(len(old)):
+                    old[i].set(val[i])
+            elif isinstance(ind, slice):
+                for i in range(len(old)):
+                    old[i].set(val)
             else:
-                raise TypeError("Expect BASENAME")
+                old.set(val)
 
         def append(self, val):
             if isinstance(val, self.type):
                 self.size += 1
                 self[self.size-1].set(val)
             else:
-                raise TypeError("Expect BASENAME")
+                self.append(self.type(val))
 
         def __len__(self):
             return self.size
@@ -168,6 +167,8 @@ def array_base(var):
             """ Sets this class according to another python instance of itself """
             if isinstance(other, ArrayOfBASENAME):
                 self.data = other.data
+            elif isinstance(other, Sized):
+                self.data = other
             else:
                 raise TypeError("Expects ArrayOfBASENAME")
 
@@ -200,6 +201,24 @@ def array_base(var):
             """
             if lib.xmlsaveArrayOfBASENAME(self.__data__, *correct_save_arguments(file, type, clobber)):
                 raise OSError("Cannot save {}".format(file))
+
+        def netcdfify(self):
+            """ Create the NETCDF4 information required for writing this data
+            
+            Output: list that can be processed by netcdf.py, True arraytype
+            """
+            return [x.netcdfify() for x in self], True
+        
+        def denetcdf(self, group):
+            """ Sets this based on a netcdf group
+            
+            Input:
+                Group of data that can be interpreted as this's information
+            """
+            self.size = group.nelem
+            for i in range(group.nelem):
+                self[i].denetcdf(group["pos{}".format(i)])
+            
 
         def __eq__(self, other):
             n = len(self)

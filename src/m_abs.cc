@@ -1520,9 +1520,6 @@ void propmat_clearskyAddOnTheFly(  // Workspace reference:
     const Agenda& abs_xsec_agenda,
     // Verbosity object:
     const Verbosity& verbosity) {
-  CREATE_OUT3;
-
-  // Define communication variables for the actual absorption calculation:
 
   // Output of AbsInputFromRteScalars:
   Vector abs_p;

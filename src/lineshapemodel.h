@@ -751,7 +751,7 @@ Numeric compute_dT0(Numeric T, Numeric T0, Variable var) const noexcept {
   }
   
   bool MatchTypes(const SingleSpeciesModel& other) const noexcept {
-    return std::equal (X.cbegin(), X.cend(), other.X.cbegin(), other.X.cend(), [](auto& a, auto& b){return a.type == b.type;});
+    return std::equal (X.cbegin(), X.cend(), other.X.cbegin(), other.X.cend(), [](const auto& a, const auto& b){return a.type == b.type;});
   }
 };
 
@@ -966,13 +966,13 @@ class Model {
   Model(Index n=0) noexcept : mdata(n) {}
   
   /** Init from copying a vector */
-  Model(const std::vector<SingleSpeciesModel>& assm) noexcept : mdata(assm) {}
+  explicit Model(const std::vector<SingleSpeciesModel>& assm) noexcept : mdata(assm) {}
   
   /** Init from copying itself */
   Model(const Model& m) noexcept : Model(m.mdata) {}
   
   /** Init from moving a vector */
-  Model(std::vector<SingleSpeciesModel>&& assm) noexcept : mdata(std::move(assm)) {}
+  explicit Model(std::vector<SingleSpeciesModel>&& assm) noexcept : mdata(std::move(assm)) {}
   
   /** Init from moving a itself */
   Model(Model&& m) noexcept : Model(std::move(m.mdata)) {}

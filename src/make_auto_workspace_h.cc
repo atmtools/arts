@@ -54,6 +54,7 @@ int main() {
         << "#include \"matpackII.h\"\n"
         << "#include \"m_general.h\"\n"
         << "#include \"supergeneric.h\"\n"
+        << "#include \"artstime.h\"\n"
         << "#include \"ppath.h\"\n"
         << "#include \"gas_abs_lookup.h\"\n"
         << "#include \"optproperties.h\"\n"

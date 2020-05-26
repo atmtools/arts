@@ -102,6 +102,7 @@ void define_wsv_group_names() {
   wsv_group_names.push_back("ArrayOfArrayOfString");
   wsv_group_names.push_back("ArrayOfArrayOfTensor3");
   wsv_group_names.push_back("ArrayOfArrayOfTensor6");
+  wsv_group_names.push_back("ArrayOfArrayOfTime");
   wsv_group_names.push_back("ArrayOfArrayOfTransmissionMatrix");
   wsv_group_names.push_back("ArrayOfArrayOfVector");
   wsv_group_names.push_back("ArrayOfCIARecord");
@@ -126,6 +127,7 @@ void define_wsv_group_names() {
   wsv_group_names.push_back("ArrayOfTensor5");
   wsv_group_names.push_back("ArrayOfTensor6");
   wsv_group_names.push_back("ArrayOfTensor7");
+  wsv_group_names.push_back("ArrayOfTime");
   wsv_group_names.push_back("ArrayOfTransmissionMatrix");
   wsv_group_names.push_back("ArrayOfVector");
   wsv_group_names.push_back("ArrayOfXsecRecord");
@@ -162,6 +164,7 @@ void define_wsv_group_names() {
   wsv_group_names.push_back("Tensor6");
   wsv_group_names.push_back("Tensor7");
   wsv_group_names.push_back("Timer");
+  wsv_group_names.push_back("Time");
   wsv_group_names.push_back("TessemNN");
   wsv_group_names.push_back("TransmissionMatrix");
   wsv_group_names.push_back("Vector");

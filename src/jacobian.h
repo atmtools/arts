@@ -368,9 +368,9 @@ class RetrievalQuantity {
   Numeric& Perturbation() {return mperturbation;}
   ArrayOfVector& Grids() {return mgrids;}
   QuantumIdentifier& QuantumIdentity() {return mquantumidentifier;}
-  JacPropMatType Proptype() {return mproptype;}
+  JacPropMatType Proptype() const {return mproptype;}
   Index Proptype(JacPropMatType x) {if (validProptype(x)) {mproptype = x; return EXIT_SUCCESS;} else return EXIT_FAILURE;}
-  bool validProptype(JacPropMatType x) {return Index(x) <= Index(JacPropMatType::NotPropagationMatrixType) and Index(x) >= 0;}
+  static bool validProptype(JacPropMatType x) noexcept {return Index(x) <= Index(JacPropMatType::NotPropagationMatrixType) and Index(x) >= 0;}
   void Integration(bool x) {mintegration_flag = x;}
   String& TransformationFunc() {return transformation_func;}
   Vector& TFuncParameters() {return tfunc_parameters;}
@@ -1121,11 +1121,11 @@ bool supports_propmat_clearsky(const ArrayOfRetrievalQuantity& js);
  * Very slow compared to index input
  * 
  * @param[in] rq A retrieval quantity
- * @param[in] st A list of species tags
+ * @param[in] ast A list of species tags
  * @return true if all species in the tags list matches the species in the retrieval quantity
  * @return false otherwise
  */
-bool species_match(const RetrievalQuantity& rq, const ArrayOfSpeciesTag& st);
+bool species_match(const RetrievalQuantity& rq, const ArrayOfSpeciesTag& ast);
 
 /** Returns if the Retrieval quantity is VMR derivative for all the species in the species tags
  * 

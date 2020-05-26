@@ -45,25 +45,9 @@
   \exception runtime_error The given String could not be mapped to
   a sensible tag description.
 */
-SpeciesTag::SpeciesTag(String def) {
+SpeciesTag::SpeciesTag(String def) : misotopologue(-1), mlf(-1), muf(-1), mtype(TYPE_PLAIN), mcia_second(-1), mcia_dataset(-1) {
   // Save input string for error messages:
   String def_original = def;
-  
-  // Set default values for isotopologue	
-  misotopologue = -1;	
-  
-  // Set frequency limits to default values (no limits):	
-  mlf = -1;	
-  muf = -1;	
-  
-  // Set CIA species to -1 by default	
-  mcia_second = -1;	
-  
-  // Set CIA dataset to -1 by default	
-  mcia_dataset = -1;	
-  
-  // Set type to normal LBL species by default	
-  mtype = TYPE_PLAIN;
 
   // Species lookup data:
   using global_data::species_data;
@@ -733,30 +717,30 @@ bool is_zeeman(const ArrayOfSpeciesTag& tg) {
     
     \author Patrick Eriksson, Axel von Engeln, and Stefan Buehler
     \date 2001-01-31 */
-void get_tag_group_index_for_tag_group(Index& tgs1_index,
-                                       const ArrayOfArrayOfSpeciesTag& tgs1,
-                                       const ArrayOfSpeciesTag& tg2) {
+void get_tag_group_index_for_tag_group(Index& tags1_index,
+                                       const ArrayOfArrayOfSpeciesTag& tags1,
+                                       const ArrayOfSpeciesTag& tag2) {
   bool found = false;
 
-  for (Index i = 0; i < tgs1.nelem() && !found; ++i) {
+  for (Index i = 0; i < tags1.nelem() && !found; ++i) {
     // Is at least the size correct?
-    if (tg2.nelem() == tgs1[i].nelem()) {
+    if (tag2.nelem() == tags1[i].nelem()) {
       bool ok = true;
 
-      for (Index j = 0; j < tg2.nelem(); ++j) {
-        if (tg2[j].Name() != tgs1[i][j].Name()) ok = false;
+      for (Index j = 0; j < tag2.nelem(); ++j) {
+        if (tag2[j].Name() != tags1[i][j].Name()) ok = false;
       }
 
       if (ok) {
         found = true;
-        tgs1_index = i;
+        tags1_index = i;
       }
     }
   }
 
   if (!found) {
     ostringstream os;
-    os << "The tag String \"" << tg2
+    os << "The tag String \"" << tag2
        << "\" does not match any of the given tags.\n";
     throw runtime_error(os.str());
   }

@@ -55,7 +55,7 @@ class SpeciesTag {
   }
 
   // Documentation is with implementation.
-  SpeciesTag(String def);
+  explicit SpeciesTag(String def);
 
   // Documentation is with implementation.
   String Name() const;
@@ -79,7 +79,7 @@ class SpeciesTag {
   bool IsSpecies(const String& s) const;
 
   /** Check if the isotopologue is same as SpeciesTag(s).Isotopologue() */
-  bool IsIsotopologue(const String& s) const;
+  bool IsIsotopologue(const String& i) const;
 
   /** Isotopologue species index.
       If this is equal to the number of isotopologues (one more than
@@ -165,13 +165,9 @@ class SpeciesTag {
   void Type(Index x) { mtype = x; }
   
   /** Checks if input is a valid Type */
-  bool validIndexForType(Index x) const { 
-    for(auto y: {TYPE_PLAIN, TYPE_ZEEMAN, TYPE_PREDEF, TYPE_CIA, TYPE_FREE_ELECTRONS, TYPE_PARTICLES, TYPE_HITRAN_XSEC }) {
-      if (y == x) {
-        return true;
-      }
-    }
-    return false;
+  static bool validIndexForType(Index x) noexcept {
+    constexpr auto keys = stdarrayify(Index(TYPE_PLAIN), TYPE_ZEEMAN, TYPE_PREDEF, TYPE_CIA, TYPE_FREE_ELECTRONS, TYPE_PARTICLES, TYPE_HITRAN_XSEC);
+    return std::any_of(keys.cbegin(), keys.cend(), [x](auto y){return x == y;});
   }
   
   /** @return Value if string is a Type or -1 if not */
@@ -286,7 +282,7 @@ Index find_first_species_tg(const ArrayOfArrayOfSpeciesTag& list_of_tags, const 
 void array_species_tag_from_string(ArrayOfSpeciesTag& tags,
                                    const String& names);
 
-void check_abs_species(const ArrayOfArrayOfSpeciesTag& tags);
+void check_abs_species(const ArrayOfArrayOfSpeciesTag& abs_species);
 
 bool is_zeeman(const ArrayOfSpeciesTag& tg);
 

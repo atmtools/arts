@@ -139,17 +139,17 @@ constexpr Wigner3JTriangleLimit find_even_limits(const Wigner3JTriangleLimit lim
   return 
   {
   lim1.lower > lim2.lower ?
-    (lim1.lower % 2 ?
+    ((lim1.lower % 2) ?
       lim1.lower + 1 :
       lim1.lower) :
-    (lim2.lower % 2 ?
+    ((lim2.lower % 2) ?
       lim2.lower + 1 :
       lim2.lower),
   lim1.upper < lim2.upper ?
-    (lim1.upper % 2 ?
+    ((lim1.upper % 2) ?
       lim1.upper - 1 :
       lim1.upper) :
-    (lim2.upper % 2?
+    ((lim2.upper % 2) ?
       lim2.upper - 1 :
       lim2.upper)
   };
@@ -249,8 +249,8 @@ Numeric o2_ecs_wigner_symbol_tran(
   auto OmegaNi = o2_ecs_ql_makarov(Ni, T);
   
   for (int L=lims.lower; L<=lims.upper; L+=2) {
-    auto OmegaL = o2_ecs_adiabatic_factor_makarov(L, T);
-    auto QL = o2_ecs_ql_makarov(L, T);
+    auto OmegaL = o2_ecs_adiabatic_factor_makarov(Rational(L), T);
+    auto QL = o2_ecs_ql_makarov(Rational(L), T);
     auto a = WIGNER3(Ni_p.toInt(2), Ni.toInt(2), 2*L, 0, 0, 0);
     auto b = WIGNER3(Nf_p.toInt(2), Nf.toInt(2), 2*L, 0, 0, 0);
     auto c = WIGNER6(2*L, Ji.toInt(2), Ji_p.toInt(2), Si.toInt(2), Ni_p.toInt(2), Ni.toInt(2));

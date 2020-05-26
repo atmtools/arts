@@ -180,10 +180,10 @@ void cloudboxSetAutomatically(  // WS Output:
     }
 */
 
-  bool one_not_empty = false;
   bool any_not_empty = false;
 
   if (!particle_field.empty()) {
+    bool one_not_empty = false;
     Index nss = particle_field.nbooks();
 
     //--------- Start loop over fields in particle_field------------------------

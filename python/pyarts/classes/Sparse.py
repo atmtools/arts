@@ -65,7 +65,7 @@ class Sparse:
         else:
             s = self.shape
             r = self.col_ind
-            c  = self.row_ind_ptr
+            c = self.row_ind_ptr
             return sp.sparse.csr_matrix((self.raw, r, c), shape=s)
 
     @data.setter
@@ -138,6 +138,28 @@ class Sparse:
         """
         if lib.xmlsaveSparse(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
+    
+    def netcdfify(self):
+        """ Create the NETCDF4 information required for writing this data
+        
+        Output: list that can be processed by netcdf.py, False arraytype
+        """
+        return [["data", self.data.data, float, {"size": self.size}],
+                ["row_ind_ptr", self.row_ind_ptr, np.int32, {"nrowsp1": len(self.row_ind_ptr)}],
+                ["col_ind", self.col_ind, np.int32, {"size": self.size}],
+                ["shape", self.shape, int, {"two": 2}]], False
+    
+    def denetcdf(self, group):
+        """ Sets this based on a netcdf group
+        
+        Input:
+            Group of data that can be interpreted as this's information
+        """
+        self.data = \
+            sp.sparse.csr_matrix((np.array(group["data"]),
+                                  np.array(group["col_ind"]),
+                                  np.array(group["row_ind_ptr"])),
+                                 shape=np.array(group["shape"]))
 
     def __array__(self):
         return np.array(self.data.todense())

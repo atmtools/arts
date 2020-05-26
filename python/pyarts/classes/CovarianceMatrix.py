@@ -141,6 +141,24 @@ class CovarianceMatrix:
         """
         if lib.xmlsaveCovarianceMatrix(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
+    
+    def netcdfify(self):
+        """ Create the NETCDF4 information required for writing this data
+        
+            Output: list that can be processed by netcdf.py, True arraytype
+        """
+        return [x.netcdfify() for x in self.blocks], True
+
+    def denetcdf(self, group):
+        """ Sets this based on a netcdf group
+        
+        Input:
+            Group of data that can be interpreted as this's information
+        """
+        self.sizeinverse_blocks = 0
+        self.sizeblocks = group.nelem
+        for i in range(group.nelem):
+            self.blocks[i].denetcdf(group["pos{}".format(i)])
 
 
 lib.createCovarianceMatrix.restype = c.c_void_p

@@ -373,7 +373,7 @@ class Model {
    * 
    * @param[in] qid Transition type quantum id
    */
-  Model(const QuantumIdentifier& qid) noexcept;
+  explicit Model(const QuantumIdentifier& qid) noexcept;
 
   /** Returns true if the Model represents no Zeeman effect */
   /* constexpr */ bool empty() const noexcept {
@@ -416,8 +416,8 @@ class Model {
 
     auto ml = Ml(Ju, Jl, type, n);
     auto mu = Mu(Ju, Jl, type, n);
-    auto dm = dM(type);
-    return PolarizationFactor(type) * pow2(wigner3j(Jl, 1, Ju, ml, -dm, -mu));
+    auto dm = Rational(dM(type));
+    return PolarizationFactor(type) * pow2(wigner3j(Jl, Rational(1), Ju, ml, -dm, -mu));
   }
   
   /** Gives the splitting of one subline of a given polarization

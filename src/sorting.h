@@ -49,7 +49,7 @@ class IndexComp : public binary_function<Index, Index, bool> {
   const T& m_data;
 
  public:
-  IndexComp(const T& data) : m_data(data) {}
+  explicit IndexComp(const T& data) : m_data(data) {}
 
   bool operator()(Index a, Index b) const { return (m_data[a] < m_data[b]); }
 };

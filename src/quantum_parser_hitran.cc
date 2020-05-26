@@ -484,7 +484,7 @@ void parse_space(Rational& qn, String& s, const Index /* species */) {
 }
 
 void parse_a1_br_hitran(Rational& qn, String& s, const Index /* species */) {
-  qn = 'Q' - s[0];
+  qn = Rational('Q' - s[0]);
   if (abs(qn) > 4) qn = RATIONAL_UNDEFINED;
   s.erase(0, 1);
 }
@@ -535,30 +535,30 @@ void parse_a1_x_hitran(Rational& qn, String& s, const Index species) {
 
   if (species == species_index_from_species_name("O2")) {
     if (ch == 'X')
-      qn = Index(QuantumNumberTypeLabelsHitran::O2_X_is_X);
+      qn = Rational(Index(QuantumNumberTypeLabelsHitran::O2_X_is_X));
     else if (ch == 'a')
-      qn = Index(QuantumNumberTypeLabelsHitran::O2_X_is_a);
+      qn = Rational(Index(QuantumNumberTypeLabelsHitran::O2_X_is_a));
     else if (ch == 'b')
-      qn = Index(QuantumNumberTypeLabelsHitran::O2_X_is_b);
+      qn = Rational(Index(QuantumNumberTypeLabelsHitran::O2_X_is_b));
     else
       throw std::runtime_error("Unidentified X for O2 in HITRAN parsing...");
   } else if (species == species_index_from_species_name("NO")) {
     if (ch == 'X')
-      qn = Index(QuantumNumberTypeLabelsHitran::NO_X_is_X);
+      qn = Rational(Index(QuantumNumberTypeLabelsHitran::NO_X_is_X));
     else
       throw std::runtime_error("Unidentified X for NO in HITRAN parsing...");
 
   } else if (species == species_index_from_species_name("OH")) {
     if (ch == 'X')
-      qn = Index(QuantumNumberTypeLabelsHitran::OH_X_is_X);
+      qn = Rational(Index(QuantumNumberTypeLabelsHitran::OH_X_is_X));
     else if (ch == 'A')
-      qn = Index(QuantumNumberTypeLabelsHitran::OH_X_is_A);
+      qn = Rational(Index(QuantumNumberTypeLabelsHitran::OH_X_is_A));
     else
       throw std::runtime_error("Unidentified X for OH in HITRAN parsing...");
 
   } else if (species == species_index_from_species_name("ClO")) {
     if (ch == 'X')
-      qn = Index(QuantumNumberTypeLabelsHitran::ClO_X_is_X);
+      qn = Rational(Index(QuantumNumberTypeLabelsHitran::ClO_X_is_X));
     else
       throw std::runtime_error("Unidentified X for ClO in HITRAN parsing...");
 
@@ -604,7 +604,7 @@ void parse_a5_hitran(Rational& qn, String& s, const Index /* species */) {
       if (as[1] == "5")
         qn = Rational(nom * 2 + 1, 2);
       else if (as[1] == "0")
-        qn = nom;
+        qn = Rational(nom);
       else {
         throw std::runtime_error("Error parsing quantum number of type A5");
       }
@@ -616,19 +616,19 @@ void parse_a5_hitran(Rational& qn, String& s, const Index /* species */) {
 void parse_i1_hitran(Rational& qn, String& s, const Index /* species */) {
   Index i;
   extract(i, s, 1);
-  qn = i;
+  qn = Rational(i);
 }
 
 void parse_i2_hitran(Rational& qn, String& s, const Index /* species */) {
   Index i;
   extract(i, s, 2);
-  qn = i;
+  qn = Rational(i);
 }
 
 void parse_i3_hitran(Rational& qn, String& s, const Index /* species */) {
   Index i;
   extract(i, s, 3);
-  qn = i;
+  qn = Rational(i);
 }
 
 void parse_f51_hitran(Rational& qn, String& s, const Index /* species */) {
@@ -651,7 +651,7 @@ void parse_f51_hitran(Rational& qn, String& s, const Index /* species */) {
       if (as[1] == "5")
         qn = Rational(nom * 2 + 1, 2);
       else if (as[1] == "0")
-        qn = nom;
+        qn = Rational(nom);
       else {
         throw std::runtime_error("Error parsing quantum number of type F5.1");
       }
@@ -724,34 +724,34 @@ void postprocess_group5_hitran(QuantumIdentifier& qid) {
 
   if (qid.LowerQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
       Index(QuantumNumberTypeLabelsHitran::O2_X_is_X)) {
-    qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseB));
+    qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund, Rational(Index(Hund::CaseB)));
     qid.LowerQuantumNumbers().Set(QuantumNumberType::S, Rational(1, 1));
     qid.LowerQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(0, 1));
   } else if (qid.LowerQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
              Index(QuantumNumberTypeLabelsHitran::O2_X_is_a)) {
-    qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseB));
+    qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund, Rational(Index(Hund::CaseB)));
     qid.LowerQuantumNumbers().Set(QuantumNumberType::S, Rational(0, 1));
     qid.LowerQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(2, 1));
   } else if (qid.LowerQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
              Index(QuantumNumberTypeLabelsHitran::O2_X_is_b)) {
-    qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseB));
+    qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund, Rational(Index(Hund::CaseB)));
     qid.LowerQuantumNumbers().Set(QuantumNumberType::S, Rational(0, 1));
     qid.LowerQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(0, 1));
   }
 
   if (qid.UpperQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
       Index(QuantumNumberTypeLabelsHitran::O2_X_is_X)) {
-    qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseB));
+    qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund, Rational(Index(Hund::CaseB)));
     qid.UpperQuantumNumbers().Set(QuantumNumberType::S, Rational(1, 1));
     qid.UpperQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(0, 1));
   } else if (qid.UpperQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
              Index(QuantumNumberTypeLabelsHitran::O2_X_is_a)) {
-    qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseB));
+    qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund, Rational(Index(Hund::CaseB)));
     qid.UpperQuantumNumbers().Set(QuantumNumberType::S, Rational(0, 1));
     qid.UpperQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(2, 1));
   } else if (qid.UpperQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
              Index(QuantumNumberTypeLabelsHitran::O2_X_is_b)) {
-    qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseB));
+    qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund, Rational(Index(Hund::CaseB)));
     qid.UpperQuantumNumbers().Set(QuantumNumberType::S, Rational(0, 1));
     qid.UpperQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(0, 1));
   }
@@ -773,7 +773,7 @@ void postprocess_group6_hitran(QuantumIdentifier& qid) {
     if (qid.LowerQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
         Index(QuantumNumberTypeLabelsHitran::NO_X_is_X)) {
       qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund,
-                                    Index(Hund::CaseA));
+                                    Rational(Index(Hund::CaseA)));
       qid.LowerQuantumNumbers().Set(QuantumNumberType::S, Rational(1, 2));
       qid.LowerQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(1, 1));
     } else
@@ -783,7 +783,7 @@ void postprocess_group6_hitran(QuantumIdentifier& qid) {
     if (qid.UpperQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
         Index(QuantumNumberTypeLabelsHitran::NO_X_is_X)) {
       qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund,
-                                    Index(Hund::CaseA));
+                                    Rational(Index(Hund::CaseA)));
       qid.UpperQuantumNumbers().Set(QuantumNumberType::S, Rational(1, 2));
       qid.UpperQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(1, 1));
     } else
@@ -793,7 +793,7 @@ void postprocess_group6_hitran(QuantumIdentifier& qid) {
     if (qid.LowerQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
         Index(QuantumNumberTypeLabelsHitran::ClO_X_is_X)) {
       qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund,
-                                    Index(Hund::CaseA));
+                                    Rational(Index(Hund::CaseA)));
       qid.LowerQuantumNumbers().Set(QuantumNumberType::S, Rational(1, 2));
       qid.LowerQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(1, 1));
     } else
@@ -803,7 +803,7 @@ void postprocess_group6_hitran(QuantumIdentifier& qid) {
     if (qid.UpperQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
         Index(QuantumNumberTypeLabelsHitran::ClO_X_is_X)) {
       qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund,
-                                    Index(Hund::CaseA));
+                                    Rational(Index(Hund::CaseA)));
       qid.UpperQuantumNumbers().Set(QuantumNumberType::S, Rational(1, 2));
       qid.UpperQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(1, 1));
     } else
@@ -830,11 +830,11 @@ void postprocess_group6oh_hitran(QuantumIdentifier& qid) {
   qid.LowerQuantumNumbers().Set(QuantumNumberType::S, Rational(1, 2));
   if (qid.LowerQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
       Index(QuantumNumberTypeLabelsHitran::OH_X_is_X)) {
-    qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseA));
+    qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund, Rational(Index(Hund::CaseA)));
     qid.LowerQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(1, 1));
       } else if (qid.LowerQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
              Index(QuantumNumberTypeLabelsHitran::OH_X_is_A)) {
-    qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseB));
+    qid.LowerQuantumNumbers().Set(QuantumNumberType::Hund, Rational(Index(Hund::CaseB)));
     qid.LowerQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(0, 1));
     if (qid.LowerQuantumNumber(QuantumNumberType::Omega) == 1)
       qid.LowerQuantumNumbers().Set(
@@ -855,11 +855,11 @@ void postprocess_group6oh_hitran(QuantumIdentifier& qid) {
   qid.UpperQuantumNumbers().Set(QuantumNumberType::S, Rational(1, 2));
   if (qid.UpperQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
       Index(QuantumNumberTypeLabelsHitran::OH_X_is_X)) {
-    qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseA));
+    qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund, Rational(Index(Hund::CaseA)));
     qid.UpperQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(1, 1));
   } else if (qid.UpperQuantumNumber(QuantumNumberType::ElectronState).toIndex() ==
              Index(QuantumNumberTypeLabelsHitran::OH_X_is_A)) {
-    qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund, Index(Hund::CaseB));
+    qid.UpperQuantumNumbers().Set(QuantumNumberType::Hund, Rational(Index(Hund::CaseB)));
     qid.UpperQuantumNumbers().Set(QuantumNumberType::Lambda, Rational(0, 1));
     if (qid.UpperQuantumNumber(QuantumNumberType::Omega) == 1)
       qid.UpperQuantumNumbers().Set(

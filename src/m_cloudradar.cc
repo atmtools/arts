@@ -939,13 +939,13 @@ void iyActiveSingleScat2(Workspace& ws,
 
     // Size radiative variables always used
     PropagationMatrix K_this(nf, ns), K_past(nf, ns), Kp(nf, ns);
-    StokesVector a(nf, ns), S(nf, ns), Sp(nf, ns);
+    StokesVector a(nf, ns), S(nf, ns);
     ArrayOfIndex lte(np);
 
     // Init variables only used if transmission part of jacobian
     Vector dB_dT(0);
     ArrayOfPropagationMatrix dK_this_dx(0), dK_past_dx(0), dKp_dx(0);
-    ArrayOfStokesVector da_dx(0), dS_dx(0), dSp_dx(0);
+    ArrayOfStokesVector da_dx(0), dS_dx(0);
 
     // HSE variables
     Index temperature_derivative_position = -1;
@@ -957,7 +957,6 @@ void iyActiveSingleScat2(Workspace& ws,
       dKp_dx.resize(nq);
       da_dx.resize(nq);
       dS_dx.resize(nq);
-      dSp_dx.resize(nq);
       dB_dT.resize(nf);
       FOR_ANALYTICAL_JACOBIANS_DO(
           dK_this_dx[iq] = PropagationMatrix(nf, ns);
@@ -965,7 +964,6 @@ void iyActiveSingleScat2(Workspace& ws,
           dKp_dx[iq] = PropagationMatrix(nf, ns);
           da_dx[iq] = StokesVector(nf, ns);
           dS_dx[iq] = StokesVector(nf, ns);
-          dSp_dx[iq] = StokesVector(nf, ns);
           if (jacobian_quantities[iq] == JacPropMatType::Temperature) {
             temperature_derivative_position = iq;
             do_hse = jacobian_quantities[iq].Subtag() == "HSE on";

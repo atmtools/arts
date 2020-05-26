@@ -277,32 +277,29 @@ void nlte_positions_in_statistical_equilibrium_matrix(
 Index find_first_unique_in_lower(const ArrayOfIndex& upper,
                                  const ArrayOfIndex& lower) noexcept {
   for (const Index& l : lower) {
-    bool test = false;
-    for (const Index& u : upper)
-      if (l == u) test = true;
-    if (not test) return l;
+    if (std::find(upper.cbegin(), upper.cend(), l) == upper.cend())
+      return l;
   }
   return upper.nelem() - 1;
 }
 
-void check_collision_line_identifiers(
-    const ArrayOfQuantumIdentifier& collision_line_identifiers) {
-  if (collision_line_identifiers.nelem()) {
-    const Index spec = collision_line_identifiers[0].Species();
-    const Index isot = collision_line_identifiers[0].Isotopologue();
-    for (const auto& x : collision_line_identifiers) {
-      if (spec not_eq x.Species() or isot not_eq x.Isotopologue() or
-          x.Type() not_eq QuantumIdentifier::TRANSITION) {
-        std::ostringstream os;
-        os << x << "\n"
-           << "does not match the requirements for a line identifier\n"
-           << "Your list of species is:\n"
-           << collision_line_identifiers << "\n"
-           << "This contains more than one isotopologue or it contains some non-transition type identifiers.\n"
-           << "It will therefore fail in current code.  You can only input transitions, and a single isotopologue.\n";
-
-        throw std::runtime_error(os.str());
-      }
-    }
+void check_collision_line_identifiers(const ArrayOfQuantumIdentifier& collision_line_identifiers) {
+  auto p = std::find_if(collision_line_identifiers.cbegin(), collision_line_identifiers.cend(), 
+                        [spec=collision_line_identifiers.front().Species(), isot=collision_line_identifiers.front().Isotopologue()]
+                        (auto& x) {
+                          return
+                          spec not_eq x.Species() or 
+                          isot not_eq x.Isotopologue() or 
+                          x.Type() not_eq QuantumIdentifier::TRANSITION;});
+  if (p not_eq collision_line_identifiers.cend()) {
+    std::ostringstream os;
+    os << *p << "\n"
+    << "does not match the requirements for a line identifier\n"
+    << "Your list of species is:\n"
+    << collision_line_identifiers << "\n"
+    << "This contains more than one isotopologue or it contains some non-transition type identifiers.\n"
+    << "It will therefore fail in current code.  You can only input transitions, and a single isotopologue.\n";
+    
+    throw std::runtime_error(os.str());
   }
 }

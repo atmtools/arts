@@ -320,7 +320,7 @@ class SpeciesAuxData {
 
 /** Check that isotopologue ratios for the given species are correctly defined. */
 void checkIsotopologueRatios(const ArrayOfArrayOfSpeciesTag& abs_species,
-                             const SpeciesAuxData& sad);
+                             const SpeciesAuxData& isoratios);
 
 /** Check that partition functions for the given species are correctly defined. */
 void checkPartitionFunctions(const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -413,7 +413,7 @@ void xsec_species(Matrix& xsec,
                   const Vector& abs_p,
                   const Vector& abs_t,
                   const EnergyLevelMap& abs_nlte,
-                  const Matrix& all_vmrs,
+                  const Matrix& abs_vmrs,
                   const ArrayOfArrayOfSpeciesTag& abs_species,
                   const AbsorptionLines& band,
                   const Numeric& isot_ratio,

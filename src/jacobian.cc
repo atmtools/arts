@@ -128,7 +128,7 @@ void transform_jacobian(Matrix& jacobian,
         jacobian(joker, c) *= NAT_LOG_TEN * pow(10.0, x_t[c]);
       }
     } else if (tfun == "atanh") {
-      const Vector pars = jq.TFuncParameters();
+      const Vector& pars = jq.TFuncParameters();
       for (Index c = jis[i][0]; c <= jis[i][1]; ++c) {
         jacobian(joker, c) *=
             2 * (pars[1] - pars[0]) / pow(exp(-x_t[c]) + exp(x_t[c]), 2.0);
@@ -180,7 +180,7 @@ void transform_x(Vector& x, const ArrayOfRetrievalQuantity& jqs) {
     if (tfun == "") {
       // Nothing to do
     } else if (tfun == "log") {
-      const Vector pars = jq.TFuncParameters();
+      const Vector& pars = jq.TFuncParameters();
       for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
         if (x[r] <= pars[0]) {
           ostringstream os;
@@ -192,7 +192,7 @@ void transform_x(Vector& x, const ArrayOfRetrievalQuantity& jqs) {
         x[r] = log(x[r] - pars[0]);
       }
     } else if (tfun == "log10") {
-      const Vector pars = jq.TFuncParameters();
+      const Vector& pars = jq.TFuncParameters();
       for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
         if (x[r] <= 0) {
           ostringstream os;
@@ -204,7 +204,7 @@ void transform_x(Vector& x, const ArrayOfRetrievalQuantity& jqs) {
         x[r] = log10(x[r] - pars[0]);
       }
     } else if (tfun == "atanh") {
-      const Vector pars = jq.TFuncParameters();
+      const Vector& pars = jq.TFuncParameters();
       for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
         if (x[r] <= pars[0]) {
           ostringstream os;
@@ -298,17 +298,17 @@ void transform_x_back(Vector& x_t,
       if (tfun == "") {
         // Nothing to do
       } else if (tfun == "log") {
-        const Vector pars = jq.TFuncParameters();
+        const Vector& pars = jq.TFuncParameters();
         for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
           x_t[r] = pars[0] + exp(x_t[r]);
         }
       } else if (tfun == "log10") {
-        const Vector pars = jq.TFuncParameters();
+        const Vector& pars = jq.TFuncParameters();
         for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
           x_t[r] = pars[0] + pow(10.0, x_t[r]);
         }
       } else if (tfun == "atanh") {
-        const Vector pars = jq.TFuncParameters();
+        const Vector& pars = jq.TFuncParameters();
         for (Index r = jis[i][0]; r <= jis[i][1]; ++r) {
           x_t[r] = pars[0] + ((pars[1] - pars[0]) / 2) * (1 + tanh(x_t[r]));
         }
@@ -1198,89 +1198,47 @@ bool is_line_parameter(const RetrievalQuantity& t) noexcept {
 }
 
 bool supports_CIA(const ArrayOfRetrievalQuantity& js) {
-  bool testvar = false;
-  for (const auto& j : js)
-    if (j == JacPropMatType::Temperature or j == JacPropMatType::VMR or
-        is_frequency_parameter(j))
-      testvar = true;
-  return testvar;
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == JacPropMatType::Temperature or j == JacPropMatType::VMR or is_frequency_parameter(j));});
 }
 
 bool supports_hitran_xsec(const ArrayOfRetrievalQuantity& js) {
-  bool testvar = false;
-  for (const auto& j : js)
-    if (j == JacPropMatType::Temperature or j == JacPropMatType::VMR or
-        is_frequency_parameter(j))
-      testvar = true;
-  return testvar;
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == JacPropMatType::Temperature or j == JacPropMatType::VMR or is_frequency_parameter(j));});
 }
 
 bool supports_continuum(const ArrayOfRetrievalQuantity& js) {
-  bool testvar = false;
-  for (const auto& j : js)
-    if (j == JacPropMatType::Temperature or j == JacPropMatType::VMR or
-        is_frequency_parameter(j))
-      testvar = true;
-    else if (is_line_parameter(j))
-      throw std::runtime_error(
-          "Line specific parameters are not supported while using continuum tags.\nWe do not track what lines are in the continuum.\n");
-  return testvar;
+  if (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_line_parameter(j);}))
+    throw std::runtime_error("Line specific parameters are not supported while using continuum tags.\nWe do not track what lines are in the continuum.\n");
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == JacPropMatType::Temperature or j == JacPropMatType::VMR or is_frequency_parameter(j));});
 }
 
 bool supports_LBL_without_phase(const ArrayOfRetrievalQuantity& js) {
-  for (const auto& j : js)
-    if (j not_eq JacPropMatType::VMR or j not_eq JacPropMatType::LineStrength or
-        not is_nlte_parameter(j))
-      return false;
-  return true;
+  return not std::any_of(js.cbegin(), js.cend(), [](auto& j){return j not_eq JacPropMatType::VMR or j not_eq JacPropMatType::LineStrength or not is_nlte_parameter(j);});
 }
 
 bool supports_relaxation_matrix(const ArrayOfRetrievalQuantity& js) {
-  bool testvar = false;
-  for (const auto& j : js)
-    if (j == JacPropMatType::Temperature or is_frequency_parameter(j))
-      testvar = true;
-    else if (is_line_parameter(j))
-      throw std::runtime_error(
-          "Line specific parameters are not supported while\n using the relaxation matrix line mixing routine.\n We do not yet track individual lines in the relaxation matrix calculations.\n");
-  return testvar;
+  if (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_line_parameter(j);}))
+    throw std::runtime_error("Line specific parameters are not supported while\n using the relaxation matrix line mixing routine.\n We do not yet track individual lines in the relaxation matrix calculations.\n");
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == JacPropMatType::Temperature or is_frequency_parameter(j));});
 }
 
 bool supports_lookup(const ArrayOfRetrievalQuantity& js) {
-  bool testvar = false;
-  for (const auto& j : js)
-    if (j == JacPropMatType::Temperature or j == JacPropMatType::VMR or
-        is_frequency_parameter(j))
-      testvar = true;
-    else if (is_line_parameter(j))
-      throw std::runtime_error(
-          "Line specific parameters are not supported while using Lookup table.\nWe do not track lines in the Lookup.\n");
-  return testvar;
+  if (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_line_parameter(j);}))
+    throw std::runtime_error("Line specific parameters are not supported while using Lookup table.\nWe do not track lines in the Lookup.\n");
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == JacPropMatType::Temperature or j == JacPropMatType::VMR or is_frequency_parameter(j));});
 }
 
 bool supports_faraday(const ArrayOfRetrievalQuantity& js) {
-  bool testvar = false;
-  for (const auto& j : js)
-    if (is_derived_magnetic_parameter(j))
-      throw std::runtime_error(
-          "This method does not yet support Zeeman-style magnetic Jacobian calculations.\n Please use u, v, and w Jacobians instead.\n");
-    else if (j == JacPropMatType::MagneticU or j == JacPropMatType::MagneticV or
-             j == JacPropMatType::MagneticW or j == JacPropMatType::Electrons or
-             is_frequency_parameter(j))
-      testvar = true;
-  return testvar;
+  if (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_derived_magnetic_parameter(j);}))
+    throw std::runtime_error("This method does not yet support Zeeman-style magnetic Jacobian calculations.\n Please use u, v, and w Jacobians instead.\n");
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return j == JacPropMatType::MagneticU or j == JacPropMatType::MagneticV or j == JacPropMatType::MagneticW or j == JacPropMatType::Electrons or is_frequency_parameter(j);});
 }
 
 bool supports_particles(const ArrayOfRetrievalQuantity& js) {
-  for (const auto& j : js)
-    if (j not_eq JacPropMatType::NotPropagationMatrixType) return true;
-  return false;
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return j not_eq JacPropMatType::NotPropagationMatrixType;});
 }
 
 bool supports_propmat_clearsky(const ArrayOfRetrievalQuantity& js) {
-  for (const auto& j : js)
-    if (j not_eq JacPropMatType::NotPropagationMatrixType) return true;
-  return false;
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return j not_eq JacPropMatType::NotPropagationMatrixType;});
 }
 
 bool species_match(const RetrievalQuantity& rq, const ArrayOfSpeciesTag& ast) {
@@ -1319,54 +1277,52 @@ bool species_iso_match(const RetrievalQuantity& rq,
 }
 
 bool do_temperature_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
-  for (const auto& j : js)
-    if (j == JacPropMatType::Temperature) return true;
-  return false;
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return j == JacPropMatType::Temperature;});
 }
 
 jacobianVMRcheck do_vmr_jacobian(const ArrayOfRetrievalQuantity& js,
                                  const QuantumIdentifier& line_qid) noexcept {
-  for (const auto& j : js)
-    if (j == JacPropMatType::VMR)
-      if (j.QuantumIdentity().In(line_qid)) return {true, j.QuantumIdentity()};
-  return {false, line_qid};
+  auto p = std::find_if(js.cbegin(), js.cend(), [&line_qid](auto& j){return j == JacPropMatType::VMR and j.QuantumIdentity().In(line_qid);});
+  if (p not_eq js.cend())
+    return {true, p -> QuantumIdentity()};
+  else
+    return {false, line_qid};
 }
 
 bool do_line_center_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
-  for (const auto& j : js)
-    if (j == JacPropMatType::LineCenter) return true;
-  return false;
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return j == JacPropMatType::LineCenter;});
 }
 
 bool do_frequency_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
-  for (const auto& j : js)
-    if (is_frequency_parameter(j)) return true;
-  return false;
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_frequency_parameter(j);});
 }
 
 bool do_magnetic_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
-  for (const auto& j : js)
-    if (is_magnetic_parameter(j)) return true;
-  return false;
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_magnetic_parameter(j);});
 }
 
 Numeric temperature_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
-  for (const auto& j : js)
-    if (j == JacPropMatType::Temperature) return j.Perturbation();
-  return 0;
+  auto p = std::find_if(js.cbegin(), js.cend(), [](auto& j){return j == JacPropMatType::Temperature;});
+  if (p not_eq js.cend())
+    return p -> Perturbation();
+  else
+    return 0.0;
 }
 
 Numeric frequency_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
-  for (const auto& j : js)
-    if (is_frequency_parameter(j)) return j.Perturbation();
-  return 0;
+  auto p = std::find_if(js.cbegin(), js.cend(), [](auto& j){return is_frequency_parameter(j);});
+  if (p not_eq js.cend())
+    return p -> Perturbation();
+  else
+    return 0.0;
 }
 
-Numeric magnetic_field_perturbation(
-    const ArrayOfRetrievalQuantity& js) noexcept {
-  for (const auto& j : js)
-    if (is_magnetic_parameter(j)) return j.Perturbation();
-  return 0;
+Numeric magnetic_field_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
+  auto p = std::find_if(js.cbegin(), js.cend(), [](auto& j){return is_magnetic_parameter(j);});
+  if (p not_eq js.cend())
+    return p -> Perturbation();
+  else
+    return 0.0;
 }
 
 String propmattype_string(const RetrievalQuantity& rq) {

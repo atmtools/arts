@@ -194,7 +194,7 @@ constexpr std::array<LineShape::SingleSpeciesModel, nlines_mpm2020> init_mpm2020
 
 constexpr QuantumIdentifier init_mpm2020_qid(Index species, Index isot, Rational Jup, Rational Jlow, Rational Nup, Rational Nlow)
 {
-  return QuantumIdentifier(species, isot, QuantumNumbers(Jup, Nup, 0), QuantumNumbers(Jlow, Nlow, 0));
+  return QuantumIdentifier(species, isot, QuantumNumbers(Jup, Nup, 0_rat), QuantumNumbers(Jlow, Nlow, 0_rat));
 }
 
 
@@ -232,50 +232,50 @@ constexpr std::array<QuantumIdentifier, nlines_mpm2020> init_mpm2020_qids(const 
     26, 28, 28, 30, 30, 32, 32, 34,
     34, 36, 36, 38, 2, 2, 3, 4, 4, 5};
   
-  return {QuantumIdentifier(species, isot, QuantumNumbers(Jp[0], Np[0], 0), QuantumNumbers(Jpp[0], Npp[0], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[1], Np[1], 0), QuantumNumbers(Jpp[1], Npp[1], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[2], Np[2], 0), QuantumNumbers(Jpp[2], Npp[2], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[3], Np[3], 0), QuantumNumbers(Jpp[3], Npp[3], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[4], Np[4], 0), QuantumNumbers(Jpp[4], Npp[4], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[5], Np[5], 0), QuantumNumbers(Jpp[5], Npp[5], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[6], Np[6], 0), QuantumNumbers(Jpp[6], Npp[6], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[7], Np[7], 0), QuantumNumbers(Jpp[7], Npp[7], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[8], Np[8], 0), QuantumNumbers(Jpp[8], Npp[8], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[9], Np[9], 0), QuantumNumbers(Jpp[9], Npp[9], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[10], Np[10], 0), QuantumNumbers(Jpp[10], Npp[10], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[11], Np[11], 0), QuantumNumbers(Jpp[11], Npp[11], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[12], Np[12], 0), QuantumNumbers(Jpp[12], Npp[12], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[13], Np[13], 0), QuantumNumbers(Jpp[13], Npp[13], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[14], Np[14], 0), QuantumNumbers(Jpp[14], Npp[14], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[15], Np[15], 0), QuantumNumbers(Jpp[15], Npp[15], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[16], Np[16], 0), QuantumNumbers(Jpp[16], Npp[16], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[17], Np[17], 0), QuantumNumbers(Jpp[17], Npp[17], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[18], Np[18], 0), QuantumNumbers(Jpp[18], Npp[18], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[19], Np[19], 0), QuantumNumbers(Jpp[19], Npp[19], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[20], Np[20], 0), QuantumNumbers(Jpp[20], Npp[20], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[21], Np[21], 0), QuantumNumbers(Jpp[21], Npp[21], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[22], Np[22], 0), QuantumNumbers(Jpp[22], Npp[22], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[23], Np[23], 0), QuantumNumbers(Jpp[23], Npp[23], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[24], Np[24], 0), QuantumNumbers(Jpp[24], Npp[24], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[25], Np[25], 0), QuantumNumbers(Jpp[25], Npp[25], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[26], Np[26], 0), QuantumNumbers(Jpp[26], Npp[26], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[27], Np[27], 0), QuantumNumbers(Jpp[27], Npp[27], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[28], Np[28], 0), QuantumNumbers(Jpp[28], Npp[28], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[29], Np[29], 0), QuantumNumbers(Jpp[29], Npp[29], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[30], Np[30], 0), QuantumNumbers(Jpp[30], Npp[30], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[31], Np[31], 0), QuantumNumbers(Jpp[31], Npp[31], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[32], Np[32], 0), QuantumNumbers(Jpp[32], Npp[32], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[33], Np[33], 0), QuantumNumbers(Jpp[33], Npp[33], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[34], Np[34], 0), QuantumNumbers(Jpp[34], Npp[34], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[35], Np[35], 0), QuantumNumbers(Jpp[35], Npp[35], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[36], Np[36], 0), QuantumNumbers(Jpp[36], Npp[36], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[37], Np[37], 0), QuantumNumbers(Jpp[37], Npp[37], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[38], Np[38], 0), QuantumNumbers(Jpp[38], Npp[38], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[39], Np[39], 0), QuantumNumbers(Jpp[39], Npp[39], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[40], Np[40], 0), QuantumNumbers(Jpp[40], Npp[40], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[41], Np[41], 0), QuantumNumbers(Jpp[41], Npp[41], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[42], Np[42], 0), QuantumNumbers(Jpp[42], Npp[42], 0)),
-          QuantumIdentifier(species, isot, QuantumNumbers(Jp[43], Np[43], 0), QuantumNumbers(Jpp[43], Npp[43], 0)), };
+    return {QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[0]), Rational(Np[0]), 0_rat), QuantumNumbers(Rational(Jpp[0]), Rational(Npp[0]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[1]), Rational(Np[1]), 0_rat), QuantumNumbers(Rational(Jpp[1]), Rational(Npp[1]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[2]), Rational(Np[2]), 0_rat), QuantumNumbers(Rational(Jpp[2]), Rational(Npp[2]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[3]), Rational(Np[3]), 0_rat), QuantumNumbers(Rational(Jpp[3]), Rational(Npp[3]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[4]), Rational(Np[4]), 0_rat), QuantumNumbers(Rational(Jpp[4]), Rational(Npp[4]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[5]), Rational(Np[5]), 0_rat), QuantumNumbers(Rational(Jpp[5]), Rational(Npp[5]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[6]), Rational(Np[6]), 0_rat), QuantumNumbers(Rational(Jpp[6]), Rational(Npp[6]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[7]), Rational(Np[7]), 0_rat), QuantumNumbers(Rational(Jpp[7]), Rational(Npp[7]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[8]), Rational(Np[8]), 0_rat), QuantumNumbers(Rational(Jpp[8]), Rational(Npp[8]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[9]), Rational(Np[9]), 0_rat), QuantumNumbers(Rational(Jpp[9]), Rational(Npp[9]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[10]), Rational(Np[10]), 0_rat), QuantumNumbers(Rational(Jpp[10]), Rational(Npp[10]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[11]), Rational(Np[11]), 0_rat), QuantumNumbers(Rational(Jpp[11]), Rational(Npp[11]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[12]), Rational(Np[12]), 0_rat), QuantumNumbers(Rational(Jpp[12]), Rational(Npp[12]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[13]), Rational(Np[13]), 0_rat), QuantumNumbers(Rational(Jpp[13]), Rational(Npp[13]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[14]), Rational(Np[14]), 0_rat), QuantumNumbers(Rational(Jpp[14]), Rational(Npp[14]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[15]), Rational(Np[15]), 0_rat), QuantumNumbers(Rational(Jpp[15]), Rational(Npp[15]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[16]), Rational(Np[16]), 0_rat), QuantumNumbers(Rational(Jpp[16]), Rational(Npp[16]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[17]), Rational(Np[17]), 0_rat), QuantumNumbers(Rational(Jpp[17]), Rational(Npp[17]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[18]), Rational(Np[18]), 0_rat), QuantumNumbers(Rational(Jpp[18]), Rational(Npp[18]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[19]), Rational(Np[19]), 0_rat), QuantumNumbers(Rational(Jpp[19]), Rational(Npp[19]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[20]), Rational(Np[20]), 0_rat), QuantumNumbers(Rational(Jpp[20]), Rational(Npp[20]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[21]), Rational(Np[21]), 0_rat), QuantumNumbers(Rational(Jpp[21]), Rational(Npp[21]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[22]), Rational(Np[22]), 0_rat), QuantumNumbers(Rational(Jpp[22]), Rational(Npp[22]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[23]), Rational(Np[23]), 0_rat), QuantumNumbers(Rational(Jpp[23]), Rational(Npp[23]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[24]), Rational(Np[24]), 0_rat), QuantumNumbers(Rational(Jpp[24]), Rational(Npp[24]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[25]), Rational(Np[25]), 0_rat), QuantumNumbers(Rational(Jpp[25]), Rational(Npp[25]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[26]), Rational(Np[26]), 0_rat), QuantumNumbers(Rational(Jpp[26]), Rational(Npp[26]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[27]), Rational(Np[27]), 0_rat), QuantumNumbers(Rational(Jpp[27]), Rational(Npp[27]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[28]), Rational(Np[28]), 0_rat), QuantumNumbers(Rational(Jpp[28]), Rational(Npp[28]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[29]), Rational(Np[29]), 0_rat), QuantumNumbers(Rational(Jpp[29]), Rational(Npp[29]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[30]), Rational(Np[30]), 0_rat), QuantumNumbers(Rational(Jpp[30]), Rational(Npp[30]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[31]), Rational(Np[31]), 0_rat), QuantumNumbers(Rational(Jpp[31]), Rational(Npp[31]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[32]), Rational(Np[32]), 0_rat), QuantumNumbers(Rational(Jpp[32]), Rational(Npp[32]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[33]), Rational(Np[33]), 0_rat), QuantumNumbers(Rational(Jpp[33]), Rational(Npp[33]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[34]), Rational(Np[34]), 0_rat), QuantumNumbers(Rational(Jpp[34]), Rational(Npp[34]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[35]), Rational(Np[35]), 0_rat), QuantumNumbers(Rational(Jpp[35]), Rational(Npp[35]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[36]), Rational(Np[36]), 0_rat), QuantumNumbers(Rational(Jpp[36]), Rational(Npp[36]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[37]), Rational(Np[37]), 0_rat), QuantumNumbers(Rational(Jpp[37]), Rational(Npp[37]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[38]), Rational(Np[38]), 0_rat), QuantumNumbers(Rational(Jpp[38]), Rational(Npp[38]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[39]), Rational(Np[39]), 0_rat), QuantumNumbers(Rational(Jpp[39]), Rational(Npp[39]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[40]), Rational(Np[40]), 0_rat), QuantumNumbers(Rational(Jpp[40]), Rational(Npp[40]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[41]), Rational(Np[41]), 0_rat), QuantumNumbers(Rational(Jpp[41]), Rational(Npp[41]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[42]), Rational(Np[42]), 0_rat), QuantumNumbers(Rational(Jpp[42]), Rational(Npp[42]), 0_rat)),
+      QuantumIdentifier(species, isot, QuantumNumbers(Rational(Jp[43]), Rational(Np[43]), 0_rat), QuantumNumbers(Rational(Jpp[43]), Rational(Npp[43]), 0_rat)),};
 }
 
 
@@ -599,7 +599,7 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_ecs(ComplexVector& I, con
       auto Ni_p = qids[j].UpperQuantumNumber(QuantumNumberType::N);
       auto Nf_p = qids[j].LowerQuantumNumber(QuantumNumberType::N);
       if (i not_eq j) {
-        W(i, j) = 1i * o2_ecs_wigner_symbol_tran(Ji, Jf, Ni, Nf, 1, 1, Ji_p, Jf_p, Ni_p, Nf_p, 1, T);
+        W(i, j) = 1i * o2_ecs_wigner_symbol_tran(Ji, Jf, Ni, Nf, 1_rat, 1_rat, Ji_p, Jf_p, Ni_p, Nf_p, 1_rat, T);
       } else {
         W(i, j) = 1i * (1 + 0.1*water_vmr) * P * lsm[i].compute(T, T0, LineShape::Variable::G0);
       }
@@ -686,9 +686,9 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_ecs(ComplexVector& I, con
   }
   
   const Eigen::ComplexEigenSolver<Eigen::Matrix<Complex, necs2020, necs2020>> eV(W, true);
-  auto& D = eV.eigenvalues(); 
-  auto& V = eV.eigenvectors(); 
-  auto& Vinv = W = eV.eigenvectors().inverse();  // Reuse W memory but with different &name
+  const auto& D = eV.eigenvalues(); 
+  const auto& V = eV.eigenvectors(); 
+  const auto& Vinv = W = eV.eigenvectors().inverse();  // Reuse W memory but with different &name
   
   Eigen::Array<Complex, necs2020, 1> B; B *= 0;
   for (Index m=0; m<necs2020; m++) {

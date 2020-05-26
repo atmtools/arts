@@ -1225,6 +1225,22 @@ void set_matrixBlock(void * data, void * newdata, bool dense)
   }
 }
 
+
+// Time
+BasicInterfaceCAPI(Time)
+BasicInputOutputCAPI(Time)
+GetterSetterCAPI(Time, Seconds, Numeric)
+VoidArrayCAPI(ArrayOfTime)
+BasicInterfaceCAPI(ArrayOfTime)
+BasicInputOutputCAPI(ArrayOfTime)
+VoidArrayCAPI(ArrayOfArrayOfTime)
+BasicInterfaceCAPI(ArrayOfArrayOfTime)
+BasicInputOutputCAPI(ArrayOfArrayOfTime)
+void setTime(void * data, void * newdata) {*static_cast<Time *>(data) = *static_cast<Time *>(newdata);}
+bool equalTime(void * data, void * otherdata) {return *static_cast<Time *>(data) == *static_cast<Time *>(otherdata);}
+bool lessTime(void * data, void * otherdata) {return *static_cast<Time *>(data) < *static_cast<Time *>(otherdata);}
+
+
 // generic
 Index string2filetypeindex(char * data) { try { return Index(string2filetype(data)); } catch (std::runtime_error& e) { return -1; } }
 

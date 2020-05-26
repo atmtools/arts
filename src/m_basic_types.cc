@@ -472,7 +472,7 @@ void NumericSet(Numeric& x, const Numeric& value, const Verbosity&) {
 void QuantumIdentifierSet(QuantumIdentifier& x,
                           const String& value,
                           const Verbosity&) {
-  x = value;
+  x = QuantumIdentifier(value);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

@@ -40,6 +40,7 @@ from pyarts.classes.Tensor5 import Tensor5, ArrayOfTensor5
 from pyarts.classes.Tensor6 import Tensor6, ArrayOfTensor6, ArrayOfArrayOfTensor6
 from pyarts.classes.Tensor7 import Tensor7, ArrayOfTensor7
 from pyarts.classes.TessemNN import TessemNN
+from pyarts.classes.Time import Time, ArrayOfTime, ArrayOfArrayOfTime
 from pyarts.classes.Timer import Timer
 from pyarts.classes.TransmissionMatrix import TransmissionMatrix, ArrayOfTransmissionMatrix, ArrayOfArrayOfTransmissionMatrix
 from pyarts.classes.Vector import Vector, ArrayOfVector, ArrayOfArrayOfVector
@@ -51,6 +52,7 @@ from pyarts.classes.XsecRecord import ArrayOfXsecRecord
 import pyarts
 import ctypes as c
 from pyarts.workspace.api import arts_api as lib
+import pyarts.classes.netcdf
 
 def from_workspace(x):
     """ Converts a workspace variable to a python class

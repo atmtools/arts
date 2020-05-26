@@ -1,6 +1,7 @@
 import ctypes as c
 from pyarts.workspace.api import arts_api as lib
 
+import numpy as np
 
 class Range:
     """ ARTS Range data
@@ -66,6 +67,22 @@ class Range:
     @staticmethod
     def name():
         return "Range"
+    
+    def netcdfify(self):
+        """ Create the NETCDF4 information required for writing this data
+        
+            Output: list that can be processed by netcdf.py, False arraytype
+        """
+        return [["data", np.array([self.start, self.extent, self.stride]), int, {"three": 3}]], False
+    
+    def denetcdf(self, group, dataname="data"):
+        """ Sets this based on a netcdf group
+        
+        Input:
+            Group of data that can be interpreted as this's information
+        """
+        r = np.array(group[dataname])
+        lib.setRange(self.__data__, int(r[0]), int(r[1]), int(r[2]))
 
     def print(self):
         """ Print to cout the ARTS representation of the class """

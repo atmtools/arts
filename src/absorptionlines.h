@@ -1064,15 +1064,13 @@ public:
   void Mirroring(MirroringType x) noexcept {mmirroring = x;}
   
   /** Checks if index is a valid mirroring */
-  bool validIndexForMirroring(Index x) {
-    for (auto y: {MirroringType::None, MirroringType::Lorentz, MirroringType::SameAsLineShape, MirroringType::Manual, })
-      if (Index(y) == x)
-        return true;
-    return false;
+  static bool validIndexForMirroring(Index x) noexcept {
+    constexpr auto keys = stdarrayify(Index(MirroringType::None), MirroringType::None, MirroringType::Lorentz, MirroringType::SameAsLineShape, MirroringType::Manual);
+    return std::any_of(keys.cbegin(), keys.cend(), [x](auto y){return x == y;});
   }
   
   /** @return MirroringType if string is a MirroringType or -1 if not */
-  MirroringType string2Mirroring(const String& in) {
+  static MirroringType string2Mirroring(const String& in) noexcept {
     if (in == "None")
       return MirroringType::None;
     else if (in == "Lorentz")
@@ -1092,15 +1090,13 @@ public:
   void Normalization(NormalizationType x) noexcept {mnormalization = x;}
   
   /** Checks if index is a valid normalization */
-  bool validIndexForNormalization(Index x) {
-    for (auto y: {NormalizationType::None, NormalizationType::VVH, NormalizationType::VVW, NormalizationType::RosenkranzQuadratic, })
-      if (Index(y) == x)
-        return true;
-    return false;
+  static bool validIndexForNormalization(Index x) noexcept {
+    constexpr auto keys = stdarrayify(Index(NormalizationType::None), NormalizationType::VVH, NormalizationType::VVW, NormalizationType::RosenkranzQuadratic);
+    return std::any_of(keys.cbegin(), keys.cend(), [x](auto y){return x == y;});
   }
   
   /** @return NormalizationType if string is a NormalizationType or -1 if not */
-  NormalizationType string2Normalization(const String& in) {
+  static NormalizationType string2Normalization(const String& in) noexcept {
     if (in == "None")
       return NormalizationType::None;
     else if (in == "VVH")
@@ -1120,15 +1116,13 @@ public:
   void Cutoff(CutoffType x) noexcept {mcutoff = x;}
   
   /** Checks if index is a valid cutoff */
-  bool validIndexForCutoff(Index x) {
-    for (auto y: {CutoffType::None, CutoffType::LineByLineOffset, CutoffType::BandFixedFrequency, })
-      if (Index(y) == x)
-        return true;
-    return false;
+  static bool validIndexForCutoff(Index x) noexcept {
+    constexpr auto keys = stdarrayify(Index(CutoffType::None), CutoffType::LineByLineOffset, CutoffType::BandFixedFrequency);
+    return std::any_of(keys.cbegin(), keys.cend(), [x](auto y){return x == y;});
   }
   
   /** @return CutoffType if string is a CutoffType or -1 if not */
-  CutoffType string2Cutoff(const String& in) {
+  static CutoffType string2Cutoff(const String& in) noexcept {
     if (in == "None")
       return CutoffType::None;
     else if (in == "ByLine")
@@ -1146,15 +1140,13 @@ public:
   void Population(PopulationType x) noexcept {mpopulation = x;}
   
   /** Checks if index is a valid population */
-  bool validIndexForPopulation(Index x) {
-    for (auto y: {PopulationType::ByLTE, PopulationType::ByRelmatMendazaLTE, PopulationType::ByRelmatHartmannLTE, PopulationType::ByNLTEVibrationalTemperatures, PopulationType::ByNLTEPopulationDistribution, })
-      if (Index(y) == x)
-        return true;
-    return false;
+  static bool validIndexForPopulation(Index x) noexcept {
+    constexpr auto keys = stdarrayify(Index(PopulationType::ByLTE), PopulationType::ByRelmatMendazaLTE, PopulationType::ByRelmatHartmannLTE, PopulationType::ByNLTEVibrationalTemperatures, PopulationType::ByNLTEPopulationDistribution);
+    return std::any_of(keys.cbegin(), keys.cend(), [x](auto y){return x == y;});
   }
   
   /** @return PopulationType if string is a PopulationType or -1 if not */
-  PopulationType string2Population(const String& in) {
+  static PopulationType string2Population(const String& in) noexcept {
     if (in == "LTE")
       return PopulationType::ByLTE;
     else if (in == "MendazaRelmat")
@@ -1176,15 +1168,13 @@ public:
   void LineShapeType(LineShape::Type x) noexcept {mlineshapetype = x;}
   
   /** Checks if index is a valid lineshapetype */
-  bool validIndexForLineShapeType(Index x) {
-    for (auto y: {LineShape::Type::DP, LineShape::Type::LP, LineShape::Type::VP, LineShape::Type::SDVP, LineShape::Type::HTP, })
-      if (Index(y) == x)
-        return true;
-    return false;
+  static bool validIndexForLineShapeType(Index x) noexcept {
+    constexpr auto keys = stdarrayify(Index(LineShape::Type::DP), LineShape::Type::LP, LineShape::Type::VP, LineShape::Type::SDVP, LineShape::Type::HTP);
+    return std::any_of(keys.cbegin(), keys.cend(), [x](auto y){return x == y;});
   }
   
   /** @return LineShape::Type if string is a LineShape::Type or -1 if not */
-  LineShape::Type string2LineShapeType(const String& type) {
+  static LineShape::Type string2LineShapeType(const String& type) noexcept {
     if (type == "DP")
       return LineShape::Type::DP;
     else if (type == String("LP"))
@@ -1384,16 +1374,16 @@ public:
   
   /** Returns identity status */
   QuantumIdentifier QuantumIdentityOfLine(Index k) const noexcept {
-    QuantumIdentifier copy(mquantumidentity);
+    QuantumIdentifier qid_copy(mquantumidentity);
     for (size_t i=0; i<mlocalquanta.size(); i++) {
-      copy.UpperQuantumNumber(mlocalquanta[i]) = mlines[k].UpperQuantumNumber(i);
-      copy.LowerQuantumNumber(mlocalquanta[i]) = mlines[k].LowerQuantumNumber(i);
+      qid_copy.UpperQuantumNumber(mlocalquanta[i]) = mlines[k].UpperQuantumNumber(i);
+      qid_copy.LowerQuantumNumber(mlocalquanta[i]) = mlines[k].LowerQuantumNumber(i);
     }
-    return copy;
+    return qid_copy;
   }
   
   /** Returns a printable statement about the lines */
-  String MetaData() const noexcept;
+  String MetaData() const;
   
   /** Removes a single line */
   void RemoveLine(Index) noexcept;
@@ -1829,7 +1819,7 @@ inline Index nelem(const Array<Array<Lines>>& l) {Index n=0; for (auto& x:l) n+=
  * @param[in] k Type of transition
  * @return As titled
  */
-Numeric reduced_rovibrational_dipole(Rational Jf, Rational Ji, Rational lf, Rational li, Rational k = 1);
+Numeric reduced_rovibrational_dipole(Rational Jf, Rational Ji, Rational lf, Rational li, Rational k = Rational(1));
 
 /** Compute the reduced magnetic quadrapole moment
  * 

@@ -99,8 +99,8 @@ Index Absorption::Lines::LineShapePos(const Index& spec) const noexcept {
     return -1;
 }
 
-LineShape::Output Absorption::Lines::ShapeParameters_dVMR(size_t k, Numeric T, Numeric P, const QuantumIdentifier& vmr_qi) const noexcept {
-  const auto self = vmr_qi.Species() == mquantumidentity.Species();
+LineShape::Output Absorption::Lines::ShapeParameters_dVMR(size_t k, Numeric T, Numeric P, const QuantumIdentifier& vmr_qid) const noexcept {
+  const auto self = vmr_qid.Species() == mquantumidentity.Species();
   const auto& ls = mlines[k].LineShape();
   
   if (mselfbroadening and self) {
@@ -116,7 +116,7 @@ LineShape::Output Absorption::Lines::ShapeParameters_dVMR(size_t k, Numeric T, N
   } else if (mbathbroadening and self)
     return {0, 0, 0, 0, 0, 0, 0, 0, 0};
   else {
-    auto x = ls.GetVMRDerivs(T, mT0, P, LineShapePos(vmr_qi));
+    auto x = ls.GetVMRDerivs(T, mT0, P, LineShapePos(vmr_qid));
     
     if (mbathbroadening)
       x = LineShape::differenceOutput(x, ls.GetVMRDerivs(
@@ -286,25 +286,16 @@ Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(istream& is) {
     }
 
     // Extract accuracies:
-    Numeric dagam, dsgam, dnair, dnself, dpsf;
     try {
-      Numeric mdf, mdi0;
-      icecream >> double_imanip() >> mdf;
-      icecream >> double_imanip() >> mdi0;
-      icecream >> double_imanip() >> dagam;
-      icecream >> double_imanip() >> dsgam;
-      icecream >> double_imanip() >> dnair;
-      icecream >> double_imanip() >> dnself;
-      icecream >> double_imanip() >> dpsf;
+      Numeric unused_numeric;
+      icecream >> double_imanip() >> unused_numeric /*mdf*/;
+      icecream >> double_imanip() >> unused_numeric /*mdi0*/;
+      icecream >> double_imanip() >> unused_numeric /*dagam*/;
+      icecream >> double_imanip() >> unused_numeric /*dsgam*/;
+      icecream >> double_imanip() >> unused_numeric /*dnair*/;
+      icecream >> double_imanip() >> unused_numeric /*dnself*/;
+      icecream >> double_imanip() >> unused_numeric /*dpsf*/;
     } catch (const std::runtime_error&) {
-      // Nothing to do here, the accuracies are optional, so we
-      // just set them to -1 and continue reading the next line of
-      // the catalogue
-      dagam = -1;
-      dsgam = -1;
-      dnair = -1;
-      dnself = -1;
-      dpsf = -1;
     }
 
     // Fix if tgam is different from ti0
@@ -1140,7 +1131,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
   data.T0 = 296.0;
 
   // Set line shape computer
-  data.line.LineShape() = LineShape::Model(sgam, nself, agam, nair, psf).Data();
+  data.line.LineShape() = LineShape::Model(sgam, nself, agam, nair, psf);
   {
     Index garbage;
     extract(garbage, line, 13);
@@ -1542,7 +1533,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(istream& i
   data.T0 = 296.0;
 
   // Set line shape computer
-  data.line.LineShape() = LineShape::Model(sgam, nself, agam, nair, psf).Data();
+  data.line.LineShape() = LineShape::Model(sgam, nself, agam, nair, psf);
   {
     Index garbage;
     extract(garbage, line, 13);
@@ -2258,10 +2249,10 @@ Absorption::SingleLineExternal Absorption::ReadFromLBLRTMStream(istream& is) {
       Index N = atoi(helper.substr(1, 2).c_str());
       Index J = atoi(helper.substr(4, 2).c_str());
 
-      data.quantumidentity.LowerQuantumNumbers().Set(QuantumNumberType::N, N);
-      data.quantumidentity.LowerQuantumNumbers().Set(QuantumNumberType::J, J);
-      data.quantumidentity.UpperQuantumNumbers().Set(QuantumNumberType::N, N - DN);
-      data.quantumidentity.UpperQuantumNumbers().Set(QuantumNumberType::J, J - DJ);
+      data.quantumidentity.LowerQuantumNumbers().Set(QuantumNumberType::N, Rational(N));
+      data.quantumidentity.LowerQuantumNumbers().Set(QuantumNumberType::J, Rational(J));
+      data.quantumidentity.UpperQuantumNumbers().Set(QuantumNumberType::N, Rational(N - DN));
+      data.quantumidentity.UpperQuantumNumbers().Set(QuantumNumberType::J, Rational(J - DJ));
     }
 
     extract(ell, line, 9);
@@ -2475,21 +2466,15 @@ std::vector<Absorption::Lines> Absorption::split_list_of_external_lines(std::vec
                                 globalquantas, upperquanta_global, lowerquanta_global);
     
     // Either find a line like this in the list of lines or start a new Lines
-    bool found_match=false;
-    for(auto& li: lines) {
-      if(li.MatchWithExternal(sle, qid)) {
-        li.AppendSingleLine(line);
-        found_match=true;
-        break;
-      }
-    }
-    if(not found_match) {
+    auto band = std::find_if(lines.begin(), lines.end(), [&](const Lines& li){return li.MatchWithExternal(sle, qid);});
+    if (band not_eq lines.end()) {
+      band -> AppendSingleLine(line);
+    } else {
       lines.push_back(Lines(sle.selfbroadening, sle.bathbroadening, sle.cutoff,
                             sle.mirroring, sle.population, sle.normalization,
                             sle.lineshapetype, sle.T0, sle.cutofffreq,
                             sle.linemixinglimit, qid, localquantas, sle.species, {line}));
     }
-    
     external_lines.pop_back();
   }
   
@@ -2592,7 +2577,7 @@ String Absorption::Lines::LowerQuantumNumbers() const noexcept
   return s;
 }
 
-String Absorption::Lines::MetaData() const noexcept
+String Absorption::Lines::MetaData() const
 {
   std::ostringstream os;
   
@@ -2960,7 +2945,7 @@ Numeric Absorption::reduced_rovibrational_dipole(Rational Jf, Rational Ji, Ratio
 }
 
 Numeric Absorption::reduced_magnetic_quadrapole(Rational Jf, Rational Ji, Rational N) {
-  constexpr Rational one=1;
+  constexpr Rational one=1_rat;
   const Numeric val = sqrt(6 * (2 * Jf + 1) * (2 * Ji + 1)) *
   wigner6j(one, one, one, Ji, Jf, N);
   if (not even(Jf + N))

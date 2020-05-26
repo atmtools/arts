@@ -383,7 +383,7 @@ void ybatchMetProfiles(Workspace& ws,
     vmr_field_raw[2].copy_grids(vmr_field_raw[0]);
     vmr_field_raw[2] = 0.209;  //vmr of O2
 
-    const ConstVectorView tfr_p_grid =
+    const Vector& tfr_p_grid =
         t_field_raw.get_numeric_grid(GFIELD3_P_GRID);
     // N_p is the number of elements in the pressure grid
     Index N_p = tfr_p_grid.nelem();
@@ -518,8 +518,8 @@ void ybatchMetProfilesClear(Workspace& ws,
   lat = met_amsu_data(Range(joker), 0);
   lon = met_amsu_data(Range(joker), 1);
 
-  Vector oro_height;
-  oro_height = met_amsu_data(Range(joker), 5);
+//   Vector oro_height;
+//   oro_height = met_amsu_data(Range(joker), 5);
 
   z_surface.resize(1, 1);
   for (Index i = 0; i < no_profiles; ++i) {
@@ -594,7 +594,7 @@ void ybatchMetProfilesClear(Workspace& ws,
     //z_surface(0,0) = oro_height[i]+ 0.01;
     z_surface(0, 0) = z_field_raw.data(0, 0, 0);
     cout << "z_surface" << z_surface << endl;
-    const ConstVectorView tfr_p_grid =
+    const Vector& tfr_p_grid =
         t_field_raw.get_numeric_grid(GFIELD3_P_GRID);
     Index N_p = tfr_p_grid.nelem();
 

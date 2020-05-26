@@ -51,7 +51,7 @@ constexpr Index ExpectedDataSize() { return 2; }
  * @param[in]     temperature Atmospheric temperature
  * @param[in]     zeeman_df Zeeman splitting coefficient
  * @param[in]     magnetic_magnitude Strength of local magnetic field
- * @param[in]     X Broadening data
+ * @param[in]     lso Line shape parameters
  * @param[in]     lineshape_type Line shape scheme
  * @param[in]     mirroring_type Mirroring scheme
  * @param[in]     norm_type Normalization scheme
@@ -63,7 +63,7 @@ void set_lineshape(Eigen::Ref<Eigen::VectorXcd> F,
                    const Numeric& zeeman_df,
                    const Numeric& magnetic_magnitude,
                    const Numeric& doppler_constant,
-                   const LineShape::Output& X,
+                   const LineShape::Output& lso,
                    const LineShape::Type lineshape_type,
                    const Absorption::MirroringType mirroring_type,
                    const Absorption::NormalizationType norm_type);
@@ -77,7 +77,7 @@ void set_lineshape(Eigen::Ref<Eigen::VectorXcd> F,
  * @param[in]     zeeman_df Zeeman shift parameter for the line
  * @param[in]     magnetic_magnitude Absolute strength of the magnetic field
  * @param[in]     F0_noshift Central frequency without any shifts
- * @param[in]     X Line shape parameters
+ * @param[in]     lso Line shape parameters
  * @param[in]     band The absorption lines
  * @param[in]     line_ind The current line's ID
  * @param[in]     derivatives_data The derivatives in dF
@@ -93,14 +93,14 @@ void set_lorentz(
     const Numeric& zeeman_df,
     const Numeric& magnetic_magnitude,
     const Numeric& F0_noshift,
-    const LineShape::Output& X,
+    const LineShape::Output& lso,
     const AbsorptionLines& band=AbsorptionLines(),
     const Index& line_ind=0,
     const ArrayOfRetrievalQuantity& derivatives_data =
         ArrayOfRetrievalQuantity(),
     const ArrayOfIndex& derivatives_data_position = ArrayOfIndex(),
     const LineShape::Output& dT = {0, 0, 0, 0, 0, 0, 0, 0, 0},
-    const LineShape::Output& dxdVMR = {0, 0, 0, 0, 0, 0, 0, 0, 0});
+    const LineShape::Output& dVMR = {0, 0, 0, 0, 0, 0, 0, 0, 0});
 
 /** Sets the HTP line shape. Normalization is unity.
  * 
@@ -115,7 +115,7 @@ void set_lorentz(
  * @param[in]     magnetic_magnitude Absolute strength of the magnetic field
  * @param[in]     F0_noshift Central frequency without any shifts
  * @param[in]     GD_div_F0 Frequency-independent part of the Doppler broadening
- * @param[in]     X Line shape parameters
+ * @param[in]     lso Line shape parameters
  * @param[in]     band The absorption lines
  * @param[in]     line_ind The current line's ID
  * @param[in]     derivatives_data The derivatives in dF
@@ -131,7 +131,7 @@ void set_htp(Eigen::Ref<Eigen::VectorXcd> F,
              const Numeric& magnetic_magnitude,
              const Numeric& F0_noshift,
              const Numeric& GD_div_F0,
-             const LineShape::Output& X,
+             const LineShape::Output& lso,
              const AbsorptionLines& band=AbsorptionLines(),
              const Index& line_ind=0,
              const ArrayOfRetrievalQuantity& derivatives_data =
@@ -151,7 +151,7 @@ void set_htp(Eigen::Ref<Eigen::VectorXcd> F,
  * @param[in]     magnetic_magnitude Absolute strength of the magnetic field
  * @param[in]     F0_noshift Central frequency without any shifts
  * @param[in]     GD_div_F0 Frequency-independent part of the Doppler broadening
- * @param[in]     X Line shape parameters
+ * @param[in]     lso Line shape parameters
  * @param[in]     band The absorption lines
  * @param[in]     line_ind The current line's ID
  * @param[in]     derivatives_data The derivatives in dF
@@ -169,7 +169,7 @@ void set_voigt(
     const Numeric& magnetic_magnitude,
     const Numeric& F0_noshift,
     const Numeric& GD_div_F0,
-    const LineShape::Output& X,
+    const LineShape::Output& lso,
     const AbsorptionLines& band=AbsorptionLines(),
     const Index& line_ind=0,
     const ArrayOfRetrievalQuantity& derivatives_data =
@@ -225,7 +225,7 @@ void set_doppler(
  * @param[in,out] dF Lineshape derivative.  Must be right size
  * @param[in]     Fm Mirrored lineshape.  Must be right size
  * @param[in]     dFm Mirrored lineshape derivative.  Must be right size
- * @param[in]     X Line shape parameters
+ * @param[in]     lso Line shape parameters
  * @param[in]     with_mirroring Mirror lineshape check
  * @param[in]     band The absorption lines
  * @param[in]     line_ind The current line's ID
@@ -239,7 +239,7 @@ void apply_linemixing_scaling_and_mirroring(
     Eigen::Ref<Eigen::MatrixXcd> dF,
     const Eigen::Ref<Eigen::VectorXcd> Fm,
     const Eigen::Ref<Eigen::MatrixXcd> dFm,
-    const LineShape::Output& X,
+    const LineShape::Output& lso,
     const bool with_mirroring,
     const AbsorptionLines& band=AbsorptionLines(),
     const Index& line_ind=0,

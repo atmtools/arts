@@ -70,11 +70,9 @@ void chk_pnd_data(const GriddedField3& pnd_field_raw,
                   const Verbosity& verbosity) {
   CREATE_OUT3;
 
-  const ConstVectorView pfr_p_grid =
-      pnd_field_raw.get_numeric_grid(GFIELD3_P_GRID);
-  const ConstVectorView pfr_lat_grid =
+  const Vector& pfr_lat_grid =
       pnd_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
-  const ConstVectorView pfr_lon_grid =
+  const Vector& pfr_lon_grid =
       pnd_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
 
   // The consistency of the dimensions is checked in the reading routine.
@@ -180,7 +178,7 @@ void chk_pnd_field_raw_only_in_cloudbox(
             // Verify latitude is too
             if (dim > 1) {
               lat = pnd_field_raw[n].get_numeric_grid(GFIELD3_LAT_GRID)[lat_i];
-              if (!((lat > lat_grid[cloudbox_limits[2]]) &
+              if (!((lat > lat_grid[cloudbox_limits[2]]) bitand
                     (lat < lat_grid[cloudbox_limits[3]]))) {
                 ostringstream os;
                 os << "Found non-zero pnd outside cloudbox. "
@@ -196,7 +194,7 @@ void chk_pnd_field_raw_only_in_cloudbox(
             // Etc. for longitude
             if (dim > 2) {
               lon = pnd_field_raw[n].get_numeric_grid(GFIELD3_LON_GRID)[lon_i];
-              if (!((lon > lon_grid[cloudbox_limits[4]]) &
+              if (!((lon > lon_grid[cloudbox_limits[4]]) bitand
                     (lon < lon_grid[cloudbox_limits[5]]))) {
                 ostringstream os;
                 os << "Found non-zero pnd outside cloudbox. "

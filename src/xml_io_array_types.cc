@@ -3717,3 +3717,146 @@ void xml_write_to_stream(ostream& os_xml,
 
   os_xml << '\n';
 }
+
+//=== ArrayOfTime ======================================================
+
+//! Reads ArrayOfTime from XML input stream
+/*!
+ * \param is_xml     XML Input stream
+ * \param at         ArrayOfTime return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream& is_xml,
+                          ArrayOfTime& at,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity) {
+  ArtsXMLTag tag(verbosity);
+  Index nelem;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("Array");
+  tag.check_attribute("type", "Time");
+  
+  tag.get_attribute_value("nelem", nelem);
+  at.resize(nelem);
+
+  Index n;
+  try {
+    for (n = 0; n < nelem; n++)
+      xml_read_from_stream(is_xml, at[n], pbifs, verbosity);
+  } catch (const std::runtime_error& e) {
+    ostringstream os;
+    os << "Error reading ArrayOfTime: "
+       << "\n Element: " << n << "\n"
+       << e.what();
+    throw runtime_error(os.str());
+  }
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Array");
+}
+
+//! Writes ArrayOfTime to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param at      ArrayOfTime
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute
+ */
+void xml_write_to_stream(ostream& os_xml,
+                         const ArrayOfTime& at,
+                         bofstream* pbofs,
+                         const String& name,
+                         const Verbosity& verbosity) {
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("Array");
+  if (name.length()) open_tag.add_attribute("name", name);
+
+  open_tag.add_attribute("type", "Time");
+  open_tag.add_attribute("nelem", at.nelem());
+
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  for (Index n = 0; n < at.nelem(); n++)
+    xml_write_to_stream(os_xml, at[n], pbofs, "", verbosity);
+
+  close_tag.set_name("/Array");
+  close_tag.write_to_stream(os_xml);
+
+  os_xml << '\n';
+}
+
+//=== ArrayOfArrayOfTime ======================================================
+
+//! Reads ArrayOfArrayOfTime from XML input stream
+/*!
+ * \param is_xml     XML Input stream
+ * \param at         ArrayOfArrayOfTime return value
+ * \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+ */
+void xml_read_from_stream(istream& is_xml,
+                          ArrayOfArrayOfTime& at,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity) {
+  ArtsXMLTag tag(verbosity);
+  Index nelem;
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("Array");
+  tag.check_attribute("type", "ArrayOfTime");
+  
+  tag.get_attribute_value("nelem", nelem);
+  at.resize(nelem);
+
+  Index n;
+  try {
+    for (n = 0; n < nelem; n++)
+      xml_read_from_stream(is_xml, at[n], pbifs, verbosity);
+  } catch (const std::runtime_error& e) {
+    ostringstream os;
+    os << "Error reading ArrayOfArrayOfTime: "
+       << "\n Element: " << n << "\n"
+       << e.what();
+    throw runtime_error(os.str());
+  }
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/Array");
+}
+
+//! Writes ArrayOfArrayOfTime to XML output stream
+/*!
+ *  \param os_xml  XML Output stream
+ *  \param at      ArrayOfArrayOfTime
+ *  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+ *  \param name    Optional name attribute
+ */
+void xml_write_to_stream(ostream& os_xml,
+                         const ArrayOfArrayOfTime& at,
+                         bofstream* pbofs,
+                         const String& name,
+                         const Verbosity& verbosity) {
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("Array");
+  if (name.length()) open_tag.add_attribute("name", name);
+
+  open_tag.add_attribute("type", "ArrayOfTime");
+  open_tag.add_attribute("nelem", at.nelem());
+
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+
+  for (Index n = 0; n < at.nelem(); n++)
+    xml_write_to_stream(os_xml, at[n], pbofs, "", verbosity);
+
+  close_tag.set_name("/ArrayOfTime");
+  close_tag.write_to_stream(os_xml);
+
+  os_xml << '\n';
+}
+

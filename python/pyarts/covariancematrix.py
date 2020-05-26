@@ -167,7 +167,7 @@ class CovarianceMatrix(object):
 
 
         """
-        from arts.workspace.api import arts_api
+        from pyarts.workspace.api import arts_api
 
         n_blocks = s.dimensions[0]
         n_inv_blocks = s.dimensions[1]

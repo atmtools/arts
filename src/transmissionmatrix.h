@@ -104,7 +104,7 @@ class TransmissionMatrix {
    * @param[in] pm Propagation Matrix
    * @param[in] r Distance
    */
-  TransmissionMatrix(const PropagationMatrix& pm, const Numeric& r = 1.0);
+  explicit TransmissionMatrix(const PropagationMatrix& pm, const Numeric& r = 1.0);
 
   operator Tensor3() const {
     Tensor3 T(Frequencies(), stokes_dim, stokes_dim);
@@ -198,18 +198,18 @@ class TransmissionMatrix {
 
   /** Set to identity matrix */
   void setIdentity() {
-    for (auto& T : T4) T = Eigen::Matrix4d::Identity();
-    for (auto& T : T3) T = Eigen::Matrix3d::Identity();
-    for (auto& T : T2) T = Eigen::Matrix2d::Identity();
-    for (auto& T : T1) T(0, 0) = 1;
+    std::fill(T4.begin(), T4.end(), Eigen::Matrix4d::Identity());
+    std::fill(T3.begin(), T3.end(), Eigen::Matrix3d::Identity());
+    std::fill(T2.begin(), T2.end(), Eigen::Matrix2d::Identity());
+    std::fill(T1.begin(), T1.end(), Eigen::Matrix<double, 1, 1>::Identity());
   }
 
   /** Set to zero matrix */
   void setZero() {
-    for (auto& T : T4) T = Eigen::Matrix4d::Zero();
-    for (auto& T : T3) T = Eigen::Matrix3d::Zero();
-    for (auto& T : T2) T = Eigen::Matrix2d::Zero();
-    for (auto& T : T1) T(0, 0) = 0;
+    std::fill(T4.begin(), T4.end(), Eigen::Matrix4d::Zero());
+    std::fill(T3.begin(), T3.end(), Eigen::Matrix3d::Zero());
+    std::fill(T2.begin(), T2.end(), Eigen::Matrix2d::Zero());
+    std::fill(T1.begin(), T1.end(), Eigen::Matrix<double, 1, 1>::Zero());
   }
 
   /** Set this to a multiple of A by B
@@ -248,7 +248,7 @@ class TransmissionMatrix {
    * @param[in] k Col in matrix
    * @return const Numeric& value
    */
-  const Numeric& operator()(const Index i, const Index j, const Index k) const {
+  Numeric operator()(const Index i, const Index j, const Index k) const {
     switch (stokes_dim) {
       case 4:
         return T4[i](j, k);
@@ -301,10 +301,10 @@ class TransmissionMatrix {
    * @return TransmissionMatrix& *this
    */
   TransmissionMatrix& operator*=(const Numeric& scale) {
-    for (auto& T : T4) T *= scale;
-    for (auto& T : T3) T *= scale;
-    for (auto& T : T2) T *= scale;
-    for (auto& T : T1) T *= scale;
+    std::transform(T4.begin(), T4.end(), T4.begin(), [scale](auto& T){return T*scale;});
+    std::transform(T3.begin(), T3.end(), T3.begin(), [scale](auto& T){return T*scale;});
+    std::transform(T2.begin(), T2.end(), T2.begin(), [scale](auto& T){return T*scale;});
+    std::transform(T1.begin(), T1.end(), T1.begin(), [scale](auto& T){return T*scale;});
     return *this;
   }
 
@@ -912,9 +912,9 @@ void update_radiation_vector(RadiationVector& I,
  * @param[in] K Propagation matrix
  * @param[in] a Absorption vector
  * @param[in] S Scattering source vector
- * @param[in] dK_dx Propagation matrix derivatives
- * @param[in] da_dx Absorption vector derivatives
- * @param[in] dS_dx Scattering source vector derivatives
+ * @param[in] dK Propagation matrix derivatives
+ * @param[in] da Absorption vector derivatives
+ * @param[in] dS Scattering source vector derivatives
  * @param[in] B Planck vector
  * @param[in] dB_dT Planck vector derivative wrt temperature
  * @param[in] jacobian_quantities As WSV
@@ -925,9 +925,9 @@ void stepwise_source(RadiationVector& J,
                      const PropagationMatrix& K,
                      const StokesVector& a,
                      const StokesVector& S,
-                     const ArrayOfPropagationMatrix& dK_dx,
-                     const ArrayOfStokesVector& da_dx,
-                     const ArrayOfStokesVector& dS_dx,
+                     const ArrayOfPropagationMatrix& dK,
+                     const ArrayOfStokesVector& da,
+                     const ArrayOfStokesVector& dS,
                      const ConstVectorView B,
                      const ConstVectorView dB_dT,
                      const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -940,8 +940,8 @@ void stepwise_source(RadiationVector& J,
  * @param[in,out] dT2 Transmission matrix derivative wrt level 2
  * @param[in] K1 Propagation matrix wrt level 1
  * @param[in] K2 Propagation matrix wrt level 2
- * @param[in] dK1_dx Propagation matrix derivative wrt level 1
- * @param[in] dK2_dx Propagation matrix derivative wrt level 2
+ * @param[in] dK1 Propagation matrix derivative wrt level 1
+ * @param[in] dK2 Propagation matrix derivative wrt level 2
  * @param[in] r Distance through layer
  * @param[in] dr_dtemp1 Distance through layer derivative wrt temperature of level 1
  * @param[in] dr_dtemp2 Distance through layer derivative wrt temperature of level 2
@@ -952,8 +952,8 @@ void stepwise_transmission(TransmissionMatrix& T,
                            ArrayOfTransmissionMatrix& dT2,
                            const PropagationMatrix& K1,
                            const PropagationMatrix& K2,
-                           const ArrayOfPropagationMatrix& dK1_dx,
-                           const ArrayOfPropagationMatrix& dK2_dx,
+                           const ArrayOfPropagationMatrix& dK1,
+                           const ArrayOfPropagationMatrix& dK2,
                            const Numeric& r,
                            const Numeric& dr_dtemp1,
                            const Numeric& dr_dtemp2,

@@ -162,14 +162,12 @@ class MCAntenna {
                 ConstMatrixView R_ant2enu,
                 ConstVectorView bore_sight_los) const;
   
-  AntennaType Type() {return atype;}
+  AntennaType Type() const {return atype;}
   Index Type(AntennaType x) {if (validType(x)) {atype = x; return EXIT_SUCCESS;} else return EXIT_FAILURE;}
-  bool validType(AntennaType x) 
+  static bool validType(AntennaType x) noexcept
   {
-    for (auto y: {ANTENNA_TYPE_PENCIL_BEAM, ANTENNA_TYPE_GAUSSIAN, ANTENNA_TYPE_LOOKUP})
-      if (y == x)
-        return true;
-    return false;
+    constexpr auto keys = stdarrayify(Index(ANTENNA_TYPE_PENCIL_BEAM), ANTENNA_TYPE_GAUSSIAN, ANTENNA_TYPE_LOOKUP);
+    return std::any_of(keys.cbegin(), keys.cend(), [x](auto y){return x == y;});
   }
   Numeric& saa() {return sigma_aa;}
   Numeric& sza() {return sigma_za;};

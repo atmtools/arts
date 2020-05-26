@@ -743,7 +743,7 @@ void test42() {
 
 
 // Test function for internal use, must return 2 as last n2r
-constexpr Rational test_numeric2rational(const Index i, const Index maxi, const Rational r=0, const Rational n2r=0) {
+constexpr Rational test_numeric2rational(const Index i, const Index maxi, const Rational r=0_rat, const Rational n2r=0_rat) {
   if (i > maxi)
     return n2r;
   else {

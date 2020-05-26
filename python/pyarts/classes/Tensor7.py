@@ -118,6 +118,21 @@ class Tensor7:
         """
         if lib.xmlsaveTensor7(self.__data__, *correct_save_arguments(file, type, clobber)):
             raise OSError("Cannot save {}".format(file))
+    
+    def netcdfify(self):
+        """ Create the NETCDF4 information required for writing this data
+        
+        Output: list that can be processed by netcdf.py, False arraytype
+        """
+        return [["data", self.data, float, {"nlibraries": self.shape[0], "nvitrines": self.shape[1], "nshelves": self.shape[2], "nbooks": self.shape[3], "npages": self.shape[4], "nrows": self.shape[5], "ncols": self.shape[6]}]], False
+    
+    def denetcdf(self, group):
+        """ Sets this based on a netcdf group
+        
+        Input:
+            Group of data that can be interpreted as this's information
+        """
+        self.data = np.array(group.variables["data"])
 
     def __eq__(self, other):
         if isinstance(other, Tensor7):

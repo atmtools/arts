@@ -414,17 +414,17 @@ std::ostream& operator<<(std::ostream& os, QuantumNumberType t)
 Rational interpret_stringdata(const QuantumNumberType key, const String& val) {
   if (key == QuantumNumberType::parity) {
     if (val == "+")
-      return 1;
+      return 1_rat;
     else if (val == "-")
-      return -1;
+      return -1_rat;
   } else if (key == QuantumNumberType::ElectronState) {
     if (val == "X")
-      return int('X');
+      return Rational(int('X'));
   } else if (key == QuantumNumberType::kronigParity) {
     if (val == "f")
-      return int('f');
+      return Rational(int('f'));
     else if (val == "e")
-      return int('e');
+      return Rational(int('e'));
   } else {
     return Rational(val);
   }

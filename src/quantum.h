@@ -402,7 +402,7 @@ class QuantumIdentifier {
    * @param[in] species Species index-mapped
    * @param[in] iso Isotopologue index-mapped
    */
-  constexpr QuantumIdentifier(const QuantumIdentifier::QType qt,
+  constexpr QuantumIdentifier(const QuantumIdentifier::QType& qt,
                               const Index species,
                               const Index iso) noexcept
       : mqtype(qt), mspecies(species), miso(iso) {}
@@ -463,7 +463,7 @@ class QuantumIdentifier {
    * 
    * @param[in] x Text
    */
-  QuantumIdentifier(String x) { SetFromString(x); }
+  explicit QuantumIdentifier(String x) { SetFromString(x); }
 
   /** Upper level index */
   static constexpr Index TRANSITION_UPPER_INDEX = 0;
@@ -529,17 +529,13 @@ class QuantumIdentifier {
   void Type(QType x) { mqtype = x; }
   
   /** Checks if input is a valid Type */
-  bool validIndexForType(Index x) const { 
-    for(auto y: { TRANSITION, ENERGY_LEVEL, ALL, NONE }) {
-      if (y == x) {
-        return true;
-      }
-    }
-    return false;
+  static bool validIndexForType(Index x) noexcept {
+    constexpr auto keys = stdarrayify(Index(TRANSITION), ENERGY_LEVEL, ALL, NONE);
+    return std::any_of(keys.cbegin(), keys.cend(), [x](auto y){return x == y;});
   }
   
   /** @return QType if string is a Type or -1 if not */
-  QType string2Type(const String& str) const {
+  static QType string2Type(const String& str) noexcept {
     if (std::string("ENERGY_LEVEL") == str) {
       return QuantumIdentifier::ENERGY_LEVEL;
     } else if (std::string("TRANSITION") == str) {
