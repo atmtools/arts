@@ -63,6 +63,7 @@ auto MAPBase<ForwardModel, MatrixType, SaType, SeType, VectorType>
         if (robust) {
             return std::numeric_limits<RealType>::max();
         }
+        throw;
     }
 }
 
