@@ -1196,4 +1196,153 @@ bool do_frequency_jacobian(const ArrayOfRetrievalQuantity& js) noexcept;
  */
 bool do_magnetic_jacobian(const ArrayOfRetrievalQuantity& js) noexcept;
 
+template<typename T> constexpr bool good_enum(T x)
+{
+  return Index(x) < Index(T::FINAL) and Index(x) >= 0;
+}
+
+template<typename T> auto enum_strarray(const String& strchars) -> 
+std::array<String, Index(T::FINAL)>
+{
+  std::array<String, Index(T::FINAL)> out;
+  std::istringstream x(strchars);
+  for (Index i=0; i<Index(T::FINAL); i++) {
+    std::getline(x, out[i], ',');
+    out[i].erase(std::remove(out[i].begin(), out[i].end(), ' '), out[i].end());
+  }
+  return out;
+}
+
+#define ENUMARTS(ENUMTYPE, ...)                                               \
+  enum class ENUMTYPE : Index {__VA_ARGS__, FINAL} ;                          \
+                                                                              \
+  static_assert(not good_enum(ENUMTYPE::FINAL), "FINAL " #ENUMTYPE " good");  \
+  static_assert(good_enum(ENUMTYPE(0)), "first enum FINAL for " #ENUMTYPE);   \
+                                                                              \
+  namespace enumstrs {                                                        \
+  static const auto ENUMTYPE ## Names =                                       \
+                               enum_strarray<ENUMTYPE>(#__VA_ARGS__);         \
+  };                                                                          \
+                                                                              \
+  inline String to_string(ENUMTYPE x) noexcept {                              \
+    if (good_enum(x))                                                         \
+      return enumstrs::ENUMTYPE ## Names [Index(x)];                          \
+    else                                                                      \
+      return "BAD " # ENUMTYPE;                                               \
+  }                                                                           \
+                                                                              \
+  inline ENUMTYPE  to_ ## ENUMTYPE(const String& x) noexcept                  \
+  {                                                                           \
+    for (Index i=0; i<Index(ENUMTYPE::FINAL); i++)                            \
+      if (enumstrs::ENUMTYPE ## Names [i] == x)                               \
+        return ENUMTYPE(i);                                                   \
+    return ENUMTYPE::FINAL;                                                   \
+  }
+
+namespace Jacobian {
+
+/** Holds the type of the jacobian quantity */
+ENUMARTS(Type,
+         Atm,
+         Line,
+         Sensor)
+
+/** Holds the Atmosphere-related jacobians */
+ENUMARTS(Atm,
+         VMR,
+         Electrons,
+         Particulates,
+         Temperature,
+         MagneticMagnitude,
+         MagneticU,
+         MagneticV,
+         MagneticW,
+         WindMagnitude,
+         WindU,
+         WindV,
+         WindW,
+         Frequency)
+
+/** Holds the Line-related jacobians */
+ENUMARTS(Line,
+         Strength,
+         Center,
+         VMR,
+         ShapeG0X0,
+         ShapeG0X1,
+         ShapeG0X2,
+         ShapeG0X3,
+         ShapeD0X0,
+         ShapeD0X1,
+         ShapeD0X2,
+         ShapeD0X3,
+         ShapeG2X0,
+         ShapeG2X1,
+         ShapeG2X2,
+         ShapeG2X3,
+         ShapeD2X0,
+         ShapeD2X1,
+         ShapeD2X2,
+         ShapeD2X3,
+         ShapeFVCX0,
+         ShapeFVCX1,
+         ShapeFVCX2,
+         ShapeFVCX3,
+         ShapeETAX0,
+         ShapeETAX1,
+         ShapeETAX2,
+         ShapeETAX3,
+         ShapeYX0,
+         ShapeYX1,
+         ShapeYX2,
+         ShapeYX3,
+         ShapeGX0,
+         ShapeGX1,
+         ShapeGX2,
+         ShapeGX3,
+         ShapeDVX0,
+         ShapeDVX1,
+         ShapeDVX2,
+         ShapeDVX3,
+         NLTE,
+         SpecialParameter1)
+
+/** Holds the Sensor-related jacobians */
+ENUMARTS(Sensor, NONE)
+         
+/** Holds all information required for individual partial derivatives */
+class Quantity {
+  
+  /** Type of quantity, never set manually */
+  Type mtype;
+  
+  /** Union of quantities */
+  union TypeOfJac {
+    Atm atm;
+    Line line;
+    Sensor sensor;
+    constexpr TypeOfJac(Atm a) : atm(a) {}
+    constexpr TypeOfJac(Line l) : line(l) {};
+    constexpr TypeOfJac(Sensor s) : sensor(s) {};
+  } /** Type of quantity, set manually */ mtypeval;
+  
+  /** Perturbations for methods where theoretical computations are impossible or plain slow */
+  Numeric mperturbation;
+  
+  /** ID for the Line types of partial derivatives */
+  QuantumIdentifier mqid;
+ 
+public:
+  /** Atmospheric type */
+  constexpr explicit Quantity (Atm type) noexcept : mtype(Type::Atm), mtypeval(type), mperturbation(0), mqid() {}
+  
+  /** Line type */
+  constexpr explicit Quantity (Line type) noexcept : mtype(Type::Line), mtypeval(type), mperturbation(0), mqid() {}
+  
+  /** Sensor type */
+  constexpr explicit Quantity (Sensor type) noexcept : mtype(Type::Sensor), mtypeval(type), mperturbation(0), mqid() {}
+};  // Quantity
+};  // Jacobian
+
+
 #endif  // jacobian_h
