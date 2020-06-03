@@ -2159,6 +2159,17 @@ void Workspace::define_wsv_data() {
           "Usage: Quantities are added by the jacobianAdd WSMs.\n"),
       GROUP("ArrayOfRetrievalQuantity")));
 
+  wsv_data.push_back(WsvRecord(
+      NAME("jacobian_targets"),
+      DESCRIPTION(
+          "The partial derivatives that are computed for the Jacobian matrix.\n"
+          "\n"
+          "An array of jacobian targets for which the Jacobians are\n"
+          "calculated.\n"
+          "\n"
+          "Usage: Input to absorption agendas.\n"),
+      GROUP("ArrayOfJacobianTarget")));
+
   wsv_data.push_back(WsvRecord(NAME("lat"),
                                DESCRIPTION("A latitude.\n"
                                            "\n"

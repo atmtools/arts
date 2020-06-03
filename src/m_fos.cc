@@ -1721,7 +1721,7 @@ void iyHybrid2(Workspace& ws,
           da_dx[iq] = StokesVector(nf, ns);
           dS_dx[iq] = StokesVector(nf, ns);
           dSp_dx[iq] = StokesVector(nf, ns);
-          if (jacobian_quantities[iq] == JacPropMatType::Temperature) {
+          if (jacobian_quantities[iq] == Jacobian::Atm::Temperature) {
             temperature_derivative_position = iq;
             do_hse = jacobian_quantities[iq].Subtag() == "HSE on";
           })

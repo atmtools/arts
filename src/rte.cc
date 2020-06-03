@@ -2381,11 +2381,6 @@ void rtmethods_jacobian_init(
                                         scat_species);
 
   FOR_ANALYTICAL_JACOBIANS_DO(
-      jac_other[iq] = (jacobian_quantities[iq].PropMatType() ==
-                       JacPropMatType::NotPropagationMatrixType)
-                          ? Index(JacobianType::Other)
-                          : Index(JacobianType::None);
-
       if (jac_scat_i[iq] + 1) {
         if (dpnd_field_dx[iq].empty())
           throw runtime_error(

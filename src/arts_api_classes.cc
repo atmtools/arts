@@ -1174,20 +1174,17 @@ VoidGetterCAPI(RetrievalQuantity, MainTag)
 VoidGetterCAPI(RetrievalQuantity, SubTag)
 VoidGetterCAPI(RetrievalQuantity, SubSubTag)
 VoidGetterCAPI(RetrievalQuantity, Mode)
-VoidGetterCAPI(RetrievalQuantity, Analytical)
+// VoidGetterCAPI(RetrievalQuantity, Analytical)
 VoidGetterCAPI(RetrievalQuantity, Perturbation)
 VoidGetterCAPI(RetrievalQuantity, Grids)
-VoidGetterCAPI(RetrievalQuantity, QuantumIdentity)
+// VoidGetterCAPI(RetrievalQuantity, QuantumIdentity)
 VoidGetterCAPI(RetrievalQuantity, TransformationFunc)
 VoidGetterCAPI(RetrievalQuantity, TFuncParameters)
 VoidGetterCAPI(RetrievalQuantity, Transformation)
 VoidGetterCAPI(RetrievalQuantity, Offset)
-GetterSetterCAPI(RetrievalQuantity, Integration, bool)
 VoidArrayCAPI(ArrayOfRetrievalQuantity)
 BasicInterfaceCAPI(ArrayOfRetrievalQuantity)
 BasicInputOutputCAPI(ArrayOfRetrievalQuantity)
-Index getTypeRetrievalQuantity(void * data) {return Index(static_cast<RetrievalQuantity *>(data) -> Proptype());}
-Index setTypeRetrievalQuantity(void * data, Index newval) {return Index(static_cast<RetrievalQuantity *>(data) -> Proptype(JacPropMatType(newval)));}
 
 
 // Range

@@ -205,21 +205,12 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
               if (is_frequency_parameter(jacobian_quantities[jac_pos[iq]]))
                 this_dxsec[iq](iv, ip) +=
                     (dxsec_temp_dF[iv] - xsec_temp[iv]) / df;
-              //                            else if (ppd(iq) == JQT_temperature)
-              //                                this_dxsec[iq](iv, ip) += (dxsec_temp_dT[iv] -
-              //                                                           xsec_temp[iv]) / dt;
-              else if (jacobian_quantities[jac_pos[iq]] ==
-                       JacPropMatType::VMR) {
+              else if (jacobian_quantities[jac_pos[iq]] == Jacobian::Line::VMR) {
                 if (species_match(jacobian_quantities[jac_pos[iq]],
                                   abs_species[i])) {
                   this_dxsec[iq](iv, ip) += xsec_temp[iv];
                 }
               }
-              // Note for coef that d/dt(a*n*n) = da/dt * n1*n2 + a * dn1/dt * n2 + a * n1 * dn2/dt,
-              // we now output da/dt*n2 + a*dn2/dt and coef conversion then have to do
-              // dxsec*n1 + xsec*dn1/dt, which is what it has to do anyways, so no problems!
-              // Also note that d/dvmr gives a factor for other species absorption.
-              // even if own absorption is zero...
             }
           }
         }

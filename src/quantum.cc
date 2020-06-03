@@ -223,7 +223,15 @@ String QuantumIdentifier::TypeStr() const {
 }
 
 String QuantumIdentifier::SpeciesName() const {
-  return species_name_from_species_index(mspecies);
+  // Species lookup data:
+  using global_data::species_data;
+  
+  // A reference to the relevant record of the species data:
+  const SpeciesRecord& spr = species_data[Species()];
+  
+  // First the species name:
+  return spr.Name() + "-" +
+  spr.Isotopologue()[Isotopologue()].Name();
 }
 
 void QuantumIdentifier::SetTransition(const QuantumNumbers& upper,
@@ -364,14 +372,7 @@ std::ostream& operator<<(std::ostream& os, const QuantumIdentifier& qi) {
   if (qi.Species() < 0 || qi.Isotopologue() < 0)
     return os;
 
-  const SpeciesRecord& spr = species_data[qi.Species()];
-
-  os << spr.Name() << "-";
-  if (qi.Isotopologue() == spr.Isotopologue().nelem())
-    os << "*";
-  else
-    os << spr.Isotopologue()[qi.Isotopologue()].Name();
-  os << " ";
+  os << qi.SpeciesName() << ' ';
 
   if (qi.Type() == QuantumIdentifier::TRANSITION)
     os << "TR UP "
@@ -469,4 +470,14 @@ void update_id(QuantumIdentifier& qid, const std::vector<std::array<String, 2> >
       }
     }
   }
+}
+
+String QuantumNumbers::toString() const
+{
+  std::ostringstream out;
+  out << (*this) << ' ';
+  String s=out.str();
+  if(s.back() == ' ')
+    s.pop_back();
+  return s;
 }

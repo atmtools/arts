@@ -1409,7 +1409,7 @@ void stepwise_source(RadiationVector& J,
                              da[j],
                              dB_dT,
                              dS[j],
-                             jacobian_quantities[j] == JacPropMatType::Temperature,
+                             jacobian_quantities[j] == Jacobian::Atm::Temperature,
                              i) -
                      matrix4(dK[j].Kjj()[i],
                              dK[j].K12()[i],
@@ -1434,7 +1434,7 @@ void stepwise_source(RadiationVector& J,
                              da[j],
                              dB_dT,
                              dS[j],
-                             jacobian_quantities[j] == JacPropMatType::Temperature,
+                             jacobian_quantities[j] == Jacobian::Atm::Temperature,
                              i) -
                      matrix3(dK[j].Kjj()[i],
                              dK[j].K12()[i],
@@ -1455,7 +1455,7 @@ void stepwise_source(RadiationVector& J,
                              da[j],
                              dB_dT,
                              dS[j],
-                             jacobian_quantities[j] == JacPropMatType::Temperature,
+                             jacobian_quantities[j] == Jacobian::Atm::Temperature,
                              i) -
                      matrix2(dK[j].Kjj()[i], dK[j].K12()[i]) * J.Vec2(i));
         } break;
@@ -1472,7 +1472,7 @@ void stepwise_source(RadiationVector& J,
                              da[j],
                              dB_dT,
                              dS[j],
-                             jacobian_quantities[j] == JacPropMatType::Temperature,
+                             jacobian_quantities[j] == Jacobian::Atm::Temperature,
                              i) -
                      dK[j].Kjj()[i] * J.Vec1(i)[0]);
         } break;

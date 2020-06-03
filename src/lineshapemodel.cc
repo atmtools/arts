@@ -40,7 +40,7 @@ ArrayOfString AllLineShapeVars() {
   return {"G0", "D0", "G2", "D2", "FVC", "ETA", "Y", "G", "DV"};
 }
 
-JacPropMatType select_derivativeLineShape(const String& var,
+Jacobian::Line select_derivativeLineShape(const String& var,
                                           const String& coeff) {
   // Test viability of model variables
   static const ArrayOfString vars = AllLineShapeVars();
@@ -69,13 +69,13 @@ JacPropMatType select_derivativeLineShape(const String& var,
 #define ReturnJacPropMatType(ID)                \
   (var == #ID) {                                \
     if (coeff == "X0")                          \
-      return JacPropMatType::LineShape##ID##X0; \
+      return Jacobian::Line::Shape##ID##X0; \
     else if (coeff == "X1")                     \
-      return JacPropMatType::LineShape##ID##X1; \
+      return Jacobian::Line::Shape##ID##X1; \
     else if (coeff == "X2")                     \
-      return JacPropMatType::LineShape##ID##X2; \
+      return Jacobian::Line::Shape##ID##X2; \
     else if (coeff == "X3")                     \
-      return JacPropMatType::LineShape##ID##X3; \
+      return Jacobian::Line::Shape##ID##X3; \
   }
 
   if ReturnJacPropMatType(G0)
@@ -88,8 +88,8 @@ JacPropMatType select_derivativeLineShape(const String& var,
   else if ReturnJacPropMatType(G)
   else if ReturnJacPropMatType(DV)
 #undef ReturnJacPropMatType
-
-        std::terminate();
+  
+  return Jacobian::Line::FINAL;
 }
 
 std::istream& LineShape::from_artscat4(std::istream& is,

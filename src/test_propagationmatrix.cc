@@ -549,8 +549,8 @@ void test_mpm20()
   ArrayOfMatrix dxsec(2, Matrix(nf, 1, 0));
   
   ArrayOfRetrievalQuantity jacs(2);
-  jacs[0].PropType(JacPropMatType::Temperature);
-  jacs[1].PropType(JacPropMatType::Frequency);
+  jacs[0].Target(Jacobian::Target(Jacobian::Atm::Temperature));
+  jacs[1].Target(Jacobian::Target(Jacobian::Sensor::Frequency));
   Absorption::PredefinedModel::makarov2020_o2_lines_mpm(xsec, dxsec, f, {p}, {t}, {0.5}, jacs, {0, 1});
   
   constexpr auto df = 1000;

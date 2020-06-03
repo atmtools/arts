@@ -111,6 +111,7 @@ void define_wsv_group_names() {
   wsv_group_names.push_back("ArrayOfGriddedField3");
   wsv_group_names.push_back("ArrayOfGriddedField4");
   wsv_group_names.push_back("ArrayOfIndex");
+  wsv_group_names.push_back("ArrayOfJacobianTarget");
   wsv_group_names.push_back("ArrayOfMatrix");
   wsv_group_names.push_back("ArrayOfPropagationMatrix");
   wsv_group_names.push_back("ArrayOfQuantumIdentifier");
@@ -144,6 +145,7 @@ void define_wsv_group_names() {
   wsv_group_names.push_back("GriddedField6");
   wsv_group_names.push_back("HitranRelaxationMatrixData");
   wsv_group_names.push_back("Index");
+  wsv_group_names.push_back("JacobianTarget");
   wsv_group_names.push_back("MCAntenna");
   wsv_group_names.push_back("Matrix");
   wsv_group_names.push_back("Numeric");

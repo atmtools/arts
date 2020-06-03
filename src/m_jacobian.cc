@@ -247,15 +247,15 @@ void jacobianAddAbsSpecies(Workspace&,
   rq.Subtag(species);
   rq.Mode(mode);
   rq.Analytical(1);
-  rq.Perturbation(0.001);
   rq.Grids(grids);
   if (not for_species_tag) {
     rq.SubSubtag(PROPMAT_SUBSUBTAG);
-    rq.PropType(JacPropMatType::VMR);
-  } else
-    rq.PropType(JacPropMatType::NotPropagationMatrixType);
-
-  rq.QuantumIdentity(qi);
+    rq.Target(Jacobian::Target(Jacobian::Line::VMR, qi));
+  } else {
+    rq.Target(Jacobian::Target(Jacobian::Special::VMR));
+    rq.QuantumIdentity(qi);
+  }
+  rq.Perturbation(0.001);
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -1457,10 +1457,10 @@ void jacobianAddTemperature(Workspace&,
   rq.Subtag(subtag);
   rq.Mode("abs");
   rq.Analytical(1);
-  rq.Perturbation(0.1);
   rq.Grids(grids);
   rq.SubSubtag(PROPMAT_SUBSUBTAG);
-  rq.PropType(JacPropMatType::Temperature);
+  rq.Target(Jacobian::Target(Jacobian::Atm::Temperature));
+  rq.Perturbation(0.1);
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -1524,13 +1524,13 @@ void jacobianAddWind(Workspace&,
   RetrievalQuantity rq;
 
   if (component == "u")
-    rq.PropType(JacPropMatType::WindU);
+    rq.Target(Jacobian::Target(Jacobian::Special::WindU));
   else if (component == "v")
-    rq.PropType(JacPropMatType::WindV);
+    rq.Target(Jacobian::Target(Jacobian::Special::WindV));
   else if (component == "w")
-    rq.PropType(JacPropMatType::WindW);
+    rq.Target(Jacobian::Target(Jacobian::Special::WindW));
   else if (component == "strength")
-    rq.PropType(JacPropMatType::WindMagnitude);
+    rq.Target(Jacobian::Target(Jacobian::Special::WindMagnitude));
   else
     throw std::runtime_error(
         "The selection for *component* can only be \"u\", \"v\", \"w\" or \"strength\".");
@@ -1604,13 +1604,13 @@ void jacobianAddMagField(Workspace&,
   // Create the new retrieval quantity
   RetrievalQuantity rq;
   if (component == "u")
-    rq.PropType(JacPropMatType::MagneticU);
+    rq.Target(Jacobian::Target(Jacobian::Atm::MagneticU));
   else if (component == "v")
-    rq.PropType(JacPropMatType::MagneticV);
+    rq.Target(Jacobian::Target(Jacobian::Atm::MagneticV));
   else if (component == "w")
-    rq.PropType(JacPropMatType::MagneticW);
+    rq.Target(Jacobian::Target(Jacobian::Atm::MagneticW));
   else if (component == "strength")
-    rq.PropType(JacPropMatType::MagneticMagnitude);
+    rq.Target(Jacobian::Target(Jacobian::Atm::MagneticMagnitude));
   else
     throw runtime_error(
         "The selection for *component* can only be \"u\", \"v\", \"w\", or \"strength\".");
@@ -1648,7 +1648,7 @@ void jacobianAddShapeCatalogParameter(Workspace&,
   if (line_identity.Type() not_eq QuantumIdentifier::TRANSITION)
     throw std::runtime_error("Identity has to identify a line");
 
-  const JacPropMatType jpt = select_derivativeLineShape(variable, coefficient);
+  const auto jpt = select_derivativeLineShape(variable, coefficient);
 
   out3 << "Attempting to create RT tag for " << line_identity << " " << variable
        << " " << coefficient << " for ";
@@ -1665,9 +1665,7 @@ void jacobianAddShapeCatalogParameter(Workspace&,
   rq.Mode(species);
   rq.Analytical(1);
   rq.Grids(ArrayOfVector(0, Vector(0)));
-  rq.QuantumIdentity(line_identity);
-  rq.PropType(jpt);
-  rq.IntegrationOn();
+  rq.Target(Jacobian::Target(jpt, line_identity));
 
   // Test this is not a copy
   for (auto& q : jq)
@@ -1742,9 +1740,9 @@ void jacobianAddBasicCatalogParameter(Workspace&,
 
   // Check catalog_parameter here
   if (LINESTRENGTH_MODE == catalog_parameter)
-    rq.PropType(JacPropMatType::LineStrength);
+    rq.Target(Jacobian::Target(Jacobian::Line::Strength, catalog_identity));
   else if (LINECENTER_MODE == catalog_parameter)
-    rq.PropType(JacPropMatType::LineCenter);
+    rq.Target(Jacobian::Target(Jacobian::Line::Center, catalog_identity));
   else {
     ostringstream os;
     os << "You have selected:\n"
@@ -1756,10 +1754,9 @@ void jacobianAddBasicCatalogParameter(Workspace&,
 
   rq.MainTag(CATALOGPARAMETER_MAINTAG);
   rq.Mode(catalog_parameter);
-  rq.QuantumIdentity(catalog_identity);
-  rq.Analytical(1);
   rq.SubSubtag(PROPMAT_SUBSUBTAG);
-  rq.IntegrationOn();
+  rq.Analytical(1);
+  rq.Grids(ArrayOfVector(0, Vector(0)));
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -1844,7 +1841,7 @@ void jacobianAddNLTE(Workspace&,
   RetrievalQuantity rq;
 
   rq.MainTag(NLTE_MAINTAG);
-  rq.QuantumIdentity(energy_level_identity);
+  rq.Target(Jacobian::Target(Jacobian::Line::NLTE, energy_level_identity));
   rq.Perturbation(dx);
   rq.Grids(grids);
   rq.Analytical(1);
@@ -1939,7 +1936,9 @@ void jacobianAddSpecialSpecies(Workspace&,
       }
     }
     rq.MainTag(ELECTRONS_MAINTAG);
-    rq.PropType(JacPropMatType::Electrons);
+    
+    rq.Target(Jacobian::Target(Jacobian::Atm::Electrons));
+
   } else if (species == "particulates") {
     for (Index it = 0; it < jq.nelem(); it++) {
       if (jq[it].MainTag() == PARTICULATES_MAINTAG) {
@@ -1949,7 +1948,7 @@ void jacobianAddSpecialSpecies(Workspace&,
       }
     }
     rq.MainTag(PARTICULATES_MAINTAG);
-    rq.PropType(JacPropMatType::Particulates);
+    rq.Target(Jacobian::Target(Jacobian::Atm::Particulates));
   } else {
     ostringstream os;
     os << "Unknown special species jacobian: \"" << species

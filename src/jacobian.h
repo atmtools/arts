@@ -42,78 +42,253 @@
 
 #include "quantum.h"
 
-/** List of Jacobian properties for analytical line shape related derivatives */
-enum class JacPropMatType : Index {
-  VMR,
-  Electrons,
-  Particulates,
-  Temperature,
 
-  MagneticMagnitude,
-  MagneticU,
-  MagneticV,
-  MagneticW,
+template<typename T> constexpr bool good_enum(T x)
+{
+  return Index(x) < Index(T::FINAL) and Index(x) >= 0;
+}
 
-  WindMagnitude,
-  WindU,
-  WindV,
-  WindW,
-  Frequency,  // Note:  This is how wind is done internal to propmat agenda
+template<typename T>
+std::array<String, Index(T::FINAL)> enum_strarray(const String& strchars)
+{
+  std::array<String, Index(T::FINAL)> out;
+  std::istringstream x(strchars);
+  for (Index i=0; i<Index(T::FINAL); i++) {
+    std::getline(x, out[i], ',');
+    out[i].erase(std::remove(out[i].begin(), out[i].end(), ' '), out[i].end());
+  }
+  return out;
+}
 
-  LineStrength,
-  LineCenter,
+/** ENUMARTS 
+ * 
+ * Generates a "enum class ENUMTYPE : Index"
+ * with all the following arguments and terminated by FINAL
+ * 
+ * Additionally, will fill a local namespace "enumstrs" with
+ * a std::array<String, Index(ENUMTYPE::FINAL)> with all of
+ * the names in the ENUMTYPE enum class
+ * 
+ * Additionally, will generate a inlined "toString" function
+ * that takes a ENUMTYPE object and returns either its partial
+ * name or "BAD ENUMTYPE" as a string
+ * 
+ * Additionally, will generate a inlined "toENUMTYPE" function
+ * that takes a String and returns a corresponding ENUMTYPE
+ * object or ENUMTYPE::FINAL if the object is bad
+ * 
+ * Use the "good_enum(ENUMTYPE)" template function to check
+ * if the enum classs object is any good
+ * 
+ * Will be updated as soon as possible to ensure that all functions
+ * that can be are turned into constexpr functions
+ * 
+ * Example:
+ * ENUMARTS(Test, Value)
+ * 
+ * Generates:
+ * enum class Test : Index {Value, FINAL};
+ * namespace enumstrs {std::array<String, 1> TestNames={"Value"};};
+ * String toString(Test x) noexcept;
+ * Test toTest(const String& x) noexcept;
+ */
+#define ENUMARTS(ENUMTYPE, ...)                                               \
+  enum class ENUMTYPE : Index {__VA_ARGS__, FINAL} ;                          \
+                                                                              \
+  namespace enumstrs {                                                        \
+  static const auto ENUMTYPE ## Names =                                       \
+                               enum_strarray<ENUMTYPE>(#__VA_ARGS__);         \
+  };                                                                          \
+                                                                              \
+  inline String toString(ENUMTYPE x) noexcept {                               \
+    if (good_enum(x))                                                         \
+      return enumstrs::ENUMTYPE ## Names [Index(x)];                          \
+    else                                                                      \
+      return "BAD " # ENUMTYPE;                                               \
+  }                                                                           \
+                                                                              \
+  inline ENUMTYPE  to ## ENUMTYPE(const String& x) noexcept {                 \
+    for (Index i=0; i<Index(ENUMTYPE::FINAL); i++)                            \
+      if (enumstrs::ENUMTYPE ## Names [i] == x)                               \
+        return ENUMTYPE(i);                                                   \
+    return ENUMTYPE::FINAL;                                                   \
+  }
+
+namespace Jacobian {
+
+/** Holds the type of the jacobian quantity */
+ENUMARTS(Type,
+         Atm,
+         Line,
+         Sensor,
+         Special
+        )
+
+/** Holds the Atmosphere-related jacobians */
+ENUMARTS(Atm,
+         Electrons,
+         Particulates,
+         Temperature,
+         MagneticMagnitude, MagneticU, MagneticV, MagneticW
+        )
+
+/** Holds the Line-related jacobians */
+ENUMARTS(Line,
+         Strength,
+         Center,
+         ShapeG0X0, ShapeG0X1, ShapeG0X2, ShapeG0X3,
+         ShapeD0X0, ShapeD0X1, ShapeD0X2, ShapeD0X3,
+         ShapeG2X0, ShapeG2X1, ShapeG2X2, ShapeG2X3,
+         ShapeD2X0, ShapeD2X1, ShapeD2X2, ShapeD2X3,
+         ShapeFVCX0, ShapeFVCX1, ShapeFVCX2, ShapeFVCX3,
+         ShapeETAX0, ShapeETAX1, ShapeETAX2, ShapeETAX3,
+         ShapeYX0, ShapeYX1, ShapeYX2, ShapeYX3,
+         ShapeGX0, ShapeGX1, ShapeGX2, ShapeGX3,
+         ShapeDVX0, ShapeDVX1, ShapeDVX2, ShapeDVX3,
+         NLTE,
+         VMR,
+         SpecialParameter1
+        )
+
+/** Holds the Sensor-related jacobians */
+ENUMARTS(Sensor,
+         Frequency
+        )
+
+/** Holds the Special jacobians that require some sort of special treatment to work */
+ENUMARTS(Special,
+         VMR,
+         WindMagnitude, WindU, WindV, WindW
+        )
+         
+/** Holds all information required for individual partial derivatives */
+class Target {
+private:
+  /** Type of quantity, never set manually */
+  Type mtype;
   
-  LineSpecialParameter1,
+  /** Union of quantities */
+  union TypeOfTarget {
+    Atm atm;
+    Line line;
+    Sensor sensor;
+    Special special;
+    constexpr TypeOfTarget(Atm a) noexcept : atm(a) {}
+    constexpr TypeOfTarget(Line l) noexcept : line(l) {};
+    constexpr TypeOfTarget(Sensor s) noexcept : sensor(s) {};
+    constexpr TypeOfTarget(Special s) noexcept : special(s) {};
+    constexpr bool operator==(const TypeOfTarget& other) const noexcept {return atm == other.atm;} /** Technically breaks C++ standard; supported by GCC and clang afaik */
+  } /** Type of quantity, set manually */ mtypeval;
+  
+  /** Perturbations for methods where theoretical computations are impossible or plain slow */
+  Numeric mperturbation;
+  
+  /** ID for the Line types of partial derivatives */
+  QuantumIdentifier mqid;
+  
+public:
+  /** Atmospheric type */
+  constexpr explicit Target (Atm type) noexcept : mtype(Type::Atm), mtypeval(type), mperturbation(0), mqid() {}
+  
+  /** Line type */
+  constexpr explicit Target (Line type, const QuantumIdentifier& qid) noexcept : mtype(Type::Line), mtypeval(type), mperturbation(0), mqid(qid) {}
+  
+  /** Sensor type */
+  constexpr explicit Target (Sensor type) noexcept : mtype(Type::Sensor), mtypeval(type), mperturbation(0), mqid() {}
+  
+  /** Sensor type */
+  constexpr explicit Target (Special type) noexcept : mtype(Type::Special), mtypeval(type), mperturbation(0), mqid() {}
+  
+  /** A defaultable none-type */
+  constexpr Target() noexcept : mtype(Type::FINAL), mtypeval(Special::FINAL), mperturbation(std::numeric_limits<Numeric>::quiet_NaN()), mqid() {}
+  
+  /** Perturbation */
+  void Perturbation(Numeric x) noexcept {mperturbation=x;}
+  Numeric& Perturbation() noexcept {return mperturbation;}
+  Numeric Perturbation() const noexcept {return mperturbation;}
+  
+  /** ID */
+  void QuantumIdentity(const QuantumIdentifier& x) noexcept {mqid=x;}
+  QuantumIdentifier& QuantumIdentity() noexcept {return mqid;}
+  const QuantumIdentifier& QuantumIdentity() const noexcept {return mqid;}
+  
+  /** Equality */
+  constexpr bool operator==(const Target& other) const noexcept {
+    return mtype == other.mtype and mtypeval == other.mtypeval and mperturbation == other.mperturbation and mqid == other.mqid;
+  }
+  
+  /** Return atm type */
+  constexpr Atm AtmType() const noexcept {assert(mtype==Type::Atm); return mtypeval.atm;}
+  
+  /** Return line type */
+  constexpr Line LineType() const noexcept {assert(mtype==Type::Line); return mtypeval.line;}
+  
+  /** Return sensor type */
+  constexpr Sensor SensorType() const noexcept {assert(mtype==Type::Sensor); return mtypeval.sensor;}
+  
+  /** Return sensor type */
+  constexpr Special SpecialType() const noexcept {assert(mtype==Type::Special); return mtypeval.special;}
+  
+  /** Checks if the type of jacobian is the input atmospheric parameter */
+  constexpr bool operator==(Atm other) const noexcept {return Type::Atm == mtype and other == mtypeval.atm;}
+  
+  /** Checks if the type of jacobian is the input line parameter */
+  constexpr bool operator==(Line other) const noexcept {return Type::Line == mtype and other == mtypeval.line;}
+  
+  /** Checks if the type of jacobian is the input sensor parameter */
+  constexpr bool operator==(Sensor other) const noexcept {return Type::Sensor == mtype and other == mtypeval.sensor;}
+  
+  /** Checks if the type of jacobian is the input special parameter */
+  constexpr bool operator==(Special other) const noexcept {return Type::Special == mtype and other == mtypeval.special;}
+  
+  /** Checks if the type is correct */
+  constexpr bool operator==(Type other) const noexcept {return other == mtype;}
+  
+  /** Return type as string */
+  String TargetType() const noexcept {return toString(mtype);}
+  String TargetSubType() const noexcept {
+    switch (mtype) {
+      case Type::Special:
+        return toString(mtypeval.special);
+      case Type::Sensor:
+        return toString(mtypeval.sensor);
+      case Type::Line:
+        return toString(mtypeval.line);
+      case Type::Atm:
+        return toString(mtypeval.atm);
+      default:
+        return "Developer Bug";
+    }
+  }
+  
+  constexpr bool OK() const noexcept {
+    switch (mtype) {
+      case Type::Special:
+        return good_enum(mtypeval.special);
+      case Type::Sensor:
+        return good_enum(mtypeval.sensor);
+      case Type::Line:
+        return good_enum(mtypeval.line);
+      case Type::Atm:
+        return good_enum(mtypeval.atm);
+      default:
+        return false;
+    }
+  }
+};  // Target
 
-  LineShapeG0X0,
-  LineShapeG0X1,
-  LineShapeG0X2,
-  LineShapeG0X3,
-
-  LineShapeD0X0,
-  LineShapeD0X1,
-  LineShapeD0X2,
-  LineShapeD0X3,
-
-  LineShapeG2X0,
-  LineShapeG2X1,
-  LineShapeG2X2,
-  LineShapeG2X3,
-
-  LineShapeD2X0,
-  LineShapeD2X1,
-  LineShapeD2X2,
-  LineShapeD2X3,
-
-  LineShapeFVCX0,
-  LineShapeFVCX1,
-  LineShapeFVCX2,
-  LineShapeFVCX3,
-
-  LineShapeETAX0,
-  LineShapeETAX1,
-  LineShapeETAX2,
-  LineShapeETAX3,
-
-  LineShapeYX0,
-  LineShapeYX1,
-  LineShapeYX2,
-  LineShapeYX3,
-
-  LineShapeGX0,
-  LineShapeGX1,
-  LineShapeGX2,
-  LineShapeGX3,
-
-  LineShapeDVX0,
-  LineShapeDVX1,
-  LineShapeDVX2,
-  LineShapeDVX3,
-
-  NLTE,
-
-  NotPropagationMatrixType
-};
+/** Output operator 
+ *
+ * @param[in,out] os A stream
+ * @param[in] x A Target
+ * @return A modified stream
+ */
+inline std::ostream& operator<<(std::ostream& os, const Target& x) {
+  return os << x.TargetType() << " " << x.TargetSubType() << " " << x.Perturbation() << " " << x.QuantumIdentity();
+}
+};  // Jacobian
+using JacobianTarget = Jacobian::Target;
+using ArrayOfJacobianTarget = Array<Jacobian::Target>;
 
 
 /** Deals with internal derivatives, Jacobian definition, and OEM calculations */
@@ -126,11 +301,8 @@ class RetrievalQuantity {
         msubsubtag(),
         mmode(),
         manalytical(-1),
-        mperturbation(0.),
         mgrids(),
-        mquantumidentifier(),
-        mproptype(JacPropMatType::NotPropagationMatrixType),
-        mintegration_flag(false) { /* Nothing to do here. */
+        mjac() { /* Nothing to do here. */
   }
 
   /** Constructor that sets the values
@@ -155,12 +327,9 @@ class RetrievalQuantity {
         msubsubtag(subsubtag),
         mmode(mode),
         manalytical(analytical),
-        mperturbation(perturbation),
         mgrids(grids),
-        mquantumidentifier(),
-        mproptype(JacPropMatType::NotPropagationMatrixType),
-        mintegration_flag(false) {
-    // With Matpack, initialization of mgrids from grids should work correctly.
+        mjac() {
+    mjac.Perturbation() = perturbation;
   }
 
   /** Returns the main tag
@@ -238,13 +407,13 @@ class RetrievalQuantity {
    * 
    * @return The size of perturbation
    */
-  const Numeric& Perturbation() const { return mperturbation; }
+  Numeric Perturbation() const { return mjac.Perturbation(); }
   
   /** Sets the size of perturbation
    * 
    * @param[in] p The size of perturbation
    */
-  void Perturbation(const Numeric& p) { mperturbation = p; }
+  void Perturbation(const Numeric& p) { mjac.Perturbation() = p; }
   
   /** Returns the grids of the retrieval
    * 
@@ -259,34 +428,6 @@ class RetrievalQuantity {
    * @param[in] g The grids of the retrieval
    */
   void Grids(const ArrayOfVector& g) { mgrids = g; }
-  
-  /** Returns the propagation matrix derivative type
-   * 
-   * @return The propagation matrix derivative type
-   */
-  JacPropMatType PropMatType() const { return mproptype; }
-  
-  /** Sets the propagation matrix derivative type
-   * 
-   * @param[in] t The propagation matrix derivative type
-   */
-  void PropType(const JacPropMatType t) { mproptype = t; }
-  
-  /** Checks if this represents the propagation matrix derivative type
-   * 
-   * @param[in] t A propagation matrix derivative type
-   * @return true if the input propagation matrix derivative type matches PropMatType()
-   * @return false otherwise
-   */
-  bool operator==(const JacPropMatType t) const { return t == mproptype; }
-  
-  /** Returns "not operator==(t)"
-   * 
-   * @param[in] t A propagation matrix derivative type
-   * @return false if the input propagation matrix derivative type matches PropMatType()
-   * @return true otherwise
-   */
-  bool operator!=(const JacPropMatType t) const { return not operator==(t); }
 
   /** Number of elements in the grids 
    * 
@@ -302,6 +443,9 @@ class RetrievalQuantity {
     return i;
   }
   
+  /** Set the Jacobian Target */
+  void Target(const Jacobian::Target& jac) {mjac=jac;}
+  
   /** Returns the identity of this Jacobian
    * 
    * QuantumIdentifier as necessary for matching line specific parameters to Jacobian grid
@@ -309,27 +453,41 @@ class RetrievalQuantity {
    * @return The identity of this Jacobian
    */
   const QuantumIdentifier& QuantumIdentity() const {
-    return mquantumidentifier;
+    return mjac.QuantumIdentity();
   }
+  
+  /** Return atm type */
+  Jacobian::Atm AtmType() const {return mjac.AtmType();}
+  
+  /** Return line type */
+  Jacobian::Line LineType() const {return mjac.LineType();}
+  
+  /** Return sensor type */
+  Jacobian::Sensor SensorType() const {return mjac.SensorType();}
+  
+  /** Return sensor type */
+  Jacobian::Special SpecialType() const {return mjac.SpecialType();}
+  
+  /** Return atm type equality */
+  bool operator==(Jacobian::Atm other) const {return mjac==other;}
+  
+  /** Return line type equality */
+  bool operator==(Jacobian::Line other) const {return mjac==other;}
+  
+  /** Return sensor type equality */
+  bool operator==(Jacobian::Sensor other) const {return mjac==other;}
+  
+  /** Return special type equality */
+  bool operator==(Jacobian::Special other) const {return mjac==other;}
+  
+  /** Return special type equality */
+  bool operator==(Jacobian::Type other) const {return mjac==other;}
   
   /** Sets the identity of this Jacobian
    * 
    * @param[in] qi The identity of this Jacobian
    */
-  void QuantumIdentity(const QuantumIdentifier& qi) { mquantumidentifier = qi; }
-
-  /** Do integration?
-   * 
-   * @return true if the values should be integrated over all the grids
-   * @return false otherwise
-   */
-  bool Integration() const { return mintegration_flag; }
-  
-  /** Sets the integration flag to true */
-  void IntegrationOn() { mintegration_flag = true; }
-  
-  /** Sets the integration flag to false */
-  void IntegrationOff() { mintegration_flag = false; }
+  void QuantumIdentity(const QuantumIdentifier& qi) { mjac.QuantumIdentity() = qi; }
 
   /** Transformation
    * 
@@ -355,23 +513,15 @@ class RetrievalQuantity {
   bool HasSameInternalsAs(const RetrievalQuantity& a) const {
     return a.mmaintag == mmaintag and a.msubtag == msubtag and
            a.msubsubtag == msubsubtag and a.mmode == mmode and
-           a.manalytical == manalytical and
-           a.mquantumidentifier == mquantumidentifier and
-           a.mproptype == mproptype;
+           a.manalytical == manalytical and a.mjac == mjac;
   }
   
   String& MainTag() {return mmaintag;}
   String& SubTag() {return msubtag;}
   String& SubSubTag() {return msubsubtag;}
   String& Mode() {return mmode;}
-  Index& Analytical() {return manalytical;}
-  Numeric& Perturbation() {return mperturbation;}
+  Numeric& Perturbation() {return mjac.Perturbation();}
   ArrayOfVector& Grids() {return mgrids;}
-  QuantumIdentifier& QuantumIdentity() {return mquantumidentifier;}
-  JacPropMatType Proptype() const {return mproptype;}
-  Index Proptype(JacPropMatType x) {if (validProptype(x)) {mproptype = x; return EXIT_SUCCESS;} else return EXIT_FAILURE;}
-  static bool validProptype(JacPropMatType x) noexcept {return Index(x) <= Index(JacPropMatType::NotPropagationMatrixType) and Index(x) >= 0;}
-  void Integration(bool x) {mintegration_flag = x;}
   String& TransformationFunc() {return transformation_func;}
   Vector& TFuncParameters() {return tfunc_parameters;}
   Matrix& Transformation() {return transformation_matrix;}
@@ -383,11 +533,8 @@ class RetrievalQuantity {
   String msubsubtag;
   String mmode;
   Index manalytical;
-  Numeric mperturbation;
   ArrayOfVector mgrids;
-  QuantumIdentifier mquantumidentifier;
-  JacPropMatType mproptype;
-  bool mintegration_flag;
+  Jacobian::Target mjac;
 
   String transformation_func;
   Vector tfunc_parameters;
@@ -1058,16 +1205,6 @@ bool supports_hitran_xsec(const ArrayOfRetrievalQuantity& js);
  */
 bool supports_continuum(const ArrayOfRetrievalQuantity& js);
 
-/** Returns if the array supports line-by-line derivatives without requiring the phase
- * 
- * FIXME: This should be removed when updating away from the old XSEC routine
- * 
- * @param[in] js As jacobian_quantities WSV
- * @return true if it does
- * @return false if it does not
- */
-bool supports_LBL_without_phase(const ArrayOfRetrievalQuantity& js);
-
 /** Returns if the array supports relaxation matrix derivatives
  * 
  * @param[in] js As jacobian_quantities WSV
@@ -1195,154 +1332,5 @@ bool do_frequency_jacobian(const ArrayOfRetrievalQuantity& js) noexcept;
  * @return false if it does not
  */
 bool do_magnetic_jacobian(const ArrayOfRetrievalQuantity& js) noexcept;
-
-template<typename T> constexpr bool good_enum(T x)
-{
-  return Index(x) < Index(T::FINAL) and Index(x) >= 0;
-}
-
-template<typename T> auto enum_strarray(const String& strchars) -> 
-std::array<String, Index(T::FINAL)>
-{
-  std::array<String, Index(T::FINAL)> out;
-  std::istringstream x(strchars);
-  for (Index i=0; i<Index(T::FINAL); i++) {
-    std::getline(x, out[i], ',');
-    out[i].erase(std::remove(out[i].begin(), out[i].end(), ' '), out[i].end());
-  }
-  return out;
-}
-
-#define ENUMARTS(ENUMTYPE, ...)                                               \
-  enum class ENUMTYPE : Index {__VA_ARGS__, FINAL} ;                          \
-                                                                              \
-  static_assert(not good_enum(ENUMTYPE::FINAL), "FINAL " #ENUMTYPE " good");  \
-  static_assert(good_enum(ENUMTYPE(0)), "first enum FINAL for " #ENUMTYPE);   \
-                                                                              \
-  namespace enumstrs {                                                        \
-  static const auto ENUMTYPE ## Names =                                       \
-                               enum_strarray<ENUMTYPE>(#__VA_ARGS__);         \
-  };                                                                          \
-                                                                              \
-  inline String to_string(ENUMTYPE x) noexcept {                              \
-    if (good_enum(x))                                                         \
-      return enumstrs::ENUMTYPE ## Names [Index(x)];                          \
-    else                                                                      \
-      return "BAD " # ENUMTYPE;                                               \
-  }                                                                           \
-                                                                              \
-  inline ENUMTYPE  to_ ## ENUMTYPE(const String& x) noexcept                  \
-  {                                                                           \
-    for (Index i=0; i<Index(ENUMTYPE::FINAL); i++)                            \
-      if (enumstrs::ENUMTYPE ## Names [i] == x)                               \
-        return ENUMTYPE(i);                                                   \
-    return ENUMTYPE::FINAL;                                                   \
-  }
-
-namespace Jacobian {
-
-/** Holds the type of the jacobian quantity */
-ENUMARTS(Type,
-         Atm,
-         Line,
-         Sensor)
-
-/** Holds the Atmosphere-related jacobians */
-ENUMARTS(Atm,
-         VMR,
-         Electrons,
-         Particulates,
-         Temperature,
-         MagneticMagnitude,
-         MagneticU,
-         MagneticV,
-         MagneticW,
-         WindMagnitude,
-         WindU,
-         WindV,
-         WindW,
-         Frequency)
-
-/** Holds the Line-related jacobians */
-ENUMARTS(Line,
-         Strength,
-         Center,
-         VMR,
-         ShapeG0X0,
-         ShapeG0X1,
-         ShapeG0X2,
-         ShapeG0X3,
-         ShapeD0X0,
-         ShapeD0X1,
-         ShapeD0X2,
-         ShapeD0X3,
-         ShapeG2X0,
-         ShapeG2X1,
-         ShapeG2X2,
-         ShapeG2X3,
-         ShapeD2X0,
-         ShapeD2X1,
-         ShapeD2X2,
-         ShapeD2X3,
-         ShapeFVCX0,
-         ShapeFVCX1,
-         ShapeFVCX2,
-         ShapeFVCX3,
-         ShapeETAX0,
-         ShapeETAX1,
-         ShapeETAX2,
-         ShapeETAX3,
-         ShapeYX0,
-         ShapeYX1,
-         ShapeYX2,
-         ShapeYX3,
-         ShapeGX0,
-         ShapeGX1,
-         ShapeGX2,
-         ShapeGX3,
-         ShapeDVX0,
-         ShapeDVX1,
-         ShapeDVX2,
-         ShapeDVX3,
-         NLTE,
-         SpecialParameter1)
-
-/** Holds the Sensor-related jacobians */
-ENUMARTS(Sensor, NONE)
-         
-/** Holds all information required for individual partial derivatives */
-class Quantity {
-  
-  /** Type of quantity, never set manually */
-  Type mtype;
-  
-  /** Union of quantities */
-  union TypeOfJac {
-    Atm atm;
-    Line line;
-    Sensor sensor;
-    constexpr TypeOfJac(Atm a) : atm(a) {}
-    constexpr TypeOfJac(Line l) : line(l) {};
-    constexpr TypeOfJac(Sensor s) : sensor(s) {};
-  } /** Type of quantity, set manually */ mtypeval;
-  
-  /** Perturbations for methods where theoretical computations are impossible or plain slow */
-  Numeric mperturbation;
-  
-  /** ID for the Line types of partial derivatives */
-  QuantumIdentifier mqid;
- 
-public:
-  /** Atmospheric type */
-  constexpr explicit Quantity (Atm type) noexcept : mtype(Type::Atm), mtypeval(type), mperturbation(0), mqid() {}
-  
-  /** Line type */
-  constexpr explicit Quantity (Line type) noexcept : mtype(Type::Line), mtypeval(type), mperturbation(0), mqid() {}
-  
-  /** Sensor type */
-  constexpr explicit Quantity (Sensor type) noexcept : mtype(Type::Sensor), mtypeval(type), mperturbation(0), mqid() {}
-};  // Quantity
-};  // Jacobian
-
 
 #endif  // jacobian_h
