@@ -1,0 +1,51 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "ARTS controlfile",
+	"patterns": [
+		{"include":"#keyword-args"},
+		{"include": "#keywords"},
+		{"include": "#strings"},
+		{"include": "#comments"},
+		{"include": "#workspaceMethods"},
+		{"include": "#workspaceVariables"},
+		{"include": "#numericConstant"}
+	],
+	"repository": {
+		"keywords": {
+			"name": "keyword.arts",
+			"match": "\\b(Arts2|INCLUDE)\\b"
+		},
+		"keyword-args":{
+			"match":"(\\w+)=",
+			"captures":{"1":{"name":"variable.parameter.arts"}}
+		},
+		"strings": {
+			"name": "string.quoted.double.arts",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.arts",
+					"match": "\\\\."
+				}
+			]
+		},
+		"comments": {
+			"name": "comment.line.number-sign.arts",
+			"match": "#.*"
+		},
+		"workspaceMethods": {
+			"name": "support.function.workspace.arts",
+			"match": "\\b({{arts_methods|join('|')}})\\b"
+		},
+		"workspaceVariables": {
+			"name": "support.variable.workspace.arts",
+			"match": "\\b({{arts_variables|join('|')}})\\b"
+		},
+		"numericConstant": {
+			"name":"constant.numeric.arts",
+			"match":"-?\\d+\\.?\\d*(?:e[+-]?\\d+)?"
+		}	
+	},
+	"scopeName": "source.arts"
+}
