@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
-"""Create ARTS grammar by processing Jinja template"""
+"""
+Create ARTS grammar by processing Jinja template and
+install syntax highlighting extension for VSCode
+"""
 
 import os
 from shutil import copytree, rmtree
