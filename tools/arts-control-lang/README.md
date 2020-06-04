@@ -1,7 +1,13 @@
-# arts-control-lang README
+# ARTS Syntax Highlighting for Visual Studio Code
 
-Synatax highlighting for control files for the Atmospheric Radiative Transfer Simulator (ARTS)
+## Requirements
 
-Copy this folder into your .vscode/extensions
+Python modules:
+* pyarts
+* jinja2
 
-The list of workspace variables and methods can be generated/updated using the ``process_template.py`` script which will create the ``syntaxes/arts.tmLanguage.json`` file. This will use the available variables and methods from ``pyarts``.
+## Installation
+
+Running the script ``update-vscode-arts-syntax.py`` generates the current list
+of workspace variables and methods from ``pyarts`` and installs the syntax
+highlighting extension into ``$HOME/.vscode/extensions/``.
