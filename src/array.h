@@ -31,6 +31,7 @@
 #include <climits>
 #include <iomanip>
 #include <iostream>
+#include <array>
 #include <vector>
 #include "matpack.h"
 
