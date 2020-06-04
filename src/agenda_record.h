@@ -53,6 +53,8 @@ class AgRecord {
            const ArrayOfString& output,
            const ArrayOfString& input);
 
+  AgRecord(const AgRecord&) = default;
+
   const String& Name() const { return mname; }
   const String& Description() const { return mdescription; }
   const ArrayOfIndex& Out() const { return moutput; }
