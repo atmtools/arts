@@ -1,0 +1,25 @@
+{
+    "name": "arts-control-lang",
+    "displayName": "ARTS-control Lang",
+    "description": "Syntax highlighting for ARTS controlfiles",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.45.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "arts",
+            "aliases": ["ARTS controlfile", "arts"],
+            "extensions": [".arts"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "arts",
+            "scopeName": "source.arts",
+            "path": "./syntaxes/arts.tmLanguage.json"
+        }]
+    }
+}
