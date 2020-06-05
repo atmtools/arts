@@ -248,12 +248,10 @@ void jacobianAddAbsSpecies(Workspace&,
   rq.Mode(mode);
   rq.Analytical(1);
   rq.Grids(grids);
-  if (not for_species_tag) {
-    rq.SubSubtag(PROPMAT_SUBSUBTAG);
+  if (for_species_tag == 0) {
     rq.Target(Jacobian::Target(Jacobian::Line::VMR, qi));
   } else {
-    rq.Target(Jacobian::Target(Jacobian::Special::VMR));
-    rq.QuantumIdentity(qi);
+    rq.Target(Jacobian::Target(Jacobian::Special::TagVMR, qi));
   }
   rq.Perturbation(0.001);
 
@@ -1524,13 +1522,13 @@ void jacobianAddWind(Workspace&,
   RetrievalQuantity rq;
 
   if (component == "u")
-    rq.Target(Jacobian::Target(Jacobian::Special::WindU));
+    rq.Target(Jacobian::Target(Jacobian::Atm::WindU));
   else if (component == "v")
-    rq.Target(Jacobian::Target(Jacobian::Special::WindV));
+    rq.Target(Jacobian::Target(Jacobian::Atm::WindV));
   else if (component == "w")
-    rq.Target(Jacobian::Target(Jacobian::Special::WindW));
+    rq.Target(Jacobian::Target(Jacobian::Atm::WindW));
   else if (component == "strength")
-    rq.Target(Jacobian::Target(Jacobian::Special::WindMagnitude));
+    rq.Target(Jacobian::Target(Jacobian::Atm::WindMagnitude));
   else
     throw std::runtime_error(
         "The selection for *component* can only be \"u\", \"v\", \"w\" or \"strength\".");

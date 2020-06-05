@@ -385,18 +385,18 @@ void set_vmr_from_first_species(Vector& vmr,
  *  @param[in,out] dxsec Partial derivatives of xsec.
  *  @param[in,out] dsource Partial derivatives of source.
  *  @param[in,out] dphase Partial derivatives of phase.
- *  \param[in] jacobian_quantities As WSV
- *  \param[in] jacobian_propmat_positions Positions in jacobian_quantities affected by propmat calculations
- *  \param[in] f_grid As WSV
- *  \param[in] abs_p As WSV
- *  \param[in] abs_t As WSV
- *  \param[in] abs_nlte As WSV
- *  \param[in] abs_vmrs As WSV
- *  \param[in] abs_species As WSV
- *  \param[in] band A single absorption band
- *  \param[in] isot_ratio Isotopologue ratio of this species
- *  \param[in] partfun_type Partition function type for this species
- *  \param[in] partfun_data Partition function model data for this species
+ *  @param[in] jacobian_quantities As WSV
+ *  @param[in] jacobian_propmat_positions Positions in jacobian_quantities affected by propmat calculations
+ *  @param[in] f_grid As WSV
+ *  @param[in] abs_p As WSV
+ *  @param[in] abs_t As WSV
+ *  @param[in] abs_nlte As WSV
+ *  @param[in] abs_vmrs As WSV
+ *  @param[in] abs_species As WSV
+ *  @param[in] band A single absorption band
+ *  @param[in] isot_ratio Isotopologue ratio of this species
+ *  @param[in] partfun_type Partition function type for this species
+ *  @param[in] partfun_data Partition function model data for this species
  * 
  *  @author Richard Larsson
  *  @date   2019-10-10

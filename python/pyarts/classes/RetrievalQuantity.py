@@ -2,10 +2,10 @@ import ctypes as c
 from collections.abc import Sized
 from pyarts.workspace.api import arts_api as lib
 
-from pyarts.classes.BasicTypes import String, Numeric, Index
+from pyarts.classes.BasicTypes import String, Index
 from pyarts.classes.Vector import Vector, ArrayOfVector
+from pyarts.classes.JacobianTarget import JacobianTarget
 from pyarts.classes.Matrix import Matrix
-from pyarts.classes.QuantumIdentifier import QuantumIdentifier
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 from pyarts.classes.ArrayBase import array_base
 
@@ -29,14 +29,11 @@ class RetrievalQuantity:
         analytical:
             (Index)
 
-        perturbation:
-            (Numeric)
+        target:
+            (JacobianTarget)
 
         grids:
             (ArrayOfVector)
-
-        quantumidentity:
-            (QuantumIdentifier)
 
         transformation_func:
             (String)
@@ -49,9 +46,6 @@ class RetrievalQuantity:
 
         offset:
             (Vector)
-
-        type:
-            (Index)
 
         integration:
             (bool)
@@ -121,16 +115,7 @@ class RetrievalQuantity:
     @transformation_func.setter
     def transformation_func(self, val):
         self.transformation_func.set(val)
-
-    @property
-    def quantumidentity(self):
-        """ (QuantumIdentifier) """
-        return QuantumIdentifier(c.c_void_p(lib.getQuantumIdentityRetrievalQuantity(self.__data__)))
-
-    @quantumidentity.setter
-    def quantumidentity(self, val):
-        self.quantumidentity.set(val)
-
+        
     @property
     def grids(self):
         """ (ArrayOfVector) """
@@ -139,15 +124,6 @@ class RetrievalQuantity:
     @grids.setter
     def grids(self, val):
         self.grids.set(val)
-
-    @property
-    def perturbation(self):
-        """ (Numeric) """
-        return Numeric(c.c_void_p(lib.getPerturbationRetrievalQuantity(self.__data__)))
-
-    @perturbation.setter
-    def perturbation(self, val):
-        self.perturbation.set(val)
 
     @property
     def analytical(self):
@@ -194,6 +170,15 @@ class RetrievalQuantity:
     def maintag(self, val):
         self.maintag.set(val)
 
+    @property
+    def target(self):
+        """ (JacobianTarget) """
+        return JacobianTarget(c.c_void_p(lib.getTargetRetrievalQuantity(self.__data__)))
+
+    @target.setter
+    def target(self, val):
+        self.target.set(val)
+
     @staticmethod
     def name():
         return "RetrievalQuantity"
@@ -216,15 +201,13 @@ class RetrievalQuantity:
             self.subtag = other.subtag
             self.subsubtag = other.subsubtag
             self.mode = other.mode
+            self.target = other.target
             self.analytical = other.analytical
-            self.perturbation = other.perturbation
             self.grids = other.grids
-            self.quantumidentity = other.quantumidentity
             self.transformation_func = other.transformation_func
             self.t_func_parameters = other.t_func_parameters
             self.transformation = other.transformation
             self.offset = other.offset
-            self.type = other.type
             self.integration = other.integration
         else:
             raise TypeError("Expects RetrievalQuantity")
@@ -261,15 +244,13 @@ class RetrievalQuantity:
                 self.subtag == other.subtag and \
                 self.subsubtag == other.subsubtag and \
                 self.mode == other.mode and \
+                self.target == other.target and \
                 self.analytical == other.analytical and \
-                self.perturbation == other.perturbation and \
                 self.grids == other.grids and \
-                self.quantumidentity == other.quantumidentity and \
                 self.transformation_func == other.transformation_func and \
                 self.t_func_parameters == other.t_func_parameters and \
                 self.transformation == other.transformation and \
                 self.offset == other.offset and \
-                self.type == other.type and \
                 self.integration == other.integration:
             return True
         else:
@@ -294,18 +275,6 @@ lib.xmlreadRetrievalQuantity.argtypes = [c.c_void_p, c.c_char_p]
 lib.xmlsaveRetrievalQuantity.restype = c.c_long
 lib.xmlsaveRetrievalQuantity.argtypes = [c.c_void_p, c.c_char_p, c.c_long, c.c_long]
 
-lib.getTypeRetrievalQuantity.restype = c.c_long
-lib.getTypeRetrievalQuantity.argtypes = [c.c_void_p]
-
-lib.setTypeRetrievalQuantity.restype = c.c_long
-lib.setTypeRetrievalQuantity.argtypes = [c.c_void_p, c.c_long]
-
-lib.getIntegrationRetrievalQuantity.restype = c.c_long
-lib.getIntegrationRetrievalQuantity.argtypes = [c.c_void_p]
-
-lib.setIntegrationRetrievalQuantity.restype = c.c_long
-lib.setIntegrationRetrievalQuantity.argtypes = [c.c_void_p, c.c_long]
-
 lib.getMainTagRetrievalQuantity.restype = c.c_void_p
 lib.getMainTagRetrievalQuantity.argtypes = [c.c_void_p]
 
@@ -321,14 +290,11 @@ lib.getModeRetrievalQuantity.argtypes = [c.c_void_p]
 lib.getAnalyticalRetrievalQuantity.restype = c.c_void_p
 lib.getAnalyticalRetrievalQuantity.argtypes = [c.c_void_p]
 
-lib.getPerturbationRetrievalQuantity.restype = c.c_void_p
-lib.getPerturbationRetrievalQuantity.argtypes = [c.c_void_p]
-
 lib.getGridsRetrievalQuantity.restype = c.c_void_p
 lib.getGridsRetrievalQuantity.argtypes = [c.c_void_p]
 
-lib.getQuantumIdentityRetrievalQuantity.restype = c.c_void_p
-lib.getQuantumIdentityRetrievalQuantity.argtypes = [c.c_void_p]
+lib.getTargetRetrievalQuantity.restype = c.c_void_p
+lib.getTargetRetrievalQuantity.argtypes = [c.c_void_p]
 
 lib.getTransformationFuncRetrievalQuantity.restype = c.c_void_p
 lib.getTransformationFuncRetrievalQuantity.argtypes = [c.c_void_p]

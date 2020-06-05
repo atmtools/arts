@@ -1090,16 +1090,20 @@ void get_diydx(VectorView diy1,
 ArrayOfIndex equivalent_propmattype_indexes(const ArrayOfRetrievalQuantity& js) {
   ArrayOfIndex pos;
   pos.reserve(js.nelem());
-//   for (Index i = 0; i < js.nelem(); i++)
-//     if (js[i] not_eq JacPropMatType::NotPropagationMatrixType) pos.push_back(i);
+  for (Index i = 0; i < js.nelem(); i++)
+    if (not (js[i] == Jacobian::Type::Special or js[i] == Jacobian::Type::Sensor))
+      pos.push_back(i);
   return pos;
 }
+
 Index equivalent_propmattype_index(const ArrayOfRetrievalQuantity& js,
-                                   const Index i) noexcept {}
+                                   const Index i) noexcept {
+  return equivalent_propmattype_indexes(js)[i];
+}
 
 bool is_wind_parameter(const RetrievalQuantity& t) noexcept {
-  return t == Jacobian::Special::WindMagnitude or t == Jacobian::Special::WindU or
-         t == Jacobian::Special::WindV or t == Jacobian::Special::WindW;
+  return t == Jacobian::Atm::WindMagnitude or t == Jacobian::Atm::WindU or
+  t == Jacobian::Atm::WindV or t == Jacobian::Atm::WindW;
 }
 
 bool is_frequency_parameter(const RetrievalQuantity& t) noexcept {
@@ -1213,7 +1217,7 @@ bool supports_relaxation_matrix(const ArrayOfRetrievalQuantity& js) {
 bool supports_lookup(const ArrayOfRetrievalQuantity& js) {
   if (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_line_parameter(j);}))
     throw std::runtime_error("Line specific parameters are not supported while using Lookup table.\nWe do not track lines in the Lookup.\n");
-  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or j == Jacobian::Special::VMR or is_frequency_parameter(j));});
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or j == Jacobian::Special::TagVMR or is_frequency_parameter(j));});
 }
 
 bool supports_faraday(const ArrayOfRetrievalQuantity& js) {
@@ -1249,8 +1253,8 @@ bool species_match(const RetrievalQuantity& rq, const ArrayOfSpeciesTag& ast) {
 }
 
 bool species_match(const RetrievalQuantity& rq, const Index species) {
-  if (rq == Jacobian::Special::VMR)
-    if (rq.QuantumIdentity().Species() == species) return true;
+  if (rq == Jacobian::Line::VMR and rq.QuantumIdentity().Species() == species)
+    return true;
   return false;
 }
 
@@ -1271,7 +1275,7 @@ bool do_temperature_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
 
 jacobianVMRcheck do_vmr_jacobian(const ArrayOfRetrievalQuantity& js,
                                  const QuantumIdentifier& line_qid) noexcept {
-  auto p = std::find_if(js.cbegin(), js.cend(), [&line_qid](auto& j){return j == Jacobian::Special::VMR and j.QuantumIdentity().In(line_qid);});
+  auto p = std::find_if(js.cbegin(), js.cend(), [&line_qid](auto& j){return j == Jacobian::Line::VMR and j.QuantumIdentity().In(line_qid);});
   if (p not_eq js.cend())
     return {true, p -> QuantumIdentity()};
   else

@@ -63,6 +63,13 @@ __attribute__((visibility("default")))              \
 Index string2index##VALUE##TYPE(void * data, char * newval);
 
 
+#define StringEnumGetterSetterCAPI(TYPE, ELEM)          \
+__attribute__((visibility("default")))                  \
+bool enumset ## ELEM ## TYPE (void * data, char * in);  \
+__attribute__((visibility("default")))                  \
+void * enumget ## ELEM ## TYPE (void * data);
+
+
 #define VoidGetterCAPI(TYPE, VALUE)     \
 __attribute__((visibility("default")))  \
 void * get##VALUE##TYPE(void * data);
@@ -811,6 +818,17 @@ extern "C" {
     BasicInterfaceCAPI(ArrayOfAgenda)
     BasicInputOutputCAPI(ArrayOfAgenda)
     
+    // Jacobian::Target
+    BasicInterfaceCAPI(JacobianTarget)
+    BasicInputOutputCAPI(JacobianTarget)
+    VoidGetterCAPI(JacobianTarget, Perturbation)
+    VoidGetterCAPI(JacobianTarget, QuantumIdentity)
+    StringEnumGetterSetterCAPI(JacobianTarget, TargetType)
+    StringEnumGetterSetterCAPI(JacobianTarget, TargetSubType)
+    VoidArrayCAPI(ArrayOfJacobianTarget)
+    BasicInterfaceCAPI(ArrayOfJacobianTarget)
+    BasicInputOutputCAPI(ArrayOfJacobianTarget)
+    
     // RetrievalQuantity
     BasicInterfaceCAPI(RetrievalQuantity)
     BasicInputOutputCAPI(RetrievalQuantity)
@@ -819,9 +837,8 @@ extern "C" {
     VoidGetterCAPI(RetrievalQuantity, SubSubTag)
     VoidGetterCAPI(RetrievalQuantity, Mode)
     VoidGetterCAPI(RetrievalQuantity, Analytical)
-    VoidGetterCAPI(RetrievalQuantity, Perturbation)
     VoidGetterCAPI(RetrievalQuantity, Grids)
-    VoidGetterCAPI(RetrievalQuantity, QuantumIdentity)
+    VoidGetterCAPI(RetrievalQuantity, Target)
     VoidGetterCAPI(RetrievalQuantity, TransformationFunc)
     VoidGetterCAPI(RetrievalQuantity, TFuncParameters)
     VoidGetterCAPI(RetrievalQuantity, Transformation)
@@ -830,8 +847,6 @@ extern "C" {
     VoidArrayCAPI(ArrayOfRetrievalQuantity)
     BasicInterfaceCAPI(ArrayOfRetrievalQuantity)
     BasicInputOutputCAPI(ArrayOfRetrievalQuantity)
-    DLL_PUBLIC Index getTypeRetrievalQuantity(void *);
-    DLL_PUBLIC Index setTypeRetrievalQuantity(void *, Index);
     
     // Range
     BasicInterfaceCAPI(Range)
@@ -897,6 +912,7 @@ extern "C" {
 #undef BasicInterfaceCAPI
 #undef GetterSetterCAPI
 #undef EnumGetterSetterCAPI
+#undef StringEnumGetterSetterCAPI
 #undef VoidGetterCAPI
 #undef VoidStructGetterCAPI
 #undef BasicInputOutputCAPI

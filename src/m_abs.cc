@@ -381,7 +381,7 @@ void abs_coefCalcFromXsec(  // WS Output:
                    src_xsec_per_species[i](k, j) * dn_dT) *
                   abs_vmrs(i, j);
           } else if (jacobian_quantities[jacobian_quantities_position[iq]] ==
-                     Jacobian::Special::VMR) {
+                     Jacobian::Line::VMR) {
             bool seco = false, main = false;
             for (const auto& s : abs_species[i]) {
               if (species_match(

@@ -285,7 +285,7 @@ void Linefunctions::set_lorentz(
         dF.col(iq).noalias() = iz * dw;
       else if (is_magnetic_parameter(deriv))
         dF.col(iq).noalias() = iz * zeeman_df * dw;
-      else if (deriv == Jacobian::Special::VMR) {
+      else if (deriv == Jacobian::Line::VMR) {
         if (Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
           dF.col(iq).noalias() = Complex(dVMR.G0, dVMR.D0 + dVMR.DV) * dw;
         else
@@ -362,7 +362,7 @@ void Linefunctions::set_voigt(
         dF.col(iq).noalias() = -dw * invGD;
       else if (is_magnetic_parameter(deriv))
         dF.col(iq).noalias() = dw * (-zeeman_df * invGD);
-      else if (deriv == Jacobian::Special::VMR and
+      else if (deriv == Jacobian::Line::VMR and
                Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
         dF.col(iq).noalias() =
             dw * Complex(-dVMR.D0 - dVMR.DV, dVMR.G0) * invGD;
@@ -412,7 +412,7 @@ void Linefunctions::set_doppler(
              Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
       dF.col(iq).noalias() = -F.cwiseProduct(mx2) * (2 / F0) +
                              F.cwiseProduct(x) * 2 * (invGD - 1 / F0);
-    else if (deriv == Jacobian::Special::VMR)
+    else if (deriv == Jacobian::Line::VMR)
       dF.col(iq).setZero();  // Must reset incase other lineshapes are mixed in
   }
 }
@@ -450,7 +450,7 @@ void Linefunctions::apply_linemixing_scaling_and_mirroring(
       else if (is_pressure_broadening_Y(deriv) and
                Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
         dF.col(iq).noalias() = Complex(0, -1) * (F - Fm);
-      else if (deriv == Jacobian::Special::VMR and
+      else if (deriv == Jacobian::Line::VMR and
                Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind)) {
         const auto c = Complex(dVMR.G, -dVMR.Y);
         dF.col(iq).noalias() += F * c + Fm * conj(c);
@@ -468,7 +468,7 @@ void Linefunctions::apply_linemixing_scaling_and_mirroring(
       else if (is_pressure_broadening_Y(deriv) and
                Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
         dF.col(iq).noalias() = Complex(0, -1) * F;
-      else if (deriv == Jacobian::Special::VMR and
+      else if (deriv == Jacobian::Line::VMR and
                Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
         dF.col(iq).noalias() += F * Complex(dVMR.G, -dVMR.Y);
     }
@@ -853,8 +853,8 @@ void Linefunctions::apply_linestrength_from_nlte_level_distributions(
     const Numeric& A21,
     const Numeric& F0,
     const Numeric& T,
-  const AbsorptionLines& band,
-  const Index& line_ind,
+    const AbsorptionLines& band,
+    const Index& line_ind,
     const ArrayOfRetrievalQuantity& derivatives_data,
     const ArrayOfIndex& derivatives_data_position) {
   // Size of the problem
@@ -1063,7 +1063,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
         dc0t = (-(c0 - 1.5 * c2) * dT.ETA + dT.FVC) +
                ((1 - lso.ETA) * (dc0 - 1.5 * dc2));     // for T
         dc2t = (-c2 * dT.ETA) + ((1 - lso.ETA) * dc2);  // for T
-      } else if (rt == Jacobian::Special::VMR and
+      } else if (rt == Jacobian::Line::VMR and
                  Absorption::id_in_line(band, rt.QuantumIdentity(), line_ind)) {
         dc0 = Complex(dV.G0, -dV.D0);  // for VMR
         dc2 = Complex(dV.G2, -dV.D2);  // for VMR
@@ -1245,7 +1245,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
       if (rt == Jacobian::Atm::Temperature) {
         dETA = dT.ETA;
         dFVC = dT.FVC;
-      } else if (rt == Jacobian::Special::VMR) {
+      } else if (rt == Jacobian::Line::VMR) {
         dETA = dV.ETA;
         dFVC = dV.FVC;
       } else if (is_pressure_broadening_ETA(rt) and

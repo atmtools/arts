@@ -91,6 +91,20 @@ Index string2index##VALUE##TYPE(void * data, char * newval)           \
   return Index(static_cast<TYPE *>(data) -> string2##VALUE(newval));  \
 }
 
+// WARNING: Must manually delete the strings!!!
+#define StringEnumGetterSetterCAPI(TYPE, ELEM)          \
+bool enumset ## ELEM ## TYPE (void * data, char * in) { \
+  auto x = static_cast<TYPE *>(data);                   \
+  x -> ELEM(in);                                        \
+  return not x -> ELEM ## OK();                         \
+}                                                       \
+void * enumget ## ELEM ## TYPE (void * data) {          \
+  auto x = static_cast<TYPE *>(data);                   \
+  String * out = new String(x -> TargetType());         \
+  return out;                                           \
+}
+
+
 #define VoidGetterCAPI(TYPE, VALUE)                 \
 void * get##VALUE##TYPE(void * data)                \
 {                                                   \
@@ -1167,6 +1181,18 @@ BasicInterfaceCAPI(ArrayOfAgenda)
 BasicInputOutputCAPI(ArrayOfAgenda)
 
 
+// Jacobian::Target
+BasicInterfaceCAPI(JacobianTarget)
+BasicInputOutputCAPI(JacobianTarget)
+VoidGetterCAPI(JacobianTarget, Perturbation)
+VoidGetterCAPI(JacobianTarget, QuantumIdentity)
+StringEnumGetterSetterCAPI(JacobianTarget, TargetType)
+StringEnumGetterSetterCAPI(JacobianTarget, TargetSubType)
+VoidArrayCAPI(ArrayOfJacobianTarget)
+BasicInterfaceCAPI(ArrayOfJacobianTarget)
+BasicInputOutputCAPI(ArrayOfJacobianTarget)
+
+
 // RetrievalQuantity
 BasicInterfaceCAPI(RetrievalQuantity)
 BasicInputOutputCAPI(RetrievalQuantity)
@@ -1174,10 +1200,9 @@ VoidGetterCAPI(RetrievalQuantity, MainTag)
 VoidGetterCAPI(RetrievalQuantity, SubTag)
 VoidGetterCAPI(RetrievalQuantity, SubSubTag)
 VoidGetterCAPI(RetrievalQuantity, Mode)
-// VoidGetterCAPI(RetrievalQuantity, Analytical)
-VoidGetterCAPI(RetrievalQuantity, Perturbation)
+VoidGetterCAPI(RetrievalQuantity, Analytical)
 VoidGetterCAPI(RetrievalQuantity, Grids)
-// VoidGetterCAPI(RetrievalQuantity, QuantumIdentity)
+VoidGetterCAPI(RetrievalQuantity, Target)
 VoidGetterCAPI(RetrievalQuantity, TransformationFunc)
 VoidGetterCAPI(RetrievalQuantity, TFuncParameters)
 VoidGetterCAPI(RetrievalQuantity, Transformation)
@@ -1271,6 +1296,7 @@ void * get_list_of_all_workspace_classes() { return new ArrayOfString{global_dat
 #undef BasicInterfaceCAPI
 #undef GetterSetterCAPI
 #undef EnumGetterSetterCAPI
+#undef StringEnumGetterSetterCAPI
 #undef VoidGetterCAPI
 #undef VoidStructGetterCAPI
 #undef BasicInputOutputCAPI

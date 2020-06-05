@@ -121,31 +121,17 @@ void xml_read_from_stream(istream& is_xml,
   String typestr, subtypestr;
   tag.get_attribute_value("Type", typestr);
   tag.get_attribute_value("SubType", subtypestr);
-  const auto type = Jacobian::toType(typestr);
+  jt.TargetType(typestr);
+  jt.TargetType(subtypestr);
   
-  switch (type) {
-    case Jacobian::Type::Special:
-      jt = JacobianTarget(Jacobian::toSpecial(subtypestr)); break;
-    case Jacobian::Type::Sensor:
-      jt = JacobianTarget(Jacobian::toSensor(subtypestr)); break;
-    case Jacobian::Type::Line: {
-      /** Catalog ID */
-      SpeciesTag spec;
-      QuantumNumbers upperglobalquanta, lowerglobalquanta;
-      tag.get_attribute_value("species", spec);
-      tag.get_attribute_value("upperglobalquanta", upperglobalquanta);
-      tag.get_attribute_value("lowerglobalquanta", lowerglobalquanta);
-      jt = JacobianTarget(Jacobian::toLine(subtypestr), QuantumIdentifier(spec.Species(), spec.Isotopologue(), upperglobalquanta, lowerglobalquanta)); break;
-    } case Jacobian::Type::Atm: {
-      jt = JacobianTarget(Jacobian::toAtm(subtypestr)); break;
-      if (jt == Jacobian::Special::VMR) {
-        SpeciesTag spec;
-        tag.get_attribute_value("species", spec);
-        jt.QuantumIdentity().Type(QuantumIdentifier::TRANSITION);
-        jt.QuantumIdentity().Species(spec.Species());
-        jt.QuantumIdentity().Isotopologue(spec.Isotopologue());
-      }
-    } default: {}
+  /** Catalog ID */
+  if (jt == Jacobian::Type::Line) {
+    SpeciesTag spec;
+    QuantumNumbers upperglobalquanta, lowerglobalquanta;
+    tag.get_attribute_value("species", spec);
+    tag.get_attribute_value("upperglobalquanta", upperglobalquanta);
+    tag.get_attribute_value("lowerglobalquanta", lowerglobalquanta);
+    jt.QuantumIdentity() = QuantumIdentifier(spec.Species(), spec.Isotopologue(), upperglobalquanta, lowerglobalquanta);
   }
   
   if (pbifs) {
@@ -163,7 +149,7 @@ void xml_read_from_stream(istream& is_xml,
   tag.read_from_stream(is_xml);
   tag.check_name("/JacobianTarget");
   
-  if (not jt.OK()) {
+  if (not jt.TargetSubTypeOK()) {
     ostringstream os;
     os << "Bad input: " << typestr << " or " << subtypestr << '\n' << "\tCannot be interpreted as a type or substype...\n";
     throw std::runtime_error(os.str());
@@ -197,8 +183,6 @@ void xml_write_to_stream(ostream& os_xml,
     open_tag.add_attribute("species", jt.QuantumIdentity().SpeciesName());
     open_tag.add_attribute("upperglobalquanta", jt.QuantumIdentity().UpperQuantumNumbers().toString());
     open_tag.add_attribute("lowerglobalquanta", jt.QuantumIdentity().LowerQuantumNumbers().toString());
-  } else if (jt == Jacobian::Special::VMR) {
-    open_tag.add_attribute("species", jt.QuantumIdentity().SpeciesName());
   }
 
   if (pbofs)
