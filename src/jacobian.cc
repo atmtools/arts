@@ -1300,7 +1300,7 @@ Numeric temperature_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
   if (p not_eq js.cend())
     return p -> Target().Perturbation();
   else
-    return 0.0;
+    return std::numeric_limits<Numeric>::quiet_NaN();
 }
 
 Numeric frequency_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
@@ -1308,7 +1308,7 @@ Numeric frequency_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
   if (p not_eq js.cend())
     return p -> Target().Perturbation();
   else
-    return 0.0;
+    return std::numeric_limits<Numeric>::quiet_NaN();
 }
 
 Numeric magnetic_field_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
@@ -1316,5 +1316,5 @@ Numeric magnetic_field_perturbation(const ArrayOfRetrievalQuantity& js) noexcept
   if (p not_eq js.cend())
     return p -> Target().Perturbation();
   else
-    return 0.0;
+    return std::numeric_limits<Numeric>::quiet_NaN();
 }

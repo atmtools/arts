@@ -90,6 +90,9 @@ Numeric dsingle_partition_function_dT(
     const Numeric& dT,
     const SpeciesAuxData::AuxType& partition_type,
     const ArrayOfGriddedField1& partition_data) {
+  if (std::isnan(dT))
+    return dT;
+  
   switch (partition_type) {
     case SpeciesAuxData::AT_PARTITIONFUNCTION_COEFF:
       return SingleCalculatePartitionFctFromCoeff_dT(T, partition_data[0].data);
