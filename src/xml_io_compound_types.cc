@@ -1448,7 +1448,7 @@ void xml_write_to_stream(ostream& os_xml,
   xml_write_to_stream(os_xml, rq.Mode(), pbofs, "Mode", verbosity);
   xml_write_to_stream(os_xml, rq.Analytical(), pbofs, "Analytical", verbosity);
   xml_write_to_stream(
-      os_xml, rq.Perturbation(), pbofs, "Perturbation", verbosity);
+    os_xml, rq.Target().Perturbation(), pbofs, "Perturbation", verbosity);
   xml_write_to_stream(os_xml, rq.Grids(), pbofs, "Grids", verbosity);
 
   close_tag.set_name("/RetrievalQuantity");

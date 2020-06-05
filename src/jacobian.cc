@@ -339,7 +339,7 @@ void diy_from_path_to_rgrids(Tensor3View diy_dx,
                              const Index& atmosphere_dim,
                              const Ppath& ppath,
                              ConstVectorView ppath_p) {
-  assert(jacobian_quantity.Grids().nelem() == atmosphere_dim);
+  assert(jacobian_quantity.Grids().nelem() == atmosphere_dim or jacobian_quantity.Grids().empty());
 
   // We want here an extrapolation to infinity ->
   //                                        extremly high extrapolation factor
@@ -348,7 +348,7 @@ void diy_from_path_to_rgrids(Tensor3View diy_dx,
   if (ppath.np > 1)  // Otherwise nothing to do here
   {
     // Pressure
-    Index nr1 = jacobian_quantity.Grids()[0].nelem();
+    Index nr1 = jacobian_quantity.Grids().empty() ? 0 : jacobian_quantity.Grids()[0].nelem();
     ArrayOfGridPos gp_p(ppath.np);
     if (nr1 > 1) {
       p2gridpos(gp_p, jacobian_quantity.Grids()[0], ppath_p, extpolfac);
@@ -362,7 +362,7 @@ void diy_from_path_to_rgrids(Tensor3View diy_dx,
     ArrayOfGridPos gp_lat;
     if (atmosphere_dim > 1) {
       gp_lat.resize(ppath.np);
-      nr2 = jacobian_quantity.Grids()[1].nelem();
+      nr2 = jacobian_quantity.Grids().empty() ? 0 : jacobian_quantity.Grids()[1].nelem();
       if (nr2 > 1) {
         gridpos(gp_lat,
                 jacobian_quantity.Grids()[1],
@@ -377,8 +377,9 @@ void diy_from_path_to_rgrids(Tensor3View diy_dx,
     // Longitude
     ArrayOfGridPos gp_lon;
     if (atmosphere_dim > 2) {
+      Index nr3 = jacobian_quantity.Grids().empty() ? 0 : jacobian_quantity.Grids()[2].nelem();
       gp_lon.resize(ppath.np);
-      if (jacobian_quantity.Grids()[2].nelem() > 1) {
+      if (nr3 > 1) {
         gridpos(gp_lon,
                 jacobian_quantity.Grids()[2],
                 ppath.pos(joker, 2),
@@ -1297,7 +1298,7 @@ bool do_magnetic_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
 Numeric temperature_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
   auto p = std::find_if(js.cbegin(), js.cend(), [](auto& j){return j == Jacobian::Atm::Temperature;});
   if (p not_eq js.cend())
-    return p -> Perturbation();
+    return p -> Target().Perturbation();
   else
     return 0.0;
 }
@@ -1305,7 +1306,7 @@ Numeric temperature_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
 Numeric frequency_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
   auto p = std::find_if(js.cbegin(), js.cend(), [](auto& j){return is_frequency_parameter(j);});
   if (p not_eq js.cend())
-    return p -> Perturbation();
+    return p -> Target().Perturbation();
   else
     return 0.0;
 }
@@ -1313,7 +1314,7 @@ Numeric frequency_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
 Numeric magnetic_field_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
   auto p = std::find_if(js.cbegin(), js.cend(), [](auto& j){return is_magnetic_parameter(j);});
   if (p not_eq js.cend())
-    return p -> Perturbation();
+    return p -> Target().Perturbation();
   else
     return 0.0;
 }

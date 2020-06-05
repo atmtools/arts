@@ -253,7 +253,7 @@ void jacobianAddAbsSpecies(Workspace&,
   } else {
     rq.Target(Jacobian::Target(Jacobian::Special::TagVMR, qi));
   }
-  rq.Perturbation(0.001);
+  rq.Target().Perturbation(0.001);
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -309,7 +309,7 @@ void jacobianAddFreqShift(Workspace& ws _U_,
   rq.Subtag(FREQUENCY_SUBTAG_0);
   rq.Mode("");
   rq.Analytical(0);
-  rq.Perturbation(df);
+  rq.Target().Perturbation(df);
 
   // Dummy vector of length 1
   Vector grid(1, 0);
@@ -384,7 +384,7 @@ void jacobianCalcFreqShift(Matrix& jacobian,
     Matrix itw(nf2, porder + 1);
     Vector fg_new = f_grid, iyb2(niyb);
     //
-    fg_new += rq.Perturbation();
+    fg_new += rq.Target().Perturbation();
     gridpos_poly(gp, f_grid, fg_new, porder, 1.0);
     interpweights(itw, gp);
 
@@ -405,7 +405,7 @@ void jacobianCalcFreqShift(Matrix& jacobian,
     mult(dy, sensor_response, iyb2);
     //
     for (Index i = 0; i < n1y; i++) {
-      dy[i] = (dy[i] - yb[i]) / rq.Perturbation();
+      dy[i] = (dy[i] - yb[i]) / rq.Target().Perturbation();
     }
   }
 
@@ -459,7 +459,7 @@ void jacobianAddFreqStretch(Workspace& ws _U_,
   rq.Subtag(FREQUENCY_SUBTAG_1);
   rq.Mode("");
   rq.Analytical(0);
-  rq.Perturbation(df);
+  rq.Target().Perturbation(df);
 
   // Dummy vector of length 1
   Vector grid(1, 0);
@@ -541,7 +541,7 @@ void jacobianCalcFreqStretch(
     Matrix itw(nf2, porder + 1);
     Vector fg_new = f_grid, iyb2(niyb);
     //
-    fg_new += rq.Perturbation();
+    fg_new += rq.Target().Perturbation();
     gridpos_poly(gp, f_grid, fg_new, porder, 1.0);
     interpweights(itw, gp);
 
@@ -562,7 +562,7 @@ void jacobianCalcFreqStretch(
     mult(dy, sensor_response, iyb2);
     //
     for (Index i = 0; i < n1y; i++) {
-      dy[i] = (dy[i] - yb[i]) / rq.Perturbation();
+      dy[i] = (dy[i] - yb[i]) / rq.Target().Perturbation();
     }
 
     // dy above corresponds now to shift. Convert to stretch:
@@ -644,7 +644,7 @@ void jacobianAddPointingZa(Workspace& ws _U_,
   rq.MainTag(POINTING_MAINTAG);
   rq.Subtag(POINTING_SUBTAG_A);
   rq.Analytical(0);
-  rq.Perturbation(dza);
+  rq.Target().Perturbation(dza);
 
   // To store the value or the polynomial order, create a vector with length
   // poly_order+1, in case of gitter set the size of the grid vector to be the
@@ -733,9 +733,9 @@ void jacobianCalcPointingZaInterp(
 
     // Shifted zenith angles
     Vector za1 = mblock_dlos_grid(joker, 0);
-    za1 -= rq.Perturbation();
+    za1 -= rq.Target().Perturbation();
     Vector za2 = mblock_dlos_grid(joker, 0);
-    za2 += rq.Perturbation();
+    za2 += rq.Target().Perturbation();
 
     // Find interpolation weights
     ArrayOfGridPos gp1(nza), gp2(nza);
@@ -768,7 +768,7 @@ void jacobianCalcPointingZaInterp(
     mult(y2, sensor_response, iyb2);
     //
     for (Index i = 0; i < n1y; i++) {
-      dy[i] = (y2[i] - y1[i]) / (2 * rq.Perturbation());
+      dy[i] = (y2[i] - y1[i]) / (2 * rq.Target().Perturbation());
     }
   }
 
@@ -862,7 +862,7 @@ void jacobianCalcPointingZaRecalc(
     ArrayOfVector iyb_aux;
     ArrayOfMatrix diyb_dx;
 
-    los(joker, 0) += rq.Perturbation();
+    los(joker, 0) += rq.Target().Perturbation();
 
     iyb_calc(ws,
              iyb2,
@@ -893,7 +893,7 @@ void jacobianCalcPointingZaRecalc(
     mult(dy, sensor_response, iyb2);
     //
     for (Index i = 0; i < n1y; i++) {
-      dy[i] = (dy[i] - yb[i]) / rq.Perturbation();
+      dy[i] = (dy[i] - yb[i]) / rq.Target().Perturbation();
     }
   }
 
@@ -985,7 +985,7 @@ void jacobianAddPolyfit(Workspace& ws _U_,
   rq.MainTag(POLYFIT_MAINTAG);
   rq.Mode("");
   rq.Analytical(0);
-  rq.Perturbation(0);
+  rq.Target().Perturbation(0);
 
   // Each polynomial coeff. is treated as a retrieval quantity
   //
@@ -1216,7 +1216,7 @@ void jacobianAddSinefit(Workspace& ws _U_,
   rq.MainTag(SINEFIT_MAINTAG);
   rq.Mode("");
   rq.Analytical(0);
-  rq.Perturbation(0);
+  rq.Target().Perturbation(0);
 
   // Each sinefit coeff. pair is treated as a retrieval quantity
   //
@@ -1458,7 +1458,7 @@ void jacobianAddTemperature(Workspace&,
   rq.Grids(grids);
   rq.SubSubtag(PROPMAT_SUBSUBTAG);
   rq.Target(Jacobian::Target(Jacobian::Atm::Temperature));
-  rq.Perturbation(0.1);
+  rq.Target().Perturbation(0.1);
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -1538,7 +1538,7 @@ void jacobianAddWind(Workspace&,
   rq.Analytical(1);
   rq.Grids(grids);
   rq.SubSubtag(PROPMAT_SUBSUBTAG);
-  rq.Perturbation(dfrequency);
+  rq.Target().Perturbation(dfrequency);
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -1619,7 +1619,7 @@ void jacobianAddMagField(Workspace&,
   rq.Grids(grids);
 
   rq.SubSubtag(PROPMAT_SUBSUBTAG);
-  rq.Perturbation(dB);
+  rq.Target().Perturbation(dB);
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -1840,7 +1840,7 @@ void jacobianAddNLTE(Workspace&,
 
   rq.MainTag(NLTE_MAINTAG);
   rq.Target(Jacobian::Target(Jacobian::Line::NLTE, energy_level_identity));
-  rq.Perturbation(dx);
+  rq.Target().Perturbation(dx);
   rq.Grids(grids);
   rq.Analytical(1);
   rq.SubSubtag(PROPMAT_SUBSUBTAG);

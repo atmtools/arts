@@ -425,20 +425,6 @@ class RetrievalQuantity {
    */
   void Analytical(const Index& m) { manalytical = m; }
   
-  /** Returns the size of perturbation
-   * 
-   * Size of perturbation used for perturbation calculations
-   * 
-   * @return The size of perturbation
-   */
-  Numeric Perturbation() const { return mjac.Perturbation(); }
-  
-  /** Sets the size of perturbation
-   * 
-   * @param[in] p The size of perturbation
-   */
-  void Perturbation(const Numeric& p) { mjac.Perturbation() = p; }
-  
   /** Returns the grids of the retrieval
    * 
    * Grids. Definition grids for the jacobian, eg. p, lat and lon.
@@ -469,6 +455,9 @@ class RetrievalQuantity {
   
   /** Get the Jacobian Target */
   Jacobian::Target& Target() {return mjac;}
+  
+  /** Get the Jacobian Target */
+  const Jacobian::Target& Target() const {return mjac;}
   
   /** Set the Jacobian Target */
   void Target(const Jacobian::Target& jac) {mjac=jac;}
@@ -539,7 +528,6 @@ class RetrievalQuantity {
   String& SubSubTag() {return msubsubtag;}
   String& Mode() {return mmode;}
   Index& Analytical() {return manalytical;}
-  Numeric& Perturbation() {return mjac.Perturbation();}
   ArrayOfVector& Grids() {return mgrids;}
   String& TransformationFunc() {return transformation_func;}
   Vector& TFuncParameters() {return tfunc_parameters;}
