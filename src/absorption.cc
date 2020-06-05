@@ -650,6 +650,7 @@ void xsec_species(Matrix& xsec,
   
   // Constant for all lines
   const Numeric QT0 = single_partition_function(band.T0(), partfun_type, partfun_data);
+  const Numeric dT = temperature_perturbation(jacobian_quantities);
 
   ArrayOfString fail_msg;
   bool do_abort = false;
@@ -669,7 +670,7 @@ void xsec_species(Matrix& xsec,
       const Numeric dQTdT = dsingle_partition_function_dT(
           QT,
           temperature,
-          temperature_perturbation(jacobian_quantities),
+          dT,
           partfun_type,
           partfun_data);
       const Numeric DC =
