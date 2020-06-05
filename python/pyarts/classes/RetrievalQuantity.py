@@ -62,25 +62,6 @@ class RetrievalQuantity:
                 raise RuntimeError("Only supports void initialization")
 
     @property
-    def type(self):
-        """ (Index) """
-        return lib.getTypeRetrievalQuantity(self.__data__)
-
-    @type.setter
-    def type(self, val):
-        if lib.setTypeRetrievalQuantity(self.__data__, int(val)):
-            raise ValueError("Bad input")
-
-    @property
-    def integration(self):
-        """ (bool) """
-        return lib.getIntegrationRetrievalQuantity(self.__data__)
-
-    @integration.setter
-    def integration(self, val):
-        lib.setIntegrationRetrievalQuantity(self.__data__, bool(val))
-
-    @property
     def offset(self):
         """ (Vector) """
         return Vector(c.c_void_p(lib.getOffsetRetrievalQuantity(self.__data__)))
@@ -208,7 +189,6 @@ class RetrievalQuantity:
             self.t_func_parameters = other.t_func_parameters
             self.transformation = other.transformation
             self.offset = other.offset
-            self.integration = other.integration
         else:
             raise TypeError("Expects RetrievalQuantity")
 
@@ -250,8 +230,7 @@ class RetrievalQuantity:
                 self.transformation_func == other.transformation_func and \
                 self.t_func_parameters == other.t_func_parameters and \
                 self.transformation == other.transformation and \
-                self.offset == other.offset and \
-                self.integration == other.integration:
+                self.offset == other.offset:
             return True
         else:
             return False

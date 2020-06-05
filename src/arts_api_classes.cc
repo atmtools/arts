@@ -100,7 +100,7 @@ bool enumset ## ELEM ## TYPE (void * data, char * in) { \
 }                                                       \
 void * enumget ## ELEM ## TYPE (void * data) {          \
   auto x = static_cast<TYPE *>(data);                   \
-  String * out = new String(x -> TargetType());         \
+  String * out = new String(x -> ELEM());               \
   return out;                                           \
 }
 

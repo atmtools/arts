@@ -23,8 +23,9 @@ rq.subtag = "HSE on"
 rq.subsubtag = "From propagation matrix"
 rq.mode = "abs"
 rq.analytical = 1
-rq.perturbation = 0.1
-rq.type = 3
+rq.target.type = "Atm"
+rq.target.subtype = "Temperature"
+rq.target.perturbation = 0.1
 rq.grids = ArrayOfVector([p, lat, lon])
 
 assert rq == arq[0]
