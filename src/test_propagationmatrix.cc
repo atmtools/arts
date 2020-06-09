@@ -613,6 +613,22 @@ void test_ecs20()
   std::cout<<"])\n";
 }
 
+#include "linemixing_hitran.h"
+void test_hitran2017()
+{
+  Vector absorption(10000);
+  const Numeric p = 0.5;
+  const Numeric t = 296;
+  const Numeric xco2 = 1.5e-2;
+  const Numeric xh2o = 0;
+  const Numeric sigmin = 400;
+  const Numeric sigmax = 900;
+  const Numeric dsig = 0.05;
+  const Numeric stotmax = 0.1e-27;
+  
+  lm_hitran_2017::compute(absorption, p, t, xco2, xh2o, sigmin, sigmax, stotmax, dsig);
+}
+
 int main() {
   /*test_speed_of_pressurebroadening();
     test_transmissionmatrix();
@@ -622,6 +638,7 @@ int main() {
     test_sinc_likes_0limit();*/
 //   test_zeeman();
 // test_mpm20();
-test_ecs20();
+// test_ecs20();
+test_hitran2017();
   return 0;
 }

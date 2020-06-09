@@ -4,6 +4,249 @@
 
 
 namespace lm_hitran_2017 {
+namespace parameters {
+  static constexpr Index nSigmx=5000001;  // Max number of spectral points
+  static constexpr Index iFile=3;  // Unit Number for File access
+  static constexpr Index nBmx=7000;  // Max Number of Bands
+  static constexpr Index nLmx=700;  // Max Number of Lines per Band
+  static constexpr Index nIsotp=10;  // Number of CO2 Isotopomers
+  static constexpr Index Nlifmax=10;  // Max number of l values
+  static constexpr Index Jmax=131;  // Max number of j values
+  static constexpr Index Nwmax=100000;  // Max Number of W coupling
+  
+  static constexpr Numeric Ct=1.4387686e0;  // Constant
+  static constexpr Numeric T0=296;  // Constant
+  static constexpr Numeric CtGamD=1.1325e-08;  // Constant
+  static constexpr Numeric aMolAtm=7.33889e+21;  // Constant
+  static constexpr Numeric Pi=3.141592654e0;  // Constant
+  
+  static constexpr auto aMass = stdarrayify(44.e-3,45.e-3,46.e-3,45.e-3,47.e-3,46.e-3,48.e-3,47.e-3,46.e-3,49.e-3);  // Constant
+  
+  static constexpr auto Qcoef = stdarrayify(
+    stdarrayify(-.13617e+01, .94899e+00,-.69259e-03, .25974e-05),  // O(16)-C(12)-O(16)
+    stdarrayify(-.20631e+01, .18873e+01,-.13669e-02, .54032e-05),  // O(16)-C(13)-O(16)
+    stdarrayify(-.29175e+01, .20114e+01,-.14786e-02, .55941e-05),  // O(16)-C(12)-O(18)
+    stdarrayify(-.16558e+02, .11733e+02,-.85844e-02, .32379e-04),  // O(16)-C(12)-O(17)
+    stdarrayify(-.44685e+01, .40330e+01,-.29590e-02, .11770e-04),  // O(16)-C(13)-O(18)
+    stdarrayify(-.26263e+02, .23350e+02,-.17032e-01, .67532e-04),  // O(16)-C(13)-O(17)
+    stdarrayify(-.14811e+01, .10667e+01,-.78758e-03, .30133e-05),  // O(18)-C(12)-O(18)
+    stdarrayify(-.17600e+02, .12445e+02,-.91837e-02, .34915e-04)); // O(17)-C(12)-O(18)
+};
+
+struct CommonBlock {
+struct Bands {
+  Index nBand;
+  std::array<Index, parameters::nBmx> Isot;
+  std::array<Index, parameters::nBmx> nLines;
+  std::array<Index, parameters::nBmx> li;
+  std::array<Index, parameters::nBmx> lf;
+  std::array<String, parameters::nBmx> BandFile;
+} Bands;
+
+struct LineSg {
+  Eigen::MatrixXd Sig;
+  LineSg() : Sig(parameters::nLmx, parameters::nBmx) {};
+} LineSg;
+
+struct DipoRigid {
+  Eigen::MatrixXd Dipo0;
+  DipoRigid() : Dipo0(parameters::nLmx, parameters::nBmx) {};
+} DipoRigid;
+
+struct Energy {
+  Eigen::MatrixXd  E;
+  Energy() : E(parameters::nLmx, parameters::nBmx) {};
+} Energy;
+
+struct GamVT0AIR {
+  Eigen::MatrixXd HWVT0AIR;
+  GamVT0AIR() : HWVT0AIR(parameters::nLmx, parameters::nBmx) {};
+} GamVT0AIR;
+
+struct GamSDVT0AIR {
+  Eigen::MatrixXd HWSDVT0AIR;
+  Eigen::MatrixXd rHWT0AIR;
+  GamSDVT0AIR() : HWSDVT0AIR(parameters::nLmx, parameters::nBmx), rHWT0AIR(parameters::nLmx, parameters::nBmx) {};
+} GamSDVT0AIR;
+
+struct DTGAMAIR {
+  Eigen::MatrixXd BHWAIR;
+  DTGAMAIR() : BHWAIR(parameters::nLmx, parameters::nBmx) {};
+} DTGAMAIR;
+
+struct GamVT0CO2 {
+  Eigen::MatrixXd HWVT0SELF;
+  GamVT0CO2() : HWVT0SELF(parameters::nLmx, parameters::nBmx) {};
+} GamVT0CO2;
+
+struct GamSDVT0CO2 {
+  Eigen::MatrixXd HWSDVT0SELF;
+  Eigen::MatrixXd rHWT0SELF;
+  GamSDVT0CO2() : HWSDVT0SELF(parameters::nLmx, parameters::nBmx), rHWT0SELF(parameters::nLmx, parameters::nBmx) {};
+} GamSDVT0CO2;
+
+struct DTGAMCO2 {
+  Eigen::MatrixXd BHWSELF;
+  DTGAMCO2() : BHWSELF(parameters::nLmx, parameters::nBmx) {};
+} DTGAMCO2;
+
+struct GamVT0H2O {
+  Eigen::MatrixXd HWVT0H2O;
+  GamVT0H2O() : HWVT0H2O(parameters::nLmx, parameters::nBmx) {};
+} GamVT0H2O;
+
+struct GamSDVT0H2O {
+  Eigen::MatrixXd HWSDVT0H2O;
+  Eigen::MatrixXd rHWT0H2O;
+  GamSDVT0H2O() : HWSDVT0H2O(parameters::nLmx, parameters::nBmx), rHWT0H2O(parameters::nLmx, parameters::nBmx) {};
+} GamSDVT0H2O;
+
+struct DTGAMH2O {
+  Eigen::MatrixXd BHWH2O;
+  DTGAMH2O() : BHWH2O(parameters::nLmx, parameters::nBmx) {};
+} DTGAMH2O;
+
+struct GamT {
+  std::array<Numeric, parameters::nLmx> HWT;
+  std::array<Numeric, parameters::nLmx> HWSDV2T;
+} GamT;
+
+struct SHIFT {
+  std::array<Numeric, parameters::nLmx> shft;
+} SHIFT;
+
+struct SHIFT0 {
+  Eigen::MatrixXd shft0;
+  SHIFT0() : shft0(parameters::nLmx, parameters::nBmx) {};
+} SHIFT0;
+
+struct PopuT {
+  std::array<Numeric, parameters::nLmx> PopuT;
+} PopuT;
+
+struct PopTrf {
+  Eigen::MatrixXd PopuT0;
+  PopTrf() : PopuT0(parameters::nLmx, parameters::nBmx) {};
+} PopTrf;
+
+struct DipoTcm {
+  Eigen::MatrixXd DipoT;
+  DipoTcm() : DipoT(parameters::nLmx, parameters::nBmx) {};
+} DipoTcm;
+
+struct Jiln {
+  Eigen::Matrix<Index, Eigen::Dynamic, Eigen::Dynamic> Ji;
+  Jiln() : Ji(parameters::nLmx, parameters::nBmx) {};
+} Jiln;
+
+struct Jfln {
+  Eigen::Matrix<Index, Eigen::Dynamic, Eigen::Dynamic> Jf;
+  Jfln() : Jf(parameters::nLmx, parameters::nBmx) {};
+} Jfln;
+
+struct FicLSR {
+  std::array<Numeric, parameters::nLmx> SSR;
+} FicLSR;
+
+struct FicLSI {
+  std::array<Numeric, parameters::nLmx> SSI;
+} FicLSI;
+
+struct FicLPR {
+  std::array<Numeric, parameters::nLmx> AlphR;
+} FicLPR;
+
+struct FicLPI {
+  std::array<Numeric, parameters::nLmx> AlphI;
+} FicLPI;
+
+struct Zss {
+  std::array<Complex, parameters::nLmx> ZS;
+} Zss;
+
+struct Zaa {
+  std::array<Complex, parameters::nLmx> ZA;
+} Zaa;
+
+struct Wmatrix {
+  Eigen::MatrixXd W;
+  Wmatrix() : W(parameters::nLmx, parameters::nLmx) {};
+} Wmatrix;
+
+struct Wfittedp {
+  Tensor4 W0pp;
+  Tensor4 W0pq;
+  Tensor4 W0pr;
+  Wfittedp() :
+  W0pp(parameters::Nlifmax, parameters::Nlifmax, parameters::Jmax, parameters::Jmax),
+  W0pq(parameters::Nlifmax, parameters::Nlifmax, parameters::Jmax, parameters::Jmax),
+  W0pr(parameters::Nlifmax, parameters::Nlifmax, parameters::Jmax, parameters::Jmax) {}
+} Wfittedp;
+
+struct Wfittedq {
+  Tensor4 W0qp;
+  Tensor4 W0qq;
+  Tensor4 W0qr;
+  Wfittedq() :
+  W0qp(parameters::Nlifmax, parameters::Nlifmax, parameters::Jmax, parameters::Jmax),
+  W0qq(parameters::Nlifmax, parameters::Nlifmax, parameters::Jmax, parameters::Jmax),
+  W0qr(parameters::Nlifmax, parameters::Nlifmax, parameters::Jmax, parameters::Jmax) {}
+} Wfittedq;
+
+struct Wfittedr {
+  Tensor4 W0rp;
+  Tensor4 W0rq;
+  Tensor4 W0rr;
+  Wfittedr() :
+  W0rp(parameters::Nlifmax, parameters::Nlifmax, parameters::Jmax, parameters::Jmax),
+  W0rq(parameters::Nlifmax, parameters::Nlifmax, parameters::Jmax, parameters::Jmax),
+  W0rr(parameters::Nlifmax, parameters::Nlifmax, parameters::Jmax, parameters::Jmax) {}
+} Wfittedr;
+
+struct Bfittedp {
+  Tensor4 B0pp;
+  Tensor4 B0pq;
+  Tensor4 B0pr;
+  Bfittedp() :
+  B0pp(parameters::Nlifmax, parameters::Nlifmax, parameters::Jmax, parameters::Jmax),
+  B0pq(parameters::Nlifmax, parameters::Nlifmax, parameters::Jmax, parameters::Jmax),
+  B0pr(parameters::Nlifmax, parameters::Nlifmax, parameters::Jmax, parameters::Jmax) {}
+} Bfittedp;
+
+struct Bfittedq {
+  Tensor4 B0qp;
+  Tensor4 B0qq;
+  Tensor4 B0qr;
+  Bfittedq() :
+  B0qp(parameters::Nlifmax, parameters::Nlifmax, parameters::Jmax, parameters::Jmax),
+  B0qq(parameters::Nlifmax, parameters::Nlifmax, parameters::Jmax, parameters::Jmax),
+  B0qr(parameters::Nlifmax, parameters::Nlifmax, parameters::Jmax, parameters::Jmax) {}
+} Bfittedq;
+
+struct Bfittedr {
+  Tensor4 B0rp;
+  Tensor4 B0rq;
+  Tensor4 B0rr;
+  Bfittedr() :
+  B0rp(parameters::Nlifmax, parameters::Nlifmax, parameters::Jmax, parameters::Jmax),
+  B0rq(parameters::Nlifmax, parameters::Nlifmax, parameters::Jmax, parameters::Jmax),
+  B0rr(parameters::Nlifmax, parameters::Nlifmax, parameters::Jmax, parameters::Jmax) {}
+} Bfittedr;
+
+struct DiagnR {
+  Eigen::MatrixXd OpR;
+  DiagnR() : OpR(parameters::nLmx, parameters::nLmx) {};
+} DiagnR;
+
+struct DiagnI {
+  Eigen::MatrixXd OpI;
+  DiagnI() : OpI(parameters::nLmx, parameters::nLmx) {};
+} DiagnI;
+
+struct YLT {
+  std::array<Numeric, parameters::nLmx> YT;
+} YLT;
+};  // CommonBlock
 void readlines(
   CommonBlock& cmn,
   const bool /*mixsdv*/)
@@ -13,32 +256,35 @@ void readlines(
   
   for (Index iband=0; iband<cmn.Bands.nBand; iband++) {
     std::ifstream fortranfile;
-    fortranfile.open((String("data_new/") + cmn.Bands.BandFile[iband] + String(".dat")).c_str());
+    const String fname = String("data_new/") + cmn.Bands.BandFile[iband] + String(".dat");
+    fortranfile.open(fname.c_str());
     
     if (fortranfile.is_open()) {
       String line;
       getline(fortranfile, line);
       
-      for (Index nliner=0; fortranfile.good(); nliner++) {
-        if (nliner > parameters::nLmx)
+      Index nliner=0;
+      while (fortranfile.good()) {
+        if (nliner >= parameters::nLmx)
           throw std::runtime_error("Too many lines");
         
-        char d2x[2], d10x[10], d50x[50], d21x[21];
-        char tpline[1];
-        Numeric intens=0;
+        Index spec;
+        char tpline, x;
+        Numeric intens, eina;
+        char sDipoRigid[21], sPopTrf[21];
         sscanf(line.c_str(), 
-               "%2s" "%1ld" "%12lf" "%10lf"
-               "%10s" "%5lf" "%5lf" "%4lf"
+               "%2ld" "%1ld" "%12lf" "%10lf"
+               "%10lf" "%5lf" "%5lf" "%4lf"
                "%5lf" "%5lf" "%4lf" "%10lf"
-               "%4lf" "%4lf" "%8lf" "%50s"
-               "%1s" "%3ld" "%21s" "%5lf"
-               "%5lf" "%4lf" "%5lf" "%16lf"
-               "%16lf",
-               d2x,
+               "%4lf" "%4lf" "%8lf" "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c"
+               "%c" "%3ld" "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c" "%5lf"
+               "%5lf" "%4lf" "%5lf"
+               "%20s" "%20s",
+               &spec,
                &cmn.Bands.Isot[iband],
                &cmn.LineSg.Sig(nliner, iband),
                &intens,
-               d10x,
+               &eina,
                &cmn.GamVT0AIR.HWVT0AIR(nliner, iband),
                &cmn.GamSDVT0AIR.HWSDVT0AIR(nliner, iband),
                &cmn.GamSDVT0AIR.rHWT0AIR(nliner, iband),
@@ -49,22 +295,33 @@ void readlines(
                &cmn.DTGAMAIR.BHWAIR(nliner, iband),
                &cmn.DTGAMCO2.BHWSELF(nliner, iband),
                &cmn.SHIFT0.shft0(nliner, iband),
-               d50x,
-               tpline,
+               &x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,
+               &tpline,
                &cmn.Jiln.Ji(nliner, iband),
-               d21x,
+               &x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,
                &cmn.GamVT0H2O.HWVT0H2O(nliner, iband),
                &cmn.GamSDVT0H2O.HWSDVT0H2O(nliner, iband),
                &cmn.GamSDVT0H2O.rHWT0H2O(nliner, iband),
                &cmn.DTGAMH2O.BHWH2O(nliner, iband),
-               &cmn.DipoRigid.Dipo0(nliner, iband),
-               &cmn.PopTrf.PopuT0(nliner, iband));
+               sDipoRigid,
+               sPopTrf);
+        getline(fortranfile, line);
+        
+        // Fix...
+        String ssDipoRigid = sDipoRigid;
+        String ssPopTrf = sPopTrf;
+        std::replace(ssDipoRigid.begin(), ssDipoRigid.end(), 'D', 'E');
+        std::replace(ssPopTrf.begin(), ssPopTrf.end(), 'D', 'E');
+        cmn.DipoRigid.Dipo0(nliner, iband) = std::stod(ssDipoRigid);
+        cmn.PopTrf.PopuT0(nliner, iband) = std::stod(ssPopTrf);
+        
+        // Dipole at temperature
         cmn.DipoTcm.DipoT(nliner, iband) = std::sqrt(intens/(cmn.PopTrf.PopuT0(nliner,iband) * cmn.LineSg.Sig(nliner,iband) * (1-std::exp(-1.4388*cmn.LineSg.Sig(nliner,iband)/296))));
         
         // Fix Js
-        if (tpline[0] == 'P')
+        if (tpline == 'P')
           cmn.Jfln.Jf(nliner, iband) = cmn.Jiln.Ji(nliner, iband) - 1;
-        else if (tpline[0] == 'Q')
+        else if (tpline == 'Q')
           cmn.Jfln.Jf(nliner, iband) = cmn.Jiln.Ji(nliner, iband);
         else
           cmn.Jfln.Jf(nliner, iband) = cmn.Jiln.Ji(nliner, iband) + 1;
@@ -72,7 +329,10 @@ void readlines(
         // Fix isotologue
         if (cmn.Bands.Isot[iband] == 0)
           cmn.Bands.Isot[iband] = 10;
+        
+        nliner++;
       }
+      cmn.Bands.nLines[iband] = nliner;
     }
     
     fortranfile.close();
@@ -825,7 +1085,7 @@ void qsdv(const Numeric sg0,
   ls_qsdv_i = ls_qsdv.imag();
 }
 
-void compabs(
+Index compabs(
   CommonBlock& cmn,
   const Numeric temp,
   const Numeric ptot,
@@ -836,9 +1096,9 @@ void compabs(
   const Numeric dsig,
   const bool mixsdv,
   const bool mixfull,
-  std::array<Numeric, parameters::nSigmx>& absv,
-  std::array<Numeric, parameters::nSigmx>& absy,
-  std::array<Numeric, parameters::nSigmx>& absw)
+  VectorView absv,
+  VectorView absy,
+  VectorView absw)
 {
   using Constant::pow2;
   using Constant::pow3;
@@ -851,9 +1111,9 @@ void compabs(
     throw std::runtime_error("Too many sigmas to compute");
   
   // Set to zero
-  absv.fill(0);
-  absy.fill(0);
-  absw.fill(0);
+  absv = 0;
+  absy = 0;
+  absw = 0;
   
   constexpr Numeric sq_ln2 = Constant::sqrt_ln_2;
   constexpr Numeric sq_ln2pi = sq_ln2 / Constant::sqrt_pi;
@@ -949,6 +1209,8 @@ void compabs(
     absy[isig] *= fact * dens * sq_ln2pi;
     absw[isig] *= fact * dens * sq_ln2pi;
   }
+  
+  return nsig;
 }
 
 void detband(CommonBlock& cmn,
@@ -965,20 +1227,26 @@ void detband(CommonBlock& cmn,
   while (fortranfile.good()) {
     Numeric stot, sgmin, sgmax;
     Index isotr, lfr, lir, jmxp, jmxq, jmxr;
-    char c1[2], c2[2], c3[2], c4[2], c5[2], d1x[1], d8x[8];
+    char c11, c12, c21, c22, c31, c32, c41, c42, c51, c52;
     sscanf(line.c_str(), 
            "%1ld"
-           "%2s" "%1ld" "%2s"
-           "%2s" "%1ld" "%2s"
-           "%2s"
+           "%c%c" "%1ld" "%c%c"
+           "%c%c" "%1ld" "%c%c"
+           "%c%c"
            "%12lf"
-           "%1s" "%12lf"
-           "%1s" "%12lf"
-           "%8s"
+           " " "%12lf"
+           " " "%12lf"
+           "        "
            "%4ld" "%4ld" "%4ld",
-           &isotr, c1, &lfr, c2, c3, &lir, c4, c5, &stot, d1x, &sgmin, d1x, &sgmax, d8x, &jmxp, &jmxq, &jmxr);
+           &isotr,
+           &c11, &c12, &lfr, &c21, &c22,
+           &c31, &c32, &lir, &c41, &c42,
+           &c51, &c52,
+           &stot,
+           &sgmin,
+           &sgmax,
+           &jmxp, &jmxq, &jmxr);
     getline(fortranfile, line);
-    
     if (stot < stotmax)
       continue;
     
@@ -992,8 +1260,9 @@ void detband(CommonBlock& cmn,
       
       if (jmxp < 40 or jmxr < 40) cmn.Bands.li[cmn.Bands.nBand] = 55;
       if (jmxq >= 0 and jmxq < 40) cmn.Bands.li[cmn.Bands.nBand] = 55;
-      cmn.Bands.BandFile[cmn.Bands.nBand] = String("S") + String(char(isotr+48)) + String(c1[0]) + String(c1[1]) + String(char(lfr+48)) + String(c2[0]) + String(c2[1]) + String(c3[0]) + String(c3[1]) + String(char(lir+48)) + String(c4[0]) + String(c4[1]) + String(c5[0]) + String(c5[1]);
-      
+      char name[15];
+      sprintf(name, "S%ld%c%c%ld%c%c%c%c%ld%c%c%c%c", isotr, c11, c12, lfr, c21, c22, c31, c32, lir, c41, c42, c51, c52);
+      cmn.Bands.BandFile[cmn.Bands.nBand] = name;
       cmn.Bands.nBand++;
       if (cmn.Bands.nBand > parameters::nBmx) {
         throw std::runtime_error("Too many bands");
@@ -1010,52 +1279,66 @@ void readw(CommonBlock& cmn)
       const Index lli = l;
       const Index llf = l + ideltal;
       
-      const char cr1 = char(48 + lli);
-      const char cr2 = char(48 + llf);
-      const String cr = String(cr1) + String(cr2);
+      const String cr = std::to_string(lli) + std::to_string(llf);
       
       std::ifstream fortranfile;
-      fortranfile.open((String("data_new/WTfil") + cr + String(".dat")).c_str());
+      const String fname = String("data_new/WTfit") + cr + String(".dat");
+      fortranfile.open(fname.c_str());
       
       String line;
       getline(fortranfile, line);
       while (fortranfile.good()) {
-        Numeric w0r, b0r, dmaxdt, wtmax;
+        char sw0r[21], sb0r[21];
+        Numeric dmaxdt, wtmax;
         Index jic, jfc, jipc, jfpc;
         sscanf(line.c_str(), 
-               "%20lf" "%20lf"
+               "%20s" "%20s"
                "%14lf" "%14lf"
                "%4ld" "%4ld" "%4ld" "%4ld",
-               &w0r, &b0r, &dmaxdt, &wtmax, &jic, &jfc, &jipc, &jfpc);
+               sw0r, sb0r, &dmaxdt, &wtmax, &jic, &jfc, &jipc, &jfpc);
+        String ssw0r = sw0r;
+        std::replace(ssw0r.begin(), ssw0r.end(), 'D', 'E');
+        const Numeric w0r = std::stod(ssw0r);
+        String ssb0r = sb0r;
+        std::replace(ssb0r.begin(), ssb0r.end(), 'D', 'E');
+        const Numeric b0r = std::stod(ssb0r);
+        
         getline(fortranfile, line);
-          if (jic > jfc and jipc > jfpc) {
-            cmn.Wfittedp.W0pp(lli,llf,jic,jipc) = w0r;
-            cmn.Bfittedp.B0pp(lli,llf,jic,jipc) = b0r;
-          } else if(jic > jfc and jipc == jfpc) {
-            cmn.Wfittedp.W0pq(lli,llf,jic,jipc) = w0r;
-            cmn.Bfittedp.B0pq(lli,llf,jic,jipc) = b0r;
-          } else if(jic > jfc and jipc < jfpc) {
-            cmn.Wfittedp.W0pr(lli,llf,jic,jipc) = w0r;
-            cmn.Bfittedp.B0pr(lli,llf,jic,jipc) = b0r;
-          } else if(jic < jfc and jipc > jfpc) {
-            cmn.Wfittedr.W0rp(lli,llf,jic,jipc) = w0r;
-            cmn.Bfittedr.B0rp(lli,llf,jic,jipc) = b0r;
-          } else if(jic < jfc and jipc == jfpc) {
-            cmn.Wfittedr.W0rq(lli,llf,jic,jipc) = w0r;
-            cmn.Bfittedr.B0rq(lli,llf,jic,jipc) = b0r;
-          } else if(jic < jfc and jipc < jfpc) {
-            cmn.Wfittedr.W0rr(lli,llf,jic,jipc) = w0r;
-            cmn.Bfittedr.B0rr(lli,llf,jic,jipc) = b0r;
-          } else if(jic == jfc and jipc > jfpc) {
-            cmn.Wfittedq.W0qp(lli,llf,jic,jipc) = w0r;
-            cmn.Bfittedq.B0qp(lli,llf,jic,jipc) = b0r;
-          } else if(jic == jfc and jipc == jfpc) {
-            cmn.Wfittedq.W0qq(lli,llf,jic,jipc) = w0r;
-            cmn.Bfittedq.B0qq(lli,llf,jic,jipc) = b0r;
-          } else if(jic == jfc and jipc < jfpc) {
-            cmn.Wfittedq.W0qr(lli,llf,jic,jipc) = w0r;
-            cmn.Bfittedq.B0qr(lli,llf,jic,jipc) = b0r;
-          }
+        
+        if (lli > cmn.Wfittedp.W0pp.nbooks() or
+            llf > cmn.Wfittedp.W0pp.npages() or
+            jic > cmn.Wfittedp.W0pp.nrows() or
+            jipc > cmn.Wfittedp.W0pp.ncols())
+          throw std::runtime_error("Out of bounds in reading...");
+          
+        if (jic > jfc and jipc > jfpc) {
+          cmn.Wfittedp.W0pp(lli,llf,jic,jipc) = w0r;
+          cmn.Bfittedp.B0pp(lli,llf,jic,jipc) = b0r;
+        } else if(jic > jfc and jipc == jfpc) {
+          cmn.Wfittedp.W0pq(lli,llf,jic,jipc) = w0r;
+          cmn.Bfittedp.B0pq(lli,llf,jic,jipc) = b0r;
+        } else if(jic > jfc and jipc < jfpc) {
+          cmn.Wfittedp.W0pr(lli,llf,jic,jipc) = w0r;
+          cmn.Bfittedp.B0pr(lli,llf,jic,jipc) = b0r;
+        } else if(jic < jfc and jipc > jfpc) {
+          cmn.Wfittedr.W0rp(lli,llf,jic,jipc) = w0r;
+          cmn.Bfittedr.B0rp(lli,llf,jic,jipc) = b0r;
+        } else if(jic < jfc and jipc == jfpc) {
+          cmn.Wfittedr.W0rq(lli,llf,jic,jipc) = w0r;
+          cmn.Bfittedr.B0rq(lli,llf,jic,jipc) = b0r;
+        } else if(jic < jfc and jipc < jfpc) {
+          cmn.Wfittedr.W0rr(lli,llf,jic,jipc) = w0r;
+          cmn.Bfittedr.B0rr(lli,llf,jic,jipc) = b0r;
+        } else if(jic == jfc and jipc > jfpc) {
+          cmn.Wfittedq.W0qp(lli,llf,jic,jipc) = w0r;
+          cmn.Bfittedq.B0qp(lli,llf,jic,jipc) = b0r;
+        } else if(jic == jfc and jipc == jfpc) {
+          cmn.Wfittedq.W0qq(lli,llf,jic,jipc) = w0r;
+          cmn.Bfittedq.B0qq(lli,llf,jic,jipc) = b0r;
+        } else if(jic == jfc and jipc < jfpc) {
+          cmn.Wfittedq.W0qr(lli,llf,jic,jipc) = w0r;
+          cmn.Bfittedq.B0qr(lli,llf,jic,jipc) = b0r;
+        }
       }
     }
   }
@@ -1065,6 +1348,21 @@ void compute(Vector& absorption, const Numeric p, const Numeric t, const Numeric
 {
   CommonBlock cmn;
   detband(cmn, sigmin, sigmax, stotmax);
+  readw(cmn);
+  
+  Vector absv(parameters::nSigmx);
+  Vector absy(parameters::nSigmx);
+  Vector absw(parameters::nSigmx);
+  Index nf = compabs(cmn, t,p, xco2, xh2o, sigmin, sigmax, dsig, true, false, absv, absy, absw);
+  std::cout<<"abs=np.array([";
+  for (Index i=0; i<nf; i++)
+    std::cout<<"["<<absv[i]<<", "<<absy[i]<<", "<<absw[i]<<"],";
+  std::cout<<"])\n";
+  
+  nf = compabs(cmn, t,p, xco2, xh2o, sigmin, sigmax, dsig, false, true, absv, absy, absw);
+  std::cout<<"abs2=np.array([";
+  for (Index i=0; i<nf; i++)
+    std::cout<<"["<<absv[i]<<", "<<absy[i]<<", "<<absw[i]<<"],";
+  std::cout<<"])\n";
 }
-
 };
