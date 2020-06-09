@@ -340,10 +340,9 @@ void readlines(
 }
 
 template<size_t NT>
-void atob(const Numeric aa,
-          Numeric& bb,
-          const std::array<Numeric, NT> a,
-          const std::array<Numeric, NT> b)
+Numeric atob(const Numeric aa,
+             const std::array<Numeric, NT> a,
+             const std::array<Numeric, NT> b)
 { 
   for (size_t i=1; i<NT; i++) {
     if (a[i] >= aa) {
@@ -366,7 +365,7 @@ void atob(const Numeric aa,
         const Numeric A1=(aa-a[j-2])*(aa-a[j])/(A1D1*A1D2);
         const Numeric A2=(aa-a[j-2])*(aa-a[j-1])/(A2D1*A2D2);
         
-        bb = A0*b[j-2] + A1*b[j-1] + A2*b[j];
+        return A0*b[j-2] + A1*b[j-1] + A2*b[j];
       } else {
         size_t j = i;
         
@@ -393,11 +392,12 @@ void atob(const Numeric aa,
         Numeric A3=(aa-a[j-2])*(aa-a[j-1])*(aa-a[j]);
         A3=A3/(A3D1*A3D2*A3D3);
         
-        bb = A0*b[j-2] + A1*b[j-1] + A2*b[j] + A3*b[j+1];
+        return A0*b[j-2] + A1*b[j-1] + A2*b[j] + A3*b[j+1];
       }
-      return;
     }
   }
+  
+  return std::numeric_limits<Numeric>::quiet_NaN();
 }
 
 void qt_co2(const Numeric t,
@@ -713,7 +713,7 @@ void qt_co2(const Numeric t,
   if (t < 70 or t > 3000)
     qt = -1.0;
   else
-    atob(t, qt, tdat, q);
+    qt = atob(t, tdat, q);
 }
 
 void calcw(CommonBlock& cmn,
@@ -1152,14 +1152,14 @@ Index compabs(
             const Numeric order2r = cmn.GamT.HWT[iline] / (pow2(cmn.GamT.HWT[iline]) + pow2(dsigc))
             + 3 * pow2(cmn.GamT.HWSDV2T[iline]) * (pow3(cmn.GamT.HWT[iline]) - 3 * cmn.GamT.HWT[iline]*pow2(dsigc)) / 
             (2*parameters::Pi*pow3(pow2(cmn.GamT.HWT[iline]) + pow2(dsigc)));
-          
-          const Numeric order2i = dsigc / (pow2(cmn.GamT.HWT[iline]) + pow2(dsigc)) +
-          3 * pow2(cmn.GamT.HWSDV2T[iline]) *(3*pow2(cmn.GamT.HWT[iline])*dsigc-pow3(dsigc)) / 
-          (2*parameters::Pi*pow3(pow2(cmn.GamT.HWT[iline]) + pow2(dsigc)));
-          
-          absv[isig] += popudipo * u_sqln2pi * u_pi * order2r;
-          
-          absy[isig] += popudipo * u_sqln2pi * u_pi * (order2r + cmn.YLT.YT[iline]*order2i);
+            
+            const Numeric order2i = dsigc / (pow2(cmn.GamT.HWT[iline]) + pow2(dsigc)) +
+            3 * pow2(cmn.GamT.HWSDV2T[iline]) *(3*pow2(cmn.GamT.HWT[iline])*dsigc-pow3(dsigc)) / 
+            (2*parameters::Pi*pow3(pow2(cmn.GamT.HWT[iline]) + pow2(dsigc)));
+            
+            absv[isig] += popudipo * u_sqln2pi * u_pi * order2r;
+            
+            absy[isig] += popudipo * u_sqln2pi * u_pi * (order2r + cmn.YLT.YT[iline]*order2i);
           } else {
             const Numeric shft0 = cmn.SHIFT.shft[iline] * ptot;
             
