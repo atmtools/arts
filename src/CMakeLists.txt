@@ -210,6 +210,7 @@ add_library (artscore STATIC
   legendre.cc
   lin_alg.cc
   linemixing.cc
+  linemixing_hitran.cc
   linescaling.cc
   lineshapemodel.cc
   linefunctions.cc
