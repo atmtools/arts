@@ -22,15 +22,6 @@ namespace parameters {
   
   static constexpr auto aMass = stdarrayify(44.e-3,45.e-3,46.e-3,45.e-3,47.e-3,46.e-3,48.e-3,47.e-3,46.e-3,49.e-3);  // Constant
   
-  static constexpr auto Qcoef = stdarrayify(
-    stdarrayify(-.13617e+01, .94899e+00,-.69259e-03, .25974e-05),  // O(16)-C(12)-O(16)
-    stdarrayify(-.20631e+01, .18873e+01,-.13669e-02, .54032e-05),  // O(16)-C(13)-O(16)
-    stdarrayify(-.29175e+01, .20114e+01,-.14786e-02, .55941e-05),  // O(16)-C(12)-O(18)
-    stdarrayify(-.16558e+02, .11733e+02,-.85844e-02, .32379e-04),  // O(16)-C(12)-O(17)
-    stdarrayify(-.44685e+01, .40330e+01,-.29590e-02, .11770e-04),  // O(16)-C(13)-O(18)
-    stdarrayify(-.26263e+02, .23350e+02,-.17032e-01, .67532e-04),  // O(16)-C(13)-O(17)
-    stdarrayify(-.14811e+01, .10667e+01,-.78758e-03, .30133e-05),  // O(18)-C(12)-O(18)
-    stdarrayify(-.17600e+02, .12445e+02,-.91837e-02, .34915e-04)); // O(17)-C(12)-O(18)
 };
 
 struct CommonBlock {
@@ -268,19 +259,18 @@ void readlines(
         if (nliner >= parameters::nLmx)
           throw std::runtime_error("Too many lines");
         
-        Index spec;
         char tpline, x;
         Numeric intens, eina;
         char sDipoRigid[21], sPopTrf[21];
         sscanf(line.c_str(), 
-               "%2ld" "%1ld" "%12lf" "%10lf"
+               "%c%c" "%1ld" "%12lf" "%10lf"
                "%10lf" "%5lf" "%5lf" "%4lf"
                "%5lf" "%5lf" "%4lf" "%10lf"
                "%4lf" "%4lf" "%8lf" "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c"
                "%c" "%3ld" "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c" "%5lf"
                "%5lf" "%4lf" "%5lf"
                "%20s" "%20s",
-               &spec,
+               &x,&x,
                &cmn.Bands.Isot[iband],
                &cmn.LineSg.Sig(nliner, iband),
                &intens,
@@ -317,6 +307,31 @@ void readlines(
         
         // Dipole at temperature
         cmn.DipoTcm.DipoT(nliner, iband) = std::sqrt(intens/(cmn.PopTrf.PopuT0(nliner,iband) * cmn.LineSg.Sig(nliner,iband) * (1-std::exp(-1.4388*cmn.LineSg.Sig(nliner,iband)/296))));
+        
+//         std::cout <<
+//         cmn.Bands.Isot[iband]<< " " <<
+//         cmn.LineSg.Sig(nliner, iband)<< " " <<
+//         intens<< " " <<
+//         eina<< " " <<
+//         cmn.GamVT0AIR.HWVT0AIR(nliner, iband)<< " " <<
+//         cmn.GamSDVT0AIR.HWSDVT0AIR(nliner, iband)<< " " <<
+//         cmn.GamSDVT0AIR.rHWT0AIR(nliner, iband)<< " " <<
+//         cmn.GamVT0CO2.HWVT0SELF(nliner, iband)<< " " <<
+//         cmn.GamSDVT0CO2.HWSDVT0SELF(nliner, iband)<< " " <<
+//         cmn.GamSDVT0CO2.rHWT0SELF(nliner, iband)<< " " <<
+//         cmn.Energy.E(nliner, iband)<< " " <<
+//         cmn.DTGAMAIR.BHWAIR(nliner, iband)<< " " <<
+//         cmn.DTGAMCO2.BHWSELF(nliner, iband)<< " " <<
+//         cmn.SHIFT0.shft0(nliner, iband)<< " " <<
+//         tpline<< " " <<
+//         cmn.Jiln.Ji(nliner, iband)<< " " <<
+//         cmn.GamVT0H2O.HWVT0H2O(nliner, iband)<< " " <<
+//         cmn.GamSDVT0H2O.HWSDVT0H2O(nliner, iband)<< " " <<
+//         cmn.GamSDVT0H2O.rHWT0H2O(nliner, iband)<< " " <<
+//         cmn.DTGAMH2O.BHWH2O(nliner, iband)<< " " <<
+//         sDipoRigid<< " " <<
+//         sPopTrf<< " " <<
+//         cmn.DipoTcm.DipoT(nliner, iband)<< "\n";
         
         // Fix Js
         if (tpline == 'P')
@@ -1128,7 +1143,7 @@ Index compabs(
     Numeric gamdmx=0;
     convtp(cmn, iband, cmn.Bands.Isot[iband], cmn.Bands.nLines[iband],
            xh2o, xco2, temp, ptot, sigmoy, gamdmx, mixfull, mixsdv);
-    const Numeric sqrtm = std::sqrt(temp / parameters::aMass[cmn.Bands.Isot[iband]]);
+    const Numeric sqrtm = std::sqrt(temp / parameters::aMass[cmn.Bands.Isot[iband]-1]);
     
     const Numeric ds0=(70.67e0+104.1e0*0.21e0*std::pow(gamdmx, 6.4))/(1.0+0.21*std::pow(gamdmx, 5.4));
     const Numeric ds2=(34.97e0+105.e0*9.e0*std::pow(gamdmx, 3.1))/(1.0+9.0*std::pow(gamdmx, 2.1));
@@ -1213,6 +1228,16 @@ Index compabs(
   return nsig;
 }
 
+template<typename T> String toString(const T& val) {return String(val);}
+template<typename T> Index toIndex(const T& val) {return std::stol(toString(val));}
+template<typename T> Index toNumeric(const T& val)
+{
+  String s = toString(val);
+  std::replace(s.begin(), s.end(), 'D', 'E');
+  std::replace(s.begin(), s.end(), 'd', 'e');
+  return std::stod(val);
+}
+
 void detband(CommonBlock& cmn,
              const Numeric sgminr,
              const Numeric sgmaxr,
@@ -1227,25 +1252,27 @@ void detband(CommonBlock& cmn,
   while (fortranfile.good()) {
     Numeric stot, sgmin, sgmax;
     Index isotr, lfr, lir, jmxp, jmxq, jmxr;
-    char c11, c12, c21, c22, c31, c32, c41, c42, c51, c52;
+    char c11, c12, c21, c22, c31, c32, c41, c42, c51, c52, x;
     sscanf(line.c_str(), 
            "%1ld"
            "%c%c" "%1ld" "%c%c"
            "%c%c" "%1ld" "%c%c"
            "%c%c"
            "%12lf"
-           " " "%12lf"
-           " " "%12lf"
-           "        "
+           "%c" "%12lf"
+           "%c" "%12lf"
+           "%c%c%c%c%c%c%c%c"
            "%4ld" "%4ld" "%4ld",
            &isotr,
            &c11, &c12, &lfr, &c21, &c22,
            &c31, &c32, &lir, &c41, &c42,
            &c51, &c52,
            &stot,
-           &sgmin,
-           &sgmax,
+           &x, &sgmin,
+           &x, &sgmax,
+           &x, &x, &x, &x, &x, &x, &x, &x,
            &jmxp, &jmxq, &jmxr);
+    
     getline(fortranfile, line);
     if (stot < stotmax)
       continue;
@@ -1353,16 +1380,9 @@ void compute(Vector& absorption, const Numeric p, const Numeric t, const Numeric
   Vector absv(parameters::nSigmx);
   Vector absy(parameters::nSigmx);
   Vector absw(parameters::nSigmx);
-  Index nf = compabs(cmn, t,p, xco2, xh2o, sigmin, sigmax, dsig, true, false, absv, absy, absw);
-  std::cout<<"abs=np.array([";
+  const Index nf = compabs(cmn, t,p, xco2, xh2o, sigmin, sigmax, dsig, false, true, absv, absy, absw);
   for (Index i=0; i<nf; i++)
-    std::cout<<"["<<absv[i]<<", "<<absy[i]<<", "<<absw[i]<<"],";
-  std::cout<<"])\n";
+    std::cout<<absv[i]<<" "<<absy[i]<<" "<<absw[i]<<"\n";
   
-  nf = compabs(cmn, t,p, xco2, xh2o, sigmin, sigmax, dsig, false, true, absv, absy, absw);
-  std::cout<<"abs2=np.array([";
-  for (Index i=0; i<nf; i++)
-    std::cout<<"["<<absv[i]<<", "<<absy[i]<<", "<<absw[i]<<"],";
-  std::cout<<"])\n";
 }
 };

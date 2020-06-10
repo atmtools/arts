@@ -617,13 +617,13 @@ void test_ecs20()
 void test_hitran2017()
 {
   Vector absorption(10000);
-  const Numeric p = 0.5;
+  const Numeric p = 0.1;
   const Numeric t = 296;
   const Numeric xco2 = 1.5e-2;
   const Numeric xh2o = 0;
   const Numeric sigmin = 400;
-  const Numeric sigmax = 900;
-  const Numeric dsig = 0.05;
+  const Numeric sigmax = 1200;
+  const Numeric dsig = 1;
   const Numeric stotmax = 0.1e-27;
   
   lm_hitran_2017::compute(absorption, p, t, xco2, xh2o, sigmin, sigmax, stotmax, dsig);
