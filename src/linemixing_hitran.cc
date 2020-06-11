@@ -35,65 +35,65 @@ struct Bands {
 } Bands;
 
 struct LineSg {
-  Eigen::MatrixXd Sig;
+  Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>  Sig;
   LineSg() : Sig(parameters::nLmx, parameters::nBmx) {};
 } LineSg;
 
 struct DipoRigid {
-  Eigen::MatrixXd Dipo0;
+  Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Dipo0;
   DipoRigid() : Dipo0(parameters::nLmx, parameters::nBmx) {};
 } DipoRigid;
 
 struct Energy {
-  Eigen::MatrixXd  E;
+  Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>  E;
   Energy() : E(parameters::nLmx, parameters::nBmx) {};
 } Energy;
 
 struct GamVT0AIR {
-  Eigen::MatrixXd HWVT0AIR;
+  Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> HWVT0AIR;
   GamVT0AIR() : HWVT0AIR(parameters::nLmx, parameters::nBmx) {};
 } GamVT0AIR;
 
 struct GamSDVT0AIR {
-  Eigen::MatrixXd HWSDVT0AIR;
-  Eigen::MatrixXd rHWT0AIR;
+  Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> HWSDVT0AIR;
+  Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> rHWT0AIR;
   GamSDVT0AIR() : HWSDVT0AIR(parameters::nLmx, parameters::nBmx), rHWT0AIR(parameters::nLmx, parameters::nBmx) {};
 } GamSDVT0AIR;
 
 struct DTGAMAIR {
-  Eigen::MatrixXd BHWAIR;
+  Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> BHWAIR;
   DTGAMAIR() : BHWAIR(parameters::nLmx, parameters::nBmx) {};
 } DTGAMAIR;
 
 struct GamVT0CO2 {
-  Eigen::MatrixXd HWVT0SELF;
+  Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> HWVT0SELF;
   GamVT0CO2() : HWVT0SELF(parameters::nLmx, parameters::nBmx) {};
 } GamVT0CO2;
 
 struct GamSDVT0CO2 {
-  Eigen::MatrixXd HWSDVT0SELF;
-  Eigen::MatrixXd rHWT0SELF;
+  Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> HWSDVT0SELF;
+  Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> rHWT0SELF;
   GamSDVT0CO2() : HWSDVT0SELF(parameters::nLmx, parameters::nBmx), rHWT0SELF(parameters::nLmx, parameters::nBmx) {};
 } GamSDVT0CO2;
 
 struct DTGAMCO2 {
-  Eigen::MatrixXd BHWSELF;
+  Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> BHWSELF;
   DTGAMCO2() : BHWSELF(parameters::nLmx, parameters::nBmx) {};
 } DTGAMCO2;
 
 struct GamVT0H2O {
-  Eigen::MatrixXd HWVT0H2O;
+  Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> HWVT0H2O;
   GamVT0H2O() : HWVT0H2O(parameters::nLmx, parameters::nBmx) {};
 } GamVT0H2O;
 
 struct GamSDVT0H2O {
-  Eigen::MatrixXd HWSDVT0H2O;
-  Eigen::MatrixXd rHWT0H2O;
+  Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> HWSDVT0H2O;
+  Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> rHWT0H2O;
   GamSDVT0H2O() : HWSDVT0H2O(parameters::nLmx, parameters::nBmx), rHWT0H2O(parameters::nLmx, parameters::nBmx) {};
 } GamSDVT0H2O;
 
 struct DTGAMH2O {
-  Eigen::MatrixXd BHWH2O;
+  Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> BHWH2O;
   DTGAMH2O() : BHWH2O(parameters::nLmx, parameters::nBmx) {};
 } DTGAMH2O;
 
@@ -107,7 +107,7 @@ struct SHIFT {
 } SHIFT;
 
 struct SHIFT0 {
-  Eigen::MatrixXd shft0;
+  Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> shft0;
   SHIFT0() : shft0(parameters::nLmx, parameters::nBmx) {};
 } SHIFT0;
 
@@ -116,22 +116,22 @@ struct PopuT {
 } PopuT;
 
 struct PopTrf {
-  Eigen::MatrixXd PopuT0;
+  Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> PopuT0;
   PopTrf() : PopuT0(parameters::nLmx, parameters::nBmx) {};
 } PopTrf;
 
 struct DipoTcm {
-  Eigen::MatrixXd DipoT;
+  Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> DipoT;
   DipoTcm() : DipoT(parameters::nLmx, parameters::nBmx) {};
 } DipoTcm;
 
 struct Jiln {
-  Eigen::Matrix<Index, Eigen::Dynamic, Eigen::Dynamic> Ji;
+  Eigen::Matrix<Index, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Ji;
   Jiln() : Ji(parameters::nLmx, parameters::nBmx) {};
 } Jiln;
 
 struct Jfln {
-  Eigen::Matrix<Index, Eigen::Dynamic, Eigen::Dynamic> Jf;
+  Eigen::Matrix<Index, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Jf;
   Jfln() : Jf(parameters::nLmx, parameters::nBmx) {};
 } Jfln;
 
@@ -160,7 +160,7 @@ struct Zaa {
 } Zaa;
 
 struct Wmatrix {
-  Eigen::MatrixXd W;
+  Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> W;
   Wmatrix() : W(parameters::nLmx, parameters::nLmx) {};
 } Wmatrix;
 
@@ -225,12 +225,12 @@ struct Bfittedr {
 } Bfittedr;
 
 struct DiagnR {
-  Eigen::MatrixXd OpR;
+  Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> OpR;
   DiagnR() : OpR(parameters::nLmx, parameters::nLmx) {};
 } DiagnR;
 
 struct DiagnI {
-  Eigen::MatrixXd OpI;
+  Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> OpI;
   DiagnI() : OpI(parameters::nLmx, parameters::nLmx) {};
 } DiagnI;
 
@@ -238,6 +238,7 @@ struct YLT {
   std::array<Numeric, parameters::nLmx> YT;
 } YLT;
 };  // CommonBlock
+
 void readlines(
   CommonBlock& cmn,
   const bool /*mixsdv*/)
@@ -781,12 +782,24 @@ void calcw(CommonBlock& cmn,
   
   // Set off-diagonal elements
   for (Index i=0; i<n; i++) {
-    Index jji=cmn.Jiln.Ji(i, iband), jjf=cmn.Jfln.Jf(i, iband);
-    if (cmn.Bands.li[iband] > cmn.Bands.lf[iband]) std::swap(jji, jjf);
+    Index jji, jjf;
+    if (cmn.Bands.li[iband] <= cmn.Bands.lf[iband]) {
+      jji=cmn.Jiln.Ji(i, iband);
+      jjf=cmn.Jfln.Jf(i, iband);
+    } else {
+      jji=cmn.Jfln.Jf(i, iband);
+      jjf=cmn.Jiln.Ji(i, iband);
+    }
     
     for (Index j=0; j<n; j++) {
-      Index jjip=cmn.Jiln.Ji(j, iband), jjfp=cmn.Jfln.Jf(j, iband);
-      if (cmn.Bands.li[iband] > cmn.Bands.lf[iband]) std::swap(jjip, jjfp);
+      Index jjip, jjfp;
+      if (cmn.Bands.li[iband] <= cmn.Bands.lf[iband]) {
+        jjip=cmn.Jiln.Ji(j, iband);
+        jjfp=cmn.Jfln.Jf(j, iband);
+      } else {
+        jjip=cmn.Jfln.Jf(j, iband);
+        jjfp=cmn.Jiln.Ji(j, iband);
+      }
       
       if (jjip > jji) continue;
       
@@ -891,28 +904,28 @@ void eqvlines(CommonBlock& cmn,
               const Index n,
               const Numeric sigmoy)
 {
-  Eigen::MatrixXcd zOp(n, n);
+  Eigen::Matrix<Complex, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> zop(n, n);
   
   for (Index i=0; i<n; i++) {
     for (Index j=0; j<n; j++) {
-      zOp(i, j) = Complex(cmn.DiagnR.OpR(i, j), cmn.DiagnI.OpI(i, j));
+      zop(i, j) = Complex(cmn.DiagnR.OpR(i, j), cmn.DiagnI.OpI(i, j));
     }
   }
   
-  // FIXME: transpose zOp because of how Fortran works???
-  const Eigen::ComplexEigenSolver<Eigen::MatrixXcd> diagoanlized_zOp(zOp, true);
+  // FIXME: transpose zop because of how Fortran works???
+  const Eigen::ComplexEigenSolver<decltype(zop)> diagoanlized_zop(zop, true);
   
   // Extract real and imaginary eigenvalues
-  Eigen::VectorXd eigvlr(n);
-  Eigen::VectorXd eigvli(n);
-  const Eigen::VectorXcd zval = diagoanlized_zOp.eigenvalues();
+  Eigen::RowVectorXd eigvlr(n);
+  Eigen::RowVectorXd eigvli(n);
+  const Eigen::VectorXcd zval = diagoanlized_zop.eigenvalues();
   for (Index i=0; i<n; i++) {
     eigvlr[i] = zval[i].real();
     eigvli[i] = zval[i].imag();
   }
   
-  Eigen::VectorXcd zsum = Eigen::VectorXcd::Zero(n);
-  const Eigen::MatrixXcd zvec = diagoanlized_zOp.eigenvectors();
+  Eigen::RowVectorXcd zsum = Eigen::RowVectorXcd::Zero(n);
+  const decltype(zop) zvec = diagoanlized_zop.eigenvectors();
   for (Index i=0; i<n; i++) {
     for (Index j=0; j<n; j++) {
       zsum[i] += cmn.DipoTcm.DipoT(j, iband) * zvec(j, i);
@@ -920,7 +933,7 @@ void eqvlines(CommonBlock& cmn,
   }
   
   // FIXME: Again, is the order of the matrix correct???
-  const Eigen::MatrixXcd inv_zvec = zvec.inverse();
+  const decltype(zop) inv_zvec = zvec.inverse();
   for (Index i=0; i<n; i++) {
     Complex z(0, 0);
     for (Index j=0; j<n; j++) {
@@ -983,10 +996,10 @@ void convtp(CommonBlock& cmn,
     }
     cmn.SHIFT.shft[iline]=cmn.SHIFT0.shft0(iline, iband);
     const Numeric wgt = cmn.PopuT.PopuT[iline] * Constant::pow2(cmn.DipoTcm.DipoT(iline, iband));
-    sumwgt = sumwgt + wgt;
-    sigmoy = sigmoy+(cmn.LineSg.Sig(iline,iband) * wgt);
+    sumwgt += wgt;
+    sigmoy += cmn.LineSg.Sig(iline,iband) * wgt;
   }
-  sigmoy = sigmoy/sumwgt;
+  sigmoy /= sumwgt;
   
   calcw(cmn, nlinec, iband, temp);
   
@@ -1371,7 +1384,8 @@ void readw(CommonBlock& cmn)
   }
 }
 
-void compute(Vector& absorption, const Numeric p, const Numeric t, const Numeric xco2, const Numeric xh2o, const Numeric sigmin, const Numeric sigmax, const Numeric stotmax, const Numeric dsig)
+
+Vector compute(const Numeric p, const Numeric t, const Numeric xco2, const Numeric xh2o, const Numeric sigmin, const Numeric sigmax, const Numeric stotmax, const Numeric dsig, const calctype type)
 {
   CommonBlock cmn;
   detband(cmn, sigmin, sigmax, stotmax);
@@ -1380,9 +1394,42 @@ void compute(Vector& absorption, const Numeric p, const Numeric t, const Numeric
   Vector absv(parameters::nSigmx);
   Vector absy(parameters::nSigmx);
   Vector absw(parameters::nSigmx);
-  const Index nf = compabs(cmn, t,p, xco2, xh2o, sigmin, sigmax, dsig, false, true, absv, absy, absw);
-  for (Index i=0; i<nf; i++)
-    std::cout<<absv[i]<<" "<<absy[i]<<" "<<absw[i]<<"\n";
+  Index nf;
+  if (type == calctype::VP or type == calctype::Rosenkranz or type == calctype::Full)
+    nf = compabs(cmn, t,p, xco2, xh2o, sigmin, sigmax, dsig, false, true, absv, absy, absw);
+  else if (type == calctype::VPALT or type == calctype::SDVP)
+    nf = compabs(cmn, t,p, xco2, xh2o, sigmin, sigmax, dsig, true, false, absv, absy, absw);
+  else
+    nf = compabs(cmn, t,p, xco2, xh2o, sigmin, sigmax, dsig, false, false, absv, absy, absw);
   
+  Vector absorption(nf);
+  switch(type) {
+    case calctype::VP:
+      for (Index i=0; i<nf; i++)
+        absorption[i] = absv[i];
+      break;
+    case calctype::Rosenkranz:
+      for (Index i=0; i<nf; i++)
+        absorption[i] = absy[i];
+      break;
+    case calctype::Full:
+      for (Index i=0; i<nf; i++)
+        absorption[i] = absw[i];
+      break;
+    case calctype::VPALT:
+      for (Index i=0; i<nf; i++)
+        absorption[i] = absv[i];
+      break;
+    case calctype::SDVP:
+      for (Index i=0; i<nf; i++)
+        absorption[i] = absy[i];
+      break;
+    case calctype::VPPURE:
+      for (Index i=0; i<nf; i++)
+        absorption[i] = absv[i];
+      break;
+  }
+  
+  return absorption;
 }
 };
