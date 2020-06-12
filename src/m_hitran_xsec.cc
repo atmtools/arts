@@ -125,6 +125,9 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
   //        dxsec_temp_dT.resize(f_grid.nelem());
   // Jacobian vectors END
 
+  ArrayOfString fail_msg;
+  bool do_abort = false;
+
   // Loop over Xsec data sets.
   // Index ii loops through the outer array (different tag groups),
   // index s through the inner array (different tags within each goup).
@@ -155,7 +158,10 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
       ArrayOfMatrix& this_dxsec = do_jac ? dabs_xsec_per_species_dx[i] : empty;
 
       // Loop over pressure:
+#pragma omp parallel for if (!arts_omp_in_parallel() && abs_p.nelem() >= 1) \
+    firstprivate(xsec_temp, dxsec_temp_dF)
       for (Index ip = 0; ip < abs_p.nelem(); ip++) {
+        if (do_abort) continue;
         // Get the absorption cross sections from the HITRAN data:
         try {
           this_xdata.Extract(
@@ -174,9 +180,14 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
         } catch (runtime_error& e) {
           ostringstream os;
           os << "Problem with HITRAN cross section species "
-             << this_species.Name() << ":\n"
+             << this_species.Name() << " at pressure level " << ip << " ("
+             << abs_p[ip] / 100. << " hPa):\n"
              << e.what();
-          throw runtime_error(os.str());
+#pragma omp critical(abs_xsec_per_speciesAddHitranXsec)
+          {
+            do_abort = true;
+            fail_msg.push_back(os.str());
+          }
         }
 
         if (!do_jac) {
@@ -209,5 +220,14 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
         }
       }
     }
+  }
+
+  if (do_abort) {
+    std::ostringstream os;
+    os << "Error messages from failures:\n";
+    for (const auto& msg : fail_msg) {
+      os << msg << '\n';
+    }
+    throw std::runtime_error(os.str());
   }
 }
