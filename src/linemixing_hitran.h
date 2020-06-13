@@ -8,12 +8,15 @@
 
 namespace lm_hitran_2017 {
 enum class calctype {
-  VP,
-  VPALT,
-  VPPURE,
+  FullVP,
+  FullRosenkranz,
+  FullW,
   SDVP,
-  Rosenkranz,
-  Full
+  SDRosenkranz,
+  SDW,
+  NoneVP,
+  NoneRosenkranz,
+  NoneW
 };
 
 Vector compute(const Numeric p,
@@ -24,7 +27,7 @@ Vector compute(const Numeric p,
                const Numeric sigmax,
                const Numeric stotmax,
                const Numeric dsig,
-               const calctype type=calctype::Full);
+               const calctype type=calctype::FullW);
 
 };  // lm_hitran_2017
 

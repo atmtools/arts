@@ -616,17 +616,18 @@ void test_ecs20()
 #include "linemixing_hitran.h"
 void test_hitran2017()
 {
-  const Numeric p = 0.1;
+  const Numeric p = 1.0;
   const Numeric t = 296;
   const Numeric xco2 = 1.5e-2;
   const Numeric xh2o = 0;
-  const Numeric sigmin = 400;
-  const Numeric sigmax = 1200;
-  const Numeric dsig = 1;
+  const Numeric sigmin = 600;
+  const Numeric sigmax = 900;
+  const Numeric dsig = 0.005;
   const Numeric stotmax = 0.1e-27;
   
-  const Vector absorption = lm_hitran_2017::compute(p, t, xco2, xh2o, sigmin, sigmax, stotmax, dsig, lm_hitran_2017::calctype::VPPURE);
-  std::cout<<absorption<<'\n';
+  const Vector absorption = lm_hitran_2017::compute(p, t, xco2, xh2o, sigmin, sigmax, stotmax, dsig, lm_hitran_2017::calctype::FullVP);
+//   for (auto x: absorption)
+//     std::cout<<x<<'\n';
 }
 
 int main() {
