@@ -766,7 +766,7 @@ void calcw(CommonBlock& cmn,
         std::swap(cmn.DipoTcm.DipoT(i, iband), cmn.DipoTcm.DipoT(j, iband));
         std::swap(cmn.LineSg.Sig(i, iband), cmn.LineSg.Sig(j, iband));
         std::swap(cmn.Jiln.Ji(i, iband), cmn.Jiln.Ji(j, iband));
-        std::swap(cmn.Jfln.Jf(i, iband), cmn.Jiln.Ji(j, iband));
+        std::swap(cmn.Jfln.Jf(i, iband), cmn.Jfln.Jf(j, iband));
         std::swap(cmn.GamT.HWSDV2T[i], cmn.GamT.HWSDV2T[j]);
         std::swap(cmn.PopuT.PopuT[i], cmn.PopuT.PopuT[j]);
         std::swap(cmn.SHIFT.shft[i], cmn.SHIFT.shft[j]);
@@ -899,18 +899,6 @@ void calcw(CommonBlock& cmn,
   }
 }
 
-template <class T>
-void printMat(T& mat)
-{
-  for (Index i=0; i<mat.rows(); i++) {
-    for (Index j=0; j<mat.cols(); j++) {
-      std::cout<<mat(i, j).real()<<'+'<<mat(i, j).imag()<<'j'<<' ';
-    }
-    std::cout<<'\n';
-  }
-  std::exit(0);
-}
-
 void eqvlines(CommonBlock& cmn,
               const Index& iband,
               const Index& n,
@@ -947,9 +935,6 @@ void eqvlines(CommonBlock& cmn,
   // FIXME: Again, is the order of the matrix correct???
   const decltype(zop) inv_zvec = zvec.inverse();
   
-  
-  if (iband == 0)
-    printMat(inv_zvec);
   for (Index i=0; i<n; i++) {
     Complex z(0, 0);
     for (Index j=0; j<n; j++) {
@@ -1168,6 +1153,7 @@ Index compabs(
   readlines(cmn, mixsdv);
   
   for (Index iband=0; iband<cmn.Bands.nBand; iband++) {
+    std::cout<<"Computing band " << iband+1 << '/' << cmn.Bands.nBand << std::endl;
     Numeric sigmoy=0;
     Numeric gamdmx=0;
     convtp(cmn, iband, cmn.Bands.Isot[iband], cmn.Bands.nLines[iband],
@@ -1420,8 +1406,8 @@ Vector compute(const Numeric p, const Numeric t, const Numeric xco2, const Numer
   else
     nf = 0;
   
-//   for (Index i=0; i<nf; i++)
-//     std::cout<<absv[i]<<' '<<absy[i]<<' '<<absw[i]<<'\n';
+  for (Index i=0; i<nf; i++)
+    std::cout<<absv[i]<<' '<<absy[i]<<' '<<absw[i]<<'\n';
   
   Vector absorption(nf);
   switch(type) {
