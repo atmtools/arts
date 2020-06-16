@@ -135,28 +135,13 @@ struct Jfln {
   Jfln() : Jf(parameters::nLmx, parameters::nBmx) {};
 } Jfln;
 
-struct FicLSR {
-  std::array<Numeric, parameters::nLmx> SSR;
-} FicLSR;
-
-struct FicLSI {
-  std::array<Numeric, parameters::nLmx> SSI;
-} FicLSI;
-
-struct FicLPR {
-  std::array<Numeric, parameters::nLmx> AlphR;
-} FicLPR;
-
-struct FicLPI {
-  std::array<Numeric, parameters::nLmx> AlphI;
-} FicLPI;
-
 struct Zss {
   std::array<Complex, parameters::nLmx> ZS;
 } Zss;
 
 struct Zaa {
-  std::array<Complex, parameters::nLmx> ZA;
+  ComplexVector ZA;
+  Zaa() noexcept : ZA(parameters::nLmx) {}
 } Zaa;
 
 struct Wmatrix {
@@ -308,31 +293,6 @@ void readlines(
         
         // Dipole at temperature
         cmn.DipoTcm.DipoT(nliner, iband) = std::sqrt(intens/(cmn.PopTrf.PopuT0(nliner,iband) * cmn.LineSg.Sig(nliner,iband) * (1-std::exp(-1.4388*cmn.LineSg.Sig(nliner,iband)/296))));
-        
-//         std::cout <<
-//         cmn.Bands.Isot[iband]<< " " <<
-//         cmn.LineSg.Sig(nliner, iband)<< " " <<
-//         intens<< " " <<
-//         eina<< " " <<
-//         cmn.GamVT0AIR.HWVT0AIR(nliner, iband)<< " " <<
-//         cmn.GamSDVT0AIR.HWSDVT0AIR(nliner, iband)<< " " <<
-//         cmn.GamSDVT0AIR.rHWT0AIR(nliner, iband)<< " " <<
-//         cmn.GamVT0CO2.HWVT0SELF(nliner, iband)<< " " <<
-//         cmn.GamSDVT0CO2.HWSDVT0SELF(nliner, iband)<< " " <<
-//         cmn.GamSDVT0CO2.rHWT0SELF(nliner, iband)<< " " <<
-//         cmn.Energy.E(nliner, iband)<< " " <<
-//         cmn.DTGAMAIR.BHWAIR(nliner, iband)<< " " <<
-//         cmn.DTGAMCO2.BHWSELF(nliner, iband)<< " " <<
-//         cmn.SHIFT0.shft0(nliner, iband)<< " " <<
-//         tpline<< " " <<
-//         cmn.Jiln.Ji(nliner, iband)<< " " <<
-//         cmn.GamVT0H2O.HWVT0H2O(nliner, iband)<< " " <<
-//         cmn.GamSDVT0H2O.HWSDVT0H2O(nliner, iband)<< " " <<
-//         cmn.GamSDVT0H2O.rHWT0H2O(nliner, iband)<< " " <<
-//         cmn.DTGAMH2O.BHWH2O(nliner, iband)<< " " <<
-//         sDipoRigid<< " " <<
-//         sPopTrf<< " " <<
-//         cmn.DipoTcm.DipoT(nliner, iband)<< "\n";
         
         // Fix Js
         if (tpline == 'P')
@@ -904,10 +864,9 @@ void eqvlines(CommonBlock& cmn,
               const Index& n,
               const Numeric& sigmoy)
 {
-  ComplexMatrix zop(n, n);
-  ComplexMatrix zvec(n, n);
-  ComplexVector zval(n);
-  ComplexMatrix& inv_zvec = zop;
+  ComplexMatrix zop(n, n), zvec(n, n);
+  ComplexMatrixView inv_zvec = zop;  // Rename to not confuse later operations
+  ComplexVectorView zval = cmn.Zaa.ZA[Range(0, n)];  // Rename and rescale to right size
   for (Index i=0; i<n; i++) {
     for (Index j=0; j<n; j++) {
       zop(j, i) = Complex(cmn.DiagnR.OpR(i, j), cmn.DiagnI.OpI(i, j));  // nb. reverse from Fortran algorithm due to row-col issues
@@ -918,41 +877,18 @@ void eqvlines(CommonBlock& cmn,
   diagonalize(zvec, zval, zop);
   inv(inv_zvec, zvec);
   
-  // Extract real and imaginary eigenvalues
-  Eigen::RowVectorXd eigvlr(n);
-  Eigen::RowVectorXd eigvli(n);
-  for (Index i=0; i<n; i++) {
-    eigvlr[i] = zval[i].real();
-    eigvli[i] = zval[i].imag();
-  }
+  // Add average sigma
+  zval += sigmoy;
   
-  ComplexVector zsum(n, Complex(0, 0));
+  // Do the matrix multiplication
   for (Index i=0; i<n; i++) {
+    cmn.Zss.ZS[i] = 0;
     Complex z(0, 0);
     for (Index j=0; j<n; j++) {
-      z += cmn.DipoTcm.DipoT(j, iband) * zvec(j, i);
-    }
-    zsum[i] = z;
-  }
-  
-  for (Index i=0; i<n; i++) {
-    Complex z(0, 0);
-    for (Index j=0; j<n; j++) {
+      cmn.Zss.ZS[i] += cmn.DipoTcm.DipoT(j, iband) * zvec(j, i);
       z += cmn.PopuT.PopuT[j] * cmn.DipoTcm.DipoT(j, iband) * inv_zvec(i, j);
     }
-    zsum[i] *= z;
-  }
-  
-  for (Index i=0; i<n; i++) {
-    cmn.Zss.ZS[i] = zsum[i];
-    cmn.Zaa.ZA[i] = Complex(eigvlr[i] + sigmoy, eigvli[i]);
-  }
-  
-  for (Index i=0; i<n; i++) {
-    cmn.FicLPI.AlphI[i] = zsum[i].real();
-    cmn.FicLPR.AlphR[i] = zsum[i].imag();
-    cmn.FicLSI.SSI[i] = eigvlr[i];
-    cmn.FicLSR.SSR[i] = eigvli[i];
+    cmn.Zss.ZS[i] *= z;
   }
 }
            
@@ -1153,7 +1089,6 @@ Index compabs(
   readlines(cmn, mixsdv);
   
   for (Index iband=0; iband<cmn.Bands.nBand; iband++) {
-    std::cout<<"Computing band " << iband+1 << '/' << cmn.Bands.nBand << std::endl;
     Numeric sigmoy=0;
     Numeric gamdmx=0;
     convtp(cmn, iband, cmn.Bands.Isot[iband], cmn.Bands.nLines[iband],
@@ -1217,15 +1152,14 @@ Index compabs(
         }
         
         if (mixfull) {
-          if (std::abs(cmn.FicLPI.AlphI[iline] + sigmoy - sigc) <= (rdmult*gamd)) {
-            const Numeric xx = (cmn.FicLPR.AlphR[iline] + sigmoy - sigc) * cte;
-            const Numeric yy = cmn.FicLPI.AlphI[iline] * cte;
-            const Complex w = Faddeeva::w(Complex(xx, yy));
-            
-            absw[isig] += (cmn.FicLSR.SSR[iline] * w.real() - cmn.FicLSI.SSI[iline] * w.imag()) / gamd;
-          } else {
-            absw[isig] += u_sqln2pi * u_pi * (cmn.Zss.ZS[iline] / (sigc - cmn.Zaa.ZA[iline])).imag();
-          }
+          /*const Numeric gamd_int=parameters::CtGamD*(cmn.FicLPR.AlphR[iline] + sigmoy)*sqrtm;
+          const Numeric cte_int = sq_ln2 / gamd_int;
+          if (std::abs(cmn.FicLPI.AlphI[iline] + sigmoy - sigc) <= (rdmult*gamd_int)) {
+            const Complex z = Complex(cmn.FicLPR.AlphR[iline] + sigmoy - sigc, cmn.FicLPI.AlphI[iline]) * cte_int;
+            const Complex w = Faddeeva::w(z);
+            absw[isig] += (cmn.FicLSR.SSR[iline] * w.real() - cmn.FicLSI.SSI[iline] * w.imag()) / cte_int;
+          }*/
+          absw[isig] += u_sqln2pi * u_pi * (cmn.Zss.ZS[iline] / (sigc - cmn.Zaa.ZA[iline])).imag();
         }
       }
     }
@@ -1405,9 +1339,6 @@ Vector compute(const Numeric p, const Numeric t, const Numeric xco2, const Numer
     nf = compabs(cmn, t,p, xco2, xh2o, sigmin, sigmax, dsig, false, false, absv, absy, absw);
   else
     nf = 0;
-  
-  for (Index i=0; i<nf; i++)
-    std::cout<<absv[i]<<' '<<absy[i]<<' '<<absw[i]<<'\n';
   
   Vector absorption(nf);
   switch(type) {
