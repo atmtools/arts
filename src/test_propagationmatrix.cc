@@ -622,10 +622,10 @@ void test_hitran2017()
   const Numeric xh2o = 0;
   const Numeric sigmin = 600;
   const Numeric sigmax = 900;
-  const Numeric dsig = 0.5;
-  const Numeric stotmax = 0.1e-22;
+  const Numeric dsig = 0.005;
+  const Numeric stotmax = 0.1e-21;
   
-  const Vector absorption = lm_hitran_2017::compute(p, t, xco2, xh2o, sigmin, sigmax, stotmax, dsig, lm_hitran_2017::calctype::SDRosenkranz);
+  const Vector absorption = lm_hitran_2017::compute(p, t, xco2, xh2o, sigmin, sigmax, stotmax, dsig, lm_hitran_2017::calctype::FullW);
 //   for (auto x: absorption)
 //     std::cout<<x<<'\n';
 }

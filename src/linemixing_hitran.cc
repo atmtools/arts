@@ -1,7 +1,7 @@
 #include <fstream>
 #include <Faddeeva/Faddeeva.hh>
 #include "linemixing_hitran.h"
-
+#include "lin_alg.h"
 
 namespace lm_hitran_2017 {
 namespace parameters {
@@ -904,36 +904,36 @@ void eqvlines(CommonBlock& cmn,
               const Index& n,
               const Numeric& sigmoy)
 {
-  Eigen::Matrix<Complex, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> zop(n, n);
-  
+  ComplexMatrix zop(n, n);
+  ComplexMatrix zvec(n, n);
+  ComplexVector zval(n);
+  ComplexMatrix& inv_zvec = zop;
   for (Index i=0; i<n; i++) {
     for (Index j=0; j<n; j++) {
-      zop(i, j) = Complex(cmn.DiagnR.OpR(i, j), cmn.DiagnI.OpI(i, j));
+      zop(j, i) = Complex(cmn.DiagnR.OpR(i, j), cmn.DiagnI.OpI(i, j));  // nb. reverse from Fortran algorithm due to row-col issues
     }
   }
   
-  // FIXME: transpose zop because of how Fortran works???
-  const Eigen::ComplexEigenSolver<decltype(zop)> diagoanlized_zop(zop, true);
+  // Main computations
+  diagonalize(zvec, zval, zop);
+  inv(inv_zvec, zvec);
   
   // Extract real and imaginary eigenvalues
   Eigen::RowVectorXd eigvlr(n);
   Eigen::RowVectorXd eigvli(n);
-  const Eigen::VectorXcd zval = diagoanlized_zop.eigenvalues();
   for (Index i=0; i<n; i++) {
     eigvlr[i] = zval[i].real();
     eigvli[i] = zval[i].imag();
   }
   
-  Eigen::VectorXcd zsum = Eigen::VectorXcd::Zero(n);
-  const decltype(zop) zvec = diagoanlized_zop.eigenvectors();
+  ComplexVector zsum(n, Complex(0, 0));
   for (Index i=0; i<n; i++) {
+    Complex z(0, 0);
     for (Index j=0; j<n; j++) {
-      zsum[i] += cmn.DipoTcm.DipoT(j, iband) * zvec(j, i);
+      z += cmn.DipoTcm.DipoT(j, iband) * zvec(j, i);
     }
+    zsum[i] = z;
   }
-  
-  // FIXME: Again, is the order of the matrix correct???
-  const decltype(zop) inv_zvec = zvec.inverse();
   
   for (Index i=0; i<n; i++) {
     Complex z(0, 0);
