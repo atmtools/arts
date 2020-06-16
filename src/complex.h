@@ -322,10 +322,6 @@ class ConstComplexVectorView {
                    const ConstComplexMatrixView&,
                    const ConstComplexVectorView&);
 
-  friend void diagonalize(ComplexMatrixView,
-                          ComplexVectorView,
-                          const ConstComplexMatrixView&);
-
   friend ComplexConstMatrixViewMap MapToEigen(const ConstComplexVectorView&);
   friend ComplexConstMatrixViewMap MapToEigenCol(const ConstComplexVectorView&);
   friend ComplexMatrixViewMap MapToEigen(ComplexVectorView&);
@@ -651,6 +647,9 @@ class ConstComplexMatrixView {
 
   /** Get element implementation without assertions. */
   Numeric get_imag(Index r, Index c) const { return get(r, c).imag(); }
+  
+  /** Get the extent of the underlying data */
+  Index get_column_extent() const {return mcr.get_extent();}
 
   ConstComplexMatrixView operator()(const Range& r, const Range& c) const;
   ConstComplexVectorView operator()(const Range& r, Index c) const;
@@ -682,11 +681,7 @@ class ConstComplexMatrixView {
   friend void mult(ComplexMatrixView,
                    const ConstComplexMatrixView&,
                    const ConstMatrixView&);
-
-  friend void inv(ComplexMatrixView, const ConstComplexMatrixView&);
-  friend void diagonalize(ComplexMatrixView,
-                          ComplexVectorView,
-                          const ConstComplexMatrixView&);
+  
 
   friend ComplexConstMatrixViewMap MapToEigen(const ConstComplexMatrixView&);
   friend ComplexMatrixViewMap MapToEigen(ComplexMatrixView&);

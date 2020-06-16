@@ -47,23 +47,15 @@ void solve(VectorView x, ConstMatrixView A, ConstVectorView b);
 void inv(MatrixView Ainv, ConstMatrixView A);
 
 // Matrix inverse
-void inv(ComplexMatrixView Ainv, const ConstComplexMatrixView& A);
+void inv(ComplexMatrixView Ainv, const ConstComplexMatrixView A);
 
 // Matrix diagonalization with lapack
 void diagonalize(MatrixView P, VectorView WR, VectorView WI, ConstMatrixView A);
 
-// Matrix diagonalization with eigen
+// Matrix diagonalization with lapack
 void diagonalize(ComplexMatrixView P,
                  ComplexVectorView W,
-                 const ConstComplexMatrixView& A);
-
-// Matrix diagonalization and derivatives with eigen
-void diagonalize(ComplexMatrixView P,
-                 /*ComplexMatrixView dP,*/
-                 ComplexVectorView W,
-                 ComplexVectorView dW,
-                 const ConstComplexMatrixView& A,
-                 const ConstComplexMatrixView& dA);
+                 const ConstComplexMatrixView A);
 
 // Exponential of a Matrix
 void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q = 10);
