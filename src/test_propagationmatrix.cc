@@ -623,7 +623,7 @@ void test_hitran2017()
   const Numeric sigmin = 600;
   const Numeric sigmax = 900;
   const Numeric dsig = 0.005;
-  const Numeric stotmax = 0.1e-21;
+  const Numeric stotmax = 0.1e-27;
   
   const Vector absorption = lm_hitran_2017::compute(p, t, xco2, xh2o, sigmin, sigmax, stotmax, dsig, lm_hitran_2017::calctype::FullW);
 //   for (auto x: absorption)
