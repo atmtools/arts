@@ -1,24 +1,20 @@
 #include <fstream>
 #include <Faddeeva/Faddeeva.hh>
 #include "linemixing_hitran.h"
+
 #include "lin_alg.h"
 
 namespace lm_hitran_2017 {
 namespace parameters {
-  static constexpr Index nSigmx=5000001;  // Max number of spectral points
-  static constexpr Index iFile=3;  // Unit Number for File access
-  static constexpr Index nBmx=7000;  // Max Number of Bands
+  static constexpr Index nBmx=7'000;  // Max Number of Bands
   static constexpr Index nLmx=700;  // Max Number of Lines per Band
-  static constexpr Index nIsotp=10;  // Number of CO2 Isotopomers
   static constexpr Index Nlifmax=10;  // Max number of l values
   static constexpr Index Jmax=131;  // Max number of j values
-  static constexpr Index Nwmax=100000;  // Max Number of W coupling
   
   static constexpr Numeric Ct=1.4387686e0;  // Constant
   static constexpr Numeric T0=296;  // Constant
   static constexpr Numeric CtGamD=1.1325e-08;  // Constant
   static constexpr Numeric aMolAtm=7.33889e+21;  // Constant
-  static constexpr Numeric Pi=3.141592654e0;  // Constant
   
   static constexpr auto aMass = stdarrayify(44.e-3,45.e-3,46.e-3,45.e-3,47.e-3,46.e-3,48.e-3,47.e-3,46.e-3,49.e-3);  // Constant
   
@@ -224,9 +220,7 @@ struct YLT {
 } YLT;
 };  // CommonBlock
 
-void readlines(
-  CommonBlock& cmn,
-  const bool /*mixsdv*/)
+void readlines(CommonBlock& cmn)
 {
   if (cmn.Bands.nBand > parameters::nBmx)
     throw std::runtime_error("Too many bands");
@@ -1050,15 +1044,13 @@ void qsdv(const Numeric& sg0,
   ls_qsdv_i = ls_qsdv.imag();
 }
 
-Index compabs(
+void compabs(
   CommonBlock& cmn,
   const Numeric& temp,
   const Numeric& ptot,
   const Numeric& xco2,
   const Numeric& xh2o,
-  const Numeric& sigmin,
-  const Numeric& sigmax,
-  const Numeric& dsig,
+  const ConstVectorView invcm_grid,
   const bool mixsdv,
   const bool mixfull,
   VectorView absv,
@@ -1071,9 +1063,7 @@ Index compabs(
   constexpr Numeric rdmult = 30;
   
   // Number of points to compute
-  const Index nsig = Index(((sigmax - sigmin) / dsig) + 0.5) + 1;
-  if (nsig > parameters::nSigmx) 
-    throw std::runtime_error("Too many sigmas to compute");
+  const Index nsig = invcm_grid.nelem();
   
   // Set to zero
   absv = 0;
@@ -1086,8 +1076,6 @@ Index compabs(
   constexpr Numeric u_pi = Constant::inv_pi;
   constexpr Numeric u_sqln2pi = 1 / sq_ln2pi;
   
-  readlines(cmn, mixsdv);
-  
   for (Index iband=0; iband<cmn.Bands.nBand; iband++) {
     Numeric sigmoy=0;
     Numeric gamdmx=0;
@@ -1097,10 +1085,9 @@ Index compabs(
     
     const Numeric ds0=(70.67e0+104.1e0*0.21e0*std::pow(gamdmx, 6.4))/(1.0+0.21*std::pow(gamdmx, 5.4));
     const Numeric ds2=(34.97e0+105.e0*9.e0*std::pow(gamdmx, 3.1))/(1.0+9.0*std::pow(gamdmx, 2.1));
-    Numeric sigc = sigmin-dsig;
     
     for (Index isig=0; isig<nsig; isig++) {
-      sigc += dsig;
+      const Numeric sigc = invcm_grid[isig];
       
       for (Index iline=0; iline<cmn.Bands.nLines[iband]; iline++) {
         const Numeric gamd=parameters::CtGamD*cmn.LineSg.Sig(iline,iband)*sqrtm;
@@ -1116,11 +1103,11 @@ Index compabs(
                      std::abs(dsigc) / cmn.GamT.HWT[iline] < ds0) {
             const Numeric order2r = cmn.GamT.HWT[iline] / (pow2(cmn.GamT.HWT[iline]) + pow2(dsigc))
             + 3 * pow2(cmn.GamT.HWSDV2T[iline]) * (pow3(cmn.GamT.HWT[iline]) - 3 * cmn.GamT.HWT[iline]*pow2(dsigc)) / 
-            (2*parameters::Pi*pow3(pow2(cmn.GamT.HWT[iline]) + pow2(dsigc)));
+            (2*Constant::pi*pow3(pow2(cmn.GamT.HWT[iline]) + pow2(dsigc)));
             
             const Numeric order2i = dsigc / (pow2(cmn.GamT.HWT[iline]) + pow2(dsigc)) +
             3 * pow2(cmn.GamT.HWSDV2T[iline]) *(3*pow2(cmn.GamT.HWT[iline])*dsigc-pow3(dsigc)) / 
-            (2*parameters::Pi*pow3(pow2(cmn.GamT.HWT[iline]) + pow2(dsigc)));
+            (2*Constant::pi*pow3(pow2(cmn.GamT.HWT[iline]) + pow2(dsigc)));
             
             absv[isig] += popudipo * u_sqln2pi * u_pi * order2r;
             
@@ -1165,16 +1152,13 @@ Index compabs(
     }
   }
   
-  Numeric sigc = sigmin - dsig;
   for (Index isig=0; isig<nsig; isig++) {
-    sigc = sigc + dsig;
+    const Numeric sigc = invcm_grid[isig];
     const Numeric fact = sigc * (1-std::exp(-parameters::Ct * sigc / temp));
     absv[isig] *= fact * dens * sq_ln2pi;
     absy[isig] *= fact * dens * sq_ln2pi;
     absw[isig] *= fact * dens * sq_ln2pi;
   }
-  
-  return nsig;
 }
 
 template<typename T> String toString(const T& val) {return String(val);}
@@ -1321,43 +1305,46 @@ void readw(CommonBlock& cmn)
 }
 
 
-Vector compute(const Numeric p, const Numeric t, const Numeric xco2, const Numeric xh2o, const Numeric sigmin, const Numeric sigmax, const Numeric stotmax, const Numeric dsig, const calctype type)
+Vector compute(const Numeric p, const Numeric t, const Numeric xco2, const Numeric xh2o, const ConstVectorView invcm_grid, const Numeric stotmax, const calctype type)
 {
+  const Index n = invcm_grid.nelem();
+  Vector absorption(n);
+  if (not n)
+    return absorption;
+  
+  // Common setup and main IO
   CommonBlock cmn;
-  detband(cmn, sigmin, sigmax, stotmax);
+  detband(cmn, invcm_grid[0], invcm_grid[n-1], stotmax);
   readw(cmn);
+  readlines(cmn);
   
-  Vector absv(parameters::nSigmx);
-  Vector absy(parameters::nSigmx);
-  Vector absw(parameters::nSigmx);
-  Index nf;
+  Vector absv(n);
+  Vector absy(n);
+  Vector absw(n);
   if (type == calctype::FullVP or type == calctype::FullRosenkranz or type == calctype::FullW)
-    nf = compabs(cmn, t,p, xco2, xh2o, sigmin, sigmax, dsig, false, true, absv, absy, absw);
+    compabs(cmn, t,p, xco2, xh2o, invcm_grid, false, true, absv, absy, absw);
   else if (type == calctype::SDVP or type == calctype::SDRosenkranz or type == calctype::SDW)
-    nf = compabs(cmn, t,p, xco2, xh2o, sigmin, sigmax, dsig, true, false, absv, absy, absw);
+    compabs(cmn, t,p, xco2, xh2o, invcm_grid, true, false, absv, absy, absw);
   else if (type == calctype::NoneVP or type == calctype::NoneRosenkranz or type == calctype::NoneW)
-    nf = compabs(cmn, t,p, xco2, xh2o, sigmin, sigmax, dsig, false, false, absv, absy, absw);
-  else
-    nf = 0;
+    compabs(cmn, t,p, xco2, xh2o, invcm_grid, false, false, absv, absy, absw);  
   
-  Vector absorption(nf);
   switch(type) {
     case calctype::FullVP:
     case calctype::SDVP:
     case calctype::NoneVP:
-      for (Index i=0; i<nf; i++)
+      for (Index i=0; i<n; i++)
         absorption[i] = absv[i];
       break;
     case calctype::FullRosenkranz:
     case calctype::SDRosenkranz:
     case calctype::NoneRosenkranz:
-      for (Index i=0; i<nf; i++)
+      for (Index i=0; i<n; i++)
         absorption[i] = absy[i];
       break;
     case calctype::FullW:
     case calctype::SDW:
     case calctype::NoneW:
-      for (Index i=0; i<nf; i++)
+      for (Index i=0; i<n; i++)
         absorption[i] = absw[i];
       break;
   }

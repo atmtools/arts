@@ -23,10 +23,8 @@ Vector compute(const Numeric p,
                const Numeric t,
                const Numeric xco2,
                const Numeric xh2o,
-               const Numeric sigmin,
-               const Numeric sigmax,
+               const ConstVectorView invcm_grid,
                const Numeric stotmax,
-               const Numeric dsig,
                const calctype type=calctype::FullW);
 
 };  // lm_hitran_2017

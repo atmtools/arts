@@ -625,9 +625,17 @@ void test_hitran2017()
   const Numeric dsig = 0.005;
   const Numeric stotmax = 0.1e-27;
   
-  const Vector absorption = lm_hitran_2017::compute(p, t, xco2, xh2o, sigmin, sigmax, stotmax, dsig, lm_hitran_2017::calctype::FullW);
-//   for (auto x: absorption)
-//     std::cout<<x<<'\n';
+  const Index nsig = Index(((sigmax - sigmin) / dsig) + 0.5) + 1;
+  Vector invcm_grid(nsig);
+  Numeric sigc = sigmin-dsig;
+  for (Index isig=0; isig<nsig; isig++) {
+    sigc += dsig;
+    invcm_grid[isig] = sigc;
+  }
+  
+  const Vector absorption = lm_hitran_2017::compute(p, t, xco2, xh2o, invcm_grid, stotmax, lm_hitran_2017::calctype::FullW);
+  for (Index i=0; i<nsig; i++)
+    std::cout<<absorption[i]<<'\n';
 }
 
 int main() {
