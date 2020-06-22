@@ -669,24 +669,6 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_lines_per_speciesSetLineMixingFromRelmat"),
-      DESCRIPTION("A dummy method to test line mixing.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_lines_per_species"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_species", "relmat_per_band", "partition_functions"),
-      GIN("temperatures", "linemixing_type", "do_g", "do_dv"),
-      GIN_TYPE("Vector", "String", "Index", "Index"),
-      GIN_DEFAULT(NODEF, "LM2", "1", "1"),
-      GIN_DESC(
-          "Vector of temperatures to compute the relaxation matrix at",
-          "String describing type of line mixing adaptation in the line shape model after computations",
-          "Index to indicate if g is to be left as zero",
-          "Index to indicate if dv is to be left as zero")));
-
   md_data_raw.push_back(
       create_mdrecord(NAME("abs_linesSetEmptyBroadeningParametersToEmpty"),
                DESCRIPTION("Sets a broadening parameter to empty if it is efficiently empty\n"
@@ -2572,49 +2554,6 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
-      NAME("abs_xsec_per_speciesAddLineMixedLines"),
-      DESCRIPTION("Calculates the band-wise cross-section TEST FUNCTION\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_xsec_per_species"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_xsec_per_species",
-         "f_grid",
-         "abs_p",
-         "abs_t",
-         "relmat_per_band",
-         "abs_lines_per_species",
-         "isotopologue_ratios",
-         "partition_functions"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_xsec_per_speciesAddLineMixedLinesInAir"),
-      DESCRIPTION("Calculates the band-wise cross-section TEST FUNCTION\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("abs_xsec_per_species"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_xsec_per_species",
-         "f_grid",
-         "abs_p",
-         "abs_t",
-         "abs_lines_per_species",
-         "isotopologue_ratios",
-         "partition_functions",
-         "wigner_initialized"),
-      GIN("minimum_line_count"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT("10"),
-      GIN_DESC("If less than this number of lines in a \"band\", "
-               "relaxation matrix is set diagonal")));
-
-  md_data_raw.push_back(create_mdrecord(
       NAME("abs_xsec_per_speciesAddPredefinedO2MPM2020"),
       DESCRIPTION("Reimplementation of published O2 absorption line cross-section algorithm\n"
         "\n"
@@ -2645,108 +2584,6 @@ void define_md_data_raw() {
       GIN_TYPE(),
       GIN_DEFAULT(),
       GIN_DESC()));
-
-  /*
-  md_data_raw.push_back(create_mdrecord(
-      NAME("abs_xsec_per_speciesAddLineMixedBands"),
-      DESCRIPTION(
-          "Calculate absorption cross sections per band for Relmat line mixing.\n"
-          "\n"
-          "This requires setting *abs_lines_per_band* and *abs_species_per_band*.\n"
-          "\n"
-          "Will call the Relmat fortran library for the bulk of the calculations.\n"
-          "There are to date two libraries available to compute the relaxation\n"
-          "matrix.  Please set your method using *relmat_type_per_band*.\n"
-          "Helpful method: *SetRelaxationMatrixCalcType*.\n"
-          "\n"
-          "Calculations of *dabs_xsec_per_species_dx* is done through perturbations\n"
-          "for temperature and will therefore be twice as slow.\n"
-          "\n"
-          "Control mechanism for output happens through various GIN:"
-          "   pressure_rule_limit:   Will be compared to |PWij/(fj-fi)|. If any\n"
-          "                          value is larger than this value, Wij becomes\n"
-          "                          diagonal.  Useful for ordered approximations\n"
-          "                          of line mixing because these can easily produce\n"
-          "                          absurd results if this test fails.  Set to a\n"
-          "                          large value when using full inversions and a\n"
-          "                          small value when using perturbation inversion\n"
-          "\n"
-          "   write_relmat_per_band: Will use order_of_linemixing input to fill\n"
-          "                          *relmat_per_band* with relevant line mixing\n"
-          "                          information\n"
-          "\n"
-          "   debug:                 Writes Relmat debug information to screen and\n"
-          "                          throws errors if negative.  Otherwise, errors\n"
-          "                          are instead printed by out3-level of verbosity\n"
-          "\n"
-          "   order_of_linemixing:   Sets order of line mixing.  0 means no line\n"
-          "                          mixing at all and should reproduce similar\n"
-          "                          results as one of the pure LBL methods. 1 or 2\n"
-          "                          means that the first or second order line\n"
-          "                          mixing coefficients are derived and then calls\n"
-          "                          the Voigt line shape to compute cross-section.\n"
-          "                          Negative values means that the full inversion\n"
-          "                          is used for all frequencies.  This results in\n"
-          "                          slow computations that should, in theory, be\n"
-          "                          more accurate, though this remains to be\n"
-          "                          fully tested\n"
-          "\n"
-          "   use_adiabatic_factor:  If true, the adiabatic factor is used. This\n"
-          "                          means you have to have the intermolecular\n"
-          "                          distances defined in the code to use the line\n"
-          "                          mixing computations\n"
-          "\n"
-          "Note that for pressures below *lm_p_lim* there are no calls to Relmat\n"
-          "if order_of_linemixing is positive.  However, if *lm_p_lim* is negative,\n"
-          "Relmat is called with abs(order_of_linemixing).  This allows using\n"
-          "full inversions of the relaxation matrix at higher pressures but also use\n"
-          "reduced inversions at lower pressures to reproduce Doppler broadening\n"
-          "effects.  This means negative order_of_linemixing should never be absolutely\n"
-          "larger than the highest supported positive order_of_linemixing.\n"
-          "\n"
-          "If there is an error using Relmat, please turn on the debug GIN for output\n"
-          "to screen and rerun the code to identify the problem.  Relmat makes many\n"
-          "assumptions on the user input.  It will sometimes return a diagonal matrix\n"
-          "when the theoretical limits are breached by the user input. Please see\n"
-          "published literature for examples of such theoretical breaches.\n"
-          "\n"
-          "More information later.\n"),
-      AUTHORS("Teresa Mendaza", "Richard Larsson"),
-      OUT("abs_xsec_per_species",
-          "dabs_xsec_per_species_dx",
-          "relmat_per_band"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_xsec_per_species",
-         "dabs_xsec_per_species_dx",
-         "abs_lines_per_band",
-         "abs_species_per_band",
-         "band_identifiers",
-         "abs_species",
-         "isotopologue_ratios",
-         "partition_functions",
-         "jacobian_quantities",
-         "f_grid",
-         "abs_p",
-         "abs_t",
-         "lm_p_lim",
-         "relmat_type_per_band",
-         "wigner_initialized"),
-      GIN("pressure_rule_limit",
-          "write_relmat_per_band",
-          "debug",
-          "order_of_linemixing",
-          "use_adiabatic_factor"),
-      GIN_TYPE("Numeric", "Index", "Index", "Index", "Index"),
-      GIN_DEFAULT("1e100", "0", "0", "-1", "1"),
-      GIN_DESC(
-          "Limit when perturbation theory is assumed to work",
-          "Writes the relaxation operators instead of the cross-section if true",
-          "Lets relmat know it is to print debug information if true.",
-          "Choice of order of linemixing",
-          "Truth-value if we should use the precomputed adiabatic factors")));
-  */
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_xsec_per_speciesInit"),
@@ -12583,20 +12420,6 @@ void define_md_data_raw() {
                GIN_DEFAULT(),
                GIN_DESC()));
 
-  md_data_raw.push_back(create_mdrecord(
-      NAME("PrintSelfLineMixingStatus"),
-      DESCRIPTION("Test function for printing status of linemixing.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT(),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_species"),
-      GIN("temperature"),
-      GIN_TYPE("Numeric"),
-      GIN_DEFAULT("296"),
-      GIN_DESC("Temperature to evaluate at")));
-
   md_data_raw.push_back(
       create_mdrecord(NAME("PrintWorkspace"),
                DESCRIPTION("Prints a list of the workspace variables.\n"),
@@ -17480,51 +17303,6 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(create_mdrecord(
-      NAME("SetBandIdentifiersAuto"),
-      DESCRIPTION("Sets *band_identifiers* to multiple O2-66 and\n"
-                  "CO2-* bands.  This is not an exhaustive list so\n"
-                  "if you need more bands to identify, please add them\n"
-                  "to the list or set *band_identifiers* manually.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("band_identifiers"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_species"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("SetBandIdentifiersFromLines"),
-      DESCRIPTION(
-          "Sets (not adds to) *band_identifiers* to all uniques in *abs_lines*\n"
-          "\n"
-          "Will set all Quantum Numbers that are in the line as undefined\n"
-          "if they do not exist in *band_quantums* before comparing the resulting\n"
-          "QuantumIdentifier to the ones already in *band_identifiers*.  If new, push_back\n"
-          "is called adding the ID.  The functions does not check the species or isotopologue,\n"
-          "but you might have to define one anyways for the *band_quantums* input to work.\n"
-          "\n"
-          "Only looks at global quantum numbers if *global* evaluates as true.\n"
-          "\n"
-          "Example *band_quantums*=\"O2-66 EN v1 0\" means all quantum numbers that\n"
-          "are not v1 will be removed, and *band_identifiers* will consist of all the\n"
-          "identifiers of combinations of v1, e.g., v1 0 to v1 1, v1 0 to v1 0, and so on.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("band_identifiers"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines"),
-      GIN("band_quantums", "global"),
-      GIN_TYPE("QuantumIdentifier", "Index"),
-      GIN_DEFAULT(NODEF, "1"),
-      GIN_DESC("Quantum numbers that are defined for the band",
-               "Flag to check if only global quantum numbers should be used")));
-
   md_data_raw.push_back(
       create_mdrecord(NAME("SetNumberOfThreads"),
                DESCRIPTION("Change the number of threads used by ARTS.\n"),
@@ -19180,22 +18958,6 @@ void define_md_data_raw() {
       GIN_TYPE("TessemNN", "Vector"),
       GIN_DEFAULT(NODEF, NODEF),
       GIN_DESC("Tessem NeuralNet parameters.", "Input data.")));
-
-  md_data_raw.push_back(create_mdrecord(
-      NAME("relmat_per_bandInAir"),
-      DESCRIPTION("A dummy method to test line mixing.\n"),
-      AUTHORS("Richard Larsson"),
-      OUT("relmat_per_band"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("abs_lines_per_species",
-         "partition_functions",
-         "wigner_initialized"),
-      GIN("temperatures"),
-      GIN_TYPE("Vector"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("Vector of temperatures to compute the relaxation matrix at")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("Test"),
