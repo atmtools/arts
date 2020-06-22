@@ -614,7 +614,7 @@ void test_ecs20()
 }
 
 #include "linemixing_hitran.h"
-void test_hitran2017()
+void test_hitran2017(bool newtest = true)
 {
   const Numeric p = 1.0;
   const Numeric t = 296;
@@ -623,31 +623,67 @@ void test_hitran2017()
   const Numeric sigmin = 600;
   const Numeric sigmax = 900;
   const Numeric dsig = 0.005;
-  const Numeric stotmax = 0.1e-27;
+  const Numeric stotmax = 0.1e-21;
   
   const Index nsig = Index(((sigmax - sigmin) / dsig) + 0.5) + 1;
   Vector invcm_grid(nsig);
+  Vector f_grid(nsig);
   Numeric sigc = sigmin-dsig;
   for (Index isig=0; isig<nsig; isig++) {
     sigc += dsig;
     invcm_grid[isig] = sigc;
+    f_grid[isig] = Conversion::kaycm2freq(sigc);
   }
   
-  const Vector absorption = lm_hitran_2017::compute(p, t, xco2, xh2o, invcm_grid, stotmax, lm_hitran_2017::calctype::FullW);
-  for (Index i=0; i<nsig; i++)
-    std::cout<<absorption[i]<<'\n';
+  auto types = 
+  std::array<std::pair<lm_hitran_2017::ModeOfLineMixing, lm_hitran_2017::calctype>, 5>{
+    std::pair<lm_hitran_2017::ModeOfLineMixing, lm_hitran_2017::calctype>{lm_hitran_2017::ModeOfLineMixing::FullW, lm_hitran_2017::calctype::FullW},
+    {lm_hitran_2017::ModeOfLineMixing::VP, lm_hitran_2017::calctype::NoneVP},
+    {lm_hitran_2017::ModeOfLineMixing::VP_Y, lm_hitran_2017::calctype::NoneRosenkranz},
+    {lm_hitran_2017::ModeOfLineMixing::SDVP, lm_hitran_2017::calctype::SDVP},
+    {lm_hitran_2017::ModeOfLineMixing::SDVP_Y, lm_hitran_2017::calctype::SDRosenkranz}};
+  
+  define_species_data();
+  define_species_map();
+  ArrayOfVector absorption(5);
+  
+  for (Index i=0;i<5; i++) {
+    auto type=types[i];
+    
+    auto hitran = lm_hitran_2017::read("data_new", -1, Conversion::kaycm2freq(600), Conversion::kaycm2freq(900), Conversion::arts2hitran_linestrength(stotmax), type.first);
+    Vector vmrs = {1-xco2/100-xh2o/100, xh2o/100, xco2/100};
+    SpeciesAuxData partition_functions;
+    partition_functionsInitFromBuiltin(partition_functions, Verbosity());
+    
+    if (not newtest)
+      absorption[i] = lm_hitran_2017::compute(p, t, xco2, xh2o, invcm_grid, stotmax, type.second);
+    else
+      absorption[i] = lm_hitran_2017::compute(hitran, Conversion::atm2pa(p), t, vmrs, f_grid, partition_functions);
+  }
+  
+  for (Index i=0; i<nsig; i++) {
+    for (Index j=0; j<5; j++) {
+      std::cout<<absorption[j][i]<<' ';
+    }
+    std::cout<<'\n';
+  }
 }
 
-int main() {
+int main(int n, char **/*argc*/) {
   /*test_speed_of_pressurebroadening();
     test_transmissionmatrix();
     test_r_deriv_propagationmatrix();
     test_transmat_from_propmat();
     test_transmat_to_cumulativetransmat();
     test_sinc_likes_0limit();*/
-//   test_zeeman();
-// test_mpm20();
-// test_ecs20();
-test_hitran2017();
+  
+  if (n == 2) {
+    std::cout<<"new test\n";
+    test_hitran2017(true);
+  }
+  else {
+    std::cout<<"old test\n";
+    test_hitran2017(false);
+  }
   return 0;
 }

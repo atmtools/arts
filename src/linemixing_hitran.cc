@@ -3,6 +3,8 @@
 #include "linemixing_hitran.h"
 
 #include "lin_alg.h"
+#include "linefunctions.h"
+#include "physics_funcs.h"
 
 namespace lm_hitran_2017 {
 namespace parameters {
@@ -220,14 +222,14 @@ struct YLT {
 } YLT;
 };  // CommonBlock
 
-void readlines(CommonBlock& cmn)
+void readlines(CommonBlock& cmn, const String& basedir="data_new/")
 {
   if (cmn.Bands.nBand > parameters::nBmx)
     throw std::runtime_error("Too many bands");
   
   for (Index iband=0; iband<cmn.Bands.nBand; iband++) {
     std::ifstream fortranfile;
-    const String fname = String("data_new/") + cmn.Bands.BandFile[iband] + String(".dat");
+    const String fname = basedir + String("/") + cmn.Bands.BandFile[iband] + String(".dat");
     fortranfile.open(fname.c_str());
     
     if (fortranfile.is_open()) {
@@ -853,6 +855,234 @@ void calcw(CommonBlock& cmn,
   }
 }
 
+
+// Class not allowed to copy
+struct EqvLinesOut {
+  ComplexVector zval, zstr;
+  explicit EqvLinesOut(Index n=0) noexcept : zval(n, 0), zstr(n, 0) {}
+  EqvLinesOut(const EqvLinesOut&) = delete;
+  EqvLinesOut(EqvLinesOut&&) = default;
+  EqvLinesOut& operator=(const EqvLinesOut&) = delete;
+  EqvLinesOut& operator=(EqvLinesOut&&) = default;
+};
+
+
+// Class not allowed to copy
+struct ConvTPOut {
+  Vector Y, hwt, hwt2, shft, f0, pop, dip;
+  ComplexMatrix W;
+  EqvLinesOut eqv;
+  explicit ConvTPOut(Index n=0) noexcept : Y(n, 0), hwt(n), hwt2(n), shft(n), f0(n), pop(n), dip(n), W(n, n, 0), eqv(n) {}
+  ConvTPOut(const ConvTPOut&) = delete;
+  ConvTPOut(ConvTPOut&&) = default;
+  ConvTPOut& operator=(const ConvTPOut&) = delete;
+  ConvTPOut& operator=(ConvTPOut&&) = default;
+};
+
+
+void calcw(ConvTPOut& out,
+           const HitranRelaxationMatrixData& hitran,
+           const Numeric T,
+           const Index iband)
+{
+  Vector& Y = out.Y;
+  Vector& g0 = out.hwt;
+  Vector& g2 = out.hwt2;
+  Vector& d0 = out.shft;
+  Vector& f0 = out.f0;
+  Vector& pop = out.pop;
+  Vector& dip = out.dip;
+  MatrixView W = out.W.imag();
+  const AbsorptionLines& band = hitran.bands[iband];
+  
+  // Size of problem
+  const Index n=Y.nelem();
+  
+  // Copies for local variables
+  Vector dip0 = hitran.dip0[iband];
+  std::vector<Rational> Ji(n), Jf(n);
+  for (Index i=0; i<n; i++) {
+    Ji[i] = band.UpperQuantumNumber(i, QuantumNumberType::J);
+    Jf[i] = band.LowerQuantumNumber(i, QuantumNumberType::J);
+  }
+  
+  Vector s(n);
+  const Rational li = band.UpperQuantumNumber(0, QuantumNumberType::l2);
+  const Rational lf = band.LowerQuantumNumber(0, QuantumNumberType::l2);
+  
+  if (li > 8 or  abs(li - lf) > 1) {
+    for (Index i=0; i<n; i++) {
+      W(i, i) = g0[i];  // nb... units Hz/Pa
+    }
+  } else {
+    for (Index i=0; i<n; i++) {
+      s[i] = f0[i] * pop[i] * Constant::pow2(dip[i]);
+    }
+    
+    for (Index i=0; i<n; i++) {
+      for (Index j=i+1; j<n; j++) {
+        if (s[j] > s[i]) {
+          // Switch switches 2 elements in a vector :: std::swap(A(i), A(j));
+          // SwitchTwo switches two elements in a Matrix :: std::swap(A(i, k), A(j, k));
+          // SwitchInt is as SwitchTwo but for Integers :: std::swap(A(i, k), A(j, k));
+          std::swap(Ji[i], Ji[j]);
+          std::swap(Jf[i], Jf[j]);
+          std::swap(g0[i], g0[j]);
+          std::swap(d0[i], d0[j]);
+          std::swap(g2[i], g2[j]);
+          std::swap(f0[i], f0[j]);
+          std::swap(dip[i], dip[j]);
+          std::swap(pop[i], pop[j]);
+          std::swap(dip0[i], dip0[j]);
+          std::swap(s[i], s[j]);
+        }
+      }
+    }
+    
+    const Numeric dlgt0t = std::log(band.T0() / T);
+    const Rational lli = std::min(li, lf);
+    const Rational llf = std::max(li, lf);
+    
+    // Set off-diagonal elements
+    for (Index i=0; i<n; i++) {
+      Rational jji, jjf;
+      if (li <= lf) {
+        jji = Ji[i];
+        jjf = Jf[i];
+      } else {
+        jji = Jf[i];
+        jjf = Ji[i];
+      }
+      
+      for (Index j=0; j<n; j++) {
+        Rational jjip, jjfp;
+        if (li <= lf) {
+          jjip = Ji[j];
+          jjfp = Jf[j];
+        } else {
+          jjip = Jf[j];
+          jjfp = Ji[j];
+        }
+        
+        if (jjip > jji) continue;
+        
+        // nb. FIX THIS FOR ARTS SPECIFIC Isotopologue
+        const bool skip = band.Isotopologue() > 2 and
+                          band.Isotopologue() not_eq 7 and 
+                          band.Isotopologue() not_eq 10 and 
+                          (abs(Ji[i] - Ji[j]) % 2) not_eq 0;
+        
+        if(skip) continue;
+        
+        Numeric w0=0, b0=0;
+        if (jji > jjf and jjip > jjfp) {
+          w0 = hitran.W0pp(lli.toIndex(), llf.toIndex(), jji.toIndex(), jjip.toIndex());
+          b0 = hitran.B0pp(lli.toIndex(), llf.toIndex(), jji.toIndex(), jjip.toIndex());
+        } else if (jji > jjf and jjip == jjfp) {
+          w0 = hitran.W0pq(lli.toIndex(), llf.toIndex(), jji.toIndex(), jjip.toIndex());
+          b0 = hitran.B0pq(lli.toIndex(), llf.toIndex(), jji.toIndex(), jjip.toIndex());
+        } else if (jji > jjf and jjip < jjfp) {
+          w0 = hitran.W0pr(lli.toIndex(), llf.toIndex(), jji.toIndex(), jjip.toIndex());
+          b0 = hitran.B0pr(lli.toIndex(), llf.toIndex(), jji.toIndex(), jjip.toIndex());
+        } else if (jji < jjf and jjip > jjfp) {
+          w0 = hitran.W0rp(lli.toIndex(), llf.toIndex(), jji.toIndex(), jjip.toIndex());
+          b0 = hitran.B0rp(lli.toIndex(), llf.toIndex(), jji.toIndex(), jjip.toIndex());
+        } else if (jji < jjf and jjip == jjfp) {
+          w0 = hitran.W0rq(lli.toIndex(), llf.toIndex(), jji.toIndex(), jjip.toIndex());
+          b0 = hitran.B0rq(lli.toIndex(), llf.toIndex(), jji.toIndex(), jjip.toIndex());
+        } else if (jji < jjf and jjip < jjfp) {
+          w0 = hitran.W0rr(lli.toIndex(), llf.toIndex(), jji.toIndex(), jjip.toIndex());
+          b0 = hitran.B0rr(lli.toIndex(), llf.toIndex(), jji.toIndex(), jjip.toIndex());
+        } else if (jji == jjf and jjip > jjfp) {
+          w0 = hitran.W0qp(lli.toIndex(), llf.toIndex(), jji.toIndex(), jjip.toIndex());
+          b0 = hitran.B0qp(lli.toIndex(), llf.toIndex(), jji.toIndex(), jjip.toIndex());
+        } else if (jji == jjf and jjip == jjfp) {
+          w0 = hitran.W0qq(lli.toIndex(), llf.toIndex(), jji.toIndex(), jjip.toIndex());
+          b0 = hitran.B0qq(lli.toIndex(), llf.toIndex(), jji.toIndex(), jjip.toIndex());
+        } else if (jji == jjf and jjip < jjfp) {
+          w0 = hitran.W0qr(lli.toIndex(), llf.toIndex(), jji.toIndex(), jjip.toIndex());
+          b0 = hitran.B0qr(lli.toIndex(), llf.toIndex(), jji.toIndex(), jjip.toIndex());
+        }
+        
+        // nb... should order be different???
+        const Numeric ycal = std::exp(w0 - b0*dlgt0t);
+        W(j, i) = ycal;
+        W(i, j) = ycal * pop[i] / pop[j];
+      }
+    }
+    
+    // Weird undocumented minus sign
+    for (Index i=0; i<n; i++) {
+      for (Index j=0; j<n; j++) {
+        if (j not_eq i) {
+          W(i, j) = - std::abs(W(i, j));
+        }
+      }
+    }
+    
+    // Set diagonal to measured broadening
+    for (Index i=0; i<n; i++) {
+      W(i, i) = g0[i];  // nb... units Hz/Pa
+    }
+    
+    // Sum rule correction
+    for (Index i=0; i<n; i++) {
+      Numeric sumlw = 0.0;
+      Numeric sumup = 0.0;
+      
+      for (Index j=0; j<n; j++) {
+        
+        // nb. FIX THIS FOR ARTS SPECIFIC Isotopologue
+        const bool skip = band.Isotopologue() > 2 and
+                          band.Isotopologue() not_eq 7 and 
+                          band.Isotopologue() not_eq 10 and 
+                          (abs(Ji[i] - Ji[j]) % 2) not_eq 0;
+                
+        if (skip) continue;
+        
+        if (j > i) {
+          sumlw += std::abs(dip0[j]) * W(j, i);
+        } else {
+          sumup += std::abs(dip0[j]) * W(j, i);
+        }
+      }
+      
+      for (Index j=i+1; j<n; j++) {
+        if (sumlw == 0) {
+          W(j, i) = 0.0;
+          W(i, j) = 0.0;
+        } else {
+          W(j, i) *= - sumup / sumlw;
+          W(i, j) = W(j, i) * pop[i] / pop[j];
+        }
+      }
+    }
+    
+    // Rosenkranz coefficients
+    for (Index i=0; i<n; i++) {
+      Numeric sum0 = 0;
+      for (Index j=0; j<n; j++) {
+        if (i == j) continue;
+        
+        // nb. FIX THIS FOR ARTS SPECIFIC Isotopologue
+        const bool skip = band.Isotopologue() > 2 and
+                          band.Isotopologue() not_eq 7 and 
+                          band.Isotopologue() not_eq 10 and 
+                          (abs(Ji[i] - Ji[j]) % 2) not_eq 0;
+                
+        if (skip) continue;
+        
+        Numeric deltasig = f0[i] - f0[j];
+        if (std::abs(deltasig) < Conversion::kaycm2freq(1e-4) /*cm-1*/ ) deltasig = Conversion::kaycm2freq(1e-4) /*Hz*/;
+        
+        sum0 += 2 * std::abs(dip[j]) / std::abs(dip[i]) * W(j, i) / deltasig;
+      }
+      
+      Y[i] = sum0;
+    }
+  }
+}
+
 void eqvlines(CommonBlock& cmn,
               const Index& iband,
               const Index& n,
@@ -884,6 +1114,38 @@ void eqvlines(CommonBlock& cmn,
     }
     cmn.Zss.ZS[i] *= z;
   }
+}
+
+EqvLinesOut eqvlines(const ConstComplexMatrixView W,
+                     const ConstVectorView pop,
+                     const ConstVectorView dip,
+                     const Numeric& fmean)
+{
+  // Size of problem
+  const Index n = pop.nelem();
+  
+  // Compute values
+  ComplexMatrix inv_zvec(n, n), zvec(n, n);
+  EqvLinesOut out(n);
+  
+  // Main computations
+  diagonalize(zvec, out.zval, transpose(W));
+  inv(inv_zvec, zvec);
+  
+  // Do the matrix multiplication
+  for (Index i=0; i<n; i++) {
+    Complex z(0, 0);
+    for (Index j=0; j<n; j++) {
+      out.zstr[i] += dip[j] * zvec(j, i);
+      z += pop[j] * dip[j] * inv_zvec(i, j);
+    }
+    out.zstr[i] *= z;
+  }
+  
+  // Add the weighted frequency
+  out.zval += fmean;
+  
+  return out;
 }
            
 
@@ -917,7 +1179,8 @@ void convtp(CommonBlock& cmn,
       + (xh2o * (cmn.GamSDVT0H2O.HWSDVT0H2O(iline, iband) * std::pow(ratiot, cmn.DTGAMH2O.BHWH2O(iline, iband))))
       + (xco2 * (cmn.GamSDVT0CO2.HWSDVT0SELF(iline, iband) * std::pow(ratiot, cmn.DTGAMCO2.BHWSELF(iline, iband))));
       
-      cmn.GamT.HWSDV2T[iline] = ((1-xh2o-xco2) * (cmn.GamSDVT0AIR.HWSDVT0AIR(iline, iband) * cmn.GamSDVT0AIR.rHWT0AIR(iline, iband) * std::pow(ratiot, cmn.DTGAMAIR.BHWAIR(iline, iband))))
+      cmn.GamT.HWSDV2T[iline] =
+      ((1-xh2o-xco2) * (cmn.GamSDVT0AIR.HWSDVT0AIR(iline, iband) * cmn.GamSDVT0AIR.rHWT0AIR(iline, iband) * std::pow(ratiot, cmn.DTGAMAIR.BHWAIR(iline, iband))))
       + (xh2o * (cmn.GamSDVT0H2O.HWSDVT0H2O(iline, iband)*cmn.GamSDVT0H2O.rHWT0H2O(iline, iband) * std::pow(ratiot, cmn.DTGAMH2O.BHWH2O(iline, iband))))
       + (xco2 * (cmn.GamSDVT0CO2.HWSDVT0SELF(iline, iband) * cmn.GamSDVT0CO2.rHWT0SELF(iline, iband) * std::pow(ratiot, cmn.DTGAMCO2.BHWSELF(iline, iband))));
     } else {
@@ -958,6 +1221,58 @@ void convtp(CommonBlock& cmn,
     eqvlines(cmn, iband, nlinec, sigmoy);
   }
 }
+
+ConvTPOut convtp(const ConstVectorView vmrs,
+                 const HitranRelaxationMatrixData& hitran,
+                 const Numeric T,
+                 const Numeric P,
+                 const Index iband,
+                 const SpeciesAuxData::AuxType& partition_type,
+                 const ArrayOfGriddedField1& partition_data)
+{
+  auto& band = hitran.bands[iband];
+  auto& pop0 = hitran.pop0[iband];
+  
+  const Index n = band.NumLines();
+  
+  const Numeric QT = single_partition_function(T, partition_type, partition_data);
+  const Numeric QT0 = single_partition_function(band.T0(), partition_type, partition_data);
+  const Numeric ratiopart = QT0 / QT;
+  
+  ConvTPOut out(n);
+  
+  Vector wgt(n);
+  for (Index i=0; i<n; i++) {
+    out.f0[i] = band.F0(i);
+    out.pop[i] = pop0[i] * ratiopart * boltzman_ratio(T, band.T0(), band.E0(i));
+    out.hwt[i] = band.Line(i).LineShape().G0(T, band.T0(), 1, vmrs);
+    out.shft[i] = band.Line(i).LineShape().D0(T, band.T0(), 1, vmrs);
+    out.dip[i] = std::sqrt(band.I0(i)/(hitran.pop0[iband][i] * band.F0(i) * (1-stimulated_emission(band.T0(), band.F0(i)))));
+    out.hwt2[i] = band.Line(i).LineShape().G2(T, band.T0(), 1, vmrs);
+    wgt[i] = out.pop[i] * Constant::pow2(out.dip[i]);
+  }
+  
+  // Calculate the relaxation matrix
+  calcw(out, hitran, T, iband);
+  
+  // Adjust for pressure
+  out.hwt *= P;
+  out.hwt2 *= P;
+  out.shft *= P;
+  out.Y *= P;
+  
+  if (band.Population() == Absorption::PopulationType::ByHITRANFullRelmat) {
+    const Numeric fmean = band.F_mean(wgt);
+    out.W.diagonal().real() = out.f0;
+    out.W.diagonal().real() += out.shft;
+    out.W.diagonal().real() -= fmean;
+    out.W.imag() *= P;
+    out.eqv = eqvlines(out.W, out.pop, out.dip, fmean);
+  }
+  
+  return out;
+}
+
 
 void qsdv(const Numeric& sg0,
           const Numeric& gamd,
@@ -1042,6 +1357,88 @@ void qsdv(const Numeric& sg0,
   
   ls_qsdv_r = ls_qsdv.real();
   ls_qsdv_i = ls_qsdv.imag();
+}
+
+
+// nb.qsdv times sg0 is qsdv_si times F0
+Complex qsdv_si(const Numeric F0,
+                const Numeric gamd,
+                const Numeric gam0,
+                const Numeric gam2,
+                const Numeric shift0,
+                const Numeric shift2,
+                const Numeric f)
+{
+  using Constant::pow2;
+  Complex x , y, csqrty, z1, z2, w1, w2, aterm;
+  Numeric xz1, yz1, xz2, yz2;
+  
+  const Numeric cte = Constant::sqrt_ln_2 / gamd;
+  const Numeric pi = Constant::pi;
+  const Numeric rpi = Constant::sqrt_pi;
+  const Complex iz = Complex(0, 1);
+  
+  const Complex c0 = Complex(gam0, shift0);
+  const Complex c2 = Complex(gam2, shift2);
+  const Complex c0t = (c0 - 1.5 * c2);
+  const Complex c2t = c2;
+  
+  if (std::abs(c2t) == 0) goto label110;
+  x = (iz * (F0 - f) + c0t) / c2t;
+  y = 1 / pow2(2 * cte * c2t);
+  csqrty = (gam2 - iz * shift2) / (2 * cte * (pow2(gam2) + pow2(shift2)));
+  if (std::abs(x) <= 3.e-8*std::abs(y)) goto label120;
+  if (std::abs(y) <= 1.e-15*std::abs(x)) goto label140;
+  z1 = std::sqrt(x + y) - csqrty;
+  z2 = z1 + 2 * csqrty;
+  
+  xz1 = - z1.imag();
+  yz1 = z1.real();
+  xz2 = - z2.imag();
+  yz2 = z2.real();
+  
+  w1 = Faddeeva::w(Complex(xz1 ,yz1));
+  w2 = Faddeeva::w(Complex(xz2 ,yz2));
+  aterm = rpi * cte * (w1 - w2);
+  goto label10;
+  
+  label110:
+  z1 = (iz*(F0 - f) + c0t)*cte;
+  xz1 = - z1.imag();
+  yz1 = z1.real();
+  
+  w1 = Faddeeva::w(Complex(xz1 ,yz1));
+  aterm = rpi*cte* w1;
+  goto label10;
+  
+  label120:
+  
+  z1 = (iz*(F0 - f) + c0t)*cte;
+  z2 = std::sqrt(x+y)+csqrty;
+  xz1 = - z1.imag();
+  yz1 = z1.real();
+  xz2 = - z2.imag();
+  yz2 = z2.real();
+  
+  w1 = Faddeeva::w(Complex(xz1 ,yz1));
+  w2 = Faddeeva::w(Complex(xz2 ,yz2));
+  aterm = rpi * cte * (w1-w2);
+  goto label10;
+  
+  label140:
+  
+  if (std::abs(std::sqrt(x)) <= 4.e3) {  // IN cgs
+    const Numeric xxb = - std::sqrt(x).imag();
+    const Numeric yxb = - std::sqrt(x).imag();
+    const Complex wb = Faddeeva::w(Complex(xxb, yxb));
+    aterm = (2 * rpi / c2t) * (1 / rpi - std::sqrt(x) * wb);
+  } else {
+    aterm = (1 / c2t) * (1 / x - 1.5 / pow2(x));
+  }
+  
+  label10:
+  
+  return (1 / pi) * aterm;
 }
 
 void compabs(
@@ -1145,7 +1542,7 @@ void compabs(
             const Complex z = Complex(cmn.FicLPR.AlphR[iline] + sigmoy - sigc, cmn.FicLPI.AlphI[iline]) * cte_int;
             const Complex w = Faddeeva::w(z);
             absw[isig] += (cmn.FicLSR.SSR[iline] * w.real() - cmn.FicLSI.SSI[iline] * w.imag()) / cte_int;
-          }*/
+        }*/
           absw[isig] += u_sqln2pi * u_pi * (cmn.Zss.ZS[iline] / (sigc - cmn.Zaa.ZA[iline])).imag();
         }
       }
@@ -1161,6 +1558,81 @@ void compabs(
   }
 }
 
+Vector compabs(
+  const Numeric T,
+  const Numeric P,
+  const HitranRelaxationMatrixData& hitran,
+  const ConstVectorView vmrs,
+  const ConstVectorView f_grid,
+  const SpeciesAuxData& partition_functions)
+{
+  using Constant::pow2;
+  using Constant::pow3;
+  
+  // Number of points to compute
+  const Index nf = f_grid.nelem();
+  
+  // Set to zero
+  Vector absorption(nf, 0);
+  
+  constexpr Numeric sq_ln2 = Constant::sqrt_ln_2;
+  constexpr Numeric sq_ln2pi = sq_ln2 / Constant::sqrt_pi;
+  const Numeric dens = vmrs[2] * number_density(P, T);
+  constexpr Numeric u_pi = Constant::inv_pi;
+  constexpr Numeric u_sqln2pi = 1 / sq_ln2pi;
+  
+  for (Index iband=0; iband<hitran.bands.nelem(); iband++) {
+    auto tp = convtp(vmrs, hitran, T, P, iband, partition_functions.getParamType(hitran.bands[iband].QuantumIdentity()), partition_functions.getParam(hitran.bands[iband].QuantumIdentity()));
+    const Numeric GD_div_F0 = Linefunctions::DopplerConstant(T, hitran.bands[iband].SpeciesMass());
+    
+    const bool nolm = not hitran.bands[iband].DoLineMixing(P);
+    const bool sdvp = hitran.bands[iband].LineShapeType() == LineShape::Type::SDVP;
+    const bool vp = hitran.bands[iband].LineShapeType() == LineShape::Type::VP;
+    const bool rosenkranz = hitran.bands[iband].Population() == Absorption::PopulationType::ByHITRANRosenkranzRelmat;
+    const bool full = hitran.bands[iband].Population() == Absorption::PopulationType::ByHITRANFullRelmat;
+    
+    for (Index iv=0; iv<nf; iv++) {
+      const Numeric f = f_grid[iv];
+      
+      for (Index iline=0; iline<hitran.bands[iband].NumLines(); iline++) {
+        const Numeric gamd=GD_div_F0 * tp.f0[iline];
+        const Numeric cte = sq_ln2 / gamd;
+        const Numeric popudipo = tp.pop[iline] * pow2(tp.dip[iline]);
+        
+        if (rosenkranz and sdvp and nolm) {
+          const Complex w = qsdv_si(tp.f0[iline], gamd, tp.hwt[iline], tp.hwt2[iline], tp.shft[iline], 0, f);
+          absorption[iv] += popudipo * w.real() * u_sqln2pi;
+        } else if (rosenkranz and sdvp) {
+          const Complex w = qsdv_si(tp.f0[iline], gamd, tp.hwt[iline], tp.hwt2[iline], tp.shft[iline], 0, f);
+          absorption[iv] += popudipo * u_sqln2pi * (Complex(1, -tp.Y[iline]) * w).real();
+        } else if ((rosenkranz and vp and nolm) or (full and nolm)) {
+          const Numeric yy = tp.hwt[iline] * cte;
+          const Numeric xx = (tp.f0[iline]+tp.shft[iline] - f) * cte;
+          const Complex w = Faddeeva::w(Complex(xx, yy));
+          absorption[iv] += popudipo * w.real() / gamd;
+        } else if (rosenkranz and vp) {  
+          const Numeric yy = tp.hwt[iline] * cte;
+          const Numeric xx = (tp.f0[iline]+tp.shft[iline] - f) * cte;
+          const Complex w = Faddeeva::w(Complex(xx, yy));
+          absorption[iv] += popudipo * (Complex(1, -tp.Y[iline]) * w).real() / gamd;
+        } else if (full) {
+          absorption[iv] += u_sqln2pi * u_pi * (tp.eqv.zstr[iline] / (f - tp.eqv.zval[iline])).imag();
+        } else {
+          throw std::runtime_error("Cannot understand the combination of calculations requested...");
+        }
+      }
+    }
+  }
+  
+  for (Index iv=0; iv<nf; iv++) {
+    const Numeric f = f_grid[iv];
+    const Numeric fact = f * (1 - stimulated_emission(T, f));
+    absorption[iv] *= fact * dens * sq_ln2pi;
+  }
+  
+  return absorption;
+}
+
 template<typename T> String toString(const T& val) {return String(val);}
 template<typename T> Index toIndex(const T& val) {return std::stol(toString(val));}
 template<typename T> Index toNumeric(const T& val)
@@ -1174,11 +1646,12 @@ template<typename T> Index toNumeric(const T& val)
 void detband(CommonBlock& cmn,
              const Numeric& sgminr,
              const Numeric& sgmaxr,
-             const Numeric& stotmax)
+             const Numeric& stotmax,
+             const String& basedir="data_new/")
 {
   cmn.Bands.nBand=0;
   std::ifstream fortranfile;
-  fortranfile.open("data_new/BandInfo.dat");
+  fortranfile.open(basedir + "/BandInfo.dat");
   
   String line;
   getline(fortranfile, line);
@@ -1232,7 +1705,7 @@ void detband(CommonBlock& cmn,
   fortranfile.close();
 }
 
-void readw(CommonBlock& cmn)
+void readw(CommonBlock& cmn, const String& basedir="data_new/")
 {
   for (Index l=0; l<=8; l++) {
     for (Index ideltal=0; ideltal<=1; ideltal++) {
@@ -1242,7 +1715,7 @@ void readw(CommonBlock& cmn)
       const String cr = std::to_string(lli) + std::to_string(llf);
       
       std::ifstream fortranfile;
-      const String fname = String("data_new/WTfit") + cr + String(".dat");
+      const String fname = basedir + String("/WTfit") + cr + String(".dat");
       fortranfile.open(fname.c_str());
       
       String line;
@@ -1350,5 +1823,165 @@ Vector compute(const Numeric p, const Numeric t, const Numeric xco2, const Numer
   }
   
   return absorption;
+}
+
+
+Vector compute(const HitranRelaxationMatrixData& hitran,
+               const Numeric P,
+               const Numeric T,
+               const ConstVectorView vmrs,
+               const ConstVectorView f_grid,
+               const SpeciesAuxData& partition_functions)
+{
+  return f_grid.nelem() ? compabs(T, P, hitran, vmrs, f_grid, partition_functions) : Vector(0);
+}
+
+HitranRelaxationMatrixData read(const String& basedir, const Numeric linemixinglimit, const Numeric fmin, const Numeric fmax, const Numeric stot, const ModeOfLineMixing mode)
+{
+  HitranRelaxationMatrixData hitran;
+  
+  String newbase = basedir;
+  if (newbase.nelem() == 0)
+    newbase = ".";
+  
+  CommonBlock cmn;
+  detband(cmn, Conversion::freq2kaycm(fmin), Conversion::freq2kaycm(fmax), Conversion::hitran2arts_linestrength(stot), newbase);
+  readw(cmn, newbase);
+  readlines(cmn, newbase);
+  
+  Numeric linemixinglimit_internal=0;
+  switch(mode) {
+    case ModeOfLineMixing::VP:
+    case ModeOfLineMixing::SDVP: break;
+    case ModeOfLineMixing::FullW:
+    case ModeOfLineMixing::VP_Y:
+    case ModeOfLineMixing::SDVP_Y: linemixinglimit_internal=linemixinglimit; break;
+    default: throw std::runtime_error("Bad mode input.  Must update function.");
+  }
+  
+  const auto lstype = (mode == ModeOfLineMixing::FullW) ? 
+  LineShape::Type::LP :
+  (typeVP(mode) ? 
+  LineShape::Type::VP : 
+  LineShape::Type::SDVP) ;
+  const auto poptype = mode == ModeOfLineMixing::FullW ?
+  Absorption::PopulationType::ByHITRANFullRelmat :
+  Absorption::PopulationType::ByHITRANRosenkranzRelmat ;
+  
+  auto specs=stdarrayify(
+    SpeciesTag("CO2-626"),
+    SpeciesTag("CO2-636"),
+    SpeciesTag("CO2-628"),
+    SpeciesTag("CO2-627"),
+    SpeciesTag("CO2-638"),
+    SpeciesTag("CO2-637"),
+    SpeciesTag("CO2-828"),
+    SpeciesTag("CO2-728"),
+    SpeciesTag("CO2-727"),
+    SpeciesTag("CO2-838"),
+    SpeciesTag("CO2-837"));
+  
+  // Move data from Fortran-style common block to ARTS
+  hitran.B0pp = std::move(cmn.Bfittedp.B0pp);
+  hitran.B0pq = std::move(cmn.Bfittedp.B0pq);
+  hitran.B0pr = std::move(cmn.Bfittedp.B0pr);
+  hitran.W0pp = std::move(cmn.Wfittedp.W0pp);
+  hitran.W0pq = std::move(cmn.Wfittedp.W0pq);
+  hitran.W0pr = std::move(cmn.Wfittedp.W0pr);
+  hitran.B0qp = std::move(cmn.Bfittedq.B0qp);
+  hitran.B0qq = std::move(cmn.Bfittedq.B0qq);
+  hitran.B0qr = std::move(cmn.Bfittedq.B0qr);
+  hitran.W0qp = std::move(cmn.Wfittedq.W0qp);
+  hitran.W0qq = std::move(cmn.Wfittedq.W0qq);
+  hitran.W0qr = std::move(cmn.Wfittedq.W0qr);
+  hitran.B0rp = std::move(cmn.Bfittedr.B0rp);
+  hitran.B0rq = std::move(cmn.Bfittedr.B0rq);
+  hitran.B0rr = std::move(cmn.Bfittedr.B0rr);
+  hitran.W0rp = std::move(cmn.Wfittedr.W0rp);
+  hitran.W0rq = std::move(cmn.Wfittedr.W0rq);
+  hitran.W0rr = std::move(cmn.Wfittedr.W0rr);
+  
+  // Reshape to band count size
+  hitran.dip0.resize(cmn.Bands.nBand);
+  hitran.pop0.resize(cmn.Bands.nBand);
+  hitran.bands.resize(cmn.Bands.nBand);
+  for (Index i{0}; i<cmn.Bands.nBand; i++) {
+    
+    hitran.bands[i] = {true,
+                       true,
+                       Absorption::CutoffType::None,
+                       Absorption::MirroringType::None,
+                       poptype,
+                       Absorption::NormalizationType::None,
+                       lstype,
+                       296,
+                       -1,
+                       linemixinglimit_internal,
+                       {specs[cmn.Bands.Isot[i]-1].Species(),
+                        specs[cmn.Bands.Isot[i]-1].Isotopologue(),
+                       QuantumNumbers{}, QuantumNumbers{}},
+                       {QuantumNumberType::J, QuantumNumberType::l2},
+                       {SpeciesTag("N2"), SpeciesTag("H2O"), specs[cmn.Bands.Isot[i]-1]}};
+                       
+    hitran.bands[i].AllLines().resize(cmn.Bands.nLines[i]);
+    hitran.dip0[i].resize(cmn.Bands.nLines[i]);;
+    hitran.pop0[i].resize(cmn.Bands.nLines[i]);;
+    for (Index j{0}; j<cmn.Bands.nLines[i]; j++) {
+      hitran.dip0[i][j] = cmn.DipoRigid.Dipo0(j, i) / 100;
+      hitran.pop0[i][j] = cmn.PopTrf.PopuT0(j, i) / 100;
+      
+      const std::vector<Rational> inner_upper{Rational(cmn.Jiln.Ji(j, i)), Rational(cmn.Bands.li[i]), };
+      const std::vector<Rational> inner_lower{Rational(cmn.Jfln.Jf(j, i)), Rational(cmn.Bands.lf[i]), };
+      
+      const LineShape::ModelParameters G0_sdvp_air{LineShape::TemperatureModel::T1,
+        Conversion::hitran2arts_broadening(cmn.GamSDVT0AIR.HWSDVT0AIR(j, i)), 
+        cmn.DTGAMAIR.BHWAIR(j, i)};
+      const LineShape::ModelParameters G0_sdvp_h2o{LineShape::TemperatureModel::T1,
+        Conversion::hitran2arts_broadening(cmn.GamSDVT0H2O.HWSDVT0H2O(j, i)), 
+        cmn.DTGAMH2O.BHWH2O(j, i)};
+      const LineShape::ModelParameters G0_sdvp_co2{LineShape::TemperatureModel::T1,
+        Conversion::hitran2arts_broadening(cmn.GamSDVT0CO2.HWSDVT0SELF(j, i)), 
+        cmn.DTGAMCO2.BHWSELF(j, i)};
+      
+      LineShape::ModelParameters G2_sdvp_air{G0_sdvp_air}; G2_sdvp_air.X0 *= cmn.GamSDVT0AIR.rHWT0AIR(j, i);
+      LineShape::ModelParameters G2_sdvp_h2o{G0_sdvp_h2o}; G2_sdvp_h2o.X0 *= cmn.GamSDVT0H2O.rHWT0H2O(j, i);
+      LineShape::ModelParameters G2_sdvp_co2{G0_sdvp_co2}; G2_sdvp_co2.X0 *= cmn.GamSDVT0CO2.rHWT0SELF(j, i);
+      
+      const LineShape::ModelParameters D0{LineShape::TemperatureModel::T0, Conversion::hitran2arts_broadening(cmn.SHIFT0.shft0(j, i))};
+      
+      const LineShape::ModelParameters G0_vp_air{LineShape::TemperatureModel::T1,
+        Conversion::hitran2arts_broadening(cmn.GamVT0AIR.HWVT0AIR(j, i)), 
+        cmn.DTGAMAIR.BHWAIR(j, i)};
+      const LineShape::ModelParameters G0_vp_h2o{LineShape::TemperatureModel::T1,
+        Conversion::hitran2arts_broadening(cmn.GamVT0H2O.HWVT0H2O(j, i)), 
+        cmn.DTGAMH2O.BHWH2O(j, i)};
+      const LineShape::ModelParameters G0_vp_co2{LineShape::TemperatureModel::T1,
+        Conversion::hitran2arts_broadening(cmn.GamVT0CO2.HWVT0SELF(j, i)), 
+        cmn.DTGAMCO2.BHWSELF(j, i)};
+      
+      const LineShape::SingleSpeciesModel sdvp_air{G0_sdvp_air, D0, G2_sdvp_air};
+      const LineShape::SingleSpeciesModel sdvp_h2o{G0_sdvp_h2o, D0, G2_sdvp_h2o};
+      const LineShape::SingleSpeciesModel sdvp_co2{G0_sdvp_co2, D0, G2_sdvp_co2};
+      const LineShape::SingleSpeciesModel vp_air{G0_vp_air, D0};
+      const LineShape::SingleSpeciesModel vp_h2o{G0_vp_h2o, D0};
+      const LineShape::SingleSpeciesModel vp_co2{G0_vp_co2, D0};
+      const auto lsmodel = typeVP(mode) ?
+        LineShape::Model{{vp_air, vp_h2o, vp_co2}} :
+        LineShape::Model{{sdvp_air, sdvp_h2o, sdvp_co2}};
+      
+      hitran.bands[i].Line(j) = {Conversion::kaycm2freq(cmn.LineSg.Sig(j, i)),
+                                 Conversion::hitran2arts_linestrength(cmn.DipoTcm.DipoT(j, i)*cmn.DipoTcm.DipoT(j, i)*(cmn.PopTrf.PopuT0(j,i) * cmn.LineSg.Sig(j,i) * (1-std::exp(-1.4388*cmn.LineSg.Sig(j,i)/296)))),
+                                 Conversion::hitran2arts_energy(cmn.Energy.E(j, i)),
+                                 Numeric(cmn.Jfln.Jf(j, i) * 2 + 1),
+                                 Numeric(cmn.Jiln.Ji(j, i) * 2 + 1),
+                                 std::numeric_limits<Numeric>::quiet_NaN(),
+                                 ZeemanModel{},
+                                 lsmodel,
+                                 inner_lower,
+                                 inner_upper};
+    }
+  }
+  
+  return hitran;
 }
 };
