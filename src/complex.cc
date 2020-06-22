@@ -946,6 +946,21 @@ ComplexIterator2D ComplexMatrixView::end() {
       mrr.mstride);
 }
 
+//! ComplexMatrix diagonal as vector.
+/*!
+  Returns a ComplexMatrixView on the diagonal entries of the matrix. For a given
+  (n,m) matrix M the diagonal vector v is the vector of length min{n,m} with entries
+
+       v[i] = M(i,i)
+
+  \return The diagonal vector v.
+*/
+ComplexVectorView ComplexMatrixView::diagonal() {
+  Index n = std::min(mrr.mextent, mcr.mextent);
+  return ComplexVectorView(mdata + mrr.mstart + mcr.mstart,
+                           Range(0, n, mrr.mstride + mcr.mstride));
+}
+
 /** Assignment operator. This copies the data from another ComplexMatrixView
     to this ComplexMatrixView. Dimensions must agree! Resizing would destroy
     the selection that we might have done in this ComplexMatrixView by

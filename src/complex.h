@@ -299,6 +299,12 @@ class ConstComplexVectorView {
   const Numeric& get_imag(Index n) const {
     return reinterpret_cast<const Numeric(&)[2]>(get(n))[1];
   }
+  
+  /** Get a view of the real part of the vector */
+  ConstVectorView real() const {return ConstVectorView(reinterpret_cast<Numeric *>(mdata), Range(2*mrange.mstart, mrange.mextent, mrange.mstride*2));}
+  
+  /** Get a view of the imaginary part of the vector */
+  ConstVectorView imag() const {return ConstVectorView(reinterpret_cast<Numeric *>(mdata), Range(2*mrange.mstart + 1, mrange.mextent, mrange.mstride*2));}
 
   ConstComplexVectorView operator[](const Range& r) const;
   friend Complex operator*(const ConstComplexVectorView& a,
@@ -364,6 +370,8 @@ class ComplexVectorView : public ConstComplexVectorView {
   using ConstComplexVectorView::get;
   using ConstComplexVectorView::get_imag;
   using ConstComplexVectorView::get_real;
+  using ConstComplexVectorView::imag;
+  using ConstComplexVectorView::real;
 
   constexpr ComplexVectorView(const ComplexVectorView&) = default;
   ComplexVectorView(const ComplexVector&);
@@ -393,6 +401,12 @@ class ComplexVectorView : public ConstComplexVectorView {
   Numeric& get_imag(Index n) {
     return reinterpret_cast<Numeric(&)[2]>(get(n))[1];
   }
+  
+  /** Get a view of the real part of the vector */
+  VectorView real() {return VectorView(reinterpret_cast<Numeric *>(mdata), Range(2*mrange.mstart, mrange.mextent, mrange.mstride*2));}
+  
+  /** Get a view of the imaginary part of the vector */
+  VectorView imag() {return VectorView(reinterpret_cast<Numeric *>(mdata), Range(2*mrange.mstart + 1, mrange.mextent, mrange.mstride*2));}
 
   ComplexVectorView operator[](const Range& r);
 
@@ -436,18 +450,6 @@ class ComplexVectorView : public ConstComplexVectorView {
   // Conversion to a plain C-array
   const Complex* get_c_array() const;
   Complex* get_c_array();
-
-  // Vector
-  Vector real() {
-    Vector A(nelem());
-    for (Index i = 0; i < nelem(); i++) A[i] = get_real(i);
-    return A;
-  };
-  Vector imag() {
-    Vector A(nelem());
-    for (Index i = 0; i < nelem(); i++) A[i] = get_imag(i);
-    return A;
-  };
 
   //! Destructor
   virtual ~ComplexVectorView() = default;
@@ -648,6 +650,14 @@ class ConstComplexMatrixView {
   /** Get element implementation without assertions. */
   Numeric get_imag(Index r, Index c) const { return get(r, c).imag(); }
   
+  /** Get a view of the real part of the matrix */
+  ConstMatrixView real() const {return ConstMatrixView(reinterpret_cast<Numeric *>(mdata), Range(2*mrr.mstart, mrr.mextent, mrr.mstride*2), 
+                                                                                           Range(2*mcr.mstart, mcr.mextent, mcr.mstride*2));}
+  
+  /** Get a view of the imaginary part of the matrix */
+  ConstMatrixView imag() const {return ConstMatrixView(reinterpret_cast<Numeric *>(mdata), Range(2*mrr.mstart, mrr.mextent, mrr.mstride*2),
+                                                                                           Range(2*mcr.mstart + 1, mcr.mextent, mcr.mstride*2));}
+  
   /** Get the extent of the underlying data */
   Index get_column_extent() const {return mcr.get_extent();}
 
@@ -724,6 +734,9 @@ class ComplexMatrixView : public ConstComplexMatrixView {
   using ConstComplexMatrixView::get;
   using ConstComplexMatrixView::get_imag;
   using ConstComplexMatrixView::get_real;
+  using ConstComplexMatrixView::imag;
+  using ConstComplexMatrixView::real;
+  using ConstComplexMatrixView::diagonal;
 
   constexpr ComplexMatrixView(const ComplexMatrixView&) = default;
 
@@ -756,6 +769,14 @@ class ComplexMatrixView : public ConstComplexMatrixView {
   Numeric& get_imag(Index r, Index c) {
     return reinterpret_cast<Numeric(&)[2]>(get(r, c))[1];
   }
+  
+  /** Get a view of the real part of the matrix */
+  MatrixView real() {return MatrixView(reinterpret_cast<Numeric *>(mdata), Range(2*mrr.mstart, mrr.mextent, mrr.mstride*2), 
+                                                                           Range(2*mcr.mstart, mcr.mextent, mcr.mstride*2));}
+  
+  /** Get a view of the imaginary parts of the matrix */
+  MatrixView imag() {return MatrixView(reinterpret_cast<Numeric *>(mdata), Range(2*mrr.mstart, mrr.mextent, mrr.mstride*2),
+                                                                           Range(2*mcr.mstart + 1, mcr.mextent, mcr.mstride*2));}
 
   ComplexMatrixView operator()(const Range& r, const Range& c);
   ComplexVectorView operator()(const Range& r, Index c);
@@ -764,6 +785,9 @@ class ComplexMatrixView : public ConstComplexMatrixView {
   // Functions returning iterators:
   ComplexIterator2D begin();
   ComplexIterator2D end();
+  
+  // View on diagonal complex vector
+  ComplexVectorView diagonal();
 
   // Assignment operators:
   ComplexMatrixView& operator=(const ConstComplexMatrixView& v);
@@ -800,20 +824,6 @@ class ComplexMatrixView : public ConstComplexMatrixView {
   // Conversion to a plain C-array
   const Complex* get_c_array() const;
   Complex* get_c_array();
-
-  // Matrix
-  Matrix real() {
-    Matrix A(nrows(), ncols());
-    for (Index i = 0; i < nrows(); i++)
-      for (Index j = 0; j < ncols(); j++) A(i, j) = get_real(i, j);
-    return A;
-  };
-  Matrix imag() {
-    Matrix A(nrows(), ncols());
-    for (Index i = 0; i < nrows(); i++)
-      for (Index j = 0; j < ncols(); j++) A(i, j) = get_imag(i, j);
-    return A;
-  };
 
   //! Destructor
   virtual ~ComplexMatrixView() = default;

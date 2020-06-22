@@ -172,30 +172,106 @@ class Range {
 
   \param[in] stride Stride can be anything. It can be omitted, in which case the
   default value is 1. */
-  Range(Index start, Index extent, Index stride = 1);
+  constexpr Range(Index start, Index extent, Index stride = 1)
+    : mstart(start), mextent(extent), mstride(stride) {
+      // Start must be >= 0:
+      assert(0 <= mstart);
+      // Extent also. Although internally negative extent means "to the end",
+      // this can not be created this way, only with the joker. Zero
+      // extent is allowed, though, which corresponds to an empty range.
+      assert(0 <= mextent);
+      // Stride can be anything except 0.
+      // SAB 2001-09-21: Allow 0 stride.
+      //  assert( 0!=mstride);
+    }
 
   /** Constructor with joker extent. Depending on the sign of stride,
     this means "to the end", or "to the beginning". */
-  Range(Index start, Joker j, Index stride = 1);
+  constexpr Range(Index start, Joker, Index stride = 1)
+  : mstart(start), mextent(-1), mstride(stride) {
+    // Start must be >= 0:
+    assert(0 <= mstart);
+  }
 
   /** Constructor with just a joker. This means, take everything. You
     can still optionally give a stride, though. This constructor is
     just shorter notation for Range(0,joker) */
-  Range(Joker j, Index stride = 1);
+  constexpr Range(Joker, Index stride = 1) : mstart(0), mextent(-1), mstride(stride) {
+    // Nothing to do here.
+  };
 
   /** Constructor which converts a range with joker to an explicit
     range.
 
     \param[in] max_size The maximum allowed size of the vector.
     \param[in] r The new range, with joker. */
-  Range(Index max_size, const Range& r);
+  constexpr Range(Index max_size, const Range& r)
+  : mstart(r.mstart), mextent(r.mextent), mstride(r.mstride) {
+    // Start must be >= 0:
+    assert(0 <= mstart);
+    // ... and < max_size:
+    assert(mstart < max_size);
+    
+    // Stride must be != 0:
+    assert(0 != mstride);
+    
+    // Convert negative extent (joker) to explicit extent
+    if (mextent < 0) {
+      if (0 < mstride)
+        mextent = 1 + (max_size - 1 - mstart) / mstride;
+      else
+        mextent = 1 + (0 - mstart) / mstride;
+    } else {
+      #ifndef NDEBUG
+      // Check that extent is ok:
+      Index fin = mstart + (mextent - 1) * mstride;
+      assert(0 <= fin);
+      assert(fin < max_size);
+      #endif
+    }
+  }
 
   /** Constructor of a new range relative to an old range. The new range
     may contain -1 for the stride, which acts as a joker.
 
     \param[in] p Previous range.
     \param[in] n New range. */
-  Range(const Range& p, const Range& n);
+  constexpr Range(const Range& p, const Range& n)
+      : mstart(p.mstart + n.mstart * p.mstride),
+        mextent(n.mextent),
+        mstride(p.mstride * n.mstride) {
+    // We have to juggle here a bit with previous, new, and resulting
+    // quantities. I.e.;
+    // p.mstride: Previous stride
+    // n.mstride: New stride (as specified)
+    // mstride:   Resulting stride (old*new)
+
+    // Get the previous final element:
+    Index prev_fin = p.mstart + (p.mextent - 1) * p.mstride;
+
+    // Resulting start must be >= previous start:
+    assert(p.mstart <= mstart);
+    // and <= prev_fin, except for Joker:
+    assert(mstart <= prev_fin || mextent == -1);
+
+    // Resulting stride must be != 0:
+    assert(0 != mstride);
+
+    // Convert negative extent (joker) to explicit extent
+    if (mextent < 0) {
+      if (0 < mstride)
+        mextent = 1 + (prev_fin - mstart) / mstride;
+      else
+        mextent = 1 + (p.mstart - mstart) / mstride;
+    } else {
+  #ifndef NDEBUG
+      // Check that extent is ok:
+      Index fin = mstart + (mextent - 1) * mstride;
+      assert(p.mstart <= fin);
+      assert(fin <= prev_fin);
+  #endif
+    }
+  };
 
   // Friends:
   friend class ConstVectorView;
@@ -248,14 +324,14 @@ class Range {
   // Member functions:
 
   /** Returns the start index of the range. */
-  Index get_start() const { return mstart; }
+  constexpr Index get_start() const { return mstart; }
   /** Returns the extent of the range. */
-  Index get_extent() const { return mextent; }
+  constexpr Index get_extent() const { return mextent; }
   /** Returns the stride of the range. */
-  Index get_stride() const { return mstride; }
+  constexpr Index get_stride() const { return mstride; }
 
   /** Range of range. */
-  Range operator()(const Range r) const {
+  constexpr Range operator()(const Range r) const {
     return (r.mextent < 0) ? (mextent < 0) ? Range(mstart + r.mstart * mstride,
                                                    joker,
                                                    r.mstride * mstride)
@@ -267,7 +343,7 @@ class Range {
                                    r.mstride * mstride);
   }
 
-  Index operator()(const Index i) const { return mstart + i * mstride; };
+  constexpr Index operator()(const Index i) const { return mstart + i * mstride; };
 
  private:
   /** The start index. */
@@ -469,6 +545,7 @@ class ConstVectorView {
   friend class ConstTensor5View;
   friend class ConstTensor6View;
   friend class ConstTensor7View;
+  friend class ConstComplexVectorView;
   friend int poly_root_solve(Matrix& roots, Vector& coeffs);
   friend void mult(VectorView, const ConstMatrixView&, const ConstVectorView&);
   friend void mult(VectorView, const Sparse&, ConstVectorView);
@@ -655,6 +732,7 @@ class VectorView : public ConstVectorView {
   friend class Tensor5View;
   friend class Tensor6View;
   friend class Tensor7View;
+  friend class ComplexVectorView;
 
   /** A special constructor, which allows to make a VectorView from
     a scalar. */
@@ -956,6 +1034,7 @@ class ConstMatrixView {
   friend class ConstTensor5View;
   friend class ConstTensor6View;
   friend class ConstTensor7View;
+  friend class ConstComplexMatrixView;
   friend ConstMatrixView transpose(ConstMatrixView m);
   friend int poly_root_solve(Matrix& roots, Vector& coeffs);
   friend void mult(VectorView, const ConstMatrixView&, const ConstVectorView&);
@@ -1087,6 +1166,7 @@ class MatrixView : public ConstMatrixView {
   friend class Tensor5View;
   friend class Tensor6View;
   friend class Tensor7View;
+  friend class ComplexMatrixView;
   friend ConstMatrixView transpose(ConstMatrixView m);
   friend MatrixView transpose(MatrixView m);
   friend void mult(MatrixView, const ConstMatrixView&, const ConstMatrixView&);
