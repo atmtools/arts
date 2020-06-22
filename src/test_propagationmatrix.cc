@@ -36,6 +36,7 @@
 #include <Faddeeva/Faddeeva.hh>
 #include "legacy_continua.h"
 #include "predefined_absorption_models.h"
+#include "wigner_functions.h"
 
 void test_matrix_buildup() {
   const Numeric k11 = 1;
@@ -642,15 +643,17 @@ void test_hitran2017(bool newtest = true)
     {lm_hitran_2017::ModeOfLineMixing::VP_Y, lm_hitran_2017::calctype::NoneRosenkranz},
     {lm_hitran_2017::ModeOfLineMixing::SDVP, lm_hitran_2017::calctype::SDVP},
     {lm_hitran_2017::ModeOfLineMixing::SDVP_Y, lm_hitran_2017::calctype::SDRosenkranz}};
-  
   define_species_data();
   define_species_map();
   ArrayOfVector absorption(5);
+  make_wigner_ready(int(250), int(20000000), 6);
   
+  ArrayOfAbsorptionLines bands;
+  lm_hitran_2017::HitranRelaxationMatrixData hitran;
   for (Index i=0;i<5; i++) {
     auto type=types[i];
     
-    auto hitran = lm_hitran_2017::read("data_new", -1, Conversion::kaycm2freq(600), Conversion::kaycm2freq(900), Conversion::arts2hitran_linestrength(stotmax), type.first);
+    lm_hitran_2017::read(hitran, bands, "data_new", -1, Conversion::kaycm2freq(600), Conversion::kaycm2freq(900), Conversion::arts2hitran_linestrength(stotmax), type.first);
     Vector vmrs = {1-xco2/100-xh2o/100, xh2o/100, xco2/100};
     SpeciesAuxData partition_functions;
     partition_functionsInitFromBuiltin(partition_functions, Verbosity());
@@ -658,7 +661,7 @@ void test_hitran2017(bool newtest = true)
     if (not newtest)
       absorption[i] = lm_hitran_2017::compute(p, t, xco2, xh2o, invcm_grid, stotmax, type.second);
     else
-      absorption[i] = lm_hitran_2017::compute(hitran, Conversion::atm2pa(p), t, vmrs, f_grid, partition_functions);
+      absorption[i] = lm_hitran_2017::compute(hitran, bands, Conversion::atm2pa(p), t, vmrs, f_grid, partition_functions);
   }
   
   for (Index i=0; i<nsig; i++) {
@@ -667,9 +670,12 @@ void test_hitran2017(bool newtest = true)
     }
     std::cout<<'\n';
   }
+  
+//   lm_hitran_2017::read("data_new", -1, Conversion::kaycm2freq(600), Conversion::kaycm2freq(900), Conversion::arts2hitran_linestrength(stotmax), types[0].first);
 }
+    
 
-int main(int n, char **/*argc*/) {
+int main(int n, char **argc) {
   /*test_speed_of_pressurebroadening();
     test_transmissionmatrix();
     test_r_deriv_propagationmatrix();
@@ -677,7 +683,7 @@ int main(int n, char **/*argc*/) {
     test_transmat_to_cumulativetransmat();
     test_sinc_likes_0limit();*/
   
-  if (n == 2) {
+  if (n == 2 and String(argc[1]) == "new") {
     std::cout<<"new test\n";
     test_hitran2017(true);
   }

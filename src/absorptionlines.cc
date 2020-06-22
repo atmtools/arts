@@ -2937,21 +2937,17 @@ bool Absorption::line_is_id(const Absorption::Lines& band, const QuantumIdentifi
 }
 
 Numeric Absorption::reduced_rovibrational_dipole(Rational Jf, Rational Ji, Rational lf, Rational li, Rational k) {
-  const Numeric val = sqrt(2 * Jf + 1) * wigner3j(Jf, k, Ji, li, lf - li, -lf);
   if (not even(Jf + lf + 1))
-    return -val;
+    return - sqrt(2 * Jf + 1) * wigner3j(Jf, k, Ji, li, lf - li, -lf);
   else
-    return +val;
+    return + sqrt(2 * Jf + 1) * wigner3j(Jf, k, Ji, li, lf - li, -lf);
 }
 
 Numeric Absorption::reduced_magnetic_quadrapole(Rational Jf, Rational Ji, Rational N) {
-  constexpr Rational one=1_rat;
-  const Numeric val = sqrt(6 * (2 * Jf + 1) * (2 * Ji + 1)) *
-  wigner6j(one, one, one, Ji, Jf, N);
   if (not even(Jf + N))
-    return -val;
+    return - sqrt(6 * (2 * Jf + 1) * (2 * Ji + 1)) * wigner6j(1_rat, 1_rat, 1_rat, Ji, Jf, N);
   else
-    return +val;
+    return + sqrt(6 * (2 * Jf + 1) * (2 * Ji + 1)) * wigner6j(1_rat, 1_rat, 1_rat, Ji, Jf, N);
 }
 
 Absorption::SingleLineExternal Absorption::ReadFromMytran2Stream(istream& is)

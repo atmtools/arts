@@ -30,8 +30,6 @@ Vector compute(const Numeric p,
                const calctype type=calctype::FullW);
 
 struct HitranRelaxationMatrixData {
-  ArrayOfAbsorptionLines bands;
-  
   Tensor4 W0pp, B0pp;
   Tensor4 W0rp, B0rp;
   Tensor4 W0qp, B0qp;
@@ -43,12 +41,21 @@ struct HitranRelaxationMatrixData {
   Tensor4 W0pq, B0pq;
   Tensor4 W0rq, B0rq;
   Tensor4 W0qq, B0qq;
-  
-  ArrayOfVector dip0;
-  ArrayOfVector pop0;
 };
 
+/** Compute the absorptionlines
+ * 
+ * @param[in] hitran Hitran data for the relaxation matrix calculations
+ * @param[in] bands List of absorption bands
+ * @param[in] P Pressure in Pascal
+ * @param[in] T Temperatures in Kelvin
+ * @param[in] vmrs VMR ratio.  Must be 3-long containing {air, h2o, co2} vmrs
+ * @param[in] f_grid Frequency grid in Hz
+ * @param[in] partition_functions As WSV
+ * @return The absorption, a vector same length as f_grid
+ */
 Vector compute(const HitranRelaxationMatrixData& hitran,
+               const ArrayOfAbsorptionLines& bands,
                const Numeric P,
                const Numeric T,
                const ConstVectorView vmrs,
@@ -71,14 +78,16 @@ constexpr bool typeVP(ModeOfLineMixing x)
 
 /** Read from HITRAN online line mixing file
  * 
+ * @param[out] hitran Hitran data for the relaxation matrix calculations
+ * @param[out] bands List of absorption bands
  * @param[in] basedir The base directory of the HITRAN line mixing files
  * @param[in] linemixinglimit The pressure limit for using line mixing instead of pure Voigt
  * @param[in] fmin Minimum frequency
  * @param[in] fmax Maximum frequency
+ * @param[in] stot Minimum band-strength
  * @param[in] mode The type of calculations
- * @return HitranRelaxationMatrixData
  */ 
-HitranRelaxationMatrixData read(const String& basedir, const Numeric linemixinglimit, const Numeric fmin, const Numeric fmax, const Numeric stot, const ModeOfLineMixing mode);
+void read(HitranRelaxationMatrixData& hitran, ArrayOfAbsorptionLines& bands, const String& basedir, const Numeric linemixinglimit, const Numeric fmin, const Numeric fmax, const Numeric stot, const ModeOfLineMixing mode);
 
 };  // lm_hitran_2017
 

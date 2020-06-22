@@ -6,6 +6,8 @@
 #include "linefunctions.h"
 #include "physics_funcs.h"
 
+#include "wigner_functions.h"
+
 namespace lm_hitran_2017 {
 namespace parameters {
   static constexpr Index nBmx=7'000;  // Max Number of Bands
@@ -882,8 +884,8 @@ struct ConvTPOut {
 
 void calcw(ConvTPOut& out,
            const HitranRelaxationMatrixData& hitran,
-           const Numeric T,
-           const Index iband)
+           const AbsorptionLines& band,
+           const Numeric T)
 {
   Vector& Y = out.Y;
   Vector& g0 = out.hwt;
@@ -893,23 +895,22 @@ void calcw(ConvTPOut& out,
   Vector& pop = out.pop;
   Vector& dip = out.dip;
   MatrixView W = out.W.imag();
-  const AbsorptionLines& band = hitran.bands[iband];
   
   // Size of problem
   const Index n=Y.nelem();
   
   // Copies for local variables
-  Vector dip0 = hitran.dip0[iband];
+  const Rational li = band.UpperQuantumNumber(0, QuantumNumberType::l2);
+  const Rational lf = band.LowerQuantumNumber(0, QuantumNumberType::l2);
+  Vector dip0(n);
   std::vector<Rational> Ji(n), Jf(n);
   for (Index i=0; i<n; i++) {
     Ji[i] = band.UpperQuantumNumber(i, QuantumNumberType::J);
     Jf[i] = band.LowerQuantumNumber(i, QuantumNumberType::J);
+    dip0[i] = Absorption::reduced_rovibrational_dipole(Jf[i], Ji[i], lf, li, 1_rat);
   }
   
   Vector s(n);
-  const Rational li = band.UpperQuantumNumber(0, QuantumNumberType::l2);
-  const Rational lf = band.LowerQuantumNumber(0, QuantumNumberType::l2);
-  
   if (li > 8 or  abs(li - lf) > 1) {
     for (Index i=0; i<n; i++) {
       W(i, i) = g0[i];  // nb... units Hz/Pa
@@ -1224,15 +1225,12 @@ void convtp(CommonBlock& cmn,
 
 ConvTPOut convtp(const ConstVectorView vmrs,
                  const HitranRelaxationMatrixData& hitran,
+                 const AbsorptionLines& band,
                  const Numeric T,
                  const Numeric P,
-                 const Index iband,
                  const SpeciesAuxData::AuxType& partition_type,
                  const ArrayOfGriddedField1& partition_data)
 {
-  auto& band = hitran.bands[iband];
-  auto& pop0 = hitran.pop0[iband];
-  
   const Index n = band.NumLines();
   
   const Numeric QT = single_partition_function(T, partition_type, partition_data);
@@ -1243,17 +1241,19 @@ ConvTPOut convtp(const ConstVectorView vmrs,
   
   Vector wgt(n);
   for (Index i=0; i<n; i++) {
+    const Numeric pop0 = (band.g_upp(i) / QT0) * boltzman_factor(band.T0(), band.E0(i));
+
     out.f0[i] = band.F0(i);
-    out.pop[i] = pop0[i] * ratiopart * boltzman_ratio(T, band.T0(), band.E0(i));
+    out.pop[i] = pop0 * ratiopart * boltzman_ratio(T, band.T0(), band.E0(i));
     out.hwt[i] = band.Line(i).LineShape().G0(T, band.T0(), 1, vmrs);
     out.shft[i] = band.Line(i).LineShape().D0(T, band.T0(), 1, vmrs);
-    out.dip[i] = std::sqrt(band.I0(i)/(hitran.pop0[iband][i] * band.F0(i) * (1-stimulated_emission(band.T0(), band.F0(i)))));
+    out.dip[i] = std::sqrt(band.I0(i)/(pop0 * band.F0(i) * (1-stimulated_emission(band.T0(), band.F0(i)))));
     out.hwt2[i] = band.Line(i).LineShape().G2(T, band.T0(), 1, vmrs);
     wgt[i] = out.pop[i] * Constant::pow2(out.dip[i]);
   }
   
   // Calculate the relaxation matrix
-  calcw(out, hitran, T, iband);
+  calcw(out, hitran, band, T);
   
   // Adjust for pressure
   out.hwt *= P;
@@ -1562,6 +1562,7 @@ Vector compabs(
   const Numeric T,
   const Numeric P,
   const HitranRelaxationMatrixData& hitran,
+  const ArrayOfAbsorptionLines& bands,
   const ConstVectorView vmrs,
   const ConstVectorView f_grid,
   const SpeciesAuxData& partition_functions)
@@ -1581,20 +1582,20 @@ Vector compabs(
   constexpr Numeric u_pi = Constant::inv_pi;
   constexpr Numeric u_sqln2pi = 1 / sq_ln2pi;
   
-  for (Index iband=0; iband<hitran.bands.nelem(); iband++) {
-    auto tp = convtp(vmrs, hitran, T, P, iband, partition_functions.getParamType(hitran.bands[iband].QuantumIdentity()), partition_functions.getParam(hitran.bands[iband].QuantumIdentity()));
-    const Numeric GD_div_F0 = Linefunctions::DopplerConstant(T, hitran.bands[iband].SpeciesMass());
+  for (Index iband=0; iband<bands.nelem(); iband++) {
+    auto tp = convtp(vmrs, hitran, bands[iband], T, P, partition_functions.getParamType(bands[iband].QuantumIdentity()), partition_functions.getParam(bands[iband].QuantumIdentity()));
+    const Numeric GD_div_F0 = Linefunctions::DopplerConstant(T, bands[iband].SpeciesMass());
     
-    const bool nolm = not hitran.bands[iband].DoLineMixing(P);
-    const bool sdvp = hitran.bands[iband].LineShapeType() == LineShape::Type::SDVP;
-    const bool vp = hitran.bands[iband].LineShapeType() == LineShape::Type::VP;
-    const bool rosenkranz = hitran.bands[iband].Population() == Absorption::PopulationType::ByHITRANRosenkranzRelmat;
-    const bool full = hitran.bands[iband].Population() == Absorption::PopulationType::ByHITRANFullRelmat;
+    const bool nolm = not bands[iband].DoLineMixing(P);
+    const bool sdvp = bands[iband].LineShapeType() == LineShape::Type::SDVP;
+    const bool vp = bands[iband].LineShapeType() == LineShape::Type::VP;
+    const bool rosenkranz = bands[iband].Population() == Absorption::PopulationType::ByHITRANRosenkranzRelmat;
+    const bool full = bands[iband].Population() == Absorption::PopulationType::ByHITRANFullRelmat;
     
     for (Index iv=0; iv<nf; iv++) {
       const Numeric f = f_grid[iv];
       
-      for (Index iline=0; iline<hitran.bands[iband].NumLines(); iline++) {
+      for (Index iline=0; iline<bands[iband].NumLines(); iline++) {
         const Numeric gamd=GD_div_F0 * tp.f0[iline];
         const Numeric cte = sq_ln2 / gamd;
         const Numeric popudipo = tp.pop[iline] * pow2(tp.dip[iline]);
@@ -1631,16 +1632,6 @@ Vector compabs(
   }
   
   return absorption;
-}
-
-template<typename T> String toString(const T& val) {return String(val);}
-template<typename T> Index toIndex(const T& val) {return std::stol(toString(val));}
-template<typename T> Index toNumeric(const T& val)
-{
-  String s = toString(val);
-  std::replace(s.begin(), s.end(), 'D', 'E');
-  std::replace(s.begin(), s.end(), 'd', 'e');
-  return std::stod(val);
 }
 
 void detband(CommonBlock& cmn,
@@ -1777,7 +1768,6 @@ void readw(CommonBlock& cmn, const String& basedir="data_new/")
   }
 }
 
-
 Vector compute(const Numeric p, const Numeric t, const Numeric xco2, const Numeric xh2o, const ConstVectorView invcm_grid, const Numeric stotmax, const calctype type)
 {
   const Index n = invcm_grid.nelem();
@@ -1825,21 +1815,19 @@ Vector compute(const Numeric p, const Numeric t, const Numeric xco2, const Numer
   return absorption;
 }
 
-
 Vector compute(const HitranRelaxationMatrixData& hitran,
+               const ArrayOfAbsorptionLines& bands,
                const Numeric P,
                const Numeric T,
                const ConstVectorView vmrs,
                const ConstVectorView f_grid,
                const SpeciesAuxData& partition_functions)
 {
-  return f_grid.nelem() ? compabs(T, P, hitran, vmrs, f_grid, partition_functions) : Vector(0);
+  return f_grid.nelem() ? compabs(T, P, hitran, bands, vmrs, f_grid, partition_functions) : Vector(0);
 }
 
-HitranRelaxationMatrixData read(const String& basedir, const Numeric linemixinglimit, const Numeric fmin, const Numeric fmax, const Numeric stot, const ModeOfLineMixing mode)
+void read(HitranRelaxationMatrixData& hitran, ArrayOfAbsorptionLines& bands, const String& basedir, const Numeric linemixinglimit, const Numeric fmin, const Numeric fmax, const Numeric stot, const ModeOfLineMixing mode)
 {
-  HitranRelaxationMatrixData hitran;
-  
   String newbase = basedir;
   if (newbase.nelem() == 0)
     newbase = ".";
@@ -1902,36 +1890,31 @@ HitranRelaxationMatrixData read(const String& basedir, const Numeric linemixingl
   hitran.W0rr = std::move(cmn.Wfittedr.W0rr);
   
   // Reshape to band count size
-  hitran.dip0.resize(cmn.Bands.nBand);
-  hitran.pop0.resize(cmn.Bands.nBand);
-  hitran.bands.resize(cmn.Bands.nBand);
+  bands.resize(cmn.Bands.nBand);
   for (Index i{0}; i<cmn.Bands.nBand; i++) {
+    QuantumNumbers outer_upper; outer_upper[QuantumNumberType::l2] = Rational(cmn.Bands.li[i]);
+    QuantumNumbers outer_lower; outer_lower[QuantumNumberType::l2] = Rational(cmn.Bands.lf[i]);
     
-    hitran.bands[i] = {true,
-                       true,
-                       Absorption::CutoffType::None,
-                       Absorption::MirroringType::None,
-                       poptype,
-                       Absorption::NormalizationType::None,
-                       lstype,
-                       296,
-                       -1,
-                       linemixinglimit_internal,
-                       {specs[cmn.Bands.Isot[i]-1].Species(),
-                        specs[cmn.Bands.Isot[i]-1].Isotopologue(),
-                       QuantumNumbers{}, QuantumNumbers{}},
-                       {QuantumNumberType::J, QuantumNumberType::l2},
-                       {SpeciesTag("N2"), SpeciesTag("H2O"), specs[cmn.Bands.Isot[i]-1]}};
+    bands[i] = {true,
+                true,
+                Absorption::CutoffType::None,
+                Absorption::MirroringType::None,
+                poptype,
+                Absorption::NormalizationType::None,
+                lstype,
+                296,
+                -1,
+                linemixinglimit_internal,
+                {specs[cmn.Bands.Isot[i]-1].Species(),
+                specs[cmn.Bands.Isot[i]-1].Isotopologue(),
+                outer_upper, outer_lower},
+                {QuantumNumberType::J},
+                {SpeciesTag("N2"), SpeciesTag("H2O"), specs[cmn.Bands.Isot[i]-1]}};
                        
-    hitran.bands[i].AllLines().resize(cmn.Bands.nLines[i]);
-    hitran.dip0[i].resize(cmn.Bands.nLines[i]);;
-    hitran.pop0[i].resize(cmn.Bands.nLines[i]);;
+    bands[i].AllLines().resize(cmn.Bands.nLines[i]);
     for (Index j{0}; j<cmn.Bands.nLines[i]; j++) {
-      hitran.dip0[i][j] = cmn.DipoRigid.Dipo0(j, i) / 100;
-      hitran.pop0[i][j] = cmn.PopTrf.PopuT0(j, i) / 100;
-      
-      const std::vector<Rational> inner_upper{Rational(cmn.Jiln.Ji(j, i)), Rational(cmn.Bands.li[i]), };
-      const std::vector<Rational> inner_lower{Rational(cmn.Jfln.Jf(j, i)), Rational(cmn.Bands.lf[i]), };
+      const std::vector<Rational> inner_upper{Rational(cmn.Jiln.Ji(j, i))};
+      const std::vector<Rational> inner_lower{Rational(cmn.Jfln.Jf(j, i))};
       
       const LineShape::ModelParameters G0_sdvp_air{LineShape::TemperatureModel::T1,
         Conversion::hitran2arts_broadening(cmn.GamSDVT0AIR.HWSDVT0AIR(j, i)), 
@@ -1968,20 +1951,33 @@ HitranRelaxationMatrixData read(const String& basedir, const Numeric linemixingl
       const auto lsmodel = typeVP(mode) ?
         LineShape::Model{{vp_air, vp_h2o, vp_co2}} :
         LineShape::Model{{sdvp_air, sdvp_h2o, sdvp_co2}};
+        
+      Numeric qt0_co2, gsi0;
+      qt_co2(parameters::T0, cmn.Bands.Isot[i], gsi0, qt0_co2);
       
-      hitran.bands[i].Line(j) = {Conversion::kaycm2freq(cmn.LineSg.Sig(j, i)),
-                                 Conversion::hitran2arts_linestrength(cmn.DipoTcm.DipoT(j, i)*cmn.DipoTcm.DipoT(j, i)*(cmn.PopTrf.PopuT0(j,i) * cmn.LineSg.Sig(j,i) * (1-std::exp(-1.4388*cmn.LineSg.Sig(j,i)/296)))),
-                                 Conversion::hitran2arts_energy(cmn.Energy.E(j, i)),
-                                 Numeric(cmn.Jfln.Jf(j, i) * 2 + 1),
-                                 Numeric(cmn.Jiln.Ji(j, i) * 2 + 1),
-                                 std::numeric_limits<Numeric>::quiet_NaN(),
-                                 ZeemanModel{},
-                                 lsmodel,
-                                 inner_lower,
-                                 inner_upper};
+      bands[i].Line(j) = {Conversion::kaycm2freq(cmn.LineSg.Sig(j, i)),
+                          Conversion::hitran2arts_linestrength(cmn.DipoTcm.DipoT(j, i)*cmn.DipoTcm.DipoT(j, i)*(cmn.PopTrf.PopuT0(j,i) * cmn.LineSg.Sig(j,i) * (1-std::exp(-1.4388*cmn.LineSg.Sig(j,i)/296)))),
+                          Conversion::hitran2arts_energy(cmn.Energy.E(j, i)),
+                          gsi0*Numeric(cmn.Jfln.Jf(j, i) * 2 + 1),
+                          gsi0*Numeric(cmn.Jiln.Ji(j, i) * 2 + 1),
+                          std::numeric_limits<Numeric>::quiet_NaN(),
+                          ZeemanModel{},
+                          lsmodel,
+                          inner_lower,
+                          inner_upper};
+
+//       // Calculations of internal dipole and populations are approximately
+//       auto jf = bands[i].LowerQuantumNumber(j, QuantumNumberType::J);
+//       auto ji = bands[i].UpperQuantumNumber(j, QuantumNumberType::J);
+//       auto lf = bands[i].LowerQuantumNumber(j, QuantumNumberType::l2);
+//       auto li = bands[i].UpperQuantumNumber(j, QuantumNumberType::l2);
+//       Numeric dip0 = pow(-1, lf+jf) * sqrt(2*jf+1) * wigner3j(ji, 1_rat, jf, li, lf-li, -lf);
+//       const Numeric pop0 = (bands[i].Line(j).g_upp() / qt0_co2)*boltzman_factor(296, bands[i].Line(j).E0());
+//       std::cout << ((jf-ji) < 0 ? '-':'+') << abs(jf-ji)<<' ' <<li<<' '<<lf
+//           <<' '<<std::abs(Index((cmn.DipoRigid.Dipo0(j, i) / dip0 - 1) * 1'000'000)) << " ppm absolute error;"
+//           <<' '<<std::abs(Index((cmn.PopTrf.PopuT0(j, i) / pop0 - 1) * 1'000'000)) << " ppm absolute error;"
+//           <<'\n';
     }
   }
-  
-  return hitran;
 }
 };
