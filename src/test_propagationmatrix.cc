@@ -624,7 +624,7 @@ void test_hitran2017(bool newtest = true)
   const Numeric sigmin = 600;
   const Numeric sigmax = 900;
   const Numeric dsig = 0.005;
-  const Numeric stotmax = 0.1e-21;
+  const Numeric stotmax = 0.1e-27;
   
   const Index nsig = Index(((sigmax - sigmin) / dsig) + 0.5) + 1;
   Vector invcm_grid(nsig);
@@ -649,7 +649,7 @@ void test_hitran2017(bool newtest = true)
   make_wigner_ready(int(250), int(20000000), 6);
   
   ArrayOfAbsorptionLines bands;
-  lm_hitran_2017::HitranRelaxationMatrixData hitran;
+  HitranRelaxationMatrixData hitran;
   for (Index i=0;i<5; i++) {
     auto type=types[i];
     

@@ -602,6 +602,7 @@ int main() {
         << "#include \"artstime.h\"\n"
         << "#include \"gas_abs_lookup.h\"\n"
         << "#include \"gridded_fields.h\"\n"
+        << "#include \"linemixing_hitran.h\"\n"
         << "#include \"optproperties.h\"\n"
         << "#include \"jacobian.h\"\n"
         << "#include \"mc_antenna.h\"\n"

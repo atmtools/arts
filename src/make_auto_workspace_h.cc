@@ -57,6 +57,7 @@ int main() {
         << "#include \"artstime.h\"\n"
         << "#include \"ppath.h\"\n"
         << "#include \"gas_abs_lookup.h\"\n"
+        << "#include \"linemixing_hitran.h\"\n"
         << "#include \"optproperties.h\"\n"
         << "#include \"gridded_fields.h\"\n"
         << "#include \"jacobian.h\"\n"

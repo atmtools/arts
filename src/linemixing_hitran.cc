@@ -1,3 +1,29 @@
+/* Copyright (C) 2020
+ * Richard Larsson <larsson@mps.mpg.de>
+ * 
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2, or (at your option) any
+ * later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
+ * USA. */
+
+/**
+ * @file linemixing_hitran.cc
+ * @author Richard Larsson
+ * @date 2020-06-23
+ * 
+ * @brief Namespace and functions to deal with HITRAN linemixing
+ */
+
 #include <fstream>
 #include <Faddeeva/Faddeeva.hh>
 #include "linemixing_hitran.h"
@@ -222,7 +248,37 @@ struct DiagnI {
 struct YLT {
   std::array<Numeric, parameters::nLmx> YT;
 } YLT;
+
+struct UnusedBandParams {
+  Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> intens;
+  Eigen::Matrix<Numeric, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> eina;
+  std::array<Rational, parameters::nBmx> iv1;
+  std::array<Rational, parameters::nBmx> iv2;
+  std::array<Rational, parameters::nBmx> il2;
+  std::array<Rational, parameters::nBmx> iv3;
+  std::array<Rational, parameters::nBmx> ir;
+  std::array<Rational, parameters::nBmx> fv1;
+  std::array<Rational, parameters::nBmx> fv2;
+  std::array<Rational, parameters::nBmx> fl2;
+  std::array<Rational, parameters::nBmx> fv3;
+  std::array<Rational, parameters::nBmx> fr;
+  UnusedBandParams() :
+  intens(parameters::nLmx, parameters::nBmx),
+  eina(parameters::nLmx, parameters::nBmx) {};
+} UnusedBandParams;
 };  // CommonBlock
+
+Rational toRationalSum(char a, char b=' ')
+{
+  if (b == ' ' and a == ' ')
+    return Rational();
+  else if (b == ' ')
+    return Rational(a-'0');
+  else if (a == ' ')
+    return Rational(b-'0');
+  else
+    return Rational(10*(a-'0') + b-'0');
+}
 
 void readlines(CommonBlock& cmn, const String& basedir="data_new/")
 {
@@ -244,21 +300,27 @@ void readlines(CommonBlock& cmn, const String& basedir="data_new/")
           throw std::runtime_error("Too many lines");
         
         char tpline, x;
-        Numeric intens, eina;
         char sDipoRigid[21], sPopTrf[21];
+        char iv11, iv12, iv21, iv22, il21, il22, iv31, iv32, ir1, fv11, fv12, fv21, fv22, fl21, fl22, fv31, fv32, fr1;
+        
         sscanf(line.c_str(), 
                "%c%c" "%1ld" "%12lf" "%10lf"
                "%10lf" "%5lf" "%5lf" "%4lf"
                "%5lf" "%5lf" "%4lf" "%10lf"
-               "%4lf" "%4lf" "%8lf" "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c"
-               "%c" "%3ld" "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c" "%5lf"
-               "%5lf" "%4lf" "%5lf"
+               "%4lf" "%4lf" "%8lf" 
+               "%c%c%c%c%c%c"
+               "%c%c" "%c%c" "%c%c" "%c%c" "%c"
+               "%c%c%c%c%c%c"
+               "%c%c" "%c%c" "%c%c" "%c%c" "%c"
+               "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c"
+               "%c" "%3ld" "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c"
+               "%5lf" "%5lf" "%4lf" "%5lf"
                "%20s" "%20s",
                &x,&x,
                &cmn.Bands.Isot[iband],
                &cmn.LineSg.Sig(nliner, iband),
-               &intens,
-               &eina,
+               &cmn.UnusedBandParams.intens(nliner, iband),
+               &cmn.UnusedBandParams.eina(nliner, iband),
                &cmn.GamVT0AIR.HWVT0AIR(nliner, iband),
                &cmn.GamSDVT0AIR.HWSDVT0AIR(nliner, iband),
                &cmn.GamSDVT0AIR.rHWT0AIR(nliner, iband),
@@ -269,7 +331,11 @@ void readlines(CommonBlock& cmn, const String& basedir="data_new/")
                &cmn.DTGAMAIR.BHWAIR(nliner, iband),
                &cmn.DTGAMCO2.BHWSELF(nliner, iband),
                &cmn.SHIFT0.shft0(nliner, iband),
-               &x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,
+               &x,&x,&x,&x,&x,&x,
+               &iv11, &iv12, &iv21, &iv22, &il21, &il22, &iv31, &iv32, &ir1,  &fv32, &fr1,
+               &x,&x,&x,&x,&x,&x,
+               &fv11, &fv12, &fv21, &fv22, &fl21, &fl22, &fv31,
+               &x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,
                &tpline,
                &cmn.Jiln.Ji(nliner, iband),
                &x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,&x,
@@ -281,6 +347,31 @@ void readlines(CommonBlock& cmn, const String& basedir="data_new/")
                sPopTrf);
         getline(fortranfile, line);
         
+        if (nliner==0) {
+          cmn.UnusedBandParams.iv1[iband]=Rational(toRationalSum(iv11, iv12));
+          cmn.UnusedBandParams.iv2[iband]=Rational(toRationalSum(iv21, iv22));
+          cmn.UnusedBandParams.il2[iband]=Rational(toRationalSum(il21, il22));
+          cmn.UnusedBandParams.iv3[iband]=Rational(toRationalSum(iv31, iv32));
+          cmn.UnusedBandParams.ir[iband]=Rational(toRationalSum(ir1));
+          cmn.UnusedBandParams.fv1[iband]=Rational(toRationalSum(fv11, fv12));
+          cmn.UnusedBandParams.fv2[iband]=Rational(toRationalSum(fv21, fv22));
+          cmn.UnusedBandParams.fl2[iband]=Rational(toRationalSum(fl21, fl22));
+          cmn.UnusedBandParams.fv3[iband]=Rational(toRationalSum(fv31, fv32));
+          cmn.UnusedBandParams.fr[iband]=Rational(toRationalSum(fr1));
+        } else if(not (
+          cmn.UnusedBandParams.iv1[iband]==Rational(toRationalSum(iv11, iv12)) and
+          cmn.UnusedBandParams.iv2[iband]==Rational(toRationalSum(iv21, iv22)) and
+          cmn.UnusedBandParams.il2[iband]==Rational(toRationalSum(il21, il22)) and
+          cmn.UnusedBandParams.iv3[iband]==Rational(toRationalSum(iv31, iv32)) and
+          cmn.UnusedBandParams.ir[iband]==Rational(toRationalSum(ir1)) and
+          cmn.UnusedBandParams.fv1[iband]==Rational(toRationalSum(fv11, fv12)) and
+          cmn.UnusedBandParams.fv2[iband]==Rational(toRationalSum(fv21, fv22)) and
+          cmn.UnusedBandParams.fl2[iband]==Rational(toRationalSum(fl21, fl22)) and
+          cmn.UnusedBandParams.fv3[iband]==Rational(toRationalSum(fv31, fv32)) and
+          cmn.UnusedBandParams.fr[iband]==Rational(toRationalSum(fr1)))) {
+          throw std::runtime_error("Bad read, bands do not have the same global quantum numbers...");
+        }
+        
         // Fix...
         String ssDipoRigid = sDipoRigid;
         String ssPopTrf = sPopTrf;
@@ -290,7 +381,7 @@ void readlines(CommonBlock& cmn, const String& basedir="data_new/")
         cmn.PopTrf.PopuT0(nliner, iband) = std::stod(ssPopTrf);
         
         // Dipole at temperature
-        cmn.DipoTcm.DipoT(nliner, iband) = std::sqrt(intens/(cmn.PopTrf.PopuT0(nliner,iband) * cmn.LineSg.Sig(nliner,iband) * (1-std::exp(-1.4388*cmn.LineSg.Sig(nliner,iband)/296))));
+        cmn.DipoTcm.DipoT(nliner, iband) = std::sqrt(cmn.UnusedBandParams.intens(nliner, iband)/(cmn.PopTrf.PopuT0(nliner,iband) * cmn.LineSg.Sig(nliner,iband) * (1-std::exp(-1.4388*cmn.LineSg.Sig(nliner,iband)/296))));
         
         // Fix Js
         if (tpline == 'P')
@@ -900,8 +991,8 @@ void calcw(ConvTPOut& out,
   const Index n=Y.nelem();
   
   // Copies for local variables
-  const Rational li = band.UpperQuantumNumber(0, QuantumNumberType::l2);
-  const Rational lf = band.LowerQuantumNumber(0, QuantumNumberType::l2);
+  const Rational li = band.UpperQuantumNumber(0, QuantumNumberType::l1);
+  const Rational lf = band.LowerQuantumNumber(0, QuantumNumberType::l1);
   Vector dip0(n);
   std::vector<Rational> Ji(n), Jf(n);
   for (Index i=0; i<n; i++) {
@@ -1892,8 +1983,20 @@ void read(HitranRelaxationMatrixData& hitran, ArrayOfAbsorptionLines& bands, con
   // Reshape to band count size
   bands.resize(cmn.Bands.nBand);
   for (Index i{0}; i<cmn.Bands.nBand; i++) {
-    QuantumNumbers outer_upper; outer_upper[QuantumNumberType::l2] = Rational(cmn.Bands.li[i]);
-    QuantumNumbers outer_lower; outer_lower[QuantumNumberType::l2] = Rational(cmn.Bands.lf[i]);
+    QuantumNumbers outer_upper;
+    outer_upper[QuantumNumberType::l1] = Rational(cmn.Bands.li[i]);
+    outer_upper[QuantumNumberType::v1] = cmn.UnusedBandParams.iv1[i];
+    outer_upper[QuantumNumberType::v2] = cmn.UnusedBandParams.iv2[i];
+    outer_upper[QuantumNumberType::l2] = cmn.UnusedBandParams.il2[i];
+    outer_upper[QuantumNumberType::v3] = cmn.UnusedBandParams.iv3[i];
+    outer_upper[QuantumNumberType::r] = cmn.UnusedBandParams.ir[i];
+    QuantumNumbers outer_lower;
+    outer_lower[QuantumNumberType::l1] = Rational(cmn.Bands.lf[i]);
+    outer_lower[QuantumNumberType::v1] = cmn.UnusedBandParams.fv1[i];
+    outer_lower[QuantumNumberType::v2] = cmn.UnusedBandParams.fv2[i];
+    outer_lower[QuantumNumberType::l2] = cmn.UnusedBandParams.fl2[i];
+    outer_lower[QuantumNumberType::v3] = cmn.UnusedBandParams.fv3[i];
+    outer_lower[QuantumNumberType::r] = cmn.UnusedBandParams.fr[i];
     
     bands[i] = {true,
                 true,
@@ -1955,12 +2058,13 @@ void read(HitranRelaxationMatrixData& hitran, ArrayOfAbsorptionLines& bands, con
       Numeric qt0_co2, gsi0;
       qt_co2(parameters::T0, cmn.Bands.Isot[i], gsi0, qt0_co2);
       
+      // Should probably use the isotopologue ratio
       bands[i].Line(j) = {Conversion::kaycm2freq(cmn.LineSg.Sig(j, i)),
-                          Conversion::hitran2arts_linestrength(cmn.DipoTcm.DipoT(j, i)*cmn.DipoTcm.DipoT(j, i)*(cmn.PopTrf.PopuT0(j,i) * cmn.LineSg.Sig(j,i) * (1-std::exp(-1.4388*cmn.LineSg.Sig(j,i)/296)))),
+                          Conversion::hitran2arts_linestrength(cmn.UnusedBandParams.intens(j, i)),
                           Conversion::hitran2arts_energy(cmn.Energy.E(j, i)),
                           gsi0*Numeric(cmn.Jfln.Jf(j, i) * 2 + 1),
                           gsi0*Numeric(cmn.Jiln.Ji(j, i) * 2 + 1),
-                          std::numeric_limits<Numeric>::quiet_NaN(),
+                          cmn.UnusedBandParams.eina(j, i),
                           ZeemanModel{},
                           lsmodel,
                           inner_lower,
@@ -1969,8 +2073,8 @@ void read(HitranRelaxationMatrixData& hitran, ArrayOfAbsorptionLines& bands, con
 //       // Calculations of internal dipole and populations are approximately
 //       auto jf = bands[i].LowerQuantumNumber(j, QuantumNumberType::J);
 //       auto ji = bands[i].UpperQuantumNumber(j, QuantumNumberType::J);
-//       auto lf = bands[i].LowerQuantumNumber(j, QuantumNumberType::l2);
-//       auto li = bands[i].UpperQuantumNumber(j, QuantumNumberType::l2);
+//       auto lf = bands[i].LowerQuantumNumber(j, QuantumNumberType::l1);
+//       auto li = bands[i].UpperQuantumNumber(j, QuantumNumberType::l1);
 //       Numeric dip0 = pow(-1, lf+jf) * sqrt(2*jf+1) * wigner3j(ji, 1_rat, jf, li, lf-li, -lf);
 //       const Numeric pop0 = (bands[i].Line(j).g_upp() / qt0_co2)*boltzman_factor(296, bands[i].Line(j).E0());
 //       std::cout << ((jf-ji) < 0 ? '-':'+') << abs(jf-ji)<<' ' <<li<<' '<<lf
@@ -1981,3 +2085,4 @@ void read(HitranRelaxationMatrixData& hitran, ArrayOfAbsorptionLines& bands, con
   }
 }
 };
+

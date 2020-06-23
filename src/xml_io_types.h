@@ -45,6 +45,7 @@
 #include "gridded_fields.h"
 #include "hitran_xsec.h"
 #include "jacobian.h"
+#include "linemixing_hitran.h"
 #include "m_general.h"
 #include "matpackII.h"
 #include "matpackVII.h"
@@ -105,6 +106,7 @@ TMPL_XML_READ_WRITE_STREAM(GriddedField5)
 TMPL_XML_READ_WRITE_STREAM(GriddedField6)
 TMPL_XML_READ_WRITE_STREAM(GasAbsLookup)
 TMPL_XML_READ_WRITE_STREAM(GridPos)
+TMPL_XML_READ_WRITE_STREAM(HitranRelaxationMatrixData)
 TMPL_XML_READ_WRITE_STREAM(IsotopologueRecord)
 TMPL_XML_READ_WRITE_STREAM(MCAntenna)
 TMPL_XML_READ_WRITE_STREAM(Ppath)

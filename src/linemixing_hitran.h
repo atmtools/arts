@@ -1,3 +1,29 @@
+/* Copyright (C) 2020
+ * Richard Larsson <larsson@mps.mpg.de>
+ * 
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2, or (at your option) any
+ * later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
+ * USA. */
+
+/**
+ * @file linemixing_hitran.h
+ * @author Richard Larsson
+ * @date 2020-06-23
+ * 
+ * @brief Namespace and functions to deal with HITRAN linemixing
+ */
+
 #ifndef LINEMIXING_HITRAN_H
 #define LINEMIXING_HITRAN_H
 
@@ -7,6 +33,34 @@
 #include "linescaling.h"
 #include "matpackIV.h"
 #include "mystring.h"
+
+
+struct HitranRelaxationMatrixData {
+  Tensor4 W0pp, B0pp;
+  Tensor4 W0rp, B0rp;
+  Tensor4 W0qp, B0qp;
+  
+  Tensor4 W0pr, B0pr;
+  Tensor4 W0rr, B0rr;
+  Tensor4 W0qr, B0qr;
+  
+  Tensor4 W0pq, B0pq;
+  Tensor4 W0rq, B0rq;
+  Tensor4 W0qq, B0qq;
+  HitranRelaxationMatrixData() {}
+  friend std::ostream& operator<<(std::ostream& os, const HitranRelaxationMatrixData& hit) {
+    return os << hit.W0pp << '\n' << hit.B0pp << '\n'
+              << hit.W0rp << '\n' << hit.B0rp << '\n'
+              << hit.W0qp << '\n' << hit.B0qp << '\n'
+              << hit.W0pr << '\n' << hit.B0pr << '\n'
+              << hit.W0rr << '\n' << hit.B0rr << '\n'
+              << hit.W0qr << '\n' << hit.B0qr << '\n'
+              << hit.W0pq << '\n' << hit.B0pq << '\n'
+              << hit.W0rq << '\n' << hit.B0rq << '\n'
+              << hit.W0qq << '\n' << hit.B0qq << '\n';
+  }
+};
+
 
 namespace lm_hitran_2017 {
 enum class calctype {
@@ -28,20 +82,6 @@ Vector compute(const Numeric p,
                const ConstVectorView invcm_grid,
                const Numeric stotmax,
                const calctype type=calctype::FullW);
-
-struct HitranRelaxationMatrixData {
-  Tensor4 W0pp, B0pp;
-  Tensor4 W0rp, B0rp;
-  Tensor4 W0qp, B0qp;
-  
-  Tensor4 W0pr, B0pr;
-  Tensor4 W0rr, B0rr;
-  Tensor4 W0qr, B0qr;
-  
-  Tensor4 W0pq, B0pq;
-  Tensor4 W0rq, B0rq;
-  Tensor4 W0qq, B0qq;
-};
 
 /** Compute the absorptionlines
  * 
