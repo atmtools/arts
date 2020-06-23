@@ -337,7 +337,10 @@ BasicInterfaceCAPI(ArrayOfArrayOfAbsorptionLines)
 BasicInputOutputCAPI(ArrayOfArrayOfAbsorptionLines)
 void printmetaAbsorptionLines(void * data) { std::cout << static_cast<AbsorptionLines *>(data) -> MetaData() << std::endl; }
 Index isAbsorptionLinesOK(void * data) { return Index(static_cast<AbsorptionLines *>(data) -> OK()); }
-
+void * getSpeciesNameAbsorptionLines(void * data) {
+  String *s = new String(static_cast<AbsorptionLines *>(data)->SpeciesName());
+  return (void *)s;
+}
 
 // EnergyLevelMap
 BasicInterfaceCAPI(EnergyLevelMap)

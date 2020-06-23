@@ -30,6 +30,7 @@
 #define _ARTS_ARTS_API_CLASS_H_
 
 #include "matpack.h"
+#include "mystring.h"
 
 #ifndef DLL_PUBLIC
 #define DLL_PUBLIC __attribute__((visibility("default")))
@@ -230,7 +231,8 @@ extern "C" {
     BasicInputOutputCAPI(ArrayOfArrayOfAbsorptionLines)
     DLL_PUBLIC void printmetaAbsorptionLines(void *);
     DLL_PUBLIC Index isAbsorptionLinesOK(void *);
-    
+    DLL_PUBLIC void * getSpeciesNameAbsorptionLines(void *);
+
     // EnergyLevelMap
     BasicInterfaceCAPI(EnergyLevelMap)
     BasicInputOutputCAPI(EnergyLevelMap)
