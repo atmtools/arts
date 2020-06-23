@@ -2,6 +2,7 @@ import ctypes as c
 from collections.abc import Sized
 from pyarts.workspace.api import arts_api as lib
 
+from pyarts.classes.BasicTypes import String
 from pyarts.classes.AbsorptionSingleLine import AbsorptionSingleLine
 from pyarts.classes.LineShapeModel import LineShapeModel
 from pyarts.classes.QuantumIdentifier import QuantumIdentifier
@@ -402,6 +403,10 @@ class AbsorptionLines:
             return True
         else:
             return False
+    
+    @property
+    def species_name(self):
+        return String(c.c_void_p(lib.getAbsorptionLinesSpeciesName(self.__data__)), unsafe_copy=True)
 
 
 # Generate ArrayOfAbsorptionLines
@@ -531,3 +536,6 @@ lib.getelemAllLinesAbsorptionLines.argtypes = [c.c_long, c.c_void_p]
 
 lib.isAbsorptionLinesOK.restype = c.c_long
 lib.isAbsorptionLinesOK.argtypes = [c.c_void_p]
+
+lib.getAbsorptionLinesSpeciesName.restype = c.c_void_p
+lib.getAbsorptionLinesSpeciesName.argtypes = [c.c_void_p]

@@ -313,14 +313,17 @@ class Numeric:
 
 class String:
     """ ARTS String data
-
+    
+    Use unsafe_copy only if you know you are receiving an otherwise dangling
+    pointer
+    
     Properties:
         val:
             a value (str)
     """
-    def __init__(self, value):
+    def __init__(self, value, unsafe_copy=False):
         if isinstance(value, c.c_void_p):
-            self.__delete__ = False
+            self.__delete__ = unsafe_copy
             self.__data__ = value
         else:
             self.__delete__ = True
