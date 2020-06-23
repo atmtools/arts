@@ -317,10 +317,12 @@ class String:
     Properties:
         val:
             a value (str)
+        delete:
+            free memory after use, default False (bool)
     """
-    def __init__(self, value):
+    def __init__(self, value, delete=False):
         if isinstance(value, c.c_void_p):
-            self.__delete__ = False
+            self.__delete__ = delete
             self.__data__ = value
         else:
             self.__delete__ = True
