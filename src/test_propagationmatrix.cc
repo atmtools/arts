@@ -624,7 +624,7 @@ void test_hitran2017(bool newtest = true)
   const Numeric sigmin = 600;
   const Numeric sigmax = 900;
   const Numeric dsig = 0.005;
-  const Numeric stotmax = 0.1e-27;
+  const Numeric stotmax = 0.1e-21;
   
   const Index nsig = Index(((sigmax - sigmin) / dsig) + 0.5) + 1;
   Vector invcm_grid(nsig);
@@ -653,7 +653,7 @@ void test_hitran2017(bool newtest = true)
   for (Index i=0;i<5; i++) {
     auto type=types[i];
     
-    lm_hitran_2017::read(hitran, bands, "data_new", -1, Conversion::kaycm2freq(600), Conversion::kaycm2freq(900), Conversion::arts2hitran_linestrength(stotmax), type.first);
+    lm_hitran_2017::read(hitran, bands, "data_new", -1, Conversion::kaycm2freq(600), Conversion::kaycm2freq(900), Conversion::hitran2arts_linestrength(stotmax), type.first);
     Vector vmrs = {1-xco2/100-xh2o/100, xh2o/100, xco2/100};
     SpeciesAuxData partition_functions;
     partition_functionsInitFromBuiltin(partition_functions, Verbosity());

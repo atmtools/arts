@@ -1735,6 +1735,9 @@ void detband(CommonBlock& cmn,
   std::ifstream fortranfile;
   fortranfile.open(basedir + "/BandInfo.dat");
   
+  if (not fortranfile.is_open())
+    throw std::runtime_error("Cannot read the file.  Please make sure you point at BandInfo.dat basedir and have the right to read.");
+  
   String line;
   getline(fortranfile, line);
   while (fortranfile.good()) {
@@ -1924,7 +1927,7 @@ void read(HitranRelaxationMatrixData& hitran, ArrayOfAbsorptionLines& bands, con
     newbase = ".";
   
   CommonBlock cmn;
-  detband(cmn, Conversion::freq2kaycm(fmin), Conversion::freq2kaycm(fmax), Conversion::hitran2arts_linestrength(stot), newbase);
+  detband(cmn, Conversion::freq2kaycm(fmin), Conversion::freq2kaycm(fmax), Conversion::arts2hitran_linestrength(stot), newbase);
   readw(cmn, newbase);
   readlines(cmn, newbase);
   

@@ -423,6 +423,38 @@ void define_md_data_raw() {
       GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
+    NAME("abs_hitran_relmat_dataReadHitranRelmatDataAndLines"),
+      DESCRIPTION("Reads HITRAN line mixing data from a basedir\n"
+        "The basedir must pooint at line mixing data as provided by HITRAN\n"
+        "The lines will be cahnged such that ALL CO2 lines are truncated\n"
+        "before adding the HITRAN line mixing lines\n"
+        "\n"
+        "The available modes are such that \"VP*\" uses Voigt profiler and\n"
+        "\"SDVP*\" uses speed-dependent Voigt profiles, where the \"_Y\"\n"
+        "signifies if Rosenkranz-style line mixing is considered or not.  At\n"
+        "the line mixing limit, Rosenkranz line mixing is turned off\n"
+        "\n"
+        "The \"FullW\" mode uses Lorentzian calculations with the full relaxation\n"
+        "matrix until the line mixing limit is reached when it switches to Voigt.\n"
+      ),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_hitran_relmat_data", "abs_lines_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species", "abs_species"),
+      GIN("basedir", "linemixinglimit", "fmin", "fmax", "stot", "mode"),
+      GIN_TYPE("String", "Numeric", "Numeric", "Numeric", "Numeric", "String"),
+      GIN_DEFAULT(NODEF, "-1", "0", "1e99", "0", "FullW"),
+      GIN_DESC("Direcory where the linemixing data is to be found",
+               "Line mixing limit as defined by *AbsorptionLines*",
+               "Minimum frequency to read from",
+               "Maximum frequency to read from",
+               "Minimum integrated band strength to consider",
+               "Mode of calculations.  The options are: \"VP\", \"VP_Y\", \"SDVP\", \"SDVP_Y\", and \"FullW\""
+              )));
+
+  md_data_raw.push_back(create_mdrecord(
     NAME("abs_linesCleanupEmpty"),
       DESCRIPTION("Removes empty bands from *abs_lines*.\n"),
       AUTHORS("Richard Larsson"),
@@ -12606,6 +12638,34 @@ void define_md_data_raw() {
       GIN_TYPE("Numeric"),
       GIN_DEFAULT("0.5"),
       GIN_DESC("Extrapolation factor (for temperature and VMR grid edges).")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("propmat_clearskyAddHitranLineMixingLines"),
+      DESCRIPTION(
+          "Calculates gas absorption coefficients line-by-line for HITRAN line mixed data.\n"
+          "\n"
+          "\n"
+          "Please ensure you cite the original authors when you use this function:\n"
+          "\tJ. Lamouroux, L. Realia, X. Thomas, et al., J.Q.S.R.T. 151 (2015), 88-96\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("propmat_clearsky"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("propmat_clearsky",
+         "abs_hitran_relmat_data",
+         "abs_lines_per_species",
+         "f_grid",
+         "abs_species",
+         "jacobian_quantities",
+         "partition_functions",
+         "rtp_pressure",
+         "rtp_temperature",
+         "rtp_vmr"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("propmat_clearskyAddOnTheFly"),
