@@ -8,7 +8,7 @@ from pyarts.classes.QuantumIdentifier import QuantumIdentifier
 from pyarts.classes.QuantumNumbers import QuantumNumbers
 from pyarts.classes.Rational import Rational
 from pyarts.classes.SpeciesTag import ArrayOfSpeciesTag
-from pyarts.classes.BasicTypes import Index
+from pyarts.classes.BasicTypes import Index, String
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 from pyarts.classes.ArrayBase import array_base
 
@@ -110,6 +110,15 @@ class AbsorptionLines:
     def OK(self):
         """ Returns whether the class is OK or not """
         return bool(lib.isAbsorptionLinesOK(self.__data__))
+
+    @property
+    def species_name(self):
+        """ Return the name of the species """
+        if self.OK:
+            species = c.c_void_p(lib.getSpeciesNameAbsorptionLines(self.__data__))
+            return String(species, delete=True).val
+        else:
+            raise RuntimeError("Cannot access SpeciesName; class is not OK")
 
     @property
     def selfbroadening(self):
@@ -531,3 +540,6 @@ lib.getelemAllLinesAbsorptionLines.argtypes = [c.c_long, c.c_void_p]
 
 lib.isAbsorptionLinesOK.restype = c.c_long
 lib.isAbsorptionLinesOK.argtypes = [c.c_void_p]
+
+lib.getSpeciesNameAbsorptionLines.restype = c.c_void_p
+lib.getSpeciesNameAbsorptionLines.argtypes = [c.c_void_p]

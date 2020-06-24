@@ -230,7 +230,8 @@ extern "C" {
     BasicInputOutputCAPI(ArrayOfArrayOfAbsorptionLines)
     DLL_PUBLIC void printmetaAbsorptionLines(void *);
     DLL_PUBLIC Index isAbsorptionLinesOK(void *);
-    
+    DLL_PUBLIC void * getSpeciesNameAbsorptionLines(void *);
+
     // EnergyLevelMap
     BasicInterfaceCAPI(EnergyLevelMap)
     BasicInputOutputCAPI(EnergyLevelMap)
