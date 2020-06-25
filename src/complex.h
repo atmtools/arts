@@ -27,6 +27,7 @@
 #define complex_h
 
 #include <complex>
+#include "lapack.h"
 #include "matpackI.h"
 
 typedef std::complex<Numeric> Complex;
@@ -59,6 +60,8 @@ inline std::complex<float> operator*(const std::complex<float>& c,
 
 /** squared magnitude of c */
 constexpr Numeric abs2(Complex c) { return a1 * a1 + b1 * b1; }
+
+/** the conjugate of c */
 constexpr Complex conj(Complex c) { return Complex(a1, -b1); }
 
 // Basic constexpr operations for Complex that don't exist in the standard yet (C++11)
@@ -866,6 +869,9 @@ class ComplexMatrix : public ComplexMatrixView {
   ComplexMatrix& operator=(ComplexMatrix x);
   ComplexMatrix& operator=(Complex x);
   ComplexMatrix& operator=(const ConstComplexVectorView& v);
+  
+  // Inverse in place
+  ComplexMatrix& inv(const lapack_help::Inverse<Complex>& help=lapack_help::Inverse<Complex>{0});
 
   // Resize function:
   void resize(Index r, Index c);

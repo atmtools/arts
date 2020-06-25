@@ -1485,6 +1485,26 @@ ComplexMatrix::~ComplexMatrix() {
   delete[] mdata;
 }
 
+ComplexMatrix& ComplexMatrix::inv(const lapack_help::Inverse<Complex>& help)
+{
+  assert(ncols() == nrows());
+  
+  // help's internal variables are all mutable, so const is just for default parameter and to not use copies
+  help.resize_if_smaller(int(ncols()));
+  
+  // Compute LU decomposition using LAPACK dgetrf_.
+  int info;
+  lapack::zgetrf_(help.size(), help.size(), mdata, help.size(), help.ipivdata(), &info);
+  lapack::zgetri_(help.size(), mdata, help.size(), help.ipivdata(), help.workdata(), help.lsize(), &info);
+  
+  // Check for success.
+  if (info not_eq 0) {
+    throw runtime_error("Error inverting matrix: Matrix not of full rank.");
+  }
+  
+  return *this;
+}
+
 /** Const version of transpose. */
 ConstComplexMatrixView transpose(ConstComplexMatrixView m) {
   return ConstComplexMatrixView(m.mdata, m.mcr, m.mrr);

@@ -9,7 +9,43 @@
 
 */
 
+#ifndef LAPACK_H
+#define LAPACK_H
+
 #include <complex>
+#include <vector>
+
+#include "matpack.h"
+
+namespace lapack_help {
+  
+  /** Struct cannot be const, but can be passed as const to allow defaults */
+  template <typename T> struct Inverse {
+    mutable int n;
+    mutable int lwork;
+    mutable std::vector<T> work;
+    mutable std::vector<int> ipiv;
+    
+    explicit Inverse(Index N) noexcept : n(int(N)), lwork(int(N)), work(N), ipiv(N) {}
+    
+    bool resize_if_smaller(Index N) const {
+      if (N>n) {
+        n=int(N);
+        lwork=int(N);
+        work.resize(N);
+        ipiv.resize(N);
+        return true;
+      } else {
+        return false;
+      }
+    }
+    
+    int* size() const noexcept {return &n;}
+    int* lsize() const noexcept {return &lwork;}
+    T* workdata() const noexcept {return work.data();}
+    int* ipivdata() const noexcept {return ipiv.data();}
+  };
+};
 
 namespace lapack {
 
@@ -224,3 +260,5 @@ extern "C" void zgeev_(char *jobvl,
                        double *rwork,
                        int *info);
 }  // namespace lapack
+
+#endif  // LAPACK_H
