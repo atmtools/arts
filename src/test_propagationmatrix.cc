@@ -38,6 +38,9 @@
 #include "predefined_absorption_models.h"
 #include "wigner_functions.h"
 
+#include "linemixing_hitran.h"
+#include <auto_md.h>
+
 void test_matrix_buildup() {
   const Numeric k11 = 1;
   const Numeric k12 = -0.51;
@@ -614,7 +617,6 @@ void test_ecs20()
   std::cout<<"])\n";
 }
 
-#include "linemixing_hitran.h"
 void test_hitran2017(bool newtest = true)
 {
   const Numeric p = 1.0;
@@ -655,7 +657,7 @@ void test_hitran2017(bool newtest = true)
   for (Index i=0;i<n; i++) {
     auto type=types[i];
     
-    lm_hitran_2017::read(hitran, bands, "data_new", -1, Conversion::kaycm2freq(600), Conversion::kaycm2freq(900), Conversion::hitran2arts_linestrength(stotmax), type.first);
+    lm_hitran_2017::read(hitran, bands, "data_new", -1, Conversion::kaycm2freq(sigmin), Conversion::kaycm2freq(sigmax), Conversion::hitran2arts_linestrength(stotmax), type.first);
     Vector vmrs = {1-xco2/100-xh2o/100, xh2o/100, xco2/100};
     SpeciesAuxData partition_functions;
     partition_functionsInitFromBuiltin(partition_functions, Verbosity());
@@ -672,8 +674,6 @@ void test_hitran2017(bool newtest = true)
     }
     std::cout<<'\n';
   }
-  
-//   lm_hitran_2017::read("data_new", -1, Conversion::kaycm2freq(600), Conversion::kaycm2freq(900), Conversion::arts2hitran_linestrength(stotmax), types[0].first);
 }
     
 
