@@ -1,4 +1,4 @@
-      SUBROUTINE ZGETF2( M, N, A, LDA, IPIV, INFO )
+      SUBROUTINE TMZGETF2( M, N, A, LDA, IPIV, INFO )
 *
 *  -- LAPACK routine (version 3.0) --
 *     Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd.,
@@ -16,7 +16,7 @@
 *  Purpose
 *  =======
 *
-*  ZGETF2 computes an LU factorization of a general m-by-n matrix A
+*  TMZGETF2 computes an LU factorization of a general m-by-n matrix A
 *  using partial pivoting with row interchanges.
 *
 *  The factorization has the form
@@ -67,11 +67,11 @@
       INTEGER            J, JP
 *     ..
 *     .. External Functions ..
-      INTEGER            IZAMAX
-      EXTERNAL           IZAMAX
+      INTEGER            TMIZAMAX
+      EXTERNAL           TMIZAMAX
 *     ..
 *     .. External Subroutines ..
-      EXTERNAL           XERBLA, ZGERU, ZSCAL, ZSWAP
+      EXTERNAL           TMXERBLA, TMZGERU, TMZSCAL, TMZSWAP
 *     ..
 *     .. Intrinsic Functions ..
       INTRINSIC          MAX, MIN
@@ -89,7 +89,7 @@
          INFO = -4
       END IF
       IF( INFO.NE.0 ) THEN
-         CALL XERBLA( 'ZGETF2', -INFO )
+         CALL TMXERBLA( 'TMZGETF2', -INFO )
          RETURN
       END IF
 *
@@ -102,19 +102,19 @@
 *
 *        Find pivot and test for singularity.
 *
-         JP = J - 1 + IZAMAX( M-J+1, A( J, J ), 1 )
+         JP = J - 1 + TMIZAMAX( M-J+1, A( J, J ), 1 )
          IPIV( J ) = JP
          IF( A( JP, J ).NE.ZERO ) THEN
 *
 *           Apply the interchange to columns 1:N.
 *
             IF( JP.NE.J )
-     $         CALL ZSWAP( N, A( J, 1 ), LDA, A( JP, 1 ), LDA )
+     $         CALL TMZSWAP( N, A( J, 1 ), LDA, A( JP, 1 ), LDA )
 *
 *           Compute elements J+1:M of J-th column.
 *
             IF( J.LT.M )
-     $         CALL ZSCAL( M-J, ONE / A( J, J ), A( J+1, J ), 1 )
+     $         CALL TMZSCAL( M-J, ONE / A( J, J ), A( J+1, J ), 1 )
 *
          ELSE IF( INFO.EQ.0 ) THEN
 *
@@ -125,16 +125,16 @@
 *
 *           Update trailing submatrix.
 *
-            CALL ZGERU( M-J, N-J, -ONE, A( J+1, J ), 1, A( J, J+1 ),
+            CALL TMZGERU( M-J, N-J, -ONE, A( J+1, J ), 1, A( J, J+1 ),
      $                  LDA, A( J+1, J+1 ), LDA )
          END IF
    10 CONTINUE
       RETURN
 *
-*     End of ZGETF2
+*     End of TMZGETF2
 *
       END
-      SUBROUTINE ZGETRF( M, N, A, LDA, IPIV, INFO )
+      SUBROUTINE TMZGETRF( M, N, A, LDA, IPIV, INFO )
 *
 *  -- LAPACK routine (version 3.0) --
 *     Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd.,
@@ -152,7 +152,7 @@
 *  Purpose
 *  =======
 *
-*  ZGETRF computes an LU factorization of a general M-by-N matrix A
+*  TMZGETRF computes an LU factorization of a general M-by-N matrix A
 *  using partial pivoting with row interchanges.
 *
 *  The factorization has the form
@@ -202,11 +202,12 @@
       INTEGER            I, IINFO, J, JB, NB
 *     ..
 *     .. External Subroutines ..
-      EXTERNAL           XERBLA, ZGEMM, ZGETF2, ZLASWP, ZTRSM
+      EXTERNAL           TMXERBLA, TMZGEMM, TMZGETF2, TMTMZLASWP
+      EXTERNAL           TMZTRSM
 *     ..
 *     .. External Functions ..
-      INTEGER            ILAENV
-      EXTERNAL           ILAENV
+      INTEGER            TMILAENV
+      EXTERNAL           TMILAENV
 *     ..
 *     .. Intrinsic Functions ..
       INTRINSIC          MAX, MIN
@@ -224,7 +225,7 @@
          INFO = -4
       END IF
       IF( INFO.NE.0 ) THEN
-         CALL XERBLA( 'ZGETRF', -INFO )
+         CALL TMXERBLA( 'TMZGETRF', -INFO )
          RETURN
       END IF
 *
@@ -235,12 +236,12 @@
 *
 *     Determine the block size for this environment.
 *
-      NB = ILAENV( 1, 'ZGETRF', ' ', M, N, -1, -1 )
+      NB = TMILAENV( 1, 'TMZGETRF', ' ', M, N, -1, -1 )
       IF( NB.LE.1 .OR. NB.GE.MIN( M, N ) ) THEN
 *
 *        Use unblocked code.
 *
-         CALL ZGETF2( M, N, A, LDA, IPIV, INFO )
+         CALL TMZGETF2( M, N, A, LDA, IPIV, INFO )
       ELSE
 *
 *        Use blocked code.
@@ -251,7 +252,7 @@
 *           Factor diagonal and subdiagonal blocks and test for exact
 *           singularity.
 *
-            CALL ZGETF2( M-J+1, JB, A( J, J ), LDA, IPIV( J ), IINFO )
+            CALL TMZGETF2( M-J+1, JB, A( J, J ), LDA, IPIV( J ), IINFO )
 *
 *           Adjust INFO and the pivot indices.
 *
@@ -263,25 +264,25 @@
 *
 *           Apply interchanges to columns 1:J-1.
 *
-            CALL ZLASWP( J-1, A, LDA, J, J+JB-1, IPIV, 1 )
+            CALL TMTMZLASWP( J-1, A, LDA, J, J+JB-1, IPIV, 1 )
 *
             IF( J+JB.LE.N ) THEN
 *
 *              Apply interchanges to columns J+JB:N.
 *
-               CALL ZLASWP( N-J-JB+1, A( 1, J+JB ), LDA, J, J+JB-1,
+               CALL TMTMZLASWP( N-J-JB+1, A( 1, J+JB ), LDA, J, J+JB-1,
      $                      IPIV, 1 )
 *
 *              Compute block row of U.
 *
-               CALL ZTRSM( 'Left', 'Lower', 'No transpose', 'Unit', JB,
+               CALL TMZTRSM('Left', 'Lower', 'No transpose', 'Unit', JB,
      $                     N-J-JB+1, ONE, A( J, J ), LDA, A( J, J+JB ),
      $                     LDA )
                IF( J+JB.LE.M ) THEN
 *
 *                 Update trailing submatrix.
 *
-                  CALL ZGEMM( 'No transpose', 'No transpose', M-J-JB+1,
+                  CALL TMZGEMM('No transpose', 'No transpose', M-J-JB+1,
      $                        N-J-JB+1, JB, -ONE, A( J+JB, J ), LDA,
      $                        A( J, J+JB ), LDA, ONE, A( J+JB, J+JB ),
      $                        LDA )
@@ -291,10 +292,10 @@
       END IF
       RETURN
 *
-*     End of ZGETRF
+*     End of TMZGETRF
 *
       END
-      SUBROUTINE ZLASWP( N, A, LDA, K1, K2, IPIV, INCX )
+      SUBROUTINE TMTMZLASWP( N, A, LDA, K1, K2, IPIV, INCX )
 *
 *  -- LAPACK auxiliary routine (version 3.0) --
 *     Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd.,
@@ -312,7 +313,7 @@
 *  Purpose
 *  =======
 *
-*  ZLASWP performs a series of row interchanges on the matrix A.
+*  TMTMZLASWP performs a series of row interchanges on the matrix A.
 *  One row interchange is initiated for each of rows K1 through K2 of A.
 *
 *  Arguments
@@ -411,10 +412,10 @@
 *
       RETURN
 *
-*     End of ZLASWP
+*     End of TMTMZLASWP
 *
       END
-      INTEGER          FUNCTION IEEECK( ISPEC, ZERO, ONE )
+      INTEGER          FUNCTION TMIEEECK( ISPEC, ZERO, ONE )
 *
 *  -- LAPACK auxiliary routine (version 3.0) --
 *     Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd.,
@@ -429,7 +430,7 @@
 *  Purpose
 *  =======
 *
-*  IEEECK is called from the ILAENV to verify that Infinity and
+*  TMIEEECK is called from the TMILAENV to verify that Infinity and
 *  possibly NaN arithmetic is safe (i.e. will not trap).
 *
 *  Arguments
@@ -460,53 +461,53 @@
      $                   NEGZRO, NEWZRO, POSINF
 *     ..
 *     .. Executable Statements ..
-      IEEECK = 1
+      TMIEEECK = 1
 *
       POSINF = ONE / ZERO
       IF( POSINF.LE.ONE ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
 *
       NEGINF = -ONE / ZERO
       IF( NEGINF.GE.ZERO ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
 *
       NEGZRO = ONE / ( NEGINF+ONE )
       IF( NEGZRO.NE.ZERO ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
 *
       NEGINF = ONE / NEGZRO
       IF( NEGINF.GE.ZERO ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
 *
       NEWZRO = NEGZRO + ZERO
       IF( NEWZRO.NE.ZERO ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
 *
       POSINF = ONE / NEWZRO
       IF( POSINF.LE.ONE ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
 *
       NEGINF = NEGINF*POSINF
       IF( NEGINF.GE.ZERO ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
 *
       POSINF = POSINF*POSINF
       IF( POSINF.LE.ONE ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
 *
@@ -531,38 +532,38 @@
       NAN6 = NAN5*0.0
 *
       IF( NAN1.EQ.NAN1 ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
 *
       IF( NAN2.EQ.NAN2 ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
 *
       IF( NAN3.EQ.NAN3 ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
 *
       IF( NAN4.EQ.NAN4 ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
 *
       IF( NAN5.EQ.NAN5 ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
 *
       IF( NAN6.EQ.NAN6 ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
 *
       RETURN
       END
-      INTEGER          FUNCTION ILAENV( ISPEC, NAME, OPTS, N1, N2, N3,
+      INTEGER          FUNCTION TMILAENV( ISPEC, NAME, OPTS, N1, N2, N3,
      $                 N4 )
 *
 *  -- LAPACK auxiliary routine (version 3.0) --
@@ -578,7 +579,7 @@
 *  Purpose
 *  =======
 *
-*  ILAENV is called from the LAPACK routines to choose problem-dependent
+*  TMILAENV is called from the LAPACK routines to choose problem-dependent
 *  parameters for the local environment.  See ISPEC for a description of
 *  the parameters.
 *
@@ -596,7 +597,7 @@
 *
 *  ISPEC   (input) INTEGER
 *          Specifies the parameter to be returned as the value of
-*          ILAENV.
+*          TMILAENV.
 *          = 1: the optimal blocksize; if this value is 1, an unblocked
 *               algorithm will give the best performance.
 *          = 2: the minimum block size for which the block routine
@@ -608,7 +609,7 @@
 *               eigenvalue routines
 *          = 5: the minimum column dimension for blocking to be used;
 *               rectangular blocks must have dimension at least k by m,
-*               where k is given by ILAENV(2,...) and m by ILAENV(5,...)
+*               where k is given by TMILAENV(2,...) and m by TMILAENV(5,...)
 *          = 6: the crossover point for the SVD (when reducing an m by n
 *               matrix to bidiagonal form, if max(m,n)/min(m,n) exceeds
 *               this value, a QR factorization is used first to reduce
@@ -639,14 +640,14 @@
 *          Problem dimensions for the subroutine NAME; these may not all
 *          be required.
 *
-* (ILAENV) (output) INTEGER
+* (TMILAENV) (output) INTEGER
 *          >= 0: the value of the parameter specified by ISPEC
-*          < 0:  if ILAENV = -k, the k-th argument had an illegal value.
+*          < 0:  if TMILAENV = -k, the k-th argument had an illegal value.
 *
 *  Further Details
 *  ===============
 *
-*  The following conventions have been used when calling ILAENV from the
+*  The following conventions have been used when calling TMILAENV from the
 *  LAPACK routines:
 *  1)  OPTS is a concatenation of all of the character options to
 *      subroutine NAME, in the same order that they appear in the
@@ -656,11 +657,11 @@
 *      that they appear in the argument list for NAME.  N1 is used
 *      first, N2 second, and so on, and unused problem dimensions are
 *      passed a value of -1.
-*  3)  The parameter value returned by ILAENV is checked for validity in
-*      the calling subroutine.  For example, ILAENV is used to retrieve
+*  3)  The parameter value returned by TMILAENV is checked for validity in
+*      the calling subroutine.  For example, TMILAENV is used to retrieve
 *      the optimal blocksize for STRTRI as follows:
 *
-*      NB = ILAENV( 1, 'STRTRI', UPLO // DIAG, N, -1, -1, -1 )
+*      NB = TMILAENV( 1, 'STRTRI', UPLO // DIAG, N, -1, -1, -1 )
 *      IF( NB.LE.1 ) NB = MAX( 1, N )
 *
 *  =====================================================================
@@ -677,8 +678,8 @@
       INTRINSIC          CHAR, ICHAR, INT, MIN, REAL
 *     ..
 *     .. External Functions ..
-      INTEGER            IEEECK
-      EXTERNAL           IEEECK
+      INTEGER            TMIEEECK
+      EXTERNAL           TMIEEECK
 *     ..
 *     .. Executable Statements ..
 *
@@ -687,14 +688,14 @@
 *
 *     Invalid value for ISPEC
 *
-      ILAENV = -1
+      TMILAENV = -1
       RETURN
 *
   100 CONTINUE
 *
 *     Convert NAME to upper case if the first character is lower case.
 *
-      ILAENV = 1
+      TMILAENV = 1
       SUBNAM = NAME
       IC = ICHAR( SUBNAM( 1:1 ) )
       IZ = ICHAR( 'Z' )
@@ -905,7 +906,7 @@
             NB = 1
          END IF
       END IF
-      ILAENV = NB
+      TMILAENV = NB
       RETURN
 *
   200 CONTINUE
@@ -983,7 +984,7 @@
             END IF
          END IF
       END IF
-      ILAENV = NBMIN
+      TMILAENV = NBMIN
       RETURN
 *
   300 CONTINUE
@@ -1037,42 +1038,42 @@
             END IF
          END IF
       END IF
-      ILAENV = NX
+      TMILAENV = NX
       RETURN
 *
   400 CONTINUE
 *
 *     ISPEC = 4:  number of shifts (used by xHSEQR)
 *
-      ILAENV = 6
+      TMILAENV = 6
       RETURN
 *
   500 CONTINUE
 *
 *     ISPEC = 5:  minimum column dimension (not used)
 *
-      ILAENV = 2
+      TMILAENV = 2
       RETURN
 *
   600 CONTINUE 
 *
 *     ISPEC = 6:  crossover point for SVD (used by xGELSS and xGESVD)
 *
-      ILAENV = INT( REAL( MIN( N1, N2 ) )*1.6E0 )
+      TMILAENV = INT( REAL( MIN( N1, N2 ) )*1.6E0 )
       RETURN
 *
   700 CONTINUE
 *
 *     ISPEC = 7:  number of processors (not used)
 *
-      ILAENV = 1
+      TMILAENV = 1
       RETURN
 *
   800 CONTINUE
 *
 *     ISPEC = 8:  crossover point for multishift (used by xHSEQR)
 *
-      ILAENV = 50
+      TMILAENV = 50
       RETURN
 *
   900 CONTINUE
@@ -1081,17 +1082,17 @@
 *                 computation tree in the divide-and-conquer algorithm
 *                 (used by xGELSD and xGESDD)
 *
-      ILAENV = 25
+      TMILAENV = 25
       RETURN
 *
  1000 CONTINUE
 *
 *     ISPEC = 10: ieee NaN arithmetic can be trusted not to trap
 *
-C     ILAENV = 0
-      ILAENV = 1
-      IF( ILAENV.EQ.1 ) THEN
-         ILAENV = IEEECK( 0, 0.0, 1.0 ) 
+C     TMILAENV = 0
+      TMILAENV = 1
+      IF( TMILAENV.EQ.1 ) THEN
+         TMILAENV = TMIEEECK( 0, 0.0, 1.0 ) 
       END IF
       RETURN
 *
@@ -1099,17 +1100,17 @@ C     ILAENV = 0
 *
 *     ISPEC = 11: infinity arithmetic can be trusted not to trap
 *
-C     ILAENV = 0
-      ILAENV = 1
-      IF( ILAENV.EQ.1 ) THEN
-         ILAENV = IEEECK( 1, 0.0, 1.0 ) 
+C     TMILAENV = 0
+      TMILAENV = 1
+      IF( TMILAENV.EQ.1 ) THEN
+         TMILAENV = TMIEEECK( 1, 0.0, 1.0 ) 
       END IF
       RETURN
 *
-*     End of ILAENV
+*     End of TMILAENV
 *
       END
-      SUBROUTINE XERBLA( SRNAME, INFO )
+      SUBROUTINE TMXERBLA( SRNAME, INFO )
 *
 *  -- LAPACK auxiliary routine (version 3.0) --
 *     Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd.,
@@ -1124,7 +1125,7 @@ C     ILAENV = 0
 *  Purpose
 *  =======
 *
-*  XERBLA  is an error handler for the LAPACK routines.
+*  TMXERBLA  is an error handler for the LAPACK routines.
 *  It is called by an LAPACK routine if an input parameter has an
 *  invalid value.  A message is printed and execution stops.
 *
@@ -1135,7 +1136,7 @@ C     ILAENV = 0
 *  =========
 *
 *  SRNAME  (input) CHARACTER*6
-*          The name of the routine which called XERBLA.
+*          The name of the routine which called TMXERBLA.
 *
 *  INFO    (input) INTEGER
 *          The position of the invalid parameter in the parameter list
@@ -1152,11 +1153,11 @@ C     ILAENV = 0
  9999 FORMAT( ' ** On entry to ', A6, ' parameter number ', I2, ' had ',
      $      'an illegal value' )
 *
-*     End of XERBLA
+*     End of TMXERBLA
 *
       END
 
-      SUBROUTINE ZGETRI( N, A, LDA, IPIV, WORK, LWORK, INFO )
+      SUBROUTINE TMZGETRI( N, A, LDA, IPIV, WORK, LWORK, INFO )
 *
 *  -- LAPACK routine (version 3.0) --
 *     Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd.,
@@ -1174,8 +1175,8 @@ C     ILAENV = 0
 *  Purpose
 *  =======
 *
-*  ZGETRI computes the inverse of a matrix using the LU factorization
-*  computed by ZGETRF.
+*  TMZGETRI computes the inverse of a matrix using the LU factorization
+*  computed by TMZGETRF.
 *
 *  This method inverts U and then computes inv(A) by solving the system
 *  inv(A)*L = inv(U) for inv(A).
@@ -1188,14 +1189,14 @@ C     ILAENV = 0
 *
 *  A       (input/output) COMPLEX*16 array, dimension (LDA,N)
 *          On entry, the factors L and U from the factorization
-*          A = P*L*U as computed by ZGETRF.
+*          A = P*L*U as computed by TMZGETRF.
 *          On exit, if INFO = 0, the inverse of the original matrix A.
 *
 *  LDA     (input) INTEGER
 *          The leading dimension of the array A.  LDA >= max(1,N).
 *
 *  IPIV    (input) INTEGER array, dimension (N)
-*          The pivot indices from ZGETRF; for 1<=i<=N, row i of the
+*          The pivot indices from TMZGETRF; for 1<=i<=N, row i of the
 *          matrix was interchanged with row IPIV(i).
 *
 *  WORK    (workspace/output) COMPLEX*16 array, dimension (LWORK)
@@ -1204,12 +1205,12 @@ C     ILAENV = 0
 *  LWORK   (input) INTEGER
 *          The dimension of the array WORK.  LWORK >= max(1,N).
 *          For optimal performance LWORK >= N*NB, where NB is
-*          the optimal blocksize returned by ILAENV.
+*          the optimal blocksize returned by TMILAENV.
 *
 *          If LWORK = -1, then a workspace query is assumed; the routine
 *          only calculates the optimal size of the WORK array, returns
 *          this value as the first entry of the WORK array, and no error
-*          message related to LWORK is issued by XERBLA.
+*          message related to LWORK is issued by TMXERBLA.
 *
 *  INFO    (output) INTEGER
 *          = 0:  successful exit
@@ -1230,11 +1231,12 @@ C     ILAENV = 0
      $                   NBMIN, NN
 *     ..
 *     .. External Functions ..
-      INTEGER            ILAENV
-      EXTERNAL           ILAENV
+      INTEGER            TMILAENV
+      EXTERNAL           TMILAENV
 *     ..
 *     .. External Subroutines ..
-      EXTERNAL           XERBLA, ZGEMM, ZGEMV, ZSWAP, ZTRSM, ZTRTRI
+      EXTERNAL           TMXERBLA, TMZGEMM, TMZGEMV, TMZSWAP, TMZTRSM
+      EXTERNAL           TMZTRTRI
 *     ..
 *     .. Intrinsic Functions ..
       INTRINSIC          MAX, MIN
@@ -1244,7 +1246,7 @@ C     ILAENV = 0
 *     Test the input parameters.
 *
       INFO = 0
-      NB = ILAENV( 1, 'ZGETRI', ' ', N, -1, -1, -1 )
+      NB = TMILAENV( 1, 'TMZGETRI', ' ', N, -1, -1, -1 )
       LWKOPT = N*NB
       WORK( 1 ) = LWKOPT
       LQUERY = ( LWORK.EQ.-1 )
@@ -1256,7 +1258,7 @@ C     ILAENV = 0
          INFO = -6
       END IF
       IF( INFO.NE.0 ) THEN
-         CALL XERBLA( 'ZGETRI', -INFO )
+         CALL TMXERBLA( 'TMZGETRI', -INFO )
          RETURN
       ELSE IF( LQUERY ) THEN
          RETURN
@@ -1267,10 +1269,10 @@ C     ILAENV = 0
       IF( N.EQ.0 )
      $   RETURN
 *
-*     Form inv(U).  If INFO > 0 from ZTRTRI, then U is singular,
+*     Form inv(U).  If INFO > 0 from TMZTRTRI, then U is singular,
 *     and the inverse is not computed.
 *
-      CALL ZTRTRI( 'Upper', 'Non-unit', N, A, LDA, INFO )
+      CALL TMZTRTRI( 'Upper', 'Non-unit', N, A, LDA, INFO )
       IF( INFO.GT.0 )
      $   RETURN
 *
@@ -1280,7 +1282,7 @@ C     ILAENV = 0
          IWS = MAX( LDWORK*NB, 1 )
          IF( LWORK.LT.IWS ) THEN
             NB = LWORK / LDWORK
-            NBMIN = MAX( 2, ILAENV( 2, 'ZGETRI', ' ', N, -1, -1, -1 ) )
+            NBMIN = MAX(2, TMILAENV( 2, 'TMZGETRI', ' ', N, -1, -1, -1))
          END IF
       ELSE
          IWS = N
@@ -1304,7 +1306,7 @@ C     ILAENV = 0
 *           Compute current column of inv(A).
 *
             IF( J.LT.N )
-     $         CALL ZGEMV( 'No transpose', N, N-J, -ONE, A( 1, J+1 ),
+     $         CALL TMZGEMV( 'No transpose', N, N-J, -ONE, A( 1, J+1 ),
      $                     LDA, WORK( J+1 ), 1, ONE, A( 1, J ), 1 )
    20    CONTINUE
       ELSE
@@ -1328,10 +1330,10 @@ C     ILAENV = 0
 *           Compute current block column of inv(A).
 *
             IF( J+JB.LE.N )
-     $         CALL ZGEMM( 'No transpose', 'No transpose', N, JB,
+     $         CALL TMZGEMM( 'No transpose', 'No transpose', N, JB,
      $                     N-J-JB+1, -ONE, A( 1, J+JB ), LDA,
      $                     WORK( J+JB ), LDWORK, ONE, A( 1, J ), LDA )
-            CALL ZTRSM( 'Right', 'Lower', 'No transpose', 'Unit', N, JB,
+            CALL TMZTRSM('Right','Lower', 'No transpose', 'Unit', N, JB,
      $                  ONE, WORK( J ), LDWORK, A( 1, J ), LDA )
    50    CONTINUE
       END IF
@@ -1341,16 +1343,16 @@ C     ILAENV = 0
       DO 60 J = N - 1, 1, -1
          JP = IPIV( J )
          IF( JP.NE.J )
-     $      CALL ZSWAP( N, A( 1, J ), 1, A( 1, JP ), 1 )
+     $      CALL TMZSWAP( N, A( 1, J ), 1, A( 1, JP ), 1 )
    60 CONTINUE
 *
       WORK( 1 ) = IWS
       RETURN
 *
-*     End of ZGETRI
+*     End of TMZGETRI
 *
       END
-      SUBROUTINE ZTRTI2( UPLO, DIAG, N, A, LDA, INFO )
+      SUBROUTINE TMZTRTI2( UPLO, DIAG, N, A, LDA, INFO )
 *
 *  -- LAPACK routine (version 3.0) --
 *     Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd.,
@@ -1368,7 +1370,7 @@ C     ILAENV = 0
 *  Purpose
 *  =======
 *
-*  ZTRTI2 computes the inverse of a complex upper or lower triangular
+*  TMZTRTI2 computes the inverse of a complex upper or lower triangular
 *  matrix.
 *
 *  This is the Level 2 BLAS version of the algorithm.
@@ -1422,11 +1424,11 @@ C     ILAENV = 0
       COMPLEX*16         AJJ
 *     ..
 *     .. External Functions ..
-      LOGICAL            LSAME
-      EXTERNAL           LSAME
+      LOGICAL            TMLSAME
+      EXTERNAL           TMLSAME
 *     ..
 *     .. External Subroutines ..
-      EXTERNAL           XERBLA, ZSCAL, ZTRMV
+      EXTERNAL           TMXERBLA, TMZSCAL, TMZTRMV
 *     ..
 *     .. Intrinsic Functions ..
       INTRINSIC          MAX
@@ -1436,11 +1438,11 @@ C     ILAENV = 0
 *     Test the input parameters.
 *
       INFO = 0
-      UPPER = LSAME( UPLO, 'U' )
-      NOUNIT = LSAME( DIAG, 'N' )
-      IF( .NOT.UPPER .AND. .NOT.LSAME( UPLO, 'L' ) ) THEN
+      UPPER = TMLSAME( UPLO, 'U' )
+      NOUNIT = TMLSAME( DIAG, 'N' )
+      IF( .NOT.UPPER .AND. .NOT.TMLSAME( UPLO, 'L' ) ) THEN
          INFO = -1
-      ELSE IF( .NOT.NOUNIT .AND. .NOT.LSAME( DIAG, 'U' ) ) THEN
+      ELSE IF( .NOT.NOUNIT .AND. .NOT.TMLSAME( DIAG, 'U' ) ) THEN
          INFO = -2
       ELSE IF( N.LT.0 ) THEN
          INFO = -3
@@ -1448,7 +1450,7 @@ C     ILAENV = 0
          INFO = -5
       END IF
       IF( INFO.NE.0 ) THEN
-         CALL XERBLA( 'ZTRTI2', -INFO )
+         CALL TMXERBLA( 'TMZTRTI2', -INFO )
          RETURN
       END IF
 *
@@ -1466,9 +1468,9 @@ C     ILAENV = 0
 *
 *           Compute elements 1:j-1 of j-th column.
 *
-            CALL ZTRMV( 'Upper', 'No transpose', DIAG, J-1, A, LDA,
+            CALL TMZTRMV( 'Upper', 'No transpose', DIAG, J-1, A, LDA,
      $                  A( 1, J ), 1 )
-            CALL ZSCAL( J-1, AJJ, A( 1, J ), 1 )
+            CALL TMZSCAL( J-1, AJJ, A( 1, J ), 1 )
    10    CONTINUE
       ELSE
 *
@@ -1485,19 +1487,19 @@ C     ILAENV = 0
 *
 *              Compute elements j+1:n of j-th column.
 *
-               CALL ZTRMV( 'Lower', 'No transpose', DIAG, N-J,
+               CALL TMZTRMV( 'Lower', 'No transpose', DIAG, N-J,
      $                     A( J+1, J+1 ), LDA, A( J+1, J ), 1 )
-               CALL ZSCAL( N-J, AJJ, A( J+1, J ), 1 )
+               CALL TMZSCAL( N-J, AJJ, A( J+1, J ), 1 )
             END IF
    20    CONTINUE
       END IF
 *
       RETURN
 *
-*     End of ZTRTI2
+*     End of TMZTRTI2
 *
       END
-      SUBROUTINE ZTRTRI( UPLO, DIAG, N, A, LDA, INFO )
+      SUBROUTINE TMZTRTRI( UPLO, DIAG, N, A, LDA, INFO )
 *
 *  -- LAPACK routine (version 3.0) --
 *     Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd.,
@@ -1515,7 +1517,7 @@ C     ILAENV = 0
 *  Purpose
 *  =======
 *
-*  ZTRTRI computes the inverse of a complex upper or lower triangular
+*  TMZTRTRI computes the inverse of a complex upper or lower triangular
 *  matrix A.
 *
 *  This is the Level 3 BLAS version of the algorithm.
@@ -1568,12 +1570,12 @@ C     ILAENV = 0
       INTEGER            J, JB, NB, NN
 *     ..
 *     .. External Functions ..
-      LOGICAL            LSAME
-      INTEGER            ILAENV
-      EXTERNAL           LSAME, ILAENV
+      LOGICAL            TMLSAME
+      INTEGER            TMILAENV
+      EXTERNAL           TMLSAME, TMILAENV
 *     ..
 *     .. External Subroutines ..
-      EXTERNAL           XERBLA, ZTRMM, ZTRSM, ZTRTI2
+      EXTERNAL           TMXERBLA, TMZTRMM, TMZTRSM, TMZTRTI2
 *     ..
 *     .. Intrinsic Functions ..
       INTRINSIC          MAX, MIN
@@ -1583,11 +1585,11 @@ C     ILAENV = 0
 *     Test the input parameters.
 *
       INFO = 0
-      UPPER = LSAME( UPLO, 'U' )
-      NOUNIT = LSAME( DIAG, 'N' )
-      IF( .NOT.UPPER .AND. .NOT.LSAME( UPLO, 'L' ) ) THEN
+      UPPER = TMLSAME( UPLO, 'U' )
+      NOUNIT = TMLSAME( DIAG, 'N' )
+      IF( .NOT.UPPER .AND. .NOT.TMLSAME( UPLO, 'L' ) ) THEN
          INFO = -1
-      ELSE IF( .NOT.NOUNIT .AND. .NOT.LSAME( DIAG, 'U' ) ) THEN
+      ELSE IF( .NOT.NOUNIT .AND. .NOT.TMLSAME( DIAG, 'U' ) ) THEN
          INFO = -2
       ELSE IF( N.LT.0 ) THEN
          INFO = -3
@@ -1595,7 +1597,7 @@ C     ILAENV = 0
          INFO = -5
       END IF
       IF( INFO.NE.0 ) THEN
-         CALL XERBLA( 'ZTRTRI', -INFO )
+         CALL TMXERBLA( 'TMZTRTRI', -INFO )
          RETURN
       END IF
 *
@@ -1616,12 +1618,12 @@ C     ILAENV = 0
 *
 *     Determine the block size for this environment.
 *
-      NB = ILAENV( 1, 'ZTRTRI', UPLO // DIAG, N, -1, -1, -1 )
+      NB = TMILAENV( 1, 'TMZTRTRI', UPLO // DIAG, N, -1, -1, -1 )
       IF( NB.LE.1 .OR. NB.GE.N ) THEN
 *
 *        Use unblocked code
 *
-         CALL ZTRTI2( UPLO, DIAG, N, A, LDA, INFO )
+         CALL TMZTRTI2( UPLO, DIAG, N, A, LDA, INFO )
       ELSE
 *
 *        Use blocked code
@@ -1635,14 +1637,14 @@ C     ILAENV = 0
 *
 *              Compute rows 1:j-1 of current block column
 *
-               CALL ZTRMM( 'Left', 'Upper', 'No transpose', DIAG, J-1,
+               CALL TMZTRMM( 'Left', 'Upper', 'No transpose', DIAG, J-1,
      $                     JB, ONE, A, LDA, A( 1, J ), LDA )
-               CALL ZTRSM( 'Right', 'Upper', 'No transpose', DIAG, J-1,
+               CALL TMZTRSM('Right', 'Upper', 'No transpose', DIAG, J-1,
      $                     JB, -ONE, A( J, J ), LDA, A( 1, J ), LDA )
 *
 *              Compute inverse of current diagonal block
 *
-               CALL ZTRTI2( 'Upper', DIAG, JB, A( J, J ), LDA, INFO )
+               CALL TMZTRTI2( 'Upper', DIAG, JB, A( J, J ), LDA, INFO )
    20       CONTINUE
          ELSE
 *
@@ -1655,28 +1657,28 @@ C     ILAENV = 0
 *
 *                 Compute rows j+jb:n of current block column
 *
-                  CALL ZTRMM( 'Left', 'Lower', 'No transpose', DIAG,
+                  CALL TMZTRMM( 'Left', 'Lower', 'No transpose', DIAG,
      $                        N-J-JB+1, JB, ONE, A( J+JB, J+JB ), LDA,
      $                        A( J+JB, J ), LDA )
-                  CALL ZTRSM( 'Right', 'Lower', 'No transpose', DIAG,
+                  CALL TMZTRSM( 'Right', 'Lower', 'No transpose', DIAG,
      $                        N-J-JB+1, JB, -ONE, A( J, J ), LDA,
      $                        A( J+JB, J ), LDA )
                END IF
 *
 *              Compute inverse of current diagonal block
 *
-               CALL ZTRTI2( 'Lower', DIAG, JB, A( J, J ), LDA, INFO )
+               CALL TMZTRTI2( 'Lower', DIAG, JB, A( J, J ), LDA, INFO )
    30       CONTINUE
          END IF
       END IF
 *
       RETURN
 *
-*     End of ZTRTRI
+*     End of TMZTRTRI
 *
       END
 
-      LOGICAL          FUNCTION LSAME( CA, CB )
+      LOGICAL          FUNCTION TMLSAME( CA, CB )
 *
 *  -- LAPACK auxiliary routine (version 3.0) --
 *     Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd.,
@@ -1690,7 +1692,7 @@ C     ILAENV = 0
 *  Purpose
 *  =======
 *
-*  LSAME returns .TRUE. if CA is the same letter as CB regardless of
+*  TMLSAME returns .TRUE. if CA is the same letter as CB regardless of
 *  case.
 *
 *  Arguments
@@ -1712,8 +1714,8 @@ C     ILAENV = 0
 *
 *     Test if the characters are equal
 *
-      LSAME = CA.EQ.CB
-      IF( LSAME )
+      TMLSAME = CA.EQ.CB
+      IF( TMLSAME )
      $   RETURN
 *
 *     Now test for equivalence if both characters are alphabetic.
@@ -1756,11 +1758,11 @@ C     ILAENV = 0
          IF( INTA.GE.225 .AND. INTA.LE.250 ) INTA = INTA - 32
          IF( INTB.GE.225 .AND. INTB.LE.250 ) INTB = INTB - 32
       END IF
-      LSAME = INTA.EQ.INTB
+      TMLSAME = INTA.EQ.INTB
 *
 *     RETURN
 *
-*     End of LSAME
+*     End of TMLSAME
 *
       END
 
@@ -1769,7 +1771,7 @@ C================================================================
 C================================================================
 C================================================================
 
-      integer function izamax(n,zx,incx)
+      integer function TMizamax(n,zx,incx)
 c
 c     finds the index of element having max. absolute value.
 c     jack dongarra, 1/15/85.
@@ -1779,48 +1781,48 @@ c
       double complex zx(*)
       double precision smax
       integer i,incx,ix,n
-      double precision dcabs1
+      double precision TMdcabs1
 c
-      izamax = 0
+      TMizamax = 0
       if( n.lt.1 .or. incx.le.0 )return
-      izamax = 1
+      TMizamax = 1
       if(n.eq.1)return
       if(incx.eq.1)go to 20
 c
 c        code for increment not equal to 1
 c
       ix = 1
-      smax = dcabs1(zx(1))
+      smax = TMdcabs1(zx(1))
       ix = ix + incx
       do 10 i = 2,n
-         if(dcabs1(zx(ix)).le.smax) go to 5
-         izamax = i
-         smax = dcabs1(zx(ix))
+         if(TMdcabs1(zx(ix)).le.smax) go to 5
+         TMizamax = i
+         smax = TMdcabs1(zx(ix))
     5    ix = ix + incx
    10 continue
       return
 c
 c        code for increment equal to 1
 c
-   20 smax = dcabs1(zx(1))
+   20 smax = TMdcabs1(zx(1))
       do 30 i = 2,n
-         if(dcabs1(zx(i)).le.smax) go to 30
-         izamax = i
-         smax = dcabs1(zx(i))
+         if(TMdcabs1(zx(i)).le.smax) go to 30
+         TMizamax = i
+         smax = TMdcabs1(zx(i))
    30 continue
       return
       end
 
-      double precision function dcabs1(z)
+      double precision function TMdcabs1(z)
       double complex z,zz
       double precision t(2)
       equivalence (zz,t(1))
       zz = z
-      dcabs1 = dabs(t(1)) + dabs(t(2))
+      TMdcabs1 = dabs(t(1)) + dabs(t(2))
       return
       end
 
-      subroutine  zswap (n,zx,incx,zy,incy)
+      subroutine  TMzswap (n,zx,incx,zy,incy)
 c
 c     interchanges two vectors.
 c     jack dongarra, 3/11/78.
@@ -1857,7 +1859,7 @@ c       code for both increments equal to 1
       return
       end
 
-      subroutine  zscal(n,za,zx,incx)
+      subroutine  TMzscal(n,za,zx,incx)
 c
 c     scales a vector by a constant.
 c     jack dongarra, 3/11/78.
@@ -1887,7 +1889,7 @@ c
       return
       end
 
-      SUBROUTINE ZGERU ( M, N, ALPHA, X, INCX, Y, INCY, A, LDA )
+      SUBROUTINE TMZGERU ( M, N, ALPHA, X, INCX, Y, INCY, A, LDA )
 *     .. Scalar Arguments ..
       COMPLEX*16         ALPHA
       INTEGER            INCX, INCY, LDA, M, N
@@ -1898,7 +1900,7 @@ c
 *  Purpose
 *  =======
 *
-*  ZGERU  performs the rank 1 operation
+*  TMZGERU  performs the rank 1 operation
 *
 *     A := alpha*x*y' + A,
 *
@@ -1972,7 +1974,7 @@ c
       COMPLEX*16         TEMP
       INTEGER            I, INFO, IX, J, JY, KX
 *     .. External Subroutines ..
-      EXTERNAL           XERBLA
+      EXTERNAL           TMXERBLA
 *     .. Intrinsic Functions ..
       INTRINSIC          MAX
 *     ..
@@ -1993,7 +1995,7 @@ c
          INFO = 9
       END IF
       IF( INFO.NE.0 )THEN
-         CALL XERBLA( 'ZGERU ', INFO )
+         CALL TMXERBLA( 'TMZGERU ', INFO )
          RETURN
       END IF
 *
@@ -2041,11 +2043,11 @@ c
 *
       RETURN
 *
-*     End of ZGERU .
+*     End of TMZGERU .
 *
       END
 
-      SUBROUTINE ZTRSM ( SIDE, UPLO, TRANSA, DIAG, M, N, ALPHA, A, LDA,
+      SUBROUTINE TMZTRSM (SIDE, UPLO, TRANSA, DIAG, M, N, ALPHA, A, LDA,
      $                   B, LDB )
 *     .. Scalar Arguments ..
       CHARACTER*1        SIDE, UPLO, TRANSA, DIAG
@@ -2058,7 +2060,7 @@ c
 *  Purpose
 *  =======
 *
-*  ZTRSM  solves one of the matrix equations
+*  TMZTRSM  solves one of the matrix equations
 *
 *     op( A )*X = alpha*B,   or   X*op( A ) = alpha*B,
 *
@@ -2174,10 +2176,10 @@ c
 *
 *
 *     .. External Functions ..
-      LOGICAL            LSAME
-      EXTERNAL           LSAME
+      LOGICAL            TMLSAME
+      EXTERNAL           TMLSAME
 *     .. External Subroutines ..
-      EXTERNAL           XERBLA
+      EXTERNAL           TMXERBLA
 *     .. Intrinsic Functions ..
       INTRINSIC          DCONJG, MAX
 *     .. Local Scalars ..
@@ -2194,29 +2196,29 @@ c
 *
 *     Test the input parameters.
 *
-      LSIDE  = LSAME( SIDE  , 'L' )
+      LSIDE  = TMLSAME( SIDE  , 'L' )
       IF( LSIDE )THEN
          NROWA = M
       ELSE
          NROWA = N
       END IF
-      NOCONJ = LSAME( TRANSA, 'T' )
-      NOUNIT = LSAME( DIAG  , 'N' )
-      UPPER  = LSAME( UPLO  , 'U' )
+      NOCONJ = TMLSAME( TRANSA, 'T' )
+      NOUNIT = TMLSAME( DIAG  , 'N' )
+      UPPER  = TMLSAME( UPLO  , 'U' )
 *
       INFO   = 0
       IF(      ( .NOT.LSIDE                ).AND.
-     $         ( .NOT.LSAME( SIDE  , 'R' ) )      )THEN
+     $         ( .NOT.TMLSAME( SIDE  , 'R' ) )      )THEN
          INFO = 1
       ELSE IF( ( .NOT.UPPER                ).AND.
-     $         ( .NOT.LSAME( UPLO  , 'L' ) )      )THEN
+     $         ( .NOT.TMLSAME( UPLO  , 'L' ) )      )THEN
          INFO = 2
-      ELSE IF( ( .NOT.LSAME( TRANSA, 'N' ) ).AND.
-     $         ( .NOT.LSAME( TRANSA, 'T' ) ).AND.
-     $         ( .NOT.LSAME( TRANSA, 'C' ) )      )THEN
+      ELSE IF( ( .NOT.TMLSAME( TRANSA, 'N' ) ).AND.
+     $         ( .NOT.TMLSAME( TRANSA, 'T' ) ).AND.
+     $         ( .NOT.TMLSAME( TRANSA, 'C' ) )      )THEN
          INFO = 3
-      ELSE IF( ( .NOT.LSAME( DIAG  , 'U' ) ).AND.
-     $         ( .NOT.LSAME( DIAG  , 'N' ) )      )THEN
+      ELSE IF( ( .NOT.TMLSAME( DIAG  , 'U' ) ).AND.
+     $         ( .NOT.TMLSAME( DIAG  , 'N' ) )      )THEN
          INFO = 4
       ELSE IF( M  .LT.0               )THEN
          INFO = 5
@@ -2228,7 +2230,7 @@ c
          INFO = 11
       END IF
       IF( INFO.NE.0 )THEN
-         CALL XERBLA( 'ZTRSM ', INFO )
+         CALL TMXERBLA( 'TMZTRSM ', INFO )
          RETURN
       END IF
 *
@@ -2251,7 +2253,7 @@ c
 *     Start the operations.
 *
       IF( LSIDE )THEN
-         IF( LSAME( TRANSA, 'N' ) )THEN
+         IF( TMLSAME( TRANSA, 'N' ) )THEN
 *
 *           Form  B := alpha*inv( A )*B.
 *
@@ -2338,7 +2340,7 @@ c
             END IF
          END IF
       ELSE
-         IF( LSAME( TRANSA, 'N' ) )THEN
+         IF( TMLSAME( TRANSA, 'N' ) )THEN
 *
 *           Form  B := alpha*B*inv( A ).
 *
@@ -2456,11 +2458,11 @@ c
 *
       RETURN
 *
-*     End of ZTRSM .
+*     End of TMZTRSM .
 *
       END
 
-      SUBROUTINE ZGEMM ( TRANSA, TRANSB, M, N, K, ALPHA, A, LDA, B, LDB,
+      SUBROUTINE TMZGEMM (TRANSA,TRANSB, M, N, K, ALPHA, A, LDA, B, LDB,
      $                   BETA, C, LDC )
 *     .. Scalar Arguments ..
       CHARACTER*1        TRANSA, TRANSB
@@ -2473,7 +2475,7 @@ c
 *  Purpose
 *  =======
 *
-*  ZGEMM  performs one of the matrix-matrix operations
+*  TMZGEMM  performs one of the matrix-matrix operations
 *
 *     C := alpha*op( A )*op( B ) + beta*C,
 *
@@ -2591,10 +2593,10 @@ c
 *
 *
 *     .. External Functions ..
-      LOGICAL            LSAME
-      EXTERNAL           LSAME
+      LOGICAL            TMLSAME
+      EXTERNAL           TMLSAME
 *     .. External Subroutines ..
-      EXTERNAL           XERBLA
+      EXTERNAL           TMXERBLA
 *     .. Intrinsic Functions ..
       INTRINSIC          DCONJG, MAX
 *     .. Local Scalars ..
@@ -2615,10 +2617,10 @@ c
 *     NROWA, NCOLA and  NROWB  as the number of rows and  columns  of  A
 *     and the number of rows of  B  respectively.
 *
-      NOTA  = LSAME( TRANSA, 'N' )
-      NOTB  = LSAME( TRANSB, 'N' )
-      CONJA = LSAME( TRANSA, 'C' )
-      CONJB = LSAME( TRANSB, 'C' )
+      NOTA  = TMLSAME( TRANSA, 'N' )
+      NOTB  = TMLSAME( TRANSB, 'N' )
+      CONJA = TMLSAME( TRANSA, 'C' )
+      CONJB = TMLSAME( TRANSB, 'C' )
       IF( NOTA )THEN
          NROWA = M
          NCOLA = K
@@ -2637,11 +2639,11 @@ c
       INFO = 0
       IF(      ( .NOT.NOTA                 ).AND.
      $         ( .NOT.CONJA                ).AND.
-     $         ( .NOT.LSAME( TRANSA, 'T' ) )      )THEN
+     $         ( .NOT.TMLSAME( TRANSA, 'T' ) )      )THEN
          INFO = 1
       ELSE IF( ( .NOT.NOTB                 ).AND.
      $         ( .NOT.CONJB                ).AND.
-     $         ( .NOT.LSAME( TRANSB, 'T' ) )      )THEN
+     $         ( .NOT.TMLSAME( TRANSB, 'T' ) )      )THEN
          INFO = 2
       ELSE IF( M  .LT.0               )THEN
          INFO = 3
@@ -2657,7 +2659,7 @@ c
          INFO = 13
       END IF
       IF( INFO.NE.0 )THEN
-         CALL XERBLA( 'ZGEMM ', INFO )
+         CALL TMXERBLA( 'TMZGEMM ', INFO )
          RETURN
       END IF
 *
@@ -2872,11 +2874,11 @@ c
 *
       RETURN
 *
-*     End of ZGEMM .
+*     End of TMZGEMM .
 *
       END
 
-      SUBROUTINE ZTRMV ( UPLO, TRANS, DIAG, N, A, LDA, X, INCX )
+      SUBROUTINE TMZTRMV ( UPLO, TRANS, DIAG, N, A, LDA, X, INCX )
 *     .. Scalar Arguments ..
       INTEGER            INCX, LDA, N
       CHARACTER*1        DIAG, TRANS, UPLO
@@ -2887,7 +2889,7 @@ c
 *  Purpose
 *  =======
 *
-*  ZTRMV  performs one of the matrix-vector operations
+*  TMZTRMV  performs one of the matrix-vector operations
 *
 *     x := A*x,   or   x := A'*x,   or   x := conjg( A' )*x,
 *
@@ -2983,10 +2985,10 @@ c
       INTEGER            I, INFO, IX, J, JX, KX
       LOGICAL            NOCONJ, NOUNIT
 *     .. External Functions ..
-      LOGICAL            LSAME
-      EXTERNAL           LSAME
+      LOGICAL            TMLSAME
+      EXTERNAL           TMLSAME
 *     .. External Subroutines ..
-      EXTERNAL           XERBLA
+      EXTERNAL           TMXERBLA
 *     .. Intrinsic Functions ..
       INTRINSIC          DCONJG, MAX
 *     ..
@@ -2995,15 +2997,15 @@ c
 *     Test the input parameters.
 *
       INFO = 0
-      IF     ( .NOT.LSAME( UPLO , 'U' ).AND.
-     $         .NOT.LSAME( UPLO , 'L' )      )THEN
+      IF     ( .NOT.TMLSAME( UPLO , 'U' ).AND.
+     $         .NOT.TMLSAME( UPLO , 'L' )      )THEN
          INFO = 1
-      ELSE IF( .NOT.LSAME( TRANS, 'N' ).AND.
-     $         .NOT.LSAME( TRANS, 'T' ).AND.
-     $         .NOT.LSAME( TRANS, 'C' )      )THEN
+      ELSE IF( .NOT.TMLSAME( TRANS, 'N' ).AND.
+     $         .NOT.TMLSAME( TRANS, 'T' ).AND.
+     $         .NOT.TMLSAME( TRANS, 'C' )      )THEN
          INFO = 2
-      ELSE IF( .NOT.LSAME( DIAG , 'U' ).AND.
-     $         .NOT.LSAME( DIAG , 'N' )      )THEN
+      ELSE IF( .NOT.TMLSAME( DIAG , 'U' ).AND.
+     $         .NOT.TMLSAME( DIAG , 'N' )      )THEN
          INFO = 3
       ELSE IF( N.LT.0 )THEN
          INFO = 4
@@ -3013,7 +3015,7 @@ c
          INFO = 8
       END IF
       IF( INFO.NE.0 )THEN
-         CALL XERBLA( 'ZTRMV ', INFO )
+         CALL TMXERBLA( 'TMZTRMV ', INFO )
          RETURN
       END IF
 *
@@ -3022,8 +3024,8 @@ c
       IF( N.EQ.0 )
      $   RETURN
 *
-      NOCONJ = LSAME( TRANS, 'T' )
-      NOUNIT = LSAME( DIAG , 'N' )
+      NOCONJ = TMLSAME( TRANS, 'T' )
+      NOUNIT = TMLSAME( DIAG , 'N' )
 *
 *     Set up the start point in X if the increment is not unity. This
 *     will be  ( N - 1 )*INCX  too small for descending loops.
@@ -3037,11 +3039,11 @@ c
 *     Start the operations. In this version the elements of A are
 *     accessed sequentially with one pass through A.
 *
-      IF( LSAME( TRANS, 'N' ) )THEN
+      IF( TMLSAME( TRANS, 'N' ) )THEN
 *
 *        Form  x := A*x.
 *
-         IF( LSAME( UPLO, 'U' ) )THEN
+         IF( TMLSAME( UPLO, 'U' ) )THEN
             IF( INCX.EQ.1 )THEN
                DO 20, J = 1, N
                   IF( X( J ).NE.ZERO )THEN
@@ -3103,7 +3105,7 @@ c
 *
 *        Form  x := A'*x  or  x := conjg( A' )*x.
 *
-         IF( LSAME( UPLO, 'U' ) )THEN
+         IF( TMLSAME( UPLO, 'U' ) )THEN
             IF( INCX.EQ.1 )THEN
                DO 110, J = N, 1, -1
                   TEMP = X( J )
@@ -3194,11 +3196,11 @@ c
 *
       RETURN
 *
-*     End of ZTRMV .
+*     End of TMZTRMV .
 *
       END
 
-      SUBROUTINE ZTRMM ( SIDE, UPLO, TRANSA, DIAG, M, N, ALPHA, A, LDA,
+      SUBROUTINE TMZTRMM (SIDE, UPLO, TRANSA, DIAG, M, N, ALPHA, A, LDA,
      $                   B, LDB )
 *     .. Scalar Arguments ..
       CHARACTER*1        SIDE, UPLO, TRANSA, DIAG
@@ -3211,7 +3213,7 @@ c
 *  Purpose
 *  =======
 *
-*  ZTRMM  performs one of the matrix-matrix operations
+*  TMZTRMM  performs one of the matrix-matrix operations
 *
 *     B := alpha*op( A )*B,   or   B := alpha*B*op( A )
 *
@@ -3325,10 +3327,10 @@ c
 *
 *
 *     .. External Functions ..
-      LOGICAL            LSAME
-      EXTERNAL           LSAME
+      LOGICAL            TMLSAME
+      EXTERNAL           TMLSAME
 *     .. External Subroutines ..
-      EXTERNAL           XERBLA
+      EXTERNAL           TMXERBLA
 *     .. Intrinsic Functions ..
       INTRINSIC          DCONJG, MAX
 *     .. Local Scalars ..
@@ -3345,29 +3347,29 @@ c
 *
 *     Test the input parameters.
 *
-      LSIDE  = LSAME( SIDE  , 'L' )
+      LSIDE  = TMLSAME( SIDE  , 'L' )
       IF( LSIDE )THEN
          NROWA = M
       ELSE
          NROWA = N
       END IF
-      NOCONJ = LSAME( TRANSA, 'T' )
-      NOUNIT = LSAME( DIAG  , 'N' )
-      UPPER  = LSAME( UPLO  , 'U' )
+      NOCONJ = TMLSAME( TRANSA, 'T' )
+      NOUNIT = TMLSAME( DIAG  , 'N' )
+      UPPER  = TMLSAME( UPLO  , 'U' )
 *
       INFO   = 0
       IF(      ( .NOT.LSIDE                ).AND.
-     $         ( .NOT.LSAME( SIDE  , 'R' ) )      )THEN
+     $         ( .NOT.TMLSAME( SIDE  , 'R' ) )      )THEN
          INFO = 1
       ELSE IF( ( .NOT.UPPER                ).AND.
-     $         ( .NOT.LSAME( UPLO  , 'L' ) )      )THEN
+     $         ( .NOT.TMLSAME( UPLO  , 'L' ) )      )THEN
          INFO = 2
-      ELSE IF( ( .NOT.LSAME( TRANSA, 'N' ) ).AND.
-     $         ( .NOT.LSAME( TRANSA, 'T' ) ).AND.
-     $         ( .NOT.LSAME( TRANSA, 'C' ) )      )THEN
+      ELSE IF( ( .NOT.TMLSAME( TRANSA, 'N' ) ).AND.
+     $         ( .NOT.TMLSAME( TRANSA, 'T' ) ).AND.
+     $         ( .NOT.TMLSAME( TRANSA, 'C' ) )      )THEN
          INFO = 3
-      ELSE IF( ( .NOT.LSAME( DIAG  , 'U' ) ).AND.
-     $         ( .NOT.LSAME( DIAG  , 'N' ) )      )THEN
+      ELSE IF( ( .NOT.TMLSAME( DIAG  , 'U' ) ).AND.
+     $         ( .NOT.TMLSAME( DIAG  , 'N' ) )      )THEN
          INFO = 4
       ELSE IF( M  .LT.0               )THEN
          INFO = 5
@@ -3379,7 +3381,7 @@ c
          INFO = 11
       END IF
       IF( INFO.NE.0 )THEN
-         CALL XERBLA( 'ZTRMM ', INFO )
+         CALL TMXERBLA( 'TMZTRMM ', INFO )
          RETURN
       END IF
 *
@@ -3402,7 +3404,7 @@ c
 *     Start the operations.
 *
       IF( LSIDE )THEN
-         IF( LSAME( TRANSA, 'N' ) )THEN
+         IF( TMLSAME( TRANSA, 'N' ) )THEN
 *
 *           Form  B := alpha*A*B.
 *
@@ -3482,7 +3484,7 @@ c
             END IF
          END IF
       ELSE
-         IF( LSAME( TRANSA, 'N' ) )THEN
+         IF( TMLSAME( TRANSA, 'N' ) )THEN
 *
 *           Form  B := alpha*B*A.
 *
@@ -3587,11 +3589,11 @@ c
 *
       RETURN
 *
-*     End of ZTRMM .
+*     End of TMZTRMM .
 *
       END
 
-      SUBROUTINE ZGEMV ( TRANS, M, N, ALPHA, A, LDA, X, INCX,
+      SUBROUTINE TMZGEMV ( TRANS, M, N, ALPHA, A, LDA, X, INCX,
      $                   BETA, Y, INCY )
 *     .. Scalar Arguments ..
       COMPLEX*16         ALPHA, BETA
@@ -3604,7 +3606,7 @@ c
 *  Purpose
 *  =======
 *
-*  ZGEMV  performs one of the matrix-vector operations
+*  TMZGEMV  performs one of the matrix-vector operations
 *
 *     y := alpha*A*x + beta*y,   or   y := alpha*A'*x + beta*y,   or
 *
@@ -3704,10 +3706,10 @@ c
       INTEGER            I, INFO, IX, IY, J, JX, JY, KX, KY, LENX, LENY
       LOGICAL            NOCONJ
 *     .. External Functions ..
-      LOGICAL            LSAME
-      EXTERNAL           LSAME
+      LOGICAL            TMLSAME
+      EXTERNAL           TMLSAME
 *     .. External Subroutines ..
-      EXTERNAL           XERBLA
+      EXTERNAL           TMXERBLA
 *     .. Intrinsic Functions ..
       INTRINSIC          DCONJG, MAX
 *     ..
@@ -3716,9 +3718,9 @@ c
 *     Test the input parameters.
 *
       INFO = 0
-      IF     ( .NOT.LSAME( TRANS, 'N' ).AND.
-     $         .NOT.LSAME( TRANS, 'T' ).AND.
-     $         .NOT.LSAME( TRANS, 'C' )      )THEN
+      IF     ( .NOT.TMLSAME( TRANS, 'N' ).AND.
+     $         .NOT.TMLSAME( TRANS, 'T' ).AND.
+     $         .NOT.TMLSAME( TRANS, 'C' )      )THEN
          INFO = 1
       ELSE IF( M.LT.0 )THEN
          INFO = 2
@@ -3732,7 +3734,7 @@ c
          INFO = 11
       END IF
       IF( INFO.NE.0 )THEN
-         CALL XERBLA( 'ZGEMV ', INFO )
+         CALL TMXERBLA( 'TMZGEMV ', INFO )
          RETURN
       END IF
 *
@@ -3742,12 +3744,12 @@ c
      $    ( ( ALPHA.EQ.ZERO ).AND.( BETA.EQ.ONE ) ) )
      $   RETURN
 *
-      NOCONJ = LSAME( TRANS, 'T' )
+      NOCONJ = TMLSAME( TRANS, 'T' )
 *
 *     Set  LENX  and  LENY, the lengths of the vectors x and y, and set
 *     up the start points in  X  and  Y.
 *
-      IF( LSAME( TRANS, 'N' ) )THEN
+      IF( TMLSAME( TRANS, 'N' ) )THEN
          LENX = N
          LENY = M
       ELSE
@@ -3798,7 +3800,7 @@ c
       END IF
       IF( ALPHA.EQ.ZERO )
      $   RETURN
-      IF( LSAME( TRANS, 'N' ) )THEN
+      IF( TMLSAME( TRANS, 'N' ) )THEN
 *
 *        Form  y := alpha*A*x + y.
 *
@@ -3869,6 +3871,6 @@ c
 *
       RETURN
 *
-*     End of ZGEMV .
+*     End of TMZGEMV .
 *
       END

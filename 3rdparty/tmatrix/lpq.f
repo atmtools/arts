@@ -1,4 +1,4 @@
-      SUBROUTINE ZGETF2( M, N, A, LDA, IPIV, INFO )
+      SUBROUTINE TMZGETF2( M, N, A, LDA, IPIV, INFO )
       INTEGER            INFO, LDA, M, N
       INTEGER            IPIV( * )
       COMPLEX*32         A( LDA, * )
@@ -6,9 +6,9 @@
       PARAMETER          ( ONE = ( 1.0Q+0, 0.0Q+0 ),
      $                   ZERO = ( 0.0Q+0, 0.0Q+0 ) )
       INTEGER            J, JP
-      INTEGER            IZAMAX
-      EXTERNAL           IZAMAX
-      EXTERNAL           XERBLA, ZGERU, ZSCAL, ZSWAP
+      INTEGER            TMIZAMAX
+      EXTERNAL           TMIZAMAX
+      EXTERNAL           TMXERBLA, TMZGERU, TMZSCAL, TMZSWAP
       INTRINSIC          MAX, MIN
       INFO = 0
       IF( M.LT.0 ) THEN
@@ -19,40 +19,41 @@
          INFO = -4
       END IF
       IF( INFO.NE.0 ) THEN
-         CALL XERBLA( 'ZGETF2', -INFO )
+         CALL TMXERBLA( 'TMZGETF2', -INFO )
          RETURN
       END IF
       IF( M.EQ.0 .OR. N.EQ.0 )
      $   RETURN
       DO 10 J = 1, MIN( M, N )
-         JP = J - 1 + IZAMAX( M-J+1, A( J, J ), 1 )
+         JP = J - 1 + TMIZAMAX( M-J+1, A( J, J ), 1 )
          IPIV( J ) = JP
          IF( A( JP, J ).NE.ZERO ) THEN
             IF( JP.NE.J )
-     $         CALL ZSWAP( N, A( J, 1 ), LDA, A( JP, 1 ), LDA )
+     $         CALL TMZSWAP( N, A( J, 1 ), LDA, A( JP, 1 ), LDA )
             IF( J.LT.M )
-     $         CALL ZSCAL( M-J, ONE / A( J, J ), A( J+1, J ), 1 )
+     $         CALL TMZSCAL( M-J, ONE / A( J, J ), A( J+1, J ), 1 )
          ELSE IF( INFO.EQ.0 ) THEN
             INFO = J
          END IF
          IF( J.LT.MIN( M, N ) ) THEN
-            CALL ZGERU( M-J, N-J, -ONE, A( J+1, J ), 1, A( J, J+1 ),
+            CALL TMZGERU( M-J, N-J, -ONE, A( J+1, J ), 1, A( J, J+1 ),
      $                  LDA, A( J+1, J+1 ), LDA )
          END IF
    10 CONTINUE
       RETURN
       END
 
-      SUBROUTINE ZGETRF( M, N, A, LDA, IPIV, INFO )
+      SUBROUTINE TMZGETRF( M, N, A, LDA, IPIV, INFO )
       INTEGER            INFO, LDA, M, N
       INTEGER            IPIV( * )
       COMPLEX*32         A( LDA, * )
       COMPLEX*32         ONE
       PARAMETER          ( ONE = ( 1.0Q+0, 0.0Q+0 ) )
       INTEGER            I, IINFO, J, JB, NB
-      EXTERNAL           XERBLA, ZGEMM, ZGETF2, ZLASWP, ZTRSM
-      INTEGER            ILAENV
-      EXTERNAL           ILAENV
+      EXTERNAL           TMXERBLA, TMZGEMM, TMZGETF2, TMTMZLASWP
+      EXTERNAL           TMZTRSM
+      INTEGER            TMILAENV
+      EXTERNAL           TMILAENV
       INTRINSIC          MAX, MIN
       INFO = 0
       IF( M.LT.0 ) THEN
@@ -63,32 +64,32 @@
          INFO = -4
       END IF
       IF( INFO.NE.0 ) THEN
-         CALL XERBLA( 'ZGETRF', -INFO )
+         CALL TMXERBLA( 'TMZGETRF', -INFO )
          RETURN
       END IF
       IF( M.EQ.0 .OR. N.EQ.0 )
      $   RETURN
-      NB = ILAENV( 1, 'ZGETRF', ' ', M, N, -1, -1 )
+      NB = TMILAENV( 1, 'TMZGETRF', ' ', M, N, -1, -1 )
       IF( NB.LE.1 .OR. NB.GE.MIN( M, N ) ) THEN
-         CALL ZGETF2( M, N, A, LDA, IPIV, INFO )
+         CALL TMZGETF2( M, N, A, LDA, IPIV, INFO )
       ELSE
          DO 20 J = 1, MIN( M, N ), NB
             JB = MIN( MIN( M, N )-J+1, NB )
-            CALL ZGETF2( M-J+1, JB, A( J, J ), LDA, IPIV( J ), IINFO )
+            CALL TMZGETF2( M-J+1, JB, A( J, J ), LDA, IPIV( J ), IINFO )
             IF( INFO.EQ.0 .AND. IINFO.GT.0 )
      $         INFO = IINFO + J - 1
             DO 10 I = J, MIN( M, J+JB-1 )
                IPIV( I ) = J - 1 + IPIV( I )
    10       CONTINUE
-            CALL ZLASWP( J-1, A, LDA, J, J+JB-1, IPIV, 1 )
+            CALL TMTMZLASWP( J-1, A, LDA, J, J+JB-1, IPIV, 1 )
             IF( J+JB.LE.N ) THEN
-               CALL ZLASWP( N-J-JB+1, A( 1, J+JB ), LDA, J, J+JB-1,
+               CALL TMTMZLASWP( N-J-JB+1, A( 1, J+JB ), LDA, J, J+JB-1,
      $                      IPIV, 1 )
-               CALL ZTRSM( 'Left', 'Lower', 'No transpose', 'Unit', JB,
+               CALL TMZTRSM('Left', 'Lower', 'No transpose', 'Unit', JB,
      $                     N-J-JB+1, ONE, A( J, J ), LDA, A( J, J+JB ),
      $                     LDA )
                IF( J+JB.LE.M ) THEN
-                  CALL ZGEMM( 'No transpose', 'No transpose', M-J-JB+1,
+                  CALL TMZGEMM('No transpose', 'No transpose', M-J-JB+1,
      $                        N-J-JB+1, JB, -ONE, A( J+JB, J ), LDA,
      $                        A( J, J+JB ), LDA, ONE, A( J+JB, J+JB ),
      $                        LDA )
@@ -99,7 +100,7 @@
       RETURN
       END
 
-      SUBROUTINE ZLASWP( N, A, LDA, K1, K2, IPIV, INCX )
+      SUBROUTINE TMTMZLASWP( N, A, LDA, K1, K2, IPIV, INCX )
       INTEGER            INCX, K1, K2, LDA, N
       INTEGER            IPIV( * )
       COMPLEX*32         A( LDA, * )
@@ -153,50 +154,50 @@
       RETURN
       END
 
-      INTEGER          FUNCTION IEEECK( ISPEC, ZERO, ONE )
+      INTEGER          FUNCTION TMIEEECK( ISPEC, ZERO, ONE )
       INTEGER            ISPEC
       REAL               ONE, ZERO
       REAL               NAN1, NAN2, NAN3, NAN4, NAN5, NAN6, NEGINF,
      $                   NEGZRO, NEWZRO, POSINF
-      IEEECK = 1
+      TMIEEECK = 1
       POSINF = ONE / ZERO
       IF( POSINF.LE.ONE ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
       NEGINF = -ONE / ZERO
       IF( NEGINF.GE.ZERO ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
       NEGZRO = ONE / ( NEGINF+ONE )
       IF( NEGZRO.NE.ZERO ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
       NEGINF = ONE / NEGZRO
       IF( NEGINF.GE.ZERO ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
       NEWZRO = NEGZRO + ZERO
       IF( NEWZRO.NE.ZERO ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
       POSINF = ONE / NEWZRO
       IF( POSINF.LE.ONE ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
       NEGINF = NEGINF*POSINF
       IF( NEGINF.GE.ZERO ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
       POSINF = POSINF*POSINF
       IF( POSINF.LE.ONE ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
       IF( ISPEC.EQ.0 )
@@ -208,33 +209,33 @@
       NAN5 = NEGINF*NEGZRO
       NAN6 = NAN5*0.0
       IF( NAN1.EQ.NAN1 ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
       IF( NAN2.EQ.NAN2 ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
       IF( NAN3.EQ.NAN3 ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
       IF( NAN4.EQ.NAN4 ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
       IF( NAN5.EQ.NAN5 ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
       IF( NAN6.EQ.NAN6 ) THEN
-         IEEECK = 0
+         TMIEEECK = 0
          RETURN
       END IF
       RETURN
       END
 
-      INTEGER          FUNCTION ILAENV( ISPEC, NAME, OPTS, N1, N2, N3,
+      INTEGER          FUNCTION TMILAENV( ISPEC, NAME, OPTS, N1, N2, N3,
      $                 N4 )
       CHARACTER*( * )    NAME, OPTS
       INTEGER            ISPEC, N1, N2, N3, N4
@@ -245,14 +246,14 @@
       CHARACTER*6        SUBNAM
       INTEGER            I, IC, IZ, NB, NBMIN, NX
       INTRINSIC          CHAR, ICHAR, INT, MIN, REAL
-      INTEGER            IEEECK
-      EXTERNAL           IEEECK
+      INTEGER            TMIEEECK
+      EXTERNAL           TMIEEECK
       GO TO ( 100, 100, 100, 400, 500, 600, 700, 800, 900, 1000,
      $        1100 ) ISPEC
-      ILAENV = -1
+      TMILAENV = -1
       RETURN
   100 CONTINUE
-      ILAENV = 1
+      TMILAENV = 1
       SUBNAM = NAME
       IC = ICHAR( SUBNAM( 1:1 ) )
       IZ = ICHAR( 'Z' )
@@ -441,7 +442,7 @@
             NB = 1
          END IF
       END IF
-      ILAENV = NB
+      TMILAENV = NB
       RETURN
   200 CONTINUE
       NBMIN = 2
@@ -515,7 +516,7 @@
             END IF
          END IF
       END IF
-      ILAENV = NBMIN
+      TMILAENV = NBMIN
       RETURN
   300 CONTINUE
       NX = 0
@@ -565,41 +566,41 @@
             END IF
          END IF
       END IF
-      ILAENV = NX
+      TMILAENV = NX
       RETURN
   400 CONTINUE
-      ILAENV = 6
+      TMILAENV = 6
       RETURN
   500 CONTINUE
-      ILAENV = 2
+      TMILAENV = 2
       RETURN
   600 CONTINUE 
-      ILAENV = INT( REAL( MIN( N1, N2 ) )*1.6E0 )
+      TMILAENV = INT( REAL( MIN( N1, N2 ) )*1.6E0 )
       RETURN
   700 CONTINUE
-      ILAENV = 1
+      TMILAENV = 1
       RETURN
   800 CONTINUE
-      ILAENV = 50
+      TMILAENV = 50
       RETURN
   900 CONTINUE
-      ILAENV = 25
+      TMILAENV = 25
       RETURN
  1000 CONTINUE
-      ILAENV = 1
-      IF( ILAENV.EQ.1 ) THEN
-         ILAENV = IEEECK( 0, 0.0, 1.0 ) 
+      TMILAENV = 1
+      IF( TMILAENV.EQ.1 ) THEN
+         TMILAENV = TMIEEECK( 0, 0.0, 1.0 ) 
       END IF
       RETURN
  1100 CONTINUE
-      ILAENV = 1
-      IF( ILAENV.EQ.1 ) THEN
-         ILAENV = IEEECK( 1, 0.0, 1.0 ) 
+      TMILAENV = 1
+      IF( TMILAENV.EQ.1 ) THEN
+         TMILAENV = TMIEEECK( 1, 0.0, 1.0 ) 
       END IF
       RETURN
       END
 
-      SUBROUTINE XERBLA( SRNAME, INFO )
+      SUBROUTINE TMXERBLA( SRNAME, INFO )
       CHARACTER*6        SRNAME
       INTEGER            INFO
       WRITE( *, FMT = 9999 )SRNAME, INFO
@@ -608,7 +609,7 @@
      $      'an illegal value' )
       END
 
-      SUBROUTINE ZGETRI( N, A, LDA, IPIV, WORK, LWORK, INFO )
+      SUBROUTINE TMZGETRI( N, A, LDA, IPIV, WORK, LWORK, INFO )
       INTEGER            INFO, LDA, LWORK, N
       INTEGER            IPIV( * )
       COMPLEX*32         A( LDA, * ), WORK( * )
@@ -618,12 +619,13 @@
       LOGICAL            LQUERY
       INTEGER            I, IWS, J, JB, JJ, JP, LDWORK, LWKOPT, NB,
      $                   NBMIN, NN
-      INTEGER            ILAENV
-      EXTERNAL           ILAENV
-      EXTERNAL           XERBLA, ZGEMM, ZGEMV, ZSWAP, ZTRSM, ZTRTRI
+      INTEGER            TMILAENV
+      EXTERNAL           TMILAENV
+      EXTERNAL           TMXERBLA, TMZGEMM, TMZGEMV, TMZSWAP, TMZTRSM
+      EXTERNAL           TMZTRTRI
       INTRINSIC          MAX, MIN
       INFO = 0
-      NB = ILAENV( 1, 'ZGETRI', ' ', N, -1, -1, -1 )
+      NB = TMILAENV( 1, 'TMZGETRI', ' ', N, -1, -1, -1 )
       LWKOPT = N*NB
       WORK( 1 ) = LWKOPT
       LQUERY = ( LWORK.EQ.-1 )
@@ -635,14 +637,14 @@
          INFO = -6
       END IF
       IF( INFO.NE.0 ) THEN
-         CALL XERBLA( 'ZGETRI', -INFO )
+         CALL TMXERBLA( 'TMZGETRI', -INFO )
          RETURN
       ELSE IF( LQUERY ) THEN
          RETURN
       END IF
       IF( N.EQ.0 )
      $   RETURN
-      CALL ZTRTRI( 'Upper', 'Non-unit', N, A, LDA, INFO )
+      CALL TMZTRTRI( 'Upper', 'Non-unit', N, A, LDA, INFO )
       IF( INFO.GT.0 )
      $   RETURN
       NBMIN = 2
@@ -651,7 +653,7 @@
          IWS = MAX( LDWORK*NB, 1 )
          IF( LWORK.LT.IWS ) THEN
             NB = LWORK / LDWORK
-            NBMIN = MAX( 2, ILAENV( 2, 'ZGETRI', ' ', N, -1, -1, -1 ) )
+            NBMIN = MAX(2, TMILAENV( 2, 'TMZGETRI', ' ', N, -1, -1, -1))
          END IF
       ELSE
          IWS = N
@@ -663,7 +665,7 @@
                A( I, J ) = ZERO
    10       CONTINUE
             IF( J.LT.N )
-     $         CALL ZGEMV( 'No transpose', N, N-J, -ONE, A( 1, J+1 ),
+     $         CALL TMZGEMV( 'No transpose', N, N-J, -ONE, A( 1, J+1 ),
      $                     LDA, WORK( J+1 ), 1, ONE, A( 1, J ), 1 )
    20    CONTINUE
       ELSE
@@ -677,23 +679,23 @@
    30          CONTINUE
    40       CONTINUE
             IF( J+JB.LE.N )
-     $         CALL ZGEMM( 'No transpose', 'No transpose', N, JB,
+     $         CALL TMZGEMM( 'No transpose', 'No transpose', N, JB,
      $                     N-J-JB+1, -ONE, A( 1, J+JB ), LDA,
      $                     WORK( J+JB ), LDWORK, ONE, A( 1, J ), LDA )
-            CALL ZTRSM( 'Right', 'Lower', 'No transpose', 'Unit', N, JB,
+            CALL TMZTRSM('Right','Lower', 'No transpose', 'Unit', N, JB,
      $                  ONE, WORK( J ), LDWORK, A( 1, J ), LDA )
    50    CONTINUE
       END IF
       DO 60 J = N - 1, 1, -1
          JP = IPIV( J )
          IF( JP.NE.J )
-     $      CALL ZSWAP( N, A( 1, J ), 1, A( 1, JP ), 1 )
+     $      CALL TMZSWAP( N, A( 1, J ), 1, A( 1, JP ), 1 )
    60 CONTINUE
       WORK( 1 ) = IWS
       RETURN
       END
 
-      SUBROUTINE ZTRTI2( UPLO, DIAG, N, A, LDA, INFO )
+      SUBROUTINE TMZTRTI2( UPLO, DIAG, N, A, LDA, INFO )
       CHARACTER          DIAG, UPLO
       INTEGER            INFO, LDA, N
       COMPLEX*32         A( LDA, * )
@@ -702,16 +704,16 @@
       LOGICAL            NOUNIT, UPPER
       INTEGER            J
       COMPLEX*32         AJJ
-      LOGICAL            LSAME
-      EXTERNAL           LSAME
-      EXTERNAL           XERBLA, ZSCAL, ZTRMV
+      LOGICAL            TMLSAME
+      EXTERNAL           TMLSAME
+      EXTERNAL           TMXERBLA, TMZSCAL, TMZTRMV
       INTRINSIC          MAX
       INFO = 0
-      UPPER = LSAME( UPLO, 'U' )
-      NOUNIT = LSAME( DIAG, 'N' )
-      IF( .NOT.UPPER .AND. .NOT.LSAME( UPLO, 'L' ) ) THEN
+      UPPER = TMLSAME( UPLO, 'U' )
+      NOUNIT = TMLSAME( DIAG, 'N' )
+      IF( .NOT.UPPER .AND. .NOT.TMLSAME( UPLO, 'L' ) ) THEN
          INFO = -1
-      ELSE IF( .NOT.NOUNIT .AND. .NOT.LSAME( DIAG, 'U' ) ) THEN
+      ELSE IF( .NOT.NOUNIT .AND. .NOT.TMLSAME( DIAG, 'U' ) ) THEN
          INFO = -2
       ELSE IF( N.LT.0 ) THEN
          INFO = -3
@@ -719,7 +721,7 @@
          INFO = -5
       END IF
       IF( INFO.NE.0 ) THEN
-         CALL XERBLA( 'ZTRTI2', -INFO )
+         CALL TMXERBLA( 'TMZTRTI2', -INFO )
          RETURN
       END IF
       IF( UPPER ) THEN
@@ -730,9 +732,9 @@
             ELSE
                AJJ = -ONE
             END IF
-            CALL ZTRMV( 'Upper', 'No transpose', DIAG, J-1, A, LDA,
+            CALL TMZTRMV( 'Upper', 'No transpose', DIAG, J-1, A, LDA,
      $                  A( 1, J ), 1 )
-            CALL ZSCAL( J-1, AJJ, A( 1, J ), 1 )
+            CALL TMZSCAL( J-1, AJJ, A( 1, J ), 1 )
    10    CONTINUE
       ELSE
          DO 20 J = N, 1, -1
@@ -743,16 +745,16 @@
                AJJ = -ONE
             END IF
             IF( J.LT.N ) THEN
-               CALL ZTRMV( 'Lower', 'No transpose', DIAG, N-J,
+               CALL TMZTRMV( 'Lower', 'No transpose', DIAG, N-J,
      $                     A( J+1, J+1 ), LDA, A( J+1, J ), 1 )
-               CALL ZSCAL( N-J, AJJ, A( J+1, J ), 1 )
+               CALL TMZSCAL( N-J, AJJ, A( J+1, J ), 1 )
             END IF
    20    CONTINUE
       END IF
       RETURN
       END
 
-      SUBROUTINE ZTRTRI( UPLO, DIAG, N, A, LDA, INFO )
+      SUBROUTINE TMZTRTRI( UPLO, DIAG, N, A, LDA, INFO )
       CHARACTER          DIAG, UPLO
       INTEGER            INFO, LDA, N
       COMPLEX*32         A( LDA, * )
@@ -761,17 +763,17 @@
      $                   ZERO = ( 0.0Q+0, 0.0Q+0 ) )
       LOGICAL            NOUNIT, UPPER
       INTEGER            J, JB, NB, NN
-      LOGICAL            LSAME
-      INTEGER            ILAENV
-      EXTERNAL           LSAME, ILAENV
-      EXTERNAL           XERBLA, ZTRMM, ZTRSM, ZTRTI2
+      LOGICAL            TMLSAME
+      INTEGER            TMILAENV
+      EXTERNAL           TMLSAME, TMILAENV
+      EXTERNAL           TMXERBLA, TMZTRMM, TMZTRSM, TMZTRTI2
       INTRINSIC          MAX, MIN
       INFO = 0
-      UPPER = LSAME( UPLO, 'U' )
-      NOUNIT = LSAME( DIAG, 'N' )
-      IF( .NOT.UPPER .AND. .NOT.LSAME( UPLO, 'L' ) ) THEN
+      UPPER = TMLSAME( UPLO, 'U' )
+      NOUNIT = TMLSAME( DIAG, 'N' )
+      IF( .NOT.UPPER .AND. .NOT.TMLSAME( UPLO, 'L' ) ) THEN
          INFO = -1
-      ELSE IF( .NOT.NOUNIT .AND. .NOT.LSAME( DIAG, 'U' ) ) THEN
+      ELSE IF( .NOT.NOUNIT .AND. .NOT.TMLSAME( DIAG, 'U' ) ) THEN
          INFO = -2
       ELSE IF( N.LT.0 ) THEN
          INFO = -3
@@ -779,7 +781,7 @@
          INFO = -5
       END IF
       IF( INFO.NE.0 ) THEN
-         CALL XERBLA( 'ZTRTRI', -INFO )
+         CALL TMXERBLA( 'TMZTRTRI', -INFO )
          RETURN
       END IF
       IF( N.EQ.0 )
@@ -791,44 +793,44 @@
    10    CONTINUE
          INFO = 0
       END IF
-      NB = ILAENV( 1, 'ZTRTRI', UPLO // DIAG, N, -1, -1, -1 )
+      NB = TMILAENV( 1, 'TMZTRTRI', UPLO // DIAG, N, -1, -1, -1 )
       IF( NB.LE.1 .OR. NB.GE.N ) THEN
-         CALL ZTRTI2( UPLO, DIAG, N, A, LDA, INFO )
+         CALL TMZTRTI2( UPLO, DIAG, N, A, LDA, INFO )
       ELSE
          IF( UPPER ) THEN
             DO 20 J = 1, N, NB
                JB = MIN( NB, N-J+1 )
-               CALL ZTRMM( 'Left', 'Upper', 'No transpose', DIAG, J-1,
+               CALL TMZTRMM( 'Left', 'Upper', 'No transpose', DIAG, J-1,
      $                     JB, ONE, A, LDA, A( 1, J ), LDA )
-               CALL ZTRSM( 'Right', 'Upper', 'No transpose', DIAG, J-1,
+               CALL TMZTRSM('Right', 'Upper', 'No transpose', DIAG, J-1,
      $                     JB, -ONE, A( J, J ), LDA, A( 1, J ), LDA )
-               CALL ZTRTI2( 'Upper', DIAG, JB, A( J, J ), LDA, INFO )
+               CALL TMZTRTI2( 'Upper', DIAG, JB, A( J, J ), LDA, INFO )
    20       CONTINUE
          ELSE
             NN = ( ( N-1 ) / NB )*NB + 1
             DO 30 J = NN, 1, -NB
                JB = MIN( NB, N-J+1 )
                IF( J+JB.LE.N ) THEN
-                  CALL ZTRMM( 'Left', 'Lower', 'No transpose', DIAG,
+                  CALL TMZTRMM( 'Left', 'Lower', 'No transpose', DIAG,
      $                        N-J-JB+1, JB, ONE, A( J+JB, J+JB ), LDA,
      $                        A( J+JB, J ), LDA )
-                  CALL ZTRSM( 'Right', 'Lower', 'No transpose', DIAG,
+                  CALL TMZTRSM( 'Right', 'Lower', 'No transpose', DIAG,
      $                        N-J-JB+1, JB, -ONE, A( J, J ), LDA,
      $                        A( J+JB, J ), LDA )
                END IF
-               CALL ZTRTI2( 'Lower', DIAG, JB, A( J, J ), LDA, INFO )
+               CALL TMZTRTI2( 'Lower', DIAG, JB, A( J, J ), LDA, INFO )
    30       CONTINUE
          END IF
       END IF
       RETURN
       END
 
-      LOGICAL          FUNCTION LSAME( CA, CB )
+      LOGICAL          FUNCTION TMLSAME( CA, CB )
       CHARACTER          CA, CB
       INTRINSIC          ICHAR
       INTEGER            INTA, INTB, ZCODE
-      LSAME = CA.EQ.CB
-      IF( LSAME )
+      TMLSAME = CA.EQ.CB
+      IF( TMLSAME )
      $   RETURN
       ZCODE = ICHAR( 'Z' )
       INTA = ICHAR( CA )
@@ -847,44 +849,44 @@
          IF( INTA.GE.225 .AND. INTA.LE.250 ) INTA = INTA - 32
          IF( INTB.GE.225 .AND. INTB.LE.250 ) INTB = INTB - 32
       END IF
-      LSAME = INTA.EQ.INTB
+      TMLSAME = INTA.EQ.INTB
       END
 
-      integer function izamax(n,zx,incx)
+      integer function TMizamax(n,zx,incx)
       complex*32 zx(*)
       real*16 smax
       integer i,incx,ix,n
-      real*16 dcabs1
-      izamax = 0
+      real*16 TMdcabs1
+      TMizamax = 0
       if( n.lt.1 .or. incx.le.0 )return
-      izamax = 1
+      TMizamax = 1
       if(n.eq.1)return
       if(incx.eq.1)go to 20
       ix = 1
-      smax = dcabs1(zx(1))
+      smax = TMdcabs1(zx(1))
       ix = ix + incx
       do 10 i = 2,n
-         if(dcabs1(zx(ix)).le.smax) go to 5
-         izamax = i
-         smax = dcabs1(zx(ix))
+         if(TMdcabs1(zx(ix)).le.smax) go to 5
+         TMizamax = i
+         smax = TMdcabs1(zx(ix))
     5    ix = ix + incx
    10 continue
       return
-   20 smax = dcabs1(zx(1))
+   20 smax = TMdcabs1(zx(1))
       do 30 i = 2,n
-         if(dcabs1(zx(i)).le.smax) go to 30
-         izamax = i
-         smax = dcabs1(zx(i))
+         if(TMdcabs1(zx(i)).le.smax) go to 30
+         TMizamax = i
+         smax = TMdcabs1(zx(i))
    30 continue
       return
       end
 
-      real*16 function dcabs1(z)
+      real*16 function TMdcabs1(z)
       complex*32 z,zz
       real*16 t(2)
       equivalence (zz,t(1))
       zz = z
-      dcabs1 = qabs(t(1)) + qabs(t(2))
+      TMdcabs1 = qabs(t(1)) + qabs(t(2))
       return
       end
 
@@ -913,7 +915,7 @@
       return
       end
 
-      subroutine  zscal(n,za,zx,incx)
+      subroutine  TMzscal(n,za,zx,incx)
       complex*32 za,zx(*)
       integer i,incx,ix,n
       if( n.le.0 .or. incx.le.0 )return
@@ -930,7 +932,7 @@
       return
       end
 
-      SUBROUTINE ZGERU ( M, N, ALPHA, X, INCX, Y, INCY, A, LDA )
+      SUBROUTINE TMZGERU ( M, N, ALPHA, X, INCX, Y, INCY, A, LDA )
       COMPLEX*32         ALPHA
       INTEGER            INCX, INCY, LDA, M, N
       COMPLEX*32         A( LDA, * ), X( * ), Y( * )
@@ -938,7 +940,7 @@
       PARAMETER        ( ZERO = ( 0.0Q+0, 0.0Q+0 ) )
       COMPLEX*32         TEMP
       INTEGER            I, INFO, IX, J, JY, KX
-      EXTERNAL           XERBLA
+      EXTERNAL           TMXERBLA
       INTRINSIC          MAX
       INFO = 0
       IF     ( M.LT.0 )THEN
@@ -953,7 +955,7 @@
          INFO = 9
       END IF
       IF( INFO.NE.0 )THEN
-         CALL XERBLA( 'ZGERU ', INFO )
+         CALL TMXERBLA( 'TMZGERU ', INFO )
          RETURN
       END IF
       IF( ( M.EQ.0 ).OR.( N.EQ.0 ).OR.( ALPHA.EQ.ZERO ) )
@@ -994,15 +996,15 @@
       RETURN
       END
 
-      SUBROUTINE ZTRSM ( SIDE, UPLO, TRANSA, DIAG, M, N, ALPHA, A, LDA,
+      SUBROUTINE TMZTRSM (SIDE, UPLO, TRANSA, DIAG, M, N, ALPHA, A, LDA,
      $                   B, LDB )
       CHARACTER*1        SIDE, UPLO, TRANSA, DIAG
       INTEGER            M, N, LDA, LDB
       COMPLEX*32         ALPHA
       COMPLEX*32         A( LDA, * ), B( LDB, * )
-      LOGICAL            LSAME
-      EXTERNAL           LSAME
-      EXTERNAL           XERBLA
+      LOGICAL            TMLSAME
+      EXTERNAL           TMLSAME
+      EXTERNAL           TMXERBLA
       INTRINSIC          QCONJG, MAX
       LOGICAL            LSIDE, NOCONJ, NOUNIT, UPPER
       INTEGER            I, INFO, J, K, NROWA
@@ -1011,28 +1013,28 @@
       PARAMETER        ( ONE  = ( 1.0Q+0, 0.0Q+0 ) )
       COMPLEX*32         ZERO
       PARAMETER        ( ZERO = ( 0.0Q+0, 0.0Q+0 ) )
-      LSIDE  = LSAME( SIDE  , 'L' )
+      LSIDE  = TMLSAME( SIDE  , 'L' )
       IF( LSIDE )THEN
          NROWA = M
       ELSE
          NROWA = N
       END IF
-      NOCONJ = LSAME( TRANSA, 'T' )
-      NOUNIT = LSAME( DIAG  , 'N' )
-      UPPER  = LSAME( UPLO  , 'U' )
+      NOCONJ = TMLSAME( TRANSA, 'T' )
+      NOUNIT = TMLSAME( DIAG  , 'N' )
+      UPPER  = TMLSAME( UPLO  , 'U' )
       INFO   = 0
       IF(      ( .NOT.LSIDE                ).AND.
-     $         ( .NOT.LSAME( SIDE  , 'R' ) )      )THEN
+     $         ( .NOT.TMLSAME( SIDE  , 'R' ) )      )THEN
          INFO = 1
       ELSE IF( ( .NOT.UPPER                ).AND.
-     $         ( .NOT.LSAME( UPLO  , 'L' ) )      )THEN
+     $         ( .NOT.TMLSAME( UPLO  , 'L' ) )      )THEN
          INFO = 2
-      ELSE IF( ( .NOT.LSAME( TRANSA, 'N' ) ).AND.
-     $         ( .NOT.LSAME( TRANSA, 'T' ) ).AND.
-     $         ( .NOT.LSAME( TRANSA, 'C' ) )      )THEN
+      ELSE IF( ( .NOT.TMLSAME( TRANSA, 'N' ) ).AND.
+     $         ( .NOT.TMLSAME( TRANSA, 'T' ) ).AND.
+     $         ( .NOT.TMLSAME( TRANSA, 'C' ) )      )THEN
          INFO = 3
-      ELSE IF( ( .NOT.LSAME( DIAG  , 'U' ) ).AND.
-     $         ( .NOT.LSAME( DIAG  , 'N' ) )      )THEN
+      ELSE IF( ( .NOT.TMLSAME( DIAG  , 'U' ) ).AND.
+     $         ( .NOT.TMLSAME( DIAG  , 'N' ) )      )THEN
          INFO = 4
       ELSE IF( M  .LT.0               )THEN
          INFO = 5
@@ -1044,7 +1046,7 @@
          INFO = 11
       END IF
       IF( INFO.NE.0 )THEN
-         CALL XERBLA( 'ZTRSM ', INFO )
+         CALL TMXERBLA( 'TMZTRSM ', INFO )
          RETURN
       END IF
       IF( N.EQ.0 )
@@ -1058,7 +1060,7 @@
          RETURN
       END IF
       IF( LSIDE )THEN
-         IF( LSAME( TRANSA, 'N' ) )THEN
+         IF( TMLSAME( TRANSA, 'N' ) )THEN
             IF( UPPER )THEN
                DO 60, J = 1, N
                   IF( ALPHA.NE.ONE )THEN
@@ -1138,7 +1140,7 @@
             END IF
          END IF
       ELSE
-         IF( LSAME( TRANSA, 'N' ) )THEN
+         IF( TMLSAME( TRANSA, 'N' ) )THEN
             IF( UPPER )THEN
                DO 230, J = 1, N
                   IF( ALPHA.NE.ONE )THEN
@@ -1249,15 +1251,15 @@
       RETURN
       END
 
-      SUBROUTINE ZGEMM ( TRANSA, TRANSB, M, N, K, ALPHA, A, LDA, B, LDB,
+      SUBROUTINE TMZGEMM (TRANSA,TRANSB, M, N, K, ALPHA, A, LDA, B, LDB,
      $                   BETA, C, LDC )
       CHARACTER*1        TRANSA, TRANSB
       INTEGER            M, N, K, LDA, LDB, LDC
       COMPLEX*32         ALPHA, BETA
       COMPLEX*32         A( LDA, * ), B( LDB, * ), C( LDC, * )
-      LOGICAL            LSAME
-      EXTERNAL           LSAME
-      EXTERNAL           XERBLA
+      LOGICAL            TMLSAME
+      EXTERNAL           TMLSAME
+      EXTERNAL           TMXERBLA
       INTRINSIC          QCONJG, MAX
       LOGICAL            CONJA, CONJB, NOTA, NOTB
       INTEGER            I, INFO, J, L, NCOLA, NROWA, NROWB
@@ -1266,10 +1268,10 @@
       PARAMETER        ( ONE  = ( 1.0Q+0, 0.0Q+0 ) )
       COMPLEX*32         ZERO
       PARAMETER        ( ZERO = ( 0.0Q+0, 0.0Q+0 ) )
-      NOTA  = LSAME( TRANSA, 'N' )
-      NOTB  = LSAME( TRANSB, 'N' )
-      CONJA = LSAME( TRANSA, 'C' )
-      CONJB = LSAME( TRANSB, 'C' )
+      NOTA  = TMLSAME( TRANSA, 'N' )
+      NOTB  = TMLSAME( TRANSB, 'N' )
+      CONJA = TMLSAME( TRANSA, 'C' )
+      CONJB = TMLSAME( TRANSB, 'C' )
       IF( NOTA )THEN
          NROWA = M
          NCOLA = K
@@ -1285,11 +1287,11 @@
       INFO = 0
       IF(      ( .NOT.NOTA                 ).AND.
      $         ( .NOT.CONJA                ).AND.
-     $         ( .NOT.LSAME( TRANSA, 'T' ) )      )THEN
+     $         ( .NOT.TMLSAME( TRANSA, 'T' ) )      )THEN
          INFO = 1
       ELSE IF( ( .NOT.NOTB                 ).AND.
      $         ( .NOT.CONJB                ).AND.
-     $         ( .NOT.LSAME( TRANSB, 'T' ) )      )THEN
+     $         ( .NOT.TMLSAME( TRANSB, 'T' ) )      )THEN
          INFO = 2
       ELSE IF( M  .LT.0               )THEN
          INFO = 3
@@ -1305,7 +1307,7 @@
          INFO = 13
       END IF
       IF( INFO.NE.0 )THEN
-         CALL XERBLA( 'ZGEMM ', INFO )
+         CALL TMXERBLA( 'TMZGEMM ', INFO )
          RETURN
       END IF
       IF( ( M.EQ.0 ).OR.( N.EQ.0 ).OR.
@@ -1484,7 +1486,7 @@
       RETURN
       END
 
-      SUBROUTINE ZTRMV ( UPLO, TRANS, DIAG, N, A, LDA, X, INCX )
+      SUBROUTINE TMZTRMV ( UPLO, TRANS, DIAG, N, A, LDA, X, INCX )
       INTEGER            INCX, LDA, N
       CHARACTER*1        DIAG, TRANS, UPLO
       COMPLEX*32         A( LDA, * ), X( * )
@@ -1493,20 +1495,20 @@
       COMPLEX*32         TEMP
       INTEGER            I, INFO, IX, J, JX, KX
       LOGICAL            NOCONJ, NOUNIT
-      LOGICAL            LSAME
-      EXTERNAL           LSAME
-      EXTERNAL           XERBLA
+      LOGICAL            TMLSAME
+      EXTERNAL           TMLSAME
+      EXTERNAL           TMXERBLA
       INTRINSIC          QCONJG, MAX
       INFO = 0
-      IF     ( .NOT.LSAME( UPLO , 'U' ).AND.
-     $         .NOT.LSAME( UPLO , 'L' )      )THEN
+      IF     ( .NOT.TMLSAME( UPLO , 'U' ).AND.
+     $         .NOT.TMLSAME( UPLO , 'L' )      )THEN
          INFO = 1
-      ELSE IF( .NOT.LSAME( TRANS, 'N' ).AND.
-     $         .NOT.LSAME( TRANS, 'T' ).AND.
-     $         .NOT.LSAME( TRANS, 'C' )      )THEN
+      ELSE IF( .NOT.TMLSAME( TRANS, 'N' ).AND.
+     $         .NOT.TMLSAME( TRANS, 'T' ).AND.
+     $         .NOT.TMLSAME( TRANS, 'C' )      )THEN
          INFO = 2
-      ELSE IF( .NOT.LSAME( DIAG , 'U' ).AND.
-     $         .NOT.LSAME( DIAG , 'N' )      )THEN
+      ELSE IF( .NOT.TMLSAME( DIAG , 'U' ).AND.
+     $         .NOT.TMLSAME( DIAG , 'N' )      )THEN
          INFO = 3
       ELSE IF( N.LT.0 )THEN
          INFO = 4
@@ -1516,20 +1518,20 @@
          INFO = 8
       END IF
       IF( INFO.NE.0 )THEN
-         CALL XERBLA( 'ZTRMV ', INFO )
+         CALL TMXERBLA( 'TMZTRMV ', INFO )
          RETURN
       END IF
       IF( N.EQ.0 )
      $   RETURN
-      NOCONJ = LSAME( TRANS, 'T' )
-      NOUNIT = LSAME( DIAG , 'N' )
+      NOCONJ = TMLSAME( TRANS, 'T' )
+      NOUNIT = TMLSAME( DIAG , 'N' )
       IF( INCX.LE.0 )THEN
          KX = 1 - ( N - 1 )*INCX
       ELSE IF( INCX.NE.1 )THEN
          KX = 1
       END IF
-      IF( LSAME( TRANS, 'N' ) )THEN
-         IF( LSAME( UPLO, 'U' ) )THEN
+      IF( TMLSAME( TRANS, 'N' ) )THEN
+         IF( TMLSAME( UPLO, 'U' ) )THEN
             IF( INCX.EQ.1 )THEN
                DO 20, J = 1, N
                   IF( X( J ).NE.ZERO )THEN
@@ -1588,7 +1590,7 @@
             END IF
          END IF
       ELSE
-         IF( LSAME( UPLO, 'U' ) )THEN
+         IF( TMLSAME( UPLO, 'U' ) )THEN
             IF( INCX.EQ.1 )THEN
                DO 110, J = N, 1, -1
                   TEMP = X( J )
@@ -1679,15 +1681,15 @@
       RETURN
       END
 
-      SUBROUTINE ZTRMM ( SIDE, UPLO, TRANSA, DIAG, M, N, ALPHA, A, LDA,
+      SUBROUTINE TMZTRMM (SIDE, UPLO, TRANSA, DIAG, M, N, ALPHA, A, LDA,
      $                   B, LDB )
       CHARACTER*1        SIDE, UPLO, TRANSA, DIAG
       INTEGER            M, N, LDA, LDB
       COMPLEX*32         ALPHA
       COMPLEX*32         A( LDA, * ), B( LDB, * )
-      LOGICAL            LSAME
-      EXTERNAL           LSAME
-      EXTERNAL           XERBLA
+      LOGICAL            TMLSAME
+      EXTERNAL           TMLSAME
+      EXTERNAL           TMXERBLA
       INTRINSIC          QCONJG, MAX
       LOGICAL            LSIDE, NOCONJ, NOUNIT, UPPER
       INTEGER            I, INFO, J, K, NROWA
@@ -1696,28 +1698,28 @@
       PARAMETER        ( ONE  = ( 1.0Q+0, 0.0Q+0 ) )
       COMPLEX*32         ZERO
       PARAMETER        ( ZERO = ( 0.0Q+0, 0.0Q+0 ) )
-      LSIDE  = LSAME( SIDE  , 'L' )
+      LSIDE  = TMLSAME( SIDE  , 'L' )
       IF( LSIDE )THEN
          NROWA = M
       ELSE
          NROWA = N
       END IF
-      NOCONJ = LSAME( TRANSA, 'T' )
-      NOUNIT = LSAME( DIAG  , 'N' )
-      UPPER  = LSAME( UPLO  , 'U' )
+      NOCONJ = TMLSAME( TRANSA, 'T' )
+      NOUNIT = TMLSAME( DIAG  , 'N' )
+      UPPER  = TMLSAME( UPLO  , 'U' )
       INFO   = 0
       IF(      ( .NOT.LSIDE                ).AND.
-     $         ( .NOT.LSAME( SIDE  , 'R' ) )      )THEN
+     $         ( .NOT.TMLSAME( SIDE  , 'R' ) )      )THEN
          INFO = 1
       ELSE IF( ( .NOT.UPPER                ).AND.
-     $         ( .NOT.LSAME( UPLO  , 'L' ) )      )THEN
+     $         ( .NOT.TMLSAME( UPLO  , 'L' ) )      )THEN
          INFO = 2
-      ELSE IF( ( .NOT.LSAME( TRANSA, 'N' ) ).AND.
-     $         ( .NOT.LSAME( TRANSA, 'T' ) ).AND.
-     $         ( .NOT.LSAME( TRANSA, 'C' ) )      )THEN
+      ELSE IF( ( .NOT.TMLSAME( TRANSA, 'N' ) ).AND.
+     $         ( .NOT.TMLSAME( TRANSA, 'T' ) ).AND.
+     $         ( .NOT.TMLSAME( TRANSA, 'C' ) )      )THEN
          INFO = 3
-      ELSE IF( ( .NOT.LSAME( DIAG  , 'U' ) ).AND.
-     $         ( .NOT.LSAME( DIAG  , 'N' ) )      )THEN
+      ELSE IF( ( .NOT.TMLSAME( DIAG  , 'U' ) ).AND.
+     $         ( .NOT.TMLSAME( DIAG  , 'N' ) )      )THEN
          INFO = 4
       ELSE IF( M  .LT.0               )THEN
          INFO = 5
@@ -1729,7 +1731,7 @@
          INFO = 11
       END IF
       IF( INFO.NE.0 )THEN
-         CALL XERBLA( 'ZTRMM ', INFO )
+         CALL TMXERBLA( 'TMZTRMM ', INFO )
          RETURN
       END IF
       IF( N.EQ.0 )
@@ -1743,7 +1745,7 @@
          RETURN
       END IF
       IF( LSIDE )THEN
-         IF( LSAME( TRANSA, 'N' ) )THEN
+         IF( TMLSAME( TRANSA, 'N' ) )THEN
             IF( UPPER )THEN
                DO 50, J = 1, N
                   DO 40, K = 1, M
@@ -1817,7 +1819,7 @@
             END IF
          END IF
       ELSE
-         IF( LSAME( TRANSA, 'N' ) )THEN
+         IF( TMLSAME( TRANSA, 'N' ) )THEN
             IF( UPPER )THEN
                DO 200, J = N, 1, -1
                   TEMP = ALPHA
@@ -1916,7 +1918,7 @@
       RETURN
       END
 
-      SUBROUTINE ZGEMV ( TRANS, M, N, ALPHA, A, LDA, X, INCX,
+      SUBROUTINE TMZGEMV ( TRANS, M, N, ALPHA, A, LDA, X, INCX,
      $                   BETA, Y, INCY )
       COMPLEX*32         ALPHA, BETA
       INTEGER            INCX, INCY, LDA, M, N
@@ -1929,14 +1931,14 @@
       COMPLEX*32         TEMP
       INTEGER            I, INFO, IX, IY, J, JX, JY, KX, KY, LENX, LENY
       LOGICAL            NOCONJ
-      LOGICAL            LSAME
-      EXTERNAL           LSAME
-      EXTERNAL           XERBLA
+      LOGICAL            TMLSAME
+      EXTERNAL           TMLSAME
+      EXTERNAL           TMXERBLA
       INTRINSIC          QCONJG, MAX
       INFO = 0
-      IF     ( .NOT.LSAME( TRANS, 'N' ).AND.
-     $         .NOT.LSAME( TRANS, 'T' ).AND.
-     $         .NOT.LSAME( TRANS, 'C' )      )THEN
+      IF     ( .NOT.TMLSAME( TRANS, 'N' ).AND.
+     $         .NOT.TMLSAME( TRANS, 'T' ).AND.
+     $         .NOT.TMLSAME( TRANS, 'C' )      )THEN
          INFO = 1
       ELSE IF( M.LT.0 )THEN
          INFO = 2
@@ -1950,14 +1952,14 @@
          INFO = 11
       END IF
       IF( INFO.NE.0 )THEN
-         CALL XERBLA( 'ZGEMV ', INFO )
+         CALL TMXERBLA( 'TMZGEMV ', INFO )
          RETURN
       END IF
       IF( ( M.EQ.0 ).OR.( N.EQ.0 ).OR.
      $    ( ( ALPHA.EQ.ZERO ).AND.( BETA.EQ.ONE ) ) )
      $   RETURN
-      NOCONJ = LSAME( TRANS, 'T' )
-      IF( LSAME( TRANS, 'N' ) )THEN
+      NOCONJ = TMLSAME( TRANS, 'T' )
+      IF( TMLSAME( TRANS, 'N' ) )THEN
          LENX = N
          LENY = M
       ELSE
@@ -2002,7 +2004,7 @@
       END IF
       IF( ALPHA.EQ.ZERO )
      $   RETURN
-      IF( LSAME( TRANS, 'N' ) )THEN
+      IF( TMLSAME( TRANS, 'N' ) )THEN
          JX = KX
          IF( INCY.EQ.1 )THEN
             DO 60, J = 1, N
