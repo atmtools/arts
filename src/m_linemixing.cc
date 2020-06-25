@@ -64,8 +64,6 @@ void abs_hitran_relmat_dataReadHitranRelmatDataAndLines(HitranRelaxationMatrixDa
   
   bool emptied=false;
   for (Index i=0; i<abs_species.nelem(); i++) {
-    if (abs_species[i].nelem() not_eq abs_lines_per_species[i].nelem())
-      throw std::runtime_error("Bad size of input species+lines");
     
     for (Index j=0; j<abs_species[i].nelem(); j++) {
       if (abs_species[i][j].Species() not_eq SpeciesTag("CO2").Species()) 
@@ -129,7 +127,7 @@ void propmat_clearskyAddHitranLineMixingLines(ArrayOfPropagationMatrix& propmat_
   vmrs[0] = 1 - vmrs[1] - vmrs[2];
     
   for (Index i=0; i<abs_species.nelem(); i++) {
-    if (not abs_lines_per_species[i].nelem() and 
+    if (abs_lines_per_species[i].nelem() and 
       (abs_lines_per_species[i].front().Population() == Absorption::PopulationType::ByHITRANFullRelmat or
        abs_lines_per_species[i].front().Population() == Absorption::PopulationType::ByHITRANRosenkranzRelmat))
       propmat_clearsky[i].Kjj() += lm_hitran_2017::compute(abs_hitran_relmat_data, abs_lines_per_species[i], rtp_pressure, rtp_temperature, vmrs, f_grid, partition_functions);

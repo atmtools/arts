@@ -636,21 +636,23 @@ void test_hitran2017(bool newtest = true)
     f_grid[isig] = Conversion::kaycm2freq(sigc);
   }
   
+  constexpr Index n=6;
   auto types = 
-  std::array<std::pair<lm_hitran_2017::ModeOfLineMixing, lm_hitran_2017::calctype>, 5>{
+  std::array<std::pair<lm_hitran_2017::ModeOfLineMixing, lm_hitran_2017::calctype>, 6>{
     std::pair<lm_hitran_2017::ModeOfLineMixing, lm_hitran_2017::calctype>{lm_hitran_2017::ModeOfLineMixing::FullW, lm_hitran_2017::calctype::FullW},
+    {lm_hitran_2017::ModeOfLineMixing::VP_W, lm_hitran_2017::calctype::FullW},
     {lm_hitran_2017::ModeOfLineMixing::VP, lm_hitran_2017::calctype::NoneVP},
     {lm_hitran_2017::ModeOfLineMixing::VP_Y, lm_hitran_2017::calctype::NoneRosenkranz},
     {lm_hitran_2017::ModeOfLineMixing::SDVP, lm_hitran_2017::calctype::SDVP},
     {lm_hitran_2017::ModeOfLineMixing::SDVP_Y, lm_hitran_2017::calctype::SDRosenkranz}};
   define_species_data();
   define_species_map();
-  ArrayOfVector absorption(5);
+  ArrayOfVector absorption(n);
   make_wigner_ready(int(250), int(20000000), 6);
   
   ArrayOfAbsorptionLines bands;
   HitranRelaxationMatrixData hitran;
-  for (Index i=0;i<5; i++) {
+  for (Index i=0;i<n; i++) {
     auto type=types[i];
     
     lm_hitran_2017::read(hitran, bands, "data_new", -1, Conversion::kaycm2freq(600), Conversion::kaycm2freq(900), Conversion::hitran2arts_linestrength(stotmax), type.first);
@@ -665,7 +667,7 @@ void test_hitran2017(bool newtest = true)
   }
   
   for (Index i=0; i<nsig; i++) {
-    for (Index j=0; j<5; j++) {
+    for (Index j=0; j<n; j++) {
       std::cout<<absorption[j][i]<<' ';
     }
     std::cout<<'\n';

@@ -865,6 +865,28 @@ extern "C" {
     DLL_PUBLIC bool equalTime(void *, void *);
     DLL_PUBLIC bool lessTime(void *, void *);
     
+    // HitranRelaxationMatrixData
+    BasicInterfaceCAPI(HitranRelaxationMatrixData)
+    BasicInputOutputCAPI(HitranRelaxationMatrixData)
+    VoidStructGetterCAPI(HitranRelaxationMatrixData, W0rr)
+    VoidStructGetterCAPI(HitranRelaxationMatrixData, B0rr)
+    VoidStructGetterCAPI(HitranRelaxationMatrixData, W0rq)
+    VoidStructGetterCAPI(HitranRelaxationMatrixData, B0rq)
+    VoidStructGetterCAPI(HitranRelaxationMatrixData, W0rp)
+    VoidStructGetterCAPI(HitranRelaxationMatrixData, B0rp)
+    VoidStructGetterCAPI(HitranRelaxationMatrixData, W0qr)
+    VoidStructGetterCAPI(HitranRelaxationMatrixData, B0qr)
+    VoidStructGetterCAPI(HitranRelaxationMatrixData, W0qq)
+    VoidStructGetterCAPI(HitranRelaxationMatrixData, B0qq)
+    VoidStructGetterCAPI(HitranRelaxationMatrixData, W0qp)
+    VoidStructGetterCAPI(HitranRelaxationMatrixData, B0qp)
+    VoidStructGetterCAPI(HitranRelaxationMatrixData, W0pr)
+    VoidStructGetterCAPI(HitranRelaxationMatrixData, B0pr)
+    VoidStructGetterCAPI(HitranRelaxationMatrixData, W0pq)
+    VoidStructGetterCAPI(HitranRelaxationMatrixData, B0pq)
+    VoidStructGetterCAPI(HitranRelaxationMatrixData, W0pp)
+    VoidStructGetterCAPI(HitranRelaxationMatrixData, B0pp)
+    
     // generic
     DLL_PUBLIC Index string2filetypeindex(char *);
 }

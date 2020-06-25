@@ -1241,6 +1241,30 @@ bool equalTime(void * data, void * otherdata) {return *static_cast<Time *>(data)
 bool lessTime(void * data, void * otherdata) {return *static_cast<Time *>(data) < *static_cast<Time *>(otherdata);}
 
 
+// HitranRelaxationMatrixData
+BasicInterfaceCAPI(HitranRelaxationMatrixData)
+BasicInputOutputCAPI(HitranRelaxationMatrixData)
+VoidStructGetterCAPI(HitranRelaxationMatrixData, W0rr)
+VoidStructGetterCAPI(HitranRelaxationMatrixData, B0rr)
+VoidStructGetterCAPI(HitranRelaxationMatrixData, W0rq)
+VoidStructGetterCAPI(HitranRelaxationMatrixData, B0rq)
+VoidStructGetterCAPI(HitranRelaxationMatrixData, W0rp)
+VoidStructGetterCAPI(HitranRelaxationMatrixData, B0rp)
+VoidStructGetterCAPI(HitranRelaxationMatrixData, W0qr)
+VoidStructGetterCAPI(HitranRelaxationMatrixData, B0qr)
+VoidStructGetterCAPI(HitranRelaxationMatrixData, W0qq)
+VoidStructGetterCAPI(HitranRelaxationMatrixData, B0qq)
+VoidStructGetterCAPI(HitranRelaxationMatrixData, W0qp)
+VoidStructGetterCAPI(HitranRelaxationMatrixData, B0qp)
+VoidStructGetterCAPI(HitranRelaxationMatrixData, W0pr)
+VoidStructGetterCAPI(HitranRelaxationMatrixData, B0pr)
+VoidStructGetterCAPI(HitranRelaxationMatrixData, W0pq)
+VoidStructGetterCAPI(HitranRelaxationMatrixData, B0pq)
+VoidStructGetterCAPI(HitranRelaxationMatrixData, W0pp)
+VoidStructGetterCAPI(HitranRelaxationMatrixData, B0pp)
+
+
+
 // generic
 Index string2filetypeindex(char * data) { try { return Index(string2filetype(data)); } catch (std::runtime_error& e) { return -1; } }
 

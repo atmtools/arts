@@ -985,7 +985,7 @@ void calcw(ConvTPOut& out,
   Vector& f0 = out.f0;
   Vector& pop = out.pop;
   Vector& dip = out.dip;
-  MatrixView W = out.W.imag();
+  MatrixView W = transpose(out.W.imag());  // Transpose to fit Fortran-code
   
   // Size of problem
   const Index n=Y.nelem();
@@ -1165,13 +1165,15 @@ void calcw(ConvTPOut& out,
         if (skip) continue;
         
         Numeric deltasig = f0[i] - f0[j];
-        if (std::abs(deltasig) < Conversion::kaycm2freq(1e-4) /*cm-1*/ ) deltasig = Conversion::kaycm2freq(1e-4) /*Hz*/;
+        if (std::abs(deltasig) < Conversion::kaycm2freq(1e-4 /*cm-1*/))
+          deltasig = Conversion::kaycm2freq(1e-4) /*Hz*/;
         
         sum0 += 2 * std::abs(dip[j]) / std::abs(dip[i]) * W(j, i) / deltasig;
       }
       
       Y[i] = sum0;
     }
+    
   }
 }
 
@@ -1217,18 +1219,24 @@ EqvLinesOut eqvlines(const ConstComplexMatrixView W,
   const Index n = pop.nelem();
   
   // Compute values
-  ComplexMatrix inv_zvec(n, n), zvec(n, n);
+  ComplexMatrix zvec(n, n);
   EqvLinesOut out(n);
   
   // Main computations
-  diagonalize(zvec, out.zval, transpose(W));
-  inv(inv_zvec, zvec);
+  diagonalize(zvec, out.zval, W);
   
-  // Do the matrix multiplication
+  // Do the matrix forward multiplication
+  for (Index i=0; i<n; i++) {
+    for (Index j=0; j<n; j++) {
+      out.zstr[i] += dip[j] * zvec(j, i);
+    }
+  }
+  
+  // Do the matrix backward multiplication
+  auto& inv_zvec=zvec.inv();
   for (Index i=0; i<n; i++) {
     Complex z(0, 0);
     for (Index j=0; j<n; j++) {
-      out.zstr[i] += dip[j] * zvec(j, i);
       z += pop[j] * dip[j] * inv_zvec(i, j);
     }
     out.zstr[i] *= z;
@@ -1608,7 +1616,7 @@ void compabs(
             
             absv[isig] += popudipo * wr * u_sqln2pi;
             
-            absy[isig] += popudipo * u_sqln2pi * (wr + cmn.YLT.YT[iline] * wi);
+            absy[isig] += popudipo * u_sqln2pi * (wr - cmn.YLT.YT[iline] * wi);
           }
         } else {
           if (std::abs(cmn.LineSg.Sig(iline, iband)-sigc) > (rdmult*gamd)) {  // NOTE: Removed in updated version of the code...
@@ -1622,7 +1630,7 @@ void compabs(
             
             absv[isig] += popudipo * w.real() / gamd;
             
-            absy[isig] += popudipo * (w.real()+cmn.YLT.YT[iline] * w.imag()) / gamd;
+            absy[isig] += popudipo * (w.real() - cmn.YLT.YT[iline] * w.imag()) / gamd;
           }
         }
         
@@ -1688,7 +1696,9 @@ Vector compabs(
       
       for (Index iline=0; iline<bands[iband].NumLines(); iline++) {
         const Numeric gamd=GD_div_F0 * tp.f0[iline];
+        const Numeric gamd_mod=GD_div_F0 * tp.eqv.zval[iline].real();
         const Numeric cte = sq_ln2 / gamd;
+        const Numeric cte_mod = sq_ln2 / gamd_mod;
         const Numeric popudipo = tp.pop[iline] * pow2(tp.dip[iline]);
         
         if (rosenkranz and sdvp and nolm) {
@@ -1696,17 +1706,21 @@ Vector compabs(
           absorption[iv] += popudipo * w.real() * u_sqln2pi;
         } else if (rosenkranz and sdvp) {
           const Complex w = qsdv_si(tp.f0[iline], gamd, tp.hwt[iline], tp.hwt2[iline], tp.shft[iline], 0, f);
-          absorption[iv] += popudipo * u_sqln2pi * (Complex(1, -tp.Y[iline]) * w).real();
+          absorption[iv] += popudipo * u_sqln2pi * (Complex(1, tp.Y[iline]) * w).real();
         } else if ((rosenkranz and vp and nolm) or (full and nolm)) {
           const Numeric yy = tp.hwt[iline] * cte;
           const Numeric xx = (tp.f0[iline]+tp.shft[iline] - f) * cte;
           const Complex w = Faddeeva::w(Complex(xx, yy));
           absorption[iv] += popudipo * w.real() / gamd;
-        } else if (rosenkranz and vp) {  
+        } else if (rosenkranz and vp) {
           const Numeric yy = tp.hwt[iline] * cte;
           const Numeric xx = (tp.f0[iline]+tp.shft[iline] - f) * cte;
           const Complex w = Faddeeva::w(Complex(xx, yy));
           absorption[iv] += popudipo * (Complex(1, -tp.Y[iline]) * w).real() / gamd;
+        } else if (full and vp) {
+          const Complex z = (tp.eqv.zval[iline]-f) * cte_mod;
+          const Complex w = Faddeeva::w(z);
+          absorption[iv] += (tp.eqv.zstr[iline] * w).real() / gamd_mod;
         } else if (full) {
           absorption[iv] += u_sqln2pi * u_pi * (tp.eqv.zstr[iline] / (f - tp.eqv.zval[iline])).imag();
         } else {
@@ -1936,17 +1950,18 @@ void read(HitranRelaxationMatrixData& hitran, ArrayOfAbsorptionLines& bands, con
     case ModeOfLineMixing::VP:
     case ModeOfLineMixing::SDVP: break;
     case ModeOfLineMixing::FullW:
+    case ModeOfLineMixing::VP_W:
     case ModeOfLineMixing::VP_Y:
     case ModeOfLineMixing::SDVP_Y: linemixinglimit_internal=linemixinglimit; break;
     default: throw std::runtime_error("Bad mode input.  Must update function.");
   }
   
-  const auto lstype = (mode == ModeOfLineMixing::FullW) ? 
+  const auto lstype = typeLP(mode) ? 
   LineShape::Type::LP :
   (typeVP(mode) ? 
   LineShape::Type::VP : 
   LineShape::Type::SDVP) ;
-  const auto poptype = mode == ModeOfLineMixing::FullW ?
+  const auto poptype = typeFull(mode) ?
   Absorption::PopulationType::ByHITRANFullRelmat :
   Absorption::PopulationType::ByHITRANRosenkranzRelmat ;
   

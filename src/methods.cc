@@ -431,8 +431,9 @@ void define_md_data_raw() {
         "\n"
         "The available modes are such that \"VP*\" uses Voigt profiler and\n"
         "\"SDVP*\" uses speed-dependent Voigt profiles, where the \"_Y\"\n"
-        "signifies if Rosenkranz-style line mixing is considered or not.  At\n"
-        "the line mixing limit, Rosenkranz line mixing is turned off\n"
+        "signifies if Rosenkranz-style line mixing is considered or not, and\n"
+        "the \"_W\" at the end signifies that full calculations are used.  At\n"
+        "the line mixing limit, line mixing is simply turned off\n"
         "\n"
         "The \"FullW\" mode uses Lorentzian calculations with the full relaxation\n"
         "matrix until the line mixing limit is reached when it switches to Voigt.\n"
@@ -451,7 +452,7 @@ void define_md_data_raw() {
                "Minimum frequency to read from",
                "Maximum frequency to read from",
                "Minimum integrated band strength to consider",
-               "Mode of calculations.  The options are: \"VP\", \"VP_Y\", \"SDVP\", \"SDVP_Y\", and \"FullW\""
+               "Mode of calculations.  The options are: \"VP\", \"VP_Y\", \"SDVP\", \"SDVP_Y\", \"FullW\", and \"VP_W\""
               )));
 
   md_data_raw.push_back(create_mdrecord(

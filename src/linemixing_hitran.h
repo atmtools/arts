@@ -108,12 +108,23 @@ enum class ModeOfLineMixing {
   VP_Y,  // Sets LineShape::VP, will use LineMixing code with pressure > linemixinglimit;  Sets ByRosenkranzRelmatLTE mode
   SDVP,  // Sets LineShape::SDVP, will not use LineMixing code; Sets ByLTE mode
   SDVP_Y,  // Sets LineShape::SDVP, will use LineMixing code with pressure > linemixinglimit;  Sets ByHITRANRosenkranzRelmat mode
-  FullW  // Sets LineShape::Lorentz, will use LineMixing code with pressure > linemixinglimit;  Sets ByHITRANFullRelmat mode
+  FullW, // Sets LineShape::Lorentz, will use LineMixing code with pressure > linemixinglimit;  Sets ByHITRANFullRelmat mode
+  VP_W  // Sets LineShape::Voigt, will use LineMixing code with pressure > linemixinglimit;  Sets ByHITRANFullRelmat mode
 };
 
 constexpr bool typeVP(ModeOfLineMixing x)
 {
-  return x == ModeOfLineMixing::VP or x == ModeOfLineMixing::VP_Y or x == ModeOfLineMixing::FullW;
+  return x == ModeOfLineMixing::VP or x == ModeOfLineMixing::VP_Y or x == ModeOfLineMixing::FullW or x == ModeOfLineMixing::VP_W;
+}
+
+constexpr bool typeLP(ModeOfLineMixing x)
+{
+  return x == ModeOfLineMixing::FullW;
+}
+
+constexpr bool typeFull(ModeOfLineMixing x)
+{
+  return x == ModeOfLineMixing::FullW or x == ModeOfLineMixing::VP_W;
 }
 
 /** Read from HITRAN online line mixing file
