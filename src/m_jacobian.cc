@@ -45,7 +45,6 @@
 
 extern const Numeric PI;
 
-extern const String FREQUENCY_MAINTAG;
 extern const String FREQUENCY_SUBTAG_0;
 extern const String FREQUENCY_SUBTAG_1;
 extern const String POINTING_MAINTAG;
@@ -228,8 +227,7 @@ void jacobianAddFreqShift(Workspace& ws _U_,
                           const Verbosity&) {
   // Check that this jacobian type is not already included.
   for (Index it = 0; it < jacobian_quantities.nelem(); it++) {
-    if (jacobian_quantities[it].MainTag() == FREQUENCY_MAINTAG &&
-        jacobian_quantities[it].Subtag() == FREQUENCY_SUBTAG_0) {
+    if (jacobian_quantities[it] == Jacobian::Sensor::FrequencyShift) {
       ostringstream os;
       os << "Fit of frequency shift is already included in\n"
          << "*jacobian_quantities*.";
@@ -259,7 +257,7 @@ void jacobianAddFreqShift(Workspace& ws _U_,
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-  rq.MainTag(FREQUENCY_MAINTAG);
+  rq.Target() = Jacobian::Target(Jacobian::Sensor::FrequencyShift);
   rq.Subtag(FREQUENCY_SUBTAG_0);
   rq.Mode("");
   rq.Analytical(0);
@@ -296,8 +294,7 @@ void jacobianCalcFreqShift(Matrix& jacobian,
   // This works since the combined MainTag and Subtag is individual.
   bool found = false;
   for (Index n = 0; n < jacobian_quantities.nelem() && !found; n++) {
-    if (jacobian_quantities[n].MainTag() == FREQUENCY_MAINTAG &&
-        jacobian_quantities[n].Subtag() == FREQUENCY_SUBTAG_0) {
+    if (jacobian_quantities[n] == Jacobian::Sensor::FrequencyShift) {
       bool any_affine;
       ArrayOfArrayOfIndex jacobian_indices;
       jac_ranges_indices(
@@ -382,8 +379,7 @@ void jacobianAddFreqStretch(Workspace& ws _U_,
                             const Verbosity&) {
   // Check that this jacobian type is not already included.
   for (Index it = 0; it < jacobian_quantities.nelem(); it++) {
-    if (jacobian_quantities[it].MainTag() == FREQUENCY_MAINTAG &&
-        jacobian_quantities[it].Subtag() == FREQUENCY_SUBTAG_1) {
+    if (jacobian_quantities[it] == Jacobian::Sensor::FrequencyStretch) {
       ostringstream os;
       os << "Fit of frequency stretch is already included in\n"
          << "*jacobian_quantities*.";
@@ -409,7 +405,7 @@ void jacobianAddFreqStretch(Workspace& ws _U_,
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-  rq.MainTag(FREQUENCY_MAINTAG);
+  rq.Target() = Jacobian::Target(Jacobian::Sensor::FrequencyStretch);
   rq.Subtag(FREQUENCY_SUBTAG_1);
   rq.Mode("");
   rq.Analytical(0);
@@ -453,8 +449,7 @@ void jacobianCalcFreqStretch(
   // This works since the combined MainTag and Subtag is individual.
   bool found = false;
   for (Index n = 0; n < jacobian_quantities.nelem() && !found; n++) {
-    if (jacobian_quantities[n].MainTag() == FREQUENCY_MAINTAG &&
-        jacobian_quantities[n].Subtag() == FREQUENCY_SUBTAG_1) {
+    if (jacobian_quantities[n] == Jacobian::Sensor::FrequencyStretch) {
       bool any_affine;
       ArrayOfArrayOfIndex jacobian_indices;
       jac_ranges_indices(

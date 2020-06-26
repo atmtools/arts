@@ -162,7 +162,8 @@ ENUMARTS(Line,
 
 /** Holds the Sensor-related targets */
 ENUMARTS(Sensor,
-         Frequency,
+         FrequencyShift,
+         FrequencyStretch,
          Polyfit,
          Sinefit
         )
@@ -341,6 +342,12 @@ public:
                                  msubtype.atm == Atm::MagneticU or
                                  msubtype.atm == Atm::MagneticV or
                                  msubtype.atm == Atm::MagneticW);
+  }
+  
+  /** Special frequency case */
+  constexpr bool isFrequency() const noexcept {
+    return mtype==Type::Sensor and (msubtype.sensor == Sensor::FrequencyStretch or 
+                                    msubtype.sensor == Sensor::FrequencyShift);
   }
 };  // Target
 

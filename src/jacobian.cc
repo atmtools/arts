@@ -1093,12 +1093,11 @@ Index equivalent_propmattype_index(const ArrayOfRetrievalQuantity& js,
 }
 
 bool is_wind_parameter(const RetrievalQuantity& t) noexcept {
-  return t == Jacobian::Atm::WindMagnitude or t == Jacobian::Atm::WindU or
-  t == Jacobian::Atm::WindV or t == Jacobian::Atm::WindW;
+  return t.Target().isWind();
 }
 
 bool is_frequency_parameter(const RetrievalQuantity& t) noexcept {
-  return is_wind_parameter(t) or t == Jacobian::Sensor::Frequency;
+  return t.Target().isWind() or t.Target().isFrequency();
 }
 
 bool is_derived_magnetic_parameter(const RetrievalQuantity& t) noexcept {
@@ -1106,8 +1105,7 @@ bool is_derived_magnetic_parameter(const RetrievalQuantity& t) noexcept {
 }
 
 bool is_magnetic_parameter(const RetrievalQuantity& t) noexcept {
-  return t == Jacobian::Atm::MagneticU or t == Jacobian::Atm::MagneticV or
-         t == Jacobian::Atm::MagneticW or is_derived_magnetic_parameter(t);
+  return t.Target().isMagnetic();
 }
 
 bool is_nlte_parameter(const RetrievalQuantity& t) noexcept {

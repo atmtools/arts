@@ -58,7 +58,6 @@
 
 extern const String POINTING_MAINTAG;
 extern const String POINTING_SUBTAG_A;
-extern const String FREQUENCY_MAINTAG;
 extern const String FREQUENCY_SUBTAG_0;
 extern const String FREQUENCY_SUBTAG_1;
 
@@ -512,7 +511,7 @@ void xaStandard(Workspace& ws,
     // All variables having zero as a priori
     // ----------------------------------------------------------------------------
     else if (jacobian_quantities[q].MainTag() == POINTING_MAINTAG ||
-             jacobian_quantities[q].MainTag() == FREQUENCY_MAINTAG ||
+             jacobian_quantities[q].Target().isFrequency() ||
              jacobian_quantities[q] == Jacobian::Sensor::Polyfit ||
              jacobian_quantities[q] == Jacobian::Sensor::Sinefit) {
       xa[ind] = 0;
@@ -993,7 +992,7 @@ void x2artsSensor(Workspace& ws,
 
     // Frequncy shift or stretch
     // ----------------------------------------------------------------------------
-    else if (jacobian_quantities[q].MainTag() == FREQUENCY_MAINTAG) {
+    else if (jacobian_quantities[q].Target().isFrequency()) {
       if (jacobian_quantities[q].Subtag() == FREQUENCY_SUBTAG_0) {
         assert(np == 1);
         if (x_t[ji[q][0]] != 0) {
