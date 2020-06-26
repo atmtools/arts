@@ -61,7 +61,6 @@ extern const String MAGFIELD_MAINTAG;
 extern const String FLUX_MAINTAG;
 extern const String PROPMAT_SUBSUBTAG;
 extern const String ELECTRONS_MAINTAG;
-extern const String PARTICULATES_MAINTAG;
 extern const String CATALOGPARAMETER_MAINTAG;
 
 extern const String SURFACE_MAINTAG;
@@ -1899,13 +1898,12 @@ void jacobianAddSpecialSpecies(Workspace&,
 
   } else if (species == "particulates") {
     for (Index it = 0; it < jq.nelem(); it++) {
-      if (jq[it].MainTag() == PARTICULATES_MAINTAG) {
+      if (jq[it] == Jacobian::Atm::Particulates) {
         ostringstream os;
         os << "Particulates are already included in *jacobian_quantities*.";
         throw std::runtime_error(os.str());
       }
     }
-    rq.MainTag(PARTICULATES_MAINTAG);
     rq.Target(Jacobian::Target(Jacobian::Atm::Particulates));
   } else {
     ostringstream os;

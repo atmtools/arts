@@ -333,7 +333,6 @@ extern const Numeric LAT_LON_MIN = 20;
   === Definition of retrieval quantity tag strings 
   ===========================================================================*/
 
-extern const String PARTICULATES_MAINTAG = "Particulate species";
 extern const String ELECTRONS_MAINTAG = "Electron species";
 
 extern const String FREQUENCY_MAINTAG = "Frequency";

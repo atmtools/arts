@@ -42,7 +42,6 @@ extern const String MAGFIELD_MAINTAG;
 extern const String FLUX_MAINTAG;
 extern const String PROPMAT_SUBSUBTAG;
 extern const String ELECTRONS_MAINTAG;
-extern const String PARTICULATES_MAINTAG;
 extern const String POLYFIT_MAINTAG;
 extern const String SINEFIT_MAINTAG;
 
@@ -622,7 +621,7 @@ void get_pointers_for_analytical_jacobians(
           array_species_tag_from_string(atag, jacobian_quantities[iq].Subtag());
           abs_species_i[iq] = chk_contains("abs_species", abs_species, atag);
         }
-      } else if (jacobian_quantities[iq].MainTag() == PARTICULATES_MAINTAG ||
+      } else if (jacobian_quantities[iq] == Jacobian::Atm::Particulates ||
                  jacobian_quantities[iq].MainTag() == ELECTRONS_MAINTAG) {
         abs_species_i[iq] = -9999;
       } else { abs_species_i[iq] = -1; }
