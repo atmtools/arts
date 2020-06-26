@@ -62,7 +62,6 @@ extern const String FREQUENCY_MAINTAG;
 extern const String FREQUENCY_SUBTAG_0;
 extern const String FREQUENCY_SUBTAG_1;
 extern const String SURFACE_MAINTAG;
-extern const String WIND_MAINTAG;
 extern const String MAGFIELD_MAINTAG;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -385,11 +384,11 @@ void xaStandard(Workspace& ws,
     }
 
     // Wind
-    else if (jacobian_quantities[q].MainTag() == WIND_MAINTAG) {
+    else if (jacobian_quantities[q].Target().isWind()) {
       ConstTensor3View source_field(wind_u_field);
-      if (jacobian_quantities[q].Subtag() == "v") {
+      if (jacobian_quantities[q] == Jacobian::Atm::WindV) {
         source_field = wind_v_field;
-      } else if (jacobian_quantities[q].Subtag() == "w") {
+      } else if (jacobian_quantities[q] == Jacobian::Atm::WindW) {
         source_field = wind_w_field;
       }
 
@@ -765,7 +764,7 @@ void x2artsAtmAndSurf(Workspace& ws,
 
     // Wind
     // ----------------------------------------------------------------------------
-    else if (jacobian_quantities[q].MainTag() == WIND_MAINTAG) {
+    else if (jacobian_quantities[q].Target().isWind()) {
       // Determine grid positions for interpolation from retrieval grids back
       // to atmospheric grids
       ArrayOfGridPos gp_p, gp_lat, gp_lon;
@@ -793,11 +792,11 @@ void x2artsAtmAndSurf(Workspace& ws,
       regrid_atmfield_by_gp_oem(
           wind_field, atmosphere_dim, wind_x, gp_p, gp_lat, gp_lon);
 
-      if (jacobian_quantities[q].Subtag() == "u") {
+      if (jacobian_quantities[q] == Jacobian::Atm::WindU) {
         wind_u_field = wind_field;
-      } else if (jacobian_quantities[q].Subtag() == "v") {
+      } else if (jacobian_quantities[q] == Jacobian::Atm::WindV) {
         wind_v_field = wind_field;
-      } else if (jacobian_quantities[q].Subtag() == "w") {
+      } else if (jacobian_quantities[q] == Jacobian::Atm::WindW) {
         wind_w_field = wind_field;
       }
     }

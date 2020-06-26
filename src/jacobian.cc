@@ -36,7 +36,6 @@
 extern const Numeric NAT_LOG_TEN;
 extern const Numeric PI;
 
-extern const String WIND_MAINTAG;
 extern const String MAGFIELD_MAINTAG;
 extern const String FLUX_MAINTAG;
 extern const String PROPMAT_SUBSUBTAG;
@@ -635,7 +634,7 @@ void get_pointers_for_analytical_jacobians(
         }
       } else { scat_species_i[iq] = -1; }
       //
-      if (jacobian_quantities[iq].MainTag() == WIND_MAINTAG &&
+      if (jacobian_quantities[iq].Target().isWind() &&
           jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG) {
         // Map u, v and w to 1, 2 and 3, respectively
         char c = jacobian_quantities[iq].Subtag()[0];

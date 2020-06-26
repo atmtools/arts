@@ -50,7 +50,6 @@
 extern const Numeric PI;
 extern const Numeric SPEED_OF_LIGHT;
 extern const String SURFACE_MAINTAG;
-extern const String WIND_MAINTAG;
 extern const Index GFIELD4_FIELD_NAMES;
 extern const Index GFIELD4_P_GRID;
 extern const Index GFIELD4_LAT_GRID;
@@ -1838,7 +1837,7 @@ void yCalcAppend(Workspace& ws,
       if (jacobian_quantities2[q2].Target().isSpeciesVMR() ||
           jacobian_quantities2[q2] == Jacobian::Atm::Temperature ||
           jacobian_quantities2[q2] == Jacobian::Special::ScatteringString ||
-          jacobian_quantities2[q2].MainTag() == WIND_MAINTAG ||
+          jacobian_quantities2[q2].Target().isWind() ||
           jacobian_quantities2[q2].MainTag() == SURFACE_MAINTAG ||
           append_instrument_wfs) {
         for (Index q1 = 0; q1 < nrq1; q1++ && pos < 0) {  // FIXME: What is with this "&& pos < 0"

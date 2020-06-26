@@ -260,8 +260,17 @@ public:
   const QuantumIdentifier& QuantumIdentity() const noexcept {return mqid;}
   
   /** Equality */
-  constexpr bool operator==(const Target& other) const noexcept {
-    return mtype == other.mtype and msubtype == other.msubtype and mperturbation == other.mperturbation and mqid == other.mqid;
+  bool operator==(const Target& other) const noexcept {
+    if (mtype == other.mtype) {
+      switch (mtype) {
+        case Type::Atm: return other.msubtype.atm == msubtype.atm;
+        case Type::Sensor: return other.msubtype.sensor == msubtype.sensor;
+        case Type::Special: return other.msubtype.special == msubtype.special and mqid == other.mqid;
+        case Type::Line: return other.msubtype.line == msubtype.line and mqid == other.mqid;
+        case Type::FINAL: {}
+      }
+    }
+    return false;
   }
   
   /** Return the line type */
@@ -316,6 +325,14 @@ public:
   /** Special species case */
   constexpr bool isSpeciesVMR() const noexcept {
     return *this ==  Line::VMR or *this == Special::ArrayOfSpeciesTagVMR;
+  }
+  
+  /** Special wind case */
+  constexpr bool isWind() const noexcept {
+    return mtype==Type::Atm and (msubtype.atm == Atm::WindMagnitude or 
+                                 msubtype.atm == Atm::WindU or
+                                 msubtype.atm == Atm::WindV or
+                                 msubtype.atm == Atm::WindW);
   }
 };  // Target
 
@@ -491,22 +508,25 @@ class RetrievalQuantity {
   }
   
   /** Return line type */
-  Jacobian::Line LineType() const {return mjac.LineType();}
+  Jacobian::Line LineType() const noexcept {return mjac.LineType();}
   
   /** Return atm type equality */
-  bool operator==(Jacobian::Atm other) const {return mjac==other;}
+  bool operator==(Jacobian::Atm other) const noexcept {return mjac==other;}
   
   /** Return line type equality */
-  bool operator==(Jacobian::Line other) const {return mjac==other;}
+  bool operator==(Jacobian::Line other) const noexcept {return mjac==other;}
   
   /** Return sensor type equality */
-  bool operator==(Jacobian::Sensor other) const {return mjac==other;}
+  bool operator==(Jacobian::Sensor other) const noexcept {return mjac==other;}
   
   /** Return special type equality */
-  bool operator==(Jacobian::Special other) const {return mjac==other;}
+  bool operator==(Jacobian::Special other) const noexcept {return mjac==other;}
   
   /** Return special type equality */
-  bool operator==(Jacobian::Type other) const {return mjac==other;}
+  bool operator==(Jacobian::Type other) const noexcept {return mjac==other;}
+  
+  /** Checks if the target is the same */
+  bool operator==(const Jacobian::Target& other) const noexcept {return mjac==other;}
   
   /** Sets the identity of this Jacobian
    * 

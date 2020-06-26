@@ -52,7 +52,6 @@ extern const String POINTING_MAINTAG;
 extern const String POINTING_SUBTAG_A;
 extern const String POINTING_CALCMODE_A;
 extern const String POINTING_CALCMODE_B;
-extern const String WIND_MAINTAG;
 extern const String MAGFIELD_MAINTAG;
 extern const String FLUX_MAINTAG;
 extern const String PROPMAT_SUBSUBTAG;
@@ -1445,10 +1444,24 @@ void jacobianAddWind(Workspace&,
                      const Verbosity& verbosity) {
   CREATE_OUT2;
   CREATE_OUT3;
+  
+  // Create the new retrieval quantity
+  RetrievalQuantity rq;
+  if (component == "u")
+    rq.Target(Jacobian::Target(Jacobian::Atm::WindU));
+  else if (component == "v")
+    rq.Target(Jacobian::Target(Jacobian::Atm::WindV));
+  else if (component == "w")
+    rq.Target(Jacobian::Target(Jacobian::Atm::WindW));
+  else if (component == "strength")
+    rq.Target(Jacobian::Target(Jacobian::Atm::WindMagnitude));
+  else
+    throw std::runtime_error(
+      "The selection for *component* can only be \"u\", \"v\", \"w\" or \"strength\".");
 
   // Check that this species is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
-    if (jq[it].MainTag() == WIND_MAINTAG && jq[it].Subtag() == component) {
+    if (jq[it] == rq.Target()) {
       ostringstream os;
       os << "The wind component:\n"
          << component << "\nis already included "
@@ -1477,23 +1490,7 @@ void jacobianAddWind(Workspace&,
       throw runtime_error(os.str());
   }
 
-  // Create the new retrieval quantity
-  RetrievalQuantity rq;
-
-  if (component == "u")
-    rq.Target(Jacobian::Target(Jacobian::Atm::WindU));
-  else if (component == "v")
-    rq.Target(Jacobian::Target(Jacobian::Atm::WindV));
-  else if (component == "w")
-    rq.Target(Jacobian::Target(Jacobian::Atm::WindW));
-  else if (component == "strength")
-    rq.Target(Jacobian::Target(Jacobian::Atm::WindMagnitude));
-  else
-    throw std::runtime_error(
-        "The selection for *component* can only be \"u\", \"v\", \"w\" or \"strength\".");
-
-  rq.MainTag(WIND_MAINTAG);
-  rq.Subtag(component);
+  rq.Subtag(component);  // nb.  This should be possible to remove...
   rq.Analytical(1);
   rq.Grids(grids);
   rq.SubSubtag(PROPMAT_SUBSUBTAG);
@@ -1696,7 +1693,7 @@ void jacobianAddBasicCatalogParameter(Workspace&,
   
   // Check that this is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
-    if (rq == jq[it].LineType() and jq[it].QuantumIdentity() == catalog_identity) {
+    if (rq == jq[it].Target()) {
       ostringstream os;
     os << "The catalog identifier:\n"
     << catalog_identity << " for ID: " << catalog_identity << "\nis already included in "

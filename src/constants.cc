@@ -342,7 +342,6 @@ extern const String POINTING_SUBTAG_A = "Zenith angle off-set";
 extern const String POINTING_CALCMODE_A = "Recalculate iyb";
 extern const String POINTING_CALCMODE_B = "Interpolate iyb";
 
-extern const String WIND_MAINTAG = "Wind";
 extern const String MAGFIELD_MAINTAG = "Magnetic field";
 extern const String FLUX_MAINTAG = "Beam flux";
 
