@@ -122,7 +122,7 @@ void xml_read_from_stream(istream& is_xml,
   tag.get_attribute_value("Type", typestr);
   tag.get_attribute_value("SubType", subtypestr);
   jt.TargetType(typestr);
-  jt.TargetType(subtypestr);
+  jt.TargetSubType(subtypestr);
   
   /** Catalog ID */
   if (jt.needQuantumIdentity()) {
@@ -203,13 +203,12 @@ void xml_write_to_stream(ostream& os_xml,
       open_tag.add_attribute("lowerglobalquanta", jt.QuantumIdentity().LowerQuantumNumbers().toString());
     }
   }
+  open_tag.write_to_stream(os_xml);
 
   if (pbofs)
     *pbofs << jt.Perturbation();
   else
-    os_xml << jt.Perturbation();
-  
-  open_tag.write_to_stream(os_xml);
+    os_xml << ' ' << jt.Perturbation() << ' ';
 
   close_tag.set_name("/JacobianTarget");
   close_tag.write_to_stream(os_xml);
