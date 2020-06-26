@@ -60,7 +60,6 @@ extern const String WIND_MAINTAG;
 extern const String MAGFIELD_MAINTAG;
 extern const String FLUX_MAINTAG;
 extern const String PROPMAT_SUBSUBTAG;
-extern const String ELECTRONS_MAINTAG;
 extern const String CATALOGPARAMETER_MAINTAG;
 
 extern const String SURFACE_MAINTAG;
@@ -1886,14 +1885,12 @@ void jacobianAddSpecialSpecies(Workspace&,
   // Make sure modes are valid and complain if they are repeated
   if (species == "electrons") {
     for (Index it = 0; it < jq.nelem(); it++) {
-      if (jq[it].MainTag() == ELECTRONS_MAINTAG) {
+      if (jq[it] == Jacobian::Atm::Electrons) {
         ostringstream os;
         os << "Electrons are already included in *jacobian_quantities*.";
         throw std::runtime_error(os.str());
       }
     }
-    rq.MainTag(ELECTRONS_MAINTAG);
-    
     rq.Target(Jacobian::Target(Jacobian::Atm::Electrons));
 
   } else if (species == "particulates") {
@@ -1905,6 +1902,7 @@ void jacobianAddSpecialSpecies(Workspace&,
       }
     }
     rq.Target(Jacobian::Target(Jacobian::Atm::Particulates));
+    
   } else {
     ostringstream os;
     os << "Unknown special species jacobian: \"" << species
