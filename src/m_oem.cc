@@ -56,7 +56,6 @@
 #include "oem.h"
 #endif
 
-extern const String TEMPERATURE_MAINTAG;
 extern const String POINTING_MAINTAG;
 extern const String POINTING_SUBTAG_A;
 extern const String FREQUENCY_MAINTAG;
@@ -229,7 +228,7 @@ void xaStandard(Workspace& ws,
     Range ind(ji[q][0], np);
 
     // Atmospheric temperatures
-    if (jacobian_quantities[q].MainTag() == TEMPERATURE_MAINTAG) {
+    if (jacobian_quantities[q] == Jacobian::Atm::Temperature) {
       // Here we need to interpolate *t_field*
       ArrayOfGridPos gp_p, gp_lat, gp_lon;
       get_gp_atmgrids_to_rq(gp_p,
@@ -607,7 +606,7 @@ void x2artsAtmAndSurf(Workspace& ws,
 
     // Atmospheric temperatures
     // ----------------------------------------------------------------------------
-    if (jacobian_quantities[q].MainTag() == TEMPERATURE_MAINTAG) {
+    if (jacobian_quantities[q] == Jacobian::Atm::Temperature) {
       // Determine grid positions for interpolation from retrieval grids back
       // to atmospheric grids
       ArrayOfGridPos gp_p, gp_lat, gp_lon;

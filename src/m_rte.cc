@@ -50,7 +50,6 @@
 extern const Numeric PI;
 extern const Numeric SPEED_OF_LIGHT;
 extern const String SURFACE_MAINTAG;
-extern const String TEMPERATURE_MAINTAG;
 extern const String WIND_MAINTAG;
 extern const Index GFIELD4_FIELD_NAMES;
 extern const Index GFIELD4_P_GRID;
@@ -1837,7 +1836,7 @@ void yCalcAppend(Workspace& ws,
       // Compare to old quantities, to determine if append shall be
       // considered. Some special checks performed here, grids checked later
       if (jacobian_quantities2[q2].Target().isSpeciesVMR() ||
-          jacobian_quantities2[q2].MainTag() == TEMPERATURE_MAINTAG ||
+          jacobian_quantities2[q2] == Jacobian::Atm::Temperature ||
           jacobian_quantities2[q2] == Jacobian::Special::ScatteringString ||
           jacobian_quantities2[q2].MainTag() == WIND_MAINTAG ||
           jacobian_quantities2[q2].MainTag() == SURFACE_MAINTAG ||
@@ -1865,8 +1864,7 @@ void yCalcAppend(Workspace& ws,
               }
             }
             // Temperature
-            else if (jacobian_quantities2[q2].MainTag() ==
-                     TEMPERATURE_MAINTAG) {
+            else if (jacobian_quantities2[q2] == Jacobian::Atm::Temperature) {
               if (jacobian_quantities2[q2].Subtag() ==
                   jacobian_quantities_copy[q1].Subtag()) {
                 pos = q1;

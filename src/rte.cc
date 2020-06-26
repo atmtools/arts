@@ -47,7 +47,6 @@
 
 extern const String SURFACE_MAINTAG;
 extern const String PROPMAT_SUBSUBTAG;
-extern const String TEMPERATURE_MAINTAG;
 extern const Numeric SPEED_OF_LIGHT;
 extern const Numeric TEMP_0_C;
 
@@ -1478,7 +1477,7 @@ void get_stepwise_effective_source(
           //const bool has_dk = (not dK_dx[iq].IsEmpty());   // currently always
           //const bool has_ds = (not dS_dx[iq].IsEmpty());   // evaluate as true
           const bool has_dt =
-              (jacobian_quantities[iq].MainTag() == TEMPERATURE_MAINTAG);
+              (jacobian_quantities[iq] == Jacobian::Atm::Temperature);
 
           // Sets the -K^-1 dK/dx K^-1 (a B + S) term
           //if(has_dk)

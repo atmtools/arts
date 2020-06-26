@@ -52,7 +52,6 @@ extern const String POINTING_MAINTAG;
 extern const String POINTING_SUBTAG_A;
 extern const String POINTING_CALCMODE_A;
 extern const String POINTING_CALCMODE_B;
-extern const String TEMPERATURE_MAINTAG;
 extern const String NLTE_MAINTAG;
 extern const String WIND_MAINTAG;
 extern const String MAGFIELD_MAINTAG;
@@ -1371,7 +1370,7 @@ void jacobianAddTemperature(Workspace&,
   // Check that temperature is not already included in the jacobian.
   // We only check the main tag.
   for (Index it = 0; it < jq.nelem(); it++) {
-    if (jq[it].MainTag() == TEMPERATURE_MAINTAG) {
+    if (jq[it] == Jacobian::Atm::Temperature) {
       ostringstream os;
       os << "Temperature is already included in *jacobian_quantities*.";
       throw runtime_error(os.str());
@@ -1413,7 +1412,6 @@ void jacobianAddTemperature(Workspace&,
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-  rq.MainTag(TEMPERATURE_MAINTAG);
   rq.Subtag(subtag);
   rq.Mode("abs");
   rq.Analytical(1);

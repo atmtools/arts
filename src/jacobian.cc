@@ -36,7 +36,6 @@
 extern const Numeric NAT_LOG_TEN;
 extern const Numeric PI;
 
-extern const String TEMPERATURE_MAINTAG;
 extern const String WIND_MAINTAG;
 extern const String MAGFIELD_MAINTAG;
 extern const String FLUX_MAINTAG;
@@ -591,7 +590,7 @@ void get_pointers_for_analytical_jacobians(
     const ArrayOfString& scat_species) {
   FOR_ANALYTICAL_JACOBIANS_DO(
       //
-      if (jacobian_quantities[iq].MainTag() == TEMPERATURE_MAINTAG &&
+      if (jacobian_quantities[iq] == Jacobian::Atm::Temperature &&
           jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG) {
         is_t[iq] = Index(JacobianType::Temperature);
       } else { is_t[iq] = Index(JacobianType::None); }
