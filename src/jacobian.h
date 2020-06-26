@@ -310,6 +310,11 @@ public:
     }
     return false;
   }
+  
+  /** Special species case */
+  constexpr bool isSpeciesVMR() const noexcept {
+    return *this ==  Line::VMR or *this == Special::ArrayOfSpeciesTagVMR;
+  }
 };  // Target
 
 /** Output operator 

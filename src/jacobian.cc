@@ -36,7 +36,6 @@
 extern const Numeric NAT_LOG_TEN;
 extern const Numeric PI;
 
-extern const String ABSSPECIES_MAINTAG;
 extern const String SCATSPECIES_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
 extern const String WIND_MAINTAG;
@@ -602,7 +601,7 @@ void get_pointers_for_analytical_jacobians(
         is_t[iq] = Index(JacobianType::Temperature);
       } else { is_t[iq] = Index(JacobianType::None); }
       //
-      if (jacobian_quantities[iq].MainTag() == ABSSPECIES_MAINTAG) {
+      if (jacobian_quantities[iq].Target().isSpeciesVMR()) {
         if (jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG) {
           bool test_available = false;
           for (Index ii = 0; ii < abs_species.nelem(); ii++) {

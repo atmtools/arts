@@ -40,9 +40,7 @@ class JacobianTarget:
     @property
     def type(self):
         """ Enumeration type of Jacobian (String) """
-        tmp = String(c.c_void_p(lib.enumgetTargetTypeJacobianTarget(self.__data__)))
-        tmp.__delete__ = True  # Manual delete not on by default for pointers!!!
-        return String(str(tmp))
+        return String(c.c_void_p(lib.enumgetTargetTypeJacobianTarget(self.__data__)), delete=True)
 
     @type.setter
     def type(self, val): 
@@ -52,9 +50,7 @@ class JacobianTarget:
     @property
     def subtype(self):
         """ Enumeration subtype of Jacobian (String) """
-        tmp = String(c.c_void_p(lib.enumgetTargetSubTypeJacobianTarget(self.__data__)))
-        tmp.__delete__ = True  # Manual delete not on by default for pointers!!!
-        return String(str(tmp))
+        return String(c.c_void_p(lib.enumgetTargetSubTypeJacobianTarget(self.__data__)), delete=True)
 
     @subtype.setter
     def subtype(self, val): 

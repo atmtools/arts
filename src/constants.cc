@@ -333,7 +333,6 @@ extern const Numeric LAT_LON_MIN = 20;
   === Definition of retrieval quantity tag strings 
   ===========================================================================*/
 
-extern const String ABSSPECIES_MAINTAG = "Absorption species";
 extern const String SCATSPECIES_MAINTAG = "Scattering species";
 extern const String PARTICULATES_MAINTAG = "Particulate species";
 extern const String ELECTRONS_MAINTAG = "Electron species";
@@ -362,30 +361,3 @@ extern const String SURFACE_MAINTAG = "Surface";
 // New tags for only propmat jacobians
 extern const String PROPMAT_SUBSUBTAG = "From propagation matrix";
 extern const String CATALOGPARAMETER_MAINTAG = "Catalog parameter";
-
-// Generic modes
-extern const String LINESTRENGTH_MODE = "Line Strength";
-extern const String LINECENTER_MODE = "Line Center";
-
-// Modes for "some" catalogs
-//  Pressure Broadening
-extern const String SELFBROADENING_MODE = "PB Self Gamma";
-extern const String FOREIGNBROADENING_MODE = "PB Foreign Gamma";
-extern const String WATERBROADENING_MODE = "PB Water Gamma";
-extern const String SELFBROADENINGEXPONENT_MODE = "PB Self Exponent";
-extern const String FOREIGNBROADENINGEXPONENT_MODE = "PB Foreign Exponent";
-extern const String WATERBROADENINGEXPONENT_MODE = "PB Water Exponent";
-extern const String SELFPRESSURESHIFT_MODE = "PB Self Pressure Shift";
-extern const String FOREIGNPRESSURESHIFT_MODE = "PB Foreign Pressure Shift";
-extern const String WATERPRESSURESHIFT_MODE = "PB Water Pressure Shift";
-
-//  Line Mixing
-extern const String LINEMIXINGY0_MODE = "LM Y Zeroth";
-extern const String LINEMIXINGG0_MODE = "LM G Zeroth";
-extern const String LINEMIXINGDF0_MODE = "LM DF Zeroth";
-extern const String LINEMIXINGY1_MODE = "LM Y First";
-extern const String LINEMIXINGG1_MODE = "LM G First";
-extern const String LINEMIXINGDF1_MODE = "LM DF First";
-extern const String LINEMIXINGYEXPONENT_MODE = "LM Y Exponent";
-extern const String LINEMIXINGGEXPONENT_MODE = "LM G Exponent";
-extern const String LINEMIXINGDFEXPONENT_MODE = "LM DF Exponent";

@@ -45,7 +45,6 @@
 
 extern const Numeric PI;
 
-extern const String ABSSPECIES_MAINTAG;
 extern const String FREQUENCY_MAINTAG;
 extern const String FREQUENCY_SUBTAG_0;
 extern const String FREQUENCY_SUBTAG_1;
@@ -67,37 +66,6 @@ extern const String PARTICULATES_MAINTAG;
 extern const String CATALOGPARAMETER_MAINTAG;
 
 extern const String SURFACE_MAINTAG;
-
-// Generic modes
-extern const String PRESSUREBROADENINGGAMMA_MODE;
-extern const String LINESTRENGTH_MODE;
-extern const String LINECENTER_MODE;
-extern const String LINEMIXINGY_MODE;
-extern const String LINEMIXINGG_MODE;
-extern const String LINEMIXINGDF_MODE;
-
-// Modes for "some" catalogs
-//  Pressure Broadening
-extern const String SELFBROADENING_MODE;
-extern const String FOREIGNBROADENING_MODE;
-extern const String WATERBROADENING_MODE;
-extern const String SELFBROADENINGEXPONENT_MODE;
-extern const String FOREIGNBROADENINGEXPONENT_MODE;
-extern const String WATERBROADENINGEXPONENT_MODE;
-extern const String SELFPRESSURESHIFT_MODE;
-extern const String FOREIGNPRESSURESHIFT_MODE;
-extern const String WATERPRESSURESHIFT_MODE;
-
-//  Line Mixing
-extern const String LINEMIXINGY0_MODE;
-extern const String LINEMIXINGG0_MODE;
-extern const String LINEMIXINGDF0_MODE;
-extern const String LINEMIXINGY1_MODE;
-extern const String LINEMIXINGG1_MODE;
-extern const String LINEMIXINGDF1_MODE;
-extern const String LINEMIXINGYEXPONENT_MODE;
-extern const String LINEMIXINGGEXPONENT_MODE;
-extern const String LINEMIXINGDFEXPONENT_MODE;
 
 /*===========================================================================
   === The methods, with general methods first followed by the Add/Calc method
@@ -189,14 +157,14 @@ void jacobianAddAbsSpecies(Workspace&,
 
   // Check that this species is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
-    if (jq[it].MainTag() == ABSSPECIES_MAINTAG &&
+    if (jq[it].Target().isSpeciesVMR() &&
         jq[it].SubSubtag() != PROPMAT_SUBSUBTAG && jq[it].Subtag() == species) {
       ostringstream os;
       os << "The gas species:\n"
          << species << "\nis already included in "
          << "*jacobian_quantities*.";
       throw runtime_error(os.str());
-    } else if (jq[it].MainTag() == ABSSPECIES_MAINTAG &&
+    } else if (jq[it].Target().isSpeciesVMR() &&
                jq[it].SubSubtag() == PROPMAT_SUBSUBTAG) {
       if (SpeciesTag(jq[it].Subtag()) == SpeciesTag(species)) {
         ostringstream os;
@@ -243,7 +211,6 @@ void jacobianAddAbsSpecies(Workspace&,
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-  rq.MainTag(ABSSPECIES_MAINTAG);
   rq.Subtag(species);
   rq.Mode(mode);
   rq.Analytical(1);
@@ -1720,26 +1687,11 @@ void jacobianAddBasicCatalogParameter(Workspace&,
                                       const Verbosity& verbosity) {
   CREATE_OUT3;
 
-  // Check that this is not already included in the jacobian.
-  for (Index it = 0; it < jq.nelem(); it++) {
-    if (jq[it].MainTag() == CATALOGPARAMETER_MAINTAG &&
-        jq[it].QuantumIdentity() == catalog_identity &&
-        jq[it].Mode() == catalog_parameter) {
-      ostringstream os;
-      os << "The catalog identifier:\n"
-         << catalog_identity << "\nis already included in "
-         << "*jacobian_quantities*.";
-      throw std::runtime_error(os.str());
-    }
-  }
-
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-
-  // Check catalog_parameter here
-  if (LINESTRENGTH_MODE == catalog_parameter)
+  if ("Line Strength" == catalog_parameter)
     rq.Target(Jacobian::Target(Jacobian::Line::Strength, catalog_identity));
-  else if (LINECENTER_MODE == catalog_parameter)
+  else if ("Line Center" == catalog_parameter)
     rq.Target(Jacobian::Target(Jacobian::Line::Center, catalog_identity));
   else {
     ostringstream os;
@@ -1749,9 +1701,18 @@ void jacobianAddBasicCatalogParameter(Workspace&,
        << "Please see user guide for supported parameters.\n";
     throw std::runtime_error(os.str());
   }
+  
+  // Check that this is not already included in the jacobian.
+  for (Index it = 0; it < jq.nelem(); it++) {
+    if (rq == jq[it].LineType() and jq[it].QuantumIdentity() == catalog_identity) {
+      ostringstream os;
+    os << "The catalog identifier:\n"
+    << catalog_identity << " for ID: " << catalog_identity << "\nis already included in "
+    << "*jacobian_quantities*.";
+    throw std::runtime_error(os.str());
+      }
+  }
 
-  rq.MainTag(CATALOGPARAMETER_MAINTAG);
-  rq.Mode(catalog_parameter);
   rq.SubSubtag(PROPMAT_SUBSUBTAG);
   rq.Analytical(1);
   rq.Grids(ArrayOfVector(0, Vector(0)));
@@ -1985,7 +1946,7 @@ void jacobianAdjustAndTransform(
   Vector x0;
   //
   for (Index q = 0; q < jacobian_quantities.nelem(); q++) {
-    if (jacobian_quantities[q].MainTag() == ABSSPECIES_MAINTAG &&
+    if (jacobian_quantities[q].Target().isSpeciesVMR() &&
         jacobian_quantities[q].Mode() == "rel") {
       if (!vars_init) {
         bool any_affine;

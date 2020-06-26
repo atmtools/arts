@@ -49,7 +49,6 @@
 
 extern const Numeric PI;
 extern const Numeric SPEED_OF_LIGHT;
-extern const String ABSSPECIES_MAINTAG;
 extern const String SURFACE_MAINTAG;
 extern const String SCATSPECIES_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
@@ -1838,7 +1837,7 @@ void yCalcAppend(Workspace& ws,
 
       // Compare to old quantities, to determine if append shall be
       // considered. Some special checks performed here, grids checked later
-      if (jacobian_quantities2[q2].MainTag() == ABSSPECIES_MAINTAG ||
+      if (jacobian_quantities2[q2].Target().isSpeciesVMR() ||
           jacobian_quantities2[q2].MainTag() == TEMPERATURE_MAINTAG ||
           jacobian_quantities2[q2].MainTag() == SCATSPECIES_MAINTAG ||
           jacobian_quantities2[q2].MainTag() == WIND_MAINTAG ||
@@ -1848,7 +1847,7 @@ void yCalcAppend(Workspace& ws,
           if (jacobian_quantities2[q2].MainTag() ==
               jacobian_quantities_copy[q1].MainTag()) {
             // Absorption species
-            if (jacobian_quantities2[q2].MainTag() == ABSSPECIES_MAINTAG) {
+            if (jacobian_quantities2[q2].Target().isSpeciesVMR()) {
               if (jacobian_quantities2[q2].Subtag() ==
                   jacobian_quantities_copy[q1].Subtag()) {
                 if (jacobian_quantities2[q2].Mode() ==

@@ -56,7 +56,6 @@
 #include "oem.h"
 #endif
 
-extern const String ABSSPECIES_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
 extern const String POINTING_MAINTAG;
 extern const String POINTING_SUBTAG_A;
@@ -250,7 +249,7 @@ void xaStandard(Workspace& ws,
     }
 
     // Abs species
-    else if (jacobian_quantities[q].MainTag() == ABSSPECIES_MAINTAG) {
+    else if (jacobian_quantities[q].Target().isSpeciesVMR()) {
       // Index position of species
       ArrayOfSpeciesTag atag;
       array_species_tag_from_string(atag, jacobian_quantities[q].Subtag());
@@ -637,7 +636,7 @@ void x2artsAtmAndSurf(Workspace& ws,
 
     // Abs species
     // ----------------------------------------------------------------------------
-    else if (jacobian_quantities[q].MainTag() == ABSSPECIES_MAINTAG) {
+    else if (jacobian_quantities[q].Target().isSpeciesVMR()) {
       // Index position of species
       ArrayOfSpeciesTag atag;
       array_species_tag_from_string(atag, jacobian_quantities[q].Subtag());
