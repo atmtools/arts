@@ -62,7 +62,6 @@ extern const String FREQUENCY_MAINTAG;
 extern const String FREQUENCY_SUBTAG_0;
 extern const String FREQUENCY_SUBTAG_1;
 extern const String SURFACE_MAINTAG;
-extern const String MAGFIELD_MAINTAG;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void particle_bulkprop_fieldClip(Tensor4& particle_bulkprop_field,
@@ -411,8 +410,8 @@ void xaStandard(Workspace& ws,
     }
 
     // Magnetism
-    else if (jacobian_quantities[q].MainTag() == MAGFIELD_MAINTAG) {
-      if (jacobian_quantities[q].Subtag() == "strength") {
+    else if (jacobian_quantities[q].Target().isMagnetic()) {
+      if (jacobian_quantities[q] == Jacobian::Atm::MagneticMagnitude) {
         // Determine grid positions for interpolation from retrieval grids back
         // to atmospheric grids
         ArrayOfGridPos gp_p, gp_lat, gp_lon;
@@ -444,11 +443,11 @@ void xaStandard(Workspace& ws,
         flat(xa[ind], mag_x);
       } else {
         ConstTensor3View source_field(mag_u_field);
-        if (jacobian_quantities[q].Subtag() == "v") {
+        if (jacobian_quantities[q] == Jacobian::Atm::MagneticV) {
           source_field = mag_v_field;
-        } else if (jacobian_quantities[q].Subtag() == "w") {
+        } else if (jacobian_quantities[q] == Jacobian::Atm::MagneticW) {
           source_field = mag_w_field;
-        } else if (jacobian_quantities[q].Subtag() == "u") {
+        } else if (jacobian_quantities[q] == Jacobian::Atm::MagneticU) {
         } else
           throw runtime_error("Unsupported magnetism type");
 
@@ -803,7 +802,7 @@ void x2artsAtmAndSurf(Workspace& ws,
 
     // Magnetism
     // ----------------------------------------------------------------------------
-    else if (jacobian_quantities[q].MainTag() == MAGFIELD_MAINTAG) {
+    else if (jacobian_quantities[q].Target().isMagnetic()) {
       // Determine grid positions for interpolation from retrieval grids back
       // to atmospheric grids
       ArrayOfGridPos gp_p, gp_lat, gp_lon;
@@ -830,13 +829,13 @@ void x2artsAtmAndSurf(Workspace& ws,
           target_field.npages(), target_field.nrows(), target_field.ncols());
       regrid_atmfield_by_gp_oem(
           mag_field, atmosphere_dim, mag_x, gp_p, gp_lat, gp_lon);
-      if (jacobian_quantities[q].Subtag() == "u") {
+      if (jacobian_quantities[q] == Jacobian::Atm::MagneticU) {
         mag_u_field = mag_field;
-      } else if (jacobian_quantities[q].Subtag() == "v") {
+      } else if (jacobian_quantities[q] == Jacobian::Atm::MagneticV) {
         mag_v_field = mag_field;
-      } else if (jacobian_quantities[q].Subtag() == "w") {
+      } else if (jacobian_quantities[q] == Jacobian::Atm::MagneticW) {
         mag_w_field = mag_field;
-      } else if (jacobian_quantities[q].Subtag() == "strength") {
+      } else if (jacobian_quantities[q] == Jacobian::Atm::MagneticMagnitude) {
         for (Index i = 0; i < n_p; i++) {
           for (Index j = 0; j < n_lat; j++) {
             for (Index k = 0; k < n_lon; k++) {

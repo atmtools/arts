@@ -52,7 +52,6 @@ extern const String POINTING_MAINTAG;
 extern const String POINTING_SUBTAG_A;
 extern const String POINTING_CALCMODE_A;
 extern const String POINTING_CALCMODE_B;
-extern const String MAGFIELD_MAINTAG;
 extern const String FLUX_MAINTAG;
 extern const String PROPMAT_SUBSUBTAG;
 extern const String CATALOGPARAMETER_MAINTAG;
@@ -1523,10 +1522,24 @@ void jacobianAddMagField(Workspace&,
                          const Verbosity& verbosity) {
   CREATE_OUT2;
   CREATE_OUT3;
+  
+  // Create the new retrieval quantity
+  RetrievalQuantity rq;
+  if (component == "u")
+    rq.Target(Jacobian::Target(Jacobian::Atm::MagneticU));
+  else if (component == "v")
+    rq.Target(Jacobian::Target(Jacobian::Atm::MagneticV));
+  else if (component == "w")
+    rq.Target(Jacobian::Target(Jacobian::Atm::MagneticW));
+  else if (component == "strength")
+    rq.Target(Jacobian::Target(Jacobian::Atm::MagneticMagnitude));
+  else
+    throw runtime_error(
+      "The selection for *component* can only be \"u\", \"v\", \"w\", or \"strength\".");
 
   // Check that this species is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
-    if (jq[it].MainTag() == MAGFIELD_MAINTAG && jq[it].Subtag() == component) {
+    if (jq[it] == rq.Target()) {
       ostringstream os;
       os << "The magnetic field component:\n"
          << component << "\nis already "
@@ -1555,22 +1568,6 @@ void jacobianAddMagField(Workspace&,
       throw runtime_error(os.str());
   }
 
-  // Create the new retrieval quantity
-  RetrievalQuantity rq;
-  if (component == "u")
-    rq.Target(Jacobian::Target(Jacobian::Atm::MagneticU));
-  else if (component == "v")
-    rq.Target(Jacobian::Target(Jacobian::Atm::MagneticV));
-  else if (component == "w")
-    rq.Target(Jacobian::Target(Jacobian::Atm::MagneticW));
-  else if (component == "strength")
-    rq.Target(Jacobian::Target(Jacobian::Atm::MagneticMagnitude));
-  else
-    throw runtime_error(
-        "The selection for *component* can only be \"u\", \"v\", \"w\", or \"strength\".");
-
-  rq.MainTag(MAGFIELD_MAINTAG);
-  rq.Subtag(component);
   rq.Analytical(1);
   rq.Grids(grids);
 

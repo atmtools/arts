@@ -334,6 +334,14 @@ public:
                                  msubtype.atm == Atm::WindV or
                                  msubtype.atm == Atm::WindW);
   }
+  
+  /** Special magnetic field case */
+  constexpr bool isMagnetic() const noexcept {
+    return mtype==Type::Atm and (msubtype.atm == Atm::MagneticMagnitude or 
+                                 msubtype.atm == Atm::MagneticU or
+                                 msubtype.atm == Atm::MagneticV or
+                                 msubtype.atm == Atm::MagneticW);
+  }
 };  // Target
 
 /** Output operator 

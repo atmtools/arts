@@ -36,7 +36,6 @@
 extern const Numeric NAT_LOG_TEN;
 extern const Numeric PI;
 
-extern const String MAGFIELD_MAINTAG;
 extern const String FLUX_MAINTAG;
 extern const String PROPMAT_SUBSUBTAG;
 
@@ -649,7 +648,7 @@ void get_pointers_for_analytical_jacobians(
           wind_i[iq] = Index(JacobianType::AbsWind);
       } else { wind_i[iq] = Index(JacobianType::None); }
       //
-      if (jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG &&
+      if (jacobian_quantities[iq].Target().isMagnetic() &&
           jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG) {
         // Map u, v and w to 1, 2 and 3, respectively
         char c = jacobian_quantities[iq].Subtag()[0];
