@@ -36,7 +36,6 @@
 extern const Numeric NAT_LOG_TEN;
 extern const Numeric PI;
 
-extern const String SCATSPECIES_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
 extern const String WIND_MAINTAG;
 extern const String MAGFIELD_MAINTAG;
@@ -629,7 +628,7 @@ void get_pointers_for_analytical_jacobians(
       } else { abs_species_i[iq] = -1; }
       //
       if (cloudbox_on &&
-          jacobian_quantities[iq].MainTag() == SCATSPECIES_MAINTAG) {
+          jacobian_quantities[iq] == Jacobian::Special::ScatteringString) {
         scat_species_i[iq] =
             find_first(scat_species, jacobian_quantities[iq].Subtag());
         if (scat_species_i[iq] < 0) {

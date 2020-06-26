@@ -53,7 +53,6 @@ extern const String POINTING_SUBTAG_A;
 extern const String POINTING_CALCMODE_A;
 extern const String POINTING_CALCMODE_B;
 extern const String POLYFIT_MAINTAG;
-extern const String SCATSPECIES_MAINTAG;
 extern const String SINEFIT_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
 extern const String NLTE_MAINTAG;
@@ -1080,7 +1079,7 @@ void jacobianAddScatSpecies(Workspace&,
   // Check that this species+quantity combination is not already included in
   // the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
-    if (jq[it].MainTag() == SCATSPECIES_MAINTAG && jq[it].Subtag() == species &&
+    if (jq[it] == Jacobian::Special::ScatteringString && jq[it].Subtag() == species &&
         jq[it].SubSubtag() == quantity) {
       ostringstream os;
       os << "The combintaion of\n   scattering species: " << species
@@ -1112,7 +1111,7 @@ void jacobianAddScatSpecies(Workspace&,
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-  rq.MainTag(SCATSPECIES_MAINTAG);
+  rq.Target() = Jacobian::Target(Jacobian::Special::ScatteringString, {});
   rq.Subtag(species);
   rq.SubSubtag(quantity);
   rq.Analytical(1);

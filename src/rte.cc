@@ -48,7 +48,6 @@
 extern const String SURFACE_MAINTAG;
 extern const String PROPMAT_SUBSUBTAG;
 extern const String TEMPERATURE_MAINTAG;
-extern const String SCATSPECIES_MAINTAG;
 extern const Numeric SPEED_OF_LIGHT;
 extern const Numeric TEMP_0_C;
 
@@ -1383,7 +1382,7 @@ void get_stepwise_clearsky_propmat(
   // Set the partial derivatives
   if (jacobian_do) {
     for (Index i = 0; i < nq; i++) {
-      if (jacobian_quantities[i].MainTag() == SCATSPECIES_MAINTAG) {
+      if (jacobian_quantities[i] == Jacobian::Special::ScatteringString) {
         dK_dx[i].SetZero();
         dS_dx[i].SetZero();
       } else if (jacobian_quantities[i].SubSubtag() == PROPMAT_SUBSUBTAG) {

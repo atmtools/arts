@@ -50,7 +50,6 @@
 extern const Numeric PI;
 extern const Numeric SPEED_OF_LIGHT;
 extern const String SURFACE_MAINTAG;
-extern const String SCATSPECIES_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
 extern const String WIND_MAINTAG;
 extern const Index GFIELD4_FIELD_NAMES;
@@ -1839,7 +1838,7 @@ void yCalcAppend(Workspace& ws,
       // considered. Some special checks performed here, grids checked later
       if (jacobian_quantities2[q2].Target().isSpeciesVMR() ||
           jacobian_quantities2[q2].MainTag() == TEMPERATURE_MAINTAG ||
-          jacobian_quantities2[q2].MainTag() == SCATSPECIES_MAINTAG ||
+          jacobian_quantities2[q2] == Jacobian::Special::ScatteringString ||
           jacobian_quantities2[q2].MainTag() == WIND_MAINTAG ||
           jacobian_quantities2[q2].MainTag() == SURFACE_MAINTAG ||
           append_instrument_wfs) {
@@ -1881,8 +1880,7 @@ void yCalcAppend(Workspace& ws,
                    << "is not met.";
                 throw runtime_error(os.str());
               }
-            } else if (jacobian_quantities[q2].MainTag() ==
-                       SCATSPECIES_MAINTAG) {
+            } else if (jacobian_quantities[q2] == Jacobian::Special::ScatteringString) {
               if ((jacobian_quantities2[q2].MainTag() ==
                    jacobian_quantities_copy[q1].MainTag()) &&
                   (jacobian_quantities2[q2].Subtag() ==

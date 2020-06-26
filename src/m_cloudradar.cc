@@ -43,7 +43,6 @@
 
 extern const Numeric PI;
 extern const Numeric SPEED_OF_LIGHT;
-extern const String SCATSPECIES_MAINTAG;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyActiveSingleScat(Workspace& ws,

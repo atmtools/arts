@@ -63,7 +63,6 @@ extern const String FREQUENCY_MAINTAG;
 extern const String FREQUENCY_SUBTAG_0;
 extern const String FREQUENCY_SUBTAG_1;
 extern const String POLYFIT_MAINTAG;
-extern const String SCATSPECIES_MAINTAG;
 extern const String SINEFIT_MAINTAG;
 extern const String SURFACE_MAINTAG;
 extern const String WIND_MAINTAG;
@@ -340,7 +339,7 @@ void xaStandard(Workspace& ws,
     }
 
     // Scattering species
-    else if (jacobian_quantities[q].MainTag() == SCATSPECIES_MAINTAG) {
+    else if (jacobian_quantities[q] == Jacobian::Special::ScatteringString) {
       if (cloudbox_on) {
         if (particle_bulkprop_field.empty()) {
           throw runtime_error(
@@ -715,7 +714,7 @@ void x2artsAtmAndSurf(Workspace& ws,
 
     // Scattering species
     // ----------------------------------------------------------------------------
-    else if (jacobian_quantities[q].MainTag() == SCATSPECIES_MAINTAG) {
+    else if (jacobian_quantities[q] == Jacobian::Special::ScatteringString) {
       // If no cloudbox, we assume that there is nothing to do
       if (cloudbox_on) {
         if (particle_bulkprop_field.empty()) {
