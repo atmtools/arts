@@ -344,4 +344,3 @@ extern const String POINTING_CALCMODE_B = "Interpolate iyb";
 
 // New tags for only propmat jacobians
 extern const String PROPMAT_SUBSUBTAG = "From propagation matrix";
-extern const String CATALOGPARAMETER_MAINTAG = "Catalog parameter";

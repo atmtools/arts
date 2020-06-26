@@ -53,7 +53,6 @@ extern const String POINTING_SUBTAG_A;
 extern const String POINTING_CALCMODE_A;
 extern const String POINTING_CALCMODE_B;
 extern const String PROPMAT_SUBSUBTAG;
-extern const String CATALOGPARAMETER_MAINTAG;
 
 /*===========================================================================
   === The methods, with general methods first followed by the Add/Calc method
@@ -1608,7 +1607,6 @@ void jacobianAddShapeCatalogParameter(Workspace&,
 
   // Create the quantity
   RetrievalQuantity rq;
-  rq.MainTag(CATALOGPARAMETER_MAINTAG);
   rq.SubSubtag(PROPMAT_SUBSUBTAG);
   rq.Mode(species);
   rq.Analytical(1);
