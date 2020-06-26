@@ -186,7 +186,6 @@ void jacobianAddAbsSpecies(Workspace&,
   RetrievalQuantity rq;
   rq.Subtag(species);
   rq.Mode(mode);
-  rq.Analytical(1);
   rq.Grids(grids);
   if (for_species_tag == 0) {
     rq.Target(Jacobian::Target(Jacobian::Line::VMR, qi));
@@ -246,7 +245,6 @@ void jacobianAddFreqShift(Workspace& ws _U_,
   RetrievalQuantity rq;
   rq.Target() = Jacobian::Target(Jacobian::Sensor::FrequencyShift);
   rq.Mode("");
-  rq.Analytical(0);
   rq.Target().Perturbation(df);
 
   // Dummy vector of length 1
@@ -393,7 +391,6 @@ void jacobianAddFreqStretch(Workspace& ws _U_,
   RetrievalQuantity rq;
   rq.Target() = Jacobian::Target(Jacobian::Sensor::FrequencyStretch);
   rq.Mode("");
-  rq.Analytical(0);
   rq.Target().Perturbation(df);
 
   // Dummy vector of length 1
@@ -583,7 +580,6 @@ void jacobianAddPointingZa(Workspace& ws _U_,
   } else
     throw runtime_error(
       "Possible choices for *calcmode* are \"recalc\" and \"interp\".");
-  rq.Analytical(0);
   rq.Target().Perturbation(dza);
 
   // To store the value or the polynomial order, create a vector with length
@@ -910,7 +906,6 @@ void jacobianAddPolyfit(Workspace& ws _U_,
   RetrievalQuantity rq;
   rq.Target() = Jacobian::Target(Jacobian::Sensor::Polyfit);
   rq.Mode("");
-  rq.Analytical(0);
   rq.Target().Perturbation(0);
 
   // Each polynomial coeff. is treated as a retrieval quantity
@@ -1074,7 +1069,6 @@ void jacobianAddScatSpecies(Workspace&,
   rq.Target() = Jacobian::Target(Jacobian::Special::ScatteringString, {});
   rq.Subtag(species);
   rq.SubSubtag(quantity);
-  rq.Analytical(1);
   rq.Grids(grids);
 
   // Add it to the *jacobian_quantities*
@@ -1141,7 +1135,6 @@ void jacobianAddSinefit(Workspace& ws _U_,
   RetrievalQuantity rq;
   rq.Target() = Jacobian::Target(Jacobian::Sensor::Sinefit);
   rq.Mode("");
-  rq.Analytical(0);
   rq.Target().Perturbation(0);
 
   // Each sinefit coeff. pair is treated as a retrieval quantity
@@ -1303,7 +1296,6 @@ void jacobianAddSurfaceQuantity(Workspace&,
   RetrievalQuantity rq;
   rq.Target() = Jacobian::Target(Jacobian::Special::SurfaceString, {});
   rq.Subtag(quantity);
-  rq.Analytical(0);
   rq.Grids(grids);
 
   // Add it to the *jacobian_quantities*
@@ -1378,7 +1370,6 @@ void jacobianAddTemperature(Workspace&,
   // Create the new retrieval quantity
   RetrievalQuantity rq;
   rq.Subtag(subtag);
-  rq.Analytical(1);
   rq.Grids(grids);
   rq.Target(Jacobian::Target(Jacobian::Atm::Temperature));
   rq.Target().Perturbation(0.1);
@@ -1456,7 +1447,6 @@ void jacobianAddWind(Workspace&,
   }
 
   rq.Subtag(component);  // nb.  This should be possible to remove...
-  rq.Analytical(1);
   rq.Grids(grids);
   rq.Target().Perturbation(dfrequency);
 
@@ -1533,7 +1523,6 @@ void jacobianAddMagField(Workspace&,
       throw runtime_error(os.str());
   }
 
-  rq.Analytical(1);
   rq.Grids(grids);
   rq.Target().Perturbation(dB);
 
@@ -1575,7 +1564,6 @@ void jacobianAddShapeCatalogParameter(Workspace&,
   // Create the quantity
   RetrievalQuantity rq;
   rq.Mode(species);
-  rq.Analytical(1);
   rq.Grids(ArrayOfVector(0, Vector(0)));
   rq.Target(Jacobian::Target(jpt, line_identity));
 
@@ -1660,7 +1648,6 @@ void jacobianAddBasicCatalogParameter(Workspace&,
       }
   }
 
-  rq.Analytical(1);
   rq.Grids(ArrayOfVector(0, Vector(0)));
 
   // Add it to the *jacobian_quantities*
@@ -1747,8 +1734,7 @@ void jacobianAddNLTE(Workspace&,
   rq.Target(Jacobian::Target(Jacobian::Line::NLTE, energy_level_identity));
   rq.Target().Perturbation(dx);
   rq.Grids(grids);
-  rq.Analytical(1);
-
+  
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
@@ -1825,7 +1811,6 @@ void jacobianAddSpecialSpecies(Workspace&,
   // Create the new retrieval quantity
   RetrievalQuantity rq;
   rq.Grids(grids);
-  rq.Analytical(1);
 
   // Make sure modes are valid and complain if they are repeated
   if (species == "electrons") {

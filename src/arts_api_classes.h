@@ -835,7 +835,6 @@ extern "C" {
     VoidGetterCAPI(RetrievalQuantity, SubTag)
     VoidGetterCAPI(RetrievalQuantity, SubSubTag)
     VoidGetterCAPI(RetrievalQuantity, Mode)
-    VoidGetterCAPI(RetrievalQuantity, Analytical)
     VoidGetterCAPI(RetrievalQuantity, Grids)
     VoidGetterCAPI(RetrievalQuantity, Target)
     VoidGetterCAPI(RetrievalQuantity, TransformationFunc)

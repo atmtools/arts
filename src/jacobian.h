@@ -386,7 +386,6 @@ class RetrievalQuantity {
       : msubtag(),
         msubsubtag(),
         mmode(),
-        manalytical(-1),
         mgrids(),
         mjac() { /* Nothing to do here. */
   }
@@ -404,13 +403,11 @@ class RetrievalQuantity {
                     const String& subtag,
                     const String& subsubtag,
                     const String& mode,
-                    const Index& analytical,
                     const Numeric& perturbation,
                     const ArrayOfVector& grids)
       : msubtag(subtag),
         msubsubtag(subsubtag),
         mmode(mode),
-        manalytical(analytical),
         mgrids(grids),
         mjac(target) {
     mjac.Perturbation() = perturbation;
@@ -458,20 +455,6 @@ class RetrievalQuantity {
    * @param[in] m A mode
    */
   void Mode(const String& m) { mmode = m; }
-  
-  /** Returns the analytical tag
-   * 
-   * Boolean to make analytical calculations (if possible).
-   * 
-   * @return A representation of analytical tag
-   */
-  const Index& Analytical() const { return manalytical; }
-  
-  /** Sets the analytical tag
-   * 
-   * @param[in] m An analytical tag
-   */
-  void Analytical(const Index& m) { manalytical = m; }
   
   /** Returns the grids of the retrieval
    * 
@@ -571,13 +554,12 @@ class RetrievalQuantity {
   bool HasSameInternalsAs(const RetrievalQuantity& a) const {
     return a.msubtag == msubtag and
            a.msubsubtag == msubsubtag and a.mmode == mmode and
-           a.manalytical == manalytical and a.mjac == mjac;
+           a.mjac == mjac;
   }
   
   String& SubTag() {return msubtag;}
   String& SubSubTag() {return msubsubtag;}
   String& Mode() {return mmode;}
-  Index& Analytical() {return manalytical;}
   ArrayOfVector& Grids() {return mgrids;}
   String& TransformationFunc() {return transformation_func;}
   Vector& TFuncParameters() {return tfunc_parameters;}
@@ -588,7 +570,6 @@ class RetrievalQuantity {
   String msubtag;
   String msubsubtag;
   String mmode;
-  Index manalytical;
   ArrayOfVector mgrids;
   Jacobian::Target mjac;
 
@@ -605,19 +586,19 @@ ostream& operator<<(ostream& os, const RetrievalQuantity& ot);
 typedef Array<RetrievalQuantity> ArrayOfRetrievalQuantity;
 
 // A macro to loop analytical jacobian quantities
-#define FOR_ANALYTICAL_JACOBIANS_DO(what_to_do)                \
-  for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) { \
-    if (jacobian_quantities[iq].Analytical()) {                \
-      what_to_do                                               \
-    }                                                          \
+#define FOR_ANALYTICAL_JACOBIANS_DO(what_to_do)                             \
+  for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {              \
+    if (not(jacobian_quantities[iq] == Jacobian::Type::Sensor) and          \
+        not(jacobian_quantities[iq] == Jacobian::Special::SurfaceString)) { \
+      what_to_do                                                            \
+    }                                                                       \
   }
 // A macro to loop analytical jacobian quantities
-#define FOR_ANALYTICAL_JACOBIANS_DO2(what_to_do)                       \
-  for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {         \
-    if (jacobian_quantities[iq].Analytical() ||                        \
-        jacobian_quantities[iq] == Jacobian::Special::SurfaceString) { \
-      what_to_do                                                       \
-    }                                                                  \
+#define FOR_ANALYTICAL_JACOBIANS_DO2(what_to_do)                  \
+  for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {    \
+    if (not(jacobian_quantities[iq] == Jacobian::Type::Sensor)) { \
+      what_to_do                                                  \
+    }                                                             \
   }
 
 //======================================================================

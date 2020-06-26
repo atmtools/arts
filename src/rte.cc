@@ -75,7 +75,7 @@ void adapt_stepwise_partial_derivatives(
   Vector a;
 
   for (Index i = 0; i < nq; i++) {
-    if (not jacobian_quantities[i].Analytical()) continue;
+    if (jacobian_quantities[i] == Jacobian::Type::Sensor or jacobian_quantities[i] == Jacobian::Special::SurfaceString) continue;
 
     Index component;
 
@@ -1465,7 +1465,7 @@ void get_stepwise_effective_source(
       //FOR_ANALYTICAL_JACOBIANS_DO
       //(
       for (Index iq = 0; iq < nq; iq++) {
-        if (jacobian_quantities[iq].Analytical()) {
+        if (not(jacobian_quantities[iq] == Jacobian::Type::Sensor) and not(jacobian_quantities[iq] == Jacobian::Special::SurfaceString)) {
           Matrix dk(ns, ns), tmp_matrix(ns, ns);
           Vector dj(ns, 0), tmp(ns);
 
@@ -1784,7 +1784,7 @@ void get_stepwise_scattersky_source(
         val_pnd = 1;
       } else if (jacobian_do) {
         for (Index iq = 0; (!val_pnd) && (iq < nq); iq++) {
-          if (jacobian_quantities[iq].Analytical() &&
+          if ((not(jacobian_quantities[iq] == Jacobian::Type::Sensor) and not(jacobian_quantities[iq] == Jacobian::Special::SurfaceString)) &&
               !ppath_dpnd_dx[iq].empty() &&
               ppath_dpnd_dx[iq](ise_flat, ppath_1p_id) != 0) {
             val_pnd = 1;
@@ -2442,7 +2442,9 @@ void rtmethods_jacobian_finalisation(
     // Let x be VMR, and z the selected retrieval unit.
     // We have then that diy/dz = diy/dx * dx/dz
     //
-    if (jacobian_quantities[iq].Analytical() && jac_species_i[iq] >= 0) {
+    if (not(jacobian_quantities[iq] == Jacobian::Type::Sensor) and
+        not(jacobian_quantities[iq] == Jacobian::Special::SurfaceString) and
+        jac_species_i[iq] >= 0) {
       if (jacobian_quantities[iq].Mode() == "vmr") {
       }
 
@@ -2493,7 +2495,7 @@ void rtmethods_jacobian_finalisation(
     if (jac_is_t[iq] != Index(JacobianType::None)) {
       // Loop abs species, again
       for (Index ia = 0; ia < jacobian_quantities.nelem(); ia++) {
-        if (jacobian_quantities[iq].Analytical() && jac_species_i[ia] >= 0) {
+        if (jac_species_i[ia] >= 0) {
           if (jacobian_quantities[ia].Mode() == "nd") {
             for (Index ip = 0; ip < np; ip++) {
               Matrix ddterm = diy_dpath[ia](ip, joker, joker);

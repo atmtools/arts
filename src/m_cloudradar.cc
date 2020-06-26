@@ -550,7 +550,7 @@ void iyActiveSingleScat(Workspace& ws,
           // All this is to cover impact on back-scattering of
           // scattering species
           for (Index iq = 0; iq < nq; iq++) {
-            if (jacobian_quantities[iq].Analytical()) {
+            if (not(jacobian_quantities[iq] == Jacobian::Type::Sensor) and not(jacobian_quantities[iq] == Jacobian::Special::SurfaceString)) {
               if (jac_scat_i[iq] >= 0) {
                 // Change of scattering scattering matrix
                 P = 0.0;

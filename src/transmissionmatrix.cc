@@ -1385,7 +1385,8 @@ void stepwise_source(RadiationVector& J,
       J.SetZero(i);
       if (jacobian_do) {
         for (Index j = 0; j < jacobian_quantities.nelem(); j++)
-          if (jacobian_quantities[j].Analytical()) dJ[j].SetZero(i);
+          if (dJ[j].Frequencies())
+            dJ[j].SetZero(i);
       }
     } else {
       J.setSource(a, B, S, i);
@@ -1401,7 +1402,7 @@ void stepwise_source(RadiationVector& J,
           J.Vec4(i) = invK * J.Vec4(i);
           if (jacobian_do)
             for (Index j = 0; j < jacobian_quantities.nelem(); j++)
-              if (jacobian_quantities[j].Analytical())
+              if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and dJ[j].Frequencies() == dS[j].NumberOfFrequencies())
                 dJ[j].Vec4(i).noalias() =
                     0.5 * invK *
                     (vector4(a,
@@ -1426,7 +1427,7 @@ void stepwise_source(RadiationVector& J,
           J.Vec3(i) = invK * J.Vec3(i);
           if (jacobian_do)
             for (Index j = 0; j < jacobian_quantities.nelem(); j++)
-              if (jacobian_quantities[j].Analytical())
+              if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and dJ[j].Frequencies() == dS[j].NumberOfFrequencies())
                 dJ[j].Vec3(i).noalias() =
                     0.5 * invK *
                     (vector3(a,
@@ -1447,7 +1448,7 @@ void stepwise_source(RadiationVector& J,
           J.Vec2(i) = invK * J.Vec2(i);
           if (jacobian_do)
             for (Index j = 0; j < jacobian_quantities.nelem(); j++)
-              if (jacobian_quantities[j].Analytical())
+              if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and dJ[j].Frequencies() == dS[j].NumberOfFrequencies())
                 dJ[j].Vec2(i).noalias() =
                     0.5 * invK *
                     (vector2(a,
@@ -1464,7 +1465,7 @@ void stepwise_source(RadiationVector& J,
           J.Vec1(i)[0] *= invK;
           if (jacobian_do)
             for (Index j = 0; j < jacobian_quantities.nelem(); j++)
-              if (jacobian_quantities[j].Analytical())
+              if (dJ[j].Frequencies() == da[j].NumberOfFrequencies() and dJ[j].Frequencies() == dS[j].NumberOfFrequencies())
                 dJ[j].Vec1(i)[0] =
                     0.5 * invK *
                     (vector1(a,

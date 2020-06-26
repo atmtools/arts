@@ -1401,7 +1401,6 @@ void xml_read_from_stream(istream& is_xml,
   String subtag;
   String subsubtag;
   String mode;
-  Index analytical;
   Numeric perturbation;
   ArrayOfVector grids;
 
@@ -1412,7 +1411,6 @@ void xml_read_from_stream(istream& is_xml,
   xml_read_from_stream(is_xml, subtag, pbifs, verbosity);
   xml_read_from_stream(is_xml, subsubtag, pbifs, verbosity);
   xml_read_from_stream(is_xml, mode, pbifs, verbosity);
-  xml_read_from_stream(is_xml, analytical, pbifs, verbosity);
   xml_read_from_stream(is_xml, perturbation, pbifs, verbosity);
   xml_read_from_stream(is_xml, grids, pbifs, verbosity);
 
@@ -1420,7 +1418,7 @@ void xml_read_from_stream(istream& is_xml,
   tag.check_name("/RetrievalQuantity");
 
   rq = RetrievalQuantity(
-      target, subtag, subsubtag, mode, analytical, perturbation, grids);
+      target, subtag, subsubtag, mode, perturbation, grids);
 }
 
 //! Writes RetrievalQuantity to XML output stream
@@ -1446,7 +1444,6 @@ void xml_write_to_stream(ostream& os_xml,
   xml_write_to_stream(os_xml, rq.Subtag(), pbofs, "Subtag", verbosity);
   xml_write_to_stream(os_xml, rq.SubSubtag(), pbofs, "SubSubtag", verbosity);
   xml_write_to_stream(os_xml, rq.Mode(), pbofs, "Mode", verbosity);
-  xml_write_to_stream(os_xml, rq.Analytical(), pbofs, "Analytical", verbosity);
   xml_write_to_stream(
     os_xml, rq.Target().Perturbation(), pbofs, "Perturbation", verbosity);
   xml_write_to_stream(os_xml, rq.Grids(), pbofs, "Grids", verbosity);

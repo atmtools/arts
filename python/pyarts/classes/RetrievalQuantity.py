@@ -14,9 +14,6 @@ class RetrievalQuantity:
     """ ARTS RetrievalQuantity data
 
     Properties:
-        maintag:
-            (String)
-
         subtag:
             (String)
 
@@ -25,9 +22,6 @@ class RetrievalQuantity:
 
         mode:
             (String)
-
-        analytical:
-            (Index)
 
         target:
             (JacobianTarget)
@@ -107,15 +101,6 @@ class RetrievalQuantity:
         self.grids.set(val)
 
     @property
-    def analytical(self):
-        """ (Index) """
-        return Index(c.c_void_p(lib.getAnalyticalRetrievalQuantity(self.__data__)))
-
-    @analytical.setter
-    def analytical(self, val):
-        self.analytical.set(val)
-
-    @property
     def mode(self):
         """ (String) """
         return String(c.c_void_p(lib.getModeRetrievalQuantity(self.__data__)))
@@ -141,15 +126,6 @@ class RetrievalQuantity:
     @subtag.setter
     def subtag(self, val):
         self.subtag.set(val)
-
-    @property
-    def maintag(self):
-        """ (String) """
-        return String(c.c_void_p(lib.getMainTagRetrievalQuantity(self.__data__)))
-
-    @maintag.setter
-    def maintag(self, val):
-        self.maintag.set(val)
 
     @property
     def target(self):
@@ -178,12 +154,10 @@ class RetrievalQuantity:
     def set(self, other):
         """ Sets this class according to another python instance of itself """
         if isinstance(other, RetrievalQuantity):
-            self.maintag = other.maintag
             self.subtag = other.subtag
             self.subsubtag = other.subsubtag
             self.mode = other.mode
             self.target = other.target
-            self.analytical = other.analytical
             self.grids = other.grids
             self.transformation_func = other.transformation_func
             self.t_func_parameters = other.t_func_parameters
@@ -220,12 +194,10 @@ class RetrievalQuantity:
 
     def __eq__(self, other):
         if isinstance(other, RetrievalQuantity) and \
-                self.maintag == other.maintag and \
                 self.subtag == other.subtag and \
                 self.subsubtag == other.subsubtag and \
                 self.mode == other.mode and \
                 self.target == other.target and \
-                self.analytical == other.analytical and \
                 self.grids == other.grids and \
                 self.transformation_func == other.transformation_func and \
                 self.t_func_parameters == other.t_func_parameters and \
@@ -254,9 +226,6 @@ lib.xmlreadRetrievalQuantity.argtypes = [c.c_void_p, c.c_char_p]
 lib.xmlsaveRetrievalQuantity.restype = c.c_long
 lib.xmlsaveRetrievalQuantity.argtypes = [c.c_void_p, c.c_char_p, c.c_long, c.c_long]
 
-lib.getMainTagRetrievalQuantity.restype = c.c_void_p
-lib.getMainTagRetrievalQuantity.argtypes = [c.c_void_p]
-
 lib.getSubTagRetrievalQuantity.restype = c.c_void_p
 lib.getSubTagRetrievalQuantity.argtypes = [c.c_void_p]
 
@@ -265,9 +234,6 @@ lib.getSubSubTagRetrievalQuantity.argtypes = [c.c_void_p]
 
 lib.getModeRetrievalQuantity.restype = c.c_void_p
 lib.getModeRetrievalQuantity.argtypes = [c.c_void_p]
-
-lib.getAnalyticalRetrievalQuantity.restype = c.c_void_p
-lib.getAnalyticalRetrievalQuantity.argtypes = [c.c_void_p]
 
 lib.getGridsRetrievalQuantity.restype = c.c_void_p
 lib.getGridsRetrievalQuantity.argtypes = [c.c_void_p]
