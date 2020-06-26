@@ -162,7 +162,8 @@ ENUMARTS(Line,
 
 /** Holds the Sensor-related jacobians */
 ENUMARTS(Sensor,
-         Frequency
+         Frequency,
+         Polyfit
         )
 
 /** Holds special jacobians the require careful extra manipulation */

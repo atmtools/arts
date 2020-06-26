@@ -41,7 +41,6 @@ extern const String WIND_MAINTAG;
 extern const String MAGFIELD_MAINTAG;
 extern const String FLUX_MAINTAG;
 extern const String PROPMAT_SUBSUBTAG;
-extern const String POLYFIT_MAINTAG;
 extern const String SINEFIT_MAINTAG;
 
 ostream& operator<<(ostream& os, const RetrievalQuantity& ot) {
@@ -917,7 +916,7 @@ void calcBaselineFit(Vector& y_baseline,
                      const Index rq_index,
                      const ArrayOfArrayOfIndex& jacobian_indices) {
   bool is_sine_fit = false;
-  if (rq.MainTag() == POLYFIT_MAINTAG) {
+  if (rq == Jacobian::Sensor::Polyfit) {
     is_sine_fit = false;
   } else if (rq.MainTag() == SINEFIT_MAINTAG) {
     is_sine_fit = true;

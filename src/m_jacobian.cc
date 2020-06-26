@@ -52,7 +52,6 @@ extern const String POINTING_MAINTAG;
 extern const String POINTING_SUBTAG_A;
 extern const String POINTING_CALCMODE_A;
 extern const String POINTING_CALCMODE_B;
-extern const String POLYFIT_MAINTAG;
 extern const String SINEFIT_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
 extern const String NLTE_MAINTAG;
@@ -913,7 +912,7 @@ void jacobianAddPolyfit(Workspace& ws _U_,
 
   // Check that polyfit is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
-    if (jq[it].MainTag() == POLYFIT_MAINTAG) {
+    if (jq[it] == Jacobian::Sensor::Polyfit) {
       ostringstream os;
       os << "Polynomial baseline fit is already included in\n"
          << "*jacobian_quantities*.";
@@ -946,7 +945,7 @@ void jacobianAddPolyfit(Workspace& ws _U_,
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-  rq.MainTag(POLYFIT_MAINTAG);
+  rq.Target() = Jacobian::Target(Jacobian::Sensor::Polyfit);
   rq.Mode("");
   rq.Analytical(0);
   rq.Target().Perturbation(0);
@@ -990,7 +989,7 @@ void jacobianCalcPolyfit(Matrix& jacobian,
   ostringstream sstr;
   sstr << "Coefficient " << poly_coeff;
   for (iq = 0; iq < jacobian_quantities.nelem() && !found; iq++) {
-    if (jacobian_quantities[iq].MainTag() == POLYFIT_MAINTAG &&
+    if (jacobian_quantities[iq] == Jacobian::Sensor::Polyfit &&
         jacobian_quantities[iq].Subtag() == sstr.str()) {
       found = true;
       break;
