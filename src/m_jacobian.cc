@@ -52,7 +52,6 @@ extern const String POINTING_MAINTAG;
 extern const String POINTING_SUBTAG_A;
 extern const String POINTING_CALCMODE_A;
 extern const String POINTING_CALCMODE_B;
-extern const String FLUX_MAINTAG;
 extern const String PROPMAT_SUBSUBTAG;
 extern const String CATALOGPARAMETER_MAINTAG;
 

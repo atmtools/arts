@@ -36,7 +36,6 @@
 extern const Numeric NAT_LOG_TEN;
 extern const Numeric PI;
 
-extern const String FLUX_MAINTAG;
 extern const String PROPMAT_SUBSUBTAG;
 
 ostream& operator<<(ostream& os, const RetrievalQuantity& ot) {
