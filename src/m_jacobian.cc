@@ -45,8 +45,6 @@
 
 extern const Numeric PI;
 
-extern const String FREQUENCY_SUBTAG_0;
-extern const String FREQUENCY_SUBTAG_1;
 extern const String POINTING_MAINTAG;
 extern const String POINTING_SUBTAG_A;
 extern const String POINTING_CALCMODE_A;
@@ -258,7 +256,6 @@ void jacobianAddFreqShift(Workspace& ws _U_,
   // Create the new retrieval quantity
   RetrievalQuantity rq;
   rq.Target() = Jacobian::Target(Jacobian::Sensor::FrequencyShift);
-  rq.Subtag(FREQUENCY_SUBTAG_0);
   rq.Mode("");
   rq.Analytical(0);
   rq.Target().Perturbation(df);
@@ -406,7 +403,6 @@ void jacobianAddFreqStretch(Workspace& ws _U_,
   // Create the new retrieval quantity
   RetrievalQuantity rq;
   rq.Target() = Jacobian::Target(Jacobian::Sensor::FrequencyStretch);
-  rq.Subtag(FREQUENCY_SUBTAG_1);
   rq.Mode("");
   rq.Analytical(0);
   rq.Target().Perturbation(df);

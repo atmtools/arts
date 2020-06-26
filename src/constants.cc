@@ -333,9 +333,6 @@ extern const Numeric LAT_LON_MIN = 20;
   === Definition of retrieval quantity tag strings 
   ===========================================================================*/
 
-extern const String FREQUENCY_SUBTAG_0 = "Shift";
-extern const String FREQUENCY_SUBTAG_1 = "Stretch";
-
 extern const String POINTING_MAINTAG = "Sensor pointing";
 extern const String POINTING_SUBTAG_A = "Zenith angle off-set";
 extern const String POINTING_CALCMODE_A = "Recalculate iyb";

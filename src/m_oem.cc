@@ -58,8 +58,6 @@
 
 extern const String POINTING_MAINTAG;
 extern const String POINTING_SUBTAG_A;
-extern const String FREQUENCY_SUBTAG_0;
-extern const String FREQUENCY_SUBTAG_1;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void particle_bulkprop_fieldClip(Tensor4& particle_bulkprop_field,
@@ -993,13 +991,13 @@ void x2artsSensor(Workspace& ws,
     // Frequncy shift or stretch
     // ----------------------------------------------------------------------------
     else if (jacobian_quantities[q].Target().isFrequency()) {
-      if (jacobian_quantities[q].Subtag() == FREQUENCY_SUBTAG_0) {
+      if (jacobian_quantities[q] == Jacobian::Sensor::FrequencyShift) {
         assert(np == 1);
         if (x_t[ji[q][0]] != 0) {
           do_sensor = true;
           f_backend += x_t[ji[q][0]];
         }
-      } else if (jacobian_quantities[q].Subtag() == FREQUENCY_SUBTAG_1) {
+      } else if (jacobian_quantities[q] == Jacobian::Sensor::FrequencyStretch) {
         assert(np == 1);
         if (x_t[ji[q][0]] != 0) {
           do_sensor = true;
