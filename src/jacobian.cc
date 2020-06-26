@@ -1218,7 +1218,7 @@ bool supports_relaxation_matrix(const ArrayOfRetrievalQuantity& js) {
 bool supports_lookup(const ArrayOfRetrievalQuantity& js) {
   if (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_line_parameter(j);}))
     throw std::runtime_error("Line specific parameters are not supported while using Lookup table.\nWe do not track lines in the Lookup.\n");
-  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or j == Jacobian::Special::TagVMR or is_frequency_parameter(j));});
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or j == Jacobian::Special::ArrayOfSpeciesTagVMR or is_frequency_parameter(j));});
 }
 
 bool supports_faraday(const ArrayOfRetrievalQuantity& js) {

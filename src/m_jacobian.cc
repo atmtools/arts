@@ -251,7 +251,7 @@ void jacobianAddAbsSpecies(Workspace&,
   if (for_species_tag == 0) {
     rq.Target(Jacobian::Target(Jacobian::Line::VMR, qi));
   } else {
-    rq.Target(Jacobian::Target(Jacobian::Special::TagVMR, qi));
+    rq.Target(Jacobian::Target(Jacobian::Special::ArrayOfSpeciesTagVMR, qi));
   }
   rq.Target().Perturbation(0.001);
 

@@ -2128,7 +2128,7 @@ void propmat_clearskyAddFromLookup(
             dpropmat_clearsky_dx[iq].Kjj()[iv] +=
                 (dabs_scalar_gas_df(isp, iv) - abs_scalar_gas(isp, iv)) / df;
           } else if (jacobian_quantities[jacobian_quantities_position[iq]] ==
-            Jacobian::Special::TagVMR) {
+            Jacobian::Special::ArrayOfSpeciesTagVMR) {
             if (jacobian_quantities[jacobian_quantities_position[iq]]
                     .QuantumIdentity()
                     .Species() not_eq abs_lookup.GetSpeciesIndex(isp))

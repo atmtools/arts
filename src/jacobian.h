@@ -112,7 +112,16 @@ std::array<String, Index(T::FINAL)> enum_strarray(const String& strchars)
       if (enumstrs::ENUMTYPE ## Names [i] == x)                               \
         return ENUMTYPE(i);                                                   \
     return ENUMTYPE::FINAL;                                                   \
+  }                                                                           \
+                                                                              \
+  inline std::ostream& operator<<(std::ostream& os, const ENUMTYPE x) {       \
+    return os << toString(x);                                                 \
+  }                                                                           \
+                                                                              \
+  inline std::istream& operator<<(std::istream& is, ENUMTYPE& x) {            \
+    String val; is >> val; x = to ## ENUMTYPE(val); return is;                \
   }
+  
 
 namespace Jacobian {
 
@@ -158,7 +167,9 @@ ENUMARTS(Sensor,
 
 /** Holds special jacobians the require careful extra manipulation */
 ENUMARTS(Special,
-         TagVMR
+         ArrayOfSpeciesTagVMR,
+         ScatteringString,
+         SurfaceString
         )
 
 /** Union of quantities */
