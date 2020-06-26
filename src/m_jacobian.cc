@@ -35,6 +35,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
+#include "constants.h"
 #include "interpolation_poly.h"
 #include "jacobian.h"
 #include "m_xml.h"
@@ -42,10 +43,6 @@
 #include "messages.h"
 #include "physics_funcs.h"
 #include "rte.h"
-
-extern const Numeric PI;
-
-extern const String PROPMAT_SUBSUBTAG;
 
 /*===========================================================================
   === The methods, with general methods first followed by the Add/Calc method
@@ -137,22 +134,18 @@ void jacobianAddAbsSpecies(Workspace&,
 
   // Check that this species is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
-    if (jq[it].Target().isSpeciesVMR() &&
-        jq[it].SubSubtag() != PROPMAT_SUBSUBTAG && jq[it].Subtag() == species) {
+    if (jq[it] == Jacobian::Special::ArrayOfSpeciesTagVMR && jq[it].Subtag() == species) {
       ostringstream os;
       os << "The gas species:\n"
          << species << "\nis already included in "
          << "*jacobian_quantities*.";
       throw runtime_error(os.str());
-    } else if (jq[it].Target().isSpeciesVMR() &&
-               jq[it].SubSubtag() == PROPMAT_SUBSUBTAG) {
-      if (SpeciesTag(jq[it].Subtag()) == SpeciesTag(species)) {
-        ostringstream os;
-        os << "The atmospheric species of:\n"
-           << species << "\nis already included in "
-           << "*jacobian_quantities*.";
-        throw runtime_error(os.str());
-      }
+    } else if (jq[it] == Jacobian::Line::VMR and jq[it].QuantumIdentity() == qi) {
+      ostringstream os;
+      os << "The atmospheric species of:\n"
+          << species << "\nis already included in "
+          << "*jacobian_quantities*.";
+      throw runtime_error(os.str());
     }
   }
 
@@ -198,7 +191,7 @@ void jacobianAddAbsSpecies(Workspace&,
   if (for_species_tag == 0) {
     rq.Target(Jacobian::Target(Jacobian::Line::VMR, qi));
   } else {
-    rq.Target(Jacobian::Target(Jacobian::Special::ArrayOfSpeciesTagVMR, qi));
+    rq.Target(Jacobian::Target(Jacobian::Special::ArrayOfSpeciesTagVMR, {}));
   }
   rq.Target().Perturbation(0.001);
 
@@ -1216,8 +1209,8 @@ void jacobianCalcSinefit(Matrix& jacobian,
   Vector s(nf), c(nf);
   //
   for (Index f = 0; f < nf; f++) {
-    Numeric a = (sensor_response_f_grid[f] - sensor_response_f_grid[0]) * 2 *
-                PI / jg[0][0];
+    Numeric a = (sensor_response_f_grid[f] - sensor_response_f_grid[0]) *
+                Constant::two_pi / jg[0][0];
     s[f] = sin(a);
     c[f] = cos(a);
   }
@@ -1385,10 +1378,8 @@ void jacobianAddTemperature(Workspace&,
   // Create the new retrieval quantity
   RetrievalQuantity rq;
   rq.Subtag(subtag);
-  rq.Mode("abs");
   rq.Analytical(1);
   rq.Grids(grids);
-  rq.SubSubtag(PROPMAT_SUBSUBTAG);
   rq.Target(Jacobian::Target(Jacobian::Atm::Temperature));
   rq.Target().Perturbation(0.1);
 
@@ -1467,7 +1458,6 @@ void jacobianAddWind(Workspace&,
   rq.Subtag(component);  // nb.  This should be possible to remove...
   rq.Analytical(1);
   rq.Grids(grids);
-  rq.SubSubtag(PROPMAT_SUBSUBTAG);
   rq.Target().Perturbation(dfrequency);
 
   // Add it to the *jacobian_quantities*
@@ -1545,8 +1535,6 @@ void jacobianAddMagField(Workspace&,
 
   rq.Analytical(1);
   rq.Grids(grids);
-
-  rq.SubSubtag(PROPMAT_SUBSUBTAG);
   rq.Target().Perturbation(dB);
 
   // Add it to the *jacobian_quantities*
@@ -1586,7 +1574,6 @@ void jacobianAddShapeCatalogParameter(Workspace&,
 
   // Create the quantity
   RetrievalQuantity rq;
-  rq.SubSubtag(PROPMAT_SUBSUBTAG);
   rq.Mode(species);
   rq.Analytical(1);
   rq.Grids(ArrayOfVector(0, Vector(0)));
@@ -1673,7 +1660,6 @@ void jacobianAddBasicCatalogParameter(Workspace&,
       }
   }
 
-  rq.SubSubtag(PROPMAT_SUBSUBTAG);
   rq.Analytical(1);
   rq.Grids(ArrayOfVector(0, Vector(0)));
 
@@ -1762,7 +1748,6 @@ void jacobianAddNLTE(Workspace&,
   rq.Target().Perturbation(dx);
   rq.Grids(grids);
   rq.Analytical(1);
-  rq.SubSubtag(PROPMAT_SUBSUBTAG);
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -1841,7 +1826,6 @@ void jacobianAddSpecialSpecies(Workspace&,
   RetrievalQuantity rq;
   rq.Grids(grids);
   rq.Analytical(1);
-  rq.SubSubtag(PROPMAT_SUBSUBTAG);
 
   // Make sure modes are valid and complain if they are repeated
   if (species == "electrons") {

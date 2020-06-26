@@ -18,10 +18,10 @@ ws.jacobianAddTemperature(g1=p.data, g2=lat.data, g3=lon.data)
 
 arq = from_workspace(ws.jacobian_quantities)
 rq = RetrievalQuantity()
-rq.maintag = "Atmospheric temperatures"
+rq.maintag = ""
 rq.subtag = "HSE on"
-rq.subsubtag = "From propagation matrix"
-rq.mode = "abs"
+rq.subsubtag = ""
+rq.mode = ""
 rq.analytical = 1
 rq.target.type = "Atm"
 rq.target.subtype = "Temperature"

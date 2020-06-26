@@ -45,7 +45,6 @@
 #include "refraction.h"
 #include "special_interp.h"
 
-extern const String PROPMAT_SUBSUBTAG;
 extern const Numeric SPEED_OF_LIGHT;
 extern const Numeric TEMP_0_C;
 
@@ -106,15 +105,13 @@ void adapt_stepwise_partial_derivatives(
       // Apply conversion to source vector partial derivative
       if (not lte) dS_dx[i] *= a;
     } else if (jacobian_species[i] > -1) {
-      const bool from_propmat =
-          jacobian_quantities[i].SubSubtag() == PROPMAT_SUBSUBTAG;
       const Index& isp = jacobian_species[i];
 
       // Computational factor
       Numeric factor;
 
       // Scaling factors to handle retrieval unit
-      if (not from_propmat) {
+      if (jacobian_quantities[i] == Jacobian::Special::ArrayOfSpeciesTagVMR) {
         //vmrunitscf(factor, jacobian_quantities[i].Mode(),
         vmrunitscf(
             factor, "vmr", ppath_vmrs[isp], ppath_pressure, ppath_temperature);
@@ -1383,7 +1380,7 @@ void get_stepwise_clearsky_propmat(
       if (jacobian_quantities[i] == Jacobian::Special::ScatteringString) {
         dK_dx[i].SetZero();
         dS_dx[i].SetZero();
-      } else if (jacobian_quantities[i].SubSubtag() == PROPMAT_SUBSUBTAG) {
+      } else if (jacobian_quantities[i] == Jacobian::Type::Atm or jacobian_quantities[i] == Jacobian::Type::Line) {
         // Find position of index in ppd
         const Index j = equivalent_propmattype_index(jacobian_quantities, i);
 

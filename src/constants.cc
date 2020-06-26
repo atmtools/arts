@@ -329,9 +329,3 @@ extern const Index GFIELD4_AA_GRID = 3;
 */
 extern const Numeric LAT_LON_MIN = 20;
 
-/*===========================================================================
-  === Definition of retrieval quantity tag strings 
-  ===========================================================================*/
-
-// New tags for only propmat jacobians
-extern const String PROPMAT_SUBSUBTAG = "From propagation matrix";

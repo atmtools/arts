@@ -36,8 +36,6 @@
 extern const Numeric NAT_LOG_TEN;
 extern const Numeric PI;
 
-extern const String PROPMAT_SUBSUBTAG;
-
 ostream& operator<<(ostream& os, const RetrievalQuantity& ot) {
   return os << "\n       Main tag = " << ot.MainTag()
             << "\n       Sub  tag = " << ot.Subtag()
@@ -587,33 +585,28 @@ void get_pointers_for_analytical_jacobians(
     const ArrayOfString& scat_species) {
   FOR_ANALYTICAL_JACOBIANS_DO(
       //
-      if (jacobian_quantities[iq] == Jacobian::Atm::Temperature &&
-          jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG) {
+      if (jacobian_quantities[iq] == Jacobian::Atm::Temperature) {
         is_t[iq] = Index(JacobianType::Temperature);
       } else { is_t[iq] = Index(JacobianType::None); }
       //
-      if (jacobian_quantities[iq].Target().isSpeciesVMR()) {
-        if (jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG) {
-          bool test_available = false;
-          for (Index ii = 0; ii < abs_species.nelem(); ii++) {
-            if (abs_species[ii][0].Species() ==
-                SpeciesTag(jacobian_quantities[iq].Subtag()).Species()) {
-              test_available = true;
-              abs_species_i[iq] = ii;
-              break;
-            }
-          }
-          if (!test_available) {
-            ostringstream os;
-            os << "Could not find " << jacobian_quantities[iq].Subtag()
-               << " in species of abs_species.\n";
-            throw std::runtime_error(os.str());
-          }
+      if (jacobian_quantities[iq] == Jacobian::Line::VMR) {
+        auto p = std::find_if(abs_species.cbegin(), abs_species.cend(),
+                              [qid=jacobian_quantities[iq].QuantumIdentity()](auto& specs){
+          return std::any_of(specs.cbegin(), specs.cend(),
+                             [qid](auto& spec){return spec.Species() == qid.Species() and qid.Isotopologue() == spec.Isotopologue();});
+        });
+        if (p not_eq abs_species.cend()) {
+          abs_species_i[iq] = Index(abs_species.cend() - p);
         } else {
-          ArrayOfSpeciesTag atag;
-          array_species_tag_from_string(atag, jacobian_quantities[iq].Subtag());
-          abs_species_i[iq] = chk_contains("abs_species", abs_species, atag);
+          ostringstream os;
+          os << "Could not find " << jacobian_quantities[iq].Subtag()
+              << " in species of abs_species.\n";
+          throw std::runtime_error(os.str());
         }
+      } else if (jacobian_quantities[iq] == Jacobian::Special::ArrayOfSpeciesTagVMR) {
+        ArrayOfSpeciesTag atag;
+        array_species_tag_from_string(atag, jacobian_quantities[iq].Subtag());
+        abs_species_i[iq] = chk_contains("abs_species", abs_species, atag);
       } else if (jacobian_quantities[iq] == Jacobian::Atm::Particulates ||
                  jacobian_quantities[iq] == Jacobian::Atm::Electrons) {
         abs_species_i[iq] = -9999;
@@ -632,8 +625,7 @@ void get_pointers_for_analytical_jacobians(
         }
       } else { scat_species_i[iq] = -1; }
       //
-      if (jacobian_quantities[iq].Target().isWind() &&
-          jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG) {
+      if (jacobian_quantities[iq].Target().isWind()) {
         // Map u, v and w to 1, 2 and 3, respectively
         char c = jacobian_quantities[iq].Subtag()[0];
         const Index test = Index(c) - 116;
@@ -647,8 +639,7 @@ void get_pointers_for_analytical_jacobians(
           wind_i[iq] = Index(JacobianType::AbsWind);
       } else { wind_i[iq] = Index(JacobianType::None); }
       //
-      if (jacobian_quantities[iq].Target().isMagnetic() &&
-          jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG) {
+      if (jacobian_quantities[iq].Target().isMagnetic()) {
         // Map u, v and w to 1, 2 and 3, respectively
         char c = jacobian_quantities[iq].Subtag()[0];
         const Index test = Index(c) - 116;
