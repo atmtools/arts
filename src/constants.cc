@@ -333,10 +333,5 @@ extern const Numeric LAT_LON_MIN = 20;
   === Definition of retrieval quantity tag strings 
   ===========================================================================*/
 
-extern const String POINTING_MAINTAG = "Sensor pointing";
-extern const String POINTING_SUBTAG_A = "Zenith angle off-set";
-extern const String POINTING_CALCMODE_A = "Recalculate iyb";
-extern const String POINTING_CALCMODE_B = "Interpolate iyb";
-
 // New tags for only propmat jacobians
 extern const String PROPMAT_SUBSUBTAG = "From propagation matrix";

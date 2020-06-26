@@ -56,9 +56,6 @@
 #include "oem.h"
 #endif
 
-extern const String POINTING_MAINTAG;
-extern const String POINTING_SUBTAG_A;
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void particle_bulkprop_fieldClip(Tensor4& particle_bulkprop_field,
                                  const ArrayOfString& particle_bulkprop_names,
@@ -508,7 +505,7 @@ void xaStandard(Workspace& ws,
 
     // All variables having zero as a priori
     // ----------------------------------------------------------------------------
-    else if (jacobian_quantities[q].MainTag() == POINTING_MAINTAG ||
+    else if (jacobian_quantities[q].Target().isPointing() ||
              jacobian_quantities[q].Target().isFrequency() ||
              jacobian_quantities[q] == Jacobian::Sensor::Polyfit ||
              jacobian_quantities[q] == Jacobian::Sensor::Sinefit) {
@@ -956,13 +953,7 @@ void x2artsSensor(Workspace& ws,
 
     // Pointing off-set
     // ----------------------------------------------------------------------------
-    if (jacobian_quantities[q].MainTag() == POINTING_MAINTAG) {
-      if (jacobian_quantities[q].Subtag() != POINTING_SUBTAG_A) {
-        ostringstream os;
-        os << "Only pointing off-sets treated by *jacobianAddPointingZa* "
-           << "are so far handled.";
-        throw runtime_error(os.str());
-      }
+    if (jacobian_quantities[q].Target().isPointing()) {
       // Handle pointing "jitter" seperately
       if (jacobian_quantities[q].Grids()[0][0] == -1) {
         if (sensor_los.nrows() != np)

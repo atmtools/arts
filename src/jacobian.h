@@ -165,7 +165,9 @@ ENUMARTS(Sensor,
          FrequencyShift,
          FrequencyStretch,
          Polyfit,
-         Sinefit
+         Sinefit,
+         PointingZenithInterp,
+         PointingZenithRecalc
         )
 
 /** Holds special targets that require careful extra manipulation */
@@ -348,6 +350,12 @@ public:
   constexpr bool isFrequency() const noexcept {
     return mtype==Type::Sensor and (msubtype.sensor == Sensor::FrequencyStretch or 
                                     msubtype.sensor == Sensor::FrequencyShift);
+  }
+  
+  /** Special pointing case */
+  constexpr bool isPointing() const noexcept {
+    return mtype==Type::Sensor and (msubtype.sensor == Sensor::PointingZenithInterp or 
+                                    msubtype.sensor == Sensor::PointingZenithRecalc);
   }
 };  // Target
 

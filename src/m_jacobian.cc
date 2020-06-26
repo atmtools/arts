@@ -45,10 +45,6 @@
 
 extern const Numeric PI;
 
-extern const String POINTING_MAINTAG;
-extern const String POINTING_SUBTAG_A;
-extern const String POINTING_CALCMODE_A;
-extern const String POINTING_CALCMODE_B;
 extern const String PROPMAT_SUBSUBTAG;
 
 /*===========================================================================
@@ -556,8 +552,7 @@ void jacobianAddPointingZa(Workspace& ws _U_,
 
   // Check that this jacobian type is not already included.
   for (Index it = 0; it < jacobian_quantities.nelem(); it++) {
-    if (jacobian_quantities[it].MainTag() == POINTING_MAINTAG &&
-        jacobian_quantities[it].Subtag() == POINTING_SUBTAG_A) {
+    if (jacobian_quantities[it].Target().isPointing()) {
       ostringstream os;
       os << "Fit of zenith angle pointing off-set is already included in\n"
          << "*jacobian_quantities*.";
@@ -586,8 +581,15 @@ void jacobianAddPointingZa(Workspace& ws _U_,
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-  rq.MainTag(POINTING_MAINTAG);
-  rq.Subtag(POINTING_SUBTAG_A);
+  if (calcmode == "recalc") {
+    rq.Target() = Jacobian::Target(Jacobian::Sensor::PointingZenithRecalc);
+    jacobian_agenda.append("jacobianCalcPointingZaRecalc", "");
+  } else if (calcmode == "interp") {
+    rq.Target() = Jacobian::Target(Jacobian::Sensor::PointingZenithInterp);
+    jacobian_agenda.append("jacobianCalcPointingZaInterp", "");
+  } else
+    throw runtime_error(
+      "Possible choices for *calcmode* are \"recalc\" and \"interp\".");
   rq.Analytical(0);
   rq.Target().Perturbation(dza);
 
@@ -601,16 +603,6 @@ void jacobianAddPointingZa(Workspace& ws _U_,
   }
   ArrayOfVector grids(1, grid);
   rq.Grids(grids);
-
-  if (calcmode == "recalc") {
-    rq.Mode(POINTING_CALCMODE_A);
-    jacobian_agenda.append("jacobianCalcPointingZaRecalc", "");
-  } else if (calcmode == "interp") {
-    rq.Mode(POINTING_CALCMODE_B);
-    jacobian_agenda.append("jacobianCalcPointingZaInterp", "");
-  } else
-    throw runtime_error(
-        "Possible choices for *calcmode* are \"recalc\" and \"interp\".");
 
   // Add it to the *jacobian_quantities*
   jacobian_quantities.push_back(rq);
@@ -649,9 +641,7 @@ void jacobianCalcPointingZaInterp(
   // This works since the combined MainTag and Subtag is individual.
   bool found = false;
   for (Index n = 0; n < jacobian_quantities.nelem() && !found; n++) {
-    if (jacobian_quantities[n].MainTag() == POINTING_MAINTAG &&
-        jacobian_quantities[n].Subtag() == POINTING_SUBTAG_A &&
-        jacobian_quantities[n].Mode() == POINTING_CALCMODE_B) {
+    if (jacobian_quantities[n] == Jacobian::Sensor::PointingZenithInterp) {
       bool any_affine;
       ArrayOfArrayOfIndex jacobian_indices;
       jac_ranges_indices(
@@ -778,9 +768,7 @@ void jacobianCalcPointingZaRecalc(
   // This works since the combined MainTag and Subtag is individual.
   bool found = false;
   for (Index n = 0; n < jacobian_quantities.nelem() && !found; n++) {
-    if (jacobian_quantities[n].MainTag() == POINTING_MAINTAG &&
-        jacobian_quantities[n].Subtag() == POINTING_SUBTAG_A &&
-        jacobian_quantities[n].Mode() == POINTING_CALCMODE_A) {
+    if (jacobian_quantities[n] == Jacobian::Sensor::PointingZenithRecalc) {
       bool any_affine;
       ArrayOfArrayOfIndex jacobian_indices;
       jac_ranges_indices(
