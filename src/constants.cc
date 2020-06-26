@@ -342,8 +342,6 @@ extern const String POINTING_SUBTAG_A = "Zenith angle off-set";
 extern const String POINTING_CALCMODE_A = "Recalculate iyb";
 extern const String POINTING_CALCMODE_B = "Interpolate iyb";
 
-extern const String SINEFIT_MAINTAG = "Sinusoidal baseline fit";
-
 extern const String TEMPERATURE_MAINTAG = "Atmospheric temperatures";
 extern const String NLTE_MAINTAG = "NLTE temperatures";
 

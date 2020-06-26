@@ -41,7 +41,6 @@ extern const String WIND_MAINTAG;
 extern const String MAGFIELD_MAINTAG;
 extern const String FLUX_MAINTAG;
 extern const String PROPMAT_SUBSUBTAG;
-extern const String SINEFIT_MAINTAG;
 
 ostream& operator<<(ostream& os, const RetrievalQuantity& ot) {
   return os << "\n       Main tag = " << ot.MainTag()
@@ -918,7 +917,7 @@ void calcBaselineFit(Vector& y_baseline,
   bool is_sine_fit = false;
   if (rq == Jacobian::Sensor::Polyfit) {
     is_sine_fit = false;
-  } else if (rq.MainTag() == SINEFIT_MAINTAG) {
+  } else if (rq == Jacobian::Sensor::Sinefit) {
     is_sine_fit = true;
   } else {
     throw runtime_error(

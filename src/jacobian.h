@@ -125,7 +125,7 @@ std::array<String, Index(T::FINAL)> enum_strarray(const String& strchars)
 
 namespace Jacobian {
 
-/** Holds the type of the jacobian quantity */
+/** Holds the type of the target quantity */
 ENUMARTS(Type,
          Atm,
          Line,
@@ -133,7 +133,7 @@ ENUMARTS(Type,
          Special
         )
 
-/** Holds the Atmosphere-related jacobians */
+/** Holds the Atmosphere-related targets */
 ENUMARTS(Atm,
          Temperature,
          WindMagnitude, WindU, WindV, WindW,
@@ -142,7 +142,7 @@ ENUMARTS(Atm,
          Particulates
         )
 
-/** Holds the Line-related jacobians */
+/** Holds the Line-related targets */
 ENUMARTS(Line,
          VMR,
          Strength,
@@ -160,13 +160,14 @@ ENUMARTS(Line,
          SpecialParameter1
         )
 
-/** Holds the Sensor-related jacobians */
+/** Holds the Sensor-related targets */
 ENUMARTS(Sensor,
          Frequency,
-         Polyfit
+         Polyfit,
+         Sinefit
         )
 
-/** Holds special jacobians the require careful extra manipulation */
+/** Holds special targets that require careful extra manipulation */
 ENUMARTS(Special,
          ArrayOfSpeciesTagVMR,
          ScatteringString,

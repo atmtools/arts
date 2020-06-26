@@ -62,7 +62,6 @@ extern const String POINTING_SUBTAG_A;
 extern const String FREQUENCY_MAINTAG;
 extern const String FREQUENCY_SUBTAG_0;
 extern const String FREQUENCY_SUBTAG_1;
-extern const String SINEFIT_MAINTAG;
 extern const String SURFACE_MAINTAG;
 extern const String WIND_MAINTAG;
 extern const String MAGFIELD_MAINTAG;
@@ -519,7 +518,7 @@ void xaStandard(Workspace& ws,
     else if (jacobian_quantities[q].MainTag() == POINTING_MAINTAG ||
              jacobian_quantities[q].MainTag() == FREQUENCY_MAINTAG ||
              jacobian_quantities[q] == Jacobian::Sensor::Polyfit ||
-             jacobian_quantities[q].MainTag() == SINEFIT_MAINTAG) {
+             jacobian_quantities[q] == Jacobian::Sensor::Sinefit) {
       xa[ind] = 0;
     }
 
@@ -1023,7 +1022,7 @@ void x2artsSensor(Workspace& ws,
     // Baseline fit: polynomial or sinusoidal
     // ----------------------------------------------------------------------------
     else if (jacobian_quantities[q] == Jacobian::Sensor::Polyfit ||
-             jacobian_quantities[q].MainTag() == SINEFIT_MAINTAG) {
+             jacobian_quantities[q] == Jacobian::Sensor::Sinefit) {
       if (!yb_set) {
         yb_set = true;
         Index y_size = sensor_los.nrows() * sensor_response_f_grid.nelem() *
