@@ -609,12 +609,12 @@ typedef Array<RetrievalQuantity> ArrayOfRetrievalQuantity;
     }                                                          \
   }
 // A macro to loop analytical jacobian quantities
-#define FOR_ANALYTICAL_JACOBIANS_DO2(what_to_do)                \
-  for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {  \
-    if (jacobian_quantities[iq].Analytical() ||                 \
-        jacobian_quantities[iq].MainTag() == SURFACE_MAINTAG) { \
-      what_to_do                                                \
-    }                                                           \
+#define FOR_ANALYTICAL_JACOBIANS_DO2(what_to_do)                       \
+  for (Index iq = 0; iq < jacobian_quantities.nelem(); iq++) {         \
+    if (jacobian_quantities[iq].Analytical() ||                        \
+        jacobian_quantities[iq] == Jacobian::Special::SurfaceString) { \
+      what_to_do                                                       \
+    }                                                                  \
   }
 
 //======================================================================

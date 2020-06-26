@@ -61,7 +61,6 @@ extern const String POINTING_SUBTAG_A;
 extern const String FREQUENCY_MAINTAG;
 extern const String FREQUENCY_SUBTAG_0;
 extern const String FREQUENCY_SUBTAG_1;
-extern const String SURFACE_MAINTAG;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void particle_bulkprop_fieldClip(Tensor4& particle_bulkprop_field,
@@ -471,7 +470,7 @@ void xaStandard(Workspace& ws,
     }
 
     // Surface
-    else if (jacobian_quantities[q].MainTag() == SURFACE_MAINTAG) {
+    else if (jacobian_quantities[q] == Jacobian::Special::SurfaceString) {
       surface_props_check(atmosphere_dim,
                           lat_grid,
                           lon_grid,
@@ -856,7 +855,7 @@ void x2artsAtmAndSurf(Workspace& ws,
 
     // Surface
     // ----------------------------------------------------------------------------
-    else if (jacobian_quantities[q].MainTag() == SURFACE_MAINTAG) {
+    else if (jacobian_quantities[q] == Jacobian::Special::SurfaceString) {
       surface_props_check(atmosphere_dim,
                           lat_grid,
                           lon_grid,

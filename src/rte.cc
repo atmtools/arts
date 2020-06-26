@@ -45,7 +45,6 @@
 #include "refraction.h"
 #include "special_interp.h"
 
-extern const String SURFACE_MAINTAG;
 extern const String PROPMAT_SUBSUBTAG;
 extern const Numeric SPEED_OF_LIGHT;
 extern const Numeric TEMP_0_C;
@@ -977,7 +976,7 @@ void get_iy_of_background(Workspace& ws,
       ArrayOfString dsurface_names(0);
       if (jacobian_do && iy_agenda_call1) {
         for (Index i = 0; i < jacobian_quantities.nelem(); i++) {
-          if (jacobian_quantities[i].MainTag() == SURFACE_MAINTAG) {
+          if (jacobian_quantities[i] == Jacobian::Special::SurfaceString) {
             dsurface_names.push_back(jacobian_quantities[i].Subtag());
           }
         }

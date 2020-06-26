@@ -342,8 +342,6 @@ extern const String POINTING_SUBTAG_A = "Zenith angle off-set";
 extern const String POINTING_CALCMODE_A = "Recalculate iyb";
 extern const String POINTING_CALCMODE_B = "Interpolate iyb";
 
-extern const String SURFACE_MAINTAG = "Surface";
-
 // New tags for only propmat jacobians
 extern const String PROPMAT_SUBSUBTAG = "From propagation matrix";
 extern const String CATALOGPARAMETER_MAINTAG = "Catalog parameter";

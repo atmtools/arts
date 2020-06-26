@@ -55,8 +55,6 @@ extern const String POINTING_CALCMODE_B;
 extern const String PROPMAT_SUBSUBTAG;
 extern const String CATALOGPARAMETER_MAINTAG;
 
-extern const String SURFACE_MAINTAG;
-
 /*===========================================================================
   === The methods, with general methods first followed by the Add/Calc method
   === pairs for each retrieval quantity.
@@ -1305,7 +1303,7 @@ void jacobianAddSurfaceQuantity(Workspace&,
 
   // Check that this species is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
-    if (jq[it].MainTag() == SURFACE_MAINTAG && jq[it].Subtag() == quantity) {
+    if (jq[it] == Jacobian::Special::SurfaceString && jq[it].Subtag() == quantity) {
       ostringstream os;
       os << quantity << " is already included as a surface variable "
          << "in *jacobian_quantities*.";
@@ -1332,7 +1330,7 @@ void jacobianAddSurfaceQuantity(Workspace&,
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-  rq.MainTag(SURFACE_MAINTAG);
+  rq.Target() = Jacobian::Target(Jacobian::Special::SurfaceString, {});
   rq.Subtag(quantity);
   rq.Analytical(0);
   rq.Grids(grids);
