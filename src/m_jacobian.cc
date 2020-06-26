@@ -52,7 +52,6 @@ extern const String POINTING_MAINTAG;
 extern const String POINTING_SUBTAG_A;
 extern const String POINTING_CALCMODE_A;
 extern const String POINTING_CALCMODE_B;
-extern const String NLTE_MAINTAG;
 extern const String WIND_MAINTAG;
 extern const String MAGFIELD_MAINTAG;
 extern const String FLUX_MAINTAG;
@@ -1759,7 +1758,7 @@ void jacobianAddNLTE(Workspace&,
 
   // Check that this species is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
-    if (jq[it].MainTag() == NLTE_MAINTAG and
+    if (jq[it] == Jacobian::Line::NLTE and
         jq[it].QuantumIdentity() == energy_level_identity) {
       ostringstream os;
       os << "The NLTE identifier:\n"
@@ -1791,8 +1790,6 @@ void jacobianAddNLTE(Workspace&,
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-
-  rq.MainTag(NLTE_MAINTAG);
   rq.Target(Jacobian::Target(Jacobian::Line::NLTE, energy_level_identity));
   rq.Target().Perturbation(dx);
   rq.Grids(grids);
