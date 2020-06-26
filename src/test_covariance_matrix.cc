@@ -135,7 +135,7 @@ RetrievalData setup_retrieval_1D() {
       Numeric frac = static_cast<Numeric>(j) / static_cast<Numeric>(n_gs);
       gvs[0][j] = g_begin + (g_end - g_begin) * frac;
     }
-    rqs.emplace_back("maintag", "subtag", "subsubtag", "mode", 1, 0.0, gvs);
+    rqs.emplace_back(JacobianTarget(), "subtag", "subsubtag", "mode", 1, 0.0, gvs);
   }
 
   ArrayOfArrayOfIndex jis(n_rqs);
@@ -496,8 +496,8 @@ void test_workspace_methods() {
   ArrayOfVector grids_1{Vector(10), Vector(10), Vector(10)};
   ArrayOfVector grids_2{Vector(20), Vector(20), Vector(20)};
 
-  RetrievalQuantity rq_1("mt", "st", "sst", "m", 1, 0.1, grids_1);
-  RetrievalQuantity rq_2("mt", "st", "sst", "m", 1, 0.1, grids_2);
+  RetrievalQuantity rq_1(JacobianTarget(), "st", "sst", "m", 1, 0.1, grids_1);
+  RetrievalQuantity rq_2(JacobianTarget(), "st", "sst", "m", 1, 0.1, grids_2);
 
   ArrayOfRetrievalQuantity rqs{};
   rqs.push_back(rq_1);

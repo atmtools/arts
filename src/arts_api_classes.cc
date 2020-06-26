@@ -1196,7 +1196,6 @@ BasicInputOutputCAPI(ArrayOfJacobianTarget)
 // RetrievalQuantity
 BasicInterfaceCAPI(RetrievalQuantity)
 BasicInputOutputCAPI(RetrievalQuantity)
-VoidGetterCAPI(RetrievalQuantity, MainTag)
 VoidGetterCAPI(RetrievalQuantity, SubTag)
 VoidGetterCAPI(RetrievalQuantity, SubSubTag)
 VoidGetterCAPI(RetrievalQuantity, Mode)

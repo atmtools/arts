@@ -515,7 +515,7 @@ void xaStandard(Workspace& ws,
     else {
       ostringstream os;
       os << "Found a retrieval quantity that is not yet handled by\n"
-         << "internal retrievals: " << jacobian_quantities[q].MainTag() << endl;
+         << "internal retrievals: " << jacobian_quantities[q] << endl;
       throw runtime_error(os.str());
     }
   }

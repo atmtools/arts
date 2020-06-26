@@ -357,6 +357,11 @@ public:
     return mtype==Type::Sensor and (msubtype.sensor == Sensor::PointingZenithInterp or 
                                     msubtype.sensor == Sensor::PointingZenithRecalc);
   }
+  
+  /** Does this type need the QuantumIdentifier? */
+  constexpr bool needQuantumIdentity() const noexcept {
+    return mtype == Type::Line;
+  }
 };  // Target
 
 /** Output operator 
@@ -378,8 +383,7 @@ class RetrievalQuantity {
  public:
   /** Default constructor. Needed by make_array. */
   RetrievalQuantity()
-      : mmaintag(),
-        msubtag(),
+      : msubtag(),
         msubsubtag(),
         mmode(),
         manalytical(-1),
@@ -389,7 +393,6 @@ class RetrievalQuantity {
 
   /** Constructor that sets the values
    * 
-   * @param[in] maintag The main derivative
    * @param[in] subtag The sub-derivative
    * @param[in] subsubtag The sub-sub-derivative
    * @param[in] mode The mode of the derivative
@@ -397,34 +400,21 @@ class RetrievalQuantity {
    * @param[in] perturbation The size of the perturbation required
    * @param[in] grids The retrieval grid
    */
-  RetrievalQuantity(const String& maintag,
+  RetrievalQuantity(const Jacobian::Target& target,
                     const String& subtag,
                     const String& subsubtag,
                     const String& mode,
                     const Index& analytical,
                     const Numeric& perturbation,
                     const ArrayOfVector& grids)
-      : mmaintag(maintag),
-        msubtag(subtag),
+      : msubtag(subtag),
         msubsubtag(subsubtag),
         mmode(mode),
         manalytical(analytical),
         mgrids(grids),
-        mjac() {
+        mjac(target) {
     mjac.Perturbation() = perturbation;
   }
-
-  /** Returns the main tag
-   *
-   * @return A representation of the main tag
-   */
-  const String& MainTag() const { return mmaintag; }
-  
-  /** Sets the main tag
-   *
-   * @param[in] mt A main tag
-   */
-  void MainTag(const String& mt) { mmaintag = mt; }
   
   /** Returns the sub-tag
    * 
@@ -579,12 +569,11 @@ class RetrievalQuantity {
    * @return false otherwise
    */
   bool HasSameInternalsAs(const RetrievalQuantity& a) const {
-    return a.mmaintag == mmaintag and a.msubtag == msubtag and
+    return a.msubtag == msubtag and
            a.msubsubtag == msubsubtag and a.mmode == mmode and
            a.manalytical == manalytical and a.mjac == mjac;
   }
   
-  String& MainTag() {return mmaintag;}
   String& SubTag() {return msubtag;}
   String& SubSubTag() {return msubsubtag;}
   String& Mode() {return mmode;}
@@ -596,7 +585,6 @@ class RetrievalQuantity {
   Vector& Offset() {return offset_vector;}
 
  private:
-  String mmaintag;
   String msubtag;
   String msubsubtag;
   String mmode;

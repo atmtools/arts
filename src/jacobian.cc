@@ -37,7 +37,7 @@ extern const Numeric NAT_LOG_TEN;
 extern const Numeric PI;
 
 ostream& operator<<(ostream& os, const RetrievalQuantity& ot) {
-  return os << "\n       Main tag = " << ot.MainTag()
+  return os << "\n       Target   = " << ot.Target()
             << "\n       Sub  tag = " << ot.Subtag()
             << "\n           Mode = " << ot.Mode();
 }

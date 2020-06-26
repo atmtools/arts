@@ -125,13 +125,26 @@ void xml_read_from_stream(istream& is_xml,
   jt.TargetType(subtypestr);
   
   /** Catalog ID */
-  if (jt == Jacobian::Type::Line) {
+  if (jt.needQuantumIdentity()) {
     SpeciesTag spec;
-    QuantumNumbers upperglobalquanta, lowerglobalquanta;
     tag.get_attribute_value("species", spec);
-    tag.get_attribute_value("upperglobalquanta", upperglobalquanta);
-    tag.get_attribute_value("lowerglobalquanta", lowerglobalquanta);
-    jt.QuantumIdentity() = QuantumIdentifier(spec.Species(), spec.Isotopologue(), upperglobalquanta, lowerglobalquanta);
+    jt.QuantumIdentity().Species() = spec.Species();
+    jt.QuantumIdentity().Isotopologue() = spec.Isotopologue();
+    
+    if (jt == Jacobian::Line::VMR) {
+      jt.QuantumIdentity().SetAll();
+      jt.QuantumIdentity().Species() = spec.Species();
+      jt.QuantumIdentity().Isotopologue() = spec.Isotopologue();
+    } else if (jt == Jacobian::Line::NLTE) {
+      QuantumNumbers levelquanta;
+      tag.get_attribute_value("levelquanta", levelquanta);
+      jt.QuantumIdentity().SetEnergyLevel(levelquanta);
+    } else {
+      QuantumNumbers upperglobalquanta, lowerglobalquanta;
+      tag.get_attribute_value("upperglobalquanta", upperglobalquanta);
+      tag.get_attribute_value("lowerglobalquanta", lowerglobalquanta);
+      jt.QuantumIdentity().SetTransition(upperglobalquanta, lowerglobalquanta);
+    }
   }
   
   if (pbifs) {
@@ -179,10 +192,16 @@ void xml_write_to_stream(ostream& os_xml,
   open_tag.add_attribute("SubType", jt.TargetSubType());
   
   /** Catalog ID */
-  if (jt == Jacobian::Type::Line) {
+  if (jt.needQuantumIdentity()) {
     open_tag.add_attribute("species", jt.QuantumIdentity().SpeciesName());
-    open_tag.add_attribute("upperglobalquanta", jt.QuantumIdentity().UpperQuantumNumbers().toString());
-    open_tag.add_attribute("lowerglobalquanta", jt.QuantumIdentity().LowerQuantumNumbers().toString());
+    
+    if (jt == Jacobian::Line::VMR) {
+    } else if (jt == Jacobian::Line::NLTE) {
+      open_tag.add_attribute("levelquanta", jt.QuantumIdentity().EnergyLevelQuantumNumbers().toString());
+    } else {
+      open_tag.add_attribute("upperglobalquanta", jt.QuantumIdentity().UpperQuantumNumbers().toString());
+      open_tag.add_attribute("lowerglobalquanta", jt.QuantumIdentity().LowerQuantumNumbers().toString());
+    }
   }
 
   if (pbofs)
