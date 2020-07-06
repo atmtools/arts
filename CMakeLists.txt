@@ -455,10 +455,6 @@ get_directory_property(ENABLE_TMATRIX DIRECTORY
                        3rdparty/tmatrix
                        DEFINITION ENABLE_TMATRIX)
 
-get_directory_property(ENABLE_RELMAT DIRECTORY
-                       3rdparty/relmat
-                       DEFINITION ENABLE_RELMAT)
-
 get_directory_property(ENABLE_WIGNER DIRECTORY
                        3rdparty/wigner
                        DEFINITION ENABLE_WIGNER)

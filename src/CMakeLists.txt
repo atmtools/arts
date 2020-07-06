@@ -46,10 +46,6 @@ if (ENABLE_REFICE)
   list (APPEND ALL_ARTS_LIBRARIES refice)
 endif (ENABLE_REFICE)
 
-if (ENABLE_RELMAT)
-  list (APPEND ALL_ARTS_LIBRARIES relmat)
-endif (ENABLE_RELMAT)
-
 list (APPEND ALL_ARTS_LIBRARIES Faddeeva)
 
 ########### target to extract version number from ChangeLog ###############
@@ -209,7 +205,6 @@ add_library (artscore STATIC
   jacobian.cc
   legendre.cc
   lin_alg.cc
-  linemixing.cc
   linemixing_hitran.cc
   linescaling.cc
   lineshapemodel.cc
