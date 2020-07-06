@@ -1443,7 +1443,7 @@ void qsdv(const Numeric& sg0,
   
   if (std::abs(std::sqrt(x)) <= 4.e3) {  // IN cgs
     const Numeric xxb = - std::sqrt(x).imag();
-    const Numeric yxb = - std::sqrt(x).imag();
+    const Numeric yxb = std::sqrt(x).real();
     const Complex wb = Faddeeva::w(Complex(xxb, yxb));
     aterm = (2 * rpi / c2t) * (1 / rpi - std::sqrt(x) * wb);
   } else {
@@ -1528,7 +1528,7 @@ Complex qsdv_si(const Numeric F0,
   
   if (std::abs(std::sqrt(x)) <= 4.e3) {  // IN cgs
     const Numeric xxb = - std::sqrt(x).imag();
-    const Numeric yxb = - std::sqrt(x).imag();
+    const Numeric yxb = std::sqrt(x).real();
     const Complex wb = Faddeeva::w(Complex(xxb, yxb));
     aterm = (2 * rpi / c2t) * (1 / rpi - std::sqrt(x) * wb);
   } else {
@@ -1694,6 +1694,7 @@ Vector compabs(
     for (Index iv=0; iv<nf; iv++) {
       const Numeric f = f_grid[iv];
       
+      Numeric a=0;
       for (Index iline=0; iline<bands[iband].NumLines(); iline++) {
         const Numeric gamd=GD_div_F0 * tp.f0[iline];
         const Numeric gamd_mod=GD_div_F0 * tp.eqv.zval[iline].real();
@@ -1703,30 +1704,34 @@ Vector compabs(
         
         if (rosenkranz and sdvp and nolm) {
           const Complex w = qsdv_si(tp.f0[iline], gamd, tp.hwt[iline], tp.hwt2[iline], tp.shft[iline], 0, f);
-          absorption[iv] += popudipo * w.real() * u_sqln2pi;
+          a += popudipo * w.real() * u_sqln2pi;
         } else if (rosenkranz and sdvp) {
           const Complex w = qsdv_si(tp.f0[iline], gamd, tp.hwt[iline], tp.hwt2[iline], tp.shft[iline], 0, f);
-          absorption[iv] += popudipo * u_sqln2pi * (Complex(1, tp.Y[iline]) * w).real();
+          a += popudipo * u_sqln2pi * (Complex(1, tp.Y[iline]) * w).real();  // NB. Changing sign on Y gave positive absorption but is not agreeing with measurements according to HITRAN data
         } else if ((rosenkranz and vp and nolm) or (full and nolm)) {
           const Numeric yy = tp.hwt[iline] * cte;
           const Numeric xx = (tp.f0[iline]+tp.shft[iline] - f) * cte;
           const Complex w = Faddeeva::w(Complex(xx, yy));
-          absorption[iv] += popudipo * w.real() / gamd;
+          a += popudipo * w.real() / gamd;
         } else if (rosenkranz and vp) {
           const Numeric yy = tp.hwt[iline] * cte;
           const Numeric xx = (tp.f0[iline]+tp.shft[iline] - f) * cte;
           const Complex w = Faddeeva::w(Complex(xx, yy));
-          absorption[iv] += popudipo * (Complex(1, -tp.Y[iline]) * w).real() / gamd;
+          a += popudipo * (Complex(1, tp.Y[iline]) * w).real() / gamd;  // NB. Changing sign on Y gave positive absorption but is not agreeing with measurements according to HITRAN data
         } else if (full and vp) {
           const Complex z = (tp.eqv.zval[iline]-f) * cte_mod;
           const Complex w = Faddeeva::w(z);
-          absorption[iv] += (tp.eqv.zstr[iline] * w).real() / gamd_mod;
+          a += (tp.eqv.zstr[iline] * w).real() / gamd_mod;
         } else if (full) {
-          absorption[iv] += u_sqln2pi * u_pi * (tp.eqv.zstr[iline] / (f - tp.eqv.zval[iline])).imag();
+          a += u_sqln2pi * u_pi * (tp.eqv.zstr[iline] / (f - tp.eqv.zval[iline])).imag();
         } else {
           throw std::runtime_error("Cannot understand the combination of calculations requested...");
         }
       }
+      
+      // Guard to not allow negative absorption inside a band
+      if (a > 0)
+        absorption[iv] += a;
     }
   }
   
