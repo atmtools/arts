@@ -32,8 +32,6 @@
 #include "linefunctions.h"
 #include "physics_funcs.h"
 
-#include "wigner_functions.h"
-
 namespace lm_hitran_2017 {
 namespace parameters {
   static constexpr Index nBmx=7'000;  // Max Number of Bands
