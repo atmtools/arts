@@ -1567,10 +1567,8 @@ void Docserver::insert_doc() {
   */
 void Docserver::insert_stylesheet() {
   get_os()
-      << "@import url('https://fonts.googleapis.com/css?family=Inconsolata:regular,bold');"
-      << endl
-
-      << "body { font-family: 'Inconsolata', monospace; }" << endl
+      << "body { font-family: 'Roboto Mono', 'Hack', 'Andale Mono', monospace; "
+      << "font-size: 90%; }" << endl
       << "a:link { color: #3465a4; text-decoration: none; }" << endl
       << "a:visited { color: #729fcf; text-decoration: none; }" << endl
       << "a:active { color: #ce5c00; text-decoration: none; background-color: #eeeeec}"
@@ -1586,7 +1584,7 @@ void Docserver::insert_stylesheet() {
       << endl
       << "}" << endl
 
-      << "pre { font-family: 'Inconsolata', monospace; }" << endl
+      << "pre { font-family: 'Roboto Mono', 'Hack', 'Andale Mono', monospace; }" << endl
 
       << "table.list {" << endl
       << "width: 90%;" << endl
