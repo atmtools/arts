@@ -425,18 +425,21 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
     NAME("abs_hitran_relmat_dataReadHitranRelmatDataAndLines"),
       DESCRIPTION("Reads HITRAN line mixing data from a basedir\n"
-        "The basedir must pooint at line mixing data as provided by HITRAN\n"
-        "The lines will be cahnged such that ALL CO2 lines are truncated\n"
-        "before adding the HITRAN line mixing lines\n"
+        "The basedir must point at line mixing data as provided by HITRAN.\n"
+        "The lines will be changed such that ALL CO2 lines are truncated\n"
+        "before adding the HITRAN line mixing lines.\n"
         "\n"
         "The available modes are such that \"VP*\" uses Voigt profiler and\n"
         "\"SDVP*\" uses speed-dependent Voigt profiles, where the \"_Y\"\n"
         "signifies if Rosenkranz-style line mixing is considered or not, and\n"
         "the \"_W\" at the end signifies that full calculations are used.  At\n"
-        "the line mixing limit, line mixing is simply turned off\n"
+        "the line mixing limit, line mixing is simply turned off.\n"
         "\n"
         "The \"FullW\" mode uses Lorentzian calculations with the full relaxation\n"
         "matrix until the line mixing limit is reached when it switches to Voigt.\n"
+        "\n"
+        "The HITRAN LM data is available for download at:\n"
+        "https://hitran.org/supplementary/\n"
       ),
       AUTHORS("Richard Larsson"),
       OUT("abs_hitran_relmat_data", "abs_lines_per_species"),
@@ -12644,6 +12647,8 @@ void define_md_data_raw() {
       NAME("propmat_clearskyAddHitranLineMixingLines"),
       DESCRIPTION(
           "Calculates gas absorption coefficients line-by-line for HITRAN line mixed data.\n"
+          "\n"
+          "*Wigner6Init* or *Wigner3Init* must be called before this function.\n"
           "\n"
           "\n"
           "Please ensure you cite the original authors when you use this function:\n"
