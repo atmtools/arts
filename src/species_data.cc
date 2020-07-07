@@ -1054,7 +1054,7 @@ void define_basic_species_data() {
            "CHCl3",    "Halon1211", "Halon1301", "Halon2402", "HCFC141b",
            "HCFC142b", "HCFC22",    "HFC125",    "HFC134a",   "HFC143a",
            "HFC152a",  "HFC227ea",  "HFC23",     "HFC245fa",  "HFC32",
-           "NF3",      "SO2F2",
+           "NF3",      "SO2F2",     "HFC4310mee"
        }) {
     species_data.push_back(SpeciesRecord(NAME(s), DEGFR(0), ISOTOPOLOGUES()));
   }
