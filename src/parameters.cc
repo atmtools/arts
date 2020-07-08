@@ -116,7 +116,9 @@ bool get_parameters(int argc, char **argv) {
   */
   struct option longopts[] = {
       {"basename", required_argument, NULL, 'b'},
+#ifdef ENABLE_DOCSERVER
       {"check-docs", no_argument, NULL, 'C'},
+#endif
       {"describe", required_argument, NULL, 'd'},
       {"groups", no_argument, NULL, 'g'},
       {"help", no_argument, NULL, 'h'},
@@ -217,8 +219,11 @@ bool get_parameters(int argc, char **argv) {
       "                    it simply prints a list of all variables.\n"
       "                    If it is given the name of a method, it\n"
       "                    prints all variables needed by this method.\n"
+#ifdef ENABLE_DOCSERVER
       "\nDEVELOPER ONLY:\n\n"
-      "-C, --check-docs    Check for broken links in built-in docs.\n";
+      "-C, --check-docs    Check for broken links in built-in docs.\n"
+#endif
+      ;
 
   // Set the short options automatically from the last columns of
   // longopts.
