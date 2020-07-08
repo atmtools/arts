@@ -921,7 +921,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2004Stream(istream& is)
     if (missing != hiso[mo][iso]) data.quantumidentity.Isotopologue(hiso[mo][iso]);
 
   // Issue error message if misotopologue is still missing:
-    if (missing == data.quantumidentity.Isotopologue()) {
+  if (missing == data.quantumidentity.Isotopologue()) {
     ostringstream os;
     os << "Species: " << species_data[data.quantumidentity.Species()].Name()
        << ", isotopologue iso = " << iso << " is unknown.";
@@ -1329,7 +1329,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitranOnlineStream(istream& i
     if (missing != hiso[mo][iso]) data.quantumidentity.Isotopologue(hiso[mo][iso]);
 
   // Issue error message if misotopologue is still missing:
-    if (missing == data.quantumidentity.Isotopologue()) {
+  if (missing == data.quantumidentity.Isotopologue()) {
     ostringstream os;
     os << "Species: " << species_data[data.quantumidentity.Species()].Name()
        << ", isotopologue iso = " << iso << " is unknown.";
@@ -1729,7 +1729,7 @@ Absorption::SingleLineExternal Absorption::ReadFromHitran2001Stream(istream& is)
     if (missing != hiso[mo][iso]) data.quantumidentity.Isotopologue(hiso[mo][iso]);
 
   // Issue error message if misotopologue is still missing:
-    if (missing == data.quantumidentity.Isotopologue()) {
+  if (missing == data.quantumidentity.Isotopologue()) {
     ostringstream os;
     os << "Species: " << species_data[data.quantumidentity.Species()].Name()
        << ", isotopologue iso = " << iso << " is unknown.";
@@ -3111,7 +3111,7 @@ Absorption::SingleLineExternal Absorption::ReadFromMytran2Stream(istream& is)
     if (missing != hiso[mo][iso]) data.quantumidentity.Isotopologue(hiso[mo][iso]);
 
   // Issue error message if misotopologue is still missing:
-    if (missing == data.quantumidentity.Isotopologue()) {
+  if (missing == data.quantumidentity.Isotopologue()) {
     ostringstream os;
     os << "Species: " << species_data[data.quantumidentity.Species()].Name()
        << ", isotopologue iso = " << iso << " is unknown.";
