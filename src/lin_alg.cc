@@ -202,15 +202,26 @@ void inv(MatrixView Ainv, ConstMatrixView A) {
   }
 }
 
-void inv(ComplexMatrixView Ainv, const ConstComplexMatrixView& A) {
+void inv(ComplexMatrixView Ainv, const ConstComplexMatrixView A) {
   // A must be a square matrix.
-  DEBUG_ONLY(const Index n = A.ncols());
-  assert(n == A.nrows());
-  assert(n == Ainv.nrows());
-  assert(n == Ainv.ncols());
-
-  ComplexMatrixViewMap eigen_Ainv = MapToEigen(Ainv);
-  eigen_Ainv = MapToEigen(A).inverse();
+  assert(A.ncols() == A.nrows());
+  
+  Index n = A.ncols();
+  
+  // Workdata
+  Ainv = A;
+  int n_int = int(n), lwork = n_int, info;
+  std::vector<int> ipiv(n);
+  ComplexVector work(lwork);
+  
+  // Compute LU decomposition using LAPACK dgetrf_.
+  lapack::zgetrf_(&n_int, &n_int, Ainv.get_c_array(), &n_int, ipiv.data(), &info);
+  lapack::zgetri_(&n_int, Ainv.get_c_array(), &n_int, ipiv.data(), work.get_c_array(), &lwork, &info);
+  
+  // Check for success.
+  if (info not_eq 0) {
+    throw runtime_error("Error inverting matrix: Matrix not of full rank.");
+  }
 }
 
 //! Matrix Diagonalization
@@ -307,8 +318,6 @@ void diagonalize(MatrixView P,
 //! Matrix Diagonalization
 /*!
  * Return P and W from A in the statement diag(P^-1*A*P)-W == 0.
- * The real function will require some manipulation if 
- * the eigenvalues are imaginary.
  * 
  * The function makes many copies and is thereby not fast.
  * There are no tests on the condition of the returned matrix,
@@ -320,94 +329,48 @@ void diagonalize(MatrixView P,
  */
 void diagonalize(ComplexMatrixView P,
                  ComplexVectorView W,
-                 const ConstComplexMatrixView& A) {
-  // A must be a square matrix
-  DEBUG_ONLY(const Index n = A.ncols());
+                 const ConstComplexMatrixView A) {
+  Index n = A.ncols();
+
+  // A must be a square matrix.
   assert(n == A.nrows());
   assert(n == W.nelem());
   assert(n == P.nrows());
   assert(n == P.ncols());
 
-  // Make the computations
-  Eigen::ComplexEigenSolver<Eigen::MatrixXcd> ges;
-  ges.compute(MapToEigen(A));
+  ComplexMatrix A_tmp = A;
 
-  // Remap to original arrays
-  ComplexMatrixViewMap eigen_W = MapToEigenRow(W);
-  eigen_W = ges.eigenvalues();
+  // Integers
+  int LDA=int(A.get_column_extent()), LDA_L=int(A.get_column_extent()), LDA_R=int(A.get_column_extent()), n_int=int(n), info;
 
-  ComplexMatrixViewMap eigen_P = MapToEigen(P);
-  eigen_P = ges.eigenvectors();
-}
+  // We want to calculate RP not LP
+  char l_eig = 'N', r_eig = 'V';
 
-//! Matrix Diagonalization and Its Derivatives
-/*!
- * Return P and W from A in the statement diag(P^-1*A*P)-W == 0.
- * The real function will require some manipulation if 
- * the eigenvalues are imaginary.
- * 
- * Also returns dP and dW using dA as the derivatives of the system.
- * 
- * I am not sure when and how these calculations fail.  They should
- * work for unique eigenvalues.
- * 
- * The algorithm is based on:
- * ON DIFFERENTIATING EIGENVALUES AND EIGENVECTOR by Jan R. Magnus,
- * Econometric Theory, 1, 1985, 179-191
- * 
- * WARNING:  This only works for eigenvalue derivatives at the moment...
- * It will be modified to also produce Eigenvector derivatives once
- * I understand the normalization on the paper...
- * 
- * The function makes many copies and is thereby not fast.
- * There are no tests on the condition of the returned matrix,
- * so nan and inf can occur.
- * 
- * \param[out] P The right eigenvectors.
- * \param[out] dP The derivatives of the right eigenvectors.
- * \param[out] W The eigenvalues.
- * \param[out] dW The derivatives of the eigenvalues.
- * \param[in]  A The matrix to diagonalize.
- * \param[in]  dA The derivative of the matrix to diagonalize.
- */
-void diagonalize(ComplexMatrixView arts_P,
-                 /* ComplexMatrixView arts_dP,*/
-                 ComplexVectorView arts_W,
-                 ComplexVectorView arts_dW,
-                 const ConstComplexMatrixView& arts_A,
-                 const ConstComplexMatrixView& arts_dA) {
-  // A must be a square matrix
-  const Index n = arts_A.ncols();
-  assert(n == arts_A.nrows());
-  assert(n == arts_W.nelem());
-  assert(n == arts_P.nrows());
-  assert(n == arts_P.ncols());
-  assert(n == arts_dA.nrows());
-  assert(n == arts_dA.ncols());
-  assert(n == arts_dW.nelem());
-  //assert(n == arts_dP.nrows());
-  //assert(n == arts_dP.ncols());
+  // Work matrix
+  int lwork = 2 * n_int + n_int * n_int;
+  ComplexVector work(lwork);
+  ComplexVector lpdata(0);
+  Vector rwork(2 * n_int);
 
-  ComplexConstMatrixViewMap A = MapToEigen(arts_A);
-  ComplexConstMatrixViewMap dA = MapToEigen(arts_dA);
-  ComplexMatrixViewMap W = MapToEigen(arts_W);
-  ComplexMatrixViewMap dW = MapToEigen(arts_dW);
-  ComplexMatrixViewMap P = MapToEigen(arts_P);
-  Eigen::MatrixXcd lP;
-
-  // Make the computations
-  Eigen::ComplexEigenSolver<Eigen::MatrixXcd> ges;
-  ges.compute(A);
-  W = ges.eigenvalues();
-  P = ges.eigenvectors();
-  lP = P.adjoint();  // Left eigenvectors should be adjoint of right eigenectors
-
-  // Loop over the eigen vectors
-  for (Index k = 0; k < n; k++) {
-    // This is from one paper... it works and will therefore help with knowing if the other renormalizations are correct
-    const Complex normalizer = lP.col(k).adjoint() * P.col(k);
-    dW.row(k).noalias() = lP.col(k).adjoint() * dA * P.col(k) / normalizer;
-  }
+  // Main calculations.  Note that errors in the output is ignored
+  lapack::zgeev_(&l_eig,
+                 &r_eig,
+                 &n_int,
+                 A_tmp.get_c_array(),
+                 &LDA,
+                 W.get_c_array(),
+                 lpdata.get_c_array(),
+                 &LDA_L,
+                 P.get_c_array(),
+                 &LDA_R,
+                 work.get_c_array(),
+                 &lwork,
+                 rwork.get_c_array(),
+                 &info);
+  
+  for (Index i = 0; i < n; i++)
+    for (Index j = 0; j <= i; j++)
+      std::swap(P(j, i), P(i, j));
 }
 
 //! General exponential of a Matrix

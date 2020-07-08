@@ -1316,7 +1316,7 @@ void Linefunctions::set_cross_section_of_band(
   // Sum up variable reset
   sum.SetZero();
   
-  if (band.NumLines() == 0 or Absorption::relaxationtype_relmat(band.Population())) {
+  if (band.NumLines() == 0 or (Absorption::relaxationtype_relmat(band.Population()) and band.LinemixingLimit() > P)) {
     return;  // No line-by-line computations required/wanted
   }
   
@@ -1494,6 +1494,8 @@ void Linefunctions::set_cross_section_of_band(
 
       // Apply line strength by whatever method is necessary
       switch (band.Population()) {
+        case Absorption::PopulationType::ByHITRANFullRelmat:
+        case Absorption::PopulationType::ByHITRANRosenkranzRelmat:
         case Absorption::PopulationType::ByLTE:
           apply_linestrength_scaling_by_lte(F, dF, N, dN, band.Line(i), T, band.T0(), isot_ratio, QT, QT0, band, i, derivatives_data, derivatives_data_active, dQTdT);
           break;
@@ -1505,9 +1507,6 @@ void Linefunctions::set_cross_section_of_band(
           auto nlte_data = nlte.get_ratio_params(band, i);
           apply_linestrength_from_nlte_level_distributions(F, dF, N, dN, nlte_data.r_low, nlte_data.r_upp, band.g_low(i), band.g_upp(i), band.A(i), band.F0(i), T, band, i, derivatives_data, derivatives_data_active);
         } break;
-        case Absorption::PopulationType::ByRelmatMendazaLTE:
-        case Absorption::PopulationType::ByRelmatHartmannLTE:
-          std::terminate();
       }
       
       // Zeeman-adjusted strength

@@ -937,6 +937,90 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 }
 
+//=== HitranRelaxationMatrixData ================================================
+
+//! Reads HitranRelaxationMatrixData from XML input stream
+/*!
+  \param is_xml   XML Input stream
+  \param hitran   HitranRelaxationMatrixData return value
+  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(istream& is_xml,
+                          HitranRelaxationMatrixData& hitran,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity) {
+  ArtsXMLTag tag(verbosity);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("HitranRelaxationMatrixData");
+
+  xml_read_from_stream(is_xml, hitran.W0pp, pbifs, verbosity);
+  xml_read_from_stream(is_xml, hitran.B0pp, pbifs, verbosity);
+  xml_read_from_stream(is_xml, hitran.W0rp, pbifs, verbosity);
+  xml_read_from_stream(is_xml, hitran.B0rp, pbifs, verbosity);
+  xml_read_from_stream(is_xml, hitran.W0qp, pbifs, verbosity);
+  xml_read_from_stream(is_xml, hitran.B0qp, pbifs, verbosity);
+  xml_read_from_stream(is_xml, hitran.W0pr, pbifs, verbosity);
+  xml_read_from_stream(is_xml, hitran.B0pr, pbifs, verbosity);
+  xml_read_from_stream(is_xml, hitran.W0rr, pbifs, verbosity);
+  xml_read_from_stream(is_xml, hitran.B0rr, pbifs, verbosity);
+  xml_read_from_stream(is_xml, hitran.W0qr, pbifs, verbosity);
+  xml_read_from_stream(is_xml, hitran.B0qr, pbifs, verbosity);
+  xml_read_from_stream(is_xml, hitran.W0pq, pbifs, verbosity);
+  xml_read_from_stream(is_xml, hitran.B0pq, pbifs, verbosity);
+  xml_read_from_stream(is_xml, hitran.W0rq, pbifs, verbosity);
+  xml_read_from_stream(is_xml, hitran.B0rq, pbifs, verbosity);
+  xml_read_from_stream(is_xml, hitran.W0qq, pbifs, verbosity);
+  xml_read_from_stream(is_xml, hitran.B0qq, pbifs, verbosity);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/HitranRelaxationMatrixData");
+}
+
+//! Writes HitranRelaxationMatrixData to XML output stream
+/*!
+  \param os_xml   XML Output stream
+  \param hitran   HitranRelaxationMatrixData
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param name     Optional name attribute
+*/
+void xml_write_to_stream(ostream& os_xml,
+                         const HitranRelaxationMatrixData& hitran,
+                         bofstream* pbofs,
+                         const String& name,
+                         const Verbosity& verbosity) {
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("HitranRelaxationMatrixData");
+  if (name.length()) open_tag.add_attribute("name", name);
+  open_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+  
+  xml_write_to_stream(os_xml, hitran.W0pp, pbofs, "W0pp", verbosity);
+  xml_write_to_stream(os_xml, hitran.B0pp, pbofs, "B0pp", verbosity);
+  xml_write_to_stream(os_xml, hitran.W0rp, pbofs, "W0rp", verbosity);
+  xml_write_to_stream(os_xml, hitran.B0rp, pbofs, "B0rp", verbosity);
+  xml_write_to_stream(os_xml, hitran.W0qp, pbofs, "W0qp", verbosity);
+  xml_write_to_stream(os_xml, hitran.B0qp, pbofs, "B0qp", verbosity);
+  xml_write_to_stream(os_xml, hitran.W0pr, pbofs, "W0pr", verbosity);
+  xml_write_to_stream(os_xml, hitran.B0pr, pbofs, "B0pr", verbosity);
+  xml_write_to_stream(os_xml, hitran.W0rr, pbofs, "W0rr", verbosity);
+  xml_write_to_stream(os_xml, hitran.B0rr, pbofs, "B0rr", verbosity);
+  xml_write_to_stream(os_xml, hitran.W0qr, pbofs, "W0qr", verbosity);
+  xml_write_to_stream(os_xml, hitran.B0qr, pbofs, "B0qr", verbosity);
+  xml_write_to_stream(os_xml, hitran.W0pq, pbofs, "W0pq", verbosity);
+  xml_write_to_stream(os_xml, hitran.B0pq, pbofs, "B0pq", verbosity);
+  xml_write_to_stream(os_xml, hitran.W0rq, pbofs, "W0rq", verbosity);
+  xml_write_to_stream(os_xml, hitran.B0rq, pbofs, "B0rq", verbosity);
+  xml_write_to_stream(os_xml, hitran.W0qq, pbofs, "W0qq", verbosity);
+  xml_write_to_stream(os_xml, hitran.B0qq, pbofs, "B0qq", verbosity);
+
+  close_tag.set_name("/HitranRelaxationMatrixData");
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+}
+
 //=== IsotopologueRecord ================================================
 
 //! Reads IsotopologueRecord from XML input stream

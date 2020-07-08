@@ -383,6 +383,15 @@ void Workspace::define_wsv_data() {
           "general.arts.\n"),
       GROUP("Index")));
   
+
+  wsv_data.push_back(WsvRecord(
+      NAME("abs_hitran_relmat_data"),
+      DESCRIPTION(
+          "HITRAN line mixing data to compute the relaxation matrix.\n"
+          "\n"
+          "This variable holds HITRAN line mixing data\n"
+          "as per J. Lamouroux, L. Realia, X. Thomas, et al., J.Q.S.R.T. 151 (2015), 88-96\n"),
+      GROUP("HitranRelaxationMatrixData")));
   
   wsv_data.push_back(WsvRecord(NAME("abs_lines"),
                                DESCRIPTION("A list of spectral line data.\n"),

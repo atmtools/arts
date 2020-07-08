@@ -142,6 +142,7 @@ void define_wsv_group_names() {
   wsv_group_names.push_back("GriddedField4");
   wsv_group_names.push_back("GriddedField5");
   wsv_group_names.push_back("GriddedField6");
+  wsv_group_names.push_back("HitranRelaxationMatrixData");
   wsv_group_names.push_back("Index");
   wsv_group_names.push_back("MCAntenna");
   wsv_group_names.push_back("Matrix");

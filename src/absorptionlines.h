@@ -147,19 +147,19 @@ inline String normalizationtype2metadatastring(NormalizationType in) {
  */
 enum class PopulationType : Index {
   ByLTE,                          // Assume line is in LTE
-  ByRelmatMendazaLTE,             // Assume line is in LTE but requires Relaxation matrix calculations - follows Mendaza method
-  ByRelmatHartmannLTE,            // Assume line is in LTE but requires Relaxation matrix calculations - follows Hartmann method
   ByNLTEVibrationalTemperatures,  // Assume line is in NLTE described by vibrational temperatures
   ByNLTEPopulationDistribution,   // Assume line is in NLTE and the upper-to-lower ratio is known
+  ByHITRANRosenkranzRelmat,       // Assume line needs to compute relaxation matrix to derive HITRAN Y-coefficients
+  ByHITRANFullRelmat,             // Assume line needs to compute and directly use the relaxation matrix
 };  // PopulationType
 
 inline PopulationType string2populationtype(const String& in) {
   if (in == "LTE")
     return PopulationType::ByLTE;
-  else if (in == "MendazaRelmat")
-    return PopulationType::ByRelmatMendazaLTE;
-  else if (in == "HartmannRelmat")
-    return PopulationType::ByRelmatHartmannLTE;
+  else if (in == "ByHITRANRosenkranzRelmat")
+    return PopulationType::ByHITRANRosenkranzRelmat;
+  else if (in == "ByHITRANFullRelmat")
+    return PopulationType::ByHITRANFullRelmat;
   else if (in == "NLTE-VibrationalTemperatures")
     return PopulationType::ByNLTEVibrationalTemperatures;
   else if (in == "NLTE")
@@ -172,10 +172,10 @@ inline String populationtype2string(PopulationType in) {
   switch (in) {
     case PopulationType::ByLTE:
       return "LTE";
-    case PopulationType::ByRelmatMendazaLTE:
-      return "MendazaRelmat";
-    case PopulationType::ByRelmatHartmannLTE:
-      return "HartmannRelmat";
+    case PopulationType::ByHITRANFullRelmat:
+      return "ByHITRANFullRelmat";
+    case PopulationType::ByHITRANRosenkranzRelmat:
+      return "ByHITRANRosenkranzRelmat";
     case PopulationType::ByNLTEVibrationalTemperatures:
       return "NLTE-VibrationalTemperatures";
     case PopulationType::ByNLTEPopulationDistribution:
@@ -187,10 +187,10 @@ inline String populationtype2metadatastring(PopulationType in) {
   switch (in) {
     case PopulationType::ByLTE:
       return "The lines are considered as in pure LTE.\n";
-    case PopulationType::ByRelmatMendazaLTE:
-      return "The lines requires Relaxation matrix calculations in LTE - Mendaza method.\n";
-    case PopulationType::ByRelmatHartmannLTE:
-      return "The lines requires Relaxation matrix calculations in LTE - Hartmann method.\n";
+    case PopulationType::ByHITRANFullRelmat:
+      return "The lines requires relaxation matrix calculations in LTE - HITRAN full method.\n";
+    case PopulationType::ByHITRANRosenkranzRelmat:
+      return "The lines requires Relaxation matrix calculations in LTE - HITRAN Rosenkranz method.\n";
     case PopulationType::ByNLTEVibrationalTemperatures:
       return "The lines are considered as in NLTE by vibrational temperatures.\n";
     case PopulationType::ByNLTEPopulationDistribution:
@@ -199,8 +199,8 @@ inline String populationtype2metadatastring(PopulationType in) {
 }
 
 inline bool relaxationtype_relmat(PopulationType in) {
-  return in == PopulationType::ByRelmatMendazaLTE or
-         in == PopulationType::ByRelmatHartmannLTE;
+  return in == PopulationType::ByHITRANFullRelmat or
+         in == PopulationType::ByHITRANRosenkranzRelmat;
 }
 
 /** Describes the type of cutoff calculations */
@@ -976,15 +976,30 @@ public:
    */
   Numeric& F0(size_t k) noexcept {return mlines[k].F0();}
   
-  /** Mean frequency
+  /** Mean frequency by weight of line strengt
    * 
    * @return Mean frequency
    */
   Numeric F_mean() const noexcept {
-    Numeric x = 0, div = 1 / Numeric(NumLines());
-    for (auto& line: mlines)
-      x = std::fma(div, line.F0(), x);
-    return x;
+    const Numeric val = std::inner_product(mlines.cbegin(), mlines.cend(),
+                                          mlines.cbegin(), 0.0, std::plus<Numeric>(),
+                                          [](const auto& a, const auto& b){return a.F0() * b.I0();});
+    const Numeric div = std::accumulate(mlines.cbegin(), mlines.cend(), 0.0,
+                                        [](const auto& a, const auto& b){return a + b.I0();});
+    return  val / div;
+  }
+  
+  /** Mean frequency by weight of line strengt
+   * 
+   * @param[in] wgts Weight of averaging
+   * @return Mean frequency
+   */
+  Numeric F_mean(const ConstVectorView wgts) const noexcept {
+    const Numeric val = std::inner_product(mlines.cbegin(), mlines.cend(),
+                                           wgts.begin(), 0.0, std::plus<Numeric>(),
+                                           [](const auto& a, const auto& b){return a.F0() * b;});
+    const Numeric div = wgts.sum();
+    return  val / div;
   }
   
   /** Lower level energy
@@ -1141,7 +1156,7 @@ public:
   
   /** Checks if index is a valid population */
   static bool validIndexForPopulation(Index x) noexcept {
-    constexpr auto keys = stdarrayify(Index(PopulationType::ByLTE), PopulationType::ByRelmatMendazaLTE, PopulationType::ByRelmatHartmannLTE, PopulationType::ByNLTEVibrationalTemperatures, PopulationType::ByNLTEPopulationDistribution);
+    constexpr auto keys = stdarrayify(Index(PopulationType::ByLTE), PopulationType::ByHITRANFullRelmat, PopulationType::ByHITRANRosenkranzRelmat, PopulationType::ByNLTEVibrationalTemperatures, PopulationType::ByNLTEPopulationDistribution);
     return std::any_of(keys.cbegin(), keys.cend(), [x](auto y){return x == y;});
   }
   
@@ -1149,10 +1164,10 @@ public:
   static PopulationType string2Population(const String& in) noexcept {
     if (in == "LTE")
       return PopulationType::ByLTE;
-    else if (in == "MendazaRelmat")
-      return PopulationType::ByRelmatMendazaLTE;
-    else if (in == "HartmannRelmat")
-      return PopulationType::ByRelmatHartmannLTE;
+    else if (in == "ByHITRANFullRelmat")
+      return PopulationType::ByHITRANFullRelmat;
+    else if (in == "ByHITRANRosenkranzRelmat")
+      return PopulationType::ByHITRANRosenkranzRelmat;
     else if (in == "NLTE-VibrationalTemperatures")
       return PopulationType::ByNLTEVibrationalTemperatures;
     else if (in == "NLTE")

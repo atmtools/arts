@@ -162,7 +162,178 @@ void test02() {
       "Bad operator/ Complex Complex");
 }
 
+void test03()
+{
+  constexpr Index n=4;
+  constexpr Index col=2;
+  constexpr Index row=2;
+  static_assert(n>=4, "Req for size of val to follow");
+  static_assert(col<n, "Req for size of val to follow");
+  static_assert(row<n, "Req for size of val to follow");
+  
+  constexpr Range r0 = Range(joker);
+  constexpr Range r1 = Range(1, 2);
+  constexpr Range r2 = Range(1, 2, 2);
+  constexpr Range r3 = Range(n-1, 2, -1);
+  constexpr Range r4 = Range(n-1, 2, -2);
+  constexpr Range r5 = Range(n-1, n, -1);
+  const auto ranges={r0, r1, r2, r3, r4, r5};
+  
+  ComplexVector V(n, n);
+  for (Index i=0; i<n; i++)
+    V[i] = Complex(Numeric(i), Numeric(i+2*n));
+  const ComplexVector cV=V;
+  
+  ComplexMatrix M(n, n);
+  for (Index i=0; i<n; i++)
+    for (Index j=0; j<n; j++)
+      M(i, j) = Complex(Numeric(i), Numeric(j+2*n));
+  const ComplexMatrix cM=M;
+  
+  std::cout<<"Vector: ";
+  std::cout<<MapToEigen(V).transpose()<<'\n';
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  
+  std::cout<<"Matrix:\n";
+  std::cout<<MapToEigen(M)<<"\n";
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  std::cout<<"Vector\n";
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  for (auto r: ranges) {
+    std::cout<<"Vector["<<r<<"]: "<<MapToEigen(V[r]).transpose()<<'\n';
+    std::cout<<"Real: "<<MapToEigen(V[r].real()).transpose()<<'\n';
+    std::cout<<"Imag: "<<MapToEigen(V[r].imag()).transpose()<<'\n';
+    std::cout<<"---------------------------------------------------\n";
+  }
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  std::cout<<"const Vector\n";
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  for (auto r: ranges) {
+    std::cout<<"const Vector["<<r<<"]: "<<MapToEigen(cV[r]).transpose()<<'\n';
+    std::cout<<"Real: "<<MapToEigen(V[r].real()).transpose()<<'\n';
+    std::cout<<"Imag: "<<MapToEigen(V[r].imag()).transpose()<<'\n';
+    std::cout<<"---------------------------------------------------\n";
+  }
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  std::cout<<"RowView Matrix\n";
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  for (auto r: ranges) {
+    std::cout<<"Matrix("<<row<<", "<<r<<"): "<<MapToEigen(M(row,r)).transpose()<<'\n';
+    std::cout<<"Real: "<<MapToEigen(M(row,r).real()).transpose()<<'\n';
+    std::cout<<"Imag: "<<MapToEigen(M(row,r).imag()).transpose()<<'\n';
+    std::cout<<"---------------------------------------------------\n";
+  }
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  std::cout<<"ColView Matrix\n";
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  for (auto r: ranges) {
+    std::cout<<"Matrix("<<r<<", "<<col<<"): "<<MapToEigen(M(r, col)).transpose()<<'\n';
+    std::cout<<"Real: "<<MapToEigen(M(r, col).real()).transpose()<<'\n';
+    std::cout<<"Imag: "<<MapToEigen(M(r, col).imag()).transpose()<<'\n';
+    std::cout<<"---------------------------------------------------\n";
+  }
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  std::cout<<"RowView Matrix-transpose\n";
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  for (auto r: ranges) {
+    std::cout<<"transpose(Matrix)("<<row<<", "<<r<<"): "<<MapToEigen(transpose(M)(row,r)).transpose()<<'\n';
+    std::cout<<"Real: "<<MapToEigen(transpose(M)(row,r).real()).transpose()<<'\n';
+    std::cout<<"Imag: "<<MapToEigen(transpose(M)(row,r).imag()).transpose()<<'\n';
+    std::cout<<"---------------------------------------------------\n";
+  }
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  std::cout<<"ColView Matrix transpose\n";
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  for (auto r: ranges) {
+    std::cout<<"transpose(Matrix)("<<r<<", "<<col<<"): "<<MapToEigen(transpose(M)(r, col)).transpose()<<'\n';
+    std::cout<<"Real: "<<MapToEigen(transpose(M)(r, col).real()).transpose()<<'\n';
+    std::cout<<"Imag: "<<MapToEigen(transpose(M)(r, col).imag()).transpose()<<'\n';
+    std::cout<<"---------------------------------------------------\n";
+  }
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  std::cout<<"Sub-Matrix\n";
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  for (auto rr: ranges) {
+    for (auto rc: ranges) {
+      std::cout<<"Matrix("<<rr<<", "<<rc<<"):\n"<<MapToEigen(M(rr,rc)).transpose()<<'\n';
+      std::cout<<"Real:\n"<<MapToEigen(M(rr,rc).real()).transpose()<<'\n';
+      std::cout<<"Imag:\n"<<MapToEigen(M(rr,rc).imag()).transpose()<<'\n';
+      std::cout<<"---------------------------------------------------\n";
+    }
+  }
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  std::cout<<"Sub-Matrix transpose\n";
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  for (auto rr: ranges) {
+    for (auto rc: ranges) {
+      std::cout<<"transpose(Matrix)("<<rr<<", "<<rc<<"):\n"<<MapToEigen(transpose(M)(rr,rc)).transpose()<<'\n';
+      std::cout<<"Real:\n"<<MapToEigen(transpose(M)(rr,rc).real()).transpose()<<'\n';
+      std::cout<<"Imag:\n"<<MapToEigen(transpose(M)(rr,rc).imag()).transpose()<<'\n';
+      std::cout<<"---------------------------------------------------\n";
+    }
+  }
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  std::cout<<"RowView Matrix const\n";
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  for (auto r: ranges) {
+    std::cout<<"const Matrix("<<row<<", "<<r<<"): "<<MapToEigen(cM(row,r)).transpose()<<'\n';
+    std::cout<<"Real: "<<MapToEigen(cM(row,r).real()).transpose()<<'\n';
+    std::cout<<"Imag: "<<MapToEigen(cM(row,r).imag()).transpose()<<'\n';
+    std::cout<<"---------------------------------------------------\n";
+  }
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  std::cout<<"ColView Matrix const\n";
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  for (auto r: ranges) {
+    std::cout<<"const Matrix("<<r<<", "<<col<<"): "<<MapToEigen(cM(r, col)).transpose()<<'\n';
+    std::cout<<"Real: "<<MapToEigen(cM(r, col).real()).transpose()<<'\n';
+    std::cout<<"Imag: "<<MapToEigen(cM(r, col).imag()).transpose()<<'\n';
+    std::cout<<"---------------------------------------------------\n";
+  }
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  std::cout<<"RowView Matrix-transpose const\n";
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  for (auto r: ranges) {
+    std::cout<<"transpose(const Matrix)("<<row<<", "<<r<<"): "<<MapToEigen(transpose(cM)(row,r)).transpose()<<'\n';
+    std::cout<<"Real: "<<MapToEigen(transpose(cM)(row,r).real()).transpose()<<'\n';
+    std::cout<<"Imag: "<<MapToEigen(transpose(cM)(row,r).imag()).transpose()<<'\n';
+    std::cout<<"---------------------------------------------------\n";
+  }
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  std::cout<<"ColView Matrix-transpose const\n";
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  for (auto r: ranges) {
+    std::cout<<"transpose(const Matrix)("<<r<<", "<<col<<"): "<<MapToEigen(transpose(cM)(r, col)).transpose()<<'\n';
+    std::cout<<"Real: "<<MapToEigen(transpose(cM)(r, col).real()).transpose()<<'\n';
+    std::cout<<"Imag: "<<MapToEigen(transpose(cM)(r, col).imag()).transpose()<<'\n';
+    std::cout<<"---------------------------------------------------\n";
+  }
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  std::cout<<"Sub-Matrix const\n";
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  for (auto rr: ranges) {
+    for (auto rc: ranges) {
+      std::cout<<"Matrix("<<rr<<", "<<rc<<"):\n"<<MapToEigen(M(rr,rc)).transpose()<<'\n';
+      std::cout<<"Real:\n"<<MapToEigen(M(rr,rc).real()).transpose()<<'\n';
+      std::cout<<"Imag:\n"<<MapToEigen(M(rr,rc).imag()).transpose()<<'\n';
+      std::cout<<"---------------------------------------------------\n";
+    }
+  }
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  std::cout<<"Sub-Matrix transpose const\n";
+  std::cout<<"----------------------------------------------------------------------------------------------------\n";
+  for (auto rr: ranges) {
+    for (auto rc: ranges) {
+      std::cout<<"transpose(const Matrix)("<<rr<<", "<<rc<<"):\n"<<MapToEigen(transpose(cM)(rr,rc)).transpose()<<'\n';
+      std::cout<<"Real:\n"<<MapToEigen(transpose(cM)(rr,rc).real()).transpose()<<'\n';
+      std::cout<<"Imag:\n"<<MapToEigen(transpose(cM)(rr,rc).imag()).transpose()<<'\n';
+      std::cout<<"---------------------------------------------------\n";
+    }
+  }
+}
+
 int main() {
-  test01();
+//   test01();
+  test03();
   return 0;
 }
