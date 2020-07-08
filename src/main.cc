@@ -808,7 +808,7 @@ int main(int argc, char** argv) {
 
   // Now we are set to deal with the more interesting command line
   // switches.
-
+#ifdef ENABLE_DOCSERVER
   if (parameters.check_docs) {
     // Check built-in docs and then exit
     const auto broken_links = Docserver::list_broken_description_links();
@@ -821,6 +821,7 @@ int main(int argc, char** argv) {
               << " found." << std::endl;
     arts_exit(nbroken ? EXIT_FAILURE : EXIT_SUCCESS);
   }
+#endif
 
   // React to option `methods'. If given the argument `all', it
   // should simply prints a list of all methods. If given the name of
