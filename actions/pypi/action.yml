@@ -4,7 +4,6 @@ inputs:
   pypi_access:  # id of input
     description: 'Access token for PyPI repository.'
     required: true
-outputs:
 runs:
   using: 'docker'
   image: 'Dockerfile'
