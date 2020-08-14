@@ -1,5 +1,10 @@
-"""
-arts: The Python interface for ARTS
+""" PyARTS, the Python interface for ARTS
+
+PyARTS provides:
+
+- full ARTS library for direct access from Python
+- full scripting interface for ARTS to replace controlfiles
+- reading and writing of ARTS XML data files
 """
 
 import logging
