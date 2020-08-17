@@ -2524,10 +2524,12 @@ void define_md_data_raw() {
          "abs_p",
          "abs_t",
          "hitran_xsec_data"),
-      GIN("apply_tfit"),
-      GIN_TYPE("Index"),
-      GIN_DEFAULT("1"),
-      GIN_DESC("Apply temperature fit.")));
+      GIN("apply_tfit", "force_p", "force_t"),
+      GIN_TYPE("Index", "Numeric", "Numeric"),
+      GIN_DEFAULT("1", "-1", "-1"),
+      GIN_DESC("Apply temperature fit.",
+               "Positive value forces constant pressure [Pa].",
+               "Positive value forces constant temperature [K].")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_xsec_per_speciesAddConts"),

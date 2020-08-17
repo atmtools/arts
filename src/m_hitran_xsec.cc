@@ -50,6 +50,8 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
     const Vector& abs_t,
     const ArrayOfXsecRecord& hitran_xsec_data,
     const Index& apply_tfit,
+    const Numeric& force_p,
+    const Numeric& force_t,
     // Verbosity object:
     const Verbosity& verbosity) {
   CREATE_OUTS;
@@ -162,15 +164,18 @@ void abs_xsec_per_speciesAddHitranXsec(  // WS Output:
     firstprivate(xsec_temp, dxsec_temp_dF)
       for (Index ip = 0; ip < abs_p.nelem(); ip++) {
         if (do_abort) continue;
+        const Numeric current_p = force_p < 0 ? abs_p[ip] : force_p;
+        const Numeric current_t = force_t < 0 ? abs_t[ip] : force_t;
+
         // Get the absorption cross sections from the HITRAN data:
         try {
           this_xdata.Extract(
-              xsec_temp, f_grid, abs_p[ip], abs_t[ip], apply_tfit, verbosity);
+              xsec_temp, f_grid, current_p, current_t, apply_tfit, verbosity);
           if (do_freq_jac)
             this_xdata.Extract(dxsec_temp_dF,
                                dfreq,
-                               abs_p[ip],
-                               abs_t[ip],
+                               current_p,
+                               current_t,
                                apply_tfit,
                                verbosity);
           // FIXME: Temperature is not yet taken into account
