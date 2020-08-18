@@ -8,6 +8,8 @@ Implementation of classes to handle various catalogue information.
 import numpy as np
 import scipy.sparse
 
+from pyarts.utils.arts import return_if_arts_type
+
 __all__ = ['ArrayOfLineRecord',
            'CIARecord',
            'GasAbsLookup',
