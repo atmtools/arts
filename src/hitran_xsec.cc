@@ -267,7 +267,8 @@ void XsecRecord::Extract(VectorView result,
       throw runtime_error(os.str());
     }
 
-    if (pressure > mrefpressure[this_dataset_i]) {
+    if (pressure > mrefpressure[this_dataset_i] &&
+        mrefpressure[this_dataset_i] > 0.) {
       // Apply pressure dependent broadening and set negative values to zero.
       // (These could happen due to overshooting of the higher order interpolation.)
       const Numeric pdiff = pressure - mrefpressure[this_dataset_i];
