@@ -687,10 +687,11 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("abs_species"),
-      GIN("basename"),
-      GIN_TYPE("String"),
-      GIN_DEFAULT(NODEF),
-      GIN_DESC("The path to the split catalog files")));
+      GIN("basename", "robust"),
+      GIN_TYPE("String", "Index"),
+      GIN_DEFAULT(NODEF, "0"),
+      GIN_DESC("The path to the split catalog files",
+               "Flag to continue in case nothing is found [0 throws, 1 continues]")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_lines_per_speciesSetEmpty"),
