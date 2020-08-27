@@ -873,9 +873,13 @@ void abs_lines_per_speciesReadSplitCatalog(ArrayOfArrayOfAbsorptionLines& abs_li
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesReadSpeciesSplitCatalog(ArrayOfAbsorptionLines& abs_lines,
                                       const String& basename,
+                                      const Index& robust,
                                       const Verbosity& verbosity)
 {
   using global_data::species_data;
+  
+  CREATE_OUT3;
+  std::size_t bands_found{0};
   
   String tmpbasename = basename;
   if (basename.length() && basename[basename.length() - 1] != '/') {
@@ -894,10 +898,16 @@ void abs_linesReadSpeciesSplitCatalog(ArrayOfAbsorptionLines& abs_lines,
         xml_read_from_file(filename, speclines, verbosity);
         for (auto& band: speclines) {
           abs_lines.push_back(band);
+          bands_found++;
         }
       }
     }
   }
+  
+  if (not bands_found and not robust)
+    throw std::runtime_error("Cannot find any bands in the directory you are reading");
+  else
+    out3 << "Found " << bands_found << " lines\n";
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
