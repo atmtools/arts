@@ -243,6 +243,50 @@ void antenna2d_gridded_dlos(Sparse& H,
       throw std::runtime_error(os.str());
     }
   }
+
+  // Calculate number of antenna beams
+  const Index n_ant = antenna_dlos.nrows();
+
+  // Asserts for variables beside antenna_response
+  assert(antenna_dim == 2);
+  assert(n_dlos >= 1);
+  assert(n_pol >= 1);
+  assert(do_norm >= 0 && do_norm <= 1);
+
+  // Extract antenna_response grids
+  const Index n_ar_pol =
+      antenna_response.get_string_grid(GFIELD4_FIELD_NAMES).nelem();
+  ConstVectorView aresponse_f_grid =
+      antenna_response.get_numeric_grid(GFIELD4_F_GRID);
+  ConstVectorView aresponse_za_grid =
+      antenna_response.get_numeric_grid(GFIELD4_ZA_GRID);
+  ConstVectorView aresponse_aa_grid =
+      antenna_response.get_numeric_grid(GFIELD4_AA_GRID);
+  //
+  const Index n_ar_f = aresponse_f_grid.nelem();
+  const Index n_ar_za = aresponse_za_grid.nelem();
+  const Index n_ar_aa = aresponse_aa_grid.nelem();
+  const Index pol_step = n_ar_pol > 1;
+
+  // Asserts for antenna_response
+  assert(n_ar_pol == 1 || n_ar_pol >= n_pol);
+  assert(n_ar_f);
+  assert(n_ar_za > 1);
+  assert(n_ar_aa > 1);
+
+  // Some size(s)
+  const Index nfpol = n_f * n_pol;
+
+  // Resize H
+  H.resize(n_ant * nfpol, n_dlos * nfpol);
+
+  // Storage vectors for response weights
+  Vector hrow(H.ncols(), 0.0);
+  Vector hza(n_dlos, 0.0);
+
+  // Antenna response to apply (possibly obtained by frequency interpolation)
+  Matrix aresponse(n_ar_za, n_ar_aa, 0.0);
+  
 }
 
 

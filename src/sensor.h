@@ -78,7 +78,9 @@ void antenna1d_matrix(Sparse& H,
 
 //! antenna2d_interp_gridded_dlos
 /*!
-  
+  This 2D function can be seen as parallel to the 1D case, except that both
+  antenna response and radiances are treated as bi-linear functions. See also
+  built-in doc.
 
    \param   H            The antenna transfer matrix
    \param   antenna_dim  As the WSV with the same name
@@ -90,7 +92,7 @@ void antenna1d_matrix(Sparse& H,
    \param   do_norm      Flag whether response should be normalised
 
    \author  Patrick Eriksson
-   \date   2018-09-12
+   \date   2020-09-01
 */
 void antenna2d_gridded_dlos(Sparse& H,
                             const Index& antenna_dim,
@@ -105,7 +107,10 @@ void antenna2d_gridded_dlos(Sparse& H,
 
 //! antenna2d_interp_response
 /*!
-  
+  For this option, each direction defined by *mblock_dlos_grid* is
+  considered to represent the same size in terms of solid beam angle,
+  and the antenna pattern is interpolated to these directions. See also
+  built-in doc.
 
    \param   H            The antenna transfer matrix
    \param   antenna_dim  As the WSV with the same name
@@ -117,7 +122,7 @@ void antenna2d_gridded_dlos(Sparse& H,
    \param   do_norm      Flag whether response should be normalised
 
    \author  Patrick Eriksson
-   \date   2020-09-01
+   \date   2018-09-12
 */
 void antenna2d_interp_response(Sparse& H,
                                const Index& antenna_dim,
