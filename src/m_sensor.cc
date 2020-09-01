@@ -971,6 +971,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
                             const Matrix& antenna_dlos,
                             const GriddedField4& antenna_response,
                             const Index& sensor_norm,
+                            const String& option_2d,
                             const Verbosity& verbosity) {
   CREATE_OUT3;
 
@@ -1096,6 +1097,11 @@ void sensor_responseAntenna(Sparse& sensor_response,
   }
 
   // Check of angular grids. These checks differ with antenna_dim
+  if (sensor_response_dlos_grid.ncols() != antenna_dim) {
+    os << "The number of columns in *sensor_response_dlos_grid* must be\n"
+       << "equal to *antenna_dim*.";
+    error_found = true;
+  }
   if (antenna_dim == 1) {
     if (!(is_increasing(sensor_response_dlos_grid(joker, 0)) ||
           is_decreasing(sensor_response_dlos_grid(joker, 0)))) {
@@ -1131,7 +1137,8 @@ void sensor_responseAntenna(Sparse& sensor_response,
       }
     }
   } else {
-    // No demand on that antenna_dlos covers response grids for 2D.
+    // Other demands differs between the options and checks are done inside
+    // sub-functions
   }
 
   // If errors where found throw runtime_error with the collected error
@@ -1154,16 +1161,35 @@ void sensor_responseAntenna(Sparse& sensor_response,
                      sensor_response_f_grid,
                      npol,
                      sensor_norm);
-  else
-    antenna2d_basic(hantenna,
-                    antenna_dim,
-                    antenna_dlos,
-                    antenna_response,
-                    sensor_response_dlos_grid,
-                    sensor_response_f_grid,
-                    npol,
-                    sensor_norm);
+  else {
 
+    if (option_2d == "interp_response" ) {
+      antenna2d_interp_response(hantenna,
+                                antenna_dim,
+                                antenna_dlos,
+                                antenna_response,
+                                sensor_response_dlos_grid,
+                                sensor_response_f_grid,
+                                npol,
+                                sensor_norm);
+    }
+    
+    else if (option_2d == "gridded_dlos" ) {
+      antenna2d_gridded_dlos(hantenna,
+                             antenna_dim,
+                             antenna_dlos,
+                             antenna_response,
+                             sensor_response_dlos_grid,
+                             sensor_response_f_grid,
+                             npol,
+                             sensor_norm);
+    }
+
+    else {
+      throw runtime_error( "Unrecognised choice for *option_2d*." );
+    }
+  }
+  
   // Here we need a temporary sparse that is copy of the sensor_response
   // sparse matrix. We need it since the multiplication function can not
   // take the same object as both input and output.

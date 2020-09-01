@@ -55,26 +55,6 @@ extern const Index GFIELD4_AA_GRID;
   === placed together at the end
   ===========================================================================*/
 
-//! antenna1d_matrix
-/*!
-  Core function for setting up the response matrix for 1D antenna cases.
-  
-  Main task is to extract correct antenna pattern, including frequency 
-  interpolation. Actual weights are calculated in *integration_func_by_vectmult*.
-
-
-   \param   H            The antenna transfer matrix
-   \param   antenna_dim  As the WSV with the same name
-   \param   antenna_dza  The zenith angle column of *antenna_dlos*.
-   \param   antenna_response  As the WSV with the same name
-   \param   za_grid      Zenith angle grid for pencil beam calculations
-   \param   f_grid       Frequency grid for monochromatic calculations
-   \param   n_pol        Number of polarisation states
-   \param   do_norm      Flag whether response should be normalised
-
-   \author Mattias Ekstr�m / Patrick Eriksson
-   \date   2003-05-27 / 2008-06-17
-*/
 void antenna1d_matrix(Sparse& H,
 #ifndef NDEBUG
                       const Index& antenna_dim,
@@ -214,34 +194,72 @@ void antenna1d_matrix(Sparse& H,
   }
 }
 
-//! antenna2d_basic
-/*!
-  A first, basic function for including 2D antenna patterns
 
-   \param   H            The antenna transfer matrix
-   \param   antenna_dim  As the WSV with the same name
-   \param   antenna_dza  The zenith angle column of *antenna_dlos*.
-   \param   antenna_response  As the WSV with the same name
-   \param   za_grid      Zenith angle grid for pencil beam calculations
-   \param   f_grid       Frequency grid for monochromatic calculations
-   \param   n_pol        Number of polarisation states
-   \param   do_norm      Flag whether response should be normalised
 
-   \author  Patrick Eriksson
-   \date   2018-12-12
-*/
-void antenna2d_basic(Sparse& H,
+void antenna2d_gridded_dlos(Sparse& H,
 #ifndef NDEBUG
-                     const Index& antenna_dim,
+                            const Index& antenna_dim,
 #else
-                     const Index& antenna_dim _U_,
+                            const Index& antenna_dim _U_,
 #endif
-                     ConstMatrixView antenna_dlos,
-                     const GriddedField4& antenna_response,
-                     ConstMatrixView mblock_dlos,
-                     ConstVectorView f_grid,
-                     const Index n_pol,
-                     const Index do_norm) {
+                            ConstMatrixView antenna_dlos,
+                            const GriddedField4& antenna_response,
+                            ConstMatrixView mblock_dlos,
+                            ConstVectorView f_grid,
+                            const Index n_pol,
+                            const Index do_norm)
+{
+  // Number of input pencil beam directions and frequency
+  const Index n_dlos = mblock_dlos.nrows();
+  const Index n_f = f_grid.nelem();
+
+  // Decompose mblock_dlos into za and aa grids, including checking
+  Index nza = 1;
+  for(Index i=0; i<n_dlos-1 && mblock_dlos(i+1,0) > mblock_dlos(i,0); i++ ) {
+    nza++;
+  }
+  if( nza < 2 ) 
+    throw runtime_error("For the gridded_dlos option, the number of za angles "
+                        "must be >= 2.");
+  if( n_dlos % nza > 0 ) 
+    throw runtime_error("For the gridded_dlos option, the number of dlos angles "
+                        "must be a product of two integers.");
+  const Index naa = n_dlos / nza; 
+  const Vector za_grid = mblock_dlos(Range(0,nza),0);
+  const Vector aa_grid = mblock_dlos(Range(0,naa,nza),1);
+  for(Index i=0; i<n_dlos; i++ ) {
+    if(i>=nza && abs(mblock_dlos(i,0)-mblock_dlos(i-nza,0)) > 1e-6 ) {
+      ostringstream os;
+      os << "Zenith angle of dlos " << i << " (0-based) differs to zenith " 
+         << "angle of dlos " << i-nza << ", while they need to be equal "
+         << "to form rectangular grid.";
+      throw std::runtime_error(os.str());      
+    }
+    if(abs(mblock_dlos(i,1)-aa_grid[i/nza]) > 1e-6) {
+      ostringstream os;
+      os << "Azimuth angle of dlos " << i << " (0-based) differs to azimuth " 
+         << "angle " << (i/nza)*nza  << ", while they need to be equal "
+         << "to form rectangular grid.";
+      throw std::runtime_error(os.str());
+    }
+  }
+}
+
+
+
+void antenna2d_interp_response(Sparse& H,
+#ifndef NDEBUG
+                               const Index& antenna_dim,
+#else
+                               const Index& antenna_dim _U_,
+#endif
+                               ConstMatrixView antenna_dlos,
+                               const GriddedField4& antenna_response,
+                               ConstMatrixView mblock_dlos,
+                               ConstVectorView f_grid,
+                               const Index n_pol,
+                               const Index do_norm)
+{  
   // Number of input pencil beam directions and frequency
   const Index n_dlos = mblock_dlos.nrows();
   const Index n_f = f_grid.nelem();
@@ -392,31 +410,7 @@ void antenna2d_basic(Sparse& H,
   }
 }
 
-//! gaussian_response_autogrid
-/*!
-   Returns a 1D gaussian response with a suitable grid
 
-   First a grid is generated. The grid is si*[-xwidth_si:dx:xwidth_si],
-   where si is the "standard deviation" corresponding to the FWHM, and
-   dx is biggest possible value < dx_si, to enusre an symmetric grid wth end
-   points exactly at xwidth_si.
-   That is, width and spacing of the grid is specified in terms of number of 
-   standard deviations. If xwidth_si is set to 2, the response will cover
-   about 95% the complete response. For xwidth_si=3, about 99% is covered.
-
-   y is the gaussian function on grid x, with max at x0 and width following
-   fwhm.
-
-   \param   x           Grid generated.
-   \param   y           Calculated response.
-   \param   x0          The x-position of response centre/max.
-   \param   fwhm        The full width at half-maximum of the response
-   \param   xwidth_si   The one-sided width of x. See above.
-   \param   dx_si       The grid step size of x. See above.
-
-   \author Patrick Eriksson
-   \date   2009-09-20
-*/
 void gaussian_response_autogrid(Vector& x,
                                 Vector& y,
                                 const Numeric& x0,
@@ -438,21 +432,8 @@ void gaussian_response_autogrid(Vector& x,
   gaussian_response(y, x, x0, fwhm);
 }
 
-//! gaussian_response
-/*!
-   Returns a 1D gaussian response
 
-   y is the gaussian function on grid x, with max at x0 and width following
-   fwhm.
 
-   \param   y           Calculated response.
-   \param   x           Grid.
-   \param   x0          The x-position of response centre/max.
-   \param   fwhm        The full width at half-maximum of the response
-
-   \author Patrick Eriksson
-   \date   2009-09-20
-*/
 void gaussian_response(Vector& y,
                        const Vector& x,
                        const Numeric& x0,
@@ -467,32 +448,8 @@ void gaussian_response(Vector& y,
     y[i] = a * exp(-0.5 * pow((x[i] - x0) / si, 2.0));
 }
 
-//! mixer_matrix
-/*!
-   Sets up the sparse matrix that models the response from sideband filtering
-   and the mixer.
 
-   The size of the transfer matrix is changed in the function
-   as follows:
-     nrows = f_mixer.nelem()
-     ncols = f_grid.nelem()
 
-   The returned frequencies are given in IF, so both primary and mirror band
-   is converted down.
-
-   \param   H         The mixer/sideband filter transfer matrix
-   \param   f_mixer   The frequency grid of the mixer
-   \param   lo        The local oscillator frequency
-   \param   filter    The sideband filter data. See *sideband_response*
-                      for format and constraints.
-   \param   f_grid    The original frequency grid of the spectrum
-   \param   n_pol     The number of polarisations to consider
-   \param   n_sp      The number of spectra (viewing directions)
-   \param   do_norm   Flag whether rows should be normalised
-
-   \author Mattias Ekstr�m / Patrick Eriksson
-   \date   2003-05-27 / 2008-06-17
-*/
 void mixer_matrix(Sparse& H,
                   Vector& f_mixer,
                   const Numeric& lo,
@@ -592,28 +549,7 @@ void mixer_matrix(Sparse& H,
   }
 }
 
-//! mueller_rotation
-/*!
-   Returns the Mueller matrix for a rotation of the coordinate system defining
-   H and V directions.
 
-   The function follows Eq 9 in the sensor response article (Eriksson et al,
-   Efficient forward modelling by matrix representation of sensor responses,
-   IJRS, 2006).
-
-   The sparse matrix H is not sized by the function, in order to save time for
-   repeated usage. Before first call of this function, size H as
-   H.resize( stokes_dim, stokes_dim );
-   The H returned of this function can be used as input for later calls. That
-   is, no need to repeat the resize command above.
-
-   \param   H           Mueller matrix
-   \param   stokes_dim  Stokes dimensionality
-   \param   rotangle    Rotation angle.
-
-   \author Patrick Eriksson
-   \date   2014-09-23
-*/
 void mueller_rotation(Sparse& H,
                       const Index& stokes_dim,
                       const Numeric& rotangle) {
@@ -642,16 +578,8 @@ void mueller_rotation(Sparse& H,
   }
 }
 
-/** Calculate polarisation H-matrix
- 
- Takes into account instrument channel polarisation and zenith angle.
 
- \param[out] H          Polarisation matrix
- \param[in]  mm_pol     Instrument channel polarisations
- \param[in]  dza        Zenith angle, from reference direction
- \param[in]  stokes_dim Workspace variable
- \param[in]  iy_unit    Workspace variable
- */
+
 void met_mm_polarisation_hmatrix(Sparse& H,
                                  const ArrayOfString& mm_pol,
                                  const Numeric dza,
@@ -813,24 +741,8 @@ void met_mm_polarisation_hmatrix(Sparse& H,
   }
 }
 
-//! sensor_aux_vectors
-/*!
-   Sets up the the auxiliary vectors for sensor_response.
 
-   The function assumes that all grids are common, and the full 
-   vectors are just the grids repeated.
 
-   \param   sensor_response_f          As the WSV with same name
-   \param   sensor_response_pol        As the WSV with same name
-   \param   sensor_response_za         As the WSV with same name
-   \param   sensor_response_aa         As the WSV with same name
-   \param   sensor_response_f_grid     As the WSV with same name
-   \param   sensor_response_pol_grid   As the WSV with same name
-   \param   sensor_response_dlos_grid  As the WSV with same name
-
-   \author Patrick Eriksson
-   \date   2008-06-09
-*/
 void sensor_aux_vectors(Vector& sensor_response_f,
                         ArrayOfIndex& sensor_response_pol,
                         Matrix& sensor_response_dlos,
@@ -866,25 +778,8 @@ void sensor_aux_vectors(Vector& sensor_response_f,
   }
 }
 
-//! spectrometer_matrix
-/*!
-   Constructs the sparse matrix that multiplied with the spectral values
-   gives the spectra from the spectrometer.
 
-   The input to the function corresponds mainly to WSVs. See f_backend and
-   backend_channel_response for how the backend response is specified.
 
-   \param   H             The response matrix.
-   \param   ch_f          Corresponds directly to WSV f_backend.
-   \param   ch_response   Corresponds directly to WSV backend_channel_response.
-   \param   sensor_f      Corresponds directly to WSV sensor_response_f_grid.
-   \param   n_pol         The number of polarisations.
-   \param   n_sp          The number of spectra (viewing directions).
-   \param   do_norm       Corresponds directly to WSV sensor_norm.
-
-   \author Mattias Ekstr�m and Patrick Eriksson
-   \date   2003-08-26 / 2008-06-10
-*/
 void spectrometer_matrix(Sparse& H,
                          ConstVectorView ch_f,
                          const ArrayOfGriddedField1& ch_response,
@@ -949,26 +844,8 @@ void spectrometer_matrix(Sparse& H,
   }
 }
 
-//! stokes2pol
-/*!
-   Sets up a vector to convert the Stokes vector to different polarsiations.
 
-   The measured value is the sum of the element product of the conversion
-   vector and the Stokes vector. Schematically:
 
-   y[iout] = sum( w.*iy(iin,joker)
-
-   Vectors for I, Q, U and V are always normalised to have unit length (one
-   value is 1, the remaining ones zero). The first element of remaining vectors
-   is set to nv (and other values normalised accordingly), to allow that
-   calibartion and other normalisation effects can be incorporated.
-
-   \param   s2p           Array of conversion vectors.
-   \param   nv            Norm value for polarisations beside I, Q, U and V.
-
-   \author Patrick Eriksson
-   \date   2011-11-01 and 2018-03-16
-*/
 void stokes2pol(VectorView w,
                 const Index& stokes_dim,
                 const Index& ipol_1based,
@@ -1080,31 +957,6 @@ bool test_and_merge_two_channels(Vector& fmin, Vector& fmax, Index i, Index j) {
   return false;
 }
 
-//! Calculate channel boundaries from instrument response functions.
-/*!
-  This function finds out the unique channel boundaries from
-  f_backend and backend_channel_response. This is not a trivial task,
-  since channels may overlap, or may be sorted in a strange way. The
-  function tries to take care of all that. If channels overlap, they
-  are combined to one continuous frequency region. therefore the
-  number of elements in the output vectors fmin and fmax can be lower
-  than the number of elements in f_backend and
-  backend_channel_response. 
-
-  The function also does consistency checking on the two input
-  variables.
- 
-  The output vectors fmin and fmax will be monotonically increasing.
-
-  \author Stefan Buehler
-  
-  \param[out] fmin                      Vector of lower boundaries of instrument channels.
-  \param[out] fmax                      Vector of upper boundaries of instrument channels.
-  \param[in]  f_backend                 Nominal backend frequencies.
-  \param[in]  backend_channel_response  Channel response, relative to nominal frequencies.
-  \param[in]  delta                     Extra margin on both sides of each band. Has a 
-                                        default value of 0.
-*/
 void find_effective_channel_boundaries(  // Output:
     Vector& fmin,
     Vector& fmax,
@@ -1308,34 +1160,12 @@ void find_effective_channel_boundaries(  // Output:
     out2 << "  " << fmin[i] << "               " << fmax[i] << "\n";
 }
 
+
+
 /*===========================================================================
   === Core integration and sum functions:
   ===========================================================================*/
 
-//! integration_func_by_vecmult
-/*!
-   Calculates the (row) vector that multiplied with an unknown (column) vector
-   approximates the integral of the product between the functions represented
-   by the two vectors: h*g = integral( f(x)*g(x) dx )
-
-   Basic principle follows Eriksson et al., Efficient forward modelling by
-   matrix representation of sensor responses, Int. J. Remote Sensing, 27,
-   1793-1808, 2006. However, while in Eriksson et al. the product between f*g
-   is assumed to vary linearly between the grid point, the expressions applied
-   here are more advanced and are completly exact as long as f and g are
-   piece-wise linear functions. The product f*g is then a quadratic funtion
-   between the grid points.
-
-   \param   h       The multiplication (row) vector.
-   \param   f       The values of function f(x).
-   \param   x_f_in  The grid points of function f(x). Must be increasing.
-   \param   x_g_in  The grid points of function g(x). Can be increasing or 
-                    decreasing. Must cover a wider range than x_f (in
-                    both ends).
-
-   \author Mattias Ekstr�m and Patrick Eriksson
-   \date   2003-02-13 / 2008-06-12
-*/
 void integration_func_by_vecmult(VectorView h,
                                  ConstVectorView f,
                                  ConstVectorView x_f_in,
@@ -1476,28 +1306,8 @@ void integration_func_by_vecmult(VectorView h,
         "Please, send a report to Patrick if you see this!");
 }
 
-//! integration_bin_by_vecmult
-/*!
-   Calculates the (row) vector that multiplied with an unknown (column) vector,
-   g, approximates the integral between limit1 and limit2, where limit1 >=
-   limit2.
 
-   This can be seen as a special case of what is handled by 
-   *integration_func_by_vecmult*, where the function f is a boxcar function. Or
-   expressed differently, the function g is "binned" between limit1 and limit2.
 
-   The limits must be inside the range the x_g.
-
-   \param   h       The multiplication (row) vector.
-   \param   x_g_in  The grid points of function g(x). Can be increasing or 
-                    decreasing. Must cover a wider range than the boxcar
-                    function (in both ends).
-   \param   limit1  The lower integration limit.
-   \param   limit2  The upper integration limit.
-
-   \author Patrick Eriksson
-   \date   2017-06-02
-*/
 void integration_bin_by_vecmult(VectorView h,
                                 ConstVectorView x_g_in,
                                 const Numeric& limit1,
@@ -1601,33 +1411,7 @@ void integration_bin_by_vecmult(VectorView h,
   }
 }
 
-//! summation_by_vecmult
-/*!
-   Calculates the (row) vector that multiplied with an unknown
-   (column) vector approximates the sum of the product 
-   between the functions at two points.
 
-   E.g. h*g = f(x1)*g(x1) + f(x2)*g(x2)
-
-   The typical application is to set up the combined response matrix
-   for mixer and sideband filter.
-
-   See Eriksson et al., Efficient forward modelling by matrix
-   representation of sensor responses, Int. J. Remote Sensing, 27,
-   1793-1808, 2006, for details.
-
-   No normalisation of the response is made.
-
-   \param   h     The summation (row) vector.
-   \param   f     Sideband response.
-   \param   x_f   The grid points of function f(x).
-   \param   x_g   The grid for spectral values (normally equal to f_grid) 
-   \param   x1    Point 1
-   \param   x2    Point 2
-
-   \author Mattias Ekstr�m / Patrick Eriksson
-   \date   2003-05-26 / 2008-06-17
-*/
 void summation_by_vecmult(VectorView h,
                           ConstVectorView f,
                           ConstVectorView x_f,
