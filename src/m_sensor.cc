@@ -111,6 +111,8 @@ void AntennaConstantGaussian1D(Index& antenna_dim,
   interp(mblock_dlos_grid(joker, 0), itw, r_za_grid, gp);
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AntennaMultiBeamsToPencilBeams(Matrix& sensor_pos,
                                     Matrix& sensor_los,
@@ -178,6 +180,8 @@ void AntennaMultiBeamsToPencilBeams(Matrix& sensor_pos,
   antenna_dlos = 0;
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AntennaOff(Index& antenna_dim,
                 Matrix& mblock_dlos_grid,
@@ -191,6 +195,8 @@ void AntennaOff(Index& antenna_dim,
   mblock_dlos_grid.resize(1, 1);
   mblock_dlos_grid = 0;
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void antenna_responseGaussian(GriddedField4& r,
@@ -240,6 +246,8 @@ void antenna_responseGaussian(GriddedField4& r,
     r.data(0, 0, joker, 0) = y;
   }
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void antenna_responseVaryingGaussian(GriddedField4& r,
@@ -308,6 +316,8 @@ void antenna_responseVaryingGaussian(GriddedField4& r,
   }
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void backend_channel_responseFlat(ArrayOfGriddedField1& r,
                                   const Numeric& resolution,
@@ -326,6 +336,8 @@ void backend_channel_responseFlat(ArrayOfGriddedField1& r,
   r[0].data[0] = 1 / resolution;
   r[0].data[1] = r[0].data[0];
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void backend_channel_responseGaussian(ArrayOfGriddedField1& r,
@@ -364,6 +376,8 @@ void backend_channel_responseGaussian(ArrayOfGriddedField1& r,
     for (Index j = 0; j < n; j++) r[i].data[j] = y[j];
   }
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void f_gridFromSensorAMSU(  // WS Output:
@@ -495,6 +509,9 @@ void f_gridFromSensorAMSU(  // WS Output:
   //  cout << "f_grid: " << f_grid << "\n";
 }
 
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void f_gridFromSensorAMSUgeneric(  // WS Output:
     Vector& f_grid,
     // WS Input:
@@ -644,6 +661,8 @@ void f_gridFromSensorAMSUgeneric(  // WS Output:
   out2 << "  Total number of frequencies in f_grid: " << f_grid.nelem() << "\n";
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void f_gridFromSensorHIRS(  // WS Output:
     Vector& f_grid,
@@ -708,6 +727,8 @@ void f_gridFromSensorHIRS(  // WS Output:
 
   out2 << "  Total number of frequencies in f_grid: " << f_grid.nelem() << "\n";
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void f_gridMetMM(
@@ -879,6 +900,8 @@ void f_gridMetMM(
   }
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void mblock_dlos_gridUniformCircular(Matrix& mblock_dlos_grid,
                                      const Numeric& spacing,
@@ -916,6 +939,8 @@ void mblock_dlos_gridUniformCircular(Matrix& mblock_dlos_grid,
   mblock_dlos_grid = dlos_try(Range(0, n_in), joker);
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void mblock_dlos_gridUniformRectangular(Matrix& mblock_dlos_grid,
                                         const Numeric& spacing,
@@ -933,7 +958,7 @@ void mblock_dlos_gridUniformRectangular(Matrix& mblock_dlos_grid,
   }
   linspace(za, -w, w, spacing);
 
-  // Create za-grid
+  // Create aa-grid
   Vector aa;
   if (centre) {
     w = spacing * ceil(aa_width / spacing);
@@ -949,14 +974,16 @@ void mblock_dlos_gridUniformRectangular(Matrix& mblock_dlos_grid,
 
   Index n = 0;
 
-  for (Index z = 0; z < nza; z++) {
-    for (Index a = 0; a < naa; a++) {
+  for (Index a = 0; a < naa; a++) {
+    for (Index z = 0; z < nza; z++) {
       mblock_dlos_grid(n, 0) = za[z];
       mblock_dlos_grid(n, 1) = aa[a];
       n++;
     }
   }
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseAntenna(Sparse& sensor_response,
@@ -971,6 +998,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
                             const Matrix& antenna_dlos,
                             const GriddedField4& antenna_response,
                             const Index& sensor_norm,
+                            const String& option_2d,
                             const Verbosity& verbosity) {
   CREATE_OUT3;
 
@@ -1131,7 +1159,8 @@ void sensor_responseAntenna(Sparse& sensor_response,
       }
     }
   } else {
-    // No demand on that antenna_dlos covers response grids for 2D.
+    // Demands differs between the options and checks are done inside
+    // sub-functions
   }
 
   // If errors where found throw runtime_error with the collected error
@@ -1154,16 +1183,32 @@ void sensor_responseAntenna(Sparse& sensor_response,
                      sensor_response_f_grid,
                      npol,
                      sensor_norm);
-  else
-    antenna2d_basic(hantenna,
-                    antenna_dim,
-                    antenna_dlos,
-                    antenna_response,
-                    sensor_response_dlos_grid,
-                    sensor_response_f_grid,
-                    npol,
-                    sensor_norm);
+  else {
 
+    if (option_2d == "interp_response" ) {
+      antenna2d_interp_response(hantenna,
+                                antenna_dim,
+                                antenna_dlos,
+                                antenna_response,
+                                sensor_response_dlos_grid,
+                                sensor_response_f_grid,
+                                npol);
+    }
+    else if (option_2d == "gridded_dlos" ) {
+      antenna2d_gridded_dlos(hantenna,
+                             antenna_dim,
+                             antenna_dlos,
+                             antenna_response,
+                             sensor_response_dlos_grid,
+                             sensor_response_f_grid,
+                             npol);
+    }
+
+    else {
+      throw runtime_error( "Unrecognised choice for *option_2d*." );
+    }
+  }
+  
   // Here we need a temporary sparse that is copy of the sensor_response
   // sparse matrix. We need it since the multiplication function can not
   // take the same object as both input and output.
@@ -1186,6 +1231,8 @@ void sensor_responseAntenna(Sparse& sensor_response,
                      sensor_response_pol_grid,
                      sensor_response_dlos_grid);
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseBackend(
@@ -1339,6 +1386,8 @@ void sensor_responseBackend(
                      sensor_response_dlos_grid);
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseBackendFrequencySwitching(
     Sparse& sensor_response,
@@ -1408,6 +1457,8 @@ void sensor_responseBackendFrequencySwitching(
                      sensor_response_dlos_grid);
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseBeamSwitching(Sparse& sensor_response,
                                   Vector& sensor_response_f,
@@ -1468,6 +1519,8 @@ void sensor_responseBeamSwitching(Sparse& sensor_response,
                      sensor_response_pol_grid,
                      sensor_response_dlos_grid);
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseFrequencySwitching(
@@ -1542,6 +1595,8 @@ void sensor_responseFrequencySwitching(
                      sensor_response_dlos_grid);
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseIF2RF(  // WS Output:
     Vector& sensor_response_f,
@@ -1576,6 +1631,8 @@ void sensor_responseIF2RF(  // WS Output:
         "Only allowed options for *sideband _mode* are \"lower\" and \"upper\".");
   }
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseFillFgrid(Sparse& sensor_response,
@@ -1697,6 +1754,8 @@ void sensor_responseFillFgrid(Sparse& sensor_response,
                      sensor_response_dlos_grid);
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseInit(Sparse& sensor_response,
                          Vector& sensor_response_f,
@@ -1767,6 +1826,8 @@ void sensor_responseInit(Sparse& sensor_response,
   id_mat(sensor_response);
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensorOff(Sparse& sensor_response,
                Vector& sensor_response_f,
@@ -1803,6 +1864,8 @@ void sensorOff(Sparse& sensor_response,
                       sensor_norm,
                       verbosity);
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseMixer(Sparse& sensor_response,
@@ -1938,6 +2001,8 @@ void sensor_responseMixer(Sparse& sensor_response,
                      sensor_response_pol_grid,
                      sensor_response_dlos_grid);
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseMetMM(
@@ -2127,6 +2192,8 @@ void sensor_responseMetMM(
                      sensor_response_dlos_grid);
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseMixerBackendPrecalcWeights(
     Sparse& sensor_response,
@@ -2264,6 +2331,8 @@ void sensor_responseMixerBackendPrecalcWeights(
                      sensor_response_pol_grid,
                      sensor_response_dlos_grid);
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseMultiMixerBackend(
@@ -2438,6 +2507,8 @@ void sensor_responseMultiMixerBackend(
                      sensor_response_dlos_grid);
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responsePolarisation(Sparse& sensor_response,
                                  Vector& sensor_response_f,
@@ -2561,6 +2632,8 @@ void sensor_responsePolarisation(Sparse& sensor_response,
                      sensor_response_dlos_grid);
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseStokesRotation(Sparse& sensor_response,
                                    const Vector& sensor_response_f_grid,
@@ -2661,6 +2734,8 @@ void sensor_responseStokesRotation(Sparse& sensor_response,
   sensor_response.resize(Htmp.nrows(), Htmp.ncols());  //Just in case!
   mult(sensor_response, H, Htmp);
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseGenericAMSU(  // WS Output:
@@ -3019,6 +3094,8 @@ void sensor_responseGenericAMSU(  // WS Output:
                      sensor_response_dlos_grid);
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseSimpleAMSU(  // WS Output:
     Vector& f_grid,
@@ -3153,6 +3230,8 @@ void sensor_responseSimpleAMSU(  // WS Output:
                                    verbosity);
 }
 
+
+
 // Declare select functions needed by WMRFSelectChannels:
 void Select(  // WS Generic Output:
     Vector& needles,
@@ -3175,6 +3254,8 @@ void Select(  // WS Generic Output:
     const Sparse& haystack,
     const ArrayOfIndex& needleind,
     const Verbosity& verbosity);
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void WMRFSelectChannels(  // WS Output:
@@ -3290,6 +3371,8 @@ void WMRFSelectChannels(  // WS Output:
   transpose(wmrf_weights, wt);
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseWMRF(  // WS Output:
     Sparse& sensor_response,
@@ -3389,6 +3472,8 @@ void sensor_responseWMRF(  // WS Output:
                      sensor_response_dlos_grid);
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ySimpleSpectrometer(Vector& y,
                          Vector& y_f,
@@ -3464,6 +3549,8 @@ void ySimpleSpectrometer(Vector& y,
   y.resize(n);
   mult(y, sensor_response, iyb);
 }
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void yApplySensorPol(Vector& y,

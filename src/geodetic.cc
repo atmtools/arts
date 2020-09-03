@@ -1187,10 +1187,13 @@ Numeric refell2d(ConstVectorView refellipsoid,
 /*!
     The distance between two geograpgical positions
 
-    "As-the-crow-flies" distance between two points, specified by their
+    "As-the-crow-flies" angular distance between two points, specified by their
     latitude and longitude. 
 
-    \return        Angular distance
+    Note that angular distance is returned. The distance in length varies with
+    altitude.
+
+    \return        Angular distance (in degrees)
     \param  lat1   Latitude of position 1.
     \param  lon1   Longitude of position 1.
     \param  lat2   Latitude of position 2.

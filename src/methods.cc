@@ -10306,9 +10306,12 @@ void define_md_data_raw() {
           "Gives *mblock_dlos_grid* roughly circular coverage, with uniform spacing.\n"
           "\n"
           "The method considers points on a regular grid with a spacing set by\n"
-          "GIN *spacing*. All points inside *width* from (0,0) are included in\n"
+          "GIN *spacing*. All points inside a radius from (0,0) are included in\n"
           "*mblock_dlos_grid*. The positions in *mblock_dlos_grid* thus covers\n"
           "a roughly circular domain, and cover the same solid beam angle.\n"
+          "The radius is adjusted according to *spacing' and *centre*, but is\n" 
+          "ensured to be >= *width*.\n"
+          "\n"
           "Note that the method assumes that width is small and the solid beam\n"
           "angle does not change with distance from (0.0).\n"
           "\n"
@@ -10325,7 +10328,7 @@ void define_md_data_raw() {
       GIN_TYPE("Numeric", "Numeric", "Index"),
       GIN_DEFAULT(NODEF, NODEF, "0"),
       GIN_DESC("The angular spacing between points.",
-               "The maximum half-width to include.",
+               "The minimum distance from (0,0) to cover.",
                "Set to 1 to place a point at (0,0).")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -10333,10 +10336,10 @@ void define_md_data_raw() {
       DESCRIPTION(
           "Gives *mblock_dlos_grid* rectangular coverage, with uniform spacing.\n"
           "\n"
-          "The method creates an equidistant rectangular grid. The width is zenith\n"
-          "and azimuth can differ. Note that selected widths are half-widths, and\n"
-          "refers to the maximum value allowed. The actual width depends on values\n"
-          "selected for *spacing* and *centre*.\n"
+          "The method creates an equidistant rectangular grid. The width in zenith\n"
+          "and azimuth can differ. Note that selected widths are half-widths (i.e.\n"
+          "distance from (0,0), and refers to the mimumum value allowed. The actual\n"
+          "width depends on values selected for *spacing* and *centre*.\n"
           "\n"
           "Defualt is to consider grid positions of ..., -spacing/2, spacing/2, ...\n"
           "If you want to have (0,0) as a point in *mblock_dlos_grid*, change\n"
@@ -10351,8 +10354,8 @@ void define_md_data_raw() {
       GIN_TYPE("Numeric", "Numeric", "Numeric", "Index"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "0"),
       GIN_DESC("The angular spacing between points.",
-               "Max value of half-width in zenith angle direction.",
-               "Max value of half-width in azimuth angle direction.",
+               "Min value of half-width in zenith angle direction.",
+               "Min value of half-width in azimuth angle direction.",
                "Set to 1 to place a point at (0,0).")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -12989,8 +12992,8 @@ void define_md_data_raw() {
           "Derivatives are obtained analytically.\n"
           "\n"
           "The validity range of mass content is not limited. Negative mass\n"
-          "contents wil produce negative psd values following a distribution\n"
-          "given by abs(IWC), ie. abs(psd)=f(abs(IWC)).\n"
+          "contents will produce negative psd values following a distribution\n"
+          "given by abs(RWC), ie. abs(psd)=f(abs(RWC)).\n"
           "\n"
           "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
           "picky=0, or an error is thrown if picky=1.\n"),
@@ -13232,7 +13235,7 @@ void define_md_data_raw() {
           "1e-9 kg/m3.\n"
           "\n"
           "The validity range of mass content is not limited. Negative mass\n"
-          "contents wil produce negative psd values following a distribution\n"
+          "contents will produce negative psd values following a distribution\n"
           "given by abs(IWC), ie. abs(psd)=f(abs(IWC)).\n"
           "\n"
           "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
@@ -13867,8 +13870,8 @@ void define_md_data_raw() {
           "Derivatives are obtained analytically.\n"
           "\n"
           "The validity range of mass content is not limited. Negative mass\n"
-          "contents wil produce negative psd values following a distribution\n"
-          "given by abs(IWC), ie. abs(psd)=f(abs(IWC)).\n"
+          "contents will produce negative psd values following a distribution\n"
+          "given by abs(RWC), ie. abs(psd)=f(abs(RWC)).\n"
           "\n"
           "If temperature is outside [*t_min*,*t_max*] psd=0 and dpsd=0 if\n"
           "picky=0, or an error is thrown if picky=1.\n"),
@@ -16691,19 +16694,40 @@ void define_md_data_raw() {
           "See *antenna_dim*, *antenna_dlos* and *antenna_response* for\n"
           "details on how to specify the antenna response.\n"
           "\n"
-          "One dimensional antenna patterns are handled as other response\n"
-          "functions. That is. both antenna repsonse and radiances are treated\n"
-          "piece-wise linear functions, and the pencil beam calculations must\n"
-          "cover the full sensor reponse (i.e. *mblock_dlos_grid* must be\n"
-          "sufficiently braod).\n"
+          "The text below refers to *mblock_dlos_grid* despite it is not an\n"
+          "input to the method. The method instead uses *sensor_response_dlos_grid*\n"
+          "but the values in this WSV are likely coming from *mblock_dlos_grid*.\n"
           "\n"
-          "On the other hand, 2D antenna patterns are so far handled in a\n"
-          "simplified manner. For 2D, the antenna pattern is simply sampled at\n"
-          "the points specified by *mblock_dlos_grid* and each pencil beam\n"
-          "direction is considered to represent the same size in terms of solid\n"
-          "beam ansgle. In addition, there is no check at all on how well\n"
-          "*mblock_dlos_grid* covers the antenna response.\n"),
-      AUTHORS("Mattias Ekstrom", "Patrick Eriksson"),
+          "One dimensional antenna patterns are handled as other response\n"
+          "functions. That is, both antenna response and radiances are treated\n"
+          "as piece-wise linear functions, and the pencil beam calculations must\n"
+          "cover the full sensor response (i.e. *mblock_dlos_grid* must be\n"
+          "sufficiently broad).\n"
+          "\n"
+          "There exist different options for two dimensional (2D) antenna patterns,\n"
+          "see below (if 2D, the GIN *option_2d* must be set, the default results\n"
+          "in an error). A normalisation is always applied for 2D antennas (i.e.\n"
+          "*sensor-norm* is ignored).\n"
+          "\n"
+          "\"interp_response\""
+          "For this option, each direction defined by *mblock_dlos_grid* is\n"
+          "considered to represent the same size in terms of solid beam angle,\n"
+          "and the antenna pattern is interpolated to these directions. There is\n"
+          "no check on how well *mblock_dlos_grid* covers the antenna response.\n"
+          "The response is treated to be zero outside the ranges of its  anular\n"
+          "grids\n"
+          "\n"
+          "\"gridded_dlos\""
+          "This option is more similar to the 1D case. The radiances are treated\n"
+          "as a bi-linear function, but the antenna response is treated as step-\n"
+          "wise constant function (in contrast to 1D). For this option\n"
+          "*mblock_dlos_grid* must match a combination of zenith and azimuth\n"
+          "grids, and this for a particular order. If the zenith and azimuth\n"
+          "grids have 3 and 2 values, respectively, the order shall be:\n"
+          "  [(za1,aa1); (za2,aa1); (za3,aa1); (za1,aa2); (za2,aa2); (za3,aa2) ]\n"
+          "Both these grids must be strictly increasing and as for 1D must cover\n"
+          "the antenna response completely.\n"),
+      AUTHORS("Patrick Eriksson", "Mattias Ekstrom"),
       OUT("sensor_response",
           "sensor_response_f",
           "sensor_response_pol",
@@ -16724,10 +16748,10 @@ void define_md_data_raw() {
          "antenna_dlos",
          "antenna_response",
          "sensor_norm"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
+      GIN( "option_2d" ),
+      GIN_TYPE( "String" ),
+      GIN_DEFAULT( "-" ),
+      GIN_DESC( "Calculation option for 2D antenna cases. See above for details." )));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseBackend"),
