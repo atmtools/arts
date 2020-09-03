@@ -78,8 +78,8 @@ void antenna1d_matrix(Sparse& H,
 
 //! antenna2d_interp_gridded_dlos
 /*!
-  This 2D function can be seen as parallel to the 1D case, except that both
-  antenna response and radiances are treated as bi-linear functions. See also
+  The radiances are treated as a bi-linear function, but the antenna response
+  is treated as step-wise constant function (in contrast to 1D). See also
   built-in doc.
 
    \param   H            The antenna transfer matrix
@@ -100,8 +100,7 @@ void antenna2d_gridded_dlos(Sparse& H,
                             const GriddedField4& antenna_response,
                             ConstMatrixView mblock_dlos,
                             ConstVectorView f_grid,
-                            const Index n_pol,
-                            const Index do_norm);
+                            const Index n_pol);
 
 
 
@@ -130,8 +129,7 @@ void antenna2d_interp_response(Sparse& H,
                                const GriddedField4& antenna_response,
                                ConstMatrixView mblock_dlos,
                                ConstVectorView f_grid,
-                               const Index n_pol,
-                               const Index do_norm);
+                               const Index n_pol);
 
 
 //! gaussian_response_autogrid

@@ -206,21 +206,25 @@ void antenna2d_gridded_dlos(Sparse& H,
                             const GriddedField4& antenna_response,
                             ConstMatrixView mblock_dlos,
                             ConstVectorView f_grid,
-                            const Index n_pol,
-                            const Index do_norm)
+                            const Index n_pol)
 {
   // Number of input pencil beam directions and frequency
   const Index n_dlos = mblock_dlos.nrows();
   const Index n_f = f_grid.nelem();
 
   // Decompose mblock_dlos into za and aa grids, including checking
+  if( mblock_dlos.ncols() != 2 )
+    throw runtime_error("For the gridded_dlos option, *mblock_dlos_grid* "
+                        "must have two columns.");
+
+
   Index nza = 1;
   for(Index i=0; i<n_dlos-1 && mblock_dlos(i+1,0) > mblock_dlos(i,0); i++ ) {
     nza++;
   }
   if( nza < 2 ) 
     throw runtime_error("For the gridded_dlos option, the number of za angles "
-                        "must be >= 2.");
+                        "(among dlos directions) must be >= 2.");
   if( n_dlos % nza > 0 ) 
     throw runtime_error("For the gridded_dlos option, the number of dlos angles "
                         "must be a product of two integers.");
@@ -251,7 +255,6 @@ void antenna2d_gridded_dlos(Sparse& H,
   assert(antenna_dim == 2);
   assert(n_dlos >= 1);
   assert(n_pol >= 1);
-  assert(do_norm >= 0 && do_norm <= 1);
 
   // Extract antenna_response grids
   const Index n_ar_pol =
@@ -286,7 +289,152 @@ void antenna2d_gridded_dlos(Sparse& H,
 
   // Antenna response to apply (possibly obtained by frequency interpolation)
   Matrix aresponse(n_ar_za, n_ar_aa, 0.0);
+
+  // If you find a bug or change something, likely also change other 2D antenna
+  // function(s) as they are similar
   
+  // Antenna beam loop
+  for (Index ia = 0; ia < n_ant; ia++) {
+    // Order of loops assumes that the antenna response more often
+    // changes with frequency than for polarisation
+
+    // Frequency loop
+    for (Index f = 0; f < n_f; f++) {
+      // Polarisation loop
+      for (Index ip = 0; ip < n_pol; ip++) {
+        // Determine antenna pattern to apply
+        //
+        // Interpolation needed only if response has a frequency grid
+        //
+        Index new_antenna = 1;
+        //
+        if (n_ar_f == 1)  // No frequency variation
+        {
+          if (pol_step)  // Polarisation variation, update always needed
+          {
+            aresponse = antenna_response.data(ip, 0, joker, joker);
+          } else if (f == 0 && ip == 0)  // Set fully constant pattern
+          {
+            aresponse = antenna_response.data(0, 0, joker, joker);
+          } else  // The one set just above can be reused
+          {
+            new_antenna = 0;
+          }
+        } else {
+          if (ip == 0 || pol_step) {
+            // Interpolation (do this in "green way")
+            ArrayOfGridPos gp_f(1), gp_za(n_ar_za), gp_aa(n_ar_aa);
+            gridpos(gp_f, aresponse_f_grid, Vector(1, f_grid[f]));
+            gridpos(gp_za, aresponse_za_grid, aresponse_za_grid);
+            gridpos(gp_aa, aresponse_aa_grid, aresponse_aa_grid);
+            Tensor4 itw(1, n_ar_za, n_ar_aa, 8);
+            interpweights(itw, gp_f, gp_za, gp_aa);
+            Tensor3 aresponse_matrix(1, n_ar_za, n_ar_aa);
+            interp(aresponse_matrix,
+                   itw,
+                   antenna_response.data(ip, joker, joker, joker),
+                   gp_f,
+                   gp_za,
+                   gp_aa);
+            aresponse = aresponse_matrix(0, joker, joker);
+          } else  // Reuse pattern for ip==0
+          {
+            new_antenna = 0;
+          }
+        }
+
+        // Calculate response weights, by using grid positions and "itw"
+        if (new_antenna) {
+          
+          // za grid positions
+          Vector zas = aresponse_za_grid;
+          zas += antenna_dlos(ia, 0);
+          if( zas[0] < za_grid[0] ) {
+            ostringstream os;
+            os << "The zenith angle grid in *mblock_dlos_grid* is too narrow. " 
+               << "It must be extended downwards with at least " 
+               << za_grid[0]-zas[0] << " deg.";
+            throw std::runtime_error(os.str());      
+          }
+          if( zas[n_ar_za-1] > za_grid[nza-1] ) {
+            ostringstream os;
+            os << "The zenith angle grid in *mblock_dlos_grid* is too narrow. " 
+               << "It must be extended upwards with at least " 
+               << zas[n_ar_za-1] - za_grid[nza-1] << " deg.";
+            throw std::runtime_error(os.str());      
+          }
+          ArrayOfGridPos gp_za(n_ar_za);
+          gridpos(gp_za, za_grid, zas);
+          
+          // aa grid positions
+          Vector aas = aresponse_aa_grid;
+          if (antenna_dlos.ncols() > 1) { aas += antenna_dlos(ia, 1); }              
+          if( aas[0] < aa_grid[0] ) {
+            ostringstream os;
+            os << "The azimuth angle grid in *mblock_dlos_grid* is too narrow. " 
+               << "It must be extended downwards with at least " 
+               << aa_grid[0]-aas[0] << " deg.";
+            throw std::runtime_error(os.str());      
+          }
+          if( aas[n_ar_aa-1] > aa_grid[naa-1] ) {
+            ostringstream os;
+            os << "The azimuth angle grid in *mblock_dlos_grid* is too narrow. " 
+               << "It must be extended upwards with at least " 
+               << aas[n_ar_aa-1] - aa_grid[naa-1] << " deg.";
+            throw std::runtime_error(os.str());      
+          }
+          ArrayOfGridPos gp_aa(n_ar_aa);
+          gridpos(gp_aa, aa_grid, aas);
+
+
+          // Derive interpolation weights
+          Tensor3 itw(n_ar_za, n_ar_za, 4);
+          interpweights(itw, gp_za, gp_aa);
+
+          // Convert iwt to weights for H
+          //
+          hza = 0;   // Note that values in hza must be accumulated 
+          //
+          for (Index iaa = 0; iaa < n_ar_aa; iaa++) {
+            const Index a = gp_aa[iaa].idx;
+            const Index b = a + 1;
+            
+            for (Index iza = 0; iza < n_ar_za; iza++) {          
+
+              const Index z = gp_za[iza].idx;
+              const Index x = z + 1;
+
+              if( itw(iza,iaa,0) > 1e-9 ) {
+                hza[a*nza+z] += aresponse(iza,iaa) * itw(iza,iaa,0);
+              }
+              if( itw(iza,iaa,1) > 1e-9 ) {
+                hza[b*nza+z] += aresponse(iza,iaa) * itw(iza,iaa,1);
+              }
+              if( itw(iza,iaa,2) > 1e-9 ) {
+                hza[a*nza+x] += aresponse(iza,iaa) * itw(iza,iaa,2);
+              }
+              if( itw(iza,iaa,3) > 1e-9 ) {
+                hza[b*nza+x] += aresponse(iza,iaa) * itw(iza,iaa,3);
+              }
+            }
+          }
+
+          // For 2D antennas we always normalise
+          hza /= hza.sum();
+        }
+
+        // Put weights into H
+        //
+        const Index ii = f * n_pol + ip;
+        //
+        hrow[Range(ii, n_dlos, nfpol)] = hza;
+        //
+        H.insert_row(ia * nfpol + ii, hrow);
+        //
+        hrow = 0;
+      }
+    }
+  }  
 }
 
 
@@ -301,8 +449,7 @@ void antenna2d_interp_response(Sparse& H,
                                const GriddedField4& antenna_response,
                                ConstMatrixView mblock_dlos,
                                ConstVectorView f_grid,
-                               const Index n_pol,
-                               const Index do_norm)
+                               const Index n_pol)
 {  
   // Number of input pencil beam directions and frequency
   const Index n_dlos = mblock_dlos.nrows();
@@ -315,7 +462,6 @@ void antenna2d_interp_response(Sparse& H,
   assert(antenna_dim == 2);
   assert(n_dlos >= 1);
   assert(n_pol >= 1);
-  assert(do_norm >= 0 && do_norm <= 1);
 
   // Extract antenna_response grids
   const Index n_ar_pol =
@@ -350,6 +496,9 @@ void antenna2d_interp_response(Sparse& H,
 
   // Antenna response to apply (possibly obtained by frequency interpolation)
   Matrix aresponse(n_ar_za, n_ar_aa, 0.0);
+
+  // If you find a bug or change something, likely also change other 2D antenna
+  // function(s) as they are similar
 
   // Antenna beam loop
   for (Index ia = 0; ia < n_ant; ia++) {
@@ -434,10 +583,8 @@ void antenna2d_interp_response(Sparse& H,
             }
           }
 
-          // Normalisation?
-          if (do_norm) {
-            hza /= hza.sum();
-          }
+          // For 2D antennas we always normalise
+          hza /= hza.sum();
         }
 
         // Put weights into H
@@ -453,6 +600,7 @@ void antenna2d_interp_response(Sparse& H,
     }
   }
 }
+
 
 
 void gaussian_response_autogrid(Vector& x,

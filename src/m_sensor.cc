@@ -1097,11 +1097,6 @@ void sensor_responseAntenna(Sparse& sensor_response,
   }
 
   // Check of angular grids. These checks differ with antenna_dim
-  if (sensor_response_dlos_grid.ncols() != antenna_dim) {
-    os << "The number of columns in *sensor_response_dlos_grid* must be\n"
-       << "equal to *antenna_dim*.";
-    error_found = true;
-  }
   if (antenna_dim == 1) {
     if (!(is_increasing(sensor_response_dlos_grid(joker, 0)) ||
           is_decreasing(sensor_response_dlos_grid(joker, 0)))) {
@@ -1137,7 +1132,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
       }
     }
   } else {
-    // Other demands differs between the options and checks are done inside
+    // Demands differs between the options and checks are done inside
     // sub-functions
   }
 
@@ -1170,10 +1165,8 @@ void sensor_responseAntenna(Sparse& sensor_response,
                                 antenna_response,
                                 sensor_response_dlos_grid,
                                 sensor_response_f_grid,
-                                npol,
-                                sensor_norm);
+                                npol);
     }
-    
     else if (option_2d == "gridded_dlos" ) {
       antenna2d_gridded_dlos(hantenna,
                              antenna_dim,
@@ -1181,8 +1174,7 @@ void sensor_responseAntenna(Sparse& sensor_response,
                              antenna_response,
                              sensor_response_dlos_grid,
                              sensor_response_f_grid,
-                             npol,
-                             sensor_norm);
+                             npol);
     }
 
     else {
