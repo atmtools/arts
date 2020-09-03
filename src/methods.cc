@@ -10306,9 +10306,12 @@ void define_md_data_raw() {
           "Gives *mblock_dlos_grid* roughly circular coverage, with uniform spacing.\n"
           "\n"
           "The method considers points on a regular grid with a spacing set by\n"
-          "GIN *spacing*. All points inside *width* from (0,0) are included in\n"
+          "GIN *spacing*. All points inside a radius from (0,0) are included in\n"
           "*mblock_dlos_grid*. The positions in *mblock_dlos_grid* thus covers\n"
           "a roughly circular domain, and cover the same solid beam angle.\n"
+          "The radius is adjusted according to *spacing' and *centre*, but is\n" 
+          "ensured to be >= *width*.\n"
+          "\n"
           "Note that the method assumes that width is small and the solid beam\n"
           "angle does not change with distance from (0.0).\n"
           "\n"
@@ -10325,7 +10328,7 @@ void define_md_data_raw() {
       GIN_TYPE("Numeric", "Numeric", "Index"),
       GIN_DEFAULT(NODEF, NODEF, "0"),
       GIN_DESC("The angular spacing between points.",
-               "The maximum half-width to include.",
+               "The minimum distance from (0,0) to cover.",
                "Set to 1 to place a point at (0,0).")));
 
   md_data_raw.push_back(create_mdrecord(
@@ -10333,10 +10336,10 @@ void define_md_data_raw() {
       DESCRIPTION(
           "Gives *mblock_dlos_grid* rectangular coverage, with uniform spacing.\n"
           "\n"
-          "The method creates an equidistant rectangular grid. The width is zenith\n"
-          "and azimuth can differ. Note that selected widths are half-widths, and\n"
-          "refers to the maximum value allowed. The actual width depends on values\n"
-          "selected for *spacing* and *centre*.\n"
+          "The method creates an equidistant rectangular grid. The width in zenith\n"
+          "and azimuth can differ. Note that selected widths are half-widths (i.e.\n"
+          "distance from (0,0), and refers to the mimumum value allowed. The actual\n"
+          "width depends on values selected for *spacing* and *centre*.\n"
           "\n"
           "Defualt is to consider grid positions of ..., -spacing/2, spacing/2, ...\n"
           "If you want to have (0,0) as a point in *mblock_dlos_grid*, change\n"
@@ -10351,8 +10354,8 @@ void define_md_data_raw() {
       GIN_TYPE("Numeric", "Numeric", "Numeric", "Index"),
       GIN_DEFAULT(NODEF, NODEF, NODEF, "0"),
       GIN_DESC("The angular spacing between points.",
-               "Max value of half-width in zenith angle direction.",
-               "Max value of half-width in azimuth angle direction.",
+               "Min value of half-width in zenith angle direction.",
+               "Min value of half-width in azimuth angle direction.",
                "Set to 1 to place a point at (0,0).")));
 
   md_data_raw.push_back(create_mdrecord(

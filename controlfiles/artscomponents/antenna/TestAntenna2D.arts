@@ -136,13 +136,16 @@ VectorCreate( zeros )
 IndexCreate( ndlos )
 #
 antenna_responseVaryingGaussian( antenna_response, 1.5, xwidth, 
-                                 0.1, 5, 10e9, 40e9, 0 )
+                                 0.25, 5, 10e9, 40e9, 0 )
+#WriteXML("ascii",antenna_response,"A.xml",0)
+# The generated antenna has a grid extening between about -1.46 and +1.46 deg
 IndexSet( sensor_norm, 1 )
 IndexSet( antenna_dim, 1 )
 MatrixSet( antenna_dlos, [0] )
 #
-IndexSet( ndlos, 21 )
-VectorNLinSpace( dza, ndlos, -2, 2 )
+IndexSet( ndlos, 17 )
+VectorNLinSpace( dza, ndlos, -1.6, 1.6 )
+Print(dza,0)
 VectorSetConstant( zeros, ndlos, 0 )
 Matrix1ColFromVector( mblock_dlos_grid, dza )
 
@@ -164,8 +167,8 @@ Compare( geo_ref, y_geo, 1e-5 )
 # Re-do with 2D antenna (but all azimuths in mblock_dlos_grid set to zero) 
 #
 antenna_responseVaryingGaussian( antenna_response, 1.5, xwidth, 
-                                 0.1, 5, 10e9, 40e9, 1 )
-WriteXML("ascii",antenna_response,"R.xml")
+                                 0.25, 5, 10e9, 40e9, 1 )
+#WriteXML("ascii",antenna_response,"A.xml",0)
 IndexSet( antenna_dim, 2 )
 #
 Matrix2ColFromVectors( mblock_dlos_grid, dza, zeros )
@@ -183,32 +186,31 @@ Compare( geo_ref, y_geo, 1e-5 )
 
 
 # Results for *y* should not be identical, but fairly close
-Compare( y, y_ref, 0.001 )
+Compare( y, y_ref, 0.01 )
 
 
 # Repeat with circular mblock_dlos_grid
 #
-mblock_dlos_gridUniformCircular( spacing=0.2, width=2, centre=1 )
-WriteXML("ascii",mblock_dlos_grid,"mdg.xml")
+mblock_dlos_gridUniformCircular( spacing=0.2, width=1.6, centre=1 )
 sensor_responseInit
 sensor_responseAntenna(option_2d = "interp_response")
 sensor_checkedCalc
-WriteXML("ascii",sensor_response,"H.xml")
 #
 yCalc
 #
 Compare( geo_ref, y_geo, 1e-5 )
 
-# Some deviation expected here for *y*
+# Results for *y* should not be identical, but fairly close
 Compare( y, y_ref, 0.01 )
 
 # reset y_ref
 Copy( y_ref, y )
 
 
+
 # Repeat with rectangular mblock_dlos_grid
 #
-mblock_dlos_gridUniformRectangular( spacing=0.2, za_width=2, aa_width=2, centre=1 )
+mblock_dlos_gridUniformRectangular( spacing=0.2, za_width=1.6, aa_width=1.6, centre=1 )
 sensor_responseInit
 sensor_responseAntenna(option_2d = "interp_response")
 sensor_checkedCalc
@@ -219,5 +221,19 @@ Compare( geo_ref, y_geo, 1e-5 )
 
 # *y*should basically be identical
 Compare( y, y_ref, 1e-6 )
+
+
+# Repeat with gridded_dlos option
+#
+sensor_responseInit
+sensor_responseAntenna(option_2d = "gridded_dlos")
+sensor_checkedCalc
+#
+yCalc
+#
+Compare( geo_ref, y_geo, 1e-5 )
+
+# Results for *y* should not be identical, but fairly close
+Compare( y, y_ref, 0.01 )
 
 }
