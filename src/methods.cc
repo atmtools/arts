@@ -19847,8 +19847,11 @@ void define_md_data_raw() {
       DESCRIPTION(
           "Calculates *water_p_eq_field* according to Murphy and Koop, 2005.\n"
           "\n"
-          "The saturation pressure is set to the one with respect to water at\n"
-          "temperatures >= 0C, and to the one with respect to ice for <0C.\n"
+          "Default is to set the saturation pressure is set to the one with\n"
+          "respect to water at temperatures >= 0C, and to the one with\n"
+          "respect to ice for <0C. The GIN *only_liquid* allows you to apply\n"
+          "the liquid value at all temperatures.\n"
+          "\n"
           "\n"
           "The saturation pressure with respect to liquid and ice water is\n"
           "calculated according to Eq. 10 and 7, respectively, of:\n"
@@ -19861,10 +19864,10 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("t_field"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
+      GIN("only_liquid"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("0"),
+      GIN_DESC("Set to 1 to use liquid saturation pressure at all temperatures.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("vmr_fieldSetConstant"),
