@@ -238,16 +238,14 @@ As explained in the `Numerical Recipes'
 \citep{numerical_recipes_C:97}, 2D bi-linear interpolation means, that
 the interpolated value is a weighted average of the original field at
 the four corner points of the grid square in which the interpolation
-point is located. For simplicity, we label the four corner points
-counterclockwise, starting from the lower left point (Figure
-\ref{fig:interpolation:square}).  Then the interpolated value is given
-by:
+point is located. Taking the corner points in the order indicated in Figure
+\ref{fig:interpolation:square}, the interpolated value is given by:
 \begin{eqnarray}
   y(t,u)
   &=& (1-t)*(1-u)*y_1 \nonumber \\
   & & \mbox{} + t*(1-u)*y_2 \nonumber \\
-  & & \mbox{} + t*u*y_3 \nonumber \\
-  & & \mbox{} + (1-t)*u*y_4 \nonumber \\
+  & & \mbox{} + (1-t)*u*y_3 \nonumber \\
+  & & \mbox{} + t*u*y_4 \nonumber \\
   &=& w_1*y_1 + w_2*y_2 + w_3*y_3 + w_4*y_4
 \label{eq:interpolation:weights}
 \end{eqnarray}
