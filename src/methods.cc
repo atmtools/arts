@@ -586,6 +586,25 @@ void define_md_data_raw() {
       GIN_TYPE("ArrayOfAbsorptionLines"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Line-array that removes lines from *abs_lines*.")));
+  
+  md_data_raw.push_back(create_mdrecord(
+    NAME("abs_linesDeleteBadF0"),
+      DESCRIPTION(
+          "Deletes all lines in *abs_lines* that have bad central frequencies\n"
+          "\n"
+          "If lower evaluates as true, deletes all lines with a frequency below f0.\n"
+          "Otherwise deletes all lines with a frequency above f0.\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines"),
+      GIN("f0", "lower"),
+      GIN_TYPE("Numeric", "Index"),
+      GIN_DEFAULT(NODEF, "1"),
+      GIN_DESC("Target frequency",
+               "Lower or upper flag (eval as boolean)")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesDeleteLinesWithUndefinedLocalQuanta"),

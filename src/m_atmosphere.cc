@@ -3714,7 +3714,7 @@ void z_surfaceConstantAltitude(Matrix& z_surface,
                                const Verbosity& verbosity) {
   CREATE_OUT3;
   out3 << "Setting surface to constant altitude of " << altitude << " m\n";
-  z_surface = Matrix(lat_grid.nelem(), lon_grid.nelem(), altitude);
+  z_surface = Matrix(lat_grid.nelem() ? lat_grid.nelem() : 1, lon_grid.nelem() ? lon_grid.nelem() : 1, altitude);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
