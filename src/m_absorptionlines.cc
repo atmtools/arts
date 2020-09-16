@@ -1121,6 +1121,27 @@ void abs_linesAppendWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAb
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesDeleteBadF0(ArrayOfAbsorptionLines& abs_lines, const Numeric& f0, const Index& lower, const Verbosity&)
+{
+  for (auto& lines: abs_lines) {
+    std::vector<Index> hits;
+    for (Index i=0; i<lines.NumLines(); i++) {
+      if (lower and lines.F0(i) < f0)
+        hits.push_back(i);
+      else if (not lower and lines.F0(i) > f0)
+        hits.push_back(i);
+    }
+    
+    // Remove the bad values (sort by descending firs)
+    std::sort(hits.begin(), hits.end());
+    while(not hits.empty()) {
+      lines.RemoveLine(hits.back());
+      hits.pop_back();
+    }
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesDeleteWithLines(ArrayOfAbsorptionLines& abs_lines, const ArrayOfAbsorptionLines& deleting_lines, const Verbosity&)
 {
   for (auto& dlines: deleting_lines) {
@@ -2488,6 +2509,25 @@ void abs_linesRemoveBand(ArrayOfAbsorptionLines& abs_lines,
 /////////////////////// Manipulation of other ARTS variables based on AbsorptionLines
 /////////////////////////////////////////////////////////////////////////////////////
 
+template <class T>
+std::vector<T> linspace(T s, T e, typename std::vector<T>::size_type count) noexcept {
+  std::vector<T> ls(count);
+  
+  if (count == 0) {
+    return ls;
+  } else if (count == 1) {
+    ls.front() = (e + s) / 2;
+    return ls;
+  } else {
+    const T step = (e - s) / T(count - 1);
+    ls.front() = s;
+    ls.back() = e;
+    for (typename std::vector<T>::size_type i = 1; i < count - 1; ++i)
+      ls[i] = s + step * T(i);
+    return ls;
+  }
+}
+                        
 /* Workspace method: Doxygen documentation will be auto-generated */
 void f_gridFromAbsorptionLines(Vector& f_grid,
                                const ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
@@ -2501,31 +2541,34 @@ void f_gridFromAbsorptionLines(Vector& f_grid,
   if (delta_f_low >= delta_f_upp) {
     throw std::runtime_error("The lower frequency delta has to be smaller "
                              "than the upper frequency delta");
-  } else if (num_freqs < 1) {
+  } else if (num_freqs == 0) {
     throw std::runtime_error("Need more than zero frequency points");
   } else if (n < 1) {
     throw std::runtime_error("No lines found.  Error?  Use *VectorSet* "
                              "to resize *f_grid*");
   }
   
-  f_grid.resize(n*num_freqs);
-  
-  Index i=0;
+  std::vector<Numeric> fout(0);
   for (auto& lines: abs_lines_per_species) {
     for (auto& band: lines) {
       for (Index k=0; k<band.NumLines(); k++) {
         if (num_freqs > 1) {
-          nlinspace(f_grid[Range(i, num_freqs)], band.F0(k)+delta_f_low, band.F0(k)+delta_f_upp, num_freqs);
+          auto ftmp = linspace<Numeric>(band.F0(k)+delta_f_low, band.F0(k)+delta_f_upp, std::vector<Numeric>::size_type(num_freqs));
+          for (auto& f: ftmp) {
+            if (f > 0) fout.push_back(f);
+          }
         } else {
-          f_grid[i] = band.F0(k);
+          fout.push_back(band.F0(k));
         }
-        i += num_freqs;
       }
     }
   }
   
-  auto tmp = MapToEigen(f_grid);
-  std::sort(tmp.data(), tmp.data()+tmp.size(), [](auto a, auto b){return a < b;});
+  std::sort(fout.begin(), fout.end());
+  fout.erase(std::unique(fout.begin(), fout.end()), fout.end());
+  f_grid.resize(fout.size());
+  for (Index i=0; i<f_grid.nelem(); i++)
+    f_grid[i] = fout[i];
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
