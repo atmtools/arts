@@ -15849,6 +15849,48 @@ void define_md_data_raw() {
                         "Azimuth angle of sensor line-of-sight.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("rte_poslosFromECEF"),
+      DESCRIPTION(
+          "Converts sensor position and LOS from ECEF to geocentric values.\n"
+          "\n"
+          "Works exactly as *sensor_poslosFromECEF* but places the output\n"
+          "in *rte_pos* and *rte_los*. Accordingly, the input can only cover\n"
+          "one combination of position and LOS.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("rte_pos", "rte_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("sensor_pos_ecef",
+         "sensor_los_ecef",
+         "refellipsoid" ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("rte_poslosFromGeodetic"),
+      DESCRIPTION(
+          "Converts sensor position and LOS from geodetic to geocentric values.\n"
+          "\n"
+          "Works exactly as *sensor_poslosFromGeodetic* but places the output\n"
+          "in *rte_pos* and *rte_los*. Accordingly, the input can only cover\n"
+          "one combination of position and LOS.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("rte_pos", "rte_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("sensor_pos_geodetic",
+         "sensor_los_geodetic",
+         "refellipsoid" ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("rte_posSet"),
       DESCRIPTION(
           "Sets *rte_pos* to the given co-ordinates.\n"
@@ -16716,6 +16758,54 @@ void define_md_data_raw() {
       GIN_TYPE("Matrix"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Target position, for each position in *sensor_pos*.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("sensor_poslosFromECEF"),
+      DESCRIPTION(
+          "Converts sensor position and LOS from ECEF to geocentric values.\n"
+          "\n"
+          "The geodetic position and line-of-sight (LOS) are defined by \n"
+          "*sensor_pos_ecef* and *sensor_los_ecef*. The later WSV is here\n"
+          "allowed to be empty (but gives an empty *sensor_los*). Otherwise \n"
+          "the number of rows in the two WSVs must agree.\n"
+          "\n"
+          "So far only 3D is handled.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("sensor_pos", "sensor_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("sensor_pos_ecef",
+         "sensor_los_ecef",
+         "refellipsoid" ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("sensor_poslosFromGeodetic"),
+      DESCRIPTION(
+          "Converts sensor position and LOS from geodetic to geocentric values.\n"
+          "\n"
+          "The geodetic position and line-of-sight (LOS) are defined by \n"
+          "*sensor_pos_geodetic* and *sensor_los_geodetic*. The later WSV\n"
+          "is here allowed to be empty (but gives an empty *sensor_los*).\n"
+          "Otherwise the number of rows in the two WSVs must agree.\n"
+          "\n"
+          "So far only 3D is handled.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("sensor_pos", "sensor_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("sensor_pos_geodetic",
+         "sensor_los_geodetic",
+         "refellipsoid" ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseAntenna"),
@@ -21013,6 +21103,23 @@ void define_md_data_raw() {
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Selected frequency resolution.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("y_geoToGeodetic"),
+      DESCRIPTION(
+          "Converts *y_geo* to hold geodetic values.\n"
+          "\n"
+          "Replaces geocentric values with corresponding geodetic ones.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("y_geo"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("y_geo", "refellipsoid"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("z_fieldFromHSE"),

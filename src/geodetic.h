@@ -112,6 +112,18 @@ void cart2poslos(Numeric& r,
                  const Numeric& za0,
                  const Numeric& aa0);
 
+void cart2poslos_plain(Numeric& r,
+                       Numeric& lat,
+                       Numeric& lon,
+                       Numeric& za,
+                       Numeric& aa,
+                       const Numeric& x,
+                       const Numeric& y,
+                       const Numeric& z,
+                       const Numeric& dx,
+                       const Numeric& dy,
+                       const Numeric& dz);
+
 void cart2sph(Numeric& r,
               Numeric& lat,
               Numeric& lon,
@@ -122,6 +134,13 @@ void cart2sph(Numeric& r,
               const Numeric& lon0,
               const Numeric& za0,
               const Numeric& aa0);
+
+void cart2sph_plain(Numeric& r,
+                    Numeric& lat,
+                    Numeric& lon,
+                    const Numeric& x,
+                    const Numeric& y,
+                    const Numeric& z);
 
 void distance3D(Numeric& l,
                 const Numeric& r1,
@@ -224,7 +243,7 @@ void sph2cart(Numeric& x,
               const Numeric& lat,
               const Numeric& lon);
 
-// coord transform
+// longitude functions
 
 void lon_shiftgrid(Vector& longrid_out,
                    ConstVectorView longrid_in,
@@ -232,4 +251,39 @@ void lon_shiftgrid(Vector& longrid_out,
 
 void cycle_lat_lon(Numeric& lat, Numeric& lon);
 
+// Functions involving geodetic latitude
+
+void geodetic2cart(Numeric& x,
+                   Numeric& y,
+                   Numeric& z,
+                   const Numeric& h,
+                   const Numeric& lat_gd,
+                   const Numeric& lon_gd,
+                   const Vector& refellipsoid );
+
+void geodeticposlos2cart(Numeric& x,
+                         Numeric& y,
+                         Numeric& z,
+                         Numeric& dx,
+                         Numeric& dy,
+                         Numeric& dz,
+                         const Numeric& h,
+                         const Numeric& lat_gd,
+                         const Numeric& lon_gd,
+                         const Numeric& za,
+                         const Numeric& aa,
+                         const Vector& refellipsoid );
+
+void cart2geodeticposlos(Numeric& h,
+                         Numeric& lat,
+                         Numeric& lon,
+                         Numeric& za,
+                         Numeric& aa,
+                         const Numeric& x,
+                         const Numeric& y,
+                         const Numeric& z,
+                         const Numeric& dx,
+                         const Numeric& dy,
+                         const Numeric& dz,
+                         const Vector& refellipsoid );
 #endif  // geodetic_h

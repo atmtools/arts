@@ -539,6 +539,45 @@ void cart2poslos(Numeric& r,
     }
   }
 }
+void cart2poslos_plain(Numeric& r,
+                       Numeric& lat,
+                       Numeric& lon,
+                       Numeric& za,
+                       Numeric& aa,
+                       const Numeric& x,
+                       const Numeric& y,
+                       const Numeric& z,
+                       const Numeric& dx,
+                       const Numeric& dy,
+                       const Numeric& dz) {
+  cart2sph_plain(r, lat, lon, x, y, z);
+
+
+  const Numeric latrad = DEG2RAD * lat;
+  const Numeric lonrad = DEG2RAD * lon;
+  const Numeric coslat = cos(latrad);
+  const Numeric sinlat = sin(latrad);
+  const Numeric coslon = cos(lonrad);
+  const Numeric sinlon = sin(lonrad);
+
+  const Numeric dr = coslat*coslon*dx + sinlat*dz + coslat*sinlon*dy;
+  const Numeric dlat = -sinlat*coslon/r*dx + coslat/r*dz - sinlat*sinlon/r*dy;
+  const Numeric dlon = -sinlon/coslat/r*dx + coslon/coslat/r*dy;
+
+  za = acos( dr );
+  aa = RAD2DEG * acos( r * dlat / sin( za ) );
+  za *= RAD2DEG;
+
+  // Corrections of aa
+  if (std::isnan(aa)) {
+    if (dlat >= 0)
+      aa = 0;
+    else
+      aa = 180;
+  } else if (dlon < 0) {
+      aa = -aa;
+  }
+}
 
 //! cart2sph
 /*! 
@@ -599,6 +638,18 @@ void cart2sph(Numeric& r,
     }
   }
 }
+void cart2sph_plain(Numeric& r,
+                    Numeric& lat,
+                    Numeric& lon,
+                    const Numeric& x,
+                    const Numeric& y,
+                    const Numeric& z) {
+  r = sqrt(x * x + y * y + z * z);
+  lat = RAD2DEG * asin(z / r);
+  lon = RAD2DEG * atan2(y, x);
+}
+
+
 
 //! distance3D
 /*! 
@@ -1252,8 +1303,10 @@ void sph2cart(Numeric& x,
   z = r * sin(latrad);
 }
 
+
+
 /*===========================================================================
-  === coordinate transformations
+  === Fixes for longitudes
   ===========================================================================*/
 
 //! lon_shiftgrid
@@ -1320,4 +1373,218 @@ void cycle_lat_lon(Numeric& lat, Numeric& lon) {
   while (lon > 360.0) {
     lon -= 360.0;
   }
+}
+
+
+
+/*===========================================================================
+  === Functions involving geodetic latitudes (based on functions in Atmlab)
+  ===========================================================================*/
+
+//! Conversion from cartesian to geodetic coordinates
+/* 
+ * \param[out]  h   Geodetic altitude
+ * \param[out]  la  Geodetic latitude
+ * \param[out]  lon Longitude
+ * \param[in] x   x-coordinate (ECEF)
+ * \param[in] y   y-coordinate (ECEF)
+ * \param[in] z   z-coordinate (ECEF)
+ * \param[in]  refellipsoid As the WSV with the same name.
+ *
+ * \author Patrick Eriksson
+ * \date   2020-09-17
+*/
+void cart2geodetic(Numeric& h,
+                   Numeric& lat,
+                   Numeric& lon,
+                   const Numeric& x,
+                   const Numeric& y,
+                   const Numeric& z,
+                   const Vector& refellipsoid ) {
+  // Use geocentric function if geoid is spherical
+  if (refellipsoid[1] < 1e-7)
+    { Numeric r;
+      cart2sph_plain(r, lat, lon, x, y, z);
+      h = r - refellipsoid[0];
+    }
+  else
+    {
+      lon = RAD2DEG * atan2(y,x);
+
+      const Numeric sq = sqrt(x*x+y*y);
+      Numeric B0 = atan2(z,sq);
+      Numeric B = B0-1, N;
+      const Numeric e2 = refellipsoid[1]*refellipsoid[1];
+      
+      while (abs(B-B0)>1e-10) {
+        N = refellipsoid[0] / sqrt(1-e2*sin(B0)*sin(B0));
+        h = sq / cos(B0) - N;
+        B = B0;
+        B0 = atan((z/sq) * 1/(1-e2*N/(N+h)));
+      }
+      lat = RAD2DEG * B;
+    }
+}
+
+
+
+//! Conversion from geodetic to cartesian coordinates
+/* 
+ * \param[out] x   x-coordinate (ECEF)
+ * \param[out] y   y-coordinate (ECEF)
+ * \param[out] z   z-coordinate (ECEF)
+ * \param[in]  h   Geodetic altitude
+ * \param[in]  lat Geodetic latitude
+ * \param[in]  lon Longitude
+ * \param[in]  refellipsoid As the WSV with the same name.
+ *
+ * \author Patrick Eriksson
+ * \date   2020-09-17
+*/
+void geodetic2cart(Numeric& x,
+                   Numeric& y,
+                   Numeric& z,
+                   const Numeric& h,
+                   const Numeric& lat,
+                   const Numeric& lon,
+                   const Vector& refellipsoid ) {
+  // Use geocentric function if geoid is spherical
+  if (refellipsoid[1] < 1e-7)
+    { sph2cart(x, y, z, h+refellipsoid[0], lat, lon); }
+  else
+    {
+      const Numeric a = refellipsoid[0];
+      const Numeric e2 = refellipsoid[1]*refellipsoid[1];
+      const Numeric sinlat = sin(DEG2RAD*lat);
+      const Numeric coslat = cos(DEG2RAD*lat);
+      const Numeric N = a / sqrt(1 - e2*sinlat*sinlat);
+
+      x = (N + h) * coslat * cos(DEG2RAD*lon);
+      y = (N + h) * coslat * sin(DEG2RAD*lon);
+      z = (N*(1 - e2) + h) * sinlat;
+    }
+}
+
+
+
+//! geodeticposlos2cart
+/*! 
+   As *poslos2cart* but starts with geodetic position and LOS.
+
+   \param   x     Out: x-coordinate of observation position.
+   \param   y     Out: y-coordinate of observation position.
+   \param   z     Out: z-coordinate of observation position.
+   \param   dx    Out: x-part of LOS unit vector.
+   \param   dy    Out: y-part of LOS unit vector.
+   \param   dz    Out: z-part of LOS unit vector.
+   \param   h     Geodetic altitude of observation position.
+   \param   lat   Geodetic latitude of observation position.
+   \param   lon   Longitude of observation position.
+   \param   za    LOS zenith angle at observation position.
+   \param   aa    LOS azimuth angle at observation position.
+
+   \author Patrick Eriksson
+   \date   2020-09-17
+*/
+void geodeticposlos2cart(Numeric& x,
+                         Numeric& y,
+                         Numeric& z,
+                         Numeric& dx,
+                         Numeric& dy,
+                         Numeric& dz,
+                         const Numeric& h,
+                         const Numeric& lat,
+                         const Numeric& lon,
+                         const Numeric& za,
+                         const Numeric& aa,
+                         const Vector& refellipsoid ) {
+  assert(abs(lat) <= 90);
+  assert(za >= 0 && za <= 180);
+
+  // lat = +-90
+  // For lat = +- 90 the azimuth angle gives the longitude along which the
+  // LOS goes
+  // At the poles, no difference between geocentric and geodetic zenith
+  if (abs(lat) > POLELAT) {
+    const Numeric s = sign(lat);
+
+    x = 0;
+    y = 0;
+    z = s * (h + refellipsoid[0]*sqrt(1-refellipsoid[1]*refellipsoid[1]));
+
+    dz = s * cos(DEG2RAD * za);
+    dx = sin(DEG2RAD * za);
+    dy = dx * sin(DEG2RAD * aa);
+    dx = dx * cos(DEG2RAD * aa);
+  }
+
+  else {      
+    const Numeric coslat = cos(DEG2RAD * lat);
+    const Numeric sinlat = sin(DEG2RAD * lat);
+    const Numeric coslon = cos(DEG2RAD * lon);
+    const Numeric sinlon = sin(DEG2RAD * lon);
+
+    geodetic2cart(x, y, z, h, lat, lon, refellipsoid);
+
+    Numeric de, dn, du;
+    zaaa2enu(de, dn, du, za, aa);  
+
+    // See
+    // https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_ECEF_to_ENU
+    dx = -sinlon*de - sinlat*coslon*dn + coslat*coslon*du;  
+    dy =  coslon*de - sinlat*sinlon*dn + coslat*sinlon*du;  
+    dz =              coslat*       dn + sinlat*       du;  
+  }
+}
+
+
+
+//! cart2geodeticposlos
+/*! 
+   The inverse of *geodeticposlos2cart*.
+
+   \param   h     Out: Geodetic altitude.
+   \param   lat   Out: Geodetic latitude
+   \param   lon   Out: Longitude
+   \param   za    Out: LOS zenith angle
+   \param   aa    Out: LOS azimuth angle
+   \param   x     x-coordinate
+   \param   y     y-coordinate
+   \param   z     z-coordinate
+   \param   dx    x-part of LOS unit vector.
+   \param   dy    y-part of LOS unit vector.
+   \param   dz    z-part of LOS unit vector.
+
+   \author Patrick Eriksson
+   \date   2020-09-17
+*/
+void cart2geodeticposlos(Numeric& h,
+                         Numeric& lat,
+                         Numeric& lon,
+                         Numeric& za,
+                         Numeric& aa,
+                         const Numeric& x,
+                         const Numeric& y,
+                         const Numeric& z,
+                         const Numeric& dx,
+                         const Numeric& dy,
+                         const Numeric& dz,
+                         const Vector& refellipsoid ) {
+
+  cart2geodetic(h, lat, lon, x, y, z, refellipsoid );
+  
+  const Numeric latrad = DEG2RAD * lat;
+  const Numeric lonrad = DEG2RAD * lon;
+  const Numeric coslat = cos(latrad);
+  const Numeric sinlat = sin(latrad);
+  const Numeric coslon = cos(lonrad);
+  const Numeric sinlon = sin(lonrad);
+
+  // See
+  // https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_ECEF_to_ENU
+  const Numeric de =        -sinlon*dx +        coslon*dy;  
+  const Numeric dn = -sinlat*coslon*dx - sinlat*sinlon*dy + coslat*dz;  
+  const Numeric du =  coslat*coslon*dx + coslat*sinlon*dy + sinlat*dz;  
+
+  enu2zaaa(za, aa, de, dn, du);
 }
