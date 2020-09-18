@@ -52,6 +52,7 @@ void abs_hitran_relmat_dataReadHitranRelmatDataAndLines(HitranRelaxationMatrixDa
   else if (mode == "SDVP") intmode = lm_hitran_2017::ModeOfLineMixing::SDVP;
   else if (mode == "SDVP_Y") intmode = lm_hitran_2017::ModeOfLineMixing::SDVP_Y;
   else if (mode == "FullW") intmode = lm_hitran_2017::ModeOfLineMixing::FullW;
+  else if (mode == "VP_W") intmode = lm_hitran_2017::ModeOfLineMixing::VP_W;
   else throw std::runtime_error("Bad mode, see method instruction for valid arguments");
   
   if (abs_species.nelem() not_eq abs_lines_per_species.nelem())
