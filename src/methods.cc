@@ -8360,9 +8360,8 @@ void define_md_data_raw() {
       DESCRIPTION(
           "Switch between the elements of *iy_surface_agenda_array*.\n"
           "\n"
-          "This method simply calls the agenda matching *surface_type* and\n"
-          "returns the results. That is, the agenda in *iy_surface_agenda_array*\n"
-          "with index *surface_type* (0-based) is called.\n"),
+          "This method calls the agendas matching *surface_types* and\n"
+          "sums up the iy-data of each type.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("iy", "diy_dx"),
       GOUT(),
@@ -8380,8 +8379,9 @@ void define_md_data_raw() {
          "rtp_los",
          "rte_pos2",
          "iy_surface_agenda_array",
-         "surface_type",
-         "surface_type_aux"),
+         "surface_types",
+         "surface_types_aux",
+         "surface_types_weights" ),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -18425,9 +18425,12 @@ void define_md_data_raw() {
       DESCRIPTION(
           "Switch between the elements of *surface_rtprop_agenda_array*.\n"
           "\n"
-          "This method simply calls the agenda matching *surface_type* and\n"
-          "returns the results. That is, the agenda in *surface_rtprop_agenda_array*\n"
-          "with index *surface_type* (0-based) is called.\n"),
+          "This method requires that *surface_types* have length 1, in\n"          
+          "contrast to *iySurfaceCallAgendaX*\n"
+          "\n"
+          "This method obtains the surface properties as defined by the\n"
+          "agenda in *surface_rtprop_agenda_array* corresponding to\n"
+          "*surface_types*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_skin_t",
           "surface_los",
@@ -18440,8 +18443,9 @@ void define_md_data_raw() {
          "rtp_pos",
          "rtp_los",
          "surface_rtprop_agenda_array",
-         "surface_type",
-         "surface_type_aux"),
+         "surface_types",
+         "surface_types_aux",
+         "surface_types_weights" ),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -18541,19 +18545,30 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_typeInterpTypeMask"),
       DESCRIPTION(
-          "Closest neighbour interpolation of surface type mask.\n"
+          "Interpolation of surface type mask.\n"
           "\n"
-          "The method determines the surface type at the position of concern\n"
+          "The method determines the surface type(s) at the position of concern\n"
           "(*rtp_pos*) from the provided type mask (*surface_type_mask*).\n"
-          "The closest point in the mask is selected. The surface type\n"
-          "is set to the integer part of the value at the found point, while\n"
-          "*surface_type_aux* is set to the reminder. For example, if the\n"
-          "mask value at closest point is 2.23, *surface_type* is set to 2\n"
-          "*surface_type_aux* becomes 0.23.\n"
+          "\n"
+          "For the default interpolation method, \"nearest\", the closest point\n"
+          "in the mask is selected. The surface type is set to the integer part\n"
+          "of the value at the found point, while *surface_types_aux* is set to\n"
+          "the reminder. For example, if the mask value at closest point is 2.23,\n"
+          "*surface_types* is set to 2 and *surface_type_aux* becomes 0.23.\n"
+          "*surface_types_weights* is set to 1. For this option, all output\n"
+          "arguments have length 1.\n"
+          "\n"
+          "With the interpolation set to \"linear\", the output arguments are\n"
+          "set up to describe a mixture of types. The mask values at the grid cell\n"
+          "corner points are determined, and type and aux values are extracted as\n"
+          "above. The weight associated with each type is calculated as for a\n"
+          "standard bi-linear interpolation. If *rte_pos* is exactly at the centre\n"
+          "of the grid cell, and three corner points match type 0 and one point\n"
+          "type 1, type 0 and 1 get weight 0.75 and 0.25 respectively.\n"
           "\n"
           "The altitude in *rtp_pos* is ignored.\n"),
       AUTHORS("Patrick Eriksson"),
-      OUT("surface_type", "surface_type_aux"),
+      OUT("surface_types", "surface_types_aux", "surface_types_weights"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -18563,10 +18578,10 @@ void define_md_data_raw() {
          "lon_true",
          "rtp_pos",
          "surface_type_mask"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
+      GIN("method"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT("nearest"),
+      GIN_DESC("Interpolation method (see above).")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("SurfaceDummy"),

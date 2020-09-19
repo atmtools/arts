@@ -165,6 +165,7 @@ void InterpGriddedField2ToPosition(Numeric& outvalue,
     ostringstream os;
     os << "The data in *gfield2* must span a geographical region. That is,\n"
        << "the latitude and longitude grids must have a length >= 2.";
+    throw runtime_error(os.str());
   }
 
   const Vector& GFlat = gfield2.get_numeric_grid(gfield_latID);
@@ -192,6 +193,7 @@ void InterpGriddedField2ToPosition(Numeric& outvalue,
   interpweights(itw, gp_lat, gp_lon);
   outvalue = interp(itw, gfield2.data, gp_lat, gp_lon);
 }
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void InterpSurfaceFieldToPosition(Numeric& outvalue,
@@ -255,35 +257,68 @@ void iySurfaceCallAgendaX(Workspace& ws,
                           const Vector& rtp_los,
                           const Vector& rte_pos2,
                           const ArrayOfAgenda& iy_surface_agenda_array,
-                          const Index& surface_type,
-                          const Numeric& surface_type_aux,
+                          const ArrayOfIndex& surface_types,
+                          const Vector& surface_types_aux,
+                          const Vector& surface_types_weights,
                           const Verbosity&) {
-  if (surface_type < 0)
-    throw runtime_error("*surface_type* is not allowed to be negative.");
-  if (surface_type >= iy_surface_agenda_array.nelem()) {
-    ostringstream os;
-    os << "*iy_surface_agenda_array* has only "
-       << iy_surface_agenda_array.nelem()
-       << " elements,\n while you have selected element " << surface_type;
-    throw runtime_error(os.str());
-  }
+  
+  const Index ntypes = surface_types.nelem();
+  if (ntypes < 1)
+    throw runtime_error("*surface_types* is empty!");
 
-  iy_surface_agenda_arrayExecute(ws,
-                                 iy,
-                                 diy_dx,
-                                 surface_type,
-                                 iy_unit,
-                                 iy_transmission,
-                                 iy_id,
-                                 cloudbox_on,
-                                 jacobian_do,
-                                 iy_main_agenda,
-                                 f_grid,
-                                 rtp_pos,
-                                 rtp_los,
-                                 rte_pos2,
-                                 surface_type_aux,
-                                 iy_surface_agenda_array);
+  // Loop surface types and sum up
+  //
+  Numeric wtot = 0;
+  //
+  for (Index t=0; t<ntypes; t++ ) {
+
+    if (surface_types[t] < 0)
+      throw runtime_error(
+                  "No element in *surface_types* is allowed to be negative.");
+    if (surface_types[t] >= iy_surface_agenda_array.nelem()) {
+      ostringstream os;
+      os << "*iy_surface_agenda_array* has only "
+         << iy_surface_agenda_array.nelem()
+         << " elements,\n while you have selected element " << surface_types[t];
+      throw runtime_error(os.str());
+    }
+
+    Matrix iy1;
+    ArrayOfTensor3 diy_dx1;
+    
+    iy_surface_agenda_arrayExecute(ws,
+                                   iy1,
+                                   diy_dx1,
+                                   surface_types[t],
+                                   iy_unit,
+                                   iy_transmission,
+                                   iy_id,
+                                   cloudbox_on,
+                                   jacobian_do,
+                                   iy_main_agenda,
+                                   f_grid,
+                                   rtp_pos,
+                                   rtp_los,
+                                   rte_pos2,
+                                   surface_types_aux[t],
+                                   iy_surface_agenda_array);
+
+    iy1 *= surface_types_weights[t];
+    for (Index i=0; diy_dx1.nelem(); i++ )
+      diy_dx1[i] *= surface_types_weights[t];
+    wtot += surface_types_weights[t];;
+      
+    if (t==0) {
+      iy     = iy1;
+      diy_dx = diy_dx1;
+    } else {
+      iy     += iy1;
+      for (Index i=0; diy_dx1.nelem(); i++ )
+        diy_dx[i] += diy_dx1[i];      
+    }
+  }
+  if (abs(wtot-1)>1e-4)
+    throw runtime_error("Sum of *surface_types_weights* deviates from 1.");  
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1873,6 +1908,7 @@ void surface_complex_refr_indexFromGriddedField5(
     os << "The data in *complex_refr_index_field* must span a geographical "
        << "region. That is,\nthe latitude and longitude grids must have a "
        << "length >= 2.";
+    throw runtime_error(os.str());
   }
   //
   if (nn != 2) {
@@ -1880,6 +1916,7 @@ void surface_complex_refr_indexFromGriddedField5(
     os << "The data in *complex_refr_index_field* must have exactly two "
        << "pages. One page each\nfor the real and imaginary part of the "
        << "complex refractive index.";
+    throw runtime_error(os.str());
   }
 
   const Vector& GFlat = complex_n_field.get_numeric_grid(gfield_latID);
@@ -2222,14 +2259,16 @@ void surface_reflectivityFromSurface_rmatrix(
 */
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surface_typeInterpTypeMask(Index& surface_type,
-                                Numeric& surface_type_aux,
+void surface_typeInterpTypeMask(ArrayOfIndex& surface_types,
+                                Vector& surface_types_aux,
+                                Vector& surface_types_weights,
                                 const Index& atmosphere_dim,
                                 const Vector& lat_grid,
                                 const Vector& lat_true,
                                 const Vector& lon_true,
                                 const Vector& rtp_pos,
                                 const GriddedField2& surface_type_mask,
+                                const String& method,
                                 const Verbosity&) {
   // Set expected order of grids
   Index gfield_latID = 0;
@@ -2250,8 +2289,9 @@ void surface_typeInterpTypeMask(Index& surface_type,
   if (nlat < 2 || nlon < 2) {
     ostringstream os;
     os << "The data in *surface_type_mask* must span a geographical "
-       << "region. That is,\nthe latitude and longitude grids must have a "
-       << "length >= 2.";
+       << "region. Accordingly,\nthe latitude and longitude grids must "
+       << "both have a length >= 2.";
+    throw runtime_error(os.str());
   }
 
   const Vector& GFlat = surface_type_mask.get_numeric_grid(gfield_latID);
@@ -2270,26 +2310,92 @@ void surface_typeInterpTypeMask(Index& surface_type,
   chk_if_in_range("rtp_pos.lat", lat[0], GFlat[0], GFlat[nlat - 1]);
   chk_if_in_range("rtp_pos.lon", lon[0], lon_shifted[0], lon_shifted[nlon - 1]);
 
-  // Use grid positions to find closest point
+  // Grid positions
   GridPos gp_lat, gp_lon;
   gridpos(gp_lat, GFlat, lat[0]);
   gridpos(gp_lon, lon_shifted, lon[0]);
+  
+  if (method == "nearest" ) {
+    // Extract closest point
+    Index ilat, ilon;
+    if (gp_lat.fd[0] < 0.5) {
+      ilat = gp_lat.idx;
+    } else {
+      ilat = gp_lat.idx + 1;
+    }
+    if (gp_lon.fd[0] < 0.5) {
+      ilon = gp_lon.idx;
+    } else {
+      ilon = gp_lon.idx + 1;
+    }
+    //
+    surface_types.resize(1);
+    surface_types_aux.resize(1);
+    surface_types_weights.resize(1);
+    surface_types[0] = (Index)floor(surface_type_mask.data(ilat, ilon));
+    surface_types_aux[0] = surface_type_mask.data(ilat, ilon) -
+                                              Numeric(surface_types[0]);
+    surface_types_weights[0] = 1.0;
+  }
+  
+  else if (method == "linear" ) {
+    // Determine types involved
+    ArrayOfIndex types0(4), types(4);
+    Index ntypes = 1;
+    //
+    types0[0] = (Index)floor(surface_type_mask.data(gp_lat.idx,gp_lon.idx));
+    types0[1] = (Index)floor(surface_type_mask.data(gp_lat.idx,gp_lon.idx+1));
+    types0[2] = (Index)floor(surface_type_mask.data(gp_lat.idx+1,gp_lon.idx));
+    types0[3] = (Index)floor(surface_type_mask.data(gp_lat.idx+1,gp_lon.idx+1));
+    //
+    types[0] = types0[0];
+    for (Index t=1; t<4; t++) {
+      bool unique = true;
+      for (Index n=0; n<ntypes && unique; n++) 
+        if (types0[t] == types[n] ) { unique = false; }
+      if (unique) {
+        types[ntypes] = types0[t];
+        ntypes += 1;
+      }
+    }
+    //
+    surface_types.resize(ntypes);
+    surface_types_aux.resize(ntypes);
+    surface_types_weights.resize(ntypes);
+    
+    // Interpolation weights
+    Vector itw(4);
+    interpweights(itw, gp_lat, gp_lon);
 
-  // Extract closest point
-  Index ilat, ilon;
-  if (gp_lat.fd[0] < 0.5) {
-    ilat = gp_lat.idx;
-  } else {
-    ilat = gp_lat.idx + 1;
+    // Determine weight for each type, and make an interpolation of aux value
+    for (Index t=0; t<ntypes; t++ ) {
+      Numeric wtot = 0, auxtot = 0;
+      Numeric ntype = (Numeric)types[t];
+      if (types[t] == types0[0]) { wtot += itw[0];
+        auxtot += itw[0]*(surface_type_mask.data(gp_lat.idx,gp_lon.idx)-ntype);
+      };
+      if (types[t] == types0[1]) { wtot += itw[1];
+        auxtot += itw[1]*(surface_type_mask.data(gp_lat.idx,gp_lon.idx+1)-ntype);
+      };
+      if (types[t] == types0[2]) { wtot += itw[2];
+        auxtot += itw[2]*(surface_type_mask.data(gp_lat.idx+1,gp_lon.idx)-ntype);
+      };
+      if (types[t] == types0[3]) { wtot += itw[3];
+        auxtot += itw[3]*(surface_type_mask.data(gp_lat.idx+1,gp_lon.idx+1)-ntype);
+      };
+      //
+      surface_types[t] = types[t];
+      surface_types_aux[t] = auxtot / wtot;
+      surface_types_weights[t] = wtot;
+    }
   }
-  if (gp_lon.fd[0] < 0.5) {
-    ilon = gp_lon.idx;
-  } else {
-    ilon = gp_lon.idx + 1;
+
+  else {
+    ostringstream os;
+    os << "The allowed options for *method are: \"nearest\" and \"linear\",\n"
+       << "but you have selected: " << method;
+    throw runtime_error(os.str());
   }
-  //
-  surface_type = (Index)floor(surface_type_mask.data(ilat, ilon));
-  surface_type_aux = surface_type_mask.data(ilat, ilon) - Numeric(surface_type);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -2302,29 +2408,39 @@ void surface_rtpropCallAgendaX(Workspace& ws,
                                const Vector& rtp_pos,
                                const Vector& rtp_los,
                                const ArrayOfAgenda& surface_rtprop_agenda_array,
-                               const Index& surface_type,
-                               const Numeric& surface_type_aux,
+                               const ArrayOfIndex& surface_types,
+                               const Vector& surface_types_aux,
+                               const Vector& surface_types_weights,
                                const Verbosity&) {
-  if (surface_type < 0)
+  if (surface_types.nelem() != 1) {
+    ostringstream os;
+    os << "This method requires that *surface_types* have length 1.\n"
+       << "If you are trying to apply a mixture model, you have to use\n"
+       << "a setup based on *iySurfaceCallAgendaX* instead.";
+    throw runtime_error(os.str());
+  }
+  if (surface_types[0] < 0)
     throw runtime_error("*surface_type* is not allowed to be negative.");
-  if (surface_type >= surface_rtprop_agenda_array.nelem()) {
+  if (surface_types[0] >= surface_rtprop_agenda_array.nelem()) {
     ostringstream os;
     os << "*surface_rtprop_agenda_array* has only "
        << surface_rtprop_agenda_array.nelem()
-       << " elements,\n while you have selected element " << surface_type;
+       << " elements,\n while you have selected element " << surface_types[0];
     throw runtime_error(os.str());
   }
+  if (abs(surface_types_weights[0]-1)>1e-4)
+    throw runtime_error("Sum of *surface_types_weights* deviates from 1.");  
 
   surface_rtprop_agenda_arrayExecute(ws,
                                      surface_skin_t,
                                      surface_emission,
                                      surface_los,
                                      surface_rmatrix,
-                                     surface_type,
+                                     surface_types[0],
                                      f_grid,
                                      rtp_pos,
                                      rtp_los,
-                                     surface_type_aux,
+                                     surface_types_aux[0],
                                      surface_rtprop_agenda_array);
 }
 

@@ -790,7 +790,7 @@ void Workspace::define_wsv_data() {
       DESCRIPTION(
           "OK-flag for the geometry of the model atmosphere.\n"
           "\n"
-          "The variable flags that reference ellipsoid, the surface and *z_field*\n"
+          "The variable flags that reference ellipsoid, the surfae and *z_field*\n"
           "contain formally correct values. Includes for example, that *z_field*\n"
           "holds strictly increasing values at each geographical position.\n"
           "\n"
@@ -4923,7 +4923,7 @@ void Workspace::define_wsv_data() {
 
   wsv_data.push_back(
       WsvRecord(NAME("surface_type"),
-                DESCRIPTION("Local surface type value.\n"
+                DESCRIPTION("Local, single surface type value.\n"
                             "\n"
                             "See *surface_type_mask* for details.\n"),
                 GROUP("Index")));
@@ -4963,6 +4963,29 @@ void Workspace::define_wsv_data() {
           "      Matrix data [N_lat][N_lon]\n"),
       GROUP("GriddedField2")));
 
+  wsv_data.push_back(
+      WsvRecord(NAME("surface_types"),
+          DESCRIPTION(
+            "This and associated WSVs describe a mixture of surface types.\n"
+            "\n"
+            "Holds a number of *surface_type*.\n"),
+          GROUP("ArrayOfIndex")));
+
+  wsv_data.push_back(
+      WsvRecord(NAME("surface_types_aux"),
+          DESCRIPTION(
+            "Auxiliary variable to *surface_types*.\n"
+            "\n"
+            "Holds a number of *surface_type_aux*..\n"),
+           GROUP("Vector")));
+
+  wsv_data.push_back(
+      WsvRecord(NAME("surface_types_weights"),
+          DESCRIPTION("Auxiliary variable to *surface_type*.\n"
+                      "\n"
+                      "Holds the relative weight of each surface type.\n"),
+          GROUP("Vector")));
+  
   wsv_data.push_back(WsvRecord(
       NAME("telsem_atlases"),
       DESCRIPTION(
