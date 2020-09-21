@@ -2090,18 +2090,6 @@ void read(HitranRelaxationMatrixData& hitran, ArrayOfAbsorptionLines& bands, con
                           lsmodel,
                           inner_lower,
                           inner_upper};
-
-//       // Calculations of internal dipole and populations are approximately
-//       auto jf = bands[i].LowerQuantumNumber(j, QuantumNumberType::J);
-//       auto ji = bands[i].UpperQuantumNumber(j, QuantumNumberType::J);
-//       auto lf = bands[i].LowerQuantumNumber(j, QuantumNumberType::l1);
-//       auto li = bands[i].UpperQuantumNumber(j, QuantumNumberType::l1);
-//       Numeric dip0 = pow(-1, lf+jf) * sqrt(2*jf+1) * wigner3j(ji, 1_rat, jf, li, lf-li, -lf);
-//       const Numeric pop0 = (bands[i].Line(j).g_upp() / qt0_co2)*boltzman_factor(296, bands[i].Line(j).E0());
-//       std::cout << ((jf-ji) < 0 ? '-':'+') << abs(jf-ji)<<' ' <<li<<' '<<lf
-//           <<' '<<std::abs(Index((cmn.DipoRigid.Dipo0(j, i) / dip0 - 1) * 1'000'000)) << " ppm absolute error;"
-//           <<' '<<std::abs(Index((cmn.PopTrf.PopuT0(j, i) / pop0 - 1) * 1'000'000)) << " ppm absolute error;"
-//           <<'\n';
     }
   }
 }

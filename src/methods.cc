@@ -429,14 +429,14 @@ void define_md_data_raw() {
         "The lines will be changed such that ALL CO2 lines are truncated\n"
         "before adding the HITRAN line mixing lines.\n"
         "\n"
-        "The available modes are such that \"VP*\" uses Voigt profiler and\n"
+        "The available modes are such that \"VP*\" uses Voigt profiles and\n"
         "\"SDVP*\" uses speed-dependent Voigt profiles, where the \"_Y\"\n"
         "signifies if Rosenkranz-style line mixing is considered or not, and\n"
-        "the \"_W\" at the end signifies that full calculations are used.  At\n"
+        "the \"W\" at the end signifies that full calculations are used.  At\n"
         "the line mixing limit, line mixing is simply turned off.\n"
         "\n"
         "The \"FullW\" mode uses Lorentzian calculations with the full relaxation\n"
-        "matrix until the line mixing limit is reached when it switches to Voigt.\n"
+        "matrix until the line mixing limit is reached and it switches to Voigt.\n"
         "\n"
         "The HITRAN LM data is available for download at:\n"
         "https://hitran.org/supplementary/\n"
@@ -449,11 +449,11 @@ void define_md_data_raw() {
       IN("abs_lines_per_species", "abs_species"),
       GIN("basedir", "linemixinglimit", "fmin", "fmax", "stot", "mode"),
       GIN_TYPE("String", "Numeric", "Numeric", "Numeric", "Numeric", "String"),
-      GIN_DEFAULT(NODEF, "-1", "0", "1e99", "0", "FullW"),
+      GIN_DEFAULT(NODEF, "-1", "0", "1e99", "0", "VP_W"),
       GIN_DESC("Direcory where the linemixing data is to be found",
                "Line mixing limit as defined by *AbsorptionLines*",
                "Minimum frequency to read from",
-               "Maximum frequency to read from",
+               "Maximum frequency to read until",
                "Minimum integrated band strength to consider",
                "Mode of calculations.  The options are: \"VP\", \"VP_Y\", \"SDVP\", \"SDVP_Y\", \"FullW\", and \"VP_W\""
               )));
