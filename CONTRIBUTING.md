@@ -86,7 +86,7 @@ If you are using different computers and pushed changes to your fork on one, you
 can update your local branch on the other computer with:
 
 ```
-$ git pull --rebase origin
+$ git pull --rebase origin BRANCH_NAME
 ```
 
 ## Pull request
