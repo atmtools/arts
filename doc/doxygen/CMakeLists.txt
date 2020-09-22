@@ -4,7 +4,7 @@ if (DOXYGEN_FOUND)
 
 add_custom_command (
   OUTPUT Doxyfile
-  COMMAND ${CMAKE_COMMAND} -D "ARTS_BINARY_DIR:STRING=\"${CMAKE_BINARY_DIR}\"" -D "ARTS_SOURCE_DIR:STRING=\"${CMAKE_SOURCE_DIR}\"" -P ${CMAKE_SOURCE_DIR}/cmake/scripts/update_doxyfile.cmake
+  COMMAND ${CMAKE_COMMAND} -D "ARTS_BINARY_DIR:STRING=\"${ARTS_BINARY_DIR}\"" -D "ARTS_SOURCE_DIR:STRING=\"${ARTS_SOURCE_DIR}\"" -P ${ARTS_SOURCE_DIR}/cmake/scripts/update_doxyfile.cmake
   COMMAND ${CMAKE_COMMAND} -E touch Doxyfile
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
   )
@@ -18,7 +18,7 @@ add_custom_command (
                            ${CMAKE_CURRENT_SOURCE_DIR}/../arts-splash.png html/
   COMMAND ${CMAKE_COMMAND} -E touch doxified
   COMMAND ${CMAKE_COMMAND} -E echo "Done."
-  DEPENDS Doxyfile ${CMAKE_BINARY_DIR}/auto_version.txt ${CMAKE_SOURCE_DIR}/src/*.h ${CMAKE_SOURCE_DIR}/src/*.cc
+  DEPENDS Doxyfile ${ARTS_BINARY_DIR}/auto_version.txt ${ARTS_SOURCE_DIR}/src/*.h ${ARTS_SOURCE_DIR}/src/*.cc
 )
 
 add_custom_target (apidoc ALL DEPENDS doxified)

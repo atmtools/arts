@@ -1,4 +1,4 @@
-set (CMAKE_MODULE_PATH "${ARTS_SOURCE_DIR}/cmake/modules")
+list (APPEND CMAKE_MODULE_PATH "${ARTS_SOURCE_DIR}/cmake/modules")
 
 include (ArtsVersion)
 

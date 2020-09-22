@@ -8,8 +8,8 @@ if (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
 
   add_custom_command (
     OUTPUT auto_version.tex
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/auto_version.txt auto_version.tex
-    DEPENDS ${CMAKE_BINARY_DIR}/auto_version.txt
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ARTS_BINARY_DIR}/auto_version.txt auto_version.tex
+    DEPENDS ${ARTS_BINARY_DIR}/auto_version.txt
     )
 
   include (ArtsBuildTexDoc)
@@ -91,7 +91,7 @@ endif (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
 
 add_test(
   NAME arts.doc.uguide.refs
-  COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/check_refs.py ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
+  COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/check_refs.py ${ARTS_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
   )
 
 add_custom_target(check-uguide
