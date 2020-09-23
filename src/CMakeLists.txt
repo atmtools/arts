@@ -1,8 +1,8 @@
 include_directories ( ${CMAKE_CURRENT_BINARY_DIR}
                       ${CMAKE_CURRENT_SOURCE_DIR}
                       ${ZLIB_INCLUDE_DIR}
-                      ${CMAKE_SOURCE_DIR}/3rdparty/invlib/src
-                      ${CMAKE_SOURCE_DIR}/3rdparty/cdisort
+                      ${ARTS_SOURCE_DIR}/3rdparty/invlib/src
+                      ${ARTS_SOURCE_DIR}/3rdparty/cdisort
                     )
 
 if (NETCDF_FOUND)
@@ -55,8 +55,8 @@ add_dependencies (auto_version_h UpdateAutoVersion)
 
 add_custom_command (
   OUTPUT auto_version.h
-  COMMAND ${CMAKE_COMMAND} -D "ARTS_BINARY_DIR:STRING=\"${CMAKE_BINARY_DIR}\"" -D "ARTS_SOURCE_DIR:STRING=\"${CMAKE_SOURCE_DIR}\"" -P ${CMAKE_SOURCE_DIR}/cmake/scripts/update_auto_version_h.cmake
-  DEPENDS ${CMAKE_BINARY_DIR}/auto_version.txt
+  COMMAND ${CMAKE_COMMAND} -D "ARTS_BINARY_DIR:STRING=\"${ARTS_BINARY_DIR}\"" -D "ARTS_SOURCE_DIR:STRING=\"${ARTS_SOURCE_DIR}\"" -P ${ARTS_SOURCE_DIR}/cmake/scripts/update_auto_version_h.cmake
+  DEPENDS ${ARTS_BINARY_DIR}/auto_version.txt
 )
 
 ########### next target ###############
@@ -343,8 +343,8 @@ add_library (matpack STATIC
         matpackVI.cc
         matpackVII.cc
         )
-
-include_directories ( SYSTEM ${CMAKE_SOURCE_DIR}/3rdparty )
+        
+include_directories ( SYSTEM ${ARTS_SOURCE_DIR}/3rdparty )
 target_link_libraries( matpack ${LAPACK_LIBRARIES} )
 
 ########### next target ###############
@@ -434,7 +434,7 @@ if (MATLABDIR AND ATMLABDIR AND CSHFOUND AND OEM_SUPPORT)
   include_directories(${MATLABDIR}/extern/include)
 
   # Macros for Matlab interface.
-  add_definitions(-DSOURCEDIR="${CMAKE_BINARY_DIR}/src")
+  add_definitions(-DSOURCEDIR="${ARTS_BINARY_DIR}/src")
   add_definitions(-DATMLABDIR="${ATMLABDIR}")
 
   FIND_LIBRARY(ENGVAR libeng.so ${MATLABDIR}/bin/glnxa64)

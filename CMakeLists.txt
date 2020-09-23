@@ -1,5 +1,8 @@
+project (ARTS C CXX)
+enable_language(C)
+enable_language(CXX)
 
-if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
+if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}" OR "${ARTS_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
   message (FATAL_ERROR
 "In-source builds are not allowed. Please create a directory and run cmake "
 "from there, passing the path to this source directory as the last argument:"
@@ -17,7 +20,7 @@ if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 "'CMakeFiles' in the arts source directory (not the directory you're "
 "currently in).  Please delete them."
 )
-endif ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
+endif ()
 
 if (ENABLE_CXX17)
   cmake_minimum_required (VERSION 3.9.6)
@@ -42,13 +45,9 @@ if (NOT ENABLE_ALLPATHS)
   endif()
 endif()
 
-project (ARTS C CXX)
-enable_language(C)
-enable_language(CXX)
-
 enable_testing ()
 
-set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
+list (APPEND CMAKE_MODULE_PATH "${ARTS_SOURCE_DIR}/cmake/modules")
 
 ########### Find Python ##########
 set(Python_ADDITIONAL_VERSIONS 3)
@@ -127,13 +126,15 @@ if (ENABLE_CCACHE)
   endif (CCACHE_FOUND)
 endif ()
 
-########### C++11/17 Support ##########
+########### C++14/17 Support ##########
 
-if (ENABLE_CXX17)
-  set(CMAKE_CXX_STANDARD 17)
-else ()
-  set(CMAKE_CXX_STANDARD 14)
-endif ()
+if (NOT CMAKE_CXX_STANDARD)
+  if (ENABLE_CXX17)
+    set(CMAKE_CXX_STANDARD 17)
+  else ()
+    set(CMAKE_CXX_STANDARD 14)
+  endif ()
+endif()
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -143,7 +144,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # depend on this newer version of cmake because it was only
 # released in June 2016.
 if (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 endif ()
 
 ########### Intel compiler specific settings ##########
@@ -332,9 +333,9 @@ set (COMPILER "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} (${CMAKE_C
 if (CMAKE_GENERATOR STREQUAL "Xcode")
   set (COMPILER "Xcode")
   set (CMAKE_OSX_SYSROOT "")
-  set (LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/build CACHE PATH
+  set (LIBRARY_OUTPUT_PATH ${ARTS_BINARY_DIR}/build CACHE PATH
        "Single output directory for building all libraries.")
-  set (EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/build CACHE PATH
+  set (EXECUTABLE_OUTPUT_PATH ${ARTS_BINARY_DIR}/build CACHE PATH
        "Single output directory for building all executables.")
   mark_as_advanced (LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH)
 
@@ -342,7 +343,7 @@ if (CMAKE_GENERATOR STREQUAL "Xcode")
   if (WITH_XCODE_LIBCPP)
     set (CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++11")
     set (CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
-    set (CMAKE_XCODE_ATTRIBUTE_OBJROOT ${CMAKE_BINARY_DIR}/build/\${CONFIGURATION})
+    set (CMAKE_XCODE_ATTRIBUTE_OBJROOT ${ARTS_BINARY_DIR}/build/\${CONFIGURATION})
     set (CMAKE_XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym")
     set (CMAKE_XCODE_ATTRIBUTE_GCC_VERSION "com.apple.compilers.llvm.clang.1_0")
   endif (WITH_XCODE_LIBCPP)
@@ -367,7 +368,7 @@ elseif (WIN)
   set (WINDOWS 1)
 endif (APPLE)
 
-set (ARTS_DEFAULT_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/controlfiles")
+set (ARTS_DEFAULT_INCLUDE_DIR "${ARTS_SOURCE_DIR}/controlfiles")
 
 if (WITH_HITRAN2008)
   set (USE_HITRAN2008 true)
@@ -378,7 +379,7 @@ set (COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${MY_BUILD_TYPE}}")
 
 add_custom_target (
   auto_version.txt
-  COMMAND ${CMAKE_COMMAND} -D "ARTS_SOURCE_DIR:STRING=\"${CMAKE_SOURCE_DIR}\"" -P ${CMAKE_SOURCE_DIR}/cmake/scripts/update_auto_version_txt.cmake
+  COMMAND ${CMAKE_COMMAND} -D "ARTS_SOURCE_DIR:STRING=\"${ARTS_SOURCE_DIR}\"" -P ${ARTS_SOURCE_DIR}/cmake/scripts/update_auto_version_txt.cmake
 )
 
 add_custom_target (UpdateAutoVersion ALL DEPENDS auto_version.txt)
@@ -394,7 +395,7 @@ endif (TEST_JOBS)
 if (ARTS_XML_DATA_PATH)
   get_filename_component (ARTS_XML_DATA_DIR "${ARTS_XML_DATA_PATH}" ABSOLUTE)
 else (ARTS_XML_DATA_PATH)
-  get_filename_component (ARTS_XML_DATA_DIR "../arts-xml-data" ABSOLUTE)
+  get_filename_component (ARTS_XML_DATA_DIR "${CMAKE_SOURCE_DIR}/../arts-xml-data" ABSOLUTE)
 endif (ARTS_XML_DATA_PATH)
 
 if (NOT IS_DIRECTORY "${ARTS_XML_DATA_DIR}")

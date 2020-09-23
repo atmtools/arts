@@ -1,2 +1,0 @@
-/usr/bin/ar qc libwigner.a  CMakeFiles/wigner.dir/src/prime_factor.o CMakeFiles/wigner.dir/src/calc.o CMakeFiles/wigner.dir/src/trivial_zero.o CMakeFiles/wigner.dir/src/c_wrap.o CMakeFiles/wigner.dir/src/fortran_wrap.o
-/usr/bin/ranlib libwigner.a
