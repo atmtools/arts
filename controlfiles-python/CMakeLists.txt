@@ -1,6 +1,7 @@
 
 ###########################
 ### Python Test Example ###
+arts_test_run_pyfile(fast classes/TestIfClassExists.py)
 arts_test_run_pyfile(fast example/TestExample.py)
 arts_test_run_pyfile(fast classes/TestEnergyLevelMap.py)
 arts_test_run_pyfile(fast classes/TestBasicTypes.py)
@@ -20,6 +21,7 @@ arts_test_run_pyfile(fast classes/TestTessemNN.py)
 arts_test_run_pyfile(fast classes/TestTime.py)
 arts_test_run_pyfile(fast classes/TestTimer.py)
 arts_test_run_pyfile(fast classes/TestXsecRecord.py)
+
 arts_test_run_pyfile(fast raw/calib.py)
 arts_test_run_pyfile(fast raw/corr.py)
 

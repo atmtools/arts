@@ -1267,10 +1267,9 @@ VoidStructGetterCAPI(HitranRelaxationMatrixData, W0pp)
 VoidStructGetterCAPI(HitranRelaxationMatrixData, B0pp)
 
 
-
 // generic
 Index string2filetypeindex(char * data) { try { return Index(string2filetype(data)); } catch (std::runtime_error& e) { return -1; } }
-
+void * get_list_of_all_workspace_classes() { return new ArrayOfString{global_data::wsv_group_names}; }
 
 #undef BasicInterfaceCAPI
 #undef GetterSetterCAPI
