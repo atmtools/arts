@@ -282,7 +282,7 @@ void XsecRecord::Extract(VectorView result,
       for (Index i = 0; i < data_f_extent; i++) {
         f_lorentz[i] =
             lorentz_pdf(data_f_grid[i_data_fstart + i],
-                        data_f_grid[i_data_fstart + data_f_extent / 2],
+                        data_f_grid[i_data_fstart + data_f_extent / 2 - 1],
                         fwhm / 2.);
         lsum += f_lorentz[i];
       }
