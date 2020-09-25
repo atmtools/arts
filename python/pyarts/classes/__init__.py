@@ -79,3 +79,11 @@ def from_workspace(x):
 
 lib.get_variable_data_pointer.restype = c.c_void_p
 lib.get_variable_data_pointer.argtypes = [c.c_void_p, c.c_long]
+
+def list_of_workspace_variables():
+    x = ArrayOfString(c.c_void_p(lib.get_list_of_all_workspace_classes()))
+    x.__delete__ = True
+    return x
+
+lib.get_list_of_all_workspace_classes.restype = c.c_void_p
+lib.get_list_of_all_workspace_classes.argtypes = []

@@ -890,6 +890,7 @@ extern "C" {
     
     // generic
     DLL_PUBLIC Index string2filetypeindex(char *);
+    DLL_PUBLIC void * get_list_of_all_workspace_classes();
 }
 
 
