@@ -70,6 +70,15 @@ void geomtanpoint2d(
        const Numeric&    za );
 */
 
+void line_refellipsoid_intersect(Numeric& l,
+                                 const Vector& refellipsoid,
+                                 const Numeric& x,
+                                 const Numeric& y,
+                                 const Numeric& z,
+                                 const Numeric& dx,
+                                 const Numeric& dy,
+                                 const Numeric& dz);
+
 void line_circle_intersect(Numeric& x,
                            Numeric& z,
                            const Numeric& xl,

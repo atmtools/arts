@@ -302,6 +302,434 @@ void ppathCalcFromAltitude(Workspace& ws,
   }
 }
 
+
+/* A help function for *ppathFixedLstep*. Determines the radius of the path,
+   raius of ellipsoid and surface altitiude for (lat,lon) at a distance l from
+   the sensor.
+ */
+void surf_radius_at_l(Numeric& r,
+                      Numeric& r_e,
+                      Numeric& z_surf,
+                      const Index& atmosphere_dim,
+                      const Vector& lat_grid,
+                      const Vector& lon_grid,
+                      const Vector& refellipsoid,
+                      const Matrix& z_surface,
+                      const Numeric& x0,
+                      const Numeric& y0,
+                      const Numeric& z0,
+                      const Numeric& dx,
+                      const Numeric& dy,
+                      const Numeric& dz, 
+                      const Numeric& l,
+                      const Numeric& lat0,
+                      const Numeric& lon0,
+                      const Numeric& za0,
+                      const Numeric& aa0) {
+  if (atmosphere_dim == 1) {   // 1D
+    const Numeric x = x0+l*dx, y = y0+l*dy, z = z0+l*dz;
+    r = sqrt( x*x + y*y + z*z);
+    r_e = refellipsoid[0];
+    z_surf = z_surface(0,0);
+    
+  } else {  // 2D and 3D
+    
+    // Go to spherical coordinates
+    Numeric lat, lon;
+    cart2sph(r, lat, lon, x0+l*dx, y0+l*dy, z0+l*dz, lat0, lon0, za0, aa0);
+
+    // Latitude grid position
+    if (lat < lat_grid[0]) {
+      ostringstream os;
+      os << "Search of surface intersection ended up " << lat_grid[0]-lat
+         << " degrees below start of *lat_grid*. You need to expand the grid.";
+      throw runtime_error(os.str());
+    }
+    if (lat > last(lat_grid)) {
+      ostringstream os;
+      os << "Search of surface intersection ended up " << lat-last(lat_grid)
+         << " degrees above end of *lat_grid*. You need to expand the grid.";
+      throw runtime_error(os.str());
+    }
+    GridPos gp_lat, gp_lon;
+    gridpos(gp_lat, lat_grid, lat);
+
+    // Interpolate to get ellipsoid radius and surface altitude
+    // If 3D we also need to calculate lon grid position
+    r_e = refell2d(refellipsoid, lat_grid, gp_lat);
+    if (atmosphere_dim==2) {
+      Vector itw(2);
+      interpweights(itw, gp_lat);
+      z_surf = interp(itw, z_surface(joker, 0), gp_lat);
+    } else {
+      const Numeric lonmax = last(lon_grid);
+      resolve_lon(lon, lon_grid[0], lonmax);
+      if (lon < lon_grid[0]) {
+        ostringstream os;
+        os << "Search of surface intersection ended up " << lon_grid[0]-lon
+           << " degrees below start of *lon_grid*. You need to expand the grid.";
+        throw runtime_error(os.str());
+      }
+      if (lon > lonmax) {
+        ostringstream os;
+        os << "Search of surface intersection ended up " << lon-lonmax
+           << " degrees above end of *lon_grid*. You need to expand the grid.";
+        throw runtime_error(os.str());
+      }
+      gridpos(gp_lon, lon_grid, lon);
+      Vector itw(4);
+      interpweights(itw, gp_lat, gp_lon);
+      z_surf = interp(itw, z_surface, gp_lat, gp_lon);
+    }
+  }
+}
+                     
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ppathFixedLstep(Ppath& ppath,
+                     const Index& atmfields_checked,
+                     const Index& atmgeom_checked,
+                     const Index& atmosphere_dim,
+                     const Vector& lat_grid,
+                     const Vector& lon_grid,
+                     const Tensor3& z_field,
+                     const Vector& refellipsoid,
+                     const Matrix& z_surface,
+                     const Index& cloudbox_on,
+                     const Vector& rte_pos,
+                     const Vector& rte_los,
+                     const Numeric& ppath_lmax,
+                     const Index& za_scale,
+                     const Numeric& z_coarse,
+                     const Numeric& l_coarse,
+                     const Verbosity&) {
+  // Basics checks of input
+  if (atmfields_checked != 1)
+    throw runtime_error(
+        "The atmospheric fields must be flagged to have "
+        "passed a consistency check (atmfields_checked=1).");
+  if (atmgeom_checked != 1)
+    throw runtime_error(
+        "The atmospheric geometry must be flagged to have "
+        "passed a consistency check (atmgeom_checked=1).");
+  chk_rte_pos(atmosphere_dim, rte_pos);
+  chk_rte_los(atmosphere_dim, rte_los);
+  if (cloudbox_on)
+    throw runtime_error(
+        "This method does not yet handle an active cloudbox.");
+  if (ppath_lmax <= 0)
+    throw runtime_error(
+        "This method requires that *ppath_lmax* > 0.");
+  if (atmosphere_dim == 1 && refellipsoid[1] > 1e-7)
+    throw runtime_error("For 1D, second element of *refellipsoid* must be 0.");
+
+  // Set lat etc according to atmosphere_dim
+  const Numeric lon0 = atmosphere_dim == 3 ? rte_pos[2] : 0;
+  const Numeric lat0 = atmosphere_dim >= 2 ? rte_pos[1] : 0;
+  const Numeric r0 = refell2r(refellipsoid, lat0) + rte_pos[0];
+  const Numeric za0 = abs(rte_los[0]);
+        Numeric aa0 = atmosphere_dim == 3 ? rte_los[1] : 0;
+  if (atmosphere_dim == 2 && rte_los[0]<0) { aa0 = 180; } // 2D special
+
+  // Obtain a top of the atmosphere altitude
+  // To make sure that it represents a point inside the atmosphere, we take the lowest
+  // altitude of top pressure level
+  const Numeric z_toa = min( z_field(z_field.npages()-1,joker,joker) );
+
+  // Set step lengths to use
+  const Numeric lstep = ppath_lmax * (za_scale ? 1/abs(cos(DEG2RAD*za0)) : 1); 
+  const Numeric lcoarse = l_coarse * (za_scale ? 1/abs(cos(DEG2RAD*za0)) : 1); 
+  
+  // Create a vector with the distance from the sensor for each ppath point
+  //
+  Vector lvec(1); lvec[0] = 0;
+  Index background = 1;   // Index of radiative background. 1 = space
+  Numeric x0, y0, z0, dx, dy, dz;
+  //
+  // Upward
+  if (za0 < 90) {
+
+    if (rte_pos[0] >= z_toa) {
+      // If looking up we get an empty path
+      // lvec initiated to represent this
+
+    } else {
+      // We are inside looking up. Lengths go from 0 to distance to TOA
+      Vector rell = refellipsoid;
+      rell[0] += z_toa;   // Add search altitude to major axis!
+      Numeric l2toa;
+      poslos2cart(x0, y0, z0, dx, dy, dz, r0, lat0, lon0, za0, aa0);
+      line_refellipsoid_intersect(l2toa, rell, x0, y0, z0, dx, dy, dz);
+
+      // Check that sensor actually is above the surface
+      Numeric r, r_e, z_surf;
+      surf_radius_at_l(r, r_e, z_surf, atmosphere_dim, lat_grid, lon_grid,
+                       refellipsoid, z_surface, x0, y0, z0, dx, dy, dz,
+                       0, lat0, lon0, za0, aa0);
+      if (r < r_e+z_surf) {
+        ostringstream os;
+        os << "The sensor is " << r_e+z_surf - r << " m below the surface";
+        throw runtime_error(os.str());
+      }
+
+      if (z_coarse < 0) {
+        linspace(lvec, 0, l2toa, lstep);
+      } else {
+        if (rte_pos[0] > z_coarse) {
+          linspace(lvec, 0, l2toa, lcoarse);
+        } else {
+          rell = refellipsoid;
+          rell[0] += z_coarse;
+          Numeric l2coarse;
+          poslos2cart(x0, y0, z0, dx, dy, dz, r0, lat0, lon0, za0, aa0);
+          line_refellipsoid_intersect(l2coarse, rell, x0, y0, z0, dx, dy, dz);
+          Vector l1, l2;
+          linspace(l1, 0, l2coarse, lstep);
+          linspace(l2, last(l1)+lstep, l2toa, lcoarse);
+          const Index n1=l1.nelem(), n2=l2.nelem();
+          lvec.resize(n1+n2);
+          lvec[Range(0,n1)] = l1;
+          lvec[Range(n1,n2)] = l2;
+          cout << lvec << endl;
+        }
+      }
+    }
+  }
+
+  // Downward
+  else {
+    // Determine lowest surface altitude
+    // We can directly find length to the surface if its altitude is constant
+    // so we also look for this. Always true for 1D!
+    Numeric z_surf_min = atmosphere_dim == 1 ? z_surface(0,0) : 1e99;
+    bool surface_found = true;
+    if (atmosphere_dim == 2) {
+      for (Index i=1; i<lat_grid.nelem(); i++) {
+        if (z_surface(i,0) < z_surf_min)
+          z_surf_min = z_surface(i,0);
+        if (z_surface(i,0) != z_surface(0,0))
+          surface_found = false;
+      }
+    } else if (atmosphere_dim == 3) {
+      for (Index i=1; i<lat_grid.nelem(); i++) {
+        for (Index j=1; j<lon_grid.nelem(); j++) {
+          if (z_surface(i,j) < z_surf_min)
+            z_surf_min = z_surface(i,j);
+          if (z_surface(i,j) != z_surface(0,0))
+            surface_found = false;
+        }
+      }
+    }
+
+    // Determine length to z_surf_min (l2s)
+    Vector rell = refellipsoid;
+    rell[0] += z_surf_min;
+    Numeric l2s;
+    poslos2cart(x0, y0, z0, dx, dy, dz, r0, lat0, lon0, za0, aa0);
+    line_refellipsoid_intersect(l2s, rell, x0, y0, z0, dx, dy, dz);
+
+    // No intersection with surface
+    if (l2s < 0) {
+      if (!surface_found) {
+        throw runtime_error("Cases of limb sounding type are only allowed "
+                            "together with constant surface altitude.");
+      } else {
+        // Make function to find proper (geodetic) tangent point to finish this
+        throw runtime_error("Limb sounding not yet handled.");
+      }
+
+    // Ensured intersection with surface
+    } else {
+
+      background = 2;
+
+      // If we need to search for the surface, we do this in two steps
+      // 1. Move upward until we have a point at or above surface
+      // 2. Use intersection to find length to surface
+      bool inphase1 = true;
+      bool underground = false;  // If first l2s happen to be above surface 
+      const Numeric lmoveup = 1e3;
+      const Numeric dr = 0.01;    // When we stop
+      Numeric llong = l2s;
+      Numeric lshort = -1;
+      while (!surface_found) {
+        // Determine where we have the surface at l2s
+        Numeric r, r_e, z_surf;
+        surf_radius_at_l(r, r_e, z_surf, atmosphere_dim, lat_grid, lon_grid,
+                         refellipsoid, z_surface, x0, y0, z0, dx, dy, dz,
+                         l2s, lat0, lon0, za0, aa0);
+        
+        // Compare radii and update iteration variables
+        const Numeric r_s = r_e + z_surf;
+        if (abs(r-r_s) <= dr) {
+          surface_found = true;
+        } else if (inphase1) {
+          if (r < r_s) {
+            underground = true;
+            l2s -= lmoveup;
+          } else {
+            if (underground) {
+              inphase1 = false;
+              lshort = l2s;
+              l2s = (lshort+llong)/2;
+            } else {
+              l2s += 0.1*lmoveup;  // If we end up here the start l2s was too short
+              llong = l2s;         // Can happen due to numerical inaccuracy
+            }
+          }          
+        } else {
+          if (r > r_s) {
+            lshort = l2s;
+          } else {
+            llong = l2s;
+          }          
+          l2s = (lshort+llong)/2;
+        }
+      }  // while
+
+      // Distance to TOA (same code as above for upward)
+      rell = refellipsoid;
+      rell[0] += z_toa;   // Add search altitude to major axis!
+      Numeric l2toa;
+      line_refellipsoid_intersect(l2toa, rell, x0, y0, z0, dx, dy, dz);
+
+      // Finally we can form lvec. It's l2s we want to match exactly
+      linspace(lvec, l2toa, l2s, lstep);
+      lvec += l2s - last(lvec);
+      
+    } // Surface intersection
+  }  // Up/down
+
+  // Create ppath structure
+  ppath_init_structure(ppath, atmosphere_dim, lvec.nelem());  
+  ppath.constant = geometrical_ppc(r0, abs(rte_los[0]));
+  ppath_set_background(ppath, background);
+  ppath.end_los[joker] = rte_los[joker];   // end_pos done below
+  ppath.end_lstep = lvec[0];
+  ppath.nreal = 1;
+  ppath.ngroup = 1;
+  // Empty ppath
+  if (ppath.np == 1) {
+    ppath.r = r0;
+    ppath.pos(0,joker) = rte_pos[joker];
+    ppath.los(0,joker) = rte_los[joker];
+  }
+  // Otherwise loop lvec (split in atm. dim. to make code more efficient)
+  else {
+    // 1D
+    if (atmosphere_dim == 1) {
+      ppath.end_pos[0] = rte_pos[0];
+      ppath.end_pos[1] = 0;
+      for (Index i=0; i<ppath.np; i++) {
+        if (i > 0)
+          ppath.lstep[i-1] = lvec[i]-lvec[i-1];;
+        const Numeric l = lvec[i], x = x0+l*dx, y = y0+l*dy, z = z0+l*dz;
+        ppath.r[i] = sqrt( x*x + y*y + z*z);;
+        ppath.pos(i,0) = ppath.r[i] - refellipsoid[0];
+        ppath.los(i,0) = geompath_za_at_r(ppath.constant,
+                                          za0, // Will not work for limb sounding!
+                                          ppath.r[i]); 
+        ppath.pos(i,1) = geompath_lat_at_za(za0, 0, ppath.los(i,0));
+      }
+      gridpos(ppath.gp_p, z_field(joker,0,0), ppath.pos(joker,0));
+
+    // 2D
+    } else if (atmosphere_dim == 2) {
+      ppath.end_pos[joker] = rte_pos[joker];
+      const Index nz = z_field.npages(); 
+      ArrayOfGridPos gp_z, gp_lat(1), gp_lon(0);
+      gridpos_1to1(gp_z, Vector(nz));
+      Tensor3 z_grid(nz,1,1);   // The altitudes at one (lat,lon)
+      const Numeric lat1=lat_grid[0], lat2=last(lat_grid);
+      assert( abs(dy) < 1e-9 );    // 2D happens strictly inside plane y=0
+      for (Index i=0; i<ppath.np; i++) {
+        if (i > 0)
+          ppath.lstep[i-1] = lvec[i]-lvec[i-1];;
+        const Numeric l = lvec[i], x = x0+l*dx, z = z0+l*dz;
+        cart2poslos(ppath.r[i], ppath.pos(i,1), ppath.los(i,0),
+                    x, z, dx, dz, ppath.constant, rte_pos[1], rte_los[0]);
+        if (ppath.pos(i,1) < lat1) {
+          ostringstream os;
+          os << "The latitude grid must be extended downwards with at "
+             << "least " << lat1-ppath.pos(i,1) << " degrees to allow "
+             << "the ppath to fully be inside of the model atmosphere.";
+          throw runtime_error(os.str());
+        }
+        if (ppath.pos(i,1) > lat2) {
+          ostringstream os;
+          os << "The latitude grid must be extended upwards with at "
+             << "least " << ppath.pos(i,1)-lat2 << " degrees to allow "
+             << "the ppath to fully be inside of the model atmosphere.";
+          throw runtime_error(os.str());
+        }
+        gridpos(ppath.gp_lat[i], lat_grid, ppath.pos(i,1));
+        //
+        gridpos_copy(gp_lat[0], ppath.gp_lat[i]);
+        regrid_atmfield_by_gp(z_grid, atmosphere_dim, z_field, gp_z, gp_lat, gp_lon);
+        const Numeric r_e = refell2d(refellipsoid, lat_grid, ppath.gp_lat[i]);
+        ppath.pos(i,0) = ppath.r[i] - r_e;
+        gridpos(ppath.gp_p[i], z_grid(joker,0,0), ppath.pos(i,0));
+      }
+
+    // 3D
+    } else {
+      ppath.end_pos[joker] = rte_pos[joker];
+      const Index nz = z_field.npages(); 
+      ArrayOfGridPos gp_z, gp_lat(1), gp_lon(1);
+      gridpos_1to1(gp_z, Vector(nz));
+      Tensor3 z_grid(nz,1,1);   // The altitudes at one (lat,lon)
+      const Numeric lat1=lat_grid[0], lat2=last(lat_grid);
+      const Numeric lon1=lon_grid[0], lon2=last(lon_grid);
+      for (Index i=0; i<ppath.np; i++) {
+        if (i > 0)
+          ppath.lstep[i-1] = lvec[i]-lvec[i-1];;
+        const Numeric l = lvec[i], x = x0+l*dx, y = y0+l*dy, z = z0+l*dz;
+        cart2poslos(ppath.r[i], ppath.pos(i,1), ppath.pos(i,2),
+                    ppath.los(i,0), ppath.los(i,1), x, y, z, dx, dy, dz,
+                    ppath.constant, x0, y0, z0, rte_pos[1], rte_pos[2],
+                    rte_los[0], rte_los[1]);
+        if (ppath.pos(i,1) < lat1) {
+          ostringstream os;
+          os << "The latitude grid must be extended downwards with at "
+             << "least " << lat1-ppath.pos(i,1) << " degrees to allow "
+             << "the ppath to fully be inside of the model atmosphere.";
+          throw runtime_error(os.str());
+        }
+        if (ppath.pos(i,1) > lat2) {
+          ostringstream os;
+          os << "The latitude grid must be extended upwards with at "
+             << "least " << ppath.pos(i,1)-lat2 << " degrees to allow "
+             << "the ppath to fully be inside of the model atmosphere.";
+          throw runtime_error(os.str());
+        }
+        if (ppath.pos(i,2) < lon1) {
+          ostringstream os;
+          os << "The latitude grid must be extended downwards with at "
+             << "least " << lon1-ppath.pos(i,2) << " degrees to allow "
+             << "the ppath to fully be inside of the model atmosphere.";
+          throw runtime_error(os.str());
+        }
+        if (ppath.pos(i,2) > lon2) {
+          ostringstream os;
+          os << "The latitude grid must be extended upwards with at "
+             << "least " << ppath.pos(i,2)-lon2 << " degrees to allow "
+             << "the ppath to fully be inside of the model atmosphere.";
+          throw runtime_error(os.str());
+        }
+        gridpos(ppath.gp_lat[i], lat_grid, ppath.pos(i,1));
+        gridpos(ppath.gp_lon[i], lon_grid, ppath.pos(i,2));
+        //
+        gridpos_copy(gp_lat[0], ppath.gp_lat[i]);
+        gridpos_copy(gp_lon[0], ppath.gp_lon[i]);
+        regrid_atmfield_by_gp(z_grid, atmosphere_dim, z_field, gp_z, gp_lat, gp_lon);
+        const Numeric r_e = refell2d(refellipsoid, lat_grid, ppath.gp_lat[i]);
+        ppath.pos(i,0) = ppath.r[i] - r_e;
+        gridpos(ppath.gp_p[i], z_grid(joker,0,0), ppath.pos(i,0));
+      }
+    }
+  }
+}
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ppathFromRtePos2(Workspace& ws,
                       Ppath& ppath,
@@ -803,7 +1231,7 @@ void ppathPlaneParallel(Ppath& ppath,
     ostringstream os;
     os << "The zenith angle is " << za_sensor << endl
        << "The method does not allow this. The zenith angle must deviate\n"
-       << "from 90 deg with at least 1 deg. That is, to be outside [89.9,90.1].";
+       << "from 90 deg with at least 0.1 deg. That is, to be outside [89.9,90.1].";
     throw runtime_error(os.str());
   }
 

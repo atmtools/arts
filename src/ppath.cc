@@ -166,19 +166,6 @@ Numeric geompath_l_at_r(const Numeric& ppc, const Numeric& r) {
   }
 }
 
-/** Calculates the radius for a distance from the tangent point.
-
-   The tangent point is either real or imaginary depending on the zenith
-   angle of the sensor. See geometrical_tangent_radius.
-
-   @param[in]   ppc    Propagation path constant.
-   @param[in]   l      Length from the tangent point (positive or negative).
-
-   @return         Radius. 
-
-   @author Patrick Eriksson
-   @date   2002-05-20
- */
 Numeric geompath_r_at_l(const Numeric& ppc, const Numeric& l) {
   assert(ppc >= 0);
 

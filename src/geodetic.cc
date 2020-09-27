@@ -850,6 +850,85 @@ void geomtanpoint(
 }
 */
 
+//! line_refellipsoid_intersect
+/*! 
+   Find the intersection between a line and the reference ellipsoid
+
+   A negative distance is returned if there is no intersection.
+
+   If you the zenith angle and the reference ellipsoid is spherical, use the
+   function geompath_l_at_r instead.
+
+   \param   l     Out: Distance to intersection
+   \param   refell Vector defining reference ellipsoid
+   \param   xl    A x-coordinate on the line
+   \param   yl    A y-coordinate on the line
+   \param   zl    A z-coordinate on the line
+   \param   dx    X-component of line direction vector
+   \param   dy    Y-component of line direction vector
+   \param   dz    Z-component of line direction vector
+
+   \author Patrick Eriksson
+   \date   2012-03-30
+*/
+void line_refellipsoid_intersect(Numeric& l,
+                                 const Vector& refellipsoid,
+                                 const Numeric& x,
+                                 const Numeric& y,
+                                 const Numeric& z,
+                                 const Numeric& dx,
+                                 const Numeric& dy,
+                                 const Numeric& dz) {
+  // Code taken from Atmlab's ellipsoid_intersection
+
+  // Spherical case
+  if (refellipsoid[1] < 1e-7) {
+    const Numeric p  = x*dx + y*dy + z*dz;
+    const Numeric pp = p*p;
+    const Numeric q = x*x + y*y + z*z - refellipsoid[0]*refellipsoid[0];
+    if (q>pp)
+      l = -1.0;
+    else {
+      const Numeric sq = sqrt(pp - q);
+      if (-p > sq)
+        l = -p - sq;
+      else
+        l = -p + sq;
+    }
+  }
+
+  // Ellipsoid case
+  else {
+    // Based on https://medium.com/@stephenhartzell/satellite-line-of-sight-intersection-with-earth-d786b4a6a9b6
+    const Numeric a = refellipsoid[0];
+    const Numeric b = refellipsoid[0];
+    const Numeric c = refellipsoid[0] * sqrt(1-refellipsoid[1]*refellipsoid[1]);
+    const Numeric a2 = a*a;
+    const Numeric b2 = b*b;
+    const Numeric c2 = c*c;
+    const Numeric x2 = x*x;
+    const Numeric y2 = y*y;
+    const Numeric z2 = z*z;
+    const Numeric dx2 = dx*dx;
+    const Numeric dy2 = dy*dy;
+    const Numeric dz2 = dz*dz;
+    const Numeric rad = a2*b2*dz2 + a2*c2*dy2 - a2*dy2*z2 + 2*a2*dy*dz*y*z -
+                        a2*dz2*y2 + b2*c2*dx2 - b2*dx2*z2 + 2*b2*dx*dz*x*z -
+                        b2*dz2*x2 - c2*dx2*y2 + 2*c2*dx*dy*x*y - c2*dy2*x2;
+    if (rad<0)
+      l = -1.0;
+    else {
+      const Numeric val = -a2*b2*dz*z - a2*c2*dy*y - b2*c2*dx*x;
+      const Numeric mag = a2*b2*dz2 + a2*c2*dy2 + b2*c2*dx2;
+      const Numeric abc = a*b*c*sqrt(rad);
+      if (val > abc)
+        l = (val - abc) / mag;
+      else
+        l = (val + abc) / mag;
+    }
+  }
+}
+
 //! line_sphere_intersect
 /*! 
    Find the intersection between a line and a sphere

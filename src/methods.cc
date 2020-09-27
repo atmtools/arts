@@ -12222,6 +12222,34 @@ void define_md_data_raw() {
       GIN_DESC("Altitude to move forward towards", "Accuracy of altitude")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("ppathFixedLstep"),
+      DESCRIPTION(
+          "Work in progress ...\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("ppath"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atmfields_checked",
+         "atmgeom_checked",
+         "atmosphere_dim",
+         "lat_grid",
+         "lon_grid",
+         "z_field",
+         "refellipsoid",
+         "z_surface",
+         "cloudbox_on",
+         "rte_pos",
+         "rte_los",
+         "ppath_lmax"),
+      GIN("za_scale", "z_coarse", "l_coarse"),
+      GIN_TYPE("Index","Numeric","Numeric"),
+      GIN_DEFAULT("1","-1","1e3"),
+      GIN_DESC("Scale step length with 1/abs(cos(za)).",
+               "Altitude for switching to coarse step length",
+               "Coarse step length.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("ppathFromRtePos2"),
       DESCRIPTION(
           "Determines the propagation path from *rte_pos2* to *rte_pos*.\n"
