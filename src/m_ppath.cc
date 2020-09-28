@@ -439,12 +439,32 @@ void ppathFixedLstep(Ppath& ppath,
   // Set step lengths to use
   const Numeric lstep = ppath_lmax * (za_scale ? 1/abs(cos(DEG2RAD*za0)) : 1); 
   const Numeric lcoarse = l_coarse * (za_scale ? 1/abs(cos(DEG2RAD*za0)) : 1); 
+
+  // ECEF pos and los
+  Numeric x0, y0, z0, dx, dy, dz;
+  poslos2cart(x0, y0, z0, dx, dy, dz, r0, lat0, lon0, za0, aa0);
+  
+  // Length to z_break 
+  //
+  // We do this, here and below, by adding the search altitude to the major
+  // axis of the ellipsoid. This is approxinative. In theory, the eccentricity
+  // should be adopted. More important is that in ARTS the radius varies
+  // lineraly between points of the latitude grid, while
+  // line_refellipsoid_intersect operates with a fully analytical description
+  // of the ellipsoid and this causes some inconsistency. That is, the found
+  // length is not exact from ARTS's perspective. 
+  //
+  Vector rell = refellipsoid;  
+  Numeric l2coarse = -1;      
+  if (z_coarse >= 0) {         
+    rell[0] += z_coarse;      
+    line_refellipsoid_intersect(l2coarse, rell, x0, y0, z0, dx, dy, dz);
+  }
   
   // Create a vector with the distance from the sensor for each ppath point
   //
   Vector lvec(1); lvec[0] = 0;
   Index background = 1;   // Index of radiative background. 1 = space
-  Numeric x0, y0, z0, dx, dy, dz;
   //
   // Upward
   if (za0 < 90) {
@@ -455,10 +475,8 @@ void ppathFixedLstep(Ppath& ppath,
 
     } else {
       // We are inside looking up. Lengths go from 0 to distance to TOA
-      Vector rell = refellipsoid;
-      rell[0] += z_toa;   // Add search altitude to major axis!
       Numeric l2toa;
-      poslos2cart(x0, y0, z0, dx, dy, dz, r0, lat0, lon0, za0, aa0);
+      rell[0] = refellipsoid[0] + z_toa;   
       line_refellipsoid_intersect(l2toa, rell, x0, y0, z0, dx, dy, dz);
 
       // Check that sensor actually is above the surface
@@ -472,17 +490,13 @@ void ppathFixedLstep(Ppath& ppath,
         throw runtime_error(os.str());
       }
 
+      // Create vector with lengths, considering z_coarse
       if (z_coarse < 0) {
         linspace(lvec, 0, l2toa, lstep);
       } else {
         if (rte_pos[0] > z_coarse) {
           linspace(lvec, 0, l2toa, lcoarse);
         } else {
-          rell = refellipsoid;
-          rell[0] += z_coarse;
-          Numeric l2coarse;
-          poslos2cart(x0, y0, z0, dx, dy, dz, r0, lat0, lon0, za0, aa0);
-          line_refellipsoid_intersect(l2coarse, rell, x0, y0, z0, dx, dy, dz);
           Vector l1, l2;
           linspace(l1, 0, l2coarse, lstep);
           linspace(l2, last(l1)+lstep, l2toa, lcoarse);
@@ -490,7 +504,6 @@ void ppathFixedLstep(Ppath& ppath,
           lvec.resize(n1+n2);
           lvec[Range(0,n1)] = l1;
           lvec[Range(n1,n2)] = l2;
-          cout << lvec << endl;
         }
       }
     }
@@ -522,10 +535,8 @@ void ppathFixedLstep(Ppath& ppath,
     }
 
     // Determine length to z_surf_min (l2s)
-    Vector rell = refellipsoid;
-    rell[0] += z_surf_min;
     Numeric l2s;
-    poslos2cart(x0, y0, z0, dx, dy, dz, r0, lat0, lon0, za0, aa0);
+    rell[0] = refellipsoid[0] + z_surf_min;
     line_refellipsoid_intersect(l2s, rell, x0, y0, z0, dx, dy, dz);
 
     // No intersection with surface
@@ -573,9 +584,9 @@ void ppathFixedLstep(Ppath& ppath,
               lshort = l2s;
               l2s = (lshort+llong)/2;
             } else {
-              l2s += 0.1*lmoveup;  // If we end up here the start l2s was too short
-              llong = l2s;         // Can happen due to numerical inaccuracy
-            }
+              l2s += 0.1*lmoveup;  // If we end up here the start l2s was too
+              llong = l2s;         // short. Can happen due to inconsistencies, 
+            }                      // as explained above.
           }          
         } else {
           if (r > r_s) {
@@ -588,14 +599,38 @@ void ppathFixedLstep(Ppath& ppath,
       }  // while
 
       // Distance to TOA (same code as above for upward)
-      rell = refellipsoid;
-      rell[0] += z_toa;   // Add search altitude to major axis!
       Numeric l2toa;
-      line_refellipsoid_intersect(l2toa, rell, x0, y0, z0, dx, dy, dz);
-
-      // Finally we can form lvec. It's l2s we want to match exactly
-      linspace(lvec, l2toa, l2s, lstep);
-      lvec += l2s - last(lvec);
+      if (rte_pos[0] <= z_toa) {
+        l2toa = 0;
+      } else {
+        rell[0] = refellipsoid[0] + z_toa;   
+        line_refellipsoid_intersect(l2toa, rell, x0, y0, z0, dx, dy, dz);
+      }
+      
+      // Create vector with lengths, considering z_coarse
+      // lvec shall start exactly at l2s
+      if (l2s < lstep) {
+        linspace(lvec, 0, l2s, l2s);
+      } else if (z_coarse < 0) {
+        linspace(lvec, l2toa, l2s, lstep);
+        lvec += l2s - last(lvec);
+      } else {
+        if (rte_pos[0] < z_coarse) {
+          linspace(lvec, l2toa, l2s, lstep);
+          lvec += l2s - last(lvec);
+        } else {
+          Vector l1, l2;
+          linspace(l1, l2coarse, l2s, lstep);
+          l1 += l2s - last(l1);
+          linspace(l2, l2toa, l1[0]-lstep, lcoarse);
+          l2 += l1[0]-lstep - last(l2);
+          const Index n1=l1.nelem(), n2=l2.nelem();
+          lvec.resize(n1+n2);
+          lvec[Range(0,n2)] = l2;
+          lvec[Range(n2,n1)] = l1;
+        }
+      }
+      
       
     } // Surface intersection
   }  // Up/down
@@ -608,10 +643,13 @@ void ppathFixedLstep(Ppath& ppath,
   ppath.end_lstep = lvec[0];
   ppath.nreal = 1;
   ppath.ngroup = 1;
+  
   // Empty ppath
   if (ppath.np == 1) {
     ppath.r = r0;
-    ppath.pos(0,joker) = rte_pos[joker];
+    ppath.pos(0,0) = rte_pos[0];
+    if (atmosphere_dim == 1)
+      ppath.end_pos[1] = 0;
     ppath.los(0,joker) = rte_los[joker];
   }
   // Otherwise loop lvec (split in atm. dim. to make code more efficient)

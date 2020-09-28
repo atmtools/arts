@@ -12224,7 +12224,30 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("ppathFixedLstep"),
       DESCRIPTION(
-          "Work in progress ...\n"),
+          "Full propagation path calculation with fixed step length.\n"
+          "\n"
+          "Restrictions:\n"
+          "1. An active cloudbox is not handled (causes an error).\n"
+          "2. Observations of limb sounding type not handled. That is, zenith\n"
+          "   angles between 90 and about 120 deg will cause an error.\n"
+          "3. Unsuitable for downward observation from within the atmosphere.\n"
+          "\n"
+          "The method determines the lowest point of the propagation path and\n"
+          "applies a fixed step length from that point. This point can be the\n"
+          "surface intersection or the sensor position depending on observation\n"
+          "geometry.\n"
+          "\n"
+          "There is no adjustment at the high altitude end, neither to the top\n"
+          "of the atmosphere altitude nor the sensor's altitude.\n"
+          "\n"
+          "Default is to apply a step length of *ppath_lmax* everywhere.\n"
+          "By setting *za_scale* to 1, the step length is scaled with zenith\n"
+          "angle and the steps are rather constant in altitude spacing.\n"
+          "\n"
+          "With *z_coarse* and *l_coarse* you can introduce another step length\n"
+          "at higher altitudes. If *z_coarse* is > 0, then *l_coarse* is applied\n"
+          "above *z_coarse*, instead of *ppath_lmax*. *za_scale* is considered\n"
+          "also for *l_coarse*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("ppath"),
       GOUT(),
@@ -12244,7 +12267,7 @@ void define_md_data_raw() {
          "ppath_lmax"),
       GIN("za_scale", "z_coarse", "l_coarse"),
       GIN_TYPE("Index","Numeric","Numeric"),
-      GIN_DEFAULT("1","-1","1e3"),
+      GIN_DEFAULT("0","-1","1e3"),
       GIN_DESC("Scale step length with 1/abs(cos(za)).",
                "Altitude for switching to coarse step length",
                "Coarse step length.")));
