@@ -1511,6 +1511,16 @@ void update_radiation_vector(RadiationVector& I,
       }
       I.leftMul(T);
     } break;
+    
+    case RadiativeTransferSolver::LinearWeightedEmission: {
+//       for (size_t i = 0; i < dI1.size(); i++) {
+//         dI1[i].addWeightedDerivEmission(PiT, dT1[i], T, I, dJ1[i]);
+//         dI2[i].addWeightedDerivEmission(PiT, dT2[i], T, I, dJ2[i]);
+//       }
+      I.leftMul(T);
+      I.add_weighted(T, J1, J2);  // FIXME: Order of J1 and J2 not tested
+      
+    } break;
   }
 }
 

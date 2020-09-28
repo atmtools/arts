@@ -325,7 +325,49 @@ class TransmissionMatrix {
 
   /** Input operator */
   friend std::istream& operator>>(std::istream& data, TransmissionMatrix& tm);
+  
+  //! Struct of far and close weights
+  template <size_t N>
+  struct Weights {Eigen::Matrix<Numeric, int(N), int(N)> far, close;};
+  
+  /*! Return the weights of far and close for a given frequency for
+   * linear in tau expression:
+   \f[ far = \frac{1-\left(1+\log{T_{00}}\right) T}{\log{T_{00}}} \f]
+   \f[ close = \frac{\log{T_{00}} - 1 + T}{\log{T_{00}}} \f]
+   * 
+   * @param[in] i Index of frequency
+   * @return Linear Weights
+   */
+  template <size_t N>
+  Weights<N> linear_in_tau_weights(size_t) const noexcept {
+    // FIXME: Make the complete implementation here by using "if constexpr" in C++17
+    static_assert (N not_eq 0 and N < 5, "Bad size N");
+  }
 };
+
+template <> inline TransmissionMatrix::Weights<1> TransmissionMatrix::linear_in_tau_weights(size_t i) const noexcept {
+  const Numeric od = std::log(this -> operator()(i, 0, 0));
+  return TransmissionMatrix::Weights<1>{(Eigen::Matrix<Numeric, 1, 1>::Identity() - (1 + od) * T1[i])/od,
+    (od * Eigen::Matrix<Numeric, 1, 1>::Identity() - Eigen::Matrix<Numeric, 1, 1>::Identity() + T1[i])/od};
+}
+
+template <> inline TransmissionMatrix::Weights<2> TransmissionMatrix::linear_in_tau_weights(size_t i) const noexcept {
+  const Numeric od = std::log(this -> operator()(i, 0, 0));
+  return TransmissionMatrix::Weights<2>{(Eigen::Matrix<Numeric, 2, 2>::Identity() - (1 + od) * T2[i])/od,
+    (od * Eigen::Matrix<Numeric, 2, 2>::Identity() - Eigen::Matrix<Numeric, 2, 2>::Identity() + T2[i])/od};
+}
+
+template <> inline TransmissionMatrix::Weights<3> TransmissionMatrix::linear_in_tau_weights(size_t i) const noexcept {
+  const Numeric od = std::log(this -> operator()(i, 0, 0));
+  return TransmissionMatrix::Weights<3>{(Eigen::Matrix<Numeric, 3, 3>::Identity() - (1 + od) * T3[i])/od,
+    (od * Eigen::Matrix<Numeric, 3, 3>::Identity() - Eigen::Matrix<Numeric, 3, 3>::Identity() + T3[i])/od};
+}
+
+template <> inline TransmissionMatrix::Weights<4> TransmissionMatrix::linear_in_tau_weights(size_t i) const noexcept {
+  const Numeric od = std::log(this -> operator()(i, 0, 0));
+  return TransmissionMatrix::Weights<4>{(Eigen::Matrix<Numeric, 4, 4>::Identity() - (1 + od) * T4[i])/od,
+    (od * Eigen::Matrix<Numeric, 4, 4>::Identity() - Eigen::Matrix<Numeric, 4, 4>::Identity() + T4[i])/od};
+}
 
 /** Lazy scale of Transmission Matrix
  * 
@@ -552,6 +594,32 @@ class RadiationVector {
       R2[i].noalias() += 0.5 * (O1.R2[i] + O2.R2[i]);
     for (size_t i = 0; i < R1.size(); i++)
       R1[i].noalias() += 0.5 * (O1.R1[i] + O2.R1[i]);
+  }
+  
+  
+  /** Add the weighted source of two RadiationVector to *this
+   * 
+   * @param[in] T The transmission matrix
+   * @param[in] close Input 1
+   * @param[in] far   Input 2
+   */
+  void add_weighted(const TransmissionMatrix& T, const RadiationVector& close, const RadiationVector& far) {
+    for (size_t i = 0; i < R4.size(); i++) {
+      const auto w = T.linear_in_tau_weights<4>(i);
+      R4[i].noalias() += w.far * far.R4[i] + w.close * close.R4[i];
+    }
+    for (size_t i = 0; i < R3.size(); i++) {
+      const auto w = T.linear_in_tau_weights<3>(i);
+      R3[i].noalias() += w.far * far.R3[i] + w.close * close.R3[i];
+    }
+    for (size_t i = 0; i < R2.size(); i++) {
+      const auto w = T.linear_in_tau_weights<2>(i);
+      R2[i].noalias() += w.far * far.R2[i] + w.close * close.R2[i];
+    }
+    for (size_t i = 0; i < R1.size(); i++) {
+      const auto w = T.linear_in_tau_weights<1>(i);
+      R1[i].noalias() += w.far * far.R1[i] + w.close * close.R1[i];
+    }
   }
 
   /** Add the emission derivative to this
@@ -875,6 +943,7 @@ enum class CumulativeTransmission {
 enum class RadiativeTransferSolver {
   Emission,
   Transmission,
+  LinearWeightedEmission,
 };
 
 /** Update the Radiation Vector
