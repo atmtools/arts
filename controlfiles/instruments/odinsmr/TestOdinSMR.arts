@@ -127,15 +127,15 @@ VectorCreate( yREFERENCE )
 ReadXML( yREFERENCE, "yREFERENCE.xml" )
 Compare( y, yREFERENCE, 1e-2 )
 
-WriteXML( output_file_format, y )
+#WriteXML( output_file_format, y )
 
-WriteXML( output_file_format, z_tan )
+#WriteXML( output_file_format, z_tan )
 
-WriteXML( output_file_format, sensor_response_f_grid )
+#WriteXML( output_file_format, sensor_response_f_grid )
 
-WriteXML( output_file_format, y_f )
-WriteXML( output_file_format, y_pol )
-WriteXML( output_file_format, y_pos )
-WriteXML( output_file_format, y_los )
+#WriteXML( output_file_format, y_f )
+#WriteXML( output_file_format, y_pol )
+#WriteXML( output_file_format, y_pos )
+#WriteXML( output_file_format, y_los )
 
 }
