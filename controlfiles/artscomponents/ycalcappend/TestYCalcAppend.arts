@@ -171,16 +171,16 @@ yCalcAppend( jacobian_quantities_copy=jacobian_quantities_copy )
 
 
 # Save reults
-WriteXML( output_file_format, y,     "TestYCalcAppend.y.xml" )
-WriteXML( output_file_format, y_f,   "TestYCalcAppend.y_f.xml" )
-WriteXML( output_file_format, y_pol, "TestYCalcAppend.y_pol.xml" )
-WriteXML( output_file_format, y_pos, "TestYCalcAppend.y_pos.xml" )
-WriteXML( output_file_format, y_los, "TestYCalcAppend.y_los.xml" )
-WriteXML( output_file_format, y_aux, "TestYCalcAppend.y_aux.xml" )
+#WriteXML( output_file_format, y,     "TestYCalcAppend.y.xml" )
+#WriteXML( output_file_format, y_f,   "TestYCalcAppend.y_f.xml" )
+#WriteXML( output_file_format, y_pol, "TestYCalcAppend.y_pol.xml" )
+#WriteXML( output_file_format, y_pos, "TestYCalcAppend.y_pos.xml" )
+#WriteXML( output_file_format, y_los, "TestYCalcAppend.y_los.xml" )
+#WriteXML( output_file_format, y_aux, "TestYCalcAppend.y_aux.xml" )
 #
-WriteXML( output_file_format, jacobian, 
-                              "TestYCalcAppend.jacobian.xml" )
-WriteXML( output_file_format, jacobian_quantities, 
-                              "TestYCalcAppend.jacobian_quantities.xml" )
+#WriteXML( output_file_format, jacobian, 
+#                              "TestYCalcAppend.jacobian.xml" )
+#WriteXML( output_file_format, jacobian_quantities, 
+#                              "TestYCalcAppend.jacobian_quantities.xml" )
 
 }
