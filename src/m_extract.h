@@ -59,7 +59,7 @@ void Extract(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ArrayOfIndexExtractFromArrayOfArrayOfIndex(
+inline void ArrayOfIndexExtractFromArrayOfArrayOfIndex(
     // WS Generic Output:
     ArrayOfIndex& aoi,
     // WS Input:
@@ -78,7 +78,7 @@ void ArrayOfIndexExtractFromArrayOfArrayOfIndex(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Extract(
+inline void Extract(
     // WS Generic Output:
     Numeric& n,
     // WS Input:
@@ -96,7 +96,7 @@ void Extract(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Extract(
+inline void Extract(
     // WS Generic Output:
     Matrix& m,
     // WS Input:
@@ -114,7 +114,7 @@ void Extract(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Extract(
+inline void Extract(
     // WS Generic Output:
     Tensor3& t3,
     // WS Input:
@@ -133,7 +133,7 @@ void Extract(
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Extract(
+inline void Extract(
     // WS Generic Output:
     Tensor4& t4,
     // WS Input:
@@ -156,7 +156,7 @@ void Extract(
    Implementation largely copied from Patrick's MatrixExtractFromTensor3 method. 
 
    2007-10-26 Oliver Lemke */
-void Extract(
+inline void Extract(
     // WS Generic Output:
     ArrayOfGriddedField3& agf,
     // WS Input:
@@ -180,7 +180,7 @@ void Extract(
    Implementation largely copied from MatrixExtractFromArrayOfMatrix.
 
    2007-11-26 Stefan Buehler */
-void Extract(
+inline void Extract(
     // WS Generic Output:
     GriddedField4& m,
     // WS Input:
@@ -201,7 +201,7 @@ void Extract(
   m = agf4[index];
 }
 
-void Extract(
+inline void Extract(
     // WS Generic Output:
     QuantumIdentifier& qi,
     // WS Input:

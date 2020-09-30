@@ -74,7 +74,7 @@ void Select(  // WS Generic Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Select(Workspace& /* ws */,
+inline void Select(Workspace& /* ws */,
             // WS Generic Output:
             ArrayOfAgenda& needles,
             // WS Generic Input:
@@ -85,7 +85,7 @@ void Select(Workspace& /* ws */,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Select(  // WS Generic Output:
+inline void Select(  // WS Generic Output:
     Vector& needles,
     // WS Generic Input:
     const Vector& haystack,
@@ -123,7 +123,7 @@ void Select(  // WS Generic Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Select(  // WS Generic Output:
+inline void Select(  // WS Generic Output:
     Matrix& needles,
     // WS Generic Input:
     const Matrix& haystack,
@@ -161,7 +161,7 @@ void Select(  // WS Generic Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Select(  // WS Generic Output:
+inline void Select(  // WS Generic Output:
     Sparse& needles,
     // WS Generic Input:
     const Sparse& haystack,

@@ -82,7 +82,7 @@ void Append(  // WS Generic Output:
 }
 
 /* Implementation for array types to append single element */
-void Append(Workspace& ws,
+inline void Append(Workspace& ws,
             // WS Generic Output:
             ArrayOfAgenda& out,
             const String& out_name,
@@ -99,7 +99,7 @@ void Append(Workspace& ws,
 }
 
 /* Implementation for array types to append single element */
-void Append(Workspace& ws,
+inline void Append(Workspace& ws,
             // WS Generic Output:
             ArrayOfAgenda& out,
             const String& out_name,
@@ -118,7 +118,7 @@ void Append(Workspace& ws,
 }
 
 /* Implementation for Vector */
-void Append(  // WS Generic Output:
+inline void Append(  // WS Generic Output:
     Vector& out,
     const String& /* out_name */,
     // WS Generic Input:
@@ -152,7 +152,7 @@ void Append(  // WS Generic Output:
 }
 
 /* Implementation for Matrix */
-void Append(  // WS Generic Output:
+inline void Append(  // WS Generic Output:
     Matrix& out,
     const String& /* out_name */,
     // WS Generic Input:
@@ -207,7 +207,7 @@ void Append(  // WS Generic Output:
 }
 
 /* Implementation for Matrix/Vector */
-void Append(  // WS Generic Output:
+inline void Append(  // WS Generic Output:
     Matrix& out,
     const String& /* out_name */,
     // WS Generic Input:
@@ -251,7 +251,7 @@ void Append(  // WS Generic Output:
 }
 
 /* Implementation for Vector/Numeric */
-void Append(  // WS Generic Output:
+inline void Append(  // WS Generic Output:
     Vector& out,
     const String& /* out_name */,
     // WS Generic Input:
@@ -274,7 +274,7 @@ void Append(  // WS Generic Output:
 }
 
 /* Implementation for Tensor3/Matrix */
-void Append(  // WS Generic Output:
+inline void Append(  // WS Generic Output:
     Tensor3& out,
     const String& /* out_name */,
     // WS Generic Input:
@@ -305,7 +305,7 @@ void Append(  // WS Generic Output:
 }
 
 /* Implementation for Tensor3 */
-void Append(  // WS Generic Output:
+inline void Append(  // WS Generic Output:
     Tensor3& out,
     const String& /* out_name */,
     // WS Generic Input:
@@ -348,7 +348,7 @@ void Append(  // WS Generic Output:
 }
 
 /* Implementation for Tensor4/Tensor3 */
-void Append(  // WS Generic Output:
+inline void Append(  // WS Generic Output:
     Tensor4& out,
     const String& /* out_name */,
     // WS Generic Input:
@@ -385,7 +385,7 @@ void Append(  // WS Generic Output:
 }
 
 /* Implementation for Tensor4 */
-void Append(  // WS Generic Output:
+inline void Append(  // WS Generic Output:
     Tensor4& out,
     const String& /* out_name */,
     // WS Generic Input:
@@ -435,7 +435,7 @@ void Append(  // WS Generic Output:
 }
 
 /* Implementation for String */
-void Append(  // WS Generic Output:
+inline void Append(  // WS Generic Output:
     String& out,
     const String& /* out_name */,
     // WS Generic Input:
