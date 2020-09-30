@@ -23,6 +23,8 @@ import builtins
 DOCLINES = (__doc__ or '').split("\n")
 __version__ = open(join("@ARTS_SRC_DIR@", 'VERSION')).read().strip()
 
+VERSION_TUPLE = __version__.split('.')
+STABLE = int(VERSION_TUPLE[1]) % 2 == 0
 
 here = abspath(dirname(__file__))
 
@@ -37,7 +39,7 @@ except:
 
 setup(
     name='pyarts',
-    version=__version__,
+    version=__version__ + ('' if STABLE else '.dev0'),
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
     url='https://github.com/atmtools/arts',
