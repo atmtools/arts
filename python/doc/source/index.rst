@@ -1,7 +1,7 @@
-arts
-====
+pyarts
+======
 
-**arts** is the Python interface for the
+**pyarts** is the Python interface for the
 `Atmospheric Radiative Transfer Simulator <www.radiativetransfer.org>`_
 (ARTS). It provides
 
