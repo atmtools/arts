@@ -2,32 +2,29 @@ Reference
 =========
 
 ARTS Interface
---------------
-
-
-.. toctree::
-   :maxdepth: 1
-
-   arts.workspace
-
-
-Data types and File I/O
------------------------
+==============
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
-   arts.catalogues
-   arts.covariancematrix
-   arts.griddedfield
-   arts.internals
-   arts.parser
-   arts.retrieval
-   arts.scattering
-   arts.sensor
-   arts.spectroscopy
+   pyarts.workspace
 
 
+ARTS XML I/O
+============
 
+.. toctree::
+   :maxdepth: 2
+
+   pyarts_xml
+
+
+ARTS Data Types
+===============
+
+.. toctree::
+   :maxdepth: 2
+
+   pyarts_datatypes
 
 
