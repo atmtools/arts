@@ -31,7 +31,7 @@ extern const Numeric SPEED_OF_LIGHT;
 extern const Numeric PI;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void FrequencyFromWavelength(  // WS Generic Output
+inline void FrequencyFromWavelength(  // WS Generic Output
     Numeric& frequency,
     // WS Generic Input
     const Numeric& wavelength,
@@ -41,7 +41,7 @@ void FrequencyFromWavelength(  // WS Generic Output
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void FrequencyFromWavelength(  // WS Generic Output
+inline void FrequencyFromWavelength(  // WS Generic Output
     Vector& frequency,
     // WS Generic Input
     const Vector& wavelength,
@@ -53,7 +53,7 @@ void FrequencyFromWavelength(  // WS Generic Output
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void FrequencyFromCGSAngularWavenumber(  // WS Generic Output
+inline void FrequencyFromCGSAngularWavenumber(  // WS Generic Output
     Numeric& frequency,
     // WS Generic Input
     const Numeric& angular_wavenumber,
@@ -62,7 +62,7 @@ void FrequencyFromCGSAngularWavenumber(  // WS Generic Output
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void FrequencyFromCGSAngularWavenumber(  // WS Generic Output
+inline void FrequencyFromCGSAngularWavenumber(  // WS Generic Output
     Vector& frequency,
     // WS Generic Input
     const Vector& angular_wavenumber,
@@ -74,7 +74,7 @@ void FrequencyFromCGSAngularWavenumber(  // WS Generic Output
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void FrequencyFromCGSKayserWavenumber(  // WS Generic Output
+inline void FrequencyFromCGSKayserWavenumber(  // WS Generic Output
     Numeric& frequency,
     // WS Generic Input
     const Numeric& kayser_wavenumber,
@@ -83,7 +83,7 @@ void FrequencyFromCGSKayserWavenumber(  // WS Generic Output
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void FrequencyFromCGSKayserWavenumber(  // WS Generic Output
+inline void FrequencyFromCGSKayserWavenumber(  // WS Generic Output
     Vector& frequency,
     // WS Generic Input
     const Vector& kayser_wavenumber,

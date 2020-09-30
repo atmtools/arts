@@ -158,7 +158,7 @@ void ReadNetCDF(Workspace& ws _U_,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void WriteNetCDF(Workspace& ws _U_,
+inline void WriteNetCDF(Workspace& ws _U_,
                  // WS Generic Input:
                  const Agenda& v,
                  const String& f,

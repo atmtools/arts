@@ -47,7 +47,7 @@ void Copy(  // WS Generic Output:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Copy(Workspace& ws,
+inline void Copy(Workspace& ws,
           // WS Generic Output:
           Agenda& out,
           const String& out_name,
@@ -61,7 +61,7 @@ void Copy(Workspace& ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Copy(Workspace& ws,
+inline void Copy(Workspace& ws,
           // WS Generic Output:
           ArrayOfAgenda& out,
           const String& out_name,

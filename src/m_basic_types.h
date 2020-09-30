@@ -72,7 +72,7 @@ TMPL_NGET_GENERIC(nlibraries)
 #undef TMPL_NGET_GENERIC
 
 #define TMPL_NGET_AGENDA(what)                                                 \
-  void what##Get(Workspace& ws _U_, Index&, const Agenda&, const Verbosity&) { \
+inline void what##Get(Workspace& ws _U_, Index&, const Agenda&, const Verbosity&) { \
     ostringstream os;                                                          \
     os << "The variable has no such attribute.\n";                             \
     throw runtime_error(os.str());                                             \
@@ -103,12 +103,12 @@ void IndexSetToLast(Index&, const T&, const Verbosity&) {
 // value of the requested attribute.
 
 #define NGET_GENERIC(what, type)                                 \
-  void what##Get(Index& what, const type& x, const Verbosity&) { \
+inline void what##Get(Index& what, const type& x, const Verbosity&) { \
     what = x.what();                                             \
   }
 
 #define SET_TO_LAST_GENERIC(type)                                  \
-  void IndexSetToLast(Index& i, const type& x, const Verbosity&) { \
+inline void IndexSetToLast(Index& i, const type& x, const Verbosity&) { \
     i = x.nelem() - 1;                                             \
   }
 
@@ -225,14 +225,14 @@ NGET_GENERIC(nlibraries, Tensor7)
 #undef NGET_GENERIC
 #undef SET_TO_LAST_GENERIC
 
-void nelemGet(Workspace& /* ws */,
+inline void nelemGet(Workspace& /* ws */,
               Index& nelem,
               const ArrayOfAgenda& x,
               const Verbosity&) {
   nelem = x.nelem();
 }
 
-void IndexSetToLast(Workspace& /* ws */,
+inline void IndexSetToLast(Workspace& /* ws */,
                     Index& nelem,
                     const ArrayOfAgenda& x,
                     const Verbosity&) {

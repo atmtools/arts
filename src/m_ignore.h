@@ -36,13 +36,13 @@
 #include "workspace_ng.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Ignore(Workspace&,
+inline void Ignore(Workspace&,
             // WS Generic Input:
             const Agenda&,
             const Verbosity&) {}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Ignore(Workspace&,
+inline void Ignore(Workspace&,
             // WS Generic Input:
             const ArrayOfAgenda&,
             const Verbosity&) {}
@@ -54,7 +54,7 @@ void Ignore(  // WS Generic Input:
     const Verbosity&) {}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Touch(Workspace&,
+inline void Touch(Workspace&,
            // WS Generic Output:
            Agenda&,
            const Verbosity&) {}
