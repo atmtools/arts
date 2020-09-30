@@ -30,7 +30,7 @@ AtmosphereSet1D
 
 jacobianOff
 
-INCLUDE "instruments/odinsmr/odinsmr_501.arts"
+INCLUDE "../../instruments/odinsmr/odinsmr_501.arts"
 
 # Agenda for scalar gas absorption calculation
 Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
