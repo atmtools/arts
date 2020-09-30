@@ -427,7 +427,10 @@ add_custom_target(check-planettoolbox
   COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -R '\(.planettoolbox.\)' DEPENDS arts)
 
 add_custom_target(check-all
-  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -E '\(.nocheck.\)' DEPENDS arts)
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -E '.nocheck.' DEPENDS arts pyarts python_tests)
+
+add_custom_target(check-all-controlfiles
+  COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -E '^python.|.pyarts.|.nocheck.' DEPENDS arts)
 
 add_custom_target(check-pyarts-only
   COMMAND ${CMAKE_CTEST_COMMAND} ${CTEST_MISC_OPTIONS} --output-on-failure ${CTEST_JOBS} -R '\.pyarts\.' DEPENDS pyarts)
