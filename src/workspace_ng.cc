@@ -23,10 +23,15 @@
  */
 
 #include "workspace_ng.h"
-#include "auto_workspace.h"
 #include "wsv_aux.h"
+#include "workspace_memory_handler.h"
 
-WorkspaceMemoryHandler wsmh;
+/**The workspace memory handler. *
+ *
+ * Defined in workspace_memory_handler.cc.
+ *
+ */
+WorkspaceMemoryHandler workspace_memory_handler{};
 
 Array<WsvRecord> Workspace::wsv_data;
 
@@ -57,7 +62,7 @@ void Workspace::del(Index i) {
   WsvStruct *wsvs = ws[i].top();
 
   if (wsvs && wsvs->wsv) {
-    wsmh.deallocate(wsv_data[i].Group(), wsvs->wsv);
+    workspace_memory_handler.deallocate(wsv_data[i].Group(), wsvs->wsv);
     wsvs->wsv = NULL;
     wsvs->auto_allocated = false;
     wsvs->initialized = false;
@@ -69,7 +74,7 @@ void Workspace::duplicate(Index i) {
 
   wsvs->auto_allocated = true;
   if (ws[i].size() && ws[i].top()->wsv) {
-    wsvs->wsv = wsmh.duplicate(wsv_data[i].Group(), ws[i].top()->wsv);
+    wsvs->wsv = workspace_memory_handler.duplicate(wsv_data[i].Group(), ws[i].top()->wsv);
     wsvs->initialized = true;
   } else {
     wsvs->wsv = NULL;
@@ -107,7 +112,7 @@ Workspace::~Workspace() {
     while (ws[i].size()) {
       wsvs = ws[i].top();
       if (wsvs->auto_allocated && wsvs->wsv) {
-        wsmh.deallocate(wsv_data[i].Group(), wsvs->wsv);
+        workspace_memory_handler.deallocate(wsv_data[i].Group(), wsvs->wsv);
       }
       delete (wsvs);
       ws[i].pop();
@@ -131,7 +136,7 @@ void Workspace::pop_free(Index i) {
   WsvStruct *wsvs = ws[i].top();
 
   if (wsvs) {
-    if (wsvs->wsv) wsmh.deallocate(wsv_data[i].Group(), wsvs->wsv);
+    if (wsvs->wsv) workspace_memory_handler.deallocate(wsv_data[i].Group(), wsvs->wsv);
 
     delete wsvs;
     ws[i].pop();
@@ -159,7 +164,7 @@ void *Workspace::operator[](Index i) {
 
   if (!ws[i].top()->wsv) {
     ws[i].top()->auto_allocated = true;
-    ws[i].top()->wsv = wsmh.allocate(wsv_data[i].Group());
+    ws[i].top()->wsv = workspace_memory_handler.allocate(wsv_data[i].Group());
   }
 
   ws[i].top()->initialized = true;

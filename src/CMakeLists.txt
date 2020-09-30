@@ -94,23 +94,22 @@ endif (C_API)
 
 ########### next target ###############
 
-add_executable (make_auto_workspace_h
-        arts.cc
-        file.cc
-  make_auto_workspace_h.cc
-        messages.cc
-        parameters.cc
-        )
+add_executable (make_workspace_memory_handler_cc
+                make_workspace_memory_handler_cc.cc
+                arts.cc
+                groups.cc
+                file.cc
+                parameters.cc
+                messages.cc)
 
-target_link_libraries (make_auto_workspace_h matpack methods)
 
 add_custom_command (
-        OUTPUT auto_workspace.h
-        COMMAND make_auto_workspace_h
-        DEPENDS make_auto_workspace_h
+        OUTPUT workspace_memory_handler.cc
+        COMMAND make_workspace_memory_handler_cc
+        DEPENDS make_workspace_memory_handler_cc
         )
 
-add_custom_target (BuildAutoSources DEPENDS auto_workspace.h auto_md.h
+add_custom_target (BuildAutoSources DEPENDS auto_md.h
                    auto_md.cc)
 
 ########### next target ###############
@@ -118,7 +117,6 @@ add_custom_target (BuildAutoSources DEPENDS auto_workspace.h auto_md.h
 add_executable (make_auto_md_h
         agenda_record.cc
         arts.cc
-  auto_workspace.h
         file.cc
         make_auto_md_h.cc
         messages.cc
@@ -140,7 +138,6 @@ add_custom_command (
 add_executable (make_auto_md_cc
         agenda_record.cc
         arts.cc
-        auto_workspace.h
         file.cc
         make_auto_md_cc.cc
         messages.cc
@@ -169,7 +166,6 @@ endif (NOT HAVE_GETOPT_H)
 add_library (artscore STATIC
         auto_md.h
         auto_md.cc
-        auto_workspace.h
   ${ARTSCORE_EXTRA_SOURCES}
   abs_species_tags.cc
   absorption.cc
@@ -299,6 +295,7 @@ add_library (artscore STATIC
   wigner_functions.cc
   workspace.cc
   workspace_ng.cc
+  workspace_memory_handler.cc
   xml_io.cc
   xml_io_array_types.cc
   xml_io_basic_types.cc

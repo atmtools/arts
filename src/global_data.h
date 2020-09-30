@@ -29,6 +29,7 @@
 #include "agenda_record.h"
 #include "array.h"
 #include "methods.h"
+#include "workspace_memory_handler.h"
 
 // Needed for global_data::species_data
 class SpeciesRecord;
