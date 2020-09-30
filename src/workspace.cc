@@ -3818,6 +3818,14 @@ void Workspace::define_wsv_data() {
       GROUP("Numeric")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("rt_integration_option"),
+      DESCRIPTION(
+          "Switch between integration approaches for radiative transfer steps.\n"
+          "\n"
+          "See each WSM using this varaible as input.\n"),
+      GROUP("Index")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("rtp_nlte"),
       DESCRIPTION(
           "NLTE temperature/ratio at a radiative transfer point.\n"

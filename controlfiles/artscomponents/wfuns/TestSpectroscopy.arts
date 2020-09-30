@@ -37,7 +37,8 @@ Arts2{
   Touch(surface_props_names)
   Touch(transmitter_pos)
   StringSet(iy_unit, "PlanckBT")
-  
+  IndexSet( rt_integration_option, 1 )
+
   AtmRawRead( basename = "testdata/tropical" )
   AtmosphereSet3D
   AtmFieldsCalcExpand1D

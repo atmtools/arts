@@ -7637,6 +7637,9 @@ void define_md_data_raw() {
           "*iy_unit* is only applied if *iy_agenda_call1* is 1. This means that\n"
           "no unit ocnversion is applied for internal iterative calls.\n"
           "\n"
+          "Allowed options for *rt_integration_option* are 1 and 2, refering to\n"
+          "first and second order integration over each RT step.\n"
+          "\n"
           "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
           "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
           "Valid choices for auxiliary data are:\n"
@@ -7692,6 +7695,7 @@ void define_md_data_raw() {
          "rte_pos2",
          "propmat_clearsky_agenda",
          "water_p_eq_agenda",
+         "rt_integration_option",
          "iy_main_agenda",
          "iy_space_agenda",
          "iy_surface_agenda",
@@ -7897,6 +7901,7 @@ void define_md_data_raw() {
          "jacobian_quantities",
          "propmat_clearsky_agenda",
          "water_p_eq_agenda",
+         "rt_integration_option",
          "iy_main_agenda",
          "iy_space_agenda",
          "iy_surface_agenda",
@@ -7966,6 +7971,7 @@ void define_md_data_raw() {
          "jacobian_quantities",
          "propmat_clearsky_agenda",
          "water_p_eq_agenda",
+         "rt_integration_option",
          "iy_main_agenda",
          "iy_space_agenda",
          "iy_surface_agenda",
@@ -17722,6 +17728,7 @@ void define_md_data_raw() {
          "z_surface",
          "ppath_lmax",
          "rte_alonglos_v",
+         "rt_integration_option",
          "surface_props_data",
          "za_grid"),
       GIN("use_parallel_iy"),
@@ -17802,6 +17809,7 @@ void define_md_data_raw() {
          "cloudbox_field",
          "ppath_lmax",
          "rte_alonglos_v",
+         "rt_integration_option",
          "surface_props_data",
          "za_grid"),
       GIN("use_parallel_iy"),

@@ -557,7 +557,7 @@ void iyEmissionStandardSequential(Workspace& ws,
                               j_analytical_do,
                               iy_unit);
   }
-}
+ }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyEmissionStandard(
@@ -599,6 +599,7 @@ void iyEmissionStandard(
     const Vector& rte_pos2,
     const Agenda& propmat_clearsky_agenda,
     const Agenda& water_p_eq_agenda,
+    const Index& rt_integration_option,
     const Agenda& iy_main_agenda,
     const Agenda& iy_space_agenda,
     const Agenda& iy_surface_agenda,
@@ -608,6 +609,7 @@ void iyEmissionStandard(
     const Numeric& rte_alonglos_v,
     const Tensor3& surface_props_data,
     const Verbosity& verbosity) {
+  
   // Some basic sizes
   const Index nf = f_grid.nelem();
   const Index ns = stokes_dim;
@@ -932,22 +934,43 @@ void iyEmissionStandard(
   lvl_rad[np - 1] = iy;
 
   // Radiative transfer calculations
-  for (Index ip = np - 2; ip >= 0; ip--) {
-    lvl_rad[ip] = lvl_rad[ip + 1];
-    update_radiation_vector(lvl_rad[ip],
-                            dlvl_rad[ip],
-                            dlvl_rad[ip + 1],
-                            src_rad[ip],
-                            src_rad[ip + 1],
-                            dsrc_rad[ip],
-                            dsrc_rad[ip + 1],
-                            lyr_tra[ip + 1],
-                            tot_tra[ip],
-                            dlyr_tra_above[ip + 1],
-                            dlyr_tra_below[ip + 1],
-                            RadiativeTransferSolver::Emission);
+  if (rt_integration_option == 1) {
+    for (Index ip = np - 2; ip >= 0; ip--) {
+      lvl_rad[ip] = lvl_rad[ip + 1];
+      update_radiation_vector(lvl_rad[ip],
+                              dlvl_rad[ip],
+                              dlvl_rad[ip + 1],
+                              src_rad[ip],
+                              src_rad[ip + 1],
+                              dsrc_rad[ip],
+                              dsrc_rad[ip + 1],
+                              lyr_tra[ip + 1],
+                              tot_tra[ip],
+                              dlyr_tra_above[ip + 1],
+                              dlyr_tra_below[ip + 1],
+                              RadiativeTransferSolver::Emission);
+    }
+  } else if (rt_integration_option == 2) {
+    for (Index ip = np - 2; ip >= 0; ip--) {
+      lvl_rad[ip] = lvl_rad[ip + 1];
+      update_radiation_vector(lvl_rad[ip],
+                              dlvl_rad[ip],
+                              dlvl_rad[ip + 1],
+                              src_rad[ip],
+                              src_rad[ip + 1],
+                              dsrc_rad[ip],
+                              dsrc_rad[ip + 1],
+                              lyr_tra[ip + 1],
+                              tot_tra[ip],
+                              dlyr_tra_above[ip + 1],
+                              dlyr_tra_below[ip + 1],
+                              RadiativeTransferSolver::LinearWeightedEmission);
+    }
+  } else {
+    throw runtime_error("Only allowed choices for *integration order* are "
+                        "1 and 2.");    
   }
-
+  
   // Copy back to ARTS external style
   iy = lvl_rad[0];
   for (Index ip = 0; ip < lvl_rad.nelem(); ip++) {
