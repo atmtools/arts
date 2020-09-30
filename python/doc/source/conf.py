@@ -16,12 +16,12 @@
 import sys
 import os
 
-from arts.environment import environ
-
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath(os.path.join('..', '..')))
+
+from pyarts.environment import environ
 
 # -- General configuration ------------------------------------------------
 
@@ -42,7 +42,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
     'matplotlib.sphinxext.plot_directive',
-    'arts.utils.sphinxext',
+    'pyarts.utils.sphinxext',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -60,7 +60,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'arts'
+project = 'pyarts'
 copyright = 'The Typhon and ARTS Developers'
 author = 'The Typhon and ARTS Developers'
 
@@ -69,7 +69,7 @@ author = 'The Typhon and ARTS Developers'
 # built documents.
 #
 # The short X.Y version.
-from arts import __version__
+from pyarts import __version__
 version = __version__
 # The full version, including alpha/beta/rc tags.
 release = version
@@ -110,7 +110,7 @@ exclude_patterns = ['_build']
 pygments_style = 'sphinx'
 
 # A list of ignored prefixes for module index sorting.
-modindex_common_prefix = ['arts.']
+modindex_common_prefix = ['pyarts.']
 
 # If true, keep warnings as "system message" paragraphs in the built documents.
 #keep_warnings = False
