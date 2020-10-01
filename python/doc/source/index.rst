@@ -2,7 +2,7 @@ pyarts
 ======
 
 **pyarts** is the Python interface for the
-`Atmospheric Radiative Transfer Simulator <www.radiativetransfer.org>`_
+`Atmospheric Radiative Transfer Simulator <https://www.radiativetransfer.org>`_
 (ARTS). It provides
 
 -  an interactive interface to the ARTS engine for running radiative transfer
