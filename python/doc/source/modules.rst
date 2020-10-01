@@ -1,8 +1,8 @@
-Reference
-=========
+API Reference
+=============
 
 ARTS Interface
-==============
+--------------
 
 .. toctree::
    :maxdepth: 2
@@ -11,7 +11,7 @@ ARTS Interface
 
 
 ARTS XML I/O
-============
+------------
 
 .. toctree::
    :maxdepth: 2
@@ -20,7 +20,7 @@ ARTS XML I/O
 
 
 ARTS Data Types
-===============
+---------------
 
 .. toctree::
    :maxdepth: 2
