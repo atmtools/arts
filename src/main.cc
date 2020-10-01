@@ -789,6 +789,9 @@ int main(int argc, char** argv) {
   // Check that agenda information in wsv_data and agenda_data is consistent:
   assert(check_agenda_data());
 
+  // Initialize memory handler.
+  global_data::workspace_memory_handler.initialize();
+
   // While we are at it, we can also initialize the molecular data and
   // the coefficients of the partition function that we need for the
   // absorption part, and check that the inputs are sorted the same way:

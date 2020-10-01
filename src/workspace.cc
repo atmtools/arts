@@ -29,16 +29,7 @@
   \author Stefan Buehler
   \date   2000-06-10
 */
-
-#include "array.h"
-#include "arts.h"
-#include "matpackI.h"
-#include "matpackII.h"
-#include "matpackIII.h"
-#include "matpackVI.h"
-#include "ppath.h"
 #include "workspace_ng.h"
-#include "wsv_aux.h"
 
 // Some #defines to make the records better readable:
 #define NAME(x) x

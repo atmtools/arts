@@ -29,6 +29,7 @@
 #include "agenda_record.h"
 #include "array.h"
 #include "methods.h"
+#include "workspace_memory_handler.h"
 
 // Needed for global_data::species_data
 class SpeciesRecord;
@@ -108,6 +109,11 @@ extern const Array<SpeciesRecord> species_data;
  Defined in absorption.cc.
  */
 extern const map<String, Index> SpeciesMap;
+
+/** The workspace memory handler
+ * Defined in workspace_ng.cc.
+ */
+extern WorkspaceMemoryHandler workspace_memory_handler;
 
 } /* namespace global_data */
 

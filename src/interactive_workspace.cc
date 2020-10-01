@@ -1,18 +1,28 @@
 #include "interactive_workspace.h"
+#include "matpackI.h"
+#include "matpackII.h"
+#include "matpackIII.h"
+#include "matpackIV.h"
+#include "matpackV.h"
+#include "matpackVI.h"
+#include "matpackVII.h"
+#include "methods.h"
+#include "workspace_memory_handler.h"
 #include "agenda_class.h"
 #include "agenda_record.h"
-#include "auto_workspace.h"
 
 extern Verbosity verbosity_at_launch;
-extern WorkspaceMemoryHandler wsmh;
 extern std::string string_buffer;
 
 namespace global_data {
 extern map<String, Index> AgendaMap;
 extern Array<MdRecord> md_data;
 extern map<String, Index> WsvGroupMap;
+extern WorkspaceMemoryHandler workspace_memory_handler;
 }
+
 using global_data::md_data;
+using global_data::workspace_memory_handler;
 
 Index get_wsv_id(const char *);
 
@@ -79,6 +89,7 @@ void InteractiveWorkspace::initialize() {
   assert(check_agenda_data());
   define_species_data();
   define_species_map();
+  workspace_memory_handler.initialize();
 
   // Add getaway for callbacks.
   size_t n_methods = md_data.size();
@@ -319,7 +330,7 @@ Index InteractiveWorkspace::add_variable(Index group_id, const char *name) {
 
   ws.push_back(stack<WsvStruct *>());
   push(ws.size() - 1, nullptr);
-  ws.back().top()->wsv = wsmh.allocate(group_id);
+  ws.back().top()->wsv = workspace_memory_handler.allocate(group_id);
   ws.back().top()->auto_allocated = true;
   ws.back().top()->initialized = false;
 
@@ -344,7 +355,7 @@ void InteractiveWorkspace::erase_variable(Index i, Index group_id) {
   while (ws[i].size()) {
     wsvs = ws[i].top();
     if (wsvs->auto_allocated && wsvs->wsv) {
-      wsmh.deallocate(group_id, wsvs->wsv);
+      workspace_memory_handler.deallocate(group_id, wsvs->wsv);
     }
     delete (wsvs);
     ws[i].pop();

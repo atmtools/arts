@@ -99,7 +99,6 @@
 #include <cstddef>
 #include <cstdlib>
 #include "debug.h"
-#include "matpack.h"
 #include "mystring.h"
 
 //----------< First of all, include the configuration header >----------
