@@ -1,7 +1,7 @@
-arts
-====
+pyarts
+======
 
-**arts** is the Python interface for the
+**pyarts** is the Python interface for the
 `Atmospheric Radiative Transfer Simulator <www.radiativetransfer.org>`_
 (ARTS). It provides
 
@@ -18,7 +18,7 @@ Pre-compiled binaries
 
 Pre-compiled binaries of the ARTS interface including the ARTS engine for
 performing RT simulations can be installed from the
-`Python Package Index <https://pypi.org/project/pyarts/2.3.1277/>`_ (PyPI):
+`Python Package Index <https://pypi.org/project/pyarts>`_ (PyPI):
 
 .. code-block:: bash
 

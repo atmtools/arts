@@ -2,13 +2,13 @@ The interactive ARTS interface
 ==============================
 
 The interactive ARTS interface is implemented by the
-:class:`arts.workspace.Workspace` class. Each object of this
+:class:`pyarts.workspace.Workspace` class. Each object of this
 class represents an ARTS workspace on which ARTS workspace methods
 can be executed:
 
 .. code-block:: python
 
-    from arts.workspace import Workspace
+    from pyarts.workspace import Workspace
     ws = Workspace()
 
 Each Workspace object exposes all available ARTS workspace variables
@@ -118,9 +118,9 @@ mapping of ARTS groups to Python types.
    | Sparse                           + :code:`scipy.sparse`|
    +----------------------------------+---------------------+
 
-In addition to the groups, the **parts** package provides a number of
-specialized classes to represent ARTS groups. Refer to :ref:`ARTS classes` for
-an overview.
+In addition to the groups, the **pyarts** package provides a number of
+specialized classes to represent ARTS groups. Refer to
+:ref:`the pyarts datatypes <pyarts_datatypes>` for an overview.
 
 .. note:: The interface performs some simple conversions in order to simplify
    assigning values to WSVs. For groups :code:`Vector`, :code:`Matrix` and
@@ -180,7 +180,7 @@ into an agenda.
 
 .. code-block:: python
 
-   from arts.workspace import arts_agenda
+   from pyarts.workspace import arts_agenda
 
    @arts_agenda
    def ppath_agenda(ws):
@@ -205,7 +205,7 @@ definition.
 
 .. code-block:: python
 
-   from arts.workspace import arts_agenda
+   from pyarts.workspace import arts_agenda
 
    @arts_agenda
    def ppath_agenda(ws):
