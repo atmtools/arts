@@ -33,10 +33,12 @@ int main() {
     open_output_file(ofs, "workspace_memory_handler.cc");
 
     ofs << "/*! \\file  workspace_memory_handler.cc\n"
-        << "    \\brief Defines global workspace_handler_objects and its \n"
-        << "    dispatch functions.\n\n"
-        << "    <b>DO NOT EDIT!</b>\n\n"
-        << "    \\date " << __DATE__ << ", " << __TIME__ << " */\n\n";
+        << " *\n"
+        << " *  \\brief Defines global workspace_handler_objects and its \n"
+        << " *   dispatch functions.\n\n"
+        << " *   <b>DO NOT EDIT!</b>\n\n"
+        << " *   \\date " << __DATE__ << ", " << __TIME__ << "\n"
+        << " */\n\n";
 
     ofs << "#include \"workspace_memory_handler.h\"\n"
         << "#include <iostream>\n"
@@ -63,7 +65,7 @@ int main() {
         << "#include \"absorptionlines.h\"\n"
         << "\n";
 
-    ofs << "  // Allocation and deallocation routines for workspace groups\n";
+    ofs << "// Allocation and deallocation routines for workspace groups\n";
     for (Index i = 0; i < wsv_group_names.nelem(); ++i) {
       ofs << "void *allocate_wsvg_" << wsv_group_names[i] << "(){\n"
           << "  return (void *)new " << wsv_group_names[i] << ";\n}\n"
@@ -78,9 +80,9 @@ int main() {
 
     ofs << "  /// Initialization dispatch functions.\n"
         << "void WorkspaceMemoryHandler::initialize() {\n"
-        << "    allocation_ptrs_.resize(" << wsv_group_names.size() << ");\n"
-        << "    deallocation_ptrs_.resize(" << wsv_group_names.size() << ");\n"
-        << "    duplication_ptrs_.resize(" << wsv_group_names.size() << ");\n\n";
+        << "  allocation_ptrs_.resize(" << wsv_group_names.size() << ");\n"
+        << "  deallocation_ptrs_.resize(" << wsv_group_names.size() << ");\n"
+        << "  duplication_ptrs_.resize(" << wsv_group_names.size() << ");\n\n";
 
     for (Index i = 0; i < wsv_group_names.nelem(); ++i) {
       ofs << "  allocation_ptrs_[" << i << "] = allocate_wsvg_" << wsv_group_names[i]

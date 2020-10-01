@@ -110,6 +110,11 @@ extern const Array<SpeciesRecord> species_data;
  */
 extern const map<String, Index> SpeciesMap;
 
+/** The workspace memory handler
+ * Defined in workspace_ng.cc.
+ */
+extern WorkspaceMemoryHandler workspace_memory_handler;
+
 } /* namespace global_data */
 
 #endif /* global_data_h */

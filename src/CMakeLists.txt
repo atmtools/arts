@@ -101,14 +101,11 @@ add_executable (make_workspace_memory_handler_cc
                 file.cc
                 parameters.cc
                 messages.cc)
-
-
 add_custom_command (
         OUTPUT workspace_memory_handler.cc
         COMMAND make_workspace_memory_handler_cc
         DEPENDS make_workspace_memory_handler_cc
         )
-
 add_custom_target (BuildAutoSources DEPENDS auto_md.h
                    auto_md.cc)
 

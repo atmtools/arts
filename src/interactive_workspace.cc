@@ -12,7 +12,6 @@
 #include "agenda_record.h"
 
 extern Verbosity verbosity_at_launch;
-extern WorkspaceMemoryHandler workspace_memory_handler;
 extern std::string string_buffer;
 
 namespace global_data {
@@ -21,7 +20,9 @@ extern Array<MdRecord> md_data;
 extern map<String, Index> WsvGroupMap;
 extern WorkspaceMemoryHandler workspace_memory_handler;
 }
+
 using global_data::md_data;
+using global_data::workspace_memory_handler;
 
 Index get_wsv_id(const char *);
 
