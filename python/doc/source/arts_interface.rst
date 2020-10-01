@@ -119,8 +119,8 @@ mapping of ARTS groups to Python types.
    +----------------------------------+---------------------+
 
 In addition to the groups, the **pyarts** package provides a number of
-specialized classes to represent ARTS groups. Refer to :ref:`ARTS classes` for
-an overview.
+specialized classes to represent ARTS groups. Refer to
+:ref:`the pyarts datatypes <pyarts_datatypes>` for an overview.
 
 .. note:: The interface performs some simple conversions in order to simplify
    assigning values to WSVs. For groups :code:`Vector`, :code:`Matrix` and

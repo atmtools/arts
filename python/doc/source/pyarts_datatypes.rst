@@ -1,3 +1,5 @@
+.. _pyarts_datatypes:
+
 pyarts.catalogues
 =================
 
