@@ -18,3 +18,5 @@ file(GLOB_RECURSE RST_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.rst")
 foreach(file ${RST_FILES})
   configure_file(${file} ${file} @ONLY)
 endforeach()
+
+configure_file(build/.nojekyll build/.nojekyll @ONLY)
