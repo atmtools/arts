@@ -19,6 +19,7 @@ namespace global_data {
 extern map<String, Index> AgendaMap;
 extern Array<MdRecord> md_data;
 extern map<String, Index> WsvGroupMap;
+extern WorkspaceMemoryHandler workspace_memory_handler;
 }
 using global_data::md_data;
 
@@ -87,6 +88,7 @@ void InteractiveWorkspace::initialize() {
   assert(check_agenda_data());
   define_species_data();
   define_species_map();
+  workspace_memory_handler.initialize();
 
   // Add getaway for callbacks.
   size_t n_methods = md_data.size();
