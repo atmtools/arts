@@ -57,6 +57,12 @@ Index Workspace::add_wsv(const WsvRecord &wsv) {
   return wsv_data.nelem() - 1;
 }
 
+Index Workspace::add_wsv_inplace(const WsvRecord &wsv) {
+  const Index pos = add_wsv(wsv);
+  ws.push_back(stack<WsvStruct *>());
+  return pos;
+}
+
 void Workspace::del(Index i) {
   WsvStruct *wsvs = ws[i].top();
 
