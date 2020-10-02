@@ -819,6 +819,7 @@ int main() {
               << "\");\n"
               << "  Append(ARTS::Var::" << x.first << "(ws), records...);"
               << "\n"
+              << "  Var::" << x.first << "(ws).set_main_agenda();\n"
               << "  Var::" << x.first
               << "(ws).check(ws, Var::verbosity(ws));\n}\n\n";
   }

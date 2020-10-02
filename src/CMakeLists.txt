@@ -538,28 +538,29 @@ arts_test_cmdline("workspacevariables" -w all)
 arts_test_cmdline("check-docs" -C)
 
 ########### ARTS Interface ###############
-                                                   
+
 ########################################################################################
 # ARTS Library for including in C++ (must link to autoarts.h to get file)
-add_library (public_arts_interface STATIC autoarts.h)
-target_link_libraries(public_arts_interface PUBLIC ${ALL_ARTS_LIBRARIES})
-target_include_directories(public_arts_interface PUBLIC ${ARTS_BINARY_DIR}
-                                                        ${ARTS_BINARY_DIR}/src/
-                                                        ${ARTS_SOURCE_DIR}/src/
-                                                        ${ARTS_SOURCE_DIR}/3rdparty/
-                                                        ${ARTS_SOURCE_DIR}/3rdparty/invlib/src)
+add_library (public_arts_interface INTERFACE)
+target_link_libraries(public_arts_interface INTERFACE ${ALL_ARTS_LIBRARIES})
+target_include_directories(public_arts_interface INTERFACE ${ARTS_BINARY_DIR}
+                                                           ${ARTS_BINARY_DIR}/src/
+                                                           ${ARTS_SOURCE_DIR}/src/
+                                                           ${ARTS_SOURCE_DIR}/3rdparty/
+                                                           ${ARTS_SOURCE_DIR}/3rdparty/invlib/src)
+add_dependencies(public_arts_interface make_autoarts_h_target)
 ########################################################################################
 
 ########################################################################################
 # Generate the internal structure for the ARTS C++ interface
-add_executable(genautoarts_h genautoarts.cc)
-target_link_libraries(genautoarts_h PUBLIC ${ALL_ARTS_LIBRARIES})
+add_executable(make_autoarts_h make_autoarts_h.cc)
+target_link_libraries(make_autoarts_h PUBLIC ${ALL_ARTS_LIBRARIES})
 ########################################################################################
 
 ########################################################################################
 # Generate autoarts.h for the ARTS interface
 add_custom_command(OUTPUT autoarts.h
-                   COMMAND genautoarts_h > ${ARTS_BINARY_DIR}/src/autoarts.h
-                   DEPENDS genautoarts_h)
+                   COMMAND make_autoarts_h > ${ARTS_BINARY_DIR}/src/autoarts.h
+                   DEPENDS make_autoarts_h)
+add_custom_target(make_autoarts_h_target SOURCES ${ARTS_BINARY_DIR}/src/autoarts.h)
 ########################################################################################
-
