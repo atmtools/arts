@@ -6409,7 +6409,7 @@ void define_md_data_raw() {
                "Wind speed.",
                "Azimuth angle between wind direction and line-of-sight. "
                "This angle is measured clockwise from north, i.e. E=90deg.",
-               "The transmission of the atmosphere, along the propagation "
+               "The transmittance of the atmosphere, along the propagation "
                "path of the downwelling radiation. One value per frequency.",
                "The version of FASTEM to use.")));
 
@@ -7387,15 +7387,15 @@ void define_md_data_raw() {
           "This method does not consider *iy_unit*. Unit changes are insted applied\n"
           "in *yActive. The output of this method matches the option \"1\".\n"
           "\n"
-          "Transmission is handled in a slightly simplified manner for efficiency\n"
-          "reasons. First of all, the transmission matrix is assumed to be the same\n"
+          "Transmittance is handled in a slightly simplified manner for efficiency\n"
+          "reasons. First of all, the transmittance matrix is assumed to be the same\n"
           "in both directions between the sensor and the point of back-scattering.\n"
           "This should in general be true, but exceptions could exist. The extinction\n"
           "due to particles can also be scaled, which could be of interest when e.g.\n"
           "characterising inversions.\n"
           "\n"
           "Further, for Jacobian calculations the default is to assume that the\n"
-          "transmission is unaffected by the retrieval quantities. This is done\n"
+          "transmittance is unaffected by the retrieval quantities. This is done\n"
           "to save computational time, and should be a valid approximation for the\n"
           "single-scattering conditions. Set *trans_in_jacobian* to 1 to obtain\n"
           "the more accurate Jacobian.\n"
@@ -7410,7 +7410,7 @@ void define_md_data_raw() {
           "    *iy* but with no attenuated applied. Here all columns are filled.\n"
           " \"Optical depth\": Scalar, total and two-way, optical depth between\n"
           "    sensor and each point of the propagation path. Calculated based on\n"
-          "    the (1,1)-element of the transmission matrix (1-based indexing),\n"
+          "    the (1,1)-element of the transmittance matrix (1-based indexing),\n"
           "    i.e. only fully valid for scalar RT.\n"
           " \"Particle extinction\": As \"Optical depth\", but only with particle\n"
           "    attenuation included. That is, gas absorption is ignored.\n"
@@ -7463,12 +7463,12 @@ void define_md_data_raw() {
          "water_p_eq_agenda",
          "iy_transmitter_agenda",
          "iy_agenda_call1",
-         "iy_transmission",
+         "iy_transmittance",
          "rte_alonglos_v"),
       GIN("trans_in_jacobian", "pext_scaling", "t_interp_order"),
       GIN_TYPE("Index", "Numeric", "Index"),
       GIN_DEFAULT("0", "1", "1"),
-      GIN_DESC("Flag determining if change in transmission is considered"
+      GIN_DESC("Flag determining if change in transmittance is considered"
                " in calculation of the Jacobian or not.",
                "Particle extinction is scaled with this value. A value"
                " inside [0,2]. Set it to 0 if you want to remove particle"
@@ -7526,12 +7526,12 @@ void define_md_data_raw() {
          "water_p_eq_agenda",
          "iy_transmitter_agenda",
          "iy_agenda_call1",
-         "iy_transmission",
+         "iy_transmittance",
          "rte_alonglos_v"),
       GIN("trans_in_jacobian", "pext_scaling", "t_interp_order"),
       GIN_TYPE("Index", "Numeric", "Index"),
       GIN_DEFAULT("0", "1", "1"),
-      GIN_DESC("Flag determining if change in transmission is considered"
+      GIN_DESC("Flag determining if change in transmittance is considered"
                " in calculation of the Jacobian or not.",
                "Particle extinction is scaled with this value. A value"
                " inside [0,2]. Set it to 0 if you want to remove particle"
@@ -7650,7 +7650,7 @@ void define_md_data_raw() {
           "    and 2=cloudbox.\n"
           " \"Optical depth\": Scalar optical depth between the observation point\n"
           "    and the end of the present propagation path. Calculated based on\n"
-          "    the (1,1)-element of the transmission matrix (1-based indexing),\n"
+          "    the (1,1)-element of the transmittance matrix (1-based indexing),\n"
           "    i.e. only fully valid for scalar RT.\n"
           "If nothing else is stated, only the first column of *iy_aux* is filled,\n"
           "i.e. the column matching Stokes element I, while remaing columns are\n"
@@ -7703,7 +7703,7 @@ void define_md_data_raw() {
          "iy_surface_agenda",
          "iy_cloudbox_agenda",
          "iy_agenda_call1",
-         "iy_transmission",
+         "iy_transmittance",
          "rte_alonglos_v",
          "surface_props_data"),
       GIN(),
@@ -7781,7 +7781,7 @@ void define_md_data_raw() {
             "particle_masses", "iy_unit", "iy_aux_vars", "jacobian_do", 
             "ppath_agenda", 
             "propmat_clearsky_agenda", "iy_main_agenda", "iy_space_agenda", 
-            "iy_surface_agenda", "iy_agenda_call1", "iy_transmission", 
+            "iy_surface_agenda", "iy_agenda_call1", "iy_transmittance", 
             "rte_pos", "rte_los", "rte_pos2", "rte_alonglos_v",
             "ppath_lmax", "ppath_lraytrace",
             "fos_scatint_angles", "fos_iyin_za_angles"
@@ -7848,7 +7848,7 @@ void define_md_data_raw() {
          "iy_surface_agenda",
          "iy_cloudbox_agenda",
          "iy_agenda_call1",
-         "iy_transmission",
+         "iy_transmittance",
          "ppath",
          "rte_pos2",
          "rte_alonglos_v",
@@ -7918,7 +7918,7 @@ void define_md_data_raw() {
          "iy_surface_agenda",
          "iy_cloudbox_agenda",
          "iy_agenda_call1",
-         "iy_transmission",
+         "iy_transmittance",
          "ppath",
          "rte_pos2",
          "rte_alonglos_v",
@@ -7972,7 +7972,7 @@ void define_md_data_raw() {
          "ppath_lraytrace",
          "iy_agenda_call1",
          "iy_unit",
-         "iy_transmission",
+         "iy_transmittance",
          "rte_pos",
          "rte_los",
          "rte_pos2",
@@ -8067,7 +8067,7 @@ void define_md_data_raw() {
       GOUT_DESC(),
       IN("iy_aux_vars",
          "iy_agenda_call1",
-         "iy_transmission",
+         "iy_transmittance",
          "rte_pos",
          "rte_los",
          "rte_pos2",
@@ -8121,7 +8121,7 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("iy_agenda_call1",
-         "iy_transmission",
+         "iy_transmittance",
          "rte_pos",
          "rte_los",
          "iy_aux_vars",
@@ -8231,9 +8231,9 @@ void define_md_data_raw() {
          "  \"Free space attenuation\": The local attenuation due to the\n"
          "       inverse square law. Size: [1,1,1,np].\n"
          "* \"Atmospheric loss\": Total atmospheric attenuation, reported as\n"
-         "       the transmission. Size: [nf,1,1,1].\n"
+         "       the transmittance. Size: [nf,1,1,1].\n"
          "* \"Defocusing loss\": The total loss between the transmitter and\n"
-         "       receiver due to defocusing. Given as a transmission.\n"
+         "       receiver due to defocusing. Given as a transmittance.\n"
          "       Size: [1,1,1,1].\n"
          "* \"Faraday rotation\": Total rotation [deg] along the path, for\n"
          "     each frequency. Size: [nf,1,1,1].\n"
@@ -8268,7 +8268,7 @@ void define_md_data_raw() {
             "particle_masses", "iy_aux_vars", "jacobian_do", 
             "ppath_agenda", "ppath_step_agenda",
             "propmat_clearsky_agenda", "iy_transmitter_agenda",
-            "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los", 
+            "iy_agenda_call1", "iy_transmittance", "rte_pos", "rte_los", 
             "rte_pos2", "rte_alonglos_v", "ppath_lmax", "ppath_lraytrace" ),
         GIN(      "defocus_method", "defocus_shift" ),
         GIN_TYPE( "Index", "Numeric" ),
@@ -8316,7 +8316,7 @@ void define_md_data_raw() {
       GOUT_DESC(),
       IN("diy_dx",
          "iy_unit",
-         "iy_transmission",
+         "iy_transmittance",
          "iy_id",
          "cloudbox_on",
          "jacobian_do",
@@ -8362,7 +8362,7 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("diy_dx",
-         "iy_transmission",
+         "iy_transmittance",
          "iy_id",
          "jacobian_do",
          "atmosphere_dim",
@@ -8401,7 +8401,7 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("diy_dx",
-         "iy_transmission",
+         "iy_transmittance",
          "iy_id",
          "jacobian_do",
          "atmosphere_dim",
@@ -8445,7 +8445,7 @@ void define_md_data_raw() {
          "dsurface_names",
          "dsurface_rmatrix_dx",
          "dsurface_emission_dx",
-         "iy_transmission",
+         "iy_transmittance",
          "iy_id",
          "jacobian_do",
          "jacobian_quantities",
@@ -8476,7 +8476,7 @@ void define_md_data_raw() {
           "The transmitted signal is taken from *iy_transmitter_agenda*. This\n"
           "signal is propagated along the path, considering attenuation alone.\n"
           "That is, the result of the method (*iy*) is the output of\n"
-          "*iy_transmitter_agenda* multiplied with the transmission along the\n"
+          "*iy_transmitter_agenda* multiplied with the transmittance along the\n"
           "propagation path.\n"
           "\n"
           "As mentioned, the given *ppath* determines the position of the\n"
@@ -8496,7 +8496,7 @@ void define_md_data_raw() {
           "    and 2=cloudbox. The value is added to each column.\n"
           " \"Optical depth\": Scalar optical depth between the observation point\n"
           "    and the end of the present propagation path. Calculated based on\n"
-          "    the (1,1)-element of the transmission matrix (1-based indexing),\n"
+          "    the (1,1)-element of the transmittance matrix (1-based indexing),\n"
           "    i.e. only fully valid for scalar RT. The value is added to each\n"
           "    column.\n"),
       AUTHORS("Patrick Eriksson", "Richard Larsson"),
@@ -8545,7 +8545,7 @@ void define_md_data_raw() {
          "water_p_eq_agenda",
          "iy_transmitter_agenda",
          "iy_agenda_call1",
-         "iy_transmission",
+         "iy_transmittance",
          "rte_alonglos_v"),
       GIN(),
       GIN_TYPE(),
@@ -12454,7 +12454,7 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("ppvar_optical_depthFromPpvar_trans_cumulat"),
       DESCRIPTION(
-          "Sets *ppvar_optical_depth* according to provided transmission data.\n"
+          "Sets *ppvar_optical_depth* according to provided transmittance data.\n"
           "\n"
           "The values in ppvar_optical_depth are set to\n"
           "-log( ppvar_trans_cumulat(joker,joker,0,0) ).\n"),
@@ -17636,10 +17636,10 @@ void define_md_data_raw() {
           "critical for the accuracy for zenith angles close to 90 degrees. That\n"
           "is, using ppath_lmax=-1 is not recommended for this function.\n"
           "\n"
-          "Information on transmission is also provided by the GOUT *trans_field*.\n"
+          "Information on transmittance is also provided by the GOUT *trans_field*.\n"
           "For up-welling radiation (scat_za > 90), this variable holds the\n"
-          "transmission to space, for considered position and propagation direction.\n"
-          "For down-welling radiation, *trans_field* holds instead the transmission\n"
+          "transmittance to space, for considered position and propagation direction.\n"
+          "For down-welling radiation, *trans_field* holds instead the transmittance\n"
           "down to the surface.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("spectral_radiance_field"),
@@ -20929,7 +20929,7 @@ void define_md_data_raw() {
           "associated variables. This method is required if your measurement\n"
           "consists of data from two instruments using different observation\n"
           "techniques (corresponding to different iyCalc-methods). One such\n"
-          "example is if emission and transmission data are combined into a\n"
+          "example is if emission and transmittance data are combined into a\n"
           "joint retrieval. The method can also be used to get around the\n"
           "constrain that *sensor_response* is required to be the same for\n"
           "all data.\n"
@@ -21028,7 +21028,7 @@ void define_md_data_raw() {
           "polarisation states are taken from *instrument_pol_array*. Note\n"
           "that this WSV allows to define several measured polarisations\n"
           "for each transmitted signal. For example, it is possible to\n"
-          "simulate transmission of V and measuring backsacttered V and H.\n"
+          "simulate transmittance of V and measuring backsacttered V and H.\n"
           "\n"
           "Secondly, the range averaging is described by *range_bins*. These\n"
           "bins can either be specified in altitude or two-way travel time.\n"

@@ -1939,7 +1939,8 @@ void Workspace::define_wsv_data() {
           "Usage:      Used by radiative transfer methods.\n"
           "\n"
           "Unit:       For passive observations, as  selected by *iy_unit*.\n"
-          "            For transmission type, same as for transmitted signal.\n"
+          "            For transmission calculations, same as for transmitted\n"
+          "            signal.\n"
           "\n"
           "Dimensions: [ f_grid, stokes_dim ]\n"),
       GROUP("Matrix")));
@@ -1954,7 +1955,7 @@ void Workspace::define_wsv_data() {
           "\n"
           "Usage:      Used internally.\n"
           "\n"
-          "Unit:       W / (m^2 Hz sr) or transmission.\n"
+          "Unit:       W / (m^2 Hz sr) or transmittance.\n"
           "\n"
           "Dimensions: [ nlos * nf * stokes_dim ] where nlos is number of rows in\n"
           "            mblock_dlos_grid, and nf is length of f_grid.\n"),
@@ -2076,13 +2077,13 @@ void Workspace::define_wsv_data() {
       GROUP("ArrayOfAgenda")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("iy_transmission"),
+      NAME("iy_transmittance"),
       DESCRIPTION(
-          "Transmission to be included in *iy*.\n"
+          "Transmittance to be included in *iy*.\n"
           "\n"
           "The calculation of *iy* can be performed over several propation path\n"
           "branches, and there can be recursive calls of *iy_main_agenda*.\n"
-          "This variable gives the transmission from the end point of the present\n"
+          "This variable gives the transmittance from the end point of the present\n"
           "branch and the sensor for such recursive cases.\n"
           "\n"
           "This variable is used purely internally. The exact usage can vary\n"
@@ -2576,7 +2577,7 @@ void Workspace::define_wsv_data() {
 
   wsv_data.push_back(WsvRecord(
       NAME("mc_y_tx"),
-      DESCRIPTION("Normalized Stokes vector for transmission (e.g., radar).\n"
+      DESCRIPTION("Normalized Stokes vector for transmittance (e.g., radar).\n"
                   "\n"
                   "The first element (intensity) should have a value of 1."
                   "\n"
@@ -3345,9 +3346,9 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_trans_cumulat"),
       DESCRIPTION(
-          "The transmission between the sensor and each point of the propagation path.\n"
+          "The transmittance between the sensor and each point of the propagation path.\n"
           "\n"
-          "Returned as the one-way transmission even in the case of radar\n"
+          "Returned as the one-way transmittance even in the case of radar\n"
           "simulations.\n"
           "\n"
           "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
@@ -3360,7 +3361,7 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_trans_partial"),
       DESCRIPTION(
-          "The transmission between each point along the propagation path.\n"
+          "The transmittance between each point along the propagation path.\n"
           "\n"
           "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
           "\n"

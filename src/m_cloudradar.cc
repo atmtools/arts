@@ -88,7 +88,7 @@ void iyActiveSingleScat(Workspace& ws,
                         const Agenda& water_p_eq_agenda,
                         const Agenda& iy_transmitter_agenda,
                         const Index& iy_agenda_call1,
-                        const Tensor3& iy_transmission,
+                        const Tensor3& iy_transmittance,
                         const Numeric& rte_alonglos_v,
                         const Index& trans_in_jacobian,
                         const Numeric& pext_scaling,
@@ -108,8 +108,8 @@ void iyActiveSingleScat(Workspace& ws,
   if (!iy_agenda_call1)
     throw runtime_error(
         "Recursive usage not possible (iy_agenda_call1 must be 1)");
-  if (!iy_transmission.empty())
-    throw runtime_error("*iy_transmission* must be empty");
+  if (!iy_transmittance.empty())
+    throw runtime_error("*iy_transmittance* must be empty");
   if (rbi < 1 || rbi > 9)
     throw runtime_error(
         "ppath.background is invalid. Check your "
@@ -668,7 +668,7 @@ void iyActiveSingleScat(Workspace& ws,
                                     ppvar_t,
                                     ppvar_vmr,
                                     iy_agenda_call1,
-                                    iy_transmission,
+                                    iy_transmittance,
                                     water_p_eq_agenda,
                                     jacobian_quantities,
                                     jac_species_i,
@@ -719,7 +719,7 @@ void iyActiveSingleScat2(Workspace& ws,
                          const Agenda& water_p_eq_agenda,
                          const Agenda& iy_transmitter_agenda,
                          const Index& iy_agenda_call1,
-                         const Tensor3& iy_transmission,
+                         const Tensor3& iy_transmittance,
                          const Numeric& rte_alonglos_v,
                          const Index& trans_in_jacobian,
                          const Numeric& pext_scaling,
@@ -739,8 +739,8 @@ void iyActiveSingleScat2(Workspace& ws,
   if (!iy_agenda_call1)
     throw runtime_error(
         "Recursive usage not possible (iy_agenda_call1 must be 1)");
-  if (!iy_transmission.empty())
-    throw runtime_error("*iy_transmission* must be empty");
+  if (!iy_transmittance.empty())
+    throw runtime_error("*iy_transmittance* must be empty");
   if (rbi < 1 || rbi > 9)
     throw runtime_error(
         "ppath.background is invalid. Check your "
@@ -1179,7 +1179,7 @@ void iyActiveSingleScat2(Workspace& ws,
                                     ppvar_t,
                                     ppvar_vmr,
                                     iy_agenda_call1,
-                                    iy_transmission,
+                                    iy_transmittance,
                                     water_p_eq_agenda,
                                     jacobian_quantities,
                                     jac_species_i,
@@ -1355,7 +1355,7 @@ void yActive(Workspace& ws,
   // Loop positions
   for (Index p = 0; p < npos; p++) {
     // RT part
-    Tensor3 iy_transmission(0, 0, 0);
+    Tensor3 iy_transmittance(0, 0, 0);
     ArrayOfTensor3 diy_dx;
     Vector rte_pos2(0);
     Matrix iy;
@@ -1369,7 +1369,7 @@ void yActive(Workspace& ws,
                           ppath,
                           diy_dx,
                           1,
-                          iy_transmission,
+                          iy_transmittance,
                           iy_aux_vars,
                           iy_id,
                           iy_unit,

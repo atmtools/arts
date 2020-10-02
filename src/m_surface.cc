@@ -247,7 +247,7 @@ void iySurfaceCallAgendaX(Workspace& ws,
                           Matrix& iy,
                           ArrayOfTensor3& diy_dx,
                           const String& iy_unit,
-                          const Tensor3& iy_transmission,
+                          const Tensor3& iy_transmittance,
                           const Index& iy_id,
                           const Index& cloudbox_on,
                           const Index& jacobian_do,
@@ -291,7 +291,7 @@ void iySurfaceCallAgendaX(Workspace& ws,
                                    diy_dx1,
                                    surface_types[t],
                                    iy_unit,
-                                   iy_transmission,
+                                   iy_transmittance,
                                    iy_id,
                                    cloudbox_on,
                                    jacobian_do,
@@ -325,7 +325,7 @@ void iySurfaceCallAgendaX(Workspace& ws,
 void iySurfaceFastem(Workspace& ws,
                      Matrix& iy,
                      ArrayOfTensor3& diy_dx,
-                     const Tensor3& iy_transmission,
+                     const Tensor3& iy_transmittance,
                      const Index& iy_id,
                      const Index& jacobian_do,
                      const Index& atmosphere_dim,
@@ -362,7 +362,7 @@ void iySurfaceFastem(Workspace& ws,
   iy_aux_vars[0] = "Optical depth";
 
   // Calculate iy for downwelling radiation
-  // Note that iy_transmission used here lacks surface R. Fixed below.
+  // Note that iy_transmittance used here lacks surface R. Fixed below.
   //
   const Index nf = f_grid.nelem();
   Vector transmittance(nf);
@@ -375,7 +375,7 @@ void iySurfaceFastem(Workspace& ws,
                         ppath,
                         diy_dx,
                         0,
-                        iy_transmission,
+                        iy_transmittance,
                         iy_aux_vars,
                         iy_id,
                         iy_unit,
@@ -426,7 +426,7 @@ void iySurfaceFastem(Workspace& ws,
   // Adjust diy_dx, if necessary.
   // For vector cases this is a slight approximation, as the order of the
   // different transmission and reflectivities matters.
-  if (iy_transmission.npages()) {
+  if (iy_transmittance.npages()) {
     for (Index q = 0; q < diy_dx.nelem(); q++) {
       for (Index p = 0; p < diy_dx[q].npages(); p++) {
         for (Index i = 0; i < nf; i++) {
@@ -442,7 +442,7 @@ void iySurfaceFastem(Workspace& ws,
 void iySurfaceRtpropAgenda(Workspace& ws,
                            Matrix& iy,
                            ArrayOfTensor3& diy_dx,
-                           const Tensor3& iy_transmission,
+                           const Tensor3& iy_transmittance,
                            const Index& iy_id,
                            const Index& jacobian_do,
                            const Index& atmosphere_dim,
@@ -511,15 +511,15 @@ void iySurfaceRtpropAgenda(Workspace& ws,
     for (Index ilos = 0; ilos < nlos; ilos++) {
       Vector los = surface_los(ilos, joker);
 
-      // Include surface reflection matrix in *iy_transmission*
-      // If iy_transmission is empty, this is interpreted as the
+      // Include surface reflection matrix in *iy_transmittance*
+      // If iy_transmittance is empty, this is interpreted as the
       // variable is not needed.
       //
       Tensor3 iy_trans_new;
       //
-      if (iy_transmission.npages()) {
-        iy_transmission_mult(iy_trans_new,
-                             iy_transmission,
+      if (iy_transmittance.npages()) {
+        iy_transmittance_mult(iy_trans_new,
+                             iy_transmittance,
                              surface_rmatrix(ilos, joker, joker, joker));
       }
 
@@ -577,7 +577,7 @@ void iySurfaceRtpropCalc(Workspace& ws,
                          const ArrayOfString& dsurface_names,
                          const ArrayOfTensor4& dsurface_rmatrix_dx,
                          const ArrayOfMatrix& dsurface_emission_dx,
-                         const Tensor3& iy_transmission,
+                         const Tensor3& iy_transmittance,
                          const Index& iy_id,
                          const Index& jacobian_do,
                          const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -630,15 +630,15 @@ void iySurfaceRtpropCalc(Workspace& ws,
     for (Index ilos = 0; ilos < nlos; ilos++) {
       Vector los = surface_los(ilos, joker);
 
-      // Include surface reflection matrix in *iy_transmission*
-      // If iy_transmission is empty, this is interpreted as the
+      // Include surface reflection matrix in *iy_transmittance*
+      // If iy_transmittance is empty, this is interpreted as the
       // variable is not needed.
       //
       Tensor3 iy_trans_new;
       //
-      if (iy_transmission.npages()) {
-        iy_transmission_mult(iy_trans_new,
-                             iy_transmission,
+      if (iy_transmittance.npages()) {
+        iy_transmittance_mult(iy_trans_new,
+                             iy_transmittance,
                              surface_rmatrix(ilos, joker, joker, joker));
       }
 
@@ -714,7 +714,7 @@ void iySurfaceRtpropCalc(Workspace& ws,
                      dsurface_rmatrix_dx[i],
                      dsurface_emission_dx[i]);
         // Weight with transmission to sensor
-        iy_transmission_mult(diy_dpos, iy_transmission, diy_dpos0);
+        iy_transmittance_mult(diy_dpos, iy_transmittance, diy_dpos0);
         // Put into diy_dx
         diy_from_pos_to_rgrids(diy_dx[ihit],
                                jacobian_quantities[ihit],

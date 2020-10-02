@@ -138,8 +138,8 @@ void iyCalc(Workspace& ws,
           "The scattering data must be flagged to have\n"
           "passed a consistency check (scat_data_checked=1).");
 
-  // iy_transmission is just input and can be left empty for first call
-  Tensor3 iy_transmission(0, 0, 0);
+  // iy_transmittance is just input and can be left empty for first call
+  Tensor3 iy_transmittance(0, 0, 0);
   ArrayOfTensor3 diy_dx;
 
   iy_main_agendaExecute(ws,
@@ -148,7 +148,7 @@ void iyCalc(Workspace& ws,
                         ppath,
                         diy_dx,
                         1,
-                        iy_transmission,
+                        iy_transmittance,
                         iy_aux_vars,
                         iy_id,
                         iy_unit,
@@ -214,7 +214,7 @@ void iyEmissionStandard(
     const Agenda& iy_surface_agenda,
     const Agenda& iy_cloudbox_agenda,
     const Index& iy_agenda_call1,
-    const Tensor3& iy_transmission,
+    const Tensor3& iy_transmittance,
     const Numeric& rte_alonglos_v,
     const Tensor3& surface_props_data,
     const Verbosity& verbosity) {
@@ -504,12 +504,12 @@ void iyEmissionStandard(
   const ArrayOfTransmissionMatrix tot_tra =
       cumulative_transmission(lyr_tra, CumulativeTransmission::Forward);
 
-  // iy_transmission
+  // iy_transmittance
   Tensor3 iy_trans_new;
   if (iy_agenda_call1)
     iy_trans_new = tot_tra[np - 1];
   else
-    iy_transmission_mult(iy_trans_new, iy_transmission, tot_tra[np - 1]);
+    iy_transmittance_mult(iy_trans_new, iy_transmittance, tot_tra[np - 1]);
 
   // iy_aux: Optical depth
   if (auxOptDepth >= 0)
@@ -605,7 +605,7 @@ void iyEmissionStandard(
                                     ppvar_t,
                                     ppvar_vmr,
                                     iy_agenda_call1,
-                                    iy_transmission,
+                                    iy_transmittance,
                                     water_p_eq_agenda,
                                     jacobian_quantities,
                                     jac_species_i,
@@ -661,7 +661,7 @@ void iyIndependentBeamApproximation(Workspace& ws,
                                     const Numeric& ppath_lraytrace,
                                     const Index& iy_agenda_call1,
                                     const String& iy_unit,
-                                    const Tensor3& iy_transmission,
+                                    const Tensor3& iy_transmittance,
                                     const Vector& rte_pos,
                                     const Vector& rte_los,
                                     const Vector& rte_pos2,
@@ -965,7 +965,7 @@ void iyIndependentBeamApproximation(Workspace& ws,
                                              diy_dx,
                                              iy_agenda_call1,
                                              iy_unit,
-                                             iy_transmission,
+                                             iy_transmittance,
                                              iy_aux_vars,
                                              iy_id,
                                              adim1,
@@ -1076,7 +1076,7 @@ void iyLoopFrequencies(Workspace& ws,
                        ArrayOfTensor3& diy_dx,
                        const ArrayOfString& iy_aux_vars,
                        const Index& iy_agenda_call1,
-                       const Tensor3& iy_transmission,
+                       const Tensor3& iy_transmittance,
                        const Vector& rte_pos,
                        const Vector& rte_los,
                        const Vector& rte_pos2,
@@ -1088,8 +1088,8 @@ void iyLoopFrequencies(Workspace& ws,
   if (!iy_agenda_call1)
     throw runtime_error(
         "Recursive usage not possible (iy_agenda_call1 must be 1).");
-  if (iy_transmission.ncols())
-    throw runtime_error("*iy_transmission* must be empty.");
+  if (iy_transmittance.ncols())
+    throw runtime_error("*iy_transmittance* must be empty.");
 
   const Index nf = f_grid.nelem();
 
@@ -1105,7 +1105,7 @@ void iyLoopFrequencies(Workspace& ws,
                                 ppath,
                                 diy_dx1,
                                 iy_agenda_call1,
-                                iy_transmission,
+                                iy_transmittance,
                                 iy_aux_vars,
                                 0,
                                 Vector(1, f_grid[i]),
@@ -1146,7 +1146,7 @@ void iyMC(Workspace& ws,
           ArrayOfMatrix& iy_aux,
           ArrayOfTensor3& diy_dx,
           const Index& iy_agenda_call1,
-          const Tensor3& iy_transmission,
+          const Tensor3& iy_transmittance,
           const Vector& rte_pos,
           const Vector& rte_los,
           const ArrayOfString& iy_aux_vars,
@@ -1193,8 +1193,8 @@ void iyMC(Workspace& ws,
   if (!iy_agenda_call1)
     throw runtime_error(
         "Recursive usage not possible (iy_agenda_call1 must be 1)");
-  if (iy_transmission.ncols())
-    throw runtime_error("*iy_transmission* must be empty");
+  if (iy_transmittance.ncols())
+    throw runtime_error("*iy_transmittance* must be empty");
 
   // Size output variables
   //

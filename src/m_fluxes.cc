@@ -534,7 +534,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
   const ArrayOfString iy_aux_vars(0);
   const Vector rte_pos2(0);
   const Index iy_agenda_call1 = 1;
-  const Tensor3 iy_transmission(0, 0, 0);
+  const Tensor3 iy_transmittance(0, 0, 0);
   const Index jacobian_do = 0;
   const ArrayOfRetrievalQuantity jacobian_quantities(0);
   // Create one altitude just above TOA
@@ -636,7 +636,7 @@ void spectral_radiance_fieldClearskyPlaneParallel(
                            iy_surface_agenda,
                            iy_cloudbox_agenda,
                            iy_agenda_call1,
-                           iy_transmission,
+                           iy_transmittance,
                            rte_alonglos_v,
                            surface_props_data,
                            verbosity);
@@ -790,7 +790,7 @@ void spectral_radiance_fieldExpandCloudboxField(
   const ArrayOfString iy_aux_vars(0);
   const Vector rte_pos2(0);
   const Index iy_agenda_call1 = 1;
-  const Tensor3 iy_transmission(0, 0, 0);
+  const Tensor3 iy_transmittance(0, 0, 0);
   const Index jacobian_do = 0;
   const ArrayOfRetrievalQuantity jacobian_quantities(0);
   // Create one altitude just above TOA
@@ -892,7 +892,7 @@ void spectral_radiance_fieldExpandCloudboxField(
                            iy_surface_agenda,
                            iy_cloudbox_agenda,
                            iy_agenda_call1,
-                           iy_transmission,
+                           iy_transmittance,
                            rte_alonglos_v,
                            surface_props_data,
                            verbosity);
