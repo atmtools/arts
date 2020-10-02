@@ -444,7 +444,7 @@ void ppathFixedLstep(Ppath& ppath,
   Numeric x0, y0, z0, dx, dy, dz;
   poslos2cart(x0, y0, z0, dx, dy, dz, r0, lat0, lon0, za0, aa0);
   
-  // Length to z_break 
+  // Length to z_coarse
   //
   // We do this, here and below, by adding the search altitude to the major
   // axis of the ellipsoid. This is approxinative. In theory, the eccentricity

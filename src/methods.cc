@@ -7637,8 +7637,10 @@ void define_md_data_raw() {
           "*iy_unit* is only applied if *iy_agenda_call1* is 1. This means that\n"
           "no unit ocnversion is applied for internal iterative calls.\n"
           "\n"
-          "Allowed options for *rt_integration_option* are 1 and 2, refering to\n"
-          "first and second order integration over each RT step.\n"
+          "Recognised choices for *rt_integration_option* are:\n"
+          "   \"first order\": A first order integration is applied.\n"
+          "   \"second order\": A second order integration is applied.\n"
+          "   \"default\": Another way to select the first order option.\n"
           "\n"
           "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
           "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
@@ -7709,67 +7711,6 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(create_mdrecord(
-      NAME("iyEmissionStandardSequential"),
-      DESCRIPTION(
-          "DEPRECATED! Should go away soon\n"
-          "Sequential version of *iyEmissionStandard*\n"
-          "\n"
-          "For documentation see *iyEmissionStandard*.\n"),
-      AUTHORS("Patrick Eriksson", "Richard Larsson"),
-      OUT("iy",
-          "iy_aux",
-          "diy_dx",
-          "ppvar_p",
-          "ppvar_t",
-          "ppvar_nlte",
-          "ppvar_vmr",
-          "ppvar_wind",
-          "ppvar_mag",
-          "ppvar_f",
-          "ppvar_iy",
-          "ppvar_trans_cumulat",
-          "ppvar_trans_partial"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("diy_dx",
-         "iy_id",
-         "stokes_dim",
-         "f_grid",
-         "atmosphere_dim",
-         "p_grid",
-         "t_field",
-         "nlte_field",
-         "vmr_field",
-         "abs_species",
-         "wind_u_field",
-         "wind_v_field",
-         "wind_w_field",
-         "mag_u_field",
-         "mag_v_field",
-         "mag_w_field",
-         "cloudbox_on",
-         "iy_unit",
-         "iy_aux_vars",
-         "jacobian_do",
-         "jacobian_quantities",
-         "ppath",
-         "rte_pos2",
-         "propmat_clearsky_agenda",
-         "water_p_eq_agenda",
-         "iy_main_agenda",
-         "iy_space_agenda",
-         "iy_surface_agenda",
-         "iy_cloudbox_agenda",
-         "iy_agenda_call1",
-         "iy_transmission",
-         "rte_alonglos_v",
-         "surface_props_data"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
   /*
   md_data_raw.push_back
     ( create_mdrecord
@@ -17731,11 +17672,10 @@ void define_md_data_raw() {
          "rt_integration_option",
          "surface_props_data",
          "za_grid"),
-      GIN("use_parallel_iy"),
+      GIN("use_parallel_za"),
       GIN_TYPE("Index"),
-      GIN_DEFAULT("0"),
-      GIN_DESC("0: Parallelize over zenith angles\n"
-               "1: Use more memory intensiv iyEmissionStandardParallel*")));
+      GIN_DEFAULT("1"),
+      GIN_DESC("Flag to select parallelization over zenith angles.\n")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("spectral_radiance_fieldCopyCloudboxField"),
@@ -17812,12 +17752,11 @@ void define_md_data_raw() {
          "rt_integration_option",
          "surface_props_data",
          "za_grid"),
-      GIN("use_parallel_iy"),
+      GIN("use_parallel_za"),
       GIN_TYPE("Index"),
       GIN_DEFAULT("0"),
-      GIN_DESC("0: Parallelize over zenith angles\n"
-               "1: Use more memory intensiv iyEmissionStandardParallel*")));
-
+      GIN_DESC("Flag to select parallelization over zenith angles.\n")));
+  
   md_data_raw.push_back(create_mdrecord(
       NAME("specular_losCalc"),
       DESCRIPTION(

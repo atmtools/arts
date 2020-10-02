@@ -146,7 +146,7 @@ NumericSet( ppath_lraytrace, 1e3 )
 #
 # Deafult is most basic type of radiative transfer integration
 #
-IndexSet( rt_integration_option, 1 )
+StringSet( rt_integration_option, "default" )
 
 
 #

@@ -3822,8 +3822,8 @@ void Workspace::define_wsv_data() {
       DESCRIPTION(
           "Switch between integration approaches for radiative transfer steps.\n"
           "\n"
-          "See each WSM using this varaible as input.\n"),
-      GROUP("Index")));
+          "See each WSM using this varaible as input for available options.\n"),
+      GROUP("String")));
 
   wsv_data.push_back(WsvRecord(
       NAME("rtp_nlte"),

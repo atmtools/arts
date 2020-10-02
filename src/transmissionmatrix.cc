@@ -1518,7 +1518,7 @@ void update_radiation_vector(RadiationVector& I,
 //         dI2[i].addWeightedDerivEmission(PiT, dT2[i], T, I, dJ2[i]);
 //       }
       I.leftMul(T);
-      I.add_weighted(T, J1, J2);  // FIXME: Order of J1 and J2 not tested
+      I.add_weighted(T, J1, J2);  
       
     } break;
   }
