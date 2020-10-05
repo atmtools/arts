@@ -44,6 +44,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "interpolation_poly.h"
+#include "m_select.h"
 #include "math_funcs.h"
 #include "messages.h"
 #include "ppath.h"
@@ -3229,32 +3230,6 @@ void sensor_responseSimpleAMSU(  // WS Output:
                                    sensor_norm,
                                    verbosity);
 }
-
-
-
-// Declare select functions needed by WMRFSelectChannels:
-void Select(  // WS Generic Output:
-    Vector& needles,
-    // WS Generic Input:
-    const Vector& haystack,
-    const ArrayOfIndex& needleind,
-    const Verbosity& verbosity);
-
-template <class T>
-void Select(  // WS Generic Output:
-    Array<T>& needles,
-    // WS Generic Input:
-    const Array<T>& haystack,
-    const ArrayOfIndex& needleind,
-    const Verbosity& verbosity);
-
-void Select(  // WS Generic Output:
-    Sparse& needles,
-    // WS Generic Input:
-    const Sparse& haystack,
-    const ArrayOfIndex& needleind,
-    const Verbosity& verbosity);
-
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
