@@ -849,7 +849,7 @@ int main() {
     "  Var::verbosity(ws).set_main_agenda(1);\n"
     "\n"
     "  #ifndef NDEBUG\n"
-    "  ws.context = "";\n"
+    "  ws.context = \"\";\n"
   "  #endif\n"
   "\n"
   "  return ws;"
