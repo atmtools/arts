@@ -196,7 +196,7 @@ std::vector<Method> methods() {
     inoutvarpos.push_back({x.InOut().cbegin(), x.InOut().cend()});
   std::vector<std::vector<std::size_t>> invarpos;
   for (auto& x : global_data::md_data)
-    invarpos.push_back({x.In().cbegin(), x.In().cend()});
+    invarpos.push_back({x.InOnly().cbegin(), x.InOnly().cend()});
   std::vector<std::vector<std::size_t>> outvarpos;
   for (auto& x : global_data::md_data)
     outvarpos.push_back({x.Out().cbegin(), x.Out().cend()});
