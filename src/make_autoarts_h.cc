@@ -509,7 +509,7 @@ int main() {
     // Second put all GIN variables that have no default argument
     for (std::size_t i = 0; i < x.gin.group.size(); i++) {
       if (not x.gin.hasdefs[i]) {
-        std::cout << ',' << "\n            "
+        std::cout << ',' << "\n      "
                   << "const Var::Workspace" << x.gin.group[i] << ' '
                   << x.gin.name[i];
       }
@@ -519,11 +519,11 @@ int main() {
     for (std::size_t i = 0; i < x.gin.group.size(); i++) {
       if (x.gin.hasdefs[i]) {
         if (x.gin.defs[i] == "{}") {
-          std::cout << ',' << "\n            "
+          std::cout << ',' << "\n      "
           << "const Var::Workspace" << x.gin.group[i] << ' ' << x.gin.name[i]
           << '=' << x.gin.group[i] << x.gin.defs[i];
         } else {
-          std::cout << ',' << "\n            "
+          std::cout << ',' << "\n      "
                     << "const Var::Workspace" << x.gin.group[i] << ' ' << x.gin.name[i]
                     << '=' << x.gin.group[i] << '{' << x.gin.defs[i] << '}';
         }
@@ -538,7 +538,7 @@ int main() {
     for (std::size_t i = 0; i < x.gout.group.size(); i++) {
       std::cout << " if (" << x.gout.name[i] << ".islast()) {\n    throw std::runtime_error(\"" 
                 << x.gout.name[i] << " needs to be a defined Workspace"
-                << x.gout.group[i] << " since it is output\");\n}";
+                << x.gout.group[i] << " since it is output of "<<x.name<<"\");\n  }";
     }
     if (x.gout.group.size()) std::cout << '\n' << '\n';
 
@@ -663,12 +663,12 @@ int main() {
 
     // Make the function
     std::cout << "[[nodiscard]] inline\nMRecord " << x.name
-              << "(\n            [[maybe_unused]] Workspace& ws";
+              << "(\n    [[maybe_unused]] Workspace& ws";
 
     // Check if we have the first input
     for (std::size_t i = 0; i < x.gout.group.size(); i++) {
       std::cout << ',' << '\n';
-      std::cout << "                             Var::Workspace"
+      std::cout << "                     Var::Workspace"
                 << x.gout.group[i] << ' ' << x.gout.name[i];
     }
 
@@ -676,7 +676,7 @@ int main() {
     for (std::size_t i = 0; i < x.gin.group.size(); i++) {
       if (not x.gin.hasdefs[i]) {
         std::cout << ',' << "\n";
-        std::cout << "                       const Var::Workspace"
+        std::cout << "               const Var::Workspace"
                   << x.gin.group[i] << ' ' << x.gin.name[i];
       }
     }
@@ -685,7 +685,7 @@ int main() {
     for (std::size_t i = 0; i < x.gin.group.size(); i++) {
       if (x.gin.hasdefs[i]) {
         std::cout << ',' << "\n";
-        std::cout << "                       const Var::Workspace"
+        std::cout << "               const Var::Workspace"
                   << x.gin.group[i] << '&' << ' ' << x.gin.name[i] << '='
                   << "{}";
       }
@@ -693,6 +693,25 @@ int main() {
 
     // End of function definition and open function block
     std::cout << ')' << ' ' << '{' << '\n';
+    
+    // Output variables have to be on the Workspace
+    if (x.gout.group.size() or x.gin.group.size()) std::cout << ' ';
+    for (std::size_t i = 0; i < x.gout.group.size(); i++) {
+      std::cout << " if (" << x.gout.name[i] << ".islast()) {\n    throw std::runtime_error(\"" 
+      << x.gout.name[i] << " needs to be a defined Workspace"
+      << x.gout.group[i] << " since it is output of "<<x.name<<"\");\n  }";
+    }
+    for (std::size_t i = 0; i < x.gin.group.size(); i++) {
+      if (x.gin.hasdefs[i])
+        std::cout << " if (not " << x.gin.name[i] << ".isnull() and " << x.gin.name[i] << ".islast()) {\n    throw std::runtime_error(\"" 
+        << x.gin.name[i] << " needs to be a defined Workspace"
+        << x.gin.group[i] << " (or left default) since it is agenda input to "<<x.name<<"\");\n  }";
+      else
+        std::cout << " if (" << x.gin.name[i] << ".islast()) {\n    throw std::runtime_error(\"" 
+        << x.gin.name[i] << " needs to be a defined Workspace"
+        << x.gin.group[i] << " since it is agenda input to "<<x.name<<"\");\n  }";
+    }
+    if (x.gout.group.size() or x.gin.group.size()) std::cout << '\n' << '\n';
 
     for (std::size_t i = 0; i < x.gin.group.size(); i++) {
       if (x.gin.hasdefs[i]) {

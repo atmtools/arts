@@ -564,3 +564,10 @@ add_custom_command(OUTPUT autoarts.h
                    DEPENDS make_autoarts_h)
 add_custom_target(make_autoarts_h_target SOURCES ${ARTS_BINARY_DIR}/src/autoarts.h)
 ########################################################################################
+
+########################################################################################
+# Generate autoarts.h for the ARTS interface
+add_executable(test_cpp_api test_cpp_api.cc)
+target_link_libraries(test_cpp_api public_arts_interface)
+add_test(NAME "arts.test_cpp_api" COMMAND test_cpp_api > /dev/null)
+########################################################################################
