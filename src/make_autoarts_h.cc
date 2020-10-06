@@ -824,6 +824,12 @@ int main() {
   
   // Make the main "startup"
   std::cout << "namespace ARTS {\n";
+  std::cout << "/*! Create a Workspace and set its main verbosity\n\n"
+            << "  @param[in] screen Screen verbosity\n"
+            << "  @param[in] file File verbosity\n"
+            << "  @param[in] agenda Agenda verbosity\n"
+            << "  @return Workspace a full ARTS Workspace\n"
+            << "*/\n";
   std::cout <<
     "inline Workspace init(std::size_t screen=0, std::size_t file=0, std::size_t agenda=0) {\n"
     "  define_wsv_group_names();\n"
@@ -849,7 +855,7 @@ int main() {
     "  ws.context = \"\";\n"
   "  #endif\n"
   "\n"
-  "  return ws;"
+  "  return ws;\n"
   "}\n";
   std::cout << "}  // namespace::ARTS\n\n";
 
