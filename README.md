@@ -24,7 +24,7 @@ Building ARTS
 Build Prerequisites:
 
 - gcc/g++ >=8 (or llvm/clang >=8) older versions might work, but are untested
-- cmake (>=3.1.0)
+- cmake (>=3.8)
 - zlib
 - openblas
 - netcdf (optional)
@@ -373,11 +373,11 @@ open ARTS.xcodeproj
 Experimental features (ONLY USE IF YOU KNOW WHAT YOU'RE DOING)
 --------------------------------------------------------------
 
-Enable C++17 (only for compatibility testing, do not use C++17 features in your
-code):
+Enable C++20 (only for compatibility testing, do not use C++20 features in your
+code, you need CMake >=3.12):
 
 ```
-cmake -DENABLE_CXX17=1 ..
+cmake -DENABLE_CXX20=1 ..
 ```
 
 

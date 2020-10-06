@@ -22,10 +22,10 @@ if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}" OR "${ARTS_SOURCE_DIR}"
 )
 endif ()
 
-if (ENABLE_CXX17)
-  cmake_minimum_required (VERSION 3.9.6)
+if (ENABLE_CXX20)
+  cmake_minimum_required (VERSION 3.12)
 else ()
-  cmake_minimum_required (VERSION 3.1.0)
+  cmake_minimum_required (VERSION 3.8)
 endif ()
 
 set (CMAKE_LEGACY_CYGWIN_WIN32 0)
@@ -126,13 +126,13 @@ if (ENABLE_CCACHE)
   endif (CCACHE_FOUND)
 endif ()
 
-########### C++14/17 Support ##########
+########### C++17/20 Support ##########
 
 if (NOT CMAKE_CXX_STANDARD)
-  if (ENABLE_CXX17)
-    set(CMAKE_CXX_STANDARD 17)
+  if (ENABLE_CXX20)
+    set(CMAKE_CXX_STANDARD 20)
   else ()
-    set(CMAKE_CXX_STANDARD 14)
+    set(CMAKE_CXX_STANDARD 17)
   endif ()
 endif()
 
@@ -144,7 +144,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # depend on this newer version of cmake because it was only
 # released in June 2016.
 if (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 endif ()
 
 ########### Intel compiler specific settings ##########
