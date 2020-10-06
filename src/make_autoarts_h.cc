@@ -392,13 +392,21 @@ int main() {
             << "#include <m_ignore.h>" << '\n'
             << '\n'
             << '\n';
-
+  
+  std::cout << "namespace ARTS { using Workspace=Workspace; }\n\n";
+  std::cout << "namespace ARTS::Group {\n";
+  for (auto& x : artsname.group) {
+    if (x.first == "Any") continue;
+    std::cout << "using " << x.first << '=' << x.first << ';' << '\n';
+  }
+  std::cout << "}  // ARTS::Group \n\n";
+  
   std::cout << "namespace ARTS::Var {\n";
   for (auto& x : artsname.group) {
     if (x.first == "Any") continue;
     
     std::cout << "class Workspace" << x.first << ' ' << '{' << '\n';
-    std::cout << "  using type = " << x.first << ";\n";
+    std::cout << "  using type = Group::" << x.first << ";\n";
     std::cout << "  std::size_t p;\n";
     std::cout << "  type* v;\n";
     std::cout << "public:\n";
@@ -416,7 +424,7 @@ int main() {
     std::cout << "  std::size_t pos() const noexcept {return p;}\n";
     std::cout << "  bool isnull() const noexcept {return v == nullptr;}\n";
     std::cout << "  bool islast() const noexcept {return p == std::numeric_limits<std::size_t>::max();}\n";
-    std::cout << "  const String& name() const noexcept {return Workspace::wsv_data[p].Name();}\n";
+    std::cout << "  const Group::String& name() const noexcept {return Workspace::wsv_data[p].Name();}\n";
     std::cout << '}' << ';' << '\n' << '\n';
   }
   for (auto& x : artsname.varname_group) {
@@ -452,9 +460,9 @@ int main() {
     std::cout << "*/\n";
     std::cout << "[[nodiscard]] inline\n";
     std::cout << "Workspace" << x.first << ' ' << x.first
-              << "Create(\n            Workspace& ws,\n            const "
+              << "Create(\n            Workspace& ws,\n            const Group::"
               << x.first
-              << "& inval,\n            const String& name,\n            const "
+              << "& inval,\n            const Group::String& name,\n            const Group::"
                  "String& "
                  "desc=\"nodescription\") {\n";
     std::cout << "  const std::size_t ind = "
@@ -521,11 +529,11 @@ int main() {
         if (x.gin.defs[i] == "{}") {
           std::cout << ',' << "\n      "
           << "const Var::Workspace" << x.gin.group[i] << ' ' << x.gin.name[i]
-          << '=' << x.gin.group[i] << x.gin.defs[i];
+          << '=' << "Group::" << x.gin.group[i] << x.gin.defs[i];
         } else {
           std::cout << ',' << "\n      "
                     << "const Var::Workspace" << x.gin.group[i] << ' ' << x.gin.name[i]
-                    << '=' << x.gin.group[i] << '{' << x.gin.defs[i] << '}';
+                    << '=' << "Group::" << x.gin.group[i] << '{' << x.gin.defs[i] << '}';
         }
       }
     }
@@ -607,7 +615,7 @@ int main() {
       for (std::size_t i = 0; i < x.gin.name.size(); i++) {
         if (has_any) std::cout << ',' << ' ';
         has_any = true;
-        std::cout << x.gin.name[i] << ".islast() ? String{\"" << x.gin.name[i] << "\"} : " << x.gin.name[i] << ".name()";
+        std::cout << x.gin.name[i] << ".islast() ? Group::String{\"" << x.gin.name[i] << "\"} : " << x.gin.name[i] << ".name()";
       }
     }
 
@@ -727,7 +735,7 @@ int main() {
 
     // Call the ARTS auto_md.h function
     std::cout << "  return MRecord(" << x.pos << ',' << ' '
-              << "\n    ArrayOfIndex(" << '{';
+    << "\n    Group::ArrayOfIndex(" << '{';
 
     // First are all the outputs
     for (std::size_t i = 0; i < x.out.varpos.size(); i++) {
@@ -736,9 +744,9 @@ int main() {
 
     // Second comes all the generic outputs
     for (std::size_t i = 0; i < x.gout.name.size(); i++) {
-      std::cout << "Index(" << x.gout.name[i] << ".pos())" << ',' << ' ';
+      std::cout << "Group::Index(" << x.gout.name[i] << ".pos())" << ',' << ' ';
     }
-    std::cout << '}' << ')' << ',' << ' ' << "\n    ArrayOfIndex(" << '{';
+    std::cout << '}' << ')' << ',' << ' ' << "\n    Group::ArrayOfIndex(" << '{';
 
     // Then come all the inputs that are not also outputs
     for (std::size_t i = 0; i < x.in.varpos.size(); i++) {
@@ -750,7 +758,7 @@ int main() {
       if (x.gin.hasdefs[i])
         std::cout << x.gin.name[i] << ".isnull() ? Index(" << x.gin.name[i]
                   << "_default.pos()) : ";
-      std::cout << "Index(" << x.gin.name[i] << ".pos())" << ',' << ' ';
+      std::cout << "Group::Index(" << x.gin.name[i] << ".pos())" << ',' << ' ';
     }
 
     std::cout << '}' << ')' << ',' << ' ';
