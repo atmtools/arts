@@ -393,6 +393,8 @@ int main() {
             << '\n'
             << '\n';
   
+  std::cout << "extern String out_basename;\n\n";
+  
   std::cout << "namespace ARTS { using Workspace=Workspace; }\n\n";
   std::cout << "namespace ARTS::Group {\n";
   for (auto& x : artsname.group) {
@@ -405,21 +407,21 @@ int main() {
   for (auto& x : artsname.group) {
     if (x.first == "Any") continue;
     
-    std::cout << "class Workspace" << x.first << ' ' << '{' << '\n';
+    std::cout << "class " << x.first << ' ' << '{' << '\n';
     std::cout << "  using type = Group::" << x.first << ";\n";
     std::cout << "  std::size_t p;\n";
     std::cout << "  type* v;\n";
     std::cout << "public:\n";
-    std::cout << "  Workspace" << x.first
+    std::cout << "  " << x.first
               << "() noexcept : p(std::numeric_limits<std::size_t>::max()), "
                  "v(nullptr) {}\n";
-    std::cout << "  Workspace" << x.first << "(std::size_t i, void * x) noexcept : p(i), " "v(static_cast<type *>(x)) {}\n";
-    std::cout << "  ~Workspace" << x.first << "() noexcept {if (islast() and not isnull()) delete v;}\n";
-    std::cout << "  Workspace" << x.first << "(const type& val) noexcept : p(std::numeric_limits<std::size_t>::max()), v(new type(val)) {}\n";
+    std::cout << "  " << x.first << "(std::size_t i, void * x) noexcept : p(i), " "v(static_cast<type *>(x)) {}\n";
+    std::cout << "  ~" << x.first << "() noexcept {if (islast() and not isnull()) delete v;}\n";
+    std::cout << "  " << x.first << "(const type& val) noexcept : p(std::numeric_limits<std::size_t>::max()), v(new type(val)) {}\n";
     std::cout << "  type& value() noexcept {return *v;}\n";
     std::cout << "  const type& value() const noexcept {return *v;}\n";
     std::cout
-        << "  Workspace" << x.first
+        << "  " << x.first
         << "& operator=(const type& t) noexcept {value() = t; return *this;}\n";
     std::cout << "  std::size_t pos() const noexcept {return p;}\n";
     std::cout << "  bool isnull() const noexcept {return v == nullptr;}\n";
@@ -433,7 +435,7 @@ int main() {
     std::cout << "@return A class with a pointer to this variable and its "
                  "position in the workspace\n*/\n";
     std::cout << "[[nodiscard]] inline ";
-    std::cout << "Workspace" << x.second.varname_group << ' ' << x.first
+    std::cout << x.second.varname_group << ' ' << x.first
               << "(Workspace& ws) "
                  "noexcept { "
                  "return {"
@@ -459,7 +461,7 @@ int main() {
                  "position in the workspace\n";
     std::cout << "*/\n";
     std::cout << "[[nodiscard]] inline\n";
-    std::cout << "Workspace" << x.first << ' ' << x.first
+    std::cout << x.first << ' ' << x.first
               << "Create(\n            Workspace& ws,\n            const Group::"
               << x.first
               << "& inval,\n            const Group::String& name,\n            const Group::"
@@ -468,7 +470,7 @@ int main() {
     std::cout << "  const std::size_t ind = "
                  "std::size_t(ws.add_wsv_inplace({name.c_str(), desc.c_str(), "
               << x.second << "}));\n";
-    std::cout << "  Workspace" << x.first << ' ' << "val{ind, ws[ind]};\n";
+    std::cout << "  " << x.first << ' ' << "val{ind, ws[ind]};\n";
     std::cout << "  return val = inval;\n"
               << "}\n\n";
   }
@@ -510,7 +512,7 @@ int main() {
 
     // First put all GOUT variables
     for (std::size_t i = 0; i < x.gout.group.size(); i++) {
-      std::cout << ',' << "\n            Var::Workspace" << x.gout.group[i] << ' '
+      std::cout << ',' << "\n            Var::" << x.gout.group[i] << ' '
                 << x.gout.name[i];
     }
 
@@ -518,7 +520,7 @@ int main() {
     for (std::size_t i = 0; i < x.gin.group.size(); i++) {
       if (not x.gin.hasdefs[i]) {
         std::cout << ',' << "\n      "
-                  << "const Var::Workspace" << x.gin.group[i] << ' '
+                  << "const Var::" << x.gin.group[i] << ' '
                   << x.gin.name[i];
       }
     }
@@ -528,11 +530,11 @@ int main() {
       if (x.gin.hasdefs[i]) {
         if (x.gin.defs[i] == "{}") {
           std::cout << ',' << "\n      "
-          << "const Var::Workspace" << x.gin.group[i] << ' ' << x.gin.name[i]
+          << "const Var::" << x.gin.group[i] << ' ' << x.gin.name[i]
           << '=' << "Group::" << x.gin.group[i] << x.gin.defs[i];
         } else {
           std::cout << ',' << "\n      "
-                    << "const Var::Workspace" << x.gin.group[i] << ' ' << x.gin.name[i]
+                    << "const Var::" << x.gin.group[i] << ' ' << x.gin.name[i]
                     << '=' << "Group::" << x.gin.group[i] << '{' << x.gin.defs[i] << '}';
         }
       }
@@ -676,7 +678,7 @@ int main() {
     // Check if we have the first input
     for (std::size_t i = 0; i < x.gout.group.size(); i++) {
       std::cout << ',' << '\n';
-      std::cout << "                     Var::Workspace"
+      std::cout << "                     Var::"
                 << x.gout.group[i] << ' ' << x.gout.name[i];
     }
 
@@ -684,7 +686,7 @@ int main() {
     for (std::size_t i = 0; i < x.gin.group.size(); i++) {
       if (not x.gin.hasdefs[i]) {
         std::cout << ',' << "\n";
-        std::cout << "               const Var::Workspace"
+        std::cout << "               const Var::"
                   << x.gin.group[i] << ' ' << x.gin.name[i];
       }
     }
@@ -693,7 +695,7 @@ int main() {
     for (std::size_t i = 0; i < x.gin.group.size(); i++) {
       if (x.gin.hasdefs[i]) {
         std::cout << ',' << "\n";
-        std::cout << "               const Var::Workspace"
+        std::cout << "               const Var::"
                   << x.gin.group[i] << '&' << ' ' << x.gin.name[i] << '='
                   << "{}";
       }
@@ -828,10 +830,11 @@ int main() {
             << "  @param[in] screen Screen verbosity\n"
             << "  @param[in] file File verbosity\n"
             << "  @param[in] agenda Agenda verbosity\n"
+            << "  @param[in] basename Default basename for output variables\n"
             << "  @return Workspace a full ARTS Workspace\n"
             << "*/\n";
   std::cout <<
-    "inline Workspace init(std::size_t screen=0, std::size_t file=0, std::size_t agenda=0) {\n"
+    "inline Workspace init(std::size_t screen=0, std::size_t file=0, std::size_t agenda=0, const Group::String& basename=\"arts\") {\n"
     "  define_wsv_group_names();\n"
     "  Workspace::define_wsv_data();\n"
     "  Workspace::define_wsv_map();\n"
@@ -850,6 +853,8 @@ int main() {
     "  Var::verbosity(ws).value().set_agenda_verbosity(agenda);\n"
     "  Var::verbosity(ws).value().set_file_verbosity(file);\n"
     "  Var::verbosity(ws).value().set_main_agenda(1);\n"
+    "\n"
+    "  out_basename = basename;\n"
     "\n"
     "  #ifndef NDEBUG\n"
     "  ws.context = \"\";\n"
