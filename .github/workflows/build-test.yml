@@ -12,11 +12,11 @@ jobs:
       matrix:
         name: [
           ubuntu-doc,
-          ubuntu-gcc-7,
           ubuntu-gcc-8,
           ubuntu-gcc-9,
-          ubuntu-clang-9-nofortran,
-          macos-gcc-9,
+          ubuntu-gcc-10,
+          ubuntu-clang-10-nofortran,
+          macos-gcc-10,
         ]
 
         include:
@@ -28,15 +28,6 @@ jobs:
             arts: "no"
             fortran: "no"
             check: "no"
-
-          - name: ubuntu-gcc-7
-            os: ubuntu-18.04
-            compiler: gcc
-            version: "7"
-            doc: "no"
-            arts: "yes"
-            fortran: "yes"
-            check: "yes"
 
           - name: ubuntu-gcc-8
             os: ubuntu-18.04
@@ -56,19 +47,28 @@ jobs:
             fortran: "yes"
             check: "yes"
 
-          - name: ubuntu-clang-9-nofortran
+          - name: ubuntu-gcc-10
+            os: ubuntu-18.04
+            compiler: gcc
+            version: "10"
+            doc: "no"
+            arts: "yes"
+            fortran: "yes"
+            check: "yes"
+
+          - name: ubuntu-clang-10-nofortran
             os: ubuntu-18.04
             compiler: clang
-            version: "9"
+            version: "10"
             doc: "no"
             arts: "yes"
             fortran: "no"
             check: "yes"
 
-          - name: macos-gcc-9
+          - name: macos-gcc-10
             os: macos-latest
             compiler: gcc
-            version: "9"
+            version: "10"
             doc: "no"
             arts: "yes"
             fortran: "yes"
@@ -82,8 +82,8 @@ jobs:
       - name: Setup (Linux)
         if: runner.os == 'Linux'
         run: |
-          if [ "${{ matrix.compiler }}" = "clang" ] && [ "${{ matrix.version }}" = "9" ]; then
-             sudo add-apt-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-9 main"
+          if [ "${{ matrix.compiler }}" = "clang" ] && [ "${{ matrix.version }}" = "10" ]; then
+             sudo add-apt-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main"
           fi
 
           sudo apt-get update
