@@ -90,22 +90,22 @@ jobs:
 
           if [ "${{ matrix.compiler }}" = "gcc" ]; then
             sudo apt-get install -y g++-${{ matrix.version }}
-            echo "::set-env name=CC::gcc-${{ matrix.version }}"
-            echo "::set-env name=CXX::g++-${{ matrix.version }}"
+            echo "CC=gcc-${{ matrix.version }}" >> $GITHUB_ENV
+            echo "CXX=g++-${{ matrix.version }}" >> $GITHUB_ENV
           fi
 
           if [ "${{ matrix.fortran }}" = "yes" ]; then
             sudo apt-get install -y gfortran-${{ matrix.version }}
-            echo "::set-env name=FC::gfortran-${{ matrix.version }}"
-            echo "::set-env name=USEFORTRAN::1"
+            echo "FC=gfortran-${{ matrix.version }}" >> $GITHUB_ENV
+            echo "USEFORTRAN=1" >> $GITHUB_ENV
           else
-            echo "::set-env name=USEFORTRAN::0"
+            echo "USEFORTRAN=0" >> $GITHUB_ENV
           fi
 
           if [ "${{ matrix.compiler }}" = "clang" ]; then
             sudo apt-get install -y clang++-${{ matrix.version }}
-            echo "::set-env name=CC::clang-${{ matrix.version }}"
-            echo "::set-env name=CXX::clang++-${{ matrix.version }}"
+            echo "CC=clang-${{ matrix.version }}" >> $GITHUB_ENV
+            echo "CXX=clang++-${{ matrix.version }}" >> $GITHUB_ENV
           fi
 
           if [ "${{ matrix.doc }}" = "yes" ]; then
@@ -122,13 +122,13 @@ jobs:
           sudo pip3 install docutils lark-parser matplotlib netCDF4 numpy pytest scipy
           if [ "${{ matrix.compiler }}" = "gcc" ]; then
             brew install gcc@${{ matrix.version }}
-            echo "::set-env name=CC::gcc-${{ matrix.version }}"
-            echo "::set-env name=CXX::g++-${{ matrix.version }}"
+            echo "CC=gcc-${{ matrix.version }}" >> $GITHUB_ENV
+            echo "CXX=g++-${{ matrix.version }}" >> $GITHUB_ENV
             if [ "${{ matrix.fortran }}" = "yes" ]; then
-              echo "::set-env name=FC::gfortran-${{ matrix.version }}"
-              echo "::set-env name=USEFORTRAN::1"
+              echo "FC=gfortran-${{ matrix.version }}" >> $GITHUB_ENV
+              echo "USEFORTRAN=1" >> $GITHUB_ENV
             else
-              echo "::set-env name=USEFORTRAN::0"
+              echo "USEFORTRAN=0" >> $GITHUB_ENV
             fi
           else
             exit 1
