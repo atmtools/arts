@@ -25,23 +25,16 @@ as an automatically generated ARTS namespace to your project.
 
 To link the public interface, you need to \verb|add_subdirectory(arts)|
 anywhere in your CMake project, where the \verb|arts| directory should contain
-a current version of ARTS.  You also need to manually link OpenMP again.
+a current version of ARTS.
 
 An example (in your projects \verb|CMakeLists.txt|):
 \begin{verbatim}
-###########################################################
-# OpenMP Library
-include (FindOpenMP)
-if (NOT ${OPENMP_FOUND})
-  message(FATAL_ERROR "No OPEN MP found, ARTS requires it")
-endif()
-
-# ARTS Library
-add_library (arts_interface STATIC interface.cpp)
+######################################################
+# ARTS Custom Executable
+add_executable(arts_interface STATIC interface.cpp)
 target_link_libraries(arts_interface PUBLIC
-                      public_arts_interface
-                      OpenMP::OpenMP_CXX)
-###########################################################
+                      public_arts_interface)
+######################################################
 \end{verbatim}
 
 At this point, your \verb|interface.cpp| must have
@@ -105,9 +98,10 @@ The purpose of these types is to pass input to the functions of
 Method and AgendaMethod.  The main way to generate
 instances of these variables is by their corresponding \verb|*Create|
 function or by simply accessing them via their common Workspace
-space name.  The only constructor that is recommended to use is the
+names.  The only constructor that is recommended to use is the
 construction from the corresponding Group, as this can simplify
-the access to several methods.
+the access to several methods.  The other two constructors risk
+accessing out-of-bound memory, or to deference a null-pointer.
 
 It is highly recommended to not discard created variables, as they
 will still occupy memory in the Workspace until the end of the program
@@ -122,9 +116,8 @@ Examples:
   Var::Index y = Var::stokes_dim(ws);
   
   // Create a new index on the workspace
-  Var::Index z{Var::IndexCreate(ws,
-                                            Group::Index{1},
-                                            "new_index_name")};
+  Var::Index z{Var::IndexCreate(ws, Group::Index{1},
+                                "new_index_name")};
 \end{verbatim}
 Note that \verb|x| will not work as an input to AgendaMethod functions
 but it will work as an input to Method functions.  It does not append
@@ -182,7 +175,7 @@ automatic variables is long.
 \subsection{AgendaMethod, AgendaDefine, and AgendaExecute}
 %--------------------------------------------------------------------------
 \label{sec:cpp_api:usage:agenda}
-The Agenda namespaces deals with setting and defining Workspace Agendas.
+The Agenda namespaces deal with setting and defining Workspace Agendas.
 It is only possible to set Workspace Agendas that have been defined as part
 of the Workspace at compilation time.  The AgendaMethod namespace contains
 the same functions as the Method namespace but returns an Internal::MRecord.
@@ -190,9 +183,9 @@ The user of this interface is expected to never manually construct an MRecord.
 Instead, this type is meant to only be used when Agendas are defined in the
 AgendaDefine namespace.  The AgendaDefine namespace defines a variadic 
 function per Agenda in the common Workspace and expects a list of MRecord
-to set this Agenda's methods.  Finally, AgendaExecute exist to execute a single
+to set this Agenda's methods.  Finally, AgendaExecute exists to execute a single
 Agenda.  Normally, this is not preferred since Agendas should generally just
-be used inside methods, but the option still exist.
+be used inside methods, but the option still exists.
 
 Examples:
 \begin{verbatim}
