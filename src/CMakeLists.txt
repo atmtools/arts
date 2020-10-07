@@ -30,6 +30,10 @@ set (ALL_ARTS_LIBRARIES
 file (GLOB HEADERFILES "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
 add_custom_target(UtilityHeadersArts SOURCES ${HEADERFILES})
 
+if (OpenMP_CXX_FOUND)
+  list (APPEND ALL_ARTS_LIBRARIES OpenMP::OpenMP_CXX)
+endif ()
+
 if (ENABLE_RT4)
   list (APPEND ALL_ARTS_LIBRARIES rt4)
 endif (ENABLE_RT4)
@@ -417,9 +421,9 @@ find_program( CSHFOUND csh )
 
 if (MATLABDIR AND ATMLABDIR AND CSHFOUND AND OEM_SUPPORT)
 
-  if (OPENMP_FOUND)
+  if (OpenMP_CXX_FOUND)
     add_definitions(-DOMP)
-  endif (OPENMP_FOUND)
+  endif ()
 
   add_executable (test_oem
     timings.cc
