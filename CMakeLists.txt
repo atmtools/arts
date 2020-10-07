@@ -25,7 +25,7 @@ endif ()
 if (ENABLE_CXX20)
   cmake_minimum_required (VERSION 3.12)
 else ()
-  cmake_minimum_required (VERSION 3.8)
+  cmake_minimum_required (VERSION 3.9)
 endif ()
 
 set (CMAKE_LEGACY_CYGWIN_WIN32 0)
@@ -320,12 +320,10 @@ if (WERROR)
   ARTS_ADD_COMPILER_FLAG (Werror)
 endif (WERROR)
 
-if (OPENMP_FOUND)
+if (OpenMP_FOUND)
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-  set (CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
-  set (CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
-endif (OPENMP_FOUND)
+endif ()
 
 set (COMPILER "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} (${CMAKE_CXX_COMPILER})")
 
