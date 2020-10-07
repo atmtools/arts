@@ -858,10 +858,13 @@ int main() {
             << "  @param[in] file File verbosity\n"
             << "  @param[in] agenda Agenda verbosity\n"
             << "  @param[in] basename Default basename for output variables\n"
+            << "  @param[in] numthreads OpenMP thread count (defaults to max if invalid count)\n"
             << "  @return Workspace a full ARTS Workspace\n"
             << "*/\n";
   std::cout
-      << "inline Workspace init(std::size_t screen=0, std::size_t file=0, std::size_t agenda=0, const Group::String& basename=\"arts\") {\n"
+      << "inline Workspace init(std::size_t screen=0, std::size_t file=0, std::size_t agenda=0, const Group::String& basename=\"arts\", int numthreads=0) {\n"
+         "  omp_set_num_threads(numthreads < 1 ? arts_omp_get_max_threads() : numthreads > arts_omp_get_max_threads() ? arts_omp_get_max_threads() : numthreads);\n"
+         "\n"
          "  define_wsv_group_names();\n"
          "  Workspace::define_wsv_data();\n"
          "  Workspace::define_wsv_map();\n"
