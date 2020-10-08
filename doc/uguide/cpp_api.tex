@@ -1,0 +1,216 @@
+\chapter{Include ARTS in third-party C++}
+%--------------------------------------------------------------------------
+\label{sec:cpp_api}
+
+\starthistory
+  2020-10-06 & Created and written by Richard Larsson.\\
+\stophistory
+
+%
+% Introduction
+%
+
+It is possible to include ARTS in another C++ program using
+the \verb|public_arts_interface| and linking to \verb|autoarts.h|.
+This will pull in the ARTS public API defined in \verb|agendas.cc|,
+\verb|groups.cc|, \verb|methods.cc|, \verb|workspace.cc| as well
+as an automatically generated ARTS namespace to your project.
+
+\FIXME{a private Module that imports only the ARTS namespace
+       should be added as soon as soon as C++20 becomes norm}
+
+\section{Linking the public interface}
+%--------------------------------------------------------------------------
+\label{sec:cpp_api:public_linking}
+
+To link the public interface, you need to \verb|add_subdirectory(arts)|
+anywhere in your CMake project, where the \verb|arts| directory should contain
+a current version of ARTS.
+
+An example (in your projects \verb|CMakeLists.txt|):
+\begin{verbatim}
+######################################################
+# ARTS Custom Executable
+add_executable(arts_interface interface.cpp)
+target_link_libraries(arts_interface PUBLIC
+                      public_arts_interface)
+######################################################
+\end{verbatim}
+
+At this point, your \verb|interface.cpp| must have
+\verb|#include <autoarts.h>| as one of its headers
+and you are good to go.
+
+\section{Using the C++ namespace interface}
+%--------------------------------------------------------------------------
+\label{sec:cpp_api:usage}
+
+The ARTS namespace contains all the interfaces you will need to perform
+all operations supported by ARTS.  The namespace defines only a single
+top level function call, the  \verb|init(...)| function and a single
+top-level type, the ARTS Workspace.  The function is used to generate the ARTS Workspace
+upon which all your function calls are made.  The ARTS namespace has several 
+sub-namespaces for various purposes.  These are in short:
+\begin{itemize}
+ \item[Group] Defines the ARTS public type-system.
+ \item[Internal] Defines the ARTS internal type-system.
+ \item[Var] Defines the ARTS interface type-system,
+                  create variables for the ARTS interface, and
+                  access automatic variables that are defined in the ARTS Workspace
+                  from the start.
+ \item[Method] Defines the ARTS methods.  The ARTS methods can only be called
+                     using their generic inputs and outputs.
+ \item[AgendaMethod] Defines the ARTS methods that can be used by agendas.
+                           They return an internal type and are best used directly,
+                           with no manual modification.
+ \item[AgendaDefine] Defines methods to set the different ARTS agendas.
+                           The agendas are checked and ready to be used after these
+                           methods are called.
+ \item[AgendaExecute] Executes an agenda.
+\end{itemize}
+
+If you are using the public interface, you need not be concerned with the types in the sub-namespaces Group and Internal.
+\FIXME{Otherwise, these define the basic types you need to use ARTS easily.}
+These sub-namespaces are used the same as any other C++ type-system.  The other
+namespaces are domain specific.
+
+An interface will generally start with a call to the initialize function.
+This could look like:
+\begin{verbatim}
+  auto ws = init();
+\end{verbatim}
+After this the order and set of commands that are placed is up to the user.
+For sake of ease, \verb|ws| will be used below to indicate a defined 
+Workspace.  Also, the access to each sub-namespace will be written as if
+operating in the ARTS namespace itself.
+
+\subsection{Var}
+%--------------------------------------------------------------------------
+\label{sec:cpp_api:usage:variable}
+The Var namespace, short for Variable namespace, have three purposes
+\begin{enumerate}
+ \item Type the Method and Agenda interface
+ \item Access common Workspace variables
+ \item Create new variables on the Workspace
+\end{enumerate}
+The types that are defined correspond to the types in Group.
+The purpose of these types is to pass input to the functions of
+Method and AgendaMethod.  The main way to generate
+instances of these variables is by their corresponding \verb|*Create|
+function or by simply accessing them via their common Workspace
+names.  The only constructor that is recommended to use is the
+construction from the corresponding Group, as this can simplify
+the access to several methods.  The other two constructors risk
+accessing out-of-bound memory, or to deference a null-pointer.
+
+It is highly recommended to not discard created variables, as they
+will still occupy memory in the Workspace until the end of the program
+and they become impossible to access once discarded.
+
+Examples:
+\begin{verbatim}
+  // Define an index that is not in the workspace
+  Var::Index x{Group::Index(1)};
+  
+  // Access an index that is in the workspace
+  Var::Index y = Var::stokes_dim(ws);
+  
+  // Create a new index on the workspace
+  Var::Index z{Var::IndexCreate(ws, Group::Index{1},
+                                "new_index_name")};
+\end{verbatim}
+Note that \verb|x| will not work as an input to AgendaMethod functions
+but it will work as an input to Method functions.  It does not append
+to the Workspace.  The other two will work both as inputs to
+AgendaMethod and to Method functions.
+
+\subsection{Method}
+%--------------------------------------------------------------------------
+\label{sec:cpp_api:usage:method}
+The Method namespace contains all but the Agenda manipulating methods
+defined in \verb|methods.cc|.  These can all be called using the generic
+input and outputs.  The inputs and outputs are not guaranteed to be the
+same as in the ARTS methods however, because C++ requires inputs with 
+default values be placed last in the calling order.  Note that all 
+standard inputs and outputs taken from the Workspace must be set on the
+Workspace itself and cannot be passed as inputs.  This creates a few
+idiosyncrasies compared to how ARTS is used in python or in a normal
+controlfile.  
+
+Examples:
+\begin{verbatim}
+  // Call yCalc (no GIN/GOUT)
+  Method::yCalc(ws);
+  
+  // Call Touch on the wind field (Pure GOUT)
+  Method::Touch(ws, Var::wind_u_field(ws));
+  Method::Touch(ws, Var::wind_v_field(ws));
+  Method::Touch(ws, Var::wind_w_field(ws));
+  
+  // Set p_grid by VectorNLogSpace
+  Var::nelem(ws) = 51;
+  Method::VectorNLogSpace(ws, Var::p_grid(ws), 1e+05, 1e-4);
+  
+  // Save x, y, z from the Var example
+  Var::output_file_format(ws) = Group::String{"ascii"};
+  Method::WriteXML(ws, x);
+  Method::WriteXML(ws, y, Group::String{"extra.xml"});
+  Method::WriteXML(ws, z);
+\end{verbatim}
+All methods requires a Workspace (\verb|ws|) to work.
+The first case of the examples calls a function with neither generic input nor generic output --- it cannot take anything other than the Workspace.
+The second triplet case of the examples calls Touch on all wind-field variables.  They will have been default-initialized after this process.
+The third example shows the idiosyncrasies to other methods of using ARTS.  The Workspace variable \verb|nelem| has been used instead of a generic
+input index to define \verb|VectorNLogSpace| --- thus \verb|nelem| must be set manually by the user of the interface.
+The last examples uses the fact that many of \verb|WriteXML|'s inputs are default defined.  Since the default value of filename is empty and since
+the interface then infers it has the variable name input, the first call to \verb|WriteXML| will generate a file called \verb|arts.in.xml|, the second
+call will generate a file called \verb|extra.xml|, and the last call will generate a file called \verb|arts.new_index_name.xml|.  The first part of
+the name can be changed by calling \verb|init()| with the corresponding arguments.
+
+As a last note.  Several inputs above automatically generates inputs from standard C++ types, such as \verb|VectorNLogSpace|
+generating two \verb|Var::Numeric| from two doubles.  This is a convenient way to use the methods but the user should
+be aware that these methods will end up deleting variables in the end, so some care has to be taken when the scope of such
+automatic variables is long.
+
+\subsection{AgendaMethod, AgendaDefine, and AgendaExecute}
+%--------------------------------------------------------------------------
+\label{sec:cpp_api:usage:agenda}
+The Agenda namespaces deal with setting and defining Workspace Agendas.
+It is only possible to set Workspace Agendas that have been defined as part
+of the Workspace at compilation time.  The AgendaMethod namespace contains
+the same functions as the Method namespace but returns an Internal::MRecord.
+The user of this interface is expected to never manually construct an MRecord.
+Instead, this type is meant to only be used when Agendas are defined in the
+AgendaDefine namespace.  The AgendaDefine namespace defines a variadic 
+function per Agenda in the common Workspace and expects a list of MRecord
+to set this Agenda's methods.  Finally, AgendaExecute exists to execute a single
+Agenda.  Normally, this is not preferred since Agendas should generally just
+be used inside methods, but the option still exists.
+
+Examples:
+\begin{verbatim}
+  // Define the basic iy_main_agenda emission agenda
+  AgendaDefine::iy_main_agenda(ws,
+    AgendaMethod::ppathCalc(ws),
+    AgendaMethod::iyEmissionStandard(ws));
+  
+  // Define an empty geo positioning agenda
+  AgendaDefine::geo_pos_agenda(ws,
+    AgendaMethod::Ignore(ws, Var::ppath(ws)),
+    AgendaMethod::VectorSet(ws, Var::geo_pos(ws),
+      Var::VectorCreate(ws, {}, "Default")));
+\end{verbatim}
+The first example simply sets its agenda by using two functions that
+complete the inputs/outputs expected of the agenda.  The second example
+does not need or want to use \verb|Var::ppath(ws)| so it ignores it.  It also
+has the need of a default empty \verb|Var::Vector|.  This variable
+has to first be created onto the Workspace before it can be used as an 
+input.  Had a pure vector been used instead of the create-function,
+a runtime error would occur.  The create function is only invoked once,
+since the internal workings of the Agenda just need to have defined
+the variable.
+
+Lastly, each AgendaMethod function that has a default generic input will
+create a static const Workspace variable of this type upon first call to
+the method.  This means that calling such a method will incur a memory cost
+that lasts until the end of the program.
