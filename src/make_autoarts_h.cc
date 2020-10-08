@@ -863,8 +863,10 @@ int main() {
             << "*/\n";
   std::cout
       << "inline Workspace init(std::size_t screen=0, std::size_t file=0, std::size_t agenda=0, const Group::String& basename=\"arts\", int numthreads=0) {\n"
+#ifdef _OPENMP
          "  omp_set_num_threads(numthreads < 1 ? arts_omp_get_max_threads() : numthreads > arts_omp_get_max_threads() ? arts_omp_get_max_threads() : numthreads);\n"
          "\n"
+#endif
          "  define_wsv_group_names();\n"
          "  Workspace::define_wsv_data();\n"
          "  Workspace::define_wsv_map();\n"
