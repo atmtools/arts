@@ -83,6 +83,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           if [ "${{ matrix.compiler }}" = "clang" ] && [ "${{ matrix.version }}" = "10" ]; then
+             sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 15CF4D18AF4F7421
              sudo add-apt-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main"
           fi
 
