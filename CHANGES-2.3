@@ -2,9 +2,17 @@ Key features
 ============
 - PyARTS: Python bindings for ARTS
 
+- New implementation of the infrastructure for the line-by-line data.
+  Data that is shared between often hundreds of lines is separated from the
+  pure line-by-line data for more efficient memory and computational resource
+  usage.
+
 
 General
 =======
+- New ARTSCAT-6 catalog format to accomodate the new line-by-line
+  infrastructure.  A description can be found in the ARTS Theory Guide.
+
 - New format of scattering meta data (see online doc of scat_meta_single).
 
 - Cleaner separation of scattering data of the different scattering species:
@@ -55,9 +63,6 @@ General
   polarisation was obtained when using the sensor part to extract the V Stokes
   element.
   
-- New ARTSCAT-6 catalog format.  Easier-to-read and modify line data.
-  A description can be found in the ARTS Theory Guide.
-
 - backend_channel_responseGaussian now takes Vectors instead of Numerics as
   inputs making it possible to define different responses for each channel.
 
