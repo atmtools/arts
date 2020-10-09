@@ -2506,6 +2506,32 @@ void abs_linesRemoveBand(ArrayOfAbsorptionLines& abs_lines,
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
+///////////////////////// Manipulation of multiple ARTS variables based on input data
+/////////////////////////////////////////////////////////////////////////////////////
+
+void abs_linesSetZeemanCoefficients(ArrayOfAbsorptionLines& abs_lines,
+                                    const ArrayOfQuantumIdentifier& qid,
+                                    const Vector& gs,
+                                    const Verbosity& verbosity) {
+  if (qid.nelem() not_eq gs.nelem()) throw std::runtime_error("Inputs not matching in size");
+  for (Index i=0; i<qid.nelem(); i++) {
+    abs_linesSetBaseParameterForMatchingLevel(abs_lines, qid[i], "Zeeman Coefficient", gs[i], verbosity);
+  }
+}
+
+void abs_lines_per_speciesSetZeemanCoefficients(ArrayOfArrayOfAbsorptionLines& abs_lines_per_species,
+                                                const ArrayOfQuantumIdentifier& qid,
+                                                const Vector& gs,
+                                                const Verbosity& verbosity) {
+  if (qid.nelem() not_eq gs.nelem()) throw std::runtime_error("Inputs not matching in size");
+  for (auto& abs_lines: abs_lines_per_species) {
+    for (Index i=0; i<qid.nelem(); i++) {
+      abs_linesSetBaseParameterForMatchingLevel(abs_lines, qid[i], "Zeeman Coefficient", gs[i], verbosity);
+    }
+  }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////
 /////////////////////// Manipulation of other ARTS variables based on AbsorptionLines
 /////////////////////////////////////////////////////////////////////////////////////
 

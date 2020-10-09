@@ -1741,6 +1741,36 @@ void define_md_data_raw() {
                "The species tag from *abs_species* to change")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("abs_linesSetZeemanCoefficients"),
+      DESCRIPTION("Sets the Zeeman coefficients of the lines by user input\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines"),
+      GIN("qid", "gs"),
+      GIN_TYPE("ArrayOfQuantumIdentifier", "Vector"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Information to match an energy level of a/many lines.",
+               "Corresponding value to set as Zeeman coefficient")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("abs_lines_per_speciesSetZeemanCoefficients"),
+      DESCRIPTION("See *abs_linesSetZeemanCoefficients*\n"),
+      AUTHORS("Richard Larsson"),
+      OUT("abs_lines_per_species"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("abs_lines_per_species"),
+      GIN("qid", "gs"),
+      GIN_TYPE("ArrayOfQuantumIdentifier", "Vector"),
+      GIN_DEFAULT(NODEF, NODEF),
+      GIN_DESC("Information to match an energy level of a/many lines.",
+               "Corresponding value to set as Zeeman coefficient")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("abs_linesChangeLineShapeModelParameterForMatchingLines"),
       DESCRIPTION("Change line shape model data parameter in matching lines.\n"
         "\n"
