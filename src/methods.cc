@@ -4257,8 +4257,7 @@ void define_md_data_raw() {
       GIN_TYPE("Tensor4", "ArrayOfIndex", "Numeric"),
       GIN_DEFAULT(NODEF, "[-1]", "-1"),
       GIN_DESC("A collection of particle property fields (e.g."
-               " *particle_bulkprop_field*,"
-               " *scat_species_mass_density_field*).",
+               " *particle_bulkprop_field*).",
                "Preset cloudbox limits, e.g. resulting from a previous run"
                " of *cloudboxSetAutomatically*.",
                "Minimum distance [m] between lowest 'cloudy' level and"
@@ -16537,7 +16536,7 @@ void define_md_data_raw() {
           "Removes unrealistically small or erroneous data from particle fields.\n"
           "\n"
           "This WSM checks if the input particle field (e.g.\n"
-          "*particle_bulkprop_field*, scat_species_XXX_field) contains values\n"
+          "*particle_bulkprop_field*) contains values\n"
           "smaller than the given *threshold*. In this case, these values will\n"
           "be set to zero.\n"
           "\n"
@@ -16557,14 +16556,12 @@ void define_md_data_raw() {
       OUT(),
       GOUT("particle_field_out"),
       GOUT_TYPE("Tensor4"),
-      GOUT_DESC("A particle property field, e.g. *particle_bulkprop_field*"
-                " or *scat_species_mass_density_field*"),
+      GOUT_DESC("A particle property field, e.g. *particle_bulkprop_field*"),
       IN(),
       GIN("particle_field_in", "threshold"),
       GIN_TYPE("Tensor4", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("A particle property field, e.g. *particle_bulkprop_field* or"
-               " *scat_species_mass_density_field*",
+      GIN_DESC("A particle property field, e.g. *particle_bulkprop_field*",
                "Threshold below which the *particle_field* values are set to"
                " zero.")));
 
