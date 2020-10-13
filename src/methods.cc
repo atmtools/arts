@@ -4244,19 +4244,14 @@ void define_md_data_raw() {
           "in *particle_field*.\n"
           "\n"
           "This WSM handles one *Tensor4* type *particle_field* at a time. It can\n"
-          "be used to determine the cloudbox from *particle_bulkprop_field*,\n"
-          "but also from the various scat_species_XXX_field (or even from a\n"
-          "read-in *pnd_field*). For the latter, the WSM needs to be called\n"
-          "once per each scat_species_XXX_field, with previously determined\n"
-          "*cloudbox_limits* provided through *cloudbox_limits_old*.\n"
+          "be used to determine the cloudbox from *particle_bulkprop_field*\n"
           "\n"
           "The function must be called before executing any WSM that applies\n"
           "*cloudbox_limits*.\n"
           "\n"
           "The function iterates over all 3D fields in *particle_field* (which\n"
-          "might correspond to the different scattering species as in\n"
-          "scat_species_XXX_field or to different particle bulk properties as\n"
-          "in *particle_bulkprop_field*). Each field is searched for the first\n"
+          "might correspond to different particle bulk properties as in\n"
+          "*particle_bulkprop_field*). Each field is searched for the first\n"
           "and last pressure index, where the value is unequal to zero. This\n"
           "index is then copied to *cloudbox_limits*.\n"
           "If *particle_field* is empty, the cloudbox is switched off\n"
@@ -4270,11 +4265,7 @@ void define_md_data_raw() {
           "If *cloudbox_margin* is set to -1 (default), the cloudbox will extend\n"
           "to the surface. Hence, the lower cloudbox_limit is set to 0 (index\n"
           "of first pressure level).\n"
-          "*cloudbox_margin* will be applied on each call of the WSM. Hence,\n"
-          "if called successively, e.g. for several scat_species_XXX_field,\n"
-          "and *cloudbox_margin* is not -1, it is suggested to apply the\n"
-          "desired *cloudbox_margin* only for the last WSM call, while for the\n"
-          "others set *cloudbox_margin* to 0.\n"
+          "*cloudbox_margin* will be applied on each call of the WSM.\n"
           "\n"
           "Works only for *atmosphere_dim==1.*\n"),
       AUTHORS("Jana Mendrok, Daniel Kreyling"),
@@ -4287,8 +4278,7 @@ void define_md_data_raw() {
       GIN_TYPE("Tensor4", "ArrayOfIndex", "Numeric"),
       GIN_DEFAULT(NODEF, "[-1]", "-1"),
       GIN_DESC("A collection of particle property fields (e.g."
-               " *particle_bulkprop_field*,"
-               " *scat_species_mass_density_field*).",
+               " *particle_bulkprop_field*).",
                "Preset cloudbox limits, e.g. resulting from a previous run"
                " of *cloudboxSetAutomatically*.",
                "Minimum distance [m] between lowest 'cloudy' level and"
@@ -16567,7 +16557,7 @@ void define_md_data_raw() {
           "Removes unrealistically small or erroneous data from particle fields.\n"
           "\n"
           "This WSM checks if the input particle field (e.g.\n"
-          "*particle_bulkprop_field*, scat_species_XXX_field) contains values\n"
+          "*particle_bulkprop_field*) contains values\n"
           "smaller than the given *threshold*. In this case, these values will\n"
           "be set to zero.\n"
           "\n"
@@ -16587,14 +16577,12 @@ void define_md_data_raw() {
       OUT(),
       GOUT("particle_field_out"),
       GOUT_TYPE("Tensor4"),
-      GOUT_DESC("A particle property field, e.g. *particle_bulkprop_field*"
-                " or *scat_species_mass_density_field*"),
+      GOUT_DESC("A particle property field, e.g. *particle_bulkprop_field*"),
       IN(),
       GIN("particle_field_in", "threshold"),
       GIN_TYPE("Tensor4", "Numeric"),
       GIN_DEFAULT(NODEF, NODEF),
-      GIN_DESC("A particle property field, e.g. *particle_bulkprop_field* or"
-               " *scat_species_mass_density_field*",
+      GIN_DESC("A particle property field, e.g. *particle_bulkprop_field*",
                "Threshold below which the *particle_field* values are set to"
                " zero.")));
 
