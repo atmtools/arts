@@ -255,13 +255,6 @@ cmake -DENABLE_NETCDF=1 ..
 Disabling features
 ------------------
 
-By default, a library to use the ARTS workspace interface in typhon is built.
-You can disable building the C API:
-
-```
-cmake -DNO_C_API=1 ..
-```
-
 Disable assertions:
 ```
 cmake -DNO_ASSERT=1 ..

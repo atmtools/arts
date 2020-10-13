@@ -176,10 +176,8 @@ endif ()
 
 ########### C API ##########
 
-if (NOT NO_C_API)
-  set (C_API true)
-  add_definitions(-fPIC)
-endif ()
+set (C_API true)
+add_definitions(-fPIC)
 
 ########### Check C header files ##########
 check_include_file (stdlib.h    HAVE_STDLIB_H)
@@ -480,12 +478,6 @@ if (OEM_SUPPORT)
   message (STATUS "OEM enabled")
 else()
   message (STATUS "OEM disabled")
-endif()
-
-if (C_API)
-  message (STATUS "C API enabled (use -DNO_C_API=1 to disable)")
-else()
-  message (STATUS "C API disabled")
 endif()
 
 add_subdirectory (src)
