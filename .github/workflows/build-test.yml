@@ -15,7 +15,7 @@ jobs:
           ubuntu-gcc-8,
           ubuntu-gcc-9,
           ubuntu-gcc-10,
-          ubuntu-clang-10-nofortran,
+          ubuntu-clang-11-nofortran,
           macos-gcc-10,
         ]
 
@@ -56,10 +56,10 @@ jobs:
             fortran: "yes"
             check: "yes"
 
-          - name: ubuntu-clang-10-nofortran
+          - name: ubuntu-clang-11-nofortran
             os: ubuntu-18.04
             compiler: clang
-            version: "10"
+            version: "11"
             doc: "no"
             arts: "yes"
             fortran: "no"
@@ -82,9 +82,9 @@ jobs:
       - name: Setup (Linux)
         if: runner.os == 'Linux'
         run: |
-          if [ "${{ matrix.compiler }}" = "clang" ] && [ "${{ matrix.version }}" = "10" ]; then
+          if [ "${{ matrix.compiler }}" = "clang" ] && [ "${{ matrix.version }}" = "11" ]; then
              sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 15CF4D18AF4F7421
-             sudo add-apt-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main"
+             sudo add-apt-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-11 main"
           fi
 
           sudo apt-get update
