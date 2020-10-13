@@ -1,15 +1,39 @@
 Key features
 ============
-- PyARTS: Python bindings for ARTS
 
-- New implementation of the infrastructure for the line-by-line data.
-  Data that is shared between often hundreds of lines is separated from the
-  pure line-by-line data for more efficient memory and computational resource
-  usage.
+- New improved format for line-by-line data
+- Non-LTE (pure-rotational non-overlapping, and non-chemical cases)
+- Dedicated methods for heating rate calculations
+- Basic simulations of radars (both single and multiple scattering)
+- Radio link calculations not supported in this version
+- Interfaces to DISORT and RT4 scattering solvers
+- Jacobian for new quantities:
+  - spectroscopic variables
+  - particle properties (approximative)
+- OEM type inversions inside ARTS
+- PyARTS: Python bindings for ARTS
 
 
 General
 =======
+
+- Radiative transfer code (except MC) totally revised, including:
+  - Higher consistency between modules
+  - Higher calculation efficiency
+  - Jacobian of atmospheric variables now fully analytical
+- Absorption/RT overhaul
+  - Support for new lineshapes
+  - Performance improvements
+- New system for defining particle size distributions
+- DOIT improvements
+  - Optimized pressure grid
+  - Convergence acceleration
+  - Optional precalculated first-guess field
+
+
+Other Changes
+=============
+
 - New ARTSCAT-6 catalog format to accomodate the new line-by-line
   infrastructure.  A description can be found in the ARTS Theory Guide.
 
@@ -35,10 +59,6 @@ General
   density, mass flux, number density).
 
 - DoitInit required to be called before DoitGetIncoming.
-
-- DOIT's first guess field can now be initialized with a (precalculated)
-  complete in-cloudbox field providing an alternative to deriving it from
-  the clearsky fields.
 
 - Initialization of the first guess field is now done outside of
   doit_mono_agenda. The order is DoitInit, DoitGetIncoming and then the
