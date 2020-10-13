@@ -199,6 +199,7 @@ add_library (artscore STATIC
   hitran_xsec.cc
   interpolation.cc
   interpolation_poly.cc
+  interpolation_lagrange.cc
   jacobian.cc
   legacy_continua.cc
   legendre.cc
