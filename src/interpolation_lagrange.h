@@ -1,5 +1,5 @@
-#ifndef lag_interp_h
-#define lag_interp_h
+#ifndef interpolation_lagrange_h
+#define interpolation_lagrange_h
 
 #include <array>
 #include <numeric>
@@ -663,4 +663,4 @@ Tensor6 interp(const ConstTensor7View yi, const ConstVectorView iw,
                const Lagrange& dim0, const std::array<Index, 1>& axis);
 }  // namespace Interpolation
 
-#endif  // lag_interp_h
+#endif  // interpolation_lagrange_h
