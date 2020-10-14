@@ -1,9 +1,45 @@
 Key features
 ============
 
+- New improved format for line-by-line data
+- Non-LTE (pure-rotational non-overlapping, and non-chemical cases)
+- Dedicated methods for heating rate calculations
+- Basic simulations of radars (both single and multiple scattering)
+- Radio link calculations not supported in this version
+- Interfaces to DISORT and RT4 scattering solvers
+- Jacobian for new quantities:
+  - spectroscopic variables
+  - particle properties (approximative)
+- OEM type inversions inside ARTS
+- TELSEM and TESSEM surface models
+- PyARTS: Python bindings for ARTS
+
 
 General
 =======
+
+- Radiative transfer code (except MC) totally revised, including:
+  - Higher consistency between modules
+  - Higher calculation efficiency
+  - Jacobian of atmospheric variables now fully analytical
+- Absorption/LBL revised
+  - Support for new lineshapes
+  - Performance improvements
+- New and extended system for defining particle size distributions
+- DOIT improvements
+  - Optimized pressure grid
+  - Convergence acceleration
+  - Optional precalculated first-guess field
+- New sensor setup for passband-type, meteorological millimeter
+  instruments (sensor_responseMetMM)
+
+
+Other Changes
+=============
+
+- New ARTSCAT-6 catalog format to accomodate the new line-by-line
+  infrastructure.  A description can be found in the ARTS Theory Guide.
+
 - New format of scattering meta data (see online doc of scat_meta_single).
 
 - Cleaner separation of scattering data of the different scattering species:
@@ -14,10 +50,6 @@ General
 - ScatteringParticlesSelect doesn't select on material anymore (governed by
   sorting scattering data into ArrayOfArray...). Size range selection changed to
   diameter based selection instead of radius based.
-
-- massdensity_field diversified into scat_species_mass_density_field,
-  scat_species_mass_flux_field, scat_species_number_density_field to allow for
-  multi-moment schemes.
 
 - Default input format for compact batch atmospheres changed from ArrayOfMatrix
   to ArrayOfGriddedField. Selection of fields from input data now purely on the
@@ -31,13 +63,9 @@ General
 
 - DoitInit required to be called before DoitGetIncoming.
 
-- DOIT's first guess field can now be initialized with a (precalculated)
-  complete in-cloudbox field providing an alternative to deriving it from
-  the clearsky fields.
-
 - Initialization of the first guess field is now done outside of
   doit_mono_agenda. The order is DoitInit, DoitGetIncoming and then the
-  initializiation (e.g. doit_i_fieldSetClearsky or doit_i_fieldSetFromPrecalc)
+  initializiation (e.g. cloudbox_fieldSetClearsky or cloudbox_fieldSetFromPrecalc)
 
 - Create WSMs are not allowed to be called inside Agendas anymore. Avoids
   confusion because variables are always global independent of where they are
@@ -58,12 +86,6 @@ General
   polarisation was obtained when using the sensor part to extract the V Stokes
   element.
   
-- Artscat5 is new.  Allows easier-to-read and modify line data.  Presently
-  contains indexing for various pressure broadening schemes, for various
-  line mixing schemes, and for quantum numbers.  Pressure broadening added
-  features includes water+air broadening.  Simple NLTE support exists but
-  it still needs more testing.
-
 - backend_channel_responseGaussian now takes Vectors instead of Numerics as
   inputs making it possible to define different responses for each channel.
 
@@ -89,9 +111,7 @@ General
   (pnd_fieldCalcFromParticleBulkProp) using ArrayOfAgenda.
 
 - cloudboxSetAutomatically now takes only a single Tensor4 field collection, but
-  can start from/update previously determined cloudbox_limits. For processing
-  scat_species_XXX_fields, the WSM needs to be called separately with each of
-  these WSV (and using cloudbox_limits update option).
+  can start from/update previously determined cloudbox_limits.
 
 - scat_data now has to be preprocessed such that the f_grids of the scattering
   elements are either identical to the calculations f_grid or only have a single
@@ -105,9 +125,11 @@ General
 
 - opt_prop_part_agenda removed. Internally replaced by method opt_prop_bulkCalc.
 
-NAME CHANGES-2.3
-================
 
+NAME CHANGES (not complete)
+===========================
+
+- doit_i_field -> cloudbox_field
 - sensor_pol -> instrument_pol (note that there is a new sensor_pol)
 - sensor_pol_array -> instrument_pol_array
 - part_species -> scat_species
@@ -120,7 +142,7 @@ NAME CHANGES-2.3
 - ScatteringDoit -> DoitCalc
 - doit_i_fieldSetFromdoit_i_field1D_spectrum -> doit_i_fieldSetFromPrecalc
 - doit_i_fieldIterate -> doit_i_field_monoIterate
-- Massdensity_cleanup -> scat_species_fieldCleanup
+- Massdensity_cleanup -> scat_species_fieldCleanup -> particle_fieldCleanup
 - pnd_fieldSetup -> pnd_fieldCalcFromscat_speciesFields
 - pnd_fieldCalc -> pnd_fieldCalcFrompnd_field_raw
 - particle_massesFromMetaDataAndScat_species -> particle_massesFromMetaData
@@ -128,5 +150,4 @@ NAME CHANGES-2.3
 - refr_index_airMWgeneral -> refr_index_airMicrowavesGeneral
 - refr_index_airIR -> refr_index_airInfraredEarth
 - refr_index_air_agenda__* predefinition renamed according to above
-- scat_species_fieldCleanup -> particle_fieldCleanup
 
