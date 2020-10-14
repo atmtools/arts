@@ -403,8 +403,8 @@ Vector interp(const ConstMatrixView yi, const ConstVectorView iw,
       axis[0] == 1 ? dim0.lx.nelem() : yi.ncols(),
   };
   const std::array<Index, 2> count{
-      0 + (axis[0] >= 0),
-      0 + (axis[0] >= 1),
+      0 + (axis[0] <= 0),
+      0 + (axis[0] <= 1),
   };
   std::array<Index, 2> ittr{
       axis[0] == 0 ? dim0.pos : 0,
@@ -434,9 +434,9 @@ Vector interp(const ConstTensor3View yi, const ConstMatrixView iw,
                    : axis[1] == 2 ? dim1.lx.nelem() : yi.ncols(),
   };
   const std::array<Index, 3> count{
-      0 + (axis[0] >= 0) + (axis[1] >= 0),
-      0 + (axis[0] >= 1) + (axis[1] >= 1),
-      0 + (axis[0] >= 2) + (axis[1] >= 2),
+      0 + (axis[0] <= 0) + (axis[1] <= 0),
+      0 + (axis[0] <= 1) + (axis[1] <= 1),
+      0 + (axis[0] <= 2) + (axis[1] <= 2),
   };
   std::array<Index, 3> ittr{
       axis[0] == 0 ? dim0.pos : axis[1] == 0 ? dim1.pos : 0,
@@ -479,10 +479,10 @@ Vector interp(const ConstTensor4View yi, const ConstTensor3View iw,
                                   : axis[2] == 3 ? dim2.lx.nelem() : yi.ncols(),
   };
   const std::array<Index, 4> count{
-      0 + (axis[0] >= 0) + (axis[1] >= 0) + (axis[2] >= 0),
-      0 + (axis[0] >= 1) + (axis[1] >= 1) + (axis[2] >= 1),
-      0 + (axis[0] >= 2) + (axis[1] >= 2) + (axis[2] >= 2),
-      0 + (axis[0] >= 3) + (axis[1] >= 3) + (axis[2] >= 3),
+      0 + (axis[0] <= 0) + (axis[1] <= 0) + (axis[2] <= 0),
+      0 + (axis[0] <= 1) + (axis[1] <= 1) + (axis[2] <= 1),
+      0 + (axis[0] <= 2) + (axis[1] <= 2) + (axis[2] <= 2),
+      0 + (axis[0] <= 3) + (axis[1] <= 3) + (axis[2] <= 3),
   };
   std::array<Index, 4> ittr{
       axis[0] == 0 ? dim0.pos
@@ -550,11 +550,11 @@ Vector interp(const ConstTensor5View yi, const ConstTensor4View iw,
                                : axis[3] == 4 ? dim3.lx.nelem() : yi.ncols(),
   };
   const std::array<Index, 5> count{
-      0 + (axis[0] >= 0) + (axis[1] >= 0) + (axis[2] >= 0) + (axis[3] >= 0),
-      0 + (axis[0] >= 1) + (axis[1] >= 1) + (axis[2] >= 1) + (axis[3] >= 1),
-      0 + (axis[0] >= 2) + (axis[1] >= 2) + (axis[2] >= 2) + (axis[3] >= 2),
-      0 + (axis[0] >= 3) + (axis[1] >= 3) + (axis[2] >= 3) + (axis[3] >= 3),
-      0 + (axis[0] >= 4) + (axis[1] >= 4) + (axis[2] >= 4) + (axis[3] >= 4),
+      0 + (axis[0] <= 0) + (axis[1] <= 0) + (axis[2] <= 0) + (axis[3] <= 0),
+      0 + (axis[0] <= 1) + (axis[1] <= 1) + (axis[2] <= 1) + (axis[3] <= 1),
+      0 + (axis[0] <= 2) + (axis[1] <= 2) + (axis[2] <= 2) + (axis[3] <= 2),
+      0 + (axis[0] <= 3) + (axis[1] <= 3) + (axis[2] <= 3) + (axis[3] <= 3),
+      0 + (axis[0] <= 4) + (axis[1] <= 4) + (axis[2] <= 4) + (axis[3] <= 4),
   };
   std::array<Index, 5> ittr{
       axis[0] == 0 ? dim0.pos
@@ -656,18 +656,18 @@ Vector interp(const ConstTensor6View yi, const ConstTensor5View iw,
                                                              : yi.ncols(),
   };
   const std::array<Index, 6> count{
-      0 + (axis[0] >= 0) + (axis[1] >= 0) + (axis[2] >= 0) + (axis[3] >= 0) +
-          (axis[4] >= 0),
-      0 + (axis[0] >= 1) + (axis[1] >= 1) + (axis[2] >= 1) + (axis[3] >= 1) +
-          (axis[4] >= 1),
-      0 + (axis[0] >= 2) + (axis[1] >= 2) + (axis[2] >= 2) + (axis[3] >= 2) +
-          (axis[4] >= 2),
-      0 + (axis[0] >= 3) + (axis[1] >= 3) + (axis[2] >= 3) + (axis[3] >= 3) +
-          (axis[4] >= 3),
-      0 + (axis[0] >= 4) + (axis[1] >= 4) + (axis[2] >= 4) + (axis[3] >= 4) +
-          (axis[4] >= 4),
-      0 + (axis[0] >= 5) + (axis[1] >= 5) + (axis[2] >= 5) + (axis[3] >= 5) +
-          (axis[4] >= 5),
+      0 + (axis[0] <= 0) + (axis[1] <= 0) + (axis[2] <= 0) + (axis[3] <= 0) +
+          (axis[4] <= 0),
+      0 + (axis[0] <= 1) + (axis[1] <= 1) + (axis[2] <= 1) + (axis[3] <= 1) +
+          (axis[4] <= 1),
+      0 + (axis[0] <= 2) + (axis[1] <= 2) + (axis[2] <= 2) + (axis[3] <= 2) +
+          (axis[4] <= 2),
+      0 + (axis[0] <= 3) + (axis[1] <= 3) + (axis[2] <= 3) + (axis[3] <= 3) +
+          (axis[4] <= 3),
+      0 + (axis[0] <= 4) + (axis[1] <= 4) + (axis[2] <= 4) + (axis[3] <= 4) +
+          (axis[4] <= 4),
+      0 + (axis[0] <= 5) + (axis[1] <= 5) + (axis[2] <= 5) + (axis[3] <= 5) +
+          (axis[4] <= 5),
   };
   std::array<Index, 6> ittr{
       axis[0] == 0
@@ -824,20 +824,20 @@ Vector interp(const ConstTensor7View yi, const ConstTensor6View iw,
                                   : axis[5] == 6 ? dim5.lx.nelem() : yi.ncols(),
   };
   const std::array<Index, 7> count{
-      0 + (axis[0] >= 0) + (axis[1] >= 0) + (axis[2] >= 0) + (axis[3] >= 0) +
-          (axis[4] >= 0) + (axis[5] >= 0),
-      0 + (axis[0] >= 1) + (axis[1] >= 1) + (axis[2] >= 1) + (axis[3] >= 1) +
-          (axis[4] >= 1) + (axis[5] >= 1),
-      0 + (axis[0] >= 2) + (axis[1] >= 2) + (axis[2] >= 2) + (axis[3] >= 2) +
-          (axis[4] >= 2) + (axis[5] >= 2),
-      0 + (axis[0] >= 3) + (axis[1] >= 3) + (axis[2] >= 3) + (axis[3] >= 3) +
-          (axis[4] >= 3) + (axis[5] >= 3),
-      0 + (axis[0] >= 4) + (axis[1] >= 4) + (axis[2] >= 4) + (axis[3] >= 4) +
-          (axis[4] >= 4) + (axis[5] >= 4),
-      0 + (axis[0] >= 5) + (axis[1] >= 5) + (axis[2] >= 5) + (axis[3] >= 5) +
-          (axis[4] >= 5) + (axis[5] >= 5),
-      0 + (axis[0] >= 6) + (axis[1] >= 6) + (axis[2] >= 6) + (axis[3] >= 6) +
-          (axis[4] >= 6) + (axis[5] >= 6),
+      0 + (axis[0] <= 0) + (axis[1] <= 0) + (axis[2] <= 0) + (axis[3] <= 0) +
+          (axis[4] <= 0) + (axis[5] <= 0),
+      0 + (axis[0] <= 1) + (axis[1] <= 1) + (axis[2] <= 1) + (axis[3] <= 1) +
+          (axis[4] <= 1) + (axis[5] <= 1),
+      0 + (axis[0] <= 2) + (axis[1] <= 2) + (axis[2] <= 2) + (axis[3] <= 2) +
+          (axis[4] <= 2) + (axis[5] <= 2),
+      0 + (axis[0] <= 3) + (axis[1] <= 3) + (axis[2] <= 3) + (axis[3] <= 3) +
+          (axis[4] <= 3) + (axis[5] <= 3),
+      0 + (axis[0] <= 4) + (axis[1] <= 4) + (axis[2] <= 4) + (axis[3] <= 4) +
+          (axis[4] <= 4) + (axis[5] <= 4),
+      0 + (axis[0] <= 5) + (axis[1] <= 5) + (axis[2] <= 5) + (axis[3] <= 5) +
+          (axis[4] <= 5) + (axis[5] <= 5),
+      0 + (axis[0] <= 6) + (axis[1] <= 6) + (axis[2] <= 6) + (axis[3] <= 6) +
+          (axis[4] <= 6) + (axis[5] <= 6),
   };
   std::array<Index, 7> ittr{
       axis[0] == 0
@@ -950,9 +950,9 @@ Matrix interp(const ConstTensor3View yi, const ConstVectorView iw,
       axis[0] == 2 ? dim0.lx.nelem() : yi.ncols(),
   };
   const std::array<Index, 3> count{
-      0 + (axis[0] >= 0),
-      0 + (axis[0] >= 1),
-      0 + (axis[0] >= 2),
+      0 + (axis[0] <= 0),
+      0 + (axis[0] <= 1),
+      0 + (axis[0] <= 2),
   };
   std::array<Index, 3> ittr{
       axis[0] == 0 ? dim0.pos : 0,
@@ -988,10 +988,10 @@ Matrix interp(const ConstTensor4View yi, const ConstMatrixView iw,
                    : axis[1] == 3 ? dim1.lx.nelem() : yi.ncols(),
   };
   const std::array<Index, 4> count{
-      0 + (axis[0] >= 0) + (axis[1] >= 0),
-      0 + (axis[0] >= 1) + (axis[1] >= 1),
-      0 + (axis[0] >= 2) + (axis[1] >= 2),
-      0 + (axis[0] >= 3) + (axis[1] >= 3),
+      0 + (axis[0] <= 0) + (axis[1] <= 0),
+      0 + (axis[0] <= 1) + (axis[1] <= 1),
+      0 + (axis[0] <= 2) + (axis[1] <= 2),
+      0 + (axis[0] <= 3) + (axis[1] <= 3),
   };
   std::array<Index, 4> ittr{
       axis[0] == 0 ? dim0.pos : axis[1] == 0 ? dim1.pos : 0,
@@ -1042,11 +1042,11 @@ Matrix interp(const ConstTensor5View yi, const ConstTensor3View iw,
                                   : axis[2] == 4 ? dim2.lx.nelem() : yi.ncols(),
   };
   const std::array<Index, 5> count{
-      0 + (axis[0] >= 0) + (axis[1] >= 0) + (axis[2] >= 0),
-      0 + (axis[0] >= 1) + (axis[1] >= 1) + (axis[2] >= 1),
-      0 + (axis[0] >= 2) + (axis[1] >= 2) + (axis[2] >= 2),
-      0 + (axis[0] >= 3) + (axis[1] >= 3) + (axis[2] >= 3),
-      0 + (axis[0] >= 4) + (axis[1] >= 4) + (axis[2] >= 4),
+      0 + (axis[0] <= 0) + (axis[1] <= 0) + (axis[2] <= 0),
+      0 + (axis[0] <= 1) + (axis[1] <= 1) + (axis[2] <= 1),
+      0 + (axis[0] <= 2) + (axis[1] <= 2) + (axis[2] <= 2),
+      0 + (axis[0] <= 3) + (axis[1] <= 3) + (axis[2] <= 3),
+      0 + (axis[0] <= 4) + (axis[1] <= 4) + (axis[2] <= 4),
   };
   std::array<Index, 5> ittr{
       axis[0] == 0 ? dim0.pos
@@ -1125,12 +1125,12 @@ Matrix interp(const ConstTensor6View yi, const ConstTensor4View iw,
                                : axis[3] == 5 ? dim3.lx.nelem() : yi.ncols(),
   };
   const std::array<Index, 6> count{
-      0 + (axis[0] >= 0) + (axis[1] >= 0) + (axis[2] >= 0) + (axis[3] >= 0),
-      0 + (axis[0] >= 1) + (axis[1] >= 1) + (axis[2] >= 1) + (axis[3] >= 1),
-      0 + (axis[0] >= 2) + (axis[1] >= 2) + (axis[2] >= 2) + (axis[3] >= 2),
-      0 + (axis[0] >= 3) + (axis[1] >= 3) + (axis[2] >= 3) + (axis[3] >= 3),
-      0 + (axis[0] >= 4) + (axis[1] >= 4) + (axis[2] >= 4) + (axis[3] >= 4),
-      0 + (axis[0] >= 5) + (axis[1] >= 5) + (axis[2] >= 5) + (axis[3] >= 5),
+      0 + (axis[0] <= 0) + (axis[1] <= 0) + (axis[2] <= 0) + (axis[3] <= 0),
+      0 + (axis[0] <= 1) + (axis[1] <= 1) + (axis[2] <= 1) + (axis[3] <= 1),
+      0 + (axis[0] <= 2) + (axis[1] <= 2) + (axis[2] <= 2) + (axis[3] <= 2),
+      0 + (axis[0] <= 3) + (axis[1] <= 3) + (axis[2] <= 3) + (axis[3] <= 3),
+      0 + (axis[0] <= 4) + (axis[1] <= 4) + (axis[2] <= 4) + (axis[3] <= 4),
+      0 + (axis[0] <= 5) + (axis[1] <= 5) + (axis[2] <= 5) + (axis[3] <= 5),
   };
   std::array<Index, 6> ittr{
       axis[0] == 0 ? dim0.pos
@@ -1247,20 +1247,20 @@ Matrix interp(const ConstTensor7View yi, const ConstTensor5View iw,
                                                              : yi.ncols(),
   };
   const std::array<Index, 7> count{
-      0 + (axis[0] >= 0) + (axis[1] >= 0) + (axis[2] >= 0) + (axis[3] >= 0) +
-          (axis[4] >= 0),
-      0 + (axis[0] >= 1) + (axis[1] >= 1) + (axis[2] >= 1) + (axis[3] >= 1) +
-          (axis[4] >= 1),
-      0 + (axis[0] >= 2) + (axis[1] >= 2) + (axis[2] >= 2) + (axis[3] >= 2) +
-          (axis[4] >= 2),
-      0 + (axis[0] >= 3) + (axis[1] >= 3) + (axis[2] >= 3) + (axis[3] >= 3) +
-          (axis[4] >= 3),
-      0 + (axis[0] >= 4) + (axis[1] >= 4) + (axis[2] >= 4) + (axis[3] >= 4) +
-          (axis[4] >= 4),
-      0 + (axis[0] >= 5) + (axis[1] >= 5) + (axis[2] >= 5) + (axis[3] >= 5) +
-          (axis[4] >= 5),
-      0 + (axis[0] >= 6) + (axis[1] >= 6) + (axis[2] >= 6) + (axis[3] >= 6) +
-          (axis[4] >= 6),
+      0 + (axis[0] <= 0) + (axis[1] <= 0) + (axis[2] <= 0) + (axis[3] <= 0) +
+          (axis[4] <= 0),
+      0 + (axis[0] <= 1) + (axis[1] <= 1) + (axis[2] <= 1) + (axis[3] <= 1) +
+          (axis[4] <= 1),
+      0 + (axis[0] <= 2) + (axis[1] <= 2) + (axis[2] <= 2) + (axis[3] <= 2) +
+          (axis[4] <= 2),
+      0 + (axis[0] <= 3) + (axis[1] <= 3) + (axis[2] <= 3) + (axis[3] <= 3) +
+          (axis[4] <= 3),
+      0 + (axis[0] <= 4) + (axis[1] <= 4) + (axis[2] <= 4) + (axis[3] <= 4) +
+          (axis[4] <= 4),
+      0 + (axis[0] <= 5) + (axis[1] <= 5) + (axis[2] <= 5) + (axis[3] <= 5) +
+          (axis[4] <= 5),
+      0 + (axis[0] <= 6) + (axis[1] <= 6) + (axis[2] <= 6) + (axis[3] <= 6) +
+          (axis[4] <= 6),
   };
   std::array<Index, 7> ittr{
       axis[0] == 0
@@ -1353,10 +1353,10 @@ Tensor3 interp(const ConstTensor4View yi, const ConstVectorView iw,
       axis[0] == 3 ? dim0.lx.nelem() : yi.ncols(),
   };
   const std::array<Index, 4> count{
-      0 + (axis[0] >= 0),
-      0 + (axis[0] >= 1),
-      0 + (axis[0] >= 2),
-      0 + (axis[0] >= 3),
+      0 + (axis[0] <= 0),
+      0 + (axis[0] <= 1),
+      0 + (axis[0] <= 2),
+      0 + (axis[0] <= 3),
   };
   std::array<Index, 4> ittr{
       axis[0] == 0 ? dim0.pos : 0,
@@ -1399,9 +1399,9 @@ Tensor3 interp(const ConstTensor5View yi, const ConstMatrixView iw,
                    : axis[1] == 4 ? dim1.lx.nelem() : yi.ncols(),
   };
   const std::array<Index, 5> count{
-      0 + (axis[0] >= 0) + (axis[1] >= 0), 0 + (axis[0] >= 1) + (axis[1] >= 1),
-      0 + (axis[0] >= 2) + (axis[1] >= 2), 0 + (axis[0] >= 3) + (axis[1] >= 3),
-      0 + (axis[0] >= 4) + (axis[1] >= 4),
+      0 + (axis[0] <= 0) + (axis[1] <= 0), 0 + (axis[0] <= 1) + (axis[1] <= 1),
+      0 + (axis[0] <= 2) + (axis[1] <= 2), 0 + (axis[0] <= 3) + (axis[1] <= 3),
+      0 + (axis[0] <= 4) + (axis[1] <= 4),
   };
   std::array<Index, 5> ittr{
       axis[0] == 0 ? dim0.pos : axis[1] == 0 ? dim1.pos : 0,
@@ -1460,12 +1460,12 @@ Tensor3 interp(const ConstTensor6View yi, const ConstTensor3View iw,
                                   : axis[2] == 5 ? dim2.lx.nelem() : yi.ncols(),
   };
   const std::array<Index, 6> count{
-      0 + (axis[0] >= 0) + (axis[1] >= 0) + (axis[2] >= 0),
-      0 + (axis[0] >= 1) + (axis[1] >= 1) + (axis[2] >= 1),
-      0 + (axis[0] >= 2) + (axis[1] >= 2) + (axis[2] >= 2),
-      0 + (axis[0] >= 3) + (axis[1] >= 3) + (axis[2] >= 3),
-      0 + (axis[0] >= 4) + (axis[1] >= 4) + (axis[2] >= 4),
-      0 + (axis[0] >= 5) + (axis[1] >= 5) + (axis[2] >= 5),
+      0 + (axis[0] <= 0) + (axis[1] <= 0) + (axis[2] <= 0),
+      0 + (axis[0] <= 1) + (axis[1] <= 1) + (axis[2] <= 1),
+      0 + (axis[0] <= 2) + (axis[1] <= 2) + (axis[2] <= 2),
+      0 + (axis[0] <= 3) + (axis[1] <= 3) + (axis[2] <= 3),
+      0 + (axis[0] <= 4) + (axis[1] <= 4) + (axis[2] <= 4),
+      0 + (axis[0] <= 5) + (axis[1] <= 5) + (axis[2] <= 5),
   };
   std::array<Index, 6> ittr{
       axis[0] == 0 ? dim0.pos
@@ -1555,13 +1555,13 @@ Tensor3 interp(const ConstTensor7View yi, const ConstTensor4View iw,
                                : axis[3] == 6 ? dim3.lx.nelem() : yi.ncols(),
   };
   const std::array<Index, 7> count{
-      0 + (axis[0] >= 0) + (axis[1] >= 0) + (axis[2] >= 0) + (axis[3] >= 0),
-      0 + (axis[0] >= 1) + (axis[1] >= 1) + (axis[2] >= 1) + (axis[3] >= 1),
-      0 + (axis[0] >= 2) + (axis[1] >= 2) + (axis[2] >= 2) + (axis[3] >= 2),
-      0 + (axis[0] >= 3) + (axis[1] >= 3) + (axis[2] >= 3) + (axis[3] >= 3),
-      0 + (axis[0] >= 4) + (axis[1] >= 4) + (axis[2] >= 4) + (axis[3] >= 4),
-      0 + (axis[0] >= 5) + (axis[1] >= 5) + (axis[2] >= 5) + (axis[3] >= 5),
-      0 + (axis[0] >= 6) + (axis[1] >= 6) + (axis[2] >= 6) + (axis[3] >= 6),
+      0 + (axis[0] <= 0) + (axis[1] <= 0) + (axis[2] <= 0) + (axis[3] <= 0),
+      0 + (axis[0] <= 1) + (axis[1] <= 1) + (axis[2] <= 1) + (axis[3] <= 1),
+      0 + (axis[0] <= 2) + (axis[1] <= 2) + (axis[2] <= 2) + (axis[3] <= 2),
+      0 + (axis[0] <= 3) + (axis[1] <= 3) + (axis[2] <= 3) + (axis[3] <= 3),
+      0 + (axis[0] <= 4) + (axis[1] <= 4) + (axis[2] <= 4) + (axis[3] <= 4),
+      0 + (axis[0] <= 5) + (axis[1] <= 5) + (axis[2] <= 5) + (axis[3] <= 5),
+      0 + (axis[0] <= 6) + (axis[1] <= 6) + (axis[2] <= 6) + (axis[3] <= 6),
   };
   std::array<Index, 7> ittr{
       axis[0] == 0 ? dim0.pos
@@ -1634,8 +1634,8 @@ Tensor4 interp(const ConstTensor5View yi, const ConstVectorView iw,
       axis[0] == 4 ? dim0.lx.nelem() : yi.ncols(),
   };
   const std::array<Index, 5> count{
-      0 + (axis[0] >= 0), 0 + (axis[0] >= 1), 0 + (axis[0] >= 2),
-      0 + (axis[0] >= 3), 0 + (axis[0] >= 4),
+      0 + (axis[0] <= 0), 0 + (axis[0] <= 1), 0 + (axis[0] <= 2),
+      0 + (axis[0] <= 3), 0 + (axis[0] <= 4),
   };
   std::array<Index, 5> ittr{
       axis[0] == 0 ? dim0.pos : 0, axis[0] == 1 ? dim0.pos : 0,
@@ -1684,9 +1684,9 @@ Tensor4 interp(const ConstTensor6View yi, const ConstMatrixView iw,
                    : axis[1] == 5 ? dim1.lx.nelem() : yi.ncols(),
   };
   const std::array<Index, 6> count{
-      0 + (axis[0] >= 0) + (axis[1] >= 0), 0 + (axis[0] >= 1) + (axis[1] >= 1),
-      0 + (axis[0] >= 2) + (axis[1] >= 2), 0 + (axis[0] >= 3) + (axis[1] >= 3),
-      0 + (axis[0] >= 4) + (axis[1] >= 4), 0 + (axis[0] >= 5) + (axis[1] >= 5),
+      0 + (axis[0] <= 0) + (axis[1] <= 0), 0 + (axis[0] <= 1) + (axis[1] <= 1),
+      0 + (axis[0] <= 2) + (axis[1] <= 2), 0 + (axis[0] <= 3) + (axis[1] <= 3),
+      0 + (axis[0] <= 4) + (axis[1] <= 4), 0 + (axis[0] <= 5) + (axis[1] <= 5),
   };
   std::array<Index, 6> ittr{
       axis[0] == 0 ? dim0.pos : axis[1] == 0 ? dim1.pos : 0,
@@ -1755,13 +1755,13 @@ Tensor4 interp(const ConstTensor7View yi, const ConstTensor3View iw,
                                   : axis[2] == 6 ? dim2.lx.nelem() : yi.ncols(),
   };
   const std::array<Index, 7> count{
-      0 + (axis[0] >= 0) + (axis[1] >= 0) + (axis[2] >= 0),
-      0 + (axis[0] >= 1) + (axis[1] >= 1) + (axis[2] >= 1),
-      0 + (axis[0] >= 2) + (axis[1] >= 2) + (axis[2] >= 2),
-      0 + (axis[0] >= 3) + (axis[1] >= 3) + (axis[2] >= 3),
-      0 + (axis[0] >= 4) + (axis[1] >= 4) + (axis[2] >= 4),
-      0 + (axis[0] >= 5) + (axis[1] >= 5) + (axis[2] >= 5),
-      0 + (axis[0] >= 6) + (axis[1] >= 6) + (axis[2] >= 6),
+      0 + (axis[0] <= 0) + (axis[1] <= 0) + (axis[2] <= 0),
+      0 + (axis[0] <= 1) + (axis[1] <= 1) + (axis[2] <= 1),
+      0 + (axis[0] <= 2) + (axis[1] <= 2) + (axis[2] <= 2),
+      0 + (axis[0] <= 3) + (axis[1] <= 3) + (axis[2] <= 3),
+      0 + (axis[0] <= 4) + (axis[1] <= 4) + (axis[2] <= 4),
+      0 + (axis[0] <= 5) + (axis[1] <= 5) + (axis[2] <= 5),
+      0 + (axis[0] <= 6) + (axis[1] <= 6) + (axis[2] <= 6),
   };
   std::array<Index, 7> ittr{
       axis[0] == 0 ? dim0.pos
@@ -1822,8 +1822,8 @@ Tensor5 interp(const ConstTensor6View yi, const ConstVectorView iw,
       axis[0] == 5 ? dim0.lx.nelem() : yi.ncols(),
   };
   const std::array<Index, 6> count{
-      0 + (axis[0] >= 0), 0 + (axis[0] >= 1), 0 + (axis[0] >= 2),
-      0 + (axis[0] >= 3), 0 + (axis[0] >= 4), 0 + (axis[0] >= 5),
+      0 + (axis[0] <= 0), 0 + (axis[0] <= 1), 0 + (axis[0] <= 2),
+      0 + (axis[0] <= 3), 0 + (axis[0] <= 4), 0 + (axis[0] <= 5),
   };
   std::array<Index, 6> ittr{
       axis[0] == 0 ? dim0.pos : 0, axis[0] == 1 ? dim0.pos : 0,
@@ -1877,10 +1877,10 @@ Tensor5 interp(const ConstTensor7View yi, const ConstMatrixView iw,
                    : axis[1] == 6 ? dim1.lx.nelem() : yi.ncols(),
   };
   const std::array<Index, 7> count{
-      0 + (axis[0] >= 0) + (axis[1] >= 0), 0 + (axis[0] >= 1) + (axis[1] >= 1),
-      0 + (axis[0] >= 2) + (axis[1] >= 2), 0 + (axis[0] >= 3) + (axis[1] >= 3),
-      0 + (axis[0] >= 4) + (axis[1] >= 4), 0 + (axis[0] >= 5) + (axis[1] >= 5),
-      0 + (axis[0] >= 6) + (axis[1] >= 6),
+      0 + (axis[0] <= 0) + (axis[1] <= 0), 0 + (axis[0] <= 1) + (axis[1] <= 1),
+      0 + (axis[0] <= 2) + (axis[1] <= 2), 0 + (axis[0] <= 3) + (axis[1] <= 3),
+      0 + (axis[0] <= 4) + (axis[1] <= 4), 0 + (axis[0] <= 5) + (axis[1] <= 5),
+      0 + (axis[0] <= 6) + (axis[1] <= 6),
   };
   std::array<Index, 7> ittr{
       axis[0] == 0 ? dim0.pos : axis[1] == 0 ? dim1.pos : 0,
@@ -1934,9 +1934,9 @@ Tensor6 interp(const ConstTensor7View yi, const ConstVectorView iw,
       axis[0] == 6 ? dim0.lx.nelem() : yi.ncols(),
   };
   const std::array<Index, 7> count{
-      0 + (axis[0] >= 0), 0 + (axis[0] >= 1), 0 + (axis[0] >= 2),
-      0 + (axis[0] >= 3), 0 + (axis[0] >= 4), 0 + (axis[0] >= 5),
-      0 + (axis[0] >= 6),
+      0 + (axis[0] <= 0), 0 + (axis[0] <= 1), 0 + (axis[0] <= 2),
+      0 + (axis[0] <= 3), 0 + (axis[0] <= 4), 0 + (axis[0] <= 5),
+      0 + (axis[0] <= 6),
   };
   std::array<Index, 7> ittr{
       axis[0] == 0 ? dim0.pos : 0, axis[0] == 1 ? dim0.pos : 0,

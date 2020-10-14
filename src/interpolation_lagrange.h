@@ -257,7 +257,7 @@ Tensor7 dinterpweights(const Lagrange& dim0, const Lagrange& dim1,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
+ * @param[in] dim0 - Lagrange weights along the dimension
  * @return Numeric of interpolated value
  */
 Numeric interp(const ConstVectorView yi, const ConstVectorView iw,
@@ -268,8 +268,8 @@ Numeric interp(const ConstVectorView yi, const ConstVectorView iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] dim1 - Lagrange weigths along the dimension
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
  * @return Numeric of interpolated value
  */
 Numeric interp(const ConstMatrixView yi, const ConstMatrixView iw,
@@ -280,9 +280,9 @@ Numeric interp(const ConstMatrixView yi, const ConstMatrixView iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] dim1 - Lagrange weigths along the dimension
- * @param[in] dim2 - Lagrange weigths along the dimension
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] dim2 - Lagrange weights along the dimension
  * @return Numeric of interpolated value
  */
 Numeric interp(const ConstTensor3View yi, const ConstTensor3View iw,
@@ -294,10 +294,10 @@ Numeric interp(const ConstTensor3View yi, const ConstTensor3View iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] dim1 - Lagrange weigths along the dimension
- * @param[in] dim2 - Lagrange weigths along the dimension
- * @param[in] dim3 - Lagrange weigths along the dimension
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] dim2 - Lagrange weights along the dimension
+ * @param[in] dim3 - Lagrange weights along the dimension
  * @return Numeric of interpolated value
  */
 Numeric interp(const ConstTensor4View yi, const ConstTensor4View iw,
@@ -309,11 +309,11 @@ Numeric interp(const ConstTensor4View yi, const ConstTensor4View iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] dim1 - Lagrange weigths along the dimension
- * @param[in] dim2 - Lagrange weigths along the dimension
- * @param[in] dim3 - Lagrange weigths along the dimension
- * @param[in] dim4 - Lagrange weigths along the dimension
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] dim2 - Lagrange weights along the dimension
+ * @param[in] dim3 - Lagrange weights along the dimension
+ * @param[in] dim4 - Lagrange weights along the dimension
  * @return Numeric of interpolated value
  */
 Numeric interp(const ConstTensor5View yi, const ConstTensor5View iw,
@@ -325,12 +325,12 @@ Numeric interp(const ConstTensor5View yi, const ConstTensor5View iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] dim1 - Lagrange weigths along the dimension
- * @param[in] dim2 - Lagrange weigths along the dimension
- * @param[in] dim3 - Lagrange weigths along the dimension
- * @param[in] dim4 - Lagrange weigths along the dimension
- * @param[in] dim5 - Lagrange weigths along the dimension
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] dim2 - Lagrange weights along the dimension
+ * @param[in] dim3 - Lagrange weights along the dimension
+ * @param[in] dim4 - Lagrange weights along the dimension
+ * @param[in] dim5 - Lagrange weights along the dimension
  * @return Numeric of interpolated value
  */
 Numeric interp(const ConstTensor6View yi, const ConstTensor6View iw,
@@ -343,13 +343,13 @@ Numeric interp(const ConstTensor6View yi, const ConstTensor6View iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] dim1 - Lagrange weigths along the dimension
- * @param[in] dim2 - Lagrange weigths along the dimension
- * @param[in] dim3 - Lagrange weigths along the dimension
- * @param[in] dim4 - Lagrange weigths along the dimension
- * @param[in] dim5 - Lagrange weigths along the dimension
- * @param[in] dim6 - Lagrange weigths along the dimension
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] dim2 - Lagrange weights along the dimension
+ * @param[in] dim3 - Lagrange weights along the dimension
+ * @param[in] dim4 - Lagrange weights along the dimension
+ * @param[in] dim5 - Lagrange weights along the dimension
+ * @param[in] dim6 - Lagrange weights along the dimension
  * @return Numeric of interpolated value
  */
 Numeric interp(const ConstTensor7View yi, const ConstTensor7View iw,
@@ -362,8 +362,8 @@ Numeric interp(const ConstTensor7View yi, const ConstTensor7View iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] axis - Axis to squash
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] axis - Axis to squash (0 means lowest dimension)
  * @return Vector with selected axis of original data squashed
  */
 Vector interp(const ConstMatrixView yi, const ConstVectorView iw,
@@ -374,9 +374,9 @@ Vector interp(const ConstMatrixView yi, const ConstVectorView iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] dim1 - Lagrange weigths along the dimension
- * @param[in] axis - Axis to squash
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] axis - Axis to squash (0 means lowest dimension)
  * @return Vector with selected axis of original data squashed
  */
 Vector interp(const ConstTensor3View yi, const ConstMatrixView iw,
@@ -388,10 +388,10 @@ Vector interp(const ConstTensor3View yi, const ConstMatrixView iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] dim1 - Lagrange weigths along the dimension
- * @param[in] dim2 - Lagrange weigths along the dimension
- * @param[in] axis - Axis to squash
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] dim2 - Lagrange weights along the dimension
+ * @param[in] axis - Axis to squash (0 means lowest dimension)
  * @return Vector with selected axis of original data squashed
  */
 Vector interp(const ConstTensor4View yi, const ConstTensor3View iw,
@@ -403,11 +403,11 @@ Vector interp(const ConstTensor4View yi, const ConstTensor3View iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] dim1 - Lagrange weigths along the dimension
- * @param[in] dim2 - Lagrange weigths along the dimension
- * @param[in] dim3 - Lagrange weigths along the dimension
- * @param[in] axis - Axis to squash
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] dim2 - Lagrange weights along the dimension
+ * @param[in] dim3 - Lagrange weights along the dimension
+ * @param[in] axis - Axis to squash (0 means lowest dimension)
  * @return Vector with selected axis of original data squashed
  */
 Vector interp(const ConstTensor5View yi, const ConstTensor4View iw,
@@ -419,12 +419,12 @@ Vector interp(const ConstTensor5View yi, const ConstTensor4View iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] dim1 - Lagrange weigths along the dimension
- * @param[in] dim2 - Lagrange weigths along the dimension
- * @param[in] dim3 - Lagrange weigths along the dimension
- * @param[in] dim4 - Lagrange weigths along the dimension
- * @param[in] axis - Axis to squash
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] dim2 - Lagrange weights along the dimension
+ * @param[in] dim3 - Lagrange weights along the dimension
+ * @param[in] dim4 - Lagrange weights along the dimension
+ * @param[in] axis - Axis to squash (0 means lowest dimension)
  * @return Vector with selected axis of original data squashed
  */
 Vector interp(const ConstTensor6View yi, const ConstTensor5View iw,
@@ -437,13 +437,13 @@ Vector interp(const ConstTensor6View yi, const ConstTensor5View iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] dim1 - Lagrange weigths along the dimension
- * @param[in] dim2 - Lagrange weigths along the dimension
- * @param[in] dim3 - Lagrange weigths along the dimension
- * @param[in] dim4 - Lagrange weigths along the dimension
- * @param[in] dim5 - Lagrange weigths along the dimension
- * @param[in] axis - Axis to squash
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] dim2 - Lagrange weights along the dimension
+ * @param[in] dim3 - Lagrange weights along the dimension
+ * @param[in] dim4 - Lagrange weights along the dimension
+ * @param[in] dim5 - Lagrange weights along the dimension
+ * @param[in] axis - Axis to squash (0 means lowest dimension)
  * @return Vector with selected axis of original data squashed
  */
 Vector interp(const ConstTensor7View yi, const ConstTensor6View iw,
@@ -456,8 +456,8 @@ Vector interp(const ConstTensor7View yi, const ConstTensor6View iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] axis - Axis to squash
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] axis - Axis to squash (0 means lowest dimension)
  * @return Matrix with selected axis of original data squashed
  */
 Matrix interp(const ConstTensor3View yi, const ConstVectorView iw,
@@ -468,9 +468,9 @@ Matrix interp(const ConstTensor3View yi, const ConstVectorView iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] dim1 - Lagrange weigths along the dimension
- * @param[in] axis - Axis to squash
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] axis - Axis to squash (0 means lowest dimension)
  * @return Matrix with selected axis of original data squashed
  */
 Matrix interp(const ConstTensor4View yi, const ConstMatrixView iw,
@@ -482,10 +482,10 @@ Matrix interp(const ConstTensor4View yi, const ConstMatrixView iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] dim1 - Lagrange weigths along the dimension
- * @param[in] dim2 - Lagrange weigths along the dimension
- * @param[in] axis - Axis to squash
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] dim2 - Lagrange weights along the dimension
+ * @param[in] axis - Axis to squash (0 means lowest dimension)
  * @return Matrix with selected axis of original data squashed
  */
 Matrix interp(const ConstTensor5View yi, const ConstTensor3View iw,
@@ -497,11 +497,11 @@ Matrix interp(const ConstTensor5View yi, const ConstTensor3View iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] dim1 - Lagrange weigths along the dimension
- * @param[in] dim2 - Lagrange weigths along the dimension
- * @param[in] dim3 - Lagrange weigths along the dimension
- * @param[in] axis - Axis to squash
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] dim2 - Lagrange weights along the dimension
+ * @param[in] dim3 - Lagrange weights along the dimension
+ * @param[in] axis - Axis to squash (0 means lowest dimension)
  * @return Matrix with selected axis of original data squashed
  */
 Matrix interp(const ConstTensor6View yi, const ConstTensor4View iw,
@@ -513,12 +513,12 @@ Matrix interp(const ConstTensor6View yi, const ConstTensor4View iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] dim1 - Lagrange weigths along the dimension
- * @param[in] dim2 - Lagrange weigths along the dimension
- * @param[in] dim3 - Lagrange weigths along the dimension
- * @param[in] dim4 - Lagrange weigths along the dimension
- * @param[in] axis - Axis to squash
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] dim2 - Lagrange weights along the dimension
+ * @param[in] dim3 - Lagrange weights along the dimension
+ * @param[in] dim4 - Lagrange weights along the dimension
+ * @param[in] axis - Axis to squash (0 means lowest dimension)
  * @return Matrix with selected axis of original data squashed
  */
 Matrix interp(const ConstTensor7View yi, const ConstTensor5View iw,
@@ -531,8 +531,8 @@ Matrix interp(const ConstTensor7View yi, const ConstTensor5View iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] axis - Axis to squash
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] axis - Axis to squash (0 means lowest dimension)
  * @return Tensor3 with selected axis of original data squashed
  */
 Tensor3 interp(const ConstTensor4View yi, const ConstVectorView iw,
@@ -543,9 +543,9 @@ Tensor3 interp(const ConstTensor4View yi, const ConstVectorView iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] dim1 - Lagrange weigths along the dimension
- * @param[in] axis - Axis to squash
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] axis - Axis to squash (0 means lowest dimension)
  * @return Tensor3 with selected axis of original data squashed
  */
 Tensor3 interp(const ConstTensor5View yi, const ConstMatrixView iw,
@@ -557,10 +557,10 @@ Tensor3 interp(const ConstTensor5View yi, const ConstMatrixView iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] dim1 - Lagrange weigths along the dimension
- * @param[in] dim2 - Lagrange weigths along the dimension
- * @param[in] axis - Axis to squash
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] dim2 - Lagrange weights along the dimension
+ * @param[in] axis - Axis to squash (0 means lowest dimension)
  * @return Tensor3 with selected axis of original data squashed
  */
 Tensor3 interp(const ConstTensor6View yi, const ConstTensor3View iw,
@@ -572,11 +572,11 @@ Tensor3 interp(const ConstTensor6View yi, const ConstTensor3View iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] dim1 - Lagrange weigths along the dimension
- * @param[in] dim2 - Lagrange weigths along the dimension
- * @param[in] dim3 - Lagrange weigths along the dimension
- * @param[in] axis - Axis to squash
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] dim2 - Lagrange weights along the dimension
+ * @param[in] dim3 - Lagrange weights along the dimension
+ * @param[in] axis - Axis to squash (0 means lowest dimension)
  * @return Tensor3 with selected axis of original data squashed
  */
 Tensor3 interp(const ConstTensor7View yi, const ConstTensor4View iw,
@@ -588,8 +588,8 @@ Tensor3 interp(const ConstTensor7View yi, const ConstTensor4View iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] axis - Axis to squash
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] axis - Axis to squash (0 means lowest dimension)
  * @return Tensor4 with selected axis of original data squashed
  */
 Tensor4 interp(const ConstTensor5View yi, const ConstVectorView iw,
@@ -600,9 +600,9 @@ Tensor4 interp(const ConstTensor5View yi, const ConstVectorView iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] dim1 - Lagrange weigths along the dimension
- * @param[in] axis - Axis to squash
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] axis - Axis to squash (0 means lowest dimension)
  * @return Tensor4 with selected axis of original data squashed
  */
 Tensor4 interp(const ConstTensor6View yi, const ConstMatrixView iw,
@@ -614,10 +614,10 @@ Tensor4 interp(const ConstTensor6View yi, const ConstMatrixView iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] dim1 - Lagrange weigths along the dimension
- * @param[in] dim2 - Lagrange weigths along the dimension
- * @param[in] axis - Axis to squash
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] dim2 - Lagrange weights along the dimension
+ * @param[in] axis - Axis to squash (0 means lowest dimension)
  * @return Tensor4 with selected axis of original data squashed
  */
 Tensor4 interp(const ConstTensor7View yi, const ConstTensor3View iw,
@@ -629,8 +629,8 @@ Tensor4 interp(const ConstTensor7View yi, const ConstTensor3View iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] axis - Axis to squash
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] axis - Axis to squash (0 means lowest dimension)
  * @return Tensor5 with selected axis of original data squashed
  */
 Tensor5 interp(const ConstTensor6View yi, const ConstVectorView iw,
@@ -641,9 +641,9 @@ Tensor5 interp(const ConstTensor6View yi, const ConstVectorView iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] dim1 - Lagrange weigths along the dimension
- * @param[in] axis - Axis to squash
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] axis - Axis to squash (0 means lowest dimension)
  * @return Tensor5 with selected axis of original data squashed
  */
 Tensor5 interp(const ConstTensor7View yi, const ConstMatrixView iw,
@@ -655,8 +655,8 @@ Tensor5 interp(const ConstTensor7View yi, const ConstMatrixView iw,
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights or their derivatives from the Lagrange
  * routines
- * @param[in] dim0 - Lagrange weigths along the dimension
- * @param[in] axis - Axis to squash
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] axis - Axis to squash (0 means lowest dimension)
  * @return Tensor6 with selected axis of original data squashed
  */
 Tensor6 interp(const ConstTensor7View yi, const ConstVectorView iw,

@@ -605,4 +605,30 @@ void test10() {
   }
 }
 
-int main() { test10(); }
+void test11() {
+  constexpr int N=20;
+  Vector x0(1, N, +1);    // 1, 2, 3, 4, 5 ... 10
+  Vector x1(1, N, +2);    // 1, 2, 3, 4, 5 ... 10
+  Vector x0n(100);
+  Vector x1n(100);
+  nlinspace(x0n, x0[0], x0[N-1], 100);
+  nlinspace(x1n, x1[0], x1[N-1], 100);
+  Matrix yi(N, N);
+  for (Index i=0; i<N; i++) for (Index j=0; j<N; j++) yi(i, j) = std::exp(-x0[i]/3.14 + x1[j]/3.14);
+  
+  std::cerr << x0 << '\n';
+  std::cerr << x1 << '\n';
+  std::cerr << yi << '\n';
+  
+  constexpr Index grid = 0;
+  constexpr Index order = 5;
+  {
+    for (auto x: grid == 0 ? x0n : x1n) {
+      const Interpolation::Lagrange lag(x, grid == 0 ? x0 : x1, order);
+      const Vector iwlag = interpweights(lag);
+      std::cout << x << ' ' <<  interp(yi, iwlag, lag, {grid}) << '\n';
+    }
+  }
+}
+
+int main() { test11(); }
