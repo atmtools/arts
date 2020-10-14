@@ -1,17 +1,2 @@
-* Compiling with g95 fails in certain configurations
-  On Mac with gcc 4.8 (possibly other version too) from MacPorts, linking of
-  arts will fail because of an undefined symbol ___ieee_divdc3.
-  clang+g95 works fine.
-
-  Solution: Use gfortran with gcc.
-
-* gcc < 4.3 and OpenMP memory leak
-
-The OpenMP implementation in gcc before version 4.3 fails to call
-virtual destructors of variables declared as firstprivate. This leads
-to a small memory leak in those configurations.
-
-http://gcc.gnu.org/bugzilla/show_bug.cgi?id=36308
-
-We recommend to use gcc 4.4 or later for ARTS.
+- TestSpectroscopy fails on macOS
 
