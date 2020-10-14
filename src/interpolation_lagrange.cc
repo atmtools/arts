@@ -195,7 +195,7 @@ Numeric interp(const ConstVectorView yi, const ConstVectorView iw,
   };
   const auto start_ittr = ittr;
   Numeric out(0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
     out += iw[ittr[0] - dim0.pos] * yi[ittr[0]];
   }
   return out;
@@ -213,8 +213,9 @@ Numeric interp(const ConstMatrixView yi, const ConstMatrixView iw,
   };
   const auto start_ittr = ittr;
   Numeric out(0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
       out += iw(ittr[0] - dim0.pos, ittr[1] - dim1.pos) * yi(ittr[0], ittr[1]);
     }
   }
@@ -236,9 +237,11 @@ Numeric interp(const ConstTensor3View yi, const ConstTensor3View iw,
   };
   const auto start_ittr = ittr;
   Numeric out(0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2]; ittr[2]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
+      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
+           ittr[2]++) {
         out += iw(ittr[0] - dim0.pos, ittr[1] - dim1.pos, ittr[2] - dim2.pos) *
                yi(ittr[0], ittr[1], ittr[2]);
       }
@@ -264,10 +267,13 @@ Numeric interp(const ConstTensor4View yi, const ConstTensor4View iw,
   };
   const auto start_ittr = ittr;
   Numeric out(0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2]; ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3]; ittr[3]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
+      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
+           ittr[2]++) {
+        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
+             ittr[3]++) {
           out += iw(ittr[0] - dim0.pos, ittr[1] - dim1.pos, ittr[2] - dim2.pos,
                     ittr[3] - dim3.pos) *
                  yi(ittr[0], ittr[1], ittr[2], ittr[3]);
@@ -290,11 +296,15 @@ Numeric interp(const ConstTensor5View yi, const ConstTensor5View iw,
   };
   const auto start_ittr = ittr;
   Numeric out(0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2]; ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3]; ittr[3]++) {
-          for (ittr[4] = start_ittr[4]; ittr[4] < size[4]; ittr[4]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
+      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
+           ittr[2]++) {
+        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
+             ittr[3]++) {
+          for (ittr[4] = start_ittr[4]; ittr[4] < size[4] + start_ittr[4];
+               ittr[4]++) {
             out +=
                 iw(ittr[0] - dim0.pos, ittr[1] - dim1.pos, ittr[2] - dim2.pos,
                    ittr[3] - dim3.pos, ittr[4] - dim4.pos) *
@@ -320,12 +330,17 @@ Numeric interp(const ConstTensor6View yi, const ConstTensor6View iw,
   };
   const auto start_ittr = ittr;
   Numeric out(0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2]; ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3]; ittr[3]++) {
-          for (ittr[4] = start_ittr[4]; ittr[4] < size[4]; ittr[4]++) {
-            for (ittr[5] = start_ittr[5]; ittr[5] < size[5]; ittr[5]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
+      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
+           ittr[2]++) {
+        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
+             ittr[3]++) {
+          for (ittr[4] = start_ittr[4]; ittr[4] < size[4] + start_ittr[4];
+               ittr[4]++) {
+            for (ittr[5] = start_ittr[5]; ittr[5] < size[5] + start_ittr[5];
+                 ittr[5]++) {
               out += iw(ittr[0] - dim0.pos, ittr[1] - dim1.pos,
                         ittr[2] - dim2.pos, ittr[3] - dim3.pos,
                         ittr[4] - dim4.pos, ittr[5] - dim5.pos) *
@@ -352,13 +367,19 @@ Numeric interp(const ConstTensor7View yi, const ConstTensor7View iw,
   };
   const auto start_ittr = ittr;
   Numeric out(0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2]; ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3]; ittr[3]++) {
-          for (ittr[4] = start_ittr[4]; ittr[4] < size[4]; ittr[4]++) {
-            for (ittr[5] = start_ittr[5]; ittr[5] < size[5]; ittr[5]++) {
-              for (ittr[6] = start_ittr[6]; ittr[6] < size[6]; ittr[6]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
+      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
+           ittr[2]++) {
+        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
+             ittr[3]++) {
+          for (ittr[4] = start_ittr[4]; ittr[4] < size[4] + start_ittr[4];
+               ittr[4]++) {
+            for (ittr[5] = start_ittr[5]; ittr[5] < size[5] + start_ittr[5];
+                 ittr[5]++) {
+              for (ittr[6] = start_ittr[6]; ittr[6] < size[6] + start_ittr[6];
+                   ittr[6]++) {
                 out += iw(ittr[0] - dim0.pos, ittr[1] - dim1.pos,
                           ittr[2] - dim2.pos, ittr[3] - dim3.pos,
                           ittr[4] - dim4.pos, ittr[5] - dim5.pos,
@@ -386,13 +407,14 @@ Vector interp(const ConstMatrixView yi, const ConstVectorView iw,
       0 + (axis[0] >= 1),
   };
   std::array<Index, 2> ittr{
-      axis[0] == 0 ? dim0.pos : yi.nrows(),
-      axis[0] == 1 ? dim0.pos : yi.ncols(),
+      axis[0] == 0 ? dim0.pos : 0,
+      axis[0] == 1 ? dim0.pos : 0,
   };
   const auto start_ittr = ittr;
   Vector out(size[0 + count[0]], 0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
       out[ittr[0 + count[0]]] +=
           iw[ittr[axis[0]] - dim0.pos] * yi(ittr[0], ittr[1]);
     }
@@ -417,15 +439,17 @@ Vector interp(const ConstTensor3View yi, const ConstMatrixView iw,
       0 + (axis[0] >= 2) + (axis[1] >= 2),
   };
   std::array<Index, 3> ittr{
-      axis[0] == 0 ? dim0.pos : axis[1] == 0 ? dim1.pos : yi.npages(),
-      axis[0] == 1 ? dim0.pos : axis[1] == 1 ? dim1.pos : yi.nrows(),
-      axis[0] == 2 ? dim0.pos : axis[1] == 2 ? dim1.pos : yi.ncols(),
+      axis[0] == 0 ? dim0.pos : axis[1] == 0 ? dim1.pos : 0,
+      axis[0] == 1 ? dim0.pos : axis[1] == 1 ? dim1.pos : 0,
+      axis[0] == 2 ? dim0.pos : axis[1] == 2 ? dim1.pos : 0,
   };
   const auto start_ittr = ittr;
   Vector out(size[0 + count[0]], 0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2]; ittr[2]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
+      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
+           ittr[2]++) {
         out[ittr[0 + count[0]]] +=
             iw(ittr[axis[0]] - dim0.pos, ittr[axis[1]] - dim1.pos) *
             yi(ittr[0], ittr[1], ittr[2]);
@@ -461,25 +485,24 @@ Vector interp(const ConstTensor4View yi, const ConstTensor3View iw,
       0 + (axis[0] >= 3) + (axis[1] >= 3) + (axis[2] >= 3),
   };
   std::array<Index, 4> ittr{
-      axis[0] == 0
-          ? dim0.pos
-          : axis[1] == 0 ? dim1.pos : axis[2] == 0 ? dim2.pos : yi.nbooks(),
-      axis[0] == 1
-          ? dim0.pos
-          : axis[1] == 1 ? dim1.pos : axis[2] == 1 ? dim2.pos : yi.npages(),
-      axis[0] == 2
-          ? dim0.pos
-          : axis[1] == 2 ? dim1.pos : axis[2] == 2 ? dim2.pos : yi.nrows(),
-      axis[0] == 3
-          ? dim0.pos
-          : axis[1] == 3 ? dim1.pos : axis[2] == 3 ? dim2.pos : yi.ncols(),
+      axis[0] == 0 ? dim0.pos
+                   : axis[1] == 0 ? dim1.pos : axis[2] == 0 ? dim2.pos : 0,
+      axis[0] == 1 ? dim0.pos
+                   : axis[1] == 1 ? dim1.pos : axis[2] == 1 ? dim2.pos : 0,
+      axis[0] == 2 ? dim0.pos
+                   : axis[1] == 2 ? dim1.pos : axis[2] == 2 ? dim2.pos : 0,
+      axis[0] == 3 ? dim0.pos
+                   : axis[1] == 3 ? dim1.pos : axis[2] == 3 ? dim2.pos : 0,
   };
   const auto start_ittr = ittr;
   Vector out(size[0 + count[0]], 0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2]; ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3]; ittr[3]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
+      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
+           ittr[2]++) {
+        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
+             ittr[3]++) {
           out[ittr[0 + count[0]]] +=
               iw(ittr[axis[0]] - dim0.pos, ittr[axis[1]] - dim1.pos,
                  ittr[axis[2]] - dim2.pos) *
@@ -537,36 +560,35 @@ Vector interp(const ConstTensor5View yi, const ConstTensor4View iw,
       axis[0] == 0 ? dim0.pos
                    : axis[1] == 0 ? dim1.pos
                                   : axis[2] == 0 ? dim2.pos
-                                                 : axis[3] == 0 ? dim3.pos
-                                                                : yi.nshelves(),
-      axis[0] == 1
-          ? dim0.pos
-          : axis[1] == 1 ? dim1.pos
-                         : axis[2] == 1 ? dim2.pos
-                                        : axis[3] == 1 ? dim3.pos : yi.nbooks(),
-      axis[0] == 2
-          ? dim0.pos
-          : axis[1] == 2 ? dim1.pos
-                         : axis[2] == 2 ? dim2.pos
-                                        : axis[3] == 2 ? dim3.pos : yi.npages(),
-      axis[0] == 3
-          ? dim0.pos
-          : axis[1] == 3 ? dim1.pos
-                         : axis[2] == 3 ? dim2.pos
-                                        : axis[3] == 3 ? dim3.pos : yi.nrows(),
-      axis[0] == 4
-          ? dim0.pos
-          : axis[1] == 4 ? dim1.pos
-                         : axis[2] == 4 ? dim2.pos
-                                        : axis[3] == 4 ? dim3.pos : yi.ncols(),
+                                                 : axis[3] == 0 ? dim3.pos : 0,
+      axis[0] == 1 ? dim0.pos
+                   : axis[1] == 1 ? dim1.pos
+                                  : axis[2] == 1 ? dim2.pos
+                                                 : axis[3] == 1 ? dim3.pos : 0,
+      axis[0] == 2 ? dim0.pos
+                   : axis[1] == 2 ? dim1.pos
+                                  : axis[2] == 2 ? dim2.pos
+                                                 : axis[3] == 2 ? dim3.pos : 0,
+      axis[0] == 3 ? dim0.pos
+                   : axis[1] == 3 ? dim1.pos
+                                  : axis[2] == 3 ? dim2.pos
+                                                 : axis[3] == 3 ? dim3.pos : 0,
+      axis[0] == 4 ? dim0.pos
+                   : axis[1] == 4 ? dim1.pos
+                                  : axis[2] == 4 ? dim2.pos
+                                                 : axis[3] == 4 ? dim3.pos : 0,
   };
   const auto start_ittr = ittr;
   Vector out(size[0 + count[0]], 0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2]; ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3]; ittr[3]++) {
-          for (ittr[4] = start_ittr[4]; ittr[4] < size[4]; ittr[4]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
+      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
+           ittr[2]++) {
+        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
+             ittr[3]++) {
+          for (ittr[4] = start_ittr[4]; ittr[4] < size[4] + start_ittr[4];
+               ittr[4]++) {
             out[ittr[0 + count[0]]] +=
                 iw(ittr[axis[0]] - dim0.pos, ittr[axis[1]] - dim1.pos,
                    ittr[axis[2]] - dim2.pos, ittr[axis[3]] - dim3.pos) *
@@ -654,57 +676,56 @@ Vector interp(const ConstTensor6View yi, const ConstTensor5View iw,
                 ? dim1.pos
                 : axis[2] == 0
                       ? dim2.pos
-                      : axis[3] == 0 ? dim3.pos
-                                     : axis[4] == 0 ? dim4.pos : yi.nvitrines(),
+                      : axis[3] == 0 ? dim3.pos : axis[4] == 0 ? dim4.pos : 0,
       axis[0] == 1
           ? dim0.pos
           : axis[1] == 1
                 ? dim1.pos
                 : axis[2] == 1
                       ? dim2.pos
-                      : axis[3] == 1 ? dim3.pos
-                                     : axis[4] == 1 ? dim4.pos : yi.nshelves(),
+                      : axis[3] == 1 ? dim3.pos : axis[4] == 1 ? dim4.pos : 0,
       axis[0] == 2
           ? dim0.pos
           : axis[1] == 2
                 ? dim1.pos
                 : axis[2] == 2
                       ? dim2.pos
-                      : axis[3] == 2 ? dim3.pos
-                                     : axis[4] == 2 ? dim4.pos : yi.nbooks(),
+                      : axis[3] == 2 ? dim3.pos : axis[4] == 2 ? dim4.pos : 0,
       axis[0] == 3
           ? dim0.pos
           : axis[1] == 3
                 ? dim1.pos
                 : axis[2] == 3
                       ? dim2.pos
-                      : axis[3] == 3 ? dim3.pos
-                                     : axis[4] == 3 ? dim4.pos : yi.npages(),
+                      : axis[3] == 3 ? dim3.pos : axis[4] == 3 ? dim4.pos : 0,
       axis[0] == 4
           ? dim0.pos
           : axis[1] == 4
                 ? dim1.pos
                 : axis[2] == 4
                       ? dim2.pos
-                      : axis[3] == 4 ? dim3.pos
-                                     : axis[4] == 4 ? dim4.pos : yi.nrows(),
+                      : axis[3] == 4 ? dim3.pos : axis[4] == 4 ? dim4.pos : 0,
       axis[0] == 5
           ? dim0.pos
           : axis[1] == 5
                 ? dim1.pos
                 : axis[2] == 5
                       ? dim2.pos
-                      : axis[3] == 5 ? dim3.pos
-                                     : axis[4] == 5 ? dim4.pos : yi.ncols(),
+                      : axis[3] == 5 ? dim3.pos : axis[4] == 5 ? dim4.pos : 0,
   };
   const auto start_ittr = ittr;
   Vector out(size[0 + count[0]], 0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2]; ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3]; ittr[3]++) {
-          for (ittr[4] = start_ittr[4]; ittr[4] < size[4]; ittr[4]++) {
-            for (ittr[5] = start_ittr[5]; ittr[5] < size[5]; ittr[5]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
+      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
+           ittr[2]++) {
+        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
+             ittr[3]++) {
+          for (ittr[4] = start_ittr[4]; ittr[4] < size[4] + start_ittr[4];
+               ittr[4]++) {
+            for (ittr[5] = start_ittr[5]; ittr[5] < size[5] + start_ittr[5];
+                 ittr[5]++) {
               out[ittr[0 + count[0]]] +=
                   iw(ittr[axis[0]] - dim0.pos, ittr[axis[1]] - dim1.pos,
                      ittr[axis[2]] - dim2.pos, ittr[axis[3]] - dim3.pos,
@@ -827,9 +848,8 @@ Vector interp(const ConstTensor7View yi, const ConstTensor6View iw,
                       ? dim2.pos
                       : axis[3] == 0
                             ? dim3.pos
-                            : axis[4] == 0
-                                  ? dim4.pos
-                                  : axis[5] == 0 ? dim5.pos : yi.nlibraries(),
+                            : axis[4] == 0 ? dim4.pos
+                                           : axis[5] == 0 ? dim5.pos : 0,
       axis[0] == 1
           ? dim0.pos
           : axis[1] == 1
@@ -838,9 +858,8 @@ Vector interp(const ConstTensor7View yi, const ConstTensor6View iw,
                       ? dim2.pos
                       : axis[3] == 1
                             ? dim3.pos
-                            : axis[4] == 1
-                                  ? dim4.pos
-                                  : axis[5] == 1 ? dim5.pos : yi.nvitrines(),
+                            : axis[4] == 1 ? dim4.pos
+                                           : axis[5] == 1 ? dim5.pos : 0,
       axis[0] == 2
           ? dim0.pos
           : axis[1] == 2
@@ -849,9 +868,8 @@ Vector interp(const ConstTensor7View yi, const ConstTensor6View iw,
                       ? dim2.pos
                       : axis[3] == 2
                             ? dim3.pos
-                            : axis[4] == 2
-                                  ? dim4.pos
-                                  : axis[5] == 2 ? dim5.pos : yi.nshelves(),
+                            : axis[4] == 2 ? dim4.pos
+                                           : axis[5] == 2 ? dim5.pos : 0,
       axis[0] == 3
           ? dim0.pos
           : axis[1] == 3
@@ -860,9 +878,8 @@ Vector interp(const ConstTensor7View yi, const ConstTensor6View iw,
                       ? dim2.pos
                       : axis[3] == 3
                             ? dim3.pos
-                            : axis[4] == 3
-                                  ? dim4.pos
-                                  : axis[5] == 3 ? dim5.pos : yi.nbooks(),
+                            : axis[4] == 3 ? dim4.pos
+                                           : axis[5] == 3 ? dim5.pos : 0,
       axis[0] == 4
           ? dim0.pos
           : axis[1] == 4
@@ -871,39 +888,44 @@ Vector interp(const ConstTensor7View yi, const ConstTensor6View iw,
                       ? dim2.pos
                       : axis[3] == 4
                             ? dim3.pos
-                            : axis[4] == 4
-                                  ? dim4.pos
-                                  : axis[5] == 4 ? dim5.pos : yi.npages(),
+                            : axis[4] == 4 ? dim4.pos
+                                           : axis[5] == 4 ? dim5.pos : 0,
       axis[0] == 5
           ? dim0.pos
           : axis[1] == 5
                 ? dim1.pos
                 : axis[2] == 5
                       ? dim2.pos
-                      : axis[3] == 5 ? dim3.pos
-                                     : axis[4] == 5 ? dim4.pos
-                                                    : axis[5] == 5 ? dim5.pos
-                                                                   : yi.nrows(),
+                      : axis[3] == 5
+                            ? dim3.pos
+                            : axis[4] == 5 ? dim4.pos
+                                           : axis[5] == 5 ? dim5.pos : 0,
       axis[0] == 6
           ? dim0.pos
           : axis[1] == 6
                 ? dim1.pos
                 : axis[2] == 6
                       ? dim2.pos
-                      : axis[3] == 6 ? dim3.pos
-                                     : axis[4] == 6 ? dim4.pos
-                                                    : axis[5] == 6 ? dim5.pos
-                                                                   : yi.ncols(),
+                      : axis[3] == 6
+                            ? dim3.pos
+                            : axis[4] == 6 ? dim4.pos
+                                           : axis[5] == 6 ? dim5.pos : 0,
   };
   const auto start_ittr = ittr;
   Vector out(size[0 + count[0]], 0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2]; ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3]; ittr[3]++) {
-          for (ittr[4] = start_ittr[4]; ittr[4] < size[4]; ittr[4]++) {
-            for (ittr[5] = start_ittr[5]; ittr[5] < size[5]; ittr[5]++) {
-              for (ittr[6] = start_ittr[6]; ittr[6] < size[6]; ittr[6]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
+      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
+           ittr[2]++) {
+        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
+             ittr[3]++) {
+          for (ittr[4] = start_ittr[4]; ittr[4] < size[4] + start_ittr[4];
+               ittr[4]++) {
+            for (ittr[5] = start_ittr[5]; ittr[5] < size[5] + start_ittr[5];
+                 ittr[5]++) {
+              for (ittr[6] = start_ittr[6]; ittr[6] < size[6] + start_ittr[6];
+                   ittr[6]++) {
                 out[ittr[0 + count[0]]] +=
                     iw(ittr[axis[0]] - dim0.pos, ittr[axis[1]] - dim1.pos,
                        ittr[axis[2]] - dim2.pos, ittr[axis[3]] - dim3.pos,
@@ -933,15 +955,17 @@ Matrix interp(const ConstTensor3View yi, const ConstVectorView iw,
       0 + (axis[0] >= 2),
   };
   std::array<Index, 3> ittr{
-      axis[0] == 0 ? dim0.pos : yi.npages(),
-      axis[0] == 1 ? dim0.pos : yi.nrows(),
-      axis[0] == 2 ? dim0.pos : yi.ncols(),
+      axis[0] == 0 ? dim0.pos : 0,
+      axis[0] == 1 ? dim0.pos : 0,
+      axis[0] == 2 ? dim0.pos : 0,
   };
   const auto start_ittr = ittr;
   Matrix out(size[0 + count[0]], size[1 + count[1]], 0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2]; ittr[2]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
+      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
+           ittr[2]++) {
         out(ittr[0 + count[0]], ittr[1 + count[1]]) +=
             iw[ittr[axis[0]] - dim0.pos] * yi(ittr[0], ittr[1], ittr[2]);
       }
@@ -970,17 +994,20 @@ Matrix interp(const ConstTensor4View yi, const ConstMatrixView iw,
       0 + (axis[0] >= 3) + (axis[1] >= 3),
   };
   std::array<Index, 4> ittr{
-      axis[0] == 0 ? dim0.pos : axis[1] == 0 ? dim1.pos : yi.nbooks(),
-      axis[0] == 1 ? dim0.pos : axis[1] == 1 ? dim1.pos : yi.npages(),
-      axis[0] == 2 ? dim0.pos : axis[1] == 2 ? dim1.pos : yi.nrows(),
-      axis[0] == 3 ? dim0.pos : axis[1] == 3 ? dim1.pos : yi.ncols(),
+      axis[0] == 0 ? dim0.pos : axis[1] == 0 ? dim1.pos : 0,
+      axis[0] == 1 ? dim0.pos : axis[1] == 1 ? dim1.pos : 0,
+      axis[0] == 2 ? dim0.pos : axis[1] == 2 ? dim1.pos : 0,
+      axis[0] == 3 ? dim0.pos : axis[1] == 3 ? dim1.pos : 0,
   };
   const auto start_ittr = ittr;
   Matrix out(size[0 + count[0]], size[1 + count[1]], 0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2]; ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3]; ittr[3]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
+      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
+           ittr[2]++) {
+        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
+             ittr[3]++) {
           out(ittr[0 + count[0]], ittr[1 + count[1]]) +=
               iw(ittr[axis[0]] - dim0.pos, ittr[axis[1]] - dim1.pos) *
               yi(ittr[0], ittr[1], ittr[2], ittr[3]);
@@ -1022,29 +1049,28 @@ Matrix interp(const ConstTensor5View yi, const ConstTensor3View iw,
       0 + (axis[0] >= 4) + (axis[1] >= 4) + (axis[2] >= 4),
   };
   std::array<Index, 5> ittr{
-      axis[0] == 0
-          ? dim0.pos
-          : axis[1] == 0 ? dim1.pos : axis[2] == 0 ? dim2.pos : yi.nshelves(),
-      axis[0] == 1
-          ? dim0.pos
-          : axis[1] == 1 ? dim1.pos : axis[2] == 1 ? dim2.pos : yi.nbooks(),
-      axis[0] == 2
-          ? dim0.pos
-          : axis[1] == 2 ? dim1.pos : axis[2] == 2 ? dim2.pos : yi.npages(),
-      axis[0] == 3
-          ? dim0.pos
-          : axis[1] == 3 ? dim1.pos : axis[2] == 3 ? dim2.pos : yi.nrows(),
-      axis[0] == 4
-          ? dim0.pos
-          : axis[1] == 4 ? dim1.pos : axis[2] == 4 ? dim2.pos : yi.ncols(),
+      axis[0] == 0 ? dim0.pos
+                   : axis[1] == 0 ? dim1.pos : axis[2] == 0 ? dim2.pos : 0,
+      axis[0] == 1 ? dim0.pos
+                   : axis[1] == 1 ? dim1.pos : axis[2] == 1 ? dim2.pos : 0,
+      axis[0] == 2 ? dim0.pos
+                   : axis[1] == 2 ? dim1.pos : axis[2] == 2 ? dim2.pos : 0,
+      axis[0] == 3 ? dim0.pos
+                   : axis[1] == 3 ? dim1.pos : axis[2] == 3 ? dim2.pos : 0,
+      axis[0] == 4 ? dim0.pos
+                   : axis[1] == 4 ? dim1.pos : axis[2] == 4 ? dim2.pos : 0,
   };
   const auto start_ittr = ittr;
   Matrix out(size[0 + count[0]], size[1 + count[1]], 0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2]; ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3]; ittr[3]++) {
-          for (ittr[4] = start_ittr[4]; ittr[4] < size[4]; ittr[4]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
+      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
+           ittr[2]++) {
+        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
+             ittr[3]++) {
+          for (ittr[4] = start_ittr[4]; ittr[4] < size[4] + start_ittr[4];
+               ittr[4]++) {
             out(ittr[0 + count[0]], ittr[1 + count[1]]) +=
                 iw(ittr[axis[0]] - dim0.pos, ittr[axis[1]] - dim1.pos,
                    ittr[axis[2]] - dim2.pos) *
@@ -1107,46 +1133,44 @@ Matrix interp(const ConstTensor6View yi, const ConstTensor4View iw,
       0 + (axis[0] >= 5) + (axis[1] >= 5) + (axis[2] >= 5) + (axis[3] >= 5),
   };
   std::array<Index, 6> ittr{
-      axis[0] == 0
-          ? dim0.pos
-          : axis[1] == 0
-                ? dim1.pos
-                : axis[2] == 0 ? dim2.pos
-                               : axis[3] == 0 ? dim3.pos : yi.nvitrines(),
+      axis[0] == 0 ? dim0.pos
+                   : axis[1] == 0 ? dim1.pos
+                                  : axis[2] == 0 ? dim2.pos
+                                                 : axis[3] == 0 ? dim3.pos : 0,
       axis[0] == 1 ? dim0.pos
                    : axis[1] == 1 ? dim1.pos
                                   : axis[2] == 1 ? dim2.pos
-                                                 : axis[3] == 1 ? dim3.pos
-                                                                : yi.nshelves(),
-      axis[0] == 2
-          ? dim0.pos
-          : axis[1] == 2 ? dim1.pos
-                         : axis[2] == 2 ? dim2.pos
-                                        : axis[3] == 2 ? dim3.pos : yi.nbooks(),
-      axis[0] == 3
-          ? dim0.pos
-          : axis[1] == 3 ? dim1.pos
-                         : axis[2] == 3 ? dim2.pos
-                                        : axis[3] == 3 ? dim3.pos : yi.npages(),
-      axis[0] == 4
-          ? dim0.pos
-          : axis[1] == 4 ? dim1.pos
-                         : axis[2] == 4 ? dim2.pos
-                                        : axis[3] == 4 ? dim3.pos : yi.nrows(),
-      axis[0] == 5
-          ? dim0.pos
-          : axis[1] == 5 ? dim1.pos
-                         : axis[2] == 5 ? dim2.pos
-                                        : axis[3] == 5 ? dim3.pos : yi.ncols(),
+                                                 : axis[3] == 1 ? dim3.pos : 0,
+      axis[0] == 2 ? dim0.pos
+                   : axis[1] == 2 ? dim1.pos
+                                  : axis[2] == 2 ? dim2.pos
+                                                 : axis[3] == 2 ? dim3.pos : 0,
+      axis[0] == 3 ? dim0.pos
+                   : axis[1] == 3 ? dim1.pos
+                                  : axis[2] == 3 ? dim2.pos
+                                                 : axis[3] == 3 ? dim3.pos : 0,
+      axis[0] == 4 ? dim0.pos
+                   : axis[1] == 4 ? dim1.pos
+                                  : axis[2] == 4 ? dim2.pos
+                                                 : axis[3] == 4 ? dim3.pos : 0,
+      axis[0] == 5 ? dim0.pos
+                   : axis[1] == 5 ? dim1.pos
+                                  : axis[2] == 5 ? dim2.pos
+                                                 : axis[3] == 5 ? dim3.pos : 0,
   };
   const auto start_ittr = ittr;
   Matrix out(size[0 + count[0]], size[1 + count[1]], 0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2]; ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3]; ittr[3]++) {
-          for (ittr[4] = start_ittr[4]; ittr[4] < size[4]; ittr[4]++) {
-            for (ittr[5] = start_ittr[5]; ittr[5] < size[5]; ittr[5]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
+      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
+           ittr[2]++) {
+        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
+             ittr[3]++) {
+          for (ittr[4] = start_ittr[4]; ittr[4] < size[4] + start_ittr[4];
+               ittr[4]++) {
+            for (ittr[5] = start_ittr[5]; ittr[5] < size[5] + start_ittr[5];
+                 ittr[5]++) {
               out(ittr[0 + count[0]], ittr[1 + count[1]]) +=
                   iw(ittr[axis[0]] - dim0.pos, ittr[axis[1]] - dim1.pos,
                      ittr[axis[2]] - dim2.pos, ittr[axis[3]] - dim3.pos) *
@@ -1243,68 +1267,67 @@ Matrix interp(const ConstTensor7View yi, const ConstTensor5View iw,
           ? dim0.pos
           : axis[1] == 0
                 ? dim1.pos
-                : axis[2] == 0 ? dim2.pos
-                               : axis[3] == 0 ? dim3.pos
-                                              : axis[4] == 0 ? dim4.pos
-                                                             : yi.nlibraries(),
+                : axis[2] == 0
+                      ? dim2.pos
+                      : axis[3] == 0 ? dim3.pos : axis[4] == 0 ? dim4.pos : 0,
       axis[0] == 1
           ? dim0.pos
           : axis[1] == 1
                 ? dim1.pos
                 : axis[2] == 1
                       ? dim2.pos
-                      : axis[3] == 1 ? dim3.pos
-                                     : axis[4] == 1 ? dim4.pos : yi.nvitrines(),
+                      : axis[3] == 1 ? dim3.pos : axis[4] == 1 ? dim4.pos : 0,
       axis[0] == 2
           ? dim0.pos
           : axis[1] == 2
                 ? dim1.pos
                 : axis[2] == 2
                       ? dim2.pos
-                      : axis[3] == 2 ? dim3.pos
-                                     : axis[4] == 2 ? dim4.pos : yi.nshelves(),
+                      : axis[3] == 2 ? dim3.pos : axis[4] == 2 ? dim4.pos : 0,
       axis[0] == 3
           ? dim0.pos
           : axis[1] == 3
                 ? dim1.pos
                 : axis[2] == 3
                       ? dim2.pos
-                      : axis[3] == 3 ? dim3.pos
-                                     : axis[4] == 3 ? dim4.pos : yi.nbooks(),
+                      : axis[3] == 3 ? dim3.pos : axis[4] == 3 ? dim4.pos : 0,
       axis[0] == 4
           ? dim0.pos
           : axis[1] == 4
                 ? dim1.pos
                 : axis[2] == 4
                       ? dim2.pos
-                      : axis[3] == 4 ? dim3.pos
-                                     : axis[4] == 4 ? dim4.pos : yi.npages(),
+                      : axis[3] == 4 ? dim3.pos : axis[4] == 4 ? dim4.pos : 0,
       axis[0] == 5
           ? dim0.pos
           : axis[1] == 5
                 ? dim1.pos
                 : axis[2] == 5
                       ? dim2.pos
-                      : axis[3] == 5 ? dim3.pos
-                                     : axis[4] == 5 ? dim4.pos : yi.nrows(),
+                      : axis[3] == 5 ? dim3.pos : axis[4] == 5 ? dim4.pos : 0,
       axis[0] == 6
           ? dim0.pos
           : axis[1] == 6
                 ? dim1.pos
                 : axis[2] == 6
                       ? dim2.pos
-                      : axis[3] == 6 ? dim3.pos
-                                     : axis[4] == 6 ? dim4.pos : yi.ncols(),
+                      : axis[3] == 6 ? dim3.pos : axis[4] == 6 ? dim4.pos : 0,
   };
   const auto start_ittr = ittr;
   Matrix out(size[0 + count[0]], size[1 + count[1]], 0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2]; ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3]; ittr[3]++) {
-          for (ittr[4] = start_ittr[4]; ittr[4] < size[4]; ittr[4]++) {
-            for (ittr[5] = start_ittr[5]; ittr[5] < size[5]; ittr[5]++) {
-              for (ittr[6] = start_ittr[6]; ittr[6] < size[6]; ittr[6]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
+      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
+           ittr[2]++) {
+        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
+             ittr[3]++) {
+          for (ittr[4] = start_ittr[4]; ittr[4] < size[4] + start_ittr[4];
+               ittr[4]++) {
+            for (ittr[5] = start_ittr[5]; ittr[5] < size[5] + start_ittr[5];
+                 ittr[5]++) {
+              for (ittr[6] = start_ittr[6]; ittr[6] < size[6] + start_ittr[6];
+                   ittr[6]++) {
                 out(ittr[0 + count[0]], ittr[1 + count[1]]) +=
                     iw(ittr[axis[0]] - dim0.pos, ittr[axis[1]] - dim1.pos,
                        ittr[axis[2]] - dim2.pos, ittr[axis[3]] - dim3.pos,
@@ -1336,17 +1359,20 @@ Tensor3 interp(const ConstTensor4View yi, const ConstVectorView iw,
       0 + (axis[0] >= 3),
   };
   std::array<Index, 4> ittr{
-      axis[0] == 0 ? dim0.pos : yi.nbooks(),
-      axis[0] == 1 ? dim0.pos : yi.npages(),
-      axis[0] == 2 ? dim0.pos : yi.nrows(),
-      axis[0] == 3 ? dim0.pos : yi.ncols(),
+      axis[0] == 0 ? dim0.pos : 0,
+      axis[0] == 1 ? dim0.pos : 0,
+      axis[0] == 2 ? dim0.pos : 0,
+      axis[0] == 3 ? dim0.pos : 0,
   };
   const auto start_ittr = ittr;
   Tensor3 out(size[0 + count[0]], size[1 + count[1]], size[2 + count[2]], 0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2]; ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3]; ittr[3]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
+      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
+           ittr[2]++) {
+        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
+             ittr[3]++) {
           out(ittr[0 + count[0]], ittr[1 + count[1]], ittr[2 + count[2]]) +=
               iw[ittr[axis[0]] - dim0.pos] *
               yi(ittr[0], ittr[1], ittr[2], ittr[3]);
@@ -1378,19 +1404,23 @@ Tensor3 interp(const ConstTensor5View yi, const ConstMatrixView iw,
       0 + (axis[0] >= 4) + (axis[1] >= 4),
   };
   std::array<Index, 5> ittr{
-      axis[0] == 0 ? dim0.pos : axis[1] == 0 ? dim1.pos : yi.nshelves(),
-      axis[0] == 1 ? dim0.pos : axis[1] == 1 ? dim1.pos : yi.nbooks(),
-      axis[0] == 2 ? dim0.pos : axis[1] == 2 ? dim1.pos : yi.npages(),
-      axis[0] == 3 ? dim0.pos : axis[1] == 3 ? dim1.pos : yi.nrows(),
-      axis[0] == 4 ? dim0.pos : axis[1] == 4 ? dim1.pos : yi.ncols(),
+      axis[0] == 0 ? dim0.pos : axis[1] == 0 ? dim1.pos : 0,
+      axis[0] == 1 ? dim0.pos : axis[1] == 1 ? dim1.pos : 0,
+      axis[0] == 2 ? dim0.pos : axis[1] == 2 ? dim1.pos : 0,
+      axis[0] == 3 ? dim0.pos : axis[1] == 3 ? dim1.pos : 0,
+      axis[0] == 4 ? dim0.pos : axis[1] == 4 ? dim1.pos : 0,
   };
   const auto start_ittr = ittr;
   Tensor3 out(size[0 + count[0]], size[1 + count[1]], size[2 + count[2]], 0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2]; ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3]; ittr[3]++) {
-          for (ittr[4] = start_ittr[4]; ittr[4] < size[4]; ittr[4]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
+      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
+           ittr[2]++) {
+        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
+             ittr[3]++) {
+          for (ittr[4] = start_ittr[4]; ittr[4] < size[4] + start_ittr[4];
+               ittr[4]++) {
             out(ittr[0 + count[0]], ittr[1 + count[1]], ittr[2 + count[2]]) +=
                 iw(ittr[axis[0]] - dim0.pos, ittr[axis[1]] - dim1.pos) *
                 yi(ittr[0], ittr[1], ittr[2], ittr[3], ittr[4]);
@@ -1438,33 +1468,32 @@ Tensor3 interp(const ConstTensor6View yi, const ConstTensor3View iw,
       0 + (axis[0] >= 5) + (axis[1] >= 5) + (axis[2] >= 5),
   };
   std::array<Index, 6> ittr{
-      axis[0] == 0
-          ? dim0.pos
-          : axis[1] == 0 ? dim1.pos : axis[2] == 0 ? dim2.pos : yi.nvitrines(),
-      axis[0] == 1
-          ? dim0.pos
-          : axis[1] == 1 ? dim1.pos : axis[2] == 1 ? dim2.pos : yi.nshelves(),
-      axis[0] == 2
-          ? dim0.pos
-          : axis[1] == 2 ? dim1.pos : axis[2] == 2 ? dim2.pos : yi.nbooks(),
-      axis[0] == 3
-          ? dim0.pos
-          : axis[1] == 3 ? dim1.pos : axis[2] == 3 ? dim2.pos : yi.npages(),
-      axis[0] == 4
-          ? dim0.pos
-          : axis[1] == 4 ? dim1.pos : axis[2] == 4 ? dim2.pos : yi.nrows(),
-      axis[0] == 5
-          ? dim0.pos
-          : axis[1] == 5 ? dim1.pos : axis[2] == 5 ? dim2.pos : yi.ncols(),
+      axis[0] == 0 ? dim0.pos
+                   : axis[1] == 0 ? dim1.pos : axis[2] == 0 ? dim2.pos : 0,
+      axis[0] == 1 ? dim0.pos
+                   : axis[1] == 1 ? dim1.pos : axis[2] == 1 ? dim2.pos : 0,
+      axis[0] == 2 ? dim0.pos
+                   : axis[1] == 2 ? dim1.pos : axis[2] == 2 ? dim2.pos : 0,
+      axis[0] == 3 ? dim0.pos
+                   : axis[1] == 3 ? dim1.pos : axis[2] == 3 ? dim2.pos : 0,
+      axis[0] == 4 ? dim0.pos
+                   : axis[1] == 4 ? dim1.pos : axis[2] == 4 ? dim2.pos : 0,
+      axis[0] == 5 ? dim0.pos
+                   : axis[1] == 5 ? dim1.pos : axis[2] == 5 ? dim2.pos : 0,
   };
   const auto start_ittr = ittr;
   Tensor3 out(size[0 + count[0]], size[1 + count[1]], size[2 + count[2]], 0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2]; ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3]; ittr[3]++) {
-          for (ittr[4] = start_ittr[4]; ittr[4] < size[4]; ittr[4]++) {
-            for (ittr[5] = start_ittr[5]; ittr[5] < size[5]; ittr[5]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
+      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
+           ittr[2]++) {
+        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
+             ittr[3]++) {
+          for (ittr[4] = start_ittr[4]; ittr[4] < size[4] + start_ittr[4];
+               ittr[4]++) {
+            for (ittr[5] = start_ittr[5]; ittr[5] < size[5] + start_ittr[5];
+                 ittr[5]++) {
               out(ittr[0 + count[0]], ittr[1 + count[1]], ittr[2 + count[2]]) +=
                   iw(ittr[axis[0]] - dim0.pos, ittr[axis[1]] - dim1.pos,
                      ittr[axis[2]] - dim2.pos) *
@@ -1535,53 +1564,50 @@ Tensor3 interp(const ConstTensor7View yi, const ConstTensor4View iw,
       0 + (axis[0] >= 6) + (axis[1] >= 6) + (axis[2] >= 6) + (axis[3] >= 6),
   };
   std::array<Index, 7> ittr{
-      axis[0] == 0
-          ? dim0.pos
-          : axis[1] == 0
-                ? dim1.pos
-                : axis[2] == 0 ? dim2.pos
-                               : axis[3] == 0 ? dim3.pos : yi.nlibraries(),
-      axis[0] == 1
-          ? dim0.pos
-          : axis[1] == 1
-                ? dim1.pos
-                : axis[2] == 1 ? dim2.pos
-                               : axis[3] == 1 ? dim3.pos : yi.nvitrines(),
+      axis[0] == 0 ? dim0.pos
+                   : axis[1] == 0 ? dim1.pos
+                                  : axis[2] == 0 ? dim2.pos
+                                                 : axis[3] == 0 ? dim3.pos : 0,
+      axis[0] == 1 ? dim0.pos
+                   : axis[1] == 1 ? dim1.pos
+                                  : axis[2] == 1 ? dim2.pos
+                                                 : axis[3] == 1 ? dim3.pos : 0,
       axis[0] == 2 ? dim0.pos
                    : axis[1] == 2 ? dim1.pos
                                   : axis[2] == 2 ? dim2.pos
-                                                 : axis[3] == 2 ? dim3.pos
-                                                                : yi.nshelves(),
-      axis[0] == 3
-          ? dim0.pos
-          : axis[1] == 3 ? dim1.pos
-                         : axis[2] == 3 ? dim2.pos
-                                        : axis[3] == 3 ? dim3.pos : yi.nbooks(),
-      axis[0] == 4
-          ? dim0.pos
-          : axis[1] == 4 ? dim1.pos
-                         : axis[2] == 4 ? dim2.pos
-                                        : axis[3] == 4 ? dim3.pos : yi.npages(),
-      axis[0] == 5
-          ? dim0.pos
-          : axis[1] == 5 ? dim1.pos
-                         : axis[2] == 5 ? dim2.pos
-                                        : axis[3] == 5 ? dim3.pos : yi.nrows(),
-      axis[0] == 6
-          ? dim0.pos
-          : axis[1] == 6 ? dim1.pos
-                         : axis[2] == 6 ? dim2.pos
-                                        : axis[3] == 6 ? dim3.pos : yi.ncols(),
+                                                 : axis[3] == 2 ? dim3.pos : 0,
+      axis[0] == 3 ? dim0.pos
+                   : axis[1] == 3 ? dim1.pos
+                                  : axis[2] == 3 ? dim2.pos
+                                                 : axis[3] == 3 ? dim3.pos : 0,
+      axis[0] == 4 ? dim0.pos
+                   : axis[1] == 4 ? dim1.pos
+                                  : axis[2] == 4 ? dim2.pos
+                                                 : axis[3] == 4 ? dim3.pos : 0,
+      axis[0] == 5 ? dim0.pos
+                   : axis[1] == 5 ? dim1.pos
+                                  : axis[2] == 5 ? dim2.pos
+                                                 : axis[3] == 5 ? dim3.pos : 0,
+      axis[0] == 6 ? dim0.pos
+                   : axis[1] == 6 ? dim1.pos
+                                  : axis[2] == 6 ? dim2.pos
+                                                 : axis[3] == 6 ? dim3.pos : 0,
   };
   const auto start_ittr = ittr;
   Tensor3 out(size[0 + count[0]], size[1 + count[1]], size[2 + count[2]], 0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2]; ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3]; ittr[3]++) {
-          for (ittr[4] = start_ittr[4]; ittr[4] < size[4]; ittr[4]++) {
-            for (ittr[5] = start_ittr[5]; ittr[5] < size[5]; ittr[5]++) {
-              for (ittr[6] = start_ittr[6]; ittr[6] < size[6]; ittr[6]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
+      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
+           ittr[2]++) {
+        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
+             ittr[3]++) {
+          for (ittr[4] = start_ittr[4]; ittr[4] < size[4] + start_ittr[4];
+               ittr[4]++) {
+            for (ittr[5] = start_ittr[5]; ittr[5] < size[5] + start_ittr[5];
+                 ittr[5]++) {
+              for (ittr[6] = start_ittr[6]; ittr[6] < size[6] + start_ittr[6];
+                   ittr[6]++) {
                 out(ittr[0 + count[0]], ittr[1 + count[1]],
                     ittr[2 + count[2]]) +=
                     iw(ittr[axis[0]] - dim0.pos, ittr[axis[1]] - dim1.pos,
@@ -1612,20 +1638,22 @@ Tensor4 interp(const ConstTensor5View yi, const ConstVectorView iw,
       0 + (axis[0] >= 3), 0 + (axis[0] >= 4),
   };
   std::array<Index, 5> ittr{
-      axis[0] == 0 ? dim0.pos : yi.nshelves(),
-      axis[0] == 1 ? dim0.pos : yi.nbooks(),
-      axis[0] == 2 ? dim0.pos : yi.npages(),
-      axis[0] == 3 ? dim0.pos : yi.nrows(),
-      axis[0] == 4 ? dim0.pos : yi.ncols(),
+      axis[0] == 0 ? dim0.pos : 0, axis[0] == 1 ? dim0.pos : 0,
+      axis[0] == 2 ? dim0.pos : 0, axis[0] == 3 ? dim0.pos : 0,
+      axis[0] == 4 ? dim0.pos : 0,
   };
   const auto start_ittr = ittr;
   Tensor4 out(size[0 + count[0]], size[1 + count[1]], size[2 + count[2]],
               size[3 + count[3]], 0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2]; ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3]; ittr[3]++) {
-          for (ittr[4] = start_ittr[4]; ittr[4] < size[4]; ittr[4]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
+      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
+           ittr[2]++) {
+        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
+             ittr[3]++) {
+          for (ittr[4] = start_ittr[4]; ittr[4] < size[4] + start_ittr[4];
+               ittr[4]++) {
             out(ittr[0 + count[0]], ittr[1 + count[1]], ittr[2 + count[2]],
                 ittr[3 + count[3]]) +=
                 iw[ittr[axis[0]] - dim0.pos] *
@@ -1661,22 +1689,27 @@ Tensor4 interp(const ConstTensor6View yi, const ConstMatrixView iw,
       0 + (axis[0] >= 4) + (axis[1] >= 4), 0 + (axis[0] >= 5) + (axis[1] >= 5),
   };
   std::array<Index, 6> ittr{
-      axis[0] == 0 ? dim0.pos : axis[1] == 0 ? dim1.pos : yi.nvitrines(),
-      axis[0] == 1 ? dim0.pos : axis[1] == 1 ? dim1.pos : yi.nshelves(),
-      axis[0] == 2 ? dim0.pos : axis[1] == 2 ? dim1.pos : yi.nbooks(),
-      axis[0] == 3 ? dim0.pos : axis[1] == 3 ? dim1.pos : yi.npages(),
-      axis[0] == 4 ? dim0.pos : axis[1] == 4 ? dim1.pos : yi.nrows(),
-      axis[0] == 5 ? dim0.pos : axis[1] == 5 ? dim1.pos : yi.ncols(),
+      axis[0] == 0 ? dim0.pos : axis[1] == 0 ? dim1.pos : 0,
+      axis[0] == 1 ? dim0.pos : axis[1] == 1 ? dim1.pos : 0,
+      axis[0] == 2 ? dim0.pos : axis[1] == 2 ? dim1.pos : 0,
+      axis[0] == 3 ? dim0.pos : axis[1] == 3 ? dim1.pos : 0,
+      axis[0] == 4 ? dim0.pos : axis[1] == 4 ? dim1.pos : 0,
+      axis[0] == 5 ? dim0.pos : axis[1] == 5 ? dim1.pos : 0,
   };
   const auto start_ittr = ittr;
   Tensor4 out(size[0 + count[0]], size[1 + count[1]], size[2 + count[2]],
               size[3 + count[3]], 0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2]; ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3]; ittr[3]++) {
-          for (ittr[4] = start_ittr[4]; ittr[4] < size[4]; ittr[4]++) {
-            for (ittr[5] = start_ittr[5]; ittr[5] < size[5]; ittr[5]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
+      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
+           ittr[2]++) {
+        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
+             ittr[3]++) {
+          for (ittr[4] = start_ittr[4]; ittr[4] < size[4] + start_ittr[4];
+               ittr[4]++) {
+            for (ittr[5] = start_ittr[5]; ittr[5] < size[5] + start_ittr[5];
+                 ittr[5]++) {
               out(ittr[0 + count[0]], ittr[1 + count[1]], ittr[2 + count[2]],
                   ittr[3 + count[3]]) +=
                   iw(ittr[axis[0]] - dim0.pos, ittr[axis[1]] - dim1.pos) *
@@ -1731,38 +1764,37 @@ Tensor4 interp(const ConstTensor7View yi, const ConstTensor3View iw,
       0 + (axis[0] >= 6) + (axis[1] >= 6) + (axis[2] >= 6),
   };
   std::array<Index, 7> ittr{
-      axis[0] == 0
-          ? dim0.pos
-          : axis[1] == 0 ? dim1.pos : axis[2] == 0 ? dim2.pos : yi.nlibraries(),
-      axis[0] == 1
-          ? dim0.pos
-          : axis[1] == 1 ? dim1.pos : axis[2] == 1 ? dim2.pos : yi.nvitrines(),
-      axis[0] == 2
-          ? dim0.pos
-          : axis[1] == 2 ? dim1.pos : axis[2] == 2 ? dim2.pos : yi.nshelves(),
-      axis[0] == 3
-          ? dim0.pos
-          : axis[1] == 3 ? dim1.pos : axis[2] == 3 ? dim2.pos : yi.nbooks(),
-      axis[0] == 4
-          ? dim0.pos
-          : axis[1] == 4 ? dim1.pos : axis[2] == 4 ? dim2.pos : yi.npages(),
-      axis[0] == 5
-          ? dim0.pos
-          : axis[1] == 5 ? dim1.pos : axis[2] == 5 ? dim2.pos : yi.nrows(),
-      axis[0] == 6
-          ? dim0.pos
-          : axis[1] == 6 ? dim1.pos : axis[2] == 6 ? dim2.pos : yi.ncols(),
+      axis[0] == 0 ? dim0.pos
+                   : axis[1] == 0 ? dim1.pos : axis[2] == 0 ? dim2.pos : 0,
+      axis[0] == 1 ? dim0.pos
+                   : axis[1] == 1 ? dim1.pos : axis[2] == 1 ? dim2.pos : 0,
+      axis[0] == 2 ? dim0.pos
+                   : axis[1] == 2 ? dim1.pos : axis[2] == 2 ? dim2.pos : 0,
+      axis[0] == 3 ? dim0.pos
+                   : axis[1] == 3 ? dim1.pos : axis[2] == 3 ? dim2.pos : 0,
+      axis[0] == 4 ? dim0.pos
+                   : axis[1] == 4 ? dim1.pos : axis[2] == 4 ? dim2.pos : 0,
+      axis[0] == 5 ? dim0.pos
+                   : axis[1] == 5 ? dim1.pos : axis[2] == 5 ? dim2.pos : 0,
+      axis[0] == 6 ? dim0.pos
+                   : axis[1] == 6 ? dim1.pos : axis[2] == 6 ? dim2.pos : 0,
   };
   const auto start_ittr = ittr;
   Tensor4 out(size[0 + count[0]], size[1 + count[1]], size[2 + count[2]],
               size[3 + count[3]], 0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2]; ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3]; ittr[3]++) {
-          for (ittr[4] = start_ittr[4]; ittr[4] < size[4]; ittr[4]++) {
-            for (ittr[5] = start_ittr[5]; ittr[5] < size[5]; ittr[5]++) {
-              for (ittr[6] = start_ittr[6]; ittr[6] < size[6]; ittr[6]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
+      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
+           ittr[2]++) {
+        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
+             ittr[3]++) {
+          for (ittr[4] = start_ittr[4]; ittr[4] < size[4] + start_ittr[4];
+               ittr[4]++) {
+            for (ittr[5] = start_ittr[5]; ittr[5] < size[5] + start_ittr[5];
+                 ittr[5]++) {
+              for (ittr[6] = start_ittr[6]; ittr[6] < size[6] + start_ittr[6];
+                   ittr[6]++) {
                 out(ittr[0 + count[0]], ittr[1 + count[1]], ittr[2 + count[2]],
                     ittr[3 + count[3]]) +=
                     iw(ittr[axis[0]] - dim0.pos, ittr[axis[1]] - dim1.pos,
@@ -1794,22 +1826,24 @@ Tensor5 interp(const ConstTensor6View yi, const ConstVectorView iw,
       0 + (axis[0] >= 3), 0 + (axis[0] >= 4), 0 + (axis[0] >= 5),
   };
   std::array<Index, 6> ittr{
-      axis[0] == 0 ? dim0.pos : yi.nvitrines(),
-      axis[0] == 1 ? dim0.pos : yi.nshelves(),
-      axis[0] == 2 ? dim0.pos : yi.nbooks(),
-      axis[0] == 3 ? dim0.pos : yi.npages(),
-      axis[0] == 4 ? dim0.pos : yi.nrows(),
-      axis[0] == 5 ? dim0.pos : yi.ncols(),
+      axis[0] == 0 ? dim0.pos : 0, axis[0] == 1 ? dim0.pos : 0,
+      axis[0] == 2 ? dim0.pos : 0, axis[0] == 3 ? dim0.pos : 0,
+      axis[0] == 4 ? dim0.pos : 0, axis[0] == 5 ? dim0.pos : 0,
   };
   const auto start_ittr = ittr;
   Tensor5 out(size[0 + count[0]], size[1 + count[1]], size[2 + count[2]],
               size[3 + count[3]], size[4 + count[4]], 0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2]; ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3]; ittr[3]++) {
-          for (ittr[4] = start_ittr[4]; ittr[4] < size[4]; ittr[4]++) {
-            for (ittr[5] = start_ittr[5]; ittr[5] < size[5]; ittr[5]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
+      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
+           ittr[2]++) {
+        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
+             ittr[3]++) {
+          for (ittr[4] = start_ittr[4]; ittr[4] < size[4] + start_ittr[4];
+               ittr[4]++) {
+            for (ittr[5] = start_ittr[5]; ittr[5] < size[5] + start_ittr[5];
+                 ittr[5]++) {
               out(ittr[0 + count[0]], ittr[1 + count[1]], ittr[2 + count[2]],
                   ittr[3 + count[3]], ittr[4 + count[4]]) +=
                   iw[ittr[axis[0]] - dim0.pos] *
@@ -1849,24 +1883,30 @@ Tensor5 interp(const ConstTensor7View yi, const ConstMatrixView iw,
       0 + (axis[0] >= 6) + (axis[1] >= 6),
   };
   std::array<Index, 7> ittr{
-      axis[0] == 0 ? dim0.pos : axis[1] == 0 ? dim1.pos : yi.nlibraries(),
-      axis[0] == 1 ? dim0.pos : axis[1] == 1 ? dim1.pos : yi.nvitrines(),
-      axis[0] == 2 ? dim0.pos : axis[1] == 2 ? dim1.pos : yi.nshelves(),
-      axis[0] == 3 ? dim0.pos : axis[1] == 3 ? dim1.pos : yi.nbooks(),
-      axis[0] == 4 ? dim0.pos : axis[1] == 4 ? dim1.pos : yi.npages(),
-      axis[0] == 5 ? dim0.pos : axis[1] == 5 ? dim1.pos : yi.nrows(),
-      axis[0] == 6 ? dim0.pos : axis[1] == 6 ? dim1.pos : yi.ncols(),
+      axis[0] == 0 ? dim0.pos : axis[1] == 0 ? dim1.pos : 0,
+      axis[0] == 1 ? dim0.pos : axis[1] == 1 ? dim1.pos : 0,
+      axis[0] == 2 ? dim0.pos : axis[1] == 2 ? dim1.pos : 0,
+      axis[0] == 3 ? dim0.pos : axis[1] == 3 ? dim1.pos : 0,
+      axis[0] == 4 ? dim0.pos : axis[1] == 4 ? dim1.pos : 0,
+      axis[0] == 5 ? dim0.pos : axis[1] == 5 ? dim1.pos : 0,
+      axis[0] == 6 ? dim0.pos : axis[1] == 6 ? dim1.pos : 0,
   };
   const auto start_ittr = ittr;
   Tensor5 out(size[0 + count[0]], size[1 + count[1]], size[2 + count[2]],
               size[3 + count[3]], size[4 + count[4]], 0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2]; ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3]; ittr[3]++) {
-          for (ittr[4] = start_ittr[4]; ittr[4] < size[4]; ittr[4]++) {
-            for (ittr[5] = start_ittr[5]; ittr[5] < size[5]; ittr[5]++) {
-              for (ittr[6] = start_ittr[6]; ittr[6] < size[6]; ittr[6]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
+      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
+           ittr[2]++) {
+        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
+             ittr[3]++) {
+          for (ittr[4] = start_ittr[4]; ittr[4] < size[4] + start_ittr[4];
+               ittr[4]++) {
+            for (ittr[5] = start_ittr[5]; ittr[5] < size[5] + start_ittr[5];
+                 ittr[5]++) {
+              for (ittr[6] = start_ittr[6]; ittr[6] < size[6] + start_ittr[6];
+                   ittr[6]++) {
                 out(ittr[0 + count[0]], ittr[1 + count[1]], ittr[2 + count[2]],
                     ittr[3 + count[3]], ittr[4 + count[4]]) +=
                     iw(ittr[axis[0]] - dim0.pos, ittr[axis[1]] - dim1.pos) *
@@ -1899,24 +1939,27 @@ Tensor6 interp(const ConstTensor7View yi, const ConstVectorView iw,
       0 + (axis[0] >= 6),
   };
   std::array<Index, 7> ittr{
-      axis[0] == 0 ? dim0.pos : yi.nlibraries(),
-      axis[0] == 1 ? dim0.pos : yi.nvitrines(),
-      axis[0] == 2 ? dim0.pos : yi.nshelves(),
-      axis[0] == 3 ? dim0.pos : yi.nbooks(),
-      axis[0] == 4 ? dim0.pos : yi.npages(),
-      axis[0] == 5 ? dim0.pos : yi.nrows(),
-      axis[0] == 6 ? dim0.pos : yi.ncols(),
+      axis[0] == 0 ? dim0.pos : 0, axis[0] == 1 ? dim0.pos : 0,
+      axis[0] == 2 ? dim0.pos : 0, axis[0] == 3 ? dim0.pos : 0,
+      axis[0] == 4 ? dim0.pos : 0, axis[0] == 5 ? dim0.pos : 0,
+      axis[0] == 6 ? dim0.pos : 0,
   };
   const auto start_ittr = ittr;
   Tensor6 out(size[0 + count[0]], size[1 + count[1]], size[2 + count[2]],
               size[3 + count[3]], size[4 + count[4]], size[5 + count[5]], 0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1]; ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2]; ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3]; ittr[3]++) {
-          for (ittr[4] = start_ittr[4]; ittr[4] < size[4]; ittr[4]++) {
-            for (ittr[5] = start_ittr[5]; ittr[5] < size[5]; ittr[5]++) {
-              for (ittr[6] = start_ittr[6]; ittr[6] < size[6]; ittr[6]++) {
+  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
+    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
+         ittr[1]++) {
+      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
+           ittr[2]++) {
+        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
+             ittr[3]++) {
+          for (ittr[4] = start_ittr[4]; ittr[4] < size[4] + start_ittr[4];
+               ittr[4]++) {
+            for (ittr[5] = start_ittr[5]; ittr[5] < size[5] + start_ittr[5];
+                 ittr[5]++) {
+              for (ittr[6] = start_ittr[6]; ittr[6] < size[6] + start_ittr[6];
+                   ittr[6]++) {
                 out(ittr[0 + count[0]], ittr[1 + count[1]], ittr[2 + count[2]],
                     ittr[3 + count[3]], ittr[4 + count[4]],
                     ittr[5 + count[5]]) +=
