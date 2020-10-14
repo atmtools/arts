@@ -19,6 +19,7 @@
 #include <iostream>
 #include "array.h"
 #include "interpolation.h"
+#include "interpolation_lagrange.h"
 #include "interpolation_poly.h"
 #include "math_funcs.h"
 #include "matpackVII.h"
@@ -560,4 +561,48 @@ void test08() {
   }
 }
 
-int main() { test08(); }
+void test09() {
+  Vector og(1, 5, +1);    // 1, 2, 3, 4, 5
+  Vector ng(2, 9, 0.25);  // 2.0, 2,25, 2.5, 2.75, 3.0 ... 4.0
+  Vector yi{5, -2, 50, 2, 1};
+  std::cout << yi << '\n';
+  
+  for (auto x: ng) {
+    GridPos gp;
+    gridpos(gp, og, x);
+    const Interpolation::Lagrange lag(x, og);
+    std::cout << "gp " << gp << "lag: " << lag << '\n';
+    
+    Vector iwgp(2);
+    interpweights(iwgp, gp);
+    const Vector iwlag = interpweights(lag);
+    std::cout << "gp " << iwgp << "\nlag: " << iwlag << '\n';
+    
+    
+    std::cout << "gp " << interp(iwgp, yi, gp) << "\nlag: " << interp(yi, iwlag, lag) << '\n' << '\n';
+  }
+}
+
+void test10() {
+  Vector xi(1, 100, +1);    // 1, 2, 3, 4, 5 ... 100
+  Vector xn(2, 900, +0.1);
+  Vector yi(100);
+  for (Index i=0; i<100; i++) yi[i] = std::exp(-xi[i]/3.14);
+  
+  Index order = 10;
+  {
+    for (auto x: xn) {
+      GridPosPoly gp;
+      gridpos_poly(gp, xi, x, order);
+      const Interpolation::Lagrange lag(x, xi, order);
+      
+      Vector iwgp(order+1);
+      interpweights(iwgp, gp);
+      const Vector iwlag = interpweights(lag);
+      
+      std::cout << order << ' ' << x << ' ' << interp(iwgp, yi, gp) << " " << interp(yi, iwlag, lag) << '\n';
+    }
+  }
+}
+
+int main() { test10(); }
