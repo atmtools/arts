@@ -1,22 +1,32 @@
 #include "interpolation_lagrange.h"
 
 namespace Interpolation {
+
+std::vector<Lagrange> LagrangeVector(const ConstVectorView xs,
+                                     const ConstVectorView xi,
+                                     const Index polyorder,
+                                     const Numeric extrapol) {
+  std::vector<Lagrange> out;
+  out.reserve(xs.nelem());
+  for (auto x : xs) out.push_back(Lagrange(x, xi, polyorder, extrapol));
+  return out;
+}
+
 Vector interpweights(const Lagrange& dim0) { return dim0.lx; }
 
 Vector dinterpweights(const Lagrange& dim0) { return dim0.dlx; }
 
 Matrix interpweights(const Lagrange& dim0, const Lagrange& dim1) {
-  Matrix out(dim0.lx.nelem(), dim1.lx.nelem());
-  for (Index i = 0; i < dim0.lx.nelem(); i++)
-    for (Index j = 0; j < dim1.lx.nelem(); j++)
-      out(i, j) = dim0.lx[i] * dim1.lx[j];
+  Matrix out(dim0.size(), dim1.size());
+  for (Index i = 0; i < dim0.size(); i++)
+    for (Index j = 0; j < dim1.size(); j++) out(i, j) = dim0.lx[i] * dim1.lx[j];
   return out;
 }
 
 Matrix dinterpweights(const Lagrange& dim0, const Lagrange& dim1, Index dim) {
-  Matrix out(dim0.lx.nelem(), dim1.lx.nelem());
-  for (Index i = 0; i < dim0.lx.nelem(); i++)
-    for (Index j = 0; j < dim1.lx.nelem(); j++)
+  Matrix out(dim0.size(), dim1.size());
+  for (Index i = 0; i < dim0.size(); i++)
+    for (Index j = 0; j < dim1.size(); j++)
       out(i, j) = (dim == 0 ? dim0.dlx[i] : dim0.lx[i]) *
                   (dim == 1 ? dim1.dlx[j] : dim1.lx[j]);
   return out;
@@ -24,20 +34,20 @@ Matrix dinterpweights(const Lagrange& dim0, const Lagrange& dim1, Index dim) {
 
 Tensor3 interpweights(const Lagrange& dim0, const Lagrange& dim1,
                       const Lagrange& dim2) {
-  Tensor3 out(dim0.lx.nelem(), dim1.lx.nelem(), dim2.lx.nelem());
-  for (Index i = 0; i < dim0.lx.nelem(); i++)
-    for (Index j = 0; j < dim1.lx.nelem(); j++)
-      for (Index k = 0; k < dim2.lx.nelem(); k++)
+  Tensor3 out(dim0.size(), dim1.size(), dim2.size());
+  for (Index i = 0; i < dim0.size(); i++)
+    for (Index j = 0; j < dim1.size(); j++)
+      for (Index k = 0; k < dim2.size(); k++)
         out(i, j, k) = dim0.lx[i] * dim1.lx[j] * dim2.lx[k];
   return out;
 }
 
 Tensor3 dinterpweights(const Lagrange& dim0, const Lagrange& dim1,
                        const Lagrange& dim2, Index dim) {
-  Tensor3 out(dim0.lx.nelem(), dim1.lx.nelem(), dim2.lx.nelem());
-  for (Index i = 0; i < dim0.lx.nelem(); i++)
-    for (Index j = 0; j < dim1.lx.nelem(); j++)
-      for (Index k = 0; k < dim2.lx.nelem(); k++)
+  Tensor3 out(dim0.size(), dim1.size(), dim2.size());
+  for (Index i = 0; i < dim0.size(); i++)
+    for (Index j = 0; j < dim1.size(); j++)
+      for (Index k = 0; k < dim2.size(); k++)
         out(i, j, k) = (dim == 0 ? dim0.dlx[i] : dim0.lx[i]) *
                        (dim == 1 ? dim1.dlx[j] : dim1.lx[j]) *
                        (dim == 2 ? dim2.dlx[k] : dim2.lx[k]);
@@ -46,24 +56,22 @@ Tensor3 dinterpweights(const Lagrange& dim0, const Lagrange& dim1,
 
 Tensor4 interpweights(const Lagrange& dim0, const Lagrange& dim1,
                       const Lagrange& dim2, const Lagrange& dim3) {
-  Tensor4 out(dim0.lx.nelem(), dim1.lx.nelem(), dim2.lx.nelem(),
-              dim3.lx.nelem());
-  for (Index i = 0; i < dim0.lx.nelem(); i++)
-    for (Index j = 0; j < dim1.lx.nelem(); j++)
-      for (Index k = 0; k < dim2.lx.nelem(); k++)
-        for (Index l = 0; l < dim3.lx.nelem(); l++)
+  Tensor4 out(dim0.size(), dim1.size(), dim2.size(), dim3.size());
+  for (Index i = 0; i < dim0.size(); i++)
+    for (Index j = 0; j < dim1.size(); j++)
+      for (Index k = 0; k < dim2.size(); k++)
+        for (Index l = 0; l < dim3.size(); l++)
           out(i, j, k, l) = dim0.lx[i] * dim1.lx[j] * dim2.lx[k] * dim3.lx[l];
   return out;
 }
 
 Tensor4 dinterpweights(const Lagrange& dim0, const Lagrange& dim1,
                        const Lagrange& dim2, const Lagrange& dim3, Index dim) {
-  Tensor4 out(dim0.lx.nelem(), dim1.lx.nelem(), dim2.lx.nelem(),
-              dim3.lx.nelem());
-  for (Index i = 0; i < dim0.lx.nelem(); i++)
-    for (Index j = 0; j < dim1.lx.nelem(); j++)
-      for (Index k = 0; k < dim2.lx.nelem(); k++)
-        for (Index l = 0; l < dim3.lx.nelem(); l++)
+  Tensor4 out(dim0.size(), dim1.size(), dim2.size(), dim3.size());
+  for (Index i = 0; i < dim0.size(); i++)
+    for (Index j = 0; j < dim1.size(); j++)
+      for (Index k = 0; k < dim2.size(); k++)
+        for (Index l = 0; l < dim3.size(); l++)
           out(i, j, k, l) = (dim == 0 ? dim0.dlx[i] : dim0.lx[i]) *
                             (dim == 1 ? dim1.dlx[j] : dim1.lx[j]) *
                             (dim == 2 ? dim2.dlx[k] : dim2.lx[k]) *
@@ -74,13 +82,12 @@ Tensor4 dinterpweights(const Lagrange& dim0, const Lagrange& dim1,
 Tensor5 interpweights(const Lagrange& dim0, const Lagrange& dim1,
                       const Lagrange& dim2, const Lagrange& dim3,
                       const Lagrange& dim4) {
-  Tensor5 out(dim0.lx.nelem(), dim1.lx.nelem(), dim2.lx.nelem(),
-              dim3.lx.nelem(), dim4.lx.nelem());
-  for (Index i = 0; i < dim0.lx.nelem(); i++)
-    for (Index j = 0; j < dim1.lx.nelem(); j++)
-      for (Index k = 0; k < dim2.lx.nelem(); k++)
-        for (Index l = 0; l < dim3.lx.nelem(); l++)
-          for (Index m = 0; m < dim4.lx.nelem(); m++)
+  Tensor5 out(dim0.size(), dim1.size(), dim2.size(), dim3.size(), dim4.size());
+  for (Index i = 0; i < dim0.size(); i++)
+    for (Index j = 0; j < dim1.size(); j++)
+      for (Index k = 0; k < dim2.size(); k++)
+        for (Index l = 0; l < dim3.size(); l++)
+          for (Index m = 0; m < dim4.size(); m++)
             out(i, j, k, l, m) =
                 dim0.lx[i] * dim1.lx[j] * dim2.lx[k] * dim3.lx[l] * dim4.lx[m];
   return out;
@@ -89,13 +96,12 @@ Tensor5 interpweights(const Lagrange& dim0, const Lagrange& dim1,
 Tensor5 dinterpweights(const Lagrange& dim0, const Lagrange& dim1,
                        const Lagrange& dim2, const Lagrange& dim3,
                        const Lagrange& dim4, Index dim) {
-  Tensor5 out(dim0.lx.nelem(), dim1.lx.nelem(), dim2.lx.nelem(),
-              dim3.lx.nelem(), dim4.lx.nelem());
-  for (Index i = 0; i < dim0.lx.nelem(); i++)
-    for (Index j = 0; j < dim1.lx.nelem(); j++)
-      for (Index k = 0; k < dim2.lx.nelem(); k++)
-        for (Index l = 0; l < dim3.lx.nelem(); l++)
-          for (Index m = 0; m < dim4.lx.nelem(); m++)
+  Tensor5 out(dim0.size(), dim1.size(), dim2.size(), dim3.size(), dim4.size());
+  for (Index i = 0; i < dim0.size(); i++)
+    for (Index j = 0; j < dim1.size(); j++)
+      for (Index k = 0; k < dim2.size(); k++)
+        for (Index l = 0; l < dim3.size(); l++)
+          for (Index m = 0; m < dim4.size(); m++)
             out(i, j, k, l, m) = (dim == 0 ? dim0.dlx[i] : dim0.lx[i]) *
                                  (dim == 1 ? dim1.dlx[j] : dim1.lx[j]) *
                                  (dim == 2 ? dim2.dlx[k] : dim2.lx[k]) *
@@ -107,14 +113,14 @@ Tensor5 dinterpweights(const Lagrange& dim0, const Lagrange& dim1,
 Tensor6 interpweights(const Lagrange& dim0, const Lagrange& dim1,
                       const Lagrange& dim2, const Lagrange& dim3,
                       const Lagrange& dim4, const Lagrange& dim5) {
-  Tensor6 out(dim0.lx.nelem(), dim1.lx.nelem(), dim2.lx.nelem(),
-              dim3.lx.nelem(), dim4.lx.nelem(), dim5.lx.nelem());
-  for (Index i = 0; i < dim0.lx.nelem(); i++)
-    for (Index j = 0; j < dim1.lx.nelem(); j++)
-      for (Index k = 0; k < dim2.lx.nelem(); k++)
-        for (Index l = 0; l < dim3.lx.nelem(); l++)
-          for (Index m = 0; m < dim4.lx.nelem(); m++)
-            for (Index n = 0; n < dim5.lx.nelem(); n++)
+  Tensor6 out(dim0.size(), dim1.size(), dim2.size(), dim3.size(), dim4.size(),
+              dim5.size());
+  for (Index i = 0; i < dim0.size(); i++)
+    for (Index j = 0; j < dim1.size(); j++)
+      for (Index k = 0; k < dim2.size(); k++)
+        for (Index l = 0; l < dim3.size(); l++)
+          for (Index m = 0; m < dim4.size(); m++)
+            for (Index n = 0; n < dim5.size(); n++)
               out(i, j, k, l, m, n) = dim0.lx[i] * dim1.lx[j] * dim2.lx[k] *
                                       dim3.lx[l] * dim4.lx[m] * dim5.lx[n];
   return out;
@@ -123,14 +129,14 @@ Tensor6 interpweights(const Lagrange& dim0, const Lagrange& dim1,
 Tensor6 dinterpweights(const Lagrange& dim0, const Lagrange& dim1,
                        const Lagrange& dim2, const Lagrange& dim3,
                        const Lagrange& dim4, const Lagrange& dim5, Index dim) {
-  Tensor6 out(dim0.lx.nelem(), dim1.lx.nelem(), dim2.lx.nelem(),
-              dim3.lx.nelem(), dim4.lx.nelem(), dim5.lx.nelem());
-  for (Index i = 0; i < dim0.lx.nelem(); i++)
-    for (Index j = 0; j < dim1.lx.nelem(); j++)
-      for (Index k = 0; k < dim2.lx.nelem(); k++)
-        for (Index l = 0; l < dim3.lx.nelem(); l++)
-          for (Index m = 0; m < dim4.lx.nelem(); m++)
-            for (Index n = 0; n < dim5.lx.nelem(); n++)
+  Tensor6 out(dim0.size(), dim1.size(), dim2.size(), dim3.size(), dim4.size(),
+              dim5.size());
+  for (Index i = 0; i < dim0.size(); i++)
+    for (Index j = 0; j < dim1.size(); j++)
+      for (Index k = 0; k < dim2.size(); k++)
+        for (Index l = 0; l < dim3.size(); l++)
+          for (Index m = 0; m < dim4.size(); m++)
+            for (Index n = 0; n < dim5.size(); n++)
               out(i, j, k, l, m, n) = (dim == 0 ? dim0.dlx[i] : dim0.lx[i]) *
                                       (dim == 1 ? dim1.dlx[j] : dim1.lx[j]) *
                                       (dim == 2 ? dim2.dlx[k] : dim2.lx[k]) *
@@ -144,16 +150,15 @@ Tensor7 interpweights(const Lagrange& dim0, const Lagrange& dim1,
                       const Lagrange& dim2, const Lagrange& dim3,
                       const Lagrange& dim4, const Lagrange& dim5,
                       const Lagrange& dim6) {
-  Tensor7 out(dim0.lx.nelem(), dim1.lx.nelem(), dim2.lx.nelem(),
-              dim3.lx.nelem(), dim4.lx.nelem(), dim5.lx.nelem(),
-              dim6.lx.nelem());
-  for (Index i = 0; i < dim0.lx.nelem(); i++)
-    for (Index j = 0; j < dim1.lx.nelem(); j++)
-      for (Index k = 0; k < dim2.lx.nelem(); k++)
-        for (Index l = 0; l < dim3.lx.nelem(); l++)
-          for (Index m = 0; m < dim4.lx.nelem(); m++)
-            for (Index n = 0; n < dim5.lx.nelem(); n++)
-              for (Index o = 0; o < dim6.lx.nelem(); o++)
+  Tensor7 out(dim0.size(), dim1.size(), dim2.size(), dim3.size(), dim4.size(),
+              dim5.size(), dim6.size());
+  for (Index i = 0; i < dim0.size(); i++)
+    for (Index j = 0; j < dim1.size(); j++)
+      for (Index k = 0; k < dim2.size(); k++)
+        for (Index l = 0; l < dim3.size(); l++)
+          for (Index m = 0; m < dim4.size(); m++)
+            for (Index n = 0; n < dim5.size(); n++)
+              for (Index o = 0; o < dim6.size(); o++)
                 out(i, j, k, l, m, n, o) = dim0.lx[i] * dim1.lx[j] *
                                            dim2.lx[k] * dim3.lx[l] *
                                            dim4.lx[m] * dim5.lx[n] * dim6.lx[o];
@@ -164,16 +169,15 @@ Tensor7 dinterpweights(const Lagrange& dim0, const Lagrange& dim1,
                        const Lagrange& dim2, const Lagrange& dim3,
                        const Lagrange& dim4, const Lagrange& dim5,
                        const Lagrange& dim6, Index dim) {
-  Tensor7 out(dim0.lx.nelem(), dim1.lx.nelem(), dim2.lx.nelem(),
-              dim3.lx.nelem(), dim4.lx.nelem(), dim5.lx.nelem(),
-              dim6.lx.nelem());
-  for (Index i = 0; i < dim0.lx.nelem(); i++)
-    for (Index j = 0; j < dim1.lx.nelem(); j++)
-      for (Index k = 0; k < dim2.lx.nelem(); k++)
-        for (Index l = 0; l < dim3.lx.nelem(); l++)
-          for (Index m = 0; m < dim4.lx.nelem(); m++)
-            for (Index n = 0; n < dim5.lx.nelem(); n++)
-              for (Index o = 0; o < dim6.lx.nelem(); o++)
+  Tensor7 out(dim0.size(), dim1.size(), dim2.size(), dim3.size(), dim4.size(),
+              dim5.size(), dim6.size());
+  for (Index i = 0; i < dim0.size(); i++)
+    for (Index j = 0; j < dim1.size(); j++)
+      for (Index k = 0; k < dim2.size(); k++)
+        for (Index l = 0; l < dim3.size(); l++)
+          for (Index m = 0; m < dim4.size(); m++)
+            for (Index n = 0; n < dim5.size(); n++)
+              for (Index o = 0; o < dim6.size(); o++)
                 out(i, j, k, l, m, n, o) =
                     (dim == 0 ? dim0.dlx[i] : dim0.lx[i]) *
                     (dim == 1 ? dim1.dlx[j] : dim1.lx[j]) *
@@ -188,7 +192,7 @@ Tensor7 dinterpweights(const Lagrange& dim0, const Lagrange& dim1,
 Numeric interp(const ConstVectorView yi, const ConstVectorView iw,
                const Lagrange& dim0) {
   const std::array<Index, 1> size{
-      dim0.lx.nelem(),
+      dim0.size(),
   };
   std::array<Index, 1> ittr{
       dim0.pos,
@@ -204,8 +208,8 @@ Numeric interp(const ConstVectorView yi, const ConstVectorView iw,
 Numeric interp(const ConstMatrixView yi, const ConstMatrixView iw,
                const Lagrange& dim0, const Lagrange& dim1) {
   const std::array<Index, 2> size{
-      dim0.lx.nelem(),
-      dim1.lx.nelem(),
+      dim0.size(),
+      dim1.size(),
   };
   std::array<Index, 2> ittr{
       dim0.pos,
@@ -226,9 +230,9 @@ Numeric interp(const ConstTensor3View yi, const ConstTensor3View iw,
                const Lagrange& dim0, const Lagrange& dim1,
                const Lagrange& dim2) {
   const std::array<Index, 3> size{
-      dim0.lx.nelem(),
-      dim1.lx.nelem(),
-      dim2.lx.nelem(),
+      dim0.size(),
+      dim1.size(),
+      dim2.size(),
   };
   std::array<Index, 3> ittr{
       dim0.pos,
@@ -254,10 +258,10 @@ Numeric interp(const ConstTensor4View yi, const ConstTensor4View iw,
                const Lagrange& dim0, const Lagrange& dim1, const Lagrange& dim2,
                const Lagrange& dim3) {
   const std::array<Index, 4> size{
-      dim0.lx.nelem(),
-      dim1.lx.nelem(),
-      dim2.lx.nelem(),
-      dim3.lx.nelem(),
+      dim0.size(),
+      dim1.size(),
+      dim2.size(),
+      dim3.size(),
   };
   std::array<Index, 4> ittr{
       dim0.pos,
@@ -288,8 +292,7 @@ Numeric interp(const ConstTensor5View yi, const ConstTensor5View iw,
                const Lagrange& dim0, const Lagrange& dim1, const Lagrange& dim2,
                const Lagrange& dim3, const Lagrange& dim4) {
   const std::array<Index, 5> size{
-      dim0.lx.nelem(), dim1.lx.nelem(), dim2.lx.nelem(),
-      dim3.lx.nelem(), dim4.lx.nelem(),
+      dim0.size(), dim1.size(), dim2.size(), dim3.size(), dim4.size(),
   };
   std::array<Index, 5> ittr{
       dim0.pos, dim1.pos, dim2.pos, dim3.pos, dim4.pos,
@@ -322,8 +325,8 @@ Numeric interp(const ConstTensor6View yi, const ConstTensor6View iw,
                const Lagrange& dim3, const Lagrange& dim4,
                const Lagrange& dim5) {
   const std::array<Index, 6> size{
-      dim0.lx.nelem(), dim1.lx.nelem(), dim2.lx.nelem(),
-      dim3.lx.nelem(), dim4.lx.nelem(), dim5.lx.nelem(),
+      dim0.size(), dim1.size(), dim2.size(),
+      dim3.size(), dim4.size(), dim5.size(),
   };
   std::array<Index, 6> ittr{
       dim0.pos, dim1.pos, dim2.pos, dim3.pos, dim4.pos, dim5.pos,
@@ -359,8 +362,8 @@ Numeric interp(const ConstTensor7View yi, const ConstTensor7View iw,
                const Lagrange& dim3, const Lagrange& dim4, const Lagrange& dim5,
                const Lagrange& dim6) {
   const std::array<Index, 7> size{
-      dim0.lx.nelem(), dim1.lx.nelem(), dim2.lx.nelem(), dim3.lx.nelem(),
-      dim4.lx.nelem(), dim5.lx.nelem(), dim6.lx.nelem(),
+      dim0.size(), dim1.size(), dim2.size(), dim3.size(),
+      dim4.size(), dim5.size(), dim6.size(),
   };
   std::array<Index, 7> ittr{
       dim0.pos, dim1.pos, dim2.pos, dim3.pos, dim4.pos, dim5.pos, dim6.pos,
@@ -399,8 +402,8 @@ Numeric interp(const ConstTensor7View yi, const ConstTensor7View iw,
 Vector interp(const ConstMatrixView yi, const ConstVectorView iw,
               const Lagrange& dim0, const std::array<Index, 1>& axis) {
   const std::array<Index, 2> size{
-      axis[0] == 0 ? dim0.lx.nelem() : yi.nrows(),
-      axis[0] == 1 ? dim0.lx.nelem() : yi.ncols(),
+      axis[0] == 0 ? dim0.size() : yi.nrows(),
+      axis[0] == 1 ? dim0.size() : yi.ncols(),
   };
   const std::array<Index, 2> count{
       0 + (axis[0] <= 0),
@@ -426,12 +429,9 @@ Vector interp(const ConstTensor3View yi, const ConstMatrixView iw,
               const Lagrange& dim0, const Lagrange& dim1,
               const std::array<Index, 2>& axis) {
   const std::array<Index, 3> size{
-      axis[0] == 0 ? dim0.lx.nelem()
-                   : axis[1] == 0 ? dim1.lx.nelem() : yi.npages(),
-      axis[0] == 1 ? dim0.lx.nelem()
-                   : axis[1] == 1 ? dim1.lx.nelem() : yi.nrows(),
-      axis[0] == 2 ? dim0.lx.nelem()
-                   : axis[1] == 2 ? dim1.lx.nelem() : yi.ncols(),
+      axis[0] == 0 ? dim0.size() : axis[1] == 0 ? dim1.size() : yi.npages(),
+      axis[0] == 1 ? dim0.size() : axis[1] == 1 ? dim1.size() : yi.nrows(),
+      axis[0] == 2 ? dim0.size() : axis[1] == 2 ? dim1.size() : yi.ncols(),
   };
   const std::array<Index, 3> count{
       0 + (axis[0] <= 0) + (axis[1] <= 0),
@@ -463,20 +463,18 @@ Vector interp(const ConstTensor4View yi, const ConstTensor3View iw,
               const Lagrange& dim0, const Lagrange& dim1, const Lagrange& dim2,
               const std::array<Index, 3>& axis) {
   const std::array<Index, 4> size{
-      axis[0] == 0
-          ? dim0.lx.nelem()
-          : axis[1] == 0 ? dim1.lx.nelem()
-                         : axis[2] == 0 ? dim2.lx.nelem() : yi.nbooks(),
-      axis[0] == 1
-          ? dim0.lx.nelem()
-          : axis[1] == 1 ? dim1.lx.nelem()
-                         : axis[2] == 1 ? dim2.lx.nelem() : yi.npages(),
-      axis[0] == 2 ? dim0.lx.nelem()
-                   : axis[1] == 2 ? dim1.lx.nelem()
-                                  : axis[2] == 2 ? dim2.lx.nelem() : yi.nrows(),
-      axis[0] == 3 ? dim0.lx.nelem()
-                   : axis[1] == 3 ? dim1.lx.nelem()
-                                  : axis[2] == 3 ? dim2.lx.nelem() : yi.ncols(),
+      axis[0] == 0 ? dim0.size()
+                   : axis[1] == 0 ? dim1.size()
+                                  : axis[2] == 0 ? dim2.size() : yi.nbooks(),
+      axis[0] == 1 ? dim0.size()
+                   : axis[1] == 1 ? dim1.size()
+                                  : axis[2] == 1 ? dim2.size() : yi.npages(),
+      axis[0] == 2 ? dim0.size()
+                   : axis[1] == 2 ? dim1.size()
+                                  : axis[2] == 2 ? dim2.size() : yi.nrows(),
+      axis[0] == 3 ? dim0.size()
+                   : axis[1] == 3 ? dim1.size()
+                                  : axis[2] == 3 ? dim2.size() : yi.ncols(),
   };
   const std::array<Index, 4> count{
       0 + (axis[0] <= 0) + (axis[1] <= 0) + (axis[2] <= 0),
@@ -518,36 +516,31 @@ Vector interp(const ConstTensor5View yi, const ConstTensor4View iw,
               const Lagrange& dim0, const Lagrange& dim1, const Lagrange& dim2,
               const Lagrange& dim3, const std::array<Index, 4>& axis) {
   const std::array<Index, 5> size{
-      axis[0] == 0
-          ? dim0.lx.nelem()
-          : axis[1] == 0
-                ? dim1.lx.nelem()
-                : axis[2] == 0 ? dim2.lx.nelem()
-                               : axis[3] == 0 ? dim3.lx.nelem() : yi.nshelves(),
-      axis[0] == 1
-          ? dim0.lx.nelem()
-          : axis[1] == 1
-                ? dim1.lx.nelem()
-                : axis[2] == 1 ? dim2.lx.nelem()
-                               : axis[3] == 1 ? dim3.lx.nelem() : yi.nbooks(),
-      axis[0] == 2
-          ? dim0.lx.nelem()
-          : axis[1] == 2
-                ? dim1.lx.nelem()
-                : axis[2] == 2 ? dim2.lx.nelem()
-                               : axis[3] == 2 ? dim3.lx.nelem() : yi.npages(),
-      axis[0] == 3
-          ? dim0.lx.nelem()
-          : axis[1] == 3
-                ? dim1.lx.nelem()
-                : axis[2] == 3 ? dim2.lx.nelem()
-                               : axis[3] == 3 ? dim3.lx.nelem() : yi.nrows(),
-      axis[0] == 4
-          ? dim0.lx.nelem()
-          : axis[1] == 4
-                ? dim1.lx.nelem()
-                : axis[2] == 4 ? dim2.lx.nelem()
-                               : axis[3] == 4 ? dim3.lx.nelem() : yi.ncols(),
+      axis[0] == 0 ? dim0.size()
+                   : axis[1] == 0 ? dim1.size()
+                                  : axis[2] == 0 ? dim2.size()
+                                                 : axis[3] == 0 ? dim3.size()
+                                                                : yi.nshelves(),
+      axis[0] == 1 ? dim0.size()
+                   : axis[1] == 1 ? dim1.size()
+                                  : axis[2] == 1 ? dim2.size()
+                                                 : axis[3] == 1 ? dim3.size()
+                                                                : yi.nbooks(),
+      axis[0] == 2 ? dim0.size()
+                   : axis[1] == 2 ? dim1.size()
+                                  : axis[2] == 2 ? dim2.size()
+                                                 : axis[3] == 2 ? dim3.size()
+                                                                : yi.npages(),
+      axis[0] == 3 ? dim0.size()
+                   : axis[1] == 3 ? dim1.size()
+                                  : axis[2] == 3 ? dim2.size()
+                                                 : axis[3] == 3 ? dim3.size()
+                                                                : yi.nrows(),
+      axis[0] == 4 ? dim0.size()
+                   : axis[1] == 4 ? dim1.size()
+                                  : axis[2] == 4 ? dim2.size()
+                                                 : axis[3] == 4 ? dim3.size()
+                                                                : yi.ncols(),
   };
   const std::array<Index, 5> count{
       0 + (axis[0] <= 0) + (axis[1] <= 0) + (axis[2] <= 0) + (axis[3] <= 0),
@@ -607,53 +600,53 @@ Vector interp(const ConstTensor6View yi, const ConstTensor5View iw,
               const std::array<Index, 5>& axis) {
   const std::array<Index, 6> size{
       axis[0] == 0
-          ? dim0.lx.nelem()
+          ? dim0.size()
           : axis[1] == 0
-                ? dim1.lx.nelem()
-                : axis[2] == 0 ? dim2.lx.nelem()
-                               : axis[3] == 0 ? dim3.lx.nelem()
-                                              : axis[4] == 0 ? dim4.lx.nelem()
+                ? dim1.size()
+                : axis[2] == 0 ? dim2.size()
+                               : axis[3] == 0 ? dim3.size()
+                                              : axis[4] == 0 ? dim4.size()
                                                              : yi.nvitrines(),
       axis[0] == 1
-          ? dim0.lx.nelem()
+          ? dim0.size()
           : axis[1] == 1
-                ? dim1.lx.nelem()
-                : axis[2] == 1 ? dim2.lx.nelem()
-                               : axis[3] == 1 ? dim3.lx.nelem()
-                                              : axis[4] == 1 ? dim4.lx.nelem()
+                ? dim1.size()
+                : axis[2] == 1 ? dim2.size()
+                               : axis[3] == 1 ? dim3.size()
+                                              : axis[4] == 1 ? dim4.size()
                                                              : yi.nshelves(),
       axis[0] == 2
-          ? dim0.lx.nelem()
+          ? dim0.size()
           : axis[1] == 2
-                ? dim1.lx.nelem()
-                : axis[2] == 2 ? dim2.lx.nelem()
-                               : axis[3] == 2 ? dim3.lx.nelem()
-                                              : axis[4] == 2 ? dim4.lx.nelem()
-                                                             : yi.nbooks(),
+                ? dim1.size()
+                : axis[2] == 2
+                      ? dim2.size()
+                      : axis[3] == 2 ? dim3.size()
+                                     : axis[4] == 2 ? dim4.size() : yi.nbooks(),
       axis[0] == 3
-          ? dim0.lx.nelem()
+          ? dim0.size()
           : axis[1] == 3
-                ? dim1.lx.nelem()
-                : axis[2] == 3 ? dim2.lx.nelem()
-                               : axis[3] == 3 ? dim3.lx.nelem()
-                                              : axis[4] == 3 ? dim4.lx.nelem()
-                                                             : yi.npages(),
+                ? dim1.size()
+                : axis[2] == 3
+                      ? dim2.size()
+                      : axis[3] == 3 ? dim3.size()
+                                     : axis[4] == 3 ? dim4.size() : yi.npages(),
       axis[0] == 4
-          ? dim0.lx.nelem()
+          ? dim0.size()
           : axis[1] == 4
-                ? dim1.lx.nelem()
-                : axis[2] == 4 ? dim2.lx.nelem()
-                               : axis[3] == 4 ? dim3.lx.nelem()
-                                              : axis[4] == 4 ? dim4.lx.nelem()
-                                                             : yi.nrows(),
+                ? dim1.size()
+                : axis[2] == 4
+                      ? dim2.size()
+                      : axis[3] == 4 ? dim3.size()
+                                     : axis[4] == 4 ? dim4.size() : yi.nrows(),
       axis[0] == 5
-          ? dim0.lx.nelem()
+          ? dim0.size()
           : axis[1] == 5
-                ? dim1.lx.nelem()
-                : axis[2] == 5 ? dim2.lx.nelem()
-                               : axis[3] == 5 ? dim3.lx.nelem()
-                                              : axis[4] == 5 ? dim4.lx.nelem()
-                                                             : yi.ncols(),
+                ? dim1.size()
+                : axis[2] == 5
+                      ? dim2.size()
+                      : axis[3] == 5 ? dim3.size()
+                                     : axis[4] == 5 ? dim4.size() : yi.ncols(),
   };
   const std::array<Index, 6> count{
       0 + (axis[0] <= 0) + (axis[1] <= 0) + (axis[2] <= 0) + (axis[3] <= 0) +
@@ -746,82 +739,80 @@ Vector interp(const ConstTensor7View yi, const ConstTensor6View iw,
               const std::array<Index, 6>& axis) {
   const std::array<Index, 7> size{
       axis[0] == 0
-          ? dim0.lx.nelem()
+          ? dim0.size()
           : axis[1] == 0
-                ? dim1.lx.nelem()
+                ? dim1.size()
                 : axis[2] == 0
-                      ? dim2.lx.nelem()
+                      ? dim2.size()
                       : axis[3] == 0
-                            ? dim3.lx.nelem()
-                            : axis[4] == 0 ? dim4.lx.nelem()
-                                           : axis[5] == 0 ? dim5.lx.nelem()
+                            ? dim3.size()
+                            : axis[4] == 0 ? dim4.size()
+                                           : axis[5] == 0 ? dim5.size()
                                                           : yi.nlibraries(),
       axis[0] == 1
-          ? dim0.lx.nelem()
+          ? dim0.size()
           : axis[1] == 1
-                ? dim1.lx.nelem()
+                ? dim1.size()
                 : axis[2] == 1
-                      ? dim2.lx.nelem()
+                      ? dim2.size()
                       : axis[3] == 1
-                            ? dim3.lx.nelem()
-                            : axis[4] == 1 ? dim4.lx.nelem()
-                                           : axis[5] == 1 ? dim5.lx.nelem()
-                                                          : yi.nvitrines(),
+                            ? dim3.size()
+                            : axis[4] == 1
+                                  ? dim4.size()
+                                  : axis[5] == 1 ? dim5.size() : yi.nvitrines(),
       axis[0] == 2
-          ? dim0.lx.nelem()
+          ? dim0.size()
           : axis[1] == 2
-                ? dim1.lx.nelem()
+                ? dim1.size()
                 : axis[2] == 2
-                      ? dim2.lx.nelem()
+                      ? dim2.size()
                       : axis[3] == 2
-                            ? dim3.lx.nelem()
-                            : axis[4] == 2 ? dim4.lx.nelem()
-                                           : axis[5] == 2 ? dim5.lx.nelem()
-                                                          : yi.nshelves(),
+                            ? dim3.size()
+                            : axis[4] == 2
+                                  ? dim4.size()
+                                  : axis[5] == 2 ? dim5.size() : yi.nshelves(),
       axis[0] == 3
-          ? dim0.lx.nelem()
+          ? dim0.size()
           : axis[1] == 3
-                ? dim1.lx.nelem()
+                ? dim1.size()
                 : axis[2] == 3
-                      ? dim2.lx.nelem()
+                      ? dim2.size()
                       : axis[3] == 3
-                            ? dim3.lx.nelem()
-                            : axis[4] == 3 ? dim4.lx.nelem()
-                                           : axis[5] == 3 ? dim5.lx.nelem()
-                                                          : yi.nbooks(),
+                            ? dim3.size()
+                            : axis[4] == 3
+                                  ? dim4.size()
+                                  : axis[5] == 3 ? dim5.size() : yi.nbooks(),
       axis[0] == 4
-          ? dim0.lx.nelem()
+          ? dim0.size()
           : axis[1] == 4
-                ? dim1.lx.nelem()
+                ? dim1.size()
                 : axis[2] == 4
-                      ? dim2.lx.nelem()
+                      ? dim2.size()
                       : axis[3] == 4
-                            ? dim3.lx.nelem()
-                            : axis[4] == 4 ? dim4.lx.nelem()
-                                           : axis[5] == 4 ? dim5.lx.nelem()
-                                                          : yi.npages(),
+                            ? dim3.size()
+                            : axis[4] == 4
+                                  ? dim4.size()
+                                  : axis[5] == 4 ? dim5.size() : yi.npages(),
       axis[0] == 5
-          ? dim0.lx.nelem()
+          ? dim0.size()
           : axis[1] == 5
-                ? dim1.lx.nelem()
+                ? dim1.size()
                 : axis[2] == 5
-                      ? dim2.lx.nelem()
-                      : axis[3] == 5
-                            ? dim3.lx.nelem()
-                            : axis[4] == 5
-                                  ? dim4.lx.nelem()
-                                  : axis[5] == 5 ? dim5.lx.nelem() : yi.nrows(),
+                      ? dim2.size()
+                      : axis[3] == 5 ? dim3.size()
+                                     : axis[4] == 5 ? dim4.size()
+                                                    : axis[5] == 5 ? dim5.size()
+                                                                   : yi.nrows(),
       axis[0] == 6
-          ? dim0.lx.nelem()
+          ? dim0.size()
           : axis[1] == 6
-                ? dim1.lx.nelem()
+                ? dim1.size()
                 : axis[2] == 6
-                      ? dim2.lx.nelem()
-                      : axis[3] == 6
-                            ? dim3.lx.nelem()
-                            : axis[4] == 6
-                                  ? dim4.lx.nelem()
-                                  : axis[5] == 6 ? dim5.lx.nelem() : yi.ncols(),
+                      ? dim2.size()
+                      : axis[3] == 6 ? dim3.size()
+                                     : axis[4] == 6 ? dim4.size()
+                                                    : axis[5] == 6 ? dim5.size()
+                                                                   : yi.ncols(),
   };
   const std::array<Index, 7> count{
       0 + (axis[0] <= 0) + (axis[1] <= 0) + (axis[2] <= 0) + (axis[3] <= 0) +
@@ -945,9 +936,9 @@ Vector interp(const ConstTensor7View yi, const ConstTensor6View iw,
 Matrix interp(const ConstTensor3View yi, const ConstVectorView iw,
               const Lagrange& dim0, const std::array<Index, 1>& axis) {
   const std::array<Index, 3> size{
-      axis[0] == 0 ? dim0.lx.nelem() : yi.npages(),
-      axis[0] == 1 ? dim0.lx.nelem() : yi.nrows(),
-      axis[0] == 2 ? dim0.lx.nelem() : yi.ncols(),
+      axis[0] == 0 ? dim0.size() : yi.npages(),
+      axis[0] == 1 ? dim0.size() : yi.nrows(),
+      axis[0] == 2 ? dim0.size() : yi.ncols(),
   };
   const std::array<Index, 3> count{
       0 + (axis[0] <= 0),
@@ -978,14 +969,10 @@ Matrix interp(const ConstTensor4View yi, const ConstMatrixView iw,
               const Lagrange& dim0, const Lagrange& dim1,
               const std::array<Index, 2>& axis) {
   const std::array<Index, 4> size{
-      axis[0] == 0 ? dim0.lx.nelem()
-                   : axis[1] == 0 ? dim1.lx.nelem() : yi.nbooks(),
-      axis[0] == 1 ? dim0.lx.nelem()
-                   : axis[1] == 1 ? dim1.lx.nelem() : yi.npages(),
-      axis[0] == 2 ? dim0.lx.nelem()
-                   : axis[1] == 2 ? dim1.lx.nelem() : yi.nrows(),
-      axis[0] == 3 ? dim0.lx.nelem()
-                   : axis[1] == 3 ? dim1.lx.nelem() : yi.ncols(),
+      axis[0] == 0 ? dim0.size() : axis[1] == 0 ? dim1.size() : yi.nbooks(),
+      axis[0] == 1 ? dim0.size() : axis[1] == 1 ? dim1.size() : yi.npages(),
+      axis[0] == 2 ? dim0.size() : axis[1] == 2 ? dim1.size() : yi.nrows(),
+      axis[0] == 3 ? dim0.size() : axis[1] == 3 ? dim1.size() : yi.ncols(),
   };
   const std::array<Index, 4> count{
       0 + (axis[0] <= 0) + (axis[1] <= 0),
@@ -1022,24 +1009,21 @@ Matrix interp(const ConstTensor5View yi, const ConstTensor3View iw,
               const Lagrange& dim0, const Lagrange& dim1, const Lagrange& dim2,
               const std::array<Index, 3>& axis) {
   const std::array<Index, 5> size{
-      axis[0] == 0
-          ? dim0.lx.nelem()
-          : axis[1] == 0 ? dim1.lx.nelem()
-                         : axis[2] == 0 ? dim2.lx.nelem() : yi.nshelves(),
-      axis[0] == 1
-          ? dim0.lx.nelem()
-          : axis[1] == 1 ? dim1.lx.nelem()
-                         : axis[2] == 1 ? dim2.lx.nelem() : yi.nbooks(),
-      axis[0] == 2
-          ? dim0.lx.nelem()
-          : axis[1] == 2 ? dim1.lx.nelem()
-                         : axis[2] == 2 ? dim2.lx.nelem() : yi.npages(),
-      axis[0] == 3 ? dim0.lx.nelem()
-                   : axis[1] == 3 ? dim1.lx.nelem()
-                                  : axis[2] == 3 ? dim2.lx.nelem() : yi.nrows(),
-      axis[0] == 4 ? dim0.lx.nelem()
-                   : axis[1] == 4 ? dim1.lx.nelem()
-                                  : axis[2] == 4 ? dim2.lx.nelem() : yi.ncols(),
+      axis[0] == 0 ? dim0.size()
+                   : axis[1] == 0 ? dim1.size()
+                                  : axis[2] == 0 ? dim2.size() : yi.nshelves(),
+      axis[0] == 1 ? dim0.size()
+                   : axis[1] == 1 ? dim1.size()
+                                  : axis[2] == 1 ? dim2.size() : yi.nbooks(),
+      axis[0] == 2 ? dim0.size()
+                   : axis[1] == 2 ? dim1.size()
+                                  : axis[2] == 2 ? dim2.size() : yi.npages(),
+      axis[0] == 3 ? dim0.size()
+                   : axis[1] == 3 ? dim1.size()
+                                  : axis[2] == 3 ? dim2.size() : yi.nrows(),
+      axis[0] == 4 ? dim0.size()
+                   : axis[1] == 4 ? dim1.size()
+                                  : axis[2] == 4 ? dim2.size() : yi.ncols(),
   };
   const std::array<Index, 5> count{
       0 + (axis[0] <= 0) + (axis[1] <= 0) + (axis[2] <= 0),
@@ -1088,41 +1072,36 @@ Matrix interp(const ConstTensor6View yi, const ConstTensor4View iw,
               const Lagrange& dim3, const std::array<Index, 4>& axis) {
   const std::array<Index, 6> size{
       axis[0] == 0
-          ? dim0.lx.nelem()
-          : axis[1] == 0 ? dim1.lx.nelem()
-                         : axis[2] == 0 ? dim2.lx.nelem()
-                                        : axis[3] == 0 ? dim3.lx.nelem()
-                                                       : yi.nvitrines(),
-      axis[0] == 1
-          ? dim0.lx.nelem()
-          : axis[1] == 1
-                ? dim1.lx.nelem()
-                : axis[2] == 1 ? dim2.lx.nelem()
-                               : axis[3] == 1 ? dim3.lx.nelem() : yi.nshelves(),
-      axis[0] == 2
-          ? dim0.lx.nelem()
-          : axis[1] == 2
-                ? dim1.lx.nelem()
-                : axis[2] == 2 ? dim2.lx.nelem()
-                               : axis[3] == 2 ? dim3.lx.nelem() : yi.nbooks(),
-      axis[0] == 3
-          ? dim0.lx.nelem()
-          : axis[1] == 3
-                ? dim1.lx.nelem()
-                : axis[2] == 3 ? dim2.lx.nelem()
-                               : axis[3] == 3 ? dim3.lx.nelem() : yi.npages(),
-      axis[0] == 4
-          ? dim0.lx.nelem()
-          : axis[1] == 4
-                ? dim1.lx.nelem()
-                : axis[2] == 4 ? dim2.lx.nelem()
-                               : axis[3] == 4 ? dim3.lx.nelem() : yi.nrows(),
-      axis[0] == 5
-          ? dim0.lx.nelem()
-          : axis[1] == 5
-                ? dim1.lx.nelem()
-                : axis[2] == 5 ? dim2.lx.nelem()
-                               : axis[3] == 5 ? dim3.lx.nelem() : yi.ncols(),
+          ? dim0.size()
+          : axis[1] == 0
+                ? dim1.size()
+                : axis[2] == 0 ? dim2.size()
+                               : axis[3] == 0 ? dim3.size() : yi.nvitrines(),
+      axis[0] == 1 ? dim0.size()
+                   : axis[1] == 1 ? dim1.size()
+                                  : axis[2] == 1 ? dim2.size()
+                                                 : axis[3] == 1 ? dim3.size()
+                                                                : yi.nshelves(),
+      axis[0] == 2 ? dim0.size()
+                   : axis[1] == 2 ? dim1.size()
+                                  : axis[2] == 2 ? dim2.size()
+                                                 : axis[3] == 2 ? dim3.size()
+                                                                : yi.nbooks(),
+      axis[0] == 3 ? dim0.size()
+                   : axis[1] == 3 ? dim1.size()
+                                  : axis[2] == 3 ? dim2.size()
+                                                 : axis[3] == 3 ? dim3.size()
+                                                                : yi.npages(),
+      axis[0] == 4 ? dim0.size()
+                   : axis[1] == 4 ? dim1.size()
+                                  : axis[2] == 4 ? dim2.size()
+                                                 : axis[3] == 4 ? dim3.size()
+                                                                : yi.nrows(),
+      axis[0] == 5 ? dim0.size()
+                   : axis[1] == 5 ? dim1.size()
+                                  : axis[2] == 5 ? dim2.size()
+                                                 : axis[3] == 5 ? dim3.size()
+                                                                : yi.ncols(),
   };
   const std::array<Index, 6> count{
       0 + (axis[0] <= 0) + (axis[1] <= 0) + (axis[2] <= 0) + (axis[3] <= 0),
@@ -1190,61 +1169,61 @@ Matrix interp(const ConstTensor7View yi, const ConstTensor5View iw,
               const std::array<Index, 5>& axis) {
   const std::array<Index, 7> size{
       axis[0] == 0
-          ? dim0.lx.nelem()
+          ? dim0.size()
           : axis[1] == 0
-                ? dim1.lx.nelem()
-                : axis[2] == 0 ? dim2.lx.nelem()
-                               : axis[3] == 0 ? dim3.lx.nelem()
-                                              : axis[4] == 0 ? dim4.lx.nelem()
+                ? dim1.size()
+                : axis[2] == 0 ? dim2.size()
+                               : axis[3] == 0 ? dim3.size()
+                                              : axis[4] == 0 ? dim4.size()
                                                              : yi.nlibraries(),
       axis[0] == 1
-          ? dim0.lx.nelem()
+          ? dim0.size()
           : axis[1] == 1
-                ? dim1.lx.nelem()
-                : axis[2] == 1 ? dim2.lx.nelem()
-                               : axis[3] == 1 ? dim3.lx.nelem()
-                                              : axis[4] == 1 ? dim4.lx.nelem()
+                ? dim1.size()
+                : axis[2] == 1 ? dim2.size()
+                               : axis[3] == 1 ? dim3.size()
+                                              : axis[4] == 1 ? dim4.size()
                                                              : yi.nvitrines(),
       axis[0] == 2
-          ? dim0.lx.nelem()
+          ? dim0.size()
           : axis[1] == 2
-                ? dim1.lx.nelem()
-                : axis[2] == 2 ? dim2.lx.nelem()
-                               : axis[3] == 2 ? dim3.lx.nelem()
-                                              : axis[4] == 2 ? dim4.lx.nelem()
+                ? dim1.size()
+                : axis[2] == 2 ? dim2.size()
+                               : axis[3] == 2 ? dim3.size()
+                                              : axis[4] == 2 ? dim4.size()
                                                              : yi.nshelves(),
       axis[0] == 3
-          ? dim0.lx.nelem()
+          ? dim0.size()
           : axis[1] == 3
-                ? dim1.lx.nelem()
-                : axis[2] == 3 ? dim2.lx.nelem()
-                               : axis[3] == 3 ? dim3.lx.nelem()
-                                              : axis[4] == 3 ? dim4.lx.nelem()
-                                                             : yi.nbooks(),
+                ? dim1.size()
+                : axis[2] == 3
+                      ? dim2.size()
+                      : axis[3] == 3 ? dim3.size()
+                                     : axis[4] == 3 ? dim4.size() : yi.nbooks(),
       axis[0] == 4
-          ? dim0.lx.nelem()
+          ? dim0.size()
           : axis[1] == 4
-                ? dim1.lx.nelem()
-                : axis[2] == 4 ? dim2.lx.nelem()
-                               : axis[3] == 4 ? dim3.lx.nelem()
-                                              : axis[4] == 4 ? dim4.lx.nelem()
-                                                             : yi.npages(),
+                ? dim1.size()
+                : axis[2] == 4
+                      ? dim2.size()
+                      : axis[3] == 4 ? dim3.size()
+                                     : axis[4] == 4 ? dim4.size() : yi.npages(),
       axis[0] == 5
-          ? dim0.lx.nelem()
+          ? dim0.size()
           : axis[1] == 5
-                ? dim1.lx.nelem()
-                : axis[2] == 5 ? dim2.lx.nelem()
-                               : axis[3] == 5 ? dim3.lx.nelem()
-                                              : axis[4] == 5 ? dim4.lx.nelem()
-                                                             : yi.nrows(),
+                ? dim1.size()
+                : axis[2] == 5
+                      ? dim2.size()
+                      : axis[3] == 5 ? dim3.size()
+                                     : axis[4] == 5 ? dim4.size() : yi.nrows(),
       axis[0] == 6
-          ? dim0.lx.nelem()
+          ? dim0.size()
           : axis[1] == 6
-                ? dim1.lx.nelem()
-                : axis[2] == 6 ? dim2.lx.nelem()
-                               : axis[3] == 6 ? dim3.lx.nelem()
-                                              : axis[4] == 6 ? dim4.lx.nelem()
-                                                             : yi.ncols(),
+                ? dim1.size()
+                : axis[2] == 6
+                      ? dim2.size()
+                      : axis[3] == 6 ? dim3.size()
+                                     : axis[4] == 6 ? dim4.size() : yi.ncols(),
   };
   const std::array<Index, 7> count{
       0 + (axis[0] <= 0) + (axis[1] <= 0) + (axis[2] <= 0) + (axis[3] <= 0) +
@@ -1347,10 +1326,10 @@ Matrix interp(const ConstTensor7View yi, const ConstTensor5View iw,
 Tensor3 interp(const ConstTensor4View yi, const ConstVectorView iw,
                const Lagrange& dim0, const std::array<Index, 1>& axis) {
   const std::array<Index, 4> size{
-      axis[0] == 0 ? dim0.lx.nelem() : yi.nbooks(),
-      axis[0] == 1 ? dim0.lx.nelem() : yi.npages(),
-      axis[0] == 2 ? dim0.lx.nelem() : yi.nrows(),
-      axis[0] == 3 ? dim0.lx.nelem() : yi.ncols(),
+      axis[0] == 0 ? dim0.size() : yi.nbooks(),
+      axis[0] == 1 ? dim0.size() : yi.npages(),
+      axis[0] == 2 ? dim0.size() : yi.nrows(),
+      axis[0] == 3 ? dim0.size() : yi.ncols(),
   };
   const std::array<Index, 4> count{
       0 + (axis[0] <= 0),
@@ -1387,16 +1366,11 @@ Tensor3 interp(const ConstTensor5View yi, const ConstMatrixView iw,
                const Lagrange& dim0, const Lagrange& dim1,
                const std::array<Index, 2>& axis) {
   const std::array<Index, 5> size{
-      axis[0] == 0 ? dim0.lx.nelem()
-                   : axis[1] == 0 ? dim1.lx.nelem() : yi.nshelves(),
-      axis[0] == 1 ? dim0.lx.nelem()
-                   : axis[1] == 1 ? dim1.lx.nelem() : yi.nbooks(),
-      axis[0] == 2 ? dim0.lx.nelem()
-                   : axis[1] == 2 ? dim1.lx.nelem() : yi.npages(),
-      axis[0] == 3 ? dim0.lx.nelem()
-                   : axis[1] == 3 ? dim1.lx.nelem() : yi.nrows(),
-      axis[0] == 4 ? dim0.lx.nelem()
-                   : axis[1] == 4 ? dim1.lx.nelem() : yi.ncols(),
+      axis[0] == 0 ? dim0.size() : axis[1] == 0 ? dim1.size() : yi.nshelves(),
+      axis[0] == 1 ? dim0.size() : axis[1] == 1 ? dim1.size() : yi.nbooks(),
+      axis[0] == 2 ? dim0.size() : axis[1] == 2 ? dim1.size() : yi.npages(),
+      axis[0] == 3 ? dim0.size() : axis[1] == 3 ? dim1.size() : yi.nrows(),
+      axis[0] == 4 ? dim0.size() : axis[1] == 4 ? dim1.size() : yi.ncols(),
   };
   const std::array<Index, 5> count{
       0 + (axis[0] <= 0) + (axis[1] <= 0), 0 + (axis[0] <= 1) + (axis[1] <= 1),
@@ -1436,28 +1410,24 @@ Tensor3 interp(const ConstTensor6View yi, const ConstTensor3View iw,
                const Lagrange& dim0, const Lagrange& dim1, const Lagrange& dim2,
                const std::array<Index, 3>& axis) {
   const std::array<Index, 6> size{
-      axis[0] == 0
-          ? dim0.lx.nelem()
-          : axis[1] == 0 ? dim1.lx.nelem()
-                         : axis[2] == 0 ? dim2.lx.nelem() : yi.nvitrines(),
-      axis[0] == 1
-          ? dim0.lx.nelem()
-          : axis[1] == 1 ? dim1.lx.nelem()
-                         : axis[2] == 1 ? dim2.lx.nelem() : yi.nshelves(),
-      axis[0] == 2
-          ? dim0.lx.nelem()
-          : axis[1] == 2 ? dim1.lx.nelem()
-                         : axis[2] == 2 ? dim2.lx.nelem() : yi.nbooks(),
-      axis[0] == 3
-          ? dim0.lx.nelem()
-          : axis[1] == 3 ? dim1.lx.nelem()
-                         : axis[2] == 3 ? dim2.lx.nelem() : yi.npages(),
-      axis[0] == 4 ? dim0.lx.nelem()
-                   : axis[1] == 4 ? dim1.lx.nelem()
-                                  : axis[2] == 4 ? dim2.lx.nelem() : yi.nrows(),
-      axis[0] == 5 ? dim0.lx.nelem()
-                   : axis[1] == 5 ? dim1.lx.nelem()
-                                  : axis[2] == 5 ? dim2.lx.nelem() : yi.ncols(),
+      axis[0] == 0 ? dim0.size()
+                   : axis[1] == 0 ? dim1.size()
+                                  : axis[2] == 0 ? dim2.size() : yi.nvitrines(),
+      axis[0] == 1 ? dim0.size()
+                   : axis[1] == 1 ? dim1.size()
+                                  : axis[2] == 1 ? dim2.size() : yi.nshelves(),
+      axis[0] == 2 ? dim0.size()
+                   : axis[1] == 2 ? dim1.size()
+                                  : axis[2] == 2 ? dim2.size() : yi.nbooks(),
+      axis[0] == 3 ? dim0.size()
+                   : axis[1] == 3 ? dim1.size()
+                                  : axis[2] == 3 ? dim2.size() : yi.npages(),
+      axis[0] == 4 ? dim0.size()
+                   : axis[1] == 4 ? dim1.size()
+                                  : axis[2] == 4 ? dim2.size() : yi.nrows(),
+      axis[0] == 5 ? dim0.size()
+                   : axis[1] == 5 ? dim1.size()
+                                  : axis[2] == 5 ? dim2.size() : yi.ncols(),
   };
   const std::array<Index, 6> count{
       0 + (axis[0] <= 0) + (axis[1] <= 0) + (axis[2] <= 0),
@@ -1512,47 +1482,42 @@ Tensor3 interp(const ConstTensor7View yi, const ConstTensor4View iw,
                const Lagrange& dim3, const std::array<Index, 4>& axis) {
   const std::array<Index, 7> size{
       axis[0] == 0
-          ? dim0.lx.nelem()
-          : axis[1] == 0 ? dim1.lx.nelem()
-                         : axis[2] == 0 ? dim2.lx.nelem()
-                                        : axis[3] == 0 ? dim3.lx.nelem()
-                                                       : yi.nlibraries(),
+          ? dim0.size()
+          : axis[1] == 0
+                ? dim1.size()
+                : axis[2] == 0 ? dim2.size()
+                               : axis[3] == 0 ? dim3.size() : yi.nlibraries(),
       axis[0] == 1
-          ? dim0.lx.nelem()
-          : axis[1] == 1 ? dim1.lx.nelem()
-                         : axis[2] == 1 ? dim2.lx.nelem()
-                                        : axis[3] == 1 ? dim3.lx.nelem()
-                                                       : yi.nvitrines(),
-      axis[0] == 2
-          ? dim0.lx.nelem()
-          : axis[1] == 2
-                ? dim1.lx.nelem()
-                : axis[2] == 2 ? dim2.lx.nelem()
-                               : axis[3] == 2 ? dim3.lx.nelem() : yi.nshelves(),
-      axis[0] == 3
-          ? dim0.lx.nelem()
-          : axis[1] == 3
-                ? dim1.lx.nelem()
-                : axis[2] == 3 ? dim2.lx.nelem()
-                               : axis[3] == 3 ? dim3.lx.nelem() : yi.nbooks(),
-      axis[0] == 4
-          ? dim0.lx.nelem()
-          : axis[1] == 4
-                ? dim1.lx.nelem()
-                : axis[2] == 4 ? dim2.lx.nelem()
-                               : axis[3] == 4 ? dim3.lx.nelem() : yi.npages(),
-      axis[0] == 5
-          ? dim0.lx.nelem()
-          : axis[1] == 5
-                ? dim1.lx.nelem()
-                : axis[2] == 5 ? dim2.lx.nelem()
-                               : axis[3] == 5 ? dim3.lx.nelem() : yi.nrows(),
-      axis[0] == 6
-          ? dim0.lx.nelem()
-          : axis[1] == 6
-                ? dim1.lx.nelem()
-                : axis[2] == 6 ? dim2.lx.nelem()
-                               : axis[3] == 6 ? dim3.lx.nelem() : yi.ncols(),
+          ? dim0.size()
+          : axis[1] == 1
+                ? dim1.size()
+                : axis[2] == 1 ? dim2.size()
+                               : axis[3] == 1 ? dim3.size() : yi.nvitrines(),
+      axis[0] == 2 ? dim0.size()
+                   : axis[1] == 2 ? dim1.size()
+                                  : axis[2] == 2 ? dim2.size()
+                                                 : axis[3] == 2 ? dim3.size()
+                                                                : yi.nshelves(),
+      axis[0] == 3 ? dim0.size()
+                   : axis[1] == 3 ? dim1.size()
+                                  : axis[2] == 3 ? dim2.size()
+                                                 : axis[3] == 3 ? dim3.size()
+                                                                : yi.nbooks(),
+      axis[0] == 4 ? dim0.size()
+                   : axis[1] == 4 ? dim1.size()
+                                  : axis[2] == 4 ? dim2.size()
+                                                 : axis[3] == 4 ? dim3.size()
+                                                                : yi.npages(),
+      axis[0] == 5 ? dim0.size()
+                   : axis[1] == 5 ? dim1.size()
+                                  : axis[2] == 5 ? dim2.size()
+                                                 : axis[3] == 5 ? dim3.size()
+                                                                : yi.nrows(),
+      axis[0] == 6 ? dim0.size()
+                   : axis[1] == 6 ? dim1.size()
+                                  : axis[2] == 6 ? dim2.size()
+                                                 : axis[3] == 6 ? dim3.size()
+                                                                : yi.ncols(),
   };
   const std::array<Index, 7> count{
       0 + (axis[0] <= 0) + (axis[1] <= 0) + (axis[2] <= 0) + (axis[3] <= 0),
@@ -1627,11 +1592,11 @@ Tensor3 interp(const ConstTensor7View yi, const ConstTensor4View iw,
 Tensor4 interp(const ConstTensor5View yi, const ConstVectorView iw,
                const Lagrange& dim0, const std::array<Index, 1>& axis) {
   const std::array<Index, 5> size{
-      axis[0] == 0 ? dim0.lx.nelem() : yi.nshelves(),
-      axis[0] == 1 ? dim0.lx.nelem() : yi.nbooks(),
-      axis[0] == 2 ? dim0.lx.nelem() : yi.npages(),
-      axis[0] == 3 ? dim0.lx.nelem() : yi.nrows(),
-      axis[0] == 4 ? dim0.lx.nelem() : yi.ncols(),
+      axis[0] == 0 ? dim0.size() : yi.nshelves(),
+      axis[0] == 1 ? dim0.size() : yi.nbooks(),
+      axis[0] == 2 ? dim0.size() : yi.npages(),
+      axis[0] == 3 ? dim0.size() : yi.nrows(),
+      axis[0] == 4 ? dim0.size() : yi.ncols(),
   };
   const std::array<Index, 5> count{
       0 + (axis[0] <= 0), 0 + (axis[0] <= 1), 0 + (axis[0] <= 2),
@@ -1670,18 +1635,12 @@ Tensor4 interp(const ConstTensor6View yi, const ConstMatrixView iw,
                const Lagrange& dim0, const Lagrange& dim1,
                const std::array<Index, 2>& axis) {
   const std::array<Index, 6> size{
-      axis[0] == 0 ? dim0.lx.nelem()
-                   : axis[1] == 0 ? dim1.lx.nelem() : yi.nvitrines(),
-      axis[0] == 1 ? dim0.lx.nelem()
-                   : axis[1] == 1 ? dim1.lx.nelem() : yi.nshelves(),
-      axis[0] == 2 ? dim0.lx.nelem()
-                   : axis[1] == 2 ? dim1.lx.nelem() : yi.nbooks(),
-      axis[0] == 3 ? dim0.lx.nelem()
-                   : axis[1] == 3 ? dim1.lx.nelem() : yi.npages(),
-      axis[0] == 4 ? dim0.lx.nelem()
-                   : axis[1] == 4 ? dim1.lx.nelem() : yi.nrows(),
-      axis[0] == 5 ? dim0.lx.nelem()
-                   : axis[1] == 5 ? dim1.lx.nelem() : yi.ncols(),
+      axis[0] == 0 ? dim0.size() : axis[1] == 0 ? dim1.size() : yi.nvitrines(),
+      axis[0] == 1 ? dim0.size() : axis[1] == 1 ? dim1.size() : yi.nshelves(),
+      axis[0] == 2 ? dim0.size() : axis[1] == 2 ? dim1.size() : yi.nbooks(),
+      axis[0] == 3 ? dim0.size() : axis[1] == 3 ? dim1.size() : yi.npages(),
+      axis[0] == 4 ? dim0.size() : axis[1] == 4 ? dim1.size() : yi.nrows(),
+      axis[0] == 5 ? dim0.size() : axis[1] == 5 ? dim1.size() : yi.ncols(),
   };
   const std::array<Index, 6> count{
       0 + (axis[0] <= 0) + (axis[1] <= 0), 0 + (axis[0] <= 1) + (axis[1] <= 1),
@@ -1728,31 +1687,27 @@ Tensor4 interp(const ConstTensor7View yi, const ConstTensor3View iw,
                const std::array<Index, 3>& axis) {
   const std::array<Index, 7> size{
       axis[0] == 0
-          ? dim0.lx.nelem()
-          : axis[1] == 0 ? dim1.lx.nelem()
-                         : axis[2] == 0 ? dim2.lx.nelem() : yi.nlibraries(),
-      axis[0] == 1
-          ? dim0.lx.nelem()
-          : axis[1] == 1 ? dim1.lx.nelem()
-                         : axis[2] == 1 ? dim2.lx.nelem() : yi.nvitrines(),
-      axis[0] == 2
-          ? dim0.lx.nelem()
-          : axis[1] == 2 ? dim1.lx.nelem()
-                         : axis[2] == 2 ? dim2.lx.nelem() : yi.nshelves(),
-      axis[0] == 3
-          ? dim0.lx.nelem()
-          : axis[1] == 3 ? dim1.lx.nelem()
-                         : axis[2] == 3 ? dim2.lx.nelem() : yi.nbooks(),
-      axis[0] == 4
-          ? dim0.lx.nelem()
-          : axis[1] == 4 ? dim1.lx.nelem()
-                         : axis[2] == 4 ? dim2.lx.nelem() : yi.npages(),
-      axis[0] == 5 ? dim0.lx.nelem()
-                   : axis[1] == 5 ? dim1.lx.nelem()
-                                  : axis[2] == 5 ? dim2.lx.nelem() : yi.nrows(),
-      axis[0] == 6 ? dim0.lx.nelem()
-                   : axis[1] == 6 ? dim1.lx.nelem()
-                                  : axis[2] == 6 ? dim2.lx.nelem() : yi.ncols(),
+          ? dim0.size()
+          : axis[1] == 0 ? dim1.size()
+                         : axis[2] == 0 ? dim2.size() : yi.nlibraries(),
+      axis[0] == 1 ? dim0.size()
+                   : axis[1] == 1 ? dim1.size()
+                                  : axis[2] == 1 ? dim2.size() : yi.nvitrines(),
+      axis[0] == 2 ? dim0.size()
+                   : axis[1] == 2 ? dim1.size()
+                                  : axis[2] == 2 ? dim2.size() : yi.nshelves(),
+      axis[0] == 3 ? dim0.size()
+                   : axis[1] == 3 ? dim1.size()
+                                  : axis[2] == 3 ? dim2.size() : yi.nbooks(),
+      axis[0] == 4 ? dim0.size()
+                   : axis[1] == 4 ? dim1.size()
+                                  : axis[2] == 4 ? dim2.size() : yi.npages(),
+      axis[0] == 5 ? dim0.size()
+                   : axis[1] == 5 ? dim1.size()
+                                  : axis[2] == 5 ? dim2.size() : yi.nrows(),
+      axis[0] == 6 ? dim0.size()
+                   : axis[1] == 6 ? dim1.size()
+                                  : axis[2] == 6 ? dim2.size() : yi.ncols(),
   };
   const std::array<Index, 7> count{
       0 + (axis[0] <= 0) + (axis[1] <= 0) + (axis[2] <= 0),
@@ -1814,12 +1769,12 @@ Tensor4 interp(const ConstTensor7View yi, const ConstTensor3View iw,
 Tensor5 interp(const ConstTensor6View yi, const ConstVectorView iw,
                const Lagrange& dim0, const std::array<Index, 1>& axis) {
   const std::array<Index, 6> size{
-      axis[0] == 0 ? dim0.lx.nelem() : yi.nvitrines(),
-      axis[0] == 1 ? dim0.lx.nelem() : yi.nshelves(),
-      axis[0] == 2 ? dim0.lx.nelem() : yi.nbooks(),
-      axis[0] == 3 ? dim0.lx.nelem() : yi.npages(),
-      axis[0] == 4 ? dim0.lx.nelem() : yi.nrows(),
-      axis[0] == 5 ? dim0.lx.nelem() : yi.ncols(),
+      axis[0] == 0 ? dim0.size() : yi.nvitrines(),
+      axis[0] == 1 ? dim0.size() : yi.nshelves(),
+      axis[0] == 2 ? dim0.size() : yi.nbooks(),
+      axis[0] == 3 ? dim0.size() : yi.npages(),
+      axis[0] == 4 ? dim0.size() : yi.nrows(),
+      axis[0] == 5 ? dim0.size() : yi.ncols(),
   };
   const std::array<Index, 6> count{
       0 + (axis[0] <= 0), 0 + (axis[0] <= 1), 0 + (axis[0] <= 2),
@@ -1861,20 +1816,13 @@ Tensor5 interp(const ConstTensor7View yi, const ConstMatrixView iw,
                const Lagrange& dim0, const Lagrange& dim1,
                const std::array<Index, 2>& axis) {
   const std::array<Index, 7> size{
-      axis[0] == 0 ? dim0.lx.nelem()
-                   : axis[1] == 0 ? dim1.lx.nelem() : yi.nlibraries(),
-      axis[0] == 1 ? dim0.lx.nelem()
-                   : axis[1] == 1 ? dim1.lx.nelem() : yi.nvitrines(),
-      axis[0] == 2 ? dim0.lx.nelem()
-                   : axis[1] == 2 ? dim1.lx.nelem() : yi.nshelves(),
-      axis[0] == 3 ? dim0.lx.nelem()
-                   : axis[1] == 3 ? dim1.lx.nelem() : yi.nbooks(),
-      axis[0] == 4 ? dim0.lx.nelem()
-                   : axis[1] == 4 ? dim1.lx.nelem() : yi.npages(),
-      axis[0] == 5 ? dim0.lx.nelem()
-                   : axis[1] == 5 ? dim1.lx.nelem() : yi.nrows(),
-      axis[0] == 6 ? dim0.lx.nelem()
-                   : axis[1] == 6 ? dim1.lx.nelem() : yi.ncols(),
+      axis[0] == 0 ? dim0.size() : axis[1] == 0 ? dim1.size() : yi.nlibraries(),
+      axis[0] == 1 ? dim0.size() : axis[1] == 1 ? dim1.size() : yi.nvitrines(),
+      axis[0] == 2 ? dim0.size() : axis[1] == 2 ? dim1.size() : yi.nshelves(),
+      axis[0] == 3 ? dim0.size() : axis[1] == 3 ? dim1.size() : yi.nbooks(),
+      axis[0] == 4 ? dim0.size() : axis[1] == 4 ? dim1.size() : yi.npages(),
+      axis[0] == 5 ? dim0.size() : axis[1] == 5 ? dim1.size() : yi.nrows(),
+      axis[0] == 6 ? dim0.size() : axis[1] == 6 ? dim1.size() : yi.ncols(),
   };
   const std::array<Index, 7> count{
       0 + (axis[0] <= 0) + (axis[1] <= 0), 0 + (axis[0] <= 1) + (axis[1] <= 1),
@@ -1925,13 +1873,13 @@ Tensor5 interp(const ConstTensor7View yi, const ConstMatrixView iw,
 Tensor6 interp(const ConstTensor7View yi, const ConstVectorView iw,
                const Lagrange& dim0, const std::array<Index, 1>& axis) {
   const std::array<Index, 7> size{
-      axis[0] == 0 ? dim0.lx.nelem() : yi.nlibraries(),
-      axis[0] == 1 ? dim0.lx.nelem() : yi.nvitrines(),
-      axis[0] == 2 ? dim0.lx.nelem() : yi.nshelves(),
-      axis[0] == 3 ? dim0.lx.nelem() : yi.nbooks(),
-      axis[0] == 4 ? dim0.lx.nelem() : yi.npages(),
-      axis[0] == 5 ? dim0.lx.nelem() : yi.nrows(),
-      axis[0] == 6 ? dim0.lx.nelem() : yi.ncols(),
+      axis[0] == 0 ? dim0.size() : yi.nlibraries(),
+      axis[0] == 1 ? dim0.size() : yi.nvitrines(),
+      axis[0] == 2 ? dim0.size() : yi.nshelves(),
+      axis[0] == 3 ? dim0.size() : yi.nbooks(),
+      axis[0] == 4 ? dim0.size() : yi.npages(),
+      axis[0] == 5 ? dim0.size() : yi.nrows(),
+      axis[0] == 6 ? dim0.size() : yi.ncols(),
   };
   const std::array<Index, 7> count{
       0 + (axis[0] <= 0), 0 + (axis[0] <= 1), 0 + (axis[0] <= 2),
@@ -1973,6 +1921,306 @@ Tensor6 interp(const ConstTensor7View yi, const ConstVectorView iw,
       }
     }
   }
+  return out;
+}
+
+Grid<Vector, 1> interpweights(const std::vector<Lagrange>& dim0) {
+  Grid<Vector, 1> out(dim0.size());
+  for (std::size_t i = 0; i < dim0.size(); i++) out(i) = interpweights(dim0[i]);
+  return out;
+}
+
+Grid<Vector, 1> dinterpweights(const std::vector<Lagrange>& dim0) {
+  Grid<Vector, 1> out(dim0.size());
+  for (std::size_t i = 0; i < dim0.size(); i++)
+    out(i) = dinterpweights(dim0[i]);
+  return out;
+}
+
+Grid<Matrix, 2> interpweights(const std::vector<Lagrange>& dim0,
+                              const std::vector<Lagrange>& dim1) {
+  Grid<Matrix, 2> out(dim0.size(), dim1.size());
+  for (std::size_t i = 0; i < dim0.size(); i++)
+    for (std::size_t j = 0; j < dim1.size(); j++)
+      out(i, j) = interpweights(dim0[i], dim1[j]);
+  return out;
+}
+
+Grid<Matrix, 2> dinterpweights(const std::vector<Lagrange>& dim0,
+                               const std::vector<Lagrange>& dim1, Index dim) {
+  Grid<Matrix, 2> out(dim0.size(), dim1.size());
+  for (std::size_t i = 0; i < dim0.size(); i++)
+    for (std::size_t j = 0; j < dim1.size(); j++)
+      out(i, j) = dinterpweights(dim0[i], dim1[j], dim);
+  return out;
+}
+
+Grid<Tensor3, 3> interpweights(const std::vector<Lagrange>& dim0,
+                               const std::vector<Lagrange>& dim1,
+                               const std::vector<Lagrange>& dim2) {
+  Grid<Tensor3, 3> out(dim0.size(), dim1.size(), dim2.size());
+  for (std::size_t i = 0; i < dim0.size(); i++)
+    for (std::size_t j = 0; j < dim1.size(); j++)
+      for (std::size_t k = 0; k < dim2.size(); k++)
+        out(i, j, k) = interpweights(dim0[i], dim1[j], dim2[k]);
+  return out;
+}
+
+Grid<Tensor3, 3> dinterpweights(const std::vector<Lagrange>& dim0,
+                                const std::vector<Lagrange>& dim1,
+                                const std::vector<Lagrange>& dim2, Index dim) {
+  Grid<Tensor3, 3> out(dim0.size(), dim1.size(), dim2.size());
+  for (std::size_t i = 0; i < dim0.size(); i++)
+    for (std::size_t j = 0; j < dim1.size(); j++)
+      for (std::size_t k = 0; k < dim2.size(); k++)
+        out(i, j, k) = dinterpweights(dim0[i], dim1[j], dim2[k], dim);
+  return out;
+}
+
+Grid<Tensor4, 4> interpweights(const std::vector<Lagrange>& dim0,
+                               const std::vector<Lagrange>& dim1,
+                               const std::vector<Lagrange>& dim2,
+                               const std::vector<Lagrange>& dim3) {
+  Grid<Tensor4, 4> out(dim0.size(), dim1.size(), dim2.size(), dim3.size());
+  for (std::size_t i = 0; i < dim0.size(); i++)
+    for (std::size_t j = 0; j < dim1.size(); j++)
+      for (std::size_t k = 0; k < dim2.size(); k++)
+        for (std::size_t l = 0; l < dim3.size(); l++)
+          out(i, j, k, l) = interpweights(dim0[i], dim1[j], dim2[k], dim3[l]);
+  return out;
+}
+
+Grid<Tensor4, 4> dinterpweights(const std::vector<Lagrange>& dim0,
+                                const std::vector<Lagrange>& dim1,
+                                const std::vector<Lagrange>& dim2,
+                                const std::vector<Lagrange>& dim3, Index dim) {
+  Grid<Tensor4, 4> out(dim0.size(), dim1.size(), dim2.size(), dim3.size());
+  for (std::size_t i = 0; i < dim0.size(); i++)
+    for (std::size_t j = 0; j < dim1.size(); j++)
+      for (std::size_t k = 0; k < dim2.size(); k++)
+        for (std::size_t l = 0; l < dim3.size(); l++)
+          out(i, j, k, l) =
+              dinterpweights(dim0[i], dim1[j], dim2[k], dim3[l], dim);
+  return out;
+}
+
+Grid<Tensor5, 5> interpweights(const std::vector<Lagrange>& dim0,
+                               const std::vector<Lagrange>& dim1,
+                               const std::vector<Lagrange>& dim2,
+                               const std::vector<Lagrange>& dim3,
+                               const std::vector<Lagrange>& dim4) {
+  Grid<Tensor5, 5> out(dim0.size(), dim1.size(), dim2.size(), dim3.size(),
+                       dim4.size());
+  for (std::size_t i = 0; i < dim0.size(); i++)
+    for (std::size_t j = 0; j < dim1.size(); j++)
+      for (std::size_t k = 0; k < dim2.size(); k++)
+        for (std::size_t l = 0; l < dim3.size(); l++)
+          for (std::size_t m = 0; m < dim4.size(); m++)
+            out(i, j, k, l, m) =
+                interpweights(dim0[i], dim1[j], dim2[k], dim3[l], dim4[m]);
+  return out;
+}
+
+Grid<Tensor5, 5> dinterpweights(const std::vector<Lagrange>& dim0,
+                                const std::vector<Lagrange>& dim1,
+                                const std::vector<Lagrange>& dim2,
+                                const std::vector<Lagrange>& dim3,
+                                const std::vector<Lagrange>& dim4, Index dim) {
+  Grid<Tensor5, 5> out(dim0.size(), dim1.size(), dim2.size(), dim3.size(),
+                       dim4.size());
+  for (std::size_t i = 0; i < dim0.size(); i++)
+    for (std::size_t j = 0; j < dim1.size(); j++)
+      for (std::size_t k = 0; k < dim2.size(); k++)
+        for (std::size_t l = 0; l < dim3.size(); l++)
+          for (std::size_t m = 0; m < dim4.size(); m++)
+            out(i, j, k, l, m) = dinterpweights(dim0[i], dim1[j], dim2[k],
+                                                dim3[l], dim4[m], dim);
+  return out;
+}
+Grid<Tensor6, 6> interpweights(const std::vector<Lagrange>& dim0,
+                               const std::vector<Lagrange>& dim1,
+                               const std::vector<Lagrange>& dim2,
+                               const std::vector<Lagrange>& dim3,
+                               const std::vector<Lagrange>& dim4,
+                               const std::vector<Lagrange>& dim5) {
+  Grid<Tensor6, 6> out(dim0.size(), dim1.size(), dim2.size(), dim3.size(),
+                       dim4.size(), dim5.size());
+  for (std::size_t i = 0; i < dim0.size(); i++)
+    for (std::size_t j = 0; j < dim1.size(); j++)
+      for (std::size_t k = 0; k < dim2.size(); k++)
+        for (std::size_t l = 0; l < dim3.size(); l++)
+          for (std::size_t m = 0; m < dim4.size(); m++)
+            for (std::size_t n = 0; n < dim5.size(); n++)
+              out(i, j, k, l, m, n) = interpweights(dim0[i], dim1[j], dim2[k],
+                                                    dim3[l], dim4[m], dim5[n]);
+  return out;
+}
+Grid<Tensor6, 6> dinterpweights(const std::vector<Lagrange>& dim0,
+                                const std::vector<Lagrange>& dim1,
+                                const std::vector<Lagrange>& dim2,
+                                const std::vector<Lagrange>& dim3,
+                                const std::vector<Lagrange>& dim4,
+                                const std::vector<Lagrange>& dim5, Index dim) {
+  Grid<Tensor6, 6> out(dim0.size(), dim1.size(), dim2.size(), dim3.size(),
+                       dim4.size(), dim5.size());
+  for (std::size_t i = 0; i < dim0.size(); i++)
+    for (std::size_t j = 0; j < dim1.size(); j++)
+      for (std::size_t k = 0; k < dim2.size(); k++)
+        for (std::size_t l = 0; l < dim3.size(); l++)
+          for (std::size_t m = 0; m < dim4.size(); m++)
+            for (std::size_t n = 0; n < dim5.size(); n++)
+              out(i, j, k, l, m, n) = dinterpweights(
+                  dim0[i], dim1[j], dim2[k], dim3[l], dim4[m], dim5[n], dim);
+  return out;
+}
+
+Grid<Tensor7, 7> interpweights(const std::vector<Lagrange>& dim0,
+                               const std::vector<Lagrange>& dim1,
+                               const std::vector<Lagrange>& dim2,
+                               const std::vector<Lagrange>& dim3,
+                               const std::vector<Lagrange>& dim4,
+                               const std::vector<Lagrange>& dim5,
+                               const std::vector<Lagrange>& dim6) {
+  Grid<Tensor7, 7> out(dim0.size(), dim1.size(), dim2.size(), dim3.size(),
+                       dim4.size(), dim5.size(), dim6.size());
+  for (std::size_t i = 0; i < dim0.size(); i++)
+    for (std::size_t j = 0; j < dim1.size(); j++)
+      for (std::size_t k = 0; k < dim2.size(); k++)
+        for (std::size_t l = 0; l < dim3.size(); l++)
+          for (std::size_t m = 0; m < dim4.size(); m++)
+            for (std::size_t n = 0; n < dim5.size(); n++)
+              for (std::size_t o = 0; o < dim6.size(); o++)
+                out(i, j, k, l, m, n, o) =
+                    interpweights(dim0[i], dim1[j], dim2[k], dim3[l], dim4[m],
+                                  dim5[n], dim6[o]);
+  return out;
+}
+
+Grid<Tensor7, 7> dinterpweights(const std::vector<Lagrange>& dim0,
+                                const std::vector<Lagrange>& dim1,
+                                const std::vector<Lagrange>& dim2,
+                                const std::vector<Lagrange>& dim3,
+                                const std::vector<Lagrange>& dim4,
+                                const std::vector<Lagrange>& dim5,
+                                const std::vector<Lagrange>& dim6, Index dim) {
+  Grid<Tensor7, 7> out(dim0.size(), dim1.size(), dim2.size(), dim3.size(),
+                       dim4.size(), dim5.size(), dim6.size());
+  for (std::size_t i = 0; i < dim0.size(); i++)
+    for (std::size_t j = 0; j < dim1.size(); j++)
+      for (std::size_t k = 0; k < dim2.size(); k++)
+        for (std::size_t l = 0; l < dim3.size(); l++)
+          for (std::size_t m = 0; m < dim4.size(); m++)
+            for (std::size_t n = 0; n < dim5.size(); n++)
+              for (std::size_t o = 0; o < dim6.size(); o++)
+                out(i, j, k, l, m, n, o) =
+                    dinterpweights(dim0[i], dim1[j], dim2[k], dim3[l], dim4[m],
+                                   dim5[n], dim6[o], dim);
+  return out;
+}
+
+Vector reinterp(const ConstVectorView iy, const Grid<Vector, 1>& iw,
+                const std::vector<Lagrange>& dim0) {
+  Vector out(dim0.size());
+  for (std::size_t i = 0; i < dim0.size(); i++)
+    out[i] = interp(iy, iw(i), dim0[i]);
+  return out;
+}
+
+Matrix reinterp(const ConstMatrixView iy, const Grid<Matrix, 2>& iw,
+                const std::vector<Lagrange>& dim0,
+                const std::vector<Lagrange>& dim1) {
+  Matrix out(dim0.size(), dim1.size());
+  for (std::size_t i = 0; i < dim0.size(); i++)
+    for (std::size_t j = 0; j < dim1.size(); j++)
+      out(i, j) = interp(iy, iw(i, j), dim0[i], dim1[j]);
+  return out;
+}
+
+Tensor3 reinterp(const ConstTensor3View iy, const Grid<Tensor3, 3>& iw,
+                 const std::vector<Lagrange>& dim0,
+                 const std::vector<Lagrange>& dim1,
+                 const std::vector<Lagrange>& dim2) {
+  Tensor3 out(dim0.size(), dim1.size(), dim2.size());
+  for (std::size_t i = 0; i < dim0.size(); i++)
+    for (std::size_t j = 0; j < dim1.size(); j++)
+      for (std::size_t k = 0; k < dim2.size(); k++)
+        out(i, j, k) = interp(iy, iw(i, j, k), dim0[i], dim1[j], dim2[k]);
+  return out;
+}
+
+Tensor4 reinterp(const ConstTensor4View iy, const Grid<Tensor4, 4>& iw,
+                 const std::vector<Lagrange>& dim0,
+                 const std::vector<Lagrange>& dim1,
+                 const std::vector<Lagrange>& dim2,
+                 const std::vector<Lagrange>& dim3) {
+  Tensor4 out(dim0.size(), dim1.size(), dim2.size(), dim3.size());
+  for (std::size_t i = 0; i < dim0.size(); i++)
+    for (std::size_t j = 0; j < dim1.size(); j++)
+      for (std::size_t k = 0; k < dim2.size(); k++)
+        for (std::size_t l = 0; l < dim3.size(); l++)
+          out(i, j, k, l) =
+              interp(iy, iw(i, j, k, l), dim0[i], dim1[j], dim2[k], dim3[l]);
+  return out;
+}
+
+Tensor5 reinterp(const ConstTensor5View iy, const Grid<Tensor5, 5>& iw,
+                 const std::vector<Lagrange>& dim0,
+                 const std::vector<Lagrange>& dim1,
+                 const std::vector<Lagrange>& dim2,
+                 const std::vector<Lagrange>& dim3,
+                 const std::vector<Lagrange>& dim4) {
+  Tensor5 out(dim0.size(), dim1.size(), dim2.size(), dim3.size(), dim4.size());
+  for (std::size_t i = 0; i < dim0.size(); i++)
+    for (std::size_t j = 0; j < dim1.size(); j++)
+      for (std::size_t k = 0; k < dim2.size(); k++)
+        for (std::size_t l = 0; l < dim3.size(); l++)
+          for (std::size_t m = 0; m < dim4.size(); m++)
+            out(i, j, k, l, m) = interp(iy, iw(i, j, k, l, m), dim0[i], dim1[j],
+                                        dim2[k], dim3[l], dim4[m]);
+  return out;
+}
+
+Tensor6 reinterp(const ConstTensor6View iy, const Grid<Tensor6, 6>& iw,
+                 const std::vector<Lagrange>& dim0,
+                 const std::vector<Lagrange>& dim1,
+                 const std::vector<Lagrange>& dim2,
+                 const std::vector<Lagrange>& dim3,
+                 const std::vector<Lagrange>& dim4,
+                 const std::vector<Lagrange>& dim5) {
+  Tensor6 out(dim0.size(), dim1.size(), dim2.size(), dim3.size(), dim4.size(),
+              dim5.size());
+  for (std::size_t i = 0; i < dim0.size(); i++)
+    for (std::size_t j = 0; j < dim1.size(); j++)
+      for (std::size_t k = 0; k < dim2.size(); k++)
+        for (std::size_t l = 0; l < dim3.size(); l++)
+          for (std::size_t m = 0; m < dim4.size(); m++)
+            for (std::size_t n = 0; n < dim5.size(); n++)
+              out(i, j, k, l, m, n) =
+                  interp(iy, iw(i, j, k, l, m, n), dim0[i], dim1[j], dim2[k],
+                         dim3[l], dim4[m], dim5[n]);
+  return out;
+}
+
+Tensor7 reinterp(const ConstTensor7View iy, const Grid<Tensor7, 7>& iw,
+                 const std::vector<Lagrange>& dim0,
+                 const std::vector<Lagrange>& dim1,
+                 const std::vector<Lagrange>& dim2,
+                 const std::vector<Lagrange>& dim3,
+                 const std::vector<Lagrange>& dim4,
+                 const std::vector<Lagrange>& dim5,
+                 const std::vector<Lagrange>& dim6) {
+  Tensor7 out(dim0.size(), dim1.size(), dim2.size(), dim3.size(), dim4.size(),
+              dim5.size(), dim6.size());
+  for (std::size_t i = 0; i < dim0.size(); i++)
+    for (std::size_t j = 0; j < dim1.size(); j++)
+      for (std::size_t k = 0; k < dim2.size(); k++)
+        for (std::size_t l = 0; l < dim3.size(); l++)
+          for (std::size_t m = 0; m < dim4.size(); m++)
+            for (std::size_t n = 0; n < dim5.size(); n++)
+              for (std::size_t o = 0; o < dim6.size(); o++)
+                out(i, j, k, l, m, n, o) =
+                    interp(iy, iw(i, j, k, l, m, n, o), dim0[i], dim1[j],
+                           dim2[k], dim3[l], dim4[m], dim5[n], dim6[o]);
   return out;
 }
 }  // namespace Interpolation

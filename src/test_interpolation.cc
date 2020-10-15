@@ -631,4 +631,28 @@ void test11() {
   }
 }
 
-int main() { test11(); }
+void test12() {
+  constexpr int N=20;
+  Vector x0(1, N, +1);    // 1, 2, 3, 4, 5 ... 10
+  Vector x1(1, N, +2);    // 1, 2, 3, 4, 5 ... 10
+  Vector x0n(100);
+  Vector x1n(100);
+  nlinspace(x0n, x0[0], x0[N-1], 100);
+  nlinspace(x1n, x1[0], x1[N-1], 100);
+  Matrix yi(N, N);
+  for (Index i=0; i<N; i++) for (Index j=0; j<N; j++) yi(i, j) = std::exp(-x0[i]/3.14 + x1[j]/3.14);
+  
+  std::cerr << x0 << '\n';
+  std::cerr << x1 << '\n';
+  std::cerr << yi << '\n';
+  
+  constexpr Index order = 5;
+  {
+      const auto lag0 = Interpolation::LagrangeVector(x0n, x0, order);
+      const auto lag1 = Interpolation::LagrangeVector(x1n, x1, order);
+      const auto iwlag = interpweights(lag0, lag1);
+      std::cout << x0n << '\n' << x1n << '\n' << reinterp(yi, iwlag, lag0, lag1) << '\n';
+  }
+}
+
+int main() { test12(); }
