@@ -191,132 +191,59 @@ Tensor7 dinterpweights(const Lagrange& dim0, const Lagrange& dim1,
 
 Numeric interp(const ConstVectorView yi, const ConstVectorView iw,
                const Lagrange& dim0) {
-  const std::array<Index, 1> size{
-      dim0.size(),
-  };
-  std::array<Index, 1> ittr{
-      dim0.pos,
-  };
-  const auto start_ittr = ittr;
   Numeric out(0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
-    out += iw[ittr[0] - dim0.pos] * yi[ittr[0]];
-  }
+  for (Index i = 0; i < dim0.size(); i++) out += iw[i] * yi[i + dim0.pos];
   return out;
 }
 
 Numeric interp(const ConstMatrixView yi, const ConstMatrixView iw,
                const Lagrange& dim0, const Lagrange& dim1) {
-  const std::array<Index, 2> size{
-      dim0.size(),
-      dim1.size(),
-  };
-  std::array<Index, 2> ittr{
-      dim0.pos,
-      dim1.pos,
-  };
-  const auto start_ittr = ittr;
   Numeric out(0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
-         ittr[1]++) {
-      out += iw(ittr[0] - dim0.pos, ittr[1] - dim1.pos) * yi(ittr[0], ittr[1]);
-    }
-  }
+
+  for (Index i = 0; i < dim0.size(); i++)
+    for (Index j = 0; j < dim1.size(); j++)
+      out += iw(i, j) * yi(i + dim0.pos, j + dim1.pos);
   return out;
 }
 
 Numeric interp(const ConstTensor3View yi, const ConstTensor3View iw,
                const Lagrange& dim0, const Lagrange& dim1,
                const Lagrange& dim2) {
-  const std::array<Index, 3> size{
-      dim0.size(),
-      dim1.size(),
-      dim2.size(),
-  };
-  std::array<Index, 3> ittr{
-      dim0.pos,
-      dim1.pos,
-      dim2.pos,
-  };
-  const auto start_ittr = ittr;
   Numeric out(0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
-         ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
-           ittr[2]++) {
-        out += iw(ittr[0] - dim0.pos, ittr[1] - dim1.pos, ittr[2] - dim2.pos) *
-               yi(ittr[0], ittr[1], ittr[2]);
-      }
-    }
-  }
+
+  for (Index i = 0; i < dim0.size(); i++)
+    for (Index j = 0; j < dim1.size(); j++)
+      for (Index k = 0; k < dim2.size(); k++)
+        out += iw(i, j, k) * yi(i + dim0.pos, j + dim1.pos, k + dim2.pos);
   return out;
 }
 
 Numeric interp(const ConstTensor4View yi, const ConstTensor4View iw,
                const Lagrange& dim0, const Lagrange& dim1, const Lagrange& dim2,
                const Lagrange& dim3) {
-  const std::array<Index, 4> size{
-      dim0.size(),
-      dim1.size(),
-      dim2.size(),
-      dim3.size(),
-  };
-  std::array<Index, 4> ittr{
-      dim0.pos,
-      dim1.pos,
-      dim2.pos,
-      dim3.pos,
-  };
-  const auto start_ittr = ittr;
   Numeric out(0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
-         ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
-           ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
-             ittr[3]++) {
-          out += iw(ittr[0] - dim0.pos, ittr[1] - dim1.pos, ittr[2] - dim2.pos,
-                    ittr[3] - dim3.pos) *
-                 yi(ittr[0], ittr[1], ittr[2], ittr[3]);
-        }
-      }
-    }
-  }
+
+  for (Index i = 0; i < dim0.size(); i++)
+    for (Index j = 0; j < dim1.size(); j++)
+      for (Index k = 0; k < dim2.size(); k++)
+        for (Index l = 0; l < dim3.size(); l++)
+          out += iw(i, j, k, l) *
+                 yi(i + dim0.pos, j + dim1.pos, k + dim2.pos, l + dim3.pos);
   return out;
 }
 
 Numeric interp(const ConstTensor5View yi, const ConstTensor5View iw,
                const Lagrange& dim0, const Lagrange& dim1, const Lagrange& dim2,
                const Lagrange& dim3, const Lagrange& dim4) {
-  const std::array<Index, 5> size{
-      dim0.size(), dim1.size(), dim2.size(), dim3.size(), dim4.size(),
-  };
-  std::array<Index, 5> ittr{
-      dim0.pos, dim1.pos, dim2.pos, dim3.pos, dim4.pos,
-  };
-  const auto start_ittr = ittr;
   Numeric out(0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
-         ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
-           ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
-             ittr[3]++) {
-          for (ittr[4] = start_ittr[4]; ittr[4] < size[4] + start_ittr[4];
-               ittr[4]++) {
+  for (Index i = 0; i < dim0.size(); i++)
+    for (Index j = 0; j < dim1.size(); j++)
+      for (Index k = 0; k < dim2.size(); k++)
+        for (Index l = 0; l < dim3.size(); l++)
+          for (Index m = 0; m < dim4.size(); m++)
             out +=
-                iw(ittr[0] - dim0.pos, ittr[1] - dim1.pos, ittr[2] - dim2.pos,
-                   ittr[3] - dim3.pos, ittr[4] - dim4.pos) *
-                yi(ittr[0], ittr[1], ittr[2], ittr[3], ittr[4]);
-          }
-        }
-      }
-    }
-  }
+                iw(i, j, k, l, m) * yi(i + dim0.pos, j + dim1.pos, k + dim2.pos,
+                                       l + dim3.pos, m + dim4.pos);
   return out;
 }
 
@@ -324,36 +251,16 @@ Numeric interp(const ConstTensor6View yi, const ConstTensor6View iw,
                const Lagrange& dim0, const Lagrange& dim1, const Lagrange& dim2,
                const Lagrange& dim3, const Lagrange& dim4,
                const Lagrange& dim5) {
-  const std::array<Index, 6> size{
-      dim0.size(), dim1.size(), dim2.size(),
-      dim3.size(), dim4.size(), dim5.size(),
-  };
-  std::array<Index, 6> ittr{
-      dim0.pos, dim1.pos, dim2.pos, dim3.pos, dim4.pos, dim5.pos,
-  };
-  const auto start_ittr = ittr;
   Numeric out(0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
-         ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
-           ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
-             ittr[3]++) {
-          for (ittr[4] = start_ittr[4]; ittr[4] < size[4] + start_ittr[4];
-               ittr[4]++) {
-            for (ittr[5] = start_ittr[5]; ittr[5] < size[5] + start_ittr[5];
-                 ittr[5]++) {
-              out += iw(ittr[0] - dim0.pos, ittr[1] - dim1.pos,
-                        ittr[2] - dim2.pos, ittr[3] - dim3.pos,
-                        ittr[4] - dim4.pos, ittr[5] - dim5.pos) *
-                     yi(ittr[0], ittr[1], ittr[2], ittr[3], ittr[4], ittr[5]);
-            }
-          }
-        }
-      }
-    }
-  }
+  for (Index i = 0; i < dim0.size(); i++)
+    for (Index j = 0; j < dim1.size(); j++)
+      for (Index k = 0; k < dim2.size(); k++)
+        for (Index l = 0; l < dim3.size(); l++)
+          for (Index m = 0; m < dim4.size(); m++)
+            for (Index n = 0; n < dim5.size(); n++)
+              out += iw(i, j, k, l, m, n) * yi(i + dim0.pos, j + dim1.pos,
+                                               k + dim2.pos, l + dim3.pos,
+                                               m + dim4.pos, n + dim5.pos);
   return out;
 }
 
@@ -361,41 +268,18 @@ Numeric interp(const ConstTensor7View yi, const ConstTensor7View iw,
                const Lagrange& dim0, const Lagrange& dim1, const Lagrange& dim2,
                const Lagrange& dim3, const Lagrange& dim4, const Lagrange& dim5,
                const Lagrange& dim6) {
-  const std::array<Index, 7> size{
-      dim0.size(), dim1.size(), dim2.size(), dim3.size(),
-      dim4.size(), dim5.size(), dim6.size(),
-  };
-  std::array<Index, 7> ittr{
-      dim0.pos, dim1.pos, dim2.pos, dim3.pos, dim4.pos, dim5.pos, dim6.pos,
-  };
-  const auto start_ittr = ittr;
   Numeric out(0.0);
-  for (ittr[0] = start_ittr[0]; ittr[0] < size[0] + start_ittr[0]; ittr[0]++) {
-    for (ittr[1] = start_ittr[1]; ittr[1] < size[1] + start_ittr[1];
-         ittr[1]++) {
-      for (ittr[2] = start_ittr[2]; ittr[2] < size[2] + start_ittr[2];
-           ittr[2]++) {
-        for (ittr[3] = start_ittr[3]; ittr[3] < size[3] + start_ittr[3];
-             ittr[3]++) {
-          for (ittr[4] = start_ittr[4]; ittr[4] < size[4] + start_ittr[4];
-               ittr[4]++) {
-            for (ittr[5] = start_ittr[5]; ittr[5] < size[5] + start_ittr[5];
-                 ittr[5]++) {
-              for (ittr[6] = start_ittr[6]; ittr[6] < size[6] + start_ittr[6];
-                   ittr[6]++) {
-                out += iw(ittr[0] - dim0.pos, ittr[1] - dim1.pos,
-                          ittr[2] - dim2.pos, ittr[3] - dim3.pos,
-                          ittr[4] - dim4.pos, ittr[5] - dim5.pos,
-                          ittr[6] - dim6.pos) *
-                       yi(ittr[0], ittr[1], ittr[2], ittr[3], ittr[4], ittr[5],
-                          ittr[6]);
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+  for (Index i = 0; i < dim0.size(); i++)
+    for (Index j = 0; j < dim1.size(); j++)
+      for (Index k = 0; k < dim2.size(); k++)
+        for (Index l = 0; l < dim3.size(); l++)
+          for (Index m = 0; m < dim4.size(); m++)
+            for (Index n = 0; n < dim5.size(); n++)
+              for (Index o = 0; o < dim6.size(); o++)
+                out += iw(i, j, k, l, m, n, o) * yi(i + dim0.pos, j + dim1.pos,
+                                                    k + dim2.pos, l + dim3.pos,
+                                                    m + dim4.pos, n + dim5.pos,
+                                                    o + dim6.pos);
   return out;
 }
 
