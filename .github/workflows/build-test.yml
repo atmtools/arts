@@ -119,7 +119,7 @@ jobs:
       - name: Setup (macOS)
         if: runner.os == 'macOS'
         run: |
-          brew unlink python@3.9
+          brew unlink python@3.9 || true
           brew install cmake python@3.8
           sudo pip3.8 install docutils lark-parser matplotlib netCDF4 numpy pytest scipy
           if [ "${{ matrix.compiler }}" = "gcc" ]; then
