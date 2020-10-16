@@ -86,7 +86,7 @@ void fos(
    const Agenda&                        iy_space_agenda,
    const Agenda&                        iy_surface_agenda,
    const Index&                         iy_agenda_call1,
-   const Tensor3&                       iy_transmission,
+   const Tensor3&                       iy_transmittance,
    const Vector&                        rte_pos,      
    const Vector&                        rte_los,      
    const Vector&                        rte_pos2, 
@@ -323,7 +323,7 @@ void fos(
         { id_mat( trans_cumulat(iv,joker,joker,np-1) ); }
     }
 
-  // iy_transmission
+  // iy_transmittance
   //
   Tensor3 iy_trans_new;
   //
@@ -331,7 +331,7 @@ void fos(
     { iy_trans_new = trans_cumulat(joker,joker,joker,np-1); }
   else
     { 
-      iy_transmission_mult( iy_trans_new, iy_transmission, 
+      iy_transmittance_mult( iy_trans_new, iy_transmittance, 
                             trans_cumulat(joker,joker,joker,np-1) ); }
 
   // Radiative background
@@ -789,7 +789,7 @@ void iyFOS(
    const Agenda&                      iy_space_agenda,
    const Agenda&                      iy_surface_agenda,
    const Index&                       iy_agenda_call1,
-   const Tensor3&                     iy_transmission,
+   const Tensor3&                     iy_transmittance,
    const Vector&                      rte_pos,      
    const Vector&                      rte_los,      
    const Vector&                      rte_pos2, 
@@ -845,7 +845,7 @@ void iyFOS(
        scat_data, particle_masses, iy_unit, iy_aux_vars, jacobian_do, 
        ppath_agenda, propmat_clearsky_agenda,
        iy_main_agenda, iy_space_agenda, iy_surface_agenda, iy_agenda_call1,
-       iy_transmission, rte_pos, rte_los, rte_pos2, rte_alonglos_v, 
+       iy_transmittance, rte_pos, rte_los, rte_pos2, rte_alonglos_v, 
        ppath_lmax, ppath_lraytrace, fos_scatint_angles, fos_iyin_za_angles, 
        fos_za_interporder, n, 0, verbosity );
 }
@@ -893,12 +893,13 @@ void iyHybrid(Workspace& ws,
               const ArrayOfRetrievalQuantity& jacobian_quantities,
               const Agenda& propmat_clearsky_agenda,
               const Agenda& water_p_eq_agenda,
+              const String& rt_integration_option,
               const Agenda& iy_main_agenda,
               const Agenda& iy_space_agenda,
               const Agenda& iy_surface_agenda,
               const Agenda& iy_cloudbox_agenda,
               const Index& iy_agenda_call1,
-              const Tensor3& iy_transmission,
+              const Tensor3& iy_transmittance,
               const Ppath& ppath,
               const Vector& rte_pos2,
               const Numeric& rte_alonglos_v,
@@ -949,12 +950,13 @@ void iyHybrid(Workspace& ws,
                        rte_pos2,
                        propmat_clearsky_agenda,
                        water_p_eq_agenda,
+                       rt_integration_option,
                        iy_main_agenda,
                        iy_space_agenda,
                        iy_surface_agenda,
                        iy_cloudbox_agenda,
                        iy_agenda_call1,
-                       iy_transmission,
+                       iy_transmittance,
                        rte_alonglos_v,
                        surface_props_data,
                        verbosity);
@@ -1283,13 +1285,13 @@ void iyHybrid(Workspace& ws,
     }
   }
 
-  // iy_transmission
+  // iy_transmittance
   Tensor3 iy_trans_new;
   if (iy_agenda_call1) {
     iy_trans_new = ppvar_trans_cumulat(np - 1, joker, joker, joker);
   } else {
-    iy_transmission_mult(iy_trans_new,
-                         iy_transmission,
+    iy_transmittance_mult(iy_trans_new,
+                         iy_transmittance,
                          ppvar_trans_cumulat(np - 1, joker, joker, joker));
   }
 
@@ -1390,7 +1392,7 @@ void iyHybrid(Workspace& ws,
                                     ppvar_t,
                                     ppvar_vmr,
                                     iy_agenda_call1,
-                                    iy_transmission,
+                                    iy_transmittance,
                                     water_p_eq_agenda,
                                     jacobian_quantities,
                                     jac_species_i,
@@ -1454,12 +1456,13 @@ void iyHybrid2(Workspace& ws,
                const ArrayOfRetrievalQuantity& jacobian_quantities,
                const Agenda& propmat_clearsky_agenda,
                const Agenda& water_p_eq_agenda,
+               const String& rt_integration_option,               
                const Agenda& iy_main_agenda,
                const Agenda& iy_space_agenda,
                const Agenda& iy_surface_agenda,
                const Agenda& iy_cloudbox_agenda,
                const Index& iy_agenda_call1,
-               const Tensor3& iy_transmission,
+               const Tensor3& iy_transmittance,
                const Ppath& ppath,
                const Vector& rte_pos2,
                const Numeric& rte_alonglos_v,
@@ -1510,12 +1513,13 @@ void iyHybrid2(Workspace& ws,
                        rte_pos2,
                        propmat_clearsky_agenda,
                        water_p_eq_agenda,
+                       rt_integration_option,
                        iy_main_agenda,
                        iy_space_agenda,
                        iy_surface_agenda,
                        iy_cloudbox_agenda,
                        iy_agenda_call1,
-                       iy_transmission,
+                       iy_transmittance,
                        rte_alonglos_v,
                        surface_props_data,
                        verbosity);
@@ -1852,12 +1856,12 @@ void iyHybrid2(Workspace& ws,
   const ArrayOfTransmissionMatrix tot_tra =
       cumulative_transmission(lyr_tra, CumulativeTransmission::Forward);
 
-  // iy_transmission
+  // iy_transmittance
   Tensor3 iy_trans_new;
   if (iy_agenda_call1)
     iy_trans_new = tot_tra[np - 1];
   else
-    iy_transmission_mult(iy_trans_new, iy_transmission, tot_tra[np - 1]);
+    iy_transmittance_mult(iy_trans_new, iy_transmittance, tot_tra[np - 1]);
 
   // Copy transmission to iy_aux
   for (Index i = 0; i < naux; i++)
@@ -1932,7 +1936,7 @@ void iyHybrid2(Workspace& ws,
                                     ppvar_t,
                                     ppvar_vmr,
                                     iy_agenda_call1,
-                                    iy_transmission,
+                                    iy_transmittance,
                                     water_p_eq_agenda,
                                     jacobian_quantities,
                                     jac_species_i,

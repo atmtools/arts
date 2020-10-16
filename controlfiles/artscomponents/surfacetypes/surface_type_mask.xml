@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<arts format="binary" version="1">
+<GriddedField2 name="Surface type distribution">
+<Vector name="Latitude" nelem="58">
+</Vector>
+<Vector name="Longitude" nelem="55">
+</Vector>
+<Matrix name="Surface index" nrows="58" ncols="55">
+</Matrix>
+</GriddedField2>
+</arts>

@@ -161,6 +161,76 @@ void cart2zaaa(Numeric& za,
                const Numeric& dy,
                const Numeric& dz);
 
+/** Converts zenith and azimuth angles to a cartesian unit vector.
+
+   This function and the sister function cart2zaaa handles
+   transformation of line-of-sights. This in contrast to the sph/poslos
+   functions that handles positions, or combinations of positions and
+   line-of-sight.
+
+   The cartesian coordinate system used for these two functions can 
+   be defined as
+    z : za = 0
+    x : za=90, aa=0
+    y : za=90, aa=90
+
+   @param[out]   dx    x-part of LOS unit vector.
+   @param[out]   dy    y-part of LOS unit vector.
+   @param[out]   dz    z-part of LOS unit vector.
+   @param[in]    za    LOS zenith angle at observation position.
+   @param[in]    aa    LOS azimuth angle at observation position.
+
+   @author Patrick Eriksson
+   @date   2009-10-02
+ */
+void zaaa2cart(Numeric& dx,
+               Numeric& dy,
+               Numeric& dz,
+               const Numeric& za,
+               const Numeric& aa);
+
+/** Converts ENU unit vector vector to zenith and azimuth
+
+   This function and the sister function enu2zaaa handles transformation of
+   line-of-sights, from and to ENU (east-north-up). The ENU vector is
+   normalised to have length 1.
+
+   @param[out]   za    LOS zenith angle at observation position.
+   @param[out]   aa    LOS azimuth angle at observation position.
+   @param[in]    de    e-part of LOS unit vector.
+   @param[in]    dn    n-part of LOS unit vector.
+   @param[in]    du    u-part of LOS unit vector.
+
+   @author Patrick Eriksson
+   @date   2020-09-17
+ */
+void enu2zaaa(Numeric& za,
+              Numeric& aa,
+              const Numeric& de,
+              const Numeric& dn,
+              const Numeric& du);
+
+/** Converts zenith and azimuth angles to ENU unit vector.
+
+   This function and the sister function enu2zaaa handles transformation of
+   line-of-sights, from and to ENU (east-north-up). The ENU vector is
+   normalised to have length 1.
+
+   @param[out]   de    e-part of LOS unit vector.
+   @param[out]   dn    n-part of LOS unit vector.
+   @param[out]   du    u-part of LOS unit vector.
+   @param[in]    za    LOS zenith angle at observation position.
+   @param[in]    aa    LOS azimuth angle at observation position.
+
+   @author Patrick Eriksson
+   @date   2020-09-17
+ */
+void zaaa2enu(Numeric& de,
+              Numeric& dn,
+              Numeric& du,
+              const Numeric& za,
+              const Numeric& aa);
+
 /** Takes the difference of zenith and azimuth angles
 
    Takes the difference between a set of angles (za,aa) and a reference
@@ -268,6 +338,21 @@ Numeric geompath_lat_at_za(const Numeric& za0,
    @date   2002-05-20
  */
 Numeric geompath_l_at_r(const Numeric& ppc, const Numeric& r);
+
+/** Calculates the radius for a distance from the tangent point.
+
+   The tangent point is either real or imaginary depending on the zenith
+   angle of the sensor. See geometrical_tangent_radius.
+
+   @param[in]   ppc    Propagation path constant.
+   @param[in]   l      Length from the tangent point (positive or negative).
+
+   @return         Radius. 
+
+   @author Patrick Eriksson
+   @date   2002-05-20
+ */
+Numeric geompath_r_at_l(const Numeric& ppc, const Numeric& l);
 
 /** Calculates the zenith angle for a given radius along a geometrical 
    propagation path.

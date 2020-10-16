@@ -143,6 +143,11 @@ NumericSet( ppath_lmax, 10e3 )
 NumericSet( ppath_lraytrace, 1e3 )
 
 
+#
+# Deafult is most basic type of radiative transfer integration
+#
+StringSet( rt_integration_option, "default" )
+
 
 #
 # Various geo-positioning

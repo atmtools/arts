@@ -790,7 +790,7 @@ void Workspace::define_wsv_data() {
       DESCRIPTION(
           "OK-flag for the geometry of the model atmosphere.\n"
           "\n"
-          "The variable flags that reference ellipsoid, the surface and *z_field*\n"
+          "The variable flags that reference ellipsoid, the surfae and *z_field*\n"
           "contain formally correct values. Includes for example, that *z_field*\n"
           "holds strictly increasing values at each geographical position.\n"
           "\n"
@@ -1939,7 +1939,8 @@ void Workspace::define_wsv_data() {
           "Usage:      Used by radiative transfer methods.\n"
           "\n"
           "Unit:       For passive observations, as  selected by *iy_unit*.\n"
-          "            For transmission type, same as for transmitted signal.\n"
+          "            For transmission calculations, same as for transmitted\n"
+          "            signal.\n"
           "\n"
           "Dimensions: [ f_grid, stokes_dim ]\n"),
       GROUP("Matrix")));
@@ -1954,7 +1955,7 @@ void Workspace::define_wsv_data() {
           "\n"
           "Usage:      Used internally.\n"
           "\n"
-          "Unit:       W / (m^2 Hz sr) or transmission.\n"
+          "Unit:       W / (m^2 Hz sr) or transmittance.\n"
           "\n"
           "Dimensions: [ nlos * nf * stokes_dim ] where nlos is number of rows in\n"
           "            mblock_dlos_grid, and nf is length of f_grid.\n"),
@@ -2076,13 +2077,13 @@ void Workspace::define_wsv_data() {
       GROUP("ArrayOfAgenda")));
 
   wsv_data.push_back(WsvRecord(
-      NAME("iy_transmission"),
+      NAME("iy_transmittance"),
       DESCRIPTION(
-          "Transmission to be included in *iy*.\n"
+          "Transmittance to be included in *iy*.\n"
           "\n"
           "The calculation of *iy* can be performed over several propation path\n"
           "branches, and there can be recursive calls of *iy_main_agenda*.\n"
-          "This variable gives the transmission from the end point of the present\n"
+          "This variable gives the transmittance from the end point of the present\n"
           "branch and the sensor for such recursive cases.\n"
           "\n"
           "This variable is used purely internally. The exact usage can vary\n"
@@ -2576,7 +2577,7 @@ void Workspace::define_wsv_data() {
 
   wsv_data.push_back(WsvRecord(
       NAME("mc_y_tx"),
-      DESCRIPTION("Normalized Stokes vector for transmission (e.g., radar).\n"
+      DESCRIPTION("Normalized Stokes vector for transmittance (e.g., radar).\n"
                   "\n"
                   "The first element (intensity) should have a value of 1."
                   "\n"
@@ -3345,9 +3346,9 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_trans_cumulat"),
       DESCRIPTION(
-          "The transmission between the sensor and each point of the propagation path.\n"
+          "The transmittance between the sensor and each point of the propagation path.\n"
           "\n"
-          "Returned as the one-way transmission even in the case of radar\n"
+          "Returned as the one-way transmittance even in the case of radar\n"
           "simulations.\n"
           "\n"
           "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
@@ -3360,7 +3361,7 @@ void Workspace::define_wsv_data() {
   wsv_data.push_back(WsvRecord(
       NAME("ppvar_trans_partial"),
       DESCRIPTION(
-          "The transmission between each point along the propagation path.\n"
+          "The transmittance between each point along the propagation path.\n"
           "\n"
           "See *ppvar_p* for a general description of WSVs of ppvar-type.\n"
           "\n"
@@ -3818,6 +3819,14 @@ void Workspace::define_wsv_data() {
       GROUP("Numeric")));
 
   wsv_data.push_back(WsvRecord(
+      NAME("rt_integration_option"),
+      DESCRIPTION(
+          "Switch between integration approaches for radiative transfer steps.\n"
+          "\n"
+          "See each WSM using this varaible as input for available options.\n"),
+      GROUP("String")));
+
+  wsv_data.push_back(WsvRecord(
       NAME("rtp_nlte"),
       DESCRIPTION(
           "NLTE temperature/ratio at a radiative transfer point.\n"
@@ -4212,6 +4221,43 @@ void Workspace::define_wsv_data() {
           "Size:  [ number of measurement blocks, 1 or 2 ]\n"),
       GROUP("Matrix")));
 
+    wsv_data.push_back(WsvRecord(
+      NAME("sensor_los_geodetic"),
+      DESCRIPTION(
+          "As *sensor_los* but matching geodetic coordinates.\n"
+          "\n"
+          "For this version zenith is defined as the normal of the reference\n"
+          "ellipsoid, in contrast to *sensor_los* zenith is along the direction\n"
+          "towards the planets centre.\n" 
+          "\n"
+          "Probably only useful for 3D.\n"
+          "\n"          
+          "Usage: Set by the user.\n"
+          "\n"
+          "Unit:  [ degrees, degrees ]\n"
+          "\n"
+          "Size:  [ number of measurement blocks, 2 ]\n"),
+      GROUP("Matrix")));
+
+    wsv_data.push_back(WsvRecord(
+      NAME("sensor_los_ecef"),
+      DESCRIPTION(
+          "As *sensor_los* but matching ECEF coordinates.\n"
+          "\n"
+          "For this version of sensor_los, each row shall hold [dx,dy,dz],\n"
+          "where dx, dy and dz are the x, y and z components if the line-of-sight\n"
+          "directions in ECEF coordinates. [dx,dy,dz] must form a unit vector (i.e.\n" 
+          "its 2-norm shall be 1).\n"
+          "\n"
+          "Probably only useful for 3D.\n"
+          "\n"          
+          "Usage: Set by the user.\n"
+          "\n"
+          "Unit:  [ m, m, m ]\n"
+          "\n"
+          "Size:  [ number of measurement blocks, 3 ]\n"),
+      GROUP("Matrix")));
+    
   wsv_data.push_back(WsvRecord(
       NAME("sensor_norm"),
       DESCRIPTION(
@@ -4287,6 +4333,46 @@ void Workspace::define_wsv_data() {
           "Size:  [ number of measurement blocks, atmosphere_dim ]\n"),
       GROUP("Matrix")));
 
+  wsv_data.push_back(WsvRecord(
+      NAME("sensor_pos_geodetic"),
+      DESCRIPTION(
+          "As *sensor_pos* but using geodetic coordinates.\n"
+          "\n"
+          "For this version the second column shall hold geodetic latitudes,\n"
+          "in contrast to *sensor_pos* where the geocentric system us used.\n"
+          "Please note that also the altitude (column 1) differs between\n"
+          "the two versions of the variables. Here the altitude is with\n"
+          "taken along the local nadir, while for *sensor_pos* it is taken\n"  
+          "along the direction towards the planets centre.\n" 
+          "\n"
+          "Probably only useful for 3D.\n"
+          "\n"          
+          "Usage: Set by the user.\n"
+          "\n"
+          "Unit:  [ m, degrees, degrees ]\n"
+          "\n"
+          "Size:  [ number of measurement blocks, atmosphere_dim ]\n"),
+      GROUP("Matrix")));
+  
+  wsv_data.push_back(WsvRecord(
+      NAME("sensor_pos_ecef"),
+      DESCRIPTION(
+          "As *sensor_pos* but using ECEF coordinates.\n"
+          "\n"
+          "The sensor position is here specified as earth-centered, earth-fixed\n"
+          "(ECEF) coordinates (using standard definition of ECEF).\n"
+          "\n"
+          "Probably only useful for 3D.\n"
+          "\n"
+          "Column 1, 2 and 3 shall hold x, y and z coordinate, respectively.\n"
+          "\n"          
+          "Usage: Set by the user.\n"
+          "\n"
+          "Unit:  [ m, m, m ]\n"
+          "\n"
+          "Size:  [ number of measurement blocks, atmosphere_dim ]\n"),
+      GROUP("Matrix")));
+  
   wsv_data.push_back(WsvRecord(
       NAME("sensor_response"),
       DESCRIPTION(
@@ -4846,7 +4932,7 @@ void Workspace::define_wsv_data() {
 
   wsv_data.push_back(
       WsvRecord(NAME("surface_type"),
-                DESCRIPTION("Local surface type value.\n"
+                DESCRIPTION("Local, single surface type value.\n"
                             "\n"
                             "See *surface_type_mask* for details.\n"),
                 GROUP("Index")));
@@ -4886,6 +4972,29 @@ void Workspace::define_wsv_data() {
           "      Matrix data [N_lat][N_lon]\n"),
       GROUP("GriddedField2")));
 
+  wsv_data.push_back(
+      WsvRecord(NAME("surface_types"),
+          DESCRIPTION(
+            "This and associated WSVs describe a mixture of surface types.\n"
+            "\n"
+            "Holds a number of *surface_type*.\n"),
+          GROUP("ArrayOfIndex")));
+
+  wsv_data.push_back(
+      WsvRecord(NAME("surface_types_aux"),
+          DESCRIPTION(
+            "Auxiliary variable to *surface_types*.\n"
+            "\n"
+            "Holds a number of *surface_type_aux*..\n"),
+           GROUP("Vector")));
+
+  wsv_data.push_back(
+      WsvRecord(NAME("surface_types_weights"),
+          DESCRIPTION("Auxiliary variable to *surface_type*.\n"
+                      "\n"
+                      "Holds the relative weight of each surface type.\n"),
+          GROUP("Vector")));
+  
   wsv_data.push_back(WsvRecord(
       NAME("telsem_atlases"),
       DESCRIPTION(

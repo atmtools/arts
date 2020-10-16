@@ -91,7 +91,7 @@ void iyRadioLink(
    const Agenda&                      propmat_clearsky_agenda,
    const Agenda&                      iy_transmitter_agenda,
    const Index&                       iy_agenda_call1,
-   const Tensor3&                     iy_transmission,
+   const Tensor3&                     iy_transmittance,
    const Vector&                      rte_pos,      
    const Vector&                      rte_los,      
    const Vector&                      rte_pos2,      
@@ -106,8 +106,8 @@ void iyRadioLink(
   if( !iy_agenda_call1 )
     throw runtime_error( 
                   "Recursive usage not possible (iy_agenda_call1 must be 1)" );
-  if( !iy_transmission.empty() )
-    throw runtime_error( "*iy_transmission* must be empty" );
+  if( !iy_transmittance.empty() )
+    throw runtime_error( "*iy_transmittance* must be empty" );
   if( jacobian_do )
     throw runtime_error( "This method does not provide any jacobians and "
                          "*jacobian_do* must be 0." );
@@ -694,7 +694,7 @@ void iyTransmissionStandard(Workspace& ws,
                             const Agenda& water_p_eq_agenda,
                             const Agenda& iy_transmitter_agenda,
                             const Index& iy_agenda_call1,
-                            const Tensor3& iy_transmission,
+                            const Tensor3& iy_transmittance,
                             const Numeric& rte_alonglos_v,
                             const Verbosity&) {
   // Some basic sizes
@@ -710,8 +710,8 @@ void iyTransmissionStandard(Workspace& ws,
   if (!iy_agenda_call1)
     throw runtime_error(
         "Recursive usage not possible (iy_agenda_call1 must be 1)");
-  if (!iy_transmission.empty())
-    throw runtime_error("*iy_transmission* must be empty");
+  if (!iy_transmittance.empty())
+    throw runtime_error("*iy_transmittance* must be empty");
   if (rbi < 1 || rbi > 9)
     throw runtime_error(
         "ppath.background is invalid. Check your "
@@ -1027,7 +1027,7 @@ void iyTransmissionStandard(Workspace& ws,
                                     ppvar_t,
                                     ppvar_vmr,
                                     iy_agenda_call1,
-                                    iy_transmission,
+                                    iy_transmittance,
                                     water_p_eq_agenda,
                                     jacobian_quantities,
                                     jac_species_i,

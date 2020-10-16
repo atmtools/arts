@@ -222,6 +222,7 @@ int main() try {
   Var::stokes_dim(ws) = 1;
   Var::ppath_lraytrace(ws) = 1e3;
   Var::ppath_lmax(ws) = 1e3;
+  Var::rt_integration_option(ws) = "default";
   
   Var::nelem(ws) = 10001;
   Method::VectorNLinSpace(ws, Var::f_grid(ws), 22e9 - 500e6, 22e9 + 500e6);

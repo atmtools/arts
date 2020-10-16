@@ -887,7 +887,7 @@ void get_iy(Workspace& ws,
   ArrayOfTensor3 diy_dx;
   ArrayOfMatrix iy_aux;
   Ppath ppath;
-  Tensor3 iy_transmission(0, 0, 0);
+  Tensor3 iy_transmittance(0, 0, 0);
   const Index iy_agenda_call1 = 1;
   const ArrayOfString iy_aux_vars(0);
   const Index iy_id = 0;
@@ -899,7 +899,7 @@ void get_iy(Workspace& ws,
                         ppath,
                         diy_dx,
                         iy_agenda_call1,
-                        iy_transmission,
+                        iy_transmittance,
                         iy_aux_vars,
                         iy_id,
                         iy_unit,
@@ -916,7 +916,7 @@ void get_iy(Workspace& ws,
 void get_iy_of_background(Workspace& ws,
                           Matrix& iy,
                           ArrayOfTensor3& diy_dx,
-                          ConstTensor3View iy_transmission,
+                          ConstTensor3View iy_transmittance,
                           const Index& iy_id,
                           const Index& jacobian_do,
                           const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -993,7 +993,7 @@ void get_iy_of_background(Workspace& ws,
                                dsurface_rmatrix_dx,
                                dsurface_emission_dx,
                                iy_unit,
-                               iy_transmission,
+                               iy_transmittance,
                                iy_id_new,
                                cloudbox_on,
                                jacobian_do,
@@ -1990,7 +1990,7 @@ void iyb_calc_body(bool& failed,
     //
     Matrix iy;
     ArrayOfTensor3 diy_dx;
-    Tensor3 iy_transmission(0, 0, 0);
+    Tensor3 iy_transmittance(0, 0, 0);
     const Index iy_agenda_call1 = 1;
     const Index iy_id =
         (Index)1e6 * (mblock_index + 1) + (Index)1e3 * (ilos + 1);
@@ -2001,7 +2001,7 @@ void iyb_calc_body(bool& failed,
                           ppath,
                           diy_dx,
                           iy_agenda_call1,
-                          iy_transmission,
+                          iy_transmittance,
                           iy_aux_vars,
                           iy_id,
                           iy_unit,
@@ -2250,7 +2250,7 @@ void iyb_calc(Workspace& ws,
   }
 }
 
-void iy_transmission_mult(Tensor3& iy_trans_total,
+void iy_transmittance_mult(Tensor3& iy_trans_total,
                           ConstTensor3View iy_trans_old,
                           ConstTensor3View iy_trans_new) {
   const Index nf = iy_trans_old.npages();
@@ -2270,7 +2270,7 @@ void iy_transmission_mult(Tensor3& iy_trans_total,
   }
 }
 
-void iy_transmission_mult(Matrix& iy_new,
+void iy_transmittance_mult(Matrix& iy_new,
                           ConstTensor3View iy_trans,
                           ConstMatrixView iy_old) {
   const Index nf = iy_trans.npages();
@@ -2426,12 +2426,12 @@ void rtmethods_jacobian_finalisation(
     const Vector& ppvar_t,
     const Matrix& ppvar_vmr,
     const Index& iy_agenda_call1,
-    const Tensor3& iy_transmission,
+    const Tensor3& iy_transmittance,
     const Agenda& water_p_eq_agenda,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ArrayOfIndex jac_species_i,
     const ArrayOfIndex jac_is_t) {
-  // Weight with iy_transmission
+  // Weight with iy_transmittance
   if (!iy_agenda_call1) {
     Matrix X, Y;
     //
@@ -2439,7 +2439,7 @@ void rtmethods_jacobian_finalisation(
         Y.resize(ns, diy_dpath[iq].npages());
         for (Index iv = 0; iv < nf; iv++) {
           X = transpose(diy_dpath[iq](joker, iv, joker));
-          mult(Y, iy_transmission(iv, joker, joker), X);
+          mult(Y, iy_transmittance(iv, joker, joker), X);
           diy_dpath[iq](joker, iv, joker) = transpose(Y);
         })
   }

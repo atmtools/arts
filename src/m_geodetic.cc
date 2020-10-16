@@ -38,6 +38,7 @@
 #include <cmath>
 #include <stdexcept>
 #include "arts.h"
+#include "auto_md.h"
 #include "check_input.h"
 #include "geodetic.h"
 #include "matpackI.h"
@@ -72,6 +73,8 @@ void refellipsoidForAzimuth(Vector& refellipsoid,
   }
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refellipsoidOrbitPlane(Vector& refellipsoid,
                             const Numeric& orbitinc,
@@ -87,6 +90,8 @@ void refellipsoidOrbitPlane(Vector& refellipsoid,
   refellipsoid[1] = sqrt(1 - pow(rp / refellipsoid[0], 2.0));
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refellipsoidSet(Vector& refellipsoid,
                      const Numeric& re,
@@ -97,3 +102,210 @@ void refellipsoidSet(Vector& refellipsoid,
   refellipsoid[0] = re;
   refellipsoid[1] = e;
 }
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void rte_poslosFromECEF(Vector& rte_pos,
+                        Vector& rte_los,
+                        const Matrix& sensor_pos_ecef,
+                        const Matrix& sensor_los_ecef,
+                        const Vector& refellipsoid,
+                        const Verbosity& v) {
+  if (sensor_pos_ecef.nrows() != 1)
+    throw runtime_error("For this WSM, *sensor_pos_ecef* can only have one row.");
+
+  Matrix sensor_pos, sensor_los;
+  sensor_poslosFromECEF(sensor_pos,
+                        sensor_los,
+                        sensor_pos_ecef,
+                        sensor_los_ecef,
+                        refellipsoid,
+                        v );
+  rte_pos = sensor_pos(0,joker);
+  if(sensor_los.empty())
+    rte_los.resize(0);
+  else
+    rte_los = sensor_los(0,joker);
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void rte_poslosFromGeodetic(Vector& rte_pos,
+                            Vector& rte_los,
+                            const Matrix& sensor_pos_geodetic,
+                            const Matrix& sensor_los_geodetic,
+                            const Vector& refellipsoid,
+                            const Verbosity& v) {
+  if (sensor_pos_geodetic.nrows() != 1)
+    throw runtime_error("For this WSM, *sensor_pos_geodetic* can only have one row.");
+
+  Matrix sensor_pos, sensor_los;
+  sensor_poslosFromGeodetic(sensor_pos,
+                            sensor_los,
+                            sensor_pos_geodetic,
+                            sensor_los_geodetic,
+                            refellipsoid,
+                            v );
+  rte_pos = sensor_pos(0,joker);
+  if(sensor_los.empty())
+    rte_los.resize(0);
+  else
+    rte_los = sensor_los(0,joker);
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_poslosFromECEF(Matrix& sensor_pos,
+                           Matrix& sensor_los,
+                           const Matrix& sensor_pos_ecef,
+                           const Matrix& sensor_los_ecef,
+                           const Vector& refellipsoid,
+                           const Verbosity&) {
+  const Index ncols = sensor_pos_ecef.ncols();
+  const Index nrows = sensor_pos_ecef.nrows();
+  if (ncols != 3)
+    throw runtime_error("*sensor_pos_geodetic* must have three columns.");
+  
+  sensor_pos.resize( nrows, ncols );
+
+  if (sensor_los_ecef.empty()) {
+    sensor_los = sensor_los_ecef;
+
+    for (Index i=0; i<nrows; i++) {
+      cart2sph_plain(sensor_pos(i,0),
+                     sensor_pos(i,1),
+                     sensor_pos(i,2),
+                     sensor_pos_ecef(i,0),
+                     sensor_pos_ecef(i,1),
+                     sensor_pos_ecef(i,2));
+      sensor_pos(i,0) -= refell2r(refellipsoid,sensor_pos(i,1));
+    }
+  }
+  else {
+    const Index ncols2 = sensor_los_ecef.ncols();
+    if (ncols2 != 3)
+      throw runtime_error("*sensor_los_ecef* must be empty or have "
+                          "three columns.");
+    if (nrows != sensor_los_ecef.nrows())
+      throw runtime_error("*sensor_los_ecef* must be empty or have the "
+                            "same number of rows as *sensor_pos_ecef*");
+
+    sensor_pos.resize( nrows, ncols );
+    sensor_los.resize( nrows, 2 );
+      
+    for (Index i=0; i<nrows; i++) {
+      cart2poslos_plain(sensor_pos(i,0),
+                        sensor_pos(i,1),
+                        sensor_pos(i,2),
+                        sensor_los(i,0),
+                        sensor_los(i,1),
+                        sensor_pos_ecef(i,0),
+                        sensor_pos_ecef(i,1),
+                        sensor_pos_ecef(i,2),
+                        sensor_los_ecef(i,0),
+                        sensor_los_ecef(i,1),
+                        sensor_los_ecef(i,2));                          
+      sensor_pos(i,0) -= refell2r(refellipsoid,sensor_pos(i,1));
+    }
+  }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_poslosFromGeodetic(Matrix& sensor_pos,
+                               Matrix& sensor_los,
+                               const Matrix& sensor_pos_geodetic,
+                               const Matrix& sensor_los_geodetic,
+                               const Vector& refellipsoid,
+                               const Verbosity&) {
+  const Index ncols = sensor_pos_geodetic.ncols();
+  const Index nrows = sensor_pos_geodetic.nrows();
+  if (ncols != 3)
+    throw runtime_error("*sensor_pos_geodetic* must have three columns.");
+  
+  // No conversion to do if geoid is spherical
+  if (refellipsoid[1] < 1e-7) {
+    sensor_pos = sensor_pos_geodetic;
+    sensor_los = sensor_los_geodetic;
+  }
+  else {
+    sensor_pos.resize( nrows, ncols );
+
+    if (sensor_los_geodetic.empty()) {
+      sensor_los = sensor_los_geodetic;
+      Numeric x, y, z;
+      
+      for (Index i=0; i<nrows; i++) {
+        geodetic2cart(x, y, z,
+                      sensor_pos_geodetic(i,0),
+                      sensor_pos_geodetic(i,1),
+                      sensor_pos_geodetic(i,2),
+                      refellipsoid );
+        cart2sph_plain(sensor_pos(i,0),
+                       sensor_pos(i,1),
+                       sensor_pos(i,2),
+                       x, y, z);
+        sensor_pos(i,0) -= refell2r(refellipsoid,sensor_pos(i,1));
+      }
+    } else {
+      const Index ncols2 = sensor_los_geodetic.ncols();
+      if (ncols2 != 2)
+        throw runtime_error("*sensor_los_geodetic* must be empty or have "
+                             "two columns.");
+      if (nrows != sensor_los_geodetic.nrows())
+        throw runtime_error("*sensor_los_geodetic* must be empty or have the "
+                            "same number of rows as *sensor_pos_geodetic*");
+
+      sensor_pos.resize( nrows, ncols );
+      sensor_los.resize( nrows, ncols2 );
+      Numeric x, y, z, dx, dy, dz;
+      
+      for (Index i=0; i<nrows; i++) {
+        geodeticposlos2cart(x, y, z, dx,dy, dz,
+                            sensor_pos_geodetic(i,0),
+                            sensor_pos_geodetic(i,1),
+                            sensor_pos_geodetic(i,2),
+                            sensor_los_geodetic(i,0),
+                            sensor_los_geodetic(i,1),
+                            refellipsoid );
+        cart2poslos_plain(sensor_pos(i,0),
+                          sensor_pos(i,1),
+                          sensor_pos(i,2),
+                          sensor_los(i,0),
+                          sensor_los(i,1),
+                          x, y, z, dx, dy, dz);
+        sensor_pos(i,0) -= refell2r(refellipsoid,sensor_pos(i,1));
+      }
+    }
+  }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void y_geoToGeodetic(Matrix& y_geo,
+                     const Vector& refellipsoid,
+                     const Verbosity&) {
+  if (y_geo.empty() ||  refellipsoid[1] < 1e-7 || std::isnan(y_geo(0,0))) {
+    // Do nothing
+  } else {
+    for (Index i=0; i<y_geo.nrows(); i++) {
+      Numeric x, y, z, dx, dy, dz;
+      Numeric r = y_geo(i,0) + refell2r(refellipsoid,y_geo(i,1));
+      poslos2cart(x, y, z, dx, dy, dz, r,
+                  y_geo(i,1), y_geo(i,2), y_geo(i,3), y_geo(i,4));
+      Numeric h, lat, lon, za, aa;
+      cart2geodeticposlos(h, lat, lon, za, aa, x, y, z, dx, dy, dz,refellipsoid);
+      y_geo(i,0) = h;
+      y_geo(i,1) = lat;
+      y_geo(i,2) = lon;
+      y_geo(i,3) = za;
+      y_geo(i,4) = aa;
+    }
+  }
+}
+  

@@ -372,7 +372,7 @@ void get_iy(Workspace& ws,
     @param[in,out] ws                  The workspace
     @param[out]  iy                    As the WSV.
     @param[out]  diy_dx                As the WSV.
-    @param[in]   iy_transmission       As the WSV.
+    @param[in]   iy_transmittance       As the WSV.
     @param[in]   jacobian_do           As the WSV.
     @param[in]   ppath                 As the WSV.
     @param[in]   atmosphere_dim        As the WSV.
@@ -392,7 +392,7 @@ void get_iy(Workspace& ws,
 void get_iy_of_background(Workspace& ws,
                           Matrix& iy,
                           ArrayOfTensor3& diy_dx,
-                          ConstTensor3View iy_transmission,
+                          ConstTensor3View iy_transmittance,
                           const Index& iy_id,
                           const Index& jacobian_do,
                           const ArrayOfRetrievalQuantity& jacobian_quantities,
@@ -792,52 +792,52 @@ void iyb_calc(Workspace& ws,
               const ArrayOfString& iy_aux_vars,
               const Verbosity& verbosity);
 
-/** Multiplicates iy_transmission with transmissions.
+/** Multiplicates iy_transmittance with transmissions.
 
-    That is, a multiplication of *iy_transmission* with another
+    That is, a multiplication of *iy_transmittance* with another
     variable having same structure and holding transmission values.
 
     The "new path" is assumed to be further away from the sensor than 
-    the propagtion path already included in iy_transmission. That is,
+    the propagtion path already included in iy_transmittance. That is,
     the operation can be written as:
     
        Ttotal = Told * Tnew
 
-    where Told is the transmission corresponding to *iy_transmission*
+    where Told is the transmission corresponding to *iy_transmittance*
     and Tnew corresponds to *tau*.
 
     *iy_trans_new* is sized by the function.
 
-    @param[out]   iy_trans_total    Updated version of *iy_transmission*
-    @param[in]   iy_trans_old      A variable matching *iy_transmission*.
-    @param[in]   iy_trans_new      A variable matching *iy_transmission*.
+    @param[out]   iy_trans_total    Updated version of *iy_transmittance*
+    @param[in]   iy_trans_old      A variable matching *iy_transmittance*.
+    @param[in]   iy_trans_new      A variable matching *iy_transmittance*.
 
     @author Patrick Eriksson 
     @date   2009-10-06
 */
-void iy_transmission_mult(Tensor3& iy_trans_total,
+void iy_transmittance_mult(Tensor3& iy_trans_total,
                           ConstTensor3View iy_trans_old,
                           ConstTensor3View iy_trans_new);
 
-/** Multiplicates iy_transmission with iy-variable.
+/** Multiplicates iy_transmittance with iy-variable.
 
     The operation can be written as:
     
        iy_new = T * iy_old
 
-    where T is the transmission corresponding to *iy_transmission*
+    where T is the transmission corresponding to *iy_transmittance*
     and iy_old is a variable matching iy.
 
     *iy_new* is sized by the function.
 
     @param[out]   iy_new        Updated version of iy 
-    @param[in]   iy_trans      A variable matching *iy_transmission*.
+    @param[in]   iy_trans      A variable matching *iy_transmittance*.
     @param[in]   iy_old        A variable matching *iy*.
 
     @author Patrick Eriksson 
     @date   2018-04-10
 */
-void iy_transmission_mult(Matrix& iy_new,
+void iy_transmittance_mult(Matrix& iy_new,
                           ConstTensor3View iy_trans,
                           ConstMatrixView iy_old);
 
@@ -914,7 +914,7 @@ void rtmethods_jacobian_init(
     const bool is_active = false);
 
 /** This function fixes the last steps to made on the Jacobian in some
-    radiative transfer WSMs. The method applies iy_transmission, maps from
+    radiative transfer WSMs. The method applies iy_transmittance, maps from
     ppath to the retrieval grids and applies non-standard Jacobian units.
 
     See iyEmissonStandard for usage example.
@@ -935,7 +935,7 @@ void rtmethods_jacobian_finalisation(
     const Vector& ppvar_t,
     const Matrix& ppvar_vmr,
     const Index& iy_agenda_call1,
-    const Tensor3& iy_transmission,
+    const Tensor3& iy_transmittance,
     const Agenda& water_p_eq_agenda,
     const ArrayOfRetrievalQuantity& jacobian_quantities,
     const ArrayOfIndex jac_species_i,

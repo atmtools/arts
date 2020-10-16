@@ -120,6 +120,7 @@ void MatrixUnitIntensity(  // WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void water_p_eq_fieldMK05(Tensor3& water_p_eq_field,
                           const Tensor3& t_field,
+                          const Index& only_liquid,
                           const Verbosity&) {
   const Index n1 = t_field.npages();
   const Index n2 = t_field.nrows();
@@ -131,7 +132,7 @@ void water_p_eq_fieldMK05(Tensor3& water_p_eq_field,
     for (Index j = 0; j < n2; j++) {
       for (Index k = 0; k < n3; k++) {
         const Numeric t = t_field(i, j, k);
-        if (t > TEMP_0_C) {
+        if (t > TEMP_0_C || only_liquid) {
           water_p_eq_field(i, j, k) =
               exp(54.842763 - 6763.22 / t - 4.21 * log(t) + 0.000367 * t +
                   tanh(0.0415 * (t - 218.8)) *

@@ -166,19 +166,6 @@ Numeric geompath_l_at_r(const Numeric& ppc, const Numeric& r) {
   }
 }
 
-/** Calculates the radius for a distance from the tangent point.
-
-   The tangent point is either real or imaginary depending on the zenith
-   angle of the sensor. See geometrical_tangent_radius.
-
-   @param[in]   ppc    Propagation path constant.
-   @param[in]   l      Length from the tangent point (positive or negative).
-
-   @return         Radius. 
-
-   @author Patrick Eriksson
-   @date   2002-05-20
- */
 Numeric geompath_r_at_l(const Numeric& ppc, const Numeric& l) {
   assert(ppc >= 0);
 
@@ -322,28 +309,6 @@ void cart2zaaa(Numeric& za,
   aa = RAD2DEG * atan2(dy, dx);
 }
 
-/** Converts zenith and azimuth angles to a cartesian unit vector.
-
-   This function and the sister function cart2zaaa handles
-   transformation of line-of-sights. This in contrast to the sph/poslos
-   functions that handles positions, or combinations of positions and
-   line-of-sight.
-
-   The cartesian coordinate system used for these two functions can 
-   be defined as
-    z : za = 0
-    x : za=90, aa=0
-    y : za=90, aa=90
-
-   @param[out]   dx    x-part of LOS unit vector.
-   @param[out]   dy    y-part of LOS unit vector.
-   @param[out]   dz    z-part of LOS unit vector.
-   @param[in]    za    LOS zenith angle at observation position.
-   @param[in]    aa    LOS azimuth angle at observation position.
-
-   @author Patrick Eriksson
-   @date   2009-10-02
- */
 void zaaa2cart(Numeric& dx,
                Numeric& dy,
                Numeric& dz,
@@ -356,6 +321,26 @@ void zaaa2cart(Numeric& dx,
   dx = sin(zarad);
   dy = sin(aarad) * dx;
   dx = cos(aarad) * dx;
+}
+
+void enu2zaaa(Numeric& za,
+              Numeric& aa,
+              const Numeric& de,
+              const Numeric& dn,
+              const Numeric& du) {
+  za = RAD2DEG * acos( du );
+  aa = RAD2DEG * atan2( de, dn );
+}
+
+void zaaa2enu(Numeric& de,
+              Numeric& dn,
+              Numeric& du,
+              const Numeric& za,
+              const Numeric& aa) {
+  const Numeric st = sin(DEG2RAD*za);
+  de = st * sin(DEG2RAD*aa);
+  dn = st * cos(DEG2RAD*aa);
+  du = cos(DEG2RAD*za);
 }
 
 /** Creates a 3D rotation matrix

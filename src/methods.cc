@@ -6409,7 +6409,7 @@ void define_md_data_raw() {
                "Wind speed.",
                "Azimuth angle between wind direction and line-of-sight. "
                "This angle is measured clockwise from north, i.e. E=90deg.",
-               "The transmission of the atmosphere, along the propagation "
+               "The transmittance of the atmosphere, along the propagation "
                "path of the downwelling radiation. One value per frequency.",
                "The version of FASTEM to use.")));
 
@@ -7387,15 +7387,15 @@ void define_md_data_raw() {
           "This method does not consider *iy_unit*. Unit changes are insted applied\n"
           "in *yActive. The output of this method matches the option \"1\".\n"
           "\n"
-          "Transmission is handled in a slightly simplified manner for efficiency\n"
-          "reasons. First of all, the transmission matrix is assumed to be the same\n"
+          "Transmittance is handled in a slightly simplified manner for efficiency\n"
+          "reasons. First of all, the transmittance matrix is assumed to be the same\n"
           "in both directions between the sensor and the point of back-scattering.\n"
           "This should in general be true, but exceptions could exist. The extinction\n"
           "due to particles can also be scaled, which could be of interest when e.g.\n"
           "characterising inversions.\n"
           "\n"
           "Further, for Jacobian calculations the default is to assume that the\n"
-          "transmission is unaffected by the retrieval quantities. This is done\n"
+          "transmittance is unaffected by the retrieval quantities. This is done\n"
           "to save computational time, and should be a valid approximation for the\n"
           "single-scattering conditions. Set *trans_in_jacobian* to 1 to obtain\n"
           "the more accurate Jacobian.\n"
@@ -7410,7 +7410,7 @@ void define_md_data_raw() {
           "    *iy* but with no attenuated applied. Here all columns are filled.\n"
           " \"Optical depth\": Scalar, total and two-way, optical depth between\n"
           "    sensor and each point of the propagation path. Calculated based on\n"
-          "    the (1,1)-element of the transmission matrix (1-based indexing),\n"
+          "    the (1,1)-element of the transmittance matrix (1-based indexing),\n"
           "    i.e. only fully valid for scalar RT.\n"
           " \"Particle extinction\": As \"Optical depth\", but only with particle\n"
           "    attenuation included. That is, gas absorption is ignored.\n"
@@ -7463,12 +7463,12 @@ void define_md_data_raw() {
          "water_p_eq_agenda",
          "iy_transmitter_agenda",
          "iy_agenda_call1",
-         "iy_transmission",
+         "iy_transmittance",
          "rte_alonglos_v"),
       GIN("trans_in_jacobian", "pext_scaling", "t_interp_order"),
       GIN_TYPE("Index", "Numeric", "Index"),
       GIN_DEFAULT("0", "1", "1"),
-      GIN_DESC("Flag determining if change in transmission is considered"
+      GIN_DESC("Flag determining if change in transmittance is considered"
                " in calculation of the Jacobian or not.",
                "Particle extinction is scaled with this value. A value"
                " inside [0,2]. Set it to 0 if you want to remove particle"
@@ -7526,12 +7526,12 @@ void define_md_data_raw() {
          "water_p_eq_agenda",
          "iy_transmitter_agenda",
          "iy_agenda_call1",
-         "iy_transmission",
+         "iy_transmittance",
          "rte_alonglos_v"),
       GIN("trans_in_jacobian", "pext_scaling", "t_interp_order"),
       GIN_TYPE("Index", "Numeric", "Index"),
       GIN_DEFAULT("0", "1", "1"),
-      GIN_DESC("Flag determining if change in transmission is considered"
+      GIN_DESC("Flag determining if change in transmittance is considered"
                " in calculation of the Jacobian or not.",
                "Particle extinction is scaled with this value. A value"
                " inside [0,2]. Set it to 0 if you want to remove particle"
@@ -7637,6 +7637,11 @@ void define_md_data_raw() {
           "*iy_unit* is only applied if *iy_agenda_call1* is 1. This means that\n"
           "no unit ocnversion is applied for internal iterative calls.\n"
           "\n"
+          "Recognised choices for *rt_integration_option* are:\n"
+          "   \"first order\": A first order integration is applied.\n"
+          "   \"second order\": A second order integration is applied.\n"
+          "   \"default\": Another way to select the first order option.\n"
+          "\n"
           "Some auxiliary radiative transfer quantities can be obtained. Auxiliary\n"
           "quantities are selected by *iy_aux_vars* and returned by *iy_aux*.\n"
           "Valid choices for auxiliary data are:\n"
@@ -7645,7 +7650,7 @@ void define_md_data_raw() {
           "    and 2=cloudbox.\n"
           " \"Optical depth\": Scalar optical depth between the observation point\n"
           "    and the end of the present propagation path. Calculated based on\n"
-          "    the (1,1)-element of the transmission matrix (1-based indexing),\n"
+          "    the (1,1)-element of the transmittance matrix (1-based indexing),\n"
           "    i.e. only fully valid for scalar RT.\n"
           "If nothing else is stated, only the first column of *iy_aux* is filled,\n"
           "i.e. the column matching Stokes element I, while remaing columns are\n"
@@ -7692,12 +7697,13 @@ void define_md_data_raw() {
          "rte_pos2",
          "propmat_clearsky_agenda",
          "water_p_eq_agenda",
+         "rt_integration_option",
          "iy_main_agenda",
          "iy_space_agenda",
          "iy_surface_agenda",
          "iy_cloudbox_agenda",
          "iy_agenda_call1",
-         "iy_transmission",
+         "iy_transmittance",
          "rte_alonglos_v",
          "surface_props_data"),
       GIN(),
@@ -7705,67 +7711,6 @@ void define_md_data_raw() {
       GIN_DEFAULT(),
       GIN_DESC()));
 
-  md_data_raw.push_back(create_mdrecord(
-      NAME("iyEmissionStandardSequential"),
-      DESCRIPTION(
-          "DEPRECATED! Should go away soon\n"
-          "Sequential version of *iyEmissionStandard*\n"
-          "\n"
-          "For documentation see *iyEmissionStandard*.\n"),
-      AUTHORS("Patrick Eriksson", "Richard Larsson"),
-      OUT("iy",
-          "iy_aux",
-          "diy_dx",
-          "ppvar_p",
-          "ppvar_t",
-          "ppvar_nlte",
-          "ppvar_vmr",
-          "ppvar_wind",
-          "ppvar_mag",
-          "ppvar_f",
-          "ppvar_iy",
-          "ppvar_trans_cumulat",
-          "ppvar_trans_partial"),
-      GOUT(),
-      GOUT_TYPE(),
-      GOUT_DESC(),
-      IN("diy_dx",
-         "iy_id",
-         "stokes_dim",
-         "f_grid",
-         "atmosphere_dim",
-         "p_grid",
-         "t_field",
-         "nlte_field",
-         "vmr_field",
-         "abs_species",
-         "wind_u_field",
-         "wind_v_field",
-         "wind_w_field",
-         "mag_u_field",
-         "mag_v_field",
-         "mag_w_field",
-         "cloudbox_on",
-         "iy_unit",
-         "iy_aux_vars",
-         "jacobian_do",
-         "jacobian_quantities",
-         "ppath",
-         "rte_pos2",
-         "propmat_clearsky_agenda",
-         "water_p_eq_agenda",
-         "iy_main_agenda",
-         "iy_space_agenda",
-         "iy_surface_agenda",
-         "iy_cloudbox_agenda",
-         "iy_agenda_call1",
-         "iy_transmission",
-         "rte_alonglos_v",
-         "surface_props_data"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
   /*
   md_data_raw.push_back
     ( create_mdrecord
@@ -7836,7 +7781,7 @@ void define_md_data_raw() {
             "particle_masses", "iy_unit", "iy_aux_vars", "jacobian_do", 
             "ppath_agenda", 
             "propmat_clearsky_agenda", "iy_main_agenda", "iy_space_agenda", 
-            "iy_surface_agenda", "iy_agenda_call1", "iy_transmission", 
+            "iy_surface_agenda", "iy_agenda_call1", "iy_transmittance", 
             "rte_pos", "rte_los", "rte_pos2", "rte_alonglos_v",
             "ppath_lmax", "ppath_lraytrace",
             "fos_scatint_angles", "fos_iyin_za_angles"
@@ -7897,12 +7842,13 @@ void define_md_data_raw() {
          "jacobian_quantities",
          "propmat_clearsky_agenda",
          "water_p_eq_agenda",
+         "rt_integration_option",
          "iy_main_agenda",
          "iy_space_agenda",
          "iy_surface_agenda",
          "iy_cloudbox_agenda",
          "iy_agenda_call1",
-         "iy_transmission",
+         "iy_transmittance",
          "ppath",
          "rte_pos2",
          "rte_alonglos_v",
@@ -7966,12 +7912,13 @@ void define_md_data_raw() {
          "jacobian_quantities",
          "propmat_clearsky_agenda",
          "water_p_eq_agenda",
+         "rt_integration_option",
          "iy_main_agenda",
          "iy_space_agenda",
          "iy_surface_agenda",
          "iy_cloudbox_agenda",
          "iy_agenda_call1",
-         "iy_transmission",
+         "iy_transmittance",
          "ppath",
          "rte_pos2",
          "rte_alonglos_v",
@@ -8025,7 +7972,7 @@ void define_md_data_raw() {
          "ppath_lraytrace",
          "iy_agenda_call1",
          "iy_unit",
-         "iy_transmission",
+         "iy_transmittance",
          "rte_pos",
          "rte_los",
          "rte_pos2",
@@ -8120,7 +8067,7 @@ void define_md_data_raw() {
       GOUT_DESC(),
       IN("iy_aux_vars",
          "iy_agenda_call1",
-         "iy_transmission",
+         "iy_transmittance",
          "rte_pos",
          "rte_los",
          "rte_pos2",
@@ -8174,7 +8121,7 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("iy_agenda_call1",
-         "iy_transmission",
+         "iy_transmittance",
          "rte_pos",
          "rte_los",
          "iy_aux_vars",
@@ -8284,9 +8231,9 @@ void define_md_data_raw() {
          "  \"Free space attenuation\": The local attenuation due to the\n"
          "       inverse square law. Size: [1,1,1,np].\n"
          "* \"Atmospheric loss\": Total atmospheric attenuation, reported as\n"
-         "       the transmission. Size: [nf,1,1,1].\n"
+         "       the transmittance. Size: [nf,1,1,1].\n"
          "* \"Defocusing loss\": The total loss between the transmitter and\n"
-         "       receiver due to defocusing. Given as a transmission.\n"
+         "       receiver due to defocusing. Given as a transmittance.\n"
          "       Size: [1,1,1,1].\n"
          "* \"Faraday rotation\": Total rotation [deg] along the path, for\n"
          "     each frequency. Size: [nf,1,1,1].\n"
@@ -8321,7 +8268,7 @@ void define_md_data_raw() {
             "particle_masses", "iy_aux_vars", "jacobian_do", 
             "ppath_agenda", "ppath_step_agenda",
             "propmat_clearsky_agenda", "iy_transmitter_agenda",
-            "iy_agenda_call1", "iy_transmission", "rte_pos", "rte_los", 
+            "iy_agenda_call1", "iy_transmittance", "rte_pos", "rte_los", 
             "rte_pos2", "rte_alonglos_v", "ppath_lmax", "ppath_lraytrace" ),
         GIN(      "defocus_method", "defocus_shift" ),
         GIN_TYPE( "Index", "Numeric" ),
@@ -8360,9 +8307,8 @@ void define_md_data_raw() {
       DESCRIPTION(
           "Switch between the elements of *iy_surface_agenda_array*.\n"
           "\n"
-          "This method simply calls the agenda matching *surface_type* and\n"
-          "returns the results. That is, the agenda in *iy_surface_agenda_array*\n"
-          "with index *surface_type* (0-based) is called.\n"),
+          "This method calls the agendas matching *surface_types* and\n"
+          "sums up the iy-data of each type.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("iy", "diy_dx"),
       GOUT(),
@@ -8370,7 +8316,7 @@ void define_md_data_raw() {
       GOUT_DESC(),
       IN("diy_dx",
          "iy_unit",
-         "iy_transmission",
+         "iy_transmittance",
          "iy_id",
          "cloudbox_on",
          "jacobian_do",
@@ -8380,8 +8326,9 @@ void define_md_data_raw() {
          "rtp_los",
          "rte_pos2",
          "iy_surface_agenda_array",
-         "surface_type",
-         "surface_type_aux"),
+         "surface_types",
+         "surface_types_aux",
+         "surface_types_weights" ),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -8415,7 +8362,7 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("diy_dx",
-         "iy_transmission",
+         "iy_transmittance",
          "iy_id",
          "jacobian_do",
          "atmosphere_dim",
@@ -8454,7 +8401,7 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("diy_dx",
-         "iy_transmission",
+         "iy_transmittance",
          "iy_id",
          "jacobian_do",
          "atmosphere_dim",
@@ -8498,7 +8445,7 @@ void define_md_data_raw() {
          "dsurface_names",
          "dsurface_rmatrix_dx",
          "dsurface_emission_dx",
-         "iy_transmission",
+         "iy_transmittance",
          "iy_id",
          "jacobian_do",
          "jacobian_quantities",
@@ -8529,7 +8476,7 @@ void define_md_data_raw() {
           "The transmitted signal is taken from *iy_transmitter_agenda*. This\n"
           "signal is propagated along the path, considering attenuation alone.\n"
           "That is, the result of the method (*iy*) is the output of\n"
-          "*iy_transmitter_agenda* multiplied with the transmission along the\n"
+          "*iy_transmitter_agenda* multiplied with the transmittance along the\n"
           "propagation path.\n"
           "\n"
           "As mentioned, the given *ppath* determines the position of the\n"
@@ -8549,7 +8496,7 @@ void define_md_data_raw() {
           "    and 2=cloudbox. The value is added to each column.\n"
           " \"Optical depth\": Scalar optical depth between the observation point\n"
           "    and the end of the present propagation path. Calculated based on\n"
-          "    the (1,1)-element of the transmission matrix (1-based indexing),\n"
+          "    the (1,1)-element of the transmittance matrix (1-based indexing),\n"
           "    i.e. only fully valid for scalar RT. The value is added to each\n"
           "    column.\n"),
       AUTHORS("Patrick Eriksson", "Richard Larsson"),
@@ -8598,7 +8545,7 @@ void define_md_data_raw() {
          "water_p_eq_agenda",
          "iy_transmitter_agenda",
          "iy_agenda_call1",
-         "iy_transmission",
+         "iy_transmittance",
          "rte_alonglos_v"),
       GIN(),
       GIN_TYPE(),
@@ -12222,6 +12169,57 @@ void define_md_data_raw() {
       GIN_DESC("Altitude to move forward towards", "Accuracy of altitude")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("ppathFixedLstep"),
+      DESCRIPTION(
+          "Full propagation path calculation with fixed step length.\n"
+          "\n"
+          "Restrictions:\n"
+          "1. An active cloudbox is not handled (causes an error).\n"
+          "2. Observations of limb sounding type not handled. That is, zenith\n"
+          "   angles between 90 and about 120 deg will cause an error.\n"
+          "3. Unsuitable for downward observation from within the atmosphere.\n"
+          "\n"
+          "The method determines the lowest point of the propagation path and\n"
+          "applies a fixed step length from that point. This point can be the\n"
+          "surface intersection or the sensor position depending on observation\n"
+          "geometry.\n"
+          "\n"
+          "There is no adjustment at the high altitude end, neither to the top\n"
+          "of the atmosphere altitude nor the sensor's altitude.\n"
+          "\n"
+          "Default is to apply a step length of *ppath_lmax* everywhere.\n"
+          "By setting *za_scale* to 1, the step length is scaled with zenith\n"
+          "angle and the steps are rather constant in altitude spacing.\n"
+          "\n"
+          "With *z_coarse* and *l_coarse* you can introduce another step length\n"
+          "at higher altitudes. If *z_coarse* is > 0, then *l_coarse* is applied\n"
+          "above *z_coarse*, instead of *ppath_lmax*. *za_scale* is considered\n"
+          "also for *l_coarse*.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("ppath"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("atmfields_checked",
+         "atmgeom_checked",
+         "atmosphere_dim",
+         "lat_grid",
+         "lon_grid",
+         "z_field",
+         "refellipsoid",
+         "z_surface",
+         "cloudbox_on",
+         "rte_pos",
+         "rte_los",
+         "ppath_lmax"),
+      GIN("za_scale", "z_coarse", "l_coarse"),
+      GIN_TYPE("Index","Numeric","Numeric"),
+      GIN_DEFAULT("0","-1","1e3"),
+      GIN_DESC("Scale step length with 1/abs(cos(za)).",
+               "Altitude for switching to coarse step length",
+               "Coarse step length.")));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("ppathFromRtePos2"),
       DESCRIPTION(
           "Determines the propagation path from *rte_pos2* to *rte_pos*.\n"
@@ -12456,7 +12454,7 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("ppvar_optical_depthFromPpvar_trans_cumulat"),
       DESCRIPTION(
-          "Sets *ppvar_optical_depth* according to provided transmission data.\n"
+          "Sets *ppvar_optical_depth* according to provided transmittance data.\n"
           "\n"
           "The values in ppvar_optical_depth are set to\n"
           "-log( ppvar_trans_cumulat(joker,joker,0,0) ).\n"),
@@ -15849,6 +15847,48 @@ void define_md_data_raw() {
                         "Azimuth angle of sensor line-of-sight.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("rte_poslosFromECEF"),
+      DESCRIPTION(
+          "Converts sensor position and LOS from ECEF to geocentric values.\n"
+          "\n"
+          "Works exactly as *sensor_poslosFromECEF* but places the output\n"
+          "in *rte_pos* and *rte_los*. Accordingly, the input can only cover\n"
+          "one combination of position and LOS.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("rte_pos", "rte_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("sensor_pos_ecef",
+         "sensor_los_ecef",
+         "refellipsoid" ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("rte_poslosFromGeodetic"),
+      DESCRIPTION(
+          "Converts sensor position and LOS from geodetic to geocentric values.\n"
+          "\n"
+          "Works exactly as *sensor_poslosFromGeodetic* but places the output\n"
+          "in *rte_pos* and *rte_los*. Accordingly, the input can only cover\n"
+          "one combination of position and LOS.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("rte_pos", "rte_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("sensor_pos_geodetic",
+         "sensor_los_geodetic",
+         "refellipsoid" ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("rte_posSet"),
       DESCRIPTION(
           "Sets *rte_pos* to the given co-ordinates.\n"
@@ -16718,6 +16758,54 @@ void define_md_data_raw() {
       GIN_DESC("Target position, for each position in *sensor_pos*.")));
 
   md_data_raw.push_back(create_mdrecord(
+      NAME("sensor_poslosFromECEF"),
+      DESCRIPTION(
+          "Converts sensor position and LOS from ECEF to geocentric values.\n"
+          "\n"
+          "The geodetic position and line-of-sight (LOS) are defined by \n"
+          "*sensor_pos_ecef* and *sensor_los_ecef*. The later WSV is here\n"
+          "allowed to be empty (but gives an empty *sensor_los*). Otherwise \n"
+          "the number of rows in the two WSVs must agree.\n"
+          "\n"
+          "So far only 3D is handled.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("sensor_pos", "sensor_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("sensor_pos_ecef",
+         "sensor_los_ecef",
+         "refellipsoid" ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("sensor_poslosFromGeodetic"),
+      DESCRIPTION(
+          "Converts sensor position and LOS from geodetic to geocentric values.\n"
+          "\n"
+          "The geodetic position and line-of-sight (LOS) are defined by \n"
+          "*sensor_pos_geodetic* and *sensor_los_geodetic*. The later WSV\n"
+          "is here allowed to be empty (but gives an empty *sensor_los*).\n"
+          "Otherwise the number of rows in the two WSVs must agree.\n"
+          "\n"
+          "So far only 3D is handled.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("sensor_pos", "sensor_los"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("sensor_pos_geodetic",
+         "sensor_los_geodetic",
+         "refellipsoid" ),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
+
+  md_data_raw.push_back(create_mdrecord(
       NAME("sensor_responseAntenna"),
       DESCRIPTION(
           "Includes response of the antenna.\n"
@@ -17548,10 +17636,10 @@ void define_md_data_raw() {
           "critical for the accuracy for zenith angles close to 90 degrees. That\n"
           "is, using ppath_lmax=-1 is not recommended for this function.\n"
           "\n"
-          "Information on transmission is also provided by the GOUT *trans_field*.\n"
+          "Information on transmittance is also provided by the GOUT *trans_field*.\n"
           "For up-welling radiation (scat_za > 90), this variable holds the\n"
-          "transmission to space, for considered position and propagation direction.\n"
-          "For down-welling radiation, *trans_field* holds instead the transmission\n"
+          "transmittance to space, for considered position and propagation direction.\n"
+          "For down-welling radiation, *trans_field* holds instead the transmittance\n"
           "down to the surface.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("spectral_radiance_field"),
@@ -17581,13 +17669,13 @@ void define_md_data_raw() {
          "z_surface",
          "ppath_lmax",
          "rte_alonglos_v",
+         "rt_integration_option",
          "surface_props_data",
          "za_grid"),
-      GIN("use_parallel_iy"),
+      GIN("use_parallel_za"),
       GIN_TYPE("Index"),
-      GIN_DEFAULT("0"),
-      GIN_DESC("0: Parallelize over zenith angles\n"
-               "1: Use more memory intensiv iyEmissionStandardParallel*")));
+      GIN_DEFAULT("1"),
+      GIN_DESC("Flag to select parallelization over zenith angles.\n")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("spectral_radiance_fieldCopyCloudboxField"),
@@ -17661,14 +17749,14 @@ void define_md_data_raw() {
          "cloudbox_field",
          "ppath_lmax",
          "rte_alonglos_v",
+         "rt_integration_option",
          "surface_props_data",
          "za_grid"),
-      GIN("use_parallel_iy"),
+      GIN("use_parallel_za"),
       GIN_TYPE("Index"),
       GIN_DEFAULT("0"),
-      GIN_DESC("0: Parallelize over zenith angles\n"
-               "1: Use more memory intensiv iyEmissionStandardParallel*")));
-
+      GIN_DESC("Flag to select parallelization over zenith angles.\n")));
+  
   md_data_raw.push_back(create_mdrecord(
       NAME("specular_losCalc"),
       DESCRIPTION(
@@ -18335,9 +18423,12 @@ void define_md_data_raw() {
       DESCRIPTION(
           "Switch between the elements of *surface_rtprop_agenda_array*.\n"
           "\n"
-          "This method simply calls the agenda matching *surface_type* and\n"
-          "returns the results. That is, the agenda in *surface_rtprop_agenda_array*\n"
-          "with index *surface_type* (0-based) is called.\n"),
+          "This method requires that *surface_types* have length 1, in\n"          
+          "contrast to *iySurfaceCallAgendaX*\n"
+          "\n"
+          "This method obtains the surface properties as defined by the\n"
+          "agenda in *surface_rtprop_agenda_array* corresponding to\n"
+          "*surface_types*.\n"),
       AUTHORS("Patrick Eriksson"),
       OUT("surface_skin_t",
           "surface_los",
@@ -18350,8 +18441,9 @@ void define_md_data_raw() {
          "rtp_pos",
          "rtp_los",
          "surface_rtprop_agenda_array",
-         "surface_type",
-         "surface_type_aux"),
+         "surface_types",
+         "surface_types_aux",
+         "surface_types_weights" ),
       GIN(),
       GIN_TYPE(),
       GIN_DEFAULT(),
@@ -18451,19 +18543,30 @@ void define_md_data_raw() {
   md_data_raw.push_back(create_mdrecord(
       NAME("surface_typeInterpTypeMask"),
       DESCRIPTION(
-          "Closest neighbour interpolation of surface type mask.\n"
+          "Interpolation of surface type mask.\n"
           "\n"
-          "The method determines the surface type at the position of concern\n"
+          "The method determines the surface type(s) at the position of concern\n"
           "(*rtp_pos*) from the provided type mask (*surface_type_mask*).\n"
-          "The closest point in the mask is selected. The surface type\n"
-          "is set to the integer part of the value at the found point, while\n"
-          "*surface_type_aux* is set to the reminder. For example, if the\n"
-          "mask value at closest point is 2.23, *surface_type* is set to 2\n"
-          "*surface_type_aux* becomes 0.23.\n"
+          "\n"
+          "For the default interpolation method, \"nearest\", the closest point\n"
+          "in the mask is selected. The surface type is set to the integer part\n"
+          "of the value at the found point, while *surface_types_aux* is set to\n"
+          "the reminder. For example, if the mask value at closest point is 2.23,\n"
+          "*surface_types* is set to 2 and *surface_type_aux* becomes 0.23.\n"
+          "*surface_types_weights* is set to 1. For this option, all output\n"
+          "arguments have length 1.\n"
+          "\n"
+          "With the interpolation set to \"linear\", the output arguments are\n"
+          "set up to describe a mixture of types. The mask values at the grid cell\n"
+          "corner points are determined, and type and aux values are extracted as\n"
+          "above. The weight associated with each type is calculated as for a\n"
+          "standard bi-linear interpolation. If *rte_pos* is exactly at the centre\n"
+          "of the grid cell, and three corner points match type 0 and one point\n"
+          "type 1, type 0 and 1 get weight 0.75 and 0.25 respectively.\n"
           "\n"
           "The altitude in *rtp_pos* is ignored.\n"),
       AUTHORS("Patrick Eriksson"),
-      OUT("surface_type", "surface_type_aux"),
+      OUT("surface_types", "surface_types_aux", "surface_types_weights"),
       GOUT(),
       GOUT_TYPE(),
       GOUT_DESC(),
@@ -18473,10 +18576,10 @@ void define_md_data_raw() {
          "lon_true",
          "rtp_pos",
          "surface_type_mask"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
+      GIN("method"),
+      GIN_TYPE("String"),
+      GIN_DEFAULT("nearest"),
+      GIN_DESC("Interpolation method (see above).")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("SurfaceDummy"),
@@ -19847,8 +19950,11 @@ void define_md_data_raw() {
       DESCRIPTION(
           "Calculates *water_p_eq_field* according to Murphy and Koop, 2005.\n"
           "\n"
-          "The saturation pressure is set to the one with respect to water at\n"
-          "temperatures >= 0C, and to the one with respect to ice for <0C.\n"
+          "Default is to set the saturation pressure is set to the one with\n"
+          "respect to water at temperatures >= 0C, and to the one with\n"
+          "respect to ice for <0C. The GIN *only_liquid* allows you to apply\n"
+          "the liquid value at all temperatures.\n"
+          "\n"
           "\n"
           "The saturation pressure with respect to liquid and ice water is\n"
           "calculated according to Eq. 10 and 7, respectively, of:\n"
@@ -19861,10 +19967,10 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("t_field"),
-      GIN(),
-      GIN_TYPE(),
-      GIN_DEFAULT(),
-      GIN_DESC()));
+      GIN("only_liquid"),
+      GIN_TYPE("Index"),
+      GIN_DEFAULT("0"),
+      GIN_DESC("Set to 1 to use liquid saturation pressure at all temperatures.")));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("vmr_fieldSetConstant"),
@@ -20823,7 +20929,7 @@ void define_md_data_raw() {
           "associated variables. This method is required if your measurement\n"
           "consists of data from two instruments using different observation\n"
           "techniques (corresponding to different iyCalc-methods). One such\n"
-          "example is if emission and transmission data are combined into a\n"
+          "example is if emission and transmittance data are combined into a\n"
           "joint retrieval. The method can also be used to get around the\n"
           "constrain that *sensor_response* is required to be the same for\n"
           "all data.\n"
@@ -20922,7 +21028,7 @@ void define_md_data_raw() {
           "polarisation states are taken from *instrument_pol_array*. Note\n"
           "that this WSV allows to define several measured polarisations\n"
           "for each transmitted signal. For example, it is possible to\n"
-          "simulate transmission of V and measuring backsacttered V and H.\n"
+          "simulate transmittance of V and measuring backsacttered V and H.\n"
           "\n"
           "Secondly, the range averaging is described by *range_bins*. These\n"
           "bins can either be specified in altitude or two-way travel time.\n"
@@ -21010,6 +21116,23 @@ void define_md_data_raw() {
       GIN_TYPE("Numeric"),
       GIN_DEFAULT(NODEF),
       GIN_DESC("Selected frequency resolution.")));
+
+  md_data_raw.push_back(create_mdrecord(
+      NAME("y_geoToGeodetic"),
+      DESCRIPTION(
+          "Converts *y_geo* to hold geodetic values.\n"
+          "\n"
+          "Replaces geocentric values with corresponding geodetic ones.\n"),
+      AUTHORS("Patrick Eriksson"),
+      OUT("y_geo"),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN("y_geo", "refellipsoid"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()));
 
   md_data_raw.push_back(create_mdrecord(
       NAME("z_fieldFromHSE"),
