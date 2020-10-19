@@ -357,6 +357,9 @@ class QuantumNumbers {
    * @return false Otherwise
    */
   bool Compare(const QuantumNumbers& qn) const;
+  
+  /** Returns this as a string */
+  String toString() const;
 
  private:
   QuantumContainer mqnumbers;

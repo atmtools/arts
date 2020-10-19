@@ -62,8 +62,6 @@
 #include "special_interp.h"
 #include "xml_io.h"
 
-extern const String SCATSPECIES_MAINTAG;
-
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
@@ -660,7 +658,7 @@ void pnd_fieldCalcFromParticleBulkProps(
     scatspecies_to_jq.resize(nss);
     //
     for (Index iq = 0; iq < nq; iq++) {
-      if (jacobian_quantities[iq].MainTag() == SCATSPECIES_MAINTAG) {
+      if (jacobian_quantities[iq] == Jacobian::Special::ScatteringString) {
         const Index ihit =
             find_first(scat_species, jacobian_quantities[iq].Subtag());
         if (ihit < 0) {

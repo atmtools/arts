@@ -103,10 +103,10 @@ constexpr Numeric closed_shell_trilinear(Rational k,
 }
 
 Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) noexcept {
-  if (qid.SpeciesName() == "O2") {
-    if (qid.Isotopologue() == SpeciesTag("O2-66").Isotopologue()) {
-      if (qid.LowerQuantumNumber(QuantumNumberType::v1) == 0 and
-          qid.UpperQuantumNumber(QuantumNumberType::v1) == 0) {
+  const auto name = qid.SpeciesName();
+  if (name == "O2-66") {
+    if (qid.LowerQuantumNumber(QuantumNumberType::v1) == 0 and
+        qid.UpperQuantumNumber(QuantumNumberType::v1) == 0) {
         Numeric GS = 2.002084;
         Numeric GLE = 2.77e-3;
         Numeric GR = -1.16e-4;
@@ -130,41 +130,37 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) noexcept {
             JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
         return Model({gu, gl});
       }
-    } else if (qid.Isotopologue() == SpeciesTag("O2-68").Isotopologue()) {
-      if (qid.LowerQuantumNumber(QuantumNumberType::v1) == 0 and
-          qid.UpperQuantumNumber(QuantumNumberType::v1) == 0) {
-        Numeric GS = 2.002025;
-        Numeric GLE = 2.813e-3;
-        Numeric GR = -1.26e-4;
-        Numeric B = 40707.38657e6;
-        Numeric D = 129.4142e3;
-        Numeric H = 0;
-        Numeric lB = 59499.0375e6;
-        Numeric lD = 54.9777e3;
-        Numeric lH = 272.1e-3;
-        Numeric gB = -238.51530e6;
-        Numeric gD = -217.77;
-        Numeric gH = -1.305e-3;
+    } else if (name == "O2-68") {
+    if (qid.LowerQuantumNumber(QuantumNumberType::v1) == 0 and
+        qid.UpperQuantumNumber(QuantumNumberType::v1) == 0) {
+      Numeric GS = 2.002025;
+      Numeric GLE = 2.813e-3;
+      Numeric GR = -1.26e-4;
+      Numeric B = 40707.38657e6;
+      Numeric D = 129.4142e3;
+      Numeric H = 0;
+      Numeric lB = 59499.0375e6;
+      Numeric lD = 54.9777e3;
+      Numeric lH = 272.1e-3;
+      Numeric gB = -238.51530e6;
+      Numeric gD = -217.77;
+      Numeric gH = -1.305e-3;
 
-        auto JU = qid.UpperQuantumNumber(QuantumNumberType::J);
-        auto NU = qid.UpperQuantumNumber(QuantumNumberType::N);
-        Numeric gu = case_b_g_coefficient_o2(
-            JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-        auto JL = qid.LowerQuantumNumber(QuantumNumberType::J);
-        auto NL = qid.LowerQuantumNumber(QuantumNumberType::N);
-        Numeric gl = case_b_g_coefficient_o2(
-            JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-        return Model({gu, gl});
-      }
+      auto JU = qid.UpperQuantumNumber(QuantumNumberType::J);
+      auto NU = qid.UpperQuantumNumber(QuantumNumberType::N);
+      Numeric gu = case_b_g_coefficient_o2(
+          JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
+      auto JL = qid.LowerQuantumNumber(QuantumNumberType::J);
+      auto NL = qid.LowerQuantumNumber(QuantumNumberType::N);
+      Numeric gl = case_b_g_coefficient_o2(
+          JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
+      return Model({gu, gl});
     }
-  } else if (qid.SpeciesName() == "CO") {
-    if (qid.Isotopologue() == SpeciesTag("CO-26").Isotopologue()) {
+  } else if (name == "CO-26") {
       Numeric gperp = -0.2689 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
       
       return Model({gperp, gperp});
-    }
-  } else if (qid.SpeciesName() == "OCS") {
-    if (qid.Isotopologue() == SpeciesTag("OCS-622").Isotopologue()) {
+  } else if (name == "OCS-622") {
       Numeric gperp = -.02889 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
       Numeric gpara = 0 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
       
@@ -175,31 +171,28 @@ Zeeman::Model Zeeman::GetAdvancedModel(const QuantumIdentifier& qid) noexcept {
       
       return Model({closed_shell_trilinear(KU, JU, gperp, gpara),
                     closed_shell_trilinear(KL, JL, gperp, gpara)});
-    } else if (qid.Isotopologue() == SpeciesTag("OCS-624").Isotopologue()) {
-      Numeric gperp = -.0285 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
-      Numeric gpara = -.061 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
-      
-      auto JU = qid.UpperQuantumNumber(QuantumNumberType::J);
-      auto KU = qid.UpperQuantumNumber(QuantumNumberType::Ka);
-      auto JL = qid.LowerQuantumNumber(QuantumNumberType::J);
-      auto KL = qid.LowerQuantumNumber(QuantumNumberType::Ka);
-      
-      return Model({closed_shell_trilinear(KU, JU, gperp, gpara),
-                    closed_shell_trilinear(KL, JL, gperp, gpara)});
-    }
-  } else if (qid.SpeciesName() == "CO2") {
-    if (qid.Isotopologue() == SpeciesTag("CO2-626").Isotopologue()) {
-      Numeric gperp = -.05508 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
-      Numeric gpara = 0 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
-      
-      auto JU = qid.UpperQuantumNumber(QuantumNumberType::J);
-      auto KU = qid.UpperQuantumNumber(QuantumNumberType::Ka);
-      auto JL = qid.LowerQuantumNumber(QuantumNumberType::J);
-      auto KL = qid.LowerQuantumNumber(QuantumNumberType::Ka);
-      
-      return Model({closed_shell_trilinear(KU, JU, gperp, gpara),
-                    closed_shell_trilinear(KL, JL, gperp, gpara)});
-    }
+  } else if (name == "OCS-624") {
+    Numeric gperp = -.0285 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
+    Numeric gpara = -.061 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
+    
+    auto JU = qid.UpperQuantumNumber(QuantumNumberType::J);
+    auto KU = qid.UpperQuantumNumber(QuantumNumberType::Ka);
+    auto JL = qid.LowerQuantumNumber(QuantumNumberType::J);
+    auto KL = qid.LowerQuantumNumber(QuantumNumberType::Ka);
+    
+    return Model({closed_shell_trilinear(KU, JU, gperp, gpara),
+                  closed_shell_trilinear(KL, JL, gperp, gpara)});
+  } else if (name == "CO2-626") {
+    Numeric gperp = -.05508 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
+    Numeric gpara = 0 / Constant::mass_ratio_electrons_per_proton;  // Flygare and Benson 1971
+    
+    auto JU = qid.UpperQuantumNumber(QuantumNumberType::J);
+    auto KU = qid.UpperQuantumNumber(QuantumNumberType::Ka);
+    auto JL = qid.LowerQuantumNumber(QuantumNumberType::J);
+    auto KL = qid.LowerQuantumNumber(QuantumNumberType::Ka);
+    
+    return Model({closed_shell_trilinear(KU, JU, gperp, gpara),
+                  closed_shell_trilinear(KL, JL, gperp, gpara)});
   }
   
   // Take care of zeroes since they do not show up in replacement databases

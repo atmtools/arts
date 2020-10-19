@@ -36,23 +36,10 @@
 extern const Numeric NAT_LOG_TEN;
 extern const Numeric PI;
 
-extern const String ABSSPECIES_MAINTAG;
-extern const String SCATSPECIES_MAINTAG;
-extern const String TEMPERATURE_MAINTAG;
-extern const String WIND_MAINTAG;
-extern const String MAGFIELD_MAINTAG;
-extern const String FLUX_MAINTAG;
-extern const String PROPMAT_SUBSUBTAG;
-extern const String ELECTRONS_MAINTAG;
-extern const String PARTICULATES_MAINTAG;
-extern const String POLYFIT_MAINTAG;
-extern const String SINEFIT_MAINTAG;
-
 ostream& operator<<(ostream& os, const RetrievalQuantity& ot) {
-  return os << "\n       Main tag = " << ot.MainTag()
+  return os << "\n       Target   = " << ot.Target()
             << "\n       Sub  tag = " << ot.Subtag()
-            << "\n           Mode = " << ot.Mode()
-            << "\n     Analytical = " << ot.Analytical();
+            << "\n           Mode = " << ot.Mode();
 }
 
 void jac_ranges_indices(ArrayOfArrayOfIndex& jis,
@@ -340,15 +327,7 @@ void diy_from_path_to_rgrids(Tensor3View diy_dx,
                              const Index& atmosphere_dim,
                              const Ppath& ppath,
                              ConstVectorView ppath_p) {
-  // If this is an integration target then diy_dx is just the sum of all in diy_dpath
-  if (jacobian_quantity.Integration()) {
-    diy_dx(0, joker, joker) = diy_dpath(0, joker, joker);
-    for (Index i = 1; i < diy_dpath.npages(); i++)
-      diy_dx(0, joker, joker) += diy_dpath(i, joker, joker);
-    return;
-  }
-
-  assert(jacobian_quantity.Grids().nelem() == atmosphere_dim);
+  assert(jacobian_quantity.Grids().nelem() == atmosphere_dim or jacobian_quantity.Grids().empty());
 
   // We want here an extrapolation to infinity ->
   //                                        extremly high extrapolation factor
@@ -357,7 +336,7 @@ void diy_from_path_to_rgrids(Tensor3View diy_dx,
   if (ppath.np > 1)  // Otherwise nothing to do here
   {
     // Pressure
-    Index nr1 = jacobian_quantity.Grids()[0].nelem();
+    Index nr1 = jacobian_quantity.Grids().empty() ? 0 : jacobian_quantity.Grids()[0].nelem();
     ArrayOfGridPos gp_p(ppath.np);
     if (nr1 > 1) {
       p2gridpos(gp_p, jacobian_quantity.Grids()[0], ppath_p, extpolfac);
@@ -371,7 +350,7 @@ void diy_from_path_to_rgrids(Tensor3View diy_dx,
     ArrayOfGridPos gp_lat;
     if (atmosphere_dim > 1) {
       gp_lat.resize(ppath.np);
-      nr2 = jacobian_quantity.Grids()[1].nelem();
+      nr2 = jacobian_quantity.Grids().empty() ? 0 : jacobian_quantity.Grids()[1].nelem();
       if (nr2 > 1) {
         gridpos(gp_lat,
                 jacobian_quantity.Grids()[1],
@@ -386,8 +365,9 @@ void diy_from_path_to_rgrids(Tensor3View diy_dx,
     // Longitude
     ArrayOfGridPos gp_lon;
     if (atmosphere_dim > 2) {
+      Index nr3 = jacobian_quantity.Grids().empty() ? 0 : jacobian_quantity.Grids()[2].nelem();
       gp_lon.resize(ppath.np);
-      if (jacobian_quantity.Grids()[2].nelem() > 1) {
+      if (nr3 > 1) {
         gridpos(gp_lon,
                 jacobian_quantity.Grids()[2],
                 ppath.pos(joker, 2),
@@ -605,40 +585,35 @@ void get_pointers_for_analytical_jacobians(
     const ArrayOfString& scat_species) {
   FOR_ANALYTICAL_JACOBIANS_DO(
       //
-      if (jacobian_quantities[iq].MainTag() == TEMPERATURE_MAINTAG &&
-          jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG) {
+      if (jacobian_quantities[iq] == Jacobian::Atm::Temperature) {
         is_t[iq] = Index(JacobianType::Temperature);
       } else { is_t[iq] = Index(JacobianType::None); }
       //
-      if (jacobian_quantities[iq].MainTag() == ABSSPECIES_MAINTAG) {
-        if (jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG) {
-          bool test_available = false;
-          for (Index ii = 0; ii < abs_species.nelem(); ii++) {
-            if (abs_species[ii][0].Species() ==
-                SpeciesTag(jacobian_quantities[iq].Subtag()).Species()) {
-              test_available = true;
-              abs_species_i[iq] = ii;
-              break;
-            }
-          }
-          if (!test_available) {
-            ostringstream os;
-            os << "Could not find " << jacobian_quantities[iq].Subtag()
-               << " in species of abs_species.\n";
-            throw std::runtime_error(os.str());
-          }
+      if (jacobian_quantities[iq] == Jacobian::Line::VMR) {
+        auto p = std::find_if(abs_species.cbegin(), abs_species.cend(),
+                              [qid=jacobian_quantities[iq].QuantumIdentity()](auto& specs){
+          return std::any_of(specs.cbegin(), specs.cend(),
+                             [qid](auto& spec){return spec.Species() == qid.Species() and qid.Isotopologue() == spec.Isotopologue();});
+        });
+        if (p not_eq abs_species.cend()) {
+          abs_species_i[iq] = Index(abs_species.cend() - p);
         } else {
-          ArrayOfSpeciesTag atag;
-          array_species_tag_from_string(atag, jacobian_quantities[iq].Subtag());
-          abs_species_i[iq] = chk_contains("abs_species", abs_species, atag);
+          ostringstream os;
+          os << "Could not find " << jacobian_quantities[iq].Subtag()
+              << " in species of abs_species.\n";
+          throw std::runtime_error(os.str());
         }
-      } else if (jacobian_quantities[iq].MainTag() == PARTICULATES_MAINTAG ||
-                 jacobian_quantities[iq].MainTag() == ELECTRONS_MAINTAG) {
+      } else if (jacobian_quantities[iq] == Jacobian::Special::ArrayOfSpeciesTagVMR) {
+        ArrayOfSpeciesTag atag;
+        array_species_tag_from_string(atag, jacobian_quantities[iq].Subtag());
+        abs_species_i[iq] = chk_contains("abs_species", abs_species, atag);
+      } else if (jacobian_quantities[iq] == Jacobian::Atm::Particulates ||
+                 jacobian_quantities[iq] == Jacobian::Atm::Electrons) {
         abs_species_i[iq] = -9999;
       } else { abs_species_i[iq] = -1; }
       //
       if (cloudbox_on &&
-          jacobian_quantities[iq].MainTag() == SCATSPECIES_MAINTAG) {
+          jacobian_quantities[iq] == Jacobian::Special::ScatteringString) {
         scat_species_i[iq] =
             find_first(scat_species, jacobian_quantities[iq].Subtag());
         if (scat_species_i[iq] < 0) {
@@ -650,8 +625,7 @@ void get_pointers_for_analytical_jacobians(
         }
       } else { scat_species_i[iq] = -1; }
       //
-      if (jacobian_quantities[iq].MainTag() == WIND_MAINTAG &&
-          jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG) {
+      if (jacobian_quantities[iq].Target().isWind()) {
         // Map u, v and w to 1, 2 and 3, respectively
         char c = jacobian_quantities[iq].Subtag()[0];
         const Index test = Index(c) - 116;
@@ -665,8 +639,7 @@ void get_pointers_for_analytical_jacobians(
           wind_i[iq] = Index(JacobianType::AbsWind);
       } else { wind_i[iq] = Index(JacobianType::None); }
       //
-      if (jacobian_quantities[iq].MainTag() == MAGFIELD_MAINTAG &&
-          jacobian_quantities[iq].SubSubtag() == PROPMAT_SUBSUBTAG) {
+      if (jacobian_quantities[iq].Target().isMagnetic()) {
         // Map u, v and w to 1, 2 and 3, respectively
         char c = jacobian_quantities[iq].Subtag()[0];
         const Index test = Index(c) - 116;
@@ -929,9 +902,9 @@ void calcBaselineFit(Vector& y_baseline,
                      const Index rq_index,
                      const ArrayOfArrayOfIndex& jacobian_indices) {
   bool is_sine_fit = false;
-  if (rq.MainTag() == POLYFIT_MAINTAG) {
+  if (rq == Jacobian::Sensor::Polyfit) {
     is_sine_fit = false;
-  } else if (rq.MainTag() == SINEFIT_MAINTAG) {
+  } else if (rq == Jacobian::Sensor::Sinefit) {
     is_sine_fit = true;
   } else {
     throw runtime_error(
@@ -1100,45 +1073,42 @@ ArrayOfIndex equivalent_propmattype_indexes(const ArrayOfRetrievalQuantity& js) 
   ArrayOfIndex pos;
   pos.reserve(js.nelem());
   for (Index i = 0; i < js.nelem(); i++)
-    if (js[i] not_eq JacPropMatType::NotPropagationMatrixType) pos.push_back(i);
+    if (not (js[i] == Jacobian::Type::Special or js[i] == Jacobian::Type::Sensor))
+      pos.push_back(i);
   return pos;
 }
 
 Index equivalent_propmattype_index(const ArrayOfRetrievalQuantity& js,
-                                  const Index i) noexcept {
-  Index j = -1;
-  for (Index k = 0; k <= i; k++)
-    if (js[k] not_eq JacPropMatType::NotPropagationMatrixType) j++;
-  return j;
+                                   const Index i) noexcept {
+  return equivalent_propmattype_indexes(js)[i];
 }
 
 bool is_wind_parameter(const RetrievalQuantity& t) noexcept {
-  return t == JacPropMatType::WindMagnitude or t == JacPropMatType::WindU or
-         t == JacPropMatType::WindV or t == JacPropMatType::WindW;
+  return t.Target().isWind();
 }
 
 bool is_frequency_parameter(const RetrievalQuantity& t) noexcept {
-  return is_wind_parameter(t) or t == JacPropMatType::Frequency;
+  return t.Target().isWind() or t.Target().isFrequency();
 }
 
 bool is_derived_magnetic_parameter(const RetrievalQuantity& t) noexcept {
-  return t == JacPropMatType::MagneticMagnitude;
+  return t == Jacobian::Atm::MagneticMagnitude;
 }
 
 bool is_magnetic_parameter(const RetrievalQuantity& t) noexcept {
-  return t == JacPropMatType::MagneticU or t == JacPropMatType::MagneticV or
-         t == JacPropMatType::MagneticW or is_derived_magnetic_parameter(t);
+  return t.Target().isMagnetic();
 }
 
 bool is_nlte_parameter(const RetrievalQuantity& t) noexcept {
-  return t == JacPropMatType::NLTE;
+  return t == Jacobian::Line::NLTE;
 }
 
 #define ISLINESHAPETYPE(X)                                               \
   bool is_pressure_broadening_##X(const RetrievalQuantity& t) noexcept { \
-    return t == JacPropMatType::LineShape##X##X0 or                      \
-           t == JacPropMatType::LineShape##X##X1 or                      \
-           t == JacPropMatType::LineShape##X##X2;                        \
+    return t == Jacobian::Line::Shape##X##X0 or                          \
+           t == Jacobian::Line::Shape##X##X1 or                          \
+           t == Jacobian::Line::Shape##X##X2 or                          \
+           t == Jacobian::Line::Shape##X##X3;                            \
   }
 ISLINESHAPETYPE(G0)
 ISLINESHAPETYPE(D0)
@@ -1151,7 +1121,7 @@ ISLINESHAPETYPE(G)
 ISLINESHAPETYPE(DV)
 #undef ISLINESHAPETYPE
 
-#define VARISLINESHAPEPARAM(X, Y) (t == JacPropMatType::LineShape##X##Y)
+#define VARISLINESHAPEPARAM(X, Y) (t == Jacobian::Line::Shape##X##Y)
 bool is_lineshape_parameter_X0(const RetrievalQuantity& t) noexcept {
   return VARISLINESHAPEPARAM(G0, X0) or VARISLINESHAPEPARAM(D0, X0) or
          VARISLINESHAPEPARAM(G2, X0) or VARISLINESHAPEPARAM(D2, X0) or
@@ -1175,6 +1145,14 @@ bool is_lineshape_parameter_X2(const RetrievalQuantity& t) noexcept {
          VARISLINESHAPEPARAM(Y, X2) or VARISLINESHAPEPARAM(G, X2) or
          VARISLINESHAPEPARAM(DV, X2);
 }
+
+bool is_lineshape_parameter_X3(const RetrievalQuantity& t) noexcept {
+  return VARISLINESHAPEPARAM(G0, X3) or VARISLINESHAPEPARAM(D0, X3) or
+         VARISLINESHAPEPARAM(G2, X3) or VARISLINESHAPEPARAM(D2, X3) or
+         VARISLINESHAPEPARAM(FVC, X3) or VARISLINESHAPEPARAM(ETA, X3) or
+         VARISLINESHAPEPARAM(Y, X3) or VARISLINESHAPEPARAM(G, X3) or
+         VARISLINESHAPEPARAM(DV, X3);
+}
 #undef VARISLINESHAPEPARAM
 
 bool is_lineshape_parameter_bar_linemixing(
@@ -1193,52 +1171,47 @@ bool is_lineshape_parameter(const RetrievalQuantity& t) noexcept {
 }
 
 bool is_line_parameter(const RetrievalQuantity& t) noexcept {
-  return t == JacPropMatType::LineCenter or t == JacPropMatType::LineStrength or
-         is_lineshape_parameter(t) or is_nlte_parameter(t);
+  return t == Jacobian::Type::Line;
 }
 
 bool supports_CIA(const ArrayOfRetrievalQuantity& js) {
-  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == JacPropMatType::Temperature or j == JacPropMatType::VMR or is_frequency_parameter(j));});
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or j == Jacobian::Line::VMR or is_frequency_parameter(j));});
 }
 
 bool supports_hitran_xsec(const ArrayOfRetrievalQuantity& js) {
-  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == JacPropMatType::Temperature or j == JacPropMatType::VMR or is_frequency_parameter(j));});
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or j == Jacobian::Line::VMR or is_frequency_parameter(j));});
 }
 
 bool supports_continuum(const ArrayOfRetrievalQuantity& js) {
   if (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_line_parameter(j);}))
     throw std::runtime_error("Line specific parameters are not supported while using continuum tags.\nWe do not track what lines are in the continuum.\n");
-  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == JacPropMatType::Temperature or j == JacPropMatType::VMR or is_frequency_parameter(j));});
-}
-
-bool supports_LBL_without_phase(const ArrayOfRetrievalQuantity& js) {
-  return not std::any_of(js.cbegin(), js.cend(), [](auto& j){return j not_eq JacPropMatType::VMR or j not_eq JacPropMatType::LineStrength or not is_nlte_parameter(j);});
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or is_frequency_parameter(j));});
 }
 
 bool supports_relaxation_matrix(const ArrayOfRetrievalQuantity& js) {
   if (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_line_parameter(j);}))
     throw std::runtime_error("Line specific parameters are not supported while\n using the relaxation matrix line mixing routine.\n We do not yet track individual lines in the relaxation matrix calculations.\n");
-  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == JacPropMatType::Temperature or is_frequency_parameter(j));});
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or is_frequency_parameter(j));});
 }
 
 bool supports_lookup(const ArrayOfRetrievalQuantity& js) {
   if (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_line_parameter(j);}))
     throw std::runtime_error("Line specific parameters are not supported while using Lookup table.\nWe do not track lines in the Lookup.\n");
-  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == JacPropMatType::Temperature or j == JacPropMatType::VMR or is_frequency_parameter(j));});
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return (j == Jacobian::Atm::Temperature or j == Jacobian::Special::ArrayOfSpeciesTagVMR or is_frequency_parameter(j));});
 }
 
 bool supports_faraday(const ArrayOfRetrievalQuantity& js) {
   if (std::any_of(js.cbegin(), js.cend(), [](auto& j){return is_derived_magnetic_parameter(j);}))
     throw std::runtime_error("This method does not yet support Zeeman-style magnetic Jacobian calculations.\n Please use u, v, and w Jacobians instead.\n");
-  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return j == JacPropMatType::MagneticU or j == JacPropMatType::MagneticV or j == JacPropMatType::MagneticW or j == JacPropMatType::Electrons or is_frequency_parameter(j);});
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return j == Jacobian::Atm::MagneticU or j == Jacobian::Atm::MagneticV or j == Jacobian::Atm::MagneticW or j == Jacobian::Atm::Electrons or is_frequency_parameter(j);});
 }
 
 bool supports_particles(const ArrayOfRetrievalQuantity& js) {
-  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return j not_eq JacPropMatType::NotPropagationMatrixType;});
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return j == Jacobian::Atm::Temperature or j == Jacobian::Atm::Particulates;});
 }
 
 bool supports_propmat_clearsky(const ArrayOfRetrievalQuantity& js) {
-  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return j not_eq JacPropMatType::NotPropagationMatrixType;});
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return not (j == Jacobian::Type::Sensor);});
 }
 
 bool species_match(const RetrievalQuantity& rq, const ArrayOfSpeciesTag& ast) {
@@ -1260,8 +1233,8 @@ bool species_match(const RetrievalQuantity& rq, const ArrayOfSpeciesTag& ast) {
 }
 
 bool species_match(const RetrievalQuantity& rq, const Index species) {
-  if (rq == JacPropMatType::VMR)
-    if (rq.QuantumIdentity().Species() == species) return true;
+  if (rq == Jacobian::Line::VMR and rq.QuantumIdentity().Species() == species)
+    return true;
   return false;
 }
 
@@ -1277,12 +1250,12 @@ bool species_iso_match(const RetrievalQuantity& rq,
 }
 
 bool do_temperature_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
-  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return j == JacPropMatType::Temperature;});
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return j == Jacobian::Atm::Temperature;});
 }
 
 jacobianVMRcheck do_vmr_jacobian(const ArrayOfRetrievalQuantity& js,
                                  const QuantumIdentifier& line_qid) noexcept {
-  auto p = std::find_if(js.cbegin(), js.cend(), [&line_qid](auto& j){return j == JacPropMatType::VMR and j.QuantumIdentity().In(line_qid);});
+  auto p = std::find_if(js.cbegin(), js.cend(), [&line_qid](auto& j){return j == Jacobian::Line::VMR and j.QuantumIdentity().In(line_qid);});
   if (p not_eq js.cend())
     return {true, p -> QuantumIdentity()};
   else
@@ -1290,7 +1263,7 @@ jacobianVMRcheck do_vmr_jacobian(const ArrayOfRetrievalQuantity& js,
 }
 
 bool do_line_center_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
-  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return j == JacPropMatType::LineCenter;});
+  return std::any_of(js.cbegin(), js.cend(), [](auto& j){return j == Jacobian::Line::Center;});
 }
 
 bool do_frequency_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
@@ -1302,107 +1275,25 @@ bool do_magnetic_jacobian(const ArrayOfRetrievalQuantity& js) noexcept {
 }
 
 Numeric temperature_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
-  auto p = std::find_if(js.cbegin(), js.cend(), [](auto& j){return j == JacPropMatType::Temperature;});
+  auto p = std::find_if(js.cbegin(), js.cend(), [](auto& j){return j == Jacobian::Atm::Temperature;});
   if (p not_eq js.cend())
-    return p -> Perturbation();
+    return p -> Target().Perturbation();
   else
-    return 0.0;
+    return std::numeric_limits<Numeric>::quiet_NaN();
 }
 
 Numeric frequency_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
   auto p = std::find_if(js.cbegin(), js.cend(), [](auto& j){return is_frequency_parameter(j);});
   if (p not_eq js.cend())
-    return p -> Perturbation();
+    return p -> Target().Perturbation();
   else
-    return 0.0;
+    return std::numeric_limits<Numeric>::quiet_NaN();
 }
 
 Numeric magnetic_field_perturbation(const ArrayOfRetrievalQuantity& js) noexcept {
   auto p = std::find_if(js.cbegin(), js.cend(), [](auto& j){return is_magnetic_parameter(j);});
   if (p not_eq js.cend())
-    return p -> Perturbation();
+    return p -> Target().Perturbation();
   else
-    return 0.0;
-}
-
-String propmattype_string(const RetrievalQuantity& rq) {
-#define lineshapevariable(X1, X2) \
-  JacPropMatType::LineShape##X1##X2 : return "Line-Shape: " #X1 " " #X2
-  switch (rq.PropMatType()) {
-    case JacPropMatType::VMR:
-      return "VMR";
-    case JacPropMatType::Electrons:
-      return "Electrons-VMR";
-    case JacPropMatType::Particulates:
-      return "Particulate-VMR";
-    case JacPropMatType::Temperature:
-      return "Temperature";
-    case JacPropMatType::MagneticMagnitude:
-      return "Magnetic-Strength";
-    case JacPropMatType::MagneticU:
-      return "Magnetic-u";
-    case JacPropMatType::MagneticV:
-      return "Magnetic-v";
-    case JacPropMatType::MagneticW:
-      return "Magnetic-w";
-    case JacPropMatType::WindMagnitude:
-      return "Wind-Strength";
-    case JacPropMatType::WindU:
-      return "Wind-u";
-    case JacPropMatType::WindV:
-      return "Wind-v";
-    case JacPropMatType::WindW:
-      return "Wind-w";
-    case JacPropMatType::Frequency:
-      return "Frequency";
-    case JacPropMatType::LineStrength:
-      return "Line-Strength";
-    case JacPropMatType::LineCenter:
-      return "Line-Center";
-    case JacPropMatType::LineSpecialParameter1:
-      return "Line-Special-Parameter-1";
-    case JacPropMatType::NLTE:
-      return "NLTE-Level";
-    case lineshapevariable(G0, X0);
-        case lineshapevariable(G0, X1);
-        case lineshapevariable(G0, X2);
-        case lineshapevariable(G0, X3);
-        case lineshapevariable(D0, X0);
-        case lineshapevariable(D0, X1);
-        case lineshapevariable(D0, X2);
-        case lineshapevariable(D0, X3);
-        case lineshapevariable(G2, X0);
-        case lineshapevariable(G2, X1);
-        case lineshapevariable(G2, X2);
-        case lineshapevariable(G2, X3);
-        case lineshapevariable(D2, X0);
-        case lineshapevariable(D2, X1);
-        case lineshapevariable(D2, X2);
-        case lineshapevariable(D2, X3);
-        case lineshapevariable(ETA, X0);
-        case lineshapevariable(ETA, X1);
-        case lineshapevariable(ETA, X2);
-        case lineshapevariable(ETA, X3);
-        case lineshapevariable(FVC, X0);
-        case lineshapevariable(FVC, X1);
-        case lineshapevariable(FVC, X2);
-        case lineshapevariable(FVC, X3);
-        case lineshapevariable(Y, X0);
-        case lineshapevariable(Y, X1);
-        case lineshapevariable(Y, X2);
-        case lineshapevariable(Y, X3);
-        case lineshapevariable(G, X0);
-        case lineshapevariable(G, X1);
-        case lineshapevariable(G, X2);
-        case lineshapevariable(G, X3);
-        case lineshapevariable(DV, X0);
-        case lineshapevariable(DV, X1);
-        case lineshapevariable(DV, X2);
-        case lineshapevariable(DV, X3);
-        case JacPropMatType::NotPropagationMatrixType:
-      return "Not-A-Prop-Mat-Variable";
-  }
-#undef lineshapevariable
-
-  return "UNDEFINED-CHECK-IF-CASE-LIST-IS-COMPLETE";
+    return std::numeric_limits<Numeric>::quiet_NaN();
 }

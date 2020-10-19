@@ -253,7 +253,7 @@ void abs_xsec_per_speciesAddCIA(  // WS Output:
                 dabs_xsec_per_species_dx[i][iq](iv, ip) +=
                     n * (dxsec_temp_dF[iv] - xsec_temp[iv]) / df;
               else if (jacobian_quantities[jacobian_quantities_position[iq]] ==
-                       JacPropMatType::Temperature)
+                       Jacobian::Atm::Temperature)
                 dabs_xsec_per_species_dx[i][iq](iv, ip) +=
                     n * (dxsec_temp_dT[iv] - xsec_temp[iv]) / dt +
                     xsec_temp[iv] * dn_dT;

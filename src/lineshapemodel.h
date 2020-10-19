@@ -48,7 +48,7 @@
  * 
  * @return Derivative
  */
-JacPropMatType select_derivativeLineShape(const String& var,
+Jacobian::Line select_derivativeLineShape(const String& var,
                                           const String& coeff);
 
 /** All available line shape coefficients */
@@ -1275,18 +1275,18 @@ class Model {
                            Numeric T0,
                            Numeric P,
                            Index pos,
-                           ConstVectorView vmrs,
-                           JacPropMatType deriv) const noexcept {
+                           const Vector& vmrs,
+                           Jacobian::Line deriv) const noexcept {
     if (pos < 0) return 0;
 
 #define RETURNINTERNALDERIVATIVE(TYPE)         \
-  case JacPropMatType::LineShape##TYPE##X0:    \
+  case Jacobian::Line::Shape##TYPE##X0:    \
     return d##TYPE##_dX0(T, T0, P, pos, vmrs); \
-  case JacPropMatType::LineShape##TYPE##X1:    \
+  case Jacobian::Line::Shape##TYPE##X1:    \
     return d##TYPE##_dX1(T, T0, P, pos, vmrs); \
-  case JacPropMatType::LineShape##TYPE##X2:    \
+  case Jacobian::Line::Shape##TYPE##X2:    \
     return d##TYPE##_dX2(T, T0, P, pos, vmrs); \
-  case JacPropMatType::LineShape##TYPE##X3:    \
+  case Jacobian::Line::Shape##TYPE##X3:    \
     return d##TYPE##_dX3(T, T0, P, pos, vmrs)
     switch (deriv) {
       RETURNINTERNALDERIVATIVE(G0);
@@ -1299,7 +1299,7 @@ class Model {
       RETURNINTERNALDERIVATIVE(G);
       RETURNINTERNALDERIVATIVE(DV);
       default:
-        return 0;
+        return std::numeric_limits<Numeric>::quiet_NaN();
     }
 #undef RETURNINTERNALDERIVATIVE
   }

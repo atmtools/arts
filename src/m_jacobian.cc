@@ -35,6 +35,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "cloudbox.h"
+#include "constants.h"
 #include "interpolation_poly.h"
 #include "jacobian.h"
 #include "m_xml.h"
@@ -42,62 +43,6 @@
 #include "messages.h"
 #include "physics_funcs.h"
 #include "rte.h"
-
-extern const Numeric PI;
-
-extern const String ABSSPECIES_MAINTAG;
-extern const String FREQUENCY_MAINTAG;
-extern const String FREQUENCY_SUBTAG_0;
-extern const String FREQUENCY_SUBTAG_1;
-extern const String POINTING_MAINTAG;
-extern const String POINTING_SUBTAG_A;
-extern const String POINTING_CALCMODE_A;
-extern const String POINTING_CALCMODE_B;
-extern const String POLYFIT_MAINTAG;
-extern const String SCATSPECIES_MAINTAG;
-extern const String SINEFIT_MAINTAG;
-extern const String TEMPERATURE_MAINTAG;
-extern const String NLTE_MAINTAG;
-extern const String WIND_MAINTAG;
-extern const String MAGFIELD_MAINTAG;
-extern const String FLUX_MAINTAG;
-extern const String PROPMAT_SUBSUBTAG;
-extern const String ELECTRONS_MAINTAG;
-extern const String PARTICULATES_MAINTAG;
-extern const String CATALOGPARAMETER_MAINTAG;
-
-extern const String SURFACE_MAINTAG;
-
-// Generic modes
-extern const String PRESSUREBROADENINGGAMMA_MODE;
-extern const String LINESTRENGTH_MODE;
-extern const String LINECENTER_MODE;
-extern const String LINEMIXINGY_MODE;
-extern const String LINEMIXINGG_MODE;
-extern const String LINEMIXINGDF_MODE;
-
-// Modes for "some" catalogs
-//  Pressure Broadening
-extern const String SELFBROADENING_MODE;
-extern const String FOREIGNBROADENING_MODE;
-extern const String WATERBROADENING_MODE;
-extern const String SELFBROADENINGEXPONENT_MODE;
-extern const String FOREIGNBROADENINGEXPONENT_MODE;
-extern const String WATERBROADENINGEXPONENT_MODE;
-extern const String SELFPRESSURESHIFT_MODE;
-extern const String FOREIGNPRESSURESHIFT_MODE;
-extern const String WATERPRESSURESHIFT_MODE;
-
-//  Line Mixing
-extern const String LINEMIXINGY0_MODE;
-extern const String LINEMIXINGG0_MODE;
-extern const String LINEMIXINGDF0_MODE;
-extern const String LINEMIXINGY1_MODE;
-extern const String LINEMIXINGG1_MODE;
-extern const String LINEMIXINGDF1_MODE;
-extern const String LINEMIXINGYEXPONENT_MODE;
-extern const String LINEMIXINGGEXPONENT_MODE;
-extern const String LINEMIXINGDFEXPONENT_MODE;
 
 /*===========================================================================
   === The methods, with general methods first followed by the Add/Calc method
@@ -189,22 +134,18 @@ void jacobianAddAbsSpecies(Workspace&,
 
   // Check that this species is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
-    if (jq[it].MainTag() == ABSSPECIES_MAINTAG &&
-        jq[it].SubSubtag() != PROPMAT_SUBSUBTAG && jq[it].Subtag() == species) {
+    if (jq[it] == Jacobian::Special::ArrayOfSpeciesTagVMR && jq[it].Subtag() == species) {
       ostringstream os;
       os << "The gas species:\n"
          << species << "\nis already included in "
          << "*jacobian_quantities*.";
       throw runtime_error(os.str());
-    } else if (jq[it].MainTag() == ABSSPECIES_MAINTAG &&
-               jq[it].SubSubtag() == PROPMAT_SUBSUBTAG) {
-      if (SpeciesTag(jq[it].Subtag()) == SpeciesTag(species)) {
-        ostringstream os;
-        os << "The atmospheric species of:\n"
-           << species << "\nis already included in "
-           << "*jacobian_quantities*.";
-        throw runtime_error(os.str());
-      }
+    } else if (jq[it] == Jacobian::Line::VMR and jq[it].QuantumIdentity() == qi) {
+      ostringstream os;
+      os << "The atmospheric species of:\n"
+          << species << "\nis already included in "
+          << "*jacobian_quantities*.";
+      throw runtime_error(os.str());
     }
   }
 
@@ -243,19 +184,15 @@ void jacobianAddAbsSpecies(Workspace&,
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-  rq.MainTag(ABSSPECIES_MAINTAG);
   rq.Subtag(species);
   rq.Mode(mode);
-  rq.Analytical(1);
-  rq.Perturbation(0.001);
   rq.Grids(grids);
-  if (not for_species_tag) {
-    rq.SubSubtag(PROPMAT_SUBSUBTAG);
-    rq.PropType(JacPropMatType::VMR);
-  } else
-    rq.PropType(JacPropMatType::NotPropagationMatrixType);
-
-  rq.QuantumIdentity(qi);
+  if (for_species_tag == 0) {
+    rq.Target(Jacobian::Target(Jacobian::Line::VMR, qi));
+  } else {
+    rq.Target(Jacobian::Target(Jacobian::Special::ArrayOfSpeciesTagVMR, {}));
+  }
+  rq.Target().Perturbation(0.001);
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -276,8 +213,7 @@ void jacobianAddFreqShift(Workspace& ws _U_,
                           const Verbosity&) {
   // Check that this jacobian type is not already included.
   for (Index it = 0; it < jacobian_quantities.nelem(); it++) {
-    if (jacobian_quantities[it].MainTag() == FREQUENCY_MAINTAG &&
-        jacobian_quantities[it].Subtag() == FREQUENCY_SUBTAG_0) {
+    if (jacobian_quantities[it] == Jacobian::Sensor::FrequencyShift) {
       ostringstream os;
       os << "Fit of frequency shift is already included in\n"
          << "*jacobian_quantities*.";
@@ -307,11 +243,9 @@ void jacobianAddFreqShift(Workspace& ws _U_,
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-  rq.MainTag(FREQUENCY_MAINTAG);
-  rq.Subtag(FREQUENCY_SUBTAG_0);
+  rq.Target() = Jacobian::Target(Jacobian::Sensor::FrequencyShift);
   rq.Mode("");
-  rq.Analytical(0);
-  rq.Perturbation(df);
+  rq.Target().Perturbation(df);
 
   // Dummy vector of length 1
   Vector grid(1, 0);
@@ -344,8 +278,7 @@ void jacobianCalcFreqShift(Matrix& jacobian,
   // This works since the combined MainTag and Subtag is individual.
   bool found = false;
   for (Index n = 0; n < jacobian_quantities.nelem() && !found; n++) {
-    if (jacobian_quantities[n].MainTag() == FREQUENCY_MAINTAG &&
-        jacobian_quantities[n].Subtag() == FREQUENCY_SUBTAG_0) {
+    if (jacobian_quantities[n] == Jacobian::Sensor::FrequencyShift) {
       bool any_affine;
       ArrayOfArrayOfIndex jacobian_indices;
       jac_ranges_indices(
@@ -386,7 +319,7 @@ void jacobianCalcFreqShift(Matrix& jacobian,
     Matrix itw(nf2, porder + 1);
     Vector fg_new = f_grid, iyb2(niyb);
     //
-    fg_new += rq.Perturbation();
+    fg_new += rq.Target().Perturbation();
     gridpos_poly(gp, f_grid, fg_new, porder, 1.0);
     interpweights(itw, gp);
 
@@ -407,7 +340,7 @@ void jacobianCalcFreqShift(Matrix& jacobian,
     mult(dy, sensor_response, iyb2);
     //
     for (Index i = 0; i < n1y; i++) {
-      dy[i] = (dy[i] - yb[i]) / rq.Perturbation();
+      dy[i] = (dy[i] - yb[i]) / rq.Target().Perturbation();
     }
   }
 
@@ -430,8 +363,7 @@ void jacobianAddFreqStretch(Workspace& ws _U_,
                             const Verbosity&) {
   // Check that this jacobian type is not already included.
   for (Index it = 0; it < jacobian_quantities.nelem(); it++) {
-    if (jacobian_quantities[it].MainTag() == FREQUENCY_MAINTAG &&
-        jacobian_quantities[it].Subtag() == FREQUENCY_SUBTAG_1) {
+    if (jacobian_quantities[it] == Jacobian::Sensor::FrequencyStretch) {
       ostringstream os;
       os << "Fit of frequency stretch is already included in\n"
          << "*jacobian_quantities*.";
@@ -457,11 +389,9 @@ void jacobianAddFreqStretch(Workspace& ws _U_,
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-  rq.MainTag(FREQUENCY_MAINTAG);
-  rq.Subtag(FREQUENCY_SUBTAG_1);
+  rq.Target() = Jacobian::Target(Jacobian::Sensor::FrequencyStretch);
   rq.Mode("");
-  rq.Analytical(0);
-  rq.Perturbation(df);
+  rq.Target().Perturbation(df);
 
   // Dummy vector of length 1
   Vector grid(1, 0);
@@ -501,8 +431,7 @@ void jacobianCalcFreqStretch(
   // This works since the combined MainTag and Subtag is individual.
   bool found = false;
   for (Index n = 0; n < jacobian_quantities.nelem() && !found; n++) {
-    if (jacobian_quantities[n].MainTag() == FREQUENCY_MAINTAG &&
-        jacobian_quantities[n].Subtag() == FREQUENCY_SUBTAG_1) {
+    if (jacobian_quantities[n] == Jacobian::Sensor::FrequencyStretch) {
       bool any_affine;
       ArrayOfArrayOfIndex jacobian_indices;
       jac_ranges_indices(
@@ -543,7 +472,7 @@ void jacobianCalcFreqStretch(
     Matrix itw(nf2, porder + 1);
     Vector fg_new = f_grid, iyb2(niyb);
     //
-    fg_new += rq.Perturbation();
+    fg_new += rq.Target().Perturbation();
     gridpos_poly(gp, f_grid, fg_new, porder, 1.0);
     interpweights(itw, gp);
 
@@ -564,7 +493,7 @@ void jacobianCalcFreqStretch(
     mult(dy, sensor_response, iyb2);
     //
     for (Index i = 0; i < n1y; i++) {
-      dy[i] = (dy[i] - yb[i]) / rq.Perturbation();
+      dy[i] = (dy[i] - yb[i]) / rq.Target().Perturbation();
     }
 
     // dy above corresponds now to shift. Convert to stretch:
@@ -613,8 +542,7 @@ void jacobianAddPointingZa(Workspace& ws _U_,
 
   // Check that this jacobian type is not already included.
   for (Index it = 0; it < jacobian_quantities.nelem(); it++) {
-    if (jacobian_quantities[it].MainTag() == POINTING_MAINTAG &&
-        jacobian_quantities[it].Subtag() == POINTING_SUBTAG_A) {
+    if (jacobian_quantities[it].Target().isPointing()) {
       ostringstream os;
       os << "Fit of zenith angle pointing off-set is already included in\n"
          << "*jacobian_quantities*.";
@@ -643,10 +571,16 @@ void jacobianAddPointingZa(Workspace& ws _U_,
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-  rq.MainTag(POINTING_MAINTAG);
-  rq.Subtag(POINTING_SUBTAG_A);
-  rq.Analytical(0);
-  rq.Perturbation(dza);
+  if (calcmode == "recalc") {
+    rq.Target() = Jacobian::Target(Jacobian::Sensor::PointingZenithRecalc);
+    jacobian_agenda.append("jacobianCalcPointingZaRecalc", "");
+  } else if (calcmode == "interp") {
+    rq.Target() = Jacobian::Target(Jacobian::Sensor::PointingZenithInterp);
+    jacobian_agenda.append("jacobianCalcPointingZaInterp", "");
+  } else
+    throw runtime_error(
+      "Possible choices for *calcmode* are \"recalc\" and \"interp\".");
+  rq.Target().Perturbation(dza);
 
   // To store the value or the polynomial order, create a vector with length
   // poly_order+1, in case of gitter set the size of the grid vector to be the
@@ -658,16 +592,6 @@ void jacobianAddPointingZa(Workspace& ws _U_,
   }
   ArrayOfVector grids(1, grid);
   rq.Grids(grids);
-
-  if (calcmode == "recalc") {
-    rq.Mode(POINTING_CALCMODE_A);
-    jacobian_agenda.append("jacobianCalcPointingZaRecalc", "");
-  } else if (calcmode == "interp") {
-    rq.Mode(POINTING_CALCMODE_B);
-    jacobian_agenda.append("jacobianCalcPointingZaInterp", "");
-  } else
-    throw runtime_error(
-        "Possible choices for *calcmode* are \"recalc\" and \"interp\".");
 
   // Add it to the *jacobian_quantities*
   jacobian_quantities.push_back(rq);
@@ -706,9 +630,7 @@ void jacobianCalcPointingZaInterp(
   // This works since the combined MainTag and Subtag is individual.
   bool found = false;
   for (Index n = 0; n < jacobian_quantities.nelem() && !found; n++) {
-    if (jacobian_quantities[n].MainTag() == POINTING_MAINTAG &&
-        jacobian_quantities[n].Subtag() == POINTING_SUBTAG_A &&
-        jacobian_quantities[n].Mode() == POINTING_CALCMODE_B) {
+    if (jacobian_quantities[n] == Jacobian::Sensor::PointingZenithInterp) {
       bool any_affine;
       ArrayOfArrayOfIndex jacobian_indices;
       jac_ranges_indices(
@@ -735,9 +657,9 @@ void jacobianCalcPointingZaInterp(
 
     // Shifted zenith angles
     Vector za1 = mblock_dlos_grid(joker, 0);
-    za1 -= rq.Perturbation();
+    za1 -= rq.Target().Perturbation();
     Vector za2 = mblock_dlos_grid(joker, 0);
-    za2 += rq.Perturbation();
+    za2 += rq.Target().Perturbation();
 
     // Find interpolation weights
     ArrayOfGridPos gp1(nza), gp2(nza);
@@ -770,7 +692,7 @@ void jacobianCalcPointingZaInterp(
     mult(y2, sensor_response, iyb2);
     //
     for (Index i = 0; i < n1y; i++) {
-      dy[i] = (y2[i] - y1[i]) / (2 * rq.Perturbation());
+      dy[i] = (y2[i] - y1[i]) / (2 * rq.Target().Perturbation());
     }
   }
 
@@ -835,9 +757,7 @@ void jacobianCalcPointingZaRecalc(
   // This works since the combined MainTag and Subtag is individual.
   bool found = false;
   for (Index n = 0; n < jacobian_quantities.nelem() && !found; n++) {
-    if (jacobian_quantities[n].MainTag() == POINTING_MAINTAG &&
-        jacobian_quantities[n].Subtag() == POINTING_SUBTAG_A &&
-        jacobian_quantities[n].Mode() == POINTING_CALCMODE_A) {
+    if (jacobian_quantities[n] == Jacobian::Sensor::PointingZenithRecalc) {
       bool any_affine;
       ArrayOfArrayOfIndex jacobian_indices;
       jac_ranges_indices(
@@ -864,7 +784,7 @@ void jacobianCalcPointingZaRecalc(
     ArrayOfVector iyb_aux;
     ArrayOfMatrix diyb_dx;
 
-    los(joker, 0) += rq.Perturbation();
+    los(joker, 0) += rq.Target().Perturbation();
 
     iyb_calc(ws,
              iyb2,
@@ -895,7 +815,7 @@ void jacobianCalcPointingZaRecalc(
     mult(dy, sensor_response, iyb2);
     //
     for (Index i = 0; i < n1y; i++) {
-      dy[i] = (dy[i] - yb[i]) / rq.Perturbation();
+      dy[i] = (dy[i] - yb[i]) / rq.Target().Perturbation();
     }
   }
 
@@ -951,7 +871,7 @@ void jacobianAddPolyfit(Workspace& ws _U_,
 
   // Check that polyfit is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
-    if (jq[it].MainTag() == POLYFIT_MAINTAG) {
+    if (jq[it] == Jacobian::Sensor::Polyfit) {
       ostringstream os;
       os << "Polynomial baseline fit is already included in\n"
          << "*jacobian_quantities*.";
@@ -984,10 +904,9 @@ void jacobianAddPolyfit(Workspace& ws _U_,
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-  rq.MainTag(POLYFIT_MAINTAG);
+  rq.Target() = Jacobian::Target(Jacobian::Sensor::Polyfit);
   rq.Mode("");
-  rq.Analytical(0);
-  rq.Perturbation(0);
+  rq.Target().Perturbation(0);
 
   // Each polynomial coeff. is treated as a retrieval quantity
   //
@@ -1028,7 +947,7 @@ void jacobianCalcPolyfit(Matrix& jacobian,
   ostringstream sstr;
   sstr << "Coefficient " << poly_coeff;
   for (iq = 0; iq < jacobian_quantities.nelem() && !found; iq++) {
-    if (jacobian_quantities[iq].MainTag() == POLYFIT_MAINTAG &&
+    if (jacobian_quantities[iq] == Jacobian::Sensor::Polyfit &&
         jacobian_quantities[iq].Subtag() == sstr.str()) {
       found = true;
       break;
@@ -1115,7 +1034,7 @@ void jacobianAddScatSpecies(Workspace&,
   // Check that this species+quantity combination is not already included in
   // the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
-    if (jq[it].MainTag() == SCATSPECIES_MAINTAG && jq[it].Subtag() == species &&
+    if (jq[it] == Jacobian::Special::ScatteringString && jq[it].Subtag() == species &&
         jq[it].SubSubtag() == quantity) {
       ostringstream os;
       os << "The combintaion of\n   scattering species: " << species
@@ -1147,10 +1066,9 @@ void jacobianAddScatSpecies(Workspace&,
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-  rq.MainTag(SCATSPECIES_MAINTAG);
+  rq.Target() = Jacobian::Target(Jacobian::Special::ScatteringString, {});
   rq.Subtag(species);
   rq.SubSubtag(quantity);
-  rq.Analytical(1);
   rq.Grids(grids);
 
   // Add it to the *jacobian_quantities*
@@ -1182,7 +1100,7 @@ void jacobianAddSinefit(Workspace& ws _U_,
 
   // Check that polyfit is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
-    if (jq[it].MainTag() == SINEFIT_MAINTAG) {
+    if (jq[it] == Jacobian::Sensor::Sinefit) {
       ostringstream os;
       os << "Polynomial baseline fit is already included in\n"
          << "*jacobian_quantities*.";
@@ -1215,10 +1133,9 @@ void jacobianAddSinefit(Workspace& ws _U_,
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-  rq.MainTag(SINEFIT_MAINTAG);
+  rq.Target() = Jacobian::Target(Jacobian::Sensor::Sinefit);
   rq.Mode("");
-  rq.Analytical(0);
-  rq.Perturbation(0);
+  rq.Target().Perturbation(0);
 
   // Each sinefit coeff. pair is treated as a retrieval quantity
   //
@@ -1259,7 +1176,7 @@ void jacobianCalcSinefit(Matrix& jacobian,
   ostringstream sstr;
   sstr << "Period " << period_index;
   for (iq = 0; iq < jacobian_quantities.nelem() && !found; iq++) {
-    if (jacobian_quantities[iq].MainTag() == SINEFIT_MAINTAG &&
+    if (jacobian_quantities[iq] == Jacobian::Sensor::Sinefit &&
         jacobian_quantities[iq].Subtag() == sstr.str()) {
       found = true;
       break;
@@ -1285,8 +1202,8 @@ void jacobianCalcSinefit(Matrix& jacobian,
   Vector s(nf), c(nf);
   //
   for (Index f = 0; f < nf; f++) {
-    Numeric a = (sensor_response_f_grid[f] - sensor_response_f_grid[0]) * 2 *
-                PI / jg[0][0];
+    Numeric a = (sensor_response_f_grid[f] - sensor_response_f_grid[0]) *
+                Constant::two_pi / jg[0][0];
     s[f] = sin(a);
     c[f] = cos(a);
   }
@@ -1350,7 +1267,7 @@ void jacobianAddSurfaceQuantity(Workspace&,
 
   // Check that this species is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
-    if (jq[it].MainTag() == SURFACE_MAINTAG && jq[it].Subtag() == quantity) {
+    if (jq[it] == Jacobian::Special::SurfaceString && jq[it].Subtag() == quantity) {
       ostringstream os;
       os << quantity << " is already included as a surface variable "
          << "in *jacobian_quantities*.";
@@ -1377,9 +1294,8 @@ void jacobianAddSurfaceQuantity(Workspace&,
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-  rq.MainTag(SURFACE_MAINTAG);
+  rq.Target() = Jacobian::Target(Jacobian::Special::SurfaceString, {});
   rq.Subtag(quantity);
-  rq.Analytical(0);
   rq.Grids(grids);
 
   // Add it to the *jacobian_quantities*
@@ -1411,7 +1327,7 @@ void jacobianAddTemperature(Workspace&,
   // Check that temperature is not already included in the jacobian.
   // We only check the main tag.
   for (Index it = 0; it < jq.nelem(); it++) {
-    if (jq[it].MainTag() == TEMPERATURE_MAINTAG) {
+    if (jq[it] == Jacobian::Atm::Temperature) {
       ostringstream os;
       os << "Temperature is already included in *jacobian_quantities*.";
       throw runtime_error(os.str());
@@ -1453,14 +1369,10 @@ void jacobianAddTemperature(Workspace&,
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-  rq.MainTag(TEMPERATURE_MAINTAG);
   rq.Subtag(subtag);
-  rq.Mode("abs");
-  rq.Analytical(1);
-  rq.Perturbation(0.1);
   rq.Grids(grids);
-  rq.SubSubtag(PROPMAT_SUBSUBTAG);
-  rq.PropType(JacPropMatType::Temperature);
+  rq.Target(Jacobian::Target(Jacobian::Atm::Temperature));
+  rq.Target().Perturbation(0.1);
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -1488,10 +1400,24 @@ void jacobianAddWind(Workspace&,
                      const Verbosity& verbosity) {
   CREATE_OUT2;
   CREATE_OUT3;
+  
+  // Create the new retrieval quantity
+  RetrievalQuantity rq;
+  if (component == "u")
+    rq.Target(Jacobian::Target(Jacobian::Atm::WindU));
+  else if (component == "v")
+    rq.Target(Jacobian::Target(Jacobian::Atm::WindV));
+  else if (component == "w")
+    rq.Target(Jacobian::Target(Jacobian::Atm::WindW));
+  else if (component == "strength")
+    rq.Target(Jacobian::Target(Jacobian::Atm::WindMagnitude));
+  else
+    throw std::runtime_error(
+      "The selection for *component* can only be \"u\", \"v\", \"w\" or \"strength\".");
 
   // Check that this species is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
-    if (jq[it].MainTag() == WIND_MAINTAG && jq[it].Subtag() == component) {
+    if (jq[it] == rq.Target()) {
       ostringstream os;
       os << "The wind component:\n"
          << component << "\nis already included "
@@ -1520,27 +1446,9 @@ void jacobianAddWind(Workspace&,
       throw runtime_error(os.str());
   }
 
-  // Create the new retrieval quantity
-  RetrievalQuantity rq;
-
-  if (component == "u")
-    rq.PropType(JacPropMatType::WindU);
-  else if (component == "v")
-    rq.PropType(JacPropMatType::WindV);
-  else if (component == "w")
-    rq.PropType(JacPropMatType::WindW);
-  else if (component == "strength")
-    rq.PropType(JacPropMatType::WindMagnitude);
-  else
-    throw std::runtime_error(
-        "The selection for *component* can only be \"u\", \"v\", \"w\" or \"strength\".");
-
-  rq.MainTag(WIND_MAINTAG);
-  rq.Subtag(component);
-  rq.Analytical(1);
+  rq.Subtag(component);  // nb.  This should be possible to remove...
   rq.Grids(grids);
-  rq.SubSubtag(PROPMAT_SUBSUBTAG);
-  rq.Perturbation(dfrequency);
+  rq.Target().Perturbation(dfrequency);
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -1569,10 +1477,24 @@ void jacobianAddMagField(Workspace&,
                          const Verbosity& verbosity) {
   CREATE_OUT2;
   CREATE_OUT3;
+  
+  // Create the new retrieval quantity
+  RetrievalQuantity rq;
+  if (component == "u")
+    rq.Target(Jacobian::Target(Jacobian::Atm::MagneticU));
+  else if (component == "v")
+    rq.Target(Jacobian::Target(Jacobian::Atm::MagneticV));
+  else if (component == "w")
+    rq.Target(Jacobian::Target(Jacobian::Atm::MagneticW));
+  else if (component == "strength")
+    rq.Target(Jacobian::Target(Jacobian::Atm::MagneticMagnitude));
+  else
+    throw runtime_error(
+      "The selection for *component* can only be \"u\", \"v\", \"w\", or \"strength\".");
 
   // Check that this species is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
-    if (jq[it].MainTag() == MAGFIELD_MAINTAG && jq[it].Subtag() == component) {
+    if (jq[it] == rq.Target()) {
       ostringstream os;
       os << "The magnetic field component:\n"
          << component << "\nis already "
@@ -1601,27 +1523,8 @@ void jacobianAddMagField(Workspace&,
       throw runtime_error(os.str());
   }
 
-  // Create the new retrieval quantity
-  RetrievalQuantity rq;
-  if (component == "u")
-    rq.PropType(JacPropMatType::MagneticU);
-  else if (component == "v")
-    rq.PropType(JacPropMatType::MagneticV);
-  else if (component == "w")
-    rq.PropType(JacPropMatType::MagneticW);
-  else if (component == "strength")
-    rq.PropType(JacPropMatType::MagneticMagnitude);
-  else
-    throw runtime_error(
-        "The selection for *component* can only be \"u\", \"v\", \"w\", or \"strength\".");
-
-  rq.MainTag(MAGFIELD_MAINTAG);
-  rq.Subtag(component);
-  rq.Analytical(1);
   rq.Grids(grids);
-
-  rq.SubSubtag(PROPMAT_SUBSUBTAG);
-  rq.Perturbation(dB);
+  rq.Target().Perturbation(dB);
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -1648,7 +1551,7 @@ void jacobianAddShapeCatalogParameter(Workspace&,
   if (line_identity.Type() not_eq QuantumIdentifier::TRANSITION)
     throw std::runtime_error("Identity has to identify a line");
 
-  const JacPropMatType jpt = select_derivativeLineShape(variable, coefficient);
+  const auto jpt = select_derivativeLineShape(variable, coefficient);
 
   out3 << "Attempting to create RT tag for " << line_identity << " " << variable
        << " " << coefficient << " for ";
@@ -1660,14 +1563,9 @@ void jacobianAddShapeCatalogParameter(Workspace&,
 
   // Create the quantity
   RetrievalQuantity rq;
-  rq.MainTag(CATALOGPARAMETER_MAINTAG);
-  rq.SubSubtag(PROPMAT_SUBSUBTAG);
   rq.Mode(species);
-  rq.Analytical(1);
   rq.Grids(ArrayOfVector(0, Vector(0)));
-  rq.QuantumIdentity(line_identity);
-  rq.PropType(jpt);
-  rq.IntegrationOn();
+  rq.Target(Jacobian::Target(jpt, line_identity));
 
   // Test this is not a copy
   for (auto& q : jq)
@@ -1724,27 +1622,12 @@ void jacobianAddBasicCatalogParameter(Workspace&,
                                       const Verbosity& verbosity) {
   CREATE_OUT3;
 
-  // Check that this is not already included in the jacobian.
-  for (Index it = 0; it < jq.nelem(); it++) {
-    if (jq[it].MainTag() == CATALOGPARAMETER_MAINTAG &&
-        jq[it].QuantumIdentity() == catalog_identity &&
-        jq[it].Mode() == catalog_parameter) {
-      ostringstream os;
-      os << "The catalog identifier:\n"
-         << catalog_identity << "\nis already included in "
-         << "*jacobian_quantities*.";
-      throw std::runtime_error(os.str());
-    }
-  }
-
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-
-  // Check catalog_parameter here
-  if (LINESTRENGTH_MODE == catalog_parameter)
-    rq.PropType(JacPropMatType::LineStrength);
-  else if (LINECENTER_MODE == catalog_parameter)
-    rq.PropType(JacPropMatType::LineCenter);
+  if ("Line Strength" == catalog_parameter)
+    rq.Target(Jacobian::Target(Jacobian::Line::Strength, catalog_identity));
+  else if ("Line Center" == catalog_parameter)
+    rq.Target(Jacobian::Target(Jacobian::Line::Center, catalog_identity));
   else {
     ostringstream os;
     os << "You have selected:\n"
@@ -1753,13 +1636,19 @@ void jacobianAddBasicCatalogParameter(Workspace&,
        << "Please see user guide for supported parameters.\n";
     throw std::runtime_error(os.str());
   }
+  
+  // Check that this is not already included in the jacobian.
+  for (Index it = 0; it < jq.nelem(); it++) {
+    if (rq == jq[it].Target()) {
+      ostringstream os;
+    os << "The catalog identifier:\n"
+    << catalog_identity << " for ID: " << catalog_identity << "\nis already included in "
+    << "*jacobian_quantities*.";
+    throw std::runtime_error(os.str());
+      }
+  }
 
-  rq.MainTag(CATALOGPARAMETER_MAINTAG);
-  rq.Mode(catalog_parameter);
-  rq.QuantumIdentity(catalog_identity);
-  rq.Analytical(1);
-  rq.SubSubtag(PROPMAT_SUBSUBTAG);
-  rq.IntegrationOn();
+  rq.Grids(ArrayOfVector(0, Vector(0)));
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -1810,7 +1699,7 @@ void jacobianAddNLTE(Workspace&,
 
   // Check that this species is not already included in the jacobian.
   for (Index it = 0; it < jq.nelem(); it++) {
-    if (jq[it].MainTag() == NLTE_MAINTAG and
+    if (jq[it] == Jacobian::Line::NLTE and
         jq[it].QuantumIdentity() == energy_level_identity) {
       ostringstream os;
       os << "The NLTE identifier:\n"
@@ -1842,14 +1731,10 @@ void jacobianAddNLTE(Workspace&,
 
   // Create the new retrieval quantity
   RetrievalQuantity rq;
-
-  rq.MainTag(NLTE_MAINTAG);
-  rq.QuantumIdentity(energy_level_identity);
-  rq.Perturbation(dx);
+  rq.Target(Jacobian::Target(Jacobian::Line::NLTE, energy_level_identity));
+  rq.Target().Perturbation(dx);
   rq.Grids(grids);
-  rq.Analytical(1);
-  rq.SubSubtag(PROPMAT_SUBSUBTAG);
-
+  
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
@@ -1926,30 +1811,28 @@ void jacobianAddSpecialSpecies(Workspace&,
   // Create the new retrieval quantity
   RetrievalQuantity rq;
   rq.Grids(grids);
-  rq.Analytical(1);
-  rq.SubSubtag(PROPMAT_SUBSUBTAG);
 
   // Make sure modes are valid and complain if they are repeated
   if (species == "electrons") {
     for (Index it = 0; it < jq.nelem(); it++) {
-      if (jq[it].MainTag() == ELECTRONS_MAINTAG) {
+      if (jq[it] == Jacobian::Atm::Electrons) {
         ostringstream os;
         os << "Electrons are already included in *jacobian_quantities*.";
         throw std::runtime_error(os.str());
       }
     }
-    rq.MainTag(ELECTRONS_MAINTAG);
-    rq.PropType(JacPropMatType::Electrons);
+    rq.Target(Jacobian::Target(Jacobian::Atm::Electrons));
+
   } else if (species == "particulates") {
     for (Index it = 0; it < jq.nelem(); it++) {
-      if (jq[it].MainTag() == PARTICULATES_MAINTAG) {
+      if (jq[it] == Jacobian::Atm::Particulates) {
         ostringstream os;
         os << "Particulates are already included in *jacobian_quantities*.";
         throw std::runtime_error(os.str());
       }
     }
-    rq.MainTag(PARTICULATES_MAINTAG);
-    rq.PropType(JacPropMatType::Particulates);
+    rq.Target(Jacobian::Target(Jacobian::Atm::Particulates));
+    
   } else {
     ostringstream os;
     os << "Unknown special species jacobian: \"" << species
@@ -1988,7 +1871,7 @@ void jacobianAdjustAndTransform(
   Vector x0;
   //
   for (Index q = 0; q < jacobian_quantities.nelem(); q++) {
-    if (jacobian_quantities[q].MainTag() == ABSSPECIES_MAINTAG &&
+    if (jacobian_quantities[q].Target().isSpeciesVMR() &&
         jacobian_quantities[q].Mode() == "rel") {
       if (!vars_init) {
         bool any_affine;

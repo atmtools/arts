@@ -20,6 +20,7 @@ from pyarts.classes.GriddedField5 import GriddedField5
 from pyarts.classes.GriddedField6 import GriddedField6
 from pyarts.classes.GridPos import GridPos
 from pyarts.classes.HitranRelaxationMatrixData import HitranRelaxationMatrixData
+from pyarts.classes.JacobianTarget import JacobianTarget, ArrayOfJacobianTarget
 from pyarts.classes.Matrix import Matrix, ArrayOfMatrix, ArrayOfArrayOfMatrix
 from pyarts.classes.MCAntenna import MCAntenna
 from pyarts.classes.Ppath import Ppath, ArrayOfPpath

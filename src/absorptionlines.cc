@@ -138,18 +138,18 @@ Numeric Absorption::Lines::ShapeParameter_dInternal(size_t k, Numeric T, Numeric
     return 0;
   else if(self and mselfbroadening)
     return ls.GetInternalDeriv(
-      T, mT0, P, 0, vmrs, derivative.PropMatType());
+      T, mT0, P, 0, vmrs, derivative.LineType());
   else if(self)
     return ls.GetInternalDeriv(
-      T, mT0, P, LineShapePos(SpeciesTag(derivative.Mode()).Species()), vmrs, derivative.PropMatType());
+      T, mT0, P, LineShapePos(SpeciesTag(derivative.Mode()).Species()), vmrs, derivative.LineType());
   else if(bath and mbathbroadening)
     return ls.GetInternalDeriv(
-      T, mT0, P, ls.nelem() - 1, vmrs, derivative.PropMatType());
+      T, mT0, P, ls.nelem() - 1, vmrs, derivative.LineType());
   else if(bath)
     return 0;
   else
     return ls.GetInternalDeriv(
-      T, mT0, P, LineShapePos(SpeciesTag(derivative.Mode()).Species()), vmrs, derivative.PropMatType());
+      T, mT0, P, LineShapePos(SpeciesTag(derivative.Mode()).Species()), vmrs, derivative.LineType());
 }
 
 Absorption::SingleLineExternal Absorption::ReadFromArtscat3Stream(istream& is) {
@@ -2554,27 +2554,17 @@ String Absorption::Lines::SpeciesName() const noexcept
   
   // First the species name:
   return spr.Name() + "-" +
-  spr.Isotopologue()[Isotopologue()].Name();;
+  spr.Isotopologue()[Isotopologue()].Name();
 }
 
 String Absorption::Lines::UpperQuantumNumbers() const noexcept
 {
-  std::ostringstream out;
-  out << mquantumidentity.UpperQuantumNumbers() << ' ';
-  String s=out.str();
-  if(s.back() == ' ')
-    s.pop_back();
-  return s;
+  return mquantumidentity.UpperQuantumNumbers().toString();
 }
 
 String Absorption::Lines::LowerQuantumNumbers() const noexcept
 {
-  std::ostringstream out;
-  out << mquantumidentity.LowerQuantumNumbers() << ' ';
-  String s=out.str();
-  if(s.back() == ' ')
-    s.pop_back();
-  return s;
+  return mquantumidentity.LowerQuantumNumbers().toString();
 }
 
 String Absorption::Lines::MetaData() const

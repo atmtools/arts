@@ -1397,22 +1397,20 @@ void xml_read_from_stream(istream& is_xml,
                           bifstream* pbifs,
                           const Verbosity& verbosity) {
   ArtsXMLTag tag(verbosity);
-  String maintag;
+  Jacobian::Target target;
   String subtag;
   String subsubtag;
   String mode;
-  Index analytical;
   Numeric perturbation;
   ArrayOfVector grids;
 
   tag.read_from_stream(is_xml);
   tag.check_name("RetrievalQuantity");
 
-  xml_read_from_stream(is_xml, maintag, pbifs, verbosity);
+  xml_read_from_stream(is_xml, target, pbifs, verbosity);
   xml_read_from_stream(is_xml, subtag, pbifs, verbosity);
   xml_read_from_stream(is_xml, subsubtag, pbifs, verbosity);
   xml_read_from_stream(is_xml, mode, pbifs, verbosity);
-  xml_read_from_stream(is_xml, analytical, pbifs, verbosity);
   xml_read_from_stream(is_xml, perturbation, pbifs, verbosity);
   xml_read_from_stream(is_xml, grids, pbifs, verbosity);
 
@@ -1420,7 +1418,7 @@ void xml_read_from_stream(istream& is_xml,
   tag.check_name("/RetrievalQuantity");
 
   rq = RetrievalQuantity(
-      maintag, subtag, subsubtag, mode, analytical, perturbation, grids);
+      target, subtag, subsubtag, mode, perturbation, grids);
 }
 
 //! Writes RetrievalQuantity to XML output stream
@@ -1442,13 +1440,12 @@ void xml_write_to_stream(ostream& os_xml,
   if (name.length()) open_tag.add_attribute("name", name);
   open_tag.write_to_stream(os_xml);
 
-  xml_write_to_stream(os_xml, rq.MainTag(), pbofs, "MainTag", verbosity);
+  xml_write_to_stream(os_xml, rq.Target(), pbofs, "Target", verbosity);
   xml_write_to_stream(os_xml, rq.Subtag(), pbofs, "Subtag", verbosity);
   xml_write_to_stream(os_xml, rq.SubSubtag(), pbofs, "SubSubtag", verbosity);
   xml_write_to_stream(os_xml, rq.Mode(), pbofs, "Mode", verbosity);
-  xml_write_to_stream(os_xml, rq.Analytical(), pbofs, "Analytical", verbosity);
   xml_write_to_stream(
-      os_xml, rq.Perturbation(), pbofs, "Perturbation", verbosity);
+    os_xml, rq.Target().Perturbation(), pbofs, "Perturbation", verbosity);
   xml_write_to_stream(os_xml, rq.Grids(), pbofs, "Grids", verbosity);
 
   close_tag.set_name("/RetrievalQuantity");

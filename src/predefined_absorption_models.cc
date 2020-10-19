@@ -385,7 +385,7 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(Matrix& xsec,
           for (Index iq=0; iq<jacs_pos.nelem(); iq++) {
             const auto& deriv = jacs[jacs_pos[iq]];
             
-            if (deriv == JacPropMatType::Temperature) {
+            if (deriv == Jacobian::Atm::Temperature) {
               const Complex dFv = dw * (invGD * Complex(dDV_dT, dG0_dT) - dinvGD_dT) + Fv * dinvGD_dT;
               const Complex dFlm = dm * Complex(dG0_dT, dDV_dT);
               dxsec[iq](j, ip) += pow2(f[j]) * (ST * std::real(
@@ -402,21 +402,21 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(Matrix& xsec,
                 /* mirrored line far from line center */
                 Complex(1 + G, -Y) * dFlm) + 2 * abs.real() * f[j]);
             } else if (deriv.QuantumIdentity().In(qids[i])) {
-              if (deriv == JacPropMatType::LineShapeG0X0) {
+              if (deriv == Jacobian::Line::ShapeG0X0) {
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
                   /* around line center */
                   Complex(1 + G, Y) * Complex(0, 1) * dw * invGD +
                   /* mirrored line far from line center */
                   Complex(1 + G, -Y) * dm) * 
                     lsm[i].compute_dX0(t[ip], t0, LineShape::Variable::G0);
-              } else if (deriv == JacPropMatType::LineShapeG0X1) {
+              } else if (deriv == Jacobian::Line::ShapeG0X1) {
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
                   /* around line center */
                   Complex(1 + G, Y) * Complex(0, 1) * dw * invGD +
                   /* mirrored line far from line center */
                   Complex(1 + G, -Y) * dm) * 
                     lsm[i].compute_dX1(t[ip], t0, LineShape::Variable::DV);
-              } else if (deriv == JacPropMatType::LineShapeDVX0) {
+              } else if (deriv == Jacobian::Line::ShapeDVX0) {
                 const Complex dFv = dw * invGD;
                 const Complex dFlm = Complex(0, 1) * dm;
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
@@ -424,8 +424,8 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(Matrix& xsec,
                   Complex(1 + G, Y) * dFv +
                   /* mirrored line far from line center */
                   Complex(1 + G, -Y) * dFlm) * 
-                    lsm[i].compute_dX0(t[ip], t0, LineShape::Variable::DV);;
-              } else if (deriv == JacPropMatType::LineShapeDVX1) {
+                    lsm[i].compute_dX0(t[ip], t0, LineShape::Variable::DV);
+              } else if (deriv == Jacobian::Line::ShapeDVX1) {
                 const Complex dFv = dw * invGD;
                 const Complex dFlm = Complex(0, 1) * dm;
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
@@ -433,8 +433,8 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(Matrix& xsec,
                   Complex(1 + G, Y) * dFv +
                   /* mirrored line far from line center */
                   Complex(1 + G, -Y) * dFlm) * 
-                    lsm[i].compute_dX1(t[ip], t0, LineShape::Variable::DV);;
-              } else if (deriv == JacPropMatType::LineShapeDVX2) {
+                    lsm[i].compute_dX1(t[ip], t0, LineShape::Variable::DV);
+              } else if (deriv == Jacobian::Line::ShapeDVX2) {
                 const Complex dFv = dw * invGD;
                 const Complex dFlm = Complex(0, 1) * dm;
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
@@ -443,49 +443,49 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(Matrix& xsec,
                   /* mirrored line far from line center */
                   Complex(1 + G, -Y) * dFlm) * 
                     lsm[i].compute_dX2(t[ip], t0, LineShape::Variable::DV);
-              } else if (deriv == JacPropMatType::LineShapeGX0) {
+              } else if (deriv == Jacobian::Line::ShapeGX0) {
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
                   /* around line center */
                   Fv +
                   /* mirrored line far from line center */
                   Flm) * 
                     lsm[i].compute_dX0(t[ip], t0, LineShape::Variable::G);
-              } else if (deriv == JacPropMatType::LineShapeYX0) {
+              } else if (deriv == Jacobian::Line::ShapeYX0) {
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
                   /* around line center */
                   Fv +
                   /* mirrored line far from line center */
                   Flm) * 
                     lsm[i].compute_dX0(t[ip], t0, LineShape::Variable::Y);
-              } else if (deriv == JacPropMatType::LineShapeGX1) {
+              } else if (deriv == Jacobian::Line::ShapeGX1) {
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
                   /* around line center */
                   Fv -
                   /* mirrored line far from line center */
                   Flm) * 
                     lsm[i].compute_dX1(t[ip], t0, LineShape::Variable::G);
-              } else if (deriv == JacPropMatType::LineShapeYX1) {
+              } else if (deriv == Jacobian::Line::ShapeYX1) {
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
                   /* around line center */
                   Fv +
                   /* mirrored line far from line center */
                   Flm) * 
                     lsm[i].compute_dX1(t[ip], t0, LineShape::Variable::Y);
-              } else if (deriv == JacPropMatType::LineShapeGX2) {
+              } else if (deriv == Jacobian::Line::ShapeGX2) {
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
                   /* around line center */
                   Fv -
                   /* mirrored line far from line center */
                   Flm) * 
                     lsm[i].compute_dX2(t[ip], t0, LineShape::Variable::G);
-              } else if (deriv == JacPropMatType::LineShapeYX2) {
+              } else if (deriv == Jacobian::Line::ShapeYX2) {
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
                   /* around line center */
                   Fv -
                   /* mirrored line far from line center */
                   Flm) * 
                     lsm[i].compute_dX2(t[ip], t0, LineShape::Variable::Y);
-              } else if (deriv == JacPropMatType::LineCenter) {
+              } else if (deriv == Jacobian::Line::Center) {
                 const Complex dFv = Fv / f0[i] - dw * invGD + dw * z / f0[i];
                 const Complex dFlm = Complex(0, 1) * dm;
                 dxsec[iq](j, ip) += ST * pow2(f[j]) * std::real(
@@ -493,9 +493,9 @@ void Absorption::PredefinedModel::makarov2020_o2_lines_mpm(Matrix& xsec,
                   Complex(1 + G, Y) * dFv +
                   /* mirrored line far from line center */
                   Complex(1 + G, -Y) * dFlm);
-              } else if (deriv == JacPropMatType::LineStrength) {
+              } else if (deriv == Jacobian::Line::Strength) {
                 dxsec[iq](j, ip) += theta_3 * p[ip] * std::exp(-a2[i] * theta_m1) * pow2(f[j]) * abs.real();
-              } else if (deriv == JacPropMatType::LineSpecialParameter1) {
+              } else if (deriv == Jacobian::Line::SpecialParameter1) {
                 dxsec[iq](j, ip) += -theta_m1 * ST * pow2(f[j]) * abs.real();
               }
             }

@@ -269,11 +269,11 @@ void Linefunctions::set_lorentz(
     for (auto iq = 0; iq < nppd; iq++) {
       const auto& deriv = derivatives_data[derivatives_data_position[iq]];
 
-      if (deriv == JacPropMatType::Temperature)
+      if (deriv == Jacobian::Atm::Temperature)
         dF.col(iq).noalias() = Complex(dT.G0, dT.D0 + dT.DV) * dw;
       else if (is_frequency_parameter(deriv))
         dF.col(iq).noalias() = -iz * dw;
-      else if ((deriv == JacPropMatType::LineCenter or
+      else if ((deriv == Jacobian::Line::Center or
                 is_pressure_broadening_DV(deriv)) and
                 Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
         dF.col(iq).noalias() = iz * dw;
@@ -285,7 +285,7 @@ void Linefunctions::set_lorentz(
         dF.col(iq).noalias() = iz * dw;
       else if (is_magnetic_parameter(deriv))
         dF.col(iq).noalias() = iz * zeeman_df * dw;
-      else if (deriv == JacPropMatType::VMR) {
+      else if (deriv == Jacobian::Line::VMR) {
         if (Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
           dF.col(iq).noalias() = Complex(dVMR.G0, dVMR.D0 + dVMR.DV) * dw;
         else
@@ -346,11 +346,11 @@ void Linefunctions::set_voigt(
 
       if (is_frequency_parameter(deriv))
         dF.col(iq).noalias() = invGD * dw;
-      else if (deriv == JacPropMatType::Temperature)
+      else if (deriv == Jacobian::Atm::Temperature)
         dF.col(iq).noalias() =
             dw * Complex(-dT.D0 - dT.DV, dT.G0) * invGD -
             F * dGD_dT * invGD - dw.cwiseProduct(z) * dGD_dT * invGD;
-      else if ((deriv == JacPropMatType::LineCenter or
+      else if ((deriv == Jacobian::Line::Center or
                 is_pressure_broadening_DV(deriv)) and
                Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
         dF.col(iq).noalias() = -F / F0 - dw * invGD - dw.cwiseProduct(z) / F0;
@@ -362,7 +362,7 @@ void Linefunctions::set_voigt(
         dF.col(iq).noalias() = -dw * invGD;
       else if (is_magnetic_parameter(deriv))
         dF.col(iq).noalias() = dw * (-zeeman_df * invGD);
-      else if (deriv == JacPropMatType::VMR and
+      else if (deriv == Jacobian::Line::VMR and
                Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
         dF.col(iq).noalias() =
             dw * Complex(-dVMR.D0 - dVMR.DV, dVMR.G0) * invGD;
@@ -405,14 +405,14 @@ void Linefunctions::set_doppler(
 
     if (is_frequency_parameter(deriv))
       dF.col(iq).noalias() = -2 * invGD * F.cwiseProduct(x);
-    else if (deriv == JacPropMatType::Temperature)
+    else if (deriv == Jacobian::Atm::Temperature)
       dF.col(iq).noalias() =
           -dGD_div_F0_dT * F0 * invGD * (2.0 * F.cwiseProduct(mx2) + F);
-    else if (deriv == JacPropMatType::LineCenter and
+    else if (deriv == Jacobian::Line::Center and
              Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
       dF.col(iq).noalias() = -F.cwiseProduct(mx2) * (2 / F0) +
                              F.cwiseProduct(x) * 2 * (invGD - 1 / F0);
-    else if (deriv == JacPropMatType::VMR)
+    else if (deriv == Jacobian::Line::VMR)
       dF.col(iq).setZero();  // Must reset incase other lineshapes are mixed in
   }
 }
@@ -441,7 +441,7 @@ void Linefunctions::apply_linemixing_scaling_and_mirroring(
     for (auto iq = 0; iq < nppd; iq++) {
       const auto& deriv = derivatives_data[derivatives_data_position[iq]];
 
-      if (deriv == JacPropMatType::Temperature) {
+      if (deriv == Jacobian::Atm::Temperature) {
         const auto c = Complex(dT.G, -dT.Y);
         dF.col(iq).noalias() += F * c + Fm * conj(c);
       } else if (is_pressure_broadening_G(deriv) and
@@ -450,7 +450,7 @@ void Linefunctions::apply_linemixing_scaling_and_mirroring(
       else if (is_pressure_broadening_Y(deriv) and
                Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
         dF.col(iq).noalias() = Complex(0, -1) * (F - Fm);
-      else if (deriv == JacPropMatType::VMR and
+      else if (deriv == Jacobian::Line::VMR and
                Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind)) {
         const auto c = Complex(dVMR.G, -dVMR.Y);
         dF.col(iq).noalias() += F * c + Fm * conj(c);
@@ -460,7 +460,7 @@ void Linefunctions::apply_linemixing_scaling_and_mirroring(
     for (auto iq = 0; iq < nppd; iq++) {
       const auto& deriv = derivatives_data[derivatives_data_position[iq]];
 
-      if (deriv == JacPropMatType::Temperature)
+      if (deriv == Jacobian::Atm::Temperature)
         dF.col(iq).noalias() += F * Complex(dT.G, -dT.Y);
       else if (is_pressure_broadening_G(deriv) and
                Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
@@ -468,7 +468,7 @@ void Linefunctions::apply_linemixing_scaling_and_mirroring(
       else if (is_pressure_broadening_Y(deriv) and
                Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
         dF.col(iq).noalias() = Complex(0, -1) * F;
-      else if (deriv == JacPropMatType::VMR and
+      else if (deriv == Jacobian::Line::VMR and
                Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
         dF.col(iq).noalias() += F * Complex(dVMR.G, -dVMR.Y);
     }
@@ -513,9 +513,9 @@ void Linefunctions::apply_rosenkranz_quadratic_scaling(
       const auto& deriv = derivatives_data[derivatives_data_position[iq]];
 
       dF(iv, iq) *= fun;
-      if (deriv == JacPropMatType::Temperature)
+      if (deriv == Jacobian::Atm::Temperature)
         dF(iv, iq) += dmafac_dT_div_fun * F[iv];
-      else if (deriv == JacPropMatType::LineCenter and
+      else if (deriv == Jacobian::Line::Center and
                Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
         dF(iv, iq) +=
             (-invF0 - Constant::h / (2.0 * Constant::k * T *
@@ -561,7 +561,7 @@ void Linefunctions::apply_VVH_scaling(
   for (auto iq = 0; iq < nppd; iq++) {
     const auto& deriv = derivatives_data[derivatives_data_position[iq]];
 
-    if (deriv == JacPropMatType::Temperature)
+    if (deriv == Jacobian::Atm::Temperature)
       dF.col(iq).noalias() +=
           -c1 / T *
           ((denom - F0 / tanh_f0part) * F - denom * ftanh_f.cwiseProduct(F) +
@@ -570,7 +570,7 @@ void Linefunctions::apply_VVH_scaling(
       dF.col(iq).noalias() +=
           F.cwiseQuotient(f_grid) +
           c1 * (F.cwiseQuotient(tanh_f) - F.cwiseProduct(tanh_f));
-    else if (deriv == JacPropMatType::LineCenter and
+    else if (deriv == Jacobian::Line::Center and
              Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
       dF.col(iq).noalias() +=
           (-1.0 / F0 + c1 * tanh_f0part - c1 / tanh_f0part) * F;
@@ -606,7 +606,7 @@ void Linefunctions::apply_VVW_scaling(
       dF(iv, iq) *= fac;
 
       // These partial derivatives are special
-      if (deriv == JacPropMatType::LineCenter and
+      if (deriv == Jacobian::Line::Center and
           Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
         dF(iv, iq) -= 2.0 * invF0 * F[iv];
       else if (is_frequency_parameter(deriv))
@@ -660,15 +660,15 @@ void Linefunctions::apply_linestrength_scaling_by_lte(
   for (auto iq = 0; iq < nppd; iq++) {
     const auto& deriv = derivatives_data[derivatives_data_position[iq]];
 
-    if (deriv == JacPropMatType::Temperature)
+    if (deriv == Jacobian::Atm::Temperature)
       dF.col(iq).noalias() +=
       F * (dstimulated_relative_emission_dT(gamma, gamma_ref, line.F0(), T) /
                    K2 +
                    dboltzman_ratio_dT_div_boltzmann_ratio(T, line.E0()) - invQT * dQT_dT);
-    else if (deriv == JacPropMatType::LineStrength and
+    else if (deriv == Jacobian::Line::Strength and
              Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
       dF.col(iq).noalias() = F / line.I0();  //nb. overwrite
-    else if (deriv == JacPropMatType::LineCenter and
+    else if (deriv == Jacobian::Line::Center and
              Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind))
       dF.col(iq).noalias() +=
           F *
@@ -726,7 +726,7 @@ void Linefunctions::apply_linestrength_scaling_by_vibrational_nlte(
   for (auto iq = 0; iq < nppd; iq++) {
     const auto& deriv = derivatives_data[derivatives_data_position[iq]];
 
-    if (deriv == JacPropMatType::Temperature) {
+    if (deriv == Jacobian::Atm::Temperature) {
       const Numeric dS_dT_abs =
           S_abs *
           (dstimulated_relative_emission_dT(gamma, gamma_ref, line.F0(), T) /
@@ -744,11 +744,11 @@ void Linefunctions::apply_linestrength_scaling_by_vibrational_nlte(
 
       dN.col(iq).noalias() += F * (dS_dT_src - dS_dT_abs);
       dF.col(iq).noalias() += F * dS_dT_abs;
-    } else if (deriv == JacPropMatType::LineStrength and
+    } else if (deriv == Jacobian::Line::Strength and
                Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind)) {
       dF.col(iq).noalias() = F * dS_dS0_abs;
       dN.col(iq).noalias() = F * (dS_dS0_src - dS_dS0_abs);
-    } else if (deriv == JacPropMatType::LineCenter and
+    } else if (deriv == Jacobian::Line::Center and
                Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind)) {
       const Numeric dS_dF0_abs =
           S_abs *
@@ -762,7 +762,7 @@ void Linefunctions::apply_linestrength_scaling_by_vibrational_nlte(
 
       dN.col(iq).noalias() += F * (dS_dF0_src - dS_dF0_abs);
       dF.col(iq).noalias() += F * dS_dF0_abs;
-    } else if (deriv == JacPropMatType::NLTE) {
+    } else if (deriv == Jacobian::Line::NLTE) {
       if (Absorption::id_in_line_lower(band, deriv.QuantumIdentity(), line_ind)) {
         const Numeric dS_dTl_abs =
             S_abs * dabsorption_nlte_rate_dTl(gamma, T, Tl, Evl, r_low) / K3;
@@ -853,8 +853,8 @@ void Linefunctions::apply_linestrength_from_nlte_level_distributions(
     const Numeric& A21,
     const Numeric& F0,
     const Numeric& T,
-  const AbsorptionLines& band,
-  const Index& line_ind,
+    const AbsorptionLines& band,
+    const Index& line_ind,
     const ArrayOfRetrievalQuantity& derivatives_data,
     const ArrayOfIndex& derivatives_data_position) {
   // Size of the problem
@@ -896,10 +896,10 @@ void Linefunctions::apply_linestrength_from_nlte_level_distributions(
   for (auto iq = 0; iq < nppd; iq++) {
     const auto& deriv = derivatives_data[derivatives_data_position[iq]];
 
-    if (deriv == JacPropMatType::Temperature)
+    if (deriv == Jacobian::Atm::Temperature)
       dN.col(iq).noalias() +=
           F * e * Constant::h * F0 * exp_T / (c2 * Constant::k * T * T);
-    else if (deriv == JacPropMatType::LineCenter and
+    else if (deriv == Jacobian::Line::Center and
              Absorption::id_in_line(band, deriv.QuantumIdentity(), line_ind)) {
       Numeric done_over_b_df0 =
           Constant::h * exp_T / (c2 * Constant::k * T) - 3.0 * b / F0;
@@ -908,7 +908,7 @@ void Linefunctions::apply_linestrength_from_nlte_level_distributions(
 
       dN.col(iq).noalias() += F * (e * done_over_b_df0 + de_df0 / b - dk_df0);
       dF.col(iq).noalias() += F * dk_df0;
-    } else if (deriv == JacPropMatType::NLTE) {
+    } else if (deriv == Jacobian::Line::NLTE) {
       if (Absorption::id_in_line_lower(band, deriv.QuantumIdentity(), line_ind)) {
         const Numeric dk_dr2 = -c3 * A21 / c2, de_dr2 = c3 * A21,
                       dratio_dr2 = de_dr2 / b - dk_dr2;
@@ -1055,7 +1055,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
 
       Numeric dcte = 0;
       Complex dc0 = 0, dc2 = 0, dc0t = 0, dc2t = 0;
-      if (rt == JacPropMatType::Temperature) {
+      if (rt == Jacobian::Atm::Temperature) {
         dcte = (-(dGD_div_F0_dT_si * sg0 / Constant::sqrt_ln_2) / GamD) *
                cte;                    // for T
         dc0 = Complex(dT.G0, -dT.D0);  // for T
@@ -1063,7 +1063,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
         dc0t = (-(c0 - 1.5 * c2) * dT.ETA + dT.FVC) +
                ((1 - lso.ETA) * (dc0 - 1.5 * dc2));     // for T
         dc2t = (-c2 * dT.ETA) + ((1 - lso.ETA) * dc2);  // for T
-      } else if (rt == JacPropMatType::VMR and
+      } else if (rt == Jacobian::Line::VMR and
                  Absorption::id_in_line(band, rt.QuantumIdentity(), line_ind)) {
         dc0 = Complex(dV.G0, -dV.D0);  // for VMR
         dc2 = Complex(dV.G2, -dV.D2);  // for VMR
@@ -1106,7 +1106,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
       Complex dX;
       if (is_magnetic_parameter(rt))
         dX = -iz * freq2kaycm(zeeman_df_si) / c2t;  // for H
-      else if (rt == JacPropMatType::LineCenter and
+      else if (rt == Jacobian::Line::Center and
                Absorption::id_in_line(band, rt.QuantumIdentity(), line_ind))
         dX = -iz / c2t;  // for sg0
       else if (is_frequency_parameter(rt))
@@ -1121,7 +1121,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
         Complex dZ1;
         if (is_magnetic_parameter(rt))
           dZ1 = -iz * cte * freq2kaycm(zeeman_df_si);  // for H
-        else if (rt == JacPropMatType::LineCenter and
+        else if (rt == Jacobian::Line::Center and
                  Absorption::id_in_line(band, rt.QuantumIdentity(), line_ind))
           dZ1 = -iz * cte;  // for sg0
         else if (is_frequency_parameter(rt))
@@ -1149,7 +1149,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
         Complex dZ1;
         if (is_magnetic_parameter(rt))
           dZ1 = -iz * cte * freq2kaycm(zeeman_df_si);  // for H
-        else if (rt == JacPropMatType::LineCenter and
+        else if (rt == Jacobian::Line::Center and
                  Absorption::id_in_line(band, rt.QuantumIdentity(), line_ind))
           dZ1 = -iz * cte;  // for sg0
         else if (is_frequency_parameter(rt))
@@ -1242,10 +1242,10 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
       }
 
       Numeric dFVC = 0, dETA = 0;
-      if (rt == JacPropMatType::Temperature) {
+      if (rt == Jacobian::Atm::Temperature) {
         dETA = dT.ETA;
         dFVC = dT.FVC;
-      } else if (rt == JacPropMatType::VMR) {
+      } else if (rt == Jacobian::Line::VMR) {
         dETA = dV.ETA;
         dFVC = dV.FVC;
       } else if (is_pressure_broadening_ETA(rt) and
@@ -1275,7 +1275,7 @@ void Linefunctions::set_htp(Eigen::Ref<Eigen::VectorXcd> F,
     const RetrievalQuantity& rt =
         derivatives_data[derivatives_data_position[iq]];
 
-    if (rt == JacPropMatType::LineCenter or is_frequency_parameter(rt) or
+    if (rt == Jacobian::Line::Center or is_frequency_parameter(rt) or
         is_pressure_broadening_G0(rt) or is_pressure_broadening_D0(rt) or
         is_pressure_broadening_FVC(rt))
       dF.col(iq) = dF.col(iq).unaryExpr(&pCqSDHC_to_arts_freq_deriv);

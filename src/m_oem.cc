@@ -56,20 +56,6 @@
 #include "oem.h"
 #endif
 
-extern const String ABSSPECIES_MAINTAG;
-extern const String TEMPERATURE_MAINTAG;
-extern const String POINTING_MAINTAG;
-extern const String POINTING_SUBTAG_A;
-extern const String FREQUENCY_MAINTAG;
-extern const String FREQUENCY_SUBTAG_0;
-extern const String FREQUENCY_SUBTAG_1;
-extern const String POLYFIT_MAINTAG;
-extern const String SCATSPECIES_MAINTAG;
-extern const String SINEFIT_MAINTAG;
-extern const String SURFACE_MAINTAG;
-extern const String WIND_MAINTAG;
-extern const String MAGFIELD_MAINTAG;
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void particle_bulkprop_fieldClip(Tensor4& particle_bulkprop_field,
                                  const ArrayOfString& particle_bulkprop_names,
@@ -233,7 +219,7 @@ void xaStandard(Workspace& ws,
     Range ind(ji[q][0], np);
 
     // Atmospheric temperatures
-    if (jacobian_quantities[q].MainTag() == TEMPERATURE_MAINTAG) {
+    if (jacobian_quantities[q] == Jacobian::Atm::Temperature) {
       // Here we need to interpolate *t_field*
       ArrayOfGridPos gp_p, gp_lat, gp_lon;
       get_gp_atmgrids_to_rq(gp_p,
@@ -250,7 +236,7 @@ void xaStandard(Workspace& ws,
     }
 
     // Abs species
-    else if (jacobian_quantities[q].MainTag() == ABSSPECIES_MAINTAG) {
+    else if (jacobian_quantities[q].Target().isSpeciesVMR()) {
       // Index position of species
       ArrayOfSpeciesTag atag;
       array_species_tag_from_string(atag, jacobian_quantities[q].Subtag());
@@ -341,7 +327,7 @@ void xaStandard(Workspace& ws,
     }
 
     // Scattering species
-    else if (jacobian_quantities[q].MainTag() == SCATSPECIES_MAINTAG) {
+    else if (jacobian_quantities[q] == Jacobian::Special::ScatteringString) {
       if (cloudbox_on) {
         if (particle_bulkprop_field.empty()) {
           throw runtime_error(
@@ -390,11 +376,11 @@ void xaStandard(Workspace& ws,
     }
 
     // Wind
-    else if (jacobian_quantities[q].MainTag() == WIND_MAINTAG) {
+    else if (jacobian_quantities[q].Target().isWind()) {
       ConstTensor3View source_field(wind_u_field);
-      if (jacobian_quantities[q].Subtag() == "v") {
+      if (jacobian_quantities[q] == Jacobian::Atm::WindV) {
         source_field = wind_v_field;
-      } else if (jacobian_quantities[q].Subtag() == "w") {
+      } else if (jacobian_quantities[q] == Jacobian::Atm::WindW) {
         source_field = wind_w_field;
       }
 
@@ -417,8 +403,8 @@ void xaStandard(Workspace& ws,
     }
 
     // Magnetism
-    else if (jacobian_quantities[q].MainTag() == MAGFIELD_MAINTAG) {
-      if (jacobian_quantities[q].Subtag() == "strength") {
+    else if (jacobian_quantities[q].Target().isMagnetic()) {
+      if (jacobian_quantities[q] == Jacobian::Atm::MagneticMagnitude) {
         // Determine grid positions for interpolation from retrieval grids back
         // to atmospheric grids
         ArrayOfGridPos gp_p, gp_lat, gp_lon;
@@ -450,11 +436,11 @@ void xaStandard(Workspace& ws,
         flat(xa[ind], mag_x);
       } else {
         ConstTensor3View source_field(mag_u_field);
-        if (jacobian_quantities[q].Subtag() == "v") {
+        if (jacobian_quantities[q] == Jacobian::Atm::MagneticV) {
           source_field = mag_v_field;
-        } else if (jacobian_quantities[q].Subtag() == "w") {
+        } else if (jacobian_quantities[q] == Jacobian::Atm::MagneticW) {
           source_field = mag_w_field;
-        } else if (jacobian_quantities[q].Subtag() == "u") {
+        } else if (jacobian_quantities[q] == Jacobian::Atm::MagneticU) {
         } else
           throw runtime_error("Unsupported magnetism type");
 
@@ -478,7 +464,7 @@ void xaStandard(Workspace& ws,
     }
 
     // Surface
-    else if (jacobian_quantities[q].MainTag() == SURFACE_MAINTAG) {
+    else if (jacobian_quantities[q] == Jacobian::Special::SurfaceString) {
       surface_props_check(atmosphere_dim,
                           lat_grid,
                           lon_grid,
@@ -519,17 +505,17 @@ void xaStandard(Workspace& ws,
 
     // All variables having zero as a priori
     // ----------------------------------------------------------------------------
-    else if (jacobian_quantities[q].MainTag() == POINTING_MAINTAG ||
-             jacobian_quantities[q].MainTag() == FREQUENCY_MAINTAG ||
-             jacobian_quantities[q].MainTag() == POLYFIT_MAINTAG ||
-             jacobian_quantities[q].MainTag() == SINEFIT_MAINTAG) {
+    else if (jacobian_quantities[q].Target().isPointing() ||
+             jacobian_quantities[q].Target().isFrequency() ||
+             jacobian_quantities[q] == Jacobian::Sensor::Polyfit ||
+             jacobian_quantities[q] == Jacobian::Sensor::Sinefit) {
       xa[ind] = 0;
     }
 
     else {
       ostringstream os;
       os << "Found a retrieval quantity that is not yet handled by\n"
-         << "internal retrievals: " << jacobian_quantities[q].MainTag() << endl;
+         << "internal retrievals: " << jacobian_quantities[q] << endl;
       throw runtime_error(os.str());
     }
   }
@@ -611,7 +597,7 @@ void x2artsAtmAndSurf(Workspace& ws,
 
     // Atmospheric temperatures
     // ----------------------------------------------------------------------------
-    if (jacobian_quantities[q].MainTag() == TEMPERATURE_MAINTAG) {
+    if (jacobian_quantities[q] == Jacobian::Atm::Temperature) {
       // Determine grid positions for interpolation from retrieval grids back
       // to atmospheric grids
       ArrayOfGridPos gp_p, gp_lat, gp_lon;
@@ -637,7 +623,7 @@ void x2artsAtmAndSurf(Workspace& ws,
 
     // Abs species
     // ----------------------------------------------------------------------------
-    else if (jacobian_quantities[q].MainTag() == ABSSPECIES_MAINTAG) {
+    else if (jacobian_quantities[q].Target().isSpeciesVMR()) {
       // Index position of species
       ArrayOfSpeciesTag atag;
       array_species_tag_from_string(atag, jacobian_quantities[q].Subtag());
@@ -716,7 +702,7 @@ void x2artsAtmAndSurf(Workspace& ws,
 
     // Scattering species
     // ----------------------------------------------------------------------------
-    else if (jacobian_quantities[q].MainTag() == SCATSPECIES_MAINTAG) {
+    else if (jacobian_quantities[q] == Jacobian::Special::ScatteringString) {
       // If no cloudbox, we assume that there is nothing to do
       if (cloudbox_on) {
         if (particle_bulkprop_field.empty()) {
@@ -770,7 +756,7 @@ void x2artsAtmAndSurf(Workspace& ws,
 
     // Wind
     // ----------------------------------------------------------------------------
-    else if (jacobian_quantities[q].MainTag() == WIND_MAINTAG) {
+    else if (jacobian_quantities[q].Target().isWind()) {
       // Determine grid positions for interpolation from retrieval grids back
       // to atmospheric grids
       ArrayOfGridPos gp_p, gp_lat, gp_lon;
@@ -798,18 +784,18 @@ void x2artsAtmAndSurf(Workspace& ws,
       regrid_atmfield_by_gp_oem(
           wind_field, atmosphere_dim, wind_x, gp_p, gp_lat, gp_lon);
 
-      if (jacobian_quantities[q].Subtag() == "u") {
+      if (jacobian_quantities[q] == Jacobian::Atm::WindU) {
         wind_u_field = wind_field;
-      } else if (jacobian_quantities[q].Subtag() == "v") {
+      } else if (jacobian_quantities[q] == Jacobian::Atm::WindV) {
         wind_v_field = wind_field;
-      } else if (jacobian_quantities[q].Subtag() == "w") {
+      } else if (jacobian_quantities[q] == Jacobian::Atm::WindW) {
         wind_w_field = wind_field;
       }
     }
 
     // Magnetism
     // ----------------------------------------------------------------------------
-    else if (jacobian_quantities[q].MainTag() == MAGFIELD_MAINTAG) {
+    else if (jacobian_quantities[q].Target().isMagnetic()) {
       // Determine grid positions for interpolation from retrieval grids back
       // to atmospheric grids
       ArrayOfGridPos gp_p, gp_lat, gp_lon;
@@ -836,13 +822,13 @@ void x2artsAtmAndSurf(Workspace& ws,
           target_field.npages(), target_field.nrows(), target_field.ncols());
       regrid_atmfield_by_gp_oem(
           mag_field, atmosphere_dim, mag_x, gp_p, gp_lat, gp_lon);
-      if (jacobian_quantities[q].Subtag() == "u") {
+      if (jacobian_quantities[q] == Jacobian::Atm::MagneticU) {
         mag_u_field = mag_field;
-      } else if (jacobian_quantities[q].Subtag() == "v") {
+      } else if (jacobian_quantities[q] == Jacobian::Atm::MagneticV) {
         mag_v_field = mag_field;
-      } else if (jacobian_quantities[q].Subtag() == "w") {
+      } else if (jacobian_quantities[q] == Jacobian::Atm::MagneticW) {
         mag_w_field = mag_field;
-      } else if (jacobian_quantities[q].Subtag() == "strength") {
+      } else if (jacobian_quantities[q] == Jacobian::Atm::MagneticMagnitude) {
         for (Index i = 0; i < n_p; i++) {
           for (Index j = 0; j < n_lat; j++) {
             for (Index k = 0; k < n_lon; k++) {
@@ -863,7 +849,7 @@ void x2artsAtmAndSurf(Workspace& ws,
 
     // Surface
     // ----------------------------------------------------------------------------
-    else if (jacobian_quantities[q].MainTag() == SURFACE_MAINTAG) {
+    else if (jacobian_quantities[q] == Jacobian::Special::SurfaceString) {
       surface_props_check(atmosphere_dim,
                           lat_grid,
                           lon_grid,
@@ -967,13 +953,7 @@ void x2artsSensor(Workspace& ws,
 
     // Pointing off-set
     // ----------------------------------------------------------------------------
-    if (jacobian_quantities[q].MainTag() == POINTING_MAINTAG) {
-      if (jacobian_quantities[q].Subtag() != POINTING_SUBTAG_A) {
-        ostringstream os;
-        os << "Only pointing off-sets treated by *jacobianAddPointingZa* "
-           << "are so far handled.";
-        throw runtime_error(os.str());
-      }
+    if (jacobian_quantities[q].Target().isPointing()) {
       // Handle pointing "jitter" seperately
       if (jacobian_quantities[q].Grids()[0][0] == -1) {
         if (sensor_los.nrows() != np)
@@ -1001,14 +981,14 @@ void x2artsSensor(Workspace& ws,
 
     // Frequncy shift or stretch
     // ----------------------------------------------------------------------------
-    else if (jacobian_quantities[q].MainTag() == FREQUENCY_MAINTAG) {
-      if (jacobian_quantities[q].Subtag() == FREQUENCY_SUBTAG_0) {
+    else if (jacobian_quantities[q].Target().isFrequency()) {
+      if (jacobian_quantities[q] == Jacobian::Sensor::FrequencyShift) {
         assert(np == 1);
         if (x_t[ji[q][0]] != 0) {
           do_sensor = true;
           f_backend += x_t[ji[q][0]];
         }
-      } else if (jacobian_quantities[q].Subtag() == FREQUENCY_SUBTAG_1) {
+      } else if (jacobian_quantities[q] == Jacobian::Sensor::FrequencyStretch) {
         assert(np == 1);
         if (x_t[ji[q][0]] != 0) {
           do_sensor = true;
@@ -1025,8 +1005,8 @@ void x2artsSensor(Workspace& ws,
 
     // Baseline fit: polynomial or sinusoidal
     // ----------------------------------------------------------------------------
-    else if (jacobian_quantities[q].MainTag() == POLYFIT_MAINTAG ||
-             jacobian_quantities[q].MainTag() == SINEFIT_MAINTAG) {
+    else if (jacobian_quantities[q] == Jacobian::Sensor::Polyfit ||
+             jacobian_quantities[q] == Jacobian::Sensor::Sinefit) {
       if (!yb_set) {
         yb_set = true;
         Index y_size = sensor_los.nrows() * sensor_response_f_grid.nelem() *

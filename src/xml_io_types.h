@@ -77,6 +77,7 @@
 //=== Basic Types ==========================================================
 
 TMPL_XML_READ_WRITE_STREAM(Index)
+TMPL_XML_READ_WRITE_STREAM(JacobianTarget)
 TMPL_XML_READ_WRITE_STREAM(Matrix)
 TMPL_XML_READ_WRITE_STREAM(Numeric)
 TMPL_XML_READ_WRITE_STREAM(Rational)
@@ -153,6 +154,7 @@ TMPL_XML_READ_WRITE_STREAM(ArrayOfGriddedField3)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfGriddedField4)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfGridPos)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfIndex)
+TMPL_XML_READ_WRITE_STREAM(ArrayOfJacobianTarget)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfMatrix)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfQuantumIdentifier)
 TMPL_XML_READ_WRITE_STREAM(ArrayOfSparse)

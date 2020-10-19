@@ -45,10 +45,6 @@
 #include "refraction.h"
 #include "special_interp.h"
 
-extern const String SURFACE_MAINTAG;
-extern const String PROPMAT_SUBSUBTAG;
-extern const String TEMPERATURE_MAINTAG;
-extern const String SCATSPECIES_MAINTAG;
 extern const Numeric SPEED_OF_LIGHT;
 extern const Numeric TEMP_0_C;
 
@@ -79,7 +75,7 @@ void adapt_stepwise_partial_derivatives(
   Vector a;
 
   for (Index i = 0; i < nq; i++) {
-    if (not jacobian_quantities[i].Analytical()) continue;
+    if (jacobian_quantities[i] == Jacobian::Type::Sensor or jacobian_quantities[i] == Jacobian::Special::SurfaceString) continue;
 
     Index component;
 
@@ -109,15 +105,13 @@ void adapt_stepwise_partial_derivatives(
       // Apply conversion to source vector partial derivative
       if (not lte) dS_dx[i] *= a;
     } else if (jacobian_species[i] > -1) {
-      const bool from_propmat =
-          jacobian_quantities[i].SubSubtag() == PROPMAT_SUBSUBTAG;
       const Index& isp = jacobian_species[i];
 
       // Computational factor
       Numeric factor;
 
       // Scaling factors to handle retrieval unit
-      if (not from_propmat) {
+      if (jacobian_quantities[i] == Jacobian::Special::ArrayOfSpeciesTagVMR) {
         //vmrunitscf(factor, jacobian_quantities[i].Mode(),
         vmrunitscf(
             factor, "vmr", ppath_vmrs[isp], ppath_pressure, ppath_temperature);
@@ -979,7 +973,7 @@ void get_iy_of_background(Workspace& ws,
       ArrayOfString dsurface_names(0);
       if (jacobian_do && iy_agenda_call1) {
         for (Index i = 0; i < jacobian_quantities.nelem(); i++) {
-          if (jacobian_quantities[i].MainTag() == SURFACE_MAINTAG) {
+          if (jacobian_quantities[i] == Jacobian::Special::SurfaceString) {
             dsurface_names.push_back(jacobian_quantities[i].Subtag());
           }
         }
@@ -1383,10 +1377,10 @@ void get_stepwise_clearsky_propmat(
   // Set the partial derivatives
   if (jacobian_do) {
     for (Index i = 0; i < nq; i++) {
-      if (jacobian_quantities[i].MainTag() == SCATSPECIES_MAINTAG) {
+      if (jacobian_quantities[i] == Jacobian::Special::ScatteringString) {
         dK_dx[i].SetZero();
         dS_dx[i].SetZero();
-      } else if (jacobian_quantities[i].SubSubtag() == PROPMAT_SUBSUBTAG) {
+      } else if (jacobian_quantities[i] == Jacobian::Type::Atm or jacobian_quantities[i] == Jacobian::Type::Line) {
         // Find position of index in ppd
         const Index j = equivalent_propmattype_index(jacobian_quantities, i);
 
@@ -1471,7 +1465,7 @@ void get_stepwise_effective_source(
       //FOR_ANALYTICAL_JACOBIANS_DO
       //(
       for (Index iq = 0; iq < nq; iq++) {
-        if (jacobian_quantities[iq].Analytical()) {
+        if (not(jacobian_quantities[iq] == Jacobian::Type::Sensor) and not(jacobian_quantities[iq] == Jacobian::Special::SurfaceString)) {
           Matrix dk(ns, ns), tmp_matrix(ns, ns);
           Vector dj(ns, 0), tmp(ns);
 
@@ -1479,7 +1473,7 @@ void get_stepwise_effective_source(
           //const bool has_dk = (not dK_dx[iq].IsEmpty());   // currently always
           //const bool has_ds = (not dS_dx[iq].IsEmpty());   // evaluate as true
           const bool has_dt =
-              (jacobian_quantities[iq].MainTag() == TEMPERATURE_MAINTAG);
+              (jacobian_quantities[iq] == Jacobian::Atm::Temperature);
 
           // Sets the -K^-1 dK/dx K^-1 (a B + S) term
           //if(has_dk)
@@ -1790,7 +1784,7 @@ void get_stepwise_scattersky_source(
         val_pnd = 1;
       } else if (jacobian_do) {
         for (Index iq = 0; (!val_pnd) && (iq < nq); iq++) {
-          if (jacobian_quantities[iq].Analytical() &&
+          if ((not(jacobian_quantities[iq] == Jacobian::Type::Sensor) and not(jacobian_quantities[iq] == Jacobian::Special::SurfaceString)) &&
               !ppath_dpnd_dx[iq].empty() &&
               ppath_dpnd_dx[iq](ise_flat, ppath_1p_id) != 0) {
             val_pnd = 1;
@@ -2381,11 +2375,6 @@ void rtmethods_jacobian_init(
                                         scat_species);
 
   FOR_ANALYTICAL_JACOBIANS_DO(
-      jac_other[iq] = (jacobian_quantities[iq].PropMatType() ==
-                       JacPropMatType::NotPropagationMatrixType)
-                          ? Index(JacobianType::Other)
-                          : Index(JacobianType::None);
-
       if (jac_scat_i[iq] + 1) {
         if (dpnd_field_dx[iq].empty())
           throw runtime_error(
@@ -2453,7 +2442,9 @@ void rtmethods_jacobian_finalisation(
     // Let x be VMR, and z the selected retrieval unit.
     // We have then that diy/dz = diy/dx * dx/dz
     //
-    if (jacobian_quantities[iq].Analytical() && jac_species_i[iq] >= 0) {
+    if (not(jacobian_quantities[iq] == Jacobian::Type::Sensor) and
+        not(jacobian_quantities[iq] == Jacobian::Special::SurfaceString) and
+        jac_species_i[iq] >= 0) {
       if (jacobian_quantities[iq].Mode() == "vmr") {
       }
 
@@ -2504,7 +2495,7 @@ void rtmethods_jacobian_finalisation(
     if (jac_is_t[iq] != Index(JacobianType::None)) {
       // Loop abs species, again
       for (Index ia = 0; ia < jacobian_quantities.nelem(); ia++) {
-        if (jacobian_quantities[iq].Analytical() && jac_species_i[ia] >= 0) {
+        if (jac_species_i[ia] >= 0) {
           if (jacobian_quantities[ia].Mode() == "nd") {
             for (Index ip = 0; ip < np; ip++) {
               Matrix ddterm = diy_dpath[ia](ip, joker, joker);

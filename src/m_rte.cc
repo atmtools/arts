@@ -49,11 +49,6 @@
 
 extern const Numeric PI;
 extern const Numeric SPEED_OF_LIGHT;
-extern const String ABSSPECIES_MAINTAG;
-extern const String SURFACE_MAINTAG;
-extern const String SCATSPECIES_MAINTAG;
-extern const String TEMPERATURE_MAINTAG;
-extern const String WIND_MAINTAG;
 extern const Index GFIELD4_FIELD_NAMES;
 extern const Index GFIELD4_P_GRID;
 extern const Index GFIELD4_LAT_GRID;
@@ -374,7 +369,7 @@ void iyEmissionStandard(
       }
       FOR_ANALYTICAL_JACOBIANS_DO(
           da_dx[iq] = StokesVector(nf, ns); dS_dx[iq] = StokesVector(nf, ns);
-          if (jacobian_quantities[iq] == JacPropMatType::Temperature) {
+          if (jacobian_quantities[iq] == Jacobian::Atm::Temperature) {
             temperature_derivative_position = iq;
             do_hse = jacobian_quantities[iq].Subtag() == "HSE on";
           })
@@ -1838,67 +1833,60 @@ void yCalcAppend(Workspace& ws,
 
       // Compare to old quantities, to determine if append shall be
       // considered. Some special checks performed here, grids checked later
-      if (jacobian_quantities2[q2].MainTag() == ABSSPECIES_MAINTAG ||
-          jacobian_quantities2[q2].MainTag() == TEMPERATURE_MAINTAG ||
-          jacobian_quantities2[q2].MainTag() == SCATSPECIES_MAINTAG ||
-          jacobian_quantities2[q2].MainTag() == WIND_MAINTAG ||
-          jacobian_quantities2[q2].MainTag() == SURFACE_MAINTAG ||
+      if (jacobian_quantities2[q2].Target().isSpeciesVMR() ||
+          jacobian_quantities2[q2] == Jacobian::Atm::Temperature ||
+          jacobian_quantities2[q2] == Jacobian::Special::ScatteringString ||
+          jacobian_quantities2[q2].Target().isWind() ||
+          jacobian_quantities2[q2] == Jacobian::Special::SurfaceString ||
           append_instrument_wfs) {
         for (Index q1 = 0; q1 < nrq1; q1++ && pos < 0) {  // FIXME: What is with this "&& pos < 0"
-          if (jacobian_quantities2[q2].MainTag() ==
-              jacobian_quantities_copy[q1].MainTag()) {
-            // Absorption species
-            if (jacobian_quantities2[q2].MainTag() == ABSSPECIES_MAINTAG) {
-              if (jacobian_quantities2[q2].Subtag() ==
-                  jacobian_quantities_copy[q1].Subtag()) {
-                if (jacobian_quantities2[q2].Mode() ==
-                    jacobian_quantities_copy[q1].Mode()) {
-                  pos = q1;
-                } else {
-                  ostringstream os;
-                  os << "Jacobians for " << jacobian_quantities2[q2].MainTag()
-                     << "/" << jacobian_quantities2[q2].Subtag()
-                     << " shall be appended.\nThis requires "
-                     << "that the same retrieval unit is used "
-                     << "but it seems that this requirement is "
-                     << "not met.";
-                  throw runtime_error(os.str());
-                }
-              }
-            }
-            // Temperature
-            else if (jacobian_quantities2[q2].MainTag() ==
-                     TEMPERATURE_MAINTAG) {
-              if (jacobian_quantities2[q2].Subtag() ==
-                  jacobian_quantities_copy[q1].Subtag()) {
+          
+          // Absorption species
+          if (jacobian_quantities2[q2].Target().isSpeciesVMR()) {
+            if (jacobian_quantities2[q2].Subtag() ==
+                jacobian_quantities_copy[q1].Subtag()) {
+              if (jacobian_quantities2[q2].Mode() ==
+                  jacobian_quantities_copy[q1].Mode()) {
                 pos = q1;
               } else {
                 ostringstream os;
-                os << "Jacobians for " << jacobian_quantities2[q2].MainTag()
-                   << "/" << jacobian_quantities2[q2].Subtag()
-                   << " shall be appended.\nThis requires "
-                   << "that HSE is either ON or OFF for both "
-                   << "parts but it seems that this requirement "
-                   << "is not met.";
+                os << "Jacobians for " << jacobian_quantities2[q2]
+                    << " shall be appended.\nThis requires "
+                    << "that the same retrieval unit is used "
+                    << "but it seems that this requirement is "
+                    << "not met.";
                 throw runtime_error(os.str());
               }
-            } else if (jacobian_quantities[q2].MainTag() ==
-                       SCATSPECIES_MAINTAG) {
-              if ((jacobian_quantities2[q2].MainTag() ==
-                   jacobian_quantities_copy[q1].MainTag()) &&
-                  (jacobian_quantities2[q2].Subtag() ==
-                   jacobian_quantities_copy[q1].Subtag()) &&
-                  (jacobian_quantities2[q2].SubSubtag() ==
-                   jacobian_quantities_copy[q1].SubSubtag())) {
-                pos = q1;
-              }
             }
-            // Other
-            else if (jacobian_quantities2[q2].Subtag() ==
-                     jacobian_quantities_copy[q1].Subtag()) {
+          }
+          // Temperature
+          else if (jacobian_quantities2[q2] == Jacobian::Atm::Temperature) {
+            if (jacobian_quantities2[q2].Subtag() ==
+                jacobian_quantities_copy[q1].Subtag()) {
+              pos = q1;
+            } else {
+              ostringstream os;
+              os << "Jacobians for " << jacobian_quantities2[q2]
+                  << " shall be appended.\nThis requires "
+                  << "that HSE is either ON or OFF for both "
+                  << "parts but it seems that this requirement "
+                  << "is not met.";
+              throw runtime_error(os.str());
+            }
+          } else if (jacobian_quantities[q2] == Jacobian::Special::ScatteringString) {
+            if ((jacobian_quantities2[q2].Subtag() ==
+                  jacobian_quantities_copy[q1].Subtag()) &&
+                (jacobian_quantities2[q2].SubSubtag() ==
+                  jacobian_quantities_copy[q1].SubSubtag())) {
               pos = q1;
             }
           }
+          // Other
+          else if (jacobian_quantities2[q2].Subtag() ==
+                    jacobian_quantities_copy[q1].Subtag()) {
+            pos = q1;
+          }
+        
         }
       }
 
@@ -1938,8 +1926,7 @@ void yCalcAppend(Workspace& ws,
         }
         if (any_wrong) {
           ostringstream os;
-          os << "Jacobians for " << jacobian_quantities2[q2].MainTag() << "/"
-             << jacobian_quantities2[q2].Subtag()
+          os << "Jacobians for " << jacobian_quantities2[q2]
              << " shall be appended.\nThis requires that the "
              << "same grids are used for both measurements,\nbut "
              << "it seems that this requirement is not met.";

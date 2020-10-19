@@ -2,10 +2,10 @@ import ctypes as c
 from collections.abc import Sized
 from pyarts.workspace.api import arts_api as lib
 
-from pyarts.classes.BasicTypes import String, Numeric, Index
+from pyarts.classes.BasicTypes import String, Index
 from pyarts.classes.Vector import Vector, ArrayOfVector
+from pyarts.classes.JacobianTarget import JacobianTarget
 from pyarts.classes.Matrix import Matrix
-from pyarts.classes.QuantumIdentifier import QuantumIdentifier
 from pyarts.classes.io import correct_save_arguments, correct_read_arguments
 from pyarts.classes.ArrayBase import array_base
 
@@ -14,9 +14,6 @@ class RetrievalQuantity:
     """ ARTS RetrievalQuantity data
 
     Properties:
-        maintag:
-            (String)
-
         subtag:
             (String)
 
@@ -26,17 +23,11 @@ class RetrievalQuantity:
         mode:
             (String)
 
-        analytical:
-            (Index)
-
-        perturbation:
-            (Numeric)
+        target:
+            (JacobianTarget)
 
         grids:
             (ArrayOfVector)
-
-        quantumidentity:
-            (QuantumIdentifier)
 
         transformation_func:
             (String)
@@ -49,9 +40,6 @@ class RetrievalQuantity:
 
         offset:
             (Vector)
-
-        type:
-            (Index)
 
         integration:
             (bool)
@@ -66,25 +54,6 @@ class RetrievalQuantity:
             self.__data__ = c.c_void_p(lib.createRetrievalQuantity())
             if data is not None:
                 raise RuntimeError("Only supports void initialization")
-
-    @property
-    def type(self):
-        """ (Index) """
-        return lib.getTypeRetrievalQuantity(self.__data__)
-
-    @type.setter
-    def type(self, val):
-        if lib.setTypeRetrievalQuantity(self.__data__, int(val)):
-            raise ValueError("Bad input")
-
-    @property
-    def integration(self):
-        """ (bool) """
-        return lib.getIntegrationRetrievalQuantity(self.__data__)
-
-    @integration.setter
-    def integration(self, val):
-        lib.setIntegrationRetrievalQuantity(self.__data__, bool(val))
 
     @property
     def offset(self):
@@ -121,16 +90,7 @@ class RetrievalQuantity:
     @transformation_func.setter
     def transformation_func(self, val):
         self.transformation_func.set(val)
-
-    @property
-    def quantumidentity(self):
-        """ (QuantumIdentifier) """
-        return QuantumIdentifier(c.c_void_p(lib.getQuantumIdentityRetrievalQuantity(self.__data__)))
-
-    @quantumidentity.setter
-    def quantumidentity(self, val):
-        self.quantumidentity.set(val)
-
+        
     @property
     def grids(self):
         """ (ArrayOfVector) """
@@ -139,24 +99,6 @@ class RetrievalQuantity:
     @grids.setter
     def grids(self, val):
         self.grids.set(val)
-
-    @property
-    def perturbation(self):
-        """ (Numeric) """
-        return Numeric(c.c_void_p(lib.getPerturbationRetrievalQuantity(self.__data__)))
-
-    @perturbation.setter
-    def perturbation(self, val):
-        self.perturbation.set(val)
-
-    @property
-    def analytical(self):
-        """ (Index) """
-        return Index(c.c_void_p(lib.getAnalyticalRetrievalQuantity(self.__data__)))
-
-    @analytical.setter
-    def analytical(self, val):
-        self.analytical.set(val)
 
     @property
     def mode(self):
@@ -186,13 +128,13 @@ class RetrievalQuantity:
         self.subtag.set(val)
 
     @property
-    def maintag(self):
-        """ (String) """
-        return String(c.c_void_p(lib.getMainTagRetrievalQuantity(self.__data__)))
+    def target(self):
+        """ (JacobianTarget) """
+        return JacobianTarget(c.c_void_p(lib.getTargetRetrievalQuantity(self.__data__)))
 
-    @maintag.setter
-    def maintag(self, val):
-        self.maintag.set(val)
+    @target.setter
+    def target(self, val):
+        self.target.set(val)
 
     @staticmethod
     def name():
@@ -212,20 +154,15 @@ class RetrievalQuantity:
     def set(self, other):
         """ Sets this class according to another python instance of itself """
         if isinstance(other, RetrievalQuantity):
-            self.maintag = other.maintag
             self.subtag = other.subtag
             self.subsubtag = other.subsubtag
             self.mode = other.mode
-            self.analytical = other.analytical
-            self.perturbation = other.perturbation
+            self.target = other.target
             self.grids = other.grids
-            self.quantumidentity = other.quantumidentity
             self.transformation_func = other.transformation_func
             self.t_func_parameters = other.t_func_parameters
             self.transformation = other.transformation
             self.offset = other.offset
-            self.type = other.type
-            self.integration = other.integration
         else:
             raise TypeError("Expects RetrievalQuantity")
 
@@ -257,20 +194,15 @@ class RetrievalQuantity:
 
     def __eq__(self, other):
         if isinstance(other, RetrievalQuantity) and \
-                self.maintag == other.maintag and \
                 self.subtag == other.subtag and \
                 self.subsubtag == other.subsubtag and \
                 self.mode == other.mode and \
-                self.analytical == other.analytical and \
-                self.perturbation == other.perturbation and \
+                self.target == other.target and \
                 self.grids == other.grids and \
-                self.quantumidentity == other.quantumidentity and \
                 self.transformation_func == other.transformation_func and \
                 self.t_func_parameters == other.t_func_parameters and \
                 self.transformation == other.transformation and \
-                self.offset == other.offset and \
-                self.type == other.type and \
-                self.integration == other.integration:
+                self.offset == other.offset:
             return True
         else:
             return False
@@ -294,21 +226,6 @@ lib.xmlreadRetrievalQuantity.argtypes = [c.c_void_p, c.c_char_p]
 lib.xmlsaveRetrievalQuantity.restype = c.c_long
 lib.xmlsaveRetrievalQuantity.argtypes = [c.c_void_p, c.c_char_p, c.c_long, c.c_long]
 
-lib.getTypeRetrievalQuantity.restype = c.c_long
-lib.getTypeRetrievalQuantity.argtypes = [c.c_void_p]
-
-lib.setTypeRetrievalQuantity.restype = c.c_long
-lib.setTypeRetrievalQuantity.argtypes = [c.c_void_p, c.c_long]
-
-lib.getIntegrationRetrievalQuantity.restype = c.c_long
-lib.getIntegrationRetrievalQuantity.argtypes = [c.c_void_p]
-
-lib.setIntegrationRetrievalQuantity.restype = c.c_long
-lib.setIntegrationRetrievalQuantity.argtypes = [c.c_void_p, c.c_long]
-
-lib.getMainTagRetrievalQuantity.restype = c.c_void_p
-lib.getMainTagRetrievalQuantity.argtypes = [c.c_void_p]
-
 lib.getSubTagRetrievalQuantity.restype = c.c_void_p
 lib.getSubTagRetrievalQuantity.argtypes = [c.c_void_p]
 
@@ -318,17 +235,11 @@ lib.getSubSubTagRetrievalQuantity.argtypes = [c.c_void_p]
 lib.getModeRetrievalQuantity.restype = c.c_void_p
 lib.getModeRetrievalQuantity.argtypes = [c.c_void_p]
 
-lib.getAnalyticalRetrievalQuantity.restype = c.c_void_p
-lib.getAnalyticalRetrievalQuantity.argtypes = [c.c_void_p]
-
-lib.getPerturbationRetrievalQuantity.restype = c.c_void_p
-lib.getPerturbationRetrievalQuantity.argtypes = [c.c_void_p]
-
 lib.getGridsRetrievalQuantity.restype = c.c_void_p
 lib.getGridsRetrievalQuantity.argtypes = [c.c_void_p]
 
-lib.getQuantumIdentityRetrievalQuantity.restype = c.c_void_p
-lib.getQuantumIdentityRetrievalQuantity.argtypes = [c.c_void_p]
+lib.getTargetRetrievalQuantity.restype = c.c_void_p
+lib.getTargetRetrievalQuantity.argtypes = [c.c_void_p]
 
 lib.getTransformationFuncRetrievalQuantity.restype = c.c_void_p
 lib.getTransformationFuncRetrievalQuantity.argtypes = [c.c_void_p]

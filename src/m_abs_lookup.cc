@@ -2119,7 +2119,7 @@ void propmat_clearskyAddFromLookup(
            iv++) {
         for (Index iq = 0; iq < jacobian_quantities_position.nelem(); iq++) {
           if (jacobian_quantities[jacobian_quantities_position[iq]] ==
-              JacPropMatType::Temperature) {
+              Jacobian::Atm::Temperature) {
             dpropmat_clearsky_dx[iq].Kjj()[iv] +=
                 (dabs_scalar_gas_dt(isp, iv) - abs_scalar_gas(isp, iv)) / dt;
           } else if (is_frequency_parameter(
@@ -2128,11 +2128,11 @@ void propmat_clearskyAddFromLookup(
             dpropmat_clearsky_dx[iq].Kjj()[iv] +=
                 (dabs_scalar_gas_df(isp, iv) - abs_scalar_gas(isp, iv)) / df;
           } else if (jacobian_quantities[jacobian_quantities_position[iq]] ==
-                     JacPropMatType::VMR) {
+            Jacobian::Special::ArrayOfSpeciesTagVMR) {
             if (jacobian_quantities[jacobian_quantities_position[iq]]
                     .QuantumIdentity()
                     .Species() not_eq abs_lookup.GetSpeciesIndex(isp))
-              continue;  // FIXME?:  Ignoring isotopologue???
+              continue;
 
             // WARNING:  If CIA in list, this scales wrong by factor 2
             dpropmat_clearsky_dx[iq].Kjj()[iv] +=

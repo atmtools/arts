@@ -257,14 +257,14 @@ void zeeman_on_the_fly(
                 dabs(dpropmat_clearsky_dx[j].Data().get_c_array(),
                     f_grid.nelem(), 7);
 
-            if (deriv == JacPropMatType::Temperature) {
+            if (deriv == Jacobian::Atm::Temperature) {
               dabs.leftCols<4>().noalias() +=
                   numdens * sum.dF.col(j).real() * pol_real +
                   dnumdens_dT * sum.F.real() * pol_real;
               dabs.rightCols<3>().noalias() +=
                   numdens * sum.dF.col(j).imag() * pol_imag +
                   dnumdens_dT * sum.F.imag() * pol_imag;
-            } else if (deriv == JacPropMatType::MagneticU) {
+            } else if (deriv == Jacobian::Atm::MagneticU) {
               dabs.leftCols<4>().noalias() +=
                   numdens * X.dH_du * sum.dF.col(j).real() * pol_real +
                   numdens * X.deta_du * sum.F.real() *
@@ -277,7 +277,7 @@ void zeeman_on_the_fly(
                       dpol_deta.dispersion() +
                   numdens * X.dtheta_du * sum.F.imag() *
                       dpol_dtheta.dispersion();
-            } else if (deriv == JacPropMatType::MagneticV) {
+            } else if (deriv == Jacobian::Atm::MagneticV) {
               dabs.leftCols<4>().noalias() +=
                   numdens * X.dH_dv * sum.dF.col(j).real() * pol_real +
                   numdens * X.deta_dv * sum.F.real() *
@@ -290,7 +290,7 @@ void zeeman_on_the_fly(
                       dpol_deta.dispersion() +
                   numdens * X.dtheta_dv * sum.F.imag() *
                       dpol_dtheta.dispersion();
-            } else if (deriv == JacPropMatType::MagneticW) {
+            } else if (deriv == Jacobian::Atm::MagneticW) {
               dabs.leftCols<4>().noalias() +=
                   numdens * X.dH_dw * sum.dF.col(j).real() * pol_real +
                   numdens * X.deta_dw * sum.F.real() *
@@ -303,7 +303,7 @@ void zeeman_on_the_fly(
                       dpol_deta.dispersion() +
                   numdens * X.dtheta_dw * sum.F.imag() *
                       dpol_dtheta.dispersion();
-            } else if (deriv == JacPropMatType::VMR and
+            } else if (deriv == Jacobian::Line::VMR and
                       deriv.QuantumIdentity().In(band.QuantumIdentity())) {
               dabs.leftCols<4>().noalias() +=
                   numdens * sum.dF.col(j).real() * pol_real +
@@ -340,35 +340,35 @@ void zeeman_on_the_fly(
                 nlte_dsrc_dx(nlte_dsource_dx[j].Data().get_c_array(),
                             f_grid.nelem(), 4);
 
-            if (deriv == JacPropMatType::Temperature) {
+            if (deriv == Jacobian::Atm::Temperature) {
               dnlte_dx_src.noalias() +=
                   dnumdens_dT * eB.cwiseProduct(sum.N.real()) * pol_real +
                   numdens * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real;
 
               nlte_dsrc_dx.noalias() +=
                   numdens * edBdT.cwiseProduct(sum.N.real()) * pol_real;
-            } else if (deriv == JacPropMatType::MagneticU)
+            } else if (deriv == Jacobian::Atm::MagneticU)
               dnlte_dx_src.noalias() +=
                   numdens * X.dH_du * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real +
                   numdens * X.deta_du * eB.cwiseProduct(sum.N.real()) *
                       dpol_deta.attenuation() +
                   numdens * X.dtheta_du * eB.cwiseProduct(sum.N.real()) *
                       dpol_dtheta.attenuation();
-            else if (deriv == JacPropMatType::MagneticV)
+            else if (deriv == Jacobian::Atm::MagneticV)
               dnlte_dx_src.noalias() +=
                   numdens * X.dH_dv * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real +
                   numdens * X.deta_dv * eB.cwiseProduct(sum.N.real()) *
                       dpol_deta.attenuation() +
                   numdens * X.dtheta_dv * eB.cwiseProduct(sum.N.real()) *
                       dpol_dtheta.attenuation();
-            else if (deriv == JacPropMatType::MagneticW)
+            else if (deriv == Jacobian::Atm::MagneticW)
               dnlte_dx_src.noalias() +=
                   numdens * X.dH_dw * eB.cwiseProduct(sum.dN.col(j).real()) * pol_real +
                   numdens * X.deta_dw * eB.cwiseProduct(sum.N.real()) *
                       dpol_deta.attenuation() +
                   numdens * X.dtheta_dw * eB.cwiseProduct(sum.N.real()) *
                       dpol_dtheta.attenuation();
-            else if (deriv == JacPropMatType::VMR and
+            else if (deriv == Jacobian::Line::VMR and
                     deriv.QuantumIdentity().In(band.QuantumIdentity()))
               dnlte_dx_src.noalias() +=
                   dnumdens_dmvr * eB.cwiseProduct(sum.N.real()) * pol_real +

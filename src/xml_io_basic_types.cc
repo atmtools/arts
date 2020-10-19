@@ -100,6 +100,121 @@ void xml_write_to_stream(ostream& os_xml,
   os_xml << '\n';
 }
 
+//=== JacobianTarget ==================================================================
+
+//! Reads JacobianTarget from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param jt      JacobianTarget return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void xml_read_from_stream(istream& is_xml,
+                          JacobianTarget& jt,
+                          bifstream* pbifs,
+                          const Verbosity& verbosity) {
+  ArtsXMLTag tag(verbosity);
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("JacobianTarget");
+  
+  // Type information
+  String typestr, subtypestr;
+  tag.get_attribute_value("Type", typestr);
+  tag.get_attribute_value("SubType", subtypestr);
+  jt.TargetType(typestr);
+  jt.TargetSubType(subtypestr);
+  
+  /** Catalog ID */
+  if (jt.needQuantumIdentity()) {
+    SpeciesTag spec;
+    tag.get_attribute_value("species", spec);
+    jt.QuantumIdentity().Species() = spec.Species();
+    jt.QuantumIdentity().Isotopologue() = spec.Isotopologue();
+    
+    if (jt == Jacobian::Line::VMR) {
+      jt.QuantumIdentity().SetAll();
+      jt.QuantumIdentity().Species() = spec.Species();
+      jt.QuantumIdentity().Isotopologue() = spec.Isotopologue();
+    } else if (jt == Jacobian::Line::NLTE) {
+      QuantumNumbers levelquanta;
+      tag.get_attribute_value("levelquanta", levelquanta);
+      jt.QuantumIdentity().SetEnergyLevel(levelquanta);
+    } else {
+      QuantumNumbers upperglobalquanta, lowerglobalquanta;
+      tag.get_attribute_value("upperglobalquanta", upperglobalquanta);
+      tag.get_attribute_value("lowerglobalquanta", lowerglobalquanta);
+      jt.QuantumIdentity().SetTransition(upperglobalquanta, lowerglobalquanta);
+    }
+  }
+  
+  if (pbifs) {
+    *pbifs >> jt.Perturbation();
+    if (pbifs->fail()) {
+      xml_data_parse_error(tag, "");
+    }
+  } else {
+    is_xml >> jt.Perturbation();
+    if (is_xml.fail()) {
+      xml_data_parse_error(tag, "");
+    }
+  }
+
+  tag.read_from_stream(is_xml);
+  tag.check_name("/JacobianTarget");
+  
+  if (not jt.TargetSubTypeOK()) {
+    ostringstream os;
+    os << "Bad input: " << typestr << " or " << subtypestr << '\n' << "\tCannot be interpreted as a type or substype...\n";
+    throw std::runtime_error(os.str());
+  }
+}
+
+//! Writes JacobianTarget to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param jt      JacobianTarget value
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void xml_write_to_stream(ostream& os_xml,
+                         const JacobianTarget& jt,
+                         bofstream* pbofs,
+                         const String& name,
+                         const Verbosity& verbosity) {
+  ArtsXMLTag open_tag(verbosity);
+  ArtsXMLTag close_tag(verbosity);
+
+  open_tag.set_name("JacobianTarget");
+  if (name.length()) open_tag.add_attribute("name", name);
+  
+  // Type information
+  open_tag.add_attribute("Type", jt.TargetType());
+  open_tag.add_attribute("SubType", jt.TargetSubType());
+  
+  /** Catalog ID */
+  if (jt.needQuantumIdentity()) {
+    open_tag.add_attribute("species", jt.QuantumIdentity().SpeciesName());
+    
+    if (jt == Jacobian::Line::VMR) {
+    } else if (jt == Jacobian::Line::NLTE) {
+      open_tag.add_attribute("levelquanta", jt.QuantumIdentity().EnergyLevelQuantumNumbers().toString());
+    } else {
+      open_tag.add_attribute("upperglobalquanta", jt.QuantumIdentity().UpperQuantumNumbers().toString());
+      open_tag.add_attribute("lowerglobalquanta", jt.QuantumIdentity().LowerQuantumNumbers().toString());
+    }
+  }
+  open_tag.write_to_stream(os_xml);
+
+  if (pbofs)
+    *pbofs << jt.Perturbation();
+  else
+    os_xml << ' ' << jt.Perturbation() << ' ';
+
+  close_tag.set_name("/JacobianTarget");
+  close_tag.write_to_stream(os_xml);
+  os_xml << '\n';
+}
+
 //=== Matrix ==========================================================
 
 //! Reads Matrix from XML input stream
