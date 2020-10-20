@@ -71,7 +71,7 @@ void Rng::seed(unsigned long int n, const Verbosity &verbosity) {
         CREATE_OUT0;
         out0
             << "Rng Warning: Couldn't find an unused seed. Clearing seed pool.\n";
-        seeds.empty();
+        seeds.clear();
         break;
       }
     }
