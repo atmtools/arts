@@ -622,11 +622,54 @@ void test11() {
   
   constexpr Index order = 5;
   {
-      const auto lag0 = Interpolation::LagrangeVector(x0n, x0, order);
-      const auto lag1 = Interpolation::LagrangeVector(x1n, x1, order);
+      const auto lag0 = Interpolation::LagrangeVector(x0n, x0, order, 0.5);
+      const auto lag1 = Interpolation::LagrangeVector(x1n, x1, order, 0.5);
       const auto iwlag = interpweights(lag0, lag1);
       std::cout << x0n << '\n' << x1n << '\n' << reinterp(yi, iwlag, lag0, lag1) << '\n';
   }
 }
 
-int main() { test11(); }
+constexpr bool is_around(Numeric x, Numeric x0, Numeric e=1e-12) {
+  return x - x0 < e and x - x0 > -e;
+}
+
+void test12() {
+  constexpr int N=10;
+  constexpr std::array<Numeric, N> y{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  constexpr std::array<Numeric, N> y2{1, 2*2, 3*3, 4*4, 5*5, 6*6, 7*7, 8*8, 9*9, 10*10};
+  constexpr std::array<Numeric, N> y3{1, 2*2*2, 3*3*3, 4*4*4, 5*5*5, 6*6*6, 7*7*7, 8*8*8, 9*9*9, 10*10*10};
+  constexpr Numeric x = 1.5;
+  
+  // Set up the interpolation Lagranges
+  constexpr Interpolation::FixedLagrange<1> lin(x, 1, 2);
+  constexpr Interpolation::FixedLagrange<2> sqr(x, 1, 2, 3);
+  constexpr Interpolation::FixedLagrange<3> cub(x, 1, 2, 3, 4);
+  
+  // Set up the interpolation weights
+  constexpr auto lin_iw = interpweights(lin);
+  constexpr auto sqr_iw = interpweights(sqr);
+  constexpr auto cub_iw = interpweights(cub);
+  
+  // Get interpolation value
+  constexpr auto lin_lin = interp(y, lin_iw, lin);
+  constexpr auto lin_sqr = interp(y2, lin_iw, lin);
+  constexpr auto lin_cub = interp(y3, lin_iw, lin);
+  constexpr auto sqr_lin = interp(y, sqr_iw, sqr);
+  constexpr auto sqr_sqr = interp(y2, sqr_iw, sqr);
+  constexpr auto sqr_cub = interp(y3, sqr_iw, sqr);
+  constexpr auto cub_lin = interp(y, cub_iw, cub);
+  constexpr auto cub_sqr = interp(y2, cub_iw, cub);
+  constexpr auto cub_cub = interp(y3, cub_iw, cub);
+  
+  // Compile-time check that these values are good
+  static_assert(is_around(lin_lin, x));
+  static_assert(is_around(sqr_sqr, x*x));
+  static_assert(is_around(cub_cub, x*x*x));
+  
+  // Should output 1.5 2.5 4.5 1.5 2.25 3 1.5 2.25 3.375
+  std::cout << lin_lin << ' ' << lin_sqr << ' ' << lin_cub << ' '
+            << sqr_lin << ' ' << sqr_sqr << ' ' << sqr_cub << ' '
+            << cub_lin << ' ' << cub_sqr << ' ' << cub_cub << '\n';
+}
+
+int main() { test12(); }
