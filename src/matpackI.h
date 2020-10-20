@@ -498,6 +498,9 @@ class ConstVectorView {
     array of float can be addressed with this index. So the extra bit
     that size_t has compared to long is not needed. */
   Index nelem() const;
+  
+  /*! See nelem() */
+  Index size() const;
 
   /** The sum of all elements of a Vector. */
   Numeric sum() const;

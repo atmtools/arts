@@ -50,6 +50,8 @@ bool ConstVectorView::empty() const { return (nelem() == 0); }
 
 Index ConstVectorView::nelem() const { return mrange.mextent; }
 
+Index ConstVectorView::size() const { return mrange.mextent; }
+
 Numeric ConstVectorView::sum() const {
   Numeric s = 0;
   ConstIterator1D i = begin();
