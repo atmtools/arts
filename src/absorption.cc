@@ -668,9 +668,7 @@ void xsec_species(Matrix& xsec,
       const Numeric QT =
           single_partition_function(temperature, partfun_type, partfun_data);
       const Numeric dQTdT = dsingle_partition_function_dT(
-          QT,
           temperature,
-          dT,
           partfun_type,
           partfun_data);
       const Numeric DC =
