@@ -672,4 +672,61 @@ void test12() {
             << cub_lin << ' ' << cub_sqr << ' ' << cub_cub << '\n';
 }
 
-int main() { test12(); }
+void test13() {
+  constexpr int N=10;
+  constexpr std::array<Numeric, N> y{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  constexpr std::array<Numeric, N> y2{1, 2*2, 3*3, 4*4, 5*5, 6*6, 7*7, 8*8, 9*9, 10*10};
+  constexpr std::array<Numeric, N> y3{1, 2*2*2, 3*3*3, 4*4*4, 5*5*5, 6*6*6, 7*7*7, 8*8*8, 9*9*9, 10*10*10};
+  constexpr Numeric x = 1.5;
+  constexpr Numeric dx = 1e-2;
+  
+  // Set up the interpolation Lagranges
+  constexpr Interpolation::FixedLagrange<1> lin(x, 1, 2);
+  constexpr Interpolation::FixedLagrange<2> sqr(x, 1, 2, 3);
+  constexpr Interpolation::FixedLagrange<3> cub(x, 1, 2, 3, 4);
+  constexpr Interpolation::FixedLagrange<1> dlin(x+dx, 1, 2);
+  constexpr Interpolation::FixedLagrange<2> dsqr(x+dx, 1, 2, 3);
+  constexpr Interpolation::FixedLagrange<3> dcub(x+dx, 1, 2, 3, 4);
+  
+  // Set up the interpolation weights
+  constexpr auto lin_iw = interpweights(lin);
+  constexpr auto sqr_iw = interpweights(sqr);
+  constexpr auto cub_iw = interpweights(cub);
+  constexpr auto dlin_iw = dinterpweights(lin);
+  constexpr auto dsqr_iw = dinterpweights(sqr);
+  constexpr auto dcub_iw = dinterpweights(cub);
+  constexpr auto alt_lin_iw = interpweights(dlin);
+  constexpr auto alt_sqr_iw = interpweights(dsqr);
+  constexpr auto alt_cub_iw = interpweights(dcub);
+  
+  // Get interpolation value
+  constexpr auto lin_lin = interp(y, lin_iw, lin);
+  constexpr auto sqr_sqr = interp(y2, sqr_iw, sqr);
+  constexpr auto cub_cub = interp(y3, cub_iw, cub);
+  constexpr auto dlin_lin = interp(y, dlin_iw, dlin);
+  constexpr auto dsqr_sqr = interp(y2, dsqr_iw, dsqr);
+  constexpr auto dcub_cub = interp(y3, dcub_iw, dcub);
+  constexpr auto alt_lin_lin = interp(y, alt_lin_iw, dlin);
+  constexpr auto alt_sqr_sqr = interp(y2, alt_sqr_iw, dsqr);
+  constexpr auto alt_cub_cub = interp(y3, alt_cub_iw, dcub);
+  
+  // Compile-time check that these values are good
+  static_assert(is_around(lin_lin, x));
+  static_assert(is_around(sqr_sqr, x*x));
+  static_assert(is_around(cub_cub, x*x*x));
+  static_assert(is_around(dlin_lin, 1));
+  static_assert(is_around(dsqr_sqr, 2*x));
+  static_assert(is_around(dcub_cub, 3*x*x));
+  
+  // Should be
+  // 1.5  2.25   3.375
+  // 1    3      6.75
+  // 1.51 2.2801 3.44295
+  // ~1   ~3     ~6.75 (ofc, worse for less linear cases)
+  std::cout << lin_lin << ' ' << ' ' << sqr_sqr << ' ' << ' ' << ' ' << cub_cub << '\n' 
+            << dlin_lin << ' ' << ' ' << ' ' << ' ' << dsqr_sqr << ' ' << ' ' << ' ' << ' ' << ' ' << ' '  << dcub_cub << '\n'
+            << alt_lin_lin << ' ' << alt_sqr_sqr << ' ' << alt_cub_cub << '\n'
+            << (alt_lin_lin - lin_lin)/dx << ' ' << ' ' << ' ' << ' ' << (alt_sqr_sqr - sqr_sqr)/dx << ' ' << ' ' << ' ' << (alt_cub_cub - cub_cub)/dx << '\n';
+}
+
+int main() { test13(); }

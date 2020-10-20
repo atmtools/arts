@@ -500,7 +500,7 @@ Grid<Vector, 1> dinterpweights(const std::vector<Lagrange>& dim0);
  * @return Vector - interpweights derivative along 0th dimension
  */
 template <std::size_t PolyOrder>
-std::array<Numeric, PolyOrder + 1> dinterpweights(
+constexpr std::array<Numeric, PolyOrder + 1> dinterpweights(
     const FixedLagrange<PolyOrder>& dim0) {
   return dim0.dlx;
 }
