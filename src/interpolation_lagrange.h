@@ -204,7 +204,7 @@ struct FixedLagrange {
   template <class SortedVectorType>
   static constexpr Index pos_finder(const Numeric x,
                                     const SortedVectorType& xi) noexcept {
-    std::size_t p = 0;
+    decltype(xi.size()) p = 0;
     for (p = 0; p < xi.size() - size(); p++)
       if (xi[p] > x) break;
 
