@@ -1358,6 +1358,54 @@ void test47() {
   std::cout << "mv2.ncols: " << mv2.ncols() << std::endl;
 }
 
+void test48() {
+  
+  // Test each simple reduction
+  std::cout << Tensor7(2, 2, 2, 2, 2, 2, 1, 8).reduce_rank<0, 1, 2, 3, 4, 5>() << '\n';
+  std::cout << Tensor7(2, 2, 2, 2, 2, 1, 1, 9).reduce_rank<0, 1, 2, 3, 4>() << '\n';
+  std::cout << Tensor7(2, 2, 2, 2, 1, 1, 1, 10).reduce_rank<0, 1, 2, 3>() << '\n';
+  std::cout << Tensor7(2, 2, 2, 1, 1, 1, 1, 11).reduce_rank<0, 1, 2>() << '\n';
+  std::cout << Tensor7(2, 2, 1, 1, 1, 1, 1, 12).reduce_rank<0, 1>() << '\n';
+  std::cout << Tensor7(2, 1, 1, 1, 1, 1, 1, 13).reduce_rank<0>() << '\n';
+  std::cout << Tensor7(1, 1, 1, 1, 1, 1, 1, 14) << '\n';
+  std::cout << Tensor6(2, 2, 2, 2, 2, 1, 15).reduce_rank<0, 1, 2, 3, 4>() << '\n';
+  std::cout << Tensor6(2, 2, 2, 2, 1, 1, 16).reduce_rank<0, 1, 2, 3>() << '\n';
+  std::cout << Tensor6(2, 2, 2, 1, 1, 1, 17).reduce_rank<0, 1, 2>() << '\n';
+  std::cout << Tensor6(2, 2, 1, 1, 1, 1, 18).reduce_rank<0, 1>() << '\n';
+  std::cout << Tensor6(2, 1, 1, 1, 1, 1, 19).reduce_rank<0>() << '\n';
+  std::cout << Tensor6(1, 1, 1, 1, 1, 1, 20) << '\n';
+  std::cout << Tensor5(2, 2, 2, 2, 1, 21).reduce_rank<0, 1, 2, 3>() << '\n';
+  std::cout << Tensor5(2, 2, 2, 1, 1, 22).reduce_rank<0, 1, 2>() << '\n';
+  std::cout << Tensor5(2, 2, 1, 1, 1, 23).reduce_rank<0, 1>() << '\n';
+  std::cout << Tensor5(2, 1, 1, 1, 1, 24).reduce_rank<0>() << '\n';
+  std::cout << Tensor5(1, 1, 1, 1, 1, 25) << '\n';
+  std::cout << Tensor4(2, 2, 2, 1, 26).reduce_rank<0, 1, 2>() << '\n';
+  std::cout << Tensor4(2, 2, 1, 1, 27).reduce_rank<0, 1>() << '\n';
+  std::cout << Tensor4(2, 1, 1, 1, 28).reduce_rank<0>() << '\n';
+  std::cout << Tensor4(1, 1, 1, 1, 29) << '\n';
+  std::cout << Tensor3(2, 2, 1, 30).reduce_rank<0, 1>() << '\n';
+  std::cout << Tensor3(2, 1, 1, 31).reduce_rank<0>() << '\n';
+  std::cout << Tensor3(1, 1, 1, 32) << '\n';
+  std::cout << Matrix(2, 1, 33).reduce_rank<0>() << '\n';
+  std::cout << Matrix(1, 1, 34) << '\n';
+  
+  // Test that the reductions work along different axis for Vector
+  std::cout << MapToEigen(Tensor7(2, 1, 1, 1, 1, 1, 1, 35).reduce_rank<0, 1>()).transpose() << '\n'
+            << MapToEigen(Tensor7(2, 1, 1, 1, 1, 1, 1, 35).reduce_rank<0, 2>()).transpose() << '\n'
+            << MapToEigen(Tensor7(2, 1, 1, 1, 1, 1, 1, 35).reduce_rank<0, 3>()).transpose() << '\n'
+            << MapToEigen(Tensor7(2, 1, 1, 1, 1, 1, 1, 35).reduce_rank<0, 4>()).transpose() << '\n'
+            << MapToEigen(Tensor7(2, 1, 1, 1, 1, 1, 1, 35).reduce_rank<0, 5>()).transpose() << '\n'
+            << MapToEigen(Tensor7(2, 1, 1, 1, 1, 1, 1, 35).reduce_rank<0, 6>()).transpose() << '\n';
+  
+  // Test that the reductions work along different axis for Matrix
+  std::cout << MapToEigen(Tensor7(2, 2, 1, 1, 1, 1, 1, 36).reduce_rank<0, 1>()) << '\n'
+            << MapToEigen(Tensor7(2, 1, 2, 1, 1, 1, 1, 36).reduce_rank<0, 2>()) << '\n'
+            << MapToEigen(Tensor7(2, 1, 1, 2, 1, 1, 1, 36).reduce_rank<0, 3>()) << '\n'
+            << MapToEigen(Tensor7(2, 1, 1, 1, 2, 1, 1, 36).reduce_rank<0, 4>()) << '\n'
+            << MapToEigen(Tensor7(2, 1, 1, 1, 1, 2, 1, 36).reduce_rank<0, 5>()) << '\n'
+            << MapToEigen(Tensor7(2, 1, 1, 1, 1, 1, 2, 36).reduce_rank<0, 6>()) << '\n';
+}
+
 int main() {
   //   test1();
   //   test2();
@@ -1402,11 +1450,12 @@ int main() {
   //  test40();
   //  test41();
   //    test42();
-  test43();
+  //   test43();
   //    test44();
   //    test45();
   //    test46();
   //  test47();
+  test48();
 
   //    const double tolerance = 1e-9;
   //    double error;

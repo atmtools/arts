@@ -899,6 +899,12 @@ class Vector : public VectorView {
 
   /** Converting constructor from std::vector<Numeric>. */
   Vector(const std::vector<Numeric>&);
+  
+  /*! Construct from known data */
+  Vector(Numeric* d, const Range& r0)
+  : VectorView(d, r0) {
+    if (r0.get_extent() < 0) throw std::runtime_error("Must have size");
+  }
 
   // Assignment operators:
 
@@ -1204,6 +1210,13 @@ class Matrix : public MatrixView {
   Matrix(Matrix&& v) noexcept : MatrixView(std::forward<MatrixView>(v)) {
     v.mdata = nullptr;
   }
+  
+  /*! Construct from known data */
+  Matrix(Numeric* d, const Range& r0, const Range& r1)
+  : MatrixView(d, r0, r1) {
+    if (r0.get_extent() < 0) throw std::runtime_error("Must have size");
+    if (r1.get_extent() < 0) throw std::runtime_error("Must have size");
+  }
 
   // Assignment operators:
   Matrix& operator=(const Matrix& x);
@@ -1219,6 +1232,22 @@ class Matrix : public MatrixView {
 
   // Destructor:
   virtual ~Matrix();
+  
+  // Total size
+  Index size() const noexcept {return nrows() * ncols();}
+  
+  /*! Reduce a Matrix to a Vector and leave this in a bad state */
+  template <std::size_t dim0>
+  Vector reduce_rank() {
+    static_assert(dim0 < 2, "Bad Dimension, Out-of-Bounds");
+    
+    Range r0(0, dim0 == 0 ? nrows() : ncols());
+    
+    Vector out(mdata, r0);
+    if (size() not_eq out.size()) throw std::runtime_error("Can only reduce size on same size input");
+    mdata = nullptr;
+    return out;
+  }
 
   Numeric* get_raw_data() { return mdata; }
 };

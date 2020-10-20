@@ -347,6 +347,14 @@ class Tensor3 : public Tensor3View {
   Tensor3(Tensor3&& v) noexcept : Tensor3View(std::forward<Tensor3View>(v)) {
     v.mdata = nullptr;
   }
+  
+  /*! Construct from known data */
+  Tensor3(Numeric* d, const Range& r0, const Range& r1, const Range& r2)
+  : Tensor3View(d, r0, r1, r2) {
+    if (r0.get_extent() < 0) throw std::runtime_error("Must have size");
+    if (r1.get_extent() < 0) throw std::runtime_error("Must have size");
+    if (r2.get_extent() < 0) throw std::runtime_error("Must have size");
+  }
 
   // Assignment operators:
   Tensor3& operator=(const Tensor3& x);
@@ -361,6 +369,37 @@ class Tensor3 : public Tensor3View {
 
   // Destructor:
   virtual ~Tensor3();
+  
+  // Total size
+  Index size() const noexcept {return npages() * nrows() * ncols();}
+  
+  /*! Reduce a Tensor3 to a Vector and leave this in a bad state */
+  template <std::size_t dim0>
+  Vector reduce_rank() {
+    static_assert(dim0 < 3, "Bad Dimension, Out-of-Bounds");
+    
+    Range r0(0, dim0 == 0 ? npages() : dim0 == 1 ? nrows() : ncols());
+    
+    Vector out(mdata, r0);
+    if (size() not_eq out.size()) throw std::runtime_error("Can only reduce size on same size input");
+    mdata = nullptr;
+    return out;
+  }
+  
+  /*! Reduce a Tensor3 to a Matrix and leave this in a bad state */
+  template <std::size_t dim0, std::size_t dim1>
+  Matrix reduce_rank() {
+    static_assert(dim0 < 3, "Bad Dimension, Out-of-Bounds");
+    static_assert(dim0 < dim1, "Bad Dimensions, dim1 must be larger than dim0");
+    
+    Range r0(0, dim0 == 0 ? npages() : dim0 == 1 ? nrows() : ncols());
+    Range r1(0, dim1 == 0 ? npages() : dim1 == 1 ? nrows() : ncols());
+    
+    Matrix out(mdata, r0, r1);
+    if (size() not_eq out.size()) throw std::runtime_error("Can only reduce size on same size input");
+    mdata = nullptr;
+    return out;
+  }
 };
 
 // Function declarations:
