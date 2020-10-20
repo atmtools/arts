@@ -124,7 +124,6 @@ Workspace::~Workspace() {
       ws[i].pop();
     }
   }
-  ws.empty();
 }
 
 void *Workspace::pop(Index i) {
