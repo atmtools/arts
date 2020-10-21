@@ -136,7 +136,7 @@
 \newcommand{\artsserver}{http://www.radiativetransfer.org/}
 
 % Docserver for this ARTS version
-\newcommand{\docserver}{docserver-trunk/}
+\newcommand{\docserver}[1]{https://atmtools.github.io/arts-docs-master/docserver/#1}
 
 %- Command to link to a URL on the ARTS web server
 % takes the subpath (without leading / !!!) as input
@@ -148,7 +148,7 @@
 % several times in a short section, and don't want all of these
 % occurrences to be in the index.)
 % Underscores must be escaped by leading backslash!
-\newcommand{\builtindoc}[1]{\href{\artsserver\docserver all/#1}{#1}}
+\newcommand{\builtindoc}[1]{\href{\docserver all/#1}{#1}}
 
 %- Command to write an internal ARTS variable, internal function, or
 % file name with special style. Anything that does not have built-in
