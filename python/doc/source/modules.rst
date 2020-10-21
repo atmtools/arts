@@ -29,7 +29,7 @@ ARTS Data Types
 
 
 ARTS Class Interface
----------------
+--------------------
 
 .. toctree::
    :maxdepth: 2
