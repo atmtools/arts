@@ -1236,7 +1236,7 @@ class Matrix : public MatrixView {
   // Total size
   Index size() const noexcept {return nrows() * ncols();}
   
-  /*! Reduce a Matrix to a Vector and leave this in a bad state */
+  /*! Reduce a Matrix to a Vector and leave this in an empty state */
   template <std::size_t dim0>
   Vector reduce_rank() {
     static_assert(dim0 < 2, "Bad Dimension, Out-of-Bounds");

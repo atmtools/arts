@@ -373,7 +373,7 @@ class Tensor3 : public Tensor3View {
   // Total size
   Index size() const noexcept {return npages() * nrows() * ncols();}
   
-  /*! Reduce a Tensor3 to a Vector and leave this in a bad state */
+  /*! Reduce a Tensor3 to a Vector and leave this in an empty state */
   template <std::size_t dim0>
   Vector reduce_rank() {
     static_assert(dim0 < 3, "Bad Dimension, Out-of-Bounds");
@@ -386,14 +386,14 @@ class Tensor3 : public Tensor3View {
     return out;
   }
   
-  /*! Reduce a Tensor3 to a Matrix and leave this in a bad state */
+  /*! Reduce a Tensor3 to a Matrix and leave this in an empty state */
   template <std::size_t dim0, std::size_t dim1>
   Matrix reduce_rank() {
     static_assert(dim1 < 3, "Bad Dimension, Out-of-Bounds");
     static_assert(dim0 < dim1, "Bad Dimensions, dim1 must be larger than dim0");
     
-    Range r0(0, dim0 == 0 ? npages() : nrows());
-    Range r1(0, dim1 == 1 ? nrows() : ncols());
+    const Range r1(0, dim1 == 1 ? nrows() : ncols());
+    const Range r0(0, dim0 == 0 ? npages() : nrows(), r1.get_extent());
     
     Matrix out(mdata, r0, r1);
     if (size() not_eq out.size()) throw std::runtime_error("Can only reduce size on same size input");
