@@ -42,7 +42,7 @@ from pyarts.classes.Tensor5 import Tensor5, ArrayOfTensor5
 from pyarts.classes.Tensor6 import Tensor6, ArrayOfTensor6, ArrayOfArrayOfTensor6
 from pyarts.classes.Tensor7 import Tensor7, ArrayOfTensor7
 from pyarts.classes.TessemNN import TessemNN
-from pyarts.classes.Time import Time, ArrayOfTime, ArrayOfArrayOfTime
+from pyarts.classes.Time import Time, ArrayOfTime, ArrayOfArrayOfTime, TimeGrid
 from pyarts.classes.Timer import Timer
 from pyarts.classes.TransmissionMatrix import TransmissionMatrix, ArrayOfTransmissionMatrix, ArrayOfArrayOfTransmissionMatrix
 from pyarts.classes.Vector import Vector, ArrayOfVector, ArrayOfArrayOfVector

@@ -160,8 +160,8 @@ class Time:
 exec(array_base(Time))
 
 
-def TimeGrid(ts):
-    """ Return an array of datetimes from an ArrayOfTime or list of Time
+def TimeGrid(ts: ArrayOfTime):
+    """ Return an array of datetimes from an ArrayOfTime
 
     Helps to make calls to matplotlib look decent
 

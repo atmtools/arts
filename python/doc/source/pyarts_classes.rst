@@ -100,4 +100,6 @@ pyarts.classes
     Vector
     Verbosity
     XsecRecord
+    
     from_workspace
+    TimeGrid
