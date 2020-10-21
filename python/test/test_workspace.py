@@ -110,3 +110,9 @@ class TestWorkspace:
 
         self.ws.f_grid = np.ascontiguousarray(x[::2])
         assert np.array_equal(self.ws.f_grid.value, x[::2])
+
+    def test_name_collision(self):
+        self.ws.VectorSetConstant(self.ws.f_grid, 10, 1.)
+        self.ws.VectorCreate("np")
+        f_grid = self.ws.f_grid.value
+        assert np.all(np.isclose(f_grid, np.ones(10)))
