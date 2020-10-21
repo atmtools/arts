@@ -408,7 +408,7 @@ class WorkspaceMethod:
                 ws_id = arts_api.add_variable(ws.ptr, group_id, name.encode())
 
         wsv = WorkspaceVariable(ws_id, name, group, "User defined variable.", ws)
-        setattr(variables, name, wsv)
+        variables.workspace_variables[name] = wsv
         ws._vars[name] = wsv
         return wsv
 
