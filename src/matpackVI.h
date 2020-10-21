@@ -1097,7 +1097,19 @@ class Tensor6 : public Tensor6View {
     v.mdata = nullptr;
   }
   
-  /*! Construct from known data */
+  /*! Construct from known data
+   * 
+   * Note that this will call delete on the pointer if it is still valid
+   * at the end of the lifetime of this variable
+   * 
+   * @param[in] d - A pointer to some raw data
+   * @param[in] r0 - The Range along the first dimension
+   * @param[in] r1 - The Range along the second dimension
+   * @param[in] r2 - The Range along the third dimension
+   * @param[in] r3 - The Range along the fourth dimension
+   * @param[in] r4 - The Range along the fifth dimension
+   * @param[in] r5 - The Range along the sixth dimension
+   */
   Tensor6(Numeric* d, const Range& r0, const Range& r1, const Range& r2, const Range& r3, const Range& r4, const Range& r5)
   : Tensor6View(d, r0, r1, r2, r3, r4, r5) {
     if (r0.get_extent() < 0) throw std::runtime_error("Must have size");

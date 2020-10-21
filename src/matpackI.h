@@ -900,7 +900,14 @@ class Vector : public VectorView {
   /** Converting constructor from std::vector<Numeric>. */
   Vector(const std::vector<Numeric>&);
   
-  /*! Construct from known data */
+  /*! Construct from known data
+   * 
+   * Note that this will call delete on the pointer if it is still valid
+   * at the end of the lifetime of this variable
+   * 
+   * @param[in] d - A pointer to some raw data
+   * @param[in] r0 - The Range along the first dimension
+   */
   Vector(Numeric* d, const Range& r0)
   : VectorView(d, r0) {
     if (r0.get_extent() < 0) throw std::runtime_error("Must have size");
@@ -1211,7 +1218,15 @@ class Matrix : public MatrixView {
     v.mdata = nullptr;
   }
   
-  /*! Construct from known data */
+  /*! Construct from known data
+   * 
+   * Note that this will call delete on the pointer if it is still valid
+   * at the end of the lifetime of this variable
+   * 
+   * @param[in] d - A pointer to some raw data
+   * @param[in] r0 - The Range along the first dimension
+   * @param[in] r1 - The Range along the second dimension
+   */
   Matrix(Numeric* d, const Range& r0, const Range& r1)
   : MatrixView(d, r0, r1) {
     if (r0.get_extent() < 0) throw std::runtime_error("Must have size");
