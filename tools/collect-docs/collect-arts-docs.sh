@@ -37,4 +37,13 @@ wget \
      --no-parent \
          localhost:23456/all
 
+mkdir docserver/all
+cp \
+    docserver/agendas/*.html \
+    docserver/groups/*.html \
+    docserver/methods/*.html \
+    docserver/variables/*.html \
+    docserver/all/
+rm docserver/all/index.html
+
 kill $(pidof arts)
