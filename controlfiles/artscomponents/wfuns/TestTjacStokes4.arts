@@ -16,8 +16,6 @@ INCLUDE "general/continua.arts"
 INCLUDE "general/agendas.arts"
 INCLUDE "general/planet_earth.arts"
 
-StringSet( rt_integration_option, "second order" )
-
 
 # Agenda for scalar gas absorption calculation
 Copy(abs_xsec_agenda, abs_xsec_agenda__noCIA)
@@ -152,8 +150,6 @@ yCalc
 #
 VectorCreate( yref )
 ReadXML( yref, "yREF4.xml" )
-Print(y)
-Print(yref)
 Compare( y, yref, 1e-4,
          "Calculated *y* does not agree with saved reference values." )
 

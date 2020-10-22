@@ -327,6 +327,15 @@ class TransmissionMatrix {
   friend std::istream& operator>>(std::istream& data, TransmissionMatrix& tm);
   
   /** Simple template access for the transmission */
+  template <int N> auto& TraMat(size_t i) noexcept {
+    static_assert (N > 0 or N < 5, "Bad size N");
+    if constexpr (N == 1) return T1[i];
+    else if constexpr (N == 2) return T2[i];
+    else if constexpr (N == 3) return T3[i];
+    else if constexpr (N == 4) return T4[i];
+  }
+  
+  /** Simple template access for the transmission */
   template <int N> auto& TraMat(size_t i) const noexcept {
     static_assert (N > 0 or N < 5, "Bad size N");
     if constexpr (N == 1) return T1[i];
@@ -361,12 +370,50 @@ class TransmissionMatrix {
     const auto T = TraMat<N>(i);
     const Eigen::Matrix<Numeric, N, 1> first = 0.5 * (I - T) * (far + close);
     if (T(0, 0) < 0.99) {
-      const auto dT = OptDepth<N>(i);
-      const Eigen::Matrix<Numeric, N, 1> second = dT.inverse() * ((I - (I + dT) * T) * far + (dT - I + T) * close);
+      const auto od = OptDepth<N>(i);
+      const Eigen::Matrix<Numeric, N, 1> second = od.inverse() * ((I - (I + od) * T) * far + (od - I + T) * close);
       if (first[0] > second[0]) {
         return second;
       } else {
         return first;
+      }
+    } else {
+      return first;
+    }
+  }
+  
+  
+  template <int N>
+  Eigen::Matrix<Numeric, N, 1> second_order_integration_dsource(size_t i,
+                                                                const TransmissionMatrix& dx,
+                                                                const Eigen::Matrix<Numeric, N, 1> far,
+                                                                const Eigen::Matrix<Numeric, N, 1> close,
+                                                                const Eigen::Matrix<Numeric, N, 1> d,
+                                                                bool isfar) const noexcept {
+    static_assert (N > 0 or N < 5, "Bad size N");
+    
+    const auto I = Eigen::Matrix<Numeric, N, N>::Identity();
+    const auto T = TraMat<N>(i);
+    const auto dTdx = dx.TraMat<N>(i);
+    const Eigen::Matrix<Numeric, N, 1> first = 0.5 * (I - T) * (far + close);
+    if (T(0, 0) < 0.99) {
+      const auto od = OptDepth<N>(i);
+      const auto doddx = dx.OptDepth<N>(i);
+      const Eigen::Matrix<Numeric, N, 1> second = od.inverse() * (I - (I + od) * T) * far + od.inverse() * (od - I + T) * close;
+      if (first[0] > second[0]) {
+        if (isfar)
+          return od.inverse() * ((I - (I + od) * T) * d
+                              - (I + od) * dTdx * far
+                              + (doddx + T) * close
+                              - doddx * first);
+        else
+          return od.inverse() * (
+          - (I + od) * dTdx * far
+          + (od - I + T) * d
+          + (doddx + T) * close
+          - doddx * first);
+      } else {
+        return 0.5 * ((I - T) * d - dTdx * (far + close));
       }
     } else {
       return first;
@@ -648,6 +695,32 @@ class RadiationVector {
     for (size_t i = 0; i < R1.size(); i++)
       R1[i].noalias() += PiT.Mat1(i) * (dT.Mat1(i) * ImJ.R1[i] + dJ.R1[i] -
                                         T.Mat1(i) * dJ.R1[i]);
+  }
+
+  /** Add the emission derivative to this
+   * 
+   * @param[in] PiT Accumulated transmission to space
+   * @param[in] dT Derivative of transmission matrix
+   * @param[in] T Transmission matrix
+   * @param[in] ImJ Intensity minus the emission vector
+   * @param[in] dJ Derivative of the emission vector
+   */
+  void addWeightedDerivEmission(const TransmissionMatrix& PiT,
+                        const TransmissionMatrix& dT,
+                        const TransmissionMatrix& T,
+                        const RadiationVector& I,
+                        const RadiationVector& far,
+                        const RadiationVector& close,
+                        const RadiationVector& d,
+                        bool isfar) {
+    for (size_t i = 0; i < R4.size(); i++)
+      R4[i].noalias() += PiT.Mat4(i) * (dT.Mat4(i) * I.R4[i] + T.second_order_integration_dsource<4>(i, dT, far.R4[i], close.R4[i], d.R4[i], isfar));
+    for (size_t i = 0; i < R3.size(); i++)
+      R3[i].noalias() += PiT.Mat3(i) * (dT.Mat3(i) * I.R3[i] + T.second_order_integration_dsource<3>(i, dT, far.R3[i], close.R3[i], d.R3[i], isfar));
+    for (size_t i = 0; i < R2.size(); i++)
+      R2[i].noalias() += PiT.Mat2(i) * (dT.Mat2(i) * I.R2[i] + T.second_order_integration_dsource<2>(i, dT, far.R2[i], close.R2[i], d.R2[i], isfar));
+    for (size_t i = 0; i < R1.size(); i++)
+      R1[i].noalias() += PiT.Mat1(i) * (dT.Mat1(i) * I.R1[i] + T.second_order_integration_dsource<1>(i, dT, far.R1[i], close.R1[i], d.R1[i], isfar));
   }
 
 
