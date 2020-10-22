@@ -73,7 +73,7 @@ class WorkspaceMethod:
         # Generic Output
         self.n_g_out     = len(g_out_types)
         self.g_out_types = [WorkspaceMethod.get_output_dict(m_id, g_out_types)]
-        self.g_out       = [k for k in self.g_out_types[0]]
+        self.g_out       = list(self.g_out_types[0])
 
         # Input
         self.ins  = ins
@@ -83,10 +83,10 @@ class WorkspaceMethod:
         self.n_g_in       = len(g_in_types)
         self.g_in_types   = [WorkspaceMethod.get_input_dict(m_id, g_in_types)]
         self.g_in_default = WorkspaceMethod.get_default_input_dict(m_id, g_in_types)
-        self.g_in         = [k for k in self.g_in_types[0]]
+        self.g_in         = list(self.g_in_types[0])
 
         self.is_create = False
-        if (WorkspaceMethod.create_regexp.match(name)):
+        if WorkspaceMethod.create_regexp.match(name):
                 self.is_create = True
 
     def __repr__(self):
@@ -97,7 +97,6 @@ class WorkspaceMethod:
         Print ARTS documentation for this method.
         """
         print(arts_api.method_print_doc(self.m_ids[0]).decode("utf8"))
-        return None
 
     def add_overload(self, m_ids, g_in_types, g_out_types):
         """ Add one or more overloads to a workspace method.
@@ -130,7 +129,7 @@ class WorkspaceMethod:
             dict: The mapping.
         """
         res = dict()
-        for i,t in enumerate(in_types):
+        for i, t in enumerate(in_types):
             res[arts_api.get_method_g_in(m_id, i).decode("utf8")] = t
         return res
 
@@ -158,7 +157,7 @@ class WorkspaceMethod:
                 try:
                     d = WorkspaceVariable.convert(group_names[t], ast.literal_eval(d))
                     res[k] = d
-                except:
+                except Exception:
                     res[k] = d
         return res
 
@@ -184,7 +183,7 @@ class WorkspaceMethod:
         temps = []
 
         # Can call function using only positional or named arguments
-        if len(args) and len(kwargs.keys()):
+        if len(args) > 0 and len(kwargs.keys()) > 0:
             raise SyntaxError("ARTS WSMs can only be called using either " +
                               " positional or named arguments.")
 
@@ -264,8 +263,7 @@ class WorkspaceMethod:
         for k in self.g_out:
             if not k in named_args:
                 raise Exception("WSM " + self.name + " needs generic output " + k)
-            else:
-                g_output_args[k] = named_args[k]
+            g_output_args[k] = named_args[k]
 
         # Check input argument names
         g_input_args = dict()
@@ -318,10 +316,10 @@ class WorkspaceMethod:
                 m_id, sg_index = candidates[0]
             else:
                 # Resolve overload (if necessary).
-                g_out_types = dict([(k,WorkspaceVariable.get_group_id(g_output_args[k]))
-                                    for k in self.g_out])
-                g_in_types  = dict([(k,WorkspaceVariable.get_group_id(g_input_args[k]))
-                                    for k in self.g_in])
+                g_out_types = {k: WorkspaceVariable.get_group_id(g_output_args[k])
+                                    for k in self.g_out}
+                g_in_types  = {k: WorkspaceVariable.get_group_id(g_input_args[k])
+                                    for k in self.g_in}
 
                 out_indices = [i for i,ts in enumerate(self.g_out_types) if ts == g_out_types]
                 in_indices  = [i for i,ts in enumerate(self.g_in_types) if ts == g_in_types]
@@ -408,11 +406,11 @@ class WorkspaceMethod:
                 ws_id = arts_api.add_variable(ws.ptr, group_id, name.encode())
 
         wsv = WorkspaceVariable(ws_id, name, group, "User defined variable.", ws)
-        setattr(variables, name, wsv)
+        variables.workspace_variables[name] = wsv
         ws._vars[name] = wsv
         return wsv
 
-    def call(*args, **kwargs):
+    def call(self, ws, *args, **kwargs):
         """ Execute workspace method.
 
         This method will execute the workspace method (args[0]) on the workspace object (args[1])
@@ -432,15 +430,11 @@ class WorkspaceMethod:
         according to its definition in methods.cc.
         """
 
-        self = args[0]
-
         if self.is_create:
-            return self.create(*args[1:])
-
-        ws   = args[1]
+            return self.create(ws, *args)
 
         (m_id, arts_args_out, arts_args_in, temps) = self._parse_output_input_lists(ws,
-                                                                                    args[2:],
+                                                                                    args,
                                                                                     kwargs)
 
         # Execute WSM and check for errors.
@@ -453,7 +447,7 @@ class WorkspaceMethod:
                                                       arg_out_ptr,
                                                       len(arts_args_in),
                                                       arg_in_ptr)
-        if (e_ptr):
+        if e_ptr:
             raise Exception("Call to ARTS WSM " + self.name + " failed with error: "
                            + e_ptr.decode("utf8").format())
 
@@ -485,7 +479,7 @@ def iter_raw():
         g_in_types   = [m.g_in_types[i] for i in range(m.n_g_in)]
         yield WorkspaceMethod(m.id, name, description, outs, g_out_types, ins, g_in_types)
 
-def iter():
+def __iter__():
     """ Iterator returning a WorkspaceMethod object for each available ARTS WSM.
 
     This iterator returns overloaded Workspace methods, i.e. super-generically overloaded
@@ -495,7 +489,7 @@ def iter():
         WorkspaceMethod: The next ARTS Workspace method as defined in methods.cc in
                          increasing order.
     """
-    for k,m in workspace_methods:
+    for _, m in workspace_methods.items():
         yield m
 
 workspace_methods = dict()
