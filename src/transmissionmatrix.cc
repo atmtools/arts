@@ -1514,6 +1514,8 @@ void update_radiation_vector(RadiationVector& I,
     } break;
     
     case RadiativeTransferSolver::LinearWeightedEmission: {
+      if (dI1.size()) throw std::runtime_error("Cannot support derivatives with current integration method\n");
+      
       for (size_t i = 0; i < dI1.size(); i++) {
         // FIXME: Switch false/true ?????
         dI1[i].addWeightedDerivEmission(PiT, dT1[i], T, I, J1, J2, dJ1[i], true);

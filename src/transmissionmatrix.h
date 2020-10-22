@@ -399,24 +399,25 @@ class TransmissionMatrix {
     if (T(0, 0) < 0.99) {
       const auto od = OptDepth<N>(i);
       const auto doddx = dx.OptDepth<N>(i);
-      const Eigen::Matrix<Numeric, N, 1> second = od.inverse() * (I - (I + od) * T) * far + od.inverse() * (od - I + T) * close;
+      const Eigen::Matrix<Numeric, N, 1> second = od.inverse() * ((I - (I + od) * T) * far + (od - I + T) * close);
       if (first[0] > second[0]) {
-        if (isfar)
+        if (isfar) {
           return od.inverse() * ((I - (I + od) * T) * d
                               - (I + od) * dTdx * far
                               + (doddx + T) * close
-                              - doddx * first);
+                              - doddx * second);
+        }
         else
           return od.inverse() * (
           - (I + od) * dTdx * far
           + (od - I + T) * d
           + (doddx + T) * close
-          - doddx * first);
+          - doddx * second);
       } else {
         return 0.5 * ((I - T) * d - dTdx * (far + close));
       }
     } else {
-      return first;
+      return 0.5 * ((I - T) * d - dTdx * (far + close));
     }
   }
 };
