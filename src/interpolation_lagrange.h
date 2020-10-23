@@ -199,6 +199,8 @@ struct FixedLagrange {
       : FixedLagrange(
             x, std::array<Numeric, sizeof...(Numbers)>{Numeric(num)...}) {}
 
+  FixedLagrange() noexcept {}
+            
  private:
   /*! Finds the position */
   template <class SortedVectorType>
@@ -421,9 +423,9 @@ std::vector<Lagrange> LagrangeVector(const ConstVectorView x,
  * @return vector of FixedLagrange
  */
 template <std::size_t PolyOrder>
-std::vector<FixedLagrange<PolyOrder>> LagrangeVector(const ConstVectorView x,
-                                                     const ConstVectorView xi,
-                                                     const Numeric extrapol) {
+std::vector<FixedLagrange<PolyOrder>> FixedLagrangeVector(const ConstVectorView x,
+                                                          const ConstVectorView xi,
+                                                          const Numeric extrapol) {
   std::vector<FixedLagrange<PolyOrder>> out(x.nelem());
   for (Index i = 0; i < x.nelem(); i++)
     out[i] = FixedLagrange<PolyOrder>(x[i], xi, extrapol);

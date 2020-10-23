@@ -729,4 +729,37 @@ void test13() {
             << (alt_lin_lin - lin_lin)/dx << ' ' << ' ' << ' ' << ' ' << (alt_sqr_sqr - sqr_sqr)/dx << ' ' << ' ' << ' ' << (alt_cub_cub - cub_cub)/dx << '\n';
 }
 
-int main() { test13(); }
+void test14() {
+  Vector y{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  Vector y2{1, 2*2, 3*3, 4*4, 5*5, 6*6, 7*7, 8*8, 9*9, 10*10};
+  Vector y3{1, 2*2*2, 3*3*3, 4*4*4, 5*5*5, 6*6*6, 7*7*7, 8*8*8, 9*9*9, 10*10*10};
+  
+  Vector x{0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5};
+  
+  // Set up the interpolation Lagranges
+  auto lin = Interpolation::FixedLagrangeVector<1>(x, y, 1.0);
+  auto sqr = Interpolation::FixedLagrangeVector<2>(x, y, 1.0);
+  auto cub = Interpolation::FixedLagrangeVector<3>(x, y, 1.0);
+  
+  // Set up the interpolation weights
+  auto lin_iw = interpweights(lin);
+  auto sqr_iw = interpweights(sqr);
+  auto cub_iw = interpweights(cub);
+  auto dlin_iw = dinterpweights(lin);
+  auto dsqr_iw = dinterpweights(sqr);
+  auto dcub_iw = dinterpweights(cub);
+  
+  // Get interpolation value
+  auto lin_lin = reinterp(y, lin_iw, lin);
+  auto sqr_sqr = reinterp(y2, sqr_iw, sqr);
+  auto cub_cub = reinterp(y3, cub_iw, cub);
+  auto dlin_lin = reinterp(y, dlin_iw, lin);
+  auto dsqr_sqr = reinterp(y2, dsqr_iw, sqr);
+  auto dcub_cub = reinterp(y3, dcub_iw, cub);
+  
+  // Print the values and derivatives
+  std::cout << lin_lin << '\n' << sqr_sqr << '\n' << cub_cub << '\n';
+  std::cout << dlin_lin << '\n' << dsqr_sqr << '\n' << dcub_cub << '\n';
+}
+
+int main() { test14(); }
