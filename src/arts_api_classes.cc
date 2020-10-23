@@ -1342,9 +1342,18 @@ VoidGetterCAPI(XsecRecord, Fgrids)
 VoidGetterCAPI(XsecRecord, Xsecs)
 VoidGetterCAPI(XsecRecord, TemperatureSlope)
 VoidGetterCAPI(XsecRecord, TemperatureIntersect)
+VoidGetterCAPI(XsecRecord, FitMinPressures)
+VoidGetterCAPI(XsecRecord, FitMaxPressures)
+VoidGetterCAPI(XsecRecord, FitMinTemperatures)
+VoidGetterCAPI(XsecRecord, FitMaxTemperatures)
+VoidGetterCAPI(XsecRecord, FitCoeffs)
 VoidArrayCAPI(ArrayOfXsecRecord)
 BasicInterfaceCAPI(ArrayOfXsecRecord)
 BasicInputOutputCAPI(ArrayOfXsecRecord)
+Index getVersionXsecRecord(void * data) {return static_cast<XsecRecord *>(data) -> Version();}
+void setVersionXsecRecord(void * data, Index newdata) {static_cast<XsecRecord *>(data) -> SetVersion(newdata);}
+Index getSpeciesXsecRecord(void * data) {return static_cast<XsecRecord *>(data) -> Species();}
+void setSpeciesXsecRecord(void * data, Index newdata) {static_cast<XsecRecord *>(data) -> SetSpecies(newdata);}
 
 
 // Sparse

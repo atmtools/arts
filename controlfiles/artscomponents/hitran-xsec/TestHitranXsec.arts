@@ -130,6 +130,6 @@ WriteXML( in=f_grid )
 #WriteXML( "ascii", y, "yREFERENCE.xml" )
 VectorCreate( yREFERENCE )
 ReadXML( yREFERENCE, "yREFERENCE.xml" )
-Compare( y, yREFERENCE, 1e-2 )
+Compare( y, yREFERENCE, 1e-14 )
 } # End of Main
 
