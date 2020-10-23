@@ -276,6 +276,23 @@ void antenna2d_gridded_dlos(Sparse& H,
   assert(n_ar_f);
   assert(n_ar_za > 1);
   assert(n_ar_aa > 1);
+  assert(antenna_response.data.ncols() == n_ar_aa );
+  assert(antenna_response.data.nrows() == n_ar_za );
+  assert(antenna_response.data.npages() == n_ar_f );
+  assert(antenna_response.data.nbooks() == n_ar_pol );
+
+  // Include cos(za)-term in response
+  Tensor4 aresponse_with_cos(n_ar_pol, n_ar_f, n_ar_za, n_ar_aa);
+  for(Index i3=0; i3<n_ar_za; i3++) {
+    const Numeric t = cos(DEG2RAD * aresponse_za_grid[i3]);
+    for(Index i4=0; i4<n_ar_aa; i4++) {
+      for(Index i2=0; i2<n_ar_f; i2++) {
+        for(Index i1=0; i1<n_ar_pol; i1++) {
+          aresponse_with_cos(i1,i2,i3,i4) = t * antenna_response.data(i1,i2,i3,i4);
+        }
+      }
+    }
+  }
 
   // Some size(s)
   const Index nfpol = n_f * n_pol;
@@ -312,10 +329,10 @@ void antenna2d_gridded_dlos(Sparse& H,
         {
           if (pol_step)  // Polarisation variation, update always needed
           {
-            aresponse = antenna_response.data(ip, 0, joker, joker);
+            aresponse = aresponse_with_cos(ip, 0, joker, joker);
           } else if (f == 0 && ip == 0)  // Set fully constant pattern
           {
-            aresponse = antenna_response.data(0, 0, joker, joker);
+            aresponse = aresponse_with_cos(0, 0, joker, joker);
           } else  // The one set just above can be reused
           {
             new_antenna = 0;
@@ -332,7 +349,7 @@ void antenna2d_gridded_dlos(Sparse& H,
             Tensor3 aresponse_matrix(1, n_ar_za, n_ar_aa);
             interp(aresponse_matrix,
                    itw,
-                   antenna_response.data(ip, joker, joker, joker),
+                   aresponse_with_cos(ip, joker, joker, joker),
                    gp_f,
                    gp_za,
                    gp_aa);
@@ -483,7 +500,24 @@ void antenna2d_interp_response(Sparse& H,
   assert(n_ar_f);
   assert(n_ar_za > 1);
   assert(n_ar_aa > 1);
+  assert(antenna_response.data.ncols() == n_ar_aa );
+  assert(antenna_response.data.nrows() == n_ar_za );
+  assert(antenna_response.data.npages() == n_ar_f );
+  assert(antenna_response.data.nbooks() == n_ar_pol );
 
+  // Include cos(za)-term in response
+  Tensor4 aresponse_with_cos(n_ar_pol, n_ar_f, n_ar_za, n_ar_aa);
+  for(Index i3=0; i3<n_ar_za; i3++) {
+    const Numeric t = cos(DEG2RAD * aresponse_za_grid[i3]);
+    for(Index i4=0; i4<n_ar_aa; i4++) {
+      for(Index i2=0; i2<n_ar_f; i2++) {
+        for(Index i1=0; i1<n_ar_pol; i1++) {
+          aresponse_with_cos(i1,i2,i3,i4) = t * antenna_response.data(i1,i2,i3,i4);
+        }
+      }
+    }
+  }
+  
   // Some size(s)
   const Index nfpol = n_f * n_pol;
 
@@ -519,10 +553,10 @@ void antenna2d_interp_response(Sparse& H,
         {
           if (pol_step)  // Polarisation variation, update always needed
           {
-            aresponse = antenna_response.data(ip, 0, joker, joker);
+            aresponse = aresponse_with_cos(ip, 0, joker, joker);
           } else if (f == 0 && ip == 0)  // Set fully constant pattern
           {
-            aresponse = antenna_response.data(0, 0, joker, joker);
+            aresponse = aresponse_with_cos(0, 0, joker, joker);
           } else  // The one set just above can be reused
           {
             new_antenna = 0;
@@ -539,7 +573,7 @@ void antenna2d_interp_response(Sparse& H,
             Tensor3 aresponse_matrix(1, n_ar_za, n_ar_aa);
             interp(aresponse_matrix,
                    itw,
-                   antenna_response.data(ip, joker, joker, joker),
+                   aresponse_with_cos(ip, joker, joker, joker),
                    gp_f,
                    gp_za,
                    gp_aa);
