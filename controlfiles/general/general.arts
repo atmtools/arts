@@ -54,7 +54,7 @@ MatrixSet( transmitter_pos, [] )
 
 
 #
-# Default assmption is that the sensor cause no Doppler effect
+# Default assumption is that the sensor cause no Doppler effect
 #
 NumericSet( rte_alonglos_v, 0 )
 
@@ -144,7 +144,7 @@ NumericSet( ppath_lraytrace, 1e3 )
 
 
 #
-# Deafult is most basic type of radiative transfer integration
+# Default is most basic type of radiative transfer integration
 #
 StringSet( rt_integration_option, "default" )
 
