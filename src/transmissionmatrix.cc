@@ -1514,10 +1514,13 @@ void update_radiation_vector(RadiationVector& I,
     } break;
     
     case RadiativeTransferSolver::LinearWeightedEmission: {
-//       for (size_t i = 0; i < dI1.size(); i++) {
-//         dI1[i].addWeightedDerivEmission(PiT, dT1[i], T, I, dJ1[i]);
-//         dI2[i].addWeightedDerivEmission(PiT, dT2[i], T, I, dJ2[i]);
-//       }
+      if (dI1.size()) throw std::runtime_error("Cannot support derivatives with current integration method\n");
+      
+      for (size_t i = 0; i < dI1.size(); i++) {
+        // FIXME: Switch false/true ?????
+        dI1[i].addWeightedDerivEmission(PiT, dT1[i], T, I, J1, J2, dJ1[i], true);
+        dI2[i].addWeightedDerivEmission(PiT, dT2[i], T, I, J1, J2, dJ2[i], false);
+      }
       I.leftMul(T);
       I.add_weighted(T, J1, J2);  
       
