@@ -148,12 +148,35 @@ void fftconvolve(VectorView& result,
 
 #endif /* ENABLE_FFTW */
 
+void XsecRecord::SetVersion(const Index version) {
+  if (version < 1 || version > 2) {
+    throw std::runtime_error("Invalid version, only 1/2 supported");
+  }
+
+  mversion = version;
+};
+
 void XsecRecord::Extract(VectorView result,
                          ConstVectorView f_grid,
                          const Numeric& pressure,
                          const Numeric& temperature,
                          const Index& apply_tfit,
                          const Verbosity& verbosity) const {
+  if (mversion == 1) {
+    Extract1(result, f_grid, pressure, temperature, apply_tfit, verbosity);
+  } else if (mversion == 2) {
+    Extract2(result, f_grid, pressure, temperature, verbosity);
+  } else {
+    throw std::runtime_error("Unsupported XsecRecord version");
+  }
+}
+
+void XsecRecord::Extract1(VectorView result,
+                          ConstVectorView f_grid,
+                          const Numeric& pressure,
+                          const Numeric& temperature,
+                          const Index& apply_tfit,
+                          const Verbosity& verbosity) const {
   CREATE_OUTS;
 
   const Index nf = f_grid.nelem();
@@ -315,6 +338,159 @@ void XsecRecord::Extract(VectorView result,
       xsec_interp = reinterp(data_result, interpweights(f_lag), f_lag);
     } else {
       xsec_interp = reinterp(xsec_active, interpweights(f_lag), f_lag);
+    }
+
+    result_active += xsec_interp;
+  }
+}
+
+void XsecRecord::Extract2(VectorView result,
+                          ConstVectorView f_grid,
+                          const Numeric pressure,
+                          const Numeric temperature,
+                          const Verbosity& verbosity) const {
+  CREATE_OUTS;
+
+  const Index nf = f_grid.nelem();
+
+  // Assert that result vector has right size:
+  assert(result.nelem() == nf);
+
+  // Initialize result to zero (important for those frequencies outside the data grid).
+  result = 0.;
+
+  const Index ndatasets = mfitcoeffs.nelem();
+  for (Index this_dataset_i = 0; this_dataset_i < ndatasets; this_dataset_i++) {
+    const Vector& data_f_grid = mfitcoeffs[this_dataset_i].get_numeric_grid(0);
+    const Numeric fmin = data_f_grid[0];
+    const Numeric fmax = data_f_grid[data_f_grid.nelem() - 1];
+    const Index data_nf = data_f_grid.nelem();
+
+    if (out3.sufficient_priority()) {
+      // Some detailed information to the most verbose output stream:
+      ostringstream os;
+      os << "    f_grid:      " << f_grid[0] << " - " << f_grid[nf - 1]
+         << " Hz\n"
+         << "    data_f_grid: " << fmin << " - " << fmax << " Hz\n"
+         << "    pressure: " << pressure << " K\n";
+      out3 << os.str();
+    }
+
+    // We want to return result zero for all f_grid points that are outside the
+    // data_f_grid, because xsec datasets are defined only where the absorption
+    // was measured. So, we have to find out which part of f_grid is inside
+    // data_f_grid.
+    Index i_fstart, i_fstop;
+
+    for (i_fstart = 0; i_fstart < nf; ++i_fstart)
+      if (f_grid[i_fstart] >= fmin) break;
+
+    // Return immediately if all frequencies are below data_f_grid:
+    if (i_fstart == nf) continue;
+
+    for (i_fstop = nf - 1; i_fstop >= 0; --i_fstop)
+      if (f_grid[i_fstop] <= fmax) break;
+
+    // Return immediately if all frequencies are above data_f_grid:
+    if (i_fstop == -1) continue;
+
+    // Extent for active frequency vector:
+    const Index f_extent = i_fstop - i_fstart + 1;
+
+    if (out3.sufficient_priority()) {
+      ostringstream os;
+      os << "    " << f_extent << " frequency extraction points starting at "
+         << "frequency index " << i_fstart << ".\n";
+      out3 << os.str();
+    }
+
+    // If f_extent is less than one, then the entire data_f_grid is between two
+    // grid points of f_grid. (So that we do not have any f_grid points inside
+    // data_f_grid.) Return also in this case.
+    if (f_extent < 1) continue;
+
+    // This is the part of f_grid for which we have to do the interpolation.
+    ConstVectorView f_grid_active = f_grid[Range(i_fstart, f_extent)];
+
+    // We also need to determine the range in the xsec dataset that's inside
+    // f_grid. We can ignore the remaining data.
+    Index i_data_fstart, i_data_fstop;
+
+    for (i_data_fstart = 0; i_data_fstart < data_nf; ++i_data_fstart)
+      if (data_f_grid[i_data_fstart] >= fmin) break;
+
+    for (i_data_fstop = data_nf - 1; i_data_fstop >= 0; --i_data_fstop)
+      if (data_f_grid[i_data_fstop] <= fmax) break;
+
+    // Extent for active data frequency vector:
+    const Index data_f_extent = i_data_fstop - i_data_fstart + 1;
+
+    // This is the part of f_grid for which we have to do the interpolation.
+    ConstVectorView data_f_grid_active =
+        data_f_grid[Range(i_data_fstart, data_f_extent)];
+
+    // This is the part of the xsec dataset for which we have to do the
+    // interpolation.
+    Range active_range(i_data_fstart, data_f_extent);
+    const ConstMatrixView coeffs_active =
+        mfitcoeffs[this_dataset_i].data(active_range, joker);
+
+    Vector fit_result(data_f_extent);
+
+    // We have to create a matching view on the result vector:
+    VectorView result_active = result[Range(i_fstart, f_extent)];
+    Vector xsec_interp(f_extent);
+
+    const Index P00 = 0;
+    const Index P10 = 1;
+    const Index P01 = 2;
+    const Index P20 = 3;
+    const Index P11 = 4;
+    const Index P02 = 5;
+    const Numeric active_temperature = temperature;
+    const Numeric fitminpressure = mfitminpressures[this_dataset_i];
+    const Numeric active_pressure =
+        pressure > fitminpressure ? log10(pressure) : log10(fitminpressure);
+
+    for (Index i = i_data_fstart; i <= i_data_fstop; i++) {
+      const ConstVectorView these_coeffs = coeffs_active(i, joker);
+      fit_result[i] =
+          these_coeffs[P00] + these_coeffs[P10] * active_temperature +
+          these_coeffs[P01] * active_pressure +
+          these_coeffs[P20] * active_temperature * active_temperature +
+          these_coeffs[P11] * active_temperature * active_pressure +
+          these_coeffs[P02] * active_pressure * active_pressure;
+      fit_result[i] *= fit_result[i];
+    }
+
+    // Decide on interpolation orders:
+    const Index f_order = 3;
+
+    // The frequency grid has to have enough points for this interpolation
+    // order, otherwise throw a runtime error.
+    if (data_f_grid.nelem() < f_order + 1) {
+      ostringstream os;
+      os << "Not enough frequency grid points in Hitran Xsec data.\n"
+         << "You have only " << data_f_grid.nelem() << " grid points.\n"
+         << "But need at least " << f_order + 1 << ".";
+      throw runtime_error(os.str());
+    }
+
+    // TODO: Add to result_active here
+    // Check if frequency is inside the range covered by the data:
+    chk_interpolation_grids("Frequency interpolation for cross sections",
+                            data_f_grid,
+                            f_grid_active,
+                            f_order);
+
+    {
+      // Find frequency grid positions:
+      ArrayOfGridPosPoly f_gp(f_grid_active.nelem()), T_gp(1);
+      gridpos_poly(f_gp, data_f_grid_active, f_grid_active, f_order);
+
+      Matrix itw(f_gp.nelem(), f_order + 1);
+      interpweights(itw, f_gp);
+      interp(xsec_interp, itw, fit_result, f_gp);
     }
 
     result_active += xsec_interp;
