@@ -246,5 +246,14 @@ void emission_from_propmat_field(
                             tot_tra[ip],
                             tmtmp,
                             tmtmp,
+                            PropagationMatrix(),
+                            PropagationMatrix(),
+                            ArrayOfPropagationMatrix(),
+                            ArrayOfPropagationMatrix(),
+                            Numeric(),
+                            Vector(),
+                            Vector(),
+                            0,
+                            0,
                             RadiativeTransferSolver::Emission);
 }
