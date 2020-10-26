@@ -309,6 +309,12 @@ void iyEmissionStandard(
       np, ArrayOfTransmissionMatrix(nq, TransmissionMatrix(nf, ns)));
   ArrayOfArrayOfTransmissionMatrix dlyr_tra_below(
       np, ArrayOfTransmissionMatrix(nq, TransmissionMatrix(nf, ns)));
+  
+  ArrayOfPropagationMatrix K(np, PropagationMatrix(nf, ns));
+  ArrayOfArrayOfPropagationMatrix dK_dx(np);
+  Vector r(np);
+  ArrayOfVector dr_below(np, Vector(nq, 0));
+  ArrayOfVector dr_above(np, Vector(nq, 0));
 
   if (np == 1 && rbi == 1) {  // i.e. ppath is totally outside the atmosphere:
     ppvar_p.resize(0);
@@ -347,14 +353,8 @@ void iyEmissionStandard(
     StokesVector a(nf, ns), S(nf, ns);
     ArrayOfIndex lte(np);
 
-    ArrayOfPropagationMatrix K(np);
-    for (Index ip = 0; ip < np; ip++) {
-      K[ip] = PropagationMatrix(nf, ns);
-    }
-
     // Init variables only used if analytical jacobians done
     Vector dB_dT(0);
-    ArrayOfArrayOfPropagationMatrix dK_dx(np);
     ArrayOfStokesVector da_dx(nq), dS_dx(nq);
 
     // HSE variables
@@ -473,6 +473,12 @@ void iyEmissionStandard(
                               dr_dT_past,
                               dr_dT_this,
                               temperature_derivative_position);
+        
+        r[ip - 1] = ppath.lstep[ip - 1];
+        if (temperature_derivative_position >= 0){
+          dr_below[ip][temperature_derivative_position] = dr_dT_past;
+          dr_above[ip][temperature_derivative_position] = dr_dT_this;
+        }
       } catch (const std::runtime_error& e) {
         ostringstream os;
         os << "Runtime-error in transmission calculation at index " << ip
@@ -552,6 +558,15 @@ void iyEmissionStandard(
                               tot_tra[ip],
                               dlyr_tra_above[ip + 1],
                               dlyr_tra_below[ip + 1],
+                              PropagationMatrix(),
+                              PropagationMatrix(),
+                              ArrayOfPropagationMatrix(),
+                              ArrayOfPropagationMatrix(),
+                              Numeric(),
+                              Vector(),
+                              Vector(),
+                              0,
+                              0,
                               RadiativeTransferSolver::Emission);
     }
   } else if (rt_integration_option == "second order") {
@@ -568,6 +583,15 @@ void iyEmissionStandard(
                               tot_tra[ip],
                               dlyr_tra_above[ip + 1],
                               dlyr_tra_below[ip + 1],
+                              K[ip],
+                              K[ip + 1],
+                              dK_dx[ip + 1],
+                              dK_dx[ip + 1],
+                              r[ip],
+                              dr_above[ip + 1],
+                              dr_below[ip + 1],
+                              0,
+                              0,
                               RadiativeTransferSolver::LinearWeightedEmission);
     }
   } else {
