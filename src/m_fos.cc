@@ -1909,6 +1909,15 @@ void iyHybrid2(Workspace& ws,
                             tot_tra[ip],
                             dlyr_tra_above[ip + 1],
                             dlyr_tra_below[ip + 1],
+                            PropagationMatrix(),
+                            PropagationMatrix(),
+                            ArrayOfPropagationMatrix(),
+                            ArrayOfPropagationMatrix(),
+                            Numeric(),
+                            Vector(),
+                            Vector(),
+                            0,
+                            0,
                             RadiativeTransferSolver::Emission);
   }
 
