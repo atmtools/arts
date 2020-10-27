@@ -188,8 +188,7 @@ int main() try {
   
   Method::partition_functionsInitFromBuiltin(ws);
   Method::isotopologue_ratiosInitFromBuiltin(ws);
-  Var::nelem(ws) = 51;
-  Method::VectorNLogSpace(ws, Var::p_grid(ws), 1e+05, 1e-4);
+  Method::VectorNLogSpace(ws, Var::p_grid(ws).value(), 51, 1e+05, 1e-4);
   
   Method::AtmosphereSet1D(ws);
   Var::lat_true(ws) = Var::lat_grid(ws);
@@ -224,8 +223,7 @@ int main() try {
   Var::ppath_lmax(ws) = 1e3;
   Var::rt_integration_option(ws) = "default";
   
-  Var::nelem(ws) = 10001;
-  Method::VectorNLinSpace(ws, Var::f_grid(ws), 22e9 - 500e6, 22e9 + 500e6);
+  Method::VectorNLinSpace(ws, Var::f_grid(ws).value(), 10001, 22e9 - 500e6, 22e9 + 500e6);
   
   Var::sensor_pos(ws) = Matrix(1, 1, 100);
   Var::sensor_los(ws) = Matrix(1, 1, 75);
