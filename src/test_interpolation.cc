@@ -24,6 +24,7 @@
 #include "math_funcs.h"
 #include "matpackVII.h"
 #include "xml_io.h"
+#include "auto_md.h"
 
 void test01() {
   cout << "Simple interpolation cases\n"
@@ -762,4 +763,49 @@ void test14() {
   std::cout << dlin_lin << '\n' << dsqr_sqr << '\n' << dcub_cub << '\n';
 }
 
-int main() { test14(); }
+void test15() {
+  Verbosity verbosity;
+  const Index old_size = 50000;
+  const Index new_size = 100000;
+  Vector xold;
+  VectorNLinSpace(xold, old_size, 1, 100, verbosity);
+  Vector xnew;
+  VectorNLinSpace(xnew, new_size, 1, 100, verbosity);
+  Vector yold;
+  VectorNLinSpace(yold, old_size, 100, 200, verbosity);
+  Vector ynew(new_size);
+  Vector ynew_oldinterp(new_size);
+
+  const Index f_order = 3;
+  chk_interpolation_grids(
+      "Frequency interpolation for cross sections", xold, xnew, f_order);
+
+  Timer t;
+
+  std::cout << "========== New interp ==========" << std::endl;
+  timerStart(t, verbosity);
+  const auto lag_interp =
+      Interpolation::LagrangeVector(xnew, xold, f_order, 0.5);
+  const auto iw_interp = interpweights(lag_interp);
+  ynew = reinterp(yold, iw_interp, lag_interp);
+  timerStop(t, verbosity);
+  Print(t, 0, verbosity);
+
+  std::cout << "========== Old interp ==========" << std::endl;
+  timerStart(t, verbosity);
+  ArrayOfGridPosPoly f_gp(xnew.nelem()), T_gp(1);
+  gridpos_poly(f_gp, xold, xnew, f_order);
+
+  Matrix itw(f_gp.nelem(), f_order + 1);
+  interpweights(itw, f_gp);
+  interp(ynew_oldinterp, itw, yold, f_gp);
+  timerStop(t, verbosity);
+  Print(t, 0, verbosity);
+
+  Vector diff(ynew);
+  diff -= ynew_oldinterp;
+  std::cout << "Max difference new-old interpolation: " << max(diff)
+            << std::endl;
+}
+
+int main() { test15(); }
