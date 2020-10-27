@@ -33,149 +33,68 @@
 #include "agenda_class.h"
 #include "array.h"
 #include "bifstream.h"
+#include "enums.h"
 #include "interpolation.h"
 #include "logic.h"
 #include "matpackI.h"
 #include "methods.h"
 #include "mystring.h"
 #include "ppath.h"
-
-#include "quantum.h"
-
-
-template<typename T> constexpr bool good_enum(T x)
-{
-  return Index(x) < Index(T::FINAL) and Index(x) >= 0;
-}
-
-template<typename T>
-std::array<String, Index(T::FINAL)> enum_strarray(const String& strchars)
-{
-  std::array<String, Index(T::FINAL)> out;
-  std::istringstream x(strchars);
-  for (Index i=0; i<Index(T::FINAL); i++) {
-    std::getline(x, out[i], ',');
-    out[i].erase(std::remove(out[i].begin(), out[i].end(), ' '), out[i].end());
-  }
-  return out;
-}
-
-/** ENUMARTS 
- * 
- * Generates a "enum class ENUMTYPE : Index"
- * with all the following arguments and terminated by FINAL
- * 
- * Additionally, will fill a local namespace "enumstrs" with
- * a std::array<String, Index(ENUMTYPE::FINAL)> with all of
- * the names in the ENUMTYPE enum class
- * 
- * Additionally, will generate a inlined "toString" function
- * that takes a ENUMTYPE object and returns either its partial
- * name or "BAD ENUMTYPE" as a string
- * 
- * Additionally, will generate a inlined "toENUMTYPE" function
- * that takes a String and returns a corresponding ENUMTYPE
- * object or ENUMTYPE::FINAL if the object is bad
- * 
- * Use the "good_enum(ENUMTYPE)" template function to check
- * if the enum classs object is any good
- * 
- * Will be updated as soon as possible to ensure that all functions
- * that can be are turned into constexpr functions
- * 
- * Example:
- * ENUMARTS(Test, Value)
- * 
- * Generates:
- * enum class Test : Index {Value, FINAL};
- * namespace enumstrs {std::array<String, 1> TestNames={"Value"};};
- * String toString(Test x) noexcept;
- * Test toTest(const String& x) noexcept;
- */
-#define ENUMARTS(ENUMTYPE, ...)                                               \
-  enum class ENUMTYPE : Index {__VA_ARGS__, FINAL} ;                          \
-                                                                              \
-  namespace enumstrs {                                                        \
-  static const auto ENUMTYPE ## Names =                                       \
-                               enum_strarray<ENUMTYPE>(#__VA_ARGS__);         \
-  };                                                                          \
-                                                                              \
-  inline String toString(ENUMTYPE x) noexcept {                               \
-    if (good_enum(x))                                                         \
-      return enumstrs::ENUMTYPE ## Names [Index(x)];                          \
-    else                                                                      \
-      return "BAD " # ENUMTYPE;                                               \
-  }                                                                           \
-                                                                              \
-  inline ENUMTYPE  to ## ENUMTYPE(const String& x) noexcept {                 \
-    for (Index i=0; i<Index(ENUMTYPE::FINAL); i++)                            \
-      if (enumstrs::ENUMTYPE ## Names [i] == x)                               \
-        return ENUMTYPE(i);                                                   \
-    return ENUMTYPE::FINAL;                                                   \
-  }                                                                           \
-                                                                              \
-  inline std::ostream& operator<<(std::ostream& os, const ENUMTYPE x) {       \
-    return os << toString(x);                                                 \
-  }                                                                           \
-                                                                              \
-  inline std::istream& operator<<(std::istream& is, ENUMTYPE& x) {            \
-    String val; is >> val; x = to ## ENUMTYPE(val); return is;                \
-  }
-  
+#include "quantum.h"  
 
 namespace Jacobian {
 
 /** Holds the type of the target quantity */
-ENUMARTS(Type,
-         Atm,
-         Line,
-         Sensor,
-         Special
-        )
+ENUMCLASS(Type, Index,
+          Atm,
+          Line,
+          Sensor,
+          Special
+          )
 
 /** Holds the Atmosphere-related targets */
-ENUMARTS(Atm,
-         Temperature,
-         WindMagnitude, WindU, WindV, WindW,
-         MagneticMagnitude, MagneticU, MagneticV, MagneticW,
-         Electrons,
-         Particulates
-        )
+ENUMCLASS(Atm, Index,
+          Temperature,
+          WindMagnitude, WindU, WindV, WindW,
+          MagneticMagnitude, MagneticU, MagneticV, MagneticW,
+          Electrons,
+          Particulates
+          )
 
 /** Holds the Line-related targets */
-ENUMARTS(Line,
-         VMR,
-         Strength,
-         Center,
-         ShapeG0X0, ShapeG0X1, ShapeG0X2, ShapeG0X3,
-         ShapeD0X0, ShapeD0X1, ShapeD0X2, ShapeD0X3,
-         ShapeG2X0, ShapeG2X1, ShapeG2X2, ShapeG2X3,
-         ShapeD2X0, ShapeD2X1, ShapeD2X2, ShapeD2X3,
-         ShapeFVCX0, ShapeFVCX1, ShapeFVCX2, ShapeFVCX3,
-         ShapeETAX0, ShapeETAX1, ShapeETAX2, ShapeETAX3,
-         ShapeYX0, ShapeYX1, ShapeYX2, ShapeYX3,
-         ShapeGX0, ShapeGX1, ShapeGX2, ShapeGX3,
-         ShapeDVX0, ShapeDVX1, ShapeDVX2, ShapeDVX3,
-         NLTE,
-         SpecialParameter1
-        )
+ENUMCLASS(Line, Index,
+          VMR,
+          Strength,
+          Center,
+          ShapeG0X0, ShapeG0X1, ShapeG0X2, ShapeG0X3,
+          ShapeD0X0, ShapeD0X1, ShapeD0X2, ShapeD0X3,
+          ShapeG2X0, ShapeG2X1, ShapeG2X2, ShapeG2X3,
+          ShapeD2X0, ShapeD2X1, ShapeD2X2, ShapeD2X3,
+          ShapeFVCX0, ShapeFVCX1, ShapeFVCX2, ShapeFVCX3,
+          ShapeETAX0, ShapeETAX1, ShapeETAX2, ShapeETAX3,
+          ShapeYX0, ShapeYX1, ShapeYX2, ShapeYX3,
+          ShapeGX0, ShapeGX1, ShapeGX2, ShapeGX3,
+          ShapeDVX0, ShapeDVX1, ShapeDVX2, ShapeDVX3,
+          NLTE,
+          SpecialParameter1
+          )
 
 /** Holds the Sensor-related targets */
-ENUMARTS(Sensor,
-         FrequencyShift,
-         FrequencyStretch,
-         Polyfit,
-         Sinefit,
-         PointingZenithInterp,
-         PointingZenithRecalc
-        )
+ENUMCLASS(Sensor, Index,
+          FrequencyShift,
+          FrequencyStretch,
+          Polyfit,
+          Sinefit,
+          PointingZenithInterp,
+          PointingZenithRecalc
+          )
 
 /** Holds special targets that require careful extra manipulation */
-ENUMARTS(Special,
-         ArrayOfSpeciesTagVMR,
-         ScatteringString,
-         SurfaceString
-        )
+ENUMCLASS(Special, Index,
+          ArrayOfSpeciesTagVMR,
+          ScatteringString,
+          SurfaceString
+          )
 
 /** Union of quantities */
 union TypeOfTarget {

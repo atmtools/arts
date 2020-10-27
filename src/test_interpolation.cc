@@ -738,9 +738,9 @@ void test14() {
   Vector x{0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5};
   
   // Set up the interpolation Lagranges
-  auto lin = Interpolation::FixedLagrangeVector<1>(x, y, 1.0);
-  auto sqr = Interpolation::FixedLagrangeVector<2>(x, y, 1.0);
-  auto cub = Interpolation::FixedLagrangeVector<3>(x, y, 1.0);
+  auto lin = Interpolation::FixedLagrangeVector<1>(x, y, 1.0, Interpolation::LagrangeType::Linear);
+  auto sqr = Interpolation::FixedLagrangeVector<2>(x, y, 1.0, Interpolation::LagrangeType::Linear);
+  auto cub = Interpolation::FixedLagrangeVector<3>(x, y, 1.0, Interpolation::LagrangeType::Linear);
   
   // Set up the interpolation weights
   auto lin_iw = interpweights(lin);

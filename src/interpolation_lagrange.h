@@ -9,9 +9,15 @@
 #include <type_traits>
 #include <vector>
 
+#include "enums.h"
 #include "matpackVII.h"
 
 namespace Interpolation {
+
+ENUMCLASS(LagrangeType, unsigned char,
+          Linear,
+          Log
+         )
 
 /*! Compute the multiplication of all inds */
 template <typename... Inds>
@@ -45,9 +51,10 @@ struct Lagrange {
    * @param[in] x New grid position
    * @param[in] xi Old grid positions
    * @param[in] extrapol Level of extrapolation
+   * @param[in] type Type of scale for x?
    */
   void update(const Numeric x, const ConstVectorView xi,
-              const Numeric extrapol = 0.5) {
+              const Numeric extrapol = 0.5, const LagrangeType type=LagrangeType::Linear) {
     const Index n = xi.nelem();
     const Index p = lx.nelem();
 
@@ -72,8 +79,8 @@ struct Lagrange {
 
       // Set weights
       for (Index j = 0; j < p; j++) {
-        lx[j] = l(x, xi, j, p);
-        dlx[j] = dl(x, xi, j, p);
+        lx[j] = l(x, xi, j, p, type);
+        dlx[j] = dl(x, xi, j, p, type);
       }
     }
   }
@@ -84,11 +91,12 @@ struct Lagrange {
    * @param[in] xi Old grid positions
    * @param[in] polyorder Polynominal degree
    * @param[in] extrapol Level of extrapolation
+   * @param[in] type Type of Lagrange (Normal or Log)
    */
   Lagrange(const Numeric x, const ConstVectorView xi, const Index polyorder = 1,
-           const Numeric extrapol = 0.5)
+           const Numeric extrapol = 0.5, const LagrangeType type=LagrangeType::Linear)
       : pos(0), lx(polyorder + 1), dlx(polyorder + 1) {
-    update(x, xi, extrapol);
+    update(x, xi, extrapol, type);
   }
 
   friend std::ostream& operator<<(std::ostream& os, const Lagrange& l) {
@@ -97,28 +105,40 @@ struct Lagrange {
 
  private:
   /*! Computes the weights for a given coefficient */
-  Numeric l(Numeric x, const ConstVectorView xi, Index j, Index n) {
+  Numeric l(const Numeric x, const ConstVectorView xi, const Index j, const Index n, const LagrangeType type) {
     Numeric val = 1.0;
     for (Index m = 0; m < n; m++) {
       if (m not_eq j) {
-        val *= (x - xi[m + pos]) / (xi[j + pos] - xi[m + pos]);
+        if (type == LagrangeType::Log) {
+          val *= (std::log(x) - std::log(xi[m + pos])) / (std::log(xi[j + pos]) - std::log(xi[m + pos]));
+        } else if (type == LagrangeType::Linear) {
+          val *= (x - xi[m + pos]) / (xi[j + pos] - xi[m + pos]);
+        }
       }
     }
     return val;
   }
 
   /*! Computes the derivatives of the weights for a given coefficient */
-  Numeric dl(Numeric x, const ConstVectorView xi, Index j, Index n) {
+  Numeric dl(const Numeric x, const ConstVectorView xi, const Index j, const Index n, const LagrangeType type) {
     Numeric dval = 0.0;
     for (Index i = 0; i < n; i++) {
       if (i not_eq j) {
         Numeric val = 1.0;
         for (Index m = 0; m < n; m++) {
           if (m not_eq j and m not_eq i) {
-            val *= (x - xi[m + pos]) / (xi[j + pos] - xi[m + pos]);
+            if (type == LagrangeType::Log) {
+              val *= (std::log(x) - std::log(xi[m + pos])) / (std::log(xi[j + pos]) - std::log(xi[m + pos]));
+            } else if (type == LagrangeType::Linear) {
+              val *= (x - xi[m + pos]) / (xi[j + pos] - xi[m + pos]);
+            }
           }
         }
-        dval += val / (xi[j + pos] - xi[i + pos]);
+        if (type == LagrangeType::Log) {
+          dval += val / (std::log(xi[j + pos]) - std::log(xi[i + pos]));
+        } else if (type == LagrangeType::Linear) {
+          dval += val / (xi[j + pos] - xi[i + pos]);
+        }
       }
     }
     return dval;
@@ -143,7 +163,8 @@ struct FixedLagrange {
    */
   template <class SortedVectorType>
   void update(const Numeric x, const SortedVectorType& xi,
-              const Numeric extrapol = 0.5) {
+              const Numeric extrapol = 0.5,
+              const LagrangeType type=LagrangeType::Linear) {
     const Index n = xi.size();
 
     if (size() >= n) {
@@ -159,8 +180,8 @@ struct FixedLagrange {
       throw std::runtime_error(os.str());
     } else {
       pos = pos_finder(x, xi);
-      lx = lx_finder(x, xi);
-      dlx = dlx_finder(x, xi);
+      lx = lx_finder(x, xi, type);
+      dlx = dlx_finder(x, xi, type);
     }
   }
 
@@ -172,8 +193,9 @@ struct FixedLagrange {
    */
   template <class SortedVectorType>
   constexpr FixedLagrange(const Numeric x, const SortedVectorType& xi,
-                          const Numeric extrapol = 0.5) {
-    update(x, xi, extrapol);
+                          const Numeric extrapol = 0.5,
+                          const LagrangeType type=LagrangeType::Linear) {
+    update(x, xi, extrapol, type);
   }
 
   /*! Const initializer from array
@@ -183,8 +205,9 @@ struct FixedLagrange {
    */
   template <std::size_t NumElem>
   constexpr FixedLagrange(const Numeric x,
-                          const std::array<Numeric, NumElem>& xi) noexcept
-      : pos(pos_finder(x, xi)), lx(lx_finder(x, xi)), dlx(dlx_finder(x, xi)) {
+                          const std::array<Numeric, NumElem>& xi,
+                          const LagrangeType type=LagrangeType::Linear) noexcept
+                          : pos(pos_finder(x, xi)), lx(lx_finder(x, xi, type)), dlx(dlx_finder(x, xi, type)) {
     static_assert(NumElem > PolyOrder,
                   "Number of elements not good for this polynominal order");
   }
@@ -197,7 +220,7 @@ struct FixedLagrange {
   template <typename... Numbers>
   constexpr FixedLagrange(const Numeric x, Numbers... num) noexcept
       : FixedLagrange(
-            x, std::array<Numeric, sizeof...(Numbers)>{Numeric(num)...}) {}
+            x, std::array<Numeric, sizeof...(Numbers)>{Numeric(num)...}, LagrangeType::Linear) {}
 
   FixedLagrange() noexcept {}
             
@@ -218,48 +241,74 @@ struct FixedLagrange {
   /*! Finds lx */
   template <class SortedVectorType>
   constexpr std::array<Numeric, PolyOrder + 1> lx_finder(
-      const Numeric x, const SortedVectorType& xi) const noexcept {
+    const Numeric x, const SortedVectorType& xi,
+    const LagrangeType type) const noexcept {
     std::array<Numeric, PolyOrder + 1> out{};
-    for (Index j = 0; j < size(); j++) out[j] = l(x, xi, j);
+    if (type == LagrangeType::Linear) {
+      for (Index j = 0; j < size(); j++)
+        out[j] = l<LagrangeType::Linear>(x, xi, j);
+    } else if (type == LagrangeType::Log) {
+      for (Index j = 0; j < size(); j++)
+        out[j] = l<LagrangeType::Log>(x, xi, j);
+    }
     return out;
   }
 
   /*! Finds dlx */
   template <class SortedVectorType>
   constexpr std::array<Numeric, PolyOrder + 1> dlx_finder(
-      const Numeric x, const SortedVectorType& xi) const noexcept {
+    const Numeric x, const SortedVectorType& xi,
+    const LagrangeType type) const noexcept {
     std::array<Numeric, PolyOrder + 1> out{};
-    for (Index j = 0; j < size(); j++) out[j] = dl(x, xi, j);
+    if (type == LagrangeType::Linear) {
+      for (Index j = 0; j < size(); j++)
+        out[j] = dl<LagrangeType::Linear>(x, xi, j);
+    } else if (type == LagrangeType::Log) {
+      for (Index j = 0; j < size(); j++)
+        out[j] = dl<LagrangeType::Log>(x, xi, j);
+    }
     return out;
   }
 
   /*! Computes the weights for a given coefficient */
-  template <typename SortedVectorType>
+  template <LagrangeType type, typename SortedVectorType>
   constexpr Numeric l(const Numeric x, const SortedVectorType& xi,
-                      Index j) const noexcept {
+                      const Index j) const noexcept {
     Numeric val = 1.0;
     for (Index m = 0; m < size(); m++) {
       if (m not_eq j) {
-        val *= (x - xi[m + pos]) / (xi[j + pos] - xi[m + pos]);
+        if constexpr (type == LagrangeType::Log) {
+          val *= (std::log(x) - std::log(xi[m + pos])) / (std::log(xi[j + pos]) - std::log(xi[m + pos]));
+        } else if constexpr (type == LagrangeType::Linear) {
+          val *= (x - xi[m + pos]) / (xi[j + pos] - xi[m + pos]);
+        }
       }
     }
     return val;
   }
 
   /*! Computes the derivatives of the weights for a given coefficient */
-  template <typename SortedVectorType>
-  constexpr Numeric dl(Numeric x, const SortedVectorType& xi,
-                       Index j) const noexcept {
+  template <LagrangeType type, typename SortedVectorType>
+  constexpr Numeric dl(const Numeric x, const SortedVectorType& xi,
+                       const Index j) const noexcept {
     Numeric dval = 0.0;
     for (Index i = 0; i < size(); i++) {
       if (i not_eq j) {
         Numeric val = 1.0;
         for (Index m = 0; m < size(); m++) {
           if (m not_eq j and m not_eq i) {
-            val *= (x - xi[m + pos]) / (xi[j + pos] - xi[m + pos]);
+            if constexpr (type == LagrangeType::Log) {
+              val *= (std::log(x) - std::log(xi[m + pos])) / (std::log(xi[j + pos]) - std::log(xi[m + pos]));
+            } else if constexpr (type == LagrangeType::Linear) {
+              val *= (x - xi[m + pos]) / (xi[j + pos] - xi[m + pos]);
+            }
           }
         }
-        dval += val / (xi[j + pos] - xi[i + pos]);
+        if constexpr (type == LagrangeType::Log) {
+          dval += val / (std::log(xi[j + pos]) - std::log(xi[i + pos]));
+        } else if constexpr (type == LagrangeType::Linear) {
+          dval += val / (xi[j + pos] - xi[i + pos]);
+        }
       }
     }
     return dval;
@@ -425,10 +474,11 @@ std::vector<Lagrange> LagrangeVector(const ConstVectorView x,
 template <std::size_t PolyOrder>
 std::vector<FixedLagrange<PolyOrder>> FixedLagrangeVector(const ConstVectorView x,
                                                           const ConstVectorView xi,
-                                                          const Numeric extrapol) {
+                                                          const Numeric extrapol,
+                                                          const LagrangeType type) {
   std::vector<FixedLagrange<PolyOrder>> out(x.nelem());
   for (Index i = 0; i < x.nelem(); i++)
-    out[i] = FixedLagrange<PolyOrder>(x[i], xi, extrapol);
+    out[i] = FixedLagrange<PolyOrder>(x[i], xi, extrapol, type);
   return out;
 }
 
