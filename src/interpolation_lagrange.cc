@@ -2,8 +2,8 @@
 
 namespace Interpolation {
 
-std::vector<Lagrange> LagrangeVector(const ConstVectorView xs,
-                                     const ConstVectorView xi,
+std::vector<Lagrange> LagrangeVector(const ConstVectorView& xs,
+                                     const ConstVectorView& xi,
                                      const Index polyorder,
                                      const Numeric extrapol) {
   std::vector<Lagrange> out;
@@ -53,7 +53,7 @@ Grid<Vector, 1> dinterpweights(const std::vector<Lagrange>& dim0) {
 ////////////////////////////////// Interpolation
 ////////////////////////////////////////////////
 
-Numeric interp(const ConstVectorView yi, const ConstVectorView iw,
+Numeric interp(const ConstVectorView& yi, const ConstVectorView& iw,
                const Lagrange& dim0) {
   Numeric out(0.0);
   for (Index i = 0; i < dim0.size(); i++) out += iw[i] * yi[i + dim0.pos];
@@ -64,7 +64,7 @@ Numeric interp(const ConstVectorView yi, const ConstVectorView iw,
 /////////////////////////////// Re-Interpolation
 ////////////////////////////////////////////////
 
-Vector reinterp(const ConstVectorView iy, const Grid<Vector, 1>& iw,
+Vector reinterp(const ConstVectorView& iy, const Grid<Vector, 1>& iw,
                 const std::vector<Lagrange>& dim0) {
   Vector out(dim0.size());
   for (std::size_t i = 0; i < dim0.size(); i++)
@@ -122,7 +122,7 @@ Grid<Matrix, 2> dinterpweights(const std::vector<Lagrange>& dim0,
 ////////////////////////////////// Interpolation
 ////////////////////////////////////////////////
 
-Numeric interp(const ConstMatrixView yi, const ConstMatrixView iw,
+Numeric interp(const ConstMatrixView& yi, const ConstMatrixView& iw,
                const Lagrange& dim0, const Lagrange& dim1) {
   Numeric out(0.0);
 
@@ -136,7 +136,7 @@ Numeric interp(const ConstMatrixView yi, const ConstMatrixView iw,
 /////////////////////////////// Re-Interpolation
 ////////////////////////////////////////////////
 
-Matrix reinterp(const ConstMatrixView iy, const Grid<Matrix, 2>& iw,
+Matrix reinterp(const ConstMatrixView& iy, const Grid<Matrix, 2>& iw,
                 const std::vector<Lagrange>& dim0,
                 const std::vector<Lagrange>& dim1) {
   Matrix out(dim0.size(), dim1.size());
@@ -206,7 +206,7 @@ Grid<Tensor3, 3> dinterpweights(const std::vector<Lagrange>& dim0,
 ////////////////////////////////// Interpolation
 ////////////////////////////////////////////////
 
-Numeric interp(const ConstTensor3View yi, const ConstTensor3View iw,
+Numeric interp(const ConstTensor3View& yi, const ConstTensor3View& iw,
                const Lagrange& dim0, const Lagrange& dim1,
                const Lagrange& dim2) {
   Numeric out(0.0);
@@ -222,7 +222,7 @@ Numeric interp(const ConstTensor3View yi, const ConstTensor3View iw,
 /////////////////////////////// Re-Interpolation
 ////////////////////////////////////////////////
 
-Tensor3 reinterp(const ConstTensor3View iy, const Grid<Tensor3, 3>& iw,
+Tensor3 reinterp(const ConstTensor3View& iy, const Grid<Tensor3, 3>& iw,
                  const std::vector<Lagrange>& dim0,
                  const std::vector<Lagrange>& dim1,
                  const std::vector<Lagrange>& dim2) {
@@ -302,7 +302,7 @@ Grid<Tensor4, 4> dinterpweights(const std::vector<Lagrange>& dim0,
 ////////////////////////////////// Interpolation
 ////////////////////////////////////////////////
 
-Numeric interp(const ConstTensor4View yi, const ConstTensor4View iw,
+Numeric interp(const ConstTensor4View& yi, const ConstTensor4View& iw,
                const Lagrange& dim0, const Lagrange& dim1, const Lagrange& dim2,
                const Lagrange& dim3) {
   Numeric out(0.0);
@@ -320,7 +320,7 @@ Numeric interp(const ConstTensor4View yi, const ConstTensor4View iw,
 /////////////////////////////// Re-Interpolation
 ////////////////////////////////////////////////
 
-Tensor4 reinterp(const ConstTensor4View iy, const Grid<Tensor4, 4>& iw,
+Tensor4 reinterp(const ConstTensor4View& iy, const Grid<Tensor4, 4>& iw,
                  const std::vector<Lagrange>& dim0,
                  const std::vector<Lagrange>& dim1,
                  const std::vector<Lagrange>& dim2,
@@ -416,7 +416,7 @@ Grid<Tensor5, 5> dinterpweights(const std::vector<Lagrange>& dim0,
 ////////////////////////////////// Interpolation
 ////////////////////////////////////////////////
 
-Numeric interp(const ConstTensor5View yi, const ConstTensor5View iw,
+Numeric interp(const ConstTensor5View& yi, const ConstTensor5View& iw,
                const Lagrange& dim0, const Lagrange& dim1, const Lagrange& dim2,
                const Lagrange& dim3, const Lagrange& dim4) {
   Numeric out(0.0);
@@ -435,7 +435,7 @@ Numeric interp(const ConstTensor5View yi, const ConstTensor5View iw,
 /////////////////////////////// Re-Interpolation
 ////////////////////////////////////////////////
 
-Tensor5 reinterp(const ConstTensor5View iy, const Grid<Tensor5, 5>& iw,
+Tensor5 reinterp(const ConstTensor5View& iy, const Grid<Tensor5, 5>& iw,
                  const std::vector<Lagrange>& dim0,
                  const std::vector<Lagrange>& dim1,
                  const std::vector<Lagrange>& dim2,
@@ -542,7 +542,7 @@ Grid<Tensor6, 6> dinterpweights(const std::vector<Lagrange>& dim0,
 ////////////////////////////////// Interpolation
 ////////////////////////////////////////////////
 
-Numeric interp(const ConstTensor6View yi, const ConstTensor6View iw,
+Numeric interp(const ConstTensor6View& yi, const ConstTensor6View& iw,
                const Lagrange& dim0, const Lagrange& dim1, const Lagrange& dim2,
                const Lagrange& dim3, const Lagrange& dim4,
                const Lagrange& dim5) {
@@ -563,7 +563,7 @@ Numeric interp(const ConstTensor6View yi, const ConstTensor6View iw,
 /////////////////////////////// Re-Interpolation
 ////////////////////////////////////////////////
 
-Tensor6 reinterp(const ConstTensor6View iy, const Grid<Tensor6, 6>& iw,
+Tensor6 reinterp(const ConstTensor6View& iy, const Grid<Tensor6, 6>& iw,
                  const std::vector<Lagrange>& dim0,
                  const std::vector<Lagrange>& dim1,
                  const std::vector<Lagrange>& dim2,
@@ -687,7 +687,7 @@ Grid<Tensor7, 7> dinterpweights(const std::vector<Lagrange>& dim0,
 ////////////////////////////////// Interpolation
 ////////////////////////////////////////////////
 
-Numeric interp(const ConstTensor7View yi, const ConstTensor7View iw,
+Numeric interp(const ConstTensor7View& yi, const ConstTensor7View& iw,
                const Lagrange& dim0, const Lagrange& dim1, const Lagrange& dim2,
                const Lagrange& dim3, const Lagrange& dim4, const Lagrange& dim5,
                const Lagrange& dim6) {
@@ -710,7 +710,7 @@ Numeric interp(const ConstTensor7View yi, const ConstTensor7View iw,
 /////////////////////////////// Re-Interpolation
 ////////////////////////////////////////////////
 
-Tensor7 reinterp(const ConstTensor7View iy, const Grid<Tensor7, 7>& iw,
+Tensor7 reinterp(const ConstTensor7View& iy, const Grid<Tensor7, 7>& iw,
                  const std::vector<Lagrange>& dim0,
                  const std::vector<Lagrange>& dim1,
                  const std::vector<Lagrange>& dim2,

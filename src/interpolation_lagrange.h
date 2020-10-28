@@ -53,7 +53,7 @@ struct Lagrange {
    * @param[in] extrapol Level of extrapolation
    * @param[in] type Type of scale for x?
    */
-  void update(const Numeric x, const ConstVectorView xi,
+  void update(const Numeric x, const ConstVectorView& xi,
               const Numeric extrapol = 0.5, const LagrangeType type=LagrangeType::Linear) {
     const Index n = xi.nelem();
     const Index p = lx.nelem();
@@ -71,17 +71,19 @@ struct Lagrange {
       throw std::runtime_error(os.str());
     } else {
       // Find first larger x
-      for (; pos < n - p; pos++)
-        if (xi[pos] > x) break;
+      Index p0=pos;
+      for (; p0 < n - p; p0++)
+        if (xi[p0] > x) break;
 
       // Adjust back so x is between the two Xs (if possible and not at the end)
-      if (pos > 0 and xi[pos] > x) pos--;
+      if (p0 > 0 and xi[p0] > x) p0--;
+      pos = p0;
 
       // Set weights
-      for (Index j = 0; j < p; j++) {
-        lx[j] = l(x, xi, j, p, type);
-        dlx[j] = dl(x, xi, j, p, type);
-      }
+      for (Index j = 0; j < p; j++) lx[j] = l(x, xi, j, p, p0, type);
+      
+      // Set derivatives after the weights
+      for (Index j = 0; j < p; j++) dlx[j] = dl(x, xi, lx, j, p, p0, type);
     }
   }
 
@@ -93,7 +95,7 @@ struct Lagrange {
    * @param[in] extrapol Level of extrapolation
    * @param[in] type Type of Lagrange (Normal or Log)
    */
-  Lagrange(const Numeric x, const ConstVectorView xi, const Index polyorder = 1,
+  Lagrange(const Numeric x, const ConstVectorView& xi, const Index polyorder = 1,
            const Numeric extrapol = 0.5, const LagrangeType type=LagrangeType::Linear)
       : pos(0), lx(polyorder + 1), dlx(polyorder + 1) {
     update(x, xi, extrapol, type);
@@ -105,18 +107,18 @@ struct Lagrange {
 
  private:
   /*! Computes the weights for a given coefficient */
-  Numeric l(const Numeric x, const ConstVectorView xi, const Index j, const Index n, const LagrangeType type) {
+  static Numeric l(const Numeric x, const ConstVectorView& xi, const Index j, const Index n, const Index p0, const LagrangeType type) {
     Numeric val = 1.0;
     if (type == LagrangeType::Log) {
       for (Index m = 0; m < n; m++) {
         if (m not_eq j) {
-          val *= (std::log(x) - std::log(xi[m + pos])) / (std::log(xi[j + pos]) - std::log(xi[m + pos]));
+          val *= (std::log(x) - std::log(xi[m + p0])) / (std::log(xi[j +  p0]) - std::log(xi[m +  p0]));
         }
       }
     } else if (type == LagrangeType::Linear) {
       for (Index m = 0; m < n; m++) {
         if (m not_eq j) {
-          val *= (x - xi[m + pos]) / (xi[j + pos] - xi[m + pos]);
+          val *= (x - xi[m +  p0]) / (xi[j +  p0] - xi[m +  p0]);
         }
       }
     }
@@ -127,18 +129,18 @@ struct Lagrange {
    * 
    * Must be called with all lx known
    */
-  Numeric dl(const Numeric x, const ConstVectorView xi, const Index j, const Index n, const LagrangeType type) {
+  static Numeric dl(const Numeric x, const ConstVectorView& xi, const ConstVectorView& li, const Index j, const Index n, const Index p0, const LagrangeType type) {
     Numeric dval = 0.0;
     if (type == LagrangeType::Log) {
       for (Index i = 0; i < n; i++) {
         if (i not_eq j) {
-          dval += lx[j] / (std::log(x) - std::log(xi[i+pos]));
+          dval += li[j] / (std::log(x) - std::log(xi[i+p0]));
         }
       }
     } else if (type == LagrangeType::Linear) {
       for (Index i = 0; i < n; i++) {
         if (i not_eq j) {
-          dval += lx[j] / (x - xi[i+pos]);
+          dval += li[j] / (x - xi[i+p0]);
         }
       }
     }
@@ -470,8 +472,8 @@ class FixedGrid {
  * @param[in] extrapol Level of extrapolation
  * @return vector of Lagrange
  */
-std::vector<Lagrange> LagrangeVector(const ConstVectorView x,
-                                     const ConstVectorView xi,
+std::vector<Lagrange> LagrangeVector(const ConstVectorView& x,
+                                     const ConstVectorView& xi,
                                      const Index polyorder,
                                      const Numeric extrapol);
 
@@ -483,8 +485,8 @@ std::vector<Lagrange> LagrangeVector(const ConstVectorView x,
  * @return vector of FixedLagrange
  */
 template <std::size_t PolyOrder>
-std::vector<FixedLagrange<PolyOrder>> FixedLagrangeVector(const ConstVectorView x,
-                                                          const ConstVectorView xi,
+std::vector<FixedLagrange<PolyOrder>> FixedLagrangeVector(const ConstVectorView& x,
+                                                          const ConstVectorView& xi,
                                                           const Numeric extrapol,
                                                           const LagrangeType type) {
   std::vector<FixedLagrange<PolyOrder>> out(x.nelem());
@@ -594,7 +596,7 @@ Grid<std::array<Numeric, PolyOrder + 1>, 1> dinterpweights(
  * @param[in] dim0 - Lagrange weights along the dimension
  * @return Numeric of interpolated value
  */
-Numeric interp(const ConstVectorView yi, const ConstVectorView iw,
+Numeric interp(const ConstVectorView& yi, const ConstVectorView& iw,
                const Lagrange& dim0);
 
 /*! Squashing fixed interpolation routine
@@ -626,7 +628,7 @@ constexpr Numeric interp(const VectorType& yi,
  * @param[in] dim0 - Lagrange weights along the dimension
  * @return Vector of interpolated value
  */
-Vector reinterp(const ConstVectorView iy, const Grid<Vector, 1>& iw,
+Vector reinterp(const ConstVectorView& iy, const Grid<Vector, 1>& iw,
                 const std::vector<Lagrange>& dim0);
 
 /*! Reinterpreting fixed interpolation routine
@@ -638,7 +640,7 @@ Vector reinterp(const ConstVectorView iy, const Grid<Vector, 1>& iw,
  * @return Vector of interpolated value
  */
 template <std::size_t PolyOrder>
-Vector reinterp(const ConstVectorView iy,
+Vector reinterp(const ConstVectorView& iy,
                 const Grid<std::array<Numeric, PolyOrder + 1>, 1>& iw,
                 const std::vector<FixedLagrange<PolyOrder>>& dim0) {
   Vector out(dim0.size());
@@ -786,7 +788,7 @@ Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1>, 2> dinterpweights(
  * @param[in] dim1 - Lagrange weights along the dimension
  * @return Numeric of interpolated value
  */
-Numeric interp(const ConstMatrixView yi, const ConstMatrixView iw,
+Numeric interp(const ConstMatrixView& yi, const ConstMatrixView& iw,
                const Lagrange& dim0, const Lagrange& dim1);
 
 /*! Squashing interpolation routine
@@ -825,7 +827,7 @@ constexpr Numeric interp(
  * @param[in] dim1 - Lagrange weights along the dimension
  * @return Matrix of interpolated value
  */
-Matrix reinterp(const ConstMatrixView iy, const Grid<Matrix, 2>& iw,
+Matrix reinterp(const ConstMatrixView& iy, const Grid<Matrix, 2>& iw,
                 const std::vector<Lagrange>& dim0,
                 const std::vector<Lagrange>& dim1);
 
@@ -840,7 +842,7 @@ Matrix reinterp(const ConstMatrixView iy, const Grid<Matrix, 2>& iw,
  */
 template <std::size_t PolyOrder0, std::size_t PolyOrder1>
 Matrix reinterp(
-    const ConstMatrixView iy,
+    const ConstMatrixView& iy,
     const Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1>, 2>& iw,
     const std::vector<FixedLagrange<PolyOrder0>>& dim0,
     const std::vector<FixedLagrange<PolyOrder1>>& dim1) {
@@ -1015,7 +1017,7 @@ dinterpweights(const std::vector<FixedLagrange<PolyOrder0>>& dim0,
  * @param[in] dim2 - Lagrange weights along the dimension
  * @return Numeric of interpolated value
  */
-Numeric interp(const ConstTensor3View yi, const ConstTensor3View iw,
+Numeric interp(const ConstTensor3View& yi, const ConstTensor3View& iw,
                const Lagrange& dim0, const Lagrange& dim1,
                const Lagrange& dim2);
 
@@ -1060,7 +1062,7 @@ constexpr Numeric interp(const Tensor3Type& yi,
  * @param[in] dim2 - Lagrange weights along the dimension
  * @return Tensor3 of interpolated value
  */
-Tensor3 reinterp(const ConstTensor3View iy, const Grid<Tensor3, 3>& iw,
+Tensor3 reinterp(const ConstTensor3View& iy, const Grid<Tensor3, 3>& iw,
                  const std::vector<Lagrange>& dim0,
                  const std::vector<Lagrange>& dim1,
                  const std::vector<Lagrange>& dim2);
@@ -1078,7 +1080,7 @@ Tensor3 reinterp(const ConstTensor3View iy, const Grid<Tensor3, 3>& iw,
 template <std::size_t PolyOrder0, std::size_t PolyOrder1,
           std::size_t PolyOrder2>
 Tensor3 reinterp(
-    const ConstTensor3View iy,
+    const ConstTensor3View& iy,
     const Grid<
         FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1, PolyOrder2 + 1>, 3>&
         iw,
@@ -1293,7 +1295,7 @@ dinterpweights(const std::vector<Lagrange>& dim0,
  * @param[in] dim3 - Lagrange weights along the dimension
  * @return Numeric of interpolated value
  */
-Numeric interp(const ConstTensor4View yi, const ConstTensor4View iw,
+Numeric interp(const ConstTensor4View& yi, const ConstTensor4View& iw,
                const Lagrange& dim0, const Lagrange& dim1, const Lagrange& dim2,
                const Lagrange& dim3);
 
@@ -1344,7 +1346,7 @@ constexpr Numeric interp(
  * @param[in] dim3 - Lagrange weights along the dimension
  * @return Tensor4 of interpolated value
  */
-Tensor4 reinterp(const ConstTensor4View iy, const Grid<Tensor4, 4>& iw,
+Tensor4 reinterp(const ConstTensor4View& iy, const Grid<Tensor4, 4>& iw,
                  const std::vector<Lagrange>& dim0,
                  const std::vector<Lagrange>& dim1,
                  const std::vector<Lagrange>& dim2,
@@ -1363,7 +1365,7 @@ Tensor4 reinterp(const ConstTensor4View iy, const Grid<Tensor4, 4>& iw,
  */
 template <std::size_t PolyOrder0, std::size_t PolyOrder1,
           std::size_t PolyOrder2, std::size_t PolyOrder3>
-Tensor4 reinterp(const ConstTensor4View iy,
+Tensor4 reinterp(const ConstTensor4View& iy,
                  const Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1,
                                       PolyOrder2 + 1, PolyOrder3 + 1>,
                             4>& iw,
@@ -1609,7 +1611,7 @@ dinterpweights(const std::vector<FixedLagrange<PolyOrder0>>& dim0,
  * @param[in] dim4 - Lagrange weights along the dimension
  * @return Numeric of interpolated value
  */
-Numeric interp(const ConstTensor5View yi, const ConstTensor5View iw,
+Numeric interp(const ConstTensor5View& yi, const ConstTensor5View& iw,
                const Lagrange& dim0, const Lagrange& dim1, const Lagrange& dim2,
                const Lagrange& dim3, const Lagrange& dim4);
 
@@ -1665,7 +1667,7 @@ constexpr Numeric interp(
  * @param[in] dim4 - Lagrange weights along the dimension
  * @return Tensor5 of interpolated value
  */
-Tensor5 reinterp(const ConstTensor5View iy, const Grid<Tensor5, 5>& iw,
+Tensor5 reinterp(const ConstTensor5View& iy, const Grid<Tensor5, 5>& iw,
                  const std::vector<Lagrange>& dim0,
                  const std::vector<Lagrange>& dim1,
                  const std::vector<Lagrange>& dim2,
@@ -1688,7 +1690,7 @@ template <std::size_t PolyOrder0, std::size_t PolyOrder1,
           std::size_t PolyOrder2, std::size_t PolyOrder3,
           std::size_t PolyOrder4>
 Tensor5 reinterp(
-    const ConstTensor5View iy,
+    const ConstTensor5View& iy,
     const Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1,
                          PolyOrder2 + 1, PolyOrder3 + 1, PolyOrder4 + 1>,
                5>& iw,
@@ -1960,7 +1962,7 @@ dinterpweights(const std::vector<FixedLagrange<PolyOrder0>>& dim0,
  * @param[in] dim5 - Lagrange weights along the dimension
  * @return Numeric of interpolated value
  */
-Numeric interp(const ConstTensor6View yi, const ConstTensor6View iw,
+Numeric interp(const ConstTensor6View& yi, const ConstTensor6View& iw,
                const Lagrange& dim0, const Lagrange& dim1, const Lagrange& dim2,
                const Lagrange& dim3, const Lagrange& dim4,
                const Lagrange& dim5);
@@ -2021,7 +2023,7 @@ constexpr Numeric interp(
  * @param[in] dim5 - Lagrange weights along the dimension
  * @return Tensor6 of interpolated value
  */
-Tensor6 reinterp(const ConstTensor6View iy, const Grid<Tensor6, 6>& iw,
+Tensor6 reinterp(const ConstTensor6View& iy, const Grid<Tensor6, 6>& iw,
                  const std::vector<Lagrange>& dim0,
                  const std::vector<Lagrange>& dim1,
                  const std::vector<Lagrange>& dim2,
@@ -2045,7 +2047,7 @@ Tensor6 reinterp(const ConstTensor6View iy, const Grid<Tensor6, 6>& iw,
 template <std::size_t PolyOrder0, std::size_t PolyOrder1,
           std::size_t PolyOrder2, std::size_t PolyOrder3,
           std::size_t PolyOrder4, std::size_t PolyOrder5>
-Tensor6 reinterp(const ConstTensor6View iy,
+Tensor6 reinterp(const ConstTensor6View& iy,
                  const Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1,
                                       PolyOrder2 + 1, PolyOrder3 + 1,
                                       PolyOrder4 + 1, PolyOrder5 + 1>,
@@ -2354,7 +2356,7 @@ dinterpweights(const std::vector<FixedLagrange<PolyOrder0>>& dim0,
  * @param[in] dim6 - Lagrange weights along the dimension
  * @return Numeric of interpolated value
  */
-Numeric interp(const ConstTensor7View yi, const ConstTensor7View iw,
+Numeric interp(const ConstTensor7View& yi, const ConstTensor7View& iw,
                const Lagrange& dim0, const Lagrange& dim1, const Lagrange& dim2,
                const Lagrange& dim3, const Lagrange& dim4, const Lagrange& dim5,
                const Lagrange& dim6);
@@ -2422,7 +2424,7 @@ constexpr Numeric interp(
  * @param[in] dim6 - Lagrange weights along the dimension
  * @return Tensor7 of interpolated value
  */
-Tensor7 reinterp(const ConstTensor7View iy, const Grid<Tensor7, 7>& iw,
+Tensor7 reinterp(const ConstTensor7View& iy, const Grid<Tensor7, 7>& iw,
                  const std::vector<Lagrange>& dim0,
                  const std::vector<Lagrange>& dim1,
                  const std::vector<Lagrange>& dim2,
@@ -2450,7 +2452,7 @@ template <std::size_t PolyOrder0, std::size_t PolyOrder1,
           std::size_t PolyOrder4, std::size_t PolyOrder5,
           std::size_t PolyOrder6>
 Tensor7 reinterp(
-    const ConstTensor7View iy,
+    const ConstTensor7View& iy,
     const Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1,
                          PolyOrder2 + 1, PolyOrder3 + 1, PolyOrder4 + 1,
                          PolyOrder5 + 1, PolyOrder6 + 1>,
