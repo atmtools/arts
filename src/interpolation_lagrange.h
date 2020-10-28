@@ -71,7 +71,7 @@ struct Lagrange {
       throw std::runtime_error(os.str());
     } else {
       // Find first larger x
-      for (pos = 0; pos < n - p; pos++)
+      for (; pos < n - p; pos++)
         if (xi[pos] > x) break;
 
       // Adjust back so x is between the two Xs (if possible and not at the end)
@@ -179,7 +179,7 @@ struct FixedLagrange {
          << ", for grid: " << xi << '\n';
       throw std::runtime_error(os.str());
     } else {
-      pos = pos_finder(x, xi);
+      pos = pos_finder(x, xi, pos);
       lx = lx_finder(x, xi, type);
       dlx = dlx_finder(x, xi, type);
     }
@@ -194,7 +194,22 @@ struct FixedLagrange {
   template <class SortedVectorType>
   constexpr FixedLagrange(const Numeric x, const SortedVectorType& xi,
                           const Numeric extrapol = 0.5,
-                          const LagrangeType type=LagrangeType::Linear) {
+                          const LagrangeType type=LagrangeType::Linear) : pos(0) {
+    update(x, xi, extrapol, type);
+  }
+
+  /*! Standard initializer from Vector-types
+   * 
+   * @param[in] past Past interpolation
+   * @param[in] x New grid position
+   * @param[in] xi Old grid positions
+   * @param[in] extrapol Level of extrapolation
+   */
+  template <class SortedVectorType>
+  constexpr FixedLagrange(const FixedLagrange& past,
+                          const Numeric x, const SortedVectorType& xi,
+                          const Numeric extrapol = 0.5,
+                          const LagrangeType type=LagrangeType::Linear) : pos(past.pos) {
     update(x, xi, extrapol, type);
   }
 
@@ -211,6 +226,7 @@ struct FixedLagrange {
     static_assert(NumElem > PolyOrder,
                   "Number of elements not good for this polynominal order");
   }
+  
 
   /*! Const initializer from list of numbers
    *
@@ -228,9 +244,10 @@ struct FixedLagrange {
   /*! Finds the position */
   template <class SortedVectorType>
   static constexpr Index pos_finder(const Numeric x,
-                                    const SortedVectorType& xi) noexcept {
-    decltype(xi.size()) p = 0;
-    for (p = 0; p < xi.size() - size(); p++)
+                                    const SortedVectorType& xi,
+                                    const decltype(xi.size()) pos0=0) noexcept {
+    decltype(xi.size()) p = pos0;
+    for (; p < xi.size() - size(); p++)
       if (xi[p] > x) break;
 
     // Adjust back so x is between the two Xs (if possible and not at the end)

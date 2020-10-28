@@ -8,7 +8,15 @@ std::vector<Lagrange> LagrangeVector(const ConstVectorView xs,
                                      const Numeric extrapol) {
   std::vector<Lagrange> out;
   out.reserve(xs.nelem());
-  for (auto x : xs) out.push_back(Lagrange(x, xi, polyorder, extrapol));
+  bool has_one=false;
+  for (auto x : xs) {
+    if (has_one) {
+      out.emplace_back(out.back()).update(x, xi, extrapol);
+    } else {
+      out.push_back(Lagrange(x, xi, polyorder, extrapol));
+      has_one = true;
+    }
+  }
   return out;
 }
 
