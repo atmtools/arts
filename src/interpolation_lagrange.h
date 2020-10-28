@@ -119,25 +119,18 @@ struct Lagrange {
     return val;
   }
 
-  /*! Computes the derivatives of the weights for a given coefficient */
+  /*! Computes the derivatives of the weights for a given coefficient
+   * 
+   * Must be called with all lx known
+   */
   Numeric dl(const Numeric x, const ConstVectorView xi, const Index j, const Index n, const LagrangeType type) {
     Numeric dval = 0.0;
     for (Index i = 0; i < n; i++) {
       if (i not_eq j) {
-        Numeric val = 1.0;
-        for (Index m = 0; m < n; m++) {
-          if (m not_eq j and m not_eq i) {
-            if (type == LagrangeType::Log) {
-              val *= (std::log(x) - std::log(xi[m + pos])) / (std::log(xi[j + pos]) - std::log(xi[m + pos]));
-            } else if (type == LagrangeType::Linear) {
-              val *= (x - xi[m + pos]) / (xi[j + pos] - xi[m + pos]);
-            }
-          }
-        }
         if (type == LagrangeType::Log) {
-          dval += val / (std::log(xi[j + pos]) - std::log(xi[i + pos]));
+          dval += lx[j] / (std::log(x) - std::log(xi[i+pos]));
         } else if (type == LagrangeType::Linear) {
-          dval += val / (xi[j + pos] - xi[i + pos]);
+          dval += lx[j] / (x - xi[i+pos]);
         }
       }
     }
@@ -303,28 +296,21 @@ struct FixedLagrange {
     }
     return val;
   }
-
-  /*! Computes the derivatives of the weights for a given coefficient */
+  
+  /*! Computes the derivatives of the weights for a given coefficient
+   * 
+   * Must be called with all lx known
+   */
   template <LagrangeType type, typename SortedVectorType>
   constexpr Numeric dl(const Numeric x, const SortedVectorType& xi,
                        const Index j) const noexcept {
     Numeric dval = 0.0;
     for (Index i = 0; i < size(); i++) {
       if (i not_eq j) {
-        Numeric val = 1.0;
-        for (Index m = 0; m < size(); m++) {
-          if (m not_eq j and m not_eq i) {
-            if constexpr (type == LagrangeType::Log) {
-              val *= (std::log(x) - std::log(xi[m + pos])) / (std::log(xi[j + pos]) - std::log(xi[m + pos]));
-            } else if constexpr (type == LagrangeType::Linear) {
-              val *= (x - xi[m + pos]) / (xi[j + pos] - xi[m + pos]);
-            }
-          }
-        }
-        if constexpr (type == LagrangeType::Log) {
-          dval += val / (std::log(xi[j + pos]) - std::log(xi[i + pos]));
-        } else if constexpr (type == LagrangeType::Linear) {
-          dval += val / (xi[j + pos] - xi[i + pos]);
+        if (type == LagrangeType::Log) {
+          dval += lx[j] / (std::log(x) - std::log(xi[i+pos]));
+        } else if (type == LagrangeType::Linear) {
+          dval += lx[j] / (x - xi[i+pos]);
         }
       }
     }
@@ -335,10 +321,10 @@ struct FixedLagrange {
 /** Row-major grid creation */
 template <typename b, std::size_t n>
 class Grid {
-  std::unique_ptr<b[]> ptr;
+  Array<b> ptr;
   std::array<std::size_t, n> gridsize;
 
-  std::size_t nelem() const { return mul(gridsize); }
+  std::size_t nelem() const { return ptr.size(); }
 
  public:
   static constexpr std::size_t N = n;
@@ -347,7 +333,7 @@ class Grid {
 
   template <typename... Inds>
   Grid(Inds... inds)
-      : ptr(std::make_unique<base[]>(mul(inds...))),
+      : ptr(mul(inds...)),
         gridsize({std::size_t(inds)...}) {
     static_assert(sizeof...(Inds) == N,
                   "Must have same size for initialization");

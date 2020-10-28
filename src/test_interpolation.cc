@@ -773,39 +773,40 @@ void test15() {
   VectorNLinSpace(xnew, new_size, 1, 100, verbosity);
   Vector yold;
   VectorNLinSpace(yold, old_size, 100, 200, verbosity);
-  Vector ynew(new_size);
-  Vector ynew_oldinterp(new_size);
 
   const Index f_order = 3;
   chk_interpolation_grids(
       "Frequency interpolation for cross sections", xold, xnew, f_order);
 
-  Timer t;
-
+  constexpr Index N = 500;
+  std::vector<TimeStep> new_time(N);
+  std::vector<TimeStep> old_time(N);
+  
   std::cout << "========== New interp ==========" << std::endl;
-  timerStart(t, verbosity);
-  const auto lag_interp =
-      Interpolation::LagrangeVector(xnew, xold, f_order, 0.5);
-  const auto iw_interp = interpweights(lag_interp);
-  ynew = reinterp(yold, iw_interp, lag_interp);
-  timerStop(t, verbosity);
-  Print(t, 0, verbosity);
-
+  for (Index i=0; i<N; i++) {
+    Time now_new;
+    const auto lag_interp =
+    Interpolation::LagrangeVector(xnew, xold, f_order, 0.5);
+    const auto iw_interp = interpweights(lag_interp);
+    const auto ynew = reinterp(yold, iw_interp, lag_interp);
+    new_time[i] = Time() - now_new;
+  }
+  std::sort(new_time.begin(), new_time.end());
+  std::cerr << "Median time: " << new_time[N/2] << '\n';
+  
   std::cout << "========== Old interp ==========" << std::endl;
-  timerStart(t, verbosity);
   ArrayOfGridPosPoly f_gp(xnew.nelem()), T_gp(1);
-  gridpos_poly(f_gp, xold, xnew, f_order);
-
   Matrix itw(f_gp.nelem(), f_order + 1);
-  interpweights(itw, f_gp);
-  interp(ynew_oldinterp, itw, yold, f_gp);
-  timerStop(t, verbosity);
-  Print(t, 0, verbosity);
-
-  Vector diff(ynew);
-  diff -= ynew_oldinterp;
-  std::cout << "Max difference new-old interpolation: " << max(diff)
-            << std::endl;
+  Vector ynew_oldinterp(new_size);
+  for (Index i=0; i<N; i++) {
+    Time now_old;
+    gridpos_poly(f_gp, xold, xnew, f_order);
+    interpweights(itw, f_gp);
+    interp(ynew_oldinterp, itw, yold, f_gp);
+    old_time[i] = Time() - now_old;
+  }
+  std::sort(old_time.begin(), old_time.end());
+  std::cerr << "Median time: " << old_time[N/2] << '\n';
 }
 
 int main() { test15(); }
