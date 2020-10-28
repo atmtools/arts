@@ -107,11 +107,15 @@ struct Lagrange {
   /*! Computes the weights for a given coefficient */
   Numeric l(const Numeric x, const ConstVectorView xi, const Index j, const Index n, const LagrangeType type) {
     Numeric val = 1.0;
-    for (Index m = 0; m < n; m++) {
-      if (m not_eq j) {
-        if (type == LagrangeType::Log) {
+    if (type == LagrangeType::Log) {
+      for (Index m = 0; m < n; m++) {
+        if (m not_eq j) {
           val *= (std::log(x) - std::log(xi[m + pos])) / (std::log(xi[j + pos]) - std::log(xi[m + pos]));
-        } else if (type == LagrangeType::Linear) {
+        }
+      }
+    } else if (type == LagrangeType::Linear) {
+      for (Index m = 0; m < n; m++) {
+        if (m not_eq j) {
           val *= (x - xi[m + pos]) / (xi[j + pos] - xi[m + pos]);
         }
       }
@@ -125,11 +129,15 @@ struct Lagrange {
    */
   Numeric dl(const Numeric x, const ConstVectorView xi, const Index j, const Index n, const LagrangeType type) {
     Numeric dval = 0.0;
-    for (Index i = 0; i < n; i++) {
-      if (i not_eq j) {
-        if (type == LagrangeType::Log) {
+    if (type == LagrangeType::Log) {
+      for (Index i = 0; i < n; i++) {
+        if (i not_eq j) {
           dval += lx[j] / (std::log(x) - std::log(xi[i+pos]));
-        } else if (type == LagrangeType::Linear) {
+        }
+      }
+    } else if (type == LagrangeType::Linear) {
+      for (Index i = 0; i < n; i++) {
+        if (i not_eq j) {
           dval += lx[j] / (x - xi[i+pos]);
         }
       }

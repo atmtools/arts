@@ -778,7 +778,7 @@ void test15() {
   chk_interpolation_grids(
       "Frequency interpolation for cross sections", xold, xnew, f_order);
 
-  constexpr Index N = 500;
+  constexpr Index N = 200;
   std::vector<TimeStep> new_time(N);
   std::vector<TimeStep> old_time(N);
   
@@ -792,21 +792,27 @@ void test15() {
     new_time[i] = Time() - now_new;
   }
   std::sort(new_time.begin(), new_time.end());
-  std::cerr << "Median time: " << new_time[N/2] << '\n';
+  std::cerr << "Fastest time: " << new_time[0] << '\n';
+  std::cerr << "Median  time: " << new_time[N/2] << '\n';
+  std::cerr << "Max-5\%  time: " << new_time[N-N/20] << '\n';
   
   std::cout << "========== Old interp ==========" << std::endl;
-  ArrayOfGridPosPoly f_gp(xnew.nelem()), T_gp(1);
-  Matrix itw(f_gp.nelem(), f_order + 1);
-  Vector ynew_oldinterp(new_size);
   for (Index i=0; i<N; i++) {
     Time now_old;
+    ArrayOfGridPosPoly f_gp(xnew.nelem()), T_gp(1);
     gridpos_poly(f_gp, xold, xnew, f_order);
+    
+    Matrix itw(f_gp.nelem(), f_order + 1);
     interpweights(itw, f_gp);
+    
+    Vector ynew_oldinterp(new_size);
     interp(ynew_oldinterp, itw, yold, f_gp);
     old_time[i] = Time() - now_old;
   }
   std::sort(old_time.begin(), old_time.end());
-  std::cerr << "Median time: " << old_time[N/2] << '\n';
+  std::cerr << "Fastest time: " << old_time[0] << '\n';
+  std::cerr << "Median  time: " << old_time[N/2] << '\n';
+  std::cerr << "Max-5\%  time: " << old_time[N-N/20] << '\n';
 }
 
 int main() { test15(); }
