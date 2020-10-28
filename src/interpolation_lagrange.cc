@@ -11,9 +11,9 @@ std::vector<Lagrange> LagrangeVector(const ConstVectorView& xs,
   bool has_one=false;
   for (auto x : xs) {
     if (has_one) {
-      out.emplace_back(out.back()).update(x, xi, extrapol);
+      out.push_back(Lagrange(out.back().pos, x, xi, polyorder, extrapol));
     } else {
-      out.push_back(Lagrange(x, xi, polyorder, extrapol));
+      out.push_back(Lagrange(0, x, xi, polyorder, extrapol));
       has_one = true;
     }
   }

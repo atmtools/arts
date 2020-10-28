@@ -48,7 +48,7 @@ Numeric SingleCalculatePartitionFctFromCoeff_dT(const Numeric& T,
 Numeric SingleCalculatePartitionFctFromData(const Numeric& T,
                                             ConstVectorView t_grid,
                                             ConstVectorView q_grid) {
-  const Interpolation::FixedLagrange<1> lag(T, t_grid);
+  const Interpolation::FixedLagrange<1> lag(0, T, t_grid);
   const auto lag_iw = interpweights(lag);
   return interp(q_grid, lag_iw, lag);
 }
@@ -56,7 +56,7 @@ Numeric SingleCalculatePartitionFctFromData(const Numeric& T,
 Numeric SingleCalculatePartitionFctFromData_dT(const Numeric& T,
                                                ConstVectorView t_grid,
                                                ConstVectorView q_grid) {
-  const Interpolation::FixedLagrange<1> lag(T, t_grid);
+  const Interpolation::FixedLagrange<1> lag(0, T, t_grid);
   const auto dlag_iw = dinterpweights(lag);
   return interp(q_grid, dlag_iw, lag);
 }

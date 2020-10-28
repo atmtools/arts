@@ -571,7 +571,7 @@ void test09() {
   for (auto x: ng) {
     GridPos gp;
     gridpos(gp, og, x);
-    const Interpolation::Lagrange lag(x, og);
+    const Interpolation::Lagrange lag(0, x, og);
     std::cout << "gp " << gp << "lag: " << lag << '\n';
     
     Vector iwgp(2);
@@ -595,7 +595,7 @@ void test10() {
     for (auto x: xn) {
       GridPosPoly gp;
       gridpos_poly(gp, xi, x, order);
-      const Interpolation::Lagrange lag(x, xi, order);
+      const Interpolation::Lagrange lag(0, x, xi, order);
       
       Vector iwgp(order+1);
       interpweights(iwgp, gp);
@@ -642,9 +642,9 @@ void test12() {
   constexpr Numeric x = 1.5;
   
   // Set up the interpolation Lagranges
-  constexpr Interpolation::FixedLagrange<1> lin(x, 1, 2);
-  constexpr Interpolation::FixedLagrange<2> sqr(x, 1, 2, 3);
-  constexpr Interpolation::FixedLagrange<3> cub(x, 1, 2, 3, 4);
+  constexpr Interpolation::FixedLagrange<1> lin(0, x, std::array<Numeric, 2>{1, 2});
+  constexpr Interpolation::FixedLagrange<2> sqr(0, x, std::array<Numeric, 3>{1, 2, 3});
+  constexpr Interpolation::FixedLagrange<3> cub(0, x, std::array<Numeric, 4>{1, 2, 3, 4});
   
   // Set up the interpolation weights
   constexpr auto lin_iw = interpweights(lin);
@@ -682,12 +682,12 @@ void test13() {
   constexpr Numeric dx = 1e-2;
   
   // Set up the interpolation Lagranges
-  constexpr Interpolation::FixedLagrange<1> lin(x, 1, 2);
-  constexpr Interpolation::FixedLagrange<2> sqr(x, 1, 2, 3);
-  constexpr Interpolation::FixedLagrange<3> cub(x, 1, 2, 3, 4);
-  constexpr Interpolation::FixedLagrange<1> dlin(x+dx, 1, 2);
-  constexpr Interpolation::FixedLagrange<2> dsqr(x+dx, 1, 2, 3);
-  constexpr Interpolation::FixedLagrange<3> dcub(x+dx, 1, 2, 3, 4);
+  constexpr Interpolation::FixedLagrange<1> lin(0, x, std::array<Numeric, 2>{1, 2});
+  constexpr Interpolation::FixedLagrange<2> sqr(0, x, std::array<Numeric, 3>{1, 2, 3});
+  constexpr Interpolation::FixedLagrange<3> cub(0, x, std::array<Numeric, 4>{1, 2, 3, 4});
+  constexpr Interpolation::FixedLagrange<1> dlin(0, x+dx, std::array<Numeric, 2>{1, 2});
+  constexpr Interpolation::FixedLagrange<2> dsqr(0, x+dx, std::array<Numeric, 3>{1, 2, 3});
+  constexpr Interpolation::FixedLagrange<3> dcub(0, x+dx, std::array<Numeric, 4>{1, 2, 3, 4});
   
   // Set up the interpolation weights
   constexpr auto lin_iw = interpweights(lin);
@@ -738,9 +738,9 @@ void test14() {
   Vector x{0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5};
   
   // Set up the interpolation Lagranges
-  auto lin = Interpolation::FixedLagrangeVector<1>(x, y, 1.0, Interpolation::LagrangeType::Linear);
-  auto sqr = Interpolation::FixedLagrangeVector<2>(x, y, 1.0, Interpolation::LagrangeType::Linear);
-  auto cub = Interpolation::FixedLagrangeVector<3>(x, y, 1.0, Interpolation::LagrangeType::Linear);
+  auto lin = Interpolation::FixedLagrangeVector<1>(x, y, Interpolation::LagrangeType::Linear);
+  auto sqr = Interpolation::FixedLagrangeVector<2>(x, y, Interpolation::LagrangeType::Linear);
+  auto cub = Interpolation::FixedLagrangeVector<3>(x, y, Interpolation::LagrangeType::Linear);
   
   // Set up the interpolation weights
   auto lin_iw = interpweights(lin);
@@ -774,13 +774,28 @@ void test15() {
   Vector yold;
   VectorNLinSpace(yold, old_size, 100, 200, verbosity);
 
-  const Index f_order = 3;
+  constexpr Index f_order = 3;
   chk_interpolation_grids(
       "Frequency interpolation for cross sections", xold, xnew, f_order);
 
   constexpr Index N = 200;
+  std::vector<TimeStep> new_fixed_time(N);
   std::vector<TimeStep> new_time(N);
   std::vector<TimeStep> old_time(N);
+  
+  std::cout << "========== Fix interp ==========" << std::endl;
+  for (Index i=0; i<N; i++) {
+    Time now_fixed_new;
+    const auto lag_interp =
+    Interpolation::FixedLagrangeVector<f_order>(xnew, xold, Interpolation::LagrangeType::Linear);
+    const auto iw_interp = interpweights(lag_interp);
+    const auto ynew = reinterp(yold, iw_interp, lag_interp);
+    new_fixed_time[i] = Time() - now_fixed_new;
+  }
+  std::sort(new_fixed_time.begin(), new_fixed_time.end());
+  std::cerr << "Fastest time: " << new_fixed_time[0] << '\n';
+  std::cerr << "Median  time: " << new_fixed_time[N/2] << '\n';
+  std::cerr << "Max-5\%  time: " << new_fixed_time[N-N/20] << '\n';
   
   std::cout << "========== New interp ==========" << std::endl;
   for (Index i=0; i<N; i++) {

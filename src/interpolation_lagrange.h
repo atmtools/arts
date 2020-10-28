@@ -46,15 +46,17 @@ struct Lagrange {
   /* Number of weights */
   Index size() const noexcept { return lx.nelem(); }
 
-  /*! Update the weights for a new x
+  /*! Standard and only initializer, assumes sorted xi and atleast 2 of them
    *
    * @param[in] x New grid position
    * @param[in] xi Old grid positions
+   * @param[in] polyorder Polynominal degree
    * @param[in] extrapol Level of extrapolation
-   * @param[in] type Type of scale for x?
+   * @param[in] type Type of Lagrange (Normal or Log)
    */
-  void update(const Numeric x, const ConstVectorView& xi,
-              const Numeric extrapol = 0.5, const LagrangeType type=LagrangeType::Linear) {
+  Lagrange(Index p0, const Numeric x, const ConstVectorView& xi, const Index polyorder = 1,
+           const Numeric extrapol = 0.5, const LagrangeType type=LagrangeType::Linear)
+      : lx(polyorder + 1), dlx(polyorder + 1) {
     const Index n = xi.nelem();
     const Index p = lx.nelem();
 
@@ -71,34 +73,21 @@ struct Lagrange {
       throw std::runtime_error(os.str());
     } else {
       // Find first larger x
-      Index p0=pos;
       for (; p0 < n - p; p0++)
         if (xi[p0] > x) break;
 
       // Adjust back so x is between the two Xs (if possible and not at the end)
       if (p0 > 0 and xi[p0] > x) p0--;
+      
+      // Set the position
       pos = p0;
 
       // Set weights
-      for (Index j = 0; j < p; j++) lx[j] = l(x, xi, j, p, p0, type);
+      for (Index j = 0; j < p; j++) lx[j] = l(x, xi, j, p, pos, type);
       
       // Set derivatives after the weights
-      for (Index j = 0; j < p; j++) dlx[j] = dl(x, xi, lx, j, p, p0, type);
+      for (Index j = 0; j < p; j++) dlx[j] = dl(x, xi, lx, j, p, pos, type);
     }
-  }
-
-  /*! Standard and only initializer, assumes sorted xi and atleast 2 of them
-   *
-   * @param[in] x New grid position
-   * @param[in] xi Old grid positions
-   * @param[in] polyorder Polynominal degree
-   * @param[in] extrapol Level of extrapolation
-   * @param[in] type Type of Lagrange (Normal or Log)
-   */
-  Lagrange(const Numeric x, const ConstVectorView& xi, const Index polyorder = 1,
-           const Numeric extrapol = 0.5, const LagrangeType type=LagrangeType::Linear)
-      : pos(0), lx(polyorder + 1), dlx(polyorder + 1) {
-    update(x, xi, extrapol, type);
   }
 
   friend std::ostream& operator<<(std::ostream& os, const Lagrange& l) {
@@ -107,7 +96,7 @@ struct Lagrange {
 
  private:
   /*! Computes the weights for a given coefficient */
-  static Numeric l(const Numeric x, const ConstVectorView& xi, const Index j, const Index n, const Index p0, const LagrangeType type) {
+  static Numeric l(const Numeric x, const ConstVectorView& xi, const Index j, const Index n, const Index p0, const LagrangeType type) noexcept {
     Numeric val = 1.0;
     if (type == LagrangeType::Log) {
       for (Index m = 0; m < n; m++) {
@@ -129,7 +118,7 @@ struct Lagrange {
    * 
    * Must be called with all lx known
    */
-  static Numeric dl(const Numeric x, const ConstVectorView& xi, const ConstVectorView& li, const Index j, const Index n, const Index p0, const LagrangeType type) {
+  static Numeric dl(const Numeric x, const ConstVectorView& xi, const ConstVectorView& li, const Index j, const Index n, const Index p0, const LagrangeType type) noexcept {
     Numeric dval = 0.0;
     if (type == LagrangeType::Log) {
       for (Index i = 0; i < n; i++) {
@@ -158,90 +147,18 @@ struct FixedLagrange {
   /* Number of weights */
   static constexpr Index size() noexcept { return PolyOrder + 1; }
 
-  /*! Update the weights for a new x
-   *
-   * @param[in] x New grid position
-   * @param[in] xi Old grid positions
-   * @param[in] extrapol Level of extrapolation
-   */
-  template <class SortedVectorType>
-  void update(const Numeric x, const SortedVectorType& xi,
-              const Numeric extrapol = 0.5,
-              const LagrangeType type=LagrangeType::Linear) {
-    const Index n = xi.size();
-
-    if (size() >= n) {
-      throw std::runtime_error(
-          "Requesting greater interpolation order than possible with given "
-          "input grid\n");
-    } else if (extrapol >= 0 and
-               (x < (xi[0] - extrapol * (xi[1] - xi[0])) or
-                x > (xi[n - 1] + extrapol * (xi[n - 1] - xi[n - 2])))) {
-      std::ostringstream os;
-      os << "Extrapolation factor too small at: " << extrapol
-         << ", for grid: " << xi << '\n';
-      throw std::runtime_error(os.str());
-    } else {
-      pos = pos_finder(x, xi, pos);
-      lx = lx_finder(x, xi, type);
-      dlx = dlx_finder(x, xi, type);
-    }
-  }
-
   /*! Standard initializer from Vector-types
    *
+   * @param[in] p0 Guess of first position
    * @param[in] x New grid position
    * @param[in] xi Old grid positions
-   * @param[in] extrapol Level of extrapolation
+   * @param[in] type Type of grid (Linear or Log)
    */
   template <class SortedVectorType>
-  constexpr FixedLagrange(const Numeric x, const SortedVectorType& xi,
-                          const Numeric extrapol = 0.5,
-                          const LagrangeType type=LagrangeType::Linear) : pos(0) {
-    update(x, xi, extrapol, type);
+  constexpr FixedLagrange(const Index p0, const Numeric x, const SortedVectorType& xi,
+                          const LagrangeType type=LagrangeType::Linear) : pos(pos_finder(x, xi, p0)),
+                          lx(lx_finder(pos, x, xi, type)), dlx(dlx_finder(pos, x, xi, lx, type)) {
   }
-
-  /*! Standard initializer from Vector-types
-   * 
-   * @param[in] past Past interpolation
-   * @param[in] x New grid position
-   * @param[in] xi Old grid positions
-   * @param[in] extrapol Level of extrapolation
-   */
-  template <class SortedVectorType>
-  constexpr FixedLagrange(const FixedLagrange& past,
-                          const Numeric x, const SortedVectorType& xi,
-                          const Numeric extrapol = 0.5,
-                          const LagrangeType type=LagrangeType::Linear) : pos(past.pos) {
-    update(x, xi, extrapol, type);
-  }
-
-  /*! Const initializer from array
-   *
-   * @param[in] x New grid position
-   * @param[in] xi Old grid positions
-   */
-  template <std::size_t NumElem>
-  constexpr FixedLagrange(const Numeric x,
-                          const std::array<Numeric, NumElem>& xi,
-                          const LagrangeType type=LagrangeType::Linear) noexcept
-                          : pos(pos_finder(x, xi)), lx(lx_finder(x, xi, type)), dlx(dlx_finder(x, xi, type)) {
-    static_assert(NumElem > PolyOrder,
-                  "Number of elements not good for this polynominal order");
-  }
-  
-
-  /*! Const initializer from list of numbers
-   *
-   * @param[in] x New grid position
-   * @param[in] xi Old grid positions
-   */
-  template <typename... Numbers>
-  constexpr FixedLagrange(const Numeric x, Numbers... num) noexcept
-      : FixedLagrange(
-            x, std::array<Numeric, sizeof...(Numbers)>{Numeric(num)...}, LagrangeType::Linear) {}
-
-  FixedLagrange() noexcept {}
             
  private:
   /*! Finds the position */
@@ -259,48 +176,50 @@ struct FixedLagrange {
   }
 
   /*! Finds lx */
-  template <class SortedVectorType>
+  template <class SortedVectorType> static
   constexpr std::array<Numeric, PolyOrder + 1> lx_finder(
+    const Index p0,
     const Numeric x, const SortedVectorType& xi,
-    const LagrangeType type) const noexcept {
+    const LagrangeType type) noexcept {
     std::array<Numeric, PolyOrder + 1> out{};
     if (type == LagrangeType::Linear) {
       for (Index j = 0; j < size(); j++)
-        out[j] = l<LagrangeType::Linear>(x, xi, j);
+        out[j] = l<LagrangeType::Linear>(p0, x, xi, j);
     } else if (type == LagrangeType::Log) {
       for (Index j = 0; j < size(); j++)
-        out[j] = l<LagrangeType::Log>(x, xi, j);
+        out[j] = l<LagrangeType::Log>(p0, x, xi, j);
     }
     return out;
   }
 
   /*! Finds dlx */
-  template <class SortedVectorType>
+  template <class SortedVectorType> static
   constexpr std::array<Numeric, PolyOrder + 1> dlx_finder(
-    const Numeric x, const SortedVectorType& xi,
-    const LagrangeType type) const noexcept {
+    const Index p0,
+    const Numeric x, const SortedVectorType& xi, const std::array<Numeric, PolyOrder + 1>& li,
+    const LagrangeType type) noexcept {
     std::array<Numeric, PolyOrder + 1> out{};
     if (type == LagrangeType::Linear) {
       for (Index j = 0; j < size(); j++)
-        out[j] = dl<LagrangeType::Linear>(x, xi, j);
+        out[j] = dl<LagrangeType::Linear>(p0, x, xi, li, j);
     } else if (type == LagrangeType::Log) {
       for (Index j = 0; j < size(); j++)
-        out[j] = dl<LagrangeType::Log>(x, xi, j);
+        out[j] = dl<LagrangeType::Log>(p0, x, xi, li, j);
     }
     return out;
   }
 
   /*! Computes the weights for a given coefficient */
   template <LagrangeType type, typename SortedVectorType>
-  constexpr Numeric l(const Numeric x, const SortedVectorType& xi,
-                      const Index j) const noexcept {
+  static constexpr Numeric l(const Index p0, const Numeric x, const SortedVectorType& xi,
+                      const Index j) noexcept {
     Numeric val = 1.0;
     for (Index m = 0; m < size(); m++) {
       if (m not_eq j) {
         if constexpr (type == LagrangeType::Log) {
-          val *= (std::log(x) - std::log(xi[m + pos])) / (std::log(xi[j + pos]) - std::log(xi[m + pos]));
+          val *= (std::log(x) - std::log(xi[m + p0])) / (std::log(xi[j + p0]) - std::log(xi[m + p0]));
         } else if constexpr (type == LagrangeType::Linear) {
-          val *= (x - xi[m + pos]) / (xi[j + pos] - xi[m + pos]);
+          val *= (x - xi[m + p0]) / (xi[j + p0] - xi[m + p0]);
         }
       }
     }
@@ -312,15 +231,15 @@ struct FixedLagrange {
    * Must be called with all lx known
    */
   template <LagrangeType type, typename SortedVectorType>
-  constexpr Numeric dl(const Numeric x, const SortedVectorType& xi,
-                       const Index j) const noexcept {
+  static constexpr Numeric dl(const Index p0, const Numeric x, const SortedVectorType& xi, const std::array<Numeric, PolyOrder + 1>& li,
+                              const Index j) noexcept {
     Numeric dval = 0.0;
     for (Index i = 0; i < size(); i++) {
       if (i not_eq j) {
         if (type == LagrangeType::Log) {
-          dval += lx[j] / (std::log(x) - std::log(xi[i+pos]));
+          dval += li[j] / (std::log(x) - std::log(xi[i+p0]));
         } else if (type == LagrangeType::Linear) {
-          dval += lx[j] / (x - xi[i+pos]);
+          dval += li[j] / (x - xi[i+p0]);
         }
       }
     }
@@ -485,13 +404,18 @@ std::vector<Lagrange> LagrangeVector(const ConstVectorView& x,
  * @return vector of FixedLagrange
  */
 template <std::size_t PolyOrder>
-std::vector<FixedLagrange<PolyOrder>> FixedLagrangeVector(const ConstVectorView& x,
+std::vector<FixedLagrange<PolyOrder>> FixedLagrangeVector(const ConstVectorView& xs,
                                                           const ConstVectorView& xi,
-                                                          const Numeric extrapol,
                                                           const LagrangeType type) {
-  std::vector<FixedLagrange<PolyOrder>> out(x.nelem());
-  for (Index i = 0; i < x.nelem(); i++)
-    out[i] = FixedLagrange<PolyOrder>(x[i], xi, extrapol, type);
+  std::vector<FixedLagrange<PolyOrder>> out;
+  out.reserve(xs.nelem());
+  for (Index i = 0; i < xs.nelem(); i++) {
+    if (i) {
+      out.push_back(FixedLagrange<PolyOrder>(out[i-1].pos, xs[i], xi, type));
+    } else {
+      out.push_back(FixedLagrange<PolyOrder>(0, xs[i], xi, type));
+    }
+  }
   return out;
 }
 
