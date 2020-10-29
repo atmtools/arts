@@ -460,6 +460,22 @@ std::vector<FixedLagrange<PolyOrder>> FixedLagrangeVector(const UnsortedVectorTy
 ////////////////////////////////////////////////
 
 /*! Interpolation weights for a 1D reduction
+ * 
+ * @param[in,out] iw - Interpolation weights
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @return Vector - interpweights
+ */
+void interpweights(VectorView iw, const Lagrange& dim0);
+
+/*! Interpolation weights for a 1D reduction
+ * 
+ * @param[in,out] iw - Interpolation weights
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @return Vector - interpweights
+ */
+void interpweights(Grid<Vector, 1>& iw, const std::vector<Lagrange>& dim0);
+
+/*! Interpolation weights for a 1D reduction
  *
  * @param[in] dim0 - Interpolation along dimension 0
  * @return Vector - interpweights
@@ -500,6 +516,22 @@ Grid<std::array<Numeric, PolyOrder + 1>, 1> interpweights(
 ////////////////////////////////////////////////
 /////////// Derivatives of Interpolation Weights
 ////////////////////////////////////////////////
+
+/*! Interpolation weights derivative for a 1D reduction
+ * 
+ * @param[in,out] diw - Interpolation weights derivative
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @return Vector - interpweights derivative along 0th dimension
+ */
+void dinterpweights(VectorView diw, const Lagrange& dim0);
+
+/*! Interpolation weights derivative for a 1D reduction
+ * 
+ * @param[in,out] diw - Interpolation weights derivative
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @return Vector - interpweights derivative along 0th dimension
+ */
+void dinterpweights(Grid<Vector, 1>& diw, const std::vector<Lagrange>& dim0);
 
 /*! Interpolation weights derivative for a 1D reduction
  *
@@ -577,6 +609,18 @@ constexpr Numeric interp(const VectorType& yi,
 ////////////////////////////////////////////////
 
 /*! Reinterpreting interpolation routine
+ * 
+ * @param[in,out] out - Reinterpreted field
+ * @param[in] yi - Original data to squash
+ * @param[in] iw - Interpolation weights grid or their derivatives from the
+ * Lagrange routines
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @return Vector of interpolated value
+ */
+void reinterp(VectorView out, const ConstVectorView& iy, const Grid<Vector, 1>& iw,
+              const std::vector<Lagrange>& dim0);
+
+/*! Reinterpreting interpolation routine
  *
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights grid or their derivatives from the
@@ -612,6 +656,25 @@ Vector reinterp(const ConstVectorView& iy,
 ////////////////////////////////////////////////
 ////////////////////////// Interpolation Weights
 ////////////////////////////////////////////////
+
+/*! Interpolation weights for a 2D reduction
+ * 
+ * @param[in,out] iw - Interpolation weights
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @param[in] dim1 - Interpolation along dimension 1
+ * @return Matrix - interpweights
+ */
+void interpweights(MatrixView iw, const Lagrange& dim0, const Lagrange& dim1);
+
+/*! Interpolation weights for a 2D reduction
+ * 
+ * @param[in,out] iw - Interpolation weights
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @param[in] dim1 - Interpolation along dimension 1
+ * @return Matrix - interpweights
+ */
+void interpweights(Grid<Matrix, 2>& iw, const std::vector<Lagrange>& dim0,
+                              const std::vector<Lagrange>& dim1);
 
 /*! Interpolation weights for a 2D reduction
  *
@@ -666,6 +729,27 @@ Grid<FixedGrid<Numeric, PolyOrder0 + 1, PolyOrder1 + 1>, 2> interpweights(
 ////////////////////////////////////////////////
 /////////// Derivatives of Interpolation Weights
 ////////////////////////////////////////////////
+
+/*! Interpolation weights derivative for a 2D reduction
+ * 
+ * @param[in,out] diw - Interpolation weights derivative
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @param[in] dim1 - Interpolation along dimension 1
+ * @param[in] dim - Axis along which to compute the derivatives
+ * @return Matrix - interpweights derivative along dim dimension
+ */
+void dinterpweights(MatrixView diw, const Lagrange& dim0, const Lagrange& dim1, Index dim);
+
+/*! Interpolation weights derivative for a 2D reduction
+ * 
+ * @param[in,out] diw - Interpolation weights derivative
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @param[in] dim1 - Interpolation along dimension 1
+ * @param[in] dim - Axis along which to compute the derivatives
+ * @return Matrix - interpweights derivative along dim dimension
+ */
+void dinterpweights(Grid<Matrix, 2>& diw, const std::vector<Lagrange>& dim0,
+                               const std::vector<Lagrange>& dim1, Index dim);
 
 /*! Interpolation weights derivative for a 2D reduction
  *
@@ -775,6 +859,34 @@ constexpr Numeric interp(
 ////////////////////////////////////////////////
 
 /*! Reinterpreting interpolation routine
+ * 
+ * @param[in,out] out - Reinterpreted field
+ * @param[in] yi - Original data to squash
+ * @param[in] iw - Interpolation weights grid or their derivatives from the
+ * Lagrange routines
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @return Matrix of interpolated value
+ */
+void reinterp(MatrixView out,const ConstMatrixView& iy, const Grid<Matrix, 2>& iw,
+              const std::vector<Lagrange>& dim0,
+              const std::vector<Lagrange>& dim1);
+
+/*! Reinterpreting interpolation routine
+ * 
+ * @param[in,out] out - Reinterpreted field
+ * @param[in] yi - Original data to squash
+ * @param[in] iw - Interpolation weights grid or their derivatives from the
+ * Lagrange routines
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @return Matrix of interpolated value
+ */
+void reinterp_reduce(VectorView out,const ConstMatrixView& iy, const Grid<Matrix, 2>& iw,
+                     const std::vector<Lagrange>& dim0,
+                     const std::vector<Lagrange>& dim1);
+
+/*! Reinterpreting interpolation routine
  *
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights grid or their derivatives from the
@@ -816,6 +928,29 @@ Matrix reinterp(
 ////////////////////////////////////////////////
 ////////////////////////// Interpolation Weights
 ////////////////////////////////////////////////
+
+/*! Interpolation weights for a 3D reduction
+ * 
+ * @param[in,out] iw - Interpolation weights
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @param[in] dim1 - Interpolation along dimension 1
+ * @param[in] dim2 - Interpolation along dimension 2
+ * @return Tensor3 - interpweights
+ */
+void interpweights(Tensor3View iw, const Lagrange& dim0, const Lagrange& dim1,
+                      const Lagrange& dim2);
+
+/*! Interpolation weights for a 3D reduction
+ * 
+ * @param[in,out] iw - Interpolation weights
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @param[in] dim1 - Interpolation along dimension 1
+ * @param[in] dim2 - Interpolation along dimension 2
+ * @return Tensor3 - interpweights
+ */
+void interpweights(Grid<Tensor3, 3>& iw, const std::vector<Lagrange>& dim0,
+                               const std::vector<Lagrange>& dim1,
+                               const std::vector<Lagrange>& dim2);
 
 /*! Interpolation weights for a 3D reduction
  *
@@ -884,6 +1019,31 @@ interpweights(const std::vector<FixedLagrange<PolyOrder0>>& dim0,
 ////////////////////////////////////////////////
 /////////// Derivatives of Interpolation Weights
 ////////////////////////////////////////////////
+
+/*! Interpolation weights derivative for a 3D reduction
+ * 
+ * @param[in,out] diw - Interpolation weights derivative
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @param[in] dim1 - Interpolation along dimension 1
+ * @param[in] dim2 - Interpolation along dimension 2
+ * @param[in] dim - Axis along which to compute the derivatives
+ * @return Tensor3 - interpweights derivative along dim dimension
+ */
+void dinterpweights(Tensor3View diw, const Lagrange& dim0, const Lagrange& dim1,
+                       const Lagrange& dim2, Index dim);
+
+/*! Interpolation weights derivative for a 3D reduction
+ * 
+ * @param[in,out] diw - Interpolation weights derivative
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @param[in] dim1 - Interpolation along dimension 1
+ * @param[in] dim2 - Interpolation along dimension 2
+ * @param[in] dim - Axis along which to compute the derivatives
+ * @return Tensor3 - interpweights derivative along dim dimension
+ */
+void dinterpweights(Grid<Tensor3, 3>& diw, const std::vector<Lagrange>& dim0,
+                                const std::vector<Lagrange>& dim1,
+                                const std::vector<Lagrange>& dim2, Index dim);
 
 /*! Interpolation weights derivative for a 3D reduction
  *
@@ -1009,7 +1169,39 @@ constexpr Numeric interp(const Tensor3Type& yi,
 ////////////////////////////////////////////////
 
 /*! Reinterpreting interpolation routine
- *
+ * 
+ * @param[in,out] out - Reinterpreted field
+ * @param[in] yi - Original data to squash
+ * @param[in] iw - Interpolation weights grid or their derivatives from the
+ * Lagrange routines
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] dim2 - Lagrange weights along the dimension
+ * @return Tensor3 of interpolated value
+ */
+void reinterp(Tensor3View out, const ConstTensor3View& iy, const Grid<Tensor3, 3>& iw,
+                 const std::vector<Lagrange>& dim0,
+                 const std::vector<Lagrange>& dim1,
+              const std::vector<Lagrange>& dim2);
+
+/*! Reinterpreting interpolation routine
+ * 
+ * @param[in,out] out - Reinterpreted field
+ * @param[in] yi - Original data to squash
+ * @param[in] iw - Interpolation weights grid or their derivatives from the
+ * Lagrange routines
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] dim2 - Lagrange weights along the dimension
+ * @return Tensor3 of interpolated value
+ */
+void reinterp_reduce(VectorView out, const ConstTensor3View& iy, const Grid<Tensor3, 3>& iw,
+              const std::vector<Lagrange>& dim0,
+              const std::vector<Lagrange>& dim1,
+              const std::vector<Lagrange>& dim2);
+
+/*! Reinterpreting interpolation routine
+ * 
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights grid or their derivatives from the
  * Lagrange routines
@@ -1058,6 +1250,32 @@ Tensor3 reinterp(
 ////////////////////////////////////////////////
 ////////////////////////// Interpolation Weights
 ////////////////////////////////////////////////
+
+/*! Interpolation weights for a 4D reduction
+ * 
+ * @param[in,out] iw - Interpolation weights
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @param[in] dim1 - Interpolation along dimension 1
+ * @param[in] dim2 - Interpolation along dimension 2
+ * @param[in] dim3 - Interpolation along dimension 3
+ * @return Tensor4 - interpweights
+ */
+void interpweights(Tensor4View iw, const Lagrange& dim0, const Lagrange& dim1,
+                      const Lagrange& dim2, const Lagrange& dim3);
+
+/*! Interpolation weights for a 4D reduction
+ * 
+ * @param[in,out] iw - Interpolation weights
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @param[in] dim1 - Interpolation along dimension 1
+ * @param[in] dim2 - Interpolation along dimension 2
+ * @param[in] dim3 - Interpolation along dimension 3
+ * @return Tensor4 - interpweights
+ */
+void interpweights(Grid<Tensor4, 4>& iw, const std::vector<Lagrange>& dim0,
+                               const std::vector<Lagrange>& dim1,
+                               const std::vector<Lagrange>& dim2,
+                               const std::vector<Lagrange>& dim3);
 
 /*! Interpolation weights for a 4D reduction
  *
@@ -1142,6 +1360,34 @@ interpweights(const std::vector<FixedLagrange<PolyOrder0>>& dim0,
 ////////////////////////////////////////////////
 /////////// Derivatives of Interpolation Weights
 ////////////////////////////////////////////////
+
+/*! Interpolation weights derivative for a 4D reduction
+ * 
+ * @param[in,out] diw - Interpolation weights derivative
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @param[in] dim1 - Interpolation along dimension 1
+ * @param[in] dim2 - Interpolation along dimension 2
+ * @param[in] dim3 - Interpolation along dimension 3
+ * @param[in] dim - Axis along which to compute the derivatives
+ * @return Tensor4 - interpweights derivative along dim dimension
+ */
+void dinterpweights(Tensor4View diw, const Lagrange& dim0, const Lagrange& dim1,
+                       const Lagrange& dim2, const Lagrange& dim3, Index dim);
+
+/*! Interpolation weights derivative for a 4D reduction
+ * 
+ * @param[in,out] diw - Interpolation weights derivative
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @param[in] dim1 - Interpolation along dimension 1
+ * @param[in] dim2 - Interpolation along dimension 2
+ * @param[in] dim3 - Interpolation along dimension 3
+ * @param[in] dim - Axis along which to compute the derivatives
+ * @return Tensor4 - interpweights derivative along dim dimension
+ */
+void dinterpweights(Grid<Tensor4, 4>& diw, const std::vector<Lagrange>& dim0,
+                                const std::vector<Lagrange>& dim1,
+                                const std::vector<Lagrange>& dim2,
+                                const std::vector<Lagrange>& dim3, Index dim);
 
 /*! Interpolation weights derivative for a 4D reduction
  *
@@ -1292,6 +1538,42 @@ constexpr Numeric interp(
 ////////////////////////////////////////////////
 
 /*! Reinterpreting interpolation routine
+ * 
+ * @param[in,out] out - Reinterpreted field
+ * @param[in] yi - Original data to squash
+ * @param[in] iw - Interpolation weights grid or their derivatives from the
+ * Lagrange routines
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] dim2 - Lagrange weights along the dimension
+ * @param[in] dim3 - Lagrange weights along the dimension
+ * @return Tensor4 of interpolated value
+ */
+void reinterp(Tensor4View out, const ConstTensor4View& iy, const Grid<Tensor4, 4>& iw,
+                 const std::vector<Lagrange>& dim0,
+                 const std::vector<Lagrange>& dim1,
+                 const std::vector<Lagrange>& dim2,
+              const std::vector<Lagrange>& dim3);
+
+/*! Reinterpreting interpolation routine
+ * 
+ * @param[in,out] out - Reinterpreted field
+ * @param[in] yi - Original data to squash
+ * @param[in] iw - Interpolation weights grid or their derivatives from the
+ * Lagrange routines
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] dim2 - Lagrange weights along the dimension
+ * @param[in] dim3 - Lagrange weights along the dimension
+ * @return Tensor4 of interpolated value
+ */
+void reinterp_reduce(VectorView out, const ConstTensor4View& iy, const Grid<Tensor4, 4>& iw,
+              const std::vector<Lagrange>& dim0,
+              const std::vector<Lagrange>& dim1,
+              const std::vector<Lagrange>& dim2,
+              const std::vector<Lagrange>& dim3);
+
+/*! Reinterpreting interpolation routine
  *
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights grid or their derivatives from the
@@ -1346,6 +1628,36 @@ Tensor4 reinterp(const ConstTensor4View& iy,
 ////////////////////////////////////////////////
 ////////////////////////// Interpolation Weights
 ////////////////////////////////////////////////
+
+/*! Interpolation weights for a 5D reduction
+ * 
+ * @param[in,out] iw - Interpolation weights
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @param[in] dim1 - Interpolation along dimension 1
+ * @param[in] dim2 - Interpolation along dimension 2
+ * @param[in] dim3 - Interpolation along dimension 3
+ * @param[in] dim4 - Interpolation along dimension 4
+ * @return Tensor5 - interpweights
+ */
+void interpweights(Tensor5View iw, const Lagrange& dim0, const Lagrange& dim1,
+                      const Lagrange& dim2, const Lagrange& dim3,
+                      const Lagrange& dim4);
+
+/*! Interpolation weights for a 5D reduction
+ * 
+ * @param[in,out] iw - Interpolation weights
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @param[in] dim1 - Interpolation along dimension 1
+ * @param[in] dim2 - Interpolation along dimension 2
+ * @param[in] dim3 - Interpolation along dimension 3
+ * @param[in] dim4 - Interpolation along dimension 4
+ * @return Tensor5 - interpweights
+ */
+void interpweights(Grid<Tensor5, 5>& iw, const std::vector<Lagrange>& dim0,
+                               const std::vector<Lagrange>& dim1,
+                               const std::vector<Lagrange>& dim2,
+                               const std::vector<Lagrange>& dim3,
+                               const std::vector<Lagrange>& dim4);
 
 /*! Interpolation weights for a 5D reduction
  *
@@ -1444,6 +1756,38 @@ interpweights(const std::vector<FixedLagrange<PolyOrder0>>& dim0,
 ////////////////////////////////////////////////
 /////////// Derivatives of Interpolation Weights
 ////////////////////////////////////////////////
+
+/*! Interpolation weights derivative for a 5D reduction
+ * 
+ * @param[in,out] diw - Interpolation weights derivative
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @param[in] dim1 - Interpolation along dimension 1
+ * @param[in] dim2 - Interpolation along dimension 2
+ * @param[in] dim3 - Interpolation along dimension 3
+ * @param[in] dim4 - Interpolation along dimension 4
+ * @param[in] dim - Axis along which to compute the derivatives
+ * @return Tensor5 - interpweights derivative along dim dimension
+ */
+void dinterpweights(Tensor5View diw, const Lagrange& dim0, const Lagrange& dim1,
+                       const Lagrange& dim2, const Lagrange& dim3,
+                       const Lagrange& dim4, Index dim);
+
+/*! Interpolation weights derivative for a 5D reduction
+ * 
+ * @param[in,out] diw - Interpolation weights derivative
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @param[in] dim1 - Interpolation along dimension 1
+ * @param[in] dim2 - Interpolation along dimension 2
+ * @param[in] dim3 - Interpolation along dimension 3
+ * @param[in] dim4 - Interpolation along dimension 4
+ * @param[in] dim - Axis along which to compute the derivatives
+ * @return Tensor5 - interpweights derivative along dim dimension
+ */
+void dinterpweights(Grid<Tensor5, 5>& diw, const std::vector<Lagrange>& dim0,
+                                const std::vector<Lagrange>& dim1,
+                                const std::vector<Lagrange>& dim2,
+                                const std::vector<Lagrange>& dim3,
+                                const std::vector<Lagrange>& dim4, Index dim);
 
 /*! Interpolation weights derivative for a 5D reduction
  *
@@ -1612,6 +1956,46 @@ constexpr Numeric interp(
 ////////////////////////////////////////////////
 
 /*! Reinterpreting interpolation routine
+ * 
+ * @param[in,out] out - Reinterpreted field
+ * @param[in] yi - Original data to squash
+ * @param[in] iw - Interpolation weights grid or their derivatives from the
+ * Lagrange routines
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] dim2 - Lagrange weights along the dimension
+ * @param[in] dim3 - Lagrange weights along the dimension
+ * @param[in] dim4 - Lagrange weights along the dimension
+ * @return Tensor5 of interpolated value
+ */
+void reinterp(Tensor5View out, const ConstTensor5View& iy, const Grid<Tensor5, 5>& iw,
+                 const std::vector<Lagrange>& dim0,
+                 const std::vector<Lagrange>& dim1,
+                 const std::vector<Lagrange>& dim2,
+                 const std::vector<Lagrange>& dim3,
+              const std::vector<Lagrange>& dim4);
+
+/*! Reinterpreting interpolation routine
+ * 
+ * @param[in,out] out - Reinterpreted field
+ * @param[in] yi - Original data to squash
+ * @param[in] iw - Interpolation weights grid or their derivatives from the
+ * Lagrange routines
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] dim2 - Lagrange weights along the dimension
+ * @param[in] dim3 - Lagrange weights along the dimension
+ * @param[in] dim4 - Lagrange weights along the dimension
+ * @return Tensor5 of interpolated value
+ */
+void reinterp_reduce(VectorView out, const ConstTensor5View& iy, const Grid<Tensor5, 5>& iw,
+              const std::vector<Lagrange>& dim0,
+              const std::vector<Lagrange>& dim1,
+              const std::vector<Lagrange>& dim2,
+              const std::vector<Lagrange>& dim3,
+              const std::vector<Lagrange>& dim4);
+
+/*! Reinterpreting interpolation routine
  *
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights grid or their derivatives from the
@@ -1673,6 +2057,39 @@ Tensor5 reinterp(
 ////////////////////////////////////////////////
 ////////////////////////// Interpolation Weights
 ////////////////////////////////////////////////
+
+/*! Interpolation weights for a 6D reduction
+ * 
+ * @param[in,out] iw - Interpolation weights
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @param[in] dim1 - Interpolation along dimension 1
+ * @param[in] dim2 - Interpolation along dimension 2
+ * @param[in] dim3 - Interpolation along dimension 3
+ * @param[in] dim4 - Interpolation along dimension 4
+ * @param[in] dim5 - Interpolation along dimension 5
+ * @return Tensor6 - interpweights
+ */
+void interpweights(Tensor6View iw, const Lagrange& dim0, const Lagrange& dim1,
+                      const Lagrange& dim2, const Lagrange& dim3,
+                      const Lagrange& dim4, const Lagrange& dim5);
+
+/*! Interpolation weights for a 6D reduction
+ * 
+ * @param[in,out] iw - Interpolation weights
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @param[in] dim1 - Interpolation along dimension 1
+ * @param[in] dim2 - Interpolation along dimension 2
+ * @param[in] dim3 - Interpolation along dimension 3
+ * @param[in] dim4 - Interpolation along dimension 4
+ * @param[in] dim5 - Interpolation along dimension 5
+ * @return Tensor6 - interpweights
+ */
+void interpweights(Grid<Tensor6, 6>& iw, const std::vector<Lagrange>& dim0,
+                               const std::vector<Lagrange>& dim1,
+                               const std::vector<Lagrange>& dim2,
+                               const std::vector<Lagrange>& dim3,
+                               const std::vector<Lagrange>& dim4,
+                               const std::vector<Lagrange>& dim5);
 
 /*! Interpolation weights for a 6D reduction
  *
@@ -1781,6 +2198,41 @@ interpweights(const std::vector<FixedLagrange<PolyOrder0>>& dim0,
 ////////////////////////////////////////////////
 /////////// Derivatives of Interpolation Weights
 ////////////////////////////////////////////////
+
+/*! Interpolation weights derivative for a 6D reduction
+ * 
+ * @param[in,out] diw - Interpolation weights derivative
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @param[in] dim1 - Interpolation along dimension 1
+ * @param[in] dim2 - Interpolation along dimension 2
+ * @param[in] dim3 - Interpolation along dimension 3
+ * @param[in] dim4 - Interpolation along dimension 4
+ * @param[in] dim5 - Interpolation along dimension 5
+ * @param[in] dim - Axis along which to compute the derivatives
+ * @return Tensor6 - interpweights derivative along dim dimension
+ */
+void dinterpweights(Tensor6View diw, const Lagrange& dim0, const Lagrange& dim1,
+                       const Lagrange& dim2, const Lagrange& dim3,
+                       const Lagrange& dim4, const Lagrange& dim5, Index dim);
+
+/*! Interpolation weights derivative for a 6D reduction
+ * 
+ * @param[in,out] diw - Interpolation weights derivative
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @param[in] dim1 - Interpolation along dimension 1
+ * @param[in] dim2 - Interpolation along dimension 2
+ * @param[in] dim3 - Interpolation along dimension 3
+ * @param[in] dim4 - Interpolation along dimension 4
+ * @param[in] dim5 - Interpolation along dimension 5
+ * @param[in] dim - Axis along which to compute the derivatives
+ * @return Tensor6 - interpweights derivative along dim dimension
+ */
+void dinterpweights(Grid<Tensor6, 6>& diw, const std::vector<Lagrange>& dim0,
+                                const std::vector<Lagrange>& dim1,
+                                const std::vector<Lagrange>& dim2,
+                                const std::vector<Lagrange>& dim3,
+                                const std::vector<Lagrange>& dim4,
+                                const std::vector<Lagrange>& dim5, Index dim);
 
 /*! Interpolation weights derivative for a 6D reduction
  *
@@ -1967,6 +2419,50 @@ constexpr Numeric interp(
 ////////////////////////////////////////////////
 
 /*! Reinterpreting interpolation routine
+ * 
+ * @param[in,out] out - Reinterpreted field
+ * @param[in] yi - Original data to squash
+ * @param[in] iw - Interpolation weights grid or their derivatives from the
+ * Lagrange routines
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] dim2 - Lagrange weights along the dimension
+ * @param[in] dim3 - Lagrange weights along the dimension
+ * @param[in] dim4 - Lagrange weights along the dimension
+ * @param[in] dim5 - Lagrange weights along the dimension
+ * @return Tensor6 of interpolated value
+ */
+void reinterp(Tensor6View out, const ConstTensor6View& iy, const Grid<Tensor6, 6>& iw,
+                 const std::vector<Lagrange>& dim0,
+                 const std::vector<Lagrange>& dim1,
+                 const std::vector<Lagrange>& dim2,
+                 const std::vector<Lagrange>& dim3,
+                 const std::vector<Lagrange>& dim4,
+              const std::vector<Lagrange>& dim5);
+
+/*! Reinterpreting interpolation routine
+ * 
+ * @param[in,out] out - Reinterpreted field
+ * @param[in] yi - Original data to squash
+ * @param[in] iw - Interpolation weights grid or their derivatives from the
+ * Lagrange routines
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] dim2 - Lagrange weights along the dimension
+ * @param[in] dim3 - Lagrange weights along the dimension
+ * @param[in] dim4 - Lagrange weights along the dimension
+ * @param[in] dim5 - Lagrange weights along the dimension
+ * @return Tensor6 of interpolated value
+ */
+void reinterp_reduce(VectorView out, const ConstTensor6View& iy, const Grid<Tensor6, 6>& iw,
+              const std::vector<Lagrange>& dim0,
+              const std::vector<Lagrange>& dim1,
+              const std::vector<Lagrange>& dim2,
+              const std::vector<Lagrange>& dim3,
+              const std::vector<Lagrange>& dim4,
+              const std::vector<Lagrange>& dim5);
+
+/*! Reinterpreting interpolation routine
  *
  * @param[in] yi - Original data to squash
  * @param[in] iw - Interpolation weights grid or their derivatives from the
@@ -2035,6 +2531,43 @@ Tensor6 reinterp(const ConstTensor6View& iy,
 ////////////////////////////////////////////////
 ////////////////////////// Interpolation Weights
 ////////////////////////////////////////////////
+
+/*! Interpolation weights for a 7D reduction
+ * 
+ * @param[in,out] iw - Interpolation weights
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @param[in] dim1 - Interpolation along dimension 1
+ * @param[in] dim2 - Interpolation along dimension 2
+ * @param[in] dim3 - Interpolation along dimension 3
+ * @param[in] dim4 - Interpolation along dimension 4
+ * @param[in] dim5 - Interpolation along dimension 5
+ * @param[in] dim6 - Interpolation along dimension 6
+ * @return Tensor7 - interpweights
+ */
+void interpweights(Tensor7View iw, const Lagrange& dim0, const Lagrange& dim1,
+                      const Lagrange& dim2, const Lagrange& dim3,
+                      const Lagrange& dim4, const Lagrange& dim5,
+                      const Lagrange& dim6);
+
+/*! Interpolation weights for a 7D reduction
+ * 
+ * @param[in,out] iw - Interpolation weights
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @param[in] dim1 - Interpolation along dimension 1
+ * @param[in] dim2 - Interpolation along dimension 2
+ * @param[in] dim3 - Interpolation along dimension 3
+ * @param[in] dim4 - Interpolation along dimension 4
+ * @param[in] dim5 - Interpolation along dimension 5
+ * @param[in] dim6 - Interpolation along dimension 6
+ * @return Tensor7 - interpweights
+ */
+void interpweights(Grid<Tensor7, 7>& iw, const std::vector<Lagrange>& dim0,
+                               const std::vector<Lagrange>& dim1,
+                               const std::vector<Lagrange>& dim2,
+                               const std::vector<Lagrange>& dim3,
+                               const std::vector<Lagrange>& dim4,
+                               const std::vector<Lagrange>& dim5,
+                               const std::vector<Lagrange>& dim6);
 
 /*! Interpolation weights for a 7D reduction
  *
@@ -2159,6 +2692,45 @@ interpweights(const std::vector<FixedLagrange<PolyOrder0>>& dim0,
 ////////////////////////////////////////////////
 /////////// Derivatives of Interpolation Weights
 ////////////////////////////////////////////////
+
+/*! Interpolation weights derivative for a 7D reduction
+ * 
+ * @param[in,out] diw - Interpolation weights derivative
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @param[in] dim1 - Interpolation along dimension 1
+ * @param[in] dim2 - Interpolation along dimension 2
+ * @param[in] dim3 - Interpolation along dimension 3
+ * @param[in] dim4 - Interpolation along dimension 4
+ * @param[in] dim5 - Interpolation along dimension 5
+ * @param[in] dim6 - Interpolation along dimension 6
+ * @param[in] dim - Axis along which to compute the derivatives
+ * @return Tensor7 - interpweights derivative along dim dimension
+ */
+void dinterpweights(Tensor7View diw, const Lagrange& dim0, const Lagrange& dim1,
+                       const Lagrange& dim2, const Lagrange& dim3,
+                       const Lagrange& dim4, const Lagrange& dim5,
+                       const Lagrange& dim6, Index dim);
+
+/*! Interpolation weights derivative for a 7D reduction
+ * 
+ * @param[in,out] diw - Interpolation weights derivative
+ * @param[in] dim0 - Interpolation along dimension 0
+ * @param[in] dim1 - Interpolation along dimension 1
+ * @param[in] dim2 - Interpolation along dimension 2
+ * @param[in] dim3 - Interpolation along dimension 3
+ * @param[in] dim4 - Interpolation along dimension 4
+ * @param[in] dim5 - Interpolation along dimension 5
+ * @param[in] dim6 - Interpolation along dimension 6
+ * @param[in] dim - Axis along which to compute the derivatives
+ * @return Tensor7 - interpweights derivative along dim dimension
+ */
+void dinterpweights(Grid<Tensor7, 7>& diw, const std::vector<Lagrange>& dim0,
+                                const std::vector<Lagrange>& dim1,
+                                const std::vector<Lagrange>& dim2,
+                                const std::vector<Lagrange>& dim3,
+                                const std::vector<Lagrange>& dim4,
+                                const std::vector<Lagrange>& dim5,
+                                const std::vector<Lagrange>& dim6, Index dim);
 
 /*! Interpolation weights derivative for a 7D reduction
  *
@@ -2365,6 +2937,54 @@ constexpr Numeric interp(
 ////////////////////////////////////////////////
 /////////////////////////////// Re-Interpolation
 ////////////////////////////////////////////////
+
+/*! Reinterpreting interpolation routine
+ * 
+ * @param[in,out] out - Reinterpreted field
+ * @param[in] yi - Original data to squash
+ * @param[in] iw - Interpolation weights grid or their derivatives from the
+ * Lagrange routines
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] dim2 - Lagrange weights along the dimension
+ * @param[in] dim3 - Lagrange weights along the dimension
+ * @param[in] dim4 - Lagrange weights along the dimension
+ * @param[in] dim5 - Lagrange weights along the dimension
+ * @param[in] dim6 - Lagrange weights along the dimension
+ * @return Tensor7 of interpolated value
+ */
+void reinterp(Tensor7View out, const ConstTensor7View& iy, const Grid<Tensor7, 7>& iw,
+                 const std::vector<Lagrange>& dim0,
+                 const std::vector<Lagrange>& dim1,
+                 const std::vector<Lagrange>& dim2,
+                 const std::vector<Lagrange>& dim3,
+                 const std::vector<Lagrange>& dim4,
+                 const std::vector<Lagrange>& dim5,
+              const std::vector<Lagrange>& dim6);
+
+/*! Reinterpreting interpolation routine
+ * 
+ * @param[in,out] out - Reinterpreted field
+ * @param[in] yi - Original data to squash
+ * @param[in] iw - Interpolation weights grid or their derivatives from the
+ * Lagrange routines
+ * @param[in] dim0 - Lagrange weights along the dimension
+ * @param[in] dim1 - Lagrange weights along the dimension
+ * @param[in] dim2 - Lagrange weights along the dimension
+ * @param[in] dim3 - Lagrange weights along the dimension
+ * @param[in] dim4 - Lagrange weights along the dimension
+ * @param[in] dim5 - Lagrange weights along the dimension
+ * @param[in] dim6 - Lagrange weights along the dimension
+ * @return Tensor7 of interpolated value
+ */
+void reinterp_reduce(VectorView out, const ConstTensor7View& iy, const Grid<Tensor7, 7>& iw,
+              const std::vector<Lagrange>& dim0,
+              const std::vector<Lagrange>& dim1,
+              const std::vector<Lagrange>& dim2,
+              const std::vector<Lagrange>& dim3,
+              const std::vector<Lagrange>& dim4,
+              const std::vector<Lagrange>& dim5,
+              const std::vector<Lagrange>& dim6);
 
 /*! Reinterpreting interpolation routine
  *
