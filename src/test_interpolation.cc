@@ -623,8 +623,8 @@ void test11() {
   
   constexpr Index order = 5;
   {
-      const auto lag0 = Interpolation::LagrangeVector(x0n, x0, order, 0.5);
-      const auto lag1 = Interpolation::LagrangeVector(x1n, x1, order, 0.5);
+      const auto lag0 = Interpolation::LagrangeVector(x0n, x0, order, 0.5, false, Interpolation::LagrangeType::Linear);
+      const auto lag1 = Interpolation::LagrangeVector(x1n, x1, order, 0.5, false, Interpolation::LagrangeType::Linear);
       const auto iwlag = interpweights(lag0, lag1);
       std::cout << x0n << '\n' << x1n << '\n' << reinterp(yi, iwlag, lag0, lag1) << '\n';
   }
@@ -738,9 +738,9 @@ void test14() {
   Vector x{0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5};
   
   // Set up the interpolation Lagranges
-  auto lin = Interpolation::FixedLagrangeVector<1>(x, y, Interpolation::LagrangeType::Linear);
-  auto sqr = Interpolation::FixedLagrangeVector<2>(x, y, Interpolation::LagrangeType::Linear);
-  auto cub = Interpolation::FixedLagrangeVector<3>(x, y, Interpolation::LagrangeType::Linear);
+  auto lin = Interpolation::FixedLagrangeVector<1>(x, y, true, Interpolation::LagrangeType::Linear);
+  auto sqr = Interpolation::FixedLagrangeVector<2>(x, y, true, Interpolation::LagrangeType::Linear);
+  auto cub = Interpolation::FixedLagrangeVector<3>(x, y, true, Interpolation::LagrangeType::Linear);
   
   // Set up the interpolation weights
   auto lin_iw = interpweights(lin);
@@ -787,7 +787,7 @@ void test15() {
   for (Index i=0; i<N; i++) {
     Time now_fixed_new;
     const auto lag_interp =
-    Interpolation::FixedLagrangeVector<f_order>(xnew, xold, Interpolation::LagrangeType::Linear);
+    Interpolation::FixedLagrangeVector<f_order>(xnew, xold, false, Interpolation::LagrangeType::Linear);
     const auto iw_interp = interpweights(lag_interp);
     const auto ynew = reinterp(yold, iw_interp, lag_interp);
     new_fixed_time[i] = Time() - now_fixed_new;
@@ -801,7 +801,7 @@ void test15() {
   for (Index i=0; i<N; i++) {
     Time now_new;
     const auto lag_interp =
-    Interpolation::LagrangeVector(xnew, xold, f_order, 0.5);
+    Interpolation::LagrangeVector(xnew, xold, f_order, 0.5, false, Interpolation::LagrangeType::Linear);
     const auto iw_interp = interpweights(lag_interp);
     const auto ynew = reinterp(yold, iw_interp, lag_interp);
     new_time[i] = Time() - now_new;
