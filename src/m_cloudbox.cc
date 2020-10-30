@@ -121,12 +121,11 @@ void cloudboxSetAutomatically(  // WS Output:
     const Vector& lon_grid,
     const Tensor4& particle_field,
     // Control Parameters
-    const ArrayOfIndex& cloudbox_limits_old,
     const Numeric& cloudbox_margin,
     const Verbosity& verbosity) {
   // Check existing WSV
   chk_if_in_range("atmosphere_dim", atmosphere_dim, 1, 3);
-  // includes p_grid chk_if_decresasing
+  // includes p_grid chk_if_decreasing
   chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
   // Set cloudbox_on
   cloudbox_on = 1;
@@ -142,29 +141,8 @@ void cloudboxSetAutomatically(  // WS Output:
   // Allocate cloudbox_limits
   cloudbox_limits.resize(atmosphere_dim * 2);
 
-  bool cb_preset = (min(cloudbox_limits_old) > -1);
-  if (cb_preset) {
-    if (cloudbox_limits_old.nelem() != atmosphere_dim * 2) {
-      ostringstream os;
-      os << "The array *cloudbox_limits_old* has incorrect length.\n"
-         << "For atmospheric dim. = " << atmosphere_dim
-         << " the length shall be " << atmosphere_dim * 2 << " but it is "
-         << cloudbox_limits_old.nelem() << ".";
-      throw runtime_error(os.str());
-    }
-  }
-
   // Initialize boundary counters
-  Index p1 = 0, p2 = 0;
-  if (cloudbox_margin != -1) {
-    if (cb_preset)
-      p1 = cloudbox_limits_old[0] + 1;
-    else
-      p1 = np - 1;
-  }
-  if (cb_preset) {
-    p2 = cloudbox_limits_old[1] - 1;
-  }
+  Index p1 = np - 1, p2 = 0;
 
   // OLE: Commented out until code that uses it at the end of this function is commented back in
   /*
@@ -211,7 +189,7 @@ void cloudboxSetAutomatically(  // WS Output:
     }
   }
 
-  if (any_not_empty || cb_preset) {
+  if (any_not_empty) {
     // decrease lower cb limit by one to ensure that linear interpolation of
     // particle number densities is possible.
     p1 = max(p1 - 1, Index(0));

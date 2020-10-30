@@ -4274,13 +4274,11 @@ void define_md_data_raw() {
       GOUT_TYPE(),
       GOUT_DESC(),
       IN("atmosphere_dim", "p_grid", "lat_grid", "lon_grid"),
-      GIN("particle_field", "cloudbox_limits_old", "cloudbox_margin"),
-      GIN_TYPE("Tensor4", "ArrayOfIndex", "Numeric"),
-      GIN_DEFAULT(NODEF, "[-1]", "-1"),
+      GIN("particle_field", "cloudbox_margin"),
+      GIN_TYPE("Tensor4", "Numeric"),
+      GIN_DEFAULT(NODEF, "-1"),
       GIN_DESC("A collection of particle property fields (e.g."
                " *particle_bulkprop_field*).",
-               "Preset cloudbox limits, e.g. resulting from a previous run"
-               " of *cloudboxSetAutomatically*.",
                "Minimum distance [m] between lowest 'cloudy' level and"
                " cloudbox lower limit. If set to *-1* (default), the"
                " cloudbox lower limit is fixed to 0, i.e., corresponds to"
