@@ -37,6 +37,29 @@ constexpr std::size_t mul(const std::array<std::size_t, N>& arr) {
   }
 }
 
+/*! Finds the position
+ * 
+ * @param[in] x Coordinate to find a position for
+ * @param[in] xi Original sorted grid
+ * @param[in] N Max position plus one
+ * @param[in] p0 Estimation of the first position, must be [0, N)
+ * @param[in] ascending The sorting is ascending (1, 2, 3...(
+ */
+template <class SortedVectorType>
+constexpr Index pos_finder(const Numeric x,
+                           const SortedVectorType& xi,
+                           const Index N,
+                           Index p0, const bool ascending) noexcept {
+  if (ascending) {
+    while (p0 < N and xi[p0] < x) ++p0;
+    while (p0 > 0 and xi[p0] > x) --p0;
+  } else {
+    while (p0 < N and xi[p0] > x) ++p0;
+    while (p0 > 0 and xi[p0] < x) --p0;
+  }
+  return p0;
+}
+
 /*! A Lagrange interpolation computer */
 struct Lagrange {
   Index pos;
@@ -60,33 +83,30 @@ struct Lagrange {
     const Index n = xi.nelem();
     const Index p = polyorder + 1;
 
-    if (p >= n) {
+    if (p > n) {
       throw std::runtime_error(
           "Requesting greater interpolation order than possible with given "
           "input grid\n");
-    } else if (extrapol >= 0 and
-               (x < (xi[0] - extrapol * (xi[1] - xi[0])) or
-                x > (xi[n - 1] + extrapol * (xi[n - 1] - xi[n - 2])))) {
+    } else if (const bool ascending=xi[0] < xi[1]; extrapol >= 0 and
+      ascending ? (x < (xi[0] - extrapol * (xi[1] - xi[0])) or
+                   x > (xi[n - 1] + extrapol * (xi[n - 1] - xi[n - 2]))) :
+                  (x > (xi[0] - extrapol * (xi[1] - xi[0])) or
+                   x < (xi[n - 1] + extrapol * (xi[n - 1] - xi[n - 2])))) {
       std::ostringstream os;
       os << "Extrapolation factor too small at: " << extrapol
          << ", for grid: " << xi << '\n';
       throw std::runtime_error(os.str());
     } else {
-      // Find first larger x
-      while (p0 < n - p and xi[p0] < x) ++p0;
-      
-      // Adjust back so x is between the two Xs (if possible and not at the end)
-      while (p0 > 0 and xi[p0] > x) --p0;
       
       // Set the position
-      pos = p0;
+      pos = pos_finder(x, xi, n-p, p0, ascending);
 
       // Set weights
-      lx = lx_finder(p0, p, x, xi, type);
+      lx = lx_finder(pos, p, x, xi, type);
       
       // Set derivatives after the weights
       if (do_derivs)
-        dlx = dlx_finder(p0, p, x, xi, lx, type);
+        dlx = dlx_finder(pos, p, x, xi, lx, type);
     }
   }
 
@@ -182,28 +202,18 @@ struct FixedLagrange {
    */
   template <class SortedVectorType>
   constexpr FixedLagrange(const Index p0, const Numeric x, const SortedVectorType& xi, const bool do_derivs=true,
-                          const LagrangeType type=LagrangeType::Linear) : pos(pos_finder(x, xi, p0)),
+                          const LagrangeType type=LagrangeType::Linear) : pos(pos_finder(x, xi, Index(xi.size()) - size(), p0, xi.size() > 1 ? xi[0] < xi[1] : false)),
                           lx(lx_finder(pos, x, xi, type)), dlx(do_derivs ? dlx_finder(pos, x, xi, lx, type) : std::array<Numeric, PolyOrder + 1>{}) {
+  }
+
+  friend std::ostream& operator<<(std::ostream& os, const FixedLagrange& l) {
+    os << l.pos;
+    for (auto x: l.lx) os << ' ' << x;
+    for (auto x: l.dlx) os << ' ' << x;
+    return os;
   }
             
  private:
-  /*! Finds the position */
-  template <class SortedVectorType> static
-  constexpr Index pos_finder(const Numeric x,
-                             const SortedVectorType& xi,
-                             const Index pos0=0) noexcept {
-    const Index N = Index(xi.size()) - size();
-    Index p0 = pos0;
-    
-    // Find first larger x
-    while (p0 < N and xi[p0] < x) ++p0;
-    
-    // Adjust back so x is between the two Xs (if possible and not at the end)
-    while (p0 > 0 and xi[p0] > x) --p0;
-    
-    return p0;
-  }
-
   /*! Finds lx */
   template <class SortedVectorType> static
   constexpr std::array<Numeric, PolyOrder + 1> lx_finder(

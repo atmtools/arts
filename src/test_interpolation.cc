@@ -830,4 +830,22 @@ void test15() {
   std::cerr << "Max-5\%  time: " << old_time[N-N/20] << '\n';
 }
 
-int main() { test15(); }
+void test16() {
+  const Vector xasc{2, 3, 4};
+  const Vector xdes{4, 3, 2};
+  Vector x{2.25, 3.25, 2.35};
+  
+  auto asc=Interpolation::LagrangeVector(x, xasc, 1, 1.0, true, Interpolation::LagrangeType::Linear);
+  auto des=Interpolation::LagrangeVector(x, xdes, 1, 1.0, true, Interpolation::LagrangeType::Linear);
+  auto fasc=Interpolation::FixedLagrangeVector<1>(x, xasc, true, Interpolation::LagrangeType::Linear);
+  auto fdes=Interpolation::FixedLagrangeVector<1>(x, xdes, true, Interpolation::LagrangeType::Linear);
+  for (Index i=0; i<x.size(); i++) {
+    std::cout << x[i] << ": " << asc[i] << ' ' << '-' << ' ' << des[i] << ' ' << " xstart [asc des]: " << xasc[asc[i].pos] << ' ' << xdes[des[i].pos] << '\n';
+  }
+  std::cout << '\n';
+  for (Index i=0; i<x.size(); i++) {
+    std::cout << x[i] << ": " << fasc[i] << ' ' << '-' << ' ' << fdes[i] << ' ' << " xstart [asc des]: " << xasc[fasc[i].pos] << ' ' << xdes[fdes[i].pos] << '\n';
+  }
+}
+
+int main() { test15(); std::cout << '\n'; test16(); }
