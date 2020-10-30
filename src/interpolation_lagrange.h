@@ -63,11 +63,11 @@ constexpr Index pos_finder(const Numeric x,
 /*! A Lagrange interpolation computer */
 struct Lagrange {
   Index pos;
-  Vector lx;
-  Vector dlx;
+  std::vector<Numeric> lx;
+  std::vector<Numeric> dlx;
 
   /* Number of weights */
-  Index size() const noexcept { return lx.nelem(); }
+  Index size() const noexcept { return lx.size(); }
 
   /*! Standard and only initializer, assumes sorted xi and atleast 2 of them
    *
@@ -109,19 +109,22 @@ struct Lagrange {
         dlx = dlx_finder(pos, p, x, xi, lx, type);
     }
   }
-
+  
   friend std::ostream& operator<<(std::ostream& os, const Lagrange& l) {
-    return os << l.pos << ' ' << l.lx << ' ' << l.dlx;
+    os << l.pos;
+    for (auto x: l.lx) os << ' ' << x;
+    for (auto x: l.dlx) os << ' ' << x;
+    return os;
   }
 
  private: 
   /*! Finds lx */
   template <class SortedVectorType> static
-  Vector lx_finder(
+  std::vector<Numeric> lx_finder(
     const Index p0, const Index n,
     const Numeric x, const SortedVectorType& xi,
     const LagrangeType type) noexcept {
-      Vector out(n);
+      std::vector<Numeric> out(n);
       for (Index j = 0; j < n; j++)
         out[j] = l(x, xi, j, n, p0, type);
       return out;
@@ -129,11 +132,11 @@ struct Lagrange {
     
     /*! Finds dlx */
     template <class SortedVectorType> static
-    Vector dlx_finder(
+    std::vector<Numeric> dlx_finder(
       const Index p0, const Index n,
-      const Numeric x, const SortedVectorType& xi, const Vector& li,
+      const Numeric x, const SortedVectorType& xi, const std::vector<Numeric>& li,
       const LagrangeType type) noexcept {
-        Vector out(n);
+        std::vector<Numeric> out(n);
         for (Index j = 0; j < n; j++)
           out[j] = dl(x, xi, li, j, n, p0, type);
         return out;
@@ -365,6 +368,8 @@ class FixedGrid {
   constexpr std::size_t nelem() const { return mul(Sizes...); }
 
  public:
+  constexpr FixedGrid() noexcept : ptr({}) {}
+  
   static constexpr std::size_t N = sizeof...(Sizes);
   using base = b;
   static_assert(N, "Must have size");
@@ -450,8 +455,8 @@ std::vector<FixedLagrange<PolyOrder>> FixedLagrangeVector(const UnsortedVectorTy
                                                           const bool do_derivs,
                                                           const LagrangeType type) {
   std::vector<FixedLagrange<PolyOrder>> out;
-  out.reserve(xs.nelem());
-  for (Index i = 0; i < xs.nelem(); i++) {
+  out.reserve(xs.size());
+  for (decltype(xs.size()) i = 0; i < xs.size(); i++) {
     if (i) {
       out.push_back(FixedLagrange<PolyOrder>(out[i-1].pos, xs[i], xi, do_derivs, type));
     } else {
@@ -490,7 +495,7 @@ void interpweights(Grid<Vector, 1>& iw, const std::vector<Lagrange>& dim0);
  * @param[in] dim0 - Interpolation along dimension 0
  * @return Vector - interpweights
  */
-const Vector& interpweights(const Lagrange& dim0);
+Vector interpweights(const Lagrange& dim0);
 
 /*! Interpolation weights for a 1D reduction
  *
@@ -548,7 +553,7 @@ void dinterpweights(Grid<Vector, 1>& diw, const std::vector<Lagrange>& dim0);
  * @param[in] dim0 - Interpolation along dimension 0
  * @return Vector - interpweights derivative along 0th dimension
  */
-const Vector& dinterpweights(const Lagrange& dim0);
+Vector dinterpweights(const Lagrange& dim0);
 
 /*! Interpolation weights derivative for a 1D reduction
  *
@@ -1162,9 +1167,9 @@ template <std::size_t PolyOrder0, std::size_t PolyOrder1,
 constexpr Numeric interp(const Tensor3Type& yi,
                          const FixedGrid<Numeric, PolyOrder0 + 1,
                                          PolyOrder1 + 1, PolyOrder2 + 1>& iw,
-                         const std::vector<FixedLagrange<PolyOrder0>>& dim0,
-                         const std::vector<FixedLagrange<PolyOrder1>>& dim1,
-                         const std::vector<FixedLagrange<PolyOrder2>>& dim2) {
+                         const FixedLagrange<PolyOrder0>& dim0,
+                         const FixedLagrange<PolyOrder1>& dim1,
+                         const FixedLagrange<PolyOrder2>& dim2) {
   Numeric out(0.0);
 
   for (Index i = 0; i < dim0.size(); i++)

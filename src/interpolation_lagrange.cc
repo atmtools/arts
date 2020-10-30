@@ -36,7 +36,7 @@ void interpweights(Grid<Vector, 1>& iw, const std::vector<Lagrange>& dim0) {
   for (std::size_t i = 0; i < dim0.size(); i++) interpweights(iw(i), dim0[i]);
 }
 
-const Vector& interpweights(const Lagrange& dim0) { return dim0.lx; }
+Vector interpweights(const Lagrange& dim0) { return dim0.lx; }
 
 Grid<Vector, 1> interpweights(const std::vector<Lagrange>& dim0) {
   Grid<Vector, 1> out(dim0.size());
@@ -54,7 +54,7 @@ void dinterpweights(Grid<Vector, 1>& diw, const std::vector<Lagrange>& dim0) {
   for (std::size_t i = 0; i < dim0.size(); i++) dinterpweights(diw(i), dim0[i]);
 }
 
-const Vector& dinterpweights(const Lagrange& dim0) { return dim0.dlx; }
+Vector dinterpweights(const Lagrange& dim0) { return dim0.dlx; }
 
 Grid<Vector, 1> dinterpweights(const std::vector<Lagrange>& dim0) {
   Grid<Vector, 1> out(dim0.size());
