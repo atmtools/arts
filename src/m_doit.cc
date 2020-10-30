@@ -2961,8 +2961,17 @@ void DoitGetIncoming(Workspace& ws,
   Index Nf = f_grid.nelem();
   Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
   Index Nza = za_grid.nelem();
+
   Matrix iy;
+
+  //dummy variables needed for the call of iy_main_agendaExecute
+  ArrayOfMatrix iy_aux;
+  ArrayOfTensor3 diy_dx;
   Ppath ppath;
+  Tensor3 iy_transmittance(0, 0, 0);
+  const ArrayOfString iy_aux_vars(0);
+
+
 
   //--- Check input ----------------------------------------------------------
   if (!(atmosphere_dim == 1 || atmosphere_dim == 3))
@@ -2986,31 +2995,49 @@ void DoitGetIncoming(Workspace& ws,
       // doing the first angle separately for allowing dy between 2 angles
       // in the loop
       los[0] = za_grid[0];
-      get_iy(ws,
-             iy,
-             0,
-             f_grid,
-             nlte_field,
-             pos,
-             los,
-             Vector(0),
-             iy_unit,
-             iy_main_agenda);
+
+      iy_main_agendaExecute(ws,
+                            iy,
+                            iy_aux,
+                            ppath,
+                            diy_dx,
+                            1,
+                            iy_transmittance,
+                            iy_aux_vars,
+                            0,
+                            iy_unit,
+                            0,
+                            0,
+                            f_grid,
+                            nlte_field,
+                            pos,
+                            los,
+                            Vector(0),
+                            iy_main_agenda);
+
       cloudbox_field(joker, boundary_index, 0, 0, 0, 0, joker) = iy;
 
       for (Index za_index = 1; za_index < Nza; za_index++) {
         los[0] = za_grid[za_index];
 
-        get_iy(ws,
-               iy,
-               0,
-               f_grid,
-               nlte_field,
-               pos,
-               los,
-               Vector(0),
-               iy_unit,
-               iy_main_agenda);
+        iy_main_agendaExecute(ws,
+                              iy,
+                              iy_aux,
+                              ppath,
+                              diy_dx,
+                              1,
+                              iy_transmittance,
+                              iy_aux_vars,
+                              0,
+                              iy_unit,
+                              0,
+                              0,
+                              f_grid,
+                              nlte_field,
+                              pos,
+                              los,
+                              Vector(0),
+                              iy_main_agenda);
 
         cloudbox_field(joker, boundary_index, 0, 0, za_index, 0, joker) = iy;
 
@@ -3089,16 +3116,24 @@ void DoitGetIncoming(Workspace& ws,
               // only need to perform calculations for one scat_aa
               // and set the others to same value
               if ((za_index != 0 && za_index != (Nza - 1)) || aa_index == 0) {
-                get_iy(ws,
-                       iy,
-                       0,
-                       f_grid,
-                       nlte_field,
-                       pos,
-                       los,
-                       Vector(0),
-                       iy_unit,
-                       iy_main_agenda);
+                iy_main_agendaExecute(ws,
+                                      iy,
+                                      iy_aux,
+                                      ppath,
+                                      diy_dx,
+                                      1,
+                                      iy_transmittance,
+                                      iy_aux_vars,
+                                      0,
+                                      iy_unit,
+                                      0,
+                                      0,
+                                      f_grid,
+                                      nlte_field,
+                                      pos,
+                                      los,
+                                      Vector(0),
+                                      iy_main_agenda);
               }
 
               cloudbox_field(joker,
@@ -3133,16 +3168,24 @@ void DoitGetIncoming(Workspace& ws,
               // For end points of za_index, we need only to
               // perform calculations for first scat_aa
               if ((za_index != 0 && za_index != (Nza - 1)) || aa_index == 0) {
-                get_iy(ws,
-                       iy,
-                       0,
-                       f_grid,
-                       nlte_field,
-                       pos,
-                       los,
-                       Vector(0),
-                       iy_unit,
-                       iy_main_agenda);
+                iy_main_agendaExecute(ws,
+                                      iy,
+                                      iy_aux,
+                                      ppath,
+                                      diy_dx,
+                                      1,
+                                      iy_transmittance,
+                                      iy_aux_vars,
+                                      0,
+                                      iy_unit,
+                                      0,
+                                      0,
+                                      f_grid,
+                                      nlte_field,
+                                      pos,
+                                      los,
+                                      Vector(0),
+                                      iy_main_agenda);
               }
 
               cloudbox_field(joker,
@@ -3177,16 +3220,24 @@ void DoitGetIncoming(Workspace& ws,
               // For end points of za_index, we need only to
               // perform calculations for first scat_aa
               if ((za_index != 0 && za_index != (Nza - 1)) || aa_index == 0) {
-                get_iy(ws,
-                       iy,
-                       0,
-                       f_grid,
-                       nlte_field,
-                       pos,
-                       los,
-                       Vector(0),
-                       iy_unit,
-                       iy_main_agenda);
+                iy_main_agendaExecute(ws,
+                                      iy,
+                                      iy_aux,
+                                      ppath,
+                                      diy_dx,
+                                      1,
+                                      iy_transmittance,
+                                      iy_aux_vars,
+                                      0,
+                                      iy_unit,
+                                      0,
+                                      0,
+                                      f_grid,
+                                      nlte_field,
+                                      pos,
+                                      los,
+                                      Vector(0),
+                                      iy_main_agenda);
               }
 
               cloudbox_field(joker,
@@ -3257,8 +3308,15 @@ void DoitGetIncoming1DAtm(Workspace& ws,
   Index Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
   Index Nza = za_grid.nelem();
   Index Naa = aa_grid.nelem();
+
   Matrix iy;
+
+  //dummy variables needed for the call of iy_main_agendaExecute
+  ArrayOfMatrix iy_aux;
+  ArrayOfTensor3 diy_dx;
   Ppath ppath;
+  Tensor3 iy_transmittance(0, 0, 0);
+  const ArrayOfString iy_aux_vars(0);
 
   //--- Check input ----------------------------------------------------------
   if (atmosphere_dim != 3)
@@ -3302,16 +3360,24 @@ void DoitGetIncoming1DAtm(Workspace& ws,
     for (Index za_index = 0; za_index < Nza; za_index++) {
       los[0] = za_grid[za_index];
 
-      get_iy(ws,
-             iy,
-             0,
-             f_grid,
-             nlte_field,
-             pos,
-             los,
-             Vector(0),
-             iy_unit,
-             iy_main_agenda);
+      iy_main_agendaExecute(ws,
+                            iy,
+                            iy_aux,
+                            ppath,
+                            diy_dx,
+                            1,
+                            iy_transmittance,
+                            iy_aux_vars,
+                            0,
+                            iy_unit,
+                            0,
+                            0,
+                            f_grid,
+                            nlte_field,
+                            pos,
+                            los,
+                            Vector(0),
+                            iy_main_agenda);
 
       for (Index aa = 0; aa < Naa; aa++) {
         // cloudbox_field lower boundary
